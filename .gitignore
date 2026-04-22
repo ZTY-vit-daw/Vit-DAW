@@ -1,0 +1,69 @@
+# -----------------------------
+# Core build/output artifacts
+# -----------------------------
+build/
+dist/
+out/
+bin/
+obj/
+cmake-build-*/
+
+# Exported app bundles/releases
+Export/
+*.zip
+*.7z
+
+# -----------------------------
+# Temporary/work directories
+# -----------------------------
+tmp/
+temp/
+cache/
+.cache/
+calibration_tmp/
+baked_tiles_test/
+tmp_sodium_check/
+tmp_sodium_cmake/
+
+# -----------------------------
+# Logs and diagnostics
+# -----------------------------
+*.log
+diagnosis_*.png
+baker_diag.log
+
+# -----------------------------
+# Large generated test/media files
+# (remove patterns here if you want to version them)
+# -----------------------------
+*.exr
+*.wav
+Truth_*.png
+spectrum_data.exr
+test_*.wav
+
+# -----------------------------
+# IDE / OS noise
+# -----------------------------
+.vscode/
+.idea/
+*.code-workspace
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# -----------------------------
+# Python / Node / generic caches
+# -----------------------------
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+node_modules/
+npm-debug.log*
+yarn-error.log*
+
+# -----------------------------
+# Keep placeholder files if used
+# -----------------------------
+!.gitkeep
