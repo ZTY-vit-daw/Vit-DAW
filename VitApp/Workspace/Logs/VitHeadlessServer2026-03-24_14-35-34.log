@@ -1,0 +1,2102 @@
+
+**********************************************************
+VitHeadlessServer session log
+Log started: 24 Mar 2026 2:35:34pm
+
+VitHeadlessServer: application startup.
+Settings file: D:\Vit_DAW\VitApp\Workspace\Settings\Settings.xml
+Audio block size: 480  Rate: 48000
+Creating Default Controllers...
+VitEngineDevice: initialising Tracktion Engine device manager.
+Audio block size: 480  Rate: 48000
+VitEngineDevice: audio setup outputDevice="扬声器 (USB AUDIO  CODEC)" inputDevice="麦克风 (Sonic Studio Virtual Mixer)" sampleRate=48000.00 bufferSize=480 inputChannels=11 outputChannels=11
+VitEngineDevice: current audio device name="扬声器 (USB AUDIO  CODEC)" type="Windows Audio" activeOutputChannels=Output channel 1, Output channel 2" activeInputChannels=Input channel 1, Input channel 2"
+VitHeadlessService: edit loaded from D:\Vit_DAW\VitApp\Workspace\default_project.xml
+VitHeadlessService: project reload complete.
+ZmqGateway: bound command endpoint to tcp://127.0.0.1:5555
+ZmqGateway: bound publish endpoint to tcp://127.0.0.1:5556
+ZmqGateway: bound log endpoint to tcp://127.0.0.1:5557
+ZmqGateway: started network thread.
+VitHeadlessService: service started successfully.
+VitHeadlessServer: startup complete, entering background message loop.
+Rebuilding Wave Device List...
+Wave In: Input 1 (enabled): 0 (L)
+Wave In: Input 2 (enabled): 1 (L)
+Wave Out: Output 1 + 2 (enabled): 0 (L), 1 (R)
+Default Wave Out: Output 1 + 2
+Default MIDI Out: 
+Default Wave In: Input 1
+Default MIDI In: 
+ZmqGateway: received command payload: {"cmd":"ping"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"ping"}
+Command received: {"cmd":"ping"}
+CommandDispatcher: handled ping command.
+Command executed: ping, result: {
+  "status": "ok",
+  "message": "pong"
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "pong"
+}
+ZmqGateway: received command payload: {"cmd":"ping"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"ping"}
+Command received: {"cmd":"ping"}
+CommandDispatcher: handled ping command.
+Command executed: ping, result: {
+  "status": "ok",
+  "message": "pong"
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "pong"
+}
+ZmqGateway: received command payload: {"cmd":"clear_project"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"clear_project"}
+Command received: {"cmd":"clear_project"}
+VitHeadlessService: project saved to D:\Vit_DAW\VitApp\Workspace\default_project.xml
+CommandDispatcher: clear_project executed â?all clips removed, transport reset.
+Command executed: clear_project, result: {
+  "status": "ok",
+  "message": "Project cleared"
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Project cleared"
+}
+ZmqGateway: received command payload: {"cmd":"list_tracks"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"list_tracks"}
+Command received: {"cmd":"list_tracks"}
+Command executed: list_tracks, result: {
+  "status": "ok",
+  "message": "Track list fetched",
+  "tracks": [
+    {
+      "id": "1002",
+      "name": "Arranger",
+      "track_type": "track",
+      "is_audio": false,
+      "is_audio_track": false,
+      "vit_type": "",
+      "vit_intent": "",
+      "plugin_count": 0,
+      "plugins": []
+    },
+    {
+      "id": "1003",
+      "name": "Chord",
+      "track_type": "track",
+      "is_audio": false,
+      "is_audio_track": false,
+      "vit_type": "",
+      "vit_intent": "",
+      "plugin_count": 0,
+      "plugins": []
+    },
+    {
+      "id": "1004",
+      "name": "Marker",
+      "track_type": "track",
+      "is_audio": false,
+      "is_audio_track": false,
+      "vit_type": "",
+      "vit_intent": "",
+      "plugin_count": 0,
+      "plugins": []
+    },
+    {
+      "id": "1005",
+      "name": "Tempo",
+      "track_type": "track",
+      "is_audio": false,
+      "is_audio_track": false,
+      "vit_type": "",
+      "vit_intent": "",
+      "plugin_count": 0,
+      "plugins": []
+    },
+    {
+      "id": "1006",
+      "name": "Master",
+      "track_type": "master",
+      "is_audio": false,
+      "is_audio_track": false,
+      "vit_type": "",
+      "vit_intent": "",
+      "plugin_count": 0,
+      "plugins": []
+    },
+    {
+      "id": "1110",
+      "name": "Audio Track 2",
+      "track_type": "audio",
+      "is_audio": true,
+      "is_audio_track": true,
+      "vit_type": "",
+      "vit_intent": "",
+      "plugin_count": 2,
+      "plugins": [
+        {
+          "name": "Volume & Pan Plugin",
+          "type": "volume",
+          "enabled": true
+        },
+        {
+          "name": "Level Meter",
+          "type": "level",
+          "enabled": true
+        }
+      ]
+    }
+  ]
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Track list fetched",
+  "tracks": [
+    {
+      "id": "1002",
+      "name": "Arranger",
+      "track_type": "track",
+      "is_audio": false,
+      "is_audio_track": false,
+    
+MIDI Input devices scanned in: 0
+Updating MIDI I/O devices
+Found MIDI in: all_midi_in ("All MIDI Ins") (enabled)
+Found MIDI out: out_81b0d7ef ("Microsoft GS Wavetable Synth") (enabled)
+opening MIDI out device: out_81b0d7ef (Microsoft GS Wavetable Synth)
+ZmqGateway: received command payload: {"action":"import_audio","drop_x_pos":211.0,"file_path":"D:/Vit_DAW/test_target_3s.wav","track_id":"1110"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"import_audio","drop_x_pos":211.0,"file_path":"D:/Vit_DAW/test_target_3s.wav","track_id":"1110"}
+Command received: {"action":"import_audio","drop_x_pos":211.0,"file_path":"D:/Vit_DAW/test_target_3s.wav","track_id":"1110"}
+CommandDispatcher::handleImportAudio: imported clip="test_target_3s" trackId="1110" source="D:\Vit_DAW\test_target_3s.wav" clipLengthSeconds=3.000 isPlaying=false isRecording=false playContextActive=true positionSeconds=0.000 editLengthSeconds=3.000
+VitHeadlessService: project saved to D:\Vit_DAW\VitApp\Workspace\default_project.xml
+Command executed: import_audio, result: {
+  "status": "ok",
+  "action": "import_audio",
+  "message": "Audio clip imported",
+  "track_id": "1110",
+  "clip_name": "test_target_3s",
+  "file_path": "D:\\Vit_DAW\\test_target_3s.wav",
+  "start_time": 0.0,
+  "clip_length_seconds": 3.0,
+  "edit_length_seconds": 3.0,
+  "baking_status": "baking_started"
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "action": "import_audio",
+  "message": "Audio clip imported",
+  "track_id": "1110",
+  "clip_name": "test_target_3s",
+  "file_path": "D:\\Vit_DAW\\test_target_3s.wav",
+  "start_time": 0.0,
+  
+ZmqGateway: received command payload: {"action":"play"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"play"}
+Command received: {"action":"play"}
+CommandDispatcher::handlePlay: before isPlaying=false isRecording=false playContextActive=true positionSeconds=0.000 editLengthSeconds=3.000
+CommandDispatcher::handlePlay: after isPlaying=true isRecording=false playContextActive=true positionSeconds=0.000 editLengthSeconds=3.000
+Command executed: play, result: {
+  "status": "ok",
+  "message": "Transport playing",
+  "is_playing": true,
+  "is_recording": false,
+  "position_seconds": 0.0,
+  "click_track_enabled": false
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Transport playing",
+  "is_playing": true,
+  "is_recording": false,
+  "position_seconds": 0.0,
+  "click_track_enabled": false
+}
+ZmqGateway: received command payload: {"action":"stop"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"stop"}
+Command received: {"action":"stop"}
+CommandDispatcher::handleStop: before isPlaying=true isRecording=false playContextActive=true positionSeconds=3.210 editLengthSeconds=3.000
+CommandDispatcher::handleStop: after isPlaying=false isRecording=false playContextActive=true positionSeconds=3.210 editLengthSeconds=3.000
+Command executed: stop, result: {
+  "status": "ok",
+  "message": "Transport stopped",
+  "is_playing": false,
+  "is_recording": false,
+  "position_seconds": 3.21,
+  "click_track_enabled": false
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Transport stopped",
+  "is_playing": false,
+  "is_recording": false,
+  "position_seconds": 3.21,
+  "click_track_enabled": false
+}
+ZmqGateway: received command payload: {"action":"play"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"play"}
+Command received: {"action":"play"}
+CommandDispatcher::handlePlay: before isPlaying=false isRecording=false playContextActive=true positionSeconds=3.210 editLengthSeconds=3.000
+CommandDispatcher::handlePlay: after isPlaying=true isRecording=false playContextActive=true positionSeconds=3.210 editLengthSeconds=3.000
+Command executed: play, result: {
+  "status": "ok",
+  "message": "Transport playing",
+  "is_playing": true,
+  "is_recording": false,
+  "position_seconds": 3.21,
+  "click_track_enabled": false
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Transport playing",
+  "is_playing": true,
+  "is_recording": false,
+  "position_seconds": 3.21,
+  "click_track_enabled": false
+}
+ZmqGateway: received command payload: {"action":"stop"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"stop"}
+Command received: {"action":"stop"}
+CommandDispatcher::handleStop: before isPlaying=true isRecording=false playContextActive=true positionSeconds=5.330 editLengthSeconds=3.000
+CommandDispatcher::handleStop: after isPlaying=false isRecording=false playContextActive=true positionSeconds=5.330 editLengthSeconds=3.000
+Command executed: stop, result: {
+  "status": "ok",
+  "message": "Transport stopped",
+  "is_playing": false,
+  "is_recording": false,
+  "position_seconds": 5.33,
+  "click_track_enabled": false
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Transport stopped",
+  "is_playing": false,
+  "is_recording": false,
+  "position_seconds": 5.33,
+  "click_track_enabled": false
+}
+ZmqGateway: received command payload: {"action":"stop"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"stop"}
+Command received: {"action":"stop"}
+CommandDispatcher::handleStop: before isPlaying=false isRecording=false playContextActive=true positionSeconds=5.340 editLengthSeconds=3.000
+CommandDispatcher::handleStop: after isPlaying=false isRecording=false playContextActive=true positionSeconds=5.340 editLengthSeconds=3.000
+Command executed: stop, result: {
+  "status": "ok",
+  "message": "Transport stopped",
+  "is_playing": false,
+  "is_recording": false,
+  "position_seconds": 5.34,
+  "click_track_enabled": false
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Transport stopped",
+  "is_playing": false,
+  "is_recording": false,
+  "position_seconds": 5.34,
+  "click_track_enabled": false
+}
+ZmqGateway: received command payload: {"action":"return_to_zero"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"return_to_zero"}
+Command received: {"action":"return_to_zero"}
+CommandDispatcher::handleReturnToZero: before isPlaying=false isRecording=false playContextActive=true positionSeconds=5.340 editLengthSeconds=3.000
+CommandDispatcher::handleReturnToZero: after isPlaying=false isRecording=false playContextActive=true positionSeconds=0.000 editLengthSeconds=3.000
+Command executed: return_to_zero, result: {
+  "status": "ok",
+  "message": "Transport returned to zero",
+  "is_playing": false,
+  "is_recording": false,
+  "position_seconds": 0.0,
+  "click_track_enabled": false
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Transport returned to zero",
+  "is_playing": false,
+  "is_recording": false,
+  "position_seconds": 0.0,
+  "click_track_enabled": false
+}
+ZmqGateway: received command payload: {"action":"return_to_zero"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"return_to_zero"}
+Command received: {"action":"return_to_zero"}
+CommandDispatcher::handleReturnToZero: before isPlaying=false isRecording=false playContextActive=true positionSeconds=0.000 editLengthSeconds=3.000
+CommandDispatcher::handleReturnToZero: after isPlaying=false isRecording=false playContextActive=true positionSeconds=0.000 editLengthSeconds=3.000
+Command executed: return_to_zero, result: {
+  "status": "ok",
+  "message": "Transport returned to zero",
+  "is_playing": false,
+  "is_recording": false,
+  "position_seconds": 0.0,
+  "click_track_enabled": false
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Transport returned to zero",
+  "is_playing": false,
+  "is_recording": false,
+  "position_seconds": 0.0,
+  "click_track_enabled": false
+}
+ZmqGateway: received command payload: {"action":"play"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"play"}
+Command received: {"action":"play"}
+CommandDispatcher::handlePlay: before isPlaying=false isRecording=false playContextActive=true positionSeconds=0.000 editLengthSeconds=3.000
+CommandDispatcher::handlePlay: after isPlaying=true isRecording=false playContextActive=true positionSeconds=0.000 editLengthSeconds=3.000
+Command executed: play, result: {
+  "status": "ok",
+  "message": "Transport playing",
+  "is_playing": true,
+  "is_recording": false,
+  "position_seconds": 0.0,
+  "click_track_enabled": false
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Transport playing",
+  "is_playing": true,
+  "is_recording": false,
+  "position_seconds": 0.0,
+  "click_track_enabled": false
+}
+ZmqGateway: received command payload: {"action":"stop"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"stop"}
+Command received: {"action":"stop"}
+CommandDispatcher::handleStop: before isPlaying=true isRecording=false playContextActive=true positionSeconds=3.130 editLengthSeconds=3.000
+CommandDispatcher::handleStop: after isPlaying=false isRecording=false playContextActive=true positionSeconds=3.130 editLengthSeconds=3.000
+Command executed: stop, result: {
+  "status": "ok",
+  "message": "Transport stopped",
+  "is_playing": false,
+  "is_recording": false,
+  "position_seconds": 3.13,
+  "click_track_enabled": false
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Transport stopped",
+  "is_playing": false,
+  "is_recording": false,
+  "position_seconds": 3.13,
+  "click_track_enabled": false
+}
+ZmqGateway: received command payload: {"action":"return_to_zero"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"return_to_zero"}
+Command received: {"action":"return_to_zero"}
+CommandDispatcher::handleReturnToZero: before isPlaying=false isRecording=false playContextActive=true positionSeconds=3.140 editLengthSeconds=3.000
+CommandDispatcher::handleReturnToZero: after isPlaying=false isRecording=false playContextActive=true positionSeconds=0.000 editLengthSeconds=3.000
+Command executed: return_to_zero, result: {
+  "status": "ok",
+  "message": "Transport returned to zero",
+  "is_playing": false,
+  "is_recording": false,
+  "position_seconds": 0.0,
+  "click_track_enabled": false
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Transport returned to zero",
+  "is_playing": false,
+  "is_recording": false,
+  "position_seconds": 0.0,
+  "click_track_enabled": false
+}
+ZmqGateway: received command payload: {"action":"return_to_zero"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"return_to_zero"}
+Command received: {"action":"return_to_zero"}
+CommandDispatcher::handleReturnToZero: before isPlaying=false isRecording=false playContextActive=true positionSeconds=0.000 editLengthSeconds=3.000
+CommandDispatcher::handleReturnToZero: after isPlaying=false isRecording=false playContextActive=true positionSeconds=0.000 editLengthSeconds=3.000
+Command executed: return_to_zero, result: {
+  "status": "ok",
+  "message": "Transport returned to zero",
+  "is_playing": false,
+  "is_recording": false,
+  "position_seconds": 0.0,
+  "click_track_enabled": false
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Transport returned to zero",
+  "is_playing": false,
+  "is_recording": false,
+  "position_seconds": 0.0,
+  "click_track_enabled": false
+}
+ZmqGateway: received command payload: {"action":"play"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"play"}
+Command received: {"action":"play"}
+CommandDispatcher::handlePlay: before isPlaying=false isRecording=false playContextActive=true positionSeconds=0.000 editLengthSeconds=3.000
+CommandDispatcher::handlePlay: after isPlaying=true isRecording=false playContextActive=true positionSeconds=0.000 editLengthSeconds=3.000
+Command executed: play, result: {
+  "status": "ok",
+  "message": "Transport playing",
+  "is_playing": true,
+  "is_recording": false,
+  "position_seconds": 0.0,
+  "click_track_enabled": false
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Transport playing",
+  "is_playing": true,
+  "is_recording": false,
+  "position_seconds": 0.0,
+  "click_track_enabled": false
+}
+ZmqGateway: received command payload: {"action":"stop"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"stop"}
+Command received: {"action":"stop"}
+CommandDispatcher::handleStop: before isPlaying=true isRecording=false playContextActive=true positionSeconds=2.880 editLengthSeconds=3.000
+CommandDispatcher::handleStop: after isPlaying=false isRecording=false playContextActive=true positionSeconds=2.880 editLengthSeconds=3.000
+Command executed: stop, result: {
+  "status": "ok",
+  "message": "Transport stopped",
+  "is_playing": false,
+  "is_recording": false,
+  "position_seconds": 2.88,
+  "click_track_enabled": false
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Transport stopped",
+  "is_playing": false,
+  "is_recording": false,
+  "position_seconds": 2.88,
+  "click_track_enabled": false
+}
+ZmqGateway: received command payload: {"action":"return_to_zero"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"return_to_zero"}
+Command received: {"action":"return_to_zero"}
+CommandDispatcher::handleReturnToZero: before isPlaying=false isRecording=false playContextActive=true positionSeconds=2.900 editLengthSeconds=3.000
+CommandDispatcher::handleReturnToZero: after isPlaying=false isRecording=false playContextActive=true positionSeconds=0.000 editLengthSeconds=3.000
+Command executed: return_to_zero, result: {
+  "status": "ok",
+  "message": "Transport returned to zero",
+  "is_playing": false,
+  "is_recording": false,
+  "position_seconds": 0.0,
+  "click_track_enabled": false
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Transport returned to zero",
+  "is_playing": false,
+  "is_recording": false,
+  "position_seconds": 0.0,
+  "click_track_enabled": false
+}
+ZmqGateway: received command payload: {"action":"return_to_zero"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"return_to_zero"}
+Command received: {"action":"return_to_zero"}
+CommandDispatcher::handleReturnToZero: before isPlaying=false isRecording=false playContextActive=true positionSeconds=0.000 editLengthSeconds=3.000
+CommandDispatcher::handleReturnToZero: after isPlaying=false isRecording=false playContextActive=true positionSeconds=0.000 editLengthSeconds=3.000
+Command executed: return_to_zero, result: {
+  "status": "ok",
+  "message": "Transport returned to zero",
+  "is_playing": false,
+  "is_recording": false,
+  "position_seconds": 0.0,
+  "click_track_enabled": false
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Transport returned to zero",
+  "is_playing": false,
+  "is_recording": false,
+  "position_seconds": 0.0,
+  "click_track_enabled": false
+}
+ZmqGateway: received command payload: {"action":"play"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"play"}
+Command received: {"action":"play"}
+CommandDispatcher::handlePlay: before isPlaying=false isRecording=false playContextActive=true positionSeconds=0.000 editLengthSeconds=3.000
+CommandDispatcher::handlePlay: after isPlaying=true isRecording=false playContextActive=true positionSeconds=0.000 editLengthSeconds=3.000
+Command executed: play, result: {
+  "status": "ok",
+  "message": "Transport playing",
+  "is_playing": true,
+  "is_recording": false,
+  "position_seconds": 0.0,
+  "click_track_enabled": false
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Transport playing",
+  "is_playing": true,
+  "is_recording": false,
+  "position_seconds": 0.0,
+  "click_track_enabled": false
+}
+ZmqGateway: received command payload: {"action":"stop"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"stop"}
+Command received: {"action":"stop"}
+CommandDispatcher::handleStop: before isPlaying=true isRecording=false playContextActive=true positionSeconds=2.420 editLengthSeconds=3.000
+CommandDispatcher::handleStop: after isPlaying=false isRecording=false playContextActive=true positionSeconds=2.420 editLengthSeconds=3.000
+Command executed: stop, result: {
+  "status": "ok",
+  "message": "Transport stopped",
+  "is_playing": false,
+  "is_recording": false,
+  "position_seconds": 2.42,
+  "click_track_enabled": false
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Transport stopped",
+  "is_playing": false,
+  "is_recording": false,
+  "position_seconds": 2.42,
+  "click_track_enabled": false
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":2.33577489852905}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":2.33577489852905}
+Command received: {"cmd":"seek","time":2.33577489852905}
+CommandDispatcher::handleSeek: position set to 2.3358s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 2.33577489852905
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 2.33577489852905
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":2.30295372009277}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":2.30295372009277}
+Command received: {"cmd":"seek","time":2.30295372009277}
+CommandDispatcher::handleSeek: position set to 2.3030s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 2.30295372009277
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 2.30295372009277
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":2.28107261657715}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":2.28107261657715}
+Command received: {"cmd":"seek","time":2.28107261657715}
+CommandDispatcher::handleSeek: position set to 2.2811s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 2.28107261657715
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 2.28107261657715
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":2.25372171401978}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":2.25372171401978}
+Command received: {"cmd":"seek","time":2.25372171401978}
+CommandDispatcher::handleSeek: position set to 2.2537s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 2.25372171401978
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 2.25372171401978
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":2.23184061050415}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":2.23184061050415}
+Command received: {"cmd":"seek","time":2.23184061050415}
+CommandDispatcher::handleSeek: position set to 2.2318s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 2.23184061050415
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 2.23184061050415
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":2.20996046066284}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":2.20996046066284}
+Command received: {"cmd":"seek","time":2.20996046066284}
+CommandDispatcher::handleSeek: position set to 2.2100s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 2.20996046066284
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 2.20996046066284
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":2.18260908126831}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":2.18260908126831}
+Command received: {"cmd":"seek","time":2.18260908126831}
+CommandDispatcher::handleSeek: position set to 2.1826s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 2.18260908126831
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 2.18260908126831
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":2.15525770187378}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":2.15525770187378}
+Command received: {"cmd":"seek","time":2.15525770187378}
+CommandDispatcher::handleSeek: position set to 2.1553s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 2.15525770187378
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 2.15525770187378
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":2.13337755203247}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":2.13337755203247}
+Command received: {"cmd":"seek","time":2.13337755203247}
+CommandDispatcher::handleSeek: position set to 2.1334s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 2.13337755203247
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 2.13337755203247
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":2.10602617263794}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":2.10602617263794}
+Command received: {"cmd":"seek","time":2.10602617263794}
+CommandDispatcher::handleSeek: position set to 2.1060s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 2.10602617263794
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 2.10602617263794
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":2.08414554595947}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":2.08414554595947}
+Command received: {"cmd":"seek","time":2.08414554595947}
+CommandDispatcher::handleSeek: position set to 2.0841s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 2.08414554595947
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 2.08414554595947
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":2.0567946434021}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":2.0567946434021}
+Command received: {"cmd":"seek","time":2.0567946434021}
+CommandDispatcher::handleSeek: position set to 2.0568s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 2.0567946434021
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 2.0567946434021
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":2.03491401672363}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":2.03491401672363}
+Command received: {"cmd":"seek","time":2.03491401672363}
+CommandDispatcher::handleSeek: position set to 2.0349s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 2.03491401672363
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 2.03491401672363
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":2.01303291320801}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":2.01303291320801}
+Command received: {"cmd":"seek","time":2.01303291320801}
+CommandDispatcher::handleSeek: position set to 2.0130s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 2.01303291320801
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 2.01303291320801
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":1.99662256240845}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":1.99662256240845}
+Command received: {"cmd":"seek","time":1.99662256240845}
+CommandDispatcher::handleSeek: position set to 1.9966s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 1.99662256240845
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 1.99662256240845
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":1.98021125793457}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":1.98021125793457}
+Command received: {"cmd":"seek","time":1.98021125793457}
+CommandDispatcher::handleSeek: position set to 1.9802s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 1.98021125793457
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 1.98021125793457
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":1.96927118301392}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":1.96927118301392}
+Command received: {"cmd":"seek","time":1.96927118301392}
+CommandDispatcher::handleSeek: position set to 1.9693s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 1.96927118301392
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 1.96927118301392
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":1.96380138397217}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":1.96380138397217}
+Command received: {"cmd":"seek","time":1.96380138397217}
+CommandDispatcher::handleSeek: position set to 1.9638s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 1.96380138397217
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 1.96380138397217
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":1.95286083221436}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":1.95286083221436}
+Command received: {"cmd":"seek","time":1.95286083221436}
+CommandDispatcher::handleSeek: position set to 1.9529s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 1.95286083221436
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 1.95286083221436
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":1.9419207572937}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":1.9419207572937}
+Command received: {"cmd":"seek","time":1.9419207572937}
+CommandDispatcher::handleSeek: position set to 1.9419s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 1.9419207572937
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 1.9419207572937
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":1.93097972869873}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":1.93097972869873}
+Command received: {"cmd":"seek","time":1.93097972869873}
+CommandDispatcher::handleSeek: position set to 1.9310s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 1.93097972869873
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 1.93097972869873
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":1.92003965377808}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":1.92003965377808}
+Command received: {"cmd":"seek","time":1.92003965377808}
+CommandDispatcher::handleSeek: position set to 1.9200s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 1.92003965377808
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 1.92003965377808
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":1.90362930297852}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":1.90362930297852}
+Command received: {"cmd":"seek","time":1.90362930297852}
+CommandDispatcher::handleSeek: position set to 1.9036s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 1.90362930297852
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 1.90362930297852
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":1.87627792358398}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":1.87627792358398}
+Command received: {"cmd":"seek","time":1.87627792358398}
+CommandDispatcher::handleSeek: position set to 1.8763s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 1.87627792358398
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 1.87627792358398
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":1.84892654418945}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":1.84892654418945}
+Command received: {"cmd":"seek","time":1.84892654418945}
+CommandDispatcher::handleSeek: position set to 1.8489s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 1.84892654418945
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 1.84892654418945
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":1.81063604354858}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":1.81063604354858}
+Command received: {"cmd":"seek","time":1.81063604354858}
+CommandDispatcher::handleSeek: position set to 1.8106s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 1.81063604354858
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 1.81063604354858
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":1.77781438827515}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":1.77781438827515}
+Command received: {"cmd":"seek","time":1.77781438827515}
+CommandDispatcher::handleSeek: position set to 1.7778s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 1.77781438827515
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 1.77781438827515
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":1.74499320983887}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":1.74499320983887}
+Command received: {"cmd":"seek","time":1.74499320983887}
+CommandDispatcher::handleSeek: position set to 1.7450s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 1.74499320983887
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 1.74499320983887
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":1.71764183044434}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":1.71764183044434}
+Command received: {"cmd":"seek","time":1.71764183044434}
+CommandDispatcher::handleSeek: position set to 1.7176s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 1.71764183044434
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 1.71764183044434
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":1.68482112884521}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":1.68482112884521}
+Command received: {"cmd":"seek","time":1.68482112884521}
+CommandDispatcher::handleSeek: position set to 1.6848s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 1.68482112884521
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 1.68482112884521
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":1.66294002532959}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":1.66294002532959}
+Command received: {"cmd":"seek","time":1.66294002532959}
+CommandDispatcher::handleSeek: position set to 1.6629s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 1.66294002532959
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 1.66294002532959
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":1.63558959960938}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":1.63558959960938}
+Command received: {"cmd":"seek","time":1.63558959960938}
+CommandDispatcher::handleSeek: position set to 1.6356s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 1.63558959960938
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 1.63558959960938
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":1.60823822021484}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":1.60823822021484}
+Command received: {"cmd":"seek","time":1.60823822021484}
+CommandDispatcher::handleSeek: position set to 1.6082s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 1.60823822021484
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 1.60823822021484
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":1.56994676589966}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":1.56994676589966}
+Command received: {"cmd":"seek","time":1.56994676589966}
+CommandDispatcher::handleSeek: position set to 1.5699s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 1.56994676589966
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 1.56994676589966
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":1.52071523666382}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":1.52071523666382}
+Command received: {"cmd":"seek","time":1.52071523666382}
+CommandDispatcher::handleSeek: position set to 1.5207s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 1.52071523666382
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 1.52071523666382
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":1.46054315567017}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":1.46054315567017}
+Command received: {"cmd":"seek","time":1.46054315567017}
+CommandDispatcher::handleSeek: position set to 1.4605s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 1.46054315567017
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 1.46054315567017
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":1.39490032196045}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":1.39490032196045}
+Command received: {"cmd":"seek","time":1.39490032196045}
+CommandDispatcher::handleSeek: position set to 1.3949s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 1.39490032196045
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 1.39490032196045
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":1.31831741333008}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":1.31831741333008}
+Command received: {"cmd":"seek","time":1.31831741333008}
+CommandDispatcher::handleSeek: position set to 1.3183s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 1.31831741333008
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 1.31831741333008
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":1.25267553329468}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":1.25267553329468}
+Command received: {"cmd":"seek","time":1.25267553329468}
+CommandDispatcher::handleSeek: position set to 1.2527s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 1.25267553329468
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 1.25267553329468
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":1.18156290054321}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":1.18156290054321}
+Command received: {"cmd":"seek","time":1.18156290054321}
+CommandDispatcher::handleSeek: position set to 1.1816s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 1.18156290054321
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 1.18156290054321
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":1.12686109542847}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":1.12686109542847}
+Command received: {"cmd":"seek","time":1.12686109542847}
+CommandDispatcher::handleSeek: position set to 1.1269s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 1.12686109542847
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 1.12686109542847
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":1.08309936523438}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":1.08309936523438}
+Command received: {"cmd":"seek","time":1.08309936523438}
+CommandDispatcher::handleSeek: position set to 1.0831s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 1.08309936523438
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 1.08309936523438
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":1.0502781867981}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":1.0502781867981}
+Command received: {"cmd":"seek","time":1.0502781867981}
+CommandDispatcher::handleSeek: position set to 1.0503s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 1.0502781867981
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 1.0502781867981
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":1.03386783599854}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":1.03386783599854}
+Command received: {"cmd":"seek","time":1.03386783599854}
+CommandDispatcher::handleSeek: position set to 1.0339s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 1.03386783599854
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 1.03386783599854
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":1.01745653152466}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":1.01745653152466}
+Command received: {"cmd":"seek","time":1.01745653152466}
+CommandDispatcher::handleSeek: position set to 1.0175s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 1.01745653152466
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 1.01745653152466
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":0.990106105804443}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":0.990106105804443}
+Command received: {"cmd":"seek","time":0.990106105804443}
+CommandDispatcher::handleSeek: position set to 0.9901s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.990106105804443
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.990106105804443
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":0.957284927368164}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":0.957284927368164}
+Command received: {"cmd":"seek","time":0.957284927368164}
+CommandDispatcher::handleSeek: position set to 0.9573s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.957284927368164
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.957284927368164
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":0.913523197174072}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":0.913523197174072}
+Command received: {"cmd":"seek","time":0.913523197174072}
+CommandDispatcher::handleSeek: position set to 0.9135s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.913523197174072
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.913523197174072
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":0.86976146697998}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":0.86976146697998}
+Command received: {"cmd":"seek","time":0.86976146697998}
+CommandDispatcher::handleSeek: position set to 0.8698s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.86976146697998
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.86976146697998
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":0.825999736785889}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":0.825999736785889}
+Command received: {"cmd":"seek","time":0.825999736785889}
+CommandDispatcher::handleSeek: position set to 0.8260s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.825999736785889
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.825999736785889
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":0.776768207550049}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":0.776768207550049}
+Command received: {"cmd":"seek","time":0.776768207550049}
+CommandDispatcher::handleSeek: position set to 0.7768s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.776768207550049
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.776768207550049
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":0.733006477355957}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":0.733006477355957}
+Command received: {"cmd":"seek","time":0.733006477355957}
+CommandDispatcher::handleSeek: position set to 0.7330s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.733006477355957
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.733006477355957
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":0.689245223999023}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":0.689245223999023}
+Command received: {"cmd":"seek","time":0.689245223999023}
+CommandDispatcher::handleSeek: position set to 0.6892s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.689245223999023
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.689245223999023
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":0.650953769683838}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":0.650953769683838}
+Command received: {"cmd":"seek","time":0.650953769683838}
+CommandDispatcher::handleSeek: position set to 0.6510s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.650953769683838
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.650953769683838
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":0.60172176361084}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":0.60172176361084}
+Command received: {"cmd":"seek","time":0.60172176361084}
+CommandDispatcher::handleSeek: position set to 0.6017s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.60172176361084
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.60172176361084
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":0.557960510253906}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":0.557960510253906}
+Command received: {"cmd":"seek","time":0.557960510253906}
+CommandDispatcher::handleSeek: position set to 0.5580s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.557960510253906
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.557960510253906
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":0.514198780059814}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":0.514198780059814}
+Command received: {"cmd":"seek","time":0.514198780059814}
+CommandDispatcher::handleSeek: position set to 0.5142s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.514198780059814
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.514198780059814
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":0.454026222229004}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":0.454026222229004}
+Command received: {"cmd":"seek","time":0.454026222229004}
+CommandDispatcher::handleSeek: position set to 0.4540s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.454026222229004
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.454026222229004
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":0.382914066314697}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":0.382914066314697}
+Command received: {"cmd":"seek","time":0.382914066314697}
+CommandDispatcher::handleSeek: position set to 0.3829s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.382914066314697
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.382914066314697
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":0.30086088180542}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":0.30086088180542}
+Command received: {"cmd":"seek","time":0.30086088180542}
+CommandDispatcher::handleSeek: position set to 0.3009s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.30086088180542
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.30086088180542
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":0.207867622375488}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":0.207867622375488}
+Command received: {"cmd":"seek","time":0.207867622375488}
+CommandDispatcher::handleSeek: position set to 0.2079s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.207867622375488
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.207867622375488
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":0.120344638824463}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":0.120344638824463}
+Command received: {"cmd":"seek","time":0.120344638824463}
+CommandDispatcher::handleSeek: position set to 0.1203s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.120344638824463
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.120344638824463
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":0.0328211784362793}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":0.0328211784362793}
+Command received: {"cmd":"seek","time":0.0328211784362793}
+CommandDispatcher::handleSeek: position set to 0.0328s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.032821178436279
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.032821178436279
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":0.0}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":0.0}
+Command received: {"cmd":"seek","time":0.0}
+CommandDispatcher::handleSeek: position set to 0.0000s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.0
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.0
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":0.0}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":0.0}
+Command received: {"cmd":"seek","time":0.0}
+CommandDispatcher::handleSeek: position set to 0.0000s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.0
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.0
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":0.0}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":0.0}
+Command received: {"cmd":"seek","time":0.0}
+CommandDispatcher::handleSeek: position set to 0.0000s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.0
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.0
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":0.0}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":0.0}
+Command received: {"cmd":"seek","time":0.0}
+CommandDispatcher::handleSeek: position set to 0.0000s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.0
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.0
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":0.0}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":0.0}
+Command received: {"cmd":"seek","time":0.0}
+CommandDispatcher::handleSeek: position set to 0.0000s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.0
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.0
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":0.0}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":0.0}
+Command received: {"cmd":"seek","time":0.0}
+CommandDispatcher::handleSeek: position set to 0.0000s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.0
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.0
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":0.0}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":0.0}
+Command received: {"cmd":"seek","time":0.0}
+CommandDispatcher::handleSeek: position set to 0.0000s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.0
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.0
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":0.0}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":0.0}
+Command received: {"cmd":"seek","time":0.0}
+CommandDispatcher::handleSeek: position set to 0.0000s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.0
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.0
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":0.0}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":0.0}
+Command received: {"cmd":"seek","time":0.0}
+CommandDispatcher::handleSeek: position set to 0.0000s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.0
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.0
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":0.0}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":0.0}
+Command received: {"cmd":"seek","time":0.0}
+CommandDispatcher::handleSeek: position set to 0.0000s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.0
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.0
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":0.0}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":0.0}
+Command received: {"cmd":"seek","time":0.0}
+CommandDispatcher::handleSeek: position set to 0.0000s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.0
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.0
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":0.0}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":0.0}
+Command received: {"cmd":"seek","time":0.0}
+CommandDispatcher::handleSeek: position set to 0.0000s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.0
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.0
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":0.0}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":0.0}
+Command received: {"cmd":"seek","time":0.0}
+CommandDispatcher::handleSeek: position set to 0.0000s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.0
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.0
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":0.0}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":0.0}
+Command received: {"cmd":"seek","time":0.0}
+CommandDispatcher::handleSeek: position set to 0.0000s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.0
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.0
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":0.0}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":0.0}
+Command received: {"cmd":"seek","time":0.0}
+CommandDispatcher::handleSeek: position set to 0.0000s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.0
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.0
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":0.0}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":0.0}
+Command received: {"cmd":"seek","time":0.0}
+CommandDispatcher::handleSeek: position set to 0.0000s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.0
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.0
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":0.0}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":0.0}
+Command received: {"cmd":"seek","time":0.0}
+CommandDispatcher::handleSeek: position set to 0.0000s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.0
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.0
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":0.0}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":0.0}
+Command received: {"cmd":"seek","time":0.0}
+CommandDispatcher::handleSeek: position set to 0.0000s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.0
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.0
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":0.0}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":0.0}
+Command received: {"cmd":"seek","time":0.0}
+CommandDispatcher::handleSeek: position set to 0.0000s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.0
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.0
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":0.0}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":0.0}
+Command received: {"cmd":"seek","time":0.0}
+CommandDispatcher::handleSeek: position set to 0.0000s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.0
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.0
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":0.0}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":0.0}
+Command received: {"cmd":"seek","time":0.0}
+CommandDispatcher::handleSeek: position set to 0.0000s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.0
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.0
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":0.0}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":0.0}
+Command received: {"cmd":"seek","time":0.0}
+CommandDispatcher::handleSeek: position set to 0.0000s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.0
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.0
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":0.0}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":0.0}
+Command received: {"cmd":"seek","time":0.0}
+CommandDispatcher::handleSeek: position set to 0.0000s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.0
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.0
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":0.0492315292358398}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":0.0492315292358398}
+Command received: {"cmd":"seek","time":0.0492315292358398}
+CommandDispatcher::handleSeek: position set to 0.0492s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.04923152923584
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.04923152923584
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":0.103933334350586}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":0.103933334350586}
+Command received: {"cmd":"seek","time":0.103933334350586}
+CommandDispatcher::handleSeek: position set to 0.1039s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.103933334350586
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.103933334350586
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":0.158636093139648}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":0.158636093139648}
+Command received: {"cmd":"seek","time":0.158636093139648}
+CommandDispatcher::handleSeek: position set to 0.1586s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.158636093139648
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.158636093139648
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":0.213337898254395}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":0.213337898254395}
+Command received: {"cmd":"seek","time":0.213337898254395}
+CommandDispatcher::handleSeek: position set to 0.2133s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.213337898254395
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.213337898254395
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":0.257099151611328}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":0.257099151611328}
+Command received: {"cmd":"seek","time":0.257099151611328}
+CommandDispatcher::handleSeek: position set to 0.2571s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.257099151611328
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.257099151611328
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":0.295391082763672}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":0.295391082763672}
+Command received: {"cmd":"seek","time":0.295391082763672}
+CommandDispatcher::handleSeek: position set to 0.2954s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.295391082763672
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.295391082763672
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":0.311801433563232}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":0.311801433563232}
+Command received: {"cmd":"seek","time":0.311801433563232}
+CommandDispatcher::handleSeek: position set to 0.3118s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.311801433563232
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.311801433563232
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":0.31727123260498}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":0.31727123260498}
+Command received: {"cmd":"seek","time":0.31727123260498}
+CommandDispatcher::handleSeek: position set to 0.3173s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.31727123260498
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.31727123260498
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":0.30086088180542}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":0.30086088180542}
+Command received: {"cmd":"seek","time":0.30086088180542}
+CommandDispatcher::handleSeek: position set to 0.3009s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.30086088180542
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.30086088180542
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":0.284450531005859}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":0.284450531005859}
+Command received: {"cmd":"seek","time":0.284450531005859}
+CommandDispatcher::handleSeek: position set to 0.2845s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.284450531005859
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.284450531005859
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":0.268039703369141}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":0.268039703369141}
+Command received: {"cmd":"seek","time":0.268039703369141}
+CommandDispatcher::handleSeek: position set to 0.2680s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.268039703369141
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.268039703369141
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":0.257099151611328}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":0.257099151611328}
+Command received: {"cmd":"seek","time":0.257099151611328}
+CommandDispatcher::handleSeek: position set to 0.2571s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.257099151611328
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.257099151611328
+}
+ZmqGateway: received command payload: {"cmd":"seek","time":0.246159076690674}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"seek","time":0.246159076690674}
+Command received: {"cmd":"seek","time":0.246159076690674}
+CommandDispatcher::handleSeek: position set to 0.2462s
+Command executed: seek, result: {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.246159076690674
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Seek executed",
+  "position_seconds": 0.246159076690674
+}
+ZmqGateway: received command payload: {"action":"play"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"play"}
+Command received: {"action":"play"}
+CommandDispatcher::handlePlay: before isPlaying=false isRecording=false playContextActive=true positionSeconds=0.246 editLengthSeconds=3.000
+CommandDispatcher::handlePlay: after isPlaying=true isRecording=false playContextActive=true positionSeconds=0.246 editLengthSeconds=3.000
+Command executed: play, result: {
+  "status": "ok",
+  "message": "Transport playing",
+  "is_playing": true,
+  "is_recording": false,
+  "position_seconds": 0.246166666666667,
+  "click_track_enabled": false
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Transport playing",
+  "is_playing": true,
+  "is_recording": false,
+  "position_seconds": 0.246166666666667,
+  "click_track_enabled": false
+}
+ZmqGateway: received command payload: {"action":"stop"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"stop"}
+Command received: {"action":"stop"}
+CommandDispatcher::handleStop: before isPlaying=true isRecording=false playContextActive=true positionSeconds=0.596 editLengthSeconds=3.000
+CommandDispatcher::handleStop: after isPlaying=false isRecording=false playContextActive=true positionSeconds=0.596 editLengthSeconds=3.000
+Command executed: stop, result: {
+  "status": "ok",
+  "message": "Transport stopped",
+  "is_playing": false,
+  "is_recording": false,
+  "position_seconds": 0.596166666666667,
+  "click_track_enabled": false
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Transport stopped",
+  "is_playing": false,
+  "is_recording": false,
+  "position_seconds": 0.596166666666667,
+  "click_track_enabled": false
+}

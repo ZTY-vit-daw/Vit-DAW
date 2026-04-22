@@ -1,0 +1,362 @@
+
+**********************************************************
+VitHeadlessServer session log
+Log started: 22 Mar 2026 9:59:30pm
+
+VitHeadlessServer: application startup.
+Settings file: D:\Vit_DAW\VitApp\Workspace\Settings\Settings.xml
+Audio block size: 480  Rate: 48000
+Creating Default Controllers...
+VitEngineDevice: initialising Tracktion Engine device manager.
+Audio block size: 480  Rate: 48000
+VitKernelUtils: detected ghost track intent="needs_reverb" name="Epic Brass [GHOST]"
+VitHeadlessService: ghost track detected name="Epic Brass [GHOST]" intent="needs_reverb"
+VitKernelUtils: detected ghost track intent="needs_reverb" name="Epic Brass [GHOST]"
+VitHeadlessService: ghost track detected name="Epic Brass [GHOST]" intent="needs_reverb"
+VitHeadlessService: edit loaded from D:\Vit_DAW\VitApp\Workspace\default_project.xml
+VitHeadlessService: project reload complete.
+ZmqGateway: bound command endpoint to tcp://127.0.0.1:5555
+ZmqGateway: bound publish endpoint to tcp://127.0.0.1:5556
+ZmqGateway: bound log endpoint to tcp://127.0.0.1:5557
+ZmqGateway: started network thread.
+VitHeadlessService: service started successfully.
+VitHeadlessServer: startup complete, entering background message loop.
+Rebuilding Wave Device List...
+Wave In: Input 1 (enabled): 0 (L)
+Wave In: Input 2 (enabled): 1 (L)
+Wave Out: Output 1 + 2 (enabled): 0 (L), 1 (R)
+Default Wave Out: Output 1 + 2
+Default MIDI Out: 
+Default Wave In: Input 1
+Default MIDI In: 
+MIDI Input devices scanned in: 0
+Updating MIDI I/O devices
+Found MIDI in: all_midi_in ("All MIDI Ins") (enabled)
+Found MIDI out: out_81b0d7ef ("Microsoft GS Wavetable Synth") (enabled)
+opening MIDI out device: out_81b0d7ef (Microsoft GS Wavetable Synth)
+ZmqGateway: received command payload: {"cmd":"ping"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"ping"}
+CommandDispatcher: handled ping command.
+ZmqGateway: received command payload: {"cmd":"ping"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"ping"}
+CommandDispatcher: handled ping command.
+ZmqGateway: received command payload: {"cmd":"ping"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"ping"}
+CommandDispatcher: handled ping command.
+ZmqGateway: received command payload: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":7311}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":7311}
+ZmqGateway: received command payload: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":8340}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":8340}
+ZmqGateway: received command payload: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":9864}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":9864}
+ZmqGateway: received command payload: {"action":"transport_stop","kernel_track_id":"","scene_track_id":"Track_Root_1","state":false,"stop_return_to_start":false,"timestamp_ms":11064}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_stop","kernel_track_id":"","scene_track_id":"Track_Root_1","state":false,"stop_return_to_start":false,"timestamp_ms":11064}
+ZmqGateway: received command payload: {"action":"transport_loop","enabled":true,"kernel_track_id":"","scene_track_id":"Track_Root_1"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_loop","enabled":true,"kernel_track_id":"","scene_track_id":"Track_Root_1"}
+ZmqGateway: received command payload: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":13988}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":13988}
+ZmqGateway: received command payload: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":16117}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":16117}
+ZmqGateway: received command payload: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":16643}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":16643}
+ZmqGateway: received command payload: {"cmd":"ping"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"ping"}
+CommandDispatcher: handled ping command.
+ZmqGateway: received command payload: {"cmd":"ping"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"ping"}
+CommandDispatcher: handled ping command.
+ZmqGateway: received command payload: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":12361}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":12361}
+ZmqGateway: received command payload: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":12871}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":12871}
+ZmqGateway: received command payload: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":13372}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":13372}
+ZmqGateway: received command payload: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":13887}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":13887}
+ZmqGateway: received command payload: {"cmd":"ping"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"ping"}
+CommandDispatcher: handled ping command.
+ZmqGateway: received command payload: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":10291}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":10291}
+ZmqGateway: received command payload: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":10903}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":10903}
+ZmqGateway: received command payload: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":11415}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":11415}
+ZmqGateway: received command payload: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_2","state":true,"timestamp_ms":21291}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_2","state":true,"timestamp_ms":21291}
+ZmqGateway: received command payload: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_2","state":true,"timestamp_ms":21802}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_2","state":true,"timestamp_ms":21802}
+ZmqGateway: received command payload: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_2","state":true,"timestamp_ms":22303}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_2","state":true,"timestamp_ms":22303}
+ZmqGateway: received command payload: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_2","state":true,"timestamp_ms":22816}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_2","state":true,"timestamp_ms":22816}
+ZmqGateway: received command payload: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_2","state":true,"timestamp_ms":23316}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_2","state":true,"timestamp_ms":23316}
+ZmqGateway: received command payload: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_2","state":true,"timestamp_ms":23817}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_2","state":true,"timestamp_ms":23817}
+ZmqGateway: received command payload: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_2","state":true,"timestamp_ms":24318}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_2","state":true,"timestamp_ms":24318}
+ZmqGateway: received command payload: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_2","state":true,"timestamp_ms":24818}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_2","state":true,"timestamp_ms":24818}
+ZmqGateway: received command payload: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_2","state":true,"timestamp_ms":25318}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_2","state":true,"timestamp_ms":25318}
+ZmqGateway: received command payload: {"cmd":"ping"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"ping"}
+CommandDispatcher: handled ping command.
+ZmqGateway: received command payload: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":7151}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":7151}
+ZmqGateway: received command payload: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_2","state":true,"timestamp_ms":16852}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_2","state":true,"timestamp_ms":16852}
+ZmqGateway: received command payload: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_2","state":true,"timestamp_ms":17411}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_2","state":true,"timestamp_ms":17411}
+ZmqGateway: received command payload: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_2","state":true,"timestamp_ms":17922}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_2","state":true,"timestamp_ms":17922}
+ZmqGateway: received command payload: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_2","state":true,"timestamp_ms":18422}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_2","state":true,"timestamp_ms":18422}
+ZmqGateway: received command payload: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_2","state":true,"timestamp_ms":18959}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_2","state":true,"timestamp_ms":18959}
+ZmqGateway: received command payload: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_2","state":true,"timestamp_ms":19459}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_2","state":true,"timestamp_ms":19459}
+ZmqGateway: received command payload: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_2","state":true,"timestamp_ms":19959}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_2","state":true,"timestamp_ms":19959}
+ZmqGateway: received command payload: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_2","state":true,"timestamp_ms":20459}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_2","state":true,"timestamp_ms":20459}
+ZmqGateway: received command payload: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_2","state":true,"timestamp_ms":20959}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_2","state":true,"timestamp_ms":20959}
+ZmqGateway: received command payload: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_2","state":true,"timestamp_ms":21479}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_2","state":true,"timestamp_ms":21479}
+ZmqGateway: received command payload: {"cmd":"ping"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"ping"}
+CommandDispatcher: handled ping command.
+ZmqGateway: received command payload: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":6161}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":6161}
+ZmqGateway: received command payload: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":6665}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":6665}
+ZmqGateway: received command payload: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":7174}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":7174}
+ZmqGateway: received command payload: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":7680}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":7680}
+ZmqGateway: received command payload: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":9343}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":9343}
+ZmqGateway: received command payload: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":9853}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":9853}
+ZmqGateway: received command payload: {"action":"transport_record_arm","armed":true,"kernel_track_id":"","scene_track_id":"Track_Root_1"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_record_arm","armed":true,"kernel_track_id":"","scene_track_id":"Track_Root_1"}
+ZmqGateway: received command payload: {"action":"transport_loop","enabled":true,"kernel_track_id":"","scene_track_id":"Track_Root_1"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_loop","enabled":true,"kernel_track_id":"","scene_track_id":"Track_Root_1"}
+ZmqGateway: received command payload: {"action":"transport_loop","enabled":false,"kernel_track_id":"","scene_track_id":"Track_Root_1"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_loop","enabled":false,"kernel_track_id":"","scene_track_id":"Track_Root_1"}
+ZmqGateway: received command payload: {"action":"transport_loop","enabled":true,"kernel_track_id":"","scene_track_id":"Track_Root_1"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_loop","enabled":true,"kernel_track_id":"","scene_track_id":"Track_Root_1"}
+ZmqGateway: received command payload: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":25621}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":25621}
+ZmqGateway: received command payload: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":50151}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":50151}
+ZmqGateway: received command payload: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":50974}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":50974}
+ZmqGateway: received command payload: {"cmd":"ping"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"ping"}
+CommandDispatcher: handled ping command.
+ZmqGateway: received command payload: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":8542}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":8542}
+ZmqGateway: received command payload: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":10018}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":10018}
+ZmqGateway: received command payload: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":10642}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":10642}
+ZmqGateway: received command payload: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":11149}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":11149}
+ZmqGateway: received command payload: {"action":"transport_stop","kernel_track_id":"","scene_track_id":"Track_Root_1","state":false,"stop_return_to_start":false,"timestamp_ms":11954}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_stop","kernel_track_id":"","scene_track_id":"Track_Root_1","state":false,"stop_return_to_start":false,"timestamp_ms":11954}
+ZmqGateway: received command payload: {"action":"transport_option_stop_return_to_start","kernel_track_id":"","scene_track_id":"Track_Root_1","timestamp_ms":13260,"value":true}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_option_stop_return_to_start","kernel_track_id":"","scene_track_id":"Track_Root_1","timestamp_ms":13260,"value":true}
+ZmqGateway: received command payload: {"action":"transport_option_stop_return_to_start","kernel_track_id":"","scene_track_id":"Track_Root_1","timestamp_ms":13767,"value":false}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_option_stop_return_to_start","kernel_track_id":"","scene_track_id":"Track_Root_1","timestamp_ms":13767,"value":false}
+ZmqGateway: received command payload: {"action":"transport_option_stop_return_to_start","kernel_track_id":"","scene_track_id":"Track_Root_1","timestamp_ms":14277,"value":true}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_option_stop_return_to_start","kernel_track_id":"","scene_track_id":"Track_Root_1","timestamp_ms":14277,"value":true}
+ZmqGateway: received command payload: {"action":"transport_option_stop_return_to_start","kernel_track_id":"","scene_track_id":"Track_Root_1","timestamp_ms":14866,"value":false}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_option_stop_return_to_start","kernel_track_id":"","scene_track_id":"Track_Root_1","timestamp_ms":14866,"value":false}
+ZmqGateway: received command payload: {"action":"transport_option_stop_return_to_start","kernel_track_id":"","scene_track_id":"Track_Root_1","timestamp_ms":16154,"value":true}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_option_stop_return_to_start","kernel_track_id":"","scene_track_id":"Track_Root_1","timestamp_ms":16154,"value":true}
+ZmqGateway: received command payload: {"action":"transport_option_stop_return_to_start","kernel_track_id":"","scene_track_id":"Track_Root_1","timestamp_ms":17360,"value":false}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_option_stop_return_to_start","kernel_track_id":"","scene_track_id":"Track_Root_1","timestamp_ms":17360,"value":false}
+ZmqGateway: received command payload: {"cmd":"ping"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"ping"}
+CommandDispatcher: handled ping command.
+ZmqGateway: received command payload: {"cmd":"ping"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"ping"}
+CommandDispatcher: handled ping command.
+ZmqGateway: received command payload: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":4920}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":4920}
+ZmqGateway: received command payload: {"action":"transport_record_arm","armed":true,"kernel_track_id":"","scene_track_id":"Track_Root_1"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_record_arm","armed":true,"kernel_track_id":"","scene_track_id":"Track_Root_1"}
+ZmqGateway: received command payload: {"action":"transport_loop","enabled":true,"kernel_track_id":"","scene_track_id":"Track_Root_1"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_loop","enabled":true,"kernel_track_id":"","scene_track_id":"Track_Root_1"}
+ZmqGateway: received command payload: {"action":"transport_record_arm","armed":false,"kernel_track_id":"","scene_track_id":"Track_Root_1"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_record_arm","armed":false,"kernel_track_id":"","scene_track_id":"Track_Root_1"}
+ZmqGateway: received command payload: {"action":"transport_loop","enabled":false,"kernel_track_id":"","scene_track_id":"Track_Root_1"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_loop","enabled":false,"kernel_track_id":"","scene_track_id":"Track_Root_1"}
+ZmqGateway: received command payload: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":7350}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":7350}
+ZmqGateway: received command payload: {"action":"transport_stop","kernel_track_id":"","scene_track_id":"Track_Root_1","state":false,"stop_return_to_start":false,"timestamp_ms":7756}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_stop","kernel_track_id":"","scene_track_id":"Track_Root_1","state":false,"stop_return_to_start":false,"timestamp_ms":7756}
+ZmqGateway: received command payload: {"action":"transport_rtz","kernel_track_id":"","position":0.0,"scene_track_id":"Track_Root_1","stopped":true,"timestamp_ms":8091}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_rtz","kernel_track_id":"","position":0.0,"scene_track_id":"Track_Root_1","stopped":true,"timestamp_ms":8091}
+ZmqGateway: received command payload: {"cmd":"ping"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"ping"}
+CommandDispatcher: handled ping command.
+ZmqGateway: received command payload: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":2036}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":2036}
+ZmqGateway: received command payload: {"action":"transport_stop","kernel_track_id":"","scene_track_id":"Track_Root_1","state":false,"stop_return_to_start":false,"timestamp_ms":2425}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_stop","kernel_track_id":"","scene_track_id":"Track_Root_1","state":false,"stop_return_to_start":false,"timestamp_ms":2425}
+ZmqGateway: received command payload: {"action":"transport_rtz","kernel_track_id":"","position":0.0,"scene_track_id":"Track_Root_1","stopped":true,"timestamp_ms":2748}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_rtz","kernel_track_id":"","position":0.0,"scene_track_id":"Track_Root_1","stopped":true,"timestamp_ms":2748}
+ZmqGateway: received command payload: {"action":"transport_record_arm","armed":true,"kernel_track_id":"","scene_track_id":"Track_Root_1"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_record_arm","armed":true,"kernel_track_id":"","scene_track_id":"Track_Root_1"}
+ZmqGateway: received command payload: {"action":"transport_loop","enabled":true,"kernel_track_id":"","scene_track_id":"Track_Root_1"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_loop","enabled":true,"kernel_track_id":"","scene_track_id":"Track_Root_1"}
+ZmqGateway: received command payload: {"action":"transport_record_arm","armed":false,"kernel_track_id":"","scene_track_id":"Track_Root_1"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_record_arm","armed":false,"kernel_track_id":"","scene_track_id":"Track_Root_1"}
+ZmqGateway: received command payload: {"action":"transport_loop","enabled":false,"kernel_track_id":"","scene_track_id":"Track_Root_1"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_loop","enabled":false,"kernel_track_id":"","scene_track_id":"Track_Root_1"}
+ZmqGateway: received command payload: {"action":"transport_option_stop_return_to_start","kernel_track_id":"","scene_track_id":"Track_Root_1","timestamp_ms":4907,"value":true}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_option_stop_return_to_start","kernel_track_id":"","scene_track_id":"Track_Root_1","timestamp_ms":4907,"value":true}
+ZmqGateway: received command payload: {"action":"transport_option_stop_return_to_start","kernel_track_id":"","scene_track_id":"Track_Root_1","timestamp_ms":5436,"value":false}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_option_stop_return_to_start","kernel_track_id":"","scene_track_id":"Track_Root_1","timestamp_ms":5436,"value":false}
+ZmqGateway: received command payload: {"action":"transport_option_stop_return_to_start","kernel_track_id":"","scene_track_id":"Track_Root_1","timestamp_ms":5871,"value":true}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_option_stop_return_to_start","kernel_track_id":"","scene_track_id":"Track_Root_1","timestamp_ms":5871,"value":true}
+ZmqGateway: received command payload: {"action":"transport_option_stop_return_to_start","kernel_track_id":"","scene_track_id":"Track_Root_1","timestamp_ms":6219,"value":false}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_option_stop_return_to_start","kernel_track_id":"","scene_track_id":"Track_Root_1","timestamp_ms":6219,"value":false}
+ZmqGateway: received command payload: {"action":"transport_option_stop_return_to_start","kernel_track_id":"","scene_track_id":"Track_Root_1","timestamp_ms":6583,"value":true}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_option_stop_return_to_start","kernel_track_id":"","scene_track_id":"Track_Root_1","timestamp_ms":6583,"value":true}
+ZmqGateway: received command payload: {"action":"transport_option_stop_return_to_start","kernel_track_id":"","scene_track_id":"Track_Root_1","timestamp_ms":6901,"value":false}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_option_stop_return_to_start","kernel_track_id":"","scene_track_id":"Track_Root_1","timestamp_ms":6901,"value":false}
+ZmqGateway: received command payload: {"cmd":"ping"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"ping"}
+CommandDispatcher: handled ping command.
+ZmqGateway: received command payload: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":8323}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":8323}
+ZmqGateway: received command payload: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":8770}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":8770}
+ZmqGateway: received command payload: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":8994}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":8994}
+ZmqGateway: received command payload: {"action":"transport_option_stop_return_to_start","kernel_track_id":"","scene_track_id":"Track_Root_1","timestamp_ms":9564,"value":true}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_option_stop_return_to_start","kernel_track_id":"","scene_track_id":"Track_Root_1","timestamp_ms":9564,"value":true}
+ZmqGateway: received command payload: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":9864}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_play","kernel_track_id":"","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":9864}
+ZmqGateway: received command payload: {"action":"transport_option_stop_return_to_start","kernel_track_id":"","scene_track_id":"Track_Root_1","timestamp_ms":10311,"value":false}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_option_stop_return_to_start","kernel_track_id":"","scene_track_id":"Track_Root_1","timestamp_ms":10311,"value":false}
+ZmqGateway: received command payload: {"cmd":"ping"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"ping"}
+CommandDispatcher: handled ping command.
+ZmqGateway: received command payload: {"cmd":"ping"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"ping"}
+CommandDispatcher: handled ping command.
+ZmqGateway: received command payload: {"cmd":"ping"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"ping"}
+CommandDispatcher: handled ping command.
+ZmqGateway: received command payload: {"cmd":"ping"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"ping"}
+CommandDispatcher: handled ping command.

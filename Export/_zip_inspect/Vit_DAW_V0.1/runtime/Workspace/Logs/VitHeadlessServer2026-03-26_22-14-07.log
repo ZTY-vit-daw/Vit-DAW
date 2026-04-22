@@ -1,0 +1,192 @@
+
+**********************************************************
+VitHeadlessServer session log
+Log started: 26 Mar 2026 10:14:07pm
+
+VitHeadlessServer: application startup.
+VitPaths: created cache directory: D:\Vit_DAW\Export\Vit_DAW_V0.1\runtime\Workspace\Cache
+VitPaths: created settings directory: D:\Vit_DAW\Export\Vit_DAW_V0.1\runtime\Workspace\Settings
+Settings file: D:\Vit_DAW\Export\Vit_DAW_V0.1\runtime\Workspace\Settings\Settings.xml
+Audio block size: 480  Rate: 48000
+Creating Default Controllers...
+VitEngineDevice: initialising Tracktion Engine device manager.
+Audio block size: 480  Rate: 48000
+VitEngineDevice: audio setup outputDevice="扬声器 (USB AUDIO  CODEC)" inputDevice="麦克风 (Sonic Studio Virtual Mixer)" sampleRate=48000.00 bufferSize=480 inputChannels=11 outputChannels=11
+VitEngineDevice: current audio device name="扬声器 (USB AUDIO  CODEC)" type="Windows Audio" activeOutputChannels=Output channel 1, Output channel 2" activeInputChannels=Input channel 1, Input channel 2"
+VitPaths: created default project XML: D:\Vit_DAW\Export\Vit_DAW_V0.1\runtime\Workspace\default_project.xml
+VitHeadlessService: edit loaded from D:\Vit_DAW\Export\Vit_DAW_V0.1\runtime\Workspace\default_project.xml
+VitHeadlessService: project reload complete.
+ZmqGateway: bound command endpoint to tcp://127.0.0.1:5555
+ZmqGateway: bound publish endpoint to tcp://127.0.0.1:5556
+ZmqGateway: bound log endpoint to tcp://127.0.0.1:5557
+ZmqGateway: started network thread.
+VitHeadlessService: service started successfully.
+VitHeadlessServer: startup complete, entering background message loop.
+Rebuilding Wave Device List...
+Wave In: Input 1 (enabled): 0 (L)
+Wave In: Input 2 (enabled): 1 (L)
+Wave Out: Output 1 + 2 (enabled): 0 (L), 1 (R)
+Default Wave Out: Output 1 + 2
+Default MIDI Out: 
+Default Wave In: Input 1
+Default MIDI In: 
+ZmqGateway: received command payload: {"cmd":"ping"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"ping"}
+Command received: {"cmd":"ping"}
+CommandDispatcher: handled ping command.
+Command executed: ping, result: {
+  "status": "ok",
+  "message": "pong"
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "pong"
+}
+ZmqGateway: received command payload: {"cmd":"clear_project"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"clear_project"}
+Command received: {"cmd":"clear_project"}
+VitHeadlessService: project saved to D:\Vit_DAW\Export\Vit_DAW_V0.1\runtime\Workspace\default_project.xml
+CommandDispatcher: clear_project executed â?all clips removed, transport reset.
+Command executed: clear_project, result: {
+  "status": "ok",
+  "message": "Project cleared"
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Project cleared"
+}
+ZmqGateway: received command payload: {"cmd":"list_tracks"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"list_tracks"}
+Command received: {"cmd":"list_tracks"}
+Command executed: list_tracks, result: {
+  "status": "ok",
+  "message": "Track list fetched",
+  "tracks": [
+    {
+      "id": "1002",
+      "name": "Arranger",
+      "track_type": "track",
+      "is_audio": false,
+      "is_audio_track": false,
+      "vit_type": "",
+      "vit_intent": "",
+      "plugin_count": 0,
+      "plugins": []
+    },
+    {
+      "id": "1003",
+      "name": "Chord",
+      "track_type": "track",
+      "is_audio": false,
+      "is_audio_track": false,
+      "vit_type": "",
+      "vit_intent": "",
+      "plugin_count": 0,
+      "plugins": []
+    },
+    {
+      "id": "1004",
+      "name": "Marker",
+      "track_type": "track",
+      "is_audio": false,
+      "is_audio_track": false,
+      "vit_type": "",
+      "vit_intent": "",
+      "plugin_count": 0,
+      "plugins": []
+    },
+    {
+      "id": "1005",
+      "name": "Tempo",
+      "track_type": "track",
+      "is_audio": false,
+      "is_audio_track": false,
+      "vit_type": "",
+      "vit_intent": "",
+      "plugin_count": 0,
+      "plugins": []
+    },
+    {
+      "id": "1006",
+      "name": "Master",
+      "track_type": "master",
+      "is_audio": false,
+      "is_audio_track": false,
+      "vit_type": "",
+      "vit_intent": "",
+      "plugin_count": 0,
+      "plugins": []
+    },
+    {
+      "id": "1007",
+      "name": "Audio Track 1",
+      "track_type": "audio",
+      "is_audio": true,
+      "is_audio_track": true,
+      "vit_type": "",
+      "vit_intent": "",
+      "plugin_count": 2,
+      "plugins": [
+        {
+          "name": "Volume & Pan Plugin",
+          "type": "volume",
+          "enabled": true
+        },
+        {
+          "name": "Level Meter",
+          "type": "level",
+          "enabled": true
+        }
+      ]
+    }
+  ]
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Track list fetched",
+  "tracks": [
+    {
+      "id": "1002",
+      "name": "Arranger",
+      "track_type": "track",
+      "is_audio": false,
+      "is_audio_track": false,
+    
+MIDI Input devices scanned in: 0
+Updating MIDI I/O devices
+Found MIDI in: all_midi_in ("All MIDI Ins") (enabled)
+Found MIDI out: out_81b0d7ef ("Microsoft GS Wavetable Synth") (enabled)
+opening MIDI out device: out_81b0d7ef (Microsoft GS Wavetable Synth)
+Updating MIDI I/O devices
+Found MIDI in: all_midi_in ("All MIDI Ins") (enabled)
+Found MIDI out: out_81b0d7ef ("Microsoft GS Wavetable Synth") (enabled)
+ZmqGateway: received command payload: {"action":"import_audio","drop_x_pos":220.0,"file_path":"D:/Vit_DAW/test_target_3s.wav","track_id":"1007"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"import_audio","drop_x_pos":220.0,"file_path":"D:/Vit_DAW/test_target_3s.wav","track_id":"1007"}
+Command received: {"action":"import_audio","drop_x_pos":220.0,"file_path":"D:/Vit_DAW/test_target_3s.wav","track_id":"1007"}
+CommandDispatcher::handleImportAudio: imported clip="test_target_3s" trackId="1007" source="D:\Vit_DAW\test_target_3s.wav" clipLengthSeconds=3.000 isPlaying=false isRecording=false playContextActive=true positionSeconds=0.000 editLengthSeconds=3.000
+VitHeadlessService: project saved to D:\Vit_DAW\Export\Vit_DAW_V0.1\runtime\Workspace\default_project.xml
+Command executed: import_audio, result: {
+  "status": "ok",
+  "action": "import_audio",
+  "message": "Audio clip imported",
+  "track_id": "1007",
+  "clip_name": "test_target_3s",
+  "file_path": "D:\\Vit_DAW\\test_target_3s.wav",
+  "start_time": 0.0,
+  "clip_length_seconds": 3.0,
+  "edit_length_seconds": 3.0,
+  "baking_status": "baking_started"
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "action": "import_audio",
+  "message": "Audio clip imported",
+  "track_id": "1007",
+  "clip_name": "test_target_3s",
+  "file_path": "D:\\Vit_DAW\\test_target_3s.wav",
+  "start_time": 0.0,
+  

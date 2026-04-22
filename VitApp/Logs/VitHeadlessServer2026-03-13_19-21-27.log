@@ -1,0 +1,30 @@
+
+**********************************************************
+VitHeadlessServer session log
+Log started: 13 Mar 2026 7:21:27pm
+
+VitHeadlessServer: application startup.
+Settings file: C:\Users\timoz\AppData\Roaming\VitHeadlessServer\Settings.xml
+Audio block size: 480  Rate: 48000
+Creating Default Controllers...
+VitEngineDevice: initialising Tracktion Engine device manager.
+Audio block size: 480  Rate: 48000
+VitHeadlessService: edit loaded from D:\Vit_DAW\VitApp\Workspace\default_project.xml
+ZmqGateway: bound command endpoint to tcp://127.0.0.1:5555
+ZmqGateway: bound publish endpoint to tcp://127.0.0.1:5556
+ZmqGateway: started network thread.
+VitHeadlessService: service started successfully.
+VitHeadlessServer: startup complete, entering background message loop.
+Rebuilding Wave Device List...
+Wave In: Input 1 (enabled): 0 (L)
+Wave In: Input 2 (enabled): 1 (L)
+Wave Out: Output 1 + 2 (enabled): 0 (L), 1 (R)
+Default Wave Out: Output 1 + 2
+Default MIDI Out: 
+Default Wave In: Input 1
+Default MIDI In: 
+MIDI Input devices scanned in: 1 ms
+Updating MIDI I/O devices
+Found MIDI in: all_midi_in ("All MIDI Ins") (enabled)
+Found MIDI out: out_81b0d7ef ("Microsoft GS Wavetable Synth") (enabled)
+opening MIDI out device: out_81b0d7ef (Microsoft GS Wavetable Synth)

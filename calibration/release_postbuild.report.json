@@ -1,0 +1,488 @@
+{
+  "overall": {
+    "left_hz": {
+      "count": 28,
+      "mean": 2.126553357142857,
+      "abs_mean": 13.156270357142857,
+      "rms": 25.608009194677784,
+      "max_abs": 72.353027
+    },
+    "right_hz": {
+      "count": 28,
+      "mean": 2.126553357142857,
+      "abs_mean": 13.156270357142857,
+      "rms": 25.608009194677784,
+      "max_abs": 72.353027
+    },
+    "left_cents": {
+      "count": 28,
+      "mean": 1.2772142857142852,
+      "abs_mean": 16.5285,
+      "rms": 21.943542110542293,
+      "max_abs": 49.442
+    },
+    "right_cents": {
+      "count": 28,
+      "mean": 1.2772142857142852,
+      "abs_mean": 16.5285,
+      "rms": 21.943542110542293,
+      "max_abs": 49.442
+    }
+  },
+  "bands_hz": {
+    "L": {
+      "low": {
+        "count": 10,
+        "mean": 0.3310128,
+        "abs_mean": 0.998052,
+        "rms": 1.114557759250188,
+        "max_abs": 1.561153
+      },
+      "mid": {
+        "count": 10,
+        "mean": 0.34020680000000003,
+        "abs_mean": 2.6722444000000003,
+        "rms": 3.148816445275463,
+        "max_abs": 5.825256
+      },
+      "high": {
+        "count": 8,
+        "mean": 6.603912249999999,
+        "abs_mean": 41.45907575,
+        "rms": 47.762421077616345,
+        "max_abs": 72.353027
+      },
+      "out_of_range": {
+        "count": 0,
+        "mean": 0.0,
+        "abs_mean": 0.0,
+        "rms": 0.0,
+        "max_abs": 0.0
+      }
+    },
+    "R": {
+      "low": {
+        "count": 10,
+        "mean": 0.3310128,
+        "abs_mean": 0.998052,
+        "rms": 1.114557759250188,
+        "max_abs": 1.561153
+      },
+      "mid": {
+        "count": 10,
+        "mean": 0.34020680000000003,
+        "abs_mean": 2.6722444000000003,
+        "rms": 3.148816445275463,
+        "max_abs": 5.825256
+      },
+      "high": {
+        "count": 8,
+        "mean": 6.603912249999999,
+        "abs_mean": 41.45907575,
+        "rms": 47.762421077616345,
+        "max_abs": 72.353027
+      },
+      "out_of_range": {
+        "count": 0,
+        "mean": 0.0,
+        "abs_mean": 0.0,
+        "rms": 0.0,
+        "max_abs": 0.0
+      }
+    }
+  },
+  "sample_points": [
+    {
+      "channel": "L",
+      "mode": "L",
+      "expected_hz": 40.0,
+      "observed_hz": 41.158813,
+      "error_hz": 1.158813
+    },
+    {
+      "channel": "R",
+      "mode": "R",
+      "expected_hz": 40.0,
+      "observed_hz": 41.158813,
+      "error_hz": 1.158813
+    },
+    {
+      "channel": "L",
+      "mode": "BOTH",
+      "expected_hz": 40.0,
+      "observed_hz": 41.158813,
+      "error_hz": 1.158813
+    },
+    {
+      "channel": "R",
+      "mode": "BOTH",
+      "expected_hz": 40.0,
+      "observed_hz": 41.158813,
+      "error_hz": 1.158813
+    },
+    {
+      "channel": "L",
+      "mode": "L",
+      "expected_hz": 60.0,
+      "observed_hz": 58.438847,
+      "error_hz": -1.561153
+    },
+    {
+      "channel": "R",
+      "mode": "R",
+      "expected_hz": 60.0,
+      "observed_hz": 58.438847,
+      "error_hz": -1.561153
+    },
+    {
+      "channel": "L",
+      "mode": "BOTH",
+      "expected_hz": 60.0,
+      "observed_hz": 58.438847,
+      "error_hz": -1.561153
+    },
+    {
+      "channel": "R",
+      "mode": "BOTH",
+      "expected_hz": 60.0,
+      "observed_hz": 58.438847,
+      "error_hz": -1.561153
+    },
+    {
+      "channel": "L",
+      "mode": "L",
+      "expected_hz": 80.0,
+      "observed_hz": 81.280289,
+      "error_hz": 1.280289
+    },
+    {
+      "channel": "R",
+      "mode": "R",
+      "expected_hz": 80.0,
+      "observed_hz": 81.280289,
+      "error_hz": 1.280289
+    },
+    {
+      "channel": "L",
+      "mode": "BOTH",
+      "expected_hz": 80.0,
+      "observed_hz": 81.280289,
+      "error_hz": 1.280289
+    },
+    {
+      "channel": "R",
+      "mode": "BOTH",
+      "expected_hz": 80.0,
+      "observed_hz": 81.280289,
+      "error_hz": 1.280289
+    },
+    {
+      "channel": "L",
+      "mode": "L",
+      "expected_hz": 100.0,
+      "observed_hz": 99.893555,
+      "error_hz": -0.106445
+    },
+    {
+      "channel": "R",
+      "mode": "R",
+      "expected_hz": 100.0,
+      "observed_hz": 99.893555,
+      "error_hz": -0.106445
+    },
+    {
+      "channel": "L",
+      "mode": "BOTH",
+      "expected_hz": 100.0,
+      "observed_hz": 99.893555,
+      "error_hz": -0.106445
+    },
+    {
+      "channel": "R",
+      "mode": "BOTH",
+      "expected_hz": 100.0,
+      "observed_hz": 99.893555,
+      "error_hz": -0.106445
+    },
+    {
+      "channel": "L",
+      "mode": "L",
+      "expected_hz": 150.0,
+      "observed_hz": 150.88356,
+      "error_hz": 0.88356
+    },
+    {
+      "channel": "R",
+      "mode": "R",
+      "expected_hz": 150.0,
+      "observed_hz": 150.88356,
+      "error_hz": 0.88356
+    },
+    {
+      "channel": "L",
+      "mode": "BOTH",
+      "expected_hz": 150.0,
+      "observed_hz": 150.88356,
+      "error_hz": 0.88356
+    },
+    {
+      "channel": "R",
+      "mode": "BOTH",
+      "expected_hz": 150.0,
+      "observed_hz": 150.88356,
+      "error_hz": 0.88356
+    },
+    {
+      "channel": "L",
+      "mode": "L",
+      "expected_hz": 200.0,
+      "observed_hz": 197.269455,
+      "error_hz": -2.730545
+    },
+    {
+      "channel": "R",
+      "mode": "R",
+      "expected_hz": 200.0,
+      "observed_hz": 197.269455,
+      "error_hz": -2.730545
+    },
+    {
+      "channel": "L",
+      "mode": "BOTH",
+      "expected_hz": 200.0,
+      "observed_hz": 197.269455,
+      "error_hz": -2.730545
+    },
+    {
+      "channel": "R",
+      "mode": "BOTH",
+      "expected_hz": 200.0,
+      "observed_hz": 197.269455,
+      "error_hz": -2.730545
+    },
+    {
+      "channel": "L",
+      "mode": "L",
+      "expected_hz": 300.0,
+      "observed_hz": 297.964355,
+      "error_hz": -2.035645
+    },
+    {
+      "channel": "R",
+      "mode": "R",
+      "expected_hz": 300.0,
+      "observed_hz": 297.964355,
+      "error_hz": -2.035645
+    },
+    {
+      "channel": "L",
+      "mode": "BOTH",
+      "expected_hz": 300.0,
+      "observed_hz": 297.964355,
+      "error_hz": -2.035645
+    },
+    {
+      "channel": "R",
+      "mode": "BOTH",
+      "expected_hz": 300.0,
+      "observed_hz": 297.964355,
+      "error_hz": -2.035645
+    },
+    {
+      "channel": "L",
+      "mode": "L",
+      "expected_hz": 500.0,
+      "observed_hz": 498.936096,
+      "error_hz": -1.063904
+    },
+    {
+      "channel": "R",
+      "mode": "R",
+      "expected_hz": 500.0,
+      "observed_hz": 498.936096,
+      "error_hz": -1.063904
+    },
+    {
+      "channel": "L",
+      "mode": "BOTH",
+      "expected_hz": 500.0,
+      "observed_hz": 498.936096,
+      "error_hz": -1.063904
+    },
+    {
+      "channel": "R",
+      "mode": "BOTH",
+      "expected_hz": 500.0,
+      "observed_hz": 498.936096,
+      "error_hz": -1.063904
+    },
+    {
+      "channel": "L",
+      "mode": "L",
+      "expected_hz": 800.0,
+      "observed_hz": 801.705872,
+      "error_hz": 1.705872
+    },
+    {
+      "channel": "R",
+      "mode": "R",
+      "expected_hz": 800.0,
+      "observed_hz": 801.705872,
+      "error_hz": 1.705872
+    },
+    {
+      "channel": "L",
+      "mode": "BOTH",
+      "expected_hz": 800.0,
+      "observed_hz": 801.705872,
+      "error_hz": 1.705872
+    },
+    {
+      "channel": "R",
+      "mode": "BOTH",
+      "expected_hz": 800.0,
+      "observed_hz": 801.705872,
+      "error_hz": 1.705872
+    },
+    {
+      "channel": "L",
+      "mode": "L",
+      "expected_hz": 1000.0,
+      "observed_hz": 1005.825256,
+      "error_hz": 5.825256
+    },
+    {
+      "channel": "R",
+      "mode": "R",
+      "expected_hz": 1000.0,
+      "observed_hz": 1005.825256,
+      "error_hz": 5.825256
+    },
+    {
+      "channel": "L",
+      "mode": "BOTH",
+      "expected_hz": 1000.0,
+      "observed_hz": 1005.825256,
+      "error_hz": 5.825256
+    },
+    {
+      "channel": "R",
+      "mode": "BOTH",
+      "expected_hz": 1000.0,
+      "observed_hz": 1005.825256,
+      "error_hz": 5.825256
+    },
+    {
+      "channel": "L",
+      "mode": "L",
+      "expected_hz": 2000.0,
+      "observed_hz": 1986.300415,
+      "error_hz": -13.699585
+    },
+    {
+      "channel": "R",
+      "mode": "R",
+      "expected_hz": 2000.0,
+      "observed_hz": 1986.300415,
+      "error_hz": -13.699585
+    },
+    {
+      "channel": "L",
+      "mode": "BOTH",
+      "expected_hz": 2000.0,
+      "observed_hz": 1986.300415,
+      "error_hz": -13.699585
+    },
+    {
+      "channel": "R",
+      "mode": "BOTH",
+      "expected_hz": 2000.0,
+      "observed_hz": 1986.300415,
+      "error_hz": -13.699585
+    },
+    {
+      "channel": "L",
+      "mode": "L",
+      "expected_hz": 5000.0,
+      "observed_hz": 5023.772949,
+      "error_hz": 23.772949
+    },
+    {
+      "channel": "R",
+      "mode": "R",
+      "expected_hz": 5000.0,
+      "observed_hz": 5023.772949,
+      "error_hz": 23.772949
+    },
+    {
+      "channel": "L",
+      "mode": "BOTH",
+      "expected_hz": 5000.0,
+      "observed_hz": 5023.772949,
+      "error_hz": 23.772949
+    },
+    {
+      "channel": "R",
+      "mode": "BOTH",
+      "expected_hz": 5000.0,
+      "observed_hz": 5023.772949,
+      "error_hz": 23.772949
+    },
+    {
+      "channel": "L",
+      "mode": "L",
+      "expected_hz": 8000.0,
+      "observed_hz": 8072.353027,
+      "error_hz": 72.353027
+    },
+    {
+      "channel": "R",
+      "mode": "R",
+      "expected_hz": 8000.0,
+      "observed_hz": 8072.353027,
+      "error_hz": 72.353027
+    },
+    {
+      "channel": "L",
+      "mode": "BOTH",
+      "expected_hz": 8000.0,
+      "observed_hz": 8072.353027,
+      "error_hz": 72.353027
+    },
+    {
+      "channel": "R",
+      "mode": "BOTH",
+      "expected_hz": 8000.0,
+      "observed_hz": 8072.353027,
+      "error_hz": 72.353027
+    },
+    {
+      "channel": "L",
+      "mode": "L",
+      "expected_hz": 12000.0,
+      "observed_hz": 11943.989258,
+      "error_hz": -56.010742
+    },
+    {
+      "channel": "R",
+      "mode": "R",
+      "expected_hz": 12000.0,
+      "observed_hz": 11943.989258,
+      "error_hz": -56.010742
+    },
+    {
+      "channel": "L",
+      "mode": "BOTH",
+      "expected_hz": 12000.0,
+      "observed_hz": 11943.989258,
+      "error_hz": -56.010742
+    },
+    {
+      "channel": "R",
+      "mode": "BOTH",
+      "expected_hz": 12000.0,
+      "observed_hz": 11943.989258,
+      "error_hz": -56.010742
+    }
+  ]
+}

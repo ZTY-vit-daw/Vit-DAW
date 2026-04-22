@@ -1,0 +1,82 @@
+{
+  "tool": "stereo_freq_calibrator",
+  "sample_rate": 48000,
+  "fft_size_reference": 4096,
+  "segment_seconds": 1.2,
+  "gap_seconds": 0.35,
+  "fade_seconds": 0.01,
+  "level_db": -10.0,
+  "include_both": true,
+  "frequencies_hz": [
+    100.0,
+    1000.0
+  ],
+  "segments": [
+    {
+      "segment_id": 1,
+      "freq_hz": 100.0,
+      "channel_mode": "L",
+      "start_seconds": 0.0,
+      "end_seconds": 1.2,
+      "expected_left_hz": 100.0,
+      "expected_right_hz": 0.0,
+      "nearest_fft_bin_hz": 105.46875,
+      "bin_quantization_error_hz": 5.46875
+    },
+    {
+      "segment_id": 2,
+      "freq_hz": 100.0,
+      "channel_mode": "R",
+      "start_seconds": 1.55,
+      "end_seconds": 2.75,
+      "expected_left_hz": 0.0,
+      "expected_right_hz": 100.0,
+      "nearest_fft_bin_hz": 105.46875,
+      "bin_quantization_error_hz": 5.46875
+    },
+    {
+      "segment_id": 3,
+      "freq_hz": 100.0,
+      "channel_mode": "BOTH",
+      "start_seconds": 3.1,
+      "end_seconds": 4.3,
+      "expected_left_hz": 100.0,
+      "expected_right_hz": 100.0,
+      "nearest_fft_bin_hz": 105.46875,
+      "bin_quantization_error_hz": 5.46875
+    },
+    {
+      "segment_id": 4,
+      "freq_hz": 1000.0,
+      "channel_mode": "L",
+      "start_seconds": 4.65,
+      "end_seconds": 5.85,
+      "expected_left_hz": 1000.0,
+      "expected_right_hz": 0.0,
+      "nearest_fft_bin_hz": 996.09375,
+      "bin_quantization_error_hz": -3.90625
+    },
+    {
+      "segment_id": 5,
+      "freq_hz": 1000.0,
+      "channel_mode": "R",
+      "start_seconds": 6.2,
+      "end_seconds": 7.4,
+      "expected_left_hz": 0.0,
+      "expected_right_hz": 1000.0,
+      "nearest_fft_bin_hz": 996.09375,
+      "bin_quantization_error_hz": -3.90625
+    },
+    {
+      "segment_id": 6,
+      "freq_hz": 1000.0,
+      "channel_mode": "BOTH",
+      "start_seconds": 7.75,
+      "end_seconds": 8.95,
+      "expected_left_hz": 1000.0,
+      "expected_right_hz": 1000.0,
+      "nearest_fft_bin_hz": 996.09375,
+      "bin_quantization_error_hz": -3.90625
+    }
+  ]
+}

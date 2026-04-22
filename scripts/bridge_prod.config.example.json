@@ -1,0 +1,12 @@
+{
+  "zmq_sub_url": "tcp://127.0.0.1:5556",
+  "zmq_req_url": "tcp://127.0.0.1:5555",
+  "godot_ip": "127.0.0.1",
+  "udp_to_godot": 4444,
+  "udp_from_godot": 4445,
+  "req_timeout_ms": 2000,
+  "req_max_retries": 1,
+  "verbose": false,
+  "last_log_path": "D:/Vit_DAW/VitApp/Workspace/Logs/bridge_last.log",
+  "keep_last_log_lines": 400
+}

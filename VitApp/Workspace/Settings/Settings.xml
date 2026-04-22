@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<PROPERTIES>
+  <VALUE name="cacheSizeSamples" val="288000"/>
+  <VALUE name="MidiProgramManager">
+    <MidiProgramManager createdRootGroup="1">
+      <ProgramSet name="Custom" zeroBased="1">
+        <bank name="Bank 1" low="0" high="0"/>
+        <bank name="Bank 2" low="0" high="1"/>
+        <bank name="Bank 3" low="0" high="2"/>
+        <bank name="Bank 4" low="0" high="3"/>
+        <bank name="Bank 5" low="0" high="4"/>
+        <bank name="Bank 6" low="0" high="5"/>
+        <bank name="Bank 7" low="0" high="6"/>
+        <bank name="Bank 8" low="0" high="7"/>
+        <bank name="Bank 9" low="0" high="8"/>
+        <bank name="Bank 10" low="0" high="9"/>
+        <bank name="Bank 11" low="0" high="10"/>
+        <bank name="Bank 12" low="0" high="11"/>
+        <bank name="Bank 13" low="0" high="12"/>
+        <bank name="Bank 14" low="0" high="13"/>
+        <bank name="Bank 15" low="0" high="14"/>
+        <bank name="Bank 16" low="0" high="15"/>
+      </ProgramSet>
+    </MidiProgramManager>
+  </VALUE>
+  <VALUE name="audiosettings_Windows Audio">
+    <AUDIODEVICE outEnabled="1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111"
+                 inEnabled="1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111"
+                 monoChansOut="0" stereoChansIn="0"/>
+  </VALUE>
+  <VALUE name="defaultWaveDevice_Windows Audio" val="out_b7a4b4c1"/>
+  <VALUE name="defaultWaveInDevice_Windows Audio" val="wavein_d7bd293b"/>
+  <VALUE name="hasEnabledMidiDefaultDevs" val="1"/>
+  <VALUE name="defaultMidiDevice" val="out_81b0d7ef"/>
+  <VALUE name="defaultMidiInDevice" val="all_midi_in"/>
+  <VALUE name="midiout_Microsoft GS Wavetable Synth">
+    <SETTINGS enabled="1" preDelay="0" sendTimecode="0" sendMidiClock="0" programNames="Custom"/>
+  </VALUE>
+  <VALUE name="wavein_TRACKTION_TRACK_DEVICE">
+    <SETTINGS gainDb="0.0" monitorMode="automatic" format="WAV file" bits="24"
+              triggerDb="-50.0" mode="0" adjustMs="0.0"/>
+  </VALUE>
+  <VALUE name="waveout_Output 1 + 2">
+    <SETTINGS dithering="0" reversed="0"/>
+  </VALUE>
+  <VALUE name="wavein_Input 2">
+    <SETTINGS gainDb="0.0" monitorMode="automatic" format="WAV file" bits="24"
+              triggerDb="-50.0" mode="0" adjustMs="0.0"/>
+  </VALUE>
+  <VALUE name="wavein_Input 1">
+    <SETTINGS gainDb="0.0" monitorMode="automatic" format="WAV file" bits="24"
+              triggerDb="-50.0" mode="0" adjustMs="0.0"/>
+  </VALUE>
+  <VALUE name="audio_device_setup">
+    <DEVICESETUP deviceType="Windows Audio" audioOutputDeviceName="&#25196;&#22768;&#22120; (USB AUDIO  CODEC)"
+                 audioInputDeviceName="&#40614;&#20811;&#39118; (Sonic Studio Virtual Mixer)"
+                 audioDeviceRate="48000.0" audioDeviceBufferSize="480"/>
+  </VALUE>
+  <VALUE name="audiosettings_DirectSound">
+    <AUDIODEVICE outEnabled="1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111"
+                 inEnabled="1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111"
+                 monoChansOut="0" stereoChansIn="0"/>
+  </VALUE>
+  <VALUE name="filterGui" val="0"/>
+  <VALUE name="knownPluginList64">
+    <KNOWNPLUGINS>
+      <PLUGIN name="SPAN" format="VST3" category="Fx|Analyzer" manufacturer="Voxengo"
+              version="3.23" file="C:\Program Files\Common Files\VST3\SPAN.vst3"
+              uniqueId="65d3dbf7" isInstrument="0" fileTime="1959c2613c0" infoUpdateTime="19d3ea4529a"
+              numInputs="2" numOutputs="2" isShell="0" hasARAExtension="0"
+              uid="c2a3d69d"/>
+      <PLUGIN name="Surge XT Effects" format="VST3" category="Fx" manufacturer="Surge Synth Team"
+              version="1.3.4" file="C:\Program Files\Common Files\VST3\Surge Synth Team\Surge XT Effects.vst3\Contents\x86_64-win\Surge XT Effects.vst3"
+              uniqueId="18ed4fbd" isInstrument="0" fileTime="191407d6f40" infoUpdateTime="19d3ea45257"
+              numInputs="4" numOutputs="2" isShell="0" hasARAExtension="0"
+              uid="f3b7b2cf"/>
+      <PLUGIN name="Surge XT" format="VST3" category="Instrument|Synth" manufacturer="Surge Synth Team"
+              version="1.3.4" file="C:\Program Files\Common Files\VST3\Surge Synth Team\Surge XT.vst3\Contents\x86_64-win\Surge XT.vst3"
+              uniqueId="190e4fbd" isInstrument="1" fileTime="19140849b30" infoUpdateTime="19d3ea451d4"
+              numInputs="2" numOutputs="2" isShell="0" hasARAExtension="0"
+              uid="f3b82eb0"/>
+      <PLUGIN name="TDR Nova" format="VST3" category="Fx|EQ" manufacturer="Tokyo Dawn Labs"
+              version="2.2.2" file="C:\Program Files\Common Files\VST3\TDR Nova.vst3"
+              uniqueId="90cd7df2" isInstrument="0" fileTime="19d251f6df0" infoUpdateTime="19d3ea44c67"
+              numInputs="3" numOutputs="2" isShell="0" hasARAExtension="0"
+              uid="da73ed21"/>
+      <PLUGIN name="ValhallaSupermassive" format="VST3" category="Fx" manufacturer="Valhalla DSP, LLC"
+              version="5.0.0" file="C:\Program Files\Common Files\VST3\ValhallaSupermassive.vst3"
+              uniqueId="7e8fe5d5" isInstrument="0" fileTime="19aa22030d0" infoUpdateTime="19d3ea44bfd"
+              numInputs="2" numOutputs="2" isShell="0" hasARAExtension="0"
+              uid="77982743"/>
+    </KNOWNPLUGINS>
+  </VALUE>
+  <VALUE name="customMidiControllers">
+    <MIDICUSTOMCONTROLSURFACES/>
+  </VALUE>
+</PROPERTIES>

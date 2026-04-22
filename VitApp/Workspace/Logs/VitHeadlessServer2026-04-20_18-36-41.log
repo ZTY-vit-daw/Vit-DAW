@@ -1,0 +1,1965 @@
+
+**********************************************************
+VitHeadlessServer session log
+Log started: 20 Apr 2026 6:36:41pm
+
+VitHeadlessServer: application startup.
+Settings file: D:\Vit_DAW\VitApp\Workspace\Settings\Settings.xml
+Audio block size: 480  Rate: 48000
+Creating Default Controllers...
+VitEngineDevice: initialising Tracktion Engine device manager.
+Audio block size: 480  Rate: 48000
+Rebuilding Wave Device List...
+Wave In: Input 1 (enabled): 0 (L)
+Wave In: Input 2 (enabled): 1 (L)
+Wave Out: Output 1 + 2 (enabled): 0 (L), 1 (R)
+Default Wave Out: Output 1 + 2
+Default MIDI Out: 
+Default Wave In: Input 1
+Default MIDI In: 
+VitEngineDevice: audio IO ready for playback graph: "扬声器 (USB AUDIO  CODEC)" 48000.00 Hz, block 480 samples
+VitEngineDevice: audio setup outputDevice="扬声器 (USB AUDIO  CODEC)" inputDevice="麦克风 (Sonic Studio Virtual Mixer)" sampleRate=48000.00 bufferSize=480 inputChannels=11 outputChannels=11
+VitEngineDevice: current audio device name="扬声器 (USB AUDIO  CODEC)" type="Windows Audio" activeOutputChannels=Output channel 1, Output channel 2" activeInputChannels=Input channel 1, Input channel 2"
+VitHeadlessService: edit loaded from D:\Vit_DAW\VitApp\Workspace\default_project.xml
+VitKernelUtils: failed to create rack instance for track 1007
+VitEngineDevice: audio IO ready for playback graph: "扬声器 (USB AUDIO  CODEC)" 48000.00 Hz, block 480 samples
+VitHeadlessService: project reload complete.
+ZmqGateway: bound command endpoint to tcp://127.0.0.1:5555
+ZmqGateway: bound publish endpoint to tcp://127.0.0.1:5556
+ZmqGateway: bound log endpoint to tcp://127.0.0.1:5557
+ZmqGateway: started network thread.
+VitHeadlessService: service started successfully.
+VitHeadlessServer: startup complete, entering background message loop.
+ZmqGateway: received command payload: {"cmd":"get_recent_projects"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"get_recent_projects"}
+Command received: {"cmd":"get_recent_projects"}
+Command executed: get_recent_projects, result: {
+  "status": "ok",
+  "recent_projects": [
+    "D:\\Godot\\project\\vit-daw-frontend\\4.18.vit",
+    "D:\\Godot\\project\\vit-daw-frontend\\Vit4.18.vit",
+    "D:\\Godot\\project\\vit-daw-frontend\\4.4.3.vit",
+    "D:\\Godot\\project\\vit-daw-frontend\\4.4.2.vit",
+    "D:\\Godot\\project\\vit-daw-frontend\\4.4.1.vit",
+    "D:\\Godot\\project\\vit-daw-frontend\\4.4.vit",
+    "D:\\4.1.tracktionedit"
+  ]
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "recent_projects": [
+    "D:\\Godot\\project\\vit-daw-frontend\\4.18.vit",
+    "D:\\Godot\\project\\vit-daw-frontend\\Vit4.18.vit",
+    "D:\\Godot\\project\\vit-daw-frontend\\4.4.3.vit",
+    "
+ZmqGateway: received command payload: {"cmd":"new_project"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"new_project"}
+Command received: {"cmd":"new_project"}
+VitEngineDevice: audio IO ready for playback graph: "扬声器 (USB AUDIO  CODEC)" 48000.00 Hz, block 480 samples
+Command executed: new_project, result: {
+  "status": "ok",
+  "message": "Blank project created"
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Blank project created"
+}
+MIDI Input devices scanned in: 0
+Updating MIDI I/O devices
+Found MIDI in: all_midi_in ("All MIDI Ins") (enabled)
+Found MIDI out: out_81b0d7ef ("Microsoft GS Wavetable Synth") (enabled)
+opening MIDI out device: out_81b0d7ef (Microsoft GS Wavetable Synth)
+ZmqGateway: received command payload: {"cmd":"get_project_state"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"get_project_state"}
+Command received: {"cmd":"get_project_state"}
+Command executed: get_project_state, result: {
+  "status": "ok",
+  "project_path": "",
+  "scope": "track",
+  "tracks": [
+    {
+      "track_id": "1002",
+      "track_name": "Arranger",
+      "track_type": "track",
+      "is_audio_track": false,
+      "is_audio": false,
+      "plugins": [],
+      "clips": [],
+      "rack": null
+    },
+    {
+      "track_id": "1003",
+      "track_name": "Chord",
+      "track_type": "track",
+      "is_audio_track": false,
+      "is_audio": false,
+      "plugins": [],
+      "clips": [],
+      "rack": null
+    },
+    {
+      "track_id": "1004",
+      "track_name": "Marker",
+      "track_type": "track",
+      "is_audio_track": false,
+      "is_audio": false,
+      "plugins": [],
+      "clips": [],
+      "rack": null
+    },
+    {
+      "track_id": "1005",
+      "track_name": "Tempo",
+      "track_type": "track",
+      "is_audio_track": false,
+      "is_audio": false,
+      "plugins": [],
+      "clips": [],
+      "rack": null
+    },
+    {
+      "track_id": "1006",
+      "track_name": "Master",
+      "track_type": "master",
+      "is_audio_track": false,
+      "is_audio": false,
+      "plugins": [],
+      "clips": [],
+      "rack": null
+    }
+  ],
+  "control_graph": {
+    "graph_id": "control_graph",
+    "domain": "control",
+    "supported_control_kinds": [
+      "slider",
+      "knob",
+      "xypad",
+      "toggle",
+      "button",
+      "numberbox",
+      "range",
+      "envelope",
+      "lfo",
+      "stepsequencer",
+      "macropanel"
+    ],
+    "nodes": [],
+    "bindings": [],
+    "surfaces": []
+  },
+  "node_registry": {
+    "built_in_manifests": [
+      {
+        "node_type": "plugin_external",
+        "execution_domain": "realtime_audio",
+        "supported_zones": [
+          "Z1",
+          "Z2",
+          "Z3"
+        ],
+        "accepted_asset_kinds": [
+          "audio",
+          "midi"
+        ],
+        "capability_tags": [
+          "track_rack",
+          "param_grabber",
+          "plugin_host"
+        ],
+        "is_async": false,
+        "supports_browser_login": false,
+        "supports_download_ingest": false,
+        "supports_control_graph": true,
+        "supports_param_grabber": true
+      },
+      {
+        "node_type": "bridge_node",
+        "execution_domain": "async_ai",
+        "supported_zones": [
+          "Z2",
+          "Z3"
+        ],
+        "accepted_asset_kinds": [
+          "audio",
+          "midi",
+          "stems"
+        ],
+        "capability_tags": [
+          "async_job",
+          "download_ingest",
+          "browser_connector"
+        ],
+        "is_async": true,
+        "supports_browser_login": true,
+        "supports_download_ingest": true,
+        "supports_control_graph": false,
+        "supports_param_grabber": false
+      },
+      {
+        "node_type": "audio_injector",
+        "execution_domain": "bridge_injector",
+        "supported_zones": [
+          "Z3"
+        ],
+        "accepted_asset_kinds": [
+          "audio",
+          "stems"
+        ],
+        "capability_tags": [
+          "asset_backed",
+          "warp_target"
+        ],
+        "is_async": true,
+        "supports_browser_login": false,
+        "supports_download_ingest": true,
+        "supports_control_graph": false,
+        "supports_param_grabber": false
+      },
+      {
+        "node_type": "control_node",
+        "execution_domain": "control_domain",
+        "supported_zones": [
+          "Top"
+        ],
+        "accepted_asset_kinds": [],
+        "capability_tags": [
+          "control_graph",
+          "macro_source"
+        ],
+        "is_async": false,
+        "supports_browser_login": false,
+        "supports_download_ingest": false,
+        "supports_control_graph": true,
+        "supports_param_grabber": false
+      },
+      {
+        "node_type": "connector_profile",
+        "execution_domain": "web_api",
+        "supported_zones": [
+          "Z2",
+          "Z3"
+        ],
+        "accepted_asset_kinds": [
+          "audio",
+          "midi",
+          "stems",
+          "lyrics"
+        ],
+        "capability_tags": [
+          "browser_connector",
+          "profile_backed"
+        ],
+        "is_async": true,
+        "supports_browser_login": true,
+        "supports_download_ingest": true,
+        "supports_control_graph": false,
+        "supports_param_grabber": false
+      }
+    ],
+    "connector_specs": [
+      {
+        "spec_id": "browser_download_audio",
+        "display_name": "Browser Audio Connector",
+        "connector_kind": "browser_download",
+        "login_mode": "browser_self_login",
+        "ingest_mode": "download_watch",
+        "default_output_kind": "audio",
+        "supported_output_kinds": [
+          "audio",
+          "lyrics"
+        ]
+      },
+      {
+        "spec_id": "browser_download_stems",
+        "display_name": "Browser Stems Connector",
+        "connector_kind": "browser_download",
+        "login_mode": "browser_self_login",
+        "ingest_mode": "download_watch",
+        "default_output_kind": "stems",
+        "supported_output_kinds": [
+          "stems",
+          "audio"
+        ]
+      },
+      {
+        "spec_id": "browser_download_midi",
+        "display_name": "Browser MIDI Connector",
+        "connector_kind": "browser_download",
+        "login_mode": "browser_self_login",
+        "ingest_mode": "download_watch",
+        "default_output_kind": "midi",
+        "supported_output_kinds": [
+          "midi",
+          "audio"
+        ]
+      }
+    ],
+    "connector_profiles": []
+  },
+  "connector_profiles": [],
+  "connector_specs": [
+    {
+      "spec_id": "browser_download_audio",
+      "display_name": "Browser Audio Connector",
+      "connector_kind": "browser_download",
+      "login_mode": "browser_self_login",
+      "ingest_mode": "download_watch",
+      "default_output_kind": "audio",
+      "supported_output_kinds": [
+        "audio",
+        "lyrics"
+      ]
+    },
+    {
+      "spec_id": "browser_download_stems",
+      "display_name": "Browser Stems Connector",
+      "connector_kind": "browser_download",
+      "login_mode": "browser_self_login",
+      "ingest_mode": "download_watch",
+      "default_output_kind": "stems",
+      "supported_output_kinds": [
+        "stems",
+        "audio"
+      ]
+    },
+    {
+      "spec_id": "browser_download_midi",
+      "display_name": "Browser MIDI Connector",
+      "connector_kind": "browser_download",
+      "login_mode": "browser_self_login",
+      "ingest_mode": "download_watch",
+      "default_output_kind": "midi",
+      "supported_output_kinds": [
+        "midi",
+        "audio"
+      ]
+    }
+  ],
+  "generated_assets": [],
+  "jobs": [],
+  "take_histories": [],
+  "observability": {
+    "probe_channels": [
+      {
+        "channel_id": "job_state",
+        "label": "Job State"
+      },
+      {
+        "channel_id": "ghost_state",
+        "label": "Ghost State"
+      },
+      {
+        "channel_id": "graph_revision",
+        "label": "Graph Revision"
+      },
+      {
+        "channel_id": "active_take",
+        "label": "Active Take"
+      },
+      {
+        "channel_id": "cache_hit",
+        "label": "Cache Hit"
+      },
+      {
+        "channel_id": "output_source",
+        "label": "Output Source"
+      }
+    ],
+    "graph_revision": 0,
+    "graph_lifecycle_state": "idle",
+    "pending_job_count": 0,
+    "active_take_count": 0,
+    "cache_asset_count": 0,
+    "output_source_hint": "project_media",
+    "profile": {
+      "track_count": 5,
+      "clip_count": 2,
+      "job_count": 0,
+      "generated_asset_count": 0,
+      "take_stack_count": 0
+    }
+  },
+  "project_health": {
+    "issue_count": 0,
+    "issues": []
+  },
+  "export_policy": {
+    "recommended_mode": "wait",
+    "supported_modes": [
+      "wait",
+      "use_cache",
+      "bypass",
+      "fail_export"
+    ],
+    "has_pending_jobs": false,
+    "has_missing_assets": false,
+    "has_cache_assets": false
+  },
+  "graph_revision": 0,
+  "graph_active_revision": 0,
+  "graph_pending_revision": 0,
+  "graph_last_retired_revision": 0,
+  "graph_retired_snapshot_count": 0,
+  "graph_last_diff_kind": "edit_loaded",
+  "graph_last_diff_summary": "Blank project created",
+  "graph_publish_mode": "initialised",
+  "graph_lifecycle_state": "idle",
+  "graph_recent_changes": []
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "project_path": "",
+  "scope": "track",
+  "tracks": [
+    {
+      "track_id": "1002",
+      "track_name": "Arranger",
+      "track_type": "track",
+      "is_audio_track": false,
+      "is_
+ZmqGateway: received command payload: {"cmd":"add_track","type":"hybrid"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"add_track","type":"hybrid"}
+Command received: {"cmd":"add_track","type":"hybrid"}
+VitKernelUtils: failed to create rack instance for track 1007
+VitHeadlessService: project saved to D:\Vit_DAW\VitApp\Workspace\default_project.xml
+Command executed: add_track, result: {
+  "status": "ok",
+  "message": "Track added",
+  "track_id": "1007",
+  "track_name": "Track 1"
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Track added",
+  "track_id": "1007",
+  "track_name": "Track 1"
+}
+ZmqGateway: received command payload: {"cmd":"get_project_state"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"get_project_state"}
+Command received: {"cmd":"get_project_state"}
+Command executed: get_project_state, result: {
+  "status": "ok",
+  "project_path": "",
+  "scope": "track",
+  "tracks": [
+    {
+      "track_id": "1002",
+      "track_name": "Arranger",
+      "track_type": "track",
+      "is_audio_track": false,
+      "is_audio": false,
+      "plugins": [],
+      "clips": [],
+      "rack": null
+    },
+    {
+      "track_id": "1003",
+      "track_name": "Chord",
+      "track_type": "track",
+      "is_audio_track": false,
+      "is_audio": false,
+      "plugins": [],
+      "clips": [],
+      "rack": null
+    },
+    {
+      "track_id": "1004",
+      "track_name": "Marker",
+      "track_type": "track",
+      "is_audio_track": false,
+      "is_audio": false,
+      "plugins": [],
+      "clips": [],
+      "rack": null
+    },
+    {
+      "track_id": "1005",
+      "track_name": "Tempo",
+      "track_type": "track",
+      "is_audio_track": false,
+      "is_audio": false,
+      "plugins": [],
+      "clips": [],
+      "rack": null
+    },
+    {
+      "track_id": "1006",
+      "track_name": "Master",
+      "track_type": "master",
+      "is_audio_track": false,
+      "is_audio": false,
+      "plugins": [],
+      "clips": [],
+      "rack": null
+    },
+    {
+      "track_id": "1007",
+      "track_name": "Track 1",
+      "track_type": "hybrid",
+      "is_audio_track": true,
+      "is_audio": true,
+      "plugins": [
+        {
+          "id": "1008",
+          "item_id": "1008",
+          "plugin_item_id": "1008",
+          "name": "Volume & Pan Plugin",
+          "type": "volume",
+          "enabled": true
+        },
+        {
+          "id": "1009",
+          "item_id": "1009",
+          "plugin_item_id": "1009",
+          "name": "Level Meter",
+          "type": "level",
+          "enabled": true
+        }
+      ],
+      "clips": [],
+      "rack": null,
+      "output_to_device_resolved": true,
+      "output_device_enabled": true,
+      "output_device_id": "out_b7a4b4c1",
+      "output_routing_name": "(default audio output)"
+    }
+  ],
+  "control_graph": {
+    "graph_id": "control_graph",
+    "domain": "control",
+    "supported_control_kinds": [
+      "slider",
+      "knob",
+      "xypad",
+      "toggle",
+      "button",
+      "numberbox",
+      "range",
+      "envelope",
+      "lfo",
+      "stepsequencer",
+      "macropanel"
+    ],
+    "nodes": [],
+    "bindings": [],
+    "surfaces": []
+  },
+  "node_registry": {
+    "built_in_manifests": [
+      {
+        "node_type": "plugin_external",
+        "execution_domain": "realtime_audio",
+        "supported_zones": [
+          "Z1",
+          "Z2",
+          "Z3"
+        ],
+        "accepted_asset_kinds": [
+          "audio",
+          "midi"
+        ],
+        "capability_tags": [
+          "track_rack",
+          "param_grabber",
+          "plugin_host"
+        ],
+        "is_async": false,
+        "supports_browser_login": false,
+        "supports_download_ingest": false,
+        "supports_control_graph": true,
+        "supports_param_grabber": true
+      },
+      {
+        "node_type": "bridge_node",
+        "execution_domain": "async_ai",
+        "supported_zones": [
+          "Z2",
+          "Z3"
+        ],
+        "accepted_asset_kinds": [
+          "audio",
+          "midi",
+          "stems"
+        ],
+        "capability_tags": [
+          "async_job",
+          "download_ingest",
+          "browser_connector"
+        ],
+        "is_async": true,
+        "supports_browser_login": true,
+        "supports_download_ingest": true,
+        "supports_control_graph": false,
+        "supports_param_grabber": false
+      },
+      {
+        "node_type": "audio_injector",
+        "execution_domain": "bridge_injector",
+        "supported_zones": [
+          "Z3"
+        ],
+        "accepted_asset_kinds": [
+          "audio",
+          "stems"
+        ],
+        "capability_tags": [
+          "asset_backed",
+          "warp_target"
+        ],
+        "is_async": true,
+        "supports_browser_login": false,
+        "supports_download_ingest": true,
+        "supports_control_graph": false,
+        "supports_param_grabber": false
+      },
+      {
+        "node_type": "control_node",
+        "execution_domain": "control_domain",
+        "supported_zones": [
+          "Top"
+        ],
+        "accepted_asset_kinds": [],
+        "capability_tags": [
+          "control_graph",
+          "macro_source"
+        ],
+        "is_async": false,
+        "supports_browser_login": false,
+        "supports_download_ingest": false,
+        "supports_control_graph": true,
+        "supports_param_grabber": false
+      },
+      {
+        "node_type": "connector_profile",
+        "execution_domain": "web_api",
+        "supported_zones": [
+          "Z2",
+          "Z3"
+        ],
+        "accepted_asset_kinds": [
+          "audio",
+          "midi",
+          "stems",
+          "lyrics"
+        ],
+        "capability_tags": [
+          "browser_connector",
+          "profile_backed"
+        ],
+        "is_async": true,
+        "supports_browser_login": true,
+        "supports_download_ingest": true,
+        "supports_control_graph": false,
+        "supports_param_grabber": false
+      }
+    ],
+    "connector_specs": [
+      {
+        "spec_id": "browser_download_audio",
+        "display_name": "Browser Audio Connector",
+        "connector_kind": "browser_download",
+        "login_mode": "browser_self_login",
+        "ingest_mode": "download_watch",
+        "default_output_kind": "audio",
+        "supported_output_kinds": [
+          "audio",
+          "lyrics"
+        ]
+      },
+      {
+        "spec_id": "browser_download_stems",
+        "display_name": "Browser Stems Connector",
+        "connector_kind": "browser_download",
+        "login_mode": "browser_self_login",
+        "ingest_mode": "download_watch",
+        "default_output_kind": "stems",
+        "supported_output_kinds": [
+          "stems",
+          "audio"
+        ]
+      },
+      {
+        "spec_id": "browser_download_midi",
+        "display_name": "Browser MIDI Connector",
+        "connector_kind": "browser_download",
+        "login_mode": "browser_self_login",
+        "ingest_mode": "download_watch",
+        "default_output_kind": "midi",
+        "supported_output_kinds": [
+          "midi",
+          "audio"
+        ]
+      }
+    ],
+    "connector_profiles": []
+  },
+  "connector_profiles": [],
+  "connector_specs": [
+    {
+      "spec_id": "browser_download_audio",
+      "display_name": "Browser Audio Connector",
+      "connector_kind": "browser_download",
+      "login_mode": "browser_self_login",
+      "ingest_mode": "download_watch",
+      "default_output_kind": "audio",
+      "supported_output_kinds": [
+        "audio",
+        "lyrics"
+      ]
+    },
+    {
+      "spec_id": "browser_download_stems",
+      "display_name": "Browser Stems Connector",
+      "connector_kind": "browser_download",
+      "login_mode": "browser_self_login",
+      "ingest_mode": "download_watch",
+      "default_output_kind": "stems",
+      "supported_output_kinds": [
+        "stems",
+        "audio"
+      ]
+    },
+    {
+      "spec_id": "browser_download_midi",
+      "display_name": "Browser MIDI Connector",
+      "connector_kind": "browser_download",
+      "login_mode": "browser_self_login",
+      "ingest_mode": "download_watch",
+      "default_output_kind": "midi",
+      "supported_output_kinds": [
+        "midi",
+        "audio"
+      ]
+    }
+  ],
+  "generated_assets": [],
+  "jobs": [],
+  "take_histories": [],
+  "observability": {
+    "probe_channels": [
+      {
+        "channel_id": "job_state",
+        "label": "Job State"
+      },
+      {
+        "channel_id": "ghost_state",
+        "label": "Ghost State"
+      },
+      {
+        "channel_id": "graph_revision",
+        "label": "Graph Revision"
+      },
+      {
+        "channel_id": "active_take",
+        "label": "Active Take"
+      },
+      {
+        "channel_id": "cache_hit",
+        "label": "Cache Hit"
+      },
+      {
+        "channel_id": "output_source",
+        "label": "Output Source"
+      }
+    ],
+    "graph_revision": 0,
+    "graph_lifecycle_state": "idle",
+    "pending_job_count": 0,
+    "active_take_count": 0,
+    "cache_asset_count": 0,
+    "output_source_hint": "project_media",
+    "profile": {
+      "track_count": 6,
+      "clip_count": 2,
+      "job_count": 0,
+      "generated_asset_count": 0,
+      "take_stack_count": 0
+    }
+  },
+  "project_health": {
+    "issue_count": 0,
+    "issues": []
+  },
+  "export_policy": {
+    "recommended_mode": "wait",
+    "supported_modes": [
+      "wait",
+      "use_cache",
+      "bypass",
+      "fail_export"
+    ],
+    "has_pending_jobs": false,
+    "has_missing_assets": false,
+    "has_cache_assets": false
+  },
+  "graph_revision": 0,
+  "graph_active_revision": 0,
+  "graph_pending_revision": 0,
+  "graph_last_retired_revision": 0,
+  "graph_retired_snapshot_count": 0,
+  "graph_last_diff_kind": "edit_loaded",
+  "graph_last_diff_summary": "Blank project created",
+  "graph_publish_mode": "initialised",
+  "graph_lifecycle_state": "idle",
+  "graph_recent_changes": []
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "project_path": "",
+  "scope": "track",
+  "tracks": [
+    {
+      "track_id": "1002",
+      "track_name": "Arranger",
+      "track_type": "track",
+      "is_audio_track": false,
+      "is_
+ZmqGateway: received command payload: {"cmd":"get_project_state"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"get_project_state"}
+Command received: {"cmd":"get_project_state"}
+Command executed: get_project_state, result: {
+  "status": "ok",
+  "project_path": "",
+  "scope": "track",
+  "tracks": [
+    {
+      "track_id": "1002",
+      "track_name": "Arranger",
+      "track_type": "track",
+      "is_audio_track": false,
+      "is_audio": false,
+      "plugins": [],
+      "clips": [],
+      "rack": null
+    },
+    {
+      "track_id": "1003",
+      "track_name": "Chord",
+      "track_type": "track",
+      "is_audio_track": false,
+      "is_audio": false,
+      "plugins": [],
+      "clips": [],
+      "rack": null
+    },
+    {
+      "track_id": "1004",
+      "track_name": "Marker",
+      "track_type": "track",
+      "is_audio_track": false,
+      "is_audio": false,
+      "plugins": [],
+      "clips": [],
+      "rack": null
+    },
+    {
+      "track_id": "1005",
+      "track_name": "Tempo",
+      "track_type": "track",
+      "is_audio_track": false,
+      "is_audio": false,
+      "plugins": [],
+      "clips": [],
+      "rack": null
+    },
+    {
+      "track_id": "1006",
+      "track_name": "Master",
+      "track_type": "master",
+      "is_audio_track": false,
+      "is_audio": false,
+      "plugins": [],
+      "clips": [],
+      "rack": null
+    },
+    {
+      "track_id": "1007",
+      "track_name": "Track 1",
+      "track_type": "hybrid",
+      "is_audio_track": true,
+      "is_audio": true,
+      "plugins": [
+        {
+          "id": "1008",
+          "item_id": "1008",
+          "plugin_item_id": "1008",
+          "name": "Volume & Pan Plugin",
+          "type": "volume",
+          "enabled": true
+        },
+        {
+          "id": "1009",
+          "item_id": "1009",
+          "plugin_item_id": "1009",
+          "name": "Level Meter",
+          "type": "level",
+          "enabled": true
+        }
+      ],
+      "clips": [],
+      "rack": null,
+      "output_to_device_resolved": true,
+      "output_device_enabled": true,
+      "output_device_id": "out_b7a4b4c1",
+      "output_routing_name": "(default audio output)"
+    }
+  ],
+  "control_graph": {
+    "graph_id": "control_graph",
+    "domain": "control",
+    "supported_control_kinds": [
+      "slider",
+      "knob",
+      "xypad",
+      "toggle",
+      "button",
+      "numberbox",
+      "range",
+      "envelope",
+      "lfo",
+      "stepsequencer",
+      "macropanel"
+    ],
+    "nodes": [],
+    "bindings": [],
+    "surfaces": []
+  },
+  "node_registry": {
+    "built_in_manifests": [
+      {
+        "node_type": "plugin_external",
+        "execution_domain": "realtime_audio",
+        "supported_zones": [
+          "Z1",
+          "Z2",
+          "Z3"
+        ],
+        "accepted_asset_kinds": [
+          "audio",
+          "midi"
+        ],
+        "capability_tags": [
+          "track_rack",
+          "param_grabber",
+          "plugin_host"
+        ],
+        "is_async": false,
+        "supports_browser_login": false,
+        "supports_download_ingest": false,
+        "supports_control_graph": true,
+        "supports_param_grabber": true
+      },
+      {
+        "node_type": "bridge_node",
+        "execution_domain": "async_ai",
+        "supported_zones": [
+          "Z2",
+          "Z3"
+        ],
+        "accepted_asset_kinds": [
+          "audio",
+          "midi",
+          "stems"
+        ],
+        "capability_tags": [
+          "async_job",
+          "download_ingest",
+          "browser_connector"
+        ],
+        "is_async": true,
+        "supports_browser_login": true,
+        "supports_download_ingest": true,
+        "supports_control_graph": false,
+        "supports_param_grabber": false
+      },
+      {
+        "node_type": "audio_injector",
+        "execution_domain": "bridge_injector",
+        "supported_zones": [
+          "Z3"
+        ],
+        "accepted_asset_kinds": [
+          "audio",
+          "stems"
+        ],
+        "capability_tags": [
+          "asset_backed",
+          "warp_target"
+        ],
+        "is_async": true,
+        "supports_browser_login": false,
+        "supports_download_ingest": true,
+        "supports_control_graph": false,
+        "supports_param_grabber": false
+      },
+      {
+        "node_type": "control_node",
+        "execution_domain": "control_domain",
+        "supported_zones": [
+          "Top"
+        ],
+        "accepted_asset_kinds": [],
+        "capability_tags": [
+          "control_graph",
+          "macro_source"
+        ],
+        "is_async": false,
+        "supports_browser_login": false,
+        "supports_download_ingest": false,
+        "supports_control_graph": true,
+        "supports_param_grabber": false
+      },
+      {
+        "node_type": "connector_profile",
+        "execution_domain": "web_api",
+        "supported_zones": [
+          "Z2",
+          "Z3"
+        ],
+        "accepted_asset_kinds": [
+          "audio",
+          "midi",
+          "stems",
+          "lyrics"
+        ],
+        "capability_tags": [
+          "browser_connector",
+          "profile_backed"
+        ],
+        "is_async": true,
+        "supports_browser_login": true,
+        "supports_download_ingest": true,
+        "supports_control_graph": false,
+        "supports_param_grabber": false
+      }
+    ],
+    "connector_specs": [
+      {
+        "spec_id": "browser_download_audio",
+        "display_name": "Browser Audio Connector",
+        "connector_kind": "browser_download",
+        "login_mode": "browser_self_login",
+        "ingest_mode": "download_watch",
+        "default_output_kind": "audio",
+        "supported_output_kinds": [
+          "audio",
+          "lyrics"
+        ]
+      },
+      {
+        "spec_id": "browser_download_stems",
+        "display_name": "Browser Stems Connector",
+        "connector_kind": "browser_download",
+        "login_mode": "browser_self_login",
+        "ingest_mode": "download_watch",
+        "default_output_kind": "stems",
+        "supported_output_kinds": [
+          "stems",
+          "audio"
+        ]
+      },
+      {
+        "spec_id": "browser_download_midi",
+        "display_name": "Browser MIDI Connector",
+        "connector_kind": "browser_download",
+        "login_mode": "browser_self_login",
+        "ingest_mode": "download_watch",
+        "default_output_kind": "midi",
+        "supported_output_kinds": [
+          "midi",
+          "audio"
+        ]
+      }
+    ],
+    "connector_profiles": []
+  },
+  "connector_profiles": [],
+  "connector_specs": [
+    {
+      "spec_id": "browser_download_audio",
+      "display_name": "Browser Audio Connector",
+      "connector_kind": "browser_download",
+      "login_mode": "browser_self_login",
+      "ingest_mode": "download_watch",
+      "default_output_kind": "audio",
+      "supported_output_kinds": [
+        "audio",
+        "lyrics"
+      ]
+    },
+    {
+      "spec_id": "browser_download_stems",
+      "display_name": "Browser Stems Connector",
+      "connector_kind": "browser_download",
+      "login_mode": "browser_self_login",
+      "ingest_mode": "download_watch",
+      "default_output_kind": "stems",
+      "supported_output_kinds": [
+        "stems",
+        "audio"
+      ]
+    },
+    {
+      "spec_id": "browser_download_midi",
+      "display_name": "Browser MIDI Connector",
+      "connector_kind": "browser_download",
+      "login_mode": "browser_self_login",
+      "ingest_mode": "download_watch",
+      "default_output_kind": "midi",
+      "supported_output_kinds": [
+        "midi",
+        "audio"
+      ]
+    }
+  ],
+  "generated_assets": [],
+  "jobs": [],
+  "take_histories": [],
+  "observability": {
+    "probe_channels": [
+      {
+        "channel_id": "job_state",
+        "label": "Job State"
+      },
+      {
+        "channel_id": "ghost_state",
+        "label": "Ghost State"
+      },
+      {
+        "channel_id": "graph_revision",
+        "label": "Graph Revision"
+      },
+      {
+        "channel_id": "active_take",
+        "label": "Active Take"
+      },
+      {
+        "channel_id": "cache_hit",
+        "label": "Cache Hit"
+      },
+      {
+        "channel_id": "output_source",
+        "label": "Output Source"
+      }
+    ],
+    "graph_revision": 0,
+    "graph_lifecycle_state": "idle",
+    "pending_job_count": 0,
+    "active_take_count": 0,
+    "cache_asset_count": 0,
+    "output_source_hint": "project_media",
+    "profile": {
+      "track_count": 6,
+      "clip_count": 2,
+      "job_count": 0,
+      "generated_asset_count": 0,
+      "take_stack_count": 0
+    }
+  },
+  "project_health": {
+    "issue_count": 0,
+    "issues": []
+  },
+  "export_policy": {
+    "recommended_mode": "wait",
+    "supported_modes": [
+      "wait",
+      "use_cache",
+      "bypass",
+      "fail_export"
+    ],
+    "has_pending_jobs": false,
+    "has_missing_assets": false,
+    "has_cache_assets": false
+  },
+  "graph_revision": 0,
+  "graph_active_revision": 0,
+  "graph_pending_revision": 0,
+  "graph_last_retired_revision": 0,
+  "graph_retired_snapshot_count": 0,
+  "graph_last_diff_kind": "edit_loaded",
+  "graph_last_diff_summary": "Blank project created",
+  "graph_publish_mode": "initialised",
+  "graph_lifecycle_state": "idle",
+  "graph_recent_changes": []
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "project_path": "",
+  "scope": "track",
+  "tracks": [
+    {
+      "track_id": "1002",
+      "track_name": "Arranger",
+      "track_type": "track",
+      "is_audio_track": false,
+      "is_
+ZmqGateway: received command payload: {"cmd":"get_project_state"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"get_project_state"}
+Command received: {"cmd":"get_project_state"}
+Command executed: get_project_state, result: {
+  "status": "ok",
+  "project_path": "",
+  "scope": "track",
+  "tracks": [
+    {
+      "track_id": "1002",
+      "track_name": "Arranger",
+      "track_type": "track",
+      "is_audio_track": false,
+      "is_audio": false,
+      "plugins": [],
+      "clips": [],
+      "rack": null
+    },
+    {
+      "track_id": "1003",
+      "track_name": "Chord",
+      "track_type": "track",
+      "is_audio_track": false,
+      "is_audio": false,
+      "plugins": [],
+      "clips": [],
+      "rack": null
+    },
+    {
+      "track_id": "1004",
+      "track_name": "Marker",
+      "track_type": "track",
+      "is_audio_track": false,
+      "is_audio": false,
+      "plugins": [],
+      "clips": [],
+      "rack": null
+    },
+    {
+      "track_id": "1005",
+      "track_name": "Tempo",
+      "track_type": "track",
+      "is_audio_track": false,
+      "is_audio": false,
+      "plugins": [],
+      "clips": [],
+      "rack": null
+    },
+    {
+      "track_id": "1006",
+      "track_name": "Master",
+      "track_type": "master",
+      "is_audio_track": false,
+      "is_audio": false,
+      "plugins": [],
+      "clips": [],
+      "rack": null
+    },
+    {
+      "track_id": "1007",
+      "track_name": "Track 1",
+      "track_type": "hybrid",
+      "is_audio_track": true,
+      "is_audio": true,
+      "plugins": [
+        {
+          "id": "1008",
+          "item_id": "1008",
+          "plugin_item_id": "1008",
+          "name": "Volume & Pan Plugin",
+          "type": "volume",
+          "enabled": true
+        },
+        {
+          "id": "1009",
+          "item_id": "1009",
+          "plugin_item_id": "1009",
+          "name": "Level Meter",
+          "type": "level",
+          "enabled": true
+        }
+      ],
+      "clips": [],
+      "rack": null,
+      "output_to_device_resolved": true,
+      "output_device_enabled": true,
+      "output_device_id": "out_b7a4b4c1",
+      "output_routing_name": "(default audio output)"
+    }
+  ],
+  "control_graph": {
+    "graph_id": "control_graph",
+    "domain": "control",
+    "supported_control_kinds": [
+      "slider",
+      "knob",
+      "xypad",
+      "toggle",
+      "button",
+      "numberbox",
+      "range",
+      "envelope",
+      "lfo",
+      "stepsequencer",
+      "macropanel"
+    ],
+    "nodes": [],
+    "bindings": [],
+    "surfaces": []
+  },
+  "node_registry": {
+    "built_in_manifests": [
+      {
+        "node_type": "plugin_external",
+        "execution_domain": "realtime_audio",
+        "supported_zones": [
+          "Z1",
+          "Z2",
+          "Z3"
+        ],
+        "accepted_asset_kinds": [
+          "audio",
+          "midi"
+        ],
+        "capability_tags": [
+          "track_rack",
+          "param_grabber",
+          "plugin_host"
+        ],
+        "is_async": false,
+        "supports_browser_login": false,
+        "supports_download_ingest": false,
+        "supports_control_graph": true,
+        "supports_param_grabber": true
+      },
+      {
+        "node_type": "bridge_node",
+        "execution_domain": "async_ai",
+        "supported_zones": [
+          "Z2",
+          "Z3"
+        ],
+        "accepted_asset_kinds": [
+          "audio",
+          "midi",
+          "stems"
+        ],
+        "capability_tags": [
+          "async_job",
+          "download_ingest",
+          "browser_connector"
+        ],
+        "is_async": true,
+        "supports_browser_login": true,
+        "supports_download_ingest": true,
+        "supports_control_graph": false,
+        "supports_param_grabber": false
+      },
+      {
+        "node_type": "audio_injector",
+        "execution_domain": "bridge_injector",
+        "supported_zones": [
+          "Z3"
+        ],
+        "accepted_asset_kinds": [
+          "audio",
+          "stems"
+        ],
+        "capability_tags": [
+          "asset_backed",
+          "warp_target"
+        ],
+        "is_async": true,
+        "supports_browser_login": false,
+        "supports_download_ingest": true,
+        "supports_control_graph": false,
+        "supports_param_grabber": false
+      },
+      {
+        "node_type": "control_node",
+        "execution_domain": "control_domain",
+        "supported_zones": [
+          "Top"
+        ],
+        "accepted_asset_kinds": [],
+        "capability_tags": [
+          "control_graph",
+          "macro_source"
+        ],
+        "is_async": false,
+        "supports_browser_login": false,
+        "supports_download_ingest": false,
+        "supports_control_graph": true,
+        "supports_param_grabber": false
+      },
+      {
+        "node_type": "connector_profile",
+        "execution_domain": "web_api",
+        "supported_zones": [
+          "Z2",
+          "Z3"
+        ],
+        "accepted_asset_kinds": [
+          "audio",
+          "midi",
+          "stems",
+          "lyrics"
+        ],
+        "capability_tags": [
+          "browser_connector",
+          "profile_backed"
+        ],
+        "is_async": true,
+        "supports_browser_login": true,
+        "supports_download_ingest": true,
+        "supports_control_graph": false,
+        "supports_param_grabber": false
+      }
+    ],
+    "connector_specs": [
+      {
+        "spec_id": "browser_download_audio",
+        "display_name": "Browser Audio Connector",
+        "connector_kind": "browser_download",
+        "login_mode": "browser_self_login",
+        "ingest_mode": "download_watch",
+        "default_output_kind": "audio",
+        "supported_output_kinds": [
+          "audio",
+          "lyrics"
+        ]
+      },
+      {
+        "spec_id": "browser_download_stems",
+        "display_name": "Browser Stems Connector",
+        "connector_kind": "browser_download",
+        "login_mode": "browser_self_login",
+        "ingest_mode": "download_watch",
+        "default_output_kind": "stems",
+        "supported_output_kinds": [
+          "stems",
+          "audio"
+        ]
+      },
+      {
+        "spec_id": "browser_download_midi",
+        "display_name": "Browser MIDI Connector",
+        "connector_kind": "browser_download",
+        "login_mode": "browser_self_login",
+        "ingest_mode": "download_watch",
+        "default_output_kind": "midi",
+        "supported_output_kinds": [
+          "midi",
+          "audio"
+        ]
+      }
+    ],
+    "connector_profiles": []
+  },
+  "connector_profiles": [],
+  "connector_specs": [
+    {
+      "spec_id": "browser_download_audio",
+      "display_name": "Browser Audio Connector",
+      "connector_kind": "browser_download",
+      "login_mode": "browser_self_login",
+      "ingest_mode": "download_watch",
+      "default_output_kind": "audio",
+      "supported_output_kinds": [
+        "audio",
+        "lyrics"
+      ]
+    },
+    {
+      "spec_id": "browser_download_stems",
+      "display_name": "Browser Stems Connector",
+      "connector_kind": "browser_download",
+      "login_mode": "browser_self_login",
+      "ingest_mode": "download_watch",
+      "default_output_kind": "stems",
+      "supported_output_kinds": [
+        "stems",
+        "audio"
+      ]
+    },
+    {
+      "spec_id": "browser_download_midi",
+      "display_name": "Browser MIDI Connector",
+      "connector_kind": "browser_download",
+      "login_mode": "browser_self_login",
+      "ingest_mode": "download_watch",
+      "default_output_kind": "midi",
+      "supported_output_kinds": [
+        "midi",
+        "audio"
+      ]
+    }
+  ],
+  "generated_assets": [],
+  "jobs": [],
+  "take_histories": [],
+  "observability": {
+    "probe_channels": [
+      {
+        "channel_id": "job_state",
+        "label": "Job State"
+      },
+      {
+        "channel_id": "ghost_state",
+        "label": "Ghost State"
+      },
+      {
+        "channel_id": "graph_revision",
+        "label": "Graph Revision"
+      },
+      {
+        "channel_id": "active_take",
+        "label": "Active Take"
+      },
+      {
+        "channel_id": "cache_hit",
+        "label": "Cache Hit"
+      },
+      {
+        "channel_id": "output_source",
+        "label": "Output Source"
+      }
+    ],
+    "graph_revision": 0,
+    "graph_lifecycle_state": "idle",
+    "pending_job_count": 0,
+    "active_take_count": 0,
+    "cache_asset_count": 0,
+    "output_source_hint": "project_media",
+    "profile": {
+      "track_count": 6,
+      "clip_count": 2,
+      "job_count": 0,
+      "generated_asset_count": 0,
+      "take_stack_count": 0
+    }
+  },
+  "project_health": {
+    "issue_count": 0,
+    "issues": []
+  },
+  "export_policy": {
+    "recommended_mode": "wait",
+    "supported_modes": [
+      "wait",
+      "use_cache",
+      "bypass",
+      "fail_export"
+    ],
+    "has_pending_jobs": false,
+    "has_missing_assets": false,
+    "has_cache_assets": false
+  },
+  "graph_revision": 0,
+  "graph_active_revision": 0,
+  "graph_pending_revision": 0,
+  "graph_last_retired_revision": 0,
+  "graph_retired_snapshot_count": 0,
+  "graph_last_diff_kind": "edit_loaded",
+  "graph_last_diff_summary": "Blank project created",
+  "graph_publish_mode": "initialised",
+  "graph_lifecycle_state": "idle",
+  "graph_recent_changes": []
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "project_path": "",
+  "scope": "track",
+  "tracks": [
+    {
+      "track_id": "1002",
+      "track_name": "Arranger",
+      "track_type": "track",
+      "is_audio_track": false,
+      "is_
+ZmqGateway: received command payload: {"cmd":"get_project_state"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"get_project_state"}
+Command received: {"cmd":"get_project_state"}
+Command executed: get_project_state, result: {
+  "status": "ok",
+  "project_path": "",
+  "scope": "track",
+  "tracks": [
+    {
+      "track_id": "1002",
+      "track_name": "Arranger",
+      "track_type": "track",
+      "is_audio_track": false,
+      "is_audio": false,
+      "plugins": [],
+      "clips": [],
+      "rack": null
+    },
+    {
+      "track_id": "1003",
+      "track_name": "Chord",
+      "track_type": "track",
+      "is_audio_track": false,
+      "is_audio": false,
+      "plugins": [],
+      "clips": [],
+      "rack": null
+    },
+    {
+      "track_id": "1004",
+      "track_name": "Marker",
+      "track_type": "track",
+      "is_audio_track": false,
+      "is_audio": false,
+      "plugins": [],
+      "clips": [],
+      "rack": null
+    },
+    {
+      "track_id": "1005",
+      "track_name": "Tempo",
+      "track_type": "track",
+      "is_audio_track": false,
+      "is_audio": false,
+      "plugins": [],
+      "clips": [],
+      "rack": null
+    },
+    {
+      "track_id": "1006",
+      "track_name": "Master",
+      "track_type": "master",
+      "is_audio_track": false,
+      "is_audio": false,
+      "plugins": [],
+      "clips": [],
+      "rack": null
+    },
+    {
+      "track_id": "1007",
+      "track_name": "Track 1",
+      "track_type": "hybrid",
+      "is_audio_track": true,
+      "is_audio": true,
+      "plugins": [
+        {
+          "id": "1008",
+          "item_id": "1008",
+          "plugin_item_id": "1008",
+          "name": "Volume & Pan Plugin",
+          "type": "volume",
+          "enabled": true
+        },
+        {
+          "id": "1009",
+          "item_id": "1009",
+          "plugin_item_id": "1009",
+          "name": "Level Meter",
+          "type": "level",
+          "enabled": true
+        }
+      ],
+      "clips": [],
+      "rack": null,
+      "output_to_device_resolved": true,
+      "output_device_enabled": true,
+      "output_device_id": "out_b7a4b4c1",
+      "output_routing_name": "(default audio output)"
+    }
+  ],
+  "control_graph": {
+    "graph_id": "control_graph",
+    "domain": "control",
+    "supported_control_kinds": [
+      "slider",
+      "knob",
+      "xypad",
+      "toggle",
+      "button",
+      "numberbox",
+      "range",
+      "envelope",
+      "lfo",
+      "stepsequencer",
+      "macropanel"
+    ],
+    "nodes": [],
+    "bindings": [],
+    "surfaces": []
+  },
+  "node_registry": {
+    "built_in_manifests": [
+      {
+        "node_type": "plugin_external",
+        "execution_domain": "realtime_audio",
+        "supported_zones": [
+          "Z1",
+          "Z2",
+          "Z3"
+        ],
+        "accepted_asset_kinds": [
+          "audio",
+          "midi"
+        ],
+        "capability_tags": [
+          "track_rack",
+          "param_grabber",
+          "plugin_host"
+        ],
+        "is_async": false,
+        "supports_browser_login": false,
+        "supports_download_ingest": false,
+        "supports_control_graph": true,
+        "supports_param_grabber": true
+      },
+      {
+        "node_type": "bridge_node",
+        "execution_domain": "async_ai",
+        "supported_zones": [
+          "Z2",
+          "Z3"
+        ],
+        "accepted_asset_kinds": [
+          "audio",
+          "midi",
+          "stems"
+        ],
+        "capability_tags": [
+          "async_job",
+          "download_ingest",
+          "browser_connector"
+        ],
+        "is_async": true,
+        "supports_browser_login": true,
+        "supports_download_ingest": true,
+        "supports_control_graph": false,
+        "supports_param_grabber": false
+      },
+      {
+        "node_type": "audio_injector",
+        "execution_domain": "bridge_injector",
+        "supported_zones": [
+          "Z3"
+        ],
+        "accepted_asset_kinds": [
+          "audio",
+          "stems"
+        ],
+        "capability_tags": [
+          "asset_backed",
+          "warp_target"
+        ],
+        "is_async": true,
+        "supports_browser_login": false,
+        "supports_download_ingest": true,
+        "supports_control_graph": false,
+        "supports_param_grabber": false
+      },
+      {
+        "node_type": "control_node",
+        "execution_domain": "control_domain",
+        "supported_zones": [
+          "Top"
+        ],
+        "accepted_asset_kinds": [],
+        "capability_tags": [
+          "control_graph",
+          "macro_source"
+        ],
+        "is_async": false,
+        "supports_browser_login": false,
+        "supports_download_ingest": false,
+        "supports_control_graph": true,
+        "supports_param_grabber": false
+      },
+      {
+        "node_type": "connector_profile",
+        "execution_domain": "web_api",
+        "supported_zones": [
+          "Z2",
+          "Z3"
+        ],
+        "accepted_asset_kinds": [
+          "audio",
+          "midi",
+          "stems",
+          "lyrics"
+        ],
+        "capability_tags": [
+          "browser_connector",
+          "profile_backed"
+        ],
+        "is_async": true,
+        "supports_browser_login": true,
+        "supports_download_ingest": true,
+        "supports_control_graph": false,
+        "supports_param_grabber": false
+      }
+    ],
+    "connector_specs": [
+      {
+        "spec_id": "browser_download_audio",
+        "display_name": "Browser Audio Connector",
+        "connector_kind": "browser_download",
+        "login_mode": "browser_self_login",
+        "ingest_mode": "download_watch",
+        "default_output_kind": "audio",
+        "supported_output_kinds": [
+          "audio",
+          "lyrics"
+        ]
+      },
+      {
+        "spec_id": "browser_download_stems",
+        "display_name": "Browser Stems Connector",
+        "connector_kind": "browser_download",
+        "login_mode": "browser_self_login",
+        "ingest_mode": "download_watch",
+        "default_output_kind": "stems",
+        "supported_output_kinds": [
+          "stems",
+          "audio"
+        ]
+      },
+      {
+        "spec_id": "browser_download_midi",
+        "display_name": "Browser MIDI Connector",
+        "connector_kind": "browser_download",
+        "login_mode": "browser_self_login",
+        "ingest_mode": "download_watch",
+        "default_output_kind": "midi",
+        "supported_output_kinds": [
+          "midi",
+          "audio"
+        ]
+      }
+    ],
+    "connector_profiles": []
+  },
+  "connector_profiles": [],
+  "connector_specs": [
+    {
+      "spec_id": "browser_download_audio",
+      "display_name": "Browser Audio Connector",
+      "connector_kind": "browser_download",
+      "login_mode": "browser_self_login",
+      "ingest_mode": "download_watch",
+      "default_output_kind": "audio",
+      "supported_output_kinds": [
+        "audio",
+        "lyrics"
+      ]
+    },
+    {
+      "spec_id": "browser_download_stems",
+      "display_name": "Browser Stems Connector",
+      "connector_kind": "browser_download",
+      "login_mode": "browser_self_login",
+      "ingest_mode": "download_watch",
+      "default_output_kind": "stems",
+      "supported_output_kinds": [
+        "stems",
+        "audio"
+      ]
+    },
+    {
+      "spec_id": "browser_download_midi",
+      "display_name": "Browser MIDI Connector",
+      "connector_kind": "browser_download",
+      "login_mode": "browser_self_login",
+      "ingest_mode": "download_watch",
+      "default_output_kind": "midi",
+      "supported_output_kinds": [
+        "midi",
+        "audio"
+      ]
+    }
+  ],
+  "generated_assets": [],
+  "jobs": [],
+  "take_histories": [],
+  "observability": {
+    "probe_channels": [
+      {
+        "channel_id": "job_state",
+        "label": "Job State"
+      },
+      {
+        "channel_id": "ghost_state",
+        "label": "Ghost State"
+      },
+      {
+        "channel_id": "graph_revision",
+        "label": "Graph Revision"
+      },
+      {
+        "channel_id": "active_take",
+        "label": "Active Take"
+      },
+      {
+        "channel_id": "cache_hit",
+        "label": "Cache Hit"
+      },
+      {
+        "channel_id": "output_source",
+        "label": "Output Source"
+      }
+    ],
+    "graph_revision": 0,
+    "graph_lifecycle_state": "idle",
+    "pending_job_count": 0,
+    "active_take_count": 0,
+    "cache_asset_count": 0,
+    "output_source_hint": "project_media",
+    "profile": {
+      "track_count": 6,
+      "clip_count": 2,
+      "job_count": 0,
+      "generated_asset_count": 0,
+      "take_stack_count": 0
+    }
+  },
+  "project_health": {
+    "issue_count": 0,
+    "issues": []
+  },
+  "export_policy": {
+    "recommended_mode": "wait",
+    "supported_modes": [
+      "wait",
+      "use_cache",
+      "bypass",
+      "fail_export"
+    ],
+    "has_pending_jobs": false,
+    "has_missing_assets": false,
+    "has_cache_assets": false
+  },
+  "graph_revision": 0,
+  "graph_active_revision": 0,
+  "graph_pending_revision": 0,
+  "graph_last_retired_revision": 0,
+  "graph_retired_snapshot_count": 0,
+  "graph_last_diff_kind": "edit_loaded",
+  "graph_last_diff_summary": "Blank project created",
+  "graph_publish_mode": "initialised",
+  "graph_lifecycle_state": "idle",
+  "graph_recent_changes": []
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "project_path": "",
+  "scope": "track",
+  "tracks": [
+    {
+      "track_id": "1002",
+      "track_name": "Arranger",
+      "track_type": "track",
+      "is_audio_track": false,
+      "is_

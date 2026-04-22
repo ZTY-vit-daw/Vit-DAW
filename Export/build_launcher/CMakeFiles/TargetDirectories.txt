@@ -1,0 +1,3 @@
+D:/Vit_DAW/Export/build_launcher/CMakeFiles/Vit_DAW_Launcher.dir
+D:/Vit_DAW/Export/build_launcher/CMakeFiles/ALL_BUILD.dir
+D:/Vit_DAW/Export/build_launcher/CMakeFiles/ZERO_CHECK.dir

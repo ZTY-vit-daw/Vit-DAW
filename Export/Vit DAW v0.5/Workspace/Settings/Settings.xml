@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<PROPERTIES>
+  <VALUE name="cacheSizeSamples" val="288000"/>
+  <VALUE name="MidiProgramManager">
+    <MidiProgramManager createdRootGroup="1">
+      <ProgramSet name="Custom" zeroBased="1">
+        <bank name="Bank 1" low="0" high="0"/>
+        <bank name="Bank 2" low="0" high="1"/>
+        <bank name="Bank 3" low="0" high="2"/>
+        <bank name="Bank 4" low="0" high="3"/>
+        <bank name="Bank 5" low="0" high="4"/>
+        <bank name="Bank 6" low="0" high="5"/>
+        <bank name="Bank 7" low="0" high="6"/>
+        <bank name="Bank 8" low="0" high="7"/>
+        <bank name="Bank 9" low="0" high="8"/>
+        <bank name="Bank 10" low="0" high="9"/>
+        <bank name="Bank 11" low="0" high="10"/>
+        <bank name="Bank 12" low="0" high="11"/>
+        <bank name="Bank 13" low="0" high="12"/>
+        <bank name="Bank 14" low="0" high="13"/>
+        <bank name="Bank 15" low="0" high="14"/>
+        <bank name="Bank 16" low="0" high="15"/>
+      </ProgramSet>
+    </MidiProgramManager>
+  </VALUE>
+  <VALUE name="filterGui" val="0"/>
+  <VALUE name="audiosettings_Windows Audio">
+    <AUDIODEVICE outEnabled="1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111"
+                 inEnabled="1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111"
+                 monoChansOut="0" stereoChansIn="0"/>
+  </VALUE>
+  <VALUE name="defaultWaveDevice_Windows Audio" val="out_b7a4b4c1"/>
+  <VALUE name="defaultWaveInDevice_Windows Audio" val="wavein_d7bd293b"/>
+  <VALUE name="hasEnabledMidiDefaultDevs" val="1"/>
+  <VALUE name="defaultMidiDevice" val="out_81b0d7ef"/>
+  <VALUE name="defaultMidiInDevice" val="all_midi_in"/>
+  <VALUE name="midiout_Microsoft GS Wavetable Synth">
+    <SETTINGS enabled="1" preDelay="0" sendTimecode="0" sendMidiClock="0" programNames="Custom"/>
+  </VALUE>
+  <VALUE name="wavein_TRACKTION_TRACK_DEVICE">
+    <SETTINGS gainDb="0.0" monitorMode="automatic" format="WAV file" bits="24"
+              triggerDb="-50.0" mode="0" adjustMs="0.0"/>
+  </VALUE>
+</PROPERTIES>

@@ -1,0 +1,6 @@
+{
+  "ui_log_enabled": false,
+  "clip_pipeline_log_enabled": false,
+  "toolbar_cursor_diag_log_enabled": false,
+  "edit_cursor_diag_log_enabled": false
+}

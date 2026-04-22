@@ -1,0 +1,278 @@
+
+**********************************************************
+VitHeadlessServer session log
+Log started: 26 Mar 2026 6:34:30pm
+
+VitHeadlessServer: application startup.
+Settings file: D:\Vit_DAW\VitApp\Workspace\Settings\Settings.xml
+Audio block size: 480  Rate: 48000
+Creating Default Controllers...
+VitEngineDevice: initialising Tracktion Engine device manager.
+Audio block size: 480  Rate: 48000
+VitEngineDevice: audio setup outputDevice="扬声器 (USB AUDIO  CODEC)" inputDevice="麦克风 (Sonic Studio Virtual Mixer)" sampleRate=48000.00 bufferSize=480 inputChannels=11 outputChannels=11
+VitEngineDevice: current audio device name="扬声器 (USB AUDIO  CODEC)" type="Windows Audio" activeOutputChannels=Output channel 1, Output channel 2" activeInputChannels=Input channel 1, Input channel 2"
+VitHeadlessService: edit loaded from D:\Vit_DAW\VitApp\Workspace\default_project.xml
+VitHeadlessService: project reload complete.
+ZmqGateway: bound command endpoint to tcp://127.0.0.1:5555
+ZmqGateway: bound publish endpoint to tcp://127.0.0.1:5556
+ZmqGateway: bound log endpoint to tcp://127.0.0.1:5557
+ZmqGateway: started network thread.
+VitHeadlessService: service started successfully.
+VitHeadlessServer: startup complete, entering background message loop.
+Rebuilding Wave Device List...
+Wave In: Input 1 (enabled): 0 (L)
+Wave In: Input 2 (enabled): 1 (L)
+Wave Out: Output 1 + 2 (enabled): 0 (L), 1 (R)
+Default Wave Out: Output 1 + 2
+Default MIDI Out: 
+Default Wave In: Input 1
+Default MIDI In: 
+ZmqGateway: received command payload: {"cmd":"ping"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"ping"}
+Command received: {"cmd":"ping"}
+CommandDispatcher: handled ping command.
+Command executed: ping, result: {
+  "status": "ok",
+  "message": "pong"
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "pong"
+}
+ZmqGateway: received command payload: {"cmd":"ping"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"ping"}
+Command received: {"cmd":"ping"}
+CommandDispatcher: handled ping command.
+Command executed: ping, result: {
+  "status": "ok",
+  "message": "pong"
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "pong"
+}
+ZmqGateway: received command payload: {"cmd":"clear_project"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"clear_project"}
+Command received: {"cmd":"clear_project"}
+VitHeadlessService: project saved to D:\Vit_DAW\VitApp\Workspace\default_project.xml
+CommandDispatcher: clear_project executed â?all clips removed, transport reset.
+Command executed: clear_project, result: {
+  "status": "ok",
+  "message": "Project cleared"
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Project cleared"
+}
+ZmqGateway: received command payload: {"cmd":"list_tracks"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"list_tracks"}
+Command received: {"cmd":"list_tracks"}
+Command executed: list_tracks, result: {
+  "status": "ok",
+  "message": "Track list fetched",
+  "tracks": [
+    {
+      "id": "1002",
+      "name": "Arranger",
+      "track_type": "track",
+      "is_audio": false,
+      "is_audio_track": false,
+      "vit_type": "",
+      "vit_intent": "",
+      "plugin_count": 0,
+      "plugins": []
+    },
+    {
+      "id": "1003",
+      "name": "Chord",
+      "track_type": "track",
+      "is_audio": false,
+      "is_audio_track": false,
+      "vit_type": "",
+      "vit_intent": "",
+      "plugin_count": 0,
+      "plugins": []
+    },
+    {
+      "id": "1004",
+      "name": "Marker",
+      "track_type": "track",
+      "is_audio": false,
+      "is_audio_track": false,
+      "vit_type": "",
+      "vit_intent": "",
+      "plugin_count": 0,
+      "plugins": []
+    },
+    {
+      "id": "1005",
+      "name": "Tempo",
+      "track_type": "track",
+      "is_audio": false,
+      "is_audio_track": false,
+      "vit_type": "",
+      "vit_intent": "",
+      "plugin_count": 0,
+      "plugins": []
+    },
+    {
+      "id": "1006",
+      "name": "Master",
+      "track_type": "master",
+      "is_audio": false,
+      "is_audio_track": false,
+      "vit_type": "",
+      "vit_intent": "",
+      "plugin_count": 0,
+      "plugins": []
+    },
+    {
+      "id": "1190",
+      "name": "Audio Track 3",
+      "track_type": "audio",
+      "is_audio": true,
+      "is_audio_track": true,
+      "vit_type": "",
+      "vit_intent": "",
+      "plugin_count": 2,
+      "plugins": [
+        {
+          "name": "Volume & Pan Plugin",
+          "type": "volume",
+          "enabled": true
+        },
+        {
+          "name": "Level Meter",
+          "type": "level",
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "id": "1203",
+      "name": "Audio Track 3",
+      "track_type": "audio",
+      "is_audio": true,
+      "is_audio_track": true,
+      "vit_type": "",
+      "vit_intent": "",
+      "plugin_count": 2,
+      "plugins": [
+        {
+          "name": "Volume & Pan Plugin",
+          "type": "volume",
+          "enabled": true
+        },
+        {
+          "name": "Level Meter",
+          "type": "level",
+          "enabled": true
+        }
+      ]
+    }
+  ]
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Track list fetched",
+  "tracks": [
+    {
+      "id": "1002",
+      "name": "Arranger",
+      "track_type": "track",
+      "is_audio": false,
+      "is_audio_track": false,
+    
+MIDI Input devices scanned in: 0
+Updating MIDI I/O devices
+Found MIDI in: all_midi_in ("All MIDI Ins") (enabled)
+Found MIDI out: out_81b0d7ef ("Microsoft GS Wavetable Synth") (enabled)
+opening MIDI out device: out_81b0d7ef (Microsoft GS Wavetable Synth)
+ZmqGateway: received command payload: {"action":"import_audio","drop_x_pos":210.0,"file_path":"D:/Vit_DAW/test_target_3s.wav","track_id":"1190"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"import_audio","drop_x_pos":210.0,"file_path":"D:/Vit_DAW/test_target_3s.wav","track_id":"1190"}
+Command received: {"action":"import_audio","drop_x_pos":210.0,"file_path":"D:/Vit_DAW/test_target_3s.wav","track_id":"1190"}
+CommandDispatcher::handleImportAudio: imported clip="test_target_3s" trackId="1190" source="D:\Vit_DAW\test_target_3s.wav" clipLengthSeconds=3.000 isPlaying=false isRecording=false playContextActive=true positionSeconds=0.000 editLengthSeconds=3.000
+BakerDbg mode=5 pool=2 smooth=0 tile=0 frame=0 thL=0.41032037 thR=0.00000001 colMaxL=1633.51440430 colMaxR=0.00000000 peakL_bin=78 peakL_hz=99.894 peakR_bin=0 peakR_hz=20.000
+BakerDbg mode=5 pool=2 smooth=0 tile=0 frame=25 thL=0.41032037 thR=0.00000001 colMaxL=1633.51440430 colMaxR=0.00000000 peakL_bin=78 peakL_hz=99.894 peakR_bin=0 peakR_hz=20.000
+BakerDbg mode=5 pool=2 smooth=0 tile=0 frame=50 thL=0.41032037 thR=0.00000001 colMaxL=1633.51440430 colMaxR=0.00000000 peakL_bin=78 peakL_hz=99.894 peakR_bin=0 peakR_hz=20.000
+VitHeadlessService: project saved to D:\Vit_DAW\VitApp\Workspace\default_project.xml
+Command executed: import_audio, result: {
+  "status": "ok",
+  "action": "import_audio",
+  "message": "Audio clip imported",
+  "track_id": "1190",
+  "clip_name": "test_target_3s",
+  "file_path": "D:\\Vit_DAW\\test_target_3s.wav",
+  "start_time": 0.0,
+  "clip_length_seconds": 3.0,
+  "edit_length_seconds": 3.0,
+  "baking_status": "baking_started"
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "action": "import_audio",
+  "message": "Audio clip imported",
+  "track_id": "1190",
+  "clip_name": "test_target_3s",
+  "file_path": "D:\\Vit_DAW\\test_target_3s.wav",
+  "start_time": 0.0,
+  
+BakerDbg mode=5 pool=2 smooth=0 tile=0 frame=75 thL=0.41032037 thR=0.00000001 colMaxL=1633.51440430 colMaxR=0.00000000 peakL_bin=78 peakL_hz=99.894 peakR_bin=0 peakR_hz=20.000
+BakerDbg mode=5 pool=2 smooth=0 tile=0 frame=100 thL=0.00000001 thR=0.28713545 colMaxL=0.00000000 colMaxR=1143.10656738 peakL_bin=0 peakL_hz=20.000 peakR_bin=268 peakR_hz=5023.773
+BakerDbg mode=5 pool=2 smooth=0 tile=0 frame=125 thL=0.00000001 thR=0.28713545 colMaxL=0.00000000 colMaxR=1143.10656738 peakL_bin=0 peakL_hz=20.000 peakR_bin=268 peakR_hz=5023.773
+BakerDbg mode=5 pool=2 smooth=0 tile=0 frame=150 thL=0.00000001 thR=0.28713545 colMaxL=0.00000000 colMaxR=1143.10656738 peakL_bin=0 peakL_hz=20.000 peakR_bin=268 peakR_hz=5023.773
+BakerDbg mode=5 pool=2 smooth=0 tile=0 frame=175 thL=0.00000001 thR=0.28713545 colMaxL=0.00000000 colMaxR=1143.10656738 peakL_bin=0 peakL_hz=20.000 peakR_bin=268 peakR_hz=5023.773
+BakerDbg mode=5 pool=2 smooth=0 tile=0 frame=200 thL=13.31085014 thR=12.67887306 colMaxL=16.20255470 colMaxR=15.77637386 peakL_bin=267 peakL_hz=4921.244 peakR_bin=314 peakR_hz=12970.906
+BakerDbg mode=5 pool=2 smooth=0 tile=0 frame=225 thL=13.24234772 thR=12.62643719 colMaxL=16.93067169 colMaxR=15.77759361 peakL_bin=299 peakL_hz=9520.108 peakR_bin=263 peakR_hz=4531.625
+BakerDbg mode=5 pool=2 smooth=0 tile=0 frame=250 thL=12.64702511 thR=12.42464352 colMaxL=15.88690376 colMaxR=16.23383141 peakL_bin=252 peakL_hz=3611.989 peakR_bin=335 peakR_hz=20000.000
+BakerDbg mode=5 pool=2 smooth=0 tile=0 frame=275 thL=12.58107758 thR=13.76386356 colMaxL=16.72100830 colMaxR=17.65777206 peakL_bin=290 peakL_hz=7907.604 peakR_bin=335 peakR_hz=20000.000
+BakerDiag tile=0 mode=5 pool=2 smooth=0 avg_peak_jump_bin_L=9.860 avg_peak_jump_bin_R=8.264
+ZmqGateway: received command payload: {"action":"play"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"play"}
+Command received: {"action":"play"}
+CommandDispatcher::handlePlay: before isPlaying=false isRecording=false playContextActive=true positionSeconds=0.000 editLengthSeconds=3.000
+CommandDispatcher::handlePlay: after isPlaying=true isRecording=false playContextActive=true positionSeconds=0.000 editLengthSeconds=3.000
+Command executed: play, result: {
+  "status": "ok",
+  "message": "Transport playing",
+  "is_playing": true,
+  "is_recording": false,
+  "position_seconds": 0.0,
+  "click_track_enabled": false
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Transport playing",
+  "is_playing": true,
+  "is_recording": false,
+  "position_seconds": 0.0,
+  "click_track_enabled": false
+}
+ZmqGateway: received command payload: {"action":"stop"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"stop"}
+Command received: {"action":"stop"}
+CommandDispatcher::handleStop: before isPlaying=true isRecording=false playContextActive=true positionSeconds=3.080 editLengthSeconds=3.000
+CommandDispatcher::handleStop: after isPlaying=false isRecording=false playContextActive=true positionSeconds=3.080 editLengthSeconds=3.000
+Command executed: stop, result: {
+  "status": "ok",
+  "message": "Transport stopped",
+  "is_playing": false,
+  "is_recording": false,
+  "position_seconds": 3.08,
+  "click_track_enabled": false
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Transport stopped",
+  "is_playing": false,
+  "is_recording": false,
+  "position_seconds": 3.08,
+  "click_track_enabled": false
+}

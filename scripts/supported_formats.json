@@ -1,0 +1,27 @@
+{
+  "version": "1.0",
+  "categories": {
+    "aud": [
+      ".wav",
+      ".mp3",
+      ".flac",
+      ".aiff",
+      ".ogg",
+      ".m4a",
+      ".aac",
+      ".w64"
+    ],
+    "vst": [
+      ".vst3",
+      ".dll",
+      ".component",
+      ".vst",
+      ".clap",
+      ".so"
+    ],
+    "mid": [
+      ".mid",
+      ".midi"
+    ]
+  }
+}

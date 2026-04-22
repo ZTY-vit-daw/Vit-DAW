@@ -1,0 +1,2 @@
+2026-03-26T19:26:36 [INFO] control loop started: UDP:4445 -> tcp://127.0.0.1:5555
+2026-03-26T19:26:36 [INFO] telemetry thread started: tcp://127.0.0.1:5556 -> UDP:4444

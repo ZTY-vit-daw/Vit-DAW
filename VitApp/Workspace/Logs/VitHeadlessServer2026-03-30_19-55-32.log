@@ -1,0 +1,723 @@
+
+**********************************************************
+VitHeadlessServer session log
+Log started: 30 Mar 2026 7:55:32pm
+
+VitHeadlessServer: application startup.
+Settings file: D:\Vit_DAW\VitApp\Workspace\Settings\Settings.xml
+Audio block size: 480  Rate: 48000
+Creating Default Controllers...
+VitEngineDevice: initialising Tracktion Engine device manager.
+Audio block size: 480  Rate: 48000
+VitEngineDevice: audio setup outputDevice="扬声器 (USB AUDIO  CODEC)" inputDevice="麦克风 (Sonic Studio Virtual Mixer)" sampleRate=48000.00 bufferSize=480 inputChannels=11 outputChannels=11
+VitEngineDevice: current audio device name="扬声器 (USB AUDIO  CODEC)" type="Windows Audio" activeOutputChannels=Output channel 1, Output channel 2" activeInputChannels=Input channel 1, Input channel 2"
+VitHeadlessService: edit loaded from D:\Vit_DAW\VitApp\Workspace\default_project.xml
+VitHeadlessService: project reload complete.
+ZmqGateway: bound command endpoint to tcp://127.0.0.1:5555
+ZmqGateway: bound publish endpoint to tcp://127.0.0.1:5556
+ZmqGateway: bound log endpoint to tcp://127.0.0.1:5557
+ZmqGateway: started network thread.
+VitHeadlessService: service started successfully.
+VitHeadlessServer: startup complete, entering background message loop.
+Rebuilding Wave Device List...
+Wave In: Input 1 (enabled): 0 (L)
+Wave In: Input 2 (enabled): 1 (L)
+Wave Out: Output 1 + 2 (enabled): 0 (L), 1 (R)
+Default Wave Out: Output 1 + 2
+Default MIDI Out: 
+Default Wave In: Input 1
+Default MIDI In: 
+MIDI Input devices scanned in: 0
+Updating MIDI I/O devices
+Found MIDI in: all_midi_in ("All MIDI Ins") (enabled)
+Found MIDI out: out_81b0d7ef ("Microsoft GS Wavetable Synth") (enabled)
+opening MIDI out device: out_81b0d7ef (Microsoft GS Wavetable Synth)
+ZmqGateway: received command payload: {"cmd":"ping"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"ping"}
+Command received: {"cmd":"ping"}
+CommandDispatcher: handled ping command.
+Command executed: ping, result: {
+  "status": "ok",
+  "message": "pong"
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "pong"
+}
+ZmqGateway: received command payload: {"cmd":"clear_project"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"clear_project"}
+Command received: {"cmd":"clear_project"}
+VitHeadlessService: project saved to D:\Vit_DAW\VitApp\Workspace\default_project.xml
+CommandDispatcher: clear_project executed - all clips removed, transport reset.
+Command executed: clear_project, result: {
+  "status": "ok",
+  "message": "Project cleared"
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Project cleared"
+}
+ZmqGateway: received command payload: {"cmd":"list_tracks"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"list_tracks"}
+Command received: {"cmd":"list_tracks"}
+Command executed: list_tracks, result: {
+  "status": "ok",
+  "message": "Track list fetched",
+  "tracks": [
+    {
+      "id": "1002",
+      "name": "Arranger",
+      "track_type": "track",
+      "is_audio": false,
+      "is_audio_track": false,
+      "vit_type": "",
+      "vit_intent": "",
+      "plugin_count": 0,
+      "plugins": []
+    },
+    {
+      "id": "1003",
+      "name": "Chord",
+      "track_type": "track",
+      "is_audio": false,
+      "is_audio_track": false,
+      "vit_type": "",
+      "vit_intent": "",
+      "plugin_count": 0,
+      "plugins": []
+    },
+    {
+      "id": "1004",
+      "name": "Marker",
+      "track_type": "track",
+      "is_audio": false,
+      "is_audio_track": false,
+      "vit_type": "",
+      "vit_intent": "",
+      "plugin_count": 0,
+      "plugins": []
+    },
+    {
+      "id": "1005",
+      "name": "Tempo",
+      "track_type": "track",
+      "is_audio": false,
+      "is_audio_track": false,
+      "vit_type": "",
+      "vit_intent": "",
+      "plugin_count": 0,
+      "plugins": []
+    },
+    {
+      "id": "1006",
+      "name": "Master",
+      "track_type": "master",
+      "is_audio": false,
+      "is_audio_track": false,
+      "vit_type": "",
+      "vit_intent": "",
+      "plugin_count": 0,
+      "plugins": []
+    },
+    {
+      "id": "1208",
+      "name": "Audio Track 3",
+      "track_type": "audio",
+      "is_audio": true,
+      "is_audio_track": true,
+      "vit_type": "",
+      "vit_intent": "",
+      "plugin_count": 2,
+      "plugins": [
+        {
+          "name": "Volume & Pan Plugin",
+          "type": "volume",
+          "enabled": true
+        },
+        {
+          "name": "Level Meter",
+          "type": "level",
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "id": "1215",
+      "name": "Audio Track 3",
+      "track_type": "audio",
+      "is_audio": true,
+      "is_audio_track": true,
+      "vit_type": "",
+      "vit_intent": "",
+      "plugin_count": 2,
+      "plugins": [
+        {
+          "name": "Volume & Pan Plugin",
+          "type": "volume",
+          "enabled": true
+        },
+        {
+          "name": "Level Meter",
+          "type": "level",
+          "enabled": true
+        }
+      ]
+    }
+  ]
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Track list fetched",
+  "tracks": [
+    {
+      "id": "1002",
+      "name": "Arranger",
+      "track_type": "track",
+      "is_audio": false,
+      "is_audio_track": false,
+    
+ZmqGateway: received command payload: {"cmd":"get_audio_device_types"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"get_audio_device_types"}
+Command received: {"cmd":"get_audio_device_types"}
+Command executed: get_audio_device_types, result: {
+  "status": "ok",
+  "types": [
+    "Windows Audio",
+    "Windows Audio (Exclusive Mode)",
+    "Windows Audio (Low Latency Mode)",
+    "DirectSound"
+  ]
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "types": [
+    "Windows Audio",
+    "Windows Audio (Exclusive Mode)",
+    "Windows Audio (Low Latency Mode)",
+    "DirectSound"
+  ]
+}
+ZmqGateway: received command payload: {"cmd":"get_audio_devices","type":"Windows Audio"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"get_audio_devices","type":"Windows Audio"}
+Command received: {"cmd":"get_audio_devices","type":"Windows Audio"}
+Command executed: get_audio_devices, result: {
+  "status": "ok",
+  "current_device": "扬声器 (USB AUDIO  CODEC)",
+  "current_sample_rate": 48000.0,
+  "current_buffer_size": 480,
+  "available_devices": [
+    "扬声器 (USB AUDIO  CODEC)",
+    "Realtek Digital Output (Realtek(R) Audio)",
+    "PHL275M1RZPRO (NVIDIA High Definition Audio)",
+    "扬声器 (Sonic Studio Virtual Mixer)",
+    "Line (USB AUDIO  CODEC)",
+    "麦克风 (Sonic Studio Virtual Mixer)"
+  ],
+  "available_sample_rates": [
+    48000.0
+  ],
+  "available_buffer_sizes": [
+    144,
+    160,
+    192,
+    224,
+    256,
+    288,
+    320,
+    352,
+    384,
+    416,
+    448,
+    480,
+    512,
+    576,
+    640,
+    704,
+    768,
+    832,
+    896,
+    960,
+    1024,
+    1152,
+    1280,
+    1408,
+    1536,
+    1664,
+    1792,
+    1920,
+    2048
+  ]
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "current_device": "扬声器 (USB AUDIO  CODEC)",
+  "current_sample_rate": 48000.0,
+  "current_buffer_size": 480,
+  "available_devices": [
+    "扬声器 (USB AUDIO  CODEC)",
+    "Realtek Digital Output 
+ZmqGateway: received command payload: {"cmd":"scan_plugins","paths":["C:/Program Files/Common Files/VST3","%ProgramFiles%/Steinberg/VSTPlugins","%LOCALAPPDATA%/Programs/Common/CLAP"]}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"scan_plugins","paths":["C:/Program Files/Common Files/VST3","%ProgramFiles%/Steinberg/VSTPlugins","%LOCALAPPDATA%/Programs/Common/CLAP"]}
+Command received: {"cmd":"scan_plugins","paths":["C:/Program Files/Common Files/VST3","%ProgramFiles%/Steinberg/VSTPlugins","%LOCALAPPDATA%/Programs/Common/CLAP"]}
+Command executed: scan_plugins, result: {
+  "status": "error",
+  "message": "VST3 plugin format is not available in this build"
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "error",
+  "message": "VST3 plugin format is not available in this build"
+}
+ZmqGateway: received command payload: {"cmd":"scan_plugins","paths":["C:/Program Files/Common Files/VST3","%ProgramFiles%/Steinberg/VSTPlugins","%LOCALAPPDATA%/Programs/Common/CLAP"]}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"scan_plugins","paths":["C:/Program Files/Common Files/VST3","%ProgramFiles%/Steinberg/VSTPlugins","%LOCALAPPDATA%/Programs/Common/CLAP"]}
+Command received: {"cmd":"scan_plugins","paths":["C:/Program Files/Common Files/VST3","%ProgramFiles%/Steinberg/VSTPlugins","%LOCALAPPDATA%/Programs/Common/CLAP"]}
+Command executed: scan_plugins, result: {
+  "status": "error",
+  "message": "VST3 plugin format is not available in this build"
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "error",
+  "message": "VST3 plugin format is not available in this build"
+}
+ZmqGateway: received command payload: {"cmd":"scan_plugins","paths":["C:/Program Files/Common Files/VST3","%ProgramFiles%/Steinberg/VSTPlugins","%LOCALAPPDATA%/Programs/Common/CLAP"]}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"scan_plugins","paths":["C:/Program Files/Common Files/VST3","%ProgramFiles%/Steinberg/VSTPlugins","%LOCALAPPDATA%/Programs/Common/CLAP"]}
+Command received: {"cmd":"scan_plugins","paths":["C:/Program Files/Common Files/VST3","%ProgramFiles%/Steinberg/VSTPlugins","%LOCALAPPDATA%/Programs/Common/CLAP"]}
+Command executed: scan_plugins, result: {
+  "status": "error",
+  "message": "VST3 plugin format is not available in this build"
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "error",
+  "message": "VST3 plugin format is not available in this build"
+}
+ZmqGateway: received command payload: {"cmd":"scan_plugins","paths":["C:/Program Files/Common Files/VST3","%ProgramFiles%/Steinberg/VSTPlugins","%LOCALAPPDATA%/Programs/Common/CLAP"]}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"scan_plugins","paths":["C:/Program Files/Common Files/VST3","%ProgramFiles%/Steinberg/VSTPlugins","%LOCALAPPDATA%/Programs/Common/CLAP"]}
+Command received: {"cmd":"scan_plugins","paths":["C:/Program Files/Common Files/VST3","%ProgramFiles%/Steinberg/VSTPlugins","%LOCALAPPDATA%/Programs/Common/CLAP"]}
+Command executed: scan_plugins, result: {
+  "status": "error",
+  "message": "VST3 plugin format is not available in this build"
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "error",
+  "message": "VST3 plugin format is not available in this build"
+}
+ZmqGateway: received command payload: {"cmd":"scan_plugins","paths":["C:/Program Files/Common Files/VST3","%ProgramFiles%/Steinberg/VSTPlugins","%LOCALAPPDATA%/Programs/Common/CLAP"]}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"scan_plugins","paths":["C:/Program Files/Common Files/VST3","%ProgramFiles%/Steinberg/VSTPlugins","%LOCALAPPDATA%/Programs/Common/CLAP"]}
+Command received: {"cmd":"scan_plugins","paths":["C:/Program Files/Common Files/VST3","%ProgramFiles%/Steinberg/VSTPlugins","%LOCALAPPDATA%/Programs/Common/CLAP"]}
+Command executed: scan_plugins, result: {
+  "status": "error",
+  "message": "VST3 plugin format is not available in this build"
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "error",
+  "message": "VST3 plugin format is not available in this build"
+}
+ZmqGateway: received command payload: {"cmd":"ping"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"ping"}
+Command received: {"cmd":"ping"}
+CommandDispatcher: handled ping command.
+Command executed: ping, result: {
+  "status": "ok",
+  "message": "pong"
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "pong"
+}
+ZmqGateway: received command payload: {"cmd":"clear_project"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"clear_project"}
+Command received: {"cmd":"clear_project"}
+VitHeadlessService: project saved to D:\Vit_DAW\VitApp\Workspace\default_project.xml
+CommandDispatcher: clear_project executed - all clips removed, transport reset.
+Command executed: clear_project, result: {
+  "status": "ok",
+  "message": "Project cleared"
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Project cleared"
+}
+ZmqGateway: received command payload: {"cmd":"list_tracks"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"list_tracks"}
+Command received: {"cmd":"list_tracks"}
+Command executed: list_tracks, result: {
+  "status": "ok",
+  "message": "Track list fetched",
+  "tracks": [
+    {
+      "id": "1002",
+      "name": "Arranger",
+      "track_type": "track",
+      "is_audio": false,
+      "is_audio_track": false,
+      "vit_type": "",
+      "vit_intent": "",
+      "plugin_count": 0,
+      "plugins": []
+    },
+    {
+      "id": "1003",
+      "name": "Chord",
+      "track_type": "track",
+      "is_audio": false,
+      "is_audio_track": false,
+      "vit_type": "",
+      "vit_intent": "",
+      "plugin_count": 0,
+      "plugins": []
+    },
+    {
+      "id": "1004",
+      "name": "Marker",
+      "track_type": "track",
+      "is_audio": false,
+      "is_audio_track": false,
+      "vit_type": "",
+      "vit_intent": "",
+      "plugin_count": 0,
+      "plugins": []
+    },
+    {
+      "id": "1005",
+      "name": "Tempo",
+      "track_type": "track",
+      "is_audio": false,
+      "is_audio_track": false,
+      "vit_type": "",
+      "vit_intent": "",
+      "plugin_count": 0,
+      "plugins": []
+    },
+    {
+      "id": "1006",
+      "name": "Master",
+      "track_type": "master",
+      "is_audio": false,
+      "is_audio_track": false,
+      "vit_type": "",
+      "vit_intent": "",
+      "plugin_count": 0,
+      "plugins": []
+    },
+    {
+      "id": "1208",
+      "name": "Audio Track 3",
+      "track_type": "audio",
+      "is_audio": true,
+      "is_audio_track": true,
+      "vit_type": "",
+      "vit_intent": "",
+      "plugin_count": 2,
+      "plugins": [
+        {
+          "name": "Volume & Pan Plugin",
+          "type": "volume",
+          "enabled": true
+        },
+        {
+          "name": "Level Meter",
+          "type": "level",
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "id": "1215",
+      "name": "Audio Track 3",
+      "track_type": "audio",
+      "is_audio": true,
+      "is_audio_track": true,
+      "vit_type": "",
+      "vit_intent": "",
+      "plugin_count": 2,
+      "plugins": [
+        {
+          "name": "Volume & Pan Plugin",
+          "type": "volume",
+          "enabled": true
+        },
+        {
+          "name": "Level Meter",
+          "type": "level",
+          "enabled": true
+        }
+      ]
+    }
+  ]
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Track list fetched",
+  "tracks": [
+    {
+      "id": "1002",
+      "name": "Arranger",
+      "track_type": "track",
+      "is_audio": false,
+      "is_audio_track": false,
+    
+ZmqGateway: received command payload: {"cmd":"instantiate_plugin","plugin_path":"C:/Program Files/Common Files/VST3/SPAN.vst3","track_index":1}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"instantiate_plugin","plugin_path":"C:/Program Files/Common Files/VST3/SPAN.vst3","track_index":1}
+Command received: {"cmd":"instantiate_plugin","plugin_path":"C:/Program Files/Common Files/VST3/SPAN.vst3","track_index":1}
+Command executed: instantiate_plugin, result: {
+  "status": "error",
+  "message": "VST3 format not available"
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "error",
+  "message": "VST3 format not available"
+}
+ZmqGateway: received command payload: {"cmd":"ping"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"ping"}
+Command received: {"cmd":"ping"}
+CommandDispatcher: handled ping command.
+Command executed: ping, result: {
+  "status": "ok",
+  "message": "pong"
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "pong"
+}
+ZmqGateway: received command payload: {"cmd":"clear_project"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"clear_project"}
+Command received: {"cmd":"clear_project"}
+VitHeadlessService: project saved to D:\Vit_DAW\VitApp\Workspace\default_project.xml
+CommandDispatcher: clear_project executed - all clips removed, transport reset.
+Command executed: clear_project, result: {
+  "status": "ok",
+  "message": "Project cleared"
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Project cleared"
+}
+ZmqGateway: received command payload: {"cmd":"list_tracks"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"list_tracks"}
+Command received: {"cmd":"list_tracks"}
+Command executed: list_tracks, result: {
+  "status": "ok",
+  "message": "Track list fetched",
+  "tracks": [
+    {
+      "id": "1002",
+      "name": "Arranger",
+      "track_type": "track",
+      "is_audio": false,
+      "is_audio_track": false,
+      "vit_type": "",
+      "vit_intent": "",
+      "plugin_count": 0,
+      "plugins": []
+    },
+    {
+      "id": "1003",
+      "name": "Chord",
+      "track_type": "track",
+      "is_audio": false,
+      "is_audio_track": false,
+      "vit_type": "",
+      "vit_intent": "",
+      "plugin_count": 0,
+      "plugins": []
+    },
+    {
+      "id": "1004",
+      "name": "Marker",
+      "track_type": "track",
+      "is_audio": false,
+      "is_audio_track": false,
+      "vit_type": "",
+      "vit_intent": "",
+      "plugin_count": 0,
+      "plugins": []
+    },
+    {
+      "id": "1005",
+      "name": "Tempo",
+      "track_type": "track",
+      "is_audio": false,
+      "is_audio_track": false,
+      "vit_type": "",
+      "vit_intent": "",
+      "plugin_count": 0,
+      "plugins": []
+    },
+    {
+      "id": "1006",
+      "name": "Master",
+      "track_type": "master",
+      "is_audio": false,
+      "is_audio_track": false,
+      "vit_type": "",
+      "vit_intent": "",
+      "plugin_count": 0,
+      "plugins": []
+    },
+    {
+      "id": "1208",
+      "name": "Audio Track 3",
+      "track_type": "audio",
+      "is_audio": true,
+      "is_audio_track": true,
+      "vit_type": "",
+      "vit_intent": "",
+      "plugin_count": 2,
+      "plugins": [
+        {
+          "name": "Volume & Pan Plugin",
+          "type": "volume",
+          "enabled": true
+        },
+        {
+          "name": "Level Meter",
+          "type": "level",
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "id": "1215",
+      "name": "Audio Track 3",
+      "track_type": "audio",
+      "is_audio": true,
+      "is_audio_track": true,
+      "vit_type": "",
+      "vit_intent": "",
+      "plugin_count": 2,
+      "plugins": [
+        {
+          "name": "Volume & Pan Plugin",
+          "type": "volume",
+          "enabled": true
+        },
+        {
+          "name": "Level Meter",
+          "type": "level",
+          "enabled": true
+        }
+      ]
+    }
+  ]
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Track list fetched",
+  "tracks": [
+    {
+      "id": "1002",
+      "name": "Arranger",
+      "track_type": "track",
+      "is_audio": false,
+      "is_audio_track": false,
+    
+ZmqGateway: received command payload: {"cmd":"get_audio_device_types"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"get_audio_device_types"}
+Command received: {"cmd":"get_audio_device_types"}
+Command executed: get_audio_device_types, result: {
+  "status": "ok",
+  "types": [
+    "Windows Audio",
+    "Windows Audio (Exclusive Mode)",
+    "Windows Audio (Low Latency Mode)",
+    "DirectSound"
+  ]
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "types": [
+    "Windows Audio",
+    "Windows Audio (Exclusive Mode)",
+    "Windows Audio (Low Latency Mode)",
+    "DirectSound"
+  ]
+}
+ZmqGateway: received command payload: {"cmd":"get_audio_devices","type":"Windows Audio"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"get_audio_devices","type":"Windows Audio"}
+Command received: {"cmd":"get_audio_devices","type":"Windows Audio"}
+Command executed: get_audio_devices, result: {
+  "status": "ok",
+  "current_device": "扬声器 (USB AUDIO  CODEC)",
+  "current_sample_rate": 48000.0,
+  "current_buffer_size": 480,
+  "available_devices": [
+    "扬声器 (USB AUDIO  CODEC)",
+    "Realtek Digital Output (Realtek(R) Audio)",
+    "PHL275M1RZPRO (NVIDIA High Definition Audio)",
+    "扬声器 (Sonic Studio Virtual Mixer)",
+    "Line (USB AUDIO  CODEC)",
+    "麦克风 (Sonic Studio Virtual Mixer)"
+  ],
+  "available_sample_rates": [
+    48000.0
+  ],
+  "available_buffer_sizes": [
+    144,
+    160,
+    192,
+    224,
+    256,
+    288,
+    320,
+    352,
+    384,
+    416,
+    448,
+    480,
+    512,
+    576,
+    640,
+    704,
+    768,
+    832,
+    896,
+    960,
+    1024,
+    1152,
+    1280,
+    1408,
+    1536,
+    1664,
+    1792,
+    1920,
+    2048
+  ]
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "current_device": "扬声器 (USB AUDIO  CODEC)",
+  "current_sample_rate": 48000.0,
+  "current_buffer_size": 480,
+  "available_devices": [
+    "扬声器 (USB AUDIO  CODEC)",
+    "Realtek Digital Output 
+ZmqGateway: received command payload: {"cmd":"scan_plugins","paths":["C:/Program Files/Common Files/VST3","%ProgramFiles%/Steinberg/VSTPlugins","%LOCALAPPDATA%/Programs/Common/CLAP"]}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"scan_plugins","paths":["C:/Program Files/Common Files/VST3","%ProgramFiles%/Steinberg/VSTPlugins","%LOCALAPPDATA%/Programs/Common/CLAP"]}
+Command received: {"cmd":"scan_plugins","paths":["C:/Program Files/Common Files/VST3","%ProgramFiles%/Steinberg/VSTPlugins","%LOCALAPPDATA%/Programs/Common/CLAP"]}
+Command executed: scan_plugins, result: {
+  "status": "error",
+  "message": "VST3 plugin format is not available in this build"
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "error",
+  "message": "VST3 plugin format is not available in this build"
+}

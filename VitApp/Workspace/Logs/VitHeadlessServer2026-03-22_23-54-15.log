@@ -1,0 +1,83 @@
+
+**********************************************************
+VitHeadlessServer session log
+Log started: 22 Mar 2026 11:54:15pm
+
+VitHeadlessServer: application startup.
+Settings file: D:\Vit_DAW\VitApp\Workspace\Settings\Settings.xml
+Audio block size: 480  Rate: 48000
+Creating Default Controllers...
+VitEngineDevice: initialising Tracktion Engine device manager.
+Audio block size: 480  Rate: 48000
+VitKernelUtils: detected ghost track intent="needs_reverb" name="Epic Brass [GHOST]"
+VitHeadlessService: ghost track detected name="Epic Brass [GHOST]" intent="needs_reverb"
+VitKernelUtils: detected ghost track intent="needs_reverb" name="Epic Brass [GHOST]"
+VitHeadlessService: ghost track detected name="Epic Brass [GHOST]" intent="needs_reverb"
+VitHeadlessService: edit loaded from D:\Vit_DAW\VitApp\Workspace\default_project.xml
+VitHeadlessService: project reload complete.
+ZmqGateway: bound command endpoint to tcp://127.0.0.1:5555
+ZmqGateway: bound publish endpoint to tcp://127.0.0.1:5556
+ZmqGateway: bound log endpoint to tcp://127.0.0.1:5557
+ZmqGateway: started network thread.
+VitHeadlessService: service started successfully.
+VitHeadlessServer: startup complete, entering background message loop.
+Rebuilding Wave Device List...
+Wave In: Input 1 (enabled): 0 (L)
+Wave In: Input 2 (enabled): 1 (L)
+Wave Out: Output 1 + 2 (enabled): 0 (L), 1 (R)
+Default Wave Out: Output 1 + 2
+Default MIDI Out: 
+Default Wave In: Input 1
+Default MIDI In: 
+MIDI Input devices scanned in: 0
+Updating MIDI I/O devices
+Found MIDI in: all_midi_in ("All MIDI Ins") (enabled)
+Found MIDI out: out_81b0d7ef ("Microsoft GS Wavetable Synth") (enabled)
+opening MIDI out device: out_81b0d7ef (Microsoft GS Wavetable Synth)
+ZmqGateway: received command payload: {"cmd":"ping"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"ping"}
+CommandDispatcher: handled ping command.
+ZmqGateway: received command payload: {"cmd":"list_tracks"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"list_tracks"}
+ZmqGateway: received command payload: {"action":"transport_play","kernel_track_id":"1007","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":3280}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_play","kernel_track_id":"1007","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":3280}
+ZmqGateway: received command payload: {"action":"transport_play","kernel_track_id":"1007","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":3986}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_play","kernel_track_id":"1007","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":3986}
+ZmqGateway: received command payload: {"action":"transport_play","kernel_track_id":"1007","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":4421}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_play","kernel_track_id":"1007","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":4421}
+ZmqGateway: received command payload: {"action":"transport_play","kernel_track_id":"1007","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":5092}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_play","kernel_track_id":"1007","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":5092}
+ZmqGateway: received command payload: {"cmd":"ping"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"ping"}
+CommandDispatcher: handled ping command.
+ZmqGateway: received command payload: {"cmd":"list_tracks"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"list_tracks"}
+ZmqGateway: received command payload: {"action":"transport_play","kernel_track_id":"1007","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":4537}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_play","kernel_track_id":"1007","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":4537}
+ZmqGateway: received command payload: {"action":"transport_play","kernel_track_id":"1007","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":4755}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_play","kernel_track_id":"1007","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":4755}
+ZmqGateway: received command payload: {"action":"transport_play","kernel_track_id":"1007","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":4932}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_play","kernel_track_id":"1007","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":4932}
+ZmqGateway: received command payload: {"action":"transport_play","kernel_track_id":"1007","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":5132}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_play","kernel_track_id":"1007","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":5132}
+ZmqGateway: received command payload: {"action":"transport_play","kernel_track_id":"1007","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":5396}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_play","kernel_track_id":"1007","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":5396}
+ZmqGateway: received command payload: {"action":"transport_play","kernel_track_id":"1007","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":5550}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_play","kernel_track_id":"1007","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":5550}
+ZmqGateway: received command payload: {"action":"transport_play","kernel_track_id":"1007","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":5696}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"action":"transport_play","kernel_track_id":"1007","scene_track_id":"Track_Root_1","state":true,"timestamp_ms":5696}

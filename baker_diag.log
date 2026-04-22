@@ -1,0 +1,39 @@
+BakerDbg mode=5 pool=2 smooth=0 tile=0 frame=0 thL=0.41032037 thR=0.00000001 colMaxL=1633.51440430 colMaxR=0.00000000 peakL_bin=78 peakL_hz=99.894 peakR_bin=0 peakR_hz=20.000
+BakerDbg mode=5 pool=2 smooth=0 tile=0 frame=25 thL=0.41032037 thR=0.00000001 colMaxL=1633.51440430 colMaxR=0.00000000 peakL_bin=78 peakL_hz=99.894 peakR_bin=0 peakR_hz=20.000
+BakerDbg mode=5 pool=2 smooth=0 tile=0 frame=50 thL=0.41032037 thR=0.00000001 colMaxL=1633.51440430 colMaxR=0.00000000 peakL_bin=78 peakL_hz=99.894 peakR_bin=0 peakR_hz=20.000
+BakerDbg mode=5 pool=2 smooth=0 tile=0 frame=75 thL=0.41032037 thR=0.00000001 colMaxL=1633.51440430 colMaxR=0.00000000 peakL_bin=78 peakL_hz=99.894 peakR_bin=0 peakR_hz=20.000
+BakerDbg mode=5 pool=2 smooth=0 tile=0 frame=100 thL=0.00000001 thR=0.28713545 colMaxL=0.00000000 colMaxR=1143.10656738 peakL_bin=0 peakL_hz=20.000 peakR_bin=268 peakR_hz=5023.773
+BakerDbg mode=5 pool=2 smooth=0 tile=0 frame=125 thL=0.00000001 thR=0.28713545 colMaxL=0.00000000 colMaxR=1143.10656738 peakL_bin=0 peakL_hz=20.000 peakR_bin=268 peakR_hz=5023.773
+BakerDbg mode=5 pool=2 smooth=0 tile=0 frame=150 thL=0.00000001 thR=0.28713545 colMaxL=0.00000000 colMaxR=1143.10656738 peakL_bin=0 peakL_hz=20.000 peakR_bin=268 peakR_hz=5023.773
+BakerDbg mode=5 pool=2 smooth=0 tile=0 frame=175 thL=0.00000001 thR=0.28713545 colMaxL=0.00000000 colMaxR=1143.10656738 peakL_bin=0 peakL_hz=20.000 peakR_bin=268 peakR_hz=5023.773
+BakerDbg mode=5 pool=2 smooth=0 tile=0 frame=200 thL=13.31085014 thR=12.67887306 colMaxL=16.20255470 colMaxR=15.77637386 peakL_bin=267 peakL_hz=4921.244 peakR_bin=314 peakR_hz=12970.906
+BakerDbg mode=5 pool=2 smooth=0 tile=0 frame=225 thL=13.24234772 thR=12.62643719 colMaxL=16.93067169 colMaxR=15.77759361 peakL_bin=299 peakL_hz=9520.108 peakR_bin=263 peakR_hz=4531.625
+BakerDbg mode=5 pool=2 smooth=0 tile=0 frame=250 thL=12.64702511 thR=12.42464352 colMaxL=15.88690376 colMaxR=16.23383141 peakL_bin=252 peakL_hz=3611.989 peakR_bin=335 peakR_hz=20000.000
+BakerDbg mode=5 pool=2 smooth=0 tile=0 frame=275 thL=12.58107758 thR=13.76386356 colMaxL=16.72100830 colMaxR=17.65777206 peakL_bin=290 peakL_hz=7907.604 peakR_bin=335 peakR_hz=20000.000
+BakerDiag tile=0 mode=5 pool=2 smooth=0 avg_peak_jump_bin_L=9.860 avg_peak_jump_bin_R=8.264
+BakerDbg mode=5 pool=0 smooth=0 tile=0 frame=0 thL=0.41032037 thR=0.00000001 colMaxL=1633.51440430 colMaxR=0.00000000 peakL_bin=78 peakL_hz=99.894 peakR_bin=0 peakR_hz=20.000
+BakerDbg mode=5 pool=0 smooth=0 tile=0 frame=25 thL=0.41032037 thR=0.00000001 colMaxL=1633.51440430 colMaxR=0.00000000 peakL_bin=78 peakL_hz=99.894 peakR_bin=0 peakR_hz=20.000
+BakerDbg mode=5 pool=0 smooth=0 tile=0 frame=50 thL=0.41032037 thR=0.00000001 colMaxL=1633.51440430 colMaxR=0.00000000 peakL_bin=78 peakL_hz=99.894 peakR_bin=0 peakR_hz=20.000
+BakerDbg mode=5 pool=0 smooth=0 tile=0 frame=75 thL=0.41032037 thR=0.00000001 colMaxL=1633.51440430 colMaxR=0.00000000 peakL_bin=78 peakL_hz=99.894 peakR_bin=0 peakR_hz=20.000
+BakerDbg mode=5 pool=0 smooth=0 tile=0 frame=100 thL=0.00000001 thR=0.26161730 colMaxL=0.00000000 colMaxR=1041.51696777 peakL_bin=0 peakL_hz=20.000 peakR_bin=268 peakR_hz=5023.773
+BakerDbg mode=5 pool=0 smooth=0 tile=0 frame=125 thL=0.00000001 thR=0.26161730 colMaxL=0.00000000 colMaxR=1041.51696777 peakL_bin=0 peakL_hz=20.000 peakR_bin=268 peakR_hz=5023.773
+BakerDbg mode=5 pool=0 smooth=0 tile=0 frame=150 thL=0.00000001 thR=0.26161730 colMaxL=0.00000000 colMaxR=1041.51696777 peakL_bin=0 peakL_hz=20.000 peakR_bin=268 peakR_hz=5023.773
+BakerDbg mode=5 pool=0 smooth=0 tile=0 frame=175 thL=0.00000001 thR=0.26161730 colMaxL=0.00000000 colMaxR=1041.51696777 peakL_bin=0 peakL_hz=20.000 peakR_bin=268 peakR_hz=5023.773
+BakerDbg mode=5 pool=0 smooth=0 tile=0 frame=200 thL=11.59825611 thR=10.69570637 colMaxL=13.56287575 colMaxR=14.95308399 peakL_bin=220 peakL_hz=1867.150 peakR_bin=198 peakR_hz=1186.218
+BakerDbg mode=5 pool=0 smooth=0 tile=0 frame=225 thL=11.38889313 thR=10.98973465 colMaxL=12.94491100 colMaxR=13.98450279 peakL_bin=0 peakL_hz=20.000 peakR_bin=121 peakR_hz=242.444
+BakerDbg mode=5 pool=0 smooth=0 tile=0 frame=250 thL=10.90402985 thR=10.89976215 colMaxL=13.33214951 colMaxR=12.26189137 peakL_bin=252 peakL_hz=3611.989 peakR_bin=185 peakR_hz=907.291
+BakerDbg mode=5 pool=0 smooth=0 tile=0 frame=275 thL=10.80697918 thR=11.45031452 colMaxL=12.97737217 colMaxR=11.88108635 peakL_bin=143 peakL_hz=381.616 peakR_bin=164 peakR_hz=588.419
+BakerDiag tile=0 mode=5 pool=0 smooth=0 avg_peak_jump_bin_L=14.763 avg_peak_jump_bin_R=7.582
+BakerDbg mode=4 pool=0 smooth=1 tile=0 frame=0 thL=0.19965486 thR=0.00000001 colMaxL=794.84014893 colMaxR=0.00000000 peakL_bin=78 peakL_hz=99.894 peakR_bin=0 peakR_hz=20.000
+BakerDbg mode=4 pool=0 smooth=1 tile=0 frame=25 thL=0.41032037 thR=0.00000001 colMaxL=1633.51440430 colMaxR=0.00000000 peakL_bin=78 peakL_hz=99.894 peakR_bin=0 peakR_hz=20.000
+BakerDbg mode=4 pool=0 smooth=1 tile=0 frame=50 thL=0.41032037 thR=0.00000001 colMaxL=1633.51440430 colMaxR=0.00000000 peakL_bin=78 peakL_hz=99.894 peakR_bin=0 peakR_hz=20.000
+BakerDbg mode=4 pool=0 smooth=1 tile=0 frame=75 thL=0.41032037 thR=0.00000001 colMaxL=1633.51440430 colMaxR=0.00000000 peakL_bin=78 peakL_hz=99.894 peakR_bin=0 peakR_hz=20.000
+BakerDbg mode=4 pool=0 smooth=1 tile=0 frame=100 thL=0.12612119 thR=1.49792266 colMaxL=229.19549561 colMaxR=1029.64196777 peakL_bin=78 peakL_hz=99.894 peakR_bin=268 peakR_hz=5023.773
+BakerDbg mode=4 pool=0 smooth=1 tile=0 frame=125 thL=0.00024347 thR=0.26161730 colMaxL=0.44245151 colMaxR=1041.51696777 peakL_bin=78 peakL_hz=99.894 peakR_bin=268 peakR_hz=5023.773
+BakerDbg mode=4 pool=0 smooth=1 tile=0 frame=150 thL=0.00000047 thR=0.26161730 colMaxL=0.00085413 colMaxR=1041.51696777 peakL_bin=78 peakL_hz=99.894 peakR_bin=268 peakR_hz=5023.773
+BakerDbg mode=4 pool=0 smooth=1 tile=0 frame=175 thL=0.00000001 thR=0.26161730 colMaxL=0.00000165 colMaxR=1041.51696777 peakL_bin=78 peakL_hz=99.894 peakR_bin=268 peakR_hz=5023.773
+BakerDbg mode=4 pool=0 smooth=1 tile=0 frame=200 thL=11.51848030 thR=11.56337738 colMaxL=13.37242126 colMaxR=149.08552551 peakL_bin=220 peakL_hz=1867.150 peakR_bin=268 peakR_hz=5023.773
+BakerDbg mode=4 pool=0 smooth=1 tile=0 frame=225 thL=12.17933464 thR=12.26831818 colMaxL=12.33553696 colMaxR=14.02239895 peakL_bin=205 peakL_hz=1370.411 peakR_bin=121 peakR_hz=242.444
+BakerDbg mode=4 pool=0 smooth=1 tile=0 frame=250 thL=15.12165070 thR=15.18257999 colMaxL=23.53495979 colMaxR=24.89117432 peakL_bin=75 peakL_hz=93.901 peakR_bin=130 peakR_hz=291.883
+BakerDbg mode=4 pool=0 smooth=1 tile=0 frame=275 thL=11.44005394 thR=12.12976265 colMaxL=13.50119114 colMaxR=11.91057205 peakL_bin=143 peakL_hz=381.616 peakR_bin=240 peakR_hz=2820.225
+BakerDiag tile=0 mode=4 pool=0 smooth=1 avg_peak_jump_bin_L=9.886 avg_peak_jump_bin_R=5.047

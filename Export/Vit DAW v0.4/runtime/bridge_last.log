@@ -1,0 +1,27 @@
+2026-04-16T00:31:32 [INFO] control loop started: UDP:4445 -> tcp://127.0.0.1:5555
+2026-04-16T00:31:32 [INFO] telemetry thread started: tcp://127.0.0.1:5556 -> UDP:4444
+2026-04-16T00:31:38 [INFO] [shadow] 影子树已初始化: tracks=5 project_path='' 重放待处理 delta=1 条
+2026-04-16T00:31:40 [DEBUG] [shadow] [实时] 非快照轨 UID，已写入 nodes 并记入 orphan_deltas: uid='TRACK' action='node_added'
+2026-04-16T00:31:40 [DEBUG] [shadow] [实时] 非快照轨 UID，已写入 nodes 并记入 orphan_deltas: uid='1007' action='property_changed:id'
+2026-04-16T00:31:40 [DEBUG] [shadow] [实时] 非快照轨 UID，已写入 nodes 并记入 orphan_deltas: uid='MODIFIERS' action='node_added'
+2026-04-16T00:31:40 [DEBUG] [shadow] [实时] 非快照轨 UID，已写入 nodes 并记入 orphan_deltas: uid='OUTPUTDEVICES' action='node_added'
+2026-04-16T00:31:40 [DEBUG] [shadow] [实时] 非快照轨 UID，已写入 nodes 并记入 orphan_deltas: uid='DEVICE' action='node_added'
+2026-04-16T00:31:40 [DEBUG] [shadow] [实时] 非快照轨 UID，已写入 nodes 并记入 orphan_deltas: uid='CLIPSLOTS' action='node_added'
+2026-04-16T00:31:40 [DEBUG] [shadow] [实时] 非快照轨 UID，已写入 nodes 并记入 orphan_deltas: uid='DEVICE' action='property_changed:name'
+2026-04-16T00:31:40 [DEBUG] [shadow] [实时] 非快照轨 UID，已写入 nodes 并记入 orphan_deltas: uid='1008' action='node_added'
+2026-04-16T00:31:40 [DEBUG] [shadow] [实时] 非快照轨 UID，已写入 nodes 并记入 orphan_deltas: uid='1009' action='node_added'
+2026-04-16T00:31:40 [DEBUG] [shadow] [实时] 非快照轨 UID，已写入 nodes 并记入 orphan_deltas: uid='1008' action='property_changed:remapOnTempoChange'
+2026-04-16T00:31:40 [DEBUG] [shadow] [实时] 非快照轨 UID，已写入 nodes 并记入 orphan_deltas: uid='1007' action='property_changed:name'
+2026-04-16T00:31:40 [DEBUG] [shadow] [实时] 非快照轨 UID，已写入 nodes 并记入 orphan_deltas: uid='0/a7196e' action='property_changed:lastSignificantChange'
+2026-04-16T00:31:40 [DEBUG] [shadow] [实时] 非快照轨 UID，已写入 nodes 并记入 orphan_deltas: uid='1007' action='property_changed:name'
+2026-04-16T00:31:40 [INFO] [shadow] 影子树已初始化: tracks=6 project_path='' 重放待处理 delta=0 条
+2026-04-16T00:31:41 [DEBUG] [shadow] [实时] 非快照轨 UID，已写入 nodes 并记入 orphan_deltas: uid='AUTOMATIONCURVES' action='node_added'
+2026-04-16T00:31:41 [DEBUG] [shadow] [实时] 非快照轨 UID，已写入 nodes 并记入 orphan_deltas: uid='QUANTISATION' action='node_added'
+2026-04-16T00:31:41 [DEBUG] [shadow] [实时] 非快照轨 UID，已写入 nodes 并记入 orphan_deltas: uid='GROOVE' action='node_added'
+2026-04-16T00:31:41 [DEBUG] [shadow] [实时] 非快照轨 UID，已写入 nodes 并记入 orphan_deltas: uid='SEQUENCE' action='node_added'
+2026-04-16T00:31:41 [DEBUG] [shadow] [实时] 非快照轨 UID，已写入 nodes 并记入 orphan_deltas: uid='1010' action='property_changed:currentTake'
+2026-04-16T00:31:41 [DEBUG] [shadow] [实时] 非快照轨 UID，已写入 nodes 并记入 orphan_deltas: uid='1010' action='property_changed:speed'
+2026-04-16T00:31:41 [DEBUG] [shadow] [实时] 非快照轨 UID，已写入 nodes 并记入 orphan_deltas: uid='1010' action='node_added'
+2026-04-16T00:31:41 [DEBUG] [shadow] [实时] 非快照轨 UID，已写入 nodes 并记入 orphan_deltas: uid='1010' action='property_changed:colour'
+2026-04-16T00:31:41 [DEBUG] [shadow] [实时] 非快照轨 UID，已写入 nodes 并记入 orphan_deltas: uid='0/a7196e' action='property_changed:lastSignificantChange'
+2026-04-16T00:31:41 [INFO] [shadow] 影子树已初始化: tracks=6 project_path='' 重放待处理 delta=0 条

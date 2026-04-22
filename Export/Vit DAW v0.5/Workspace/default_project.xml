@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<EDIT appVersion="Unknown" projectID="0/c60f34" creationTime="0" modifiedBy="VitHeadlessServer">
+  <TRANSPORT endToEnd="1"/>
+  <TEMPOSEQUENCE>
+    <TEMPO startBeat="0.0" bpm="120.0" curve="1.0"/>
+    <TIMESIG numerator="4" denominator="4" startBeat="0.0"/>
+  </TEMPOSEQUENCE>
+  <VIDEO/>
+  <CLICKTRACK level="0.6000000238418579"/>
+  <MASTERVOLUME>
+    <PLUGIN type="volume" id="1001" enabled="1" volume="1.0">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+  </MASTERVOLUME>
+  <RACKS>
+    <RACK id="1010" name="New Rack">
+      <WINDOWSTATE windowPos=""/>
+      <OUTPUT name="midi output"/>
+      <OUTPUT name="output 1 (left)"/>
+      <OUTPUT name="output 2 (right)"/>
+      <INPUT name="midi input"/>
+      <INPUT name="input 1 (left)"/>
+      <INPUT name="input 2 (right)"/>
+      <MODIFIERS/>
+      <MACROPARAMETERS id="1011" remapOnTempoChange="1"/>
+    </RACK>
+  </RACKS>
+  <MASTERPLUGINS/>
+  <INPUTDEVICES>
+    <INPUTDEVICE deviceID="all_midi_in" name="All MIDI Ins"/>
+    <INPUTDEVICE deviceID="wavein_d7bd293b" name="Input 1"/>
+    <INPUTDEVICE deviceID="wavein_d7bd293c" name="Input 2"/>
+  </INPUTDEVICES>
+  <TRACKCOMPS/>
+  <SCENES/>
+  <PITCHSEQUENCE>
+    <PITCH startBeat="0.0" pitch="60"/>
+  </PITCHSEQUENCE>
+  <ARRANGERTRACK name="Arranger" id="1002"/>
+  <CHORDTRACK name="Chord" id="1003"/>
+  <MARKERTRACK id="1004" name="Marker"/>
+  <TEMPOTRACK name="Global" id="1005">
+    <MODIFIERS/>
+  </TEMPOTRACK>
+  <MASTERTRACK name="Master" id="1006">
+    <MODIFIERS/>
+  </MASTERTRACK>
+  <TRACK id="1007" name="Audio Track 1">
+    <MODIFIERS/>
+    <CLIPSLOTS/>
+    <PLUGIN type="rack" rackType="1010" id="1012" enabled="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="volume" id="1008" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1009" enabled="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+  </TRACK>
+</EDIT>

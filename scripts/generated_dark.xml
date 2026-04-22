@@ -1,0 +1,63 @@
+<?xml version='1.0' encoding='utf-8'?>
+<EDIT appVersion="Unknown" projectID="0/ed12480" creationTime="1773298849052" modifiedBy="gen_vit_project.py">
+  <TRANSPORT endToEnd="1" />
+  <PITCHSEQUENCE>
+    <PITCH startBeat="0.0" pitch="60" />
+  </PITCHSEQUENCE>
+  <TEMPOSEQUENCE>
+    <TEMPO startBeat="0.0" bpm="92.0" curve="1.0" />
+    <TIMESIG numerator="4" denominator="4" startBeat="0.0" />
+  </TEMPOSEQUENCE>
+  <VIDEO />
+  <CLICKTRACK level="0.6000000238418579" />
+  <MASTERVOLUME>
+    <PLUGIN type="volume" id="1001" enabled="1" volume="0.6376281380653381">
+      <MODIFIERASSIGNMENTS />
+    </PLUGIN>
+  </MASTERVOLUME>
+  <RACKS />
+  <MASTERPLUGINS />
+  <INPUTDEVICES>
+    <INPUTDEVICE deviceID="all_midi_in" name="All MIDI Ins" />
+    <INPUTDEVICE deviceID="wavein_auto_0001" name="Input 1">
+      <INPUTDEVICEDESTINATION targetID="1007" targetIndex="0" armed="1" />
+    </INPUTDEVICE>
+    <INPUTDEVICE deviceID="wavein_auto_0002" name="Input 2">
+      <INPUTDEVICEDESTINATION targetID="1010" targetIndex="0" armed="0" />
+    </INPUTDEVICE>
+  </INPUTDEVICES>
+  <TRACKCOMPS />
+  <ARRANGERTRACK name="Arranger" id="1002" />
+  <CHORDTRACK name="Chord" id="1003" />
+  <MARKERTRACK id="1004" name="Marker" />
+  <TEMPOTRACK name="Global" id="1005">
+    <MODIFIERS />
+  </TEMPOTRACK>
+  <MASTERTRACK name="Master" id="1006">
+    <MODIFIERS />
+  </MASTERTRACK>
+  <TRACK id="1007" name="Ghost Layer" vit_type="ghost">
+    <MODIFIERS />
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)" />
+    </OUTPUTDEVICES>
+    <CLIPSLOTS />
+    <PLUGIN type="volume" id="1008" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS />
+    </PLUGIN>
+    <PLUGIN type="level" id="1009" enabled="1" />
+  </TRACK>
+  <TRACK id="1010" name="Audio Track 1">
+    <MODIFIERS />
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)" />
+    </OUTPUTDEVICES>
+    <CLIPSLOTS />
+    <PLUGIN type="volume" id="1011" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS />
+    </PLUGIN>
+    <PLUGIN type="level" id="1012" enabled="1" />
+  </TRACK>
+  <SCENES />
+  <VITMETADATA mood="dark" prompt="haunted pad" />
+</EDIT>
