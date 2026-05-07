@@ -2,6 +2,8 @@
 # Core build/output artifacts
 # -----------------------------
 build/
+VitApp/build/
+VitApp/cmake-build-*/
 dist/
 out/
 bin/
