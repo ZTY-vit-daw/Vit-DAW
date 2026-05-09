@@ -120,6 +120,8 @@ set(VITAPP_SOURCE_FILES
     Source/Core/VitBridgeNode.h
     Source/Core/VitEngineDevice.cpp
     Source/Core/VitEngineDevice.h
+    Source/Core/VitEngineBehaviour.cpp
+    Source/Core/VitEngineBehaviour.h
     Source/Core/VitClipRouteRegistry.cpp
     Source/Core/VitClipRouteRegistry.h
     Source/Core/VitDagChecker.cpp
@@ -187,6 +189,8 @@ set(VITAPP_SOURCE_FILES
     Source/Service/VitHeadlessService.h
     Source/Service/CommandDispatcher.cpp
     Source/Service/CommandDispatcher.h
+    Source/Service/VitProductionCoordinator.cpp
+    Source/Service/VitProductionCoordinator.h
     Source/Service/SharedMemoryTester.cpp
     Source/Service/SharedMemoryTester.h
     Source/Service/TiledSpectrogramBaker.cpp

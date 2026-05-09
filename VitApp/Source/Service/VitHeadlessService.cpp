@@ -117,14 +117,105 @@ void primeEditPlaybackGraph (te::Edit& loadedEdit)
     loadedEdit.getTransport().ensureContextAllocated (true);
 }
 
-juce::String buildTransportTelemetryPayload (te::Edit& edit)
+static juce::Array<juce::var> collectLiveRecordingWaveformEntries (te::Edit& edit)
+{
+    juce::Array<juce::var> items;
+
+    for (auto* idi : edit.getAllInputDevices())
+    {
+        if (idi == nullptr)
+            continue;
+
+        if (idi->getInputDevice().getDeviceType() != te::InputDevice::waveDevice)
+            continue;
+
+        for (auto targetID : idi->getTargets())
+        {
+            if (! idi->isRecording (targetID))
+                continue;
+
+            const auto recFile = idi->getRecordingFile (targetID);
+
+            if (! recFile.existsAsFile())
+                continue;
+
+            auto thumbPtr = edit.engine.getRecordingThumbnailManager().getThumbnailFor (recFile);
+
+            if (thumbPtr == nullptr || thumbPtr->thumb == nullptr)
+                continue;
+
+            auto* thumbBase = thumbPtr->thumb.get();
+            const auto totalLen = thumbBase->getTotalLength();
+
+            if (totalLen < 0.001)
+                continue;
+
+            const auto numBuckets = juce::jlimit (32, 900, juce::roundToInt (totalLen * 100.0));
+            juce::Array<juce::var> peaksFlat;
+            peaksFlat.ensureStorageAllocated (numBuckets * 2);
+
+            constexpr int kMinMaxSubRanges = 8;
+            for (int i = 0; i < numBuckets; ++i)
+            {
+                const auto t0 = (double) i * totalLen / (double) numBuckets;
+                const auto t1 = (double) (i + 1) * totalLen / (double) numBuckets;
+                float ch0Min = 0.0f, ch0Max = 0.0f;
+                bool have0 = false;
+
+                for (int s = 0; s < kMinMaxSubRanges; ++s)
+                {
+                    const auto st = t0 + (t1 - t0) * ((double) s / (double) kMinMaxSubRanges);
+                    const auto en = t0 + (t1 - t0) * ((double) (s + 1) / (double) kMinMaxSubRanges);
+                    float lo = 0.0f, hi = 0.0f;
+                    thumbBase->getApproximateMinMax (st, en, 0, lo, hi);
+                    if (! have0)
+                    {
+                        ch0Min = lo;
+                        ch0Max = hi;
+                        have0 = true;
+                    }
+                    else
+                    {
+                        ch0Min = juce::jmin (ch0Min, lo);
+                        ch0Max = juce::jmax (ch0Max, hi);
+                    }
+
+                    if (thumbBase->getNumChannels() > 1)
+                    {
+                        thumbBase->getApproximateMinMax (st, en, 1, lo, hi);
+                        ch0Min = juce::jmin (ch0Min, lo);
+                        ch0Max = juce::jmax (ch0Max, hi);
+                    }
+                }
+
+                peaksFlat.add (ch0Min);
+                peaksFlat.add (ch0Max);
+            }
+
+            auto row = std::make_unique<juce::DynamicObject>();
+            row->setProperty ("track_id", targetID.toString());
+            row->setProperty ("duration_seconds", totalLen);
+            row->setProperty ("peaks", juce::var (peaksFlat));
+            items.add (juce::var (row.release()));
+        }
+    }
+
+    return items;
+}
+
+static juce::String buildTransportTelemetryPayload (te::Edit& edit, bool includeRecordingWaveformDetail)
 {
     auto response = std::make_unique<juce::DynamicObject>();
     auto& transport = edit.getTransport();
 
     response->setProperty ("topic", "transport");
     response->setProperty ("is_playing", transport.isPlaying());
+    response->setProperty ("is_recording", transport.isRecording());
     response->setProperty ("position_seconds", transport.getPosition().inSeconds());
+
+    if (transport.isRecording() && includeRecordingWaveformDetail)
+        response->setProperty ("recording_waveforms", juce::var (collectLiveRecordingWaveformEntries (edit)));
+
     return juce::JSON::toString (juce::var (response.release()));
 }
 
@@ -144,6 +235,13 @@ VitHeadlessService::VitHeadlessService (juce::String applicationName)
     : engineDevice (std::move (applicationName))
 {
     globalProjectConfig = std::make_unique<VitGlobalProjectConfig>();
+
+    productionCoordinator = std::make_unique<VitProductionCoordinator> (
+        [this](const juce::String& payload)
+        {
+            if (zmqGateway != nullptr)
+                zmqGateway->publishMessage (payload);
+        });
 
     commandDispatcher = std::make_unique<CommandDispatcher> (
         [this]() -> te::Edit*
@@ -186,7 +284,8 @@ VitHeadlessService::VitHeadlessService (juce::String applicationName)
         [this]()
         {
             return currentProjectPath.getFullPathName();
-        });
+        },
+        productionCoordinator.get());
 }
 
 bool VitHeadlessService::start()
@@ -267,6 +366,7 @@ bool VitHeadlessService::reloadProjectFromDefaultXml()
 
     deltaHub.detach();
     edit = std::move (loadedEdit);
+    lastTransportRecording = (edit != nullptr && edit->getTransport().isRecording());
 
     syncLevelMeterClients();
 
@@ -379,6 +479,7 @@ bool VitHeadlessService::applyLoadedEdit (std::unique_ptr<te::Edit> loadedEdit, 
     primeEditPlaybackGraph (*loadedEdit);
 
     edit = std::move (loadedEdit);
+    lastTransportRecording = (edit != nullptr && edit->getTransport().isRecording());
 
     if (edit != nullptr)
     {
@@ -494,6 +595,9 @@ void VitHeadlessService::timerCallback()
     if (edit != nullptr)
         VitGraphSwapCoordinator::serviceGraphLifecycle (*edit);
 
+    if (productionCoordinator != nullptr)
+        productionCoordinator->tick();
+
     broadcastTelemetry();
 }
 
@@ -511,7 +615,23 @@ void VitHeadlessService::broadcastTransportTelemetry()
     if (zmqGateway == nullptr || edit == nullptr)
         return;
 
-    zmqGateway->publishMessage (buildTransportTelemetryPayload (*edit));
+    auto& transport = edit->getTransport();
+    const bool nowRecording = transport.isRecording();
+
+    if (lastTransportRecording && ! nowRecording)
+    {
+        auto stopped = std::make_unique<juce::DynamicObject>();
+        stopped->setProperty ("topic", "recording");
+        stopped->setProperty ("subtopic", "recording_stopped");
+        stopped->setProperty ("position_seconds", transport.getPosition().inSeconds());
+        zmqGateway->publishMessage (juce::JSON::toString (juce::var (stopped.release())));
+    }
+
+    lastTransportRecording = nowRecording;
+    ++transportTelemetryTick;
+    const bool includeLiveWaveform = ! nowRecording
+                                    || (transportTelemetryTick % recordingWaveformTelemetryStride == 0);
+    zmqGateway->publishMessage (buildTransportTelemetryPayload (*edit, includeLiveWaveform));
 }
 
 void VitHeadlessService::broadcastLevelsTelemetry()
@@ -612,6 +732,7 @@ juce::String VitHeadlessService::ipcNewBlankProject()
     primeEditPlaybackGraph (*loadedEdit);
 
     edit = std::move (loadedEdit);
+    lastTransportRecording = (edit != nullptr && edit->getTransport().isRecording());
 
     if (edit != nullptr)
         VitGraphSwapCoordinator::resetForEdit (*edit, "Blank project created");

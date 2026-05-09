@@ -1,6 +1,7 @@
 import argparse
 import copy
 import json
+import queue
 import socket
 import threading
 from collections import deque
@@ -221,6 +222,34 @@ def _build_req_socket(ctx: zmq.Context, cfg: BridgeConfig):
     return sock
 
 
+def _shadow_refresh_after_recording_stop(
+    shadow: VitShadowProject,
+    zmq_req,
+    cfg: BridgeConfig,
+    logger: BridgeLogger,
+) -> None:
+    """On recording_stopped PUB: mandatory full get_project_state for AI/shadow parity (V0.6)."""
+    payload = json.dumps({"cmd": "get_project_state"}, ensure_ascii=False)
+    try:
+        zmq_req.send_string(payload)
+        reply = zmq_req.recv_string()
+    except Exception as exc:
+        logger.warn(f"[shadow] recording_stopped -> get_project_state failed: {exc}")
+        return
+    try:
+        reply_obj = json.loads(reply)
+        if isinstance(reply_obj, dict) and reply_obj.get("status") == "ok":
+            shadow.initialize_state(reply_obj)
+            logger.info("[shadow] recording_stopped -> shadow re-initialized from get_project_state")
+        else:
+            logger.warn(
+                f"[shadow] recording_stopped refresh got non-ok: "
+                f"{reply_obj.get('status') if isinstance(reply_obj, dict) else reply_obj!r}"
+            )
+    except json.JSONDecodeError:
+        logger.warn("[shadow] recording_stopped refresh: reply JSON parse error")
+
+
 def run_bridge(cfg: BridgeConfig):
     logger = BridgeLogger(cfg.verbose, cfg.last_log_path, cfg.keep_last_log_lines)
     shadow = VitShadowProject(logger)
@@ -228,6 +257,7 @@ def run_bridge(cfg: BridgeConfig):
     recv_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     recv_sock.bind((cfg.godot_ip, cfg.udp_from_godot))
     zmq_req = _build_req_socket(context, cfg)
+    shadow_refresh_queue: queue.Queue = queue.Queue()
 
     def bridge_telemetry():
         zmq_sub = context.socket(zmq.SUB)
@@ -259,6 +289,11 @@ def run_bridge(cfg: BridgeConfig):
                                     f"last={last_delta_seq} current={seq}"
                                 )
                             last_delta_seq = seq
+                    elif isinstance(d, dict) and d.get("topic") == "recording" and str(d.get("subtopic", "")).strip() == "recording_stopped":
+                        try:
+                            shadow_refresh_queue.put_nowait(1)
+                        except Exception:
+                            pass
                     elif isinstance(d, dict) and d.get("command") == "tile_ready":
                         tile_ready_count += 1
                         logger.debug(
@@ -288,13 +323,29 @@ def run_bridge(cfg: BridgeConfig):
     t = threading.Thread(target=bridge_telemetry, daemon=True)
     t.start()
     logger.info(f"control loop started: UDP:{cfg.udp_from_godot} -> {cfg.zmq_req_url}")
+    recv_sock.settimeout(0.05)
 
     try:
         while True:
+            pending_shadow = False
+            while True:
+                try:
+                    shadow_refresh_queue.get_nowait()
+                    pending_shadow = True
+                except queue.Empty:
+                    break
+            if pending_shadow:
+                _shadow_refresh_after_recording_stop(shadow, zmq_req, cfg, logger)
+
             try:
                 data, addr = recv_sock.recvfrom(65535)
-                if not data:
-                    continue
+            except socket.timeout:
+                continue
+
+            if not data:
+                continue
+
+            try:
                 payload = data.decode("utf-8")
                 parsed_cmd: Optional[dict] = None
                 try:

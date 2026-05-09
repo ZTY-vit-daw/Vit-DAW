@@ -1,5 +1,6 @@
 #include "VitEngineDevice.h"
 
+#include "VitEngineBehaviour.h"
 #include "VitPluginUIBehaviour.h"
 #include "VitPortablePropertyStorage.h"
 
@@ -46,7 +47,7 @@ void prepareTracktionAudioHardwareForPlayback (te::Engine& engine)
 VitEngineDevice::VitEngineDevice (juce::String applicationName)
     : engine (std::make_unique<VitPortablePropertyStorage> (std::move (applicationName)),
               std::make_unique<VitPluginUIBehaviour>(),
-              nullptr)
+              std::make_unique<VitEngineBehaviour>())
 {
     initialiseDevices();
 }

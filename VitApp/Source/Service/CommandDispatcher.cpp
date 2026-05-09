@@ -1,6 +1,7 @@
 #include "CommandDispatcher.h"
 
 #include "TiledSpectrogramBaker.h"
+#include "VitProductionCoordinator.h"
 
 #include "../Core/VitAIGCJobRuntime.h"
 #include "../Core/VitAudioInjectorNode.h"
@@ -851,6 +852,16 @@ juce::String describeTransportState (te::Edit& edit)
         + " playContextActive=" + juce::String (transport.isPlayContextActive() ? "true" : "false")
         + " positionSeconds=" + juce::String (transport.getPosition().inSeconds(), 3)
         + " editLengthSeconds=" + juce::String (edit.getLength().inSeconds(), 3);
+}
+
+/** Mirrors TransportControl::areAnyInputsRecording (that method is private on TransportControl). */
+static bool vitEditAnyInputsRecording (te::Edit& edit)
+{
+    for (auto* in : edit.getAllInputDevices())
+        if (in != nullptr && in->isRecordingActive())
+            return true;
+
+    return false;
 }
 
 struct AudioImportInsertResult
@@ -2032,7 +2043,8 @@ CommandDispatcher::CommandDispatcher (EditGetter editGetter,
                                       OpenProjectReply openProjectReplyAction,
                                       SaveProjectReply saveProjectReplyAction,
                                       SaveAsProjectReply saveAsProjectReplyAction,
-                                      CurrentProjectPathGetter currentProjectPathGetterAction)
+                                      CurrentProjectPathGetter currentProjectPathGetterAction,
+                                      VitProductionCoordinator* productionCoordinator)
     : getEdit (std::move (editGetter)),
       reloadProject (std::move (reloadProjectAction)),
       saveProject (std::move (saveProjectAction)),
@@ -2042,7 +2054,8 @@ CommandDispatcher::CommandDispatcher (EditGetter editGetter,
       openProjectReply (std::move (openProjectReplyAction)),
       saveProjectReply (std::move (saveProjectReplyAction)),
       saveAsProjectReply (std::move (saveAsProjectReplyAction)),
-      getCurrentProjectPath (std::move (currentProjectPathGetterAction))
+      getCurrentProjectPath (std::move (currentProjectPathGetterAction)),
+      production (productionCoordinator)
 {
     registerBuiltinCommands();
 }
@@ -2068,6 +2081,27 @@ juce::String CommandDispatcher::dispatch (const juce::var& command, const juce::
 
     if (cmd.isEmpty())
         return makeErrorReply ("Missing cmd/action field");
+
+    if (production != nullptr && production->isRendering())
+    {
+        static const std::unordered_set<std::string> renderAllowlist {
+            "ping",
+            "get_project_state",
+            "list_tracks",
+            "get_recent_projects",
+            "get_midi_clip_notes",
+            "get_midi_clip_data",
+            "get_plugin_parameters",
+            "project_health_check",
+            "get_audio_device_types",
+            "get_audio_devices",
+            "get_wave_input_devices",
+            "cancel_render",
+        };
+
+        if (renderAllowlist.find (cmd.toStdString()) == renderAllowlist.end())
+            return makeErrorReply ("Engine is busy rendering");
+    }
 
     if (const auto it = handlers.find (cmd.toStdString()); it != handlers.end())
     {
@@ -2381,6 +2415,16 @@ void CommandDispatcher::registerBuiltinCommands()
         return handleSetAudioDevice (object, raw);
     });
 
+    handlers.emplace ("get_wave_input_devices", [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return handleGetWaveInputDevices (object, raw);
+    });
+
+    handlers.emplace ("route_wave_input_to_track", [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return handleRouteWaveInputToTrack (object, raw);
+    });
+
     handlers.emplace ("scan_plugins", [this] (const juce::DynamicObject& object, const juce::String& raw)
     {
         return handleScanPlugins (object, raw);
@@ -2444,6 +2488,41 @@ void CommandDispatcher::registerBuiltinCommands()
     handlers.emplace ("rack_remove_edge", [this] (const juce::DynamicObject& object, const juce::String& raw)
     {
         return handleRackRemoveConnection (object, raw);
+    });
+
+    handlers.emplace ("arm_track", [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return handleArmTrack (object, raw);
+    });
+
+    handlers.emplace ("start_recording", [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return handleStartRecording (object, raw);
+    });
+
+    handlers.emplace ("stop_recording", [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return handleStopRecording (object, raw);
+    });
+
+    handlers.emplace ("freeze_track", [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return handleFreezeTrack (object, raw);
+    });
+
+    handlers.emplace ("unfreeze_track", [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return handleUnfreezeTrack (object, raw);
+    });
+
+    handlers.emplace ("start_render", [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return handleStartRender (object, raw);
+    });
+
+    handlers.emplace ("cancel_render", [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return handleCancelRender (object, raw);
     });
 }
 
@@ -5534,11 +5613,25 @@ juce::String CommandDispatcher::handleGetAudioDevices (const juce::DynamicObject
 
     auto* dtype = jdm.getCurrentDeviceTypeObject();
     const juce::StringArray availableDevices = mergeUniqueDeviceNames (dtype);
+    const juce::StringArray outputDeviceNames = dtype != nullptr ? dtype->getDeviceNames (false) : juce::StringArray();
+    const juce::StringArray inputDeviceNames = dtype != nullptr ? dtype->getDeviceNames (true) : juce::StringArray();
+
+    #if JUCE_DEBUG
+    DBG ("[Vit] get_audio_devices type=" << typeStr << " inputs=" << inputDeviceNames.size() << " outputs=" << outputDeviceNames.size());
+    #endif
 
     juce::Array<juce::var> devicesJson;
+    juce::Array<juce::var> outNamesJson;
+    juce::Array<juce::var> inNamesJson;
 
     for (int i = 0; i < availableDevices.size(); ++i)
         devicesJson.add (availableDevices[i]);
+
+    for (int i = 0; i < outputDeviceNames.size(); ++i)
+        outNamesJson.add (outputDeviceNames[i]);
+
+    for (int i = 0; i < inputDeviceNames.size(); ++i)
+        inNamesJson.add (inputDeviceNames[i]);
 
     const auto setup = jdm.getAudioDeviceSetup();
 
@@ -5554,9 +5647,13 @@ juce::String CommandDispatcher::handleGetAudioDevices (const juce::DynamicObject
     auto response = std::make_unique<juce::DynamicObject>();
     response->setProperty ("status", "ok");
     response->setProperty ("current_device", currentDeviceSummary (setup));
+    response->setProperty ("current_output_device", setup.outputDeviceName);
+    response->setProperty ("current_input_device", setup.inputDeviceName);
     response->setProperty ("current_sample_rate", setup.sampleRate);
     response->setProperty ("current_buffer_size", setup.bufferSize);
     response->setProperty ("available_devices", juce::var (devicesJson));
+    response->setProperty ("available_output_devices", juce::var (outNamesJson));
+    response->setProperty ("available_input_devices", juce::var (inNamesJson));
     response->setProperty ("available_sample_rates", juce::var (sampleRatesJson));
     response->setProperty ("available_buffer_sizes", juce::var (bufferSizesJson));
     return juce::JSON::toString (juce::var (response.release()));
@@ -5571,15 +5668,14 @@ juce::String CommandDispatcher::handleSetAudioDevice (const juce::DynamicObject&
         return makeErrorReply ("No active edit loaded");
 
     const auto typeStr = object.getProperty ("type").toString().trim();
-    const auto deviceName = object.getProperty ("device_name").toString().trim();
+    const auto legacyName = object.getProperty ("device_name").toString().trim();
+    const auto outNameProp = object.getProperty ("output_device_name").toString().trim();
+    const auto inNameProp = object.getProperty ("input_device_name").toString().trim();
     const auto srVar = object.getProperty ("sample_rate");
     const auto bsVar = object.getProperty ("buffer_size");
 
     if (typeStr.isEmpty())
         return makeErrorReply ("set_audio_device requires a non-empty type field");
-
-    if (deviceName.isEmpty())
-        return makeErrorReply ("set_audio_device requires a non-empty device_name field");
 
     if (! srVar.isDouble() && ! srVar.isInt() && ! srVar.isInt64())
         return makeErrorReply ("set_audio_device requires a numeric sample_rate field");
@@ -5610,16 +5706,53 @@ juce::String CommandDispatcher::handleSetAudioDevice (const juce::DynamicObject&
     const auto inputDevices = matchedType->getDeviceNames (true);
     const auto availableDevices = mergeUniqueDeviceNames (matchedType);
 
-    if (! availableDevices.contains (deviceName))
-        return makeErrorReply ("Device name not found in the specified type");
+    juce::String outputPick;
+    juce::String inputPick;
 
-    if (! outputDevices.contains (deviceName))
-        return makeErrorReply ("Device name is not a valid output device for the specified type");
+    if (outNameProp.isNotEmpty() || inNameProp.isNotEmpty())
+    {
+        if (outNameProp.isNotEmpty())
+        {
+            if (! outputDevices.contains (outNameProp))
+                return makeErrorReply ("output_device_name is not a valid output device for the specified type");
+
+            outputPick = outNameProp;
+        }
+
+        if (inNameProp.isNotEmpty())
+        {
+            if (! inputDevices.contains (inNameProp))
+                return makeErrorReply ("input_device_name is not a valid input device for the specified type");
+
+            inputPick = inNameProp;
+        }
+    }
+    else if (legacyName.isNotEmpty())
+    {
+        if (! availableDevices.contains (legacyName))
+            return makeErrorReply ("Device name not found in the specified type");
+
+        if (! outputDevices.contains (legacyName))
+            return makeErrorReply ("Device name is not a valid output device for the specified type");
+
+        outputPick = legacyName;
+
+        if (inputDevices.contains (legacyName))
+            inputPick = legacyName;
+    }
+    else
+    {
+        return makeErrorReply ("set_audio_device requires device_name or output_device_name and/or input_device_name");
+    }
 
     auto setup = jdm.getAudioDeviceSetup();
-    setup.outputDeviceName = deviceName;
-    if (inputDevices.contains (deviceName))
-        setup.inputDeviceName = deviceName;
+
+    if (outputPick.isNotEmpty())
+        setup.outputDeviceName = outputPick;
+
+    if (inputPick.isNotEmpty())
+        setup.inputDeviceName = inputPick;
+
     setup.sampleRate = static_cast<double> (srVar);
     setup.bufferSize = static_cast<int> (bsVar);
 
@@ -5644,6 +5777,122 @@ juce::String CommandDispatcher::handleSetAudioDevice (const juce::DynamicObject&
     auto response = std::make_unique<juce::DynamicObject>();
     response->setProperty ("status", "ok");
     response->setProperty ("message", "Device change requested");
+    return juce::JSON::toString (juce::var (response.release()));
+}
+
+juce::String CommandDispatcher::handleGetWaveInputDevices (const juce::DynamicObject&, const juce::String&) const
+{
+    auto* edit = getEdit != nullptr ? getEdit() : nullptr;
+
+    if (edit == nullptr)
+        return makeErrorReply ("No active edit loaded");
+
+    juce::Array<juce::var> arr;
+    auto& dm = edit->engine.getDeviceManager();
+
+    for (auto* w : dm.getWaveInputDevices())
+    {
+        if (w == nullptr || w->getDeviceType() != te::InputDevice::waveDevice)
+            continue;
+
+        auto* row = new juce::DynamicObject();
+        row->setProperty ("device_id", w->getDeviceID());
+        row->setProperty ("name", w->getName());
+        row->setProperty ("alias", w->getAlias());
+        arr.add (juce::var (row));
+    }
+
+    auto response = std::make_unique<juce::DynamicObject>();
+    response->setProperty ("status", "ok");
+    response->setProperty ("devices", juce::var (arr));
+    return juce::JSON::toString (juce::var (response.release()));
+}
+
+juce::String CommandDispatcher::handleRouteWaveInputToTrack (const juce::DynamicObject& object, const juce::String&) const
+{
+    auto* edit = getEdit != nullptr ? getEdit() : nullptr;
+
+    if (edit == nullptr)
+        return makeErrorReply ("No active edit loaded");
+
+    const auto trackId = object.getProperty ("track_id").toString().trim();
+    const auto deviceKey = object.getProperty ("device_id").toString().trim();
+
+    if (trackId.isEmpty())
+        return makeErrorReply ("route_wave_input_to_track requires track_id");
+
+    auto* audioTrack = findAudioTrackByID (*edit, trackId);
+
+    if (audioTrack == nullptr)
+        return makeErrorReply ("route_wave_input_to_track: audio track not found");
+
+    te::WaveInputDevice* chosen = nullptr;
+    auto& dm = edit->engine.getDeviceManager();
+    auto waveInputs = dm.getWaveInputDevices();
+
+    for (auto* w : waveInputs)
+    {
+        if (w == nullptr || w->getDeviceType() != te::InputDevice::waveDevice)
+            continue;
+
+        if (deviceKey.isEmpty())
+        {
+            chosen = w;
+            break;
+        }
+
+        if (w->getDeviceID() == deviceKey || w->getName() == deviceKey)
+        {
+            chosen = w;
+            break;
+        }
+    }
+
+    if (chosen == nullptr)
+        return makeErrorReply ("route_wave_input_to_track: no matching hardware wave input (check device_id or open audio device)");
+
+    // Disabled hardware inputs are omitted from EditPlaybackContext::rebuildDeviceList;
+    // enable before allocating context so getInputFor succeeds.
+    chosen->setEnabled (true);
+
+    auto& transport = edit->getTransport();
+    transport.ensureContextAllocated (true);
+    auto* ctx = edit->getCurrentPlaybackContext();
+
+    if (ctx == nullptr)
+        return makeErrorReply ("route_wave_input_to_track: no playback context");
+
+    edit->getEditInputDevices().getInstanceStateForInputDevice (*chosen);
+
+    auto* inst = ctx->getInputFor (chosen);
+
+    if (inst == nullptr)
+        return makeErrorReply ("route_wave_input_to_track: failed to resolve input instance");
+
+    // setTarget removes/re-adds the INPUTDEVICEDESTINATION node; the new destination defaults
+    // recordEnabled (ValueTree "armed") to false, which clears a prior arm_track. Preserve it.
+    const bool preserveRecordArmed = inst->isRecordingEnabled (audioTrack->itemID);
+
+    const auto targetResult = inst->setTarget (audioTrack->itemID, false, &edit->getUndoManager());
+
+    if (! targetResult.has_value())
+        return makeErrorReply ("route_wave_input_to_track: " + targetResult.error());
+
+    if (preserveRecordArmed)
+        inst->setRecordingEnabled (audioTrack->itemID, true);
+
+    audioTrack->getWaveInputDevice().setEnabled (true);
+    edit->dispatchPendingUpdatesSynchronously();
+    transport.ensureContextAllocated (true);
+
+    if (saveProject && ! saveProject())
+        return makeErrorReply ("Routing saved in memory but failed to save project");
+
+    auto response = std::make_unique<juce::DynamicObject>();
+    response->setProperty ("status", "ok");
+    response->setProperty ("track_id", trackId);
+    response->setProperty ("device_id", chosen->getDeviceID());
+    response->setProperty ("message", "Wave input routed to track");
     return juce::JSON::toString (juce::var (response.release()));
 }
 
@@ -6599,6 +6848,215 @@ juce::String CommandDispatcher::handleRackSetNodeClipScope (const juce::DynamicO
     response->setProperty ("clip_scope", clipScope);
     appendGraphRevisionProperties (*response, graphSnapshot);
     return juce::JSON::toString (juce::var (response.release()));
+}
+
+juce::String CommandDispatcher::handleArmTrack (const juce::DynamicObject& object, const juce::String&) const
+{
+    auto* edit = getEdit != nullptr ? getEdit() : nullptr;
+
+    if (edit == nullptr)
+        return makeErrorReply ("No active edit loaded");
+
+    const auto trackId = object.getProperty ("track_id").toString().trim();
+
+    if (trackId.isEmpty())
+        return makeErrorReply ("arm_track requires track_id");
+
+    auto* audioTrack = findAudioTrackByID (*edit, trackId);
+
+    if (audioTrack == nullptr)
+        return makeErrorReply ("arm_track: audio track not found");
+
+    const auto armedVar = object.getProperty ("is_armed");
+    const bool armed = armedVar.isBool() ? static_cast<bool> (armedVar)
+                                         : armedVar.toString() == "1";
+
+    auto& transport = edit->getTransport();
+    transport.ensureContextAllocated (true);
+    auto* ctx = edit->getCurrentPlaybackContext();
+
+    if (ctx == nullptr)
+        return makeErrorReply ("arm_track: no playback context");
+
+    // Ensure the per-track wave device has a context instance (for graph / monitoring).
+    auto& waveDev = audioTrack->getWaveInputDevice();
+
+    if (ctx->getInputFor (&waveDev) == nullptr)
+        ctx->addWaveInputDeviceInstance (waveDev);
+
+    // route_wave_input_to_track targets the *hardware* WaveInputDevice (setTarget on that instance).
+    // setRecordingEnabled must run on every InputDeviceInstance whose destination includes this track,
+    // otherwise areAnyInputsRecording() stays false and transport.record() will not arm audio capture.
+    for (auto* in : edit->getAllInputDevices())
+        if (in != nullptr)
+            in->setRecordingEnabled (audioTrack->itemID, armed);
+
+    auto response = std::make_unique<juce::DynamicObject>();
+    response->setProperty ("status", "ok");
+    response->setProperty ("track_id", trackId);
+    response->setProperty ("is_armed", armed);
+    return juce::JSON::toString (juce::var (response.release()));
+}
+
+juce::String CommandDispatcher::handleStartRecording (const juce::DynamicObject&, const juce::String&) const
+{
+    auto* edit = getEdit != nullptr ? getEdit() : nullptr;
+
+    if (edit == nullptr)
+        return makeErrorReply ("No active edit loaded");
+
+    auto& transport = edit->getTransport();
+    transport.ensureContextAllocated (true);
+
+    const bool anyInputsBefore = vitEditAnyInputsRecording (*edit);
+    juce::Logger::writeToLog ("[Vit][record] start_recording (before transport.record): anyInputsRecording="
+                              + juce::String (anyInputsBefore ? "true" : "false") + " "
+                              + describeTransportState (*edit));
+
+    transport.record (false, false);
+
+    const bool anyInputsAfter = vitEditAnyInputsRecording (*edit);
+    juce::Logger::writeToLog ("[Vit][record] start_recording (after transport.record): anyInputsRecording="
+                              + juce::String (anyInputsAfter ? "true" : "false") + " "
+                              + describeTransportState (*edit));
+
+    auto response = std::make_unique<juce::DynamicObject>();
+    response->setProperty ("status", "ok");
+    response->setProperty ("message", "Recording started");
+    response->setProperty ("is_playing", transport.isPlaying());
+    response->setProperty ("is_recording", transport.isRecording());
+    response->setProperty ("position_seconds", transport.getPosition().inSeconds());
+    response->setProperty ("click_track_enabled", static_cast<bool> (edit->clickTrackEnabled.get()));
+    response->setProperty ("any_inputs_recording_active_before", anyInputsBefore);
+    response->setProperty ("any_inputs_recording_active_after", anyInputsAfter);
+    response->setProperty ("play_context_active", transport.isPlayContextActive());
+    if (! anyInputsBefore)
+        response->setProperty (
+            "record_hint",
+            "No input had record-enabled destinations when start_recording ran; arm_track / route_wave_input may be missing or mismatched.");
+    return juce::JSON::toString (juce::var (response.release()));
+}
+
+juce::String CommandDispatcher::handleStopRecording (const juce::DynamicObject&, const juce::String&) const
+{
+    auto* edit = getEdit != nullptr ? getEdit() : nullptr;
+
+    if (edit == nullptr)
+        return makeErrorReply ("No active edit loaded");
+
+    auto& transport = edit->getTransport();
+
+    juce::Logger::writeToLog ("[Vit][record] stop_recording (before): " + describeTransportState (*edit));
+
+    if (transport.isRecording())
+        transport.stopRecording (false);
+
+    juce::Logger::writeToLog ("[Vit][record] stop_recording (after): " + describeTransportState (*edit));
+
+    return buildTransportReply (*edit, "Recording stopped");
+}
+
+juce::String CommandDispatcher::handleFreezeTrack (const juce::DynamicObject& object, const juce::String&) const
+{
+    auto* edit = getEdit != nullptr ? getEdit() : nullptr;
+
+    if (edit == nullptr)
+        return makeErrorReply ("No active edit loaded");
+
+    const auto trackId = object.getProperty ("track_id").toString().trim();
+
+    if (trackId.isEmpty())
+        return makeErrorReply ("freeze_track requires track_id");
+
+    auto* audioTrack = findAudioTrackByID (*edit, trackId);
+
+    if (audioTrack == nullptr)
+        return makeErrorReply ("freeze_track: audio track not found");
+
+    audioTrack->freezeTrackAsync();
+
+    auto response = std::make_unique<juce::DynamicObject>();
+    response->setProperty ("status", "ok");
+    response->setProperty ("track_id", trackId);
+    response->setProperty ("message", "Freeze scheduled");
+    return juce::JSON::toString (juce::var (response.release()));
+}
+
+juce::String CommandDispatcher::handleUnfreezeTrack (const juce::DynamicObject& object, const juce::String&) const
+{
+    auto* edit = getEdit != nullptr ? getEdit() : nullptr;
+
+    if (edit == nullptr)
+        return makeErrorReply ("No active edit loaded");
+
+    const auto trackId = object.getProperty ("track_id").toString().trim();
+
+    if (trackId.isEmpty())
+        return makeErrorReply ("unfreeze_track requires track_id");
+
+    auto* audioTrack = findAudioTrackByID (*edit, trackId);
+
+    if (audioTrack == nullptr)
+        return makeErrorReply ("unfreeze_track: audio track not found");
+
+    auto& undo = edit->getUndoManager();
+    undo.beginNewTransaction ("Unfreeze track");
+    audioTrack->setFrozen (false, te::Track::anyFreeze);
+
+    auto response = std::make_unique<juce::DynamicObject>();
+    response->setProperty ("status", "ok");
+    response->setProperty ("track_id", trackId);
+    return juce::JSON::toString (juce::var (response.release()));
+}
+
+juce::String CommandDispatcher::handleStartRender (const juce::DynamicObject& object, const juce::String&) const
+{
+    if (production == nullptr)
+        return makeErrorReply ("Offline render coordinator unavailable");
+
+    auto* edit = getEdit != nullptr ? getEdit() : nullptr;
+
+    if (edit == nullptr)
+        return makeErrorReply ("No active edit loaded");
+
+    const auto path = object.getProperty ("file_path").toString().trim();
+
+    if (path.isEmpty())
+        return makeErrorReply ("start_render requires file_path");
+
+    double startSec = 0.0;
+    double endSec = edit->getLength().inSeconds();
+    const auto rangeVar = object.getProperty ("range");
+
+    if (auto* arr = rangeVar.getArray())
+    {
+        if (arr->size() >= 2)
+        {
+            startSec = static_cast<double> (arr->getReference (0));
+            endSec = static_cast<double> (arr->getReference (1));
+        }
+    }
+
+    int bitDepth = 24;
+
+    if (object.hasProperty ("bit_depth"))
+        bitDepth = juce::jmax (16, static_cast<int> (object.getProperty ("bit_depth")));
+
+    bool useMasterPlugins = true;
+
+    if (object.hasProperty ("use_master_plugins"))
+        useMasterPlugins = static_cast<bool> (object.getProperty ("use_master_plugins"));
+
+    return production->startOfflineRender (*edit, juce::File (path), startSec, endSec, bitDepth, useMasterPlugins);
+}
+
+juce::String CommandDispatcher::handleCancelRender (const juce::DynamicObject&, const juce::String&) const
+{
+    if (production == nullptr)
+        return makeErrorReply ("Offline render coordinator unavailable");
+
+    production->cancelOfflineRender();
+    return makeStatusReply ("ok", "Render cancel requested");
 }
 
 juce::String CommandDispatcher::makeStatusReply (const juce::String& status, const juce::String& message)

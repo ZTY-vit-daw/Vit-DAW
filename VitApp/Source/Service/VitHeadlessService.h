@@ -11,6 +11,7 @@
 #include "../Core/VitEngineDevice.h"
 #include "../Core/VitGlobalProjectConfig.h"
 #include "CommandDispatcher.h"
+#include "VitProductionCoordinator.h"
 #include "ZmqGateway.h"
 
 namespace vit
@@ -68,11 +69,16 @@ private:
     std::unique_ptr<te::Edit> edit;
     std::unique_ptr<VitGlobalProjectConfig> globalProjectConfig;
     juce::File currentProjectPath;
+    std::unique_ptr<VitProductionCoordinator> productionCoordinator;
     std::unique_ptr<CommandDispatcher> commandDispatcher;
     std::unique_ptr<ZmqGateway> zmqGateway;
     std::unordered_map<std::string, TrackLevelClient> trackLevelClients;
     std::shared_ptr<std::atomic<bool>> callbackGuard { std::make_shared<std::atomic<bool>> (true) };
     VitEditStateDeltaHub deltaHub;
+    bool lastTransportRecording = false;
+    /** transport 50ms；录中波形每 N tick 附帶一帧以降低 UDP/JSON 负载（仍保持走带每 tick）。 */
+    int transportTelemetryTick = 0;
+    static constexpr int recordingWaveformTelemetryStride = 2;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (VitHeadlessService)
 };

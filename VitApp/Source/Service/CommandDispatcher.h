@@ -11,6 +11,8 @@ namespace vit
 
 namespace te = tracktion;
 
+class VitProductionCoordinator;
+
 class CommandDispatcher final
 {
 public:
@@ -35,7 +37,8 @@ public:
                        OpenProjectReply openProjectReply,
                        SaveProjectReply saveProjectReply,
                        SaveAsProjectReply saveAsProjectReply,
-                       CurrentProjectPathGetter currentProjectPathGetter);
+                       CurrentProjectPathGetter currentProjectPathGetter,
+                       VitProductionCoordinator* productionCoordinator = nullptr);
 
     juce::String dispatch (const juce::var& command, const juce::String& rawPayload) const;
     static juce::String makeStatusReply (const juce::String& status, const juce::String& message);
@@ -107,6 +110,8 @@ private:
     juce::String handleGetAudioDeviceTypes (const juce::DynamicObject&, const juce::String&) const;
     juce::String handleGetAudioDevices (const juce::DynamicObject&, const juce::String&) const;
     juce::String handleSetAudioDevice (const juce::DynamicObject&, const juce::String&) const;
+    juce::String handleGetWaveInputDevices (const juce::DynamicObject&, const juce::String&) const;
+    juce::String handleRouteWaveInputToTrack (const juce::DynamicObject&, const juce::String&) const;
     juce::String handleScanPlugins (const juce::DynamicObject&, const juce::String&) const;
     juce::String handleInstantiatePlugin (const juce::DynamicObject&, const juce::String&) const;
     juce::String handleOpenPluginUI (const juce::DynamicObject&, const juce::String&) const;
@@ -117,6 +122,13 @@ private:
     juce::String handleRackConnectPins (const juce::DynamicObject&, const juce::String&) const;
     juce::String handleRackRemoveConnection (const juce::DynamicObject&, const juce::String&) const;
     juce::String handleRackSetNodeClipScope (const juce::DynamicObject&, const juce::String&) const;
+    juce::String handleArmTrack (const juce::DynamicObject&, const juce::String&) const;
+    juce::String handleStartRecording (const juce::DynamicObject&, const juce::String&) const;
+    juce::String handleStopRecording (const juce::DynamicObject&, const juce::String&) const;
+    juce::String handleFreezeTrack (const juce::DynamicObject&, const juce::String&) const;
+    juce::String handleUnfreezeTrack (const juce::DynamicObject&, const juce::String&) const;
+    juce::String handleStartRender (const juce::DynamicObject&, const juce::String&) const;
+    juce::String handleCancelRender (const juce::DynamicObject&, const juce::String&) const;
 
     EditGetter getEdit;
     BoolAction reloadProject;
@@ -128,6 +140,7 @@ private:
     SaveProjectReply saveProjectReply;
     SaveAsProjectReply saveAsProjectReply;
     CurrentProjectPathGetter getCurrentProjectPath;
+    VitProductionCoordinator* production = nullptr;
     /** When true, handleStop seeks the edit timeline to 0s after stopping (UI stop-return-to-start). */
     mutable bool stopReturnsToZero = false;
     std::unordered_map<std::string, Handler> handlers;

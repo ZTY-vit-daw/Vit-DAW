@@ -355,31 +355,72 @@ Phase 4.2 同样强制 `cut` 重叠策略，且**主操作 + 被覆盖 clip 裁�
 {
   "status": "ok",
   "current_device": "Focusrite USB ASIO",
+  "current_output_device": "Focusrite USB ASIO",
+  "current_input_device": "Focusrite USB ASIO",
   "current_sample_rate": 48000.0,
   "current_buffer_size": 512,
   "available_devices": ["Focusrite USB ASIO", "Realtek ASIO"],
+  "available_output_devices": ["Focusrite USB ASIO", "Realtek ASIO"],
+  "available_input_devices": ["Microphone (USB Audio)", "Focusrite USB ASIO"],
   "available_sample_rates": [44100.0, 48000.0, 96000.0],
   "available_buffer_sizes": [128, 256, 512, 1024]
 }
 ```
 
+*`available_devices` / `current_device` 保留兼容旧前端；拆分 I/O 时请以 `available_*_devices` 与 `current_*_device` 为准。*
+
 ### 3. `set_audio_device`
 
 * **方向**: Godot -> ZMQ REQ -> C++
 * **作用**: 执行物理设备或缓冲区的切换（必须在 C++ 消息线程执行以防死锁）。
-* **REQ**:
+* **REQ**（**推荐**：拆分输入/输出；与旧版兼容可仍传 `device_name`）:
 
 ```json
 {
   "cmd": "set_audio_device",
-  "type": "ASIO",
-  "device_name": "Focusrite USB ASIO",
+  "type": "Windows Audio",
+  "output_device_name": "扬声器 (USB AUDIO CODEC)",
+  "input_device_name": "麦克风 (USB AUDIO CODEC)",
   "sample_rate": 48000.0,
-  "buffer_size": 512
+  "buffer_size": 480
 }
 ```
 
+* **字段**:
+  * `output_device_name`、`input_device_name`：可选；至少提供一个（或与旧字段二选一）。
+  * **旧版** `device_name`：若未提供上述两项，则行为与此前一致（须为合法**输出**设备名；若同名亦在输入列表中则同时设输入）。
+
 * **REP**: `{"status": "ok"}` 或 `{"status": "error", "message": "..."}`
+
+### 3.1 `get_wave_input_devices`
+
+* **作用**: 列出引擎内 **硬件** Wave 输入（`waveDevice`），供轨道路由。
+* **REQ**: `{"cmd": "get_wave_input_devices"}`
+* **REP**:
+
+```json
+{
+  "status": "ok",
+  "devices": [
+    {"device_id": "…", "name": "Microphone (USB)", "alias": "…"}
+  ]
+}
+```
+
+### 3.2 `route_wave_input_to_track`
+
+* **作用**: 将指定 **硬件** Wave 输入接到目标 `AudioTrack`（Tracktion `InputDeviceInstance::setTarget`）。`device_id` 空则选第一台可用硬件输入。
+* **REQ**:
+
+```json
+{
+  "cmd": "route_wave_input_to_track",
+  "track_id": "1",
+  "device_id": "可选；与 get_wave_input_devices 一致"
+}
+```
+
+* **REP**: `{"status":"ok","track_id":"…","device_id":"…"}` 或 error。
 
 ### 4. `scan_plugins`（VST3 物理扫描）
 
@@ -802,3 +843,64 @@ Phase 4.2 同样强制 `cut` 重叠策略，且**主操作 + 被覆盖 clip 裁�
 
 * **新增字段**: `type`（枚举值：`audio`, `midi`, `bus`）
 * **REQ 示例**: `{"cmd": "add_track", "type": "audio"}`
+
+---
+
+## V0.6 生产力：录音、冻结、脱机导出
+
+### 遥测 `transport`
+
+除 `is_playing`、`position_seconds` 外，增加 **`is_recording`**（bool）。
+
+### 遥测 `recording` / `recording_stopped`
+
+停录时内核发布（ZMQ PUB，经 bridge 转 UDP 4444）：
+
+```json
+{"topic":"recording","subtopic":"recording_stopped","position_seconds":12.34}
+```
+
+**Python bridge**：收到该消息后 **必须** 自动发起一次 `get_project_state` REQ 并覆盖影子全量快照。
+
+### `arm_track`
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `track_id` | string | 目标音频轨 ID |
+| `is_armed` | bool | 是否武装该轨的 Wave 输入实例 |
+
+### `start_recording` / `stop_recording`
+
+- `start_recording`：调用 Tracktion `TransportControl::record(false, false)`（未武装输入时可能无实质录音）。
+- `stop_recording`：若正在录音则 `stopRecording(false)`。
+
+### `freeze_track` / `unfreeze_track`
+
+| 字段 | 说明 |
+|------|------|
+| `track_id` | 音频轨 ID |
+
+- `freeze_track`：调度 `AudioTrack::freezeTrackAsync()`。
+- `unfreeze_track`：`setFrozen(false, anyFreeze)`（在 Undo 事务内登记描述）。
+
+### `start_render` / `cancel_render`
+
+| 字段 | 说明 |
+|------|------|
+| `file_path` | 输出 WAV 绝对路径 |
+| `range` | `[start_sec, end_sec]`（秒，闭合区间边界取 min/max 规范化） |
+| `bit_depth` | 可选，默认 24 |
+| `use_master_plugins` | 可选 bool，默认 `true` |
+
+- `start_render`：异步脱机渲染；REP 返回 `job_id`。**渲染进行中** 绝大多数会修改 Edit 的指令会收到 `Engine is busy rendering`（allowlist 见实现：`ping`、`get_project_state`、`list_tracks`、`get_recent_projects`、`get_midi_clip_notes`、`get_midi_clip_data`、`get_plugin_parameters`、`project_health_check`、`get_audio_device_types`、`get_audio_devices`、`cancel_render`）。
+- `cancel_render`：请求取消当前任务。
+
+### 遥测 `render`
+
+- `{"topic":"render","subtopic":"render_progress","job_id":"...","progress":0.0-1.0}`
+- 完成：`subtopic` 为 `render_done` 或 `render_failed`。
+
+### Godot（视觉防抖）
+
+当 `transport.is_recording == true` 时，时间轴仅绘制伪红块；**勿**在录音期间读取波形共享内存；收到 `recording_stopped` 且对应 `tile_ready` 后再切换真实波形。
+
