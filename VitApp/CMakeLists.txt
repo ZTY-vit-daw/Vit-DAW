@@ -46,14 +46,17 @@ if (NOT TARGET cppzmq OR
     set(WITH_PERF_TOOL OFF CACHE BOOL "" FORCE)
     set(ENABLE_CURVE OFF CACHE BOOL "" FORCE)
 
+    # Tarballs avoid git clone directory-lock issues on some Windows setups.
     FetchContent_Declare(libzmq
-        GIT_REPOSITORY https://github.com/zeromq/libzmq.git
-        GIT_TAG v4.3.5)
+        URL https://github.com/zeromq/libzmq/archive/refs/tags/v4.3.5.tar.gz
+        URL_HASH SHA256=6c972d1e6a91a0ecd79c3236f04cf0126f2f4dfbbad407d72b4606a7ba93f9c6
+        DOWNLOAD_EXTRACT_TIMESTAMP TRUE)
     FetchContent_MakeAvailable(libzmq)
 
     FetchContent_Declare(cppzmq
-        GIT_REPOSITORY https://github.com/zeromq/cppzmq.git
-        GIT_TAG v4.10.0)
+        URL https://github.com/zeromq/cppzmq/archive/refs/tags/v4.10.0.tar.gz
+        URL_HASH SHA256=c81c81bba8a7644c84932225f018b5088743a22999c6d82a2b5f5cd1e6942b74
+        DOWNLOAD_EXTRACT_TIMESTAMP TRUE)
     FetchContent_MakeAvailable(cppzmq)
 endif()
 

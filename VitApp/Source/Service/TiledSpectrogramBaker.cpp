@@ -1,6 +1,7 @@
 #include "TiledSpectrogramBaker.h"
 #include "../Core/VitPaths.h"
 #include <algorithm>
+#include <chrono>
 #include <cstdlib>
 #include <windows.h>
 #include <atomic>
@@ -41,6 +42,7 @@ constexpr int    kDebugLogFrameStride = 25;
 // Keep very light smoothing to avoid visible trail/lag.
 constexpr float  kTemporalSmoothTauAttackSec  = 0.015f;
 constexpr float  kTemporalSmoothTauReleaseSec = 0.040f;
+constexpr int    kRetiredHandleGraceMs = 5000;
 
 enum class BakeDebugMode
 {
@@ -63,6 +65,38 @@ std::mutex gMutex;
 std::mutex gDiagLogMutex;
 std::map<std::string, std::vector<HANDLE>> gHandles;
 std::map<std::string, uint64_t>            gGen;
+
+struct RetiredHandle
+{
+    std::string key;
+    uint64_t gen = 0;
+    HANDLE handle = nullptr;
+    std::chrono::steady_clock::time_point releaseAt;
+};
+
+std::vector<RetiredHandle> gRetiredHandles;
+
+size_t handleCountUnlocked (const std::string& key)
+{
+    const auto it = gHandles.find (key);
+    return it == gHandles.end() ? 0u : it->second.size();
+}
+
+void cleanupRetiredHandlesUnlocked()
+{
+    const auto now = std::chrono::steady_clock::now();
+    for (auto it = gRetiredHandles.begin(); it != gRetiredHandles.end();)
+    {
+        if (it->releaseAt > now)
+        {
+            ++it;
+            continue;
+        }
+        if (it->handle)
+            CloseHandle (it->handle);
+        it = gRetiredHandles.erase (it);
+    }
+}
 
 juce::String makeBakeKey (const juce::String& trackId, const juce::String& clipId)
 {
@@ -96,11 +130,24 @@ struct Acc { float l = 0, r = 0, p = 0; int c = 0; };
 uint64_t beginGen(const juce::String& id)
 {
     std::lock_guard<std::mutex> lock(gMutex);
+    cleanupRetiredHandlesUnlocked();
     auto key = id.toStdString();
     auto& gen = gGen[key]; ++gen;
     auto& handles = gHandles[key];
-    for (auto h : handles) if (h) CloseHandle(h);
+    const auto releasedCount = handles.size();
+    const auto releaseAt = std::chrono::steady_clock::now() + std::chrono::milliseconds (kRetiredHandleGraceMs);
+    for (auto h : handles)
+    {
+        if (h)
+            gRetiredHandles.push_back ({ key, gen - 1, h, releaseAt });
+    }
     handles.clear();
+    writeDiagLog ("[baker.lifecycle] begin_gen key=" + id
+                  + " gen=" + juce::String ((int64) gen)
+                  + " retired_handles=" + juce::String ((int) releasedCount)
+                  + " retired_total=" + juce::String ((int) gRetiredHandles.size())
+                  + " grace_ms=" + juce::String (kRetiredHandleGraceMs)
+                  + " active_keys=" + juce::String ((int) gHandles.size()));
     return gen;
 }
 
@@ -114,11 +161,31 @@ bool isGen(const juce::String& id, uint64_t gen)
 bool storeHandle(const juce::String& id, uint64_t gen, HANDLE h)
 {
     std::lock_guard<std::mutex> lock(gMutex);
+    cleanupRetiredHandlesUnlocked();
     auto key = id.toStdString();
     auto it  = gGen.find(key);
-    if (it == gGen.end() || it->second != gen) return false;
+    if (it == gGen.end() || it->second != gen)
+    {
+        writeDiagLog ("[baker.lifecycle] store_handle_reject key=" + id
+                      + " gen=" + juce::String ((int64) gen)
+                      + " current_gen=" + juce::String (it == gGen.end() ? -1 : (int64) it->second));
+        return false;
+    }
     gHandles[key].push_back(h);
+    writeDiagLog ("[baker.lifecycle] store_handle key=" + id
+                  + " gen=" + juce::String ((int64) gen)
+                  + " handle_count=" + juce::String ((int) gHandles[key].size()));
     return true;
+}
+
+size_t handleCountForGen (const juce::String& id, uint64_t gen)
+{
+    std::lock_guard<std::mutex> lock(gMutex);
+    auto key = id.toStdString();
+    auto it  = gGen.find(key);
+    if (it == gGen.end() || it->second != gen)
+        return 0u;
+    return handleCountUnlocked (key);
 }
 
 float globalEnv(juce::AudioFormatReader& r)
@@ -280,6 +347,13 @@ void TiledSpectrogramBaker::startBake(juce::String filePath,
 {
     const auto bakeKey = makeBakeKey (trackId, clipId);
     auto gen = beginGen (bakeKey);
+    writeDiagLog ("[baker.lifecycle] start_bake key=" + bakeKey
+                  + " gen=" + juce::String ((int64) gen)
+                  + " track_id=" + trackId
+                  + " clip_id=" + clipId
+                  + " source_offset=" + juce::String (sourceOffsetSeconds, 4)
+                  + " bake_length=" + juce::String (bakeLengthSeconds, 4)
+                  + " file=" + filePath);
     std::thread([filePath = std::move(filePath),
                  trackId  = std::move(trackId),
                  clipId   = std::move(clipId),
@@ -297,7 +371,9 @@ void TiledSpectrogramBaker::startBake(juce::String filePath,
         if (!reader || reader->lengthInSamples <= 0)
         {
             writeDiagLog(
-                "TiledSpectrogramBaker: reader failed for " + filePath);
+                "[baker.lifecycle] reader_failed key=" + bakeKey
+                + " gen=" + juce::String ((int64) gen)
+                + " file=" + filePath);
             return;
         }
 
@@ -308,7 +384,13 @@ void TiledSpectrogramBaker::startBake(juce::String filePath,
         if (bakeLengthSeconds > 0.0)
             bakeTotalSamples = juce::jmin<int64_t> (availableSamples, (int64_t) std::floor (bakeLengthSeconds * sr));
         if (bakeTotalSamples <= 0)
+        {
+            writeDiagLog ("[baker.lifecycle] empty_bake key=" + bakeKey
+                          + " gen=" + juce::String ((int64) gen)
+                          + " track_id=" + trackId
+                          + " clip_id=" + clipId);
             return;
+        }
 
         // Fixed physical hop: 1 frame = 0.01 s exactly
         const int hopSize = juce::jmax(1, (int)(sr * kFrameSec));
@@ -662,14 +744,28 @@ void TiledSpectrogramBaker::startBake(juce::String filePath,
             if (!h)
             {
                 writeDiagLog(
-                    "TiledSpectrogramBaker: CreateFileMappingA failed for " + shm);
+                    "[baker.lifecycle] create_mapping_failed key=" + bakeKey
+                    + " gen=" + juce::String ((int64) gen)
+                    + " track_id=" + trackId
+                    + " clip_id=" + clipId
+                    + " tile_index=" + juce::String (tileIndex)
+                    + " bytes=" + juce::String ((int64) bytes)
+                    + " shm=" + shm
+                    + " win_error=" + juce::String ((int) GetLastError()));
                 continue;
             }
             auto* mapped = (float*)MapViewOfFile(h, FILE_MAP_ALL_ACCESS, 0, 0, bytes);
             if (!mapped)
             {
                 writeDiagLog(
-                    "TiledSpectrogramBaker: MapViewOfFile failed for " + shm);
+                    "[baker.lifecycle] map_view_failed key=" + bakeKey
+                    + " gen=" + juce::String ((int64) gen)
+                    + " track_id=" + trackId
+                    + " clip_id=" + clipId
+                    + " tile_index=" + juce::String (tileIndex)
+                    + " bytes=" + juce::String ((int64) bytes)
+                    + " shm=" + shm
+                    + " win_error=" + juce::String ((int) GetLastError()));
                 CloseHandle(h);
                 continue;
             }
@@ -678,6 +774,15 @@ void TiledSpectrogramBaker::startBake(juce::String filePath,
             UnmapViewOfFile(mapped);
 
             if (!storeHandle(bakeKey, gen, h)) { CloseHandle(h); return; }
+            const auto handleCount = handleCountForGen (bakeKey, gen);
+            writeDiagLog ("[baker.lifecycle] publish_tile key=" + bakeKey
+                          + " gen=" + juce::String ((int64) gen)
+                          + " track_id=" + trackId
+                          + " clip_id=" + clipId
+                          + " tile_index=" + juce::String (tileIndex)
+                          + " handle_count=" + juce::String ((int) handleCount)
+                          + " bytes=" + juce::String ((int64) bytes)
+                          + " shm=" + shm);
 
             if (publish)
             {
@@ -692,6 +797,10 @@ void TiledSpectrogramBaker::startBake(juce::String filePath,
                 obj->setProperty("tile_content_start_seconds", tileContentStartSeconds);
                 obj->setProperty("total_duration", totalDurationSec);
                 obj->setProperty("shared_memory", shm);
+                obj->setProperty("bake_key", bakeKey);
+                obj->setProperty("generation", (int64) gen);
+                obj->setProperty("handle_count", (int) handleCount);
+                obj->setProperty("shm_bytes", (int64) bytes);
                 if (clipId.isNotEmpty())
                     obj->setProperty("clip_id", clipId);
                 publish(juce::JSON::toString(juce::var(obj.release())));
@@ -702,12 +811,15 @@ void TiledSpectrogramBaker::startBake(juce::String filePath,
 
 void TiledSpectrogramBaker::releaseTrackMappings(const juce::String& trackId)
 {
+    writeDiagLog ("[baker.lifecycle] release_track_mappings track_id=" + trackId
+                  + " note=track_key_only_clip_scoped_bakes_use_clip_id_key");
     beginGen(trackId);
 }
 
 void TiledSpectrogramBaker::invalidateClipBake (const juce::String& clipId)
 {
     const auto trimmed = clipId.trim();
+    writeDiagLog ("[baker.lifecycle] invalidate_clip_bake clip_id=" + trimmed);
     if (trimmed.isNotEmpty())
         beginGen (trimmed);
 }

@@ -36,6 +36,7 @@ public:
     bool tryPop (DeltaEvent& event) noexcept;
 
     int getNumReady() const noexcept;
+    uint64_t getDroppedCount() const noexcept;
 
     void reset() noexcept;
 
@@ -43,6 +44,7 @@ private:
     juce::AbstractFifo fifo;
     std::array<DeltaEvent, (size_t) capacity> storage {};
     std::atomic<uint32_t> next_seq_id { 0 };
+    std::atomic<uint64_t> dropped_count { 0 };
 };
 
 //==============================================================================

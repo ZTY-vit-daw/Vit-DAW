@@ -30,6 +30,7 @@
 #include "../Core/VitZoneBufferAdapter.h"
 
 #include <cmath>
+#include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
@@ -65,6 +66,8 @@ void appendTakePropertiesToClip (juce::ValueTree& clipState,
                                  const juce::String& activeTakeId,
                                  const juce::String& ghostState,
                                  juce::UndoManager* undoManager);
+/** When RackType::addPlugin skips auto-connect (non-empty rack), chain new plugin after the unique tail feeding rack outputs. */
+bool vitTryChainNewRackPluginSerial (te::RackType& rackType, te::Plugin& newPlugin);
 
 enum class OverlapPolicy
 {
@@ -76,6 +79,186 @@ enum class OverlapPolicy
 constexpr double kMinimumSurvivingClipLengthSeconds = 0.01;
 constexpr double kClipEditEpsilonSeconds = 0.0005;
 constexpr auto kVitParamAliasesProperty = "vit_param_aliases";
+
+/** Empty string or "RACK_INPUT" selects te::RackType bus input (invalid source EditItemID). */
+bool isRackBusInputSourceToken (const juce::String& trimmedSourceId)
+{
+    if (trimmedSourceId.isEmpty())
+        return true;
+
+    return trimmedSourceId.equalsIgnoreCase ("RACK_INPUT");
+}
+
+/** Empty string or "RACK_OUTPUT" selects te::RackType bus output (invalid dest EditItemID). */
+bool isRackBusOutputDestToken (const juce::String& trimmedDestId)
+{
+    if (trimmedDestId.isEmpty())
+        return true;
+
+    return trimmedDestId.equalsIgnoreCase ("RACK_OUTPUT");
+}
+
+juce::String rackEndpointLabel (te::EditItemID id, bool isSource)
+{
+	return id.isValid() ? id.toString()
+	                    : juce::String (isSource ? "RACK_INPUT" : "RACK_OUTPUT");
+}
+
+juce::String describeRackConnections (te::RackType& rackType)
+{
+	juce::StringArray parts;
+
+	for (auto* connection : rackType.getConnections())
+	{
+		if (connection == nullptr)
+			continue;
+
+		parts.add (rackEndpointLabel (connection->sourceID.get(), true)
+		           + ":" + juce::String (connection->sourcePin.get())
+		           + "->"
+		           + rackEndpointLabel (connection->destID.get(), false)
+		           + ":" + juce::String (connection->destPin.get()));
+	}
+
+	return "[" + parts.joinIntoString (", ") + "]";
+}
+
+void logRackConnections (const juce::String& label, te::RackType& rackType)
+{
+	juce::Logger::writeToLog ("CommandDispatcher: " + label
+	                          + " connections=" + describeRackConnections (rackType));
+}
+
+bool rackConnectionExists (te::RackType& rackType,
+                           te::EditItemID sourceId,
+                           int sourcePin,
+                           te::EditItemID destId,
+                           int destPin)
+{
+	for (auto* connection : rackType.getConnections())
+	{
+		if (connection == nullptr)
+			continue;
+
+		if (connection->sourceID.get() == sourceId
+		    && connection->destID.get() == destId
+		    && connection->sourcePin.get() == sourcePin
+		    && connection->destPin.get() == destPin)
+			return true;
+	}
+
+	return false;
+}
+
+int addLogicalStereoAudioConnections (te::RackType& rackType,
+                                      te::EditItemID sourceId,
+                                      te::EditItemID destId)
+{
+	int accepted = 0;
+
+	for (int pin = 1; pin <= 2; ++pin)
+	{
+		if (rackConnectionExists (rackType, sourceId, pin, destId, pin))
+		{
+			++accepted;
+			continue;
+		}
+
+		if (rackType.isConnectionLegal (sourceId, pin, destId, pin)
+		    && rackType.addConnection (sourceId, pin, destId, pin))
+			++accepted;
+	}
+
+	return accepted;
+}
+
+int removeLogicalAudioConnections (te::RackType& rackType,
+                                   te::EditItemID sourceId,
+                                   te::EditItemID destId)
+{
+	struct PinPair
+	{
+		int sourcePin = 0;
+		int destPin = 0;
+	};
+
+	std::vector<PinPair> toRemove;
+
+	for (auto* connection : rackType.getConnections())
+	{
+		if (connection == nullptr)
+			continue;
+
+		if (connection->sourceID.get() == sourceId
+		    && connection->destID.get() == destId
+		    && connection->sourcePin.get() >= 1
+		    && connection->destPin.get() >= 1)
+		{
+			toRemove.push_back ({ connection->sourcePin.get(), connection->destPin.get() });
+		}
+	}
+
+	int removed = 0;
+
+	for (const auto& pins : toRemove)
+		if (rackType.removeConnection (sourceId, pins.sourcePin, destId, pins.destPin))
+			++removed;
+
+	return removed;
+}
+
+std::unordered_set<std::string> collectAudioReachableRackNodeIds (te::RackType& rackType)
+{
+	std::unordered_map<std::string, std::vector<te::EditItemID>> adjacency;
+	std::vector<te::EditItemID> queue;
+	std::unordered_set<std::string> reachable;
+
+	for (auto* connection : rackType.getConnections())
+	{
+		if (connection == nullptr)
+			continue;
+
+		const auto sourceId = connection->sourceID.get();
+		const auto destId = connection->destID.get();
+
+		if (connection->sourcePin.get() < 1 || connection->destPin.get() < 1)
+			continue;
+
+		if (! destId.isValid())
+			continue;
+
+		if (! sourceId.isValid())
+		{
+			const auto key = destId.toString().toStdString();
+
+			if (reachable.insert (key).second)
+				queue.push_back (destId);
+
+			continue;
+		}
+
+		adjacency[sourceId.toString().toStdString()].push_back (destId);
+	}
+
+	for (size_t i = 0; i < queue.size(); ++i)
+	{
+		const auto sourceId = queue[i];
+		const auto found = adjacency.find (sourceId.toString().toStdString());
+
+		if (found == adjacency.end())
+			continue;
+
+		for (const auto& destId : found->second)
+		{
+			const auto key = destId.toString().toStdString();
+
+			if (reachable.insert (key).second)
+				queue.push_back (destId);
+		}
+	}
+
+	return reachable;
+}
 
 std::unordered_map<std::string, juce::String> readPluginParamAliases (const te::Plugin& plugin)
 {
@@ -1143,6 +1326,136 @@ te::Plugin* findPluginByID (te::Track& track, const juce::String& pluginID)
     return nullptr;
 }
 
+/** True if plugin lives on targetTrack's linear pluginList or inside a RackInstance on that track. */
+bool pluginBelongsToTrackGraph (te::Track& targetTrack, te::Plugin& plugin)
+{
+    const auto pid = plugin.itemID;
+
+    for (auto* slot : targetTrack.pluginList.getPlugins())
+    {
+        if (slot == nullptr)
+            continue;
+
+        if (slot == &plugin)
+            return true;
+
+        if (auto* rack = dynamic_cast<te::RackInstance*> (slot))
+            if (rack->type != nullptr && rack->type->getPluginForID (pid) == &plugin)
+                return true;
+    }
+
+    return false;
+}
+
+bool vitTryChainNewRackPluginSerial (te::RackType& rackType, te::Plugin& newPlugin)
+{
+    const auto newId = newPlugin.itemID;
+    std::unordered_set<std::string> tailSourceKeys;
+    juce::Array<te::EditItemID> tailSources;
+
+    for (auto* rc : rackType.getConnections())
+    {
+        if (rc == nullptr)
+            continue;
+
+        if (rc->destID.get().isValid())
+            continue;
+
+        const auto srcId = rc->sourceID.get();
+
+        if (! srcId.isValid())
+            continue;
+
+        if (srcId == newId)
+            continue;
+
+        const auto key = srcId.toString().toStdString();
+
+        if (tailSourceKeys.insert (key).second)
+            tailSources.add (srcId);
+    }
+
+    if (tailSources.size() != 1)
+        return false;
+
+    const auto tailId = tailSources.getFirst();
+
+    struct TailOutPinPair
+    {
+        int sourcePin = 0;
+        int rackOutPin = 0;
+    };
+
+    juce::Array<TailOutPinPair> edges;
+
+    for (auto* rc : rackType.getConnections())
+    {
+        if (rc == nullptr)
+            continue;
+
+        if (rc->destID.get().isValid())
+            continue;
+
+        if (rc->sourceID.get() != tailId)
+            continue;
+
+        edges.add ({ rc->sourcePin.get(), rc->destPin.get() });
+    }
+
+    if (edges.isEmpty())
+        return false;
+
+    const te::EditItemID rackBus {};
+
+    // Tracktion uses pin 0 for MIDI and pins 1..N for audio. If any tail->rack pin cannot reach the new
+    // plugin (e.g. MIDI pin while the new FX has no MIDI input), aborting the whole chain left audio
+    // disconnected too; only chain pins that are legal end-to-end.
+    juce::Array<TailOutPinPair> legalEdges;
+
+    for (const auto& e : edges)
+        if (rackType.isConnectionLegal (tailId, e.sourcePin, newId, e.sourcePin)
+            && rackType.isConnectionLegal (newId, e.sourcePin, rackBus, e.rackOutPin))
+            legalEdges.add (e);
+
+    if (legalEdges.isEmpty())
+    {
+        juce::Logger::writeToLog ("CommandDispatcher: rack serial chain no legal pins tail="
+                                  + tailId.toString()
+                                  + " -> "
+                                  + newPlugin.getName()
+                                  + " (total tail→rack pins="
+                                  + juce::String (edges.size())
+                                  + ")");
+        return false;
+    }
+
+    if (legalEdges.size() < edges.size())
+        juce::Logger::writeToLog ("CommandDispatcher: rack serial chain partial pins tail="
+                                  + tailId.toString()
+                                  + " -> "
+                                  + newPlugin.getName()
+                                  + " chaining "
+                                  + juce::String (legalEdges.size())
+                                  + " of "
+                                  + juce::String (edges.size())
+                                  + " tail→rack pins");
+
+    for (const auto& e : legalEdges)
+        if (! rackType.removeConnection (tailId, e.sourcePin, rackBus, e.rackOutPin))
+            return false;
+
+    for (const auto& e : legalEdges)
+    {
+        if (! rackType.addConnection (tailId, e.sourcePin, newId, e.sourcePin))
+            return false;
+
+        if (! rackType.addConnection (newId, e.sourcePin, rackBus, e.rackOutPin))
+            return false;
+    }
+
+    return true;
+}
+
 te::RackInstance* findRackInstanceOnTrack (te::Track& track, const juce::String& rackItemId)
 {
     const auto trimmed = rackItemId.trim();
@@ -1346,7 +1659,7 @@ te::Plugin* findPluginInEdit (te::Edit& edit, const juce::String& pluginIdStr)
 
 juce::var createRackState (te::Track& track, const juce::String& requestScope)
 {
-    auto* rack = ensureRackInstanceOnTrack (track);
+    auto* rack = findUsableRackInstanceOnTrack (track, {});
 
     if (rack == nullptr || rack->type == nullptr)
         return juce::var();
@@ -1354,6 +1667,7 @@ juce::var createRackState (te::Track& track, const juce::String& requestScope)
     auto rackObject = std::make_unique<juce::DynamicObject>();
     juce::Array<juce::var> nodes;
     juce::Array<juce::var> edges;
+	const auto audioReachableNodeIds = collectAudioReachableRackNodeIds (*rack->type);
 
     for (auto* plugin : rack->type->getPlugins())
     {
@@ -1368,6 +1682,7 @@ juce::var createRackState (te::Track& track, const juce::String& requestScope)
         const auto storedTemplateRole = plugin->state.getProperty ("vit_template_role").toString().trim().toLowerCase();
         const auto templateRole = storedTemplateRole.isNotEmpty() ? storedTemplateRole
                                                                   : VitPluginTemplateRegistry::inferTemplateRole (*plugin);
+		const auto audioReachable = audioReachableNodeIds.count (nodeId.toStdString()) > 0;
 
         node->setProperty ("node_id", nodeId);
         node->setProperty ("plugin_item_id", nodeId);
@@ -1379,6 +1694,8 @@ juce::var createRackState (te::Track& track, const juce::String& requestScope)
         node->setProperty ("zone_id", zoneId);
         node->setProperty ("clip_scope", clipScope);
         node->setProperty ("template_role", templateRole);
+		node->setProperty ("audio_reachable_from_rack_input", audioReachable);
+		node->setProperty ("vit_orphan_bypass_candidate", zoneId == "Z3" && ! audioReachable);
         node->setProperty ("supports_param_grabber", dynamic_cast<te::ExternalPlugin*> (plugin) != nullptr);
         nodes.add (juce::var (node.release()));
     }
@@ -1388,10 +1705,16 @@ juce::var createRackState (te::Track& track, const juce::String& requestScope)
         if (connection == nullptr)
             continue;
 
-        const auto sourceId = connection->sourceID.get().isValid() ? connection->sourceID.get().toString() : "";
-        const auto destId = connection->destID.get().isValid() ? connection->destID.get().toString() : "";
-        if (sourceId.isEmpty() || destId.isEmpty())
+        const auto srcRaw = connection->sourceID.get();
+        const auto dstRaw = connection->destID.get();
+        const bool srcBus = ! srcRaw.isValid();
+        const bool dstBus = ! dstRaw.isValid();
+
+        if (srcBus && dstBus)
             continue;
+
+        const juce::String sourceId = srcBus ? juce::String ("RACK_INPUT") : srcRaw.toString();
+        const juce::String destId = dstBus ? juce::String ("RACK_OUTPUT") : dstRaw.toString();
 
         auto edge = std::make_unique<juce::DynamicObject>();
         const auto sourcePin = connection->sourcePin.get();
@@ -2107,6 +2430,21 @@ void CommandDispatcher::registerBuiltinCommands()
     {
         return handleRackRemoveConnection (object, raw);
     });
+
+    handlers.emplace ("rack_set_node_clip_scope", [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return handleRackSetNodeClipScope (object, raw);
+    });
+
+    handlers.emplace ("rack_add_edge", [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return handleRackConnectPins (object, raw);
+    });
+
+    handlers.emplace ("rack_remove_edge", [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return handleRackRemoveConnection (object, raw);
+    });
 }
 
 juce::String CommandDispatcher::handlePing (const juce::DynamicObject&, const juce::String&) const
@@ -2375,6 +2713,8 @@ juce::String CommandDispatcher::handleAppendGhostTrack (const juce::DynamicObjec
     if (trackName.isEmpty())
         return makeErrorReply ("append_ghost_track requires a non-empty track_name");
 
+    auto& undo = edit->getUndoManager();
+    undo.beginNewTransaction ("Append ghost track");
     auto newTrack = edit->insertNewAudioTrack (te::TrackInsertPoint::getEndOfTracks (*edit), nullptr, true);
 
     if (newTrack == nullptr)
@@ -2383,7 +2723,6 @@ juce::String CommandDispatcher::handleAppendGhostTrack (const juce::DynamicObjec
     ensureMonitoringPlugins (*newTrack);
     ensureSingleRackForTrack (*newTrack);
     newTrack->setName (trackName);
-    auto& undo = edit->getUndoManager();
     newTrack->state.setProperty ("vit_type", "ghost", &undo);
     newTrack->state.setProperty ("vit_intent", intent, &undo);
     edit->invalidateStoredLength();
@@ -2409,6 +2748,8 @@ juce::String CommandDispatcher::handleAddTrack (const juce::DynamicObject&, cons
     if (edit == nullptr)
         return makeErrorReply ("No active edit loaded");
 
+    auto& undo = edit->getUndoManager();
+    undo.beginNewTransaction ("Add track");
     auto newTrack = edit->insertNewAudioTrack (te::TrackInsertPoint::getEndOfTracks (*edit), nullptr, true);
 
     if (newTrack == nullptr)
@@ -2467,6 +2808,8 @@ juce::String CommandDispatcher::handleDeleteTrack (const juce::DynamicObject& ob
         return makeErrorReply ("Cannot delete the last audio track");
 
     const auto releasedTrackID = targetTrack->itemID.toString();
+    auto& undo = edit->getUndoManager();
+    undo.beginNewTransaction ("Delete track");
     edit->deleteTrack (targetTrack);
     TiledSpectrogramBaker::releaseTrackMappings (releasedTrackID);
     edit->invalidateStoredLength();
@@ -2532,6 +2875,8 @@ juce::String CommandDispatcher::handleAddAudioClip (const juce::DynamicObject& o
 
     const auto clipStart = te::TimePosition::fromSeconds (startTimeSeconds);
     const auto clipEnd = te::TimePosition::fromSeconds (startTimeSeconds + audioLengthSeconds);
+    auto& undo = edit->getUndoManager();
+    undo.beginNewTransaction ("Add audio clip");
     auto newClip = targetTrack->insertWaveClip (sourceFile.getFileNameWithoutExtension(),
                                                 sourceFile,
                                                 {{ clipStart, clipEnd }},
@@ -4298,11 +4643,22 @@ juce::String CommandDispatcher::handleSetPluginParam (const juce::DynamicObject&
         valueToApply = te::decibelsToVolumeFaderPosition (db);
     }
 
+    // Godot / IPC sends pan as 0..1 normalised for Tracktion Volume+Pan [-1,+1].
+    const bool panAsNormalisedUi = (! volumeAsDb)
+                                   && (paramIdRaw.equalsIgnoreCase ("pan")
+                                       || paramIdRaw.equalsIgnoreCase ("master pan"));
+
+    if (panAsNormalisedUi)
+    {
+        const float clampedNorm = juce::jlimit (0.0f, 1.0f, valueToApply);
+        param->setNormalisedParameter (clampedNorm, juce::sendNotification);
+    }
+    else
     {
         const auto vr = param->getValueRange();
         valueToApply = juce::jlimit (vr.getStart(), vr.getEnd(), valueToApply);
+        param->setParameter (valueToApply, juce::sendNotification);
     }
-    param->setParameter (valueToApply, juce::sendNotification);
 
     if (auto* owner = plugin->getOwnerTrack())
         owner->flushStateToValueTree();
@@ -5541,7 +5897,12 @@ juce::String CommandDispatcher::handleOpenPluginUI (const juce::DynamicObject& o
 
     te::Plugin* plugin = nullptr;
     if (pluginID.isNotEmpty())
-        plugin = findPluginByID (*targetTrack, pluginID);
+    {
+        plugin = findPluginInEdit (*edit, pluginID);
+
+        if (plugin != nullptr && ! pluginBelongsToTrackGraph (*targetTrack, *plugin))
+            return makeErrorReply ("Plugin is not on the specified track");
+    }
     else
         for (auto* cand : targetTrack->pluginList.getPlugins())
             if (auto* extCand = dynamic_cast<te::ExternalPlugin*> (cand))
@@ -5589,9 +5950,12 @@ juce::String CommandDispatcher::handleGetPluginParameters (const juce::DynamicOb
     if (targetTrack == nullptr)
         return makeErrorReply ("Track not found for track_id: " + trackID);
 
-    auto* plugin = findPluginByID (*targetTrack, pluginID);
+    auto* plugin = findPluginInEdit (*edit, pluginID);
     if (plugin == nullptr)
         return makeErrorReply ("Plugin not found for plugin_id: " + pluginID);
+
+    if (! pluginBelongsToTrackGraph (*targetTrack, *plugin))
+        return makeErrorReply ("Plugin is not on the specified track");
 
     auto* ext = dynamic_cast<te::ExternalPlugin*> (plugin);
     if (ext == nullptr || ext->getAudioPluginInstance() == nullptr)
@@ -5661,16 +6025,7 @@ juce::String CommandDispatcher::handleDeletePlugin (const juce::DynamicObject& o
     if (plugin == nullptr)
         return makeErrorReply ("Plugin not found for plugin_item_id: " + pluginItemIdStr);
 
-    bool onTrack = false;
-
-    for (auto* p : track->pluginList.getPlugins())
-        if (p == plugin)
-        {
-            onTrack = true;
-            break;
-        }
-
-    if (! onTrack)
+    if (! pluginBelongsToTrackGraph (*track, *plugin))
         return makeErrorReply ("Plugin is not on the specified track");
 
     if (dynamic_cast<te::VolumeAndPanPlugin*> (plugin) != nullptr)
@@ -5793,11 +6148,25 @@ juce::String CommandDispatcher::handleRackAddNode (const juce::DynamicObject& ob
     if (! rack->type->addPlugin (plugin, { x, y }, autoConnect))
         return makeErrorReply ("Rack rejected plugin insertion");
 
+	logRackConnections ("rack_add_node after addPlugin auto_connect="
+	                    + juce::String (autoConnect ? "true" : "false")
+	                    + " plugin=" + plugin->getName(),
+	                    *rack->type);
+
     if (auto pluginInstanceState = findRackPluginInstanceState (*rack->type, plugin->itemID); pluginInstanceState.isValid())
     {
         pluginInstanceState.setProperty ("vit_zone_id", zoneId, &undo);
         pluginInstanceState.setProperty ("vit_clip_scope", clipScope, &undo);
         pluginInstanceState.setProperty ("vit_template_role", templateRole, &undo);
+    }
+
+    if (autoConnect && rack->type->getPlugins().size() > 1)
+    {
+        if (! vitTryChainNewRackPluginSerial (*rack->type, *plugin))
+            juce::Logger::writeToLog ("CommandDispatcher: rack_add_node serial auto-chain skipped for "
+                                      + plugin->getName()
+                                      + " (parallel rack tail, illegal pins, or ambiguous graph)");
+		logRackConnections ("rack_add_node after serial-chain plugin=" + plugin->getName(), *rack->type);
     }
 
     rack->type->flushStateToValueTree();
@@ -5847,8 +6216,14 @@ juce::String CommandDispatcher::handleRackConnectPins (const juce::DynamicObject
     if (trackID.isEmpty())
         return makeErrorReply ("rack_connect_pins requires track_id");
 
-    if (sourceIdStr.isEmpty() || destIdStr.isEmpty())
-        return makeErrorReply ("rack_connect_pins requires non-empty source_id and dest_id");
+    const bool sourceIsRackBusInput = isRackBusInputSourceToken (sourceIdStr);
+    const bool destIsRackBusOutput = isRackBusOutputDestToken (destIdStr);
+
+    if (! destIsRackBusOutput && destIdStr.isEmpty())
+        return makeErrorReply ("rack_connect_pins requires non-empty dest_id");
+
+    if (sourceIsRackBusInput && destIsRackBusOutput)
+        return makeErrorReply ("Cannot connect rack input directly to rack output");
 
     if ((! sourcePinVar.isInt() && ! sourcePinVar.isInt64())
         || (! destPinVar.isInt() && ! destPinVar.isInt64()))
@@ -5862,55 +6237,135 @@ juce::String CommandDispatcher::handleRackConnectPins (const juce::DynamicObject
     if (rack == nullptr || rack->type == nullptr)
         return makeErrorReply ("No rack instance found on the specified track");
 
-    const auto sourceId = te::EditItemID::fromString (sourceIdStr);
-    const auto destId = te::EditItemID::fromString (destIdStr);
+    te::EditItemID destId;
+    te::Plugin* destPlugin = nullptr;
 
-    if (! sourceId.isValid() || ! destId.isValid())
-        return makeErrorReply ("source_id and dest_id must be valid EditItemID strings");
+    if (destIsRackBusOutput)
+    {
+        destId = {};
+    }
+    else
+    {
+        destId = te::EditItemID::fromString (destIdStr);
 
-    auto* sourcePlugin = rack->type->getPluginForID (sourceId);
-    if (sourcePlugin == nullptr)
+        if (! destId.isValid())
+            return makeErrorReply ("dest_id must be a valid EditItemID string");
+
+        destPlugin = rack->type->getPluginForID (destId);
+
+        if (destPlugin == nullptr)
+            return makeErrorReply ("dest_id is not present in the specified rack");
+    }
+
+    te::EditItemID sourceId;
+
+    if (sourceIsRackBusInput)
+        sourceId = {};
+    else
+        sourceId = te::EditItemID::fromString (sourceIdStr);
+
+    if (! sourceIsRackBusInput && ! sourceId.isValid())
+        return makeErrorReply ("source_id must be a valid EditItemID string, empty, or RACK_INPUT");
+
+    auto* sourcePlugin = sourceIsRackBusInput ? nullptr : rack->type->getPluginForID (sourceId);
+
+    if (! sourceIsRackBusInput && sourcePlugin == nullptr)
         return makeErrorReply ("source_id is not present in the specified rack");
-
-    auto* destPlugin = rack->type->getPluginForID (destId);
-    if (destPlugin == nullptr)
-        return makeErrorReply ("dest_id is not present in the specified rack");
 
     const int sourcePin = static_cast<int> (sourcePinVar);
     const int destPin = static_cast<int> (destPinVar);
-    const auto structuralValidation = VitGraphValidator::validateConnection (*rack->type, sourceId, destId);
+    const bool audioPinGroup = static_cast<bool> (object.getProperty ("audio_pin_group"))
+                               && sourcePin >= 1
+                               && destPin >= 1;
+
+    VitGraphValidationResult structuralValidation;
+
+    if (sourceIsRackBusInput && ! destIsRackBusOutput)
+    {
+        structuralValidation.allowed = true;
+        structuralValidation.sourceZoneId = "RACK_INPUT";
+        structuralValidation.destZoneId = VitGraphValidator::getZoneIdForNode (*rack->type, destId, destPlugin);
+
+        if (structuralValidation.destZoneId == "TOP")
+            return makeErrorReply ("Top is mapping-only and cannot participate in rack execution edges");
+    }
+    else if (! sourceIsRackBusInput && destIsRackBusOutput)
+    {
+        structuralValidation.allowed = true;
+        structuralValidation.sourceZoneId = VitGraphValidator::getZoneIdForNode (*rack->type, sourceId, sourcePlugin);
+        structuralValidation.destZoneId = "RACK_OUTPUT";
+
+        if (structuralValidation.sourceZoneId == "TOP")
+            return makeErrorReply ("Top is mapping-only and cannot participate in rack execution edges");
+    }
+    else if (! sourceIsRackBusInput && ! destIsRackBusOutput)
+    {
+        structuralValidation = VitGraphValidator::validateConnection (*rack->type, sourceId, destId);
+    }
+    else
+    {
+        return makeErrorReply ("Invalid rack connection endpoints");
+    }
 
     if (! structuralValidation.allowed)
         return makeErrorReply (structuralValidation.errorMessage);
 
-    if (VitDagChecker::wouldCreateCycle (*rack->type, sourceId, destId))
-        return makeErrorReply ("Connection would create a cycle in the rack DAG");
+    if (! sourceIsRackBusInput && ! destIsRackBusOutput)
+    {
+        if (VitDagChecker::wouldCreateCycle (*rack->type, sourceId, destId))
+            return makeErrorReply ("Connection would create a cycle in the rack DAG");
+    }
 
-    if (! rack->type->isConnectionLegal (sourceId, sourcePin, destId, destPin))
+    if (! audioPinGroup && ! rack->type->isConnectionLegal (sourceId, sourcePin, destId, destPin))
         return makeErrorReply ("Rack connection rejected as illegal (likely loop or incompatible pins)");
 
     const auto adapterAdvice = VitZoneBufferAdapter::describeConnection (sourcePlugin,
                                                                          destPlugin,
                                                                          structuralValidation.sourceZoneId,
                                                                          structuralValidation.destZoneId);
-    const auto mergeAdvice = VitParallelMergePlanner::analyseDestination (*rack->type, destId, destPlugin, sourceId);
+    const auto mergeAdvice = destIsRackBusOutput
+                                 ? VitParallelMergeAdvice{}
+                                 : VitParallelMergePlanner::analyseDestination (*rack->type, destId, destPlugin, sourceId);
 
     auto& undo = edit->getUndoManager();
     undo.beginNewTransaction ("Rack connect pins");
+	const auto effectiveSourceLabel = sourceIsRackBusInput ? juce::String ("RACK_INPUT") : sourceIdStr;
+	const auto effectiveDestLabel = destIsRackBusOutput ? juce::String ("RACK_OUTPUT") : destIdStr;
+	logRackConnections ("rack_connect_pins before", *rack->type);
 
-    if (! rack->type->addConnection (sourceId, sourcePin, destId, destPin))
-        return makeErrorReply ("Failed to add rack connection");
+    int connectionsChanged = 0;
+
+    if (audioPinGroup)
+    {
+        connectionsChanged = addLogicalStereoAudioConnections (*rack->type, sourceId, destId);
+
+        if (connectionsChanged <= 0)
+            return makeErrorReply ("Failed to add any logical audio rack connections");
+    }
+    else
+    {
+        if (! rack->type->addConnection (sourceId, sourcePin, destId, destPin))
+            return makeErrorReply ("Failed to add rack connection");
+
+        connectionsChanged = 1;
+    }
+
+	logRackConnections ("rack_connect_pins after "
+	                    + effectiveSourceLabel + ":" + juce::String (sourcePin)
+	                    + "->" + effectiveDestLabel + ":" + juce::String (destPin),
+	                    *rack->type);
 
     rack->type->flushStateToValueTree();
     track->flushStateToValueTree();
+
     const auto graphSnapshot = VitGraphSwapCoordinator::publishGraphChange (*edit,
                                                                             { "edge_add",
-                                                                              "Connected rack edge " + sourceIdStr + " -> " + destIdStr,
+                                                                              "Connected rack edge " + effectiveSourceLabel + " -> " + effectiveDestLabel,
                                                                               trackID,
                                                                               rack->itemID.toString(),
                                                                               {},
-                                                                              sourceIdStr,
-                                                                              destIdStr });
+                                                                              effectiveSourceLabel,
+                                                                              effectiveDestLabel });
 
     if (saveProject && ! saveProject())
         return makeErrorReply ("Rack connection created but project save failed");
@@ -5920,10 +6375,12 @@ juce::String CommandDispatcher::handleRackConnectPins (const juce::DynamicObject
     response->setProperty ("message", "Rack connection added");
     response->setProperty ("track_id", trackID);
     response->setProperty ("rack_item_id", rack->itemID.toString());
-    response->setProperty ("source_id", sourceIdStr);
+    response->setProperty ("source_id", effectiveSourceLabel);
     response->setProperty ("source_pin", sourcePin);
-    response->setProperty ("dest_id", destIdStr);
+    response->setProperty ("dest_id", effectiveDestLabel);
     response->setProperty ("dest_pin", destPin);
+    response->setProperty ("audio_pin_group", audioPinGroup);
+    response->setProperty ("connections_changed", connectionsChanged);
     response->setProperty ("source_zone_id", structuralValidation.sourceZoneId);
     response->setProperty ("dest_zone_id", structuralValidation.destZoneId);
     response->setProperty ("buffer_adapter_mode", adapterAdvice.mode);
@@ -5959,8 +6416,11 @@ juce::String CommandDispatcher::handleRackRemoveConnection (const juce::DynamicO
     if (trackID.isEmpty())
         return makeErrorReply ("rack_remove_connection requires track_id");
 
-    if (sourceIdStr.isEmpty() || destIdStr.isEmpty())
-        return makeErrorReply ("rack_remove_connection requires non-empty source_id and dest_id");
+    const bool sourceIsRackBusInput = isRackBusInputSourceToken (sourceIdStr);
+    const bool destIsRackBusOutput = isRackBusOutputDestToken (destIdStr);
+
+    if (! destIsRackBusOutput && destIdStr.isEmpty())
+        return makeErrorReply ("rack_remove_connection requires non-empty dest_id");
 
     if ((! sourcePinVar.isInt() && ! sourcePinVar.isInt64())
         || (! destPinVar.isInt() && ! destPinVar.isInt64()))
@@ -5974,31 +6434,79 @@ juce::String CommandDispatcher::handleRackRemoveConnection (const juce::DynamicO
     if (rack == nullptr || rack->type == nullptr)
         return makeErrorReply ("No rack instance found on the specified track");
 
-    const auto sourceId = te::EditItemID::fromString (sourceIdStr);
-    const auto destId = te::EditItemID::fromString (destIdStr);
+    te::EditItemID destId;
 
-    if (! sourceId.isValid() || ! destId.isValid())
-        return makeErrorReply ("source_id and dest_id must be valid EditItemID strings");
+    if (destIsRackBusOutput)
+        destId = {};
+    else
+    {
+        destId = te::EditItemID::fromString (destIdStr);
+
+        if (! destId.isValid())
+            return makeErrorReply ("dest_id must be a valid EditItemID string");
+
+        if (rack->type->getPluginForID (destId) == nullptr)
+            return makeErrorReply ("dest_id is not present in the specified rack");
+    }
+
+    te::EditItemID sourceId;
+
+    if (sourceIsRackBusInput)
+        sourceId = {};
+    else
+        sourceId = te::EditItemID::fromString (sourceIdStr);
+
+    if (! sourceIsRackBusInput && ! sourceId.isValid())
+        return makeErrorReply ("source_id must be a valid EditItemID string, empty, or RACK_INPUT");
+
+    if (! sourceIsRackBusInput && rack->type->getPluginForID (sourceId) == nullptr)
+        return makeErrorReply ("source_id is not present in the specified rack");
 
     const int sourcePin = static_cast<int> (sourcePinVar);
     const int destPin = static_cast<int> (destPinVar);
+    const bool audioPinGroup = static_cast<bool> (object.getProperty ("audio_pin_group"))
+                               && sourcePin >= 1
+                               && destPin >= 1;
+
+    const auto effectiveSourceLabel = sourceIsRackBusInput ? juce::String ("RACK_INPUT") : sourceIdStr;
+    const auto effectiveDestLabel = destIsRackBusOutput ? juce::String ("RACK_OUTPUT") : destIdStr;
 
     auto& undo = edit->getUndoManager();
     undo.beginNewTransaction ("Rack remove connection");
+	logRackConnections ("rack_remove_connection before", *rack->type);
 
-    if (! rack->type->removeConnection (sourceId, sourcePin, destId, destPin))
-        return makeErrorReply ("Rack connection not found");
+    int connectionsChanged = 0;
+
+    if (audioPinGroup)
+    {
+        connectionsChanged = removeLogicalAudioConnections (*rack->type, sourceId, destId);
+
+        if (connectionsChanged <= 0)
+            return makeErrorReply ("Rack connection not found");
+    }
+    else
+    {
+        if (! rack->type->removeConnection (sourceId, sourcePin, destId, destPin))
+            return makeErrorReply ("Rack connection not found");
+
+        connectionsChanged = 1;
+    }
+
+	logRackConnections ("rack_remove_connection after "
+	                    + effectiveSourceLabel + ":" + juce::String (sourcePin)
+	                    + "->" + effectiveDestLabel + ":" + juce::String (destPin),
+	                    *rack->type);
 
     rack->type->flushStateToValueTree();
     track->flushStateToValueTree();
     const auto graphSnapshot = VitGraphSwapCoordinator::publishGraphChange (*edit,
                                                                             { "edge_remove",
-                                                                              "Removed rack edge " + sourceIdStr + " -> " + destIdStr,
+                                                                              "Removed rack edge " + effectiveSourceLabel + " -> " + effectiveDestLabel,
                                                                               trackID,
                                                                               rack->itemID.toString(),
                                                                               {},
-                                                                              sourceIdStr,
-                                                                              destIdStr });
+                                                                              effectiveSourceLabel,
+                                                                              effectiveDestLabel });
 
     if (saveProject && ! saveProject())
         return makeErrorReply ("Rack connection removed but project save failed");
@@ -6008,10 +6516,87 @@ juce::String CommandDispatcher::handleRackRemoveConnection (const juce::DynamicO
     response->setProperty ("message", "Rack connection removed");
     response->setProperty ("track_id", trackID);
     response->setProperty ("rack_item_id", rack->itemID.toString());
-    response->setProperty ("source_id", sourceIdStr);
+    response->setProperty ("source_id", effectiveSourceLabel);
     response->setProperty ("source_pin", sourcePin);
-    response->setProperty ("dest_id", destIdStr);
+    response->setProperty ("dest_id", effectiveDestLabel);
     response->setProperty ("dest_pin", destPin);
+    response->setProperty ("audio_pin_group", audioPinGroup);
+    response->setProperty ("connections_changed", connectionsChanged);
+    appendGraphRevisionProperties (*response, graphSnapshot);
+    return juce::JSON::toString (juce::var (response.release()));
+}
+
+juce::String CommandDispatcher::handleRackSetNodeClipScope (const juce::DynamicObject& object, const juce::String&) const
+{
+    auto* edit = getEdit != nullptr ? getEdit() : nullptr;
+
+    if (edit == nullptr)
+        return makeErrorReply ("No active edit loaded");
+
+    const auto trackID = object.getProperty ("track_id").toString().trim();
+    const auto rackItemId = object.getProperty ("rack_item_id").toString().trim();
+    const auto pluginItemIdStr = object.getProperty ("plugin_item_id").toString().trim();
+
+    if (trackID.isEmpty())
+        return makeErrorReply ("rack_set_node_clip_scope requires track_id");
+
+    if (pluginItemIdStr.isEmpty())
+        return makeErrorReply ("rack_set_node_clip_scope requires plugin_item_id");
+
+    auto* track = findTrackByID (*edit, trackID);
+    if (track == nullptr)
+        return makeErrorReply ("Track not found for track_id: " + trackID);
+
+    const auto clipScope = VitClipRouteRegistry::normaliseClipScope (object.getProperty ("clip_scope").toString());
+
+    if (clipScope == "debug_global")
+        return makeErrorReply ("clip_scope for a node must be track or clip:<clip_id>");
+
+    if (const auto clipValidation = VitClipRouteRegistry::validateClipScope (*track, clipScope); clipValidation.failed())
+        return makeErrorReply (clipValidation.getErrorMessage());
+
+    auto* rack = findRackInstanceOnTrack (*track, rackItemId);
+    if (rack == nullptr || rack->type == nullptr)
+        return makeErrorReply ("No rack instance found on the specified track");
+
+    const auto pluginItemId = te::EditItemID::fromString (pluginItemIdStr);
+
+    if (! pluginItemId.isValid())
+        return makeErrorReply ("plugin_item_id must be a valid EditItemID string");
+
+    if (rack->type->getPluginForID (pluginItemId) == nullptr)
+        return makeErrorReply ("plugin_item_id is not present in the specified rack");
+
+    auto pluginInstanceState = findRackPluginInstanceState (*rack->type, pluginItemId);
+
+    if (! pluginInstanceState.isValid())
+        return makeErrorReply ("Rack plugin instance state not found");
+
+    auto& undo = edit->getUndoManager();
+    undo.beginNewTransaction ("Rack set node clip scope");
+    pluginInstanceState.setProperty ("vit_clip_scope", clipScope, &undo);
+
+    rack->type->flushStateToValueTree();
+    track->flushStateToValueTree();
+    const auto graphSnapshot = VitGraphSwapCoordinator::publishGraphChange (*edit,
+                                                                            { "rack_clip_scope",
+                                                                              "Set rack node clip scope",
+                                                                              trackID,
+                                                                              rack->itemID.toString(),
+                                                                              pluginItemIdStr,
+                                                                              {},
+                                                                              {} });
+
+    if (saveProject && ! saveProject())
+        return makeErrorReply ("Clip scope updated but project save failed");
+
+    auto response = std::make_unique<juce::DynamicObject>();
+    response->setProperty ("status", "ok");
+    response->setProperty ("message", "Rack node clip scope updated");
+    response->setProperty ("track_id", trackID);
+    response->setProperty ("rack_item_id", rack->itemID.toString());
+    response->setProperty ("plugin_item_id", pluginItemIdStr);
+    response->setProperty ("clip_scope", clipScope);
     appendGraphRevisionProperties (*response, graphSnapshot);
     return juce::JSON::toString (juce::var (response.release()));
 }

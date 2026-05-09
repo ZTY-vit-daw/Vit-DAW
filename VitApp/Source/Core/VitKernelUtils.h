@@ -24,10 +24,10 @@ std::unique_ptr<te::Edit> loadEditFromXmlFile (te::Engine& engine,
 /** After loading an Edit from XML/disk, rebind every wave clip to a direct file and refresh playback nodes. */
 void rebindAllWaveClipSourcesToDirectFiles (te::Edit& edit);
 
-/** Ensure an audio track owns a single RackInstance and prune duplicate empty placeholders. */
+/** Prune empty or broken RackInstance placeholders that would otherwise mute playback. */
 bool ensureSingleRackForTrack (te::AudioTrack& track);
 
-/** Ensure every audio track in the edit exposes a rack graph that can be serialized to UI clients. */
+/** Prune empty rack placeholders across the edit without creating rack plugins from read/setup paths. */
 bool ensureTrackRackGraphForEdit (te::Edit& edit);
 
 } // namespace vit

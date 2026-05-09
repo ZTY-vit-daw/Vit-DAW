@@ -116,6 +116,7 @@ private:
     juce::String handleRackAddNode (const juce::DynamicObject&, const juce::String&) const;
     juce::String handleRackConnectPins (const juce::DynamicObject&, const juce::String&) const;
     juce::String handleRackRemoveConnection (const juce::DynamicObject&, const juce::String&) const;
+    juce::String handleRackSetNodeClipScope (const juce::DynamicObject&, const juce::String&) const;
 
     EditGetter getEdit;
     BoolAction reloadProject;

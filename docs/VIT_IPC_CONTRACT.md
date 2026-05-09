@@ -694,6 +694,7 @@ Phase 4.2 同样强制 `cut` 重叠策略，且**主操作 + 被覆盖 clip 裁�
 - `rack_add_node`
 - `rack_connect_pins`
 - `rack_remove_connection`
+- `rack_set_node_clip_scope`（`track_id`、`rack_item_id`、`plugin_item_id`、`clip_scope`；空字符串清除为 `track`）
 - `aigc_register_job`
 - `bridge_ingest_generated_asset`
 - `switch_asset_take`

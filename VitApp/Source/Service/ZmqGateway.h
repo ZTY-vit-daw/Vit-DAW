@@ -45,6 +45,8 @@ private:
     std::unique_ptr<zmq::socket_t> logSocket;
     juce::CriticalSection publishSocketLock;
     juce::CriticalSection logSocketLock;
+    uint64_t lastReportedDeltaDropCount = 0;
+    uint64_t publishSendFailureCount = 0;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ZmqGateway)
 };

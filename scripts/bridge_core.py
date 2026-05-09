@@ -234,6 +234,10 @@ def run_bridge(cfg: BridgeConfig):
         zmq_sub.connect(cfg.zmq_sub_url)
         zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "")
         send_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        udp_send_fail_count = 0
+        delta_seq_gap_count = 0
+        tile_ready_count = 0
+        last_delta_seq: Optional[int] = None
         logger.info(f"telemetry thread started: {cfg.zmq_sub_url} -> UDP:{cfg.udp_to_godot}")
         try:
             while True:
@@ -243,14 +247,41 @@ def run_bridge(cfg: BridgeConfig):
                     d = json.loads(msg)
                     if isinstance(d, dict) and d.get("type") == "delta_update":
                         shadow.apply_delta(d)
+                        try:
+                            seq = int(d.get("seq_id", 0))
+                        except (TypeError, ValueError):
+                            seq = 0
+                        if seq > 0:
+                            if last_delta_seq is not None and seq != last_delta_seq + 1:
+                                delta_seq_gap_count += 1
+                                logger.warn(
+                                    f"[telemetry] delta seq gap #{delta_seq_gap_count}: "
+                                    f"last={last_delta_seq} current={seq}"
+                                )
+                            last_delta_seq = seq
+                    elif isinstance(d, dict) and d.get("command") == "tile_ready":
+                        tile_ready_count += 1
+                        logger.debug(
+                            "[telemetry] tile_ready forward "
+                            f"#{tile_ready_count} track={d.get('track_id', '')!r} "
+                            f"clip={d.get('clip_id', '')!r} key={d.get('bake_key', '')!r} "
+                            f"gen={d.get('generation', '')!r} tile={d.get('tile_index', '')!r} "
+                            f"handles={d.get('handle_count', '')!r} bytes={d.get('shm_bytes', '')!r} "
+                            f"shm={d.get('shared_memory', '')!r}"
+                        )
                     # 规范化为严格 JSON 单行，减少 JUCE 等与 Godot JSON 解析差异导致的失败
                     out_bytes = json.dumps(d, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
                 except (json.JSONDecodeError, TypeError, ValueError):
                     pass
                 try:
                     send_sock.sendto(out_bytes, (cfg.godot_ip, cfg.udp_to_godot))
-                except OSError:
-                    pass
+                except OSError as exc:
+                    udp_send_fail_count += 1
+                    if udp_send_fail_count == 1 or udp_send_fail_count % 100 == 0:
+                        logger.warn(
+                            f"[telemetry] UDP sendto failed count={udp_send_fail_count} "
+                            f"dest={cfg.godot_ip}:{cfg.udp_to_godot} error={exc}"
+                        )
         except Exception as exc:
             logger.warn(f"telemetry thread exited: {exc}")
 

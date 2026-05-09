@@ -271,6 +271,16 @@ void ZmqGateway::drainDeltaRingBuffer()
     if (deltaRingBuffer == nullptr)
         return;
 
+    const auto droppedCount = deltaRingBuffer->getDroppedCount();
+    if (droppedCount != lastReportedDeltaDropCount)
+    {
+        juce::Logger::writeToLog ("ZmqGateway: delta ring dropped "
+                                  + juce::String ((juce::int64) droppedCount)
+                                  + " event(s) total; ready="
+                                  + juce::String (deltaRingBuffer->getNumReady()));
+        lastReportedDeltaDropCount = droppedCount;
+    }
+
     DeltaEvent event;
 
     while (deltaRingBuffer->tryPop (event))
@@ -286,11 +296,20 @@ void ZmqGateway::publishMessage (const juce::String& payload)
 
     try
     {
-        sendString (*publishSocket, payload, zmq::send_flags::dontwait);
+        if (! sendString (*publishSocket, payload, zmq::send_flags::dontwait))
+        {
+            ++publishSendFailureCount;
+            juce::Logger::writeToLog ("ZmqGateway: PUB dontwait send returned false; failures="
+                                      + juce::String ((juce::int64) publishSendFailureCount));
+        }
     }
     catch (const zmq::error_t& error)
     {
-        juce::Logger::writeToLog ("ZmqGateway: failed to publish status: " + juce::String (error.what()));
+        ++publishSendFailureCount;
+        juce::Logger::writeToLog ("ZmqGateway: failed to publish status: "
+                                  + juce::String (error.what())
+                                  + "; failures="
+                                  + juce::String ((juce::int64) publishSendFailureCount));
     }
 }
 

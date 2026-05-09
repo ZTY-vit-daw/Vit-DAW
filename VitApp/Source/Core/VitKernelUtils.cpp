@@ -217,7 +217,6 @@ void rebindAllWaveClipSourcesToDirectFiles (te::Edit& edit)
 
 bool ensureSingleRackForTrack (te::AudioTrack& track)
 {
-    auto& edit = track.pluginList.getEdit();
     bool changed = false;
     te::RackInstance* primaryRack = nullptr;
 
@@ -237,48 +236,23 @@ bool ensureSingleRackForTrack (te::AudioTrack& track)
             continue;
         }
 
+        if (! rackHasInternalNodes (*rack))
+        {
+            rack->removeFromParent();
+            changed = true;
+            juce::Logger::writeToLog ("VitKernelUtils: removed empty rack instance on track "
+                                      + track.itemID.toString());
+            continue;
+        }
+
         if (primaryRack == nullptr)
         {
             primaryRack = rack;
             continue;
         }
 
-        if (! rackHasInternalNodes (*rack))
-        {
-            rack->removeFromParent();
-            changed = true;
-            juce::Logger::writeToLog ("VitKernelUtils: removed duplicate empty rack instance on track "
-                                      + track.itemID.toString());
-            continue;
-        }
-
         juce::Logger::writeToLog ("VitKernelUtils: track " + track.itemID.toString()
                                   + " contains multiple non-empty rack instances; leaving migration for a later phase");
-    }
-
-    if (primaryRack == nullptr)
-    {
-        if (auto rackType = edit.getRackList().addNewRack())
-        {
-            if (auto rackPlugin = track.pluginList.insertPlugin (te::RackInstance::create (*rackType),
-                                                                 getRackInsertionIndex (track)))
-            {
-                changed = true;
-                juce::Logger::writeToLog ("VitKernelUtils: inserted rack instance on track "
-                                          + track.itemID.toString()
-                                          + " rack=" + rackType->itemID.toString());
-            }
-            else
-            {
-                juce::Logger::writeToLog ("VitKernelUtils: failed to insert rack instance plugin on track "
-                                          + track.itemID.toString());
-            }
-        }
-        else
-        {
-            juce::Logger::writeToLog ("VitKernelUtils: failed to create rack type for track "
-                                      + track.itemID.toString());
-        }
     }
 
     if (changed)

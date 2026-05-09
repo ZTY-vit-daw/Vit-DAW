@@ -14,7 +14,10 @@ bool VitDeltaRingBuffer::tryPush (DeltaEvent&& event) noexcept
     fifo.prepareToWrite (1, start1, size1, start2, size2);
 
     if (size1 <= 0 && size2 <= 0)
+    {
+        dropped_count.fetch_add (1, std::memory_order_relaxed);
         return false;
+    }
 
     const int index = size1 > 0 ? start1 : start2;
     event.seq_id = ++next_seq_id;
@@ -42,10 +45,16 @@ int VitDeltaRingBuffer::getNumReady() const noexcept
     return fifo.getNumReady();
 }
 
+uint64_t VitDeltaRingBuffer::getDroppedCount() const noexcept
+{
+    return dropped_count.load (std::memory_order_relaxed);
+}
+
 void VitDeltaRingBuffer::reset() noexcept
 {
     fifo.reset();
     next_seq_id.store (0, std::memory_order_relaxed);
+    dropped_count.store (0, std::memory_order_relaxed);
 }
 
 //==============================================================================
