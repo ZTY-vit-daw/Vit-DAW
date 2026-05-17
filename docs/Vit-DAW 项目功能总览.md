@@ -1,4 +1,4 @@
-# Vit-DAW 项目功能总览
+﻿# Vit-DAW 项目功能总览
 
 本文档概括当前仓库内**已实现**的主要能力，便于新人、演示与发布对齐。细节以代码与 [`docs/VIT_IPC_CONTRACT.md`](VIT_IPC_CONTRACT.md) 为准。
 
@@ -31,6 +31,8 @@
 - 命令在消息线程解析，**Edit/走带相关变更在 JUCE 消息线程执行**；网关侧有等待超时保护。
 
 ### 2.3 已实现 JSON 命令（`CommandDispatcher`）
+
+当前 `CommandDispatcher` 是 IPC 路由层；具体业务实现已拆入 `ProjectService`、`ImportService`、`TrackService`、`ClipService`、`MidiService`、`TransportAudioService`、`GeneratedAssetService` / `JobEventService`、`PluginRackControlService`。服务边界见 `docs/VIT_KERNEL_SERVICE_BOUNDARY.md`。
 
 包括但不限于：
 

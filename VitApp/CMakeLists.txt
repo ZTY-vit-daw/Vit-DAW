@@ -189,6 +189,24 @@ set(VITAPP_SOURCE_FILES
     Source/Service/VitHeadlessService.h
     Source/Service/CommandDispatcher.cpp
     Source/Service/CommandDispatcher.h
+    Source/Service/ClipService.cpp
+    Source/Service/ClipService.h
+    Source/Service/GeneratedAssetService.cpp
+    Source/Service/GeneratedAssetService.h
+    Source/Service/ImportService.cpp
+    Source/Service/ImportService.h
+    Source/Service/JobEventService.cpp
+    Source/Service/JobEventService.h
+    Source/Service/MidiService.cpp
+    Source/Service/MidiService.h
+    Source/Service/ProjectService.cpp
+    Source/Service/ProjectService.h
+    Source/Service/PluginRackControlService.cpp
+    Source/Service/PluginRackControlService.h
+    Source/Service/TrackService.cpp
+    Source/Service/TrackService.h
+    Source/Service/TransportAudioService.cpp
+    Source/Service/TransportAudioService.h
     Source/Service/VitProductionCoordinator.cpp
     Source/Service/VitProductionCoordinator.h
     Source/Service/SharedMemoryTester.cpp

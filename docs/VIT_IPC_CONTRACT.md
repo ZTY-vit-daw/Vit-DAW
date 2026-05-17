@@ -1,4 +1,4 @@
-# Vit IPC 契约（Godot ↔ Bridge ↔ ZMQ REQ）
+﻿# Vit IPC 契约（Godot ↔ Bridge ↔ ZMQ REQ）
 
 ## 传输
 
@@ -14,6 +14,24 @@
 3. 若两者均为空，返回错误：`Missing cmd/action field`。
 
 因此 **`cmd` 与 `action` 二选一即可**；若**同时提供且均非空**，**以 `cmd` 为准**（`action` 被忽略）。文档示例可按场景任选其一，但自动化/LLM 侧建议固定一种风格以减少歧义。
+
+
+## 内核命令实现归属
+
+`CommandDispatcher` 现在是 IPC 入口和命令路由层：它负责解析 `cmd` / `action` / `command`、渲染中 allowlist、注册命令名并转发到内部 service。业务命令实现按以下服务归属维护：
+
+| Service | 命令范围 |
+|---|---|
+| `ProjectService` | 工程生命周期、最近工程列表、保存/另存/打开 |
+| `ImportService` | 音频导入、指定落点插入、波形/频谱 bake 预热 |
+| `GeneratedAssetService` / `JobEventService` | AIGC job、生成资产 ingest、take 切换、异步 ghost 状态 |
+| `TrackService` / `ClipService` / `MidiService` | 轨道、clip、MIDI clip 与 MIDI note 编辑 |
+| `TransportAudioService` | 走带、click、音频设备、输入路由、录音、冻结、脱机渲染 |
+| `PluginRackControlService` | 插件扫描/实例化/参数、rack DAG、control graph、connector profile |
+
+`CommandDispatcher` 仍保留 `ping`、`get_project_state`、`set_tempo`、`project_health_check`、`clear_project`、`undo`、`redo`。其中 `get_project_state` 是跨服务聚合快照，继续在入口层组装 `tracks`、`rack`、`control_graph`、connector、job、observability 与 graph revision 状态面。
+
+更详细的结构边界与提交点见 [`VIT_KERNEL_SERVICE_BOUNDARY.md`](VIT_KERNEL_SERVICE_BOUNDARY.md)。
 
 ## 支持的指令列表（节选）
 
