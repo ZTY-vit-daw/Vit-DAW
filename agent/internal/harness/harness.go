@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -299,20 +300,26 @@ func commandArgs(cmd map[string]any) map[string]any {
 }
 
 func flattenCommandParams(cmd map[string]any) {
-	params, ok := cmd["params"].(map[string]any)
-	if !ok {
-		return
-	}
-	for k, v := range params {
-		if isEmptyValue(cmd[k]) && !isEmptyValue(v) {
-			cmd[k] = v
+	for _, nestedKey := range []string{"params", "args"} {
+		params, ok := cmd[nestedKey].(map[string]any)
+		if !ok {
+			continue
 		}
+		for k, v := range params {
+			if isEmptyValue(cmd[k]) && !isEmptyValue(v) {
+				cmd[k] = v
+			}
+		}
+		delete(cmd, nestedKey)
 	}
-	delete(cmd, "params")
 }
 
 func (h *Harness) resolveImplicitTargets(ctx context.Context, spec tools.CommandSpec, cmd map[string]any, requestContext map[string]any) error {
 	normalizeCommandArgs(spec, cmd, requestContext)
+
+	if err := h.resolveClipTargets(ctx, spec, cmd, requestContext); err != nil {
+		return fmt.Errorf("%s could not resolve clip target: %w", spec.ToolName, err)
+	}
 
 	for _, field := range spec.RequiredTargetIDs {
 		if field != "track_id" || !isEmptyValue(cmd[field]) {
@@ -354,6 +361,51 @@ func normalizeCommandArgs(spec tools.CommandSpec, cmd map[string]any, requestCon
 		copyFirstNonEmpty(cmd, "bpm", "tempo", "value")
 	case "seek":
 		copyFirstNonEmpty(cmd, "time", "position_seconds", "seconds", "value")
+	case "move_clip":
+		copyFirstNonEmpty(cmd, "clip_id", "source_clip_id", "target_clip_id")
+		copyFirstNonEmpty(cmd, "new_start", "new_start_seconds", "new_start_beats", "new_start_beat", "start", "start_seconds", "start_beats", "position_seconds", "time")
+		inferTimeUnit(cmd)
+	case "resize_clip":
+		copyFirstNonEmpty(cmd, "clip_id", "source_clip_id", "target_clip_id")
+		copyFirstNonEmpty(cmd, "new_start", "new_start_seconds", "new_start_beats", "new_start_beat", "start", "start_seconds", "start_beats", "position_seconds")
+		copyFirstNonEmpty(cmd, "new_length", "new_length_seconds", "new_length_beats", "new_length_beat", "length", "length_seconds", "length_beats", "duration", "duration_seconds", "duration_beats")
+		copyFirstNonEmpty(cmd, "offset_in_source", "offset_in_source_seconds", "offset_in_source_beats", "offset_in_source_beat")
+		inferTimeUnit(cmd)
+	case "clone_clip":
+		copyFirstNonEmpty(cmd, "source_clip_id", "clip_id", "target_clip_id")
+		copyFirstNonEmpty(cmd, "target_track_id", "track_id")
+		copyFirstNonEmpty(cmd, "new_start", "new_start_seconds", "new_start_beats", "new_start_beat", "start", "start_seconds", "start_beats", "position_seconds", "time")
+		inferTimeUnit(cmd)
+	case "remove_clips":
+		normalizeClipIDsArray(cmd)
+	}
+}
+
+func inferTimeUnit(cmd map[string]any) {
+	if !isEmptyValue(cmd["time_unit"]) {
+		return
+	}
+	for _, key := range []string{"new_start_beats", "new_start_beat", "start_beats", "new_length_beats", "new_length_beat", "length_beats", "duration_beats", "offset_in_source_beats", "offset_in_source_beat"} {
+		if !isEmptyValue(cmd[key]) {
+			cmd["time_unit"] = "beats"
+			return
+		}
+	}
+	for _, key := range []string{"new_start", "new_start_seconds", "start", "start_seconds", "position_seconds", "time", "new_length", "new_length_seconds", "length", "length_seconds", "duration", "duration_seconds", "offset_in_source", "offset_in_source_seconds"} {
+		if !isEmptyValue(cmd[key]) {
+			cmd["time_unit"] = "seconds"
+			return
+		}
+	}
+}
+
+func normalizeClipIDsArray(cmd map[string]any) {
+	if ids := stringSliceFromAny(cmd["clip_ids"]); len(ids) > 0 {
+		cmd["clip_ids"] = ids
+		return
+	}
+	if id := firstString(cmd, "clip_id", "source_clip_id", "target_clip_id"); id != "" {
+		cmd["clip_ids"] = []string{id}
 	}
 }
 
@@ -458,13 +510,364 @@ func boolValue(v any) (bool, bool) {
 	return false, false
 }
 
+type clipRef struct {
+	ID             string
+	Name           string
+	TrackID        string
+	TrackName      string
+	UserTrackIndex int
+	Row            map[string]any
+}
+
+func (h *Harness) resolveClipTargets(ctx context.Context, spec tools.CommandSpec, cmd map[string]any, requestContext map[string]any) error {
+	switch spec.CommandName {
+	case "move_clip":
+		ref, err := h.resolveSingleClipRef(ctx, spec, cmd, requestContext, "clip_id")
+		if err != nil {
+			return err
+		}
+		cmd["clip_id"] = ref.ID
+		if isEmptyValue(cmd["new_start"]) {
+			if seconds, ok := inferMoveStartSeconds(ref, requestContext); ok {
+				cmd["new_start"] = seconds
+				if isEmptyValue(cmd["time_unit"]) {
+					cmd["time_unit"] = "seconds"
+				}
+			}
+		}
+		if isEmptyValue(cmd["source_track_id"]) {
+			cmd["source_track_id"] = ref.TrackID
+		}
+		if isEmptyValue(cmd["target_track_id"]) {
+			targetTrackID, err := h.resolveTargetTrackID(ctx, spec, cmd, requestContext)
+			if err != nil {
+				return err
+			}
+			if targetTrackID == "" {
+				targetTrackID = ref.TrackID
+			}
+			cmd["target_track_id"] = targetTrackID
+		}
+	case "resize_clip":
+		ref, err := h.resolveSingleClipRef(ctx, spec, cmd, requestContext, "clip_id")
+		if err != nil {
+			return err
+		}
+		cmd["clip_id"] = ref.ID
+		if isEmptyValue(cmd["new_length"]) {
+			if seconds, ok := inferLengthSeconds(requestContext); ok {
+				cmd["new_length"] = seconds
+				if isEmptyValue(cmd["time_unit"]) {
+					cmd["time_unit"] = "seconds"
+				}
+			}
+		}
+		if isEmptyValue(cmd["track_id"]) && ref.TrackID != "" {
+			cmd["track_id"] = ref.TrackID
+		}
+	case "clone_clip":
+		ref, err := h.resolveSingleClipRef(ctx, spec, cmd, requestContext, "source_clip_id")
+		if err != nil {
+			return err
+		}
+		cmd["source_clip_id"] = ref.ID
+		if isEmptyValue(cmd["new_start"]) {
+			if seconds, ok := inferMoveStartSeconds(ref, requestContext); ok {
+				cmd["new_start"] = seconds
+				if isEmptyValue(cmd["time_unit"]) {
+					cmd["time_unit"] = "seconds"
+				}
+			}
+		}
+		if isEmptyValue(cmd["target_track_id"]) {
+			targetTrackID, err := h.resolveTargetTrackID(ctx, spec, cmd, requestContext)
+			if err != nil {
+				return err
+			}
+			if targetTrackID == "" {
+				targetTrackID = ref.TrackID
+			}
+			cmd["target_track_id"] = targetTrackID
+		}
+	case "remove_clips":
+		if ids := stringSliceFromAny(cmd["clip_ids"]); len(ids) > 0 {
+			cmd["clip_ids"] = ids
+			return nil
+		}
+		if ids := selectedClipIDsFromContext(requestContext); len(ids) > 0 {
+			cmd["clip_ids"] = ids
+			return nil
+		}
+		ref, err := h.resolveSingleClipRef(ctx, spec, cmd, requestContext, "clip_id")
+		if err != nil {
+			return err
+		}
+		cmd["clip_ids"] = []string{ref.ID}
+	default:
+		if specRequiresTarget(spec, "clip_id") && isEmptyValue(cmd["clip_id"]) {
+			ref, err := h.resolveSingleClipRef(ctx, spec, cmd, requestContext, "clip_id")
+			if err != nil {
+				return err
+			}
+			cmd["clip_id"] = ref.ID
+			if specRequiresTarget(spec, "track_id") && isEmptyValue(cmd["track_id"]) && ref.TrackID != "" {
+				cmd["track_id"] = ref.TrackID
+			}
+		}
+	}
+	return nil
+}
+
+func (h *Harness) resolveTargetTrackID(ctx context.Context, spec tools.CommandSpec, cmd map[string]any, requestContext map[string]any) (string, error) {
+	if targetTrackID := firstString(cmd, "target_track_id"); targetTrackID != "" {
+		return targetTrackID, nil
+	}
+	if trackID := firstString(cmd, "track_id"); trackID != "" {
+		return trackID, nil
+	}
+	if hasTargetTrackHint(cmd) {
+		return h.resolveTrackID(ctx, spec, cmd, requestContext)
+	}
+	return "", nil
+}
+
+func hasTargetTrackHint(cmd map[string]any) bool {
+	if firstString(cmd, "target_track_name", "target_track") != "" {
+		return true
+	}
+	_, ok := firstPositiveInt(cmd, "target_track_index", "target_track_number", "target_user_track_index")
+	return ok
+}
+
+func (h *Harness) resolveSingleClipRef(ctx context.Context, spec tools.CommandSpec, cmd map[string]any, requestContext map[string]any, field string) (clipRef, error) {
+	state := h.UserStateSummary(ctx)
+	refs := visibleClipRefs(state)
+	if id := firstString(cmd, field, "clip_id", "source_clip_id", "target_clip_id"); id != "" {
+		return clipRefByIDOrContext(id, refs, requestContext)
+	}
+
+	selected := selectedClipIDsFromContext(requestContext)
+	if len(selected) == 1 {
+		return clipRefByIDOrContext(selected[0], refs, requestContext)
+	}
+	if len(selected) > 1 {
+		return clipRef{}, fmt.Errorf("multiple clips are selected; specify which clip or use a multi-clip command")
+	}
+
+	if name := firstString(cmd, "clip_name", "target_clip_name", "source_clip_name", "clip"); name != "" {
+		matches := filterClipRefsByName(refs, name)
+		switch len(matches) {
+		case 1:
+			return matches[0], nil
+		case 0:
+			return clipRef{}, fmt.Errorf("no user-visible clip named %q", name)
+		default:
+			return clipRef{}, fmt.Errorf("multiple user-visible clips named %q; specify track or clip_index", name)
+		}
+	}
+
+	if index, ok := firstPositiveInt(cmd, "clip_index", "clip_number", "user_clip_index"); ok {
+		scope := filterClipRefsByTrack(refs, clipScopeTrackID(ctx, cmd, requestContext))
+		if len(scope) == 0 {
+			scope = refs
+		}
+		if index < 1 || index > len(scope) {
+			return clipRef{}, fmt.Errorf("clip_index %d is out of range", index)
+		}
+		return scope[index-1], nil
+	}
+
+	if trackID := clipScopeTrackID(ctx, cmd, requestContext); trackID != "" {
+		scope := filterClipRefsByTrack(refs, trackID)
+		if len(scope) == 1 {
+			return scope[0], nil
+		}
+		if len(scope) > 1 {
+			return clipRef{}, fmt.Errorf("multiple clips exist on the selected track; select a clip or specify clip_index")
+		}
+	}
+
+	switch len(refs) {
+	case 0:
+		return clipRef{}, fmt.Errorf("there are no user-visible clips")
+	case 1:
+		return refs[0], nil
+	default:
+		return clipRef{}, fmt.Errorf("multiple user-visible clips exist; select a clip or specify clip name/clip_index")
+	}
+}
+
+func clipRefByIDOrContext(id string, refs []clipRef, requestContext map[string]any) (clipRef, error) {
+	id = strings.TrimSpace(id)
+	if id == "" {
+		return clipRef{}, fmt.Errorf("clip_id is empty")
+	}
+	for _, ref := range refs {
+		if ref.ID == id {
+			return ref, nil
+		}
+	}
+	if trackID := firstString(requestContext, "selected_clip_track_id", "focused_track_id", "selected_track_id", "track_id"); trackID != "" {
+		return clipRef{ID: id, TrackID: trackID}, nil
+	}
+	return clipRef{}, fmt.Errorf("clip_id %q is not present in the current user-visible project state", id)
+}
+
+func clipScopeTrackID(ctx context.Context, cmd map[string]any, requestContext map[string]any) string {
+	if trackID := firstString(cmd, "track_id", "source_track_id", "target_track_id"); trackID != "" {
+		return trackID
+	}
+	if trackID := firstString(requestContext, "selected_clip_track_id", "focused_track_id", "selected_track_id", "track_id"); trackID != "" {
+		return trackID
+	}
+	_ = ctx
+	return ""
+}
+
+func visibleClipRefs(state map[string]any) []clipRef {
+	tracks := visibleTrackRows(state)
+	out := make([]clipRef, 0)
+	for _, track := range tracks {
+		trackID := visibleTrackID(track)
+		trackName := visibleTrackName(track)
+		userIndex, _ := firstPositiveInt(track, "user_track_index")
+		for _, clip := range mapRowsFromAny(track["clips"]) {
+			id := firstString(clip, "clip_id", "id", "item_id")
+			if id == "" {
+				continue
+			}
+			out = append(out, clipRef{
+				ID:             id,
+				Name:           firstString(clip, "name", "clip_name"),
+				TrackID:        trackID,
+				TrackName:      trackName,
+				UserTrackIndex: userIndex,
+				Row:            clip,
+			})
+		}
+	}
+	return out
+}
+
+func filterClipRefsByName(refs []clipRef, name string) []clipRef {
+	name = strings.TrimSpace(name)
+	out := make([]clipRef, 0, len(refs))
+	for _, ref := range refs {
+		if strings.EqualFold(ref.Name, name) {
+			out = append(out, ref)
+		}
+	}
+	return out
+}
+
+func filterClipRefsByTrack(refs []clipRef, trackID string) []clipRef {
+	trackID = strings.TrimSpace(trackID)
+	if trackID == "" {
+		return refs
+	}
+	out := make([]clipRef, 0, len(refs))
+	for _, ref := range refs {
+		if ref.TrackID == trackID {
+			out = append(out, ref)
+		}
+	}
+	return out
+}
+
+func selectedClipIDsFromContext(requestContext map[string]any) []string {
+	if len(requestContext) == 0 {
+		return nil
+	}
+	if ids := stringSliceFromAny(requestContext["selected_clip_ids"]); len(ids) > 0 {
+		return ids
+	}
+	if id := firstString(requestContext, "selected_clip_id", "primary_selected_clip_id", "clip_id"); id != "" {
+		return []string{id}
+	}
+	return nil
+}
+
+func specRequiresTarget(spec tools.CommandSpec, field string) bool {
+	for _, id := range spec.RequiredTargetIDs {
+		if id == field {
+			return true
+		}
+	}
+	return false
+}
+
+var secondsInTextPattern = regexp.MustCompile(`(?i)([-+]?\d+(?:\.\d+)?)\s*(?:s|sec|secs|second|seconds|秒)`)
+
+func inferMoveStartSeconds(ref clipRef, requestContext map[string]any) (float64, bool) {
+	text := strings.TrimSpace(firstString(requestContext, "user_message", "message", "prompt", "utterance"))
+	seconds, ok := firstSecondsInText(text)
+	if !ok {
+		return 0, false
+	}
+	lower := strings.ToLower(text)
+	current := numberFromAny(ref.Row["start_seconds"])
+	switch {
+	case strings.Contains(text, "向前") || strings.Contains(text, "前移") || strings.Contains(text, "提前") || strings.Contains(lower, "earlier") || strings.Contains(lower, "left") || strings.Contains(lower, "backward"):
+		next := current - seconds
+		if next < 0 {
+			next = 0
+		}
+		return next, true
+	case strings.Contains(text, "向后") || strings.Contains(text, "后移") || strings.Contains(text, "推后") || strings.Contains(lower, "later") || strings.Contains(lower, "right") || strings.Contains(lower, "forward"):
+		return current + seconds, true
+	default:
+		return seconds, true
+	}
+}
+
+func inferLengthSeconds(requestContext map[string]any) (float64, bool) {
+	text := strings.TrimSpace(firstString(requestContext, "user_message", "message", "prompt", "utterance"))
+	lower := strings.ToLower(text)
+	if !strings.Contains(text, "长度") && !strings.Contains(text, "时长") && !strings.Contains(lower, "length") && !strings.Contains(lower, "duration") {
+		return 0, false
+	}
+	return firstSecondsInText(text)
+}
+
+func firstSecondsInText(text string) (float64, bool) {
+	match := secondsInTextPattern.FindStringSubmatch(text)
+	if len(match) < 2 {
+		return 0, false
+	}
+	value, err := strconv.ParseFloat(match[1], 64)
+	if err != nil {
+		return 0, false
+	}
+	if value < 0 {
+		value = -value
+	}
+	return value, true
+}
+
+func numberFromAny(v any) float64 {
+	switch x := v.(type) {
+	case int:
+		return float64(x)
+	case int64:
+		return float64(x)
+	case float64:
+		return x
+	case json.Number:
+		n, _ := x.Float64()
+		return n
+	default:
+		n, _ := strconv.ParseFloat(strings.TrimSpace(fmt.Sprint(v)), 64)
+		return n
+	}
+}
+
 func (h *Harness) resolveTrackID(ctx context.Context, spec tools.CommandSpec, cmd map[string]any, requestContext map[string]any) (string, error) {
 	if h == nil || h.shadow == nil {
 		return "", nil
 	}
 	state := h.UserStateSummary(ctx)
 	tracks := visibleTrackRows(state)
-	if index, ok := firstPositiveInt(cmd, "user_track_index", "track_index", "track_number", "index"); ok {
+	if index, ok := firstPositiveInt(cmd, "user_track_index", "track_index", "track_number", "target_track_index", "target_track_number", "target_user_track_index", "index"); ok {
 		if index < 1 || index > len(tracks) {
 			return "", fmt.Errorf("user_track_index %d is out of range", index)
 		}
@@ -634,6 +1037,23 @@ func visibleTrackRows(state map[string]any) []map[string]any {
 	}
 }
 
+func mapRowsFromAny(v any) []map[string]any {
+	switch rows := v.(type) {
+	case []map[string]any:
+		return rows
+	case []any:
+		out := make([]map[string]any, 0, len(rows))
+		for _, it := range rows {
+			if row, ok := it.(map[string]any); ok {
+				out = append(out, row)
+			}
+		}
+		return out
+	default:
+		return nil
+	}
+}
+
 func visibleTrackID(row map[string]any) string {
 	if id := firstString(row, "track_id", "id"); id != "" {
 		return id
@@ -655,6 +1075,49 @@ func firstString(row map[string]any, keys ...string) string {
 		}
 	}
 	return ""
+}
+
+func stringSliceFromAny(v any) []string {
+	switch x := v.(type) {
+	case nil:
+		return nil
+	case []string:
+		out := make([]string, 0, len(x))
+		for _, it := range x {
+			s := strings.TrimSpace(it)
+			if s != "" {
+				out = append(out, s)
+			}
+		}
+		return out
+	case []any:
+		out := make([]string, 0, len(x))
+		for _, it := range x {
+			s := strings.TrimSpace(fmt.Sprint(it))
+			if s != "" && s != "<nil>" {
+				out = append(out, s)
+			}
+		}
+		return out
+	case map[string]any:
+		out := make([]string, 0, len(x))
+		for key, enabled := range x {
+			if value, ok := boolValue(enabled); ok && !value {
+				continue
+			}
+			s := strings.TrimSpace(key)
+			if s != "" {
+				out = append(out, s)
+			}
+		}
+		return out
+	default:
+		s := strings.TrimSpace(fmt.Sprint(v))
+		if s == "" || s == "<nil>" {
+			return nil
+		}
+		return []string{s}
+	}
 }
 
 func firstPositiveInt(row map[string]any, keys ...string) (int, bool) {

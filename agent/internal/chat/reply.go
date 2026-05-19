@@ -154,6 +154,14 @@ func executedCommandReply(before, after map[string]any, d policy.Decision, reply
 		return "已开始录音。"
 	case "stop_recording":
 		return "已停止录音。"
+	case "move_clip":
+		return "已移动选中的 clip。"
+	case "resize_clip":
+		return "已调整选中的 clip。"
+	case "clone_clip":
+		return "已复制选中的 clip。"
+	case "remove_clips":
+		return "已删除选中的 clip。"
 	case "undo":
 		return "已撤销上一项操作。"
 	case "redo":

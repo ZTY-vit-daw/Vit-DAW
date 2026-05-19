@@ -111,6 +111,23 @@ func TestExecutedReplyUsesKernelMuteStateForCancel(t *testing.T) {
 	}
 }
 
+func TestExecutedReplyDescribesClipMove(t *testing.T) {
+	reply := executedReply(nil, nil, []policy.Decision{
+		{
+			Name:    "move_clip",
+			Risk:    policy.RiskConfirm,
+			Command: map[string]any{"cmd": "move_clip", "clip_id": "1011", "new_start": 20},
+		},
+	}, nil)
+
+	if !strings.Contains(reply, "移动") || !strings.Contains(reply, "clip") {
+		t.Fatalf("reply = %q", reply)
+	}
+	if strings.Contains(reply, "1011") {
+		t.Fatalf("reply leaked clip id: %q", reply)
+	}
+}
+
 func TestExecutedReplyExpandsToolArgsForSoloCancel(t *testing.T) {
 	before := map[string]any{
 		"tracks": []map[string]any{

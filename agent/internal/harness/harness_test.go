@@ -211,6 +211,53 @@ func TestResolveFlattensNestedParams(t *testing.T) {
 	}
 }
 
+func TestResolveFlattensNestedArgsOnCommand(t *testing.T) {
+	h := New(nil, shadowProjectWithClips(), nil)
+	cmd, spec, err := h.resolveCommand(InvokeRequest{
+		Command: map[string]any{
+			"cmd": "move_clip",
+			"args": map[string]any{
+				"clip_id":         "clip_a",
+				"source_track_id": "1007",
+				"target_track_id": "1007",
+				"new_start":       10.0,
+			},
+		},
+	})
+	if err != nil {
+		t.Fatalf("resolveCommand: %v", err)
+	}
+	if err := h.resolveImplicitTargets(context.Background(), spec, cmd, nil); err != nil {
+		t.Fatalf("resolveImplicitTargets: %v", err)
+	}
+	if _, ok := cmd["args"]; ok {
+		t.Fatalf("args was not flattened: %+v", cmd)
+	}
+	if cmd["source_track_id"] != "1007" || cmd["target_track_id"] != "1007" || cmd["new_start"] != 10.0 {
+		t.Fatalf("cmd = %+v", cmd)
+	}
+}
+
+func TestResolveToolFormRemoveClipStringID(t *testing.T) {
+	h := New(nil, shadowProjectWithClips(), nil)
+	cmd, spec, err := h.resolveCommand(InvokeRequest{
+		Command: map[string]any{
+			"tool": "clip.remove",
+			"args": map[string]any{"clip_ids": "clip_a"},
+		},
+	})
+	if err != nil {
+		t.Fatalf("resolveCommand: %v", err)
+	}
+	if err := h.resolveImplicitTargets(context.Background(), spec, cmd, nil); err != nil {
+		t.Fatalf("resolveImplicitTargets: %v", err)
+	}
+	got := cmd["clip_ids"].([]string)
+	if len(got) != 1 || got[0] != "clip_a" {
+		t.Fatalf("clip_ids = %#v", got)
+	}
+}
+
 func TestResolveImplicitTrackIDByUserTrackIndex(t *testing.T) {
 	project := shadow.New(nil)
 	project.Initialize(map[string]any{
@@ -264,6 +311,118 @@ func TestResolveImplicitTrackIDFromSelectedContext(t *testing.T) {
 	}
 }
 
+func TestResolveClipResizeFromSelectedContext(t *testing.T) {
+	h := New(nil, shadowProjectWithClips(), nil)
+	cmd, spec, err := h.resolveCommand(InvokeRequest{
+		Tool: "clip.resize",
+		Args: map[string]any{"new_length": 4.5},
+	})
+	if err != nil {
+		t.Fatalf("resolveCommand: %v", err)
+	}
+	if err := h.resolveImplicitTargets(context.Background(), spec, cmd, map[string]any{
+		"selected_clip_id":       "clip_b",
+		"selected_clip_track_id": "1010",
+	}); err != nil {
+		t.Fatalf("resolveImplicitTargets: %v", err)
+	}
+	if cmd["clip_id"] != "clip_b" || cmd["track_id"] != "1010" {
+		t.Fatalf("cmd = %+v", cmd)
+	}
+}
+
+func TestResolveRemoveClipsFromSelectedIDs(t *testing.T) {
+	h := New(nil, shadowProjectWithClips(), nil)
+	cmd, spec, err := h.resolveCommand(InvokeRequest{
+		Tool: "clip.remove",
+		Args: map[string]any{},
+	})
+	if err != nil {
+		t.Fatalf("resolveCommand: %v", err)
+	}
+	if err := h.resolveImplicitTargets(context.Background(), spec, cmd, map[string]any{
+		"selected_clip_ids": []any{"clip_a", "clip_b"},
+	}); err != nil {
+		t.Fatalf("resolveImplicitTargets: %v", err)
+	}
+	got := cmd["clip_ids"].([]string)
+	if len(got) != 2 || got[0] != "clip_a" || got[1] != "clip_b" {
+		t.Fatalf("clip_ids = %#v", got)
+	}
+}
+
+func TestResolveMoveClipDefaultsTracksFromSelectedClip(t *testing.T) {
+	h := New(nil, shadowProjectWithClips(), nil)
+	cmd, spec, err := h.resolveCommand(InvokeRequest{
+		Tool: "clip.move",
+		Args: map[string]any{"new_start_seconds": 2.0},
+	})
+	if err != nil {
+		t.Fatalf("resolveCommand: %v", err)
+	}
+	if err := h.resolveImplicitTargets(context.Background(), spec, cmd, map[string]any{
+		"selected_clip_id":       "clip_a",
+		"selected_clip_track_id": "1007",
+	}); err != nil {
+		t.Fatalf("resolveImplicitTargets: %v", err)
+	}
+	if cmd["clip_id"] != "clip_a" || cmd["source_track_id"] != "1007" || cmd["target_track_id"] != "1007" {
+		t.Fatalf("cmd = %+v", cmd)
+	}
+	if cmd["new_start"] != 2.0 || cmd["time_unit"] != "seconds" {
+		t.Fatalf("time args = %+v", cmd)
+	}
+}
+
+func TestResolveMoveClipInfersNewStartFromUserMessage(t *testing.T) {
+	h := New(nil, shadowProjectWithClips(), nil)
+	cmd, spec, err := h.resolveCommand(InvokeRequest{
+		Command: map[string]any{
+			"cmd": "move_clip",
+			"args": map[string]any{
+				"clip_id":         "clip_a",
+				"source_track_id": "1007",
+				"target_track_id": "1007",
+			},
+		},
+	})
+	if err != nil {
+		t.Fatalf("resolveCommand: %v", err)
+	}
+	if err := h.resolveImplicitTargets(context.Background(), spec, cmd, map[string]any{
+		"user_message": "移动选中的clip移动10s",
+	}); err != nil {
+		t.Fatalf("resolveImplicitTargets: %v", err)
+	}
+	if cmd["new_start"] != 10.0 || cmd["time_unit"] != "seconds" {
+		t.Fatalf("cmd = %+v", cmd)
+	}
+}
+
+func TestResolveCloneClipAliasesAndTargetTrack(t *testing.T) {
+	h := New(nil, shadowProjectWithClips(), nil)
+	cmd, spec, err := h.resolveCommand(InvokeRequest{
+		Tool: "clip.clone",
+		Args: map[string]any{
+			"clip_id":            "clip_a",
+			"target_track_index": 2,
+			"new_start":          8.0,
+		},
+	})
+	if err != nil {
+		t.Fatalf("resolveCommand: %v", err)
+	}
+	if err := h.resolveImplicitTargets(context.Background(), spec, cmd, nil); err != nil {
+		t.Fatalf("resolveImplicitTargets: %v", err)
+	}
+	if cmd["source_clip_id"] != "clip_a" || cmd["target_track_id"] != "1010" {
+		t.Fatalf("cmd = %+v", cmd)
+	}
+	if cmd["time_unit"] != "seconds" {
+		t.Fatalf("time_unit = %#v", cmd["time_unit"])
+	}
+}
+
 func TestPublicResultSanitizesProjectState(t *testing.T) {
 	project := shadow.New(nil)
 	project.Initialize(map[string]any{
@@ -296,4 +455,32 @@ func TestPublicResultSanitizesProjectState(t *testing.T) {
 	if len(tracks) != 1 || tracks[0]["track_id"] != "1007" {
 		t.Fatalf("tracks = %+v", tracks)
 	}
+}
+
+func shadowProjectWithClips() *shadow.Project {
+	project := shadow.New(nil)
+	project.Initialize(map[string]any{
+		"status": "ok",
+		"tracks": []any{
+			map[string]any{
+				"track_id":       "1007",
+				"track_name":     "Drums",
+				"track_type":     "hybrid",
+				"is_audio_track": true,
+				"clips": []any{
+					map[string]any{"id": "clip_a", "name": "Loop A", "start_seconds": 0.0, "length_seconds": 2.0},
+				},
+			},
+			map[string]any{
+				"track_id":       "1010",
+				"track_name":     "Bass",
+				"track_type":     "hybrid",
+				"is_audio_track": true,
+				"clips": []any{
+					map[string]any{"id": "clip_b", "name": "Loop B", "start_seconds": 4.0, "length_seconds": 2.0},
+				},
+			},
+		},
+	})
+	return project
 }

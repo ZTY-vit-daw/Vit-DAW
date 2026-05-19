@@ -256,6 +256,9 @@ func (s *Server) handleChat(w http.ResponseWriter, r *http.Request) {
 	}
 
 	chatContext := contextWithUserMessage(req.Context, req.Message)
+	if len(env.Commands) == 0 {
+		env.Commands = synthesizeLocalDAWCommands(req.Message, chatContext)
+	}
 	decisions := policy.Analyze(env.Commands)
 
 	if len(decisions) == 0 {
@@ -331,9 +334,10 @@ func (s *Server) handleConfirm(w http.ResponseWriter, r *http.Request) {
 	}
 	decision := strings.ToLower(strings.TrimSpace(req.Decision))
 	if decision != "approve" && decision != "allow" && decision != "confirm" && decision != "yes" {
-		writeJSON(w, http.StatusOK, map[string]any{"status": "ok", "message": "plan cancelled", "plan_id": planID})
+		writeJSON(w, http.StatusOK, map[string]any{"status": "ok", "message": "已取消。", "plan_id": planID})
 		return
 	}
+	beforeState := s.harness.UserStateSummary(r.Context())
 	replies, err := s.executeDecisions(r.Context(), plan.Decisions, true, plan.Context)
 	if err != nil {
 		writeJSON(w, http.StatusOK, map[string]any{
@@ -344,9 +348,13 @@ func (s *Server) handleConfirm(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
+	message := executedReply(beforeState, s.harness.UserStateSummary(r.Context()), plan.Decisions, replies)
+	if strings.TrimSpace(message) == "" {
+		message = "已执行。"
+	}
 	writeJSON(w, http.StatusOK, map[string]any{
 		"status":  "ok",
-		"message": "plan executed",
+		"message": message,
 		"plan_id": planID,
 		"replies": replies,
 	})
@@ -374,6 +382,7 @@ When the user says "first track" or "第一条轨道", use tracks[0].track_id / 
 Never use or mention hidden engine/internal track IDs that are not present in Current DAW state tracks[].
 get_project_state and list_tracks results are sanitized for Ask Vit; they are for user-visible DAW work, not raw engine inspection.
 Selected DAW context comes from the Godot UI. When the user says "this track", "current track", or "selected track", use selected_track_id if it is present and it appears in Current DAW state tracks[].
+When the user says "this clip", "current clip", or "selected clip", use selected_clip_id or selected_clip_ids from Selected DAW context. If no clip is selected and multiple clips exist, ask the user to select or name one instead of guessing.
 If commands is non-empty, keep reply as a short internal intent summary. VitAgent will replace it with the final user-facing result after execution, so do not rely on "about to" / "即将" wording as the final answer.
 
 Available DAW command catalog:
@@ -437,17 +446,44 @@ func (s *Server) executeDecisions(ctx context.Context, decisions []policy.Decisi
 }
 
 func agentContextForPrompt(requestContext map[string]any) string {
-	safe := map[string]string{}
-	for _, key := range []string{"selected_track_id", "selected_track_name", "selected_scene_track_id", "selected_clip_id"} {
+	safe := map[string]any{}
+	for _, key := range []string{"selected_track_id", "selected_track_name", "selected_scene_track_id", "selected_clip_id", "selected_clip_track_id"} {
 		if value := strings.TrimSpace(fmt.Sprint(requestContext[key])); value != "" && value != "<nil>" {
 			safe[key] = value
 		}
+	}
+	if ids := contextStringSlice(requestContext["selected_clip_ids"]); len(ids) > 0 {
+		safe["selected_clip_ids"] = ids
 	}
 	if len(safe) == 0 {
 		return "{}"
 	}
 	raw, _ := json.MarshalIndent(safe, "", "  ")
 	return string(raw)
+}
+
+func contextStringSlice(v any) []string {
+	switch x := v.(type) {
+	case []string:
+		out := make([]string, 0, len(x))
+		for _, it := range x {
+			if s := strings.TrimSpace(it); s != "" {
+				out = append(out, s)
+			}
+		}
+		return out
+	case []any:
+		out := make([]string, 0, len(x))
+		for _, it := range x {
+			s := strings.TrimSpace(fmt.Sprint(it))
+			if s != "" && s != "<nil>" {
+				out = append(out, s)
+			}
+		}
+		return out
+	default:
+		return nil
+	}
 }
 
 func cloneContext(in map[string]any) map[string]any {

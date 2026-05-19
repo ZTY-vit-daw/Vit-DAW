@@ -235,6 +235,14 @@ func argHint(commandName string) string {
 		return "track_id:string device_id:string"
 	case "import_audio", "import_media_to_track":
 		return "track_id:string path/file_path:string"
+	case "move_clip":
+		return "clip_id:string source_track_id:string target_track_id:string new_start:number_seconds"
+	case "resize_clip":
+		return "clip_id:string optional track_id:string new_length:number_seconds"
+	case "clone_clip":
+		return "source_clip_id:string target_track_id:string time_unit:string new_start:number"
+	case "remove_clips":
+		return "clip_ids:string[]"
 	case "get_plugin_parameters", "open_plugin_ui", "show_plugin_editor":
 		return "track_id:string plugin_id:string"
 	case "set_plugin_param":
@@ -365,7 +373,7 @@ func defaultSpecs() []CommandSpec {
 		spec("import_media_to_track", "clip.import_media_to_track", "clip", "Import media to a target track.", RiskConfirm, true, true, true, true, "track_id"),
 		spec("move_clip", "clip.move", "clip", "Move a clip by stable track and clip IDs.", RiskConfirm, true, true, true, true, "source_track_id", "target_track_id", "clip_id"),
 		spec("resize_clip", "clip.resize", "clip", "Resize a clip by stable clip ID.", RiskConfirm, true, true, true, true, "track_id", "clip_id"),
-		spec("clone_clip", "clip.clone", "clip", "Clone an existing clip.", RiskConfirm, true, true, true, true, "track_id", "clip_id"),
+		spec("clone_clip", "clip.clone", "clip", "Clone an existing clip.", RiskConfirm, true, true, true, true, "source_clip_id", "target_track_id"),
 		spec("remove_clips", "clip.remove", "clip", "Remove one or more clips.", RiskConfirm, true, true, true, true, "clip_ids"),
 		spec("warm_waveform_bake", "clip.warm_waveform_bake", "clip", "Request waveform/tile preparation.", RiskDirect, false, false, false, false),
 
