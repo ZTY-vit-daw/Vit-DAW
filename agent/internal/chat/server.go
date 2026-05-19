@@ -358,6 +358,8 @@ func (s *Server) buildMessages(ctx context.Context, conversationID, userText str
 	system := fmt.Sprintf(`You are Ask Vit, the DAW assistant inside Vit-DAW.
 Return ONLY JSON with this shape:
 {"reply":"short user-facing answer","commands":[{"cmd":"get_project_state"}]}
+You may also use tool-form commands when it is clearer:
+{"reply":"short user-facing answer","commands":[{"tool":"track.mute","args":{"mute":true}}]}
 
 Use commands only when they are clearly useful. Unknown commands are rejected by the agent harness.
 Commands marked confirm require user preview/confirmation. Commands marked undoable can run directly when the target is unambiguous.

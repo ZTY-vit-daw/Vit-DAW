@@ -48,6 +48,20 @@ func CommandName(cmd map[string]any) string {
 
 func Classify(cmd map[string]any) Decision {
 	name := CommandName(cmd)
+	catalog := tools.DefaultCatalog()
+	if name == "" {
+		if toolName := strings.TrimSpace(fmt.Sprint(cmd["tool"])); toolName != "" && toolName != "<nil>" {
+			if spec, ok := catalog.LookupTool(toolName); ok {
+				return decisionForSpec(cmd, spec)
+			}
+			return Decision{
+				Command: cmd,
+				Name:    toolName,
+				Risk:    RiskConfirm,
+				Reason:  "unknown tool requires preview confirmation by agent policy",
+			}
+		}
+	}
 	if name == "" {
 		return Decision{
 			Command: cmd,
@@ -56,23 +70,8 @@ func Classify(cmd map[string]any) Decision {
 			Reason:  "missing cmd/action/command field",
 		}
 	}
-	catalog := tools.DefaultCatalog()
 	if spec, ok := catalog.LookupCommand(name); ok {
-		risk := RiskDirect
-		reason := "read-only or low-risk command"
-		if spec.RequiresConfirmation || spec.RiskLevel == tools.RiskConfirm {
-			risk = RiskConfirm
-			reason = "command requires preview confirmation by agent policy"
-		} else if spec.RiskLevel == tools.RiskUndoable {
-			risk = RiskUndoable
-			reason = "small project edit; direct execution is allowed and undo is available"
-		}
-		return Decision{
-			Command: cmd,
-			Name:    name,
-			Risk:    risk,
-			Reason:  reason,
-		}
+		return decisionForSpec(cmd, spec)
 	}
 	if directCommands[name] {
 		return Decision{
@@ -87,6 +86,24 @@ func Classify(cmd map[string]any) Decision {
 		Name:    name,
 		Risk:    RiskConfirm,
 		Reason:  "command can mutate the DAW project or has unknown risk",
+	}
+}
+
+func decisionForSpec(cmd map[string]any, spec tools.CommandSpec) Decision {
+	risk := RiskDirect
+	reason := "read-only or low-risk command"
+	if spec.RequiresConfirmation || spec.RiskLevel == tools.RiskConfirm {
+		risk = RiskConfirm
+		reason = "command requires preview confirmation by agent policy"
+	} else if spec.RiskLevel == tools.RiskUndoable {
+		risk = RiskUndoable
+		reason = "small project edit; direct execution is allowed and undo is available"
+	}
+	return Decision{
+		Command: cmd,
+		Name:    spec.CommandName,
+		Risk:    risk,
+		Reason:  reason,
 	}
 }
 

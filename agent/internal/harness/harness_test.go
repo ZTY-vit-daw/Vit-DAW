@@ -50,6 +50,55 @@ func TestResolveToolBuildsKernelCommand(t *testing.T) {
 	}
 }
 
+func TestResolveToolFormCommandBuildsKernelCommand(t *testing.T) {
+	h := New(nil, nil, nil)
+	cmd, spec, err := h.resolveCommand(InvokeRequest{
+		Command: map[string]any{
+			"tool": "track.solo",
+			"args": map[string]any{
+				"track_id": "1007",
+				"enabled":  "true",
+			},
+		},
+	})
+	if err != nil {
+		t.Fatalf("resolveCommand: %v", err)
+	}
+	if err := h.resolveImplicitTargets(context.Background(), spec, cmd, nil); err != nil {
+		t.Fatalf("resolveImplicitTargets: %v", err)
+	}
+	if spec.CommandName != "set_solo" || cmd["cmd"] != "set_solo" || cmd["track_id"] != "1007" || cmd["solo"] != true {
+		t.Fatalf("cmd = %+v spec = %+v", cmd, spec)
+	}
+}
+
+func TestNormalizeTrackBooleanAliases(t *testing.T) {
+	h := New(nil, nil, nil)
+	cases := []struct {
+		tool  string
+		args  map[string]any
+		field string
+		want  bool
+	}{
+		{"track.mute", map[string]any{"track_id": "1007", "enabled": "on"}, "mute", true},
+		{"track.mute", map[string]any{"track_id": "1007", "muted": "0"}, "mute", false},
+		{"track.solo", map[string]any{"track_id": "1007", "value": 1}, "solo", true},
+		{"track.arm", map[string]any{"track_id": "1007", "armed": "false"}, "is_armed", false},
+	}
+	for _, tc := range cases {
+		cmd, spec, err := h.resolveCommand(InvokeRequest{Tool: tc.tool, Args: tc.args})
+		if err != nil {
+			t.Fatalf("%s resolveCommand: %v", tc.tool, err)
+		}
+		if err := h.resolveImplicitTargets(context.Background(), spec, cmd, nil); err != nil {
+			t.Fatalf("%s resolveImplicitTargets: %v", tc.tool, err)
+		}
+		if got := cmd[tc.field]; got != tc.want {
+			t.Fatalf("%s %s = %#v, want %#v; cmd=%+v", tc.tool, tc.field, got, tc.want, cmd)
+		}
+	}
+}
+
 func TestInvokeRejectsMissingRequiredTargetID(t *testing.T) {
 	h := New(nil, nil, nil)
 	resp, err := h.Invoke(context.Background(), InvokeRequest{

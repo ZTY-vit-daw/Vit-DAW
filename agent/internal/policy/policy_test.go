@@ -26,6 +26,16 @@ func TestClassifyUndoableDoesNotRequireConfirmation(t *testing.T) {
 	}
 }
 
+func TestClassifyToolFormCommand(t *testing.T) {
+	d := Classify(map[string]any{"tool": "track.mute", "args": map[string]any{"mute": true}})
+	if d.Name != "set_mute" || d.Risk != RiskUndoable {
+		t.Fatalf("decision = %+v", d)
+	}
+	if NeedsConfirmation([]Decision{d}) {
+		t.Fatal("undoable tool call should not require confirmation")
+	}
+}
+
 func TestCommandNameFallback(t *testing.T) {
 	name := CommandName(map[string]any{"action": "play"})
 	if name != "play" {

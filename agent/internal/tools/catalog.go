@@ -192,15 +192,56 @@ func (c *Catalog) ModelSummary() string {
 	}
 	var parts []string
 	for _, spec := range c.Commands() {
-		confirm := "direct"
-		if spec.RequiresConfirmation {
-			confirm = "confirm"
-		} else if spec.RiskLevel == RiskUndoable {
-			confirm = "undoable"
+		required := "-"
+		if len(spec.RequiredTargetIDs) > 0 {
+			required = strings.Join(spec.RequiredTargetIDs, ",")
 		}
-		parts = append(parts, fmt.Sprintf("%s:%s", spec.CommandName, confirm))
+		parts = append(parts, fmt.Sprintf("%s tool=%s risk=%s required=%s args=%s", spec.CommandName, spec.ToolName, modelRisk(spec), required, argHint(spec.CommandName)))
 	}
-	return strings.Join(parts, ", ")
+	return strings.Join(parts, "\n")
+}
+
+func modelRisk(spec CommandSpec) string {
+	if spec.RequiresConfirmation || spec.RiskLevel == RiskConfirm {
+		return "confirm"
+	}
+	if spec.RiskLevel == RiskUndoable {
+		return "undoable"
+	}
+	return "direct"
+}
+
+func argHint(commandName string) string {
+	switch commandName {
+	case "rename_track":
+		return "name:string"
+	case "set_mute":
+		return "mute:boolean"
+	case "set_solo":
+		return "solo:boolean"
+	case "arm_track":
+		return "is_armed:boolean"
+	case "add_track", "add_audio_track":
+		return "optional name:string"
+	case "delete_track":
+		return "track_id:string"
+	case "set_tempo":
+		return "bpm:number"
+	case "seek":
+		return "time:number_seconds"
+	case "set_click":
+		return "enabled:boolean"
+	case "route_wave_input_to_track":
+		return "track_id:string device_id:string"
+	case "import_audio", "import_media_to_track":
+		return "track_id:string path/file_path:string"
+	case "get_plugin_parameters", "open_plugin_ui", "show_plugin_editor":
+		return "track_id:string plugin_id:string"
+	case "set_plugin_param":
+		return "track_id:string plugin_id:string param_id:string value:number"
+	default:
+		return "-"
+	}
 }
 
 func CommandName(cmd map[string]any) string {

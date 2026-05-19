@@ -238,7 +238,10 @@ func (h *Harness) resolveCommand(req InvokeRequest) (map[string]any, tools.Comma
 		flattenCommandParams(cmd)
 		name := tools.CommandName(cmd)
 		if name == "" {
-			return nil, tools.CommandSpec{}, fmt.Errorf("command is missing cmd/action/command")
+			if toolName := firstString(cmd, "tool"); toolName != "" {
+				return h.resolveToolCall(toolName, commandArgs(cmd))
+			}
+			return nil, tools.CommandSpec{}, fmt.Errorf("command is missing cmd/action/command or tool")
 		}
 		spec, ok := h.catalog.LookupCommand(name)
 		if !ok {
@@ -274,6 +277,27 @@ func (h *Harness) resolveCommand(req InvokeRequest) (map[string]any, tools.Comma
 	return cmd, spec, nil
 }
 
+func (h *Harness) resolveToolCall(toolName string, args map[string]any) (map[string]any, tools.CommandSpec, error) {
+	toolName = strings.TrimSpace(toolName)
+	spec, ok := h.catalog.LookupTool(toolName)
+	if !ok {
+		return nil, tools.CommandSpec{}, fmt.Errorf("unknown tool: %s", toolName)
+	}
+	cmd := tools.BuildCommand(spec.CommandName, args)
+	flattenCommandParams(cmd)
+	return cmd, spec, nil
+}
+
+func commandArgs(cmd map[string]any) map[string]any {
+	if args, ok := cmd["args"].(map[string]any); ok {
+		return tools.CloneCommand(args)
+	}
+	out := tools.CloneCommand(cmd)
+	delete(out, "tool")
+	delete(out, "args")
+	return out
+}
+
 func flattenCommandParams(cmd map[string]any) {
 	params, ok := cmd["params"].(map[string]any)
 	if !ok {
@@ -306,12 +330,76 @@ func (h *Harness) resolveImplicitTargets(ctx context.Context, spec tools.Command
 }
 
 func normalizeCommandArgs(spec tools.CommandSpec, cmd map[string]any) {
-	if spec.CommandName != "rename_track" {
+	switch spec.CommandName {
+	case "rename_track":
+		copyFirstNonEmpty(cmd, "name", "new_name", "track_name")
+	case "set_mute":
+		copyBoolAlias(cmd, "mute", "muted", "enabled", "value")
+	case "set_solo":
+		copyBoolAlias(cmd, "solo", "is_solo", "enabled", "value")
+	case "arm_track":
+		copyBoolAlias(cmd, "is_armed", "arm", "armed", "enabled", "value")
+	case "set_click":
+		copyBoolAlias(cmd, "enabled", "click", "value")
+	case "set_tempo":
+		copyFirstNonEmpty(cmd, "bpm", "tempo", "value")
+	case "seek":
+		copyFirstNonEmpty(cmd, "time", "position_seconds", "seconds", "value")
+	}
+}
+
+func copyFirstNonEmpty(cmd map[string]any, target string, aliases ...string) {
+	if !isEmptyValue(cmd[target]) {
 		return
 	}
-	if isEmptyValue(cmd["name"]) && !isEmptyValue(cmd["new_name"]) {
-		cmd["name"] = cmd["new_name"]
+	for _, key := range aliases {
+		if !isEmptyValue(cmd[key]) {
+			cmd[target] = cmd[key]
+			return
+		}
 	}
+}
+
+func copyBoolAlias(cmd map[string]any, target string, aliases ...string) {
+	if value, ok := boolValue(cmd[target]); ok {
+		cmd[target] = value
+		return
+	}
+	for _, key := range aliases {
+		if value, ok := boolValue(cmd[key]); ok {
+			cmd[target] = value
+			return
+		}
+	}
+}
+
+func boolValue(v any) (bool, bool) {
+	if isEmptyValue(v) {
+		return false, false
+	}
+	switch x := v.(type) {
+	case bool:
+		return x, true
+	case string:
+		switch strings.ToLower(strings.TrimSpace(x)) {
+		case "true", "1", "yes", "on", "enable", "enabled":
+			return true, true
+		case "false", "0", "no", "off", "disable", "disabled":
+			return false, true
+		}
+	case int:
+		return x != 0, true
+	case int64:
+		return x != 0, true
+	case float64:
+		return x != 0, true
+	case json.Number:
+		n, err := strconv.Atoi(x.String())
+		if err == nil {
+			return n != 0, true
+		}
+	}
+	return false, false
 }
 
 func (h *Harness) resolveTrackID(ctx context.Context, spec tools.CommandSpec, cmd map[string]any, requestContext map[string]any) (string, error) {

@@ -1,6 +1,9 @@
 package tools
 
-import "testing"
+import (
+	"strings"
+	"testing"
+)
 
 func TestDefaultCatalogExposesCoreCommands(t *testing.T) {
 	catalog := DefaultCatalog()
@@ -61,6 +64,19 @@ func TestPluginGrabberAliasIsCataloged(t *testing.T) {
 	}
 	if params.CommandName != "get_plugin_parameters" {
 		t.Fatalf("command = %q, want get_plugin_parameters", params.CommandName)
+	}
+}
+
+func TestModelSummaryIncludesToolAndArgumentHints(t *testing.T) {
+	summary := DefaultCatalog().ModelSummary()
+	for _, want := range []string{
+		"set_mute tool=track.mute risk=undoable required=track_id args=mute:boolean",
+		"rename_track tool=track.rename risk=undoable required=track_id args=name:string",
+		"delete_track tool=track.delete risk=confirm required=track_id args=track_id:string",
+	} {
+		if !strings.Contains(summary, want) {
+			t.Fatalf("ModelSummary missing %q in:\n%s", want, summary)
+		}
 	}
 }
 
