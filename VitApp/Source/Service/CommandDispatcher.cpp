@@ -2606,6 +2606,19 @@ juce::String CommandDispatcher::handleGetProjectState (const juce::DynamicObject
             row->setProperty ("mute", at->isMuted (false));
             row->setProperty ("solo", at->isSolo (false));
 
+            bool isArmed = false;
+            for (auto* input : edit->getAllInputDevices())
+            {
+                if (input != nullptr && input->isRecordingEnabled (at->itemID))
+                {
+                    isArmed = true;
+                    break;
+                }
+            }
+
+            row->setProperty ("is_armed", isArmed);
+            row->setProperty ("armed", isArmed);
+
             auto& rout = at->getOutput();
 
             if (auto* dev = rout.getOutputDevice (false))

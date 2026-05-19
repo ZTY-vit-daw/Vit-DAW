@@ -57,7 +57,7 @@ func TestSummaryHidesInternalTracktionTracks(t *testing.T) {
 			map[string]any{"track_id": "1004", "track_name": "Marker", "track_type": "track", "is_audio_track": false},
 			map[string]any{"track_id": "1005", "track_name": "Tempo", "track_type": "track", "is_audio_track": false},
 			map[string]any{"track_id": "1006", "track_name": "Master", "track_type": "master", "is_audio_track": false},
-			map[string]any{"track_id": "1007", "track_name": "Track 1", "track_type": "hybrid", "is_audio_track": true},
+			map[string]any{"track_id": "1007", "track_name": "Track 1", "track_type": "hybrid", "is_audio_track": true, "mute": true, "solo": false, "is_armed": true},
 		},
 	})
 
@@ -74,6 +74,9 @@ func TestSummaryHidesInternalTracktionTracks(t *testing.T) {
 	}
 	if tracks[0]["track_id"] != "1007" || tracks[0]["user_track_index"] != 1 {
 		t.Fatalf("visible track = %+v", tracks[0])
+	}
+	if tracks[0]["mute"] != true || tracks[0]["solo"] != false || tracks[0]["is_armed"] != true {
+		t.Fatalf("visible track state flags = %+v", tracks[0])
 	}
 	observability := summary["observability"].(map[string]any)
 	profile := observability["profile"].(map[string]any)
