@@ -75,6 +75,71 @@ func TestExecutedReplyRenamesTrackFromKernelReply(t *testing.T) {
 	}
 }
 
+func TestExecutedReplyUsesKernelMuteStateForCancel(t *testing.T) {
+	before := map[string]any{
+		"tracks": []map[string]any{
+			{"track_id": "1007", "name": "Track 1"},
+		},
+	}
+
+	reply := executedReply(before, before, []policy.Decision{
+		{
+			Name: "set_mute",
+			Risk: policy.RiskUndoable,
+			Command: map[string]any{
+				"tool": "track.mute",
+				"args": map[string]any{
+					"track_id": "1007",
+					"enabled":  true,
+				},
+			},
+		},
+	}, []map[string]any{
+		{
+			"result": map[string]any{
+				"track_id": "1007",
+				"mute":     false,
+			},
+		},
+	})
+
+	if !strings.Contains(reply, "已取消 Track 1 的静音") {
+		t.Fatalf("reply = %q", reply)
+	}
+	if strings.Contains(reply, "1007") {
+		t.Fatalf("reply leaked track id: %q", reply)
+	}
+}
+
+func TestExecutedReplyExpandsToolArgsForSoloCancel(t *testing.T) {
+	before := map[string]any{
+		"tracks": []map[string]any{
+			{"track_id": "1007", "name": "Track 1"},
+		},
+	}
+
+	reply := executedReply(before, before, []policy.Decision{
+		{
+			Name: "set_solo",
+			Risk: policy.RiskUndoable,
+			Command: map[string]any{
+				"tool": "track.solo",
+				"args": map[string]any{
+					"track_id": "1007",
+					"enabled":  false,
+				},
+			},
+		},
+	}, nil)
+
+	if !strings.Contains(reply, "已取消 Track 1 的独奏") {
+		t.Fatalf("reply = %q", reply)
+	}
+	if strings.Contains(reply, "1007") {
+		t.Fatalf("reply leaked track id: %q", reply)
+	}
+}
+
 func TestSanitizeUserReplyReplacesTrackIDsUnlessAsked(t *testing.T) {
 	state := map[string]any{
 		"tracks": []map[string]any{

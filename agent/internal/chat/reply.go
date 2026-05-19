@@ -85,8 +85,8 @@ func executedReply(before, after map[string]any, decisions []policy.Decision, re
 }
 
 func executedCommandReply(before, after map[string]any, d policy.Decision, reply map[string]any) string {
-	cmd := d.Command
 	result := replyResult(reply)
+	cmd := expandedCommand(d.Command)
 	switch d.Name {
 	case "rename_track":
 		oldName := trackNameByID(before, textValue(cmd["track_id"]))
@@ -109,19 +109,31 @@ func executedCommandReply(before, after map[string]any, d policy.Decision, reply
 		return "已重命名轨道。"
 	case "set_mute":
 		name := targetTrackName(before, after, cmd)
-		if value, ok := firstBool(cmd, "mute", "muted", "value", "enabled"); ok && !value {
+		value, ok := firstBool(result, "mute", "muted")
+		if !ok {
+			value, ok = firstBool(cmd, "mute", "muted", "value", "enabled")
+		}
+		if ok && !value {
 			return fmt.Sprintf("已取消 %s 的静音。", name)
 		}
 		return fmt.Sprintf("已静音 %s。", name)
 	case "set_solo":
 		name := targetTrackName(before, after, cmd)
-		if value, ok := firstBool(cmd, "solo", "value", "enabled"); ok && !value {
+		value, ok := firstBool(result, "solo", "is_solo")
+		if !ok {
+			value, ok = firstBool(cmd, "solo", "is_solo", "value", "enabled")
+		}
+		if ok && !value {
 			return fmt.Sprintf("已取消 %s 的独奏。", name)
 		}
 		return fmt.Sprintf("已独奏 %s。", name)
 	case "arm_track":
 		name := targetTrackName(before, after, cmd)
-		if value, ok := firstBool(cmd, "arm", "armed", "value", "enabled"); ok && !value {
+		value, ok := firstBool(result, "is_armed", "arm", "armed")
+		if !ok {
+			value, ok = firstBool(cmd, "is_armed", "arm", "armed", "value", "enabled")
+		}
+		if ok && !value {
 			return fmt.Sprintf("已取消 %s 的录音准备。", name)
 		}
 		return fmt.Sprintf("已将 %s 设为录音准备。", name)
@@ -152,6 +164,25 @@ func executedCommandReply(before, after map[string]any, d policy.Decision, reply
 		}
 		return "已完成。"
 	}
+}
+
+func expandedCommand(cmd map[string]any) map[string]any {
+	out := map[string]any{}
+	for k, v := range cmd {
+		out[k] = v
+	}
+	for _, key := range []string{"args", "params"} {
+		nested, ok := cmd[key].(map[string]any)
+		if !ok {
+			continue
+		}
+		for k, v := range nested {
+			if firstText(out, k) == "" {
+				out[k] = v
+			}
+		}
+	}
+	return out
 }
 
 func formatTrackList(state map[string]any) string {
