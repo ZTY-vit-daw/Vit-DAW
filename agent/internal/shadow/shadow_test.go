@@ -43,3 +43,41 @@ func TestShadowTracksOrphanDeltas(t *testing.T) {
 		t.Fatalf("orphan_uid_keys = %#v, want 1", got)
 	}
 }
+
+func TestSummaryHidesInternalTracktionTracks(t *testing.T) {
+	p := New(nil)
+	p.Initialize(map[string]any{
+		"status": "ok",
+		"observability": map[string]any{
+			"profile": map[string]any{"track_count": 6},
+		},
+		"tracks": []any{
+			map[string]any{"track_id": "1002", "track_name": "Arranger", "track_type": "track", "is_audio_track": false},
+			map[string]any{"track_id": "1003", "track_name": "Chord", "track_type": "track", "is_audio_track": false},
+			map[string]any{"track_id": "1004", "track_name": "Marker", "track_type": "track", "is_audio_track": false},
+			map[string]any{"track_id": "1005", "track_name": "Tempo", "track_type": "track", "is_audio_track": false},
+			map[string]any{"track_id": "1006", "track_name": "Master", "track_type": "master", "is_audio_track": false},
+			map[string]any{"track_id": "1007", "track_name": "Track 1", "track_type": "hybrid", "is_audio_track": true},
+		},
+	})
+
+	summary := p.Summary()
+	if got := summary["engine_track_count"]; got != 6 {
+		t.Fatalf("engine_track_count = %#v, want 6", got)
+	}
+	if got := summary["track_count"]; got != 1 {
+		t.Fatalf("track_count = %#v, want 1", got)
+	}
+	tracks := summary["tracks"].([]map[string]any)
+	if len(tracks) != 1 {
+		t.Fatalf("visible tracks = %d, want 1", len(tracks))
+	}
+	if tracks[0]["track_id"] != "1007" || tracks[0]["user_track_index"] != 1 {
+		t.Fatalf("visible track = %+v", tracks[0])
+	}
+	observability := summary["observability"].(map[string]any)
+	profile := observability["profile"].(map[string]any)
+	if got := profile["track_count"]; got != 1 {
+		t.Fatalf("observability profile track_count = %#v, want 1", got)
+	}
+}

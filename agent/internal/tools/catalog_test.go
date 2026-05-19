@@ -28,6 +28,22 @@ func TestDefaultCatalogExposesCoreCommands(t *testing.T) {
 	if add.CommandName != "add_track" || add.RequiresConfirmation || add.RiskLevel != RiskUndoable {
 		t.Fatalf("track.add metadata = %+v", add)
 	}
+
+	rename, ok := catalog.LookupTool("track.rename")
+	if !ok {
+		t.Fatal("track.rename missing")
+	}
+	if rename.CommandName != "rename_track" || rename.RequiresConfirmation {
+		t.Fatalf("track.rename metadata = %+v", rename)
+	}
+
+	solo, ok := catalog.LookupTool("track.solo")
+	if !ok {
+		t.Fatal("track.solo missing")
+	}
+	if solo.CommandName != "set_solo" || solo.RequiresConfirmation {
+		t.Fatalf("track.solo metadata = %+v", solo)
+	}
 }
 
 func TestPluginGrabberAliasIsCataloged(t *testing.T) {

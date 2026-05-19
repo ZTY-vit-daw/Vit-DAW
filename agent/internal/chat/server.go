@@ -37,12 +37,14 @@ type PendingPlan struct {
 	ID        string            `json:"id"`
 	CreatedAt time.Time         `json:"created_at"`
 	Decisions []policy.Decision `json:"decisions"`
+	Context   map[string]any    `json:"context,omitempty"`
 	Preview   string            `json:"preview"`
 }
 
 type ChatRequest struct {
-	ConversationID string `json:"conversation_id"`
-	Message        string `json:"message"`
+	ConversationID string         `json:"conversation_id"`
+	Message        string         `json:"message"`
+	Context        map[string]any `json:"context,omitempty"`
 }
 
 type ChatResponse struct {
@@ -105,7 +107,7 @@ func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {
 func (s *Server) handleState(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]any{
 		"status":          "ok",
-		"shadow":          s.shadow.Summary(),
+		"shadow":          s.harness.StateSummary(r.Context()),
 		"direct_commands": s.harness.DirectCommandNames(),
 		"tool_count":      len(s.harness.Tools()),
 	})
@@ -238,7 +240,7 @@ func (s *Server) handleChat(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	messages := s.buildMessages(conversationID, req.Message)
+	messages := s.buildMessages(r.Context(), conversationID, req.Message, req.Context)
 	raw, err := s.llm.Complete(r.Context(), cfg, messages)
 	if err != nil {
 		writeJSON(w, http.StatusOK, ChatResponse{
@@ -254,10 +256,11 @@ func (s *Server) handleChat(w http.ResponseWriter, r *http.Request) {
 	}
 
 	decisions := policy.Analyze(env.Commands)
-	s.remember(conversationID, req.Message, env.Reply)
 
 	if len(decisions) == 0 {
-		writeJSON(w, http.StatusOK, ChatResponse{ConversationID: conversationID, Reply: env.Reply})
+		reply := sanitizeUserReply(env.Reply, s.harness.UserStateSummary(r.Context()), req.Message)
+		s.remember(conversationID, req.Message, reply)
+		writeJSON(w, http.StatusOK, ChatResponse{ConversationID: conversationID, Reply: reply})
 		return
 	}
 	if policy.NeedsConfirmation(decisions) {
@@ -265,14 +268,17 @@ func (s *Server) handleChat(w http.ResponseWriter, r *http.Request) {
 			ID:        "plan_" + randomID(),
 			CreatedAt: time.Now(),
 			Decisions: decisions,
+			Context:   cloneContext(req.Context),
 			Preview:   policy.Preview(decisions),
 		}
 		s.mu.Lock()
 		s.pending[plan.ID] = plan
 		s.mu.Unlock()
+		reply := confirmationReply(decisions)
+		s.remember(conversationID, req.Message, reply)
 		writeJSON(w, http.StatusOK, ChatResponse{
 			ConversationID:    conversationID,
-			Reply:             env.Reply + "\n\n我准备执行下面这些 DAW 操作，请确认后再继续。",
+			Reply:             reply,
 			NeedsConfirmation: true,
 			PlanID:            plan.ID,
 			Preview:           plan.Preview,
@@ -281,17 +287,23 @@ func (s *Server) handleChat(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	replies, execErr := s.executeDecisions(r.Context(), decisions, false)
+	beforeState := s.harness.UserStateSummary(r.Context())
+	replies, execErr := s.executeDecisions(r.Context(), decisions, false, req.Context)
+	reply := executedReply(beforeState, s.harness.UserStateSummary(r.Context()), decisions, replies)
+	if strings.TrimSpace(reply) == "" {
+		reply = env.Reply
+	}
 	resp := ChatResponse{
 		ConversationID:      conversationID,
-		Reply:               env.Reply,
+		Reply:               reply,
 		Commands:            decisions,
 		ExecutedKernelReply: replies,
 	}
 	if execErr != nil {
 		resp.Error = execErr.Error()
-		resp.Reply += "\n\n低风险命令执行时出错：" + execErr.Error()
+		resp.Reply = friendlyExecutionError(execErr)
 	}
+	s.remember(conversationID, req.Message, resp.Reply)
 	writeJSON(w, http.StatusOK, resp)
 }
 
@@ -321,7 +333,7 @@ func (s *Server) handleConfirm(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusOK, map[string]any{"status": "ok", "message": "plan cancelled", "plan_id": planID})
 		return
 	}
-	replies, err := s.executeDecisions(r.Context(), plan.Decisions, true)
+	replies, err := s.executeDecisions(r.Context(), plan.Decisions, true, plan.Context)
 	if err != nil {
 		writeJSON(w, http.StatusOK, map[string]any{
 			"status":  "error",
@@ -339,9 +351,10 @@ func (s *Server) handleConfirm(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (s *Server) buildMessages(conversationID, userText string) []llm.Message {
-	state, _ := json.MarshalIndent(s.shadow.Summary(), "", "  ")
+func (s *Server) buildMessages(ctx context.Context, conversationID, userText string, requestContext map[string]any) []llm.Message {
+	state, _ := json.MarshalIndent(s.harness.UserStateSummary(ctx), "", "  ")
 	catalog := s.harness.ModelCatalogSummary()
+	selectedContext := agentContextForPrompt(requestContext)
 	system := fmt.Sprintf(`You are Ask Vit, the DAW assistant inside Vit-DAW.
 Return ONLY JSON with this shape:
 {"reply":"short user-facing answer","commands":[{"cmd":"get_project_state"}]}
@@ -349,12 +362,22 @@ Return ONLY JSON with this shape:
 Use commands only when they are clearly useful. Unknown commands are rejected by the agent harness.
 Commands marked confirm require user preview/confirmation. Commands marked undoable can run directly when the target is unambiguous.
 Do not invent track_id or clip_id. Use IDs from the DAW state below.
+Use stable IDs only inside commands. User-facing replies should use track names, clip names, or plain musical descriptions; do not show track_id, clip_id, plugin_id, or agent_action_id unless the user explicitly asks for technical details.
+The DAW state below intentionally hides internal Tracktion tracks such as arranger/chord/marker/tempo/master. Treat tracks[] as the user-visible editable track list.
+When the user says "first track" or "第一条轨道", use tracks[0].track_id / user_track_index=1, not the lowest engine track ID.
+Never use or mention hidden engine/internal track IDs that are not present in Current DAW state tracks[].
+get_project_state and list_tracks results are sanitized for Ask Vit; they are for user-visible DAW work, not raw engine inspection.
+Selected DAW context comes from the Godot UI. When the user says "this track", "current track", or "selected track", use selected_track_id if it is present and it appears in Current DAW state tracks[].
+If commands is non-empty, keep reply as a short internal intent summary. VitAgent will replace it with the final user-facing result after execution, so do not rely on "about to" / "即将" wording as the final answer.
 
 Available DAW command catalog:
 %s
 
+Selected DAW context:
+%s
+
 Current DAW state:
-%s`, catalog, string(state))
+%s`, catalog, selectedContext, string(state))
 
 	s.mu.Lock()
 	history := append([]llm.Message(nil), s.conversations[conversationID]...)
@@ -378,11 +401,12 @@ func (s *Server) remember(conversationID, userText, assistantText string) {
 	)
 }
 
-func (s *Server) executeDecisions(ctx context.Context, decisions []policy.Decision, confirmed bool) ([]map[string]any, error) {
+func (s *Server) executeDecisions(ctx context.Context, decisions []policy.Decision, confirmed bool, requestContext map[string]any) ([]map[string]any, error) {
 	replies := make([]map[string]any, 0, len(decisions))
 	for _, d := range decisions {
 		resp, err := s.harness.Invoke(ctx, harness.InvokeRequest{
 			Command:   d.Command,
+			Context:   requestContext,
 			Source:    "chat",
 			Confirmed: confirmed,
 		})
@@ -404,6 +428,31 @@ func (s *Server) executeDecisions(ctx context.Context, decisions []policy.Decisi
 		})
 	}
 	return replies, nil
+}
+
+func agentContextForPrompt(requestContext map[string]any) string {
+	safe := map[string]string{}
+	for _, key := range []string{"selected_track_id", "selected_track_name", "selected_scene_track_id", "selected_clip_id"} {
+		if value := strings.TrimSpace(fmt.Sprint(requestContext[key])); value != "" && value != "<nil>" {
+			safe[key] = value
+		}
+	}
+	if len(safe) == 0 {
+		return "{}"
+	}
+	raw, _ := json.MarshalIndent(safe, "", "  ")
+	return string(raw)
+}
+
+func cloneContext(in map[string]any) map[string]any {
+	if len(in) == 0 {
+		return nil
+	}
+	out := make(map[string]any, len(in))
+	for k, v := range in {
+		out[k] = v
+	}
+	return out
 }
 
 func parseModelEnvelope(raw string) modelEnvelope {

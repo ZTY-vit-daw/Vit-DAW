@@ -2084,6 +2084,11 @@ void CommandDispatcher::registerBuiltinCommands()
         return trackService != nullptr ? trackService->handleDeleteTrack (object, raw)
                                        : makeErrorReply ("Track service unavailable");
     });
+    handlers.emplace ("rename_track", [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return trackService != nullptr ? trackService->handleRenameTrack (object, raw)
+                                       : makeErrorReply ("Track service unavailable");
+    });
 
     handlers.emplace ("add_audio_clip", [this] (const juce::DynamicObject& object, const juce::String& raw)
     {
@@ -2208,6 +2213,11 @@ void CommandDispatcher::registerBuiltinCommands()
     handlers.emplace ("set_mute", [this] (const juce::DynamicObject& object, const juce::String& raw)
     {
         return trackService != nullptr ? trackService->handleSetMute (object, raw)
+                                       : makeErrorReply ("Track service unavailable");
+    });
+    handlers.emplace ("set_solo", [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return trackService != nullptr ? trackService->handleSetSolo (object, raw)
                                        : makeErrorReply ("Track service unavailable");
     });
     handlers.emplace ("set_plugin_param", [this] (const juce::DynamicObject& object, const juce::String& raw)

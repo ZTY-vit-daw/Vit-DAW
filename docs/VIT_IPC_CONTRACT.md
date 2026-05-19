@@ -305,6 +305,24 @@ Phase 4.2 同样强制 `cut` 重叠策略，且**主操作 + 被覆盖 clip 裁�
 
 前端应在收到 **成功** 应答后再拉取 `get_project_state` 做 UI 剪枝；**失败时不要刷新**，保持界面不变。
 
+
+#### `rename_track`
+
+Renames one AudioTrack by stable kernel `track_id`. This command is intended for UI shortcuts and Agent small edits. Do not use UI row index.
+
+* **REQ**: `{"cmd":"rename_track","track_id":"1007","name":"Lead Vocal"}`
+* **REP ok**: `{"status":"ok","message":"Track renamed","track_id":"1007","old_name":"Track 1","track_name":"Lead Vocal"}`
+* **REP error**: `rename_track requires a non-empty track_id`, `rename_track requires a non-empty name or track_name field`, or `Audio track not found for track_id: ...`.
+
+#### `set_solo`
+
+Sets solo state on one AudioTrack by stable kernel `track_id`. The write uses the Edit UndoManager so Agent can expose this as a small undoable edit.
+
+* **REQ**: `{"cmd":"set_solo","track_id":"1007","solo":true}`
+* **Alias field**: `is_solo` is accepted when `solo` is absent.
+* **REP ok**: `{"status":"ok","message":"Track soloed","track_id":"1007","track_name":"Lead Vocal","mute":false,"solo":true}`
+* **REP error**: `set_solo requires a non-empty track_id`, `set_solo requires a boolean solo or is_solo field`, or `Audio track not found for track_id: ...`.
+
 ### `get_project_state`（全息工程拓扑 / 前端对齐）
 
 在进入主界面或打开工程后，前端应调用此指令拉取**与内核一致**的轨道拓扑，缓解 UI 与 `Edit` 的**状态脱节**。

@@ -132,7 +132,9 @@ juce::String buildTrackReply (te::AudioTrack& track, const juce::String& message
     response->setProperty ("status", "ok");
     response->setProperty ("message", message);
     response->setProperty ("track_id", track.itemID.toString());
+    response->setProperty ("track_name", track.getName());
     response->setProperty ("mute", track.isMuted (false));
+    response->setProperty ("solo", track.isSolo (false));
 
     if (auto* volumePlugin = track.getVolumePlugin())
         response->setProperty ("db", volumePlugin->getVolumeDb());
@@ -306,6 +308,47 @@ juce::String TrackService::handleDeleteTrack (const juce::DynamicObject& object,
     return juce::JSON::toString (juce::var (response.release()));
 }
 
+juce::String TrackService::handleRenameTrack (const juce::DynamicObject& object, const juce::String&) const
+{
+    auto* edit = getEdit != nullptr ? getEdit() : nullptr;
+
+    if (edit == nullptr)
+        return makeErrorReply ("No active edit loaded");
+
+    const auto trackID = object.getProperty ("track_id").toString().trim();
+    auto newName = object.getProperty ("name").toString().trim();
+
+    if (newName.isEmpty())
+        newName = object.getProperty ("track_name").toString().trim();
+
+    if (trackID.isEmpty())
+        return makeErrorReply ("rename_track requires a non-empty track_id");
+
+    if (newName.isEmpty())
+        return makeErrorReply ("rename_track requires a non-empty name or track_name field");
+
+    auto* targetTrack = findAudioTrackByID (*edit, trackID);
+
+    if (targetTrack == nullptr)
+        return makeErrorReply ("Audio track not found for track_id: " + trackID);
+
+    const auto oldName = targetTrack->getName();
+    auto& undo = edit->getUndoManager();
+    undo.beginNewTransaction ("Rename track");
+    targetTrack->setName (newName);
+    targetTrack->flushStateToValueTree();
+    edit->dispatchPendingUpdatesSynchronously();
+    edit->getTransport().ensureContextAllocated();
+
+    auto response = std::make_unique<juce::DynamicObject>();
+    response->setProperty ("status", "ok");
+    response->setProperty ("message", "Track renamed");
+    response->setProperty ("track_id", targetTrack->itemID.toString());
+    response->setProperty ("old_name", oldName);
+    response->setProperty ("track_name", targetTrack->getName());
+    return juce::JSON::toString (juce::var (response.release()));
+}
+
 juce::String TrackService::handleSetVolume (const juce::DynamicObject& object, const juce::String&) const
 {
     auto* edit = getEdit != nullptr ? getEdit() : nullptr;
@@ -368,15 +411,52 @@ juce::String TrackService::handleSetMute (const juce::DynamicObject& object, con
     if (targetTrack == nullptr)
         return makeErrorReply ("Audio track not found for track_id: " + trackID);
 
+    auto& undo = edit->getUndoManager();
+    undo.beginNewTransaction ("Set track mute");
     ensureMonitoringPlugins (*targetTrack);
 
-    targetTrack->setMute (static_cast<bool> (muteVar));
+    targetTrack->state.setProperty (te::IDs::mute, static_cast<bool> (muteVar), &undo);
     targetTrack->flushStateToValueTree();
     edit->dispatchPendingUpdatesSynchronously();
     edit->getTransport().ensureContextAllocated();
 
     return buildTrackReply (*targetTrack,
                             static_cast<bool> (muteVar) ? "Track muted" : "Track unmuted");
+}
+
+juce::String TrackService::handleSetSolo (const juce::DynamicObject& object, const juce::String&) const
+{
+    auto* edit = getEdit != nullptr ? getEdit() : nullptr;
+
+    if (edit == nullptr)
+        return makeErrorReply ("No active edit loaded");
+
+    const auto trackID = object.getProperty ("track_id").toString().trim();
+    auto soloVar = object.getProperty ("solo");
+
+    if (! soloVar.isBool())
+        soloVar = object.getProperty ("is_solo");
+
+    if (trackID.isEmpty())
+        return makeErrorReply ("set_solo requires a non-empty track_id");
+
+    if (! soloVar.isBool())
+        return makeErrorReply ("set_solo requires a boolean solo or is_solo field");
+
+    auto* targetTrack = findAudioTrackByID (*edit, trackID);
+
+    if (targetTrack == nullptr)
+        return makeErrorReply ("Audio track not found for track_id: " + trackID);
+
+    auto& undo = edit->getUndoManager();
+    undo.beginNewTransaction ("Set track solo");
+    targetTrack->state.setProperty (te::IDs::solo, static_cast<bool> (soloVar), &undo);
+    targetTrack->flushStateToValueTree();
+    edit->dispatchPendingUpdatesSynchronously();
+    edit->getTransport().ensureContextAllocated();
+
+    return buildTrackReply (*targetTrack,
+                            static_cast<bool> (soloVar) ? "Track soloed" : "Track unsoloed");
 }
 
 juce::String TrackService::makeStatusReply (const juce::String& status, const juce::String& message)

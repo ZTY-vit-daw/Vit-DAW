@@ -65,6 +65,12 @@ func (p *Project) ApplyDelta(delta map[string]any) {
 	p.applyDeltaLocked(delta, false)
 }
 
+func (p *Project) Initialized() bool {
+	p.mu.RLock()
+	defer p.mu.RUnlock()
+	return p.initialized
+}
+
 func (p *Project) Snapshot() map[string]any {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
@@ -78,20 +84,25 @@ func (p *Project) Summary() map[string]any {
 	engine, _ := p.state["engine_snapshot"].(map[string]any)
 	nodes, _ := p.state["nodes_by_uid"].(map[string]any)
 	tracks := asArray(engine["tracks"])
+	userTracks := compactUserTracks(tracks)
+	observability := sanitizedObservability(engine["observability"], len(userTracks))
 
 	out := map[string]any{
-		"initialized":      p.initialized,
-		"project_path":     fmt.Sprint(engine["project_path"]),
-		"track_count":      len(tracks),
-		"nodes_by_uid":     len(nodes),
-		"orphan_uid_keys":  len(p.orphanDeltas),
-		"last_delta_seq":   p.lastDeltaSeqID,
-		"delta_seq_gaps":   p.seqGapCount,
-		"tracks":           compactTracks(tracks),
-		"observability":    cloneMap(engine["observability"]),
-		"project_health":   cloneMap(engine["project_health"]),
-		"graph_revision":   engine["graph_revision"],
-		"pending_job_data": cloneMap(engine["jobs"]),
+		"initialized":          p.initialized,
+		"project_path":         fmt.Sprint(engine["project_path"]),
+		"track_count":          len(userTracks),
+		"user_track_count":     len(userTracks),
+		"engine_track_count":   len(tracks),
+		"internal_track_count": len(tracks) - len(userTracks),
+		"nodes_by_uid":         len(nodes),
+		"orphan_uid_keys":      len(p.orphanDeltas),
+		"last_delta_seq":       p.lastDeltaSeqID,
+		"delta_seq_gaps":       p.seqGapCount,
+		"tracks":               userTracks,
+		"observability":        observability,
+		"project_health":       cloneMap(engine["project_health"]),
+		"graph_revision":       engine["graph_revision"],
+		"pending_job_data":     cloneMap(engine["jobs"]),
 	}
 	return out
 }
@@ -197,6 +208,95 @@ func compactTracks(tracks []any) []map[string]any {
 		})
 	}
 	return out
+}
+
+func compactUserTracks(tracks []any) []map[string]any {
+	out := make([]map[string]any, 0, len(tracks))
+	for _, it := range tracks {
+		row, ok := it.(map[string]any)
+		if !ok || !isUserTrack(row) {
+			continue
+		}
+		out = append(out, compactTrack(row, len(out)+1))
+	}
+	return out
+}
+
+func compactTrack(row map[string]any, userIndex int) map[string]any {
+	return map[string]any{
+		"user_track_index": userIndex,
+		"is_user_visible":  true,
+		"id":               firstPresent(row, "id", "track_id"),
+		"track_id":         firstPresent(row, "track_id", "id"),
+		"name":             firstPresent(row, "name", "track_name"),
+		"track_name":       firstPresent(row, "track_name", "name"),
+		"type":             firstPresent(row, "type", "track_type"),
+		"track_type":       firstPresent(row, "track_type", "type"),
+		"is_audio_track":   row["is_audio_track"],
+		"plugins":          row["plugins"],
+		"clips":            row["clips"],
+		"rack":             row["rack"],
+	}
+}
+
+func isUserTrack(row map[string]any) bool {
+	trackType := strings.ToLower(strings.TrimSpace(fmt.Sprint(firstPresent(row, "track_type", "type"))))
+	if trackType == "master" || trackType == "arranger" || trackType == "chord" || trackType == "marker" || trackType == "tempo" {
+		return false
+	}
+	trackName := strings.ToLower(strings.TrimSpace(fmt.Sprint(firstPresent(row, "track_name", "name"))))
+	if trackName == "master" || trackName == "arranger" || trackName == "chord" || trackName == "marker" || trackName == "tempo" {
+		return false
+	}
+	if boolFrom(row["is_audio_track"]) || boolFrom(row["is_audio"]) {
+		return true
+	}
+	vitType := strings.ToLower(strings.TrimSpace(fmt.Sprint(row["vit_type"])))
+	return vitType == "audio" || vitType == "midi" || vitType == "bus" || vitType == "ghost"
+}
+
+func sanitizedObservability(v any, userTrackCount int) any {
+	out := cloneMap(v)
+	m, ok := out.(map[string]any)
+	if !ok {
+		return out
+	}
+	profile, ok := m["profile"].(map[string]any)
+	if !ok {
+		return m
+	}
+	profile["track_count"] = userTrackCount
+	profile["user_track_count"] = userTrackCount
+	return m
+}
+
+func firstPresent(row map[string]any, keys ...string) any {
+	for _, key := range keys {
+		if v, ok := row[key]; ok && !isEmptyValue(v) {
+			return v
+		}
+	}
+	return nil
+}
+
+func isEmptyValue(v any) bool {
+	if v == nil {
+		return true
+	}
+	s := strings.TrimSpace(fmt.Sprint(v))
+	return s == "" || s == "<nil>"
+}
+
+func boolFrom(v any) bool {
+	switch x := v.(type) {
+	case bool:
+		return x
+	case string:
+		s := strings.ToLower(strings.TrimSpace(x))
+		return s == "true" || s == "1" || s == "yes"
+	default:
+		return false
+	}
 }
 
 func propertyKey(action string) string {
