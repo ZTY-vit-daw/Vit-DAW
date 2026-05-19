@@ -312,7 +312,7 @@ func flattenCommandParams(cmd map[string]any) {
 }
 
 func (h *Harness) resolveImplicitTargets(ctx context.Context, spec tools.CommandSpec, cmd map[string]any, requestContext map[string]any) error {
-	normalizeCommandArgs(spec, cmd)
+	normalizeCommandArgs(spec, cmd, requestContext)
 
 	for _, field := range spec.RequiredTargetIDs {
 		if field != "track_id" || !isEmptyValue(cmd[field]) {
@@ -329,16 +329,25 @@ func (h *Harness) resolveImplicitTargets(ctx context.Context, spec tools.Command
 	return nil
 }
 
-func normalizeCommandArgs(spec tools.CommandSpec, cmd map[string]any) {
+func normalizeCommandArgs(spec tools.CommandSpec, cmd map[string]any, requestContext map[string]any) {
 	switch spec.CommandName {
 	case "rename_track":
 		copyFirstNonEmpty(cmd, "name", "new_name", "track_name")
 	case "set_mute":
 		copyBoolAlias(cmd, "mute", "muted", "enabled", "value")
+		inferBoolFromUserMessage(cmd, "mute", requestContext,
+			[]string{"unmute", "取消静音", "解除静音", "取消mute", "取消 mute", "关闭静音"},
+			[]string{"mute", "静音"})
 	case "set_solo":
 		copyBoolAlias(cmd, "solo", "is_solo", "enabled", "value")
+		inferBoolFromUserMessage(cmd, "solo", requestContext,
+			[]string{"unsolo", "取消独奏", "解除独奏", "取消solo", "取消 solo", "关闭独奏"},
+			[]string{"solo", "独奏"})
 	case "arm_track":
 		copyBoolAlias(cmd, "is_armed", "arm", "armed", "enabled", "value")
+		inferBoolFromUserMessage(cmd, "is_armed", requestContext,
+			[]string{"disarm", "取消录音准备", "解除录音准备", "取消arm", "取消 arm"},
+			[]string{"arm", "录音准备"})
 	case "set_click":
 		copyBoolAlias(cmd, "enabled", "click", "value")
 	case "set_tempo":
@@ -346,6 +355,53 @@ func normalizeCommandArgs(spec tools.CommandSpec, cmd map[string]any) {
 	case "seek":
 		copyFirstNonEmpty(cmd, "time", "position_seconds", "seconds", "value")
 	}
+}
+
+func inferBoolFromUserMessage(cmd map[string]any, target string, requestContext map[string]any, negativePhrases, positivePhrases []string) {
+	if _, ok := boolValue(cmd[target]); ok {
+		return
+	}
+	text := strings.TrimSpace(firstString(requestContext, "user_message", "message", "prompt", "utterance"))
+	if text == "" {
+		return
+	}
+	if value, ok := inferBoolFromText(text, negativePhrases, positivePhrases); ok {
+		cmd[target] = value
+	}
+}
+
+func inferBoolFromText(text string, negativePhrases, positivePhrases []string) (bool, bool) {
+	lower := strings.ToLower(text)
+	stripped := lower
+	hasNegative := false
+	for _, phrase := range negativePhrases {
+		p := strings.ToLower(strings.TrimSpace(phrase))
+		if p == "" {
+			continue
+		}
+		if strings.Contains(lower, p) {
+			hasNegative = true
+			stripped = strings.ReplaceAll(stripped, p, " ")
+		}
+	}
+	hasPositive := false
+	for _, phrase := range positivePhrases {
+		p := strings.ToLower(strings.TrimSpace(phrase))
+		if p != "" && strings.Contains(stripped, p) {
+			hasPositive = true
+			break
+		}
+	}
+	if hasPositive && hasNegative {
+		return false, false
+	}
+	if hasPositive {
+		return true, true
+	}
+	if hasNegative {
+		return false, true
+	}
+	return false, false
 }
 
 func copyFirstNonEmpty(cmd map[string]any, target string, aliases ...string) {

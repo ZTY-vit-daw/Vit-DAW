@@ -99,6 +99,51 @@ func TestNormalizeTrackBooleanAliases(t *testing.T) {
 	}
 }
 
+func TestInferMissingTrackBooleanFromUserMessage(t *testing.T) {
+	h := New(nil, nil, nil)
+	cases := []struct {
+		name    string
+		command map[string]any
+		context map[string]any
+		field   string
+		want    bool
+	}{
+		{
+			name:    "mute on",
+			command: map[string]any{"cmd": "set_mute", "track_id": "1007"},
+			context: map[string]any{"user_message": "我想让track1静音"},
+			field:   "mute",
+			want:    true,
+		},
+		{
+			name:    "mute off",
+			command: map[string]any{"cmd": "set_mute", "track_id": "1007"},
+			context: map[string]any{"user_message": "取消静音"},
+			field:   "mute",
+			want:    false,
+		},
+		{
+			name:    "solo on",
+			command: map[string]any{"cmd": "set_solo", "track_id": "1012"},
+			context: map[string]any{"user_message": "track 2 solo"},
+			field:   "solo",
+			want:    true,
+		},
+	}
+	for _, tc := range cases {
+		cmd, spec, err := h.resolveCommand(InvokeRequest{Command: tc.command})
+		if err != nil {
+			t.Fatalf("%s resolveCommand: %v", tc.name, err)
+		}
+		if err := h.resolveImplicitTargets(context.Background(), spec, cmd, tc.context); err != nil {
+			t.Fatalf("%s resolveImplicitTargets: %v", tc.name, err)
+		}
+		if got := cmd[tc.field]; got != tc.want {
+			t.Fatalf("%s %s = %#v, want %#v; cmd=%+v", tc.name, tc.field, got, tc.want, cmd)
+		}
+	}
+}
+
 func TestInvokeRejectsMissingRequiredTargetID(t *testing.T) {
 	h := New(nil, nil, nil)
 	resp, err := h.Invoke(context.Background(), InvokeRequest{

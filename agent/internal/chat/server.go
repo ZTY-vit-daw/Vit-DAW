@@ -255,6 +255,7 @@ func (s *Server) handleChat(w http.ResponseWriter, r *http.Request) {
 		env.Reply = strings.TrimSpace(raw)
 	}
 
+	chatContext := contextWithUserMessage(req.Context, req.Message)
 	decisions := policy.Analyze(env.Commands)
 
 	if len(decisions) == 0 {
@@ -268,7 +269,7 @@ func (s *Server) handleChat(w http.ResponseWriter, r *http.Request) {
 			ID:        "plan_" + randomID(),
 			CreatedAt: time.Now(),
 			Decisions: decisions,
-			Context:   cloneContext(req.Context),
+			Context:   chatContext,
 			Preview:   policy.Preview(decisions),
 		}
 		s.mu.Lock()
@@ -288,7 +289,7 @@ func (s *Server) handleChat(w http.ResponseWriter, r *http.Request) {
 	}
 
 	beforeState := s.harness.UserStateSummary(r.Context())
-	replies, execErr := s.executeDecisions(r.Context(), decisions, false, req.Context)
+	replies, execErr := s.executeDecisions(r.Context(), decisions, false, chatContext)
 	reply := executedReply(beforeState, s.harness.UserStateSummary(r.Context()), decisions, replies)
 	if strings.TrimSpace(reply) == "" {
 		reply = env.Reply
@@ -362,6 +363,9 @@ You may also use tool-form commands when it is clearer:
 {"reply":"short user-facing answer","commands":[{"tool":"track.mute","args":{"mute":true}}]}
 
 Use commands only when they are clearly useful. Unknown commands are rejected by the agent harness.
+For set_mute / track.mute you MUST include mute:true for muting and mute:false for unmuting.
+For set_solo / track.solo you MUST include solo:true for soloing and solo:false for unsoloing.
+For arm_track / track.arm you MUST include is_armed:true or is_armed:false.
 Commands marked confirm require user preview/confirmation. Commands marked undoable can run directly when the target is unambiguous.
 Do not invent track_id or clip_id. Use IDs from the DAW state below.
 Use stable IDs only inside commands. User-facing replies should use track names, clip names, or plain musical descriptions; do not show track_id, clip_id, plugin_id, or agent_action_id unless the user explicitly asks for technical details.
@@ -453,6 +457,17 @@ func cloneContext(in map[string]any) map[string]any {
 	out := make(map[string]any, len(in))
 	for k, v := range in {
 		out[k] = v
+	}
+	return out
+}
+
+func contextWithUserMessage(in map[string]any, message string) map[string]any {
+	out := cloneContext(in)
+	if out == nil {
+		out = map[string]any{}
+	}
+	if strings.TrimSpace(message) != "" {
+		out["user_message"] = strings.TrimSpace(message)
 	}
 	return out
 }

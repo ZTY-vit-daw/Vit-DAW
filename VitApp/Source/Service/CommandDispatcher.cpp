@@ -2603,6 +2603,9 @@ juce::String CommandDispatcher::handleGetProjectState (const juce::DynamicObject
 
         if (auto* at = dynamic_cast<te::AudioTrack*> (track))
         {
+            row->setProperty ("mute", at->isMuted (false));
+            row->setProperty ("solo", at->isSolo (false));
+
             auto& rout = at->getOutput();
 
             if (auto* dev = rout.getOutputDevice (false))
