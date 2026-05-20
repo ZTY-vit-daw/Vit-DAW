@@ -38,3 +38,40 @@ func TestSynthesizeLocalClipRemoveCommand(t *testing.T) {
 		t.Fatalf("clip_ids = %#v", ids)
 	}
 }
+
+func TestSynthesizeLocalClipResizeCommand(t *testing.T) {
+	cases := []string{
+		"把选中的clip裁到2秒",
+		"把选中的clip改成2s",
+		"选中的clip时长改为2秒",
+	}
+	for _, text := range cases {
+		cmds := synthesizeLocalDAWCommands(text, map[string]any{
+			"selected_clip_id":       "1011",
+			"selected_clip_track_id": "1007",
+		})
+		if len(cmds) != 1 {
+			t.Fatalf("%q cmds = %+v", text, cmds)
+		}
+		if cmds[0]["tool"] != "clip.resize" {
+			t.Fatalf("%q tool = %#v", text, cmds[0]["tool"])
+		}
+		args := cmds[0]["args"].(map[string]any)
+		if args["clip_id"] != "1011" || args["track_id"] != "1007" {
+			t.Fatalf("%q args = %+v", text, args)
+		}
+		if args["new_length"] != 2.0 || args["time_unit"] != "seconds" {
+			t.Fatalf("%q time args = %+v", text, args)
+		}
+	}
+}
+
+func TestSynthesizeLocalClipResizeDoesNotCatchMovePosition(t *testing.T) {
+	cmds := synthesizeLocalDAWCommands("把选中的clip起点改成2秒", map[string]any{
+		"selected_clip_id":       "1011",
+		"selected_clip_track_id": "1007",
+	})
+	if len(cmds) != 1 || cmds[0]["tool"] != "clip.move" {
+		t.Fatalf("cmds = %+v", cmds)
+	}
+}

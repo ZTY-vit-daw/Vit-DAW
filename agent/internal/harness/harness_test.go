@@ -331,6 +331,33 @@ func TestResolveClipResizeFromSelectedContext(t *testing.T) {
 	}
 }
 
+func TestResolveClipResizeInfersLengthFromUserMessage(t *testing.T) {
+	h := New(nil, shadowProjectWithClips(), nil)
+	cmd, spec, err := h.resolveCommand(InvokeRequest{
+		Command: map[string]any{
+			"cmd": "resize_clip",
+			"args": map[string]any{
+				"clip_id": "clip_b",
+			},
+		},
+	})
+	if err != nil {
+		t.Fatalf("resolveCommand: %v", err)
+	}
+	if err := h.resolveImplicitTargets(context.Background(), spec, cmd, map[string]any{
+		"user_message":           "把选中的clip裁到2秒",
+		"selected_clip_track_id": "1010",
+	}); err != nil {
+		t.Fatalf("resolveImplicitTargets: %v", err)
+	}
+	if cmd["clip_id"] != "clip_b" || cmd["track_id"] != "1010" {
+		t.Fatalf("cmd = %+v", cmd)
+	}
+	if cmd["new_length"] != 2.0 || cmd["time_unit"] != "seconds" {
+		t.Fatalf("length args = %+v", cmd)
+	}
+}
+
 func TestResolveRemoveClipsFromSelectedIDs(t *testing.T) {
 	h := New(nil, shadowProjectWithClips(), nil)
 	cmd, spec, err := h.resolveCommand(InvokeRequest{

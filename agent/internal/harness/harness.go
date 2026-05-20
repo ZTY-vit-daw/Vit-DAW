@@ -822,11 +822,30 @@ func inferMoveStartSeconds(ref clipRef, requestContext map[string]any) (float64,
 
 func inferLengthSeconds(requestContext map[string]any) (float64, bool) {
 	text := strings.TrimSpace(firstString(requestContext, "user_message", "message", "prompt", "utterance"))
-	lower := strings.ToLower(text)
-	if !strings.Contains(text, "长度") && !strings.Contains(text, "时长") && !strings.Contains(lower, "length") && !strings.Contains(lower, "duration") {
+	if !isResizeLengthText(text) {
 		return 0, false
 	}
 	return firstSecondsInText(text)
+}
+
+func isResizeLengthText(text string) bool {
+	if containsTextAnyFold(text, "位置", "起点", "开始位置", "移动", "移到", "挪到", "拖到", "move", "position", "start") {
+		return false
+	}
+	return containsTextAnyFold(text,
+		"长度", "时长", "持续", "裁到", "裁成", "剪到", "剪成", "剪短",
+		"缩到", "缩短", "拉长", "拉到", "伸到", "改成", "改为", "变成",
+		"调整到", "调成", "resize", "length", "duration", "trim", "shorten")
+}
+
+func containsTextAnyFold(text string, needles ...string) bool {
+	lower := strings.ToLower(text)
+	for _, needle := range needles {
+		if strings.Contains(lower, strings.ToLower(needle)) {
+			return true
+		}
+	}
+	return false
 }
 
 func firstSecondsInText(text string) (float64, bool) {

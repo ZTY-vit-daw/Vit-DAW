@@ -374,6 +374,7 @@ Use commands only when they are clearly useful. Unknown commands are rejected by
 For set_mute / track.mute you MUST include mute:true for muting and mute:false for unmuting.
 For set_solo / track.solo you MUST include solo:true for soloing and solo:false for unsoloing.
 For arm_track / track.arm you MUST include is_armed:true or is_armed:false.
+For resize_clip / clip.resize you MUST include new_length and time_unit when the user asks to trim, shorten, lengthen, or change a clip duration.
 Commands marked confirm require user preview/confirmation. Commands marked undoable can run directly when the target is unambiguous.
 Do not invent track_id or clip_id. Use IDs from the DAW state below.
 Use stable IDs only inside commands. User-facing replies should use track names, clip names, or plain musical descriptions; do not show track_id, clip_id, plugin_id, or agent_action_id unless the user explicitly asks for technical details.

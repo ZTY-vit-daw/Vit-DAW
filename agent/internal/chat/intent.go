@@ -16,12 +16,12 @@ func synthesizeLocalDAWCommands(userText string, requestContext map[string]any) 
 	}
 
 	switch {
-	case containsAnyFold(text, "删除", "移除", "删掉", "delete", "remove"):
+	case isClipDeleteText(text):
 		return []map[string]any{{
 			"tool": "clip.remove",
 			"args": selectedClipArgs(requestContext, true),
 		}}
-	case containsAnyFold(text, "移动", "移到", "挪到", "拖到", "move") && hasSeconds(text):
+	case isClipMoveText(text) && hasSeconds(text):
 		args := selectedClipArgs(requestContext, false)
 		if seconds, ok := firstLocalSeconds(text); ok && !isRelativeMoveText(text) {
 			args["new_start"] = seconds
@@ -35,7 +35,7 @@ func synthesizeLocalDAWCommands(userText string, requestContext map[string]any) 
 			"tool": "clip.move",
 			"args": args,
 		}}
-	case containsAnyFold(text, "长度", "时长", "拉伸", "缩短", "resize", "length", "duration") && hasSeconds(text):
+	case isClipResizeText(text) && hasSeconds(text):
 		args := selectedClipArgs(requestContext, false)
 		if seconds, ok := firstLocalSeconds(text); ok {
 			args["new_length"] = seconds
@@ -87,6 +87,26 @@ func firstContextText(requestContext map[string]any, keys ...string) string {
 
 func mentionsClip(text string) bool {
 	return containsAnyFold(text, "clip", "片段", "音频块", "素材块")
+}
+
+func isClipDeleteText(text string) bool {
+	return containsAnyFold(text, "删除", "移除", "删掉", "delete", "remove")
+}
+
+func isClipMoveText(text string) bool {
+	return containsAnyFold(text,
+		"移动", "移到", "挪到", "拖到", "位置", "起点", "开始位置",
+		"move", "position", "start")
+}
+
+func isClipResizeText(text string) bool {
+	if containsAnyFold(text, "位置", "起点", "开始位置", "移动", "移到", "挪到", "拖到", "move", "position", "start") {
+		return false
+	}
+	return containsAnyFold(text,
+		"长度", "时长", "持续", "裁到", "裁成", "剪到", "剪成", "剪短",
+		"缩到", "缩短", "拉长", "拉到", "伸到", "改成", "改为", "变成",
+		"调整到", "调成", "resize", "length", "duration", "trim", "shorten")
 }
 
 func hasSeconds(text string) bool {
