@@ -450,6 +450,47 @@ func TestResolveCloneClipAliasesAndTargetTrack(t *testing.T) {
 	}
 }
 
+func TestResolveCloneClipInfersStartAfterSource(t *testing.T) {
+	h := New(nil, shadowProjectWithClips(), nil)
+	cmd, spec, err := h.resolveCommand(InvokeRequest{
+		Tool: "clip.clone",
+		Args: map[string]any{"clip_id": "clip_a"},
+	})
+	if err != nil {
+		t.Fatalf("resolveCommand: %v", err)
+	}
+	if err := h.resolveImplicitTargets(context.Background(), spec, cmd, map[string]any{
+		"user_message":           "复制选中的clip到后面",
+		"selected_clip_id":       "clip_a",
+		"selected_clip_track_id": "1007",
+	}); err != nil {
+		t.Fatalf("resolveImplicitTargets: %v", err)
+	}
+	if cmd["source_clip_id"] != "clip_a" || cmd["target_track_id"] != "1007" {
+		t.Fatalf("cmd = %+v", cmd)
+	}
+	if cmd["new_start"] != 2.0 || cmd["time_unit"] != "seconds" {
+		t.Fatalf("time args = %+v", cmd)
+	}
+}
+
+func TestResolveCloneClipRequiresStartWhenUnknownClipBounds(t *testing.T) {
+	h := New(nil, shadowProjectWithClips(), nil)
+	cmd, spec, err := h.resolveCommand(InvokeRequest{
+		Tool: "clip.clone",
+		Args: map[string]any{"clip_id": "external_clip"},
+	})
+	if err != nil {
+		t.Fatalf("resolveCommand: %v", err)
+	}
+	err = h.resolveImplicitTargets(context.Background(), spec, cmd, map[string]any{
+		"selected_clip_track_id": "1007",
+	})
+	if err == nil {
+		t.Fatalf("expected missing new_start error, cmd=%+v", cmd)
+	}
+}
+
 func TestPublicResultSanitizesProjectState(t *testing.T) {
 	project := shadow.New(nil)
 	project.Initialize(map[string]any{

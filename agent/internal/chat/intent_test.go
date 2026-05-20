@@ -75,3 +75,43 @@ func TestSynthesizeLocalClipResizeDoesNotCatchMovePosition(t *testing.T) {
 		t.Fatalf("cmds = %+v", cmds)
 	}
 }
+
+func TestSynthesizeLocalClipCloneCommandAtTime(t *testing.T) {
+	cmds := synthesizeLocalDAWCommands("复制选中的clip到20s", map[string]any{
+		"selected_clip_id":       "1011",
+		"selected_clip_track_id": "1007",
+	})
+	if len(cmds) != 1 {
+		t.Fatalf("cmds = %+v", cmds)
+	}
+	if cmds[0]["tool"] != "clip.clone" {
+		t.Fatalf("tool = %#v", cmds[0]["tool"])
+	}
+	args := cmds[0]["args"].(map[string]any)
+	if args["clip_id"] != "1011" || args["target_track_id"] != "1007" {
+		t.Fatalf("args = %+v", args)
+	}
+	if args["new_start"] != 20.0 || args["time_unit"] != "seconds" {
+		t.Fatalf("time args = %+v", args)
+	}
+}
+
+func TestSynthesizeLocalClipCloneCommandAfterSource(t *testing.T) {
+	cmds := synthesizeLocalDAWCommands("复制选中的clip到后面", map[string]any{
+		"selected_clip_id":       "1011",
+		"selected_clip_track_id": "1007",
+	})
+	if len(cmds) != 1 {
+		t.Fatalf("cmds = %+v", cmds)
+	}
+	if cmds[0]["tool"] != "clip.clone" {
+		t.Fatalf("tool = %#v", cmds[0]["tool"])
+	}
+	args := cmds[0]["args"].(map[string]any)
+	if args["clip_id"] != "1011" || args["target_track_id"] != "1007" {
+		t.Fatalf("args = %+v", args)
+	}
+	if _, ok := args["new_start"]; ok {
+		t.Fatalf("new_start should be inferred from project state by harness: %+v", args)
+	}
+}

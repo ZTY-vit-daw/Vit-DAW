@@ -21,6 +21,19 @@ func synthesizeLocalDAWCommands(userText string, requestContext map[string]any) 
 			"tool": "clip.remove",
 			"args": selectedClipArgs(requestContext, true),
 		}}
+	case isClipCloneText(text):
+		args := selectedClipArgs(requestContext, false)
+		if seconds, ok := firstLocalSeconds(text); ok && !isRelativeMoveText(text) {
+			args["new_start"] = seconds
+			args["time_unit"] = "seconds"
+		}
+		if trackID := selectedClipTrackID(requestContext); trackID != "" {
+			args["target_track_id"] = trackID
+		}
+		return []map[string]any{{
+			"tool": "clip.clone",
+			"args": args,
+		}}
 	case isClipMoveText(text) && hasSeconds(text):
 		args := selectedClipArgs(requestContext, false)
 		if seconds, ok := firstLocalSeconds(text); ok && !isRelativeMoveText(text) {
@@ -91,6 +104,10 @@ func mentionsClip(text string) bool {
 
 func isClipDeleteText(text string) bool {
 	return containsAnyFold(text, "删除", "移除", "删掉", "delete", "remove")
+}
+
+func isClipCloneText(text string) bool {
+	return containsAnyFold(text, "复制", "克隆", "拷贝", "再来一份", "duplicate", "clone", "copy")
 }
 
 func isClipMoveText(text string) bool {

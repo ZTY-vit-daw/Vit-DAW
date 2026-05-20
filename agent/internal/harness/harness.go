@@ -572,7 +572,7 @@ func (h *Harness) resolveClipTargets(ctx context.Context, spec tools.CommandSpec
 		}
 		cmd["source_clip_id"] = ref.ID
 		if isEmptyValue(cmd["new_start"]) {
-			if seconds, ok := inferMoveStartSeconds(ref, requestContext); ok {
+			if seconds, ok := inferCloneStartSeconds(ref, requestContext); ok {
 				cmd["new_start"] = seconds
 				if isEmptyValue(cmd["time_unit"]) {
 					cmd["time_unit"] = "seconds"
@@ -588,6 +588,12 @@ func (h *Harness) resolveClipTargets(ctx context.Context, spec tools.CommandSpec
 				targetTrackID = ref.TrackID
 			}
 			cmd["target_track_id"] = targetTrackID
+		}
+		if isEmptyValue(cmd["new_start"]) {
+			return fmt.Errorf("clone_clip requires new_start; say where to place the copy, e.g. 复制到 20 秒")
+		}
+		if isEmptyValue(cmd["time_unit"]) {
+			cmd["time_unit"] = "seconds"
 		}
 	case "remove_clips":
 		if ids := stringSliceFromAny(cmd["clip_ids"]); len(ids) > 0 {
@@ -818,6 +824,31 @@ func inferMoveStartSeconds(ref clipRef, requestContext map[string]any) (float64,
 	default:
 		return seconds, true
 	}
+}
+
+func inferCloneStartSeconds(ref clipRef, requestContext map[string]any) (float64, bool) {
+	if seconds, ok := inferMoveStartSeconds(ref, requestContext); ok {
+		return seconds, true
+	}
+	text := strings.TrimSpace(firstString(requestContext, "user_message", "message", "prompt", "utterance"))
+	if strings.TrimSpace(text) == "" || isCloneAfterText(text) || containsTextAnyFold(text, "复制", "克隆", "拷贝", "duplicate", "clone", "copy") {
+		start := numberFromAny(ref.Row["start_seconds"])
+		length := numberFromAny(ref.Row["length_seconds"])
+		if length <= 0 {
+			end := numberFromAny(ref.Row["end_seconds"])
+			if end > start {
+				length = end - start
+			}
+		}
+		if length > 0 {
+			return start + length, true
+		}
+	}
+	return 0, false
+}
+
+func isCloneAfterText(text string) bool {
+	return containsTextAnyFold(text, "后面", "后边", "后方", "后面一份", "后续", "紧接", "后", "after", "next", "right after")
 }
 
 func inferLengthSeconds(requestContext map[string]any) (float64, bool) {
