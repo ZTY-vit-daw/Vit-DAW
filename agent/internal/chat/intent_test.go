@@ -115,3 +115,49 @@ func TestSynthesizeLocalClipCloneCommandAfterSource(t *testing.T) {
 		t.Fatalf("new_start should be inferred from project state by harness: %+v", args)
 	}
 }
+
+func TestSynthesizeLocalImportAbsolutePathCommand(t *testing.T) {
+	cmds := synthesizeLocalDAWCommands(`import C:\Samples\Kick Loop.wav to current track`, map[string]any{
+		"selected_track_id": "1007",
+	})
+	if len(cmds) != 1 {
+		t.Fatalf("cmds = %+v", cmds)
+	}
+	if cmds[0]["tool"] != "clip.import_media_to_track" {
+		t.Fatalf("tool = %#v", cmds[0]["tool"])
+	}
+	args := cmds[0]["args"].(map[string]any)
+	if args["track_id"] != "1007" || args["file_path"] != `C:\Samples\Kick Loop.wav` {
+		t.Fatalf("args = %+v", args)
+	}
+	if args["media_type"] != "audio" || args["mode"] != "non_destructive" || args["start_time"] != 0.0 {
+		t.Fatalf("defaults = %+v", args)
+	}
+}
+
+func TestSynthesizeLocalImportSelectedLibraryCommand(t *testing.T) {
+	cmds := synthesizeLocalDAWCommands("把资料库选中的音频导入当前轨道", map[string]any{
+		"selected_track_id":          "1007",
+		"selected_library_file_path": `D:\Samples\Loop.wav`,
+	})
+	if len(cmds) != 1 {
+		t.Fatalf("cmds = %+v", cmds)
+	}
+	args := cmds[0]["args"].(map[string]any)
+	if args["track_id"] != "1007" || args["selected_library_file_path"] != `D:\Samples\Loop.wav` {
+		t.Fatalf("args = %+v", args)
+	}
+}
+
+func TestSynthesizeLocalImportSearchCommand(t *testing.T) {
+	cmds := synthesizeLocalDAWCommands("search kick loop and import to current track", map[string]any{
+		"selected_track_id": "1007",
+	})
+	if len(cmds) != 1 {
+		t.Fatalf("cmds = %+v", cmds)
+	}
+	args := cmds[0]["args"].(map[string]any)
+	if args["track_id"] != "1007" || args["asset_query"] != "kick loop" {
+		t.Fatalf("args = %+v", args)
+	}
+}

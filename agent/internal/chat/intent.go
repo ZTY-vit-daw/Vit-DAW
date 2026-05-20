@@ -8,10 +8,27 @@ import (
 )
 
 var localSecondsPattern = regexp.MustCompile(`(?i)([-+]?\d+(?:\.\d+)?)\s*(?:s|sec|secs|second|seconds|秒)`)
+var localAudioPathPattern = regexp.MustCompile(`(?i)((?:[a-z]:|\\\\[^\\/]+[\\/][^\\/]+)[\\/][^\r\n"<>|?*]+?\.(?:wav|mp3|flac|ogg|oga|aif|aiff|m4a|wma))`)
 
 func synthesizeLocalDAWCommands(userText string, requestContext map[string]any) []map[string]any {
 	text := strings.TrimSpace(userText)
-	if text == "" || !mentionsClip(text) {
+	if text == "" {
+		return nil
+	}
+	if isAudioImportText(text) {
+		args := selectedImportArgs(requestContext)
+		if path := firstLocalAudioPath(text); path != "" {
+			args["file_path"] = path
+		}
+		if query := localImportSearchQuery(text); query != "" {
+			args["asset_query"] = query
+		}
+		return []map[string]any{{
+			"tool": "clip.import_media_to_track",
+			"args": args,
+		}}
+	}
+	if !mentionsClip(text) {
 		return nil
 	}
 
@@ -66,6 +83,20 @@ func synthesizeLocalDAWCommands(userText string, requestContext map[string]any) 
 	}
 }
 
+func selectedImportArgs(requestContext map[string]any) map[string]any {
+	args := map[string]any{}
+	if trackID := strings.TrimSpace(firstContextText(requestContext, "selected_track_id", "focused_track_id", "track_id")); trackID != "" {
+		args["track_id"] = trackID
+	}
+	if path := strings.TrimSpace(firstContextText(requestContext, "selected_library_file_path", "library_file_path")); path != "" {
+		args["selected_library_file_path"] = path
+	}
+	args["start_time"] = 0.0
+	args["media_type"] = "audio"
+	args["mode"] = "non_destructive"
+	return args
+}
+
 func selectedClipArgs(requestContext map[string]any, allowMany bool) map[string]any {
 	args := map[string]any{}
 	ids := contextStringSlice(requestContext["selected_clip_ids"])
@@ -100,6 +131,42 @@ func firstContextText(requestContext map[string]any, keys ...string) string {
 
 func mentionsClip(text string) bool {
 	return containsAnyFold(text, "clip", "片段", "音频块", "素材块")
+}
+
+func isAudioImportText(text string) bool {
+	if firstLocalAudioPath(text) != "" {
+		return containsAnyFold(text, "导入", "加入", "放到", "放进", "拖入", "import", "add")
+	}
+	return containsAnyFold(text, "导入", "加入", "放到", "放进", "拖入", "import", "add") &&
+		containsAnyFold(text, "音频", "素材", "资料库", "采样", "sample", "audio", "library", "wav", "mp3", "flac", "loop")
+}
+
+func firstLocalAudioPath(text string) string {
+	match := localAudioPathPattern.FindStringSubmatch(text)
+	if len(match) < 2 {
+		return ""
+	}
+	return strings.Trim(match[1], " \t\r\n\"'`“”‘’.,，。;；:：)）]】")
+}
+
+func localImportSearchQuery(text string) string {
+	if firstLocalAudioPath(text) != "" {
+		return ""
+	}
+	if !containsAnyFold(text, "搜索", "查找", "找", "search", "find") {
+		return ""
+	}
+	cleaned := text
+	for _, phrase := range []string{
+		"搜索", "查找", "找一下", "找到", "找", "并导入", "然后导入", "导入", "放到", "放进", "拖入",
+		"资料库", "素材库", "当前轨道", "选中轨道", "这个轨道", "这条轨道", "音频", "素材",
+		"search", "find", "import", "add", "audio", "sample", "current track", "selected track", "track", "and", "to",
+	} {
+		cleaned = strings.ReplaceAll(cleaned, phrase, " ")
+	}
+	replacer := strings.NewReplacer("，", " ", "。", " ", ",", " ", ".", " ", "；", " ", ";", " ", "：", " ", ":", " ", "（", " ", "）", " ", "(", " ", ")", " ", "并", " ", "到", " ", "给", " ")
+	cleaned = replacer.Replace(cleaned)
+	return strings.Join(strings.Fields(cleaned), " ")
 }
 
 func isClipDeleteText(text string) bool {

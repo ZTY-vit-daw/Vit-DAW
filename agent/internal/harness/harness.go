@@ -5,8 +5,13 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io/fs"
+	"os"
+	"path/filepath"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -317,6 +322,10 @@ func flattenCommandParams(cmd map[string]any) {
 func (h *Harness) resolveImplicitTargets(ctx context.Context, spec tools.CommandSpec, cmd map[string]any, requestContext map[string]any) error {
 	normalizeCommandArgs(spec, cmd, requestContext)
 
+	if err := h.resolveImportAudioSource(ctx, spec, cmd, requestContext); err != nil {
+		return fmt.Errorf("%s could not resolve import source: %w", spec.ToolName, err)
+	}
+
 	if err := h.resolveClipTargets(ctx, spec, cmd, requestContext); err != nil {
 		return fmt.Errorf("%s could not resolve clip target: %w", spec.ToolName, err)
 	}
@@ -378,6 +387,20 @@ func normalizeCommandArgs(spec tools.CommandSpec, cmd map[string]any, requestCon
 		inferTimeUnit(cmd)
 	case "remove_clips":
 		normalizeClipIDsArray(cmd)
+	case "import_audio":
+		copyFirstNonEmpty(cmd, "file_path", "path", "absolute_path", "audio_path", "source_path", "source_file", "selected_library_file_path", "library_file_path")
+		copyFirstNonEmpty(cmd, "track_id", "target_track_id", "selected_track_id")
+		copyFirstNonEmpty(cmd, "offset_time", "start_time", "start", "start_seconds", "position_seconds", "time")
+	case "import_media_to_track":
+		copyFirstNonEmpty(cmd, "file_path", "path", "absolute_path", "audio_path", "source_path", "source_file", "selected_library_file_path", "library_file_path")
+		copyFirstNonEmpty(cmd, "track_id", "target_track_id", "selected_track_id")
+		copyFirstNonEmpty(cmd, "start_time", "offset_time", "start", "start_seconds", "position_seconds", "time")
+		if isEmptyValue(cmd["media_type"]) {
+			cmd["media_type"] = "audio"
+		}
+		if isEmptyValue(cmd["mode"]) {
+			cmd["mode"] = "non_destructive"
+		}
 	}
 }
 
@@ -407,6 +430,315 @@ func normalizeClipIDsArray(cmd map[string]any) {
 	if id := firstString(cmd, "clip_id", "source_clip_id", "target_clip_id"); id != "" {
 		cmd["clip_ids"] = []string{id}
 	}
+}
+
+var (
+	audioPathPattern       = regexp.MustCompile(`(?i)((?:[a-z]:|\\\\[^\\/]+[\\/][^\\/]+)[\\/][^\r\n"<>|?*]+?\.(?:wav|mp3|flac|ogg|oga|aif|aiff|m4a|wma))`)
+	quotedAudioPathPattern = regexp.MustCompile(`(?i)["'“”‘’]([^"'“”‘’]+?\.(?:wav|mp3|flac|ogg|oga|aif|aiff|m4a|wma))["'“”‘’]?`)
+	errAudioSearchLimit    = errors.New("audio search limit reached")
+)
+
+var audioExtensions = map[string]bool{
+	".wav":  true,
+	".mp3":  true,
+	".flac": true,
+	".ogg":  true,
+	".oga":  true,
+	".aif":  true,
+	".aiff": true,
+	".m4a":  true,
+	".wma":  true,
+}
+
+func (h *Harness) resolveImportAudioSource(ctx context.Context, spec tools.CommandSpec, cmd map[string]any, requestContext map[string]any) error {
+	_ = ctx
+	if spec.CommandName != "import_audio" && spec.CommandName != "import_media_to_track" {
+		return nil
+	}
+
+	if isEmptyValue(cmd["file_path"]) {
+		if fp := selectedLibraryFilePathFromContext(requestContext); fp != "" {
+			cmd["file_path"] = fp
+		}
+	}
+	if isEmptyValue(cmd["file_path"]) {
+		if fp := firstAudioPathInText(firstString(requestContext, "user_message", "message", "prompt", "utterance")); fp != "" {
+			cmd["file_path"] = fp
+		}
+	}
+	if isEmptyValue(cmd["file_path"]) {
+		query := importSearchQuery(cmd, requestContext)
+		if query != "" {
+			fp, err := findAudioFileInRoots(query, importSearchRoots(cmd, requestContext))
+			if err != nil {
+				return err
+			}
+			cmd["file_path"] = fp
+		}
+	}
+	if isEmptyValue(cmd["file_path"]) {
+		return fmt.Errorf("missing audio file path; provide an absolute path, select an audio file in the library, or include a library search query")
+	}
+
+	resolved, err := resolveExistingAudioPath(firstString(cmd, "file_path"), cmd, requestContext)
+	if err != nil {
+		return err
+	}
+	cmd["file_path"] = resolved
+
+	if spec.CommandName == "import_media_to_track" {
+		if isEmptyValue(cmd["media_type"]) {
+			cmd["media_type"] = "audio"
+		}
+		if isEmptyValue(cmd["mode"]) {
+			cmd["mode"] = "non_destructive"
+		}
+		if isEmptyValue(cmd["start_time"]) {
+			cmd["start_time"] = 0.0
+		}
+	}
+	return nil
+}
+
+func selectedLibraryFilePathFromContext(requestContext map[string]any) string {
+	if fp := firstString(requestContext, "selected_library_file_path", "library_file_path"); fp != "" {
+		return fp
+	}
+	for _, key := range []string{"selected_library_item", "selected_library_resource", "library_item"} {
+		item, ok := requestContext[key].(map[string]any)
+		if !ok {
+			continue
+		}
+		if fp := firstString(item, "file_path", "path"); fp != "" {
+			return fp
+		}
+	}
+	return ""
+}
+
+func resolveExistingAudioPath(raw string, cmd map[string]any, requestContext map[string]any) (string, error) {
+	path := normalizeAudioPath(raw)
+	if path == "" {
+		return "", fmt.Errorf("audio file path is empty")
+	}
+	if !isSupportedAudioPath(path) {
+		return "", fmt.Errorf("unsupported audio file extension: %s", path)
+	}
+	if st, err := os.Stat(path); err == nil && !st.IsDir() {
+		abs, absErr := filepath.Abs(path)
+		if absErr == nil {
+			return filepath.Clean(abs), nil
+		}
+		return filepath.Clean(path), nil
+	}
+	if !filepath.IsAbs(path) {
+		if found, err := findAudioFileInRoots(path, importSearchRoots(cmd, requestContext)); err == nil {
+			return found, nil
+		}
+	}
+	return "", fmt.Errorf("audio file does not exist: %s", path)
+}
+
+func normalizeAudioPath(path string) string {
+	path = trimPathPunctuation(path)
+	if path == "" {
+		return ""
+	}
+	path = filepath.FromSlash(path)
+	return filepath.Clean(path)
+}
+
+func trimPathPunctuation(path string) string {
+	return strings.Trim(path, " \t\r\n\"'`“”‘’.,，。;；:：)）]】")
+}
+
+func isSupportedAudioPath(path string) bool {
+	return audioExtensions[strings.ToLower(filepath.Ext(path))]
+}
+
+func firstAudioPathInText(text string) string {
+	text = strings.TrimSpace(text)
+	if text == "" {
+		return ""
+	}
+	for _, pattern := range []*regexp.Regexp{quotedAudioPathPattern, audioPathPattern} {
+		match := pattern.FindStringSubmatch(text)
+		if len(match) > 1 {
+			return trimPathPunctuation(match[1])
+		}
+	}
+	return ""
+}
+
+func importSearchQuery(cmd map[string]any, requestContext map[string]any) string {
+	if q := firstString(cmd, "asset_query", "search_query", "file_query", "query", "search", "file_name"); q != "" {
+		return q
+	}
+	return inferImportSearchQuery(firstString(requestContext, "user_message", "message", "prompt", "utterance"))
+}
+
+func inferImportSearchQuery(text string) string {
+	text = strings.TrimSpace(text)
+	if text == "" || firstAudioPathInText(text) != "" {
+		return ""
+	}
+	if !containsTextAnyFold(text, "搜索", "查找", "找", "search", "find") {
+		return ""
+	}
+	cleaned := text
+	for _, phrase := range []string{
+		"搜索", "查找", "找一下", "找到", "找", "并导入", "然后导入", "导入", "放到", "放进", "拖入",
+		"资料库", "素材库", "当前轨道", "选中轨道", "这个轨道", "这条轨道", "音频", "素材",
+		"search", "find", "import", "add", "audio", "sample", "current track", "selected track", "track", "and", "to",
+	} {
+		cleaned = strings.ReplaceAll(cleaned, phrase, " ")
+		cleaned = strings.ReplaceAll(cleaned, strings.Title(phrase), " ")
+	}
+	replacer := strings.NewReplacer("，", " ", "。", " ", ",", " ", ".", " ", "；", " ", ";", " ", "：", " ", ":", " ", "（", " ", "）", " ", "(", " ", ")", " ", "并", " ", "到", " ", "给", " ")
+	cleaned = replacer.Replace(cleaned)
+	return strings.Join(strings.Fields(cleaned), " ")
+}
+
+func importSearchRoots(cmd map[string]any, requestContext map[string]any) []string {
+	var roots []string
+	for _, key := range []string{"search_roots", "library_places", "library_roots", "places"} {
+		roots = append(roots, stringSliceFromAny(cmd[key])...)
+		roots = append(roots, stringSliceFromAny(requestContext[key])...)
+	}
+	for _, key := range []string{"selected_library_root", "library_root"} {
+		if root := firstString(cmd, key); root != "" {
+			roots = append(roots, root)
+		}
+		if root := firstString(requestContext, key); root != "" {
+			roots = append(roots, root)
+		}
+	}
+	seen := map[string]bool{}
+	out := make([]string, 0, len(roots))
+	for _, root := range roots {
+		root = normalizeAudioPath(root)
+		if root == "" || seen[strings.ToLower(root)] {
+			continue
+		}
+		seen[strings.ToLower(root)] = true
+		out = append(out, root)
+	}
+	return out
+}
+
+type audioFileMatch struct {
+	path  string
+	score int
+}
+
+func findAudioFileInRoots(query string, roots []string) (string, error) {
+	terms := importSearchTerms(query)
+	if len(terms) == 0 {
+		return "", fmt.Errorf("empty audio search query")
+	}
+	if len(roots) == 0 {
+		return "", fmt.Errorf("library search needs at least one Places root")
+	}
+
+	matches := make([]audioFileMatch, 0)
+	const maxScannedFiles = 6000
+	scanned := 0
+	for _, root := range roots {
+		info, err := os.Stat(root)
+		if err != nil || !info.IsDir() {
+			continue
+		}
+		root = filepath.Clean(root)
+		scanErr := filepath.WalkDir(root, func(path string, d fs.DirEntry, walkErr error) error {
+			if walkErr != nil || d == nil {
+				return nil
+			}
+			if d.IsDir() {
+				if path != root && strings.HasPrefix(filepath.Base(path), ".") {
+					return filepath.SkipDir
+				}
+				if directoryDepth(root, path) > 8 {
+					return filepath.SkipDir
+				}
+				return nil
+			}
+			scanned++
+			if scanned > maxScannedFiles {
+				return errAudioSearchLimit
+			}
+			if !isSupportedAudioPath(path) {
+				return nil
+			}
+			if score := audioSearchScore(filepath.Base(path), terms); score > 0 {
+				matches = append(matches, audioFileMatch{path: filepath.Clean(path), score: score})
+			}
+			return nil
+		})
+		if scanErr != nil && !errors.Is(scanErr, errAudioSearchLimit) {
+			return "", scanErr
+		}
+		if errors.Is(scanErr, errAudioSearchLimit) {
+			break
+		}
+	}
+	if len(matches) == 0 {
+		return "", fmt.Errorf("no audio file matched %q in library Places", query)
+	}
+	sort.Slice(matches, func(i, j int) bool {
+		if matches[i].score != matches[j].score {
+			return matches[i].score > matches[j].score
+		}
+		return len(matches[i].path) < len(matches[j].path)
+	})
+	if len(matches) > 1 && matches[0].score == matches[1].score {
+		return "", fmt.Errorf("multiple audio files matched %q; specify one path, e.g. %s or %s", query, matches[0].path, matches[1].path)
+	}
+	return matches[0].path, nil
+}
+
+func importSearchTerms(query string) []string {
+	query = strings.ToLower(strings.TrimSpace(query))
+	query = strings.TrimSuffix(query, strings.ToLower(filepath.Ext(query)))
+	replacer := strings.NewReplacer("_", " ", "-", " ", ".", " ", ",", " ", "，", " ", "。", " ", "/", " ", "\\", " ")
+	query = replacer.Replace(query)
+	fields := strings.Fields(query)
+	out := make([]string, 0, len(fields))
+	for _, field := range fields {
+		field = strings.TrimSpace(field)
+		if field != "" {
+			out = append(out, field)
+		}
+	}
+	return out
+}
+
+func audioSearchScore(fileName string, terms []string) int {
+	name := strings.ToLower(strings.TrimSuffix(fileName, filepath.Ext(fileName)))
+	score := 0
+	for _, term := range terms {
+		if !strings.Contains(name, term) {
+			return 0
+		}
+		score += 10 + len(term)
+		if name == term {
+			score += 50
+		}
+	}
+	joined := strings.Join(terms, " ")
+	if name == joined {
+		score += 100
+	} else if strings.HasPrefix(name, joined) {
+		score += 30
+	}
+	return score
+}
+
+func directoryDepth(root, path string) int {
+	rel, err := filepath.Rel(root, path)
+	if err != nil || rel == "." {
+		return 0
+	}
+	return len(strings.Split(rel, string(os.PathSeparator)))
 }
 
 func inferBoolFromUserMessage(cmd map[string]any, target string, requestContext map[string]any, negativePhrases, positivePhrases []string) {
@@ -972,7 +1304,7 @@ func trackIDFromContext(tracks []map[string]any, requestContext map[string]any) 
 }
 
 func (h *Harness) afterKernelReply(ctx context.Context, spec tools.CommandSpec, reply map[string]any) {
-	if !strings.EqualFold(strings.TrimSpace(fmt.Sprint(reply["status"])), "ok") {
+	if !kernelReplySucceeded(reply) {
 		return
 	}
 	if spec.CommandName == "get_project_state" {
@@ -984,6 +1316,11 @@ func (h *Harness) afterKernelReply(ctx context.Context, spec tools.CommandSpec, 
 	if spec.RefreshAfter {
 		h.refreshShadow(ctx, spec.CommandName)
 	}
+}
+
+func kernelReplySucceeded(reply map[string]any) bool {
+	status := strings.ToLower(strings.TrimSpace(fmt.Sprint(reply["status"])))
+	return status == "ok" || status == "success"
 }
 
 func (h *Harness) publicResult(spec tools.CommandSpec, reply map[string]any) map[string]any {

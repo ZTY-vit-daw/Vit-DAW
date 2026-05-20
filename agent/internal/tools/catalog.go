@@ -234,7 +234,7 @@ func argHint(commandName string) string {
 	case "route_wave_input_to_track":
 		return "track_id:string device_id:string"
 	case "import_audio", "import_media_to_track":
-		return "track_id:string path/file_path:string"
+		return "track_id:string file_path:string optional start_time:number asset_query:string"
 	case "move_clip":
 		return "clip_id:string source_track_id:string target_track_id:string new_start:number_seconds"
 	case "resize_clip":

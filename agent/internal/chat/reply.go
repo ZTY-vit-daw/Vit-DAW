@@ -162,6 +162,13 @@ func executedCommandReply(before, after map[string]any, d policy.Decision, reply
 		return "已复制选中的 clip。"
 	case "remove_clips":
 		return "已删除选中的 clip。"
+	case "import_audio", "import_media_to_track":
+		name := targetTrackName(before, after, cmd)
+		clipName := firstText(result, "clip_name", "name")
+		if clipName != "" {
+			return fmt.Sprintf("已把 %s 导入到 %s。", clipName, name)
+		}
+		return fmt.Sprintf("已把音频导入到 %s。", name)
 	case "undo":
 		return "已撤销上一项操作。"
 	case "redo":

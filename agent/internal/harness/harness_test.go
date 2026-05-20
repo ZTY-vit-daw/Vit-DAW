@@ -2,6 +2,8 @@ package harness
 
 import (
 	"context"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"vit-daw-agent/internal/shadow"
@@ -491,6 +493,77 @@ func TestResolveCloneClipRequiresStartWhenUnknownClipBounds(t *testing.T) {
 	}
 }
 
+func TestResolveImportMediaFromSelectedLibraryAndTrack(t *testing.T) {
+	audioPath := writeTempAudioFile(t, "Loop A.wav")
+	h := New(nil, shadowProjectWithClips(), nil)
+	cmd, spec, err := h.resolveCommand(InvokeRequest{
+		Tool: "clip.import_media_to_track",
+		Args: map[string]any{},
+	})
+	if err != nil {
+		t.Fatalf("resolveCommand: %v", err)
+	}
+	if err := h.resolveImplicitTargets(context.Background(), spec, cmd, map[string]any{
+		"selected_track_id":          "1007",
+		"selected_library_file_path": audioPath,
+	}); err != nil {
+		t.Fatalf("resolveImplicitTargets: %v", err)
+	}
+	if cmd["track_id"] != "1007" || cmd["file_path"] != audioPath {
+		t.Fatalf("cmd = %+v", cmd)
+	}
+	if cmd["media_type"] != "audio" || cmd["mode"] != "non_destructive" || cmd["start_time"] != 0.0 {
+		t.Fatalf("defaults = %+v", cmd)
+	}
+}
+
+func TestResolveImportAudioPathAliases(t *testing.T) {
+	audioPath := writeTempAudioFile(t, "Kick.wav")
+	h := New(nil, shadowProjectWithClips(), nil)
+	cmd, spec, err := h.resolveCommand(InvokeRequest{
+		Tool: "clip.import_audio",
+		Args: map[string]any{
+			"path":            audioPath,
+			"target_track_id": "1010",
+			"start_time":      3.5,
+		},
+	})
+	if err != nil {
+		t.Fatalf("resolveCommand: %v", err)
+	}
+	if err := h.resolveImplicitTargets(context.Background(), spec, cmd, nil); err != nil {
+		t.Fatalf("resolveImplicitTargets: %v", err)
+	}
+	if cmd["track_id"] != "1010" || cmd["file_path"] != audioPath || cmd["offset_time"] != 3.5 {
+		t.Fatalf("cmd = %+v", cmd)
+	}
+}
+
+func TestResolveImportMediaSearchesLibraryPlaces(t *testing.T) {
+	root := t.TempDir()
+	audioPath := filepath.Join(root, "Deep Kick Loop.wav")
+	if err := os.WriteFile(audioPath, []byte("fake"), 0o644); err != nil {
+		t.Fatalf("write temp audio: %v", err)
+	}
+	h := New(nil, shadowProjectWithClips(), nil)
+	cmd, spec, err := h.resolveCommand(InvokeRequest{
+		Tool: "clip.import_media_to_track",
+		Args: map[string]any{"asset_query": "kick loop"},
+	})
+	if err != nil {
+		t.Fatalf("resolveCommand: %v", err)
+	}
+	if err := h.resolveImplicitTargets(context.Background(), spec, cmd, map[string]any{
+		"selected_track_id": "1007",
+		"library_places":    []any{root},
+	}); err != nil {
+		t.Fatalf("resolveImplicitTargets: %v", err)
+	}
+	if cmd["file_path"] != audioPath || cmd["track_id"] != "1007" {
+		t.Fatalf("cmd = %+v", cmd)
+	}
+}
+
 func TestPublicResultSanitizesProjectState(t *testing.T) {
 	project := shadow.New(nil)
 	project.Initialize(map[string]any{
@@ -551,4 +624,13 @@ func shadowProjectWithClips() *shadow.Project {
 		},
 	})
 	return project
+}
+
+func writeTempAudioFile(t *testing.T, name string) string {
+	t.Helper()
+	path := filepath.Join(t.TempDir(), name)
+	if err := os.WriteFile(path, []byte("fake"), 0o644); err != nil {
+		t.Fatalf("write temp audio: %v", err)
+	}
+	return path
 }
