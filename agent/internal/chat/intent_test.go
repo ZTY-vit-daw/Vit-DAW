@@ -76,6 +76,41 @@ func TestSynthesizeLocalClipResizeDoesNotCatchMovePosition(t *testing.T) {
 	}
 }
 
+func TestSynthesizeLocalClipSplitCommandAtTime(t *testing.T) {
+	cmds := synthesizeLocalDAWCommands("把选中的clip在1秒处切开", map[string]any{
+		"selected_clip_id":       "1011",
+		"selected_clip_track_id": "1007",
+	})
+	if len(cmds) != 1 {
+		t.Fatalf("cmds = %+v", cmds)
+	}
+	if cmds[0]["tool"] != "clip.split" {
+		t.Fatalf("tool = %#v", cmds[0]["tool"])
+	}
+	args := cmds[0]["args"].(map[string]any)
+	if args["clip_id"] != "1011" || args["track_id"] != "1007" {
+		t.Fatalf("args = %+v", args)
+	}
+	if args["split_time"] != 1.0 || args["time_unit"] != "seconds" {
+		t.Fatalf("time args = %+v", args)
+	}
+}
+
+func TestSynthesizeLocalClipSplitCommandAtPlayhead(t *testing.T) {
+	cmds := synthesizeLocalDAWCommands("在播放头这里切开选中的clip", map[string]any{
+		"selected_clip_id":       "1011",
+		"selected_clip_track_id": "1007",
+		"playhead_seconds":       1.25,
+	})
+	if len(cmds) != 1 {
+		t.Fatalf("cmds = %+v", cmds)
+	}
+	args := cmds[0]["args"].(map[string]any)
+	if args["clip_id"] != "1011" || args["track_id"] != "1007" || args["playhead_seconds"] != "1.25" {
+		t.Fatalf("args = %+v", args)
+	}
+}
+
 func TestSynthesizeLocalClipCloneCommandAtTime(t *testing.T) {
 	cmds := synthesizeLocalDAWCommands("复制选中的clip到20s", map[string]any{
 		"selected_clip_id":       "1011",

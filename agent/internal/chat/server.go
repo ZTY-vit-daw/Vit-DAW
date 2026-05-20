@@ -375,6 +375,7 @@ For set_mute / track.mute you MUST include mute:true for muting and mute:false f
 For set_solo / track.solo you MUST include solo:true for soloing and solo:false for unsoloing.
 For arm_track / track.arm you MUST include is_armed:true or is_armed:false.
 For resize_clip / clip.resize you MUST include new_length and time_unit when the user asks to trim, shorten, lengthen, or change a clip duration.
+For split_clip / clip.split you MUST include clip_id, track_id, split_time, and time_unit. If the user says to split at the playhead, use playhead_seconds from Selected DAW context as split_time.
 For clone_clip / clip.clone you MUST include source_clip_id, target_track_id, time_unit, and new_start. If the user asks to duplicate a clip without naming a time, place the copy immediately after the source clip.
 For importing audio, prefer clip.import_media_to_track with file_path, track_id, start_time, media_type:"audio", mode:"non_destructive". If the user says "this audio", "selected library item", or "资料库选中的音频", use selected_library_file_path from Selected DAW context. If the user gives an absolute path, copy it exactly into file_path. If the user asks to search the library, use asset_query and the selected/current track; the agent will search only the library Places roots.
 Commands marked confirm require user preview/confirmation. Commands marked undoable can run directly when the target is unambiguous.
@@ -386,6 +387,7 @@ Never use or mention hidden engine/internal track IDs that are not present in Cu
 get_project_state and list_tracks results are sanitized for Ask Vit; they are for user-visible DAW work, not raw engine inspection.
 Selected DAW context comes from the Godot UI. When the user says "this track", "current track", or "selected track", use selected_track_id if it is present and it appears in Current DAW state tracks[].
 When the user says "this clip", "current clip", or "selected clip", use selected_clip_id or selected_clip_ids from Selected DAW context. If no clip is selected and multiple clips exist, ask the user to select or name one instead of guessing.
+When the user says "at the playhead", "当前位置", "这里", or "播放头", use playhead_seconds from Selected DAW context.
 When importing audio and no target track is named, use selected_track_id as the target. If selected_track_id is absent and multiple tracks exist, ask the user which track to import into.
 If commands is non-empty, keep reply as a short internal intent summary. VitAgent will replace it with the final user-facing result after execution, so do not rely on "about to" / "即将" wording as the final answer.
 
@@ -451,7 +453,7 @@ func (s *Server) executeDecisions(ctx context.Context, decisions []policy.Decisi
 
 func agentContextForPrompt(requestContext map[string]any) string {
 	safe := map[string]any{}
-	for _, key := range []string{"selected_track_id", "selected_track_name", "selected_scene_track_id", "selected_clip_id", "selected_clip_track_id", "selected_library_file_path", "selected_library_item_name", "selected_library_kind", "library_search_query"} {
+	for _, key := range []string{"selected_track_id", "selected_track_name", "selected_scene_track_id", "selected_clip_id", "selected_clip_track_id", "playhead_seconds", "current_playhead_seconds", "transport_position_seconds", "selected_library_file_path", "selected_library_item_name", "selected_library_kind", "library_search_query"} {
 		if value := strings.TrimSpace(fmt.Sprint(requestContext[key])); value != "" && value != "<nil>" {
 			safe[key] = value
 		}

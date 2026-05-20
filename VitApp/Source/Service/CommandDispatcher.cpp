@@ -2113,6 +2113,11 @@ void CommandDispatcher::registerBuiltinCommands()
         return clipService != nullptr ? clipService->handleResizeClip (object, raw)
                                       : makeErrorReply ("Clip service unavailable");
     });
+    handlers.emplace ("split_clip", [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return clipService != nullptr ? clipService->handleSplitClip (object, raw)
+                                      : makeErrorReply ("Clip service unavailable");
+    });
 
     handlers.emplace ("add_midi_notes", [this] (const juce::DynamicObject& object, const juce::String& raw)
     {

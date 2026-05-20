@@ -360,6 +360,76 @@ func TestResolveClipResizeInfersLengthFromUserMessage(t *testing.T) {
 	}
 }
 
+func TestResolveClipSplitFromSelectedContext(t *testing.T) {
+	h := New(nil, shadowProjectWithClips(), nil)
+	cmd, spec, err := h.resolveCommand(InvokeRequest{
+		Tool: "clip.split",
+		Args: map[string]any{"split_time": 1.0},
+	})
+	if err != nil {
+		t.Fatalf("resolveCommand: %v", err)
+	}
+	if err := h.resolveImplicitTargets(context.Background(), spec, cmd, map[string]any{
+		"selected_clip_id":       "clip_a",
+		"selected_clip_track_id": "1007",
+	}); err != nil {
+		t.Fatalf("resolveImplicitTargets: %v", err)
+	}
+	if cmd["clip_id"] != "clip_a" || cmd["track_id"] != "1007" {
+		t.Fatalf("cmd = %+v", cmd)
+	}
+	if cmd["split_time"] != 1.0 || cmd["time_unit"] != "seconds" {
+		t.Fatalf("time args = %+v", cmd)
+	}
+}
+
+func TestResolveClipSplitInfersPlayheadFromContext(t *testing.T) {
+	h := New(nil, shadowProjectWithClips(), nil)
+	cmd, spec, err := h.resolveCommand(InvokeRequest{
+		Tool: "clip.split",
+		Args: map[string]any{},
+	})
+	if err != nil {
+		t.Fatalf("resolveCommand: %v", err)
+	}
+	if err := h.resolveImplicitTargets(context.Background(), spec, cmd, map[string]any{
+		"user_message":           "在播放头这里切开选中的clip",
+		"selected_clip_id":       "clip_a",
+		"selected_clip_track_id": "1007",
+		"playhead_seconds":       1.25,
+	}); err != nil {
+		t.Fatalf("resolveImplicitTargets: %v", err)
+	}
+	if cmd["clip_id"] != "clip_a" || cmd["track_id"] != "1007" {
+		t.Fatalf("cmd = %+v", cmd)
+	}
+	if cmd["split_time"] != 1.25 || cmd["time_unit"] != "seconds" {
+		t.Fatalf("time args = %+v", cmd)
+	}
+}
+
+func TestResolveClipSplitOverridesModelZeroForPlayhead(t *testing.T) {
+	h := New(nil, shadowProjectWithClips(), nil)
+	cmd, spec, err := h.resolveCommand(InvokeRequest{
+		Tool: "clip.split",
+		Args: map[string]any{"split_time": 0.0},
+	})
+	if err != nil {
+		t.Fatalf("resolveCommand: %v", err)
+	}
+	if err := h.resolveImplicitTargets(context.Background(), spec, cmd, map[string]any{
+		"user_message":           "split the selected clip at the playhead",
+		"selected_clip_id":       "clip_a",
+		"selected_clip_track_id": "1007",
+		"playhead_seconds":       1.25,
+	}); err != nil {
+		t.Fatalf("resolveImplicitTargets: %v", err)
+	}
+	if cmd["split_time"] != 1.25 || cmd["time_unit"] != "seconds" {
+		t.Fatalf("time args = %+v", cmd)
+	}
+}
+
 func TestResolveRemoveClipsFromSelectedIDs(t *testing.T) {
 	h := New(nil, shadowProjectWithClips(), nil)
 	cmd, spec, err := h.resolveCommand(InvokeRequest{

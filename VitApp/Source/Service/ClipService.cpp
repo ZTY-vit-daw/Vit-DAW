@@ -640,6 +640,92 @@ juce::String ClipService::handleResizeClip (const juce::DynamicObject& object, c
     return juce::JSON::toString (juce::var (response.release()));
 }
 
+juce::String ClipService::handleSplitClip (const juce::DynamicObject& object, const juce::String&) const
+{
+    auto* edit = getEdit != nullptr ? getEdit() : nullptr;
+
+    if (edit == nullptr)
+        return makeErrorReply ("No active edit loaded");
+
+    const auto clipId = object.getProperty ("clip_id").toString().trim();
+
+    if (clipId.isEmpty())
+        return makeErrorReply ("split_clip requires a non-empty clip_id");
+
+    auto* clip = findClipByID (*edit, clipId);
+    if (clip == nullptr)
+        return makeErrorReply ("split_clip clip not found for clip_id: " + clipId);
+
+    auto* clipTrack = clip->getClipTrack();
+    if (clipTrack == nullptr)
+        return makeErrorReply ("split_clip clip has no parent clip track");
+
+    juce::String trackId = object.getProperty ("track_id").toString().trim();
+    if (trackId.isEmpty())
+        trackId = clipTrack->itemID.toString();
+    else if (clipTrack->itemID.toString() != trackId)
+        return makeErrorReply ("split_clip track_id does not match clip's current parent track");
+
+    CommandTimeUnit timeUnit = CommandTimeUnit::seconds;
+    juce::String parseError;
+
+    if (! parseTimeUnit (object, timeUnit, parseError))
+        return makeErrorReply ("split_clip: " + parseError);
+
+    const juce::StringArray splitKeys = (timeUnit == CommandTimeUnit::beats)
+                                            ? juce::StringArray { "split_time_beats", "split_time_beat", "split_time", "time" }
+                                            : juce::StringArray { "split_time_seconds", "split_time", "position_seconds", "time" };
+    double splitValue = 0.0;
+
+    if (! readNumericProperty (object, splitKeys, splitValue))
+        return makeErrorReply ("split_clip requires numeric split_time (or unit-specific alias)");
+
+    double splitTimeSeconds = 0.0;
+    if (! convertTimeValueToSeconds (*edit, timeUnit, splitValue, splitTimeSeconds, parseError))
+        return makeErrorReply ("split_clip: " + parseError);
+
+    const auto beforeRange = clip->getPosition().time;
+    const auto clipStartSeconds = beforeRange.getStart().inSeconds();
+    const auto clipEndSeconds = beforeRange.getEnd().inSeconds();
+
+    if (splitTimeSeconds <= clipStartSeconds + kMinimumSurvivingClipLengthSeconds
+        || splitTimeSeconds >= clipEndSeconds - kMinimumSurvivingClipLengthSeconds)
+    {
+        return makeErrorReply ("split_clip split_time must be inside the clip, leaving audio on both sides");
+    }
+
+    auto& undo = edit->getUndoManager();
+    undo.beginNewTransaction ("Split clip");
+
+    auto* newClip = clipTrack->splitClip (*clip, te::TimePosition::fromSeconds (splitTimeSeconds));
+
+    if (newClip == nullptr)
+        return makeErrorReply ("split_clip failed to split clip");
+
+    applyMicroFadeIfNeeded (*clip);
+    applyMicroFadeIfNeeded (*newClip);
+
+    edit->invalidateStoredLength();
+    edit->dispatchPendingUpdatesSynchronously();
+    edit->getTransport().ensureContextAllocated (true);
+
+    auto response = std::make_unique<juce::DynamicObject>();
+    response->setProperty ("status", "ok");
+    response->setProperty ("message", "Clip split");
+    response->setProperty ("clip_id", clipId);
+    response->setProperty ("left_clip_id", clip->itemID.toString());
+    response->setProperty ("right_clip_id", newClip->itemID.toString());
+    response->setProperty ("new_clip_id", newClip->itemID.toString());
+    response->setProperty ("track_id", trackId);
+    response->setProperty ("affected_track_id", trackId);
+    response->setProperty ("split_time_seconds", splitTimeSeconds);
+    response->setProperty ("left_start_seconds", clip->getPosition().getStart().inSeconds());
+    response->setProperty ("left_length_seconds", clip->getPosition().getLength().inSeconds());
+    response->setProperty ("right_start_seconds", newClip->getPosition().getStart().inSeconds());
+    response->setProperty ("right_length_seconds", newClip->getPosition().getLength().inSeconds());
+    return juce::JSON::toString (juce::var (response.release()));
+}
+
 juce::String ClipService::handleRemoveClips (const juce::DynamicObject& object, const juce::String&) const
 {
     auto* edit = getEdit != nullptr ? getEdit() : nullptr;

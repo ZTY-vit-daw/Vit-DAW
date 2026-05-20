@@ -158,6 +158,8 @@ func executedCommandReply(before, after map[string]any, d policy.Decision, reply
 		return "已移动选中的 clip。"
 	case "resize_clip":
 		return "已调整选中的 clip。"
+	case "split_clip":
+		return "已切开选中的 clip。"
 	case "clone_clip":
 		return "已复制选中的 clip。"
 	case "remove_clips":

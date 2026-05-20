@@ -380,6 +380,10 @@ func normalizeCommandArgs(spec tools.CommandSpec, cmd map[string]any, requestCon
 		copyFirstNonEmpty(cmd, "new_length", "new_length_seconds", "new_length_beats", "new_length_beat", "length", "length_seconds", "length_beats", "duration", "duration_seconds", "duration_beats")
 		copyFirstNonEmpty(cmd, "offset_in_source", "offset_in_source_seconds", "offset_in_source_beats", "offset_in_source_beat")
 		inferTimeUnit(cmd)
+	case "split_clip":
+		copyFirstNonEmpty(cmd, "clip_id", "source_clip_id", "target_clip_id")
+		copyFirstNonEmpty(cmd, "split_time", "split_time_seconds", "split_time_beats", "split_time_beat", "position_seconds", "time", "at", "start", "start_seconds", "start_beats")
+		inferTimeUnit(cmd)
 	case "clone_clip":
 		copyFirstNonEmpty(cmd, "source_clip_id", "clip_id", "target_clip_id")
 		copyFirstNonEmpty(cmd, "target_track_id", "track_id")
@@ -408,13 +412,13 @@ func inferTimeUnit(cmd map[string]any) {
 	if !isEmptyValue(cmd["time_unit"]) {
 		return
 	}
-	for _, key := range []string{"new_start_beats", "new_start_beat", "start_beats", "new_length_beats", "new_length_beat", "length_beats", "duration_beats", "offset_in_source_beats", "offset_in_source_beat"} {
+	for _, key := range []string{"new_start_beats", "new_start_beat", "start_beats", "new_length_beats", "new_length_beat", "length_beats", "duration_beats", "offset_in_source_beats", "offset_in_source_beat", "split_time_beats", "split_time_beat"} {
 		if !isEmptyValue(cmd[key]) {
 			cmd["time_unit"] = "beats"
 			return
 		}
 	}
-	for _, key := range []string{"new_start", "new_start_seconds", "start", "start_seconds", "position_seconds", "time", "new_length", "new_length_seconds", "length", "length_seconds", "duration", "duration_seconds", "offset_in_source", "offset_in_source_seconds"} {
+	for _, key := range []string{"new_start", "new_start_seconds", "start", "start_seconds", "position_seconds", "time", "new_length", "new_length_seconds", "length", "length_seconds", "duration", "duration_seconds", "offset_in_source", "offset_in_source_seconds", "split_time", "split_time_seconds"} {
 		if !isEmptyValue(cmd[key]) {
 			cmd["time_unit"] = "seconds"
 			return
@@ -897,6 +901,37 @@ func (h *Harness) resolveClipTargets(ctx context.Context, spec tools.CommandSpec
 		if isEmptyValue(cmd["track_id"]) && ref.TrackID != "" {
 			cmd["track_id"] = ref.TrackID
 		}
+	case "split_clip":
+		ref, err := h.resolveSingleClipRef(ctx, spec, cmd, requestContext, "clip_id")
+		if err != nil {
+			return err
+		}
+		cmd["clip_id"] = ref.ID
+		if mentionsPlayheadSplit(firstString(requestContext, "user_message", "message", "prompt", "utterance")) {
+			if seconds, ok := firstPlayheadSeconds(cmd, requestContext); ok {
+				cmd["split_time"] = seconds
+				if isEmptyValue(cmd["time_unit"]) {
+					cmd["time_unit"] = "seconds"
+				}
+			}
+		}
+		if isEmptyValue(cmd["split_time"]) {
+			if seconds, ok := inferSplitTimeSeconds(ref, requestContext); ok {
+				cmd["split_time"] = seconds
+				if isEmptyValue(cmd["time_unit"]) {
+					cmd["time_unit"] = "seconds"
+				}
+			}
+		}
+		if isEmptyValue(cmd["track_id"]) && ref.TrackID != "" {
+			cmd["track_id"] = ref.TrackID
+		}
+		if isEmptyValue(cmd["split_time"]) {
+			return fmt.Errorf("split_clip requires split_time; say a time like 在 2 秒处切开, or move the playhead and say 在播放头切开")
+		}
+		if isEmptyValue(cmd["time_unit"]) {
+			cmd["time_unit"] = "seconds"
+		}
 	case "clone_clip":
 		ref, err := h.resolveSingleClipRef(ctx, spec, cmd, requestContext, "source_clip_id")
 		if err != nil {
@@ -1179,6 +1214,45 @@ func inferCloneStartSeconds(ref clipRef, requestContext map[string]any) (float64
 	return 0, false
 }
 
+func inferSplitTimeSeconds(ref clipRef, requestContext map[string]any) (float64, bool) {
+	text := strings.TrimSpace(firstString(requestContext, "user_message", "message", "prompt", "utterance"))
+	if seconds, ok := firstSecondsInText(text); ok {
+		return splitTimeFromTextSeconds(ref, seconds, text), true
+	}
+	if mentionsPlayheadSplit(text) {
+		if seconds, ok := firstPlayheadSeconds(nil, requestContext); ok {
+			return seconds, true
+		}
+	}
+	return 0, false
+}
+
+func firstPlayheadSeconds(cmd map[string]any, requestContext map[string]any) (float64, bool) {
+	keys := []string{"playhead_seconds", "current_playhead_seconds", "transport_position_seconds", "position_seconds"}
+	if seconds, ok := numberValueFromMap(cmd, keys...); ok {
+		return seconds, true
+	}
+	return numberValueFromMap(requestContext, keys...)
+}
+
+func splitTimeFromTextSeconds(ref clipRef, seconds float64, text string) float64 {
+	lower := strings.ToLower(text)
+	if containsTextAnyFold(text, "内部", "里面", "从开头", "从起点", "相对", "offset", "into clip", "from start") {
+		return numberFromAny(ref.Row["start_seconds"]) + seconds
+	}
+	if containsTextAnyFold(text, "后", "之后", "later", "after") && !containsTextAnyFold(text, "秒处", "s mark", "at") {
+		return numberFromAny(ref.Row["start_seconds"]) + seconds
+	}
+	if strings.Contains(lower, "relative") {
+		return numberFromAny(ref.Row["start_seconds"]) + seconds
+	}
+	return seconds
+}
+
+func mentionsPlayheadSplit(text string) bool {
+	return containsTextAnyFold(text, "播放头", "当前位置", "这里", "此处", "当前时间", "playhead", "cursor", "current position", "here")
+}
+
 func isCloneAfterText(text string) bool {
 	return containsTextAnyFold(text, "后面", "后边", "后方", "后面一份", "后续", "紧接", "后", "after", "next", "right after")
 }
@@ -1241,6 +1315,30 @@ func numberFromAny(v any) float64 {
 		n, _ := strconv.ParseFloat(strings.TrimSpace(fmt.Sprint(v)), 64)
 		return n
 	}
+}
+
+func numberValueFromMap(row map[string]any, keys ...string) (float64, bool) {
+	for _, key := range keys {
+		v, ok := row[key]
+		if !ok || isEmptyValue(v) {
+			continue
+		}
+		switch x := v.(type) {
+		case int:
+			return float64(x), true
+		case int64:
+			return float64(x), true
+		case float64:
+			return x, true
+		case json.Number:
+			n, err := x.Float64()
+			return n, err == nil
+		default:
+			n, err := strconv.ParseFloat(strings.TrimSpace(fmt.Sprint(v)), 64)
+			return n, err == nil
+		}
+	}
+	return 0, false
 }
 
 func (h *Harness) resolveTrackID(ctx context.Context, spec tools.CommandSpec, cmd map[string]any, requestContext map[string]any) (string, error) {

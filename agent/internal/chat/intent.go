@@ -38,6 +38,24 @@ func synthesizeLocalDAWCommands(userText string, requestContext map[string]any) 
 			"tool": "clip.remove",
 			"args": selectedClipArgs(requestContext, true),
 		}}
+	case isClipSplitText(text):
+		args := selectedClipArgs(requestContext, false)
+		if seconds, ok := firstLocalSeconds(text); ok {
+			args["split_time"] = seconds
+			args["time_unit"] = "seconds"
+		}
+		if trackID := selectedClipTrackID(requestContext); trackID != "" {
+			args["track_id"] = trackID
+		}
+		if mentionsPlayheadText(text) {
+			if playhead := firstContextText(requestContext, "playhead_seconds", "current_playhead_seconds", "transport_position_seconds"); playhead != "" {
+				args["playhead_seconds"] = playhead
+			}
+		}
+		return []map[string]any{{
+			"tool": "clip.split",
+			"args": args,
+		}}
 	case isClipCloneText(text):
 		args := selectedClipArgs(requestContext, false)
 		if seconds, ok := firstLocalSeconds(text); ok && !isRelativeMoveText(text) {
@@ -173,6 +191,10 @@ func isClipDeleteText(text string) bool {
 	return containsAnyFold(text, "删除", "移除", "删掉", "delete", "remove")
 }
 
+func isClipSplitText(text string) bool {
+	return containsAnyFold(text, "切开", "切分", "分割", "剪开", "切一刀", "split", "cut")
+}
+
 func isClipCloneText(text string) bool {
 	return containsAnyFold(text, "复制", "克隆", "拷贝", "再来一份", "duplicate", "clone", "copy")
 }
@@ -215,6 +237,10 @@ func firstLocalSeconds(text string) (float64, bool) {
 
 func isRelativeMoveText(text string) bool {
 	return containsAnyFold(text, "向前", "前移", "提前", "向后", "后移", "推后", "earlier", "left", "backward", "later", "right", "forward")
+}
+
+func mentionsPlayheadText(text string) bool {
+	return containsAnyFold(text, "播放头", "当前位置", "这里", "此处", "当前时间", "playhead", "cursor", "current position", "here")
 }
 
 func containsAnyFold(text string, needles ...string) bool {

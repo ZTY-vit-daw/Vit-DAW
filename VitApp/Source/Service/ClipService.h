@@ -20,6 +20,7 @@ public:
     juce::String handleMoveClip (const juce::DynamicObject&, const juce::String&) const;
     juce::String handleCloneClip (const juce::DynamicObject&, const juce::String&) const;
     juce::String handleResizeClip (const juce::DynamicObject&, const juce::String&) const;
+    juce::String handleSplitClip (const juce::DynamicObject&, const juce::String&) const;
     juce::String handleRemoveClips (const juce::DynamicObject&, const juce::String&) const;
 
 private:
