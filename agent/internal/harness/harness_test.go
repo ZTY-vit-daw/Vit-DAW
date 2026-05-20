@@ -562,6 +562,28 @@ func TestResolveCloneClipAliasesAndTargetTrack(t *testing.T) {
 	}
 }
 
+func TestCloneClipPublicResultSelectsNewClip(t *testing.T) {
+	h := New(nil, shadowProjectWithClips(), nil)
+	_, spec, err := h.resolveCommand(InvokeRequest{
+		Tool: "clip.clone",
+		Args: map[string]any{"clip_id": "clip_a", "target_track_id": "1010", "new_start": 8.0},
+	})
+	if err != nil {
+		t.Fatalf("resolveCommand: %v", err)
+	}
+	result := h.publicResult(spec,
+		map[string]any{"source_clip_id": "clip_a", "target_track_id": "1010"},
+		map[string]any{"status": "ok", "new_clip_id": "clip_new"},
+	)
+	created := result["created_clip_ids"].([]string)
+	if result["ui_action"] != "select_clip" || result["clip_id"] != "clip_new" || result["track_id"] != "1010" {
+		t.Fatalf("result = %+v", result)
+	}
+	if result["source_clip_id"] != "clip_a" || len(created) != 1 || created[0] != "clip_new" {
+		t.Fatalf("clone metadata = %+v", result)
+	}
+}
+
 func TestResolveCloneClipInfersStartAfterSource(t *testing.T) {
 	h := New(nil, shadowProjectWithClips(), nil)
 	cmd, spec, err := h.resolveCommand(InvokeRequest{

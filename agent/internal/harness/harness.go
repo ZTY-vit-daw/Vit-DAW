@@ -1496,6 +1496,27 @@ func (h *Harness) publicResult(spec tools.CommandSpec, cmd map[string]any, reply
 		out["requested_clip_ids"] = requested
 		out["removed_clip_ids"] = removed
 		return out
+	case "clone_clip":
+		out := cloneAnyMap(reply)
+		newClipID := firstString(reply, "new_clip_id", "clip_id")
+		targetTrackID := firstNonEmpty(
+			firstString(reply, "target_track_id", "track_id", "affected_track_id"),
+			firstString(cmd, "target_track_id", "track_id"),
+		)
+		if newClipID != "" {
+			out["ui_action"] = "select_clip"
+			out["clip_id"] = newClipID
+			out["new_clip_id"] = newClipID
+			out["created_clip_ids"] = []string{newClipID}
+		}
+		if targetTrackID != "" {
+			out["track_id"] = targetTrackID
+			out["target_track_id"] = targetTrackID
+		}
+		if sourceClipID := firstString(cmd, "source_clip_id", "clip_id"); sourceClipID != "" {
+			out["source_clip_id"] = sourceClipID
+		}
+		return out
 	}
 	return reply
 }
