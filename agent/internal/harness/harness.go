@@ -232,7 +232,7 @@ func (h *Harness) Invoke(ctx context.Context, req InvokeRequest) (InvokeResponse
 		err = fmt.Errorf("%s", firstNonEmpty(fmt.Sprint(reply["message"]), fmt.Sprint(reply["error"]), "kernel command failed"))
 	}
 	h.journal.MarkResult(actionID, journalStatus, reply, err)
-	result := h.publicResult(spec, reply)
+	result := h.publicResult(spec, cmd, reply)
 	resp := InvokeResponse{
 		Status:               status,
 		AgentActionID:        actionID,
@@ -1466,7 +1466,7 @@ func kernelReplySucceeded(reply map[string]any) bool {
 	return status == "ok" || status == "success"
 }
 
-func (h *Harness) publicResult(spec tools.CommandSpec, reply map[string]any) map[string]any {
+func (h *Harness) publicResult(spec tools.CommandSpec, cmd map[string]any, reply map[string]any) map[string]any {
 	switch spec.CommandName {
 	case "get_project_state":
 		if h.shadow != nil {
@@ -1482,8 +1482,38 @@ func (h *Harness) publicResult(spec tools.CommandSpec, reply map[string]any) map
 				"tracks":           summary["tracks"],
 			}
 		}
+	case "remove_clips":
+		out := cloneAnyMap(reply)
+		requested := stringSliceFromAny(cmd["clip_ids"])
+		missing := stringSet(stringSliceFromAny(reply["missing_ids"]))
+		removed := make([]string, 0, len(requested))
+		for _, id := range requested {
+			if !missing[id] {
+				removed = append(removed, id)
+			}
+		}
+		out["ui_action"] = "remove_clips"
+		out["requested_clip_ids"] = requested
+		out["removed_clip_ids"] = removed
+		return out
 	}
 	return reply
+}
+
+func cloneAnyMap(in map[string]any) map[string]any {
+	out := make(map[string]any, len(in))
+	for k, v := range in {
+		out[k] = v
+	}
+	return out
+}
+
+func stringSet(items []string) map[string]bool {
+	out := make(map[string]bool, len(items))
+	for _, item := range items {
+		out[item] = true
+	}
+	return out
 }
 
 func userVisibleState(in map[string]any) map[string]any {

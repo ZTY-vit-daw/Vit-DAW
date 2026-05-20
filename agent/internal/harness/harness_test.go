@@ -467,6 +467,29 @@ func TestResolveRemoveClipsFromSelectedIDs(t *testing.T) {
 	}
 }
 
+func TestRemoveClipsPublicResultIncludesUIAction(t *testing.T) {
+	h := New(nil, shadowProjectWithClips(), nil)
+	_, spec, err := h.resolveCommand(InvokeRequest{
+		Tool: "clip.remove",
+		Args: map[string]any{},
+	})
+	if err != nil {
+		t.Fatalf("resolveCommand: %v", err)
+	}
+	result := h.publicResult(spec,
+		map[string]any{"clip_ids": []string{"clip_a", "clip_b"}},
+		map[string]any{"status": "ok", "missing_ids": []any{"clip_b"}},
+	)
+	removed := result["removed_clip_ids"].([]string)
+	if result["ui_action"] != "remove_clips" || len(removed) != 1 || removed[0] != "clip_a" {
+		t.Fatalf("result = %+v", result)
+	}
+	requested := result["requested_clip_ids"].([]string)
+	if len(requested) != 2 || requested[0] != "clip_a" || requested[1] != "clip_b" {
+		t.Fatalf("requested = %#v", requested)
+	}
+}
+
 func TestResolveMoveClipDefaultsTracksFromSelectedClip(t *testing.T) {
 	h := New(nil, shadowProjectWithClips(), nil)
 	cmd, spec, err := h.resolveCommand(InvokeRequest{
@@ -662,7 +685,7 @@ func TestPublicResultSanitizesProjectState(t *testing.T) {
 	})
 	h := New(nil, project, nil)
 
-	result := h.publicResult(tools.CommandSpec{CommandName: "get_project_state"}, map[string]any{
+	result := h.publicResult(tools.CommandSpec{CommandName: "get_project_state"}, nil, map[string]any{
 		"status": "ok",
 		"tracks": []any{
 			map[string]any{"track_id": "1002"},
