@@ -96,6 +96,20 @@ func synthesizeLocalDAWCommands(userText string, requestContext map[string]any) 
 			"tool": "clip.resize",
 			"args": args,
 		}}
+	case isClipSelectText(text):
+		args := map[string]any{}
+		if name := localClipSelectName(text); name != "" {
+			args["clip_name"] = name
+		} else {
+			args = selectedClipArgs(requestContext, false)
+		}
+		if trackID := selectedClipTrackID(requestContext); trackID != "" {
+			args["track_id"] = trackID
+		}
+		return []map[string]any{{
+			"tool": "clip.select",
+			"args": args,
+		}}
 	default:
 		return nil
 	}
@@ -189,6 +203,25 @@ func localImportSearchQuery(text string) string {
 
 func isClipDeleteText(text string) bool {
 	return containsAnyFold(text, "删除", "移除", "删掉", "delete", "remove")
+}
+
+func isClipSelectText(text string) bool {
+	return containsAnyFold(text, "选中", "选择", "聚焦", "select", "choose", "focus")
+}
+
+func localClipSelectName(text string) string {
+	cleaned := strings.TrimSpace(text)
+	for _, phrase := range []string{
+		"选中 clip", "选择 clip", "聚焦 clip", "选中这个 clip", "选择这个 clip", "聚焦这个 clip",
+		"选中", "选择", "聚焦",
+		"select clip", "choose clip", "focus clip", "select the clip", "choose the clip", "focus the clip",
+		"select", "choose", "focus", "clip",
+	} {
+		cleaned = strings.ReplaceAll(cleaned, phrase, " ")
+		cleaned = strings.ReplaceAll(cleaned, strings.Title(phrase), " ")
+	}
+	replacer := strings.NewReplacer("\"", " ", "'", " ", "`", " ", ":", " ", ",", " ", ".", " ", "(", " ", ")", " ")
+	return strings.Join(strings.Fields(replacer.Replace(cleaned)), " ")
 }
 
 func isClipSplitText(text string) bool {

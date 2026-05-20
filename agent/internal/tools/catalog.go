@@ -245,6 +245,8 @@ func argHint(commandName string) string {
 		return "source_clip_id:string target_track_id:string time_unit:string new_start:number"
 	case "remove_clips":
 		return "clip_ids:string[]"
+	case "select_clip":
+		return "clip_id:string optional track_id:string clip_name:string clip_index:number"
 	case "get_plugin_parameters", "open_plugin_ui", "show_plugin_editor":
 		return "track_id:string plugin_id:string"
 	case "set_plugin_param":
@@ -378,6 +380,7 @@ func defaultSpecs() []CommandSpec {
 		spec("split_clip", "clip.split", "clip", "Split a clip at a timeline position.", RiskConfirm, true, true, true, true, "track_id", "clip_id"),
 		spec("clone_clip", "clip.clone", "clip", "Clone an existing clip.", RiskConfirm, true, true, true, true, "source_clip_id", "target_track_id"),
 		spec("remove_clips", "clip.remove", "clip", "Remove one or more clips.", RiskConfirm, true, true, true, true, "clip_ids"),
+		spec("select_clip", "clip.select", "clip", "Select a user-visible clip in the UI without changing the project.", RiskDirect, false, false, false, false, "track_id", "clip_id"),
 		spec("warm_waveform_bake", "clip.warm_waveform_bake", "clip", "Request waveform/tile preparation.", RiskDirect, false, false, false, false),
 
 		spec("get_midi_clip_notes", "midi.read_notes", "midi", "Read MIDI notes from a clip.", RiskDirect, false, false, false, false, "clip_id"),

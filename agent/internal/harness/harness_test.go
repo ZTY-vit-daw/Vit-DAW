@@ -430,6 +430,23 @@ func TestResolveClipSplitOverridesModelZeroForPlayhead(t *testing.T) {
 	}
 }
 
+func TestInvokeClipSelectIsLocalUIAction(t *testing.T) {
+	h := New(nil, shadowProjectWithClips(), nil)
+	resp, err := h.Invoke(context.Background(), InvokeRequest{
+		Tool: "clip.select",
+		Args: map[string]any{"clip_name": "Loop B"},
+	})
+	if err != nil {
+		t.Fatalf("Invoke: %v", err)
+	}
+	if resp.Status != "ok" || resp.CommandName != "select_clip" {
+		t.Fatalf("resp = %+v", resp)
+	}
+	if resp.Result["ui_action"] != "select_clip" || resp.Result["clip_id"] != "clip_b" || resp.Result["track_id"] != "1010" {
+		t.Fatalf("result = %+v", resp.Result)
+	}
+}
+
 func TestResolveRemoveClipsFromSelectedIDs(t *testing.T) {
 	h := New(nil, shadowProjectWithClips(), nil)
 	cmd, spec, err := h.resolveCommand(InvokeRequest{

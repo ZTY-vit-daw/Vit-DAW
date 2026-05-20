@@ -39,6 +39,22 @@ func TestSynthesizeLocalClipRemoveCommand(t *testing.T) {
 	}
 }
 
+func TestSynthesizeLocalClipSelectCommandByName(t *testing.T) {
+	cmds := synthesizeLocalDAWCommands("select clip Loop A", map[string]any{
+		"selected_clip_track_id": "1007",
+	})
+	if len(cmds) != 1 {
+		t.Fatalf("cmds = %+v", cmds)
+	}
+	if cmds[0]["tool"] != "clip.select" {
+		t.Fatalf("tool = %#v", cmds[0]["tool"])
+	}
+	args := cmds[0]["args"].(map[string]any)
+	if args["clip_name"] != "Loop A" || args["track_id"] != "1007" {
+		t.Fatalf("args = %+v", args)
+	}
+}
+
 func TestSynthesizeLocalClipResizeCommand(t *testing.T) {
 	cases := []string{
 		"把选中的clip裁到2秒",

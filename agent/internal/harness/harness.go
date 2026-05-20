@@ -180,6 +180,20 @@ func (h *Harness) Invoke(ctx context.Context, req InvokeRequest) (InvokeResponse
 	}
 
 	h.journal.Record(action)
+	if result, ok := h.invokeLocal(spec, cmd); ok {
+		h.journal.MarkResult(actionID, journal.StatusSucceeded, result, nil)
+		resp := InvokeResponse{
+			Status:               "ok",
+			AgentActionID:        actionID,
+			Tool:                 spec.ToolName,
+			CommandName:          spec.CommandName,
+			RiskLevel:            spec.RiskLevel,
+			RequiresConfirmation: false,
+			Result:               result,
+			UndoLabel:            undoLabel,
+		}
+		return resp, nil
+	}
 	if h.kernel == nil {
 		err := fmt.Errorf("kernel client is nil")
 		h.journal.MarkResult(actionID, journal.StatusFailed, nil, err)
@@ -302,6 +316,22 @@ func commandArgs(cmd map[string]any) map[string]any {
 	delete(out, "tool")
 	delete(out, "args")
 	return out
+}
+
+func (h *Harness) invokeLocal(spec tools.CommandSpec, cmd map[string]any) (map[string]any, bool) {
+	switch spec.CommandName {
+	case "select_clip":
+		return map[string]any{
+			"status":     "ok",
+			"ui_action":  "select_clip",
+			"track_id":   firstString(cmd, "track_id"),
+			"track_name": firstString(cmd, "track_name"),
+			"clip_id":    firstString(cmd, "clip_id"),
+			"clip_name":  firstString(cmd, "clip_name", "name"),
+		}, true
+	default:
+		return nil, false
+	}
 }
 
 func flattenCommandParams(cmd map[string]any) {
@@ -976,6 +1006,21 @@ func (h *Harness) resolveClipTargets(ctx context.Context, spec tools.CommandSpec
 			return err
 		}
 		cmd["clip_ids"] = []string{ref.ID}
+	case "select_clip":
+		ref, err := h.resolveSingleClipRef(ctx, spec, cmd, requestContext, "clip_id")
+		if err != nil {
+			return err
+		}
+		cmd["clip_id"] = ref.ID
+		if isEmptyValue(cmd["track_id"]) && ref.TrackID != "" {
+			cmd["track_id"] = ref.TrackID
+		}
+		if isEmptyValue(cmd["clip_name"]) && ref.Name != "" {
+			cmd["clip_name"] = ref.Name
+		}
+		if isEmptyValue(cmd["track_name"]) && ref.TrackName != "" {
+			cmd["track_name"] = ref.TrackName
+		}
 	default:
 		if specRequiresTarget(spec, "clip_id") && isEmptyValue(cmd["clip_id"]) {
 			ref, err := h.resolveSingleClipRef(ctx, spec, cmd, requestContext, "clip_id")

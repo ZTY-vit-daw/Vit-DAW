@@ -164,6 +164,8 @@ func executedCommandReply(before, after map[string]any, d policy.Decision, reply
 		return "已复制选中的 clip。"
 	case "remove_clips":
 		return "已删除选中的 clip。"
+	case "select_clip":
+		return "已选中 clip。"
 	case "import_audio", "import_media_to_track":
 		name := targetTrackName(before, after, cmd)
 		clipName := firstText(result, "clip_name", "name")
