@@ -16,6 +16,30 @@ func synthesizeLocalDAWCommands(userText string, requestContext map[string]any) 
 	if text == "" {
 		return nil
 	}
+	if isTrackMuteText(text) {
+		args := selectedTrackArgs(requestContext)
+		args["mute"] = !isTrackUnmuteText(text)
+		if trackIndex, ok := localUserTrackIndex(text); ok {
+			args["user_track_index"] = trackIndex
+			delete(args, "track_id")
+		}
+		return []map[string]any{{
+			"tool": "track.mute",
+			"args": args,
+		}}
+	}
+	if isTrackSoloText(text) {
+		args := selectedTrackArgs(requestContext)
+		args["solo"] = !isTrackUnsoloText(text)
+		if trackIndex, ok := localUserTrackIndex(text); ok {
+			args["user_track_index"] = trackIndex
+			delete(args, "track_id")
+		}
+		return []map[string]any{{
+			"tool": "track.solo",
+			"args": args,
+		}}
+	}
 	if isAudioImportText(text) {
 		args := selectedImportArgs(requestContext)
 		if path := firstLocalAudioPath(text); path != "" {
@@ -140,6 +164,14 @@ func selectedImportArgs(requestContext map[string]any) map[string]any {
 	return args
 }
 
+func selectedTrackArgs(requestContext map[string]any) map[string]any {
+	args := map[string]any{}
+	if trackID := strings.TrimSpace(firstContextText(requestContext, "selected_track_id", "focused_track_id", "track_id")); trackID != "" {
+		args["track_id"] = trackID
+	}
+	return args
+}
+
 func selectedClipArgs(requestContext map[string]any, allowMany bool) map[string]any {
 	args := map[string]any{}
 	ids := contextStringSlice(requestContext["selected_clip_ids"])
@@ -229,6 +261,22 @@ func localImportSearchQuery(text string) string {
 
 func isClipDeleteText(text string) bool {
 	return containsAnyFold(text, "删除", "移除", "删掉", "delete", "remove")
+}
+
+func isTrackMuteText(text string) bool {
+	return containsAnyFold(text, "静音", "mute", "unmute")
+}
+
+func isTrackUnmuteText(text string) bool {
+	return containsAnyFold(text, "取消静音", "解除静音", "关闭静音", "取消mute", "取消 mute", "unmute")
+}
+
+func isTrackSoloText(text string) bool {
+	return containsAnyFold(text, "solo", "独奏", "取消独奏", "解除独奏")
+}
+
+func isTrackUnsoloText(text string) bool {
+	return containsAnyFold(text, "取消solo", "取消 solo", "unsolo", "取消独奏", "解除独奏", "关闭独奏")
 }
 
 func isClipSelectText(text string) bool {

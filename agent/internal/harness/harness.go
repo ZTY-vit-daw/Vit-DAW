@@ -776,15 +776,16 @@ func directoryDepth(root, path string) int {
 }
 
 func inferBoolFromUserMessage(cmd map[string]any, target string, requestContext map[string]any, negativePhrases, positivePhrases []string) {
-	if _, ok := boolValue(cmd[target]); ok {
-		return
-	}
 	text := strings.TrimSpace(firstString(requestContext, "user_message", "message", "prompt", "utterance"))
-	if text == "" {
-		return
+	if text != "" {
+		if value, ok := inferBoolFromText(text, negativePhrases, positivePhrases); ok {
+			cmd[target] = value
+			return
+		}
 	}
-	if value, ok := inferBoolFromText(text, negativePhrases, positivePhrases); ok {
+	if value, ok := boolValue(cmd[target]); ok {
 		cmd[target] = value
+		return
 	}
 }
 

@@ -125,11 +125,25 @@ func TestInferMissingTrackBooleanFromUserMessage(t *testing.T) {
 			want:    false,
 		},
 		{
+			name:    "mute off overrides model true",
+			command: map[string]any{"cmd": "set_mute", "track_id": "1007", "mute": true},
+			context: map[string]any{"user_message": "取消静音"},
+			field:   "mute",
+			want:    false,
+		},
+		{
 			name:    "solo on",
 			command: map[string]any{"cmd": "set_solo", "track_id": "1012"},
 			context: map[string]any{"user_message": "track 2 solo"},
 			field:   "solo",
 			want:    true,
+		},
+		{
+			name:    "solo off overrides model true",
+			command: map[string]any{"cmd": "set_solo", "track_id": "1012", "solo": true},
+			context: map[string]any{"user_message": "取消solo"},
+			field:   "solo",
+			want:    false,
 		},
 	}
 	for _, tc := range cases {

@@ -2,6 +2,88 @@ package chat
 
 import "testing"
 
+func TestSynthesizeLocalTrackMuteCommands(t *testing.T) {
+	cases := []struct {
+		text  string
+		want  bool
+		index int
+	}{
+		{"静音当前轨道", true, 0},
+		{"静音轨道", true, 0},
+		{"mute current track", true, 0},
+		{"取消静音", false, 0},
+		{"取消mute", false, 0},
+		{"unmute track 1", false, 1},
+	}
+	for _, tc := range cases {
+		cmds := synthesizeLocalDAWCommands(tc.text, map[string]any{
+			"selected_track_id": "1007",
+		})
+		if len(cmds) != 1 {
+			t.Fatalf("%q cmds = %+v", tc.text, cmds)
+		}
+		if cmds[0]["tool"] != "track.mute" {
+			t.Fatalf("%q tool = %#v", tc.text, cmds[0]["tool"])
+		}
+		args := cmds[0]["args"].(map[string]any)
+		if args["mute"] != tc.want {
+			t.Fatalf("%q args = %+v", tc.text, args)
+		}
+		if tc.index > 0 {
+			if args["user_track_index"] != tc.index {
+				t.Fatalf("%q args = %+v", tc.text, args)
+			}
+			if _, ok := args["track_id"]; ok {
+				t.Fatalf("%q explicit track index should override selected track: %+v", tc.text, args)
+			}
+		} else if args["track_id"] != "1007" {
+			t.Fatalf("%q args = %+v", tc.text, args)
+		}
+	}
+}
+
+func TestSynthesizeLocalTrackMuteCommandByUserTrackIndex(t *testing.T) {
+	cmds := synthesizeLocalDAWCommands("取消静音 track 1", map[string]any{
+		"selected_track_id": "1010",
+	})
+	if len(cmds) != 1 {
+		t.Fatalf("cmds = %+v", cmds)
+	}
+	args := cmds[0]["args"].(map[string]any)
+	if args["mute"] != false || args["user_track_index"] != 1 {
+		t.Fatalf("args = %+v", args)
+	}
+	if _, ok := args["track_id"]; ok {
+		t.Fatalf("explicit track index should override selected track: %+v", args)
+	}
+}
+
+func TestSynthesizeLocalTrackSoloCommands(t *testing.T) {
+	cases := []struct {
+		text string
+		want bool
+	}{
+		{"solo 当前轨道", true},
+		{"取消solo", false},
+		{"取消独奏", false},
+	}
+	for _, tc := range cases {
+		cmds := synthesizeLocalDAWCommands(tc.text, map[string]any{
+			"selected_track_id": "1007",
+		})
+		if len(cmds) != 1 {
+			t.Fatalf("%q cmds = %+v", tc.text, cmds)
+		}
+		if cmds[0]["tool"] != "track.solo" {
+			t.Fatalf("%q tool = %#v", tc.text, cmds[0]["tool"])
+		}
+		args := cmds[0]["args"].(map[string]any)
+		if args["solo"] != tc.want || args["track_id"] != "1007" {
+			t.Fatalf("%q args = %+v", tc.text, args)
+		}
+	}
+}
+
 func TestSynthesizeLocalClipMoveCommand(t *testing.T) {
 	cmds := synthesizeLocalDAWCommands("将选中的clip移动20s", map[string]any{
 		"selected_clip_id":       "1011",
