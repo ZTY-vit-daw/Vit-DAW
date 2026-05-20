@@ -39,6 +39,23 @@ func TestSynthesizeLocalClipRemoveCommand(t *testing.T) {
 	}
 }
 
+func TestSynthesizeLocalClipRemoveThisAudio(t *testing.T) {
+	cmds := synthesizeLocalDAWCommands("把这个音频删掉", map[string]any{
+		"selected_clip_ids": []any{"1011"},
+	})
+	if len(cmds) != 1 {
+		t.Fatalf("cmds = %+v", cmds)
+	}
+	if cmds[0]["tool"] != "clip.remove" {
+		t.Fatalf("tool = %#v", cmds[0]["tool"])
+	}
+	args := cmds[0]["args"].(map[string]any)
+	ids := args["clip_ids"].([]string)
+	if len(ids) != 1 || ids[0] != "1011" {
+		t.Fatalf("clip_ids = %#v", ids)
+	}
+}
+
 func TestSynthesizeLocalClipSelectCommandByName(t *testing.T) {
 	cmds := synthesizeLocalDAWCommands("select clip Loop A", map[string]any{
 		"selected_clip_track_id": "1007",
@@ -82,6 +99,23 @@ func TestSynthesizeLocalClipResizeCommand(t *testing.T) {
 	}
 }
 
+func TestSynthesizeLocalClipResizeThisAudio(t *testing.T) {
+	cmds := synthesizeLocalDAWCommands("把这个音频裁到3秒", map[string]any{
+		"selected_clip_id":       "1011",
+		"selected_clip_track_id": "1007",
+	})
+	if len(cmds) != 1 {
+		t.Fatalf("cmds = %+v", cmds)
+	}
+	if cmds[0]["tool"] != "clip.resize" {
+		t.Fatalf("tool = %#v", cmds[0]["tool"])
+	}
+	args := cmds[0]["args"].(map[string]any)
+	if args["clip_id"] != "1011" || args["track_id"] != "1007" || args["new_length"] != 3.0 {
+		t.Fatalf("args = %+v", args)
+	}
+}
+
 func TestSynthesizeLocalClipResizeDoesNotCatchMovePosition(t *testing.T) {
 	cmds := synthesizeLocalDAWCommands("把选中的clip起点改成2秒", map[string]any{
 		"selected_clip_id":       "1011",
@@ -89,6 +123,27 @@ func TestSynthesizeLocalClipResizeDoesNotCatchMovePosition(t *testing.T) {
 	})
 	if len(cmds) != 1 || cmds[0]["tool"] != "clip.move" {
 		t.Fatalf("cmds = %+v", cmds)
+	}
+}
+
+func TestSynthesizeLocalClipMoveCommandToPlayhead(t *testing.T) {
+	cmds := synthesizeLocalDAWCommands("把这个音频移动到播放头", map[string]any{
+		"selected_clip_id":       "1011",
+		"selected_clip_track_id": "1007",
+		"playhead_seconds":       4.5,
+	})
+	if len(cmds) != 1 {
+		t.Fatalf("cmds = %+v", cmds)
+	}
+	if cmds[0]["tool"] != "clip.move" {
+		t.Fatalf("tool = %#v", cmds[0]["tool"])
+	}
+	args := cmds[0]["args"].(map[string]any)
+	if args["clip_id"] != "1011" || args["source_track_id"] != "1007" || args["target_track_id"] != "1007" {
+		t.Fatalf("args = %+v", args)
+	}
+	if args["new_start"] != 4.5 || args["time_unit"] != "seconds" {
+		t.Fatalf("time args = %+v", args)
 	}
 }
 
@@ -109,6 +164,24 @@ func TestSynthesizeLocalClipSplitCommandAtTime(t *testing.T) {
 	}
 	if args["split_time"] != 1.0 || args["time_unit"] != "seconds" {
 		t.Fatalf("time args = %+v", args)
+	}
+}
+
+func TestSynthesizeLocalClipSplitThisAudioAtPlayhead(t *testing.T) {
+	cmds := synthesizeLocalDAWCommands("在这里切开这个音频", map[string]any{
+		"selected_clip_id":       "1011",
+		"selected_clip_track_id": "1007",
+		"playhead_seconds":       1.25,
+	})
+	if len(cmds) != 1 {
+		t.Fatalf("cmds = %+v", cmds)
+	}
+	if cmds[0]["tool"] != "clip.split" {
+		t.Fatalf("tool = %#v", cmds[0]["tool"])
+	}
+	args := cmds[0]["args"].(map[string]any)
+	if args["clip_id"] != "1011" || args["track_id"] != "1007" || args["playhead_seconds"] != "1.25" {
+		t.Fatalf("args = %+v", args)
 	}
 }
 
@@ -164,6 +237,88 @@ func TestSynthesizeLocalClipCloneCommandAfterSource(t *testing.T) {
 	}
 	if _, ok := args["new_start"]; ok {
 		t.Fatalf("new_start should be inferred from project state by harness: %+v", args)
+	}
+}
+
+func TestSynthesizeLocalClipCloneThisAudioToPlayhead(t *testing.T) {
+	cmds := synthesizeLocalDAWCommands("把这个音频复制到播放头", map[string]any{
+		"selected_clip_id":       "1011",
+		"selected_clip_track_id": "1007",
+		"playhead_seconds":       6.25,
+	})
+	if len(cmds) != 1 {
+		t.Fatalf("cmds = %+v", cmds)
+	}
+	if cmds[0]["tool"] != "clip.clone" {
+		t.Fatalf("tool = %#v", cmds[0]["tool"])
+	}
+	args := cmds[0]["args"].(map[string]any)
+	if args["clip_id"] != "1011" || args["target_track_id"] != "1007" {
+		t.Fatalf("args = %+v", args)
+	}
+	if args["new_start"] != 6.25 || args["time_unit"] != "seconds" {
+		t.Fatalf("time args = %+v", args)
+	}
+}
+
+func TestSynthesizeLocalClipSelectThisClipUsesSelection(t *testing.T) {
+	cmds := synthesizeLocalDAWCommands("选中这个 clip", map[string]any{
+		"selected_clip_id":       "1011",
+		"selected_clip_track_id": "1007",
+	})
+	if len(cmds) != 1 {
+		t.Fatalf("cmds = %+v", cmds)
+	}
+	if cmds[0]["tool"] != "clip.select" {
+		t.Fatalf("tool = %#v", cmds[0]["tool"])
+	}
+	args := cmds[0]["args"].(map[string]any)
+	if args["clip_id"] != "1011" || args["track_id"] != "1007" {
+		t.Fatalf("args = %+v", args)
+	}
+	if _, ok := args["clip_name"]; ok {
+		t.Fatalf("should not infer clip_name for current clip reference: %+v", args)
+	}
+}
+
+func TestSynthesizeLocalClipSelectCurrentTrackOneClipUsesTrackScope(t *testing.T) {
+	cmds := synthesizeLocalDAWCommands("选中当前轨道的一个clip", map[string]any{
+		"selected_track_id": "1007",
+	})
+	if len(cmds) != 1 {
+		t.Fatalf("cmds = %+v", cmds)
+	}
+	if cmds[0]["tool"] != "clip.select" {
+		t.Fatalf("tool = %#v", cmds[0]["tool"])
+	}
+	args := cmds[0]["args"].(map[string]any)
+	if args["track_id"] != "1007" {
+		t.Fatalf("args = %+v", args)
+	}
+	if _, ok := args["clip_name"]; ok {
+		t.Fatalf("generic reference should not become clip_name: %+v", args)
+	}
+	if _, ok := args["clip_id"]; ok {
+		t.Fatalf("generic track-scoped reference should be resolved by harness: %+v", args)
+	}
+}
+
+func TestSynthesizeLocalClipSelectTrackIndexOneClipUsesTrackScope(t *testing.T) {
+	cmds := synthesizeLocalDAWCommands("选中track 1轨道的一个clip", map[string]any{
+		"selected_clip_id": "1011",
+	})
+	if len(cmds) != 1 {
+		t.Fatalf("cmds = %+v", cmds)
+	}
+	args := cmds[0]["args"].(map[string]any)
+	if args["user_track_index"] != 1 {
+		t.Fatalf("args = %+v", args)
+	}
+	if _, ok := args["clip_name"]; ok {
+		t.Fatalf("generic reference should not become clip_name: %+v", args)
+	}
+	if _, ok := args["clip_id"]; ok {
+		t.Fatalf("explicit track scope should be resolved by harness: %+v", args)
 	}
 }
 

@@ -9,6 +9,7 @@ import (
 
 var localSecondsPattern = regexp.MustCompile(`(?i)([-+]?\d+(?:\.\d+)?)\s*(?:s|sec|secs|second|seconds|秒)`)
 var localAudioPathPattern = regexp.MustCompile(`(?i)((?:[a-z]:|\\\\[^\\/]+[\\/][^\\/]+)[\\/][^\r\n"<>|?*]+?\.(?:wav|mp3|flac|ogg|oga|aif|aiff|m4a|wma))`)
+var localTrackIndexPattern = regexp.MustCompile(`(?i)(?:track\s*|第\s*)?(\d+)\s*(?:号)?\s*(?:轨道|轨|track)|track\s*(\d+)`)
 
 func synthesizeLocalDAWCommands(userText string, requestContext map[string]any) []map[string]any {
 	text := strings.TrimSpace(userText)
@@ -58,7 +59,10 @@ func synthesizeLocalDAWCommands(userText string, requestContext map[string]any) 
 		}}
 	case isClipCloneText(text):
 		args := selectedClipArgs(requestContext, false)
-		if seconds, ok := firstLocalSeconds(text); ok && !isRelativeMoveText(text) {
+		if seconds, ok := firstContextSeconds(requestContext, "playhead_seconds", "current_playhead_seconds", "transport_position_seconds"); ok && mentionsPlayheadText(text) {
+			args["new_start"] = seconds
+			args["time_unit"] = "seconds"
+		} else if seconds, ok := firstLocalSeconds(text); ok && !isRelativeMoveText(text) {
 			args["new_start"] = seconds
 			args["time_unit"] = "seconds"
 		}
@@ -69,9 +73,12 @@ func synthesizeLocalDAWCommands(userText string, requestContext map[string]any) 
 			"tool": "clip.clone",
 			"args": args,
 		}}
-	case isClipMoveText(text) && hasSeconds(text):
+	case isClipMoveText(text) && (hasSeconds(text) || mentionsPlayheadText(text)):
 		args := selectedClipArgs(requestContext, false)
-		if seconds, ok := firstLocalSeconds(text); ok && !isRelativeMoveText(text) {
+		if seconds, ok := firstContextSeconds(requestContext, "playhead_seconds", "current_playhead_seconds", "transport_position_seconds"); ok && mentionsPlayheadText(text) {
+			args["new_start"] = seconds
+			args["time_unit"] = "seconds"
+		} else if seconds, ok := firstLocalSeconds(text); ok && !isRelativeMoveText(text) {
 			args["new_start"] = seconds
 			args["time_unit"] = "seconds"
 		}
@@ -98,12 +105,16 @@ func synthesizeLocalDAWCommands(userText string, requestContext map[string]any) 
 		}}
 	case isClipSelectText(text):
 		args := map[string]any{}
-		if name := localClipSelectName(text); name != "" {
+		isCurrentRef := referencesCurrentClipText(text)
+		isGenericRef := genericClipReferenceText(text)
+		if name := localClipSelectName(text); name != "" && !isCurrentRef && !isGenericRef {
 			args["clip_name"] = name
-		} else {
+		} else if isCurrentRef {
 			args = selectedClipArgs(requestContext, false)
 		}
-		if trackID := selectedClipTrackID(requestContext); trackID != "" {
+		if trackIndex, ok := localUserTrackIndex(text); ok {
+			args["user_track_index"] = trackIndex
+		} else if trackID := selectedClipTrackID(requestContext); trackID != "" {
 			args["track_id"] = trackID
 		}
 		return []map[string]any{{
@@ -161,8 +172,23 @@ func firstContextText(requestContext map[string]any, keys ...string) string {
 	return ""
 }
 
+func firstContextSeconds(requestContext map[string]any, keys ...string) (float64, bool) {
+	raw := firstContextText(requestContext, keys...)
+	if raw == "" {
+		return 0, false
+	}
+	value, err := strconv.ParseFloat(raw, 64)
+	if err != nil {
+		return 0, false
+	}
+	if value < 0 {
+		value = -value
+	}
+	return value, true
+}
+
 func mentionsClip(text string) bool {
-	return containsAnyFold(text, "clip", "片段", "音频块", "素材块")
+	return containsAnyFold(text, "clip", "片段", "音频", "音频块", "素材", "素材块")
 }
 
 func isAudioImportText(text string) bool {
@@ -224,6 +250,43 @@ func localClipSelectName(text string) string {
 	return strings.Join(strings.Fields(replacer.Replace(cleaned)), " ")
 }
 
+func localUserTrackIndex(text string) (int, bool) {
+	match := localTrackIndexPattern.FindStringSubmatch(text)
+	if len(match) == 0 {
+		return 0, false
+	}
+	for _, raw := range match[1:] {
+		if raw == "" {
+			continue
+		}
+		value, err := strconv.Atoi(raw)
+		if err == nil && value > 0 {
+			return value, true
+		}
+	}
+	return 0, false
+}
+
+func genericClipReferenceText(text string) bool {
+	if _, ok := localUserTrackIndex(text); ok {
+		return true
+	}
+	return containsAnyFold(text,
+		"一个clip", "一个 clip", "任意clip", "任意 clip", "随便一个clip", "随便一个 clip",
+		"一个片段", "任意片段", "随便一个片段",
+		"一个音频", "任意音频", "随便一个音频",
+		"当前轨道", "选中轨道", "这个轨道", "这条轨道",
+		"one clip", "any clip", "a clip", "current track", "selected track")
+}
+
+func referencesCurrentClipText(text string) bool {
+	return containsAnyFold(text,
+		"这个clip", "这个 clip", "这段clip", "这段 clip", "当前clip", "当前 clip", "选中的clip", "选中的 clip",
+		"这个片段", "这段片段", "当前片段", "选中的片段",
+		"这个音频", "这段音频", "当前音频", "选中的音频",
+		"this clip", "current clip", "selected clip", "this audio", "current audio", "selected audio")
+}
+
 func isClipSplitText(text string) bool {
 	return containsAnyFold(text, "切开", "切分", "分割", "剪开", "切一刀", "split", "cut")
 }
@@ -234,7 +297,7 @@ func isClipCloneText(text string) bool {
 
 func isClipMoveText(text string) bool {
 	return containsAnyFold(text,
-		"移动", "移到", "挪到", "拖到", "位置", "起点", "开始位置",
+		"移动", "移到", "挪", "挪到", "拖到", "位置", "起点", "开始位置",
 		"move", "position", "start")
 }
 
@@ -269,7 +332,7 @@ func firstLocalSeconds(text string) (float64, bool) {
 }
 
 func isRelativeMoveText(text string) bool {
-	return containsAnyFold(text, "向前", "前移", "提前", "向后", "后移", "推后", "earlier", "left", "backward", "later", "right", "forward")
+	return containsAnyFold(text, "向前", "前移", "提前", "往前", "向左", "左移", "往左", "向后", "后移", "推后", "往后", "向右", "右移", "往右", "earlier", "left", "backward", "later", "right", "forward")
 }
 
 func mentionsPlayheadText(text string) bool {

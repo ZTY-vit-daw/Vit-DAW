@@ -894,6 +894,16 @@ func (h *Harness) resolveClipTargets(ctx context.Context, spec tools.CommandSpec
 		}
 		cmd["clip_id"] = ref.ID
 		if isEmptyValue(cmd["new_start"]) {
+			if mentionsPlayheadTarget(firstString(requestContext, "user_message", "message", "prompt", "utterance")) {
+				if seconds, ok := firstPlayheadSeconds(cmd, requestContext); ok {
+					cmd["new_start"] = seconds
+					if isEmptyValue(cmd["time_unit"]) {
+						cmd["time_unit"] = "seconds"
+					}
+				}
+			}
+		}
+		if isEmptyValue(cmd["new_start"]) {
 			if seconds, ok := inferMoveStartSeconds(ref, requestContext); ok {
 				cmd["new_start"] = seconds
 				if isEmptyValue(cmd["time_unit"]) {
@@ -968,6 +978,16 @@ func (h *Harness) resolveClipTargets(ctx context.Context, spec tools.CommandSpec
 			return err
 		}
 		cmd["source_clip_id"] = ref.ID
+		if isEmptyValue(cmd["new_start"]) {
+			if mentionsPlayheadTarget(firstString(requestContext, "user_message", "message", "prompt", "utterance")) {
+				if seconds, ok := firstPlayheadSeconds(cmd, requestContext); ok {
+					cmd["new_start"] = seconds
+					if isEmptyValue(cmd["time_unit"]) {
+						cmd["time_unit"] = "seconds"
+					}
+				}
+			}
+		}
 		if isEmptyValue(cmd["new_start"]) {
 			if seconds, ok := inferCloneStartSeconds(ref, requestContext); ok {
 				cmd["new_start"] = seconds
@@ -1064,16 +1084,9 @@ func (h *Harness) resolveSingleClipRef(ctx context.Context, spec tools.CommandSp
 		return clipRefByIDOrContext(id, refs, requestContext)
 	}
 
-	selected := selectedClipIDsFromContext(requestContext)
-	if len(selected) == 1 {
-		return clipRefByIDOrContext(selected[0], refs, requestContext)
-	}
-	if len(selected) > 1 {
-		return clipRef{}, fmt.Errorf("multiple clips are selected; specify which clip or use a multi-clip command")
-	}
-
 	if name := firstString(cmd, "clip_name", "target_clip_name", "source_clip_name", "clip"); name != "" {
-		matches := filterClipRefsByName(refs, name)
+		scope, _ := explicitScopedClipRefs(refs, cmd)
+		matches := filterClipRefsByName(scope, name)
 		switch len(matches) {
 		case 1:
 			return matches[0], nil
@@ -1085,8 +1098,11 @@ func (h *Harness) resolveSingleClipRef(ctx context.Context, spec tools.CommandSp
 	}
 
 	if index, ok := firstPositiveInt(cmd, "clip_index", "clip_number", "user_clip_index"); ok {
-		scope := filterClipRefsByTrack(refs, clipScopeTrackID(ctx, cmd, requestContext))
-		if len(scope) == 0 {
+		scope, hasScope := explicitScopedClipRefs(refs, cmd)
+		if !hasScope {
+			scope, hasScope = contextScopedClipRefs(refs, requestContext)
+		}
+		if len(scope) == 0 && !hasScope {
 			scope = refs
 		}
 		if index < 1 || index > len(scope) {
@@ -1095,14 +1111,32 @@ func (h *Harness) resolveSingleClipRef(ctx context.Context, spec tools.CommandSp
 		return scope[index-1], nil
 	}
 
-	if trackID := clipScopeTrackID(ctx, cmd, requestContext); trackID != "" {
-		scope := filterClipRefsByTrack(refs, trackID)
+	if scope, hasScope := explicitScopedClipRefs(refs, cmd); hasScope {
 		if len(scope) == 1 {
 			return scope[0], nil
 		}
 		if len(scope) > 1 {
 			return clipRef{}, fmt.Errorf("multiple clips exist on the selected track; select a clip or specify clip_index")
 		}
+		return clipRef{}, fmt.Errorf("there are no clips on the selected track")
+	}
+
+	selected := selectedClipIDsFromContext(requestContext)
+	if len(selected) == 1 {
+		return clipRefByIDOrContext(selected[0], refs, requestContext)
+	}
+	if len(selected) > 1 {
+		return clipRef{}, fmt.Errorf("multiple clips are selected; specify which clip or use a multi-clip command")
+	}
+
+	if scope, hasScope := contextScopedClipRefs(refs, requestContext); hasScope {
+		if len(scope) == 1 {
+			return scope[0], nil
+		}
+		if len(scope) > 1 {
+			return clipRef{}, fmt.Errorf("multiple clips exist on the selected track; select a clip or specify clip_index")
+		}
+		return clipRef{}, fmt.Errorf("there are no clips on the selected track")
 	}
 
 	switch len(refs) {
@@ -1131,15 +1165,36 @@ func clipRefByIDOrContext(id string, refs []clipRef, requestContext map[string]a
 	return clipRef{}, fmt.Errorf("clip_id %q is not present in the current user-visible project state", id)
 }
 
-func clipScopeTrackID(ctx context.Context, cmd map[string]any, requestContext map[string]any) string {
-	if trackID := firstString(cmd, "track_id", "source_track_id", "target_track_id"); trackID != "" {
+func explicitClipScopeTrackID(cmd map[string]any) string {
+	if trackID := firstString(cmd, "track_id", "source_track_id"); trackID != "" {
 		return trackID
 	}
-	if trackID := firstString(requestContext, "selected_clip_track_id", "focused_track_id", "selected_track_id", "track_id"); trackID != "" {
-		return trackID
-	}
-	_ = ctx
 	return ""
+}
+
+func contextClipScopeTrackID(requestContext map[string]any) string {
+	return firstString(requestContext, "selected_clip_track_id", "focused_track_id", "selected_track_id", "track_id")
+}
+
+func explicitScopedClipRefs(refs []clipRef, cmd map[string]any) ([]clipRef, bool) {
+	if trackID := explicitClipScopeTrackID(cmd); trackID != "" {
+		return filterClipRefsByTrack(refs, trackID), true
+	}
+	if index, ok := explicitClipScopeUserTrackIndex(cmd); ok {
+		return filterClipRefsByUserTrackIndex(refs, index), true
+	}
+	return refs, false
+}
+
+func contextScopedClipRefs(refs []clipRef, requestContext map[string]any) ([]clipRef, bool) {
+	if trackID := contextClipScopeTrackID(requestContext); trackID != "" {
+		return filterClipRefsByTrack(refs, trackID), true
+	}
+	return refs, false
+}
+
+func explicitClipScopeUserTrackIndex(cmd map[string]any) (int, bool) {
+	return firstPositiveInt(cmd, "user_track_index", "source_track_index", "source_user_track_index", "track_index", "track_number")
 }
 
 func visibleClipRefs(state map[string]any) []clipRef {
@@ -1186,6 +1241,19 @@ func filterClipRefsByTrack(refs []clipRef, trackID string) []clipRef {
 	out := make([]clipRef, 0, len(refs))
 	for _, ref := range refs {
 		if ref.TrackID == trackID {
+			out = append(out, ref)
+		}
+	}
+	return out
+}
+
+func filterClipRefsByUserTrackIndex(refs []clipRef, index int) []clipRef {
+	if index <= 0 {
+		return refs
+	}
+	out := make([]clipRef, 0, len(refs))
+	for _, ref := range refs {
+		if ref.UserTrackIndex == index {
 			out = append(out, ref)
 		}
 	}
@@ -1295,6 +1363,10 @@ func splitTimeFromTextSeconds(ref clipRef, seconds float64, text string) float64
 }
 
 func mentionsPlayheadSplit(text string) bool {
+	return containsTextAnyFold(text, "播放头", "当前位置", "这里", "此处", "当前时间", "playhead", "cursor", "current position", "here")
+}
+
+func mentionsPlayheadTarget(text string) bool {
 	return containsTextAnyFold(text, "播放头", "当前位置", "这里", "此处", "当前时间", "playhead", "cursor", "current position", "here")
 }
 

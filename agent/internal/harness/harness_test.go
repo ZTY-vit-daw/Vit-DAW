@@ -447,6 +447,64 @@ func TestInvokeClipSelectIsLocalUIAction(t *testing.T) {
 	}
 }
 
+func TestResolveClipSelectFromCurrentTrackScope(t *testing.T) {
+	h := New(nil, shadowProjectWithClips(), nil)
+	resp, err := h.Invoke(context.Background(), InvokeRequest{
+		Tool: "clip.select",
+		Args: map[string]any{"track_id": "1007"},
+	})
+	if err != nil {
+		t.Fatalf("Invoke: %v", err)
+	}
+	if resp.Status != "ok" || resp.Result["clip_id"] != "clip_a" || resp.Result["track_id"] != "1007" {
+		t.Fatalf("resp = %+v", resp)
+	}
+}
+
+func TestResolveClipSelectFromUserTrackIndexScope(t *testing.T) {
+	h := New(nil, shadowProjectWithClips(), nil)
+	resp, err := h.Invoke(context.Background(), InvokeRequest{
+		Tool: "clip.select",
+		Args: map[string]any{"user_track_index": 1},
+	})
+	if err != nil {
+		t.Fatalf("Invoke: %v", err)
+	}
+	if resp.Status != "ok" || resp.Result["clip_id"] != "clip_a" || resp.Result["track_id"] != "1007" {
+		t.Fatalf("resp = %+v", resp)
+	}
+}
+
+func TestResolveClipSelectAmbiguousTrackScopeRequiresClipIndex(t *testing.T) {
+	project := shadowProjectWithClips()
+	project.Initialize(map[string]any{
+		"status": "ok",
+		"tracks": []any{
+			map[string]any{
+				"track_id":       "1007",
+				"track_name":     "Drums",
+				"track_type":     "hybrid",
+				"is_audio_track": true,
+				"clips": []any{
+					map[string]any{"id": "clip_a", "name": "Loop A"},
+					map[string]any{"id": "clip_c", "name": "Loop C"},
+				},
+			},
+		},
+	})
+	h := New(nil, project, nil)
+	resp, err := h.Invoke(context.Background(), InvokeRequest{
+		Tool: "clip.select",
+		Args: map[string]any{"track_id": "1007"},
+	})
+	if err == nil {
+		t.Fatalf("expected ambiguity error, resp=%+v", resp)
+	}
+	if resp.Status != "error" {
+		t.Fatalf("resp = %+v", resp)
+	}
+}
+
 func TestResolveRemoveClipsFromSelectedIDs(t *testing.T) {
 	h := New(nil, shadowProjectWithClips(), nil)
 	cmd, spec, err := h.resolveCommand(InvokeRequest{
@@ -538,6 +596,27 @@ func TestResolveMoveClipInfersNewStartFromUserMessage(t *testing.T) {
 	}
 }
 
+func TestResolveMoveClipInfersPlayheadTarget(t *testing.T) {
+	h := New(nil, shadowProjectWithClips(), nil)
+	cmd, spec, err := h.resolveCommand(InvokeRequest{
+		Tool: "clip.move",
+		Args: map[string]any{"clip_id": "clip_a"},
+	})
+	if err != nil {
+		t.Fatalf("resolveCommand: %v", err)
+	}
+	if err := h.resolveImplicitTargets(context.Background(), spec, cmd, map[string]any{
+		"user_message":           "把这个音频移动到播放头",
+		"selected_clip_track_id": "1007",
+		"playhead_seconds":       4.5,
+	}); err != nil {
+		t.Fatalf("resolveImplicitTargets: %v", err)
+	}
+	if cmd["new_start"] != 4.5 || cmd["time_unit"] != "seconds" {
+		t.Fatalf("cmd = %+v", cmd)
+	}
+}
+
 func TestResolveCloneClipAliasesAndTargetTrack(t *testing.T) {
 	h := New(nil, shadowProjectWithClips(), nil)
 	cmd, spec, err := h.resolveCommand(InvokeRequest{
@@ -581,6 +660,27 @@ func TestCloneClipPublicResultSelectsNewClip(t *testing.T) {
 	}
 	if result["source_clip_id"] != "clip_a" || len(created) != 1 || created[0] != "clip_new" {
 		t.Fatalf("clone metadata = %+v", result)
+	}
+}
+
+func TestResolveCloneClipInfersPlayheadTarget(t *testing.T) {
+	h := New(nil, shadowProjectWithClips(), nil)
+	cmd, spec, err := h.resolveCommand(InvokeRequest{
+		Tool: "clip.clone",
+		Args: map[string]any{"clip_id": "clip_a"},
+	})
+	if err != nil {
+		t.Fatalf("resolveCommand: %v", err)
+	}
+	if err := h.resolveImplicitTargets(context.Background(), spec, cmd, map[string]any{
+		"user_message":           "把这个音频复制到播放头",
+		"selected_clip_track_id": "1007",
+		"playhead_seconds":       6.25,
+	}); err != nil {
+		t.Fatalf("resolveImplicitTargets: %v", err)
+	}
+	if cmd["new_start"] != 6.25 || cmd["time_unit"] != "seconds" || cmd["target_track_id"] != "1007" {
+		t.Fatalf("cmd = %+v", cmd)
 	}
 }
 
