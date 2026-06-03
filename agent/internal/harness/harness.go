@@ -16,28 +16,44 @@ import (
 	"strings"
 	"time"
 
+	"vit-daw-agent/internal/history"
 	"vit-daw-agent/internal/journal"
 	"vit-daw-agent/internal/kernel"
 	"vit-daw-agent/internal/logx"
+	"vit-daw-agent/internal/pluginsemantics"
+	"vit-daw-agent/internal/preview"
+	"vit-daw-agent/internal/rollback"
+	agentruntime "vit-daw-agent/internal/runtime"
 	"vit-daw-agent/internal/shadow"
+	"vit-daw-agent/internal/shelltools"
 	"vit-daw-agent/internal/tools"
+	"vit-daw-agent/internal/webtools"
+	"vit-daw-agent/internal/workspace"
 )
 
 type Harness struct {
-	kernel  *kernel.Client
+	kernel  kernelSender
 	shadow  *shadow.Project
 	catalog *tools.Catalog
 	journal *journal.Journal
+	runtime *agentruntime.Runtime
 	logger  *logx.Logger
 }
 
+type kernelSender interface {
+	SendCommand(context.Context, map[string]any) (map[string]any, string, error)
+}
+
 type InvokeRequest struct {
-	Tool      string         `json:"tool"`
-	Args      map[string]any `json:"args"`
-	Command   map[string]any `json:"command"`
-	Context   map[string]any `json:"context,omitempty"`
-	Source    string         `json:"source"`
-	Confirmed bool           `json:"confirmed"`
+	Tool       string         `json:"tool"`
+	Args       map[string]any `json:"args"`
+	Command    map[string]any `json:"command"`
+	Context    map[string]any `json:"context,omitempty"`
+	Source     string         `json:"source"`
+	Confirmed  bool           `json:"confirmed"`
+	RunID      string         `json:"run_id,omitempty"`
+	GoalID     string         `json:"goal_id,omitempty"`
+	ToolCallID string         `json:"tool_call_id,omitempty"`
 }
 
 type InvokeResponse struct {
@@ -50,17 +66,42 @@ type InvokeResponse struct {
 	Preview              string          `json:"preview,omitempty"`
 	UndoLabel            string          `json:"undo_label,omitempty"`
 	Result               map[string]any  `json:"result,omitempty"`
+	ProjectHistory       map[string]any  `json:"project_history,omitempty"`
 	Error                string          `json:"error,omitempty"`
 }
 
 func New(kernelClient *kernel.Client, shadowProject *shadow.Project, logger *logx.Logger) *Harness {
+	j, err := journal.NewPersistent(500, defaultJournalPath())
+	if err != nil {
+		j = journal.New(500)
+	}
 	return &Harness{
 		kernel:  kernelClient,
 		shadow:  shadowProject,
 		catalog: tools.DefaultCatalog(),
-		journal: journal.New(300),
+		journal: j,
+		runtime: agentruntime.New(),
 		logger:  logger,
 	}
+}
+
+func defaultJournalPath() string {
+	wd, err := os.Getwd()
+	if err != nil {
+		return ""
+	}
+	for dir := wd; dir != ""; dir = filepath.Dir(dir) {
+		if filepath.Base(dir) == "agent" {
+			if _, err := os.Stat(filepath.Join(dir, "go.mod")); err == nil {
+				return filepath.Join(filepath.Dir(dir), "VitApp", "Workspace", "Logs", "agent_journal.json")
+			}
+		}
+		parent := filepath.Dir(dir)
+		if parent == dir {
+			break
+		}
+	}
+	return filepath.Join(wd, "VitApp", "Workspace", "Logs", "agent_journal.json")
 }
 
 func (h *Harness) Tools() []tools.Tool {
@@ -84,6 +125,89 @@ func (h *Harness) Actions(limit int) []journal.Action {
 	return h.journal.Recent(limit)
 }
 
+func (h *Harness) Runtime() *agentruntime.Runtime {
+	if h == nil {
+		return nil
+	}
+	return h.runtime
+}
+
+func (h *Harness) EnsureGoal(goalID, runID, summary string) agentruntime.Goal {
+	if h == nil || h.runtime == nil {
+		return agentruntime.Goal{Status: agentruntime.StatusIdle}
+	}
+	return h.runtime.Ensure(goalID, runID, summary)
+}
+
+func (h *Harness) ContinueGoal(goalID, summary string) agentruntime.Goal {
+	if h == nil || h.runtime == nil {
+		return agentruntime.Goal{Status: agentruntime.StatusIdle}
+	}
+	return h.runtime.Continue(goalID, summary)
+}
+func (h *Harness) ClearGoalInterjections(goalID string) agentruntime.Goal {
+	if h == nil || h.runtime == nil {
+		return agentruntime.Goal{Status: agentruntime.StatusIdle}
+	}
+	return h.runtime.ClearInterjections(goalID)
+}
+func (h *Harness) RuntimeStatus(goalID string) agentruntime.Goal {
+	if h == nil || h.runtime == nil {
+		return agentruntime.Goal{Status: agentruntime.StatusIdle}
+	}
+	return h.runtime.Status(goalID)
+}
+
+func (h *Harness) BeginGoal(summary string) agentruntime.Goal {
+	if h == nil || h.runtime == nil {
+		return agentruntime.Goal{Status: agentruntime.StatusIdle}
+	}
+	return h.runtime.Create(summary)
+}
+
+func (h *Harness) SetGoalStatus(goalID string, status agentruntime.GoalStatus, err error) agentruntime.Goal {
+	if h == nil || h.runtime == nil {
+		return agentruntime.Goal{Status: agentruntime.StatusIdle}
+	}
+	return h.runtime.SetStatus(goalID, status, err)
+}
+
+func (h *Harness) CompleteGoal(goalID string, err error) agentruntime.Goal {
+	if h == nil || h.runtime == nil {
+		return agentruntime.Goal{Status: agentruntime.StatusIdle}
+	}
+	return h.runtime.Complete(goalID, err)
+}
+
+func (h *Harness) JournalGet(targetID string) (journal.Action, bool) {
+	if h == nil || h.journal == nil {
+		return journal.Action{}, false
+	}
+	return h.journal.Get(targetID)
+}
+
+func (h *Harness) JournalMarkRollback(targetActionID, rollbackActionID, state string) {
+	if h == nil || h.journal == nil {
+		return
+	}
+	h.journal.MarkRollback(targetActionID, rollbackActionID, state)
+}
+
+func (h *Harness) KernelSendCommand(ctx context.Context, command map[string]any) (map[string]any, string, error) {
+	if h == nil || h.kernel == nil {
+		return nil, "", fmt.Errorf("kernel client is nil")
+	}
+	return h.kernel.SendCommand(ctx, command)
+}
+
+func (h *Harness) WorkspaceContext(cmd map[string]any) workspace.Context {
+	return h.workspaceContext(cmd)
+}
+
+func (h *Harness) RefreshShadow(ctx context.Context, reason string) {
+	h.refreshShadow(ctx, reason)
+}
+
 func (h *Harness) DirectCommandNames() []string {
 	if h == nil || h.catalog == nil {
 		return nil
@@ -103,6 +227,115 @@ func (h *Harness) StateSummary(ctx context.Context) map[string]any {
 
 func (h *Harness) UserStateSummary(ctx context.Context) map[string]any {
 	return userVisibleState(h.StateSummary(ctx))
+}
+
+func (h *Harness) ProjectHistorySummary(ctx context.Context, goalID string) map[string]any {
+	return h.ProjectHistorySummaryForProject(ctx, goalID, "")
+}
+
+func (h *Harness) ProjectHistorySummaryForProject(ctx context.Context, goalID, projectPath string) map[string]any {
+	args := map[string]any{}
+	if h != nil {
+		args = h.historyArgs(map[string]any{"project_path": strings.TrimSpace(projectPath)})
+	}
+	out := map[string]any{"available": false}
+	status, err := history.Status(args)
+	if err != nil {
+		out["warnings"] = []string{err.Error()}
+		return out
+	}
+	out = cloneAnyMap(status)
+	out["available"] = true
+	if worktrees, ok := out["worktrees"].([]map[string]any); ok {
+		out["worktree_count"] = len(worktrees)
+	}
+	if h != nil && h.runtime != nil {
+		goal := h.runtime.Status(goalID)
+		if goal.ProjectHistory != nil {
+			out["baseline_commit"] = goal.ProjectHistory.BaselineCommitID
+			out["baseline_created"] = goal.ProjectHistory.BaselineCreated
+			if goal.ProjectHistory.ActiveBranch != "" {
+				out["goal_active_branch"] = goal.ProjectHistory.ActiveBranch
+			}
+			out["goal_detached"] = goal.ProjectHistory.Detached
+		}
+	}
+	list, err := history.List(args)
+	if err == nil {
+		out["recent_checkpoints"] = compactHistoryCommits(list["commits"], 6)
+	}
+	return out
+}
+
+func (h *Harness) RecordConversationNode(ctx context.Context, kind, textPreview, goalID, runID string) map[string]any {
+	return h.RecordConversationNodeForProject(ctx, "", kind, textPreview, goalID, runID)
+}
+
+func (h *Harness) RecordConversationNodeForProject(ctx context.Context, projectPath, kind, textPreview, goalID, runID string) map[string]any {
+	if h == nil {
+		return nil
+	}
+	kind = strings.TrimSpace(kind)
+	args := h.historyArgs(map[string]any{
+		"project_path": strings.TrimSpace(projectPath),
+		"kind":         kind,
+		"text_preview": textPreview,
+		"goal_id":      goalID,
+		"run_id":       runID,
+	})
+	if strings.EqualFold(kind, "vit") {
+		message := "Conversation vit"
+		if strings.TrimSpace(textPreview) != "" {
+			message = "Vit: " + strings.TrimSpace(textPreview)
+		}
+		checkpointArgs := h.enrichHistoryCheckpointArgs(map[string]any{
+			"project_path":    args["project_path"],
+			"message":         message,
+			"goal_id":         goalID,
+			"run_id":          runID,
+			"source":          "conversation_graph",
+			"checkpoint_kind": "manual",
+		})
+		if checkpoint, checkpointErr := history.Checkpoint(checkpointArgs); checkpointErr == nil {
+			if checkpointID := firstString(checkpoint, "commit_id"); checkpointID != "" {
+				args["commit_id"] = checkpointID
+			}
+		}
+	}
+	result, err := history.AppendConversationNode(args)
+	if err != nil && strings.Contains(err.Error(), "commit_id or current HEAD is required") {
+		checkpointArgs := h.enrichHistoryCheckpointArgs(map[string]any{
+			"project_path":    args["project_path"],
+			"message":         "Conversation " + firstNonEmpty(strings.TrimSpace(kind), "node"),
+			"goal_id":         goalID,
+			"run_id":          runID,
+			"source":          "conversation_graph",
+			"checkpoint_kind": "manual",
+		})
+		if checkpoint, checkpointErr := history.Checkpoint(checkpointArgs); checkpointErr == nil {
+			checkpointID := firstString(checkpoint, "commit_id")
+			args["commit_id"] = checkpointID
+			if h.runtime != nil && strings.TrimSpace(goalID) != "" && checkpointID != "" {
+				meta := projectHistoryMetaFromResult(checkpoint)
+				meta.BaselineCommitID = checkpointID
+				meta.BaselineCreated = true
+				h.runtime.SetProjectHistory(goalID, meta)
+			}
+			result, err = history.AppendConversationNode(args)
+		} else {
+			err = checkpointErr
+		}
+	}
+	if err != nil {
+		out := h.ProjectHistorySummaryForProject(ctx, goalID, projectPath)
+		if len(out) > 0 {
+			out["warnings"] = appendStringAny(out["warnings"], "conversation graph update failed: "+err.Error())
+		}
+		return out
+	}
+	out := cloneAnyMap(result)
+	out["available"] = true
+	return out
 }
 
 func (h *Harness) ModelCatalogSummary() string {
@@ -143,8 +376,18 @@ func (h *Harness) Invoke(ctx context.Context, req InvokeRequest) (InvokeResponse
 	}
 
 	actionID := "act_" + randomID()
+	runID, goalID, toolCallID := h.executionIDs(req)
 	undoLabel := buildUndoLabel(spec, cmd)
 	cmd["agent_action_id"] = actionID
+	if runID != "" {
+		cmd["run_id"] = runID
+	}
+	if goalID != "" {
+		cmd["goal_id"] = goalID
+	}
+	if toolCallID != "" {
+		cmd["tool_call_id"] = toolCallID
+	}
 	if undoLabel != "" {
 		cmd["undo_label"] = undoLabel
 	}
@@ -152,6 +395,10 @@ func (h *Harness) Invoke(ctx context.Context, req InvokeRequest) (InvokeResponse
 	needsConfirmation := spec.RequiresConfirmation && !req.Confirmed
 	action := journal.Action{
 		AgentActionID:        actionID,
+		RunID:                runID,
+		GoalID:               goalID,
+		ToolCallID:           toolCallID,
+		Domain:               spec.Domain,
 		Source:               fallback(req.Source, "agent"),
 		Summary:              spec.Description,
 		Tool:                 spec.ToolName,
@@ -166,6 +413,10 @@ func (h *Harness) Invoke(ctx context.Context, req InvokeRequest) (InvokeResponse
 	if needsConfirmation {
 		action.Status = journal.StatusPendingConfirmation
 		h.journal.Record(action)
+		preview := PreviewCommand(spec, cmd)
+		if shouldAutoGoalBaseline(spec) && goalID != "" {
+			preview = "After confirmation, VitAgent will create a Project History safety checkpoint before this change.\n" + preview
+		}
 		resp := InvokeResponse{
 			Status:               "needs_confirmation",
 			AgentActionID:        actionID,
@@ -173,14 +424,52 @@ func (h *Harness) Invoke(ctx context.Context, req InvokeRequest) (InvokeResponse
 			CommandName:          spec.CommandName,
 			RiskLevel:            spec.RiskLevel,
 			RequiresConfirmation: true,
-			Preview:              PreviewCommand(spec, cmd),
+			Preview:              preview,
 			UndoLabel:            undoLabel,
+			ProjectHistory:       h.ProjectHistorySummary(ctx, goalID),
 		}
 		return resp, nil
 	}
 
+	if baselineID, err := h.ensureProjectHistoryBaseline(ctx, spec, cmd, goalID, runID); err != nil {
+		action.Status = journal.StatusFailed
+		action.Error = err.Error()
+		h.journal.Record(action)
+		resp := InvokeResponse{
+			Status:               "error",
+			AgentActionID:        actionID,
+			Tool:                 spec.ToolName,
+			CommandName:          spec.CommandName,
+			RiskLevel:            spec.RiskLevel,
+			RequiresConfirmation: false,
+			UndoLabel:            undoLabel,
+			ProjectHistory:       h.ProjectHistorySummary(ctx, goalID),
+			Error:                err.Error(),
+		}
+		return resp, err
+	} else if baselineID != "" {
+		action.VersionCommitID = baselineID
+	}
+
 	h.journal.Record(action)
-	if result, ok := h.invokeLocal(spec, cmd); ok {
+	if result, ok := h.invokeLocal(ctx, spec, cmd); ok {
+		if strings.EqualFold(strings.TrimSpace(fmt.Sprint(result["status"])), "error") {
+			err := fmt.Errorf("%s", firstNonEmpty(fmt.Sprint(result["error"]), "local tool failed"))
+			h.journal.MarkResult(actionID, journal.StatusFailed, result, err)
+			resp := InvokeResponse{
+				Status:               "error",
+				AgentActionID:        actionID,
+				Tool:                 spec.ToolName,
+				CommandName:          spec.CommandName,
+				RiskLevel:            spec.RiskLevel,
+				RequiresConfirmation: false,
+				Result:               result,
+				UndoLabel:            undoLabel,
+				ProjectHistory:       h.ProjectHistorySummary(ctx, goalID),
+				Error:                err.Error(),
+			}
+			return resp, err
+		}
 		h.journal.MarkResult(actionID, journal.StatusSucceeded, result, nil)
 		resp := InvokeResponse{
 			Status:               "ok",
@@ -191,6 +480,7 @@ func (h *Harness) Invoke(ctx context.Context, req InvokeRequest) (InvokeResponse
 			RequiresConfirmation: false,
 			Result:               result,
 			UndoLabel:            undoLabel,
+			ProjectHistory:       h.ProjectHistorySummary(ctx, goalID),
 		}
 		return resp, nil
 	}
@@ -198,13 +488,14 @@ func (h *Harness) Invoke(ctx context.Context, req InvokeRequest) (InvokeResponse
 		err := fmt.Errorf("kernel client is nil")
 		h.journal.MarkResult(actionID, journal.StatusFailed, nil, err)
 		resp := InvokeResponse{
-			Status:        "error",
-			AgentActionID: actionID,
-			Tool:          spec.ToolName,
-			CommandName:   spec.CommandName,
-			RiskLevel:     spec.RiskLevel,
-			UndoLabel:     undoLabel,
-			Error:         err.Error(),
+			Status:         "error",
+			AgentActionID:  actionID,
+			Tool:           spec.ToolName,
+			CommandName:    spec.CommandName,
+			RiskLevel:      spec.RiskLevel,
+			UndoLabel:      undoLabel,
+			ProjectHistory: h.ProjectHistorySummary(ctx, goalID),
+			Error:          err.Error(),
 		}
 		return resp, err
 	}
@@ -212,13 +503,14 @@ func (h *Harness) Invoke(ctx context.Context, req InvokeRequest) (InvokeResponse
 	if err != nil {
 		h.journal.MarkResult(actionID, journal.StatusFailed, nil, err)
 		resp := InvokeResponse{
-			Status:        "error",
-			AgentActionID: actionID,
-			Tool:          spec.ToolName,
-			CommandName:   spec.CommandName,
-			RiskLevel:     spec.RiskLevel,
-			UndoLabel:     undoLabel,
-			Error:         err.Error(),
+			Status:         "error",
+			AgentActionID:  actionID,
+			Tool:           spec.ToolName,
+			CommandName:    spec.CommandName,
+			RiskLevel:      spec.RiskLevel,
+			UndoLabel:      undoLabel,
+			ProjectHistory: h.ProjectHistorySummary(ctx, goalID),
+			Error:          err.Error(),
 		}
 		return resp, err
 	}
@@ -242,11 +534,53 @@ func (h *Harness) Invoke(ctx context.Context, req InvokeRequest) (InvokeResponse
 		RequiresConfirmation: false,
 		Result:               result,
 		UndoLabel:            undoLabel,
+		ProjectHistory:       h.ProjectHistorySummary(ctx, goalID),
 	}
 	if err != nil {
 		resp.Error = err.Error()
 	}
 	return resp, err
+}
+
+func (h *Harness) executionIDs(req InvokeRequest) (string, string, string) {
+	runID := strings.TrimSpace(req.RunID)
+	goalID := strings.TrimSpace(req.GoalID)
+	toolCallID := strings.TrimSpace(req.ToolCallID)
+	if req.Context != nil {
+		if runID == "" {
+			runID = firstString(req.Context, "run_id")
+		}
+		if goalID == "" {
+			goalID = firstString(req.Context, "goal_id")
+		}
+		if toolCallID == "" {
+			toolCallID = firstString(req.Context, "tool_call_id")
+		}
+	}
+	if toolCallID == "" {
+		toolCallID = agentruntime.NewToolCallID()
+	}
+	if h != nil && h.runtime != nil && goalID != "" {
+		goal := h.runtime.Ensure(goalID, runID, "")
+		if runID == "" {
+			runID = goal.RunID
+		}
+	}
+	if runID == "" && goalID != "" {
+		runID = "run_" + randomID()
+	}
+	return runID, goalID, toolCallID
+}
+
+func (h *Harness) PreviewResolvedCommand(ctx context.Context, command map[string]any, requestContext map[string]any) (string, error) {
+	cmd, spec, err := h.resolveCommand(InvokeRequest{Command: command})
+	if err != nil {
+		return "", err
+	}
+	if err := h.resolveImplicitTargets(ctx, spec, cmd, requestContext); err != nil {
+		return "", err
+	}
+	return PreviewCommand(spec, cmd), nil
 }
 
 func (h *Harness) resolveCommand(req InvokeRequest) (map[string]any, tools.CommandSpec, error) {
@@ -318,7 +652,7 @@ func commandArgs(cmd map[string]any) map[string]any {
 	return out
 }
 
-func (h *Harness) invokeLocal(spec tools.CommandSpec, cmd map[string]any) (map[string]any, bool) {
+func (h *Harness) invokeLocal(ctx context.Context, spec tools.CommandSpec, cmd map[string]any) (map[string]any, bool) {
 	switch spec.CommandName {
 	case "select_clip":
 		return map[string]any{
@@ -329,9 +663,494 @@ func (h *Harness) invokeLocal(spec tools.CommandSpec, cmd map[string]any) (map[s
 			"clip_id":    firstString(cmd, "clip_id"),
 			"clip_name":  firstString(cmd, "clip_name", "name"),
 		}, true
+	case "goal_status":
+		goal := h.runtime.Status(firstString(cmd, "goal_id"))
+		return map[string]any{"goal": goal}, true
+	case "goal_cancel":
+		goal := h.runtime.Cancel(firstString(cmd, "goal_id"), firstString(cmd, "reason", "message"))
+		return map[string]any{"goal": goal}, true
+	case "goal_tick":
+		goal := h.runtime.Tick(firstString(cmd, "goal_id"), firstString(cmd, "checkpoint"))
+		return map[string]any{"goal": goal}, true
+	case "workspace_glob":
+		result, err := workspace.Glob(h.workspaceContext(cmd), cmd)
+		return resultWithErr(result, err), true
+	case "workspace_grep":
+		result, err := workspace.Grep(h.workspaceContext(cmd), cmd)
+		return resultWithErr(result, err), true
+	case "workspace_read_file":
+		result, err := workspace.ReadFile(h.workspaceContext(cmd), cmd)
+		return resultWithErr(result, err), true
+	case "workspace_file_info":
+		result, err := workspace.FileInfo(h.workspaceContext(cmd), cmd)
+		return resultWithErr(result, err), true
+	case "logs_read":
+		logCmd := tools.CloneCommand(cmd)
+		if isEmptyValue(logCmd["root_id"]) {
+			logCmd["root_id"] = "logs"
+		}
+		if isEmptyValue(logCmd["path"]) {
+			logCmd["path"] = "agent_last.log"
+		}
+		result, err := workspace.ReadFile(h.workspaceContext(cmd), logCmd)
+		return resultWithErr(result, err), true
+	case "logs_search":
+		logCmd := tools.CloneCommand(cmd)
+		if isEmptyValue(logCmd["root_id"]) {
+			logCmd["root_id"] = "logs"
+		}
+		if isEmptyValue(logCmd["pattern"]) {
+			logCmd["pattern"] = "*.log"
+		}
+		result, err := workspace.Grep(h.workspaceContext(cmd), logCmd)
+		return resultWithErr(result, err), true
+	case "workspace_edit_preview":
+		result, err := workspace.EditPreview(h.workspaceContext(cmd), cmd)
+		return resultWithErr(result, err), true
+	case "workspace_apply_edit":
+		result, err := workspace.ApplyEdit(h.workspaceContext(cmd), cmd)
+		return resultWithErr(result, err), true
+	case "workspace_write_file":
+		result, err := workspace.WriteFile(h.workspaceContext(cmd), cmd)
+		return resultWithErr(result, err), true
+	case "workspace_blob_info":
+		result, err := workspace.BlobInfo(h.workspaceContext(cmd), cmd)
+		return resultWithErr(result, err), true
+	case "workspace_blob_copy":
+		result, err := workspace.BlobCopy(h.workspaceContext(cmd), cmd)
+		return resultWithErr(result, err), true
+	case "web_search":
+		result, err := webtools.Search(ctx, cmd)
+		return resultWithErr(result, err), true
+	case "web_fetch":
+		result, err := webtools.Fetch(ctx, cmd)
+		return resultWithErr(result, err), true
+	case "shell_run":
+		result, err := shelltools.Run(ctx, cmd)
+		return resultWithErr(result, err), true
+	case "plugin_semantic_build_index":
+		result, err := h.buildPluginSemanticIndex(cmd)
+		return resultWithErr(result, err), true
+	case "plugin_semantic_search":
+		result, err := h.searchPluginSemanticIndex(cmd)
+		return resultWithErr(result, err), true
+	case "plugin_semantic_get":
+		result, err := h.getPluginSemanticEntry(cmd)
+		return resultWithErr(result, err), true
+	case "agent_rollback_action":
+		result, err := rollback.Action(context.Background(), h, cmd)
+		return resultWithErr(result, err), true
+	case "version_status":
+		result, err := history.Status(h.historyArgs(cmd))
+		return resultWithErr(result, err), true
+	case "version_checkpoint":
+		args := h.enrichHistoryCheckpointArgs(cmd)
+		result, err := history.Checkpoint(args)
+		return resultWithErr(result, err), true
+	case "version_list":
+		result, err := history.List(h.historyArgs(cmd))
+		return resultWithErr(result, err), true
+	case "version_show":
+		result, err := history.Show(h.historyArgs(cmd))
+		return resultWithErr(result, err), true
+	case "version_diff":
+		result, err := history.Diff(h.enrichHistorySnapshotArgs(cmd))
+		return resultWithErr(result, err), true
+	case "version_restore_preview":
+		result, err := history.RestorePreview(h.enrichHistorySnapshotArgs(cmd))
+		return resultWithErr(result, err), true
+	case "version_restore":
+		result, err := history.Restore(h.historyArgs(cmd))
+		result = h.withProjectReload(ctx, "version_restore", result)
+		return resultWithErr(result, err), true
+	case "version_branch_create":
+		result, err := history.BranchCreate(h.historyArgs(cmd))
+		result = h.withProjectReload(ctx, "version_branch_create", result)
+		return resultWithErr(result, err), true
+	case "version_node_checkout":
+		result, err := history.NodeCheckout(h.historyArgs(cmd))
+		result = h.withProjectReload(ctx, "version_node_checkout", result)
+		return resultWithErr(result, err), true
+	case "version_node_delete":
+		result, err := history.NodeDelete(h.historyArgs(cmd))
+		result = h.withProjectReload(ctx, "version_node_delete", result)
+		return resultWithErr(result, err), true
+	case "version_worktree_create":
+		args := h.worktreeCreateArgs(ctx, cmd)
+		result, err := history.WorktreeCreate(args)
+		if result != nil {
+			if id := firstString(args, "source_checkpoint_id"); id != "" {
+				result["source_checkpoint_id"] = id
+			}
+			if warning := firstString(args, "source_checkpoint_warning"); warning != "" {
+				result["warnings"] = appendStringAny(result["warnings"], warning)
+			}
+		}
+		return resultWithErr(result, err), true
+	case "version_worktree_checkout":
+		args := h.worktreeCheckoutArgs(ctx, cmd)
+		result, err := history.WorktreeCheckout(args)
+		if result != nil {
+			if id := firstString(args, "switch_autosave_commit_id"); id != "" {
+				result["switch_autosave_commit_id"] = id
+			}
+			if warning := firstString(args, "switch_autosave_warning"); warning != "" {
+				result["warnings"] = appendStringAny(result["warnings"], warning)
+			}
+		}
+		result = h.withProjectReload(ctx, "version_worktree_checkout", result)
+		return resultWithErr(result, err), true
+	case "version_worktree_list":
+		result, err := history.WorktreeList(h.historyArgs(cmd))
+		return resultWithErr(result, err), true
+	case "version_project_saved":
+		result, err := history.ProjectSaved(h.historyArgs(cmd))
+		return resultWithErr(result, err), true
+	case "version_checkout":
+		result, err := history.Checkout(h.historyArgs(cmd))
+		result = h.withProjectReload(ctx, "version_checkout", result)
+		return resultWithErr(result, err), true
 	default:
 		return nil, false
 	}
+}
+
+func resultWithErr(result map[string]any, err error) map[string]any {
+	if result == nil {
+		result = map[string]any{}
+	}
+	if err != nil {
+		result["status"] = "error"
+		result["error"] = err.Error()
+	} else if _, ok := result["status"]; !ok {
+		result["status"] = "ok"
+	}
+	return result
+}
+
+func (h *Harness) workspaceContext(cmd map[string]any) workspace.Context {
+	state := map[string]any{}
+	if h != nil {
+		state = h.UserStateSummary(context.Background())
+	}
+	return workspace.NewContext(cmd, state)
+}
+
+func (h *Harness) historyArgs(cmd map[string]any) map[string]any {
+	out := tools.CloneCommand(cmd)
+	if !isEmptyValue(out["project_path"]) {
+		return out
+	}
+	if h != nil {
+		state := h.UserStateSummary(context.Background())
+		if path := projectPathFromState(state); path != "" {
+			out["project_path"] = path
+		}
+	}
+	return out
+}
+
+func (h *Harness) enrichHistoryCheckpointArgs(cmd map[string]any) map[string]any {
+	out := h.historyArgs(cmd)
+	if !isEmptyValue(out["project_snapshot_xml"]) || h == nil || h.kernel == nil {
+		return out
+	}
+	preferKernelProjectPath := boolValueDefault(out["prefer_kernel_project_path"], false)
+	delete(out, "prefer_kernel_project_path")
+	reply, _, err := h.kernel.SendCommand(context.Background(), map[string]any{"cmd": "project_snapshot_export"})
+	if err != nil {
+		out["snapshot_export_error"] = err.Error()
+		return out
+	}
+	if strings.EqualFold(strings.TrimSpace(fmt.Sprint(reply["status"])), "error") {
+		out["snapshot_export_error"] = firstNonEmpty(fmt.Sprint(reply["message"]), fmt.Sprint(reply["error"]), "project_snapshot_export failed")
+		return out
+	}
+	if snapshot := firstString(reply, "snapshot_xml"); snapshot != "" {
+		out["project_snapshot_xml"] = snapshot
+	}
+	if projectPath := firstString(reply, "project_path"); projectPath != "" {
+		out["kernel_project_path"] = projectPath
+		if isEmptyValue(out["project_path"]) || preferKernelProjectPath {
+			out["project_path"] = projectPath
+		}
+	}
+	return out
+}
+
+func (h *Harness) enrichHistorySnapshotArgs(cmd map[string]any) map[string]any {
+	out := h.historyArgs(cmd)
+	if !isEmptyValue(out["project_snapshot_xml"]) || h == nil || h.kernel == nil {
+		return out
+	}
+	reply, _, err := h.kernel.SendCommand(context.Background(), map[string]any{"cmd": "project_snapshot_export"})
+	if err != nil {
+		out["snapshot_export_error"] = err.Error()
+		return out
+	}
+	if strings.EqualFold(strings.TrimSpace(fmt.Sprint(reply["status"])), "error") {
+		out["snapshot_export_error"] = firstNonEmpty(fmt.Sprint(reply["message"]), fmt.Sprint(reply["error"]), "project_snapshot_export failed")
+		return out
+	}
+	if snapshot := firstString(reply, "snapshot_xml"); snapshot != "" {
+		out["project_snapshot_xml"] = snapshot
+	}
+	if isEmptyValue(out["project_path"]) {
+		if projectPath := firstString(reply, "project_path"); projectPath != "" {
+			out["project_path"] = projectPath
+		}
+	}
+	return out
+}
+
+func (h *Harness) worktreeCreateArgs(ctx context.Context, cmd map[string]any) map[string]any {
+	out := h.historyArgs(cmd)
+	if firstString(out, "commit_id", "branch") != "" {
+		return out
+	}
+	checkpointArgs := h.enrichHistoryCheckpointArgs(map[string]any{
+		"project_path":               firstString(out, "project_path", "path"),
+		"message":                    "Worktree source autosave",
+		"source":                     "worktree_create",
+		"checkpoint_kind":            "auto_worktree_source",
+		"prefer_kernel_project_path": true,
+	})
+	if isEmptyValue(checkpointArgs["project_path"]) {
+		out["source_checkpoint_warning"] = "current project path is unavailable; worktree source autosave skipped"
+		return out
+	}
+	result, err := history.Checkpoint(checkpointArgs)
+	if err != nil {
+		out["source_checkpoint_warning"] = err.Error()
+		return out
+	}
+	if id := firstString(result, "commit_id"); id != "" {
+		out["commit_id"] = id
+		out["source_checkpoint_id"] = id
+	}
+	if projectPath := firstString(checkpointArgs, "project_path"); projectPath != "" {
+		out["project_path"] = projectPath
+	}
+	_ = ctx
+	return out
+}
+
+func (h *Harness) worktreeCheckoutArgs(ctx context.Context, cmd map[string]any) map[string]any {
+	out := h.historyArgs(cmd)
+	if h == nil || h.kernel == nil {
+		return out
+	}
+	checkpointArgs := h.enrichHistoryCheckpointArgs(map[string]any{
+		"project_path":               "",
+		"message":                    "Worktree switch autosave",
+		"source":                     "worktree_checkout",
+		"checkpoint_kind":            "auto_worktree_switch",
+		"prefer_kernel_project_path": true,
+	})
+	if targetPath := firstString(out, "project_file_path"); targetPath != "" {
+		if sourcePath := firstString(checkpointArgs, "project_path"); samePath(sourcePath, targetPath) {
+			return out
+		}
+	}
+	if isEmptyValue(checkpointArgs["project_path"]) {
+		out["switch_autosave_warning"] = "current project path is unavailable; worktree switch autosave skipped"
+		return out
+	}
+	result, err := history.Checkpoint(checkpointArgs)
+	if err != nil {
+		out["switch_autosave_warning"] = err.Error()
+		return out
+	}
+	if id := firstString(result, "commit_id"); id != "" {
+		out["switch_autosave_commit_id"] = id
+	}
+	_ = ctx
+	return out
+}
+
+func (h *Harness) ensureProjectHistoryBaseline(ctx context.Context, spec tools.CommandSpec, cmd map[string]any, goalID, runID string) (string, error) {
+	if h == nil || h.runtime == nil || strings.TrimSpace(goalID) == "" || !shouldAutoGoalBaseline(spec) {
+		return "", nil
+	}
+	goal := h.runtime.Ensure(goalID, runID, "")
+	if goal.ProjectHistory != nil && goal.ProjectHistory.BaselineCreated && strings.TrimSpace(goal.ProjectHistory.BaselineCommitID) != "" {
+		return goal.ProjectHistory.BaselineCommitID, nil
+	}
+	args := h.enrichHistoryCheckpointArgs(map[string]any{
+		"project_path":    firstString(cmd, "project_path", "path"),
+		"message":         "Auto baseline before " + spec.CommandName,
+		"goal_id":         goalID,
+		"run_id":          runID,
+		"source":          "runtime_guard",
+		"checkpoint_kind": "auto_goal_baseline",
+	})
+	result, err := history.Checkpoint(args)
+	if err != nil {
+		return "", fmt.Errorf("project history baseline failed: %w", err)
+	}
+	commitID := firstString(result, "commit_id")
+	if commitID == "" {
+		if commit, ok := result["commit"].(history.Commit); ok {
+			commitID = commit.ID
+		}
+	}
+	meta := projectHistoryMetaFromResult(result)
+	meta.BaselineCommitID = commitID
+	meta.BaselineCreated = commitID != ""
+	if commitID == "" {
+		meta.Warnings = append(meta.Warnings, "baseline checkpoint did not return a commit_id")
+	}
+	h.runtime.SetProjectHistory(goalID, meta)
+	_ = ctx
+	return commitID, nil
+}
+
+func shouldAutoGoalBaseline(spec tools.CommandSpec) bool {
+	if !spec.MutatesProject {
+		return false
+	}
+	switch spec.CommandName {
+	case "version_checkpoint", "version_restore", "version_branch_create", "version_worktree_create", "version_checkout":
+		return false
+	default:
+		return spec.Category != "project_history"
+	}
+}
+
+func projectHistoryMetaFromResult(result map[string]any) agentruntime.ProjectHistoryMeta {
+	meta := agentruntime.ProjectHistoryMeta{
+		ActiveBranch: firstString(result, "active_branch"),
+		Detached:     boolValueDefault(result["detached"], false),
+		Head:         firstString(result, "head"),
+	}
+	meta.Warnings = stringSliceFromAny(result["warnings"])
+	return meta
+}
+
+func (h *Harness) buildPluginSemanticIndex(cmd map[string]any) (map[string]any, error) {
+	if h == nil || h.kernel == nil {
+		return nil, fmt.Errorf("plugin semantic build requires a kernel client")
+	}
+	limit := 2000
+	if n, ok := firstPositiveInt(cmd, "limit", "max_plugins"); ok {
+		limit = n
+	}
+	reply, _, err := h.kernel.SendCommand(context.Background(), map[string]any{
+		"cmd":   "plugin_list_available",
+		"limit": limit,
+	})
+	if err != nil {
+		return nil, err
+	}
+	if pluginKernelErrored(reply) {
+		return nil, fmt.Errorf("%s", firstNonEmpty(firstString(reply, "message"), firstString(reply, "error"), "plugin_list_available failed"))
+	}
+	rows := mapRowsFromAny(reply["plugins"])
+	idx := pluginsemantics.Build(rows, time.Now().UTC())
+	path, err := pluginsemantics.Save(firstString(cmd, "index_path", "path"), idx)
+	if err != nil {
+		return nil, err
+	}
+	return map[string]any{
+		"index_path":     path,
+		"schema_version": idx.SchemaVersion,
+		"built_at":       idx.BuiltAt.Format(time.RFC3339),
+		"plugin_count":   len(idx.Entries),
+		"summary":        idx.Summary,
+		"warnings":       idx.Warnings,
+	}, nil
+}
+
+func (h *Harness) searchPluginSemanticIndex(cmd map[string]any) (map[string]any, error) {
+	path := firstString(cmd, "index_path", "path")
+	idx, err := pluginsemantics.Load(path)
+	indexExists := true
+	transient := false
+	if err != nil {
+		if !pluginsemantics.IsNotExist(err) {
+			return nil, err
+		}
+		if h != nil && h.kernel != nil {
+			limit := 2000
+			if n, ok := firstPositiveInt(cmd, "source_limit", "max_plugins"); ok {
+				limit = n
+			}
+			reply, _, listErr := h.kernel.SendCommand(context.Background(), map[string]any{
+				"cmd":   "plugin_list_available",
+				"limit": limit,
+			})
+			if listErr != nil {
+				return nil, listErr
+			}
+			if !pluginKernelErrored(reply) {
+				idx = pluginsemantics.Build(mapRowsFromAny(reply["plugins"]), time.Now().UTC())
+				indexExists = false
+				transient = true
+			}
+		}
+		if len(idx.Entries) == 0 {
+			defaultPath, _ := pluginsemantics.DefaultPath()
+			return map[string]any{
+				"index_exists": false,
+				"transient":    transient,
+				"index_path":   firstNonEmpty(path, defaultPath),
+				"plugins":      []pluginsemantics.Entry{},
+				"entries":      []pluginsemantics.Entry{},
+				"message":      "plugin semantic index has not been built yet",
+			}, nil
+		}
+	}
+	limit := 12
+	if n, ok := firstPositiveInt(cmd, "limit", "max_results"); ok {
+		limit = n
+	}
+	includeInstruments, _ := boolValue(cmd["include_instruments"])
+	results := pluginsemantics.Search(idx, pluginsemantics.SearchOptions{
+		Query:              firstString(cmd, "query", "search", "plugin_query"),
+		Type:               firstString(cmd, "type", "semantic_type", "role", "effect_type"),
+		Manufacturer:       firstString(cmd, "manufacturer", "maker", "vendor"),
+		Format:             firstString(cmd, "format"),
+		Limit:              limit,
+		IncludeInstruments: includeInstruments,
+	})
+	defaultPath, _ := pluginsemantics.DefaultPath()
+	return map[string]any{
+		"index_exists": indexExists,
+		"transient":    transient,
+		"index_path":   firstNonEmpty(path, defaultPath),
+		"built_at":     idx.BuiltAt.Format(time.RFC3339),
+		"summary":      idx.Summary,
+		"plugins":      results,
+		"entries":      results,
+	}, nil
+}
+
+func (h *Harness) getPluginSemanticEntry(cmd map[string]any) (map[string]any, error) {
+	path := firstString(cmd, "index_path", "path")
+	idx, err := pluginsemantics.Load(path)
+	if err != nil {
+		return nil, err
+	}
+	needle := firstNonEmpty(firstString(cmd, "id", "plugin_id", "plugin_path", "identifier"), firstString(cmd, "query", "search", "name"))
+	if strings.TrimSpace(needle) == "" {
+		return nil, fmt.Errorf("id or query is required")
+	}
+	entry, ok := pluginsemantics.Get(idx, needle)
+	if !ok {
+		return map[string]any{
+			"found": false,
+			"entry": nil,
+		}, nil
+	}
+	return map[string]any{
+		"found": true,
+		"entry": entry,
+	}, nil
+}
+
+func pluginKernelErrored(reply map[string]any) bool {
+	status := strings.ToLower(strings.TrimSpace(firstString(reply, "status")))
+	return status == "error" || status == "failed"
 }
 
 func flattenCommandParams(cmd map[string]any) {
@@ -351,8 +1170,12 @@ func flattenCommandParams(cmd map[string]any) {
 
 func (h *Harness) resolveImplicitTargets(ctx context.Context, spec tools.CommandSpec, cmd map[string]any, requestContext map[string]any) error {
 	normalizeCommandArgs(spec, cmd, requestContext)
+	h.resolveRackAddNodeZone(ctx, spec, cmd)
 
 	if err := h.resolveImportAudioSource(ctx, spec, cmd, requestContext); err != nil {
+		return fmt.Errorf("%s could not resolve import source: %w", spec.ToolName, err)
+	}
+	if err := h.resolveImportMidiSource(ctx, spec, cmd, requestContext); err != nil {
 		return fmt.Errorf("%s could not resolve import source: %w", spec.ToolName, err)
 	}
 
@@ -361,15 +1184,26 @@ func (h *Harness) resolveImplicitTargets(ctx context.Context, spec tools.Command
 	}
 
 	for _, field := range spec.RequiredTargetIDs {
-		if field != "track_id" || !isEmptyValue(cmd[field]) {
+		if !isEmptyValue(cmd[field]) {
 			continue
 		}
-		trackID, err := h.resolveTrackID(ctx, spec, cmd, requestContext)
-		if err != nil {
-			return fmt.Errorf("%s could not resolve track target: %w", spec.ToolName, err)
-		}
-		if trackID != "" {
-			cmd[field] = trackID
+		switch field {
+		case "track_id":
+			trackID, err := h.resolveTrackID(ctx, spec, cmd, requestContext)
+			if err != nil {
+				return fmt.Errorf("%s could not resolve track target: %w", spec.ToolName, err)
+			}
+			if trackID != "" {
+				cmd[field] = trackID
+			}
+		case "plugin_id":
+			pluginID, err := h.resolvePluginID(ctx, spec, cmd, requestContext)
+			if err != nil {
+				return fmt.Errorf("%s could not resolve plugin target: %w", spec.ToolName, err)
+			}
+			if pluginID != "" {
+				cmd[field] = pluginID
+			}
 		}
 	}
 	return nil
@@ -421,10 +1255,37 @@ func normalizeCommandArgs(spec tools.CommandSpec, cmd map[string]any, requestCon
 		inferTimeUnit(cmd)
 	case "remove_clips":
 		normalizeClipIDsArray(cmd)
+	case "get_midi_clip_notes", "get_midi_clip_data":
+		copyFirstNonEmpty(cmd, "clip_id", "selected_clip_id", "primary_selected_clip_id", "source_clip_id", "target_clip_id")
+		copyFirstNonEmpty(cmd, "track_id", "selected_clip_track_id", "focused_track_id", "selected_track_id")
+	case "add_midi_notes", "add_midi_notes_bulk", "mutate_midi_notes", "delete_midi_notes":
+		normalizeLegacyMidiNoteArgs(cmd)
+	case "apply_midi_note_patch":
+		normalizeMidiPatchArgs(spec, cmd)
 	case "import_audio":
 		copyFirstNonEmpty(cmd, "file_path", "path", "absolute_path", "audio_path", "source_path", "source_file", "selected_library_file_path", "library_file_path")
 		copyFirstNonEmpty(cmd, "track_id", "target_track_id", "selected_track_id")
 		copyFirstNonEmpty(cmd, "offset_time", "start_time", "start", "start_seconds", "position_seconds", "time")
+	case "plugin_search":
+		copyFirstNonEmpty(cmd, "query", "plugin_query", "plugin_name", "name", "search")
+	case "plugin_semantic_search":
+		copyFirstNonEmpty(cmd, "query", "plugin_query", "plugin_name", "name", "search")
+		copyFirstNonEmpty(cmd, "type", "semantic_type", "role", "effect_type")
+	case "plugin_semantic_get":
+		copyFirstNonEmpty(cmd, "id", "plugin_id", "plugin_path", "path", "identifier")
+		copyFirstNonEmpty(cmd, "query", "plugin_query", "plugin_name", "name", "search")
+	case "scan_plugins":
+		normalizePluginScanArgs(cmd)
+	case "rack_add_node":
+		copyFirstNonEmpty(cmd, "plugin_path", "path", "file_path", "plugin_file", "source_path")
+		copyFirstNonEmpty(cmd, "track_id", "target_track_id", "selected_track_id", "selected_plugin_track_id")
+		copyFirstNonEmpty(cmd, "zone_id", "zone", "rack_zone", "rack_zone_id")
+		if isEmptyValue(cmd["x"]) {
+			cmd["x"] = 360.0
+		}
+		if isEmptyValue(cmd["y"]) {
+			cmd["y"] = 260.0
+		}
 	case "import_media_to_track":
 		copyFirstNonEmpty(cmd, "file_path", "path", "absolute_path", "audio_path", "source_path", "source_file", "selected_library_file_path", "library_file_path")
 		copyFirstNonEmpty(cmd, "track_id", "target_track_id", "selected_track_id")
@@ -435,7 +1296,441 @@ func normalizeCommandArgs(spec tools.CommandSpec, cmd map[string]any, requestCon
 		if isEmptyValue(cmd["mode"]) {
 			cmd["mode"] = "non_destructive"
 		}
+	case "import_midi_to_track":
+		copyFirstNonEmpty(cmd, "file_path", "path", "absolute_path", "midi_path", "source_path", "source_file", "selected_library_file_path", "library_file_path", "selected_attachment_file_path", "attachment_import_file_path")
+		copyFirstNonEmpty(cmd, "track_id", "target_track_id", "selected_track_id")
+		copyFirstNonEmpty(cmd, "start_time_beats", "start_beats", "start_beat", "start_time", "start", "position_beats", "time")
+		if isEmptyValue(cmd["mode"]) {
+			cmd["mode"] = "merge_tracks"
+		}
 	}
+}
+
+func (h *Harness) resolveRackAddNodeZone(ctx context.Context, spec tools.CommandSpec, cmd map[string]any) {
+	if spec.CommandName != "rack_add_node" {
+		return
+	}
+	if instrument, ok := rackPluginMetadataIsInstrument(cmd); ok {
+		applyRackPluginZone(cmd, instrument)
+		return
+	}
+	if entry, ok := h.rackPluginSemanticEntry(ctx, firstString(cmd, "plugin_path")); ok {
+		applyRackPluginZone(cmd, pluginSemanticEntryIsInstrument(entry))
+		return
+	}
+	if isEmptyValue(cmd["zone_id"]) {
+		cmd["zone_id"] = "Z3"
+	}
+}
+
+func applyRackPluginZone(cmd map[string]any, instrument bool) {
+	if instrument {
+		if !strings.EqualFold(strings.TrimSpace(firstString(cmd, "zone_id")), "Z2") {
+			cmd["zone_id"] = "Z2"
+		}
+		return
+	}
+	if isEmptyValue(cmd["zone_id"]) {
+		cmd["zone_id"] = "Z3"
+	}
+}
+
+func (h *Harness) rackPluginSemanticEntry(ctx context.Context, pluginPath string) (pluginsemantics.Entry, bool) {
+	pluginPath = strings.TrimSpace(pluginPath)
+	if pluginPath == "" {
+		return pluginsemantics.Entry{}, false
+	}
+	if idx, err := pluginsemantics.Load(""); err == nil {
+		if entry, ok := pluginsemantics.Get(idx, pluginPath); ok {
+			return entry, true
+		}
+	}
+	if h == nil || h.kernel == nil {
+		return pluginsemantics.Entry{}, false
+	}
+	reply, _, err := h.kernel.SendCommand(ctx, map[string]any{"cmd": "plugin_list_available"})
+	if err != nil || pluginKernelErrored(reply) {
+		return pluginsemantics.Entry{}, false
+	}
+	rows := mapRowsFromAny(reply["plugins"])
+	if len(rows) == 0 {
+		rows = mapRowsFromAny(reply["entries"])
+	}
+	if len(rows) == 0 {
+		return pluginsemantics.Entry{}, false
+	}
+	idx := pluginsemantics.Build(rows, time.Now().UTC())
+	entry, ok := pluginsemantics.Get(idx, pluginPath)
+	return entry, ok
+}
+
+func rackPluginMetadataIsInstrument(row map[string]any) (bool, bool) {
+	if row == nil {
+		return false, false
+	}
+	for _, key := range []string{"is_instrument", "isInstrument", "plugin_is_instrument", "instrument"} {
+		if value, ok := boolValue(row[key]); ok {
+			return value, true
+		}
+	}
+	if categoryIndicatesInstrument(firstString(row, "category", "plugin_category")) {
+		return true, true
+	}
+	if semanticTagsIndicateInstrument(row["semantic_types"]) {
+		return true, true
+	}
+	for _, key := range []string{"plugin", "plugin_entry", "entry", "candidate", "resolved_plugin"} {
+		if nested, ok := row[key].(map[string]any); ok {
+			if value, found := rackPluginMetadataIsInstrument(nested); found {
+				return value, true
+			}
+		}
+	}
+	return false, false
+}
+
+func pluginSemanticEntryIsInstrument(entry pluginsemantics.Entry) bool {
+	if entry.IsInstrument || categoryIndicatesInstrument(entry.Category) {
+		return true
+	}
+	if strings.EqualFold(strings.TrimSpace(entry.PrimaryType), "instrument") {
+		return true
+	}
+	for _, tag := range entry.SemanticTypes {
+		if strings.EqualFold(strings.TrimSpace(tag.Type), "instrument") {
+			return true
+		}
+	}
+	return false
+}
+
+func categoryIndicatesInstrument(category string) bool {
+	return strings.Contains(strings.ToLower(strings.TrimSpace(category)), "instrument")
+}
+
+func semanticTagsIndicateInstrument(value any) bool {
+	switch tags := value.(type) {
+	case []string:
+		for _, tag := range tags {
+			if strings.EqualFold(strings.TrimSpace(tag), "instrument") {
+				return true
+			}
+		}
+	case []any:
+		for _, tag := range tags {
+			switch typed := tag.(type) {
+			case string:
+				if strings.EqualFold(strings.TrimSpace(typed), "instrument") {
+					return true
+				}
+			case map[string]any:
+				if strings.EqualFold(firstString(typed, "type", "name", "value"), "instrument") {
+					return true
+				}
+			}
+		}
+	}
+	return false
+}
+
+func normalizePluginScanArgs(cmd map[string]any) {
+	if len(stringSliceFromAny(cmd["paths"])) == 0 {
+		if path := firstString(cmd, "path", "plugin_path", "folder", "directory"); path != "" {
+			cmd["paths"] = []string{path}
+		}
+	}
+}
+
+func normalizeLegacyMidiNoteArgs(cmd map[string]any) {
+	copyFirstNonEmpty(cmd, "clip_id", "selected_clip_id", "primary_selected_clip_id", "source_clip_id", "target_clip_id")
+	copyFirstNonEmpty(cmd, "track_id", "selected_clip_track_id", "focused_track_id", "selected_track_id")
+	if isEmptyValue(cmd["time_unit"]) {
+		cmd["time_unit"] = "beats"
+	}
+	commandName := firstString(cmd, "cmd", "command", "action")
+	if commandName == "delete_midi_notes" {
+		normalizeLegacyDeleteNoteIDs(cmd)
+		return
+	}
+	if len(operationRowsFromAny(cmd["notes"])) == 0 {
+		switch commandName {
+		case "add_midi_notes", "add_midi_notes_bulk":
+			if note := legacyMidiNoteFromTopLevel(cmd, false); note != nil {
+				cmd["notes"] = []map[string]any{note}
+			}
+		case "mutate_midi_notes":
+			if note := legacyMidiNoteFromTopLevel(cmd, true); note != nil {
+				cmd["notes"] = []map[string]any{note}
+			}
+		}
+	}
+	if notes := operationRowsFromAny(cmd["notes"]); len(notes) > 0 {
+		for _, note := range notes {
+			copyFirstNonEmpty(note, "length", "duration", "length_beats", "duration_beats")
+			copyFirstNonEmpty(note, "start", "start_beat", "start_beats")
+			if isEmptyValue(note["id"]) && !isEmptyValue(note["note_id"]) {
+				note["id"] = note["note_id"]
+			}
+		}
+		cmd["notes"] = notes
+	}
+}
+
+func normalizeLegacyDeleteNoteIDs(cmd map[string]any) {
+	if ids := stringSliceFromAny(cmd["note_ids"]); len(ids) > 0 {
+		cmd["note_ids"] = ids
+		return
+	}
+	if id := firstString(cmd, "note_id", "id"); id != "" {
+		cmd["note_ids"] = []string{id}
+		return
+	}
+	notes := operationRowsFromAny(cmd["notes"])
+	ids := make([]string, 0, len(notes))
+	for _, note := range notes {
+		if id := firstString(note, "note_id", "id"); id != "" {
+			ids = append(ids, id)
+		}
+	}
+	if len(ids) > 0 {
+		cmd["note_ids"] = ids
+	}
+}
+
+func legacyMidiNoteFromTopLevel(cmd map[string]any, requireID bool) map[string]any {
+	if requireID && firstString(cmd, "note_id", "id") == "" {
+		return nil
+	}
+	if !requireID && isEmptyValue(cmd["pitch"]) {
+		return nil
+	}
+	note := map[string]any{}
+	for _, key := range []string{"id", "note_id", "pitch", "start", "start_beat", "start_beats", "length", "length_beats", "duration", "duration_beats", "velocity", "channel"} {
+		if !isEmptyValue(cmd[key]) {
+			note[key] = cmd[key]
+		}
+	}
+	if len(note) == 0 {
+		return nil
+	}
+	return note
+}
+
+func normalizeMidiPatchArgs(spec tools.CommandSpec, cmd map[string]any) {
+	copyFirstNonEmpty(cmd, "clip_id", "selected_clip_id", "primary_selected_clip_id", "source_clip_id", "target_clip_id")
+	copyFirstNonEmpty(cmd, "track_id", "selected_clip_track_id", "focused_track_id", "selected_track_id")
+	if isEmptyValue(cmd["time_unit"]) {
+		cmd["time_unit"] = "beats"
+	}
+	if ops := operationRowsFromAny(cmd["operations"]); len(ops) > 0 {
+		cmd["operations"] = normalizeMidiPatchOperations(ops)
+		return
+	}
+	if op := firstString(cmd, "op", "operation"); op != "" {
+		row := cloneAnyMap(cmd)
+		row["op"] = op
+		delete(row, "cmd")
+		delete(row, "clip_id")
+		delete(row, "track_id")
+		delete(row, "time_unit")
+		delete(row, "undo_label")
+		delete(row, "agent_action_id")
+		normalizeMidiPatchOperation(row)
+		cmd["operations"] = []map[string]any{row}
+		return
+	}
+	if notes := insertNoteOperations(cmd); len(notes) > 0 {
+		cmd["operations"] = notes
+		return
+	}
+	if looksLikeInsertNoteOperation(cmd) {
+		row := midiOperationFromArgs("insert_note", cmd)
+		cmd["operations"] = []map[string]any{row}
+		return
+	}
+	switch spec.ToolName {
+	case "midi.insert_notes":
+		cmd["operations"] = insertNoteOperations(cmd)
+	case "midi.delete_notes":
+		cmd["operations"] = []map[string]any{midiOperationFromArgs("delete_note", cmd)}
+	case "midi.move_notes":
+		cmd["operations"] = []map[string]any{midiOperationFromArgs("move_note", cmd)}
+	case "midi.resize_notes":
+		cmd["operations"] = []map[string]any{midiOperationFromArgs("resize_note", cmd)}
+	case "midi.quantize":
+		cmd["operations"] = []map[string]any{midiOperationFromArgs("quantize_region", cmd)}
+	case "midi.transpose":
+		cmd["operations"] = []map[string]any{midiOperationFromArgs("transpose_note", cmd)}
+	case "midi.set_velocity":
+		cmd["operations"] = []map[string]any{midiOperationFromArgs("set_velocity", cmd)}
+	case "midi.replace_region":
+		row := midiOperationFromArgs("replace_region", cmd)
+		normalizeMidiPatchOperation(row)
+		cmd["operations"] = []map[string]any{row}
+	case "midi.write_clip_notes":
+		if ops := insertNoteOperations(cmd); len(ops) > 0 {
+			cmd["operations"] = ops
+		}
+	}
+}
+
+func normalizeMidiPatchOperations(ops []map[string]any) []map[string]any {
+	for _, op := range ops {
+		normalizeMidiPatchOperation(op)
+	}
+	return ops
+}
+
+func normalizeMidiPatchOperation(op map[string]any) {
+	if isEmptyValue(op["op"]) {
+		copyFirstNonEmpty(op, "op", "operation", "type", "action", "kind")
+	}
+	if opName := normalizeMidiOperationName(firstString(op, "op")); opName != "" {
+		op["op"] = opName
+	}
+	if firstString(op, "op") != "replace_region" {
+		flattenNestedMidiNoteOperation(op)
+	}
+	if firstString(op, "op") == "replace_region" {
+		copyFirstNonEmpty(op, "start", "region_start", "region_start_beat", "region_start_beats")
+		copyFirstNonEmpty(op, "length", "region_length", "region_length_beats", "region_duration", "region_duration_beats")
+	}
+	copyFirstNonEmpty(op, "length", "duration", "length_beats", "duration_beats")
+	copyFirstNonEmpty(op, "start", "start_beat", "start_beats")
+	if isEmptyValue(op["id"]) && !isEmptyValue(op["note_id"]) {
+		op["id"] = op["note_id"]
+	}
+	if isEmptyValue(op["op"]) && looksLikeInsertNoteOperation(op) {
+		op["op"] = "insert_note"
+	}
+	normalizeReplaceRegionNotes(op)
+	if notes := operationRowsFromAny(op["notes"]); len(notes) > 0 {
+		op["notes"] = normalizeMidiPatchNoteRows(notes)
+	}
+}
+
+func normalizeMidiPatchNoteRows(notes []map[string]any) []map[string]any {
+	for _, note := range notes {
+		copyFirstNonEmpty(note, "length", "duration", "length_beats", "duration_beats")
+		copyFirstNonEmpty(note, "start", "start_beat", "start_beats", "relative_start", "relative_start_beats")
+		if isEmptyValue(note["id"]) && !isEmptyValue(note["note_id"]) {
+			note["id"] = note["note_id"]
+		}
+	}
+	return notes
+}
+
+func normalizeReplaceRegionNotes(op map[string]any) {
+	if firstString(op, "op") != "replace_region" || len(operationRowsFromAny(op["notes"])) > 0 {
+		return
+	}
+	for _, key := range []string{"replacement_notes", "new_notes"} {
+		if notes := operationRowsFromAny(op[key]); len(notes) > 0 {
+			op["notes"] = normalizeMidiPatchNoteRows(notes)
+			return
+		}
+	}
+	for _, key := range []string{"replacement_note", "new_note", "note"} {
+		if note, ok := op[key].(map[string]any); ok {
+			op["notes"] = normalizeMidiPatchNoteRows([]map[string]any{cloneAnyMap(note)})
+			return
+		}
+	}
+	if isEmptyValue(op["pitch"]) {
+		return
+	}
+	note := map[string]any{"pitch": op["pitch"]}
+	copyFirstNonEmptyFrom(note, "velocity", op, "note_velocity", "replacement_velocity", "velocity")
+	copyFirstNonEmptyFrom(note, "channel", op, "note_channel", "replacement_channel", "channel")
+	copyFirstNonEmptyFrom(note, "id", op, "note_id", "replacement_note_id", "replacement_id")
+	copyFirstNonEmptyFrom(note, "start", op, "note_start", "note_start_beat", "note_start_beats", "relative_start", "relative_start_beats", "replacement_start", "replacement_start_beat", "replacement_start_beats")
+	copyFirstNonEmptyFrom(note, "length", op, "note_length", "note_length_beats", "note_duration", "note_duration_beats", "replacement_length", "replacement_length_beats", "replacement_duration", "replacement_duration_beats")
+	if isEmptyValue(note["start"]) {
+		note["start"] = 0.0
+	}
+	op["notes"] = normalizeMidiPatchNoteRows([]map[string]any{note})
+}
+
+func flattenNestedMidiNoteOperation(op map[string]any) {
+	note, ok := op["note"].(map[string]any)
+	if !ok {
+		return
+	}
+	for _, key := range []string{"id", "note_id", "pitch", "start", "start_beat", "start_beats", "length", "length_beats", "duration", "duration_beats", "velocity", "channel"} {
+		if isEmptyValue(op[key]) && !isEmptyValue(note[key]) {
+			op[key] = note[key]
+		}
+	}
+}
+
+func normalizeMidiOperationName(raw string) string {
+	switch strings.ToLower(strings.TrimSpace(raw)) {
+	case "insert", "add", "add_note", "create_note", "insert_midi_note":
+		return "insert_note"
+	case "delete", "remove", "remove_note":
+		return "delete_note"
+	case "move":
+		return "move_note"
+	case "resize", "length", "set_length":
+		return "resize_note"
+	case "transpose", "transpose_notes":
+		return "transpose_note"
+	case "velocity", "set_note_velocity":
+		return "set_velocity"
+	case "quantize", "quantize_notes":
+		return "quantize_region"
+	default:
+		return strings.TrimSpace(raw)
+	}
+}
+
+func looksLikeInsertNoteOperation(op map[string]any) bool {
+	return !isEmptyValue(op["pitch"]) &&
+		!isEmptyValue(op["start"]) &&
+		!isEmptyValue(op["length"])
+}
+
+func operationRowsFromAny(v any) []map[string]any {
+	switch rows := v.(type) {
+	case map[string]any:
+		return []map[string]any{rows}
+	case []map[string]any:
+		return rows
+	case []any:
+		out := make([]map[string]any, 0, len(rows))
+		for _, it := range rows {
+			if row, ok := it.(map[string]any); ok {
+				out = append(out, row)
+			}
+		}
+		return out
+	default:
+		return nil
+	}
+}
+
+func insertNoteOperations(cmd map[string]any) []map[string]any {
+	notes := operationRowsFromAny(cmd["notes"])
+	out := make([]map[string]any, 0, len(notes))
+	for _, note := range notes {
+		row := cloneAnyMap(note)
+		row["op"] = "insert_note"
+		out = append(out, row)
+	}
+	return out
+}
+
+func midiOperationFromArgs(op string, cmd map[string]any) map[string]any {
+	row := cloneAnyMap(cmd)
+	row["op"] = op
+	delete(row, "cmd")
+	delete(row, "clip_id")
+	delete(row, "track_id")
+	delete(row, "time_unit")
+	delete(row, "undo_label")
+	delete(row, "agent_action_id")
+	delete(row, "operations")
+	return row
 }
 
 func inferTimeUnit(cmd map[string]any) {
@@ -469,6 +1764,7 @@ func normalizeClipIDsArray(cmd map[string]any) {
 var (
 	audioPathPattern       = regexp.MustCompile(`(?i)((?:[a-z]:|\\\\[^\\/]+[\\/][^\\/]+)[\\/][^\r\n"<>|?*]+?\.(?:wav|mp3|flac|ogg|oga|aif|aiff|m4a|wma))`)
 	quotedAudioPathPattern = regexp.MustCompile(`(?i)["'“”‘’]([^"'“”‘’]+?\.(?:wav|mp3|flac|ogg|oga|aif|aiff|m4a|wma))["'“”‘’]?`)
+	midiPathPattern        = regexp.MustCompile(`(?i)((?:[a-z]:|\\\\[^\\/]+[\\/][^\\/]+)[\\/][^\r\n"<>|?*]+?\.(?:mid|midi))`)
 	errAudioSearchLimit    = errors.New("audio search limit reached")
 )
 
@@ -482,6 +1778,11 @@ var audioExtensions = map[string]bool{
 	".aiff": true,
 	".m4a":  true,
 	".wma":  true,
+}
+
+var midiExtensions = map[string]bool{
+	".mid":  true,
+	".midi": true,
 }
 
 func (h *Harness) resolveImportAudioSource(ctx context.Context, spec tools.CommandSpec, cmd map[string]any, requestContext map[string]any) error {
@@ -532,6 +1833,71 @@ func (h *Harness) resolveImportAudioSource(ctx context.Context, spec tools.Comma
 		}
 	}
 	return nil
+}
+
+func (h *Harness) resolveImportMidiSource(ctx context.Context, spec tools.CommandSpec, cmd map[string]any, requestContext map[string]any) error {
+	_ = ctx
+	if spec.CommandName != "import_midi_to_track" {
+		return nil
+	}
+	if isEmptyValue(cmd["file_path"]) {
+		if fp := selectedMidiAttachmentPathFromContext(requestContext); fp != "" {
+			cmd["file_path"] = fp
+		}
+	}
+	if isEmptyValue(cmd["file_path"]) {
+		if fp := selectedMidiLibraryFilePathFromContext(requestContext); fp != "" {
+			cmd["file_path"] = fp
+		}
+	}
+	if isEmptyValue(cmd["file_path"]) {
+		if fp := firstMidiPathInText(firstString(requestContext, "user_message", "message", "prompt", "utterance")); fp != "" {
+			cmd["file_path"] = fp
+		}
+	}
+	if isEmptyValue(cmd["file_path"]) {
+		return fmt.Errorf("missing MIDI file path; attach a MIDI file, select a MIDI file in the library, or provide an absolute .mid/.midi path")
+	}
+	resolved, err := resolveExistingMidiPath(firstString(cmd, "file_path"))
+	if err != nil {
+		return err
+	}
+	cmd["file_path"] = resolved
+	if isEmptyValue(cmd["start_time_beats"]) {
+		cmd["start_time_beats"] = 0.0
+	}
+	if isEmptyValue(cmd["mode"]) {
+		cmd["mode"] = "merge_tracks"
+	}
+	return nil
+}
+
+func selectedMidiAttachmentPathFromContext(requestContext map[string]any) string {
+	if strings.EqualFold(firstString(requestContext, "attachment_import_kind", "selected_attachment_kind"), "midi") {
+		if fp := firstString(requestContext, "attachment_import_file_path", "selected_attachment_file_path"); fp != "" {
+			return fp
+		}
+	}
+	for _, row := range mapRowsFromAny(requestContext["attachments"]) {
+		if strings.EqualFold(firstString(row, "kind"), "midi") {
+			if fp := firstString(row, "path", "file_path"); fp != "" {
+				return fp
+			}
+		}
+	}
+	return ""
+}
+
+func selectedMidiLibraryFilePathFromContext(requestContext map[string]any) string {
+	if strings.EqualFold(firstString(requestContext, "selected_library_kind"), "midi") {
+		if fp := firstString(requestContext, "selected_library_file_path", "library_file_path"); fp != "" {
+			return fp
+		}
+	}
+	if fp := firstString(requestContext, "selected_library_file_path", "library_file_path"); fp != "" && isSupportedMidiPath(fp) {
+		return fp
+	}
+	return ""
 }
 
 func selectedLibraryFilePathFromContext(requestContext map[string]any) string {
@@ -590,6 +1956,28 @@ func isSupportedAudioPath(path string) bool {
 	return audioExtensions[strings.ToLower(filepath.Ext(path))]
 }
 
+func isSupportedMidiPath(path string) bool {
+	return midiExtensions[strings.ToLower(filepath.Ext(path))]
+}
+
+func resolveExistingMidiPath(raw string) (string, error) {
+	path := normalizeAudioPath(raw)
+	if path == "" {
+		return "", fmt.Errorf("MIDI file path is empty")
+	}
+	if !isSupportedMidiPath(path) {
+		return "", fmt.Errorf("unsupported MIDI file extension: %s", path)
+	}
+	if st, err := os.Stat(path); err == nil && !st.IsDir() {
+		abs, absErr := filepath.Abs(path)
+		if absErr == nil {
+			return filepath.Clean(abs), nil
+		}
+		return filepath.Clean(path), nil
+	}
+	return "", fmt.Errorf("MIDI file does not exist: %s", path)
+}
+
 func firstAudioPathInText(text string) string {
 	text = strings.TrimSpace(text)
 	if text == "" {
@@ -600,6 +1988,18 @@ func firstAudioPathInText(text string) string {
 		if len(match) > 1 {
 			return trimPathPunctuation(match[1])
 		}
+	}
+	return ""
+}
+
+func firstMidiPathInText(text string) string {
+	text = strings.TrimSpace(text)
+	if text == "" {
+		return ""
+	}
+	match := midiPathPattern.FindStringSubmatch(text)
+	if len(match) > 1 {
+		return trimPathPunctuation(match[1])
 	}
 	return ""
 }
@@ -835,6 +2235,18 @@ func copyFirstNonEmpty(cmd map[string]any, target string, aliases ...string) {
 	}
 }
 
+func copyFirstNonEmptyFrom(dst map[string]any, target string, src map[string]any, aliases ...string) {
+	if !isEmptyValue(dst[target]) {
+		return
+	}
+	for _, key := range aliases {
+		if !isEmptyValue(src[key]) {
+			dst[target] = src[key]
+			return
+		}
+	}
+}
+
 func copyBoolAlias(cmd map[string]any, target string, aliases ...string) {
 	if value, ok := boolValue(cmd[target]); ok {
 		cmd[target] = value
@@ -1042,6 +2454,26 @@ func (h *Harness) resolveClipTargets(ctx context.Context, spec tools.CommandSpec
 		if isEmptyValue(cmd["track_name"]) && ref.TrackName != "" {
 			cmd["track_name"] = ref.TrackName
 		}
+	case "get_midi_clip_notes", "get_midi_clip_data", "add_midi_notes", "add_midi_notes_bulk", "mutate_midi_notes", "delete_midi_notes", "apply_midi_note_patch":
+		ref, err := h.resolveSingleClipRef(ctx, spec, cmd, requestContext, "clip_id")
+		if err != nil {
+			return err
+		}
+		cmd["clip_id"] = ref.ID
+		if isEmptyValue(cmd["track_id"]) && ref.TrackID != "" {
+			cmd["track_id"] = ref.TrackID
+		}
+		if isLegacyMidiWriteCommand(spec.CommandName) && isEmptyValue(cmd["time_unit"]) {
+			cmd["time_unit"] = "beats"
+		}
+		if spec.CommandName == "apply_midi_note_patch" {
+			if isEmptyValue(cmd["time_unit"]) {
+				cmd["time_unit"] = "beats"
+			}
+			if len(operationRowsFromAny(cmd["operations"])) == 0 {
+				return fmt.Errorf("apply_midi_note_patch requires operations")
+			}
+		}
 	default:
 		if specRequiresTarget(spec, "clip_id") && isEmptyValue(cmd["clip_id"]) {
 			ref, err := h.resolveSingleClipRef(ctx, spec, cmd, requestContext, "clip_id")
@@ -1160,8 +2592,13 @@ func clipRefByIDOrContext(id string, refs []clipRef, requestContext map[string]a
 			return ref, nil
 		}
 	}
-	if trackID := firstString(requestContext, "selected_clip_track_id", "focused_track_id", "selected_track_id", "track_id"); trackID != "" {
-		return clipRef{ID: id, TrackID: trackID}, nil
+	for _, selectedID := range selectedClipIDsFromContext(requestContext) {
+		if selectedID == id {
+			return clipRef{
+				ID:      id,
+				TrackID: firstString(requestContext, "selected_clip_track_id"),
+			}, nil
+		}
 	}
 	return clipRef{}, fmt.Errorf("clip_id %q is not present in the current user-visible project state", id)
 }
@@ -1272,6 +2709,15 @@ func selectedClipIDsFromContext(requestContext map[string]any) []string {
 		return []string{id}
 	}
 	return nil
+}
+
+func isLegacyMidiWriteCommand(commandName string) bool {
+	switch commandName {
+	case "add_midi_notes", "add_midi_notes_bulk", "mutate_midi_notes", "delete_midi_notes":
+		return true
+	default:
+		return false
+	}
 }
 
 func specRequiresTarget(spec tools.CommandSpec, field string) bool {
@@ -1461,7 +2907,7 @@ func numberValueFromMap(row map[string]any, keys ...string) (float64, bool) {
 
 func (h *Harness) resolveTrackID(ctx context.Context, spec tools.CommandSpec, cmd map[string]any, requestContext map[string]any) (string, error) {
 	if h == nil || h.shadow == nil {
-		return "", nil
+		return firstString(requestContext, "selected_plugin_track_id", "selected_track_id", "track_id"), nil
 	}
 	state := h.UserStateSummary(ctx)
 	tracks := visibleTrackRows(state)
@@ -1502,7 +2948,7 @@ func trackIDFromContext(tracks []map[string]any, requestContext map[string]any) 
 	if len(tracks) == 0 || len(requestContext) == 0 {
 		return "", false
 	}
-	if selectedID := firstString(requestContext, "selected_track_id", "track_id"); selectedID != "" {
+	if selectedID := firstString(requestContext, "selected_plugin_track_id", "selected_track_id", "track_id"); selectedID != "" {
 		for _, row := range tracks {
 			if visibleTrackID(row) == selectedID {
 				return selectedID, true
@@ -1517,6 +2963,81 @@ func trackIDFromContext(tracks []map[string]any, requestContext map[string]any) 
 		}
 	}
 	return "", false
+}
+
+func (h *Harness) resolvePluginID(ctx context.Context, spec tools.CommandSpec, cmd map[string]any, requestContext map[string]any) (string, error) {
+	if id := firstString(cmd, "plugin_id", "plugin_item_id", "item_id"); id != "" {
+		return id, nil
+	}
+	if id := firstString(requestContext, "selected_plugin_id", "current_plugin_id", "plugin_id"); id != "" {
+		return id, nil
+	}
+	if h == nil || h.shadow == nil {
+		return "", nil
+	}
+
+	state := h.UserStateSummary(ctx)
+	trackScope := firstNonEmpty(
+		firstString(cmd, "track_id", "selected_plugin_track_id"),
+		firstString(requestContext, "selected_plugin_track_id", "selected_track_id", "track_id"),
+	)
+	refs := visiblePluginRefs(state, trackScope)
+	if name := firstString(cmd, "plugin_name", "target_plugin_name", "plugin"); name != "" {
+		matches := make([]pluginRef, 0, 1)
+		for _, ref := range refs {
+			if strings.EqualFold(ref.Name, name) {
+				matches = append(matches, ref)
+			}
+		}
+		switch len(matches) {
+		case 1:
+			return matches[0].ID, nil
+		case 0:
+			return "", fmt.Errorf("no visible plugin named %q", name)
+		default:
+			return "", fmt.Errorf("multiple visible plugins named %q; specify plugin_id", name)
+		}
+	}
+	switch len(refs) {
+	case 0:
+		return "", fmt.Errorf("no visible plugin target is selected")
+	case 1:
+		return refs[0].ID, nil
+	default:
+		if spec.CommandName == "plugin_grabber_upsert_project_profile" || spec.CommandName == "plugin_grabber_remove_project_profile" || spec.CommandName == "get_plugin_parameters" {
+			return "", fmt.Errorf("multiple visible plugins match; select one plugin or specify plugin_id")
+		}
+	}
+	return "", nil
+}
+
+type pluginRef struct {
+	ID      string
+	Name    string
+	TrackID string
+}
+
+func visiblePluginRefs(state map[string]any, trackScope string) []pluginRef {
+	tracks := visibleTrackRows(state)
+	out := make([]pluginRef, 0)
+	for _, track := range tracks {
+		trackID := visibleTrackID(track)
+		if strings.TrimSpace(trackScope) != "" && trackID != strings.TrimSpace(trackScope) {
+			continue
+		}
+		for _, plugin := range mapRowsFromAny(track["plugins"]) {
+			id := firstString(plugin, "plugin_id", "item_id", "id")
+			if id == "" {
+				continue
+			}
+			out = append(out, pluginRef{
+				ID:      id,
+				Name:    firstNonEmpty(firstString(plugin, "plugin_name", "name"), id),
+				TrackID: trackID,
+			})
+		}
+	}
+	return out
 }
 
 func (h *Harness) afterKernelReply(ctx context.Context, spec tools.CommandSpec, reply map[string]any) {
@@ -1545,6 +3066,8 @@ func (h *Harness) publicResult(spec tools.CommandSpec, cmd map[string]any, reply
 		if h.shadow != nil {
 			return withOKStatus(userVisibleState(h.shadow.Summary()))
 		}
+	case "get_plugin_parameters":
+		return publicPluginParametersResult(reply)
 	case "list_tracks":
 		if h.shadow != nil {
 			summary := h.shadow.Summary()
@@ -1590,8 +3113,155 @@ func (h *Harness) publicResult(spec tools.CommandSpec, cmd map[string]any, reply
 			out["source_clip_id"] = sourceClipID
 		}
 		return out
+	case "insert_midi_clip", "create_midi_clip", "import_midi_to_track":
+		out := cloneAnyMap(reply)
+		newClipID := firstString(reply, "new_clip_id", "clip_id", "created_clip_id")
+		targetTrackID := firstNonEmpty(
+			firstString(reply, "target_track_id", "track_id", "affected_track_id"),
+			firstString(cmd, "target_track_id", "track_id"),
+		)
+		if newClipID != "" {
+			out["ui_action"] = "select_clip"
+			out["clip_id"] = newClipID
+			out["new_clip_id"] = newClipID
+			out["created_clip_ids"] = []string{newClipID}
+		}
+		if targetTrackID != "" {
+			out["track_id"] = targetTrackID
+			out["target_track_id"] = targetTrackID
+		}
+		return out
+	case "apply_midi_note_patch":
+		out := cloneAnyMap(reply)
+		out["ui_action"] = "midi_note_patch"
+		out["clip_id"] = firstNonEmpty(firstString(reply, "clip_id"), firstString(cmd, "clip_id"))
+		if trackID := firstNonEmpty(firstString(reply, "track_id"), firstString(cmd, "track_id")); trackID != "" {
+			out["track_id"] = trackID
+		}
+		return out
+	case "add_midi_notes", "add_midi_notes_bulk", "mutate_midi_notes", "delete_midi_notes":
+		out := cloneAnyMap(reply)
+		out["ui_action"] = "midi_note_patch"
+		out["clip_id"] = firstNonEmpty(firstString(reply, "clip_id"), firstString(cmd, "clip_id"))
+		if trackID := firstNonEmpty(firstString(reply, "track_id"), firstString(cmd, "track_id")); trackID != "" {
+			out["track_id"] = trackID
+		}
+		return out
 	}
 	return reply
+}
+
+func publicPluginParametersResult(reply map[string]any) map[string]any {
+	params := mapRowsFromAny(reply["parameters"])
+	quick := mapRowsFromAny(reply["quick_controls"])
+	groups := mapRowsFromAny(reply["recommended_groups"])
+	out := map[string]any{
+		"status":                  firstNonEmpty(firstString(reply, "status"), "ok"),
+		"track_id":                reply["track_id"],
+		"plugin_id":               reply["plugin_id"],
+		"plugin_item_id":          reply["plugin_item_id"],
+		"plugin_identity":         reply["plugin_identity"],
+		"template_role":           reply["template_role"],
+		"supports_param_grabber":  reply["supports_param_grabber"],
+		"profile_applied":         reply["profile_applied"],
+		"profile_source":          reply["profile_source"],
+		"profile_stale_param_ids": reply["profile_stale_param_ids"],
+		"parameter_count":         len(params),
+		"quick_control_count":     len(quick),
+		"quick_controls":          compactQuickControls(quick, 16),
+		"recommended_group_count": len(groups),
+		"recommended_groups":      compactRecommendedGroups(groups, 16),
+		"capability_manifest":     reply["capability_manifest"],
+	}
+	return out
+}
+
+func compactQuickControls(rows []map[string]any, limit int) []map[string]any {
+	if limit <= 0 || limit > len(rows) {
+		limit = len(rows)
+	}
+	out := make([]map[string]any, 0, limit)
+	for i := 0; i < limit; i++ {
+		row := rows[i]
+		out = append(out, map[string]any{
+			"param_id":          firstString(row, "param_id", "id"),
+			"label":             firstString(row, "label", "name"),
+			"widget":            firstString(row, "widget"),
+			"normalized_role":   firstString(row, "normalized_role"),
+			"display_group":     firstString(row, "display_group"),
+			"control_relevance": row["control_relevance"],
+		})
+	}
+	return out
+}
+
+func compactRecommendedGroups(rows []map[string]any, limit int) []map[string]any {
+	if limit <= 0 || limit > len(rows) {
+		limit = len(rows)
+	}
+	out := make([]map[string]any, 0, limit)
+	for i := 0; i < limit; i++ {
+		row := rows[i]
+		ids := stringSliceFromAny(row["parameter_ids"])
+		out = append(out, map[string]any{
+			"name":            firstString(row, "name", "group"),
+			"parameter_count": len(ids),
+			"sample_ids":      firstNStrings(ids, 8),
+		})
+	}
+	return out
+}
+
+func firstNStrings(values []string, limit int) []string {
+	if limit < 0 {
+		limit = 0
+	}
+	if limit > len(values) {
+		limit = len(values)
+	}
+	out := make([]string, limit)
+	copy(out, values[:limit])
+	return out
+}
+
+func compactHistoryCommits(value any, limit int) []map[string]any {
+	if limit <= 0 {
+		limit = 6
+	}
+	var commits []history.Commit
+	switch rows := value.(type) {
+	case []history.Commit:
+		commits = rows
+	case []any:
+		for _, item := range rows {
+			if commit, ok := item.(history.Commit); ok {
+				commits = append(commits, commit)
+			}
+		}
+	default:
+		return nil
+	}
+	if len(commits) > limit {
+		commits = commits[:limit]
+	}
+	out := make([]map[string]any, 0, len(commits))
+	for _, commit := range commits {
+		row := map[string]any{
+			"id":              commit.ID,
+			"message":         commit.Message,
+			"created_at":      commit.CreatedAt,
+			"branch":          commit.Branch,
+			"checkpoint_kind": commit.CheckpointKind,
+			"goal_id":         commit.GoalID,
+		}
+		for key, value := range row {
+			if isEmptyValue(value) {
+				delete(row, key)
+			}
+		}
+		out = append(out, row)
+	}
+	return out
 }
 
 func cloneAnyMap(in map[string]any) map[string]any {
@@ -1610,6 +3280,21 @@ func stringSet(items []string) map[string]bool {
 	return out
 }
 
+func appendStringAny(value any, item string) []string {
+	out := stringSliceFromAny(value)
+	if strings.TrimSpace(item) != "" {
+		out = append(out, strings.TrimSpace(item))
+	}
+	return out
+}
+
+func boolValueDefault(value any, fallback bool) bool {
+	if b, ok := boolValue(value); ok {
+		return b
+	}
+	return fallback
+}
+
 func userVisibleState(in map[string]any) map[string]any {
 	out := make(map[string]any, len(in))
 	for k, v := range in {
@@ -1623,6 +3308,37 @@ func userVisibleState(in map[string]any) map[string]any {
 	return out
 }
 
+func projectPathFromState(state map[string]any) string {
+	if path := firstString(state, "project_path", "current_project_path"); path != "" {
+		return path
+	}
+	for _, key := range []string{"shadow", "project", "state"} {
+		nested, ok := state[key].(map[string]any)
+		if !ok {
+			continue
+		}
+		if path := firstString(nested, "project_path", "current_project_path"); path != "" {
+			return path
+		}
+	}
+	return ""
+}
+
+func samePath(a, b string) bool {
+	left := strings.TrimSpace(a)
+	right := strings.TrimSpace(b)
+	if left == "" || right == "" {
+		return false
+	}
+	if abs, err := filepath.Abs(left); err == nil {
+		left = abs
+	}
+	if abs, err := filepath.Abs(right); err == nil {
+		right = abs
+	}
+	return strings.EqualFold(filepath.Clean(left), filepath.Clean(right))
+}
+
 func withOKStatus(in map[string]any) map[string]any {
 	out := make(map[string]any, len(in)+1)
 	out["status"] = "ok"
@@ -1633,24 +3349,124 @@ func withOKStatus(in map[string]any) map[string]any {
 }
 
 func (h *Harness) refreshShadow(ctx context.Context, reason string) {
+	_ = h.refreshShadowWithStatus(ctx, reason)
+}
+
+func (h *Harness) refreshShadowWithStatus(ctx context.Context, reason string) map[string]any {
 	if h.kernel == nil || h.shadow == nil {
-		return
+		return map[string]any{
+			"shadow_refreshed": false,
+			"warning":          "kernel reload unavailable; agent shadow could not be refreshed",
+		}
 	}
 	reply, _, err := h.kernel.SendCommand(ctx, map[string]any{"cmd": "get_project_state"})
 	if err != nil {
 		if h.logger != nil {
 			h.logger.Warn("[harness] shadow refresh after %s failed: %v", reason, err)
 		}
-		return
+		return map[string]any{
+			"shadow_refreshed": false,
+			"warning":          err.Error(),
+		}
 	}
 	if strings.EqualFold(strings.TrimSpace(fmt.Sprint(reply["status"])), "ok") {
 		h.shadow.Initialize(reply)
+		return map[string]any{
+			"shadow_refreshed": true,
+			"reason":           reason,
+		}
+	}
+	return map[string]any{
+		"shadow_refreshed": false,
+		"warning":          firstNonEmpty(fmt.Sprint(reply["message"]), fmt.Sprint(reply["error"]), "get_project_state did not return ok"),
 	}
 }
 
+func (h *Harness) withProjectRefresh(ctx context.Context, reason string, result map[string]any) map[string]any {
+	if result == nil {
+		result = map[string]any{}
+	}
+	refresh := h.refreshShadowWithStatus(ctx, reason)
+	result["refresh"] = refresh
+	if warning := firstString(refresh, "warning"); warning != "" {
+		result["warnings"] = appendStringAny(result["warnings"], warning)
+	}
+	return result
+}
+
+func (h *Harness) withProjectReload(ctx context.Context, reason string, result map[string]any) map[string]any {
+	if result == nil {
+		result = map[string]any{}
+	}
+	refresh := map[string]any{
+		"reason":            reason,
+		"kernel_reloaded":   false,
+		"shadow_refreshed":  false,
+		"project_file_path": "",
+	}
+	projectFilePath := firstString(result, "project_file_path", "project_path")
+	refresh["project_file_path"] = projectFilePath
+	if h == nil || h.kernel == nil {
+		warning := "kernel reload unavailable; project files were materialized but the open project could not be reloaded"
+		refresh["warning"] = warning
+		result["warnings"] = appendStringAny(result["warnings"], warning)
+		result["refresh"] = refresh
+		return result
+	}
+	if projectFilePath == "" {
+		warning := "project reload path is unavailable"
+		refresh["warning"] = warning
+		result["warnings"] = appendStringAny(result["warnings"], warning)
+	} else {
+		reply, _, err := h.kernel.SendCommand(ctx, map[string]any{"cmd": "open_project", "file_path": projectFilePath})
+		if err != nil {
+			warning := err.Error()
+			refresh["warning"] = warning
+			result["warnings"] = appendStringAny(result["warnings"], warning)
+			if h.logger != nil {
+				h.logger.Warn("[harness] project reload after %s failed: %v", reason, err)
+			}
+		} else if strings.EqualFold(strings.TrimSpace(fmt.Sprint(reply["status"])), "error") {
+			warning := firstNonEmpty(fmt.Sprint(reply["message"]), fmt.Sprint(reply["error"]), "open_project did not return ok")
+			refresh["warning"] = warning
+			result["warnings"] = appendStringAny(result["warnings"], warning)
+		} else {
+			refresh["kernel_reloaded"] = true
+			refresh["kernel_status"] = firstNonEmpty(fmt.Sprint(reply["status"]), "ok")
+		}
+	}
+	shadowRefresh := h.refreshShadowWithStatus(ctx, reason)
+	refresh["shadow_refreshed"] = boolValueDefault(shadowRefresh["shadow_refreshed"], false)
+	refresh["shadow_refresh"] = shadowRefresh
+	if warning := firstString(shadowRefresh, "warning"); warning != "" {
+		result["warnings"] = appendStringAny(result["warnings"], warning)
+	}
+	result["refresh"] = refresh
+	return result
+}
+
 func PreviewCommand(spec tools.CommandSpec, cmd map[string]any) string {
-	raw, _ := json.Marshal(cmd)
-	return fmt.Sprintf("%s [%s]: %s\n%s", spec.CommandName, spec.RiskLevel, spec.Description, string(raw))
+	return preview.Command(spec, cmd)
+}
+
+func PreviewRackAddNode(spec tools.CommandSpec, cmd map[string]any) string {
+	return preview.RackAddNode(spec, cmd)
+}
+
+func PreviewPluginGrabberProfileUpsert(spec tools.CommandSpec, cmd map[string]any) string {
+	return preview.PluginGrabberProfileUpsert(spec, cmd)
+}
+
+func PreviewPluginGrabberProfileRemove(spec tools.CommandSpec, cmd map[string]any) string {
+	return preview.PluginGrabberProfileRemove(spec, cmd)
+}
+
+func PreviewLegacyMidiNotes(spec tools.CommandSpec, cmd map[string]any) string {
+	return preview.LegacyMidiNotes(spec, cmd)
+}
+
+func PreviewMidiPatch(spec tools.CommandSpec, cmd map[string]any) string {
+	return preview.MidiPatch(spec, cmd)
 }
 
 func validateRequiredTargetIDs(spec tools.CommandSpec, cmd map[string]any) error {
@@ -1774,6 +3590,31 @@ func stringSliceFromAny(v any) []string {
 	}
 }
 
+func mapStringStringFromAny(v any) map[string]string {
+	switch x := v.(type) {
+	case map[string]string:
+		out := make(map[string]string, len(x))
+		for k, v := range x {
+			if strings.TrimSpace(k) != "" && strings.TrimSpace(v) != "" {
+				out[strings.TrimSpace(k)] = strings.TrimSpace(v)
+			}
+		}
+		return out
+	case map[string]any:
+		out := make(map[string]string, len(x))
+		for k, v := range x {
+			key := strings.TrimSpace(k)
+			value := strings.TrimSpace(fmt.Sprint(v))
+			if key != "" && value != "" && value != "<nil>" {
+				out[key] = value
+			}
+		}
+		return out
+	default:
+		return nil
+	}
+}
+
 func firstPositiveInt(row map[string]any, keys ...string) (int, bool) {
 	for _, key := range keys {
 		v, ok := row[key]
@@ -1807,6 +3648,8 @@ func buildUndoLabel(spec tools.CommandSpec, cmd map[string]any) string {
 		return v
 	}
 	switch {
+	case spec.CommandName == "apply_midi_note_patch":
+		return "Agent: MIDI note patch"
 	case spec.MutatesProject:
 		return "Agent: " + spec.CommandName
 	default:

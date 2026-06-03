@@ -2,13 +2,37 @@ package harness
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
+	"time"
 
+	"vit-daw-agent/internal/history"
+	"vit-daw-agent/internal/journal"
+	"vit-daw-agent/internal/pluginsemantics"
 	"vit-daw-agent/internal/shadow"
 	"vit-daw-agent/internal/tools"
 )
+
+type fakeKernelClient struct {
+	replies  []map[string]any
+	commands []map[string]any
+}
+
+func (f *fakeKernelClient) SendCommand(_ context.Context, cmd map[string]any) (map[string]any, string, error) {
+	f.commands = append(f.commands, tools.CloneCommand(cmd))
+	if len(f.replies) == 0 {
+		return map[string]any{"status": "ok"}, `{"status":"ok"}`, nil
+	}
+	reply := f.replies[0]
+	f.replies = f.replies[1:]
+	if errText := strings.TrimSpace(fmt.Sprint(reply["error"])); errText != "" && errText != "<nil>" {
+		return reply, "", fmt.Errorf("%s", errText)
+	}
+	return reply, "", nil
+}
 
 func TestInvokeConfirmCommandDoesNotNeedKernelBeforeApproval(t *testing.T) {
 	h := New(nil, nil, nil)
@@ -35,6 +59,121 @@ func TestResolveRejectsUnknownCommand(t *testing.T) {
 	})
 	if err == nil {
 		t.Fatal("expected unknown command error")
+	}
+}
+
+func TestRollbackWorkspaceApplyEditUsesReversePatch(t *testing.T) {
+	root := t.TempDir()
+	path := filepath.Join(root, "note.txt")
+	if err := os.WriteFile(path, []byte("hello vit"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	h := New(nil, nil, nil)
+	resp, err := h.Invoke(context.Background(), InvokeRequest{
+		Tool: "workspace.apply_edit",
+		Args: map[string]any{
+			"path":            path,
+			"old_text":        "vit",
+			"new_text":        "history",
+			"workspace_roots": []any{root},
+		},
+		Confirmed: true,
+		Source:    "test",
+	})
+	if err != nil {
+		t.Fatalf("apply edit: %v", err)
+	}
+	if resp.AgentActionID == "" {
+		t.Fatalf("missing action id: %+v", resp)
+	}
+	if b, _ := os.ReadFile(path); string(b) != "hello history" {
+		t.Fatalf("after apply = %q", string(b))
+	}
+	_, err = h.Invoke(context.Background(), InvokeRequest{
+		Tool:      "agent.rollback_action",
+		Args:      map[string]any{"target_action_id": resp.AgentActionID},
+		Confirmed: true,
+		Source:    "test",
+	})
+	if err != nil {
+		t.Fatalf("rollback: %v", err)
+	}
+	if b, _ := os.ReadFile(path); string(b) != "hello vit" {
+		t.Fatalf("after rollback = %q", string(b))
+	}
+	action, ok := h.journal.Get(resp.AgentActionID)
+	if !ok {
+		t.Fatalf("missing journal action %s", resp.AgentActionID)
+	}
+	if action.Status != journal.StatusRolledBack || action.RollbackState != "succeeded" {
+		t.Fatalf("rollback journal = %+v", action)
+	}
+}
+
+func TestRollbackDAWActionCallsProjectUndo(t *testing.T) {
+	kernel := &fakeKernelClient{
+		replies: []map[string]any{
+			{"status": "ok", "agent_action_id": "undo_1", "message": "undone"},
+		},
+	}
+	h := New(nil, nil, nil)
+	h.kernel = kernel
+	h.journal.Record(journal.Action{
+		AgentActionID: "act_daw",
+		Domain:        "daw",
+		Source:        "test",
+		Tool:          "track.mute",
+		CommandName:   "set_mute",
+		Command:       map[string]any{"cmd": "set_mute", "track_id": "1007", "mute": true},
+		Status:        journal.StatusSucceeded,
+	})
+
+	resp, err := h.Invoke(context.Background(), InvokeRequest{
+		Tool:      "agent.rollback_action",
+		Args:      map[string]any{"target_action_id": "act_daw"},
+		Confirmed: true,
+		Source:    "test",
+	})
+	if err != nil {
+		t.Fatalf("rollback: %v", err)
+	}
+	if resp.Status != "ok" || len(kernel.commands) != 1 {
+		t.Fatalf("resp=%+v commands=%+v", resp, kernel.commands)
+	}
+	if kernel.commands[0]["cmd"] != "undo" || kernel.commands[0]["target_action_id"] != "act_daw" {
+		t.Fatalf("undo command = %+v", kernel.commands[0])
+	}
+	action, ok := h.journal.Get("act_daw")
+	if !ok {
+		t.Fatal("target action missing")
+	}
+	if action.Status != journal.StatusRolledBack || action.RollbackActionID != "undo_1" || action.RollbackState != "succeeded" {
+		t.Fatalf("rollback journal = %+v", action)
+	}
+}
+
+func TestRollbackNonAutomaticDomainIsRejected(t *testing.T) {
+	h := New(nil, nil, nil)
+	h.journal.Record(journal.Action{
+		AgentActionID: "act_web",
+		Domain:        "web",
+		Source:        "test",
+		Tool:          "web.fetch",
+		CommandName:   "web_fetch",
+		Command:       map[string]any{"cmd": "web_fetch", "url": "https://example.com"},
+		Status:        journal.StatusSucceeded,
+	})
+	resp, err := h.Invoke(context.Background(), InvokeRequest{
+		Tool:      "agent.rollback_action",
+		Args:      map[string]any{"target_action_id": "act_web"},
+		Confirmed: true,
+		Source:    "test",
+	})
+	if err == nil {
+		t.Fatalf("expected rollback rejection, resp=%+v", resp)
+	}
+	if !strings.Contains(err.Error(), `domain "web"`) {
+		t.Fatalf("unexpected error: %v", err)
 	}
 }
 
@@ -71,6 +210,194 @@ func TestResolveToolFormCommandBuildsKernelCommand(t *testing.T) {
 	}
 	if spec.CommandName != "set_solo" || cmd["cmd"] != "set_solo" || cmd["track_id"] != "1007" || cmd["solo"] != true {
 		t.Fatalf("cmd = %+v spec = %+v", cmd, spec)
+	}
+}
+
+func TestResolvePluginTargetFromContext(t *testing.T) {
+	h := New(nil, nil, nil)
+	cmd, spec, err := h.resolveCommand(InvokeRequest{
+		Command: map[string]any{
+			"cmd":               "plugin_grabber_upsert_project_profile",
+			"quick_control_ids": []any{"dry", "wet"},
+		},
+	})
+	if err != nil {
+		t.Fatalf("resolveCommand: %v", err)
+	}
+	if err := h.resolveImplicitTargets(context.Background(), spec, cmd, map[string]any{
+		"selected_plugin_id":       "plugin_a",
+		"selected_plugin_track_id": "1007",
+	}); err != nil {
+		t.Fatalf("resolveImplicitTargets: %v", err)
+	}
+	if cmd["track_id"] != "1007" || cmd["plugin_id"] != "plugin_a" {
+		t.Fatalf("cmd = %+v", cmd)
+	}
+}
+
+func TestPluginLoadToRackNormalizesArgs(t *testing.T) {
+	t.Setenv("VIT_PLUGIN_SEMANTICS_PATH", filepath.Join(t.TempDir(), "missing_plugin_semantics.json"))
+	h := New(nil, nil, nil)
+	cmd, spec, err := h.resolveCommand(InvokeRequest{
+		Tool: "plugin.load_to_rack",
+		Args: map[string]any{
+			"path": "C:/Program Files/Common Files/VST3/TDR Nova.vst3",
+		},
+	})
+	if err != nil {
+		t.Fatalf("resolveCommand: %v", err)
+	}
+	if err := h.resolveImplicitTargets(context.Background(), spec, cmd, map[string]any{
+		"selected_track_id": "1007",
+	}); err != nil {
+		t.Fatalf("resolveImplicitTargets: %v", err)
+	}
+	if cmd["cmd"] != "rack_add_node" || cmd["track_id"] != "1007" || cmd["plugin_path"] == "" {
+		t.Fatalf("cmd = %+v", cmd)
+	}
+	if cmd["x"] == nil || cmd["y"] == nil || cmd["zone_id"] != "Z3" {
+		t.Fatalf("rack defaults missing: %+v", cmd)
+	}
+}
+
+func TestPluginLoadToRackInstrumentDefaultsToZ2FromSemanticIndex(t *testing.T) {
+	surgePath := `C:\Program Files\Common Files\VST3\Surge Synth Team\Surge XT.vst3\Contents\x86_64-win\Surge XT.vst3`
+	semanticsPath := filepath.Join(t.TempDir(), "plugin_semantics.json")
+	idx := pluginsemantics.Build([]map[string]any{
+		{
+			"name":          "Surge XT Effects",
+			"category":      "Fx",
+			"plugin_path":   `C:\Program Files\Common Files\VST3\Surge Synth Team\Surge XT Effects.vst3\Contents\x86_64-win\Surge XT Effects.vst3`,
+			"is_instrument": false,
+		},
+		{
+			"name":          "Surge XT",
+			"category":      "Instrument|Synth",
+			"plugin_path":   surgePath,
+			"is_instrument": true,
+		},
+	}, time.Now().UTC())
+	if _, err := pluginsemantics.Save(semanticsPath, idx); err != nil {
+		t.Fatalf("save semantics: %v", err)
+	}
+	t.Setenv("VIT_PLUGIN_SEMANTICS_PATH", semanticsPath)
+
+	h := New(nil, nil, nil)
+	cmd, spec, err := h.resolveCommand(InvokeRequest{
+		Tool: "plugin.load_to_rack",
+		Args: map[string]any{"path": surgePath},
+	})
+	if err != nil {
+		t.Fatalf("resolveCommand: %v", err)
+	}
+	if err := h.resolveImplicitTargets(context.Background(), spec, cmd, map[string]any{
+		"selected_track_id": "1007",
+	}); err != nil {
+		t.Fatalf("resolveImplicitTargets: %v", err)
+	}
+	if got := cmd["zone_id"]; got != "Z2" {
+		t.Fatalf("zone_id = %#v, want Z2; cmd=%+v", got, cmd)
+	}
+}
+
+func TestPluginLoadToRackInstrumentOverridesPlannerZ3(t *testing.T) {
+	surgePath := `C:\Program Files\Common Files\VST3\Surge Synth Team\Surge XT.vst3\Contents\x86_64-win\Surge XT.vst3`
+	semanticsPath := filepath.Join(t.TempDir(), "plugin_semantics.json")
+	idx := pluginsemantics.Build([]map[string]any{
+		{
+			"name":          "Surge XT",
+			"category":      "Instrument|Synth",
+			"plugin_path":   surgePath,
+			"is_instrument": true,
+		},
+	}, time.Now().UTC())
+	if _, err := pluginsemantics.Save(semanticsPath, idx); err != nil {
+		t.Fatalf("save semantics: %v", err)
+	}
+	t.Setenv("VIT_PLUGIN_SEMANTICS_PATH", semanticsPath)
+
+	h := New(nil, nil, nil)
+	cmd, spec, err := h.resolveCommand(InvokeRequest{
+		Tool: "plugin.load_to_rack",
+		Args: map[string]any{
+			"path":    surgePath,
+			"zone_id": "Z3",
+		},
+	})
+	if err != nil {
+		t.Fatalf("resolveCommand: %v", err)
+	}
+	if err := h.resolveImplicitTargets(context.Background(), spec, cmd, map[string]any{
+		"selected_track_id": "1010",
+	}); err != nil {
+		t.Fatalf("resolveImplicitTargets: %v", err)
+	}
+	if got := cmd["zone_id"]; got != "Z2" {
+		t.Fatalf("zone_id = %#v, want corrected Z2; cmd=%+v", got, cmd)
+	}
+	preview := PreviewCommand(spec, cmd)
+	if strings.Contains(preview, "Zone Z3") || !strings.Contains(preview, "Zone Z2") {
+		t.Fatalf("preview did not show corrected zone:\n%s", preview)
+	}
+}
+
+func TestPluginLoadToRackInstrumentDefaultsToZ2FromKernelPluginList(t *testing.T) {
+	t.Setenv("VIT_PLUGIN_SEMANTICS_PATH", filepath.Join(t.TempDir(), "missing_plugin_semantics.json"))
+	surgePath := `C:\Program Files\Common Files\VST3\Surge Synth Team\Surge XT.vst3\Contents\x86_64-win\Surge XT.vst3`
+	kernel := &fakeKernelClient{replies: []map[string]any{
+		{
+			"status": "ok",
+			"plugins": []any{
+				map[string]any{
+					"name":          "Surge XT",
+					"category":      "Instrument|Synth",
+					"path":          surgePath,
+					"is_instrument": true,
+				},
+			},
+		},
+	}}
+	h := New(nil, nil, nil)
+	h.kernel = kernel
+	cmd, spec, err := h.resolveCommand(InvokeRequest{
+		Tool: "plugin.load_to_rack",
+		Args: map[string]any{"path": surgePath},
+	})
+	if err != nil {
+		t.Fatalf("resolveCommand: %v", err)
+	}
+	if err := h.resolveImplicitTargets(context.Background(), spec, cmd, map[string]any{
+		"selected_track_id": "1007",
+	}); err != nil {
+		t.Fatalf("resolveImplicitTargets: %v", err)
+	}
+	if got := cmd["zone_id"]; got != "Z2" {
+		t.Fatalf("zone_id = %#v, want Z2; cmd=%+v", got, cmd)
+	}
+	if len(kernel.commands) != 1 || kernel.commands[0]["cmd"] != "plugin_list_available" {
+		t.Fatalf("kernel commands = %+v", kernel.commands)
+	}
+}
+
+func TestPluginParametersPublicResultIsCompact(t *testing.T) {
+	h := New(nil, nil, nil)
+	result := h.publicResult(tools.CommandSpec{CommandName: "get_plugin_parameters"}, nil, map[string]any{
+		"status":     "ok",
+		"track_id":   "1007",
+		"plugin_id":  "plugin_a",
+		"parameters": []any{map[string]any{"id": "a"}, map[string]any{"id": "b"}},
+		"quick_controls": []any{
+			map[string]any{"param_id": "a", "label": "A", "display_group": "Mix"},
+		},
+		"recommended_groups": []any{
+			map[string]any{"name": "Mix", "parameter_ids": []any{"a", "b"}},
+		},
+	})
+	if result["parameter_count"] != 2 || result["quick_control_count"] != 1 {
+		t.Fatalf("result counts = %+v", result)
+	}
+	if _, ok := result["parameters"]; ok {
+		t.Fatalf("public result leaked full parameters: %+v", result)
 	}
 }
 
@@ -461,6 +788,260 @@ func TestInvokeClipSelectIsLocalUIAction(t *testing.T) {
 	}
 }
 
+func TestVersionCheckpointUsesDraftProjectWhenProjectPathMissing(t *testing.T) {
+	t.Setenv("VIT_HISTORY_DRAFT_ROOT", t.TempDir())
+	h := New(nil, shadow.New(nil), nil)
+	resp, err := h.Invoke(context.Background(), InvokeRequest{
+		Tool:      "version.checkpoint",
+		Args:      map[string]any{"message": "smoke"},
+		Confirmed: true,
+	})
+	if err != nil {
+		t.Fatalf("checkpoint: %v", err)
+	}
+	if resp.Status != "ok" || resp.Tool != "version.checkpoint" {
+		t.Fatalf("resp = %+v", resp)
+	}
+	if resp.Result["project_path"] == "" || resp.Result["commit_id"] == "" || resp.Result["draft"] != true {
+		t.Fatalf("draft result = %+v", resp.Result)
+	}
+	if resp.ProjectHistory["draft"] != true || resp.ProjectHistory["project_path"] == "" {
+		t.Fatalf("project history = %+v", resp.ProjectHistory)
+	}
+}
+
+func TestConfirmedMutatingToolCreatesOneGoalBaseline(t *testing.T) {
+	root := t.TempDir()
+	projectPath := filepath.Join(root, "Song.vit")
+	if err := os.WriteFile(projectPath, []byte("<EDIT disk=\"one\"/>"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	project := shadow.New(nil)
+	project.Initialize(map[string]any{
+		"status":       "ok",
+		"project_path": projectPath,
+		"tracks": []any{
+			map[string]any{"track_id": "1007", "track_name": "Drums", "clips": []any{
+				map[string]any{"id": "clip_a", "name": "Loop A"},
+			}},
+		},
+	})
+	kernel := &fakeKernelClient{
+		replies: []map[string]any{
+			{"status": "ok", "snapshot_xml": "<EDIT memory=\"baseline\"/>", "project_path": projectPath},
+			{"status": "ok", "saved": true},
+			{"status": "ok", "saved": true},
+		},
+	}
+	h := New(nil, project, nil)
+	h.kernel = kernel
+	first, err := h.Invoke(context.Background(), InvokeRequest{
+		Tool:      "project.save",
+		Confirmed: true,
+		GoalID:    "goal_baseline",
+		RunID:     "run_one",
+		Source:    "test",
+	})
+	if err != nil {
+		t.Fatalf("first invoke: %v", err)
+	}
+	if first.Status != "ok" || first.ProjectHistory["baseline_commit"] == "" {
+		t.Fatalf("first response = %+v", first)
+	}
+	second, err := h.Invoke(context.Background(), InvokeRequest{
+		Tool:      "project.save",
+		Confirmed: true,
+		GoalID:    "goal_baseline",
+		RunID:     "run_two",
+		Source:    "test",
+	})
+	if err != nil {
+		t.Fatalf("second invoke: %v", err)
+	}
+	baselineID := fmt.Sprint(first.ProjectHistory["baseline_commit"])
+	if fmt.Sprint(second.ProjectHistory["baseline_commit"]) != baselineID {
+		t.Fatalf("baseline changed: first=%+v second=%+v", first.ProjectHistory, second.ProjectHistory)
+	}
+	if len(kernel.commands) != 3 || kernel.commands[0]["cmd"] != "project_snapshot_export" || kernel.commands[1]["cmd"] != "save_project" || kernel.commands[2]["cmd"] != "save_project" {
+		t.Fatalf("kernel commands = %+v", kernel.commands)
+	}
+	actions := h.Actions(2)
+	if len(actions) != 2 || actions[0].VersionCommitID != baselineID || actions[1].VersionCommitID != baselineID {
+		t.Fatalf("actions = %+v baseline=%s", actions, baselineID)
+	}
+	status, err := history.Status(map[string]any{"project_path": projectPath})
+	if err != nil {
+		t.Fatalf("history status: %v", err)
+	}
+	if status["commit_count"] != 1 {
+		t.Fatalf("history status = %+v", status)
+	}
+	goal := h.RuntimeStatus("goal_baseline")
+	if goal.ProjectHistory == nil || goal.ProjectHistory.BaselineCommitID != baselineID {
+		t.Fatalf("goal project history = %+v", goal.ProjectHistory)
+	}
+}
+
+func TestProjectHistoryCheckoutReloadsKernelAndShadow(t *testing.T) {
+	root := t.TempDir()
+	projectPath := filepath.Join(root, "Song.vit")
+	if err := os.WriteFile(projectPath, []byte("one"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	firstResult, err := history.Checkpoint(map[string]any{"project_path": projectPath})
+	if err != nil {
+		t.Fatalf("checkpoint first: %v", err)
+	}
+	firstCommit := firstResult["commit"].(history.Commit)
+	if err := os.WriteFile(projectPath, []byte("two"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := history.Checkpoint(map[string]any{"project_path": projectPath}); err != nil {
+		t.Fatalf("checkpoint second: %v", err)
+	}
+	project := shadow.New(nil)
+	project.Initialize(map[string]any{"status": "ok", "project_path": projectPath})
+	kernel := &fakeKernelClient{
+		replies: []map[string]any{
+			{"status": "ok"},
+			{"status": "ok", "project_path": projectPath},
+		},
+	}
+	h := New(nil, project, nil)
+	h.kernel = kernel
+	resp, err := h.Invoke(context.Background(), InvokeRequest{
+		Tool:      "version.checkout",
+		Args:      map[string]any{"commit_id": firstCommit.ID},
+		Confirmed: true,
+		Source:    "test",
+	})
+	if err != nil {
+		t.Fatalf("checkout invoke: %v", err)
+	}
+	if resp.Status != "ok" || resp.Result["commit_id"] != firstCommit.ID {
+		t.Fatalf("resp = %+v", resp)
+	}
+	if got, err := os.ReadFile(projectPath); err != nil || string(got) != "one" {
+		t.Fatalf("project after checkout = %q err=%v", string(got), err)
+	}
+	if len(kernel.commands) != 2 || kernel.commands[0]["cmd"] != "open_project" || kernel.commands[0]["file_path"] != projectPath || kernel.commands[1]["cmd"] != "get_project_state" {
+		t.Fatalf("kernel commands = %+v", kernel.commands)
+	}
+	refresh := resp.Result["refresh"].(map[string]any)
+	if refresh["kernel_reloaded"] != true || refresh["shadow_refreshed"] != true {
+		t.Fatalf("refresh = %+v", refresh)
+	}
+}
+
+func TestProjectHistoryWorktreeCheckoutOpensTargetProject(t *testing.T) {
+	root := t.TempDir()
+	projectPath := filepath.Join(root, "Song.vit")
+	if err := os.WriteFile(projectPath, []byte("one"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	checkpoint, err := history.Checkpoint(map[string]any{"project_path": projectPath})
+	if err != nil {
+		t.Fatalf("checkpoint: %v", err)
+	}
+	commit := checkpoint["commit"].(history.Commit)
+	worktree, err := history.WorktreeCreate(map[string]any{"project_path": projectPath, "commit_id": commit.ID, "name": "wt-1"})
+	if err != nil {
+		t.Fatalf("worktree create: %v", err)
+	}
+	targetProject := fmt.Sprint(worktree["project_file_path"])
+	project := shadow.New(nil)
+	project.Initialize(map[string]any{"status": "ok", "project_path": projectPath})
+	kernel := &fakeKernelClient{
+		replies: []map[string]any{
+			{"status": "ok"},
+			{"status": "ok", "project_path": targetProject},
+		},
+	}
+	h := New(nil, project, nil)
+	h.kernel = kernel
+	resp, err := h.Invoke(context.Background(), InvokeRequest{
+		Tool:      "version.worktree_checkout",
+		Args:      map[string]any{"name": "wt-1"},
+		Confirmed: true,
+		Source:    "test",
+	})
+	if err != nil {
+		t.Fatalf("worktree checkout invoke: %v", err)
+	}
+	if resp.Status != "ok" || resp.Result["project_file_path"] != targetProject {
+		t.Fatalf("resp = %+v target=%s", resp, targetProject)
+	}
+	if len(kernel.commands) != 3 ||
+		kernel.commands[0]["cmd"] != "project_snapshot_export" ||
+		kernel.commands[1]["cmd"] != "open_project" ||
+		kernel.commands[1]["file_path"] != targetProject ||
+		kernel.commands[2]["cmd"] != "get_project_state" {
+		t.Fatalf("kernel commands = %+v", kernel.commands)
+	}
+}
+
+func TestProjectHistoryWorktreeCheckoutAutosaveUsesKernelProjectPath(t *testing.T) {
+	root := t.TempDir()
+	projectPath := filepath.Join(root, "Song.vit")
+	if err := os.WriteFile(projectPath, []byte("root-one"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	checkpoint, err := history.Checkpoint(map[string]any{"project_path": projectPath})
+	if err != nil {
+		t.Fatalf("checkpoint: %v", err)
+	}
+	commit := checkpoint["commit"].(history.Commit)
+	worktree, err := history.WorktreeCreate(map[string]any{"project_path": projectPath, "commit_id": commit.ID, "name": "wt-1"})
+	if err != nil {
+		t.Fatalf("worktree create: %v", err)
+	}
+	targetProject := fmt.Sprint(worktree["project_file_path"])
+	project := shadow.New(nil)
+	project.Initialize(map[string]any{"status": "ok", "project_path": projectPath})
+	kernel := &fakeKernelClient{
+		replies: []map[string]any{
+			{"status": "ok", "snapshot_xml": "worktree-live", "project_path": targetProject},
+			{"status": "ok"},
+			{"status": "ok", "project_path": projectPath},
+		},
+	}
+	h := New(nil, project, nil)
+	h.kernel = kernel
+	resp, err := h.Invoke(context.Background(), InvokeRequest{
+		Tool:      "version.worktree_checkout",
+		Args:      map[string]any{"name": "main"},
+		Confirmed: true,
+		Source:    "test",
+	})
+	if err != nil {
+		t.Fatalf("worktree checkout invoke: %v", err)
+	}
+	if resp.Status != "ok" || resp.Result["project_file_path"] != projectPath {
+		t.Fatalf("resp = %+v", resp)
+	}
+	rootList, err := history.List(map[string]any{"project_path": projectPath})
+	if err != nil {
+		t.Fatalf("root list: %v", err)
+	}
+	if commits := rootList["commits"].([]history.Commit); len(commits) != 1 || commits[0].ID != commit.ID {
+		t.Fatalf("root history was polluted by worktree autosave: %+v", commits)
+	}
+	targetList, err := history.List(map[string]any{"project_path": targetProject})
+	if err != nil {
+		t.Fatalf("target list: %v", err)
+	}
+	foundAutosave := false
+	for _, item := range targetList["commits"].([]history.Commit) {
+		if item.Source == "worktree_checkout" && item.ProjectPath == targetProject {
+			foundAutosave = true
+			break
+		}
+	}
+	if !foundAutosave {
+		t.Fatalf("worktree autosave missing from target history: %+v", targetList["commits"])
+	}
+}
+
 func TestResolveClipSelectFromCurrentTrackScope(t *testing.T) {
 	h := New(nil, shadowProjectWithClips(), nil)
 	resp, err := h.Invoke(context.Background(), InvokeRequest{
@@ -674,6 +1255,513 @@ func TestCloneClipPublicResultSelectsNewClip(t *testing.T) {
 	}
 	if result["source_clip_id"] != "clip_a" || len(created) != 1 || created[0] != "clip_new" {
 		t.Fatalf("clone metadata = %+v", result)
+	}
+}
+
+func TestResolveMidiPatchFromSelectedClipDefaultsBeats(t *testing.T) {
+	h := New(nil, shadowProjectWithClips(), nil)
+	cmd, spec, err := h.resolveCommand(InvokeRequest{
+		Tool: "midi.insert_notes",
+		Args: map[string]any{
+			"notes": []any{
+				map[string]any{"pitch": 60, "start": 0.0, "length": 0.5, "velocity": 96},
+			},
+		},
+	})
+	if err != nil {
+		t.Fatalf("resolveCommand: %v", err)
+	}
+	if err := h.resolveImplicitTargets(context.Background(), spec, cmd, map[string]any{
+		"selected_clip_id":       "clip_b",
+		"selected_clip_track_id": "1010",
+	}); err != nil {
+		t.Fatalf("resolveImplicitTargets: %v", err)
+	}
+	if cmd["cmd"] != "apply_midi_note_patch" || cmd["clip_id"] != "clip_b" || cmd["track_id"] != "1010" || cmd["time_unit"] != "beats" {
+		t.Fatalf("cmd = %+v", cmd)
+	}
+	ops := cmd["operations"].([]map[string]any)
+	if len(ops) != 1 || ops[0]["op"] != "insert_note" || ops[0]["pitch"] != 60 {
+		t.Fatalf("ops = %#v", ops)
+	}
+}
+
+func TestMidiPatchRequiresOperations(t *testing.T) {
+	h := New(nil, shadowProjectWithClips(), nil)
+	cmd, spec, err := h.resolveCommand(InvokeRequest{
+		Tool: "midi.apply_note_patch",
+		Args: map[string]any{"clip_id": "clip_a"},
+	})
+	if err != nil {
+		t.Fatalf("resolveCommand: %v", err)
+	}
+	err = h.resolveImplicitTargets(context.Background(), spec, cmd, map[string]any{
+		"selected_clip_track_id": "1007",
+	})
+	if err == nil {
+		t.Fatalf("expected missing operations error, cmd=%+v", cmd)
+	}
+}
+
+func TestMidiPatchInfersInsertOpForBareNoteOperations(t *testing.T) {
+	h := New(nil, shadowProjectWithClips(), nil)
+	cmd, spec, err := h.resolveCommand(InvokeRequest{
+		Tool: "midi.apply_note_patch",
+		Args: map[string]any{
+			"operations": []any{
+				map[string]any{"pitch": 51, "start": 0.0, "duration": 0.95, "velocity": 84},
+				map[string]any{"pitch": 58, "start": 0.0, "length": 0.95, "velocity": 84},
+			},
+		},
+	})
+	if err != nil {
+		t.Fatalf("resolveCommand: %v", err)
+	}
+	if err := h.resolveImplicitTargets(context.Background(), spec, cmd, map[string]any{
+		"selected_clip_id":       "clip_b",
+		"selected_clip_track_id": "1010",
+	}); err != nil {
+		t.Fatalf("resolveImplicitTargets: %v", err)
+	}
+	ops := cmd["operations"].([]map[string]any)
+	if len(ops) != 2 {
+		t.Fatalf("ops = %#v", ops)
+	}
+	for i, op := range ops {
+		if op["op"] != "insert_note" {
+			t.Fatalf("op %d missing insert_note: %#v", i, op)
+		}
+		if op["length"] != 0.95 {
+			t.Fatalf("op %d length not normalized: %#v", i, op)
+		}
+	}
+	preview := PreviewCommand(spec, cmd)
+	if strings.Contains(preview, "<unknown>") || !strings.Contains(preview, "1. insert_note pitch=51 start=0 length=0.95 velocity=84") {
+		t.Fatalf("preview =\n%s", preview)
+	}
+}
+
+func TestMidiPatchNormalizesOperationAliasesAndNestedNote(t *testing.T) {
+	h := New(nil, shadowProjectWithClips(), nil)
+	cmd, spec, err := h.resolveCommand(InvokeRequest{
+		Tool: "midi.apply_note_patch",
+		Args: map[string]any{
+			"operations": []any{
+				map[string]any{
+					"operation": "insert",
+					"note": map[string]any{
+						"pitch":    60,
+						"start":    0.0,
+						"duration": 1.0,
+						"velocity": 100,
+					},
+				},
+			},
+		},
+	})
+	if err != nil {
+		t.Fatalf("resolveCommand: %v", err)
+	}
+	if err := h.resolveImplicitTargets(context.Background(), spec, cmd, map[string]any{
+		"selected_clip_id":       "clip_b",
+		"selected_clip_track_id": "1010",
+	}); err != nil {
+		t.Fatalf("resolveImplicitTargets: %v", err)
+	}
+	ops := cmd["operations"].([]map[string]any)
+	if len(ops) != 1 || ops[0]["op"] != "insert_note" || ops[0]["pitch"] != 60 || ops[0]["length"] != 1.0 {
+		t.Fatalf("ops = %#v", ops)
+	}
+	preview := PreviewCommand(spec, cmd)
+	if strings.Contains(preview, "<unknown>") || !strings.Contains(preview, "1. insert_note pitch=60 start=0 length=1 velocity=100") {
+		t.Fatalf("preview =\n%s", preview)
+	}
+}
+
+func TestMidiPatchInfersSingleTopLevelInsertNote(t *testing.T) {
+	h := New(nil, shadowProjectWithClips(), nil)
+	cmd, spec, err := h.resolveCommand(InvokeRequest{
+		Tool: "midi.apply_note_patch",
+		Args: map[string]any{
+			"pitch":    60,
+			"start":    0.0,
+			"length":   1.0,
+			"velocity": 100,
+		},
+	})
+	if err != nil {
+		t.Fatalf("resolveCommand: %v", err)
+	}
+	if err := h.resolveImplicitTargets(context.Background(), spec, cmd, map[string]any{
+		"selected_clip_id":       "clip_b",
+		"selected_clip_track_id": "1010",
+	}); err != nil {
+		t.Fatalf("resolveImplicitTargets: %v", err)
+	}
+	if cmd["cmd"] != "apply_midi_note_patch" || cmd["clip_id"] != "clip_b" || cmd["track_id"] != "1010" || cmd["time_unit"] != "beats" {
+		t.Fatalf("cmd = %+v", cmd)
+	}
+	ops := operationRowsFromAny(cmd["operations"])
+	if len(ops) != 1 || ops[0]["op"] != "insert_note" || ops[0]["pitch"] != 60 || ops[0]["start"] != 0.0 || ops[0]["length"] != 1.0 {
+		t.Fatalf("ops = %#v", ops)
+	}
+	preview := PreviewCommand(spec, cmd)
+	if !strings.Contains(preview, "1. insert_note pitch=60 start=0 length=1 velocity=100") {
+		t.Fatalf("preview did not show inferred top-level insert:\n%s", preview)
+	}
+}
+
+func TestMidiReplaceRegionNormalizesTopLevelReplacementNote(t *testing.T) {
+	h := New(nil, shadowProjectWithClips(), nil)
+	cmd, spec, err := h.resolveCommand(InvokeRequest{
+		Tool: "midi.replace_region",
+		Args: map[string]any{
+			"region_start":  0.0,
+			"region_length": 1.0,
+			"pitch":         65,
+			"note_start":    0.0,
+			"note_length":   0.5,
+			"velocity":      90,
+		},
+	})
+	if err != nil {
+		t.Fatalf("resolveCommand: %v", err)
+	}
+	if err := h.resolveImplicitTargets(context.Background(), spec, cmd, map[string]any{
+		"selected_clip_id":       "clip_b",
+		"selected_clip_track_id": "1010",
+	}); err != nil {
+		t.Fatalf("resolveImplicitTargets: %v", err)
+	}
+	ops := operationRowsFromAny(cmd["operations"])
+	if len(ops) != 1 || ops[0]["op"] != "replace_region" || ops[0]["start"] != 0.0 || ops[0]["length"] != 1.0 {
+		t.Fatalf("ops = %#v", ops)
+	}
+	notes := operationRowsFromAny(ops[0]["notes"])
+	if len(notes) != 1 || notes[0]["pitch"] != 65 || notes[0]["start"] != 0.0 || notes[0]["length"] != 0.5 || notes[0]["velocity"] != 90 {
+		t.Fatalf("notes = %#v ops=%#v", notes, ops)
+	}
+}
+
+func TestMidiReplaceRegionNormalizesNestedReplacementNote(t *testing.T) {
+	h := New(nil, shadowProjectWithClips(), nil)
+	cmd, spec, err := h.resolveCommand(InvokeRequest{
+		Tool: "midi.replace_region",
+		Args: map[string]any{
+			"region_start":  0.0,
+			"region_length": 1.0,
+			"replacement_note": map[string]any{
+				"pitch":          65,
+				"relative_start": 0.25,
+				"duration":       0.5,
+				"velocity":       90,
+			},
+		},
+	})
+	if err != nil {
+		t.Fatalf("resolveCommand: %v", err)
+	}
+	if err := h.resolveImplicitTargets(context.Background(), spec, cmd, map[string]any{
+		"selected_clip_id":       "clip_b",
+		"selected_clip_track_id": "1010",
+	}); err != nil {
+		t.Fatalf("resolveImplicitTargets: %v", err)
+	}
+	ops := operationRowsFromAny(cmd["operations"])
+	if len(ops) != 1 || ops[0]["op"] != "replace_region" || ops[0]["start"] != 0.0 || ops[0]["length"] != 1.0 {
+		t.Fatalf("ops = %#v", ops)
+	}
+	notes := operationRowsFromAny(ops[0]["notes"])
+	if len(notes) != 1 || notes[0]["pitch"] != 65 || notes[0]["start"] != 0.25 || notes[0]["length"] != 0.5 || notes[0]["velocity"] != 90 {
+		t.Fatalf("notes = %#v ops=%#v", notes, ops)
+	}
+}
+
+func TestMidiPatchPreviewIsReadable(t *testing.T) {
+	spec := tools.CommandSpec{
+		CommandName: "apply_midi_note_patch",
+		Description: "Apply a beat-based MIDI note patch to a clip.",
+		RiskLevel:   tools.RiskConfirm,
+	}
+	preview := PreviewCommand(spec, map[string]any{
+		"clip_id":   "clip_a",
+		"time_unit": "beats",
+		"operations": []map[string]any{
+			{"op": "insert_note", "pitch": 64, "start": 0.5, "length": 0.25, "velocity": 88},
+			{"op": "quantize_region", "start": 0.0, "length": 4.0, "grid": "1/16"},
+		},
+	})
+	for _, want := range []string{"apply_midi_note_patch [confirm]", "Clip clip_a", "1. insert_note pitch=64 start=0.5 length=0.25 velocity=88", "2. quantize_region start=0 length=4 grid=1/16"} {
+		if !strings.Contains(preview, want) {
+			t.Fatalf("preview missing %q in:\n%s", want, preview)
+		}
+	}
+}
+
+func TestLegacyMidiBulkNormalizesDurationDefaultsBeats(t *testing.T) {
+	h := New(nil, shadowProjectWithClips(), nil)
+	cmd, spec, err := h.resolveCommand(InvokeRequest{
+		Tool: "midi.add_notes_bulk",
+		Args: map[string]any{
+			"notes": []any{
+				map[string]any{"pitch": 55, "start": 0.0, "duration": 0.75, "velocity": 100},
+			},
+		},
+	})
+	if err != nil {
+		t.Fatalf("resolveCommand: %v", err)
+	}
+	if err := h.resolveImplicitTargets(context.Background(), spec, cmd, map[string]any{
+		"selected_clip_id":       "clip_a",
+		"selected_clip_track_id": "1007",
+	}); err != nil {
+		t.Fatalf("resolveImplicitTargets: %v", err)
+	}
+	if cmd["cmd"] != "add_midi_notes_bulk" || cmd["clip_id"] != "clip_a" || cmd["track_id"] != "1007" || cmd["time_unit"] != "beats" {
+		t.Fatalf("cmd = %+v", cmd)
+	}
+	notes := cmd["notes"].([]map[string]any)
+	if len(notes) != 1 || notes[0]["length"] != 0.75 || notes[0]["duration"] != 0.75 {
+		t.Fatalf("notes = %#v", notes)
+	}
+}
+
+func TestLegacyMidiAddNormalizesSingleTopLevelNote(t *testing.T) {
+	h := New(nil, shadowProjectWithClips(), nil)
+	cmd, spec, err := h.resolveCommand(InvokeRequest{
+		Tool: "midi.legacy_add_notes",
+		Args: map[string]any{
+			"pitch":    67,
+			"start":    1.0,
+			"duration": 0.5,
+			"velocity": 88,
+		},
+	})
+	if err != nil {
+		t.Fatalf("resolveCommand: %v", err)
+	}
+	if err := h.resolveImplicitTargets(context.Background(), spec, cmd, map[string]any{
+		"selected_clip_id":       "clip_a",
+		"selected_clip_track_id": "1007",
+	}); err != nil {
+		t.Fatalf("resolveImplicitTargets: %v", err)
+	}
+	if cmd["cmd"] != "add_midi_notes" || cmd["clip_id"] != "clip_a" || cmd["track_id"] != "1007" || cmd["time_unit"] != "beats" {
+		t.Fatalf("cmd = %+v", cmd)
+	}
+	notes := operationRowsFromAny(cmd["notes"])
+	if len(notes) != 1 || notes[0]["pitch"] != 67 || notes[0]["start"] != 1.0 || notes[0]["length"] != 0.5 || notes[0]["velocity"] != 88 {
+		t.Fatalf("notes = %#v", notes)
+	}
+}
+
+func TestLegacyMidiMutateNormalizesSingleTopLevelNote(t *testing.T) {
+	h := New(nil, shadowProjectWithClips(), nil)
+	cmd, spec, err := h.resolveCommand(InvokeRequest{
+		Tool: "midi.legacy_mutate_notes",
+		Args: map[string]any{
+			"note_id":  "note_a",
+			"velocity": 72,
+			"duration": 0.25,
+		},
+	})
+	if err != nil {
+		t.Fatalf("resolveCommand: %v", err)
+	}
+	if err := h.resolveImplicitTargets(context.Background(), spec, cmd, map[string]any{
+		"selected_clip_id":       "clip_a",
+		"selected_clip_track_id": "1007",
+	}); err != nil {
+		t.Fatalf("resolveImplicitTargets: %v", err)
+	}
+	if cmd["cmd"] != "mutate_midi_notes" || cmd["clip_id"] != "clip_a" || cmd["track_id"] != "1007" || cmd["time_unit"] != "beats" {
+		t.Fatalf("cmd = %+v", cmd)
+	}
+	notes := operationRowsFromAny(cmd["notes"])
+	if len(notes) != 1 || notes[0]["id"] != "note_a" || notes[0]["length"] != 0.25 || notes[0]["velocity"] != 72 {
+		t.Fatalf("notes = %#v", notes)
+	}
+}
+
+func TestLegacyMidiDeleteNormalizesSingleNoteID(t *testing.T) {
+	h := New(nil, shadowProjectWithClips(), nil)
+	cmd, spec, err := h.resolveCommand(InvokeRequest{
+		Tool: "midi.legacy_delete_notes",
+		Args: map[string]any{"note_id": "note_a"},
+	})
+	if err != nil {
+		t.Fatalf("resolveCommand: %v", err)
+	}
+	if err := h.resolveImplicitTargets(context.Background(), spec, cmd, map[string]any{
+		"selected_clip_id":       "clip_a",
+		"selected_clip_track_id": "1007",
+	}); err != nil {
+		t.Fatalf("resolveImplicitTargets: %v", err)
+	}
+	if cmd["cmd"] != "delete_midi_notes" || cmd["clip_id"] != "clip_a" || cmd["track_id"] != "1007" {
+		t.Fatalf("cmd = %+v", cmd)
+	}
+	ids := stringSliceFromAny(cmd["note_ids"])
+	if len(ids) != 1 || ids[0] != "note_a" {
+		t.Fatalf("note_ids = %#v cmd=%+v", ids, cmd)
+	}
+}
+
+func TestLegacyMidiPublicResultSyncsMidiUI(t *testing.T) {
+	h := New(nil, shadowProjectWithClips(), nil)
+	_, spec, err := h.resolveCommand(InvokeRequest{
+		Tool: "midi.legacy_add_notes",
+		Args: map[string]any{"clip_id": "clip_a", "notes": []any{map[string]any{"pitch": 67, "start": 1.0, "length": 0.5}}},
+	})
+	if err != nil {
+		t.Fatalf("resolveCommand: %v", err)
+	}
+	result := h.publicResult(spec,
+		map[string]any{"clip_id": "clip_a", "track_id": "1007"},
+		map[string]any{
+			"status":         "ok",
+			"clip_id":        "clip_a",
+			"track_id":       "1007",
+			"inserted_count": 1,
+			"notes": []any{
+				map[string]any{"id": "note_legacy", "pitch": 67, "start": 1.0, "length": 0.5, "velocity": 88},
+			},
+		},
+	)
+	if result["ui_action"] != "midi_note_patch" || result["clip_id"] != "clip_a" || result["track_id"] != "1007" || result["inserted_count"] != 1 {
+		t.Fatalf("result = %+v", result)
+	}
+	notes := operationRowsFromAny(result["notes"])
+	if len(notes) != 1 || notes[0]["id"] != "note_legacy" {
+		t.Fatalf("notes = %#v result=%+v", notes, result)
+	}
+}
+
+func TestLegacyMidiBulkRejectsUnknownExplicitClipID(t *testing.T) {
+	h := New(nil, shadowProjectWithClips(), nil)
+	cmd, spec, err := h.resolveCommand(InvokeRequest{
+		Tool: "midi.add_notes_bulk",
+		Args: map[string]any{
+			"clip_id": "1010",
+			"notes": []any{
+				map[string]any{"pitch": 55, "start": 0.0, "duration": 0.75, "velocity": 100},
+			},
+		},
+	})
+	if err != nil {
+		t.Fatalf("resolveCommand: %v", err)
+	}
+	err = h.resolveImplicitTargets(context.Background(), spec, cmd, map[string]any{
+		"selected_track_id": "1007",
+	})
+	if err == nil {
+		t.Fatalf("expected unknown clip_id error, cmd=%+v", cmd)
+	}
+	if !strings.Contains(err.Error(), `clip_id "1010" is not present`) {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestLegacyMidiPreviewIsReadable(t *testing.T) {
+	spec := tools.CommandSpec{
+		CommandName: "add_midi_notes_bulk",
+		Description: "Add many MIDI notes to a clip.",
+		RiskLevel:   tools.RiskConfirm,
+	}
+	preview := PreviewCommand(spec, map[string]any{
+		"clip_id":   "clip_a",
+		"time_unit": "beats",
+		"notes": []map[string]any{
+			{"pitch": 55, "start": 0.0, "duration": 0.75, "velocity": 100},
+		},
+	})
+	for _, want := range []string{"add_midi_notes_bulk [confirm]", "Clip clip_a", "1. note pitch=55 start=0 velocity=100 duration=0.75"} {
+		if !strings.Contains(preview, want) {
+			t.Fatalf("preview missing %q in:\n%s", want, preview)
+		}
+	}
+	if strings.Contains(preview, `"notes"`) {
+		t.Fatalf("preview should be readable, got raw JSON:\n%s", preview)
+	}
+}
+
+func TestMidiPatchPublicResultIncludesUIAction(t *testing.T) {
+	h := New(nil, shadowProjectWithClips(), nil)
+	_, spec, err := h.resolveCommand(InvokeRequest{
+		Tool: "midi.apply_note_patch",
+		Args: map[string]any{"clip_id": "clip_a", "operations": []any{map[string]any{"op": "quantize_region", "start": 0.0, "length": 1.0, "grid": "1/16"}}},
+	})
+	if err != nil {
+		t.Fatalf("resolveCommand: %v", err)
+	}
+	result := h.publicResult(spec,
+		map[string]any{"clip_id": "clip_a", "track_id": "1007"},
+		map[string]any{"status": "ok", "clip_id": "clip_a", "quantized_count": 3},
+	)
+	if result["ui_action"] != "midi_note_patch" || result["clip_id"] != "clip_a" || result["track_id"] != "1007" || result["quantized_count"] != 3 {
+		t.Fatalf("result = %+v", result)
+	}
+}
+
+func TestMidiPatchPublicResultPreservesInsertedNotes(t *testing.T) {
+	h := New(nil, shadowProjectWithClips(), nil)
+	_, spec, err := h.resolveCommand(InvokeRequest{
+		Tool: "midi.apply_note_patch",
+		Args: map[string]any{
+			"clip_id": "clip_a",
+			"operations": []any{
+				map[string]any{"op": "insert_note", "pitch": 60, "start": 0.0, "length": 1.0, "velocity": 100},
+			},
+		},
+	})
+	if err != nil {
+		t.Fatalf("resolveCommand: %v", err)
+	}
+	result := h.publicResult(spec,
+		map[string]any{"clip_id": "clip_a", "track_id": "1007"},
+		map[string]any{
+			"status":            "ok",
+			"clip_id":           "clip_a",
+			"track_id":          "1007",
+			"inserted_count":    1,
+			"inserted_note_ids": []any{"note_a"},
+			"notes": []any{
+				map[string]any{"id": "note_a", "pitch": 60, "start": 0.0, "length": 1.0, "velocity": 100},
+			},
+		},
+	)
+	if result["ui_action"] != "midi_note_patch" || result["inserted_count"] != 1 {
+		t.Fatalf("result = %+v", result)
+	}
+	ids := stringSliceFromAny(result["inserted_note_ids"])
+	notes := operationRowsFromAny(result["notes"])
+	if len(ids) != 1 || ids[0] != "note_a" {
+		t.Fatalf("inserted ids = %#v result=%+v", ids, result)
+	}
+	if len(notes) != 1 || notes[0]["id"] != "note_a" || notes[0]["pitch"] != 60 {
+		t.Fatalf("notes = %#v result=%+v", notes, result)
+	}
+}
+
+func TestMidiClipCreatePublicResultSelectsNewClip(t *testing.T) {
+	h := New(nil, shadowProjectWithClips(), nil)
+	_, spec, err := h.resolveCommand(InvokeRequest{
+		Tool: "midi.create_clip",
+		Args: map[string]any{"track_id": "1007"},
+	})
+	if err != nil {
+		t.Fatalf("resolveCommand: %v", err)
+	}
+	result := h.publicResult(spec,
+		map[string]any{"track_id": "1007"},
+		map[string]any{"status": "ok", "clip_id": "clip_new"},
+	)
+	created := result["created_clip_ids"].([]string)
+	if result["ui_action"] != "select_clip" || result["clip_id"] != "clip_new" || result["new_clip_id"] != "clip_new" {
+		t.Fatalf("result = %+v", result)
+	}
+	if result["track_id"] != "1007" || result["target_track_id"] != "1007" || len(created) != 1 || created[0] != "clip_new" {
+		t.Fatalf("create metadata = %+v", result)
 	}
 }
 

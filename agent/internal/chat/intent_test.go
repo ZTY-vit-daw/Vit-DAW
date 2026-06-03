@@ -2,6 +2,36 @@ package chat
 
 import "testing"
 
+func TestSynthesizeLocalAddTrackCommands(t *testing.T) {
+	cases := []string{
+		"新建一条轨道",
+		"新建一个轨道",
+		"添加一个音频轨道",
+		"add a new track",
+	}
+	for _, text := range cases {
+		cmds := synthesizeLocalDAWCommands(text, map[string]any{})
+		if len(cmds) != 1 {
+			t.Fatalf("%q cmds = %+v", text, cmds)
+		}
+		if cmds[0]["tool"] != "track.add" {
+			t.Fatalf("%q tool = %#v", text, cmds[0]["tool"])
+		}
+	}
+}
+
+func TestSynthesizeLocalAddTrackIgnoresPluginAndImportRequests(t *testing.T) {
+	for _, text := range []string{
+		"加载混响到当前轨道",
+		"add reverb to the current track",
+		"添加音频到当前轨道",
+	} {
+		if cmds := synthesizeLocalDAWCommands(text, map[string]any{"selected_track_id": "1007"}); len(cmds) != 0 {
+			t.Fatalf("%q should not synthesize track.add: %+v", text, cmds)
+		}
+	}
+}
+
 func TestSynthesizeLocalTrackMuteCommands(t *testing.T) {
 	cases := []struct {
 		text  string
@@ -433,6 +463,44 @@ func TestSynthesizeLocalImportSelectedLibraryCommand(t *testing.T) {
 	}
 	args := cmds[0]["args"].(map[string]any)
 	if args["track_id"] != "1007" || args["selected_library_file_path"] != `D:\Samples\Loop.wav` {
+		t.Fatalf("args = %+v", args)
+	}
+}
+
+func TestSynthesizeLocalImportAudioAttachmentCommand(t *testing.T) {
+	cmds := synthesizeLocalDAWCommands("把这个放到当前轨道", map[string]any{
+		"selected_track_id":             "1007",
+		"attachment_import_kind":        "audio",
+		"attachment_import_file_path":   `D:\Samples\Loop.mp3`,
+		"selected_attachment_file_path": `D:\Samples\Loop.mp3`,
+	})
+	if len(cmds) != 1 {
+		t.Fatalf("cmds = %+v", cmds)
+	}
+	if cmds[0]["tool"] != "clip.import_media_to_track" {
+		t.Fatalf("tool = %#v", cmds[0]["tool"])
+	}
+	args := cmds[0]["args"].(map[string]any)
+	if args["track_id"] != "1007" || args["file_path"] != `D:\Samples\Loop.mp3` {
+		t.Fatalf("args = %+v", args)
+	}
+}
+
+func TestSynthesizeLocalImportMidiAttachmentCommand(t *testing.T) {
+	cmds := synthesizeLocalDAWCommands("导入这个 MIDI", map[string]any{
+		"selected_track_id":             "1007",
+		"attachment_import_kind":        "midi",
+		"attachment_import_file_path":   `D:\Samples\Part.mid`,
+		"selected_attachment_file_path": `D:\Samples\Part.mid`,
+	})
+	if len(cmds) != 1 {
+		t.Fatalf("cmds = %+v", cmds)
+	}
+	if cmds[0]["tool"] != "midi.import_file" {
+		t.Fatalf("tool = %#v", cmds[0]["tool"])
+	}
+	args := cmds[0]["args"].(map[string]any)
+	if args["track_id"] != "1007" || args["file_path"] != `D:\Samples\Part.mid` {
 		t.Fatalf("args = %+v", args)
 	}
 }

@@ -26,6 +26,194 @@ func TestExecutedReplyListsTrackNamesOnly(t *testing.T) {
 	}
 }
 
+func TestExecutedReplyFormatsEmptyMidiRead(t *testing.T) {
+	after := map[string]any{
+		"tracks": []map[string]any{
+			{"track_id": "1007", "name": "Track 1"},
+		},
+	}
+	reply := executedReply(nil, after, []policy.Decision{
+		{
+			Name: "get_midi_clip_notes",
+			Risk: policy.RiskDirect,
+			Command: map[string]any{
+				"tool": "midi.read_clip_notes",
+				"args": map[string]any{"clip_id": "clip_a"},
+			},
+		},
+	}, []map[string]any{
+		{
+			"result": map[string]any{
+				"status":  "ok",
+				"clip_id": "clip_a",
+				"notes":   []any{},
+			},
+		},
+	})
+	if reply != "当前 MIDI clip 有 0 个 notes。" {
+		t.Fatalf("reply = %q", reply)
+	}
+	if strings.Contains(reply, "Track 1") || strings.Contains(reply, "当前有 1 条轨道") {
+		t.Fatalf("midi read fell back to track list: %q", reply)
+	}
+}
+
+func TestExecutedReplyFormatsNonEmptyMidiRead(t *testing.T) {
+	reply := executedReply(nil, nil, []policy.Decision{
+		{
+			Name:    "get_midi_clip_notes",
+			Risk:    policy.RiskDirect,
+			Command: map[string]any{"cmd": "get_midi_clip_notes", "clip_id": "clip_a"},
+		},
+	}, []map[string]any{
+		{
+			"result": map[string]any{
+				"status":  "ok",
+				"clip_id": "clip_a",
+				"notes": []any{
+					map[string]any{"id": "note_a", "pitch": 60, "start": 0.0, "length": 1.0, "velocity": 100},
+				},
+			},
+		},
+	})
+	for _, want := range []string{"当前 MIDI clip 有 1 个 notes", "id=note_a", "pitch=60", "start=0", "length=1", "velocity=100"} {
+		if !strings.Contains(reply, want) {
+			t.Fatalf("reply missing %q in %q", want, reply)
+		}
+	}
+}
+
+func TestExecutedReplyFormatsMidiClipCreate(t *testing.T) {
+	reply := executedReply(nil, nil, []policy.Decision{
+		{
+			Name:    "create_midi_clip",
+			Risk:    policy.RiskConfirm,
+			Command: map[string]any{"cmd": "create_midi_clip", "track_id": "1007"},
+		},
+	}, []map[string]any{
+		{
+			"result": map[string]any{
+				"status":      "ok",
+				"clip_id":     "clip_new",
+				"new_clip_id": "clip_new",
+				"track_id":    "1007",
+			},
+		},
+	})
+	for _, want := range []string{"MIDI clip", "id=clip_new"} {
+		if !strings.Contains(reply, want) {
+			t.Fatalf("reply missing %q in %q", want, reply)
+		}
+	}
+}
+
+func TestExecutedReplyFormatsPluginSearch(t *testing.T) {
+	reply := executedReply(nil, nil, []policy.Decision{
+		{Name: "plugin_search", Risk: policy.RiskDirect, Command: map[string]any{"cmd": "plugin_search", "query": "TDR Nova"}},
+	}, []map[string]any{
+		{
+			"result": map[string]any{
+				"status": "ok",
+				"query":  "TDR Nova",
+				"plugins": []any{
+					map[string]any{"name": "TDR Nova", "format": "VST3", "plugin_path": "C:/Program Files/Common Files/VST3/TDR Nova.vst3"},
+				},
+			},
+		},
+	})
+	for _, want := range []string{"找到 1 个插件候选", "TDR Nova", "plugin_path"} {
+		if want == "plugin_path" {
+			if strings.Contains(reply, want) {
+				t.Fatalf("reply leaked raw key name: %q", reply)
+			}
+			continue
+		}
+		if !strings.Contains(reply, want) {
+			t.Fatalf("reply missing %q in %q", want, reply)
+		}
+	}
+}
+
+func TestExecutedReplyFormatsPluginSemanticSearch(t *testing.T) {
+	reply := executedReply(nil, nil, []policy.Decision{
+		{Name: "plugin_semantic_search", Risk: policy.RiskDirect, Command: map[string]any{"cmd": "plugin_semantic_search", "query": "eq", "type": "eq"}},
+	}, []map[string]any{
+		{
+			"result": map[string]any{
+				"status":    "ok",
+				"transient": true,
+				"entries": []any{
+					map[string]any{
+						"name":          "TDR Nova",
+						"format":        "VST3",
+						"manufacturer":  "Tokyo Dawn Labs",
+						"plugin_path":   "C:/Program Files/Common Files/VST3/TDR Nova.vst3",
+						"primary_type":  "eq",
+						"confidence":    100,
+						"search_score":  1260,
+						"is_instrument": false,
+					},
+				},
+			},
+		},
+	})
+	for _, want := range []string{"TDR Nova", "eq", "Tokyo Dawn Labs"} {
+		if !strings.Contains(reply, want) {
+			t.Fatalf("reply missing %q in %q", want, reply)
+		}
+	}
+}
+
+func TestExecutedReplyFormatsWebSearch(t *testing.T) {
+	reply := executedReply(nil, nil, []policy.Decision{
+		{Name: "web_search", Risk: policy.RiskDirect, Command: map[string]any{"cmd": "web_search", "query": "牧童短笛 作者"}},
+	}, []map[string]any{
+		{
+			"result": map[string]any{
+				"status": "ok",
+				"query":  "牧童短笛 作者",
+				"source": "bing_html",
+				"results": []any{
+					map[string]any{
+						"title":   "牧童短笛",
+						"url":     "https://example.com/mutong-duandi",
+						"snippet": "《牧童短笛》由贺绿汀创作。",
+					},
+				},
+			},
+		},
+	})
+	for _, want := range []string{"Bing", "牧童短笛", "贺绿汀", "https://example.com/mutong-duandi"} {
+		if !strings.Contains(reply, want) {
+			t.Fatalf("reply missing %q in %q", want, reply)
+		}
+	}
+	if reply == "已完成。" {
+		t.Fatalf("web search reply fell back to generic completion: %q", reply)
+	}
+}
+
+func TestExecutedReplyFormatsLegacyMidiWrite(t *testing.T) {
+	reply := executedReply(nil, nil, []policy.Decision{
+		{
+			Name:    "add_midi_notes_bulk",
+			Risk:    policy.RiskConfirm,
+			Command: map[string]any{"cmd": "add_midi_notes_bulk", "clip_id": "clip_a"},
+		},
+	}, []map[string]any{
+		{
+			"result": map[string]any{
+				"status":      "ok",
+				"clip_id":     "clip_a",
+				"added_count": 1,
+			},
+		},
+	})
+	if reply != "Updated MIDI clip: inserted 1." {
+		t.Fatalf("reply = %q", reply)
+	}
+}
+
 func TestExecutedReplyRenamesTrackAfterExecution(t *testing.T) {
 	before := map[string]any{
 		"tracks": []map[string]any{

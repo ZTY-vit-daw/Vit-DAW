@@ -33,8 +33,12 @@ func main() {
 		verbose      = flag.Bool("verbose", envBool("VIT_AGENT_VERBOSE", envBool("VIT_BRIDGE_VERBOSE", false)), "verbose logging")
 		lastLogPath  = flag.String("last-log-path", envString("VIT_AGENT_LAST_LOG_PATH", envString("VIT_BRIDGE_LAST_LOG_PATH", defaultLogPath())), "rolling last-log path")
 		keepLogLines = flag.Int("keep-last-log-lines", envInt("VIT_AGENT_KEEP_LAST_LOG_LINES", envInt("VIT_BRIDGE_KEEP_LAST_LOG_LINES", 500)), "rolling log line count")
+		fileReplyDir = flag.String("file-reply-dir", envString("VIT_AGENT_FILE_REPLY_DIR", envString("VIT_BRIDGE_FILE_REPLY_DIR", "")), "directory for oversized command reply JSON files")
 	)
 	flag.Parse()
+	if strings.TrimSpace(*fileReplyDir) == "" && strings.TrimSpace(*lastLogPath) != "" {
+		*fileReplyDir = filepath.Join(filepath.Dir(*lastLogPath), "BridgeReplies")
+	}
 
 	logger := logx.New(*verbose, *lastLogPath, *keepLogLines)
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
@@ -50,6 +54,7 @@ func main() {
 		UDPFromGodot:  *udpFromGodot,
 		ReqMaxRetries: *retries,
 		ReqTimeout:    reqTimeout,
+		FileReplyDir:  *fileReplyDir,
 	}, kernelClient, shadowProject, logger)
 	chatServer := chat.New(kernelClient, shadowProject, logger)
 	httpServer := &http.Server{

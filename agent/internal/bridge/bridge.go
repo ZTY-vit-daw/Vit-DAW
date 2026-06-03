@@ -6,6 +6,8 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -24,6 +26,7 @@ type Config struct {
 	ReqMaxRetries  int
 	ReqTimeout     time.Duration
 	TelemetryRetry time.Duration
+	FileReplyDir   string
 }
 
 type Bridge struct {
@@ -52,8 +55,13 @@ func New(cfg Config, kernelClient *kernel.Client, shadowProject *shadow.Project,
 	if cfg.TelemetryRetry <= 0 {
 		cfg.TelemetryRetry = time.Second
 	}
+	if strings.TrimSpace(cfg.FileReplyDir) == "" {
+		cfg.FileReplyDir = defaultFileReplyDir()
+	}
 	return &Bridge{cfg: cfg, kernel: kernelClient, shadow: shadowProject, logger: logger}
 }
+
+const maxDirectUDPReplyBytes = 32 * 1024
 
 func (b *Bridge) Run(ctx context.Context) error {
 	refreshCh := make(chan struct{}, 1)
@@ -110,9 +118,84 @@ func (b *Bridge) runControl(ctx context.Context) error {
 			continue
 		}
 		payload := string(buf[:n])
+		parsed := parseObject(payload)
 		reply := b.forwardCommand(ctx, payload)
-		_, _ = conn.WriteToUDP([]byte(reply), remote)
+		b.writeControlReply(conn, remote, parsed, reply)
 	}
+}
+
+func (b *Bridge) writeControlReply(conn *net.UDPConn, remote *net.UDPAddr, request map[string]any, reply string) {
+	out, spilled, err := b.controlReplyPayload(request, reply)
+	if err != nil && b.logger != nil {
+		b.logger.Warn("control reply file fallback failed; attempting direct UDP bytes=%d error=%v", len(reply), err)
+	}
+	n, writeErr := conn.WriteToUDP(out, remote)
+	if writeErr == nil {
+		if n != len(out) && b.logger != nil {
+			b.logger.Warn("control UDP send wrote partial reply bytes=%d/%d", n, len(out))
+		}
+		return
+	}
+	if spilled {
+		if b.logger != nil {
+			b.logger.Warn("control UDP send failed for file reply envelope bytes=%d error=%v", len(out), writeErr)
+		}
+		return
+	}
+	fallback, _, fallbackErr := b.spillControlReply(request, []byte(reply))
+	if fallbackErr != nil {
+		if b.logger != nil {
+			b.logger.Warn("control UDP send failed and file fallback failed direct_bytes=%d send_error=%v fallback_error=%v", len(reply), writeErr, fallbackErr)
+		}
+		return
+	}
+	if _, retryErr := conn.WriteToUDP(fallback, remote); retryErr != nil && b.logger != nil {
+		b.logger.Warn("control UDP file reply retry failed envelope_bytes=%d error=%v", len(fallback), retryErr)
+	}
+}
+
+func (b *Bridge) controlReplyPayload(request map[string]any, reply string) ([]byte, bool, error) {
+	out := []byte(reply)
+	if len(out) <= maxDirectUDPReplyBytes {
+		return out, false, nil
+	}
+	return b.spillControlReply(request, out)
+}
+
+func (b *Bridge) spillControlReply(request map[string]any, reply []byte) ([]byte, bool, error) {
+	dir := strings.TrimSpace(b.cfg.FileReplyDir)
+	if dir == "" {
+		dir = defaultFileReplyDir()
+	}
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		return reply, false, err
+	}
+	requestID := strings.TrimSpace(fmt.Sprint(request["request_id"]))
+	command := commandName(request)
+	filename := fmt.Sprintf("%s_%s_%s.json",
+		time.Now().Format("20060102_150405_000000000"),
+		sanitizeFileComponent(command, "command"),
+		sanitizeFileComponent(requestID, "request"))
+	path := filepath.Join(dir, filename)
+	if err := os.WriteFile(path, reply, 0o644); err != nil {
+		return reply, false, err
+	}
+	envelope := map[string]any{
+		"status":      "ok",
+		"transport":   "file_reply",
+		"reply_file":  filepath.ToSlash(path),
+		"reply_bytes": len(reply),
+		"cmd":         command,
+		"request_id":  requestID,
+	}
+	out, err := json.Marshal(envelope)
+	if err != nil {
+		return reply, false, err
+	}
+	if b.logger != nil {
+		b.logger.Info("control reply spilled to file cmd=%s request_id=%s bytes=%d file=%s", command, requestID, len(reply), path)
+	}
+	return out, true, nil
 }
 
 func (b *Bridge) forwardCommand(ctx context.Context, payload string) string {
@@ -291,6 +374,33 @@ func commandName(d map[string]any) string {
 		}
 	}
 	return ""
+}
+
+func defaultFileReplyDir() string {
+	return filepath.Join(os.TempDir(), "vit_daw_agent_replies")
+}
+
+func sanitizeFileComponent(value string, fallback string) string {
+	value = strings.TrimSpace(value)
+	if value == "" {
+		value = fallback
+	}
+	var b strings.Builder
+	for _, r := range value {
+		if (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') || (r >= '0' && r <= '9') || r == '-' || r == '_' {
+			b.WriteRune(r)
+			continue
+		}
+		b.WriteByte('_')
+	}
+	out := strings.Trim(b.String(), "_")
+	if out == "" {
+		return fallback
+	}
+	if len(out) > 80 {
+		return out[:80]
+	}
+	return out
 }
 
 func int64From(v any) int64 {

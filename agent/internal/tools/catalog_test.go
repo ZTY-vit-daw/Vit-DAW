@@ -65,6 +65,162 @@ func TestPluginGrabberAliasIsCataloged(t *testing.T) {
 	if params.CommandName != "get_plugin_parameters" {
 		t.Fatalf("command = %q, want get_plugin_parameters", params.CommandName)
 	}
+	search, ok := catalog.LookupTool("plugin.search")
+	if !ok {
+		t.Fatal("plugin.search missing")
+	}
+	if search.CommandName != "plugin_search" || search.RequiresConfirmation || search.RiskLevel != RiskDirect {
+		t.Fatalf("plugin search metadata = %+v", search)
+	}
+	semanticSearch, ok := catalog.LookupTool("plugin.semantic_search")
+	if !ok {
+		t.Fatal("plugin.semantic_search missing")
+	}
+	if semanticSearch.CommandName != "plugin_semantic_search" || semanticSearch.RequiresConfirmation || semanticSearch.RiskLevel != RiskDirect {
+		t.Fatalf("plugin semantic search metadata = %+v", semanticSearch)
+	}
+	semanticBuild, ok := catalog.LookupTool("plugin.semantic_build_index")
+	if !ok {
+		t.Fatal("plugin.semantic_build_index missing")
+	}
+	if semanticBuild.CommandName != "plugin_semantic_build_index" || !semanticBuild.RequiresConfirmation || semanticBuild.RiskLevel != RiskConfirm {
+		t.Fatalf("plugin semantic build metadata = %+v", semanticBuild)
+	}
+	load, ok := catalog.LookupTool("plugin.load_to_rack")
+	if !ok {
+		t.Fatal("plugin.load_to_rack missing")
+	}
+	if load.CommandName != "rack_add_node" || !load.RequiresConfirmation || load.RiskLevel != RiskConfirm {
+		t.Fatalf("plugin load metadata = %+v", load)
+	}
+	profiles, ok := catalog.LookupTool("plugin_grabber.get_project_profiles")
+	if !ok {
+		t.Fatal("plugin_grabber.get_project_profiles missing")
+	}
+	if profiles.CommandName != "plugin_grabber_get_project_profiles" || profiles.RequiresConfirmation || profiles.RiskLevel != RiskDirect {
+		t.Fatalf("profile read metadata = %+v", profiles)
+	}
+	explain, ok := catalog.LookupTool("plugin_grabber.explain_controls")
+	if !ok {
+		t.Fatal("plugin_grabber.explain_controls missing")
+	}
+	if explain.CommandName != "plugin_grabber_explain_controls" || explain.RequiresConfirmation || explain.RiskLevel != RiskDirect {
+		t.Fatalf("explain controls metadata = %+v", explain)
+	}
+	upsert, ok := catalog.LookupTool("plugin_grabber.upsert_project_profile")
+	if !ok {
+		t.Fatal("plugin_grabber.upsert_project_profile missing")
+	}
+	if upsert.CommandName != "plugin_grabber_upsert_project_profile" || !upsert.RequiresConfirmation || upsert.RiskLevel != RiskConfirm {
+		t.Fatalf("profile upsert metadata = %+v", upsert)
+	}
+}
+
+func TestMidiPatchToolsAreCataloged(t *testing.T) {
+	catalog := DefaultCatalog()
+
+	read, ok := catalog.LookupTool("midi.read_clip_notes")
+	if !ok {
+		t.Fatal("midi.read_clip_notes missing")
+	}
+	if read.CommandName != "get_midi_clip_notes" || read.RequiresConfirmation || read.RiskLevel != RiskDirect {
+		t.Fatalf("read metadata = %+v", read)
+	}
+
+	patch, ok := catalog.LookupTool("midi.apply_note_patch")
+	if !ok {
+		t.Fatal("midi.apply_note_patch missing")
+	}
+	if patch.CommandName != "apply_midi_note_patch" || !patch.RequiresConfirmation || patch.RiskLevel != RiskConfirm || !patch.SupportsUndo || !patch.RefreshAfter {
+		t.Fatalf("patch metadata = %+v", patch)
+	}
+
+	for _, alias := range []string{"midi.write_clip_notes", "midi.insert_notes", "midi.delete_notes", "midi.move_notes", "midi.resize_notes", "midi.quantize", "midi.transpose", "midi.set_velocity", "midi.replace_region"} {
+		spec, ok := catalog.LookupTool(alias)
+		if !ok {
+			t.Fatalf("%s missing", alias)
+		}
+		if spec.CommandName != "apply_midi_note_patch" {
+			t.Fatalf("%s command = %q", alias, spec.CommandName)
+		}
+	}
+
+	for alias, command := range map[string]string{
+		"midi.legacy_add_notes":      "add_midi_notes",
+		"midi.legacy_add_notes_bulk": "add_midi_notes_bulk",
+		"midi.legacy_mutate_notes":   "mutate_midi_notes",
+		"midi.legacy_delete_notes":   "delete_midi_notes",
+		"midi.delete_notes_legacy":   "delete_midi_notes",
+	} {
+		spec, ok := catalog.LookupTool(alias)
+		if !ok {
+			t.Fatalf("%s missing", alias)
+		}
+		if spec.CommandName != command {
+			t.Fatalf("%s command = %q", alias, spec.CommandName)
+		}
+	}
+}
+
+func TestCoreMutationToolsExposeBindingMetadata(t *testing.T) {
+	catalog := DefaultCatalog()
+	for _, tt := range []struct {
+		tool string
+		key  string
+		kind string
+	}{
+		{"track.add", "last_created_track", "track"},
+		{"midi.create_clip", "last_created_clip", "clip"},
+		{"midi.import_file", "last_created_clip", "clip"},
+		{"clip.import_media_to_track", "last_created_clip", "clip"},
+		{"plugin.load_to_rack", "last_loaded_plugin", "plugin"},
+	} {
+		spec, ok := catalog.LookupTool(tt.tool)
+		if !ok {
+			t.Fatalf("%s missing", tt.tool)
+		}
+		if !hasBinding(spec.ProducedBindings, tt.key, tt.kind) {
+			t.Fatalf("%s missing produced binding %s/%s: %+v", tt.tool, tt.key, tt.kind, spec.ProducedBindings)
+		}
+	}
+}
+
+func TestAgentFoundationToolsAreCataloged(t *testing.T) {
+	catalog := DefaultCatalog()
+	for _, tt := range []struct {
+		tool    string
+		command string
+		domain  string
+		confirm bool
+	}{
+		{"goal.status", "goal_status", "runtime", false},
+		{"workspace.grep", "workspace_grep", "workspace", false},
+		{"workspace.apply_edit", "workspace_apply_edit", "workspace", true},
+		{"web.search", "web_search", "web", true},
+		{"web.fetch", "web_fetch", "web", true},
+		{"shell.run", "shell_run", "shell", true},
+		{"version.checkpoint", "version_checkpoint", "version", true},
+		{"version.node_checkout", "version_node_checkout", "version", true},
+		{"version.worktree_checkout", "version_worktree_checkout", "version", true},
+		{"agent.rollback_action", "agent_rollback_action", "runtime", true},
+	} {
+		spec, ok := catalog.LookupTool(tt.tool)
+		if !ok {
+			t.Fatalf("%s missing", tt.tool)
+		}
+		if spec.CommandName != tt.command || spec.Domain != tt.domain || spec.RequiresConfirmation != tt.confirm {
+			t.Fatalf("%s metadata = %+v", tt.tool, spec)
+		}
+	}
+}
+
+func hasBinding(bindings []BindingSpec, key, kind string) bool {
+	for _, binding := range bindings {
+		if binding.Key == key && binding.Kind == kind {
+			return true
+		}
+	}
+	return false
 }
 
 func TestModelSummaryIncludesToolAndArgumentHints(t *testing.T) {
@@ -73,6 +229,9 @@ func TestModelSummaryIncludesToolAndArgumentHints(t *testing.T) {
 		"set_mute tool=track.mute risk=undoable required=track_id args=mute:boolean",
 		"rename_track tool=track.rename risk=undoable required=track_id args=name:string",
 		"delete_track tool=track.delete risk=confirm required=track_id args=track_id:string",
+		"add_midi_notes_bulk tool=midi.legacy_add_notes_bulk risk=confirm required=track_id,clip_id args=clip_id:string optional track_id:string time_unit:beats notes:{pitch:number start:number length|duration:number velocity?:number id?:string}[]",
+		"delete_midi_notes tool=midi.legacy_delete_notes risk=confirm required=track_id,clip_id args=clip_id:string optional track_id:string note_ids:string[]",
+		"apply_midi_note_patch tool=midi.apply_note_patch risk=confirm required=clip_id args=clip_id:string optional track_id:string time_unit:beats operations:object[]",
 	} {
 		if !strings.Contains(summary, want) {
 			t.Fatalf("ModelSummary missing %q in:\n%s", want, summary)
