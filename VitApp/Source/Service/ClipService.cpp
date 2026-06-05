@@ -1,6 +1,6 @@
 #include "ClipService.h"
 
-#include "TiledSpectrogramBaker.h"
+#include "AudioFeatureService.h"
 
 #include <unordered_set>
 #include <vector>
@@ -785,7 +785,7 @@ juce::String ClipService::handleRemoveClips (const juce::DynamicObject& object, 
         }
 
         if (dynamic_cast<te::AudioClipBase*> (clip) != nullptr)
-            TiledSpectrogramBaker::invalidateClipBake (clip->itemID.toString());
+            AudioFeatureService::invalidateClipBake (clip->itemID.toString());
 
         clip->deselect();
         clip->removeFromParent();

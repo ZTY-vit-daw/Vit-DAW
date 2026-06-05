@@ -1,4 +1,5 @@
 #include "TiledSpectrogramBaker.h"
+#include "AudioFeatureTypes.h"
 #include "../Core/VitPaths.h"
 #include <algorithm>
 #include <chrono>
@@ -125,7 +126,14 @@ void writeDiagLog(const juce::String& line)
 }
 
 // ----------------------------------------------------------
-struct Acc { float l = 0, r = 0, p = 0; int c = 0; };
+struct StereoRelationAcc
+{
+    double crossRe = 0.0;
+    double crossIm = 0.0;
+    double powerL = 0.0;
+    double powerR = 0.0;
+    int count = 0;
+};
 
 uint64_t beginGen(const juce::String& id)
 {
@@ -409,9 +417,16 @@ void TiledSpectrogramBaker::startBake(juce::String filePath,
         {
             auto durObj = std::make_unique<juce::DynamicObject>();
             durObj->setProperty("command",        "track_duration_ready");
+            durObj->setProperty("feature_family", "audio_feature");
+            durObj->setProperty("feature_type",   audioFeatureTypeToString (AudioFeatureType::SpectralField));
+            durObj->setProperty("feature_version", audioFeatureProductVersion (AudioFeatureType::SpectralField));
+            durObj->setProperty("analysis_version", audioFeatureAnalysisVersion());
+            durObj->setProperty("source_kind", clipId.isNotEmpty() ? "clip" : "file");
             durObj->setProperty("track_id",       trackId);
             durObj->setProperty("total_duration", totalDurationSecEarly);
             durObj->setProperty("session_id",     sessionIdEarly);
+            durObj->setProperty("tile_count",     totalTiles);
+            durObj->setProperty("tile_duration",  kFrameSec * kFrames);
             if (clipId.isNotEmpty())
                 durObj->setProperty("clip_id", clipId);
             publish(juce::JSON::toString(juce::var(durObj.release())));
@@ -432,7 +447,7 @@ void TiledSpectrogramBaker::startBake(juce::String filePath,
         std::vector<float> fl((size_t)2 * kSize, 0.0f);
         std::vector<float> fr((size_t)2 * kSize, 0.0f);
         std::vector<float> tile((size_t)kFrames * kUiBins * kCh, 0.0f);
-        std::vector<Acc>   acc((size_t)kUiBins);
+        std::vector<StereoRelationAcc> stereoAcc((size_t)kUiBins);
 
         // Per-frame raw FFT magnitudes for max-pool mapping
         std::vector<float> rawMagL((size_t)kFftBins, 0.0f);
@@ -666,19 +681,20 @@ void TiledSpectrogramBaker::startBake(juce::String filePath,
                         " peakR_bin=" + juce::String(peakBinR) + " peakR_hz=" + juce::String(uiBinToHz(peakBinR), 3));
                 }
 
-                // Phase: recompute per bin using accumulated avg (same as before)
-                std::fill(acc.begin(), acc.end(), Acc{});
+                // Stereo relation: aggregate L * conj(R) per UI bin so B/A are
+                // acoustic primitives, not a visual envelope surrogate.
+                std::fill(stereoAcc.begin(), stereoAcc.end(), StereoRelationAcc{});
                 for (int i = 0; i < kFftBins; ++i)
                 {
                     float lr = 0, li = 0, rr = 0, rih = 0;
                     ri(fl, i, lr, li);
                     ri(fr, i, rr, rih);
-                    auto lp = std::atan2(li, lr);
-                    auto rp = std::atan2(rih, rr);
-                    auto pd = std::remainder(
-                        rp - lp, juce::MathConstants<float>::twoPi);
-                    auto& a = acc[(size_t)lut[(size_t)i]];
-                    a.p += pd; ++a.c;
+                    auto& a = stereoAcc[(size_t)lut[(size_t)i]];
+                    a.crossRe += (double) lr * (double) rr + (double) li * (double) rih;
+                    a.crossIm += (double) li * (double) rr - (double) lr * (double) rih;
+                    a.powerL += (double) lr * (double) lr + (double) li * (double) li;
+                    a.powerR += (double) rr * (double) rr + (double) rih * (double) rih;
+                    ++a.count;
                 }
 
                 // Write to tile: index (bin * kFrames + frame) * kCh — matches Godot
@@ -687,8 +703,8 @@ void TiledSpectrogramBaker::startBake(juce::String filePath,
                 // Data (step9_ground_truth_baker parity, SFFT + max-pool instead of CQT):
                 //   R = (magL/colMaxL)^1.5 * envL (0 if envL silent)
                 //   G = (magR/colMaxR)^1.5 * envR
-                //   B = phase difference (per UI bin)
-                //   A = max(envL, envR) for TIME view silhouette
+                //   B = cross-spectrum phase relation L*conj(R), radians [-pi, pi]
+                //   A = display weight: energy * L/R balance * coherence
                 for (int b = 0; b < kUiBins; ++b)
                 {
                     auto base = (size_t)((b * kFrames + frame) * kCh);
@@ -696,18 +712,34 @@ void TiledSpectrogramBaker::startBake(juce::String filePath,
                     const bool useNorm = (debugMode == BakeDebugMode::Full || debugMode == BakeDebugMode::NormOnly);
                     float outL = mappedL[(size_t)b];
                     float outR = mappedR[(size_t)b];
+                    const float normL = mappedL[(size_t)b] / juce::jmax(colMaxL, 1.0e-12f);
+                    const float normR = mappedR[(size_t)b] / juce::jmax(colMaxR, 1.0e-12f);
                     if (useNorm)
                     {
-                        outL = std::pow(mappedL[(size_t)b] / colMaxL, 1.5f);
-                        outR = std::pow(mappedR[(size_t)b] / colMaxR, 1.5f);
+                        outL = std::pow(normL, 1.5f);
+                        outR = std::pow(normR, 1.5f);
                     }
                     tile[base + 0] = (envL < kEnvSilence) ? 0.0f : (outL * envL);
                     tile[base + 1] = (envR < kEnvSilence) ? 0.0f : (outR * envR);
 
-                    auto& a = acc[(size_t)b];
-                    tile[base + 2] = (a.c > 0) ? a.p / (float)a.c : 0.0f;
+                    auto& a = stereoAcc[(size_t)b];
+                    const double crossMag = std::sqrt(a.crossRe * a.crossRe + a.crossIm * a.crossIm);
+                    const double powerProduct = a.powerL * a.powerR;
+                    const double coherence = powerProduct > 1.0e-24
+                        ? juce::jlimit(0.0, 1.0, crossMag / std::sqrt(powerProduct))
+                        : 0.0;
+                    const double maxPower = juce::jmax(a.powerL, a.powerR);
+                    const double balance = maxPower > 1.0e-24
+                        ? juce::jlimit(0.0, 1.0, juce::jmin(a.powerL, a.powerR) / maxPower)
+                        : 0.0;
+                    const float spectralWeight = juce::jlimit(0.0f, 1.0f, juce::jmax(normL, normR));
+                    const float frameWeight = juce::jlimit(0.0f, 1.0f, juce::jmax(envL, envR));
 
-                    tile[base + 3] = juce::jmax(envL, envR);
+                    tile[base + 2] = (a.count > 0 && crossMag > 1.0e-24)
+                        ? (float) std::atan2(a.crossIm, a.crossRe)
+                        : 0.0f;
+                    tile[base + 3] = (float) juce::jlimit(0.0, 1.0,
+                                                         coherence * balance * (double) spectralWeight * (double) frameWeight);
                 }
             }
 
@@ -788,13 +820,25 @@ void TiledSpectrogramBaker::startBake(juce::String filePath,
             {
                 auto obj = std::make_unique<juce::DynamicObject>();
                 obj->setProperty("command",       "tile_ready");
+                obj->setProperty("feature_family", "audio_feature");
+                obj->setProperty("feature_type",   audioFeatureTypeToString (AudioFeatureType::SpectralField));
+                obj->setProperty("feature_version", audioFeatureProductVersion (AudioFeatureType::SpectralField));
+                obj->setProperty("analysis_version", audioFeatureAnalysisVersion());
+                obj->setProperty("channels_semantics", "r=left_energy,g=right_energy,b=cross_spectrum_phase_delta,a=phase_display_weight");
+                obj->setProperty("source_kind", clipId.isNotEmpty() ? "clip" : "file");
                 obj->setProperty("track_id",      trackId);
                 obj->setProperty("source_track_id", trackId);
                 obj->setProperty("session_id",    sessionId);
                 obj->setProperty("file_path",     filePath);
                 obj->setProperty("tile_index",    tileIndex);
+                obj->setProperty("tile_count",    totalTiles);
                 obj->setProperty("tile_duration", tileDurationSec);
                 obj->setProperty("tile_content_start_seconds", tileContentStartSeconds);
+                obj->setProperty("range_source_offset_seconds", sourceOffsetSeconds);
+                obj->setProperty("range_length_seconds", bakeLengthSeconds);
+                obj->setProperty("resolution_frame_width", kFrames);
+                obj->setProperty("resolution_frequency_bins", kUiBins);
+                obj->setProperty("frame_duration_seconds", kFrameSec);
                 obj->setProperty("total_duration", totalDurationSec);
                 obj->setProperty("shared_memory", shm);
                 obj->setProperty("bake_key", bakeKey);

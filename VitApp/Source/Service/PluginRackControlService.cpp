@@ -18,6 +18,9 @@
 #include "../Core/VitParamLinkGraph.h"
 #include "../Core/VitGraphSwapCoordinator.h"
 #include "../Core/VitPluginGrabber.h"
+#include "../Core/VitPluginGrabberProjectProfile.h"
+#include "../Core/VitPluginGrabberGlobalProfile.h"
+#include "../Core/VitPluginGrabberProfileFormat.h"
 #include "../Core/VitKernelUtils.h"
 #include "../Core/VitParamSurface.h"
 #include "../Core/VitPluginTemplateRegistry.h"
@@ -25,7 +28,11 @@
 #include "../Core/VitTakeHistoryStack.h"
 #include "../Core/VitZoneBufferAdapter.h"
 
+#include <cctype>
 #include <cmath>
+#include <cstdlib>
+#include <limits>
+#include <optional>
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
@@ -45,6 +52,15 @@ te::RackInstance* findRackInstanceOnTrack (te::Track& track, const juce::String&
 te::RackInstance* findUsableRackInstanceOnTrack (te::Track& track, const juce::String& rackItemId = {});
 int fallbackRackInsertionIndex (te::Track& track);
 te::RackInstance* ensureRackInstanceOnTrack (te::Track& track);
+
+juce::Array<juce::var> stringArrayToVarArray (const juce::StringArray& values)
+{
+    juce::Array<juce::var> out;
+    for (const auto& value : values)
+        out.add (value);
+    return out;
+}
+
 juce::ValueTree findRackPluginInstanceState (te::RackType& rackType, te::EditItemID pluginItemId);
 juce::Result resolveExternalPluginDescription (te::Edit& edit, const juce::String& pluginPath, juce::PluginDescription& outDesc);
 te::Plugin* findPluginInEdit (te::Edit& edit, const juce::String& pluginIdStr);
@@ -662,20 +678,1099 @@ te::Track* findTrackByID (te::Edit& edit, const juce::String& trackID)
     return nullptr;
 }
 
+bool readNumericVarLoose (const juce::var& value, double& out)
+{
+    if (value.isDouble() || value.isInt() || value.isInt64())
+    {
+        out = static_cast<double> (value);
+        return true;
+    }
+
+    if (value.isString())
+    {
+        const auto text = value.toString().trim();
+        if (text.isEmpty())
+            return false;
+
+        const auto* raw = text.toRawUTF8();
+        char* end = nullptr;
+        const auto parsed = std::strtod (raw, &end);
+        if (end != raw && std::isfinite (parsed))
+        {
+            out = parsed;
+            return true;
+        }
+    }
+
+    return false;
+}
+
 bool readNumericProperty (const juce::DynamicObject& object, const juce::StringArray& keys, double& out)
 {
     for (const auto& k : keys)
     {
         const auto v = object.getProperty (k);
 
-        if (v.isDouble() || v.isInt() || v.isInt64())
+        if (readNumericVarLoose (v, out))
+            return true;
+    }
+
+    return false;
+}
+
+bool readNumericPropertyWithKey (const juce::DynamicObject& object,
+                                 const juce::StringArray& keys,
+                                 double& out,
+                                 juce::String& matchedKey)
+{
+    for (const auto& k : keys)
+    {
+        const auto v = object.getProperty (k);
+
+        if (readNumericVarLoose (v, out))
         {
-            out = static_cast<double> (v);
+            matchedKey = k;
             return true;
         }
     }
 
     return false;
+}
+
+juce::StringArray stringArrayFromVarArray (const juce::var& value)
+{
+    juce::StringArray out;
+    if (auto* array = value.getArray())
+        for (const auto& item : *array)
+            if (const auto text = item.toString().trim(); text.isNotEmpty())
+                out.addIfNotAlreadyThere (text);
+
+    return out;
+}
+
+juce::String normalisedResolverToken (juce::String text)
+{
+    text = text.trim().toLowerCase();
+    return text.retainCharacters ("abcdefghijklmnopqrstuvwxyz0123456789");
+}
+
+juce::String firstNonEmptyProperty (const juce::DynamicObject& object, std::initializer_list<const char*> keys)
+{
+    for (const auto* key : keys)
+    {
+        const auto value = object.getProperty (key).toString().trim();
+        if (value.isNotEmpty())
+            return value;
+    }
+
+    return {};
+}
+
+bool boolProfileProperty (const juce::DynamicObject& object, const char* key)
+{
+    const auto value = object.getProperty (key);
+    if (value.isBool())
+        return static_cast<bool> (value);
+
+    const auto text = value.toString().trim().toLowerCase();
+    return text == "true" || text == "1" || text == "yes" || text == "on";
+}
+
+bool profileMappingAllowsRuntime (const juce::DynamicObject& object)
+{
+    const auto source = object.getProperty ("source").toString().trim().toLowerCase();
+    if (boolProfileProperty (object, "locked") || source.contains ("user_demonstrated"))
+        return true;
+
+    const auto status = object.getProperty ("status").toString().trim().toLowerCase();
+    if (status.isEmpty())
+        return true;
+
+    if (status != "active")
+        return false;
+
+    const auto confidenceVar = object.getProperty ("confidence");
+    if (! confidenceVar.isDouble() && ! confidenceVar.isInt() && ! confidenceVar.isInt64())
+        return true;
+
+    return static_cast<double> (confidenceVar) >= 0.70;
+}
+
+juce::String paramIdFromProfileMapping (const juce::var& mapping)
+{
+    if (auto* object = mapping.getDynamicObject())
+    {
+        if (! profileMappingAllowsRuntime (*object))
+            return {};
+        return firstNonEmptyProperty (*object, { "param_id", "id", "raw_param_id", "parameter_id" });
+    }
+
+    return mapping.toString().trim();
+}
+
+juce::var lookupProfileParamMapping (const juce::var& paramsVar, std::initializer_list<const char*> aliases)
+{
+    auto* params = paramsVar.getDynamicObject();
+    if (params == nullptr)
+        return {};
+
+    juce::StringArray normalisedAliases;
+    for (const auto* alias : aliases)
+        normalisedAliases.addIfNotAlreadyThere (normalisedResolverToken (alias));
+
+    const auto& properties = params->getProperties();
+    for (int i = 0; i < properties.size(); ++i)
+    {
+        const auto slot = normalisedResolverToken (properties.getName (i).toString());
+        if (! normalisedAliases.contains (slot))
+            continue;
+
+        const auto paramId = paramIdFromProfileMapping (properties.getValueAt (i));
+        if (paramId.isNotEmpty())
+            return properties.getValueAt (i);
+    }
+
+    return {};
+}
+
+juce::String lookupProfileParamSlot (const juce::var& paramsVar, std::initializer_list<const char*> aliases)
+{
+    return paramIdFromProfileMapping (lookupProfileParamMapping (paramsVar, aliases));
+}
+
+juce::String lookupGroupParamSlot (const juce::var& groupVar, std::initializer_list<const char*> aliases)
+{
+    if (auto* group = groupVar.getDynamicObject())
+        return lookupProfileParamSlot (group->getProperty (profileField::groupParams), aliases);
+
+    return {};
+}
+
+juce::var lookupGroupParamMapping (const juce::var& groupVar, std::initializer_list<const char*> aliases)
+{
+    if (auto* group = groupVar.getDynamicObject())
+        return lookupProfileParamMapping (group->getProperty (profileField::groupParams), aliases);
+
+    return {};
+}
+
+juce::var findVirtualControlByName (const juce::Array<juce::var>& virtualControls, const juce::String& requestedControl)
+{
+    const auto requested = normalisedResolverToken (requestedControl);
+    if (requested.isEmpty())
+        return {};
+
+    for (const auto& control : virtualControls)
+    {
+        auto* object = control.getDynamicObject();
+        if (object == nullptr)
+            continue;
+
+        const auto name = normalisedResolverToken (firstNonEmptyProperty (*object, { "name", "operation", "control" }));
+        if (name == requested)
+            return control;
+    }
+
+    return {};
+}
+
+bool isEqRuntimeControl (const juce::String& control)
+{
+    const auto clean = normalisedResolverToken (control);
+    return clean.contains ("eqcut")
+        || clean.contains ("eqboost")
+        || clean.contains ("eqset")
+        || clean.contains ("cutregion")
+        || clean.contains ("boostregion")
+        || clean.contains ("reducemud")
+        || clean.contains ("mud")
+        || clean.contains ("harsh")
+        || clean.contains ("presence");
+}
+
+bool isBoostRuntimeControl (const juce::String& control)
+{
+    const auto clean = normalisedResolverToken (control);
+    return clean.contains ("boost") || clean.contains ("add") || clean.contains ("presence");
+}
+
+juce::var findProfileGroupById (const juce::Array<juce::var>& groups, const juce::String& groupId)
+{
+    const auto requested = normalisedResolverToken (groupId);
+    if (requested.isEmpty())
+        return {};
+
+    for (const auto& group : groups)
+    {
+        auto* object = group.getDynamicObject();
+        if (object == nullptr)
+            continue;
+
+        const auto id = normalisedResolverToken (firstNonEmptyProperty (*object, { "id", "component_id", "name", "label" }));
+        if (id == requested)
+            return group;
+    }
+
+    return {};
+}
+
+juce::var findParameterDescriptorById (const juce::Array<juce::var>& parameterDescriptors, const juce::String& paramId)
+{
+    for (const auto& parameter : parameterDescriptors)
+        if (auto* object = parameter.getDynamicObject())
+            if (object->getProperty ("id").toString().trim() == paramId)
+                return parameter;
+
+    return {};
+}
+
+bool parseDisplayNumber (juce::String text, double& out)
+{
+    const auto lower = text.toLowerCase();
+    auto numeric = lower.retainCharacters ("0123456789.-");
+    if (numeric.isEmpty() || numeric == "-" || numeric == ".")
+        return false;
+
+    out = numeric.getDoubleValue();
+    if (lower.contains ("khz") || lower.contains (" k"))
+        out *= 1000.0;
+
+    return std::isfinite (out);
+}
+
+std::optional<double> currentDisplayNumberForParam (te::Plugin& plugin, const juce::String& paramId)
+{
+    auto param = resolvePluginParameterByID (plugin, paramId);
+    if (param == nullptr)
+        return {};
+
+    double value = 0.0;
+    if (! parseDisplayNumber (param->getCurrentValueAsString(), value))
+        return {};
+
+    return value;
+}
+
+juce::var findBestEqBandGroup (te::Plugin& plugin,
+                               const juce::Array<juce::var>& groups,
+                               const juce::String& requestedComponentId,
+                               double targetFrequencyHz)
+{
+    if (requestedComponentId.isNotEmpty())
+    {
+        auto group = findProfileGroupById (groups, requestedComponentId);
+        if (group.isObject())
+            return group;
+    }
+
+    double bestScore = std::numeric_limits<double>::max();
+    juce::var bestGroup;
+    int fallbackOrder = 0;
+
+    for (const auto& group : groups)
+    {
+        auto* object = group.getDynamicObject();
+        if (object == nullptr)
+            continue;
+
+        const auto id = firstNonEmptyProperty (*object, { "id", "component_id", "name", "label" }).toLowerCase();
+        const auto role = object->getProperty (profileField::groupRole).toString().trim().toLowerCase();
+        const auto looksLikeEqBand = (role.contains ("eq") && role.contains ("band"))
+                                  || id.contains ("band")
+                                  || id.contains ("eq");
+        if (! looksLikeEqBand)
+            continue;
+
+        const auto frequencyParamId = lookupGroupParamSlot (group, { "frequency", "freq", "freq_hz", "center_frequency", "center_freq", "cutoff" });
+        const auto gainParamId = lookupGroupParamSlot (group, { "gain", "gain_db", "level", "amount" });
+        if (frequencyParamId.isEmpty() || gainParamId.isEmpty())
+            continue;
+
+        double score = 1000000.0 + static_cast<double> (fallbackOrder++);
+        if (targetFrequencyHz > 0.0)
+        {
+            if (const auto currentHz = currentDisplayNumberForParam (plugin, frequencyParamId))
+                score = std::abs (std::log (juce::jmax (1.0, *currentHz)) - std::log (juce::jmax (1.0, targetFrequencyHz)));
+        }
+
+        if (! bestGroup.isObject() || score < bestScore)
+        {
+            bestScore = score;
+            bestGroup = group;
+        }
+    }
+
+    return bestGroup;
+}
+
+bool readNumericFromTarget (const juce::DynamicObject& command,
+                            const juce::DynamicObject& target,
+                            std::initializer_list<const char*> keys,
+                            double& out)
+{
+    juce::StringArray keyArray;
+    for (const auto* key : keys)
+        keyArray.add (key);
+
+    return readNumericProperty (target, keyArray, out)
+        || readNumericProperty (command, keyArray, out);
+}
+
+double defaultEqGainDbForAmount (const juce::String& controlName, const juce::DynamicObject& target)
+{
+    const auto amount = firstNonEmptyProperty (target, { "amount", "strength", "intensity" }).toLowerCase();
+    double magnitude = 2.5;
+    if (amount.contains ("strong") || amount.contains ("hard") || amount.contains ("heavy"))
+        magnitude = 6.0;
+    else if (amount.contains ("medium") || amount.contains ("moderate"))
+        magnitude = 4.0;
+    else if (amount.contains ("tiny") || amount.contains ("subtle") || amount.contains ("light"))
+        magnitude = 1.5;
+
+    const auto control = controlName.toLowerCase();
+    return control.contains ("boost") || control.contains ("add") ? magnitude : -magnitude;
+}
+
+double defaultEqQForWidth (const juce::DynamicObject& target)
+{
+    const auto width = firstNonEmptyProperty (target, { "width", "range", "bandwidth" }).toLowerCase();
+    if (width.contains ("narrow"))
+        return 2.4;
+    if (width.contains ("wide"))
+        return 0.7;
+    return 1.1;
+}
+
+struct ResolvedApplyValue
+{
+    float value = 0.0f;
+    bool normalised = false;
+    juce::String mode;
+    bool ok = true;
+    juce::String error;
+};
+
+struct RuntimeDisplayDomain
+{
+    bool present = false;
+    bool hasRange = false;
+    bool confirmed = false;
+    double minValue = 0.0;
+    double maxValue = 1.0;
+    juce::String unit;
+    juce::String scale;
+    juce::String status;
+    juce::String text;
+};
+
+float normalisedLogValue (double value, double minValue, double maxValue)
+{
+    value = juce::jlimit (minValue, maxValue, value);
+    return static_cast<float> (std::log (value / minValue) / std::log (maxValue / minValue));
+}
+
+float normalisedLinearValue (double value, double minValue, double maxValue)
+{
+    value = juce::jlimit (minValue, maxValue, value);
+    return static_cast<float> ((value - minValue) / (maxValue - minValue));
+}
+
+bool readNumericVar (const juce::var& value, double& out)
+{
+    if (value.isDouble() || value.isInt() || value.isInt64())
+    {
+        out = static_cast<double> (value);
+        return true;
+    }
+
+    return false;
+}
+
+bool asciiDigitOrDot (char c)
+{
+    return (c >= '0' && c <= '9') || c == '.';
+}
+
+bool previousNonSpaceByteIsNumber (const char* raw, const char* current)
+{
+    auto* p = current;
+    while (p > raw)
+    {
+        --p;
+        const auto c = static_cast<unsigned char> (*p);
+        if (std::isspace (c))
+            continue;
+
+        return asciiDigitOrDot (static_cast<char> (c));
+    }
+
+    return false;
+}
+
+bool parseDisplayDomainRangeText (const juce::String& text, double& minValue, double& maxValue)
+{
+    std::vector<double> values;
+    const auto* raw = text.toRawUTF8();
+    for (auto* p = raw; *p != 0 && values.size() < 2;)
+    {
+        const auto c = *p;
+        const auto sign = c == '-' || c == '+';
+        if (sign && previousNonSpaceByteIsNumber (raw, p))
+        {
+            ++p;
+            continue;
+        }
+
+        if (asciiDigitOrDot (c) || sign)
+        {
+            char* end = nullptr;
+            const auto parsed = std::strtod (p, &end);
+            if (end != p && std::isfinite (parsed))
+            {
+                values.push_back (parsed);
+                p = end;
+                continue;
+            }
+        }
+
+        ++p;
+    }
+
+    if (values.size() < 2)
+        return false;
+
+    minValue = juce::jmin (values[0], values[1]);
+    maxValue = juce::jmax (values[0], values[1]);
+    return std::abs (maxValue - minValue) > 0.000001;
+}
+
+void fillDisplayDomainFromText (RuntimeDisplayDomain& domain)
+{
+    const auto text = domain.text.trim();
+    if (text.isEmpty())
+        return;
+
+    const auto lower = text.toLowerCase();
+    if (domain.unit.isEmpty())
+    {
+        if (lower.contains ("db"))
+            domain.unit = "dB";
+        else if (lower.contains ("khz") || lower.contains ("hz"))
+            domain.unit = "Hz";
+        else if (text.contains ("%"))
+            domain.unit = "%";
+        else if (lower.contains ("ms"))
+            domain.unit = "ms";
+        else if (lower.contains ("sec") || lower.contains ("second"))
+            domain.unit = "s";
+    }
+
+    if (domain.scale.isEmpty())
+        domain.scale = domain.unit == "Hz" ? "log" : "linear";
+
+    if (! domain.hasRange)
+    {
+        double minValue = 0.0;
+        double maxValue = 0.0;
+        if (parseDisplayDomainRangeText (text, minValue, maxValue))
+        {
+            domain.minValue = minValue;
+            domain.maxValue = maxValue;
+            domain.hasRange = true;
+        }
+    }
+}
+
+RuntimeDisplayDomain displayDomainFromProfileMapping (const juce::var& mapping)
+{
+    RuntimeDisplayDomain out;
+    auto* mappingObject = mapping.getDynamicObject();
+    if (mappingObject == nullptr)
+        return out;
+
+    out.confirmed = static_cast<bool> (mappingObject->getProperty ("confirmed"));
+    if (auto* domain = mappingObject->getProperty ("display_domain").getDynamicObject())
+    {
+        out.present = true;
+        out.text = domain->getProperty ("text").toString().trim();
+        out.unit = domain->getProperty ("unit").toString().trim();
+        out.scale = domain->getProperty ("scale").toString().trim().toLowerCase();
+        out.status = domain->getProperty ("status").toString().trim().toLowerCase();
+        double minValue = 0.0;
+        double maxValue = 0.0;
+        const auto hasMin = readNumericVar (domain->getProperty ("min"), minValue);
+        const auto hasMax = readNumericVar (domain->getProperty ("max"), maxValue);
+        if (hasMin && hasMax)
+        {
+            out.minValue = juce::jmin (minValue, maxValue);
+            out.maxValue = juce::jmax (minValue, maxValue);
+            out.hasRange = std::abs (out.maxValue - out.minValue) > 0.000001;
+        }
+    }
+
+    const auto text = mappingObject->getProperty ("display_domain_text").toString().trim();
+    if (out.text.isEmpty() && text.isNotEmpty())
+    {
+        out.present = true;
+        out.text = text;
+    }
+
+    fillDisplayDomainFromText (out);
+    if (out.confirmed && out.hasRange && (out.status.isEmpty() || out.status == "needs_confirmation" || out.status == "unknown"))
+        out.status = "confirmed";
+
+    return out;
+}
+
+bool displayDomainUsableForDisplayValue (const RuntimeDisplayDomain& domain)
+{
+    if (! domain.present || ! domain.hasRange)
+        return false;
+
+    if (domain.confirmed)
+        return true;
+
+    if (domain.status == "needs_confirmation" || domain.status == "unknown")
+        return false;
+
+    return true;
+}
+
+bool targetKeyImpliesDisplayValue (const juce::String& targetKey)
+{
+    const auto key = targetKey.trim().toLowerCase();
+    return key.contains ("_db") || key.contains ("db")
+        || key.contains ("_hz") || key.contains ("hz")
+        || key.contains ("percent") || key.contains ("pct")
+        || key.contains ("display");
+}
+
+bool targetKeyIsGenericAmountValue (const juce::String& targetKey)
+{
+    const auto key = targetKey.trim().toLowerCase();
+    return key == "amount" || key == "value" || key == "target_value";
+}
+
+bool slotUsuallyUsesDisplayValue (const juce::String& slot, double requestedValue)
+{
+    const auto cleanSlot = normalisedResolverToken (slot);
+    if (requestedValue >= 0.0 && requestedValue <= 1.0)
+        return false;
+
+    return cleanSlot.contains ("freq") || cleanSlot.contains ("cutoff")
+        || cleanSlot.contains ("gain") || cleanSlot.contains ("level")
+        || cleanSlot.contains ("threshold")
+        || cleanSlot == "q" || cleanSlot.contains ("quality") || cleanSlot.contains ("width");
+}
+
+bool requestedModeImpliesDisplayValue (const juce::String& requestedMode)
+{
+    const auto mode = requestedMode.trim().toLowerCase();
+    return mode == "display" || mode == "display_value" || mode == "semantic"
+        || mode == "relative_delta" || mode == "display_delta";
+}
+
+double displayValueFromNormalised (float normalised, const RuntimeDisplayDomain& domain)
+{
+    const auto value = juce::jlimit (0.0, 1.0, static_cast<double> (normalised));
+    if (domain.scale == "log" && domain.minValue > 0.0 && domain.maxValue > domain.minValue)
+        return domain.minValue * std::pow (domain.maxValue / domain.minValue, value);
+
+    return domain.minValue + (domain.maxValue - domain.minValue) * value;
+}
+
+float normalisedFromDisplayValue (double displayValue, const RuntimeDisplayDomain& domain)
+{
+    if (domain.scale == "log" && domain.minValue > 0.0 && domain.maxValue > domain.minValue)
+        return normalisedLogValue (displayValue, domain.minValue, domain.maxValue);
+
+    return normalisedLinearValue (displayValue, domain.minValue, domain.maxValue);
+}
+
+ResolvedApplyValue failedResolvedApplyValue (const juce::String& message)
+{
+    ResolvedApplyValue out;
+    out.ok = false;
+    out.error = message;
+    return out;
+}
+
+juce::String displayDomainClarificationMessage (const juce::String& slot,
+                                                const juce::String& paramName,
+                                                const juce::String& targetKey,
+                                                const RuntimeDisplayDomain& domain)
+{
+    juce::String current = "目前这个抓手只掌握后台 0~1 的参数范围";
+    if (domain.present && domain.text.isNotEmpty())
+        current += "，已记录的显示域是“" + domain.text + "”，但还不足以可靠换算";
+
+    const auto requested = targetKey.isNotEmpty() ? targetKey : slot;
+    return current + "。你这次使用的是 " + requested
+        + " 这类显示单位控制。请告诉我你在插件 UI 上看到或希望使用的显示范围和单位，例如：-20~+20 dB、0~100%、20~20000 Hz 对数。参数："
+        + paramName;
+}
+
+ResolvedApplyValue resolveSemanticApplyValue (te::AutomatableParameter& param,
+                                               const juce::String& slot,
+                                               double requestedValue,
+                                               const juce::String& requestedMode,
+                                               const juce::var& profileMapping,
+                                               const juce::String& targetKey)
+{
+    const auto cleanMode = requestedMode.trim().toLowerCase();
+    const auto cleanSlot = normalisedResolverToken (slot);
+    const auto range = param.getValueRange();
+    const auto rangeStart = static_cast<double> (range.getStart());
+    const auto rangeEnd = static_cast<double> (range.getEnd());
+    const auto normalisedRange = rangeStart >= -0.0001 && rangeEnd <= 1.0001;
+    const auto displayDomain = displayDomainFromProfileMapping (profileMapping);
+
+    if (cleanMode == "normalised" || cleanMode == "normalized")
+        return { juce::jlimit (0.0f, 1.0f, static_cast<float> (requestedValue)), true, "requested_normalised" };
+
+    if (cleanMode == "raw")
+        return { juce::jlimit (range.getStart(), range.getEnd(), static_cast<float> (requestedValue)), false, "requested_raw" };
+
+    const auto requestIsDisplayValue = requestedModeImpliesDisplayValue (requestedMode)
+        || targetKeyImpliesDisplayValue (targetKey)
+        || (displayDomainUsableForDisplayValue (displayDomain) && targetKeyIsGenericAmountValue (targetKey))
+        || (normalisedRange && slotUsuallyUsesDisplayValue (slot, requestedValue));
+    if (normalisedRange && requestIsDisplayValue)
+    {
+        if (! displayDomainUsableForDisplayValue (displayDomain))
+            return failedResolvedApplyValue ("display_domain_clarification:" + displayDomainClarificationMessage (slot, param.getParameterName(), targetKey, displayDomain));
+
+        auto displayValue = requestedValue;
+        if (cleanMode == "relative_delta" || cleanMode == "display_delta")
+            displayValue = displayValueFromNormalised (param.getCurrentNormalisedValue(), displayDomain) + requestedValue;
+
+        return { normalisedFromDisplayValue (displayValue, displayDomain), true,
+                 cleanMode == "relative_delta" || cleanMode == "display_delta" ? "display_domain_relative_delta" : "display_domain_absolute" };
+    }
+
+    if (normalisedRange && targetKeyIsGenericAmountValue (targetKey) && (requestedValue < 0.0 || requestedValue > 1.0))
+        return failedResolvedApplyValue ("display_domain_clarification:" + displayDomainClarificationMessage (slot, param.getParameterName(), targetKey, displayDomain));
+
+    if (normalisedRange)
+    {
+        if (cleanSlot.contains ("freq") || cleanSlot.contains ("cutoff"))
+            return { normalisedLogValue (requestedValue, 10.0, 40000.0), true, "semantic_frequency_log_10_40000" };
+
+        if (cleanSlot == "q" || cleanSlot.contains ("quality") || cleanSlot.contains ("width"))
+            return { normalisedLogValue (requestedValue, 0.1, 6.0), true, "semantic_q_log_0p1_6" };
+
+        if (cleanSlot.contains ("gain") || cleanSlot.contains ("level") || cleanSlot.contains ("amount"))
+            return { normalisedLinearValue (requestedValue, -18.0, 18.0), true, "semantic_gain_db_linear_-18_18" };
+
+        if (cleanSlot.contains ("threshold"))
+            return { normalisedLinearValue (requestedValue, -50.0, 0.0), true, "semantic_threshold_db_linear_-50_0" };
+    }
+
+    for (const auto& text : { juce::String (requestedValue, 4),
+                              juce::String (requestedValue, 4) + " Hz",
+                              juce::String (requestedValue, 4) + " dB" })
+    {
+        const auto converted = param.stringToValue (text);
+        if (std::isfinite (converted) && converted >= range.getStart() && converted <= range.getEnd())
+            return { converted, false, "plugin_text_conversion" };
+    }
+
+    if (requestedValue >= rangeStart && requestedValue <= rangeEnd)
+        return { static_cast<float> (requestedValue), false, "semantic_raw_within_range" };
+
+    if (requestedValue >= 0.0 && requestedValue <= 1.0)
+        return { static_cast<float> (requestedValue), true, "semantic_normalised_fallback" };
+
+    return { juce::jlimit (range.getStart(), range.getEnd(), static_cast<float> (requestedValue)), false, "semantic_clamped_raw_fallback" };
+}
+
+juce::var makeAppliedParameterRecord (const juce::String& slot,
+                                      const juce::String& paramId,
+                                      te::AutomatableParameter& param,
+                                      double requestedValue,
+                                      const ResolvedApplyValue& resolved,
+                                      float oldValue)
+{
+    auto row = std::make_unique<juce::DynamicObject>();
+    row->setProperty ("slot", slot);
+    row->setProperty ("param_id", paramId);
+    row->setProperty ("param_name", param.getParameterName());
+    row->setProperty ("requested_value", requestedValue);
+    row->setProperty ("value_mode", resolved.mode);
+    row->setProperty ("applied_value", resolved.value);
+    row->setProperty ("applied_as_normalised", resolved.normalised);
+    row->setProperty ("old_value", oldValue);
+    row->setProperty ("new_value", param.getCurrentValue());
+    row->setProperty ("new_normalised_value", param.getCurrentNormalisedValue());
+    row->setProperty ("new_value_text", param.getCurrentValueAsString());
+    return juce::var (row.release());
+}
+
+std::unordered_set<std::string> collectCurrentParamIds (const juce::Array<juce::var>& parameterDescriptors)
+{
+    std::unordered_set<std::string> validParamIds;
+    for (const auto& parameter : parameterDescriptors)
+        if (auto* object = parameter.getDynamicObject())
+            if (const auto id = object->getProperty ("id").toString().trim(); id.isNotEmpty())
+                validParamIds.insert (id.toStdString());
+
+    return validParamIds;
+}
+
+juce::Result applyRuntimeProfileParam (te::Plugin& plugin,
+                                       const std::unordered_set<std::string>& validParamIds,
+                                       const juce::StringArray& staleParamIds,
+                                       const juce::String& slot,
+                                       const juce::String& paramId,
+                                       double requestedValue,
+                                       const juce::String& requestedMode,
+                                       const juce::var& profileMapping,
+                                       const juce::String& targetKey,
+                                       juce::Array<juce::var>& applied)
+{
+    if (paramId.isEmpty())
+        return juce::Result::ok();
+
+    if (! validParamIds.contains (paramId.toStdString()))
+        return juce::Result::fail ("runtime profile mapped " + slot + " to param_id not in current snapshot: " + paramId);
+
+    if (staleParamIds.contains (paramId))
+        return juce::Result::fail ("runtime profile mapped " + slot + " to stale param_id: " + paramId);
+
+    auto param = resolvePluginParameterByID (plugin, paramId);
+    if (param == nullptr)
+        return juce::Result::fail ("runtime profile mapped " + slot + " to unresolved param_id: " + paramId);
+
+    const auto previousValue = param->getCurrentValue();
+    const auto resolved = resolveSemanticApplyValue (*param, slot, requestedValue, requestedMode, profileMapping, targetKey);
+    if (! resolved.ok)
+        return juce::Result::fail (resolved.error);
+
+    param->parameterChangeGestureBegin();
+    if (resolved.normalised)
+        param->setNormalisedParameter (resolved.value, juce::sendNotification);
+    else
+        param->setParameter (resolved.value, juce::sendNotification);
+    param->parameterChangeGestureEnd();
+
+    applied.add (makeAppliedParameterRecord (slot, paramId, *param, requestedValue, resolved, previousValue));
+    return juce::Result::ok();
+}
+
+juce::var cloneVarObject (const juce::var& value)
+{
+    if (auto* object = value.getDynamicObject())
+        return juce::var (object->clone().release());
+
+    return {};
+}
+
+bool hasUsableRuntimeProfile (const VitPluginGrabberProjectProfile::MergeResult& profileMerge)
+{
+    return profileMerge.profileApplied || profileMerge.globalProfileApplied || profileMerge.hasExtendedFields();
+}
+
+double clampBySafety (double value,
+                      const juce::var& safety,
+                      const char* minKey,
+                      const char* maxKey)
+{
+    auto* object = safety.getDynamicObject();
+    if (object == nullptr)
+        return value;
+
+    double minValue = 0.0;
+    juce::StringArray minKeys;
+    minKeys.add (minKey);
+    if (readNumericProperty (*object, minKeys, minValue))
+        value = juce::jmax (minValue, value);
+
+    double maxValue = 0.0;
+    juce::StringArray maxKeys;
+    maxKeys.add (maxKey);
+    if (readNumericProperty (*object, maxKeys, maxValue))
+        value = juce::jmin (maxValue, value);
+
+    return value;
+}
+
+double clampGainBySafety (double gainDb, const juce::var& safety)
+{
+    auto* object = safety.getDynamicObject();
+    if (object == nullptr)
+        return gainDb;
+
+    double maxAbsGainDb = 0.0;
+    juce::StringArray keys;
+    keys.add (profileField::safetyMaxGainDb);
+    if (! readNumericProperty (*object, keys, maxAbsGainDb) || maxAbsGainDb <= 0.0)
+        return gainDb;
+
+    return juce::jlimit (-std::abs (maxAbsGainDb), std::abs (maxAbsGainDb), gainDb);
+}
+
+void addStringKeys (juce::StringArray& keys, std::initializer_list<const char*> values)
+{
+    for (const auto* value : values)
+        keys.addIfNotAlreadyThere (value);
+}
+
+juce::var makeControlResolutionRecord (const juce::String& resolver,
+                                       const juce::String& componentId,
+                                       const juce::var& virtualControl,
+                                       const juce::var& group)
+{
+    auto object = std::make_unique<juce::DynamicObject>();
+    object->setProperty ("resolver", resolver);
+    object->setProperty ("component_id", componentId);
+    if (virtualControl.isObject())
+        object->setProperty ("virtual_control", cloneVarObject (virtualControl));
+    if (group.isObject())
+        object->setProperty ("group", cloneVarObject (group));
+    return juce::var (object.release());
+}
+
+bool readNumericTargetValue (const juce::DynamicObject& command,
+                             const juce::DynamicObject& target,
+                             const juce::String& slot,
+                             const juce::StringArray& inputKeys,
+                             double& out,
+                             juce::String& matchedKey)
+{
+    juce::StringArray keys;
+    keys.add (slot);
+    keys.add (slot.toLowerCase());
+
+    const auto normalisedSlot = normalisedResolverToken (slot);
+    bool semanticSlot = false;
+    if (normalisedSlot.contains ("freq"))
+    {
+        addStringKeys (keys, { "freq_hz", "frequency_hz", "frequency", "freq", "center_frequency", "center_freq", "cutoff" });
+        semanticSlot = true;
+    }
+    else if (normalisedSlot == "q" || normalisedSlot.contains ("quality") || normalisedSlot.contains ("width"))
+    {
+        addStringKeys (keys, { "q", "quality", "width", "bandwidth" });
+        semanticSlot = true;
+    }
+    else if (normalisedSlot.contains ("gain") || normalisedSlot.contains ("level") || normalisedSlot.contains ("amount"))
+    {
+        addStringKeys (keys, { "gain_db", "gain", "level_db", "level", "amount_db", "amount" });
+        semanticSlot = true;
+    }
+    else if (normalisedSlot.contains ("threshold"))
+    {
+        addStringKeys (keys, { "threshold_db", "threshold" });
+        semanticSlot = true;
+    }
+
+    if (! semanticSlot)
+    {
+        addStringKeys (keys, { "value", "target_value", "display_value" });
+        for (const auto& inputKey : inputKeys)
+        {
+            const auto key = inputKey.trim();
+            if (key.isEmpty())
+                continue;
+
+            keys.addIfNotAlreadyThere (key);
+            keys.addIfNotAlreadyThere (key.toLowerCase());
+            const auto cleanKey = normalisedResolverToken (key);
+            if (cleanKey.contains ("amount") || cleanKey.contains ("value"))
+                addStringKeys (keys, { "amount", "amount_percent", "percent", "pct" });
+        }
+    }
+
+    return readNumericPropertyWithKey (target, keys, out, matchedKey)
+        || readNumericPropertyWithKey (command, keys, out, matchedKey);
+}
+
+juce::Result applyVirtualControlParams (te::Plugin& plugin,
+                                        const std::unordered_set<std::string>& validParamIds,
+                                        const juce::StringArray& staleParamIds,
+                                        const juce::var& virtualControl,
+                                        const juce::DynamicObject& command,
+                                        const juce::DynamicObject& target,
+                                        const juce::var& safety,
+                                        juce::Array<juce::var>& applied)
+{
+    auto* control = virtualControl.getDynamicObject();
+    if (control == nullptr)
+        return juce::Result::fail ("virtual control is missing from runtime profile");
+
+    auto* params = control->getProperty (profileField::groupParams).getDynamicObject();
+    if (params == nullptr)
+        params = control->getProperty ("params").getDynamicObject();
+    if (params == nullptr)
+        return juce::Result::fail ("virtual control has no params mapping");
+
+    const auto requestedMode = command.getProperty ("value_mode").toString().trim();
+    const auto inputKeys = stringArrayFromVarArray (control->getProperty ("inputs"));
+    const auto& properties = params->getProperties();
+    for (int i = 0; i < properties.size(); ++i)
+    {
+        const auto slot = properties.getName (i).toString().trim();
+        const auto profileMapping = properties.getValueAt (i);
+        const auto paramId = paramIdFromProfileMapping (profileMapping);
+        if (slot.isEmpty() || paramId.isEmpty())
+            continue;
+
+        double value = 0.0;
+        juce::String targetKey;
+        if (! readNumericTargetValue (command, target, slot, inputKeys, value, targetKey))
+            continue;
+
+        const auto cleanSlot = normalisedResolverToken (slot);
+        if (cleanSlot.contains ("gain") || cleanSlot.contains ("level") || cleanSlot.contains ("amount"))
+            value = clampGainBySafety (value, safety);
+        else if (cleanSlot == "q" || cleanSlot.contains ("quality") || cleanSlot.contains ("width"))
+            value = clampBySafety (value, safety, profileField::safetyMinQ, profileField::safetyMaxQ);
+        else if (cleanSlot.contains ("threshold"))
+            value = clampBySafety (value, safety, profileField::safetyMinThreshold, profileField::safetyMaxThreshold);
+
+        if (const auto result = applyRuntimeProfileParam (plugin,
+                                                          validParamIds,
+                                                          staleParamIds,
+                                                          slot,
+                                                           paramId,
+                                                           value,
+                                                           requestedMode,
+                                                           profileMapping,
+                                                           targetKey,
+                                                           applied); result.failed())
+            return result;
+    }
+
+    if (applied.isEmpty())
+        return juce::Result::fail ("display_domain_clarification:我已经找到了这个插件抓手，但这次请求没有包含可执行的目标数值。请告诉我要把它设置到多少，最好带上你看到的显示单位，例如 50%、-6 dB 或 1200 Hz。");
+
+    return juce::Result::ok();
+}
+
+juce::Result applyEqRuntimeControl (te::Plugin& plugin,
+                                    const std::unordered_set<std::string>& validParamIds,
+                                    const juce::StringArray& staleParamIds,
+                                    const juce::Array<juce::var>& groups,
+                                    const juce::DynamicObject& command,
+                                    const juce::DynamicObject& target,
+                                    const juce::String& preferredComponentId,
+                                    const juce::var& safety,
+                                    juce::Array<juce::var>& applied,
+                                    juce::var& selectedGroup)
+{
+    double targetFrequencyHz = 0.0;
+    const auto hasFrequency = readNumericFromTarget (command,
+                                                     target,
+                                                     { "freq_hz", "frequency_hz", "frequency", "freq", "center_frequency", "center_freq", "cutoff" },
+                                                     targetFrequencyHz);
+    if (! hasFrequency)
+        return juce::Result::fail ("EQ apply control requires target.freq_hz");
+
+    auto requestedComponentId = firstNonEmptyProperty (target, { "component_id", "group_id", "band_id" });
+    if (requestedComponentId.isEmpty())
+        requestedComponentId = preferredComponentId;
+    selectedGroup = findBestEqBandGroup (plugin, groups, requestedComponentId, targetFrequencyHz);
+    if (! selectedGroup.isObject())
+        return juce::Result::fail ("runtime profile has no usable EQ band group");
+
+    auto* group = selectedGroup.getDynamicObject();
+    const auto frequencyMapping = lookupGroupParamMapping (selectedGroup, { "frequency", "freq", "freq_hz", "center_frequency", "center_freq", "cutoff" });
+    const auto gainMapping = lookupGroupParamMapping (selectedGroup, { "gain", "gain_db", "level", "amount" });
+    const auto qMapping = lookupGroupParamMapping (selectedGroup, { "q", "quality", "width", "bandwidth" });
+    const auto enableMapping = lookupGroupParamMapping (selectedGroup, { "enable", "enabled", "active", "band_enable", "on" });
+    const auto thresholdMapping = lookupGroupParamMapping (selectedGroup, { "threshold", "threshold_db" });
+    const auto frequencyParamId = paramIdFromProfileMapping (frequencyMapping);
+    const auto gainParamId = paramIdFromProfileMapping (gainMapping);
+    const auto qParamId = paramIdFromProfileMapping (qMapping);
+    const auto enableParamId = paramIdFromProfileMapping (enableMapping);
+    const auto thresholdParamId = paramIdFromProfileMapping (thresholdMapping);
+
+    const auto requestedMode = command.getProperty ("value_mode").toString().trim();
+    const auto groupId = group != nullptr ? firstNonEmptyProperty (*group, { "id", "component_id", "name", "label" }) : juce::String();
+
+    if (const auto result = applyRuntimeProfileParam (plugin,
+                                                      validParamIds,
+                                                      staleParamIds,
+                                                      "frequency",
+                                                       frequencyParamId,
+                                                       targetFrequencyHz,
+                                                       requestedMode,
+                                                       frequencyMapping,
+                                                       "freq_hz",
+                                                       applied); result.failed())
+        return result;
+
+    double gainDb = 0.0;
+    const auto controlName = firstNonEmptyProperty (command, { "control", "operation", "name" });
+    if (! readNumericFromTarget (command, target, { "gain_db", "gain", "amount_db", "amount" }, gainDb))
+        gainDb = defaultEqGainDbForAmount (controlName, target);
+
+    if (! isBoostRuntimeControl (controlName) && gainDb > 0.0)
+        gainDb = -gainDb;
+
+    gainDb = clampGainBySafety (gainDb, safety);
+    if (const auto result = applyRuntimeProfileParam (plugin,
+                                                      validParamIds,
+                                                      staleParamIds,
+                                                      "gain",
+                                                       gainParamId,
+                                                       gainDb,
+                                                       requestedMode,
+                                                       gainMapping,
+                                                       "gain_db",
+                                                       applied); result.failed())
+        return result;
+
+    double q = 0.0;
+    if (! readNumericFromTarget (command, target, { "q", "quality", "width", "bandwidth" }, q))
+        q = defaultEqQForWidth (target);
+    q = clampBySafety (q, safety, profileField::safetyMinQ, profileField::safetyMaxQ);
+    if (const auto result = applyRuntimeProfileParam (plugin,
+                                                      validParamIds,
+                                                      staleParamIds,
+                                                      "q",
+                                                       qParamId,
+                                                       q,
+                                                       requestedMode,
+                                                       qMapping,
+                                                       "q",
+                                                       applied); result.failed())
+        return result;
+
+    double thresholdDb = 0.0;
+    if (readNumericFromTarget (command, target, { "threshold_db", "threshold" }, thresholdDb))
+    {
+        thresholdDb = clampBySafety (thresholdDb, safety, profileField::safetyMinThreshold, profileField::safetyMaxThreshold);
+        if (const auto result = applyRuntimeProfileParam (plugin,
+                                                          validParamIds,
+                                                          staleParamIds,
+                                                          "threshold",
+                                                           thresholdParamId,
+                                                           thresholdDb,
+                                                           requestedMode,
+                                                           thresholdMapping,
+                                                           "threshold_db",
+                                                           applied); result.failed())
+            return result;
+    }
+
+    if (enableParamId.isNotEmpty())
+        if (const auto result = applyRuntimeProfileParam (plugin,
+                                                          validParamIds,
+                                                          staleParamIds,
+                                                          "enable",
+                                                           enableParamId,
+                                                           1.0,
+                                                           requestedMode,
+                                                           enableMapping,
+                                                           "enable",
+                                                           applied); result.failed())
+            return result;
+
+    if (applied.isEmpty())
+        return juce::Result::fail ("EQ runtime control resolved no writable parameters for group: " + groupId);
+
+    return juce::Result::ok();
 }
 
 juce::String pluginItemIdString (const te::Plugin& plugin)
@@ -1269,7 +2364,18 @@ juce::String PluginRackControlService::handleSetPluginParam (const juce::Dynamic
     const auto pluginIdStr = object.getProperty ("plugin_id").toString().trim();
     const auto paramIdRaw  = object.getProperty ("param_id").toString().trim();
     const auto valueVar    = object.getProperty ("value");
+    const auto valueText   = [&]
+    {
+        for (const auto& key : { "value_text", "display_value_text", "target_text", "text" })
+        {
+            const auto text = object.getProperty (key).toString().trim();
+            if (text.isNotEmpty())
+                return text;
+        }
+        return juce::String();
+    }();
     const auto unit        = object.getProperty ("unit").toString().trim().toLowerCase();
+    const auto hasNumericValue = valueVar.isDouble() || valueVar.isInt() || valueVar.isInt64();
 
     if (pluginIdStr.isEmpty())
         return makeErrorReply ("set_plugin_param requires a non-empty plugin_id");
@@ -1277,8 +2383,8 @@ juce::String PluginRackControlService::handleSetPluginParam (const juce::Dynamic
     if (paramIdRaw.isEmpty())
         return makeErrorReply ("set_plugin_param requires a non-empty param_id");
 
-    if (! valueVar.isDouble() && ! valueVar.isInt() && ! valueVar.isInt64())
-        return makeErrorReply ("set_plugin_param requires a numeric value field");
+    if (! hasNumericValue && valueText.isEmpty())
+        return makeErrorReply ("set_plugin_param requires a numeric value field or value_text");
 
     auto* plugin = findPluginInEdit (*edit, pluginIdStr);
 
@@ -1296,11 +2402,25 @@ juce::String PluginRackControlService::handleSetPluginParam (const juce::Dynamic
     if (param == nullptr)
         return makeErrorReply ("Parameter not found for param_id: " + paramIdRaw);
 
-    float valueToApply = static_cast<float> (static_cast<double> (valueVar));
+    auto valueInterpretation = juce::String ("raw");
+    float valueToApply = hasNumericValue ? static_cast<float> (static_cast<double> (valueVar))
+                                         : param->getCurrentValue();
+    const auto vr = param->getValueRange();
+
+    if (valueText.isNotEmpty())
+    {
+        const auto converted = param->stringToValue (valueText);
+        if (! std::isfinite (converted) || converted < vr.getStart() || converted > vr.getEnd())
+            return makeErrorReply ("set_plugin_param could not convert value_text for param_id: " + paramIdRaw);
+
+        valueToApply = converted;
+        valueInterpretation = "plugin_display_text";
+    }
 
     const bool volumeAsDb = unit == "db"
                             && (paramIdRaw.equalsIgnoreCase ("volume")
-                                || paramIdRaw.equalsIgnoreCase ("master volume"));
+                                || paramIdRaw.equalsIgnoreCase ("master volume"))
+                            && valueText.isEmpty();
 
     if (volumeAsDb)
     {
@@ -1320,7 +2440,6 @@ juce::String PluginRackControlService::handleSetPluginParam (const juce::Dynamic
     }
     else
     {
-        const auto vr = param->getValueRange();
         valueToApply = juce::jlimit (vr.getStart(), vr.getEnd(), valueToApply);
         param->setParameter (valueToApply, juce::sendNotification);
     }
@@ -1338,6 +2457,8 @@ juce::String PluginRackControlService::handleSetPluginParam (const juce::Dynamic
     response->setProperty ("plugin_id", pluginIdStr);
     response->setProperty ("param_id", paramIdRaw);
     response->setProperty ("new_value", param->getCurrentValue());
+    response->setProperty ("new_value_text", param->getCurrentValueAsString());
+    response->setProperty ("value_interpretation", valueInterpretation);
     return juce::JSON::toString (juce::var (response.release()));
 }
 
@@ -1977,6 +3098,319 @@ juce::String PluginRackControlService::handleConnectorRemoveProfile (const juce:
 }
 
 
+
+juce::String PluginRackControlService::handlePluginGrabberGetProjectProfiles (const juce::DynamicObject&, const juce::String&) const
+{
+    auto* edit = getEdit != nullptr ? getEdit() : nullptr;
+    if (edit == nullptr)
+        return makeErrorReply ("No active edit loaded");
+
+    const auto projectFile = getEffectiveProjectFile (getCurrentProjectPath);
+    auto response = std::make_unique<juce::DynamicObject>();
+    response->setProperty ("status", "ok");
+    response->setProperty ("plugin_grabber_profiles", juce::var (VitPluginGrabberProjectProfile::snapshotProfiles (projectFile)));
+    return juce::JSON::toString (juce::var (response.release()));
+}
+
+
+juce::String PluginRackControlService::handlePluginGrabberUpsertProjectProfile (const juce::DynamicObject& object,
+                                                                                const juce::String&) const
+{
+    auto* edit = getEdit != nullptr ? getEdit() : nullptr;
+    if (edit == nullptr)
+        return makeErrorReply ("No active edit loaded");
+
+    const auto trackID = object.getProperty ("track_id").toString().trim();
+    const auto pluginID = object.getProperty ("plugin_id").toString().trim();
+    if (trackID.isEmpty() || pluginID.isEmpty())
+        return makeErrorReply ("plugin_grabber_upsert_project_profile requires track_id + plugin_id");
+
+    auto* targetTrack = findTrackByID (*edit, trackID);
+    if (targetTrack == nullptr)
+        return makeErrorReply ("Track not found for track_id: " + trackID);
+
+    auto* plugin = findPluginInEdit (*edit, pluginID);
+    if (plugin == nullptr)
+        return makeErrorReply ("Plugin not found for plugin_id: " + pluginID);
+
+    if (! pluginBelongsToTrackGraph (*targetTrack, *plugin))
+        return makeErrorReply ("Plugin is not on the specified track");
+
+    auto* ext = dynamic_cast<te::ExternalPlugin*> (plugin);
+    if (ext == nullptr)
+        return makeErrorReply ("Plugin grabber profiles are only available for external plugins");
+
+    const auto projectFile = getEffectiveProjectFile (getCurrentProjectPath);
+    const auto identity = VitPluginGrabberProjectProfile::createPluginIdentity (*ext, pluginID);
+    juce::var profile;
+    if (const auto result = VitPluginGrabberProjectProfile::upsertProjectDefault (projectFile, object, identity, profile); result.failed())
+        return makeErrorReply (result.getErrorMessage());
+
+    // Layer 2: write to global profile store when global: true flag is set
+    const auto globalFlag = object.getProperty ("global").toString().trim().toLowerCase();
+    if (globalFlag == "true" || globalFlag == "1")
+    {
+        const auto gpKey = [&]() -> juce::String {
+            if (auto* idObj = identity.getDynamicObject())
+                return idObj->getProperty ("profile_key").toString().trim();
+            return {};
+        }();
+        if (gpKey.isNotEmpty())
+        {
+            juce::var globalContent = profile;
+            if (auto* gcObj = globalContent.getDynamicObject())
+            {
+                if (object.hasProperty ("class"))
+                    gcObj->setProperty ("class", object.getProperty ("class"));
+                if (object.hasProperty ("groups"))
+                    gcObj->setProperty ("groups", object.getProperty ("groups"));
+                if (object.hasProperty ("virtual_controls"))
+                    gcObj->setProperty ("virtual_controls", object.getProperty ("virtual_controls"));
+                if (object.hasProperty ("safety"))
+                    gcObj->setProperty ("safety", object.getProperty ("safety"));
+                if (object.hasProperty ("param_signature_hash"))
+                    gcObj->setProperty ("param_signature_hash", object.getProperty ("param_signature_hash"));
+                if (object.hasProperty ("parameter_snapshot"))
+                    gcObj->setProperty ("parameter_snapshot", object.getProperty ("parameter_snapshot"));
+                if (object.hasProperty ("plugin_skill"))
+                    gcObj->setProperty ("plugin_skill", object.getProperty ("plugin_skill"));
+                if (object.hasProperty ("plugin_skill_validator_warnings"))
+                    gcObj->setProperty ("plugin_skill_validator_warnings", object.getProperty ("plugin_skill_validator_warnings"));
+            }
+            VitPluginGrabberGlobalProfile::writeGlobalProfile (gpKey, globalContent);
+        }
+    }
+
+    auto response = std::make_unique<juce::DynamicObject>();
+    response->setProperty ("status", "ok");
+    response->setProperty ("message", "Plugin grabber project profile saved");
+    response->setProperty ("track_id", trackID);
+    response->setProperty ("plugin_id", pluginID);
+    response->setProperty ("plugin_identity", identity);
+    response->setProperty ("profile", profile);
+    response->setProperty ("plugin_grabber_profiles", juce::var (VitPluginGrabberProjectProfile::snapshotProfiles (projectFile)));
+    return juce::JSON::toString (juce::var (response.release()));
+}
+
+
+juce::String PluginRackControlService::handlePluginGrabberRemoveProjectProfile (const juce::DynamicObject& object,
+                                                                                const juce::String&) const
+{
+    auto* edit = getEdit != nullptr ? getEdit() : nullptr;
+    if (edit == nullptr)
+        return makeErrorReply ("No active edit loaded");
+
+    auto profileId = object.getProperty ("profile_id").toString().trim();
+    const auto trackID = object.getProperty ("track_id").toString().trim();
+    const auto pluginID = object.getProperty ("plugin_id").toString().trim();
+
+    if (profileId.isEmpty())
+    {
+        if (trackID.isEmpty() || pluginID.isEmpty())
+            return makeErrorReply ("plugin_grabber_remove_project_profile requires profile_id or track_id + plugin_id");
+
+        auto* targetTrack = findTrackByID (*edit, trackID);
+        if (targetTrack == nullptr)
+            return makeErrorReply ("Track not found for track_id: " + trackID);
+
+        auto* plugin = findPluginInEdit (*edit, pluginID);
+        if (plugin == nullptr)
+            return makeErrorReply ("Plugin not found for plugin_id: " + pluginID);
+
+        if (! pluginBelongsToTrackGraph (*targetTrack, *plugin))
+            return makeErrorReply ("Plugin is not on the specified track");
+
+        auto* ext = dynamic_cast<te::ExternalPlugin*> (plugin);
+        if (ext == nullptr)
+            return makeErrorReply ("Plugin grabber profiles are only available for external plugins");
+
+        const auto projectFile = getEffectiveProjectFile (getCurrentProjectPath);
+        const auto identity = VitPluginGrabberProjectProfile::createPluginIdentity (*ext, pluginID);
+
+        // Also remove global profile if it exists
+        if (auto* idObj = identity.getDynamicObject())
+            if (const auto key = idObj->getProperty ("profile_key").toString().trim(); key.isNotEmpty())
+                VitPluginGrabberGlobalProfile::removeGlobalProfile (key);
+
+        profileId = [&]() -> juce::String {
+            if (auto* idObj = identity.getDynamicObject())
+                return idObj->getProperty ("profile_key").toString().trim();
+            return {};
+        }();
+
+        bool removed = false;
+        if (const auto result = VitPluginGrabberProjectProfile::removeProfile (projectFile, profileId, removed); result.failed())
+            return makeErrorReply (result.getErrorMessage());
+
+        if (! removed)
+            return makeErrorReply ("Profile not found");
+
+        auto response = std::make_unique<juce::DynamicObject>();
+        response->setProperty ("status", "ok");
+        response->setProperty ("message", "Plugin grabber profile removed");
+        response->setProperty ("track_id", trackID);
+        response->setProperty ("plugin_id", pluginID);
+        response->setProperty ("profile_id", profileId);
+        response->setProperty ("plugin_grabber_profiles", juce::var (VitPluginGrabberProjectProfile::snapshotProfiles (projectFile)));
+        return juce::JSON::toString (juce::var (response.release()));
+    }
+
+    const auto projectFile = getEffectiveProjectFile (getCurrentProjectPath);
+    // Also remove global profile
+    if (const auto key = profileId.trim().toLowerCase(); key.isNotEmpty())
+        VitPluginGrabberGlobalProfile::removeGlobalProfile (key);
+
+    bool removed = false;
+    if (const auto result = VitPluginGrabberProjectProfile::removeProfile (projectFile, profileId, removed); result.failed())
+        return makeErrorReply (result.getErrorMessage());
+
+    if (! removed)
+        return makeErrorReply ("Profile not found");
+
+    auto response = std::make_unique<juce::DynamicObject>();
+    response->setProperty ("status", "ok");
+    response->setProperty ("message", "Plugin grabber profile removed");
+    response->setProperty ("profile_id", profileId);
+    response->setProperty ("plugin_grabber_profiles", juce::var (VitPluginGrabberProjectProfile::snapshotProfiles (projectFile)));
+    return juce::JSON::toString (juce::var (response.release()));
+}
+
+
+juce::String PluginRackControlService::handlePluginGrabberApplyControl (const juce::DynamicObject& object,
+                                                                        const juce::String&) const
+{
+    auto* edit = getEdit != nullptr ? getEdit() : nullptr;
+    if (edit == nullptr)
+        return makeErrorReply ("No active edit loaded");
+
+    const auto trackID = object.getProperty ("track_id").toString().trim();
+    const auto pluginID = object.getProperty ("plugin_id").toString().trim();
+    const auto controlName = firstNonEmptyProperty (object, { "control", "operation", "name" });
+    if (trackID.isEmpty() || pluginID.isEmpty() || controlName.isEmpty())
+        return makeErrorReply ("plugin_grabber_apply_control requires track_id, plugin_id, and control");
+
+    const auto targetVar = object.getProperty ("target");
+    const auto* targetObject = targetVar.getDynamicObject();
+    if (targetObject == nullptr)
+        targetObject = &object;
+
+    auto* targetTrack = findTrackByID (*edit, trackID);
+    if (targetTrack == nullptr)
+        return makeErrorReply ("Track not found for track_id: " + trackID);
+
+    auto* plugin = findPluginInEdit (*edit, pluginID);
+    if (plugin == nullptr)
+        return makeErrorReply ("Plugin not found for plugin_id: " + pluginID);
+
+    if (! pluginBelongsToTrackGraph (*targetTrack, *plugin))
+        return makeErrorReply ("Plugin is not on the specified track");
+
+    auto* ext = dynamic_cast<te::ExternalPlugin*> (plugin);
+    if (ext == nullptr)
+        return makeErrorReply ("Plugin grabber controls are only available for external plugins");
+
+    if (! ensureExternalPluginInstanceReady (*edit, *ext, "plugin_grabber_apply_control", kPluginOpenUiReadyTimeoutMs))
+        return makeErrorReply ("Plugin grabber controls require an instantiated external plugin: "
+                               + describeExternalPluginLoadState (*edit, *ext));
+
+    const auto storedTemplateRole = plugin->state.getProperty ("vit_template_role").toString().trim().toLowerCase();
+    const auto templateRole = storedTemplateRole.isNotEmpty() ? storedTemplateRole
+                                                              : VitPluginTemplateRegistry::inferTemplateRole (*plugin);
+    auto parametersArray = VitPluginGrabber::buildParameterDescriptors (*ext, templateRole);
+    const auto aliasMap = readPluginParamAliases (*plugin);
+    applyAliasesToParameterDescriptors (parametersArray, aliasMap);
+
+    const auto projectFile = getEffectiveProjectFile (getCurrentProjectPath);
+    const auto pluginIdentity = VitPluginGrabberProjectProfile::createPluginIdentity (*ext, pluginID);
+    auto profileMerge = VitPluginGrabberProjectProfile::applyProjectDefault (projectFile, pluginIdentity, parametersArray);
+    const auto currentSignatureHash = paramSignature::computeHash (parametersArray);
+    const auto storedSignatureHash = paramSignature::loadFromProfile (profileMerge.profile.isObject() ? profileMerge.profile
+                                                                                                      : profileMerge.globalProfile);
+
+    if (! hasUsableRuntimeProfile (profileMerge))
+        return makeErrorReply ("plugin_grabber_apply_control requires a learned runtime profile; run get_plugin_parameters, then Learn/Generate Controls");
+
+    if (storedSignatureHash.isNotEmpty() && storedSignatureHash != currentSignatureHash)
+        return makeErrorReply ("plugin_grabber_apply_control profile signature is stale; run get_plugin_parameters and refresh the profile");
+
+    const auto validParamIds = collectCurrentParamIds (parametersArray);
+    juce::Array<juce::var> applied;
+    juce::var selectedVirtualControl = findVirtualControlByName (profileMerge.virtualControls, controlName);
+    juce::var selectedGroup;
+    juce::String resolver = "unknown";
+    juce::String componentId;
+
+    juce::Result applyResult = juce::Result::fail ("unsupported plugin grabber control: " + controlName);
+
+    if (selectedVirtualControl.isObject())
+    {
+        if (auto* controlObject = selectedVirtualControl.getDynamicObject())
+        {
+            resolver = firstNonEmptyProperty (*controlObject, { "resolver", "mode" });
+            componentId = firstNonEmptyProperty (*controlObject, { "component_id", "component", "group_id", "band_id" });
+
+            if (controlObject->getProperty ("params").isObject())
+                applyResult = applyVirtualControlParams (*plugin,
+                                                         validParamIds,
+                                                         profileMerge.staleParamIds,
+                                                         selectedVirtualControl,
+                                                         object,
+                                                         *targetObject,
+                                                         profileMerge.safety,
+                                                         applied);
+        }
+    }
+
+    if (applyResult.failed() && isEqRuntimeControl (controlName))
+    {
+        resolver = resolver.isNotEmpty() ? resolver : juce::String ("choose_nearest_or_free_band");
+        applyResult = applyEqRuntimeControl (*plugin,
+                                             validParamIds,
+                                             profileMerge.staleParamIds,
+                                             profileMerge.groups,
+                                             object,
+                                             *targetObject,
+                                             componentId,
+                                             profileMerge.safety,
+                                             applied,
+                                             selectedGroup);
+    }
+
+    if (applyResult.failed())
+    {
+        const auto message = applyResult.getErrorMessage();
+        const juce::String clarificationPrefix = "display_domain_clarification:";
+        if (message.startsWith (clarificationPrefix))
+            return makeStatusReply ("needs_clarification", message.substring (clarificationPrefix.length()).trim());
+
+        return makeErrorReply (message);
+    }
+
+    flushPluginOrOwnerState (*plugin);
+    edit->dispatchPendingUpdatesSynchronously();
+    edit->getTransport().ensureContextAllocated (true);
+
+    auto response = std::make_unique<juce::DynamicObject>();
+    response->setProperty ("status", "ok");
+    response->setProperty ("message", "Plugin grabber control applied");
+    response->setProperty ("track_id", trackID);
+    response->setProperty ("plugin_id", pluginID);
+    response->setProperty ("control", controlName);
+    response->setProperty ("plugin_identity", pluginIdentity);
+    response->setProperty ("profile_source", profileMerge.profileSource);
+    response->setProperty ("profile_applied", profileMerge.profileApplied);
+    response->setProperty ("global_profile_applied", profileMerge.globalProfileApplied);
+    response->setProperty ("current_param_signature_hash", currentSignatureHash);
+    if (storedSignatureHash.isNotEmpty())
+        response->setProperty ("profile_param_signature_hash", storedSignatureHash);
+    response->setProperty ("profile_stale_param_ids", juce::var (stringArrayToVarArray (profileMerge.staleParamIds)));
+    response->setProperty ("resolution", makeControlResolutionRecord (resolver, componentId, selectedVirtualControl, selectedGroup));
+    response->setProperty ("applied_parameters", juce::var (applied));
+    return juce::JSON::toString (juce::var (response.release()));
+}
+
+
+
 juce::String PluginRackControlService::handleScanPlugins (const juce::DynamicObject& object, const juce::String&) const
 {
     auto* edit = getEdit != nullptr ? getEdit() : nullptr;
@@ -2305,9 +3739,46 @@ juce::String PluginRackControlService::handleGetPluginParameters (const juce::Dy
     auto parametersArray = VitPluginGrabber::buildParameterDescriptors (*ext, templateRole);
     const auto aliasMap = readPluginParamAliases (*plugin);
     applyAliasesToParameterDescriptors (parametersArray, aliasMap);
+    const auto projectFile = getEffectiveProjectFile (getCurrentProjectPath);
+    const auto pluginIdentity = VitPluginGrabberProjectProfile::createPluginIdentity (*ext, pluginID);
+    auto profileMerge = VitPluginGrabberProjectProfile::applyProjectDefault (projectFile, pluginIdentity, parametersArray);
+    // Also load global profile info for extended fields
+    const auto profileKey = [&]() -> juce::String {
+        if (auto* idObj = pluginIdentity.getDynamicObject())
+            return idObj->getProperty ("profile_key").toString().trim();
+        return {};
+    }();
+    // Inline global profile load (replaces populateGlobalInfo)
+    if (profileKey.isNotEmpty())
+    {
+        const auto gpDir = paths::getWorkspaceDirectory().getChildFile ("plugin_grabber_profiles");
+        const auto gpFile = gpDir.getChildFile (profileKey.toLowerCase() + ".json");
+        if (gpFile.existsAsFile())
+        {
+            const auto gParsed = juce::JSON::parse (gpFile.loadFileAsString());
+            if (auto* gObj = gParsed.getDynamicObject())
+            {
+                profileMerge.globalProfileApplied = true;
+                profileMerge.globalProfileSource = "global_profile";
+                profileMerge.globalProfile = gParsed;
+                profileMerge.pluginClass = gObj->getProperty ("class").toString().trim();
+                if (auto* ga = gObj->getProperty ("groups").getArray())
+                    profileMerge.groups = *ga;
+                if (auto* va = gObj->getProperty ("virtual_controls").getArray())
+                    profileMerge.virtualControls = *va;
+                if (auto* sObj = gObj->getProperty ("safety").getDynamicObject())
+                    profileMerge.safety = juce::var (sObj->clone().release());
+            }
+        }
+    }
     appendBindingTargetPropertiesToParameterDescriptors (parametersArray, *plugin);
+    const auto currentSignatureHash = paramSignature::computeHash (parametersArray);
+    const auto storedSignatureHash = paramSignature::loadFromProfile (profileMerge.profile.isObject() ? profileMerge.profile
+                                                                                                      : profileMerge.globalProfile);
     const auto recommendedGroups = VitPluginGrabber::buildRecommendedGroups (parametersArray);
-    const auto quickControls = VitPluginGrabber::buildQuickControls (parametersArray, templateRole);
+    const auto quickControls = profileMerge.quickControlIds.isEmpty()
+                                   ? VitPluginGrabber::buildQuickControls (parametersArray, templateRole)
+                                   : VitPluginGrabberProjectProfile::buildQuickControlsForIds (parametersArray, profileMerge.quickControlIds);
     juce::Array<juce::var> bindingTargets;
     for (const auto& parameter : parametersArray)
         if (auto* parameterObject = parameter.getDynamicObject())
@@ -2328,6 +3799,33 @@ juce::String PluginRackControlService::handleGetPluginParameters (const juce::Dy
     response->setProperty ("template_role", templateRole);
     response->setProperty ("supports_param_grabber", true);
     response->setProperty ("param_aliases", createAliasMapVar (aliasMap));
+    response->setProperty ("plugin_identity", pluginIdentity);
+    response->setProperty ("profile_applied", profileMerge.profileApplied);
+    response->setProperty ("profile_source", profileMerge.profileSource);
+    response->setProperty ("profile_stale_param_ids", juce::var (stringArrayToVarArray (profileMerge.staleParamIds)));
+    response->setProperty ("project_profile", profileMerge.profile);
+    response->setProperty ("current_param_signature_hash", currentSignatureHash);
+    if (storedSignatureHash.isNotEmpty())
+        response->setProperty ("profile_param_signature_hash", storedSignatureHash);
+    response->setProperty ("global_profile_applied", profileMerge.globalProfileApplied);
+    response->setProperty ("global_profile_source", profileMerge.globalProfileSource);
+    if (profileMerge.globalProfile.isObject())
+        response->setProperty ("global_profile", profileMerge.globalProfile);
+    if (profileMerge.pluginClass.isNotEmpty())
+        response->setProperty ("plugin_class", profileMerge.pluginClass);
+    if (profileMerge.groups.size() > 0)
+        response->setProperty ("plugin_groups", juce::var (profileMerge.groups));
+    if (profileMerge.virtualControls.size() > 0)
+        response->setProperty ("virtual_controls", juce::var (profileMerge.virtualControls));
+    if (profileMerge.safety.isObject())
+        response->setProperty ("safety_limits", profileMerge.safety);
+    if (auto* profileObject = profileMerge.profile.getDynamicObject())
+        if (profileObject->getProperty (profileField::pluginSkill).isObject())
+            response->setProperty ("plugin_skill", profileObject->getProperty (profileField::pluginSkill));
+    if (! response->hasProperty ("plugin_skill"))
+        if (auto* globalObject = profileMerge.globalProfile.getDynamicObject())
+            if (globalObject->getProperty (profileField::pluginSkill).isObject())
+                response->setProperty ("plugin_skill", globalObject->getProperty (profileField::pluginSkill));
     response->setProperty ("binding_targets", juce::var (bindingTargets));
     response->setProperty ("recommended_groups", juce::var (recommendedGroups));
     response->setProperty ("quick_controls", juce::var (quickControls));

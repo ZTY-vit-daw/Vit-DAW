@@ -1,5 +1,7 @@
 #include "ImportService.h"
 
+#include <utility>
+
 namespace vit
 {
 
@@ -50,6 +52,73 @@ te::AudioTrack* findAudioTrackByID (te::Edit& edit, const juce::String& trackID)
 
     return nullptr;
 }
+
+bool importPerfLogEnabled()
+{
+    static const bool enabled = []
+    {
+        const auto raw = juce::SystemStats::getEnvironmentVariable ("VIT_IMPORT_PERF_LOG", "1")
+            .trim()
+            .toLowerCase();
+        return raw != "0" && raw != "false" && raw != "off" && raw != "no";
+    }();
+
+    return enabled;
+}
+
+juce::String importPerfMs (double value)
+{
+    return juce::String (value, 2);
+}
+
+void logImportPerf (const juce::String& operation,
+                    const juce::String& stage,
+                    double stageMs,
+                    double totalMs,
+                    const juce::String& details = {})
+{
+    if (! importPerfLogEnabled())
+        return;
+
+    juce::Logger::writeToLog ("[VitImportPerf] op=" + operation
+                              + " stage=" + stage
+                              + " stage_ms=" + importPerfMs (stageMs)
+                              + " total_ms=" + importPerfMs (totalMs)
+                              + (details.isNotEmpty() ? " " + details : juce::String()));
+}
+
+class ImportPerfTrace
+{
+public:
+    ImportPerfTrace (juce::String operationIn, juce::String trackIdIn, juce::String filePathIn)
+        : operation (std::move (operationIn)),
+          trackId (std::move (trackIdIn)),
+          fileName (juce::File (filePathIn).getFileName()),
+          totalStartMs (juce::Time::getMillisecondCounterHiRes()),
+          lastStageMs (totalStartMs)
+    {
+        mark ("begin", "track_id=" + trackId + " file=\"" + fileName + "\"");
+    }
+
+    void mark (const juce::String& stage, const juce::String& details = {})
+    {
+        const auto nowMs = juce::Time::getMillisecondCounterHiRes();
+        logImportPerf (operation, stage, nowMs - lastStageMs, nowMs - totalStartMs, details);
+        lastStageMs = nowMs;
+    }
+
+    void finish (const juce::String& status, const juce::String& details = {})
+    {
+        mark ("finish", "status=" + status + (details.isNotEmpty() ? " " + details : juce::String()));
+    }
+
+private:
+    juce::String operation;
+    juce::String trackId;
+    juce::String fileName;
+    double totalStartMs = 0.0;
+    double lastStageMs = 0.0;
+};
 
 bool ensureMonitoringPlugins (te::AudioTrack& track)
 {
@@ -108,9 +177,13 @@ ImportService::AudioImportInsertResult ImportService::insertWaveClipWithUndoAndS
     bool deleteExistingClips,
     const juce::String& appliedMode) const
 {
+    ImportPerfTrace perf ("insert_wave_clip",
+                          targetTrack.itemID.toString(),
+                          sourceFile.getFullPathName());
     AudioImportInsertResult out;
     edit.getUndoManager().beginNewTransaction (
         "Import Media: " + sourceFile.getFileName());
+    perf.mark ("begin_transaction");
 
     const auto clipStart = te::TimePosition::fromSeconds (startTimeSeconds);
     const auto clipEnd   = te::TimePosition::fromSeconds (startTimeSeconds + audioLengthSeconds);
@@ -118,9 +191,14 @@ ImportService::AudioImportInsertResult ImportService::insertWaveClipWithUndoAndS
                                                sourceFile,
                                                {{ clipStart, clipEnd }},
                                                deleteExistingClips);
+    perf.mark ("tracktion_insert_wave_clip",
+               "delete_existing=" + juce::String (deleteExistingClips ? "true" : "false")
+               + " start=" + juce::String (startTimeSeconds, 4)
+               + " length=" + juce::String (audioLengthSeconds, 4));
 
     if (newClip == nullptr)
     {
+        perf.finish ("error", "reason=insert_failed");
         out.errorMessage = "Failed to insert audio clip";
         return out;
     }
@@ -133,22 +211,35 @@ ImportService::AudioImportInsertResult ImportService::insertWaveClipWithUndoAndS
 
     targetTrack.flushStateToValueTree();
     edit.invalidateStoredLength();
+    perf.mark ("flush_track_and_invalidate_length", "clip_id=" + out.clipId);
     edit.dispatchPendingUpdatesSynchronously();
+    perf.mark ("dispatch_pending_updates");
     out.editLengthSeconds = edit.getLength().inSeconds();
     edit.getTransport().ensureContextAllocated (true);
+    perf.mark ("ensure_context_allocated",
+               "edit_length=" + juce::String (out.editLengthSeconds, 4));
 
-    TiledSpectrogramBaker::startBake (sourceFile.getFullPathName(),
-                                      out.trackItemId,
-                                      out.clipId,
-                                      publishMessage);
+    AudioFeatureBakeRequest waveformRequest;
+    waveformRequest.filePath = sourceFile.getFullPathName();
+    waveformRequest.trackId = out.trackItemId;
+    waveformRequest.clipId = out.clipId;
+    waveformRequest.featureType = AudioFeatureType::WaveformEnvelope;
+    waveformRequest.priority = AudioFeaturePriority::ImportImmediate;
+    waveformRequest.range.lengthSeconds = audioLengthSeconds;
+    waveformRequest.resolution.frameWidth = 1024;
+    AudioFeatureService::requestBake (std::move (waveformRequest), publishMessage);
+    perf.mark ("request_waveform_envelope");
 
     if (saveProject && ! saveProject())
     {
+        perf.finish ("error", "reason=save_project_failed");
         out.errorMessage = "Audio clip added in memory but failed to save project";
         return out;
     }
+    perf.mark ("save_project", saveProject ? "called=true" : "called=false");
 
     out.ok = true;
+    perf.finish ("ok", "clip_id=" + out.clipId);
     juce::ignoreUnused (appliedMode);
     return out;
 }
@@ -173,32 +264,53 @@ juce::String ImportService::handleAddAudioClip (const juce::DynamicObject& objec
     if (! startTimeVar.isDouble() && ! startTimeVar.isInt() && ! startTimeVar.isInt64())
         return makeErrorReply ("add_audio_clip requires a numeric start_time field");
 
+    ImportPerfTrace perf ("add_audio_clip", trackID, filePath);
     const auto startTimeSeconds = static_cast<double> (startTimeVar);
 
     if (startTimeSeconds < 0.0)
+    {
+        perf.finish ("error", "reason=negative_start_time");
         return makeErrorReply ("start_time must be greater than or equal to zero");
+    }
 
     auto sourceFile = juce::File (filePath);
 
     if (! sourceFile.existsAsFile())
+    {
+        perf.finish ("error", "reason=file_missing");
         return makeErrorReply ("Audio file does not exist: " + filePath);
+    }
+    perf.mark ("file_exists");
 
     auto audioFile = te::AudioFile (edit->engine, sourceFile);
 
     if (! audioFile.isValid())
+    {
+        perf.finish ("error", "reason=audio_file_invalid");
         return makeErrorReply ("Unsupported or unreadable audio file: " + filePath);
+    }
+    perf.mark ("audio_file_open");
 
     const auto audioLengthSeconds = audioFile.getLength();
+    perf.mark ("audio_length", "length=" + juce::String (audioLengthSeconds, 4));
 
     if (audioLengthSeconds <= 0.0)
+    {
+        perf.finish ("error", "reason=zero_length");
         return makeErrorReply ("Audio file has zero length: " + filePath);
+    }
 
     auto* targetTrack = findAudioTrackByID (*edit, trackID);
+    perf.mark ("find_track", "found=" + juce::String (targetTrack != nullptr ? "true" : "false"));
 
     if (targetTrack == nullptr)
+    {
+        perf.finish ("error", "reason=track_not_found");
         return makeErrorReply ("Audio track not found for track_id: " + trackID);
+    }
 
-    ensureMonitoringPlugins (*targetTrack);
+    const bool monitoringChanged = ensureMonitoringPlugins (*targetTrack);
+    perf.mark ("ensure_monitoring_plugins", "changed=" + juce::String (monitoringChanged ? "true" : "false"));
 
     const auto clipStart = te::TimePosition::fromSeconds (startTimeSeconds);
     const auto clipEnd = te::TimePosition::fromSeconds (startTimeSeconds + audioLengthSeconds);
@@ -214,11 +326,29 @@ juce::String ImportService::handleAddAudioClip (const juce::DynamicObject& objec
 
     edit->invalidateStoredLength();
     edit->dispatchPendingUpdatesSynchronously();
+    perf.mark ("dispatch_pending_updates", "clip_id=" + newClip->itemID.toString());
     const auto editLengthSeconds = edit->getLength().inSeconds();
     edit->getTransport().ensureContextAllocated (true);
+    perf.mark ("ensure_context_allocated", "edit_length=" + juce::String (editLengthSeconds, 4));
+
+    AudioFeatureBakeRequest waveformRequest;
+    waveformRequest.filePath = sourceFile.getFullPathName();
+    waveformRequest.trackId = trackID;
+    waveformRequest.clipId = newClip->itemID.toString();
+    waveformRequest.featureType = AudioFeatureType::WaveformEnvelope;
+    waveformRequest.priority = AudioFeaturePriority::ImportImmediate;
+    waveformRequest.range.lengthSeconds = audioLengthSeconds;
+    waveformRequest.resolution.frameWidth = 1024;
+    AudioFeatureService::requestBake (std::move (waveformRequest), publishMessage);
+    perf.mark ("request_waveform_envelope");
 
     if (saveProject && ! saveProject())
+    {
+        perf.finish ("error", "reason=save_project_failed");
         return makeErrorReply ("Audio clip added in memory but failed to save project");
+    }
+    perf.mark ("save_project", saveProject ? "called=true" : "called=false");
+    perf.finish ("ok", "clip_id=" + newClip->itemID.toString());
 
     auto response = std::make_unique<juce::DynamicObject>();
     response->setProperty ("status", "ok");
@@ -257,29 +387,47 @@ juce::String ImportService::handleImportMediaToTrack (const juce::DynamicObject&
     if (! startTimeVar.isDouble() && ! startTimeVar.isInt() && ! startTimeVar.isInt64())
         return makeErrorReply ("import_media_to_track requires a numeric start_time field");
 
+    ImportPerfTrace perf ("import_media_to_track", trackId, filePath);
     const double startTimeSeconds = juce::jmax (0.0, static_cast<double> (startTimeVar));
 
     auto sourceFile = juce::File (filePath);
 
     if (! sourceFile.existsAsFile())
+    {
+        perf.finish ("error", "reason=file_missing");
         return makeErrorReply ("Audio file does not exist: " + filePath);
+    }
+    perf.mark ("file_exists");
 
     auto audioFile = te::AudioFile (edit->engine, sourceFile);
 
     if (! audioFile.isValid())
+    {
+        perf.finish ("error", "reason=audio_file_invalid");
         return makeErrorReply ("Unsupported or unreadable audio file: " + filePath);
+    }
+    perf.mark ("audio_file_open");
 
     const auto audioLengthSeconds = audioFile.getLength();
+    perf.mark ("audio_length", "length=" + juce::String (audioLengthSeconds, 4));
 
     if (audioLengthSeconds <= 0.0)
+    {
+        perf.finish ("error", "reason=zero_length");
         return makeErrorReply ("Audio file has zero length: " + filePath);
+    }
 
     auto* targetTrack = findAudioTrackByID (*edit, trackId);
+    perf.mark ("find_track", "found=" + juce::String (targetTrack != nullptr ? "true" : "false"));
 
     if (targetTrack == nullptr)
+    {
+        perf.finish ("error", "reason=track_not_found");
         return makeErrorReply ("Audio track not found for track_id: " + trackId);
+    }
 
-    ensureMonitoringPlugins (*targetTrack);
+    const bool monitoringChanged = ensureMonitoringPlugins (*targetTrack);
+    perf.mark ("ensure_monitoring_plugins", "changed=" + juce::String (monitoringChanged ? "true" : "false"));
     const bool deleteExistingClips = (mode.isEmpty() || mode == juce::String ("destructive"));
     const auto appliedMode = deleteExistingClips ? juce::String ("destructive")
                                                   : juce::String ("non_destructive");
@@ -289,11 +437,17 @@ juce::String ImportService::handleImportMediaToTrack (const juce::DynamicObject&
                                                               sourceFile,
                                                               startTimeSeconds,
                                                               audioLengthSeconds,
-                                                              deleteExistingClips,
-                                                              appliedMode);
+                                                               deleteExistingClips,
+                                                               appliedMode);
+    perf.mark ("insert_wave_clip_with_bake",
+               "ok=" + juce::String (inserted.ok ? "true" : "false")
+               + " clip_id=" + inserted.clipId);
 
     if (! inserted.ok)
+    {
+        perf.finish ("error", "reason=insert_failed");
         return makeErrorReply (inserted.errorMessage);
+    }
 
     juce::Logger::writeToLog ("ImportService::handleImportMediaToTrack: clipId=\""
                             + inserted.clipId
@@ -321,6 +475,7 @@ juce::String ImportService::handleImportMediaToTrack (const juce::DynamicObject&
     response->setProperty ("file_path", sourceFile.getFullPathName());
     response->setProperty ("edit_length_seconds", inserted.editLengthSeconds);
     response->setProperty ("baking_status", "baking_started");
+    perf.finish ("ok", "clip_id=" + inserted.clipId);
     return juce::JSON::toString (juce::var (response.release()));
 }
 
@@ -340,27 +495,45 @@ juce::String ImportService::handleImportAudio (const juce::DynamicObject& object
     if (trackId.isEmpty())
         return makeErrorReply ("import_audio requires a non-empty track_id");
 
+    ImportPerfTrace perf ("import_audio", trackId, filePath);
     auto sourceFile = juce::File (filePath);
 
     if (! sourceFile.existsAsFile())
+    {
+        perf.finish ("error", "reason=file_missing");
         return makeErrorReply ("Audio file does not exist: " + filePath);
+    }
+    perf.mark ("file_exists");
 
     auto audioFile = te::AudioFile (edit->engine, sourceFile);
 
     if (! audioFile.isValid())
+    {
+        perf.finish ("error", "reason=audio_file_invalid");
         return makeErrorReply ("Unsupported or unreadable audio file: " + filePath);
+    }
+    perf.mark ("audio_file_open");
 
     const auto audioLengthSeconds = audioFile.getLength();
+    perf.mark ("audio_length", "length=" + juce::String (audioLengthSeconds, 4));
 
     if (audioLengthSeconds <= 0.0)
+    {
+        perf.finish ("error", "reason=zero_length");
         return makeErrorReply ("Audio file has zero length: " + filePath);
+    }
 
     auto* targetTrack = findAudioTrackByID (*edit, trackId);
+    perf.mark ("find_track", "found=" + juce::String (targetTrack != nullptr ? "true" : "false"));
 
     if (targetTrack == nullptr)
+    {
+        perf.finish ("error", "reason=track_not_found");
         return makeErrorReply ("Audio track not found for track_id: " + trackId);
+    }
 
-    ensureMonitoringPlugins (*targetTrack);
+    const bool monitoringChanged = ensureMonitoringPlugins (*targetTrack);
+    perf.mark ("ensure_monitoring_plugins", "changed=" + juce::String (monitoringChanged ? "true" : "false"));
 
     const auto offsetTimeVar = object.getProperty ("offset_time");
     double startTimeSeconds = 0.0;
@@ -390,12 +563,18 @@ juce::String ImportService::handleImportAudio (const juce::DynamicObject& object
                                                               *targetTrack,
                                                               sourceFile,
                                                               startTimeSeconds,
-                                                              audioLengthSeconds,
-                                                              false,
-                                                              "append");
+                                                               audioLengthSeconds,
+                                                               false,
+                                                               "append");
+    perf.mark ("insert_wave_clip_with_bake",
+               "ok=" + juce::String (inserted.ok ? "true" : "false")
+               + " clip_id=" + inserted.clipId);
 
     if (! inserted.ok)
+    {
+        perf.finish ("error", "reason=insert_failed");
         return makeErrorReply (inserted.errorMessage);
+    }
 
     juce::Logger::writeToLog ("ImportService::handleImportAudio: imported clip=\""
                               + inserted.clipName
@@ -423,6 +602,7 @@ juce::String ImportService::handleImportAudio (const juce::DynamicObject& object
     response->setProperty ("length", inserted.audioLengthSeconds);
     response->setProperty ("edit_length_seconds", inserted.editLengthSeconds);
     response->setProperty ("baking_status", "baking_started");
+    perf.finish ("ok", "clip_id=" + inserted.clipId);
     return juce::JSON::toString (juce::var (response.release()));
 }
 
@@ -436,16 +616,27 @@ juce::String ImportService::handleWarmWaveformBake (const juce::DynamicObject& o
     const auto filePath = object.getProperty ("file_path").toString().trim();
     const auto trackId  = object.getProperty ("track_id").toString().trim();
     const auto clipId   = object.getProperty ("clip_id").toString().trim();
+    const auto sourceKind = object.getProperty ("source_kind").toString().trim().toLowerCase();
+    const bool useExplicitFileSource = filePath.isNotEmpty()
+                                     && (trackId == "master_output"
+                                         || sourceKind == "master_render"
+                                         || static_cast<bool> (object.getProperty ("allow_file_source")));
     if (trackId.isEmpty())
         return makeErrorReply ("warm_waveform_bake requires a non-empty track_id");
-    if (findAudioTrackByID (*edit, trackId) == nullptr)
+    if (! useExplicitFileSource && findAudioTrackByID (*edit, trackId) == nullptr)
         return makeErrorReply ("Audio track not found for track_id: " + trackId);
 
     juce::File sourceFile;
     double sourceOffsetSeconds = 0.0;
     double bakeLengthSeconds = -1.0;
 
-    if (clipId.isNotEmpty())
+    if (useExplicitFileSource)
+    {
+        sourceFile = juce::File (filePath);
+        if (! sourceFile.existsAsFile())
+            return makeErrorReply ("Audio file does not exist: " + filePath);
+    }
+    else if (clipId.isNotEmpty())
     {
         auto* clip = findClipByID (*edit, clipId);
         auto* audioClip = dynamic_cast<te::AudioClipBase*> (clip);
@@ -468,20 +659,31 @@ juce::String ImportService::handleWarmWaveformBake (const juce::DynamicObject& o
             return makeErrorReply ("Audio file does not exist: " + filePath);
     }
 
-    TiledSpectrogramBaker::startBake (sourceFile.getFullPathName(),
-                                      trackId,
-                                      clipId,
-                                      publishMessage,
-                                      sourceOffsetSeconds,
-                                      bakeLengthSeconds);
+    const auto requestedFeature = audioFeatureTypeFromString (
+        object.getProperty ("feature_type").toString(),
+        AudioFeatureType::WaveformEnvelope);
+    AudioFeatureBakeRequest featureRequest;
+    featureRequest.filePath = sourceFile.getFullPathName();
+    featureRequest.trackId = trackId;
+    featureRequest.clipId = clipId;
+    featureRequest.featureType = requestedFeature;
+    featureRequest.priority = AudioFeaturePriority::OnDemand;
+    featureRequest.range.sourceOffsetSeconds = sourceOffsetSeconds;
+    featureRequest.range.lengthSeconds = bakeLengthSeconds;
+    AudioFeatureService::requestBake (std::move (featureRequest), publishMessage);
 
     auto response = std::make_unique<juce::DynamicObject>();
     response->setProperty ("status", "ok");
-    response->setProperty ("cmd", "warm_waveform_bake");
+    const auto command = object.getProperty ("cmd").toString().trim();
+    response->setProperty ("cmd", command.isNotEmpty() ? command : "warm_waveform_bake");
     response->setProperty ("track_id", trackId);
     response->setProperty ("clip_id", clipId);
     response->setProperty ("file_path", sourceFile.getFullPathName());
-    response->setProperty ("message", "Waveform bake started (no new clip inserted)");
+    response->setProperty ("feature_family", "audio_feature");
+    response->setProperty ("feature_type", audioFeatureTypeToString (requestedFeature));
+    response->setProperty ("feature_version", audioFeatureProductVersion (requestedFeature));
+    response->setProperty ("analysis_version", audioFeatureAnalysisVersion());
+    response->setProperty ("message", "Audio feature bake requested (no new clip inserted)");
     return juce::JSON::toString (juce::var (response.release()));
 }
 

@@ -14,6 +14,7 @@ import (
 	"vit-daw-agent/internal/pluginsemantics"
 	"vit-daw-agent/internal/shadow"
 	"vit-daw-agent/internal/tools"
+	"vit-daw-agent/internal/workflows/plugingrabber"
 )
 
 type fakeKernelClient struct {
@@ -235,6 +236,60 @@ func TestResolvePluginTargetFromContext(t *testing.T) {
 	}
 }
 
+func TestPublicPluginParametersResultIncludesRuntimeProfile(t *testing.T) {
+	out := publicPluginParametersResult(nil, map[string]any{
+		"status":                 "ok",
+		"track_id":               "1007",
+		"plugin_id":              "plugin_a",
+		"global_profile_applied": true,
+		"global_profile_source":  "global_profile",
+		"plugin_class":           "compressor",
+		"plugin_groups": []any{
+			map[string]any{"id": "main_dynamics", "role": "compressor", "label": "Main dynamics"},
+		},
+		"virtual_controls": []any{
+			map[string]any{"name": "tighten dynamics", "component_id": "main_dynamics", "resolver": "local_profile_mapping"},
+		},
+		"safety_limits": map[string]any{"max_gain_change_db": 6},
+		"global_profile": map[string]any{
+			"plugin_skill": map[string]any{
+				"schema_version": 2,
+				"components": []any{
+					map[string]any{
+						"id":     "main_dynamics",
+						"role":   "compressor",
+						"params": map[string]any{"threshold": map[string]any{"param_id": "threshold", "confidence": 0.9}},
+					},
+				},
+				"operations": []any{
+					map[string]any{"name": "tighten dynamics", "component_id": "main_dynamics", "params": map[string]any{"threshold": "threshold"}},
+				},
+			},
+		},
+		"quick_controls": []any{
+			map[string]any{"param_id": "threshold", "label": "Threshold"},
+		},
+		"recommended_groups": []any{},
+		"parameters": []any{
+			map[string]any{"id": "threshold"},
+		},
+	})
+	if out["plugin_class"] != "compressor" || out["global_profile_applied"] != true {
+		t.Fatalf("runtime profile flags missing: %+v", out)
+	}
+	if out["plugin_group_count"] != 1 || out["virtual_control_count"] != 1 {
+		t.Fatalf("runtime profile counts missing: %+v", out)
+	}
+	skill, ok := out["plugin_skill"].(map[string]any)
+	if !ok || skill["component_count"] != 1 || skill["operation_count"] != 1 {
+		t.Fatalf("plugin_skill summary missing: %+v", out["plugin_skill"])
+	}
+	components := mapRowsFromAny(skill["components"])
+	if len(components) != 1 || len(mapRowsFromAny(components[0]["params"])) != 1 {
+		t.Fatalf("plugin_skill params missing: %+v", skill["components"])
+	}
+}
+
 func TestPluginLoadToRackNormalizesArgs(t *testing.T) {
 	t.Setenv("VIT_PLUGIN_SEMANTICS_PATH", filepath.Join(t.TempDir(), "missing_plugin_semantics.json"))
 	h := New(nil, nil, nil)
@@ -398,6 +453,41 @@ func TestPluginParametersPublicResultIsCompact(t *testing.T) {
 	}
 	if _, ok := result["parameters"]; ok {
 		t.Fatalf("public result leaked full parameters: %+v", result)
+	}
+	if summary, ok := result["display_probe_summary"].(map[string]any); !ok || summary["parameter_count"] != 2 {
+		t.Fatalf("display probe summary = %+v", result["display_probe_summary"])
+	}
+}
+
+func TestPluginParametersPublicResultKeepsCompactDisplayProbeWhenIncluded(t *testing.T) {
+	h := New(nil, nil, nil)
+	result := h.publicResult(tools.CommandSpec{CommandName: "get_plugin_parameters"}, map[string]any{"include_parameters": true}, map[string]any{
+		"status":    "ok",
+		"track_id":  "1007",
+		"plugin_id": "plugin_a",
+		"parameters": []any{map[string]any{
+			"id":                "delay",
+			"name":              "Delay",
+			"host_controllable": true,
+			"display_probe": map[string]any{
+				"mode":  "read_only_value_to_string",
+				"label": "ms",
+				"samples": []any{
+					map[string]any{"normalized_value": 0.0, "value": 0.0, "text": "0 ms"},
+					map[string]any{"normalized_value": 1.0, "value": 1.0, "text": "2000 ms"},
+				},
+			},
+		}},
+	})
+	params := mapRowsFromAny(result["parameters"])
+	if len(params) != 1 {
+		t.Fatalf("parameters = %+v", result["parameters"])
+	}
+	if _, ok := params[0]["display_probe"]; !ok {
+		t.Fatalf("compact parameter missing display_probe: %+v", params[0])
+	}
+	if domain, ok := params[0]["display_domain_candidate"].(*plugingrabber.PluginDisplayDomain); !ok || domain.Unit != "ms" {
+		t.Fatalf("display_domain_candidate = %+v", params[0]["display_domain_candidate"])
 	}
 }
 

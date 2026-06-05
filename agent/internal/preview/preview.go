@@ -57,10 +57,15 @@ func PluginGrabberProfileUpsert(spec tools.CommandSpec, cmd map[string]any) stri
 	aliases := mapStringStringFromAny(cmd["aliases"])
 	groups := mapStringStringFromAny(cmd["display_groups"])
 	roles := mapStringStringFromAny(cmd["normalized_roles"])
+	semanticGroups := operationRowsFromAny(cmd["groups"])
+	virtualControls := operationRowsFromAny(cmd["virtual_controls"])
 	var b strings.Builder
 	fmt.Fprintf(&b, "%s [%s]: %s\n", spec.CommandName, spec.RiskLevel, spec.Description)
 	fmt.Fprintf(&b, "Track %s, plugin %s\n", firstString(cmd, "track_id"), firstString(cmd, "plugin_id"))
 	fmt.Fprintf(&b, "Quick controls (%d): %s\n", len(quickIDs), strings.Join(firstNStrings(quickIDs, 16), ", "))
+	if pluginClass := firstString(cmd, "class"); pluginClass != "" {
+		fmt.Fprintf(&b, "Class: %s\n", pluginClass)
+	}
 	if len(aliases) > 0 {
 		fmt.Fprintf(&b, "Aliases: %d\n", len(aliases))
 	}
@@ -69,6 +74,15 @@ func PluginGrabberProfileUpsert(spec tools.CommandSpec, cmd map[string]any) stri
 	}
 	if len(roles) > 0 {
 		fmt.Fprintf(&b, "Normalized roles: %d\n", len(roles))
+	}
+	if len(semanticGroups) > 0 {
+		fmt.Fprintf(&b, "Semantic groups: %d\n", len(semanticGroups))
+	}
+	if len(virtualControls) > 0 {
+		fmt.Fprintf(&b, "Virtual controls: %d\n", len(virtualControls))
+	}
+	if cmd["plugin_skill"] != nil {
+		fmt.Fprintf(&b, "Plugin skill: yes\n")
 	}
 	return strings.TrimSpace(b.String())
 }

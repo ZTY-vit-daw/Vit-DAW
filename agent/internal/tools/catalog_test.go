@@ -114,6 +114,13 @@ func TestPluginGrabberAliasIsCataloged(t *testing.T) {
 	if upsert.CommandName != "plugin_grabber_upsert_project_profile" || !upsert.RequiresConfirmation || upsert.RiskLevel != RiskConfirm {
 		t.Fatalf("profile upsert metadata = %+v", upsert)
 	}
+	applyControl, ok := catalog.LookupTool("plugin_grabber.apply_control")
+	if !ok {
+		t.Fatal("plugin_grabber.apply_control missing")
+	}
+	if applyControl.CommandName != "plugin_grabber_apply_control" || applyControl.RequiresConfirmation || applyControl.RiskLevel != RiskUndoable || !applyControl.SupportsUndo {
+		t.Fatalf("apply control metadata = %+v", applyControl)
+	}
 }
 
 func TestMidiPatchToolsAreCataloged(t *testing.T) {

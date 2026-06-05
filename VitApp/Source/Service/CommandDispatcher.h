@@ -67,6 +67,8 @@ private:
     juce::String handleClearProject (const juce::DynamicObject&, const juce::String&) const;
     juce::String handleUndo (const juce::DynamicObject&, const juce::String&) const;
     juce::String handleRedo (const juce::DynamicObject&, const juce::String&) const;
+    juce::String handleProjectSnapshotExport (const juce::DynamicObject&, const juce::String&) const;
+    juce::String handleProjectUndoState (const juce::DynamicObject&, const juce::String&) const;
     EditGetter getEdit;
     BoolAction saveProject;
     PublishAction publishMessage;

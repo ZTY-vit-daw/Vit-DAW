@@ -1,6 +1,6 @@
 #include "TrackService.h"
 
-#include "TiledSpectrogramBaker.h"
+#include "AudioFeatureService.h"
 
 #include "../Core/VitKernelUtils.h"
 
@@ -293,7 +293,7 @@ juce::String TrackService::handleDeleteTrack (const juce::DynamicObject& object,
     auto& undo = edit->getUndoManager();
     undo.beginNewTransaction ("Delete track");
     edit->deleteTrack (targetTrack);
-    TiledSpectrogramBaker::releaseTrackMappings (releasedTrackID);
+    AudioFeatureService::releaseTrackMappings (releasedTrackID);
     edit->invalidateStoredLength();
     edit->dispatchPendingUpdatesSynchronously();
     edit->getTransport().ensureContextAllocated (true);

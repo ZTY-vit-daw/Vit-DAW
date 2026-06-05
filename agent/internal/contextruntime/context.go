@@ -1031,13 +1031,14 @@ func summarizePluginContextPack(pack map[string]any, opts Options) (map[string]a
 		"plugin_identity", "template_role", "profile_source", "profile_applied",
 		"parameters_retained", "parameter_count", "quick_control_count",
 		"recommended_group_count", "profile_stale_param_ids",
+		"display_probe_summary",
 	} {
 		if value, ok := pack[key]; ok && !isEmptyValue(value) {
 			out[key] = compactValue(value, opts, 0)
 		}
 	}
 	if rows := mapRows(pack["quick_controls"]); len(rows) > 0 {
-		out["quick_controls"] = compactRows(rows, []string{"param_id", "label", "widget", "display_group", "normalized_role", "value", "normalized_value", "value_text", "host_controllable", "control_relevance", "explanation_hint", "full_parameter_ref"}, opts)
+		out["quick_controls"] = compactRows(rows, []string{"param_id", "label", "widget", "display_group", "normalized_role", "value", "normalized_value", "value_text", "host_controllable", "control_relevance", "display_domain_candidate", "display_probe", "explanation_hint", "full_parameter_ref"}, opts)
 	}
 	if rows := mapRows(pack["groups"]); len(rows) > 0 {
 		out["groups"] = compactRows(rows, []string{"name", "parameter_count", "quick_control_ids", "sample_param_ids"}, opts)

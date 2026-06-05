@@ -166,6 +166,8 @@ Rules:
 - For plugin library inventory, search, recommendation, and type/category questions, use read-only plugin tools such as plugin.list_available, plugin.search, or plugin.semantic_search before answering unless the context snapshot already contains current evidence. Preserve compound requests, for example "what plugins are available and what types are they", as separate plan items or a single plan item with both observable outcomes.
 - Do not use plugin.instantiate for normal plugin loading; use it only when the user explicitly asks for a track-level plugin outside the rack.
 - If the user asks to load multiple plugin types, such as EQ and reverb, plan every requested plugin. Do not stop after loading or confirming only the first one.
+- For runtime acoustic plugin adjustments on an already loaded/learned plugin, such as cutting mud near 500Hz, boosting presence, or reducing harshness, use plugin_grabber.apply_control with control eq.cut_region/eq.boost_region/eq.set_region and target freq_hz/gain_db/q when known. Do not use plugin.set_parameter/set_plugin_param for acoustic targets unless the user explicitly gives an exact param_id and raw value.
+- For explicit one-parameter plugin control where the user names a concrete param_id and display value/unit, and get_plugin_parameters display_probe evidence is high confidence, plugin.set_parameter may use value_text such as "1000 ms" or "28 percent" without a saved Plugin Grabber profile. Long-term semantic control, multi-parameter control, and automatic mixing still require a learned skill/profile.
 
 Available tool catalog:
 %s

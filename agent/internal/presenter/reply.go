@@ -284,14 +284,14 @@ func executedCommandReply(before, after map[string]any, d policy.Decision, reply
 	case "plugin_grabber_upsert_project_profile":
 		count := len(stringSliceValue(cmd["quick_control_ids"]))
 		if count > 0 {
-			return fmt.Sprintf("Saved project plugin grabber profile with %d quick controls.", count)
+			return fmt.Sprintf("已保存项目 Plugin Grabber 档案，包含 %d 个快捷控制。", count)
 		}
-		return "Saved project plugin grabber profile."
+		return "已保存项目 Plugin Grabber 档案。"
 	case "plugin_grabber_remove_project_profile":
 		if firstText(result, "removed") == "false" {
-			return "Project plugin grabber profile was already absent."
+			return "项目 Plugin Grabber 档案原本就不存在。"
 		}
-		return "Removed project plugin grabber profile."
+		return "已移除项目 Plugin Grabber 档案。"
 	case "scan_plugins":
 		return formatPluginScanResult(result)
 	case "undo":

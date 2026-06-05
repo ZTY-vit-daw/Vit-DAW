@@ -22,6 +22,9 @@ func synthesizePluginGrabberExplainCommands(userText string, requestContext map[
 }
 
 func coercePluginGrabberExplainCommand(commands []map[string]any, userText string, requestContext map[string]any) (map[string]any, bool) {
+	if _, hasLearn := firstPluginGrabberLearningCommand(commands); hasLearn {
+		return nil, false
+	}
 	return plugingrabber.CoerceExplainCommand(commands, userText, requestContext)
 }
 
@@ -30,7 +33,7 @@ func firstPluginGrabberExplainCommand(commands []map[string]any) (map[string]any
 }
 func pluginGrabberExplainInvokeCommand(req harness.InvokeRequest) (map[string]any, bool) {
 	toolName := strings.TrimSpace(req.Tool)
-	if toolName == pluginGrabberExplainTool || toolName == "plugin.explain_controls" || toolName == "plugin_explain_controls" {
+	if toolName == pluginGrabberExplainTool || toolName == pluginGrabberExplainCommand || toolName == "plugin.explain_controls" || toolName == "plugin_explain_controls" {
 		cmd := map[string]any{"cmd": pluginGrabberExplainCommand}
 		for key, value := range req.Args {
 			cmd[key] = value
@@ -78,6 +81,7 @@ func (s *Server) runPluginGrabberExplainWorkflow(ctx context.Context, conversati
 		return ChatResponse{ConversationID: conversationID, Reply: friendlyExecutionError(err), Error: err.Error()}
 	}
 
+	s.observePluginParametersReply(paramsReply)
 	digest := buildPluginParameterDigest(paramsReply)
 	pack := buildPluginGrabberContextPack(digest)
 	decision := policy.Decision{

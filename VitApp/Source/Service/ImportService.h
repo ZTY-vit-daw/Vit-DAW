@@ -5,7 +5,7 @@
 #include <JuceHeader.h>
 #include <tracktion_engine/tracktion_engine.h>
 
-#include "TiledSpectrogramBaker.h"
+#include "AudioFeatureService.h"
 
 namespace vit
 {

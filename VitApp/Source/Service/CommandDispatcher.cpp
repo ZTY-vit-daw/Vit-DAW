@@ -764,7 +764,7 @@ juce::Array<juce::var> createPluginNameArray (te::Track& track)
     return plugins;
 }
 
-/** get_project_state：与 createPluginNameArray 兼容，并补充 type/enabled，供前端机架与调试�?*/
+/** get_project_state：与 createPluginNameArray 兼容，并补充 type/enabled，供前端机架与调试�?*/
 juce::Array<juce::var> createProjectStatePluginsArray (te::Track& track)
 {
     juce::Array<juce::var> plugins;
@@ -788,7 +788,7 @@ juce::Array<juce::var> createProjectStatePluginsArray (te::Track& track)
     return plugins;
 }
 
-/** 遍历 ClipTrack 上的 Clip �?TrackItem，输出时间线与标识（供前�?影子树对齐）�?*/
+/** 遍历 ClipTrack 上的 Clip �?TrackItem，输出时间线与标识（供前�?影子树对齐）�?*/
 juce::Array<juce::var> createProjectStateClipsArray (te::Track& track)
 {
     juce::Array<juce::var> clips;
@@ -2518,6 +2518,54 @@ void CommandDispatcher::registerBuiltinCommands()
     {
         return transportAudioService != nullptr ? transportAudioService->handleCancelRender (object, raw)
                                              : makeErrorReply ("Transport/audio service unavailable");
+    });
+
+    handlers.emplace ("n_project_profile", [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return pluginRackControlService != nullptr ? pluginRackControlService->handlePluginGrabberUpsertProjectProfile (object, raw)
+                                             : makeErrorReply ("Plugin/rack/control service unavailable");
+    });
+
+    handlers.emplace ("plugin_grabber_upsert_project_profile", [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return pluginRackControlService != nullptr ? pluginRackControlService->handlePluginGrabberUpsertProjectProfile (object, raw)
+                                             : makeErrorReply ("Plugin/rack/control service unavailable");
+    });
+
+    handlers.emplace ("n_get_project_profiles", [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return pluginRackControlService != nullptr ? pluginRackControlService->handlePluginGrabberGetProjectProfiles (object, raw)
+                                             : makeErrorReply ("Plugin/rack/control service unavailable");
+    });
+
+    handlers.emplace ("plugin_grabber_get_project_profiles", [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return pluginRackControlService != nullptr ? pluginRackControlService->handlePluginGrabberGetProjectProfiles (object, raw)
+                                             : makeErrorReply ("Plugin/rack/control service unavailable");
+    });
+
+    handlers.emplace ("n_remove_project_profile", [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return pluginRackControlService != nullptr ? pluginRackControlService->handlePluginGrabberRemoveProjectProfile (object, raw)
+                                             : makeErrorReply ("Plugin/rack/control service unavailable");
+    });
+
+    handlers.emplace ("plugin_grabber_remove_project_profile", [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return pluginRackControlService != nullptr ? pluginRackControlService->handlePluginGrabberRemoveProjectProfile (object, raw)
+                                             : makeErrorReply ("Plugin/rack/control service unavailable");
+    });
+
+    handlers.emplace ("plugin_grabber_apply_control", [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return pluginRackControlService != nullptr ? pluginRackControlService->handlePluginGrabberApplyControl (object, raw)
+                                             : makeErrorReply ("Plugin/rack/control service unavailable");
+    });
+
+    handlers.emplace ("n_apply_control", [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return pluginRackControlService != nullptr ? pluginRackControlService->handlePluginGrabberApplyControl (object, raw)
+                                             : makeErrorReply ("Plugin/rack/control service unavailable");
     });
 }
 

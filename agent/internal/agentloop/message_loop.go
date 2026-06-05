@@ -208,6 +208,8 @@ func (l *MessageLoop) loop(ctx context.Context, r *Runner, state *runState) Resu
 		for i := range out.ToolCalls {
 			call := normalizeMessageLoopToolCall(out.ToolCalls[i], state.completedSteps+1)
 			call = resolveMessageLoopBindings(state, call)
+			call = coercePluginGrabberLearningToolCall(state.input.UserText, call)
+			call = coercePluginGrabberRuntimeToolCall(state.input.UserText, call)
 			if stopped, result := r.checkpoint("before_message_loop_tool", state); stopped {
 				return result
 			}
@@ -269,6 +271,8 @@ Return ONLY strict JSON in one of these shapes:
 Rules:
 - Use only tools from Allowed tools. For low-level DAW commands, use tool:"daw.invoke" only when it is explicitly allowed, with args containing cmd.
 - Tool results appear in <tool_result> JSON messages. Treat those results as the source of truth for executed actions, refreshed DAW state, bindings, and verification.
+- For plugin_grabber_apply_control results, prefer applied_parameters[].new_value_text, applied_value, and confirmed display_domain data. Do not infer control limits from a parameter's current value_text or from advisory safety notes.
+- For exact one-parameter plugin writes with explicit param_id and high-confidence get_plugin_parameters display_probe evidence, plugin.set_parameter may use value_text such as "1000 ms" or "28 percent". Do not use this for acoustic goals, multi-parameter moves, or automatic mixing; those require plugin_grabber.apply_control and a learned profile.
 - Do not invent track_id, clip_id, plugin_id, or tool names.
 - Prefer read-only observation before risky writes, but do not over-observe when the current context already contains enough state.
 - For dependent DAW edits, you may emit multiple tool calls in one response. Use symbolic refs such as {"track_ref":"last_created_track"} or {"track_id":"$last_created_track"} for later calls that target an object created by an earlier call.

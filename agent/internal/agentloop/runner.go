@@ -337,6 +337,8 @@ func (r *Runner) loop(ctx context.Context, state *runState) Result {
 			if limit, result := r.checkToolBudget(state); limit {
 				return result
 			}
+			call = coercePluginGrabberLearningToolCall(state.input.UserText, call)
+			call = coercePluginGrabberRuntimeToolCall(state.input.UserText, call)
 			if !allowedTool(call.Tool, state.input.AllowedTools) {
 				result := planner.ToolResult{ToolCallID: stableToolCallID(call, state.completedSteps+1), Tool: call.Tool, Status: "error", Error: "unknown or disallowed tool: " + strings.TrimSpace(call.Tool)}
 				state.trace = append(state.trace,

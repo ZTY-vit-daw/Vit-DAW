@@ -36,8 +36,14 @@ bool VitDagChecker::wouldCreateCycle (const te::RackType& rackType, te::EditItem
             if (connection == nullptr)
                 continue;
 
-            if (connection->sourceID.get() == current)
-                stack.push_back (connection->destID.get());
+            const auto nextSource = connection->sourceID.get();
+            const auto nextDest = connection->destID.get();
+
+            if (! nextSource.isValid() || ! nextDest.isValid())
+                continue;
+
+            if (nextSource == current)
+                stack.push_back (nextDest);
         }
     }
 

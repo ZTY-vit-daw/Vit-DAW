@@ -253,10 +253,75 @@ These tools are the core musical operation layer.
 
 #### `midi`
 
-- `midi.read_notes`
-- `midi.write_notes`
+- `midi.read_clip_notes`
+- `midi.write_clip_notes`
+- `midi.insert_notes`
+- `midi.delete_notes`
+- `midi.move_notes`
+- `midi.resize_notes`
 - `midi.quantize`
+- `midi.transpose`
+- `midi.humanize`
+- `midi.set_velocity`
 - `midi.generate_pattern`
+- `midi.generate_chords`
+- `midi.generate_drum_pattern`
+- `midi.replace_region`
+
+MIDI is the first major content-editing layer, not only a project-management feature. Track and clip tools manage containers; MIDI tools edit the musical material inside a MIDI clip.
+
+The preferred MIDI execution flow is:
+
+```text
+selected / specified MIDI clip
+  -> midi.read_clip_notes
+  -> agent MIDI IR / note patch
+  -> policy preview if needed
+  -> kernel MIDI edit commands
+  -> undo / journal / shadow refresh
+```
+
+MIDI tools should use beat-based timing by default and stable target IDs:
+
+- `track_id`
+- `clip_id`
+- optional `note_id` when the kernel exposes stable note identities
+- `time_range_beats`
+- `pitch`
+- `velocity`
+- `channel`
+
+The first MIDI patch format can be simple and explicit:
+
+```json
+{
+  "clip_id": "1012",
+  "time_unit": "beats",
+  "operations": [
+    { "op": "insert_note", "pitch": 60, "start": 0.0, "length": 0.5, "velocity": 92 },
+    { "op": "insert_note", "pitch": 64, "start": 0.5, "length": 0.5, "velocity": 88 },
+    { "op": "quantize_region", "start": 0.0, "length": 4.0, "grid": "1/16" }
+  ]
+}
+```
+
+Example user intents the agent should support over time:
+
+- "把当前 MIDI clip 量化到 1/16"
+- "把选中的音符上移一个八度"
+- "给这段加一个 C minor 的和弦进行"
+- "把这段鼓改成更 trap 的节奏"
+- "让这个旋律更人性化一点，力度别太死"
+- "在当前循环区生成一个 4 小节 bassline"
+
+Godot/UI should eventually help MIDI tools by exposing:
+
+- current selected MIDI clip;
+- selected notes in the piano roll;
+- current loop/time selection;
+- current scale/key hints when available;
+- piano-roll grid and snap settings;
+- whether the target clip is empty, generated, or user-authored.
 
 #### `rack`
 
@@ -591,6 +656,38 @@ Acceptance:
 - User can ask Ask Vit to inspect, play, stop, rename, mute, add tracks, and perform simple clip operations.
 - Deletes and batch edits require confirmation.
 - Undo can target the latest agent action.
+
+### v0.3.5 MIDI Foundation
+
+Goal: let VitAgent edit musical content inside MIDI clips, not only manage tracks and audio clips.
+
+Implement:
+
+- kernel command support for reading MIDI notes from a stable `clip_id`;
+- kernel command support for applying MIDI note patches;
+- `midi.read_clip_notes`;
+- `midi.insert_notes`;
+- `midi.delete_notes`;
+- `midi.move_notes`;
+- `midi.resize_notes`;
+- `midi.quantize`;
+- `midi.transpose`;
+- `midi.set_velocity`;
+- `midi.replace_region`;
+- simple generated patterns for chords, basslines, and drums;
+- MIDI patch preview text for Ask Vit;
+- journal entries and undo labels for every MIDI edit;
+- shadow refresh after MIDI edits;
+- UI context plumbing for selected MIDI clip and selected note range where available.
+
+Acceptance:
+
+- User can ask Ask Vit to read the current MIDI clip and describe its notes/rhythm.
+- User can ask Ask Vit to insert a simple melody/chord/drum pattern into an empty or selected MIDI clip.
+- User can quantize, transpose, move, resize, or change velocity for an explicit clip or selected note range.
+- Existing user-authored MIDI edits require preview confirmation unless the request is tiny, explicit, and fully undoable.
+- Every MIDI mutation goes through kernel commands, not direct MIDI file overwrite.
+- Undo can revert the latest agent MIDI action.
 
 ### v0.4 Plugin Grabber
 

@@ -48,11 +48,18 @@ func BuildContextPack(digest ParameterDigest) map[string]any {
 			"recommended_source":           digest.ProfileSource,
 			"still_part_of_all_parameters": true,
 		})
+		if param.DisplayDomainCandidate != nil {
+			quickRows[len(quickRows)-1]["display_domain_candidate"] = param.DisplayDomainCandidate
+		}
+		if param.DisplayProbe != nil {
+			quickRows[len(quickRows)-1]["display_probe"] = param.DisplayProbe
+		}
 	}
 
 	groups := buildPluginContextGroups(digest, quickIDs)
 	roles := buildPluginRoleSummary(digest)
 	macroCandidates := buildPluginMacroCandidates(quickRows)
+	runtimeProfile := buildPluginRuntimeProfile(digest)
 	pluginName := digest.PluginName
 	if pluginName == "" {
 		pluginName = digest.PluginID
@@ -74,8 +81,12 @@ func BuildContextPack(digest ParameterDigest) map[string]any {
 		"profile_source":          source,
 		"profile_applied":         digest.ProfileApplied,
 		"profile_stale_param_ids": digest.ProfileStaleParamIDs,
+		"global_profile_applied":  digest.GlobalProfileApplied,
+		"global_profile_source":   digest.GlobalProfileSource,
+		"plugin_class":            digest.PluginClass,
 		"parameters_retained":     true,
 		"parameter_count":         digest.ParameterCount,
+		"display_probe_summary":   DisplayProbeSummary(digest),
 		"quick_control_count":     len(digest.QuickControls),
 		"recommended_group_count": len(groups),
 		"semantic_hint_policy": map[string]any{
@@ -87,6 +98,7 @@ func BuildContextPack(digest ParameterDigest) map[string]any {
 		"macro_candidates": macroCandidates,
 		"groups":           groups,
 		"role_summary":     roles,
+		"runtime_profile":  runtimeProfile,
 		"full_parameter_access": map[string]any{
 			"command":       "get_plugin_parameters",
 			"track_id":      digest.TrackID,
@@ -96,6 +108,146 @@ func BuildContextPack(digest ParameterDigest) map[string]any {
 			"parameter_ids": firstParameterIDs(digest.Parameters, 24),
 		},
 	}
+}
+
+func buildPluginRuntimeProfile(digest ParameterDigest) map[string]any {
+	out := map[string]any{
+		"available": digest.GlobalProfileApplied || len(digest.PluginSkill) > 0 || digest.PluginClass != "" || len(digest.PluginGroups) > 0 || len(digest.VirtualControls) > 0,
+	}
+	if digest.GlobalProfileSource != "" {
+		out["source"] = digest.GlobalProfileSource
+	} else if digest.GlobalProfileApplied {
+		out["source"] = "global_profile"
+	}
+	if digest.PluginClass != "" {
+		out["class"] = digest.PluginClass
+	}
+	if len(digest.PluginGroups) > 0 {
+		out["semantic_group_count"] = len(digest.PluginGroups)
+		out["semantic_groups"] = compactProfileRows(digest.PluginGroups, 12, []string{"id", "role", "label", "name"})
+	}
+	if len(digest.VirtualControls) > 0 {
+		out["virtual_control_count"] = len(digest.VirtualControls)
+		out["virtual_controls"] = compactProfileRows(digest.VirtualControls, 12, []string{"name", "component_id", "component", "resolver"})
+	}
+	if safety := SanitizeProfileSafety(digest.SafetyLimits); len(safety) > 0 {
+		out["safety_limits"] = safety
+	}
+	if len(digest.PluginSkill) > 0 {
+		components := mapRowsValue(digest.PluginSkill["components"])
+		operations := mapRowsValue(digest.PluginSkill["operations"])
+		out["plugin_skill_available"] = true
+		out["plugin_skill_schema_version"] = digest.PluginSkill["schema_version"]
+		out["component_count"] = len(components)
+		out["operation_count"] = len(operations)
+		if capabilities := mapValue(digest.PluginSkill["capabilities"]); len(capabilities) > 0 {
+			out["capabilities"] = capabilities
+		}
+		out["components"] = compactPluginSkillComponents(components, 12)
+		out["operations"] = compactPluginSkillOperations(operations, 12)
+	}
+	return out
+}
+
+func compactProfileRows(rows []map[string]any, limit int, keys []string) []map[string]any {
+	if limit <= 0 || limit > len(rows) {
+		limit = len(rows)
+	}
+	out := make([]map[string]any, 0, limit)
+	for i := 0; i < limit; i++ {
+		row := rows[i]
+		compact := map[string]any{}
+		for _, key := range keys {
+			if text := firstNonEmptyText(row, key); text != "" {
+				compact[key] = text
+			}
+		}
+		if params := compactPluginSkillParams(row["params"], 8); len(params) > 0 {
+			compact["params"] = params
+		}
+		out = append(out, compact)
+	}
+	return out
+}
+
+func compactPluginSkillComponents(rows []map[string]any, limit int) []map[string]any {
+	if limit <= 0 || limit > len(rows) {
+		limit = len(rows)
+	}
+	out := make([]map[string]any, 0, limit)
+	for i := 0; i < limit; i++ {
+		row := rows[i]
+		compact := map[string]any{
+			"id":    firstNonEmptyText(row, "id"),
+			"role":  firstNonEmptyText(row, "role"),
+			"label": firstNonEmptyText(row, "label"),
+		}
+		if params := compactPluginSkillParams(row["params"], 12); len(params) > 0 {
+			compact["params"] = params
+		}
+		out = append(out, compact)
+	}
+	return out
+}
+
+func compactPluginSkillOperations(rows []map[string]any, limit int) []map[string]any {
+	if limit <= 0 || limit > len(rows) {
+		limit = len(rows)
+	}
+	out := make([]map[string]any, 0, limit)
+	for i := 0; i < limit; i++ {
+		row := rows[i]
+		compact := map[string]any{
+			"name":         firstNonEmptyText(row, "name"),
+			"resolver":     firstNonEmptyText(row, "resolver"),
+			"component_id": firstNonEmptyText(row, "component_id"),
+			"inputs":       stringSliceValue(row["inputs"]),
+		}
+		if params := compactPluginSkillParams(row["params"], 12); len(params) > 0 {
+			compact["params"] = params
+		}
+		out = append(out, compact)
+	}
+	return out
+}
+
+func compactPluginSkillParams(value any, limit int) []map[string]any {
+	params := mapValue(value)
+	if len(params) == 0 {
+		return nil
+	}
+	slots := make([]string, 0, len(params))
+	for slot := range params {
+		slots = append(slots, slot)
+	}
+	sort.Strings(slots)
+	if limit > 0 && len(slots) > limit {
+		slots = slots[:limit]
+	}
+	out := make([]map[string]any, 0, len(slots))
+	for _, slot := range slots {
+		row := map[string]any{"slot": slot}
+		switch mapped := params[slot].(type) {
+		case map[string]any:
+			if paramID := firstNonEmptyText(mapped, "param_id", "id"); paramID != "" {
+				row["param_id"] = paramID
+			}
+			if label := firstNonEmptyText(mapped, "label", "name"); label != "" {
+				row["label"] = label
+			}
+			if confidence := mapped["confidence"]; confidence != nil {
+				row["confidence"] = confidence
+			}
+		default:
+			if text := strings.TrimSpace(fmt.Sprint(mapped)); text != "" && text != "<nil>" {
+				row["param_id"] = text
+			}
+		}
+		if row["param_id"] != nil {
+			out = append(out, row)
+		}
+	}
+	return out
 }
 
 func buildPluginContextGroups(digest ParameterDigest, quickIDs map[string]bool) []map[string]any {
@@ -276,6 +428,24 @@ func FormatContextPackReply(pack map[string]any) string {
 			break
 		}
 	}
+	runtimeProfile := mapValue(pack["runtime_profile"])
+	runtimeSummary := ""
+	if boolValue(runtimeProfile["available"]) {
+		runtimeBits := []string{}
+		if cls := firstNonEmptyText(runtimeProfile, "class"); cls != "" {
+			runtimeBits = append(runtimeBits, "class="+cls)
+		}
+		if count := firstNonEmptyText(runtimeProfile, "component_count"); count != "" {
+			runtimeBits = append(runtimeBits, "components="+count)
+		}
+		if count := firstNonEmptyText(runtimeProfile, "operation_count"); count != "" {
+			runtimeBits = append(runtimeBits, "operations="+count)
+		}
+		if len(runtimeBits) == 0 {
+			runtimeBits = append(runtimeBits, "available")
+		}
+		runtimeSummary = "Runtime profile: " + strings.Join(runtimeBits, ", ") + "."
+	}
 	macroRows := mapRowsValue(pack["macro_candidates"])
 	macroLabels := make([]string, 0, len(macroRows))
 	for _, row := range macroRows {
@@ -295,6 +465,9 @@ func FormatContextPackReply(pack map[string]any) string {
 	}
 	if len(groupSummaries) > 0 {
 		parts = append(parts, "分组："+strings.Join(groupSummaries, "、")+"。")
+	}
+	if runtimeSummary != "" {
+		parts = append(parts, runtimeSummary)
 	}
 	if len(macroLabels) > 0 {
 		parts = append(parts, "宏控候选："+strings.Join(macroLabels, "、")+"；绑定前需要复核范围。")

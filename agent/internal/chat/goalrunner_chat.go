@@ -257,7 +257,7 @@ func (s *Server) newAgentLoopRunner(cfg config.EngineConfig, mode string) agentl
 	return agentloop.Runner{
 		Runtime:  s.harness.Runtime(),
 		Planner:  planner.LLMPlanner{Client: s.llm, Config: cfg},
-		Executor: executorpkg.New(s.harness),
+		Executor: s.newAgentLoopExecutor(cfg),
 		Budget:   agentLoopBudgetForMode(mode),
 	}
 }
@@ -267,9 +267,108 @@ func (s *Server) newAgentMessageLoop(cfg config.EngineConfig, mode string) *agen
 		Runtime:  s.harness.Runtime(),
 		Client:   s.llm,
 		Config:   cfg,
-		Executor: executorpkg.New(s.harness),
+		Executor: s.newAgentLoopExecutor(cfg),
 		Budget:   agentLoopBudgetForMode(mode),
 	}
+}
+
+func (s *Server) newAgentLoopExecutor(cfg config.EngineConfig) agentloop.ToolExecutor {
+	return pluginGrabberWorkflowExecutor{
+		server: s,
+		base:   executorpkg.New(s.harness),
+		cfg:    cfg,
+	}
+}
+
+type pluginGrabberWorkflowExecutor struct {
+	server *Server
+	base   agentloop.ToolExecutor
+	cfg    config.EngineConfig
+}
+
+func (e pluginGrabberWorkflowExecutor) RunToolCall(ctx context.Context, in executorpkg.Input) (executorpkg.Result, error) {
+	if e.server == nil || !isPluginGrabberLearnToolCall(in.ToolCall) {
+		return e.base.RunToolCall(ctx, in)
+	}
+	toolCallID := strings.TrimSpace(in.ToolCall.ID)
+	if toolCallID == "" {
+		toolCallID = "tool_goal_step"
+	}
+	req := harness.InvokeRequest{
+		Tool:       strings.TrimSpace(in.ToolCall.Tool),
+		Args:       cloneStringAnyMap(in.ToolCall.Args),
+		Command:    cloneStringAnyMap(in.ToolCall.Command),
+		Context:    contextWithAgentLoopIDs(in.Context, in.GoalID, in.RunID, toolCallID),
+		Source:     firstNonEmpty(strings.TrimSpace(in.Source), "agentloop"),
+		Confirmed:  in.Confirmed,
+		GoalID:     in.GoalID,
+		RunID:      in.RunID,
+		ToolCallID: toolCallID,
+	}
+	workflowCmd, _ := pluginGrabberLearningInvokeCommand(req)
+	resp, err := e.server.invokePluginGrabberLearningWorkflow(ctx, req, workflowCmd, e.cfg)
+	out := executorpkg.Result{
+		ToolCallID:           toolCallID,
+		Tool:                 firstNonEmpty(resp.Tool, in.ToolCall.Tool),
+		CommandName:          resp.CommandName,
+		AgentActionID:        resp.AgentActionID,
+		Status:               resp.Status,
+		RequiresConfirmation: resp.RequiresConfirmation || resp.Status == "needs_confirmation",
+		Preview:              resp.Preview,
+		UndoLabel:            resp.UndoLabel,
+		Result:               resp.Result,
+		ProjectHistory:       resp.ProjectHistory,
+		Error:                resp.Error,
+		Response:             resp,
+	}
+	if err != nil && out.Error == "" {
+		out.Error = err.Error()
+	}
+	if !out.RequiresConfirmation && err == nil && out.Status != "error" && e.server.harness != nil {
+		out.ObservedState = e.server.harness.UserStateSummary(ctx)
+	}
+	return out, err
+}
+
+func isPluginGrabberLearnToolCall(call planner.ToolCall) bool {
+	tool := strings.TrimSpace(call.Tool)
+	if tool == pluginGrabberLearnTool || tool == "plugin_grabber.learn_project_profile" || tool == "plugin.learn_project_profile" || tool == "plugin_learn_project_profile" {
+		return true
+	}
+	cmd := workflowCommandArgs(call.Command)
+	name := strings.TrimSpace(fmt.Sprint(cmd["cmd"]))
+	if name == "" || name == "<nil>" {
+		name = strings.TrimSpace(fmt.Sprint(cmd["command"]))
+	}
+	return name == pluginGrabberLearnCommand
+}
+
+func contextWithAgentLoopIDs(ctx map[string]any, goalID, runID, toolCallID string) map[string]any {
+	out := cloneStringAnyMap(ctx)
+	if out == nil {
+		out = map[string]any{}
+	}
+	if strings.TrimSpace(goalID) != "" {
+		out["goal_id"] = goalID
+	}
+	if strings.TrimSpace(runID) != "" {
+		out["run_id"] = runID
+	}
+	if strings.TrimSpace(toolCallID) != "" {
+		out["tool_call_id"] = toolCallID
+	}
+	return out
+}
+
+func cloneStringAnyMap(in map[string]any) map[string]any {
+	if in == nil {
+		return nil
+	}
+	out := make(map[string]any, len(in))
+	for key, value := range in {
+		out[key] = value
+	}
+	return out
 }
 
 func useLegacyPlannerLoop() bool {

@@ -11,6 +11,28 @@ const profileInvalidIDListLimit = 10
 
 func BuildParameterDigest(reply map[string]any) ParameterDigest {
 	identity, _ := reply["plugin_identity"].(map[string]any)
+	globalProfile := mapValue(reply["global_profile"])
+	pluginSkill := mapValue(reply["plugin_skill"])
+	if pluginSkill == nil && globalProfile != nil {
+		pluginSkill = mapValue(globalProfile["plugin_skill"])
+	}
+	pluginGroups := mapRowsValue(reply["plugin_groups"])
+	if len(pluginGroups) == 0 && globalProfile != nil {
+		pluginGroups = mapRowsValue(globalProfile["groups"])
+	}
+	virtualControls := mapRowsValue(reply["virtual_controls"])
+	if len(virtualControls) == 0 && globalProfile != nil {
+		virtualControls = mapRowsValue(globalProfile["virtual_controls"])
+	}
+	safetyLimits := mapValue(reply["safety_limits"])
+	if safetyLimits == nil && globalProfile != nil {
+		safetyLimits = mapValue(globalProfile["safety"])
+	}
+	safetyLimits = SanitizeProfileSafety(safetyLimits)
+	pluginClass := firstNonEmptyText(reply, "plugin_class")
+	if pluginClass == "" && globalProfile != nil {
+		pluginClass = firstNonEmptyText(globalProfile, "class")
+	}
 	params := mapRowsValue(reply["parameters"])
 	digest := ParameterDigest{
 		TrackID:              firstNonEmptyText(reply, "track_id"),
@@ -21,6 +43,14 @@ func BuildParameterDigest(reply map[string]any) ParameterDigest {
 		ProfileSource:        firstNonEmptyText(reply, "profile_source"),
 		ProfileApplied:       boolValue(reply["profile_applied"]),
 		ProfileStaleParamIDs: stringSliceValue(reply["profile_stale_param_ids"]),
+		GlobalProfileApplied: boolValue(reply["global_profile_applied"]),
+		GlobalProfileSource:  firstNonEmptyText(reply, "global_profile_source"),
+		GlobalProfile:        globalProfile,
+		PluginClass:          pluginClass,
+		PluginGroups:         pluginGroups,
+		VirtualControls:      virtualControls,
+		SafetyLimits:         safetyLimits,
+		PluginSkill:          pluginSkill,
 		ParameterCount:       len(params),
 		Parameters:           make([]ParameterInfo, 0, len(params)),
 	}
@@ -46,7 +76,8 @@ func BuildParameterDigest(reply map[string]any) ParameterDigest {
 		if id == "" {
 			continue
 		}
-		digest.Parameters = append(digest.Parameters, ParameterInfo{
+		displayProbe := displayProbeFromAny(row["display_probe"])
+		param := ParameterInfo{
 			ID:               id,
 			Name:             firstNonEmptyText(row, "name", "label"),
 			RawName:          firstNonEmptyText(row, "raw_param_name", "raw_name"),
@@ -64,7 +95,10 @@ func BuildParameterDigest(reply map[string]any) ParameterDigest {
 			ValueText:        firstNonEmptyText(row, "value_text"),
 			Min:              row["min"],
 			Max:              row["max"],
-		})
+			DisplayProbe:     displayProbe,
+		}
+		param.DisplayDomainCandidate = DisplayDomainCandidateForParameter(param)
+		digest.Parameters = append(digest.Parameters, param)
 	}
 	return digest
 }
@@ -90,6 +124,7 @@ func ValidateProfilePatch(patch ProfilePatch, digest ParameterDigest) (ProfilePa
 	patch.Aliases = aliases
 	patch.DisplayGroups = groups
 	patch.NormalizedRoles = roles
+	patch.Safety = SanitizeProfileSafety(patch.Safety)
 	return patch, nil
 }
 
@@ -99,6 +134,8 @@ func BuildProfileUpsertCommand(target LearningTarget, patch ProfilePatch) map[st
 		"track_id":  target.TrackID,
 		"plugin_id": target.PluginID,
 	}
+	cmd["global"] = true
+
 	if len(patch.QuickControlIDs) > 0 {
 		cmd["quick_control_ids"] = patch.QuickControlIDs
 	}
@@ -110,6 +147,18 @@ func BuildProfileUpsertCommand(target LearningTarget, patch ProfilePatch) map[st
 	}
 	if len(patch.NormalizedRoles) > 0 {
 		cmd["normalized_roles"] = patch.NormalizedRoles
+	}
+	if strings.TrimSpace(patch.Class) != "" {
+		cmd["class"] = strings.TrimSpace(patch.Class)
+	}
+	if len(patch.Groups) > 0 {
+		cmd["groups"] = patch.Groups
+	}
+	if len(patch.VirtualControls) > 0 {
+		cmd["virtual_controls"] = patch.VirtualControls
+	}
+	if safety := SanitizeProfileSafety(patch.Safety); len(safety) > 0 {
+		cmd["safety"] = safety
 	}
 	return cmd
 }
@@ -209,6 +258,21 @@ func stringSliceValue(value any) []string {
 			if text := strings.TrimSpace(fmt.Sprint(item)); text != "" && text != "<nil>" {
 				out = append(out, text)
 			}
+		}
+		return out
+	default:
+		return nil
+	}
+}
+
+func mapValue(value any) map[string]any {
+	switch x := value.(type) {
+	case map[string]any:
+		return x
+	case map[string]string:
+		out := make(map[string]any, len(x))
+		for key, value := range x {
+			out[key] = value
 		}
 		return out
 	default:

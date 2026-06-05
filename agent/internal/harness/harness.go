@@ -28,16 +28,18 @@ import (
 	"vit-daw-agent/internal/shelltools"
 	"vit-daw-agent/internal/tools"
 	"vit-daw-agent/internal/webtools"
+	"vit-daw-agent/internal/workflows/plugingrabber"
 	"vit-daw-agent/internal/workspace"
 )
 
 type Harness struct {
-	kernel  kernelSender
-	shadow  *shadow.Project
-	catalog *tools.Catalog
-	journal *journal.Journal
-	runtime *agentruntime.Runtime
-	logger  *logx.Logger
+	kernel        kernelSender
+	shadow        *shadow.Project
+	catalog       *tools.Catalog
+	journal       *journal.Journal
+	runtime       *agentruntime.Runtime
+	logger        *logx.Logger
+	snapshotCache *PluginSnapshotCache
 }
 
 type kernelSender interface {
@@ -76,12 +78,13 @@ func New(kernelClient *kernel.Client, shadowProject *shadow.Project, logger *log
 		j = journal.New(500)
 	}
 	return &Harness{
-		kernel:  kernelClient,
-		shadow:  shadowProject,
-		catalog: tools.DefaultCatalog(),
-		journal: j,
-		runtime: agentruntime.New(),
-		logger:  logger,
+		kernel:        kernelClient,
+		shadow:        shadowProject,
+		catalog:       tools.DefaultCatalog(),
+		journal:       j,
+		runtime:       agentruntime.New(),
+		snapshotCache: NewPluginSnapshotCache(),
+		logger:        logger,
 	}
 }
 
@@ -374,6 +377,18 @@ func (h *Harness) Invoke(ctx context.Context, req InvokeRequest) (InvokeResponse
 		}
 		return resp, err
 	}
+	if spec.CommandName == "set_plugin_param" {
+		if err := h.validateSetPluginParam(cmd); err != nil {
+			resp := InvokeResponse{
+				Status:      "error",
+				Tool:        spec.ToolName,
+				CommandName: spec.CommandName,
+				RiskLevel:   spec.RiskLevel,
+				Error:       err.Error(),
+			}
+			return resp, err
+		}
+	}
 
 	actionID := "act_" + randomID()
 	runID, goalID, toolCallID := h.executionIDs(req)
@@ -499,6 +514,22 @@ func (h *Harness) Invoke(ctx context.Context, req InvokeRequest) (InvokeResponse
 		}
 		return resp, err
 	}
+
+	// Translate plugin_grabber_* commands to kernel-known commands.
+	// These are registered in the catalog for LLM tool calling, but the Godot
+	// kernel only knows the n_* (or get_plugin_parameters) variants.
+	switch spec.CommandName {
+	case "plugin_grabber_explain_controls":
+		cmd["cmd"] = "get_plugin_parameters"
+	case "plugin_grabber_get_project_profiles":
+		cmd["cmd"] = "n_get_project_profiles"
+	case "plugin_grabber_upsert_project_profile":
+		cmd["cmd"] = "n_project_profile"
+	case "plugin_grabber_remove_project_profile":
+		cmd["cmd"] = "n_remove_project_profile"
+	case "plugin_grabber_apply_control":
+		cmd["cmd"] = "n_apply_control"
+	}
 	reply, _, err := h.kernel.SendCommand(ctx, cmd)
 	if err != nil {
 		h.journal.MarkResult(actionID, journal.StatusFailed, nil, err)
@@ -599,6 +630,10 @@ func (h *Harness) resolveCommand(req InvokeRequest) (map[string]any, tools.Comma
 		}
 		spec, ok := h.catalog.LookupCommand(name)
 		if !ok {
+			if spec, toolOK := h.catalog.LookupTool(name); toolOK {
+				cmd["cmd"] = spec.CommandName
+				return cmd, spec, nil
+			}
 			return nil, tools.CommandSpec{}, fmt.Errorf("unknown or unregistered DAW command: %s", name)
 		}
 		return cmd, spec, nil
@@ -617,6 +652,10 @@ func (h *Harness) resolveCommand(req InvokeRequest) (map[string]any, tools.Comma
 		}
 		spec, ok := h.catalog.LookupCommand(name)
 		if !ok {
+			if spec, toolOK := h.catalog.LookupTool(name); toolOK {
+				cmd["cmd"] = spec.CommandName
+				return cmd, spec, nil
+			}
 			return nil, tools.CommandSpec{}, fmt.Errorf("unknown or unregistered DAW command: %s", name)
 		}
 		return cmd, spec, nil
@@ -3004,7 +3043,7 @@ func (h *Harness) resolvePluginID(ctx context.Context, spec tools.CommandSpec, c
 	case 1:
 		return refs[0].ID, nil
 	default:
-		if spec.CommandName == "plugin_grabber_upsert_project_profile" || spec.CommandName == "plugin_grabber_remove_project_profile" || spec.CommandName == "get_plugin_parameters" {
+		if spec.CommandName == "plugin_grabber_upsert_project_profile" || spec.CommandName == "plugin_grabber_remove_project_profile" || spec.CommandName == "plugin_grabber_apply_control" || spec.CommandName == "get_plugin_parameters" {
 			return "", fmt.Errorf("multiple visible plugins match; select one plugin or specify plugin_id")
 		}
 	}
@@ -3044,6 +3083,9 @@ func (h *Harness) afterKernelReply(ctx context.Context, spec tools.CommandSpec, 
 	if !kernelReplySucceeded(reply) {
 		return
 	}
+	if spec.CommandName == "get_plugin_parameters" || spec.CommandName == "plugin_grabber_explain_controls" {
+		h.ObservePluginParametersReply(reply)
+	}
 	if spec.CommandName == "get_project_state" {
 		if h.shadow != nil {
 			h.shadow.Initialize(reply)
@@ -3067,7 +3109,7 @@ func (h *Harness) publicResult(spec tools.CommandSpec, cmd map[string]any, reply
 			return withOKStatus(userVisibleState(h.shadow.Summary()))
 		}
 	case "get_plugin_parameters":
-		return publicPluginParametersResult(reply)
+		return publicPluginParametersResult(cmd, reply)
 	case "list_tracks":
 		if h.shadow != nil {
 			summary := h.shadow.Summary()
@@ -3151,10 +3193,18 @@ func (h *Harness) publicResult(spec tools.CommandSpec, cmd map[string]any, reply
 	return reply
 }
 
-func publicPluginParametersResult(reply map[string]any) map[string]any {
+func publicPluginParametersResult(cmd map[string]any, reply map[string]any) map[string]any {
 	params := mapRowsFromAny(reply["parameters"])
 	quick := mapRowsFromAny(reply["quick_controls"])
 	groups := mapRowsFromAny(reply["recommended_groups"])
+	pluginGroups := mapRowsFromAny(reply["plugin_groups"])
+	virtualControls := mapRowsFromAny(reply["virtual_controls"])
+	globalProfile := mapAnyFromAny(reply["global_profile"])
+	pluginSkill := mapAnyFromAny(reply["plugin_skill"])
+	if pluginSkill == nil && globalProfile != nil {
+		pluginSkill = mapAnyFromAny(globalProfile["plugin_skill"])
+	}
+	digest := plugingrabber.BuildParameterDigest(reply)
 	out := map[string]any{
 		"status":                  firstNonEmpty(firstString(reply, "status"), "ok"),
 		"track_id":                reply["track_id"],
@@ -3166,12 +3216,34 @@ func publicPluginParametersResult(reply map[string]any) map[string]any {
 		"profile_applied":         reply["profile_applied"],
 		"profile_source":          reply["profile_source"],
 		"profile_stale_param_ids": reply["profile_stale_param_ids"],
+		"global_profile_applied":  reply["global_profile_applied"],
+		"global_profile_source":   reply["global_profile_source"],
+		"plugin_class":            reply["plugin_class"],
 		"parameter_count":         len(params),
 		"quick_control_count":     len(quick),
 		"quick_controls":          compactQuickControls(quick, 16),
 		"recommended_group_count": len(groups),
 		"recommended_groups":      compactRecommendedGroups(groups, 16),
+		"plugin_group_count":      len(pluginGroups),
+		"plugin_groups":           compactRuntimeProfileRows(pluginGroups, 12, []string{"id", "role", "label", "name"}),
+		"virtual_control_count":   len(virtualControls),
+		"virtual_controls":        compactRuntimeProfileRows(virtualControls, 12, []string{"name", "component_id", "component", "resolver"}),
+		"safety_limits":           reply["safety_limits"],
 		"capability_manifest":     reply["capability_manifest"],
+		"display_probe_summary":   plugingrabber.DisplayProbeSummary(digest),
+	}
+	includeParameters, _ := boolValue(cmd["include_parameters"])
+	if !includeParameters {
+		includeParameters, _ = boolValue(cmd["include_full_parameters"])
+	}
+	if !includeParameters {
+		includeParameters, _ = boolValue(cmd["include_parameter_snapshot"])
+	}
+	if includeParameters {
+		out["parameters"] = compactPluginParameterSnapshotRows(params, digest, 512)
+	}
+	if skill := compactPublicPluginSkill(pluginSkill); len(skill) > 0 {
+		out["plugin_skill"] = skill
 	}
 	return out
 }
@@ -3195,6 +3267,43 @@ func compactQuickControls(rows []map[string]any, limit int) []map[string]any {
 	return out
 }
 
+func compactPluginParameterSnapshotRows(rows []map[string]any, digest plugingrabber.ParameterDigest, limit int) []map[string]any {
+	if limit <= 0 || limit > len(rows) {
+		limit = len(rows)
+	}
+	byID := map[string]plugingrabber.ParameterInfo{}
+	for _, param := range digest.Parameters {
+		if strings.TrimSpace(param.ID) != "" {
+			byID[param.ID] = param
+		}
+	}
+	out := make([]map[string]any, 0, limit)
+	for i := 0; i < limit; i++ {
+		row := rows[i]
+		paramID := firstString(row, "id", "param_id")
+		compact := map[string]any{
+			"param_id":         firstString(row, "id", "param_id"),
+			"name":             firstNonEmpty(firstString(row, "name"), firstString(row, "raw_param_name"), firstString(row, "alias")),
+			"raw_param_name":   firstString(row, "raw_param_name"),
+			"normalized_value": row["normalized_value"],
+			"value":            row["value"],
+			"value_text":       firstString(row, "value_text"),
+			"display_group":    firstString(row, "display_group"),
+			"normalized_role":  firstString(row, "normalized_role"),
+		}
+		if param := byID[paramID]; strings.TrimSpace(param.ID) != "" {
+			if param.DisplayProbe != nil {
+				compact["display_probe"] = param.DisplayProbe
+			}
+			if param.DisplayDomainCandidate != nil {
+				compact["display_domain_candidate"] = param.DisplayDomainCandidate
+			}
+		}
+		out = append(out, compact)
+	}
+	return out
+}
+
 func compactRecommendedGroups(rows []map[string]any, limit int) []map[string]any {
 	if limit <= 0 || limit > len(rows) {
 		limit = len(rows)
@@ -3210,6 +3319,100 @@ func compactRecommendedGroups(rows []map[string]any, limit int) []map[string]any
 		})
 	}
 	return out
+}
+
+func compactRuntimeProfileRows(rows []map[string]any, limit int, keys []string) []map[string]any {
+	if limit <= 0 || limit > len(rows) {
+		limit = len(rows)
+	}
+	out := make([]map[string]any, 0, limit)
+	for i := 0; i < limit; i++ {
+		row := rows[i]
+		compact := map[string]any{}
+		for _, key := range keys {
+			if value := firstString(row, key); value != "" {
+				compact[key] = value
+			}
+		}
+		if params := compactPublicPluginSkillParams(row["params"], 8); len(params) > 0 {
+			compact["params"] = params
+		}
+		out = append(out, compact)
+	}
+	return out
+}
+
+func compactPublicPluginSkill(skill map[string]any) map[string]any {
+	if len(skill) == 0 {
+		return nil
+	}
+	components := mapRowsFromAny(skill["components"])
+	operations := mapRowsFromAny(skill["operations"])
+	out := map[string]any{
+		"schema_version":  skill["schema_version"],
+		"component_count": len(components),
+		"operation_count": len(operations),
+	}
+	if capabilities := mapAnyFromAny(skill["capabilities"]); len(capabilities) > 0 {
+		out["capabilities"] = capabilities
+	}
+	out["components"] = compactRuntimeProfileRows(components, 12, []string{"id", "role", "label"})
+	out["operations"] = compactRuntimeProfileRows(operations, 12, []string{"name", "component_id", "resolver"})
+	return out
+}
+
+func compactPublicPluginSkillParams(value any, limit int) []map[string]any {
+	params := mapAnyFromAny(value)
+	if len(params) == 0 {
+		return nil
+	}
+	slots := make([]string, 0, len(params))
+	for slot := range params {
+		slots = append(slots, slot)
+	}
+	sort.Strings(slots)
+	if limit > 0 && len(slots) > limit {
+		slots = slots[:limit]
+	}
+	out := make([]map[string]any, 0, len(slots))
+	for _, slot := range slots {
+		row := map[string]any{"slot": slot}
+		switch mapped := params[slot].(type) {
+		case map[string]any:
+			if paramID := firstString(mapped, "param_id", "id"); paramID != "" {
+				row["param_id"] = paramID
+			}
+			if label := firstString(mapped, "label", "name"); label != "" {
+				row["label"] = label
+			}
+			if confidence := mapped["confidence"]; confidence != nil {
+				row["confidence"] = confidence
+			}
+		default:
+			if text := strings.TrimSpace(fmt.Sprint(mapped)); text != "" && text != "<nil>" {
+				row["param_id"] = text
+			}
+		}
+		if row["param_id"] != nil {
+			out = append(out, row)
+		}
+	}
+	return out
+}
+
+func mapAnyFromAny(value any) map[string]any {
+	switch x := value.(type) {
+	case map[string]any:
+		return x
+	case map[string]string:
+		out := make(map[string]any, len(x))
+		for key, value := range x {
+			out[key] = value
+		}
+		return out
+	default:
+		return nil
+	}
 }
 
 func firstNStrings(values []string, limit int) []string {

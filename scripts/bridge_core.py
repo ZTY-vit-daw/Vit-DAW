@@ -13,6 +13,16 @@ from typing import Any, Deque, Dict, List, Optional, Set
 import zmq
 
 
+def _disable_udp_connreset(sock: socket.socket) -> None:
+    """Prevent Windows UDP ICMP port-unreachable resets from killing the bridge."""
+    if not hasattr(socket, "SIO_UDP_CONNRESET"):
+        return
+    try:
+        sock.ioctl(socket.SIO_UDP_CONNRESET, False)
+    except OSError:
+        pass
+
+
 @dataclass
 class BridgeConfig:
     zmq_sub_url: str = "tcp://127.0.0.1:5556"
@@ -255,6 +265,7 @@ def run_bridge(cfg: BridgeConfig):
     shadow = VitShadowProject(logger)
     context = zmq.Context()
     recv_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    _disable_udp_connreset(recv_sock)
     recv_sock.bind((cfg.godot_ip, cfg.udp_from_godot))
     zmq_req = _build_req_socket(context, cfg)
     shadow_refresh_queue: queue.Queue = queue.Queue()
@@ -264,6 +275,7 @@ def run_bridge(cfg: BridgeConfig):
         zmq_sub.connect(cfg.zmq_sub_url)
         zmq_sub.setsockopt_string(zmq.SUBSCRIBE, "")
         send_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        _disable_udp_connreset(send_sock)
         udp_send_fail_count = 0
         delta_seq_gap_count = 0
         tile_ready_count = 0
@@ -340,6 +352,12 @@ def run_bridge(cfg: BridgeConfig):
             try:
                 data, addr = recv_sock.recvfrom(65535)
             except socket.timeout:
+                continue
+            except ConnectionResetError:
+                logger.warn("control loop UDP recv reset; continuing")
+                continue
+            except OSError as exc:
+                logger.warn(f"control loop UDP recv error; continuing: {exc}")
                 continue
 
             if not data:

@@ -1,7 +1,12 @@
 package chat
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
+	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"strings"
 	"testing"
@@ -13,6 +18,7 @@ import (
 	"vit-daw-agent/internal/policy"
 	agentruntime "vit-daw-agent/internal/runtime"
 	"vit-daw-agent/internal/shadow"
+	"vit-daw-agent/internal/workflows/plugingrabber"
 )
 
 func TestMain(m *testing.M) {
@@ -420,6 +426,76 @@ func TestPluginGrabberPatchValidationKeepsFullQuickIDs(t *testing.T) {
 	}
 }
 
+func TestPluginGrabberUpsertCommandIncludesLegacyAndPluginSkill(t *testing.T) {
+	target := pluginLearningTarget{TrackID: "track_1", PluginID: "plugin_1", PluginName: "Demo Comp"}
+	digest := pluginParameterDigest{
+		PluginID:   "plugin_1",
+		PluginName: "Demo Comp",
+		PluginIdentity: map[string]any{
+			"profile_key": "plugin_demo",
+			"plugin_name": "Demo Comp",
+		},
+		Parameters: []pluginParameterInfo{
+			{ID: "threshold", Name: "Threshold", HostControllable: true},
+			{ID: "ratio", Name: "Ratio", HostControllable: true},
+		},
+	}
+	patch := pluginProfilePatch{
+		QuickControlIDs: []string{"threshold", "ratio"},
+		Aliases:         map[string]string{"threshold": "Threshold", "ratio": "Ratio"},
+		DisplayGroups:   map[string]string{"threshold": "Dynamics", "ratio": "Dynamics"},
+		NormalizedRoles: map[string]string{"threshold": "threshold", "ratio": "ratio"},
+		Class:           "compressor",
+		Groups: []map[string]any{{
+			"id":    "main_dynamics",
+			"role":  "compressor",
+			"label": "Main dynamics",
+			"params": map[string]any{
+				"threshold": map[string]any{"param_id": "threshold", "label": "Threshold", "confidence": 0.9},
+				"ratio":     "ratio",
+			},
+		}},
+		VirtualControls: []map[string]any{{
+			"name":         "tighten dynamics",
+			"inputs":       []string{"amount"},
+			"component_id": "main_dynamics",
+			"resolver":     "local_profile_mapping",
+			"params":       map[string]any{"threshold": "threshold", "ratio": "ratio"},
+		}},
+		Safety: map[string]any{"max_gain_change_db": 6},
+	}
+
+	cmd, validation, err := buildPluginProfileUpsertCommand(target, patch, digest)
+	if err != nil {
+		t.Fatalf("buildPluginProfileUpsertCommand: %v", err)
+	}
+	if cmd["cmd"] != "plugin_grabber_upsert_project_profile" || cmd["global"] != true {
+		t.Fatalf("unexpected command envelope: %+v", cmd)
+	}
+	if quick, ok := cmd["quick_control_ids"].([]string); !ok || len(quick) != 2 {
+		t.Fatalf("legacy quick_control_ids missing: %+v", cmd["quick_control_ids"])
+	}
+	if cmd["class"] != "compressor" || cmd["groups"] == nil || cmd["virtual_controls"] == nil || cmd["safety"] == nil {
+		t.Fatalf("extended fields missing: %+v", cmd)
+	}
+	if cmd["schema_version"] != plugingrabber.PluginSkillSchemaVersion {
+		t.Fatalf("schema_version = %v", cmd["schema_version"])
+	}
+	skill, ok := cmd["plugin_skill"].(plugingrabber.PluginSkillDocument)
+	if !ok {
+		t.Fatalf("plugin_skill missing or wrong type: %T", cmd["plugin_skill"])
+	}
+	if skill.SchemaVersion != plugingrabber.PluginSkillSchemaVersion || len(skill.Components) == 0 || len(skill.Operations) == 0 {
+		t.Fatalf("plugin_skill incomplete: %+v", skill)
+	}
+	if skill.Legacy.ProjectDefault["quick_control_ids"] == nil {
+		t.Fatalf("plugin_skill legacy project_default missing quick controls: %+v", skill.Legacy.ProjectDefault)
+	}
+	if validation.Coverage["threshold"] != "used_in_component" {
+		t.Fatalf("unexpected validation coverage: %+v", validation.Coverage)
+	}
+}
+
 func TestPluginGrabberDigestIncludesAllParameters(t *testing.T) {
 	digest := buildPluginParameterDigest(map[string]any{
 		"track_id":  "1007",
@@ -432,6 +508,62 @@ func TestPluginGrabberDigestIncludesAllParameters(t *testing.T) {
 	})
 	if digest.ParameterCount != 3 || len(digest.Parameters) != 3 {
 		t.Fatalf("digest dropped parameters: %+v", digest)
+	}
+}
+
+func TestPluginLearningPromptDigestCompactsLargeRuntimeProfile(t *testing.T) {
+	params := make([]pluginParameterInfo, 0, 90)
+	for i := 0; i < 90; i++ {
+		params = append(params, pluginParameterInfo{
+			ID:               fmt.Sprintf("param_%03d", i),
+			Name:             fmt.Sprintf("Parameter %03d", i),
+			RawName:          fmt.Sprintf("Raw Parameter %03d", i),
+			DisplayGroup:     "Group",
+			NormalizedRole:   "role",
+			HostControllable: true,
+			Value:            strings.Repeat("value_blob_", 40),
+			Min:              -1000.0,
+			Max:              1000.0,
+		})
+	}
+	digest := pluginParameterDigest{
+		TrackID:              "1007",
+		PluginID:             "1013",
+		PluginName:           "Large Plugin",
+		GlobalProfileApplied: true,
+		GlobalProfile: map[string]any{
+			"class":                 "eq",
+			"large_parameter_cache": strings.Repeat("big_parameter_snapshot", 12000),
+			"plugin_skill": map[string]any{
+				"schema_version": 2,
+				"components": []any{
+					map[string]any{"id": "main", "params": map[string]any{"gain": map[string]any{"param_id": "param_001"}}},
+				},
+			},
+		},
+		ParameterCount: len(params),
+		Parameters:     params,
+	}
+	raw, err := json.MarshalIndent(digest, "", "  ")
+	if err != nil {
+		t.Fatalf("MarshalIndent raw digest: %v", err)
+	}
+	if len(raw) <= pluginLearningDigestMaxBytes {
+		t.Fatalf("raw digest should exceed learning prompt limit for regression coverage: %d", len(raw))
+	}
+	promptJSON, err := pluginLearningPromptDigestJSON(digest)
+	if err != nil {
+		t.Fatalf("pluginLearningPromptDigestJSON: %v", err)
+	}
+	if len(promptJSON) >= pluginLearningDigestMaxBytes {
+		t.Fatalf("prompt digest should be compacted below limit: %d", len(promptJSON))
+	}
+	prompt := string(promptJSON)
+	if strings.Contains(prompt, "big_parameter_snapshot") || strings.Contains(prompt, "value_blob_") {
+		t.Fatalf("prompt digest leaked bulky runtime/value fields")
+	}
+	if !strings.Contains(prompt, "param_001") {
+		t.Fatalf("prompt digest should retain parameter IDs: %s", prompt)
 	}
 }
 
@@ -481,6 +613,70 @@ func TestPluginGrabberContextPackKeepsFullParameterCount(t *testing.T) {
 	}
 }
 
+func TestPluginGrabberContextPackIncludesRuntimeProfile(t *testing.T) {
+	digest := buildPluginParameterDigest(map[string]any{
+		"track_id":               "1007",
+		"plugin_id":              "plugin_a",
+		"global_profile_applied": true,
+		"global_profile_source":  "global_profile",
+		"plugin_identity": map[string]any{
+			"plugin_name": "Demo Comp",
+		},
+		"global_profile": map[string]any{
+			"class": "compressor",
+			"groups": []any{
+				map[string]any{"id": "main_dynamics", "role": "compressor", "label": "Main dynamics"},
+			},
+			"virtual_controls": []any{
+				map[string]any{"name": "tighten dynamics", "component_id": "main_dynamics", "resolver": "local_profile_mapping"},
+			},
+			"safety": map[string]any{"max_gain_change_db": 6},
+			"plugin_skill": map[string]any{
+				"schema_version": 2,
+				"components": []any{
+					map[string]any{
+						"id":    "main_dynamics",
+						"role":  "compressor",
+						"label": "Main dynamics",
+						"params": map[string]any{
+							"threshold": map[string]any{"param_id": "threshold", "label": "Threshold", "confidence": 0.9},
+						},
+					},
+				},
+				"operations": []any{
+					map[string]any{
+						"name":         "tighten dynamics",
+						"component_id": "main_dynamics",
+						"resolver":     "local_profile_mapping",
+						"params":       map[string]any{"threshold": "threshold"},
+					},
+				},
+			},
+		},
+		"quick_controls": []any{
+			map[string]any{"param_id": "threshold", "label": "Threshold", "display_group": "Dynamics", "normalized_role": "comp_threshold"},
+		},
+		"parameters": []any{
+			map[string]any{"id": "threshold", "display_group": "Dynamics", "normalized_role": "comp_threshold", "host_controllable": true},
+		},
+	})
+	if digest.PluginClass != "compressor" || len(digest.PluginGroups) != 1 || len(digest.PluginSkill) == 0 {
+		t.Fatalf("digest runtime profile fields missing: %+v", digest)
+	}
+	pack := buildPluginGrabberContextPack(digest)
+	runtimeProfile, ok := pack["runtime_profile"].(map[string]any)
+	if !ok || runtimeProfile["available"] != true {
+		t.Fatalf("runtime profile missing: %+v", pack["runtime_profile"])
+	}
+	if runtimeProfile["class"] != "compressor" || runtimeProfile["component_count"] != 1 || runtimeProfile["operation_count"] != 1 {
+		t.Fatalf("runtime profile summary = %+v", runtimeProfile)
+	}
+	components := mapRowsValue(runtimeProfile["components"])
+	if len(components) != 1 || len(mapRowsValue(components[0]["params"])) != 1 {
+		t.Fatalf("runtime components missing param mappings: %+v", runtimeProfile["components"])
+	}
+}
+
 func TestCoercePluginGrabberExplainFromGetParametersCommand(t *testing.T) {
 	cmd, ok := coercePluginGrabberExplainCommand([]map[string]any{
 		{
@@ -491,6 +687,22 @@ func TestCoercePluginGrabberExplainFromGetParametersCommand(t *testing.T) {
 	}, "explain current plugin controls", map[string]any{})
 	if !ok {
 		t.Fatal("expected get_plugin_parameters to be coerced to explain workflow")
+	}
+	if cmd["cmd"] != pluginGrabberExplainCommand || cmd["track_id"] != "1007" || cmd["plugin_id"] != "plugin_a" {
+		t.Fatalf("workflow cmd = %+v", cmd)
+	}
+}
+
+func TestPluginGrabberExplainInvokeAcceptsUnderscoreToolName(t *testing.T) {
+	cmd, ok := pluginGrabberExplainInvokeCommand(harness.InvokeRequest{
+		Tool: "plugin_grabber_explain_controls",
+		Args: map[string]any{
+			"track_id":  "1007",
+			"plugin_id": "plugin_a",
+		},
+	})
+	if !ok {
+		t.Fatal("expected underscore tool name to route to explain workflow")
 	}
 	if cmd["cmd"] != pluginGrabberExplainCommand || cmd["track_id"] != "1007" || cmd["plugin_id"] != "plugin_a" {
 		t.Fatalf("workflow cmd = %+v", cmd)
@@ -577,6 +789,452 @@ func TestPendingConfirmationStatusQuestionDoesNotClaimExecuted(t *testing.T) {
 		t.Fatal("expected status question to be recognized")
 	}
 }
+
+func TestTakePendingPlanClearsPluginGrabberLearningAliases(t *testing.T) {
+	server := New(nil, shadow.New(nil), nil)
+	plan := PendingPlan{
+		ID:           "plan_learn",
+		Workflow:     "plugin_grabber_teach",
+		WorkflowData: map[string]any{"mode": "teach", "conversation_id": "chat_test"},
+		Context:      map[string]any{"goal_id": "goal_1"},
+	}
+	server.pending[plan.ID] = plan
+	server.pending["plugin_grabber_learning:goal_1:run_1:tool_1"] = plan
+
+	got, ok, stale := server.takePendingPlan(plan.ID)
+	if !ok || stale || got.ID != plan.ID {
+		t.Fatalf("takePendingPlan = plan=%+v ok=%v stale=%v", got, ok, stale)
+	}
+	if len(server.pending) != 0 {
+		t.Fatalf("pending aliases were not cleared: %+v", server.pending)
+	}
+	if pending, ok := server.pendingPlanForChat("chat_test", map[string]any{"goal_id": "goal_1"}); ok {
+		t.Fatalf("stale pending still blocks chat: %+v", pending)
+	}
+}
+
+func TestPendingPlanForChatDropsStalePluginGrabberLearningAlias(t *testing.T) {
+	server := New(nil, shadow.New(nil), nil)
+	plan := PendingPlan{
+		ID:           "plan_learn",
+		Workflow:     "plugin_grabber_auto_learn",
+		WorkflowData: map[string]any{"mode": "auto_learn", "conversation_id": "chat_test"},
+		Context:      map[string]any{"goal_id": "goal_1"},
+	}
+	server.pending["plugin_grabber_learning:goal_1:run_1:tool_1"] = plan
+
+	if pending, ok := server.pendingPlanForChat("chat_test", map[string]any{"goal_id": "goal_1"}); ok {
+		t.Fatalf("stale alias should not block chat: %+v", pending)
+	}
+	if len(server.pending) != 0 {
+		t.Fatalf("stale alias was not removed: %+v", server.pending)
+	}
+}
+
+func TestConfirmationInteractionRequestUsesGenericSchema(t *testing.T) {
+	server := New(nil, shadow.New(nil), nil)
+	resp := ChatResponse{
+		ConversationID:    "chat_1",
+		Reply:             "将执行一项需要确认的操作。",
+		NeedsConfirmation: true,
+		PlanID:            "plan_1",
+		Preview:           "preview",
+		Workflow:          "test_workflow",
+		Commands: []policy.Decision{{
+			Name: "test_command",
+			Risk: policy.RiskConfirm,
+		}},
+	}
+	server.attachInteractionRequests(&resp)
+	if len(resp.InteractionRequests) != 1 {
+		t.Fatalf("interaction_requests = %+v", resp.InteractionRequests)
+	}
+	req := resp.InteractionRequests[0]
+	if req.Kind != "confirmation" || req.Source != "vit_agent" || req.Payload["plan_id"] != "plan_1" {
+		t.Fatalf("request = %+v", req)
+	}
+	if req.Type != "confirmation" || req.Data["plan_id"] != "plan_1" {
+		t.Fatalf("legacy compatibility fields missing: %+v", req)
+	}
+	raw, err := json.Marshal(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	text := string(raw)
+	for _, want := range []string{`"kind":"confirmation"`, `"source":"vit_agent"`, `"payload":`} {
+		if !strings.Contains(text, want) {
+			t.Fatalf("serialized request missing %s: %s", want, text)
+		}
+	}
+}
+
+func TestInteractionRespondStaleReturnsChineseChatResponse(t *testing.T) {
+	server := New(nil, shadow.New(nil), nil)
+	body := bytes.NewBufferString(`{"interaction_id":"missing"}`)
+	req := httptest.NewRequest(http.MethodPost, "/agent/interaction/respond", body)
+	rec := httptest.NewRecorder()
+	server.handleInteractionRespond(rec, req)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d body=%s", rec.Code, rec.Body.String())
+	}
+	var resp ChatResponse
+	if err := json.Unmarshal(rec.Body.Bytes(), &resp); err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(resp.Reply, "已处理或已过期") || resp.GoalStatus != string(agentruntime.StatusCompleted) {
+		t.Fatalf("response = %+v", resp)
+	}
+}
+
+func TestPluginLearningCandidateInteractionUsesReviewKind(t *testing.T) {
+	server := New(nil, shadow.New(nil), nil)
+	resp := ChatResponse{
+		ConversationID: "chat_learn",
+		Reply:          "已生成插件抓手候选，请先测试并确认显示域。",
+		Workflow:       "plugin_grabber_auto_learn",
+		PluginLearning: map[string]any{
+			"mode":              "auto_learn",
+			"stage":             "candidate_review",
+			"needs_user_review": true,
+			"plugin_name":       "TDR Nova",
+			"parameter_count":   12,
+			"component_count":   4,
+			"operation_count":   5,
+			"profile_patch":     map[string]any{"class": "eq"},
+			"experiments":       []map[string]any{{"param_id": "B1 Gain"}},
+		},
+	}
+	server.attachInteractionRequests(&resp)
+	if len(resp.InteractionRequests) != 1 {
+		t.Fatalf("interaction_requests = %+v", resp.InteractionRequests)
+	}
+	req := resp.InteractionRequests[0]
+	if req.Kind != "review" || req.Source != "plugin_grabber" || req.Workflow != "plugin_grabber_auto_learn" {
+		t.Fatalf("request = %+v", req)
+	}
+	if len(req.ReviewItems) == 0 {
+		t.Fatalf("expected review items: %+v", req)
+	}
+	if req.Payload["profile_patch"] == nil || req.Data["profile_patch"] == nil {
+		t.Fatalf("payload/data missing profile patch: %+v", req)
+	}
+	if len(req.Actions) == 0 || req.Actions[0].ID != "submit" || !strings.Contains(req.Actions[0].Label, "候选草图") {
+		t.Fatalf("expected candidate confirmation action: %+v", req.Actions)
+	}
+}
+
+func TestBuildPluginLearningExperimentsRecordsRestoreValues(t *testing.T) {
+	digest := pluginParameterDigest{
+		Parameters: []pluginParameterInfo{
+			{ID: "gain", Name: "Gain", HostControllable: true, NormalizedValue: 0.25, ValueText: "-6 dB"},
+			{ID: "bypass", Name: "Bypass", HostControllable: true, NormalizedValue: 1.0, IsBoolean: true, NormalizedRole: "common_bypass"},
+			{ID: "meter", Name: "Meter", HostControllable: false, NormalizedValue: 0.5},
+		},
+	}
+	patch := pluginProfilePatch{
+		VirtualControls: []map[string]any{{
+			"name":         "adjust gain",
+			"component_id": "main",
+			"params": map[string]any{
+				"gain":   map[string]any{"param_id": "gain", "label": "Gain"},
+				"bypass": map[string]any{"param_id": "bypass", "label": "Bypass"},
+				"meter":  map[string]any{"param_id": "meter", "label": "Meter"},
+			},
+		}},
+	}
+	experiments := buildPluginLearningExperiments(digest, patch, 3)
+	if len(experiments) != 2 {
+		t.Fatalf("experiments = %+v", experiments)
+	}
+	byParam := map[string]map[string]any{}
+	for _, experiment := range experiments {
+		byParam[strings.TrimSpace(fmt.Sprint(experiment["param_id"]))] = experiment
+	}
+	gainExperiment := byParam["gain"]
+	if gainExperiment == nil || gainExperiment["before_normalized"] != 0.25 {
+		t.Fatalf("gain experiment = %+v", gainExperiment)
+	}
+	if float64(gainExperiment["after_normalized"].(float64)) <= 0.25 {
+		t.Fatalf("gain experiment did not move up: %+v", gainExperiment)
+	}
+	bypassExperiment := byParam["bypass"]
+	if bypassExperiment == nil || bypassExperiment["after_normalized"] != float64(0) {
+		t.Fatalf("bypass experiment = %+v", bypassExperiment)
+	}
+}
+
+func TestBuildPluginLearningExperimentsSamplesGroupParamsWithoutVirtualControlParams(t *testing.T) {
+	digest := pluginParameterDigest{
+		Parameters: []pluginParameterInfo{
+			{ID: "b1_freq", Name: "B1 Frequency", HostControllable: true, NormalizedValue: 0.40, NormalizedRole: "eq_frequency", ValueText: "500 Hz"},
+			{ID: "b1_gain", Name: "B1 Gain", HostControllable: true, NormalizedValue: 0.50, NormalizedRole: "eq_gain", ValueText: "0.0 dB"},
+			{ID: "b1_q", Name: "B1 Q", HostControllable: true, NormalizedValue: 0.35, NormalizedRole: "eq_q", ValueText: "1.00"},
+		},
+	}
+	patch := pluginProfilePatch{
+		Groups: []map[string]any{{
+			"id":    "b1",
+			"label": "B1",
+			"role":  "eq_band",
+			"params": map[string]any{
+				"frequency": map[string]any{
+					"param_id": "b1_freq",
+					"label":    "B1 Frequency",
+					"display_domain": map[string]any{
+						"status":     "inferred",
+						"confidence": 0.78,
+						"unit":       "Hz",
+					},
+				},
+				"gain": map[string]any{
+					"param_id": "b1_gain",
+					"label":    "B1 Gain",
+					"display_domain": map[string]any{
+						"status":     "inferred",
+						"confidence": 0.66,
+						"unit":       "dB",
+					},
+				},
+				"q": map[string]any{
+					"param_id": "b1_q",
+					"label":    "B1 Q",
+					"display_domain": map[string]any{
+						"status":     "inferred",
+						"confidence": 0.70,
+					},
+				},
+			},
+		}},
+		VirtualControls: []map[string]any{{
+			"name":     "eq.cut_region",
+			"resolver": "choose_nearest_or_free_band",
+		}},
+	}
+	experiments := buildPluginLearningExperiments(digest, patch, 3)
+	if len(experiments) != 3 {
+		t.Fatalf("experiments = %+v", experiments)
+	}
+	seen := map[string]bool{}
+	for _, experiment := range experiments {
+		if experiment["component_id"] != "b1" {
+			t.Fatalf("component_id = %+v", experiment)
+		}
+		if experiment["sample_reason"] != "low_confidence_high_impact" {
+			t.Fatalf("sample_reason = %+v", experiment)
+		}
+		seen[strings.TrimSpace(fmt.Sprint(experiment["param_id"]))] = true
+	}
+	for _, paramID := range []string{"b1_freq", "b1_gain", "b1_q"} {
+		if !seen[paramID] {
+			t.Fatalf("missing %s experiment: %+v", paramID, experiments)
+		}
+	}
+}
+
+func TestPluginLearningExperimentInfersDisplayDomainDefaults(t *testing.T) {
+	digest := pluginParameterDigest{
+		Parameters: []pluginParameterInfo{
+			{ID: "delay", Name: "Delay_Ms", HostControllable: true, NormalizedValue: 0.5, NormalizedRole: "time_delay", ValueText: "300.0 ms"},
+		},
+	}
+	patch := pluginProfilePatch{
+		VirtualControls: []map[string]any{{
+			"name":         "Echo Length",
+			"component_id": "delay",
+			"params": map[string]any{
+				"time": map[string]any{"param_id": "delay", "label": "Delay ms"},
+			},
+		}},
+	}
+	experiments := buildPluginLearningExperiments(digest, patch, 1)
+	if len(experiments) != 1 {
+		t.Fatalf("experiments = %+v", experiments)
+	}
+	if experiments[0]["inferred_display_domain_text"] != "0~2000 ms" {
+		t.Fatalf("inferred display domain = %+v", experiments[0])
+	}
+	fields := pluginGrabberDisplayDomainFields(map[string]any{
+		"experiment_answers": []map[string]any{{
+			"experiment": experiments[0],
+		}},
+	})
+	if len(fields) != 1 || fields[0].Value != "0~2000 ms" {
+		t.Fatalf("fields = %+v", fields)
+	}
+}
+
+func TestPluginLearningExperimentFieldsExposeDisplayDomainOptions(t *testing.T) {
+	fields := pluginGrabberExperimentFields(map[string]any{
+		"inferred_display_domain_text": "0~100 %",
+		"slot":                         "feedback",
+		"label":                        "Feedback",
+	})
+	if len(fields) != 3 {
+		t.Fatalf("fields = %+v", fields)
+	}
+	if fields[0].ID != "display_domain_text" || fields[0].Kind != "choice" || fields[0].Value != "0~100 %" || len(fields[0].Options) < 4 {
+		t.Fatalf("display domain choice field = %+v", fields[0])
+	}
+	if fields[1].ID != "observation" || fields[1].Kind != "text" {
+		t.Fatalf("notes field = %+v", fields[1])
+	}
+	if fields[2].ID != "custom_display_domain_text" || fields[2].Kind != "text" {
+		t.Fatalf("custom display domain field = %+v", fields[2])
+	}
+	summary := pluginGrabberExperimentObservationSummary("sound_changed", "尾音更长")
+	if summary != "声音变化；尾音更长" {
+		t.Fatalf("summary = %q", summary)
+	}
+}
+
+func TestPluginProfilePatchDisplayDomainEnrichmentUsesDigestCandidates(t *testing.T) {
+	digest := pluginParameterDigest{
+		Parameters: []pluginParameterInfo{
+			{
+				ID:               "dry level",
+				Name:             "Dry Level",
+				HostControllable: true,
+				NormalizedRole:   "common_mix",
+				DisplayDomainCandidate: &plugingrabber.PluginDisplayDomain{
+					Text:       "-12~0 dB",
+					Unit:       "dB",
+					Scale:      "linear",
+					Status:     "inferred",
+					Source:     "display_probe_inferred",
+					Confidence: 0.90,
+				},
+			},
+			{ID: "6", Name: "Feedback", HostControllable: true, NormalizedRole: "mod_feedback"},
+		},
+	}
+	patch := pluginProfilePatch{
+		Groups: []map[string]any{{
+			"id": "mix",
+			"params": map[string]any{
+				"dry_level": map[string]any{"param_id": "dry level", "label": "Dry Level"},
+			},
+		}},
+		VirtualControls: []map[string]any{{
+			"name": "Set Feedback",
+			"params": map[string]any{
+				"feedback": "6",
+			},
+		}},
+	}
+	patch = enrichPluginProfilePatchDisplayDomains(patch, digest)
+	groupParams := mapValue(patch.Groups[0]["params"])
+	dry := mapValue(groupParams["dry_level"])
+	if dry["display_domain_text"] != "-12~0 dB" {
+		t.Fatalf("dry mapping = %+v", dry)
+	}
+	controlParams := mapValue(patch.VirtualControls[0]["params"])
+	feedback := mapValue(controlParams["feedback"])
+	if feedback["param_id"] != "6" || feedback["display_domain_text"] != "0~100 %" {
+		t.Fatalf("feedback mapping = %+v", feedback)
+	}
+	if len(mapRowsValue(feedback["provenance"])) == 0 {
+		t.Fatalf("feedback provenance missing: %+v", feedback)
+	}
+}
+
+func TestPluginLearningExperimentsSpotCheckHighConfidenceDisplayProbe(t *testing.T) {
+	minValue, maxValue := 0.0, 2000.0
+	digest := pluginParameterDigest{
+		Parameters: []pluginParameterInfo{
+			{
+				ID:               "delay",
+				Name:             "Delay",
+				HostControllable: true,
+				NormalizedValue:  0.5,
+				NormalizedRole:   "time_delay",
+				DisplayDomainCandidate: &plugingrabber.PluginDisplayDomain{
+					Text:       "0~2000 ms",
+					Unit:       "ms",
+					Min:        &minValue,
+					Max:        &maxValue,
+					Scale:      "linear",
+					Status:     "inferred",
+					Source:     "display_probe_inferred",
+					Confidence: 0.90,
+				},
+			},
+		},
+	}
+	patch := pluginProfilePatch{
+		VirtualControls: []map[string]any{{
+			"name":         "Echo Length",
+			"component_id": "delay",
+			"params": map[string]any{
+				"time": map[string]any{"param_id": "delay", "label": "Delay"},
+			},
+		}},
+	}
+	experiments := buildPluginLearningExperiments(digest, patch, 1)
+	if len(experiments) != 1 {
+		t.Fatalf("experiments = %+v", experiments)
+	}
+	if experiments[0]["sample_reason"] != "spot_check_high_confidence" || experiments[0]["param_id"] != "delay" {
+		t.Fatalf("experiment = %+v", experiments[0])
+	}
+}
+
+func TestPluginGrabberSubmittedReviewsCarryIntoExperimentPayload(t *testing.T) {
+	base := map[string]any{
+		"profile_patch": pluginProfilePatch{
+			Groups: []map[string]any{{
+				"id":    "delay",
+				"label": "Delay",
+				"params": map[string]any{
+					"time": map[string]any{
+						"param_id": "delay",
+						"label":    "Delay",
+						"display_domain": map[string]any{
+							"status":     "needs_confirmation",
+							"confidence": 0.45,
+						},
+					},
+				},
+			}},
+		},
+		"experiments": []map[string]any{{
+			"component_id": "delay",
+			"slot":         "time",
+			"param_id":     "delay",
+		}},
+	}
+	submitted := map[string]any{
+		"display_domain_reviews": []map[string]any{{
+			"component_id":        "delay",
+			"slot":                "time",
+			"param_id":            "delay",
+			"display_domain_text": "0~2000 ms",
+			"provenance_kind":     "user_review",
+			"observation":         "Confirmed from the review card.",
+		}},
+	}
+	payload := pluginGrabberPayloadWithSubmittedReviews(base, submitted)
+	if experiments := mapRowsValue(payload["experiments"]); len(experiments) != 1 {
+		t.Fatalf("experiments = %+v", experiments)
+	}
+	patch := mapFromJSONStruct(payload["profile_patch"])
+	groups := mapRowsValue(patch["groups"])
+	if len(groups) != 1 {
+		t.Fatalf("groups = %+v", groups)
+	}
+	params := mapValue(groups[0]["params"])
+	mapping := mapValue(params["time"])
+	if !boolValue(mapping["confirmed"]) {
+		t.Fatalf("mapping not confirmed: %+v", mapping)
+	}
+	domain := mapValue(mapping["display_domain"])
+	if domain["unit"] != "ms" || fmt.Sprint(domain["min"]) != "0" || fmt.Sprint(domain["max"]) != "2000" {
+		t.Fatalf("domain = %+v", domain)
+	}
+	if len(mapRowsValue(mapping["provenance"])) == 0 {
+		t.Fatalf("missing provenance: %+v", mapping)
+	}
+}
+
 func TestPluginLibraryIntentOverridesModelScanCommand(t *testing.T) {
 	env := modelEnvelope{
 		Commands: []map[string]any{{"cmd": "scan_plugins"}},

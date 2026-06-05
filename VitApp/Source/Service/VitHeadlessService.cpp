@@ -1,6 +1,6 @@
 #include "VitHeadlessService.h"
 
-#include "TiledSpectrogramBaker.h"
+#include "AudioFeatureService.h"
 
 #include "../Core/VitEncryptionCore.h"
 #include "../Core/VitGraphSwapCoordinator.h"
@@ -24,6 +24,17 @@ float normaliseLevelDbForTelemetry (float rawLevelDb)
     const auto gain = juce::Decibels::decibelsToGain (rawLevelDb, minimumTelemetryDb);
     const auto dbfs = juce::Decibels::gainToDecibels (gain, minimumTelemetryDb);
     return juce::jlimit (minimumTelemetryDb, maximumTelemetryDb, dbfs);
+}
+
+juce::var spectrumArrayToVar (const float* values, int count)
+{
+    juce::Array<juce::var> out;
+    out.ensureStorageAllocated (count);
+
+    for (int i = 0; i < count; ++i)
+        out.add (juce::var ((double) juce::jlimit (0.0f, 1.0f, values[i])));
+
+    return juce::var (out);
 }
 
 bool ensureMonitoringPlugins (te::AudioTrack& track)
@@ -229,6 +240,19 @@ bool isAppBoundEncryption (const juce::DynamicObject& object)
     return false;
 }
 
+bool looksLikeEncryptedProjectFile (const juce::File& projectFile)
+{
+    juce::FileInputStream stream (projectFile);
+    if (! stream.openedOk())
+        return false;
+
+    char magic[4] {};
+    if (stream.read (magic, sizeof (magic)) != sizeof (magic))
+        return false;
+
+    return magic[0] == 'V' && magic[1] == 'I' && magic[2] == 'T' && magic[3] == '1';
+}
+
 } // namespace
 
 VitHeadlessService::VitHeadlessService (juce::String applicationName)
@@ -327,7 +351,7 @@ void VitHeadlessService::stop()
     if (edit != nullptr)
         for (auto* track : te::getAllTracks (*edit))
             if (track != nullptr)
-                TiledSpectrogramBaker::releaseTrackMappings (track->itemID.toString());
+                AudioFeatureService::releaseTrackMappings (track->itemID.toString());
 
     if (zmqGateway != nullptr)
     {
@@ -467,7 +491,7 @@ bool VitHeadlessService::applyLoadedEdit (std::unique_ptr<te::Edit> loadedEdit, 
 
         for (auto* track : te::getAllTracks (*edit))
             if (track != nullptr)
-                TiledSpectrogramBaker::releaseTrackMappings (track->itemID.toString());
+                AudioFeatureService::releaseTrackMappings (track->itemID.toString());
     }
 
     clearLevelMeterClients();
@@ -652,6 +676,10 @@ void VitHeadlessService::broadcastLevelsTelemetry()
             continue;
 
         float levelDb = -100.0f;
+        float leftLevelDb = -100.0f;
+        float rightLevelDb = -100.0f;
+        te::SpectrumFrame spectrumFrame;
+        bool hasSpectrumFrame = false;
 
         if (const auto it = trackLevelClients.find (audioTrack->itemID.toString().toStdString());
             it != trackLevelClients.end() && it->second.client != nullptr)
@@ -659,13 +687,41 @@ void VitHeadlessService::broadcastLevelsTelemetry()
             const auto numChannels = juce::jmax (1, it->second.client->getNumChannelsUsed());
 
             for (int channel = 0; channel < juce::jmin (numChannels, 2); ++channel)
-                levelDb = juce::jmax (levelDb,
-                                      normaliseLevelDbForTelemetry (it->second.client->getAndClearAudioLevel (channel).dB));
+            {
+                const auto channelDb = normaliseLevelDbForTelemetry (it->second.client->getAndClearAudioLevel (channel).dB);
+                levelDb = juce::jmax (levelDb, channelDb);
+
+                if (channel == 0)
+                    leftLevelDb = channelDb;
+                else
+                    rightLevelDb = channelDb;
+            }
+
+            if (numChannels == 1)
+                rightLevelDb = leftLevelDb;
+
+            hasSpectrumFrame = it->second.client->getAndClearSpectrumFrame (spectrumFrame);
         }
 
         auto trackObject = std::make_unique<juce::DynamicObject>();
         trackObject->setProperty ("id", audioTrack->itemID.toString());
         trackObject->setProperty ("level_db", levelDb);
+        trackObject->setProperty ("left_level_db", leftLevelDb);
+        trackObject->setProperty ("right_level_db", rightLevelDb);
+
+        if (hasSpectrumFrame)
+        {
+            trackObject->setProperty ("spectrum_bin_count", te::SpectrumFrame::numBins);
+            trackObject->setProperty ("spectrum_min_hz", 20.0);
+            trackObject->setProperty ("spectrum_max_hz", 20000.0);
+            trackObject->setProperty ("spectrum_input_peak", spectrumFrame.inputPeak);
+            trackObject->setProperty ("spectrum_output_peak", spectrumFrame.outputPeak);
+            trackObject->setProperty ("spectrum_left", spectrumArrayToVar (spectrumFrame.left, te::SpectrumFrame::numBins));
+            trackObject->setProperty ("spectrum_right", spectrumArrayToVar (spectrumFrame.right, te::SpectrumFrame::numBins));
+            trackObject->setProperty ("spectrum_phase", spectrumArrayToVar (spectrumFrame.phase, te::SpectrumFrame::numBins));
+            trackObject->setProperty ("spectrum_weight", spectrumArrayToVar (spectrumFrame.weight, te::SpectrumFrame::numBins));
+        }
+
         tracksArray.add (juce::var (trackObject.release()));
     }
 
@@ -721,7 +777,7 @@ juce::String VitHeadlessService::ipcNewBlankProject()
     if (edit != nullptr)
         for (auto* track : te::getAllTracks (*edit))
             if (track != nullptr)
-                TiledSpectrogramBaker::releaseTrackMappings (track->itemID.toString());
+                AudioFeatureService::releaseTrackMappings (track->itemID.toString());
 
     clearLevelMeterClients();
     edit.reset();
@@ -753,8 +809,12 @@ juce::String VitHeadlessService::ipcNewBlankProject()
 
 juce::String VitHeadlessService::ipcOpenProjectAt (const juce::DynamicObject& object, const juce::File& projectFile)
 {
-    const bool ok = isAppBoundEncryption (object) ? loadEncryptedProjectFromFile (projectFile)
-                                                  : loadProjectFromFile (projectFile);
+    const bool useEncryptedLoader = isAppBoundEncryption (object) || looksLikeEncryptedProjectFile (projectFile);
+    if (useEncryptedLoader && ! isAppBoundEncryption (object))
+        juce::Logger::writeToLog ("VitHeadlessService: auto-detected encrypted project " + projectFile.getFullPathName());
+
+    const bool ok = useEncryptedLoader ? loadEncryptedProjectFromFile (projectFile)
+                                       : loadProjectFromFile (projectFile);
 
     if (! ok)
         return CommandDispatcher::makeErrorReply ("open_project failed for " + projectFile.getFullPathName());

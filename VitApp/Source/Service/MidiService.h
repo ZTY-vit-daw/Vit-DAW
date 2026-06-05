@@ -21,8 +21,10 @@ public:
     juce::String handleAddMidiNotesBulk (const juce::DynamicObject&, const juce::String&) const;
     juce::String handleMutateMidiNotes (const juce::DynamicObject&, const juce::String&) const;
     juce::String handleDeleteMidiNotes (const juce::DynamicObject&, const juce::String&) const;
+    juce::String handleApplyMidiNotePatch (const juce::DynamicObject&, const juce::String&) const;
     juce::String handleGetMidiClipNotes (const juce::DynamicObject&, const juce::String&) const;
     juce::String handleGetMidiClipData (const juce::DynamicObject&, const juce::String&) const;
+    juce::String handleImportMidiToTrack (const juce::DynamicObject&, const juce::String&) const;
     juce::String handleInsertMidiClip (const juce::DynamicObject&, const juce::String&) const;
 
 private:

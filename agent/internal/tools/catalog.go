@@ -76,6 +76,9 @@ func DefaultCatalog() *Catalog {
 	c.AddAlias("plugin_set_aliases", "set_plugin_param_aliases")
 	c.AddAlias("plugin_explain_controls", "plugin_grabber_explain_controls")
 	c.AddAlias("plugin.explain_controls", "plugin_grabber_explain_controls")
+	c.AddAlias("plugin_grabber_explain_controls", "plugin_grabber_explain_controls")
+	c.AddAlias("plugin_learn_project_profile", "plugin_grabber_learn_project_profile")
+	c.AddAlias("plugin.learn_project_profile", "plugin_grabber_learn_project_profile")
 	c.AddAlias("plugin_learn_common_roles", "set_plugin_param_aliases")
 	c.AddAlias("plugin.list", "plugin_list_available")
 	c.AddAlias("plugin.find", "plugin_search")
@@ -86,6 +89,7 @@ func DefaultCatalog() *Catalog {
 	c.AddAlias("plugin_grabber.list_project_profiles", "plugin_grabber_get_project_profiles")
 	c.AddAlias("plugin_grabber.save_project_profile", "plugin_grabber_upsert_project_profile")
 	c.AddAlias("plugin_grabber.reset_project_profile", "plugin_grabber_remove_project_profile")
+	c.AddAlias("plugin_grabber.apply", "plugin_grabber_apply_control")
 	c.AddAlias("midi.read_clip_notes", "get_midi_clip_notes")
 	c.AddAlias("midi.import_file", "import_midi_to_track")
 	c.AddAlias("midi.write_clip_notes", "apply_midi_note_patch")
@@ -314,10 +318,14 @@ func argHint(commandName string) string {
 		return "optional profile_id:string plugin_id:string"
 	case "plugin_grabber_explain_controls":
 		return "track_id:string plugin_id:string optional intent:string"
+	case "plugin_grabber_learn_project_profile":
+		return "track_id:string plugin_id:string optional intent:string"
 	case "plugin_grabber_upsert_project_profile":
-		return "track_id:string plugin_id:string quick_control_ids:string[] aliases?:object display_groups?:object normalized_roles?:object"
+		return "track_id:string plugin_id:string quick_control_ids:string[] aliases?:object display_groups?:object normalized_roles?:object class?:string groups?:array virtual_controls?:array safety?:object plugin_skill?:object"
 	case "plugin_grabber_remove_project_profile":
 		return "profile_id:string OR track_id:string plugin_id:string"
+	case "plugin_grabber_apply_control":
+		return "track_id:string plugin_id:string control:string target:{freq_hz?:number gain_db?:number q?:number threshold_db?:number amount?:number|string component_id?:string}"
 	case "import_midi_to_track":
 		return "track_id:string file_path:string optional start_time_beats:number mode:merge_tracks"
 	case "get_midi_clip_notes", "get_midi_clip_data":
@@ -548,12 +556,14 @@ func defaultSpecs() []CommandSpec {
 		spec("open_plugin_ui", "plugin.open", "plugin", "Open a plugin editor window.", RiskDirect, false, false, false, false, "track_id", "plugin_id"),
 		spec("show_plugin_editor", "plugin.show_editor", "plugin", "Open a plugin editor window.", RiskDirect, false, false, false, false, "track_id", "plugin_id"),
 		spec("get_plugin_parameters", "plugin.get_parameters", "plugin", "Read normalized plugin parameter values.", RiskDirect, false, false, false, false, "track_id", "plugin_id"),
-		spec("set_plugin_param", "plugin.set_parameter", "plugin", "Set one plugin parameter.", RiskUndoable, true, true, false, true, "track_id", "plugin_id", "param_id"),
+		spec("set_plugin_param", "plugin.set_parameter", "plugin", "Set one explicit plugin parameter by raw/normalized value, or by plugin-exposed display text via value_text such as 1000 ms when get_plugin_parameters display_probe is high confidence.", RiskUndoable, true, true, false, true, "track_id", "plugin_id", "param_id"),
 		spec("set_plugin_param_aliases", "plugin.set_aliases", "plugin", "Store semantic aliases for plugin parameters.", RiskUndoable, true, true, false, true, "plugin_id"),
 		spec("plugin_grabber_get_project_profiles", "plugin_grabber.get_project_profiles", "plugin_grabber", "Read project-scoped plugin grabber profiles.", RiskDirect, false, false, false, false),
 		spec("plugin_grabber_explain_controls", "plugin_grabber.explain_controls", "plugin_grabber", "Build a compact AI-friendly context pack for one loaded plugin without filtering full parameters.", RiskDirect, false, false, false, false, "track_id", "plugin_id"),
+		spec("plugin_grabber_learn_project_profile", "plugin_grabber.learn_project_profile", "plugin_grabber", "Learn and propose a project/global plugin grabber profile for one loaded plugin, then ask the user to confirm before saving.", RiskDirect, false, false, false, false, "track_id", "plugin_id"),
 		spec("plugin_grabber_upsert_project_profile", "plugin_grabber.upsert_project_profile", "plugin_grabber", "Save project-scoped plugin grabber profile annotations for one plugin.", RiskConfirm, true, false, true, true, "track_id", "plugin_id"),
 		spec("plugin_grabber_remove_project_profile", "plugin_grabber.remove_project_profile", "plugin_grabber", "Remove a project-scoped plugin grabber profile.", RiskConfirm, true, false, true, true),
+		spec("plugin_grabber_apply_control", "plugin_grabber.apply_control", "plugin_grabber", "Apply a learned plugin grabber runtime control from an acoustic target using the current validated parameter profile; result.applied_parameters[].new_value_text is the actual applied display value.", RiskUndoable, true, true, false, true, "track_id", "plugin_id"),
 		spec("delete_plugin", "plugin.delete", "plugin", "Delete a plugin instance.", RiskConfirm, true, true, true, true, "track_id", "plugin_id"),
 		spec("move_plugin", "plugin.move", "plugin", "Move a plugin instance.", RiskConfirm, true, true, true, true, "track_id", "plugin_id"),
 

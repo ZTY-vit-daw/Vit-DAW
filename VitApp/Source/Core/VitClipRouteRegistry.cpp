@@ -1,6 +1,9 @@
 #include "VitClipRouteRegistry.h"
 
+#include "VitGraphValidator.h"
+
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 namespace vit
@@ -24,6 +27,8 @@ struct ParsedScope
     bool isClip = false;
     bool isDebugGlobal = false;
 };
+
+constexpr auto kVitInternalDefaultAudioSourcesProperty = "vit_internal_default_audio_sources";
 
 std::vector<ClipDescriptor> collectTrackClips (te::Track& track)
 {
@@ -152,6 +157,29 @@ juce::String makeEdgeKey (const juce::String& sourceId, int sourcePin, const juc
     return sourceId + "|" + juce::String (sourcePin) + "|" + destId + "|" + juce::String (destPin);
 }
 
+juce::StringArray parseInternalDefaultAudioSources (const juce::ValueTree& pluginInstanceState)
+{
+    juce::StringArray result;
+    auto raw = pluginInstanceState.getProperty (kVitInternalDefaultAudioSourcesProperty).toString().trim();
+
+    if (raw.isEmpty())
+        return result;
+
+    raw = raw.replaceCharacter ('|', ',');
+    juce::StringArray tokens;
+    tokens.addTokens (raw, ",", juce::String());
+
+    for (auto token : tokens)
+    {
+        token = token.trim();
+
+        if (token.isNotEmpty())
+            result.addIfNotAlreadyThere (token);
+    }
+
+    return result;
+}
+
 juce::ValueTree findRackPluginInstanceState (te::RackType& rackType, te::EditItemID nodeId)
 {
     for (auto child : rackType.state)
@@ -161,6 +189,176 @@ juce::ValueTree findRackPluginInstanceState (te::RackType& rackType, te::EditIte
                     return child;
 
     return {};
+}
+
+std::unordered_map<std::string, std::unordered_set<std::string>> collectInternalDefaultAudioSourcesByDest (te::RackType& rackType)
+{
+    std::unordered_map<std::string, std::unordered_set<std::string>> result;
+
+    for (auto child : rackType.state)
+    {
+        if (! child.hasType (te::IDs::PLUGININSTANCE))
+            continue;
+
+        auto pluginState = child.getChildWithName (te::IDs::PLUGIN);
+
+        if (! pluginState.isValid())
+            continue;
+
+        const auto destId = te::EditItemID::fromID (pluginState);
+
+        if (! destId.isValid())
+            continue;
+
+        auto sources = parseInternalDefaultAudioSources (child);
+
+        if (sources.isEmpty())
+            continue;
+
+        auto& destSources = result[destId.toString().toStdString()];
+
+        for (const auto& source : sources)
+            destSources.insert (source.toStdString());
+    }
+
+    return result;
+}
+
+bool isMainAudioPinPair (int sourcePin, int destPin)
+{
+    return sourcePin >= 1 && destPin >= 1;
+}
+
+bool isInternalDefaultAudioEdge (const std::unordered_map<std::string, std::unordered_set<std::string>>& internalSourcesByDest,
+                                 const juce::String& sourceId,
+                                 int sourcePin,
+                                 const juce::String& destId,
+                                 int destPin)
+{
+    if (! isMainAudioPinPair (sourcePin, destPin))
+        return false;
+
+    const auto foundDest = internalSourcesByDest.find (destId.toStdString());
+
+    if (foundDest == internalSourcesByDest.end())
+        return false;
+
+    return foundDest->second.count (sourceId.toStdString()) > 0;
+}
+
+std::unordered_set<std::string> collectNodesReachableFromRackInput (te::RackType& rackType)
+{
+    std::unordered_map<std::string, std::vector<te::EditItemID>> adjacency;
+    std::vector<te::EditItemID> queue;
+    std::unordered_set<std::string> reachable;
+
+    for (auto* connection : rackType.getConnections())
+    {
+        if (connection == nullptr)
+            continue;
+
+        if (connection->sourcePin.get() < 0 || connection->destPin.get() < 0)
+            continue;
+
+        const auto sourceId = connection->sourceID.get();
+        const auto destId = connection->destID.get();
+
+        if (! destId.isValid())
+            continue;
+
+        if (! sourceId.isValid())
+        {
+            const bool isRackAudioInput = isMainAudioPinPair (connection->sourcePin.get(), connection->destPin.get());
+            const bool isRackMidiToZ2 = connection->sourcePin.get() == 0
+                                        && connection->destPin.get() == 0
+                                        && VitGraphValidator::getZoneIdForNode (rackType, destId) == "Z2";
+
+            if (isRackAudioInput || isRackMidiToZ2)
+            {
+                const auto key = destId.toString().toStdString();
+
+                if (reachable.insert (key).second)
+                    queue.push_back (destId);
+            }
+
+            continue;
+        }
+
+        if (isMainAudioPinPair (connection->sourcePin.get(), connection->destPin.get()))
+            adjacency[sourceId.toString().toStdString()].push_back (destId);
+    }
+
+    for (size_t i = 0; i < queue.size(); ++i)
+    {
+        const auto sourceId = queue[i];
+        const auto found = adjacency.find (sourceId.toString().toStdString());
+
+        if (found == adjacency.end())
+            continue;
+
+        for (const auto& destId : found->second)
+        {
+            const auto key = destId.toString().toStdString();
+
+            if (reachable.insert (key).second)
+                queue.push_back (destId);
+        }
+    }
+
+    return reachable;
+}
+
+std::unordered_set<std::string> collectNodesThatCanReachRackOutput (te::RackType& rackType)
+{
+    std::unordered_map<std::string, std::vector<te::EditItemID>> reverseAdjacency;
+    std::vector<te::EditItemID> queue;
+    std::unordered_set<std::string> canReachOutput;
+
+    for (auto* connection : rackType.getConnections())
+    {
+        if (connection == nullptr)
+            continue;
+
+        if (! isMainAudioPinPair (connection->sourcePin.get(), connection->destPin.get()))
+            continue;
+
+        const auto sourceId = connection->sourceID.get();
+        const auto destId = connection->destID.get();
+
+        if (! sourceId.isValid())
+            continue;
+
+        if (! destId.isValid())
+        {
+            const auto key = sourceId.toString().toStdString();
+
+            if (canReachOutput.insert (key).second)
+                queue.push_back (sourceId);
+
+            continue;
+        }
+
+        reverseAdjacency[destId.toString().toStdString()].push_back (sourceId);
+    }
+
+    for (size_t i = 0; i < queue.size(); ++i)
+    {
+        const auto destId = queue[i];
+        const auto found = reverseAdjacency.find (destId.toString().toStdString());
+
+        if (found == reverseAdjacency.end())
+            continue;
+
+        for (const auto& sourceId : found->second)
+        {
+            const auto key = sourceId.toString().toStdString();
+
+            if (canReachOutput.insert (key).second)
+                queue.push_back (sourceId);
+        }
+    }
+
+    return canReachOutput;
 }
 
 } // namespace
@@ -282,10 +480,12 @@ void VitClipRouteRegistry::annotateNodesAndEdges (te::Track& track,
                                                   juce::Array<juce::var>& edges,
                                                   const juce::String& requestScope)
 {
-    juce::ignoreUnused (rackType);
     const auto clips = collectTrackClips (track);
     const auto allClipIds = toClipIdsArray (clips);
     const auto scope = parseScope (requestScope);
+    const auto internalSourcesByDest = collectInternalDefaultAudioSourcesByDest (rackType);
+    const auto reachableFromInput = collectNodesReachableFromRackInput (rackType);
+    const auto canReachOutput = collectNodesThatCanReachRackOutput (rackType);
     std::unordered_map<std::string, juce::StringArray> nodeClipSets;
 
     for (auto& nodeVar : nodes)
@@ -297,13 +497,24 @@ void VitClipRouteRegistry::annotateNodesAndEdges (te::Track& track,
         const auto nodeId = object->getProperty ("node_id").toString();
         const auto clipScope = normaliseClipScope (object->getProperty ("clip_scope").toString());
         const auto clipIds = parseNodeClipIds (clipScope, allClipIds);
+        const auto nodeKey = nodeId.toStdString();
+        const bool reachable = reachableFromInput.count (nodeKey) > 0;
+        const bool effectiveInOutputPath = reachable && canReachOutput.count (nodeKey) > 0;
+        const auto zoneId = object->getProperty ("zone_id").toString().trim().toUpperCase();
         nodeClipSets[nodeId.toStdString()] = clipIds;
 
         object->setProperty ("shared_by_clip_ids", stringArrayToVar (clipIds));
         object->setProperty ("source_clip_id", pickSourceClipId (clipIds));
         object->setProperty ("line_color_hint", colorHintForClipId (pickSourceClipId (clipIds)));
         object->setProperty ("is_scope_hidden", isHiddenInScope (clipIds, scope));
+        object->setProperty ("audio_reachable_from_rack_input", reachable);
+        object->setProperty ("vit_effective_in_output_path", effectiveInOutputPath);
+
+        if (zoneId == "Z3")
+            object->setProperty ("vit_orphan_bypass_candidate", ! effectiveInOutputPath);
     }
+
+    juce::Array<juce::var> visibleEdges;
 
     for (auto& edgeVar : edges)
     {
@@ -317,6 +528,7 @@ void VitClipRouteRegistry::annotateNodesAndEdges (te::Track& track,
         const auto destPin = static_cast<int> (object->getProperty ("dest_pin"));
         const auto sourceClipIds = nodeClipSets[sourceId.toStdString()];
         const auto destClipIds = nodeClipSets[destId.toStdString()];
+        const bool internalDefaultAudio = isInternalDefaultAudioEdge (internalSourcesByDest, sourceId, sourcePin, destId, destPin);
         auto sharedClipIds = intersectClipSets (sourceClipIds, destClipIds);
 
         if (sharedClipIds.isEmpty())
@@ -327,7 +539,13 @@ void VitClipRouteRegistry::annotateNodesAndEdges (te::Track& track,
         object->setProperty ("source_clip_id", pickSourceClipId (sharedClipIds));
         object->setProperty ("line_color_hint", colorHintForClipId (pickSourceClipId (sharedClipIds)));
         object->setProperty ("is_scope_hidden", isHiddenInScope (sharedClipIds, scope));
+        object->setProperty ("vit_internal_default_audio", internalDefaultAudio);
+
+        if (! internalDefaultAudio)
+            visibleEdges.add (edgeVar);
     }
+
+    edges = visibleEdges;
 }
 
 } // namespace vit
