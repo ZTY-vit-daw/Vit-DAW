@@ -29,6 +29,58 @@ func TestDefaultDraftProjectPathUsesEditRoot(t *testing.T) {
 	}
 }
 
+func TestProjectNewStartsFreshDraftHistory(t *testing.T) {
+	root := t.TempDir()
+	t.Setenv("VIT_HISTORY_DRAFT_ROOT", root)
+	draftProject.Lock()
+	draftProject.root = ""
+	draftProject.path = ""
+	draftProject.Unlock()
+
+	first, err := ProjectNew(map[string]any{})
+	if err != nil {
+		t.Fatalf("first project new: %v", err)
+	}
+	firstPath := fmt.Sprint(first["project_path"])
+	firstCommit, err := Checkpoint(map[string]any{
+		"message":              "first draft",
+		"project_snapshot_xml": "<EDIT draft_state=\"first\"/>",
+	})
+	if err != nil {
+		t.Fatalf("first checkpoint: %v", err)
+	}
+	if _, err := AppendConversationNode(map[string]any{
+		"kind":         "ask",
+		"commit_id":    firstCommit["commit_id"],
+		"text_preview": "first draft ask",
+	}); err != nil {
+		t.Fatalf("first conversation node: %v", err)
+	}
+
+	second, err := ProjectNew(map[string]any{})
+	if err != nil {
+		t.Fatalf("second project new: %v", err)
+	}
+	secondPath := fmt.Sprint(second["project_path"])
+	if firstPath == "" || secondPath == "" || sameProjectPath(firstPath, secondPath) {
+		t.Fatalf("draft paths should be different: first=%q second=%q", firstPath, secondPath)
+	}
+	secondStatus, err := Status(map[string]any{})
+	if err != nil {
+		t.Fatalf("second status: %v", err)
+	}
+	if messages := secondStatus["conversation_messages"].([]ConversationMessage); len(messages) != 0 {
+		t.Fatalf("second draft should start without first draft messages: %+v", messages)
+	}
+	firstStatus, err := Status(map[string]any{"project_path": firstPath})
+	if err != nil {
+		t.Fatalf("first status: %v", err)
+	}
+	if messages := firstStatus["conversation_messages"].([]ConversationMessage); len(messages) != 1 || messages[0].Content != "first draft ask" {
+		t.Fatalf("first draft messages should stay scoped: %+v", messages)
+	}
+}
+
 func TestProjectSavedAdoptsDraftHistory(t *testing.T) {
 	root := t.TempDir()
 	t.Setenv("VIT_HISTORY_DRAFT_ROOT", filepath.Join(root, "drafts"))
@@ -616,6 +668,47 @@ func TestConversationMessagesFollowActiveNodePath(t *testing.T) {
 	}
 	if messages[0].Content != strings.Repeat("用户完整问题", 30) {
 		t.Fatalf("ask content was truncated: %q", messages[0].Content)
+	}
+}
+
+func TestConversationMessagesIncludeArtifacts(t *testing.T) {
+	root := t.TempDir()
+	project := filepath.Join(root, "Song.vit")
+	if err := os.WriteFile(project, []byte("one"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	result, err := Checkpoint(map[string]any{"project_path": project, "message": "one"})
+	if err != nil {
+		t.Fatalf("checkpoint: %v", err)
+	}
+	commit := result["commit"].(Commit)
+	if _, err := AppendConversationNode(map[string]any{
+		"project_path": project,
+		"kind":         "vit",
+		"commit_id":    commit.ID,
+		"text_preview": "found media",
+		"artifacts": []map[string]any{
+			{
+				"id":    "art_video",
+				"kind":  "video",
+				"title": "demo.mp4",
+				"path":  filepath.Join(root, "demo.mp4"),
+				"mime":  "video/mp4",
+			},
+		},
+	}); err != nil {
+		t.Fatalf("append vit: %v", err)
+	}
+	status, err := Status(map[string]any{"project_path": project})
+	if err != nil {
+		t.Fatalf("status: %v", err)
+	}
+	messages := status["conversation_messages"].([]ConversationMessage)
+	if len(messages) != 1 {
+		t.Fatalf("conversation messages = %+v", messages)
+	}
+	if len(messages[0].Artifacts) != 1 || messages[0].Artifacts[0]["id"] != "art_video" {
+		t.Fatalf("message artifacts = %+v", messages[0].Artifacts)
 	}
 }
 

@@ -36,6 +36,13 @@ func TestClassifyToolFormCommand(t *testing.T) {
 	}
 }
 
+func TestClassifyCommandToolAlias(t *testing.T) {
+	d := Classify(map[string]any{"cmd": "rack.add_macro", "name": "Macro"})
+	if d.Name != "control_add_macro" || d.Risk != RiskConfirm {
+		t.Fatalf("decision = %+v", d)
+	}
+}
+
 func TestCommandNameFallback(t *testing.T) {
 	name := CommandName(map[string]any{"action": "play"})
 	if name != "play" {

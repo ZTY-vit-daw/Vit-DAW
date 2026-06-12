@@ -187,6 +187,16 @@ func inferredDisplayDomainForSlot(slot string, param ParameterInfo) *PluginDispl
 	switch {
 	case param.IsBoolean || cleanSlot == "enable" || strings.Contains(text, "enable") || strings.Contains(text, "bypass"):
 		return displayDomain("0~1 toggle", "toggle", 0, 1, "enum", displayDomainStatusInferred, "auto_learn_parameter_shape", 0.85)
+	case isSteppedDisplayDomainParameter(cleanSlot, text, param):
+		label := firstNonEmptyString(strings.TrimSpace(param.ValueText), param.Name, param.RawName, param.Alias, cleanSlot, "stepped values")
+		return &PluginDisplayDomain{
+			Text:       label,
+			Unit:       "enum",
+			Scale:      "enum",
+			Status:     displayDomainStatusInferred,
+			Source:     "auto_learn_parameter_shape",
+			Confidence: 0.78,
+		}
 	case strings.Contains(text, "low cut") || strings.Contains(text, "lowcut") || strings.Contains(text, "high pass") || strings.Contains(text, "hipass"):
 		return displayDomain("10~2000 Hz 对数", "Hz", 10, 2000, "log", displayDomainStatusInferred, "auto_learn_name_pattern", 0.74)
 	case strings.Contains(text, "high cut") || strings.Contains(text, "highcut") || strings.Contains(text, "low pass") || strings.Contains(text, "lopass"):
@@ -195,14 +205,14 @@ func inferredDisplayDomainForSlot(slot string, param ParameterInfo) *PluginDispl
 		return displayDomain("20~20000 Hz 对数", "Hz", 20, 20000, "log", displayDomainStatusInferred, "auto_learn_eq_slot", 0.78)
 	case cleanSlot == "q" || strings.Contains(text, "quality") || strings.Contains(text, "bandwidth"):
 		return displayDomain("0.1~10 Q", "Q", 0.1, 10, "log", displayDomainStatusInferred, "auto_learn_eq_slot", 0.70)
+	case strings.Contains(text, "feedback") || strings.Contains(text, "depth") || strings.Contains(text, "width") || strings.Contains(text, "density") || strings.Contains(text, "warp") || strings.Contains(text, "amount") || strings.Contains(strings.ToLower(param.ValueText), "%"):
+		return displayDomain("0~100 %", "%", 0, 100, "linear", displayDomainStatusInferred, "auto_learn_name_pattern", 0.70)
 	case cleanSlot == "time" || cleanSlot == "delay" || strings.Contains(text, "delay") || strings.Contains(text, "time_delay") || strings.Contains(strings.ToLower(param.ValueText), "ms"):
 		return displayDomain("0~2000 ms", "ms", 0, 2000, "linear", displayDomainStatusInferred, "auto_learn_name_pattern", 0.72)
 	case strings.Contains(text, "mod rate") || strings.Contains(text, "rate") || strings.Contains(text, "lfo") || strings.Contains(strings.ToLower(param.ValueText), "hz"):
 		return displayDomain("0.01~10 Hz 对数", "Hz", 0.01, 10, "log", displayDomainStatusInferred, "auto_learn_name_pattern", 0.68)
 	case strings.Contains(text, "mix") || strings.Contains(text, "wet") || strings.Contains(text, "dry"):
 		return displayDomain("0~100 %", "%", 0, 100, "linear", displayDomainStatusInferred, "auto_learn_name_pattern", 0.72)
-	case strings.Contains(text, "feedback") || strings.Contains(text, "depth") || strings.Contains(text, "width") || strings.Contains(text, "density") || strings.Contains(text, "warp") || strings.Contains(text, "amount") || strings.Contains(strings.ToLower(param.ValueText), "%"):
-		return displayDomain("0~100 %", "%", 0, 100, "linear", displayDomainStatusInferred, "auto_learn_name_pattern", 0.70)
 	case cleanSlot == "gain" || strings.Contains(text, "gain") || strings.Contains(text, "level") || strings.Contains(text, "output"):
 		return displayDomain("-18~18 dB", "dB", -18, 18, "linear", displayDomainStatusInferred, "auto_learn_name_pattern", 0.66)
 	}
@@ -214,6 +224,27 @@ func inferredDisplayDomainForSlot(slot string, param ParameterInfo) *PluginDispl
 		Source:     "auto_learn_unknown",
 		Confidence: 0.0,
 	}
+}
+
+func isSteppedDisplayDomainParameter(cleanSlot, text string, param ParameterInfo) bool {
+	for _, token := range []string{"sync", "note", "mode", "type", "preset", "algorithm"} {
+		if cleanSlot == token || strings.Contains(text, token) {
+			return true
+		}
+	}
+	value := strings.ToLower(strings.TrimSpace(param.ValueText))
+	if value == "" {
+		return false
+	}
+	if strings.Contains(value, "/") {
+		return true
+	}
+	for _, token := range []string{"msec", "off", "on", "bell", "shelf", "gemini"} {
+		if strings.Contains(value, token) {
+			return true
+		}
+	}
+	return false
 }
 
 func displayDomain(text, unit string, minValue, maxValue float64, scale, status, source string, confidence float64) *PluginDisplayDomain {

@@ -19,6 +19,10 @@ func Command(spec tools.CommandSpec, cmd map[string]any) string {
 		return ImportMidiFile(spec, cmd)
 	case "rack_add_node":
 		return RackAddNode(spec, cmd)
+	case "control_add_macro":
+		return MacroControl(spec, cmd)
+	case "control_rename_macro":
+		return MacroRename(spec, cmd)
 	case "plugin_grabber_upsert_project_profile":
 		return PluginGrabberProfileUpsert(spec, cmd)
 	case "plugin_grabber_remove_project_profile":
@@ -49,6 +53,45 @@ func RackAddNode(spec tools.CommandSpec, cmd map[string]any) string {
 	if zone := firstString(cmd, "zone_id"); zone != "" {
 		fmt.Fprintf(&b, "Zone %s\n", zone)
 	}
+	return strings.TrimSpace(b.String())
+}
+
+func MacroControl(spec tools.CommandSpec, cmd map[string]any) string {
+	bindings := operationRowsFromAny(cmd["bindings"])
+	name := firstNonEmpty(firstString(cmd, "name", "label", "title", "macro_name"), firstString(cmd, "macro_id", "id"), "Macro")
+	var b strings.Builder
+	fmt.Fprintf(&b, "%s [%s]: %s\n", spec.CommandName, spec.RiskLevel, spec.Description)
+	fmt.Fprintf(&b, "Track %s\n", firstString(cmd, "track_id"))
+	fmt.Fprintf(&b, "Macro %s\n", name)
+	fmt.Fprintf(&b, "Control %s\n", firstNonEmpty(firstString(cmd, "control_type", "type"), "slider"))
+	if len(bindings) == 0 {
+		b.WriteString("Bindings: none")
+		return strings.TrimSpace(b.String())
+	}
+	fmt.Fprintf(&b, "Bindings: %d", len(bindings))
+	for i, binding := range bindings {
+		if i >= 4 {
+			fmt.Fprintf(&b, "\n... %d more", len(bindings)-i)
+			break
+		}
+		fmt.Fprintf(&b, "\n%d. %s", i+1, firstNonEmpty(firstString(binding, "param_name", "label", "name"), firstString(binding, "param_id"), "<param>"))
+		if targetMin := firstString(binding, "target_min", "min"); targetMin != "" {
+			fmt.Fprintf(&b, " min=%s", targetMin)
+		}
+		if targetMax := firstString(binding, "target_max", "max"); targetMax != "" {
+			fmt.Fprintf(&b, " max=%s", targetMax)
+		}
+	}
+	return strings.TrimSpace(b.String())
+}
+
+func MacroRename(spec tools.CommandSpec, cmd map[string]any) string {
+	name := firstNonEmpty(firstString(cmd, "new_name", "name", "label", "title"), "<name>")
+	macro := firstNonEmpty(firstString(cmd, "macro_name", "macro_label", "macro_id", "id"), "<macro>")
+	var b strings.Builder
+	fmt.Fprintf(&b, "%s [%s]: %s\n", spec.CommandName, spec.RiskLevel, spec.Description)
+	fmt.Fprintf(&b, "Macro %s\n", macro)
+	fmt.Fprintf(&b, "New name %s", name)
 	return strings.TrimSpace(b.String())
 }
 

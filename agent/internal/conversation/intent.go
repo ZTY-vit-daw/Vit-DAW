@@ -249,7 +249,7 @@ func selectedClipArgs(requestContext map[string]any, allowMany bool) map[string]
 	args := map[string]any{}
 	ids := contextStringSlice(requestContext["selected_clip_ids"])
 	if len(ids) == 0 {
-		if id := strings.TrimSpace(firstContextText(requestContext, "selected_clip_id", "primary_selected_clip_id", "clip_id")); id != "" {
+		if id := strings.TrimSpace(firstContextText(requestContext, "piano_roll_focus_clip_id", "selected_clip_id", "primary_selected_clip_id", "clip_id")); id != "" {
 			ids = []string{id}
 		}
 	}
@@ -311,7 +311,7 @@ func isEmptyLocalValue(v any) bool {
 }
 
 func selectedClipTrackID(requestContext map[string]any) string {
-	return strings.TrimSpace(firstContextText(requestContext, "selected_clip_track_id", "focused_track_id", "selected_track_id", "track_id"))
+	return strings.TrimSpace(firstContextText(requestContext, "piano_roll_focus_track_id", "selected_clip_track_id", "focused_track_id", "selected_track_id", "track_id"))
 }
 
 func firstContextText(requestContext map[string]any, keys ...string) string {

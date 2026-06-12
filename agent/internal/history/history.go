@@ -54,25 +54,29 @@ type Commit struct {
 }
 
 type ConversationNode struct {
-	ID           string    `json:"id"`
-	Kind         string    `json:"kind"`
-	CommitID     string    `json:"commit_id"`
-	ParentNodeID string    `json:"parent_node_id,omitempty"`
-	Branch       string    `json:"branch,omitempty"`
-	Text         string    `json:"text,omitempty"`
-	TextPreview  string    `json:"text_preview,omitempty"`
-	GoalID       string    `json:"goal_id,omitempty"`
-	RunID        string    `json:"run_id,omitempty"`
-	CreatedAt    time.Time `json:"created_at"`
+	ID           string           `json:"id"`
+	Kind         string           `json:"kind"`
+	CommitID     string           `json:"commit_id"`
+	ParentNodeID string           `json:"parent_node_id,omitempty"`
+	Branch       string           `json:"branch,omitempty"`
+	Text         string           `json:"text,omitempty"`
+	TextPreview  string           `json:"text_preview,omitempty"`
+	Artifacts    []map[string]any `json:"artifacts,omitempty"`
+	ProjectCards []map[string]any `json:"project_result_cards,omitempty"`
+	GoalID       string           `json:"goal_id,omitempty"`
+	RunID        string           `json:"run_id,omitempty"`
+	CreatedAt    time.Time        `json:"created_at"`
 }
 
 type ConversationMessage struct {
-	Role      string    `json:"role"`
-	Content   string    `json:"content"`
-	NodeID    string    `json:"node_id,omitempty"`
-	CommitID  string    `json:"commit_id,omitempty"`
-	Branch    string    `json:"branch,omitempty"`
-	CreatedAt time.Time `json:"created_at,omitempty"`
+	Role         string           `json:"role"`
+	Content      string           `json:"content"`
+	NodeID       string           `json:"node_id,omitempty"`
+	CommitID     string           `json:"commit_id,omitempty"`
+	Branch       string           `json:"branch,omitempty"`
+	Artifacts    []map[string]any `json:"artifacts,omitempty"`
+	ProjectCards []map[string]any `json:"project_result_cards,omitempty"`
+	CreatedAt    time.Time        `json:"created_at,omitempty"`
 }
 
 type ConversationGraph struct {
@@ -610,6 +614,24 @@ func ProjectSaved(args map[string]any) (map[string]any, error) {
 	return out, nil
 }
 
+func ProjectNew(args map[string]any) (map[string]any, error) {
+	draftProject.Lock()
+	draftProject.root = ""
+	draftProject.path = ""
+	draftProject.Unlock()
+
+	repo, err := Open("")
+	if err != nil {
+		return nil, err
+	}
+	commits, _ := listCommits(repo)
+	out := historyState(repo, len(commits))
+	out["status"] = "ok"
+	out["created_draft"] = true
+	out["draft_project_path"] = repo.ProjectPath
+	return out, nil
+}
+
 func NodeCheckout(args map[string]any) (map[string]any, error) {
 	repo, err := Open(projectPath(args))
 	if err != nil {
@@ -683,6 +705,8 @@ func AppendConversationNode(args map[string]any) (map[string]any, error) {
 		Branch:       branch,
 		Text:         nodeText,
 		TextPreview:  compactPreview(nodeText),
+		Artifacts:    conversationArtifactRows(args["artifacts"]),
+		ProjectCards: conversationProjectResultRows(args["project_result_cards"]),
 		GoalID:       value(args, "goal_id"),
 		RunID:        value(args, "run_id"),
 		CreatedAt:    time.Now().UTC(),
@@ -1310,15 +1334,115 @@ func conversationMessagesForGraph(graph ConversationGraph) []ConversationMessage
 			continue
 		}
 		out = append(out, ConversationMessage{
-			Role:      role,
-			Content:   content,
-			NodeID:    node.ID,
-			CommitID:  node.CommitID,
-			Branch:    node.Branch,
-			CreatedAt: node.CreatedAt,
+			Role:         role,
+			Content:      content,
+			NodeID:       node.ID,
+			CommitID:     node.CommitID,
+			Branch:       node.Branch,
+			Artifacts:    node.Artifacts,
+			ProjectCards: node.ProjectCards,
+			CreatedAt:    node.CreatedAt,
 		})
 	}
 	return out
+}
+
+func conversationProjectResultRows(value any) []map[string]any {
+	switch rows := value.(type) {
+	case nil:
+		return nil
+	case []map[string]any:
+		return compactConversationProjectRows(rows)
+	case []any:
+		out := make([]map[string]any, 0, len(rows))
+		for _, row := range rows {
+			if record, ok := row.(map[string]any); ok {
+				out = append(out, record)
+			}
+		}
+		return compactConversationProjectRows(out)
+	default:
+		return nil
+	}
+}
+
+func compactConversationProjectRows(rows []map[string]any) []map[string]any {
+	out := make([]map[string]any, 0, len(rows))
+	for _, row := range rows {
+		if len(row) == 0 {
+			continue
+		}
+		compact := map[string]any{}
+		for _, key := range []string{"id", "kind", "type", "title", "body", "badge", "target", "details", "readiness", "can_audition", "executions"} {
+			if value, ok := row[key]; ok && !isEmptyArtifactValue(value) {
+				compact[key] = value
+			}
+		}
+		if len(compact) > 0 {
+			out = append(out, compact)
+		}
+	}
+	return out
+}
+
+func conversationArtifactRows(value any) []map[string]any {
+	switch rows := value.(type) {
+	case nil:
+		return nil
+	case []map[string]any:
+		return compactConversationArtifactRows(rows)
+	case []any:
+		out := make([]map[string]any, 0, len(rows))
+		for _, row := range rows {
+			if record, ok := row.(map[string]any); ok {
+				out = append(out, compactConversationArtifactRow(record))
+			}
+		}
+		return compactConversationArtifactRows(out)
+	default:
+		return nil
+	}
+}
+
+func compactConversationArtifactRows(rows []map[string]any) []map[string]any {
+	out := make([]map[string]any, 0, len(rows))
+	seen := map[string]bool{}
+	for _, row := range rows {
+		compact := compactConversationArtifactRow(row)
+		id, _ := compact["id"].(string)
+		if strings.TrimSpace(id) == "" || seen[id] {
+			continue
+		}
+		seen[id] = true
+		out = append(out, compact)
+	}
+	return out
+}
+
+func compactConversationArtifactRow(row map[string]any) map[string]any {
+	keys := []string{
+		"id", "kind", "title", "source", "path", "url", "mime", "size_bytes", "status", "summary",
+		"metadata", "created_at", "conversation_id", "goal_id", "run_id",
+		"project_path", "root_project_path", "active_worktree", "active_branch", "active_node_id",
+		"history_scope_key", "media_scope_key",
+	}
+	out := make(map[string]any, len(keys))
+	for _, key := range keys {
+		if value, ok := row[key]; ok && !isEmptyArtifactValue(value) {
+			out[key] = value
+		}
+	}
+	return out
+}
+
+func isEmptyArtifactValue(value any) bool {
+	if value == nil {
+		return true
+	}
+	if text, ok := value.(string); ok {
+		return strings.TrimSpace(text) == ""
+	}
+	return false
 }
 
 func activeConversationPath(graph ConversationGraph) []ConversationNode {

@@ -7,15 +7,22 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"io"
+	"mime"
+	"mime/multipart"
 	"net/http"
 	"os"
+	"os/exec"
 	"path/filepath"
+	goruntime "runtime"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
 
 	"vit-daw-agent/internal/agentloop"
+	"vit-daw-agent/internal/artifacts"
+	"vit-daw-agent/internal/browsercapture"
 	"vit-daw-agent/internal/config"
 	"vit-daw-agent/internal/contextruntime"
 	"vit-daw-agent/internal/harness"
@@ -23,7 +30,10 @@ import (
 	"vit-daw-agent/internal/kernel"
 	"vit-daw-agent/internal/llm"
 	"vit-daw-agent/internal/logx"
+	"vit-daw-agent/internal/macrocontrols"
 	"vit-daw-agent/internal/policy"
+	"vit-daw-agent/internal/promptruntime"
+	"vit-daw-agent/internal/resourceintake"
 	agentruntime "vit-daw-agent/internal/runtime"
 	"vit-daw-agent/internal/shadow"
 	"vit-daw-agent/internal/tools"
@@ -31,11 +41,14 @@ import (
 )
 
 type Server struct {
-	kernel  *kernel.Client
-	shadow  *shadow.Project
-	llm     *llm.Client
-	logger  *logx.Logger
-	harness *harness.Harness
+	kernel       *kernel.Client
+	shadow       *shadow.Project
+	llm          *llm.Client
+	logger       *logx.Logger
+	harness      *harness.Harness
+	artifactRoot string
+	webUIRoot    string
+	startedAt    time.Time
 
 	mu                sync.Mutex
 	conversations     map[string][]llm.Message
@@ -43,6 +56,9 @@ type Server struct {
 	interactions      map[string]PendingInteraction
 	goalContinuations map[string]agentloop.Continuation
 	conversationGoals map[string]string
+	uiContext         map[string]any
+	events            map[string][]AgentEvent
+	eventSeq          map[string]int64
 }
 
 type PendingPlan struct {
@@ -61,6 +77,7 @@ type ChatRequest struct {
 	Message        string         `json:"message"`
 	Context        map[string]any `json:"context,omitempty"`
 	Attachments    []Attachment   `json:"attachments,omitempty"`
+	ArtifactRefs   []string       `json:"artifact_refs,omitempty"`
 }
 
 type Attachment struct {
@@ -89,6 +106,7 @@ type ChatResponse struct {
 	InteractionRequests []AgentInteractionRequest `json:"interaction_requests,omitempty"`
 	Commands            []policy.Decision         `json:"commands,omitempty"`
 	ExecutedKernelReply []map[string]any          `json:"executed_kernel_reply,omitempty"`
+	ProjectResultCards  []map[string]any          `json:"project_result_cards,omitempty"`
 	GoalStatus          string                    `json:"goal_status,omitempty"`
 	GoalSummary         string                    `json:"goal_summary,omitempty"`
 	CurrentStep         string                    `json:"current_step,omitempty"`
@@ -96,7 +114,16 @@ type ChatResponse struct {
 	StopReason          string                    `json:"stop_reason,omitempty"`
 	LimitType           string                    `json:"limit_type,omitempty"`
 	ProjectHistory      map[string]any            `json:"project_history,omitempty"`
+	Artifacts           []artifacts.Summary       `json:"artifacts,omitempty"`
+	SidePanelRequest    *SidePanelRequest         `json:"side_panel_request,omitempty"`
 	Error               string                    `json:"error,omitempty"`
+}
+
+type SidePanelRequest struct {
+	View         string `json:"view,omitempty"`
+	Tab          string `json:"tab,omitempty"`
+	ArtifactID   string `json:"artifact_id,omitempty"`
+	MacroPanelID string `json:"macro_panel_id,omitempty"`
 }
 
 type ConfirmRequest struct {
@@ -180,10 +207,11 @@ type InteractionRespondRequest struct {
 }
 
 type ConfigResponse struct {
-	Status    string              `json:"status"`
-	Path      string              `json:"path"`
-	Config    config.EngineConfig `json:"config"`
-	HasAPIKey bool                `json:"hasApiKey"`
+	Status       string              `json:"status"`
+	Path         string              `json:"path"`
+	Config       config.EngineConfig `json:"config"`
+	HasAPIKey    bool                `json:"hasApiKey"`
+	RouteAPIKeys map[string]bool     `json:"routeApiKeys,omitempty"`
 }
 
 type modelEnvelope struct {
@@ -214,18 +242,28 @@ func New(kernelClient *kernel.Client, shadowProject *shadow.Project, logger *log
 		llm:               &llm.Client{},
 		logger:            logger,
 		harness:           harness.New(kernelClient, shadowProject, logger),
+		startedAt:         time.Now(),
 		conversations:     map[string][]llm.Message{},
 		pending:           map[string]PendingPlan{},
 		interactions:      map[string]PendingInteraction{},
 		goalContinuations: map[string]agentloop.Continuation{},
 		conversationGoals: map[string]string{},
+		uiContext:         map[string]any{},
+		events:            map[string][]AgentEvent{},
+		eventSeq:          map[string]int64{},
 	}
 }
 
 func (s *Server) Routes() http.Handler {
 	mux := http.NewServeMux()
+	mux.HandleFunc("/app", s.handleApp)
+	mux.HandleFunc("/app/", s.handleApp)
 	mux.HandleFunc("/health", s.handleHealth)
+	mux.HandleFunc("/agent/runtime/status", s.handleRuntimeStatus)
+	mux.HandleFunc("/agent/events", s.handleAgentEvents)
 	mux.HandleFunc("/agent/state", s.handleState)
+	mux.HandleFunc("/agent/ui/state", s.handleUIState)
+	mux.HandleFunc("/agent/ui/context", s.handleUIContext)
 	mux.HandleFunc("/agent/chat", s.handleChat)
 	mux.HandleFunc("/agent/confirm", s.handleConfirm)
 	mux.HandleFunc("/agent/interaction/respond", s.handleInteractionRespond)
@@ -233,20 +271,263 @@ func (s *Server) Routes() http.Handler {
 	mux.HandleFunc("/agent/tools", s.handleTools)
 	mux.HandleFunc("/agent/actions", s.handleActions)
 	mux.HandleFunc("/agent/invoke", s.handleInvoke)
+	mux.HandleFunc("/agent/debug/confirmation", s.handleConfirmationDebug)
+	mux.HandleFunc("/agent/artifacts/upload", s.handleArtifactUpload)
+	mux.HandleFunc("/agent/artifacts", s.handleArtifacts)
+	mux.HandleFunc("/agent/artifact", s.handleArtifact)
+	mux.HandleFunc("/agent/artifact/reveal", s.handleArtifactReveal)
+	mux.HandleFunc("/agent/artifact/file", s.handleArtifactFile)
+	mux.HandleFunc("/agent/artifact/extract", s.handleArtifactExtract)
+	mux.HandleFunc("/agent/browser/capture", s.handleBrowserCapture)
+	mux.HandleFunc("/agent/resource/url", s.handleResourceURL)
+	mux.HandleFunc("/agent/downloads/scan", s.handleDownloadsScan)
+	mux.HandleFunc("/agent/downloads/watch", s.handleDownloadsWatch)
 	return mux
+}
+
+func (s *Server) handleApp(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet && r.Method != http.MethodHead {
+		http.Error(w, "GET required", http.StatusMethodNotAllowed)
+		return
+	}
+	if r.URL.Path == "/app" {
+		http.Redirect(w, r, "/app/", http.StatusMovedPermanently)
+		return
+	}
+	root := s.webUIRootPath()
+	if root == "" {
+		http.Error(w, "Ask Vit WebUI has not been built yet", http.StatusNotFound)
+		return
+	}
+	clean := strings.TrimPrefix(r.URL.Path, "/app/")
+	if clean == "" {
+		clean = "index.html"
+	}
+	path := filepath.Join(root, filepath.Clean(clean))
+	rel, err := filepath.Rel(root, path)
+	if err != nil || strings.HasPrefix(rel, "..") || filepath.IsAbs(rel) {
+		http.Error(w, "invalid app path", http.StatusBadRequest)
+		return
+	}
+	if st, err := os.Stat(path); err != nil || st.IsDir() {
+		path = filepath.Join(root, "index.html")
+	}
+	http.ServeFile(w, r, path)
 }
 
 func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]any{"status": "ok", "service": "VitAgent"})
 }
 
+func (s *Server) handleConfirmationDebug(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		writeJSON(w, http.StatusMethodNotAllowed, map[string]any{"status": "error", "error": "POST required"})
+		return
+	}
+	var payload map[string]any
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]any{"status": "error", "error": "invalid JSON: " + err.Error()})
+		return
+	}
+	payload["server_received_at"] = time.Now().Format(time.RFC3339Nano)
+	path := confirmationDebugLogPath()
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]any{"status": "error", "error": err.Error()})
+		return
+	}
+	f, err := os.OpenFile(path, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0o644)
+	if err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]any{"status": "error", "error": err.Error()})
+		return
+	}
+	defer f.Close()
+	enc := json.NewEncoder(f)
+	enc.SetEscapeHTML(false)
+	if err := enc.Encode(payload); err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]any{"status": "error", "error": err.Error()})
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"status": "ok", "path": path})
+}
+
+func confirmationDebugLogPath() string {
+	if envPath := strings.TrimSpace(os.Getenv("VIT_CONFIRM_DEBUG_LOG_PATH")); envPath != "" {
+		return envPath
+	}
+	if exePath, err := os.Executable(); err == nil {
+		dir := filepath.Dir(exePath)
+		if strings.EqualFold(filepath.Base(dir), "bin") {
+			dir = filepath.Dir(dir)
+		}
+		return filepath.Join(dir, "tmp", "confirmation_debug.jsonl")
+	}
+	return filepath.Join(os.TempDir(), "vit_confirmation_debug.jsonl")
+}
+
+func (s *Server) handleRuntimeStatus(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		writeJSON(w, http.StatusMethodNotAllowed, map[string]any{"status": "error", "error": "GET required"})
+		return
+	}
+	statusCtx, cancel := context.WithTimeout(r.Context(), 900*time.Millisecond)
+	defer cancel()
+	kernelStatus := s.runtimeKernelStatus(statusCtx)
+	shadowCtx, shadowCancel := context.WithTimeout(r.Context(), 900*time.Millisecond)
+	defer shadowCancel()
+	writeJSON(w, http.StatusOK, map[string]any{
+		"status":     "ok",
+		"service":    "VitAgent",
+		"pid":        os.Getpid(),
+		"checked_at": time.Now().Format(time.RFC3339Nano),
+		"kernel":     kernelStatus,
+		"shadow":     runtimeShadowStatus(s.harness.StateSummary(shadowCtx)),
+	})
+}
+
+func (s *Server) runtimeKernelStatus(ctx context.Context) map[string]any {
+	out := map[string]any{
+		"connected": false,
+		"status":    "offline",
+	}
+	if s.kernel != nil {
+		out["endpoint"] = s.kernel.Endpoint
+	}
+	if s.harness == nil || s.kernel == nil {
+		out["error"] = "kernel client is nil"
+		return out
+	}
+	started := time.Now()
+	reply, _, err := s.harness.KernelSendCommand(ctx, map[string]any{"cmd": "ping"})
+	out["latency_ms"] = time.Since(started).Milliseconds()
+	if err != nil {
+		out["error"] = err.Error()
+		return out
+	}
+	replyStatus := strings.TrimSpace(fmt.Sprint(reply["status"]))
+	if replyStatus == "" {
+		replyStatus = "ok"
+	}
+	out["reply_status"] = replyStatus
+	if message := strings.TrimSpace(fmt.Sprint(reply["message"])); message != "" {
+		out["message"] = message
+	}
+	connected := !strings.EqualFold(replyStatus, "error")
+	out["connected"] = connected
+	if connected {
+		out["status"] = "online"
+	} else {
+		out["status"] = "error"
+		out["error"] = firstNonEmpty(strings.TrimSpace(fmt.Sprint(reply["error"])), strings.TrimSpace(fmt.Sprint(reply["message"])), "kernel ping returned error")
+	}
+	return out
+}
+
+func runtimeShadowStatus(state map[string]any) map[string]any {
+	if state == nil {
+		return map[string]any{"initialized": false}
+	}
+	projectPath := strings.TrimSpace(fmt.Sprint(state["project_path"]))
+	if projectPath == "<nil>" {
+		projectPath = ""
+	}
+	return map[string]any{
+		"initialized":      state["initialized"],
+		"project_path":     projectPath,
+		"track_count":      state["track_count"],
+		"user_track_count": state["user_track_count"],
+		"graph_revision":   state["graph_revision"],
+		"last_delta_seq":   state["last_delta_seq"],
+		"delta_seq_gaps":   state["delta_seq_gaps"],
+	}
+}
+
+func (s *Server) handleBrowserCapture(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		writeJSON(w, http.StatusMethodNotAllowed, map[string]any{"status": "error", "error": "POST required"})
+		return
+	}
+	var payload map[string]any
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]any{"status": "error", "error": "invalid JSON: " + err.Error()})
+		return
+	}
+	payload = mapWithArtifactScope(payload, s.artifactScopeFromArgs(r.Context(), payload))
+	result, err := browsercapture.CapturePage(s.artifactStore(), payload)
+	if err != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]any{"status": "error", "error": err.Error()})
+		return
+	}
+	if artifact, ok := result["artifact"].(artifacts.Artifact); ok {
+		result["artifacts"] = []artifacts.Summary{artifact.CompactSummary()}
+		result["side_panel_request"] = SidePanelRequest{View: "artifact", Tab: "browser", ArtifactID: artifact.ID}
+	}
+	writeJSON(w, http.StatusOK, result)
+}
+
+func (s *Server) handleResourceURL(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		writeJSON(w, http.StatusMethodNotAllowed, map[string]any{"status": "error", "error": "POST required"})
+		return
+	}
+	var payload map[string]any
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]any{"status": "error", "error": "invalid JSON: " + err.Error()})
+		return
+	}
+	payload = mapWithArtifactScope(payload, s.artifactScopeFromArgs(r.Context(), payload))
+	result, err := resourceintake.RegisterURL(s.artifactStore(), payload)
+	if err != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]any{"status": "error", "error": err.Error()})
+		return
+	}
+	writeJSON(w, http.StatusOK, result)
+}
+
+func (s *Server) handleDownloadsScan(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		writeJSON(w, http.StatusMethodNotAllowed, map[string]any{"status": "error", "error": "POST required"})
+		return
+	}
+	var payload map[string]any
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]any{"status": "error", "error": "invalid JSON: " + err.Error()})
+		return
+	}
+	payload = mapWithArtifactScope(payload, s.artifactScopeFromArgs(r.Context(), payload))
+	result, err := resourceintake.ScanDownloads(s.artifactStore(), payload, resourceintake.ScanOptions{MinModifiedAt: s.startedAt})
+	if err != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]any{"status": "error", "error": err.Error()})
+		return
+	}
+	writeJSON(w, http.StatusOK, result)
+}
+
+func (s *Server) handleDownloadsWatch(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		writeJSON(w, http.StatusMethodNotAllowed, map[string]any{"status": "error", "error": "POST required"})
+		return
+	}
+	var payload map[string]any
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]any{"status": "error", "error": "invalid JSON: " + err.Error()})
+		return
+	}
+	result, err := resourceintake.WatchDownloads(r.Context(), payload, resourceintake.ScanOptions{MinModifiedAt: s.startedAt})
+	if err != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]any{"status": "error", "error": err.Error()})
+		return
+	}
+	writeJSON(w, http.StatusOK, result)
+}
+
 func (s *Server) handleState(w http.ResponseWriter, r *http.Request) {
 	goal := s.harness.RuntimeStatus("")
-	projectHistory := s.harness.ProjectHistorySummary(r.Context(), goal.GoalID)
+	shadowState := s.harness.StateSummary(r.Context())
+	projectHistory := s.harness.ProjectHistorySummaryForProject(r.Context(), goal.GoalID, firstStringFromMap(shadowState, "project_path", "current_project_path"))
 	agentPlan := s.activeGoalPlan(goal, projectHistory)
 	writeJSON(w, http.StatusOK, map[string]any{
 		"status": "ok",
-		"shadow": s.harness.StateSummary(r.Context()),
+		"shadow": shadowState,
 		"goal":   goal,
 		"active_goal": map[string]any{
 			"goal":            goal,
@@ -257,6 +538,335 @@ func (s *Server) handleState(w http.ResponseWriter, r *http.Request) {
 		"direct_commands": s.harness.DirectCommandNames(),
 		"tool_count":      len(s.harness.Tools()),
 	})
+}
+
+func (s *Server) handleUIState(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		writeJSON(w, http.StatusMethodNotAllowed, map[string]any{"status": "error", "error": "GET required"})
+		return
+	}
+	goal := s.harness.RuntimeStatus("")
+	uiContext := s.uiContextSnapshot()
+	state := mergeUIContext(s.harness.UserStateSummary(r.Context()), uiContext)
+	macroControls := uiMacroControls(state)
+	projectHistory := s.harness.ProjectHistorySummaryForProject(r.Context(), goal.GoalID, firstStringFromMap(state, "project_path", "current_project_path"))
+	scope := currentArtifactScope(projectHistory, state)
+	items, err := s.artifactStore().List()
+	if err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]any{"status": "error", "error": err.Error()})
+		return
+	}
+	items = artifacts.FilterByScope(items, scope)
+	items = artifacts.FilterUserVisible(items)
+	writeJSON(w, http.StatusOK, map[string]any{
+		"status":          "ok",
+		"project":         uiProjectState(state),
+		"transport":       uiTransportState(state),
+		"tracks":          mapRowsFromAny(state["tracks"]),
+		"selected_track":  uiSelectedTrack(state),
+		"selected_plugin": uiSelectedPlugin(state),
+		"plugin_rack":     uiPluginRack(state),
+		"macro_controls":  macroControls,
+		"ui_context":      uiContext,
+		"goal":            goal,
+		"agent_plan":      s.activeGoalPlan(goal, projectHistory),
+		"artifacts":       artifacts.Summaries(items),
+		"project_history": projectHistory,
+		"capabilities": map[string]any{
+			"tools":            len(s.harness.Tools()),
+			"direct_commands":  s.harness.DirectCommandNames(),
+			"macro_controls":   macroControls,
+			"macro_control_ui": map[string]any{"source": "godot_rack", "supports_reference": true, "supports_live_cards": true},
+		},
+	})
+}
+
+func currentArtifactScope(projectHistory map[string]any, state map[string]any) artifacts.Scope {
+	scope := map[string]any{
+		"project_path":      firstNonEmpty(firstStringFromMap(projectHistory, "project_path", "current_project_path"), firstStringFromMap(state, "project_path", "current_project_path")),
+		"root_project_path": firstStringFromMap(projectHistory, "root_project_path"),
+		"active_worktree":   firstStringFromMap(projectHistory, "active_worktree"),
+		"active_branch":     firstStringFromMap(projectHistory, "active_branch"),
+		"active_node_id":    firstStringFromMap(projectHistory, "active_node_id"),
+	}
+	scope["history_scope_key"] = artifactHistoryScopeKey(projectHistory, state)
+	return artifacts.ScopeFromMap(scope)
+}
+
+func (s *Server) artifactScopeFromArgs(ctx context.Context, args map[string]any) artifacts.Scope {
+	if scope := artifacts.ScopeFromMap(args); !scope.Empty() {
+		return scope
+	}
+	projectPath := firstNonEmpty(
+		cleanContextString(args["project_path"]),
+		cleanContextString(args["current_project_path"]),
+	)
+	projectHistory := map[string]any{}
+	state := map[string]any{}
+	if s != nil && s.harness != nil {
+		projectHistory = s.harness.ProjectHistorySummaryForProject(ctx, "", projectPath)
+		uiContext := s.uiContextSnapshot()
+		state = mergeUIContext(s.harness.UserStateSummary(ctx), uiContext)
+	}
+	return currentArtifactScope(projectHistory, state)
+}
+
+func mapWithArtifactScope(in map[string]any, scope artifacts.Scope) map[string]any {
+	out := cloneContext(in)
+	if out == nil {
+		out = map[string]any{}
+	}
+	if scope.Empty() {
+		return out
+	}
+	for key, value := range map[string]string{
+		"project_path":      scope.ProjectPath,
+		"root_project_path": scope.RootProjectPath,
+		"active_worktree":   scope.ActiveWorktree,
+		"active_branch":     scope.ActiveBranch,
+		"active_node_id":    scope.ActiveNodeID,
+		"history_scope_key": scope.HistoryScopeKey,
+		"media_scope_key":   scope.StableKey(),
+	} {
+		if strings.TrimSpace(value) != "" {
+			out[key] = value
+		}
+	}
+	return out
+}
+
+func artifactHistoryScopeKey(projectHistory map[string]any, state map[string]any) string {
+	projectPath := firstNonEmpty(firstStringFromMap(projectHistory, "project_path", "current_project_path"), firstStringFromMap(state, "project_path", "current_project_path"))
+	rootProjectPath := firstStringFromMap(projectHistory, "root_project_path")
+	projectIdentity := firstNonEmpty(projectPath, rootProjectPath, "unsaved")
+	return strings.Join([]string{
+		projectIdentity,
+		firstNonEmpty(rootProjectPath, "root"),
+		firstNonEmpty(firstStringFromMap(projectHistory, "active_worktree"), "main"),
+		firstNonEmpty(firstStringFromMap(projectHistory, "active_branch"), "main"),
+		firstNonEmpty(firstStringFromMap(projectHistory, "active_node_id"), firstStringFromMap(projectHistory, "head"), "no-node"),
+		firstNonEmpty(firstStringFromMap(projectHistory, "draft", "unsaved"), "saved"),
+		firstNonEmpty(firstStringFromMap(projectHistory, "initialized"), "unknown"),
+	}, "::")
+}
+
+func (s *Server) handleUIContext(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		writeJSON(w, http.StatusOK, map[string]any{"status": "ok", "context": s.uiContextSnapshot()})
+	case http.MethodPost:
+		var payload map[string]any
+		if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+			writeJSON(w, http.StatusBadRequest, map[string]any{"status": "error", "error": "invalid JSON: " + err.Error()})
+			return
+		}
+		contextPayload := sanitizeUIContext(payload)
+		s.mu.Lock()
+		s.uiContext = contextPayload
+		s.mu.Unlock()
+		writeJSON(w, http.StatusOK, map[string]any{"status": "ok", "context": contextPayload})
+	default:
+		writeJSON(w, http.StatusMethodNotAllowed, map[string]any{"status": "error", "error": "GET or POST required"})
+	}
+}
+
+func (s *Server) handleArtifacts(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		writeJSON(w, http.StatusMethodNotAllowed, map[string]any{"status": "error", "error": "GET required"})
+		return
+	}
+	args := map[string]any{}
+	if conversationID := strings.TrimSpace(r.URL.Query().Get("conversation_id")); conversationID != "" {
+		args["conversation_id"] = conversationID
+	}
+	for _, key := range []string{"kind", "source", "plugin_learning_session_id", "plugin_learning_stage", "artifact_schema"} {
+		if value := strings.TrimSpace(r.URL.Query().Get(key)); value != "" {
+			args[key] = value
+		}
+	}
+	if raw := strings.TrimSpace(r.URL.Query().Get("include_internal")); raw != "" {
+		args["include_internal"] = raw
+	}
+	for _, key := range []string{"project_path", "current_project_path", "root_project_path", "active_worktree", "active_branch", "active_node_id", "history_scope_key", "media_scope_key"} {
+		if value := strings.TrimSpace(r.URL.Query().Get(key)); value != "" {
+			args[key] = value
+		}
+	}
+	args = mapWithArtifactScope(args, s.artifactScopeFromArgs(r.Context(), args))
+	if raw := strings.TrimSpace(r.URL.Query().Get("limit")); raw != "" {
+		if n, err := strconv.Atoi(raw); err == nil {
+			args["limit"] = n
+		}
+	}
+	result, err := artifacts.ListCommand(s.artifactStore(), args)
+	if err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]any{"status": "error", "error": err.Error()})
+		return
+	}
+	writeJSON(w, http.StatusOK, result)
+}
+
+func (s *Server) handleArtifact(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		result, err := artifacts.ReadCommand(s.artifactStore(), map[string]any{"id": r.URL.Query().Get("id")})
+		if err != nil {
+			writeJSON(w, http.StatusNotFound, map[string]any{"status": "error", "error": err.Error()})
+			return
+		}
+		writeJSON(w, http.StatusOK, result)
+	case http.MethodPatch:
+		var payload map[string]any
+		if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+			writeJSON(w, http.StatusBadRequest, map[string]any{"status": "error", "error": "invalid JSON: " + err.Error()})
+			return
+		}
+		if rawID := strings.TrimSpace(fmt.Sprint(payload["id"])); rawID == "" || rawID == "<nil>" {
+			payload["id"] = r.URL.Query().Get("id")
+		}
+		result, err := artifacts.RenameCommand(s.artifactStore(), payload)
+		if err != nil {
+			writeJSON(w, http.StatusBadRequest, map[string]any{"status": "error", "error": err.Error()})
+			return
+		}
+		writeJSON(w, http.StatusOK, result)
+	case http.MethodDelete:
+		result, err := artifacts.DeleteCommand(s.artifactStore(), map[string]any{"id": r.URL.Query().Get("id")})
+		if err != nil {
+			writeJSON(w, http.StatusBadRequest, map[string]any{"status": "error", "error": err.Error()})
+			return
+		}
+		writeJSON(w, http.StatusOK, result)
+	default:
+		writeJSON(w, http.StatusMethodNotAllowed, map[string]any{"status": "error", "error": "GET, PATCH, or DELETE required"})
+	}
+}
+
+func (s *Server) handleArtifactExtract(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		writeJSON(w, http.StatusMethodNotAllowed, map[string]any{"status": "error", "error": "POST required"})
+		return
+	}
+	var payload map[string]any
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]any{"status": "error", "error": "invalid JSON: " + err.Error()})
+		return
+	}
+	result, err := artifacts.ExtractCommand(s.artifactStore(), payload)
+	if err != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]any{"status": "error", "error": err.Error()})
+		return
+	}
+	writeJSON(w, http.StatusOK, result)
+}
+
+func (s *Server) handleArtifactReveal(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		writeJSON(w, http.StatusMethodNotAllowed, map[string]any{"status": "error", "error": "POST required"})
+		return
+	}
+	id := strings.TrimSpace(r.URL.Query().Get("id"))
+	if id == "" {
+		var payload map[string]any
+		if err := json.NewDecoder(r.Body).Decode(&payload); err == nil {
+			id = strings.TrimSpace(fmt.Sprint(payload["id"]))
+		}
+	}
+	a, err := s.artifactStore().Get(id)
+	if err != nil {
+		writeJSON(w, http.StatusNotFound, map[string]any{"status": "error", "error": err.Error()})
+		return
+	}
+	path := strings.TrimSpace(a.Path)
+	if path == "" {
+		writeJSON(w, http.StatusBadRequest, map[string]any{"status": "error", "error": "artifact has no local file path"})
+		return
+	}
+	if err := revealLocalPath(path); err != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]any{"status": "error", "error": err.Error()})
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"status": "ok", "path": path})
+}
+
+func (s *Server) handleArtifactFile(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet && r.Method != http.MethodHead {
+		http.Error(w, "GET required", http.StatusMethodNotAllowed)
+		return
+	}
+	id := strings.TrimSpace(r.URL.Query().Get("id"))
+	a, err := s.artifactStore().Get(id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+	path := strings.TrimSpace(a.Path)
+	if path == "" {
+		http.Error(w, "artifact has no file", http.StatusNotFound)
+		return
+	}
+	if st, err := os.Stat(path); err != nil || st.IsDir() {
+		http.Error(w, "artifact file is not available", http.StatusNotFound)
+		return
+	}
+	if mt := firstNonEmpty(a.MIME, mime.TypeByExtension(filepath.Ext(path))); mt != "" {
+		w.Header().Set("Content-Type", mt)
+	}
+	http.ServeFile(w, r, path)
+}
+
+func (s *Server) handleArtifactUpload(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		writeJSON(w, http.StatusMethodNotAllowed, map[string]any{"status": "error", "error": "POST required"})
+		return
+	}
+	if err := r.ParseMultipartForm(64 << 20); err != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]any{"status": "error", "error": "invalid multipart upload: " + err.Error()})
+		return
+	}
+	files := r.MultipartForm.File["file"]
+	if len(files) == 0 {
+		files = r.MultipartForm.File["files"]
+	}
+	if len(files) == 0 {
+		writeJSON(w, http.StatusBadRequest, map[string]any{"status": "error", "error": "file is required"})
+		return
+	}
+	store := s.artifactStore()
+	uploadDir := filepath.Join(store.Root, "files")
+	if err := os.MkdirAll(uploadDir, 0o755); err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]any{"status": "error", "error": err.Error()})
+		return
+	}
+	conversationID := strings.TrimSpace(r.FormValue("conversation_id"))
+	goalID := strings.TrimSpace(r.FormValue("goal_id"))
+	runID := strings.TrimSpace(r.FormValue("run_id"))
+	uploadMetadata := map[string]any{}
+	for _, key := range []string{"plugin_learning_session_id", "plugin_learning_purpose", "track_id", "plugin_id", "plugin_name"} {
+		if value := strings.TrimSpace(r.FormValue(key)); value != "" {
+			uploadMetadata[key] = value
+		}
+	}
+	scope := s.artifactScopeFromArgs(r.Context(), map[string]any{
+		"project_path":         r.FormValue("project_path"),
+		"current_project_path": r.FormValue("current_project_path"),
+		"root_project_path":    r.FormValue("root_project_path"),
+		"active_worktree":      r.FormValue("active_worktree"),
+		"active_branch":        r.FormValue("active_branch"),
+		"active_node_id":       r.FormValue("active_node_id"),
+		"history_scope_key":    r.FormValue("history_scope_key"),
+		"media_scope_key":      r.FormValue("media_scope_key"),
+	})
+	var out []artifacts.Summary
+	for _, header := range files {
+		summary, err := s.storeUploadedArtifact(store, uploadDir, header, conversationID, goalID, runID, scope, uploadMetadata)
+		if err != nil {
+			writeJSON(w, http.StatusBadRequest, map[string]any{"status": "error", "error": err.Error()})
+			return
+		}
+		out = append(out, summary)
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"status": "ok", "artifacts": out, "root": store.Root})
 }
 
 func (s *Server) handleTools(w http.ResponseWriter, r *http.Request) {
@@ -339,6 +949,164 @@ func (s *Server) handleInvoke(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, status, resp)
 }
 
+func uiProjectState(state map[string]any) map[string]any {
+	return map[string]any{
+		"initialized":      state["initialized"],
+		"project_path":     state["project_path"],
+		"track_count":      state["track_count"],
+		"user_track_count": state["user_track_count"],
+		"graph_revision":   state["graph_revision"],
+		"project_health":   state["project_health"],
+		"observability":    state["observability"],
+		"pending_job_data": state["pending_job_data"],
+		"last_delta_seq":   state["last_delta_seq"],
+		"delta_seq_gaps":   state["delta_seq_gaps"],
+	}
+}
+
+func uiTransportState(state map[string]any) map[string]any {
+	if transport := firstMapFromAny(state["transport"]); transport != nil {
+		return transport
+	}
+	if transport := firstMapFromAny(state["transport_state"]); transport != nil {
+		return transport
+	}
+	out := map[string]any{}
+	for _, key := range []string{"playhead_seconds", "current_playhead_seconds", "transport_position_seconds", "bpm", "tempo", "sample_rate", "is_playing", "playing", "recording"} {
+		if !isEmptyContextValue(state, key) {
+			out[key] = state[key]
+		}
+	}
+	return out
+}
+
+func uiSelectedTrack(state map[string]any) map[string]any {
+	tracks := mapRowsFromAny(state["tracks"])
+	if len(tracks) == 0 {
+		return nil
+	}
+	selectedID := firstStringFromMap(state, "selected_track_id", "selected_plugin_track_id", "track_id")
+	selectedName := firstStringFromMap(state, "selected_track_name", "track_name")
+	for _, track := range tracks {
+		if selectedID != "" && firstStringFromMap(track, "track_id", "id") == selectedID {
+			return track
+		}
+		if selectedName != "" && strings.EqualFold(firstStringFromMap(track, "track_name", "name"), selectedName) {
+			return track
+		}
+	}
+	return nil
+}
+
+func uiSelectedPlugin(state map[string]any) map[string]any {
+	pluginID := firstStringFromMap(state, "selected_plugin_id", "plugin_id")
+	pluginName := firstStringFromMap(state, "selected_plugin_name", "plugin_name")
+	trackID := firstStringFromMap(state, "selected_plugin_track_id", "selected_track_id", "track_id")
+	source := firstStringFromMap(state, "selected_plugin_source", "plugin_source")
+	if pluginID == "" && pluginName == "" {
+		return nil
+	}
+	return map[string]any{
+		"track_id":    trackID,
+		"plugin_id":   pluginID,
+		"plugin_name": pluginName,
+		"source":      source,
+	}
+}
+
+func uiPluginRack(state map[string]any) map[string]any {
+	selected := uiSelectedTrack(state)
+	if len(selected) == 0 {
+		return map[string]any{"track": nil, "plugins": []map[string]any{}, "rack": nil}
+	}
+	selectedPluginID := firstStringFromMap(state, "selected_plugin_id", "plugin_id")
+	plugins := mapRowsFromAny(selected["plugins"])
+	markedPlugins := make([]map[string]any, 0, len(plugins))
+	for _, plugin := range plugins {
+		row := cloneContext(plugin)
+		if selectedPluginID != "" && firstStringFromMap(row, "plugin_id", "id", "plugin_item_id", "item_id") == selectedPluginID {
+			row["selected"] = true
+		}
+		markedPlugins = append(markedPlugins, row)
+	}
+	return map[string]any{
+		"track": map[string]any{
+			"track_id":   selected["track_id"],
+			"track_name": selected["track_name"],
+		},
+		"plugins": markedPlugins,
+		"rack":    selected["rack"],
+	}
+}
+
+func uiMacroControls(state map[string]any) []map[string]any {
+	for _, key := range []string{"macro_controls", "rack_control_macros", "control_macros", "macros"} {
+		if controls := macrocontrols.NormalizeList(state[key]); len(controls) > 0 {
+			return controls
+		}
+	}
+	return []map[string]any{}
+}
+
+func (s *Server) uiContextSnapshot() map[string]any {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return cloneContext(s.uiContext)
+}
+
+func mergeUIContext(state map[string]any, uiContext map[string]any) map[string]any {
+	if len(uiContext) == 0 {
+		return state
+	}
+	out := cloneContext(state)
+	if out == nil {
+		out = map[string]any{}
+	}
+	for key, value := range uiContext {
+		if !isEmptyContextValue(uiContext, key) {
+			out[key] = value
+		}
+	}
+	return out
+}
+
+func sanitizeUIContext(in map[string]any) map[string]any {
+	out := map[string]any{}
+	for _, key := range []string{
+		"selected_track_id",
+		"selected_track_name",
+		"selected_scene_track_id",
+		"selected_clip_id",
+		"selected_clip_ids",
+		"selected_clip_track_id",
+		"selected_clip_name",
+		"piano_roll_focus_clip_id",
+		"piano_roll_focus_track_id",
+		"selected_plugin_id",
+		"selected_plugin_name",
+		"selected_plugin_track_id",
+		"selected_plugin_source",
+		"rack_control_macros",
+		"macro_controls",
+		"active_macro_controls",
+		"macro_control_summary",
+		"active_workflow_mode",
+		"active_mode_status",
+		"playhead_seconds",
+		"current_playhead_seconds",
+		"transport_position_seconds",
+	} {
+		value, ok := in[key]
+		if !ok {
+			continue
+		}
+		if text := strings.TrimSpace(fmt.Sprint(value)); text != "" && text != "<nil>" {
+			out[key] = value
+		}
+	}
+	return out
+}
+
 func (s *Server) handleConfig(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
@@ -348,22 +1116,18 @@ func (s *Server) handleConfig(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		hasAPIKey := strings.TrimSpace(cfg.APIKey) != ""
-		cfg.APIKey = ""
-		writeJSON(w, http.StatusOK, ConfigResponse{Status: "ok", Path: path, Config: cfg, HasAPIKey: hasAPIKey})
+		redacted, routeKeys := config.RedactSecrets(cfg)
+		writeJSON(w, http.StatusOK, ConfigResponse{Status: "ok", Path: path, Config: redacted, HasAPIKey: hasAPIKey, RouteAPIKeys: routeKeys})
 	case http.MethodPost:
 		var cfg config.EngineConfig
 		if err := json.NewDecoder(r.Body).Decode(&cfg); err != nil {
 			writeJSON(w, http.StatusBadRequest, map[string]any{"status": "error", "error": "invalid JSON: " + err.Error()})
 			return
 		}
-		cfg.BaseURL = strings.TrimSpace(cfg.BaseURL)
-		cfg.APIKey = strings.TrimSpace(cfg.APIKey)
-		cfg.DefaultModel = strings.TrimSpace(cfg.DefaultModel)
-		if cfg.APIKey == "" {
-			current, _, err := config.Load()
-			if err == nil {
-				cfg.APIKey = strings.TrimSpace(current.APIKey)
-			}
+		cfg.Normalize()
+		current, _, loadErr := config.Load()
+		if loadErr == nil {
+			cfg = config.PreserveBlankSecrets(cfg, current)
 		}
 		path, err := config.Save(cfg)
 		if err != nil {
@@ -371,14 +1135,23 @@ func (s *Server) handleConfig(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		hasAPIKey := strings.TrimSpace(cfg.APIKey) != ""
-		cfg.APIKey = ""
-		writeJSON(w, http.StatusOK, ConfigResponse{Status: "ok", Path: path, Config: cfg, HasAPIKey: hasAPIKey})
+		redacted, routeKeys := config.RedactSecrets(cfg)
+		writeJSON(w, http.StatusOK, ConfigResponse{Status: "ok", Path: path, Config: redacted, HasAPIKey: hasAPIKey, RouteAPIKeys: routeKeys})
 	default:
 		writeJSON(w, http.StatusMethodNotAllowed, map[string]any{"status": "error", "error": "GET or POST required"})
 	}
 }
 
 func (s *Server) handleChat(w http.ResponseWriter, r *http.Request) {
+	started := time.Now()
+	logConversationID := ""
+	messageLen := 0
+	defer func() {
+		if s != nil && s.logger != nil {
+			s.logger.Info("[timing] http.chat total_ms=%d conversation=%s message_len=%d",
+				time.Since(started).Milliseconds(), logConversationID, messageLen)
+		}
+	}()
 	if r.Method != http.MethodPost {
 		writeJSON(w, http.StatusMethodNotAllowed, map[string]any{"error": "POST required"})
 		return
@@ -393,15 +1166,31 @@ func (s *Server) handleChat(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusBadRequest, map[string]any{"error": "message is required"})
 		return
 	}
-	req.Context = contextWithAttachments(req.Context, req.Attachments)
+	messageLen = len(req.Message)
 	conversationID := strings.TrimSpace(req.ConversationID)
 	if conversationID == "" {
 		conversationID = "chat_" + randomID()
 	}
+	logConversationID = conversationID
+	req.Context = contextWithConversationID(req.Context, conversationID)
 	projectPath := projectPathFromChatContext(req.Context)
 	agentMode := agentModeFromContext(req.Context)
 	goal := s.beginChatGoal(conversationID, req.Message, req.Context)
 	req.Context = contextWithGoal(req.Context, goal.GoalID, goal.RunID)
+	s.emitTurnEvent(conversationID, "turn.started", ChatResponse{
+		ConversationID: conversationID,
+		GoalID:         goal.GoalID,
+		RunID:          goal.RunID,
+		GoalStatus:     string(agentruntime.StatusRunning),
+		Reply:          req.Message,
+	}, goal.GoalID, goal.RunID)
+	req.Context = contextWithAttachments(req.Context, req.Attachments)
+	attachmentScope := artifacts.ScopeFromMap(req.Context)
+	requestArtifacts := mergeArtifactSummaries(
+		s.artifactsFromAttachments(req.Attachments, conversationID, goal.GoalID, goal.RunID, attachmentScope),
+		s.artifactsFromRefs(req.ArtifactRefs),
+	)
+	req.Context = contextWithArtifactSummaries(req.Context, requestArtifacts)
 	s.harness.RecordConversationNodeForProject(r.Context(), projectPath, "ask", req.Message, goal.GoalID, goal.RunID)
 	writeChat := func(status int, resp ChatResponse) {
 		if resp.AgentMode == "" {
@@ -413,9 +1202,21 @@ func (s *Server) handleChat(w http.ResponseWriter, r *http.Request) {
 		if resp.RunID == "" {
 			resp.RunID = goal.RunID
 		}
+		if len(resp.ProjectResultCards) == 0 {
+			resp.ProjectResultCards = projectResultCardsFromExecuted(resp.ExecutedKernelReply)
+		}
 		goalID := firstNonEmpty(resp.GoalID, goal.GoalID)
+		resp.Artifacts = mergeArtifactSummaries(resp.Artifacts, artifactSummariesFromExecuted(resp.ExecutedKernelReply))
+		resp.Artifacts = mergeArtifactSummaries(resp.Artifacts, s.artifactsFromDialogueMediaReferences(req.Message, resp.Reply, conversationID, goalID, firstNonEmpty(resp.RunID, goal.RunID), attachmentScope))
+		resp.Artifacts = mergeArtifactSummaries(resp.Artifacts, requestArtifacts)
 		if strings.TrimSpace(resp.Reply) != "" {
-			if history := s.harness.RecordConversationNodeForProject(r.Context(), projectPath, "vit", resp.Reply, goalID, resp.RunID); len(history) > 0 {
+			historyData := map[string]any{
+				"artifacts": artifactSummaryRows(resp.Artifacts),
+			}
+			if len(resp.ProjectResultCards) > 0 {
+				historyData["project_result_cards"] = resp.ProjectResultCards
+			}
+			if history := s.harness.RecordConversationNodeForProjectWithData(r.Context(), projectPath, "vit", resp.Reply, goalID, resp.RunID, historyData); len(history) > 0 {
 				resp.ProjectHistory = history
 			}
 		}
@@ -427,6 +1228,10 @@ func (s *Server) handleChat(w http.ResponseWriter, r *http.Request) {
 		}
 		if resp.GoalSummary == "" {
 			resp.GoalSummary = firstNonEmpty(goal.Summary, req.Message)
+		}
+		if s.logger != nil {
+			s.logger.Info("[chat.artifacts] conversation=%s response_artifacts=%d request_artifacts=%d executed=%d reply_len=%d",
+				conversationID, len(resp.Artifacts), len(requestArtifacts), len(resp.ExecutedKernelReply), len(resp.Reply))
 		}
 		responseMode := agentModeFromString(resp.AgentMode)
 		if resp.AgentPlan == nil && shouldExposeAgentPlan(responseMode, resp) {
@@ -452,6 +1257,11 @@ func (s *Server) handleChat(w http.ResponseWriter, r *http.Request) {
 		default:
 			s.harness.CompleteGoal(goalID, nil)
 		}
+		eventType := "turn.completed"
+		if strings.TrimSpace(resp.Error) != "" || resp.GoalStatus == string(agentruntime.StatusFailed) {
+			eventType = "turn.failed"
+		}
+		s.emitTurnEvent(conversationID, eventType, resp, goal.GoalID, goal.RunID)
 		writeJSON(w, status, resp)
 	}
 
@@ -540,8 +1350,18 @@ func (s *Server) handleChat(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	messages := s.buildMessages(r.Context(), conversationID, req.Message, req.Context)
-	raw, err := s.llm.Complete(r.Context(), cfg, messages)
+	assembly := s.buildAssembly(r.Context(), conversationID, req.Message, req.Context)
+	goalID, _ := goalIDsFromContext(req.Context)
+	resp, err := s.llm.CompleteRequest(r.Context(), cfg, llm.Request{
+		Messages: assembly.Messages,
+		Metadata: llm.RequestMetadata{
+			Source:            "chat",
+			ConversationID:    conversationID,
+			GoalID:            goalID,
+			PromptFingerprint: assembly.Fingerprint,
+			PromptStats:       assembly.Stats.Map(),
+		},
+	})
 	if err != nil {
 		writeChat(http.StatusOK, ChatResponse{
 			ConversationID: conversationID,
@@ -550,6 +1370,7 @@ func (s *Server) handleChat(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
+	raw := resp.Text
 	env := parseModelEnvelope(raw)
 	if strings.TrimSpace(env.Reply) == "" {
 		env.Reply = strings.TrimSpace(raw)
@@ -608,7 +1429,7 @@ func (s *Server) planModeBlockedResponse(ctx context.Context, conversationID, us
 		return ChatResponse{}, false
 	}
 	names := decisionNames(blocked)
-	reply := "Plan mode blocks DAW project mutations/high-risk writes. Blocked: " + strings.Join(names, ", ") + ". Switch to Default or Goal mode to execute."
+	reply := "计划模式不会执行工程修改或高风险写入。本次已阻止：" + strings.Join(names, ", ") + "。切换到默认模式或目标模式后才能执行。"
 	steps := make([]AgentPlanStep, 0, len(decisions))
 	for _, decision := range decisions {
 		status := "pending"
@@ -639,7 +1460,7 @@ func (s *Server) planModeBlockedResponse(ctx context.Context, conversationID, us
 			Status:         string(agentruntime.StatusCompleted),
 			Summary:        "Plan mode: project changes not executed",
 			Steps:          steps,
-			FailureReason:  "Plan mode blocks DAW project mutations and high-risk writes.",
+			FailureReason:  "计划模式不会执行工程修改或高风险写入。",
 			ProjectHistory: projectHistory,
 		},
 	}, true
@@ -684,9 +1505,15 @@ func commandSpecForDecision(decision policy.Decision) (tools.CommandSpec, bool) 
 		if spec, ok := catalog.LookupCommand(name); ok {
 			return spec, true
 		}
+		if spec, ok := catalog.LookupTool(name); ok {
+			return spec, true
+		}
 	}
 	if cmdName := policy.CommandName(decision.Command); strings.TrimSpace(cmdName) != "" {
 		if spec, ok := catalog.LookupCommand(cmdName); ok {
+			return spec, true
+		}
+		if spec, ok := catalog.LookupTool(cmdName); ok {
 			return spec, true
 		}
 	}
@@ -787,7 +1614,7 @@ func (s *Server) chatResponseForCommands(ctx context.Context, conversationID, us
 		reply = strings.TrimSpace(fallbackReply)
 	}
 	if strings.TrimSpace(reply) == "" {
-		reply = "Done."
+		reply = "已完成。"
 	}
 	resp := ChatResponse{
 		ConversationID:      conversationID,
@@ -838,15 +1665,116 @@ func (s *Server) attachInteractionRequests(resp *ChatResponse) {
 		req := s.pluginLearningInteractionRequest(*resp)
 		if req.ID != "" {
 			resp.InteractionRequests = append(resp.InteractionRequests, req)
+			if len(req.Actions) > 0 || !responseNeedsConfirmationInteraction(*resp) {
+				return
+			}
 		}
-		return
 	}
-	if resp.NeedsConfirmation && strings.TrimSpace(resp.PlanID) != "" {
+	if responseNeedsConfirmationInteraction(*resp) {
+		s.hydrateConfirmationResponse(resp)
+	}
+	if responseNeedsConfirmationInteraction(*resp) && strings.TrimSpace(resp.PlanID) != "" {
 		req := s.confirmationInteractionRequest(*resp)
 		if req.ID != "" {
 			resp.InteractionRequests = append(resp.InteractionRequests, req)
 		}
 	}
+}
+
+func responseNeedsConfirmationInteraction(resp ChatResponse) bool {
+	status := strings.ToLower(strings.TrimSpace(resp.GoalStatus))
+	return resp.NeedsConfirmation ||
+		status == string(agentruntime.StatusWaitingConfirmation) ||
+		status == "needs_confirmation" ||
+		strings.Contains(status, "waiting_confirmation") ||
+		strings.Contains(status, "needs_confirmation")
+}
+
+func (s *Server) hydrateConfirmationResponse(resp *ChatResponse) {
+	if resp == nil {
+		return
+	}
+	resp.NeedsConfirmation = true
+	if planID := firstNonEmpty(
+		strings.TrimSpace(resp.PlanID),
+		mapPlanID(resp.WorkflowData),
+		mapPlanID(resp.PluginLearning),
+	); planID != "" {
+		resp.PlanID = planID
+	}
+	if strings.TrimSpace(resp.PlanID) != "" {
+		return
+	}
+	plan, ok := s.pendingPlanForResponse(*resp)
+	if !ok {
+		return
+	}
+	resp.PlanID = strings.TrimSpace(plan.ID)
+	if strings.TrimSpace(resp.Preview) == "" {
+		resp.Preview = plan.Preview
+	}
+	if strings.TrimSpace(resp.Workflow) == "" {
+		resp.Workflow = plan.Workflow
+	}
+	if len(resp.WorkflowData) == 0 && len(plan.WorkflowData) > 0 {
+		resp.WorkflowData = copyStringAnyMap(plan.WorkflowData)
+	}
+	if len(resp.Commands) == 0 && len(plan.Decisions) > 0 {
+		resp.Commands = plan.Decisions
+	}
+}
+
+func mapPlanID(data map[string]any) string {
+	if len(data) == 0 {
+		return ""
+	}
+	return cleanContextText(data["plan_id"])
+}
+
+func (s *Server) pendingPlanForResponse(resp ChatResponse) (PendingPlan, bool) {
+	conversationID := strings.TrimSpace(resp.ConversationID)
+	goalID := strings.TrimSpace(resp.GoalID)
+	runID := strings.TrimSpace(resp.RunID)
+	workflow := strings.TrimSpace(resp.Workflow)
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	for key, plan := range s.pending {
+		if s.pendingPlanAliasIsStaleLocked(key, plan) {
+			delete(s.pending, key)
+			continue
+		}
+		if pendingPlanMatchesResponse(plan, conversationID, goalID, runID, workflow) {
+			return plan, true
+		}
+	}
+	if len(s.pending) == 1 {
+		for key, plan := range s.pending {
+			if s.pendingPlanAliasIsStaleLocked(key, plan) {
+				delete(s.pending, key)
+				continue
+			}
+			return plan, true
+		}
+	}
+	return PendingPlan{}, false
+}
+
+func pendingPlanMatchesResponse(plan PendingPlan, conversationID, goalID, runID, workflow string) bool {
+	if conversationID != "" {
+		if cleanContextText(plan.Context["conversation_id"]) == conversationID || cleanContextText(plan.WorkflowData["conversation_id"]) == conversationID {
+			return true
+		}
+	}
+	if goalID != "" && cleanContextText(plan.Context["goal_id"]) == goalID {
+		return true
+	}
+	if runID != "" && cleanContextText(plan.Context["run_id"]) == runID {
+		return true
+	}
+	if workflow != "" && strings.TrimSpace(plan.Workflow) == workflow {
+		return true
+	}
+	return false
 }
 
 func (s *Server) confirmationInteractionRequest(resp ChatResponse) AgentInteractionRequest {
@@ -906,6 +1834,16 @@ func (s *Server) pluginLearningInteractionRequest(resp ChatResponse) AgentIntera
 	fields := []AgentInteractionField{}
 	questions := []AgentInteractionField{}
 	switch {
+	case stage == pluginLearningUIReferenceStage || strings.EqualFold(strings.TrimSpace(fmt.Sprint(data["type"])), pluginLearningUIReferenceType):
+		kind = "form"
+		typ = pluginLearningUIReferenceType
+		title = "提供插件界面图样"
+		body = firstNonEmpty(body, "可以提供一份本次学习专用的插件界面图样，也可以跳过直接学习。只有当前卡片上传并绑定到本次学习会话的图样会进入学习。")
+		actions = []AgentInteractionAction{
+			{ID: "continue_with_ui_reference", Label: "使用图样继续", Style: "primary", Recommended: true},
+			{ID: "skip_ui_reference", Label: "跳过图样，直接学习", Style: "secondary"},
+			{ID: "cancel_plugin_learning", Label: "取消学习", Style: "secondary"},
+		}
 	case boolValue(data["learning_completed"]):
 		kind = "mode_boundary"
 		typ = "plugin_learning_completion"
@@ -937,7 +1875,7 @@ func (s *Server) pluginLearningInteractionRequest(resp ChatResponse) AgentIntera
 	case planID != "":
 		kind = "review"
 		typ = "plugin_learning_final_review"
-		title = "确认保存 Plugin Grabber 档案"
+		title = "确认保存 Plugin Skill"
 		actions = []AgentInteractionAction{
 			{ID: "approve", Label: "保存", Style: "primary", Recommended: true},
 			{ID: "cancel", Label: "取消", Style: "secondary"},
@@ -1173,6 +2111,18 @@ func pluginGrabberLearningCompletionData(plan PendingPlan, saved bool) map[strin
 	return data
 }
 
+func attachPluginGrabberCompletionAssets(response map[string]any, data map[string]any) {
+	if response == nil || len(data) == 0 {
+		return
+	}
+	if artifacts := firstPresentAny(data, "artifacts"); artifacts != nil {
+		response["artifacts"] = artifacts
+	}
+	if sidePanelRequest := firstPresentAny(data, "side_panel_request"); sidePanelRequest != nil {
+		response["side_panel_request"] = sidePanelRequest
+	}
+}
+
 func pluginGrabberLearningNextActions(mode string, saved bool) []map[string]any {
 	if !saved {
 		return []map[string]any{{
@@ -1190,12 +2140,12 @@ func pluginGrabberLearningNextActions(mode string, saved bool) []map[string]any 
 		{
 			"id":     "explain_controls",
 			"label":  "解释控制",
-			"prompt": "解释这个插件刚保存的 Plugin Grabber 控制。",
+			"prompt": "解释这个插件刚保存的 Plugin Skill 控制。",
 		},
 		{
 			"id":     "try_controls",
 			"label":  "试用控制",
-			"prompt": "试用刚保存的 Plugin Grabber 控制。",
+			"prompt": "试用刚保存的 Plugin Skill 控制。",
 		},
 		{
 			"id":            "continue_learning",
@@ -1225,6 +2175,15 @@ func isPendingConfirmationStatusQuestion(message string) bool {
 }
 
 func (s *Server) handleInteractionRespond(w http.ResponseWriter, r *http.Request) {
+	started := time.Now()
+	logInteractionID := ""
+	logActionID := ""
+	defer func() {
+		if s != nil && s.logger != nil {
+			s.logger.Info("[timing] http.interaction_respond total_ms=%d interaction=%s action=%s",
+				time.Since(started).Milliseconds(), logInteractionID, logActionID)
+		}
+	}()
 	if r.Method != http.MethodPost {
 		writeJSON(w, http.StatusMethodNotAllowed, map[string]any{"error": "POST required"})
 		return
@@ -1235,6 +2194,7 @@ func (s *Server) handleInteractionRespond(w http.ResponseWriter, r *http.Request
 		return
 	}
 	interactionID := strings.TrimSpace(req.InteractionID)
+	logInteractionID = interactionID
 	if interactionID == "" {
 		writeJSON(w, http.StatusBadRequest, map[string]any{"status": "error", "message": "interaction_id is required"})
 		return
@@ -1252,6 +2212,7 @@ func (s *Server) handleInteractionRespond(w http.ResponseWriter, r *http.Request
 	if decision == "" {
 		decision = "submit"
 	}
+	logActionID = decision
 	kind := firstNonEmpty(interaction.Kind, interaction.Type)
 	if strings.TrimSpace(interaction.PlanID) != "" && (kind == "confirmation" || strings.Contains(interaction.Type, "final_review") || strings.Contains(interaction.Type, "teach_review")) {
 		status, response := s.resolvePendingPlanDecision(r.Context(), interaction.PlanID, decision)
@@ -1260,7 +2221,7 @@ func (s *Server) handleInteractionRespond(w http.ResponseWriter, r *http.Request
 		writeJSON(w, status, response)
 		return
 	}
-	if strings.EqualFold(decision, "cancel") {
+	if strings.EqualFold(decision, "cancel") || strings.EqualFold(decision, "cancel_plugin_learning") {
 		resp := ChatResponse{
 			ConversationID: interaction.ConversationID,
 			GoalID:         interaction.GoalID,
@@ -1285,6 +2246,16 @@ func (s *Server) handleInteractionRespond(w http.ResponseWriter, r *http.Request
 				Actions:        []AgentInteractionAction{{ID: "done", Label: "完成", Style: "primary", Recommended: true}},
 			}},
 		}
+		writeJSON(w, http.StatusOK, resp)
+		return
+	}
+	if strings.EqualFold(interaction.Source, "plugin_grabber") && strings.Contains(interaction.Type, "ui_reference_request") {
+		resp, err := s.continuePluginGrabberUIReferenceInteraction(r.Context(), interaction, req.Payload, decision)
+		if err != nil {
+			writeJSON(w, http.StatusOK, pluginGrabberInteractionErrorResponse(interaction, err))
+			return
+		}
+		s.attachInteractionRequests(&resp)
 		writeJSON(w, http.StatusOK, resp)
 		return
 	}
@@ -1347,18 +2318,23 @@ func (s *Server) attachInteractionsToResponseMap(response *map[string]any, inter
 	if len(data) == 0 {
 		data = mapValue((*response)["workflow_data"])
 	}
-	if len(data) == 0 {
-		return
-	}
+	goalStatus := strings.TrimSpace(fmt.Sprint((*response)["goal_status"]))
+	needsConfirmation := boolValue((*response)["needs_confirmation"]) || strings.EqualFold(goalStatus, string(agentruntime.StatusWaitingConfirmation))
 	resp := ChatResponse{
-		ConversationID: interaction.ConversationID,
-		GoalID:         firstNonEmpty(strings.TrimSpace(fmt.Sprint((*response)["goal_id"])), interaction.GoalID),
-		RunID:          firstNonEmpty(strings.TrimSpace(fmt.Sprint((*response)["run_id"])), interaction.RunID),
-		Reply:          firstNonEmpty(strings.TrimSpace(fmt.Sprint((*response)["message"])), strings.TrimSpace(fmt.Sprint((*response)["reply"]))),
-		Workflow:       firstNonEmpty(strings.TrimSpace(fmt.Sprint((*response)["workflow"])), interaction.Workflow),
-		WorkflowData:   data,
-		PluginLearning: data,
-		GoalStatus:     strings.TrimSpace(fmt.Sprint((*response)["goal_status"])),
+		ConversationID:    interaction.ConversationID,
+		GoalID:            firstNonEmpty(strings.TrimSpace(fmt.Sprint((*response)["goal_id"])), interaction.GoalID),
+		RunID:             firstNonEmpty(strings.TrimSpace(fmt.Sprint((*response)["run_id"])), interaction.RunID),
+		Reply:             firstNonEmpty(strings.TrimSpace(fmt.Sprint((*response)["message"])), strings.TrimSpace(fmt.Sprint((*response)["reply"]))),
+		Workflow:          firstNonEmpty(strings.TrimSpace(fmt.Sprint((*response)["workflow"])), interaction.Workflow),
+		WorkflowData:      data,
+		PluginLearning:    data,
+		NeedsConfirmation: needsConfirmation,
+		PlanID:            firstNonEmpty(strings.TrimSpace(fmt.Sprint((*response)["plan_id"])), strings.TrimSpace(fmt.Sprint((*response)["next_plan_id"]))),
+		Preview:           strings.TrimSpace(fmt.Sprint((*response)["preview"])),
+		GoalStatus:        goalStatus,
+	}
+	if len(data) == 0 && !responseNeedsConfirmationInteraction(resp) {
+		return
 	}
 	s.attachInteractionRequests(&resp)
 	if len(resp.InteractionRequests) > 0 {
@@ -1370,6 +2346,98 @@ func (s *Server) attachInteractionsToResponseMap(response *map[string]any, inter
 	if resp.ConversationID != "" {
 		(*response)["conversation_id"] = resp.ConversationID
 	}
+}
+
+func (s *Server) continuePluginGrabberUIReferenceInteraction(ctx context.Context, interaction PendingInteraction, payload map[string]any, decision string) (ChatResponse, error) {
+	base := copyStringAnyMap(interaction.Payload)
+	submitted := copyStringAnyMap(payload)
+	target := mapValue(base["target"])
+	if len(target) == 0 {
+		target = map[string]any{
+			"track_id":    base["track_id"],
+			"plugin_id":   base["plugin_id"],
+			"plugin_name": base["plugin_name"],
+		}
+	}
+	sessionID := firstNonEmpty(firstNonEmptyText(submitted, "plugin_learning_session_id"), firstNonEmptyText(base, "plugin_learning_session_id"))
+	startedAt := firstNonEmpty(firstNonEmptyText(submitted, "plugin_learning_session_started_at"), firstNonEmptyText(base, "plugin_learning_session_started_at"))
+	webReferenceDecision := strings.TrimSpace(strings.ToLower(firstNonEmpty(
+		firstNonEmptyText(submitted, "web_reference_decision"),
+		firstNonEmptyText(base, "web_reference_decision"),
+	)))
+	if webReferenceDecision == "" {
+		if boolValue(firstPresentAny(submitted, "web_reference_enabled")) || boolValue(firstPresentAny(base, "web_reference_enabled")) {
+			webReferenceDecision = "enabled"
+		} else {
+			webReferenceDecision = "skipped"
+		}
+	}
+	args := map[string]any{
+		"mode":                               string(plugingrabber.LearningModeAutoLearn),
+		"track_id":                           firstNonEmptyText(target, "track_id"),
+		"plugin_id":                          firstNonEmptyText(target, "plugin_id"),
+		"plugin_name":                        firstNonEmptyText(target, "plugin_name"),
+		"plugin_learning_session_id":         sessionID,
+		"plugin_learning_session_started_at": startedAt,
+		"web_reference_decision":             webReferenceDecision,
+	}
+	if args["track_id"] == "" {
+		args["track_id"] = firstNonEmptyText(base, "track_id")
+	}
+	if args["plugin_id"] == "" {
+		args["plugin_id"] = firstNonEmptyText(base, "plugin_id")
+	}
+	if args["plugin_name"] == "" {
+		args["plugin_name"] = firstNonEmptyText(base, "plugin_name")
+	}
+	switch strings.ToLower(strings.TrimSpace(decision)) {
+	case "skip_ui_reference", "skip", "skipped":
+		args["ui_reference_decision"] = "skipped"
+	default:
+		args["ui_reference_decision"] = "provided"
+		ids := stringListValue(firstPresentAny(submitted, "ui_reference_artifact_ids", "artifact_ids"))
+		args["ui_reference_artifact_ids"] = ids
+	}
+	cfg, _, err := config.Load()
+	if err != nil {
+		return ChatResponse{}, err
+	}
+	resp := s.runPluginGrabberLearningWorkflow(ctx, interaction.ConversationID, "", interaction.RequestContext, cfg, args)
+	resp.GoalID = firstNonEmpty(resp.GoalID, interaction.GoalID)
+	resp.RunID = firstNonEmpty(resp.RunID, interaction.RunID)
+	if resp.Error != "" && strings.Contains(resp.Error, errPluginUIReferenceNoValidImage.Error()) {
+		return pluginGrabberUIReferenceRecoverableResponse(interaction, base), nil
+	}
+	return resp, nil
+}
+
+func pluginGrabberUIReferenceRecoverableResponse(interaction PendingInteraction, base map[string]any) ChatResponse {
+	target := pluginLearningTarget{
+		TrackID:    firstNonEmptyText(mapValue(base["target"]), "track_id"),
+		PluginID:   firstNonEmptyText(mapValue(base["target"]), "plugin_id"),
+		PluginName: firstNonEmptyText(mapValue(base["target"]), "plugin_name"),
+	}
+	if target.TrackID == "" {
+		target.TrackID = firstNonEmptyText(base, "track_id")
+	}
+	if target.PluginID == "" {
+		target.PluginID = firstNonEmptyText(base, "plugin_id")
+	}
+	if target.PluginName == "" {
+		target.PluginName = firstNonEmptyText(base, "plugin_name")
+	}
+	resp := pluginGrabberUIReferenceRequestResponse(
+		interaction.ConversationID,
+		firstNonEmptyText(base, "intent"),
+		interaction.RequestContext,
+		target,
+		firstNonEmptyText(base, "plugin_learning_session_id"),
+		firstNonEmptyText(base, "plugin_learning_session_started_at"),
+	)
+	resp.GoalID = interaction.GoalID
+	resp.RunID = interaction.RunID
+	resp.Reply = "还没有收到绑定到本次学习会话的有效插件界面图样。请在这张卡片里上传图样后继续，或选择跳过图样直接学习。之前发送过的图片不会被使用。"
+	return resp
 }
 
 func (s *Server) continuePluginGrabberCandidateInteraction(ctx context.Context, interaction PendingInteraction, payload map[string]any, decision string) (ChatResponse, error) {
@@ -1386,7 +2454,7 @@ func (s *Server) continuePluginGrabberCandidateInteraction(ctx context.Context, 
 	if len(pluginGrabberDisplayDomainFields(nextPayload)) > 0 {
 		return s.showPluginGrabberDisplayDomainInteraction(ctx, interaction, nextPayload), nil
 	}
-	return s.runPluginGrabberInteractionWorkflow(ctx, interaction, payload, "auto_learn_reviewed")
+	return s.runPluginGrabberInteractionWorkflow(ctx, interaction, nextPayload, "auto_learn_reviewed")
 }
 
 func (s *Server) beginPluginGrabberExperimentInteraction(ctx context.Context, interaction PendingInteraction, index int) (ChatResponse, error) {
@@ -1679,6 +2747,12 @@ func (s *Server) runPluginGrabberInteractionWorkflow(ctx context.Context, intera
 	if args["plugin_name"] == "" {
 		args["plugin_name"] = firstNonEmptyText(base, "plugin_name")
 	}
+	if uiReference := firstPresentAny(base, "ui_reference"); uiReference != nil {
+		args["ui_reference"] = uiReference
+	}
+	if uiReferenceArtifacts := firstPresentAny(base, "ui_reference_artifacts"); uiReferenceArtifacts != nil {
+		args["ui_reference_artifacts"] = uiReferenceArtifacts
+	}
 	if mode == "auto_learn_reviewed" {
 		if patch := firstPresentAny(payload, "reviewed_profile_patch", "profile_patch"); patch != nil {
 			args["reviewed_profile_patch"] = patch
@@ -1951,6 +3025,7 @@ func (s *Server) handleConfirm(w http.ResponseWriter, r *http.Request) {
 			response["workflow_data"] = data
 			response["plugin_learning"] = data
 			response["message"] = "已取消 Plugin Grabber 学习保存。"
+			attachPluginGrabberCompletionAssets(response, data)
 		}
 		if plan := agentPlanForMode(agentMode, simpleAgentPlan(goalID, runID, agentruntime.StatusCancelled, "", "", "", projectHistory)); plan != nil {
 			response["agent_plan"] = plan
@@ -1993,25 +3068,33 @@ func (s *Server) handleConfirm(w http.ResponseWriter, r *http.Request) {
 		message = "done"
 	}
 	s.harness.CompleteGoal(goalID, nil)
-	projectHistory := s.harness.RecordConversationNodeForProject(r.Context(), projectPath, "vit", message, goalID, runID)
+	projectResultCards := projectResultCardsFromExecuted(replies)
+	historyData := map[string]any{}
+	if len(projectResultCards) > 0 {
+		historyData["project_result_cards"] = projectResultCards
+	}
+	projectHistory := s.harness.RecordConversationNodeForProjectWithData(r.Context(), projectPath, "vit", message, goalID, runID, historyData)
 	if len(projectHistory) == 0 {
 		projectHistory = s.harness.ProjectHistorySummaryForProject(r.Context(), goalID, projectPath)
 	}
 	response := map[string]any{
-		"status":          "ok",
-		"message":         message,
-		"plan_id":         planID,
-		"goal_id":         goalID,
-		"run_id":          runID,
-		"agent_mode":      agentMode,
-		"replies":         replies,
-		"project_history": projectHistory,
-		"goal_status":     string(agentruntime.StatusCompleted),
+		"status":                "ok",
+		"message":               message,
+		"plan_id":               planID,
+		"goal_id":               goalID,
+		"run_id":                runID,
+		"agent_mode":            agentMode,
+		"replies":               replies,
+		"executed_kernel_reply": replies,
+		"project_result_cards":  projectResultCards,
+		"project_history":       projectHistory,
+		"goal_status":           string(agentruntime.StatusCompleted),
 	}
 	if data := pluginGrabberLearningCompletionData(plan, true); data != nil {
 		response["workflow"] = plan.Workflow
 		response["workflow_data"] = data
 		response["plugin_learning"] = data
+		attachPluginGrabberCompletionAssets(response, data)
 	}
 	if plan := agentPlanForMode(agentMode, simpleAgentPlan(goalID, runID, agentruntime.StatusCompleted, "", "", "", projectHistory)); plan != nil {
 		response["agent_plan"] = plan
@@ -2038,11 +3121,7 @@ func (s *Server) resolvePendingPlanDecision(ctx context.Context, planID, decisio
 	agentMode := agentModeFromContext(plan.Context)
 	cleanDecision := strings.ToLower(strings.TrimSpace(decision))
 	if plan.Workflow == agentLoopConfirmationWorkflow {
-		return http.StatusBadRequest, map[string]any{
-			"status":  "error",
-			"message": "agent loop confirmations still require /agent/confirm",
-			"plan_id": planID,
-		}
+		return s.resolveAgentLoopConfirm(ctx, planID, plan, cleanDecision)
 	}
 	if cleanDecision != "approve" && cleanDecision != "allow" && cleanDecision != "confirm" && cleanDecision != "yes" && cleanDecision != "submit" && cleanDecision != "save" {
 		s.harness.SetGoalStatus(goalID, agentruntime.StatusCancelled, nil)
@@ -2056,6 +3135,7 @@ func (s *Server) resolvePendingPlanDecision(ctx context.Context, planID, decisio
 			response["workflow_data"] = data
 			response["plugin_learning"] = data
 			response["message"] = "已取消 Plugin Grabber 学习保存。"
+			attachPluginGrabberCompletionAssets(response, data)
 		}
 		if plan := agentPlanForMode(agentMode, simpleAgentPlan(goalID, runID, agentruntime.StatusCancelled, "", "", "", projectHistory)); plan != nil {
 			response["agent_plan"] = plan
@@ -2093,25 +3173,33 @@ func (s *Server) resolvePendingPlanDecision(ctx context.Context, planID, decisio
 		message = "done"
 	}
 	s.harness.CompleteGoal(goalID, nil)
-	projectHistory := s.harness.RecordConversationNodeForProject(ctx, projectPath, "vit", message, goalID, runID)
+	projectResultCards := projectResultCardsFromExecuted(replies)
+	historyData := map[string]any{}
+	if len(projectResultCards) > 0 {
+		historyData["project_result_cards"] = projectResultCards
+	}
+	projectHistory := s.harness.RecordConversationNodeForProjectWithData(ctx, projectPath, "vit", message, goalID, runID, historyData)
 	if len(projectHistory) == 0 {
 		projectHistory = s.harness.ProjectHistorySummaryForProject(ctx, goalID, projectPath)
 	}
 	response := map[string]any{
-		"status":          "ok",
-		"message":         message,
-		"plan_id":         planID,
-		"goal_id":         goalID,
-		"run_id":          runID,
-		"agent_mode":      agentMode,
-		"replies":         replies,
-		"project_history": projectHistory,
-		"goal_status":     string(agentruntime.StatusCompleted),
+		"status":                "ok",
+		"message":               message,
+		"plan_id":               planID,
+		"goal_id":               goalID,
+		"run_id":                runID,
+		"agent_mode":            agentMode,
+		"replies":               replies,
+		"executed_kernel_reply": replies,
+		"project_result_cards":  projectResultCards,
+		"project_history":       projectHistory,
+		"goal_status":           string(agentruntime.StatusCompleted),
 	}
 	if data := pluginGrabberLearningCompletionData(plan, true); data != nil {
 		response["workflow"] = plan.Workflow
 		response["workflow_data"] = data
 		response["plugin_learning"] = data
+		attachPluginGrabberCompletionAssets(response, data)
 	}
 	if plan := agentPlanForMode(agentMode, simpleAgentPlan(goalID, runID, agentruntime.StatusCompleted, "", "", "", projectHistory)); plan != nil {
 		response["agent_plan"] = plan
@@ -2161,7 +3249,7 @@ func (s *Server) handleDevChatCommand(ctx context.Context, conversationID string
 	if err != nil {
 		return ChatResponse{
 			ConversationID: conversationID,
-			Reply:          "Tool command parse error: " + err.Error(),
+			Reply:          "工具命令解析失败：" + err.Error(),
 			Error:          err.Error(),
 		}, true
 	}
@@ -2172,11 +3260,85 @@ func (s *Server) handleDevChatCommand(ctx context.Context, conversationID string
 		Source:    "chat_dev_tool",
 		Confirmed: confirmed,
 	})
+	if invokeErr == nil && resp.Status == "needs_confirmation" {
+		if confirmResp, ok := s.chatToolConfirmationResponse(conversationID, req, tool, args, resp); ok {
+			return confirmResp, true
+		}
+	}
 	return ChatResponse{
 		ConversationID: conversationID,
 		Reply:          renderChatToolResult(resp),
 		Error:          errorString(invokeErr),
 	}, true
+}
+
+func (s *Server) chatToolConfirmationResponse(conversationID string, req ChatRequest, tool string, args map[string]any, invokeResp harness.InvokeResponse) (ChatResponse, bool) {
+	command, ok := commandFromChatTool(tool, args)
+	if !ok {
+		return ChatResponse{}, false
+	}
+	decisions := policy.Analyze([]map[string]any{command})
+	if len(decisions) == 0 || !policy.NeedsConfirmation(decisions) {
+		return ChatResponse{}, false
+	}
+	preview := strings.TrimSpace(invokeResp.Preview)
+	plan := PendingPlan{
+		ID:        "plan_" + randomID(),
+		CreatedAt: time.Now(),
+		Decisions: decisions,
+		Context:   req.Context,
+		Preview:   preview,
+	}
+	s.mu.Lock()
+	s.pending[plan.ID] = plan
+	s.mu.Unlock()
+	reply := confirmationReply(decisions)
+	if strings.TrimSpace(reply) == "" {
+		reply = fmt.Sprintf("工具 `%s` 需要你确认后才会执行。", firstNonEmpty(invokeResp.Tool, tool))
+	}
+	return ChatResponse{
+		ConversationID:    conversationID,
+		Reply:             reply,
+		NeedsConfirmation: true,
+		PlanID:            plan.ID,
+		Preview:           preview,
+		Commands:          decisions,
+		ProjectHistory:    invokeResp.ProjectHistory,
+	}, true
+}
+
+func commandFromChatTool(tool string, args map[string]any) (map[string]any, bool) {
+	tool = strings.TrimSpace(tool)
+	if tool == "" {
+		return nil, false
+	}
+	if args == nil {
+		args = map[string]any{}
+	}
+	catalog := tools.DefaultCatalog()
+	if tool == "daw.invoke" {
+		cmd := tools.CloneCommand(args)
+		name := policy.CommandName(cmd)
+		if name == "" {
+			return nil, false
+		}
+		if spec, ok := catalog.LookupCommand(name); ok {
+			cmd["cmd"] = spec.CommandName
+			return cmd, true
+		}
+		if spec, ok := catalog.LookupTool(name); ok {
+			cmd["cmd"] = spec.CommandName
+			return cmd, true
+		}
+		return cmd, true
+	}
+	if spec, ok := catalog.LookupTool(tool); ok {
+		return tools.BuildCommand(spec.CommandName, args), true
+	}
+	if spec, ok := catalog.LookupCommand(tool); ok {
+		return tools.BuildCommand(spec.CommandName, args), true
+	}
+	return nil, false
 }
 
 func (s *Server) devToolSmokeReply() string {
@@ -2672,10 +3834,9 @@ func parseChatToolCommand(message string) (string, map[string]any, bool, bool, e
 func renderChatToolResult(resp harness.InvokeResponse) string {
 	if resp.Status == "needs_confirmation" {
 		return fmt.Sprintf(
-			"Tool `%s` requires confirmation.\nPreview:\n%s\nRun again with `/tool! %s { ... }` to execute.",
+			"工具 `%s` 需要确认。\n预览：\n%s\n请在确认卡片中选择“确认执行”或“取消”。",
 			resp.Tool,
 			resp.Preview,
-			resp.Tool,
 		)
 	}
 	payload := map[string]any{
@@ -2697,13 +3858,13 @@ func renderChatToolResult(resp harness.InvokeResponse) string {
 	enc.SetEscapeHTML(false)
 	enc.SetIndent("", "  ")
 	if err := enc.Encode(payload); err != nil {
-		return fmt.Sprintf("Tool result: %s", resp.Status)
+		return fmt.Sprintf("工具结果：%s", resp.Status)
 	}
 	out := strings.TrimRight(buf.String(), "\n")
 	if len([]rune(out)) > 3000 {
 		out = string([]rune(out)[:3000]) + "\n...<truncated>"
 	}
-	return "Tool result:\n```json\n" + out + "\n```"
+	return "工具结果：\n```json\n" + out + "\n```"
 }
 
 func compactChatToolValue(value any) any {
@@ -2750,6 +3911,10 @@ func errorString(err error) string {
 }
 
 func (s *Server) buildMessages(ctx context.Context, conversationID, userText string, requestContext map[string]any) []llm.Message {
+	return s.buildAssembly(ctx, conversationID, userText, requestContext).Messages
+}
+
+func (s *Server) buildAssembly(ctx context.Context, conversationID, userText string, requestContext map[string]any) promptruntime.Assembly {
 	stateSummary := s.harness.UserStateSummary(ctx)
 	catalog := s.harness.ModelCatalogSummary()
 	goalID, runID := goalIDsFromContext(requestContext)
@@ -2782,8 +3947,9 @@ For resize_clip / clip.resize you MUST include new_length and time_unit when the
 For split_clip / clip.split you MUST include clip_id, track_id, split_time, and time_unit. If the user says to split at the playhead, use playhead_seconds from current_selection as split_time.
 For clone_clip / clip.clone you MUST include source_clip_id, target_track_id, time_unit, and new_start. If the user asks to duplicate a clip without naming a time, place the copy immediately after the source clip.
 For importing audio, prefer clip.import_media_to_track with file_path, track_id, start_time, media_type:"audio", mode:"non_destructive". If the user says "this audio", "selected library item", or "this file", use selected_library_file_path from current_selection. If the user gives an absolute path, copy it exactly into file_path. If the user asks to search the library, use asset_query and the selected/current track; the agent will search only the library Places roots.
-Attachments appear in current_selection.attachments and contain only metadata: id, name, path, kind, mime, size_bytes, exists. Do not claim to analyze image or audio content from attachments. For an audio attachment the user wants placed in a track, use clip.import_media_to_track. For a MIDI attachment the user wants imported, use midi.import_file with file_path, track_id, start_time_beats:0, mode:"merge_tracks". For image/text/unknown attachments, treat them as references unless the user asks for a supported import action.
-For MIDI reading, use midi.read_clip_notes with clip_id from selected_clip_id when the user asks to inspect or describe the current MIDI clip.
+Attachments appear in current_selection.attachments, and their artifact refs appear in current_selection.artifacts. Use artifact.read or artifact.extract when the user asks about attachment/web artifact contents. Documents may include extracted text in the artifact digest; answer from that extracted text when available. Do not claim to inspect raw images, audio, or video beyond the available artifact digest/metadata. Video attachments are local media previews only unless a future explicit video-analysis digest is available. For an audio attachment the user wants placed in a track, use clip.import_media_to_track. For a MIDI attachment the user wants imported, use midi.import_file with file_path, track_id, start_time_beats:0, mode:"merge_tracks". Browser WebView pages are only readable after the user explicitly captures the page into a web_page artifact.
+When the user gives a local asset file or folder and asks what media is available, use media.register_assets or media.index_authorized_folder so the response can include clickable media pool artifact cards. Do not replace artifact cards with long raw path lists.
+For MIDI reading, use midi.read_clip_notes with clip_id from piano_roll_focus_clip_id first, then selected_clip_id, when the user asks to inspect or describe the current MIDI clip.
 For MIDI writing, prefer midi.apply_note_patch with time_unit:"beats" and operations[]. Use insert_note/delete_note/move_note/resize_note/transpose_note/set_velocity/quantize_region/replace_region. MIDI write commands require confirmation.
 If the user asks to create or add a MIDI clip, use midi.create_clip or midi.insert_clip with selected_track_id and time_unit:"beats".
 If the user asks to insert notes, a melody, a chord, or a drum pattern into the current MIDI clip, you MUST return a midi.apply_note_patch command; do not merely say it needs confirmation.
@@ -2797,7 +3963,7 @@ When the user says "first track", use tracks[0].track_id / user_track_index=1, n
 Never use or mention hidden engine/internal track IDs that are not present in Current DAW state tracks[].
 get_project_state and list_tracks results are sanitized for Ask Vit; they are for user-visible DAW work, not raw engine inspection.
 Selected DAW context appears as current_selection in the Context snapshot and comes from the Godot UI. When the user says "this track", "current track", or "selected track", use selected_track_id if it is present and it appears in daw_state_summary.tracks[].
-When the user says "this clip", "current clip", or "selected clip", use selected_clip_id or selected_clip_ids from current_selection. If no clip is selected and multiple clips exist, ask the user to select or name one instead of guessing.
+When the user says "this clip", "current clip", or "selected clip", use piano_roll_focus_clip_id first for MIDI editor tasks, then selected_clip_id or selected_clip_ids from current_selection. If no clip is selected and multiple clips exist, ask the user to select or name one instead of guessing.
 When the user says "at the playhead", use playhead_seconds from current_selection.
 When importing audio and no target track is named, use selected_track_id as the target. If selected_track_id is absent and multiple tracks exist, ask the user which track to import into.
 If commands is non-empty, keep reply as a short internal intent summary. VitAgent will replace it with the final user-facing result after execution, so do not rely on "about to" wording as the final answer.
@@ -2805,6 +3971,9 @@ If commands is non-empty, keep reply as a short internal intent summary. VitAgen
 For plugin loading/grabber setup requests such as loading TDR Nova, finding an EQ/compressor, or loading a plugin and grabbing useful controls, use the special chat workflow command {"cmd":"plugin_grabber_load_and_get_params","track_id":"...","plugin_query":"TDR Nova","intent":"short user intent"}. This workflow searches indexed plugins, asks for confirmation before loading a rack node, then reads parameters after the load succeeds. Do not use instantiate_plugin for these requests; instantiate_plugin requires an exact plugin_path and bypasses the rack grabber workflow.
 For project-scoped plugin grabber learning requests such as learning a plugin, saving quick controls, grouping plugin parameters, or improving plugin control names on an already loaded/selected plugin, use the special chat workflow command {"cmd":"plugin_grabber_learn_project_profile","track_id":"...","plugin_id":"...","intent":"short user intent"}. This workflow is agent-side: it first reads full parameters, asks AI for a profile patch, validates parameter IDs, then asks the user to confirm before saving. Do not use it for ordinary parameter value changes.
 For plugin grabber explanation, summary, context pack, or "explain controls" requests on an already loaded/selected plugin, use the special read-only workflow command {"cmd":"plugin_grabber_explain_controls","track_id":"...","plugin_id":"...","intent":"short user intent"}. This workflow reads full parameters, then returns a compact context pack with quick controls, groups, roles, and full-parameter access hints. It does not filter or save parameters.
+For basic macro-control creation requests such as creating a generic macro knob/slider, use {"cmd":"control_add_macro","track_id":"...","name":"Macro","control_type":"slider","value":0.5,"bindings":[]}. Do not use rack.add_macro. Semantic macro generation from plugin skills should be proposed for confirmation before writing bindings.
+For macro-control rename requests, use {"cmd":"control_rename_macro","macro_id":"...","name":"New Macro Name"}. If the user names the macro by visible label, resolve it from macro_refs or available_macro_controls; do not create a new macro to rename one.
+When the user asks to bind/map a plugin parameter to an existing macro control, such as "bind B1 Gain to Macro 1", "bind it to this macro", or "绑定到已有宏控件", do not call control_add_macro first. Use the existing macro_id from macro_refs or available_macro_controls and call {"cmd":"control_add_binding","macro_id":"...","track_id":"...","plugin_id":"...","param_id":"...","param_name":"...","target_min":...,"target_max":...}. If the named macro is ambiguous or absent, ask which macro to use instead of creating a new one.
 For runtime acoustic plugin adjustments on an already learned plugin, such as "cut 500Hz mud", "boost presence", "reduce harshness", or similar mixing targets, use {"cmd":"plugin_grabber_apply_control","track_id":"...","plugin_id":"...","control":"eq.cut_region|eq.boost_region|eq.set_region","target":{"freq_hz":500,"gain_db":-2.5,"q":1.1}}. Do not use set_plugin_param/plugin.set_parameter for these acoustic targets unless the user explicitly gives an exact param_id and raw value. If the profile is missing or stale, the command will report that Get Param/Learn is needed.
 For explicit one-parameter plugin control where the user gives a concrete param_id and a display value/unit, and get_plugin_parameters display_probe evidence is high confidence, set_plugin_param/plugin.set_parameter may use value_text such as "1000 ms" or "28 percent" without a saved profile. Do not use this for semantic mixing, multi-parameter control, or automatic mixing.
 For plugin_grabber_apply_control results, treat applied_parameters[].new_value_text, applied_value, and confirmed display_domain data as the evidence. Do not infer a control's min/max from the current value_text snapshot or advisory safety notes.
@@ -2813,14 +3982,17 @@ Mode instruction:
 %s
 
 Available DAW command catalog:
-%s
+%s`, modeInstruction, catalog)
 
-Context snapshot JSON:
-%s`, modeInstruction, catalog, snapshot.JSON())
-
-	out := []llm.Message{{Role: "system", Content: system}}
-	out = append(out, llm.Message{Role: "user", Content: userText})
-	return out
+	return promptruntime.Build(promptruntime.AssemblyInput{
+		SystemSections: []promptruntime.Section{
+			promptruntime.TextSection(promptruntime.SectionStatic, "chat_system", "", system, true),
+			promptruntime.TextSection(promptruntime.SectionRuntime, "chat_context_snapshot", "Context snapshot JSON", snapshot.JSON(), false),
+		},
+		UserSections: []promptruntime.Section{
+			promptruntime.TextSection(promptruntime.SectionCurrentUser, "chat_current_user", "", userText, false),
+		},
+	})
 }
 
 func (s *Server) remember(conversationID, userText, assistantText string) {
@@ -2876,12 +4048,14 @@ func dictionaryRowsFromAny(value any) []map[string]any {
 		out := make([]map[string]any, 0, len(rows))
 		for _, item := range rows {
 			out = append(out, map[string]any{
-				"role":       item.Role,
-				"content":    item.Content,
-				"node_id":    item.NodeID,
-				"commit_id":  item.CommitID,
-				"branch":     item.Branch,
-				"created_at": item.CreatedAt,
+				"role":                 item.Role,
+				"content":              item.Content,
+				"node_id":              item.NodeID,
+				"commit_id":            item.CommitID,
+				"branch":               item.Branch,
+				"artifacts":            item.Artifacts,
+				"project_result_cards": item.ProjectCards,
+				"created_at":           item.CreatedAt,
 			})
 		}
 		return out
@@ -2898,7 +4072,14 @@ func dictionaryRowsFromAny(value any) []map[string]any {
 	}
 }
 
-func (s *Server) confirmationPreview(ctx context.Context, decisions []policy.Decision, requestContext map[string]any) (string, error) {
+func (s *Server) confirmationPreview(ctx context.Context, decisions []policy.Decision, requestContext map[string]any) (previewText string, err error) {
+	started := time.Now()
+	defer func() {
+		if s != nil && s.logger != nil {
+			s.logger.Info("[timing] confirmation_preview ms=%d decisions=%d preview_len=%d err=%t",
+				time.Since(started).Milliseconds(), len(decisions), len(previewText), err != nil)
+		}
+	}()
 	if len(decisions) == 0 {
 		return "", nil
 	}
@@ -2918,7 +4099,7 @@ func (s *Server) confirmationPreview(ctx context.Context, decisions []policy.Dec
 		if goal.ProjectHistory != nil && goal.ProjectHistory.BaselineCreated && strings.TrimSpace(goal.ProjectHistory.BaselineCommitID) != "" {
 			return strings.Join(parts, "\n"), nil
 		}
-		parts = append([]string{"After confirmation, VitAgent will create a Project History safety checkpoint first."}, parts...)
+		parts = append([]string{"确认后，VitAgent 会先创建一个项目历史安全检查点。"}, parts...)
 	}
 	return strings.Join(parts, "\n"), nil
 }
@@ -2946,8 +4127,15 @@ func confirmationWillCreateBaseline(decisions []policy.Decision, requestContext 
 	return false
 }
 
-func (s *Server) executeDecisions(ctx context.Context, decisions []policy.Decision, confirmed bool, requestContext map[string]any) ([]map[string]any, error) {
-	replies := make([]map[string]any, 0, len(decisions))
+func (s *Server) executeDecisions(ctx context.Context, decisions []policy.Decision, confirmed bool, requestContext map[string]any) (replies []map[string]any, err error) {
+	started := time.Now()
+	defer func() {
+		if s != nil && s.logger != nil {
+			s.logger.Info("[timing] execute_decisions total_ms=%d decisions=%d replies=%d confirmed=%t err=%t",
+				time.Since(started).Milliseconds(), len(decisions), len(replies), confirmed, err != nil)
+		}
+	}()
+	replies = make([]map[string]any, 0, len(decisions))
 	for _, d := range decisions {
 		resp, err := s.harness.Invoke(ctx, harness.InvokeRequest{
 			Command:   d.Command,
@@ -2959,7 +4147,7 @@ func (s *Server) executeDecisions(ctx context.Context, decisions []policy.Decisi
 			return replies, err
 		}
 		if resp.Status == "needs_confirmation" {
-			return replies, fmt.Errorf("command requires confirmation: %s", resp.CommandName)
+			return replies, fmt.Errorf("命令需要确认：%s", resp.CommandName)
 		}
 		replies = append(replies, map[string]any{
 			"status":          resp.Status,
@@ -2977,7 +4165,7 @@ func (s *Server) executeDecisions(ctx context.Context, decisions []policy.Decisi
 
 func agentContextForPrompt(requestContext map[string]any) string {
 	safe := map[string]any{}
-	for _, key := range []string{"selected_track_id", "selected_track_name", "selected_scene_track_id", "selected_clip_id", "selected_clip_track_id", "selected_plugin_id", "selected_plugin_name", "selected_plugin_track_id", "selected_plugin_source", "playhead_seconds", "current_playhead_seconds", "transport_position_seconds", "selected_library_file_path", "selected_library_item_name", "selected_library_kind", "library_search_query"} {
+	for _, key := range []string{"selected_track_id", "selected_track_name", "selected_scene_track_id", "selected_clip_id", "selected_clip_track_id", "piano_roll_focus_clip_id", "piano_roll_focus_track_id", "selected_plugin_id", "selected_plugin_name", "selected_plugin_track_id", "selected_plugin_source", "playhead_seconds", "current_playhead_seconds", "transport_position_seconds", "selected_library_file_path", "selected_library_item_name", "selected_library_kind", "library_search_query"} {
 		if value := strings.TrimSpace(fmt.Sprint(requestContext[key])); value != "" && value != "<nil>" {
 			safe[key] = value
 		}
@@ -3039,6 +4227,68 @@ func contextAttachmentRows(v any) []map[string]any {
 	}
 }
 
+func mapRowsFromAny(v any) []map[string]any {
+	switch rows := v.(type) {
+	case []map[string]any:
+		return rows
+	case []any:
+		out := make([]map[string]any, 0, len(rows))
+		for _, it := range rows {
+			if row, ok := it.(map[string]any); ok {
+				out = append(out, row)
+			}
+		}
+		return out
+	default:
+		return nil
+	}
+}
+
+func firstMapFromAny(v any) map[string]any {
+	if row, ok := v.(map[string]any); ok {
+		return row
+	}
+	return nil
+}
+
+func firstStringFromMap(row map[string]any, keys ...string) string {
+	for _, key := range keys {
+		if value, ok := row[key]; ok {
+			text := strings.TrimSpace(fmt.Sprint(value))
+			if text != "" && text != "<nil>" {
+				return text
+			}
+		}
+	}
+	return ""
+}
+
+func safeUploadName(name string) string {
+	base := filepath.Base(strings.TrimSpace(name))
+	if base == "." || base == string(filepath.Separator) || base == "" {
+		base = "upload.bin"
+	}
+	clean := strings.Map(func(r rune) rune {
+		switch {
+		case r >= 'a' && r <= 'z':
+			return r
+		case r >= 'A' && r <= 'Z':
+			return r
+		case r >= '0' && r <= '9':
+			return r
+		case r == '.', r == '-', r == '_':
+			return r
+		default:
+			return '_'
+		}
+	}, base)
+	clean = strings.Trim(clean, "._-")
+	if clean == "" {
+		return "upload.bin"
+	}
+	return clean
+}
+
 func cloneContext(in map[string]any) map[string]any {
 	if len(in) == 0 {
 		return nil
@@ -3080,7 +4330,7 @@ func agentModeFromString(raw string) string {
 func agentModeSystemInstruction(mode string) string {
 	switch agentModeFromString(mode) {
 	case agentModePlan:
-		return "Ask Vit is in Plan mode. You may inspect, analyze, explain, search, and draft steps, but you must not directly modify the DAW project file or live DAW state. Emit only read-only commands. If the user asks for a change, describe the plan and leave mutating commands empty."
+		return "Ask Vit is in Plan mode. You may inspect, analyze, explain, search, and draft steps, but you must not directly modify the DAW project file or live DAW state. Emit only read-only commands. If the user asks for a change, describe the plan and leave mutating commands empty. If you refuse a direct execution request, say Plan mode is read-only and the change was not executed; do not say the DAW lacks that capability or that the tool does not exist."
 	case agentModeGoal:
 		return "Ask Vit is in Goal mode. Long-running autonomous DAW edits are handled by AgentLoop goal policy; preserve active worktree, branch, node, goal, and run context."
 	default:
@@ -3102,11 +4352,30 @@ func contextWithGoal(in map[string]any, goalID, runID string) map[string]any {
 	return out
 }
 
+func contextWithConversationID(in map[string]any, conversationID string) map[string]any {
+	out := cloneContext(in)
+	if out == nil {
+		out = map[string]any{}
+	}
+	if strings.TrimSpace(conversationID) != "" {
+		out["conversation_id"] = strings.TrimSpace(conversationID)
+	}
+	return out
+}
+
 func goalIDsFromContext(in map[string]any) (string, string) {
 	if in == nil {
 		return "", ""
 	}
-	return strings.TrimSpace(fmt.Sprint(in["goal_id"])), strings.TrimSpace(fmt.Sprint(in["run_id"]))
+	return cleanContextText(in["goal_id"]), cleanContextText(in["run_id"])
+}
+
+func cleanContextText(value any) string {
+	text := strings.TrimSpace(fmt.Sprint(value))
+	if text == "<nil>" {
+		return ""
+	}
+	return text
 }
 
 func contextWithUserMessage(in map[string]any, message string) map[string]any {
@@ -3151,6 +4420,294 @@ func contextWithAttachments(in map[string]any, attachments []Attachment) map[str
 		}
 	}
 	return out
+}
+
+func (s *Server) artifactStore() artifacts.Store {
+	if s != nil && strings.TrimSpace(s.artifactRoot) != "" {
+		return artifacts.NewStore(s.artifactRoot)
+	}
+	return artifacts.NewStore("")
+}
+
+func (s *Server) webUIRootPath() string {
+	if s != nil && strings.TrimSpace(s.webUIRoot) != "" {
+		if st, err := os.Stat(s.webUIRoot); err == nil && st.IsDir() {
+			return filepath.Clean(s.webUIRoot)
+		}
+		return ""
+	}
+	for _, root := range webUISearchRoots() {
+		if found := findWebUIRootFrom(root); found != "" {
+			return found
+		}
+	}
+	return ""
+}
+
+func webUISearchRoots() []string {
+	var roots []string
+	wd, err := os.Getwd()
+	if err == nil && strings.TrimSpace(wd) != "" {
+		roots = append(roots, wd)
+	}
+	if exe, err := os.Executable(); err == nil && strings.TrimSpace(exe) != "" {
+		roots = append(roots, filepath.Dir(exe))
+	}
+	return roots
+}
+
+func findWebUIRootFrom(root string) string {
+	root = strings.TrimSpace(root)
+	if root == "" {
+		return ""
+	}
+	for dir := filepath.Clean(root); dir != ""; dir = filepath.Dir(dir) {
+		if filepath.Base(dir) == "agent" {
+			candidate := filepath.Join(dir, "webui", "dist")
+			if st, err := os.Stat(candidate); err == nil && st.IsDir() {
+				return candidate
+			}
+		}
+		parent := filepath.Dir(dir)
+		if parent == dir {
+			break
+		}
+	}
+	return ""
+}
+
+func (s *Server) storeUploadedArtifact(store artifacts.Store, uploadDir string, header *multipart.FileHeader, conversationID, goalID, runID string, scope artifacts.Scope, metadata map[string]any) (artifacts.Summary, error) {
+	if header == nil {
+		return artifacts.Summary{}, fmt.Errorf("upload file is missing")
+	}
+	src, err := header.Open()
+	if err != nil {
+		return artifacts.Summary{}, err
+	}
+	defer src.Close()
+	id := "art_" + randomID()
+	name := safeUploadName(header.Filename)
+	path := filepath.Join(uploadDir, id+"_"+name)
+	dst, err := os.OpenFile(path, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0o644)
+	if err != nil {
+		return artifacts.Summary{}, err
+	}
+	if _, err := io.Copy(dst, src); err != nil {
+		_ = dst.Close()
+		return artifacts.Summary{}, err
+	}
+	if err := dst.Close(); err != nil {
+		return artifacts.Summary{}, err
+	}
+	a := artifacts.ArtifactFromFile(path, id, conversationID, goalID, runID)
+	a = artifacts.ApplyScope(a, scope)
+	if strings.TrimSpace(header.Header.Get("Content-Type")) != "" {
+		a.MIME = strings.TrimSpace(header.Header.Get("Content-Type"))
+	}
+	if len(metadata) > 0 {
+		if a.Metadata == nil {
+			a.Metadata = map[string]any{}
+		}
+		for key, value := range metadata {
+			if text := strings.TrimSpace(fmt.Sprint(value)); text != "" && text != "<nil>" {
+				a.Metadata[key] = text
+			}
+		}
+	}
+	a = artifacts.Extract(a, artifacts.DefaultTextLimit)
+	stored, err := store.Upsert(a)
+	if err != nil {
+		return artifacts.Summary{}, err
+	}
+	return stored.CompactSummary(), nil
+}
+
+func (s *Server) artifactsFromRefs(refs []string) []artifacts.Summary {
+	if len(refs) == 0 {
+		return nil
+	}
+	store := s.artifactStore()
+	out := make([]artifacts.Summary, 0, len(refs))
+	seen := map[string]bool{}
+	for _, ref := range refs {
+		id := strings.TrimSpace(ref)
+		if id == "" || seen[id] {
+			continue
+		}
+		seen[id] = true
+		a, err := store.Get(id)
+		if err != nil {
+			continue
+		}
+		out = append(out, a.CompactSummary())
+	}
+	return out
+}
+
+func (s *Server) artifactsFromAttachments(attachments []Attachment, conversationID, goalID, runID string, scope artifacts.Scope) []artifacts.Summary {
+	rows := summarizeAttachments(attachments)
+	if len(rows) == 0 {
+		return nil
+	}
+	store := s.artifactStore()
+	out := make([]artifacts.Summary, 0, len(rows))
+	for _, row := range rows {
+		path := strings.TrimSpace(fmt.Sprint(row["path"]))
+		if path == "" {
+			continue
+		}
+		id := artifactIDFromAttachment(row)
+		a := artifacts.ArtifactFromFile(path, id, conversationID, goalID, runID)
+		a = artifacts.ApplyScope(a, scope)
+		if kind := strings.TrimSpace(fmt.Sprint(row["kind"])); kind != "" {
+			a.Kind = artifactKindFromAttachment(kind, a.Kind)
+		}
+		a = artifacts.Extract(a, artifacts.DefaultTextLimit)
+		stored, err := store.Upsert(a)
+		if err != nil {
+			continue
+		}
+		out = append(out, stored.CompactSummary())
+	}
+	return out
+}
+
+func contextWithArtifactSummaries(in map[string]any, summaries []artifacts.Summary) map[string]any {
+	if len(summaries) == 0 {
+		return in
+	}
+	out := cloneContext(in)
+	if out == nil {
+		out = map[string]any{}
+	}
+	rows := make([]map[string]any, 0, len(summaries))
+	ids := make([]string, 0, len(summaries))
+	for _, summary := range summaries {
+		row := artifactSummaryRow(summary)
+		if len(row) == 0 {
+			continue
+		}
+		rows = append(rows, row)
+		ids = append(ids, summary.ID)
+	}
+	if len(rows) == 0 {
+		return out
+	}
+	out["artifacts"] = rows
+	out["artifact_ids"] = ids
+	if len(rows) == 1 {
+		out["artifact"] = rows[0]
+		out["selected_artifact_id"] = ids[0]
+	}
+	return out
+}
+
+func mergeArtifactSummaries(existing, extra []artifacts.Summary) []artifacts.Summary {
+	if len(extra) == 0 {
+		return existing
+	}
+	seen := map[string]bool{}
+	out := make([]artifacts.Summary, 0, len(existing)+len(extra))
+	for _, item := range existing {
+		if strings.TrimSpace(item.ID) == "" || seen[item.ID] {
+			continue
+		}
+		seen[item.ID] = true
+		out = append(out, item)
+	}
+	for _, item := range extra {
+		if strings.TrimSpace(item.ID) == "" || seen[item.ID] {
+			continue
+		}
+		seen[item.ID] = true
+		out = append(out, item)
+	}
+	return out
+}
+
+func artifactSummaryRow(summary artifacts.Summary) map[string]any {
+	out := map[string]any{
+		"id":     summary.ID,
+		"kind":   summary.Kind,
+		"title":  summary.Title,
+		"source": summary.Source,
+		"status": summary.Status,
+	}
+	for key, value := range map[string]any{
+		"path":              summary.Path,
+		"url":               summary.URL,
+		"mime":              summary.MIME,
+		"size_bytes":        summary.SizeBytes,
+		"summary":           summary.Summary,
+		"metadata":          summary.Metadata,
+		"created_at":        summary.CreatedAt,
+		"conversation_id":   summary.ConversationID,
+		"goal_id":           summary.GoalID,
+		"run_id":            summary.RunID,
+		"project_path":      summary.ProjectPath,
+		"root_project_path": summary.RootProjectPath,
+		"active_worktree":   summary.ActiveWorktree,
+		"active_branch":     summary.ActiveBranch,
+		"active_node_id":    summary.ActiveNodeID,
+		"history_scope_key": summary.HistoryScopeKey,
+		"media_scope_key":   summary.MediaScopeKey,
+	} {
+		if !isEmptyContextValue(map[string]any{"v": value}, "v") {
+			out[key] = value
+		}
+	}
+	return out
+}
+
+func artifactSummaryRows(summaries []artifacts.Summary) []map[string]any {
+	if len(summaries) == 0 {
+		return nil
+	}
+	out := make([]map[string]any, 0, len(summaries))
+	for _, summary := range summaries {
+		if strings.TrimSpace(summary.ID) == "" {
+			continue
+		}
+		out = append(out, artifactSummaryRow(summary))
+	}
+	return out
+}
+
+func artifactIDFromAttachment(row map[string]any) string {
+	id := strings.TrimSpace(fmt.Sprint(row["id"]))
+	if id == "" {
+		id = strings.TrimSpace(fmt.Sprint(row["path"]))
+	}
+	id = strings.Trim(strings.Map(func(r rune) rune {
+		switch {
+		case r >= 'a' && r <= 'z':
+			return r
+		case r >= 'A' && r <= 'Z':
+			return r
+		case r >= '0' && r <= '9':
+			return r
+		default:
+			return '_'
+		}
+	}, id), "_")
+	if id == "" {
+		return ""
+	}
+	if strings.HasPrefix(id, "art_") {
+		return id
+	}
+	return "art_" + id
+}
+
+func artifactKindFromAttachment(kind, fallback string) string {
+	switch strings.ToLower(strings.TrimSpace(kind)) {
+	case "audio", "midi", "image", "text", "document", "video", "unknown":
+		return strings.ToLower(strings.TrimSpace(kind))
+	case "plugin":
+		return "file"
+	default:
+		return fallback
+	}
 }
 
 func summarizeAttachments(attachments []Attachment) []map[string]any {
@@ -3220,10 +4777,14 @@ func resolveAttachmentKind(raw string) string {
 		return "image"
 	case ".txt", ".md", ".markdown", ".json", ".csv", ".tsv", ".log", ".rtf":
 		return "text"
+	case ".pdf", ".doc", ".docx":
+		return "document"
+	case ".mp4", ".mov", ".mkv", ".avi", ".webm", ".ogv":
+		return "video"
 	}
 	kind := strings.ToLower(strings.TrimSpace(raw))
 	switch kind {
-	case "audio", "midi", "plugin", "image", "text", "unknown":
+	case "audio", "midi", "plugin", "image", "text", "document", "video", "unknown":
 		return kind
 	default:
 		return "unknown"
@@ -3284,6 +4845,32 @@ func parseModelEnvelope(raw string) modelEnvelope {
 		env.Reply = raw
 	}
 	return env
+}
+
+func revealLocalPath(path string) error {
+	clean := filepath.Clean(strings.TrimSpace(path))
+	if clean == "" || clean == "." {
+		return fmt.Errorf("path is empty")
+	}
+	info, err := os.Stat(clean)
+	if err != nil {
+		return err
+	}
+	switch goruntime.GOOS {
+	case "windows":
+		if info.IsDir() {
+			return exec.Command("explorer.exe", clean).Start()
+		}
+		return exec.Command("explorer.exe", "/select,"+clean).Start()
+	case "darwin":
+		return exec.Command("open", "-R", clean).Start()
+	default:
+		target := clean
+		if !info.IsDir() {
+			target = filepath.Dir(clean)
+		}
+		return exec.Command("xdg-open", target).Start()
+	}
 }
 
 func writeJSON(w http.ResponseWriter, status int, body any) {

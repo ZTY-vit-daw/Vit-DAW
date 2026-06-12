@@ -66,15 +66,39 @@ func Fetch(ctx context.Context, args map[string]any) (map[string]any, error) {
 	if truncated {
 		body = body[:maxBytes]
 	}
-	return map[string]any{
+	bodyText := string(body)
+	out := map[string]any{
 		"url":          u.String(),
 		"final_url":    resp.Request.URL.String(),
 		"status_code":  resp.StatusCode,
 		"content_type": resp.Header.Get("Content-Type"),
 		"bytes":        len(body),
 		"truncated":    truncated,
-		"body":         string(body),
-	}, nil
+		"text_digest":  TextDigest(bodyText, intValue(args["digest_chars"], 2400)),
+		"body_excerpt": TextExcerpt(bodyText, intValue(args["excerpt_chars"], 4000)),
+	}
+	if boolValue(args["include_body"], false) || boolValue(args["raw_body"], false) {
+		out["body"] = bodyText
+	}
+	return out, nil
+}
+
+func TextDigest(body string, max int) string {
+	text := cleanText(body)
+	if max > 0 && len([]rune(text)) > max {
+		runes := []rune(text)
+		text = strings.TrimSpace(string(runes[:max])) + "..."
+	}
+	return text
+}
+
+func TextExcerpt(body string, max int) string {
+	text := cleanText(body)
+	if max > 0 && len([]rune(text)) > max {
+		runes := []rune(text)
+		text = strings.TrimSpace(string(runes[:max])) + "..."
+	}
+	return text
 }
 
 func Search(ctx context.Context, args map[string]any) (map[string]any, error) {
@@ -105,7 +129,7 @@ func Search(ctx context.Context, args map[string]any) (map[string]any, error) {
 	}
 	errs := make([]string, 0, len(providers))
 	for _, provider := range providers {
-		result, err := Fetch(ctx, map[string]any{"url": provider.url, "max_bytes": maxBytes, "timeout_ms": timeoutMS})
+		result, err := Fetch(ctx, map[string]any{"url": provider.url, "max_bytes": maxBytes, "timeout_ms": timeoutMS, "include_body": true})
 		if err != nil {
 			errs = append(errs, provider.source+": "+compactError(err))
 			continue
@@ -142,6 +166,27 @@ func compactError(err error) string {
 		msg = string([]rune(msg)[:140]) + "..."
 	}
 	return msg
+}
+
+func cleanText(body string) string {
+	body = strings.TrimSpace(body)
+	if body == "" {
+		return ""
+	}
+	body = regexp.MustCompile(`(?is)<script[^>]*>.*?</script>|<style[^>]*>.*?</style>|<noscript[^>]*>.*?</noscript>`).ReplaceAllString(body, " ")
+	body = regexp.MustCompile(`(?s)<[^>]+>`).ReplaceAllString(body, " ")
+	replacements := map[string]string{
+		"&nbsp;": " ",
+		"&amp;":  "&",
+		"&lt;":   "<",
+		"&gt;":   ">",
+		"&quot;": `"`,
+		"&#39;":  "'",
+	}
+	for old, next := range replacements {
+		body = strings.ReplaceAll(body, old, next)
+	}
+	return strings.Join(strings.Fields(body), " ")
 }
 
 func validatePublicURL(raw string) (*url.URL, error) {

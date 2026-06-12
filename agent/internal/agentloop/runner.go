@@ -2,6 +2,7 @@ package agentloop
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -304,10 +305,10 @@ func (r *Runner) loop(ctx context.Context, state *runState) Result {
 		}
 		if strings.TrimSpace(out.FailureReason) != "" {
 			state.trace = append(state.trace, planner.TraceEvent{Kind: "planner_failure", Message: out.FailureReason})
-			return r.fail(state, fmt.Errorf(out.FailureReason))
+			return r.fail(state, errors.New(out.FailureReason))
 		}
 		if out.NeedsClarification {
-			question := firstNonEmpty(out.ClarificationQuestion, out.Reply, "Please tell me which object or target to edit.")
+			question := firstNonEmpty(out.ClarificationQuestion, out.Reply, "请告诉我这次要编辑的具体目标。")
 			state.trace = append(state.trace, planner.TraceEvent{Kind: "clarification", Message: question})
 			res := r.pause(state, agentruntime.StatusWaitingClarification, StopReasonNeedsClarification, "", question, "", "", nil)
 			res.NeedsClarification = true
@@ -321,7 +322,7 @@ func (r *Runner) loop(ctx context.Context, state *runState) Result {
 			}
 			reply := strings.TrimSpace(out.Reply)
 			if reply == "" {
-				reply = "Done."
+				reply = "已完成。"
 			}
 			return r.complete(state, reply)
 		}
@@ -340,14 +341,14 @@ func (r *Runner) loop(ctx context.Context, state *runState) Result {
 			call = coercePluginGrabberLearningToolCall(state.input.UserText, call)
 			call = coercePluginGrabberRuntimeToolCall(state.input.UserText, call)
 			if !allowedTool(call.Tool, state.input.AllowedTools) {
-				result := planner.ToolResult{ToolCallID: stableToolCallID(call, state.completedSteps+1), Tool: call.Tool, Status: "error", Error: "unknown or disallowed tool: " + strings.TrimSpace(call.Tool)}
+				result := planner.ToolResult{ToolCallID: stableToolCallID(call, state.completedSteps+1), Tool: call.Tool, Status: "error", Error: "未知或不允许的工具：" + strings.TrimSpace(call.Tool)}
 				state.trace = append(state.trace,
 					planner.TraceEvent{Kind: "tool_call", ToolCall: &call},
 					planner.TraceEvent{Kind: "tool_result", ToolResult: &result},
 				)
 				state.consecutiveErrors++
 				if state.consecutiveErrors >= state.budget.MaxConsecutiveErrors {
-					return r.fail(state, fmt.Errorf(result.Error))
+					return r.fail(state, errors.New(result.Error))
 				}
 				continue
 			}
@@ -431,7 +432,7 @@ func (r *Runner) executeTool(ctx context.Context, state *runState, call planner.
 		}
 		pending := call
 		state.pendingToolCall = &pending
-		return true, r.pause(state, agentruntime.StatusWaitingConfirmation, StopReasonNeedsConfirmation, "", "Please confirm before VitAgent executes this step.", execResult.Preview, execResult.UndoLabel, &pending)
+		return true, r.pause(state, agentruntime.StatusWaitingConfirmation, StopReasonNeedsConfirmation, "", "这个操作需要你确认后才会执行。", execResult.Preview, execResult.UndoLabel, &pending)
 	}
 	ver := verifyToolExecution(call, execResult)
 	state.trace = append(state.trace, planner.TraceEvent{Kind: "verification", Verification: &ver})
@@ -467,7 +468,7 @@ func (r *Runner) executeTool(ctx context.Context, state *runState, call planner.
 	if toolResult.Error != "" || strings.EqualFold(execResult.Status, "error") || strings.EqualFold(execResult.Status, "kernel_error") {
 		state.consecutiveErrors++
 		if state.consecutiveErrors >= state.budget.MaxConsecutiveErrors {
-			return true, r.fail(state, fmt.Errorf(firstNonEmpty(toolResult.Error, "tool failed")))
+			return true, r.fail(state, errors.New(firstNonEmpty(toolResult.Error, "工具执行失败")))
 		}
 	} else {
 		state.consecutiveErrors = 0
@@ -498,10 +499,10 @@ func (r *Runner) checkpoint(label string, state *runState) (bool, Result) {
 		} else {
 			state.goal.Status = agentruntime.StatusCancelled
 		}
-		return true, r.result(state, agentruntime.StatusCancelled, StopReasonCancelled, "", "Cancelled.", "", "", nil)
+		return true, r.result(state, agentruntime.StatusCancelled, StopReasonCancelled, "", "已取消。", "", "", nil)
 	}
 	if len(state.goal.PendingInterjection) > 0 {
-		msg := "Received new user input, so the current task is paused until you confirm the next step."
+		msg := "收到新的用户输入，当前任务已暂停，等待你确认下一步。"
 		return true, r.pause(state, agentruntime.StatusWaitingContinue, StopReasonInterjection, "", msg, "", "", nil)
 	}
 	return false, Result{}
@@ -537,7 +538,7 @@ func (r *Runner) fail(state *runState, err error) Result {
 	if r.Runtime != nil && state != nil && state.goal.GoalID != "" {
 		state.goal = r.Runtime.Complete(state.goal.GoalID, err)
 	}
-	res := r.result(state, agentruntime.StatusFailed, StopReasonFailed, "", "Execution failed: "+err.Error(), "", "", nil)
+	res := r.result(state, agentruntime.StatusFailed, StopReasonFailed, "", "执行失败："+friendlyAgentLoopError(err), "", "", nil)
 	res.Error = err.Error()
 	res.FailureReason = err.Error()
 	return res
@@ -726,8 +727,25 @@ func allowedTool(tool string, allowed []string) bool {
 	if len(allowed) == 0 || tool == "daw.invoke" {
 		return true
 	}
+	catalog := tools.DefaultCatalog()
+	requestedCommand := ""
+	if spec, ok := catalog.LookupTool(tool); ok {
+		requestedCommand = strings.TrimSpace(spec.CommandName)
+	} else if spec, ok := catalog.LookupCommand(tool); ok {
+		requestedCommand = strings.TrimSpace(spec.CommandName)
+	}
 	for _, name := range allowed {
-		if tool == strings.TrimSpace(name) {
+		allowedName := strings.TrimSpace(name)
+		if tool == allowedName {
+			return true
+		}
+		if requestedCommand == "" {
+			continue
+		}
+		if spec, ok := catalog.LookupTool(allowedName); ok && requestedCommand == strings.TrimSpace(spec.CommandName) {
+			return true
+		}
+		if spec, ok := catalog.LookupCommand(allowedName); ok && requestedCommand == strings.TrimSpace(spec.CommandName) {
 			return true
 		}
 	}
@@ -737,12 +755,32 @@ func allowedTool(tool string, allowed []string) bool {
 func limitReply(limitType string) string {
 	switch limitType {
 	case LimitTypeTurns:
-		return "Turn budget reached. Say continue (\u7ee7\u7eed) to keep going."
+		return "本轮思考步数已到上限。你可以说“继续”接着跑。"
 	case LimitTypeToolCalls:
-		return "Tool-call budget reached. Say continue (\u7ee7\u7eed) to keep going."
+		return "本轮工具调用次数已到上限。你可以说“继续”接着跑。"
 	case LimitTypeTimeout:
-		return "Time budget reached. Say continue (\u7ee7\u7eed) to keep going."
+		return "本轮运行时间已到上限。你可以说“继续”接着跑。"
 	default:
-		return "Run budget reached. Say continue (\u7ee7\u7eed) to keep going."
+		return "本轮运行预算已到上限。你可以说“继续”接着跑。"
+	}
+}
+
+func friendlyAgentLoopError(err error) string {
+	if err == nil {
+		return "目标执行失败。"
+	}
+	text := strings.TrimSpace(err.Error())
+	if text == "" {
+		return "目标执行失败。"
+	}
+	switch {
+	case strings.Contains(text, "TLS handshake timeout"):
+		return "连接 AI 服务超时，请稍后再试。"
+	case strings.Contains(text, "context canceled"):
+		return "请求已取消或连接中断，请重新发送一次。"
+	case strings.Contains(text, "invalid JSON") || strings.Contains(text, "有效 JSON") || strings.Contains(text, "计划格式"):
+		return "Agent 返回的计划格式不完整，这次没有执行工程修改。"
+	default:
+		return text
 	}
 }

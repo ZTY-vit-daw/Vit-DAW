@@ -22,6 +22,7 @@ type Options struct {
 	RecentTraceEvents       int
 	MaxTextRunes            int
 	MaxListItems            int
+	MaxPreviewBytes         int
 	Now                     func() time.Time
 	SkipPluginSemanticLoad  bool
 	PluginSemanticIndexPath string
@@ -332,6 +333,9 @@ func normalizeOptions(opts Options) Options {
 	if opts.MaxListItems <= 0 {
 		opts.MaxListItems = 20
 	}
+	if opts.MaxPreviewBytes <= 0 {
+		opts.MaxPreviewBytes = 12 * 1024
+	}
 	if opts.Now == nil {
 		opts.Now = time.Now
 	}
@@ -496,6 +500,14 @@ func compactTraceEvent(ev planner.TraceEvent, opts Options) map[string]any {
 	return out
 }
 
+func SummarizeToolResult(result planner.ToolResult, opts Options) map[string]any {
+	return summarizeToolResult(result, normalizeOptions(opts))
+}
+
+func CompactValue(value any, opts Options) any {
+	return compactValue(value, normalizeOptions(opts), 0)
+}
+
 func summarizeToolResult(result planner.ToolResult, opts Options) map[string]any {
 	out := map[string]any{
 		"tool_call_id": result.ToolCallID,
@@ -512,7 +524,7 @@ func summarizeToolResult(result planner.ToolResult, opts Options) map[string]any
 		if len(important) > 0 {
 			out["important_fields"] = important
 		}
-		out["result_preview"] = compactValue(result.Result, opts, 0)
+		out["result_preview"] = compactResultPreview(result.Result, compactValue(result.Result, opts, 0), opts)
 	}
 	return out
 }
@@ -522,6 +534,7 @@ func summarizeSelection(ctx map[string]any, opts Options) map[string]any {
 	keys := []string{
 		"selected_track_id", "selected_track_name", "selected_scene_track_id",
 		"selected_clip_id", "selected_clip_track_id", "selected_clip_name",
+		"piano_roll_focus_clip_id", "piano_roll_focus_track_id",
 		"selected_plugin_id", "selected_plugin_name", "selected_plugin_track_id", "selected_plugin_source",
 		"playhead_seconds", "current_playhead_seconds", "transport_position_seconds",
 		"selected_library_file_path", "selected_library_item_name", "selected_library_kind", "library_search_query",
@@ -539,6 +552,15 @@ func summarizeSelection(ctx map[string]any, opts Options) map[string]any {
 	}
 	if attachments := mapRows(ctx["attachments"]); len(attachments) > 0 {
 		out["attachments"] = compactValue(attachments, opts, 0)
+	}
+	if artifacts := mapRows(ctx["artifacts"]); len(artifacts) > 0 {
+		out["artifacts"] = compactRows(artifacts, []string{"id", "kind", "title", "source", "status", "summary", "mime", "size_bytes", "url", "path"}, opts)
+	}
+	if ids := stringSlice(ctx["artifact_ids"]); len(ids) > 0 {
+		out["artifact_ids"] = firstStrings(ids, opts.MaxListItems)
+	}
+	if id := strings.TrimSpace(fmt.Sprint(ctx["selected_artifact_id"])); id != "" && id != "<nil>" {
+		out["selected_artifact_id"] = id
 	}
 	if len(out) == 0 {
 		return map[string]any{}
@@ -1078,6 +1100,91 @@ func compactRows(rows []map[string]any, keys []string, opts Options) []map[strin
 		out = append(out, item)
 	}
 	return out
+}
+
+func compactResultPreview(original map[string]any, preview any, opts Options) any {
+	if opts.MaxPreviewBytes <= 0 || jsonByteLen(preview) <= opts.MaxPreviewBytes {
+		return preview
+	}
+	out := map[string]any{
+		"preview_omitted": fmt.Sprintf("compacted result preview exceeded %d bytes", opts.MaxPreviewBytes),
+		"top_level_keys":  compactKeyList(sortedKeys(original), opts.MaxListItems),
+	}
+	for _, key := range []string{
+		"status", "track_id", "track_name", "clip_id", "clip_name",
+		"plugin_id", "plugin_item_id", "plugin_name", "plugin_class",
+		"parameter_count", "quick_control_count", "recommended_group_count",
+		"schema_version", "context_strategy", "profile_source", "profile_applied",
+		"command_name", "agent_action_id", "goal_id", "run_id",
+	} {
+		if value, ok := original[key]; ok && !isEmptyValue(value) {
+			out[key] = compactValue(value, opts, 0)
+		}
+	}
+	collections := []map[string]any{}
+	collectCollectionSummaries(&collections, "", original, 0, opts.MaxListItems)
+	if len(collections) > 0 {
+		out["collection_summaries"] = collections
+	}
+	removeEmpty(out)
+	return out
+}
+
+func compactKeyList(keys []string, limit int) []string {
+	if limit <= 0 || len(keys) <= limit {
+		return append([]string(nil), keys...)
+	}
+	out := append([]string(nil), keys[:limit]...)
+	out = append(out, fmt.Sprintf("<omitted %d keys>", len(keys)-limit))
+	return out
+}
+
+func collectCollectionSummaries(out *[]map[string]any, path string, value any, depth int, limit int) {
+	if out == nil || len(*out) >= limit || depth > 4 {
+		return
+	}
+	switch v := value.(type) {
+	case map[string]any:
+		for _, key := range sortedKeys(v) {
+			childPath := key
+			if path != "" {
+				childPath = path + "." + key
+			}
+			child := v[key]
+			if n := listLen(child); n > 0 {
+				*out = append(*out, map[string]any{"path": childPath, "item_count": n})
+				if len(*out) >= limit {
+					return
+				}
+			}
+			collectCollectionSummaries(out, childPath, child, depth+1, limit)
+			if len(*out) >= limit {
+				return
+			}
+		}
+	case []any:
+		for i, child := range v {
+			if i >= 3 || len(*out) >= limit {
+				return
+			}
+			collectCollectionSummaries(out, fmt.Sprintf("%s[%d]", path, i), child, depth+1, limit)
+		}
+	case []map[string]any:
+		for i, child := range v {
+			if i >= 3 || len(*out) >= limit {
+				return
+			}
+			collectCollectionSummaries(out, fmt.Sprintf("%s[%d]", path, i), child, depth+1, limit)
+		}
+	}
+}
+
+func jsonByteLen(value any) int {
+	data, err := json.Marshal(value)
+	if err != nil {
+		return len(fmt.Sprint(value))
+	}
+	return len(data)
 }
 
 func compactValue(value any, opts Options, depth int) any {

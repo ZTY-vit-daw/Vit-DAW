@@ -1,8 +1,11 @@
 module vit-daw-agent
 
-go 1.22
+go 1.24.1
 
-require github.com/go-zeromq/zmq4 v0.17.0
+require (
+	github.com/go-zeromq/zmq4 v0.17.0
+	github.com/ledongthuc/pdf v0.0.0-20250511090121-5959a4027728
+)
 
 require (
 	github.com/go-zeromq/goczmq/v4 v4.2.2 // indirect

@@ -2,6 +2,7 @@ package contextruntime
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -172,6 +173,46 @@ func TestToolImportantFieldsAreDeterministic(t *testing.T) {
 	}
 	if first != `{"a_clip_id":"clip_a","m_plugin_id":"plugin_m"}` {
 		t.Fatalf("important fields = %s", first)
+	}
+}
+
+func TestToolResultPreviewBudgetSummarizesLargeNestedPayload(t *testing.T) {
+	opts := fixedOptions()
+	opts.MaxPreviewBytes = 1200
+	rows := make([]any, 0, 8)
+	for i := 0; i < 8; i++ {
+		row := map[string]any{"id": fmt.Sprintf("param_%d", i)}
+		for j := 0; j < 40; j++ {
+			row[fmt.Sprintf("field_%02d", j)] = "verbose parameter field " + strings.Repeat("x", 80)
+		}
+		rows = append(rows, row)
+	}
+	snap := Build(Input{ToolResults: []planner.ToolResult{{
+		ToolCallID: "tool_1",
+		Tool:       "plugin.get_parameters",
+		Status:     "ok",
+		Result: map[string]any{
+			"track_id":         "track_7",
+			"plugin_id":        "plugin_a",
+			"plugin_name":      "TDR Nova",
+			"parameter_count":  len(rows),
+			"parameter_values": rows,
+		},
+	}}}, opts)
+	row := snap.ToolResultSummary[0]
+	preview, ok := row["result_preview"].(map[string]any)
+	if !ok {
+		t.Fatalf("result preview = %+v", row["result_preview"])
+	}
+	if preview["preview_omitted"] == nil || preview["track_id"] != "track_7" || preview["plugin_id"] != "plugin_a" {
+		t.Fatalf("large preview summary lost key fields: %+v", preview)
+	}
+	raw, err := json.Marshal(row)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(raw) > 2500 || strings.Contains(string(raw), "verbose parameter field") {
+		t.Fatalf("large tool result leaked into summary len=%d text=%s", len(raw), string(raw))
 	}
 }
 

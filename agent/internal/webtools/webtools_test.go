@@ -1,6 +1,9 @@
 package webtools
 
-import "testing"
+import (
+	"strings"
+	"testing"
+)
 
 func TestValidatePublicURLRejectsLocalhost(t *testing.T) {
 	if _, err := validatePublicURL("http://localhost:7878/health"); err == nil {
@@ -22,5 +25,19 @@ func TestParseBingResults(t *testing.T) {
 	}
 	if rows[0]["title"] != "Example Title" || rows[0]["url"] != "https://example.com/page" {
 		t.Fatalf("row = %+v", rows[0])
+	}
+}
+
+func TestTextDigestCleansHTMLAndBoundsOutput(t *testing.T) {
+	body := `<html><head><style>.x{}</style><script>alert(1)</script></head><body><h1>Plugin Manual</h1><p>` + strings.Repeat("control ", 100) + `</p></body></html>`
+	digest := TextDigest(body, 60)
+	if strings.Contains(digest, "<script") || strings.Contains(digest, "alert") || strings.Contains(digest, "<h1>") {
+		t.Fatalf("digest leaked html/script: %q", digest)
+	}
+	if !strings.Contains(digest, "Plugin Manual") {
+		t.Fatalf("digest lost visible text: %q", digest)
+	}
+	if len([]rune(digest)) > 63 {
+		t.Fatalf("digest was not bounded: %q", digest)
 	}
 }

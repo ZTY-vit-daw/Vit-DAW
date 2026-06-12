@@ -2,6 +2,7 @@ package chat
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -15,6 +16,7 @@ import (
 	"vit-daw-agent/internal/harness"
 	"vit-daw-agent/internal/llm"
 	"vit-daw-agent/internal/planner"
+	"vit-daw-agent/internal/policy"
 	agentruntime "vit-daw-agent/internal/runtime"
 	"vit-daw-agent/internal/tools"
 )
@@ -104,9 +106,16 @@ func isMultiPluginLoadIntent(message string) bool {
 	}
 	return types >= 2 || (types >= 1 && (strings.Contains(message, "\u4e24\u4e2a") || strings.Contains(message, "\u5169\u500b") || strings.Contains(lower, "both")))
 }
-func (s *Server) runAgentLoopChat(ctx context.Context, conversationID string, req ChatRequest, cfg config.EngineConfig) (ChatResponse, bool) {
+func (s *Server) runAgentLoopChat(ctx context.Context, conversationID string, req ChatRequest, cfg config.EngineConfig) (resp ChatResponse, handled bool) {
+	started := time.Now()
+	defer func() {
+		if s != nil && s.logger != nil && handled {
+			s.logger.Info("[timing] agent_loop_chat total_ms=%d conversation=%s goal=%s mode=%s status=%s stop=%s completed_steps=%d executed=%d",
+				time.Since(started).Milliseconds(), conversationID, resp.GoalID, resp.AgentMode, resp.GoalStatus, resp.StopReason, resp.CompletedSteps, len(resp.ExecutedKernelReply))
+		}
+	}()
 	if s == nil || s.harness == nil {
-		return ChatResponse{ConversationID: conversationID, Reply: "AgentLoop unavailable.", Error: "agentloop_unavailable"}, true
+		return ChatResponse{ConversationID: conversationID, Reply: "Agent 运行器暂时不可用。", Error: "agentloop_unavailable"}, true
 	}
 	userText := agentLoopUserText(req.Message)
 	chatContext := contextWithUserMessage(req.Context, userText)
@@ -124,7 +133,7 @@ func (s *Server) runAgentLoopChat(ctx context.Context, conversationID string, re
 				AgentMode:      mode,
 				GoalID:         goalID,
 				RunID:          runID,
-				Reply:          "No paused agent work is available to continue.",
+				Reply:          "当前没有可继续的暂停任务。",
 				GoalStatus:     string(s.harness.RuntimeStatus("").Status),
 				StopReason:     "no_continuation",
 			}, true
@@ -141,8 +150,9 @@ func (s *Server) runAgentLoopChat(ctx context.Context, conversationID string, re
 		if useLegacyPlannerLoop() || len(cont.Conversation) == 0 {
 			cont.Conversation = s.recentConversationMessages(conversationID, 8, cont.ProjectHistory)
 		}
-		cont.CatalogSummary = s.harness.ModelCatalogSummary()
-		cont.AllowedTools = toolNamesForAgentLoop(s.harness, mode)
+		toolContext := s.agentLoopToolContext(mode, cont.UserText, cont.Context)
+		cont.CatalogSummary = toolContext.CatalogSummary
+		cont.AllowedTools = toolContext.AllowedTools
 		cont.Budget = agentLoopBudgetForMode(mode)
 		if useLegacyPlannerLoop() {
 			res = legacyRunner.Continue(ctx, cont)
@@ -163,8 +173,9 @@ func (s *Server) runAgentLoopChat(ctx context.Context, conversationID string, re
 		if useLegacyPlannerLoop() || len(cont.Conversation) == 0 {
 			cont.Conversation = s.recentConversationMessages(conversationID, 8, cont.ProjectHistory)
 		}
-		cont.CatalogSummary = s.harness.ModelCatalogSummary()
-		cont.AllowedTools = toolNamesForAgentLoop(s.harness, mode)
+		toolContext := s.agentLoopToolContext(mode, cont.UserText, cont.Context)
+		cont.CatalogSummary = toolContext.CatalogSummary
+		cont.AllowedTools = toolContext.AllowedTools
 		cont.Budget = agentLoopBudgetForMode(mode)
 		if useLegacyPlannerLoop() {
 			res = legacyRunner.Continue(ctx, cont)
@@ -180,6 +191,7 @@ func (s *Server) runAgentLoopChat(ctx context.Context, conversationID string, re
 			state = cloneContext(state)
 			state["project_history"] = projectHistory
 		}
+		toolContext := s.agentLoopToolContext(mode, userText, chatContext)
 		if useLegacyPlannerLoop() {
 			res = legacyRunner.Start(ctx, agentloop.Input{
 				GoalID:         goalID,
@@ -190,8 +202,8 @@ func (s *Server) runAgentLoopChat(ctx context.Context, conversationID string, re
 				ProjectHistory: projectHistory,
 				Conversation:   s.freshAgentLoopConversation(conversationID, userText, projectHistory),
 				State:          state,
-				CatalogSummary: s.harness.ModelCatalogSummary(),
-				AllowedTools:   toolNamesForAgentLoop(s.harness, mode),
+				CatalogSummary: toolContext.CatalogSummary,
+				AllowedTools:   toolContext.AllowedTools,
 				Budget:         agentLoopBudgetForMode(mode),
 			})
 		} else {
@@ -204,8 +216,8 @@ func (s *Server) runAgentLoopChat(ctx context.Context, conversationID string, re
 				ProjectHistory: projectHistory,
 				Conversation:   s.freshAgentLoopConversation(conversationID, userText, projectHistory),
 				State:          state,
-				CatalogSummary: s.harness.ModelCatalogSummary(),
-				AllowedTools:   toolNamesForAgentLoop(s.harness, mode),
+				CatalogSummary: toolContext.CatalogSummary,
+				AllowedTools:   toolContext.AllowedTools,
 				Budget:         agentLoopBudgetForMode(mode),
 			})
 		}
@@ -269,6 +281,7 @@ func (s *Server) newAgentMessageLoop(cfg config.EngineConfig, mode string) *agen
 		Config:   cfg,
 		Executor: s.newAgentLoopExecutor(cfg),
 		Budget:   agentLoopBudgetForMode(mode),
+		Logger:   s.logger,
 	}
 }
 
@@ -287,12 +300,22 @@ type pluginGrabberWorkflowExecutor struct {
 }
 
 func (e pluginGrabberWorkflowExecutor) RunToolCall(ctx context.Context, in executorpkg.Input) (executorpkg.Result, error) {
-	if e.server == nil || !isPluginGrabberLearnToolCall(in.ToolCall) {
-		return e.base.RunToolCall(ctx, in)
-	}
 	toolCallID := strings.TrimSpace(in.ToolCall.ID)
 	if toolCallID == "" {
 		toolCallID = "tool_goal_step"
+	}
+	if e.server != nil {
+		e.server.emitToolItemStarted(in, toolCallID)
+	}
+	if e.server == nil || !isPluginGrabberLearnToolCall(in.ToolCall) {
+		out, err := e.base.RunToolCall(ctx, in)
+		if e.server != nil {
+			if strings.TrimSpace(out.ToolCallID) == "" {
+				out.ToolCallID = toolCallID
+			}
+			e.server.emitToolItemCompleted(in, out, err)
+		}
+		return out, err
 	}
 	req := harness.InvokeRequest{
 		Tool:       strings.TrimSpace(in.ToolCall.Tool),
@@ -326,6 +349,9 @@ func (e pluginGrabberWorkflowExecutor) RunToolCall(ctx context.Context, in execu
 	}
 	if !out.RequiresConfirmation && err == nil && out.Status != "error" && e.server.harness != nil {
 		out.ObservedState = e.server.harness.UserStateSummary(ctx)
+	}
+	if e.server != nil {
+		e.server.emitToolItemCompleted(in, out, err)
 	}
 	return out, err
 }
@@ -417,6 +443,8 @@ func (s *Server) chatResponseFromAgentLoopResult(conversationID, mode string, re
 		NeedsConfirmation:   res.Status == agentruntime.StatusWaitingConfirmation,
 		Preview:             res.Preview,
 		ExecutedKernelReply: res.Executed,
+		ProjectResultCards:  projectResultCardsFromExecuted(res.Executed),
+		Artifacts:           artifactSummariesFromExecuted(res.Executed),
 		GoalStatus:          string(res.Status),
 		GoalSummary:         res.GoalSummary,
 		CurrentStep:         res.CurrentStep,
@@ -428,9 +456,11 @@ func (s *Server) chatResponseFromAgentLoopResult(conversationID, mode string, re
 		AgentPlan:           agentPlanForMode(mode, agentPlanFromAgentLoopResult(res)),
 	}
 	if res.Status == agentruntime.StatusWaitingConfirmation && res.Continuation != nil {
+		decisions := agentLoopPendingDecisions(res.Continuation)
 		plan := PendingPlan{
 			ID:               "plan_" + randomID(),
 			CreatedAt:        time.Now(),
+			Decisions:        decisions,
 			Context:          contextWithGoal(res.Continuation.Context, res.GoalID, res.RunID),
 			Preview:          res.Preview,
 			Workflow:         agentLoopConfirmationWorkflow,
@@ -442,11 +472,59 @@ func (s *Server) chatResponseFromAgentLoopResult(conversationID, mode string, re
 		s.mu.Unlock()
 		resp.PlanID = plan.ID
 		resp.NeedsConfirmation = true
+		resp.Commands = decisions
 	}
 	return resp
 }
 
+func agentLoopPendingDecisions(cont *agentloop.Continuation) []policy.Decision {
+	if cont == nil || cont.PendingToolCall == nil {
+		return nil
+	}
+	call := cont.PendingToolCall
+	cmd := cloneStringAnyMap(call.Command)
+	if len(cmd) == 0 {
+		cmd = cloneStringAnyMap(call.Args)
+	}
+	if cmd == nil {
+		cmd = map[string]any{}
+	}
+	if firstNonEmpty(fmt.Sprint(cmd["tool"])) == "" && strings.TrimSpace(call.Tool) != "" {
+		cmd["tool"] = strings.TrimSpace(call.Tool)
+	}
+	if firstNonEmpty(fmt.Sprint(cmd["cmd"])) == "" && strings.TrimSpace(call.Tool) != "" {
+		if spec, ok := tools.DefaultCatalog().LookupTool(strings.TrimSpace(call.Tool)); ok {
+			cmd["cmd"] = spec.CommandName
+		}
+	}
+	decision := policy.Classify(cmd)
+	if strings.TrimSpace(decision.Reason) == "" {
+		decision.Reason = strings.TrimSpace(call.Reason)
+	}
+	return []policy.Decision{decision}
+}
+
 func (s *Server) handleAgentLoopConfirm(w http.ResponseWriter, r *http.Request, planID string, plan PendingPlan, decision string) {
+	status, response := s.resolveAgentLoopConfirm(r.Context(), planID, plan, decision)
+	writeJSON(w, status, response)
+}
+
+func (s *Server) resolveAgentLoopConfirm(ctx context.Context, planID string, plan PendingPlan, decision string) (statusCode int, response map[string]any) {
+	started := time.Now()
+	defer func() {
+		if s != nil && s.logger != nil {
+			s.logger.Info("[timing] agent_loop_confirm total_ms=%d plan=%s status_code=%d response_status=%s goal=%s next_plan=%s needs_confirmation=%t err=%t",
+				time.Since(started).Milliseconds(),
+				planID,
+				statusCode,
+				strings.TrimSpace(fmt.Sprint(response["status"])),
+				strings.TrimSpace(fmt.Sprint(response["goal_id"])),
+				strings.TrimSpace(fmt.Sprint(response["next_plan_id"])),
+				boolValue(response["needs_confirmation"]),
+				strings.TrimSpace(fmt.Sprint(response["error"])) != "",
+			)
+		}
+	}()
 	goalID, runID := goalIDsFromContext(plan.Context)
 	projectPath := projectPathFromChatContext(plan.Context)
 	mode := agentModeFromContext(plan.Context)
@@ -458,44 +536,47 @@ func (s *Server) handleAgentLoopConfirm(w http.ResponseWriter, r *http.Request, 
 	if !isApprovalDecision(decision) {
 		s.harness.SetGoalStatus(goalID, agentruntime.StatusCancelled, nil)
 		s.clearGoalContinuation(goalID)
-		projectHistory := s.harness.ProjectHistorySummaryForProject(r.Context(), goalID, projectPath)
-		writeJSON(w, http.StatusOK, map[string]any{"status": "ok", "message": "cancelled", "plan_id": planID, "goal_id": goalID, "run_id": runID, "agent_mode": mode, "goal_status": string(agentruntime.StatusCancelled), "project_history": projectHistory, "agent_plan": agentPlanForMode(mode, simpleAgentPlan(goalID, runID, agentruntime.StatusCancelled, "", "", "", projectHistory))})
-		return
+		projectHistory := s.harness.ProjectHistorySummaryForProject(ctx, goalID, projectPath)
+		return http.StatusOK, map[string]any{"status": "ok", "message": "cancelled", "plan_id": planID, "goal_id": goalID, "run_id": runID, "agent_mode": mode, "goal_status": string(agentruntime.StatusCancelled), "project_history": projectHistory, "agent_plan": agentPlanForMode(mode, simpleAgentPlan(goalID, runID, agentruntime.StatusCancelled, "", "", "", projectHistory))}
 	}
 	if plan.GoalContinuation == nil {
 		err := "goal confirmation continuation is missing"
-		s.harness.CompleteGoal(goalID, fmt.Errorf(err))
-		projectHistory := s.harness.ProjectHistorySummaryForProject(r.Context(), goalID, projectPath)
-		writeJSON(w, http.StatusOK, map[string]any{"status": "error", "message": err, "plan_id": planID, "goal_id": goalID, "run_id": runID, "agent_mode": mode, "goal_status": string(agentruntime.StatusFailed), "project_history": projectHistory, "agent_plan": agentPlanForMode(mode, simpleAgentPlan(goalID, runID, agentruntime.StatusFailed, "", "", err, projectHistory))})
-		return
+		s.harness.CompleteGoal(goalID, errors.New(err))
+		projectHistory := s.harness.ProjectHistorySummaryForProject(ctx, goalID, projectPath)
+		return http.StatusOK, map[string]any{"status": "error", "message": err, "plan_id": planID, "goal_id": goalID, "run_id": runID, "agent_mode": mode, "goal_status": string(agentruntime.StatusFailed), "project_history": projectHistory, "agent_plan": agentPlanForMode(mode, simpleAgentPlan(goalID, runID, agentruntime.StatusFailed, "", "", err, projectHistory))}
 	}
 	cfg, _, err := config.Load()
 	if err != nil || !cfg.Complete() {
-		msg := "AI config is unavailable; cannot resume agentloop."
+		msg := "AI 配置不可用，无法继续当前 Agent 任务。"
 		if err != nil {
 			msg += " " + err.Error()
 		}
-		s.harness.CompleteGoal(goalID, fmt.Errorf(msg))
-		projectHistory := s.harness.ProjectHistorySummaryForProject(r.Context(), goalID, projectPath)
-		writeJSON(w, http.StatusOK, map[string]any{"status": "error", "message": msg, "plan_id": planID, "goal_id": goalID, "run_id": runID, "agent_mode": mode, "goal_status": string(agentruntime.StatusFailed), "project_history": projectHistory, "agent_plan": agentPlanForMode(mode, simpleAgentPlan(goalID, runID, agentruntime.StatusFailed, "", "", msg, projectHistory))})
-		return
+		s.harness.CompleteGoal(goalID, errors.New(msg))
+		projectHistory := s.harness.ProjectHistorySummaryForProject(ctx, goalID, projectPath)
+		return http.StatusOK, map[string]any{"status": "error", "message": msg, "plan_id": planID, "goal_id": goalID, "run_id": runID, "agent_mode": mode, "goal_status": string(agentruntime.StatusFailed), "project_history": projectHistory, "agent_plan": agentPlanForMode(mode, simpleAgentPlan(goalID, runID, agentruntime.StatusFailed, "", "", msg, projectHistory))}
 	}
 	cont := *plan.GoalContinuation
-	cont.State = s.harness.UserStateSummary(r.Context())
-	cont.ProjectHistory = s.harness.ProjectHistorySummaryForProject(r.Context(), cont.GoalID, projectPath)
+	cont.State = s.harness.UserStateSummary(ctx)
+	cont.ProjectHistory = s.harness.ProjectHistorySummaryForProject(ctx, cont.GoalID, projectPath)
 	if len(cont.ProjectHistory) > 0 {
 		cont.State = cloneContext(cont.State)
 		cont.State["project_history"] = cont.ProjectHistory
 	}
-	cont.CatalogSummary = s.harness.ModelCatalogSummary()
-	cont.AllowedTools = toolNamesForAgentLoop(s.harness, mode)
+	toolContext := s.agentLoopToolContext(mode, firstNonEmpty(cont.UserText, cont.Summary), cont.Context)
+	cont.CatalogSummary = toolContext.CatalogSummary
+	cont.AllowedTools = toolContext.AllowedTools
 	var res agentloop.Result
+	resumeStarted := time.Now()
 	if useLegacyPlannerLoop() {
 		runner := s.newAgentLoopRunner(cfg, mode)
-		res = runner.ResumeAfterConfirmation(r.Context(), cont)
+		res = runner.ResumeAfterConfirmation(ctx, cont)
 	} else {
 		messageLoop := s.newAgentMessageLoop(cfg, mode)
-		res = messageLoop.ResumeAfterConfirmation(r.Context(), cont)
+		res = messageLoop.ResumeAfterConfirmation(ctx, cont)
+	}
+	if s.logger != nil {
+		s.logger.Info("[timing] agent_loop_confirm.resume ms=%d plan=%s goal=%s mode=%s status=%s stop=%s executed=%d",
+			time.Since(resumeStarted).Milliseconds(), planID, res.GoalID, mode, res.Status, res.StopReason, len(res.Executed))
 	}
 	resp := s.chatResponseFromAgentLoopResult(conversationID, mode, res)
 	status := "ok"
@@ -505,16 +586,24 @@ func (s *Server) handleAgentLoopConfirm(w http.ResponseWriter, r *http.Request, 
 	responsePlanID := AgentLoopConfirmResponsePlanID(planID, resp)
 	projectHistory := resp.ProjectHistory
 	if strings.TrimSpace(resp.Reply) != "" {
-		if updatedHistory := s.harness.RecordConversationNodeForProject(r.Context(), projectPath, "vit", resp.Reply, resp.GoalID, resp.RunID); len(updatedHistory) > 0 {
+		historyData := map[string]any{}
+		if len(resp.Artifacts) > 0 {
+			historyData["artifacts"] = artifactSummaryRows(resp.Artifacts)
+		}
+		if len(resp.ProjectResultCards) > 0 {
+			historyData["project_result_cards"] = resp.ProjectResultCards
+		}
+		if updatedHistory := s.harness.RecordConversationNodeForProjectWithData(ctx, projectPath, "vit", resp.Reply, resp.GoalID, resp.RunID, historyData); len(updatedHistory) > 0 {
 			projectHistory = updatedHistory
 		}
 	}
 	if len(projectHistory) == 0 {
-		projectHistory = s.harness.ProjectHistorySummaryForProject(r.Context(), resp.GoalID, projectPath)
+		projectHistory = s.harness.ProjectHistorySummaryForProject(ctx, resp.GoalID, projectPath)
 	}
 	resp.ProjectHistory = projectHistory
 	syncAgentPlanProjectHistory(&resp)
-	writeJSON(w, http.StatusOK, map[string]any{
+	s.attachInteractionRequests(&resp)
+	return http.StatusOK, map[string]any{
 		"status":                status,
 		"message":               resp.Reply,
 		"reply":                 resp.Reply,
@@ -534,10 +623,13 @@ func (s *Server) handleAgentLoopConfirm(w http.ResponseWriter, r *http.Request, 
 		"preview":               resp.Preview,
 		"replies":               resp.ExecutedKernelReply,
 		"executed_kernel_reply": resp.ExecutedKernelReply,
+		"project_result_cards":  resp.ProjectResultCards,
+		"artifacts":             resp.Artifacts,
 		"project_history":       projectHistory,
 		"agent_plan":            resp.AgentPlan,
+		"interaction_requests":  resp.InteractionRequests,
 		"error":                 resp.Error,
-	})
+	}
 }
 
 func AgentLoopConfirmResponsePlanID(confirmedPlanID string, resp ChatResponse) string {
@@ -616,6 +708,33 @@ func toolNamesFromHarness(h *harness.Harness) []string {
 	return toolNamesForAgentLoop(h, agentModeGoal)
 }
 
+type agentLoopToolContext struct {
+	CatalogSummary string
+	AllowedTools   []string
+}
+
+func (s *Server) agentLoopToolContext(mode, userText string, requestContext map[string]any) agentLoopToolContext {
+	if s == nil || s.harness == nil {
+		return agentLoopToolContext{AllowedTools: toolNamesForAgentLoop(nil, mode)}
+	}
+	capabilities := agentLoopCapabilityNames(userText, requestContext)
+	if len(capabilities) == 0 {
+		return agentLoopToolContext{
+			CatalogSummary: s.harness.ModelCatalogSummary(),
+			AllowedTools:   toolNamesForAgentLoop(s.harness, mode),
+		}
+	}
+	allowed := toolNamesForAgentLoopCapabilities(s.harness, mode, capabilities)
+	if len(allowed) == 0 {
+		allowed = toolNamesForAgentLoop(s.harness, mode)
+	}
+	summary := s.harness.ModelCatalogSummaryForCapabilityPacks(capabilities, allowed)
+	if strings.TrimSpace(summary) == "" {
+		summary = s.harness.ModelCatalogSummary()
+	}
+	return agentLoopToolContext{CatalogSummary: summary, AllowedTools: allowed}
+}
+
 func toolNamesForAgentLoop(h *harness.Harness, mode string) []string {
 	seen := map[string]bool{}
 	if agentModeFromString(mode) != agentModePlan {
@@ -635,6 +754,259 @@ func toolNamesForAgentLoop(h *harness.Harness, mode string) []string {
 		seen[name] = true
 	}
 	return sortedToolNameKeys(seen)
+}
+
+func toolNamesForAgentLoopCapabilities(h *harness.Harness, mode string, capabilities []string) []string {
+	full := toolNamesForAgentLoop(h, mode)
+	if len(capabilities) == 0 {
+		return full
+	}
+	available := map[string]bool{}
+	for _, name := range full {
+		available[name] = true
+	}
+	seen := map[string]bool{}
+	if agentModeFromString(mode) != agentModePlan && available["daw.invoke"] {
+		seen["daw.invoke"] = true
+	}
+	add := func(names ...string) {
+		for _, name := range names {
+			name = strings.TrimSpace(name)
+			if name != "" && available[name] {
+				seen[name] = true
+			}
+		}
+	}
+	add(agentLoopBaseTools()...)
+	for _, capability := range capabilities {
+		switch capability {
+		case "track":
+			add(agentLoopTrackTools()...)
+		case "midi":
+			add(agentLoopTrackTools()...)
+			add(agentLoopMidiTools()...)
+		case "clip":
+			add(agentLoopTrackTools()...)
+			add(agentLoopClipTools()...)
+		case "plugin":
+			add(agentLoopTrackTools()...)
+			add(agentLoopPluginTools()...)
+		case "transport":
+			add(agentLoopTransportTools()...)
+		case "version":
+			add(agentLoopVersionTools()...)
+		case "artifact":
+			add(agentLoopArtifactTools()...)
+			add(agentLoopClipTools()...)
+		case "media":
+			add(agentLoopMediaTools()...)
+			add(agentLoopClipTools()...)
+		case "workspace":
+			add(agentLoopWorkspaceTools()...)
+		}
+	}
+	if len(seen) == 0 || (len(seen) == 1 && seen["daw.invoke"]) {
+		return full
+	}
+	return sortedToolNameKeys(seen)
+}
+
+func agentLoopCapabilityNames(userText string, requestContext map[string]any) []string {
+	text := strings.ToLower(strings.TrimSpace(userText))
+	seen := map[string]bool{}
+	add := func(name string) {
+		if strings.TrimSpace(name) != "" {
+			seen[name] = true
+		}
+	}
+	if agentLoopTextHasAny(text,
+		"\u8f68\u9053", "\u97f3\u8f68", "\u9759\u97f3", "\u72ec\u594f", "\u97f3\u91cf", "\u5f55\u97f3", "\u51bb\u7ed3",
+		"track", "mute", "solo", "volume", "arm", "freeze",
+	) {
+		add("track")
+	}
+	if agentLoopTextHasAny(text,
+		"midi", "\u97f3\u7b26", "\u65cb\u5f8b", "\u548c\u5f26", "\u9f13", "\u91cf\u5316", "\u8f6c\u8c03", "\u529b\u5ea6",
+		"note", "notes", "melody", "chord", "drum", "quantize", "transpose", "velocity",
+	) {
+		add("midi")
+	}
+	if agentLoopTextHasAny(text,
+		"clip", "\u7247\u6bb5", "\u97f3\u9891", "\u5bfc\u5165", "\u7d20\u6750", "\u6587\u4ef6", "\u5207\u5206", "\u88c1\u526a", "\u590d\u5236\u7247\u6bb5",
+		"audio", "media", "import", "split", "duplicate",
+	) {
+		add("clip")
+	}
+	if agentLoopTextHasAny(text,
+		"\u63d2\u4ef6", "\u6548\u679c\u5668", "\u5747\u8861", "\u538b\u7f29", "\u6df7\u54cd", "\u5ef6\u8fdf", "\u6293\u624b", "\u53c2\u6570", "\u5b8f\u63a7", "\u5b8f\u63a7\u4ef6", "\u5b8f\u63a7\u5236",
+		"plugin", "vst", "eq", "compressor", "reverb", "delay", "grabber", "param", "macro",
+	) {
+		add("plugin")
+	}
+	if agentLoopTextHasAny(text,
+		"\u64ad\u653e", "\u505c\u6b62", "\u6682\u505c", "\u5b9a\u4f4d", "\u8282\u62cd\u5668", "\u5f55\u97f3",
+		"play", "stop", "seek", "tempo", "bpm", "click", "record",
+	) {
+		add("transport")
+	}
+	if agentLoopTextHasAny(text,
+		"\u5386\u53f2", "\u7248\u672c", "\u56de\u6eda", "\u5206\u652f", "\u5de5\u4f5c\u6811",
+		"checkpoint", "history", "branch", "worktree", "restore", "checkout",
+	) {
+		add("version")
+	}
+	if agentLoopTextHasAny(text,
+		"\u9644\u4ef6", "\u8d44\u6599", "\u5a92\u4f53\u6c60", "\u7f51\u9875", "\u6d4f\u89c8\u5668", "\u641c\u7d22",
+		"artifact", "browser", "url", "http://", "https://",
+	) {
+		add("artifact")
+	}
+	if agentLoopTextHasAny(text,
+		"\u7d20\u6750", "\u5a92\u4f53\u6c60", "\u97f3\u9891", "\u89c6\u9891", "\u56fe\u7247", "\u6587\u4ef6\u5939", "\u8def\u5f84", "\u97f3\u89c6\u9891",
+		"media", "asset", "assets", "folder", "path", ".wav", ".mp3", ".flac", ".mp4", ".mov", ".mid", ".midi",
+	) {
+		add("media")
+	}
+	if agentLoopTextHasAny(text,
+		"\u65e5\u5fd7", "\u6e90\u7801", "\u6587\u4ef6\u5185\u5bb9", "\u641c\u7d22\u4ee3\u7801",
+		"workspace", "grep", "log",
+	) {
+		add("workspace")
+	}
+	if agentLoopTextHasAny(text, "轨道", "track", "mute", "solo", "音量", "volume", "arm", "freeze", "冻结") {
+		add("track")
+	}
+	if agentLoopTextHasAny(text, "midi", "音符", "旋律", "和弦", "鼓", "note", "notes", "melody", "chord", "drum", "quantize", "transpose", "velocity") {
+		add("midi")
+	}
+	if agentLoopTextHasAny(text, "clip", "片段", "音频", "audio", "导入", "素材", "文件", "media", "import", "split", "裁剪", "复制片段", "duplicate") {
+		add("clip")
+	}
+	if agentLoopTextHasAny(text, "插件", "效果器", "plugin", "vst", "eq", "均衡", "compressor", "压缩", "reverb", "混响", "delay", "延迟", "grabber", "抓手", "参数", "param") {
+		add("plugin")
+	}
+	if agentLoopTextHasAny(text, "播放", "停止", "暂停", "定位", "节拍器", "录音", "play", "stop", "seek", "tempo", "bpm", "click", "record") {
+		add("transport")
+	}
+	if agentLoopTextHasAny(text, "历史", "版本", "回滚", "分支", "工作树", "checkpoint", "history", "branch", "worktree", "restore", "checkout") {
+		add("version")
+	}
+	if agentLoopTextHasAny(text, "附件", "资料", "媒体池", "网页", "浏览器", "搜索", "artifact", "browser", "url", "http://", "https://") {
+		add("artifact")
+	}
+	if agentLoopTextHasAny(text, "日志", "源码", "文件内容", "搜索代码", "workspace", "grep", "log") {
+		add("workspace")
+	}
+	if contextHasAnyValue(requestContext, "attachments", "attachment", "artifacts", "artifact", "selected_attachment_file_path", "attachment_import_file_path") {
+		add("artifact")
+	}
+	if contextHasAnyValue(requestContext, "selected_plugin_id", "selected_plugin_name") && agentLoopTextHasAny(text, "调", "大一点", "小一点", "亮", "暗", "浑浊", "刺耳", "mud", "harsh", "presence", "boost", "cut") {
+		add("plugin")
+	}
+	return sortedToolNameKeys(seen)
+}
+
+func agentLoopTextHasAny(text string, needles ...string) bool {
+	for _, needle := range needles {
+		if needle != "" && strings.Contains(text, strings.ToLower(needle)) {
+			return true
+		}
+	}
+	return false
+}
+
+func contextHasAnyValue(ctx map[string]any, keys ...string) bool {
+	if ctx == nil {
+		return false
+	}
+	for _, key := range keys {
+		if cleanContextText(ctx[key]) != "" {
+			return true
+		}
+	}
+	return false
+}
+
+func agentLoopBaseTools() []string {
+	return []string{
+		"project.state", "project.undo", "project.redo",
+		"track.list",
+		"goal.status",
+	}
+}
+
+func agentLoopTrackTools() []string {
+	return []string{
+		"track.add", "track.add_audio", "track.rename", "track.delete",
+		"track.mute", "track.solo", "track.arm", "track.volume",
+		"track.freeze", "track.unfreeze",
+	}
+}
+
+func agentLoopMidiTools() []string {
+	return []string{
+		"midi.create_clip", "midi.insert_clip", "midi.import_file",
+		"midi.apply_note_patch", "midi.write_clip_notes", "midi.read_notes", "midi.read_clip_notes", "midi.read_clip_data",
+		"midi.insert_notes", "midi.delete_notes", "midi.move_notes", "midi.resize_notes", "midi.quantize", "midi.transpose", "midi.set_velocity", "midi.replace_region",
+		"clip.select",
+	}
+}
+
+func agentLoopClipTools() []string {
+	return []string{
+		"clip.add_audio", "clip.import_audio", "clip.import_media_to_track",
+		"clip.move", "clip.resize", "clip.split", "clip.clone", "clip.remove", "clip.select", "clip.warm_waveform_bake",
+		"artifact.list", "artifact.read", "artifact.extract",
+	}
+}
+
+func agentLoopPluginTools() []string {
+	return []string{
+		"plugin.list_available", "plugin.search", "plugin.semantic_search", "plugin.semantic_get", "plugin.semantic_build_index", "plugin.scan",
+		"plugin.load_to_rack", "rack.add_node",
+		"plugin.get_parameters", "plugin.set_parameter", "plugin.open", "plugin.show_editor",
+		"plugin_grabber.get_project_profiles", "plugin_grabber.explain_controls", "plugin_grabber.learn_project_profile", "plugin_grabber.upsert_project_profile", "plugin_grabber.remove_project_profile", "plugin_grabber.apply_control",
+		"control.add_macro", "control.rename_macro", "control.add_binding", "control.set_macro_values",
+	}
+}
+
+func agentLoopTransportTools() []string {
+	return []string{
+		"transport.play", "transport.stop", "transport.return_to_zero", "transport.seek",
+		"transport.toggle_click", "transport.set_click", "transport.set_tempo",
+		"transport.record.start", "transport.record.stop",
+	}
+}
+
+func agentLoopVersionTools() []string {
+	return []string{
+		"version.status", "version.checkpoint", "version.list", "version.show", "version.diff",
+		"version.restore_preview", "version.restore", "version.branch_create", "version.node_checkout", "version.node_delete",
+		"version.worktree_create", "version.worktree_checkout", "version.worktree_list", "version.project_new", "version.project_saved", "version.checkout",
+	}
+}
+
+func agentLoopArtifactTools() []string {
+	return []string{
+		"artifact.list", "artifact.read", "artifact.extract",
+		"media.register_assets", "media.index_authorized_folder",
+		"browser.fetch", "browser.search",
+		"web.search", "web.fetch",
+	}
+}
+
+func agentLoopMediaTools() []string {
+	return []string{
+		"artifact.list", "artifact.read", "artifact.extract",
+		"media.register_assets", "media.index_authorized_folder",
+	}
+}
+
+func agentLoopWorkspaceTools() []string {
+	return []string{
+		"workspace.glob", "workspace.grep", "workspace.read_file", "workspace.file_info",
+		"logs.read", "logs.search",
+	}
 }
 
 func sortedToolNameKeys(seen map[string]bool) []string {
@@ -661,7 +1033,7 @@ func isPlanReadOnlyTool(tool tools.Tool) bool {
 		return false
 	}
 	switch tool.Namespace {
-	case "project", "track", "clip", "midi", "plugin", "plugin_grabber", "workspace", "project_history", "runtime":
+	case "project", "track", "clip", "midi", "plugin", "plugin_grabber", "workspace", "project_history", "runtime", "artifact", "browser", "media":
 		return true
 	default:
 		return false

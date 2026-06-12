@@ -16,12 +16,16 @@ import (
 	"strings"
 	"time"
 
+	"vit-daw-agent/internal/artifacts"
+	"vit-daw-agent/internal/browsercapture"
 	"vit-daw-agent/internal/history"
 	"vit-daw-agent/internal/journal"
 	"vit-daw-agent/internal/kernel"
 	"vit-daw-agent/internal/logx"
+	"vit-daw-agent/internal/macrocontrols"
 	"vit-daw-agent/internal/pluginsemantics"
 	"vit-daw-agent/internal/preview"
+	"vit-daw-agent/internal/resourceintake"
 	"vit-daw-agent/internal/rollback"
 	agentruntime "vit-daw-agent/internal/runtime"
 	"vit-daw-agent/internal/shadow"
@@ -275,6 +279,10 @@ func (h *Harness) RecordConversationNode(ctx context.Context, kind, textPreview,
 }
 
 func (h *Harness) RecordConversationNodeForProject(ctx context.Context, projectPath, kind, textPreview, goalID, runID string) map[string]any {
+	return h.RecordConversationNodeForProjectWithData(ctx, projectPath, kind, textPreview, goalID, runID, nil)
+}
+
+func (h *Harness) RecordConversationNodeForProjectWithData(ctx context.Context, projectPath, kind, textPreview, goalID, runID string, data map[string]any) map[string]any {
 	if h == nil {
 		return nil
 	}
@@ -286,6 +294,9 @@ func (h *Harness) RecordConversationNodeForProject(ctx context.Context, projectP
 		"goal_id":      goalID,
 		"run_id":       runID,
 	})
+	for key, value := range data {
+		args[key] = value
+	}
 	if strings.EqualFold(kind, "vit") {
 		message := "Conversation vit"
 		if strings.TrimSpace(textPreview) != "" {
@@ -348,7 +359,34 @@ func (h *Harness) ModelCatalogSummary() string {
 	return h.catalog.ModelSummary()
 }
 
-func (h *Harness) Invoke(ctx context.Context, req InvokeRequest) (InvokeResponse, error) {
+func (h *Harness) ModelCatalogSummaryForTools(toolNames []string) string {
+	if h == nil || h.catalog == nil {
+		return ""
+	}
+	return h.catalog.ModelSummaryForTools(toolNames)
+}
+
+func (h *Harness) ModelCatalogSummaryForCapabilityPacks(packNames, toolNames []string) string {
+	if h == nil || h.catalog == nil {
+		return ""
+	}
+	return h.catalog.ModelSummaryForCapabilityPacks(packNames, toolNames)
+}
+
+func (h *Harness) Invoke(ctx context.Context, req InvokeRequest) (resp InvokeResponse, err error) {
+	started := time.Now()
+	defer func() {
+		if h != nil && h.logger != nil {
+			h.logger.Info("[timing] harness.invoke total_ms=%d tool=%s command=%s status=%s confirmed=%t err=%t",
+				time.Since(started).Milliseconds(),
+				firstNonEmpty(resp.Tool, req.Tool),
+				firstNonEmpty(resp.CommandName, tools.CommandName(req.Command)),
+				resp.Status,
+				req.Confirmed,
+				err != nil,
+			)
+		}
+	}()
 	if h == nil {
 		return InvokeResponse{Status: "error", Error: "harness is nil"}, fmt.Errorf("harness is nil")
 	}
@@ -430,7 +468,7 @@ func (h *Harness) Invoke(ctx context.Context, req InvokeRequest) (InvokeResponse
 		h.journal.Record(action)
 		preview := PreviewCommand(spec, cmd)
 		if shouldAutoGoalBaseline(spec) && goalID != "" {
-			preview = "After confirmation, VitAgent will create a Project History safety checkpoint before this change.\n" + preview
+			preview = "确认后，VitAgent 会先创建一个项目历史安全检查点。\n" + preview
 		}
 		resp := InvokeResponse{
 			Status:               "needs_confirmation",
@@ -529,8 +567,15 @@ func (h *Harness) Invoke(ctx context.Context, req InvokeRequest) (InvokeResponse
 		cmd["cmd"] = "n_remove_project_profile"
 	case "plugin_grabber_apply_control":
 		cmd["cmd"] = "n_apply_control"
+	case "apply_midi_note_patch":
+		translateInsertNotePatchToLegacyCommand(cmd)
 	}
+	kernelStarted := time.Now()
 	reply, _, err := h.kernel.SendCommand(ctx, cmd)
+	if h.logger != nil {
+		h.logger.Info("[timing] kernel.send_command ms=%d command=%s tool=%s confirmed=%t err=%t",
+			time.Since(kernelStarted).Milliseconds(), spec.CommandName, spec.ToolName, req.Confirmed, err != nil)
+	}
 	if err != nil {
 		h.journal.MarkResult(actionID, journal.StatusFailed, nil, err)
 		resp := InvokeResponse{
@@ -546,7 +591,12 @@ func (h *Harness) Invoke(ctx context.Context, req InvokeRequest) (InvokeResponse
 		return resp, err
 	}
 
+	refreshStarted := time.Now()
 	h.afterKernelReply(ctx, spec, reply)
+	if h.logger != nil {
+		h.logger.Info("[timing] harness.after_kernel_reply ms=%d command=%s status=%s",
+			time.Since(refreshStarted).Milliseconds(), spec.CommandName, strings.TrimSpace(fmt.Sprint(reply["status"])))
+	}
 	status := "ok"
 	journalStatus := journal.StatusSucceeded
 	if strings.EqualFold(strings.TrimSpace(fmt.Sprint(reply["status"])), "error") {
@@ -556,7 +606,7 @@ func (h *Harness) Invoke(ctx context.Context, req InvokeRequest) (InvokeResponse
 	}
 	h.journal.MarkResult(actionID, journalStatus, reply, err)
 	result := h.publicResult(spec, cmd, reply)
-	resp := InvokeResponse{
+	resp = InvokeResponse{
 		Status:               status,
 		AgentActionID:        actionID,
 		Tool:                 spec.ToolName,
@@ -663,6 +713,11 @@ func (h *Harness) resolveCommand(req InvokeRequest) (map[string]any, tools.Comma
 
 	spec, ok := h.catalog.LookupTool(toolName)
 	if !ok {
+		if commandSpec, commandOK := h.catalog.LookupCommand(toolName); commandOK {
+			cmd := tools.BuildCommand(commandSpec.CommandName, req.Args)
+			flattenCommandParams(cmd)
+			return cmd, commandSpec, nil
+		}
 		return nil, tools.CommandSpec{}, fmt.Errorf("unknown tool: %s", toolName)
 	}
 	cmd := tools.BuildCommand(spec.CommandName, req.Args)
@@ -674,6 +729,11 @@ func (h *Harness) resolveToolCall(toolName string, args map[string]any) (map[str
 	toolName = strings.TrimSpace(toolName)
 	spec, ok := h.catalog.LookupTool(toolName)
 	if !ok {
+		if commandSpec, commandOK := h.catalog.LookupCommand(toolName); commandOK {
+			cmd := tools.BuildCommand(commandSpec.CommandName, args)
+			flattenCommandParams(cmd)
+			return cmd, commandSpec, nil
+		}
 		return nil, tools.CommandSpec{}, fmt.Errorf("unknown tool: %s", toolName)
 	}
 	cmd := tools.BuildCommand(spec.CommandName, args)
@@ -693,14 +753,31 @@ func commandArgs(cmd map[string]any) map[string]any {
 
 func (h *Harness) invokeLocal(ctx context.Context, spec tools.CommandSpec, cmd map[string]any) (map[string]any, bool) {
 	switch spec.CommandName {
-	case "select_clip":
+	case "select_track":
 		return map[string]any{
 			"status":     "ok",
-			"ui_action":  "select_clip",
-			"track_id":   firstString(cmd, "track_id"),
-			"track_name": firstString(cmd, "track_name"),
-			"clip_id":    firstString(cmd, "clip_id"),
-			"clip_name":  firstString(cmd, "clip_name", "name"),
+			"ui_action":  "focus_track",
+			"track_id":   firstString(cmd, "track_id", "target_track_id"),
+			"track_name": firstString(cmd, "track_name", "name"),
+		}, true
+	case "select_clip":
+		return map[string]any{
+			"status":        "ok",
+			"ui_action":     "select_clip",
+			"track_id":      firstString(cmd, "track_id"),
+			"track_name":    firstString(cmd, "track_name"),
+			"clip_id":       firstString(cmd, "clip_id"),
+			"clip_name":     firstString(cmd, "clip_name", "name"),
+			"start_seconds": cmd["start_seconds"],
+			"start_beats":   cmd["start_beats"],
+		}, true
+	case "select_plugin":
+		return map[string]any{
+			"status":      "ok",
+			"ui_action":   "focus_plugin",
+			"track_id":    firstString(cmd, "track_id", "selected_plugin_track_id"),
+			"plugin_id":   firstString(cmd, "plugin_id", "plugin_item_id", "node_id"),
+			"plugin_name": firstString(cmd, "plugin_name", "name"),
 		}, true
 	case "goal_status":
 		goal := h.runtime.Status(firstString(cmd, "goal_id"))
@@ -711,6 +788,14 @@ func (h *Harness) invokeLocal(ctx context.Context, spec tools.CommandSpec, cmd m
 	case "goal_tick":
 		goal := h.runtime.Tick(firstString(cmd, "goal_id"), firstString(cmd, "checkpoint"))
 		return map[string]any{"goal": goal}, true
+	case "control_add_macro", "plugin_map_macro_to_params":
+		return h.upsertMacroControlResult(cmd), true
+	case "control_rename_macro", "control.rename_macro":
+		return h.renameMacroControlResult(cmd), true
+	case "control_add_binding", "control.add_binding":
+		return h.addMacroBindingResult(cmd), true
+	case "control_set_macro_values", "control.set_macro_values":
+		return h.setMacroValuesResult(cmd), true
 	case "workspace_glob":
 		result, err := workspace.Glob(h.workspaceContext(cmd), cmd)
 		return resultWithErr(result, err), true
@@ -763,6 +848,36 @@ func (h *Harness) invokeLocal(ctx context.Context, spec tools.CommandSpec, cmd m
 		return resultWithErr(result, err), true
 	case "web_fetch":
 		result, err := webtools.Fetch(ctx, cmd)
+		return resultWithErr(result, err), true
+	case "artifact_list":
+		result, err := artifacts.ListCommand(h.artifactStore(), h.enrichArtifactScopeArgs(ctx, cmd))
+		return resultWithErr(result, err), true
+	case "artifact_read":
+		result, err := artifacts.ReadCommand(h.artifactStore(), cmd)
+		return resultWithErr(result, err), true
+	case "artifact_extract":
+		result, err := artifacts.ExtractCommand(h.artifactStore(), h.enrichArtifactScopeArgs(ctx, cmd))
+		return resultWithErr(result, err), true
+	case "media_register_assets":
+		result, err := resourceintake.RegisterAssets(h.artifactStore(), h.enrichArtifactScopeArgs(ctx, cmd))
+		return resultWithErr(result, err), true
+	case "media_index_authorized_folder":
+		result, err := resourceintake.IndexAuthorizedFolder(h.artifactStore(), h.enrichArtifactScopeArgs(ctx, cmd))
+		return resultWithErr(result, err), true
+	case "browser_fetch":
+		args := h.enrichArtifactScopeArgs(ctx, cmd)
+		args["include_body"] = true
+		result, err := webtools.Fetch(ctx, args)
+		if err == nil {
+			result, err = browsercapture.CaptureFetchResult(h.artifactStore(), args, result)
+		}
+		return resultWithErr(result, err), true
+	case "browser_search":
+		args := h.enrichArtifactScopeArgs(ctx, cmd)
+		result, err := webtools.Search(ctx, args)
+		if err == nil {
+			result, err = browsercapture.CaptureSearchResult(h.artifactStore(), args, result)
+		}
 		return resultWithErr(result, err), true
 	case "shell_run":
 		result, err := shelltools.Run(ctx, cmd)
@@ -842,8 +957,14 @@ func (h *Harness) invokeLocal(ctx context.Context, spec tools.CommandSpec, cmd m
 	case "version_worktree_list":
 		result, err := history.WorktreeList(h.historyArgs(cmd))
 		return resultWithErr(result, err), true
+	case "version_project_new":
+		result, err := history.ProjectNew(cmd)
+		return resultWithErr(result, err), true
 	case "version_project_saved":
 		result, err := history.ProjectSaved(h.historyArgs(cmd))
+		if err == nil {
+			result = h.retagArtifactsForSavedProject(ctx, cmd, result)
+		}
 		return resultWithErr(result, err), true
 	case "version_checkout":
 		result, err := history.Checkout(h.historyArgs(cmd))
@@ -852,6 +973,292 @@ func (h *Harness) invokeLocal(ctx context.Context, spec tools.CommandSpec, cmd m
 	default:
 		return nil, false
 	}
+}
+
+func (h *Harness) upsertMacroControlResult(cmd map[string]any) map[string]any {
+	if boolFromAnyDefault(cmd["_use_existing_macro"], false) {
+		existing := macrocontrols.NormalizeControl(mapAnyFromAny(cmd["_existing_macro"]))
+		macroID := firstString(existing, "macro_id", "id", "control_id")
+		if macroID != "" {
+			return map[string]any{
+				"status":                  "ok",
+				"ui_action":               "rack_macro_selected",
+				"kind":                    "rack_macro_selected",
+				"macro_id":                macroID,
+				"macro":                   existing,
+				"selected_existing_macro": true,
+			}
+		}
+	}
+	trackID := firstString(cmd, "track_id")
+	if trackID == "" {
+		return map[string]any{"status": "error", "error": "track_id is required"}
+	}
+	macroID := firstString(cmd, "macro_id", "id")
+	if macroID == "" {
+		macroID = "macro_" + randomID()
+	}
+	macro := macrocontrols.NormalizeControl(mapAnyFromAny(cmd["macro"]))
+	macro["macro_id"] = macroID
+	macro["id"] = macroID
+	macro["track_id"] = trackID
+	if pluginID := firstString(cmd, "plugin_id"); pluginID != "" {
+		macro["plugin_id"] = pluginID
+	}
+	if name := firstString(cmd, "name", "label", "title", "macro_name"); name != "" {
+		macro["name"] = name
+	}
+	if controlType := firstString(cmd, "control_type", "type"); controlType != "" {
+		macro["control_type"] = controlType
+	}
+	if value, ok := numberValueFromMap(cmd, "value", "default"); ok {
+		macro["value"] = clampFloat(value, 0, 1)
+	}
+	if bindings := macroBindingRows(cmd["bindings"]); len(bindings) > 0 {
+		macro["bindings"] = bindings
+	}
+	return map[string]any{
+		"status":        "ok",
+		"ui_action":     "rack_macro_upserted",
+		"kind":          "rack_macro_upserted",
+		"macro_id":      macroID,
+		"macro":         macro,
+		"binding_count": len(macroBindingRows(macro["bindings"])),
+	}
+}
+
+func (h *Harness) renameMacroControlResult(cmd map[string]any) map[string]any {
+	macroID := firstString(cmd, "macro_id", "id", "control_id", "source_node_id", "source_macro_id")
+	if macroID == "" {
+		return map[string]any{"status": "error", "error": "macro_id is required"}
+	}
+	newName := firstString(cmd, "new_name", "name", "label", "title")
+	if newName == "" {
+		return map[string]any{"status": "error", "error": "name is required", "macro_id": macroID}
+	}
+	macro := macrocontrols.NormalizeControl(mapAnyFromAny(cmd["_existing_macro"]))
+	if firstString(macro, "macro_id", "id") == "" {
+		macro = macrocontrols.NormalizeControl(mapAnyFromAny(cmd["macro"]))
+	}
+	if firstString(macro, "macro_id", "id") == "" {
+		macro = macrocontrols.NormalizeControl(cmd)
+	}
+	oldName := firstString(macro, "name", "label", "title", "macro_name")
+	macro["macro_id"] = macroID
+	macro["id"] = macroID
+	macro["name"] = newName
+	return map[string]any{
+		"status":    "ok",
+		"ui_action": "rack_macro_renamed",
+		"kind":      "rack_macro_renamed",
+		"macro_id":  macroID,
+		"name":      newName,
+		"new_name":  newName,
+		"old_name":  oldName,
+		"macro":     macro,
+	}
+}
+
+func (h *Harness) addMacroBindingResult(cmd map[string]any) map[string]any {
+	macroID := firstString(cmd, "macro_id", "id", "control_id", "source_node_id", "source_macro_id")
+	if macroID == "" {
+		return map[string]any{"status": "error", "error": "macro_id is required"}
+	}
+	binding := mapAnyFromAny(cmd["binding"])
+	if len(binding) == 0 {
+		binding = tools.CloneCommand(cmd)
+		delete(binding, "cmd")
+		delete(binding, "command")
+		delete(binding, "macro_id")
+	}
+	if firstString(binding, "track_id") == "" && firstString(cmd, "track_id") != "" {
+		binding["track_id"] = firstString(cmd, "track_id")
+	}
+	if firstString(binding, "track_id") == "" && firstString(cmd, "target_track_id") != "" {
+		binding["track_id"] = firstString(cmd, "target_track_id")
+	}
+	if firstString(binding, "plugin_id") == "" && firstString(cmd, "plugin_id") != "" {
+		binding["plugin_id"] = firstString(cmd, "plugin_id")
+	}
+	if firstString(binding, "plugin_id") == "" {
+		if pluginID := firstString(cmd, "target_plugin_id", "plugin_item_id", "target_node_id"); pluginID != "" {
+			binding["plugin_id"] = pluginID
+		}
+	}
+	if firstString(binding, "param_id") == "" {
+		if paramID := firstString(cmd, "param_id", "target_param_id", "parameter_id", "target_input", "key"); paramID != "" {
+			binding["param_id"] = paramID
+		}
+	}
+	if firstString(binding, "param_name") == "" {
+		if paramName := firstString(cmd, "param_name", "target_param_name", "parameter_name", "label", "name"); paramName != "" {
+			binding["param_name"] = paramName
+		}
+	}
+	if firstString(binding, "param_id") == "" {
+		return map[string]any{"status": "error", "error": "param_id is required", "macro_id": macroID}
+	}
+	return map[string]any{
+		"status":    "ok",
+		"ui_action": "rack_macro_binding_added",
+		"kind":      "rack_macro_binding_added",
+		"macro_id":  macroID,
+		"binding":   binding,
+	}
+}
+
+func (h *Harness) setMacroValuesResult(cmd map[string]any) map[string]any {
+	macro := macrocontrols.NormalizeControl(mapAnyFromAny(cmd["macro"]))
+	if firstString(macro, "macro_id", "id") == "" {
+		macro = macrocontrols.NormalizeControl(cmd)
+	}
+	macroID := firstNonEmpty(firstString(cmd, "macro_id", "id"), firstString(macro, "macro_id", "id"))
+	if macroID == "" {
+		return map[string]any{"status": "error", "error": "macro_id is required"}
+	}
+	value, ok := numberValueFromMap(cmd, "value")
+	if !ok {
+		return map[string]any{"status": "error", "error": "value is required", "macro_id": macroID}
+	}
+	minValue, _ := numberValueFromMap(macro, "min")
+	maxValue, ok := numberValueFromMap(macro, "max")
+	if !ok || maxValue <= minValue {
+		minValue = 0
+		maxValue = 1
+	}
+	value = clampFloat(value, minValue, maxValue)
+	macro["macro_id"] = macroID
+	macro["id"] = macroID
+	macro["value"] = value
+	bindings := macroBindingRows(macro["bindings"])
+	if len(bindings) == 0 {
+		return map[string]any{"status": "error", "error": "macro has no parameter bindings", "macro_id": macroID, "value": value, "macro": macro}
+	}
+	applied := make([]map[string]any, 0, len(bindings))
+	for _, binding := range bindings {
+		if !boolFromAnyDefault(binding["enabled"], true) {
+			continue
+		}
+		trackID := firstNonEmpty(firstString(binding, "track_id"), firstString(macro, "track_id"))
+		pluginID := firstString(binding, "plugin_id")
+		paramID := firstString(binding, "param_id")
+		if trackID == "" || pluginID == "" || paramID == "" {
+			continue
+		}
+		targetValue := macroBindingTargetValue(binding, value)
+		applied = append(applied, map[string]any{
+			"track_id":     trackID,
+			"plugin_id":    pluginID,
+			"param_id":     paramID,
+			"param_name":   firstString(binding, "param_name"),
+			"target_value": targetValue,
+		})
+	}
+	if len(applied) == 0 {
+		return map[string]any{"status": "error", "error": "macro has no enabled parameter bindings", "macro_id": macroID, "value": value, "macro": macro}
+	}
+	return map[string]any{
+		"status":             "ok",
+		"ui_action":          "rack_macro_value_changed",
+		"kind":               "rack_macro_value_changed",
+		"macro_id":           macroID,
+		"value":              value,
+		"commit":             boolFromAnyDefault(cmd["commit"], true),
+		"macro":              macro,
+		"applied_count":      len(applied),
+		"applied_parameters": applied,
+	}
+}
+
+func macroBindingRows(raw any) []map[string]any {
+	switch rows := raw.(type) {
+	case []map[string]any:
+		return rows
+	case []any:
+		out := make([]map[string]any, 0, len(rows))
+		for _, item := range rows {
+			if row := mapAnyFromAny(item); len(row) > 0 {
+				out = append(out, row)
+			}
+		}
+		return out
+	default:
+		return nil
+	}
+}
+
+func macroBindingTargetValue(binding map[string]any, macroValue float64) float64 {
+	sourceMin := clampFloat(numberFromAnyWithDefault(binding["source_min"], 0), 0, 1)
+	sourceMax := clampFloat(numberFromAnyWithDefault(binding["source_max"], 1), 0, 1)
+	t := 0.0
+	if absFloat(sourceMax-sourceMin) < 0.0001 {
+		if macroValue >= sourceMax {
+			t = 1
+		}
+	} else {
+		t = clampFloat((macroValue-sourceMin)/(sourceMax-sourceMin), 0, 1)
+	}
+	targetMin := numberFromAnyWithDefault(binding["target_min"], 0)
+	targetMax := numberFromAnyWithDefault(binding["target_max"], 1)
+	return targetMin + (targetMax-targetMin)*t
+}
+
+func numberFromAnyWithDefault(value any, fallback float64) float64 {
+	if isEmptyValue(value) {
+		return fallback
+	}
+	switch x := value.(type) {
+	case int:
+		return float64(x)
+	case int64:
+		return float64(x)
+	case float64:
+		return x
+	case json.Number:
+		if n, err := x.Float64(); err == nil {
+			return n
+		}
+	default:
+		if n, err := strconv.ParseFloat(strings.TrimSpace(fmt.Sprint(value)), 64); err == nil {
+			return n
+		}
+	}
+	return fallback
+}
+
+func clampFloat(value, minValue, maxValue float64) float64 {
+	if value < minValue {
+		return minValue
+	}
+	if value > maxValue {
+		return maxValue
+	}
+	return value
+}
+
+func absFloat(value float64) float64 {
+	if value < 0 {
+		return -value
+	}
+	return value
+}
+
+func boolFromAnyDefault(value any, fallback bool) bool {
+	if isEmptyValue(value) {
+		return fallback
+	}
+	switch x := value.(type) {
+	case bool:
+		return x
+	case string:
+		switch strings.ToLower(strings.TrimSpace(x)) {
+		case "true", "1", "yes", "on", "enabled":
+			return true
+		case "false", "0", "no", "off", "disabled":
+			return false
+		}
+	}
+	return fallback
 }
 
 func resultWithErr(result map[string]any, err error) map[string]any {
@@ -873,6 +1280,99 @@ func (h *Harness) workspaceContext(cmd map[string]any) workspace.Context {
 		state = h.UserStateSummary(context.Background())
 	}
 	return workspace.NewContext(cmd, state)
+}
+
+func (h *Harness) artifactStore() artifacts.Store {
+	return artifacts.NewStore("")
+}
+
+func (h *Harness) enrichArtifactScopeArgs(ctx context.Context, cmd map[string]any) map[string]any {
+	out := tools.CloneCommand(cmd)
+	if scope := artifacts.ScopeFromMap(out); !scope.Empty() {
+		return withArtifactScope(out, scope)
+	}
+	projectPath := firstString(out, "project_path", "current_project_path")
+	if projectPath == "" && h != nil {
+		state := h.UserStateSummary(ctx)
+		projectPath = projectPathFromState(state)
+	}
+	scope := h.artifactScopeForProject(ctx, projectPath)
+	return withArtifactScope(out, scope)
+}
+
+func (h *Harness) artifactScopeForProject(ctx context.Context, projectPath string) artifacts.Scope {
+	if h == nil {
+		return artifacts.Scope{}
+	}
+	state := h.UserStateSummary(ctx)
+	historySummary := h.ProjectHistorySummaryForProject(ctx, "", projectPath)
+	scope := map[string]any{
+		"project_path":      firstNonEmpty(firstString(historySummary, "project_path", "current_project_path"), projectPathFromState(state)),
+		"root_project_path": firstString(historySummary, "root_project_path"),
+		"active_worktree":   firstString(historySummary, "active_worktree"),
+		"active_branch":     firstString(historySummary, "active_branch"),
+		"active_node_id":    firstString(historySummary, "active_node_id"),
+	}
+	scope["history_scope_key"] = artifactHistoryScopeKey(historySummary, state)
+	return artifacts.ScopeFromMap(scope)
+}
+
+func (h *Harness) retagArtifactsForSavedProject(ctx context.Context, cmd map[string]any, result map[string]any) map[string]any {
+	if result == nil || !boolValueDefault(result["adopted_draft"], false) {
+		return result
+	}
+	draftPath := firstString(result, "draft_project_path")
+	projectPath := firstNonEmpty(firstString(result, "project_path"), firstString(cmd, "project_path", "current_project_path"))
+	if draftPath == "" || projectPath == "" {
+		return result
+	}
+	from := h.artifactScopeForProject(ctx, draftPath)
+	to := h.artifactScopeForProject(ctx, projectPath)
+	count, err := artifacts.RetagScope(h.artifactStore(), from, to)
+	if err != nil {
+		result["warnings"] = appendStringAny(result["warnings"], "artifact scope adoption failed: "+err.Error())
+		return result
+	}
+	result["adopted_artifact_count"] = count
+	return result
+}
+
+func withArtifactScope(cmd map[string]any, scope artifacts.Scope) map[string]any {
+	if cmd == nil {
+		cmd = map[string]any{}
+	}
+	if scope.Empty() {
+		return cmd
+	}
+	for key, value := range map[string]string{
+		"project_path":      scope.ProjectPath,
+		"root_project_path": scope.RootProjectPath,
+		"active_worktree":   scope.ActiveWorktree,
+		"active_branch":     scope.ActiveBranch,
+		"active_node_id":    scope.ActiveNodeID,
+		"history_scope_key": scope.HistoryScopeKey,
+		"media_scope_key":   scope.StableKey(),
+	} {
+		if strings.TrimSpace(value) != "" {
+			cmd[key] = value
+		}
+	}
+	return cmd
+}
+
+func artifactHistoryScopeKey(projectHistory map[string]any, state map[string]any) string {
+	projectPath := firstNonEmpty(firstString(projectHistory, "project_path", "current_project_path"), projectPathFromState(state))
+	rootProjectPath := firstString(projectHistory, "root_project_path")
+	projectIdentity := firstNonEmpty(projectPath, rootProjectPath, "unsaved")
+	return strings.Join([]string{
+		projectIdentity,
+		firstNonEmpty(rootProjectPath, "root"),
+		firstNonEmpty(firstString(projectHistory, "active_worktree"), "main"),
+		firstNonEmpty(firstString(projectHistory, "active_branch"), "main"),
+		firstNonEmpty(firstString(projectHistory, "active_node_id"), firstString(projectHistory, "head"), "no-node"),
+		firstNonEmpty(firstString(projectHistory, "draft", "unsaved"), "saved"),
+		firstNonEmpty(firstString(projectHistory, "initialized"), "unknown"),
+	}, "::")
 }
 
 func (h *Harness) historyArgs(cmd map[string]any) map[string]any {
@@ -1210,6 +1710,10 @@ func flattenCommandParams(cmd map[string]any) {
 func (h *Harness) resolveImplicitTargets(ctx context.Context, spec tools.CommandSpec, cmd map[string]any, requestContext map[string]any) error {
 	normalizeCommandArgs(spec, cmd, requestContext)
 	h.resolveRackAddNodeZone(ctx, spec, cmd)
+
+	if err := h.resolveMacroTargets(ctx, spec, cmd, requestContext); err != nil {
+		return fmt.Errorf("%s could not resolve macro target: %w", spec.ToolName, err)
+	}
 
 	if err := h.resolveImportAudioSource(ctx, spec, cmd, requestContext); err != nil {
 		return fmt.Errorf("%s could not resolve import source: %w", spec.ToolName, err)
@@ -1657,6 +2161,37 @@ func normalizeMidiPatchNoteRows(notes []map[string]any) []map[string]any {
 		}
 	}
 	return notes
+}
+
+func translateInsertNotePatchToLegacyCommand(cmd map[string]any) bool {
+	ops := operationRowsFromAny(cmd["operations"])
+	if len(ops) == 0 {
+		return false
+	}
+	notes := make([]map[string]any, 0, len(ops))
+	for _, op := range ops {
+		normalized := cloneAnyMap(op)
+		normalizeMidiPatchOperation(normalized)
+		if firstString(normalized, "op") != "insert_note" {
+			return false
+		}
+		note := map[string]any{}
+		for _, key := range []string{"id", "note_id", "pitch", "start", "start_beat", "start_beats", "length", "length_beats", "duration", "duration_beats", "velocity", "channel"} {
+			if !isEmptyValue(normalized[key]) {
+				note[key] = normalized[key]
+			}
+		}
+		copyFirstNonEmpty(note, "length", "duration", "length_beats", "duration_beats")
+		copyFirstNonEmpty(note, "start", "start_beat", "start_beats")
+		if len(note) == 0 {
+			return false
+		}
+		notes = append(notes, note)
+	}
+	cmd["cmd"] = "add_midi_notes"
+	cmd["notes"] = notes
+	delete(cmd, "operations")
+	return true
 }
 
 func normalizeReplaceRegionNotes(op map[string]any) {
@@ -3050,6 +3585,228 @@ func (h *Harness) resolvePluginID(ctx context.Context, spec tools.CommandSpec, c
 	return "", nil
 }
 
+func (h *Harness) resolveMacroTargets(ctx context.Context, spec tools.CommandSpec, cmd map[string]any, requestContext map[string]any) error {
+	switch spec.CommandName {
+	case "control_add_macro":
+		if !looksLikeExistingMacroBindingIntent(firstString(requestContext, "user_message", "message", "prompt", "utterance")) {
+			return nil
+		}
+		macro, ok := h.resolveMacroControl(ctx, cmd, requestContext)
+		if !ok {
+			return nil
+		}
+		applyResolvedMacroToCommand(cmd, macro)
+		cmd["_use_existing_macro"] = true
+		cmd["_existing_macro"] = macro
+	case "control_add_binding", "control_set_macro_values":
+		macro, ok := h.resolveMacroControl(ctx, cmd, requestContext)
+		if !ok {
+			return nil
+		}
+		applyResolvedMacroToCommand(cmd, macro)
+	case "control_rename_macro":
+		macro, ok := h.resolveMacroControlForRename(ctx, cmd, requestContext)
+		if !ok {
+			return nil
+		}
+		applyResolvedMacroToCommand(cmd, macro)
+		cmd["_existing_macro"] = macro
+	}
+	return nil
+}
+
+func (h *Harness) resolveMacroControl(ctx context.Context, cmd map[string]any, requestContext map[string]any) (map[string]any, bool) {
+	macros := h.macroControlsForResolution(ctx, requestContext)
+	if len(macros) == 0 {
+		return nil, false
+	}
+
+	for _, ref := range macroReferenceCandidates(cmd) {
+		if macro, ok := findMacroControlByReference(macros, ref); ok {
+			return macro, true
+		}
+	}
+	if ref := macroReferenceFromUserText(firstString(requestContext, "user_message", "message", "prompt", "utterance")); ref != "" {
+		if macro, ok := findMacroControlByReference(macros, ref); ok {
+			return macro, true
+		}
+	}
+	if refs := macrocontrols.NormalizeList(requestContext["macro_refs"]); len(refs) == 1 && referencesCurrentMacro(firstString(requestContext, "user_message", "message", "prompt", "utterance")) {
+		return refs[0], true
+	}
+	return nil, false
+}
+
+func (h *Harness) resolveMacroControlForRename(ctx context.Context, cmd map[string]any, requestContext map[string]any) (map[string]any, bool) {
+	macros := h.macroControlsForResolution(ctx, requestContext)
+	if len(macros) == 0 {
+		return nil, false
+	}
+	for _, ref := range renameMacroReferenceCandidates(cmd) {
+		if macro, ok := findMacroControlByReference(macros, ref); ok {
+			return macro, true
+		}
+	}
+	if ref := macroReferenceFromUserText(firstString(requestContext, "user_message", "message", "prompt", "utterance")); ref != "" {
+		if macro, ok := findMacroControlByReference(macros, ref); ok {
+			return macro, true
+		}
+	}
+	if refs := macrocontrols.NormalizeList(requestContext["macro_refs"]); len(refs) == 1 && referencesCurrentMacro(firstString(requestContext, "user_message", "message", "prompt", "utterance")) {
+		return refs[0], true
+	}
+	return nil, false
+}
+
+func (h *Harness) macroControlsForResolution(ctx context.Context, requestContext map[string]any) []map[string]any {
+	out := make([]map[string]any, 0)
+	seen := map[string]bool{}
+	appendRows := func(rows []map[string]any) {
+		for _, row := range rows {
+			macroID := firstString(row, "macro_id", "id", "control_id")
+			if macroID == "" || seen[macroID] {
+				continue
+			}
+			seen[macroID] = true
+			out = append(out, row)
+		}
+	}
+	for _, key := range []string{"macro_refs", "available_macro_controls", "active_macro_controls", "macro_controls", "rack_control_macros", "control_macros", "macros"} {
+		appendRows(macrocontrols.NormalizeList(requestContext[key]))
+	}
+	if h != nil && h.shadow != nil {
+		state := h.UserStateSummary(ctx)
+		for _, key := range []string{"macro_controls", "rack_control_macros", "control_macros", "macros"} {
+			appendRows(macrocontrols.NormalizeList(state[key]))
+		}
+	}
+	return out
+}
+
+func macroReferenceCandidates(cmd map[string]any) []string {
+	candidates := make([]string, 0, 8)
+	for _, key := range []string{"macro_id", "id", "control_id", "source_node_id", "source_macro_id", "macro_name", "macro", "macro_label", "source_name", "source_label"} {
+		if value := firstString(cmd, key); value != "" {
+			candidates = append(candidates, value)
+		}
+	}
+	if name := firstString(cmd, "name", "label", "title"); name != "" && !isGenericMacroReferenceName(name) {
+		candidates = append(candidates, name)
+	}
+	return candidates
+}
+
+func renameMacroReferenceCandidates(cmd map[string]any) []string {
+	candidates := make([]string, 0, 10)
+	for _, key := range []string{"target_macro_id", "target_control_id", "macro_id", "id", "control_id", "source_node_id", "source_macro_id", "macro_name", "macro", "macro_label", "source_name", "source_label", "old_name", "old_label"} {
+		if value := firstString(cmd, key); value != "" {
+			candidates = append(candidates, value)
+		}
+	}
+	return candidates
+}
+
+func applyResolvedMacroToCommand(cmd map[string]any, macro map[string]any) {
+	macroID := firstString(macro, "macro_id", "id", "control_id")
+	if macroID == "" {
+		return
+	}
+	cmd["macro_id"] = macroID
+	cmd["id"] = macroID
+	cmd["source_node_id"] = macroID
+	if trackID := firstString(macro, "track_id"); trackID != "" && firstString(cmd, "track_id", "target_track_id") == "" {
+		cmd["track_id"] = trackID
+	}
+	if name := firstString(macro, "name", "label", "title"); name != "" && firstString(cmd, "macro_name") == "" {
+		cmd["macro_name"] = name
+	}
+}
+
+func findMacroControlByReference(macros []map[string]any, ref string) (map[string]any, bool) {
+	clean := strings.TrimSpace(ref)
+	if clean == "" {
+		return nil, false
+	}
+	for _, macro := range macros {
+		if strings.EqualFold(firstString(macro, "macro_id", "id", "control_id"), clean) {
+			return macro, true
+		}
+	}
+	normalizedRef := normalizeMacroReferenceText(clean)
+	if normalizedRef != "" {
+		for _, macro := range macros {
+			for _, value := range []string{firstString(macro, "name", "label", "title"), firstString(macro, "macro_id", "id", "control_id")} {
+				if normalizeMacroReferenceText(value) == normalizedRef {
+					return macro, true
+				}
+			}
+		}
+	}
+	if ordinal := macroOrdinalFromText(clean); ordinal > 0 {
+		for _, macro := range macros {
+			name := normalizeMacroReferenceText(firstString(macro, "name", "label", "title"))
+			if name == "macro"+strconv.Itoa(ordinal) || name == "宏控件"+strconv.Itoa(ordinal) || name == "宏控制"+strconv.Itoa(ordinal) {
+				return macro, true
+			}
+		}
+		if ordinal <= len(macros) {
+			return macros[ordinal-1], true
+		}
+	}
+	return nil, false
+}
+
+func normalizeMacroReferenceText(text string) string {
+	out := strings.ToLower(strings.TrimSpace(text))
+	out = strings.ReplaceAll(out, "marco", "macro")
+	for _, part := range []string{" ", "\t", "\r", "\n", "_", "-", "#", "＃", "号", "號"} {
+		out = strings.ReplaceAll(out, part, "")
+	}
+	return out
+}
+
+var macroReferencePattern = regexp.MustCompile(`(?i)(?:macro|marco|宏控(?:件|制)?|宏滑块|宏滑桿|宏)\s*#?\s*([0-9]+)`)
+
+func macroReferenceFromUserText(text string) string {
+	text = strings.TrimSpace(text)
+	if text == "" {
+		return ""
+	}
+	if match := macroReferencePattern.FindStringSubmatch(text); len(match) >= 2 {
+		return "Macro " + match[1]
+	}
+	return ""
+}
+
+func macroOrdinalFromText(text string) int {
+	if match := macroReferencePattern.FindStringSubmatch(text); len(match) >= 2 {
+		if n, err := strconv.Atoi(match[1]); err == nil {
+			return n
+		}
+	}
+	return 0
+}
+
+func looksLikeExistingMacroBindingIntent(text string) bool {
+	lower := strings.ToLower(strings.TrimSpace(text))
+	if lower == "" {
+		return false
+	}
+	hasBind := strings.Contains(lower, "bind") || strings.Contains(lower, "map") || strings.Contains(text, "绑定") || strings.Contains(text, "綁定") || strings.Contains(text, "捆绑") || strings.Contains(text, "映射") || strings.Contains(text, "绑到") || strings.Contains(text, "綁到")
+	hasMacroRef := macroReferenceFromUserText(text) != "" || strings.Contains(lower, "macro") || strings.Contains(lower, "marco") || strings.Contains(text, "宏控")
+	return hasBind && hasMacroRef
+}
+
+func referencesCurrentMacro(text string) bool {
+	lower := strings.ToLower(strings.TrimSpace(text))
+	return strings.Contains(lower, "this macro") || strings.Contains(lower, "current macro") || strings.Contains(text, "这个宏") || strings.Contains(text, "這個宏") || strings.Contains(text, "当前宏") || strings.Contains(text, "目前宏")
+}
+
+func isGenericMacroReferenceName(name string) bool {
+	normalized := normalizeMacroReferenceText(name)
+	return normalized == "" || normalized == "macro" || normalized == "agentmacro" || normalized == "宏控件" || normalized == "宏控制" || normalized == "通用宏控件"
+}
+
 type pluginRef struct {
 	ID      string
 	Name    string
@@ -3556,14 +4313,37 @@ func (h *Harness) refreshShadow(ctx context.Context, reason string) {
 }
 
 func (h *Harness) refreshShadowWithStatus(ctx context.Context, reason string) map[string]any {
+	started := time.Now()
+	refreshStatus := "skipped"
+	refreshErr := false
+	defer func() {
+		if h != nil && h.logger != nil {
+			h.logger.Info("[timing] harness.refresh_shadow ms=%d reason=%s status=%s err=%t",
+				time.Since(started).Milliseconds(), reason, refreshStatus, refreshErr)
+		}
+	}()
+	if h == nil {
+		refreshErr = true
+		return map[string]any{
+			"shadow_refreshed": false,
+			"warning":          "harness unavailable; agent shadow could not be refreshed",
+		}
+	}
 	if h.kernel == nil || h.shadow == nil {
 		return map[string]any{
 			"shadow_refreshed": false,
 			"warning":          "kernel reload unavailable; agent shadow could not be refreshed",
 		}
 	}
+	kernelStarted := time.Now()
 	reply, _, err := h.kernel.SendCommand(ctx, map[string]any{"cmd": "get_project_state"})
+	if h.logger != nil {
+		h.logger.Info("[timing] kernel.send_command ms=%d command=get_project_state reason=%s err=%t",
+			time.Since(kernelStarted).Milliseconds(), reason, err != nil)
+	}
 	if err != nil {
+		refreshStatus = "kernel_error"
+		refreshErr = true
 		if h.logger != nil {
 			h.logger.Warn("[harness] shadow refresh after %s failed: %v", reason, err)
 		}
@@ -3574,11 +4354,17 @@ func (h *Harness) refreshShadowWithStatus(ctx context.Context, reason string) ma
 	}
 	if strings.EqualFold(strings.TrimSpace(fmt.Sprint(reply["status"])), "ok") {
 		h.shadow.Initialize(reply)
+		refreshStatus = "ok"
 		return map[string]any{
 			"shadow_refreshed": true,
 			"reason":           reason,
 		}
 	}
+	refreshStatus = strings.TrimSpace(fmt.Sprint(reply["status"]))
+	if refreshStatus == "" {
+		refreshStatus = "unexpected"
+	}
+	refreshErr = true
 	return map[string]any{
 		"shadow_refreshed": false,
 		"warning":          firstNonEmpty(fmt.Sprint(reply["message"]), fmt.Sprint(reply["error"]), "get_project_state did not return ok"),

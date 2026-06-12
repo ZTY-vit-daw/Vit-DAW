@@ -63,6 +63,254 @@ func TestResolveRejectsUnknownCommand(t *testing.T) {
 	}
 }
 
+func TestResolveRackAddMacroAlias(t *testing.T) {
+	h := New(nil, nil, nil)
+	cmd, spec, err := h.resolveCommand(InvokeRequest{
+		Command: map[string]any{
+			"cmd":   "rack.add_macro",
+			"name":  "通用宏控件",
+			"value": 0.5,
+		},
+	})
+	if err != nil {
+		t.Fatalf("resolve rack.add_macro: %v", err)
+	}
+	if spec.CommandName != "control_add_macro" {
+		t.Fatalf("command = %q, want control_add_macro", spec.CommandName)
+	}
+	if cmd["cmd"] != "control_add_macro" {
+		t.Fatalf("resolved cmd = %v, want control_add_macro", cmd["cmd"])
+	}
+}
+
+func TestInvokeRackAddMacroAliasUsesSelectedTrack(t *testing.T) {
+	h := New(nil, nil, nil)
+	resp, err := h.Invoke(context.Background(), InvokeRequest{
+		Command: map[string]any{
+			"cmd":   "rack.add_macro",
+			"name":  "通用宏控件",
+			"value": 0.5,
+		},
+		Context: map[string]any{
+			"selected_track_id": "1007",
+		},
+		Source: "test",
+	})
+	if err != nil {
+		t.Fatalf("Invoke returned error: %v", err)
+	}
+	if resp.Status != "needs_confirmation" {
+		t.Fatalf("status = %q, want needs_confirmation", resp.Status)
+	}
+	if resp.CommandName != "control_add_macro" || resp.Tool != "rack.add_macro" {
+		t.Fatalf("resolved response = %+v", resp)
+	}
+	if !strings.Contains(resp.Preview, "Macro 通用宏控件") || !strings.Contains(resp.Preview, "Track 1007") {
+		t.Fatalf("preview did not include macro/track: %q", resp.Preview)
+	}
+}
+
+func TestInvokeControlAddMacroConfirmedCreatesRackMacroMutation(t *testing.T) {
+	h := New(nil, nil, nil)
+	resp, err := h.Invoke(context.Background(), InvokeRequest{
+		Command: map[string]any{
+			"cmd":   "control_add_macro",
+			"name":  "Agent Macro",
+			"value": 0.25,
+		},
+		Context: map[string]any{
+			"selected_track_id": "1007",
+		},
+		Confirmed: true,
+		Source:    "test",
+	})
+	if err != nil {
+		t.Fatalf("Invoke returned error: %v", err)
+	}
+	if resp.Status != "ok" {
+		t.Fatalf("status = %q, want ok; error=%q result=%+v", resp.Status, resp.Error, resp.Result)
+	}
+	if resp.CommandName != "control_add_macro" {
+		t.Fatalf("command = %q, want control_add_macro", resp.CommandName)
+	}
+	if resp.Result["ui_action"] != "rack_macro_upserted" || resp.Result["kind"] != "rack_macro_upserted" {
+		t.Fatalf("result did not request rack macro upsert: %+v", resp.Result)
+	}
+	macroID := strings.TrimSpace(fmt.Sprint(resp.Result["macro_id"]))
+	if macroID == "" {
+		t.Fatalf("missing macro_id: %+v", resp.Result)
+	}
+	macro, ok := resp.Result["macro"].(map[string]any)
+	if !ok {
+		t.Fatalf("macro payload missing: %+v", resp.Result)
+	}
+	if macro["macro_id"] != macroID || macro["track_id"] != "1007" || macro["name"] != "Agent Macro" {
+		t.Fatalf("macro payload mismatch: id=%q macro=%+v", macroID, macro)
+	}
+	if got := fmt.Sprint(macro["value"]); got != "0.25" {
+		t.Fatalf("macro value = %v, want 0.25; macro=%+v", got, macro)
+	}
+}
+
+func TestInvokeControlAddBindingConfirmedCreatesRackMacroBindingMutation(t *testing.T) {
+	h := New(nil, nil, nil)
+	resp, err := h.Invoke(context.Background(), InvokeRequest{
+		Command: map[string]any{
+			"cmd":               "control_add_binding",
+			"source_node_id":    "macro_ccc50053d5f770bf",
+			"target_track_id":   "1007",
+			"target_plugin_id":  "1012",
+			"target_param_id":   "2",
+			"target_param_name": "B1 Gain",
+			"target_min":        -12,
+			"target_max":        12,
+		},
+		Confirmed: true,
+		Source:    "test",
+	})
+	if err != nil {
+		t.Fatalf("Invoke returned error: %v", err)
+	}
+	if resp.Status != "ok" {
+		t.Fatalf("status = %q, want ok; error=%q result=%+v", resp.Status, resp.Error, resp.Result)
+	}
+	if resp.CommandName != "control_add_binding" {
+		t.Fatalf("command = %q, want control_add_binding", resp.CommandName)
+	}
+	if resp.Result["ui_action"] != "rack_macro_binding_added" || resp.Result["kind"] != "rack_macro_binding_added" {
+		t.Fatalf("result did not request rack macro binding: %+v", resp.Result)
+	}
+	if resp.Result["macro_id"] != "macro_ccc50053d5f770bf" {
+		t.Fatalf("macro_id = %v", resp.Result["macro_id"])
+	}
+	binding, ok := resp.Result["binding"].(map[string]any)
+	if !ok {
+		t.Fatalf("binding payload missing: %+v", resp.Result)
+	}
+	if binding["track_id"] != "1007" || binding["plugin_id"] != "1012" || binding["param_id"] != "2" || binding["param_name"] != "B1 Gain" {
+		t.Fatalf("binding payload mismatch: %+v", binding)
+	}
+}
+
+func TestInvokeControlAddBindingResolvesExistingMacroByName(t *testing.T) {
+	h := New(nil, nil, nil)
+	resp, err := h.Invoke(context.Background(), InvokeRequest{
+		Command: map[string]any{
+			"cmd":               "control_add_binding",
+			"source_node_id":    "Macro 1",
+			"target_plugin_id":  "1012",
+			"target_param_id":   "2",
+			"target_param_name": "B1 Gain",
+		},
+		Context: map[string]any{
+			"user_message": "把 B1 Gain 绑定到 Macro 1 上",
+			"available_macro_controls": []any{
+				map[string]any{"macro_id": "macro_existing", "name": "Macro 1", "track_id": "1007", "bindings": []any{}},
+			},
+		},
+		Confirmed: true,
+		Source:    "test",
+	})
+	if err != nil {
+		t.Fatalf("Invoke returned error: %v", err)
+	}
+	if resp.Status != "ok" {
+		t.Fatalf("status = %q, want ok; error=%q result=%+v", resp.Status, resp.Error, resp.Result)
+	}
+	if resp.Result["macro_id"] != "macro_existing" {
+		t.Fatalf("macro_id = %v, want macro_existing; result=%+v", resp.Result["macro_id"], resp.Result)
+	}
+	binding, ok := resp.Result["binding"].(map[string]any)
+	if !ok {
+		t.Fatalf("binding payload missing: %+v", resp.Result)
+	}
+	if binding["plugin_id"] != "1012" || binding["param_id"] != "2" || binding["track_id"] != "1007" {
+		t.Fatalf("binding payload mismatch: %+v", binding)
+	}
+}
+
+func TestInvokeControlAddMacroBindingIntentSelectsExistingMacro(t *testing.T) {
+	h := New(nil, nil, nil)
+	resp, err := h.Invoke(context.Background(), InvokeRequest{
+		Command: map[string]any{
+			"cmd":   "control_add_macro",
+			"name":  "Agent Macro",
+			"value": 0.5,
+		},
+		Context: map[string]any{
+			"user_message": "把 B1 Gain 绑定到 Macro 1 上",
+			"available_macro_controls": []any{
+				map[string]any{"macro_id": "macro_existing", "name": "Macro 1", "track_id": "1007", "bindings": []any{}},
+			},
+		},
+		Confirmed: true,
+		Source:    "test",
+	})
+	if err != nil {
+		t.Fatalf("Invoke returned error: %v", err)
+	}
+	if resp.Status != "ok" {
+		t.Fatalf("status = %q, want ok; error=%q result=%+v", resp.Status, resp.Error, resp.Result)
+	}
+	if resp.Result["kind"] != "rack_macro_selected" || resp.Result["selected_existing_macro"] != true {
+		t.Fatalf("result did not select existing macro: %+v", resp.Result)
+	}
+	if resp.Result["macro_id"] != "macro_existing" {
+		t.Fatalf("macro_id = %v, want macro_existing; result=%+v", resp.Result["macro_id"], resp.Result)
+	}
+}
+
+func TestInvokeControlRenameMacroResolvesExistingMacroByName(t *testing.T) {
+	h := New(nil, nil, nil)
+	resp, err := h.Invoke(context.Background(), InvokeRequest{
+		Command: map[string]any{
+			"cmd":      "control_rename_macro",
+			"macro_id": "Macro 1",
+			"name":     "Filter Sweep",
+		},
+		Context: map[string]any{
+			"user_message": "rename Macro 1 to Filter Sweep",
+			"available_macro_controls": []any{
+				map[string]any{"macro_id": "macro_existing", "name": "Macro 1", "track_id": "1007", "bindings": []any{}},
+			},
+		},
+		Confirmed: true,
+		Source:    "test",
+	})
+	if err != nil {
+		t.Fatalf("Invoke returned error: %v", err)
+	}
+	if resp.Status != "ok" {
+		t.Fatalf("status = %q, want ok; error=%q result=%+v", resp.Status, resp.Error, resp.Result)
+	}
+	if resp.CommandName != "control_rename_macro" {
+		t.Fatalf("command = %q, want control_rename_macro", resp.CommandName)
+	}
+	if resp.Result["kind"] != "rack_macro_renamed" || resp.Result["ui_action"] != "rack_macro_renamed" {
+		t.Fatalf("result did not request macro rename: %+v", resp.Result)
+	}
+	if resp.Result["macro_id"] != "macro_existing" || resp.Result["name"] != "Filter Sweep" || resp.Result["old_name"] != "Macro 1" {
+		t.Fatalf("rename payload mismatch: %+v", resp.Result)
+	}
+	macro, ok := resp.Result["macro"].(map[string]any)
+	if !ok || macro["macro_id"] != "macro_existing" || macro["name"] != "Filter Sweep" {
+		t.Fatalf("macro payload mismatch: %+v", resp.Result)
+	}
+}
+
+func TestResolveToolAcceptsCommandName(t *testing.T) {
+	h := New(nil, nil, nil)
+	cmd, spec, err := h.resolveCommand(InvokeRequest{
+		Tool: "get_project_state",
+	})
+	if err != nil {
+		t.Fatalf("resolve command-name tool: %v", err)
+	}
+	if spec.CommandName != "get_project_state" || cmd["cmd"] != "get_project_state" {
+		t.Fatalf("resolved = spec:%+v cmd:%+v", spec, cmd)
+	}
+}
+
 func TestRollbackWorkspaceApplyEditUsesReversePatch(t *testing.T) {
 	root := t.TempDir()
 	path := filepath.Join(root, "note.txt")
@@ -1498,6 +1746,35 @@ func TestMidiPatchInfersSingleTopLevelInsertNote(t *testing.T) {
 	preview := PreviewCommand(spec, cmd)
 	if !strings.Contains(preview, "1. insert_note pitch=60 start=0 length=1 velocity=100") {
 		t.Fatalf("preview did not show inferred top-level insert:\n%s", preview)
+	}
+}
+
+func TestTranslateInsertNotePatchToLegacyCommand(t *testing.T) {
+	cmd := map[string]any{
+		"cmd":       "apply_midi_note_patch",
+		"clip_id":   "clip_b",
+		"track_id":  "1010",
+		"time_unit": "beats",
+		"operations": []map[string]any{
+			{"op": "insert_note", "pitch": 60, "start": 0.0, "length": 1.0, "velocity": 100},
+			{"action": "insert_note", "pitch": 62, "start": 1.0, "duration": 0.5, "velocity": 90},
+		},
+	}
+	if !translateInsertNotePatchToLegacyCommand(cmd) {
+		t.Fatalf("translation failed: %+v", cmd)
+	}
+	if cmd["cmd"] != "add_midi_notes" {
+		t.Fatalf("cmd = %v", cmd["cmd"])
+	}
+	if _, ok := cmd["operations"]; ok {
+		t.Fatalf("operations should be removed: %+v", cmd)
+	}
+	notes := operationRowsFromAny(cmd["notes"])
+	if len(notes) != 2 {
+		t.Fatalf("notes = %#v", notes)
+	}
+	if notes[0]["pitch"] != 60 || notes[0]["length"] != 1.0 || notes[1]["pitch"] != 62 || notes[1]["length"] != 0.5 {
+		t.Fatalf("notes not translated: %#v", notes)
 	}
 }
 

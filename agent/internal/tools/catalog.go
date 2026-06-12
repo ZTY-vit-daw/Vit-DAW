@@ -90,6 +90,20 @@ func DefaultCatalog() *Catalog {
 	c.AddAlias("plugin_grabber.save_project_profile", "plugin_grabber_upsert_project_profile")
 	c.AddAlias("plugin_grabber.reset_project_profile", "plugin_grabber_remove_project_profile")
 	c.AddAlias("plugin_grabber.apply", "plugin_grabber_apply_control")
+	c.AddAlias("control.add_macro", "control_add_macro")
+	c.AddAlias("rack.add_macro", "control_add_macro")
+	c.AddAlias("macro.create", "control_add_macro")
+	c.AddAlias("control.rename_macro", "control_rename_macro")
+	c.AddAlias("macro.rename", "control_rename_macro")
+	c.AddAlias("artifact.list", "artifact_list")
+	c.AddAlias("artifact.read", "artifact_read")
+	c.AddAlias("artifact.extract", "artifact_extract")
+	c.AddAlias("media.register_assets", "media_register_assets")
+	c.AddAlias("media.index_authorized_folder", "media_index_authorized_folder")
+	c.AddAlias("artifact.register_files", "media_register_assets")
+	c.AddAlias("artifact.index_media", "media_index_authorized_folder")
+	c.AddAlias("browser.fetch", "browser_fetch")
+	c.AddAlias("browser.search", "browser_search")
 	c.AddAlias("midi.read_clip_notes", "get_midi_clip_notes")
 	c.AddAlias("midi.import_file", "import_midi_to_track")
 	c.AddAlias("midi.write_clip_notes", "apply_midi_note_patch")
@@ -241,13 +255,58 @@ func (c *Catalog) ModelSummary() string {
 	}
 	var parts []string
 	for _, spec := range c.Commands() {
-		required := "-"
-		if len(spec.RequiredTargetIDs) > 0 {
-			required = strings.Join(spec.RequiredTargetIDs, ",")
-		}
-		parts = append(parts, fmt.Sprintf("%s tool=%s risk=%s required=%s args=%s", spec.CommandName, spec.ToolName, modelRisk(spec), required, argHint(spec.CommandName)))
+		parts = append(parts, modelSummaryLine(spec))
 	}
 	return strings.Join(parts, "\n")
+}
+
+func (c *Catalog) ModelSummaryForTools(toolNames []string) string {
+	if c == nil {
+		return ""
+	}
+	seen := map[string]bool{}
+	var specs []CommandSpec
+	for _, name := range toolNames {
+		name = strings.TrimSpace(name)
+		if name == "" || name == "daw.invoke" {
+			continue
+		}
+		spec, ok := c.LookupTool(name)
+		if !ok {
+			if byCommand, commandOK := c.LookupCommand(name); commandOK {
+				spec = byCommand
+				ok = true
+			}
+		}
+		if !ok {
+			continue
+		}
+		key := spec.CommandName + "\x00" + spec.ToolName
+		if seen[key] {
+			continue
+		}
+		seen[key] = true
+		specs = append(specs, spec)
+	}
+	sort.Slice(specs, func(i, j int) bool {
+		if specs[i].CommandName == specs[j].CommandName {
+			return specs[i].ToolName < specs[j].ToolName
+		}
+		return specs[i].CommandName < specs[j].CommandName
+	})
+	parts := make([]string, 0, len(specs))
+	for _, spec := range specs {
+		parts = append(parts, modelSummaryLine(spec))
+	}
+	return strings.Join(parts, "\n")
+}
+
+func modelSummaryLine(spec CommandSpec) string {
+	required := "-"
+	if len(spec.RequiredTargetIDs) > 0 {
+		required = strings.Join(spec.RequiredTargetIDs, ",")
+	}
+	return fmt.Sprintf("%s tool=%s risk=%s required=%s args=%s", spec.CommandName, spec.ToolName, modelRisk(spec), required, argHint(spec.CommandName))
 }
 
 func modelRisk(spec CommandSpec) string {
@@ -264,6 +323,8 @@ func argHint(commandName string) string {
 	switch commandName {
 	case "rename_track":
 		return "name:string"
+	case "control_rename_macro":
+		return "macro_id:string name:string"
 	case "set_mute":
 		return "mute:boolean"
 	case "set_solo":
@@ -282,6 +343,18 @@ func argHint(commandName string) string {
 		return "enabled:boolean"
 	case "route_wave_input_to_track":
 		return "track_id:string device_id:string"
+	case "artifact_list":
+		return "optional conversation_id:string limit:number"
+	case "artifact_read", "artifact_extract":
+		return "artifact_id:string OR file_path:string optional max_text_runes:number"
+	case "media_register_assets":
+		return "file_paths:string[] OR file_path:string optional media_kind:string title:string limit:number"
+	case "media_index_authorized_folder":
+		return "asset_location:string optional media_kinds:string[] recursive:boolean limit:number"
+	case "browser_fetch":
+		return "url:string optional max_bytes:number timeout_ms:number"
+	case "browser_search":
+		return "query:string optional max_results:number"
 	case "import_audio", "import_media_to_track":
 		return "track_id:string file_path:string optional start_time:number asset_query:string"
 	case "move_clip":
@@ -403,6 +476,9 @@ func domainOf(toolName, category string) string {
 	if category == "project_history" {
 		return "version"
 	}
+	if category == "artifact" {
+		return "artifact"
+	}
 	return "daw"
 }
 
@@ -474,8 +550,15 @@ func defaultSpecs() []CommandSpec {
 		spec("workspace_blob_info", "workspace.blob_info", "workspace", "Inspect hash and metadata for a binary/blob file under an allowed root.", RiskDirect, false, false, false, false),
 		spec("workspace_blob_copy", "workspace.blob_copy", "workspace", "Copy a confirmed binary/blob file between allowed workspace roots.", RiskConfirm, false, false, true, false),
 
+		spec("artifact_list", "artifact.list", "artifact", "List Vit artifacts in the local workspace artifact store.", RiskDirect, false, false, false, false),
+		spec("artifact_read", "artifact.read", "artifact", "Read one Vit artifact by id, including cached extracted text when available.", RiskDirect, false, false, false, false),
+		spec("artifact_extract", "artifact.extract", "artifact", "Extract or refresh a safe text/metadata digest for one Vit artifact.", RiskDirect, false, false, false, false),
+		spec("media_register_assets", "media.register_assets", "artifact", "Register user-authorized local media or document files as Vit artifacts for media pool preview.", RiskDirect, false, false, false, false),
+		spec("media_index_authorized_folder", "media.index_authorized_folder", "artifact", "Index previewable files in a user-authorized local asset folder and register them as Vit artifacts.", RiskDirect, false, false, false, false),
+		spec("browser_fetch", "browser.fetch", "browser", "Fetch a public webpage and store it as a web_page artifact.", RiskDirect, false, false, false, false),
+		spec("browser_search", "browser.search", "browser", "Search the public web and store search results as a browser artifact.", RiskDirect, false, false, false, false),
 		spec("web_search", "web.search", "web", "Search the public web with confirmation and privacy limits.", RiskConfirm, false, false, true, false),
-		spec("web_fetch", "web.fetch", "web", "Fetch a public http/https URL with confirmation and network safety limits.", RiskConfirm, false, false, true, false),
+		spec("web_fetch", "web.fetch", "web", "Fetch a public http/https URL with confirmation and network safety limits; returns bounded text_digest/body_excerpt by default, with raw body only when include_body/raw_body is explicitly set.", RiskConfirm, false, false, true, false),
 		spec("shell_run", "shell.run", "shell", "Run an allowlisted shell command with confirmation.", RiskConfirm, false, false, true, false),
 		spec("agent_rollback_action", "agent.rollback_action", "runtime", "Rollback a journaled agent action through its owning undo domain.", RiskConfirm, false, false, true, true),
 
@@ -492,6 +575,7 @@ func defaultSpecs() []CommandSpec {
 		spec("version_worktree_create", "version.worktree_create", "project_history", "Materialize a local Project History worktree.", RiskConfirm, false, false, true, false),
 		spec("version_worktree_checkout", "version.worktree_checkout", "project_history", "Open a confirmed Project History worktree in this Vit window.", RiskConfirm, false, false, true, true),
 		spec("version_worktree_list", "version.worktree_list", "project_history", "List local Project History worktrees.", RiskDirect, false, false, false, false),
+		spec("version_project_new", "version.project_new", "project_history", "Start a fresh unsaved Project History draft for a new project.", RiskDirect, false, false, false, false),
 		spec("version_project_saved", "version.project_saved", "project_history", "Adopt draft Project History after an unsaved project is saved to a real path.", RiskDirect, false, false, false, false),
 		spec("version_checkout", "version.checkout", "project_history", "Checkout a confirmed Project History branch or checkpoint into the active project folder.", RiskConfirm, false, false, true, true),
 
@@ -516,6 +600,7 @@ func defaultSpecs() []CommandSpec {
 		spec("add_track", "track.add", "track", "Add a new track.", RiskUndoable, true, true, false, true),
 		spec("add_audio_track", "track.add_audio", "track", "Add a new audio track.", RiskUndoable, true, true, false, true),
 		spec("append_ghost_track", "track.append_ghost", "track", "Append a ghost track placeholder.", RiskUndoable, true, true, false, true),
+		spec("select_track", "track.select", "track", "Select a user-visible track in the UI without changing the project.", RiskDirect, false, false, false, false, "track_id"),
 		spec("delete_track", "track.delete", "track", "Delete a track by stable track_id.", RiskConfirm, true, true, true, true, "track_id"),
 		spec("rename_track", "track.rename", "track", "Rename a track by stable track_id.", RiskUndoable, true, true, false, true, "track_id"),
 		spec("set_mute", "track.mute", "track", "Set track mute state.", RiskUndoable, true, true, false, true, "track_id"),
@@ -553,6 +638,7 @@ func defaultSpecs() []CommandSpec {
 		spec("plugin_semantic_get", "plugin.semantic_get", "plugin", "Read one local plugin semantic library entry.", RiskDirect, false, false, false, false),
 		spec("scan_plugins", "plugin.scan", "plugin", "Scan plugin folders and refresh the indexed plugin list.", RiskConfirm, true, false, true, false),
 		spec("instantiate_plugin", "plugin.instantiate", "plugin", "Instantiate a plugin on a track.", RiskConfirm, true, true, true, true, "track_id"),
+		spec("select_plugin", "plugin.select", "plugin", "Select a plugin/rack node in the UI without changing the project.", RiskDirect, false, false, false, false, "track_id", "plugin_id"),
 		spec("open_plugin_ui", "plugin.open", "plugin", "Open a plugin editor window.", RiskDirect, false, false, false, false, "track_id", "plugin_id"),
 		spec("show_plugin_editor", "plugin.show_editor", "plugin", "Open a plugin editor window.", RiskDirect, false, false, false, false, "track_id", "plugin_id"),
 		spec("get_plugin_parameters", "plugin.get_parameters", "plugin", "Read normalized plugin parameter values.", RiskDirect, false, false, false, false, "track_id", "plugin_id"),
@@ -576,8 +662,9 @@ func defaultSpecs() []CommandSpec {
 		spec("control_add_node", "plugin_create_control_graph_node", "plugin_grabber", "Create a control graph node.", RiskConfirm, true, true, true, true),
 		spec("control_update_node", "control.update_node", "control", "Update a control graph node.", RiskConfirm, true, true, true, true),
 		spec("control_remove_node", "control.remove_node", "control", "Remove a control graph node.", RiskConfirm, true, true, true, true),
-		spec("control_add_macro", "plugin_map_macro_to_params", "plugin_grabber", "Create a macro control.", RiskConfirm, true, true, true, true),
-		spec("control_add_binding", "control.add_binding", "control", "Bind a macro/control to a plugin parameter.", RiskConfirm, true, true, true, true),
+		spec("control_add_macro", "plugin_map_macro_to_params", "plugin_grabber", "Create a new macro control only when the user asks to create a new macro.", RiskConfirm, true, true, true, true, "track_id"),
+		spec("control_rename_macro", "control.rename_macro", "control", "Rename an existing macro control by macro_id or visible macro name.", RiskUndoable, true, true, false, true),
+		spec("control_add_binding", "control.add_binding", "control", "Bind an existing macro/control to a plugin parameter; use an existing macro_id from macro_refs or available_macro_controls.", RiskConfirm, true, true, true, true),
 		spec("control_update_binding", "control.update_binding", "control", "Update a control binding.", RiskConfirm, true, true, true, true),
 		spec("control_remove_binding", "control.remove_binding", "control", "Remove a control binding.", RiskConfirm, true, true, true, true),
 		spec("control_set_node_value", "control.set_node_value", "control", "Set a control node value.", RiskUndoable, true, true, false, true),

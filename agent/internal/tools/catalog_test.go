@@ -93,6 +93,27 @@ func TestPluginGrabberAliasIsCataloged(t *testing.T) {
 	if load.CommandName != "rack_add_node" || !load.RequiresConfirmation || load.RiskLevel != RiskConfirm {
 		t.Fatalf("plugin load metadata = %+v", load)
 	}
+	macro, ok := catalog.LookupTool("rack.add_macro")
+	if !ok {
+		t.Fatal("rack.add_macro alias missing")
+	}
+	if macro.CommandName != "control_add_macro" || !macro.RequiresConfirmation || macro.RiskLevel != RiskConfirm {
+		t.Fatalf("macro alias metadata = %+v", macro)
+	}
+	controlMacro, ok := catalog.LookupTool("control.add_macro")
+	if !ok {
+		t.Fatal("control.add_macro alias missing")
+	}
+	if controlMacro.CommandName != "control_add_macro" {
+		t.Fatalf("control macro command = %q, want control_add_macro", controlMacro.CommandName)
+	}
+	renameMacro, ok := catalog.LookupTool("control.rename_macro")
+	if !ok {
+		t.Fatal("control.rename_macro alias missing")
+	}
+	if renameMacro.CommandName != "control_rename_macro" || renameMacro.RequiresConfirmation || renameMacro.RiskLevel != RiskUndoable {
+		t.Fatalf("macro rename metadata = %+v", renameMacro)
+	}
 	profiles, ok := catalog.LookupTool("plugin_grabber.get_project_profiles")
 	if !ok {
 		t.Fatal("plugin_grabber.get_project_profiles missing")
@@ -235,6 +256,7 @@ func TestModelSummaryIncludesToolAndArgumentHints(t *testing.T) {
 	for _, want := range []string{
 		"set_mute tool=track.mute risk=undoable required=track_id args=mute:boolean",
 		"rename_track tool=track.rename risk=undoable required=track_id args=name:string",
+		"control_rename_macro tool=control.rename_macro risk=undoable required=- args=macro_id:string name:string",
 		"delete_track tool=track.delete risk=confirm required=track_id args=track_id:string",
 		"add_midi_notes_bulk tool=midi.legacy_add_notes_bulk risk=confirm required=track_id,clip_id args=clip_id:string optional track_id:string time_unit:beats notes:{pitch:number start:number length|duration:number velocity?:number id?:string}[]",
 		"delete_midi_notes tool=midi.legacy_delete_notes risk=confirm required=track_id,clip_id args=clip_id:string optional track_id:string note_ids:string[]",
@@ -242,6 +264,63 @@ func TestModelSummaryIncludesToolAndArgumentHints(t *testing.T) {
 	} {
 		if !strings.Contains(summary, want) {
 			t.Fatalf("ModelSummary missing %q in:\n%s", want, summary)
+		}
+	}
+}
+
+func TestModelSummaryForToolsFiltersCatalog(t *testing.T) {
+	summary := DefaultCatalog().ModelSummaryForTools([]string{"track.add", "midi.apply_note_patch"})
+	for _, want := range []string{
+		"add_track tool=track.add risk=undoable required=- args=optional name:string",
+		"apply_midi_note_patch tool=midi.apply_note_patch risk=confirm required=clip_id args=clip_id:string optional track_id:string time_unit:beats operations:object[]",
+	} {
+		if !strings.Contains(summary, want) {
+			t.Fatalf("ModelSummaryForTools missing %q in:\n%s", want, summary)
+		}
+	}
+	for _, unwanted := range []string{"plugin_search", "version_checkpoint", "delete_track"} {
+		if strings.Contains(summary, unwanted) {
+			t.Fatalf("ModelSummaryForTools leaked %q in:\n%s", unwanted, summary)
+		}
+	}
+}
+
+func TestModelSummaryForCapabilityPacksIncludesPackGuidance(t *testing.T) {
+	summary := DefaultCatalog().ModelSummaryForCapabilityPacks([]string{"track"}, []string{"track.list", "track.add", "goal.status"})
+	for _, want := range []string{
+		"Capability pack: track",
+		"State slices:",
+		"Preconditions:",
+		"Verification:",
+		"add_track tool=track.add risk=undoable required=- args=optional name:string",
+		"Shared support tools:",
+		"goal_status tool=goal.status",
+	} {
+		if !strings.Contains(summary, want) {
+			t.Fatalf("Capability pack summary missing %q in:\n%s", want, summary)
+		}
+	}
+	for _, unwanted := range []string{"plugin_search", "apply_midi_note_patch"} {
+		if strings.Contains(summary, unwanted) {
+			t.Fatalf("Capability pack summary leaked %q in:\n%s", unwanted, summary)
+		}
+	}
+}
+
+func TestModelSummaryForMediaCapabilityPack(t *testing.T) {
+	summary := DefaultCatalog().ModelSummaryForCapabilityPacks([]string{"media"}, []string{
+		"artifact.list",
+		"media.register_assets",
+		"media.index_authorized_folder",
+	})
+	for _, want := range []string{
+		"Capability pack: media",
+		"media_register_assets tool=media.register_assets",
+		"media_index_authorized_folder tool=media.index_authorized_folder",
+		"clickable preview cards",
+	} {
+		if !strings.Contains(summary, want) {
+			t.Fatalf("media capability summary missing %q in:\n%s", want, summary)
 		}
 	}
 }

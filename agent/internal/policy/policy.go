@@ -43,6 +43,11 @@ var directCommands = map[string]bool{
 	"plugin_grabber_get_project_profiles":   true,
 	"plugin_list_available":                 true,
 	"plugin_search":                         true,
+	"artifact_list":                         true,
+	"artifact_read":                         true,
+	"artifact_extract":                      true,
+	"browser_fetch":                         true,
+	"browser_search":                        true,
 	"transport_option_stop_return_to_start": true,
 }
 
@@ -62,7 +67,7 @@ func Classify(cmd map[string]any) Decision {
 				Command: cmd,
 				Name:    toolName,
 				Risk:    RiskConfirm,
-				Reason:  "unknown tool requires preview confirmation by agent policy",
+				Reason:  "未知工具需要先预览并确认",
 			}
 		}
 	}
@@ -71,10 +76,13 @@ func Classify(cmd map[string]any) Decision {
 			Command: cmd,
 			Name:    "",
 			Risk:    RiskConfirm,
-			Reason:  "missing cmd/action/command field",
+			Reason:  "缺少 cmd/action/command 字段",
 		}
 	}
 	if spec, ok := catalog.LookupCommand(name); ok {
+		return decisionForSpec(cmd, spec)
+	}
+	if spec, ok := catalog.LookupTool(name); ok {
 		return decisionForSpec(cmd, spec)
 	}
 	if directCommands[name] {
@@ -82,26 +90,26 @@ func Classify(cmd map[string]any) Decision {
 			Command: cmd,
 			Name:    name,
 			Risk:    RiskDirect,
-			Reason:  "read-only or low-risk transport command",
+			Reason:  "只读或低风险操作",
 		}
 	}
 	return Decision{
 		Command: cmd,
 		Name:    name,
 		Risk:    RiskConfirm,
-		Reason:  "command can mutate the DAW project or has unknown risk",
+		Reason:  "该命令可能修改 DAW 工程或风险未知",
 	}
 }
 
 func decisionForSpec(cmd map[string]any, spec tools.CommandSpec) Decision {
 	risk := RiskDirect
-	reason := "read-only or low-risk command"
+	reason := "只读或低风险操作"
 	if spec.RequiresConfirmation || spec.RiskLevel == tools.RiskConfirm {
 		risk = RiskConfirm
-		reason = "command requires preview confirmation by agent policy"
+		reason = "该命令需要先预览并确认"
 	} else if spec.RiskLevel == tools.RiskUndoable {
 		risk = RiskUndoable
-		reason = "small project edit; direct execution is allowed and undo is available"
+		reason = "小型工程编辑，可直接执行并支持撤销"
 	}
 	return Decision{
 		Command: cmd,

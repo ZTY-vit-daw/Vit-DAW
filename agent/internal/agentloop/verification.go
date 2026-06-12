@@ -17,6 +17,7 @@ const (
 	verificationPendingConfirmation           = "not_executed_pending_confirmation"
 	postconditionTrackPresent                 = "track_present"
 	postconditionClipPresent                  = "clip_present"
+	postconditionMIDINotesPresent             = "midi_notes_present"
 	postconditionRackNodePresent              = "rack_node_present"
 	postconditionNoObservableDawPostcondition = "no_observable_daw_postcondition"
 )
@@ -55,6 +56,8 @@ func verifyToolExecution(call planner.ToolCall, result executorpkg.Result) plann
 		return verifyTrackPresent(ver, call, result)
 	case postconditionClipPresent:
 		return verifyClipPresent(ver, call, result)
+	case postconditionMIDINotesPresent:
+		return verifyMIDINotesPresent(ver, call, result)
 	case postconditionRackNodePresent:
 		return verifyRackNodePresent(ver, call, result)
 	default:
@@ -72,6 +75,12 @@ func postconditionFor(call planner.ToolCall, result executorpkg.Result) string {
 	case "create_midi_clip", "insert_midi_clip", "import_midi_to_track", "midi.create_clip", "midi.insert_clip", "midi.import_file",
 		"import_audio", "import_media_to_track", "add_audio_clip", "clip.import_audio", "clip.import_media_to_track", "clip.add_audio":
 		return postconditionClipPresent
+	case "apply_midi_note_patch", "midi.apply_note_patch", "add_midi_notes", "add_midi_notes_bulk", "midi.add_notes", "midi.add_notes_bulk",
+		"midi.legacy_add_notes", "midi.legacy_add_notes_bulk":
+		if midiNoteInsertionExpected(call, result) {
+			return postconditionMIDINotesPresent
+		}
+		return postconditionNoObservableDawPostcondition
 	case "rack_add_node", "rack.add_node", "plugin.load_to_rack":
 		return postconditionRackNodePresent
 	default:
@@ -173,6 +182,57 @@ func verifyClipPresent(ver planner.VerificationResult, call planner.ToolCall, re
 	}
 	ver.Status = verificationUnverified
 	ver.Message = "refreshed project state does not contain the expected clip"
+	return ver
+}
+
+func verifyMIDINotesPresent(ver planner.VerificationResult, call planner.ToolCall, result executorpkg.Result) planner.VerificationResult {
+	clipID := firstNonEmpty(
+		firstMapText(result.Result, "clip_id", "id", "item_id"),
+		firstMapText(call.Args, "clip_id", "selected_clip_id", "primary_selected_clip_id"),
+	)
+	trackID := firstNonEmpty(
+		firstMapText(result.Result, "track_id", "target_track_id", "selected_track_id"),
+		firstMapText(call.Args, "track_id", "target_track_id", "selected_track_id"),
+	)
+	expectedIDs := noteIDsFromAny(result.Result["inserted_note_ids"])
+	if len(expectedIDs) == 0 {
+		expectedIDs = noteIDsFromAny(result.Result["note_ids"])
+	}
+	expectedCount := firstPositiveMapInt(result.Result, "inserted_count", "added_count", "written_count", "note_count")
+	if expectedCount == 0 {
+		expectedCount = expectedInsertedMIDINoteCount(call)
+	}
+	if expectedCount == 0 && len(expectedIDs) > 0 {
+		expectedCount = len(expectedIDs)
+	}
+	observedNotes := stateClipNotes(result.ObservedState, trackID, clipID)
+	ver.Evidence["expected_track_id"] = trackID
+	ver.Evidence["expected_clip_id"] = clipID
+	ver.Evidence["expected_inserted_count"] = expectedCount
+	ver.Evidence["expected_note_ids"] = expectedIDs
+	ver.Evidence["observed_note_count"] = len(observedNotes)
+	if len(result.ObservedState) == 0 {
+		ver.Status = verificationUnverified
+		ver.Message = "could not observe refreshed project state after MIDI note write"
+		return ver
+	}
+	if clipID != "" && len(observedNotes) == 0 && !stateHasClip(result.ObservedState, trackID, clipID) {
+		ver.Status = verificationUnverified
+		ver.Message = "refreshed project state does not contain the MIDI clip targeted by the note write"
+		return ver
+	}
+	if len(expectedIDs) > 0 && observedNotesContainIDs(observedNotes, expectedIDs) {
+		ver.Status = verificationVerified
+		ver.Message = fmt.Sprintf("observed %d inserted MIDI notes in refreshed project state", len(expectedIDs))
+		return ver
+	}
+	if expectedCount > 0 && len(observedNotes) >= expectedCount {
+		ver.Status = verificationVerified
+		ver.Message = fmt.Sprintf("observed %d MIDI notes in refreshed project state", len(observedNotes))
+		return ver
+	}
+	ver.Status = verificationUnverified
+	ver.Message = "refreshed project state does not show the expected MIDI notes"
 	return ver
 }
 
@@ -384,6 +444,136 @@ func stateClips(state map[string]any, trackID string) []map[string]any {
 		}
 	}
 	return out
+}
+
+func stateHasClip(state map[string]any, trackID, clipID string) bool {
+	if clipID == "" {
+		return false
+	}
+	for _, clip := range stateClips(state, trackID) {
+		if firstMapText(clip, "clip_id", "id", "item_id") == clipID {
+			return true
+		}
+	}
+	return false
+}
+
+func stateClipNotes(state map[string]any, trackID, clipID string) []map[string]any {
+	for _, clip := range stateClips(state, trackID) {
+		observedID := firstMapText(clip, "clip_id", "id", "item_id")
+		if clipID != "" && observedID != clipID {
+			continue
+		}
+		notes := mapRows(clip["notes"])
+		if len(notes) == 0 {
+			notes = mapRows(clip["midi_notes"])
+		}
+		if len(notes) > 0 || clipID != "" {
+			return notes
+		}
+	}
+	return nil
+}
+
+func observedNotesContainIDs(notes []map[string]any, expected []string) bool {
+	if len(expected) == 0 {
+		return false
+	}
+	seen := map[string]bool{}
+	for _, note := range notes {
+		if id := firstMapText(note, "id", "note_id", "vit_note_id", "uid"); id != "" {
+			seen[id] = true
+		}
+	}
+	for _, id := range expected {
+		if !seen[id] {
+			return false
+		}
+	}
+	return true
+}
+
+func midiNoteInsertionExpected(call planner.ToolCall, result executorpkg.Result) bool {
+	if firstPositiveMapInt(result.Result, "inserted_count", "added_count", "written_count") > 0 {
+		return true
+	}
+	if len(noteIDsFromAny(result.Result["inserted_note_ids"])) > 0 {
+		return true
+	}
+	return expectedInsertedMIDINoteCount(call) > 0
+}
+
+func expectedInsertedMIDINoteCount(call planner.ToolCall) int {
+	if notes := mapRows(call.Args["notes"]); len(notes) > 0 {
+		return len(notes)
+	}
+	count := 0
+	for _, op := range mapRows(call.Args["operations"]) {
+		opName := strings.ToLower(strings.TrimSpace(firstMapText(op, "op", "type", "operation", "action")))
+		switch opName {
+		case "insert_note", "add_note":
+			count++
+		case "replace_region":
+			count += len(mapRows(op["notes"]))
+		}
+	}
+	return count
+}
+
+func noteIDsFromAny(value any) []string {
+	switch typed := value.(type) {
+	case []string:
+		out := make([]string, 0, len(typed))
+		for _, id := range typed {
+			if id = strings.TrimSpace(id); id != "" {
+				out = append(out, id)
+			}
+		}
+		return out
+	case []any:
+		out := make([]string, 0, len(typed))
+		for _, value := range typed {
+			id := strings.TrimSpace(fmt.Sprint(value))
+			if id != "" && id != "<nil>" {
+				out = append(out, id)
+			}
+		}
+		return out
+	default:
+		return nil
+	}
+}
+
+func firstPositiveMapInt(row map[string]any, keys ...string) int {
+	for _, key := range keys {
+		if row == nil {
+			return 0
+		}
+		value, ok := row[key]
+		if !ok || isEmptyVerificationValue(value) {
+			continue
+		}
+		switch v := value.(type) {
+		case int:
+			if v > 0 {
+				return v
+			}
+		case int64:
+			if v > 0 {
+				return int(v)
+			}
+		case float64:
+			if v > 0 {
+				return int(v)
+			}
+		default:
+			var n int
+			if _, err := fmt.Sscanf(strings.TrimSpace(fmt.Sprint(value)), "%d", &n); err == nil && n > 0 {
+				return n
+			}
+		}
+	}
+	return 0
 }
 
 func firstMap(row map[string]any, keys ...string) map[string]any {

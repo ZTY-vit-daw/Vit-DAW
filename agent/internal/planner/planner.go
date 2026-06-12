@@ -9,6 +9,7 @@ import (
 
 	"vit-daw-agent/internal/config"
 	"vit-daw-agent/internal/llm"
+	"vit-daw-agent/internal/promptruntime"
 )
 
 type ToolCall struct {
@@ -107,7 +108,16 @@ func (p LLMPlanner) Next(ctx context.Context, in Input) (Output, error) {
 	if !p.Config.Complete() {
 		return Output{}, fmt.Errorf("planner LLM config incomplete")
 	}
-	raw, err := client.Complete(ctx, p.Config, p.messages(in))
+	assembly := p.assembly(in)
+	raw, err := llm.CompleteText(ctx, client, p.Config, llm.Request{
+		Messages: assembly.Messages,
+		Metadata: llm.RequestMetadata{
+			Source:            "planner",
+			GoalID:            in.GoalID,
+			PromptFingerprint: assembly.Fingerprint,
+			PromptStats:       assembly.Stats.Map(),
+		},
+	})
 	if err != nil {
 		return Output{}, err
 	}
@@ -127,6 +137,10 @@ func (p LLMPlanner) Next(ctx context.Context, in Input) (Output, error) {
 }
 
 func (p LLMPlanner) messages(in Input) []llm.Message {
+	return p.assembly(in).Messages
+}
+
+func (p LLMPlanner) assembly(in Input) promptruntime.Assembly {
 	allowed := append([]string(nil), in.AllowedTools...)
 	sort.Strings(allowed)
 	state, _ := json.MarshalIndent(compactValue(in.State), "", "  ")
@@ -167,7 +181,7 @@ Rules:
 - Do not use plugin.instantiate for normal plugin loading; use it only when the user explicitly asks for a track-level plugin outside the rack.
 - If the user asks to load multiple plugin types, such as EQ and reverb, plan every requested plugin. Do not stop after loading or confirming only the first one.
 - For runtime acoustic plugin adjustments on an already loaded/learned plugin, such as cutting mud near 500Hz, boosting presence, or reducing harshness, use plugin_grabber.apply_control with control eq.cut_region/eq.boost_region/eq.set_region and target freq_hz/gain_db/q when known. Do not use plugin.set_parameter/set_plugin_param for acoustic targets unless the user explicitly gives an exact param_id and raw value.
-- For explicit one-parameter plugin control where the user names a concrete param_id and display value/unit, and get_plugin_parameters display_probe evidence is high confidence, plugin.set_parameter may use value_text such as "1000 ms" or "28 percent" without a saved Plugin Grabber profile. Long-term semantic control, multi-parameter control, and automatic mixing still require a learned skill/profile.
+- For explicit one-parameter plugin control where the user names a concrete param_id and display value/unit, and get_plugin_parameters display_probe evidence is high confidence, plugin.set_parameter may use value_text such as "1000 ms" or "28 percent" without a saved Plugin Skill. Long-term semantic control, multi-parameter control, and automatic mixing still require a learned Plugin Skill.
 
 Available tool catalog:
 %s
@@ -180,7 +194,14 @@ Allowed tools:
 	} else {
 		user = fmt.Sprintf("Goal: %s\nGoalID: %s\nRunID: %s\nRemaining tool calls this run: %d\nCurrent plan items JSON:\n%s\nSelected/context JSON:\n%s\nCurrent DAW state JSON:\n%s\nPrior trace JSON:\n%s", strings.TrimSpace(in.UserText), in.GoalID, in.RunID, in.MaxToolCallsRemaining, string(planItems), string(ctx), string(state), string(trace))
 	}
-	return []llm.Message{{Role: "system", Content: system}, {Role: "user", Content: user}}
+	return promptruntime.Build(promptruntime.AssemblyInput{
+		SystemSections: []promptruntime.Section{
+			promptruntime.TextSection(promptruntime.SectionStatic, "planner_system", "", system, true),
+		},
+		UserSections: []promptruntime.Section{
+			promptruntime.TextSection(promptruntime.SectionRuntime, "planner_runtime", "", user, false),
+		},
+	})
 }
 
 func ParseOutput(raw string) (Output, error) {

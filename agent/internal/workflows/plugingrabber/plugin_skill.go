@@ -384,13 +384,13 @@ func pluginSkillParamMapping(paramID, label, source string, confidence float64) 
 		Source:     strings.TrimSpace(source),
 		Confidence: confidence,
 		Evidence: []PluginEvidence{{
-			Kind:    "profile_patch",
-			Summary: "Generated from a plugin grabber profile patch.",
+			Kind:    "plugin_skill_learning",
+			Summary: "Generated from a Plugin Skill learning draft.",
 		}},
 		Provenance: []PluginProvenance{{
 			Kind:    source,
 			Source:  source,
-			Summary: "Generated from a plugin grabber profile patch.",
+			Summary: "Generated from a Plugin Skill learning draft.",
 		}},
 	}
 	mapping.Status = pluginSkillStatusFromAny(nil, mapping)

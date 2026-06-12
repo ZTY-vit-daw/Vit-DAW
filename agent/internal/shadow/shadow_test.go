@@ -1,6 +1,9 @@
 package shadow
 
-import "testing"
+import (
+	"math"
+	"testing"
+)
 
 func TestShadowInitializeAndDelta(t *testing.T) {
 	p := New(nil)
@@ -57,7 +60,19 @@ func TestSummaryHidesInternalTracktionTracks(t *testing.T) {
 			map[string]any{"track_id": "1004", "track_name": "Marker", "track_type": "track", "is_audio_track": false},
 			map[string]any{"track_id": "1005", "track_name": "Tempo", "track_type": "track", "is_audio_track": false},
 			map[string]any{"track_id": "1006", "track_name": "Master", "track_type": "master", "is_audio_track": false},
-			map[string]any{"track_id": "1007", "track_name": "Track 1", "track_type": "hybrid", "is_audio_track": true, "mute": true, "solo": false, "is_armed": true},
+			map[string]any{
+				"track_id":       "1007",
+				"track_name":     "Track 1",
+				"track_type":     "hybrid",
+				"is_audio_track": true,
+				"mute":           true,
+				"solo":           false,
+				"is_armed":       true,
+				"gain_db":        -3.5,
+				"level_db":       -18.25,
+				"left_level_db":  -20.0,
+				"right_level_db": -18.25,
+			},
 		},
 	})
 
@@ -78,9 +93,129 @@ func TestSummaryHidesInternalTracktionTracks(t *testing.T) {
 	if tracks[0]["mute"] != true || tracks[0]["solo"] != false || tracks[0]["is_armed"] != true {
 		t.Fatalf("visible track state flags = %+v", tracks[0])
 	}
+	if tracks[0]["gain_db"] != -3.5 || tracks[0]["level_db"] != -18.25 || tracks[0]["right_level_db"] != -18.25 {
+		t.Fatalf("visible track mixer fields = %+v", tracks[0])
+	}
 	observability := summary["observability"].(map[string]any)
 	profile := observability["profile"].(map[string]any)
 	if got := profile["track_count"]; got != 1 {
 		t.Fatalf("observability profile track_count = %#v, want 1", got)
+	}
+}
+
+func TestSummaryOverlaysTrackVolumePluginDelta(t *testing.T) {
+	p := New(nil)
+	p.Initialize(map[string]any{
+		"status": "ok",
+		"tracks": []any{
+			map[string]any{
+				"track_id":       "1007",
+				"track_name":     "Track 1",
+				"track_type":     "hybrid",
+				"is_audio_track": true,
+				"plugins": []any{
+					map[string]any{"plugin_item_id": "1008", "name": "Volume & Pan", "type": "volume"},
+				},
+			},
+		},
+	})
+	p.ApplyDelta(map[string]any{
+		"type":       "delta_update",
+		"seq_id":     float64(1),
+		"target_uid": "1008",
+		"action":     "property_changed:volume",
+		"value":      math.Exp((-4.9 - 6) / 20),
+	})
+
+	summary := p.Summary()
+	tracks := summary["tracks"].([]map[string]any)
+	got, ok := tracks[0]["volume_db"].(float64)
+	if !ok || math.Abs(got-(-4.9)) > 0.001 {
+		t.Fatalf("volume_db = %#v, want -4.9 dB", tracks[0]["volume_db"])
+	}
+	if tracks[0]["gain_db"] != tracks[0]["volume_db"] || tracks[0]["fader_db"] != tracks[0]["volume_db"] {
+		t.Fatalf("volume aliases not overlaid: %+v", tracks[0])
+	}
+}
+
+func TestInitializeRetainsTrackVolumePluginDeltaForSameSnapshot(t *testing.T) {
+	p := New(nil)
+	snapshot := map[string]any{
+		"status":       "ok",
+		"project_path": "D:/song/demo.vit",
+		"tracks": []any{
+			map[string]any{
+				"track_id":       "1007",
+				"track_name":     "Track 1",
+				"track_type":     "hybrid",
+				"is_audio_track": true,
+				"plugins": []any{
+					map[string]any{"plugin_item_id": "1008", "name": "Volume & Pan", "type": "volume"},
+				},
+			},
+		},
+	}
+	p.Initialize(snapshot)
+	p.ApplyDelta(map[string]any{
+		"type":       "delta_update",
+		"seq_id":     float64(1),
+		"target_uid": "1008",
+		"action":     "property_changed:volume",
+		"value":      math.Exp((-8.25 - 6) / 20),
+	})
+	p.Initialize(snapshot)
+
+	summary := p.Summary()
+	tracks := summary["tracks"].([]map[string]any)
+	got, ok := tracks[0]["volume_db"].(float64)
+	if !ok || math.Abs(got-(-8.25)) > 0.001 {
+		t.Fatalf("retained volume_db = %#v, want -8.25 dB", tracks[0]["volume_db"])
+	}
+}
+
+func TestInitializeDropsTrackVolumePluginDeltaForDifferentProject(t *testing.T) {
+	p := New(nil)
+	p.Initialize(map[string]any{
+		"status":       "ok",
+		"project_path": "D:/song/old.vit",
+		"tracks": []any{
+			map[string]any{
+				"track_id":       "1007",
+				"track_name":     "Track 1",
+				"track_type":     "hybrid",
+				"is_audio_track": true,
+				"plugins": []any{
+					map[string]any{"plugin_item_id": "1008", "name": "Volume & Pan", "type": "volume"},
+				},
+			},
+		},
+	})
+	p.ApplyDelta(map[string]any{
+		"type":       "delta_update",
+		"seq_id":     float64(1),
+		"target_uid": "1008",
+		"action":     "property_changed:volume",
+		"value":      math.Exp((-8.25 - 6) / 20),
+	})
+	p.Initialize(map[string]any{
+		"status":       "ok",
+		"project_path": "D:/song/new.vit",
+		"tracks": []any{
+			map[string]any{
+				"track_id":       "1007",
+				"track_name":     "Track 1",
+				"track_type":     "hybrid",
+				"is_audio_track": true,
+				"plugins": []any{
+					map[string]any{"plugin_item_id": "1008", "name": "Volume & Pan", "type": "volume"},
+				},
+			},
+		},
+	})
+
+	summary := p.Summary()
+	tracks := summary["tracks"].([]map[string]any)
+	if tracks[0]["volume_db"] != nil {
+		t.Fatalf("volume delta leaked across projects: %+v", tracks[0])
 	}
 }

@@ -339,7 +339,7 @@ func TestRunnerRejectsUnknownToolAsToolResult(t *testing.T) {
 	if res.Status != agentruntime.StatusCompleted || len(fe.inputs) != 0 {
 		t.Fatalf("result=%+v executor calls=%d", res, len(fe.inputs))
 	}
-	if len(fp.inputs) < 2 || !strings.Contains(traceText(fp.inputs[1].Trace), "unknown or disallowed tool") {
+	if len(fp.inputs) < 2 || !strings.Contains(traceText(fp.inputs[1].Trace), "未知或不允许的工具") {
 		t.Fatalf("planner trace missing unknown tool error: %+v", fp.inputs)
 	}
 }
