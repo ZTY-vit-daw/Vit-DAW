@@ -96,7 +96,7 @@ func TestMixSessionEntryPlanModeDoesNotCreateSession(t *testing.T) {
 	}
 }
 
-func TestMixSessionConfirmStoresReadyForObservation(t *testing.T) {
+func TestMixSessionConfirmStartsPlanningDiscussionWithoutMixBoard(t *testing.T) {
 	t.Setenv("VIT_MIXBOARD_ROOT", t.TempDir())
 	server := New(nil, nil, nil)
 	session := pendingMixSession(mixModeCo, MixTargetRef{Kind: "track", ID: "track_1", Label: "Vocal", Source: "current_selection", Confidence: "high"}, "一起混这条轨")
@@ -121,14 +121,371 @@ func TestMixSessionConfirmStoresReadyForObservation(t *testing.T) {
 	if !ok {
 		t.Fatal("confirmed mix session was not stored")
 	}
-	if stored.State != mixStateObservationUnavailable {
+	if stored.State != mixStatePreparing {
 		t.Fatalf("state = %q", stored.State)
 	}
-	if stored.BlockingPoint == "" {
-		t.Fatalf("blocking point should explain observation gap: %#v", stored)
+	if stored.InteractionPhase != mixInteractionPlanningChat || stored.MixBoardVisibility != mixBoardVisibilityCollapsed {
+		t.Fatalf("planning protocol = %#v", stored)
 	}
 	if len(mapValue(resp.WorkflowData["mix_observation"])) == 0 {
-		t.Fatalf("workflow data should include mix_observation: %#v", resp.WorkflowData)
+		// No visible/internal MixBoard observation should be created before the user
+		// explicitly publishes the control surface from planning discussion.
+	} else {
+		t.Fatalf("confirm should not publish MixBoard observation: %#v", resp.WorkflowData["mix_observation"])
+	}
+	if resp.CurrentStep != mixInteractionPlanningChat {
+		t.Fatalf("current step = %q", resp.CurrentStep)
+	}
+	if len(resp.InteractionRequests) != 1 || resp.InteractionRequests[0].Type != "mix_planning_discussion" {
+		t.Fatalf("interaction requests = %#v", resp.InteractionRequests)
+	}
+	prep := mapValue(resp.WorkflowData["mix_planner_prep"])
+	if cleanContextText(prep["schema_version"]) != mixPlannerPrepSchemaVersion || boolValue(prep["ready_to_publish_mixboard"]) {
+		t.Fatalf("planner prep = %#v", prep)
+	}
+	if len(resp.InteractionRequests[0].Fields) != 0 {
+		t.Fatalf("planning card should be a readonly workspace summary, fields=%#v", resp.InteractionRequests[0].Fields)
+	}
+	workspace := mapValue(resp.WorkflowData["mix_planning_workspace"])
+	if cleanContextText(workspace["schema_version"]) != mixPlanningWorkspaceSchemaVersion {
+		t.Fatalf("workspace = %#v", workspace)
+	}
+	if items := resp.InteractionRequests[0].ReviewItems; len(items) == 0 {
+		t.Fatalf("planner summary items missing: %#v", resp.InteractionRequests[0])
+	}
+	actionIDs := map[string]bool{}
+	for _, action := range resp.InteractionRequests[0].Actions {
+		actionIDs[action.ID] = true
+		if action.ID == "publish_mixboard" && action.Recommended {
+			t.Fatalf("publish should not be recommended before planner prep is ready: %#v", resp.InteractionRequests[0].Actions)
+		}
+	}
+	if !actionIDs["advance_mix_planner"] || actionIDs["publish_mixboard"] {
+		t.Fatalf("planner actions = %#v", resp.InteractionRequests[0].Actions)
+	}
+}
+
+func TestPublishMixBoardBlockedUntilPlannerPrepReady(t *testing.T) {
+	server := New(nil, nil, nil)
+	session := pendingMixSession(mixModeAuto, MixTargetRef{Kind: "track", ID: "track_1", Label: "Vocal", Confidence: "high"}, "balance vocal")
+	session.State = mixStatePreparing
+	session.InteractionPhase = mixInteractionPlanningChat
+	session.MixBoardVisibility = mixBoardVisibilityCollapsed
+	data := mixSessionWorkflowData("conv_mix", "goal_1", "run_1", map[string]any{}, session)
+	data["mix_planner_prep"] = initialMixPlannerPrep(session, map[string]any{})
+	interaction := PendingInteraction{
+		ConversationID: "conv_mix",
+		GoalID:         "goal_1",
+		RunID:          "run_1",
+		Payload:        data,
+		Data:           data,
+	}
+
+	resp := server.continueMixSessionInteraction(context.Background(), interaction, nil, "publish_mixboard")
+	if resp.CurrentStep != mixInteractionPlanningChat {
+		t.Fatalf("current step = %q", resp.CurrentStep)
+	}
+	if cleanContextText(mapValue(resp.MixSession)["mixboard_visibility"]) != mixBoardVisibilityCollapsed {
+		t.Fatalf("mix session = %#v", resp.MixSession)
+	}
+	if len(mapValue(resp.WorkflowData["mix_observation"])) != 0 {
+		t.Fatalf("publish should not request observation or create MixBoard before prep is ready: %#v", resp.WorkflowData["mix_observation"])
+	}
+	prep := mapValue(resp.WorkflowData["mix_planner_prep"])
+	if boolValue(prep["ready_to_publish_mixboard"]) || cleanContextText(prep["next_question"]) == "" {
+		t.Fatalf("planner prep = %#v", prep)
+	}
+	if len(resp.InteractionRequests) != 1 || resp.InteractionRequests[0].Type != "mix_planning_discussion" {
+		t.Fatalf("interaction requests = %#v", resp.InteractionRequests)
+	}
+}
+
+func TestMixPlannerIntakeActionsGateMixBoardPublish(t *testing.T) {
+	session := pendingMixSession(mixModeCo, MixTargetRef{Kind: "track", ID: "track_1", Label: "Vocal", Confidence: "high"}, "clean vocal")
+	prep := initialMixPlannerPrep(session, map[string]any{})
+	if boolValue(prep["ready_to_publish_mixboard"]) {
+		t.Fatalf("initial prep should not be ready: %#v", prep)
+	}
+	for _, action := range mixPlannerInteractionActions(prep) {
+		if action.ID == "publish_mixboard" {
+			t.Fatalf("publish action should be hidden before intake is complete: %#v", mixPlannerInteractionActions(prep))
+		}
+	}
+	absorbMixPlannerAnswers(prep, &session, map[string]any{
+		"fields": map[string]any{
+			"goal_detail":        "clean low mids and keep the vocal forward",
+			"allow_plugin_loads": true,
+		},
+	})
+	updateMixPlannerPrepDerived(prep, session)
+	if missing := mixPlannerMissingInputs(prep); len(missing) == 0 || missing[0] != "workspace_plugin_types" {
+		t.Fatalf("missing inputs = %#v prep=%#v", missing, prep)
+	}
+	if cleanContextText(prep["stage"]) != "plan_drafting" {
+		t.Fatalf("stage = %#v", prep)
+	}
+	actions := mixPlannerInteractionActions(prep)
+	for _, action := range actions {
+		if action.ID == "publish_mixboard" || action.ID == "confirm_mix_planner_plan" {
+			t.Fatalf("publish/confirm actions should be hidden until workspace is complete: %#v", actions)
+		}
+	}
+	prep["plugin_candidates"] = []map[string]any{{"name": "TDR Nova"}}
+	prep["skill_profile_status"] = map[string]any{"profile_status": mixcontrolsurface.ProfileReady, "next_action": "confirm_control_surface"}
+	prep["macro_panel_draft"] = map[string]any{"controls": []map[string]any{{"name": "Track volume", "control": "track.volume"}}}
+	prep["proposed_controls"] = []map[string]any{{"name": "track volume"}}
+	updateMixPlannerPrepDerived(prep, session)
+	if missing := mixPlannerMissingInputs(prep); len(missing) == 0 || missing[0] != "workspace_plugin_types" {
+		t.Fatalf("draft values should still require discussion acceptance, missing=%#v prep=%#v", missing, prep)
+	}
+	for _, action := range mixPlannerInteractionActions(prep) {
+		if action.ID == "publish_mixboard" || action.ID == "confirm_mix_planner_plan" {
+			t.Fatalf("publish/confirm actions should be hidden for unaccepted drafts: %#v", mixPlannerInteractionActions(prep))
+		}
+	}
+	mixPlannerAcceptAllDraftSlots(prep)
+	updateMixPlannerPrepDerived(prep, session)
+	if missing := mixPlannerMissingInputs(prep); len(missing) != 1 || missing[0] != "publish_mixboard_confirmed" {
+		t.Fatalf("missing after workspace complete = %#v prep=%#v", missing, prep)
+	}
+	if !boolValue(prep["publish_mixboard_prompted"]) || boolValue(prep["ready_to_publish_mixboard"]) {
+		t.Fatalf("publish gate should prompt but not publish: %#v", prep)
+	}
+	actions = mixPlannerInteractionActions(prep)
+	foundConfirm := false
+	for _, action := range actions {
+		if action.ID == "confirm_mix_planner_plan" && action.Recommended {
+			foundConfirm = true
+		}
+		if action.ID == "publish_mixboard" {
+			t.Fatalf("publish action should be hidden before user confirms generation: %#v", actions)
+		}
+	}
+	if !foundConfirm {
+		t.Fatalf("actions = %#v", actions)
+	}
+	absorbMixPlannerAnswers(prep, &session, map[string]any{"message": "还不行"})
+	updateMixPlannerPrepDerived(prep, session)
+	if missing := mixPlannerMissingInputs(prep); len(missing) != 1 || missing[0] != "planner_revision_note" {
+		t.Fatalf("rejecting publish should enter revision, missing=%#v prep=%#v", missing, prep)
+	}
+	actions = mixPlannerInteractionActions(prep)
+	for _, action := range actions {
+		if action.ID == "publish_mixboard" || action.ID == "confirm_mix_planner_plan" {
+			t.Fatalf("publish/confirm actions should be hidden during revision: %#v", actions)
+		}
+	}
+	absorbMixPlannerAnswers(prep, &session, map[string]any{"message": "由你决定"})
+	updateMixPlannerPrepDerived(prep, session)
+	if missing := mixPlannerMissingInputs(prep); len(missing) != 1 || missing[0] != "publish_mixboard_confirmed" {
+		t.Fatalf("revision should return to publish confirmation after new input, missing=%#v prep=%#v", missing, prep)
+	}
+	absorbMixPlannerAnswers(prep, &session, map[string]any{"message": "可以"})
+	updateMixPlannerPrepDerived(prep, session)
+	if missing := mixPlannerMissingInputs(prep); len(missing) != 0 {
+		t.Fatalf("missing after publish confirm = %#v prep=%#v", missing, prep)
+	}
+	actions = mixPlannerInteractionActions(prep)
+	foundPublish := false
+	for _, action := range actions {
+		if action.ID == "publish_mixboard" && action.Recommended {
+			foundPublish = true
+		}
+	}
+	if !foundPublish {
+		t.Fatalf("actions = %#v", actions)
+	}
+}
+
+func TestMixPlannerChatAbsorbsMainChatDirectionAndDelegation(t *testing.T) {
+	session := pendingMixSession(mixModeAuto, MixTargetRef{Kind: "track", ID: "track_1", Label: "Vocal", Confidence: "high"}, "auto mix")
+	prep := initialMixPlannerPrep(session, map[string]any{})
+
+	absorbMixPlannerAnswers(prep, &session, map[string]any{"message": "提升响度"})
+	updateMixPlannerPrepDerived(prep, session)
+	if got := cleanContextText(prep["goal_detail"]); got != "提升响度" {
+		t.Fatalf("goal_detail = %q prep=%#v", got, prep)
+	}
+
+	absorbMixPlannerAnswers(prep, &session, map[string]any{"message": "由你决定"})
+	updateMixPlannerPrepDerived(prep, session)
+	if cleanContextText(prep["planner_autonomy"]) != "agent_decides" || !boolValue(prep["allow_plugin_loads"]) {
+		t.Fatalf("delegation was not captured: %#v", prep)
+	}
+	if boolValue(prep["planner_plan_confirmed"]) {
+		t.Fatalf("delegation should not confirm publishing the plan: %#v", prep)
+	}
+	if cleanContextText(prep["stage"]) != "plan_drafting" {
+		t.Fatalf("stage = %#v", prep)
+	}
+}
+
+func TestMixPlannerQuestionDoesNotOverwriteGoal(t *testing.T) {
+	session := pendingMixSession(mixModeAuto, MixTargetRef{Kind: "track", ID: "track_1", Label: "Vocal", Confidence: "high"}, "auto mix")
+	prep := initialMixPlannerPrep(session, map[string]any{})
+	absorbMixPlannerAnswers(prep, &session, map[string]any{"message": "提升响度"})
+	updateMixPlannerPrepDerived(prep, session)
+	absorbMixPlannerAnswers(prep, &session, map[string]any{"message": "有什么插件推荐？"})
+	updateMixPlannerPrepDerived(prep, session)
+	if got := cleanContextText(prep["goal_detail"]); got != "提升响度" {
+		t.Fatalf("plugin recommendation question should not overwrite goal, got %q prep=%#v", got, prep)
+	}
+	if got := cleanContextText(prep["last_user_intent"]); got != "ask_plugin_recommendation" {
+		t.Fatalf("intent = %q prep=%#v", got, prep)
+	}
+	absorbMixPlannerAnswers(prep, &session, map[string]any{"message": "允许你加载"})
+	updateMixPlannerPrepDerived(prep, session)
+	if got := cleanContextText(prep["goal_detail"]); got != "提升响度" {
+		t.Fatalf("plugin permission should not overwrite goal, got %q prep=%#v", got, prep)
+	}
+	if !boolValue(prep["allow_plugin_loads"]) {
+		t.Fatalf("plugin permission was not captured: %#v", prep)
+	}
+	if got := cleanContextText(prep["last_user_intent"]); got != "allow_plugin_loads" {
+		t.Fatalf("intent = %q prep=%#v", got, prep)
+	}
+}
+
+func TestMixPlannerLLMPatchDoesNotOverwriteGoal(t *testing.T) {
+	session := pendingMixSession(mixModeAuto, MixTargetRef{Kind: "track", ID: "track_1", Label: "Vocal", Confidence: "high"}, "auto mix")
+	prep := initialMixPlannerPrep(session, map[string]any{})
+	absorbMixPlannerAnswers(prep, &session, map[string]any{"message": "提升响度"})
+	updateMixPlannerPrepDerived(prep, session)
+
+	patch := sanitizeMixPlannerLLMPatch(map[string]any{
+		"intent":             "allow_plugin_loads",
+		"allow_plugin_loads": true,
+		"confidence":         0.91,
+	})
+	payload := map[string]any{"message": "允许你加载", "planner_llm_patch": patch}
+	for key, value := range patch {
+		payload[key] = value
+	}
+	absorbMixPlannerAnswers(prep, &session, payload)
+	updateMixPlannerPrepDerived(prep, session)
+
+	if got := cleanContextText(prep["goal_detail"]); got != "提升响度" {
+		t.Fatalf("LLM permission patch should not overwrite goal, got %q prep=%#v", got, prep)
+	}
+	if !boolValue(prep["allow_plugin_loads"]) || cleanContextText(prep["last_user_intent"]) != "allow_plugin_loads" {
+		t.Fatalf("LLM permission patch was not applied: %#v", prep)
+	}
+	if confidence := floatNumber(prep["planner_llm_confidence"]); confidence <= 0 {
+		t.Fatalf("LLM confidence missing: %#v", prep)
+	}
+}
+
+func TestMixPlanningWorkspaceTracksWorkflowSlots(t *testing.T) {
+	session := pendingMixSession(mixModeAuto, MixTargetRef{Kind: "track", ID: "track_1", Label: "Vocal", Confidence: "high"}, "auto mix")
+	prep := initialMixPlannerPrep(session, map[string]any{})
+	absorbMixPlannerAnswers(prep, &session, map[string]any{"message": "提升响度，但不要刺耳"})
+	updateMixPlannerPrepDerived(prep, session)
+	workspace := syncMixPlanningWorkspace(prep, session)
+
+	if cleanContextText(workspace["schema_version"]) != mixPlanningWorkspaceSchemaVersion {
+		t.Fatalf("workspace = %#v", workspace)
+	}
+	goal := mapValue(workspace["goal"])
+	if got := cleanContextText(goal["detail"]); got != "提升响度，但不要刺耳" {
+		t.Fatalf("goal detail = %q workspace=%#v", got, workspace)
+	}
+	slotIDs := map[string]bool{}
+	for _, slot := range mapRowsValue(workspace["workflow_slots"]) {
+		slotIDs[cleanContextText(slot["id"])] = true
+	}
+	for _, want := range []string{"mix_goal", "plugin_types", "local_plugin_candidates", "plugin_chain_order", "skill_profile_status", "macro_panel", "fast_tick_packet"} {
+		if !slotIDs[want] {
+			t.Fatalf("missing workspace slot %q slots=%#v", want, workspace["workflow_slots"])
+		}
+	}
+	verdict := mapValue(workspace["planner_verdict"])
+	if boolValue(verdict["publishable"]) {
+		t.Fatalf("workspace should not be publishable before preflight: %#v", verdict)
+	}
+}
+
+func TestActiveMixPlannerChatReturnsReadonlyWorkspaceSummary(t *testing.T) {
+	server := New(nil, nil, nil)
+	server.llm = nil
+	session := pendingMixSession(mixModeAuto, MixTargetRef{Kind: "track", ID: "track_1", Label: "Vocal", Confidence: "high"}, "auto mix")
+	session.ConversationID = "conv_mix"
+	session.State = mixStatePreparing
+	session.InteractionPhase = mixInteractionPlanningChat
+	session.MixBoardVisibility = mixBoardVisibilityCollapsed
+	session.PlannerPrep = initialMixPlannerPrep(session, map[string]any{})
+	server.storeMixSession(session)
+
+	resp, handled := server.continueActiveMixPlannerChat(context.Background(), "conv_mix", ChatRequest{
+		ConversationID: "conv_mix",
+		Message:        "提升响度",
+		Context:        map[string]any{},
+	})
+	if !handled {
+		t.Fatal("active planner chat was not handled")
+	}
+	if len(resp.InteractionRequests) != 1 {
+		t.Fatalf("interaction requests = %#v", resp.InteractionRequests)
+	}
+	if len(resp.InteractionRequests[0].Fields) != 0 {
+		t.Fatalf("planning summary should not expose form fields: %#v", resp.InteractionRequests[0].Fields)
+	}
+	if len(resp.InteractionRequests[0].ReviewItems) == 0 {
+		t.Fatalf("planning summary should expose readonly review items: %#v", resp.InteractionRequests[0])
+	}
+	workspace := mapValue(resp.WorkflowData["mix_planning_workspace"])
+	goal := mapValue(workspace["goal"])
+	if got := cleanContextText(goal["detail"]); got != "提升响度" {
+		t.Fatalf("workspace goal detail = %q workspace=%#v", got, workspace)
+	}
+	if len(mapValue(resp.WorkflowData["mix_observation"])) != 0 {
+		t.Fatalf("planning response should not expose mix observation before publish readiness: %#v", resp.WorkflowData["mix_observation"])
+	}
+	prep := mapValue(resp.WorkflowData["mix_planner_prep"])
+	if missing := contextStringSlice(prep["missing_inputs"]); len(missing) == 0 || missing[0] != "allow_plugin_loads" {
+		t.Fatalf("first planner turn should continue discussion, missing=%#v prep=%#v", missing, prep)
+	}
+
+	session = mixSessionFromMap(mapValue(resp.MixSession))
+	session.PlannerPrep = prep
+	server.storeMixSession(session)
+	resp, handled = server.continueActiveMixPlannerChat(context.Background(), "conv_mix", ChatRequest{
+		ConversationID: "conv_mix",
+		Message:        "允许你加载",
+		Context:        map[string]any{},
+	})
+	if !handled {
+		t.Fatal("active planner chat was not handled on plugin permission")
+	}
+	if len(mapValue(resp.WorkflowData["mix_observation"])) != 0 {
+		t.Fatalf("planning response should keep observation hidden after plugin permission: %#v", resp.WorkflowData["mix_observation"])
+	}
+	prep = mapValue(resp.WorkflowData["mix_planner_prep"])
+	if missing := contextStringSlice(prep["missing_inputs"]); len(missing) == 0 || missing[0] != "workspace_plugin_types" {
+		t.Fatalf("planner should discuss drafted slots before publish, missing=%#v prep=%#v", missing, prep)
+	}
+	for _, action := range resp.InteractionRequests[0].Actions {
+		if action.ID == "publish_mixboard" || action.ID == "confirm_mix_planner_plan" {
+			t.Fatalf("publish actions should be hidden during drafted planning: %#v", resp.InteractionRequests[0].Actions)
+		}
+	}
+}
+
+func TestConfirmedControlSurfacePluginLoadKeyDedupesSamePlugin(t *testing.T) {
+	left := confirmedControlSurfacePluginLoadKey("track_1", map[string]any{
+		"profile_id":  "plugin_tdr_nova",
+		"name":        "TDR Nova",
+		"plugin_path": "C:/VST/TDR Nova.vst3",
+	})
+	right := confirmedControlSurfacePluginLoadKey("track_1", map[string]any{
+		"id":          "plugin_tdr_nova",
+		"name":        "TDR Nova",
+		"plugin_path": "C:/VST/TDR Nova.vst3",
+	})
+	if left == "" || left != right {
+		t.Fatalf("load keys should match, left=%q right=%q", left, right)
+	}
+	if otherTrack := confirmedControlSurfacePluginLoadKey("track_2", map[string]any{"profile_id": "plugin_tdr_nova"}); otherTrack == left {
+		t.Fatalf("different tracks must not dedupe together: %q", otherTrack)
 	}
 }
 
@@ -145,6 +502,9 @@ func TestMixBoardStatusInteractionOffersTuningActions(t *testing.T) {
 	if !ids["start_mix_tuning"] || !ids["revise_mixboard"] || !ids["refresh_observation"] {
 		t.Fatalf("actions = %+v", req.Actions)
 	}
+	if !ids["confirm_control_surface"] || !ids["execute_single_mix_tick"] || !ids["enter_discussion"] || !ids["submit_mixboard_intervention"] {
+		t.Fatalf("single tick actions = %+v", req.Actions)
+	}
 	if ids["stop_mix_tuning"] || ids["done"] {
 		t.Fatalf("actions = %+v", req.Actions)
 	}
@@ -155,7 +515,7 @@ func TestMixBoardStatusInteractionOffersTuningActions(t *testing.T) {
 	for _, action := range req.Actions {
 		ids[action.ID] = true
 	}
-	if !ids["stop_mix_tuning"] || !ids["rollback_last_mix_turn"] || ids["done"] {
+	if !ids["stop_mix_tuning"] || !ids["rollback_last_mix_turn"] || !ids["rollback_last_mix_tick"] || ids["done"] {
 		t.Fatalf("running actions = %+v", req.Actions)
 	}
 }
@@ -176,7 +536,7 @@ func TestMixBoardStatusInteractionBlocksTuningWhenControlSurfaceBlocked(t *testi
 	}
 	req := server.mixBoardStatusInteraction(interaction, session, observation)
 	for _, action := range req.Actions {
-		if action.ID == "start_mix_tuning" || action.ID == "auto_tune_mix" {
+		if action.ID == "start_mix_tuning" || action.ID == "auto_tune_mix" || action.ID == "execute_single_mix_tick" {
 			t.Fatalf("blocked control surface should not offer tuning action: %+v", req.Actions)
 		}
 	}
@@ -314,6 +674,10 @@ func TestMixSessionMapPreservesRuntimeFields(t *testing.T) {
 	session.ExecutorVersion = mixFallbackExecutorVersion
 	session.ReviewStatus = mixReviewEffective
 	session.StopReason = mixStopReasonNoSignificantChange
+	session.InteractionPhase = mixInteractionWaitingPlannerReview
+	session.MixBoardVisibility = mixBoardVisibilityExecution
+	session.PlannerPolicy = mixPlannerPolicyAutoAssist
+	session.FastModelProfile = "fast-local"
 	session.JournalRefs = []string{"act_1", "act_2"}
 	session.ApprovedPlugins = []string{"eq"}
 	session.Preparation = []map[string]any{{"id": "observation", "status": "ready"}}
@@ -328,11 +692,196 @@ func TestMixSessionMapPreservesRuntimeFields(t *testing.T) {
 	if roundTrip.ReviewStatus != mixReviewEffective || roundTrip.StopReason != mixStopReasonNoSignificantChange {
 		t.Fatalf("review/stop = %q %q", roundTrip.ReviewStatus, roundTrip.StopReason)
 	}
+	if roundTrip.InteractionPhase != mixInteractionWaitingPlannerReview || roundTrip.MixBoardVisibility != mixBoardVisibilityExecution {
+		t.Fatalf("interaction protocol = %q %q", roundTrip.InteractionPhase, roundTrip.MixBoardVisibility)
+	}
+	if roundTrip.PlannerPolicy != mixPlannerPolicyAutoAssist || roundTrip.FastModelProfile != "fast-local" {
+		t.Fatalf("planner/fast profile = %q %q", roundTrip.PlannerPolicy, roundTrip.FastModelProfile)
+	}
 	if len(roundTrip.JournalRefs) != 2 || roundTrip.JournalRefs[1] != "act_2" {
 		t.Fatalf("journal refs = %#v", roundTrip.JournalRefs)
 	}
 	if len(roundTrip.Preparation) != 1 || cleanContextText(roundTrip.Preparation[0]["id"]) != "observation" {
 		t.Fatalf("preparation = %#v", roundTrip.Preparation)
+	}
+}
+
+func TestBuildMixTickPacketAllowsPlanReadyVirtualControls(t *testing.T) {
+	session := pendingMixSession(mixModeAuto, MixTargetRef{Kind: "track", ID: "track_1", Label: "Vocal", Confidence: "high"}, "clean low mids")
+	session.FastModelProfile = "fast-local"
+	observation := map[string]any{
+		"status":   "ready",
+		"mixboard": map[string]any{"status": "ready"},
+		"goal_control_surface": map[string]any{
+			"schema_version": mixcontrolsurface.SchemaVersion,
+			"readiness":      mixcontrolsurface.ReadinessPlanReady,
+			"selected_chain": []map[string]any{{
+				"role":            "tone_balance",
+				"type":            "eq",
+				"profile_status":  mixcontrolsurface.ProfileReady,
+				"instance_status": mixcontrolsurface.InstanceExisting,
+				"selected_plugin": map[string]any{"name": "TDR Nova"},
+				"instance":        map[string]any{"track_id": "track_1", "plugin_id": "nova_1"},
+				"proposed_controls": []map[string]any{{
+					"name":         "control low mids with band 2",
+					"component_id": "band_2",
+				}},
+			}},
+		},
+	}
+	packet := buildMixTickPacket(session, observation, "")
+	if cleanContextText(packet["status"]) != "ready" {
+		t.Fatalf("packet status = %#v", packet)
+	}
+	if cleanContextText(packet["fast_model_profile"]) != "fast-local" {
+		t.Fatalf("fast model profile = %#v", packet)
+	}
+	strategy := mapValue(packet["model_strategy"])
+	if cleanContextText(strategy["route"]) != "mix_tick" || cleanContextText(strategy["reasoning_effort"]) != "low" || cleanContextText(strategy["chain_of_thought"]) != "disabled" {
+		t.Fatalf("model strategy = %#v", strategy)
+	}
+	foundVirtual := false
+	for _, control := range mapRowsValue(packet["allowed_controls"]) {
+		if cleanContextText(control["control_kind"]) == "plugin_virtual_control" && cleanContextText(control["tool"]) == "plugin_grabber.apply_control" {
+			foundVirtual = true
+		}
+	}
+	if !foundVirtual {
+		t.Fatalf("allowed_controls = %#v", packet["allowed_controls"])
+	}
+}
+
+func TestBuildMixTickPacketNeedsConfirmationDoesNotExecute(t *testing.T) {
+	session := pendingMixSession(mixModeAuto, MixTargetRef{Kind: "track", ID: "track_1", Label: "Vocal", Confidence: "high"}, "balance vocal")
+	observation := map[string]any{
+		"status":   "ready",
+		"mixboard": map[string]any{"status": "ready"},
+		"goal_control_surface": map[string]any{
+			"schema_version": mixcontrolsurface.SchemaVersion,
+			"readiness":      mixcontrolsurface.ReadinessNeedsConfirmation,
+			"selected_chain": []map[string]any{{
+				"role":            "dynamic_stability",
+				"type":            "dynamics",
+				"profile_status":  mixcontrolsurface.ProfileReady,
+				"instance_status": mixcontrolsurface.InstanceNeedsLoad,
+				"selected_plugin": map[string]any{"name": "TDR Nova"},
+				"proposed_controls": []map[string]any{{
+					"name": "control compression amount",
+				}},
+			}},
+		},
+	}
+	packet := buildMixTickPacket(session, observation, "")
+	if cleanContextText(packet["status"]) != "needs_confirmation" {
+		t.Fatalf("packet = %#v", packet)
+	}
+	if len(mapRowsValue(packet["blocked_controls"])) == 0 {
+		t.Fatalf("blocked_controls = %#v", packet["blocked_controls"])
+	}
+}
+
+func TestBuildMixTickPacketLearningRequiredForMissingProfile(t *testing.T) {
+	session := pendingMixSession(mixModeAuto, MixTargetRef{Kind: "track", ID: "track_1", Label: "Vocal", Confidence: "high"}, "compress vocal")
+	observation := map[string]any{
+		"status":   "ready",
+		"mixboard": map[string]any{"status": "ready"},
+		"goal_control_surface": map[string]any{
+			"schema_version":       mixcontrolsurface.SchemaVersion,
+			"readiness":            mixcontrolsurface.ReadinessBlocked,
+			"next_required_action": "learn_plugin_profile",
+			"selected_chain": []map[string]any{{
+				"role":            "dynamic_stability",
+				"type":            "dynamics",
+				"profile_status":  mixcontrolsurface.ProfileMissing,
+				"instance_status": mixcontrolsurface.InstanceExisting,
+				"selected_plugin": map[string]any{"id": "zl", "name": "ZL Compressor"},
+				"instance":        map[string]any{"track_id": "track_1", "plugin_id": "zl_1"},
+			}},
+		},
+	}
+	packet := buildMixTickPacket(session, observation, "")
+	if cleanContextText(packet["status"]) != mixInteractionLearningRequired {
+		t.Fatalf("packet = %#v", packet)
+	}
+	request := mapValue(packet["plugin_learning_request"])
+	if cleanContextText(request["plugin_name"]) != "ZL Compressor" || cleanContextText(request["next_required_action"]) != "learn_plugin_profile" {
+		t.Fatalf("learning request = %#v", request)
+	}
+}
+
+func TestMixPlannerPrepMarksMissingProfileAsLearningRequired(t *testing.T) {
+	session := pendingMixSession(mixModeAuto, MixTargetRef{Kind: "track", ID: "track_1", Label: "Vocal", Confidence: "high"}, "compress vocal")
+	prep := initialMixPlannerPrep(session, map[string]any{
+		"goal_detail": "stabilize vocal dynamics",
+	})
+	prep["allow_plugin_loads"] = true
+	observation := map[string]any{
+		"status":   "ready",
+		"mixboard": map[string]any{"status": "ready"},
+		"goal_control_surface": map[string]any{
+			"schema_version":       mixcontrolsurface.SchemaVersion,
+			"readiness":            mixcontrolsurface.ReadinessBlocked,
+			"next_required_action": "learn_plugin_profile",
+			"blockers":             []string{"ZL Compressor requires Plugin Grabber learning"},
+			"selected_chain": []map[string]any{{
+				"role":            "dynamic_stability",
+				"type":            "dynamics",
+				"profile_status":  mixcontrolsurface.ProfileMissing,
+				"instance_status": mixcontrolsurface.InstanceExisting,
+				"selected_plugin": map[string]any{"id": "zl", "name": "ZL Compressor"},
+				"proposed_controls": []map[string]any{{
+					"name":         "control compression amount",
+					"component_id": "main_compressor",
+				}},
+			}},
+		},
+	}
+
+	fillMixPlannerPrepFromObservation(prep, observation, session)
+	if cleanContextText(prep["stage"]) != mixInteractionLearningRequired || boolValue(prep["ready_to_publish_mixboard"]) {
+		t.Fatalf("planner prep = %#v", prep)
+	}
+	request := mapValue(prep["plugin_learning_request"])
+	if cleanContextText(request["plugin_name"]) != "ZL Compressor" || cleanContextText(request["next_required_action"]) != "learn_plugin_profile" {
+		t.Fatalf("learning request = %#v", request)
+	}
+}
+
+func TestSelectMixTickControlRejectsRawAndOutsideControls(t *testing.T) {
+	packet := map[string]any{
+		"allowed_controls": []map[string]any{{
+			"control_id":   "macro:vol",
+			"control_name": mixBuiltInVolumeMacroControl,
+			"control_kind": "macro",
+		}},
+	}
+	if _, err := selectMixTickControl(packet, map[string]any{"tool": "set_plugin_param"}); err == nil {
+		t.Fatal("raw param decision should be rejected")
+	}
+	if _, err := selectMixTickControl(packet, map[string]any{"control_id": "virtual:other"}); err == nil {
+		t.Fatal("outside control should be rejected")
+	}
+	control, err := selectMixTickControl(packet, map[string]any{"control_id": "macro:vol"})
+	if err != nil || cleanContextText(control["control_name"]) != mixBuiltInVolumeMacroControl {
+		t.Fatalf("selected control=%#v err=%v", control, err)
+	}
+}
+
+func TestEnterDiscussionCollapsesMixBoard(t *testing.T) {
+	server := New(nil, nil, nil)
+	session := pendingMixSession(mixModeCo, MixTargetRef{Kind: "track", ID: "track_1", Label: "Vocal", Confidence: "high"}, "balance vocal")
+	session.State = mixStateWaitingReview
+	data := mixSessionWorkflowData("conv_mix", "goal_1", "run_1", map[string]any{}, session)
+	data["mix_observation"] = map[string]any{"status": "ready", "mixboard": map[string]any{"status": "ready"}}
+	interaction := PendingInteraction{ConversationID: "conv_mix", GoalID: "goal_1", RunID: "run_1", Payload: data, Data: data}
+	resp := server.continueMixSessionInteraction(context.Background(), interaction, nil, "enter_discussion")
+	got := mapValue(resp.MixSession)
+	if cleanContextText(got["interaction_phase"]) != mixInteractionPlanningChat || cleanContextText(got["mixboard_visibility"]) != mixBoardVisibilityCollapsed {
+		t.Fatalf("mix session = %#v", got)
+	}
+	board := mapValue(mapValue(resp.WorkflowData["mix_observation"])["mixboard"])
+	if cleanContextText(board["mixboard_visibility"]) != mixBoardVisibilityCollapsed {
+		t.Fatalf("board = %#v", board)
 	}
 }
 

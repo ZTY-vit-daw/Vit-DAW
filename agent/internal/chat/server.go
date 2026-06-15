@@ -1488,6 +1488,17 @@ func (s *Server) handleChat(w http.ResponseWriter, r *http.Request) {
 	}
 
 	chatContext := contextWithUserMessage(req.Context, req.Message)
+	if resp, handled := s.continueActiveMixPlannerChat(r.Context(), conversationID, ChatRequest{
+		ConversationID: conversationID,
+		Message:        req.Message,
+		Context:        chatContext,
+		Attachments:    req.Attachments,
+		ArtifactRefs:   req.ArtifactRefs,
+	}); handled {
+		s.remember(conversationID, req.Message, resp.Reply)
+		writeChat(http.StatusOK, resp)
+		return
+	}
 	if resp, handled := s.runMixSessionEntryChat(r.Context(), conversationID, ChatRequest{
 		ConversationID: conversationID,
 		Message:        req.Message,

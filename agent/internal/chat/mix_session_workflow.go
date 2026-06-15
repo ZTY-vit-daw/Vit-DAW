@@ -11,7 +11,9 @@ import (
 	"strings"
 	"time"
 
+	"vit-daw-agent/internal/config"
 	"vit-daw-agent/internal/harness"
+	"vit-daw-agent/internal/llm"
 	"vit-daw-agent/internal/mixcontrolsurface"
 	agentruntime "vit-daw-agent/internal/runtime"
 )
@@ -59,32 +61,63 @@ const (
 )
 
 const (
+	mixInteractionPlanningChat            = "planning_chat"
+	mixInteractionPlanDrafting            = "plan_drafting"
+	mixInteractionControlSurfacePublished = "control_surface_published"
+	mixInteractionReadyForTick            = "ready_for_tick"
+	mixInteractionFastTickRunning         = "fast_tick_running"
+	mixInteractionWaitingPlannerReview    = "waiting_planner_review"
+	mixInteractionLearningRequired        = "learning_required"
+
+	mixBoardVisibilityHidden    = "hidden"
+	mixBoardVisibilityCollapsed = "collapsed"
+	mixBoardVisibilityPublished = "published"
+	mixBoardVisibilityExecution = "execution"
+
+	mixPlannerPolicyAutoAssist    = "auto_assist"
+	mixPlannerPolicyCoMixDirector = "comix_director"
+)
+
+const (
 	mixControlPlanSchemaVersion       = "mix_control_plan.v1"
 	mixMacroControlPanelSchemaVersion = "mix_macro_control_panel.v1"
+	mixPlannerPrepSchemaVersion       = "mix_planner_prep.v1"
+	mixPlanningWorkspaceSchemaVersion = "mix_planning_workspace.v1"
 	mixBuiltInVolumeMacroRole         = "gain_staging"
 	mixBuiltInVolumeMacroControl      = "track.volume"
+
+	mixTickPacketSchemaVersion   = "mix_tick_packet.v1"
+	mixTickDecisionSchemaVersion = "mix_tick_decision.v1"
+	mixSingleTickExecutorType    = "single_tick_executor"
+	mixSingleTickExecutorVersion = "mix_single_tick.v0.1"
 )
 
 type MixSession struct {
-	MixSessionID     string           `json:"mix_session_id"`
-	Mode             string           `json:"mode"`
-	State            string           `json:"state"`
-	TargetRef        MixTargetRef     `json:"target_ref"`
-	GoalText         string           `json:"goal_text"`
-	UserNote         string           `json:"user_note,omitempty"`
-	ApprovedPlugins  []string         `json:"approved_plugins"`
-	ControlSurfaceID string           `json:"control_surface_id"`
-	ExecutorType     string           `json:"executor_type,omitempty"`
-	ExecutorVersion  string           `json:"executor_version,omitempty"`
-	ReviewStatus     string           `json:"review_status,omitempty"`
-	StopReason       string           `json:"stop_reason,omitempty"`
-	RoundCount       int              `json:"round_count"`
-	MaxRounds        int              `json:"max_rounds"`
-	JournalRefs      []string         `json:"journal_refs"`
-	BlockingPoint    string           `json:"blocking_point,omitempty"`
-	Preparation      []map[string]any `json:"preparation,omitempty"`
-	CreatedAt        string           `json:"created_at,omitempty"`
-	UpdatedAt        string           `json:"updated_at,omitempty"`
+	MixSessionID       string           `json:"mix_session_id"`
+	ConversationID     string           `json:"conversation_id,omitempty"`
+	Mode               string           `json:"mode"`
+	State              string           `json:"state"`
+	TargetRef          MixTargetRef     `json:"target_ref"`
+	GoalText           string           `json:"goal_text"`
+	UserNote           string           `json:"user_note,omitempty"`
+	ApprovedPlugins    []string         `json:"approved_plugins"`
+	ControlSurfaceID   string           `json:"control_surface_id"`
+	ExecutorType       string           `json:"executor_type,omitempty"`
+	ExecutorVersion    string           `json:"executor_version,omitempty"`
+	ReviewStatus       string           `json:"review_status,omitempty"`
+	StopReason         string           `json:"stop_reason,omitempty"`
+	InteractionPhase   string           `json:"interaction_phase,omitempty"`
+	MixBoardVisibility string           `json:"mixboard_visibility,omitempty"`
+	PlannerPolicy      string           `json:"planner_policy,omitempty"`
+	FastModelProfile   string           `json:"fast_model_profile,omitempty"`
+	RoundCount         int              `json:"round_count"`
+	MaxRounds          int              `json:"max_rounds"`
+	JournalRefs        []string         `json:"journal_refs"`
+	BlockingPoint      string           `json:"blocking_point,omitempty"`
+	Preparation        []map[string]any `json:"preparation,omitempty"`
+	PlannerPrep        map[string]any   `json:"mix_planner_prep,omitempty"`
+	CreatedAt          string           `json:"created_at,omitempty"`
+	UpdatedAt          string           `json:"updated_at,omitempty"`
 }
 
 type MixTargetRef struct {
@@ -121,6 +154,7 @@ func (s *Server) runMixSessionEntryChat(ctx context.Context, conversationID stri
 		}, true
 	}
 	session := pendingMixSession(mode, target, goalText)
+	session.ConversationID = conversationID
 	data := mixSessionWorkflowData(conversationID, goalID, runID, req.Context, session)
 	reqCard := s.mixSessionInteractionRequest(conversationID, goalID, runID, data, target)
 	reply := mixSessionEntryReply(session, target)
@@ -163,6 +197,7 @@ func (s *Server) invokeMixSessionEntryWorkflow(ctx context.Context, req harness.
 		}, true
 	}
 	session := pendingMixSession(mode, target, goalText)
+	session.ConversationID = conversationID
 	data := mixSessionWorkflowData(conversationID, goalID, runID, req.Context, session)
 	card := s.mixSessionInteractionRequest(conversationID, goalID, runID, data, target)
 	response := map[string]any{
@@ -239,14 +274,36 @@ func (s *Server) continueMixSessionInteraction(ctx context.Context, interaction 
 	if strings.EqualFold(decision, "revise_mixboard") || strings.EqualFold(decision, "refresh_observation") || strings.EqualFold(decision, "update_mixboard") {
 		return s.reviseMixBoardInteraction(ctx, interaction, data, session, payload, decision)
 	}
-	if strings.EqualFold(decision, "start_mix_tuning") || strings.EqualFold(decision, "auto_tune_mix") {
-		return s.runMixTuningInteraction(ctx, interaction, data, session, payload)
+	if strings.EqualFold(decision, "publish_mixboard") {
+		return s.publishMixBoardInteraction(ctx, interaction, data, session, payload)
+	}
+	if strings.EqualFold(decision, "confirm_mix_planner_plan") {
+		if payload == nil {
+			payload = map[string]any{}
+		}
+		payload["publish_mixboard_confirmed"] = true
+		return s.advanceMixPlannerInteraction(ctx, interaction, data, session, payload)
+	}
+	if strings.EqualFold(decision, "advance_mix_planner") || strings.EqualFold(decision, "submit_mix_planner_answers") || strings.EqualFold(decision, "continue_mix_planning") {
+		return s.advanceMixPlannerInteraction(ctx, interaction, data, session, payload)
+	}
+	if strings.EqualFold(decision, "confirm_control_surface") {
+		return s.confirmControlSurfaceInteraction(ctx, interaction, data, session, payload)
+	}
+	if strings.EqualFold(decision, "execute_single_mix_tick") || strings.EqualFold(decision, "start_mix_tuning") || strings.EqualFold(decision, "auto_tune_mix") {
+		return s.runSingleMixTickInteraction(ctx, interaction, data, session, payload)
 	}
 	if strings.EqualFold(decision, "stop_mix_tuning") {
 		return s.stopMixTuningInteraction(interaction, data, session)
 	}
-	if strings.EqualFold(decision, "rollback_last_mix_turn") {
+	if strings.EqualFold(decision, "rollback_last_mix_tick") || strings.EqualFold(decision, "rollback_last_mix_turn") {
 		return s.rollbackLastMixTurnInteraction(ctx, interaction, data, session)
+	}
+	if strings.EqualFold(decision, "enter_discussion") {
+		return s.enterMixDiscussionInteraction(interaction, data, session)
+	}
+	if strings.EqualFold(decision, "submit_mixboard_intervention") {
+		return s.submitMixBoardIntervention(ctx, interaction, data, session, payload)
 	}
 	if session.TargetRef.ID == "" || strings.EqualFold(session.TargetRef.Confidence, "low") {
 		reqCard := s.mixSessionInteractionRequest(interaction.ConversationID, interaction.GoalID, interaction.RunID, data, session.TargetRef)
@@ -264,37 +321,29 @@ func (s *Server) continueMixSessionInteraction(ctx context.Context, interaction 
 		}
 	}
 	session.State = mixStatePreparing
-	session.UpdatedAt = time.Now().Format(time.RFC3339Nano)
-	session.Preparation = mixPreparationRows(session.TargetRef)
-	session.State = mixStateReadyObservation
+	session.ConversationID = firstNonEmpty(session.ConversationID, cleanContextText(data["conversation_id"]), interaction.ConversationID)
+	session.InteractionPhase = mixInteractionPlanningChat
+	session.MixBoardVisibility = mixBoardVisibilityCollapsed
 	session.BlockingPoint = ""
-	observationResult, observationErr := s.requestInitialMixObservation(ctx, interaction, session)
-	session.State = mixStateFromObservationResult(observationResult, observationErr)
-	session.BlockingPoint = mixObservationBlockingPoint(observationResult, observationErr)
-	session.RoundCount = 1
-	session.Preparation = mixPreparationRowsForObservation(session.TargetRef, session.State, session.BlockingPoint)
+	session.Preparation = mixPreparationRows(session.TargetRef)
 	session.UpdatedAt = time.Now().Format(time.RFC3339Nano)
 	s.storeMixSession(session)
+	prep := initialMixPlannerPrep(session, interaction.RequestContext)
+	session.PlannerPrep = prep
+	s.storeMixSession(session)
+	applyMixPlannerPrepToWorkflowData(data, prep)
 	data["mix_session"] = mixSessionMap(session)
-	if observationResult != nil {
-		s.attachGoalControlSurface(ctx, interaction, session, observationResult)
-		updateMixBoardRuntimeState(observationResult, session, nil)
-		data["goal_control_surface"] = mixGoalControlSurfaceFromObservation(observationResult)
-		data["mix_observation"] = observationResult
-	}
-	executedReplies := mixMacroUpsertExecutions(mixVolumeMacroFromObservation(observationResult, session))
 	return ChatResponse{
 		ConversationID:      interaction.ConversationID,
 		GoalID:              interaction.GoalID,
 		RunID:               interaction.RunID,
-		Reply:               mixObservationReply(session, observationErr),
+		Reply:               mixPlanningDiscussionReply(session),
 		Workflow:            mixSessionEntryWorkflow,
 		WorkflowData:        data,
 		MixSession:          mixSessionMap(session),
-		InteractionRequests: []AgentInteractionRequest{s.mixBoardStatusInteraction(interaction, session, observationResult)},
-		ExecutedKernelReply: executedReplies,
+		InteractionRequests: []AgentInteractionRequest{s.mixPlanningDiscussionInteraction(interaction, session, data)},
 		GoalStatus:          string(agentruntime.StatusWaitingContinue),
-		CurrentStep:         session.State,
+		CurrentStep:         mixInteractionPlanningChat,
 	}
 }
 
@@ -378,6 +427,2049 @@ func (s *Server) reviseMixBoardInteraction(ctx context.Context, interaction Pend
 		InteractionRequests: []AgentInteractionRequest{s.mixBoardStatusInteraction(nextInteraction, session, observationResult)},
 		GoalStatus:          string(agentruntime.StatusWaitingContinue),
 		CurrentStep:         session.State,
+	}
+}
+
+func (s *Server) publishMixBoardInteraction(ctx context.Context, interaction PendingInteraction, data map[string]any, session MixSession, payload map[string]any) ChatResponse {
+	prep, observation, prepErr := s.ensureMixPlannerPrepReady(ctx, interaction, data, session, payload)
+	applyMixPlannerPrepToWorkflowData(data, prep)
+	session.PlannerPrep = prep
+	if prepErr != nil || !boolValue(prep["ready_to_publish_mixboard"]) {
+		applyMixPlannerPrepSessionState(&session, prep)
+		session.BlockingPoint = firstNonEmpty(cleanContextText(prep["next_question"]), cleanContextText(prep["blocking_point"]), fmt.Sprint(prepErr))
+		session.UpdatedAt = time.Now().Format(time.RFC3339Nano)
+		s.storeMixSession(session)
+		data["mix_session"] = mixSessionMap(session)
+		if len(observation) > 0 {
+			data["mix_observation"] = observation
+		}
+		reply := firstNonEmpty(session.BlockingPoint, "规划准备还没有完成，暂时不能发布 MixBoard。")
+		if cleanContextText(prep["stage"]) == mixInteractionLearningRequired {
+			return s.mixSessionStatusResponse(interaction, data, session, observation, reply)
+		}
+		return ChatResponse{
+			ConversationID:      interaction.ConversationID,
+			GoalID:              interaction.GoalID,
+			RunID:               interaction.RunID,
+			Reply:               reply,
+			Workflow:            mixSessionEntryWorkflow,
+			WorkflowData:        data,
+			MixSession:          mixSessionMap(session),
+			InteractionRequests: []AgentInteractionRequest{s.mixPlanningDiscussionInteraction(interaction, session, data)},
+			GoalStatus:          string(agentruntime.StatusWaitingContinue),
+			CurrentStep:         mixInteractionPlanningChat,
+		}
+	}
+	if len(observation) == 0 {
+		var err error
+		observation, err = s.requestInitialMixObservation(ctx, interaction, session)
+		session.State = mixStateFromObservationResult(observation, err)
+		session.BlockingPoint = mixObservationBlockingPoint(observation, err)
+		if err != nil {
+			return s.mixSessionStatusResponse(interaction, data, session, observation, err.Error())
+		}
+	}
+	s.attachGoalControlSurface(ctx, interaction, session, observation)
+	applyMixPlannerPrep(observation, prep)
+	session = mixSessionAfterControlSurface(session, observation, false)
+	session.PlannerPrep = prep
+	packet := buildMixTickPacket(session, observation, mixTuningUserNote(payload, interaction.RequestContext, data, session))
+	applyMixTickPacket(observation, packet)
+	updateMixBoardRuntimeState(observation, session, nil)
+	s.storeMixSession(session)
+	data["mix_session"] = mixSessionMap(session)
+	applyMixPlannerPrepToWorkflowData(data, prep)
+	data["goal_control_surface"] = mixGoalControlSurfaceFromObservation(observation)
+	data["mix_tick_packet"] = packet
+	data["mix_observation"] = observation
+	return s.mixSessionStatusResponse(interaction, data, session, observation, "MixBoard 已发布，请确认控制面后再执行。")
+}
+
+func (s *Server) advanceMixPlannerInteraction(ctx context.Context, interaction PendingInteraction, data map[string]any, session MixSession, payload map[string]any) ChatResponse {
+	prep, observation, prepErr := s.ensureMixPlannerPrepReady(ctx, interaction, data, session, payload)
+	applyMixPlannerPrepSessionState(&session, prep)
+	session.PlannerPrep = prep
+	session.State = mixStatePreparing
+	if prepErr != nil {
+		session.BlockingPoint = prepErr.Error()
+	} else {
+		session.BlockingPoint = cleanContextText(prep["blocking_point"])
+	}
+	session.UpdatedAt = time.Now().Format(time.RFC3339Nano)
+	s.storeMixSession(session)
+	data["mix_session"] = mixSessionMap(session)
+	applyMixPlannerPrepToWorkflowData(data, prep)
+	if len(observation) > 0 {
+		if boolValue(prep["ready_to_publish_mixboard"]) || cleanContextText(prep["stage"]) == mixInteractionLearningRequired {
+			data["mix_observation"] = observation
+		} else {
+			delete(data, "mix_observation")
+		}
+	}
+	reply := mixPlannerPrepReply(prep, prepErr)
+	if cleanContextText(prep["stage"]) == mixInteractionLearningRequired {
+		return s.mixSessionStatusResponse(interaction, data, session, observation, reply)
+	}
+	return ChatResponse{
+		ConversationID:      interaction.ConversationID,
+		GoalID:              interaction.GoalID,
+		RunID:               interaction.RunID,
+		Reply:               reply,
+		Workflow:            mixSessionEntryWorkflow,
+		WorkflowData:        data,
+		MixSession:          mixSessionMap(session),
+		InteractionRequests: []AgentInteractionRequest{s.mixPlanningDiscussionInteraction(interaction, session, data)},
+		GoalStatus:          string(agentruntime.StatusWaitingContinue),
+		CurrentStep:         mixInteractionPlanningChat,
+	}
+}
+
+func (s *Server) continueActiveMixPlannerChat(ctx context.Context, conversationID string, req ChatRequest) (ChatResponse, bool) {
+	session, ok := s.activeMixPlannerSession(conversationID)
+	if !ok {
+		return ChatResponse{}, false
+	}
+	goalID, runID := goalIDsFromContext(req.Context)
+	data := mixSessionWorkflowData(conversationID, goalID, runID, req.Context, session)
+	if len(session.PlannerPrep) > 0 {
+		applyMixPlannerPrepToWorkflowData(data, session.PlannerPrep)
+	}
+	payload := map[string]any{
+		"message":         req.Message,
+		"request_context": req.Context,
+	}
+	llmPatch, llmErr := s.mixPlannerLLMPatch(ctx, conversationID, goalID, req.Message, req.Context, session, mapValue(data["mix_planner_prep"]))
+	if len(llmPatch) > 0 {
+		payload["planner_llm_patch"] = llmPatch
+		for key, value := range llmPatch {
+			if value != nil {
+				payload[key] = value
+			}
+		}
+	}
+	interaction := PendingInteraction{
+		ID:             "interaction_" + randomID(),
+		Source:         "mix_session",
+		Workflow:       mixSessionEntryWorkflow,
+		Type:           "mix_planning_discussion",
+		ConversationID: conversationID,
+		GoalID:         goalID,
+		RunID:          runID,
+		RequestContext: req.Context,
+		Payload:        data,
+		Data:           data,
+	}
+	resp := s.advanceMixPlannerInteraction(ctx, interaction, data, session, payload)
+	writeMixBoardDiag("mix_planner_chat", map[string]any{
+		"conversation_id":  conversationID,
+		"mix_session_id":   session.MixSessionID,
+		"user_text":        req.Message,
+		"planner_llm_used": len(llmPatch) > 0,
+		"planner_llm_error": func() string {
+			if llmErr != nil {
+				return llmErr.Error()
+			}
+			return ""
+		}(),
+		"planner_stage":    cleanContextText(mapValue(resp.WorkflowData["mix_planner_prep"])["stage"]),
+		"missing_inputs":   contextStringSlice(mapValue(resp.WorkflowData["mix_planner_prep"])["missing_inputs"]),
+		"ready_to_publish": boolValue(mapValue(resp.WorkflowData["mix_planner_prep"])["ready_to_publish_mixboard"]),
+	})
+	return resp, true
+}
+
+func (s *Server) mixPlannerLLMPatch(ctx context.Context, conversationID, goalID, userText string, requestContext map[string]any, session MixSession, prep map[string]any) (map[string]any, error) {
+	if s == nil || s.llm == nil || strings.TrimSpace(userText) == "" {
+		return nil, nil
+	}
+	cfg, _, err := config.Load()
+	if err != nil {
+		return nil, err
+	}
+	if !cfg.Complete() {
+		return nil, nil
+	}
+	state := map[string]any{
+		"mix_session":            mixSessionMap(session),
+		"mix_planner_prep":       prep,
+		"mix_planning_workspace": mapValue(prep["mix_planning_workspace"]),
+		"request_context":        requestContext,
+		"hard_workflow_slots": []string{
+			"mix_goal",
+			"plugin_types",
+			"local_plugin_candidates",
+			"plugin_chain_order",
+			"skill_profile_status",
+			"macro_panel",
+			"fast_tick_packet",
+		},
+	}
+	stateJSON, _ := json.MarshalIndent(state, "", "  ")
+	system := `你是 Vit Auto Mix 的思考模式规划器。你只负责理解当前自然对话并更新规划工作区字段，不执行 DAW 操作，不发布 MixBoard，不加载插件。
+
+必须把用户消息分类到一个 intent，并只在用户确实表达混音目标/方向时更新 goal_detail。
+权限句例如“允许你加载”“可以加载推荐插件”只能更新 allow_plugin_loads=true，不能写成混音目标。
+插件推荐问题例如“有什么插件推荐”只能作为讨论/推荐意图，不能覆盖已有目标。
+“由你决定/你来定”表示 planner_autonomy=agent_decides，并可视上下文允许规划器选择插件，但不代表发布 MixBoard。
+只有用户在系统已经询问是否生成 MixBoard 后明确同意，才使用 confirm_publish_mixboard。
+
+返回严格 JSON，不要 Markdown，不要解释。字段：
+{
+  "intent": "provide_goal|allow_plugin_loads|deny_plugin_loads|ask_plugin_recommendation|delegate_to_agent|confirm_publish_mixboard|reject_publish_mixboard|other",
+  "goal_detail": null|string,
+  "priority_focus": null|string,
+  "tone_reference": null|string,
+  "allow_plugin_loads": null|boolean,
+  "planner_autonomy": null|"agent_decides",
+  "planner_policy": null|"auto_assist"|"comix_director",
+  "discussion_summary": null|string,
+  "confidence": 0.0
+}`
+	messages := []llm.Message{{Role: "system", Content: system}}
+	if history := s.conversationHistory(ctx, conversationID, 6, nil); len(history) > 0 {
+		messages = append(messages, history...)
+	}
+	messages = append(messages,
+		llm.Message{Role: "user", Content: "当前规划状态 JSON：\n" + string(stateJSON)},
+		llm.Message{Role: "user", Content: "用户最新消息：\n" + userText},
+	)
+	resp, err := s.llm.CompleteRequest(ctx, cfg, llm.Request{
+		Messages:   messages,
+		PreferJSON: true,
+		Timeout:    30 * time.Second,
+		Metadata: llm.RequestMetadata{
+			Source:            "mix_planner_chat",
+			ConversationID:    conversationID,
+			GoalID:            goalID,
+			PromptFingerprint: "mix_planner_chat_intake.v1",
+			PromptStats: map[string]any{
+				"state_bytes": len(stateJSON),
+			},
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+	patch, err := parseFirstPluginUIReferenceJSONObject(resp.Text)
+	if err != nil {
+		return nil, err
+	}
+	return sanitizeMixPlannerLLMPatch(patch), nil
+}
+
+func sanitizeMixPlannerLLMPatch(patch map[string]any) map[string]any {
+	out := map[string]any{}
+	intent := cleanContextText(patch["intent"])
+	switch intent {
+	case "provide_goal", "allow_plugin_loads", "deny_plugin_loads", "ask_plugin_recommendation", "delegate_to_agent", "confirm_publish_mixboard", "reject_publish_mixboard", "other":
+		out["intent"] = intent
+	}
+	for _, key := range []string{"goal_detail", "priority_focus", "tone_reference", "planner_autonomy", "planner_policy", "discussion_summary"} {
+		if value := cleanContextText(patch[key]); value != "" && !strings.EqualFold(value, "null") {
+			out[key] = value
+		}
+	}
+	if value, ok := patch["allow_plugin_loads"]; ok {
+		out["allow_plugin_loads"] = boolValue(value)
+	}
+	if confidence := floatNumber(patch["confidence"]); confidence > 0 {
+		out["planner_llm_confidence"] = confidence
+	}
+	return out
+}
+
+func (s *Server) activeMixPlannerSession(conversationID string) (MixSession, bool) {
+	if s == nil {
+		return MixSession{}, false
+	}
+	conversationID = strings.TrimSpace(conversationID)
+	if conversationID == "" {
+		return MixSession{}, false
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	var best MixSession
+	for _, session := range s.mixSessions {
+		if strings.TrimSpace(session.ConversationID) != conversationID {
+			continue
+		}
+		if mixInteractionPhase(session) != mixInteractionPlanningChat {
+			continue
+		}
+		if session.State == mixStateCancelled || session.State == mixStateTuningComplete {
+			continue
+		}
+		if best.MixSessionID == "" || session.UpdatedAt > best.UpdatedAt {
+			best = session
+		}
+	}
+	return best, best.MixSessionID != ""
+}
+
+func (s *Server) confirmControlSurfaceInteraction(ctx context.Context, interaction PendingInteraction, data map[string]any, session MixSession, payload map[string]any) ChatResponse {
+	observation := mapValue(data["mix_observation"])
+	if len(mixGoalControlSurfaceFromObservation(observation)) == 0 {
+		s.attachGoalControlSurface(ctx, interaction, session, observation)
+	}
+	loadResults, loadErr := s.loadConfirmedControlSurfacePlugins(ctx, interaction, session, observation)
+	if len(loadResults) > 0 {
+		board := mapValue(observation["mixboard"])
+		board["plugin_load_results"] = loadResults
+		observation["mixboard"] = board
+		nextRound := session.RoundCount
+		if nextRound <= 0 {
+			nextRound = 1
+		}
+		if refreshed, err := s.requestMixObservationRound(ctx, interaction, session, nextRound, map[string]any{"control_surface_plugin_loads": loadResults}); err == nil && len(refreshed) > 0 {
+			observation = refreshed
+			s.attachGoalControlSurface(ctx, interaction, session, observation)
+		} else if err != nil {
+			loadErr = err
+		}
+	}
+	userNote := mixTuningUserNote(payload, interaction.RequestContext, data, session)
+	if userNote != "" {
+		session.UserNote = userNote
+	}
+	packet := buildMixTickPacket(session, observation, userNote)
+	applyMixTickPacket(observation, packet)
+	status := cleanContextText(packet["status"])
+	if status == mixInteractionLearningRequired {
+		session.InteractionPhase = mixInteractionLearningRequired
+		session.MixBoardVisibility = mixBoardVisibilityPublished
+		session.BlockingPoint = "执行前需要先完成 Plugin Grabber 学习。"
+	} else if status == "ready" {
+		session.InteractionPhase = mixInteractionReadyForTick
+		session.MixBoardVisibility = mixBoardVisibilityPublished
+		session.BlockingPoint = ""
+	} else {
+		session.InteractionPhase = mixInteractionControlSurfacePublished
+		session.MixBoardVisibility = mixBoardVisibilityPublished
+		session.BlockingPoint = "Control surface is not executable yet: " + status
+	}
+	if loadErr != nil {
+		session.InteractionPhase = mixInteractionControlSurfacePublished
+		session.MixBoardVisibility = mixBoardVisibilityPublished
+		session.BlockingPoint = "Control surface plugin load failed: " + loadErr.Error()
+	}
+	session.State = mixStateObservationReady
+	session.UpdatedAt = time.Now().Format(time.RFC3339Nano)
+	s.storeMixSession(session)
+	updateMixBoardRuntimeState(observation, session, nil)
+	data["mix_session"] = mixSessionMap(session)
+	data["mix_tick_packet"] = packet
+	data["mix_observation"] = observation
+	reply := "Control surface confirmed; ready for one single tick."
+	if session.BlockingPoint != "" {
+		reply = session.BlockingPoint
+	}
+	return s.mixSessionStatusResponse(interaction, data, session, observation, reply)
+}
+
+func (s *Server) enterMixDiscussionInteraction(interaction PendingInteraction, data map[string]any, session MixSession) ChatResponse {
+	session.InteractionPhase = mixInteractionPlanningChat
+	session.MixBoardVisibility = mixBoardVisibilityCollapsed
+	session.State = mixStateTuningPaused
+	session.ReviewStatus = mixReviewWaiting
+	session.StopReason = mixStopReasonUserIntervention
+	session.UpdatedAt = time.Now().Format(time.RFC3339Nano)
+	s.storeMixSession(session)
+	observation := mapValue(data["mix_observation"])
+	board := mapValue(observation["mixboard"])
+	board["current_action"] = "MixBoard collapsed for planner discussion."
+	board["next_step"] = "Continue the mix direction discussion in chat, then publish MixBoard again before execution."
+	observation["mixboard"] = board
+	updateMixBoardRuntimeState(observation, session, nil)
+	data["mix_session"] = mixSessionMap(session)
+	data["mix_observation"] = observation
+	return s.mixSessionStatusResponse(interaction, data, session, observation, "MixBoard 已收起，已进入规划讨论。")
+}
+
+func (s *Server) submitMixBoardIntervention(ctx context.Context, interaction PendingInteraction, data map[string]any, session MixSession, payload map[string]any) ChatResponse {
+	userNote := mixTuningUserNote(payload, interaction.RequestContext, data, session)
+	if userNote == "" {
+		userNote = cleanContextText(payload["message"])
+	}
+	if userNote != "" {
+		session.UserNote = userNote
+		data["user_note"] = userNote
+	}
+	observation := mapValue(data["mix_observation"])
+	packet := buildMixTickPacket(session, observation, userNote)
+	applyMixTickPacket(observation, packet)
+	session = mixSessionAfterControlSurface(session, observation, cleanContextText(packet["status"]) == "ready")
+	session.UpdatedAt = time.Now().Format(time.RFC3339Nano)
+	s.storeMixSession(session)
+	updateMixBoardRuntimeState(observation, session, nil)
+	data["mix_session"] = mixSessionMap(session)
+	data["mix_tick_packet"] = packet
+	data["mix_observation"] = observation
+	return s.mixSessionStatusResponse(interaction, data, session, observation, "MixBoard intervention captured for the next single tick.")
+}
+
+func (s *Server) loadConfirmedControlSurfacePlugins(ctx context.Context, interaction PendingInteraction, session MixSession, observation map[string]any) ([]map[string]any, error) {
+	if s == nil || s.harness == nil {
+		return nil, nil
+	}
+	surface := mixGoalControlSurfaceFromObservation(observation)
+	if len(surface) == 0 {
+		return nil, nil
+	}
+	results := []map[string]any{}
+	attemptedLoadKeys := map[string]bool{}
+	for _, row := range mapRowsValue(surface["selected_chain"]) {
+		if cleanContextText(row["instance_status"]) != mixcontrolsurface.InstanceNeedsLoad {
+			continue
+		}
+		profileStatus := cleanContextText(row["profile_status"])
+		if profileStatus != mixcontrolsurface.ProfileReady && profileStatus != mixcontrolsurface.ProfileNotRequired {
+			continue
+		}
+		plugin := mapValue(row["selected_plugin"])
+		pluginPath := firstNonEmpty(cleanContextText(plugin["plugin_path"]), cleanContextText(plugin["path"]), cleanContextText(plugin["file_path"]))
+		trackID := firstNonEmpty(session.TargetRef.ID, cleanContextText(mapValue(row["target"])["id"]))
+		loadKey := confirmedControlSurfacePluginLoadKey(trackID, plugin)
+		result := map[string]any{
+			"role":        cleanContextText(row["role"]),
+			"type":        cleanContextText(row["type"]),
+			"plugin_name": firstNonEmpty(cleanContextText(plugin["name"]), cleanContextText(plugin["descriptive_name"]), pluginPath),
+			"plugin_path": pluginPath,
+			"track_id":    trackID,
+		}
+		if attemptedLoadKeys[loadKey] {
+			result["status"] = "skipped_duplicate_plugin"
+			result["reason"] = "同一个插件已在本次控制面确认中加载，复用该实例承载多个处理角色。"
+			results = append(results, result)
+			continue
+		}
+		attemptedLoadKeys[loadKey] = true
+		if pluginPath == "" || trackID == "" {
+			result["status"] = "blocked"
+			result["error"] = "selected plugin has no loadable plugin_path or track_id"
+			results = append(results, result)
+			return results, fmt.Errorf("%s", result["error"])
+		}
+		resp, err := s.harness.Invoke(ctx, harness.InvokeRequest{
+			Tool: "rack.add_node",
+			Args: map[string]any{
+				"track_id":    trackID,
+				"plugin_path": pluginPath,
+			},
+			Context:   interaction.RequestContext,
+			Source:    "mixboard_control_surface_confirm",
+			Confirmed: true,
+			RunID:     interaction.RunID,
+			GoalID:    interaction.GoalID,
+		})
+		result["status"] = resp.Status
+		result["agent_action_id"] = resp.AgentActionID
+		if resp.Error != "" || err != nil {
+			result["error"] = firstNonEmpty(resp.Error, fmt.Sprint(err))
+			results = append(results, result)
+			return results, fmt.Errorf("%s", result["error"])
+		}
+		if len(resp.Result) > 0 {
+			result["result"] = resp.Result
+		}
+		results = append(results, result)
+	}
+	return results, nil
+}
+
+func confirmedControlSurfacePluginLoadKey(trackID string, plugin map[string]any) string {
+	pluginPath := firstNonEmpty(cleanContextText(plugin["plugin_path"]), cleanContextText(plugin["path"]), cleanContextText(plugin["file_path"]))
+	pluginID := firstNonEmpty(cleanContextText(plugin["profile_id"]), cleanContextText(plugin["id"]), cleanContextText(plugin["identifier"]), pluginPath, cleanContextText(plugin["name"]))
+	return strings.ToLower(strings.Join([]string{strings.TrimSpace(trackID), strings.TrimSpace(pluginID)}, "|"))
+}
+
+func (s *Server) runSingleMixTickInteraction(ctx context.Context, interaction PendingInteraction, data map[string]any, session MixSession, payload map[string]any) ChatResponse {
+	if session.MixSessionID == "" {
+		session = mixSessionFromMap(mapValue(payload["mix_session"]))
+	}
+	if session.MixSessionID == "" {
+		session = mixSessionFromMap(mapValue(data["mix_session"]))
+	}
+	if session.Mode == "" {
+		session.Mode = firstNonEmpty(cleanContextText(data["mode"]), mixModeAuto)
+	}
+	if session.TargetRef.ID == "" {
+		session.State = mixStateFailed
+		session.BlockingPoint = "mix target is not resolved"
+		return s.mixSessionStatusResponse(interaction, data, session, mapValue(data["mix_observation"]), session.BlockingPoint)
+	}
+	if !strings.EqualFold(session.TargetRef.Kind, "track") {
+		session.State = mixStateFailed
+		session.BlockingPoint = "自动调参 v0 只支持当前轨道音量。"
+		return s.mixSessionStatusResponse(interaction, data, session, mapValue(data["mix_observation"]), session.BlockingPoint)
+	}
+	if s == nil || s.harness == nil {
+		session.State = mixStateFailed
+		session.BlockingPoint = "harness unavailable for single tick execution"
+		return s.mixSessionStatusResponse(interaction, data, session, mapValue(data["mix_observation"]), session.BlockingPoint)
+	}
+	observationSeed := mapValue(data["mix_observation"])
+	userNote := mixTuningUserNote(payload, interaction.RequestContext, data, session)
+	if userNote != "" {
+		session.UserNote = userNote
+	}
+	packet := mixTickPacketFromObservation(observationSeed)
+	if len(packet) == 0 || userNote != "" {
+		packet = buildMixTickPacket(session, observationSeed, userNote)
+		applyMixTickPacket(observationSeed, packet)
+	}
+	status := cleanContextText(packet["status"])
+	if status == mixInteractionLearningRequired || status == "blocked" || status == "no_allowed_controls" {
+		session.InteractionPhase = mixInteractionLearningRequired
+		session.MixBoardVisibility = mixBoardVisibilityPublished
+		session.BlockingPoint = firstNonEmpty(cleanContextText(packet["status"]), "single tick is blocked")
+		if request := mapValue(packet["plugin_learning_request"]); len(request) > 0 {
+			session.BlockingPoint = "需要先完成 Plugin Grabber 学习：" + firstNonEmpty(cleanContextText(request["plugin_name"]), cleanContextText(request["type"]))
+		}
+		return s.mixSessionStatusResponse(interaction, data, session, observationSeed, session.BlockingPoint)
+	}
+	if status == "needs_confirmation" && mixInteractionPhase(session) != mixInteractionReadyForTick {
+		session.InteractionPhase = mixInteractionControlSurfacePublished
+		session.MixBoardVisibility = mixBoardVisibilityPublished
+		session.BlockingPoint = "Control surface needs confirmation before execution."
+		return s.mixSessionStatusResponse(interaction, data, session, observationSeed, session.BlockingPoint)
+	}
+	if mixInteractionPhase(session) != mixInteractionReadyForTick && !boolValue(payload["confirmed"]) && !boolValue(payload["control_surface_confirmed"]) {
+		session.InteractionPhase = mixInteractionControlSurfacePublished
+		session.MixBoardVisibility = mixBoardVisibilityPublished
+		session.BlockingPoint = "请先确认控制面，再执行 single tick。"
+		return s.mixSessionStatusResponse(interaction, data, session, observationSeed, session.BlockingPoint)
+	}
+	selected, selectErr := selectMixTickControl(packet, payload)
+	if selectErr != nil {
+		session.BlockingPoint = selectErr.Error()
+		return s.mixSessionStatusResponse(interaction, data, session, observationSeed, session.BlockingPoint)
+	}
+	session.State = mixStateTuningRunning
+	session.InteractionPhase = mixInteractionFastTickRunning
+	session.MixBoardVisibility = mixBoardVisibilityExecution
+	session.ExecutorType = mixSingleTickExecutorType
+	session.ExecutorVersion = mixSingleTickExecutorVersion
+	session.ReviewStatus = mixReviewWaiting
+	session.StopReason = ""
+	session.BlockingPoint = ""
+	session.UpdatedAt = time.Now().Format(time.RFC3339Nano)
+	requestContext := mergeContext(interaction.RequestContext, mapValue(data["request_context"]))
+	requestContext = mergeContext(requestContext, mapValue(payload["request_context"]))
+	session.FastModelProfile = mixFastModelProfile(session, mergeContext(requestContext, payload))
+	stepDB := mixTuningStepDB(session.GoalText, payload)
+	turn, executedReplies, applyErr := s.applySelectedMixTickControl(ctx, interaction, requestContext, session, packet, selected, stepDB, userNote)
+	if applyErr != nil {
+		session.State = mixStateFailed
+		session.ReviewStatus = mixReviewFailed
+		session.BlockingPoint = applyErr.Error()
+		turn["error"] = applyErr.Error()
+	} else {
+		session.JournalRefs = append(session.JournalRefs, cleanContextText(turn["agent_action_id"]))
+		session.RoundCount++
+	}
+	var observationResult map[string]any
+	var observationErr error
+	if session.State != mixStateFailed {
+		observationResult, observationErr = s.requestMixObservationRound(ctx, interaction, session, session.RoundCount, map[string]any{
+			"last_mix_action": turn,
+		})
+		if observationErr != nil {
+			session.State = mixStateObservationUnavailable
+			session.StopReason = mixStopReasonObservationUnavailable
+			session.BlockingPoint = observationErr.Error()
+		} else {
+			turn["observation_status"] = firstNonEmpty(cleanContextText(observationResult["status"]), "unavailable")
+			turn["delta_status"] = mixBeforeAfterDeltaStatus(observationResult)
+			turn["decision"] = mixTuneDecisionFromObservation(observationResult, stepDB)
+			turn["review_status"] = mixTuneReviewStatus(cleanContextText(turn["decision"]), cleanContextText(turn["delta_status"]))
+			session.State = mixStateWaitingReview
+			session.InteractionPhase = mixInteractionWaitingPlannerReview
+			session.MixBoardVisibility = mixBoardVisibilityExecution
+			session.ReviewStatus = mixTuneReviewStatus(cleanContextText(turn["decision"]), cleanContextText(turn["delta_status"]))
+		}
+	}
+	if observationResult == nil {
+		observationResult = observationSeed
+	}
+	turns := append(mixTuneTurnsFromObservation(observationResult), turn)
+	packet["latest_tick"] = turn
+	packet["recent_ticks"] = recentMixTuneTurns(turns, 3)
+	applyMixTickPacket(observationResult, packet)
+	board := mapValue(observationResult["mixboard"])
+	board["current_action"] = mixTickCurrentAction(turn)
+	board["current_judgement"] = firstNonEmpty(cleanContextText(turn["reason"]), mixTuneJudgement([]map[string]any{turn}))
+	board["next_step"] = "Review this single tick, then continue, rollback, or enter discussion."
+	board["latest_mix_tick"] = turn
+	board["auto_tune_turns"] = turns
+	board["single_tick_turns"] = turns
+	board["review_status"] = session.ReviewStatus
+	board["rollback_available"] = len(session.JournalRefs) > 0
+	observationResult["mixboard"] = board
+	writeMixTuneActionRecord(observationResult, turn)
+	updateMixBoardRuntimeState(observationResult, session, turns)
+	session.UpdatedAt = time.Now().Format(time.RFC3339Nano)
+	s.storeMixSession(session)
+	data["mix_session"] = mixSessionMap(session)
+	data["request_context"] = requestContext
+	data["mix_tick_packet"] = packet
+	data["mix_observation"] = observationResult
+	reply := "Single mix tick executed."
+	if observationErr != nil {
+		reply = "Single mix tick executed, but readback is unavailable: " + observationErr.Error()
+	}
+	if session.BlockingPoint != "" {
+		reply = session.BlockingPoint
+	}
+	return ChatResponse{
+		ConversationID:      interaction.ConversationID,
+		GoalID:              interaction.GoalID,
+		RunID:               interaction.RunID,
+		Reply:               reply,
+		Workflow:            mixSessionEntryWorkflow,
+		WorkflowData:        data,
+		MixSession:          mixSessionMap(session),
+		InteractionRequests: []AgentInteractionRequest{s.mixBoardStatusInteraction(interaction, session, observationResult)},
+		ExecutedKernelReply: executedReplies,
+		GoalStatus:          string(agentruntime.StatusWaitingContinue),
+		CurrentStep:         session.State,
+	}
+}
+
+func (s *Server) mixSessionStatusResponse(interaction PendingInteraction, data map[string]any, session MixSession, observation map[string]any, reply string) ChatResponse {
+	session.UpdatedAt = time.Now().Format(time.RFC3339Nano)
+	if s != nil {
+		s.storeMixSession(session)
+	}
+	updateMixBoardRuntimeState(observation, session, nil)
+	data["mix_session"] = mixSessionMap(session)
+	if len(observation) > 0 {
+		data["mix_observation"] = observation
+	}
+	if reply == "" {
+		reply = "Mix session state updated."
+	}
+	return ChatResponse{
+		ConversationID:      interaction.ConversationID,
+		GoalID:              interaction.GoalID,
+		RunID:               interaction.RunID,
+		Reply:               reply,
+		Workflow:            mixSessionEntryWorkflow,
+		WorkflowData:        data,
+		MixSession:          mixSessionMap(session),
+		InteractionRequests: []AgentInteractionRequest{s.mixBoardStatusInteraction(interaction, session, observation)},
+		GoalStatus:          string(agentruntime.StatusWaitingContinue),
+		CurrentStep:         session.State,
+	}
+}
+
+func initialMixPlannerPrep(session MixSession, requestContext map[string]any) map[string]any {
+	now := time.Now().Format(time.RFC3339Nano)
+	prep := map[string]any{
+		"schema_version":            mixPlannerPrepSchemaVersion,
+		"mix_session_id":            session.MixSessionID,
+		"stage":                     "planner_intake",
+		"planner_policy":            mixPlannerPolicy(session),
+		"model_strategy":            mixPlannerModelStrategy(),
+		"goal_summary":              strings.TrimSpace(session.GoalText),
+		"target_ref":                mixTargetMap(session.TargetRef),
+		"mixboard_visibility":       mixBoardVisibilityCollapsed,
+		"ready_to_publish_mixboard": false,
+		"created_at":                now,
+		"updated_at":                now,
+	}
+	if detail := firstNonEmpty(cleanContextText(requestContext["mix_goal_detail"]), cleanContextText(requestContext["goal_detail"]), cleanContextText(requestContext["user_note"])); detail != "" {
+		prep["goal_detail"] = detail
+	}
+	updateMixPlannerPrepDerived(prep, session)
+	syncMixPlanningWorkspace(prep, session)
+	return prep
+}
+
+func mixPlannerPrepFromData(data map[string]any, session MixSession, requestContext map[string]any) map[string]any {
+	prep := mapValue(data["mix_planner_prep"])
+	if len(prep) == 0 {
+		prep = initialMixPlannerPrep(session, requestContext)
+	}
+	if cleanContextText(prep["schema_version"]) == "" {
+		prep["schema_version"] = mixPlannerPrepSchemaVersion
+	}
+	if cleanContextText(prep["mix_session_id"]) == "" {
+		prep["mix_session_id"] = session.MixSessionID
+	}
+	if len(mapValue(prep["target_ref"])) == 0 {
+		prep["target_ref"] = mixTargetMap(session.TargetRef)
+	}
+	if cleanContextText(prep["goal_summary"]) == "" {
+		prep["goal_summary"] = strings.TrimSpace(session.GoalText)
+	}
+	syncMixPlanningWorkspace(prep, session)
+	return prep
+}
+
+func absorbMixPlannerAnswers(prep map[string]any, session *MixSession, payload map[string]any) {
+	fields := mapValue(payload["fields"])
+	message := cleanContextText(payload["message"])
+	lowerMessage := strings.ToLower(message)
+	priorWorkspaceMissing := mixPlannerWorkspaceMissingSlots(prep)
+	payloadIntent := cleanContextText(payload["intent"])
+	intent := firstNonEmpty(payloadIntent, mixPlannerMessageIntent(message))
+	if payloadIntent == "" && mixPlannerGenericAffirmative(message) {
+		if boolValue(prep["publish_mixboard_prompted"]) && mixPlannerWorkspaceComplete(prep) {
+			intent = "confirm_publish_mixboard"
+		} else if containsString(mixPlannerBaseMissingInputs(prep), "allow_plugin_loads") {
+			intent = "allow_plugin_loads"
+		}
+	}
+	if intent != "" {
+		prep["last_user_intent"] = intent
+	}
+	if confidence := floatNumber(payload["planner_llm_confidence"]); confidence > 0 {
+		prep["planner_llm_confidence"] = confidence
+	}
+	if summary := cleanContextText(payload["discussion_summary"]); summary != "" {
+		prep["last_discussion_summary"] = summary
+	}
+	if boolValue(prep["planner_revision_requested"]) && mixPlannerRevisionCanResume(intent, message) {
+		prep["planner_revision_requested"] = false
+		prep["publish_mixboard_prompted"] = false
+		prep["publish_mixboard_confirmed"] = false
+	}
+	pick := func(keys ...string) string {
+		for _, key := range keys {
+			if value := cleanContextText(payload[key]); value != "" {
+				return value
+			}
+			if value := cleanContextText(fields[key]); value != "" {
+				return value
+			}
+		}
+		return ""
+	}
+	if goal := pick("goal_detail", "mix_goal_detail", "mix_direction", "direction"); goal != "" {
+		mixPlannerSetGoalDetail(prep, session, goal)
+	} else if note := pick("user_note"); note != "" && !mixPlannerMetaMessage(note) {
+		mixPlannerSetGoalDetail(prep, session, note)
+	} else if message != "" && mixPlannerMessageCanUpdateGoal(intent, message) {
+		mixPlannerSetGoalDetail(prep, session, message)
+	}
+	if priority := pick("priority_focus", "mix_priority", "focus"); priority != "" {
+		prep["priority_focus"] = priority
+	}
+	if tone := pick("tone_reference", "reference", "style_reference"); tone != "" {
+		prep["tone_reference"] = tone
+	}
+	if allowRaw, ok := payload["allow_plugin_loads"]; ok {
+		prep["allow_plugin_loads"] = boolValue(allowRaw)
+	} else if allowRaw, ok := fields["allow_plugin_loads"]; ok {
+		prep["allow_plugin_loads"] = boolValue(allowRaw)
+	} else if intent == "allow_plugin_loads" || mixPlannerUserDelegates(message) || mixTextContainsAny(lowerMessage, "可以加载", "能加载", "同意加载") {
+		prep["allow_plugin_loads"] = true
+	} else if intent == "deny_plugin_loads" || mixTextContainsAny(lowerMessage, "不加载", "不要加载", "只用已有") {
+		prep["allow_plugin_loads"] = false
+	}
+	if mode := pick("planner_policy", "mix_policy"); mode != "" {
+		session.PlannerPolicy = mode
+		prep["planner_policy"] = mode
+	}
+	if intent == "delegate_to_agent" || mixPlannerUserDelegates(message) {
+		prep["planner_autonomy"] = "agent_decides"
+		prep["planner_auto_accept_drafts"] = true
+	}
+	if confirmedRaw, ok := payload["publish_mixboard_confirmed"]; ok {
+		prep["publish_mixboard_confirmed"] = boolValue(confirmedRaw)
+	} else if confirmedRaw, ok := payload["planner_plan_confirmed"]; ok {
+		prep["publish_mixboard_confirmed"] = boolValue(confirmedRaw)
+	} else if confirmedRaw, ok := fields["planner_plan_confirmed"]; ok {
+		prep["publish_mixboard_confirmed"] = boolValue(confirmedRaw)
+	} else if intent == "confirm_publish_mixboard" && boolValue(prep["publish_mixboard_prompted"]) {
+		prep["publish_mixboard_confirmed"] = true
+	} else if intent == "reject_publish_mixboard" {
+		prep["publish_mixboard_confirmed"] = false
+		prep["publish_mixboard_prompted"] = false
+		prep["planner_revision_requested"] = true
+		prep["planner_revision_note"] = message
+	}
+	if mixPlannerShouldAcceptCurrentDraft(intent, message, prep) {
+		mixPlannerAcceptFirstMissingDraftSlot(prep, priorWorkspaceMissing)
+	}
+	prep["updated_at"] = time.Now().Format(time.RFC3339Nano)
+}
+
+func mixPlannerSetGoalDetail(prep map[string]any, session *MixSession, goal string) {
+	goal = strings.TrimSpace(goal)
+	if goal == "" {
+		return
+	}
+	if cleanContextText(prep["goal_detail"]) != goal {
+		mixPlannerClearAcceptedSlots(prep, "plugin_types", "local_plugin_candidates", "plugin_chain_order", "skill_profile_status", "macro_panel", "fast_tick_packet")
+		prep["publish_mixboard_prompted"] = false
+		prep["publish_mixboard_confirmed"] = false
+	}
+	prep["goal_detail"] = goal
+	prep["accepted_planning_slots"] = uniqueStrings(append(contextStringSlice(prep["accepted_planning_slots"]), "mix_goal"))
+	if session != nil {
+		session.UserNote = goal
+	}
+}
+
+func mixPlannerShouldAcceptCurrentDraft(intent, message string, prep map[string]any) bool {
+	if boolValue(prep["publish_mixboard_prompted"]) {
+		return false
+	}
+	if len(mixPlannerBaseMissingInputs(prep)) > 0 {
+		return false
+	}
+	if intent == "delegate_to_agent" {
+		prep["planner_auto_accept_drafts"] = true
+		return true
+	}
+	if intent == "confirm_publish_mixboard" || mixPlannerGenericAffirmative(message) {
+		return true
+	}
+	return false
+}
+
+func mixPlannerMessageIntent(text string) string {
+	text = strings.ToLower(strings.TrimSpace(text))
+	if text == "" {
+		return ""
+	}
+	if mixTextContainsAny(text, "有什么插件推荐", "插件推荐", "推荐什么插件", "用什么插件", "哪些插件", "候选插件") {
+		return "ask_plugin_recommendation"
+	}
+	if mixTextContainsAny(text, "不行", "还不行", "先别", "不要生成", "别生成", "不发布", "别发布") {
+		return "reject_publish_mixboard"
+	}
+	if mixTextContainsAny(text, "允许加载", "允许你加载", "允许你加", "可以加载", "你可以加载", "能加载", "同意加载") || text == "允许" {
+		return "allow_plugin_loads"
+	}
+	if mixTextContainsAny(text, "不加载", "不要加载", "只用已有") {
+		return "deny_plugin_loads"
+	}
+	if mixPlannerUserDelegates(text) {
+		return "delegate_to_agent"
+	}
+	if mixPlannerUserConfirmsPlan(text) {
+		return "confirm_publish_mixboard"
+	}
+	return "provide_goal"
+}
+
+func mixPlannerGenericAffirmative(text string) bool {
+	text = strings.ToLower(strings.TrimSpace(text))
+	return text == "可以" || text == "确认" || text == "好" || text == "ok" || text == "yes"
+}
+
+func containsString(values []string, want string) bool {
+	for _, value := range values {
+		if value == want {
+			return true
+		}
+	}
+	return false
+}
+
+func mixPlannerMessageCanUpdateGoal(intent, text string) bool {
+	text = strings.TrimSpace(text)
+	if text == "" {
+		return false
+	}
+	switch intent {
+	case "provide_goal":
+		return true
+	default:
+		return false
+	}
+}
+
+func mixPlannerRevisionCanResume(intent, text string) bool {
+	if strings.TrimSpace(text) == "" {
+		return false
+	}
+	switch intent {
+	case "provide_goal", "ask_plugin_recommendation", "delegate_to_agent", "allow_plugin_loads", "deny_plugin_loads":
+		return true
+	default:
+		return false
+	}
+}
+
+func mixPlannerUserDelegates(text string) bool {
+	text = strings.ToLower(strings.TrimSpace(text))
+	return mixTextContainsAny(text, "由你决定", "你决定", "你来定", "你看着办", "交给你", "按你的判断", "agent decides", "you decide")
+}
+
+func mixPlannerUserConfirmsPlan(text string) bool {
+	text = strings.ToLower(strings.TrimSpace(text))
+	return mixTextContainsAny(text, "确认规划", "按这个", "按这个来", "可以发布", "发布mixboard", "发布 mixboard", "开始生成mixboard", "开始生成 mixboard", "确认控制面", "ok", "yes")
+}
+
+func mixPlannerMetaMessage(text string) bool {
+	text = strings.ToLower(strings.TrimSpace(text))
+	if text == "" {
+		return false
+	}
+	if mixPlannerUserDelegates(text) || mixPlannerUserConfirmsPlan(text) {
+		return true
+	}
+	switch mixPlannerMessageIntent(text) {
+	case "ask_plugin_recommendation", "allow_plugin_loads", "deny_plugin_loads", "reject_publish_mixboard", "confirm_publish_mixboard", "delegate_to_agent":
+		return true
+	default:
+		return false
+	}
+}
+
+func mixTextContainsAny(text string, needles ...string) bool {
+	for _, needle := range needles {
+		needle = strings.ToLower(strings.TrimSpace(needle))
+		if needle != "" && strings.Contains(text, needle) {
+			return true
+		}
+	}
+	return false
+}
+
+func updateMixPlannerPrepDerived(prep map[string]any, session MixSession) {
+	goalParts := []string{}
+	for _, part := range []string{
+		cleanContextText(prep["goal_summary"]),
+		cleanContextText(prep["goal_detail"]),
+		cleanContextText(prep["priority_focus"]),
+	} {
+		if strings.TrimSpace(part) != "" {
+			goalParts = append(goalParts, part)
+		}
+	}
+	goalText := strings.TrimSpace(strings.Join(goalParts, " "))
+	if goalText == "" {
+		goalText = session.GoalText
+	}
+	roleTypes := mixcontrolsurface.RequiredRoleTypes(goalText)
+	if len(roleTypes) == 0 {
+		roleTypes = []string{"eq", "dynamics"}
+	}
+	roleRows := []map[string]any{}
+	pluginTypes := []map[string]any{}
+	for i, roleType := range roleTypes {
+		roleRows = append(roleRows, map[string]any{
+			"slot":     i + 1,
+			"type":     roleType,
+			"required": i < 2,
+			"source":   "planner_goal_analysis",
+		})
+		pluginTypes = append(pluginTypes, map[string]any{
+			"slot":          i + 1,
+			"required_type": roleType,
+			"reason":        "Needed for the current mix goal.",
+		})
+	}
+	prep["required_roles"] = roleRows
+	prep["plugin_type_plan"] = pluginTypes
+	prep["plugin_chain_order"] = mixPlannerChainOrder(roleTypes)
+	if boolValue(prep["planner_auto_accept_drafts"]) {
+		mixPlannerAcceptAllDraftSlots(prep)
+	}
+	baseMissing := mixPlannerBaseMissingInputs(prep)
+	if len(baseMissing) > 0 {
+		prep["missing_inputs"] = baseMissing
+		prep["open_questions"] = mixPlannerQuestions(baseMissing)
+		prep["next_question"] = mixPlannerNextQuestion(baseMissing)
+		prep["stage"] = "planner_intake"
+		prep["ready_to_publish_mixboard"] = false
+		return
+	}
+	if cleanContextText(prep["blocking_point"]) != "" || cleanContextText(prep["stage"]) == mixInteractionLearningRequired {
+		prep["missing_inputs"] = []string{"system_preflight_blocked"}
+		prep["open_questions"] = []map[string]any{}
+		prep["next_question"] = firstNonEmpty(cleanContextText(prep["blocking_point"]), "系统预检仍有阻断，不能生成 MixBoard。")
+		prep["ready_to_publish_mixboard"] = false
+		return
+	}
+	workspaceMissing := mixPlannerWorkspaceMissingSlots(prep)
+	if len(workspaceMissing) > 0 {
+		prep["missing_inputs"] = workspaceMissing
+		prep["open_questions"] = mixPlannerQuestions(workspaceMissing)
+		prep["next_question"] = mixPlannerNextQuestion(workspaceMissing)
+		prep["stage"] = "plan_drafting"
+		prep["ready_to_publish_mixboard"] = false
+		return
+	}
+	if boolValue(prep["planner_revision_requested"]) {
+		prep["missing_inputs"] = []string{"planner_revision_note"}
+		prep["open_questions"] = mixPlannerQuestions([]string{"planner_revision_note"})
+		prep["next_question"] = mixPlannerNextQuestion([]string{"planner_revision_note"})
+		prep["stage"] = "plan_drafting"
+		prep["ready_to_publish_mixboard"] = false
+		return
+	}
+	if !boolValue(prep["publish_mixboard_prompted"]) {
+		prep["publish_mixboard_prompted"] = true
+		prep["missing_inputs"] = []string{"publish_mixboard_confirmed"}
+		prep["open_questions"] = mixPlannerQuestions([]string{"publish_mixboard_confirmed"})
+		prep["next_question"] = mixPlannerNextQuestion([]string{"publish_mixboard_confirmed"})
+		prep["stage"] = "planner_draft_review"
+		prep["ready_to_publish_mixboard"] = false
+		return
+	}
+	if !boolValue(prep["publish_mixboard_confirmed"]) {
+		prep["missing_inputs"] = []string{"publish_mixboard_confirmed"}
+		prep["open_questions"] = mixPlannerQuestions([]string{"publish_mixboard_confirmed"})
+		prep["next_question"] = mixPlannerNextQuestion([]string{"publish_mixboard_confirmed"})
+		prep["stage"] = "planner_draft_review"
+		prep["ready_to_publish_mixboard"] = false
+		return
+	}
+	prep["missing_inputs"] = []string{}
+	prep["open_questions"] = []map[string]any{}
+	prep["next_question"] = ""
+	prep["stage"] = "planner_preflight_complete"
+	prep["ready_to_publish_mixboard"] = true
+}
+
+func syncMixPlanningWorkspace(prep map[string]any, session MixSession) map[string]any {
+	if len(prep) == 0 {
+		return nil
+	}
+	workspace := mixPlanningWorkspaceFromPrep(prep, session)
+	prep["mix_planning_workspace"] = workspace
+	return workspace
+}
+
+func mixPlanningWorkspaceFromPrep(prep map[string]any, session MixSession) map[string]any {
+	missing := mixPlannerMissingInputs(prep)
+	if len(missing) == 0 {
+		missing = contextStringSlice(prep["missing_inputs"])
+	}
+	semanticReady := len(mixPlannerBaseMissingInputs(prep)) == 0
+	systemReady := boolValue(prep["ready_to_publish_mixboard"])
+	systemBlockers := []string{}
+	if blocker := cleanContextText(prep["blocking_point"]); blocker != "" {
+		systemBlockers = append(systemBlockers, blocker)
+	}
+	if cleanContextText(prep["stage"]) == mixInteractionLearningRequired {
+		systemReady = false
+		if len(systemBlockers) == 0 {
+			systemBlockers = append(systemBlockers, "plugin learning required")
+		}
+	}
+	workspace := map[string]any{
+		"schema_version":      mixPlanningWorkspaceSchemaVersion,
+		"mix_session_id":      session.MixSessionID,
+		"conversation_id":     session.ConversationID,
+		"mode":                session.Mode,
+		"planner_policy":      mixPlannerPolicy(session),
+		"interaction_phase":   mixInteractionPlanningChat,
+		"mixboard_visibility": mixBoardVisibilityCollapsed,
+		"stage":               cleanContextText(prep["stage"]),
+		"target_ref":          mixTargetMap(session.TargetRef),
+		"goal": map[string]any{
+			"summary":        cleanContextText(prep["goal_summary"]),
+			"detail":         cleanContextText(prep["goal_detail"]),
+			"priority_focus": cleanContextText(prep["priority_focus"]),
+			"tone_reference": cleanContextText(prep["tone_reference"]),
+			"autonomy":       cleanContextText(prep["planner_autonomy"]),
+		},
+		"workflow_slots": []map[string]any{
+			mixWorkspaceSlot("mix_goal", "混音目标", mixPlannerWorkspaceSlotComplete(prep, "mix_goal"), cleanContextText(prep["goal_detail"])),
+			mixWorkspaceSlot("plugin_types", "所需插件类型", mixPlannerWorkspaceSlotComplete(prep, "plugin_types"), strings.Join(mixPluginTypeNames(mapRowsValue(prep["plugin_type_plan"])), " / ")),
+			mixWorkspaceSlot("local_plugin_candidates", "本地插件候选", mixPlannerWorkspaceSlotComplete(prep, "local_plugin_candidates"), mixCandidateSummary(mapRowsValue(prep["plugin_candidates"]))),
+			mixWorkspaceSlot("plugin_chain_order", "插件链顺序", mixPlannerWorkspaceSlotComplete(prep, "plugin_chain_order"), mixChainSummary(mapRowsValue(prep["plugin_chain_order"]))),
+			mixWorkspaceSlot("skill_profile_status", "Skill/Profile 检查", mixPlannerWorkspaceSlotComplete(prep, "skill_profile_status"), mixSkillProfileSummary(prep)),
+			mixWorkspaceSlot("macro_panel", "宏面板草案", mixPlannerWorkspaceSlotComplete(prep, "macro_panel"), mixMacroPanelSummary(mapValue(prep["macro_panel_draft"]))),
+			mixWorkspaceSlot("fast_tick_packet", "快速模式上下文包", mixPlannerWorkspaceSlotComplete(prep, "fast_tick_packet"), mixFastPacketSummary(prep)),
+		},
+		"required_plugin_types":   mapRowsValue(prep["plugin_type_plan"]),
+		"plugin_chain_order":      mapRowsValue(prep["plugin_chain_order"]),
+		"local_plugin_candidates": mapRowsValue(prep["plugin_candidates"]),
+		"selected_chain_draft":    mapRowsValue(prep["selected_chain_draft"]),
+		"skill_profile_status":    mapValue(prep["skill_profile_status"]),
+		"macro_panel_draft":       mapValue(prep["macro_panel_draft"]),
+		"fast_tick_context": map[string]any{
+			"status":            mixFastPacketSummary(prep),
+			"proposed_controls": mapRowsValue(prep["proposed_controls"]),
+			"model_strategy":    mixFastModelStrategyPreview(session),
+		},
+		"planner_verdict": map[string]any{
+			"semantic_ready":  semanticReady,
+			"system_ready":    systemReady,
+			"publishable":     boolValue(prep["ready_to_publish_mixboard"]),
+			"missing":         missing,
+			"system_blockers": systemBlockers,
+			"next_question":   cleanContextText(prep["next_question"]),
+			"source":          "workflow_conditions",
+		},
+		"open_questions": mapRowsValue(prep["open_questions"]),
+		"next_question":  cleanContextText(prep["next_question"]),
+		"updated_at":     time.Now().Format(time.RFC3339Nano),
+	}
+	if createdAt := cleanContextText(prep["created_at"]); createdAt != "" {
+		workspace["created_at"] = createdAt
+	}
+	return workspace
+}
+
+func mixPlannerWorkspaceMissingSlots(prep map[string]any) []string {
+	missing := []string{}
+	for _, slotID := range mixPlannerWorkspaceSlotIDs() {
+		if !mixPlannerWorkspaceSlotComplete(prep, slotID) {
+			missing = append(missing, "workspace_"+slotID)
+		}
+	}
+	return missing
+}
+
+func mixPlannerWorkspaceComplete(prep map[string]any) bool {
+	return len(mixPlannerWorkspaceMissingSlots(prep)) == 0
+}
+
+func mixPlannerWorkspaceSlotComplete(prep map[string]any, slotID string) bool {
+	if !mixPlannerWorkspaceSlotHasDraftValue(prep, slotID) {
+		return false
+	}
+	if slotID == "mix_goal" {
+		return true
+	}
+	return mixPlannerSlotAccepted(prep, slotID)
+}
+
+func mixPlannerWorkspaceSlotHasDraftValue(prep map[string]any, slotID string) bool {
+	switch slotID {
+	case "mix_goal":
+		return cleanContextText(prep["goal_detail"]) != ""
+	case "plugin_types":
+		return len(mapRowsValue(prep["plugin_type_plan"])) > 0
+	case "local_plugin_candidates":
+		return len(mapRowsValue(prep["plugin_candidates"])) > 0
+	case "plugin_chain_order":
+		return len(mapRowsValue(prep["plugin_chain_order"])) > 0
+	case "skill_profile_status":
+		return len(mapValue(prep["skill_profile_status"])) > 0
+	case "macro_panel":
+		return len(mapRowsValue(mapValue(prep["macro_panel_draft"])["controls"])) > 0
+	case "fast_tick_packet":
+		return len(mapRowsValue(prep["proposed_controls"])) > 0
+	default:
+		return false
+	}
+}
+
+func mixPlannerWorkspaceSlotIDs() []string {
+	return []string{"mix_goal", "plugin_types", "local_plugin_candidates", "plugin_chain_order", "skill_profile_status", "macro_panel", "fast_tick_packet"}
+}
+
+func mixPlannerSlotAccepted(prep map[string]any, slotID string) bool {
+	return containsString(contextStringSlice(prep["accepted_planning_slots"]), slotID)
+}
+
+func mixPlannerAcceptSlot(prep map[string]any, slotID string) {
+	if slotID == "" {
+		return
+	}
+	prep["accepted_planning_slots"] = uniqueStrings(append(contextStringSlice(prep["accepted_planning_slots"]), slotID))
+}
+
+func mixPlannerClearAcceptedSlots(prep map[string]any, slotIDs ...string) {
+	if len(slotIDs) == 0 {
+		return
+	}
+	remove := map[string]bool{}
+	for _, slotID := range slotIDs {
+		remove[slotID] = true
+	}
+	kept := []string{}
+	for _, slotID := range contextStringSlice(prep["accepted_planning_slots"]) {
+		if !remove[slotID] {
+			kept = append(kept, slotID)
+		}
+	}
+	prep["accepted_planning_slots"] = kept
+}
+
+func mixPlannerAcceptFirstMissingDraftSlot(prep map[string]any, missing []string) {
+	if len(missing) == 0 {
+		missing = mixPlannerWorkspaceMissingSlots(prep)
+	}
+	for _, missingID := range missing {
+		slotID := strings.TrimPrefix(missingID, "workspace_")
+		if slotID == "mix_goal" || !containsString(mixPlannerWorkspaceSlotIDs(), slotID) {
+			continue
+		}
+		if mixPlannerWorkspaceSlotHasDraftValue(prep, slotID) {
+			mixPlannerAcceptSlot(prep, slotID)
+			return
+		}
+	}
+}
+
+func mixPlannerAcceptAllDraftSlots(prep map[string]any) {
+	for _, slotID := range mixPlannerWorkspaceSlotIDs() {
+		if mixPlannerWorkspaceSlotHasDraftValue(prep, slotID) {
+			mixPlannerAcceptSlot(prep, slotID)
+		}
+	}
+}
+
+func mixWorkspaceSlot(id, label string, complete bool, summary string) map[string]any {
+	status := "missing"
+	if complete {
+		status = "complete"
+	} else if strings.TrimSpace(summary) != "" {
+		status = "draft"
+	}
+	return map[string]any{
+		"id":       id,
+		"label":    label,
+		"status":   status,
+		"summary":  firstNonEmpty(summary, "-"),
+		"complete": complete,
+	}
+}
+
+func mixPluginTypeNames(rows []map[string]any) []string {
+	out := []string{}
+	for _, row := range rows {
+		out = append(out, cleanContextText(row["required_type"]))
+	}
+	return compactNonEmptyStrings(out)
+}
+
+func mixCandidateSummary(rows []map[string]any) string {
+	names := []string{}
+	for _, row := range rows {
+		name := firstNonEmpty(cleanContextText(row["name"]), cleanContextText(row["plugin_name"]), cleanContextText(row["descriptive_name"]))
+		if name != "" {
+			names = append(names, name)
+		}
+	}
+	names = compactNonEmptyStrings(names)
+	if len(names) == 0 {
+		return ""
+	}
+	if len(names) > 4 {
+		return strings.Join(names[:4], " / ") + " ..."
+	}
+	return strings.Join(names, " / ")
+}
+
+func mixChainSummary(rows []map[string]any) string {
+	parts := []string{}
+	for _, row := range rows {
+		role := firstNonEmpty(cleanContextText(row["role"]), cleanContextText(row["type"]))
+		if role != "" {
+			parts = append(parts, role)
+		}
+	}
+	return strings.Join(compactNonEmptyStrings(parts), " -> ")
+}
+
+func mixSkillProfileSummary(prep map[string]any) string {
+	status := mapValue(prep["skill_profile_status"])
+	profileStatus := cleanContextText(status["profile_status"])
+	if profileStatus == "" {
+		profileStatus = cleanContextText(prep["profile_status"])
+	}
+	if profileStatus == "" {
+		return ""
+	}
+	next := cleanContextText(status["next_action"])
+	if next != "" {
+		return profileStatus + " / " + next
+	}
+	return profileStatus
+}
+
+func mixMacroPanelSummary(panel map[string]any) string {
+	controls := mapRowsValue(panel["controls"])
+	if len(controls) == 0 {
+		return ""
+	}
+	names := []string{}
+	for _, control := range controls {
+		names = append(names, firstNonEmpty(cleanContextText(control["name"]), cleanContextText(control["label"]), cleanContextText(control["control"])))
+	}
+	return strings.Join(compactNonEmptyStrings(names), " / ")
+}
+
+func mixFastPacketSummary(prep map[string]any) string {
+	if boolValue(prep["ready_to_publish_mixboard"]) {
+		return "ready_to_package"
+	}
+	if len(mapRowsValue(prep["proposed_controls"])) > 0 {
+		return "control_surface_draft_ready"
+	}
+	return ""
+}
+
+func mixFastModelStrategyPreview(session MixSession) map[string]any {
+	return map[string]any{
+		"route":              "mix_tick",
+		"fast_model_profile": session.FastModelProfile,
+		"reasoning_effort":   "low",
+		"chain_of_thought":   "disabled",
+	}
+}
+
+func compactNonEmptyStrings(values []string) []string {
+	out := []string{}
+	seen := map[string]bool{}
+	for _, value := range values {
+		value = strings.TrimSpace(value)
+		if value == "" || seen[value] {
+			continue
+		}
+		seen[value] = true
+		out = append(out, value)
+	}
+	return out
+}
+
+func mixPlannerMissingInputs(prep map[string]any) []string {
+	missing := mixPlannerBaseMissingInputs(prep)
+	if len(missing) > 0 {
+		return missing
+	}
+	if workspaceMissing := mixPlannerWorkspaceMissingSlots(prep); len(workspaceMissing) > 0 {
+		return workspaceMissing
+	}
+	if boolValue(prep["planner_revision_requested"]) {
+		missing = append(missing, "planner_revision_note")
+		return missing
+	}
+	if !boolValue(prep["publish_mixboard_prompted"]) || !boolValue(prep["publish_mixboard_confirmed"]) {
+		missing = append(missing, "publish_mixboard_confirmed")
+	}
+	return missing
+}
+
+func mixPlannerBaseMissingInputs(prep map[string]any) []string {
+	missing := []string{}
+	if strings.TrimSpace(cleanContextText(prep["goal_detail"])) == "" {
+		missing = append(missing, "goal_detail")
+	}
+	if _, ok := prep["allow_plugin_loads"]; !ok {
+		missing = append(missing, "allow_plugin_loads")
+	}
+	return missing
+}
+
+func mixPlannerQuestions(missing []string) []map[string]any {
+	out := []map[string]any{}
+	for _, id := range missing {
+		switch id {
+		case "goal_detail":
+			out = append(out, map[string]any{
+				"id":       id,
+				"question": "这次缩混要优先解决当前目标的什么问题？",
+				"examples": []string{"清理低中频并轻微稳定动态", "让人声更靠前但不要刺耳"},
+			})
+		case "allow_plugin_loads":
+			out = append(out, map[string]any{
+				"id":       id,
+				"question": "确认插件链后，是否允许规划器加载推荐的本地插件？",
+				"examples": []string{"可以，允许加载推荐插件", "不可以，只使用当前已有实例"},
+			})
+		case "planner_plan_confirmed":
+			out = append(out, map[string]any{
+				"id":       id,
+				"question": "请先复核规划草案；确认后我再发布 MixBoard。",
+				"examples": []string{"确认规划，按这个来", "先别发布，我想调整插件方向"},
+			})
+		case "workspace_plugin_types":
+			out = append(out, map[string]any{
+				"id":       id,
+				"question": "我已经根据目标草拟了所需处理类型，需要先和你确认这个方向。",
+				"examples": []string{"可以，继续推荐插件", "别用动态处理，先只做空间和电平"},
+			})
+		case "workspace_local_plugin_candidates":
+			out = append(out, map[string]any{
+				"id":       id,
+				"question": "我需要先列出本地候选插件并说明推荐理由，再继续规划。",
+				"examples": []string{"请推荐本地可用插件", "优先使用已有 profile 的插件"},
+			})
+		case "workspace_plugin_chain_order":
+			out = append(out, map[string]any{
+				"id":       id,
+				"question": "我已经草拟了插件链顺序，需要先确认处理先后关系。",
+				"examples": []string{"可以，按这个顺序", "先混响再压缩不合适，换一版"},
+			})
+		case "workspace_skill_profile_status":
+			out = append(out, map[string]any{
+				"id":       id,
+				"question": "我需要先检查候选插件是否具备 Plugin Grabber skill/profile。",
+				"examples": []string{"如果缺 skill 就先停下", "优先使用 skill ready 的插件"},
+			})
+		case "workspace_macro_panel":
+			out = append(out, map[string]any{
+				"id":       id,
+				"question": "我需要先生成可执行的宏面板草案。",
+				"examples": []string{"先给出宏控制草案", "只允许 virtual controls"},
+			})
+		case "workspace_fast_tick_packet":
+			out = append(out, map[string]any{
+				"id":       id,
+				"question": "我需要先打包快速模式执行上下文。",
+				"examples": []string{"执行阶段只使用确认过的控件", "不要让快速模式直接碰 raw 参数"},
+			})
+		case "planner_revision_note":
+			out = append(out, map[string]any{
+				"id":       id,
+				"question": "先不生成 MixBoard。你想继续调整目标、插件选择、链路顺序，还是宏面板？",
+				"examples": []string{"换一个更温和的动态处理方向", "先别用这个插件链，再推荐一版"},
+			})
+		case "publish_mixboard_confirmed":
+			out = append(out, map[string]any{
+				"id":       id,
+				"question": "规划工作区已经完整。是否生成 MixBoard？",
+				"examples": []string{"可以，生成 MixBoard", "还不行，我想继续调整"},
+			})
+		}
+	}
+	return out
+}
+
+func mixPlannerNextQuestion(missing []string) string {
+	if len(missing) == 0 {
+		return ""
+	}
+	switch missing[0] {
+	case "goal_detail":
+		return "在我生成控制面之前，请先告诉我这次缩混的方向。"
+	case "allow_plugin_loads":
+		return "请确认：如果选中的插件链需要插件实例，是否允许我加载推荐的本地插件？"
+	case "planner_plan_confirmed":
+		return "我会先整理混音目标、插件类型、候选插件、链路顺序和宏控制草案；请确认规划后再发布 MixBoard。"
+	case "workspace_plugin_types":
+		return "我已经根据目标草拟了所需处理类型。你可以确认继续，或告诉我要避开的处理方向。"
+	case "workspace_local_plugin_candidates":
+		return "我需要先列出本地候选插件并说明推荐理由。"
+	case "workspace_plugin_chain_order":
+		return "我已经草拟了插件链顺序。请确认这个处理先后关系，或告诉我想调整哪里。"
+	case "workspace_skill_profile_status":
+		return "我需要先检查候选插件的 skill/profile 状态，缺 skill 时必须停下学习。"
+	case "workspace_macro_panel":
+		return "我需要先生成宏面板草案，只包含 macro、virtual controls 或确认过的 binding。"
+	case "workspace_fast_tick_packet":
+		return "我需要先打包快速模式上下文，执行阶段只能消费确认后的控件。"
+	case "planner_revision_note":
+		return "先不生成 MixBoard。你想继续调整目标、插件选择、链路顺序，还是宏面板？"
+	case "publish_mixboard_confirmed":
+		return "规划工作区已经完整。是否生成 MixBoard？"
+	default:
+		return "规划器还需要一个补充答案，之后才能发布 MixBoard。"
+	}
+}
+
+func mixPlannerChainOrder(roleTypes []string) []map[string]any {
+	order := []map[string]any{{
+		"slot":   0,
+		"type":   "track_gain",
+		"role":   "gain_staging",
+		"reason": "先建立可回退的音量宏控制，再进入插件调控。",
+	}}
+	for i, roleType := range roleTypes {
+		order = append(order, map[string]any{
+			"slot":   i + 1,
+			"type":   roleType,
+			"role":   mixPlannerRoleName(roleType),
+			"reason": "根据当前混音目标选择的处理角色。",
+		})
+	}
+	return order
+}
+
+func mixPlannerRoleName(roleType string) string {
+	switch roleType {
+	case "eq":
+		return "tone_balance"
+	case "dynamics":
+		return "dynamic_stability"
+	case "de_ess":
+		return "sibilance_control"
+	case "reverb":
+		return "depth_space"
+	default:
+		return roleType
+	}
+}
+
+func mixPlannerModelStrategy() map[string]any {
+	return map[string]any{
+		"route":            "mix_strategy",
+		"phase":            mixInteractionPlanningChat,
+		"reasoning_effort": "normal",
+		"chain_of_thought": "planner_private",
+		"must_collect":     []string{"goal_detail", "plugin_type_plan", "plugin_candidates", "plugin_chain_order", "skill_profile_status", "macro_panel_draft"},
+		"publish_gate":     "ready_to_publish_mixboard",
+	}
+}
+
+func (s *Server) ensureMixPlannerPrepReady(ctx context.Context, interaction PendingInteraction, data map[string]any, session MixSession, payload map[string]any) (map[string]any, map[string]any, error) {
+	requestContext := mergeContext(interaction.RequestContext, mapValue(data["request_context"]))
+	prep := mixPlannerPrepFromData(data, session, requestContext)
+	defer func() { syncMixPlanningWorkspace(prep, session) }()
+	absorbMixPlannerAnswers(prep, &session, payload)
+	updateMixPlannerPrepDerived(prep, session)
+	if len(mixPlannerBaseMissingInputs(prep)) > 0 {
+		return prep, mapValue(data["mix_observation"]), nil
+	}
+	observation := mapValue(data["mix_observation"])
+	if len(observation) == 0 || cleanContextText(prep["stage"]) != "planner_preflight_complete" {
+		var err error
+		session.State = mixStateReadyObservation
+		observation, err = s.requestInitialMixObservation(ctx, interaction, session)
+		session.State = mixStateFromObservationResult(observation, err)
+		session.BlockingPoint = mixObservationBlockingPoint(observation, err)
+		if err != nil {
+			prep["stage"] = "planner_observation_blocked"
+			prep["blocking_point"] = err.Error()
+			prep["ready_to_publish_mixboard"] = false
+			return prep, observation, err
+		}
+		s.attachGoalControlSurface(ctx, interaction, session, observation)
+		fillMixPlannerPrepFromObservation(prep, observation, session)
+		updateMixPlannerPrepDerived(prep, session)
+		applyMixPlannerPrep(observation, prep)
+		if cleanContextText(prep["stage"]) == mixInteractionLearningRequired {
+			packet := buildMixTickPacket(session, observation, "")
+			applyMixTickPacket(observation, packet)
+		}
+	}
+	if !boolValue(prep["ready_to_publish_mixboard"]) {
+		prep["updated_at"] = time.Now().Format(time.RFC3339Nano)
+		return prep, observation, nil
+	}
+	prep["updated_at"] = time.Now().Format(time.RFC3339Nano)
+	return prep, observation, nil
+}
+
+func fillMixPlannerPrepFromObservation(prep map[string]any, observation map[string]any, session MixSession) {
+	surface := mixGoalControlSurfaceFromObservation(observation)
+	if len(surface) > 0 {
+		prep["goal_control_surface_draft"] = surface
+		prep["plugin_candidates"] = mapRowsValue(surface["plugin_candidates"])
+		prep["selected_chain_draft"] = mapRowsValue(surface["selected_chain"])
+		prep["proposed_controls"] = mapRowsValue(surface["proposed_controls"])
+		prep["instance_status"] = cleanContextText(surface["instance_status"])
+		prep["profile_status"] = cleanContextText(surface["profile_status"])
+		prep["skill_profile_status"] = map[string]any{
+			"profile_status": cleanContextText(surface["profile_status"]),
+			"blockers":       contextStringSlice(surface["blockers"]),
+			"next_action":    cleanContextText(surface["next_required_action"]),
+		}
+		if learningRequest := mixPluginLearningRequestFromSurface(surface); len(learningRequest) > 0 {
+			prep["stage"] = mixInteractionLearningRequired
+			prep["ready_to_publish_mixboard"] = false
+			prep["plugin_learning_request"] = learningRequest
+			prep["blocking_point"] = "需要先完成 Plugin Grabber 学习：" + firstNonEmpty(cleanContextText(learningRequest["plugin_name"]), cleanContextText(learningRequest["type"]))
+		} else if cleanContextText(surface["readiness"]) == mixcontrolsurface.ReadinessBlocked {
+			prep["blocking_point"] = strings.Join(contextStringSlice(surface["blockers"]), "; ")
+		} else {
+			delete(prep, "blocking_point")
+		}
+	}
+	if plan := ensureMixControlPlan(observation, session); len(plan) > 0 {
+		prep["macro_panel_draft"] = mapValue(plan["macro_control_panel"])
+	}
+}
+
+func applyMixPlannerPrep(observation map[string]any, prep map[string]any) {
+	if len(observation) == 0 || len(prep) == 0 {
+		return
+	}
+	workspace := mapValue(prep["mix_planning_workspace"])
+	observation["mix_planner_prep"] = prep
+	if len(workspace) > 0 {
+		observation["mix_planning_workspace"] = workspace
+	}
+	board := mapValue(observation["mixboard"])
+	board["mix_planner_prep"] = prep
+	if len(workspace) > 0 {
+		board["mix_planning_workspace"] = workspace
+	}
+	board["planner_stage"] = cleanContextText(prep["stage"])
+	board["planner_ready_to_publish"] = boolValue(prep["ready_to_publish_mixboard"])
+	observation["mixboard"] = board
+	if contextPack := mapValue(observation["context_pack"]); len(contextPack) > 0 {
+		contextPack["mix_planner_prep"] = prep
+		if len(workspace) > 0 {
+			contextPack["mix_planning_workspace"] = workspace
+		}
+		observation["context_pack"] = contextPack
+	}
+}
+
+func applyMixPlannerPrepToWorkflowData(data map[string]any, prep map[string]any) {
+	if len(data) == 0 || len(prep) == 0 {
+		return
+	}
+	workspace := mapValue(prep["mix_planning_workspace"])
+	data["mix_planner_prep"] = prep
+	if len(workspace) > 0 {
+		data["mix_planning_workspace"] = workspace
+	}
+}
+
+func applyMixPlannerPrepSessionState(session *MixSession, prep map[string]any) {
+	if cleanContextText(prep["stage"]) == mixInteractionLearningRequired {
+		session.InteractionPhase = mixInteractionLearningRequired
+		session.MixBoardVisibility = mixBoardVisibilityPublished
+		return
+	}
+	session.InteractionPhase = mixInteractionPlanningChat
+	session.MixBoardVisibility = mixBoardVisibilityCollapsed
+}
+
+func mixPlannerPrepReply(prep map[string]any, err error) string {
+	workspace := mapValue(prep["mix_planning_workspace"])
+	if err != nil {
+		return "规划预检被阻断：" + err.Error()
+	}
+	if cleanContextText(prep["stage"]) == mixInteractionLearningRequired {
+		return firstNonEmpty(cleanContextText(prep["blocking_point"]), "发布可执行 MixBoard 前需要先完成 Plugin Grabber 学习。")
+	}
+	if boolValue(prep["ready_to_publish_mixboard"]) {
+		return mixPlanningConversationalReply(workspace, "规划信息已经足够。我已经整理好混音目标、插件角色、本地候选、链路顺序、skill/profile 状态和宏面板草案；确认后可以发布 MixBoard。")
+	}
+	if question := cleanContextText(prep["next_question"]); question != "" {
+		return mixPlanningConversationalReply(workspace, question)
+	}
+	return mixPlanningConversationalReply(workspace, "发布 MixBoard 前还需要继续补齐规划信息。")
+}
+
+func mixPlanningConversationalReply(workspace map[string]any, next string) string {
+	lines := []string{}
+	goal := mapValue(workspace["goal"])
+	if detail := cleanContextText(goal["detail"]); detail != "" {
+		lines = append(lines, "我先把当前方向记为："+detail)
+	} else if summary := cleanContextText(goal["summary"]); summary != "" {
+		lines = append(lines, "我已经为这次任务建立了混音规划工作区："+summary)
+	} else {
+		lines = append(lines, "我已经进入混音思考模式，正在后台整理这次任务的规划工作区。")
+	}
+	if slotLine := mixPlanningIncompleteSlotLine(mapRowsValue(workspace["workflow_slots"])); slotLine != "" {
+		lines = append(lines, slotLine)
+	}
+	if strings.TrimSpace(next) != "" {
+		lines = append(lines, "接下来我需要确认："+next)
+	}
+	return strings.Join(lines, "\n")
+}
+
+func mixPlanningIncompleteSlotLine(slots []map[string]any) string {
+	missing := []string{}
+	done := []string{}
+	for _, slot := range slots {
+		label := cleanContextText(slot["label"])
+		if label == "" {
+			continue
+		}
+		if boolValue(slot["complete"]) {
+			done = append(done, label)
+		} else {
+			missing = append(missing, label)
+		}
+	}
+	if len(missing) == 0 && len(done) == 0 {
+		return ""
+	}
+	if len(missing) == 0 {
+		return "当前规划工作区已经补齐，可以进入发布前确认。"
+	}
+	if len(missing) > 3 {
+		missing = missing[:3]
+	}
+	return "当前还在补齐：" + strings.Join(missing, "、")
+}
+
+func mixPlannerInteractionBody(prep map[string]any) string {
+	parts := []string{
+		"阶段：" + mixPlannerStageLabel(firstNonEmpty(cleanContextText(prep["stage"]), "planner_intake")),
+		"MixBoard：已收起",
+		"目标：" + firstNonEmpty(cleanContextText(prep["goal_summary"]), "-"),
+	}
+	if detail := cleanContextText(prep["goal_detail"]); detail != "" {
+		parts = append(parts, "混音方向："+detail)
+	}
+	if question := cleanContextText(prep["next_question"]); question != "" {
+		parts = append(parts, "下一步："+question)
+	}
+	parts = append(parts, mixPlannerDraftSummary(prep)...)
+	if boolValue(prep["ready_to_publish_mixboard"]) {
+		parts = append(parts, "状态：可以发布 MixBoard")
+	}
+	return strings.Join(parts, "\n")
+}
+
+func mixPlannerDraftSummary(prep map[string]any) []string {
+	out := []string{}
+	if rows := mapRowsValue(prep["plugin_type_plan"]); len(rows) > 0 {
+		types := []string{}
+		for _, row := range rows {
+			if typ := cleanContextText(row["required_type"]); typ != "" {
+				types = append(types, typ)
+			}
+		}
+		if len(types) > 0 {
+			out = append(out, "插件类型："+strings.Join(types, " / "))
+		}
+	}
+	if rows := mapRowsValue(prep["plugin_chain_order"]); len(rows) > 0 {
+		chain := []string{}
+		for _, row := range rows {
+			if role := cleanContextText(row["role"]); role != "" {
+				chain = append(chain, role)
+			}
+		}
+		if len(chain) > 0 {
+			out = append(out, "链路顺序："+strings.Join(chain, " -> "))
+		}
+	}
+	if rows := mapRowsValue(prep["selected_chain_draft"]); len(rows) > 0 {
+		selected := []string{}
+		for _, row := range rows {
+			plugin := mapValue(row["selected_plugin"])
+			name := firstNonEmpty(cleanContextText(plugin["name"]), cleanContextText(row["plugin_name"]))
+			if name != "" {
+				selected = append(selected, cleanContextText(row["role"])+":"+name)
+			}
+		}
+		if len(selected) > 0 {
+			out = append(out, "插件草案："+strings.Join(selected, "；"))
+		}
+	}
+	if panel := mapValue(prep["macro_panel_draft"]); len(panel) > 0 {
+		out = append(out, "宏面板：已生成草案")
+	}
+	return out
+}
+
+func mixPlannerStageLabel(stage string) string {
+	switch stage {
+	case "planner_intake":
+		return "补充规划信息"
+	case "planner_preflight_ready":
+		return "准备预检"
+	case "planner_draft_review":
+		return "复核规划草案"
+	case "planner_preflight_complete":
+		return "规划预检完成"
+	case "planner_observation_blocked":
+		return "观察预检受阻"
+	case mixInteractionLearningRequired:
+		return "需要插件学习"
+	default:
+		return firstNonEmpty(stage, "规划中")
+	}
+}
+
+func mixPlannerInteractionFields(prep map[string]any) []AgentInteractionField {
+	missing := mixPlannerMissingInputs(prep)
+	fields := []AgentInteractionField{}
+	for _, id := range missing {
+		switch id {
+		case "goal_detail":
+			fields = append(fields, AgentInteractionField{
+				ID:          "goal_detail",
+				Label:       "混音方向",
+				Kind:        "textarea",
+				Required:    true,
+				Placeholder: "例如：清理低中频，让人声靠前，轻微稳定动态",
+			})
+		case "allow_plugin_loads":
+			fields = append(fields, AgentInteractionField{
+				ID:       "allow_plugin_loads",
+				Label:    "允许加载插件",
+				Kind:     "boolean",
+				Required: true,
+				Value:    false,
+			})
+		case "planner_plan_confirmed":
+			fields = append(fields, AgentInteractionField{
+				ID:       "planner_plan_confirmed",
+				Label:    "确认规划草案",
+				Kind:     "boolean",
+				Required: true,
+				Value:    false,
+			})
+		}
+	}
+	return fields
+}
+
+func mixPlannerInteractionActions(prep map[string]any) []AgentInteractionAction {
+	if boolValue(prep["ready_to_publish_mixboard"]) {
+		return []AgentInteractionAction{
+			{ID: "publish_mixboard", Label: "发布 MixBoard", Style: "primary", Recommended: true},
+			{ID: "advance_mix_planner", Label: "刷新规划", Style: "secondary"},
+			{ID: "enter_discussion", Label: "继续讨论", Style: "secondary"},
+			{ID: "cancel_mix_session", Label: "取消", Style: "secondary"},
+		}
+	}
+	if cleanContextText(prep["stage"]) == "planner_draft_review" && boolValue(prep["publish_mixboard_prompted"]) && mixPlannerWorkspaceComplete(prep) {
+		return []AgentInteractionAction{
+			{ID: "confirm_mix_planner_plan", Label: "确认生成 MixBoard", Style: "primary", Recommended: true},
+			{ID: "advance_mix_planner", Label: "继续调整规划", Style: "secondary"},
+			{ID: "enter_discussion", Label: "继续讨论", Style: "secondary"},
+			{ID: "cancel_mix_session", Label: "取消", Style: "secondary"},
+		}
+	}
+	return []AgentInteractionAction{
+		{ID: "advance_mix_planner", Label: "继续规划", Style: "primary", Recommended: true},
+		{ID: "enter_discussion", Label: "继续讨论", Style: "secondary"},
+		{ID: "cancel_mix_session", Label: "取消", Style: "secondary"},
+	}
+}
+
+func mixPlanningDiscussionReply(session MixSession) string {
+	workspace := mapValue(session.PlannerPrep["mix_planning_workspace"])
+	if len(workspace) > 0 {
+		return mixPlanningConversationalReply(workspace, cleanContextText(workspace["next_question"]))
+	}
+	return fmt.Sprintf("%s 已进入思考讨论模式。我会在后台建立混音规划工作区，先和你确认目标、插件类型、候选插件、链路顺序、skill/profile、宏面板和快速模式上下文；MixBoard 会先保持收起。", mixModeLabel(session.Mode))
+}
+
+func (s *Server) mixPlanningDiscussionInteraction(interaction PendingInteraction, session MixSession, data map[string]any) AgentInteractionRequest {
+	prep := mixPlannerPrepFromData(data, session, interaction.RequestContext)
+	workspace := syncMixPlanningWorkspace(prep, session)
+	payload := map[string]any{
+		"mix_session":            mixSessionMap(session),
+		"mix_planner_prep":       prep,
+		"mix_planning_workspace": workspace,
+		"request_context":        interaction.RequestContext,
+		"interaction_phase":      mixInteractionPlanningChat,
+		"mixboard_visibility":    mixBoardVisibilityCollapsed,
+		"planner_policy":         mixPlannerPolicy(session),
+	}
+	for key, value := range data {
+		if _, exists := payload[key]; !exists {
+			payload[key] = value
+		}
+	}
+	req := AgentInteractionRequest{
+		ID:             "interaction_" + randomID(),
+		Kind:           "mode_boundary",
+		Type:           "mix_planning_discussion",
+		Source:         "mix_session",
+		Workflow:       mixSessionEntryWorkflow,
+		Stage:          mixInteractionPlanningChat,
+		Title:          "混音规划",
+		Body:           mixPlannerInteractionBody(prep),
+		Status:         "waiting",
+		ConversationID: interaction.ConversationID,
+		GoalID:         interaction.GoalID,
+		RunID:          interaction.RunID,
+		ReviewItems:    mixPlanningWorkspaceReviewItems(workspace),
+		Payload:        payload,
+		Data:           payload,
+		Actions:        mixPlannerInteractionActions(prep),
+	}
+	if s != nil {
+		s.storePendingInteraction(req, payload)
+	}
+	return req
+}
+
+func mixPlanningWorkspaceReviewItems(workspace map[string]any) []AgentInteractionReview {
+	items := []AgentInteractionReview{}
+	for _, slot := range mapRowsValue(workspace["workflow_slots"]) {
+		status := "pending"
+		if boolValue(slot["complete"]) {
+			status = "complete"
+		}
+		items = append(items, AgentInteractionReview{
+			ID:     cleanContextText(slot["id"]),
+			Title:  cleanContextText(slot["label"]),
+			Body:   cleanContextText(slot["summary"]),
+			Status: status,
+			Payload: map[string]any{
+				"complete": boolValue(slot["complete"]),
+			},
+		})
+	}
+	return items
+}
+
+func mixSessionAfterControlSurface(session MixSession, observation map[string]any, confirmed bool) MixSession {
+	surface := mixGoalControlSurfaceFromObservation(observation)
+	packet := mixTickPacketFromObservation(observation)
+	status := cleanContextText(packet["status"])
+	if status == "" {
+		status = cleanContextText(surface["readiness"])
+	}
+	switch {
+	case len(mixPluginLearningRequestFromObservation(observation)) > 0 || status == mixInteractionLearningRequired:
+		session.InteractionPhase = mixInteractionLearningRequired
+		session.MixBoardVisibility = mixBoardVisibilityPublished
+		session.BlockingPoint = "执行前需要先完成 Plugin Grabber 学习。"
+	case confirmed && status == "ready":
+		session.InteractionPhase = mixInteractionReadyForTick
+		session.MixBoardVisibility = mixBoardVisibilityPublished
+		session.BlockingPoint = ""
+	case status == mixcontrolsurface.ReadinessPlanReady || status == "ready":
+		session.InteractionPhase = mixInteractionControlSurfacePublished
+		session.MixBoardVisibility = mixBoardVisibilityPublished
+		session.BlockingPoint = ""
+	case status == mixcontrolsurface.ReadinessNeedsConfirmation || status == "needs_confirmation":
+		session.InteractionPhase = mixInteractionControlSurfacePublished
+		session.MixBoardVisibility = mixBoardVisibilityPublished
+		session.BlockingPoint = "Control surface needs confirmation before execution."
+	default:
+		session.InteractionPhase = mixInteractionControlSurfacePublished
+		session.MixBoardVisibility = mixBoardVisibilityPublished
+	}
+	return session
+}
+
+func selectMixTickControl(packet map[string]any, payload map[string]any) (map[string]any, error) {
+	fields := mapValue(payload["fields"])
+	if strings.EqualFold(cleanContextText(payload["tool"]), "set_plugin_param") ||
+		strings.EqualFold(cleanContextText(payload["command_name"]), "set_plugin_param") ||
+		strings.EqualFold(cleanContextText(payload["control_kind"]), "raw_param") {
+		return nil, fmt.Errorf("raw plugin parameter writes are not allowed in single tick execution")
+	}
+	requestedID := firstNonEmpty(cleanContextText(payload["control_id"]), cleanContextText(fields["control_id"]))
+	requestedName := firstNonEmpty(cleanContextText(payload["control_name"]), cleanContextText(payload["control"]), cleanContextText(fields["control_name"]), cleanContextText(fields["control"]))
+	allowed := mapRowsValue(packet["allowed_controls"])
+	if len(allowed) == 0 {
+		return nil, fmt.Errorf("MixTickPacket has no allowed controls")
+	}
+	for _, control := range allowed {
+		if requestedID != "" && cleanContextText(control["control_id"]) == requestedID {
+			return control, nil
+		}
+		if requestedName != "" && strings.EqualFold(cleanContextText(control["control_name"]), requestedName) {
+			return control, nil
+		}
+	}
+	if requestedID != "" || requestedName != "" {
+		return nil, fmt.Errorf("requested control is outside MixTickPacket.allowed_controls")
+	}
+	for _, control := range allowed {
+		if cleanContextText(control["control_kind"]) == "plugin_virtual_control" {
+			return control, nil
+		}
+	}
+	return allowed[0], nil
+}
+
+func (s *Server) applySelectedMixTickControl(ctx context.Context, interaction PendingInteraction, requestContext map[string]any, session MixSession, packet, control map[string]any, stepDB float64, userNote string) (map[string]any, []map[string]any, error) {
+	tickID := "mix_tick_" + randomID()
+	decision := map[string]any{
+		"schema_version":          mixTickDecisionSchemaVersion,
+		"decision":                "apply",
+		"control_id":              cleanContextText(control["control_id"]),
+		"control_name":            cleanContextText(control["control_name"]),
+		"small_step":              true,
+		"reason":                  "Apply one allowed control from MixTickPacket.",
+		"expected_effect":         session.GoalText,
+		"confidence":              "medium",
+		"requires_planner_review": true,
+	}
+	turn := map[string]any{
+		"tick_id":                 tickID,
+		"tuning_batch_id":         tickID,
+		"turn":                    1,
+		"batch_turn":              1,
+		"batch_max_turns":         1,
+		"session_round":           session.RoundCount + 1,
+		"executor_type":           mixSingleTickExecutorType,
+		"executor_version":        mixSingleTickExecutorVersion,
+		"mix_tick_packet_id":      cleanContextText(packet["mix_session_id"]) + ":" + cleanContextText(packet["created_at"]),
+		"mix_tick_decision":       decision,
+		"control_id":              cleanContextText(control["control_id"]),
+		"control_name":            cleanContextText(control["control_name"]),
+		"control_kind":            cleanContextText(control["control_kind"]),
+		"track_id":                firstNonEmpty(cleanContextText(control["track_id"]), session.TargetRef.ID),
+		"target_label":            firstNonEmpty(session.TargetRef.Label, session.TargetRef.ID),
+		"user_note":               userNote,
+		"status":                  "pending",
+		"review_status":           mixReviewWaiting,
+		"rollback_available":      true,
+		"raw_param_write":         false,
+		"planner_policy":          mixPlannerPolicy(session),
+		"fast_model_profile":      mixFastModelProfile(session, nil),
+		"model_strategy":          mixFastModelStrategy(mixFastModelProfile(session, nil)),
+		"requires_planner_review": true,
+	}
+	switch cleanContextText(control["control_kind"]) {
+	case "macro":
+		if !strings.EqualFold(session.TargetRef.Kind, "track") {
+			return turn, nil, fmt.Errorf("macro %s requires a track target", cleanContextText(control["control_name"]))
+		}
+		currentDB := mixTrackVolumeDB(s.harness.UserStateSummary(ctx), session.TargetRef.ID)
+		nextDB := clampMixVolumeDB(currentDB + stepDB)
+		macro := mixVolumeMacroFromObservation(mapValue(packet["observation"]), session)
+		if len(macro) == 0 || cleanContextText(macro["macro_id"]) == "" {
+			macro = mixBuiltInVolumeMacro(session, currentDB)
+		}
+		macro["macro_id"] = strings.TrimPrefix(cleanContextText(control["control_id"]), "macro:")
+		macro["control"] = cleanContextText(control["control_name"])
+		macro["track_id"] = firstNonEmpty(cleanContextText(control["track_id"]), session.TargetRef.ID)
+		resp, err := s.applyMixMacroControl(ctx, interaction, requestContext, macro, nextDB)
+		turn["before_db"] = currentDB
+		turn["target_db"] = nextDB
+		turn["step_db"] = roundMixFloat(nextDB - currentDB)
+		turn["direction"] = mixTuningDirectionLabel(stepDB)
+		turn["direction_source"] = mixTuningDirectionSource(session.GoalText, map[string]any{"user_note": userNote, "step_db": stepDB})
+		turn["agent_action_id"] = resp.AgentActionID
+		turn["status"] = resp.Status
+		if err != nil || resp.Status != "ok" {
+			return turn, mixMacroValueExecution(macro, nextDB, resp), fmt.Errorf("%s", firstNonEmpty(resp.Error, fmt.Sprint(err), "macro single tick failed"))
+		}
+		return turn, mixMacroValueExecution(macro, nextDB, resp), nil
+	case "plugin_virtual_control":
+		if cleanContextText(control["plugin_id"]) == "" || cleanContextText(control["track_id"]) == "" {
+			return turn, nil, fmt.Errorf("plugin virtual control requires ready track_id and plugin_id")
+		}
+		target := map[string]any{
+			"intent":     firstNonEmpty(userNote, session.GoalText),
+			"amount":     "small",
+			"small_step": true,
+		}
+		if componentID := cleanContextText(control["component_id"]); componentID != "" {
+			target["component_id"] = componentID
+		}
+		resp, err := s.harness.Invoke(ctx, harness.InvokeRequest{
+			Tool: "plugin_grabber.apply_control",
+			Args: map[string]any{
+				"track_id":  cleanContextText(control["track_id"]),
+				"plugin_id": cleanContextText(control["plugin_id"]),
+				"control":   cleanContextText(control["control_name"]),
+				"target":    target,
+			},
+			Context:   requestContext,
+			Source:    "mixboard_single_tick",
+			Confirmed: true,
+			RunID:     interaction.RunID,
+			GoalID:    interaction.GoalID,
+		})
+		turn["plugin_id"] = cleanContextText(control["plugin_id"])
+		turn["plugin_name"] = cleanContextText(control["plugin_name"])
+		turn["component_id"] = cleanContextText(control["component_id"])
+		turn["target"] = target
+		turn["agent_action_id"] = resp.AgentActionID
+		turn["status"] = resp.Status
+		if applied := mapRowsValue(resp.Result["applied_parameters"]); len(applied) > 0 {
+			turn["applied_parameters"] = applied
+		}
+		if err != nil || resp.Status != "ok" {
+			return turn, nil, fmt.Errorf("%s", firstNonEmpty(resp.Error, fmt.Sprint(err), "plugin virtual control single tick failed"))
+		}
+		return turn, nil, nil
+	default:
+		return turn, nil, fmt.Errorf("unsupported single tick control kind %q", cleanContextText(control["control_kind"]))
+	}
+}
+
+func mixTickCurrentAction(turn map[string]any) string {
+	switch cleanContextText(turn["control_kind"]) {
+	case "plugin_virtual_control":
+		return fmt.Sprintf("Single tick: %s via %s.", cleanContextText(turn["control_name"]), cleanContextText(turn["plugin_name"]))
+	case "macro":
+		return fmt.Sprintf("Single tick: %s %.2f dB -> %.2f dB.", cleanContextText(turn["control_name"]), mixFloatNumber(turn["before_db"]), mixFloatNumber(turn["target_db"]))
+	default:
+		return "Single mix tick completed."
 	}
 }
 
@@ -832,6 +2924,8 @@ func (s *Server) rollbackLastMixTurnInteraction(ctx context.Context, interaction
 		}
 	}
 	session.State = mixStateTuningPaused
+	session.InteractionPhase = mixInteractionWaitingPlannerReview
+	session.MixBoardVisibility = mixBoardVisibilityExecution
 	session.ExecutorType = firstNonEmpty(session.ExecutorType, mixFallbackExecutorType)
 	session.ExecutorVersion = firstNonEmpty(session.ExecutorVersion, mixFallbackExecutorVersion)
 	session.ReviewStatus = mixReviewRolledBack
@@ -873,6 +2967,13 @@ func (s *Server) rollbackLastMixTurnInteraction(ctx context.Context, interaction
 		board["recent_auto_tune_turns"] = recentMixTuneTurns(remainingTurns, 3)
 	}
 	board["review_status"] = session.ReviewStatus
+	board["latest_tick_status"] = session.ReviewStatus
+	board["rollback_result"] = map[string]any{
+		"status":      firstNonEmpty(resp.Status, "error"),
+		"action_ids":  rollbackActionIDs,
+		"error":       firstNonEmpty(resp.Error, fmt.Sprint(err)),
+		"rolled_back": rollbackOK,
+	}
 	board["executor_type"] = session.ExecutorType
 	board["executor_version"] = session.ExecutorVersion
 	board["session_state"] = session.State
@@ -1343,6 +3444,288 @@ func mixGoalControlSurfaceTuningBlocker(observation map[string]any) string {
 		return "Goal Control Surface is blocked; resolve plugin/profile readiness before tuning."
 	}
 	return "Goal Control Surface is blocked: " + strings.Join(blockers, "; ")
+}
+
+func buildMixTickPacket(session MixSession, observation map[string]any, userIntervention string) map[string]any {
+	now := time.Now().Format(time.RFC3339Nano)
+	fastProfile := mixFastModelProfile(session, nil)
+	allowed := []map[string]any{}
+	blocked := []map[string]any{}
+	for _, macro := range mixMacroControlsFromPanel(mapValue(ensureMixControlPlan(observation, session)["macro_control_panel"])) {
+		if enabled, ok := macro["enabled"].(bool); ok && !enabled {
+			continue
+		}
+		controlName := cleanContextText(macro["control"])
+		if controlName == "" {
+			continue
+		}
+		allowed = append(allowed, map[string]any{
+			"control_id":      "macro:" + cleanContextText(macro["macro_id"]),
+			"control_name":    controlName,
+			"control_kind":    "macro",
+			"tool":            "track.volume",
+			"role":            firstNonEmpty(cleanContextText(macro["role"]), mixBuiltInVolumeMacroRole),
+			"track_id":        firstNonEmpty(cleanContextText(macro["track_id"]), session.TargetRef.ID),
+			"unit":            cleanContextText(macro["unit"]),
+			"safe_step":       firstNonEmpty(fmt.Sprint(macro["safe_step"]), fmt.Sprintf("%.2f", mixAutoTuneStepDB)),
+			"confirmed":       true,
+			"source":          "confirmed_macro",
+			"raw_param_write": false,
+		})
+	}
+	surface := mixGoalControlSurfaceFromObservation(observation)
+	learningRequest := mixPluginLearningRequestFromSurface(surface)
+	for _, row := range mapRowsValue(surface["selected_chain"]) {
+		role := cleanContextText(row["role"])
+		roleType := cleanContextText(row["type"])
+		profileStatus := cleanContextText(row["profile_status"])
+		instanceStatus := cleanContextText(row["instance_status"])
+		instance := mapValue(row["instance"])
+		trackID := firstNonEmpty(cleanContextText(instance["track_id"]), session.TargetRef.ID)
+		pluginID := firstNonEmpty(cleanContextText(instance["plugin_id"]), cleanContextText(instance["plugin_item_id"]), cleanContextText(instance["id"]))
+		pluginName := firstNonEmpty(cleanContextText(mapValue(row["selected_plugin"])["name"]), cleanContextText(instance["plugin_name"]), cleanContextText(instance["name"]))
+		if profileStatus == mixcontrolsurface.ProfileMissing || profileStatus == mixcontrolsurface.ProfileStale {
+			blocked = append(blocked, map[string]any{
+				"role":           role,
+				"type":           roleType,
+				"plugin_name":    pluginName,
+				"profile_status": profileStatus,
+				"reason":         "plugin_grabber_profile_" + profileStatus,
+				"next_action":    "learn_plugin_profile",
+			})
+			continue
+		}
+		if profileStatus != mixcontrolsurface.ProfileReady && profileStatus != mixcontrolsurface.ProfileNotRequired {
+			blocked = append(blocked, map[string]any{
+				"role":           role,
+				"type":           roleType,
+				"plugin_name":    pluginName,
+				"profile_status": firstNonEmpty(profileStatus, "unknown"),
+				"reason":         "profile_not_ready",
+			})
+			continue
+		}
+		if instanceStatus != mixcontrolsurface.InstanceExisting || trackID == "" || pluginID == "" {
+			blocked = append(blocked, map[string]any{
+				"role":            role,
+				"type":            roleType,
+				"plugin_name":     pluginName,
+				"instance_status": firstNonEmpty(instanceStatus, mixcontrolsurface.InstanceUnknown),
+				"reason":          "plugin_instance_not_ready",
+				"next_action":     "confirm_control_surface",
+			})
+			continue
+		}
+		for _, control := range mapRowsValue(row["proposed_controls"]) {
+			controlName := firstNonEmpty(cleanContextText(control["name"]), cleanContextText(control["control"]), cleanContextText(control["id"]))
+			if controlName == "" {
+				continue
+			}
+			controlID := "virtual:" + sanitizeMixID(pluginID) + ":" + sanitizeMixID(controlName)
+			allowed = append(allowed, map[string]any{
+				"control_id":      controlID,
+				"control_name":    controlName,
+				"control_kind":    "plugin_virtual_control",
+				"tool":            "plugin_grabber.apply_control",
+				"role":            role,
+				"type":            roleType,
+				"track_id":        trackID,
+				"plugin_id":       pluginID,
+				"plugin_name":     pluginName,
+				"component_id":    cleanContextText(control["component_id"]),
+				"inputs":          control["inputs"],
+				"confirmed":       true,
+				"source":          "goal_control_surface",
+				"raw_param_write": false,
+			})
+		}
+	}
+	readiness := cleanContextText(surface["readiness"])
+	status := "ready"
+	switch {
+	case len(learningRequest) > 0:
+		status = mixInteractionLearningRequired
+	case readiness == mixcontrolsurface.ReadinessBlocked:
+		status = "blocked"
+	case readiness == mixcontrolsurface.ReadinessNeedsConfirmation:
+		status = "needs_confirmation"
+	case len(allowed) == 0:
+		status = "no_allowed_controls"
+	}
+	packet := map[string]any{
+		"schema_version":        mixTickPacketSchemaVersion,
+		"mix_session_id":        session.MixSessionID,
+		"mode":                  firstNonEmpty(session.Mode, mixModeAuto),
+		"planner_policy":        mixPlannerPolicy(session),
+		"fast_model_profile":    fastProfile,
+		"model_strategy":        mixFastModelStrategy(fastProfile),
+		"goal_summary":          session.GoalText,
+		"target_ref":            mixTargetMap(session.TargetRef),
+		"observation_digest":    mixObservationDigest(observation),
+		"allowed_controls":      allowed,
+		"blocked_controls":      blocked,
+		"recent_ticks":          recentMixTuneTurns(mixTuneTurnsFromObservation(observation), 3),
+		"user_intervention":     userIntervention,
+		"safety":                mixTickSafetyPolicy(session),
+		"stop_conditions":       mixTickStopConditions(session),
+		"rollback_policy":       mixTickRollbackPolicy(),
+		"status":                status,
+		"fast_execution_prompt": mixFastExecutionPrompt(session, userIntervention),
+		"created_at":            now,
+		"updated_at":            now,
+	}
+	if len(surface) > 0 {
+		packet["control_surface_id"] = firstNonEmpty(cleanContextText(surface["control_surface_id"]), cleanContextText(surface["mix_session_id"]), session.ControlSurfaceID)
+		packet["control_surface_status"] = readiness
+	}
+	if len(learningRequest) > 0 {
+		packet["plugin_learning_request"] = learningRequest
+	}
+	return packet
+}
+
+func applyMixTickPacket(observation map[string]any, packet map[string]any) {
+	if len(observation) == 0 || len(packet) == 0 {
+		return
+	}
+	observation["mix_tick_packet"] = packet
+	board := mapValue(observation["mixboard"])
+	board["mix_tick_packet"] = packet
+	board["mix_tick_packet_status"] = cleanContextText(packet["status"])
+	if request := mapValue(packet["plugin_learning_request"]); len(request) > 0 {
+		board["learning_required"] = true
+		board["plugin_learning_request"] = request
+	}
+	observation["mixboard"] = board
+	contextPack := mapValue(observation["context_pack"])
+	if len(contextPack) > 0 {
+		contextPack["mix_tick_packet"] = packet
+		contextPack["fast_execution_prompt"] = packet["fast_execution_prompt"]
+		observation["context_pack"] = contextPack
+	}
+}
+
+func mixTickPacketFromObservation(observation map[string]any) map[string]any {
+	if len(observation) == 0 {
+		return nil
+	}
+	if packet := mapValue(observation["mix_tick_packet"]); len(packet) > 0 {
+		return packet
+	}
+	if packet := mapValue(mapValue(observation["mixboard"])["mix_tick_packet"]); len(packet) > 0 {
+		return packet
+	}
+	if packet := mapValue(mapValue(observation["context_pack"])["mix_tick_packet"]); len(packet) > 0 {
+		return packet
+	}
+	return nil
+}
+
+func mixObservationDigest(observation map[string]any) map[string]any {
+	obs := mapValue(observation["observation"])
+	mixboard := mapValue(observation["mixboard"])
+	sourceCaps := mapValue(obs["source_capabilities"])
+	if len(sourceCaps) == 0 {
+		sourceCaps = mapValue(mapValue(obs["mix_package"])["source_capabilities"])
+	}
+	return map[string]any{
+		"status":             cleanContextText(observation["status"]),
+		"observation_id":     firstNonEmpty(cleanContextText(obs["observation_id"]), cleanContextText(observation["observation_id"])),
+		"current_judgement":  cleanContextText(mixboard["current_judgement"]),
+		"current_action":     cleanContextText(mixboard["current_action"]),
+		"waveform_status":    cleanContextText(sourceCaps["waveform_envelope"]),
+		"spectrum_status":    cleanContextText(sourceCaps["spectrogram_tiles"]),
+		"before_after_delta": cleanContextText(sourceCaps["before_after_delta"]),
+	}
+}
+
+func mixTickSafetyPolicy(session MixSession) map[string]any {
+	maxStep := mixAutoTuneStepDB
+	if session.Mode == mixModeCo {
+		maxStep = 0.5
+	}
+	return map[string]any{
+		"max_macro_step_db":        maxStep,
+		"max_plugin_control_step":  "small",
+		"require_allowed_control":  true,
+		"require_ready_profile":    true,
+		"forbid_raw_param_write":   true,
+		"forbid_plugin_chain_edit": true,
+		"single_tick_only":         true,
+	}
+}
+
+func mixTickStopConditions(session MixSession) []map[string]any {
+	return []map[string]any{
+		{"id": "goal_met", "description": "pause when the observation and review satisfy the goal"},
+		{"id": "needs_planner_review", "description": "return to planner after each tick"},
+		{"id": "missing_skill_or_profile", "description": "enter learning_required before execution"},
+		{"id": "max_rounds", "limit": session.MaxRounds},
+	}
+}
+
+func mixTickRollbackPolicy() map[string]any {
+	return map[string]any{
+		"rollback_action":     "rollback_last_mix_tick",
+		"macro_before_db":     true,
+		"plugin_action_undo":  true,
+		"keep_failed_records": true,
+	}
+}
+
+func mixFastExecutionPrompt(session MixSession, userIntervention string) string {
+	parts := []string{
+		"Use MixTickPacket only.",
+		"Choose exactly one allowed control and make one small reversible change.",
+		"Do not choose plugins, edit chains, learn profiles, or write raw plugin params.",
+		"Return MixTickDecision with schema_version " + mixTickDecisionSchemaVersion + ".",
+		"Goal: " + session.GoalText,
+	}
+	if userIntervention != "" {
+		parts = append(parts, "User intervention: "+userIntervention)
+	}
+	return strings.Join(parts, "\n")
+}
+
+func mixPluginLearningRequestFromObservation(observation map[string]any) map[string]any {
+	if packet := mixTickPacketFromObservation(observation); len(packet) > 0 {
+		if request := mapValue(packet["plugin_learning_request"]); len(request) > 0 {
+			return request
+		}
+	}
+	return mixPluginLearningRequestFromSurface(mixGoalControlSurfaceFromObservation(observation))
+}
+
+func mixPluginLearningRequestFromSurface(surface map[string]any) map[string]any {
+	if len(surface) == 0 {
+		return nil
+	}
+	for _, row := range mapRowsValue(surface["selected_chain"]) {
+		profileStatus := cleanContextText(row["profile_status"])
+		if profileStatus != mixcontrolsurface.ProfileMissing && profileStatus != mixcontrolsurface.ProfileStale {
+			continue
+		}
+		plugin := mapValue(row["selected_plugin"])
+		controls := []map[string]any{}
+		for _, control := range mapRowsValue(row["proposed_controls"]) {
+			controls = append(controls, map[string]any{
+				"name":         firstNonEmpty(cleanContextText(control["name"]), cleanContextText(control["id"])),
+				"component_id": cleanContextText(control["component_id"]),
+				"role":         cleanContextText(row["role"]),
+			})
+		}
+		return map[string]any{
+			"plugin_name":          firstNonEmpty(cleanContextText(plugin["name"]), cleanContextText(row["plugin_name"]), "selected plugin"),
+			"plugin_id":            firstNonEmpty(cleanContextText(plugin["id"]), cleanContextText(plugin["profile_id"])),
+			"role":                 cleanContextText(row["role"]),
+			"type":                 cleanContextText(row["type"]),
+			"profile_status":       profileStatus,
+			"reason":               "语义化混音执行前必须先完成 Plugin Grabber 学习。",
+			"needed_controls":      controls,
+			"next_required_action": "learn_plugin_profile",
+		}
+	}
+	return nil
 }
 
 func mixTrackVolumeDB(state map[string]any, trackID string) float64 {
@@ -1817,15 +4200,19 @@ func updateMixBoardRuntimeState(observation map[string]any, session MixSession, 
 	executorVersion := firstNonEmpty(session.ExecutorVersion, mixFallbackExecutorVersion)
 	reviewStatus := firstNonEmpty(session.ReviewStatus, mixTuneLatestReviewStatus(turns))
 	runtime := map[string]any{
-		"session_state":      session.State,
-		"executor_type":      executorType,
-		"executor_version":   executorVersion,
-		"review_status":      reviewStatus,
-		"stop_reason":        session.StopReason,
-		"round_count":        session.RoundCount,
-		"max_rounds":         session.MaxRounds,
-		"rollback_available": len(session.JournalRefs) > 0,
-		"updated_at":         now,
+		"session_state":       session.State,
+		"interaction_phase":   mixInteractionPhase(session),
+		"mixboard_visibility": mixBoardVisibility(session),
+		"planner_policy":      mixPlannerPolicy(session),
+		"fast_model_profile":  session.FastModelProfile,
+		"executor_type":       executorType,
+		"executor_version":    executorVersion,
+		"review_status":       reviewStatus,
+		"stop_reason":         session.StopReason,
+		"round_count":         session.RoundCount,
+		"max_rounds":          session.MaxRounds,
+		"rollback_available":  len(session.JournalRefs) > 0,
+		"updated_at":          now,
 	}
 	if session.UserNote != "" {
 		runtime["user_note"] = session.UserNote
@@ -1849,6 +4236,17 @@ func updateMixBoardRuntimeState(observation map[string]any, session MixSession, 
 		runtime["goal_control_surface"] = surface
 		runtime["control_surface_status"] = cleanContextText(surface["readiness"])
 		runtime["control_surface_next_required_action"] = cleanContextText(surface["next_required_action"])
+	}
+	if packet := mixTickPacketFromObservation(observation); len(packet) > 0 {
+		runtime["mix_tick_packet"] = packet
+		runtime["mix_tick_packet_status"] = cleanContextText(packet["status"])
+		if latest := mapValue(packet["latest_tick"]); len(latest) > 0 {
+			runtime["latest_mix_tick"] = latest
+		}
+	}
+	if request := mixPluginLearningRequestFromObservation(observation); len(request) > 0 {
+		runtime["learning_required"] = true
+		runtime["plugin_learning_request"] = request
 	}
 	if board := mapValue(observation["mixboard"]); len(board) > 0 {
 		mergeMixRuntimeFields(board, runtime)
@@ -2152,6 +4550,9 @@ func (s *Server) mixBoardStatusInteraction(interaction PendingInteraction, sessi
 		"mix_observation": observation,
 		"request_context": interaction.RequestContext,
 	}
+	if packet := mixTickPacketFromObservation(observation); len(packet) > 0 {
+		payload["mix_tick_packet"] = packet
+	}
 	req := AgentInteractionRequest{
 		ID:             "interaction_" + randomID(),
 		Kind:           "mode_boundary",
@@ -2189,7 +4590,7 @@ func (s *Server) mixBoardStatusInteraction(interaction PendingInteraction, sessi
 	if mixGoalControlSurfaceTuningBlocker(observation) != "" {
 		filtered := make([]AgentInteractionAction, 0, len(req.Actions))
 		for _, action := range req.Actions {
-			if action.ID == "start_mix_tuning" || action.ID == "auto_tune_mix" {
+			if action.ID == "start_mix_tuning" || action.ID == "auto_tune_mix" || action.ID == "execute_single_mix_tick" || action.ID == "confirm_control_surface" {
 				continue
 			}
 			filtered = append(filtered, action)
@@ -2210,11 +4611,16 @@ func mixBoardStatusActions(session MixSession) []AgentInteractionAction {
 		}
 	}
 	actions := []AgentInteractionAction{
-		{ID: "start_mix_tuning", Label: "开始调控", Style: "primary", Recommended: true},
+		{ID: "confirm_control_surface", Label: "确认控制面", Style: "primary", Recommended: true},
+		{ID: "execute_single_mix_tick", Label: "执行一轮", Style: "primary"},
+		{ID: "start_mix_tuning", Label: "开始调控", Style: "secondary"},
+		{ID: "enter_discussion", Label: "进入讨论", Style: "secondary"},
+		{ID: "submit_mixboard_intervention", Label: "提交干预", Style: "secondary"},
 		{ID: "revise_mixboard", Label: "更新判断", Style: "secondary"},
 		{ID: "refresh_observation", Label: "重新观察", Style: "secondary"},
 	}
 	if len(session.JournalRefs) > 0 {
+		actions = append(actions, AgentInteractionAction{ID: "rollback_last_mix_tick", Label: "撤回本轮", Style: "secondary"})
 		actions = append(actions, AgentInteractionAction{ID: "rollback_last_mix_turn", Label: "撤回上次调控", Style: "secondary"})
 	}
 	if session.State == mixStateTuningRunning {
@@ -2481,6 +4887,9 @@ func mergeRecoveredMixSession(stored, submitted MixSession) MixSession {
 	if submitted.Mode != "" {
 		out.Mode = submitted.Mode
 	}
+	if submitted.ConversationID != "" {
+		out.ConversationID = submitted.ConversationID
+	}
 	if submitted.GoalText != "" {
 		out.GoalText = submitted.GoalText
 	}
@@ -2489,6 +4898,9 @@ func mergeRecoveredMixSession(stored, submitted MixSession) MixSession {
 	}
 	if submitted.UserNote != "" {
 		out.UserNote = submitted.UserNote
+	}
+	if len(submitted.PlannerPrep) > 0 {
+		out.PlannerPrep = submitted.PlannerPrep
 	}
 	if submitted.RoundCount > out.RoundCount {
 		out.RoundCount = submitted.RoundCount
@@ -2611,24 +5023,32 @@ func pendingMixSession(mode string, target MixTargetRef, goalText string) MixSes
 	if mode == mixModeCo {
 		maxRounds = 9
 	}
+	plannerPolicy := mixPlannerPolicyAutoAssist
+	if mode == mixModeCo {
+		plannerPolicy = mixPlannerPolicyCoMixDirector
+	}
 	return MixSession{
-		MixSessionID:     "mix_" + randomID(),
-		Mode:             mode,
-		State:            mixStateWaitingConfirmation,
-		TargetRef:        target,
-		GoalText:         strings.TrimSpace(goalText),
-		ApprovedPlugins:  []string{},
-		ControlSurfaceID: "",
-		ExecutorType:     mixFallbackExecutorType,
-		ExecutorVersion:  mixFallbackExecutorVersion,
-		ReviewStatus:     "",
-		StopReason:       "",
-		RoundCount:       0,
-		MaxRounds:        maxRounds,
-		JournalRefs:      []string{},
-		Preparation:      mixPreparationRows(target),
-		CreatedAt:        now,
-		UpdatedAt:        now,
+		MixSessionID:       "mix_" + randomID(),
+		Mode:               mode,
+		State:              mixStateWaitingConfirmation,
+		TargetRef:          target,
+		GoalText:           strings.TrimSpace(goalText),
+		ApprovedPlugins:    []string{},
+		ControlSurfaceID:   "",
+		ExecutorType:       mixFallbackExecutorType,
+		ExecutorVersion:    mixFallbackExecutorVersion,
+		ReviewStatus:       "",
+		StopReason:         "",
+		InteractionPhase:   mixInteractionPlanningChat,
+		MixBoardVisibility: mixBoardVisibilityHidden,
+		PlannerPolicy:      plannerPolicy,
+		FastModelProfile:   "",
+		RoundCount:         0,
+		MaxRounds:          maxRounds,
+		JournalRefs:        []string{},
+		Preparation:        mixPreparationRows(target),
+		CreatedAt:          now,
+		UpdatedAt:          now,
 	}
 }
 
@@ -2647,9 +5067,9 @@ func mixPreparationRows(target MixTargetRef) []map[string]any {
 }
 
 func mixSessionWorkflowData(conversationID, goalID, runID string, requestContext map[string]any, session MixSession) map[string]any {
-	return map[string]any{
+	data := map[string]any{
 		"workflow":        mixSessionEntryWorkflow,
-		"conversation_id": conversationID,
+		"conversation_id": firstNonEmpty(session.ConversationID, conversationID),
 		"goal_id":         goalID,
 		"run_id":          runID,
 		"mode":            session.Mode,
@@ -2657,7 +5077,15 @@ func mixSessionWorkflowData(conversationID, goalID, runID string, requestContext
 		"goal_text":       session.GoalText,
 		"mix_session":     mixSessionMap(session),
 		"request_context": requestContext,
+		"planner_policy":  mixPlannerPolicy(session),
 	}
+	if len(session.PlannerPrep) > 0 {
+		data["mix_planner_prep"] = session.PlannerPrep
+		if workspace := mapValue(session.PlannerPrep["mix_planning_workspace"]); len(workspace) > 0 {
+			data["mix_planning_workspace"] = workspace
+		}
+	}
+	return data
 }
 
 func mixSessionEntryReply(session MixSession, target MixTargetRef) string {
@@ -2708,49 +5136,128 @@ func mixSessionFromMap(row map[string]any) MixSession {
 		return MixSession{}
 	}
 	return MixSession{
-		MixSessionID:     cleanContextText(row["mix_session_id"]),
-		Mode:             cleanContextText(row["mode"]),
-		State:            cleanContextText(row["state"]),
-		TargetRef:        mixTargetFromMap(mapValue(row["target_ref"])),
-		GoalText:         cleanContextText(row["goal_text"]),
-		UserNote:         cleanContextText(row["user_note"]),
-		ApprovedPlugins:  contextStringSlice(row["approved_plugins"]),
-		ControlSurfaceID: cleanContextText(row["control_surface_id"]),
-		ExecutorType:     firstNonEmpty(cleanContextText(row["executor_type"]), mixFallbackExecutorType),
-		ExecutorVersion:  firstNonEmpty(cleanContextText(row["executor_version"]), mixFallbackExecutorVersion),
-		ReviewStatus:     cleanContextText(row["review_status"]),
-		StopReason:       cleanContextText(row["stop_reason"]),
-		RoundCount:       intNumber(row["round_count"]),
-		MaxRounds:        intNumber(row["max_rounds"]),
-		JournalRefs:      contextStringSlice(row["journal_refs"]),
-		BlockingPoint:    cleanContextText(row["blocking_point"]),
-		Preparation:      mapRowsValue(row["preparation"]),
-		CreatedAt:        cleanContextText(row["created_at"]),
-		UpdatedAt:        cleanContextText(row["updated_at"]),
+		MixSessionID:       cleanContextText(row["mix_session_id"]),
+		ConversationID:     cleanContextText(row["conversation_id"]),
+		Mode:               cleanContextText(row["mode"]),
+		State:              cleanContextText(row["state"]),
+		TargetRef:          mixTargetFromMap(mapValue(row["target_ref"])),
+		GoalText:           cleanContextText(row["goal_text"]),
+		UserNote:           cleanContextText(row["user_note"]),
+		ApprovedPlugins:    contextStringSlice(row["approved_plugins"]),
+		ControlSurfaceID:   cleanContextText(row["control_surface_id"]),
+		ExecutorType:       firstNonEmpty(cleanContextText(row["executor_type"]), mixFallbackExecutorType),
+		ExecutorVersion:    firstNonEmpty(cleanContextText(row["executor_version"]), mixFallbackExecutorVersion),
+		ReviewStatus:       cleanContextText(row["review_status"]),
+		StopReason:         cleanContextText(row["stop_reason"]),
+		InteractionPhase:   firstNonEmpty(cleanContextText(row["interaction_phase"]), mixInteractionPlanningChat),
+		MixBoardVisibility: firstNonEmpty(cleanContextText(row["mixboard_visibility"]), mixBoardVisibilityHidden),
+		PlannerPolicy:      firstNonEmpty(cleanContextText(row["planner_policy"]), mixPlannerPolicyForMode(cleanContextText(row["mode"]))),
+		FastModelProfile:   cleanContextText(row["fast_model_profile"]),
+		RoundCount:         intNumber(row["round_count"]),
+		MaxRounds:          intNumber(row["max_rounds"]),
+		JournalRefs:        contextStringSlice(row["journal_refs"]),
+		BlockingPoint:      cleanContextText(row["blocking_point"]),
+		Preparation:        mapRowsValue(row["preparation"]),
+		PlannerPrep:        mapValue(row["mix_planner_prep"]),
+		CreatedAt:          cleanContextText(row["created_at"]),
+		UpdatedAt:          cleanContextText(row["updated_at"]),
 	}
 }
 
 func mixSessionMap(session MixSession) map[string]any {
 	return map[string]any{
-		"mix_session_id":     session.MixSessionID,
-		"mode":               session.Mode,
-		"state":              session.State,
-		"target_ref":         mixTargetMap(session.TargetRef),
-		"goal_text":          session.GoalText,
-		"user_note":          session.UserNote,
-		"approved_plugins":   session.ApprovedPlugins,
-		"control_surface_id": session.ControlSurfaceID,
-		"executor_type":      firstNonEmpty(session.ExecutorType, mixFallbackExecutorType),
-		"executor_version":   firstNonEmpty(session.ExecutorVersion, mixFallbackExecutorVersion),
-		"review_status":      session.ReviewStatus,
-		"stop_reason":        session.StopReason,
-		"round_count":        session.RoundCount,
-		"max_rounds":         session.MaxRounds,
-		"journal_refs":       session.JournalRefs,
-		"blocking_point":     session.BlockingPoint,
-		"preparation":        session.Preparation,
-		"created_at":         session.CreatedAt,
-		"updated_at":         session.UpdatedAt,
+		"mix_session_id":      session.MixSessionID,
+		"conversation_id":     session.ConversationID,
+		"mode":                session.Mode,
+		"state":               session.State,
+		"target_ref":          mixTargetMap(session.TargetRef),
+		"goal_text":           session.GoalText,
+		"user_note":           session.UserNote,
+		"approved_plugins":    session.ApprovedPlugins,
+		"control_surface_id":  session.ControlSurfaceID,
+		"executor_type":       firstNonEmpty(session.ExecutorType, mixFallbackExecutorType),
+		"executor_version":    firstNonEmpty(session.ExecutorVersion, mixFallbackExecutorVersion),
+		"review_status":       session.ReviewStatus,
+		"stop_reason":         session.StopReason,
+		"interaction_phase":   mixInteractionPhase(session),
+		"mixboard_visibility": mixBoardVisibility(session),
+		"planner_policy":      mixPlannerPolicy(session),
+		"fast_model_profile":  session.FastModelProfile,
+		"round_count":         session.RoundCount,
+		"max_rounds":          session.MaxRounds,
+		"journal_refs":        session.JournalRefs,
+		"blocking_point":      session.BlockingPoint,
+		"preparation":         session.Preparation,
+		"mix_planner_prep":    session.PlannerPrep,
+		"created_at":          session.CreatedAt,
+		"updated_at":          session.UpdatedAt,
+	}
+}
+
+func mixPlannerPolicyForMode(mode string) string {
+	if strings.EqualFold(strings.TrimSpace(mode), mixModeCo) {
+		return mixPlannerPolicyCoMixDirector
+	}
+	return mixPlannerPolicyAutoAssist
+}
+
+func mixPlannerPolicy(session MixSession) string {
+	return firstNonEmpty(session.PlannerPolicy, mixPlannerPolicyForMode(session.Mode))
+}
+
+func mixFastModelProfile(session MixSession, context map[string]any) string {
+	return firstNonEmpty(
+		cleanContextText(context["fast_model_profile"]),
+		cleanContextText(context["mix_fast_model_profile"]),
+		cleanContextText(context["mix_tick_model_profile"]),
+		session.FastModelProfile,
+		"mix_tick",
+	)
+}
+
+func mixFastModelStrategy(profile string) map[string]any {
+	return map[string]any{
+		"profile":                  firstNonEmpty(profile, "mix_tick"),
+		"route":                    "mix_tick",
+		"phase":                    mixInteractionFastTickRunning,
+		"reasoning_effort":         "low",
+		"chain_of_thought":         "disabled",
+		"max_decisions_per_tick":   1,
+		"fallback_to_default":      true,
+		"prompt_style":             "short_structured",
+		"requires_mix_tick_packet": true,
+	}
+}
+
+func mixInteractionPhase(session MixSession) string {
+	if strings.TrimSpace(session.InteractionPhase) != "" {
+		return session.InteractionPhase
+	}
+	switch session.State {
+	case mixStateTuningRunning:
+		return mixInteractionFastTickRunning
+	case mixStateWaitingReview, mixStateTuningPaused, mixStateRollbackAvailable:
+		return mixInteractionWaitingPlannerReview
+	case mixStateObservationReady, mixStateObservationPartial:
+		return mixInteractionControlSurfacePublished
+	default:
+		return mixInteractionPlanningChat
+	}
+}
+
+func mixBoardVisibility(session MixSession) string {
+	if strings.TrimSpace(session.MixBoardVisibility) != "" {
+		return session.MixBoardVisibility
+	}
+	switch mixInteractionPhase(session) {
+	case mixInteractionFastTickRunning:
+		return mixBoardVisibilityExecution
+	case mixInteractionControlSurfacePublished, mixInteractionReadyForTick, mixInteractionWaitingPlannerReview, mixInteractionLearningRequired:
+		return mixBoardVisibilityPublished
+	case mixInteractionPlanningChat:
+		return mixBoardVisibilityCollapsed
+	default:
+		return mixBoardVisibilityHidden
 	}
 }
 
