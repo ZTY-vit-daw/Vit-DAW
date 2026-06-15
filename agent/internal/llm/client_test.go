@@ -54,6 +54,17 @@ func TestEndpointFor(t *testing.T) {
 	}
 }
 
+func TestParseLLMResponseDataRejectsHTML(t *testing.T) {
+	_, _, err := parseLLMResponseData([]byte(`<!doctype html><html><body>right.codes claude-aws</body></html>`), 200, "chat")
+	if err == nil {
+		t.Fatal("expected HTML endpoint error")
+	}
+	got := err.Error()
+	if !strings.Contains(got, "LLM endpoint returned HTML") || !strings.Contains(got, "https://www.right.codes/claude-aws/v1") {
+		t.Fatalf("error = %q", got)
+	}
+}
+
 func TestCompleteRequestParsesChatUsage(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/v1/chat/completions" {

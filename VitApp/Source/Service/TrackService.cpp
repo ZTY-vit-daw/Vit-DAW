@@ -72,6 +72,22 @@ juce::var createTrackState (te::Track& track)
     trackObject->setProperty ("vit_intent", track.state.getProperty ("vit_intent").toString());
     trackObject->setProperty ("plugin_count", pluginsArray.size());
     trackObject->setProperty ("plugins", juce::var (pluginsArray));
+
+    if (auto* audioTrack = dynamic_cast<te::AudioTrack*> (&track))
+    {
+        trackObject->setProperty ("mute", audioTrack->isMuted (false));
+        trackObject->setProperty ("solo", audioTrack->isSolo (false));
+
+        if (auto* volumePlugin = audioTrack->getVolumePlugin())
+        {
+            const auto db = volumePlugin->getVolumeDb();
+            trackObject->setProperty ("db", db);
+            trackObject->setProperty ("volume_db", db);
+            trackObject->setProperty ("gain_db", db);
+            trackObject->setProperty ("fader_db", db);
+        }
+    }
+
     return juce::var (trackObject.release());
 }
 
@@ -137,7 +153,13 @@ juce::String buildTrackReply (te::AudioTrack& track, const juce::String& message
     response->setProperty ("solo", track.isSolo (false));
 
     if (auto* volumePlugin = track.getVolumePlugin())
-        response->setProperty ("db", volumePlugin->getVolumeDb());
+    {
+        const auto db = volumePlugin->getVolumeDb();
+        response->setProperty ("db", db);
+        response->setProperty ("volume_db", db);
+        response->setProperty ("gain_db", db);
+        response->setProperty ("fader_db", db);
+    }
 
     return juce::JSON::toString (juce::var (response.release()));
 }

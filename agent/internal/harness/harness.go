@@ -23,6 +23,7 @@ import (
 	"vit-daw-agent/internal/kernel"
 	"vit-daw-agent/internal/logx"
 	"vit-daw-agent/internal/macrocontrols"
+	"vit-daw-agent/internal/mixboard"
 	"vit-daw-agent/internal/pluginsemantics"
 	"vit-daw-agent/internal/preview"
 	"vit-daw-agent/internal/resourceintake"
@@ -49,6 +50,8 @@ type Harness struct {
 type kernelSender interface {
 	SendCommand(context.Context, map[string]any) (map[string]any, string, error)
 }
+
+const mixboardFeatureReadyWaitDefault = 1500 * time.Millisecond
 
 type InvokeRequest struct {
 	Tool       string         `json:"tool"`
@@ -788,6 +791,9 @@ func (h *Harness) invokeLocal(ctx context.Context, spec tools.CommandSpec, cmd m
 	case "goal_tick":
 		goal := h.runtime.Tick(firstString(cmd, "goal_id"), firstString(cmd, "checkpoint"))
 		return map[string]any{"goal": goal}, true
+	case "mix_request_observation":
+		result, err := h.requestMixObservation(ctx, cmd)
+		return resultWithErr(result, err), true
 	case "control_add_macro", "plugin_map_macro_to_params":
 		return h.upsertMacroControlResult(cmd), true
 	case "control_rename_macro", "control.rename_macro":
@@ -795,7 +801,7 @@ func (h *Harness) invokeLocal(ctx context.Context, spec tools.CommandSpec, cmd m
 	case "control_add_binding", "control.add_binding":
 		return h.addMacroBindingResult(cmd), true
 	case "control_set_macro_values", "control.set_macro_values":
-		return h.setMacroValuesResult(cmd), true
+		return h.setMacroValuesResult(ctx, cmd), true
 	case "workspace_glob":
 		result, err := workspace.Glob(h.workspaceContext(cmd), cmd)
 		return resultWithErr(result, err), true
@@ -884,6 +890,12 @@ func (h *Harness) invokeLocal(ctx context.Context, spec tools.CommandSpec, cmd m
 		return resultWithErr(result, err), true
 	case "plugin_semantic_build_index":
 		result, err := h.buildPluginSemanticIndex(cmd)
+		return resultWithErr(result, err), true
+	case "plugin_list_available":
+		result, err := h.listAvailablePlugins(context.Background(), cmd)
+		return resultWithErr(result, err), true
+	case "plugin_search":
+		result, err := h.searchAvailablePlugins(context.Background(), cmd)
 		return resultWithErr(result, err), true
 	case "plugin_semantic_search":
 		result, err := h.searchPluginSemanticIndex(cmd)
@@ -1107,7 +1119,7 @@ func (h *Harness) addMacroBindingResult(cmd map[string]any) map[string]any {
 	}
 }
 
-func (h *Harness) setMacroValuesResult(cmd map[string]any) map[string]any {
+func (h *Harness) setMacroValuesResult(ctx context.Context, cmd map[string]any) map[string]any {
 	macro := macrocontrols.NormalizeControl(mapAnyFromAny(cmd["macro"]))
 	if firstString(macro, "macro_id", "id") == "" {
 		macro = macrocontrols.NormalizeControl(cmd)
@@ -1142,6 +1154,50 @@ func (h *Harness) setMacroValuesResult(cmd map[string]any) map[string]any {
 		trackID := firstNonEmpty(firstString(binding, "track_id"), firstString(macro, "track_id"))
 		pluginID := firstString(binding, "plugin_id")
 		paramID := firstString(binding, "param_id")
+		control := firstString(binding, "control")
+		if control == "track.volume" || paramID == "track.volume" {
+			if trackID == "" {
+				continue
+			}
+			targetMin := numberFromAnyWithDefault(binding["target_min"], -60)
+			targetMax := numberFromAnyWithDefault(binding["target_max"], 12)
+			if targetMin == 0 && targetMax == 1 && minValue < 0 && maxValue > 1 {
+				targetMin = minValue
+				targetMax = maxValue
+			}
+			targetValue := clampFloat(value, targetMin, targetMax)
+			if h == nil || h.kernel == nil {
+				return map[string]any{"status": "error", "error": "kernel client is required for track.volume macro binding", "macro_id": macroID, "value": value, "macro": macro}
+			}
+			reply, _, err := h.kernel.SendCommand(ctx, map[string]any{
+				"cmd":      "set_volume",
+				"track_id": trackID,
+				"db":       targetValue,
+			})
+			if err != nil || !kernelReplySucceeded(reply) {
+				return map[string]any{
+					"status":   "error",
+					"error":    firstNonEmpty(firstString(reply, "message"), firstString(reply, "error"), fmt.Sprint(err), "track.volume macro binding failed"),
+					"macro_id": macroID,
+					"value":    value,
+					"macro":    macro,
+				}
+			}
+			if h.catalog != nil {
+				if volumeSpec, ok := h.catalog.LookupCommand("set_volume"); ok {
+					h.afterKernelReply(ctx, volumeSpec, reply)
+				}
+			}
+			applied = append(applied, map[string]any{
+				"track_id":     trackID,
+				"control":      "track.volume",
+				"param_id":     "track.volume",
+				"param_name":   firstNonEmpty(firstString(binding, "param_name"), "轨道音量"),
+				"target_value": targetValue,
+				"unit":         firstString(binding, "unit"),
+			})
+			continue
+		}
 		if trackID == "" || pluginID == "" || paramID == "" {
 			continue
 		}
@@ -1284,6 +1340,415 @@ func (h *Harness) workspaceContext(cmd map[string]any) workspace.Context {
 
 func (h *Harness) artifactStore() artifacts.Store {
 	return artifacts.NewStore("")
+}
+
+func (h *Harness) requestMixObservation(ctx context.Context, cmd map[string]any) (map[string]any, error) {
+	state := map[string]any{}
+	if h != nil {
+		state = h.UserStateSummary(ctx)
+	}
+	target := mixTargetFromCommand(cmd)
+	if target.ID == "" {
+		target.ID = firstString(cmd, "track_id", "clip_id", "target_id")
+	}
+	if target.Kind == "" {
+		target.Kind = firstNonEmpty(firstString(cmd, "target_kind", "kind"), "selection")
+	}
+	featureRequest := h.requestMixObservationFeatures(ctx, cmd, state, target)
+	result, err := mixboard.NewStore("").RequestObservation(mixboard.Request{
+		MixSessionID: firstString(cmd, "mix_session_id", "session_id"),
+		Round:        int(numberFromAny(cmd["round"])),
+		GoalText:     firstString(cmd, "goal_text", "goal"),
+		TargetRef:    target,
+		MixObjects:   mixObjectsFromCommand(cmd),
+		ListenScope:  mixListenScopeFromCommand(cmd),
+		ProjectState: state,
+		Args:         cloneAnyMap(cmd),
+	})
+	if err != nil {
+		return nil, err
+	}
+	out := map[string]any{
+		"status":            result.Status,
+		"mix_session_id":    result.Observation.MixSessionID,
+		"observation_id":    result.Observation.ObservationID,
+		"board_path":        result.BoardPath,
+		"observation_path":  result.ObservationPath,
+		"context_pack_path": result.ContextPackPath,
+		"observation":       result.Observation,
+		"mixboard":          result.Board,
+		"context_pack":      result.ContextPack,
+	}
+	if len(featureRequest) > 0 {
+		out["feature_request"] = featureRequest
+	}
+	return out, nil
+}
+
+func (h *Harness) requestMixObservationFeatures(ctx context.Context, cmd map[string]any, state map[string]any, target mixboard.TargetRef) map[string]any {
+	packet := newMixboardFeatureRequestPacket(cmd, target)
+	resolved := resolveMixboardFeatureTarget(cmd, state, target)
+	packet["resolved_target"] = resolved
+	trackID := firstString(resolved, "track_id")
+	clipID := firstString(resolved, "clip_id")
+	if trackID == "" || clipID == "" {
+		packet["status"] = "blocked"
+		packet["reason"] = "clip_source_required_for_current_feature_bakers"
+		writeMixboardFeatureRequestSnapshot(cmd, packet)
+		return packet
+	}
+	if h == nil || h.kernel == nil {
+		packet["status"] = "blocked"
+		packet["reason"] = "kernel_client_unavailable"
+		writeMixboardFeatureRequestSnapshot(cmd, packet)
+		return packet
+	}
+	requested := make([]any, 0, 1)
+	skipped := make([]any, 0)
+	for _, featureType := range []string{"waveform_envelope"} {
+		requestID := fmt.Sprintf("%s_%s", firstString(packet, "request_id"), featureType)
+		kernelCmd := map[string]any{
+			"cmd":                 "warm_waveform_bake",
+			"command":             "mixboard_request_observation_features",
+			"track_id":            trackID,
+			"clip_id":             clipID,
+			"feature_type":        featureType,
+			"mixboard_request_id": firstString(packet, "request_id"),
+		}
+		reply, _, err := h.kernel.SendCommand(ctx, kernelCmd)
+		if err != nil || !kernelReplySucceeded(reply) {
+			reason := firstNonEmpty(fmt.Sprint(reply["message"]), fmt.Sprint(reply["error"]), fmt.Sprint(err), "kernel_feature_request_failed")
+			skipped = append(skipped, map[string]any{"feature_type": featureType, "reason": reason})
+			continue
+		}
+		requested = append(requested, map[string]any{
+			"feature_type": featureType,
+			"request_id":   requestID,
+			"track_id":     trackID,
+			"clip_id":      clipID,
+		})
+	}
+	packet["requested_features"] = requested
+	packet["skipped_features"] = skipped
+	if len(requested) > 0 {
+		packet["status"] = "requested"
+	} else {
+		packet["status"] = "blocked"
+		packet["reason"] = "all_feature_requests_skipped"
+	}
+	writeMixboardFeatureRequestSnapshot(cmd, packet)
+	waitForMixboardFeatureSnapshotReady(ctx, cmd, trackID, clipID, mixboardFeatureReadyWait())
+	return packet
+}
+
+func mixboardFeatureReadyWait() time.Duration {
+	raw := strings.TrimSpace(os.Getenv("VIT_MIXBOARD_FEATURE_READY_WAIT_MS"))
+	if raw == "" {
+		return mixboardFeatureReadyWaitDefault
+	}
+	ms, err := strconv.Atoi(raw)
+	if err != nil || ms < 0 {
+		return mixboardFeatureReadyWaitDefault
+	}
+	return time.Duration(ms) * time.Millisecond
+}
+
+func newMixboardFeatureRequestPacket(cmd map[string]any, target mixboard.TargetRef) map[string]any {
+	requestID := firstNonEmpty(firstString(cmd, "mixboard_request_id", "request_id"), "mixboard_"+time.Now().UTC().Format("20060102T150405.000000000"))
+	return map[string]any{
+		"schema_version":     "mixboard_feature_request.v1",
+		"request_id":         requestID,
+		"status":             "blocked",
+		"target_ref":         map[string]any{"kind": target.Kind, "id": target.ID, "label": target.Label, "source": target.Source, "confidence": target.Confidence},
+		"resolved_target":    map[string]any{},
+		"requested_features": []any{},
+		"skipped_features":   []any{},
+		"created_at":         time.Now().UTC().Format(time.RFC3339Nano),
+	}
+}
+
+func resolveMixboardFeatureTarget(cmd map[string]any, state map[string]any, target mixboard.TargetRef) map[string]any {
+	kind := strings.ToLower(strings.TrimSpace(target.Kind))
+	id := strings.TrimSpace(target.ID)
+	trackID := ""
+	clipID := ""
+	if kind == "clip" && id != "" {
+		clipID = id
+	}
+	if kind == "track" && id != "" {
+		trackID = id
+	}
+	if clipID == "" {
+		clipID = firstString(cmd, "selected_clip_id", "clip_id")
+	}
+	if clipID == "" {
+		if ids := stringSliceFromAny(cmd["selected_clip_ids"]); len(ids) > 0 {
+			clipID = ids[0]
+		}
+	}
+	if trackID == "" {
+		trackID = firstString(cmd, "selected_clip_track_id", "track_id", "selected_track_id")
+	}
+	refs := visibleClipRefs(state)
+	if clipID != "" {
+		for _, ref := range refs {
+			if ref.ID == clipID {
+				if trackID == "" {
+					trackID = ref.TrackID
+				}
+				return map[string]any{"kind": "clip", "id": clipID, "track_id": trackID, "clip_id": clipID, "source": "mixboard_context"}
+			}
+		}
+	}
+	if trackID != "" {
+		for _, ref := range refs {
+			if ref.TrackID == trackID {
+				return map[string]any{"kind": "track", "id": trackID, "track_id": trackID, "clip_id": ref.ID, "source": "first_audio_clip_on_track"}
+			}
+		}
+	}
+	return map[string]any{"kind": kind, "id": id, "track_id": trackID, "clip_id": clipID, "source": "mixboard_context"}
+}
+
+func writeMixboardFeatureRequestSnapshot(cmd map[string]any, packet map[string]any) {
+	path := mixboard.FeatureSnapshotPath(cmd)
+	existing := readMixboardFeatureSnapshotFile(path)
+	snapshot := map[string]any{
+		"schema_version":          "mixboard_feature_snapshot.v1",
+		"updated_at":              time.Now().UTC().Format(time.RFC3339Nano),
+		"latest_request":          packet,
+		"waveform_envelope":       pendingMixboardFeatureRow("waveform_envelope", packet, existing),
+		"spectrogram_tiles":       pendingMixboardFeatureRow("spectral_field", packet, existing),
+		"band_energy_summary":     reusableMixboardFeatureRow("band_energy_summary", existing, map[string]any{"status": "missing"}),
+		"stereo_relation_summary": reusableMixboardFeatureRow("stereo_relation_summary", existing, map[string]any{"status": "missing"}),
+	}
+	data, err := json.MarshalIndent(snapshot, "", "\t")
+	if err != nil {
+		return
+	}
+	_ = os.MkdirAll(filepath.Dir(path), 0o755)
+	_ = os.WriteFile(path, append(data, '\n'), 0o644)
+}
+
+func readMixboardFeatureSnapshotFile(path string) map[string]any {
+	data, err := os.ReadFile(path)
+	if err != nil || len(data) == 0 {
+		return nil
+	}
+	var out map[string]any
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil
+	}
+	return out
+}
+
+func waitForMixboardFeatureSnapshotReady(ctx context.Context, cmd map[string]any, trackID, clipID string, timeout time.Duration) {
+	if timeout <= 0 {
+		return
+	}
+	path := mixboard.FeatureSnapshotPath(cmd)
+	deadline := time.Now().Add(timeout)
+	for {
+		if mixboardFeatureRowsReadyForTarget(readMixboardFeatureSnapshotFile(path), trackID, clipID) {
+			return
+		}
+		if time.Now().After(deadline) {
+			return
+		}
+		select {
+		case <-ctx.Done():
+			return
+		case <-time.After(120 * time.Millisecond):
+		}
+	}
+}
+
+func mixboardFeatureRowsReadyForTarget(snapshot map[string]any, trackID, clipID string) bool {
+	if len(snapshot) == 0 {
+		return false
+	}
+	if !mixboardFeatureRowReadyForTarget(snapshot["waveform_envelope"], trackID, clipID) {
+		return false
+	}
+	if mixboardFeatureRowReadyForTarget(snapshot["band_energy_summary"], trackID, "") &&
+		mixboardFeatureRowReadyForTarget(snapshot["stereo_relation_summary"], trackID, "") {
+		return true
+	}
+	return false
+}
+
+func mixboardFeatureRowReadyForTarget(value any, trackID, clipID string) bool {
+	row, _ := value.(map[string]any)
+	if len(row) == 0 || !strings.EqualFold(firstString(row, "status"), "ready") {
+		return false
+	}
+	if trackID != "" && firstString(row, "track_id") != "" && firstString(row, "track_id") != trackID {
+		return false
+	}
+	if clipID != "" && firstString(row, "clip_id") != "" && firstString(row, "clip_id") != clipID {
+		return false
+	}
+	return true
+}
+
+func pendingMixboardFeatureRow(featureType string, packet map[string]any, existing map[string]any) map[string]any {
+	target, _ := packet["resolved_target"].(map[string]any)
+	if row := reusableReadyMixboardFeatureRow(featureType, target, existing); len(row) > 0 {
+		return row
+	}
+	status := strings.ToLower(strings.TrimSpace(fmt.Sprint(packet["status"])))
+	rowStatus := "requested"
+	if status == "blocked" {
+		rowStatus = "blocked"
+	}
+	found := false
+	for _, raw := range anyListFromAny(packet["requested_features"]) {
+		item, _ := raw.(map[string]any)
+		if strings.EqualFold(firstString(item, "feature_type"), featureType) || (featureType == "spectral_field" && strings.EqualFold(firstString(item, "feature_type"), "spectral_field")) {
+			found = true
+			break
+		}
+	}
+	if status != "blocked" && !found {
+		rowStatus = "missing"
+	}
+	out := map[string]any{
+		"status":     rowStatus,
+		"track_id":   firstString(target, "track_id"),
+		"clip_id":    firstString(target, "clip_id"),
+		"request_id": firstString(packet, "request_id"),
+		"updated_at": time.Now().UTC().Format(time.RFC3339Nano),
+	}
+	if reason := firstString(packet, "reason"); reason != "" {
+		out["reason"] = reason
+	}
+	return out
+}
+
+func reusableReadyMixboardFeatureRow(featureType string, target map[string]any, existing map[string]any) map[string]any {
+	if len(existing) == 0 {
+		return nil
+	}
+	key := "waveform_envelope"
+	if featureType == "spectral_field" {
+		key = "spectrogram_tiles"
+	}
+	row, _ := existing[key].(map[string]any)
+	if len(row) == 0 || !strings.EqualFold(firstString(row, "status"), "ready") {
+		return nil
+	}
+	targetTrack := firstString(target, "track_id")
+	targetClip := firstString(target, "clip_id")
+	if targetTrack != "" && firstString(row, "track_id") != "" && firstString(row, "track_id") != targetTrack {
+		return nil
+	}
+	if targetClip != "" && firstString(row, "clip_id") != "" && firstString(row, "clip_id") != targetClip {
+		return nil
+	}
+	return cloneAnyMap(row)
+}
+
+func reusableMixboardFeatureRow(key string, existing map[string]any, fallback map[string]any) map[string]any {
+	if len(existing) > 0 {
+		if row, _ := existing[key].(map[string]any); len(row) > 0 {
+			return cloneAnyMap(row)
+		}
+	}
+	return cloneAnyMap(fallback)
+}
+
+func anyListFromAny(value any) []any {
+	switch x := value.(type) {
+	case []any:
+		return x
+	case []map[string]any:
+		out := make([]any, 0, len(x))
+		for _, row := range x {
+			out = append(out, row)
+		}
+		return out
+	default:
+		return nil
+	}
+}
+
+func mixTargetFromCommand(cmd map[string]any) mixboard.TargetRef {
+	if row, ok := cmd["target_ref"].(map[string]any); ok {
+		return mixboard.TargetRef{
+			Kind:       firstNonEmpty(firstString(row, "kind"), firstString(cmd, "target_kind", "kind")),
+			ID:         firstNonEmpty(firstString(row, "id", "track_id", "clip_id"), firstString(cmd, "target_id", "track_id", "clip_id")),
+			Label:      firstNonEmpty(firstString(row, "label", "name"), firstString(cmd, "target_label", "track_name", "clip_name")),
+			Source:     firstString(row, "source"),
+			Confidence: firstString(row, "confidence"),
+		}
+	}
+	return mixboard.TargetRef{
+		Kind:       firstNonEmpty(firstString(cmd, "target_kind", "kind"), "selection"),
+		ID:         firstString(cmd, "target_id", "track_id", "clip_id"),
+		Label:      firstString(cmd, "target_label", "track_name", "clip_name"),
+		Source:     firstString(cmd, "target_source", "source"),
+		Confidence: firstString(cmd, "target_confidence", "confidence"),
+	}
+}
+
+func mixObjectsFromCommand(cmd map[string]any) []mixboard.MixObject {
+	rows, ok := cmd["mix_objects"].([]any)
+	if !ok {
+		return nil
+	}
+	out := make([]mixboard.MixObject, 0, len(rows))
+	for _, raw := range rows {
+		row, ok := raw.(map[string]any)
+		if !ok {
+			continue
+		}
+		obj := mixboard.MixObject{
+			Mode:        firstString(row, "mode"),
+			Kind:        firstString(row, "kind", "type"),
+			ID:          firstString(row, "id"),
+			Label:       firstString(row, "label", "name"),
+			EffectScope: firstString(row, "effect_scope"),
+			Source:      firstString(row, "source"),
+		}
+		if obj.Kind != "" || obj.ID != "" || obj.Label != "" {
+			out = append(out, obj)
+		}
+	}
+	return out
+}
+
+func mixListenScopeFromCommand(cmd map[string]any) mixboard.ListenScope {
+	row, ok := cmd["listen_scope"].(map[string]any)
+	if !ok {
+		return mixboard.ListenScope{}
+	}
+	timeRow, _ := row["time"].(map[string]any)
+	sourceRow, _ := row["source"].(map[string]any)
+	return mixboard.ListenScope{
+		Time: mixboard.ListenTimeScope{
+			Mode:         firstString(timeRow, "mode"),
+			StartSeconds: firstPositiveNumber(timeRow, "start_seconds", "start"),
+			EndSeconds:   firstPositiveNumber(timeRow, "end_seconds", "end"),
+			Locked:       boolFromAny(timeRow["locked"]),
+			Source:       firstString(timeRow, "source"),
+		},
+		Source: mixboard.ListenSourceScope{
+			Mode:       firstString(sourceRow, "mode"),
+			FocusIDs:   stringSliceFromAny(sourceRow["focus_ids"]),
+			ContextIDs: stringSliceFromAny(sourceRow["context_ids"]),
+		},
+	}
+}
+
+func firstPositiveNumber(row map[string]any, keys ...string) float64 {
+	for _, key := range keys {
+		if value, ok := row[key]; ok {
+			if n := numberFromAny(value); n > 0 {
+				return n
+			}
+		}
+	}
+	return 0
 }
 
 func (h *Harness) enrichArtifactScopeArgs(ctx context.Context, cmd map[string]any) map[string]any {
@@ -1567,25 +2032,13 @@ func projectHistoryMetaFromResult(result map[string]any) agentruntime.ProjectHis
 }
 
 func (h *Harness) buildPluginSemanticIndex(cmd map[string]any) (map[string]any, error) {
-	if h == nil || h.kernel == nil {
-		return nil, fmt.Errorf("plugin semantic build requires a kernel client")
-	}
-	limit := 2000
-	if n, ok := firstPositiveInt(cmd, "limit", "max_plugins"); ok {
-		limit = n
-	}
-	reply, _, err := h.kernel.SendCommand(context.Background(), map[string]any{
-		"cmd":   "plugin_list_available",
-		"limit": limit,
-	})
+	inventory, err := h.listAvailablePlugins(context.Background(), cmd)
 	if err != nil {
 		return nil, err
 	}
-	if pluginKernelErrored(reply) {
-		return nil, fmt.Errorf("%s", firstNonEmpty(firstString(reply, "message"), firstString(reply, "error"), "plugin_list_available failed"))
-	}
-	rows := mapRowsFromAny(reply["plugins"])
+	rows := mapRowsFromAny(inventory["plugins"])
 	idx := pluginsemantics.Build(rows, time.Now().UTC())
+	idx.Source = "scan_plugins"
 	path, err := pluginsemantics.Save(firstString(cmd, "index_path", "path"), idx)
 	if err != nil {
 		return nil, err
@@ -1597,7 +2050,153 @@ func (h *Harness) buildPluginSemanticIndex(cmd map[string]any) (map[string]any, 
 		"plugin_count":   len(idx.Entries),
 		"summary":        idx.Summary,
 		"warnings":       idx.Warnings,
+		"source":         idx.Source,
+		"scanned_paths":  inventory["scanned_paths"],
 	}, nil
+}
+
+func (h *Harness) listAvailablePlugins(ctx context.Context, cmd map[string]any) (map[string]any, error) {
+	rows, scannedPaths, err := h.scanAvailablePluginRows(ctx, cmd)
+	if err != nil {
+		return nil, err
+	}
+	limit := len(rows)
+	if n, ok := firstPositiveInt(cmd, "limit", "max_plugins", "max_results"); ok && n < limit {
+		limit = n
+	}
+	if limit < 0 {
+		limit = 0
+	}
+	out := append([]map[string]any(nil), rows...)
+	if len(out) > limit {
+		out = out[:limit]
+	}
+	return map[string]any{
+		"status":        "ok",
+		"source":        "scan_plugins",
+		"scanned_paths": scannedPaths,
+		"plugin_count":  len(rows),
+		"plugins":       out,
+		"entries":       out,
+	}, nil
+}
+
+func (h *Harness) searchAvailablePlugins(ctx context.Context, cmd map[string]any) (map[string]any, error) {
+	query := firstString(cmd, "query", "search", "plugin_query", "name")
+	rows, scannedPaths, err := h.scanAvailablePluginRows(ctx, cmd)
+	if err != nil {
+		return nil, err
+	}
+	limit := 12
+	if n, ok := firstPositiveInt(cmd, "limit", "max_results"); ok {
+		limit = n
+	}
+	idx := pluginsemantics.Build(rows, time.Now().UTC())
+	results := pluginsemantics.Search(idx, pluginsemantics.SearchOptions{
+		Query:              query,
+		Type:               firstString(cmd, "type", "semantic_type", "role", "effect_type"),
+		Manufacturer:       firstString(cmd, "manufacturer", "maker", "vendor"),
+		Format:             firstString(cmd, "format"),
+		Limit:              limit,
+		IncludeInstruments: true,
+	})
+	out := pluginSemanticEntriesToRows(results)
+	return map[string]any{
+		"status":        "ok",
+		"source":        "scan_plugins",
+		"query":         query,
+		"scanned_paths": scannedPaths,
+		"plugin_count":  len(rows),
+		"match_count":   len(out),
+		"plugins":       out,
+		"entries":       out,
+	}, nil
+}
+
+func (h *Harness) scanAvailablePluginRows(ctx context.Context, cmd map[string]any) ([]map[string]any, []string, error) {
+	if h == nil || h.kernel == nil {
+		return nil, nil, fmt.Errorf("plugin inventory requires a kernel client")
+	}
+	scanCmd := map[string]any{"cmd": "scan_plugins"}
+	paths := stringSliceFromAny(cmd["paths"])
+	if len(paths) == 0 {
+		if path := firstString(cmd, "path", "plugin_path", "folder", "directory"); path != "" {
+			paths = []string{path}
+		}
+	}
+	if len(paths) == 0 {
+		paths = defaultPluginScanPaths()
+	}
+	scanCmd["paths"] = paths
+	reply, _, err := h.kernel.SendCommand(ctx, scanCmd)
+	if err != nil {
+		return nil, paths, err
+	}
+	if pluginKernelErrored(reply) {
+		return nil, paths, fmt.Errorf("%s", firstNonEmpty(firstString(reply, "message"), firstString(reply, "error"), "scan_plugins failed"))
+	}
+	rows := normalizePluginInventoryRows(mapRowsFromAny(reply["plugins"]))
+	return rows, paths, nil
+}
+
+func defaultPluginScanPaths() []string {
+	out := []string{`C:\Program Files\Common Files\VST3`}
+	if programFiles := strings.TrimSpace(os.Getenv("ProgramFiles")); programFiles != "" {
+		out = append(out, filepath.Join(programFiles, "Steinberg", "VSTPlugins"))
+	}
+	if localAppData := strings.TrimSpace(os.Getenv("LOCALAPPDATA")); localAppData != "" {
+		out = append(out, filepath.Join(localAppData, "Programs", "Common", "CLAP"))
+	}
+	return out
+}
+
+func normalizePluginInventoryRows(rows []map[string]any) []map[string]any {
+	out := make([]map[string]any, 0, len(rows))
+	for _, row := range rows {
+		next := cloneAnyMap(row)
+		name := firstString(next, "name", "descriptive_name", "display_name")
+		if name == "" {
+			continue
+		}
+		if firstString(next, "plugin_path", "path", "file_path", "file_or_identifier") == "" {
+			if identifier := firstString(next, "identifier"); identifier != "" {
+				next["file_or_identifier"] = identifier
+			}
+		}
+		if firstString(next, "plugin_path") == "" {
+			if path := firstString(next, "path", "file_path", "file_or_identifier"); path != "" {
+				next["plugin_path"] = path
+			}
+		}
+		if firstString(next, "format") == "" {
+			next["format"] = "VST3"
+		}
+		out = append(out, next)
+	}
+	return out
+}
+
+func pluginSemanticEntriesToRows(entries []pluginsemantics.Entry) []map[string]any {
+	out := make([]map[string]any, 0, len(entries))
+	for _, entry := range entries {
+		out = append(out, map[string]any{
+			"id":                 entry.ID,
+			"name":               entry.Name,
+			"descriptive_name":   entry.DescriptiveName,
+			"manufacturer":       entry.Manufacturer,
+			"format":             entry.Format,
+			"category":           entry.Category,
+			"identifier":         entry.Identifier,
+			"plugin_path":        entry.PluginPath,
+			"file_or_identifier": firstNonEmpty(entry.PluginPath, entry.Identifier),
+			"is_instrument":      entry.IsInstrument,
+			"primary_type":       entry.PrimaryType,
+			"semantic_types":     entry.SemanticTypes,
+			"confidence":         entry.Confidence,
+			"match_score":        entry.SearchScore,
+		})
+	}
+	return out
 }
 
 func (h *Harness) searchPluginSemanticIndex(cmd map[string]any) (map[string]any, error) {
@@ -1605,6 +2204,7 @@ func (h *Harness) searchPluginSemanticIndex(cmd map[string]any) (map[string]any,
 	idx, err := pluginsemantics.Load(path)
 	indexExists := true
 	transient := false
+	query := firstString(cmd, "query", "search", "plugin_query")
 	if err != nil {
 		if !pluginsemantics.IsNotExist(err) {
 			return nil, err
@@ -1614,18 +2214,13 @@ func (h *Harness) searchPluginSemanticIndex(cmd map[string]any) (map[string]any,
 			if n, ok := firstPositiveInt(cmd, "source_limit", "max_plugins"); ok {
 				limit = n
 			}
-			reply, _, listErr := h.kernel.SendCommand(context.Background(), map[string]any{
-				"cmd":   "plugin_list_available",
-				"limit": limit,
-			})
+			reply, listErr := h.listAvailablePlugins(context.Background(), map[string]any{"limit": limit})
 			if listErr != nil {
 				return nil, listErr
 			}
-			if !pluginKernelErrored(reply) {
-				idx = pluginsemantics.Build(mapRowsFromAny(reply["plugins"]), time.Now().UTC())
-				indexExists = false
-				transient = true
-			}
+			idx = pluginsemantics.Build(mapRowsFromAny(reply["plugins"]), time.Now().UTC())
+			indexExists = false
+			transient = true
 		}
 		if len(idx.Entries) == 0 {
 			defaultPath, _ := pluginsemantics.DefaultPath()
@@ -1639,13 +2234,35 @@ func (h *Harness) searchPluginSemanticIndex(cmd map[string]any) (map[string]any,
 			}, nil
 		}
 	}
+	liveSearchCount := 0
+	liveSearchWarning := ""
+	if h != nil && h.kernel != nil && strings.TrimSpace(query) != "" {
+		limit := 24
+		if n, ok := firstPositiveInt(cmd, "live_limit"); ok {
+			limit = n
+		}
+		reply, liveErr := h.searchAvailablePlugins(context.Background(), map[string]any{
+			"query": query,
+			"limit": limit,
+			"type":  firstString(cmd, "type", "semantic_type", "role", "effect_type"),
+		})
+		if liveErr != nil {
+			liveSearchWarning = liveErr.Error()
+		} else {
+			liveIdx := pluginsemantics.Build(mapRowsFromAny(reply["plugins"]), time.Now().UTC())
+			liveSearchCount = len(liveIdx.Entries)
+			idx.Entries = mergePluginSemanticEntries(idx.Entries, liveIdx.Entries)
+			idx.Summary = pluginsemantics.BuildSummary(idx.Entries)
+			transient = transient || liveSearchCount > 0
+		}
+	}
 	limit := 12
 	if n, ok := firstPositiveInt(cmd, "limit", "max_results"); ok {
 		limit = n
 	}
 	includeInstruments, _ := boolValue(cmd["include_instruments"])
 	results := pluginsemantics.Search(idx, pluginsemantics.SearchOptions{
-		Query:              firstString(cmd, "query", "search", "plugin_query"),
+		Query:              query,
 		Type:               firstString(cmd, "type", "semantic_type", "role", "effect_type"),
 		Manufacturer:       firstString(cmd, "manufacturer", "maker", "vendor"),
 		Format:             firstString(cmd, "format"),
@@ -1661,7 +2278,40 @@ func (h *Harness) searchPluginSemanticIndex(cmd map[string]any) (map[string]any,
 		"summary":      idx.Summary,
 		"plugins":      results,
 		"entries":      results,
+		"live_search": map[string]any{
+			"queried": strings.TrimSpace(query) != "",
+			"count":   liveSearchCount,
+			"warning": liveSearchWarning,
+		},
 	}, nil
+}
+
+func mergePluginSemanticEntries(primary []pluginsemantics.Entry, secondary []pluginsemantics.Entry) []pluginsemantics.Entry {
+	if len(primary) == 0 {
+		return append([]pluginsemantics.Entry(nil), secondary...)
+	}
+	if len(secondary) == 0 {
+		return append([]pluginsemantics.Entry(nil), primary...)
+	}
+	merged := make([]pluginsemantics.Entry, 0, len(primary)+len(secondary))
+	seen := map[string]bool{}
+	add := func(entry pluginsemantics.Entry) {
+		key := strings.ToLower(strings.TrimSpace(firstNonEmpty(entry.ID, entry.PluginPath, entry.Identifier, entry.Name)))
+		if key != "" && seen[key] {
+			return
+		}
+		if key != "" {
+			seen[key] = true
+		}
+		merged = append(merged, entry)
+	}
+	for _, entry := range primary {
+		add(entry)
+	}
+	for _, entry := range secondary {
+		add(entry)
+	}
+	return merged
 }
 
 func (h *Harness) getPluginSemanticEntry(cmd map[string]any) (map[string]any, error) {
@@ -1891,8 +2541,8 @@ func (h *Harness) rackPluginSemanticEntry(ctx context.Context, pluginPath string
 	if h == nil || h.kernel == nil {
 		return pluginsemantics.Entry{}, false
 	}
-	reply, _, err := h.kernel.SendCommand(ctx, map[string]any{"cmd": "plugin_list_available"})
-	if err != nil || pluginKernelErrored(reply) {
+	reply, err := h.listAvailablePlugins(ctx, map[string]any{"limit": 2000})
+	if err != nil {
 		return pluginsemantics.Entry{}, false
 	}
 	rows := mapRowsFromAny(reply["plugins"])

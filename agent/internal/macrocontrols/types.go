@@ -90,6 +90,27 @@ func NormalizeControl(raw map[string]any) map[string]any {
 		"status":        status,
 		"enabled":       boolValue(firstPresent(raw, "enabled"), true),
 	}
+	if control := firstText(raw, "control"); control != "" {
+		out["control"] = control
+	}
+	if role := firstText(raw, "role"); role != "" {
+		out["role"] = role
+	}
+	if len(bindings) == 0 && firstText(out, "control") == "track.volume" && firstText(out, "track_id") != "" {
+		bindings = []map[string]any{{
+			"binding_id": "binding_" + id + "_track_volume",
+			"control":    "track.volume",
+			"track_id":   firstText(out, "track_id"),
+			"param_id":   "track.volume",
+			"param_name": "Track volume",
+			"target_min": numberValue(firstPresent(raw, "min", "target_min"), -60),
+			"target_max": numberValue(firstPresent(raw, "max", "target_max"), 12),
+			"unit":       firstText(raw, "unit"),
+			"enabled":    true,
+		}}
+		out["bindings"] = bindings
+		out["binding_count"] = len(bindings)
+	}
 	for _, key := range []string{"created_at", "updated_at", "created_at_unix", "updated_at_unix", "position"} {
 		if value, ok := raw[key]; ok {
 			out[key] = value
@@ -167,6 +188,9 @@ func normalizeBinding(raw map[string]any) map[string]any {
 		"target_min": numberValue(firstPresent(raw, "target_min", "min"), 0),
 		"target_max": numberValue(firstPresent(raw, "target_max", "max"), 1),
 		"enabled":    boolValue(firstPresent(raw, "enabled"), true),
+	}
+	if control := firstText(raw, "control"); control != "" {
+		out["control"] = control
 	}
 	for _, key := range []string{"unit", "value_text", "param_path"} {
 		if value, ok := raw[key]; ok {

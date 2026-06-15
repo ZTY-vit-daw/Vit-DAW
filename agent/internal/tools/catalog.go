@@ -343,6 +343,8 @@ func argHint(commandName string) string {
 		return "enabled:boolean"
 	case "route_wave_input_to_track":
 		return "track_id:string device_id:string"
+	case "mix_request_observation":
+		return "mix_session_id:string target_ref:{kind,id,label} optional round:number goal_text:string duration_seconds:number"
 	case "artifact_list":
 		return "optional conversation_id:string limit:number"
 	case "artifact_read", "artifact_extract":
@@ -596,6 +598,7 @@ func defaultSpecs() []CommandSpec {
 		spec("get_wave_input_devices", "audio.get_wave_input_devices", "audio", "List wave input devices.", RiskDirect, false, false, false, false),
 		spec("route_wave_input_to_track", "audio.route_wave_input_to_track", "audio", "Route a wave input to a track.", RiskUndoable, true, true, false, true, "track_id", "device_id"),
 		spec("arm_track", "track.arm", "track", "Arm or disarm a track for recording.", RiskUndoable, true, true, false, true, "track_id"),
+		spec("mix_request_observation", "mix.request_observation", "mix", "Read project/shadow facts and write a time-rulered MixBoard observation packet for a mix session.", RiskDirect, false, false, false, false),
 
 		spec("add_track", "track.add", "track", "Add a new track.", RiskUndoable, true, true, false, true),
 		spec("add_audio_track", "track.add_audio", "track", "Add a new audio track.", RiskUndoable, true, true, false, true),

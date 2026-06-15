@@ -18,6 +18,10 @@ juce::String buildTransportReply (te::Edit& edit, const juce::String& message)
     response->setProperty ("is_playing", transport.isPlaying());
     response->setProperty ("is_recording", transport.isRecording());
     response->setProperty ("position_seconds", transport.getPosition().inSeconds());
+    response->setProperty ("loop_enabled", static_cast<bool> (transport.looping.get()));
+    const auto loopRange = transport.getLoopRange();
+    response->setProperty ("loop_start_seconds", loopRange.getStart().inSeconds());
+    response->setProperty ("loop_end_seconds", loopRange.getEnd().inSeconds());
     response->setProperty ("click_track_enabled", static_cast<bool> (edit.clickTrackEnabled.get()));
     return juce::JSON::toString (juce::var (response.release()));
 }
@@ -186,6 +190,53 @@ juce::String TransportAudioService::handleReturnToZero (const juce::DynamicObjec
     transport.ensureContextAllocated();
     juce::Logger::writeToLog ("TransportAudioService::handleReturnToZero: after " + describeTransportState (*edit));
     return buildTransportReply (*edit, "Transport returned to zero");
+}
+
+juce::String TransportAudioService::handleSetLoop (const juce::DynamicObject& object, const juce::String&) const
+{
+    auto* edit = getEdit != nullptr ? getEdit() : nullptr;
+
+    if (edit == nullptr)
+        return makeErrorReply ("No active edit loaded");
+
+    const auto startVar = object.getProperty ("start_seconds");
+    const auto endVar = object.getProperty ("end_seconds");
+
+    if ((! startVar.isDouble() && ! startVar.isInt() && ! startVar.isInt64())
+        || (! endVar.isDouble() && ! endVar.isInt() && ! endVar.isInt64()))
+        return makeErrorReply ("transport_set_loop requires numeric start_seconds and end_seconds");
+
+    auto startSeconds = juce::jmax (0.0, static_cast<double> (startVar));
+    auto endSeconds = juce::jmax (0.0, static_cast<double> (endVar));
+
+    if (endSeconds < startSeconds)
+        std::swap (startSeconds, endSeconds);
+
+    if (endSeconds - startSeconds < 0.01)
+        return makeErrorReply ("transport_set_loop requires a non-empty time range");
+
+    auto& transport = edit->getTransport();
+    transport.setLoopRange ({ te::TimePosition::fromSeconds (startSeconds),
+                              te::TimePosition::fromSeconds (endSeconds) });
+    transport.looping = true;
+    transport.setPosition (te::TimePosition::fromSeconds (startSeconds));
+    transport.ensureContextAllocated();
+
+    return buildTransportReply (*edit, "Transport loop set");
+}
+
+juce::String TransportAudioService::handleClearLoop (const juce::DynamicObject&, const juce::String&) const
+{
+    auto* edit = getEdit != nullptr ? getEdit() : nullptr;
+
+    if (edit == nullptr)
+        return makeErrorReply ("No active edit loaded");
+
+    auto& transport = edit->getTransport();
+    transport.looping = false;
+    transport.ensureContextAllocated();
+
+    return buildTransportReply (*edit, "Transport loop cleared");
 }
 
 juce::String TransportAudioService::handleTransportOptionStopReturnToStart (const juce::DynamicObject& object, const juce::String&) const

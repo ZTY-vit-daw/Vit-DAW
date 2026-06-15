@@ -427,11 +427,15 @@ func imageInputURL(image ImageInput) (string, string, error) {
 
 func parseLLMResponseData(data []byte, statusCode int, kind string) (string, Usage, error) {
 	var out llmResponseEnvelope
-	if err := json.Unmarshal(bytes.TrimSpace(data), &out); err != nil {
+	trimmed := bytes.TrimSpace(data)
+	if looksLikeHTML(trimmed) {
+		return "", Usage{}, htmlEndpointError(statusCode, string(trimmed))
+	}
+	if err := json.Unmarshal(trimmed, &out); err != nil {
 		if text, usage, streamErr, ok := parseResponsesSSE(data); ok {
 			return text, usage, streamErr
 		}
-		text := strings.TrimSpace(string(data))
+		text := strings.TrimSpace(string(trimmed))
 		if statusCode >= 400 {
 			if text != "" {
 				return "", Usage{}, fmt.Errorf("LLM HTTP error %d: %s", statusCode, truncate(text, 400))
@@ -463,6 +467,25 @@ func parseLLMResponseData(data []byte, statusCode int, kind string) (string, Usa
 		return "", usage, fmt.Errorf("LLM returned no choices")
 	}
 	return out.Choices[0].Message.Content, usage, nil
+}
+
+func looksLikeHTML(data []byte) bool {
+	text := strings.TrimSpace(strings.ToLower(string(data)))
+	return strings.HasPrefix(text, "<!doctype html") ||
+		strings.HasPrefix(text, "<html") ||
+		strings.Contains(text, "<body")
+}
+
+func htmlEndpointError(statusCode int, text string) error {
+	status := ""
+	if statusCode > 0 {
+		status = fmt.Sprintf(" HTTP %d", statusCode)
+	}
+	hint := "LLM endpoint returned HTML" + status + "; baseUrl may point to a web page instead of an API endpoint"
+	if strings.Contains(strings.ToLower(text), "right.codes") || strings.Contains(strings.ToLower(text), "claude-aws") {
+		hint += ". Try using https://www.right.codes/claude-aws/v1"
+	}
+	return fmt.Errorf("%s", hint)
 }
 
 type responsesSSEState struct {

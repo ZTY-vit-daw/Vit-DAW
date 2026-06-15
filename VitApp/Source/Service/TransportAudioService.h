@@ -25,6 +25,8 @@ public:
     juce::String handlePlay (const juce::DynamicObject&, const juce::String&) const;
     juce::String handleStop (const juce::DynamicObject&, const juce::String&) const;
     juce::String handleReturnToZero (const juce::DynamicObject&, const juce::String&) const;
+    juce::String handleSetLoop (const juce::DynamicObject&, const juce::String&) const;
+    juce::String handleClearLoop (const juce::DynamicObject&, const juce::String&) const;
     juce::String handleTransportOptionStopReturnToStart (const juce::DynamicObject&, const juce::String&) const;
     juce::String handleToggleClick (const juce::DynamicObject&, const juce::String&) const;
     juce::String handleSetClick (const juce::DynamicObject&, const juce::String&) const;

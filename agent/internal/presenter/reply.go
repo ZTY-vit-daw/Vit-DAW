@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"html"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"vit-daw-agent/internal/policy"
@@ -526,6 +527,9 @@ func formatPluginSearchResult(result map[string]any) string {
 	}
 	query := firstText(result, "query")
 	rows := mapRowsValue(result["plugins"])
+	if text := formatPluginCandidateSummary(rows, result, query, "search"); text != "" {
+		return text
+	}
 	if len(rows) == 0 {
 		if query != "" {
 			return fmt.Sprintf("没有在当前插件库里找到 %s。请先在设置页扫描插件目录，或确认插件名称。", query)
@@ -727,6 +731,9 @@ func formatPluginListResult(result map[string]any) string {
 		return ""
 	}
 	rows := mapRowsValue(result["plugins"])
+	if text := formatPluginCandidateSummary(rows, result, "", "list"); text != "" {
+		return text
+	}
 	if len(rows) == 0 {
 		return "当前插件库为空。请先在设置页扫描插件目录。"
 	}
@@ -739,6 +746,136 @@ func formatPluginListResult(result map[string]any) string {
 		lines = append(lines, fmt.Sprintf("%d. %s", i+1, formatPluginIndexRow(row)))
 	}
 	return strings.Join(lines, "\n")
+}
+
+func formatPluginCandidateSummary(rows []map[string]any, result map[string]any, query, mode string) string {
+	if len(rows) == 0 {
+		return ""
+	}
+	totalText := firstText(result, "match_count", "plugin_count")
+	if totalText == "" {
+		totalText = fmt.Sprint(len(rows))
+	}
+	display := firstPluginRows(rows, 8)
+	header := fmt.Sprintf("当前插件库约有 %s 个可用插件，显示前 %d 个代表项。", totalText, len(display))
+	if mode == "search" {
+		if query != "" {
+			header = fmt.Sprintf("找到 %s 个插件候选（%s），显示前 %d 个。", totalText, query, len(display))
+		} else {
+			header = fmt.Sprintf("找到 %s 个插件候选，显示前 %d 个。", totalText, len(display))
+		}
+	}
+	lines := []string{header}
+	if summary := pluginTypeSummary(rows); summary != "" {
+		lines = append(lines, "类型概览："+summary)
+	}
+	for i, row := range display {
+		lines = append(lines, fmt.Sprintf("%d. %s", i+1, formatPluginIndexRow(row)))
+	}
+	if hidden := hiddenPluginCount(totalText, len(rows), len(display)); hidden > 0 {
+		lines = append(lines, fmt.Sprintf("另有 %d 个未显示；可以继续指定类型或名称筛选。", hidden))
+	}
+	return strings.Join(lines, "\n")
+}
+
+func firstPluginRows(rows []map[string]any, limit int) []map[string]any {
+	if limit <= 0 || len(rows) <= limit {
+		return rows
+	}
+	return rows[:limit]
+}
+
+func pluginTypeSummary(rows []map[string]any) string {
+	counts := map[string]int{}
+	for _, row := range rows {
+		typ := firstText(row, "primary_type")
+		if typ == "" {
+			typ = inferPluginTypeLabel(row)
+		}
+		if typ == "" {
+			typ = "unknown"
+		}
+		counts[typ]++
+	}
+	order := []string{"eq", "compressor", "dynamics", "reverb", "delay", "limiter", "analyzer", "meter", "synth", "instrument", "unknown"}
+	parts := []string{}
+	seen := map[string]bool{}
+	for _, typ := range order {
+		if n := counts[typ]; n > 0 {
+			parts = append(parts, fmt.Sprintf("%s %d", pluginTypeDisplayName(typ), n))
+			seen[typ] = true
+		}
+	}
+	for typ, n := range counts {
+		if !seen[typ] {
+			parts = append(parts, fmt.Sprintf("%s %d", pluginTypeDisplayName(typ), n))
+		}
+	}
+	if len(parts) > 6 {
+		parts = parts[:6]
+	}
+	return strings.Join(parts, "、")
+}
+
+func inferPluginTypeLabel(row map[string]any) string {
+	text := strings.ToLower(strings.Join([]string{
+		firstText(row, "name", "descriptive_name"),
+		firstText(row, "category"),
+		firstText(row, "plugin_path", "path", "file_or_identifier"),
+	}, " "))
+	switch {
+	case strings.Contains(text, "eq") || strings.Contains(text, "equalizer"):
+		return "eq"
+	case strings.Contains(text, "compressor") || strings.Contains(text, "dynamics") || strings.Contains(text, " comp"):
+		return "compressor"
+	case strings.Contains(text, "reverb") || strings.Contains(text, "verb"):
+		return "reverb"
+	case strings.Contains(text, "delay") || strings.Contains(text, "echo"):
+		return "delay"
+	case strings.Contains(text, "limiter"):
+		return "limiter"
+	case strings.Contains(text, "analyzer") || strings.Contains(text, "meter") || strings.Contains(text, "spectrum"):
+		return "analyzer"
+	case strings.Contains(text, "synth") || strings.Contains(text, "instrument"):
+		return "synth"
+	default:
+		return ""
+	}
+}
+
+func pluginTypeDisplayName(typ string) string {
+	switch strings.ToLower(strings.TrimSpace(typ)) {
+	case "eq":
+		return "均衡"
+	case "compressor", "dynamics":
+		return "压缩/动态"
+	case "reverb":
+		return "混响"
+	case "delay":
+		return "延迟"
+	case "limiter":
+		return "限制"
+	case "analyzer", "meter":
+		return "分析/电平"
+	case "synth", "instrument":
+		return "乐器"
+	default:
+		return "其他"
+	}
+}
+
+func hiddenPluginCount(totalText string, rowCount, shown int) int {
+	total, err := strconv.Atoi(strings.TrimSpace(totalText))
+	if err != nil {
+		total = rowCount
+	}
+	if total > shown {
+		return total - shown
+	}
+	if rowCount > shown {
+		return rowCount - shown
+	}
+	return 0
 }
 
 func formatPluginScanResult(result map[string]any) string {

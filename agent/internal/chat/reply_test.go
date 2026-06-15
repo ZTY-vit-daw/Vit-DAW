@@ -1,6 +1,7 @@
 package chat
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 
@@ -131,6 +132,37 @@ func TestExecutedReplyFormatsPluginSearch(t *testing.T) {
 		if !strings.Contains(reply, want) {
 			t.Fatalf("reply missing %q in %q", want, reply)
 		}
+	}
+}
+
+func TestExecutedReplyFormatsLargePluginListAsSummary(t *testing.T) {
+	plugins := []any{}
+	for i := 1; i <= 12; i++ {
+		plugins = append(plugins, map[string]any{
+			"name":         fmt.Sprintf("Plugin %02d", i),
+			"format":       "VST3",
+			"category":     "Fx|Dynamics",
+			"manufacturer": "Test",
+		})
+	}
+	reply := executedReply(nil, nil, []policy.Decision{
+		{Name: "plugin_list_available", Risk: policy.RiskDirect, Command: map[string]any{"cmd": "plugin_list_available"}},
+	}, []map[string]any{
+		{
+			"result": map[string]any{
+				"status":       "ok",
+				"plugin_count": 120,
+				"plugins":      plugins,
+			},
+		},
+	})
+	for _, want := range []string{"当前插件库约有 120 个可用插件", "显示前 8 个", "另有 112 个未显示"} {
+		if !strings.Contains(reply, want) {
+			t.Fatalf("reply missing %q in %q", want, reply)
+		}
+	}
+	if strings.Contains(reply, "Plugin 09") {
+		t.Fatalf("reply should not list beyond summary limit: %q", reply)
 	}
 }
 

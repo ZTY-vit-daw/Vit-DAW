@@ -87,3 +87,26 @@ func TestSemanticIndexPluginLoadCandidates(t *testing.T) {
 		t.Fatalf("candidate = %+v", candidates[0])
 	}
 }
+
+func TestMergePluginLoadCandidatesKeepsLiveSearchCandidates(t *testing.T) {
+	merged := mergePluginLoadCandidates([]pluginLoadCandidate{
+		{
+			Name:     "Live Compressor",
+			Category: "Fx|Dynamics",
+			Path:     `VST3-Live Compressor-1234`,
+		},
+	}, []pluginLoadCandidate{
+		{
+			Name:     "Old Reverb",
+			Category: "Fx|Reverb",
+			Path:     `C:\Program Files\Common Files\VST3\Old Reverb.vst3`,
+		},
+	})
+	ranked := rankPluginLoadCandidates("compressor", "effect", merged)
+	if len(ranked) == 0 {
+		t.Fatal("expected ranked candidates")
+	}
+	if ranked[0].Name != "Live Compressor" {
+		t.Fatalf("top candidate = %+v", ranked[0])
+	}
+}

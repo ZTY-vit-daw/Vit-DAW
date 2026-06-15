@@ -399,6 +399,84 @@ func TestUIContextSelectionMergesIntoUIState(t *testing.T) {
 	}
 }
 
+func TestUIMacroControlsPreserveBoundMacroWhenEmptyRackMacroAlsoExists(t *testing.T) {
+	state := map[string]any{
+		"macro_controls": []map[string]any{{
+			"macro_id": "mix_macro_session_track_volume",
+			"name":     "Track volume",
+			"track_id": "1007",
+			"source":   "mixboard_control_plan",
+			"control":  "track.volume",
+			"value":    -6.0,
+			"min":      -60.0,
+			"max":      12.0,
+			"unit":     "dB",
+			"bindings": []map[string]any{{
+				"control":  "track.volume",
+				"track_id": "1007",
+				"param_id": "track.volume",
+			}},
+		}},
+		"rack_control_macros": []map[string]any{{
+			"macro_id": "mix_macro_session_track_volume",
+			"name":     "Track volume",
+			"track_id": "1007",
+			"source":   "godot_rack",
+			"value":    0.0,
+			"min":      0.0,
+			"max":      1.0,
+			"bindings": []map[string]any{},
+		}},
+	}
+
+	macros := uiMacroControls(state)
+	if len(macros) != 1 {
+		t.Fatalf("macros = %#v", macros)
+	}
+	macro := macros[0]
+	if mixFloatNumber(macro["min"]) != -60 || mixFloatNumber(macro["max"]) != 12 || mixFloatNumber(macro["value"]) != -6 {
+		t.Fatalf("dB macro was downgraded: %#v", macro)
+	}
+	bindings := mapRowsFromAny(macro["bindings"])
+	if len(bindings) != 1 || cleanContextText(bindings[0]["param_id"]) != "track.volume" {
+		t.Fatalf("bindings = %#v", bindings)
+	}
+}
+
+func TestUIMacroControlsEnrichEmptyTrackVolumeMacroFromTrackState(t *testing.T) {
+	state := map[string]any{
+		"tracks": []map[string]any{{
+			"track_id":  "1007",
+			"volume_db": -8.25,
+		}},
+		"rack_control_macros": []map[string]any{{
+			"macro_id": "mix_macro_session_track_volume",
+			"name":     "Track volume",
+			"track_id": "1007",
+			"source":   "godot_rack",
+			"value":    0.0,
+			"min":      0.0,
+			"max":      1.0,
+		}},
+	}
+
+	macros := uiMacroControls(state)
+	if len(macros) != 1 {
+		t.Fatalf("macros = %#v", macros)
+	}
+	macro := macros[0]
+	if cleanContextText(macro["control"]) != "track.volume" || mixFloatNumber(macro["min"]) != -60 || mixFloatNumber(macro["max"]) != 12 {
+		t.Fatalf("macro was not enriched as track volume: %#v", macro)
+	}
+	if mixFloatNumber(macro["value"]) != -8.25 {
+		t.Fatalf("macro value did not follow track volume: %#v", macro)
+	}
+	bindings := mapRowsFromAny(macro["bindings"])
+	if len(bindings) != 1 || cleanContextText(bindings[0]["param_id"]) != "track.volume" {
+		t.Fatalf("bindings = %#v", bindings)
+	}
+}
+
 func TestArtifactHTTPUploadReadFileAndList(t *testing.T) {
 	server := New(nil, shadow.New(nil), nil)
 	server.artifactRoot = t.TempDir()
@@ -3117,6 +3195,16 @@ func TestSynthesizePluginSearchCommand(t *testing.T) {
 }
 func TestPluginInventoryQuestionUsesListNotNameSearch(t *testing.T) {
 	cmds := synthesizePluginLibraryCommands("what plugins are available in the plugin library?")
+	if len(cmds) != 1 {
+		t.Fatalf("cmds = %+v", cmds)
+	}
+	if cmds[0]["cmd"] != "plugin_list_available" {
+		t.Fatalf("inventory question should list plugins, got %+v", cmds[0])
+	}
+}
+
+func TestChinesePluginInventoryQuestionUsesList(t *testing.T) {
+	cmds := synthesizePluginLibraryCommands("当前插件库下有哪些效果器？")
 	if len(cmds) != 1 {
 		t.Fatalf("cmds = %+v", cmds)
 	}

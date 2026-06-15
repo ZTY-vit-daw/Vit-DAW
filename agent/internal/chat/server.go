@@ -54,11 +54,13 @@ type Server struct {
 	conversations     map[string][]llm.Message
 	pending           map[string]PendingPlan
 	interactions      map[string]PendingInteraction
+	mixSessions       map[string]MixSession
 	goalContinuations map[string]agentloop.Continuation
 	conversationGoals map[string]string
 	uiContext         map[string]any
 	events            map[string][]AgentEvent
 	eventSeq          map[string]int64
+	webUILogged       bool
 }
 
 type PendingPlan struct {
@@ -103,6 +105,7 @@ type ChatResponse struct {
 	Workflow            string                    `json:"workflow,omitempty"`
 	WorkflowData        map[string]any            `json:"workflow_data,omitempty"`
 	PluginLearning      map[string]any            `json:"plugin_learning,omitempty"`
+	MixSession          map[string]any            `json:"mix_session,omitempty"`
 	InteractionRequests []AgentInteractionRequest `json:"interaction_requests,omitempty"`
 	Commands            []policy.Decision         `json:"commands,omitempty"`
 	ExecutedKernelReply []map[string]any          `json:"executed_kernel_reply,omitempty"`
@@ -246,6 +249,7 @@ func New(kernelClient *kernel.Client, shadowProject *shadow.Project, logger *log
 		conversations:     map[string][]llm.Message{},
 		pending:           map[string]PendingPlan{},
 		interactions:      map[string]PendingInteraction{},
+		mixSessions:       map[string]MixSession{},
 		goalContinuations: map[string]agentloop.Continuation{},
 		conversationGoals: map[string]string{},
 		uiContext:         map[string]any{},
@@ -299,10 +303,14 @@ func (s *Server) handleApp(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Ask Vit WebUI has not been built yet", http.StatusNotFound)
 		return
 	}
+	s.logWebUIRootOnce(root)
 	clean := strings.TrimPrefix(r.URL.Path, "/app/")
 	if clean == "" {
 		clean = "index.html"
 	}
+	w.Header().Set("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0")
+	w.Header().Set("Pragma", "no-cache")
+	w.Header().Set("Expires", "0")
 	path := filepath.Join(root, filepath.Clean(clean))
 	rel, err := filepath.Rel(root, path)
 	if err != nil || strings.HasPrefix(rel, "..") || filepath.IsAbs(rel) {
@@ -313,6 +321,33 @@ func (s *Server) handleApp(w http.ResponseWriter, r *http.Request) {
 		path = filepath.Join(root, "index.html")
 	}
 	http.ServeFile(w, r, path)
+}
+
+func (s *Server) logWebUIRootOnce(root string) {
+	if s == nil || s.logger == nil {
+		return
+	}
+	s.mu.Lock()
+	if s.webUILogged {
+		s.mu.Unlock()
+		return
+	}
+	s.webUILogged = true
+	s.mu.Unlock()
+	indexPath := filepath.Join(root, "index.html")
+	assetSummary := ""
+	if entries, err := os.ReadDir(filepath.Join(root, "assets")); err == nil {
+		var names []string
+		for _, entry := range entries {
+			names = append(names, entry.Name())
+		}
+		assetSummary = strings.Join(names, ",")
+	}
+	indexMod := ""
+	if st, err := os.Stat(indexPath); err == nil {
+		indexMod = st.ModTime().Format(time.RFC3339)
+	}
+	s.logger.Info("[webui] serving root=%s index_mod=%s assets=%s build_mark=mixboard-macro-hold-v18-20260614", root, indexMod, assetSummary)
 }
 
 func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {
@@ -911,6 +946,10 @@ func (s *Server) handleInvoke(w http.ResponseWriter, r *http.Request) {
 	if strings.TrimSpace(req.Source) == "" {
 		req.Source = "http"
 	}
+	if resp, ok := s.invokeMixSessionEntryWorkflow(r.Context(), req); ok {
+		writeJSON(w, http.StatusOK, resp)
+		return
+	}
 	if workflowCmd, ok := pluginGrabberLearningInvokeCommand(req); ok {
 		cfg, _, err := config.Load()
 		if err != nil {
@@ -1040,12 +1079,136 @@ func uiPluginRack(state map[string]any) map[string]any {
 }
 
 func uiMacroControls(state map[string]any) []map[string]any {
-	for _, key := range []string{"macro_controls", "rack_control_macros", "control_macros", "macros"} {
-		if controls := macrocontrols.NormalizeList(state[key]); len(controls) > 0 {
-			return controls
+	byID := map[string]map[string]any{}
+	order := []string{}
+	for _, key := range []string{"macro_controls", "active_macro_controls", "rack_control_macros", "control_macros", "macros"} {
+		for _, macro := range macrocontrols.NormalizeList(state[key]) {
+			macro = enrichUIMacroControlFromState(macro, state)
+			macroID := firstStringFromMap(macro, "macro_id", "id", "control_id")
+			if macroID == "" {
+				continue
+			}
+			if existing, ok := byID[macroID]; ok {
+				byID[macroID] = mergeUIMacroControl(existing, macro)
+				continue
+			}
+			byID[macroID] = macro
+			order = append(order, macroID)
 		}
 	}
-	return []map[string]any{}
+	out := make([]map[string]any, 0, len(order))
+	for _, macroID := range order {
+		if macro := byID[macroID]; len(macro) > 0 {
+			row := cloneContext(macro)
+			delete(row, "_track_volume_synced")
+			out = append(out, row)
+		}
+	}
+	return out
+}
+
+func enrichUIMacroControlFromState(macro map[string]any, state map[string]any) map[string]any {
+	if !uiMacroIsTrackVolume(macro) {
+		return macro
+	}
+	out := cloneContext(macro)
+	trackID := firstStringFromMap(out, "track_id", "track")
+	out["control"] = "track.volume"
+	if uiMacroHasDefaultRange(out) {
+		out["min"] = -60.0
+		out["max"] = 12.0
+		if firstStringFromMap(out, "unit") == "" {
+			out["unit"] = "dB"
+		}
+	}
+	if trackID != "" {
+		if volumeDB, ok := uiTrackVolumeDB(state, trackID); ok {
+			out["value"] = volumeDB
+			out["_track_volume_synced"] = true
+		}
+	}
+	if len(mapRowsFromAny(out["bindings"])) == 0 && trackID != "" {
+		macroID := firstStringFromMap(out, "macro_id", "id", "control_id")
+		out["bindings"] = []map[string]any{{
+			"binding_id": "binding_" + macroID + "_track_volume",
+			"control":    "track.volume",
+			"track_id":   trackID,
+			"param_id":   "track.volume",
+			"param_name": "Track volume",
+			"target_min": out["min"],
+			"target_max": out["max"],
+			"unit":       out["unit"],
+			"enabled":    true,
+		}}
+		out["binding_count"] = 1
+	}
+	return macrocontrols.NormalizeControl(out)
+}
+
+func uiTrackVolumeDB(state map[string]any, trackID string) (float64, bool) {
+	if strings.TrimSpace(trackID) == "" {
+		return 0, false
+	}
+	for _, track := range mapRowsFromAny(state["tracks"]) {
+		if firstStringFromMap(track, "track_id", "id") != trackID {
+			continue
+		}
+		for _, key := range []string{"volume_db", "gain_db", "fader_db", "db"} {
+			if _, exists := track[key]; exists {
+				return mixFloatNumber(track[key]), true
+			}
+		}
+	}
+	return 0, false
+}
+
+func uiMacroIsTrackVolume(macro map[string]any) bool {
+	if firstStringFromMap(macro, "control") == "track.volume" {
+		return true
+	}
+	probe := strings.ToLower(strings.Join([]string{
+		firstStringFromMap(macro, "macro_id", "id", "control_id"),
+		firstStringFromMap(macro, "role"),
+		firstStringFromMap(macro, "param_id"),
+	}, " "))
+	return strings.Contains(probe, "track_volume") || strings.Contains(probe, "track.volume") || strings.Contains(probe, "gain_staging")
+}
+
+func mergeUIMacroControl(existing, next map[string]any) map[string]any {
+	out := cloneContext(existing)
+	for key, value := range next {
+		out[key] = value
+	}
+	existingBindings := mapRowsFromAny(existing["bindings"])
+	nextBindings := mapRowsFromAny(next["bindings"])
+	nextHasSyncedTrackVolume := uiMacroIsTrackVolume(next) && boolValue(next["_track_volume_synced"])
+	if len(existingBindings) > 0 && len(nextBindings) == 0 {
+		out["bindings"] = existingBindings
+		out["binding_count"] = len(existingBindings)
+		if firstStringFromMap(existing, "control") != "" && firstStringFromMap(out, "control") == "" {
+			out["control"] = existing["control"]
+		}
+		if firstStringFromMap(existing, "role") != "" && firstStringFromMap(out, "role") == "" {
+			out["role"] = existing["role"]
+		}
+		if uiMacroHasDefaultRange(next) && !uiMacroHasDefaultRange(existing) {
+			for _, key := range []string{"min", "max", "unit", "value"} {
+				if value, ok := existing[key]; ok {
+					out[key] = value
+				}
+			}
+		}
+	}
+	if len(existingBindings) > 0 && uiMacroIsTrackVolume(existing) && uiMacroIsTrackVolume(next) && !nextHasSyncedTrackVolume {
+		if value, ok := existing["value"]; ok {
+			out["value"] = value
+		}
+	}
+	return out
+}
+
+func uiMacroHasDefaultRange(macro map[string]any) bool {
+	return mixFloatNumber(macro["min"]) == 0 && mixFloatNumber(macro["max"]) == 1
 }
 
 func (s *Server) uiContextSnapshot() map[string]any {
@@ -1286,6 +1449,7 @@ func (s *Server) handleChat(w http.ResponseWriter, r *http.Request) {
 			if isPluginGrabberLearningPlan(plan) {
 				resp.PluginLearning = plan.WorkflowData
 			}
+			s.attachInteractionRequests(&resp)
 			s.remember(conversationID, req.Message, resp.Reply)
 			writeChat(http.StatusOK, resp)
 			return
@@ -1310,6 +1474,7 @@ func (s *Server) handleChat(w http.ResponseWriter, r *http.Request) {
 			if isPluginGrabberLearningPlan(plan) {
 				resp.PluginLearning = plan.WorkflowData
 			}
+			s.attachInteractionRequests(&resp)
 			s.remember(conversationID, req.Message, resp.Reply)
 			writeChat(http.StatusOK, resp)
 			return
@@ -1323,6 +1488,18 @@ func (s *Server) handleChat(w http.ResponseWriter, r *http.Request) {
 	}
 
 	chatContext := contextWithUserMessage(req.Context, req.Message)
+	if resp, handled := s.runMixSessionEntryChat(r.Context(), conversationID, ChatRequest{
+		ConversationID: conversationID,
+		Message:        req.Message,
+		Context:        chatContext,
+		Attachments:    req.Attachments,
+		ArtifactRefs:   req.ArtifactRefs,
+	}, agentMode); handled {
+		s.remember(conversationID, req.Message, resp.Reply)
+		writeChat(http.StatusOK, resp)
+		return
+	}
+
 	cfg, cfgPath, err := config.Load()
 	if err != nil {
 		writeChat(http.StatusOK, ChatResponse{
@@ -2020,6 +2197,77 @@ func (s *Server) takePendingInteraction(interactionID string) (PendingInteractio
 	return interaction, ok
 }
 
+func (s *Server) recoverMixBoardInteractionFromPayload(interactionID string, payload map[string]any) (PendingInteraction, bool) {
+	if len(payload) == 0 {
+		return PendingInteraction{}, false
+	}
+	session := mixSessionFromMap(mapValue(payload["mix_session"]))
+	sessionID := firstNonEmpty(session.MixSessionID, cleanContextText(payload["mix_session_id"]))
+	if sessionID != "" {
+		if stored, ok := s.lookupMixSession(sessionID); ok {
+			session = mergeRecoveredMixSession(stored, session)
+		}
+	}
+	if session.MixSessionID == "" {
+		return PendingInteraction{}, false
+	}
+	data := copyStringAnyMap(payload)
+	data["mix_session"] = mixSessionMap(session)
+	requestContext := mapValue(payload["request_context"])
+	conversationID := firstNonEmpty(cleanContextText(payload["conversation_id"]), cleanContextText(data["conversation_id"]), interactionID)
+	return PendingInteraction{
+		ID:             interactionID,
+		CreatedAt:      time.Now(),
+		Kind:           "mode_boundary",
+		Source:         "mix_session",
+		Workflow:       mixSessionEntryWorkflow,
+		Stage:          session.State,
+		ConversationID: conversationID,
+		GoalID:         cleanContextText(payload["goal_id"]),
+		RunID:          cleanContextText(payload["run_id"]),
+		RequestContext: requestContext,
+		Payload:        data,
+		Type:           "mixboard_status",
+		Data:           data,
+	}, true
+}
+
+func writeMixBoardDiag(event string, fields map[string]any) {
+	logDir := `D:\Vit_DAW\VitApp\Workspace\Logs`
+	if st, err := os.Stat(logDir); err != nil || !st.IsDir() {
+		logDir = os.TempDir()
+	}
+	row := map[string]any{
+		"event":      event,
+		"created_at": time.Now().Format(time.RFC3339Nano),
+	}
+	for key, value := range fields {
+		row[key] = value
+	}
+	data, err := json.Marshal(row)
+	if err != nil {
+		return
+	}
+	_ = os.MkdirAll(logDir, 0o755)
+	f, err := os.OpenFile(filepath.Join(logDir, "mixboard_interaction_diag.jsonl"), os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0o644)
+	if err != nil {
+		return
+	}
+	defer f.Close()
+	_, _ = f.Write(append(data, '\n'))
+}
+
+func mapKeysForDiag(row map[string]any) []string {
+	if len(row) == 0 {
+		return nil
+	}
+	keys := make([]string, 0, len(row))
+	for key := range row {
+		keys = append(keys, key)
+	}
+	return keys
+}
+
 func (s *Server) takePendingPlan(planKey string) (PendingPlan, bool, bool) {
 	planKey = strings.TrimSpace(planKey)
 	if planKey == "" {
@@ -2199,7 +2447,31 @@ func (s *Server) handleInteractionRespond(w http.ResponseWriter, r *http.Request
 		writeJSON(w, http.StatusBadRequest, map[string]any{"status": "error", "message": "interaction_id is required"})
 		return
 	}
+	decision := firstNonEmpty(strings.TrimSpace(req.Decision), strings.TrimSpace(req.ActionID))
+	if decision == "" {
+		decision = "submit"
+	}
+	logActionID = decision
+	payloadFields := mapValue(req.Payload["fields"])
+	payloadSession := mapValue(req.Payload["mix_session"])
+	writeMixBoardDiag("interaction_respond_received", map[string]any{
+		"interaction_id":    interactionID,
+		"decision":          decision,
+		"action_id":         strings.TrimSpace(req.ActionID),
+		"payload_keys":      mapKeysForDiag(req.Payload),
+		"payload_user_note": cleanContextText(req.Payload["user_note"]),
+		"field_user_note":   cleanContextText(payloadFields["user_note"]),
+		"has_mix_session":   len(payloadSession) > 0,
+		"mix_session_id":    cleanContextText(payloadSession["mix_session_id"]),
+		"client_build":      cleanContextText(req.Payload["_mixboard_client_build"]),
+	})
 	interaction, ok := s.takePendingInteraction(interactionID)
+	if !ok {
+		interaction, ok = s.recoverMixBoardInteractionFromPayload(interactionID, req.Payload)
+		if ok && s != nil && s.logger != nil {
+			s.logger.Info("[mixboard.interaction] recovered expired interaction=%s decision=%s session=%s client_build=%s", interactionID, decision, cleanContextText(mapValue(req.Payload["mix_session"])["mix_session_id"]), cleanContextText(req.Payload["_mixboard_client_build"]))
+		}
+	}
 	if !ok {
 		writeJSON(w, http.StatusOK, ChatResponse{
 			ConversationID: interactionID,
@@ -2208,11 +2480,6 @@ func (s *Server) handleInteractionRespond(w http.ResponseWriter, r *http.Request
 		})
 		return
 	}
-	decision := firstNonEmpty(strings.TrimSpace(req.Decision), strings.TrimSpace(req.ActionID))
-	if decision == "" {
-		decision = "submit"
-	}
-	logActionID = decision
 	kind := firstNonEmpty(interaction.Kind, interaction.Type)
 	if strings.TrimSpace(interaction.PlanID) != "" && (kind == "confirmation" || strings.Contains(interaction.Type, "final_review") || strings.Contains(interaction.Type, "teach_review")) {
 		status, response := s.resolvePendingPlanDecision(r.Context(), interaction.PlanID, decision)
@@ -2247,6 +2514,15 @@ func (s *Server) handleInteractionRespond(w http.ResponseWriter, r *http.Request
 			}},
 		}
 		writeJSON(w, http.StatusOK, resp)
+		return
+	}
+	if strings.EqualFold(interaction.Source, "mix_session") || strings.EqualFold(interaction.Workflow, mixSessionEntryWorkflow) || strings.EqualFold(interaction.Type, "mix_session_entry") {
+		if s != nil && s.logger != nil {
+			fields := mapValue(req.Payload["fields"])
+			s.logger.Info("[mixboard.interaction] decision=%s interaction=%s payload_user_note=%q field_user_note=%q", decision, interactionID, cleanContextText(req.Payload["user_note"]), cleanContextText(fields["user_note"]))
+		}
+		resp := s.continueMixSessionInteraction(r.Context(), interaction, req.Payload, decision)
+		writeJSON(w, mixSessionHTTPStatus(resp), resp)
 		return
 	}
 	if strings.EqualFold(interaction.Source, "plugin_grabber") && strings.Contains(interaction.Type, "ui_reference_request") {
@@ -3370,13 +3646,15 @@ func (s *Server) startGoalUISmoke(conversationID string, chatContext map[string]
 		Workflow:  "goal_ui_smoke",
 	}
 	s.mu.Unlock()
-	return ChatResponse{
+	resp := ChatResponse{
 		ConversationID:    conversationID,
 		Reply:             "Goal UI smoke is waiting for confirmation.",
 		NeedsConfirmation: true,
 		PlanID:            planID,
 		Preview:           preview,
 	}
+	s.attachInteractionRequests(&resp)
+	return resp
 }
 
 func (s *Server) runRollbackSmoke(ctx context.Context, chatContext map[string]any) string {

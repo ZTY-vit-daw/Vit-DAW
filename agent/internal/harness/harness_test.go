@@ -192,6 +192,93 @@ func TestInvokeControlAddBindingConfirmedCreatesRackMacroBindingMutation(t *test
 	}
 }
 
+func TestInvokeControlSetMacroValuesAppliesTrackVolumeBinding(t *testing.T) {
+	kernel := &fakeKernelClient{}
+	h := New(nil, nil, nil)
+	h.kernel = kernel
+	resp, err := h.Invoke(context.Background(), InvokeRequest{
+		Command: map[string]any{
+			"cmd":      "control_set_macro_values",
+			"macro_id": "macro_volume",
+			"value":    -5.25,
+			"macro": map[string]any{
+				"macro_id": "macro_volume",
+				"name":     "轨道电平",
+				"track_id": "track_1",
+				"value":    -6.0,
+				"min":      -60.0,
+				"max":      12.0,
+				"bindings": []map[string]any{{
+					"control":    "track.volume",
+					"track_id":   "track_1",
+					"param_id":   "track.volume",
+					"param_name": "轨道音量",
+					"target_min": -60.0,
+					"target_max": 12.0,
+				}},
+			},
+		},
+		Confirmed: true,
+		Source:    "test",
+	})
+	if err != nil {
+		t.Fatalf("Invoke returned error: %v", err)
+	}
+	if resp.Status != "ok" {
+		t.Fatalf("status = %q, result=%+v error=%q", resp.Status, resp.Result, resp.Error)
+	}
+	if len(kernel.commands) != 1 {
+		t.Fatalf("commands = %+v", kernel.commands)
+	}
+	cmd := kernel.commands[0]
+	if cmd["cmd"] != "set_volume" || cmd["track_id"] != "track_1" || fmt.Sprint(cmd["db"]) != "-5.25" {
+		t.Fatalf("kernel command = %+v", cmd)
+	}
+	if resp.Result["ui_action"] != "rack_macro_value_changed" {
+		t.Fatalf("result = %+v", resp.Result)
+	}
+}
+
+func TestInvokeControlSetMacroValuesTreatsTrackVolumeAsDBWhenBindingHasDefaultRange(t *testing.T) {
+	kernel := &fakeKernelClient{}
+	h := New(nil, nil, nil)
+	h.kernel = kernel
+	resp, err := h.Invoke(context.Background(), InvokeRequest{
+		Command: map[string]any{
+			"cmd":      "control_set_macro_values",
+			"macro_id": "macro_volume",
+			"value":    -1.5,
+			"macro": map[string]any{
+				"macro_id": "macro_volume",
+				"name":     "Track volume",
+				"track_id": "track_1",
+				"value":    0.0,
+				"min":      -60.0,
+				"max":      12.0,
+				"unit":     "dB",
+				"bindings": []map[string]any{{
+					"control":    "track.volume",
+					"track_id":   "track_1",
+					"param_id":   "track.volume",
+					"target_min": 0.0,
+					"target_max": 1.0,
+				}},
+			},
+		},
+		Confirmed: true,
+		Source:    "test",
+	})
+	if err != nil {
+		t.Fatalf("Invoke returned error: %v", err)
+	}
+	if resp.Status != "ok" || len(kernel.commands) != 1 {
+		t.Fatalf("resp=%+v commands=%+v", resp, kernel.commands)
+	}
+	if got := fmt.Sprint(kernel.commands[0]["db"]); got != "-1.5" {
+		t.Fatalf("db = %s, want -1.5; command=%+v", got, kernel.commands[0])
+	}
+}
+
 func TestInvokeControlAddBindingResolvesExistingMacroByName(t *testing.T) {
 	h := New(nil, nil, nil)
 	resp, err := h.Invoke(context.Background(), InvokeRequest{
@@ -644,7 +731,7 @@ func TestPluginLoadToRackInstrumentOverridesPlannerZ3(t *testing.T) {
 	}
 }
 
-func TestPluginLoadToRackInstrumentDefaultsToZ2FromKernelPluginList(t *testing.T) {
+func TestPluginLoadToRackInstrumentDefaultsToZ2FromScannedPluginInventory(t *testing.T) {
 	t.Setenv("VIT_PLUGIN_SEMANTICS_PATH", filepath.Join(t.TempDir(), "missing_plugin_semantics.json"))
 	surgePath := `C:\Program Files\Common Files\VST3\Surge Synth Team\Surge XT.vst3\Contents\x86_64-win\Surge XT.vst3`
 	kernel := &fakeKernelClient{replies: []map[string]any{
@@ -677,8 +764,87 @@ func TestPluginLoadToRackInstrumentDefaultsToZ2FromKernelPluginList(t *testing.T
 	if got := cmd["zone_id"]; got != "Z2" {
 		t.Fatalf("zone_id = %#v, want Z2; cmd=%+v", got, cmd)
 	}
-	if len(kernel.commands) != 1 || kernel.commands[0]["cmd"] != "plugin_list_available" {
+	if len(kernel.commands) != 1 || kernel.commands[0]["cmd"] != "scan_plugins" {
 		t.Fatalf("kernel commands = %+v", kernel.commands)
+	}
+}
+
+func TestPluginSemanticSearchMergesLivePluginSearch(t *testing.T) {
+	semanticsPath := filepath.Join(t.TempDir(), "plugin_semantics.json")
+	idx := pluginsemantics.Build([]map[string]any{
+		{
+			"name":        "Old Reverb",
+			"category":    "Fx|Reverb",
+			"plugin_path": `C:\Program Files\Common Files\VST3\Old Reverb.vst3`,
+		},
+	}, time.Unix(10, 0).UTC())
+	if _, err := pluginsemantics.Save(semanticsPath, idx); err != nil {
+		t.Fatalf("save semantics: %v", err)
+	}
+	t.Setenv("VIT_PLUGIN_SEMANTICS_PATH", semanticsPath)
+
+	kernel := &fakeKernelClient{replies: []map[string]any{
+		{
+			"status": "ok",
+			"plugins": []any{
+				map[string]any{
+					"name":               "Live Compressor",
+					"category":           "Fx|Dynamics",
+					"file_or_identifier": "VST3-Live Compressor-1234",
+				},
+			},
+		},
+	}}
+	h := New(nil, nil, nil)
+	h.kernel = kernel
+	result, err := h.searchPluginSemanticIndex(map[string]any{"query": "compressor", "type": "compressor", "limit": 4})
+	if err != nil {
+		t.Fatalf("searchPluginSemanticIndex: %v", err)
+	}
+	entries, _ := result["entries"].([]pluginsemantics.Entry)
+	if len(entries) == 0 {
+		t.Fatalf("expected live semantic entry, result=%+v", result)
+	}
+	if entries[0].Name != "Live Compressor" {
+		t.Fatalf("top entry = %+v", entries[0])
+	}
+	if len(kernel.commands) != 1 || kernel.commands[0]["cmd"] != "scan_plugins" {
+		t.Fatalf("kernel commands = %+v", kernel.commands)
+	}
+}
+
+func TestPluginSemanticBuildIndexUsesScannedPluginInventory(t *testing.T) {
+	semanticsPath := filepath.Join(t.TempDir(), "plugin_semantics.json")
+	kernel := &fakeKernelClient{replies: []map[string]any{
+		{
+			"status": "ok",
+			"plugins": []any{
+				map[string]any{
+					"name":               "Live Compressor",
+					"category":           "Fx|Dynamics",
+					"file_or_identifier": "VST3-Live Compressor-1234",
+				},
+			},
+		},
+	}}
+	h := New(nil, nil, nil)
+	h.kernel = kernel
+	result, err := h.buildPluginSemanticIndex(map[string]any{"index_path": semanticsPath})
+	if err != nil {
+		t.Fatalf("buildPluginSemanticIndex: %v", err)
+	}
+	if result["plugin_count"] != 1 || result["source"] != "scan_plugins" {
+		t.Fatalf("unexpected result = %+v", result)
+	}
+	if len(kernel.commands) != 1 || kernel.commands[0]["cmd"] != "scan_plugins" {
+		t.Fatalf("kernel commands = %+v", kernel.commands)
+	}
+	idx, err := pluginsemantics.Load(semanticsPath)
+	if err != nil {
+		t.Fatalf("load semantic index: %v", err)
+	}
+	if len(idx.Entries) != 1 || idx.Entries[0].Name != "Live Compressor" {
+		t.Fatalf("index entries = %+v", idx.Entries)
 	}
 }
 
@@ -2334,4 +2500,139 @@ func writeTempAudioFile(t *testing.T, name string) string {
 		t.Fatalf("write temp audio: %v", err)
 	}
 	return path
+}
+
+func TestInvokeMixRequestObservationWritesMixBoardWithoutKernel(t *testing.T) {
+	t.Setenv("VIT_MIXBOARD_ROOT", t.TempDir())
+	h := New(nil, shadowProjectWithClips(), nil)
+
+	resp, err := h.Invoke(context.Background(), InvokeRequest{
+		Tool: "mix.request_observation",
+		Args: map[string]any{
+			"mix_session_id": "mix_test",
+			"round":          1,
+			"target_ref": map[string]any{
+				"kind":  "track",
+				"id":    "1007",
+				"label": "Drums",
+			},
+		},
+		Confirmed: true,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if resp.Status != "ok" || resp.CommandName != "mix_request_observation" {
+		t.Fatalf("resp = %+v", resp)
+	}
+	if firstString(resp.Result, "status") != "partial" {
+		t.Fatalf("result status = %+v", resp.Result)
+	}
+	for _, key := range []string{"board_path", "observation_path", "context_pack_path"} {
+		path := firstString(resp.Result, key)
+		if path == "" {
+			t.Fatalf("%s missing from result: %+v", key, resp.Result)
+		}
+		if _, err := os.Stat(path); err != nil {
+			t.Fatalf("%s does not exist: %v", key, err)
+		}
+	}
+}
+
+func TestInvokeMixRequestObservationRequestsAudioFeatures(t *testing.T) {
+	root := t.TempDir()
+	t.Setenv("VIT_MIXBOARD_ROOT", filepath.Join(root, "mixboard"))
+	t.Setenv("VIT_MIXBOARD_FEATURE_READY_WAIT_MS", "1")
+	kernel := &fakeKernelClient{}
+	h := New(nil, shadowProjectWithClips(), nil)
+	h.kernel = kernel
+
+	resp, err := h.Invoke(context.Background(), InvokeRequest{
+		Tool: "mix.request_observation",
+		Args: map[string]any{
+			"mix_session_id": "mix_feature_request",
+			"round":          1,
+			"target_ref": map[string]any{
+				"kind":  "track",
+				"id":    "1007",
+				"label": "Drums",
+			},
+		},
+		Confirmed: true,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if resp.Status != "ok" {
+		t.Fatalf("resp = %+v", resp)
+	}
+	if len(kernel.commands) != 1 {
+		t.Fatalf("kernel commands = %+v", kernel.commands)
+	}
+	for i, feature := range []string{"waveform_envelope"} {
+		if kernel.commands[i]["cmd"] != "warm_waveform_bake" || kernel.commands[i]["feature_type"] != feature {
+			t.Fatalf("command[%d] = %+v", i, kernel.commands[i])
+		}
+		if kernel.commands[i]["track_id"] != "1007" || kernel.commands[i]["clip_id"] != "clip_a" {
+			t.Fatalf("command[%d] target = %+v", i, kernel.commands[i])
+		}
+	}
+	featureRequest, _ := resp.Result["feature_request"].(map[string]any)
+	if firstString(featureRequest, "status") != "requested" {
+		t.Fatalf("feature_request = %+v", featureRequest)
+	}
+	snapshotPath := filepath.Join(root, "mixboard_feature_snapshot.json")
+	data, err := os.ReadFile(snapshotPath)
+	if err != nil {
+		t.Fatalf("read snapshot: %v", err)
+	}
+	if !strings.Contains(string(data), `"latest_request"`) || !strings.Contains(string(data), `"waveform_envelope"`) {
+		t.Fatalf("snapshot = %s", string(data))
+	}
+}
+
+func TestMixRequestObservationKeepsReadyFeatureSnapshot(t *testing.T) {
+	root := t.TempDir()
+	t.Setenv("VIT_MIXBOARD_ROOT", filepath.Join(root, "mixboard"))
+	snapshotPath := filepath.Join(root, "mixboard_feature_snapshot.json")
+	if err := os.WriteFile(snapshotPath, []byte(`{
+		"schema_version":"mixboard_feature_snapshot.v1",
+		"waveform_envelope":{"status":"ready","track_id":"1007","clip_id":"clip_a","rms":0.2,"peak_abs":0.7},
+		"band_energy_summary":{"status":"ready","track_id":"1007","clip_id":"clip_a","source":"live_level_meter_spectrum"},
+		"stereo_relation_summary":{"status":"ready","track_id":"1007","clip_id":"clip_a","source":"live_level_meter_stereo","correlation_state":"stable"},
+		"spectrogram_tiles":{"status":"ready","track_id":"1007","clip_id":"clip_a","tile_count_seen":2,"tile_count_expected":2}
+	}`), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	kernel := &fakeKernelClient{}
+	h := New(nil, shadowProjectWithClips(), nil)
+	h.kernel = kernel
+
+	resp, err := h.Invoke(context.Background(), InvokeRequest{
+		Tool: "mix.request_observation",
+		Args: map[string]any{
+			"mix_session_id": "mix_ready_snapshot",
+			"target_ref": map[string]any{
+				"kind": "track",
+				"id":   "1007",
+			},
+		},
+		Confirmed: true,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if firstString(resp.Result, "status") != "ready" {
+		t.Fatalf("result = %+v", resp.Result)
+	}
+	data, err := os.ReadFile(snapshotPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(data), `"status": "ready"`) {
+		t.Fatalf("snapshot downgraded ready rows: %s", string(data))
+	}
+	if !strings.Contains(string(data), `"stereo_relation_summary"`) || !strings.Contains(string(data), `"correlation_state": "stable"`) {
+		t.Fatalf("snapshot did not preserve stereo relation: %s", string(data))
+	}
 }

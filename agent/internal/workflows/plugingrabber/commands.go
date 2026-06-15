@@ -244,7 +244,7 @@ func synthesizePluginLibraryCommands(userText string) []map[string]any {
 		return []map[string]any{cmd}
 	}
 	if wantsPluginList(userText, lower) {
-		cmd := map[string]any{"cmd": "plugin_list_available", "limit": 10}
+		cmd := map[string]any{"cmd": "plugin_list_available", "limit": 12}
 		if limit := extractSmallPositiveNumber(userText); limit > 0 {
 			cmd["limit"] = limit
 		}
@@ -307,7 +307,30 @@ func wantsPluginList(userText, lower string) bool {
 		strings.Contains(lower, "vst") ||
 		strings.Contains(userText, "插件") ||
 		strings.Contains(userText, "插件库")
-	return (hasInventoryQuestion || (hasList && !hasSearch)) && hasPlugin
+	return (hasInventoryQuestion || pluginInventoryQuestionText(userText, lower) || (hasList && !hasSearch)) && (hasPlugin || pluginInventorySubjectText(userText, lower))
+}
+
+func pluginInventoryQuestionText(userText, lower string) bool {
+	return strings.Contains(lower, "available plugins") ||
+		strings.Contains(lower, "plugin library") ||
+		strings.Contains(lower, "what effects") ||
+		strings.Contains(lower, "which effects") ||
+		strings.Contains(userText, "\u6709\u54ea\u4e9b") ||
+		strings.Contains(userText, "\u90fd\u6709\u54ea\u4e9b") ||
+		strings.Contains(userText, "\u6709\u4ec0\u4e48") ||
+		strings.Contains(userText, "\u6709\u591a\u5c11") ||
+		strings.Contains(userText, "\u770b\u4e00\u4e0b") ||
+		strings.Contains(userText, "\u770b\u770b") ||
+		strings.Contains(userText, "\u5f53\u524d\u63d2\u4ef6\u5e93")
+}
+
+func pluginInventorySubjectText(userText, lower string) bool {
+	return strings.Contains(lower, "plugin") ||
+		strings.Contains(lower, "effect") ||
+		strings.Contains(lower, "vst") ||
+		strings.Contains(userText, "\u63d2\u4ef6") ||
+		strings.Contains(userText, "\u63d2\u4ef6\u5e93") ||
+		strings.Contains(userText, "\u6548\u679c\u5668")
 }
 
 func textWithoutFiller(text string) string {

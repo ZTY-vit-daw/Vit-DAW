@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -41,7 +42,7 @@ func (c EngineConfig) Complete() bool {
 }
 
 func (c *EngineConfig) Normalize() {
-	c.BaseURL = strings.TrimSpace(c.BaseURL)
+	c.BaseURL = NormalizeBaseURL(c.BaseURL)
 	c.APIKey = strings.TrimSpace(c.APIKey)
 	c.DefaultModel = strings.TrimSpace(c.DefaultModel)
 	c.Browser.Mode = strings.TrimSpace(c.Browser.Mode)
@@ -60,7 +61,7 @@ func (c *EngineConfig) Normalize() {
 			continue
 		}
 		current.Provider = strings.TrimSpace(current.Provider)
-		current.BaseURL = strings.TrimSpace(current.BaseURL)
+		current.BaseURL = NormalizeBaseURL(current.BaseURL)
 		current.APIKey = strings.TrimSpace(current.APIKey)
 		current.Model = strings.TrimSpace(current.Model)
 		current.Fallback = strings.TrimSpace(current.Fallback)
@@ -74,6 +75,30 @@ func (c *EngineConfig) Normalize() {
 	}
 }
 
+func NormalizeBaseURL(raw string) string {
+	base := strings.TrimRight(strings.TrimSpace(raw), "/")
+	if base == "" {
+		return ""
+	}
+	u, err := url.Parse(base)
+	if err != nil || u.Host == "" {
+		return base
+	}
+	host := strings.ToLower(u.Host)
+	path := strings.TrimRight(u.EscapedPath(), "/")
+	if strings.Contains(host, "right.codes") &&
+		strings.Contains(path, "/claude-aws") &&
+		!strings.HasSuffix(path, "/v1") &&
+		!strings.HasSuffix(path, "/chat/completions") &&
+		!strings.HasSuffix(path, "/responses") &&
+		!strings.HasSuffix(path, "/messages") {
+		u.Path = strings.TrimRight(u.Path, "/") + "/v1"
+		u.RawPath = ""
+		return strings.TrimRight(u.String(), "/")
+	}
+	return base
+}
+
 func DefaultMultimodalRoutes() map[string]RouteConfig {
 	return map[string]RouteConfig{
 		"text":                {Provider: "default", Priority: 10},
@@ -83,6 +108,9 @@ func DefaultMultimodalRoutes() map[string]RouteConfig {
 		"transcription":       {Provider: "default", Priority: 50},
 		"video_browser":       {Provider: "default", Priority: 60},
 		"embeddings":          {Provider: "default", Priority: 70},
+		"mix_strategy":        {Provider: "default", Priority: 80},
+		"mix_tick":            {Provider: "default", Priority: 90},
+		"mix_observation":     {Provider: "default", Priority: 100},
 	}
 }
 

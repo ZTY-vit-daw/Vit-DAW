@@ -356,25 +356,31 @@ func resolveChatTrackIDForPluginLoad(state map[string]any, requestContext map[st
 	return daw.ResolveTrackIDForPluginLoad(state, requestContext)
 }
 func (s *Server) searchPluginLoadCandidates(ctx context.Context, query, intent string) ([]pluginLoadCandidate, error) {
-	if semanticCandidates, err := semanticIndexPluginLoadCandidates(query, intent); err == nil && len(semanticCandidates) > 0 {
-		return semanticCandidates, nil
-	}
-	reply, _, err := s.kernel.SendCommand(ctx, map[string]any{
+	var semanticCandidates []pluginLoadCandidate
+	var semanticErr error
+	semanticCandidates, semanticErr = semanticIndexPluginLoadCandidates(query, intent)
+	reply, err := s.searchPluginInventory(ctx, map[string]any{
 		"cmd":   "plugin_search",
 		"query": query,
 		"limit": 8,
 	})
 	if err != nil {
-		return nil, err
+		if len(semanticCandidates) > 0 {
+			return semanticCandidates, nil
+		}
+		return nil, firstNonNilErr(semanticErr, err)
 	}
 	if !kernelReplyOK(reply) {
 		message := firstNonEmptyText(reply, "message", "error")
 		if message == "" {
 			message = "plugin_search failed"
 		}
+		if len(semanticCandidates) > 0 {
+			return semanticCandidates, nil
+		}
 		return nil, fmt.Errorf("%s", message)
 	}
-	out := pluginLoadCandidatesFromRows(mapRowsValue(reply["plugins"]))
+	out := mergePluginLoadCandidates(pluginLoadCandidatesFromRows(mapRowsValue(reply["plugins"])), semanticCandidates)
 	if ranked := rankPluginLoadCandidates(query, intent, out); len(ranked) > 0 {
 		return ranked, nil
 	}
@@ -382,6 +388,9 @@ func (s *Server) searchPluginLoadCandidates(ctx context.Context, query, intent s
 		if fallback, err := s.semanticPluginLoadFallbackCandidates(ctx, query, intent); err == nil && len(fallback) > 0 {
 			return fallback, nil
 		}
+	}
+	if len(semanticCandidates) > 0 {
+		return semanticCandidates, nil
 	}
 	return out, nil
 }
@@ -422,7 +431,7 @@ func semanticIndexPluginLoadCandidates(query, intent string) ([]pluginLoadCandid
 }
 
 func (s *Server) semanticPluginLoadFallbackCandidates(ctx context.Context, query, intent string) ([]pluginLoadCandidate, error) {
-	reply, _, err := s.kernel.SendCommand(ctx, map[string]any{
+	reply, err := s.searchPluginInventory(ctx, map[string]any{
 		"cmd":   "plugin_list_available",
 		"limit": 500,
 	})
@@ -437,6 +446,28 @@ func (s *Server) semanticPluginLoadFallbackCandidates(ctx context.Context, query
 		return nil, fmt.Errorf("%s", message)
 	}
 	return rankPluginLoadCandidates(query, intent, pluginLoadCandidatesFromRows(mapRowsValue(reply["plugins"]))), nil
+}
+
+func (s *Server) searchPluginInventory(ctx context.Context, cmd map[string]any) (map[string]any, error) {
+	if s != nil && s.harness != nil {
+		resp, err := s.harness.Invoke(ctx, harness.InvokeRequest{
+			Tool:    "daw.invoke",
+			Command: cmd,
+			Source:  "plugin_grabber_inventory",
+		})
+		if err != nil {
+			return nil, err
+		}
+		if resp.Status != "ok" {
+			return nil, fmt.Errorf("%s", firstNonEmpty(resp.Error, "plugin inventory command failed"))
+		}
+		return resp.Result, nil
+	}
+	if s == nil || s.kernel == nil {
+		return nil, fmt.Errorf("plugin inventory requires a kernel client")
+	}
+	reply, _, err := s.kernel.SendCommand(ctx, cmd)
+	return reply, err
 }
 
 func pluginLoadCandidatesFromRows(rows []map[string]any) []pluginLoadCandidate {
@@ -457,6 +488,56 @@ func pluginLoadCandidatesFromRows(rows []map[string]any) []pluginLoadCandidate {
 		out = append(out, candidate)
 	}
 	return out
+}
+
+func mergePluginLoadCandidates(primary []pluginLoadCandidate, secondary []pluginLoadCandidate) []pluginLoadCandidate {
+	if len(primary) == 0 {
+		return append([]pluginLoadCandidate(nil), secondary...)
+	}
+	if len(secondary) == 0 {
+		return append([]pluginLoadCandidate(nil), primary...)
+	}
+	merged := make([]pluginLoadCandidate, 0, len(primary)+len(secondary))
+	seen := map[string]bool{}
+	add := func(candidate pluginLoadCandidate) {
+		key := pluginLoadCandidateKey(candidate)
+		if key == "" {
+			key = strings.ToLower(strings.TrimSpace(candidate.Name))
+		}
+		if key != "" && seen[key] {
+			return
+		}
+		if key != "" {
+			seen[key] = true
+		}
+		merged = append(merged, candidate)
+	}
+	for _, candidate := range primary {
+		add(candidate)
+	}
+	for _, candidate := range secondary {
+		add(candidate)
+	}
+	return merged
+}
+
+func pluginLoadCandidateKey(candidate pluginLoadCandidate) string {
+	for _, value := range []string{candidate.Path, candidate.Name} {
+		value = strings.ToLower(strings.TrimSpace(value))
+		if value != "" {
+			return value
+		}
+	}
+	return ""
+}
+
+func firstNonNilErr(errs ...error) error {
+	for _, err := range errs {
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func rankPluginLoadCandidates(query, intent string, candidates []pluginLoadCandidate) []pluginLoadCandidate {
@@ -4866,6 +4947,13 @@ func (s *Server) runPluginGrabberLearningWorkflow(ctx context.Context, conversat
 		return ChatResponse{ConversationID: conversationID, Reply: friendlyExecutionError(err), Error: err.Error()}
 	}
 
+	stageArtifacts := []artifacts.Summary{}
+	autoLearningSession := mode == string(plugingrabber.LearningModeAutoLearn) && learningSessionID != ""
+	if autoLearningSession {
+		s.recordPluginLearningStage(conversationID, requestContext, learningSessionID, target, "parameters_extracted", "running", map[string]any{
+			"operation": "get_plugin_parameters",
+		})
+	}
 	paramsReply, _, err := s.kernel.SendCommand(ctx, map[string]any{
 		"cmd":       "get_plugin_parameters",
 		"track_id":  target.TrackID,
@@ -4885,8 +4973,7 @@ func (s *Server) runPluginGrabberLearningWorkflow(ctx context.Context, conversat
 
 	s.observePluginParametersReply(paramsReply)
 	digest := buildPluginParameterDigest(paramsReply)
-	stageArtifacts := []artifacts.Summary{}
-	if mode == string(plugingrabber.LearningModeAutoLearn) && learningSessionID != "" {
+	if autoLearningSession {
 		stageArtifacts = appendPluginLearningStageArtifact(stageArtifacts, s.recordPluginLearningStage(conversationID, requestContext, learningSessionID, target, "parameters_extracted", "provided", map[string]any{
 			"parameter_digest": pluginLearningCompactParameterDigest(digest),
 		}))
@@ -4896,11 +4983,23 @@ func (s *Server) runPluginGrabberLearningWorkflow(ctx context.Context, conversat
 	var webReference map[string]any
 	var pluginTypeHypothesis map[string]any
 	if mode == string(plugingrabber.LearningModeAutoLearn) && !reviewedAutoLearn {
+		if autoLearningSession {
+			s.recordPluginLearningStage(conversationID, requestContext, learningSessionID, target, "web_reference", "running", map[string]any{
+				"decision": firstNonEmptyText(args, "web_reference_decision"),
+			})
+		}
 		webReference = s.resolvePluginWebReference(ctx, cfg, args, target, digest)
 		stageArtifacts = appendPluginLearningStageArtifact(stageArtifacts, s.recordPluginLearningStage(conversationID, requestContext, learningSessionID, target, "web_reference", firstNonEmpty(firstNonEmptyText(webReference, "status"), "skipped"), pluginLearningCompactWebReference(webReference)))
 		if pluginLearningShouldBuildTypeHypothesis(args, webReference) {
+			if autoLearningSession {
+				s.recordPluginLearningStage(conversationID, requestContext, learningSessionID, target, "plugin_type_hypothesis", "running", nil)
+			}
 			pluginTypeHypothesis = s.buildPluginTypeHypothesis(ctx, cfg, target, digest, webReference)
 			stageArtifacts = appendPluginLearningStageArtifact(stageArtifacts, s.recordPluginLearningStage(conversationID, requestContext, learningSessionID, target, "plugin_type_hypothesis", firstNonEmpty(firstNonEmptyText(pluginTypeHypothesis, "status"), "skipped"), pluginLearningCompactTypeHypothesis(pluginTypeHypothesis)))
+		} else if autoLearningSession {
+			stageArtifacts = appendPluginLearningStageArtifact(stageArtifacts, s.recordPluginLearningStage(conversationID, requestContext, learningSessionID, target, "plugin_type_hypothesis", "skipped", map[string]any{
+				"reason": "type hypothesis was not required for this learning pass",
+			}))
 		}
 		evidence := map[string]any{}
 		if len(pluginTypeHypothesis) > 0 {
@@ -4908,6 +5007,11 @@ func (s *Server) runPluginGrabberLearningWorkflow(ctx context.Context, conversat
 		}
 		if len(webReference) > 0 {
 			evidence["plugin_web_reference"] = webReference
+		}
+		if autoLearningSession {
+			s.recordPluginLearningStage(conversationID, requestContext, learningSessionID, target, "ui_reference", "running", map[string]any{
+				"decision": firstNonEmptyText(args, "ui_reference_decision"),
+			})
 		}
 		uiReference, uiReferenceArtifacts, err = s.resolvePluginUIReference(ctx, cfg, args, target, digest, evidence)
 		if err != nil {
@@ -4928,6 +5032,9 @@ func (s *Server) runPluginGrabberLearningWorkflow(ctx context.Context, conversat
 	}
 	if len(uiReference) == 0 {
 		uiReference = mapValue(args["ui_reference"])
+	}
+	if autoLearningSession && !reviewedAutoLearn {
+		s.recordPluginLearningStage(conversationID, requestContext, learningSessionID, target, "draft_skill", "running", nil)
 	}
 	var patch pluginProfilePatch
 	var workflowData map[string]any

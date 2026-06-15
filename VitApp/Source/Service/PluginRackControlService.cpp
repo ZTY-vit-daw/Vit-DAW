@@ -70,6 +70,8 @@ bool ensureExternalPluginInstanceReady (te::Edit& edit,
                                         const juce::String& context,
                                         int timeoutMs);
 juce::String inferPluginFormatNameFromPath (const juce::String& pluginPath);
+juce::var pluginDescriptionToJson (const juce::PluginDescription& desc);
+bool pluginDescriptionMatchesQuery (const juce::PluginDescription& desc, const juce::String& query);
 void normaliseAndRegisterExternalPluginDescription (te::Edit& edit,
                                                     juce::PluginDescription& desc,
                                                     const juce::String& fallbackPath,
@@ -2169,6 +2171,52 @@ juce::String inferPluginFormatNameFromPath (const juce::String& pluginPath)
     return {};
 }
 
+juce::var pluginDescriptionToJson (const juce::PluginDescription& desc)
+{
+    auto entry = std::make_unique<juce::DynamicObject>();
+    const auto identifier = desc.createIdentifierString();
+    const auto fileOrIdentifier = desc.fileOrIdentifier.isNotEmpty() ? desc.fileOrIdentifier : identifier;
+
+    entry->setProperty ("name", desc.name);
+    entry->setProperty ("descriptive_name", desc.descriptiveName);
+    entry->setProperty ("manufacturer", desc.manufacturerName);
+    entry->setProperty ("format", desc.pluginFormatName);
+    entry->setProperty ("category", desc.category);
+    entry->setProperty ("identifier", identifier);
+    entry->setProperty ("file_or_identifier", fileOrIdentifier);
+    entry->setProperty ("plugin_path", fileOrIdentifier);
+    entry->setProperty ("path", fileOrIdentifier);
+    entry->setProperty ("uid", juce::String (desc.uniqueId));
+    entry->setProperty ("deprecated_uid", juce::String (desc.deprecatedUid));
+    entry->setProperty ("is_instrument", desc.isInstrument);
+    return juce::var (entry.release());
+}
+
+bool pluginDescriptionMatchesQuery (const juce::PluginDescription& desc, const juce::String& query)
+{
+    const auto q = query.trim().toLowerCase();
+
+    if (q.isEmpty())
+        return true;
+
+    const auto haystack = (desc.name + " "
+                           + desc.descriptiveName + " "
+                           + desc.manufacturerName + " "
+                           + desc.category + " "
+                           + desc.pluginFormatName + " "
+                           + desc.fileOrIdentifier + " "
+                           + desc.createIdentifierString()).toLowerCase();
+
+    juce::StringArray tokens;
+    tokens.addTokens (q, " \t\r\n", "");
+
+    for (const auto& token : tokens)
+        if (token.trim().isNotEmpty() && ! haystack.contains (token.trim()))
+            return false;
+
+    return true;
+}
+
 void normaliseAndRegisterExternalPluginDescription (te::Edit& edit,
                                                     juce::PluginDescription& desc,
                                                     const juce::String& fallbackPath,
@@ -3489,16 +3537,77 @@ juce::String PluginRackControlService::handleScanPlugins (const juce::DynamicObj
         if (desc.pluginFormatName != "VST3")
             continue;
 
-        auto entry = std::make_unique<juce::DynamicObject>();
-        entry->setProperty ("name", desc.name);
-        entry->setProperty ("format", desc.pluginFormatName);
-        entry->setProperty ("identifier", desc.createIdentifierString());
-        pluginsJson.add (juce::var (entry.release()));
+        pluginsJson.add (pluginDescriptionToJson (desc));
     }
 
     auto response = std::make_unique<juce::DynamicObject>();
     response->setProperty ("status", "ok");
+    juce::StringArray scannedPaths;
+    for (int i = 0; i < searchPath.getNumPaths(); ++i)
+        scannedPaths.add (searchPath[i].getFullPathName());
+    response->setProperty ("scanned_paths", juce::var (stringArrayToVarArray (scannedPaths)));
     response->setProperty ("plugins", juce::var (pluginsJson));
+    return juce::JSON::toString (juce::var (response.release()));
+}
+
+juce::String PluginRackControlService::handleListPlugins (const juce::DynamicObject& object, const juce::String&) const
+{
+    auto* edit = getEdit != nullptr ? getEdit() : nullptr;
+    if (edit == nullptr)
+        return makeErrorReply ("No active edit loaded");
+
+    const auto limit = juce::jmax (0, object.getProperty ("limit").toString().getIntValue());
+    auto& knownPluginList = edit->engine.getPluginManager().knownPluginList;
+    juce::Array<juce::var> pluginsJson;
+
+    for (const auto& desc : knownPluginList.getTypes())
+    {
+        if (desc.pluginFormatName != "VST3")
+            continue;
+        pluginsJson.add (pluginDescriptionToJson (desc));
+        if (limit > 0 && pluginsJson.size() >= limit)
+            break;
+    }
+
+    auto response = std::make_unique<juce::DynamicObject>();
+    response->setProperty ("status", "ok");
+    response->setProperty ("source", "knownPluginList");
+    response->setProperty ("plugin_count", pluginsJson.size());
+    response->setProperty ("plugins", juce::var (pluginsJson));
+    response->setProperty ("entries", juce::var (pluginsJson));
+    return juce::JSON::toString (juce::var (response.release()));
+}
+
+juce::String PluginRackControlService::handleSearchPlugins (const juce::DynamicObject& object, const juce::String&) const
+{
+    auto* edit = getEdit != nullptr ? getEdit() : nullptr;
+    if (edit == nullptr)
+        return makeErrorReply ("No active edit loaded");
+
+    const auto query = object.getProperty ("query").toString().trim();
+    const auto limit = juce::jmax (1, object.getProperty ("limit").toString().getIntValue());
+    auto& knownPluginList = edit->engine.getPluginManager().knownPluginList;
+    juce::Array<juce::var> pluginsJson;
+
+    for (const auto& desc : knownPluginList.getTypes())
+    {
+        if (desc.pluginFormatName != "VST3")
+            continue;
+        if (! pluginDescriptionMatchesQuery (desc, query))
+            continue;
+
+        pluginsJson.add (pluginDescriptionToJson (desc));
+        if (pluginsJson.size() >= limit)
+            break;
+    }
+
+    auto response = std::make_unique<juce::DynamicObject>();
+    response->setProperty ("status", "ok");
+    response->setProperty ("source", "knownPluginList");
+    response->setProperty ("query", query);
+    response->setProperty ("plugin_count", pluginsJson.size());
+    response->setProperty ("plugins", juce::var (pluginsJson));
+    response->setProperty ("entries", juce::var (pluginsJson));
     return juce::JSON::toString (juce::var (response.release()));
 }
 
