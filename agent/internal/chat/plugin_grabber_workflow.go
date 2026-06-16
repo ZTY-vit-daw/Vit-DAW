@@ -21,6 +21,7 @@ import (
 	"vit-daw-agent/internal/pluginsemantics"
 	"vit-daw-agent/internal/policy"
 	"vit-daw-agent/internal/promptruntime"
+	agentruntime "vit-daw-agent/internal/runtime"
 	"vit-daw-agent/internal/tools"
 	"vit-daw-agent/internal/webtools"
 
@@ -226,6 +227,14 @@ func copyWorkflowField(dst map[string]any, src map[string]any, target string, ke
 	plugingrabber.CopyWorkflowField(dst, src, target, keys...)
 }
 func (s *Server) runPluginGrabberLoadWorkflow(ctx context.Context, conversationID, userText string, requestContext map[string]any, workflowCmd map[string]any) ChatResponse {
+	if legacyChatBroadMixRequestNeedsObservation(userText) && !legacyChatExplicitPluginOrRawRequest(userText) {
+		reply := "我不会因为宽泛的混音目标直接加载效果器。先做一次 mix.request_observation，基于当前轨道/音频的实际观察给出建议；你确认一个具体小动作后，我再执行可撤回的单步调整。"
+		return ChatResponse{
+			ConversationID: conversationID,
+			Reply:          reply,
+			GoalStatus:     string(agentruntime.StatusCompleted),
+		}
+	}
 	target, err := s.resolvePluginLoadTarget(ctx, workflowCmd, requestContext, userText)
 	if err != nil {
 		return ChatResponse{ConversationID: conversationID, Reply: friendlyExecutionError(err), Error: err.Error()}
@@ -290,6 +299,8 @@ func (s *Server) runPluginGrabberLoadWorkflow(ctx context.Context, conversationI
 			"plugin_name":  target.PluginName,
 			"plugin_path":  target.PluginPath,
 			"plugin_kind":  pluginKind,
+			"user_message": userText,
+			"intent":       target.Intent,
 		},
 	}
 	s.mu.Lock()

@@ -13,7 +13,7 @@ import (
 	agentruntime "vit-daw-agent/internal/runtime"
 )
 
-func TestMixSessionEntryFromNaturalLanguageCreatesConfirmationCard(t *testing.T) {
+func TestMixSessionEntryFromNaturalLanguageIsNotHandledByLegacyWorkflow(t *testing.T) {
 	server := New(nil, nil, nil)
 	req := ChatRequest{
 		ConversationID: "conv_mix",
@@ -24,29 +24,13 @@ func TestMixSessionEntryFromNaturalLanguageCreatesConfirmationCard(t *testing.T)
 		},
 	}
 
-	resp, handled := server.runMixSessionEntryChat(context.Background(), "conv_mix", req, agentModeDefault)
-	if !handled {
-		t.Fatal("mix request was not handled")
-	}
-	if resp.GoalStatus != string(agentruntime.StatusWaitingConfirmation) {
-		t.Fatalf("goal_status = %q", resp.GoalStatus)
-	}
-	if got := cleanContextText(resp.MixSession["mode"]); got != mixModeAuto {
-		t.Fatalf("mode = %q", got)
-	}
-	target := mapValue(resp.MixSession["target_ref"])
-	if target["kind"] != "track" || target["id"] != "track_1" {
-		t.Fatalf("target_ref = %#v", target)
-	}
-	if len(resp.InteractionRequests) != 1 {
-		t.Fatalf("interaction_requests = %#v", resp.InteractionRequests)
-	}
-	if _, exists := server.mixSessions[cleanContextText(resp.MixSession["mix_session_id"])]; exists {
-		t.Fatal("pending mix session should not be stored before user confirmation")
+	if resp, handled := server.runMixSessionEntryChat(context.Background(), "conv_mix", req, agentModeDefault); handled {
+		t.Fatalf("legacy mix workflow should not handle natural Ask Vit mix requests: %#v", resp)
 	}
 }
 
-func TestMixSessionEntryFromNaturalLanguageAutoStemMixPhrase(t *testing.T) {
+func TestMixSessionEntryLegacyWorkflowRequiresExplicitOptIn(t *testing.T) {
+	t.Setenv("VIT_ENABLE_LEGACY_MIX_SESSION_WORKFLOW", "1")
 	server := New(nil, nil, nil)
 	req := ChatRequest{
 		ConversationID: "conv_mix_stem",
@@ -84,19 +68,12 @@ func TestMixSessionEntryPlanModeDoesNotCreateSession(t *testing.T) {
 		},
 	}
 
-	resp, handled := server.runMixSessionEntryChat(context.Background(), "conv_mix_plan", req, agentModePlan)
-	if !handled {
-		t.Fatal("mix request was not handled")
-	}
-	if len(resp.MixSession) != 0 || len(server.mixSessions) != 0 {
-		t.Fatalf("plan mode should not create mix session: resp=%#v stored=%#v", resp.MixSession, server.mixSessions)
-	}
-	if resp.GoalStatus != string(agentruntime.StatusCompleted) {
-		t.Fatalf("goal_status = %q", resp.GoalStatus)
+	if resp, handled := server.runMixSessionEntryChat(context.Background(), "conv_mix_plan", req, agentModePlan); handled {
+		t.Fatalf("legacy mix workflow should not handle plan-mode natural mix requests by default: %#v", resp)
 	}
 }
 
-func TestMixSessionConfirmStartsPlanningDiscussionWithoutMixBoard(t *testing.T) {
+func TestMixSessionConfirmIsDeprecatedWithoutLegacyOptIn(t *testing.T) {
 	t.Setenv("VIT_MIXBOARD_ROOT", t.TempDir())
 	server := New(nil, nil, nil)
 	session := pendingMixSession(mixModeCo, MixTargetRef{Kind: "track", ID: "track_1", Label: "Vocal", Source: "current_selection", Confidence: "high"}, "一起混这条轨")
@@ -114,58 +91,21 @@ func TestMixSessionConfirmStartsPlanningDiscussionWithoutMixBoard(t *testing.T) 
 	}
 
 	resp := server.continueMixSessionInteraction(context.Background(), interaction, nil, "confirm_mix_session")
-	if resp.GoalStatus != string(agentruntime.StatusWaitingContinue) {
+	if resp.GoalStatus != string(agentruntime.StatusCompleted) {
 		t.Fatalf("goal_status = %q", resp.GoalStatus)
 	}
-	stored, ok := server.mixSessions[session.MixSessionID]
-	if !ok {
-		t.Fatal("confirmed mix session was not stored")
+	if !strings.Contains(resp.Reply, "停用") {
+		t.Fatalf("reply = %q", resp.Reply)
 	}
-	if stored.State != mixStatePreparing {
-		t.Fatalf("state = %q", stored.State)
+	if len(resp.InteractionRequests) != 0 {
+		t.Fatalf("deprecated confirm should not create interactions: %#v", resp.InteractionRequests)
 	}
-	if stored.InteractionPhase != mixInteractionPlanningChat || stored.MixBoardVisibility != mixBoardVisibilityCollapsed {
-		t.Fatalf("planning protocol = %#v", stored)
-	}
-	if len(mapValue(resp.WorkflowData["mix_observation"])) == 0 {
-		// No visible/internal MixBoard observation should be created before the user
-		// explicitly publishes the control surface from planning discussion.
-	} else {
-		t.Fatalf("confirm should not publish MixBoard observation: %#v", resp.WorkflowData["mix_observation"])
-	}
-	if resp.CurrentStep != mixInteractionPlanningChat {
-		t.Fatalf("current step = %q", resp.CurrentStep)
-	}
-	if len(resp.InteractionRequests) != 1 || resp.InteractionRequests[0].Type != "mix_planning_discussion" {
-		t.Fatalf("interaction requests = %#v", resp.InteractionRequests)
-	}
-	prep := mapValue(resp.WorkflowData["mix_planner_prep"])
-	if cleanContextText(prep["schema_version"]) != mixPlannerPrepSchemaVersion || boolValue(prep["ready_to_publish_mixboard"]) {
-		t.Fatalf("planner prep = %#v", prep)
-	}
-	if len(resp.InteractionRequests[0].Fields) != 0 {
-		t.Fatalf("planning card should be a readonly workspace summary, fields=%#v", resp.InteractionRequests[0].Fields)
-	}
-	workspace := mapValue(resp.WorkflowData["mix_planning_workspace"])
-	if cleanContextText(workspace["schema_version"]) != mixPlanningWorkspaceSchemaVersion {
-		t.Fatalf("workspace = %#v", workspace)
-	}
-	if items := resp.InteractionRequests[0].ReviewItems; len(items) == 0 {
-		t.Fatalf("planner summary items missing: %#v", resp.InteractionRequests[0])
-	}
-	actionIDs := map[string]bool{}
-	for _, action := range resp.InteractionRequests[0].Actions {
-		actionIDs[action.ID] = true
-		if action.ID == "publish_mixboard" && action.Recommended {
-			t.Fatalf("publish should not be recommended before planner prep is ready: %#v", resp.InteractionRequests[0].Actions)
-		}
-	}
-	if !actionIDs["advance_mix_planner"] || actionIDs["publish_mixboard"] {
-		t.Fatalf("planner actions = %#v", resp.InteractionRequests[0].Actions)
+	if len(mapValue(resp.WorkflowData["mix_observation"])) != 0 {
+		t.Fatalf("deprecated confirm should not create MixBoard observation: %#v", resp.WorkflowData["mix_observation"])
 	}
 }
 
-func TestPublishMixBoardBlockedUntilPlannerPrepReady(t *testing.T) {
+func TestPublishMixBoardPlannerActionDeprecated(t *testing.T) {
 	server := New(nil, nil, nil)
 	session := pendingMixSession(mixModeAuto, MixTargetRef{Kind: "track", ID: "track_1", Label: "Vocal", Confidence: "high"}, "balance vocal")
 	session.State = mixStatePreparing
@@ -182,21 +122,17 @@ func TestPublishMixBoardBlockedUntilPlannerPrepReady(t *testing.T) {
 	}
 
 	resp := server.continueMixSessionInteraction(context.Background(), interaction, nil, "publish_mixboard")
-	if resp.CurrentStep != mixInteractionPlanningChat {
+	if resp.CurrentStep != "deprecated_mix_planner_action" {
 		t.Fatalf("current step = %q", resp.CurrentStep)
 	}
-	if cleanContextText(mapValue(resp.MixSession)["mixboard_visibility"]) != mixBoardVisibilityCollapsed {
+	if cleanContextText(mapValue(resp.MixSession)["mixboard_visibility"]) != mixBoardVisibilityHidden {
 		t.Fatalf("mix session = %#v", resp.MixSession)
 	}
 	if len(mapValue(resp.WorkflowData["mix_observation"])) != 0 {
-		t.Fatalf("publish should not request observation or create MixBoard before prep is ready: %#v", resp.WorkflowData["mix_observation"])
+		t.Fatalf("deprecated publish should not request observation or create MixBoard: %#v", resp.WorkflowData["mix_observation"])
 	}
-	prep := mapValue(resp.WorkflowData["mix_planner_prep"])
-	if boolValue(prep["ready_to_publish_mixboard"]) || cleanContextText(prep["next_question"]) == "" {
-		t.Fatalf("planner prep = %#v", prep)
-	}
-	if len(resp.InteractionRequests) != 1 || resp.InteractionRequests[0].Type != "mix_planning_discussion" {
-		t.Fatalf("interaction requests = %#v", resp.InteractionRequests)
+	if len(resp.InteractionRequests) != 0 {
+		t.Fatalf("deprecated planner action should not create interactions: %#v", resp.InteractionRequests)
 	}
 }
 
@@ -489,7 +425,7 @@ func TestConfirmedControlSurfacePluginLoadKeyDedupesSamePlugin(t *testing.T) {
 	}
 }
 
-func TestMixBoardStatusInteractionOffersTuningActions(t *testing.T) {
+func TestMixBoardStatusInteractionDoesNotOfferDeprecatedTuningActions(t *testing.T) {
 	server := New(nil, nil, nil)
 	session := pendingMixSession(mixModeAuto, MixTargetRef{Kind: "track", ID: "track_1", Label: "Vocal", Confidence: "high"}, "降低当前轨道")
 	session.State = mixStateObservationReady
@@ -499,14 +435,13 @@ func TestMixBoardStatusInteractionOffersTuningActions(t *testing.T) {
 	for _, action := range req.Actions {
 		ids[action.ID] = true
 	}
-	if !ids["start_mix_tuning"] || !ids["revise_mixboard"] || !ids["refresh_observation"] {
+	if !ids["revise_mixboard"] || !ids["refresh_observation"] {
 		t.Fatalf("actions = %+v", req.Actions)
 	}
-	if !ids["confirm_control_surface"] || !ids["execute_single_mix_tick"] || !ids["enter_discussion"] || !ids["submit_mixboard_intervention"] {
-		t.Fatalf("single tick actions = %+v", req.Actions)
-	}
-	if ids["stop_mix_tuning"] || ids["done"] {
-		t.Fatalf("actions = %+v", req.Actions)
+	for _, deprecated := range []string{"confirm_control_surface", "execute_single_mix_tick", "start_mix_tuning", "enter_discussion", "submit_mixboard_intervention", "stop_mix_tuning", "done"} {
+		if ids[deprecated] {
+			t.Fatalf("deprecated action %s should be hidden: %+v", deprecated, req.Actions)
+		}
 	}
 	session.State = mixStateTuningRunning
 	session.JournalRefs = []string{"action_1"}
@@ -515,8 +450,43 @@ func TestMixBoardStatusInteractionOffersTuningActions(t *testing.T) {
 	for _, action := range req.Actions {
 		ids[action.ID] = true
 	}
-	if !ids["stop_mix_tuning"] || !ids["rollback_last_mix_turn"] || !ids["rollback_last_mix_tick"] || ids["done"] {
+	if !ids["rollback_last_mix_tick"] || ids["rollback_last_mix_turn"] || ids["stop_mix_tuning"] || ids["done"] {
 		t.Fatalf("running actions = %+v", req.Actions)
+	}
+}
+
+func TestConfirmControlSurfaceActionIsDeprecatedEvenWithConversationalPayload(t *testing.T) {
+	server := New(nil, nil, nil)
+	session := pendingMixSession(mixModeAuto, MixTargetRef{Kind: "track", ID: "track_1", Label: "Vocal", Confidence: "high"}, "mix vocal")
+	session.State = mixStateObservationReady
+	data := mixSessionWorkflowData("conv_mix", "goal_1", "run_1", map[string]any{}, session)
+	data["mix_observation"] = map[string]any{
+		"status": "ready",
+		"goal_control_surface": map[string]any{
+			"selected_chain": []map[string]any{{
+				"role":            "tone_balance",
+				"instance_status": mixcontrolsurface.InstanceNeedsLoad,
+				"profile_status":  mixcontrolsurface.ProfileReady,
+				"selected_plugin": map[string]any{"name": "TDR Nova", "plugin_path": "C:/VST/TDR Nova.vst3"},
+			}},
+		},
+	}
+	interaction := PendingInteraction{
+		Source:         "mix_session",
+		Workflow:       mixSessionEntryWorkflow,
+		ConversationID: "conv_mix",
+		GoalID:         "goal_1",
+		RunID:          "run_1",
+		Payload:        data,
+		Data:           data,
+	}
+
+	resp := server.continueMixSessionInteraction(context.Background(), interaction, map[string]any{"ask_vit_mix_action": true}, "confirm_control_surface")
+	if resp.CurrentStep != "deprecated_mix_planner_action" {
+		t.Fatalf("current step = %q response=%#v", resp.CurrentStep, resp)
+	}
+	if cleanContextText(mapValue(resp.MixSession)["blocking_point"]) != "deprecated_mix_planner_action" {
+		t.Fatalf("mix session = %#v", resp.MixSession)
 	}
 }
 
@@ -631,7 +601,7 @@ func TestMixTuningRejectsNonTrackTarget(t *testing.T) {
 	session := pendingMixSession(mixModeAuto, MixTargetRef{Kind: "clip", ID: "clip_1", Label: "Clip", Confidence: "high"}, "降低当前片段")
 	data := mixSessionWorkflowData("conv_mix", "goal_1", "run_1", map[string]any{}, session)
 	interaction := PendingInteraction{ConversationID: "conv_mix", GoalID: "goal_1", RunID: "run_1", Payload: data, Data: data}
-	resp := server.continueMixSessionInteraction(context.Background(), interaction, nil, "start_mix_tuning")
+	resp := server.continueMixSessionInteraction(context.Background(), interaction, map[string]any{"ask_vit_mix_action": true}, "execute_single_mix_tick")
 	if resp.CurrentStep != mixStateFailed {
 		t.Fatalf("step = %q resp=%+v", resp.CurrentStep, resp)
 	}
@@ -867,7 +837,7 @@ func TestSelectMixTickControlRejectsRawAndOutsideControls(t *testing.T) {
 	}
 }
 
-func TestEnterDiscussionCollapsesMixBoard(t *testing.T) {
+func TestEnterDiscussionActionDeprecated(t *testing.T) {
 	server := New(nil, nil, nil)
 	session := pendingMixSession(mixModeCo, MixTargetRef{Kind: "track", ID: "track_1", Label: "Vocal", Confidence: "high"}, "balance vocal")
 	session.State = mixStateWaitingReview
@@ -876,12 +846,11 @@ func TestEnterDiscussionCollapsesMixBoard(t *testing.T) {
 	interaction := PendingInteraction{ConversationID: "conv_mix", GoalID: "goal_1", RunID: "run_1", Payload: data, Data: data}
 	resp := server.continueMixSessionInteraction(context.Background(), interaction, nil, "enter_discussion")
 	got := mapValue(resp.MixSession)
-	if cleanContextText(got["interaction_phase"]) != mixInteractionPlanningChat || cleanContextText(got["mixboard_visibility"]) != mixBoardVisibilityCollapsed {
+	if resp.CurrentStep != "deprecated_mix_planner_action" || cleanContextText(got["mixboard_visibility"]) != mixBoardVisibilityHidden {
 		t.Fatalf("mix session = %#v", got)
 	}
-	board := mapValue(mapValue(resp.WorkflowData["mix_observation"])["mixboard"])
-	if cleanContextText(board["mixboard_visibility"]) != mixBoardVisibilityCollapsed {
-		t.Fatalf("board = %#v", board)
+	if len(resp.InteractionRequests) != 0 {
+		t.Fatalf("deprecated discussion action should not create interactions: %#v", resp.InteractionRequests)
 	}
 }
 
@@ -982,13 +951,14 @@ func TestInvokeMixSessionEntryWorkflow(t *testing.T) {
 	if !handled {
 		t.Fatal("invoke was not handled")
 	}
-	if resp.Status != "needs_confirmation" {
+	if resp.Status != "ok" || resp.RequiresConfirmation {
 		t.Fatalf("status = %q", resp.Status)
 	}
-	result := resp.Result
-	mix := mapValue(result["mix_session"])
-	if cleanContextText(mix["mode"]) != mixModeCo {
-		t.Fatalf("mix_session = %#v", mix)
+	if !boolValue(resp.Result["disabled"]) {
+		t.Fatalf("legacy mix session invoke should be disabled: %#v", resp.Result)
+	}
+	if len(mapValue(resp.Result["mix_session"])) != 0 {
+		t.Fatalf("disabled invoke must not create mix_session: %#v", resp.Result)
 	}
 }
 

@@ -129,6 +129,9 @@ type MixTargetRef struct {
 }
 
 func (s *Server) runMixSessionEntryChat(ctx context.Context, conversationID string, req ChatRequest, agentMode string) (ChatResponse, bool) {
+	if !legacyMixSessionWorkflowEnabled(req.Context) {
+		return ChatResponse{}, false
+	}
 	mode := mixModeFromRequest(req.Message, req.Context)
 	if mode == "" {
 		return ChatResponse{}, false
@@ -175,6 +178,12 @@ func (s *Server) runMixSessionEntryChat(ctx context.Context, conversationID stri
 }
 
 func (s *Server) invokeMixSessionEntryWorkflow(ctx context.Context, req harness.InvokeRequest) (harness.InvokeResponse, bool) {
+	if !legacyMixSessionWorkflowEnabled(mergeContext(req.Context, req.Args)) {
+		if !isMixSessionEntryInvoke(req) {
+			return harness.InvokeResponse{}, false
+		}
+		return disabledMixSessionEntryInvokeResponse(), true
+	}
 	mode := mixModeFromRequest("", mergeContext(req.Context, req.Args))
 	if mode == "" {
 		return harness.InvokeResponse{}, false
@@ -226,6 +235,9 @@ func (s *Server) continueMixSessionInteraction(ctx context.Context, interaction 
 	if session.Mode == "" {
 		session = pendingMixSession(cleanContextText(data["mode"]), mixTargetFromMap(mapValue(data["target_ref"])), cleanContextText(data["goal_text"]))
 	}
+	if !legacyMixSessionWorkflowEnabled(mergeContext(interaction.RequestContext, payload)) && !isCurrentConversationalMixAction(data, payload, session) {
+		return deprecatedMixPlannerInteractionResponse(interaction, data, session)
+	}
 	if strings.EqualFold(decision, "cancel_mix_session") || strings.EqualFold(decision, "cancel") {
 		session.State = mixStateCancelled
 		session.UpdatedAt = time.Now().Format(time.RFC3339Nano)
@@ -274,6 +286,12 @@ func (s *Server) continueMixSessionInteraction(ctx context.Context, interaction 
 	if strings.EqualFold(decision, "revise_mixboard") || strings.EqualFold(decision, "refresh_observation") || strings.EqualFold(decision, "update_mixboard") {
 		return s.reviseMixBoardInteraction(ctx, interaction, data, session, payload, decision)
 	}
+	if isLegacyMixSessionApprovalDecision(decision) {
+		return deprecatedMixPlannerInteractionResponse(interaction, data, session)
+	}
+	if isDeprecatedMixPlannerDecision(decision) {
+		return deprecatedMixPlannerInteractionResponse(interaction, data, session)
+	}
 	if strings.EqualFold(decision, "publish_mixboard") {
 		return s.publishMixBoardInteraction(ctx, interaction, data, session, payload)
 	}
@@ -288,9 +306,12 @@ func (s *Server) continueMixSessionInteraction(ctx context.Context, interaction 
 		return s.advanceMixPlannerInteraction(ctx, interaction, data, session, payload)
 	}
 	if strings.EqualFold(decision, "confirm_control_surface") {
-		return s.confirmControlSurfaceInteraction(ctx, interaction, data, session, payload)
+		return deprecatedMixPlannerInteractionResponse(interaction, data, session)
 	}
 	if strings.EqualFold(decision, "execute_single_mix_tick") || strings.EqualFold(decision, "start_mix_tuning") || strings.EqualFold(decision, "auto_tune_mix") {
+		if !isCurrentConversationalMixAction(data, payload, session) {
+			return staleMixActionResponse(interaction, data, session)
+		}
 		return s.runSingleMixTickInteraction(ctx, interaction, data, session, payload)
 	}
 	if strings.EqualFold(decision, "stop_mix_tuning") {
@@ -300,10 +321,10 @@ func (s *Server) continueMixSessionInteraction(ctx context.Context, interaction 
 		return s.rollbackLastMixTurnInteraction(ctx, interaction, data, session)
 	}
 	if strings.EqualFold(decision, "enter_discussion") {
-		return s.enterMixDiscussionInteraction(interaction, data, session)
+		return deprecatedMixPlannerInteractionResponse(interaction, data, session)
 	}
 	if strings.EqualFold(decision, "submit_mixboard_intervention") {
-		return s.submitMixBoardIntervention(ctx, interaction, data, session, payload)
+		return deprecatedMixPlannerInteractionResponse(interaction, data, session)
 	}
 	if session.TargetRef.ID == "" || strings.EqualFold(session.TargetRef.Confidence, "low") {
 		reqCard := s.mixSessionInteractionRequest(interaction.ConversationID, interaction.GoalID, interaction.RunID, data, session.TargetRef)
@@ -344,6 +365,132 @@ func (s *Server) continueMixSessionInteraction(ctx context.Context, interaction 
 		InteractionRequests: []AgentInteractionRequest{s.mixPlanningDiscussionInteraction(interaction, session, data)},
 		GoalStatus:          string(agentruntime.StatusWaitingContinue),
 		CurrentStep:         mixInteractionPlanningChat,
+	}
+}
+
+func isDeprecatedMixPlannerDecision(decision string) bool {
+	switch strings.ToLower(strings.TrimSpace(decision)) {
+	case "publish_mixboard",
+		"confirm_mix_planner_plan",
+		"advance_mix_planner",
+		"submit_mix_planner_answers",
+		"continue_mix_planning",
+		"enter_discussion",
+		"submit_mixboard_intervention",
+		"start_mix_tuning",
+		"auto_tune_mix":
+		return true
+	default:
+		return false
+	}
+}
+
+func isLegacyMixSessionApprovalDecision(decision string) bool {
+	switch strings.ToLower(strings.TrimSpace(decision)) {
+	case "approve", "allow", "confirm", "yes", "submit", "done":
+		return true
+	default:
+		return false
+	}
+}
+
+func deprecatedMixPlannerInteractionResponse(interaction PendingInteraction, data map[string]any, session MixSession) ChatResponse {
+	if session.MixSessionID != "" {
+		session.State = mixStateCancelled
+		session.InteractionPhase = ""
+		session.MixBoardVisibility = mixBoardVisibilityHidden
+		session.BlockingPoint = "deprecated_mix_planner_action"
+		session.UpdatedAt = time.Now().Format(time.RFC3339Nano)
+		data["mix_session"] = mixSessionMap(session)
+	}
+	return ChatResponse{
+		ConversationID: interaction.ConversationID,
+		GoalID:         interaction.GoalID,
+		RunID:          interaction.RunID,
+		Reply:          "这个混音规划入口已停用。请直接在聊天里描述你要调整的声音目标；本次没有执行 DAW 操作。",
+		Workflow:       mixSessionEntryWorkflow,
+		WorkflowData:   data,
+		MixSession:     mixSessionMap(session),
+		GoalStatus:     string(agentruntime.StatusCompleted),
+		CurrentStep:    "deprecated_mix_planner_action",
+	}
+}
+
+func isCurrentConversationalMixAction(data map[string]any, payload map[string]any, session MixSession) bool {
+	if boolValue(data["conversational_mix"]) || boolValue(payload["conversational_mix"]) ||
+		boolValue(data["ask_vit_mix_action"]) || boolValue(payload["ask_vit_mix_action"]) {
+		return true
+	}
+	for _, ctx := range []map[string]any{
+		data,
+		payload,
+		mapValue(data["request_context"]),
+		mapValue(payload["request_context"]),
+		mapValue(data["mix_action_context"]),
+		mapValue(payload["mix_action_context"]),
+	} {
+		source := strings.ToLower(strings.TrimSpace(firstNonEmpty(
+			cleanContextText(ctx["mix_action_context"]),
+			cleanContextText(ctx["source"]),
+			cleanContextText(ctx["route"]),
+		)))
+		if source == "ask_vit" || source == "ask_vit_conversational" || source == "conversational_mix" {
+			return true
+		}
+	}
+	phase := strings.ToLower(strings.TrimSpace(mixInteractionPhase(session)))
+	switch phase {
+	case mixInteractionPlanningChat, mixInteractionPlanDrafting, mixInteractionControlSurfacePublished, mixInteractionWaitingPlannerReview, "planner_draft_review":
+		return false
+	}
+	return false
+}
+
+func staleMixActionResponse(interaction PendingInteraction, data map[string]any, session MixSession) ChatResponse {
+	session.BlockingPoint = "stale_mix_action_context"
+	session.UpdatedAt = time.Now().Format(time.RFC3339Nano)
+	data["mix_session"] = mixSessionMap(session)
+	return ChatResponse{
+		ConversationID: interaction.ConversationID,
+		GoalID:         interaction.GoalID,
+		RunID:          interaction.RunID,
+		Reply:          "这张旧 MixBoard 动作已经失效。请直接在聊天里说出下一步混音目标；本次没有执行 DAW 操作。",
+		Workflow:       mixSessionEntryWorkflow,
+		WorkflowData:   data,
+		MixSession:     mixSessionMap(session),
+		GoalStatus:     string(agentruntime.StatusCompleted),
+		CurrentStep:    "stale_mix_action_context",
+	}
+}
+
+func legacyMixSessionWorkflowEnabled(ctx map[string]any) bool {
+	if contextBool(ctx, "legacy_mix_session_workflow") || contextBool(ctx, "allow_legacy_mix_session") {
+		return true
+	}
+	return strings.EqualFold(strings.TrimSpace(os.Getenv("VIT_ENABLE_LEGACY_MIX_SESSION_WORKFLOW")), "1") ||
+		strings.EqualFold(strings.TrimSpace(os.Getenv("VIT_ENABLE_LEGACY_MIX_SESSION_WORKFLOW")), "true")
+}
+
+func isMixSessionEntryInvoke(req harness.InvokeRequest) bool {
+	tool := strings.ToLower(strings.TrimSpace(firstNonEmpty(req.Tool, cleanContextText(req.Command["cmd"]), cleanContextText(req.Command["command"]))))
+	if tool == "mix.session_entry" || tool == "mix_session_entry" {
+		return true
+	}
+	ctx := mergeContext(req.Context, req.Args)
+	return contextBool(ctx, "mix_requested") || cleanContextText(ctx["mix_entry_source"]) != "" || normalizeMixMode(firstNonEmpty(cleanContextText(ctx["mix_mode"]), cleanContextText(ctx["mode"]))) != ""
+}
+
+func disabledMixSessionEntryInvokeResponse() harness.InvokeResponse {
+	return harness.InvokeResponse{
+		Status:      "ok",
+		Tool:        "mix.session_entry",
+		CommandName: mixSessionEntryWorkflow,
+		Result: map[string]any{
+			"reply":       "旧的 Auto Mix / Co-Mix 入口已经停用。请直接在 Ask Vit 聊天里描述要调整的声音目标；本次没有执行 DAW 操作。",
+			"workflow":    mixSessionEntryWorkflow,
+			"disabled":    true,
+			"goal_status": string(agentruntime.StatusCompleted),
+		},
 	}
 }
 
@@ -711,22 +858,6 @@ func (s *Server) confirmControlSurfaceInteraction(ctx context.Context, interacti
 	if len(mixGoalControlSurfaceFromObservation(observation)) == 0 {
 		s.attachGoalControlSurface(ctx, interaction, session, observation)
 	}
-	loadResults, loadErr := s.loadConfirmedControlSurfacePlugins(ctx, interaction, session, observation)
-	if len(loadResults) > 0 {
-		board := mapValue(observation["mixboard"])
-		board["plugin_load_results"] = loadResults
-		observation["mixboard"] = board
-		nextRound := session.RoundCount
-		if nextRound <= 0 {
-			nextRound = 1
-		}
-		if refreshed, err := s.requestMixObservationRound(ctx, interaction, session, nextRound, map[string]any{"control_surface_plugin_loads": loadResults}); err == nil && len(refreshed) > 0 {
-			observation = refreshed
-			s.attachGoalControlSurface(ctx, interaction, session, observation)
-		} else if err != nil {
-			loadErr = err
-		}
-	}
 	userNote := mixTuningUserNote(payload, interaction.RequestContext, data, session)
 	if userNote != "" {
 		session.UserNote = userNote
@@ -747,11 +878,6 @@ func (s *Server) confirmControlSurfaceInteraction(ctx context.Context, interacti
 		session.MixBoardVisibility = mixBoardVisibilityPublished
 		session.BlockingPoint = "Control surface is not executable yet: " + status
 	}
-	if loadErr != nil {
-		session.InteractionPhase = mixInteractionControlSurfacePublished
-		session.MixBoardVisibility = mixBoardVisibilityPublished
-		session.BlockingPoint = "Control surface plugin load failed: " + loadErr.Error()
-	}
 	session.State = mixStateObservationReady
 	session.UpdatedAt = time.Now().Format(time.RFC3339Nano)
 	s.storeMixSession(session)
@@ -759,7 +885,7 @@ func (s *Server) confirmControlSurfaceInteraction(ctx context.Context, interacti
 	data["mix_session"] = mixSessionMap(session)
 	data["mix_tick_packet"] = packet
 	data["mix_observation"] = observation
-	reply := "Control surface confirmed; ready for one single tick."
+	reply := "Control surface checked; no plugin was loaded from this legacy control-surface action."
 	if session.BlockingPoint != "" {
 		reply = session.BlockingPoint
 	}
@@ -4626,7 +4752,16 @@ func mixBoardStatusActions(session MixSession) []AgentInteractionAction {
 	if session.State == mixStateTuningRunning {
 		actions = append(actions, AgentInteractionAction{ID: "stop_mix_tuning", Label: "停止调控", Style: "secondary"})
 	}
-	return actions
+	filtered := make([]AgentInteractionAction, 0, len(actions))
+	for _, action := range actions {
+		switch action.ID {
+		case "confirm_control_surface", "execute_single_mix_tick", "start_mix_tuning", "auto_tune_mix", "enter_discussion", "submit_mixboard_intervention", "stop_mix_tuning", "rollback_last_mix_turn":
+			continue
+		default:
+			filtered = append(filtered, action)
+		}
+	}
+	return filtered
 }
 
 func mixBoardStatusBody(session MixSession, observation map[string]any) string {

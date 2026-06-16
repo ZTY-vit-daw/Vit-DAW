@@ -11,6 +11,7 @@ import (
 
 	"vit-daw-agent/internal/history"
 	"vit-daw-agent/internal/journal"
+	"vit-daw-agent/internal/mixboard"
 	"vit-daw-agent/internal/pluginsemantics"
 	"vit-daw-agent/internal/shadow"
 	"vit-daw-agent/internal/tools"
@@ -647,6 +648,64 @@ func TestPluginLoadToRackNormalizesArgs(t *testing.T) {
 	}
 	if cmd["x"] == nil || cmd["y"] == nil || cmd["zone_id"] != "Z3" {
 		t.Fatalf("rack defaults missing: %+v", cmd)
+	}
+}
+
+func TestBroadMixRequestCannotLoadPluginThroughHarness(t *testing.T) {
+	t.Setenv("VIT_PLUGIN_SEMANTICS_PATH", filepath.Join(t.TempDir(), "missing_plugin_semantics.json"))
+	kernel := &fakeKernelClient{}
+	h := New(nil, nil, nil)
+	h.kernel = kernel
+	resp, err := h.Invoke(context.Background(), InvokeRequest{
+		Tool: "plugin.load_to_rack",
+		Args: map[string]any{
+			"path":     `C:\Program Files\Common Files\VST3\TDR Nova.vst3`,
+			"track_id": "1007",
+		},
+		Context: map[string]any{
+			"user_message": "我想你帮我对这段音频进行缩混可以吗",
+		},
+		Confirmed: true,
+	})
+	if err == nil {
+		t.Fatal("expected broad mix plugin load to be blocked")
+	}
+	if resp.Status != "error" || !strings.Contains(resp.Error, "mix.request_observation") {
+		t.Fatalf("resp = %+v err=%v", resp, err)
+	}
+	if len(kernel.commands) != 0 {
+		t.Fatalf("blocked command reached kernel: %+v", kernel.commands)
+	}
+}
+
+func TestExplicitPluginLoadStillReachesHarness(t *testing.T) {
+	t.Setenv("VIT_PLUGIN_SEMANTICS_PATH", filepath.Join(t.TempDir(), "missing_plugin_semantics.json"))
+	kernel := &fakeKernelClient{replies: []map[string]any{{"status": "ok", "plugin_id": "1015"}}}
+	h := New(nil, nil, nil)
+	h.kernel = kernel
+	resp, err := h.Invoke(context.Background(), InvokeRequest{
+		Tool: "plugin.load_to_rack",
+		Args: map[string]any{
+			"path":     `C:\Program Files\Common Files\VST3\TDR Nova.vst3`,
+			"track_id": "1007",
+		},
+		Context: map[string]any{
+			"user_message": "请直接加载 TDR Nova 插件",
+		},
+		Confirmed: true,
+	})
+	if err != nil || resp.Status != "ok" {
+		t.Fatalf("explicit plugin load should be allowed, resp=%+v err=%v", resp, err)
+	}
+	foundRackAdd := false
+	for _, cmd := range kernel.commands {
+		if cmd["cmd"] == "rack_add_node" {
+			foundRackAdd = true
+			break
+		}
+	}
+	if !foundRackAdd {
+		t.Fatalf("explicit plugin load did not reach kernel: %+v", kernel.commands)
 	}
 }
 
@@ -2539,6 +2598,31 @@ func TestInvokeMixRequestObservationWritesMixBoardWithoutKernel(t *testing.T) {
 	}
 }
 
+func TestProjectSnapshotExportFallsBackWhenKernelCommandMissing(t *testing.T) {
+	kernel := &fakeKernelClient{replies: []map[string]any{
+		{"status": "error", "message": "Unknown command: project_snapshot_export"},
+	}}
+	h := New(nil, shadowProjectWithClips(), nil)
+	h.kernel = kernel
+
+	resp, err := h.Invoke(context.Background(), InvokeRequest{
+		Tool:      "project.snapshot_export",
+		Confirmed: true,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if resp.Status != "ok" {
+		t.Fatalf("resp = %+v", resp)
+	}
+	if firstString(resp.Result, "source") != "agent_shadow_snapshot_compat" {
+		t.Fatalf("expected compat snapshot, got %+v", resp.Result)
+	}
+	if resp.Result["project_state"] == nil {
+		t.Fatalf("project_state missing: %+v", resp.Result)
+	}
+}
+
 func TestInvokeMixRequestObservationRequestsAudioFeatures(t *testing.T) {
 	root := t.TempDir()
 	t.Setenv("VIT_MIXBOARD_ROOT", filepath.Join(root, "mixboard"))
@@ -2567,7 +2651,7 @@ func TestInvokeMixRequestObservationRequestsAudioFeatures(t *testing.T) {
 		t.Fatalf("resp = %+v", resp)
 	}
 	if len(kernel.commands) != 1 {
-		t.Fatalf("kernel commands = %+v", kernel.commands)
+		t.Fatalf("kernel commands = %+v resp=%+v", kernel.commands, resp.Result)
 	}
 	for i, feature := range []string{"waveform_envelope"} {
 		if kernel.commands[i]["cmd"] != "warm_waveform_bake" || kernel.commands[i]["feature_type"] != feature {
@@ -2588,6 +2672,318 @@ func TestInvokeMixRequestObservationRequestsAudioFeatures(t *testing.T) {
 	}
 	if !strings.Contains(string(data), `"latest_request"`) || !strings.Contains(string(data), `"waveform_envelope"`) {
 		t.Fatalf("snapshot = %s", string(data))
+	}
+}
+
+func TestInvokeMixRequestObservationWritesRequestedSnapshotBeforeKernelBake(t *testing.T) {
+	root := t.TempDir()
+	t.Setenv("VIT_MIXBOARD_ROOT", filepath.Join(root, "mixboard"))
+	t.Setenv("VIT_MIXBOARD_FEATURE_READY_WAIT_MS", "1")
+	kernel := &fakeKernelClient{}
+	h := New(nil, shadowProjectWithClips(), nil)
+	h.kernel = kernel
+
+	_, err := h.Invoke(context.Background(), InvokeRequest{
+		Tool: "mix.request_observation",
+		Args: map[string]any{
+			"mix_session_id": "mix_feature_order",
+			"target_ref": map[string]any{
+				"kind": "track",
+				"id":   "1007",
+			},
+		},
+		Confirmed: true,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(kernel.commands) != 1 {
+		t.Fatalf("kernel commands = %+v", kernel.commands)
+	}
+	snapshotPath := filepath.Join(root, "mixboard_feature_snapshot.json")
+	data, err := os.ReadFile(snapshotPath)
+	if err != nil {
+		t.Fatalf("read snapshot: %v", err)
+	}
+	text := string(data)
+	if !strings.Contains(text, `"status": "requested"`) || !strings.Contains(text, `"feature_type": "waveform_envelope"`) {
+		t.Fatalf("snapshot was not prepared before bake fallback: %s", text)
+	}
+}
+
+func TestInvokeMixRequestObservationResolvesVisibleTrackClipSource(t *testing.T) {
+	root := t.TempDir()
+	t.Setenv("VIT_MIXBOARD_ROOT", filepath.Join(root, "mixboard"))
+	t.Setenv("VIT_MIXBOARD_FEATURE_READY_WAIT_MS", "1")
+	kernel := &fakeKernelClient{}
+	project := shadow.New(nil)
+	project.Initialize(map[string]any{
+		"status": "ok",
+		"tracks": []any{
+			map[string]any{
+				"track_id":       "1007",
+				"track_name":     "Track 1",
+				"is_audio_track": true,
+				"clips": []any{
+					map[string]any{
+						"id":                  "1011",
+						"name":                "Paper Crown",
+						"file_path":           "D:\\Vit_DAW\\Paper Crown.mp3",
+						"current_source_path": "D:\\Vit_DAW\\Paper Crown.mp3",
+						"length_seconds":      219.384,
+					},
+				},
+			},
+		},
+	})
+	h := New(nil, project, nil)
+	h.kernel = kernel
+
+	resp, err := h.Invoke(context.Background(), InvokeRequest{
+		Tool: "mix.request_observation",
+		Args: map[string]any{
+			"mix_session_id": "mix_resolve_clip",
+			"round":          1,
+			"target_ref": map[string]any{
+				"kind":  "track",
+				"id":    "track_1",
+				"label": "Vocal",
+			},
+		},
+		Confirmed: true,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if resp.Status != "ok" {
+		t.Fatalf("resp = %+v", resp)
+	}
+	if len(kernel.commands) != 1 {
+		t.Fatalf("kernel commands = %+v resp=%+v", kernel.commands, resp.Result)
+	}
+	if kernel.commands[0]["track_id"] != "1007" || kernel.commands[0]["clip_id"] != "1011" {
+		t.Fatalf("resolved command target = %+v", kernel.commands[0])
+	}
+	acoustic, _ := resp.Result["acoustic_digest"].(map[string]any)
+	if acoustic["clip_id"] != "1011" || acoustic["file_path"] == "" {
+		t.Fatalf("acoustic digest missing resolved clip data: %+v", acoustic)
+	}
+}
+
+func TestInvokeMixRequestObservationResolvesTrackAliasAmongMultipleTracks(t *testing.T) {
+	root := t.TempDir()
+	t.Setenv("VIT_MIXBOARD_ROOT", filepath.Join(root, "mixboard"))
+	t.Setenv("VIT_MIXBOARD_FEATURE_READY_WAIT_MS", "1")
+	kernel := &fakeKernelClient{}
+	project := shadow.New(nil)
+	project.Initialize(map[string]any{
+		"status": "ok",
+		"tracks": []any{
+			map[string]any{
+				"track_id":         "1007",
+				"track_name":       "Track 1",
+				"track_type":       "hybrid",
+				"user_track_index": 1,
+				"is_audio_track":   true,
+				"clips": []any{
+					map[string]any{
+						"id":                  "1011",
+						"name":                "Paper Crown",
+						"current_source_path": "D:\\Vit_DAW\\Paper Crown.mp3",
+						"length_seconds":      219.384,
+					},
+				},
+			},
+			map[string]any{
+				"track_id":         "1012",
+				"track_name":       "Track 2",
+				"track_type":       "hybrid",
+				"user_track_index": 2,
+				"is_audio_track":   true,
+				"clips":            []any{},
+			},
+		},
+	})
+	h := New(nil, project, nil)
+	h.kernel = kernel
+
+	resp, err := h.Invoke(context.Background(), InvokeRequest{
+		Tool: "mix.request_observation",
+		Args: map[string]any{
+			"mix_session_id": "mix_track_alias",
+			"target_ref": map[string]any{
+				"kind":  "track",
+				"id":    "track_1",
+				"label": "Vocal",
+			},
+		},
+		Confirmed: true,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if resp.Status != "ok" {
+		t.Fatalf("resp = %+v", resp)
+	}
+	if len(kernel.commands) != 1 {
+		t.Fatalf("kernel commands = %+v resp=%+v", kernel.commands, resp.Result)
+	}
+	if kernel.commands[0]["track_id"] != "1007" || kernel.commands[0]["clip_id"] != "1011" {
+		t.Fatalf("track alias did not resolve to audio clip source: %+v", kernel.commands[0])
+	}
+	board, _ := resp.Result["mixboard"].(mixboard.Board)
+	if board.TargetRef.ID != "1007" {
+		t.Fatalf("board target was not canonicalized: %+v", board.TargetRef)
+	}
+	if len(board.MixObjects) == 0 || board.MixObjects[0].ID != "1007" {
+		t.Fatalf("board mix objects were not canonicalized: %+v", board.MixObjects)
+	}
+}
+
+func TestInvokeMixRequestObservationRefreshesStaleAliasTarget(t *testing.T) {
+	root := t.TempDir()
+	t.Setenv("VIT_MIXBOARD_ROOT", filepath.Join(root, "mixboard"))
+	t.Setenv("VIT_MIXBOARD_FEATURE_READY_WAIT_MS", "1")
+	project := shadow.New(nil)
+	project.Initialize(map[string]any{
+		"status": "ok",
+		"tracks": []any{
+			map[string]any{
+				"track_id":       "old_track",
+				"track_name":     "Old Track",
+				"track_type":     "hybrid",
+				"is_audio_track": true,
+				"clips":          []any{},
+			},
+		},
+	})
+	kernel := &fakeKernelClient{replies: []map[string]any{
+		{
+			"status": "ok",
+			"tracks": []any{
+				map[string]any{
+					"track_id":         "1007",
+					"track_name":       "Track 1",
+					"track_type":       "hybrid",
+					"user_track_index": 1,
+					"is_audio_track":   true,
+					"clips": []any{
+						map[string]any{
+							"id":                  "1011",
+							"name":                "Paper Crown",
+							"file_path":           "D:\\Vit_DAW\\Paper Crown.mp3",
+							"current_source_path": "D:\\Vit_DAW\\Paper Crown.mp3",
+							"length_seconds":      219.384,
+						},
+					},
+				},
+			},
+		},
+		{"status": "ok"},
+	}}
+	h := New(nil, project, nil)
+	h.kernel = kernel
+
+	resp, err := h.Invoke(context.Background(), InvokeRequest{
+		Tool: "mix.request_observation",
+		Args: map[string]any{
+			"mix_session_id": "mix_stale_alias",
+			"goal_text":      "auto mix",
+			"target_ref": map[string]any{
+				"kind":  "track",
+				"id":    "track_1",
+				"label": "Vocal",
+			},
+			"mix_objects": []any{map[string]any{
+				"mode":         "target_ref",
+				"kind":         "track",
+				"id":           "track_1",
+				"label":        "Vocal",
+				"effect_scope": "track_rack",
+				"source":       "target_ref",
+			}},
+			"listen_scope": map[string]any{
+				"source": map[string]any{"focus_ids": []any{"track_1"}},
+			},
+		},
+		Confirmed: true,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if resp.Status != "ok" {
+		t.Fatalf("resp = %+v", resp)
+	}
+	if len(kernel.commands) != 2 {
+		t.Fatalf("kernel commands = %+v", kernel.commands)
+	}
+	if kernel.commands[0]["cmd"] != "get_project_state" {
+		t.Fatalf("first command should refresh shadow: %+v", kernel.commands)
+	}
+	if kernel.commands[1]["cmd"] != "warm_waveform_bake" || kernel.commands[1]["track_id"] != "1007" || kernel.commands[1]["clip_id"] != "1011" {
+		t.Fatalf("feature command target = %+v", kernel.commands[1])
+	}
+	featureRequest, _ := resp.Result["feature_request"].(map[string]any)
+	resolved, _ := featureRequest["resolved_target"].(map[string]any)
+	if resolved["track_id"] != "1007" || resolved["clip_id"] != "1011" {
+		t.Fatalf("feature request target = %+v", featureRequest)
+	}
+	board, _ := resp.Result["mixboard"].(mixboard.Board)
+	if board.TargetRef.ID != "1007" {
+		t.Fatalf("board target = %+v", board.TargetRef)
+	}
+	if len(board.MixObjects) == 0 || board.MixObjects[0].ID != "1007" {
+		t.Fatalf("mix objects = %+v", board.MixObjects)
+	}
+	if len(board.ListenScope.Source.FocusIDs) != 1 || board.ListenScope.Source.FocusIDs[0] != "1007" {
+		t.Fatalf("listen scope = %+v", board.ListenScope)
+	}
+}
+
+func TestWaveformFeatureCollectorWritesReadySnapshot(t *testing.T) {
+	root := t.TempDir()
+	t.Setenv("VIT_MIXBOARD_ROOT", filepath.Join(root, "mixboard"))
+	cmd := map[string]any{
+		"mix_session_id":   "mix_waveform_snapshot",
+		"duration_seconds": 10.0,
+	}
+	packet := newMixboardFeatureRequestPacket(cmd, mixboard.TargetRef{Kind: "track", ID: "1007"})
+	packet["status"] = "requested"
+	packet["resolved_target"] = map[string]any{"track_id": "1007", "clip_id": "1011"}
+	collector := &waveformFeatureCollector{
+		TrackID:        "1007",
+		ClipID:         "1011",
+		FilePath:       "D:\\Vit_DAW\\Paper Crown.mp3",
+		TotalDuration:  10,
+		ExpectedTiles:  2,
+		TilesSeen:      2,
+		PeakAbs:        0.5,
+		SumSquares:     0.01 + 0.04,
+		SampleFrames:   2,
+		FloatCount:     24,
+		TimeSegments:   []map[string]any{{"start_seconds": 0.0, "end_seconds": 5.0, "rms": 0.1, "peak_abs": 0.3}, {"start_seconds": 5.0, "end_seconds": 10.0, "rms": 0.2, "peak_abs": 0.5}},
+		LastReceivedAt: time.Now().UTC().Format(time.RFC3339Nano),
+	}
+	writeMixboardReadyWaveformSnapshot(cmd, packet, collector.SnapshotRow(firstString(packet, "request_id")))
+	result, err := mixboard.NewStore("").RequestObservation(mixboard.Request{
+		MixSessionID: "mix_waveform_snapshot",
+		TargetRef:    mixboard.TargetRef{Kind: "track", ID: "1007"},
+		ProjectState: map[string]any{"duration_seconds": 10.0},
+		Args:         cmd,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if result.Status != "ready" {
+		t.Fatalf("status = %q observation=%+v", result.Status, result.Observation)
+	}
+	metrics := result.Observation.MixPackage["current_metrics"].(map[string]any)
+	waveform := metrics["waveform"].(map[string]any)
+	if waveform["peak_dbfs"] == nil || waveform["rms_dbfs"] == nil || waveform["headroom_db"] == nil {
+		t.Fatalf("waveform metrics missing: %+v", waveform)
+	}
+	if got := result.Observation.SourceCapabilities["waveform_envelope"]; got != "ready" {
+		t.Fatalf("waveform capability = %q", got)
 	}
 }
 

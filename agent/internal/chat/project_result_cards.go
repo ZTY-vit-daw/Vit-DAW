@@ -112,6 +112,13 @@ func projectResultTargetFromExecution(entry map[string]any) map[string]any {
 	); trackID != "" {
 		target["track_id"] = trackID
 	}
+	if trackName := firstNonEmpty(
+		firstProjectResultText(result, "track_name"),
+		firstProjectResultText(entry, "track_name"),
+		firstProjectResultText(evidence, "observed_track_name", "expected_track_name", "track_name"),
+	); trackName != "" {
+		target["track_name"] = trackName
+	}
 	if clipID := firstNonEmpty(
 		firstProjectResultText(result, "clip_id", "new_clip_id", "created_clip_id", "target_clip_id", "selected_clip_id"),
 		firstProjectResultText(entry, "clip_id", "new_clip_id", "created_clip_id", "target_clip_id", "selected_clip_id"),
@@ -119,12 +126,26 @@ func projectResultTargetFromExecution(entry map[string]any) map[string]any {
 	); clipID != "" {
 		target["clip_id"] = clipID
 	}
+	if clipName := firstNonEmpty(
+		firstProjectResultText(result, "clip_name"),
+		firstProjectResultText(entry, "clip_name"),
+		firstProjectResultText(evidence, "observed_clip_name", "expected_clip_name", "clip_name"),
+	); clipName != "" {
+		target["clip_name"] = clipName
+	}
 	if pluginID := firstNonEmpty(
 		firstProjectResultText(result, "plugin_id", "plugin_item_id", "node_id", "selected_plugin_id"),
 		firstProjectResultText(entry, "plugin_id", "plugin_item_id", "node_id", "selected_plugin_id"),
 		firstProjectResultText(evidence, "observed_plugin_id", "expected_plugin_id", "observed_node_id", "expected_node_id", "plugin_id", "node_id"),
 	); pluginID != "" {
 		target["plugin_id"] = pluginID
+	}
+	if pluginName := firstNonEmpty(
+		firstProjectResultText(result, "plugin_name", "descriptive_name"),
+		firstProjectResultText(entry, "plugin_name", "descriptive_name"),
+		firstProjectResultText(evidence, "observed_plugin_name", "expected_plugin_name", "plugin_name"),
+	); pluginName != "" {
+		target["plugin_name"] = pluginName
 	}
 	if start := firstProjectResultNumber(result, "start_seconds", "start_time_seconds", "position_seconds", "new_start_seconds"); start != nil {
 		target["start_seconds"] = *start
@@ -162,7 +183,7 @@ func mergeProjectResultTargets(current, incoming map[string]any) map[string]any 
 
 func compactProjectResultTarget(target map[string]any) map[string]any {
 	out := map[string]any{}
-	for _, key := range []string{"track_id", "clip_id", "plugin_id", "start_seconds", "start_beats", "can_audition"} {
+	for _, key := range []string{"track_id", "track_name", "clip_id", "clip_name", "plugin_id", "plugin_name", "start_seconds", "start_beats", "can_audition"} {
 		if value, ok := target[key]; ok && !isEmptyProjectResultValue(value) {
 			out[key] = value
 		}

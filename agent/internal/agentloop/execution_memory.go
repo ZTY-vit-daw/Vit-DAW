@@ -41,6 +41,7 @@ type RecentObservation struct {
 	CommandName      string                      `json:"command_name,omitempty"`
 	Status           string                      `json:"status,omitempty"`
 	Error            string                      `json:"error,omitempty"`
+	Summary          map[string]any              `json:"summary,omitempty"`
 	MutationBarrier  bool                        `json:"mutation_barrier,omitempty"`
 	ProducedBindings []ExecutionBinding          `json:"produced_bindings,omitempty"`
 	Verification     *planner.VerificationResult `json:"verification,omitempty"`
@@ -237,6 +238,7 @@ func recentObservationForTool(call planner.ToolCall, result executorpkg.Result, 
 		CommandName:      strings.TrimSpace(result.CommandName),
 		Status:           strings.TrimSpace(result.Status),
 		Error:            strings.TrimSpace(firstNonEmpty(result.Error, "")),
+		Summary:          mixObservationPromptSummary(result.Result),
 		MutationBarrier:  mutationBarrier,
 		ProducedBindings: cloneExecutionBindings(bindings),
 		Verification:     cloneVerificationResult(&ver),
@@ -261,6 +263,7 @@ func cloneRecentObservation(in *RecentObservation) *RecentObservation {
 		return nil
 	}
 	out := *in
+	out.Summary = cloneMap(in.Summary)
 	out.ProducedBindings = cloneExecutionBindings(in.ProducedBindings)
 	out.Verification = cloneVerificationResult(in.Verification)
 	return &out
@@ -304,6 +307,7 @@ func recentObservationMap(observation *RecentObservation) map[string]any {
 		"command_name":      observation.CommandName,
 		"status":            observation.Status,
 		"error":             observation.Error,
+		"summary":           cloneMap(observation.Summary),
 		"mutation_barrier":  observation.MutationBarrier,
 		"produced_bindings": cloneExecutionBindings(observation.ProducedBindings),
 	}

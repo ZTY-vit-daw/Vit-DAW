@@ -431,6 +431,9 @@ func (s *Server) chatResponseFromAgentLoopResult(conversationID, mode string, re
 			reply = firstNonEmpty(res.Error, "\u6267\u884c\u5931\u8d25\u3002")
 		}
 	}
+	if res.Status == agentruntime.StatusFailed && len(res.Executed) > 0 {
+		reply = "\u524d\u9762\u7684\u5de5\u5177\u64cd\u4f5c\u5df2\u5b8c\u6210\uff0c\u4f46\u6700\u7ec8\u56de\u590d\u751f\u6210\u5931\u8d25\uff1a" + firstNonEmpty(res.Error, reply)
+	}
 	if res.StopReason == agentloop.StopReasonLimitReached && !strings.Contains(reply, "\u7ee7\u7eed") {
 		reply += " \u4f60\u53ef\u4ee5\u8bf4\u201c\u7ee7\u7eed\u201d\u63a5\u7740\u8dd1\u3002"
 	}
@@ -791,6 +794,8 @@ func toolNamesForAgentLoopCapabilities(h *harness.Harness, mode string, capabili
 		case "plugin":
 			add(agentLoopTrackTools()...)
 			add(agentLoopPluginTools()...)
+		case "mix":
+			add(agentLoopMixTools()...)
 		case "transport":
 			add(agentLoopTransportTools()...)
 		case "version":
@@ -842,6 +847,12 @@ func agentLoopCapabilityNames(userText string, requestContext map[string]any) []
 		"plugin", "vst", "eq", "compressor", "reverb", "delay", "grabber", "param", "macro",
 	) {
 		add("plugin")
+	}
+	if agentLoopTextHasAny(text,
+		"\u6df7\u97f3", "\u7f29\u6df7", "\u4e3b\u5531", "\u4eba\u58f0", "\u58f0\u97f3", "\u54cd\u5ea6", "\u52a8\u6001", "\u7a7a\u95f4\u611f", "\u4f4e\u9891", "\u4f4e\u4e2d\u9891", "\u9ad8\u9891", "\u523a\u8033", "\u6d51\u6d4a", "\u9760\u524d", "\u9760\u540e", "\u66f4\u4eae", "\u66f4\u6697", "\u66f4\u7a33", "\u66f4\u7d27",
+		"mix", "mixing", "master", "vocal", "loudness", "presence", "mud", "muddy", "harsh", "bright", "dark", "forward", "back", "space", "depth", "dynamic",
+	) {
+		add("mix")
 	}
 	if agentLoopTextHasAny(text,
 		"\u64ad\u653e", "\u505c\u6b62", "\u6682\u505c", "\u5b9a\u4f4d", "\u8282\u62cd\u5668", "\u5f55\u97f3",
@@ -899,6 +910,12 @@ func agentLoopCapabilityNames(userText string, requestContext map[string]any) []
 	}
 	if contextHasAnyValue(requestContext, "attachments", "attachment", "artifacts", "artifact", "selected_attachment_file_path", "attachment_import_file_path") {
 		add("artifact")
+	}
+	if contextHasAnyValue(requestContext, "selected_track_id", "selected_clip_id", "selected_clip_ids", "selected_clip_track_id") && agentLoopTextHasAny(text,
+		"\u8c03", "\u6df7", "\u9760\u524d", "\u9760\u540e", "\u54cd\u4e00\u70b9", "\u5c0f\u4e00\u70b9", "\u5927\u4e00\u70b9", "\u7a7a\u95f4", "\u4f4e\u9891", "\u9ad8\u9891", "\u4eba\u58f0", "\u4e3b\u5531",
+		"mix", "forward", "back", "louder", "quieter", "space", "presence", "mud", "harsh", "vocal",
+	) {
+		add("mix")
 	}
 	if contextHasAnyValue(requestContext, "selected_plugin_id", "selected_plugin_name") && agentLoopTextHasAny(text, "调", "大一点", "小一点", "亮", "暗", "浑浊", "刺耳", "mud", "harsh", "presence", "boost", "cut") {
 		add("plugin")
@@ -967,6 +984,13 @@ func agentLoopPluginTools() []string {
 		"plugin.get_parameters", "plugin.set_parameter", "plugin.open", "plugin.show_editor",
 		"plugin_grabber.get_project_profiles", "plugin_grabber.explain_controls", "plugin_grabber.learn_project_profile", "plugin_grabber.upsert_project_profile", "plugin_grabber.remove_project_profile", "plugin_grabber.apply_control",
 		"control.add_macro", "control.rename_macro", "control.add_binding", "control.set_macro_values",
+	}
+}
+
+func agentLoopMixTools() []string {
+	return []string{
+		"mix.request_observation",
+		"project.undo", "project.redo",
 	}
 }
 

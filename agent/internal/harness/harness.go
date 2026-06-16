@@ -3,18 +3,24 @@ package harness
 import (
 	"context"
 	"crypto/rand"
+	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io/fs"
+	"math"
 	"os"
 	"path/filepath"
 	"regexp"
 	"sort"
 	"strconv"
 	"strings"
+	"syscall"
 	"time"
+	"unsafe"
+
+	"github.com/go-zeromq/zmq4"
 
 	"vit-daw-agent/internal/artifacts"
 	"vit-daw-agent/internal/browsercapture"
@@ -52,6 +58,7 @@ type kernelSender interface {
 }
 
 const mixboardFeatureReadyWaitDefault = 1500 * time.Millisecond
+const mixboardFeatureSubURL = "tcp://127.0.0.1:5556"
 
 type InvokeRequest struct {
 	Tool       string         `json:"tool"`
@@ -398,6 +405,16 @@ func (h *Harness) Invoke(ctx context.Context, req InvokeRequest) (resp InvokeRes
 		resp := InvokeResponse{Status: "error", Error: err.Error()}
 		return resp, err
 	}
+	if err := broadMixObserveFirstWriteGuard(req.Context, spec, cmd); err != nil {
+		resp := InvokeResponse{
+			Status:      "error",
+			Tool:        spec.ToolName,
+			CommandName: spec.CommandName,
+			RiskLevel:   spec.RiskLevel,
+			Error:       err.Error(),
+		}
+		return resp, err
+	}
 	if err := h.resolveImplicitTargets(ctx, spec, cmd, req.Context); err != nil {
 		resp := InvokeResponse{
 			Status:      "error",
@@ -471,7 +488,7 @@ func (h *Harness) Invoke(ctx context.Context, req InvokeRequest) (resp InvokeRes
 		h.journal.Record(action)
 		preview := PreviewCommand(spec, cmd)
 		if shouldAutoGoalBaseline(spec) && goalID != "" {
-			preview = "确认后，VitAgent 会先创建一个项目历史安全检查点。\n" + preview
+			preview = "\u786e\u8ba4\u540e\uff0cVitAgent \u4f1a\u5148\u521b\u5efa\u4e00\u4e2a\u9879\u76ee\u5386\u53f2\u5b89\u5168\u68c0\u67e5\u70b9\u3002\n" + preview
 		}
 		resp := InvokeResponse{
 			Status:               "needs_confirmation",
@@ -656,6 +673,83 @@ func (h *Harness) executionIDs(req InvokeRequest) (string, string, string) {
 	return runID, goalID, toolCallID
 }
 
+func broadMixObserveFirstWriteGuard(requestContext map[string]any, spec tools.CommandSpec, cmd map[string]any) error {
+	if !broadMixWriteCommand(spec, cmd) {
+		return nil
+	}
+	userText := broadMixGuardUserText(requestContext)
+	if !broadMixNaturalRequest(userText) || broadMixExplicitPluginOrRawRequest(userText) {
+		return nil
+	}
+	return fmt.Errorf("ordinary acoustic mixing requests must run mix.request_observation and receive a concrete observation before loading plugins, learning plugin profiles, changing volume, applying controls, or writing parameters")
+}
+
+func broadMixWriteCommand(spec tools.CommandSpec, cmd map[string]any) bool {
+	name := strings.ToLower(strings.TrimSpace(firstNonEmpty(spec.CommandName, tools.CommandName(cmd), fmt.Sprint(cmd["tool"]))))
+	switch name {
+	case "rack_add_node", "rack.add_node", "plugin.load_to_rack", "instantiate_plugin", "plugin.instantiate",
+		"plugin_grabber_load_and_get_params", "plugin_grabber.load_and_get_params",
+		"plugin_grabber_learn_project_profile", "plugin_grabber.learn_project_profile", "plugin.learn_project_profile",
+		"plugin_grabber_apply_control", "plugin_grabber.apply_control", "plugin_grabber.apply",
+		"set_plugin_param", "plugin.set_parameter", "plugin_set_parameter",
+		"set_volume", "track.volume",
+		"control_add_macro", "control.add_macro", "rack.add_macro", "control_add_binding", "control.add_binding":
+		return true
+	default:
+		return false
+	}
+}
+
+func broadMixGuardUserText(requestContext map[string]any) string {
+	for _, key := range []string{"user_message", "user_text", "goal_summary", "goal", "intent", "user_intent", "original_user_message"} {
+		if text := strings.TrimSpace(fmt.Sprint(requestContext[key])); text != "" && text != "<nil>" {
+			return text
+		}
+	}
+	return ""
+}
+
+func broadMixNaturalRequest(userText string) bool {
+	text := strings.ToLower(strings.TrimSpace(userText))
+	if text == "" {
+		return false
+	}
+	return broadMixTextHasAny(text,
+		"\u6df7\u97f3", "\u7f29\u6df7", "\u58f0\u97f3\u5904\u7406", "\u8c03\u4e00\u4e0b", "\u5904\u7406\u4e00\u4e0b",
+		"\u4e3b\u5531", "\u4eba\u58f0", "vocal", "lead vocal",
+		"\u9760\u524d", "\u5f80\u524d", "\u63d0\u5347\u54cd\u5ea6", "\u54cd\u5ea6", "\u66f4\u4eae", "\u660e\u4eae", "\u6d51\u6d4a", "\u523a\u8033",
+		"\u4f4e\u9891", "\u4f4e\u4e2d\u9891", "\u7a7a\u95f4\u611f", "\u52a0\u4e00\u70b9\u7a7a\u95f4", "\u52a8\u6001", "\u538b\u7f29",
+		"mix", "mixing", "loudness", "louder", "forward", "mud", "muddy", "harsh", "bright", "space", "reverb", "dynamic",
+	)
+}
+
+func broadMixExplicitPluginOrRawRequest(userText string) bool {
+	text := strings.ToLower(strings.TrimSpace(userText))
+	if text == "" {
+		return false
+	}
+	hasExplicitVerb := broadMixTextHasAny(text,
+		"\u52a0\u8f7d", "\u6302\u8f7d", "\u6253\u5f00", "\u5b66\u4e60", "\u6293\u624b", "\u63d2\u5165", "\u65b0\u589e",
+		"\u8bbe\u7f6e\u53c2\u6570", "\u5199\u53c2\u6570", "\u6539\u53c2\u6570", "\u8c03\u53c2\u6570",
+		"load", "insert", "open", "learn", "grabber", "set parameter", "write parameter",
+	)
+	hasPluginObject := broadMixTextHasAny(text,
+		"\u63d2\u4ef6", "\u6548\u679c\u5668", "\u5747\u8861\u5668", "\u538b\u7f29\u5668", "\u6df7\u54cd", "\u5ef6\u8fdf",
+		"plugin", "vst", "eq", "compressor", "reverb", "delay", "tdr", "nova", "zl",
+	)
+	hasRawParam := broadMixTextHasAny(text, "param_id", "parameter id", "\u53c2\u6570 id", "\u5f52\u4e00\u5316", "normalized")
+	return hasRawParam || (hasExplicitVerb && hasPluginObject)
+}
+
+func broadMixTextHasAny(text string, needles ...string) bool {
+	for _, needle := range needles {
+		if needle != "" && strings.Contains(text, strings.ToLower(needle)) {
+			return true
+		}
+	}
+	return false
+}
+
 func (h *Harness) PreviewResolvedCommand(ctx context.Context, command map[string]any, requestContext map[string]any) (string, error) {
 	cmd, spec, err := h.resolveCommand(InvokeRequest{Command: command})
 	if err != nil {
@@ -791,6 +885,8 @@ func (h *Harness) invokeLocal(ctx context.Context, spec tools.CommandSpec, cmd m
 	case "goal_tick":
 		goal := h.runtime.Tick(firstString(cmd, "goal_id"), firstString(cmd, "checkpoint"))
 		return map[string]any{"goal": goal}, true
+	case "project_snapshot_export":
+		return h.projectSnapshotExportCompat(cmd), true
 	case "mix_request_observation":
 		result, err := h.requestMixObservation(ctx, cmd)
 		return resultWithErr(result, err), true
@@ -1192,7 +1288,7 @@ func (h *Harness) setMacroValuesResult(ctx context.Context, cmd map[string]any) 
 				"track_id":     trackID,
 				"control":      "track.volume",
 				"param_id":     "track.volume",
-				"param_name":   firstNonEmpty(firstString(binding, "param_name"), "轨道音量"),
+				"param_name":   firstNonEmpty(firstString(binding, "param_name"), "\u8f68\u9053\u97f3\u91cf"),
 				"target_value": targetValue,
 				"unit":         firstString(binding, "unit"),
 			})
@@ -1330,6 +1426,33 @@ func resultWithErr(result map[string]any, err error) map[string]any {
 	return result
 }
 
+func (h *Harness) projectSnapshotExportCompat(cmd map[string]any) map[string]any {
+	if h != nil && h.kernel != nil && !boolValueDefault(cmd["compat_only"], false) {
+		reply, _, err := h.kernel.SendCommand(context.Background(), map[string]any{"cmd": "project_snapshot_export"})
+		if err == nil && !strings.EqualFold(strings.TrimSpace(fmt.Sprint(reply["status"])), "error") {
+			return reply
+		}
+	}
+	state := map[string]any{}
+	if h != nil {
+		state = h.UserStateSummary(context.Background())
+	}
+	out := map[string]any{
+		"status": "ok",
+		"source": "agent_shadow_snapshot_compat",
+	}
+	if path := projectPathFromState(state); path != "" {
+		out["project_path"] = path
+	}
+	if len(state) > 0 {
+		out["project_state"] = state
+		if data, err := json.Marshal(state); err == nil {
+			out["snapshot_json"] = string(data)
+		}
+	}
+	return out
+}
+
 func (h *Harness) workspaceContext(cmd map[string]any) workspace.Context {
 	state := map[string]any{}
 	if h != nil {
@@ -1347,6 +1470,7 @@ func (h *Harness) requestMixObservation(ctx context.Context, cmd map[string]any)
 	if h != nil {
 		state = h.UserStateSummary(ctx)
 	}
+	cmd = cloneAnyMap(cmd)
 	target := mixTargetFromCommand(cmd)
 	if target.ID == "" {
 		target.ID = firstString(cmd, "track_id", "clip_id", "target_id")
@@ -1354,6 +1478,40 @@ func (h *Harness) requestMixObservation(ctx context.Context, cmd map[string]any)
 	if target.Kind == "" {
 		target.Kind = firstNonEmpty(firstString(cmd, "target_kind", "kind"), "selection")
 	}
+	resolvedContext := resolveMixObservationTargetContext(cmd, state, target)
+	if mixObservationResolutionNeedsRefresh(resolvedContext) && h != nil {
+		refresh := h.refreshShadowWithStatus(ctx, "mix_request_observation_target_resolution")
+		if boolValueDefault(refresh["shadow_refreshed"], false) {
+			state = h.UserStateSummary(ctx)
+			resolvedContext = resolveMixObservationTargetContext(cmd, state, target)
+		}
+	}
+	if resolvedTrackID := firstString(resolvedContext, "track_id"); resolvedTrackID != "" {
+		cmd["track_id"] = resolvedTrackID
+		if strings.EqualFold(target.Kind, "track") || strings.EqualFold(target.Kind, "selection") || target.Kind == "" {
+			target.Kind = "track"
+			target.ID = resolvedTrackID
+		}
+	}
+	if resolvedClipID := firstString(resolvedContext, "clip_id"); resolvedClipID != "" {
+		cmd["clip_id"] = resolvedClipID
+		if strings.EqualFold(target.Kind, "clip") {
+			target.ID = resolvedClipID
+		}
+	}
+	if path := firstString(resolvedContext, "file_path"); path != "" {
+		cmd["file_path"] = path
+	}
+	if duration := firstPositiveNumber(resolvedContext, "duration_seconds", "length_seconds", "duration"); duration > 0 {
+		cmd["duration_seconds"] = duration
+	}
+	if label := firstString(resolvedContext, "track_name", "clip_name"); target.Label == "" && label != "" {
+		target.Label = label
+	}
+	if source := firstString(resolvedContext, "source"); source != "" {
+		cmd["target_resolution_source"] = source
+	}
+	cmd = canonicalizeMixObservationCommand(cmd, target, resolvedContext)
 	featureRequest := h.requestMixObservationFeatures(ctx, cmd, state, target)
 	result, err := mixboard.NewStore("").RequestObservation(mixboard.Request{
 		MixSessionID: firstString(cmd, "mix_session_id", "session_id"),
@@ -1379,10 +1537,72 @@ func (h *Harness) requestMixObservation(ctx context.Context, cmd map[string]any)
 		"mixboard":          result.Board,
 		"context_pack":      result.ContextPack,
 	}
+	if len(resolvedContext) > 0 {
+		out["resolved_target"] = resolvedContext
+	}
+	if digest := mixObservationAcousticDigest(result.Observation, featureRequest, resolvedContext); len(digest) > 0 {
+		out["acoustic_digest"] = digest
+	}
 	if len(featureRequest) > 0 {
 		out["feature_request"] = featureRequest
 	}
 	return out, nil
+}
+
+func mixObservationResolutionNeedsRefresh(resolved map[string]any) bool {
+	trackID := firstString(resolved, "track_id")
+	clipID := firstString(resolved, "clip_id")
+	if trackID == "" || clipID == "" {
+		return true
+	}
+	return looksSyntheticTrackAlias(trackID)
+}
+
+func canonicalizeMixObservationCommand(cmd map[string]any, target mixboard.TargetRef, resolved map[string]any) map[string]any {
+	cmd = cloneAnyMap(cmd)
+	trackID := firstString(resolved, "track_id")
+	clipID := firstString(resolved, "clip_id")
+	if trackID != "" {
+		cmd["track_id"] = trackID
+	}
+	if clipID != "" {
+		cmd["clip_id"] = clipID
+	}
+	if path := firstString(resolved, "file_path"); path != "" {
+		cmd["file_path"] = path
+	}
+	if duration := firstPositiveNumber(resolved, "duration_seconds", "length_seconds", "duration"); duration > 0 {
+		cmd["duration_seconds"] = duration
+	}
+	if trackID != "" && !looksSyntheticTrackAlias(trackID) {
+		label := firstNonEmpty(firstString(resolved, "track_name"), target.Label, trackID)
+		cmd["target_ref"] = map[string]any{
+			"kind":       "track",
+			"id":         trackID,
+			"label":      label,
+			"source":     firstNonEmpty(firstString(resolved, "source"), target.Source, "resolved_observation_target"),
+			"confidence": firstNonEmpty(target.Confidence, "high"),
+		}
+		cmd["mix_objects"] = []any{map[string]any{
+			"mode":         "target_ref",
+			"kind":         "track",
+			"id":           trackID,
+			"label":        label,
+			"effect_scope": "track_rack",
+			"source":       "resolved_observation_target",
+		}}
+		cmd["listen_scope"] = map[string]any{
+			"time": map[string]any{
+				"mode":   "full_song",
+				"source": "default",
+			},
+			"source": map[string]any{
+				"mode":      "full_mix_context",
+				"focus_ids": []any{trackID},
+			},
+		}
+	}
+	return cmd
 }
 
 func (h *Harness) requestMixObservationFeatures(ctx context.Context, cmd map[string]any, state map[string]any, target mixboard.TargetRef) map[string]any {
@@ -1415,18 +1635,47 @@ func (h *Harness) requestMixObservationFeatures(ctx context.Context, cmd map[str
 			"feature_type":        featureType,
 			"mixboard_request_id": firstString(packet, "request_id"),
 		}
-		reply, _, err := h.kernel.SendCommand(ctx, kernelCmd)
-		if err != nil || !kernelReplySucceeded(reply) {
-			reason := firstNonEmpty(fmt.Sprint(reply["message"]), fmt.Sprint(reply["error"]), fmt.Sprint(err), "kernel_feature_request_failed")
-			skipped = append(skipped, map[string]any{"feature_type": featureType, "reason": reason})
-			continue
-		}
-		requested = append(requested, map[string]any{
+		requestRow := map[string]any{
 			"feature_type": featureType,
 			"request_id":   requestID,
 			"track_id":     trackID,
 			"clip_id":      clipID,
-		})
+		}
+		packet["status"] = "requested"
+		packet["requested_features"] = append(append([]any{}, requested...), requestRow)
+		packet["skipped_features"] = skipped
+		writeMixboardFeatureRequestSnapshot(cmd, packet)
+
+		var reply map[string]any
+		sent := false
+		sendBake := func() error {
+			if sent {
+				return nil
+			}
+			sent = true
+			var sendErr error
+			reply, _, sendErr = h.kernel.SendCommand(ctx, kernelCmd)
+			if sendErr != nil || !kernelReplySucceeded(reply) {
+				reason := firstNonEmpty(fmt.Sprint(reply["message"]), fmt.Sprint(reply["error"]), fmt.Sprint(sendErr), "kernel_feature_request_failed")
+				return fmt.Errorf("%s", reason)
+			}
+			return nil
+		}
+		collector, _ := collectWaveformFeatureTiles(ctx, mixboardFeatureSubURL, trackID, clipID, mixboardFeatureCollectWait(), sendBake)
+		if !sent {
+			_ = sendBake()
+		}
+		if !kernelReplySucceeded(reply) {
+			reason := firstNonEmpty(fmt.Sprint(reply["message"]), fmt.Sprint(reply["error"]), "kernel_feature_request_failed")
+			skipped = append(skipped, map[string]any{"feature_type": featureType, "reason": reason})
+			continue
+		}
+		requested = append(requested, requestRow)
+		if collector != nil && collector.TileCount() > 0 {
+			if row := collector.SnapshotRow(firstString(packet, "request_id")); len(row) > 0 {
+				writeMixboardReadyWaveformSnapshot(cmd, packet, row)
+			}
+		}
 	}
 	packet["requested_features"] = requested
 	packet["skipped_features"] = skipped
@@ -1436,9 +1685,686 @@ func (h *Harness) requestMixObservationFeatures(ctx context.Context, cmd map[str
 		packet["status"] = "blocked"
 		packet["reason"] = "all_feature_requests_skipped"
 	}
-	writeMixboardFeatureRequestSnapshot(cmd, packet)
+	if len(requested) == 0 || !mixboardFeatureRowsReadyForTarget(readMixboardFeatureSnapshotFile(mixboard.FeatureSnapshotPath(cmd)), trackID, clipID) {
+		writeMixboardFeatureRequestSnapshot(cmd, packet)
+	}
 	waitForMixboardFeatureSnapshotReady(ctx, cmd, trackID, clipID, mixboardFeatureReadyWait())
 	return packet
+}
+
+func collectMixboardWaveformSnapshot(ctx context.Context, cmd map[string]any, packet map[string]any, trackID, clipID string, timeout time.Duration) {
+	if timeout <= 0 {
+		return
+	}
+	collector, err := collectWaveformFeatureTiles(ctx, mixboardFeatureSubURL, trackID, clipID, timeout, nil)
+	if err != nil || collector == nil || collector.TileCount() == 0 {
+		return
+	}
+	row := collector.SnapshotRow(firstString(packet, "request_id"))
+	if len(row) == 0 {
+		return
+	}
+	writeMixboardReadyWaveformSnapshot(cmd, packet, row)
+}
+
+type waveformFeatureCollector struct {
+	TrackID         string
+	ClipID          string
+	FilePath        string
+	TotalDuration   float64
+	ExpectedTiles   int
+	FrameCount      int
+	FeatureStride   int
+	FloatCount      int
+	TilesSeen       int
+	PeakAbs         float64
+	SumSquares      float64
+	SampleFrames    int64
+	TimeSegments    []map[string]any
+	FirstReceivedAt string
+	LastReceivedAt  string
+}
+
+func (c *waveformFeatureCollector) AddEvent(event map[string]any) {
+	if c == nil {
+		return
+	}
+	now := time.Now().UTC().Format(time.RFC3339Nano)
+	if c.FirstReceivedAt == "" {
+		c.FirstReceivedAt = now
+	}
+	c.LastReceivedAt = now
+	c.TrackID = firstNonEmpty(c.TrackID, firstString(event, "track_id", "source_track_id"))
+	c.ClipID = firstNonEmpty(c.ClipID, firstString(event, "clip_id"))
+	c.FilePath = firstNonEmpty(c.FilePath, firstString(event, "file_path"))
+	if duration := numberFromAny(event["total_duration"]); duration > 0 {
+		c.TotalDuration = duration
+	}
+	frameCount := int(numberFromAny(event["resolution_frame_count"]))
+	stride := int(numberFromAny(event["feature_stride"]))
+	floatCount := int(numberFromAny(event["float_count"]))
+	if frameCount <= 0 || stride <= 0 || floatCount <= 0 {
+		return
+	}
+	c.FrameCount = frameCount
+	c.FeatureStride = stride
+	c.FloatCount += floatCount
+	if c.ExpectedTiles <= 0 {
+		c.ExpectedTiles = expectedWaveformTileCount(c.TotalDuration)
+	}
+	floats, err := readSharedFloat32Array(firstString(event, "shared_memory"), floatCount)
+	if err != nil || len(floats) < stride {
+		return
+	}
+	tileStart := numberFromAny(event["tile_content_start_seconds"])
+	tileDuration := numberFromAny(event["tile_duration"])
+	frameDuration := numberFromAny(event["frame_duration_seconds"])
+	var tilePeak float64
+	var tileSumSquares float64
+	var tileFrames int64
+	for frame := 0; frame < frameCount; frame++ {
+		base := frame * stride
+		if base+5 >= len(floats) {
+			break
+		}
+		minL := math.Abs(float64(floats[base+0]))
+		maxL := math.Abs(float64(floats[base+1]))
+		minR := math.Abs(float64(floats[base+2]))
+		maxR := math.Abs(float64(floats[base+3]))
+		lRMS := float64(floats[base+4])
+		rRMS := float64(floats[base+5])
+		peak := math.Max(math.Max(minL, maxL), math.Max(minR, maxR))
+		rms := math.Sqrt((lRMS*lRMS + rRMS*rRMS) / 2)
+		if peak > tilePeak {
+			tilePeak = peak
+		}
+		if peak > c.PeakAbs {
+			c.PeakAbs = peak
+		}
+		tileSumSquares += rms * rms
+		tileFrames++
+	}
+	if tileFrames <= 0 {
+		return
+	}
+	c.TilesSeen++
+	c.SumSquares += tileSumSquares
+	c.SampleFrames += tileFrames
+	tileRMS := math.Sqrt(tileSumSquares / float64(tileFrames))
+	if tileDuration <= 0 && frameDuration > 0 {
+		tileDuration = frameDuration * float64(tileFrames)
+	}
+	c.TimeSegments = append(c.TimeSegments, map[string]any{
+		"start_seconds": tileStart,
+		"end_seconds":   round3(tileStart + tileDuration),
+		"rms":           round6(tileRMS),
+		"rms_dbfs":      dbfsValue(tileRMS),
+		"peak_abs":      round6(tilePeak),
+		"peak_dbfs":     dbfsValue(tilePeak),
+		"crest_db":      crestDBValue(tilePeak, tileRMS),
+		"energy_state":  waveformEnergyState(tileRMS),
+	})
+}
+
+func (c *waveformFeatureCollector) TileCount() int {
+	if c == nil {
+		return 0
+	}
+	return c.TilesSeen
+}
+
+func (c *waveformFeatureCollector) Complete() bool {
+	if c == nil || c.TilesSeen <= 0 {
+		return false
+	}
+	return c.ExpectedTiles > 0 && c.TilesSeen >= c.ExpectedTiles
+}
+
+func (c *waveformFeatureCollector) SnapshotRow(requestID string) map[string]any {
+	if c == nil || c.TilesSeen <= 0 || c.SampleFrames <= 0 {
+		return nil
+	}
+	rms := math.Sqrt(c.SumSquares / float64(c.SampleFrames))
+	row := map[string]any{
+		"status":              "ready",
+		"track_id":            c.TrackID,
+		"clip_id":             c.ClipID,
+		"file_path":           c.FilePath,
+		"request_id":          requestID,
+		"source":              "kernel_audio_feature_data_ready",
+		"total_duration":      round3(c.TotalDuration),
+		"rms":                 round6(rms),
+		"peak_abs":            round6(c.PeakAbs),
+		"rms_dbfs":            dbfsValue(rms),
+		"peak_dbfs":           dbfsValue(c.PeakAbs),
+		"headroom_db":         headroomDBValue(c.PeakAbs),
+		"crest_db":            crestDBValue(c.PeakAbs, rms),
+		"float_count":         c.FloatCount,
+		"tile_count_seen":     c.TilesSeen,
+		"tile_count_expected": c.ExpectedTiles,
+		"time_segments":       c.TimeSegments,
+		"updated_at":          firstNonEmpty(c.LastReceivedAt, time.Now().UTC().Format(time.RFC3339Nano)),
+	}
+	if c.FirstReceivedAt != "" {
+		row["first_received_at"] = c.FirstReceivedAt
+	}
+	return row
+}
+
+func collectWaveformFeatureTiles(ctx context.Context, subURL, trackID, clipID string, timeout time.Duration, afterSubscribe func() error) (*waveformFeatureCollector, error) {
+	if strings.TrimSpace(subURL) == "" {
+		subURL = mixboardFeatureSubURL
+	}
+	opCtx, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
+	sub := zmq4.NewSub(opCtx, zmq4.WithTimeout(120*time.Millisecond), zmq4.WithAutomaticReconnect(true))
+	defer sub.Close()
+	if err := sub.SetOption(zmq4.OptionSubscribe, ""); err != nil {
+		return nil, err
+	}
+	if err := sub.Dial(subURL); err != nil {
+		return nil, err
+	}
+	collector := &waveformFeatureCollector{TrackID: trackID, ClipID: clipID}
+	if afterSubscribe != nil {
+		if err := afterSubscribe(); err != nil {
+			return collector, err
+		}
+	}
+	for {
+		select {
+		case <-opCtx.Done():
+			return collector, nil
+		default:
+		}
+		msg, err := sub.Recv()
+		if err != nil {
+			if errors.Is(err, context.DeadlineExceeded) || strings.Contains(strings.ToLower(err.Error()), "timeout") {
+				continue
+			}
+			if errors.Is(err, context.Canceled) {
+				return collector, nil
+			}
+			return collector, err
+		}
+		event := map[string]any{}
+		if err := json.Unmarshal([]byte(zmqMsgPayload(msg)), &event); err != nil {
+			continue
+		}
+		if !strings.EqualFold(firstString(event, "command"), "audio_feature_data_ready") {
+			continue
+		}
+		if !strings.EqualFold(firstString(event, "feature_type"), "waveform_envelope") {
+			continue
+		}
+		if trackID != "" && firstString(event, "track_id", "source_track_id") != trackID {
+			continue
+		}
+		if clipID != "" && firstString(event, "clip_id") != clipID {
+			continue
+		}
+		collector.AddEvent(event)
+		if collector.Complete() {
+			return collector, nil
+		}
+	}
+}
+
+func zmqMsgPayload(msg zmq4.Msg) string {
+	if len(msg.Frames) == 0 {
+		return ""
+	}
+	return string(msg.Frames[len(msg.Frames)-1])
+}
+
+func expectedWaveformTileCount(duration float64) int {
+	if duration <= 0 {
+		return 0
+	}
+	return int(math.Ceil(duration / 5.0))
+}
+
+func dbfsValue(value float64) any {
+	if value <= 0 {
+		return nil
+	}
+	return round3(20 * math.Log10(value))
+}
+
+func headroomDBValue(peak float64) any {
+	if peak <= 0 {
+		return nil
+	}
+	return round3(-20 * math.Log10(peak))
+}
+
+func crestDBValue(peak, rms float64) any {
+	if peak <= 0 || rms <= 0 {
+		return nil
+	}
+	return round3(20 * math.Log10(peak/rms))
+}
+
+func waveformEnergyState(rms float64) string {
+	switch {
+	case rms <= 0:
+		return "silent"
+	case rms < 0.02:
+		return "low"
+	case rms < 0.12:
+		return "medium"
+	default:
+		return "high"
+	}
+}
+
+func round6(v float64) float64 {
+	return math.Round(v*1_000_000) / 1_000_000
+}
+
+var (
+	modkernel32       = syscall.NewLazyDLL("kernel32.dll")
+	procOpenFileMapA  = modkernel32.NewProc("OpenFileMappingA")
+	procMapViewOfFile = modkernel32.NewProc("MapViewOfFile")
+	procUnmapView     = modkernel32.NewProc("UnmapViewOfFile")
+	procCloseHandle   = modkernel32.NewProc("CloseHandle")
+)
+
+const fileMapRead = 0x0004
+
+func readSharedFloat32Array(memoryName string, floatCount int) ([]float32, error) {
+	memoryName = strings.TrimSpace(memoryName)
+	if memoryName == "" || floatCount <= 0 {
+		return nil, fmt.Errorf("shared memory name and float_count are required")
+	}
+	namePtr, err := syscall.BytePtrFromString(memoryName)
+	if err != nil {
+		return nil, err
+	}
+	handle, _, err := procOpenFileMapA.Call(uintptr(fileMapRead), uintptr(0), uintptr(unsafe.Pointer(namePtr)))
+	if handle == 0 {
+		return nil, firstSyscallError(err, "OpenFileMappingA failed")
+	}
+	defer procCloseHandle.Call(handle)
+	byteCount := uintptr(floatCount * 4)
+	view, _, err := procMapViewOfFile.Call(handle, uintptr(fileMapRead), 0, 0, byteCount)
+	if view == 0 {
+		return nil, firstSyscallError(err, "MapViewOfFile failed")
+	}
+	defer procUnmapView.Call(view)
+	bytes := unsafe.Slice((*byte)(unsafe.Pointer(view)), int(byteCount))
+	out := make([]float32, floatCount)
+	for i := range out {
+		bits := binary.LittleEndian.Uint32(bytes[i*4 : i*4+4])
+		out[i] = math.Float32frombits(bits)
+	}
+	return out, nil
+}
+
+func firstSyscallError(err error, fallback string) error {
+	if err != nil && !errors.Is(err, syscall.Errno(0)) {
+		return err
+	}
+	return fmt.Errorf("%s", fallback)
+}
+
+func writeMixboardReadyWaveformSnapshot(cmd map[string]any, packet map[string]any, waveform map[string]any) {
+	path := mixboard.FeatureSnapshotPath(cmd)
+	existing := readMixboardFeatureSnapshotFile(path)
+	if len(existing) == 0 {
+		existing = map[string]any{"schema_version": "mixboard_feature_snapshot.v1"}
+	}
+	existing["schema_version"] = "mixboard_feature_snapshot.v1"
+	existing["updated_at"] = time.Now().UTC().Format(time.RFC3339Nano)
+	existing["latest_request"] = packet
+	existing["waveform_envelope"] = waveform
+	if _, ok := existing["spectrogram_tiles"]; !ok {
+		existing["spectrogram_tiles"] = map[string]any{"status": "missing"}
+	}
+	if _, ok := existing["band_energy_summary"]; !ok {
+		existing["band_energy_summary"] = map[string]any{"status": "missing"}
+	}
+	if _, ok := existing["stereo_relation_summary"]; !ok {
+		existing["stereo_relation_summary"] = map[string]any{"status": "missing"}
+	}
+	data, err := json.MarshalIndent(existing, "", "\t")
+	if err != nil {
+		return
+	}
+	_ = os.MkdirAll(filepath.Dir(path), 0o755)
+	_ = os.WriteFile(path, append(data, '\n'), 0o644)
+}
+
+func resolveMixObservationTargetContext(cmd map[string]any, state map[string]any, target mixboard.TargetRef) map[string]any {
+	resolved := map[string]any{}
+	trackID := strings.TrimSpace(firstString(cmd, "track_id", "target_track_id", "selected_track_id"))
+	clipID := strings.TrimSpace(firstString(cmd, "clip_id", "selected_clip_id", "source_clip_id", "target_clip_id"))
+	targetID := strings.TrimSpace(target.ID)
+	targetKind := strings.ToLower(strings.TrimSpace(target.Kind))
+	if trackID == "" {
+		trackID = strings.TrimSpace(firstString(targetToMap(target), "track_id"))
+	}
+	if clipID == "" {
+		clipID = strings.TrimSpace(firstString(targetToMap(target), "clip_id"))
+	}
+	if trackID == "" && targetID != "" && (targetKind == "track" || targetKind == "selection" || targetKind == "") {
+		trackID = targetID
+	}
+	if clipID == "" && targetID != "" && targetKind == "clip" {
+		clipID = targetID
+	}
+	tracks := visibleTrackRows(state)
+	if trackID != "" {
+		if canonical, ok := resolveVisibleTrackAlias(trackID, tracks); ok {
+			trackID = canonical
+		}
+	}
+	if trackID != "" {
+		for _, row := range tracks {
+			if visibleTrackID(row) != trackID {
+				continue
+			}
+			resolved["track_id"] = trackID
+			if name := visibleTrackName(row); name != "" {
+				resolved["track_name"] = name
+			}
+			clips := mapRowsFromAny(row["clips"])
+			if clipID == "" && len(clips) > 0 {
+				if selected := strings.TrimSpace(firstString(cmd, "selected_clip_id")); selected != "" {
+					clipID = selected
+				}
+				if clipID == "" {
+					clipID = firstString(clips[0], "clip_id", "id", "item_id")
+				}
+			}
+			if clipID != "" {
+				for _, clip := range clips {
+					if firstString(clip, "clip_id", "id", "item_id") == clipID {
+						resolved["clip_id"] = clipID
+						if name := firstString(clip, "name", "clip_name"); name != "" {
+							resolved["clip_name"] = name
+						}
+						if path := firstNonEmpty(firstString(clip, "file_path", "source_path", "current_source_path"), firstString(row, "file_path", "source_path", "current_source_path")); path != "" {
+							resolved["file_path"] = path
+						}
+						if length := firstPositiveNumber(clip, "length_seconds", "duration_seconds", "duration"); length > 0 {
+							resolved["duration_seconds"] = length
+						}
+						resolved["source"] = "selected_track_first_clip"
+						return resolved
+					}
+				}
+			}
+			if len(clips) == 1 {
+				clip := clips[0]
+				if found := firstString(clip, "clip_id", "id", "item_id"); found != "" {
+					resolved["clip_id"] = found
+				}
+				if name := firstString(clip, "name", "clip_name"); name != "" {
+					resolved["clip_name"] = name
+				}
+				if path := firstNonEmpty(firstString(clip, "file_path", "source_path", "current_source_path"), firstString(row, "file_path", "source_path", "current_source_path")); path != "" {
+					resolved["file_path"] = path
+				}
+				if length := firstPositiveNumber(clip, "length_seconds", "duration_seconds", "duration"); length > 0 {
+					resolved["duration_seconds"] = length
+				}
+				resolved["source"] = "selected_track_only_clip"
+				return resolved
+			}
+			if path := firstString(row, "file_path", "source_path", "current_source_path"); path != "" {
+				resolved["file_path"] = path
+				resolved["source"] = "track_file_path"
+			}
+			return resolved
+		}
+	}
+	if clipID != "" {
+		for _, row := range tracks {
+			for _, clip := range mapRowsFromAny(row["clips"]) {
+				if firstString(clip, "clip_id", "id", "item_id") != clipID {
+					continue
+				}
+				resolved["track_id"] = visibleTrackID(row)
+				resolved["track_name"] = visibleTrackName(row)
+				resolved["clip_id"] = clipID
+				if name := firstString(clip, "name", "clip_name"); name != "" {
+					resolved["clip_name"] = name
+				}
+				if path := firstNonEmpty(firstString(clip, "file_path", "source_path", "current_source_path"), firstString(row, "file_path", "source_path", "current_source_path")); path != "" {
+					resolved["file_path"] = path
+				}
+				if length := firstPositiveNumber(clip, "length_seconds", "duration_seconds", "duration"); length > 0 {
+					resolved["duration_seconds"] = length
+				}
+				resolved["source"] = "clip_lookup"
+				return resolved
+			}
+		}
+	}
+	if len(tracks) == 1 {
+		row := tracks[0]
+		resolved["track_id"] = visibleTrackID(row)
+		resolved["track_name"] = visibleTrackName(row)
+		clips := mapRowsFromAny(row["clips"])
+		if len(clips) == 1 {
+			clip := clips[0]
+			if found := firstString(clip, "clip_id", "id", "item_id"); found != "" {
+				resolved["clip_id"] = found
+			}
+			if name := firstString(clip, "name", "clip_name"); name != "" {
+				resolved["clip_name"] = name
+			}
+			if path := firstNonEmpty(firstString(clip, "file_path", "source_path", "current_source_path"), firstString(row, "file_path", "source_path", "current_source_path")); path != "" {
+				resolved["file_path"] = path
+			}
+			if length := firstPositiveNumber(clip, "length_seconds", "duration_seconds", "duration"); length > 0 {
+				resolved["duration_seconds"] = length
+			}
+			resolved["source"] = "single_visible_track_single_clip"
+			return resolved
+		}
+	}
+	return resolved
+}
+
+func looksSyntheticTrackAlias(ref string) bool {
+	ref = strings.ToLower(strings.TrimSpace(ref))
+	if ref == "" {
+		return false
+	}
+	if regexp.MustCompile(`^track[_ -]?\d+$`).MatchString(ref) {
+		return true
+	}
+	return false
+}
+
+func resolveVisibleTrackAlias(ref string, tracks []map[string]any) (string, bool) {
+	ref = strings.TrimSpace(ref)
+	if ref == "" {
+		return "", false
+	}
+	for _, row := range tracks {
+		if id := visibleTrackID(row); id != "" && id == ref {
+			return id, true
+		}
+	}
+	for _, row := range tracks {
+		id := visibleTrackID(row)
+		if id == "" {
+			continue
+		}
+		if strings.EqualFold(visibleTrackName(row), ref) {
+			return id, true
+		}
+		if aliases := visibleTrackAliases(row); stringSliceContainsFold(aliases, ref) {
+			return id, true
+		}
+	}
+	return "", false
+}
+
+func visibleTrackAliases(row map[string]any) []string {
+	id := visibleTrackID(row)
+	name := visibleTrackName(row)
+	out := []string{id, name}
+	if idx, ok := firstPositiveInt(row, "user_track_index", "track_index", "index"); ok {
+		out = append(out,
+			fmt.Sprintf("track_%d", idx),
+			fmt.Sprintf("Track %d", idx),
+			fmt.Sprintf("track %d", idx),
+			fmt.Sprintf("%d", idx),
+		)
+	}
+	if n, ok := trailingPositiveInt(name); ok {
+		out = append(out,
+			fmt.Sprintf("track_%d", n),
+			fmt.Sprintf("Track %d", n),
+			fmt.Sprintf("track %d", n),
+		)
+	}
+	return out
+}
+
+func trailingPositiveInt(text string) (int, bool) {
+	text = strings.TrimSpace(text)
+	if text == "" {
+		return 0, false
+	}
+	matches := regexp.MustCompile(`(\d+)\s*$`).FindStringSubmatch(text)
+	if len(matches) < 2 {
+		return 0, false
+	}
+	n, err := strconv.Atoi(matches[1])
+	return n, err == nil && n > 0
+}
+
+func stringSliceContainsFold(values []string, needle string) bool {
+	needle = strings.TrimSpace(needle)
+	if needle == "" {
+		return false
+	}
+	for _, value := range values {
+		if strings.EqualFold(strings.TrimSpace(value), needle) {
+			return true
+		}
+	}
+	return false
+}
+
+func targetToMap(target mixboard.TargetRef) map[string]any {
+	return map[string]any{
+		"kind":  target.Kind,
+		"id":    target.ID,
+		"label": target.Label,
+	}
+}
+
+func mixObservationAcousticDigest(obs mixboard.ObservationPacket, featureRequest map[string]any, resolvedContext map[string]any) map[string]any {
+	out := map[string]any{}
+	if strings.TrimSpace(obs.Status) != "" {
+		out["status"] = obs.Status
+	}
+	if target := obs.TargetRef; strings.TrimSpace(target.ID) != "" {
+		out["target"] = map[string]any{
+			"kind":  target.Kind,
+			"id":    target.ID,
+			"label": target.Label,
+		}
+	}
+	if clipID := firstString(resolvedContext, "clip_id"); clipID != "" {
+		out["clip_id"] = clipID
+	}
+	if clipName := firstString(resolvedContext, "clip_name"); clipName != "" {
+		out["clip_name"] = clipName
+	}
+	if path := firstString(resolvedContext, "file_path"); path != "" {
+		out["file_path"] = path
+	}
+	if duration := numberFromAny(resolvedContext["duration_seconds"]); duration > 0 {
+		out["duration_seconds"] = round3(duration)
+	}
+	if global := obs.GlobalSummary; len(global) > 0 {
+		for _, key := range []string{"peak_dbfs", "rms_dbfs", "crest_db", "dominant_problem_tags"} {
+			if value, ok := global[key]; ok && !isEmptyValue(value) {
+				out[key] = value
+			}
+		}
+	}
+	if mixPkg, ok := obs.MixPackage["current_metrics"].(map[string]any); ok && len(mixPkg) > 0 {
+		if waveform, ok := mixPkg["waveform"].(map[string]any); ok {
+			out["waveform"] = map[string]any{
+				"status":      waveform["status"],
+				"rms":         waveform["rms"],
+				"peak_abs":    waveform["peak_abs"],
+				"peak_dbfs":   waveform["peak_dbfs"],
+				"rms_dbfs":    waveform["rms_dbfs"],
+				"crest_db":    waveform["crest_db"],
+				"headroom_db": waveform["headroom_db"],
+			}
+		}
+		if timeEnergy, ok := mixPkg["time_energy"].([]map[string]any); ok && len(timeEnergy) > 0 {
+			out["time_energy"] = capHarnessRows(timeEnergy, 8)
+		} else if rows := mapRowsFromAny(mixPkg["time_energy"]); len(rows) > 0 {
+			out["time_energy"] = capHarnessRows(rows, 8)
+		}
+		if bandEnergy, ok := mixPkg["band_energy"].(map[string]any); ok {
+			out["band_energy_status"] = bandEnergy["status"]
+			if bands, ok := bandEnergy["bands"].(map[string]any); ok && len(bands) > 0 {
+				out["band_energy"] = map[string]any{
+					"low_mid":  numberOrText(bands["low_mid"], "energy_db"),
+					"mid":      numberOrText(bands["mid"], "energy_db"),
+					"presence": numberOrText(bands["presence"], "energy_db"),
+				}
+			}
+		}
+		if stereo, ok := mixPkg["stereo_relation"].(map[string]any); ok {
+			out["stereo_relation_status"] = stereo["status"]
+			for _, key := range []string{"balance_db", "correlation_estimate", "balance_state", "correlation_state"} {
+				if value, ok := stereo[key]; ok && !isEmptyValue(value) {
+					out[key] = value
+				}
+			}
+		}
+	}
+	if featureRequestStatus := firstString(featureRequest, "status"); featureRequestStatus != "" {
+		out["feature_request_status"] = featureRequestStatus
+	}
+	if reason := firstString(featureRequest, "reason"); reason != "" {
+		out["feature_request_reason"] = reason
+	}
+	if missing := stringSliceFromAny(obs.MixPackage["missing_metrics"]); len(missing) > 0 {
+		out["missing_metrics"] = missing
+	}
+	if notes := obs.Notes; len(notes) > 0 {
+		out["notes"] = notes
+	}
+	return out
+}
+
+func numberOrText(value any, key string) any {
+	row, _ := value.(map[string]any)
+	if len(row) == 0 {
+		return nil
+	}
+	if n, ok := numberValueFromMap(row, key); ok {
+		return round3(n)
+	}
+	if text := firstString(row, key); text != "" {
+		return text
+	}
+	return nil
+}
+
+func capHarnessRows(rows []map[string]any, max int) []map[string]any {
+	if max <= 0 || len(rows) <= max {
+		return rows
+	}
+	return rows[:max]
+}
+
+func round3(v float64) float64 {
+	return math.Round(v*1000) / 1000
 }
 
 func mixboardFeatureReadyWait() time.Duration {
@@ -1451,6 +2377,14 @@ func mixboardFeatureReadyWait() time.Duration {
 		return mixboardFeatureReadyWaitDefault
 	}
 	return time.Duration(ms) * time.Millisecond
+}
+
+func mixboardFeatureCollectWait() time.Duration {
+	wait := mixboardFeatureReadyWait()
+	if wait < 120*time.Millisecond {
+		return 120 * time.Millisecond
+	}
+	return wait
 }
 
 func newMixboardFeatureRequestPacket(cmd map[string]any, target mixboard.TargetRef) map[string]any {
@@ -1489,7 +2423,21 @@ func resolveMixboardFeatureTarget(cmd map[string]any, state map[string]any, targ
 	if trackID == "" {
 		trackID = firstString(cmd, "selected_clip_track_id", "track_id", "selected_track_id")
 	}
+	if trackID == "" && id != "" && (kind == "track" || kind == "selection" || kind == "") {
+		trackID = id
+	}
+	if clipID == "" && id != "" && kind == "clip" {
+		clipID = id
+	}
 	refs := visibleClipRefs(state)
+	if trackID != "" {
+		if canonical, ok := resolveVisibleTrackAlias(trackID, visibleTrackRows(state)); ok {
+			trackID = canonical
+			if kind == "track" {
+				id = canonical
+			}
+		}
+	}
 	if clipID != "" {
 		for _, ref := range refs {
 			if ref.ID == clipID {
@@ -1856,20 +2804,12 @@ func (h *Harness) historyArgs(cmd map[string]any) map[string]any {
 
 func (h *Harness) enrichHistoryCheckpointArgs(cmd map[string]any) map[string]any {
 	out := h.historyArgs(cmd)
-	if !isEmptyValue(out["project_snapshot_xml"]) || h == nil || h.kernel == nil {
+	if !isEmptyValue(out["project_snapshot_xml"]) || h == nil {
 		return out
 	}
 	preferKernelProjectPath := boolValueDefault(out["prefer_kernel_project_path"], false)
 	delete(out, "prefer_kernel_project_path")
-	reply, _, err := h.kernel.SendCommand(context.Background(), map[string]any{"cmd": "project_snapshot_export"})
-	if err != nil {
-		out["snapshot_export_error"] = err.Error()
-		return out
-	}
-	if strings.EqualFold(strings.TrimSpace(fmt.Sprint(reply["status"])), "error") {
-		out["snapshot_export_error"] = firstNonEmpty(fmt.Sprint(reply["message"]), fmt.Sprint(reply["error"]), "project_snapshot_export failed")
-		return out
-	}
+	reply := h.projectSnapshotExportCompat(nil)
 	if snapshot := firstString(reply, "snapshot_xml"); snapshot != "" {
 		out["project_snapshot_xml"] = snapshot
 	}
@@ -1884,18 +2824,10 @@ func (h *Harness) enrichHistoryCheckpointArgs(cmd map[string]any) map[string]any
 
 func (h *Harness) enrichHistorySnapshotArgs(cmd map[string]any) map[string]any {
 	out := h.historyArgs(cmd)
-	if !isEmptyValue(out["project_snapshot_xml"]) || h == nil || h.kernel == nil {
+	if !isEmptyValue(out["project_snapshot_xml"]) || h == nil {
 		return out
 	}
-	reply, _, err := h.kernel.SendCommand(context.Background(), map[string]any{"cmd": "project_snapshot_export"})
-	if err != nil {
-		out["snapshot_export_error"] = err.Error()
-		return out
-	}
-	if strings.EqualFold(strings.TrimSpace(fmt.Sprint(reply["status"])), "error") {
-		out["snapshot_export_error"] = firstNonEmpty(fmt.Sprint(reply["message"]), fmt.Sprint(reply["error"]), "project_snapshot_export failed")
-		return out
-	}
+	reply := h.projectSnapshotExportCompat(nil)
 	if snapshot := firstString(reply, "snapshot_xml"); snapshot != "" {
 		out["project_snapshot_xml"] = snapshot
 	}
@@ -2409,18 +3341,18 @@ func normalizeCommandArgs(spec tools.CommandSpec, cmd map[string]any, requestCon
 	case "set_mute":
 		copyBoolAlias(cmd, "mute", "muted", "enabled", "value")
 		inferBoolFromUserMessage(cmd, "mute", requestContext,
-			[]string{"unmute", "取消静音", "解除静音", "取消mute", "取消 mute", "关闭静音"},
-			[]string{"mute", "静音"})
+			[]string{"unmute", "\u53d6\u6d88\u9759\u97f3", "\u89e3\u9664\u9759\u97f3", "\u53d6\u6d88mute", "\u53d6\u6d88 mute", "\u5173\u95ed\u9759\u97f3"},
+			[]string{"mute", "\u9759\u97f3"})
 	case "set_solo":
 		copyBoolAlias(cmd, "solo", "is_solo", "enabled", "value")
 		inferBoolFromUserMessage(cmd, "solo", requestContext,
-			[]string{"unsolo", "取消独奏", "解除独奏", "取消solo", "取消 solo", "关闭独奏"},
-			[]string{"solo", "独奏"})
+			[]string{"unsolo", "\u53d6\u6d88\u72ec\u594f", "\u89e3\u9664\u72ec\u594f", "\u53d6\u6d88solo", "\u53d6\u6d88 solo", "\u5173\u95ed\u72ec\u594f"},
+			[]string{"solo", "\u72ec\u594f"})
 	case "arm_track":
 		copyBoolAlias(cmd, "is_armed", "arm", "armed", "enabled", "value")
 		inferBoolFromUserMessage(cmd, "is_armed", requestContext,
-			[]string{"disarm", "取消录音准备", "解除录音准备", "取消arm", "取消 arm"},
-			[]string{"arm", "录音准备"})
+			[]string{"disarm", "鍙栨秷褰曢煶鍑嗗", "瑙ｉ櫎褰曢煶鍑嗗", "鍙栨秷arm", "鍙栨秷 arm"},
+			[]string{"arm", "褰曢煶鍑嗗"})
 	case "set_click":
 		copyBoolAlias(cmd, "enabled", "click", "value")
 	case "set_tempo":
@@ -2987,7 +3919,7 @@ func normalizeClipIDsArray(cmd map[string]any) {
 
 var (
 	audioPathPattern       = regexp.MustCompile(`(?i)((?:[a-z]:|\\\\[^\\/]+[\\/][^\\/]+)[\\/][^\r\n"<>|?*]+?\.(?:wav|mp3|flac|ogg|oga|aif|aiff|m4a|wma))`)
-	quotedAudioPathPattern = regexp.MustCompile(`(?i)["'“”‘’]([^"'“”‘’]+?\.(?:wav|mp3|flac|ogg|oga|aif|aiff|m4a|wma))["'“”‘’]?`)
+	quotedAudioPathPattern = regexp.MustCompile(`(?i)["'\x{201c}\x{201d}\x{2018}\x{2019}]([^"'\x{201c}\x{201d}\x{2018}\x{2019}]+?\.(?:wav|mp3|flac|ogg|oga|aif|aiff|m4a|wma))["'\x{201c}\x{201d}\x{2018}\x{2019}]?`)
 	midiPathPattern        = regexp.MustCompile(`(?i)((?:[a-z]:|\\\\[^\\/]+[\\/][^\\/]+)[\\/][^\r\n"<>|?*]+?\.(?:mid|midi))`)
 	errAudioSearchLimit    = errors.New("audio search limit reached")
 )
@@ -3173,7 +4105,7 @@ func normalizeAudioPath(path string) string {
 }
 
 func trimPathPunctuation(path string) string {
-	return strings.Trim(path, " \t\r\n\"'`“”‘’.,，。;；:：)）]】")
+	return strings.Trim(path, " \t\r\n\"'`\u201c\u201d\u2018\u2019.,\uff0c\u3002;\uff1b:\uff1a)\uff09]\u3011")
 }
 
 func isSupportedAudioPath(path string) bool {
@@ -3240,19 +4172,19 @@ func inferImportSearchQuery(text string) string {
 	if text == "" || firstAudioPathInText(text) != "" {
 		return ""
 	}
-	if !containsTextAnyFold(text, "搜索", "查找", "找", "search", "find") {
+	if !containsTextAnyFold(text, "\u641c\u7d22", "\u67e5\u627e", "\u627e", "search", "find") {
 		return ""
 	}
 	cleaned := text
 	for _, phrase := range []string{
-		"搜索", "查找", "找一下", "找到", "找", "并导入", "然后导入", "导入", "放到", "放进", "拖入",
-		"资料库", "素材库", "当前轨道", "选中轨道", "这个轨道", "这条轨道", "音频", "素材",
+		"\u641c\u7d22", "\u67e5\u627e", "\u627e\u4e00\u4e0b", "\u627e\u5230", "\u627e", "\u5e76\u5bfc\u5165", "\u7136\u540e\u5bfc\u5165", "\u5bfc\u5165", "\u653e\u5230", "\u653e\u8fdb", "\u62d6\u5165",
+		"\u8d44\u6599\u5e93", "\u7d20\u6750\u5e93", "\u5f53\u524d\u8f68\u9053", "\u9009\u4e2d\u8f68\u9053", "\u8fd9\u4e2a\u8f68\u9053", "\u8fd9\u6761\u8f68\u9053", "\u97f3\u9891", "\u7d20\u6750",
 		"search", "find", "import", "add", "audio", "sample", "current track", "selected track", "track", "and", "to",
 	} {
 		cleaned = strings.ReplaceAll(cleaned, phrase, " ")
 		cleaned = strings.ReplaceAll(cleaned, strings.Title(phrase), " ")
 	}
-	replacer := strings.NewReplacer("，", " ", "。", " ", ",", " ", ".", " ", "；", " ", ";", " ", "：", " ", ":", " ", "（", " ", "）", " ", "(", " ", ")", " ", "并", " ", "到", " ", "给", " ")
+	replacer := strings.NewReplacer("\uff0c", " ", "\u3002", " ", ",", " ", ".", " ", "\uff1b", " ", ";", " ", "\uff1a", " ", ":", " ", "\uff08", " ", "\uff09", " ", "(", " ", ")", " ", "\u5e76", " ", "\u5230", " ", "\u7ed9", " ")
 	cleaned = replacer.Replace(cleaned)
 	return strings.Join(strings.Fields(cleaned), " ")
 }
@@ -3357,7 +4289,7 @@ func findAudioFileInRoots(query string, roots []string) (string, error) {
 func importSearchTerms(query string) []string {
 	query = strings.ToLower(strings.TrimSpace(query))
 	query = strings.TrimSuffix(query, strings.ToLower(filepath.Ext(query)))
-	replacer := strings.NewReplacer("_", " ", "-", " ", ".", " ", ",", " ", "，", " ", "。", " ", "/", " ", "\\", " ")
+	replacer := strings.NewReplacer("_", " ", "-", " ", ".", " ", ",", " ", "\uff0c", " ", "\u3002", " ", "/", " ", "\\", " ")
 	query = replacer.Replace(query)
 	fields := strings.Fields(query)
 	out := make([]string, 0, len(fields))
@@ -3604,7 +4536,7 @@ func (h *Harness) resolveClipTargets(ctx context.Context, spec tools.CommandSpec
 			cmd["track_id"] = ref.TrackID
 		}
 		if isEmptyValue(cmd["split_time"]) {
-			return fmt.Errorf("split_clip requires split_time; say a time like 在 2 秒处切开, or move the playhead and say 在播放头切开")
+			return fmt.Errorf("split_clip requires split_time; say a time like 鍦?2 绉掑鍒囧紑, or move the playhead and say 鍦ㄦ挱鏀惧ご鍒囧紑")
 		}
 		if isEmptyValue(cmd["time_unit"]) {
 			cmd["time_unit"] = "seconds"
@@ -3644,7 +4576,7 @@ func (h *Harness) resolveClipTargets(ctx context.Context, spec tools.CommandSpec
 			cmd["target_track_id"] = targetTrackID
 		}
 		if isEmptyValue(cmd["new_start"]) {
-			return fmt.Errorf("clone_clip requires new_start; say where to place the copy, e.g. 复制到 20 秒")
+			return fmt.Errorf("clone_clip requires new_start; say where to place the copy, e.g. duplicate after 20 seconds")
 		}
 		if isEmptyValue(cmd["time_unit"]) {
 			cmd["time_unit"] = "seconds"
@@ -3953,7 +4885,7 @@ func specRequiresTarget(spec tools.CommandSpec, field string) bool {
 	return false
 }
 
-var secondsInTextPattern = regexp.MustCompile(`(?i)([-+]?\d+(?:\.\d+)?)\s*(?:s|sec|secs|second|seconds|秒)`)
+var secondsInTextPattern = regexp.MustCompile(`(?i)([-+]?\d+(?:\.\d+)?)\s*(?:s|sec|secs|second|seconds|\x{79d2})`)
 
 func inferMoveStartSeconds(ref clipRef, requestContext map[string]any) (float64, bool) {
 	text := strings.TrimSpace(firstString(requestContext, "user_message", "message", "prompt", "utterance"))
@@ -3964,13 +4896,13 @@ func inferMoveStartSeconds(ref clipRef, requestContext map[string]any) (float64,
 	lower := strings.ToLower(text)
 	current := numberFromAny(ref.Row["start_seconds"])
 	switch {
-	case strings.Contains(text, "向前") || strings.Contains(text, "前移") || strings.Contains(text, "提前") || strings.Contains(lower, "earlier") || strings.Contains(lower, "left") || strings.Contains(lower, "backward"):
+	case strings.Contains(text, "\u5411\u524d") || strings.Contains(text, "\u524d\u79fb") || strings.Contains(text, "\u63d0\u524d") || strings.Contains(lower, "earlier") || strings.Contains(lower, "left") || strings.Contains(lower, "backward"):
 		next := current - seconds
 		if next < 0 {
 			next = 0
 		}
 		return next, true
-	case strings.Contains(text, "向后") || strings.Contains(text, "后移") || strings.Contains(text, "推后") || strings.Contains(lower, "later") || strings.Contains(lower, "right") || strings.Contains(lower, "forward"):
+	case strings.Contains(text, "\u5411\u540e") || strings.Contains(text, "\u540e\u79fb") || strings.Contains(text, "\u63a8\u540e") || strings.Contains(lower, "later") || strings.Contains(lower, "right") || strings.Contains(lower, "forward"):
 		return current + seconds, true
 	default:
 		return seconds, true
@@ -3982,7 +4914,7 @@ func inferCloneStartSeconds(ref clipRef, requestContext map[string]any) (float64
 		return seconds, true
 	}
 	text := strings.TrimSpace(firstString(requestContext, "user_message", "message", "prompt", "utterance"))
-	if strings.TrimSpace(text) == "" || isCloneAfterText(text) || containsTextAnyFold(text, "复制", "克隆", "拷贝", "duplicate", "clone", "copy") {
+	if strings.TrimSpace(text) == "" || isCloneAfterText(text) || containsTextAnyFold(text, "\u590d\u5236", "\u514b\u9686", "\u62f7\u8d1d", "duplicate", "clone", "copy") {
 		start := numberFromAny(ref.Row["start_seconds"])
 		length := numberFromAny(ref.Row["length_seconds"])
 		if length <= 0 {
@@ -4021,10 +4953,10 @@ func firstPlayheadSeconds(cmd map[string]any, requestContext map[string]any) (fl
 
 func splitTimeFromTextSeconds(ref clipRef, seconds float64, text string) float64 {
 	lower := strings.ToLower(text)
-	if containsTextAnyFold(text, "内部", "里面", "从开头", "从起点", "相对", "offset", "into clip", "from start") {
+	if containsTextAnyFold(text, "\u5185\u90e8", "\u91cc\u9762", "\u4ece\u5f00\u5934", "\u4ece\u8d77\u70b9", "\u76f8\u5bf9", "offset", "into clip", "from start") {
 		return numberFromAny(ref.Row["start_seconds"]) + seconds
 	}
-	if containsTextAnyFold(text, "后", "之后", "later", "after") && !containsTextAnyFold(text, "秒处", "s mark", "at") {
+	if containsTextAnyFold(text, "\u540e", "\u4e4b\u540e", "later", "after") && !containsTextAnyFold(text, "\u79d2\u5904", "s mark", "at") {
 		return numberFromAny(ref.Row["start_seconds"]) + seconds
 	}
 	if strings.Contains(lower, "relative") {
@@ -4034,15 +4966,15 @@ func splitTimeFromTextSeconds(ref clipRef, seconds float64, text string) float64
 }
 
 func mentionsPlayheadSplit(text string) bool {
-	return containsTextAnyFold(text, "播放头", "当前位置", "这里", "此处", "当前时间", "playhead", "cursor", "current position", "here")
+	return containsTextAnyFold(text, "\u64ad\u653e\u5934", "\u5f53\u524d\u4f4d\u7f6e", "\u8fd9\u91cc", "\u6b64\u5904", "\u5f53\u524d\u65f6\u95f4", "playhead", "cursor", "current position", "here")
 }
 
 func mentionsPlayheadTarget(text string) bool {
-	return containsTextAnyFold(text, "播放头", "当前位置", "这里", "此处", "当前时间", "playhead", "cursor", "current position", "here")
+	return containsTextAnyFold(text, "\u64ad\u653e\u5934", "\u5f53\u524d\u4f4d\u7f6e", "\u8fd9\u91cc", "\u6b64\u5904", "\u5f53\u524d\u65f6\u95f4", "playhead", "cursor", "current position", "here")
 }
 
 func isCloneAfterText(text string) bool {
-	return containsTextAnyFold(text, "后面", "后边", "后方", "后面一份", "后续", "紧接", "后", "after", "next", "right after")
+	return containsTextAnyFold(text, "\u540e\u9762", "\u540e\u8fb9", "\u540e\u65b9", "\u540e\u9762\u4e00\u4efd", "\u540e\u7eed", "\u7d27\u63a5", "\u540e", "after", "next", "right after")
 }
 
 func inferLengthSeconds(requestContext map[string]any) (float64, bool) {
@@ -4054,13 +4986,13 @@ func inferLengthSeconds(requestContext map[string]any) (float64, bool) {
 }
 
 func isResizeLengthText(text string) bool {
-	if containsTextAnyFold(text, "位置", "起点", "开始位置", "移动", "移到", "挪到", "拖到", "move", "position", "start") {
+	if containsTextAnyFold(text, "\u4f4d\u7f6e", "\u8d77\u70b9", "\u5f00\u59cb\u4f4d\u7f6e", "\u79fb\u52a8", "\u79fb\u5230", "\u632a\u5230", "\u62d6\u5230", "move", "position", "start") {
 		return false
 	}
 	return containsTextAnyFold(text,
-		"长度", "时长", "持续", "裁到", "裁成", "剪到", "剪成", "剪短",
-		"缩到", "缩短", "拉长", "拉到", "伸到", "改成", "改为", "变成",
-		"调整到", "调成", "resize", "length", "duration", "trim", "shorten")
+		"\u957f\u5ea6", "\u65f6\u957f", "\u6301\u7eed", "\u88c1\u5230", "\u88c1\u6210", "\u526a\u5230", "\u526a\u6210", "\u526a\u77ed",
+		"\u7f29\u5230", "\u7f29\u77ed", "\u62c9\u957f", "\u62c9\u5230", "\u4f38\u5230", "\u6539\u6210", "\u6539\u4e3a", "\u53d8\u6210",
+		"\u8c03\u6574\u5230", "\u8c03\u6210", "resize", "length", "duration", "trim", "shorten")
 }
 
 func containsTextAnyFold(text string, needles ...string) bool {
@@ -4395,7 +5327,7 @@ func findMacroControlByReference(macros []map[string]any, ref string) (map[strin
 	if ordinal := macroOrdinalFromText(clean); ordinal > 0 {
 		for _, macro := range macros {
 			name := normalizeMacroReferenceText(firstString(macro, "name", "label", "title"))
-			if name == "macro"+strconv.Itoa(ordinal) || name == "宏控件"+strconv.Itoa(ordinal) || name == "宏控制"+strconv.Itoa(ordinal) {
+			if name == "macro"+strconv.Itoa(ordinal) || name == "\u5b8f\u63a7\u4ef6"+strconv.Itoa(ordinal) || name == "\u5b8f\u63a7\u5236"+strconv.Itoa(ordinal) {
 				return macro, true
 			}
 		}
@@ -4409,13 +5341,13 @@ func findMacroControlByReference(macros []map[string]any, ref string) (map[strin
 func normalizeMacroReferenceText(text string) string {
 	out := strings.ToLower(strings.TrimSpace(text))
 	out = strings.ReplaceAll(out, "marco", "macro")
-	for _, part := range []string{" ", "\t", "\r", "\n", "_", "-", "#", "＃", "号", "號"} {
+	for _, part := range []string{" ", "\t", "\r", "\n", "_", "-", "#", "\uff1a", "\u5230", "\u7ed9"} {
 		out = strings.ReplaceAll(out, part, "")
 	}
 	return out
 }
 
-var macroReferencePattern = regexp.MustCompile(`(?i)(?:macro|marco|宏控(?:件|制)?|宏滑块|宏滑桿|宏)\s*#?\s*([0-9]+)`)
+var macroReferencePattern = regexp.MustCompile(`(?i)(?:macro|marco|\x{5b8f}\x{63a7}(?:\x{4ef6}|\x{5236})?|\x{5b8f}\x{6ed1}\x{5757}|\x{5b8f}\x{6ed1}\x{687f}|\x{5b8f})\s*#?\s*([0-9]+)`)
 
 func macroReferenceFromUserText(text string) string {
 	text = strings.TrimSpace(text)
@@ -4442,19 +5374,19 @@ func looksLikeExistingMacroBindingIntent(text string) bool {
 	if lower == "" {
 		return false
 	}
-	hasBind := strings.Contains(lower, "bind") || strings.Contains(lower, "map") || strings.Contains(text, "绑定") || strings.Contains(text, "綁定") || strings.Contains(text, "捆绑") || strings.Contains(text, "映射") || strings.Contains(text, "绑到") || strings.Contains(text, "綁到")
-	hasMacroRef := macroReferenceFromUserText(text) != "" || strings.Contains(lower, "macro") || strings.Contains(lower, "marco") || strings.Contains(text, "宏控")
+	hasBind := strings.Contains(lower, "bind") || strings.Contains(lower, "map") || strings.Contains(text, "\u7ed1\u5b9a") || strings.Contains(text, "\u7d81\u5b9a") || strings.Contains(text, "\u6346\u7ed1") || strings.Contains(text, "\u6620\u5c04") || strings.Contains(text, "\u7ed1\u5230") || strings.Contains(text, "\u7d81\u5230")
+	hasMacroRef := macroReferenceFromUserText(text) != "" || strings.Contains(lower, "macro") || strings.Contains(lower, "marco") || strings.Contains(text, "\u5b8f\u63a7")
 	return hasBind && hasMacroRef
 }
 
 func referencesCurrentMacro(text string) bool {
 	lower := strings.ToLower(strings.TrimSpace(text))
-	return strings.Contains(lower, "this macro") || strings.Contains(lower, "current macro") || strings.Contains(text, "这个宏") || strings.Contains(text, "這個宏") || strings.Contains(text, "当前宏") || strings.Contains(text, "目前宏")
+	return strings.Contains(lower, "this macro") || strings.Contains(lower, "current macro") || strings.Contains(text, "\u8fd9\u4e2a\u5b8f") || strings.Contains(text, "\u9019\u500b\u5b8f") || strings.Contains(text, "\u5f53\u524d\u5b8f") || strings.Contains(text, "\u76ee\u524d\u5b8f")
 }
 
 func isGenericMacroReferenceName(name string) bool {
 	normalized := normalizeMacroReferenceText(name)
-	return normalized == "" || normalized == "macro" || normalized == "agentmacro" || normalized == "宏控件" || normalized == "宏控制" || normalized == "通用宏控件"
+	return normalized == "" || normalized == "macro" || normalized == "agentmacro" || normalized == "\u5b8f\u63a7\u4ef6" || normalized == "\u5b8f\u63a7\u5236" || normalized == "\u901a\u7528\u5b8f\u63a7\u4ef6"
 }
 
 type pluginRef struct {

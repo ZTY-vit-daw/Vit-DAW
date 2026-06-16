@@ -452,7 +452,7 @@ func compactFeatureSnapshot(snap featureSnapshot) map[string]any {
 
 func compactFeatureRow(row map[string]any) map[string]any {
 	out := map[string]any{}
-	for _, key := range []string{"status", "track_id", "clip_id", "request_id", "reason", "float_count", "tile_count_seen", "tile_count_expected", "total_duration", "rms", "peak_abs", "updated_at", "time_segments", "source", "bands", "band_count", "left_level_db", "right_level_db", "balance_db", "balance_unit", "balance_state", "phase_deviation", "phase_negative_ratio", "correlation_estimate", "correlation_state", "bin_count"} {
+	for _, key := range []string{"status", "track_id", "clip_id", "file_path", "request_id", "reason", "float_count", "tile_count_seen", "tile_count_expected", "total_duration", "rms", "peak_abs", "rms_dbfs", "peak_dbfs", "headroom_db", "crest_db", "updated_at", "time_segments", "source", "bands", "band_count", "left_level_db", "right_level_db", "balance_db", "balance_unit", "balance_state", "phase_deviation", "phase_negative_ratio", "correlation_estimate", "correlation_state", "bin_count"} {
 		if value, ok := row[key]; ok {
 			out[key] = value
 		}
@@ -480,16 +480,19 @@ func buildWaveformMetrics(row map[string]any) map[string]any {
 		"status":      featureStatus(row),
 		"rms":         nullablePositive(rms),
 		"peak_abs":    nullablePositive(peak),
-		"rms_dbfs":    approxDbfs(rms),
-		"peak_dbfs":   approxDbfs(peak),
-		"headroom_db": nil,
-		"crest_db":    nil,
+		"rms_dbfs":    firstNonNil(row["rms_dbfs"], approxDbfs(rms)),
+		"peak_dbfs":   firstNonNil(row["peak_dbfs"], approxDbfs(peak)),
+		"headroom_db": row["headroom_db"],
+		"crest_db":    row["crest_db"],
 	}
-	if peak > 0 {
+	if metrics["headroom_db"] == nil && peak > 0 {
 		metrics["headroom_db"] = round3(-20 * math.Log10(peak))
 	}
-	if rms > 0 && peak > 0 {
+	if metrics["crest_db"] == nil && rms > 0 && peak > 0 {
 		metrics["crest_db"] = round3(20 * math.Log10(peak/rms))
+	}
+	if v, ok := row["file_path"]; ok {
+		metrics["file_path"] = v
 	}
 	if v, ok := row["float_count"]; ok {
 		metrics["sample_count"] = v

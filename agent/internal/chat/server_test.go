@@ -177,6 +177,31 @@ func TestAgentLoopCompletedWithoutExecutionForQuestionStaysCompleted(t *testing.
 	}
 }
 
+func TestAgentLoopFailedAfterExecutionReportsPartialSuccess(t *testing.T) {
+	server := New(nil, shadow.New(nil), nil)
+	resp := server.chatResponseFromAgentLoopResult("chat_test", agentModeDefault, agentloop.Result{
+		GoalID:      "goal_1",
+		RunID:       "run_1",
+		Status:      agentruntime.StatusFailed,
+		StopReason:  agentloop.StopReasonFailed,
+		Reply:       "执行失败：LLM HTTP error 502",
+		Error:       "LLM HTTP error 502",
+		GoalSummary: "观察当前音频",
+		Executed: []map[string]any{{
+			"status":       "ok",
+			"tool":         "mix.request_observation",
+			"command_name": "mix_request_observation",
+			"result":       map[string]any{"artifact": map[string]any{"id": "obs_test", "kind": "document", "title": "obs.json"}},
+		}},
+	})
+	if !strings.Contains(resp.Reply, "前面的工具操作已完成") || !strings.Contains(resp.Reply, "LLM HTTP error 502") {
+		t.Fatalf("reply = %q", resp.Reply)
+	}
+	if len(resp.Artifacts) != 1 {
+		t.Fatalf("artifacts = %+v", resp.Artifacts)
+	}
+}
+
 func TestBeginChatGoalStartsFreshAfterTerminalContextGoal(t *testing.T) {
 	server := New(nil, shadow.New(nil), nil)
 	old := server.harness.BeginGoal("previous completed goal")
@@ -241,6 +266,27 @@ func TestRoutingUsesAgentLoopBeforeFastPaths(t *testing.T) {
 		t.Fatalf("load intent should not be downgraded to library-only search: %+v", cmds)
 	}
 }
+
+func TestAgentLoopCapabilityNamesDetectsConversationalMix(t *testing.T) {
+	caps := agentLoopCapabilityNames("把当前主唱轨道往前一点", map[string]any{"selected_track_id": "track_1"})
+	seen := map[string]bool{}
+	for _, cap := range caps {
+		seen[cap] = true
+	}
+	if !seen["mix"] {
+		t.Fatalf("expected mix capability, got %+v", caps)
+	}
+	server := New(nil, shadow.New(nil), nil)
+	tools := toolNamesForAgentLoopCapabilities(server.harness, agentModeDefault, []string{"mix"})
+	toolSet := map[string]bool{}
+	for _, tool := range tools {
+		toolSet[tool] = true
+	}
+	if !toolSet["mix.request_observation"] {
+		t.Fatalf("mix tools should include observation, got %+v", tools)
+	}
+}
+
 func TestPluginLoadCountQuestionDoesNotRouteToLoadWorkflow(t *testing.T) {
 	text := "how many plugins are loaded on the current track?"
 	if looksLikePluginGrabberLoadIntent(text) {
@@ -2217,6 +2263,99 @@ func TestPlanModeBlockedResponseDoesNotQueueConfirmation(t *testing.T) {
 	}
 	if resp.AgentMode != agentModePlan || resp.AgentPlan == nil || resp.AgentPlan.Summary == "" {
 		t.Fatalf("missing plan-mode agent plan: %+v", resp)
+	}
+}
+
+func TestLegacyChatBroadMixRequestDoesNotQueuePluginLoad(t *testing.T) {
+	server := New(nil, shadow.New(nil), nil)
+	resp, handled := server.chatResponseForCommands(context.Background(), "chat_test", "我想你帮我对这段音频进行缩混可以吗", "", []map[string]any{
+		{"cmd": "rack_add_node", "track_id": "1007", "plugin_path": `C:\Program Files\Common Files\VST3\TDR Nova.vst3`},
+	}, map[string]any{"selected_track_id": "1007"})
+	if !handled {
+		t.Fatal("expected broad mix guard response")
+	}
+	if resp.NeedsConfirmation || resp.PlanID != "" {
+		t.Fatalf("broad mix request should not queue plugin load confirmation: %+v", resp)
+	}
+	if !strings.Contains(resp.Reply, "mix.request_observation") {
+		t.Fatalf("reply should direct observation first: %q", resp.Reply)
+	}
+	if len(server.pending) != 0 {
+		t.Fatalf("pending plan should not be stored: %+v", server.pending)
+	}
+}
+
+func TestLegacyPendingBroadMixConfirmationDoesNotExecutePluginLoad(t *testing.T) {
+	server := New(nil, shadow.New(nil), nil)
+	plan := PendingPlan{
+		ID:        "plan_broad_mix",
+		CreatedAt: time.Now(),
+		Context: map[string]any{
+			"user_message":      "我想你帮我对这段音频进行缩混可以吗",
+			"selected_track_id": "1007",
+		},
+		Decisions: policy.Analyze([]map[string]any{
+			{"cmd": "rack_add_node", "track_id": "1007", "plugin_path": `C:\Program Files\Common Files\VST3\TDR Nova.vst3`},
+		}),
+	}
+	server.pending[plan.ID] = plan
+
+	status, response := server.resolvePendingPlanDecision(context.Background(), plan.ID, "approve")
+	if status != http.StatusOK {
+		t.Fatalf("status = %d response=%+v", status, response)
+	}
+	if response["blocked"] != true {
+		t.Fatalf("confirmation should be blocked, response=%+v", response)
+	}
+	if !strings.Contains(fmt.Sprint(response["message"]), "mix.request_observation") {
+		t.Fatalf("response should direct observation first: %+v", response)
+	}
+	if _, ok := server.pending[plan.ID]; ok {
+		t.Fatal("pending plan should be consumed after blocked confirmation")
+	}
+}
+
+func TestAgentLoopBroadMixConfirmationDoesNotResumePluginLoad(t *testing.T) {
+	server := New(nil, shadow.New(nil), nil)
+	plan := PendingPlan{
+		ID:        "plan_agent_loop_mix",
+		CreatedAt: time.Now(),
+		Workflow:  agentLoopConfirmationWorkflow,
+		Context: map[string]any{
+			"goal_id": "goal_mix",
+			"run_id":  "run_mix",
+		},
+		WorkflowData: map[string]any{"conversation_id": "chat_mix"},
+		Decisions: policy.Analyze([]map[string]any{
+			{"cmd": "rack_add_node", "track_id": "1007", "plugin_path": `C:\Program Files\Common Files\VST3\TDR Nova.vst3`},
+		}),
+		GoalContinuation: &agentloop.Continuation{
+			GoalID:   "goal_mix",
+			RunID:    "run_mix",
+			UserText: "我想你帮我对这段音频进行缩混可以吗",
+			Context:  map[string]any{"user_message": "我想你帮我对这段音频进行缩混可以吗"},
+			PendingToolCall: &planner.ToolCall{
+				ID:   "tool_step_1",
+				Tool: "plugin.load_to_rack",
+				Args: map[string]any{
+					"track_id":     "1007",
+					"plugin_path":  `C:\Program Files\Common Files\VST3\TDR Nova.vst3`,
+					"plugin_query": "TDR Nova",
+				},
+			},
+		},
+	}
+	server.pending[plan.ID] = plan
+
+	status, response := server.resolvePendingPlanDecision(context.Background(), plan.ID, "approve")
+	if status != http.StatusOK {
+		t.Fatalf("status = %d response=%+v", status, response)
+	}
+	if response["blocked"] != true {
+		t.Fatalf("agent-loop confirmation should be blocked, response=%+v", response)
+	}
+	if !strings.Contains(fmt.Sprint(response["message"]), "mix.request_observation") {
+		t.Fatalf("response should direct observation first: %+v", response)
 	}
 }
 

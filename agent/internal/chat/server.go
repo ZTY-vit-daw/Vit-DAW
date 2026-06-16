@@ -1488,28 +1488,6 @@ func (s *Server) handleChat(w http.ResponseWriter, r *http.Request) {
 	}
 
 	chatContext := contextWithUserMessage(req.Context, req.Message)
-	if resp, handled := s.continueActiveMixPlannerChat(r.Context(), conversationID, ChatRequest{
-		ConversationID: conversationID,
-		Message:        req.Message,
-		Context:        chatContext,
-		Attachments:    req.Attachments,
-		ArtifactRefs:   req.ArtifactRefs,
-	}); handled {
-		s.remember(conversationID, req.Message, resp.Reply)
-		writeChat(http.StatusOK, resp)
-		return
-	}
-	if resp, handled := s.runMixSessionEntryChat(r.Context(), conversationID, ChatRequest{
-		ConversationID: conversationID,
-		Message:        req.Message,
-		Context:        chatContext,
-		Attachments:    req.Attachments,
-		ArtifactRefs:   req.ArtifactRefs,
-	}, agentMode); handled {
-		s.remember(conversationID, req.Message, resp.Reply)
-		writeChat(http.StatusOK, resp)
-		return
-	}
 
 	cfg, cfgPath, err := config.Load()
 	if err != nil {
@@ -1570,8 +1548,13 @@ func (s *Server) handleChat(w http.ResponseWriter, r *http.Request) {
 	if len(env.Commands) == 0 {
 		env.Commands = synthesizeLocalDAWCommands(req.Message, chatContext)
 	}
-	if len(env.Commands) == 0 {
+	if len(env.Commands) == 0 && !legacyChatBroadMixRequestNeedsObservation(req.Message) {
 		env.Commands = synthesizePluginGrabberLoadCommands(req.Message, chatContext)
+	}
+	if resp, blocked := s.legacyChatBroadMixWriteBlockedResponse(r.Context(), conversationID, req.Message, env.Commands, chatContext); blocked {
+		s.remember(conversationID, req.Message, resp.Reply)
+		writeChat(http.StatusOK, resp)
+		return
 	}
 	if workflowCmd, ok := coercePluginGrabberLoadCommand(env.Commands, req.Message, chatContext); ok {
 		resp := s.runPluginGrabberLoadWorkflow(r.Context(), conversationID, req.Message, chatContext, workflowCmd)
@@ -1652,6 +1635,183 @@ func (s *Server) planModeBlockedResponse(ctx context.Context, conversationID, us
 			ProjectHistory: projectHistory,
 		},
 	}, true
+}
+
+func (s *Server) legacyChatBroadMixWriteBlockedResponse(ctx context.Context, conversationID, userMessage string, commands []map[string]any, chatContext map[string]any) (ChatResponse, bool) {
+	decisions := policy.Analyze(commands)
+	return s.legacyChatBroadMixDecisionBlockedResponse(ctx, conversationID, userMessage, decisions, chatContext)
+}
+
+func (s *Server) legacyChatBroadMixDecisionBlockedResponse(ctx context.Context, conversationID, userMessage string, decisions []policy.Decision, chatContext map[string]any) (ChatResponse, bool) {
+	if len(decisions) == 0 {
+		return ChatResponse{}, false
+	}
+	if !legacyChatBroadMixRequestNeedsObservation(userMessage) {
+		return ChatResponse{}, false
+	}
+	if legacyChatExplicitPluginOrRawRequest(userMessage) {
+		return ChatResponse{}, false
+	}
+	blocked := legacyChatBroadMixBlockedDecisions(decisions)
+	if len(blocked) == 0 {
+		return ChatResponse{}, false
+	}
+	names := decisionNames(blocked)
+	reply := "我不会直接给宽泛的混音目标加载效果器或写参数。先做一次 mix.request_observation，基于当前轨道/音频的实际观察给出建议；你确认一个具体小动作后，我再执行可撤回的单步调整。已拦截本次旧流程动作：" + strings.Join(names, ", ") + "。"
+	return ChatResponse{
+		ConversationID: conversationID,
+		Reply:          reply,
+		Commands:       decisions,
+		GoalStatus:     string(agentruntime.StatusCompleted),
+		ProjectHistory: s.harness.ProjectHistorySummaryForProject(ctx, "", projectPathFromChatContext(chatContext)),
+	}, true
+}
+
+func legacyChatBroadMixBlockedDecisions(decisions []policy.Decision) []policy.Decision {
+	blocked := make([]policy.Decision, 0, len(decisions))
+	for _, decision := range decisions {
+		if legacyChatBroadMixDecisionBlocked(decision) {
+			blocked = append(blocked, decision)
+		}
+	}
+	return blocked
+}
+
+func legacyChatBroadMixDecisionBlocked(decision policy.Decision) bool {
+	name := legacyChatDecisionName(decision)
+	switch name {
+	case "rack_add_node", "rack.add_node", "plugin.load_to_rack", "instantiate_plugin", "plugin.instantiate",
+		"plugin_grabber_load_and_get_params", "plugin_grabber.load_and_get_params",
+		"plugin_grabber_learn_project_profile", "plugin_grabber.learn_project_profile", "plugin.learn_project_profile",
+		"plugin_grabber_apply_control", "plugin_grabber.apply_control", "plugin_grabber.apply",
+		"set_plugin_param", "plugin.set_parameter", "plugin_set_parameter",
+		"set_volume", "track.volume",
+		"control_add_macro", "control.add_macro", "rack.add_macro", "control_add_binding", "control.add_binding":
+		return true
+	default:
+		return false
+	}
+}
+
+func legacyChatDecisionName(decision policy.Decision) string {
+	for _, value := range []string{
+		decision.Name,
+		policy.CommandName(decision.Command),
+		cleanContextText(decision.Command["cmd"]),
+		cleanContextText(decision.Command["command"]),
+		cleanContextText(decision.Command["action"]),
+		cleanContextText(decision.Command["tool"]),
+	} {
+		if text := strings.ToLower(strings.TrimSpace(value)); text != "" {
+			return text
+		}
+	}
+	return ""
+}
+
+func legacyChatBroadMixRequestNeedsObservation(userText string) bool {
+	text := strings.ToLower(strings.TrimSpace(userText))
+	if text == "" {
+		return false
+	}
+	return legacyChatTextHasAny(text,
+		"混音", "缩混", "声音处理", "调一下", "处理一下",
+		"主唱", "人声", "vocal", "lead vocal",
+		"靠前", "往前", "提升响度", "响度", "更亮", "明亮", "浑浊", "刺耳",
+		"低频", "低中频", "空间感", "加一点空间", "动态", "压缩",
+		"mix", "mixing", "loudness", "louder", "forward", "mud", "muddy", "harsh", "bright", "space", "reverb", "dynamic",
+	)
+}
+
+func legacyChatExplicitPluginOrRawRequest(userText string) bool {
+	text := strings.ToLower(strings.TrimSpace(userText))
+	if text == "" {
+		return false
+	}
+	hasExplicitVerb := legacyChatTextHasAny(text,
+		"加载", "挂载", "打开", "学习", "抓手", "插入", "新增",
+		"设置参数", "写参数", "改参数", "调参数",
+		"load", "insert", "open", "learn", "grabber", "set parameter", "write parameter",
+	)
+	hasPluginObject := legacyChatTextHasAny(text,
+		"插件", "效果器", "均衡器", "压缩器", "混响", "延迟",
+		"plugin", "vst", "eq", "compressor", "reverb", "delay", "tdr", "nova", "zl",
+	)
+	hasRawParam := legacyChatTextHasAny(text, "param_id", "parameter id", "参数 id", "归一化", "normalized")
+	return hasRawParam || (hasExplicitVerb && hasPluginObject)
+}
+
+func legacyChatTextHasAny(text string, needles ...string) bool {
+	for _, needle := range needles {
+		if strings.Contains(text, strings.ToLower(needle)) {
+			return true
+		}
+	}
+	return false
+}
+
+func (s *Server) legacyPendingPlanBroadMixBlockedConfirmResponse(ctx context.Context, planID string, plan PendingPlan, goalID, runID, agentMode, projectPath string) (map[string]any, bool) {
+	userMessage := legacyPendingPlanUserMessage(plan)
+	if !legacyChatBroadMixRequestNeedsObservation(userMessage) || legacyChatExplicitPluginOrRawRequest(userMessage) {
+		return nil, false
+	}
+	blocked := legacyChatBroadMixBlockedDecisions(plan.Decisions)
+	if len(blocked) == 0 {
+		return nil, false
+	}
+	names := decisionNames(blocked)
+	message := "已拦截：这个确认计划来自宽泛混音请求，不能直接加载效果器、学习插件或写参数。请先让 Ask Vit 执行 mix.request_observation，听感/工程观察明确后，再确认一个具体的小步调整。被拦截动作：" + strings.Join(names, ", ") + "。"
+	if s != nil && s.harness != nil {
+		s.harness.CompleteGoal(goalID, nil)
+	}
+	projectHistory := map[string]any{}
+	if s != nil && s.harness != nil {
+		projectHistory = s.harness.RecordConversationNodeForProject(ctx, projectPath, "vit", message, goalID, runID)
+		if len(projectHistory) == 0 {
+			projectHistory = s.harness.ProjectHistorySummaryForProject(ctx, goalID, projectPath)
+		}
+	}
+	response := map[string]any{
+		"status":          "ok",
+		"message":         message,
+		"plan_id":         planID,
+		"goal_id":         goalID,
+		"run_id":          runID,
+		"agent_mode":      agentMode,
+		"goal_status":     string(agentruntime.StatusCompleted),
+		"blocked":         true,
+		"blocked_actions": names,
+	}
+	if len(projectHistory) > 0 {
+		response["project_history"] = projectHistory
+	}
+	return response, true
+}
+
+func legacyPendingPlanUserMessage(plan PendingPlan) string {
+	if plan.GoalContinuation != nil {
+		for _, value := range []string{
+			cleanContextText(plan.GoalContinuation.UserText),
+			cleanContextText(plan.GoalContinuation.Summary),
+			cleanContextText(plan.GoalContinuation.Context["user_message"]),
+		} {
+			if strings.TrimSpace(value) != "" {
+				return value
+			}
+		}
+	}
+	for _, value := range []string{
+		cleanContextText(plan.Context["user_message"]),
+		cleanContextText(plan.WorkflowData["user_message"]),
+		cleanContextText(plan.WorkflowData["intent"]),
+		cleanContextText(plan.WorkflowData["user_intent"]),
+		cleanContextText(plan.WorkflowData["goal"]),
+	} {
+		if strings.TrimSpace(value) != "" {
+			return value
+		}
+	}
+	return ""
 }
 
 func planModeBlockedDecisions(decisions []policy.Decision) []policy.Decision {
@@ -1759,6 +1919,9 @@ func (s *Server) chatResponseForCommands(ctx context.Context, conversationID, us
 	decisions := policy.Analyze(commands)
 	if len(decisions) == 0 {
 		return ChatResponse{}, false
+	}
+	if resp, blocked := s.legacyChatBroadMixDecisionBlockedResponse(ctx, conversationID, userMessage, decisions, chatContext); blocked {
+		return resp, true
 	}
 	if resp, blocked := s.planModeBlockedResponse(ctx, conversationID, userMessage, decisions, chatContext); blocked {
 		return resp, true
@@ -2212,6 +2375,12 @@ func (s *Server) recoverMixBoardInteractionFromPayload(interactionID string, pay
 	if len(payload) == 0 {
 		return PendingInteraction{}, false
 	}
+	requestContext := mapValue(payload["request_context"])
+	if !legacyMixSessionWorkflowEnabled(mergeContext(requestContext, payload)) &&
+		!boolValue(payload["conversational_mix"]) &&
+		!boolValue(payload["ask_vit_mix_action"]) {
+		return PendingInteraction{}, false
+	}
 	session := mixSessionFromMap(mapValue(payload["mix_session"]))
 	sessionID := firstNonEmpty(session.MixSessionID, cleanContextText(payload["mix_session_id"]))
 	if sessionID != "" {
@@ -2224,7 +2393,6 @@ func (s *Server) recoverMixBoardInteractionFromPayload(interactionID string, pay
 	}
 	data := copyStringAnyMap(payload)
 	data["mix_session"] = mixSessionMap(session)
-	requestContext := mapValue(payload["request_context"])
 	conversationID := firstNonEmpty(cleanContextText(payload["conversation_id"]), cleanContextText(data["conversation_id"]), interactionID)
 	return PendingInteraction{
 		ID:             interactionID,
@@ -3297,6 +3465,12 @@ func (s *Server) handleConfirm(w http.ResponseWriter, r *http.Request) {
 	agentMode := agentModeFromContext(plan.Context)
 	decision := strings.ToLower(strings.TrimSpace(req.Decision))
 	if plan.Workflow == agentLoopConfirmationWorkflow {
+		if isApprovalDecision(decision) {
+			if response, blocked := s.legacyPendingPlanBroadMixBlockedConfirmResponse(r.Context(), planID, plan, goalID, runID, agentMode, projectPath); blocked {
+				writeJSON(w, http.StatusOK, response)
+				return
+			}
+		}
 		s.handleAgentLoopConfirm(w, r, planID, plan, decision)
 		return
 	}
@@ -3317,6 +3491,10 @@ func (s *Server) handleConfirm(w http.ResponseWriter, r *http.Request) {
 		if plan := agentPlanForMode(agentMode, simpleAgentPlan(goalID, runID, agentruntime.StatusCancelled, "", "", "", projectHistory)); plan != nil {
 			response["agent_plan"] = plan
 		}
+		writeJSON(w, http.StatusOK, response)
+		return
+	}
+	if response, blocked := s.legacyPendingPlanBroadMixBlockedConfirmResponse(r.Context(), planID, plan, goalID, runID, agentMode, projectPath); blocked {
 		writeJSON(w, http.StatusOK, response)
 		return
 	}
@@ -3408,6 +3586,11 @@ func (s *Server) resolvePendingPlanDecision(ctx context.Context, planID, decisio
 	agentMode := agentModeFromContext(plan.Context)
 	cleanDecision := strings.ToLower(strings.TrimSpace(decision))
 	if plan.Workflow == agentLoopConfirmationWorkflow {
+		if isApprovalDecision(cleanDecision) {
+			if response, blocked := s.legacyPendingPlanBroadMixBlockedConfirmResponse(ctx, planID, plan, goalID, runID, agentMode, projectPath); blocked {
+				return http.StatusOK, response
+			}
+		}
 		return s.resolveAgentLoopConfirm(ctx, planID, plan, cleanDecision)
 	}
 	if cleanDecision != "approve" && cleanDecision != "allow" && cleanDecision != "confirm" && cleanDecision != "yes" && cleanDecision != "submit" && cleanDecision != "save" {
@@ -3427,6 +3610,9 @@ func (s *Server) resolvePendingPlanDecision(ctx context.Context, planID, decisio
 		if plan := agentPlanForMode(agentMode, simpleAgentPlan(goalID, runID, agentruntime.StatusCancelled, "", "", "", projectHistory)); plan != nil {
 			response["agent_plan"] = plan
 		}
+		return http.StatusOK, response
+	}
+	if response, blocked := s.legacyPendingPlanBroadMixBlockedConfirmResponse(ctx, planID, plan, goalID, runID, agentMode, projectPath); blocked {
 		return http.StatusOK, response
 	}
 	beforeState := s.harness.UserStateSummary(ctx)
@@ -4266,6 +4452,10 @@ When the user asks to bind/map a plugin parameter to an existing macro control, 
 For runtime acoustic plugin adjustments on an already learned plugin, such as "cut 500Hz mud", "boost presence", "reduce harshness", or similar mixing targets, use {"cmd":"plugin_grabber_apply_control","track_id":"...","plugin_id":"...","control":"eq.cut_region|eq.boost_region|eq.set_region","target":{"freq_hz":500,"gain_db":-2.5,"q":1.1}}. Do not use set_plugin_param/plugin.set_parameter for these acoustic targets unless the user explicitly gives an exact param_id and raw value. If the profile is missing or stale, the command will report that Get Param/Learn is needed.
 For explicit one-parameter plugin control where the user gives a concrete param_id and a display value/unit, and get_plugin_parameters display_probe evidence is high confidence, set_plugin_param/plugin.set_parameter may use value_text such as "1000 ms" or "28 percent" without a saved profile. Do not use this for semantic mixing, multi-parameter control, or automatic mixing.
 For plugin_grabber_apply_control results, treat applied_parameters[].new_value_text, applied_value, and confirmed display_domain data as the evidence. Do not infer a control's min/max from the current value_text snapshot or advisory safety notes.
+Mixing is a native Ask Vit conversation capability, not a separate Auto Mix/Co-Mix mode. Do not create a planning card or ask the user to fill one for mixing.
+For natural mixing goals such as making a vocal more forward, increasing loudness, reducing mud/harshness, tightening dynamics, or adding space, resolve the target from the user's wording and selected DAW context, then prefer mix_request_observation / mix.request_observation before choosing a write.
+Keep each mixing action to one safe small step or one clearly coupled small move. Use track.volume for simple gain staging, or plugin_grabber_apply_control / plugin_grabber.apply_control for learned plugin changes. If the needed plugin profile/skill is missing or stale, stop and route to plugin_grabber_learn_project_profile / plugin_grabber.learn_project_profile; do not guess raw plugin parameters.
+If the user says to undo or roll back the last mix move, use the available undo/rollback path directly instead of returning to a mixing workflow.
 
 Mode instruction:
 %s

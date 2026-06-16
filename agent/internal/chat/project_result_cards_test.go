@@ -59,6 +59,39 @@ func TestProjectResultCardsUseVerificationEvidence(t *testing.T) {
 	}
 }
 
+func TestProjectResultCardsPreservePluginLoadName(t *testing.T) {
+	cards := projectResultCardsFromExecuted([]map[string]any{
+		{
+			"status":       "ok",
+			"tool":         "plugin.load_to_rack",
+			"command_name": "rack_add_node",
+			"result": map[string]any{
+				"status":      "ok",
+				"track_id":    "1007",
+				"plugin_id":   "plugin_1",
+				"plugin_name": "TDR Nova",
+			},
+			"verification": map[string]any{
+				"status":        "verified",
+				"postcondition": "rack_node_present",
+				"evidence": map[string]any{
+					"observed_plugin_name": "TDR Nova",
+				},
+			},
+		},
+	})
+	if len(cards) != 1 {
+		t.Fatalf("cards = %d, want 1", len(cards))
+	}
+	target, ok := cards[0]["target"].(map[string]any)
+	if !ok {
+		t.Fatalf("target missing: %#v", cards[0])
+	}
+	if target["track_id"] != "1007" || target["plugin_id"] != "plugin_1" || target["plugin_name"] != "TDR Nova" {
+		t.Fatalf("target = %#v", target)
+	}
+}
+
 func TestProjectResultCardsSkipReadOnly(t *testing.T) {
 	cards := projectResultCardsFromExecuted([]map[string]any{
 		{

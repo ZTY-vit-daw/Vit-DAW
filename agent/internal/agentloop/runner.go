@@ -232,7 +232,17 @@ func (r *Runner) ResumeAfterConfirmation(ctx context.Context, cont Continuation)
 	if limit, result := r.checkToolBudget(&state); limit {
 		return result
 	}
-	if stopped, result := r.executeTool(ctx, &state, *cont.PendingToolCall, true, nil); stopped {
+	call := *cont.PendingToolCall
+	if issue := messageLoopToolGuardIssue(&state, call, messageLoopHasUsableMixObservation(&state)); issue != "" {
+		result := planner.ToolResult{ToolCallID: stableToolCallID(call, state.completedSteps+1), Tool: call.Tool, Status: "error", Error: issue}
+		state.trace = append(state.trace,
+			planner.TraceEvent{Kind: "tool_call", ToolCall: &call},
+			planner.TraceEvent{Kind: "tool_result", ToolResult: &result},
+			planner.TraceEvent{Kind: "final_gate", Message: issue},
+		)
+		return r.loop(ctx, &state)
+	}
+	if stopped, result := r.executeTool(ctx, &state, call, true, nil); stopped {
 		return result
 	}
 	return r.loop(ctx, &state)
@@ -326,6 +336,7 @@ func (r *Runner) loop(ctx context.Context, state *runState) Result {
 			}
 			return r.complete(state, reply)
 		}
+		hadMixObservationBeforeTurn := messageLoopHasUsableMixObservation(state)
 		for i := range out.ToolCalls {
 			call := out.ToolCalls[i]
 			if strings.TrimSpace(call.PlanItemID) != "" {
@@ -340,6 +351,7 @@ func (r *Runner) loop(ctx context.Context, state *runState) Result {
 			}
 			call = coercePluginGrabberLearningToolCall(state.input.UserText, call)
 			call = coercePluginGrabberRuntimeToolCall(state.input.UserText, call)
+			call = coerceWaveformBakeToMixObservation(state, call)
 			if !allowedTool(call.Tool, state.input.AllowedTools) {
 				result := planner.ToolResult{ToolCallID: stableToolCallID(call, state.completedSteps+1), Tool: call.Tool, Status: "error", Error: "未知或不允许的工具：" + strings.TrimSpace(call.Tool)}
 				state.trace = append(state.trace,
@@ -350,6 +362,15 @@ func (r *Runner) loop(ctx context.Context, state *runState) Result {
 				if state.consecutiveErrors >= state.budget.MaxConsecutiveErrors {
 					return r.fail(state, errors.New(result.Error))
 				}
+				continue
+			}
+			if issue := messageLoopToolGuardIssue(state, call, hadMixObservationBeforeTurn); issue != "" {
+				result := planner.ToolResult{ToolCallID: stableToolCallID(call, state.completedSteps+1), Tool: call.Tool, Status: "error", Error: issue}
+				state.trace = append(state.trace,
+					planner.TraceEvent{Kind: "tool_call", ToolCall: &call},
+					planner.TraceEvent{Kind: "tool_result", ToolResult: &result},
+					planner.TraceEvent{Kind: "final_gate", Message: issue},
+				)
 				continue
 			}
 			remaining := append([]planner.ToolCall(nil), out.ToolCalls[i+1:]...)
