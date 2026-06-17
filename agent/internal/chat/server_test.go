@@ -31,6 +31,7 @@ import (
 
 func TestMain(m *testing.M) {
 	_ = os.Setenv("VIT_CONTEXT_SNAPSHOT_PATH", "off")
+	_ = os.Setenv("VIT_AGENT_JOURNAL_PATH", "off")
 	os.Exit(m.Run())
 }
 
@@ -2313,6 +2314,252 @@ func TestLegacyPendingBroadMixConfirmationDoesNotExecutePluginLoad(t *testing.T)
 	if _, ok := server.pending[plan.ID]; ok {
 		t.Fatal("pending plan should be consumed after blocked confirmation")
 	}
+}
+
+func TestRecordGoalResultStoresPendingMixTickWithoutDeadlock(t *testing.T) {
+	server := New(nil, shadow.New(nil), nil)
+	done := make(chan struct{})
+	go func() {
+		server.recordGoalResult("chat_mix", agentloop.Result{
+			GoalID: "goal_1",
+			RunID:  "run_1",
+			ExecutionMemory: agentloop.ExecutionMemory{
+				PendingMixTickCandidate: &agentloop.PendingMixTickCandidate{
+					Operation:     "track_gain_adjust",
+					TrackID:       "1010",
+					DeltaDB:       -1,
+					ObservationID: "obs_1",
+					Status:        "pending_confirmation",
+				},
+			},
+		})
+		close(done)
+	}()
+	select {
+	case <-done:
+	case <-time.After(time.Second):
+		t.Fatal("recordGoalResult deadlocked while storing pending mix tick")
+	}
+	if candidate, ok := server.pendingMixTickForConversation("chat_mix"); !ok || candidate.TrackID != "1010" {
+		t.Fatalf("pending candidate = %+v ok=%v", candidate, ok)
+	}
+	events, _ := server.agentEventsSince("chat_mix", 0, 10)
+	if len(events) != 1 || events[0].Type != "mix_tick.pending" {
+		t.Fatalf("events = %+v", events)
+	}
+}
+
+func TestPendingMixTickExplicitConfirmationExecutesTypedLoop(t *testing.T) {
+	server := New(nil, shadow.New(nil), nil)
+	server.pendingMixTicks["chat_mix"] = agentloop.PendingMixTickCandidate{
+		Operation:                 "track_gain_adjust",
+		TrackID:                   "track_1",
+		DeltaDB:                   -1,
+		ObservationID:             "obs_1",
+		Evidence:                  map[string]any{"matched_text": "降低当前轨道 1 dB"},
+		ExpiresAfterContextChange: true,
+		Status:                    "pending_confirmation",
+		Fingerprint:               map[string]any{"target_scope": "selected_track", "mix_session_id": "mix_1"},
+	}
+	server.shadow.Initialize(map[string]any{"tracks": []any{map[string]any{
+		"track_id":       "track_1",
+		"track_name":     "Vocal",
+		"track_type":     "hybrid",
+		"is_audio_track": true,
+		"volume_db":      -3,
+	}}})
+
+	resp, handled := server.handlePendingMixTickChat(context.Background(), "chat_mix", ChatRequest{
+		Message: "可以执行",
+		Context: map[string]any{"conversation_id": "chat_mix"},
+	}, agentModeDefault)
+
+	if !handled || resp.StopReason != "mix_tick_confirmation_failed" {
+		t.Fatalf("resp=%+v handled=%v", resp, handled)
+	}
+	var tools []string
+	for _, row := range resp.ExecutedKernelReply {
+		tools = append(tools, cleanContextText(row["tool"]))
+	}
+	if !testStringSliceContains(tools, "mix.propose_tick") || !testStringSliceContains(tools, "mix.apply_tick") {
+		t.Fatalf("executed tools = %+v, want typed propose/apply attempt", tools)
+	}
+	if testStringSliceContains(tools, "daw.invoke") || testStringSliceContains(tools, "track.volume") {
+		t.Fatalf("confirmation bypassed typed tools: %+v", tools)
+	}
+	if _, ok := server.pendingMixTicks["chat_mix"]; !ok {
+		t.Fatal("failed apply should keep pending mix tick available for retry")
+	}
+}
+
+func TestPendingMixTickTrackLookupFindsNestedVisibleTracks(t *testing.T) {
+	rows := chatVisibleTrackRows(map[string]any{
+		"project_state": map[string]any{
+			"shadow": map[string]any{
+				"tracks": []any{map[string]any{
+					"track_id":   "track_1",
+					"track_name": "Vocal",
+				}},
+			},
+		},
+	})
+	if len(rows) != 1 || cleanContextText(rows[0]["track_id"]) != "track_1" {
+		t.Fatalf("nested rows = %#v", rows)
+	}
+}
+
+func TestPendingMixTickAmbiguousContinueDoesNotExecute(t *testing.T) {
+	server := New(nil, shadow.New(nil), nil)
+	server.pendingMixTicks["chat_mix"] = agentloop.PendingMixTickCandidate{
+		Operation: "track_gain_adjust",
+		TrackID:   "track_1",
+		DeltaDB:   -1,
+		Status:    "pending_confirmation",
+	}
+
+	resp, handled := server.handlePendingMixTickChat(context.Background(), "chat_mix", ChatRequest{Message: "继续"}, agentModeDefault)
+
+	if !handled || resp.StopReason != "ambiguous_mix_tick_confirmation" {
+		t.Fatalf("resp=%+v handled=%v", resp, handled)
+	}
+	if len(resp.ExecutedKernelReply) != 0 {
+		t.Fatalf("ambiguous continue should not execute: %+v", resp.ExecutedKernelReply)
+	}
+	if _, ok := server.pendingMixTicks["chat_mix"]; !ok {
+		t.Fatal("ambiguous continue should keep pending candidate")
+	}
+}
+
+func TestPendingMixTickAmbiguousCanDoesNotExecute(t *testing.T) {
+	server := New(nil, shadow.New(nil), nil)
+	server.pendingMixTicks["chat_mix"] = agentloop.PendingMixTickCandidate{
+		Operation: "track_gain_adjust",
+		TrackID:   "track_1",
+		DeltaDB:   -1,
+		Status:    "pending_confirmation",
+	}
+
+	resp, handled := server.handlePendingMixTickChat(context.Background(), "chat_mix", ChatRequest{Message: "可以"}, agentModeDefault)
+
+	if !handled || resp.StopReason != "ambiguous_mix_tick_confirmation" {
+		t.Fatalf("resp=%+v handled=%v", resp, handled)
+	}
+	if len(resp.ExecutedKernelReply) != 0 {
+		t.Fatalf("ambiguous 可以 should not execute: %+v", resp.ExecutedKernelReply)
+	}
+	if _, ok := server.pendingMixTicks["chat_mix"]; !ok {
+		t.Fatal("ambiguous 可以 should keep pending candidate")
+	}
+}
+
+func TestPendingMixTickNoCandidateDoesNotExecute(t *testing.T) {
+	server := New(nil, shadow.New(nil), nil)
+	resp, handled := server.handlePendingMixTickChat(context.Background(), "chat_mix", ChatRequest{Message: "可以执行"}, agentModeDefault)
+	if !handled || resp.StopReason != "no_pending_mix_tick_candidate" || !strings.Contains(resp.Reply, "没有可执行") {
+		t.Fatalf("resp=%+v handled=%v", resp, handled)
+	}
+}
+
+func TestPendingMixTickTopicShiftExpiresWithoutExecuting(t *testing.T) {
+	server := New(nil, shadow.New(nil), nil)
+	server.pendingMixTicks["chat_mix"] = agentloop.PendingMixTickCandidate{
+		Operation: "track_gain_adjust",
+		TrackID:   "track_1",
+		DeltaDB:   -1,
+		Status:    "pending_confirmation",
+	}
+
+	resp, handled := server.handlePendingMixTickChat(context.Background(), "chat_mix", ChatRequest{Message: "帮我看整体混音"}, agentModeDefault)
+
+	if handled {
+		t.Fatalf("topic shift should fall through to the normal agent loop, resp=%+v", resp)
+	}
+	if len(resp.ExecutedKernelReply) != 0 {
+		t.Fatalf("topic shift should not execute: %+v", resp.ExecutedKernelReply)
+	}
+	if _, ok := server.pendingMixTicks["chat_mix"]; ok {
+		t.Fatal("topic shift should expire stale pending candidate")
+	}
+}
+
+func TestPendingMixTickExpiresWhenTrackGainChanged(t *testing.T) {
+	server := New(nil, shadow.New(nil), nil)
+	server.pendingMixTicks["chat_mix"] = agentloop.PendingMixTickCandidate{
+		Operation:                 "track_gain_adjust",
+		TrackID:                   "track_1",
+		DeltaDB:                   -1,
+		Status:                    "pending_confirmation",
+		ExpiresAfterContextChange: true,
+		Fingerprint:               map[string]any{"track_gain_db": -3.0, "track_count": 1},
+	}
+	server.shadow.Initialize(map[string]any{"tracks": []any{map[string]any{
+		"track_id":       "track_1",
+		"track_name":     "Vocal",
+		"track_type":     "hybrid",
+		"is_audio_track": true,
+		"volume_db":      -4.0,
+	}}})
+
+	resp, handled := server.handlePendingMixTickChat(context.Background(), "chat_mix", ChatRequest{Message: "可以执行"}, agentModeDefault)
+
+	if !handled || resp.StopReason != "expired_pending_mix_tick_candidate" || !strings.Contains(resp.Error, "音量已经变化") {
+		t.Fatalf("resp=%+v handled=%v", resp, handled)
+	}
+	if len(resp.ExecutedKernelReply) != 0 {
+		t.Fatalf("expired candidate should not execute: %+v", resp.ExecutedKernelReply)
+	}
+	if _, ok := server.pendingMixTicks["chat_mix"]; ok {
+		t.Fatal("expired candidate should be removed")
+	}
+}
+
+func TestPendingMixTickExpiresWhenTrackCountChanged(t *testing.T) {
+	server := New(nil, shadow.New(nil), nil)
+	server.pendingMixTicks["chat_mix"] = agentloop.PendingMixTickCandidate{
+		Operation:                 "track_gain_adjust",
+		TrackID:                   "track_1",
+		DeltaDB:                   -1,
+		Status:                    "pending_confirmation",
+		ExpiresAfterContextChange: true,
+		Fingerprint:               map[string]any{"track_gain_db": -3.0, "track_count": 1},
+	}
+	server.shadow.Initialize(map[string]any{"tracks": []any{
+		map[string]any{
+			"track_id":       "track_1",
+			"track_name":     "Vocal",
+			"track_type":     "hybrid",
+			"is_audio_track": true,
+			"volume_db":      -3.0,
+		},
+		map[string]any{
+			"track_id":       "track_2",
+			"track_name":     "Guitar",
+			"track_type":     "hybrid",
+			"is_audio_track": true,
+			"volume_db":      -6.0,
+		},
+	}})
+
+	resp, handled := server.handlePendingMixTickChat(context.Background(), "chat_mix", ChatRequest{Message: "可以执行"}, agentModeDefault)
+
+	if !handled || resp.StopReason != "expired_pending_mix_tick_candidate" || !strings.Contains(resp.Error, "轨道数量已经变化") {
+		t.Fatalf("resp=%+v handled=%v", resp, handled)
+	}
+	if len(resp.ExecutedKernelReply) != 0 {
+		t.Fatalf("expired candidate should not execute: %+v", resp.ExecutedKernelReply)
+	}
+	if _, ok := server.pendingMixTicks["chat_mix"]; ok {
+		t.Fatal("expired candidate should be removed")
+	}
+}
+
+func testStringSliceContains(values []string, needle string) bool {
+	for _, value := range values {
+		if value == needle {
+			return true
+		}
+	}
+	return false
 }
 
 func TestAgentLoopBroadMixConfirmationDoesNotResumePluginLoad(t *testing.T) {

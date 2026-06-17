@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -168,6 +169,9 @@ func (l *MessageLoop) ResumeAfterConfirmation(ctx context.Context, cont Continua
 		return result
 	}
 	call := resolveMessageLoopBindings(&state, *cont.PendingToolCall)
+	call = coerceMixObservationCall(&state, call)
+	call = coerceObservationPackageReadCall(&state, call)
+	call = coerceMixTickPrimitiveCall(&state, call)
 	if issue := messageLoopToolGuardIssue(&state, call, messageLoopHasUsableMixObservation(&state)); issue != "" {
 		messageLoopAppendGuardGate(&state, call, issue)
 		return l.loop(ctx, r, &state)
@@ -190,6 +194,9 @@ func (l *MessageLoop) loop(ctx context.Context, r *Runner, state *runState) Resu
 		return r.fail(state, fmt.Errorf("agent message loop LLM config incomplete"))
 	}
 	for {
+		if stopped, result := l.preflightNaturalMixObservation(ctx, r, state); stopped {
+			return result
+		}
 		if stopped, result := r.checkpoint("before_message_loop_model", state); stopped {
 			return result
 		}
@@ -286,7 +293,7 @@ func (l *MessageLoop) loop(ctx context.Context, r *Runner, state *runState) Resu
 			if reply == "" {
 				reply = "已完成。"
 			}
-			return r.complete(state, reply)
+			return r.complete(state, messageLoopMixObservationFinalReply(state, reply))
 		}
 		hadMixObservationBeforeTurn := messageLoopHasUsableMixObservation(state)
 		for i := range out.ToolCalls {
@@ -295,6 +302,18 @@ func (l *MessageLoop) loop(ctx context.Context, r *Runner, state *runState) Resu
 			call = coercePluginGrabberLearningToolCall(state.input.UserText, call)
 			call = coercePluginGrabberRuntimeToolCall(state.input.UserText, call)
 			call = coerceWaveformBakeToMixObservation(state, call)
+			call = coerceMixObservationCall(state, call)
+			call = coerceObservationPackageReadCall(state, call)
+			call = coerceMixTickPrimitiveCall(state, call)
+			if messageLoopIsMixObservationTool(call) && messageLoopHasMixObservationExecution(state) {
+				issue := "mix.observe already ran for this turn; summarize the existing observation result instead of requesting it again"
+				state.trace = append(state.trace,
+					planner.TraceEvent{Kind: "tool_call_blocked", ToolCall: cloneToolCallPtr(call), Message: issue},
+					planner.TraceEvent{Kind: "final_gate", Message: issue},
+				)
+				state.input.Conversation = append(state.input.Conversation, llm.Message{Role: "user", Content: "<final_gate>" + issue + "</final_gate>"})
+				continue
+			}
 			if stopped, result := r.checkpoint("before_message_loop_tool", state); stopped {
 				return result
 			}
@@ -325,9 +344,124 @@ func (l *MessageLoop) loop(ctx context.Context, r *Runner, state *runState) Resu
 		}
 		if reply, ok := messageLoopFastCompleteReply(state, out); ok {
 			state.trace = append(state.trace, planner.TraceEvent{Kind: "final_gate", Message: "deterministic tool result completed the turn"})
-			return r.complete(state, reply)
+			return r.complete(state, messageLoopMixObservationFinalReply(state, reply))
 		}
 	}
+}
+
+func (l *MessageLoop) preflightNaturalMixObservation(ctx context.Context, r *Runner, state *runState) (bool, Result) {
+	if state == nil || !messageLoopNeedsDeterministicMixObservation(state) {
+		return false, Result{}
+	}
+	if stopped, result := r.checkpoint("before_message_loop_mix_observe_preflight", state); stopped {
+		return true, result
+	}
+	if limit, result := r.checkToolBudget(state); limit {
+		return true, result
+	}
+	call := messageLoopDeterministicMixObservationCall(state)
+	if !allowedTool(call.Tool, state.input.AllowedTools) {
+		result := planner.ToolResult{ToolCallID: call.ID, Tool: call.Tool, Status: "error", Error: "未知或不允许的工具：" + strings.TrimSpace(call.Tool)}
+		state.trace = append(state.trace,
+			planner.TraceEvent{Kind: "tool_call", ToolCall: cloneToolCallPtr(call), Message: "deterministic mix observation preflight"},
+			planner.TraceEvent{Kind: "tool_result", ToolResult: &result},
+			planner.TraceEvent{Kind: "final_gate", Message: result.Error},
+		)
+		state.input.Conversation = append(state.input.Conversation, llm.Message{Role: "user", Content: "<final_gate>" + result.Error + "</final_gate>"})
+		return false, Result{}
+	}
+	state.trace = append(state.trace, planner.TraceEvent{
+		Kind:     "tool_call_rewritten",
+		Message:  "natural mix request was routed through deterministic mix.observe preflight",
+		ToolCall: cloneToolCallPtr(call),
+	})
+	toolStarted := time.Now()
+	stopped, result := r.executeTool(ctx, state, call, false, nil)
+	l.logTiming("message_loop.tool", toolStarted, "goal=%s tool=%s confirmed=false preflight=true stopped=%t status=%s", state.goal.GoalID, call.Tool, stopped, result.Status)
+	if stopped {
+		return true, result
+	}
+	appendMessageLoopToolResult(state)
+	if !messageLoopHasUsableMixObservation(state) {
+		state.input.Conversation = append(state.input.Conversation, llm.Message{Role: "user", Content: "<final_gate>mix.observe ran but did not return a usable acoustic observation; summarize the blocker and do not execute a mix action.</final_gate>"})
+	}
+	return false, Result{}
+}
+
+func messageLoopNeedsDeterministicMixObservation(state *runState) bool {
+	if state == nil {
+		return false
+	}
+	if messageLoopObservationPackageReadRequest(state.input.UserText) && observationIsMixObservation(state.recentObservation) {
+		return false
+	}
+	if (!messageLoopNaturalMixRequest(state.input.UserText) && !messageLoopAudioObservationRequest(state.input.UserText)) || messageLoopExplicitPluginOrRawRequest(state.input.UserText) {
+		return false
+	}
+	if messageLoopExplicitMixExecutionConfirmation(state.input.UserText) {
+		return false
+	}
+	if !allowedTool(messageLoopPreferredMixObservationTool(state), state.input.AllowedTools) {
+		return false
+	}
+	if messageLoopHasAnyMixObservationAttempt(state) || messageLoopHasUsableMixObservation(state) {
+		return false
+	}
+	return true
+}
+
+func messageLoopDeterministicMixObservationCall(state *runState) planner.ToolCall {
+	args := messageLoopMixObservationArgs(state.input.UserText, map[string]any{})
+	if trackID := firstNonEmpty(
+		state.executionMemory.ActiveWorkTargetTrackID,
+		firstStateTrackID(state.input.Context),
+		firstStateTrackID(state.input.State),
+	); trackID != "" {
+		setIfEmpty(args, "track_id", trackID)
+	}
+	if clipID := firstNonEmpty(
+		state.executionMemory.ActiveWorkTargetClipID,
+		firstStateClipID(state.input.Context),
+		firstStateClipID(state.input.State),
+	); clipID != "" {
+		setIfEmpty(args, "clip_id", clipID)
+	}
+	return planner.ToolCall{
+		ID:     "observe_mix",
+		Tool:   messageLoopPreferredMixObservationTool(state),
+		Args:   args,
+		Reason: "deterministic observation before broad acoustic mix advice",
+	}
+}
+
+func firstStateTrackID(values ...map[string]any) string {
+	for _, value := range values {
+		if trackID := firstMapText(value, "selected_track_id", "selected_clip_track_id", "track_id", "target_track_id"); trackID != "" {
+			return trackID
+		}
+		for _, row := range messageLoopMapRows(value["tracks"]) {
+			if trackID := firstMapText(row, "track_id", "id", "item_id"); trackID != "" {
+				return trackID
+			}
+		}
+	}
+	return ""
+}
+
+func firstStateClipID(values ...map[string]any) string {
+	for _, value := range values {
+		if clipID := firstMapText(value, "selected_clip_id", "primary_selected_clip_id", "clip_id", "target_clip_id"); clipID != "" {
+			return clipID
+		}
+		for _, row := range messageLoopMapRows(value["tracks"]) {
+			for _, clip := range messageLoopMapRows(row["clips"]) {
+				if clipID := firstMapText(clip, "clip_id", "id", "item_id"); clipID != "" {
+					return clipID
+				}
+			}
+		}
+	}
+	return ""
 }
 
 func messageLoopAppendGuardGate(state *runState, call planner.ToolCall, issue string) {
@@ -351,7 +485,7 @@ func coerceWaveformBakeToMixObservation(state *runState, call planner.ToolCall) 
 		return call
 	}
 	next := call
-	next.Tool = "mix.request_observation"
+	next.Tool = messageLoopPreferredMixObservationTool(state)
 	if next.ID == "" || strings.Contains(strings.ToLower(next.ID), "bake") {
 		next.ID = "observe_mix"
 	}
@@ -364,15 +498,334 @@ func coerceWaveformBakeToMixObservation(state *runState, call planner.ToolCall) 
 	if strings.TrimSpace(fmt.Sprint(args["mix_session_id"])) == "" {
 		args["mix_session_id"] = "mix_" + strings.TrimSpace(state.goal.GoalID)
 	}
+	args = messageLoopMixObservationArgs(state.input.UserText, args)
 	next.Args = args
 	next.Command = nil
-	next.Reason = firstNonEmpty(strings.TrimSpace(next.Reason), "route audio/acoustic observation through mix.request_observation")
+	next.Reason = firstNonEmpty(strings.TrimSpace(next.Reason), "route audio/acoustic observation through mix.observe")
 	state.trace = append(state.trace, planner.TraceEvent{
 		Kind:     "tool_call_rewritten",
-		Message:  "clip.warm_waveform_bake was routed through mix.request_observation for audio observation",
+		Message:  "clip.warm_waveform_bake was routed through mix.observe for audio observation",
 		ToolCall: &next,
 	})
 	return next
+}
+
+func coerceMixObservationCall(state *runState, call planner.ToolCall) planner.ToolCall {
+	if state == nil || !messageLoopIsMixObservationTool(call) {
+		return call
+	}
+	next := call
+	if strings.EqualFold(strings.TrimSpace(next.Tool), "mix.request_observation") && allowedTool("mix.observe", state.input.AllowedTools) {
+		next.Tool = "mix.observe"
+	}
+	if next.ID == "" {
+		next.ID = "observe_mix"
+	}
+	args := cloneMap(next.Args)
+	if args == nil {
+		args = map[string]any{}
+	}
+	if strings.TrimSpace(fmt.Sprint(args["mix_session_id"])) == "" {
+		args["mix_session_id"] = "mix_" + strings.TrimSpace(state.goal.GoalID)
+	}
+	if strings.TrimSpace(fmt.Sprint(args["goal_text"])) == "" {
+		args["goal_text"] = strings.TrimSpace(state.input.UserText)
+	}
+	next.Args = messageLoopMixObservationArgs(state.input.UserText, args)
+	return next
+}
+
+func coerceObservationPackageReadCall(state *runState, call planner.ToolCall) planner.ToolCall {
+	if state == nil || !messageLoopObservationPackageReadRequest(state.input.UserText) || !messageLoopLooksLikePluginParameterRead(call) {
+		return call
+	}
+	if !allowedTool("mix.read", state.input.AllowedTools) || !messageLoopHasAnyMixObservationAttempt(state) {
+		return call
+	}
+	next := call
+	next.Tool = "mix.read"
+	if next.ID == "" || strings.Contains(strings.ToLower(next.ID), "param") {
+		next.ID = "read_mix_observation"
+	}
+	args := cloneMap(next.Args)
+	if args == nil {
+		args = map[string]any{}
+	}
+	for _, key := range []string{"plugin_id", "param_id", "parameter_id", "parameter_name", "plugin_name"} {
+		delete(args, key)
+	}
+	if strings.TrimSpace(fmt.Sprint(args["mix_session_id"])) == "" && strings.TrimSpace(fmt.Sprint(args["observation_id"])) == "" {
+		if state.recentObservation != nil && observationIsMixObservation(state.recentObservation) {
+			if observationID := firstMapText(state.recentObservation.Summary, "observation_id"); observationID != "" {
+				args["observation_id"] = observationID
+			}
+			if sessionID := firstMapText(state.recentObservation.Summary, "mix_session_id"); sessionID != "" {
+				args["mix_session_id"] = sessionID
+			}
+		}
+	}
+	args["keys"] = messageLoopObservationPackageReadKeys(state, args)
+	if _, ok := args["max_items"]; !ok {
+		args["max_items"] = 12
+	}
+	next.Args = args
+	next.Command = nil
+	next.Reason = firstNonEmpty(strings.TrimSpace(call.Reason), "read MixBoard acoustic observation package instead of plugin parameters")
+	state.trace = append(state.trace, planner.TraceEvent{
+		Kind:     "tool_call_rewritten",
+		Message:  "plugin parameter read was routed to mix.read for an observation package question",
+		ToolCall: &next,
+	})
+	return next
+}
+
+func messageLoopObservationPackageReadKeys(state *runState, args map[string]any) []string {
+	keys := []string{"observation.digest", "project.limitations"}
+	trackID := firstMapText(args, "track_id", "target_track_id", "selected_track_id")
+	if trackID == "" && state != nil {
+		trackID = firstNonEmpty(state.executionMemory.ActiveWorkTargetTrackID, state.executionMemory.LastCreatedTrackID)
+	}
+	if trackID != "" {
+		keys = append(keys,
+			"track."+trackID+".fast.levels",
+			"track."+trackID+".slow.time_energy.summary",
+		)
+	}
+	return keys
+}
+
+func messageLoopObservationPackageReadRequest(userText string) bool {
+	text := strings.ToLower(strings.TrimSpace(userText))
+	if text == "" {
+		return false
+	}
+	hasObservation := messageLoopTextHasAny(text,
+		"observation", "mixboard", "acoustic", "audio feature", "feature snapshot",
+		"\u89c2\u5bdf", "\u58f0\u5b66", "\u97f3\u9891\u7279\u5f81", "\u6570\u636e\u5305", "\u5feb\u7167",
+		"\u6ce2\u5f62", "\u5305\u7edc", "\u54cd\u5ea6", "\u5cf0\u503c", "rms", "headroom", "crest",
+	)
+	hasReadIntent := messageLoopTextHasAny(text,
+		"read", "show", "inspect", "missing", "unavailable", "why", "package", "data",
+		"\u770b", "\u67e5", "\u8bfb", "\u4e3a\u4ec0\u4e48", "\u4e3a\u5565", "\u6ca1\u6709", "\u7f3a\u5931", "\u4e0d\u89c1", "\u770b\u4e0d\u89c1",
+	)
+	return hasObservation && hasReadIntent
+}
+
+func messageLoopLooksLikePluginParameterRead(call planner.ToolCall) bool {
+	name := strings.ToLower(strings.TrimSpace(normalizedActionName(call, executorpkg.Result{})))
+	if name == "" {
+		name = strings.ToLower(strings.TrimSpace(call.Tool))
+	}
+	switch name {
+	case "plugin.get_parameters", "get_plugin_parameters":
+		return true
+	default:
+		return false
+	}
+}
+
+func coerceMixTickPrimitiveCall(state *runState, call planner.ToolCall) planner.ToolCall {
+	if state == nil || messageLoopExplicitPluginOrRawRequest(state.input.UserText) {
+		return call
+	}
+	if !messageLoopHasUsableMixObservation(state) {
+		return call
+	}
+	if !messageLoopPrimitiveTrackVolumeCall(call) {
+		return call
+	}
+	if !allowedTool("mix.propose_tick", state.input.AllowedTools) {
+		return call
+	}
+	trackID := firstMapText(call.Args, "track_id", "target_track_id", "selected_track_id")
+	if trackID == "" {
+		trackID = firstMapText(call.Command, "track_id", "target_track_id", "selected_track_id")
+	}
+	if trackID == "" {
+		trackID = state.executionMemory.ActiveWorkTargetTrackID
+	}
+	if trackID == "" {
+		return call
+	}
+	delta, ok := messageLoopPrimitiveTrackVolumeDelta(state, call, trackID)
+	if !ok || delta == 0 {
+		return call
+	}
+	next := call
+	next.Tool = "mix.propose_tick"
+	next.Command = nil
+	next.Args = map[string]any{
+		"operation": "track_gain_adjust",
+		"track_id":  trackID,
+		"delta_db":  delta,
+		"evidence": map[string]any{
+			"adapter":        "primitive_track_volume",
+			"primitive_tool": strings.TrimSpace(call.Tool),
+			"primitive_cmd":  firstMapText(call.Args, "cmd", "command"),
+			"reason":         strings.TrimSpace(call.Reason),
+		},
+	}
+	next.Reason = firstNonEmpty(strings.TrimSpace(call.Reason), "wrap confirmed acoustic mix volume change as a single mix tick")
+	state.trace = append(state.trace, planner.TraceEvent{
+		Kind:     "tool_call_rewritten",
+		Message:  "confirmed acoustic mix volume primitive was wrapped as mix.propose_tick",
+		ToolCall: &next,
+	})
+	return next
+}
+
+func messageLoopPendingConfirmationCall(call planner.ToolCall, result executorpkg.Result) planner.ToolCall {
+	if !messageLoopIsMixProposeTickCall(call) {
+		return call
+	}
+	tickID := firstMapText(result.Result, "tick_id")
+	if tickID == "" {
+		return call
+	}
+	pending := planner.ToolCall{
+		ID:     firstNonEmpty(call.ID, "apply_mix_tick"),
+		Tool:   "mix.apply_tick",
+		Reason: "apply the confirmed mix tick",
+		Args: map[string]any{
+			"tick_id": tickID,
+		},
+	}
+	if trackID := firstMapText(result.Result, "track_id"); trackID != "" {
+		pending.Args["track_id"] = trackID
+	}
+	return pending
+}
+
+func messageLoopShouldAutoApplyConfirmedMixTick(state *runState, call planner.ToolCall, result executorpkg.Result) bool {
+	if state == nil || !messageLoopMixExecutionApproval(state.input.UserText) {
+		return false
+	}
+	if !messageLoopIsMixProposeTickCall(call) {
+		return false
+	}
+	return firstMapText(result.Result, "tick_id") != ""
+}
+
+func messageLoopMixExecutionApproval(userText string) bool {
+	text := strings.ToLower(strings.TrimSpace(userText))
+	if text == "" {
+		return false
+	}
+	return messageLoopExplicitMixExecutionConfirmation(text)
+}
+
+func messageLoopIsMixProposeTickCall(call planner.ToolCall) bool {
+	name := strings.ToLower(strings.TrimSpace(normalizedActionName(call, executorpkg.Result{})))
+	return name == "mix.propose_tick" || name == "mix_propose_tick"
+}
+
+func messageLoopPrimitiveTrackVolumeCall(call planner.ToolCall) bool {
+	name := strings.ToLower(strings.TrimSpace(normalizedActionName(call, executorpkg.Result{})))
+	if name == "" {
+		name = strings.ToLower(strings.TrimSpace(call.Tool))
+	}
+	switch name {
+	case "track.volume", "set_volume":
+		return true
+	default:
+		return false
+	}
+}
+
+func messageLoopPrimitiveTrackVolumeDelta(state *runState, call planner.ToolCall, trackID string) (float64, bool) {
+	if value, ok := firstNumericMapValue(call.Args, "delta_db", "db_delta", "gain_delta_db", "volume_delta_db"); ok {
+		return value, true
+	}
+	if value, ok := firstNumericMapValue(call.Command, "delta_db", "db_delta", "gain_delta_db", "volume_delta_db"); ok {
+		return value, true
+	}
+	if targetDB, ok := firstNumericMapValue(call.Args, "db", "volume_db", "gain_db", "fader_db"); ok {
+		if currentDB, found := messageLoopCurrentTrackDB(state, trackID); found {
+			return targetDB - currentDB, true
+		}
+	}
+	if targetDB, ok := firstNumericMapValue(call.Command, "db", "volume_db", "gain_db", "fader_db"); ok {
+		if currentDB, found := messageLoopCurrentTrackDB(state, trackID); found {
+			return targetDB - currentDB, true
+		}
+	}
+	return 0, false
+}
+
+func messageLoopCurrentTrackDB(state *runState, trackID string) (float64, bool) {
+	if state == nil || strings.TrimSpace(trackID) == "" {
+		return 0, false
+	}
+	for _, row := range messageLoopMapRows(state.input.State["tracks"]) {
+		if firstMapText(row, "track_id", "id") != trackID {
+			continue
+		}
+		return firstNumericMapValue(row, "volume_db", "gain_db", "fader_db", "db")
+	}
+	for _, row := range messageLoopMapRows(state.contextSnapshot["tracks"]) {
+		if firstMapText(row, "track_id", "id") != trackID {
+			continue
+		}
+		return firstNumericMapValue(row, "volume_db", "gain_db", "fader_db", "db")
+	}
+	for i := len(state.executed) - 1; i >= 0; i-- {
+		result := messageLoopMapValue(state.executed[i]["result"])
+		if value, found := messageLoopCurrentTrackDBFromResult(result, trackID); found {
+			return value, true
+		}
+	}
+	return 0, false
+}
+
+func messageLoopCurrentTrackDBFromResult(result map[string]any, trackID string) (float64, bool) {
+	if len(result) == 0 || strings.TrimSpace(trackID) == "" {
+		return 0, false
+	}
+	for _, source := range []any{
+		result["tracks"],
+		messageLoopMapValue(result["project"])["tracks"],
+		messageLoopMapValue(result["mixboard"])["tracks"],
+		messageLoopMapValue(result["observation"])["tracks"],
+	} {
+		for _, row := range messageLoopMapRows(source) {
+			if firstMapText(row, "track_id", "id") != trackID {
+				continue
+			}
+			return firstNumericMapValue(row, "volume_db", "gain_db", "fader_db", "db")
+		}
+	}
+	return 0, false
+}
+
+func firstNumericMapValue(row map[string]any, keys ...string) (float64, bool) {
+	for _, key := range keys {
+		if row == nil {
+			return 0, false
+		}
+		value, ok := row[key]
+		if !ok || value == nil {
+			continue
+		}
+		switch typed := value.(type) {
+		case float64:
+			return typed, true
+		case float32:
+			return float64(typed), true
+		case int:
+			return float64(typed), true
+		case int64:
+			return float64(typed), true
+		case json.Number:
+			if n, err := typed.Float64(); err == nil {
+				return n, true
+			}
+		case string:
+			if n, err := strconv.ParseFloat(strings.TrimSpace(typed), 64); err == nil {
+				return n, true
+			}
+		}
+	}
+	return 0, false
 }
 
 func (l *MessageLoop) runner() *Runner {
@@ -447,10 +900,14 @@ Rules:
 - For plugin_grabber_apply_control results, prefer applied_parameters[].new_value_text, applied_value, and confirmed display_domain data. Do not infer control limits from a parameter's current value_text or from advisory safety notes.
 - For exact one-parameter plugin writes with explicit param_id and high-confidence get_plugin_parameters display_probe evidence, plugin.set_parameter may use value_text such as "1000 ms" or "28 percent". Do not use this for acoustic goals, multi-parameter moves, or automatic mixing; those require plugin_grabber.apply_control and a learned profile.
 - Mixing is a native Ask Vit conversation task, not a separate Auto Mix/Co-Mix mode. Do not create or ask the user to fill a planning card for mixing.
-- For natural/broad mixing goals such as making a vocal more forward, increasing loudness, reducing mud/harshness, tightening dynamics, adding space, or "mix this audio", you MUST call mix.request_observation first and wait for its result before choosing plugins, learning plugin profiles, loading effects, changing volume, or writing parameters.
-- Do not call clip.warm_waveform_bake / warm_waveform_bake directly for broad mixing observation. mix.request_observation owns waveform and envelope feature preparation.
-- After mix.request_observation for a broad mixing request, stop and summarize the observed project/audio facts plus one suggested next small move. Do not load plugins, learn profiles, change volume, apply controls, or write parameters in the same user request. Wait for the user to explicitly confirm a concrete follow-up action first.
-- Keep each mixing action to one safe small step or one clearly coupled small move. Use track.volume for simple gain staging, or plugin_grabber.apply_control for learned plugin changes. If the needed plugin profile/skill is missing or stale, stop and use plugin_grabber.learn_project_profile or ask for learning confirmation; do not guess raw plugin parameters.
+- For natural/broad mixing goals such as making a vocal more forward, increasing loudness, reducing mud/harshness, tightening dynamics, adding space, or "mix this audio", you MUST call mix.observe first and wait for its result before choosing plugins, learning plugin profiles, loading effects, changing volume, or writing parameters.
+- Choose mix.observe scope from intent, not trigger phrases: selected_clip, selected_track, named_track, track_group, full_project, or full_project_with_focus_track. Use project_context for current-track mixing, full_project for overall mix questions, and full_project_with_focus_track for vocal/lead/focus relationships.
+- mix.observe returns a digest and catalog. Use mix.read for the catalog entries you need and mix.derive for local relationship packages such as rank_tracks, focus_vs_project, a_vs_b, group_overlap, or before_after. Do not manually compare large raw packages in your hidden reasoning when a relationship package can be derived locally.
+- Do not call clip.warm_waveform_bake / warm_waveform_bake directly for broad mixing observation. mix.observe owns waveform and envelope feature preparation.
+- After mix.observe/mix.read/mix.derive for a broad mixing request, stop and summarize the observed project/audio facts plus one suggested next small move, then ask whether the user wants you to continue executing that move. Do not load plugins, learn profiles, change volume, apply controls, or write parameters in the same user request. Wait for the user to explicitly confirm a concrete follow-up action first.
+- Treat deep/slow packages as optional. If they are missing, pending, partial, or blocked, say what uncertainty remains and base suggestions only on available evidence.
+- When the user confirms the proposed small mix move, use mix.propose_tick and then mix.apply_tick; v1 supports only track_gain_adjust up to +/-2 dB and the tool will execute through primitive set_volume. Do not call track.volume directly for an acoustic mix tick.
+- Keep each mixing action to one safe small step or one clearly coupled small move. v1 execution supports track_gain_adjust only. For plugin/EQ/compressor/reverb moves, stop and explain that the needed action is not yet enabled as a mix tick unless the user gives an exact non-acoustic parameter edit.
 - Use plugin.set_parameter only when the user explicitly names an exact raw parameter/value or prior tool evidence gives a high-confidence exact param_id and display domain. Never use it as a fallback for subjective acoustic mixing goals.
 - If the user says to undo or roll back the last mix move, use the available project undo/rollback path directly instead of returning to a mixing workflow.
 - Do not invent track_id, clip_id, plugin_id, or tool names.
@@ -527,10 +984,21 @@ Do not add markdown fences, comments, prose, or multiple JSON objects. Preserve 
 }
 
 func parseMessageLoopOutput(raw string) (messageLoopOutput, error) {
+	if repaired := escapeBareNewlinesInJSONStringLiterals(strings.TrimSpace(raw)); repaired != strings.TrimSpace(raw) {
+		if out, err := decodeMessageLoopCandidate(repaired); err == nil {
+			return normalizeMessageLoopOutput(out), nil
+		}
+	}
 	for _, candidate := range messageLoopJSONCandidates(raw) {
 		out, err := decodeMessageLoopCandidate(candidate)
 		if err == nil {
 			return normalizeMessageLoopOutput(out), nil
+		}
+		if repaired := escapeBareNewlinesInJSONStringLiterals(candidate); repaired != candidate {
+			out, repairedErr := decodeMessageLoopCandidate(repaired)
+			if repairedErr == nil {
+				return normalizeMessageLoopOutput(out), nil
+			}
 		}
 	}
 	return messageLoopOutput{}, fmt.Errorf("Agent 返回的计划格式不是有效 JSON")
@@ -575,6 +1043,51 @@ func messageLoopJSONCandidates(raw string) []string {
 		add(object)
 	}
 	return candidates
+}
+
+func escapeBareNewlinesInJSONStringLiterals(text string) string {
+	if text == "" {
+		return text
+	}
+	var b strings.Builder
+	b.Grow(len(text) + 8)
+	inString := false
+	escaped := false
+	changed := false
+	for _, ch := range text {
+		if inString {
+			if escaped {
+				escaped = false
+				b.WriteRune(ch)
+				continue
+			}
+			switch ch {
+			case '\\':
+				escaped = true
+				b.WriteRune(ch)
+			case '"':
+				inString = false
+				b.WriteRune(ch)
+			case '\n':
+				changed = true
+				b.WriteString(`\n`)
+			case '\r':
+				changed = true
+				b.WriteString(`\r`)
+			default:
+				b.WriteRune(ch)
+			}
+			continue
+		}
+		if ch == '"' {
+			inString = true
+		}
+		b.WriteRune(ch)
+	}
+	if !changed {
+		return text
+	}
+	return b.String()
 }
 
 func fencedJSONBlocks(text string) []string {
@@ -762,6 +1275,14 @@ func resolveMessageLoopBindings(state *runState, call planner.ToolCall) planner.
 		setIfEmpty(call.Args, "clip_id", clipID)
 		setIfEmpty(call.Command, "clip_id", clipID)
 	}
+	tickID := resolveMixTickRef(state, firstMapText(call.Args, "tick_ref", "mix_tick_ref", "tick_id"))
+	if tickID == "" && messageLoopToolWantsMixTick(call) {
+		tickID = state.executionMemory.LastMixTickID
+	}
+	if tickID != "" && messageLoopToolWantsMixTick(call) {
+		setIfEmpty(call.Args, "tick_id", tickID)
+		setIfEmpty(call.Command, "tick_id", tickID)
+	}
 	return call
 }
 
@@ -780,6 +1301,16 @@ func resolveClipRef(state *runState, ref string) string {
 	switch strings.ToLower(ref) {
 	case "last_created_clip", "new_clip", "created_clip", "active_work_target_clip":
 		return firstNonEmpty(state.executionMemory.ActiveWorkTargetClipID, state.executionMemory.LastCreatedClipID)
+	default:
+		return ref
+	}
+}
+
+func resolveMixTickRef(state *runState, ref string) string {
+	ref = strings.TrimSpace(strings.TrimPrefix(ref, "$"))
+	switch strings.ToLower(ref) {
+	case "last_mix_tick", "last_proposed_mix_tick", "proposed_mix_tick":
+		return state.executionMemory.LastMixTickID
 	default:
 		return ref
 	}
@@ -809,6 +1340,16 @@ func messageLoopToolWantsClip(call planner.ToolCall) bool {
 	}
 }
 
+func messageLoopToolWantsMixTick(call planner.ToolCall) bool {
+	name := normalizedActionName(call, executorpkg.Result{})
+	switch name {
+	case "mix.apply_tick", "mix_apply_tick", "mix.rollback_tick", "mix_rollback_tick":
+		return true
+	default:
+		return false
+	}
+}
+
 func setIfEmpty(row map[string]any, key, value string) {
 	if row == nil || strings.TrimSpace(value) == "" {
 		return
@@ -823,7 +1364,7 @@ func messageLoopToolGuardIssue(state *runState, call planner.ToolCall, hadMixObs
 		return ""
 	}
 	if messageLoopIsWaveformBakeTool(call) {
-		return "broad mixing observation must use mix.request_observation; waveform/envelope preparation is handled inside that observation tool"
+		return "broad mixing observation must use mix.observe; waveform/envelope preparation is handled inside that observation tool"
 	}
 	if messageLoopIsMixObservationTool(call) || messageLoopMixObserveFirstAllowedTool(call) {
 		return ""
@@ -835,9 +1376,9 @@ func messageLoopToolGuardIssue(state *runState, call planner.ToolCall, hadMixObs
 		if messageLoopExplicitMixExecutionConfirmation(state.input.UserText) {
 			return ""
 		}
-		return "mix.request_observation is complete; broad mixing requests must stop here, summarize the observation, propose one concrete next move, and wait for explicit user confirmation before loading plugins, learning profiles, changing volume, applying controls, or writing parameters"
+		return "mix.observe is complete; broad mixing requests must stop here, summarize the observation, propose one concrete next move, and wait for explicit user confirmation before loading plugins, learning profiles, changing volume, applying controls, or writing parameters"
 	}
-	return "ordinary acoustic mixing requests must run mix.request_observation and wait for its result before loading plugins, learning plugin profiles, changing volume, applying controls, or writing parameters"
+	return "ordinary acoustic mixing requests must run mix.observe and wait for its result before loading plugins, learning plugin profiles, changing volume, applying controls, or writing parameters"
 }
 
 func messageLoopHasUsableMixObservation(state *runState) bool {
@@ -863,6 +1404,41 @@ func messageLoopHasUsableMixObservation(state *runState) bool {
 	}
 	if observationIsMixObservation(state.recentObservation) {
 		return true
+	}
+	return false
+}
+
+func messageLoopHasAnyMixObservationAttempt(state *runState) bool {
+	if state == nil {
+		return false
+	}
+	for _, record := range state.executed {
+		if messageLoopIsMixObservationName(firstNonEmpty(messageLoopText(record["tool"]), messageLoopText(record["command_name"]))) {
+			return true
+		}
+	}
+	for _, event := range state.trace {
+		if event.ToolResult != nil && messageLoopIsMixObservationName(event.ToolResult.Tool) {
+			return true
+		}
+		if event.ToolCall != nil && messageLoopIsMixObservationName(event.ToolCall.Tool) {
+			return true
+		}
+	}
+	if observationIsMixObservation(state.recentObservation) {
+		return true
+	}
+	return false
+}
+
+func messageLoopHasMixObservationExecution(state *runState) bool {
+	if state == nil {
+		return false
+	}
+	for _, record := range state.executed {
+		if messageLoopIsMixObservationName(firstNonEmpty(messageLoopText(record["tool"]), messageLoopText(record["command_name"]))) {
+			return true
+		}
 	}
 	return false
 }
@@ -983,7 +1559,7 @@ func messageLoopNaturalMixRequest(userText string) bool {
 		return false
 	}
 	return messageLoopTextHasAny(text,
-		"\u6df7\u97f3", "\u7f29\u6df7", "\u58f0\u97f3\u5904\u7406", "\u8c03\u4e00\u4e0b", "\u5904\u7406\u4e00\u4e0b",
+		"\u6df7\u97f3", "\u6df7\u4e00\u4e0b", "\u5e2e\u6211\u6df7", "\u7f29\u6df7", "\u58f0\u97f3\u5904\u7406", "\u8c03\u4e00\u4e0b", "\u5904\u7406\u4e00\u4e0b",
 		"\u4e3b\u5531", "\u4eba\u58f0", "vocal", "lead vocal",
 		"\u9760\u524d", "\u5f80\u524d", "\u63d0\u5347\u54cd\u5ea6", "\u54cd\u5ea6", "\u66f4\u4eae", "\u660e\u4eae", "\u6d51\u6d4a", "\u523a\u8033",
 		"\u4f4e\u9891", "\u4f4e\u4e2d\u9891", "\u7a7a\u95f4\u611f", "\u52a0\u4e00\u70b9\u7a7a\u95f4", "\u52a8\u6001", "\u538b\u7f29",
@@ -1045,13 +1621,88 @@ func messageLoopExplicitMixExecutionConfirmation(userText string) bool {
 	return hasApproval && hasConcreteMove
 }
 
+func messageLoopPreferredMixObservationTool(state *runState) string {
+	if state != nil && allowedTool("mix.observe", state.input.AllowedTools) {
+		return "mix.observe"
+	}
+	return "mix.request_observation"
+}
+
+func messageLoopMixObservationArgs(userText string, args map[string]any) map[string]any {
+	out := cloneMap(args)
+	if out == nil {
+		out = map[string]any{}
+	}
+	scope := strings.TrimSpace(fmt.Sprint(out["scope"]))
+	if scope == "" || scope == "<nil>" {
+		scope = messageLoopMixScopeFromIntent(userText, out)
+		out["scope"] = scope
+	}
+	if _, ok := out["project_context"]; !ok {
+		out["project_context"] = scope != "selected_clip"
+	}
+	if _, ok := out["observation_only"]; !ok {
+		out["observation_only"] = true
+	}
+	if strings.TrimSpace(fmt.Sprint(out["disclosure"])) == "" || strings.TrimSpace(fmt.Sprint(out["disclosure"])) == "<nil>" {
+		out["disclosure"] = "digest_catalog"
+	}
+	if messageLoopTextHasAny(strings.ToLower(userText), "\u4e3b\u5531", "\u4eba\u58f0", "vocal", "lead vocal") {
+		setIfEmptyMap(out, "focus_hint", map[string]any{"role": "vocal", "source": "user_intent"})
+	}
+	if messageLoopTextHasAny(strings.ToLower(userText), "\u4f4e\u9891", "\u8d1d\u65af", "\u9f13", "\u5e95\u9f13", "\u6d51\u6d4a", "low end", "bass", "kick", "mud", "muddy") {
+		setIfEmptyMap(out, "relationship_focus", map[string]any{
+			"type":       "low_frequency_relationship_focus",
+			"dimensions": []any{"sub", "bass", "low_mid", "time_overlap", "headroom"},
+			"source":     "user_intent",
+		})
+	}
+	return out
+}
+
+func messageLoopMixScopeFromIntent(userText string, args map[string]any) string {
+	text := strings.ToLower(strings.TrimSpace(userText))
+	if messageLoopTextHasAny(text, "\u6574\u4f53", "\u6574\u9996", "\u5168\u5de5\u7a0b", "\u8fd9\u9996\u6b4c", "\u5168\u5c40", "overall", "whole song", "full project", "entire mix") {
+		if messageLoopTextHasAny(text, "\u4e3b\u5531", "\u4eba\u58f0", "vocal", "lead vocal") {
+			return "full_project_with_focus_track"
+		}
+		return "full_project"
+	}
+	if messageLoopTextHasAny(text, "\u4e3b\u5531", "\u4eba\u58f0", "vocal", "lead vocal") {
+		return "full_project_with_focus_track"
+	}
+	if messageLoopTextHasAny(text, "\u4f4e\u9891", "\u4f4e\u4e2d\u9891", "\u6d51\u6d4a", "\u8d1d\u65af", "\u5e95\u9f13", "low end", "bass", "kick", "mud", "muddy") {
+		return "full_project"
+	}
+	if firstMapText(args, "clip_id", "selected_clip_id") != "" || messageLoopTextHasAny(text, "clip", "\u7247\u6bb5") {
+		return "selected_clip"
+	}
+	if firstMapText(args, "track_name", "target_track_name", "name") != "" {
+		return "named_track"
+	}
+	if firstMapText(args, "track_id", "selected_track_id", "target_track_id") != "" || messageLoopTextHasAny(text, "\u5f53\u524d\u8f68\u9053", "\u9009\u4e2d\u8f68\u9053", "current track", "selected track") {
+		return "selected_track"
+	}
+	return "selected_track"
+}
+
+func setIfEmptyMap(row map[string]any, key string, value map[string]any) {
+	if row == nil || key == "" || len(value) == 0 {
+		return
+	}
+	if current, ok := row[key]; ok && !messageLoopEmptyValue(current) {
+		return
+	}
+	row[key] = value
+}
+
 func messageLoopIsMixObservationTool(call planner.ToolCall) bool {
 	return messageLoopIsMixObservationName(normalizedActionName(call, executorpkg.Result{}))
 }
 
 func messageLoopIsMixObservationName(name string) bool {
 	switch strings.ToLower(strings.TrimSpace(name)) {
-	case "mix.request_observation", "mix_request_observation":
+	case "mix.observe", "mix_observe", "mix.request_observation", "mix_request_observation":
 		return true
 	default:
 		return false
@@ -1080,7 +1731,8 @@ func messageLoopMixObserveFirstAllowedTool(call planner.ToolCall) bool {
 		return true
 	}
 	switch name {
-	case "project.state", "get_project_state", "track.list":
+	case "project.state", "get_project_state", "track.list", "mix.read", "mix_read", "mix.derive", "mix_derive",
+		"mix.propose_tick", "mix_propose_tick", "mix.apply_tick", "mix_apply_tick", "mix.rollback_tick", "mix_rollback_tick":
 		return true
 	default:
 		return false
@@ -1369,6 +2021,34 @@ func messageLoopFastCompleteReply(state *runState, out messageLoopOutput) (strin
 		return "", false
 	}
 	return reply, true
+}
+
+func messageLoopMixObservationFinalReply(state *runState, reply string) string {
+	reply = strings.TrimSpace(reply)
+	if state == nil || reply == "" {
+		return reply
+	}
+	if !messageLoopNaturalMixRequest(state.input.UserText) || messageLoopExplicitPluginOrRawRequest(state.input.UserText) || !messageLoopHasUsableMixObservation(state) {
+		return reply
+	}
+	if candidate := messageLoopPendingMixTickCandidateFromReply(state, reply); candidate != nil {
+		state.executionMemory.PendingMixTickCandidate = candidate
+	}
+	if messageLoopMixReplyAsksForExecution(reply) {
+		return reply
+	}
+	return reply + "\n\n如果你认可这个小步建议，需要我继续执行吗？"
+}
+
+func messageLoopMixReplyAsksForExecution(reply string) bool {
+	text := strings.ToLower(strings.TrimSpace(reply))
+	if text == "" {
+		return false
+	}
+	return messageLoopTextHasAny(text,
+		"需要我继续执行吗", "要我继续执行吗", "需要我执行吗", "要我执行吗", "我下一步就", "如果你确认", "你确认后",
+		"should i continue", "want me to continue", "shall i continue", "if you confirm", "once you confirm",
+	)
 }
 
 func messageLoopFastCompleteRecordMatches(call planner.ToolCall, record map[string]any) bool {
@@ -1693,6 +2373,9 @@ func messageLoopTrackAddFastCompleteReply(state *runState, record map[string]any
 func messageLoopFinalIssue(state *runState) string {
 	if issue := messageLoopMediaFinalIssue(state); issue != "" {
 		return issue
+	}
+	if state != nil && (messageLoopNaturalMixRequest(state.input.UserText) || messageLoopAudioObservationRequest(state.input.UserText)) && !messageLoopObservationPackageReadRequest(state.input.UserText) && !messageLoopExplicitPluginOrRawRequest(state.input.UserText) && !messageLoopHasAnyMixObservationAttempt(state) {
+		return "cannot finish yet; broad acoustic mixing requests must run mix.observe first so the reply is grounded in current observation data"
 	}
 	if state == nil || !messageLoopUserRequestedMIDINotes(state.input.UserText) {
 		return ""

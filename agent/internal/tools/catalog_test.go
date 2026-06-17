@@ -213,6 +213,33 @@ func TestCoreMutationToolsExposeBindingMetadata(t *testing.T) {
 	}
 }
 
+func TestMixTickToolsAreAgentLayerCataloged(t *testing.T) {
+	catalog := DefaultCatalog()
+	propose, ok := catalog.LookupTool("mix.propose_tick")
+	if !ok {
+		t.Fatal("mix.propose_tick missing")
+	}
+	if propose.CommandName != "mix_propose_tick" || propose.MutatesProject || propose.RequiresConfirmation || propose.RiskLevel != RiskDirect {
+		t.Fatalf("propose metadata = %+v", propose)
+	}
+
+	apply, ok := catalog.LookupTool("mix.apply_tick")
+	if !ok {
+		t.Fatal("mix.apply_tick missing")
+	}
+	if apply.CommandName != "mix_apply_tick" || !apply.MutatesProject || !apply.SupportsUndo || apply.RiskLevel != RiskUndoable {
+		t.Fatalf("apply metadata = %+v", apply)
+	}
+
+	rollback, ok := catalog.LookupTool("mix.rollback_tick")
+	if !ok {
+		t.Fatal("mix.rollback_tick missing")
+	}
+	if rollback.CommandName != "mix_rollback_tick" || !rollback.MutatesProject || !rollback.SupportsUndo || rollback.RiskLevel != RiskUndoable {
+		t.Fatalf("rollback metadata = %+v", rollback)
+	}
+}
+
 func TestAgentFoundationToolsAreCataloged(t *testing.T) {
 	catalog := DefaultCatalog()
 	for _, tt := range []struct {

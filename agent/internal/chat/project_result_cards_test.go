@@ -110,6 +110,24 @@ func TestProjectResultCardsSkipReadOnly(t *testing.T) {
 	}
 }
 
+func TestProjectResultCardsSkipInnerErrorResult(t *testing.T) {
+	cards := projectResultCardsFromExecuted([]map[string]any{
+		{
+			"status":       "ok",
+			"tool":         "mix.apply_tick",
+			"command_name": "mix_apply_tick",
+			"result": map[string]any{
+				"status":   "error",
+				"error":    "confirmation is required",
+				"track_id": "1007",
+			},
+		},
+	})
+	if len(cards) != 0 {
+		t.Fatalf("cards = %#v, want none", cards)
+	}
+}
+
 func TestProjectResultStableIDPrefersAgentActionID(t *testing.T) {
 	cards := projectResultCardsFromExecuted([]map[string]any{
 		{

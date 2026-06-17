@@ -35,6 +35,15 @@ type fakeMessageExecutor struct {
 	mixObservationResult       map[string]any
 }
 
+func isTestMixObservationTool(tool string) bool {
+	switch strings.TrimSpace(tool) {
+	case "mix.observe", "mix.request_observation":
+		return true
+	default:
+		return false
+	}
+}
+
 func (f *fakeMessageExecutor) RunToolCall(_ context.Context, in executorpkg.Input) (executorpkg.Result, error) {
 	f.calls = append(f.calls, in.ToolCall)
 	switch strings.TrimSpace(in.ToolCall.Tool) {
@@ -155,7 +164,21 @@ func (f *fakeMessageExecutor) RunToolCall(_ context.Context, in executorpkg.Inpu
 				"parameter_values": rows,
 			},
 		}, nil
-	case "mix.request_observation":
+	case "mix.read":
+		return executorpkg.Result{
+			ToolCallID:  in.ToolCall.ID,
+			Tool:        in.ToolCall.Tool,
+			CommandName: "mix_read",
+			Status:      "ok",
+			Result: map[string]any{
+				"status": "ok",
+				"entries": []map[string]any{{
+					"key":   "observation.digest",
+					"value": map[string]any{"peak_dbfs": -6.0, "rms_dbfs": -12.0, "headroom_db": 6.0},
+				}},
+			},
+		}, nil
+	case "mix.request_observation", "mix.observe":
 		result := f.mixObservationResult
 		if len(result) == 0 {
 			result = map[string]any{
@@ -170,6 +193,39 @@ func (f *fakeMessageExecutor) RunToolCall(_ context.Context, in executorpkg.Inpu
 			CommandName: "mix_request_observation",
 			Status:      "ok",
 			Result:      result,
+		}, nil
+	case "mix.propose_tick":
+		return executorpkg.Result{
+			ToolCallID:           in.ToolCall.ID,
+			Tool:                 in.ToolCall.Tool,
+			CommandName:          "mix_propose_tick",
+			Status:               "ok",
+			RequiresConfirmation: true,
+			Result: map[string]any{
+				"status":                "ok",
+				"requires_confirmation": true,
+				"tick_id":               "mix_tick_test",
+				"track_id":              firstMapText(in.ToolCall.Args, "track_id"),
+				"delta_db":              in.ToolCall.Args["delta_db"],
+				"preview":               "track_gain_adjust 1007 -1 dB",
+			},
+		}, nil
+	case "mix.apply_tick":
+		return executorpkg.Result{
+			ToolCallID:  in.ToolCall.ID,
+			Tool:        in.ToolCall.Tool,
+			CommandName: "mix_apply_tick",
+			Status:      "ok",
+			Result: map[string]any{
+				"status":   "ok",
+				"tick_id":  firstMapText(in.ToolCall.Args, "tick_id"),
+				"track_id": firstMapText(in.ToolCall.Args, "track_id"),
+				"after_db": -1,
+			},
+			ObservedState: map[string]any{"tracks": []map[string]any{{
+				"track_id":  "1007",
+				"volume_db": -1,
+			}}},
 		}, nil
 	case "media.index_authorized_folder":
 		return executorpkg.Result{
@@ -504,18 +560,72 @@ func TestMessageLoopNaturalMixRequestObservesBeforePluginLoad(t *testing.T) {
 	if res.Status != "completed" {
 		t.Fatalf("result = status=%q reply=%q error=%q", res.Status, res.Reply, res.Error)
 	}
-	if len(exec.calls) == 0 || exec.calls[0].Tool != "mix.request_observation" {
-		t.Fatalf("executor calls = %+v, want first call to be mix.request_observation", exec.calls)
+	if len(exec.calls) == 0 || !isTestMixObservationTool(exec.calls[0].Tool) {
+		t.Fatalf("executor calls = %+v, want first call to be mix observation", exec.calls)
 	}
 	foundGate := false
 	for _, event := range res.Trace {
-		if event.Kind == "final_gate" && strings.Contains(event.Message, "mix.request_observation") {
+		if event.Kind == "final_gate" && strings.Contains(event.Message, "mix.observe") {
 			foundGate = true
 			break
 		}
 	}
 	if !foundGate {
 		t.Fatalf("expected observe-first gate; trace=%+v", res.Trace)
+	}
+}
+
+func TestMessageLoopNaturalMixRequestPreflightsWhenModelFinalsWithoutTools(t *testing.T) {
+	client := &fakeMessageCompleter{responses: []string{
+		`{"final":true,"reply":"I checked the current track, but no acoustic data returned, so lower it 1 dB.","tool_calls":[]}`,
+	}}
+	exec := &fakeMessageExecutor{mixObservationResult: map[string]any{
+		"status":         "ok",
+		"mix_session_id": "mix_test",
+		"observation_id": "obs_test",
+		"track_id":       "1007",
+		"acoustic_digest": map[string]any{
+			"waveform": map[string]any{
+				"status":      "ready",
+				"peak_dbfs":   -0.4,
+				"rms_dbfs":    -17.2,
+				"headroom_db": 0.4,
+				"crest_db":    16.8,
+			},
+		},
+	}}
+	loop := &MessageLoop{
+		Client:   client,
+		Config:   config.EngineConfig{BaseURL: "http://example.invalid", APIKey: "test", DefaultModel: "test"},
+		Executor: exec,
+		Budget:   Budget{MaxTurns: 3, MaxToolCalls: 2, MaxConsecutiveErrors: 2},
+	}
+
+	res := loop.Start(context.Background(), Input{
+		UserText:     "帮我混一下当前轨道",
+		AllowedTools: []string{"mix.observe", "mix.request_observation"},
+		State: map[string]any{"tracks": []map[string]any{{
+			"track_id": "1007",
+			"clips": []map[string]any{{
+				"id": "1011",
+			}},
+		}}},
+	})
+
+	if res.Status != "completed" {
+		t.Fatalf("result = status=%q reply=%q error=%q", res.Status, res.Reply, res.Error)
+	}
+	if len(exec.calls) != 1 || exec.calls[0].Tool != "mix.observe" {
+		t.Fatalf("executor calls = %+v, want deterministic mix.observe preflight", exec.calls)
+	}
+	if got := fmt.Sprint(exec.calls[0].Args["track_id"]); got != "1007" {
+		t.Fatalf("track_id = %q, want 1007; args=%+v", got, exec.calls[0].Args)
+	}
+	if got := fmt.Sprint(exec.calls[0].Args["clip_id"]); got != "1011" {
+		t.Fatalf("clip_id = %q, want 1011; args=%+v", got, exec.calls[0].Args)
+	}
+	if !strings.Contains(res.Reply, "需要我继续执行吗") {
+		t.Fatalf("reply did not ask for explicit execution confirmation: %q", res.Reply)
 	}
 }
 
@@ -540,8 +650,43 @@ func TestMessageLoopNaturalMixRequestDoesNotAllowObserveAndPluginLoadInSameModel
 	if res.Status != "completed" {
 		t.Fatalf("result = status=%q reply=%q error=%q", res.Status, res.Reply, res.Error)
 	}
-	if len(exec.calls) != 1 || exec.calls[0].Tool != "mix.request_observation" {
+	if len(exec.calls) != 1 || !isTestMixObservationTool(exec.calls[0].Tool) {
 		t.Fatalf("executor calls = %+v, want same-turn plugin load blocked", exec.calls)
+	}
+}
+
+func TestMessageLoopMixObserveAddsScopeFromIntent(t *testing.T) {
+	client := &fakeMessageCompleter{responses: []string{
+		`{"final":false,"reply":"我先观察整体混音。","tool_calls":[{"id":"observe_mix","tool":"mix.request_observation","args":{},"reason":"先建立工程观察上下文"}]}`,
+		`{"final":true,"reply":"观察完成，我会基于整体工程数据给出建议。","tool_calls":[]}`,
+	}}
+	exec := &fakeMessageExecutor{}
+	loop := &MessageLoop{
+		Client:   client,
+		Config:   config.EngineConfig{BaseURL: "http://example.invalid", APIKey: "test", DefaultModel: "test"},
+		Executor: exec,
+		Budget:   Budget{MaxTurns: 4, MaxToolCalls: 2, MaxConsecutiveErrors: 2},
+	}
+
+	res := loop.Start(context.Background(), Input{
+		UserText:     "帮我看一下整体混音",
+		AllowedTools: []string{"mix.observe", "mix.read", "mix.derive", "mix.request_observation"},
+	})
+
+	if res.Status != "completed" {
+		t.Fatalf("result = status=%q reply=%q error=%q", res.Status, res.Reply, res.Error)
+	}
+	if len(exec.calls) != 1 || exec.calls[0].Tool != "mix.observe" {
+		t.Fatalf("executor calls = %+v, want mix.observe", exec.calls)
+	}
+	if got := fmt.Sprint(exec.calls[0].Args["scope"]); got != "full_project" {
+		t.Fatalf("scope = %q, want full_project; args=%+v", got, exec.calls[0].Args)
+	}
+	if got := fmt.Sprint(exec.calls[0].Args["disclosure"]); got != "digest_catalog" {
+		t.Fatalf("disclosure = %q, want digest_catalog; args=%+v", got, exec.calls[0].Args)
+	}
+	if exec.calls[0].Args["observation_only"] != true {
+		t.Fatalf("observation_only not set: %+v", exec.calls[0].Args)
 	}
 }
 
@@ -567,8 +712,8 @@ func TestMessageLoopNaturalMixRequestDoesNotWriteAfterObservationWithoutExplicit
 	if res.Status != "completed" {
 		t.Fatalf("result = status=%q reply=%q error=%q", res.Status, res.Reply, res.Error)
 	}
-	if len(exec.calls) != 1 || exec.calls[0].Tool != "mix.request_observation" {
-		t.Fatalf("executor calls = %+v, want only mix.request_observation before confirmation", exec.calls)
+	if len(exec.calls) != 1 || !isTestMixObservationTool(exec.calls[0].Tool) {
+		t.Fatalf("executor calls = %+v, want only mix observation before confirmation", exec.calls)
 	}
 	for _, call := range exec.calls {
 		if call.Tool == "track.volume" {
@@ -584,6 +729,286 @@ func TestMessageLoopNaturalMixRequestDoesNotWriteAfterObservationWithoutExplicit
 	}
 	if !foundGate {
 		t.Fatalf("expected post-observation confirmation gate; trace=%+v", res.Trace)
+	}
+}
+
+func TestParseMessageLoopOutputRepairsBareNewlinesInReply(t *testing.T) {
+	raw := "{\"final\":true,\"reply\":\"line one\nline two\",\"tool_calls\":[]}"
+	out, err := parseMessageLoopOutput(raw)
+	if err != nil {
+		t.Fatalf("parse failed: %v", err)
+	}
+	if out.Reply != "line one\nline two" {
+		t.Fatalf("reply = %q", out.Reply)
+	}
+}
+
+func TestMessageLoopConfirmedTrackVolumeBecomesMixTickApply(t *testing.T) {
+	client := &fakeMessageCompleter{responses: []string{
+		`{"final":false,"reply":"observe first","tool_calls":[{"id":"observe_mix","tool":"mix.request_observation","args":{"track_id":"1007"},"reason":"observe before action"}]}`,
+		`{"final":false,"reply":"confirmed lower 1 dB","tool_calls":[{"id":"raise_volume","tool":"track.volume","args":{"track_id":"1007","db":-1},"reason":"lower 1 dB"}]}`,
+		`{"final":true,"reply":"done","tool_calls":[]}`,
+	}}
+	exec := &fakeMessageExecutor{mixObservationResult: map[string]any{
+		"status":   "ok",
+		"track_id": "1007",
+		"summary":  "ready",
+		"tracks": []map[string]any{{
+			"track_id":  "1007",
+			"volume_db": 0,
+		}},
+	}}
+	loop := &MessageLoop{
+		Client:   client,
+		Config:   config.EngineConfig{BaseURL: "http://example.invalid", APIKey: "test", DefaultModel: "test"},
+		Executor: exec,
+		Budget:   Budget{MaxTurns: 5, MaxToolCalls: 3, MaxConsecutiveErrors: 2},
+	}
+
+	res := loop.Start(context.Background(), Input{
+		UserText:     "确认执行降低 1 dB",
+		AllowedTools: []string{"track.volume", "mix.request_observation", "mix.propose_tick", "mix.apply_tick"},
+	})
+
+	if res.Status != "completed" {
+		t.Fatalf("result = status=%q reply=%q error=%q", res.Status, res.Reply, res.Error)
+	}
+	foundPropose := false
+	foundApply := false
+	for _, call := range exec.calls {
+		if call.Tool == "mix.propose_tick" {
+			foundPropose = true
+		}
+		if call.Tool == "mix.apply_tick" {
+			foundApply = true
+		}
+		if call.Tool == "track.volume" {
+			t.Fatalf("primitive track.volume should be wrapped through mix tick proposal, calls=%+v", exec.calls)
+		}
+	}
+	if !foundPropose || !foundApply {
+		t.Fatalf("expected mix.propose_tick and mix.apply_tick calls, got %+v", exec.calls)
+	}
+}
+
+func TestMessageLoopAmbiguousContinueDoesNotAutoApplyMixTick(t *testing.T) {
+	client := &fakeMessageCompleter{responses: []string{
+		`{"final":false,"reply":"observe first","tool_calls":[{"id":"observe_mix","tool":"mix.request_observation","args":{"track_id":"1007"},"reason":"observe before action"}]}`,
+		`{"final":false,"reply":"lower it","tool_calls":[{"id":"raise_volume","tool":"track.volume","args":{"track_id":"1007","db":-1},"reason":"lower 1 dB"}]}`,
+	}}
+	exec := &fakeMessageExecutor{mixObservationResult: map[string]any{
+		"status":   "ok",
+		"track_id": "1007",
+		"summary":  "ready",
+		"tracks": []map[string]any{{
+			"track_id":  "1007",
+			"volume_db": 0,
+		}},
+	}}
+	loop := &MessageLoop{
+		Client:   client,
+		Config:   config.EngineConfig{BaseURL: "http://example.invalid", APIKey: "test", DefaultModel: "test"},
+		Executor: exec,
+		Budget:   Budget{MaxTurns: 5, MaxToolCalls: 3, MaxConsecutiveErrors: 2},
+	}
+
+	res := loop.Start(context.Background(), Input{
+		UserText:     "继续",
+		AllowedTools: []string{"track.volume", "mix.request_observation", "mix.propose_tick", "mix.apply_tick"},
+	})
+
+	if res.Status != "waiting_confirmation" || res.StopReason != StopReasonNeedsConfirmation {
+		t.Fatalf("result = status=%q stop=%q reply=%q error=%q", res.Status, res.StopReason, res.Reply, res.Error)
+	}
+	foundPropose := false
+	for _, call := range exec.calls {
+		switch call.Tool {
+		case "mix.propose_tick":
+			foundPropose = true
+		case "mix.apply_tick":
+			t.Fatalf("ambiguous continue should not auto-apply mix tick, calls=%+v", exec.calls)
+		case "track.volume":
+			t.Fatalf("primitive track.volume should be wrapped through mix tick proposal, calls=%+v", exec.calls)
+		}
+	}
+	if !foundPropose {
+		t.Fatalf("expected mix.propose_tick before waiting confirmation, got %+v", exec.calls)
+	}
+}
+
+func TestMessageLoopMixObservationReplyAsksForExecution(t *testing.T) {
+	client := &fakeMessageCompleter{responses: []string{
+		`{"final":false,"reply":"我先观察当前音频。","tool_calls":[{"id":"observe_mix","tool":"mix.request_observation","args":{"track_id":"1007"},"reason":"先观察再判断"}]}`,
+		`{"final":true,"reply":"已观察 Track 2：峰值约 -6 dBFS，RMS 约 -6.8 dBFS，动态余量还有约 6 dB。最安全的下一步是小幅提高音量，比如 +1 到 +2 dB。","tool_calls":[]}`,
+	}}
+	exec := &fakeMessageExecutor{}
+	loop := &MessageLoop{
+		Client:   client,
+		Config:   config.EngineConfig{BaseURL: "http://example.invalid", APIKey: "test", DefaultModel: "test"},
+		Executor: exec,
+		Budget:   Budget{MaxTurns: 5, MaxToolCalls: 3, MaxConsecutiveErrors: 2},
+	}
+
+	res := loop.Start(context.Background(), Input{
+		UserText:     "让当前轨道听感上更靠前",
+		AllowedTools: []string{"track.volume", "mix.request_observation"},
+	})
+
+	if res.Status != "completed" {
+		t.Fatalf("result = status=%q reply=%q error=%q", res.Status, res.Reply, res.Error)
+	}
+	if !strings.Contains(res.Reply, "需要我继续执行吗") {
+		t.Fatalf("reply did not ask for execution confirmation: %q", res.Reply)
+	}
+}
+
+func TestMessageLoopMixObservationFinalReplyStoresPendingTickCandidate(t *testing.T) {
+	client := &fakeMessageCompleter{responses: []string{
+		`{"final":false,"reply":"observe","tool_calls":[{"id":"observe_mix","tool":"mix.observe","args":{"track_id":"1007"},"reason":"observe"}]}`,
+		`{"final":true,"reply":"观察完成，建议先降低当前轨道 1 dB。","tool_calls":[]}`,
+	}}
+	exec := &fakeMessageExecutor{mixObservationResult: map[string]any{
+		"status":         "ok",
+		"mix_session_id": "mix_test",
+		"observation_id": "obs_test",
+		"track_id":       "1007",
+		"summary":        "ready",
+		"observation": map[string]any{
+			"target_ref": map[string]any{"kind": "track", "id": "1007", "label": "Vocal"},
+		},
+		"tracks": []map[string]any{{
+			"track_id":  "1007",
+			"volume_db": 0,
+		}},
+	}}
+	loop := &MessageLoop{
+		Client:   client,
+		Config:   config.EngineConfig{BaseURL: "http://example.invalid", APIKey: "test", DefaultModel: "test"},
+		Executor: exec,
+		Budget:   Budget{MaxTurns: 5, MaxToolCalls: 3, MaxConsecutiveErrors: 2},
+	}
+
+	res := loop.Start(context.Background(), Input{
+		UserText:     "帮我混一下当前轨道",
+		AllowedTools: []string{"mix.observe", "mix.request_observation"},
+		State: map[string]any{"tracks": []map[string]any{{
+			"track_id":  "1007",
+			"volume_db": 0,
+		}}},
+	})
+
+	if res.Status != "completed" {
+		t.Fatalf("result = status=%q reply=%q error=%q", res.Status, res.Reply, res.Error)
+	}
+	candidate := res.ExecutionMemory.PendingMixTickCandidate
+	if candidate == nil {
+		t.Fatalf("pending candidate missing; memory=%+v reply=%q", res.ExecutionMemory, res.Reply)
+	}
+	if candidate.TrackID != "1007" || candidate.Operation != "track_gain_adjust" || candidate.DeltaDB != -1 {
+		t.Fatalf("candidate = %+v", candidate)
+	}
+	if candidate.ObservationID != "obs_test" || candidate.Status != "pending_confirmation" {
+		t.Fatalf("candidate metadata = %+v", candidate)
+	}
+}
+
+func TestMessageLoopFullProjectFinalReplyStoresPendingTickCandidateForMentionedTrack(t *testing.T) {
+	client := &fakeMessageCompleter{responses: []string{
+		`{"final":true,"reply":"整体看到了 2 条有效音频轨。Track 1 余量安全；Track 2 峰值已经到 0 dBFS，headroom 为 0 dB。建议下一步做一个很小的安全动作：把 Track 2 降低约 1.5 dB，先给工程留出一点峰值空间。要我继续执行这一步吗？","tool_calls":[]}`,
+	}}
+	exec := &fakeMessageExecutor{mixObservationResult: map[string]any{
+		"status":         "ok",
+		"mix_session_id": "mix_project",
+		"observation_id": "obs_project",
+		"digest": map[string]any{
+			"scope": "full_project",
+			"target": map[string]any{
+				"kind": "project",
+				"id":   "current",
+			},
+			"likely_first_attention_target": map[string]any{
+				"reason": "headroom_risk",
+				"track": map[string]any{
+					"track_id":    "1012",
+					"name":        "Track 2",
+					"headroom_db": 0,
+					"risk":        "high",
+				},
+			},
+		},
+		"observation": map[string]any{
+			"target_ref": map[string]any{"kind": "project", "id": "current", "label": "Current project"},
+			"project_package": map[string]any{
+				"track_count":                 2,
+				"active_acoustic_track_count": 2,
+				"tracks": []map[string]any{{
+					"track_id":         "1007",
+					"name":             "Track 1",
+					"track_name":       "Track 1",
+					"user_label":       "Track 1",
+					"user_track_index": 1,
+					"volume_db":        0,
+					"rms_dbfs":         -9.032,
+					"peak_dbfs":        -6.021,
+					"headroom_db":      6.021,
+				}, {
+					"track_id":         "1012",
+					"name":             "Track 2",
+					"track_name":       "Track 2",
+					"user_label":       "Track 2",
+					"user_track_index": 2,
+					"volume_db":        0,
+					"rms_dbfs":         -10.603,
+					"peak_dbfs":        0,
+					"headroom_db":      0,
+				}},
+				"headroom_risk": []map[string]any{{
+					"track_id": "1012",
+					"name":     "Track 2",
+					"rank":     1,
+					"risk":     "high",
+					"value":    0,
+				}},
+				"likely_first_attention_target": map[string]any{
+					"reason": "headroom_risk",
+					"track": map[string]any{
+						"track_id": "1012",
+						"name":     "Track 2",
+						"risk":     "high",
+					},
+				},
+			},
+		},
+	}}
+	loop := &MessageLoop{
+		Client:   client,
+		Config:   config.EngineConfig{BaseURL: "http://example.invalid", APIKey: "test", DefaultModel: "test"},
+		Executor: exec,
+		Budget:   Budget{MaxTurns: 3, MaxToolCalls: 2, MaxConsecutiveErrors: 2},
+	}
+
+	res := loop.Start(context.Background(), Input{
+		UserText:     "帮我看整体混音",
+		AllowedTools: []string{"mix.observe", "mix.request_observation"},
+		State: map[string]any{"tracks": []map[string]any{{
+			"track_id": "1007", "track_name": "Track 1", "volume_db": 0,
+		}, {
+			"track_id": "1012", "track_name": "Track 2", "volume_db": 0,
+		}}},
+	})
+
+	if res.Status != "completed" {
+		t.Fatalf("result = status=%q reply=%q error=%q", res.Status, res.Reply, res.Error)
+	}
+	candidate := res.ExecutionMemory.PendingMixTickCandidate
+	if candidate == nil {
+		t.Fatalf("pending candidate missing; memory=%+v reply=%q", res.ExecutionMemory, res.Reply)
+	}
+	if candidate.TrackID != "1012" || candidate.Operation != "track_gain_adjust" || candidate.DeltaDB != -1.5 {
+		t.Fatalf("candidate = %+v", candidate)
+	}
+	if candidate.ObservationID != "obs_project" || candidate.Fingerprint["target_scope"] != "full_project" {
+		t.Fatalf("candidate metadata = %+v", candidate)
 	}
 }
 
@@ -618,13 +1043,58 @@ func TestMessageLoopUnavailableMixObservationDoesNotUnlockPluginLoad(t *testing.
 	if res.Status != "completed" {
 		t.Fatalf("result = status=%q reply=%q error=%q", res.Status, res.Reply, res.Error)
 	}
-	if len(exec.calls) != 1 || exec.calls[0].Tool != "mix.request_observation" {
+	if len(exec.calls) != 1 || !isTestMixObservationTool(exec.calls[0].Tool) {
 		t.Fatalf("executor calls = %+v, want only unavailable observation", exec.calls)
 	}
 	for _, call := range exec.calls {
 		if call.Tool == "plugin.load_to_rack" {
 			t.Fatalf("plugin load should remain blocked after unavailable observation: %+v", exec.calls)
 		}
+	}
+}
+
+func TestMessageLoopObservationPackageQuestionRoutesPluginParamsToMixRead(t *testing.T) {
+	client := &fakeMessageCompleter{responses: []string{
+		`{"final":false,"reply":"我查看 observation 数据包。","tool_calls":[{"id":"read_params","tool":"plugin.get_parameters","args":{"track_id":"1007","plugin_id":"plugin_1"},"reason":"查看数据包"}]}`,
+		`{"final":true,"reply":"我读取的是 MixBoard 声学观察包，不是插件参数。","tool_calls":[]}`,
+	}}
+	exec := &fakeMessageExecutor{}
+	loop := &MessageLoop{
+		Client:   client,
+		Config:   config.EngineConfig{BaseURL: "http://example.invalid", APIKey: "test", DefaultModel: "test"},
+		Executor: exec,
+		Budget:   Budget{MaxTurns: 4, MaxToolCalls: 2, MaxConsecutiveErrors: 2},
+	}
+
+	res := loop.Start(context.Background(), Input{
+		UserText:     "observation 现在看不见声学数据包了，帮我看一下为什么",
+		AllowedTools: []string{"plugin.get_parameters", "mix.read"},
+		RecentObservation: &RecentObservation{
+			Tool:        "mix.observe",
+			CommandName: "mix_request_observation",
+			Status:      "ok",
+			Summary: map[string]any{
+				"observation_id": "obs_test",
+				"mix_session_id": "mix_test",
+			},
+		},
+		ExecutionMemory: ExecutionMemory{ActiveWorkTargetTrackID: "1007"},
+	})
+
+	if res.Status != "completed" {
+		t.Fatalf("result = status=%q reply=%q error=%q", res.Status, res.Reply, res.Error)
+	}
+	if len(exec.calls) != 1 || exec.calls[0].Tool != "mix.read" {
+		t.Fatalf("executor calls = %+v, want mix.read", exec.calls)
+	}
+	keys := fmt.Sprint(exec.calls[0].Args["keys"])
+	for _, want := range []string{"observation.digest", "track.1007.fast.levels", "track.1007.slow.time_energy.summary"} {
+		if !strings.Contains(keys, want) {
+			t.Fatalf("mix.read keys missing %s: %+v", want, exec.calls[0].Args)
+		}
+	}
+	if fmt.Sprint(exec.calls[0].Args["plugin_id"]) != "" && fmt.Sprint(exec.calls[0].Args["plugin_id"]) != "<nil>" {
+		t.Fatalf("plugin args leaked into mix.read: %+v", exec.calls[0].Args)
 	}
 }
 
@@ -650,8 +1120,8 @@ func TestMessageLoopNaturalMixRequestBlocksDirectWaveformBake(t *testing.T) {
 	if res.Status != "completed" {
 		t.Fatalf("result = status=%q reply=%q error=%q", res.Status, res.Reply, res.Error)
 	}
-	if len(exec.calls) == 0 || exec.calls[0].Tool != "mix.request_observation" {
-		t.Fatalf("executor calls = %+v, want first call to be mix.request_observation", exec.calls)
+	if len(exec.calls) == 0 || !isTestMixObservationTool(exec.calls[0].Tool) {
+		t.Fatalf("executor calls = %+v, want first call to be mix observation", exec.calls)
 	}
 	for _, call := range exec.calls {
 		if call.Tool == "clip.warm_waveform_bake" {
@@ -660,7 +1130,7 @@ func TestMessageLoopNaturalMixRequestBlocksDirectWaveformBake(t *testing.T) {
 	}
 	foundRewrite := false
 	for _, event := range res.Trace {
-		if event.Kind == "tool_call_rewritten" && strings.Contains(event.Message, "mix.request_observation") {
+		if event.Kind == "tool_call_rewritten" && strings.Contains(event.Message, "mix.observe") {
 			foundRewrite = true
 			break
 		}
@@ -694,8 +1164,8 @@ func TestMessageLoopAudioObservationRequestCoercesWaveformBake(t *testing.T) {
 	if len(exec.calls) != 1 {
 		t.Fatalf("executor calls = %+v, want one coerced observation", exec.calls)
 	}
-	if exec.calls[0].Tool != "mix.request_observation" {
-		t.Fatalf("executor call = %+v, want mix.request_observation", exec.calls[0])
+	if !isTestMixObservationTool(exec.calls[0].Tool) {
+		t.Fatalf("executor call = %+v, want mix observation", exec.calls[0])
 	}
 	if exec.calls[0].ID != "observe_mix" {
 		t.Fatalf("coerced call id = %q, want observe_mix", exec.calls[0].ID)
@@ -762,8 +1232,8 @@ func TestMessageLoopNaturalMixConfirmationObservesBeforePendingPluginLoad(t *tes
 	if res.Status != "completed" {
 		t.Fatalf("result = status=%q reply=%q error=%q", res.Status, res.Reply, res.Error)
 	}
-	if len(exec.calls) != 1 || exec.calls[0].Tool != "mix.request_observation" {
-		t.Fatalf("executor calls = %+v, want only mix.request_observation", exec.calls)
+	if len(exec.calls) != 1 || !isTestMixObservationTool(exec.calls[0].Tool) {
+		t.Fatalf("executor calls = %+v, want only mix observation", exec.calls)
 	}
 	for _, call := range exec.calls {
 		if call.Tool == "plugin.load_to_rack" {
@@ -772,7 +1242,7 @@ func TestMessageLoopNaturalMixConfirmationObservesBeforePendingPluginLoad(t *tes
 	}
 	foundGate := false
 	for _, event := range res.Trace {
-		if event.Kind == "final_gate" && strings.Contains(event.Message, "mix.request_observation") {
+		if event.Kind == "final_gate" && strings.Contains(event.Message, "mix.observe") {
 			foundGate = true
 			break
 		}

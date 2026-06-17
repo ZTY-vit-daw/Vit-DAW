@@ -90,6 +90,9 @@ func DefaultCatalog() *Catalog {
 	c.AddAlias("plugin_grabber.save_project_profile", "plugin_grabber_upsert_project_profile")
 	c.AddAlias("plugin_grabber.reset_project_profile", "plugin_grabber_remove_project_profile")
 	c.AddAlias("plugin_grabber.apply", "plugin_grabber_apply_control")
+	c.AddAlias("mix.observe", "mix_observe")
+	c.AddAlias("mix.read", "mix_read")
+	c.AddAlias("mix.derive", "mix_derive")
 	c.AddAlias("control.add_macro", "control_add_macro")
 	c.AddAlias("rack.add_macro", "control_add_macro")
 	c.AddAlias("macro.create", "control_add_macro")
@@ -343,8 +346,18 @@ func argHint(commandName string) string {
 		return "enabled:boolean"
 	case "route_wave_input_to_track":
 		return "track_id:string device_id:string"
-	case "mix_request_observation":
+	case "mix_request_observation", "mix_observe":
 		return "mix_session_id:string target_ref:{kind,id,label} optional round:number goal_text:string duration_seconds:number"
+	case "mix_read":
+		return "observation_id:string OR mix_session_id:string keys:string[] optional range_sec:[start,end] detail:string max_items:number"
+	case "mix_derive":
+		return "observation_id:string OR mix_session_id:string type:string optional focus/a/b:object dimensions:string[] max_items:number"
+	case "mix_propose_tick":
+		return "operation:track_gain_adjust track_id:string optional delta_db:number observation_id:string evidence:object"
+	case "mix_apply_tick":
+		return "tick_id:string confirmation:boolean"
+	case "mix_rollback_tick":
+		return "optional tick_id:string"
 	case "artifact_list":
 		return "optional conversation_id:string limit:number"
 	case "artifact_read", "artifact_extract":
@@ -599,6 +612,12 @@ func defaultSpecs() []CommandSpec {
 		spec("route_wave_input_to_track", "audio.route_wave_input_to_track", "audio", "Route a wave input to a track.", RiskUndoable, true, true, false, true, "track_id", "device_id"),
 		spec("arm_track", "track.arm", "track", "Arm or disarm a track for recording.", RiskUndoable, true, true, false, true, "track_id"),
 		spec("mix_request_observation", "mix.request_observation", "mix", "Read project/shadow facts and write a time-rulered MixBoard observation packet for a mix session.", RiskDirect, false, false, false, false),
+		spec("mix_observe", "mix.observe", "mix", "Observe the requested mix scope and return a compact acoustic digest plus a readable observation catalog; does not mutate the project.", RiskDirect, false, false, false, false),
+		spec("mix_read", "mix.read", "mix", "Read selected catalog entries from a stored MixBoard observation, including bounded ranges for long acoustic rows.", RiskDirect, false, false, false, false),
+		spec("mix_derive", "mix.derive", "mix", "Derive an on-demand relationship package from stored MixBoard observations, such as before/after or focus/project comparisons.", RiskDirect, false, false, false, false),
+		spec("mix_propose_tick", "mix.propose_tick", "mix", "Agent-local proposal for one safe mix tick after observation; v1 only supports small track_gain_adjust and does not mutate the project.", RiskDirect, false, false, false, false, "track_id"),
+		spec("mix_apply_tick", "mix.apply_tick", "mix", "Agent-local confirmed execution of one proposed mix tick through primitive kernel commands; v1 only applies track_gain_adjust via set_volume.", RiskUndoable, true, true, false, true),
+		spec("mix_rollback_tick", "mix.rollback_tick", "mix", "Agent-local rollback for an applied mix tick by restoring the previous primitive track volume.", RiskUndoable, true, true, false, true),
 
 		spec("add_track", "track.add", "track", "Add a new track.", RiskUndoable, true, true, false, true),
 		spec("add_audio_track", "track.add_audio", "track", "Add a new audio track.", RiskUndoable, true, true, false, true),

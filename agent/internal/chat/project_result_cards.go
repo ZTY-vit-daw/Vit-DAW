@@ -50,13 +50,23 @@ func projectResultExecutionCandidate(entry map[string]any) bool {
 func projectResultExecutionSucceeded(entry map[string]any) bool {
 	status := strings.ToLower(firstProjectResultText(entry, "status"))
 	result := projectResultMap(entry["result"])
-	if status == "" {
-		status = strings.ToLower(firstProjectResultText(result, "status"))
+	resultStatus := strings.ToLower(firstProjectResultText(result, "status"))
+	if projectResultFailureStatus(status) || projectResultFailureStatus(resultStatus) {
+		return false
 	}
 	if status == "" {
-		return true
+		status = resultStatus
 	}
 	return status == "ok" || status == "success" || status == "succeeded" || status == "completed"
+}
+
+func projectResultFailureStatus(status string) bool {
+	switch strings.ToLower(strings.TrimSpace(status)) {
+	case "error", "failed", "failure":
+		return true
+	default:
+		return false
+	}
 }
 
 func projectResultCommandName(entry map[string]any) string {

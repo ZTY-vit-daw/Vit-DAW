@@ -47,6 +47,38 @@ func TestShadowTracksOrphanDeltas(t *testing.T) {
 	}
 }
 
+func TestSummaryOverlaysTrackRenameDelta(t *testing.T) {
+	p := New(nil)
+	p.Initialize(map[string]any{
+		"status": "ok",
+		"tracks": []any{
+			map[string]any{
+				"track_id":         "1012",
+				"track_name":       "Track 2",
+				"track_type":       "hybrid",
+				"user_track_index": 2,
+				"is_audio_track":   true,
+			},
+		},
+	})
+	p.ApplyDelta(map[string]any{
+		"type":       "delta_update",
+		"seq_id":     float64(1),
+		"target_uid": "1012",
+		"action":     "property_changed:name",
+		"value":      "vocal",
+	})
+
+	summary := p.Summary()
+	tracks := summary["tracks"].([]map[string]any)
+	if len(tracks) != 1 {
+		t.Fatalf("visible tracks = %d, want 1", len(tracks))
+	}
+	if tracks[0]["track_name"] != "vocal" || tracks[0]["name"] != "vocal" {
+		t.Fatalf("renamed track not overlaid: %+v", tracks[0])
+	}
+}
+
 func TestSummaryHidesInternalTracktionTracks(t *testing.T) {
 	p := New(nil)
 	p.Initialize(map[string]any{

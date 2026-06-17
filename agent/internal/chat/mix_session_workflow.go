@@ -235,7 +235,7 @@ func (s *Server) continueMixSessionInteraction(ctx context.Context, interaction 
 	if session.Mode == "" {
 		session = pendingMixSession(cleanContextText(data["mode"]), mixTargetFromMap(mapValue(data["target_ref"])), cleanContextText(data["goal_text"]))
 	}
-	if !legacyMixSessionWorkflowEnabled(mergeContext(interaction.RequestContext, payload)) && !isCurrentConversationalMixAction(data, payload, session) {
+	if !legacyMixSessionWorkflowEnabled(mergeContext(interaction.RequestContext, payload)) {
 		return deprecatedMixPlannerInteractionResponse(interaction, data, session)
 	}
 	if strings.EqualFold(decision, "cancel_mix_session") || strings.EqualFold(decision, "cancel") {
@@ -672,6 +672,9 @@ func (s *Server) advanceMixPlannerInteraction(ctx context.Context, interaction P
 }
 
 func (s *Server) continueActiveMixPlannerChat(ctx context.Context, conversationID string, req ChatRequest) (ChatResponse, bool) {
+	if !legacyMixSessionWorkflowEnabled(req.Context) {
+		return ChatResponse{}, false
+	}
 	session, ok := s.activeMixPlannerSession(conversationID)
 	if !ok {
 		return ChatResponse{}, false
@@ -851,6 +854,20 @@ func (s *Server) activeMixPlannerSession(conversationID string) (MixSession, boo
 		}
 	}
 	return best, best.MixSessionID != ""
+}
+
+func chatVisibleTrackRows(state map[string]any) []map[string]any {
+	for _, value := range []any{
+		state["tracks"],
+		mapValue(state["shadow"])["tracks"],
+		mapValue(state["project_state"])["tracks"],
+		mapValue(mapValue(state["project_state"])["shadow"])["tracks"],
+	} {
+		if rows := mapRowsValue(value); len(rows) > 0 {
+			return rows
+		}
+	}
+	return nil
 }
 
 func (s *Server) confirmControlSurfaceInteraction(ctx context.Context, interaction PendingInteraction, data map[string]any, session MixSession, payload map[string]any) ChatResponse {
@@ -3855,7 +3872,7 @@ func mixPluginLearningRequestFromSurface(surface map[string]any) map[string]any 
 }
 
 func mixTrackVolumeDB(state map[string]any, trackID string) float64 {
-	for _, raw := range mapRowsValue(state["tracks"]) {
+	for _, raw := range chatVisibleTrackRows(state) {
 		if cleanContextText(raw["track_id"]) == trackID || cleanContextText(raw["id"]) == trackID {
 			for _, key := range []string{"volume_db", "gain_db", "fader_db", "db"} {
 				if value := mixFloatNumber(raw[key]); value != 0 {

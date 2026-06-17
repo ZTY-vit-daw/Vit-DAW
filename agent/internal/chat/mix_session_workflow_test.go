@@ -354,7 +354,7 @@ func TestActiveMixPlannerChatReturnsReadonlyWorkspaceSummary(t *testing.T) {
 	resp, handled := server.continueActiveMixPlannerChat(context.Background(), "conv_mix", ChatRequest{
 		ConversationID: "conv_mix",
 		Message:        "提升响度",
-		Context:        map[string]any{},
+		Context:        map[string]any{"legacy_mix_session_workflow": true},
 	})
 	if !handled {
 		t.Fatal("active planner chat was not handled")
@@ -387,7 +387,7 @@ func TestActiveMixPlannerChatReturnsReadonlyWorkspaceSummary(t *testing.T) {
 	resp, handled = server.continueActiveMixPlannerChat(context.Background(), "conv_mix", ChatRequest{
 		ConversationID: "conv_mix",
 		Message:        "允许你加载",
-		Context:        map[string]any{},
+		Context:        map[string]any{"legacy_mix_session_workflow": true},
 	})
 	if !handled {
 		t.Fatal("active planner chat was not handled on plugin permission")
@@ -403,6 +403,26 @@ func TestActiveMixPlannerChatReturnsReadonlyWorkspaceSummary(t *testing.T) {
 		if action.ID == "publish_mixboard" || action.ID == "confirm_mix_planner_plan" {
 			t.Fatalf("publish actions should be hidden during drafted planning: %#v", resp.InteractionRequests[0].Actions)
 		}
+	}
+}
+
+func TestActiveMixPlannerChatDoesNotInterceptWithoutLegacyOptIn(t *testing.T) {
+	server := New(nil, nil, nil)
+	session := pendingMixSession(mixModeAuto, MixTargetRef{Kind: "track", ID: "track_1", Label: "Vocal", Confidence: "high"}, "auto mix")
+	session.ConversationID = "conv_mix"
+	session.State = mixStatePreparing
+	session.InteractionPhase = mixInteractionPlanningChat
+	session.MixBoardVisibility = mixBoardVisibilityCollapsed
+	session.PlannerPrep = initialMixPlannerPrep(session, map[string]any{})
+	server.storeMixSession(session)
+
+	resp, handled := server.continueActiveMixPlannerChat(context.Background(), "conv_mix", ChatRequest{
+		ConversationID: "conv_mix",
+		Message:        "raise loudness",
+		Context:        map[string]any{},
+	})
+	if handled {
+		t.Fatalf("active planner chat should not intercept natural chat without legacy opt-in: %#v", resp)
 	}
 }
 
@@ -601,7 +621,7 @@ func TestMixTuningRejectsNonTrackTarget(t *testing.T) {
 	session := pendingMixSession(mixModeAuto, MixTargetRef{Kind: "clip", ID: "clip_1", Label: "Clip", Confidence: "high"}, "降低当前片段")
 	data := mixSessionWorkflowData("conv_mix", "goal_1", "run_1", map[string]any{}, session)
 	interaction := PendingInteraction{ConversationID: "conv_mix", GoalID: "goal_1", RunID: "run_1", Payload: data, Data: data}
-	resp := server.continueMixSessionInteraction(context.Background(), interaction, map[string]any{"ask_vit_mix_action": true}, "execute_single_mix_tick")
+	resp := server.continueMixSessionInteraction(context.Background(), interaction, map[string]any{"ask_vit_mix_action": true, "legacy_mix_session_workflow": true}, "execute_single_mix_tick")
 	if resp.CurrentStep != mixStateFailed {
 		t.Fatalf("step = %q resp=%+v", resp.CurrentStep, resp)
 	}

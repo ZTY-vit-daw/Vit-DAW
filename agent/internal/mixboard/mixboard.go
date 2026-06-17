@@ -14,9 +14,12 @@ import (
 )
 
 const (
-	ObservationSchemaVersion = "mix_observation.v1"
-	BoardSchemaVersion       = "mixboard.v1"
-	ContextPackSchemaVersion = "mixboard_context_pack.v1"
+	ObservationSchemaVersion   = "mix_observation.v1"
+	BoardSchemaVersion         = "mixboard.v1"
+	ContextPackSchemaVersion   = "mixboard_context_pack.v1"
+	ObservationCatalogVersion  = "mix_observation_catalog.v1"
+	ObservationDigestVersion   = "mix_observation_digest.v1"
+	RelationshipPackageVersion = "mix_relationship_package.v1"
 )
 
 type TargetRef struct {
@@ -74,7 +77,10 @@ type ObservationPacket struct {
 	ListenScope        ListenScope       `json:"listen_scope"`
 	TimeRuler          TimeRuler         `json:"time_ruler"`
 	GlobalSummary      map[string]any    `json:"global_summary"`
+	Digest             map[string]any    `json:"digest,omitempty"`
+	Catalog            Catalog           `json:"catalog,omitempty"`
 	EnvironmentPackage map[string]any    `json:"environment_package"`
+	ProjectPackage     map[string]any    `json:"project_package"`
 	MixPackage         map[string]any    `json:"mix_package"`
 	DeepPackage        map[string]any    `json:"deep_package"`
 	SectionCandidates  []map[string]any  `json:"section_candidates"`
@@ -141,13 +147,14 @@ type Store struct {
 }
 
 type featureSnapshot struct {
-	SchemaVersion         string         `json:"schema_version"`
-	UpdatedAt             string         `json:"updated_at"`
-	LatestRequest         map[string]any `json:"latest_request"`
-	WaveformEnvelope      map[string]any `json:"waveform_envelope"`
-	SpectrogramTiles      map[string]any `json:"spectrogram_tiles"`
-	BandEnergySummary     map[string]any `json:"band_energy_summary"`
-	StereoRelationSummary map[string]any `json:"stereo_relation_summary"`
+	SchemaVersion          string           `json:"schema_version"`
+	UpdatedAt              string           `json:"updated_at"`
+	LatestRequest          map[string]any   `json:"latest_request"`
+	WaveformEnvelope       map[string]any   `json:"waveform_envelope"`
+	TrackWaveformEnvelopes []map[string]any `json:"track_waveform_envelopes"`
+	SpectrogramTiles       map[string]any   `json:"spectrogram_tiles"`
+	BandEnergySummary      map[string]any   `json:"band_energy_summary"`
+	StereoRelationSummary  map[string]any   `json:"stereo_relation_summary"`
 }
 
 func DefaultRoot() string {
@@ -199,6 +206,7 @@ func (s Store) RequestObservation(req Request) (WriteResult, error) {
 	previousObservation, hasPreviousObservation := readLatestObservation(sessionDir)
 	observation := BuildObservation(req, now)
 	applyBeforeAfterDelta(&observation, previousObservation, hasPreviousObservation, now)
+	FinalizeObservationContext(&observation, req, now)
 	obsDir := filepath.Join(sessionDir, "observations")
 	actionsDir := filepath.Join(sessionDir, "actions")
 	if err := os.MkdirAll(obsDir, 0o755); err != nil {
@@ -255,16 +263,18 @@ func BuildObservation(req Request, createdAt string) ObservationPacket {
 	}
 	featureSnapshot := loadFeatureSnapshot(req.Args)
 	waveformStatus := featureStatus(featureSnapshot.WaveformEnvelope)
+	trackWaveformStatus := trackFeatureRowsStatus(featureSnapshot.TrackWaveformEnvelopes)
 	spectrogramStatus := featureStatus(featureSnapshot.SpectrogramTiles)
 	bandEnergyStatus := featureStatus(featureSnapshot.BandEnergySummary)
 	stereoRelationStatus := featureStatus(featureSnapshot.StereoRelationSummary)
 
 	caps := map[string]string{
-		"waveform_envelope": waveformStatus,
-		"spectrogram_tiles": spectrogramStatus,
-		"band_energy":       bandEnergyStatus,
-		"stereo_relation":   stereoRelationStatus,
-		"post_fx_probe":     "unavailable",
+		"waveform_envelope":        waveformStatus,
+		"track_waveform_envelopes": trackWaveformStatus,
+		"spectrogram_tiles":        spectrogramStatus,
+		"band_energy":              bandEnergyStatus,
+		"stereo_relation":          stereoRelationStatus,
+		"post_fx_probe":            "unavailable",
 	}
 	notes := []string{
 		"MixBoard observation initialized with project/shadow facts.",
@@ -293,21 +303,25 @@ func BuildObservation(req Request, createdAt string) ObservationPacket {
 	if spectrogramStatus == "ready" || spectrogramStatus == "partial" {
 		problemTags = append(problemTags, "spectrum_observed")
 	}
+	target := normalizeTarget(req.TargetRef)
+	objects := normalizeMixObjects(req.MixObjects, req.TargetRef, req.Args)
+	scope := normalizeListenScope(req.ListenScope, req.MixObjects, req.Args)
 	environmentPackage := buildEnvironmentPackage(req, duration, segment, frame, tempo, caps, featureSnapshot)
+	projectPackage := buildProjectPackage(req.ProjectState, target, scope, featureSnapshot)
 	bandEnergy := buildBandEnergySummary(featureSnapshot.BandEnergySummary)
 	stereoRelation := buildStereoRelationSummary(featureSnapshot.StereoRelationSummary)
 	mixPackage := buildMixPackage(req, status, waveformStatus, waveformMetrics, timeSegments, bandEnergy, stereoRelation, caps)
 	deepPackage := buildDeepPackage(spectrogramStatus, featureSnapshot)
 
-	return ObservationPacket{
+	obs := ObservationPacket{
 		SchemaVersion: ObservationSchemaVersion,
 		ObservationID: "obs_" + time.Now().UTC().Format("20060102T150405") + "_" + randomID(),
 		MixSessionID:  req.MixSessionID,
 		Round:         req.Round,
 		Status:        status,
-		TargetRef:     normalizeTarget(req.TargetRef),
-		MixObjects:    normalizeMixObjects(req.MixObjects, req.TargetRef, req.Args),
-		ListenScope:   normalizeListenScope(req.ListenScope, req.MixObjects, req.Args),
+		TargetRef:     target,
+		MixObjects:    objects,
+		ListenScope:   scope,
 		TimeRuler: TimeRuler{
 			DurationSeconds: duration,
 			SegmentSeconds:  segment,
@@ -323,6 +337,7 @@ func BuildObservation(req Request, createdAt string) ObservationPacket {
 			"feature_snapshot":      compactFeatureSnapshot(featureSnapshot),
 		},
 		EnvironmentPackage: environmentPackage,
+		ProjectPackage:     projectPackage,
 		MixPackage:         mixPackage,
 		DeepPackage:        deepPackage,
 		SectionCandidates:  sections,
@@ -332,6 +347,8 @@ func BuildObservation(req Request, createdAt string) ObservationPacket {
 		Notes:              notes,
 		CreatedAt:          createdAt,
 	}
+	FinalizeObservationContext(&obs, req, createdAt)
+	return obs
 }
 
 func buildBoard(req Request, obs ObservationPacket, obsPath, now string) Board {
@@ -425,6 +442,40 @@ func featureStatus(row map[string]any) string {
 	}
 }
 
+func trackFeatureRowsStatus(rows []map[string]any) string {
+	if len(rows) == 0 {
+		return "missing"
+	}
+	ready := 0
+	partial := 0
+	requested := 0
+	blocked := 0
+	for _, row := range rows {
+		switch featureStatus(row) {
+		case "ready":
+			ready++
+		case "partial":
+			partial++
+		case "requested":
+			requested++
+		case "blocked", "unavailable":
+			blocked++
+		}
+	}
+	switch {
+	case ready == len(rows):
+		return "ready"
+	case ready > 0 || partial > 0:
+		return "partial"
+	case requested > 0:
+		return "requested"
+	case blocked > 0:
+		return "blocked"
+	default:
+		return "missing"
+	}
+}
+
 func observationStatusFromFeatures(duration float64, waveformStatus, spectrogramStatus string) string {
 	if duration <= 0 {
 		return "unavailable"
@@ -440,13 +491,14 @@ func observationStatusFromFeatures(duration float64, waveformStatus, spectrogram
 
 func compactFeatureSnapshot(snap featureSnapshot) map[string]any {
 	return map[string]any{
-		"schema_version":          snap.SchemaVersion,
-		"updated_at":              snap.UpdatedAt,
-		"latest_request":          compactFeatureRequest(snap.LatestRequest),
-		"waveform_envelope":       compactFeatureRow(snap.WaveformEnvelope),
-		"spectrogram_tiles":       compactFeatureRow(snap.SpectrogramTiles),
-		"band_energy_summary":     compactFeatureRow(snap.BandEnergySummary),
-		"stereo_relation_summary": compactFeatureRow(snap.StereoRelationSummary),
+		"schema_version":           snap.SchemaVersion,
+		"updated_at":               snap.UpdatedAt,
+		"latest_request":           compactFeatureRequest(snap.LatestRequest),
+		"waveform_envelope":        compactFeatureRow(snap.WaveformEnvelope),
+		"track_waveform_envelopes": compactTrackFeatureRows(snap.TrackWaveformEnvelopes),
+		"spectrogram_tiles":        compactFeatureRow(snap.SpectrogramTiles),
+		"band_energy_summary":      compactFeatureRow(snap.BandEnergySummary),
+		"stereo_relation_summary":  compactFeatureRow(snap.StereoRelationSummary),
 	}
 }
 
@@ -456,6 +508,17 @@ func compactFeatureRow(row map[string]any) map[string]any {
 		if value, ok := row[key]; ok {
 			out[key] = value
 		}
+	}
+	return out
+}
+
+func compactTrackFeatureRows(rows []map[string]any) []map[string]any {
+	out := make([]map[string]any, 0, len(rows))
+	for _, row := range rows {
+		if len(row) == 0 {
+			continue
+		}
+		out = append(out, compactFeatureRow(row))
 	}
 	return out
 }
@@ -878,6 +941,7 @@ func buildDeepPackage(spectrogramStatus string, snap featureSnapshot) map[string
 func packageStatus(obs ObservationPacket) map[string]string {
 	return map[string]string{
 		"environment": cleanAnyString(obs.EnvironmentPackage["status"]),
+		"project":     cleanAnyString(obs.ProjectPackage["status"]),
 		"mix":         cleanAnyString(obs.MixPackage["status"]),
 		"deep":        cleanAnyString(obs.DeepPackage["status"]),
 	}
@@ -1007,10 +1071,9 @@ func buildContextPack(req Request, board Board, obs ObservationPacket, now strin
 		"observation_id":      obs.ObservationID,
 		"status":              obs.Status,
 		"time_ruler":          obs.TimeRuler,
+		"digest":              obs.Digest,
+		"catalog":             obs.Catalog,
 		"global_summary":      obs.GlobalSummary,
-		"environment_package": obs.EnvironmentPackage,
-		"mix_package":         obs.MixPackage,
-		"deep_package":        obs.DeepPackage,
 		"timeline_digest":     capRows(obs.TimelineDigest, 12),
 		"hotspots":            capRows(obs.Hotspots, 12),
 		"source_capabilities": obs.SourceCapabilities,
@@ -1208,7 +1271,7 @@ func normalizeListenScope(scope ListenScope, objects []MixObject, args map[strin
 	if scope.Source.Mode == "" {
 		scope.Source = ListenSourceScope{Mode: "full_mix_context"}
 	}
-	if len(scope.Source.FocusIDs) == 0 {
+	if len(scope.Source.FocusIDs) == 0 && listenScopeShouldInferFocusIDs(scope.Source.Mode) {
 		for _, obj := range objects {
 			if strings.TrimSpace(obj.ID) != "" {
 				scope.Source.FocusIDs = append(scope.Source.FocusIDs, obj.ID)
@@ -1216,6 +1279,15 @@ func normalizeListenScope(scope ListenScope, objects []MixObject, args map[strin
 		}
 	}
 	return scope
+}
+
+func listenScopeShouldInferFocusIDs(mode string) bool {
+	switch strings.ToLower(strings.TrimSpace(mode)) {
+	case "full_project", "track_group":
+		return false
+	default:
+		return true
+	}
 }
 
 func cleanAnyString(value any) string {

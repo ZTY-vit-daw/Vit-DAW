@@ -208,6 +208,51 @@ func defaultCapabilityPacks() []CapabilityPack {
 				"Register an explicit file for preview -> media.register_assets {file_path:\"...\"}",
 			},
 		},
+		{
+			Name:        "mix",
+			Title:       "Observation-first mixing",
+			Domain:      "Natural Ask Vit mixing conversations over selected clips/tracks, named tracks, focus tracks, track groups, or the full project.",
+			Description: "Build a Mix Observation Context before proposing or executing mix moves. The mix tool family is read-only in this phase.",
+			StateSlices: []string{
+				"current_selection.selected_track_id / selected_clip_id for current or selected scope",
+				"daw_state_summary.tracks[] for project context, role guesses, plugin chains, levels, peaks, and focus candidates",
+				"mix.observe returns digest + catalog; mix.read fetches catalog entries; mix.derive computes local relationship packages",
+			},
+			Preconditions: []string{
+				"For broad acoustic requests, call mix.observe before plugin search/load, volume changes, plugin profile learning, or parameter writes.",
+				"Choose scope from intent: selected_track, selected_clip, named_track, track_group, full_project, or full_project_with_focus_track.",
+				"Use project_context for current-track mixing; use full_project for overall mix questions; use full_project_with_focus_track when the user asks for vocal/lead/focus relationships.",
+				"After observing, read only the catalog entries needed for the answer and derive relationships locally when comparing tracks or focus vs project.",
+				"After the user confirms a concrete small mix move, use mix.propose_tick then mix.apply_tick rather than calling primitive track/plugin writes directly.",
+			},
+			Effects: []string{
+				"mix.observe, mix.read, and mix.derive do not mutate the project.",
+				"mix.propose_tick does not mutate the project; mix.apply_tick v1 can only run one small track_gain_adjust through set_volume, and mix.rollback_tick restores the previous dB.",
+				"Observation may request fast audio features and may return partial/pending/missing slow packages; missing data must be stated as uncertainty.",
+				"Do not load plugins, write parameters, or change volume in the same broad mixing request. Propose one small next move and wait for explicit confirmation.",
+			},
+			ResultHints: []string{
+				"digest contains the default acoustic summary and available_detail readiness.",
+				"catalog entries are stable keys such as observation.digest, project.tracks.summary, project.rankings.level, project.risks.headroom, and track.{id}.slow.time_energy.summary.",
+				"relationship package types include rank_tracks, focus_vs_project, a_vs_b, group_overlap, and before_after.",
+			},
+			Verification: []string{
+				"For Scenario A, response should include target acoustic facts, basic relation to project context, and one safe suggestion.",
+				"For Scenario B, response should include project/master summary where available, track summaries, rankings, issue candidates, and first attention target.",
+				"For Scenario C, identify a focus track or ask for clarification; if found, derive focus_vs_project before proposing a small move.",
+			},
+			Tools: []string{
+				"project.state", "track.list",
+				"mix.observe", "mix.read", "mix.derive", "mix.request_observation",
+				"mix.propose_tick", "mix.apply_tick", "mix.rollback_tick",
+				"project.undo", "project.redo",
+			},
+			Examples: []string{
+				"混一下当前轨道 -> mix.observe {scope:\"selected_track\", project_context:true}, then mix.read/derive as needed, then suggest one safe move",
+				"帮我看整体混音 -> mix.observe {scope:\"full_project\"}, then mix.read project rankings and summaries",
+				"让主唱更靠前 -> mix.observe {scope:\"full_project_with_focus_track\", focus_hint:{role:\"vocal\"}}, then mix.derive {type:\"focus_vs_project\"}",
+			},
+		},
 	}
 }
 

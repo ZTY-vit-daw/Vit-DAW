@@ -49,6 +49,7 @@ type Harness struct {
 	catalog       *tools.Catalog
 	journal       *journal.Journal
 	runtime       *agentruntime.Runtime
+	mixTicks      *mixTickStore
 	logger        *logx.Logger
 	snapshotCache *PluginSnapshotCache
 }
@@ -97,12 +98,19 @@ func New(kernelClient *kernel.Client, shadowProject *shadow.Project, logger *log
 		catalog:       tools.DefaultCatalog(),
 		journal:       j,
 		runtime:       agentruntime.New(),
+		mixTicks:      newMixTickStore(),
 		snapshotCache: NewPluginSnapshotCache(),
 		logger:        logger,
 	}
 }
 
 func defaultJournalPath() string {
+	if envPath := strings.TrimSpace(os.Getenv("VIT_AGENT_JOURNAL_PATH")); envPath != "" {
+		if strings.EqualFold(envPath, "off") || strings.EqualFold(envPath, "memory") || strings.EqualFold(envPath, "disabled") {
+			return ""
+		}
+		return envPath
+	}
 	wd, err := os.Getwd()
 	if err != nil {
 		return ""
@@ -464,6 +472,10 @@ func (h *Harness) Invoke(ctx context.Context, req InvokeRequest) (resp InvokeRes
 	if undoLabel != "" {
 		cmd["undo_label"] = undoLabel
 	}
+	if req.Confirmed {
+		cmd["confirmation"] = true
+		cmd["confirmed"] = true
+	}
 
 	needsConfirmation := spec.RequiresConfirmation && !req.Confirmed
 	action := journal.Action{
@@ -715,7 +727,7 @@ func broadMixNaturalRequest(userText string) bool {
 		return false
 	}
 	return broadMixTextHasAny(text,
-		"\u6df7\u97f3", "\u7f29\u6df7", "\u58f0\u97f3\u5904\u7406", "\u8c03\u4e00\u4e0b", "\u5904\u7406\u4e00\u4e0b",
+		"\u6df7\u97f3", "\u6df7\u4e00\u4e0b", "\u5e2e\u6211\u6df7", "\u7f29\u6df7", "\u58f0\u97f3\u5904\u7406", "\u8c03\u4e00\u4e0b", "\u5904\u7406\u4e00\u4e0b",
 		"\u4e3b\u5531", "\u4eba\u58f0", "vocal", "lead vocal",
 		"\u9760\u524d", "\u5f80\u524d", "\u63d0\u5347\u54cd\u5ea6", "\u54cd\u5ea6", "\u66f4\u4eae", "\u660e\u4eae", "\u6d51\u6d4a", "\u523a\u8033",
 		"\u4f4e\u9891", "\u4f4e\u4e2d\u9891", "\u7a7a\u95f4\u611f", "\u52a0\u4e00\u70b9\u7a7a\u95f4", "\u52a8\u6001", "\u538b\u7f29",
@@ -887,8 +899,23 @@ func (h *Harness) invokeLocal(ctx context.Context, spec tools.CommandSpec, cmd m
 		return map[string]any{"goal": goal}, true
 	case "project_snapshot_export":
 		return h.projectSnapshotExportCompat(cmd), true
-	case "mix_request_observation":
+	case "mix_observe", "mix_request_observation":
 		result, err := h.requestMixObservation(ctx, cmd)
+		return resultWithErr(result, err), true
+	case "mix_read":
+		result, err := h.readMixObservation(cmd)
+		return resultWithErr(result, err), true
+	case "mix_derive":
+		result, err := h.deriveMixObservation(cmd)
+		return resultWithErr(result, err), true
+	case "mix_propose_tick":
+		result, err := h.proposeMixTick(ctx, cmd)
+		return resultWithErr(result, err), true
+	case "mix_apply_tick":
+		result, err := h.applyMixTick(ctx, cmd)
+		return resultWithErr(result, err), true
+	case "mix_rollback_tick":
+		result, err := h.rollbackMixTick(ctx, cmd)
 		return resultWithErr(result, err), true
 	case "control_add_macro", "plugin_map_macro_to_params":
 		return h.upsertMacroControlResult(cmd), true
@@ -1479,11 +1506,31 @@ func (h *Harness) requestMixObservation(ctx context.Context, cmd map[string]any)
 		target.Kind = firstNonEmpty(firstString(cmd, "target_kind", "kind"), "selection")
 	}
 	resolvedContext := resolveMixObservationTargetContext(cmd, state, target)
+	if normalizeMixObservationScope(firstString(cmd, "scope", "observation_scope")) == "full_project_with_focus_track" && firstString(resolvedContext, "track_id") == "" {
+		if focusResolved := resolveMixObservationFocusHint(cmd, state); len(focusResolved) > 0 {
+			resolvedContext = focusResolved
+			target.Kind = "track"
+			target.ID = firstString(focusResolved, "track_id")
+			target.Label = firstString(focusResolved, "track_name")
+			target.Source = firstNonEmpty(firstString(focusResolved, "source"), "focus_hint")
+			target.Confidence = firstNonEmpty(firstString(focusResolved, "confidence"), "medium")
+		}
+	}
 	if mixObservationResolutionNeedsRefresh(resolvedContext) && h != nil {
 		refresh := h.refreshShadowWithStatus(ctx, "mix_request_observation_target_resolution")
 		if boolValueDefault(refresh["shadow_refreshed"], false) {
 			state = h.UserStateSummary(ctx)
 			resolvedContext = resolveMixObservationTargetContext(cmd, state, target)
+			if normalizeMixObservationScope(firstString(cmd, "scope", "observation_scope")) == "full_project_with_focus_track" && firstString(resolvedContext, "track_id") == "" {
+				if focusResolved := resolveMixObservationFocusHint(cmd, state); len(focusResolved) > 0 {
+					resolvedContext = focusResolved
+					target.Kind = "track"
+					target.ID = firstString(focusResolved, "track_id")
+					target.Label = firstString(focusResolved, "track_name")
+					target.Source = firstNonEmpty(firstString(focusResolved, "source"), "focus_hint")
+					target.Confidence = firstNonEmpty(firstString(focusResolved, "confidence"), "medium")
+				}
+			}
 		}
 	}
 	if resolvedTrackID := firstString(resolvedContext, "track_id"); resolvedTrackID != "" {
@@ -1499,6 +1546,9 @@ func (h *Harness) requestMixObservation(ctx context.Context, cmd map[string]any)
 			target.ID = resolvedClipID
 		}
 	}
+	if resolvedName := firstString(resolvedContext, "track_name"); resolvedName != "" && strings.EqualFold(target.Kind, "track") {
+		target.Label = resolvedName
+	}
 	if path := firstString(resolvedContext, "file_path"); path != "" {
 		cmd["file_path"] = path
 	}
@@ -1512,6 +1562,7 @@ func (h *Harness) requestMixObservation(ctx context.Context, cmd map[string]any)
 		cmd["target_resolution_source"] = source
 	}
 	cmd = canonicalizeMixObservationCommand(cmd, target, resolvedContext)
+	target = mixTargetFromCommand(cmd)
 	featureRequest := h.requestMixObservationFeatures(ctx, cmd, state, target)
 	result, err := mixboard.NewStore("").RequestObservation(mixboard.Request{
 		MixSessionID: firstString(cmd, "mix_session_id", "session_id"),
@@ -1534,6 +1585,8 @@ func (h *Harness) requestMixObservation(ctx context.Context, cmd map[string]any)
 		"observation_path":  result.ObservationPath,
 		"context_pack_path": result.ContextPackPath,
 		"observation":       result.Observation,
+		"digest":            result.Observation.Digest,
+		"catalog":           result.Observation.Catalog,
 		"mixboard":          result.Board,
 		"context_pack":      result.ContextPack,
 	}
@@ -1549,6 +1602,77 @@ func (h *Harness) requestMixObservation(ctx context.Context, cmd map[string]any)
 	return out, nil
 }
 
+func (h *Harness) readMixObservation(cmd map[string]any) (map[string]any, error) {
+	req := mixboard.ReadRequest{
+		ObservationID: firstString(cmd, "observation_id"),
+		MixSessionID:  firstString(cmd, "mix_session_id", "session_id"),
+		Keys:          observationReadKeys(cmd),
+		Detail:        firstString(cmd, "detail"),
+		MaxItems:      int(numberFromAny(cmd["max_items"])),
+	}
+	req.RangeStart, req.RangeEnd = observationReadRange(cmd)
+	return mixboard.NewStore("").Read(req)
+}
+
+func (h *Harness) deriveMixObservation(cmd map[string]any) (map[string]any, error) {
+	req := mixboard.DeriveRequest{
+		ObservationID: firstString(cmd, "observation_id"),
+		MixSessionID:  firstString(cmd, "mix_session_id", "session_id"),
+		Type:          firstString(cmd, "type", "derive_type", "relationship_type"),
+		A:             mapAnyFromAny(cmd["a"]),
+		B:             mapAnyFromAny(cmd["b"]),
+		Focus:         mapAnyFromAny(cmd["focus"]),
+		Dimensions:    stringSliceFromAny(cmd["dimensions"]),
+		MaxItems:      int(numberFromAny(cmd["max_items"])),
+	}
+	return mixboard.NewStore("").Derive(req)
+}
+
+func observationReadKeys(cmd map[string]any) []string {
+	keys := stringSliceFromAny(cmd["keys"])
+	if len(keys) == 0 {
+		if key := firstString(cmd, "key"); key != "" {
+			keys = []string{key}
+		}
+	}
+	return keys
+}
+
+func observationReadRange(cmd map[string]any) (float64, float64) {
+	if rows, ok := cmd["range_sec"].([]any); ok && len(rows) >= 2 {
+		return numberFromAny(rows[0]), numberFromAny(rows[1])
+	}
+	if rows, ok := cmd["range_seconds"].([]any); ok && len(rows) >= 2 {
+		return numberFromAny(rows[0]), numberFromAny(rows[1])
+	}
+	rangeMap := mapAnyFromAny(cmd["range_sec"])
+	if len(rangeMap) == 0 {
+		rangeMap = mapAnyFromAny(cmd["range_seconds"])
+	}
+	start := firstNonZeroNumber(
+		numberFromAny(rangeMap["start"]),
+		numberFromAny(rangeMap["start_seconds"]),
+		numberFromAny(cmd["start_seconds"]),
+		numberFromAny(cmd["range_start"]),
+	)
+	end := firstNonZeroNumber(
+		numberFromAny(rangeMap["end"]),
+		numberFromAny(rangeMap["end_seconds"]),
+		numberFromAny(cmd["end_seconds"]),
+		numberFromAny(cmd["range_end"]),
+	)
+	return start, end
+}
+
+func firstNonZeroNumber(values ...float64) float64 {
+	for _, value := range values {
+		if value != 0 {
+			return value
+		}
+	}
+	return 0
+}
+
 func mixObservationResolutionNeedsRefresh(resolved map[string]any) bool {
 	trackID := firstString(resolved, "track_id")
 	clipID := firstString(resolved, "clip_id")
@@ -1560,8 +1684,42 @@ func mixObservationResolutionNeedsRefresh(resolved map[string]any) bool {
 
 func canonicalizeMixObservationCommand(cmd map[string]any, target mixboard.TargetRef, resolved map[string]any) map[string]any {
 	cmd = cloneAnyMap(cmd)
+	scope := normalizeMixObservationScope(firstString(cmd, "scope", "observation_scope"))
+	if scope == "" {
+		scope = "selected_track"
+	}
+	cmd["scope"] = scope
 	trackID := firstString(resolved, "track_id")
 	clipID := firstString(resolved, "clip_id")
+	if scope == "full_project" || scope == "track_group" {
+		cmd["listen_scope"] = map[string]any{
+			"time": map[string]any{
+				"mode":   "full_song",
+				"source": "scope_" + scope,
+			},
+			"source": map[string]any{
+				"mode":   scope,
+				"source": "mix_observation_scope",
+			},
+		}
+		if scope == "full_project" {
+			cmd["target_ref"] = map[string]any{
+				"kind":       "project",
+				"id":         "current",
+				"label":      "Current project",
+				"source":     "mix_observation_scope",
+				"confidence": "high",
+			}
+			cmd["mix_objects"] = []any{map[string]any{
+				"mode":   "scope",
+				"kind":   "project",
+				"id":     "current",
+				"label":  "Current project",
+				"source": "mix_observation_scope",
+			}}
+		}
+		return cmd
+	}
 	if trackID != "" {
 		cmd["track_id"] = trackID
 	}
@@ -1576,6 +1734,13 @@ func canonicalizeMixObservationCommand(cmd map[string]any, target mixboard.Targe
 	}
 	if trackID != "" && !looksSyntheticTrackAlias(trackID) {
 		label := firstNonEmpty(firstString(resolved, "track_name"), target.Label, trackID)
+		sourceMode := "full_mix_context"
+		if scope == "selected_track" || scope == "named_track" {
+			sourceMode = scope + "_with_project_context"
+		}
+		if scope == "full_project_with_focus_track" {
+			sourceMode = "full_project_with_focus_track"
+		}
 		cmd["target_ref"] = map[string]any{
 			"kind":       "track",
 			"id":         trackID,
@@ -1597,7 +1762,7 @@ func canonicalizeMixObservationCommand(cmd map[string]any, target mixboard.Targe
 				"source": "default",
 			},
 			"source": map[string]any{
-				"mode":      "full_mix_context",
+				"mode":      sourceMode,
 				"focus_ids": []any{trackID},
 			},
 		}
@@ -1605,10 +1770,147 @@ func canonicalizeMixObservationCommand(cmd map[string]any, target mixboard.Targe
 	return cmd
 }
 
+func normalizeMixObservationScope(scope string) string {
+	switch strings.ToLower(strings.TrimSpace(scope)) {
+	case "selected_clip", "clip":
+		return "selected_clip"
+	case "selected_track", "current_track", "track":
+		return "selected_track"
+	case "named_track":
+		return "named_track"
+	case "track_group", "group":
+		return "track_group"
+	case "full_project", "project", "whole_project":
+		return "full_project"
+	case "full_project_with_focus_track", "project_with_focus", "focus_track":
+		return "full_project_with_focus_track"
+	default:
+		return ""
+	}
+}
+
+func resolveMixObservationFocusHint(cmd map[string]any, state map[string]any) map[string]any {
+	hint := mapAnyFromAny(cmd["focus_hint"])
+	if len(hint) == 0 {
+		return nil
+	}
+	role := strings.ToLower(strings.TrimSpace(firstString(hint, "role", "target_role")))
+	nameHint := strings.ToLower(strings.TrimSpace(firstString(hint, "name", "track_name", "query")))
+	if role == "" && nameHint == "" {
+		return nil
+	}
+	rows := visibleTrackRows(state)
+	var best map[string]any
+	bestScore := 0
+	for _, row := range rows {
+		if len(row) == 0 {
+			continue
+		}
+		score := mixObservationFocusHintScore(row, role, nameHint)
+		if score > bestScore {
+			best = row
+			bestScore = score
+		}
+	}
+	if bestScore < 3 || len(best) == 0 {
+		return nil
+	}
+	trackID := firstNonEmpty(firstString(best, "track_id"), firstString(best, "id"))
+	if trackID == "" || looksSyntheticTrackAlias(trackID) {
+		return nil
+	}
+	name := firstNonEmpty(firstString(best, "track_name"), firstString(best, "name"), trackID)
+	out := map[string]any{
+		"track_id":   trackID,
+		"track_name": name,
+		"source":     "focus_hint",
+		"confidence": "medium",
+	}
+	if bestScore >= 5 {
+		out["confidence"] = "high"
+	}
+	if clips := mapRowsFromAny(firstPresentValue(best, "clips", "clip_summaries")); len(clips) > 0 {
+		if clip := clips[0]; len(clip) > 0 {
+			if clipID := firstNonEmpty(firstString(clip, "clip_id"), firstString(clip, "id")); clipID != "" {
+				out["clip_id"] = clipID
+			}
+			if path := firstString(clip, "file_path", "source_file", "audio_file"); path != "" {
+				out["file_path"] = path
+			}
+			if duration := firstPositiveNumber(clip, "duration_seconds", "length_seconds", "duration"); duration > 0 {
+				out["duration_seconds"] = duration
+			}
+		}
+	}
+	return out
+}
+
+func firstPresentValue(row map[string]any, keys ...string) any {
+	for _, key := range keys {
+		if value, ok := row[key]; ok && !isEmptyValue(value) {
+			return value
+		}
+	}
+	return nil
+}
+
+func mixObservationFocusHintScore(row map[string]any, role, nameHint string) int {
+	name := strings.ToLower(strings.TrimSpace(strings.Join([]string{
+		firstString(row, "track_name"),
+		firstString(row, "name"),
+		firstString(row, "track_type"),
+	}, " ")))
+	guessedRole := mixObservationTrackRoleGuess(name)
+	score := 0
+	if role != "" {
+		switch role {
+		case "vocal", "voice", "lead_vocal", "lead vocal":
+			if guessedRole == "vocal" {
+				score += 5
+			}
+		case "bass", "kick":
+			if guessedRole == role {
+				score += 5
+			}
+		default:
+			if strings.Contains(name, role) || guessedRole == role {
+				score += 4
+			}
+		}
+	}
+	if nameHint != "" && strings.Contains(name, nameHint) {
+		score += 3
+	}
+	if boolValueDefault(row["selected"], false) {
+		score++
+	}
+	if strings.Contains(name, "lead") || strings.Contains(name, "\u4e3b\u5531") {
+		score++
+	}
+	return score
+}
+
+func mixObservationTrackRoleGuess(text string) string {
+	text = strings.ToLower(strings.TrimSpace(text))
+	switch {
+	case strings.Contains(text, "vocal") || strings.Contains(text, "vox") || strings.Contains(text, "voice") || strings.Contains(text, "lead vocal") || strings.Contains(text, "lead vox") || strings.Contains(text, "\u4e3b\u5531") || strings.Contains(text, "\u4eba\u58f0") || strings.Contains(text, "\u6b4c\u58f0") || strings.Contains(text, "\u58f0\u4e50"):
+		return "vocal"
+	case strings.Contains(text, "kick") || strings.Contains(text, "bass drum") || strings.Contains(text, "\u5e95\u9f13") || strings.Contains(text, "\u5927\u9f13"):
+		return "kick"
+	case strings.Contains(text, "bass") || strings.Contains(text, "sub") || strings.Contains(text, "808") || strings.Contains(text, "\u8d1d\u65af") || strings.Contains(text, "\u4f4e\u97f3") || strings.Contains(text, "\u4f4e\u9891"):
+		return "bass"
+	default:
+		return ""
+	}
+}
+
 func (h *Harness) requestMixObservationFeatures(ctx context.Context, cmd map[string]any, state map[string]any, target mixboard.TargetRef) map[string]any {
 	packet := newMixboardFeatureRequestPacket(cmd, target)
 	resolved := resolveMixboardFeatureTarget(cmd, state, target)
 	packet["resolved_target"] = resolved
+	if mixObservationWantsProjectAcoustics(cmd) {
+		return h.requestFullProjectMixObservationFeatures(ctx, cmd, state, target, packet)
+	}
 	trackID := firstString(resolved, "track_id")
 	clipID := firstString(resolved, "clip_id")
 	if trackID == "" || clipID == "" {
@@ -1673,7 +1975,7 @@ func (h *Harness) requestMixObservationFeatures(ctx context.Context, cmd map[str
 		requested = append(requested, requestRow)
 		if collector != nil && collector.TileCount() > 0 {
 			if row := collector.SnapshotRow(firstString(packet, "request_id")); len(row) > 0 {
-				writeMixboardReadyWaveformSnapshot(cmd, packet, row)
+				writeMixboardReadyProjectTrackWaveformSnapshot(cmd, packet, row)
 			}
 		}
 	}
@@ -1689,6 +1991,102 @@ func (h *Harness) requestMixObservationFeatures(ctx context.Context, cmd map[str
 		writeMixboardFeatureRequestSnapshot(cmd, packet)
 	}
 	waitForMixboardFeatureSnapshotReady(ctx, cmd, trackID, clipID, mixboardFeatureReadyWait())
+	return packet
+}
+
+func (h *Harness) requestFullProjectMixObservationFeatures(ctx context.Context, cmd map[string]any, state map[string]any, target mixboard.TargetRef, packet map[string]any) map[string]any {
+	targets := visibleAudioTrackFeatureTargets(state)
+	packet["scope"] = "full_project"
+	packet["track_feature_targets"] = targets
+	if len(targets) == 0 {
+		packet["status"] = "blocked"
+		packet["reason"] = "visible_audio_tracks_required_for_project_acoustic_observation"
+		writeMixboardFeatureRequestSnapshot(cmd, packet)
+		return packet
+	}
+	if h == nil || h.kernel == nil {
+		packet["status"] = "blocked"
+		packet["reason"] = "kernel_client_unavailable"
+		writeMixboardFeatureRequestSnapshot(cmd, packet)
+		return packet
+	}
+	requested := make([]any, 0, len(targets))
+	skipped := make([]any, 0)
+	for _, targetRow := range targets {
+		trackID := firstString(targetRow, "track_id")
+		clipID := firstString(targetRow, "clip_id")
+		if trackID == "" || clipID == "" {
+			skipped = append(skipped, map[string]any{
+				"feature_type": "waveform_envelope",
+				"track_id":     trackID,
+				"clip_id":      clipID,
+				"reason":       "clip_source_required_for_current_feature_bakers",
+			})
+			continue
+		}
+		requestID := fmt.Sprintf("%s_waveform_envelope_%s", firstString(packet, "request_id"), safeRequestIDPart(trackID))
+		requestRow := map[string]any{
+			"feature_type": "waveform_envelope",
+			"request_id":   requestID,
+			"track_id":     trackID,
+			"clip_id":      clipID,
+		}
+		packet["status"] = "requested"
+		packet["requested_features"] = append(append([]any{}, requested...), requestRow)
+		packet["skipped_features"] = skipped
+		writeMixboardFeatureRequestSnapshot(cmd, packet)
+
+		kernelCmd := map[string]any{
+			"cmd":                 "warm_waveform_bake",
+			"command":             "mixboard_request_observation_features",
+			"track_id":            trackID,
+			"clip_id":             clipID,
+			"feature_type":        "waveform_envelope",
+			"mixboard_request_id": firstString(packet, "request_id"),
+		}
+		var reply map[string]any
+		sent := false
+		sendBake := func() error {
+			if sent {
+				return nil
+			}
+			sent = true
+			var sendErr error
+			reply, _, sendErr = h.kernel.SendCommand(ctx, kernelCmd)
+			if sendErr != nil || !kernelReplySucceeded(reply) {
+				reason := firstNonEmpty(fmt.Sprint(reply["message"]), fmt.Sprint(reply["error"]), fmt.Sprint(sendErr), "kernel_feature_request_failed")
+				return fmt.Errorf("%s", reason)
+			}
+			return nil
+		}
+		collector, _ := collectWaveformFeatureTiles(ctx, mixboardFeatureSubURL, trackID, clipID, mixboardFeatureCollectWait(), sendBake)
+		if !sent {
+			_ = sendBake()
+		}
+		if !kernelReplySucceeded(reply) {
+			reason := firstNonEmpty(fmt.Sprint(reply["message"]), fmt.Sprint(reply["error"]), "kernel_feature_request_failed")
+			skipped = append(skipped, map[string]any{"feature_type": "waveform_envelope", "track_id": trackID, "clip_id": clipID, "reason": reason})
+			continue
+		}
+		requested = append(requested, requestRow)
+		if collector != nil && collector.TileCount() > 0 {
+			if row := collector.SnapshotRow(firstString(packet, "request_id")); len(row) > 0 {
+				writeMixboardReadyWaveformSnapshot(cmd, packet, row)
+			}
+		}
+	}
+	packet["requested_features"] = requested
+	packet["skipped_features"] = skipped
+	if len(requested) > 0 {
+		packet["status"] = "requested"
+	} else {
+		packet["status"] = "blocked"
+		packet["reason"] = "all_feature_requests_skipped"
+	}
+	if len(requested) == 0 || !mixboardProjectFeatureRowsReady(readMixboardFeatureSnapshotFile(mixboard.FeatureSnapshotPath(cmd)), targets) {
+		writeMixboardFeatureRequestSnapshot(cmd, packet)
+	}
+	waitForMixboardProjectFeatureSnapshotReady(ctx, cmd, targets, mixboardFeatureReadyWait())
 	return packet
 }
 
@@ -2018,6 +2416,7 @@ func writeMixboardReadyWaveformSnapshot(cmd map[string]any, packet map[string]an
 	existing["updated_at"] = time.Now().UTC().Format(time.RFC3339Nano)
 	existing["latest_request"] = packet
 	existing["waveform_envelope"] = waveform
+	existing["track_waveform_envelopes"] = mergeTrackWaveformRows(existing["track_waveform_envelopes"], []map[string]any{waveform})
 	if _, ok := existing["spectrogram_tiles"]; !ok {
 		existing["spectrogram_tiles"] = map[string]any{"status": "missing"}
 	}
@@ -2033,6 +2432,48 @@ func writeMixboardReadyWaveformSnapshot(cmd map[string]any, packet map[string]an
 	}
 	_ = os.MkdirAll(filepath.Dir(path), 0o755)
 	_ = os.WriteFile(path, append(data, '\n'), 0o644)
+}
+
+func writeMixboardReadyProjectTrackWaveformSnapshot(cmd map[string]any, packet map[string]any, waveform map[string]any) {
+	path := mixboard.FeatureSnapshotPath(cmd)
+	existing := readMixboardFeatureSnapshotFile(path)
+	if len(existing) == 0 {
+		existing = map[string]any{"schema_version": "mixboard_feature_snapshot.v1"}
+	}
+	existing["schema_version"] = "mixboard_feature_snapshot.v1"
+	existing["updated_at"] = time.Now().UTC().Format(time.RFC3339Nano)
+	existing["latest_request"] = packet
+	existing["track_waveform_envelopes"] = mergeTrackWaveformRows(existing["track_waveform_envelopes"], []map[string]any{waveform})
+	if projectWaveformMatchesResolvedTarget(packet, waveform) {
+		existing["waveform_envelope"] = waveform
+	} else if _, ok := existing["waveform_envelope"]; !ok {
+		existing["waveform_envelope"] = map[string]any{"status": "missing"}
+	}
+	if _, ok := existing["spectrogram_tiles"]; !ok {
+		existing["spectrogram_tiles"] = map[string]any{"status": "missing"}
+	}
+	if _, ok := existing["band_energy_summary"]; !ok {
+		existing["band_energy_summary"] = map[string]any{"status": "missing"}
+	}
+	if _, ok := existing["stereo_relation_summary"]; !ok {
+		existing["stereo_relation_summary"] = map[string]any{"status": "missing"}
+	}
+	data, err := json.MarshalIndent(existing, "", "\t")
+	if err != nil {
+		return
+	}
+	_ = os.MkdirAll(filepath.Dir(path), 0o755)
+	_ = os.WriteFile(path, append(data, '\n'), 0o644)
+}
+
+func projectWaveformMatchesResolvedTarget(packet map[string]any, waveform map[string]any) bool {
+	target, _ := packet["resolved_target"].(map[string]any)
+	trackID := firstString(target, "track_id")
+	clipID := firstString(target, "clip_id")
+	if trackID == "" || clipID == "" {
+		return false
+	}
+	return firstString(waveform, "track_id") == trackID && firstString(waveform, "clip_id") == clipID
 }
 
 func resolveMixObservationTargetContext(cmd map[string]any, state map[string]any, target mixboard.TargetRef) map[string]any {
@@ -2272,6 +2713,14 @@ func mixObservationAcousticDigest(obs mixboard.ObservationPacket, featureRequest
 			"label": target.Label,
 		}
 	}
+	if trackName := firstString(resolvedContext, "track_name"); trackName != "" {
+		out["track_name"] = trackName
+		out["user_label"] = trackName
+		if target, _ := out["target"].(map[string]any); len(target) > 0 {
+			target["track_name"] = trackName
+			target["user_label"] = trackName
+		}
+	}
 	if clipID := firstString(resolvedContext, "clip_id"); clipID != "" {
 		out["clip_id"] = clipID
 	}
@@ -2401,6 +2850,107 @@ func newMixboardFeatureRequestPacket(cmd map[string]any, target mixboard.TargetR
 	}
 }
 
+func mixObservationWantsProjectAcoustics(cmd map[string]any) bool {
+	switch normalizeMixObservationScope(firstString(cmd, "scope", "observation_scope")) {
+	case "full_project", "full_project_with_focus_track", "track_group":
+		return true
+	default:
+		return false
+	}
+}
+
+func visibleAudioTrackFeatureTargets(state map[string]any) []map[string]any {
+	rows := visibleTrackRows(state)
+	out := make([]map[string]any, 0, len(rows))
+	for _, row := range rows {
+		if len(row) == 0 || !trackLooksAudio(row) {
+			continue
+		}
+		trackID := visibleTrackID(row)
+		if trackID == "" {
+			continue
+		}
+		clip := primaryVisibleAudioClip(row)
+		target := map[string]any{
+			"track_id":   trackID,
+			"track_name": visibleTrackName(row),
+		}
+		if len(clip) > 0 {
+			if clipID := firstString(clip, "clip_id", "id", "item_id"); clipID != "" {
+				target["clip_id"] = clipID
+			}
+			if name := firstString(clip, "name", "clip_name"); name != "" {
+				target["clip_name"] = name
+			}
+			if path := firstNonEmpty(firstString(clip, "file_path", "source_path", "current_source_path"), firstString(row, "file_path", "source_path", "current_source_path")); path != "" {
+				target["file_path"] = path
+			}
+			if duration := firstPositiveNumber(clip, "length_seconds", "duration_seconds", "duration"); duration > 0 {
+				target["duration_seconds"] = round3(duration)
+			}
+			target["source"] = "visible_audio_track_primary_clip"
+		} else {
+			target["source"] = "visible_audio_track_without_clip"
+		}
+		out = append(out, target)
+	}
+	return out
+}
+
+func trackLooksAudio(row map[string]any) bool {
+	if value, ok := boolValue(row["is_audio_track"]); ok {
+		return value
+	}
+	trackType := strings.ToLower(firstString(row, "track_type", "type", "kind"))
+	if strings.Contains(trackType, "midi") {
+		return false
+	}
+	if strings.Contains(trackType, "audio") || strings.Contains(trackType, "hybrid") {
+		return true
+	}
+	return len(mapRowsFromAny(firstPresentValue(row, "clips", "clip_summaries"))) > 0
+}
+
+func primaryVisibleAudioClip(row map[string]any) map[string]any {
+	clips := mapRowsFromAny(firstPresentValue(row, "clips", "clip_summaries"))
+	var best map[string]any
+	bestLength := -1.0
+	for _, clip := range clips {
+		if len(clip) == 0 {
+			continue
+		}
+		length := firstPositiveNumber(clip, "length_seconds", "duration_seconds", "duration")
+		if best == nil || length > bestLength {
+			best = clip
+			bestLength = length
+		}
+	}
+	return best
+}
+
+func safeRequestIDPart(value string) string {
+	value = strings.TrimSpace(value)
+	if value == "" {
+		return "target"
+	}
+	var b strings.Builder
+	for _, r := range value {
+		if (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') || (r >= '0' && r <= '9') {
+			b.WriteRune(r)
+			continue
+		}
+		b.WriteByte('_')
+	}
+	out := strings.Trim(b.String(), "_")
+	if out == "" {
+		return "target"
+	}
+	if len(out) > 48 {
+		return out[:48]
+	}
+	return out
+}
+
 func resolveMixboardFeatureTarget(cmd map[string]any, state map[string]any, target mixboard.TargetRef) map[string]any {
 	kind := strings.ToLower(strings.TrimSpace(target.Kind))
 	id := strings.TrimSpace(target.ID)
@@ -2461,14 +3011,16 @@ func resolveMixboardFeatureTarget(cmd map[string]any, state map[string]any, targ
 func writeMixboardFeatureRequestSnapshot(cmd map[string]any, packet map[string]any) {
 	path := mixboard.FeatureSnapshotPath(cmd)
 	existing := readMixboardFeatureSnapshotFile(path)
+	targetRows := trackWaveformRowsForPacket(packet, existing)
 	snapshot := map[string]any{
-		"schema_version":          "mixboard_feature_snapshot.v1",
-		"updated_at":              time.Now().UTC().Format(time.RFC3339Nano),
-		"latest_request":          packet,
-		"waveform_envelope":       pendingMixboardFeatureRow("waveform_envelope", packet, existing),
-		"spectrogram_tiles":       pendingMixboardFeatureRow("spectral_field", packet, existing),
-		"band_energy_summary":     reusableMixboardFeatureRow("band_energy_summary", existing, map[string]any{"status": "missing"}),
-		"stereo_relation_summary": reusableMixboardFeatureRow("stereo_relation_summary", existing, map[string]any{"status": "missing"}),
+		"schema_version":           "mixboard_feature_snapshot.v1",
+		"updated_at":               time.Now().UTC().Format(time.RFC3339Nano),
+		"latest_request":           packet,
+		"waveform_envelope":        pendingMixboardFeatureRow("waveform_envelope", packet, existing),
+		"track_waveform_envelopes": targetRows,
+		"spectrogram_tiles":        pendingMixboardFeatureRow("spectral_field", packet, existing),
+		"band_energy_summary":      reusableMixboardFeatureRow("band_energy_summary", existing, map[string]any{"status": "missing"}),
+		"stereo_relation_summary":  reusableMixboardFeatureRow("stereo_relation_summary", existing, map[string]any{"status": "missing"}),
 	}
 	data, err := json.MarshalIndent(snapshot, "", "\t")
 	if err != nil {
@@ -2515,12 +3067,13 @@ func mixboardFeatureRowsReadyForTarget(snapshot map[string]any, trackID, clipID 
 	if len(snapshot) == 0 {
 		return false
 	}
-	if !mixboardFeatureRowReadyForTarget(snapshot["waveform_envelope"], trackID, clipID) {
-		return false
-	}
-	if mixboardFeatureRowReadyForTarget(snapshot["band_energy_summary"], trackID, "") &&
-		mixboardFeatureRowReadyForTarget(snapshot["stereo_relation_summary"], trackID, "") {
+	if mixboardFeatureRowReadyForTarget(snapshot["waveform_envelope"], trackID, clipID) {
 		return true
+	}
+	for _, row := range mapRowsFromAny(snapshot["track_waveform_envelopes"]) {
+		if mixboardFeatureRowReadyForTarget(row, trackID, clipID) {
+			return true
+		}
 	}
 	return false
 }
@@ -2594,6 +3147,223 @@ func reusableReadyMixboardFeatureRow(featureType string, target map[string]any, 
 		return nil
 	}
 	return cloneAnyMap(row)
+}
+
+func waitForMixboardProjectFeatureSnapshotReady(ctx context.Context, cmd map[string]any, targets []map[string]any, timeout time.Duration) {
+	if timeout <= 0 || len(targets) == 0 {
+		return
+	}
+	path := mixboard.FeatureSnapshotPath(cmd)
+	deadline := time.Now().Add(timeout)
+	for {
+		if mixboardProjectFeatureRowsReady(readMixboardFeatureSnapshotFile(path), targets) {
+			return
+		}
+		if time.Now().After(deadline) {
+			return
+		}
+		select {
+		case <-ctx.Done():
+			return
+		case <-time.After(120 * time.Millisecond):
+		}
+	}
+}
+
+func mixboardProjectFeatureRowsReady(snapshot map[string]any, targets []map[string]any) bool {
+	if len(snapshot) == 0 || len(targets) == 0 {
+		return false
+	}
+	for _, target := range targets {
+		trackID := firstString(target, "track_id")
+		clipID := firstString(target, "clip_id")
+		if trackID == "" || clipID == "" {
+			continue
+		}
+		if !mixboardFeatureRowsReadyForTarget(snapshot, trackID, clipID) {
+			return false
+		}
+	}
+	return true
+}
+
+func trackWaveformRowsForPacket(packet map[string]any, existing map[string]any) []map[string]any {
+	targets := mapRowsFromAny(packet["track_feature_targets"])
+	if len(targets) == 0 {
+		return reusableTrackWaveformRows(existing)
+	}
+	rows := make([]map[string]any, 0, len(targets))
+	for _, target := range targets {
+		rows = append(rows, pendingTrackWaveformRow(packet, target, existing))
+	}
+	return mergeTrackWaveformRows(existing["track_waveform_envelopes"], rows)
+}
+
+func pendingTrackWaveformRow(packet, target, existing map[string]any) map[string]any {
+	if row := reusableReadyTrackWaveformRow(target, existing); len(row) > 0 {
+		return row
+	}
+	status := strings.ToLower(strings.TrimSpace(fmt.Sprint(packet["status"])))
+	rowStatus := "requested"
+	if status == "blocked" {
+		rowStatus = "blocked"
+	}
+	trackID := firstString(target, "track_id")
+	clipID := firstString(target, "clip_id")
+	if status != "blocked" && !requestedFeatureIncludesTarget(packet, trackID, clipID) {
+		rowStatus = "missing"
+	}
+	if clipID == "" || skippedFeatureReason(packet, trackID, clipID) != "" {
+		rowStatus = "blocked"
+	}
+	row := map[string]any{
+		"status":     rowStatus,
+		"track_id":   trackID,
+		"track_name": firstString(target, "track_name"),
+		"clip_id":    clipID,
+		"request_id": firstString(packet, "request_id"),
+		"updated_at": time.Now().UTC().Format(time.RFC3339Nano),
+	}
+	if clipName := firstString(target, "clip_name"); clipName != "" {
+		row["clip_name"] = clipName
+	}
+	if filePath := firstString(target, "file_path"); filePath != "" {
+		row["file_path"] = filePath
+	}
+	if reason := firstString(packet, "reason"); reason != "" {
+		row["reason"] = reason
+	} else if reason := skippedFeatureReason(packet, trackID, clipID); reason != "" {
+		row["reason"] = reason
+	} else if clipID == "" {
+		row["reason"] = "primary_audio_clip_missing"
+	}
+	return row
+}
+
+func reusableReadyTrackWaveformRow(target map[string]any, existing map[string]any) map[string]any {
+	for _, row := range mapRowsFromAny(existing["track_waveform_envelopes"]) {
+		if !strings.EqualFold(firstString(row, "status"), "ready") {
+			continue
+		}
+		if sameFeatureTarget(row, target) {
+			return cloneAnyMap(row)
+		}
+	}
+	if row, _ := existing["waveform_envelope"].(map[string]any); len(row) > 0 && strings.EqualFold(firstString(row, "status"), "ready") && sameFeatureTarget(row, target) {
+		return cloneAnyMap(row)
+	}
+	return nil
+}
+
+func reusableTrackWaveformRows(existing map[string]any) []map[string]any {
+	rows := mapRowsFromAny(existing["track_waveform_envelopes"])
+	out := make([]map[string]any, 0, len(rows))
+	for _, row := range rows {
+		out = append(out, cloneAnyMap(row))
+	}
+	return out
+}
+
+func mergeTrackWaveformRows(existing any, updates []map[string]any) []map[string]any {
+	rows := make([]map[string]any, 0)
+	seen := map[string]int{}
+	for _, row := range mapRowsFromAny(existing) {
+		if len(row) == 0 {
+			continue
+		}
+		key := featureTargetKey(row)
+		if key == "" {
+			key = fmt.Sprintf("existing_%d", len(rows))
+		}
+		seen[key] = len(rows)
+		rows = append(rows, cloneAnyMap(row))
+	}
+	for _, update := range updates {
+		if len(update) == 0 {
+			continue
+		}
+		key := featureTargetKey(update)
+		if key == "" {
+			key = fmt.Sprintf("update_%d", len(rows))
+		}
+		if idx, ok := seen[key]; ok {
+			if sameFeatureRequest(rows[idx], update) || featureRowPriority(update) >= featureRowPriority(rows[idx]) {
+				rows[idx] = cloneAnyMap(update)
+			}
+			continue
+		}
+		seen[key] = len(rows)
+		rows = append(rows, cloneAnyMap(update))
+	}
+	return rows
+}
+
+func sameFeatureRequest(a, b map[string]any) bool {
+	requestA := firstString(a, "request_id")
+	requestB := firstString(b, "request_id")
+	return requestA != "" && requestA == requestB
+}
+
+func requestedFeatureIncludesTarget(packet map[string]any, trackID, clipID string) bool {
+	for _, raw := range anyListFromAny(packet["requested_features"]) {
+		item, _ := raw.(map[string]any)
+		if !strings.EqualFold(firstString(item, "feature_type"), "waveform_envelope") {
+			continue
+		}
+		if firstString(item, "track_id") == trackID && firstString(item, "clip_id") == clipID {
+			return true
+		}
+	}
+	return false
+}
+
+func skippedFeatureReason(packet map[string]any, trackID, clipID string) string {
+	for _, raw := range anyListFromAny(packet["skipped_features"]) {
+		item, _ := raw.(map[string]any)
+		if !strings.EqualFold(firstString(item, "feature_type"), "waveform_envelope") {
+			continue
+		}
+		if firstString(item, "track_id") == trackID && firstString(item, "clip_id") == clipID {
+			return firstString(item, "reason")
+		}
+	}
+	return ""
+}
+
+func sameFeatureTarget(row, target map[string]any) bool {
+	trackID := firstString(target, "track_id")
+	clipID := firstString(target, "clip_id")
+	if trackID != "" && firstString(row, "track_id") != "" && firstString(row, "track_id") != trackID {
+		return false
+	}
+	if clipID != "" && firstString(row, "clip_id") != "" && firstString(row, "clip_id") != clipID {
+		return false
+	}
+	return trackID != "" || clipID != ""
+}
+
+func featureTargetKey(row map[string]any) string {
+	trackID := firstString(row, "track_id")
+	clipID := firstString(row, "clip_id")
+	if trackID == "" && clipID == "" {
+		return ""
+	}
+	return trackID + "::" + clipID
+}
+
+func featureRowPriority(row map[string]any) int {
+	switch strings.ToLower(firstString(row, "status")) {
+	case "ready":
+		return 4
+	case "partial":
+		return 3
+	case "requested":
+		return 2
+	case "blocked", "unavailable":
+		return 1
+	default:
+		return 0
+	}
 }
 
 func reusableMixboardFeatureRow(key string, existing map[string]any, fallback map[string]any) map[string]any {
@@ -6062,20 +6832,17 @@ func isEmptyValue(v any) bool {
 }
 
 func visibleTrackRows(state map[string]any) []map[string]any {
-	switch rows := state["tracks"].(type) {
-	case []map[string]any:
-		return rows
-	case []any:
-		out := make([]map[string]any, 0, len(rows))
-		for _, it := range rows {
-			if row, ok := it.(map[string]any); ok {
-				out = append(out, row)
-			}
+	for _, value := range []any{
+		state["tracks"],
+		mapFromAny(state["shadow"])["tracks"],
+		mapFromAny(state["project_state"])["tracks"],
+		mapFromAny(mapFromAny(state["project_state"])["shadow"])["tracks"],
+	} {
+		if rows := mapRowsFromAny(value); len(rows) > 0 {
+			return rows
 		}
-		return out
-	default:
-		return nil
 	}
+	return nil
 }
 
 func mapRowsFromAny(v any) []map[string]any {
@@ -6091,7 +6858,58 @@ func mapRowsFromAny(v any) []map[string]any {
 		}
 		return out
 	default:
+		items := anySliceFromAny(v)
+		if len(items) == 0 {
+			return nil
+		}
+		out := make([]map[string]any, 0, len(items))
+		for _, it := range items {
+			if row := mapFromAny(it); len(row) > 0 {
+				out = append(out, row)
+			}
+		}
+		return out
+	}
+}
+
+func mapFromAny(v any) map[string]any {
+	if row, ok := v.(map[string]any); ok {
+		return row
+	}
+	if v == nil {
 		return nil
+	}
+	data, err := json.Marshal(v)
+	if err != nil || len(data) == 0 || string(data) == "null" {
+		return nil
+	}
+	var row map[string]any
+	if err := json.Unmarshal(data, &row); err != nil {
+		return nil
+	}
+	return row
+}
+
+func anySliceFromAny(v any) []any {
+	switch rows := v.(type) {
+	case []any:
+		return rows
+	case []map[string]any:
+		out := make([]any, 0, len(rows))
+		for _, row := range rows {
+			out = append(out, row)
+		}
+		return out
+	default:
+		data, err := json.Marshal(v)
+		if err != nil || len(data) == 0 || string(data) == "null" {
+			return nil
+		}
+		var decodedRows []any
+		if err := json.Unmarshal(data, &decodedRows); err != nil {
+			return nil
+		}
+		return decodedRows
 	}
 }
 

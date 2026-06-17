@@ -57,6 +57,7 @@ type Server struct {
 	mixSessions       map[string]MixSession
 	goalContinuations map[string]agentloop.Continuation
 	conversationGoals map[string]string
+	pendingMixTicks   map[string]agentloop.PendingMixTickCandidate
 	uiContext         map[string]any
 	events            map[string][]AgentEvent
 	eventSeq          map[string]int64
@@ -252,6 +253,7 @@ func New(kernelClient *kernel.Client, shadowProject *shadow.Project, logger *log
 		mixSessions:       map[string]MixSession{},
 		goalContinuations: map[string]agentloop.Continuation{},
 		conversationGoals: map[string]string{},
+		pendingMixTicks:   map[string]agentloop.PendingMixTickCandidate{},
 		uiContext:         map[string]any{},
 		events:            map[string][]AgentEvent{},
 		eventSeq:          map[string]int64{},
@@ -1488,6 +1490,18 @@ func (s *Server) handleChat(w http.ResponseWriter, r *http.Request) {
 	}
 
 	chatContext := contextWithUserMessage(req.Context, req.Message)
+
+	if resp, handled := s.handlePendingMixTickChat(r.Context(), conversationID, ChatRequest{
+		ConversationID: conversationID,
+		Message:        req.Message,
+		Context:        chatContext,
+		Attachments:    req.Attachments,
+		ArtifactRefs:   req.ArtifactRefs,
+	}, agentMode); handled {
+		s.remember(conversationID, req.Message, resp.Reply)
+		writeChat(http.StatusOK, resp)
+		return
+	}
 
 	cfg, cfgPath, err := config.Load()
 	if err != nil {

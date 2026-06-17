@@ -648,15 +648,41 @@ func (s *Server) recordGoalResult(conversationID string, res agentloop.Result) {
 	if s == nil || res.GoalID == "" {
 		return
 	}
+	var pendingEvent *AgentEvent
 	s.mu.Lock()
-	defer s.mu.Unlock()
 	if strings.TrimSpace(conversationID) != "" {
 		s.conversationGoals[conversationID] = res.GoalID
+		if candidate := res.ExecutionMemory.PendingMixTickCandidate; candidate != nil && strings.EqualFold(strings.TrimSpace(candidate.Status), "pending_confirmation") {
+			s.pendingMixTicks[conversationID] = *candidate
+			if s.logger != nil {
+				s.logger.Info("[mix.tick.pending] stored conversation=%s goal=%s run=%s track=%s delta=%+.2f observation=%s",
+					conversationID, res.GoalID, res.RunID, candidate.TrackID, candidate.DeltaDB, candidate.ObservationID)
+			}
+			pendingEvent = &AgentEvent{
+				Type:     "mix_tick.pending",
+				GoalID:   res.GoalID,
+				RunID:    res.RunID,
+				ItemType: "mix_tick",
+				Status:   "pending_confirmation",
+				Title:    "Mix tick pending confirmation",
+				Body:     fmt.Sprintf("Track %s %+0.2f dB is waiting for explicit confirmation.", candidate.TrackID, candidate.DeltaDB),
+				Payload: map[string]any{
+					"operation":      candidate.Operation,
+					"track_id":       candidate.TrackID,
+					"delta_db":       candidate.DeltaDB,
+					"observation_id": candidate.ObservationID,
+				},
+			}
+		}
 	}
 	if res.Continuation != nil {
 		s.goalContinuations[res.GoalID] = *res.Continuation
 	} else {
 		delete(s.goalContinuations, res.GoalID)
+	}
+	s.mu.Unlock()
+	if pendingEvent != nil {
+		s.emitAgentEvent(conversationID, *pendingEvent)
 	}
 }
 
@@ -989,7 +1015,8 @@ func agentLoopPluginTools() []string {
 
 func agentLoopMixTools() []string {
 	return []string{
-		"mix.request_observation",
+		"mix.observe", "mix.read", "mix.derive", "mix.request_observation",
+		"mix.propose_tick", "mix.apply_tick", "mix.rollback_tick",
 		"project.undo", "project.redo",
 	}
 }

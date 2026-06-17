@@ -1,0 +1,580 @@
+package mixboard
+
+import (
+	"fmt"
+	"sort"
+	"strings"
+)
+
+func buildProjectPackage(state map[string]any, target TargetRef, scope ListenScope, snap featureSnapshot) map[string]any {
+	tracks := buildTrackSummaries(state, target, scope, snap)
+	status := "ready"
+	if len(tracks) == 0 {
+		status = "partial"
+	}
+	activeCount := 0
+	acousticTrackCount := 0
+	activeAcousticTrackCount := 0
+	for _, track := range tracks {
+		if cleanAnyString(track["active_state"]) == "active" {
+			activeCount++
+		}
+		acoustic, _ := track["acoustic"].(map[string]any)
+		if len(acoustic) > 0 {
+			acousticTrackCount++
+			if featureStatus(acoustic) == "ready" {
+				activeAcousticTrackCount++
+			}
+		}
+	}
+	loudnessRanking := rankTrackSummaries(tracks, "rms_dbfs")
+	peakRanking := rankTrackSummaries(tracks, "peak_dbfs")
+	headroomRisk := headroomRiskRanking(tracks)
+	return map[string]any{
+		"schema_version":                "mixboard_project_packet.v1",
+		"status":                        status,
+		"role":                          "project_context",
+		"summary":                       projectPackageSummary(tracks, activeCount, acousticTrackCount, activeAcousticTrackCount),
+		"duration_seconds":              projectDuration(state),
+		"track_count":                   len(tracks),
+		"active_track_count":            activeCount,
+		"acoustic_track_count":          acousticTrackCount,
+		"active_acoustic_track_count":   activeAcousticTrackCount,
+		"focus_ids":                     scope.Source.FocusIDs,
+		"context_ids":                   scope.Source.ContextIDs,
+		"tracks":                        tracks,
+		"loudness_ranking":              loudnessRanking,
+		"level_ranking":                 rankTrackSummaries(tracks, "level_db"),
+		"peak_ranking":                  peakRanking,
+		"headroom_risk":                 headroomRisk,
+		"likely_first_attention_target": projectFirstAttentionTarget(tracks, loudnessRanking, peakRanking, headroomRisk),
+		"relationship_inputs":           relationshipInputStatus(tracks),
+		"limitations":                   projectPackageLimitations(tracks),
+	}
+}
+
+func buildTrackSummaries(state map[string]any, target TargetRef, scope ListenScope, snap featureSnapshot) []map[string]any {
+	rows := anySlice(state["tracks"])
+	out := make([]map[string]any, 0, len(rows))
+	focus := stringSet(scope.Source.FocusIDs)
+	if strings.TrimSpace(target.ID) != "" {
+		focus[target.ID] = true
+	}
+	acousticRows := acousticRowsByTrack(snap)
+	for _, raw := range rows {
+		row, _ := raw.(map[string]any)
+		if len(row) == 0 {
+			continue
+		}
+		id := firstNonEmpty(cleanAnyString(row["track_id"]), cleanAnyString(row["id"]))
+		name := firstNonEmpty(cleanAnyString(row["track_name"]), cleanAnyString(row["name"]), id)
+		trackType := cleanAnyString(row["track_type"])
+		clips := anySlice(firstPresent(row, "clips", "clip_summaries"))
+		plugins := anySlice(firstPresent(row, "plugins", "rack_nodes", "plugin_chain"))
+		summary := map[string]any{
+			"track_id":             id,
+			"name":                 name,
+			"track_name":           name,
+			"user_label":           name,
+			"track_type":           trackType,
+			"user_track_index":     firstNonNil(row["user_track_index"], row["index"]),
+			"role_guess":           guessTrackRole(name, trackType),
+			"active_state":         trackActiveState(row, clips),
+			"clip_count":           len(clips),
+			"plugin_count":         len(plugins),
+			"plugin_chain_summary": pluginChainSummary(plugins),
+			"selected":             boolFromAny(row["selected"]),
+			"focused":              focus[id],
+			"mute":                 boolFromAny(firstPresent(row, "mute", "muted", "is_muted")),
+			"solo":                 boolFromAny(firstPresent(row, "solo", "is_solo")),
+			"is_armed":             boolFromAny(firstPresent(row, "is_armed", "armed")),
+			"stereo_position":      stereoPositionSummary(row),
+		}
+		copyFirstNumber(summary, row, "volume_db", "volume_db", "gain_db", "fader_db", "db")
+		copyFirstNumber(summary, row, "pan", "pan", "pan_value", "balance")
+		copyFirstNumber(summary, row, "level_db", "level_db", "rms_dbfs", "rms_db")
+		copyFirstNumber(summary, row, "peak_dbfs", "peak_dbfs", "peak_db")
+		copyFirstNumber(summary, row, "headroom_db", "headroom_db")
+		copyFirstNumber(summary, row, "left_level_db", "left_level_db")
+		copyFirstNumber(summary, row, "right_level_db", "right_level_db")
+		acoustic := trackAcousticPackage(id, clips, acousticRows[id])
+		if len(acoustic) > 0 {
+			summary["acoustic"] = acoustic
+			applyAcousticMetricsToTrack(summary, acoustic)
+		}
+		out = append(out, summary)
+	}
+	return out
+}
+
+func projectPackageSummary(tracks []map[string]any, activeCount, acousticTrackCount, activeAcousticTrackCount int) map[string]any {
+	roleCounts := map[string]int{}
+	for _, track := range tracks {
+		role := firstNonEmpty(cleanAnyString(track["role_guess"]), "unknown")
+		roleCounts[role]++
+	}
+	return map[string]any{
+		"track_count":                 len(tracks),
+		"active_track_count":          activeCount,
+		"acoustic_track_count":        acousticTrackCount,
+		"active_acoustic_track_count": activeAcousticTrackCount,
+		"role_counts":                 roleCounts,
+	}
+}
+
+func projectPackageLimitations(tracks []map[string]any) []string {
+	hasLevel := false
+	hasPeak := false
+	hasReadyAcoustic := false
+	hasRequestedAcoustic := false
+	hasBlockedAcoustic := false
+	for _, track := range tracks {
+		if _, ok := numberField(track, "level_db"); ok {
+			hasLevel = true
+		}
+		if _, ok := numberField(track, "peak_dbfs"); ok {
+			hasPeak = true
+		}
+		acoustic, _ := track["acoustic"].(map[string]any)
+		switch featureStatus(acoustic) {
+		case "ready":
+			hasReadyAcoustic = true
+		case "requested":
+			hasRequestedAcoustic = true
+		case "blocked":
+			hasBlockedAcoustic = true
+		}
+	}
+	limits := []string{"deep_lufs_masking_reference_not_available_in_v1"}
+	if !hasReadyAcoustic {
+		limits = append(limits, "per_track_waveform_acoustic_missing")
+	}
+	if hasRequestedAcoustic {
+		limits = append(limits, "per_track_waveform_acoustic_pending")
+	}
+	if hasBlockedAcoustic {
+		limits = append(limits, "per_track_waveform_acoustic_blocked")
+	}
+	if !hasLevel {
+		limits = append(limits, "shadow_track_level_db_missing")
+	}
+	if !hasPeak {
+		limits = append(limits, "shadow_track_peak_dbfs_missing")
+	}
+	return limits
+}
+
+func relationshipInputStatus(tracks []map[string]any) map[string]any {
+	withLevel := 0
+	withPeak := 0
+	withAcoustic := 0
+	withTimeEnergy := 0
+	for _, track := range tracks {
+		if _, ok := numberField(track, "level_db"); ok {
+			withLevel++
+		}
+		if _, ok := numberField(track, "peak_dbfs"); ok {
+			withPeak++
+		}
+		acoustic, _ := track["acoustic"].(map[string]any)
+		if featureStatus(acoustic) == "ready" {
+			withAcoustic++
+			if len(mapRowsAny(acoustic["time_segments"])) > 0 {
+				withTimeEnergy++
+			}
+		}
+	}
+	status := "partial"
+	if len(tracks) > 0 && (withAcoustic == len(tracks) || withLevel == len(tracks) || withPeak == len(tracks)) {
+		status = "ready"
+	}
+	return map[string]any{
+		"status":                    status,
+		"tracks_with_level_db":      withLevel,
+		"tracks_with_peak_db":       withPeak,
+		"tracks_with_acoustic":      withAcoustic,
+		"tracks_with_time_energy":   withTimeEnergy,
+		"track_count":               len(tracks),
+		"lightweight_relationships": []string{"loudness_comparison", "peak_headroom_risk", "time_energy_overlap", "focus_vs_project_average"},
+	}
+}
+
+func acousticRowsByTrack(snap featureSnapshot) map[string]map[string]any {
+	out := map[string]map[string]any{}
+	for _, row := range snap.TrackWaveformEnvelopes {
+		trackID := cleanAnyString(row["track_id"])
+		if trackID == "" {
+			continue
+		}
+		existing := out[trackID]
+		if len(existing) == 0 || acousticRowPriority(row) > acousticRowPriority(existing) {
+			out[trackID] = row
+		}
+	}
+	if trackID := cleanAnyString(snap.WaveformEnvelope["track_id"]); trackID != "" {
+		if len(out[trackID]) == 0 || acousticRowPriority(snap.WaveformEnvelope) > acousticRowPriority(out[trackID]) {
+			out[trackID] = snap.WaveformEnvelope
+		}
+	}
+	return out
+}
+
+func acousticRowPriority(row map[string]any) int {
+	switch featureStatus(row) {
+	case "ready":
+		return 4
+	case "partial":
+		return 3
+	case "requested":
+		return 2
+	case "blocked":
+		return 1
+	default:
+		return 0
+	}
+}
+
+func trackAcousticPackage(trackID string, clips []any, row map[string]any) map[string]any {
+	primaryClip := primaryTrackClip(clips)
+	if len(row) == 0 {
+		out := map[string]any{
+			"status":   "missing",
+			"track_id": trackID,
+		}
+		if clipID := cleanAnyString(firstPresent(primaryClip, "clip_id", "id", "item_id")); clipID != "" {
+			out["clip_id"] = clipID
+			out["primary_clip_id"] = clipID
+			out["reason"] = "waveform_envelope_not_available"
+		} else {
+			out["reason"] = "primary_audio_clip_missing"
+		}
+		return out
+	}
+	metrics := buildWaveformMetrics(row)
+	out := map[string]any{
+		"status":      featureStatus(row),
+		"track_id":    firstNonEmpty(cleanAnyString(row["track_id"]), trackID),
+		"clip_id":     firstNonEmpty(cleanAnyString(row["clip_id"]), cleanAnyString(firstPresent(primaryClip, "clip_id", "id", "item_id"))),
+		"source":      cleanAnyString(row["source"]),
+		"rms":         metrics["rms"],
+		"peak_abs":    metrics["peak_abs"],
+		"rms_dbfs":    metrics["rms_dbfs"],
+		"peak_dbfs":   metrics["peak_dbfs"],
+		"headroom_db": metrics["headroom_db"],
+		"crest_db":    metrics["crest_db"],
+	}
+	for _, key := range []string{"request_id", "reason", "file_path", "updated_at", "float_count", "tile_count_seen", "tile_count_expected", "total_duration"} {
+		if value, ok := row[key]; ok && value != nil {
+			out[key] = value
+		}
+	}
+	if segments := waveformTimeSegments(row); len(segments) > 0 {
+		out["time_segments"] = capRows(segments, 12)
+		out["time_energy_status"] = "ready"
+	} else {
+		out["time_energy_status"] = "missing"
+	}
+	return out
+}
+
+func primaryTrackClip(clips []any) map[string]any {
+	var best map[string]any
+	bestLength := -1.0
+	for _, raw := range clips {
+		clip, _ := raw.(map[string]any)
+		if len(clip) == 0 {
+			continue
+		}
+		length := firstPositiveFloat(clip, "length_seconds", "duration_seconds", "duration")
+		if best == nil || length > bestLength {
+			best = clip
+			bestLength = length
+		}
+	}
+	return best
+}
+
+func applyAcousticMetricsToTrack(track, acoustic map[string]any) {
+	if len(track) == 0 || len(acoustic) == 0 || featureStatus(acoustic) != "ready" {
+		return
+	}
+	if _, ok := numberField(track, "rms_dbfs"); !ok {
+		copyNumberValue(track, acoustic, "rms_dbfs", "rms_dbfs")
+	}
+	if _, ok := numberField(track, "peak_dbfs"); !ok {
+		copyNumberValue(track, acoustic, "peak_dbfs", "peak_dbfs")
+	}
+	if _, ok := numberField(track, "headroom_db"); !ok {
+		copyNumberValue(track, acoustic, "headroom_db", "headroom_db")
+	}
+	if _, ok := numberField(track, "crest_db"); !ok {
+		copyNumberValue(track, acoustic, "crest_db", "crest_db")
+	}
+	if _, ok := numberField(track, "level_db"); !ok {
+		copyNumberValue(track, acoustic, "level_db", "rms_dbfs")
+	}
+}
+
+func copyNumberValue(dst, src map[string]any, outKey, inKey string) {
+	if value, ok := numberField(src, inKey); ok {
+		dst[outKey] = round3(value)
+	}
+}
+
+func projectFirstAttentionTarget(tracks, loudnessRanking, peakRanking, headroomRisk []map[string]any) map[string]any {
+	if risk := firstProjectHighHeadroomRisk(headroomRisk); len(risk) > 0 {
+		return map[string]any{"reason": "headroom_risk", "track": risk}
+	}
+	if len(peakRanking) > 0 {
+		if peak := numberFromMap(peakRanking[0], "value"); peak >= -1.0 {
+			return map[string]any{"reason": "peak_near_full_scale", "track": peakRanking[0]}
+		}
+	}
+	for _, track := range tracks {
+		if boolFromAny(track["focused"]) {
+			return map[string]any{"reason": "user_focus", "track": compactKeys(track, []string{"track_id", "name", "role_guess", "rms_dbfs", "peak_dbfs", "headroom_db", "focused"})}
+		}
+	}
+	if len(loudnessRanking) > 0 {
+		return map[string]any{"reason": "loudest_known_track", "track": loudnessRanking[0]}
+	}
+	return map[string]any{"status": "missing"}
+}
+
+func firstProjectHighHeadroomRisk(rows []map[string]any) map[string]any {
+	for _, row := range rows {
+		switch strings.ToLower(cleanAnyString(row["risk"])) {
+		case "critical", "high":
+			return row
+		}
+	}
+	return nil
+}
+
+func rankTrackSummaries(tracks []map[string]any, metric string) []map[string]any {
+	rows := make([]map[string]any, 0, len(tracks))
+	for _, track := range tracks {
+		value, ok := numberField(track, metric)
+		if !ok {
+			continue
+		}
+		rows = append(rows, map[string]any{
+			"track_id":   track["track_id"],
+			"name":       track["name"],
+			"role_guess": track["role_guess"],
+			"metric":     metric,
+			"value":      round3(value),
+			"focused":    track["focused"],
+		})
+	}
+	sort.Slice(rows, func(i, j int) bool {
+		return numberFromMap(rows[i], "value") > numberFromMap(rows[j], "value")
+	})
+	for i := range rows {
+		rows[i]["rank"] = i + 1
+	}
+	return rows
+}
+
+func headroomRiskRanking(tracks []map[string]any) []map[string]any {
+	rows := make([]map[string]any, 0, len(tracks))
+	for _, track := range tracks {
+		headroom, ok := numberField(track, "headroom_db")
+		if !ok {
+			continue
+		}
+		rows = append(rows, map[string]any{
+			"track_id":    track["track_id"],
+			"name":        track["name"],
+			"role_guess":  track["role_guess"],
+			"headroom_db": round3(headroom),
+			"risk":        headroomRiskLabel(headroom),
+			"focused":     track["focused"],
+		})
+	}
+	sort.Slice(rows, func(i, j int) bool {
+		return numberFromMap(rows[i], "headroom_db") < numberFromMap(rows[j], "headroom_db")
+	})
+	for i := range rows {
+		rows[i]["rank"] = i + 1
+	}
+	return rows
+}
+
+func copyFirstNumber(dst, src map[string]any, outKey string, inKeys ...string) {
+	for _, key := range inKeys {
+		if value, ok := numberField(src, key); ok {
+			dst[outKey] = round3(value)
+			return
+		}
+	}
+}
+
+func numberField(row map[string]any, key string) (float64, bool) {
+	if row == nil {
+		return 0, false
+	}
+	value, ok := row[key]
+	if !ok || value == nil {
+		return 0, false
+	}
+	text := strings.TrimSpace(fmt.Sprint(value))
+	if text == "" || text == "<nil>" {
+		return 0, false
+	}
+	switch value.(type) {
+	case int, int64, float32, float64:
+		return numberFromMap(row, key), true
+	default:
+		parsed := numberFromMap(row, key)
+		if parsed != 0 || text == "0" || text == "0.0" || text == "0.00" {
+			return parsed, true
+		}
+	}
+	return 0, false
+}
+
+func boolFromAny(value any) bool {
+	switch x := value.(type) {
+	case bool:
+		return x
+	case string:
+		switch strings.ToLower(strings.TrimSpace(x)) {
+		case "true", "1", "yes", "on", "enabled":
+			return true
+		}
+	case int:
+		return x != 0
+	case float64:
+		return x != 0
+	}
+	return false
+}
+
+func stringSet(values []string) map[string]bool {
+	out := map[string]bool{}
+	for _, value := range values {
+		value = strings.TrimSpace(value)
+		if value != "" {
+			out[value] = true
+		}
+	}
+	return out
+}
+
+func trackActiveState(row map[string]any, clips []any) string {
+	if boolFromAny(firstPresent(row, "mute", "muted", "is_muted")) {
+		return "muted"
+	}
+	if level, ok := numberField(row, "level_db"); ok && level > -90 {
+		return "active"
+	}
+	if len(clips) == 0 {
+		return "empty"
+	}
+	return "active"
+}
+
+func stereoPositionSummary(row map[string]any) map[string]any {
+	out := map[string]any{}
+	if pan, ok := numberField(row, "pan"); ok {
+		out["pan"] = round3(pan)
+	}
+	left, hasLeft := numberField(row, "left_level_db")
+	right, hasRight := numberField(row, "right_level_db")
+	if hasLeft && hasRight {
+		out["left_level_db"] = round3(left)
+		out["right_level_db"] = round3(right)
+		out["balance_db"] = round3(left - right)
+	}
+	if len(out) == 0 {
+		out["status"] = "missing"
+	}
+	return out
+}
+
+func pluginChainSummary(plugins []any) []map[string]any {
+	out := make([]map[string]any, 0, len(plugins))
+	for i, raw := range plugins {
+		row, _ := raw.(map[string]any)
+		if len(row) == 0 {
+			continue
+		}
+		out = append(out, map[string]any{
+			"slot":        i + 1,
+			"plugin_id":   firstNonEmpty(cleanAnyString(row["plugin_id"]), cleanAnyString(row["plugin_item_id"]), cleanAnyString(row["id"])),
+			"name":        firstNonEmpty(cleanAnyString(row["plugin_name"]), cleanAnyString(row["name"])),
+			"type":        firstNonEmpty(cleanAnyString(row["type"]), cleanAnyString(row["plugin_type"])),
+			"enabled":     !boolFromAny(row["bypassed"]),
+			"role_guess":  guessPluginRole(row),
+			"source_kind": "shadow",
+		})
+	}
+	return out
+}
+
+func guessPluginRole(row map[string]any) string {
+	text := strings.ToLower(strings.Join([]string{
+		cleanAnyString(row["plugin_name"]),
+		cleanAnyString(row["name"]),
+		cleanAnyString(row["type"]),
+	}, " "))
+	switch {
+	case strings.Contains(text, "eq") || strings.Contains(text, "equal"):
+		return "eq"
+	case strings.Contains(text, "comp") || strings.Contains(text, "limit"):
+		return "dynamics"
+	case strings.Contains(text, "reverb") || strings.Contains(text, "delay"):
+		return "space"
+	case strings.Contains(text, "pan") || strings.Contains(text, "volume") || strings.Contains(text, "gain"):
+		return "utility"
+	default:
+		return "unknown"
+	}
+}
+
+func guessTrackRole(name, trackType string) string {
+	text := strings.ToLower(strings.TrimSpace(name + " " + trackType))
+	switch {
+	case strings.Contains(text, "master"):
+		return "master"
+	case containsAnyText(text, "vocal", "vox", "lead vox", "lead vocal", "voice", "主唱", "人声", "歌声", "声乐"):
+		return "vocal"
+	case containsAnyText(text, "kick", "bd", "bass drum", "底鼓", "大鼓"):
+		return "kick"
+	case containsAnyText(text, "snare", "军鼓", "小鼓"):
+		return "snare"
+	case containsAnyText(text, "drum", "perc", "percussion", "鼓", "打击"):
+		return "drums"
+	case containsAnyText(text, "bass", "low end", "sub", "贝斯", "低音", "低频"):
+		return "bass"
+	case containsAnyText(text, "guitar", "gtr", "吉他"):
+		return "guitar"
+	case containsAnyText(text, "synth", "pad", "keys", "piano", "keyboard", "合成器", "钢琴", "键盘", "铺底"):
+		return "keys_or_synth"
+	case strings.Contains(text, "bus") || strings.Contains(text, "aux") || strings.Contains(text, "总线") || strings.Contains(text, "母线"):
+		return "bus"
+	default:
+		return "unknown"
+	}
+}
+
+func containsAnyText(text string, needles ...string) bool {
+	for _, needle := range needles {
+		if strings.Contains(text, strings.ToLower(needle)) {
+			return true
+		}
+	}
+	return false
+}
+
+func headroomRiskLabel(headroom float64) string {
+	switch {
+	case headroom <= 1:
+		return "high"
+	case headroom <= 3:
+		return "medium"
+	default:
+		return "low"
+	}
+}

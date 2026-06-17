@@ -33,6 +33,36 @@ Useful dev run:
 .\bin\VitAgent.exe -verbose
 ```
 
+Reusable dev smoke:
+
+```powershell
+# Fast check against the currently running agent.
+powershell -NoProfile -ExecutionPolicy Bypass -File ..\scripts\dev_agent_smoke.ps1 -SkipBuild
+
+# Build the current code to a temporary dev-smoke exe, reuse any running agent,
+# and verify HTTP state plus natural mix chat routing.
+powershell -NoProfile -ExecutionPolicy Bypass -File ..\scripts\dev_agent_smoke.ps1
+
+# Install the new build and restart VitAgent explicitly.
+powershell -NoProfile -ExecutionPolicy Bypass -File ..\scripts\dev_agent_smoke.ps1 -RestartAgent
+
+# Local DAW stack smoke: start kernel/UI when available and try mix.observe.
+powershell -NoProfile -ExecutionPolicy Bypass -File ..\scripts\dev_agent_smoke.ps1 -StartKernel -StartUI -MixSmoke
+```
+
+The script keeps an already running agent alive by default. Use `-RestartAgent`
+only when the new binary should replace the live process.
+
+Offline mix acoustic lab:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File ..\scripts\run_mix_acoustic_lab.ps1
+```
+
+The lab builds `cmd/mixlab`, creates a synthetic full-project observation from
+the repository test audio files, writes a per-track acoustic feature snapshot,
+and reports loudness/headroom rankings without requiring the DAW kernel.
+
 Agent harness endpoints:
 
 - `GET /agent/tools` lists the current DAW command catalog and tool metadata.

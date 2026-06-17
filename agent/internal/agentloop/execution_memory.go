@@ -23,16 +23,18 @@ type ExecutionBinding struct {
 }
 
 type ExecutionMemory struct {
-	LastCreatedTrackID       string             `json:"last_created_track_id,omitempty"`
-	LastCreatedTrackName     string             `json:"last_created_track_name,omitempty"`
-	LastCreatedClipID        string             `json:"last_created_clip_id,omitempty"`
-	LastCreatedClipName      string             `json:"last_created_clip_name,omitempty"`
-	LastLoadedPluginID       string             `json:"last_loaded_plugin_id,omitempty"`
-	LastLoadedPluginName     string             `json:"last_loaded_plugin_name,omitempty"`
-	ActiveWorkTargetTrackID  string             `json:"active_work_target_track_id,omitempty"`
-	ActiveWorkTargetClipID   string             `json:"active_work_target_clip_id,omitempty"`
-	ActiveWorkTargetPluginID string             `json:"active_work_target_plugin_id,omitempty"`
-	Bindings                 []ExecutionBinding `json:"bindings,omitempty"`
+	LastCreatedTrackID       string                   `json:"last_created_track_id,omitempty"`
+	LastCreatedTrackName     string                   `json:"last_created_track_name,omitempty"`
+	LastCreatedClipID        string                   `json:"last_created_clip_id,omitempty"`
+	LastCreatedClipName      string                   `json:"last_created_clip_name,omitempty"`
+	LastLoadedPluginID       string                   `json:"last_loaded_plugin_id,omitempty"`
+	LastLoadedPluginName     string                   `json:"last_loaded_plugin_name,omitempty"`
+	LastMixTickID            string                   `json:"last_mix_tick_id,omitempty"`
+	ActiveWorkTargetTrackID  string                   `json:"active_work_target_track_id,omitempty"`
+	ActiveWorkTargetClipID   string                   `json:"active_work_target_clip_id,omitempty"`
+	ActiveWorkTargetPluginID string                   `json:"active_work_target_plugin_id,omitempty"`
+	PendingMixTickCandidate  *PendingMixTickCandidate `json:"pending_mix_tick_candidate,omitempty"`
+	Bindings                 []ExecutionBinding       `json:"bindings,omitempty"`
 }
 
 type RecentObservation struct {
@@ -45,6 +47,18 @@ type RecentObservation struct {
 	MutationBarrier  bool                        `json:"mutation_barrier,omitempty"`
 	ProducedBindings []ExecutionBinding          `json:"produced_bindings,omitempty"`
 	Verification     *planner.VerificationResult `json:"verification,omitempty"`
+}
+
+type PendingMixTickCandidate struct {
+	Operation                 string         `json:"operation,omitempty"`
+	TrackID                   string         `json:"track_id,omitempty"`
+	DeltaDB                   float64        `json:"delta_db,omitempty"`
+	ObservationID             string         `json:"observation_id,omitempty"`
+	Evidence                  map[string]any `json:"evidence,omitempty"`
+	CreatedFromReply          string         `json:"created_from_reply,omitempty"`
+	ExpiresAfterContextChange bool           `json:"expires_after_context_change,omitempty"`
+	Status                    string         `json:"status,omitempty"`
+	Fingerprint               map[string]any `json:"fingerprint,omitempty"`
 }
 
 func toolNeedsMutationBarrier(call planner.ToolCall, result executorpkg.Result) bool {
@@ -94,6 +108,8 @@ func updateExecutionMemoryForTool(state *runState, call planner.ToolCall, result
 		return bindCreatedClip(state, call, result, ver)
 	case "rack_add_node", "rack.add_node", "plugin.load_to_rack", "instantiate_plugin", "plugin.instantiate":
 		return bindLoadedPlugin(state, call, result, ver)
+	case "mix_propose_tick", "mix.propose_tick":
+		return bindMixTick(state, call, result)
 	default:
 		return nil
 	}
@@ -190,6 +206,26 @@ func bindLoadedPlugin(state *runState, call planner.ToolCall, result executorpkg
 	return bindings
 }
 
+func bindMixTick(state *runState, call planner.ToolCall, result executorpkg.Result) []ExecutionBinding {
+	tickID := firstMapText(result.Result, "tick_id")
+	if tickID == "" || !strings.EqualFold(strings.TrimSpace(result.Status), "ok") {
+		return nil
+	}
+	trackID := firstNonEmpty(
+		firstMapText(result.Result, "track_id"),
+		firstMapText(call.Args, "track_id", "target_track_id", "selected_track_id"),
+	)
+	state.executionMemory.LastMixTickID = tickID
+	if trackID != "" {
+		state.executionMemory.ActiveWorkTargetTrackID = trackID
+	}
+	bindings := []ExecutionBinding{
+		executionBinding("last_mix_tick", "mix_tick", tickID, "", trackID, call, result, "tool_result"),
+	}
+	addExecutionBindings(&state.executionMemory, bindings...)
+	return bindings
+}
+
 func executionBinding(key, kind, id, name, trackID string, call planner.ToolCall, result executorpkg.Result, provenance string) ExecutionBinding {
 	return ExecutionBinding{
 		Key:              strings.TrimSpace(key),
@@ -247,8 +283,19 @@ func recentObservationForTool(call planner.ToolCall, result executorpkg.Result, 
 
 func cloneExecutionMemory(in ExecutionMemory) ExecutionMemory {
 	out := in
+	out.PendingMixTickCandidate = clonePendingMixTickCandidate(in.PendingMixTickCandidate)
 	out.Bindings = cloneExecutionBindings(in.Bindings)
 	return out
+}
+
+func clonePendingMixTickCandidate(in *PendingMixTickCandidate) *PendingMixTickCandidate {
+	if in == nil {
+		return nil
+	}
+	out := *in
+	out.Evidence = cloneMap(in.Evidence)
+	out.Fingerprint = cloneMap(in.Fingerprint)
+	return &out
 }
 
 func cloneExecutionBindings(in []ExecutionBinding) []ExecutionBinding {
@@ -286,9 +333,13 @@ func executionMemoryMap(memory ExecutionMemory) map[string]any {
 		"last_created_clip_name":       memory.LastCreatedClipName,
 		"last_loaded_plugin_id":        memory.LastLoadedPluginID,
 		"last_loaded_plugin_name":      memory.LastLoadedPluginName,
+		"last_mix_tick_id":             memory.LastMixTickID,
 		"active_work_target_track_id":  memory.ActiveWorkTargetTrackID,
 		"active_work_target_clip_id":   memory.ActiveWorkTargetClipID,
 		"active_work_target_plugin_id": memory.ActiveWorkTargetPluginID,
+	}
+	if memory.PendingMixTickCandidate != nil {
+		out["pending_mix_tick_candidate"] = clonePendingMixTickCandidate(memory.PendingMixTickCandidate)
 	}
 	if len(memory.Bindings) > 0 {
 		out["bindings"] = cloneExecutionBindings(memory.Bindings)

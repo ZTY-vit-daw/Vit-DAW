@@ -27,7 +27,10 @@ func TestRequestObservationWritesBoardAndContextPack(t *testing.T) {
 				},
 			},
 		},
-		Args: map[string]any{"segment_seconds": 2.0},
+		Args: map[string]any{
+			"segment_seconds":       2.0,
+			"feature_snapshot_path": filepath.Join(root, "missing_feature_snapshot.json"),
+		},
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -48,6 +51,12 @@ func TestRequestObservationWritesBoardAndContextPack(t *testing.T) {
 	}
 	if len(result.ContextPack.LatestObservation["timeline_digest"].([]map[string]any)) == 0 {
 		t.Fatalf("context pack missing timeline digest: %#v", result.ContextPack)
+	}
+	if result.ContextPack.LatestObservation["digest"] == nil || result.ContextPack.LatestObservation["catalog"] == nil {
+		t.Fatalf("context pack missing observation digest/catalog: %#v", result.ContextPack.LatestObservation)
+	}
+	if len(result.Observation.Digest) == 0 || len(result.Observation.Catalog.Entries) == 0 {
+		t.Fatalf("observation missing digest/catalog: %#v", result.Observation)
 	}
 }
 
@@ -123,8 +132,11 @@ func TestObservationConsumesFeatureSnapshot(t *testing.T) {
 	if result.Board.PackageStatus["environment"] != "ready" || result.Board.PackageStatus["mix"] != "baseline_ready" {
 		t.Fatalf("package status = %#v", result.Board.PackageStatus)
 	}
-	if result.ContextPack.LatestObservation["mix_package"] == nil || result.ContextPack.LatestObservation["environment_package"] == nil || result.ContextPack.LatestObservation["deep_package"] == nil {
-		t.Fatalf("context pack missing packages: %#v", result.ContextPack.LatestObservation)
+	if result.ContextPack.LatestObservation["digest"] == nil || result.ContextPack.LatestObservation["catalog"] == nil {
+		t.Fatalf("context pack missing digest/catalog: %#v", result.ContextPack.LatestObservation)
+	}
+	if result.ContextPack.LatestObservation["mix_package"] != nil || result.ContextPack.LatestObservation["environment_package"] != nil || result.ContextPack.LatestObservation["deep_package"] != nil {
+		t.Fatalf("context pack should disclose packages through catalog reads, got: %#v", result.ContextPack.LatestObservation)
 	}
 	mixPkg := result.Observation.MixPackage
 	sourceCaps, _ := mixPkg["source_capabilities"].(map[string]string)
@@ -146,6 +158,256 @@ func TestObservationConsumesFeatureSnapshot(t *testing.T) {
 		if raw == "stereo_correlation" {
 			t.Fatalf("stereo correlation should not be missing: %#v", mixPkg)
 		}
+	}
+}
+
+func TestStoreReadCatalogEntriesAndTimeRange(t *testing.T) {
+	root := t.TempDir()
+	snapshotPath := filepath.Join(root, "feature_snapshot.json")
+	if err := os.WriteFile(snapshotPath, []byte(`{
+		"schema_version":"mixboard_feature_snapshot.v1",
+		"updated_at":"2026-06-13T08:00:00Z",
+		"waveform_envelope":{"status":"ready","track_id":"track_1","clip_id":"clip_1","rms":0.25,"peak_abs":0.8,"float_count":128,
+			"time_segments":[
+				{"start_seconds":0,"end_seconds":2,"rms":0.1,"rms_dbfs":-20,"peak_abs":0.4,"peak_dbfs":-7.959,"crest_db":12.041,"energy_state":"medium"},
+				{"start_seconds":2,"end_seconds":4,"rms":0.01,"rms_dbfs":-40,"peak_abs":0.05,"peak_dbfs":-26.021,"crest_db":13.979,"energy_state":"low"}
+			]},
+		"spectrogram_tiles":{"status":"missing"}
+	}`), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	store := NewStore(root)
+	result, err := store.RequestObservation(Request{
+		MixSessionID: "mix_read",
+		TargetRef:    TargetRef{Kind: "track", ID: "track_1"},
+		ProjectState: map[string]any{"duration_seconds": 12},
+		Args: map[string]any{
+			"feature_snapshot_path": snapshotPath,
+			"segment_seconds":       2,
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	read, err := store.Read(ReadRequest{
+		ObservationID: result.Observation.ObservationID,
+		Keys: []string{
+			"observation.digest",
+			"track.track_1.fast.levels",
+			"track.track_1.raw.time_energy.range",
+		},
+		RangeStart: 2.01,
+		RangeEnd:   4,
+		MaxItems:   8,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	items := read["items"].(map[string]any)
+	if items["observation.digest"] == nil || items["track.track_1.fast.levels"] == nil {
+		t.Fatalf("read missing digest/levels: %#v", items)
+	}
+	ranged := items["track.track_1.raw.time_energy.range"].(map[string]any)
+	rows := ranged["rows"].([]map[string]any)
+	if len(rows) != 1 || rows[0]["energy_state"] != "low" {
+		t.Fatalf("unexpected ranged rows: %#v", ranged)
+	}
+}
+
+func TestProjectPackageSummarizesTracksAndRankings(t *testing.T) {
+	root := t.TempDir()
+	store := NewStore(root)
+	result, err := store.RequestObservation(Request{
+		MixSessionID: "mix_project",
+		TargetRef:    TargetRef{Kind: "track", ID: "vocal_1", Label: "Lead Vocal"},
+		ProjectState: map[string]any{
+			"tracks": []any{
+				map[string]any{
+					"track_id":         "vocal_1",
+					"track_name":       "Lead Vocal",
+					"user_track_index": 1,
+					"level_db":         -10.5,
+					"peak_dbfs":        -2.0,
+					"headroom_db":      2.0,
+					"plugins":          []any{map[string]any{"plugin_id": "eq_1", "plugin_name": "Vocal EQ"}},
+					"clips":            []any{map[string]any{"clip_id": "clip_v", "length_seconds": 8.0}},
+				},
+				map[string]any{
+					"track_id":         "bass_1",
+					"track_name":       "Bass",
+					"user_track_index": 2,
+					"level_db":         -8.0,
+					"peak_dbfs":        -1.0,
+					"headroom_db":      1.0,
+					"clips":            []any{map[string]any{"clip_id": "clip_b", "length_seconds": 8.0}},
+				},
+			},
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if result.Observation.ProjectPackage["track_count"] != 2 {
+		t.Fatalf("project package = %#v", result.Observation.ProjectPackage)
+	}
+	read, err := store.Read(ReadRequest{
+		ObservationID: result.Observation.ObservationID,
+		Keys:          []string{"project.tracks.summary", "project.rankings.level", "project.risks.headroom"},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	items := read["items"].(map[string]any)
+	tracks := items["project.tracks.summary"].(map[string]any)
+	rows := tracks["tracks"].([]map[string]any)
+	if len(rows) != 2 || rows[0]["role_guess"] != "vocal" || rows[1]["role_guess"] != "bass" {
+		t.Fatalf("track summaries = %#v", rows)
+	}
+	level := items["project.rankings.level"].(map[string]any)
+	levelRows := level["rows"].([]map[string]any)
+	if len(levelRows) != 2 || levelRows[0]["track_id"] != "bass_1" {
+		t.Fatalf("level ranking = %#v", level)
+	}
+	derived, err := store.Derive(DeriveRequest{
+		ObservationID: result.Observation.ObservationID,
+		Type:          "rank_tracks",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if derived["status"] != "ready" {
+		t.Fatalf("derived = %#v", derived)
+	}
+	focusRelation, err := store.Derive(DeriveRequest{
+		ObservationID: result.Observation.ObservationID,
+		Type:          "focus_vs_project",
+		Focus:         map[string]any{"track_id": "vocal_1"},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	relationship := focusRelation["relationship"].(map[string]any)
+	if relationship["status"] != "ready" {
+		t.Fatalf("focus relation = %#v", relationship)
+	}
+	facts := relationship["facts"].(map[string]any)
+	focusTrack := facts["focus_track"].(map[string]any)
+	if focusTrack["track_id"] != "vocal_1" || focusTrack["role_guess"] != "vocal" {
+		t.Fatalf("focus track = %#v", focusTrack)
+	}
+	judgement := relationship["derived_judgement"].(map[string]any)
+	if judgement["focus_level_rank"] == nil || judgement["first_attention_candidate"] == nil {
+		t.Fatalf("derived judgement = %#v", judgement)
+	}
+	abRelation, err := store.Derive(DeriveRequest{
+		ObservationID: result.Observation.ObservationID,
+		Type:          "a_vs_b",
+		A:             map[string]any{"track_id": "vocal_1"},
+		B:             map[string]any{"track_id": "bass_1"},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	ab := abRelation["relationship"].(map[string]any)
+	abFacts := ab["facts"].(map[string]any)
+	peerTrack := abFacts["peer_track"].(map[string]any)
+	if peerTrack["track_id"] != "bass_1" {
+		t.Fatalf("peer track = %#v", peerTrack)
+	}
+}
+
+func TestProjectPackageUsesPerTrackWaveformAcoustics(t *testing.T) {
+	root := t.TempDir()
+	snapshotPath := filepath.Join(root, "feature_snapshot.json")
+	if err := os.WriteFile(snapshotPath, []byte(`{
+		"schema_version":"mixboard_feature_snapshot.v1",
+		"updated_at":"2026-06-17T08:00:00Z",
+		"track_waveform_envelopes":[
+			{"status":"ready","track_id":"vocal_1","clip_id":"clip_v","rms":0.2,"peak_abs":0.5,
+				"time_segments":[{"start_seconds":0,"end_seconds":2,"rms":0.2,"peak_abs":0.5,"energy_state":"high"}]},
+			{"status":"ready","track_id":"bass_1","clip_id":"clip_b","rms":0.1,"peak_abs":0.9,
+				"time_segments":[{"start_seconds":0,"end_seconds":2,"rms":0.1,"peak_abs":0.9,"energy_state":"medium"}]}
+		],
+		"waveform_envelope":{"status":"missing"},
+		"spectrogram_tiles":{"status":"missing"}
+	}`), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	store := NewStore(root)
+	result, err := store.RequestObservation(Request{
+		MixSessionID: "mix_project_acoustic",
+		TargetRef:    TargetRef{Kind: "project", ID: "current", Label: "Current project"},
+		ListenScope: ListenScope{
+			Source: ListenSourceScope{Mode: "full_project"},
+		},
+		ProjectState: map[string]any{
+			"tracks": []any{
+				map[string]any{
+					"track_id":   "vocal_1",
+					"track_name": "Lead Vocal",
+					"clips":      []any{map[string]any{"clip_id": "clip_v", "length_seconds": 8.0}},
+				},
+				map[string]any{
+					"track_id":   "bass_1",
+					"track_name": "Bass",
+					"clips":      []any{map[string]any{"clip_id": "clip_b", "length_seconds": 8.0}},
+				},
+			},
+		},
+		Args: map[string]any{"feature_snapshot_path": snapshotPath},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	project := result.Observation.ProjectPackage
+	if project["active_acoustic_track_count"] != 2 {
+		t.Fatalf("project package = %#v", project)
+	}
+	tracks := mapRowsAny(project["tracks"])
+	if len(tracks) != 2 {
+		t.Fatalf("tracks = %#v", tracks)
+	}
+	for _, track := range tracks {
+		acoustic, _ := track["acoustic"].(map[string]any)
+		if featureStatus(acoustic) != "ready" || track["rms_dbfs"] == nil || track["peak_dbfs"] == nil || track["headroom_db"] == nil || track["crest_db"] == nil {
+			t.Fatalf("track acoustic missing metrics: %#v", track)
+		}
+	}
+	loudness := mapRowsAny(project["loudness_ranking"])
+	if len(loudness) != 2 || loudness[0]["track_id"] != "vocal_1" {
+		t.Fatalf("loudness ranking = %#v", loudness)
+	}
+	headroom := mapRowsAny(project["headroom_risk"])
+	if len(headroom) != 2 || headroom[0]["track_id"] != "bass_1" || headroom[0]["risk"] != "high" {
+		t.Fatalf("headroom ranking = %#v", headroom)
+	}
+	digest := result.Observation.Digest
+	if digest["active_acoustic_track_count"] != 2 || digest["project_loudness_ranking_excerpt"] == nil || digest["likely_first_attention_target"] == nil {
+		t.Fatalf("digest = %#v", digest)
+	}
+	read, err := store.Read(ReadRequest{
+		ObservationID: result.Observation.ObservationID,
+		Keys:          []string{"project.acoustic.tracks", "project.rankings.loudness", "project.attention.first"},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	items := read["items"].(map[string]any)
+	acousticRows := items["project.acoustic.tracks"].(map[string]any)
+	if acousticRows["status"] != "ready" {
+		t.Fatalf("acoustic read = %#v", acousticRows)
+	}
+	derived, err := store.Derive(DeriveRequest{
+		ObservationID: result.Observation.ObservationID,
+		Type:          "rank_tracks",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	relationship := derived["relationship"].(map[string]any)
+	rankings := relationship["rankings"].(map[string]any)
+	if len(mapRowsAny(rankings["loudness"])) != 2 {
+		t.Fatalf("derived rankings = %#v", rankings)
 	}
 }
 
@@ -285,6 +547,17 @@ func TestRequestObservationComputesBeforeAfterDeltaAcrossRounds(t *testing.T) {
 	}
 	if caps := mixPkg["source_capabilities"].(map[string]string); caps["before_after_delta"] != "ready" {
 		t.Fatalf("caps = %#v", caps)
+	}
+	derived, err := store.Derive(DeriveRequest{
+		ObservationID: second.Observation.ObservationID,
+		Type:          "before_after",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	relationship := derived["relationship"].(map[string]any)
+	if relationship["status"] != "ready" {
+		t.Fatalf("derived relationship = %#v", relationship)
 	}
 	for _, raw := range mixPkg["missing_metrics"].([]string) {
 		if raw == "before_after_delta" {

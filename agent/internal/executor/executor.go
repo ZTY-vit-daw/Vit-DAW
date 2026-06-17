@@ -70,7 +70,7 @@ func (e *Executor) RunToolCall(ctx context.Context, in Input) (Result, error) {
 		CommandName:          resp.CommandName,
 		AgentActionID:        resp.AgentActionID,
 		Status:               resp.Status,
-		RequiresConfirmation: resp.RequiresConfirmation || resp.Status == "needs_confirmation",
+		RequiresConfirmation: resp.RequiresConfirmation || resp.Status == "needs_confirmation" || resultRequiresConfirmation(resp.Result),
 		Preview:              resp.Preview,
 		UndoLabel:            resp.UndoLabel,
 		Result:               resp.Result,
@@ -85,6 +85,25 @@ func (e *Executor) RunToolCall(ctx context.Context, in Input) (Result, error) {
 		out.ObservedState = e.Harness.UserStateSummary(ctx)
 	}
 	return out, nil
+}
+
+func resultRequiresConfirmation(result map[string]any) bool {
+	if result == nil {
+		return false
+	}
+	value, ok := result["requires_confirmation"]
+	if !ok {
+		return false
+	}
+	switch typed := value.(type) {
+	case bool:
+		return typed
+	case string:
+		text := strings.ToLower(strings.TrimSpace(typed))
+		return text == "true" || text == "yes" || text == "1"
+	default:
+		return strings.EqualFold(strings.TrimSpace(fmt.Sprint(value)), "true")
+	}
 }
 
 func coercePluginInstantiateCall(call planner.ToolCall) planner.ToolCall {

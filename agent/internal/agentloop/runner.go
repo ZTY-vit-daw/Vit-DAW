@@ -233,6 +233,8 @@ func (r *Runner) ResumeAfterConfirmation(ctx context.Context, cont Continuation)
 		return result
 	}
 	call := *cont.PendingToolCall
+	call = coerceMixObservationCall(&state, call)
+	call = coerceMixTickPrimitiveCall(&state, call)
 	if issue := messageLoopToolGuardIssue(&state, call, messageLoopHasUsableMixObservation(&state)); issue != "" {
 		result := planner.ToolResult{ToolCallID: stableToolCallID(call, state.completedSteps+1), Tool: call.Tool, Status: "error", Error: issue}
 		state.trace = append(state.trace,
@@ -352,6 +354,8 @@ func (r *Runner) loop(ctx context.Context, state *runState) Result {
 			call = coercePluginGrabberLearningToolCall(state.input.UserText, call)
 			call = coercePluginGrabberRuntimeToolCall(state.input.UserText, call)
 			call = coerceWaveformBakeToMixObservation(state, call)
+			call = coerceMixObservationCall(state, call)
+			call = coerceMixTickPrimitiveCall(state, call)
 			if !allowedTool(call.Tool, state.input.AllowedTools) {
 				result := planner.ToolResult{ToolCallID: stableToolCallID(call, state.completedSteps+1), Tool: call.Tool, Status: "error", Error: "未知或不允许的工具：" + strings.TrimSpace(call.Tool)}
 				state.trace = append(state.trace,
@@ -445,13 +449,18 @@ func (r *Runner) executeTool(ctx context.Context, state *runState, call planner.
 			state.planItems = markPlanItemStatus(state.planItems, call.PlanItemID, "waiting_confirmation", planEvidenceText(ver))
 			state.trace = append(state.trace, planUpdateEvent(state.planItems, "plan item is waiting for confirmation"))
 		}
+		if messageLoopShouldAutoApplyConfirmedMixTick(state, call, execResult) {
+			state.executed = append(state.executed, execRecord)
+			applyCall := messageLoopPendingConfirmationCall(call, execResult)
+			return r.executeTool(ctx, state, applyCall, true, nil)
+		}
 		state.executed = append(state.executed, execRecord)
 		if r.Runtime != nil {
 			state.goal = r.Runtime.SetStatus(state.goal.GoalID, agentruntime.StatusWaitingConfirmation, nil)
 		} else {
 			state.goal.Status = agentruntime.StatusWaitingConfirmation
 		}
-		pending := call
+		pending := messageLoopPendingConfirmationCall(call, execResult)
 		state.pendingToolCall = &pending
 		return true, r.pause(state, agentruntime.StatusWaitingConfirmation, StopReasonNeedsConfirmation, "", "这个操作需要你确认后才会执行。", execResult.Preview, execResult.UndoLabel, &pending)
 	}
