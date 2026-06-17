@@ -1,6 +1,6 @@
 #requires -Version 5.1
 <#
-    Assemble a portable Windows release folder for Inno / zip (kernel + embed Python + Godot UI + launcher).
+    Assemble a portable Windows release folder for Inno / zip.
 
     Example:
       powershell -ExecutionPolicy Bypass -File .\scripts\assemble_windows_release.ps1 `
@@ -21,7 +21,9 @@ param(
     [string]$PythonEmbedDir = "",
     [string]$GodotUiDependencyDir = "",
     [switch]$LayeredPayload,
-    [switch]$MinimalPayloadOnly
+    [switch]$MinimalPayloadOnly,
+    [switch]$NoPythonBridge,
+    [switch]$RequireAgent
 )
 
 Set-StrictMode -Version Latest
@@ -46,7 +48,7 @@ if ([string]::IsNullOrWhiteSpace($PythonEmbedDir)) {
 
 if (-not (Test-Path -LiteralPath $GodotUiExe)) { throw "Godot UI exe not found: $GodotUiExe" }
 if (-not (Test-Path -LiteralPath $KernelExe)) { throw "Kernel exe not found: $KernelExe" }
-if (-not (Test-Path -LiteralPath $PythonEmbedDir)) { throw "Python embed dir not found: $PythonEmbedDir" }
+if (-not $NoPythonBridge -and -not (Test-Path -LiteralPath $PythonEmbedDir)) { throw "Python embed dir not found: $PythonEmbedDir" }
 if (-not $MinimalPayloadOnly) {
     if (-not (Test-Path -LiteralPath $LauncherExe)) { throw "Launcher not found: $LauncherExe (build Export\ with CMake Release)" }
     if (-not (Test-Path -LiteralPath $TemplateDir)) { throw "Template release folder not found: $TemplateDir" }
@@ -66,9 +68,11 @@ if (-not $MinimalPayloadOnly) {
     Copy-Item -Path (Join-Path $TemplateDir "*") -Destination $OutDir -Recurse -Force
 }
 
-Write-Host "Updating kernel + bridge scripts"
+Write-Host "Updating kernel + agent payload"
 New-Item -ItemType Directory -Path $RuntimeDir -Force | Out-Null
-New-Item -ItemType Directory -Path $BridgeDir -Force | Out-Null
+if (-not $NoPythonBridge) {
+    New-Item -ItemType Directory -Path $BridgeDir -Force | Out-Null
+}
 New-Item -ItemType Directory -Path $AgentDir -Force | Out-Null
 New-Item -ItemType Directory -Path $UiDir -Force | Out-Null
 Copy-Item -LiteralPath $KernelExe -Destination (Join-Path $RuntimeDir "VitApp.exe") -Force
@@ -77,14 +81,19 @@ if (Test-Path -LiteralPath $AgentExe) {
     Write-Host "Included VitAgent.exe: $AgentExe"
 }
 else {
+    if ($RequireAgent) {
+        throw "VitAgent.exe not found at $AgentExe. Build D:\Vit_DAW\agent first."
+    }
     Write-Warning "VitAgent.exe not found at $AgentExe; release will fall back to Python bridge."
 }
-Copy-Item -LiteralPath (Join-Path $RepoRoot "scripts\bridge_core.py") -Destination (Join-Path $BridgeDir "bridge_core.py") -Force
-if (Test-Path -LiteralPath (Join-Path $RepoRoot "scripts\bridge_prod.py")) {
-    Copy-Item -LiteralPath (Join-Path $RepoRoot "scripts\bridge_prod.py") -Destination (Join-Path $BridgeDir "bridge_prod.py") -Force
-}
-if (Test-Path -LiteralPath (Join-Path $RepoRoot "scripts\bridge_prod.config.json")) {
-    Copy-Item -LiteralPath (Join-Path $RepoRoot "scripts\bridge_prod.config.json") -Destination (Join-Path $BridgeDir "bridge_prod.config.json") -Force
+if (-not $NoPythonBridge) {
+    Copy-Item -LiteralPath (Join-Path $RepoRoot "scripts\bridge_core.py") -Destination (Join-Path $BridgeDir "bridge_core.py") -Force
+    if (Test-Path -LiteralPath (Join-Path $RepoRoot "scripts\bridge_prod.py")) {
+        Copy-Item -LiteralPath (Join-Path $RepoRoot "scripts\bridge_prod.py") -Destination (Join-Path $BridgeDir "bridge_prod.py") -Force
+    }
+    if (Test-Path -LiteralPath (Join-Path $RepoRoot "scripts\bridge_prod.config.json")) {
+        Copy-Item -LiteralPath (Join-Path $RepoRoot "scripts\bridge_prod.config.json") -Destination (Join-Path $BridgeDir "bridge_prod.config.json") -Force
+    }
 }
 
 $destUi = Join-Path $UiDir (Split-Path -Leaf $GodotUiExe)
@@ -107,22 +116,29 @@ if (-not [string]::IsNullOrWhiteSpace($GodotUiDependencyDir)) {
     }
 }
 foreach ($dependencyDir in $godotDependencyDirs) {
-    Write-Host "Copying Godot export directory DLLs from: $dependencyDir"
+    Write-Host "Copying Godot export runtime sidecars from: $dependencyDir"
     # Avoid -File with -LiteralPath on Windows PowerShell 5.1 (ambiguous parameter set).
     Get-ChildItem -LiteralPath $dependencyDir -ErrorAction SilentlyContinue | Where-Object { -not $_.PSIsContainer } | ForEach-Object {
         if ($_.Name -ieq $godotExeLeaf) {
             return
         }
-        if ($_.Extension.ToLowerInvariant() -ne ".dll") {
+        $nameLower = $_.Name.ToLowerInvariant()
+        $extLower = $_.Extension.ToLowerInvariant()
+        $isRuntimeSidecar =
+            $extLower -in @(".dll", ".pak", ".dat", ".bin", ".json") -or
+            $nameLower -in @("bootstrap.exe", "bootstrapc.exe", "gdcef_helper.exe", "crashpad_handler.exe")
+        if (-not $isRuntimeSidecar) {
             return
         }
         Copy-Item -LiteralPath $_.FullName -Destination (Join-Path $UiDir $_.Name) -Force
     }
 }
 
-$pythonDst = Join-Path $OutDir "python_embed"
-New-Item -ItemType Directory -Path $pythonDst -Force | Out-Null
-Copy-Item -Path (Join-Path $PythonEmbedDir "*") -Destination $pythonDst -Recurse -Force
+if (-not $NoPythonBridge) {
+    $pythonDst = Join-Path $OutDir "python_embed"
+    New-Item -ItemType Directory -Path $pythonDst -Force | Out-Null
+    Copy-Item -Path (Join-Path $PythonEmbedDir "*") -Destination $pythonDst -Recurse -Force
+}
 
 if (-not $MinimalPayloadOnly) {
     $legacyUi = Join-Path $OutDir "Vit_DAW.exe"
@@ -158,9 +174,19 @@ else {
         Copy-Item -LiteralPath $LauncherExe -Destination $mainLauncher -Force
         Write-Host "Done. Layered release folder: $OutDir"
         Write-Host "Main entry for users: $mainLauncher"
-        Write-Host "Included: ui\\$(Split-Path -Leaf $GodotUiExe), kernel\\VitApp.exe, agent\\VitAgent.exe when built, bridge\\bridge_core.py/bridge_prod.py fallback, python_embed\\*"
+        if ($NoPythonBridge) {
+            Write-Host "Included: ui\\$(Split-Path -Leaf $GodotUiExe), kernel\\VitApp.exe, agent\\VitAgent.exe"
+        }
+        else {
+            Write-Host "Included: ui\\$(Split-Path -Leaf $GodotUiExe), kernel\\VitApp.exe, agent\\VitAgent.exe when built, bridge\\bridge_core.py/bridge_prod.py fallback, python_embed\\*"
+        }
         return
     }
     Write-Host "Done. Minimal release folder: $OutDir"
-    Write-Host "Included: $(Split-Path -Leaf $GodotUiExe), runtime\\VitApp.exe, runtime\\VitAgent.exe when built, runtime\\bridge_core.py/bridge_prod.py fallback, python_embed\\*"
+    if ($NoPythonBridge) {
+        Write-Host "Included: $(Split-Path -Leaf $GodotUiExe), runtime\\VitApp.exe, runtime\\VitAgent.exe"
+    }
+    else {
+        Write-Host "Included: $(Split-Path -Leaf $GodotUiExe), runtime\\VitApp.exe, runtime\\VitAgent.exe when built, runtime\\bridge_core.py/bridge_prod.py fallback, python_embed\\*"
+    }
 }
