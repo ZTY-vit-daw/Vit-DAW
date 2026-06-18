@@ -345,12 +345,12 @@ func TestProjectPackageUsesPerTrackWaveformAcoustics(t *testing.T) {
 				map[string]any{
 					"track_id":   "vocal_1",
 					"track_name": "Lead Vocal",
-					"clips":      []any{map[string]any{"clip_id": "clip_v", "length_seconds": 8.0}},
+					"clips":      []any{map[string]any{"clip_id": "clip_v", "clip_name": "lead_vocal_take", "file_path": "D:/audio/lead_vocal.wav", "length_seconds": 8.0}},
 				},
 				map[string]any{
 					"track_id":   "bass_1",
 					"track_name": "Bass",
-					"clips":      []any{map[string]any{"clip_id": "clip_b", "length_seconds": 8.0}},
+					"clips":      []any{map[string]any{"clip_id": "clip_b", "clip_name": "bass_take", "file_path": "D:/audio/bass.wav", "length_seconds": 8.0}},
 				},
 			},
 		},
@@ -372,6 +372,9 @@ func TestProjectPackageUsesPerTrackWaveformAcoustics(t *testing.T) {
 		if featureStatus(acoustic) != "ready" || track["rms_dbfs"] == nil || track["peak_dbfs"] == nil || track["headroom_db"] == nil || track["crest_db"] == nil {
 			t.Fatalf("track acoustic missing metrics: %#v", track)
 		}
+		if acoustic["primary_clip_id"] == nil || acoustic["primary_clip_name"] == nil || acoustic["source_path"] == nil {
+			t.Fatalf("track acoustic missing primary clip source: %#v", acoustic)
+		}
 	}
 	loudness := mapRowsAny(project["loudness_ranking"])
 	if len(loudness) != 2 || loudness[0]["track_id"] != "vocal_1" {
@@ -381,13 +384,17 @@ func TestProjectPackageUsesPerTrackWaveformAcoustics(t *testing.T) {
 	if len(headroom) != 2 || headroom[0]["track_id"] != "bass_1" || headroom[0]["risk"] != "high" {
 		t.Fatalf("headroom ranking = %#v", headroom)
 	}
+	peakRisk := mapRowsAny(project["peak_risk_ranking"])
+	if len(peakRisk) != 2 || peakRisk[0]["track_id"] != "bass_1" || peakRisk[0]["risk"] != "high" {
+		t.Fatalf("peak risk ranking = %#v", peakRisk)
+	}
 	digest := result.Observation.Digest
-	if digest["active_acoustic_track_count"] != 2 || digest["project_loudness_ranking_excerpt"] == nil || digest["likely_first_attention_target"] == nil {
+	if digest["active_acoustic_track_count"] != 2 || digest["project_loudness_ranking_excerpt"] == nil || digest["project_peak_risk_ranking_excerpt"] == nil || digest["likely_first_attention_target"] == nil {
 		t.Fatalf("digest = %#v", digest)
 	}
 	read, err := store.Read(ReadRequest{
 		ObservationID: result.Observation.ObservationID,
-		Keys:          []string{"project.acoustic.tracks", "project.rankings.loudness", "project.attention.first"},
+		Keys:          []string{"project.acoustic.tracks", "project.rankings.loudness", "project.risks.peak", "project.attention.first"},
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -396,6 +403,18 @@ func TestProjectPackageUsesPerTrackWaveformAcoustics(t *testing.T) {
 	acousticRows := items["project.acoustic.tracks"].(map[string]any)
 	if acousticRows["status"] != "ready" {
 		t.Fatalf("acoustic read = %#v", acousticRows)
+	}
+	readTracks := mapRowsAny(acousticRows["tracks"])
+	if len(readTracks) != 2 {
+		t.Fatalf("acoustic read tracks = %#v", acousticRows)
+	}
+	readAcoustic, _ := readTracks[0]["acoustic"].(map[string]any)
+	if readAcoustic["primary_clip_id"] == nil || readAcoustic["source_path"] == nil {
+		t.Fatalf("compact acoustic read missing source fields: %#v", readAcoustic)
+	}
+	peakRiskRead := items["project.risks.peak"].(map[string]any)
+	if peakRiskRead["status"] != "ready" || len(mapRowsAny(peakRiskRead["rows"])) != 2 {
+		t.Fatalf("peak risk read = %#v", peakRiskRead)
 	}
 	derived, err := store.Derive(DeriveRequest{
 		ObservationID: result.Observation.ObservationID,
@@ -406,7 +425,7 @@ func TestProjectPackageUsesPerTrackWaveformAcoustics(t *testing.T) {
 	}
 	relationship := derived["relationship"].(map[string]any)
 	rankings := relationship["rankings"].(map[string]any)
-	if len(mapRowsAny(rankings["loudness"])) != 2 {
+	if len(mapRowsAny(rankings["loudness"])) != 2 || len(mapRowsAny(rankings["peak_risk"])) != 2 {
 		t.Fatalf("derived rankings = %#v", rankings)
 	}
 }

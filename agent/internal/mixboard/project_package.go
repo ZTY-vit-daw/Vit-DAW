@@ -29,6 +29,7 @@ func buildProjectPackage(state map[string]any, target TargetRef, scope ListenSco
 	}
 	loudnessRanking := rankTrackSummaries(tracks, "rms_dbfs")
 	peakRanking := rankTrackSummaries(tracks, "peak_dbfs")
+	peakRiskRanking := peakRiskRanking(tracks)
 	headroomRisk := headroomRiskRanking(tracks)
 	return map[string]any{
 		"schema_version":                "mixboard_project_packet.v1",
@@ -46,6 +47,7 @@ func buildProjectPackage(state map[string]any, target TargetRef, scope ListenSco
 		"loudness_ranking":              loudnessRanking,
 		"level_ranking":                 rankTrackSummaries(tracks, "level_db"),
 		"peak_ranking":                  peakRanking,
+		"peak_risk_ranking":             peakRiskRanking,
 		"headroom_risk":                 headroomRisk,
 		"likely_first_attention_target": projectFirstAttentionTarget(tracks, loudnessRanking, peakRanking, headroomRisk),
 		"relationship_inputs":           relationshipInputStatus(tracks),
@@ -252,16 +254,23 @@ func trackAcousticPackage(trackID string, clips []any, row map[string]any) map[s
 	}
 	metrics := buildWaveformMetrics(row)
 	out := map[string]any{
-		"status":      featureStatus(row),
-		"track_id":    firstNonEmpty(cleanAnyString(row["track_id"]), trackID),
-		"clip_id":     firstNonEmpty(cleanAnyString(row["clip_id"]), cleanAnyString(firstPresent(primaryClip, "clip_id", "id", "item_id"))),
-		"source":      cleanAnyString(row["source"]),
-		"rms":         metrics["rms"],
-		"peak_abs":    metrics["peak_abs"],
-		"rms_dbfs":    metrics["rms_dbfs"],
-		"peak_dbfs":   metrics["peak_dbfs"],
-		"headroom_db": metrics["headroom_db"],
-		"crest_db":    metrics["crest_db"],
+		"status":          featureStatus(row),
+		"track_id":        firstNonEmpty(cleanAnyString(row["track_id"]), trackID),
+		"clip_id":         firstNonEmpty(cleanAnyString(row["clip_id"]), cleanAnyString(firstPresent(primaryClip, "clip_id", "id", "item_id"))),
+		"primary_clip_id": firstNonEmpty(cleanAnyString(row["clip_id"]), cleanAnyString(firstPresent(primaryClip, "clip_id", "id", "item_id"))),
+		"source":          cleanAnyString(row["source"]),
+		"rms":             metrics["rms"],
+		"peak_abs":        metrics["peak_abs"],
+		"rms_dbfs":        metrics["rms_dbfs"],
+		"peak_dbfs":       metrics["peak_dbfs"],
+		"headroom_db":     metrics["headroom_db"],
+		"crest_db":        metrics["crest_db"],
+	}
+	if name := firstNonEmpty(cleanAnyString(row["clip_name"]), cleanAnyString(row["name"]), cleanAnyString(firstPresent(primaryClip, "clip_name", "name"))); name != "" {
+		out["primary_clip_name"] = name
+	}
+	if sourcePath := firstNonEmpty(cleanAnyString(row["file_path"]), cleanAnyString(row["source_path"]), cleanAnyString(firstPresent(primaryClip, "file_path", "source_path", "current_source_path"))); sourcePath != "" {
+		out["source_path"] = sourcePath
 	}
 	for _, key := range []string{"request_id", "reason", "file_path", "updated_at", "float_count", "tile_count_seen", "tile_count_expected", "total_duration"} {
 		if value, ok := row[key]; ok && value != nil {
@@ -369,6 +378,36 @@ func rankTrackSummaries(tracks []map[string]any, metric string) []map[string]any
 	}
 	sort.Slice(rows, func(i, j int) bool {
 		return numberFromMap(rows[i], "value") > numberFromMap(rows[j], "value")
+	})
+	for i := range rows {
+		rows[i]["rank"] = i + 1
+	}
+	return rows
+}
+
+func peakRiskRanking(tracks []map[string]any) []map[string]any {
+	rows := make([]map[string]any, 0, len(tracks))
+	for _, track := range tracks {
+		peak, ok := numberField(track, "peak_dbfs")
+		if !ok {
+			continue
+		}
+		headroom, hasHeadroom := numberField(track, "headroom_db")
+		if !hasHeadroom {
+			headroom = 0 - peak
+		}
+		rows = append(rows, map[string]any{
+			"track_id":    track["track_id"],
+			"name":        track["name"],
+			"role_guess":  track["role_guess"],
+			"peak_dbfs":   round3(peak),
+			"headroom_db": round3(headroom),
+			"risk":        headroomRiskLabel(headroom),
+			"focused":     track["focused"],
+		})
+	}
+	sort.Slice(rows, func(i, j int) bool {
+		return numberFromMap(rows[i], "peak_dbfs") > numberFromMap(rows[j], "peak_dbfs")
 	})
 	for i := range rows {
 		rows[i]["rank"] = i + 1

@@ -136,6 +136,9 @@ func BuildDigest(obs ObservationPacket, req Request) map[string]any {
 	if ranking := mapRowsAny(obs.ProjectPackage["peak_ranking"]); len(ranking) > 0 {
 		out["project_peak_ranking_excerpt"] = capRows(ranking, 6)
 	}
+	if ranking := mapRowsAny(obs.ProjectPackage["peak_risk_ranking"]); len(ranking) > 0 {
+		out["project_peak_risk_ranking_excerpt"] = capRows(ranking, 6)
+	}
 	if ranking := mapRowsAny(obs.ProjectPackage["headroom_risk"]); len(ranking) > 0 {
 		out["project_headroom_risk_excerpt"] = capRows(ranking, 6)
 	}
@@ -163,6 +166,7 @@ func BuildCatalog(obs ObservationPacket, req Request, now string) Catalog {
 		catalogEntry("project.rankings.loudness", "derived", sourceFreshness(obs, "project_context"), "cheap", "Track ranking by acoustic RMS/loudness when available.", "mix_read key=project.rankings.loudness", "project", "current", now),
 		catalogEntry("project.rankings.level", "derived", sourceFreshness(obs, "project_context"), "cheap", "Track ranking by live/shadow level_db when available.", "mix_read key=project.rankings.level", "project", "current", now),
 		catalogEntry("project.rankings.peak", "derived", sourceFreshness(obs, "project_context"), "cheap", "Track ranking by peak_dbfs when available.", "mix_read key=project.rankings.peak", "project", "current", now),
+		catalogEntry("project.risks.peak", "derived", sourceFreshness(obs, "project_context"), "cheap", "Tracks sorted by highest known peak with risk labels.", "mix_read key=project.risks.peak", "project", "current", now),
 		catalogEntry("project.risks.headroom", "derived", sourceFreshness(obs, "project_context"), "cheap", "Tracks sorted by smallest known headroom.", "mix_read key=project.risks.headroom", "project", "current", now),
 		catalogEntry("project.attention.first", "derived", sourceFreshness(obs, "project_context"), "cheap", "Likely first track to inspect based on headroom risk, peak, focus, and loudness.", "mix_read key=project.attention.first", "project", "current", now),
 		catalogEntry("project.limitations", "derived", "fresh", "cheap", "Known missing, partial, or v1-limited project observation capabilities; use this before interpreting silence as absence.", "mix_read key=project.limitations", "project", "current", now),
@@ -349,6 +353,8 @@ func readObservationKey(obs ObservationPacket, key string, req ReadRequest) (any
 		return map[string]any{"status": projectRankingStatus(obs.ProjectPackage, "level_ranking"), "rows": capRows(mapRowsAny(obs.ProjectPackage["level_ranking"]), req.MaxItems)}, true
 	case "project.rankings.peak":
 		return map[string]any{"status": projectRankingStatus(obs.ProjectPackage, "peak_ranking"), "rows": capRows(mapRowsAny(obs.ProjectPackage["peak_ranking"]), req.MaxItems)}, true
+	case "project.risks.peak":
+		return map[string]any{"status": projectRankingStatus(obs.ProjectPackage, "peak_risk_ranking"), "rows": capRows(mapRowsAny(obs.ProjectPackage["peak_risk_ranking"]), req.MaxItems)}, true
 	case "project.risks.headroom":
 		return map[string]any{"status": projectRankingStatus(obs.ProjectPackage, "headroom_risk"), "rows": capRows(mapRowsAny(obs.ProjectPackage["headroom_risk"]), req.MaxItems)}, true
 	case "project.attention.first":
@@ -438,8 +444,9 @@ func deriveRankTracks(obs ObservationPacket, req DeriveRequest) map[string]any {
 	loudnessRows := capRows(mapRowsAny(obs.ProjectPackage["loudness_ranking"]), req.MaxItems)
 	levelRows := capRows(mapRowsAny(obs.ProjectPackage["level_ranking"]), req.MaxItems)
 	peakRows := capRows(mapRowsAny(obs.ProjectPackage["peak_ranking"]), req.MaxItems)
+	peakRiskRows := capRows(mapRowsAny(obs.ProjectPackage["peak_risk_ranking"]), req.MaxItems)
 	headroomRows := capRows(mapRowsAny(obs.ProjectPackage["headroom_risk"]), req.MaxItems)
-	if len(loudnessRows) > 0 || len(levelRows) > 0 || len(peakRows) > 0 || len(headroomRows) > 0 {
+	if len(loudnessRows) > 0 || len(levelRows) > 0 || len(peakRows) > 0 || len(peakRiskRows) > 0 || len(headroomRows) > 0 {
 		return map[string]any{
 			"status": "ready",
 			"type":   "rank_tracks",
@@ -447,11 +454,12 @@ func deriveRankTracks(obs ObservationPacket, req DeriveRequest) map[string]any {
 				"loudness":      loudnessRows,
 				"level":         levelRows,
 				"peak":          peakRows,
+				"peak_risk":     peakRiskRows,
 				"headroom_risk": headroomRows,
 			},
 			"relationship_inputs": obs.ProjectPackage["relationship_inputs"],
 			"limitations":         obs.ProjectPackage["limitations"],
-			"evidence_refs":       []string{"project.rankings.loudness", "project.rankings.level", "project.rankings.peak", "project.risks.headroom"},
+			"evidence_refs":       []string{"project.rankings.loudness", "project.rankings.level", "project.rankings.peak", "project.risks.peak", "project.risks.headroom"},
 		}
 	}
 	waveform, _ := mixCurrentMetrics(obs)["waveform"].(map[string]any)
@@ -478,6 +486,7 @@ func derivePartialRelationship(obs ObservationPacket, req DeriveRequest, deriveT
 	levelRanking := capRows(mapRowsAny(obs.ProjectPackage["level_ranking"]), req.MaxItems)
 	loudnessRanking := capRows(mapRowsAny(obs.ProjectPackage["loudness_ranking"]), req.MaxItems)
 	peakRanking := capRows(mapRowsAny(obs.ProjectPackage["peak_ranking"]), req.MaxItems)
+	peakRiskRanking := capRows(mapRowsAny(obs.ProjectPackage["peak_risk_ranking"]), req.MaxItems)
 	headroomRisk := capRows(mapRowsAny(obs.ProjectPackage["headroom_risk"]), req.MaxItems)
 	if len(levelRanking) == 0 {
 		levelRanking = loudnessRanking
@@ -497,6 +506,7 @@ func derivePartialRelationship(obs ObservationPacket, req DeriveRequest, deriveT
 				"loudness":      loudnessRanking,
 				"level":         levelRanking,
 				"peak":          peakRanking,
+				"peak_risk":     peakRiskRanking,
 				"headroom_risk": headroomRisk,
 			},
 		},
@@ -650,7 +660,7 @@ func compactProjectAcousticTracks(project map[string]any, max int) map[string]an
 			"name":       track["name"],
 			"role_guess": track["role_guess"],
 			"focused":    track["focused"],
-			"acoustic":   compactKeys(acoustic, []string{"status", "track_id", "clip_id", "source", "rms_dbfs", "peak_dbfs", "headroom_db", "crest_db", "time_energy_status", "reason", "updated_at"}),
+			"acoustic":   compactKeys(acoustic, []string{"status", "track_id", "clip_id", "primary_clip_id", "primary_clip_name", "source", "source_path", "file_path", "rms_dbfs", "peak_dbfs", "headroom_db", "crest_db", "time_energy_status", "reason", "updated_at"}),
 		}
 		rows = append(rows, row)
 	}

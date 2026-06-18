@@ -1796,10 +1796,18 @@ func resolveMixObservationFocusHint(cmd map[string]any, state map[string]any) ma
 	}
 	role := strings.ToLower(strings.TrimSpace(firstString(hint, "role", "target_role")))
 	nameHint := strings.ToLower(strings.TrimSpace(firstString(hint, "name", "track_name", "query")))
-	if role == "" && nameHint == "" {
+	userTrackIndex, hasUserTrackIndex := firstPositiveInt(hint, "user_track_index", "track_index", "track_number", "target_track_index", "target_user_track_index")
+	if role == "" && nameHint == "" && !hasUserTrackIndex {
 		return nil
 	}
 	rows := visibleTrackRows(state)
+	if hasUserTrackIndex {
+		for _, row := range rows {
+			if index, ok := firstPositiveInt(row, "user_track_index", "track_index", "index"); ok && index == userTrackIndex {
+				return mixObservationFocusHintResolvedTrack(row, 6)
+			}
+		}
+	}
 	var best map[string]any
 	bestScore := 0
 	for _, row := range rows {
@@ -1815,6 +1823,10 @@ func resolveMixObservationFocusHint(cmd map[string]any, state map[string]any) ma
 	if bestScore < 3 || len(best) == 0 {
 		return nil
 	}
+	return mixObservationFocusHintResolvedTrack(best, bestScore)
+}
+
+func mixObservationFocusHintResolvedTrack(best map[string]any, bestScore int) map[string]any {
 	trackID := firstNonEmpty(firstString(best, "track_id"), firstString(best, "id"))
 	if trackID == "" || looksSyntheticTrackAlias(trackID) {
 		return nil

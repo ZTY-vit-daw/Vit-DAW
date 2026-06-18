@@ -38,6 +38,17 @@ func (s *Server) handlePendingMixTickChat(ctx context.Context, conversationID st
 		return ChatResponse{}, false
 	}
 	switch {
+	case messageKeepsMixTickDiscussion(req.Message):
+		if s != nil && s.logger != nil {
+			s.logger.Info("[mix.tick.pending] discussion continued without execution conversation=%s message=%q track=%s delta=%+.2f", conversationID, req.Message, candidate.TrackID, candidate.DeltaDB)
+		}
+		return ChatResponse{}, false
+	case messageClearlyShiftsMixTickContext(req.Message):
+		if s != nil && s.logger != nil {
+			s.logger.Info("[mix.tick.pending] expired on context shift conversation=%s message=%q track=%s delta=%+.2f", conversationID, req.Message, candidate.TrackID, candidate.DeltaDB)
+		}
+		s.expirePendingMixTick(conversationID)
+		return ChatResponse{}, false
 	case messageExplicitMixTickApply(req.Message):
 		if s != nil && s.logger != nil {
 			s.logger.Info("[mix.tick.pending] explicit confirmation routed conversation=%s track=%s delta=%+.2f observation=%s", conversationID, candidate.TrackID, candidate.DeltaDB, candidate.ObservationID)
@@ -69,11 +80,6 @@ func (s *Server) handlePendingMixTickChat(ctx context.Context, conversationID st
 			GoalStatus:     "completed",
 			StopReason:     "ambiguous_mix_tick_confirmation",
 		}, true
-	case messageKeepsMixTickDiscussion(req.Message):
-		if s != nil && s.logger != nil {
-			s.logger.Info("[mix.tick.pending] discussion continued without execution conversation=%s message=%q track=%s delta=%+.2f", conversationID, req.Message, candidate.TrackID, candidate.DeltaDB)
-		}
-		return ChatResponse{}, false
 	default:
 		if s != nil && s.logger != nil {
 			s.logger.Info("[mix.tick.pending] expired on context shift conversation=%s message=%q track=%s delta=%+.2f", conversationID, req.Message, candidate.TrackID, candidate.DeltaDB)
@@ -192,6 +198,12 @@ func (s *Server) executePendingMixTickCandidate(ctx context.Context, conversatio
 		}
 	}
 	s.expirePendingMixTick(conversationID)
+	nextCandidate, hasNext := nextPendingMixTickCandidateFromReobserve(conversationID, goal.GoalID, goal.RunID, candidate, observe)
+	nextSuffix := ""
+	if hasNext {
+		s.storePendingMixTickCandidate(conversationID, goal.GoalID, goal.RunID, nextCandidate)
+		nextSuffix = pendingMixTickNextCandidateSuffix(nextCandidate)
+	}
 	if s != nil && s.logger != nil {
 		s.logger.Info("[mix.tick.pending] applied and reobserved conversation=%s track=%s delta=%+.2f tick=%s", conversationID, candidate.TrackID, candidate.DeltaDB, tickID)
 	}
@@ -200,7 +212,7 @@ func (s *Server) executePendingMixTickCandidate(ctx context.Context, conversatio
 		AgentMode:           mode,
 		GoalID:              goal.GoalID,
 		RunID:               goal.RunID,
-		Reply:               pendingMixTickReport(candidate, propose, apply, observe, ""),
+		Reply:               pendingMixTickReport(candidate, propose, apply, observe, nextSuffix),
 		ExecutedKernelReply: executed,
 		ProjectResultCards:  projectResultCardsFromExecuted(executed),
 		Artifacts:           artifactSummariesFromExecuted(executed),
@@ -232,6 +244,37 @@ func (s *Server) expirePendingMixTick(conversationID string) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	delete(s.pendingMixTicks, conversationID)
+}
+
+func (s *Server) storePendingMixTickCandidate(conversationID, goalID, runID string, candidate agentloop.PendingMixTickCandidate) {
+	if s == nil || strings.TrimSpace(conversationID) == "" || !strings.EqualFold(strings.TrimSpace(candidate.Status), "pending_confirmation") {
+		return
+	}
+	s.mu.Lock()
+	if s.pendingMixTicks == nil {
+		s.pendingMixTicks = map[string]agentloop.PendingMixTickCandidate{}
+	}
+	s.pendingMixTicks[conversationID] = candidate
+	s.mu.Unlock()
+	if s.logger != nil {
+		s.logger.Info("[mix.tick.pending] stored conversation=%s goal=%s run=%s track=%s delta=%+.2f observation=%s",
+			conversationID, goalID, runID, candidate.TrackID, candidate.DeltaDB, candidate.ObservationID)
+	}
+	s.emitAgentEvent(conversationID, AgentEvent{
+		Type:     "mix_tick.pending",
+		GoalID:   goalID,
+		RunID:    runID,
+		ItemType: "mix_tick",
+		Status:   "pending_confirmation",
+		Title:    "Mix tick pending confirmation",
+		Body:     fmt.Sprintf("Track %s %+0.2f dB is waiting for explicit confirmation.", candidate.TrackID, candidate.DeltaDB),
+		Payload: map[string]any{
+			"operation":      candidate.Operation,
+			"track_id":       candidate.TrackID,
+			"delta_db":       candidate.DeltaDB,
+			"observation_id": candidate.ObservationID,
+		},
+	})
 }
 
 func (s *Server) validatePendingMixTickCandidate(ctx context.Context, candidate agentloop.PendingMixTickCandidate) error {
@@ -305,6 +348,10 @@ func messageExplicitMixTickApply(message string) bool {
 	if text == "" {
 		return false
 	}
+	switch text {
+	case "可以执行", "确认", "确认执行", "继续", "执行", "应用", "apply", "do it", "continue":
+		return true
+	}
 	return textHasAny(text,
 		"可以执行", "确认执行", "执行吧", "执行这个", "应用这个", "应用调整", "按这个调", "按你说的调", "就按这个调", "开始执行",
 		"apply it", "apply this", "do it", "execute it", "confirm and apply", "go ahead and apply",
@@ -321,7 +368,7 @@ func messageClearlyShiftsMixTickContext(message string) bool {
 	}
 	return textHasAny(text,
 		"先别", "不要执行", "别执行", "取消", "换", "整体混音", "全工程", "看整体", "鼓组", "主唱", "人声", "压缩", "eq", "均衡", "混响",
-		"cancel", "don't apply", "do not apply", "overall mix", "full project", "vocal", "compress", "reverb",
+		"cancel", "don't apply", "do not apply", "overall mix", "full project", "track ", "vocal", "compress", "reverb",
 	)
 }
 
@@ -331,7 +378,7 @@ func messageAmbiguousMixTickApproval(message string) bool {
 		return false
 	}
 	switch text {
-	case "可以", "好", "行", "ok", "okay", "yes", "继续", "需要":
+	case "可以", "好", "行", "ok", "okay", "yes", "需要":
 		return true
 	default:
 		return false
@@ -393,27 +440,419 @@ func pendingMixTickErrorResponse(conversationID, mode, prefix string, out execut
 	}
 }
 
+func nextPendingMixTickCandidateFromReobserve(conversationID, goalID, runID string, previous agentloop.PendingMixTickCandidate, observe executor.Result) (agentloop.PendingMixTickCandidate, bool) {
+	if resultFailed(observe) {
+		return agentloop.PendingMixTickCandidate{}, false
+	}
+	row, ok := nextPendingMixTickRiskRow(observe, previous.TrackID)
+	if !ok {
+		return agentloop.PendingMixTickCandidate{}, false
+	}
+	trackID := firstNonEmpty(cleanContextText(row["track_id"]), cleanContextText(row["id"]), cleanContextText(row["target_track_id"]))
+	if trackID == "" {
+		return agentloop.PendingMixTickCandidate{}, false
+	}
+	observationID := firstNonEmpty(
+		cleanContextText(observe.Result["observation_id"]),
+		cleanContextText(mapValue(observe.Result["observation"])["observation_id"]),
+		cleanContextText(mapValue(observe.Result["digest"])["observation_id"]),
+		previous.ObservationID,
+	)
+	fingerprint := map[string]any{
+		"conversation_id":   conversationID,
+		"goal_id":           goalID,
+		"run_id":            runID,
+		"target_track_id":   trackID,
+		"observation_id":    observationID,
+		"target_scope":      "selected_track",
+		"track_count":       nextPendingMixTickTrackCount(observe, previous),
+		"mix_session_id":    firstNonEmpty(cleanContextText(mapValue(observe.Result["observation"])["mix_session_id"]), cleanContextText(observe.Result["mix_session_id"]), cleanContextText(previous.Fingerprint["mix_session_id"])),
+		"previous_track_id": previous.TrackID,
+	}
+	if len(row) > 0 {
+		fingerprint["before_track"] = row
+		for _, key := range []string{"peak_dbfs", "rms_dbfs", "headroom_db", "crest_db"} {
+			if value, ok := row[key]; ok && value != nil {
+				fingerprint[key] = value
+			}
+		}
+	}
+	return agentloop.PendingMixTickCandidate{
+		Operation:                 "track_gain_adjust",
+		TrackID:                   trackID,
+		DeltaDB:                   -1,
+		ObservationID:             observationID,
+		Evidence:                  nextPendingMixTickEvidence(row, previous),
+		CreatedFromReply:          "",
+		ExpiresAfterContextChange: true,
+		Status:                    "pending_confirmation",
+		Fingerprint:               fingerprint,
+	}, true
+}
+
+func nextPendingMixTickRiskRow(observe executor.Result, previousTrackID string) (map[string]any, bool) {
+	previousTrackID = strings.TrimSpace(previousTrackID)
+	for _, row := range nextPendingMixTickRiskRows(observe) {
+		trackID := firstNonEmpty(cleanContextText(row["track_id"]), cleanContextText(row["id"]), cleanContextText(row["target_track_id"]))
+		if trackID == "" {
+			continue
+		}
+		risk, ok := nextPendingMixTickHeadroomRisk(row)
+		if !ok || pendingMixTickRiskRank(risk) < pendingMixTickRiskRank("high") {
+			continue
+		}
+		if previousTrackID == "" || trackID != previousTrackID {
+			return row, true
+		}
+	}
+	return nil, false
+}
+
+func nextPendingMixTickRiskRows(observe executor.Result) []map[string]any {
+	var rows []map[string]any
+	addRows := func(values ...any) {
+		for _, value := range values {
+			for _, row := range mapRowsFromAny(value) {
+				if len(row) == 0 {
+					continue
+				}
+				rows = append(rows, row)
+			}
+		}
+	}
+	observation := mapValue(observe.Result["observation"])
+	projectPackage := mapValue(observation["project_package"])
+	addRows(
+		projectPackage["headroom_risk"],
+		mapValue(observe.Result["project_package"])["headroom_risk"],
+		mapValue(observe.Result["digest"])["project_headroom_risk_excerpt"],
+		mapValue(observe.Result["acoustic_digest"])["project_headroom_risk_excerpt"],
+	)
+	addRows(
+		projectPackage["tracks"],
+		mapValue(observe.Result["project_package"])["tracks"],
+		observation["tracks"],
+		observe.Result["tracks"],
+	)
+	return rows
+}
+
+func nextPendingMixTickHeadroomRisk(row map[string]any) (string, bool) {
+	if risk := strings.ToLower(strings.TrimSpace(cleanContextText(row["risk"]))); risk != "" {
+		switch risk {
+		case "critical", "high", "medium", "low":
+			return risk, true
+		}
+	}
+	headroomText := firstNonEmpty(cleanContextText(row["headroom_db"]), cleanContextText(row["headroom"]))
+	peakText := firstNonEmpty(cleanContextText(row["peak_dbfs"]), cleanContextText(row["peak_db"]))
+	return pendingMixTickPeakRisk(peakText, headroomText)
+}
+
+func nextPendingMixTickTrackCount(observe executor.Result, previous agentloop.PendingMixTickCandidate) int {
+	if count := intNumber(mapValue(mapValue(observe.Result["observation"])["project_package"])["active_acoustic_track_count"]); count > 0 {
+		return count
+	}
+	if count := intNumber(mapValue(observe.Result["project_package"])["active_acoustic_track_count"]); count > 0 {
+		return count
+	}
+	if count := intNumber(previous.Fingerprint["track_count"]); count > 0 {
+		return count
+	}
+	seen := map[string]bool{}
+	for _, row := range nextPendingMixTickRiskRows(observe) {
+		trackID := firstNonEmpty(cleanContextText(row["track_id"]), cleanContextText(row["id"]), cleanContextText(row["target_track_id"]))
+		if trackID != "" {
+			seen[trackID] = true
+		}
+	}
+	return len(seen)
+}
+
+func nextPendingMixTickEvidence(row map[string]any, previous agentloop.PendingMixTickCandidate) map[string]any {
+	out := map[string]any{
+		"source":            "reobserve_after_mix_tick",
+		"reason":            "headroom_risk",
+		"previous_track_id": previous.TrackID,
+		"previous_delta_db": previous.DeltaDB,
+	}
+	if risk, ok := nextPendingMixTickHeadroomRisk(row); ok {
+		out["risk"] = risk
+	}
+	for _, key := range []string{"headroom_db", "peak_dbfs", "rms_dbfs", "crest_db", "name", "track_name", "role_guess", "rank"} {
+		if value, ok := row[key]; ok && value != nil && strings.TrimSpace(fmt.Sprint(value)) != "" && strings.TrimSpace(fmt.Sprint(value)) != "<nil>" {
+			out[key] = value
+		}
+	}
+	return out
+}
+
+func pendingMixTickNextCandidateSuffix(candidate agentloop.PendingMixTickCandidate) string {
+	return fmt.Sprintf("Next small-step suggestion is pending only: track %s %+0.2f dB. It will not run until you explicitly confirm it.",
+		candidate.TrackID, candidate.DeltaDB)
+}
+
 func pendingMixTickReport(candidate agentloop.PendingMixTickCandidate, propose, apply, observe executor.Result, suffix string) string {
 	before := firstNonEmpty(cleanContextText(apply.Result["before_db"]), cleanContextText(propose.Result["before_db"]))
 	after := firstNonEmpty(cleanContextText(apply.Result["after_db"]), cleanContextText(propose.Result["after_db"]))
-	headroom := firstNonEmpty(
-		cleanContextText(mapValue(observe.Result["acoustic_digest"])["headroom_db"]),
-		cleanContextText(propose.Result["project_headroom_db"]),
-	)
+	beforeTrack := pendingMixTickReportTrackFromCandidate(candidate)
+	afterTrack := pendingMixTickReportTrackFromObserve(candidate.TrackID, observe)
+	beforePeak, beforeRMS, beforeHeadroom := pendingMixTickReportMetrics(beforeTrack, false)
+	afterPeak, afterRMS, afterHeadroom := pendingMixTickReportMetrics(afterTrack, true)
+	headroom := firstNonEmpty(afterHeadroom, cleanContextText(mapValue(observe.Result["acoustic_digest"])["headroom_db"]), cleanContextText(propose.Result["project_headroom_db"]))
+	peakRisk := pendingMixTickPeakRiskText(beforePeak, afterPeak, beforeHeadroom, afterHeadroom)
 	lines := []string{
 		fmt.Sprintf("已执行：轨道 %s 音量 %+0.2f dB。", candidate.TrackID, candidate.DeltaDB),
 	}
 	if before != "" || after != "" {
 		lines = append(lines, fmt.Sprintf("执行前后音量：%s dB -> %s dB。", firstNonEmpty(before, "未知"), firstNonEmpty(after, "未知")))
 	}
-	if headroom != "" {
+	if beforePeak != "" || afterPeak != "" || beforeRMS != "" || afterRMS != "" || beforeHeadroom != "" || afterHeadroom != "" {
+		lines = append(lines, fmt.Sprintf("声学 before/after：peak %s -> %s dBFS，RMS %s -> %s dBFS，headroom %s -> %s dB。",
+			firstNonEmpty(beforePeak, "未知"),
+			firstNonEmpty(afterPeak, "未知"),
+			firstNonEmpty(beforeRMS, "未知"),
+			firstNonEmpty(afterRMS, "未知"),
+			firstNonEmpty(beforeHeadroom, "未知"),
+			firstNonEmpty(afterHeadroom, "未知"),
+		))
+	} else if headroom != "" {
 		lines = append(lines, "重新观察后 headroom 参考值："+headroom+" dB。")
 	}
-	lines = append(lines, "如果听感不对，可以用撤销或 mix.rollback_tick 回滚这一步。")
+	if peakRisk != "" {
+		lines = append(lines, peakRisk)
+	}
+	lines = append(lines, "rollback 可用：如果听感不对，可以用项目撤销或 mix.rollback_tick 回滚这一步。")
 	if strings.TrimSpace(suffix) != "" {
 		lines = append(lines, suffix)
 	}
 	return strings.Join(lines, "\n")
+}
+
+func pendingMixTickReportTrackFromCandidate(candidate agentloop.PendingMixTickCandidate) map[string]any {
+	if candidate.Fingerprint == nil {
+		return nil
+	}
+	for _, key := range []string{"before_track", "track", "target_track"} {
+		if row := mapValue(candidate.Fingerprint[key]); len(row) > 0 {
+			return row
+		}
+	}
+	row := map[string]any{}
+	copyIfPresent := func(outKey string, keys ...string) {
+		for _, key := range keys {
+			if value, ok := candidate.Fingerprint[key]; ok && value != nil && strings.TrimSpace(fmt.Sprint(value)) != "" && strings.TrimSpace(fmt.Sprint(value)) != "<nil>" {
+				row[outKey] = value
+				return
+			}
+		}
+	}
+	copyIfPresent("track_id", "target_track_id", "track_id")
+	copyIfPresent("peak_dbfs", "peak_dbfs", "track_peak_dbfs")
+	copyIfPresent("rms_dbfs", "rms_dbfs", "track_rms_dbfs")
+	copyIfPresent("headroom_db", "headroom_db", "track_headroom_db")
+	if len(row) == 0 {
+		return nil
+	}
+	return row
+}
+
+func pendingMixTickReportTrackFromObserve(trackID string, observe executor.Result) map[string]any {
+	trackID = strings.TrimSpace(trackID)
+	if trackID == "" {
+		return nil
+	}
+	row := map[string]any{}
+	for _, value := range []any{
+		observe.Result["tracks"],
+		mapValue(observe.Result["observation"])["tracks"],
+		mapValue(mapValue(observe.Result["observation"])["project_package"])["tracks"],
+		mapValue(observe.Result["project_package"])["tracks"],
+		mapValue(observe.Result["digest"])["project_loudness_ranking_excerpt"],
+		mapValue(observe.Result["digest"])["project_peak_ranking_excerpt"],
+		mapValue(observe.Result["digest"])["project_headroom_risk_excerpt"],
+		mapValue(observe.Result["acoustic_digest"])["project_loudness_ranking_excerpt"],
+		mapValue(observe.Result["acoustic_digest"])["project_peak_ranking_excerpt"],
+		mapValue(observe.Result["acoustic_digest"])["project_headroom_risk_excerpt"],
+	} {
+		for _, candidateRow := range mapRowsFromAny(value) {
+			if pendingMixTickReportRowTrackID(candidateRow) == trackID {
+				pendingMixTickMergeReportTrackRow(row, candidateRow)
+			}
+		}
+	}
+	pendingMixTickMergeReportTrackRow(row, pendingMixTickReportSelectedAcousticRow(trackID, observe))
+	if len(row) == 0 {
+		return nil
+	}
+	if _, ok := row["track_id"]; !ok {
+		row["track_id"] = trackID
+	}
+	return row
+}
+
+func pendingMixTickReportSelectedAcousticRow(trackID string, observe executor.Result) map[string]any {
+	target := mapValue(observe.Result["resolved_target"])
+	acoustic := mapValue(observe.Result["acoustic_digest"])
+	if len(target) == 0 && len(acoustic) == 0 {
+		return nil
+	}
+	targetID := firstNonEmpty(
+		cleanContextText(target["track_id"]),
+		cleanContextText(acoustic["track_id"]),
+		cleanContextText(mapValue(acoustic["target"])["track_id"]),
+	)
+	if targetID != trackID {
+		return nil
+	}
+	row := map[string]any{"track_id": trackID}
+	copyReportValue := func(key string, sources ...map[string]any) {
+		if _, ok := row[key]; ok {
+			return
+		}
+		for _, source := range sources {
+			if value, ok := source[key]; ok && value != nil && strings.TrimSpace(fmt.Sprint(value)) != "" && strings.TrimSpace(fmt.Sprint(value)) != "<nil>" {
+				row[key] = value
+				return
+			}
+		}
+	}
+	waveform := mapValue(acoustic["waveform"])
+	targetInfo := mapValue(acoustic["target"])
+	for _, key := range []string{"name", "track_name", "user_label", "role_guess"} {
+		copyReportValue(key, target, acoustic, targetInfo)
+	}
+	for _, key := range []string{"peak_dbfs", "rms_dbfs", "headroom_db", "crest_db"} {
+		copyReportValue(key, acoustic, waveform)
+	}
+	return row
+}
+
+func pendingMixTickReportRowTrackID(row map[string]any) string {
+	return firstNonEmpty(cleanContextText(row["track_id"]), cleanContextText(row["id"]), cleanContextText(row["target_track_id"]))
+}
+
+func pendingMixTickMergeReportTrackRow(out map[string]any, row map[string]any) {
+	if len(out) == 0 && out == nil || len(row) == 0 {
+		return
+	}
+	copyIfMissing := func(key string, value any) {
+		if value == nil {
+			return
+		}
+		text := strings.TrimSpace(fmt.Sprint(value))
+		if text == "" || text == "<nil>" {
+			return
+		}
+		if existing, ok := out[key]; ok && strings.TrimSpace(fmt.Sprint(existing)) != "" && strings.TrimSpace(fmt.Sprint(existing)) != "<nil>" {
+			return
+		}
+		out[key] = value
+	}
+	for _, key := range []string{"track_id", "id", "target_track_id", "name", "track_name", "user_label", "role_guess", "peak_dbfs", "peak_db", "rms_dbfs", "rms_db", "level_db", "headroom_db", "headroom", "crest_db"} {
+		copyIfMissing(key, row[key])
+	}
+	metric := strings.ToLower(strings.TrimSpace(cleanContextText(row["metric"])))
+	if value, ok := row["value"]; ok {
+		switch metric {
+		case "peak_dbfs", "peak_db":
+			copyIfMissing("peak_dbfs", value)
+		case "rms_dbfs", "rms_db", "level_db":
+			copyIfMissing("rms_dbfs", value)
+		case "headroom_db", "headroom":
+			copyIfMissing("headroom_db", value)
+		}
+	}
+}
+
+func pendingMixTickReportMetrics(row map[string]any, rankingFallback bool) (string, string, string) {
+	if len(row) == 0 {
+		return "", "", ""
+	}
+	peak := firstNonEmpty(cleanContextText(row["peak_dbfs"]), cleanContextText(row["peak_db"]))
+	rms := firstNonEmpty(cleanContextText(row["rms_dbfs"]), cleanContextText(row["rms_db"]), cleanContextText(row["level_db"]))
+	headroom := firstNonEmpty(cleanContextText(row["headroom_db"]), cleanContextText(row["headroom"]))
+	if rankingFallback {
+		metric := strings.ToLower(strings.TrimSpace(cleanContextText(row["metric"])))
+		if value := cleanContextText(row["value"]); value != "" {
+			switch metric {
+			case "peak_dbfs", "peak_db":
+				peak = firstNonEmpty(peak, value)
+			case "rms_dbfs", "rms_db", "level_db":
+				rms = firstNonEmpty(rms, value)
+			case "headroom_db", "headroom":
+				headroom = firstNonEmpty(headroom, value)
+			}
+		}
+	}
+	return peak, rms, headroom
+}
+
+func pendingMixTickPeakRiskText(beforePeak, afterPeak, beforeHeadroom, afterHeadroom string) string {
+	beforeRisk, beforeOK := pendingMixTickPeakRisk(beforePeak, beforeHeadroom)
+	afterRisk, afterOK := pendingMixTickPeakRisk(afterPeak, afterHeadroom)
+	if !beforeOK && !afterOK {
+		return ""
+	}
+	if beforeOK && afterOK {
+		if pendingMixTickRiskRank(afterRisk) < pendingMixTickRiskRank(beforeRisk) {
+			return "peak risk 已改善：" + beforeRisk + " -> " + afterRisk + "。"
+		}
+		if pendingMixTickRiskRank(afterRisk) > pendingMixTickRiskRank(beforeRisk) {
+			return "peak risk 变高：" + beforeRisk + " -> " + afterRisk + "，建议听感确认后必要时回滚。"
+		}
+		return "peak risk 维持：" + afterRisk + "。"
+	}
+	if afterOK {
+		return "重新观察后的 peak risk：" + afterRisk + "。"
+	}
+	return ""
+}
+
+func pendingMixTickPeakRisk(peakText, headroomText string) (string, bool) {
+	headroom, ok := parseOptionalFloat(headroomText)
+	if !ok {
+		if peak, peakOK := parseOptionalFloat(peakText); peakOK {
+			headroom = -peak
+			ok = true
+		}
+	}
+	if !ok {
+		return "", false
+	}
+	switch {
+	case headroom <= 1:
+		return "high", true
+	case headroom <= 3:
+		return "medium", true
+	default:
+		return "low", true
+	}
+}
+
+func pendingMixTickRiskRank(risk string) int {
+	switch strings.ToLower(strings.TrimSpace(risk)) {
+	case "high", "critical":
+		return 3
+	case "medium":
+		return 2
+	case "low":
+		return 1
+	default:
+		return 0
+	}
+}
+
+func parseOptionalFloat(text string) (float64, bool) {
+	text = strings.TrimSpace(text)
+	if text == "" || text == "<nil>" || text == "未知" {
+		return 0, false
+	}
+	var value float64
+	if _, err := fmt.Sscanf(text, "%f", &value); err != nil {
+		return 0, false
+	}
+	return value, true
 }
 
 func textHasAny(text string, needles ...string) bool {

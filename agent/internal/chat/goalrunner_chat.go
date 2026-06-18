@@ -27,7 +27,7 @@ func (s *Server) beginChatGoal(conversationID, message string, requestContext ma
 	if s == nil || s.harness == nil {
 		return agentruntime.Goal{Status: agentruntime.StatusIdle}
 	}
-	if isContinueMessage(message) {
+	if isContinueMessage(message) || s.shouldResumeConversationGoal(conversationID) {
 		if goalID := s.conversationGoalID(conversationID); goalID != "" {
 			goal := s.harness.RuntimeStatus(goalID)
 			if goal.GoalID != "" {
@@ -44,6 +44,17 @@ func (s *Server) beginChatGoal(conversationID, message string, requestContext ma
 		return s.harness.EnsureGoal(goalID, runID, message)
 	}
 	return s.harness.BeginGoal(message)
+}
+
+func (s *Server) shouldResumeConversationGoal(conversationID string) bool {
+	if s == nil || s.harness == nil || strings.TrimSpace(conversationID) == "" {
+		return false
+	}
+	goalID := s.conversationGoalID(conversationID)
+	if strings.TrimSpace(goalID) == "" {
+		return false
+	}
+	return shouldResumeGoalFromStatus(s.harness.RuntimeStatus(goalID).Status)
 }
 
 func shouldUseAgentLoop(message string, requestContext map[string]any) bool {
@@ -159,8 +170,8 @@ func (s *Server) runAgentLoopChat(ctx context.Context, conversationID string, re
 		} else {
 			res = messageLoop.Continue(ctx, cont)
 		}
-	} else if cont, ok := s.goalContinuationForCurrentGoal(req.Context); ok && shouldResumeGoalFromStatus(s.harness.RuntimeStatus(cont.GoalID).Status) {
-		cont.UserText = userText
+	} else if cont, ok := s.resumeContinuationForChat(conversationID, req.Context); ok && shouldResumeGoalFromStatus(s.harness.RuntimeStatus(cont.GoalID).Status) {
+		cont.UserText = agentLoopContinuationUserText(cont, userText)
 		cont.Context = mergeContext(cont.Context, chatContext)
 		mode = agentModeFromContext(cont.Context)
 		projectPath := projectPathFromChatContext(cont.Context)
@@ -716,6 +727,25 @@ func (s *Server) goalContinuationForCurrentGoal(chatContext map[string]any) (age
 	defer s.mu.Unlock()
 	cont, ok := s.goalContinuations[goalID]
 	return cont, ok
+}
+
+func (s *Server) resumeContinuationForChat(conversationID string, chatContext map[string]any) (agentloop.Continuation, bool) {
+	if cont, ok := s.goalContinuationForCurrentGoal(chatContext); ok {
+		return cont, true
+	}
+	if cont, ok := s.goalContinuationForConversation(conversationID); ok {
+		return cont, true
+	}
+	return agentloop.Continuation{}, false
+}
+
+func agentLoopContinuationUserText(cont agentloop.Continuation, current string) string {
+	current = strings.TrimSpace(current)
+	original := strings.TrimSpace(firstNonEmpty(cont.Summary, cont.UserText))
+	if current == "" || original == "" || strings.EqualFold(current, original) {
+		return firstNonEmpty(current, original)
+	}
+	return original + "\n\nUser clarification: " + current
 }
 
 func (s *Server) conversationGoalID(conversationID string) string {

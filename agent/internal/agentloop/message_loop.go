@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -277,6 +278,7 @@ func (l *MessageLoop) loop(ctx context.Context, r *Runner, state *runState) Resu
 		}
 		if out.NeedsClarification {
 			question := firstNonEmpty(out.ClarificationQuestion, out.Reply, "请告诉我这次要编辑的具体目标。")
+			question = messageLoopClarificationQuestion(state, question)
 			state.trace = append(state.trace, planner.TraceEvent{Kind: "clarification", Message: question})
 			res := r.pause(state, agentruntime.StatusWaitingClarification, StopReasonNeedsClarification, "", question, "", "", nil)
 			res.NeedsClarification = true
@@ -292,6 +294,13 @@ func (l *MessageLoop) loop(ctx context.Context, r *Runner, state *runState) Resu
 			reply := strings.TrimSpace(out.Reply)
 			if reply == "" {
 				reply = "已完成。"
+			}
+			if question, ok := messageLoopFinalFocusTrackClarification(state, reply); ok {
+				state.trace = append(state.trace, planner.TraceEvent{Kind: "clarification", Message: question})
+				res := r.pause(state, agentruntime.StatusWaitingClarification, StopReasonNeedsClarification, "", question, "", "", nil)
+				res.NeedsClarification = true
+				res.ClarificationQuestion = question
+				return res
 			}
 			return r.complete(state, messageLoopMixObservationFinalReply(state, reply))
 		}
@@ -344,6 +353,13 @@ func (l *MessageLoop) loop(ctx context.Context, r *Runner, state *runState) Resu
 		}
 		if reply, ok := messageLoopFastCompleteReply(state, out); ok {
 			state.trace = append(state.trace, planner.TraceEvent{Kind: "final_gate", Message: "deterministic tool result completed the turn"})
+			if question, ok := messageLoopFinalFocusTrackClarification(state, reply); ok {
+				state.trace = append(state.trace, planner.TraceEvent{Kind: "clarification", Message: question})
+				res := r.pause(state, agentruntime.StatusWaitingClarification, StopReasonNeedsClarification, "", question, "", "", nil)
+				res.NeedsClarification = true
+				res.ClarificationQuestion = question
+				return res
+			}
 			return r.complete(state, messageLoopMixObservationFinalReply(state, reply))
 		}
 	}
@@ -384,8 +400,103 @@ func (l *MessageLoop) preflightNaturalMixObservation(ctx context.Context, r *Run
 	appendMessageLoopToolResult(state)
 	if !messageLoopHasUsableMixObservation(state) {
 		state.input.Conversation = append(state.input.Conversation, llm.Message{Role: "user", Content: "<final_gate>mix.observe ran but did not return a usable acoustic observation; summarize the blocker and do not execute a mix action.</final_gate>"})
+	} else if stopped, result := l.preflightFocusRelationship(ctx, r, state); stopped {
+		return true, result
 	}
 	return false, Result{}
+}
+
+func (l *MessageLoop) preflightFocusRelationship(ctx context.Context, r *Runner, state *runState) (bool, Result) {
+	if state == nil || !messageLoopNeedsFocusRelationshipDerive(state) {
+		return false, Result{}
+	}
+	if stopped, result := r.checkpoint("before_message_loop_focus_relationship_preflight", state); stopped {
+		return true, result
+	}
+	if limit, result := r.checkToolBudget(state); limit {
+		return true, result
+	}
+	call := messageLoopFocusRelationshipDeriveCall(state)
+	state.trace = append(state.trace, planner.TraceEvent{
+		Kind:     "tool_call_rewritten",
+		Message:  "vocal/focus mix request was routed through deterministic mix.derive focus_vs_project preflight",
+		ToolCall: cloneToolCallPtr(call),
+	})
+	toolStarted := time.Now()
+	stopped, result := r.executeTool(ctx, state, call, false, nil)
+	l.logTiming("message_loop.tool", toolStarted, "goal=%s tool=%s confirmed=false preflight=true stopped=%t status=%s", state.goal.GoalID, call.Tool, stopped, result.Status)
+	if stopped {
+		return true, result
+	}
+	appendMessageLoopToolResult(state)
+	return false, Result{}
+}
+
+func messageLoopNeedsFocusRelationshipDerive(state *runState) bool {
+	if state == nil || !allowedTool("mix.derive", state.input.AllowedTools) || !messageLoopHasUsableMixObservation(state) {
+		return false
+	}
+	if !messageLoopFocusRelationshipIntent(state.input.UserText) {
+		return false
+	}
+	for _, record := range state.executed {
+		if messageLoopExecutionActionName(planner.ToolCall{}, record) == "mix_derive" || strings.EqualFold(messageLoopText(record["tool"]), "mix.derive") {
+			return false
+		}
+	}
+	return true
+}
+
+func messageLoopFocusRelationshipIntent(userText string) bool {
+	text := strings.ToLower(strings.TrimSpace(userText))
+	if text == "" {
+		return false
+	}
+	return messageLoopTextHasAny(text, "\u4e3b\u5531", "\u4eba\u58f0", "vocal", "lead vocal", "voice") &&
+		messageLoopTextHasAny(text, "\u9760\u524d", "\u5f80\u524d", "\u7a81\u51fa", "\u6e05\u695a", "forward", "front", "presence", "present")
+}
+
+func messageLoopFocusRelationshipDeriveCall(state *runState) planner.ToolCall {
+	args := map[string]any{
+		"type":      "focus_vs_project",
+		"focus":     map[string]any{"role": "vocal", "source": "user_intent"},
+		"max_items": 8,
+	}
+	if state != nil && state.recentObservation != nil && observationIsMixObservation(state.recentObservation) {
+		if observationID := firstMapText(state.recentObservation.Summary, "observation_id"); observationID != "" {
+			args["observation_id"] = observationID
+		}
+		if sessionID := firstMapText(state.recentObservation.Summary, "mix_session_id"); sessionID != "" {
+			args["mix_session_id"] = sessionID
+		}
+		if target := messageLoopMapValue(state.recentObservation.Summary["target_ref"]); len(target) > 0 {
+			if strings.EqualFold(firstMapText(target, "kind"), "track") {
+				if trackID := firstMapText(target, "id", "track_id"); trackID != "" {
+					if messageLoopTrackIsResolvedVocal(state, trackID) {
+						args["focus"] = map[string]any{"track_id": trackID, "role": "vocal", "source": "resolved_observation_target"}
+					}
+				}
+			}
+		}
+	}
+	if state != nil {
+		if _, ok := args["observation_id"]; !ok {
+			if observationID := messageLoopLastMixObservationField(state, "observation_id"); observationID != "" {
+				args["observation_id"] = observationID
+			}
+		}
+		if _, ok := args["mix_session_id"]; !ok {
+			if sessionID := messageLoopLastMixObservationField(state, "mix_session_id"); sessionID != "" {
+				args["mix_session_id"] = sessionID
+			}
+		}
+	}
+	return planner.ToolCall{
+		ID:     "derive_focus_vs_project",
+		Tool:   "mix.derive",
+		Args:   args,
+		Reason: "derive vocal focus relationship after project observation",
+	}
 }
 
 func messageLoopNeedsDeterministicMixObservation(state *runState) bool {
@@ -873,6 +984,185 @@ func messageLoopConversationID(state *runState) string {
 	return text
 }
 
+func messageLoopClarificationQuestion(state *runState, question string) string {
+	question = strings.TrimSpace(question)
+	if state == nil || question == "" {
+		return question
+	}
+	if messageLoopFocusRelationshipIntent(state.input.UserText) && !messageLoopHasResolvedFocusTrack(state) {
+		if messageLoopClarificationAsksForExecution(question) || !messageLoopClarificationAsksForFocusTrack(question) {
+			return "需要先确认哪条是主唱轨。请告诉我主唱是 Track 几，或把主唱轨重命名为 vocal / 主唱后让我重新观察。"
+		}
+	}
+	return question
+}
+
+func messageLoopFinalFocusTrackClarification(state *runState, reply string) (string, bool) {
+	reply = strings.TrimSpace(reply)
+	if state == nil || reply == "" || !messageLoopFocusRelationshipIntent(state.input.UserText) || messageLoopHasResolvedFocusTrack(state) {
+		return "", false
+	}
+	if messageLoopClarificationAsksForFocusTrack(reply) && !messageLoopClarificationAsksForExecution(reply) {
+		return messageLoopClarificationQuestion(state, reply), true
+	}
+	if _, _, ok := messageLoopExtractSingleGainDelta(reply); ok || messageLoopMixReplyAsksForExecution(reply) {
+		return messageLoopClarificationQuestion(state, "需要先确认哪条是主唱轨。"), true
+	}
+	return "", false
+}
+
+func messageLoopHasResolvedFocusTrack(state *runState) bool {
+	if state == nil {
+		return false
+	}
+	if messageLoopUserExplicitlyIdentifiesVocalTrack(state.input.UserText) {
+		return true
+	}
+	if state.recentObservation != nil && observationIsMixObservation(state.recentObservation) {
+		if target := messageLoopMapValue(state.recentObservation.Summary["target_ref"]); messageLoopTargetRefIsTrack(target) {
+			if messageLoopTrackIsResolvedVocal(state, firstMapText(target, "id", "track_id")) {
+				return true
+			}
+		}
+	}
+	for i := len(state.executed) - 1; i >= 0; i-- {
+		result := messageLoopMapValue(state.executed[i]["result"])
+		if len(result) == 0 {
+			continue
+		}
+		if target := messageLoopObservationTargetRefFromResult(result); messageLoopTargetRefIsTrack(target) {
+			if messageLoopTrackIsResolvedVocal(state, firstMapText(target, "id", "track_id")) {
+				return true
+			}
+		}
+		observation := messageLoopObservationFromResult(result)
+		if target := messageLoopMapValue(observation["target_ref"]); messageLoopTargetRefIsTrack(target) {
+			if messageLoopTrackIsResolvedVocal(state, firstMapText(target, "id", "track_id")) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func messageLoopUserExplicitlyIdentifiesVocalTrack(text string) bool {
+	text = strings.TrimSpace(text)
+	if text == "" {
+		return false
+	}
+	lower := strings.ToLower(text)
+	if !messageLoopTextHasAny(lower, "主唱", "人声", "vocal", "lead vocal", "voice") {
+		return false
+	}
+	if idx, ok := messageLoopUserTrackIndexFromText(text); ok && idx > 0 {
+		return true
+	}
+	return false
+}
+
+func messageLoopTrackIsResolvedVocal(state *runState, trackID string) bool {
+	trackID = strings.TrimSpace(trackID)
+	if state == nil || trackID == "" {
+		return false
+	}
+	if messageLoopUserExplicitlyIdentifiesVocalTrack(state.input.UserText) {
+		return true
+	}
+	for i := len(state.executed) - 1; i >= 0; i-- {
+		result := messageLoopMapValue(state.executed[i]["result"])
+		if len(result) == 0 {
+			continue
+		}
+		if track := messageLoopFindProjectTrackInResult(result, trackID); messageLoopTrackHasVocalEvidence(track) {
+			return true
+		}
+	}
+	if state.recentObservation != nil && observationIsMixObservation(state.recentObservation) {
+		if track := messageLoopFindProjectTrackInSummary(state.recentObservation.Summary, trackID); messageLoopTrackHasVocalEvidence(track) {
+			return true
+		}
+	}
+	return false
+}
+
+func messageLoopTargetRefIsTrack(target map[string]any) bool {
+	return len(target) > 0 && strings.EqualFold(firstMapText(target, "kind"), "track") && firstMapText(target, "id", "track_id") != ""
+}
+
+func messageLoopFindProjectTrackInResult(result map[string]any, trackID string) map[string]any {
+	trackID = strings.TrimSpace(trackID)
+	if trackID == "" {
+		return nil
+	}
+	observation := messageLoopObservationFromResult(result)
+	packages := []map[string]any{
+		messageLoopMapValue(observation["project_package"]),
+		messageLoopMapValue(result["project_package"]),
+	}
+	for _, pkg := range packages {
+		for _, track := range messageLoopMapRows(pkg["tracks"]) {
+			if strings.EqualFold(firstMapText(track, "track_id", "id"), trackID) {
+				return track
+			}
+		}
+	}
+	return nil
+}
+
+func messageLoopFindProjectTrackInSummary(summary map[string]any, trackID string) map[string]any {
+	trackID = strings.TrimSpace(trackID)
+	if trackID == "" {
+		return nil
+	}
+	project := messageLoopMapValue(summary["project_package"])
+	for _, track := range messageLoopMapRows(project["tracks"]) {
+		if strings.EqualFold(firstMapText(track, "track_id", "id"), trackID) {
+			return track
+		}
+	}
+	return nil
+}
+
+func messageLoopTrackHasVocalEvidence(track map[string]any) bool {
+	if len(track) == 0 {
+		return false
+	}
+	role := strings.ToLower(firstMapText(track, "role_guess", "role"))
+	if role == "vocal" || role == "voice" || role == "lead_vocal" {
+		return true
+	}
+	text := strings.ToLower(strings.Join([]string{
+		firstMapText(track, "name", "track_name", "user_label", "label"),
+		firstMapText(track, "clip_name", "primary_clip_name"),
+	}, " "))
+	if text == "" {
+		return false
+	}
+	return messageLoopTextHasAny(text, "vocal", "voice", "lead vocal", "lead_vox", "vox", "主唱", "人声", "人聲")
+}
+
+func messageLoopClarificationAsksForExecution(question string) bool {
+	text := strings.ToLower(strings.TrimSpace(question))
+	if text == "" {
+		return false
+	}
+	return messageLoopMixReplyAsksForExecution(text) ||
+		(messageLoopTextHasAny(text, "execute", "apply", "continue", "do it", "执行", "继续") && messageLoopTextHasAny(text, "db", "分贝"))
+}
+
+func messageLoopClarificationAsksForFocusTrack(question string) bool {
+	text := strings.ToLower(strings.TrimSpace(question))
+	if text == "" {
+		return false
+	}
+	if messageLoopTextHasAny(text, "哪条", "哪一条", "哪个", "哪一个", "track 几", "track几", "which track", "what track", "which one") {
+		return true
+	}
+	return messageLoopTextHasAny(text, "主唱", "人声", "vocal", "lead vocal") &&
+		messageLoopTextHasAny(text, "轨", "track") &&
+		messageLoopTextHasAny(text, "确认", "告诉", "说明", "identify", "tell me", "clarify")
+}
+
 func messageLoopSystemPrompt(state *runState) string {
 	catalog := ""
 	allowed := ""
@@ -903,6 +1193,7 @@ Rules:
 - For natural/broad mixing goals such as making a vocal more forward, increasing loudness, reducing mud/harshness, tightening dynamics, adding space, or "mix this audio", you MUST call mix.observe first and wait for its result before choosing plugins, learning plugin profiles, loading effects, changing volume, or writing parameters.
 - Choose mix.observe scope from intent, not trigger phrases: selected_clip, selected_track, named_track, track_group, full_project, or full_project_with_focus_track. Use project_context for current-track mixing, full_project for overall mix questions, and full_project_with_focus_track for vocal/lead/focus relationships.
 - mix.observe returns a digest and catalog. Use mix.read for the catalog entries you need and mix.derive for local relationship packages such as rank_tracks, focus_vs_project, a_vs_b, group_overlap, or before_after. Do not manually compare large raw packages in your hidden reasoning when a relationship package can be derived locally.
+- For vocal/lead/focus relationship goals, only treat a track as the vocal when the track name/metadata explicitly identifies it as vocal/voice/lead/主唱/人声, or the user explicitly identifies the track by name/index. If the project only has generic names such as Track 1 / Track 2 and you are not sure which one is the vocal, ask which track is the lead vocal. Do not propose or store an executable move while asking that clarification.
 - Do not call clip.warm_waveform_bake / warm_waveform_bake directly for broad mixing observation. mix.observe owns waveform and envelope feature preparation.
 - After mix.observe/mix.read/mix.derive for a broad mixing request, stop and summarize the observed project/audio facts plus one suggested next small move, then ask whether the user wants you to continue executing that move. Do not load plugins, learn profiles, change volume, apply controls, or write parameters in the same user request. Wait for the user to explicitly confirm a concrete follow-up action first.
 - Treat deep/slow packages as optional. If they are missing, pending, partial, or blocked, say what uncertainty remains and base suggestions only on available evidence.
@@ -1648,7 +1939,12 @@ func messageLoopMixObservationArgs(userText string, args map[string]any) map[str
 		out["disclosure"] = "digest_catalog"
 	}
 	if messageLoopTextHasAny(strings.ToLower(userText), "\u4e3b\u5531", "\u4eba\u58f0", "vocal", "lead vocal") {
-		setIfEmptyMap(out, "focus_hint", map[string]any{"role": "vocal", "source": "user_intent"})
+		focusHint := map[string]any{"role": "vocal", "source": "user_intent"}
+		if index, ok := messageLoopUserTrackIndexFromText(userText); ok {
+			focusHint["user_track_index"] = index
+			focusHint["source"] = "user_clarification"
+		}
+		setIfEmptyMap(out, "focus_hint", focusHint)
 	}
 	if messageLoopTextHasAny(strings.ToLower(userText), "\u4f4e\u9891", "\u8d1d\u65af", "\u9f13", "\u5e95\u9f13", "\u6d51\u6d4a", "low end", "bass", "kick", "mud", "muddy") {
 		setIfEmptyMap(out, "relationship_focus", map[string]any{
@@ -1658,6 +1954,30 @@ func messageLoopMixObservationArgs(userText string, args map[string]any) map[str
 		})
 	}
 	return out
+}
+
+func messageLoopUserTrackIndexFromText(text string) (int, bool) {
+	text = strings.TrimSpace(text)
+	if text == "" {
+		return 0, false
+	}
+	patterns := []*regexp.Regexp{
+		regexp.MustCompile(`(?i)\btrack\s*([1-9]\d*)\b`),
+		regexp.MustCompile(`(?i)\btrk\s*([1-9]\d*)\b`),
+		regexp.MustCompile(`\b([1-9]\d*)\s*(?:号|號)?\s*(?:轨|軌|轨道|軌道)\b`),
+		regexp.MustCompile(`(?:第)\s*([1-9]\d*)\s*(?:轨|軌|轨道|軌道)`),
+	}
+	for _, pattern := range patterns {
+		match := pattern.FindStringSubmatch(text)
+		if len(match) < 2 {
+			continue
+		}
+		index, err := strconv.Atoi(strings.TrimSpace(match[1]))
+		if err == nil && index > 0 {
+			return index, true
+		}
+	}
+	return 0, false
 }
 
 func messageLoopMixScopeFromIntent(userText string, args map[string]any) string {

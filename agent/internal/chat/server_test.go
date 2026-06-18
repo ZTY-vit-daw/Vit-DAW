@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"math"
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
@@ -19,6 +20,7 @@ import (
 	"vit-daw-agent/internal/agentloop"
 	"vit-daw-agent/internal/artifacts"
 	"vit-daw-agent/internal/config"
+	"vit-daw-agent/internal/executor"
 	"vit-daw-agent/internal/harness"
 	"vit-daw-agent/internal/history"
 	"vit-daw-agent/internal/llm"
@@ -2408,7 +2410,46 @@ func TestPendingMixTickTrackLookupFindsNestedVisibleTracks(t *testing.T) {
 	}
 }
 
-func TestPendingMixTickAmbiguousContinueDoesNotExecute(t *testing.T) {
+func TestPendingMixTickContinueExecutesTypedLoop(t *testing.T) {
+	server := New(nil, shadow.New(nil), nil)
+	server.pendingMixTicks["chat_mix"] = agentloop.PendingMixTickCandidate{
+		Operation:                 "track_gain_adjust",
+		TrackID:                   "track_1",
+		DeltaDB:                   -1,
+		ObservationID:             "obs_1",
+		ExpiresAfterContextChange: true,
+		Status:                    "pending_confirmation",
+		Fingerprint:               map[string]any{"target_scope": "selected_track", "mix_session_id": "mix_1"},
+	}
+	server.shadow.Initialize(map[string]any{"tracks": []any{map[string]any{
+		"track_id":       "track_1",
+		"track_name":     "Vocal",
+		"track_type":     "hybrid",
+		"is_audio_track": true,
+		"volume_db":      -3,
+	}}})
+
+	resp, handled := server.handlePendingMixTickChat(context.Background(), "chat_mix", ChatRequest{Message: "继续"}, agentModeDefault)
+
+	if !handled || resp.StopReason != "mix_tick_confirmation_failed" {
+		t.Fatalf("resp=%+v handled=%v", resp, handled)
+	}
+	var tools []string
+	for _, row := range resp.ExecutedKernelReply {
+		tools = append(tools, cleanContextText(row["tool"]))
+	}
+	if !testStringSliceContains(tools, "mix.propose_tick") || !testStringSliceContains(tools, "mix.apply_tick") {
+		t.Fatalf("executed tools = %+v, want typed propose/apply attempt", tools)
+	}
+	if testStringSliceContains(tools, "daw.invoke") || testStringSliceContains(tools, "track.volume") {
+		t.Fatalf("confirmation bypassed typed tools: %+v", tools)
+	}
+	if _, ok := server.pendingMixTicks["chat_mix"]; !ok {
+		t.Fatal("failed apply should keep pending mix tick available for retry")
+	}
+}
+
+func TestPendingMixTickContinueDiscussingDoesNotExecute(t *testing.T) {
 	server := New(nil, shadow.New(nil), nil)
 	server.pendingMixTicks["chat_mix"] = agentloop.PendingMixTickCandidate{
 		Operation: "track_gain_adjust",
@@ -2417,16 +2458,38 @@ func TestPendingMixTickAmbiguousContinueDoesNotExecute(t *testing.T) {
 		Status:    "pending_confirmation",
 	}
 
-	resp, handled := server.handlePendingMixTickChat(context.Background(), "chat_mix", ChatRequest{Message: "继续"}, agentModeDefault)
+	resp, handled := server.handlePendingMixTickChat(context.Background(), "chat_mix", ChatRequest{Message: "继续讨论一下原因"}, agentModeDefault)
 
-	if !handled || resp.StopReason != "ambiguous_mix_tick_confirmation" {
-		t.Fatalf("resp=%+v handled=%v", resp, handled)
+	if handled {
+		t.Fatalf("discussion should fall through to normal chat, resp=%+v", resp)
 	}
 	if len(resp.ExecutedKernelReply) != 0 {
-		t.Fatalf("ambiguous continue should not execute: %+v", resp.ExecutedKernelReply)
+		t.Fatalf("discussion should not execute: %+v", resp.ExecutedKernelReply)
 	}
 	if _, ok := server.pendingMixTicks["chat_mix"]; !ok {
-		t.Fatal("ambiguous continue should keep pending candidate")
+		t.Fatal("discussion should keep pending candidate")
+	}
+}
+
+func TestPendingMixTickWhyQuestionDoesNotExecute(t *testing.T) {
+	server := New(nil, shadow.New(nil), nil)
+	server.pendingMixTicks["chat_mix"] = agentloop.PendingMixTickCandidate{
+		Operation: "track_gain_adjust",
+		TrackID:   "track_2",
+		DeltaDB:   -1,
+		Status:    "pending_confirmation",
+	}
+
+	resp, handled := server.handlePendingMixTickChat(context.Background(), "chat_mix", ChatRequest{Message: "为什么要降 Track 2"}, agentModeDefault)
+
+	if handled {
+		t.Fatalf("why question should fall through to normal chat, resp=%+v", resp)
+	}
+	if len(resp.ExecutedKernelReply) != 0 {
+		t.Fatalf("why question should not execute: %+v", resp.ExecutedKernelReply)
+	}
+	if _, ok := server.pendingMixTicks["chat_mix"]; !ok {
+		t.Fatal("why question should keep pending candidate")
 	}
 }
 
@@ -2460,6 +2523,221 @@ func TestPendingMixTickNoCandidateDoesNotExecute(t *testing.T) {
 	}
 }
 
+func TestPendingMixTickReportIncludesBeforeAfterAcousticsAndRollback(t *testing.T) {
+	reply := pendingMixTickReport(agentloop.PendingMixTickCandidate{
+		Operation:     "track_gain_adjust",
+		TrackID:       "track_1",
+		DeltaDB:       -1.5,
+		ObservationID: "obs_1",
+		Status:        "pending_confirmation",
+		Fingerprint: map[string]any{
+			"before_track": map[string]any{
+				"track_id":    "track_1",
+				"peak_dbfs":   -0.2,
+				"rms_dbfs":    -8.4,
+				"headroom_db": 0.2,
+			},
+		},
+	}, executorResultForMixTickReport("mix.propose_tick", map[string]any{"before_db": -3.0, "after_db": -4.5}), executorResultForMixTickReport("mix.apply_tick", map[string]any{"before_db": -3.0, "after_db": -4.5}), executorResultForMixTickReport("mix.observe", map[string]any{
+		"observation": map[string]any{
+			"project_package": map[string]any{
+				"tracks": []map[string]any{{
+					"track_id":    "track_1",
+					"peak_dbfs":   -1.7,
+					"rms_dbfs":    -9.9,
+					"headroom_db": 1.7,
+				}},
+			},
+		},
+	}), "")
+
+	for _, want := range []string{"peak -0.2 -> -1.7", "RMS -8.4 -> -9.9", "headroom 0.2 -> 1.7", "peak risk 已改善", "rollback 可用"} {
+		if !strings.Contains(reply, want) {
+			t.Fatalf("reply missing %q:\n%s", want, reply)
+		}
+	}
+}
+
+func TestPendingMixTickReportUsesSelectedAcousticWaveformAfterMetrics(t *testing.T) {
+	reply := pendingMixTickReport(agentloop.PendingMixTickCandidate{
+		Operation:     "track_gain_adjust",
+		TrackID:       "track_2",
+		DeltaDB:       -1,
+		ObservationID: "obs_1",
+		Status:        "pending_confirmation",
+		Fingerprint: map[string]any{
+			"before_track": map[string]any{
+				"track_id":    "track_2",
+				"peak_dbfs":   -0.1,
+				"rms_dbfs":    -8.2,
+				"headroom_db": 0.1,
+			},
+		},
+	}, executorResultForMixTickReport("mix.propose_tick", map[string]any{"before_db": 0.0, "after_db": -1.0}), executorResultForMixTickReport("mix.apply_tick", map[string]any{"before_db": 0.0, "after_db": -1.0}), executorResultForMixTickReport("mix.observe", map[string]any{
+		"resolved_target": map[string]any{
+			"track_id":   "track_2",
+			"track_name": "Track 2",
+		},
+		"acoustic_digest": map[string]any{
+			"track_name": "Track 2",
+			"peak_dbfs":  -1.1,
+			"rms_dbfs":   -9.2,
+			"waveform": map[string]any{
+				"peak_dbfs":   -1.1,
+				"rms_dbfs":    -9.2,
+				"headroom_db": 1.1,
+				"crest_db":    8.1,
+			},
+		},
+	}), "")
+
+	for _, want := range []string{"peak -0.1 -> -1.1", "RMS -8.2 -> -9.2", "headroom 0.1 -> 1.1"} {
+		if !strings.Contains(reply, want) {
+			t.Fatalf("reply missing %q:\n%s", want, reply)
+		}
+	}
+	if strings.Contains(reply, "headroom 0.1 -> 未知") || strings.Contains(reply, "headroom 0.1 -> 鏈") {
+		t.Fatalf("reply should use selected acoustic waveform headroom:\n%s", reply)
+	}
+}
+
+func TestNextPendingMixTickCandidateFromReobserveUsesHighHeadroomRisk(t *testing.T) {
+	observe := executorResultForMixTickReport("mix.observe", map[string]any{
+		"observation_id": "obs_after",
+		"observation": map[string]any{
+			"mix_session_id": "mix_1",
+			"project_package": map[string]any{
+				"active_acoustic_track_count": 2,
+				"headroom_risk": []map[string]any{
+					{
+						"track_id":    "track_1",
+						"name":        "Lead",
+						"risk":        "medium",
+						"headroom_db": 2.4,
+					},
+					{
+						"track_id":    "track_2",
+						"name":        "Drums",
+						"risk":        "high",
+						"peak_dbfs":   -0.4,
+						"rms_dbfs":    -8.1,
+						"headroom_db": 0.4,
+						"crest_db":    7.7,
+					},
+				},
+			},
+		},
+	})
+
+	candidate, ok := nextPendingMixTickCandidateFromReobserve("chat_mix", "goal_1", "run_1", agentloop.PendingMixTickCandidate{
+		Operation:     "track_gain_adjust",
+		TrackID:       "track_1",
+		DeltaDB:       -1,
+		ObservationID: "obs_before",
+		Status:        "pending_confirmation",
+		Fingerprint:   map[string]any{"track_count": 2, "mix_session_id": "mix_1"},
+	}, observe)
+
+	if !ok {
+		t.Fatal("expected high-risk reobserve row to produce a next pending candidate")
+	}
+	if candidate.Operation != "track_gain_adjust" || candidate.TrackID != "track_2" || candidate.DeltaDB != -1 || candidate.Status != "pending_confirmation" {
+		t.Fatalf("candidate = %+v", candidate)
+	}
+	if candidate.ObservationID != "obs_after" {
+		t.Fatalf("observation id = %q", candidate.ObservationID)
+	}
+	if candidate.Evidence["source"] != "reobserve_after_mix_tick" || candidate.Evidence["risk"] != "high" {
+		t.Fatalf("evidence = %+v", candidate.Evidence)
+	}
+	if got := intNumber(candidate.Fingerprint["track_count"]); got != 2 {
+		t.Fatalf("track count fingerprint = %d", got)
+	}
+	beforeTrack := mapValue(candidate.Fingerprint["before_track"])
+	if cleanContextText(beforeTrack["track_id"]) != "track_2" || cleanContextText(candidate.Fingerprint["headroom_db"]) != "0.4" {
+		t.Fatalf("fingerprint = %+v", candidate.Fingerprint)
+	}
+	if math.Abs(candidate.DeltaDB) > 2 {
+		t.Fatalf("delta should be clamped to v1 range: %+v", candidate)
+	}
+}
+
+func TestNextPendingMixTickCandidateFromReobserveIgnoresNonHighRisk(t *testing.T) {
+	observe := executorResultForMixTickReport("mix.observe", map[string]any{
+		"observation": map[string]any{
+			"project_package": map[string]any{
+				"headroom_risk": []map[string]any{
+					{"track_id": "track_1", "risk": "medium", "headroom_db": 2.2},
+					{"track_id": "track_2", "risk": "low", "headroom_db": 6.5},
+				},
+			},
+		},
+	})
+
+	candidate, ok := nextPendingMixTickCandidateFromReobserve("chat_mix", "goal_1", "run_1", agentloop.PendingMixTickCandidate{
+		Operation: "track_gain_adjust",
+		TrackID:   "track_1",
+		DeltaDB:   -1,
+		Status:    "pending_confirmation",
+	}, observe)
+
+	if ok {
+		t.Fatalf("non-high risks should not produce next pending candidate: %+v", candidate)
+	}
+}
+
+func TestNextPendingMixTickCandidateFromReobserveDoesNotRepeatJustAppliedTrack(t *testing.T) {
+	observe := executorResultForMixTickReport("mix.observe", map[string]any{
+		"observation": map[string]any{
+			"project_package": map[string]any{
+				"headroom_risk": []map[string]any{
+					{"track_id": "track_1", "risk": "high", "headroom_db": 0.3},
+					{"track_id": "track_2", "risk": "medium", "headroom_db": 2.2},
+				},
+			},
+		},
+	})
+
+	candidate, ok := nextPendingMixTickCandidateFromReobserve("chat_mix", "goal_1", "run_1", agentloop.PendingMixTickCandidate{
+		Operation: "track_gain_adjust",
+		TrackID:   "track_1",
+		DeltaDB:   -1,
+		Status:    "pending_confirmation",
+	}, observe)
+
+	if ok {
+		t.Fatalf("same just-applied track should not be queued again in v1: %+v", candidate)
+	}
+}
+
+func TestStorePendingMixTickCandidateEmitsPendingEvent(t *testing.T) {
+	server := New(nil, shadow.New(nil), nil)
+	server.storePendingMixTickCandidate("chat_mix", "goal_1", "run_1", agentloop.PendingMixTickCandidate{
+		Operation:     "track_gain_adjust",
+		TrackID:       "track_2",
+		DeltaDB:       -1,
+		ObservationID: "obs_after",
+		Status:        "pending_confirmation",
+	})
+
+	candidate, ok := server.pendingMixTickForConversation("chat_mix")
+	if !ok || candidate.TrackID != "track_2" || candidate.DeltaDB != -1 {
+		t.Fatalf("stored candidate = %+v ok=%v", candidate, ok)
+	}
+	events, _ := server.agentEventsSince("chat_mix", 0, 10)
+	if len(events) != 1 || events[0].Type != "mix_tick.pending" || events[0].Payload["track_id"] != "track_2" {
+		t.Fatalf("events = %+v", events)
+	}
+}
+
+func executorResultForMixTickReport(tool string, result map[string]any) executor.Result {
+	return executor.Result{
+		Status: "ok",
+		Tool:   tool,
+		Result: result,
+	}
+}
+
 func TestPendingMixTickTopicShiftExpiresWithoutExecuting(t *testing.T) {
 	server := New(nil, shadow.New(nil), nil)
 	server.pendingMixTicks["chat_mix"] = agentloop.PendingMixTickCandidate{
@@ -2479,6 +2757,50 @@ func TestPendingMixTickTopicShiftExpiresWithoutExecuting(t *testing.T) {
 	}
 	if _, ok := server.pendingMixTicks["chat_mix"]; ok {
 		t.Fatal("topic shift should expire stale pending candidate")
+	}
+}
+
+func TestPendingMixTickMentioningOtherTrackExpiresWithoutExecuting(t *testing.T) {
+	server := New(nil, shadow.New(nil), nil)
+	server.pendingMixTicks["chat_mix"] = agentloop.PendingMixTickCandidate{
+		Operation: "track_gain_adjust",
+		TrackID:   "track_1",
+		DeltaDB:   -1,
+		Status:    "pending_confirmation",
+	}
+
+	resp, handled := server.handlePendingMixTickChat(context.Background(), "chat_mix", ChatRequest{Message: "可以执行 Track 3"}, agentModeDefault)
+
+	if handled {
+		t.Fatalf("new track target should fall through to normal chat, resp=%+v", resp)
+	}
+	if len(resp.ExecutedKernelReply) != 0 {
+		t.Fatalf("new track target should not execute stale pending: %+v", resp.ExecutedKernelReply)
+	}
+	if _, ok := server.pendingMixTicks["chat_mix"]; ok {
+		t.Fatal("new track target should expire stale pending candidate")
+	}
+}
+
+func TestPendingMixTickPluginTargetExpiresWithoutExecuting(t *testing.T) {
+	server := New(nil, shadow.New(nil), nil)
+	server.pendingMixTicks["chat_mix"] = agentloop.PendingMixTickCandidate{
+		Operation: "track_gain_adjust",
+		TrackID:   "track_1",
+		DeltaDB:   -1,
+		Status:    "pending_confirmation",
+	}
+
+	resp, handled := server.handlePendingMixTickChat(context.Background(), "chat_mix", ChatRequest{Message: "给主唱加 reverb"}, agentModeDefault)
+
+	if handled {
+		t.Fatalf("plugin target should fall through to normal chat, resp=%+v", resp)
+	}
+	if len(resp.ExecutedKernelReply) != 0 {
+		t.Fatalf("plugin target should not execute stale pending: %+v", resp.ExecutedKernelReply)
+	}
+	if _, ok := server.pendingMixTicks["chat_mix"]; ok {
+		t.Fatal("plugin target should expire stale pending candidate")
 	}
 }
 
@@ -4447,6 +4769,89 @@ func TestAgentLoopConfirmResponsePlanIDUsesQueuedConfirmation(t *testing.T) {
 	missing := ChatResponse{NeedsConfirmation: true, PlanID: " "}
 	if got := AgentLoopConfirmResponsePlanID(confirmedPlanID, missing); got != confirmedPlanID {
 		t.Fatalf("missing next plan id = %q, want confirmed plan id", got)
+	}
+}
+
+func TestAgentLoopClarificationReplyResumesConversationGoal(t *testing.T) {
+	var prompts []string
+	api := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/chat/completions" {
+			t.Fatalf("LLM path = %q", r.URL.Path)
+		}
+		var req struct {
+			Messages []llm.Message `json:"messages"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			t.Fatalf("decode LLM request: %v", err)
+		}
+		var prompt strings.Builder
+		for _, msg := range req.Messages {
+			prompt.WriteString(msg.Content)
+			prompt.WriteString("\n")
+		}
+		prompts = append(prompts, prompt.String())
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{
+			"choices":[{"message":{"content":"{\"final\":true,\"needs_clarification\":true,\"reply\":\"需要先确认哪条是主唱轨。\",\"tool_calls\":[]}"}}],
+			"usage":{"prompt_tokens":11,"completion_tokens":3}
+		}`))
+	}))
+	defer api.Close()
+
+	home := t.TempDir()
+	t.Setenv("HOME", home)
+	t.Setenv("USERPROFILE", home)
+	cfgPath := filepath.Join(home, ".vit", "config.json")
+	if err := os.MkdirAll(filepath.Dir(cfgPath), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	cfg := []byte(fmt.Sprintf(`{"baseUrl":%q,"apiKey":"test","defaultModel":"test-model"}`, api.URL))
+	if err := os.WriteFile(cfgPath, cfg, 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	server := New(nil, shadow.New(nil), nil)
+	goal := server.harness.BeginGoal("让主唱更靠前")
+	server.recordGoalResult("chat_focus", agentloop.Result{
+		GoalID:                goal.GoalID,
+		RunID:                 goal.RunID,
+		Status:                agentruntime.StatusWaitingClarification,
+		NeedsClarification:    true,
+		ClarificationQuestion: "哪条是主唱轨？",
+		Continuation: &agentloop.Continuation{
+			GoalID:   goal.GoalID,
+			RunID:    goal.RunID,
+			UserText: "让主唱更靠前",
+			Summary:  "让主唱更靠前",
+			Context:  map[string]any{"conversation_id": "chat_focus"},
+			Budget:   agentloop.Budget{MaxTurns: 2, MaxToolCalls: 1, MaxConsecutiveErrors: 2},
+		},
+	})
+	server.harness.SetGoalStatus(goal.GoalID, agentruntime.StatusWaitingClarification, nil)
+
+	body, _ := json.Marshal(ChatRequest{
+		ConversationID: "chat_focus",
+		Message:        "Track 1 是主唱",
+		Context:        map[string]any{"goal_id": nil, "run_id": nil},
+	})
+	rec := httptest.NewRecorder()
+	server.handleChat(rec, httptest.NewRequest(http.MethodPost, "/agent/chat", bytes.NewReader(body)))
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d body=%s", rec.Code, rec.Body.String())
+	}
+	var resp ChatResponse
+	if err := json.Unmarshal(rec.Body.Bytes(), &resp); err != nil {
+		t.Fatal(err)
+	}
+	if resp.GoalID != goal.GoalID {
+		t.Fatalf("goal_id = %q, want resumed %q; resp=%+v", resp.GoalID, goal.GoalID, resp)
+	}
+	if len(prompts) != 1 {
+		t.Fatalf("LLM prompts = %d", len(prompts))
+	}
+	if !strings.Contains(prompts[0], "Current Goal: 让主唱更靠前") || !strings.Contains(prompts[0], "User clarification: Track 1 是主唱") {
+		t.Fatalf("clarification prompt did not preserve original goal and answer:\n%s", prompts[0])
 	}
 }
 

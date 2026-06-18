@@ -40,6 +40,14 @@ func messageLoopPendingMixTickCandidateFromReply(state *runState, reply string) 
 		"created_from_turn": state.turnsUsed,
 		"mix_session_id":    messageLoopLastMixObservationField(state, "mix_session_id"),
 	}
+	if track := messageLoopPendingMixCandidateTrackRow(state, trackID); len(track) > 0 {
+		fingerprint["before_track"] = track
+		for _, key := range []string{"peak_dbfs", "rms_dbfs", "headroom_db", "crest_db"} {
+			if value, ok := track[key]; ok && value != nil {
+				fingerprint[key] = value
+			}
+		}
+	}
 	if currentDB, ok := messageLoopPendingMixCandidateCurrentTrackDB(state, trackID); ok {
 		fingerprint["track_gain_db"] = currentDB
 	}
@@ -89,6 +97,9 @@ func messageLoopPendingMixCandidateTrackIDFromReply(state *runState, reply strin
 	if len(rows) == 0 {
 		return ""
 	}
+	if trackID := messageLoopTrackIDNearestToEvidence(rows, reply, evidenceText); trackID != "" {
+		return trackID
+	}
 	for _, text := range []string{
 		messageLoopReplyWindowAroundEvidence(reply, evidenceText, 96, 48),
 		reply,
@@ -98,6 +109,75 @@ func messageLoopPendingMixCandidateTrackIDFromReply(state *runState, reply strin
 		}
 	}
 	return ""
+}
+
+func messageLoopTrackIDNearestToEvidence(rows []map[string]any, reply string, evidenceText string) string {
+	reply = strings.ToLower(strings.TrimSpace(reply))
+	evidenceText = strings.ToLower(strings.TrimSpace(evidenceText))
+	if len(rows) == 0 || reply == "" || evidenceText == "" {
+		return ""
+	}
+	evidenceStart := strings.Index(reply, evidenceText)
+	if evidenceStart < 0 {
+		return ""
+	}
+	evidenceEnd := evidenceStart + len(evidenceText)
+	windowStart := evidenceStart - 160
+	if windowStart < 0 {
+		windowStart = 0
+	}
+	windowEnd := evidenceEnd + 80
+	if windowEnd > len(reply) {
+		windowEnd = len(reply)
+	}
+	bestTrackID := ""
+	bestDistance := 0
+	ambiguous := false
+	for _, row := range rows {
+		trackID := firstMapText(row, "track_id", "id", "target_track_id")
+		if trackID == "" {
+			continue
+		}
+		trackBest := -1
+		for _, alias := range messageLoopTrackMentionAliases(row) {
+			for _, span := range messageLoopAliasSpans(reply, alias) {
+				start, end := span[0], span[1]
+				if end < windowStart || start > windowEnd {
+					continue
+				}
+				distance := messageLoopSpanDistance(start, end, evidenceStart, evidenceEnd)
+				if trackBest < 0 || distance < trackBest {
+					trackBest = distance
+				}
+			}
+		}
+		if trackBest < 0 {
+			continue
+		}
+		if bestTrackID == "" || trackBest < bestDistance {
+			bestTrackID = trackID
+			bestDistance = trackBest
+			ambiguous = false
+			continue
+		}
+		if trackBest == bestDistance && trackID != bestTrackID {
+			ambiguous = true
+		}
+	}
+	if ambiguous {
+		return ""
+	}
+	return bestTrackID
+}
+
+func messageLoopSpanDistance(start int, end int, evidenceStart int, evidenceEnd int) int {
+	if end <= evidenceStart {
+		return evidenceStart - end
+	}
+	if start >= evidenceEnd {
+		return start - evidenceEnd
+	}
+	return 0
 }
 
 func messageLoopReplyWindowAroundEvidence(reply string, evidenceText string, before int, after int) string {
@@ -197,22 +277,29 @@ func messageLoopTrackAliasTooGeneric(alias string) bool {
 func messageLoopTextContainsAlias(text string, alias string) bool {
 	text = strings.ToLower(strings.TrimSpace(text))
 	alias = strings.ToLower(strings.TrimSpace(alias))
+	return len(messageLoopAliasSpans(text, alias)) > 0
+}
+
+func messageLoopAliasSpans(text string, alias string) [][2]int {
+	text = strings.ToLower(strings.TrimSpace(text))
+	alias = strings.ToLower(strings.TrimSpace(alias))
 	if text == "" || alias == "" {
-		return false
+		return nil
 	}
+	var spans [][2]int
 	for offset := 0; offset <= len(text); {
 		idx := strings.Index(text[offset:], alias)
 		if idx < 0 {
-			return false
+			return spans
 		}
 		start := offset + idx
 		end := start + len(alias)
 		if messageLoopAliasBoundary(text, start-1) && messageLoopAliasBoundary(text, end) {
-			return true
+			spans = append(spans, [2]int{start, end})
 		}
 		offset = end
 	}
-	return false
+	return spans
 }
 
 func messageLoopAliasBoundary(text string, idx int) bool {
@@ -374,19 +461,29 @@ func messageLoopPendingMixCandidateCurrentTrackDB(state *runState, trackID strin
 	if currentDB, ok := messageLoopCurrentTrackDB(state, trackID); ok {
 		return currentDB, true
 	}
-	for _, row := range messageLoopPendingMixCandidateTrackRows(state) {
-		if firstMapText(row, "track_id", "id", "target_track_id") != trackID {
-			continue
-		}
+	if row := messageLoopPendingMixCandidateTrackRow(state, trackID); len(row) > 0 {
 		return firstNumericMapValue(row, "volume_db", "gain_db", "fader_db", "db")
 	}
 	return 0, false
 }
 
+func messageLoopPendingMixCandidateTrackRow(state *runState, trackID string) map[string]any {
+	trackID = strings.TrimSpace(trackID)
+	if trackID == "" {
+		return nil
+	}
+	for _, row := range messageLoopPendingMixCandidateTrackRows(state) {
+		if firstMapText(row, "track_id", "id", "target_track_id") == trackID {
+			return row
+		}
+	}
+	return nil
+}
+
 func messageLoopExtractSingleGainDelta(reply string) (float64, string, bool) {
 	matches := messageLoopDBAdjustmentPattern.FindAllStringSubmatch(reply, -1)
 	if len(matches) != 1 || len(matches[0]) < 3 {
-		return 0, "", false
+		return messageLoopExtractSingleGainDeltaFromDBAmount(reply)
 	}
 	verb := strings.ToLower(strings.TrimSpace(matches[0][1]))
 	raw := strings.TrimSpace(matches[0][2])

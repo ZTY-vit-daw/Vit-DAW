@@ -178,13 +178,35 @@ func (f *fakeMessageExecutor) RunToolCall(_ context.Context, in executorpkg.Inpu
 				}},
 			},
 		}, nil
+	case "mix.derive":
+		return executorpkg.Result{
+			ToolCallID:  in.ToolCall.ID,
+			Tool:        in.ToolCall.Tool,
+			CommandName: "mix_derive",
+			Status:      "ok",
+			Result: map[string]any{
+				"status":         "ready",
+				"observation_id": firstMapText(in.ToolCall.Args, "observation_id"),
+				"mix_session_id": firstMapText(in.ToolCall.Args, "mix_session_id"),
+				"relationship": map[string]any{
+					"type":   firstMapText(in.ToolCall.Args, "type"),
+					"status": "ready",
+				},
+			},
+		}, nil
 	case "mix.request_observation", "mix.observe":
 		result := f.mixObservationResult
 		if len(result) == 0 {
 			result = map[string]any{
-				"track_id":    firstMapText(in.ToolCall.Args, "track_id"),
-				"artifact_id": "obs_test",
-				"summary":     "observation ready",
+				"status":         "ok",
+				"track_id":       firstMapText(in.ToolCall.Args, "track_id"),
+				"artifact_id":    "obs_test",
+				"observation_id": "obs_test",
+				"mix_session_id": "mix_test",
+				"summary":        "observation ready",
+				"observation": map[string]any{
+					"target_ref": map[string]any{"kind": "track", "id": firstMapText(in.ToolCall.Args, "track_id"), "label": "target"},
+				},
 			}
 		}
 		return executorpkg.Result{
@@ -687,6 +709,245 @@ func TestMessageLoopMixObserveAddsScopeFromIntent(t *testing.T) {
 	}
 	if exec.calls[0].Args["observation_only"] != true {
 		t.Fatalf("observation_only not set: %+v", exec.calls[0].Args)
+	}
+}
+
+func TestMessageLoopVocalForwardRequestAddsFocusScopeAndHint(t *testing.T) {
+	client := &fakeMessageCompleter{responses: []string{
+		`{"final":false,"reply":"I will observe the vocal in project context first.","tool_calls":[{"id":"observe_mix","tool":"mix.observe","args":{},"reason":"observe focus relationship before suggesting a move"}]}`,
+		`{"final":true,"reply":"The vocal relationship observation is ready. I can suggest a small move after confirmation.","tool_calls":[]}`,
+	}}
+	exec := &fakeMessageExecutor{}
+	loop := &MessageLoop{
+		Client:   client,
+		Config:   config.EngineConfig{BaseURL: "http://example.invalid", APIKey: "test", DefaultModel: "test"},
+		Executor: exec,
+		Budget:   Budget{MaxTurns: 4, MaxToolCalls: 2, MaxConsecutiveErrors: 2},
+	}
+
+	res := loop.Start(context.Background(), Input{
+		UserText:     "make the lead vocal more forward",
+		AllowedTools: []string{"mix.observe", "mix.read", "mix.derive", "mix.request_observation"},
+	})
+
+	if res.Status != "completed" {
+		t.Fatalf("result = status=%q reply=%q error=%q", res.Status, res.Reply, res.Error)
+	}
+	if len(exec.calls) != 2 || exec.calls[0].Tool != "mix.observe" || exec.calls[1].Tool != "mix.derive" {
+		t.Fatalf("executor calls = %+v, want mix.observe then mix.derive", exec.calls)
+	}
+	if got := fmt.Sprint(exec.calls[0].Args["scope"]); got != "full_project_with_focus_track" {
+		t.Fatalf("scope = %q, want full_project_with_focus_track; args=%+v", got, exec.calls[0].Args)
+	}
+	focusHint := messageLoopMapValue(exec.calls[0].Args["focus_hint"])
+	if focusHint["role"] != "vocal" || focusHint["source"] != "user_intent" {
+		t.Fatalf("focus hint = %+v; args=%+v", focusHint, exec.calls[0].Args)
+	}
+	if exec.calls[0].Args["observation_only"] != true {
+		t.Fatalf("observation_only not set: %+v", exec.calls[0].Args)
+	}
+	if got := fmt.Sprint(exec.calls[1].Args["type"]); got != "focus_vs_project" {
+		t.Fatalf("derive type = %q; args=%+v", got, exec.calls[1].Args)
+	}
+	deriveFocus := messageLoopMapValue(exec.calls[1].Args["focus"])
+	if deriveFocus["role"] != "vocal" {
+		t.Fatalf("derive focus = %+v; args=%+v", deriveFocus, exec.calls[1].Args)
+	}
+	if got := fmt.Sprint(exec.calls[1].Args["observation_id"]); got != "obs_test" {
+		t.Fatalf("derive observation_id = %q; args=%+v", got, exec.calls[1].Args)
+	}
+	if res.ExecutionMemory.PendingMixTickCandidate != nil {
+		t.Fatalf("relationship observation should not synthesize a pending gain tick without a concrete dB suggestion: %+v", res.ExecutionMemory.PendingMixTickCandidate)
+	}
+}
+
+func TestMessageLoopVocalForwardClarificationAddsFocusTrackIndexHint(t *testing.T) {
+	args := messageLoopMixObservationArgs("让主唱更靠前\n\nUser clarification: Track 1 是主唱", map[string]any{})
+	focusHint := messageLoopMapValue(args["focus_hint"])
+	if got := focusHint["role"]; got != "vocal" {
+		t.Fatalf("focus hint = %+v", focusHint)
+	}
+	if got := fmt.Sprint(focusHint["user_track_index"]); got != "1" {
+		t.Fatalf("focus hint index = %q; hint=%+v", got, focusHint)
+	}
+	if got := focusHint["source"]; got != "user_clarification" {
+		t.Fatalf("focus hint source = %+v", focusHint)
+	}
+	if got := fmt.Sprint(args["scope"]); got != "full_project_with_focus_track" {
+		t.Fatalf("scope = %q; args=%+v", got, args)
+	}
+}
+
+func TestMessageLoopVocalForwardClarificationDoesNotStorePendingTick(t *testing.T) {
+	client := &fakeMessageCompleter{responses: []string{
+		`{"final":true,"needs_clarification":true,"reply":"Do you want me to make the lead vocal feel more forward by lowering the competing Track 2 by 1 dB?","tool_calls":[]}`,
+	}}
+	exec := &fakeMessageExecutor{mixObservationResult: map[string]any{
+		"status":         "ok",
+		"mix_session_id": "mix_focus",
+		"observation_id": "obs_focus",
+		"digest": map[string]any{
+			"scope": "full_project_with_focus_track",
+			"target": map[string]any{
+				"kind": "project",
+				"id":   "current",
+			},
+		},
+		"observation": map[string]any{
+			"target_ref": map[string]any{"kind": "project", "id": "current", "label": "Current project"},
+			"project_package": map[string]any{
+				"track_count":                 2,
+				"active_acoustic_track_count": 2,
+				"tracks": []map[string]any{{
+					"track_id":         "1007",
+					"name":             "Lead Vocal",
+					"track_name":       "Lead Vocal",
+					"user_label":       "Lead Vocal",
+					"user_track_index": 1,
+					"role_guess":       "vocal",
+					"volume_db":        0,
+					"rms_dbfs":         -18.0,
+					"peak_dbfs":        -2.0,
+					"headroom_db":      2.0,
+				}, {
+					"track_id":         "1012",
+					"name":             "Track 2",
+					"track_name":       "Track 2",
+					"user_label":       "Track 2",
+					"user_track_index": 2,
+					"volume_db":        0,
+					"rms_dbfs":         -14.0,
+					"peak_dbfs":        -0.5,
+					"headroom_db":      0.5,
+				}},
+			},
+		},
+	}}
+	loop := &MessageLoop{
+		Client:   client,
+		Config:   config.EngineConfig{BaseURL: "http://example.invalid", APIKey: "test", DefaultModel: "test"},
+		Executor: exec,
+		Budget:   Budget{MaxTurns: 4, MaxToolCalls: 2, MaxConsecutiveErrors: 2},
+	}
+
+	res := loop.Start(context.Background(), Input{
+		UserText:     "make the lead vocal more forward",
+		AllowedTools: []string{"mix.observe", "mix.read", "mix.derive", "mix.request_observation"},
+	})
+
+	if res.Status != "waiting_clarification" || !res.NeedsClarification {
+		t.Fatalf("result = status=%q needs=%v reply=%q error=%q", res.Status, res.NeedsClarification, res.Reply, res.Error)
+	}
+	if len(exec.calls) != 2 || exec.calls[0].Tool != "mix.observe" || exec.calls[1].Tool != "mix.derive" {
+		t.Fatalf("executor calls = %+v, want mix.observe then mix.derive", exec.calls)
+	}
+	if candidate := res.ExecutionMemory.PendingMixTickCandidate; candidate != nil {
+		t.Fatalf("clarification turn must not store a pending candidate: %+v", candidate)
+	}
+	if !strings.Contains(res.Reply, "which") && !strings.Contains(strings.ToLower(res.Reply), "track") && !strings.Contains(res.Reply, "哪条") {
+		t.Fatalf("clarification reply should ask for the vocal track, got %q", res.Reply)
+	}
+}
+
+func TestMessageLoopVocalForwardFinalSuggestionWithoutResolvedVocalAsksClarification(t *testing.T) {
+	client := &fakeMessageCompleter{responses: []string{
+		`{"final":true,"reply":"Track 1 is masking the lead vocal. I suggest lowering Track 1 by 1.5 dB. Do you want me to continue?","tool_calls":[]}`,
+	}}
+	exec := &fakeMessageExecutor{mixObservationResult: map[string]any{
+		"status":         "ok",
+		"mix_session_id": "mix_focus",
+		"observation_id": "obs_focus",
+		"digest": map[string]any{
+			"scope": "full_project_with_focus_track",
+			"target": map[string]any{
+				"kind": "project",
+				"id":   "current",
+			},
+		},
+		"observation": map[string]any{
+			"target_ref": map[string]any{"kind": "project", "id": "current", "label": "Current project"},
+			"project_package": map[string]any{
+				"track_count":                 2,
+				"active_acoustic_track_count": 2,
+				"tracks": []map[string]any{{
+					"track_id":         "1007",
+					"name":             "Track 1",
+					"track_name":       "Track 1",
+					"user_label":       "Track 1",
+					"user_track_index": 1,
+					"volume_db":        0,
+					"rms_dbfs":         -10.0,
+					"peak_dbfs":        -0.3,
+					"headroom_db":      0.3,
+				}, {
+					"track_id":         "1012",
+					"name":             "Track 2",
+					"track_name":       "Track 2",
+					"user_label":       "Track 2",
+					"user_track_index": 2,
+					"volume_db":        0,
+					"rms_dbfs":         -14.0,
+					"peak_dbfs":        -2.5,
+					"headroom_db":      2.5,
+				}},
+			},
+		},
+	}}
+	loop := &MessageLoop{
+		Client:   client,
+		Config:   config.EngineConfig{BaseURL: "http://example.invalid", APIKey: "test", DefaultModel: "test"},
+		Executor: exec,
+		Budget:   Budget{MaxTurns: 4, MaxToolCalls: 2, MaxConsecutiveErrors: 2},
+	}
+
+	res := loop.Start(context.Background(), Input{
+		UserText:     "make the lead vocal more forward",
+		AllowedTools: []string{"mix.observe", "mix.read", "mix.derive", "mix.request_observation"},
+	})
+
+	if res.Status != "waiting_clarification" || !res.NeedsClarification {
+		t.Fatalf("result = status=%q needs=%v reply=%q error=%q", res.Status, res.NeedsClarification, res.Reply, res.Error)
+	}
+	if len(exec.calls) != 2 || exec.calls[0].Tool != "mix.observe" || exec.calls[1].Tool != "mix.derive" {
+		t.Fatalf("executor calls = %+v, want mix.observe then mix.derive", exec.calls)
+	}
+	if candidate := res.ExecutionMemory.PendingMixTickCandidate; candidate != nil {
+		t.Fatalf("unresolved vocal target must not store a pending candidate: %+v", candidate)
+	}
+	if !strings.Contains(res.Reply, "哪条") {
+		t.Fatalf("reply should ask which track is lead vocal, got %q", res.Reply)
+	}
+	if res.Continuation == nil {
+		t.Fatalf("clarification should preserve continuation so the user's answer can resume the goal")
+	}
+}
+
+func TestMessageLoopExtractsGainDeltaAfterTrackMention(t *testing.T) {
+	delta, evidence, ok := messageLoopExtractSingleGainDelta("Do you want me to make the lead vocal feel more forward by lowering the competing Track 2 by 1 dB?")
+	if !ok || delta != -1 || evidence != "1 dB" {
+		t.Fatalf("delta=%v evidence=%q ok=%v", delta, evidence, ok)
+	}
+}
+
+func TestMessageLoopTrackIDNearestToGainEvidenceIgnoresFocusMention(t *testing.T) {
+	rows := []map[string]any{{
+		"track_id":         "1007",
+		"name":             "Lead Vocal",
+		"track_name":       "Lead Vocal",
+		"user_track_index": 1,
+	}, {
+		"track_id":         "1012",
+		"name":             "Track 2",
+		"track_name":       "Track 2",
+		"user_track_index": 2,
+	}}
+	reply := "Do you want me to make the lead vocal feel more forward by lowering the competing Track 2 by 1 dB?"
+
+	if got := messageLoopTrackIDNearestToEvidence(rows, reply, "1 dB"); got != "1012" {
+		t.Fatalf("nearest track = %q, want 1012", got)
+	}
+	if got := messageLoopTrackIDMentionedOnce(rows, reply); got != "" {
+		t.Fatalf("whole reply should remain ambiguous, got %q", got)
 	}
 }
 

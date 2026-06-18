@@ -2924,6 +2924,61 @@ func TestInvokeMixObserveFocusHintResolvesVocalTrack(t *testing.T) {
 	}
 }
 
+func TestInvokeMixObserveFocusHintResolvesUserTrackIndex(t *testing.T) {
+	t.Setenv("VIT_MIXBOARD_ROOT", t.TempDir())
+	t.Setenv("VIT_MIXBOARD_FEATURE_READY_WAIT_MS", "1")
+	project := shadow.New(nil)
+	project.Initialize(map[string]any{
+		"status": "ok",
+		"tracks": []any{
+			map[string]any{
+				"track_id":         "1007",
+				"track_name":       "Track 1",
+				"user_track_index": 1,
+				"is_audio_track":   true,
+				"level_db":         -12.0,
+				"peak_dbfs":        -3.0,
+				"clips":            []any{map[string]any{"clip_id": "clip_1", "length_seconds": 8.0}},
+			},
+			map[string]any{
+				"track_id":         "1012",
+				"track_name":       "Track 2",
+				"user_track_index": 2,
+				"is_audio_track":   true,
+				"level_db":         -8.0,
+				"peak_dbfs":        -2.0,
+				"clips":            []any{map[string]any{"clip_id": "clip_2", "length_seconds": 8.0}},
+			},
+		},
+	})
+	h := New(nil, project, nil)
+
+	resp, err := h.Invoke(context.Background(), InvokeRequest{
+		Tool: "mix.observe",
+		Args: map[string]any{
+			"mix_session_id": "mix_focus_index",
+			"scope":          "full_project_with_focus_track",
+			"focus_hint":     map[string]any{"role": "vocal", "user_track_index": 1},
+			"goal_text":      "让主唱更靠前",
+		},
+		Confirmed: true,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	obs := testMap(t, resp.Result["observation"])
+	target := testMap(t, obs["target_ref"])
+	if target["kind"] != "track" || target["id"] != "1007" {
+		t.Fatalf("target = %+v", target)
+	}
+	listen := testMap(t, obs["listen_scope"])
+	source := testMap(t, listen["source"])
+	focusIDs := stringSliceFromAny(source["focus_ids"])
+	if len(focusIDs) != 1 || focusIDs[0] != "1007" {
+		t.Fatalf("focus ids = %+v", source["focus_ids"])
+	}
+}
+
 func TestInvokeMixReadAndDeriveUseStoredObservation(t *testing.T) {
 	root := t.TempDir()
 	t.Setenv("VIT_MIXBOARD_ROOT", filepath.Join(root, "mixboard"))

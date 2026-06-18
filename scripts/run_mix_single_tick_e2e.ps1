@@ -572,6 +572,26 @@ if ($storedLine -notmatch [regex]::Escape("track=" + $track2ID)) {
 }
 Write-Ok ("pending candidate stored: " + $storedLine)
 
+Write-Step "Run unresolved vocal clarification guard"
+$vocalConversationID = "mix_single_tick_vocal_clarify_" + (Get-Date -Format "yyyyMMdd_HHmmss")
+$vocalMessage = Join-UnicodeChars @(0x8BA9, 0x4E3B, 0x5531, 0x66F4, 0x9760, 0x524D)
+$vocalClarify = Invoke-AgentChat -ConversationID $vocalConversationID -Message $vocalMessage
+$vocalStop = [string](Get-OptionalProperty -Object $vocalClarify -Name "stop_reason")
+Assert-Equals -Actual $vocalStop -Expected "needs_clarification" -Label "unresolved vocal stop_reason"
+$vocalReply = [string](Get-OptionalProperty -Object $vocalClarify -Name "reply")
+$whichTrackText = Join-UnicodeChars @(0x54EA, 0x6761)
+$whichOneMeasureText = Join-UnicodeChars @(0x54EA, 0x4E00, 0x6761)
+$whichOneTrackText = Join-UnicodeChars @(0x54EA, 0x4E00, 0x8F68)
+$whichTrackEnglish = "which track"
+if (($vocalReply -notmatch $whichTrackText) -and ($vocalReply -notmatch $whichOneMeasureText) -and ($vocalReply -notmatch $whichOneTrackText) -and ($vocalReply.ToLowerInvariant() -notmatch $whichTrackEnglish)) {
+    Fail ("unresolved vocal reply did not ask which track is vocal: " + $vocalReply)
+}
+$unexpectedVocalPending = Select-String -Path $AgentLog -Pattern ("[mix.tick.pending] stored conversation=" + $vocalConversationID) -SimpleMatch -ErrorAction SilentlyContinue | Select-Object -First 1
+if ($null -ne $unexpectedVocalPending) {
+    Fail ("unresolved vocal clarification stored pending unexpectedly: " + $unexpectedVocalPending.Line)
+}
+Write-Ok ("unresolved vocal asks clarification without pending: " + $vocalReply)
+
 Write-Step "Run confirmation turn"
 $confirmMessage = Join-UnicodeChars @(0x53EF, 0x4EE5, 0x6267, 0x884C)
 $confirm = Invoke-AgentChat -ConversationID $conversationID -Message $confirmMessage

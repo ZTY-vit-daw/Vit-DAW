@@ -67,6 +67,71 @@ Notes:
 - Use `-ReuseKernel` only when the currently running kernel is intentionally the
   one under test.
 
+## Product-Path Lifecycle + Mix Smoke
+
+Path:
+
+```powershell
+D:\Vit_DAW\scripts\run_vit_product_path_smoke.ps1
+```
+
+Purpose:
+
+- Start or reuse the Godot project runtime for
+  `D:\Godot\project\vit-daw-frontend`.
+- Build `VitAgent`, then let the Godot project lifecycle autostart the agent
+  and kernel.
+- Verify the Godot project process, agent HTTP, and kernel ZMQ ports are present
+  in one run.
+- Verify Godot lifecycle evidence for the agent/kernel chain: prefer explicit
+  autostart child logs when Godot debug logging prints them; otherwise require
+  the Godot runtime agent self-check plus matching agent/kernel port owner
+  paths.
+- Create the deterministic two-track fixture through the live agent/kernel path.
+- Send the full-project mix conversation through agent HTTP after the Godot
+  project lifecycle is up.
+- Verify the pending/confirm route:
+  `mix.propose_tick -> mix.apply_tick -> mix.observe`.
+- Verify no `daw.invoke` or direct `track.volume` appears on the confirmation
+  path.
+- Save a smoke artifact folder containing `processes`, `ports`,
+  `conversation_id`, `observation_id`, `pending_candidate`, `tool_route`, and
+  `before_after` evidence.
+- Save `mix_loop_v1` evidence in `summary.json`: confirmation-turn counts for
+  propose/apply/reobserve, post-confirm pending event count, any next pending
+  candidate, and `auto_second_apply_detected=false`.
+- Assert the confirmation turn executes exactly one propose/apply/reobserve
+  route. If a next candidate is generated, it must remain pending and require a
+  later explicit confirmation.
+- Verify the vocal focus relationship path with "make the lead vocal more
+  forward": the turn may finish as `done` or `needs_clarification`, but it must
+  route through `mix.observe` and `mix.derive` and must not call
+  `mix.apply_tick`, `daw.invoke`, or direct `track.volume`.
+- Keep `summary.json` compact; full raw chat responses remain in
+  `chat_observe.json`, `chat_confirm.json`, `chat_no_pending.json`, and
+  `chat_vocal_focus.json`.
+
+Common command:
+
+```powershell
+D:\Vit_DAW\scripts\run_vit_product_path_smoke.ps1 -RepoRoot D:\Vit_DAW
+D:\Vit_DAW\scripts\run_vit_product_path_smoke.ps1 -RepoRoot D:\Vit_DAW -GodotProjectRoot D:\Godot\project\vit-daw-frontend -GodotExe D:\Godot\Godot_v4.6.1-stable_win64.exe
+```
+
+Notes:
+
+- Until a programmable Godot chat hook exists, this smoke records
+  `interaction_path=agent_http_after_godot_project_lifecycle`. That means it
+  proves the Godot project lifecycle plus the real agent/kernel mix route, but
+  it does not claim automated typing into the Godot chat input.
+- The script can infer `-GodotExe` and `-GodotProjectRoot` from an already-open
+  Godot editor whose command line contains `--path <project> --editor`.
+- Use `-ReuseGodot`, `-ReuseAgent`, or `-ReuseKernel` when intentionally testing
+  already-running local components. `-ReuseUI` and `-UIExe` are retained only for
+  explicit exported launcher checks; they are not the default product path.
+- By default, processes started by this script are stopped at the end. Use
+  `-KeepProcesses` to leave them running for manual inspection.
+
 ## Go Regression Set
 
 Run after changing mix observation, pending candidate, confirmation routing, or
@@ -76,3 +141,47 @@ harness behavior:
 cd D:\Vit_DAW\agent
 go test ./internal/mixboard ./internal/harness ./internal/chat ./internal/agentloop -count=1
 ```
+
+Mix observation contracts covered by this set include full-project active
+acoustic track counts, per-track lightweight acoustic packages with
+peak/RMS/headroom/crest and primary clip source fields, loudness/peak/headroom
+rankings, and vocal focus routing for `full_project_with_focus_track`.
+
+## Live Material Observation Smoke
+
+Path:
+
+```powershell
+D:\Vit_DAW\scripts\run_live_material_observation_smoke.ps1
+```
+
+Purpose:
+
+- Build/restart or reuse `VitAgent`.
+- Start or reuse a live kernel.
+- Create a fresh project and import available real materials from the repo root,
+  including `test_100hz_10s.wav`, `Paper Crown.mp3`, root-level MP3 files, and a
+  repo demo OGG when present.
+- Directly invoke `mix.observe scope=full_project` through agent HTTP.
+- Verify every imported track has a ready lightweight acoustic package with
+  peak, RMS, headroom, crest, primary clip id/name, and source path.
+- Verify loudness, peak, and headroom-risk rankings include the imported
+  material tracks.
+- Save compact artifacts: `summary.json`, `imports.json`, `track_acoustics.json`,
+  `rankings.json`, and the raw `mix_observe_full_project.json`.
+
+Common command:
+
+```powershell
+D:\Vit_DAW\scripts\run_live_material_observation_smoke.ps1 -RepoRoot D:\Vit_DAW
+```
+
+Notes:
+
+- This smoke validates live kernel observation after real import. MP3 offline lab
+  support is allowed to remain unsupported; this path proves imported MP3 tracks
+  can still be observed through the running kernel.
+- Use `-MaterialPaths` to run a hand-picked material set.
+- By default, processes started by this script are stopped at the end. Use
+  `-KeepProcesses` to leave the imported material project running for manual
+  inspection.
