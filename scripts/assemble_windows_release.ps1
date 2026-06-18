@@ -79,6 +79,17 @@ Copy-Item -LiteralPath $KernelExe -Destination (Join-Path $RuntimeDir "VitApp.ex
 if (Test-Path -LiteralPath $AgentExe) {
     Copy-Item -LiteralPath $AgentExe -Destination (Join-Path $AgentDir "VitAgent.exe") -Force
     Write-Host "Included VitAgent.exe: $AgentExe"
+    $agentRoot = Split-Path -Parent (Split-Path -Parent $AgentExe)
+    $webUIDist = Join-Path $agentRoot "webui\dist"
+    if (Test-Path -LiteralPath $webUIDist) {
+        $webUIDest = Join-Path $AgentDir "webui\dist"
+        New-Item -ItemType Directory -Path $webUIDest -Force | Out-Null
+        Copy-Item -Path (Join-Path $webUIDist "*") -Destination $webUIDest -Recurse -Force
+        Write-Host "Included Ask Vit WebUI dist: $webUIDist"
+    }
+    else {
+        Write-Warning "Ask Vit WebUI dist not found at $webUIDist; /app will show the not-built placeholder."
+    }
 }
 else {
     if ($RequireAgent) {
