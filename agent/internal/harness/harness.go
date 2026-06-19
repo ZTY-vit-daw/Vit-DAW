@@ -44,7 +44,7 @@ import (
 )
 
 type Harness struct {
-	kernel        kernelSender
+	kernel        KernelSender
 	shadow        *shadow.Project
 	catalog       *tools.Catalog
 	journal       *journal.Journal
@@ -54,7 +54,7 @@ type Harness struct {
 	snapshotCache *PluginSnapshotCache
 }
 
-type kernelSender interface {
+type KernelSender interface {
 	SendCommand(context.Context, map[string]any) (map[string]any, string, error)
 }
 
@@ -88,12 +88,20 @@ type InvokeResponse struct {
 }
 
 func New(kernelClient *kernel.Client, shadowProject *shadow.Project, logger *logx.Logger) *Harness {
+	return newWithSender(kernelClient, shadowProject, logger)
+}
+
+func NewWithSender(sender KernelSender, shadowProject *shadow.Project, logger *logx.Logger) *Harness {
+	return newWithSender(sender, shadowProject, logger)
+}
+
+func newWithSender(sender KernelSender, shadowProject *shadow.Project, logger *logx.Logger) *Harness {
 	j, err := journal.NewPersistent(500, defaultJournalPath())
 	if err != nil {
 		j = journal.New(500)
 	}
 	return &Harness{
-		kernel:        kernelClient,
+		kernel:        sender,
 		shadow:        shadowProject,
 		catalog:       tools.DefaultCatalog(),
 		journal:       j,
@@ -705,6 +713,7 @@ func broadMixWriteCommand(spec tools.CommandSpec, cmd map[string]any) bool {
 		"plugin_grabber_apply_control", "plugin_grabber.apply_control", "plugin_grabber.apply",
 		"set_plugin_param", "plugin.set_parameter", "plugin_set_parameter",
 		"set_volume", "track.volume",
+		"set_pan", "track.pan",
 		"control_add_macro", "control.add_macro", "rack.add_macro", "control_add_binding", "control.add_binding":
 		return true
 	default:

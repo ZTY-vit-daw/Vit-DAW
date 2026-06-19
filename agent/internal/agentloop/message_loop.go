@@ -277,6 +277,14 @@ func (l *MessageLoop) loop(ctx context.Context, r *Runner, state *runState) Resu
 			return r.fail(state, errors.New(out.FailureReason))
 		}
 		if out.NeedsClarification {
+			if reply, ok := messageLoopClarificationAsPendingMixSuggestion(state, out); ok {
+				state.trace = append(state.trace, planner.TraceEvent{Kind: "final_gate", Message: "mix execution question normalized to pending suggestion"})
+				return r.complete(state, reply)
+			}
+			if reply, ok := messageLoopClarificationAsPendingPanTreatment(state, out); ok {
+				state.trace = append(state.trace, planner.TraceEvent{Kind: "final_gate", Message: "pan clarification normalized to pending treatment"})
+				return r.complete(state, reply)
+			}
 			question := firstNonEmpty(out.ClarificationQuestion, out.Reply, "请告诉我这次要编辑的具体目标。")
 			question = messageLoopClarificationQuestion(state, question)
 			state.trace = append(state.trace, planner.TraceEvent{Kind: "clarification", Message: question})
@@ -523,19 +531,22 @@ func messageLoopNeedsDeterministicMixObservation(state *runState) bool {
 
 func messageLoopDeterministicMixObservationCall(state *runState) planner.ToolCall {
 	args := messageLoopMixObservationArgs(state.input.UserText, map[string]any{})
-	if trackID := firstNonEmpty(
-		state.executionMemory.ActiveWorkTargetTrackID,
-		firstStateTrackID(state.input.Context),
-		firstStateTrackID(state.input.State),
-	); trackID != "" {
-		setIfEmpty(args, "track_id", trackID)
-	}
-	if clipID := firstNonEmpty(
-		state.executionMemory.ActiveWorkTargetClipID,
-		firstStateClipID(state.input.Context),
-		firstStateClipID(state.input.State),
-	); clipID != "" {
-		setIfEmpty(args, "clip_id", clipID)
+	scope := strings.ToLower(strings.TrimSpace(fmt.Sprint(args["scope"])))
+	if scope != "full_project" && scope != "full_project_with_focus_track" {
+		if trackID := firstNonEmpty(
+			state.executionMemory.ActiveWorkTargetTrackID,
+			firstStateTrackID(state.input.Context),
+			firstStateTrackID(state.input.State),
+		); trackID != "" {
+			setIfEmpty(args, "track_id", trackID)
+		}
+		if clipID := firstNonEmpty(
+			state.executionMemory.ActiveWorkTargetClipID,
+			firstStateClipID(state.input.Context),
+			firstStateClipID(state.input.State),
+		); clipID != "" {
+			setIfEmpty(args, "clip_id", clipID)
+		}
 	}
 	return planner.ToolCall{
 		ID:     "observe_mix",
@@ -997,6 +1008,115 @@ func messageLoopClarificationQuestion(state *runState, question string) string {
 	return question
 }
 
+func messageLoopClarificationAsPendingMixSuggestion(state *runState, out messageLoopOutput) (string, bool) {
+	if state == nil || !out.NeedsClarification {
+		return "", false
+	}
+	if !messageLoopNaturalMixRequest(state.input.UserText) || messageLoopExplicitPluginOrRawRequest(state.input.UserText) || !messageLoopHasUsableMixObservation(state) {
+		return "", false
+	}
+	reply := strings.TrimSpace(firstNonEmpty(out.Reply, out.ClarificationQuestion))
+	if reply == "" {
+		return "", false
+	}
+	if messageLoopFocusRelationshipIntent(state.input.UserText) && !messageLoopHasResolvedFocusTrack(state) {
+		return "", false
+	}
+	hasSmallGainMove := false
+	if delta, _, ok := messageLoopExtractSingleGainDelta(reply); ok && delta != 0 && mathAbs(delta) <= 2 {
+		hasSmallGainMove = true
+	}
+	deltaPan, targetPan := messageLoopTreatmentPanFromReply(reply)
+	hasSmallPanMove := deltaPan != 0 || targetPan != nil
+	if !hasSmallGainMove && !hasSmallPanMove {
+		return "", false
+	}
+	executionQuestion := messageLoopTextHasAny(strings.ToLower(reply), "should i", "shall i", "would you like me", "\u662f\u5426", "\u8981\u4e0d\u8981", "\u8981\u6211")
+	if !executionQuestion && !messageLoopMixReplyAsksForExecution(reply) && !messageLoopClarificationAsksForExecution(reply) {
+		return "", false
+	}
+	return messageLoopMixObservationFinalReply(state, reply), true
+}
+
+func messageLoopClarificationAsPendingPanTreatment(state *runState, out messageLoopOutput) (string, bool) {
+	if state == nil || !out.NeedsClarification {
+		return "", false
+	}
+	if !messageLoopNaturalMixRequest(state.input.UserText) || messageLoopExplicitPluginOrRawRequest(state.input.UserText) || !messageLoopHasUsableMixObservation(state) {
+		return "", false
+	}
+	deltaPan, targetPan := messageLoopTreatmentPanFromReply(state.input.UserText)
+	if deltaPan == 0 && targetPan == nil {
+		return "", false
+	}
+	targetID := messageLoopPendingMixCandidateTrackID(state, firstNonEmpty(out.Reply, state.input.UserText), state.input.UserText)
+	if targetID == "" {
+		return "", false
+	}
+	targetID = messageLoopCanonicalMixTrackID(state, targetID)
+	observationID := messageLoopLastMixObservationField(state, "observation_id")
+	treatment := &MixTreatmentPending{
+		SchemaVersion:             "mix_treatment_pending.v0",
+		Status:                    "pending_confirmation",
+		ConversationID:            messageLoopConversationID(state),
+		ObservationID:             observationID,
+		Intent:                    strings.TrimSpace(state.input.UserText),
+		TargetRef:                 "track:" + targetID,
+		ActionKind:                "pan_balance",
+		ProcessorType:             "utility",
+		DeltaPan:                  deltaPan,
+		TargetPan:                 targetPan,
+		ReasoningSummary:          "explicit small pan move from user text",
+		Confidence:                "high",
+		EvidenceRefs:              []string{observationID},
+		NeedsResolution:           nil,
+		ExpiresAfterContextChange: true,
+		CreatedFromReply:          firstNonEmpty(out.Reply, state.input.UserText),
+		Fingerprint: map[string]any{
+			"conversation_id":   messageLoopConversationID(state),
+			"goal_id":           state.goal.GoalID,
+			"run_id":            state.goal.RunID,
+			"observation_id":    observationID,
+			"target_scope":      messageLoopLastMixObservationScope(state),
+			"target_track_id":   targetID,
+			"track_count":       messageLoopPendingMixCandidateTrackCount(state),
+			"created_from_turn": state.turnsUsed,
+			"mix_session_id":    messageLoopLastMixObservationField(state, "mix_session_id"),
+		},
+	}
+	state.executionMemory.PendingMixTreatment = treatment
+	reply := strings.TrimSpace(out.Reply)
+	if reply == "" {
+		reply = "我已把这个声像小动作作为待确认混音步骤。"
+	}
+	if !messageLoopMixReplyAsksForExecution(reply) && !messageLoopClarificationAsksForExecution(reply) {
+		reply += "\n\n如果你认可这个小步建议，需要我继续执行吗？"
+	}
+	return reply, true
+}
+
+func messageLoopCanonicalMixTrackID(state *runState, ref string) string {
+	ref = strings.TrimSpace(ref)
+	if state == nil || ref == "" {
+		return ref
+	}
+	for _, row := range messageLoopPendingMixCandidateTrackRows(state) {
+		trackID := firstMapText(row, "track_id", "id", "target_track_id")
+		if trackID == "" {
+			continue
+		}
+		if strings.EqualFold(trackID, ref) {
+			return trackID
+		}
+		for _, alias := range messageLoopTrackMentionAliases(row) {
+			if strings.EqualFold(strings.TrimSpace(alias), ref) {
+				return trackID
+			}
+		}
+	}
+	return ref
+}
+
 func messageLoopFinalFocusTrackClarification(state *runState, reply string) (string, bool) {
 	reply = strings.TrimSpace(reply)
 	if state == nil || reply == "" || !messageLoopFocusRelationshipIntent(state.input.UserText) || messageLoopHasResolvedFocusTrack(state) {
@@ -1197,8 +1317,10 @@ Rules:
 - Do not call clip.warm_waveform_bake / warm_waveform_bake directly for broad mixing observation. mix.observe owns waveform and envelope feature preparation.
 - After mix.observe/mix.read/mix.derive for a broad mixing request, stop and summarize the observed project/audio facts plus one suggested next small move, then ask whether the user wants you to continue executing that move. Do not load plugins, learn profiles, change volume, apply controls, or write parameters in the same user request. Wait for the user to explicitly confirm a concrete follow-up action first.
 - Treat deep/slow packages as optional. If they are missing, pending, partial, or blocked, say what uncertainty remains and base suggestions only on available evidence.
-- When the user confirms the proposed small mix move, use mix.propose_tick and then mix.apply_tick; v1 supports only track_gain_adjust up to +/-2 dB and the tool will execute through primitive set_volume. Do not call track.volume directly for an acoustic mix tick.
-- Keep each mixing action to one safe small step or one clearly coupled small move. v1 execution supports track_gain_adjust only. For plugin/EQ/compressor/reverb moves, stop and explain that the needed action is not yet enabled as a mix tick unless the user gives an exact non-acoustic parameter edit.
+- When the user confirms the proposed small mix move, use mix.propose_tick and then mix.apply_tick; v1 supports track_gain_adjust up to +/-2 dB through set_volume and track_pan_adjust/track_pan_set through set_pan. Do not call track.volume or track.pan directly for an acoustic mix tick.
+- Keep each mixing action to one safe small step or one clearly coupled small move. v1 direct execution supports gain and pan ticks only.
+- For plugin/EQ/compressor/reverb/delay/saturation/gain/pan treatment after observation, you may propose a treatment direction but you must not execute it in the same turn. If you propose one, append one internal marker line exactly like: mix_treatment_pending: {"schema_version":"mix_treatment_pending.v0","status":"pending_confirmation","intent":"...","target_ref":"track:<id>|vocal_unknown|project","action_kind":"plugin_treatment|gain_balance|pan_balance|ask_clarification|observation_only","processor_type":"eq|compressor|reverb|delay|saturation|utility|unknown","reasoning_summary":"...","confidence":"low|medium|high","evidence_refs":["..."],"needs_resolution":["target_track","plugin_instance","plugin_profile","exact_control"],"expires_after_context_change":true}. For gain_balance only, include an explicit "delta_db" within +/-2 dB; for pan_balance include either "delta_pan" within +/-0.15 or "target_pan" within -1.0..+1.0. If you do not have an exact small value, leave exact_control in needs_resolution instead. This marker is for the local resolver and will be hidden from the user.
+- Do not invent plugin instances, profiles, controls, or exact parameters in a treatment pending. The local resolver decides whether the confirmed treatment can execute, needs preparation, or needs clarification.
 - Use plugin.set_parameter only when the user explicitly names an exact raw parameter/value or prior tool evidence gives a high-confidence exact param_id and display domain. Never use it as a fallback for subjective acoustic mixing goals.
 - If the user says to undo or roll back the last mix move, use the available project undo/rollback path directly instead of returning to a mixing workflow.
 - Do not invent track_id, clip_id, plugin_id, or tool names.
@@ -1849,12 +1971,16 @@ func messageLoopNaturalMixRequest(userText string) bool {
 	if text == "" {
 		return false
 	}
+	if messageLoopTextHasAny(text, "\u5de6", "\u53f3", "\u5c45\u4e2d", "\u56de\u4e2d", "\u4e2d\u95f4", "left", "right", "center", "centre") &&
+		messageLoopTextHasAny(text, "\u58f0\u50cf", "\u58f0\u76f8", "\u8f68\u9053", "\u5409\u4ed6", "\u8d1d\u65af", "\u9f13", "\u4e3b\u5531", "\u4eba\u58f0", "pan", "panning", "track", "guitar", "bass", "drum", "vocal", "voice") {
+		return true
+	}
 	return messageLoopTextHasAny(text,
 		"\u6df7\u97f3", "\u6df7\u4e00\u4e0b", "\u5e2e\u6211\u6df7", "\u7f29\u6df7", "\u58f0\u97f3\u5904\u7406", "\u8c03\u4e00\u4e0b", "\u5904\u7406\u4e00\u4e0b",
 		"\u4e3b\u5531", "\u4eba\u58f0", "vocal", "lead vocal",
 		"\u9760\u524d", "\u5f80\u524d", "\u63d0\u5347\u54cd\u5ea6", "\u54cd\u5ea6", "\u66f4\u4eae", "\u660e\u4eae", "\u6d51\u6d4a", "\u523a\u8033",
-		"\u4f4e\u9891", "\u4f4e\u4e2d\u9891", "\u7a7a\u95f4\u611f", "\u52a0\u4e00\u70b9\u7a7a\u95f4", "\u52a8\u6001", "\u538b\u7f29",
-		"mix", "mixing", "loudness", "louder", "forward", "mud", "muddy", "harsh", "bright", "space", "reverb", "dynamic",
+		"\u4f4e\u9891", "\u4f4e\u4e2d\u9891", "\u7a7a\u95f4\u611f", "\u52a0\u4e00\u70b9\u7a7a\u95f4", "\u58f0\u50cf", "\u58f0\u76f8", "\u58f0\u573a", "\u52a8\u6001", "\u538b\u7f29",
+		"mix", "mixing", "loudness", "louder", "forward", "mud", "muddy", "harsh", "bright", "space", "reverb", "pan", "panning", "stereo field", "dynamic",
 	)
 }
 
@@ -1906,8 +2032,8 @@ func messageLoopExplicitMixExecutionConfirmation(userText string) bool {
 	)
 	hasConcreteMove := messageLoopTextHasAny(text,
 		"db", "hz", "khz", "%", "percent", "\u5206\u8d1d", "\u8d6b\u5179",
-		"\u63d0\u5347", "\u964d\u4f4e", "\u589e\u52a0", "\u51cf\u5c11", "\u538b", "\u524a", "\u5207", "\u52a0", "\u51cf", "\u4e0d\u8981\u52a8\u97f3\u91cf",
-		"boost", "cut", "raise", "lower", "reduce", "compress", "volume", "gain", "reverb", "eq",
+		"\u63d0\u5347", "\u964d\u4f4e", "\u589e\u52a0", "\u51cf\u5c11", "\u58f0\u50cf", "\u58f0\u76f8", "\u5de6", "\u53f3", "\u538b", "\u524a", "\u5207", "\u52a0", "\u51cf", "\u4e0d\u8981\u52a8\u97f3\u91cf",
+		"boost", "cut", "raise", "lower", "reduce", "compress", "volume", "gain", "pan", "panning", "left", "right", "center", "reverb", "eq",
 	)
 	return hasApproval && hasConcreteMove
 }
@@ -1923,6 +2049,14 @@ func messageLoopMixObservationArgs(userText string, args map[string]any) map[str
 	out := cloneMap(args)
 	if out == nil {
 		out = map[string]any{}
+	}
+	if index, ok := messageLoopUserTrackIndexFromText(userText); ok {
+		if firstMapText(out, "track_id", "selected_track_id", "target_track_id") == "" {
+			out["track_id"] = fmt.Sprintf("Track %d", index)
+		}
+		if _, exists := out["user_track_index"]; !exists {
+			out["user_track_index"] = index
+		}
 	}
 	scope := strings.TrimSpace(fmt.Sprint(out["scope"]))
 	if scope == "" || scope == "<nil>" {
@@ -2071,7 +2205,8 @@ func messageLoopMixObserveFirstBlockedTool(call planner.ToolCall) bool {
 		"plugin_grabber.learn_project_profile", "plugin_grabber_learn_project_profile",
 		"plugin_grabber.apply_control", "plugin_grabber_apply_control", "plugin_grabber.apply",
 		"plugin.set_parameter", "plugin_set_parameter", "set_plugin_param",
-		"track.volume", "set_volume",
+		"daw.invoke", "daw_invoke",
+		"track.volume", "set_volume", "track.pan", "track_pan", "set_pan",
 		"rack.add_macro", "control_add_macro", "control.add_macro", "control.add_binding", "control_add_binding":
 		return true
 	default:
@@ -2353,6 +2488,9 @@ func messageLoopMixObservationFinalReply(state *runState, reply string) string {
 	}
 	if candidate := messageLoopPendingMixTickCandidateFromReply(state, reply); candidate != nil {
 		state.executionMemory.PendingMixTickCandidate = candidate
+	} else if treatment := messageLoopMixTreatmentPendingFromReply(state, reply); treatment != nil {
+		state.executionMemory.PendingMixTreatment = treatment
+		reply = messageLoopStripMixTreatmentPendingMarkup(reply)
 	}
 	if messageLoopMixReplyAsksForExecution(reply) {
 		return reply

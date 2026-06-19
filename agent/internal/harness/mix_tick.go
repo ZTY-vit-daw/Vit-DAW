@@ -11,7 +11,10 @@ import (
 
 const (
 	mixTickOpTrackGainAdjust = "track_gain_adjust"
+	mixTickOpTrackPanAdjust  = "track_pan_adjust"
+	mixTickOpTrackPanSet     = "track_pan_set"
 	mixTickMaxAbsDeltaDB     = 2.0
+	mixTickMaxAbsDeltaPan    = 0.15
 	mixTickRollbackWindow    = 16
 )
 
@@ -23,8 +26,12 @@ type mixTickRecord struct {
 	ObservationID string
 	Evidence      map[string]any
 	DeltaDB       float64
+	DeltaPan      float64
+	TargetPan     *float64
 	BeforeDB      *float64
 	AfterDB       *float64
+	BeforePan     *float64
+	AfterPan      *float64
 	Status        string
 	CreatedAt     time.Time
 	UpdatedAt     time.Time
@@ -108,13 +115,25 @@ func (h *Harness) proposeMixTick(ctx context.Context, cmd map[string]any) (map[s
 	if op == "" {
 		op = mixTickOpTrackGainAdjust
 	}
-	if op != mixTickOpTrackGainAdjust {
-		return map[string]any{"status": "error", "error": "mix_tick v1 only supports track_gain_adjust", "supported_operations": []string{mixTickOpTrackGainAdjust}}, nil
+	if !mixTickSupportedOperation(op) {
+		return map[string]any{"status": "error", "error": "unsupported mix tick operation", "supported_operations": []string{mixTickOpTrackGainAdjust, mixTickOpTrackPanAdjust, mixTickOpTrackPanSet}}, nil
 	}
 	trackID := firstString(cmd, "track_id")
 	if trackID == "" {
 		return map[string]any{"status": "error", "error": "track_id is required"}, nil
 	}
+	state := h.UserStateSummary(context.Background())
+	trackRow := firstTrackRow(state, trackID)
+	if trackRow == nil {
+		return map[string]any{"status": "error", "error": "track not found in current project state", "track_id": trackID}, nil
+	}
+	if op == mixTickOpTrackGainAdjust {
+		return h.proposeTrackGainMixTick(cmd, state, trackRow, trackID, op)
+	}
+	return h.proposeTrackPanMixTick(cmd, state, trackRow, trackID, op)
+}
+
+func (h *Harness) proposeTrackGainMixTick(cmd map[string]any, state map[string]any, trackRow map[string]any, trackID, op string) (map[string]any, error) {
 	deltaValue, hasDelta := cmd["delta_db"]
 	if !hasDelta || isEmptyValue(deltaValue) {
 		return map[string]any{"status": "error", "error": "delta_db is required for mix_tick proposal; do not use an implicit default for acoustic mix execution"}, nil
@@ -126,19 +145,7 @@ func (h *Harness) proposeMixTick(ctx context.Context, cmd map[string]any) (map[s
 	if math.Abs(delta) > mixTickMaxAbsDeltaDB {
 		delta = math.Copysign(mixTickMaxAbsDeltaDB, delta)
 	}
-	state := h.UserStateSummary(context.Background())
-	var currentDB float64
-	found := false
-	for _, row := range mapRowsFromAny(state["tracks"]) {
-		if firstString(row, "track_id", "id") == trackID {
-			currentDB = numberFromAnyWithDefault(firstPresentAny(row, "volume_db", "gain_db", "fader_db"), 0)
-			found = true
-			break
-		}
-	}
-	if !found {
-		return map[string]any{"status": "error", "error": "track not found in current project state", "track_id": trackID}, nil
-	}
+	currentDB := numberFromAnyWithDefault(firstPresentAny(trackRow, "volume_db", "gain_db", "fader_db"), 0)
 	projectPeak := numberFromAnyWithDefault(firstPresentAny(state, "master_peak_dbfs", "peak_dbfs"), -120)
 	projectHeadroom := numberFromAnyWithDefault(firstPresentAny(state, "project_headroom_db", "headroom_db"), 12)
 	proposed := clampFloat(currentDB+delta, -60, 12)
@@ -147,7 +154,7 @@ func (h *Harness) proposeMixTick(ctx context.Context, cmd map[string]any) (map[s
 		TickID:        tickID,
 		Operation:     op,
 		TrackID:       trackID,
-		TrackName:     firstNonEmpty(firstString(firstTrackRow(state, trackID), "track_name", "name"), trackID),
+		TrackName:     firstNonEmpty(firstString(trackRow, "track_name", "name"), trackID),
 		ObservationID: firstString(cmd, "observation_id"),
 		Evidence:      cloneAnyMap(mapAnyFromAny(cmd["evidence"])),
 		DeltaDB:       delta,
@@ -175,6 +182,94 @@ func (h *Harness) proposeMixTick(ctx context.Context, cmd map[string]any) (map[s
 	return result, nil
 }
 
+func (h *Harness) proposeTrackPanMixTick(cmd map[string]any, state map[string]any, trackRow map[string]any, trackID, op string) (map[string]any, error) {
+	currentPan := numberFromAnyWithDefault(firstPresentAny(trackRow, "pan", "pan_value", "balance"), 0)
+	var proposed float64
+	var deltaPan float64
+	var targetPan *float64
+	if op == mixTickOpTrackPanSet {
+		targetValue, hasTarget := firstPresentAnyWithOK(cmd, "pan", "pan_value", "target_pan")
+		if !hasTarget || isEmptyValue(targetValue) {
+			return map[string]any{"status": "error", "error": "pan is required for track_pan_set proposal"}, nil
+		}
+		target := clampFloat(numberFromAnyWithDefault(targetValue, currentPan), -1, 1)
+		targetPan = &target
+		proposed = target
+		deltaPan = proposed - currentPan
+	} else {
+		deltaValue, hasDelta := firstPresentAnyWithOK(cmd, "delta_pan", "pan_delta")
+		if !hasDelta || isEmptyValue(deltaValue) {
+			return map[string]any{"status": "error", "error": "delta_pan is required for track_pan_adjust proposal"}, nil
+		}
+		deltaPan = numberFromAnyWithDefault(deltaValue, 0)
+		if deltaPan == 0 {
+			return map[string]any{"status": "error", "error": "delta_pan must be non-zero"}, nil
+		}
+		if math.Abs(deltaPan) > mixTickMaxAbsDeltaPan {
+			deltaPan = math.Copysign(mixTickMaxAbsDeltaPan, deltaPan)
+		}
+		proposed = clampFloat(currentPan+deltaPan, -1, 1)
+	}
+	tickID := "mix_tick_" + randomID()
+	rec := &mixTickRecord{
+		TickID:        tickID,
+		Operation:     op,
+		TrackID:       trackID,
+		TrackName:     firstNonEmpty(firstString(trackRow, "track_name", "name"), trackID),
+		ObservationID: firstString(cmd, "observation_id"),
+		Evidence:      cloneAnyMap(mapAnyFromAny(cmd["evidence"])),
+		DeltaPan:      deltaPan,
+		TargetPan:     targetPan,
+		BeforePan:     &currentPan,
+		AfterPan:      &proposed,
+		Status:        "proposed",
+	}
+	if h.mixTicks != nil {
+		h.mixTicks.put(rec)
+	}
+	return map[string]any{
+		"status":                "ok",
+		"tick_id":               tickID,
+		"operation":             op,
+		"requires_confirmation": true,
+		"track_id":              trackID,
+		"track_name":            rec.TrackName,
+		"delta_pan":             deltaPan,
+		"target_pan":            targetPanValue(targetPan),
+		"before_pan":            currentPan,
+		"after_pan":             proposed,
+		"preview":               fmt.Sprintf("%s %s pan %+0.2f -> %+0.2f", op, trackID, currentPan, proposed),
+	}, nil
+}
+
+func mixTickSupportedOperation(op string) bool {
+	switch strings.TrimSpace(op) {
+	case mixTickOpTrackGainAdjust, mixTickOpTrackPanAdjust, mixTickOpTrackPanSet:
+		return true
+	default:
+		return false
+	}
+}
+
+func targetPanValue(value *float64) any {
+	if value == nil {
+		return nil
+	}
+	return *value
+}
+
+func firstPresentAnyWithOK(row map[string]any, keys ...string) (any, bool) {
+	if row == nil {
+		return nil, false
+	}
+	for _, key := range keys {
+		if value, ok := row[key]; ok && !isEmptyValue(value) {
+			return value, true
+		}
+	}
+	return nil, false
+}
+
 func (h *Harness) applyMixTick(ctx context.Context, cmd map[string]any) (map[string]any, error) {
 	if h == nil || h.kernel == nil {
 		return map[string]any{"status": "error", "error": "kernel client is required"}, nil
@@ -200,9 +295,17 @@ func (h *Harness) applyMixTick(ctx context.Context, cmd map[string]any) (map[str
 		}
 		return map[string]any{"status": "error", "error": "mix tick is not pending", "tick_id": rec.TickID, "tick_status": rec.Status}, nil
 	}
-	if rec.Operation != mixTickOpTrackGainAdjust {
+	switch rec.Operation {
+	case mixTickOpTrackGainAdjust:
+		return h.applyTrackGainMixTick(ctx, rec)
+	case mixTickOpTrackPanAdjust, mixTickOpTrackPanSet:
+		return h.applyTrackPanMixTick(ctx, rec)
+	default:
 		return map[string]any{"status": "error", "error": "unsupported mix tick operation", "tick_id": rec.TickID}, nil
 	}
+}
+
+func (h *Harness) applyTrackGainMixTick(ctx context.Context, rec *mixTickRecord) (map[string]any, error) {
 	before := 0.0
 	if rec.BeforeDB != nil {
 		before = *rec.BeforeDB
@@ -248,6 +351,53 @@ func (h *Harness) applyMixTick(ctx context.Context, cmd map[string]any) (map[str
 	}, nil
 }
 
+func (h *Harness) applyTrackPanMixTick(ctx context.Context, rec *mixTickRecord) (map[string]any, error) {
+	before := 0.0
+	if rec.BeforePan != nil {
+		before = *rec.BeforePan
+	}
+	after := clampFloat(before+rec.DeltaPan, -1, 1)
+	if rec.AfterPan != nil {
+		after = *rec.AfterPan
+	}
+	reply, _, err := h.kernel.SendCommand(ctx, map[string]any{
+		"cmd":      "set_pan",
+		"track_id": rec.TrackID,
+		"pan":      after,
+	})
+	if err != nil || !kernelReplySucceeded(reply) {
+		return map[string]any{
+			"status":   "error",
+			"error":    mixTickKernelError(err, reply, "set_pan failed"),
+			"tick_id":  rec.TickID,
+			"track_id": rec.TrackID,
+		}, err
+	}
+	if h.catalog != nil {
+		if panSpec, ok := h.catalog.LookupCommand("set_pan"); ok {
+			h.afterKernelReply(ctx, panSpec, reply)
+		}
+	}
+	now := time.Now()
+	rec.Status = "applied"
+	rec.AfterPan = &after
+	rec.UpdatedAt = now
+	h.mixTicks.put(rec)
+	return map[string]any{
+		"status":           "ok",
+		"tick_id":          rec.TickID,
+		"operation":        rec.Operation,
+		"track_id":         rec.TrackID,
+		"track_name":       rec.TrackName,
+		"before_pan":       before,
+		"after_pan":        after,
+		"delta_pan":        after - before,
+		"kernel_command":   "set_pan",
+		"kernel_reply":     reply,
+		"requires_refresh": true,
+	}, nil
+}
+
 func (h *Harness) rollbackMixTick(ctx context.Context, cmd map[string]any) (map[string]any, error) {
 	if h == nil || h.kernel == nil {
 		return map[string]any{"status": "error", "error": "kernel client is required"}, nil
@@ -264,6 +414,17 @@ func (h *Harness) rollbackMixTick(ctx context.Context, cmd map[string]any) (map[
 	if !ok || rec == nil {
 		return map[string]any{"status": "error", "error": "unknown mix tick", "tick_id": tickID}, nil
 	}
+	switch rec.Operation {
+	case mixTickOpTrackGainAdjust:
+		return h.rollbackTrackGainMixTick(ctx, rec)
+	case mixTickOpTrackPanAdjust, mixTickOpTrackPanSet:
+		return h.rollbackTrackPanMixTick(ctx, rec)
+	default:
+		return map[string]any{"status": "error", "error": "unsupported mix tick operation", "tick_id": rec.TickID}, nil
+	}
+}
+
+func (h *Harness) rollbackTrackGainMixTick(ctx context.Context, rec *mixTickRecord) (map[string]any, error) {
 	if rec.BeforeDB == nil {
 		return map[string]any{"status": "error", "error": "mix tick has no rollback state", "tick_id": rec.TickID}, nil
 	}
@@ -298,6 +459,46 @@ func (h *Harness) rollbackMixTick(ctx context.Context, cmd map[string]any) (map[
 		"track_name":       rec.TrackName,
 		"restored_db":      *rec.BeforeDB,
 		"kernel_command":   "set_volume",
+		"kernel_reply":     reply,
+		"requires_refresh": true,
+	}, nil
+}
+
+func (h *Harness) rollbackTrackPanMixTick(ctx context.Context, rec *mixTickRecord) (map[string]any, error) {
+	if rec.BeforePan == nil {
+		return map[string]any{"status": "error", "error": "mix tick has no rollback state", "tick_id": rec.TickID}, nil
+	}
+	reply, _, err := h.kernel.SendCommand(ctx, map[string]any{
+		"cmd":      "set_pan",
+		"track_id": rec.TrackID,
+		"pan":      *rec.BeforePan,
+	})
+	if err != nil || !kernelReplySucceeded(reply) {
+		return map[string]any{
+			"status":   "error",
+			"error":    mixTickKernelError(err, reply, "rollback failed"),
+			"tick_id":  rec.TickID,
+			"track_id": rec.TrackID,
+		}, err
+	}
+	if h.catalog != nil {
+		if panSpec, ok := h.catalog.LookupCommand("set_pan"); ok {
+			h.afterKernelReply(ctx, panSpec, reply)
+		}
+	}
+	rec.Status = "rolled_back"
+	rec.UpdatedAt = time.Now()
+	if h.mixTicks != nil {
+		h.mixTicks.put(rec)
+	}
+	return map[string]any{
+		"status":           "ok",
+		"tick_id":          rec.TickID,
+		"operation":        rec.Operation,
+		"track_id":         rec.TrackID,
+		"track_name":       rec.TrackName,
+		"restored_pan":     *rec.BeforePan,
+		"kernel_command":   "set_pan",
 		"kernel_reply":     reply,
 		"requires_refresh": true,
 	}, nil

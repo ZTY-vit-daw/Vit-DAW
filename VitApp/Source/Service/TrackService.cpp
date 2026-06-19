@@ -85,6 +85,8 @@ juce::var createTrackState (te::Track& track)
             trackObject->setProperty ("volume_db", db);
             trackObject->setProperty ("gain_db", db);
             trackObject->setProperty ("fader_db", db);
+            trackObject->setProperty ("pan", volumePlugin->getPan());
+            trackObject->setProperty ("pan_value", volumePlugin->getPan());
         }
     }
 
@@ -159,6 +161,8 @@ juce::String buildTrackReply (te::AudioTrack& track, const juce::String& message
         response->setProperty ("volume_db", db);
         response->setProperty ("gain_db", db);
         response->setProperty ("fader_db", db);
+        response->setProperty ("pan", volumePlugin->getPan());
+        response->setProperty ("pan_value", volumePlugin->getPan());
     }
 
     return juce::JSON::toString (juce::var (response.release()));
@@ -410,6 +414,46 @@ juce::String TrackService::handleSetVolume (const juce::DynamicObject& object, c
                               + " (Converted to Gain)");
 
     return buildTrackReply (*targetTrack, "Track volume updated");
+}
+
+juce::String TrackService::handleSetPan (const juce::DynamicObject& object, const juce::String&) const
+{
+    auto* edit = getEdit != nullptr ? getEdit() : nullptr;
+
+    if (edit == nullptr)
+        return makeErrorReply ("No active edit loaded");
+
+    const auto trackID = object.getProperty ("track_id").toString().trim();
+    auto panVar = object.getProperty ("pan");
+
+    if (panVar.isVoid())
+        panVar = object.getProperty ("pan_value");
+
+    if (trackID.isEmpty())
+        return makeErrorReply ("set_pan requires a non-empty track_id");
+
+    if (! panVar.isDouble() && ! panVar.isInt() && ! panVar.isInt64())
+        return makeErrorReply ("set_pan requires a numeric pan field");
+
+    auto* targetTrack = findAudioTrackByID (*edit, trackID);
+
+    if (targetTrack == nullptr)
+        return makeErrorReply ("Audio track not found for track_id: " + trackID);
+
+    ensureMonitoringPlugins (*targetTrack);
+
+    auto* volumePlugin = targetTrack->getVolumePlugin();
+
+    if (volumePlugin == nullptr)
+        return makeErrorReply ("Volume/pan plugin unavailable for track_id: " + trackID);
+
+    const auto pan = juce::jlimit (-1.0f, 1.0f, static_cast<float> (static_cast<double> (panVar)));
+    volumePlugin->setPan (pan);
+    targetTrack->flushStateToValueTree();
+    edit->dispatchPendingUpdatesSynchronously();
+    edit->getTransport().ensureContextAllocated();
+
+    return buildTrackReply (*targetTrack, "Track pan updated");
 }
 
 juce::String TrackService::handleSetMute (const juce::DynamicObject& object, const juce::String&) const

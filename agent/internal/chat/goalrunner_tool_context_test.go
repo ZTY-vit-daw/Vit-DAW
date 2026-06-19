@@ -77,6 +77,26 @@ func TestAgentLoopToolContextRoutesRealChineseMidiRequestToPack(t *testing.T) {
 	}
 }
 
+func TestAgentLoopToolContextRoutesPanRequestToMixPack(t *testing.T) {
+	s := &Server{harness: harness.New(nil, nil, nil)}
+
+	ctx := s.agentLoopToolContext(agentModeDefault, "Track 2 pan left a little", nil)
+
+	for _, want := range []string{"mix.observe", "mix.propose_tick", "mix.apply_tick"} {
+		if !containsToolName(ctx.AllowedTools, want) {
+			t.Fatalf("%s missing from pan mix tool context: %+v", want, ctx.AllowedTools)
+		}
+	}
+	for _, unwanted := range []string{"daw.invoke", "track.pan", "plugin.set_parameter"} {
+		if containsToolName(ctx.AllowedTools, unwanted) {
+			t.Fatalf("pan request leaked %s into tool context: %+v", unwanted, ctx.AllowedTools)
+		}
+	}
+	if !strings.Contains(ctx.CatalogSummary, "Capability pack: mix") || !strings.Contains(ctx.CatalogSummary, "mix.observe") {
+		t.Fatalf("pan request did not receive mix capability pack:\n%s", ctx.CatalogSummary)
+	}
+}
+
 func containsToolName(names []string, want string) bool {
 	for _, name := range names {
 		if name == want {

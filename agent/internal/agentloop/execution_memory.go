@@ -34,6 +34,7 @@ type ExecutionMemory struct {
 	ActiveWorkTargetClipID   string                   `json:"active_work_target_clip_id,omitempty"`
 	ActiveWorkTargetPluginID string                   `json:"active_work_target_plugin_id,omitempty"`
 	PendingMixTickCandidate  *PendingMixTickCandidate `json:"pending_mix_tick_candidate,omitempty"`
+	PendingMixTreatment      *MixTreatmentPending     `json:"pending_mix_treatment,omitempty"`
 	Bindings                 []ExecutionBinding       `json:"bindings,omitempty"`
 }
 
@@ -53,11 +54,38 @@ type PendingMixTickCandidate struct {
 	Operation                 string         `json:"operation,omitempty"`
 	TrackID                   string         `json:"track_id,omitempty"`
 	DeltaDB                   float64        `json:"delta_db,omitempty"`
+	DeltaPan                  float64        `json:"delta_pan,omitempty"`
+	TargetPan                 *float64       `json:"target_pan,omitempty"`
 	ObservationID             string         `json:"observation_id,omitempty"`
 	Evidence                  map[string]any `json:"evidence,omitempty"`
 	CreatedFromReply          string         `json:"created_from_reply,omitempty"`
 	ExpiresAfterContextChange bool           `json:"expires_after_context_change,omitempty"`
 	Status                    string         `json:"status,omitempty"`
+	Fingerprint               map[string]any `json:"fingerprint,omitempty"`
+}
+
+type MixTreatmentPending struct {
+	SchemaVersion             string         `json:"schema_version,omitempty"`
+	Status                    string         `json:"status,omitempty"`
+	ConversationID            string         `json:"conversation_id,omitempty"`
+	ObservationID             string         `json:"observation_id,omitempty"`
+	Intent                    string         `json:"intent,omitempty"`
+	TargetRef                 string         `json:"target_ref,omitempty"`
+	ActionKind                string         `json:"action_kind,omitempty"`
+	ProcessorType             string         `json:"processor_type,omitempty"`
+	DeltaDB                   float64        `json:"delta_db,omitempty"`
+	DeltaPan                  float64        `json:"delta_pan,omitempty"`
+	TargetPan                 *float64       `json:"target_pan,omitempty"`
+	PluginID                  string         `json:"plugin_id,omitempty"`
+	PluginName                string         `json:"plugin_name,omitempty"`
+	Control                   string         `json:"control,omitempty"`
+	Target                    map[string]any `json:"target,omitempty"`
+	ReasoningSummary          string         `json:"reasoning_summary,omitempty"`
+	Confidence                string         `json:"confidence,omitempty"`
+	EvidenceRefs              []string       `json:"evidence_refs,omitempty"`
+	NeedsResolution           []string       `json:"needs_resolution,omitempty"`
+	ExpiresAfterContextChange bool           `json:"expires_after_context_change,omitempty"`
+	CreatedFromReply          string         `json:"created_from_reply,omitempty"`
 	Fingerprint               map[string]any `json:"fingerprint,omitempty"`
 }
 
@@ -284,6 +312,7 @@ func recentObservationForTool(call planner.ToolCall, result executorpkg.Result, 
 func cloneExecutionMemory(in ExecutionMemory) ExecutionMemory {
 	out := in
 	out.PendingMixTickCandidate = clonePendingMixTickCandidate(in.PendingMixTickCandidate)
+	out.PendingMixTreatment = cloneMixTreatmentPending(in.PendingMixTreatment)
 	out.Bindings = cloneExecutionBindings(in.Bindings)
 	return out
 }
@@ -293,7 +322,27 @@ func clonePendingMixTickCandidate(in *PendingMixTickCandidate) *PendingMixTickCa
 		return nil
 	}
 	out := *in
+	if in.TargetPan != nil {
+		targetPan := *in.TargetPan
+		out.TargetPan = &targetPan
+	}
 	out.Evidence = cloneMap(in.Evidence)
+	out.Fingerprint = cloneMap(in.Fingerprint)
+	return &out
+}
+
+func cloneMixTreatmentPending(in *MixTreatmentPending) *MixTreatmentPending {
+	if in == nil {
+		return nil
+	}
+	out := *in
+	if in.TargetPan != nil {
+		targetPan := *in.TargetPan
+		out.TargetPan = &targetPan
+	}
+	out.Target = cloneMap(in.Target)
+	out.EvidenceRefs = append([]string(nil), in.EvidenceRefs...)
+	out.NeedsResolution = append([]string(nil), in.NeedsResolution...)
 	out.Fingerprint = cloneMap(in.Fingerprint)
 	return &out
 }
@@ -340,6 +389,9 @@ func executionMemoryMap(memory ExecutionMemory) map[string]any {
 	}
 	if memory.PendingMixTickCandidate != nil {
 		out["pending_mix_tick_candidate"] = clonePendingMixTickCandidate(memory.PendingMixTickCandidate)
+	}
+	if memory.PendingMixTreatment != nil {
+		out["pending_mix_treatment"] = cloneMixTreatmentPending(memory.PendingMixTreatment)
 	}
 	if len(memory.Bindings) > 0 {
 		out["bindings"] = cloneExecutionBindings(memory.Bindings)

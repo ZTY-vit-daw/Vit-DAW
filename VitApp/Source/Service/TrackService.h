@@ -25,6 +25,7 @@ public:
     juce::String handleDeleteTrack (const juce::DynamicObject&, const juce::String&) const;
     juce::String handleRenameTrack (const juce::DynamicObject&, const juce::String&) const;
     juce::String handleSetVolume (const juce::DynamicObject&, const juce::String&) const;
+    juce::String handleSetPan (const juce::DynamicObject&, const juce::String&) const;
     juce::String handleSetMute (const juce::DynamicObject&, const juce::String&) const;
     juce::String handleSetSolo (const juce::DynamicObject&, const juce::String&) const;
 

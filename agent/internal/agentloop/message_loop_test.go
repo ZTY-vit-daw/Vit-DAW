@@ -677,6 +677,124 @@ func TestMessageLoopNaturalMixRequestDoesNotAllowObserveAndPluginLoadInSameModel
 	}
 }
 
+func TestMessageLoopPanRequestBlocksPrimitivePanUntilConfirmation(t *testing.T) {
+	client := &fakeMessageCompleter{responses: []string{
+		`{"final":false,"reply":"I will move the pan now.","tool_calls":[{"id":"pan_track","tool":"track.pan","args":{"track_id":"1007","pan":-0.1},"reason":"move Track 2 left"}]}`,
+		`{"final":true,"reply":"I observed Track 2 and can move it left a little after confirmation.\nmix_treatment_pending: {\"schema_version\":\"mix_treatment_pending.v0\",\"status\":\"pending_confirmation\",\"intent\":\"move Track 2 left a little\",\"target_ref\":\"track:1007\",\"action_kind\":\"pan_balance\",\"processor_type\":\"utility\",\"delta_pan\":-0.1,\"target\":{\"delta_pan\":-0.1},\"reasoning_summary\":\"single explicit pan step after observation\",\"confidence\":\"high\",\"evidence_refs\":[\"observation.digest\"],\"needs_resolution\":[],\"expires_after_context_change\":true}","tool_calls":[]}`,
+	}}
+	exec := &fakeMessageExecutor{}
+	loop := &MessageLoop{
+		Client:   client,
+		Config:   config.EngineConfig{BaseURL: "http://example.invalid", APIKey: "test", DefaultModel: "test"},
+		Executor: exec,
+		Budget:   Budget{MaxTurns: 4, MaxToolCalls: 3, MaxConsecutiveErrors: 2},
+	}
+
+	res := loop.Start(context.Background(), Input{
+		UserText:     "Track 2 pan left a little",
+		AllowedTools: []string{"mix.observe", "mix.request_observation", "track.pan"},
+	})
+
+	if res.Status != "completed" {
+		t.Fatalf("result = status=%q reply=%q error=%q", res.Status, res.Reply, res.Error)
+	}
+	if len(exec.calls) != 1 || exec.calls[0].Tool != "mix.observe" {
+		t.Fatalf("executor calls = %+v, want only deterministic mix.observe", exec.calls)
+	}
+	if got := fmt.Sprint(exec.calls[0].Args["track_id"]); got != "Track 2" {
+		t.Fatalf("track_id = %q, want Track 2; args=%+v", got, exec.calls[0].Args)
+	}
+	if got := fmt.Sprint(exec.calls[0].Args["user_track_index"]); got != "2" {
+		t.Fatalf("user_track_index = %q, want 2; args=%+v", got, exec.calls[0].Args)
+	}
+	treatment := res.ExecutionMemory.PendingMixTreatment
+	if treatment == nil || treatment.ActionKind != "pan_balance" || treatment.DeltaPan != -0.1 {
+		t.Fatalf("pending treatment = %+v", treatment)
+	}
+	if strings.Contains(res.Reply, "mix_treatment_pending") {
+		t.Fatalf("reply leaked treatment marker: %q", res.Reply)
+	}
+}
+
+func TestMessageLoopMixExecutionQuestionIsNotClarification(t *testing.T) {
+	client := &fakeMessageCompleter{responses: []string{
+		`{"needs_clarification":true,"reply":"Should I lower Track 2 by 1 dB?","tool_calls":[]}`,
+	}}
+	exec := &fakeMessageExecutor{}
+	loop := &MessageLoop{
+		Client:   client,
+		Config:   config.EngineConfig{BaseURL: "http://example.invalid", APIKey: "test", DefaultModel: "test"},
+		Executor: exec,
+		Budget:   Budget{MaxTurns: 4, MaxToolCalls: 2, MaxConsecutiveErrors: 2},
+	}
+
+	res := loop.Start(context.Background(), Input{
+		UserText:     "overall mix feels messy, help me fix it",
+		AllowedTools: []string{"mix.observe", "mix.request_observation"},
+		State: map[string]any{"tracks": []map[string]any{{
+			"track_id":         "1007",
+			"track_name":       "Track 1",
+			"user_track_index": 1,
+		}, {
+			"track_id":         "1010",
+			"track_name":       "Track 2",
+			"user_track_index": 2,
+		}}},
+	})
+
+	if res.Status != "completed" || res.StopReason != StopReasonDone {
+		t.Fatalf("result = status=%q stop=%q reply=%q error=%q", res.Status, res.StopReason, res.Reply, res.Error)
+	}
+	if len(exec.calls) != 1 || exec.calls[0].Tool != "mix.observe" {
+		t.Fatalf("executor calls = %+v, want deterministic mix.observe", exec.calls)
+	}
+	candidate := res.ExecutionMemory.PendingMixTickCandidate
+	if candidate == nil || candidate.Operation != "track_gain_adjust" || candidate.TrackID != "1010" || candidate.DeltaDB != -1 {
+		t.Fatalf("pending candidate = %+v", candidate)
+	}
+	if !strings.Contains(strings.ToLower(res.Reply), "should i lower track 2") {
+		t.Fatalf("reply = %q", res.Reply)
+	}
+}
+
+func TestMessageLoopPanAmountClarificationUsesSmallStepDefault(t *testing.T) {
+	client := &fakeMessageCompleter{responses: []string{
+		`{"needs_clarification":true,"reply":"How far left should Track 2 move? -10%, -20%, or a target pan value?","tool_calls":[]}`,
+	}}
+	exec := &fakeMessageExecutor{}
+	loop := &MessageLoop{
+		Client:   client,
+		Config:   config.EngineConfig{BaseURL: "http://example.invalid", APIKey: "test", DefaultModel: "test"},
+		Executor: exec,
+		Budget:   Budget{MaxTurns: 4, MaxToolCalls: 2, MaxConsecutiveErrors: 2},
+	}
+
+	res := loop.Start(context.Background(), Input{
+		UserText:     "Track 2 pan left a little",
+		AllowedTools: []string{"mix.observe", "mix.request_observation"},
+		State: map[string]any{"tracks": []map[string]any{{
+			"track_id":         "1007",
+			"track_name":       "Track 1",
+			"user_track_index": 1,
+		}, {
+			"track_id":         "1010",
+			"track_name":       "Track 2",
+			"user_track_index": 2,
+		}}},
+	})
+
+	if res.Status != "completed" || res.StopReason != StopReasonDone {
+		t.Fatalf("result = status=%q stop=%q reply=%q error=%q", res.Status, res.StopReason, res.Reply, res.Error)
+	}
+	if len(exec.calls) != 1 || exec.calls[0].Tool != "mix.observe" {
+		t.Fatalf("executor calls = %+v, want deterministic mix.observe", exec.calls)
+	}
+	treatment := res.ExecutionMemory.PendingMixTreatment
+	if treatment == nil || treatment.ActionKind != "pan_balance" || treatment.TargetRef != "track:1010" || treatment.DeltaPan != -0.1 {
+		t.Fatalf("pending treatment = %+v", treatment)
+	}
+}
+
 func TestMessageLoopMixObserveAddsScopeFromIntent(t *testing.T) {
 	client := &fakeMessageCompleter{responses: []string{
 		`{"final":false,"reply":"我先观察整体混音。","tool_calls":[{"id":"observe_mix","tool":"mix.request_observation","args":{},"reason":"先建立工程观察上下文"}]}`,
@@ -1270,6 +1388,221 @@ func TestMessageLoopFullProjectFinalReplyStoresPendingTickCandidateForMentionedT
 	}
 	if candidate.ObservationID != "obs_project" || candidate.Fingerprint["target_scope"] != "full_project" {
 		t.Fatalf("candidate metadata = %+v", candidate)
+	}
+}
+
+func TestMessageLoopFinalReplyStoresTreatmentPendingAndStripsMarker(t *testing.T) {
+	client := &fakeMessageCompleter{responses: []string{
+		`{"final":false,"reply":"observe","tool_calls":[{"id":"observe_mix","tool":"mix.observe","args":{"scope":"full_project"},"reason":"observe"}]}`,
+		`{"final":true,"reply":"低频有些糊，我建议先准备一个 EQ 类处理方向，确认后让 resolver 检查是否能安全执行。\nmix_treatment_pending: {\"schema_version\":\"mix_treatment_pending.v0\",\"status\":\"pending_confirmation\",\"intent\":\"reduce low-end mud\",\"target_ref\":\"project\",\"action_kind\":\"plugin_treatment\",\"processor_type\":\"eq\",\"reasoning_summary\":\"low end sounds muddy from available observation\",\"confidence\":\"medium\",\"evidence_refs\":[\"observation.digest\"],\"needs_resolution\":[\"target_track\",\"plugin_instance\",\"plugin_profile\",\"exact_control\"],\"expires_after_context_change\":true}","tool_calls":[]}`,
+	}}
+	exec := &fakeMessageExecutor{mixObservationResult: map[string]any{
+		"status":         "ok",
+		"mix_session_id": "mix_project",
+		"observation_id": "obs_treatment",
+		"digest": map[string]any{
+			"scope": "full_project",
+		},
+		"observation": map[string]any{
+			"target_ref": map[string]any{"kind": "project", "id": "current"},
+			"project_package": map[string]any{
+				"track_count": 2,
+			},
+		},
+	}}
+	loop := &MessageLoop{
+		Client:   client,
+		Config:   config.EngineConfig{BaseURL: "http://example.invalid", APIKey: "test", DefaultModel: "test"},
+		Executor: exec,
+		Budget:   Budget{MaxTurns: 5, MaxToolCalls: 3, MaxConsecutiveErrors: 2},
+	}
+
+	res := loop.Start(context.Background(), Input{
+		UserText:     "低频有点糊，看看怎么调",
+		AllowedTools: []string{"mix.observe", "mix.read", "mix.request_observation"},
+		State: map[string]any{"tracks": []map[string]any{{
+			"track_id": "1007", "track_name": "Track 1",
+		}, {
+			"track_id": "1012", "track_name": "Track 2",
+		}}},
+	})
+
+	if res.Status != "completed" {
+		t.Fatalf("result = status=%q reply=%q error=%q", res.Status, res.Reply, res.Error)
+	}
+	if strings.Contains(res.Reply, "mix_treatment_pending") {
+		t.Fatalf("reply leaked treatment marker: %q", res.Reply)
+	}
+	treatment := res.ExecutionMemory.PendingMixTreatment
+	if treatment == nil {
+		t.Fatalf("pending treatment missing; memory=%+v reply=%q", res.ExecutionMemory, res.Reply)
+	}
+	if treatment.SchemaVersion != "mix_treatment_pending.v0" || treatment.ActionKind != "plugin_treatment" || treatment.ProcessorType != "eq" {
+		t.Fatalf("pending treatment = %+v", treatment)
+	}
+	if treatment.ObservationID != "obs_treatment" || treatment.Status != "pending_confirmation" {
+		t.Fatalf("pending treatment metadata = %+v", treatment)
+	}
+}
+
+func TestMessageLoopTreatmentPendingParsesNestedTarget(t *testing.T) {
+	client := &fakeMessageCompleter{responses: []string{
+		`{"final":true,"reply":"可以准备一个明确插件控制，确认后由 resolver 检查执行。\nmix_treatment_pending: {\"schema_version\":\"mix_treatment_pending.v0\",\"status\":\"pending_confirmation\",\"intent\":\"reduce low mids\",\"target_ref\":\"track:1007\",\"action_kind\":\"plugin_treatment\",\"processor_type\":\"eq\",\"plugin_id\":\"nova_1\",\"control\":\"control low mids with band 2\",\"target\":{\"freq_hz\":300,\"gain_db\":-1.5,\"q\":1.1},\"reasoning_summary\":\"explicit control from profile\",\"confidence\":\"high\",\"evidence_refs\":[\"profile.virtual_controls\"],\"needs_resolution\":[],\"expires_after_context_change\":true}","tool_calls":[]}`,
+	}}
+	loop := &MessageLoop{
+		Client:   client,
+		Config:   config.EngineConfig{BaseURL: "http://example.invalid", APIKey: "test", DefaultModel: "test"},
+		Executor: &fakeMessageExecutor{},
+		Budget:   Budget{MaxTurns: 2, MaxToolCalls: 1, MaxConsecutiveErrors: 1},
+	}
+
+	res := loop.Start(context.Background(), Input{
+		UserText:     "低频糊，按已有 Nova 控制小调一下",
+		AllowedTools: []string{"mix.observe"},
+	})
+
+	if res.Status != "completed" {
+		t.Fatalf("result = status=%q reply=%q error=%q", res.Status, res.Reply, res.Error)
+	}
+	treatment := res.ExecutionMemory.PendingMixTreatment
+	if treatment == nil {
+		t.Fatalf("pending treatment missing; memory=%+v", res.ExecutionMemory)
+	}
+	if treatment.PluginID != "nova_1" || treatment.Control != "control low mids with band 2" {
+		t.Fatalf("pending treatment = %+v", treatment)
+	}
+	if treatment.Target["freq_hz"].(float64) != 300 || treatment.Target["gain_db"].(float64) != -1.5 {
+		t.Fatalf("target = %+v", treatment.Target)
+	}
+	if strings.Contains(res.Reply, "mix_treatment_pending") {
+		t.Fatalf("reply leaked treatment marker: %q", res.Reply)
+	}
+}
+
+func TestMessageLoopTreatmentPendingParsesGainDelta(t *testing.T) {
+	client := &fakeMessageCompleter{responses: []string{
+		`{"final":true,"reply":"Small gain move is pending.\nmix_treatment_pending: {\"schema_version\":\"mix_treatment_pending.v0\",\"status\":\"pending_confirmation\",\"intent\":\"bring vocal down slightly\",\"target_ref\":\"track:1007\",\"action_kind\":\"gain_balance\",\"processor_type\":\"utility\",\"delta_db\":-1.25,\"target\":{\"delta_db\":-1.25},\"reasoning_summary\":\"single explicit gain step\",\"confidence\":\"high\",\"evidence_refs\":[\"observation.digest\"],\"needs_resolution\":[],\"expires_after_context_change\":true}","tool_calls":[]}`,
+	}}
+	loop := &MessageLoop{
+		Client:   client,
+		Config:   config.EngineConfig{BaseURL: "http://example.invalid", APIKey: "test", DefaultModel: "test"},
+		Executor: &fakeMessageExecutor{},
+		Budget:   Budget{MaxTurns: 2, MaxToolCalls: 1, MaxConsecutiveErrors: 1},
+	}
+
+	res := loop.Start(context.Background(), Input{
+		UserText:     "bring the vocal down a little",
+		AllowedTools: []string{"mix.observe"},
+	})
+
+	if res.Status != "completed" {
+		t.Fatalf("result = status=%q reply=%q error=%q", res.Status, res.Reply, res.Error)
+	}
+	treatment := res.ExecutionMemory.PendingMixTreatment
+	if treatment == nil {
+		t.Fatalf("pending treatment missing; memory=%+v", res.ExecutionMemory)
+	}
+	if treatment.ActionKind != "gain_balance" || treatment.DeltaDB != -1.25 {
+		t.Fatalf("pending treatment = %+v", treatment)
+	}
+	if treatment.Target["delta_db"].(float64) != -1.25 {
+		t.Fatalf("target = %+v", treatment.Target)
+	}
+	if strings.Contains(res.Reply, "mix_treatment_pending") {
+		t.Fatalf("reply leaked treatment marker: %q", res.Reply)
+	}
+}
+
+func TestMessageLoopTreatmentPendingParsesPanDelta(t *testing.T) {
+	client := &fakeMessageCompleter{responses: []string{
+		`{"final":true,"reply":"Pan move is pending.\nmix_treatment_pending: {\"schema_version\":\"mix_treatment_pending.v0\",\"status\":\"pending_confirmation\",\"intent\":\"move guitar left slightly\",\"target_ref\":\"track:1007\",\"action_kind\":\"pan_balance\",\"processor_type\":\"utility\",\"delta_pan\":-0.1,\"target\":{\"delta_pan\":-0.1},\"reasoning_summary\":\"single explicit pan step\",\"confidence\":\"high\",\"evidence_refs\":[\"observation.digest\"],\"needs_resolution\":[],\"expires_after_context_change\":true}","tool_calls":[]}`,
+	}}
+	loop := &MessageLoop{
+		Client:   client,
+		Config:   config.EngineConfig{BaseURL: "http://example.invalid", APIKey: "test", DefaultModel: "test"},
+		Executor: &fakeMessageExecutor{},
+		Budget:   Budget{MaxTurns: 2, MaxToolCalls: 1, MaxConsecutiveErrors: 1},
+	}
+
+	res := loop.Start(context.Background(), Input{
+		UserText:     "move the guitar left a little",
+		AllowedTools: []string{"mix.observe"},
+	})
+
+	if res.Status != "completed" {
+		t.Fatalf("result = status=%q reply=%q error=%q", res.Status, res.Reply, res.Error)
+	}
+	treatment := res.ExecutionMemory.PendingMixTreatment
+	if treatment == nil {
+		t.Fatalf("pending treatment missing; memory=%+v", res.ExecutionMemory)
+	}
+	if treatment.ActionKind != "pan_balance" || treatment.DeltaPan != -0.1 || treatment.TargetPan != nil {
+		t.Fatalf("pending treatment = %+v", treatment)
+	}
+	if treatment.Target["delta_pan"].(float64) != -0.1 {
+		t.Fatalf("target = %+v", treatment.Target)
+	}
+	if strings.Contains(res.Reply, "mix_treatment_pending") {
+		t.Fatalf("reply leaked treatment marker: %q", res.Reply)
+	}
+}
+
+func TestMessageLoopTreatmentPendingParsesTargetPan(t *testing.T) {
+	client := &fakeMessageCompleter{responses: []string{
+		`{"final":true,"reply":"Pan center is pending.\nmix_treatment_pending: {\"schema_version\":\"mix_treatment_pending.v0\",\"status\":\"pending_confirmation\",\"intent\":\"center the vocal\",\"target_ref\":\"track:1007\",\"action_kind\":\"pan_balance\",\"processor_type\":\"utility\",\"target\":{\"target_pan\":0},\"reasoning_summary\":\"explicit center pan step\",\"confidence\":\"high\",\"evidence_refs\":[\"observation.digest\"],\"needs_resolution\":[],\"expires_after_context_change\":true}","tool_calls":[]}`,
+	}}
+	loop := &MessageLoop{
+		Client:   client,
+		Config:   config.EngineConfig{BaseURL: "http://example.invalid", APIKey: "test", DefaultModel: "test"},
+		Executor: &fakeMessageExecutor{},
+		Budget:   Budget{MaxTurns: 2, MaxToolCalls: 1, MaxConsecutiveErrors: 1},
+	}
+
+	res := loop.Start(context.Background(), Input{
+		UserText:     "center the vocal",
+		AllowedTools: []string{"mix.observe"},
+	})
+
+	if res.Status != "completed" {
+		t.Fatalf("result = status=%q reply=%q error=%q", res.Status, res.Reply, res.Error)
+	}
+	treatment := res.ExecutionMemory.PendingMixTreatment
+	if treatment == nil || treatment.TargetPan == nil {
+		t.Fatalf("pending treatment missing target pan; memory=%+v", res.ExecutionMemory)
+	}
+	if treatment.ActionKind != "pan_balance" || *treatment.TargetPan != 0 {
+		t.Fatalf("pending treatment = %+v", treatment)
+	}
+	if strings.Contains(res.Reply, "mix_treatment_pending") {
+		t.Fatalf("reply leaked treatment marker: %q", res.Reply)
+	}
+}
+
+func TestMessageLoopTreatmentPendingInfersGainDeltaFromSuggestedMove(t *testing.T) {
+	client := &fakeMessageCompleter{responses: []string{
+		`{"final":true,"reply":"Track 1 RMS is about -9.03 dBFS, peak is -6.02 dBFS, and headroom is about 6 dB. Suggested first step: lower Track 2 by 2 dB to create headroom.\nmix_treatment_pending: {\"schema_version\":\"mix_treatment_pending.v0\",\"status\":\"pending_confirmation\",\"intent\":\"reduce peak risk\",\"target_ref\":\"track:1010\",\"action_kind\":\"gain_balance\",\"processor_type\":\"utility\",\"reasoning_summary\":\"single explicit gain step\",\"confidence\":\"high\",\"evidence_refs\":[\"observation.digest\"],\"needs_resolution\":[],\"expires_after_context_change\":true}","tool_calls":[]}`,
+	}}
+	loop := &MessageLoop{
+		Client:   client,
+		Config:   config.EngineConfig{BaseURL: "http://example.invalid", APIKey: "test", DefaultModel: "test"},
+		Executor: &fakeMessageExecutor{},
+		Budget:   Budget{MaxTurns: 2, MaxToolCalls: 1, MaxConsecutiveErrors: 1},
+	}
+
+	res := loop.Start(context.Background(), Input{
+		UserText:     "help me check the overall mix",
+		AllowedTools: []string{"mix.observe"},
+	})
+
+	if res.Status != "completed" {
+		t.Fatalf("result = status=%q reply=%q error=%q", res.Status, res.Reply, res.Error)
+	}
+	treatment := res.ExecutionMemory.PendingMixTreatment
+	if treatment == nil {
+		t.Fatalf("pending treatment missing; memory=%+v", res.ExecutionMemory)
+	}
+	if treatment.ActionKind != "gain_balance" || treatment.DeltaDB != -2 {
+		t.Fatalf("pending treatment = %+v", treatment)
 	}
 }
 

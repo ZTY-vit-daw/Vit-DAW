@@ -659,31 +659,68 @@ func (s *Server) recordGoalResult(conversationID string, res agentloop.Result) {
 	if s == nil || res.GoalID == "" {
 		return
 	}
-	var pendingEvent *AgentEvent
+	var pendingEvents []AgentEvent
 	s.mu.Lock()
 	if strings.TrimSpace(conversationID) != "" {
 		s.conversationGoals[conversationID] = res.GoalID
 		if candidate := res.ExecutionMemory.PendingMixTickCandidate; candidate != nil && strings.EqualFold(strings.TrimSpace(candidate.Status), "pending_confirmation") {
 			s.pendingMixTicks[conversationID] = *candidate
 			if s.logger != nil {
-				s.logger.Info("[mix.tick.pending] stored conversation=%s goal=%s run=%s track=%s delta=%+.2f observation=%s",
-					conversationID, res.GoalID, res.RunID, candidate.TrackID, candidate.DeltaDB, candidate.ObservationID)
+				s.logger.Info("[mix.tick.pending] stored conversation=%s goal=%s run=%s %s observation=%s",
+					conversationID, res.GoalID, res.RunID, pendingMixTickLogSummary(*candidate), candidate.ObservationID)
 			}
-			pendingEvent = &AgentEvent{
+			pendingEvents = append(pendingEvents, AgentEvent{
 				Type:     "mix_tick.pending",
 				GoalID:   res.GoalID,
 				RunID:    res.RunID,
 				ItemType: "mix_tick",
 				Status:   "pending_confirmation",
 				Title:    "Mix tick pending confirmation",
-				Body:     fmt.Sprintf("Track %s %+0.2f dB is waiting for explicit confirmation.", candidate.TrackID, candidate.DeltaDB),
-				Payload: map[string]any{
-					"operation":      candidate.Operation,
-					"track_id":       candidate.TrackID,
-					"delta_db":       candidate.DeltaDB,
-					"observation_id": candidate.ObservationID,
-				},
+				Body:     pendingMixTickEventBody(*candidate),
+				Payload:  pendingMixTickEventPayload(*candidate, candidate.ObservationID),
+			})
+		}
+		if treatment := res.ExecutionMemory.PendingMixTreatment; treatment != nil && strings.EqualFold(strings.TrimSpace(treatment.Status), "pending_confirmation") {
+			if s.pendingTreatments == nil {
+				s.pendingTreatments = map[string]agentloop.MixTreatmentPending{}
 			}
+			s.pendingTreatments[conversationID] = *treatment
+			if s.logger != nil {
+				s.logger.Info("[mix.treatment.pending] stored conversation=%s goal=%s run=%s action=%s processor=%s target=%s observation=%s",
+					conversationID, res.GoalID, res.RunID, treatment.ActionKind, treatment.ProcessorType, treatment.TargetRef, treatment.ObservationID)
+			}
+			treatmentPayload := map[string]any{
+				"schema_version":    treatment.SchemaVersion,
+				"intent":            treatment.Intent,
+				"target_ref":        treatment.TargetRef,
+				"action_kind":       treatment.ActionKind,
+				"processor_type":    treatment.ProcessorType,
+				"delta_db":          treatment.DeltaDB,
+				"delta_pan":         treatment.DeltaPan,
+				"plugin_id":         treatment.PluginID,
+				"plugin_name":       treatment.PluginName,
+				"control":           treatment.Control,
+				"target":            cloneContext(treatment.Target),
+				"confidence":        treatment.Confidence,
+				"reasoning_summary": treatment.ReasoningSummary,
+				"evidence_refs":     append([]string(nil), treatment.EvidenceRefs...),
+				"needs_resolution":  treatment.NeedsResolution,
+				"observation_id":    treatment.ObservationID,
+			}
+			removeEmptyTreatmentValues(treatmentPayload)
+			if treatment.TargetPan != nil {
+				treatmentPayload["target_pan"] = *treatment.TargetPan
+			}
+			pendingEvents = append(pendingEvents, AgentEvent{
+				Type:     "mix_treatment.pending",
+				GoalID:   res.GoalID,
+				RunID:    res.RunID,
+				ItemType: "mix_treatment",
+				Status:   "pending_confirmation",
+				Title:    "Mix treatment pending confirmation",
+				Body:     fmt.Sprintf("%s treatment for %s is waiting for explicit confirmation.", treatment.ProcessorType, treatment.TargetRef),
+				Payload:  treatmentPayload,
+			})
 		}
 	}
 	if res.Continuation != nil {
@@ -692,8 +729,8 @@ func (s *Server) recordGoalResult(conversationID string, res agentloop.Result) {
 		delete(s.goalContinuations, res.GoalID)
 	}
 	s.mu.Unlock()
-	if pendingEvent != nil {
-		s.emitAgentEvent(conversationID, *pendingEvent)
+	for _, pendingEvent := range pendingEvents {
+		s.emitAgentEvent(conversationID, pendingEvent)
 	}
 }
 
@@ -825,7 +862,8 @@ func toolNamesForAgentLoopCapabilities(h *harness.Harness, mode string, capabili
 		available[name] = true
 	}
 	seen := map[string]bool{}
-	if agentModeFromString(mode) != agentModePlan && available["daw.invoke"] {
+	allowRawInvoke := len(capabilities) == 1 && capabilities[0] == "workspace"
+	if agentModeFromString(mode) != agentModePlan && available["daw.invoke"] && allowRawInvoke {
 		seen["daw.invoke"] = true
 	}
 	add := func(names ...string) {
@@ -905,8 +943,8 @@ func agentLoopCapabilityNames(userText string, requestContext map[string]any) []
 		add("plugin")
 	}
 	if agentLoopTextHasAny(text,
-		"\u6df7\u97f3", "\u7f29\u6df7", "\u4e3b\u5531", "\u4eba\u58f0", "\u58f0\u97f3", "\u54cd\u5ea6", "\u52a8\u6001", "\u7a7a\u95f4\u611f", "\u4f4e\u9891", "\u4f4e\u4e2d\u9891", "\u9ad8\u9891", "\u523a\u8033", "\u6d51\u6d4a", "\u9760\u524d", "\u9760\u540e", "\u66f4\u4eae", "\u66f4\u6697", "\u66f4\u7a33", "\u66f4\u7d27",
-		"mix", "mixing", "master", "vocal", "loudness", "presence", "mud", "muddy", "harsh", "bright", "dark", "forward", "back", "space", "depth", "dynamic",
+		"\u6df7\u97f3", "\u7f29\u6df7", "\u4e3b\u5531", "\u4eba\u58f0", "\u58f0\u97f3", "\u58f0\u50cf", "\u58f0\u76f8", "\u58f0\u573a", "\u54cd\u5ea6", "\u52a8\u6001", "\u7a7a\u95f4\u611f", "\u4f4e\u9891", "\u4f4e\u4e2d\u9891", "\u9ad8\u9891", "\u523a\u8033", "\u6d51\u6d4a", "\u9760\u524d", "\u9760\u540e", "\u5de6", "\u53f3", "\u5c45\u4e2d", "\u56de\u4e2d", "\u66f4\u4eae", "\u66f4\u6697", "\u66f4\u7a33", "\u66f4\u7d27",
+		"mix", "mixing", "master", "vocal", "loudness", "presence", "mud", "muddy", "harsh", "bright", "dark", "forward", "back", "space", "depth", "dynamic", "pan", "panning", "stereo", "left", "right", "center", "centre",
 	) {
 		add("mix")
 	}

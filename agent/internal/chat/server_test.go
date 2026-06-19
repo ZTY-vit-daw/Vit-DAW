@@ -31,6 +31,51 @@ import (
 	"vit-daw-agent/internal/workflows/plugingrabber"
 )
 
+type recordingChatKernel struct {
+	replies        []map[string]any
+	replyByCommand map[string][]map[string]any
+	commands       []map[string]any
+}
+
+func (k *recordingChatKernel) SendCommand(_ context.Context, cmd map[string]any) (map[string]any, string, error) {
+	k.commands = append(k.commands, cloneTestCommand(cmd))
+	reply := map[string]any{"status": "ok"}
+	if commandName := cleanContextText(cmd["cmd"]); commandName != "" && len(k.replyByCommand[commandName]) > 0 {
+		reply = k.replyByCommand[commandName][0]
+		k.replyByCommand[commandName] = k.replyByCommand[commandName][1:]
+	} else if len(k.replies) > 0 {
+		reply = k.replies[0]
+		k.replies = k.replies[1:]
+	}
+	if errText := strings.TrimSpace(fmt.Sprint(reply["error"])); errText != "" && errText != "<nil>" {
+		return reply, "", fmt.Errorf("%s", errText)
+	}
+	data, _ := json.Marshal(reply)
+	return reply, string(data), nil
+}
+
+func cloneTestCommand(in map[string]any) map[string]any {
+	if in == nil {
+		return nil
+	}
+	data, err := json.Marshal(in)
+	if err != nil {
+		out := make(map[string]any, len(in))
+		for key, value := range in {
+			out[key] = value
+		}
+		return out
+	}
+	var out map[string]any
+	if err := json.Unmarshal(data, &out); err != nil || out == nil {
+		out = make(map[string]any, len(in))
+		for key, value := range in {
+			out[key] = value
+		}
+	}
+	return out
+}
+
 func TestMain(m *testing.M) {
 	_ = os.Setenv("VIT_CONTEXT_SNAPSHOT_PATH", "off")
 	_ = os.Setenv("VIT_AGENT_JOURNAL_PATH", "off")
@@ -654,6 +699,39 @@ func TestPluginGrabberAutoLearnStartsUIReferenceRequestBeforeKernel(t *testing.T
 	}
 	if strings.Contains(resp.Reply, "kernel client is nil") {
 		t.Fatalf("workflow reached kernel before UI reference request: %q", resp.Reply)
+	}
+}
+
+func TestPluginGrabberUIReferenceCarriesMixTreatmentPreparationPlan(t *testing.T) {
+	server := New(nil, shadow.New(nil), nil)
+	plan := map[string]any{
+		"schema_version": "mix_treatment_preparation.v0",
+		"safe_route":     []any{"plugin_grabber.learn_project_profile", "plugin_grabber.apply_control"},
+		"blocked_routes": []any{"daw.invoke", "plugin.set_parameter"},
+	}
+	resp := server.runPluginGrabberLearningWorkflow(context.Background(), "conv_ui_ref", "reduce mud", map[string]any{
+		"mix_treatment_preparation":      true,
+		"mix_treatment_preparation_plan": plan,
+	}, config.EngineConfig{}, map[string]any{
+		"mode":        "auto_learn",
+		"track_id":    "track_1",
+		"plugin_id":   "plugin_1",
+		"plugin_name": "Example EQ",
+	})
+	if resp.Error != "" {
+		t.Fatalf("first auto_learn returned error = %q", resp.Error)
+	}
+	got := mapValue(resp.PluginLearning["mix_treatment_preparation_plan"])
+	if cleanContextText(got["schema_version"]) != "mix_treatment_preparation.v0" {
+		t.Fatalf("plugin learning plan = %+v", resp.PluginLearning)
+	}
+	if !testAnyStringSliceContains(got["safe_route"], "plugin_grabber.apply_control") || !testAnyStringSliceContains(got["blocked_routes"], "plugin.set_parameter") {
+		t.Fatalf("plugin learning route contract = %+v", got)
+	}
+	req := server.pluginLearningInteractionRequest(resp)
+	reqPlan := mapValue(req.Payload["mix_treatment_preparation_plan"])
+	if cleanContextText(reqPlan["schema_version"]) != "mix_treatment_preparation.v0" {
+		t.Fatalf("interaction payload did not carry plan: %+v", req.Payload)
 	}
 }
 
@@ -2394,6 +2472,765 @@ func TestPendingMixTickExplicitConfirmationExecutesTypedLoop(t *testing.T) {
 	}
 }
 
+func TestPendingMixTickApprovalPhraseClassification(t *testing.T) {
+	for _, msg := range []string{
+		"\u53ef\u4ee5\uff0c\u7ee7\u7eed",
+		"\u53ef\u4ee5, \u7ee7\u7eed",
+		"\u53ef\u4ee5\u7ee7\u7eed",
+	} {
+		if !messageExplicitMixTickApply(msg) {
+			t.Fatalf("messageExplicitMixTickApply(%q) = false, want true", msg)
+		}
+	}
+	if messageExplicitMixTickApply("\u53ef\u4ee5") {
+		t.Fatal("messageExplicitMixTickApply(\"can\") = true, want ambiguous")
+	}
+	if !messageAmbiguousMixTickApproval("\u53ef\u4ee5") {
+		t.Fatal("messageAmbiguousMixTickApproval(\"can\") = false, want true")
+	}
+}
+
+func TestPendingMixTreatmentConfirmationReturnsResolverPrep(t *testing.T) {
+	server := New(nil, shadow.New(nil), nil)
+	server.pendingTreatments["chat_mix"] = agentloop.MixTreatmentPending{
+		SchemaVersion:             "mix_treatment_pending.v0",
+		Status:                    "pending_confirmation",
+		ConversationID:            "chat_mix",
+		ObservationID:             "obs_1",
+		Intent:                    "reduce mud",
+		TargetRef:                 "track:1007",
+		ActionKind:                "plugin_treatment",
+		ProcessorType:             "eq",
+		ReasoningSummary:          "needs EQ-style treatment",
+		Confidence:                "medium",
+		NeedsResolution:           []string{"plugin_instance", "plugin_profile", "exact_control"},
+		ExpiresAfterContextChange: true,
+	}
+
+	resp, handled := server.handlePendingMixTreatmentChat(context.Background(), "chat_mix", ChatRequest{Message: "可以，继续"}, agentModeDefault)
+
+	if !handled {
+		t.Fatal("pending mix treatment was not handled")
+	}
+	if resp.StopReason != "mix_treatment_resolved_needs_preparation" {
+		t.Fatalf("resp=%+v", resp)
+	}
+	if len(resp.ExecutedKernelReply) != 0 {
+		t.Fatalf("resolver should not execute tools, got %+v", resp.ExecutedKernelReply)
+	}
+	if _, ok := server.pendingTreatments["chat_mix"]; ok {
+		t.Fatal("pending treatment should be expired after resolver decision")
+	}
+	events, _ := server.agentEventsSince("chat_mix", 0, 10)
+	if len(events) != 1 || events[0].Type != "mix_treatment.resolver_decision" {
+		t.Fatalf("events = %+v", events)
+	}
+	plan := mapValue(events[0].Payload["preparation_plan"])
+	if cleanContextText(plan["schema_version"]) != "mix_treatment_preparation.v0" {
+		t.Fatalf("preparation plan = %+v", events[0].Payload)
+	}
+	if !testAnyStringSliceContains(plan["safe_route"], "plugin_grabber.apply_control") {
+		t.Fatalf("safe route missing apply_control: %+v", plan)
+	}
+	if !testAnyStringSliceContains(plan["blocked_routes"], "plugin.set_parameter") || !testAnyStringSliceContains(plan["blocked_routes"], "daw.invoke") {
+		t.Fatalf("blocked routes missing raw plugin mutation guards: %+v", plan)
+	}
+	if len(mapValue(plan["next_command"])) != 0 {
+		t.Fatalf("unknown plugin instance should not produce next command: %+v", plan)
+	}
+}
+
+func TestResolveMixTreatmentReadyPluginControlRequiresProfileAndInstance(t *testing.T) {
+	shadowProject := shadow.New(nil)
+	shadowProject.Initialize(map[string]any{
+		"status": "ok",
+		"tracks": []any{map[string]any{
+			"track_id":       "1007",
+			"track_name":     "Vocal",
+			"track_type":     "hybrid",
+			"is_audio_track": true,
+			"plugins": []any{map[string]any{
+				"plugin_id":   "nova_1",
+				"plugin_name": "TDR Nova",
+			}},
+		}},
+	})
+	server := New(nil, shadowProject, nil)
+	treatment := agentloop.MixTreatmentPending{
+		SchemaVersion:   "mix_treatment_pending.v0",
+		Status:          "pending_confirmation",
+		TargetRef:       "track:1007",
+		ActionKind:      "plugin_treatment",
+		ProcessorType:   "eq",
+		PluginID:        "nova_1",
+		PluginName:      "TDR Nova",
+		Control:         "control low mids with band 2",
+		Target:          map[string]any{"freq_hz": 300.0, "gain_db": -1.5, "q": 1.1},
+		Intent:          "reduce low-mid mud",
+		NeedsResolution: []string{"plugin_instance", "plugin_profile", "exact_control"},
+	}
+
+	withoutProfile := server.resolveMixTreatment(context.Background(), treatment, map[string]any{})
+	if withoutProfile.Status != "needs_preparation" {
+		t.Fatalf("without profile decision = %+v", withoutProfile)
+	}
+
+	withProfile := server.resolveMixTreatment(context.Background(), treatment, map[string]any{
+		"plugin_grabber_profiles": []any{map[string]any{
+			"plugin_id":   "nova_1",
+			"plugin_name": "TDR Nova",
+			"class":       "eq",
+			"virtual_controls": []any{map[string]any{
+				"name":         "control low mids with band 2",
+				"component_id": "band2",
+				"resolver":     "local_profile_mapping",
+			}},
+		}},
+	})
+	if withProfile.Status != "ready_plugin_control" {
+		t.Fatalf("with profile decision = %+v", withProfile)
+	}
+	if len(withProfile.Command) == 0 || cleanContextText(withProfile.Command["cmd"]) != "plugin_grabber_apply_control" {
+		t.Fatalf("command = %+v", withProfile.Command)
+	}
+	if cleanContextText(withProfile.Command["track_id"]) != "1007" || cleanContextText(withProfile.Command["plugin_id"]) != "nova_1" {
+		t.Fatalf("command target = %+v", withProfile.Command)
+	}
+	if cleanContextText(withProfile.Command["control"]) != "control low mids with band 2" {
+		t.Fatalf("command control = %+v", withProfile.Command)
+	}
+	if _, ok := withProfile.Command["target"].(map[string]any); !ok {
+		t.Fatalf("command target payload = %+v", withProfile.Command["target"])
+	}
+}
+
+func TestResolveMixTreatmentPluginTreatmentPreparesLearningForExistingPlugin(t *testing.T) {
+	shadowProject := shadow.New(nil)
+	shadowProject.Initialize(map[string]any{
+		"status": "ok",
+		"tracks": []any{map[string]any{
+			"track_id":       "1007",
+			"track_name":     "Vocal",
+			"track_type":     "hybrid",
+			"is_audio_track": true,
+			"plugins": []any{map[string]any{
+				"plugin_id":   "nova_1",
+				"plugin_name": "TDR Nova",
+			}},
+		}},
+	})
+	server := New(nil, shadowProject, nil)
+	decision := server.resolveMixTreatment(context.Background(), agentloop.MixTreatmentPending{
+		SchemaVersion:   "mix_treatment_pending.v0",
+		Status:          "pending_confirmation",
+		TargetRef:       "track:1007",
+		ActionKind:      "plugin_treatment",
+		ProcessorType:   "eq",
+		PluginID:        "nova_1",
+		PluginName:      "TDR Nova",
+		Intent:          "reduce low-mid mud",
+		NeedsResolution: []string{"plugin_profile", "exact_control"},
+	}, map[string]any{})
+
+	if decision.Status != "needs_preparation" {
+		t.Fatalf("decision = %+v", decision)
+	}
+	if len(decision.Command) != 0 {
+		t.Fatalf("resolver should not produce write command: %+v", decision.Command)
+	}
+	if cleanContextText(decision.PrepCommand["cmd"]) != pluginGrabberLearnCommand {
+		t.Fatalf("prep command = %+v", decision.PrepCommand)
+	}
+	if cleanContextText(decision.PrepCommand["track_id"]) != "1007" || cleanContextText(decision.PrepCommand["plugin_id"]) != "nova_1" {
+		t.Fatalf("prep command target = %+v", decision.PrepCommand)
+	}
+	plan := decision.PreparationPlan
+	if cleanContextText(plan["schema_version"]) != "mix_treatment_preparation.v0" {
+		t.Fatalf("preparation plan = %+v", plan)
+	}
+	if !testAnyStringSliceContains(plan["safe_route"], "plugin_grabber.learn_project_profile") || !testAnyStringSliceContains(plan["safe_route"], "plugin_grabber.apply_control") {
+		t.Fatalf("safe route = %+v", plan)
+	}
+	if !testAnyStringSliceContains(plan["blocked_routes"], "plugin.set_parameter") || !testAnyStringSliceContains(plan["blocked_routes"], "daw.invoke") {
+		t.Fatalf("blocked routes = %+v", plan)
+	}
+	next := mapValue(plan["next_command"])
+	if cleanContextText(next["cmd"]) != pluginGrabberLearnCommand || cleanContextText(next["plugin_id"]) != "nova_1" {
+		t.Fatalf("next command = %+v plan=%+v", next, plan)
+	}
+	candidate := mapValue(plan["plugin_candidate"])
+	if cleanContextText(candidate["track_id"]) != "1007" || cleanContextText(candidate["plugin_name"]) != "TDR Nova" {
+		t.Fatalf("plugin candidate = %+v plan=%+v", candidate, plan)
+	}
+	if testStringSliceContains(decision.ToolRoute, "plugin.set_parameter") || testStringSliceContains(decision.ToolRoute, "daw.invoke") {
+		t.Fatalf("unsafe route = %+v", decision.ToolRoute)
+	}
+}
+
+func TestPendingMixTreatmentNeedsPreparationStartsPluginLearningCardOnly(t *testing.T) {
+	shadowProject := shadow.New(nil)
+	shadowProject.Initialize(map[string]any{
+		"status": "ok",
+		"tracks": []any{map[string]any{
+			"track_id":       "1007",
+			"track_name":     "Vocal",
+			"track_type":     "hybrid",
+			"is_audio_track": true,
+			"plugins": []any{map[string]any{
+				"plugin_id":   "nova_1",
+				"plugin_name": "TDR Nova",
+			}},
+		}},
+	})
+	server := New(nil, shadowProject, nil)
+	server.pendingTreatments["chat_mix"] = agentloop.MixTreatmentPending{
+		SchemaVersion:             "mix_treatment_pending.v0",
+		Status:                    "pending_confirmation",
+		ConversationID:            "chat_mix",
+		ObservationID:             "obs_1",
+		Intent:                    "reduce low-mid mud",
+		TargetRef:                 "track:1007",
+		ActionKind:                "plugin_treatment",
+		ProcessorType:             "eq",
+		PluginID:                  "nova_1",
+		PluginName:                "TDR Nova",
+		ReasoningSummary:          "needs an EQ-style treatment",
+		Confidence:                "medium",
+		NeedsResolution:           []string{"plugin_profile", "exact_control"},
+		ExpiresAfterContextChange: true,
+	}
+
+	resp, handled := server.handlePendingMixTreatmentChat(context.Background(), "chat_mix", ChatRequest{
+		ConversationID: "chat_mix",
+		Message:        "可以，继续",
+		Context:        map[string]any{"conversation_id": "chat_mix"},
+	}, agentModeDefault)
+
+	if !handled {
+		t.Fatal("pending mix treatment was not handled")
+	}
+	if resp.StopReason != "mix_treatment_preparation_started" {
+		t.Fatalf("resp=%+v", resp)
+	}
+	if len(resp.ExecutedKernelReply) != 0 || len(resp.Commands) != 0 {
+		t.Fatalf("preparation card should not execute or confirm writes; commands=%+v executed=%+v", resp.Commands, resp.ExecutedKernelReply)
+	}
+	if resp.Workflow != "plugin_grabber_auto_learn" {
+		t.Fatalf("workflow = %q resp=%+v", resp.Workflow, resp)
+	}
+	if cleanContextText(resp.PluginLearning["stage"]) != pluginLearningUIReferenceStage {
+		t.Fatalf("plugin learning = %+v", resp.PluginLearning)
+	}
+	learningPlan := mapValue(resp.PluginLearning["mix_treatment_preparation_plan"])
+	if cleanContextText(learningPlan["schema_version"]) != "mix_treatment_preparation.v0" {
+		t.Fatalf("plugin learning missing preparation plan = %+v", resp.PluginLearning)
+	}
+	if !testAnyStringSliceContains(learningPlan["safe_route"], "plugin_grabber.apply_control") || !testAnyStringSliceContains(learningPlan["blocked_routes"], "plugin.set_parameter") {
+		t.Fatalf("plugin learning preparation route contract = %+v", learningPlan)
+	}
+	if len(resp.InteractionRequests) != 1 || resp.InteractionRequests[0].Type != pluginLearningUIReferenceType {
+		t.Fatalf("interactions = %+v", resp.InteractionRequests)
+	}
+	interactionPlan := mapValue(resp.InteractionRequests[0].Payload["mix_treatment_preparation_plan"])
+	if cleanContextText(interactionPlan["schema_version"]) != "mix_treatment_preparation.v0" {
+		t.Fatalf("interaction missing preparation plan = %+v", resp.InteractionRequests[0].Payload)
+	}
+	if _, ok := server.pendingTreatments["chat_mix"]; ok {
+		t.Fatal("pending treatment should expire after resolver decision")
+	}
+	events, _ := server.agentEventsSince("chat_mix", 0, 10)
+	if len(events) != 1 || events[0].Status != "needs_preparation" {
+		t.Fatalf("events = %+v", events)
+	}
+	prep := mapValue(events[0].Payload["prep_command"])
+	if cleanContextText(prep["cmd"]) != pluginGrabberLearnCommand {
+		t.Fatalf("event prep command = %+v", events[0].Payload)
+	}
+	plan := mapValue(events[0].Payload["preparation_plan"])
+	next := mapValue(plan["next_command"])
+	if cleanContextText(plan["schema_version"]) != "mix_treatment_preparation.v0" || cleanContextText(next["cmd"]) != pluginGrabberLearnCommand {
+		t.Fatalf("event preparation plan = %+v", events[0].Payload)
+	}
+	if !testAnyStringSliceContains(plan["blocked_routes"], "plugin.set_parameter") || !testAnyStringSliceContains(plan["safe_route"], "plugin_grabber.apply_control") {
+		t.Fatalf("event preparation route contract = %+v", plan)
+	}
+}
+
+func TestRecordGoalResultMixTreatmentPendingEventIncludesDeltaDB(t *testing.T) {
+	server := New(nil, shadow.New(nil), nil)
+	server.recordGoalResult("chat_mix", agentloop.Result{
+		GoalID: "goal_1",
+		RunID:  "run_1",
+		ExecutionMemory: agentloop.ExecutionMemory{
+			PendingMixTreatment: &agentloop.MixTreatmentPending{
+				SchemaVersion:   "mix_treatment_pending.v0",
+				Status:          "pending_confirmation",
+				ConversationID:  "chat_mix",
+				ObservationID:   "obs_1",
+				Intent:          "bring vocal down slightly",
+				TargetRef:       "track:1007",
+				ActionKind:      "gain_balance",
+				ProcessorType:   "utility",
+				DeltaDB:         -1.25,
+				NeedsResolution: []string{},
+			},
+		},
+	})
+
+	events, _ := server.agentEventsSince("chat_mix", 0, 10)
+	if len(events) != 1 || events[0].Type != "mix_treatment.pending" {
+		t.Fatalf("events = %+v", events)
+	}
+	if fmt.Sprint(events[0].Payload["delta_db"]) != "-1.25" {
+		t.Fatalf("payload = %+v", events[0].Payload)
+	}
+}
+
+func TestPendingMixTreatmentReadyPluginControlExecutesApplyControlOnly(t *testing.T) {
+	projectPath := filepath.Join(t.TempDir(), "mix.vit")
+	if err := os.WriteFile(projectPath, []byte("<project/>"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	shadowProject := shadow.New(nil)
+	shadowProject.Initialize(map[string]any{
+		"status":       "ok",
+		"project_path": projectPath,
+		"tracks": []any{map[string]any{
+			"track_id":       "1007",
+			"track_name":     "Vocal",
+			"track_type":     "hybrid",
+			"is_audio_track": true,
+			"plugins": []any{map[string]any{
+				"plugin_id":   "nova_1",
+				"plugin_name": "TDR Nova",
+			}},
+		}},
+	})
+	kernel := &recordingChatKernel{replies: []map[string]any{
+		{"status": "ok", "project_path": projectPath, "snapshot_xml": "<project/>"},
+		{
+			"status":    "ok",
+			"track_id":  "1007",
+			"plugin_id": "nova_1",
+			"applied_parameters": []any{map[string]any{
+				"param_id":       "band2_gain",
+				"new_value_text": "-1.5 dB",
+			}},
+		},
+		{"status": "ok", "project_path": projectPath, "tracks": []any{map[string]any{
+			"track_id":       "1007",
+			"track_name":     "Vocal",
+			"track_type":     "hybrid",
+			"is_audio_track": true,
+			"plugins": []any{map[string]any{
+				"plugin_id":   "nova_1",
+				"plugin_name": "TDR Nova",
+			}},
+		}}},
+	}}
+	server := New(nil, shadowProject, nil)
+	server.harness = harness.NewWithSender(kernel, shadowProject, nil)
+	server.pendingTreatments["chat_mix"] = agentloop.MixTreatmentPending{
+		SchemaVersion:             "mix_treatment_pending.v0",
+		Status:                    "pending_confirmation",
+		ConversationID:            "chat_mix",
+		ObservationID:             "obs_1",
+		Intent:                    "reduce low-mid mud",
+		TargetRef:                 "track:1007",
+		ActionKind:                "plugin_treatment",
+		ProcessorType:             "eq",
+		PluginID:                  "nova_1",
+		PluginName:                "TDR Nova",
+		Control:                   "control low mids with band 2",
+		Target:                    map[string]any{"freq_hz": 300.0, "gain_db": -1.5, "q": 1.1},
+		ReasoningSummary:          "explicit control from profile",
+		Confidence:                "high",
+		NeedsResolution:           []string{},
+		ExpiresAfterContextChange: true,
+	}
+	req := ChatRequest{
+		ConversationID: "chat_mix",
+		Message:        "可以，继续",
+		Context: map[string]any{
+			"conversation_id": "chat_mix",
+			"project_path":    projectPath,
+			"plugin_grabber_profiles": []any{map[string]any{
+				"plugin_id":   "nova_1",
+				"plugin_name": "TDR Nova",
+				"virtual_controls": []any{map[string]any{
+					"name":         "control low mids with band 2",
+					"component_id": "band2",
+				}},
+			}},
+		},
+	}
+
+	resp, handled := server.handlePendingMixTreatmentChat(context.Background(), "chat_mix", req, agentModeDefault)
+
+	if !handled || resp.StopReason != "mix_treatment_applied_plugin_control_reobserved" {
+		t.Fatalf("resp=%+v handled=%v", resp, handled)
+	}
+	if resp.GoalStatus != "completed" || resp.CompletedSteps != 2 {
+		t.Fatalf("goal status = %q steps=%d resp=%+v", resp.GoalStatus, resp.CompletedSteps, resp)
+	}
+	if len(resp.Commands) != 1 || resp.Commands[0].Name != "plugin_grabber_apply_control" {
+		t.Fatalf("commands = %+v", resp.Commands)
+	}
+	if len(resp.ExecutedKernelReply) != 2 {
+		t.Fatalf("executed = %+v", resp.ExecutedKernelReply)
+	}
+	executed := resp.ExecutedKernelReply[0]
+	if cleanContextText(executed["tool"]) != "plugin_grabber.apply_control" || cleanContextText(executed["command_name"]) != "plugin_grabber_apply_control" {
+		t.Fatalf("executed route = %+v", executed)
+	}
+	reobserve := resp.ExecutedKernelReply[1]
+	if cleanContextText(reobserve["tool"]) != "mix.observe" || cleanContextText(reobserve["command_name"]) != "mix_observe" {
+		t.Fatalf("reobserve route = %+v", reobserve)
+	}
+	if cleanContextText(mapValue(reobserve["result"])["observation_id"]) == "" {
+		t.Fatalf("reobserve missing observation_id: %+v", reobserve)
+	}
+	if testStringSliceContains([]string{cleanContextText(executed["tool"]), cleanContextText(executed["command_name"])}, "daw.invoke") {
+		t.Fatalf("execution used raw route: %+v", executed)
+	}
+	if _, ok := server.pendingTreatments["chat_mix"]; ok {
+		t.Fatal("pending treatment should expire after ready execution")
+	}
+	events, _ := server.agentEventsSince("chat_mix", 0, 10)
+	if len(events) != 1 || events[0].Type != "mix_treatment.resolver_decision" || events[0].Status != "ready_plugin_control" {
+		t.Fatalf("events = %+v", events)
+	}
+	var applyCommands []map[string]any
+	for _, cmd := range kernel.commands {
+		if cleanContextText(cmd["cmd"]) == "n_apply_control" {
+			applyCommands = append(applyCommands, cmd)
+		}
+		if cleanContextText(cmd["cmd"]) == "set_plugin_param" || cleanContextText(cmd["cmd"]) == "daw.invoke" {
+			t.Fatalf("unexpected raw mutation command: %+v", cmd)
+		}
+	}
+	if len(applyCommands) != 1 {
+		t.Fatalf("kernel commands = %+v, want exactly one n_apply_control", kernel.commands)
+	}
+	apply := applyCommands[0]
+	if cleanContextText(apply["track_id"]) != "1007" || cleanContextText(apply["plugin_id"]) != "nova_1" {
+		t.Fatalf("apply target = %+v", apply)
+	}
+	if cleanContextText(apply["control"]) != "control low mids with band 2" {
+		t.Fatalf("apply control = %+v", apply)
+	}
+	if cleanContextText(apply["user_message"]) != "" {
+		t.Fatalf("user message leaked into kernel command: %+v", apply)
+	}
+	target := mapValue(apply["target"])
+	if fmt.Sprint(target["gain_db"]) != "-1.5" {
+		t.Fatalf("apply target payload = %+v", target)
+	}
+}
+
+func TestResolveMixTreatmentGainBalanceRequiresExplicitDelta(t *testing.T) {
+	server := New(nil, shadow.New(nil), nil)
+	decision := server.resolveMixTreatment(context.Background(), agentloop.MixTreatmentPending{
+		SchemaVersion: "mix_treatment_pending.v0",
+		Status:        "pending_confirmation",
+		TargetRef:     "track:1007",
+		ActionKind:    "gain_balance",
+		ProcessorType: "utility",
+		Intent:        "bring vocal down a little",
+	}, map[string]any{})
+
+	if decision.Status != "needs_preparation" {
+		t.Fatalf("decision = %+v", decision)
+	}
+	if !testStringSliceContains(decision.Needs, "exact_control") {
+		t.Fatalf("needs = %+v", decision.Needs)
+	}
+	if len(decision.ToolRoute) != 3 || !testStringSliceContains(decision.ToolRoute, "mix.propose_tick") {
+		t.Fatalf("tool route = %+v", decision.ToolRoute)
+	}
+}
+
+func TestPendingMixTreatmentReadyGainBalanceExecutesTypedMixTick(t *testing.T) {
+	projectPath := filepath.Join(t.TempDir(), "mix.vit")
+	if err := os.WriteFile(projectPath, []byte("<project/>"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	shadowProject := shadow.New(nil)
+	shadowProject.Initialize(map[string]any{
+		"status":       "ok",
+		"project_path": projectPath,
+		"tracks": []any{map[string]any{
+			"track_id":       "1007",
+			"track_name":     "Vocal",
+			"track_type":     "hybrid",
+			"is_audio_track": true,
+			"volume_db":      -3.0,
+		}},
+	})
+	kernel := &recordingChatKernel{replies: []map[string]any{
+		{"status": "ok", "project_path": projectPath, "snapshot_xml": "<project/>"},
+		{"status": "ok", "track_id": "1007", "volume_db": -4.0},
+		{"status": "ok", "project_path": projectPath, "tracks": []any{map[string]any{
+			"track_id":       "1007",
+			"track_name":     "Vocal",
+			"track_type":     "hybrid",
+			"is_audio_track": true,
+			"volume_db":      -4.0,
+		}}},
+	}}
+	server := New(nil, shadowProject, nil)
+	server.harness = harness.NewWithSender(kernel, shadowProject, nil)
+	server.pendingTreatments["chat_mix"] = agentloop.MixTreatmentPending{
+		SchemaVersion:             "mix_treatment_pending.v0",
+		Status:                    "pending_confirmation",
+		ConversationID:            "chat_mix",
+		ObservationID:             "obs_1",
+		Intent:                    "bring vocal down slightly",
+		TargetRef:                 "track:1007",
+		ActionKind:                "gain_balance",
+		ProcessorType:             "utility",
+		DeltaDB:                   -1,
+		ReasoningSummary:          "explicit small gain move",
+		Confidence:                "high",
+		ExpiresAfterContextChange: true,
+		Fingerprint: map[string]any{
+			"target_track_id": "1007",
+			"track_count":     1,
+			"track_gain_db":   -3.0,
+			"before_track":    map[string]any{"track_id": "1007", "volume_db": -3.0, "peak_dbfs": -6.0, "rms_dbfs": -15.0, "headroom_db": 6.0},
+		},
+	}
+
+	resp, handled := server.handlePendingMixTreatmentChat(context.Background(), "chat_mix", ChatRequest{
+		ConversationID: "chat_mix",
+		Message:        "可以，继续",
+		Context:        map[string]any{"conversation_id": "chat_mix", "project_path": projectPath},
+	}, agentModeDefault)
+
+	if !handled || resp.StopReason != "mix_tick_applied_reobserved" {
+		t.Fatalf("resp=%+v handled=%v", resp, handled)
+	}
+	if len(resp.ExecutedKernelReply) != 3 {
+		t.Fatalf("executed = %+v", resp.ExecutedKernelReply)
+	}
+	var tools []string
+	for _, row := range resp.ExecutedKernelReply {
+		tools = append(tools, cleanContextText(row["tool"]))
+	}
+	if !testStringSliceContains(tools, "mix.propose_tick") || !testStringSliceContains(tools, "mix.apply_tick") || !testStringSliceContains(tools, "mix.observe") {
+		t.Fatalf("executed tools = %+v", tools)
+	}
+	if testStringSliceContains(tools, "daw.invoke") || testStringSliceContains(tools, "track.volume") || testStringSliceContains(tools, "plugin.set_parameter") {
+		t.Fatalf("unexpected raw route = %+v", tools)
+	}
+	events, _ := server.agentEventsSince("chat_mix", 0, 10)
+	if len(events) != 1 || events[0].Status != "ready_gain_tick" {
+		t.Fatalf("events = %+v", events)
+	}
+	var setVolumeCommands []map[string]any
+	for _, cmd := range kernel.commands {
+		if cleanContextText(cmd["cmd"]) == "set_volume" {
+			setVolumeCommands = append(setVolumeCommands, cmd)
+		}
+		if cleanContextText(cmd["cmd"]) == "daw.invoke" || cleanContextText(cmd["cmd"]) == "set_plugin_param" {
+			t.Fatalf("unexpected kernel command: %+v", cmd)
+		}
+	}
+	if len(setVolumeCommands) != 1 {
+		t.Fatalf("kernel commands = %+v, want one set_volume", kernel.commands)
+	}
+	if cleanContextText(setVolumeCommands[0]["track_id"]) != "1007" || fmt.Sprint(setVolumeCommands[0]["db"]) != "-4" {
+		t.Fatalf("set_volume command = %+v", setVolumeCommands[0])
+	}
+}
+
+func TestResolveMixTreatmentPanBalanceRequiresExplicitMove(t *testing.T) {
+	server := New(nil, shadow.New(nil), nil)
+	decision := server.resolveMixTreatment(context.Background(), agentloop.MixTreatmentPending{
+		SchemaVersion: "mix_treatment_pending.v0",
+		Status:        "pending_confirmation",
+		TargetRef:     "track:1007",
+		ActionKind:    "pan_balance",
+		ProcessorType: "utility",
+		Intent:        "move guitar a little",
+	}, map[string]any{})
+
+	if decision.Status != "needs_preparation" {
+		t.Fatalf("decision = %+v", decision)
+	}
+	if !testStringSliceContains(decision.Needs, "exact_control") {
+		t.Fatalf("needs = %+v", decision.Needs)
+	}
+	if len(decision.ToolRoute) != 3 || !testStringSliceContains(decision.ToolRoute, "mix.propose_tick") {
+		t.Fatalf("tool route = %+v", decision.ToolRoute)
+	}
+}
+
+func TestPendingMixTreatmentReadyPanBalanceExecutesTypedMixTick(t *testing.T) {
+	projectPath := filepath.Join(t.TempDir(), "mix.vit")
+	if err := os.WriteFile(projectPath, []byte("<project/>"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	shadowProject := shadow.New(nil)
+	shadowProject.Initialize(map[string]any{
+		"status":       "ok",
+		"project_path": projectPath,
+		"tracks": []any{map[string]any{
+			"track_id":       "1007",
+			"track_name":     "Guitar",
+			"track_type":     "hybrid",
+			"is_audio_track": true,
+			"pan":            0.0,
+		}},
+	})
+	kernel := &recordingChatKernel{replies: []map[string]any{
+		{"status": "ok", "project_path": projectPath, "snapshot_xml": "<project/>"},
+		{"status": "ok", "track_id": "1007", "pan": -0.1},
+		{"status": "ok", "project_path": projectPath, "tracks": []any{map[string]any{
+			"track_id":       "1007",
+			"track_name":     "Guitar",
+			"track_type":     "hybrid",
+			"is_audio_track": true,
+			"pan":            -0.1,
+		}}},
+	}}
+	server := New(nil, shadowProject, nil)
+	server.harness = harness.NewWithSender(kernel, shadowProject, nil)
+	server.pendingTreatments["chat_mix"] = agentloop.MixTreatmentPending{
+		SchemaVersion:             "mix_treatment_pending.v0",
+		Status:                    "pending_confirmation",
+		ConversationID:            "chat_mix",
+		ObservationID:             "obs_1",
+		Intent:                    "move guitar left slightly",
+		TargetRef:                 "track:1007",
+		ActionKind:                "pan_balance",
+		ProcessorType:             "utility",
+		DeltaPan:                  -0.1,
+		ReasoningSummary:          "explicit small pan move",
+		Confidence:                "high",
+		ExpiresAfterContextChange: true,
+		Fingerprint: map[string]any{
+			"target_track_id": "1007",
+			"track_count":     1,
+			"track_pan":       0.0,
+			"before_track":    map[string]any{"track_id": "1007", "pan": 0.0, "peak_dbfs": -9.0, "rms_dbfs": -18.0, "headroom_db": 9.0},
+		},
+	}
+
+	resp, handled := server.handlePendingMixTreatmentChat(context.Background(), "chat_mix", ChatRequest{
+		ConversationID: "chat_mix",
+		Message:        "可以，继续",
+		Context:        map[string]any{"conversation_id": "chat_mix", "project_path": projectPath},
+	}, agentModeDefault)
+
+	if !handled || resp.StopReason != "mix_tick_applied_reobserved" {
+		t.Fatalf("resp=%+v handled=%v", resp, handled)
+	}
+	if len(resp.ExecutedKernelReply) != 3 {
+		t.Fatalf("executed = %+v", resp.ExecutedKernelReply)
+	}
+	var tools []string
+	for _, row := range resp.ExecutedKernelReply {
+		tools = append(tools, cleanContextText(row["tool"]))
+	}
+	if !testStringSliceContains(tools, "mix.propose_tick") || !testStringSliceContains(tools, "mix.apply_tick") || !testStringSliceContains(tools, "mix.observe") {
+		t.Fatalf("executed tools = %+v", tools)
+	}
+	if testStringSliceContains(tools, "daw.invoke") || testStringSliceContains(tools, "track.pan") || testStringSliceContains(tools, "plugin.set_parameter") {
+		t.Fatalf("unexpected raw route = %+v", tools)
+	}
+	events, _ := server.agentEventsSince("chat_mix", 0, 10)
+	if len(events) != 1 || events[0].Status != "ready_pan_tick" {
+		t.Fatalf("events = %+v", events)
+	}
+	var setPanCommands []map[string]any
+	for _, cmd := range kernel.commands {
+		if cleanContextText(cmd["cmd"]) == "set_pan" {
+			setPanCommands = append(setPanCommands, cmd)
+		}
+		if cleanContextText(cmd["cmd"]) == "daw.invoke" || cleanContextText(cmd["cmd"]) == "set_plugin_param" {
+			t.Fatalf("unexpected kernel command: %+v", cmd)
+		}
+	}
+	if len(setPanCommands) != 1 {
+		t.Fatalf("kernel commands = %+v, want one set_pan", kernel.commands)
+	}
+	if cleanContextText(setPanCommands[0]["track_id"]) != "1007" || fmt.Sprint(setPanCommands[0]["pan"]) != "-0.1" {
+		t.Fatalf("set_pan command = %+v", setPanCommands[0])
+	}
+}
+
+func TestPendingMixTreatmentReadyPanCenterExecutesTypedMixTick(t *testing.T) {
+	projectPath := filepath.Join(t.TempDir(), "mix.vit")
+	if err := os.WriteFile(projectPath, []byte("<project/>"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	shadowProject := shadow.New(nil)
+	shadowProject.Initialize(map[string]any{
+		"status":       "ok",
+		"project_path": projectPath,
+		"tracks": []any{map[string]any{
+			"track_id":       "1007",
+			"track_name":     "Vocal",
+			"track_type":     "hybrid",
+			"is_audio_track": true,
+			"pan":            0.25,
+		}},
+	})
+	kernel := &recordingChatKernel{replies: []map[string]any{
+		{"status": "ok", "project_path": projectPath, "snapshot_xml": "<project/>"},
+		{"status": "ok", "track_id": "1007", "pan": 0.0},
+		{"status": "ok", "project_path": projectPath, "tracks": []any{map[string]any{
+			"track_id":       "1007",
+			"track_name":     "Vocal",
+			"track_type":     "hybrid",
+			"is_audio_track": true,
+			"pan":            0.0,
+		}}},
+	}}
+	server := New(nil, shadowProject, nil)
+	server.harness = harness.NewWithSender(kernel, shadowProject, nil)
+	targetPan := 0.0
+	server.pendingTreatments["chat_mix"] = agentloop.MixTreatmentPending{
+		SchemaVersion:             "mix_treatment_pending.v0",
+		Status:                    "pending_confirmation",
+		ConversationID:            "chat_mix",
+		ObservationID:             "obs_1",
+		Intent:                    "center the vocal",
+		TargetRef:                 "track:1007",
+		ActionKind:                "pan_balance",
+		ProcessorType:             "utility",
+		TargetPan:                 &targetPan,
+		ReasoningSummary:          "explicit center pan move",
+		Confidence:                "high",
+		ExpiresAfterContextChange: true,
+		Fingerprint: map[string]any{
+			"target_track_id": "1007",
+			"track_count":     1,
+			"track_pan":       0.25,
+		},
+	}
+
+	resp, handled := server.handlePendingMixTreatmentChat(context.Background(), "chat_mix", ChatRequest{
+		ConversationID: "chat_mix",
+		Message:        "可以，继续",
+		Context:        map[string]any{"conversation_id": "chat_mix", "project_path": projectPath},
+	}, agentModeDefault)
+
+	if !handled || resp.StopReason != "mix_tick_applied_reobserved" {
+		t.Fatalf("resp=%+v handled=%v", resp, handled)
+	}
+	var setPanCommands []map[string]any
+	for _, cmd := range kernel.commands {
+		if cleanContextText(cmd["cmd"]) == "set_pan" {
+			setPanCommands = append(setPanCommands, cmd)
+		}
+	}
+	if len(setPanCommands) != 1 || cleanContextText(setPanCommands[0]["track_id"]) != "1007" || fmt.Sprint(setPanCommands[0]["pan"]) != "0" {
+		t.Fatalf("set_pan commands = %+v all=%+v", setPanCommands, kernel.commands)
+	}
+}
+
 func TestPendingMixTickTrackLookupFindsNestedVisibleTracks(t *testing.T) {
 	rows := chatVisibleTrackRows(map[string]any{
 		"project_state": map[string]any{
@@ -2879,6 +3716,20 @@ func testStringSliceContains(values []string, needle string) bool {
 	for _, value := range values {
 		if value == needle {
 			return true
+		}
+	}
+	return false
+}
+
+func testAnyStringSliceContains(value any, needle string) bool {
+	switch rows := value.(type) {
+	case []string:
+		return testStringSliceContains(rows, needle)
+	case []any:
+		for _, row := range rows {
+			if cleanContextText(row) == needle {
+				return true
+			}
 		}
 	}
 	return false

@@ -2238,6 +2238,11 @@ void CommandDispatcher::registerBuiltinCommands()
         return trackService != nullptr ? trackService->handleSetVolume (object, raw)
                                        : makeErrorReply ("Track service unavailable");
     });
+    handlers.emplace ("set_pan", [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return trackService != nullptr ? trackService->handleSetPan (object, raw)
+                                       : makeErrorReply ("Track service unavailable");
+    });
 
     handlers.emplace ("set_mute", [this] (const juce::DynamicObject& object, const juce::String& raw)
     {

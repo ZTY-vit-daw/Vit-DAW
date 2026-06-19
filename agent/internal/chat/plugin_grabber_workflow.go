@@ -1363,6 +1363,7 @@ func pluginGrabberUIReferenceRequestResponse(conversationID, userText string, re
 		startedAt = time.Now().UTC().Format(time.RFC3339Nano)
 	}
 	targetMap := pluginLearningTargetMap(target)
+	preparationPlan := cloneContext(mapValue(requestContext["mix_treatment_preparation_plan"]))
 	data := map[string]any{
 		"mode":                               string(plugingrabber.LearningModeAutoLearn),
 		"stage":                              pluginLearningUIReferenceStage,
@@ -1387,6 +1388,10 @@ func pluginGrabberUIReferenceRequestResponse(conversationID, userText string, re
 			"optional": true,
 			"purpose":  "plugin_docs_reference",
 		},
+	}
+	if len(preparationPlan) > 0 {
+		data["mix_treatment_preparation"] = true
+		data["mix_treatment_preparation_plan"] = preparationPlan
 	}
 	reply := "可以先提供一份本次学习专用的插件界面图样。这个步骤是可选的；如果没有合适图样，也可以直接跳过继续自动学习。只有现在上传并绑定到本次学习会话的图样会被使用，之前发送过的图片不会计入。"
 	return ChatResponse{

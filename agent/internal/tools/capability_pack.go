@@ -97,7 +97,7 @@ func defaultCapabilityPacks() []CapabilityPack {
 			Domain:      "User-visible Vit-DAW tracks only; hidden engine tracks are not valid targets.",
 			Description: "Create, list, rename, select, mute, solo, arm, volume-adjust, freeze, or delete tracks.",
 			StateSlices: []string{
-				"daw_state_summary.tracks[]: track_id, track_name/name, user_track_index, mute, solo, is_armed, volume_db",
+				"daw_state_summary.tracks[]: track_id, track_name/name, user_track_index, mute, solo, is_armed, volume_db, pan",
 				"current_selection.selected_track_id and selected_track_name for this/current/selected track",
 				"recent_execution_result and execution_memory for last_created_track / active_work_target_track bindings",
 			},
@@ -108,7 +108,7 @@ func defaultCapabilityPacks() []CapabilityPack {
 			},
 			Effects: []string{
 				"track.add and track.add_audio create a user-visible track and refresh state.",
-				"rename/mute/solo/arm/volume mutate an existing track and are undoable.",
+				"rename/mute/solo/arm/volume/pan mutate an existing track and are undoable.",
 				"delete/freeze/unfreeze are higher-risk and require confirmation.",
 			},
 			ResultHints: []string{
@@ -122,7 +122,7 @@ func defaultCapabilityPacks() []CapabilityPack {
 			Tools: []string{
 				"project.state", "track.list",
 				"track.add", "track.add_audio", "track.rename", "track.delete",
-				"track.mute", "track.solo", "track.arm", "track.volume",
+				"track.mute", "track.solo", "track.arm", "track.volume", "track.pan",
 				"track.freeze", "track.unfreeze",
 			},
 			Examples: []string{
@@ -227,7 +227,7 @@ func defaultCapabilityPacks() []CapabilityPack {
 			},
 			Effects: []string{
 				"mix.observe, mix.read, and mix.derive do not mutate the project.",
-				"mix.propose_tick does not mutate the project; mix.apply_tick v1 can only run one small track_gain_adjust through set_volume, and mix.rollback_tick restores the previous dB.",
+				"mix.propose_tick does not mutate the project; mix.apply_tick can run one small track_gain_adjust through set_volume or one track_pan_adjust/track_pan_set through set_pan, and mix.rollback_tick restores the previous value.",
 				"Observation may request fast audio features and may return partial/pending/missing slow packages; missing data must be stated as uncertainty.",
 				"Do not load plugins, write parameters, or change volume in the same broad mixing request. Propose one small next move and wait for explicit confirmation.",
 			},

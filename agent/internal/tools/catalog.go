@@ -615,9 +615,9 @@ func defaultSpecs() []CommandSpec {
 		spec("mix_observe", "mix.observe", "mix", "Observe the requested mix scope and return a compact acoustic digest plus a readable observation catalog; does not mutate the project.", RiskDirect, false, false, false, false),
 		spec("mix_read", "mix.read", "mix", "Read selected catalog entries from a stored MixBoard observation, including bounded ranges for long acoustic rows.", RiskDirect, false, false, false, false),
 		spec("mix_derive", "mix.derive", "mix", "Derive an on-demand relationship package from stored MixBoard observations, such as before/after or focus/project comparisons.", RiskDirect, false, false, false, false),
-		spec("mix_propose_tick", "mix.propose_tick", "mix", "Agent-local proposal for one safe mix tick after observation; v1 only supports small track_gain_adjust and does not mutate the project.", RiskDirect, false, false, false, false, "track_id"),
-		spec("mix_apply_tick", "mix.apply_tick", "mix", "Agent-local confirmed execution of one proposed mix tick through primitive kernel commands; v1 only applies track_gain_adjust via set_volume.", RiskUndoable, true, true, false, true),
-		spec("mix_rollback_tick", "mix.rollback_tick", "mix", "Agent-local rollback for an applied mix tick by restoring the previous primitive track volume.", RiskUndoable, true, true, false, true),
+		spec("mix_propose_tick", "mix.propose_tick", "mix", "Agent-local proposal for one safe mix tick after observation; supports small track_gain_adjust and track_pan_adjust/track_pan_set without mutating the project.", RiskDirect, false, false, false, false, "track_id"),
+		spec("mix_apply_tick", "mix.apply_tick", "mix", "Agent-local confirmed execution of one proposed mix tick through primitive set_volume or set_pan kernel commands.", RiskUndoable, true, true, false, true),
+		spec("mix_rollback_tick", "mix.rollback_tick", "mix", "Agent-local rollback for an applied mix tick by restoring the previous primitive track volume or pan.", RiskUndoable, true, true, false, true),
 
 		spec("add_track", "track.add", "track", "Add a new track.", RiskUndoable, true, true, false, true),
 		spec("add_audio_track", "track.add_audio", "track", "Add a new audio track.", RiskUndoable, true, true, false, true),
@@ -628,6 +628,7 @@ func defaultSpecs() []CommandSpec {
 		spec("set_mute", "track.mute", "track", "Set track mute state.", RiskUndoable, true, true, false, true, "track_id"),
 		spec("set_solo", "track.solo", "track", "Set track solo state.", RiskUndoable, true, true, false, true, "track_id"),
 		spec("set_volume", "track.volume", "track", "Set track volume in dB.", RiskUndoable, true, true, false, true, "track_id"),
+		spec("set_pan", "track.pan", "track", "Set track pan from -1.0 left to +1.0 right.", RiskUndoable, true, true, false, true, "track_id"),
 		spec("freeze_track", "track.freeze", "track", "Freeze a track.", RiskConfirm, true, true, true, true, "track_id"),
 		spec("unfreeze_track", "track.unfreeze", "track", "Unfreeze a track.", RiskConfirm, true, true, true, true, "track_id"),
 

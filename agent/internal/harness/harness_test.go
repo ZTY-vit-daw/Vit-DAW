@@ -386,6 +386,119 @@ func TestMixTickProposeApplyRollbackTrackGainAdjust(t *testing.T) {
 	}
 }
 
+func TestMixTickProposeApplyRollbackTrackPanAdjust(t *testing.T) {
+	kernel := &fakeKernelClient{}
+	h := New(nil, shadow.New(nil), nil)
+	h.kernel = kernel
+	h.shadow.Initialize(map[string]any{
+		"tracks": []any{
+			map[string]any{"track_id": "track_1", "track_name": "Lead", "track_type": "hybrid", "is_audio_track": true, "pan": 0.0},
+		},
+	})
+
+	propose, err := h.Invoke(context.Background(), InvokeRequest{
+		Tool: "mix.propose_tick",
+		Args: map[string]any{
+			"operation":      "track_pan_adjust",
+			"track_id":       "track_1",
+			"delta_pan":      0.30,
+			"observation_id": "obs_1",
+		},
+		Source: "test",
+	})
+	if err != nil {
+		t.Fatalf("propose returned error: %v", err)
+	}
+	if propose.Status != "ok" {
+		t.Fatalf("propose status = %q result=%+v error=%q", propose.Status, propose.Result, propose.Error)
+	}
+	if len(kernel.commands) != 0 {
+		t.Fatalf("propose should not send kernel command: %+v", kernel.commands)
+	}
+	tickID := strings.TrimSpace(fmt.Sprint(propose.Result["tick_id"]))
+	if tickID == "" || fmt.Sprint(propose.Result["delta_pan"]) != "0.15" || fmt.Sprint(propose.Result["after_pan"]) != "0.15" {
+		t.Fatalf("unexpected proposal: %+v", propose.Result)
+	}
+
+	applied, err := h.Invoke(context.Background(), InvokeRequest{
+		Tool: "mix.apply_tick",
+		Args: map[string]any{"tick_id": tickID, "confirmation": true},
+	})
+	if err != nil {
+		t.Fatalf("apply returned error: %v", err)
+	}
+	if applied.Status != "ok" {
+		t.Fatalf("apply status = %q result=%+v error=%q", applied.Status, applied.Result, applied.Error)
+	}
+	panCommands := testCommandsByName(kernel.commands, "set_pan")
+	if len(panCommands) != 1 {
+		t.Fatalf("set_pan commands = %+v all=%+v", panCommands, kernel.commands)
+	}
+	if cmd := panCommands[0]; cmd["cmd"] != "set_pan" || cmd["track_id"] != "track_1" || fmt.Sprint(cmd["pan"]) != "0.15" {
+		t.Fatalf("apply kernel command = %+v", cmd)
+	}
+
+	rolledBack, err := h.Invoke(context.Background(), InvokeRequest{
+		Tool: "mix.rollback_tick",
+		Args: map[string]any{"tick_id": tickID},
+	})
+	if err != nil {
+		t.Fatalf("rollback returned error: %v", err)
+	}
+	if rolledBack.Status != "ok" {
+		t.Fatalf("rollback status = %q result=%+v error=%q", rolledBack.Status, rolledBack.Result, rolledBack.Error)
+	}
+	panCommands = testCommandsByName(kernel.commands, "set_pan")
+	if len(panCommands) != 2 {
+		t.Fatalf("set_pan commands after rollback = %+v all=%+v", panCommands, kernel.commands)
+	}
+	if cmd := panCommands[1]; cmd["cmd"] != "set_pan" || cmd["track_id"] != "track_1" || fmt.Sprint(cmd["pan"]) != "0" {
+		t.Fatalf("rollback kernel command = %+v", cmd)
+	}
+}
+
+func TestMixTickProposeApplyTrackPanSet(t *testing.T) {
+	kernel := &fakeKernelClient{}
+	h := New(nil, shadow.New(nil), nil)
+	h.kernel = kernel
+	h.shadow.Initialize(map[string]any{
+		"tracks": []any{
+			map[string]any{"track_id": "track_1", "track_name": "Lead", "track_type": "hybrid", "is_audio_track": true, "pan": 0.25},
+		},
+	})
+
+	propose, err := h.Invoke(context.Background(), InvokeRequest{
+		Tool: "mix.propose_tick",
+		Args: map[string]any{
+			"operation": "track_pan_set",
+			"track_id":  "track_1",
+			"pan":       -0.25,
+		},
+		Source: "test",
+	})
+	if err != nil {
+		t.Fatalf("propose returned error: %v", err)
+	}
+	if propose.Status != "ok" || fmt.Sprint(propose.Result["before_pan"]) != "0.25" || fmt.Sprint(propose.Result["after_pan"]) != "-0.25" {
+		t.Fatalf("unexpected proposal: status=%q result=%+v error=%q", propose.Status, propose.Result, propose.Error)
+	}
+	tickID := strings.TrimSpace(fmt.Sprint(propose.Result["tick_id"]))
+	applied, err := h.Invoke(context.Background(), InvokeRequest{
+		Tool: "mix.apply_tick",
+		Args: map[string]any{"tick_id": tickID, "confirmation": true},
+	})
+	if err != nil {
+		t.Fatalf("apply returned error: %v", err)
+	}
+	if applied.Status != "ok" {
+		t.Fatalf("apply status = %q result=%+v error=%q", applied.Status, applied.Result, applied.Error)
+	}
+	panCommands := testCommandsByName(kernel.commands, "set_pan")
+	if len(panCommands) != 1 || fmt.Sprint(panCommands[0]["pan"]) != "-0.25" {
+		t.Fatalf("set_pan commands = %+v all=%+v", panCommands, kernel.commands)
+	}
+}
+
 func TestMixTickProposeRequiresExplicitDelta(t *testing.T) {
 	h := New(nil, shadow.New(nil), nil)
 	h.shadow.Initialize(map[string]any{
