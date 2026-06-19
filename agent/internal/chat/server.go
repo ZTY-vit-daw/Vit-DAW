@@ -31,6 +31,7 @@ import (
 	"vit-daw-agent/internal/llm"
 	"vit-daw-agent/internal/logx"
 	"vit-daw-agent/internal/macrocontrols"
+	"vit-daw-agent/internal/planner"
 	"vit-daw-agent/internal/policy"
 	"vit-daw-agent/internal/promptruntime"
 	"vit-daw-agent/internal/resourceintake"
@@ -351,7 +352,7 @@ func (s *Server) logWebUIRootOnce(root string) {
 	if st, err := os.Stat(indexPath); err == nil {
 		indexMod = st.ModTime().Format(time.RFC3339)
 	}
-	s.logger.Info("[webui] serving root=%s index_mod=%s assets=%s build_mark=mixboard-macro-hold-v18-20260614", root, indexMod, assetSummary)
+	s.logger.Info("[webui] serving root=%s index_mod=%s assets=%s build_mark=mix-treatment-pending-card-v20-20260620", root, indexMod, assetSummary)
 }
 
 func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {
@@ -1434,29 +1435,46 @@ func (s *Server) handleChat(w http.ResponseWriter, r *http.Request) {
 
 	if !strings.HasPrefix(req.Message, "/") {
 		if plan, ok := s.pendingPlanForChat(conversationID, req.Context); ok {
-			projectHistory := s.harness.ProjectHistorySummaryForProject(r.Context(), goal.GoalID, projectPath)
-			pendingAgentMode := agentModeFromContext(plan.Context)
-			resp := ChatResponse{
-				ConversationID:    conversationID,
-				AgentMode:         pendingAgentMode,
-				Reply:             "当前操作仍在等待确认，请先确认执行或取消。",
-				AgentPlan:         agentPlanForMode(pendingAgentMode, agentPlanFromPendingPlan(plan, agentruntime.StatusWaitingConfirmation, projectHistory)),
-				NeedsConfirmation: true,
-				PlanID:            plan.ID,
-				Preview:           plan.Preview,
-				Workflow:          plan.Workflow,
-				WorkflowData:      plan.WorkflowData,
-				Commands:          plan.Decisions,
-				GoalStatus:        string(agentruntime.StatusWaitingConfirmation),
-				ProjectHistory:    projectHistory,
+			if pendingPlanPlainApproval(req.Message) {
+				status, response := s.resolvePendingPlanDecision(r.Context(), plan.ID, "approve")
+				resp := chatResponseFromPendingPlanDecision(conversationID, response, agentModeFromContext(plan.Context))
+				s.remember(conversationID, req.Message, resp.Reply)
+				writeChat(status, resp)
+				return
 			}
-			if isPluginGrabberLearningPlan(plan) {
-				resp.PluginLearning = plan.WorkflowData
+			if pendingPlanCanBeRevisedByMixRequest(plan, req.Message) {
+				s.expirePendingPlan(plan.ID)
+				if goalID, _ := goalIDsFromContext(plan.Context); goalID != "" {
+					s.clearGoalContinuation(goalID)
+				}
+				if s != nil && s.logger != nil {
+					s.logger.Info("[chat.pending] expired mix confirmation for revised request conversation=%s plan=%s message=%q", conversationID, plan.ID, req.Message)
+				}
+			} else {
+				projectHistory := s.harness.ProjectHistorySummaryForProject(r.Context(), goal.GoalID, projectPath)
+				pendingAgentMode := agentModeFromContext(plan.Context)
+				resp := ChatResponse{
+					ConversationID:    conversationID,
+					AgentMode:         pendingAgentMode,
+					Reply:             "当前操作仍在等待确认，请先确认执行或取消。",
+					AgentPlan:         agentPlanForMode(pendingAgentMode, agentPlanFromPendingPlan(plan, agentruntime.StatusWaitingConfirmation, projectHistory)),
+					NeedsConfirmation: true,
+					PlanID:            plan.ID,
+					Preview:           plan.Preview,
+					Workflow:          plan.Workflow,
+					WorkflowData:      plan.WorkflowData,
+					Commands:          plan.Decisions,
+					GoalStatus:        string(agentruntime.StatusWaitingConfirmation),
+					ProjectHistory:    projectHistory,
+				}
+				if isPluginGrabberLearningPlan(plan) {
+					resp.PluginLearning = plan.WorkflowData
+				}
+				s.attachInteractionRequests(&resp)
+				s.remember(conversationID, req.Message, resp.Reply)
+				writeChat(http.StatusOK, resp)
+				return
 			}
-			s.attachInteractionRequests(&resp)
-			s.remember(conversationID, req.Message, resp.Reply)
-			writeChat(http.StatusOK, resp)
-			return
 		}
 	}
 
@@ -1512,6 +1530,19 @@ func (s *Server) handleChat(w http.ResponseWriter, r *http.Request) {
 		Attachments:    req.Attachments,
 		ArtifactRefs:   req.ArtifactRefs,
 	}, agentMode); handled {
+		s.remember(conversationID, req.Message, resp.Reply)
+		writeChat(http.StatusOK, resp)
+		return
+	}
+
+	if messagePlainMixApproval(req.Message) && !s.hasPendingConfirmationForChat(conversationID, chatContext) {
+		resp := ChatResponse{
+			ConversationID: conversationID,
+			AgentMode:      agentMode,
+			Reply:          "我没有找到正在等待确认的混音动作，所以这句确认不会执行任何操作。请先告诉我要调整什么，或重新提出具体的混音修改。",
+			GoalStatus:     string(agentruntime.StatusCompleted),
+			StopReason:     "plain_approval_without_pending_confirmation",
+		}
 		s.remember(conversationID, req.Message, resp.Reply)
 		writeChat(http.StatusOK, resp)
 		return
@@ -1738,6 +1769,9 @@ func legacyChatDecisionName(decision policy.Decision) string {
 }
 
 func legacyChatBroadMixRequestNeedsObservation(userText string) bool {
+	if legacyChatVolumeMixRequestNeedsObservation(userText) {
+		return true
+	}
 	text := strings.ToLower(strings.TrimSpace(userText))
 	if text == "" {
 		return false
@@ -1748,6 +1782,18 @@ func legacyChatBroadMixRequestNeedsObservation(userText string) bool {
 		"靠前", "往前", "提升响度", "响度", "更亮", "明亮", "浑浊", "刺耳",
 		"低频", "低中频", "空间感", "加一点空间", "动态", "压缩",
 		"mix", "mixing", "loudness", "louder", "forward", "mud", "muddy", "harsh", "bright", "space", "reverb", "dynamic",
+	)
+}
+
+func legacyChatVolumeMixRequestNeedsObservation(userText string) bool {
+	text := strings.ToLower(strings.TrimSpace(userText))
+	if text == "" {
+		return false
+	}
+	return legacyChatTextHasAny(text,
+		"\u592a\u54cd", "\u592a\u5927", "\u592a\u5c0f", "\u538b\u4f4e", "\u964d\u4f4e", "\u4e0b\u8c03", "\u8c03\u4f4e",
+		"\u63d0\u9ad8", "\u63d0\u5347", "\u4e0a\u8c03", "\u8c03\u9ad8", "\u97f3\u91cf", "\u7535\u5e73", "\u589e\u76ca",
+		"too loud", "too quiet", "volume", "level", "gain", "lower", "reduce", "decrease", "raise", "boost", "increase",
 	)
 }
 
@@ -1778,7 +1824,120 @@ func legacyChatTextHasAny(text string, needles ...string) bool {
 	return false
 }
 
+func pendingPlanPlainApproval(message string) bool {
+	return messagePlainMixApproval(message)
+}
+
+func chatResponseFromPendingPlanDecision(conversationID string, response map[string]any, fallbackMode string) ChatResponse {
+	if len(response) == 0 {
+		return ChatResponse{
+			ConversationID: conversationID,
+			AgentMode:      fallbackMode,
+			Reply:          "确认已处理。",
+			GoalStatus:     string(agentruntime.StatusCompleted),
+		}
+	}
+	mode := firstNonEmpty(cleanContextText(response["agent_mode"]), fallbackMode)
+	reply := firstNonEmpty(cleanContextText(response["reply"]), cleanContextText(response["message"]))
+	if strings.TrimSpace(reply) == "" {
+		reply = "确认已处理。"
+	}
+	resp := ChatResponse{
+		ConversationID:      conversationID,
+		GoalID:              cleanContextText(response["goal_id"]),
+		RunID:               cleanContextText(response["run_id"]),
+		Reply:               reply,
+		AgentMode:           mode,
+		NeedsConfirmation:   boolValue(response["needs_confirmation"]),
+		PlanID:              firstNonEmpty(cleanContextText(response["next_plan_id"]), cleanContextText(response["plan_id"])),
+		Preview:             cleanContextText(response["preview"]),
+		Workflow:            cleanContextText(response["workflow"]),
+		WorkflowData:        mapValue(response["workflow_data"]),
+		PluginLearning:      mapValue(response["plugin_learning"]),
+		ExecutedKernelReply: mapRowsFromAny(response["executed_kernel_reply"]),
+		ProjectResultCards:  mapRowsFromAny(response["project_result_cards"]),
+		GoalStatus:          cleanContextText(response["goal_status"]),
+		GoalSummary:         cleanContextText(response["goal_summary"]),
+		CurrentStep:         cleanContextText(response["current_step"]),
+		CompletedSteps:      chatIntValue(response["completed_steps"]),
+		StopReason:          cleanContextText(response["stop_reason"]),
+		LimitType:           cleanContextText(response["limit_type"]),
+		ProjectHistory:      mapValue(response["project_history"]),
+		Error:               cleanContextText(response["error"]),
+	}
+	if resp.GoalStatus == "" {
+		if boolValue(response["blocked"]) || strings.EqualFold(cleanContextText(response["status"]), "error") {
+			resp.GoalStatus = string(agentruntime.StatusFailed)
+		} else if resp.NeedsConfirmation {
+			resp.GoalStatus = string(agentruntime.StatusWaitingConfirmation)
+		} else {
+			resp.GoalStatus = string(agentruntime.StatusCompleted)
+		}
+	}
+	if resp.NeedsConfirmation {
+		if nextPlanID := cleanContextText(response["next_plan_id"]); nextPlanID != "" {
+			resp.PlanID = nextPlanID
+		}
+	} else if !strings.EqualFold(resp.GoalStatus, string(agentruntime.StatusWaitingConfirmation)) {
+		resp.PlanID = ""
+	}
+	if agentPlan := chatAgentPlanFromAny(response["agent_plan"]); agentPlan != nil {
+		resp.AgentPlan = agentPlanForMode(mode, agentPlan)
+	}
+	if artifactsValue, ok := response["artifacts"]; ok {
+		appendArtifactSummariesFromValue(&resp.Artifacts, artifactsValue)
+		resp.Artifacts = mergeArtifactSummaries(nil, resp.Artifacts)
+	}
+	return resp
+}
+
+func chatIntValue(value any) int {
+	switch n := value.(type) {
+	case int:
+		return n
+	case int64:
+		return int(n)
+	case int32:
+		return int(n)
+	case float64:
+		return int(n)
+	case float32:
+		return int(n)
+	case json.Number:
+		i, _ := strconv.Atoi(n.String())
+		return i
+	default:
+		i, _ := strconv.Atoi(strings.TrimSpace(fmt.Sprint(value)))
+		return i
+	}
+}
+
+func chatAgentPlanFromAny(value any) *AgentPlan {
+	switch plan := value.(type) {
+	case *AgentPlan:
+		return plan
+	case AgentPlan:
+		out := plan
+		return &out
+	case map[string]any:
+		data, err := json.Marshal(plan)
+		if err != nil {
+			return nil
+		}
+		var out AgentPlan
+		if err := json.Unmarshal(data, &out); err != nil {
+			return nil
+		}
+		return &out
+	default:
+		return nil
+	}
+}
+
 func (s *Server) legacyPendingPlanBroadMixBlockedConfirmResponse(ctx context.Context, planID string, plan PendingPlan, goalID, runID, agentMode, projectPath string) (map[string]any, bool) {
+	if pendingPlanIsMixTreatmentPreparation(plan) {
+		return nil, false
+	}
 	userMessage := legacyPendingPlanUserMessage(plan)
 	if !legacyChatBroadMixRequestNeedsObservation(userMessage) || legacyChatExplicitPluginOrRawRequest(userMessage) {
 		return nil, false
@@ -1814,6 +1973,21 @@ func (s *Server) legacyPendingPlanBroadMixBlockedConfirmResponse(ctx context.Con
 		response["project_history"] = projectHistory
 	}
 	return response, true
+}
+
+func pendingPlanIsMixTreatmentPreparation(plan PendingPlan) bool {
+	if boolValue(plan.Context["mix_treatment_preparation"]) || boolValue(plan.WorkflowData["mix_treatment_preparation"]) {
+		return true
+	}
+	for _, row := range []map[string]any{
+		mapValue(plan.Context["mix_treatment_preparation_plan"]),
+		mapValue(plan.WorkflowData["mix_treatment_preparation_plan"]),
+	} {
+		if cleanContextText(row["schema_version"]) == "mix_treatment_preparation.v0" {
+			return true
+		}
+	}
+	return false
 }
 
 func legacyPendingPlanUserMessage(plan PendingPlan) string {
@@ -2008,6 +2182,22 @@ func (s *Server) chatResponseForCommands(ctx context.Context, conversationID, us
 	return resp, true
 }
 
+func (s *Server) hasPendingConfirmationForChat(conversationID string, chatContext map[string]any) bool {
+	if s == nil {
+		return false
+	}
+	if _, ok := s.pendingMixTreatmentForConversation(conversationID); ok {
+		return true
+	}
+	if _, ok := s.pendingMixTickForConversation(conversationID); ok {
+		return true
+	}
+	if _, ok := s.pendingPlanForChat(conversationID, chatContext); ok {
+		return true
+	}
+	return false
+}
+
 func (s *Server) pendingPlanForChat(conversationID string, chatContext map[string]any) (PendingPlan, bool) {
 	goalID, _ := goalIDsFromContext(chatContext)
 	s.mu.Lock()
@@ -2154,6 +2344,86 @@ func pendingPlanMatchesResponse(plan PendingPlan, conversationID, goalID, runID,
 		return true
 	}
 	return false
+}
+
+func (s *Server) expirePendingPlan(planID string) {
+	if s == nil || strings.TrimSpace(planID) == "" {
+		return
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.deletePendingAliasesForPlanIDLocked(planID)
+}
+
+func pendingPlanCanBeRevisedByMixRequest(plan PendingPlan, message string) bool {
+	if !pendingPlanIsMixConfirmation(plan) {
+		return false
+	}
+	return messageRevisesPendingMixTreatment(message) || messageLooksLikePanRevisionRequest(message) || messageLooksLikeNewMixRequest(message)
+}
+
+func pendingPlanIsMixConfirmation(plan PendingPlan) bool {
+	if pendingPlanHasMixWriteAction(plan) {
+		return true
+	}
+	return false
+}
+
+func pendingPlanHasMixWriteAction(plan PendingPlan) bool {
+	if plan.GoalContinuation != nil && pendingPlanToolIsMixConfirmation(plan.GoalContinuation.PendingToolCall) {
+		return true
+	}
+	for _, decision := range plan.Decisions {
+		if decisionIsMixConfirmation(decision) {
+			return true
+		}
+	}
+	return false
+}
+
+func pendingPlanToolIsMixConfirmation(call *planner.ToolCall) bool {
+	if call == nil {
+		return false
+	}
+	return textHasAny(firstNonEmpty(
+		strings.TrimSpace(call.Tool),
+		cleanContextText(call.Command["tool"]),
+		cleanContextText(call.Args["tool"]),
+		cleanContextText(call.Command["cmd"]),
+		cleanContextText(call.Args["cmd"]),
+	), "mix.apply_tick", "mix_apply_tick", "mix.propose_tick", "mix_propose_tick", "track.pan", "track_pan", "set_pan", "track.volume", "set_volume")
+}
+
+func decisionIsMixConfirmation(decision policy.Decision) bool {
+	name := strings.ToLower(strings.TrimSpace(decision.Name))
+	if textHasAny(name, "mix_apply_tick", "mix.apply_tick", "mix_propose_tick", "mix.propose_tick") {
+		return true
+	}
+	cmd := decision.Command
+	return textHasAny(firstNonEmpty(
+		cleanContextText(cmd["tool"]),
+		cleanContextText(cmd["cmd"]),
+		cleanContextText(cmd["command"]),
+		cleanContextText(cmd["action"]),
+	), "mix.apply_tick", "mix_apply_tick", "mix.propose_tick", "mix_propose_tick", "track.pan", "track_pan", "set_pan", "track.volume", "set_volume")
+}
+
+func messageLooksLikeNewMixRequest(message string) bool {
+	text := strings.ToLower(strings.TrimSpace(message))
+	if text == "" {
+		return false
+	}
+	if textHasAny(text, "为什么", "为啥", "原因", "解释", "why", "explain") {
+		return false
+	}
+	if textHasAny(text, "确认执行", "可以执行", "执行这个", "应用这个", "apply it", "execute it", "confirm and apply") {
+		return false
+	}
+	if textHasAny(text, "我想", "希望", "能不能", "可不可以", "帮我", "让", "把", "换", "改", "调到", "设置为", "instead", "change", "switch", "make it", "set to") &&
+		textHasAny(text, "混音", "声像", "声相", "轨道", "音量", "响度", "增益", "左", "右", "中间", "居中", "靠前", "压缩", "eq", "reverb", "pan", "panning", "volume", "gain", "loudness", "track", "left", "right", "center") {
+		return true
+	}
+	return textHasAny(text, "左 70", "右 70", "70% left", "70% right", "全左", "全右", "最左", "最右", "hard left", "hard right")
 }
 
 func (s *Server) confirmationInteractionRequest(resp ChatResponse) AgentInteractionRequest {
@@ -2730,6 +3000,34 @@ func (s *Server) handleInteractionRespond(w http.ResponseWriter, r *http.Request
 		}
 		resp := s.continueMixSessionInteraction(r.Context(), interaction, req.Payload, decision)
 		writeJSON(w, mixSessionHTTPStatus(resp), resp)
+		return
+	}
+	if strings.EqualFold(interaction.Kind, "mix_treatment_confirmation") || strings.EqualFold(interaction.Type, "mix_treatment_confirmation") || strings.EqualFold(interaction.Workflow, "mix_treatment") {
+		approvalText := "可以执行"
+		if strings.EqualFold(decision, "approve") || strings.EqualFold(decision, "confirm") || strings.EqualFold(decision, "execute") {
+			approvalText = "可以执行"
+		} else if strings.TrimSpace(decision) != "" {
+			approvalText = decision
+		}
+		chatReq := ChatRequest{
+			ConversationID: interaction.ConversationID,
+			Message:        approvalText,
+			Context:        mergeContext(interaction.RequestContext, map[string]any{"conversation_id": interaction.ConversationID}),
+		}
+		resp, handled := s.handlePendingMixTreatmentChat(r.Context(), interaction.ConversationID, chatReq, agentModeDefault)
+		if !handled {
+			resp = ChatResponse{
+				ConversationID: interaction.ConversationID,
+				GoalID:         interaction.GoalID,
+				RunID:          interaction.RunID,
+				Reply:          "这个混音确认已处理或已过期。",
+				Workflow:       interaction.Workflow,
+				WorkflowData:   interaction.Payload,
+				GoalStatus:     string(agentruntime.StatusCompleted),
+			}
+		}
+		s.attachInteractionRequests(&resp)
+		writeJSON(w, http.StatusOK, resp)
 		return
 	}
 	if strings.EqualFold(interaction.Source, "plugin_grabber") && strings.Contains(interaction.Type, "ui_reference_request") {

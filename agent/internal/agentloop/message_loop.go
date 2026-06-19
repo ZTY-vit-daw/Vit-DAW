@@ -322,6 +322,14 @@ func (l *MessageLoop) loop(ctx context.Context, r *Runner, state *runState) Resu
 			call = coerceMixObservationCall(state, call)
 			call = coerceObservationPackageReadCall(state, call)
 			call = coerceMixTickPrimitiveCall(state, call)
+			if reply, ok := messageLoopMixTickProposalAsPendingTreatment(state, call, out); ok {
+				state.trace = append(state.trace, planner.TraceEvent{
+					Kind:     "final_gate",
+					Message:  "natural-language mix tick proposal normalized to pending treatment",
+					ToolCall: cloneToolCallPtr(call),
+				})
+				return r.complete(state, reply)
+			}
 			if messageLoopIsMixObservationTool(call) && messageLoopHasMixObservationExecution(state) {
 				issue := "mix.observe already ran for this turn; summarize the existing observation result instead of requesting it again"
 				state.trace = append(state.trace,
@@ -408,6 +416,12 @@ func (l *MessageLoop) preflightNaturalMixObservation(ctx context.Context, r *Run
 	appendMessageLoopToolResult(state)
 	if !messageLoopHasUsableMixObservation(state) {
 		state.input.Conversation = append(state.input.Conversation, llm.Message{Role: "user", Content: "<final_gate>mix.observe ran but did not return a usable acoustic observation; summarize the blocker and do not execute a mix action.</final_gate>"})
+	} else if reply, ok := messageLoopDeterministicGainPendingAfterObservation(state); ok {
+		state.trace = append(state.trace, planner.TraceEvent{
+			Kind:    "final_gate",
+			Message: "natural-language gain request normalized to pending treatment after observation",
+		})
+		return true, r.complete(state, reply)
 	} else if stopped, result := l.preflightFocusRelationship(ctx, r, state); stopped {
 		return true, result
 	}
@@ -554,6 +568,68 @@ func messageLoopDeterministicMixObservationCall(state *runState) planner.ToolCal
 		Args:   args,
 		Reason: "deterministic observation before broad acoustic mix advice",
 	}
+}
+
+func messageLoopDeterministicGainPendingAfterObservation(state *runState) (string, bool) {
+	if state == nil || messageLoopExplicitPluginOrRawRequest(state.input.UserText) || messageLoopExplicitMixExecutionConfirmation(state.input.UserText) {
+		return "", false
+	}
+	if !messageLoopNaturalMixRequest(state.input.UserText) || !messageLoopHasUsableMixObservation(state) {
+		return "", false
+	}
+	delta, ok := messageLoopImplicitGainDeltaFromText(state.input.UserText)
+	if !ok || delta == 0 || mathAbs(delta) > 2 {
+		return "", false
+	}
+	trackID := firstNonEmpty(
+		messageLoopLastMixObservationTrackID(state),
+		state.executionMemory.ActiveWorkTargetTrackID,
+		firstStateTrackID(state.input.Context),
+		firstStateTrackID(state.input.State),
+	)
+	trackID = messageLoopCanonicalMixTrackID(state, trackID)
+	if trackID == "" {
+		return "", false
+	}
+	observationID := messageLoopLastMixObservationField(state, "observation_id")
+	treatment := &MixTreatmentPending{
+		SchemaVersion:             "mix_treatment_pending.v0",
+		Status:                    "pending_confirmation",
+		ConversationID:            messageLoopConversationID(state),
+		ObservationID:             observationID,
+		Intent:                    strings.TrimSpace(state.input.UserText),
+		TargetRef:                 "track:" + trackID,
+		ActionKind:                "gain_balance",
+		ProcessorType:             "utility",
+		DeltaDB:                   delta,
+		Target:                    map[string]any{"delta_db": delta},
+		ReasoningSummary:          "explicit small gain move from user text after mix observation",
+		Confidence:                "high",
+		EvidenceRefs:              []string{observationID},
+		ExpiresAfterContextChange: true,
+		CreatedFromReply:          state.input.UserText,
+		Fingerprint: map[string]any{
+			"conversation_id":   messageLoopConversationID(state),
+			"goal_id":           state.goal.GoalID,
+			"run_id":            state.goal.RunID,
+			"observation_id":    observationID,
+			"target_scope":      messageLoopLastMixObservationScope(state),
+			"target_track_id":   trackID,
+			"track_count":       messageLoopPendingMixCandidateTrackCount(state),
+			"created_from_turn": state.turnsUsed,
+			"mix_session_id":    messageLoopLastMixObservationField(state, "mix_session_id"),
+			"source":            "deterministic_gain_pending_after_observation",
+		},
+	}
+	if observationID == "" {
+		treatment.EvidenceRefs = nil
+	}
+	state.executionMemory.PendingMixTreatment = treatment
+	reply := messageLoopPendingMixTreatmentReply(treatment)
+	if !messageLoopMixReplyAsksForExecution(reply) && !messageLoopClarificationAsksForExecution(reply) {
+		reply += "\n\n如果你认可这个混音建议，需要我继续执行吗？"
+	}
+	return reply, true
 }
 
 func firstStateTrackID(values ...map[string]any) string {
@@ -750,10 +826,12 @@ func coerceMixTickPrimitiveCall(state *runState, call planner.ToolCall) planner.
 	if state == nil || messageLoopExplicitPluginOrRawRequest(state.input.UserText) {
 		return call
 	}
-	if !messageLoopHasUsableMixObservation(state) {
+	isPanPrimitive := messageLoopPrimitiveTrackPanCall(call)
+	isVolumePrimitive := messageLoopPrimitiveTrackVolumeCall(call)
+	if !isVolumePrimitive && !isPanPrimitive {
 		return call
 	}
-	if !messageLoopPrimitiveTrackVolumeCall(call) {
+	if !messageLoopHasUsableMixObservation(state) && !(isPanPrimitive && messageLoopImplicitPanFollowupRequest(state)) && !(isVolumePrimitive && messageLoopImplicitGainFollowupRequest(state)) {
 		return call
 	}
 	if !allowedTool("mix.propose_tick", state.input.AllowedTools) {
@@ -769,7 +847,44 @@ func coerceMixTickPrimitiveCall(state *runState, call planner.ToolCall) planner.
 	if trackID == "" {
 		return call
 	}
+	if isPanPrimitive {
+		operation := ""
+		args := map[string]any{
+			"track_id": trackID,
+			"evidence": map[string]any{
+				"adapter":        "primitive_track_pan",
+				"primitive_tool": strings.TrimSpace(call.Tool),
+				"primitive_cmd":  firstMapText(call.Args, "cmd", "command"),
+				"reason":         strings.TrimSpace(call.Reason),
+			},
+		}
+		if target, ok := messageLoopPrimitiveTrackPanTarget(state, call); ok {
+			operation = "track_pan_set"
+			args["target_pan"] = clampPanTarget(target)
+		} else if delta, ok := messageLoopPrimitiveTrackPanDelta(call); ok && delta != 0 && mathAbs(delta) <= 0.15 {
+			operation = "track_pan_adjust"
+			args["delta_pan"] = delta
+		}
+		if operation == "" {
+			return call
+		}
+		args["operation"] = operation
+		next := call
+		next.Tool = "mix.propose_tick"
+		next.Command = nil
+		next.Args = args
+		next.Reason = firstNonEmpty(strings.TrimSpace(call.Reason), "wrap acoustic mix pan change as a single mix tick")
+		state.trace = append(state.trace, planner.TraceEvent{
+			Kind:     "tool_call_rewritten",
+			Message:  "acoustic mix pan primitive was wrapped as mix.propose_tick",
+			ToolCall: &next,
+		})
+		return next
+	}
 	delta, ok := messageLoopPrimitiveTrackVolumeDelta(state, call, trackID)
+	if !ok {
+		delta, ok = messageLoopImplicitGainDeltaFromText(firstNonEmpty(state.input.UserText, call.Reason))
+	}
 	if !ok || delta == 0 {
 		return call
 	}
@@ -819,13 +934,7 @@ func messageLoopPendingConfirmationCall(call planner.ToolCall, result executorpk
 }
 
 func messageLoopShouldAutoApplyConfirmedMixTick(state *runState, call planner.ToolCall, result executorpkg.Result) bool {
-	if state == nil || !messageLoopMixExecutionApproval(state.input.UserText) {
-		return false
-	}
-	if !messageLoopIsMixProposeTickCall(call) {
-		return false
-	}
-	return firstMapText(result.Result, "tick_id") != ""
+	return false
 }
 
 func messageLoopMixExecutionApproval(userText string) bool {
@@ -841,6 +950,152 @@ func messageLoopIsMixProposeTickCall(call planner.ToolCall) bool {
 	return name == "mix.propose_tick" || name == "mix_propose_tick"
 }
 
+func messageLoopMixTickProposalAsPendingTreatment(state *runState, call planner.ToolCall, out messageLoopOutput) (string, bool) {
+	if state == nil || !messageLoopIsMixProposeTickCall(call) {
+		return "", false
+	}
+	if (!messageLoopNaturalMixRequest(state.input.UserText) && !messageLoopImplicitPanFollowupRequest(state) && !messageLoopExplicitMixExecutionConfirmation(state.input.UserText)) || messageLoopExplicitPluginOrRawRequest(state.input.UserText) {
+		return "", false
+	}
+	treatment := messageLoopMixTreatmentPendingFromTickProposal(state, call, out)
+	if treatment == nil {
+		return "", false
+	}
+	state.executionMemory.PendingMixTreatment = treatment
+	reply := strings.TrimSpace(out.Reply)
+	if reply == "" || messageLoopReplyClaimsCompletedMixWrite(reply) {
+		reply = messageLoopPendingMixTreatmentReply(treatment)
+	}
+	reply = messageLoopStripMixTreatmentPendingMarkup(reply)
+	if reply == "" {
+		reply = messageLoopPendingMixTreatmentReply(treatment)
+	}
+	if !messageLoopMixReplyAsksForExecution(reply) && !messageLoopClarificationAsksForExecution(reply) {
+		reply += "\n\n如果你认可这个混音建议，需要我继续执行吗？"
+	}
+	return reply, true
+}
+
+func messageLoopReplyClaimsCompletedMixWrite(reply string) bool {
+	text := strings.ToLower(strings.TrimSpace(reply))
+	if text == "" {
+		return false
+	}
+	return messageLoopTextHasAny(text,
+		"已完成", "已经完成", "已执行", "已经执行", "执行完成", "设置为", "已设置",
+		"completed", "done", "applied", "has been set", "set to",
+	)
+}
+
+func messageLoopMixTreatmentPendingFromTickProposal(state *runState, call planner.ToolCall, out messageLoopOutput) *MixTreatmentPending {
+	if state == nil {
+		return nil
+	}
+	args := cloneMap(call.Args)
+	if len(args) == 0 {
+		args = cloneMap(call.Command)
+	}
+	operation := strings.ToLower(strings.TrimSpace(firstNonEmpty(
+		firstMapText(args, "operation", "action", "type"),
+		normalizedActionName(call, executorpkg.Result{}),
+	)))
+	if operation == "" {
+		return nil
+	}
+	trackID := firstNonEmpty(
+		firstMapText(args, "track_id", "target_track_id", "selected_track_id"),
+		messageLoopPendingMixCandidateTrackID(state, firstNonEmpty(out.Reply, state.input.UserText, call.Reason), state.input.UserText),
+	)
+	trackID = messageLoopCanonicalMixTrackID(state, trackID)
+	if trackID == "" {
+		return nil
+	}
+	observationID := messageLoopLastMixObservationField(state, "observation_id")
+	treatment := &MixTreatmentPending{
+		SchemaVersion:             "mix_treatment_pending.v0",
+		Status:                    "pending_confirmation",
+		ConversationID:            messageLoopConversationID(state),
+		ObservationID:             observationID,
+		Intent:                    strings.TrimSpace(state.input.UserText),
+		TargetRef:                 "track:" + trackID,
+		ProcessorType:             "utility",
+		ReasoningSummary:          firstNonEmpty(strings.TrimSpace(call.Reason), "model proposed a typed mix tick from natural language"),
+		Confidence:                "high",
+		EvidenceRefs:              []string{observationID},
+		ExpiresAfterContextChange: true,
+		CreatedFromReply:          firstNonEmpty(out.Reply, state.input.UserText),
+		Fingerprint: map[string]any{
+			"conversation_id":   messageLoopConversationID(state),
+			"goal_id":           state.goal.GoalID,
+			"run_id":            state.goal.RunID,
+			"observation_id":    observationID,
+			"target_scope":      messageLoopLastMixObservationScope(state),
+			"target_track_id":   trackID,
+			"track_count":       messageLoopPendingMixCandidateTrackCount(state),
+			"created_from_turn": state.turnsUsed,
+			"mix_session_id":    messageLoopLastMixObservationField(state, "mix_session_id"),
+			"source_tool":       strings.TrimSpace(call.Tool),
+		},
+	}
+	if observationID == "" {
+		treatment.EvidenceRefs = nil
+	}
+	switch operation {
+	case "track_gain_adjust":
+		delta, ok := firstNumericMapValue(args, "delta_db", "db_delta", "gain_delta_db", "volume_delta_db")
+		if !ok || delta == 0 || mathAbs(delta) > 2 {
+			return nil
+		}
+		treatment.ActionKind = "gain_balance"
+		treatment.DeltaDB = delta
+		treatment.Target = map[string]any{"delta_db": delta}
+	case "track_pan_adjust":
+		delta, ok := firstNumericMapValue(args, "delta_pan", "pan_delta")
+		if !ok || delta == 0 || mathAbs(delta) > 0.15 {
+			return nil
+		}
+		treatment.ActionKind = "pan_balance"
+		treatment.DeltaPan = delta
+		treatment.Target = map[string]any{"delta_pan": delta}
+	case "track_pan_set":
+		target, ok := firstNumericMapValue(args, "target_pan", "pan", "pan_value")
+		if !ok {
+			return nil
+		}
+		target = clampPanTarget(target)
+		if _, userTarget := messageLoopTreatmentPanFromReply(state.input.UserText); userTarget != nil {
+			target = *userTarget
+		}
+		treatment.ActionKind = "pan_balance"
+		treatment.TargetPan = &target
+		treatment.Target = map[string]any{"target_pan": target}
+	default:
+		return nil
+	}
+	return treatment
+}
+
+func messageLoopPendingMixTreatmentReply(treatment *MixTreatmentPending) string {
+	if treatment == nil {
+		return "我已把这个混音动作整理成待确认建议。"
+	}
+	target := strings.TrimPrefix(strings.TrimSpace(treatment.TargetRef), "track:")
+	if target == "" {
+		target = "当前目标"
+	}
+	switch strings.TrimSpace(treatment.ActionKind) {
+	case "gain_balance":
+		return fmt.Sprintf("我建议先把 %s 的电平调整 %.2f dB。", target, treatment.DeltaDB)
+	case "pan_balance":
+		if treatment.TargetPan != nil {
+			return fmt.Sprintf("我建议先把 %s 的声像设置到 %.2f。", target, *treatment.TargetPan)
+		}
+		return fmt.Sprintf("我建议先把 %s 的声像调整 %.2f。", target, treatment.DeltaPan)
+	default:
+		return "我已把这个混音动作整理成待确认建议。"
+	}
+}
+
 func messageLoopPrimitiveTrackVolumeCall(call planner.ToolCall) bool {
 	name := strings.ToLower(strings.TrimSpace(normalizedActionName(call, executorpkg.Result{})))
 	if name == "" {
@@ -852,6 +1107,95 @@ func messageLoopPrimitiveTrackVolumeCall(call planner.ToolCall) bool {
 	default:
 		return false
 	}
+}
+
+func messageLoopPrimitiveTrackPanCall(call planner.ToolCall) bool {
+	name := strings.ToLower(strings.TrimSpace(normalizedActionName(call, executorpkg.Result{})))
+	if name == "" {
+		name = strings.ToLower(strings.TrimSpace(call.Tool))
+	}
+	switch name {
+	case "track.pan", "track_pan", "set_pan":
+		return true
+	default:
+		return false
+	}
+}
+
+func messageLoopImplicitGainFollowupRequest(state *runState) bool {
+	if state == nil {
+		return false
+	}
+	if messageLoopNaturalMixRequest(state.input.UserText) {
+		return true
+	}
+	if _, ok := messageLoopImplicitGainDeltaFromText(state.input.UserText); !ok {
+		return false
+	}
+	return messageLoopHasUsableMixObservation(state) ||
+		len(messageLoopMapRows(state.input.State["tracks"])) > 0 ||
+		len(messageLoopMapRows(state.contextSnapshot["tracks"])) > 0 ||
+		state.executionMemory.ActiveWorkTargetTrackID != ""
+}
+
+func messageLoopImplicitGainDeltaFromText(text string) (float64, bool) {
+	text = strings.ToLower(strings.TrimSpace(text))
+	if text == "" {
+		return 0, false
+	}
+	if delta, _, ok := messageLoopExtractSingleGainDelta(text); ok && delta != 0 && mathAbs(delta) <= 2 {
+		return delta, true
+	}
+	hasGainContext := messageLoopTextHasAny(text,
+		"\u8fd9\u6761\u8f68", "\u5f53\u524d\u8f68", "\u8f68\u9053", "\u97f3\u91cf", "\u7535\u5e73", "\u589e\u76ca", "\u54cd",
+		"track", "volume", "level", "gain", "loud", "quiet",
+	)
+	if !hasGainContext {
+		return 0, false
+	}
+	switch {
+	case messageLoopTextHasAny(text,
+		"\u592a\u54cd", "\u592a\u5927", "\u592a\u51b2", "\u538b\u4f4e", "\u964d\u4f4e", "\u4e0b\u8c03", "\u8c03\u4f4e", "\u5c0f\u58f0", "\u5c0f\u4e00\u70b9", "\u4f4e\u4e00\u70b9", "\u6536\u4e00\u70b9", "\u5f80\u4e0b",
+		"too loud", "lower", "reduce", "decrease", "quieter", "turn down", "down",
+	):
+		if messageLoopTextHasAny(text, "\u4e00\u70b9", "\u7a0d\u5fae", "\u5c0f\u5e45", "\u8f7b\u5fae", "a little", "slightly", "small") {
+			return -1.5, true
+		}
+		return -2, true
+	case messageLoopTextHasAny(text,
+		"\u592a\u5c0f", "\u592a\u8f7b", "\u542c\u4e0d\u89c1", "\u63d0\u9ad8", "\u63d0\u5347", "\u4e0a\u8c03", "\u8c03\u9ad8", "\u66f4\u54cd", "\u5927\u4e00\u70b9", "\u9ad8\u4e00\u70b9", "\u5f80\u4e0a",
+		"too quiet", "raise", "boost", "increase", "louder", "turn up", "up",
+	):
+		if messageLoopTextHasAny(text, "\u4e00\u70b9", "\u7a0d\u5fae", "\u5c0f\u5e45", "\u8f7b\u5fae", "a little", "slightly", "small") {
+			return 1.5, true
+		}
+		return 2, true
+	default:
+		return 0, false
+	}
+}
+
+func messageLoopPrimitiveTrackPanTarget(state *runState, call planner.ToolCall) (float64, bool) {
+	if _, target := messageLoopTreatmentPanFromReply(state.input.UserText); target != nil {
+		return *target, true
+	}
+	if value, ok := firstNumericMapValue(call.Args, "target_pan", "pan", "pan_value"); ok {
+		return value, true
+	}
+	if value, ok := firstNumericMapValue(call.Command, "target_pan", "pan", "pan_value"); ok {
+		return value, true
+	}
+	return 0, false
+}
+
+func messageLoopPrimitiveTrackPanDelta(call planner.ToolCall) (float64, bool) {
+	if value, ok := firstNumericMapValue(call.Args, "delta_pan", "pan_delta"); ok {
+		return value, true
+	}
+	if value, ok := firstNumericMapValue(call.Command, "delta_pan", "pan_delta"); ok {
+		return value, true
+	}
+	return 0, false
 }
 
 func messageLoopPrimitiveTrackVolumeDelta(state *runState, call planner.ToolCall, trackID string) (float64, bool) {
@@ -1042,14 +1386,23 @@ func messageLoopClarificationAsPendingPanTreatment(state *runState, out messageL
 	if state == nil || !out.NeedsClarification {
 		return "", false
 	}
-	if !messageLoopNaturalMixRequest(state.input.UserText) || messageLoopExplicitPluginOrRawRequest(state.input.UserText) || !messageLoopHasUsableMixObservation(state) {
+	userText := strings.TrimSpace(state.input.UserText)
+	isNaturalMix := messageLoopNaturalMixRequest(userText)
+	isImplicitPanFollowup := messageLoopImplicitPanFollowupRequest(state)
+	if (!isNaturalMix && !isImplicitPanFollowup) || messageLoopExplicitPluginOrRawRequest(userText) {
 		return "", false
 	}
-	deltaPan, targetPan := messageLoopTreatmentPanFromReply(state.input.UserText)
+	if !messageLoopHasUsableMixObservation(state) && !messageLoopHasPanPendingContext(state) {
+		return "", false
+	}
+	deltaPan, targetPan := messageLoopTreatmentPanFromReply(userText)
 	if deltaPan == 0 && targetPan == nil {
-		return "", false
+		deltaPan, targetPan = messageLoopTreatmentPanFromReply(firstNonEmpty(out.Reply, out.ClarificationQuestion))
+		if deltaPan == 0 && targetPan == nil {
+			return "", false
+		}
 	}
-	targetID := messageLoopPendingMixCandidateTrackID(state, firstNonEmpty(out.Reply, state.input.UserText), state.input.UserText)
+	targetID := messageLoopPendingMixCandidateTrackID(state, firstNonEmpty(out.Reply, userText), userText)
 	if targetID == "" {
 		return "", false
 	}
@@ -1066,7 +1419,7 @@ func messageLoopClarificationAsPendingPanTreatment(state *runState, out messageL
 		ProcessorType:             "utility",
 		DeltaPan:                  deltaPan,
 		TargetPan:                 targetPan,
-		ReasoningSummary:          "explicit small pan move from user text",
+		ReasoningSummary:          "explicit pan move from user text",
 		Confidence:                "high",
 		EvidenceRefs:              []string{observationID},
 		NeedsResolution:           nil,
@@ -1093,6 +1446,13 @@ func messageLoopClarificationAsPendingPanTreatment(state *runState, out messageL
 		reply += "\n\n如果你认可这个小步建议，需要我继续执行吗？"
 	}
 	return reply, true
+}
+
+func messageLoopHasPanPendingContext(state *runState) bool {
+	if state == nil {
+		return false
+	}
+	return len(messageLoopPendingMixCandidateTrackRows(state)) > 0 || strings.TrimSpace(state.executionMemory.ActiveWorkTargetTrackID) != ""
 }
 
 func messageLoopCanonicalMixTrackID(state *runState, ref string) string {
@@ -1430,7 +1790,15 @@ func decodeMessageLoopCandidate(text string) (messageLoopOutput, error) {
 }
 
 func messageLoopOutputHasShape(out messageLoopOutput) bool {
-	return out.Final || out.NeedsClarification || strings.TrimSpace(out.FailureReason) != "" || len(out.ToolCalls) > 0
+	if out.Final || out.NeedsClarification || strings.TrimSpace(out.FailureReason) != "" || len(out.ToolCalls) > 0 {
+		return true
+	}
+	reply := strings.TrimSpace(out.Reply)
+	return reply != "" && messageLoopReplyHasPendingMarker(reply)
+}
+
+func messageLoopReplyHasPendingMarker(reply string) bool {
+	return messageLoopMixTreatmentPendingPattern.MatchString(reply)
 }
 
 func messageLoopJSONCandidates(raw string) []string {
@@ -1773,7 +2141,11 @@ func setIfEmpty(row map[string]any, key, value string) {
 }
 
 func messageLoopToolGuardIssue(state *runState, call planner.ToolCall, hadMixObservationBeforeTurn bool) string {
-	if state == nil || !messageLoopNaturalMixRequest(state.input.UserText) || messageLoopExplicitPluginOrRawRequest(state.input.UserText) {
+	if state == nil || messageLoopExplicitPluginOrRawRequest(state.input.UserText) {
+		return ""
+	}
+	isMixIntent := messageLoopNaturalMixRequest(state.input.UserText) || messageLoopImplicitPanFollowupRequest(state) || messageLoopImplicitGainFollowupRequest(state)
+	if !isMixIntent {
 		return ""
 	}
 	if messageLoopIsWaveformBakeTool(call) {
@@ -1784,6 +2156,12 @@ func messageLoopToolGuardIssue(state *runState, call planner.ToolCall, hadMixObs
 	}
 	if !messageLoopMixObserveFirstBlockedTool(call) {
 		return ""
+	}
+	if messageLoopPrimitiveTrackVolumeCall(call) || messageLoopPrimitiveTrackPanCall(call) {
+		if hadMixObservationBeforeTurn || messageLoopHasUsableMixObservation(state) {
+			return "mix.observe is complete; direct track volume or pan writes must be converted into a pending mix treatment/mix tick, then wait for explicit user confirmation before applying"
+		}
+		return "ordinary acoustic mixing requests must run mix.observe and wait for its result before changing volume or pan"
 	}
 	if hadMixObservationBeforeTurn {
 		if messageLoopExplicitMixExecutionConfirmation(state.input.UserText) {
@@ -1978,9 +2356,9 @@ func messageLoopNaturalMixRequest(userText string) bool {
 	return messageLoopTextHasAny(text,
 		"\u6df7\u97f3", "\u6df7\u4e00\u4e0b", "\u5e2e\u6211\u6df7", "\u7f29\u6df7", "\u58f0\u97f3\u5904\u7406", "\u8c03\u4e00\u4e0b", "\u5904\u7406\u4e00\u4e0b",
 		"\u4e3b\u5531", "\u4eba\u58f0", "vocal", "lead vocal",
-		"\u9760\u524d", "\u5f80\u524d", "\u63d0\u5347\u54cd\u5ea6", "\u54cd\u5ea6", "\u66f4\u4eae", "\u660e\u4eae", "\u6d51\u6d4a", "\u523a\u8033",
+		"\u9760\u524d", "\u5f80\u524d", "\u63d0\u5347\u54cd\u5ea6", "\u54cd\u5ea6", "\u592a\u54cd", "\u592a\u5927", "\u592a\u5c0f", "\u538b\u4f4e", "\u964d\u4f4e", "\u4e0b\u8c03", "\u8c03\u4f4e", "\u63d0\u9ad8", "\u63d0\u5347", "\u4e0a\u8c03", "\u8c03\u9ad8", "\u97f3\u91cf", "\u7535\u5e73", "\u589e\u76ca", "\u66f4\u4eae", "\u660e\u4eae", "\u6d51\u6d4a", "\u523a\u8033",
 		"\u4f4e\u9891", "\u4f4e\u4e2d\u9891", "\u7a7a\u95f4\u611f", "\u52a0\u4e00\u70b9\u7a7a\u95f4", "\u58f0\u50cf", "\u58f0\u76f8", "\u58f0\u573a", "\u52a8\u6001", "\u538b\u7f29",
-		"mix", "mixing", "loudness", "louder", "forward", "mud", "muddy", "harsh", "bright", "space", "reverb", "pan", "panning", "stereo field", "dynamic",
+		"mix", "mixing", "loudness", "louder", "too loud", "too quiet", "volume", "level", "gain", "lower", "reduce", "decrease", "raise", "boost", "increase", "forward", "mud", "muddy", "harsh", "bright", "space", "reverb", "pan", "panning", "stereo field", "dynamic",
 	)
 }
 
@@ -2027,7 +2405,7 @@ func messageLoopExplicitMixExecutionConfirmation(userText string) bool {
 		return false
 	}
 	hasApproval := messageLoopTextHasAny(text,
-		"\u786e\u8ba4", "\u6267\u884c", "\u5f00\u59cb", "\u6309\u4f60\u8bf4\u7684", "\u6309\u8fd9\u4e2a", "\u5c31\u8fd9\u6837", "\u53ef\u4ee5",
+		"\u786e\u8ba4", "\u6267\u884c", "\u5f00\u59cb", "\u6309\u4f60\u8bf4\u7684", "\u6309\u8fd9\u4e2a", "\u5c31\u8fd9\u6837", "\u53ef\u4ee5\u6267\u884c", "\u53ef\u4ee5\u7ee7\u7eed", "\u7ee7\u7eed\u6267\u884c",
 		"confirm", "execute", "apply", "do it", "go ahead", "as you said",
 	)
 	hasConcreteMove := messageLoopTextHasAny(text,
@@ -2483,7 +2861,7 @@ func messageLoopMixObservationFinalReply(state *runState, reply string) string {
 	if state == nil || reply == "" {
 		return reply
 	}
-	if !messageLoopNaturalMixRequest(state.input.UserText) || messageLoopExplicitPluginOrRawRequest(state.input.UserText) || !messageLoopHasUsableMixObservation(state) {
+	if (!messageLoopNaturalMixRequest(state.input.UserText) && !messageLoopImplicitPanFollowupRequest(state)) || messageLoopExplicitPluginOrRawRequest(state.input.UserText) {
 		return reply
 	}
 	if candidate := messageLoopPendingMixTickCandidateFromReply(state, reply); candidate != nil {
@@ -2491,6 +2869,9 @@ func messageLoopMixObservationFinalReply(state *runState, reply string) string {
 	} else if treatment := messageLoopMixTreatmentPendingFromReply(state, reply); treatment != nil {
 		state.executionMemory.PendingMixTreatment = treatment
 		reply = messageLoopStripMixTreatmentPendingMarkup(reply)
+	}
+	if !messageLoopHasUsableMixObservation(state) {
+		return reply
 	}
 	if messageLoopMixReplyAsksForExecution(reply) {
 		return reply
@@ -2504,8 +2885,9 @@ func messageLoopMixReplyAsksForExecution(reply string) bool {
 		return false
 	}
 	return messageLoopTextHasAny(text,
-		"需要我继续执行吗", "要我继续执行吗", "需要我执行吗", "要我执行吗", "我下一步就", "如果你确认", "你确认后",
-		"should i continue", "want me to continue", "shall i continue", "if you confirm", "once you confirm",
+		"需要我继续执行吗", "要我继续执行吗", "需要我执行吗", "要我执行吗", "要我现在执行吗", "现在执行吗", "执行这个",
+		"我下一步就", "如果你确认", "你确认后",
+		"should i continue", "want me to continue", "shall i continue", "should i execute", "execute this", "if you confirm", "once you confirm",
 	)
 }
 

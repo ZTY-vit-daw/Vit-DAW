@@ -6225,11 +6225,44 @@ func (h *Harness) afterKernelReply(ctx context.Context, spec tools.CommandSpec, 
 	if spec.RefreshAfter {
 		h.refreshShadow(ctx, spec.CommandName)
 	}
+	h.applyKernelReplyShadowDelta(spec, reply)
 }
 
 func kernelReplySucceeded(reply map[string]any) bool {
 	status := strings.ToLower(strings.TrimSpace(fmt.Sprint(reply["status"])))
 	return status == "ok" || status == "success"
+}
+
+func (h *Harness) applyKernelReplyShadowDelta(spec tools.CommandSpec, reply map[string]any) {
+	if h == nil || h.shadow == nil {
+		return
+	}
+	switch spec.CommandName {
+	case "set_pan":
+		trackID := firstString(reply, "track_id")
+		pan, ok := numberValueFromMap(reply, "pan", "pan_value")
+		if trackID == "" || !ok {
+			return
+		}
+		h.shadow.ApplyDelta(map[string]any{
+			"type":       "delta_update",
+			"target_uid": trackID,
+			"action":     "property_changed:pan",
+			"value":      pan,
+		})
+	case "set_volume":
+		trackID := firstString(reply, "track_id")
+		db, ok := numberValueFromMap(reply, "volume_db", "fader_db", "gain_db", "db")
+		if trackID == "" || !ok {
+			return
+		}
+		h.shadow.ApplyDelta(map[string]any{
+			"type":       "delta_update",
+			"target_uid": trackID,
+			"action":     "property_changed:volume_db",
+			"value":      db,
+		})
+	}
 }
 
 func (h *Harness) publicResult(spec tools.CommandSpec, cmd map[string]any, reply map[string]any) map[string]any {

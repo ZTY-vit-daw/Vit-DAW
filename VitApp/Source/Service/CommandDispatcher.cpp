@@ -754,6 +754,8 @@ juce::var createTrackState (te::Track& track)
             trackObject->setProperty ("volume_db", db);
             trackObject->setProperty ("gain_db", db);
             trackObject->setProperty ("fader_db", db);
+            trackObject->setProperty ("pan", volumePlugin->getPan());
+            trackObject->setProperty ("pan_value", volumePlugin->getPan());
         }
     }
 
@@ -2719,6 +2721,8 @@ juce::String CommandDispatcher::handleGetProjectState (const juce::DynamicObject
                 row->setProperty ("volume_db", db);
                 row->setProperty ("gain_db", db);
                 row->setProperty ("fader_db", db);
+                row->setProperty ("pan", volumePlugin->getPan());
+                row->setProperty ("pan_value", volumePlugin->getPan());
             }
 
             bool isArmed = false;

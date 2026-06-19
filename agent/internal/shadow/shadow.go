@@ -346,6 +346,10 @@ func applyTrackDeltaProperties(row map[string]any, props map[string]any) {
 		row["fader_db"] = cloneAny(v)
 		row["gain_db"] = cloneAny(v)
 	}
+	if v, ok := firstProperty(props, "pan", "pan_value", "panValue", "balance"); ok {
+		row["pan"] = cloneAny(v)
+		row["pan_value"] = cloneAny(v)
+	}
 	if v, ok := firstProperty(props, "level_db", "levelDb", "peak_db", "peakDb", "meter_peak_db", "meter_level_db"); ok {
 		row["level_db"] = cloneAny(v)
 	}
@@ -373,6 +377,10 @@ func applyTrackVolumePluginDeltaProperties(row map[string]any, props map[string]
 			row["fader_db"] = db
 			row["gain_db"] = db
 		}
+	}
+	if v, ok := firstProperty(props, "pan", "pan_value", "panValue", "balance"); ok {
+		row["pan"] = cloneAny(v)
+		row["pan_value"] = cloneAny(v)
 	}
 }
 
@@ -444,6 +452,7 @@ func compactTrack(row map[string]any, userIndex int) map[string]any {
 		"fader_db":         firstPresent(row, "fader_db", "faderDb"),
 		"gain_db":          firstPresent(row, "gain_db", "gainDb"),
 		"pan":              firstPresent(row, "pan", "pan_value", "panValue"),
+		"pan_value":        firstPresent(row, "pan_value", "panValue", "pan"),
 		"level_db":         firstPresent(row, "level_db", "levelDb", "peak_db", "peakDb", "meter_peak_db", "meter_level_db"),
 		"left_level_db":    firstPresent(row, "left_level_db", "leftLevelDb", "left_peak_db", "leftPeakDb", "level_l_db", "peak_l_db"),
 		"right_level_db":   firstPresent(row, "right_level_db", "rightLevelDb", "right_peak_db", "rightPeakDb", "level_r_db", "peak_r_db"),

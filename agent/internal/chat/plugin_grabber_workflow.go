@@ -227,7 +227,7 @@ func copyWorkflowField(dst map[string]any, src map[string]any, target string, ke
 	plugingrabber.CopyWorkflowField(dst, src, target, keys...)
 }
 func (s *Server) runPluginGrabberLoadWorkflow(ctx context.Context, conversationID, userText string, requestContext map[string]any, workflowCmd map[string]any) ChatResponse {
-	if legacyChatBroadMixRequestNeedsObservation(userText) && !legacyChatExplicitPluginOrRawRequest(userText) {
+	if !boolValue(requestContext["mix_treatment_preparation"]) && legacyChatBroadMixRequestNeedsObservation(userText) && !legacyChatExplicitPluginOrRawRequest(userText) {
 		reply := "我不会因为宽泛的混音目标直接加载效果器。先做一次 mix.request_observation，基于当前轨道/音频的实际观察给出建议；你确认一个具体小动作后，我再执行可撤回的单步调整。"
 		return ChatResponse{
 			ConversationID: conversationID,
@@ -239,7 +239,7 @@ func (s *Server) runPluginGrabberLoadWorkflow(ctx context.Context, conversationI
 	if err != nil {
 		return ChatResponse{ConversationID: conversationID, Reply: friendlyExecutionError(err), Error: err.Error()}
 	}
-	if s.kernel == nil {
+	if s.kernel == nil && s.harness == nil {
 		err := fmt.Errorf("kernel client is nil")
 		return ChatResponse{ConversationID: conversationID, Reply: friendlyExecutionError(err), Error: err.Error()}
 	}
@@ -303,6 +303,12 @@ func (s *Server) runPluginGrabberLoadWorkflow(ctx context.Context, conversationI
 			"intent":       target.Intent,
 		},
 	}
+	if boolValue(requestContext["mix_treatment_preparation"]) {
+		plan.WorkflowData["mix_treatment_preparation"] = true
+		if preparationPlan := cloneContext(mapValue(requestContext["mix_treatment_preparation_plan"])); len(preparationPlan) > 0 {
+			plan.WorkflowData["mix_treatment_preparation_plan"] = preparationPlan
+		}
+	}
 	s.mu.Lock()
 	s.pending[plan.ID] = plan
 	s.mu.Unlock()
@@ -318,6 +324,8 @@ func (s *Server) runPluginGrabberLoadWorkflow(ctx context.Context, conversationI
 		NeedsConfirmation: true,
 		PlanID:            plan.ID,
 		Preview:           preview,
+		Workflow:          pluginGrabberLoadCommand,
+		WorkflowData:      copyStringAnyMap(plan.WorkflowData),
 		Commands:          decisions,
 	}
 }

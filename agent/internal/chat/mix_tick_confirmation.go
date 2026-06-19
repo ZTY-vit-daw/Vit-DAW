@@ -38,6 +38,12 @@ func (s *Server) handlePendingMixTickChat(ctx context.Context, conversationID st
 		return ChatResponse{}, false
 	}
 	switch {
+	case messageRevisesPendingMixTick(req.Message):
+		if s != nil && s.logger != nil {
+			s.logger.Info("[mix.tick.pending] revision requested conversation=%s message=%q %s", conversationID, req.Message, pendingMixTickLogSummary(candidate))
+		}
+		s.expirePendingMixTick(conversationID)
+		return ChatResponse{}, false
 	case messageKeepsMixTickDiscussion(req.Message):
 		if s != nil && s.logger != nil {
 			s.logger.Info("[mix.tick.pending] discussion continued without execution conversation=%s message=%q %s", conversationID, req.Message, pendingMixTickLogSummary(candidate))
@@ -49,7 +55,7 @@ func (s *Server) handlePendingMixTickChat(ctx context.Context, conversationID st
 		}
 		s.expirePendingMixTick(conversationID)
 		return ChatResponse{}, false
-	case messageExplicitMixTickApply(req.Message):
+	case messageExplicitMixTickApply(req.Message) || messagePlainMixApproval(req.Message):
 		if s != nil && s.logger != nil {
 			s.logger.Info("[mix.tick.pending] explicit confirmation routed conversation=%s %s observation=%s", conversationID, pendingMixTickLogSummary(candidate), candidate.ObservationID)
 		}
@@ -456,6 +462,10 @@ func messageClearlyShiftsMixTickContext(message string) bool {
 		"先别", "不要执行", "别执行", "取消", "换", "整体混音", "全工程", "看整体", "鼓组", "主唱", "人声", "压缩", "eq", "均衡", "混响",
 		"cancel", "don't apply", "do not apply", "overall mix", "full project", "track ", "vocal", "compress", "reverb",
 	)
+}
+
+func messageRevisesPendingMixTick(message string) bool {
+	return messageRevisesPendingMixTreatment(message)
 }
 
 func messageAmbiguousMixTickApproval(message string) bool {

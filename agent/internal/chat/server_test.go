@@ -225,6 +225,243 @@ func TestAgentLoopCompletedWithoutExecutionForQuestionStaysCompleted(t *testing.
 	}
 }
 
+func TestAgentLoopPendingMixTreatmentResponseNeedsConfirmation(t *testing.T) {
+	server := New(nil, shadow.New(nil), nil)
+	resp := server.chatResponseFromAgentLoopResult("chat_mix", agentModeDefault, agentloop.Result{
+		GoalID: "goal_1",
+		RunID:  "run_1",
+		Status: agentruntime.StatusCompleted,
+		Reply:  "我建议先把 1007 的电平调整 -1.50 dB。\n\n如果你认可这个混音建议，需要我继续执行吗？",
+		ExecutionMemory: agentloop.ExecutionMemory{
+			PendingMixTreatment: &agentloop.MixTreatmentPending{
+				SchemaVersion: "mix_treatment_pending.v0",
+				Status:        "pending_confirmation",
+				TargetRef:     "track:1007",
+				ActionKind:    "gain_balance",
+				ProcessorType: "utility",
+				DeltaDB:       -1.5,
+				Confidence:    "high",
+			},
+		},
+	})
+
+	if !resp.NeedsConfirmation || resp.GoalStatus != string(agentruntime.StatusWaitingConfirmation) || resp.Workflow != "mix_treatment" {
+		t.Fatalf("response confirmation fields = needs=%v status=%q workflow=%q", resp.NeedsConfirmation, resp.GoalStatus, resp.Workflow)
+	}
+	if len(resp.InteractionRequests) != 1 {
+		t.Fatalf("interaction requests = %+v", resp.InteractionRequests)
+	}
+	req := resp.InteractionRequests[0]
+	if req.Kind != "mix_treatment_confirmation" || len(req.Actions) < 2 {
+		t.Fatalf("interaction request = %+v", req)
+	}
+	if fmt.Sprint(req.Payload["delta_db"]) != "-1.5" || fmt.Sprint(resp.WorkflowData["action_kind"]) != "gain_balance" {
+		t.Fatalf("payload=%+v workflow_data=%+v", req.Payload, resp.WorkflowData)
+	}
+}
+
+func TestInteractionRespondMixTreatmentConfirmationExecutesPendingTreatment(t *testing.T) {
+	projectPath := filepath.Join(t.TempDir(), "mix.vit")
+	if err := os.WriteFile(projectPath, []byte("<project/>"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	shadowProject := shadow.New(nil)
+	shadowProject.Initialize(map[string]any{
+		"status":       "ok",
+		"project_path": projectPath,
+		"tracks": []any{map[string]any{
+			"track_id":       "1007",
+			"track_name":     "Vocal",
+			"track_type":     "hybrid",
+			"is_audio_track": true,
+			"volume_db":      -3.0,
+		}},
+	})
+	kernel := &recordingChatKernel{replies: []map[string]any{
+		{"status": "ok", "project_path": projectPath, "snapshot_xml": "<project/>"},
+		{"status": "ok", "track_id": "1007", "volume_db": -4.5},
+		{"status": "ok", "project_path": projectPath, "tracks": []any{map[string]any{
+			"track_id":       "1007",
+			"track_name":     "Vocal",
+			"track_type":     "hybrid",
+			"is_audio_track": true,
+			"volume_db":      -4.5,
+		}}},
+	}}
+	server := New(nil, shadowProject, nil)
+	server.harness = harness.NewWithSender(kernel, shadowProject, nil)
+	initial := server.chatResponseFromAgentLoopResult("chat_mix", agentModeDefault, agentloop.Result{
+		GoalID: "goal_1",
+		RunID:  "run_1",
+		Status: agentruntime.StatusCompleted,
+		Reply:  "我建议先把 1007 的电平调整 -1.50 dB。\n\n如果你认可这个混音建议，需要我继续执行吗？",
+		ExecutionMemory: agentloop.ExecutionMemory{
+			PendingMixTreatment: &agentloop.MixTreatmentPending{
+				SchemaVersion:             "mix_treatment_pending.v0",
+				Status:                    "pending_confirmation",
+				ConversationID:            "chat_mix",
+				ObservationID:             "obs_1",
+				Intent:                    "bring vocal down slightly",
+				TargetRef:                 "track:1007",
+				ActionKind:                "gain_balance",
+				ProcessorType:             "utility",
+				DeltaDB:                   -1.5,
+				ReasoningSummary:          "explicit small gain move",
+				Confidence:                "high",
+				ExpiresAfterContextChange: true,
+				Fingerprint: map[string]any{
+					"target_track_id": "1007",
+					"track_count":     1,
+					"track_gain_db":   -3.0,
+					"before_track":    map[string]any{"track_id": "1007", "volume_db": -3.0, "peak_dbfs": -6.0, "rms_dbfs": -15.0, "headroom_db": 6.0},
+				},
+			},
+		},
+	})
+
+	if len(initial.InteractionRequests) != 1 {
+		t.Fatalf("interaction requests = %+v", initial.InteractionRequests)
+	}
+	interactionID := initial.InteractionRequests[0].ID
+	if _, ok := server.takePendingInteraction(interactionID); !ok {
+		t.Fatal("mix treatment confirmation interaction was not stored")
+	}
+	server.storePendingInteraction(initial.InteractionRequests[0], initial.InteractionRequests[0].Payload)
+	body, _ := json.Marshal(InteractionRespondRequest{
+		InteractionID: interactionID,
+		ActionID:      "approve",
+		Decision:      "approve",
+	})
+	rec := httptest.NewRecorder()
+	server.handleInteractionRespond(rec, httptest.NewRequest(http.MethodPost, "/agent/interaction/respond", bytes.NewReader(body)))
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d body=%s", rec.Code, rec.Body.String())
+	}
+	var resp ChatResponse
+	if err := json.Unmarshal(rec.Body.Bytes(), &resp); err != nil {
+		t.Fatalf("decode response: %v body=%s", err, rec.Body.String())
+	}
+	if strings.Contains(resp.Reply, "已处理或已过期") || resp.StopReason != "mix_tick_applied_reobserved" {
+		t.Fatalf("resp = %+v", resp)
+	}
+	var tools []string
+	for _, row := range resp.ExecutedKernelReply {
+		tools = append(tools, cleanContextText(row["tool"]))
+	}
+	if !testStringSliceContains(tools, "mix.propose_tick") || !testStringSliceContains(tools, "mix.apply_tick") || !testStringSliceContains(tools, "mix.observe") {
+		t.Fatalf("executed tools = %+v", tools)
+	}
+	if _, ok := server.pendingMixTreatmentForConversation("chat_mix"); ok {
+		t.Fatal("pending treatment should be consumed after approval")
+	}
+	var setVolumeCommands []map[string]any
+	for _, cmd := range kernel.commands {
+		if cleanContextText(cmd["cmd"]) == "set_volume" {
+			setVolumeCommands = append(setVolumeCommands, cmd)
+		}
+	}
+	if len(setVolumeCommands) != 1 || cleanContextText(setVolumeCommands[0]["track_id"]) != "1007" || fmt.Sprint(setVolumeCommands[0]["db"]) != "-4.5" {
+		t.Fatalf("set_volume commands = %+v all=%+v", setVolumeCommands, kernel.commands)
+	}
+}
+
+func TestInteractionRespondMixTreatmentPluginPreparationReturnsNewConfirmation(t *testing.T) {
+	projectPath := filepath.Join(t.TempDir(), "mix.vit")
+	if err := os.WriteFile(projectPath, []byte("<project/>"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	shadowProject := shadow.New(nil)
+	shadowProject.Initialize(map[string]any{
+		"status":       "ok",
+		"project_path": projectPath,
+		"tracks": []any{map[string]any{
+			"track_id":       "1007",
+			"track_name":     "Vocal",
+			"track_type":     "hybrid",
+			"is_audio_track": true,
+		}},
+	})
+	kernel := &recordingChatKernel{}
+	server := New(nil, shadowProject, nil)
+	server.harness = harness.NewWithSender(kernel, shadowProject, nil)
+	initial := server.chatResponseFromAgentLoopResult("chat_mix", agentModeDefault, agentloop.Result{
+		GoalID: "goal_1",
+		RunID:  "run_1",
+		Status: agentruntime.StatusCompleted,
+		Reply:  "我建议先做一个轻度压缩/限幅式的响度处理，确认后再进入安全执行准备。",
+		ExecutionMemory: agentloop.ExecutionMemory{
+			PendingMixTreatment: &agentloop.MixTreatmentPending{
+				SchemaVersion:             "mix_treatment_pending.v0",
+				Status:                    "pending_confirmation",
+				ConversationID:            "chat_mix",
+				ObservationID:             "obs_loudness",
+				Intent:                    "当前轨道响度有些小，我想更大声点",
+				TargetRef:                 "track:1007",
+				ActionKind:                "plugin_treatment",
+				ProcessorType:             "compressor",
+				PluginID:                  `C:\VST3\Test Compressor.vst3`,
+				PluginName:                "Test Compressor",
+				ReasoningSummary:          "peak is near 0 dBFS, prepare compression or limiting before increasing loudness",
+				Confidence:                "medium",
+				NeedsResolution:           []string{"plugin_instance", "plugin_profile", "exact_control"},
+				ExpiresAfterContextChange: true,
+			},
+		},
+	})
+
+	if len(initial.InteractionRequests) != 1 {
+		t.Fatalf("initial interaction requests = %+v", initial.InteractionRequests)
+	}
+	interactionID := initial.InteractionRequests[0].ID
+	body, _ := json.Marshal(InteractionRespondRequest{
+		InteractionID: interactionID,
+		ActionID:      "approve",
+		Decision:      "approve",
+	})
+	rec := httptest.NewRecorder()
+	server.handleInteractionRespond(rec, httptest.NewRequest(http.MethodPost, "/agent/interaction/respond", bytes.NewReader(body)))
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d body=%s", rec.Code, rec.Body.String())
+	}
+	var resp ChatResponse
+	if err := json.Unmarshal(rec.Body.Bytes(), &resp); err != nil {
+		t.Fatalf("decode response: %v body=%s", err, rec.Body.String())
+	}
+	if resp.StopReason != "mix_treatment_preparation_started" || resp.Workflow != pluginGrabberLoadCommand {
+		t.Fatalf("resp = %+v", resp)
+	}
+	if !resp.NeedsConfirmation || resp.PlanID == "" || resp.GoalStatus != string(agentruntime.StatusWaitingConfirmation) {
+		t.Fatalf("plugin preparation should return a new waiting confirmation: %+v", resp)
+	}
+	if len(resp.InteractionRequests) != 1 || resp.InteractionRequests[0].Kind != "confirmation" {
+		t.Fatalf("new interaction requests = %+v", resp.InteractionRequests)
+	}
+	if resp.InteractionRequests[0].ID == interactionID {
+		t.Fatal("plugin preparation confirmation must be a new interaction, not the consumed mix treatment interaction")
+	}
+	if strings.Contains(resp.Reply, "I have") || strings.Contains(resp.Reply, "Resolver") || strings.Contains(resp.Reply, "Prep steps") || strings.Contains(resp.Reply, "已处理或已过期") {
+		t.Fatalf("reply should be a Chinese continuation card, got %q", resp.Reply)
+	}
+	if len(resp.ExecutedKernelReply) != 0 {
+		t.Fatalf("plugin preparation confirmation should not execute tools yet: %+v", resp.ExecutedKernelReply)
+	}
+	var mutatingCommands []map[string]any
+	for _, cmd := range kernel.commands {
+		switch cleanContextText(cmd["cmd"]) {
+		case "rack_add_node", "set_plugin_param", "n_apply_control":
+			mutatingCommands = append(mutatingCommands, cmd)
+		}
+	}
+	if len(mutatingCommands) != 0 {
+		t.Fatalf("plugin preparation should not load or write before second confirmation: %+v", kernel.commands)
+	}
+	if _, ok := server.takePendingInteraction(resp.InteractionRequests[0].ID); !ok {
+		t.Fatal("new plugin preparation interaction was not stored")
+	}
+}
+
 func TestAgentLoopFailedAfterExecutionReportsPartialSuccess(t *testing.T) {
 	server := New(nil, shadow.New(nil), nil)
 	resp := server.chatResponseFromAgentLoopResult("chat_test", agentModeDefault, agentloop.Result{
@@ -2396,6 +2633,37 @@ func TestLegacyPendingBroadMixConfirmationDoesNotExecutePluginLoad(t *testing.T)
 	}
 }
 
+func TestMixTreatmentPreparationPluginLoadConfirmationBypassesBroadMixGuard(t *testing.T) {
+	server := New(nil, shadow.New(nil), nil)
+	plan := PendingPlan{
+		ID:        "plan_mix_treatment_preparation",
+		CreatedAt: time.Now(),
+		Workflow:  pluginGrabberLoadCommand,
+		Context: map[string]any{
+			"user_message":                    "低频有点糊，帮我处理一下",
+			"mix_treatment_preparation":       true,
+			"mix_treatment_preparation_plan": map[string]any{"schema_version": "mix_treatment_preparation.v0"},
+		},
+		WorkflowData: map[string]any{
+			"conversation_id":                 "chat_mix",
+			"plugin_query":                    "eq",
+			"user_message":                    "低频有点糊，帮我处理一下",
+			"mix_treatment_preparation":       true,
+			"mix_treatment_preparation_plan": map[string]any{"schema_version": "mix_treatment_preparation.v0"},
+		},
+		Decisions: policy.Analyze([]map[string]any{
+			{"cmd": "rack_add_node", "track_id": "1007", "plugin_path": `C:\Program Files\Common Files\VST3\TDR Nova.vst3`},
+		}),
+	}
+
+	if pendingPlanIsMixTreatmentPreparation(plan) != true {
+		t.Fatalf("plan should be recognized as mix treatment preparation: %+v", plan)
+	}
+	if response, blocked := server.legacyPendingPlanBroadMixBlockedConfirmResponse(context.Background(), plan.ID, plan, "goal_mix", "run_mix", agentModeDefault, ""); blocked {
+		t.Fatalf("mix treatment preparation should not be blocked as legacy broad mix, response=%+v", response)
+	}
+}
+
 func TestRecordGoalResultStoresPendingMixTickWithoutDeadlock(t *testing.T) {
 	server := New(nil, shadow.New(nil), nil)
 	done := make(chan struct{})
@@ -2490,6 +2758,146 @@ func TestPendingMixTickApprovalPhraseClassification(t *testing.T) {
 	}
 }
 
+func TestPlainApprovalWithoutPendingDoesNotRunAgentLoop(t *testing.T) {
+	server := New(nil, shadow.New(nil), nil)
+	body, _ := json.Marshal(ChatRequest{
+		ConversationID: "chat_plain_approval",
+		Message:        "是的",
+		Context:        map[string]any{"agent_mode": agentModeDefault},
+	})
+
+	rec := httptest.NewRecorder()
+	server.handleChat(rec, httptest.NewRequest(http.MethodPost, "/agent/chat", bytes.NewReader(body)))
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d body=%s", rec.Code, rec.Body.String())
+	}
+	var resp ChatResponse
+	if err := json.Unmarshal(rec.Body.Bytes(), &resp); err != nil {
+		t.Fatalf("decode response: %v body=%s", err, rec.Body.String())
+	}
+	if resp.StopReason != "plain_approval_without_pending_confirmation" {
+		t.Fatalf("resp = %+v", resp)
+	}
+	if len(resp.ExecutedKernelReply) != 0 || resp.NeedsConfirmation {
+		t.Fatalf("plain approval without pending should not execute or ask confirmation: %+v", resp)
+	}
+}
+
+func TestPendingMixTreatmentRevisionFallsThroughAndExpiresOldPending(t *testing.T) {
+	server := New(nil, shadow.New(nil), nil)
+	server.pendingTreatments["chat_mix"] = agentloop.MixTreatmentPending{
+		SchemaVersion:             "mix_treatment_pending.v0",
+		Status:                    "pending_confirmation",
+		ConversationID:            "chat_mix",
+		ObservationID:             "obs_1",
+		Intent:                    "move guitar left a little",
+		TargetRef:                 "track:1007",
+		ActionKind:                "pan_balance",
+		ProcessorType:             "utility",
+		DeltaPan:                  -0.1,
+		ExpiresAfterContextChange: true,
+	}
+
+	resp, handled := server.handlePendingMixTreatmentChat(context.Background(), "chat_mix", ChatRequest{Message: "\u6539\u6210\u5de6 70%"}, agentModeDefault)
+
+	if handled {
+		t.Fatalf("revision should fall through to normal chat, resp=%+v", resp)
+	}
+	if _, ok := server.pendingTreatments["chat_mix"]; ok {
+		t.Fatal("old pending treatment should expire before revised proposal is generated")
+	}
+}
+
+func TestPendingMixTreatmentPanRevisionPhraseFallsThroughAndExpiresOldPending(t *testing.T) {
+	server := New(nil, shadow.New(nil), nil)
+	server.pendingTreatments["chat_mix"] = agentloop.MixTreatmentPending{
+		SchemaVersion:             "mix_treatment_pending.v0",
+		Status:                    "pending_confirmation",
+		ConversationID:            "chat_mix",
+		ObservationID:             "obs_1",
+		Intent:                    "move current track left",
+		TargetRef:                 "track:1007",
+		ActionKind:                "pan_balance",
+		ProcessorType:             "utility",
+		DeltaPan:                  -0.1,
+		ExpiresAfterContextChange: true,
+	}
+
+	resp, handled := server.handlePendingMixTreatmentChat(context.Background(), "chat_mix", ChatRequest{Message: "彻底摆到右边去"}, agentModeDefault)
+
+	if handled {
+		t.Fatalf("pan revision should fall through to generate a new pending treatment, resp=%+v", resp)
+	}
+	if _, ok := server.pendingTreatments["chat_mix"]; ok {
+		t.Fatal("old pending treatment should expire before revised pan proposal is generated")
+	}
+}
+
+func TestPendingMixPlanPanRevisionPhraseExpiresGenericConfirmation(t *testing.T) {
+	plan := PendingPlan{
+		ID:       "plan_mix",
+		Workflow: agentLoopConfirmationWorkflow,
+		GoalContinuation: &agentloop.Continuation{
+			PendingToolCall: &planner.ToolCall{
+				Tool: "mix.apply_tick",
+				Args: map[string]any{"tick_id": "mix_tick_1"},
+			},
+		},
+	}
+
+	if !pendingPlanCanBeRevisedByMixRequest(plan, "彻底往右") {
+		t.Fatal("pan revision should expire a generic mix confirmation plan")
+	}
+	if pendingPlanPlainApproval("彻底往右") {
+		t.Fatal("pan revision phrase must not be treated as plain approval")
+	}
+}
+
+func TestPendingTrackPanPlanPanRevisionPhraseExpiresGenericConfirmation(t *testing.T) {
+	plan := PendingPlan{
+		ID:      "plan_track_pan",
+		Context: map[string]any{"conversation_id": "chat_mix"},
+		GoalContinuation: &agentloop.Continuation{
+			PendingToolCall: &planner.ToolCall{
+				Tool: "track.pan",
+				Args: map[string]any{"track_id": "1007", "pan": -1.0},
+			},
+		},
+		Decisions: []policy.Decision{{
+			Name:    "set_pan",
+			Command: map[string]any{"cmd": "set_pan", "track_id": "1007", "pan": -1.0},
+			Risk:    policy.RiskUndoable,
+		}},
+	}
+
+	if !pendingPlanCanBeRevisedByMixRequest(plan, "\u5f7b\u5e95\u5f80\u53f3") {
+		t.Fatal("pan revision should expire a legacy track.pan confirmation plan")
+	}
+	if pendingPlanCanBeRevisedByMixRequest(plan, "\u53ef\u4ee5") {
+		t.Fatal("plain approval should not revise the pending track.pan confirmation")
+	}
+}
+
+func TestPendingMixTickRevisionFallsThroughAndExpiresOldPending(t *testing.T) {
+	server := New(nil, shadow.New(nil), nil)
+	server.pendingMixTicks["chat_mix"] = agentloop.PendingMixTickCandidate{
+		Operation: "track_pan_adjust",
+		TrackID:   "track_1",
+		DeltaPan:  -0.1,
+		Status:    "pending_confirmation",
+	}
+
+	resp, handled := server.handlePendingMixTickChat(context.Background(), "chat_mix", ChatRequest{Message: "\u6539\u6210\u5de6 70%"}, agentModeDefault)
+
+	if handled {
+		t.Fatalf("revision should fall through to normal chat, resp=%+v", resp)
+	}
+	if _, ok := server.pendingMixTicks["chat_mix"]; ok {
+		t.Fatal("old pending mix tick should expire before revised proposal is generated")
+	}
+}
+
 func TestPendingMixTreatmentConfirmationReturnsResolverPrep(t *testing.T) {
 	server := New(nil, shadow.New(nil), nil)
 	server.pendingTreatments["chat_mix"] = agentloop.MixTreatmentPending{
@@ -2512,11 +2920,14 @@ func TestPendingMixTreatmentConfirmationReturnsResolverPrep(t *testing.T) {
 	if !handled {
 		t.Fatal("pending mix treatment was not handled")
 	}
-	if resp.StopReason != "mix_treatment_resolved_needs_preparation" {
+	if resp.StopReason != "mix_treatment_preparation_started" {
 		t.Fatalf("resp=%+v", resp)
 	}
-	if len(resp.ExecutedKernelReply) != 0 {
-		t.Fatalf("resolver should not execute tools, got %+v", resp.ExecutedKernelReply)
+	if !resp.NeedsConfirmation || resp.Workflow != pluginGrabberLoadCommand {
+		t.Fatalf("resolver should start a safe load confirmation, resp=%+v", resp)
+	}
+	if len(resp.ExecutedKernelReply) != 0 || len(resp.Commands) == 0 {
+		t.Fatalf("resolver should prepare confirmation without executing tools, commands=%+v executed=%+v", resp.Commands, resp.ExecutedKernelReply)
 	}
 	if _, ok := server.pendingTreatments["chat_mix"]; ok {
 		t.Fatal("pending treatment should be expired after resolver decision")
@@ -2535,8 +2946,92 @@ func TestPendingMixTreatmentConfirmationReturnsResolverPrep(t *testing.T) {
 	if !testAnyStringSliceContains(plan["blocked_routes"], "plugin.set_parameter") || !testAnyStringSliceContains(plan["blocked_routes"], "daw.invoke") {
 		t.Fatalf("blocked routes missing raw plugin mutation guards: %+v", plan)
 	}
-	if len(mapValue(plan["next_command"])) != 0 {
-		t.Fatalf("unknown plugin instance should not produce next command: %+v", plan)
+	next := mapValue(plan["next_command"])
+	if cleanContextText(next["cmd"]) != pluginGrabberLoadCommand {
+		t.Fatalf("unknown plugin instance should produce safe load prep command: %+v", plan)
+	}
+	if cleanContextText(next["track_id"]) != "1007" || cleanContextText(next["plugin_query"]) != "eq" {
+		t.Fatalf("load prep target = %+v", next)
+	}
+}
+
+func TestPendingMixTreatmentNeedsPreparationStartsPluginLoadConfirmation(t *testing.T) {
+	projectPath := filepath.Join(t.TempDir(), "mix.vit")
+	if err := os.WriteFile(projectPath, []byte("<project/>"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	shadowProject := shadow.New(nil)
+	shadowProject.Initialize(map[string]any{
+		"status":       "ok",
+		"project_path": projectPath,
+		"tracks": []any{map[string]any{
+			"track_id":       "1007",
+			"track_name":     "Vocal",
+			"track_type":     "hybrid",
+			"is_audio_track": true,
+		}},
+	})
+	kernel := &recordingChatKernel{}
+	server := New(nil, shadowProject, nil)
+	server.harness = harness.NewWithSender(kernel, shadowProject, nil)
+	server.pendingTreatments["chat_mix"] = agentloop.MixTreatmentPending{
+		SchemaVersion:             "mix_treatment_pending.v0",
+		Status:                    "pending_confirmation",
+		ConversationID:            "chat_mix",
+		ObservationID:             "obs_1",
+		Intent:                    "当前轨道响度有些小，我想更大声点",
+		TargetRef:                 "track:1007",
+		ActionKind:                "plugin_treatment",
+		ProcessorType:             "compressor",
+		PluginID:                  `C:\VST3\Test Compressor.vst3`,
+		PluginName:                "Test Compressor",
+		ReasoningSummary:          "direct gain risks clipping, prepare light compression or limiting",
+		Confidence:                "medium",
+		NeedsResolution:           []string{"plugin_instance", "plugin_profile", "exact_control"},
+		ExpiresAfterContextChange: true,
+	}
+
+	resp, handled := server.handlePendingMixTreatmentChat(context.Background(), "chat_mix", ChatRequest{
+		ConversationID: "chat_mix",
+		Message:        "确认执行",
+		Context:        map[string]any{"conversation_id": "chat_mix", "project_path": projectPath},
+	}, agentModeDefault)
+
+	if !handled {
+		t.Fatal("pending mix treatment was not handled")
+	}
+	if resp.StopReason != "mix_treatment_preparation_started" || resp.Workflow != pluginGrabberLoadCommand {
+		t.Fatalf("resp=%+v", resp)
+	}
+	if !resp.NeedsConfirmation || resp.PlanID == "" || len(resp.InteractionRequests) != 1 {
+		t.Fatalf("load preparation should be a confirmation interaction: %+v", resp)
+	}
+	if resp.InteractionRequests[0].Kind != "confirmation" {
+		t.Fatalf("interaction = %+v", resp.InteractionRequests[0])
+	}
+	if len(resp.ExecutedKernelReply) != 0 || len(resp.Commands) == 0 {
+		t.Fatalf("should only prepare plugin load confirmation; commands=%+v executed=%+v", resp.Commands, resp.ExecutedKernelReply)
+	}
+	if strings.Contains(resp.Reply, "I have") || strings.Contains(resp.Reply, "Resolver") || strings.Contains(resp.Reply, "Prep steps") {
+		t.Fatalf("reply should be Chinese user-facing text: %q", resp.Reply)
+	}
+	if !strings.Contains(resp.Reply, "我还没有执行响度处理") || !strings.Contains(resp.Reply, "插件加载") {
+		t.Fatalf("reply should explain safe preparation path: %q", resp.Reply)
+	}
+	if cleanContextText(resp.WorkflowData["plugin_query"]) != "compressor" || cleanContextText(resp.WorkflowData["track_id"]) != "1007" || cleanContextText(resp.WorkflowData["plugin_name"]) != "Test Compressor" {
+		t.Fatalf("workflow data = %+v", resp.WorkflowData)
+	}
+	var loadCommands []map[string]any
+	for _, cmd := range kernel.commands {
+		switch cleanContextText(cmd["cmd"]) {
+		case "plugin_search":
+			// read-only inventory lookup is expected.
+		case "rack_add_node", "set_plugin_param", "n_apply_control":
+			loadCommands = append(loadCommands, cmd)
+		}
+	}
+	if len(loadCommands) != 0 {
+		t.Fatalf("should not load or write before the load confirmation is approved: %+v", kernel.commands)
 	}
 }
 
@@ -3330,25 +3825,42 @@ func TestPendingMixTickWhyQuestionDoesNotExecute(t *testing.T) {
 	}
 }
 
-func TestPendingMixTickAmbiguousCanDoesNotExecute(t *testing.T) {
+func TestPendingMixTickPlainApprovalExecutesTypedLoop(t *testing.T) {
 	server := New(nil, shadow.New(nil), nil)
 	server.pendingMixTicks["chat_mix"] = agentloop.PendingMixTickCandidate{
-		Operation: "track_gain_adjust",
-		TrackID:   "track_1",
-		DeltaDB:   -1,
-		Status:    "pending_confirmation",
+		Operation:                 "track_gain_adjust",
+		TrackID:                   "track_1",
+		DeltaDB:                   -1,
+		ObservationID:             "obs_1",
+		ExpiresAfterContextChange: true,
+		Status:                    "pending_confirmation",
+		Fingerprint:               map[string]any{"target_scope": "selected_track", "mix_session_id": "mix_1"},
 	}
+	server.shadow.Initialize(map[string]any{"tracks": []any{map[string]any{
+		"track_id":       "track_1",
+		"track_name":     "Vocal",
+		"track_type":     "hybrid",
+		"is_audio_track": true,
+		"volume_db":      -3,
+	}}})
 
-	resp, handled := server.handlePendingMixTickChat(context.Background(), "chat_mix", ChatRequest{Message: "可以"}, agentModeDefault)
+	resp, handled := server.handlePendingMixTickChat(context.Background(), "chat_mix", ChatRequest{Message: "\u53ef\u4ee5"}, agentModeDefault)
 
-	if !handled || resp.StopReason != "ambiguous_mix_tick_confirmation" {
+	if !handled || resp.StopReason != "mix_tick_confirmation_failed" {
 		t.Fatalf("resp=%+v handled=%v", resp, handled)
 	}
-	if len(resp.ExecutedKernelReply) != 0 {
-		t.Fatalf("ambiguous 可以 should not execute: %+v", resp.ExecutedKernelReply)
+	var tools []string
+	for _, row := range resp.ExecutedKernelReply {
+		tools = append(tools, cleanContextText(row["tool"]))
+	}
+	if !testStringSliceContains(tools, "mix.propose_tick") || !testStringSliceContains(tools, "mix.apply_tick") {
+		t.Fatalf("executed tools = %+v, want typed propose/apply attempt", tools)
+	}
+	if testStringSliceContains(tools, "daw.invoke") || testStringSliceContains(tools, "track.volume") {
+		t.Fatalf("confirmation bypassed typed tools: %+v", tools)
 	}
 	if _, ok := server.pendingMixTicks["chat_mix"]; !ok {
-		t.Fatal("ambiguous 可以 should keep pending candidate")
+		t.Fatal("failed apply should keep pending mix tick available for retry")
 	}
 }
 
@@ -3776,6 +4288,57 @@ func TestAgentLoopBroadMixConfirmationDoesNotResumePluginLoad(t *testing.T) {
 	}
 	if !strings.Contains(fmt.Sprint(response["message"]), "mix.request_observation") {
 		t.Fatalf("response should direct observation first: %+v", response)
+	}
+}
+
+func TestPendingMixConfirmationCanBeRevisedByNewMixRequest(t *testing.T) {
+	plan := PendingPlan{
+		ID:        "plan_mix_tick",
+		CreatedAt: time.Now(),
+		Workflow:  agentLoopConfirmationWorkflow,
+		WorkflowData: map[string]any{
+			"conversation_id": "chat_mix",
+		},
+		GoalContinuation: &agentloop.Continuation{
+			PendingToolCall: &planner.ToolCall{
+				Tool: "mix.apply_tick",
+				Args: map[string]any{"tick_id": "mix_tick_1", "track_id": "1007"},
+			},
+		},
+		Decisions: []policy.Decision{{
+			Name:    "mix_apply_tick",
+			Command: map[string]any{"tool": "mix.apply_tick", "tick_id": "mix_tick_1"},
+			Risk:    policy.RiskUndoable,
+		}},
+	}
+
+	if !pendingPlanCanBeRevisedByMixRequest(plan, "我想让当前轨道靠左一些") {
+		t.Fatal("new subjective mix request should revise the pending mix confirmation")
+	}
+	if pendingPlanCanBeRevisedByMixRequest(plan, "可以执行") {
+		t.Fatal("explicit execution confirmation should not revise the pending mix confirmation")
+	}
+}
+
+func TestNonMixConfirmationIsNotRevisedByMixRequest(t *testing.T) {
+	plan := PendingPlan{
+		ID:        "plan_midi",
+		CreatedAt: time.Now(),
+		Workflow:  agentLoopConfirmationWorkflow,
+		GoalContinuation: &agentloop.Continuation{
+			PendingToolCall: &planner.ToolCall{
+				Tool: "midi.apply_note_patch",
+			},
+		},
+		Decisions: []policy.Decision{{
+			Name:    "apply_midi_note_patch",
+			Command: map[string]any{"tool": "midi.apply_note_patch"},
+			Risk:    policy.RiskConfirm,
+		}},
+	}
+
+	if pendingPlanCanBeRevisedByMixRequest(plan, "我想让当前轨道靠左一些") {
+		t.Fatal("non-mix confirmation should keep the normal confirmation gate")
 	}
 }
 

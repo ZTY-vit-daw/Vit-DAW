@@ -499,6 +499,88 @@ func TestMixTickProposeApplyTrackPanSet(t *testing.T) {
 	}
 }
 
+func TestMixTickApplyPanReportsObservedTrackPan(t *testing.T) {
+	kernel := &fakeKernelClient{replies: []map[string]any{
+		{"status": "ok"},
+		{"status": "ok", "tracks": []map[string]any{
+			{"track_id": "track_1", "track_name": "Lead", "pan": -0.7},
+		}},
+		{"status": "ok", "tracks": []map[string]any{
+			{"track_id": "track_1", "track_name": "Lead", "pan": -0.7},
+		}},
+		{"status": "ok", "tracks": []map[string]any{
+			{"track_id": "track_1", "track_name": "Lead", "pan": -0.7},
+		}},
+	}}
+	h := NewWithSender(kernel, shadow.New(nil), nil)
+	h.shadow.Initialize(map[string]any{
+		"tracks": []any{
+			map[string]any{"track_id": "track_1", "track_name": "Lead", "track_type": "hybrid", "is_audio_track": true, "pan": 0.0},
+		},
+	})
+
+	propose, err := h.Invoke(context.Background(), InvokeRequest{
+		Tool: "mix.propose_tick",
+		Args: map[string]any{
+			"operation": "track_pan_set",
+			"track_id":  "track_1",
+			"pan":       -0.7,
+		},
+		Source: "test",
+	})
+	if err != nil || propose.Status != "ok" {
+		t.Fatalf("propose = status=%q result=%+v err=%v", propose.Status, propose.Result, err)
+	}
+
+	applied, err := h.Invoke(context.Background(), InvokeRequest{
+		Tool: "mix.apply_tick",
+		Args: map[string]any{"tick_id": strings.TrimSpace(fmt.Sprint(propose.Result["tick_id"])), "confirmation": true},
+	})
+	if err != nil || applied.Status != "ok" {
+		t.Fatalf("apply = status=%q result=%+v err=%v", applied.Status, applied.Result, err)
+	}
+	if fmt.Sprint(applied.Result["observed_pan"]) != "-0.7" || applied.Result["observed_pan_matches"] != true {
+		t.Fatalf("observed pan result = %+v", applied.Result)
+	}
+	observed := testMap(t, applied.Result["observed_track"])
+	if fmt.Sprint(observed["pan"]) != "-0.7" {
+		t.Fatalf("observed track = %+v", observed)
+	}
+}
+
+func TestDirectTrackPanReplyUpdatesShadowPan(t *testing.T) {
+	kernel := &fakeKernelClient{replies: []map[string]any{
+		{"status": "ok", "track_id": "track_1", "track_name": "Lead", "pan": 0.75, "pan_value": 0.75},
+		{"status": "ok", "tracks": []map[string]any{
+			{"track_id": "track_1", "track_name": "Lead", "track_type": "audio", "is_audio_track": true, "pan": 0.0},
+		}},
+	}}
+	project := shadow.New(nil)
+	project.Initialize(map[string]any{
+		"tracks": []any{
+			map[string]any{"track_id": "track_1", "track_name": "Lead", "track_type": "audio", "is_audio_track": true, "pan": 0.0},
+		},
+	})
+	h := NewWithSender(kernel, project, nil)
+
+	resp, err := h.Invoke(context.Background(), InvokeRequest{
+		Tool:      "track.pan",
+		Args:      map[string]any{"track_id": "track_1", "pan": 0.75},
+		Confirmed: true,
+		Source:    "test",
+	})
+	if err != nil || resp.Status != "ok" {
+		t.Fatalf("track pan = status=%q result=%+v err=%v", resp.Status, resp.Result, err)
+	}
+	tracks := visibleTrackRows(h.UserStateSummary(context.Background()))
+	if len(tracks) != 1 {
+		t.Fatalf("tracks = %+v", tracks)
+	}
+	if fmt.Sprint(tracks[0]["pan"]) != "0.75" || fmt.Sprint(tracks[0]["pan_value"]) != "0.75" {
+		t.Fatalf("track pan did not update shadow: %+v", tracks[0])
+	}
+}
+
 func TestMixTickProposeRequiresExplicitDelta(t *testing.T) {
 	h := New(nil, shadow.New(nil), nil)
 	h.shadow.Initialize(map[string]any{

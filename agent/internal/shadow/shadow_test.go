@@ -170,6 +170,65 @@ func TestSummaryOverlaysTrackVolumePluginDelta(t *testing.T) {
 	}
 }
 
+func TestSummaryOverlaysTrackPanDelta(t *testing.T) {
+	p := New(nil)
+	p.Initialize(map[string]any{
+		"status": "ok",
+		"tracks": []any{
+			map[string]any{
+				"track_id":       "1007",
+				"track_name":     "Track 1",
+				"track_type":     "hybrid",
+				"is_audio_track": true,
+			},
+		},
+	})
+	p.ApplyDelta(map[string]any{
+		"type":       "delta_update",
+		"seq_id":     float64(1),
+		"target_uid": "1007",
+		"action":     "property_changed:pan",
+		"value":      -0.5,
+	})
+
+	summary := p.Summary()
+	tracks := summary["tracks"].([]map[string]any)
+	if tracks[0]["pan"] != -0.5 || tracks[0]["pan_value"] != -0.5 {
+		t.Fatalf("pan aliases not overlaid: %+v", tracks[0])
+	}
+}
+
+func TestSummaryOverlaysTrackPanPluginDelta(t *testing.T) {
+	p := New(nil)
+	p.Initialize(map[string]any{
+		"status": "ok",
+		"tracks": []any{
+			map[string]any{
+				"track_id":       "1007",
+				"track_name":     "Track 1",
+				"track_type":     "hybrid",
+				"is_audio_track": true,
+				"plugins": []any{
+					map[string]any{"plugin_item_id": "1008", "name": "Volume & Pan", "type": "volume"},
+				},
+			},
+		},
+	})
+	p.ApplyDelta(map[string]any{
+		"type":       "delta_update",
+		"seq_id":     float64(1),
+		"target_uid": "1008",
+		"action":     "property_changed:pan",
+		"value":      -0.7,
+	})
+
+	summary := p.Summary()
+	tracks := summary["tracks"].([]map[string]any)
+	if tracks[0]["pan"] != -0.7 || tracks[0]["pan_value"] != -0.7 {
+		t.Fatalf("plugin pan aliases not overlaid: %+v", tracks[0])
+	}
+}
+
 func TestInitializeRetainsTrackVolumePluginDeltaForSameSnapshot(t *testing.T) {
 	p := New(nil)
 	snapshot := map[string]any{

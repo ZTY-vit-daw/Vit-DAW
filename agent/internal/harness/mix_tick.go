@@ -378,12 +378,14 @@ func (h *Harness) applyTrackPanMixTick(ctx context.Context, rec *mixTickRecord) 
 			h.afterKernelReply(ctx, panSpec, reply)
 		}
 	}
+	observed := h.observedMixTickTrackRow(ctx, rec.TrackID)
+	observedPan, observedPanOK := observedTrackPan(observed)
 	now := time.Now()
 	rec.Status = "applied"
 	rec.AfterPan = &after
 	rec.UpdatedAt = now
 	h.mixTicks.put(rec)
-	return map[string]any{
+	result := map[string]any{
 		"status":           "ok",
 		"tick_id":          rec.TickID,
 		"operation":        rec.Operation,
@@ -395,7 +397,15 @@ func (h *Harness) applyTrackPanMixTick(ctx context.Context, rec *mixTickRecord) 
 		"kernel_command":   "set_pan",
 		"kernel_reply":     reply,
 		"requires_refresh": true,
-	}, nil
+	}
+	if observed != nil {
+		result["observed_track"] = observed
+	}
+	if observedPanOK {
+		result["observed_pan"] = observedPan
+		result["observed_pan_matches"] = math.Abs(observedPan-after) <= 0.0001
+	}
+	return result, nil
 }
 
 func (h *Harness) rollbackMixTick(ctx context.Context, cmd map[string]any) (map[string]any, error) {
@@ -491,7 +501,9 @@ func (h *Harness) rollbackTrackPanMixTick(ctx context.Context, rec *mixTickRecor
 	if h.mixTicks != nil {
 		h.mixTicks.put(rec)
 	}
-	return map[string]any{
+	observed := h.observedMixTickTrackRow(ctx, rec.TrackID)
+	observedPan, observedPanOK := observedTrackPan(observed)
+	result := map[string]any{
 		"status":           "ok",
 		"tick_id":          rec.TickID,
 		"operation":        rec.Operation,
@@ -501,7 +513,15 @@ func (h *Harness) rollbackTrackPanMixTick(ctx context.Context, rec *mixTickRecor
 		"kernel_command":   "set_pan",
 		"kernel_reply":     reply,
 		"requires_refresh": true,
-	}, nil
+	}
+	if observed != nil {
+		result["observed_track"] = observed
+	}
+	if observedPanOK {
+		result["observed_pan"] = observedPan
+		result["observed_pan_matches"] = math.Abs(observedPan-*rec.BeforePan) <= 0.0001
+	}
+	return result, nil
 }
 
 func firstTrackRow(state map[string]any, trackID string) map[string]any {
@@ -511,6 +531,33 @@ func firstTrackRow(state map[string]any, trackID string) map[string]any {
 		}
 	}
 	return nil
+}
+
+func (h *Harness) observedMixTickTrackRow(ctx context.Context, trackID string) map[string]any {
+	if h == nil {
+		return nil
+	}
+	if h.kernel != nil && h.shadow != nil {
+		reply, _, err := h.kernel.SendCommand(ctx, map[string]any{"cmd": "get_project_state"})
+		if err == nil && kernelReplySucceeded(reply) {
+			h.shadow.Initialize(reply)
+			if row := firstTrackRow(h.UserStateSummary(ctx), trackID); row != nil {
+				return row
+			}
+			if row := firstTrackRow(reply, trackID); row != nil {
+				return row
+			}
+		}
+	}
+	return firstTrackRow(h.UserStateSummary(ctx), trackID)
+}
+
+func observedTrackPan(row map[string]any) (float64, bool) {
+	value := firstPresentAny(row, "pan", "pan_value", "balance")
+	if value == nil {
+		return 0, false
+	}
+	return numberFromAnyWithDefault(value, 0), true
 }
 
 func firstPresentAny(row map[string]any, keys ...string) any {

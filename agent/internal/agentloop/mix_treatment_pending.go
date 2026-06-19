@@ -15,7 +15,7 @@ func messageLoopMixTreatmentPendingFromReply(state *runState, reply string) *Mix
 	}
 	match := messageLoopMixTreatmentPendingPattern.FindStringSubmatch(reply)
 	if len(match) < 2 || strings.TrimSpace(match[1]) == "" {
-		return nil
+		return messageLoopImplicitPanTreatmentPendingFromReply(state, reply)
 	}
 	var payload map[string]any
 	if err := json.Unmarshal([]byte(strings.TrimSpace(match[1])), &payload); err != nil {
@@ -64,6 +64,20 @@ func messageLoopMixTreatmentPendingFromReply(state *runState, reply string) *Mix
 	if pending.DeltaPan == 0 && pending.TargetPan == nil && strings.EqualFold(strings.TrimSpace(pending.ActionKind), "pan_balance") {
 		pending.DeltaPan, pending.TargetPan = messageLoopTreatmentPanFromReply(reply)
 	}
+	if strings.EqualFold(strings.TrimSpace(pending.ActionKind), "pan_balance") {
+		if deltaPan, targetPan := messageLoopTreatmentPanFromReply(state.input.UserText); deltaPan != 0 || targetPan != nil {
+			changed := deltaPan != pending.DeltaPan || !messageLoopSameOptionalPan(targetPan, pending.TargetPan)
+			pending.DeltaPan = deltaPan
+			pending.TargetPan = targetPan
+			if changed && pending.Target != nil {
+				delete(pending.Target, "delta_pan")
+				delete(pending.Target, "pan_delta")
+				delete(pending.Target, "target_pan")
+				delete(pending.Target, "pan")
+				delete(pending.Target, "pan_value")
+			}
+		}
+	}
 	if !strings.EqualFold(strings.TrimSpace(pending.SchemaVersion), "mix_treatment_pending.v0") {
 		return nil
 	}
@@ -71,6 +85,110 @@ func messageLoopMixTreatmentPendingFromReply(state *runState, reply string) *Mix
 		return nil
 	}
 	return &pending
+}
+
+func messageLoopSameOptionalPan(left *float64, right *float64) bool {
+	switch {
+	case left == nil && right == nil:
+		return true
+	case left == nil || right == nil:
+		return false
+	default:
+		return *left == *right
+	}
+}
+
+func messageLoopImplicitPanTreatmentPendingFromReply(state *runState, reply string) *MixTreatmentPending {
+	if state == nil || strings.TrimSpace(reply) == "" {
+		return nil
+	}
+	if !messageLoopImplicitPanFollowupRequest(state) || messageLoopExplicitPluginOrRawRequest(state.input.UserText) {
+		return nil
+	}
+	if !messageLoopReplyAsksForPanConfirmation(reply) {
+		return nil
+	}
+	deltaPan, targetPan := messageLoopTreatmentPanFromReply(state.input.UserText)
+	if deltaPan == 0 && targetPan == nil {
+		deltaPan, targetPan = messageLoopTreatmentPanFromReply(reply)
+	}
+	if deltaPan == 0 && targetPan == nil {
+		return nil
+	}
+	trackID := messageLoopPendingMixCandidateTrackID(state, reply, state.input.UserText)
+	if trackID == "" {
+		trackID = messageLoopLastMixObservationTrackID(state)
+	}
+	trackID = messageLoopCanonicalMixTrackID(state, trackID)
+	if trackID == "" {
+		return nil
+	}
+	observationID := messageLoopLastMixObservationField(state, "observation_id")
+	return &MixTreatmentPending{
+		SchemaVersion:             "mix_treatment_pending.v0",
+		Status:                    "pending_confirmation",
+		ConversationID:            messageLoopConversationID(state),
+		ObservationID:             observationID,
+		Intent:                    firstNonEmpty(strings.TrimSpace(state.input.UserText), strings.TrimSpace(reply)),
+		TargetRef:                 "track:" + trackID,
+		ActionKind:                "pan_balance",
+		ProcessorType:             "utility",
+		DeltaPan:                  deltaPan,
+		TargetPan:                 targetPan,
+		ReasoningSummary:          "implicit assistant pan confirmation question",
+		Confidence:                "medium",
+		EvidenceRefs:              []string{observationID},
+		ExpiresAfterContextChange: true,
+		CreatedFromReply:          reply,
+		Fingerprint: map[string]any{
+			"conversation_id":   messageLoopConversationID(state),
+			"goal_id":           state.goal.GoalID,
+			"run_id":            state.goal.RunID,
+			"observation_id":    observationID,
+			"target_scope":      messageLoopLastMixObservationScope(state),
+			"target_track_id":   trackID,
+			"track_count":       messageLoopPendingMixCandidateTrackCount(state),
+			"created_from_turn": state.turnsUsed,
+			"mix_session_id":    messageLoopLastMixObservationField(state, "mix_session_id"),
+		},
+	}
+}
+
+func messageLoopImplicitPanFollowupRequest(state *runState) bool {
+	if state == nil {
+		return false
+	}
+	if messageLoopNaturalMixRequest(state.input.UserText) {
+		return true
+	}
+	text := strings.ToLower(strings.TrimSpace(state.input.UserText))
+	if text == "" {
+		return false
+	}
+	if !messageLoopTextHasAny(text,
+		"左", "右", "中间", "居中", "回中", "left", "right", "center", "centre",
+		"摆", "摆到", "摆向", "放到", "往", "向", "靠左", "靠右", "偏左", "偏右", "打到", "打到底", "拉到", "拉到底", "推到", "完全", "彻底", "全", "最", "到底",
+	) {
+		return false
+	}
+	return messageLoopHasUsableMixObservation(state) ||
+		len(messageLoopMapRows(state.input.State["tracks"])) > 0 ||
+		len(messageLoopMapRows(state.contextSnapshot["tracks"])) > 0 ||
+		state.executionMemory.ActiveWorkTargetTrackID != ""
+}
+
+func messageLoopReplyAsksForPanConfirmation(reply string) bool {
+	text := strings.ToLower(strings.TrimSpace(reply))
+	if text == "" {
+		return false
+	}
+	if !messageLoopTextHasAny(text,
+		"?", "？", "要我", "是否", "确认", "确定", "继续", "如果你确定", "如果你确认", "我可以继续", "可以继续",
+		"should i", "shall i", "would you like me", "if you confirm", "if you are sure", "i can continue",
+	) {
+		return false
+	}
+	return messageLoopTextHasAny(text, "声像", "声相", "pan", "panning", "左", "右", "left", "right", "center", "centre")
 }
 
 func messageLoopTreatmentDeltaPan(payload map[string]any) float64 {
@@ -265,7 +383,25 @@ func messageLoopTreatmentPanFromReply(reply string) (float64, *float64) {
 		} else {
 			return 0, nil
 		}
-		return clampPanDelta(value), nil
+		if messageLoopPanLooksLikeSmallMove(text) && !messageLoopPanLooksLikePlacement(text) {
+			return clampPanDelta(value), nil
+		}
+		target := clampPanTarget(value)
+		return 0, &target
+	}
+	if messageLoopTextHasAny(text, "left", "左") && messageLoopPanLooksLikePlacement(text) {
+		if targetPan, ok := messageLoopPanNamedTargetFromReply(text); ok {
+			return 0, &targetPan
+		}
+		target := -0.50
+		return 0, &target
+	}
+	if messageLoopTextHasAny(text, "right", "右") && messageLoopPanLooksLikePlacement(text) {
+		if targetPan, ok := messageLoopPanNamedTargetFromReply(text); ok {
+			return 0, &targetPan
+		}
+		target := 0.50
+		return 0, &target
 	}
 	if messageLoopTextHasAny(text, "left", "左") {
 		return -0.10, nil
@@ -274,6 +410,36 @@ func messageLoopTreatmentPanFromReply(reply string) (float64, *float64) {
 		return 0.10, nil
 	}
 	return 0, nil
+}
+
+func messageLoopPanNamedTargetFromReply(text string) (float64, bool) {
+	switch {
+	case messageLoopTextHasAny(text, "left", "左") && messageLoopTextHasAny(text, "hard", "full", "all", "far", "fully", "完全", "彻底", "全", "最", "满", "到底"):
+		return -1, true
+	case messageLoopTextHasAny(text, "right", "右") && messageLoopTextHasAny(text, "hard", "full", "all", "far", "fully", "完全", "彻底", "全", "最", "满", "到底"):
+		return 1, true
+	default:
+		return 0, false
+	}
+}
+
+func messageLoopPanLooksLikePlacement(text string) bool {
+	if messageLoopPanLooksLikeSmallMove(text) && !messageLoopTextHasAny(text, "%", "hard", "full", "all", "far", "fully", "完全", "彻底", "全", "最", "满", "到底", "打到") {
+		return false
+	}
+	return messageLoopTextHasAny(
+		text,
+		"pan to", "set pan", "set the pan", "place", "position", "put", "move to", "hard", "full", "all", "far", "fully",
+		"摆", "摆到", "摆向", "放到", "放在", "靠左", "靠右", "偏左", "偏右", "打到", "拉到", "推到", "完全", "彻底", "全左", "全右", "最左", "最右", "左满", "右满", "到底",
+	)
+}
+
+func messageLoopPanLooksLikeSmallMove(text string) bool {
+	return messageLoopTextHasAny(
+		text,
+		"a little", "slightly", "small", "tiny", "subtle", "nudge", "bit", "little bit", "slight",
+		"一点", "一点点", "小", "稍微", "微调", "轻微", "少许",
+	)
 }
 
 func messageLoopPanPercentFromReply(text string) (float64, bool) {
@@ -294,6 +460,16 @@ func clampPanDelta(value float64) float64 {
 	}
 	if value < -0.15 {
 		return -0.15
+	}
+	return value
+}
+
+func clampPanTarget(value float64) float64 {
+	if value > 1 {
+		return 1
+	}
+	if value < -1 {
+		return -1
 	}
 	return value
 }

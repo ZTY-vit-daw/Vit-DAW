@@ -488,7 +488,71 @@ func (s *Server) chatResponseFromAgentLoopResult(conversationID, mode string, re
 		resp.NeedsConfirmation = true
 		resp.Commands = decisions
 	}
+	if treatment := res.ExecutionMemory.PendingMixTreatment; treatment != nil && strings.EqualFold(strings.TrimSpace(treatment.Status), "pending_confirmation") {
+		resp.NeedsConfirmation = true
+		resp.GoalStatus = string(agentruntime.StatusWaitingConfirmation)
+		resp.StopReason = agentloop.StopReasonNeedsConfirmation
+		resp.Workflow = "mix_treatment"
+		resp.WorkflowData = mixTreatmentInteractionPayload(*treatment)
+		req := mixTreatmentInteractionRequest(conversationID, res.GoalID, res.RunID, resp.Reply, *treatment)
+		resp.InteractionRequests = []AgentInteractionRequest{req}
+		s.storePendingInteraction(req, req.Payload)
+		if resp.AgentPlan != nil {
+			resp.AgentPlan.Status = string(agentruntime.StatusWaitingConfirmation)
+		}
+	}
 	return resp
+}
+
+func mixTreatmentInteractionPayload(treatment agentloop.MixTreatmentPending) map[string]any {
+	payload := map[string]any{
+		"schema_version":    treatment.SchemaVersion,
+		"status":            treatment.Status,
+		"intent":            treatment.Intent,
+		"target_ref":        treatment.TargetRef,
+		"action_kind":       treatment.ActionKind,
+		"processor_type":    treatment.ProcessorType,
+		"delta_db":          treatment.DeltaDB,
+		"delta_pan":         treatment.DeltaPan,
+		"plugin_id":         treatment.PluginID,
+		"plugin_name":       treatment.PluginName,
+		"control":           treatment.Control,
+		"target":            cloneContext(treatment.Target),
+		"confidence":        treatment.Confidence,
+		"reasoning_summary": treatment.ReasoningSummary,
+		"evidence_refs":     append([]string(nil), treatment.EvidenceRefs...),
+		"needs_resolution":  append([]string(nil), treatment.NeedsResolution...),
+		"observation_id":    treatment.ObservationID,
+	}
+	if treatment.TargetPan != nil {
+		payload["target_pan"] = *treatment.TargetPan
+	}
+	removeEmptyTreatmentValues(payload)
+	return payload
+}
+
+func mixTreatmentInteractionRequest(conversationID, goalID, runID, reply string, treatment agentloop.MixTreatmentPending) AgentInteractionRequest {
+	payload := mixTreatmentInteractionPayload(treatment)
+	payload["conversation_id"] = conversationID
+	return AgentInteractionRequest{
+		ID:             "interaction_" + randomID(),
+		Kind:           "mix_treatment_confirmation",
+		Type:           "mix_treatment_confirmation",
+		Source:         "vit_agent",
+		Workflow:       "mix_treatment",
+		Title:          "需要确认混音动作",
+		Body:           firstNonEmpty(strings.TrimSpace(reply), "这个混音动作正在等待确认。"),
+		Status:         "waiting_for_user",
+		ConversationID: conversationID,
+		GoalID:         goalID,
+		RunID:          runID,
+		Payload:        payload,
+		Data:           payload,
+		Actions: []AgentInteractionAction{
+			{ID: "approve", Label: "确认执行", Style: "primary", Recommended: true},
+			{ID: "cancel", Label: "取消", Style: "secondary"},
+		},
+	}
 }
 
 func agentLoopPendingDecisions(cont *agentloop.Continuation) []policy.Decision {
@@ -943,8 +1007,8 @@ func agentLoopCapabilityNames(userText string, requestContext map[string]any) []
 		add("plugin")
 	}
 	if agentLoopTextHasAny(text,
-		"\u6df7\u97f3", "\u7f29\u6df7", "\u4e3b\u5531", "\u4eba\u58f0", "\u58f0\u97f3", "\u58f0\u50cf", "\u58f0\u76f8", "\u58f0\u573a", "\u54cd\u5ea6", "\u52a8\u6001", "\u7a7a\u95f4\u611f", "\u4f4e\u9891", "\u4f4e\u4e2d\u9891", "\u9ad8\u9891", "\u523a\u8033", "\u6d51\u6d4a", "\u9760\u524d", "\u9760\u540e", "\u5de6", "\u53f3", "\u5c45\u4e2d", "\u56de\u4e2d", "\u66f4\u4eae", "\u66f4\u6697", "\u66f4\u7a33", "\u66f4\u7d27",
-		"mix", "mixing", "master", "vocal", "loudness", "presence", "mud", "muddy", "harsh", "bright", "dark", "forward", "back", "space", "depth", "dynamic", "pan", "panning", "stereo", "left", "right", "center", "centre",
+		"\u6df7\u97f3", "\u7f29\u6df7", "\u4e3b\u5531", "\u4eba\u58f0", "\u58f0\u97f3", "\u58f0\u50cf", "\u58f0\u76f8", "\u58f0\u573a", "\u54cd\u5ea6", "\u592a\u54cd", "\u592a\u5927", "\u592a\u5c0f", "\u538b\u4f4e", "\u964d\u4f4e", "\u4e0b\u8c03", "\u8c03\u4f4e", "\u63d0\u9ad8", "\u63d0\u5347", "\u4e0a\u8c03", "\u8c03\u9ad8", "\u7535\u5e73", "\u589e\u76ca", "\u52a8\u6001", "\u7a7a\u95f4\u611f", "\u4f4e\u9891", "\u4f4e\u4e2d\u9891", "\u9ad8\u9891", "\u523a\u8033", "\u6d51\u6d4a", "\u9760\u524d", "\u9760\u540e", "\u5de6", "\u53f3", "\u5c45\u4e2d", "\u56de\u4e2d", "\u66f4\u4eae", "\u66f4\u6697", "\u66f4\u7a33", "\u66f4\u7d27",
+		"mix", "mixing", "master", "vocal", "loudness", "too loud", "too quiet", "level", "gain", "lower", "reduce", "decrease", "raise", "boost", "increase", "presence", "mud", "muddy", "harsh", "bright", "dark", "forward", "back", "space", "depth", "dynamic", "pan", "panning", "stereo", "left", "right", "center", "centre",
 	) {
 		add("mix")
 	}
@@ -1006,13 +1070,16 @@ func agentLoopCapabilityNames(userText string, requestContext map[string]any) []
 		add("artifact")
 	}
 	if contextHasAnyValue(requestContext, "selected_track_id", "selected_clip_id", "selected_clip_ids", "selected_clip_track_id") && agentLoopTextHasAny(text,
-		"\u8c03", "\u6df7", "\u9760\u524d", "\u9760\u540e", "\u54cd\u4e00\u70b9", "\u5c0f\u4e00\u70b9", "\u5927\u4e00\u70b9", "\u7a7a\u95f4", "\u4f4e\u9891", "\u9ad8\u9891", "\u4eba\u58f0", "\u4e3b\u5531",
-		"mix", "forward", "back", "louder", "quieter", "space", "presence", "mud", "harsh", "vocal",
+		"\u8c03", "\u6df7", "\u9760\u524d", "\u9760\u540e", "\u54cd\u4e00\u70b9", "\u5c0f\u4e00\u70b9", "\u5927\u4e00\u70b9", "\u592a\u54cd", "\u592a\u5927", "\u592a\u5c0f", "\u538b\u4f4e", "\u964d\u4f4e", "\u63d0\u9ad8", "\u63d0\u5347", "\u97f3\u91cf", "\u7535\u5e73", "\u589e\u76ca", "\u7a7a\u95f4", "\u4f4e\u9891", "\u9ad8\u9891", "\u4eba\u58f0", "\u4e3b\u5531",
+		"mix", "forward", "back", "louder", "quieter", "too loud", "too quiet", "volume", "level", "gain", "lower", "reduce", "decrease", "raise", "boost", "increase", "space", "presence", "mud", "harsh", "vocal",
 	) {
 		add("mix")
 	}
 	if contextHasAnyValue(requestContext, "selected_plugin_id", "selected_plugin_name") && agentLoopTextHasAny(text, "调", "大一点", "小一点", "亮", "暗", "浑浊", "刺耳", "mud", "harsh", "presence", "boost", "cut") {
 		add("plugin")
+	}
+	if seen["mix"] {
+		delete(seen, "track")
 	}
 	return sortedToolNameKeys(seen)
 }

@@ -97,6 +97,26 @@ func TestAgentLoopToolContextRoutesPanRequestToMixPack(t *testing.T) {
 	}
 }
 
+func TestAgentLoopToolContextRoutesChineseVolumeMixRequestToMixPack(t *testing.T) {
+	s := &Server{harness: harness.New(nil, nil, nil)}
+
+	ctx := s.agentLoopToolContext(agentModeDefault, "这条轨道太响了，稍微压低一点", map[string]any{"selected_track_id": "1007"})
+
+	for _, want := range []string{"mix.observe", "mix.propose_tick", "mix.apply_tick"} {
+		if !containsToolName(ctx.AllowedTools, want) {
+			t.Fatalf("%s missing from Chinese volume mix tool context: %+v", want, ctx.AllowedTools)
+		}
+	}
+	for _, unwanted := range []string{"track.volume", "plugin.set_parameter", "daw.invoke"} {
+		if containsToolName(ctx.AllowedTools, unwanted) {
+			t.Fatalf("Chinese volume mix request leaked %s into tool context: %+v", unwanted, ctx.AllowedTools)
+		}
+	}
+	if !strings.Contains(ctx.CatalogSummary, "Capability pack: mix") || !strings.Contains(ctx.CatalogSummary, "mix.observe") {
+		t.Fatalf("Chinese volume mix request did not receive mix capability pack:\n%s", ctx.CatalogSummary)
+	}
+}
+
 func containsToolName(names []string, want string) bool {
 	for _, name := range names {
 		if name == want {

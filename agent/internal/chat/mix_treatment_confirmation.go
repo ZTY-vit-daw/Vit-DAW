@@ -39,6 +39,12 @@ func (s *Server) handlePendingMixTreatmentChat(ctx context.Context, conversation
 		return ChatResponse{}, false
 	}
 	switch {
+	case messageRevisesPendingMixTreatment(req.Message):
+		if s != nil && s.logger != nil {
+			s.logger.Info("[mix.treatment.pending] revision requested conversation=%s message=%q action=%s processor=%s target=%s", conversationID, req.Message, treatment.ActionKind, treatment.ProcessorType, treatment.TargetRef)
+		}
+		s.expirePendingMixTreatment(conversationID)
+		return ChatResponse{}, false
 	case messageKeepsMixTickDiscussion(req.Message):
 		if s != nil && s.logger != nil {
 			s.logger.Info("[mix.treatment.pending] discussion continued without resolution conversation=%s message=%q action=%s processor=%s target=%s", conversationID, req.Message, treatment.ActionKind, treatment.ProcessorType, treatment.TargetRef)
@@ -50,7 +56,7 @@ func (s *Server) handlePendingMixTreatmentChat(ctx context.Context, conversation
 		}
 		s.expirePendingMixTreatment(conversationID)
 		return ChatResponse{}, false
-	case messageExplicitMixTickApply(req.Message):
+	case messageExplicitMixTickApply(req.Message) || messagePlainMixApproval(req.Message):
 		decision := s.resolveMixTreatment(ctx, treatment, req.Context)
 		s.expirePendingMixTreatment(conversationID)
 		if s != nil && s.logger != nil {
@@ -101,13 +107,66 @@ func (s *Server) handlePendingMixTreatmentChat(ctx context.Context, conversation
 		return ChatResponse{
 			ConversationID: conversationID,
 			AgentMode:      mode,
-			Reply:          "I have not executed anything yet. The pending item is a mix treatment direction, not an immediate parameter write. Say \"execute it\" or \"continue\" to proceed; otherwise I will keep discussing without changing the DAW.",
+			Reply:          "我还没有执行任何工程修改。当前等待确认的是一个混音处理方向，不是立即写参数；如果要继续，请明确说“确认执行”或“继续执行”。",
 			GoalStatus:     "completed",
 			StopReason:     "ambiguous_mix_treatment_confirmation",
 		}, true
 	default:
 		s.expirePendingMixTreatment(conversationID)
 		return ChatResponse{}, false
+	}
+}
+
+func messageRevisesPendingMixTreatment(message string) bool {
+	text := strings.ToLower(strings.TrimSpace(message))
+	if text == "" {
+		return false
+	}
+	if messageLooksLikePanRevisionRequest(text) {
+		return true
+	}
+	return textHasAny(text,
+		"\u6539\u6210", "\u6539\u4e3a", "\u6362\u6210", "\u6362\u4e00\u4e2a", "\u6362\u4e00\u7248", "\u522b\u8fd9\u4e2a", "\u4e0d\u662f\u8fd9\u4e2a", "\u4e0d\u8981\u8fd9\u4e2a",
+		"\u6539\u5230", "\u8c03\u5230", "\u8bbe\u4e3a", "\u8bbe\u7f6e\u4e3a", "\u5de6\u0037\u0030", "\u53f3\u0037\u0030",
+		"change to", "switch to", "instead", "not that", "replace", "revise", "set to", "make it", "70% left", "70% right", "hard left", "hard right",
+	)
+}
+
+func messageLooksLikePanRevisionRequest(message string) bool {
+	text := strings.ToLower(strings.TrimSpace(message))
+	if text == "" {
+		return false
+	}
+	if textHasAny(text, "\u4e3a\u4ec0\u4e48", "\u4e3a\u5565", "\u539f\u56e0", "\u89e3\u91ca", "why", "explain") {
+		return false
+	}
+	hasDirection := textHasAny(text,
+		"\u5de6", "\u53f3", "\u5c45\u4e2d", "\u56de\u4e2d", "\u4e2d\u95f4",
+		"left", "right", "center", "centre", "middle",
+	)
+	if !hasDirection {
+		return false
+	}
+	hasPanOrRevisionVerb := textHasAny(text,
+		"\u58f0\u50cf", "\u58f0\u76f8", "\u6446", "\u6446\u5230", "\u6446\u5411", "\u6446\u8fc7\u53bb", "\u653e\u5230", "\u653e\u5728",
+		"\u5f80", "\u5411", "\u9760", "\u9760\u5de6", "\u9760\u53f3", "\u504f", "\u504f\u5de6", "\u504f\u53f3",
+		"\u6253\u5230", "\u6253\u5230\u5e95", "\u62c9\u5230", "\u62c9\u5230\u5e95", "\u63a8\u5230",
+		"\u6539", "\u6539\u5230", "\u6539\u6210", "\u8c03", "\u8c03\u5230", "\u8bbe\u4e3a", "\u8bbe\u7f6e\u4e3a",
+		"pan", "panning", "move", "place", "position", "put", "set", "change", "switch",
+	)
+	hasPlacementIntensity := textHasAny(text,
+		"\u5b8c\u5168", "\u5f7b\u5e95", "\u5168", "\u5168\u5de6", "\u5168\u53f3", "\u6700", "\u6700\u5de6", "\u6700\u53f3", "\u6ee1", "\u5230\u5e95",
+		"%", "hard", "full", "fully", "all the way", "far",
+	)
+	return hasPanOrRevisionVerb || hasPlacementIntensity
+}
+
+func messagePlainMixApproval(message string) bool {
+	switch strings.ToLower(strings.TrimSpace(message)) {
+	case "是的", "对", "对的", "没错", "确认", "确认一下", "可以", "好", "好的", "行", "yes", "y", "ok", "okay", "confirm":
+		return true
+	default:
+		return false
 	}
 }
 
@@ -205,6 +264,22 @@ func (s *Server) resolvePluginTreatmentPreparation(ctx context.Context, treatmen
 	}
 	plugin := s.resolveTreatmentPluginInstance(ctx, trackID, treatment, requestContext)
 	if len(plugin) == 0 {
+		pluginQuery := mixTreatmentPreparationPluginQuery(treatment)
+		decision.PrepCommand = map[string]any{
+			"cmd":          pluginGrabberLoadCommand,
+			"track_id":     trackID,
+			"plugin_query": pluginQuery,
+			"plugin_path":  strings.TrimSpace(treatment.PluginID),
+			"plugin_name":  strings.TrimSpace(treatment.PluginName),
+			"intent":       firstNonEmpty(strings.TrimSpace(treatment.Intent), strings.TrimSpace(treatment.ReasoningSummary)),
+			"source":       "mix_treatment_resolver",
+		}
+		decision.Pending = map[string]any{
+			"track_id":     trackID,
+			"plugin_query": pluginQuery,
+		}
+		removeEmptyTreatmentValues(decision.Pending)
+		removeEmptyTreatmentValues(decision.PrepCommand)
 		decision.PreparationPlan = mixTreatmentPreparationPlan(treatment, decision, nil)
 		return decision
 	}
@@ -240,6 +315,27 @@ func (s *Server) resolvePluginTreatmentPreparation(ctx context.Context, treatmen
 	removeEmptyTreatmentValues(decision.PrepCommand)
 	decision.PreparationPlan = mixTreatmentPreparationPlan(treatment, decision, plugin)
 	return decision
+}
+
+func mixTreatmentPreparationPluginQuery(treatment agentloop.MixTreatmentPending) string {
+	processor := strings.ToLower(strings.TrimSpace(treatment.ProcessorType))
+	intent := strings.ToLower(strings.TrimSpace(treatment.Intent + " " + treatment.ReasoningSummary))
+	switch {
+	case strings.Contains(processor, "limit") || strings.Contains(intent, "limiter") || strings.Contains(intent, "限幅"):
+		return "limiter"
+	case strings.Contains(processor, "compress") || strings.Contains(intent, "compressor") || strings.Contains(intent, "压缩"):
+		return "compressor"
+	case strings.Contains(processor, "eq") || strings.Contains(intent, "均衡") || strings.Contains(intent, "eq"):
+		return "eq"
+	case strings.Contains(processor, "reverb") || strings.Contains(intent, "混响"):
+		return "reverb"
+	case strings.Contains(processor, "delay") || strings.Contains(intent, "delay") || strings.Contains(intent, "延迟"):
+		return "delay"
+	case strings.Contains(processor, "satur") || strings.Contains(intent, "饱和"):
+		return "saturation"
+	default:
+		return firstNonEmpty(strings.TrimSpace(treatment.ProcessorType), "audio effect")
+	}
 }
 
 func mixTreatmentPreparationPlan(treatment agentloop.MixTreatmentPending, decision mixResolverDecision, plugin map[string]any) map[string]any {
@@ -653,7 +749,29 @@ func operationFromMixTreatmentDecision(treatment agentloop.MixTreatmentPending, 
 
 func (s *Server) startResolvedMixTreatmentPreparation(ctx context.Context, conversationID string, req ChatRequest, mode string, treatment agentloop.MixTreatmentPending, decision mixResolverDecision) ChatResponse {
 	prepCommand := cloneStringAnyMap(decision.PrepCommand)
-	if cleanContextText(prepCommand["cmd"]) != pluginGrabberLearnCommand {
+	switch cleanContextText(prepCommand["cmd"]) {
+	case pluginGrabberLearnCommand:
+		// handled below
+	case pluginGrabberLoadCommand:
+		prepContext := mixTreatmentPreparationContext(req.Context, treatment, decision)
+		resp := s.runPluginGrabberLoadWorkflow(ctx, conversationID, firstNonEmpty(strings.TrimSpace(treatment.Intent), strings.TrimSpace(req.Message)), prepContext, prepCommand)
+		resp.AgentMode = firstNonEmpty(resp.AgentMode, mode)
+		resp.StopReason = firstNonEmpty(resp.StopReason, "mix_treatment_preparation_started")
+		if strings.TrimSpace(resp.GoalStatus) == "" {
+			if resp.NeedsConfirmation {
+				resp.GoalStatus = string(agentruntime.StatusWaitingConfirmation)
+			} else {
+				resp.GoalStatus = string(agentruntime.StatusCompleted)
+			}
+		}
+		if strings.TrimSpace(resp.Reply) != "" {
+			resp.Reply = mixTreatmentResolverReply(decision) + "\n\n" + resp.Reply
+		} else {
+			resp.Reply = mixTreatmentResolverReply(decision)
+		}
+		s.attachInteractionRequests(&resp)
+		return resp
+	default:
 		return ChatResponse{
 			ConversationID: conversationID,
 			AgentMode:      mode,
@@ -662,21 +780,14 @@ func (s *Server) startResolvedMixTreatmentPreparation(ctx context.Context, conve
 			StopReason:     "mix_treatment_resolved_" + decision.Status,
 		}
 	}
-	prepContext := mergeContext(req.Context, map[string]any{
-		"mix_treatment_preparation":      true,
-		"mix_treatment_preparation_plan": cloneContext(decision.PreparationPlan),
-		"mix_treatment_intent":           treatment.Intent,
-		"mix_treatment_action_kind":      treatment.ActionKind,
-		"mix_treatment_processor":        treatment.ProcessorType,
-		"mix_treatment_target_ref":       treatment.TargetRef,
-	})
+	prepContext := mixTreatmentPreparationContext(req.Context, treatment, decision)
 	resp := s.runPluginGrabberLearningWorkflow(ctx, conversationID, firstNonEmpty(strings.TrimSpace(treatment.Intent), strings.TrimSpace(req.Message)), prepContext, config.EngineConfig{}, prepCommand)
 	resp.AgentMode = firstNonEmpty(resp.AgentMode, mode)
 	resp.StopReason = firstNonEmpty(resp.StopReason, "mix_treatment_preparation_started")
 	if strings.TrimSpace(resp.GoalStatus) == "" {
 		resp.GoalStatus = string(agentruntime.StatusCompleted)
 	}
-	resolverReply := "No plugin parameter write has run. Resolver found an existing plugin instance; the next step only opens the Plugin Grabber learning/confirmation flow to prepare a profile and executable control."
+	resolverReply := "我还没有写入任何插件参数。已找到现有效果器，下一步只是打开 Plugin Grabber 学习/确认流程，用来准备可执行的控制映射。"
 	if len(decision.PrepCommand) == 0 {
 		resolverReply = strings.TrimSpace(mixTreatmentResolverReply(decision))
 	}
@@ -687,6 +798,17 @@ func (s *Server) startResolvedMixTreatmentPreparation(ctx context.Context, conve
 	}
 	s.attachInteractionRequests(&resp)
 	return resp
+}
+
+func mixTreatmentPreparationContext(ctx map[string]any, treatment agentloop.MixTreatmentPending, decision mixResolverDecision) map[string]any {
+	return mergeContext(ctx, map[string]any{
+		"mix_treatment_preparation":      true,
+		"mix_treatment_preparation_plan": cloneContext(decision.PreparationPlan),
+		"mix_treatment_intent":           treatment.Intent,
+		"mix_treatment_action_kind":      treatment.ActionKind,
+		"mix_treatment_processor":        treatment.ProcessorType,
+		"mix_treatment_target_ref":       treatment.TargetRef,
+	})
 }
 
 func treatmentDeltaDB(treatment agentloop.MixTreatmentPending) float64 {
@@ -918,26 +1040,35 @@ func withoutString(values []string, remove string) []string {
 func mixTreatmentResolverReply(decision mixResolverDecision) string {
 	switch decision.Status {
 	case "needs_clarification":
-		return "I have not executed anything yet. This treatment needs a clear target track first: " + decision.TargetRef + "."
+		return "我还没有执行任何工程修改。这个混音处理需要先确认明确的目标轨道：" + decision.TargetRef + "。"
 	case "ready_gain_tick":
-		return "I have not executed anything yet. The resolver can route this through the existing gain tick path once the small dB move is explicit."
+		return "我还没有执行任何工程修改。这个电平动作已经可以走安全的单步增益调整路径。"
 	case "ready_pan_tick":
-		return "I have not executed anything yet. The resolver can route this through the typed pan tick path once the small pan move is explicit."
+		return "我还没有执行任何工程修改。这个声像动作已经可以走安全的单步声像调整路径。"
 	case "ready_plugin_control":
-		return "The resolver confirmed this step can run through the safe plugin_grabber.apply_control route."
+		return "已确认这一步可以通过 Plugin Grabber 的安全控制映射执行。"
 	case "needs_preparation":
 		if len(decision.PrepCommand) > 0 {
-			return "No plugin parameter write has run. Resolver found an existing plugin instance, so the next step is only Plugin Grabber learning/confirmation to prepare a profile and executable control."
+			switch cleanContextText(decision.PrepCommand["cmd"]) {
+			case pluginGrabberLoadCommand:
+				query := cleanContextText(decision.PrepCommand["plugin_query"])
+				if query == "" {
+					query = "合适的效果器"
+				}
+				return "我还没有执行响度处理，也没有写入任何插件参数。因为直接推高轨道音量有削波风险，下一步需要先准备一个" + query + "类效果器；确认后只会进入插件加载/抓参流程，后续控制参数仍会再确认。"
+			case pluginGrabberLearnCommand:
+				return "我还没有写入任何插件参数。已找到现有效果器，下一步只是打开 Plugin Grabber 学习/确认流程，用来准备可执行的控制映射。"
+			}
 		}
-		reply := "I have not executed anything yet. Resolver says this plugin treatment needs preparation before it can run."
+		reply := "我还没有执行任何工程修改。这个插件类混音处理需要先完成准备，不能直接写入参数。"
 		if len(decision.PrepSteps) > 0 {
-			reply += " Prep steps: " + strings.Join(decision.PrepSteps, "; ") + "."
+			reply += " 下一步会先选择或加载合适的效果器、读取参数，并准备可确认的控制映射。"
 		}
 		return reply
 	case "observation_only":
-		return "I have not executed anything yet. This pending item is observation-only and contains no executable DAW mutation."
+		return "我还没有执行任何工程修改。这个待处理项只是观察结论，没有可执行的 DAW 修改。"
 	default:
-		return "I have not executed anything yet. Resolver did not find a safe executable route."
+		return "我还没有执行任何工程修改。当前没有找到足够安全的可执行路径。"
 	}
 }
 
@@ -945,21 +1076,21 @@ func mixTreatmentApplyReply(decision mixResolverDecision, resp harness.InvokeRes
 	if err != nil || resp.Status == "error" || resp.Status == "kernel_error" {
 		detail := firstNonEmpty(resp.Error, fmt.Sprint(err))
 		if strings.TrimSpace(detail) == "" || detail == "<nil>" {
-			detail = "execution failed"
+			detail = "执行失败"
 		}
-		return "I did not complete this step. Resolver only tried the safe plugin_grabber.apply_control route, but execution failed: " + detail
+		return "这一步没有完成。resolver 只尝试了安全的 plugin_grabber.apply_control 路径，没有走原始 plugin.set_parameter 或 daw.invoke；失败原因：" + detail
 	}
 	control := cleanContextText(decision.Command["control"])
 	if control == "" {
-		control = "plugin control"
+		control = "插件控制"
 	}
 	applied := mapRowsValue(resp.Result["applied_parameters"])
 	if len(applied) > 0 {
 		first := applied[0]
 		valueText := firstNonEmpty(cleanContextText(first["new_value_text"]), cleanContextText(first["applied_value"]), cleanContextText(first["value_text"]))
 		if valueText != "" {
-			return "Executed: " + control + ", applied value: " + valueText + ". This step used only plugin_grabber.apply_control, not raw plugin.set_parameter or daw.invoke."
+			return "已执行：" + control + "，应用值：" + valueText + "。这一步只使用 plugin_grabber.apply_control，没有走原始 plugin.set_parameter 或 daw.invoke。"
 		}
 	}
-	return "Executed: " + control + ". This step used only plugin_grabber.apply_control, not raw plugin.set_parameter or daw.invoke."
+	return "已执行：" + control + "。这一步只使用 plugin_grabber.apply_control，没有走原始 plugin.set_parameter 或 daw.invoke。"
 }
