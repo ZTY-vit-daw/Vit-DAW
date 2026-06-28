@@ -179,6 +179,9 @@ export interface ChatResponse {
   plugin_learning?: JsonRecord;
   mix_session?: JsonRecord;
   interaction_requests?: JsonRecord[];
+  typed_events?: JsonRecord[];
+  acoustic_package_status?: JsonRecord;
+  acoustic_package_status_path?: string;
   commands?: JsonRecord[];
   executed_kernel_reply?: JsonRecord[];
   project_result_cards?: JsonRecord[];
@@ -228,6 +231,8 @@ export interface AgentInvokeResponse {
   preview?: string;
   undo_label?: string;
   result?: JsonRecord;
+  acoustic_package_status?: JsonRecord;
+  acoustic_package_status_path?: string;
   project_history?: JsonRecord;
   error?: string;
 }

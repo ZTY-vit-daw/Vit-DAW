@@ -27,6 +27,7 @@ type Config struct {
 	ReqTimeout     time.Duration
 	TelemetryRetry time.Duration
 	FileReplyDir   string
+	TelemetryHook  func(map[string]any)
 }
 
 type Bridge struct {
@@ -308,6 +309,9 @@ func (b *Bridge) normalizeTelemetry(text string, refreshCh chan<- struct{}, last
 		case refreshCh <- struct{}{}:
 		default:
 		}
+	}
+	if b.cfg.TelemetryHook != nil {
+		b.cfg.TelemetryHook(d)
 	}
 	out, err := json.Marshal(d)
 	if err != nil {

@@ -1,0 +1,1531 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ask Vit DAW Panels V3</title>
+  <style>
+    :root {
+      --bg: #e8edf3;
+      --shell: #f9fbfd;
+      --ink: #101827;
+      --muted: #617085;
+      --line: #cbd5e1;
+      --line-strong: #aab7c7;
+      --blue: #2563eb;
+      --red: #dc2626;
+      --green: #059669;
+      --teal: #0f766e;
+      --purple: #7c3aed;
+      --orange: #c2410c;
+      --yellow: #ca8a04;
+      font-family: Inter, "Segoe UI", "Microsoft YaHei UI", Arial, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+    }
+
+    .stage {
+      width: 1600px;
+      min-height: 1200px;
+      padding: 26px;
+      margin: 0 auto;
+    }
+
+    .title {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    h1 {
+      margin: 0 0 5px;
+      font-size: 26px;
+      line-height: 1.1;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      margin: 0;
+      font-size: 14px;
+      color: #526174;
+    }
+
+    .note {
+      font-size: 12px;
+      color: #64748b;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .note::before {
+      content: "";
+      width: 9px;
+      height: 9px;
+      border-radius: 999px;
+      background: var(--blue);
+    }
+
+    .shell {
+      height: 1050px;
+      display: grid;
+      grid-template-columns: 88px 1fr;
+      grid-template-rows: 62px 1fr 54px;
+      background: var(--shell);
+      border: 1px solid var(--line-strong);
+      box-shadow: 0 18px 36px rgba(15, 23, 42, 0.08);
+      overflow: hidden;
+    }
+
+    .transport {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 10px 18px;
+      border-bottom: 1px solid var(--line);
+      background: #fbfdff;
+    }
+
+    .brand {
+      width: 92px;
+      font-weight: 820;
+      font-size: 15px;
+    }
+
+    .icon {
+      width: 36px;
+      height: 36px;
+      display: inline-grid;
+      place-items: center;
+      border: 1px solid #b9c5d4;
+      border-radius: 7px;
+      background: #fff;
+      font-size: 15px;
+      font-weight: 780;
+    }
+
+    .icon.primary {
+      background: var(--blue);
+      border-color: var(--blue);
+      color: #fff;
+    }
+
+    .time {
+      height: 34px;
+      min-width: 150px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 11px;
+      border: 1px solid #ccd6e3;
+      border-radius: 7px;
+      background: #eef3f8;
+      font-family: "Cascadia Mono", Consolas, monospace;
+      font-weight: 800;
+      font-size: 18px;
+    }
+
+    .pill {
+      min-height: 28px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 10px;
+      border: 1px solid #ccd6e3;
+      border-radius: 999px;
+      background: #fff;
+      color: #334155;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .transport .spacer {
+      flex: 1;
+    }
+
+    .rail {
+      grid-row: 2 / span 2;
+      padding: 14px 9px;
+      border-right: 1px solid var(--line);
+      background: #f1f5f9;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    .rail button {
+      height: 52px;
+      border: 1px solid transparent;
+      border-radius: 7px;
+      background: transparent;
+      color: #475569;
+      font-weight: 720;
+      font-size: 13px;
+    }
+
+    .rail button.active {
+      background: #fff;
+      color: #0f172a;
+      border-color: #c9d3df;
+      box-shadow: 0 2px 5px rgba(15, 23, 42, 0.05);
+    }
+
+    .rail .grow {
+      flex: 1;
+    }
+
+    .workspace {
+      grid-column: 2;
+      grid-row: 2;
+      padding: 18px;
+      overflow: hidden;
+    }
+
+    .target {
+      grid-column: 2;
+      grid-row: 3;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 16px;
+      border-top: 1px solid var(--line);
+      background: #fbfdff;
+      color: #64748b;
+      font-size: 12px;
+    }
+
+    .target strong {
+      display: inline-flex;
+      min-height: 30px;
+      align-items: center;
+      padding: 5px 10px;
+      border: 1px solid #cbd5e1;
+      border-radius: 7px;
+      background: #fff;
+      color: #0f172a;
+    }
+
+    .agent-cmd {
+      margin-left: auto;
+      height: 34px;
+      width: 460px;
+      display: flex;
+      align-items: center;
+      padding: 0 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 7px;
+      background: #fff;
+      color: #94a3b8;
+      font-size: 13px;
+    }
+
+    .surface-grid {
+      height: 100%;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .surface {
+      min-width: 0;
+      min-height: 0;
+      display: grid;
+      grid-template-rows: 58px 1fr;
+      border: 1px solid var(--line-strong);
+      background: #fff;
+      overflow: hidden;
+    }
+
+    .surface-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      background: #fbfdff;
+    }
+
+    .surface-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .stripe {
+      width: 5px;
+      height: 34px;
+      border-radius: 999px;
+      background: var(--blue);
+      flex: 0 0 auto;
+    }
+
+    .rack .stripe {
+      background: var(--purple);
+    }
+
+    .midi .stripe {
+      background: var(--teal);
+    }
+
+    .mixer .stripe {
+      background: var(--orange);
+    }
+
+    .surface-title h2 {
+      margin: 0;
+      font-size: 17px;
+      line-height: 1.15;
+      letter-spacing: 0;
+    }
+
+    .surface-title span {
+      display: block;
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .tools {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .tool {
+      height: 30px;
+      min-width: 31px;
+      display: inline-grid;
+      place-items: center;
+      padding: 0 9px;
+      border: 1px solid #c7d1df;
+      border-radius: 6px;
+      background: #fff;
+      color: #263445;
+      font-size: 12px;
+      font-weight: 720;
+    }
+
+    .tool.primary {
+      background: #1d4ed8;
+      border-color: #1d4ed8;
+      color: #fff;
+    }
+
+    .tool.warn {
+      color: #8a5a00;
+      border-color: #e7c468;
+      background: #fff8dc;
+    }
+
+    .surface-body {
+      min-height: 0;
+      overflow: hidden;
+      background: #fff;
+    }
+
+    .arranger {
+      height: 100%;
+      display: grid;
+      grid-template-columns: 156px 1fr;
+      grid-template-rows: 34px 1fr;
+      background: #f8fafc;
+    }
+
+    .corner {
+      border-right: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      background: #eef2f7;
+      padding: 8px 10px;
+      color: #64748b;
+      font-size: 11px;
+      font-weight: 760;
+    }
+
+    .timeline {
+      position: relative;
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      border-bottom: 1px solid var(--line);
+      background: #eef2f7;
+    }
+
+    .timeline span {
+      padding: 9px 8px;
+      border-left: 1px solid #d8e0ea;
+      color: #526174;
+      font-size: 11px;
+      font-weight: 760;
+    }
+
+    .track-heads {
+      border-right: 1px solid var(--line);
+      background: #f1f5f9;
+    }
+
+    .track-head {
+      height: 62px;
+      padding: 8px 9px;
+      border-bottom: 1px solid #dbe3ed;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 5px;
+      align-content: center;
+    }
+
+    .track-head.selected {
+      background: #dfeaff;
+    }
+
+    .track-name {
+      font-size: 12px;
+      font-weight: 780;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
+    .track-type {
+      grid-column: 1 / -1;
+      font-size: 10px;
+      color: #64748b;
+    }
+
+    .mini {
+      width: 20px;
+      height: 20px;
+      display: inline-grid;
+      place-items: center;
+      border: 1px solid #bfcbd9;
+      border-radius: 5px;
+      background: #fff;
+      color: #475569;
+      font-size: 10px;
+      font-weight: 800;
+    }
+
+    .mini.on {
+      border-color: #60a5fa;
+      background: #dbeafe;
+      color: #1d4ed8;
+    }
+
+    .lanes {
+      position: relative;
+      background:
+        linear-gradient(90deg, rgba(37,99,235,0.12) 1px, transparent 1px) 0 0 / 12.5% 100%,
+        linear-gradient(90deg, rgba(15,23,42,0.05) 1px, transparent 1px) 0 0 / 3.125% 100%,
+        #ffffff;
+      overflow: hidden;
+    }
+
+    .lane {
+      position: relative;
+      height: 62px;
+      border-bottom: 1px solid #e0e7f0;
+    }
+
+    .clip {
+      position: absolute;
+      top: 10px;
+      height: 42px;
+      border: 1px solid rgba(15,23,42,0.15);
+      border-radius: 6px;
+      color: #fff;
+      padding: 7px 9px;
+      font-size: 11px;
+      font-weight: 760;
+      overflow: hidden;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.25);
+    }
+
+    .clip.audio {
+      background: #2563eb;
+    }
+
+    .clip.midi {
+      background: #0f766e;
+    }
+
+    .clip.bus {
+      background: #7c3aed;
+    }
+
+    .clip.selected {
+      outline: 2px solid #f59e0b;
+      outline-offset: 1px;
+    }
+
+    .clip small {
+      display: block;
+      margin-top: 3px;
+      font-weight: 600;
+      opacity: 0.8;
+    }
+
+    .playhead {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 42%;
+      width: 2px;
+      background: var(--red);
+      z-index: 5;
+    }
+
+    .playhead::before {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 0;
+      transform: translateX(-50%);
+      border-left: 7px solid transparent;
+      border-right: 7px solid transparent;
+      border-top: 11px solid var(--red);
+    }
+
+    .rack-body {
+      height: 100%;
+      display: grid;
+      grid-template-rows: 1fr 128px;
+      background: #fbfbff;
+    }
+
+    .device-lane {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 18px;
+      overflow: hidden;
+    }
+
+    .device-lane::before {
+      content: "";
+      position: absolute;
+      left: 35px;
+      right: 35px;
+      top: 50%;
+      height: 3px;
+      background: #d8d0f2;
+      z-index: 0;
+    }
+
+    .device {
+      position: relative;
+      z-index: 1;
+      width: 138px;
+      height: 176px;
+      border: 1px solid #bcb0ea;
+      border-radius: 8px;
+      background: #fff;
+      box-shadow: 0 4px 12px rgba(76, 29, 149, 0.08);
+      display: grid;
+      grid-template-rows: 36px 1fr 34px;
+      overflow: hidden;
+    }
+
+    .device.selected {
+      border-color: #7c3aed;
+      box-shadow: 0 0 0 2px #ddd6fe;
+    }
+
+    .device-head {
+      padding: 9px 10px;
+      background: #f1ecff;
+      border-bottom: 1px solid #d8d0f2;
+      font-size: 12px;
+      font-weight: 800;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
+    .device-face {
+      padding: 10px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      align-content: start;
+    }
+
+    .knob {
+      width: 27px;
+      height: 27px;
+      border-radius: 50%;
+      margin: 0 auto;
+      background:
+        radial-gradient(circle at 50% 50%, #fff 0 38%, transparent 39%),
+        conic-gradient(#7c3aed 0 220deg, #d8d0f2 220deg 360deg);
+      border: 1px solid #b9a7ee;
+    }
+
+    .device-foot {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 7px 9px;
+      border-top: 1px solid #e2ddf3;
+      color: #5b4b8f;
+      font-size: 10px;
+      font-weight: 760;
+    }
+
+    .insert-slot {
+      position: relative;
+      z-index: 1;
+      width: 58px;
+      height: 176px;
+      border: 1px dashed #bcb0ea;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      color: #7c3aed;
+      background: rgba(255,255,255,0.7);
+      font-size: 22px;
+      font-weight: 700;
+    }
+
+    .macro-strip {
+      border-top: 1px solid var(--line);
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 10px;
+      padding: 12px 16px;
+      background: #fff;
+    }
+
+    .macro {
+      min-width: 0;
+      display: grid;
+      grid-template-rows: 1fr 20px;
+      justify-items: center;
+      gap: 4px;
+      color: #4c1d95;
+      font-size: 11px;
+      font-weight: 760;
+    }
+
+    .macro .knob {
+      width: 44px;
+      height: 44px;
+    }
+
+    .node-rack {
+      height: 100%;
+      display: grid;
+      grid-template-columns: 74px 1fr;
+      background: #f8f8f3;
+      overflow: hidden;
+    }
+
+    .rack-tool-column {
+      border-right: 1px solid #a8a8a0;
+      background: #74746f;
+      display: grid;
+      grid-template-rows: 32px 32px 32px 1fr;
+      gap: 4px;
+      padding: 6px 5px;
+      color: #1f2937;
+    }
+
+    .rack-tool-column .rack-tool {
+      display: grid;
+      place-items: center;
+      border: 1px solid #1f2937;
+      border-radius: 4px;
+      background: #fffdf7;
+      font-size: 11px;
+      font-weight: 760;
+    }
+
+    .rack-tool-column .rack-meta {
+      align-self: end;
+      color: #f8fafc;
+      font-size: 10px;
+      line-height: 1.4;
+      opacity: 0.86;
+      writing-mode: vertical-rl;
+      transform: rotate(180deg);
+      justify-self: center;
+      letter-spacing: 0;
+    }
+
+    .rack-graph {
+      position: relative;
+      overflow: hidden;
+      background:
+        linear-gradient(90deg, rgba(15,23,42,0.08) 1px, transparent 1px) 0 0 / 18px 18px,
+        linear-gradient(0deg, rgba(15,23,42,0.08) 1px, transparent 1px) 0 0 / 18px 18px,
+        linear-gradient(90deg, rgba(15,23,42,0.045) 1px, transparent 1px) 0 0 / 6px 6px,
+        linear-gradient(0deg, rgba(15,23,42,0.045) 1px, transparent 1px) 0 0 / 6px 6px,
+        #f9f8f2;
+    }
+
+    .rack-band {
+      position: absolute;
+      left: 0;
+      right: 0;
+      border-bottom: 1px solid rgba(3, 7, 18, 0.22);
+      pointer-events: none;
+    }
+
+    .rack-band span {
+      position: absolute;
+      top: 8px;
+      left: 10px;
+      color: rgba(15, 23, 42, 0.46);
+      font-size: 11px;
+      font-weight: 650;
+    }
+
+    .rack-band.timeline {
+      top: 0;
+      height: 16%;
+      background: rgba(246, 241, 225, 0.64);
+    }
+
+    .rack-band.z1 {
+      top: 16%;
+      height: 27%;
+      background: rgba(255, 212, 38, 0.17);
+    }
+
+    .rack-band.z2 {
+      top: 43%;
+      height: 27%;
+      background: rgba(37, 99, 235, 0.09);
+    }
+
+    .rack-band.z3 {
+      top: 70%;
+      bottom: 0;
+      background: rgba(207, 218, 221, 0.42);
+      border-bottom: 0;
+      border-top: 2px solid rgba(3, 7, 18, 0.32);
+    }
+
+    .rack-toast {
+      position: absolute;
+      top: 28px;
+      left: 14%;
+      width: 300px;
+      height: 56px;
+      border: 1px solid rgba(15, 23, 42, 0.28);
+      border-radius: 8px;
+      background: rgba(77, 80, 87, 0.48);
+      color: rgba(255, 255, 255, 0.68);
+      display: flex;
+      align-items: center;
+      padding: 0 22px;
+      font-size: 12px;
+      font-weight: 700;
+      box-shadow: 0 2px 6px rgba(15, 23, 42, 0.12);
+    }
+
+    .rack-zoom {
+      position: absolute;
+      right: 10px;
+      top: 10px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      z-index: 6;
+    }
+
+    .rack-zoom span {
+      min-width: 42px;
+      height: 25px;
+      display: grid;
+      place-items: center;
+      border: 1px solid #c3c5bd;
+      border-radius: 5px;
+      background: #fffdf7;
+      font-size: 11px;
+      font-weight: 760;
+    }
+
+    .rack-zoom b {
+      width: 25px;
+      height: 25px;
+      display: grid;
+      place-items: center;
+      border: 1px solid #c3c5bd;
+      border-radius: 5px;
+      background: #fffdf7;
+      font-size: 14px;
+    }
+
+    .rack-wire-layer {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .wire-audio {
+      fill: none;
+      stroke: #00d7df;
+      stroke-width: 4;
+      stroke-linecap: round;
+      filter: drop-shadow(0 0 2px rgba(0, 215, 223, 0.65));
+    }
+
+    .wire-midi {
+      fill: none;
+      stroke: #f5dd42;
+      stroke-width: 3;
+      stroke-linecap: round;
+      filter: drop-shadow(0 0 2px rgba(245, 221, 66, 0.55));
+    }
+
+    .wire-badge {
+      position: absolute;
+      z-index: 4;
+      min-height: 20px;
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 8px;
+      border-radius: 5px;
+      border: 1px solid rgba(20, 24, 31, 0.38);
+      background: rgba(31, 41, 55, 0.84);
+      color: #f8fafc;
+      font-size: 10px;
+      white-space: nowrap;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.25);
+    }
+
+    .rack-anchor,
+    .rack-node {
+      position: absolute;
+      z-index: 5;
+      border: 1px solid rgba(15, 23, 42, 0.45);
+      background: #fffdf7;
+      color: #161b22;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.12);
+    }
+
+    .rack-anchor {
+      width: 88px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 0 9px;
+      border-radius: 6px;
+      font-size: 10px;
+      font-weight: 760;
+    }
+
+    .rack-anchor::before {
+      content: "";
+      width: 15px;
+      height: 12px;
+      border: 2px solid #111827;
+      border-radius: 2px;
+      background: #fff;
+    }
+
+    .port-dot {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #00d7df;
+      box-shadow: 0 0 0 2px rgba(0, 215, 223, 0.28);
+      z-index: 7;
+    }
+
+    .port-dot.midi {
+      background: #f5dd42;
+      box-shadow: 0 0 0 2px rgba(245, 221, 66, 0.28);
+    }
+
+    .rack-node {
+      width: 164px;
+      min-height: 78px;
+      border-radius: 5px;
+      overflow: hidden;
+    }
+
+    .rack-node.selected {
+      outline: 2px solid #f59e0b;
+      outline-offset: 2px;
+    }
+
+    .rack-node-title {
+      height: 25px;
+      padding: 6px 8px;
+      border-bottom: 1px solid rgba(15, 23, 42, 0.32);
+      background: #fffaf0;
+      font-size: 11px;
+      font-weight: 760;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .rack-node-body {
+      display: grid;
+      grid-template-columns: 36px 1fr;
+      gap: 7px;
+      padding: 7px 8px 4px;
+      align-items: center;
+    }
+
+    .rack-node-icon {
+      width: 30px;
+      height: 30px;
+      border: 1px solid #111827;
+      border-radius: 5px;
+      display: grid;
+      place-items: center;
+      font-size: 16px;
+      background: #f8fafc;
+    }
+
+    .rack-node-kind {
+      color: #687384;
+      font-size: 9px;
+      font-weight: 780;
+      text-transform: uppercase;
+      letter-spacing: 0;
+    }
+
+    .rack-node-actions {
+      grid-column: 1 / -1;
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      padding-top: 4px;
+      font-size: 10px;
+      font-weight: 760;
+    }
+
+    .rack-node-actions span {
+      color: #111827;
+    }
+
+    .rack-scope-line {
+      position: absolute;
+      z-index: 3;
+      top: 2%;
+      bottom: 0;
+      width: 2px;
+      background: rgba(220, 38, 38, 0.75);
+    }
+
+    .rack-scope-line::before {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 0;
+      transform: translateX(-50%);
+      border-left: 7px solid transparent;
+      border-right: 7px solid transparent;
+      border-top: 10px solid rgba(220, 38, 38, 0.82);
+    }
+
+    .piano-roll {
+      height: 100%;
+      display: grid;
+      grid-template-columns: 54px 1fr;
+      grid-template-rows: 30px 1fr 58px;
+      background: #fff;
+    }
+
+    .midi-toolbar {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 5px 9px;
+      border-bottom: 1px solid var(--line);
+      background: #eef7f6;
+      color: #0f766e;
+      font-size: 11px;
+      font-weight: 760;
+    }
+
+    .keys {
+      border-right: 1px solid var(--line);
+      background: #f8fafc;
+      overflow: hidden;
+    }
+
+    .key {
+      height: 24px;
+      border-bottom: 1px solid #dbe3ed;
+      padding: 5px 6px;
+      font-size: 10px;
+      color: #64748b;
+      background: #fff;
+    }
+
+    .key.black {
+      background: #1f2937;
+      color: #f8fafc;
+    }
+
+    .note-grid {
+      position: relative;
+      background:
+        linear-gradient(90deg, rgba(15,118,110,0.16) 1px, transparent 1px) 0 0 / 12.5% 100%,
+        linear-gradient(90deg, rgba(15,23,42,0.05) 1px, transparent 1px) 0 0 / 3.125% 100%,
+        linear-gradient(0deg, rgba(15,23,42,0.08) 1px, transparent 1px) 0 0 / 100% 24px,
+        #ffffff;
+      overflow: hidden;
+    }
+
+    .note-block {
+      position: absolute;
+      height: 18px;
+      border-radius: 5px;
+      background: #0f766e;
+      border: 1px solid rgba(8, 82, 76, 0.45);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.22);
+    }
+
+    .note-block.selected {
+      background: #14b8a6;
+      outline: 2px solid #f59e0b;
+      outline-offset: 1px;
+    }
+
+    .velocity {
+      grid-column: 2;
+      border-top: 1px solid var(--line);
+      background:
+        linear-gradient(90deg, rgba(15,118,110,0.10) 1px, transparent 1px) 0 0 / 12.5% 100%,
+        #f8fafc;
+      display: flex;
+      align-items: end;
+      gap: 7px;
+      padding: 7px 10px;
+    }
+
+    .vel {
+      width: 12px;
+      height: var(--h);
+      border-radius: 3px 3px 0 0;
+      background: #0f766e;
+    }
+
+    .vel.selected {
+      background: #f59e0b;
+    }
+
+    .vel-label {
+      grid-column: 1;
+      border-top: 1px solid var(--line);
+      border-right: 1px solid var(--line);
+      background: #f1f5f9;
+      color: #64748b;
+      font-size: 10px;
+      padding: 8px 7px;
+      font-weight: 760;
+    }
+
+    .mixer-board {
+      height: 100%;
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: 8px;
+      padding: 12px;
+      background: #f8fafc;
+      overflow: hidden;
+    }
+
+    .strip {
+      min-width: 0;
+      border: 1px solid #cbd5e1;
+      background: #fff;
+      border-radius: 8px;
+      display: grid;
+      grid-template-rows: 38px 48px 1fr 42px 44px;
+      overflow: hidden;
+    }
+
+    .strip.selected {
+      border-color: #f59e0b;
+      box-shadow: 0 0 0 2px #fde68a;
+    }
+
+    .strip-name {
+      display: flex;
+      align-items: center;
+      padding: 0 9px;
+      border-bottom: 1px solid #e2e8f0;
+      font-size: 12px;
+      font-weight: 800;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
+    .pan-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      border-bottom: 1px solid #e2e8f0;
+      color: #64748b;
+      font-size: 10px;
+      font-weight: 760;
+    }
+
+    .pan {
+      width: 31px;
+      height: 31px;
+      border-radius: 50%;
+      border: 1px solid #b9c5d4;
+      background:
+        radial-gradient(circle at 50% 50%, #fff 0 42%, transparent 43%),
+        conic-gradient(#c2410c 0 var(--deg, 210deg), #d8dee8 var(--deg, 210deg) 360deg);
+    }
+
+    .meter-fader {
+      display: grid;
+      grid-template-columns: 22px 1fr;
+      gap: 8px;
+      padding: 10px;
+      align-items: stretch;
+    }
+
+    .meter {
+      border: 1px solid #cbd5e1;
+      border-radius: 5px;
+      background: #eef2f7;
+      display: flex;
+      align-items: end;
+      justify-content: center;
+      padding: 3px;
+    }
+
+    .meter-fill {
+      width: 100%;
+      height: var(--h, 50%);
+      border-radius: 3px 3px 2px 2px;
+      background: linear-gradient(0deg, #22c55e, #f59e0b 72%, #dc2626);
+    }
+
+    .fader-slot {
+      position: relative;
+      border-radius: 999px;
+      width: 8px;
+      justify-self: center;
+      background: #d7dee8;
+    }
+
+    .fader-slot::before {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: var(--top, 38%);
+      width: 38px;
+      height: 14px;
+      transform: translate(-50%, -50%);
+      border-radius: 4px;
+      border: 1px solid #9ca8b8;
+      background: #fff;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.18);
+    }
+
+    .strip-buttons {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      border-top: 1px solid #e2e8f0;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .insert-summary {
+      padding: 7px 8px;
+      color: #526174;
+      font-size: 10px;
+      line-height: 1.35;
+      background: #fbfdff;
+    }
+
+    .view-single .stage {
+      width: 1440px;
+      min-height: 980px;
+      padding: 28px;
+    }
+
+    .view-single .shell {
+      height: 860px;
+    }
+
+    .view-single .surface-grid {
+      display: block;
+    }
+
+    .view-single .surface {
+      display: none;
+      height: 100%;
+    }
+
+    .view-tracks .tracks,
+    .view-rack .rack,
+    .view-midi .midi,
+    .view-mixer .mixer {
+      display: grid;
+    }
+
+    .view-single .arranger {
+      grid-template-columns: 190px 1fr;
+      grid-template-rows: 38px 1fr;
+    }
+
+    .view-single .track-head,
+    .view-single .lane {
+      height: 78px;
+    }
+
+    .view-single .clip {
+      top: 14px;
+      height: 50px;
+    }
+
+    .view-single .device {
+      width: 168px;
+      height: 230px;
+    }
+
+    .view-single .insert-slot {
+      height: 230px;
+    }
+
+    .view-single .macro-strip {
+      grid-template-columns: repeat(8, 1fr);
+      min-height: 150px;
+    }
+
+    .view-single .mixer-board {
+      grid-template-columns: repeat(8, minmax(0, 1fr));
+      gap: 10px;
+      padding: 16px;
+    }
+  </style>
+</head>
+<body>
+  <div class="stage">
+    <div class="title">
+      <div>
+        <h1>Ask Vit DAW 面板线框稿 V3</h1>
+        <p class="subtitle">从真实 DAW 视窗出发做减法：Arranger / Node Rack / Piano Roll / Mixer</p>
+      </div>
+      <div class="note">空间结构必须保留，复杂度通过折叠和 Agent 增强来削减</div>
+    </div>
+
+    <main class="shell">
+      <header class="transport">
+        <div class="brand">Ask Vit</div>
+        <div class="icon primary">▶</div>
+        <div class="icon">■</div>
+        <div class="icon">⏮</div>
+        <div class="time">00:01:24.320</div>
+        <span class="pill">Connected</span>
+        <span class="pill">120 BPM</span>
+        <span class="pill">48 kHz</span>
+        <span class="pill">Snap 1/16</span>
+        <span class="spacer"></span>
+        <span class="pill">Demo Song</span>
+      </header>
+
+      <nav class="rail">
+        <button>对话</button>
+        <button class="active">轨道</button>
+        <button>机架</button>
+        <button>MIDI</button>
+        <button>混音台</button>
+        <span class="grow"></span>
+        <button>设置</button>
+      </nav>
+
+      <section class="workspace">
+        <div class="surface-grid">
+          <article class="surface tracks">
+            <header class="surface-header">
+              <div class="surface-title">
+                <i class="stripe"></i>
+                <div>
+                  <h2>轨道：精简 Arranger</h2>
+                  <span>保留时间轴、lane、clip、播放头和基础剪辑</span>
+                </div>
+              </div>
+              <div class="tools">
+                <span class="tool primary">+ 轨道</span>
+                <span class="tool">选择</span>
+                <span class="tool">分割</span>
+                <span class="tool">吸附</span>
+              </div>
+            </header>
+            <div class="surface-body arranger">
+              <div class="corner">Tracks</div>
+              <div class="timeline">
+                <span>1</span><span>2</span><span>3</span><span>4</span>
+                <span>5</span><span>6</span><span>7</span><span>8</span>
+              </div>
+              <div class="track-heads">
+                <div class="track-head selected"><span class="track-name">Vocal Lead</span><span><b class="mini">M</b> <b class="mini on">S</b> <b class="mini">R</b></span><span class="track-type">Audio · plugins 4</span></div>
+                <div class="track-head"><span class="track-name">Bass Synth</span><span><b class="mini">M</b> <b class="mini">S</b> <b class="mini">R</b></span><span class="track-type">MIDI · clips 2</span></div>
+                <div class="track-head"><span class="track-name">Drum Bus</span><span><b class="mini">M</b> <b class="mini">S</b> <b class="mini">R</b></span><span class="track-type">Hybrid · bus</span></div>
+                <div class="track-head"><span class="track-name">Pad Texture</span><span><b class="mini">M</b> <b class="mini">S</b> <b class="mini">R</b></span><span class="track-type">MIDI · automation hidden</span></div>
+                <div class="track-head"><span class="track-name">FX Return</span><span><b class="mini">M</b> <b class="mini">S</b> <b class="mini">R</b></span><span class="track-type">Audio · return</span></div>
+              </div>
+              <div class="lanes">
+                <i class="playhead"></i>
+                <div class="lane">
+                  <div class="clip audio selected" style="left:4%;width:30%;">Verse Vox<small>waveform summary</small></div>
+                  <div class="clip audio" style="left:40%;width:34%;">Chorus Vox<small>take 02</small></div>
+                </div>
+                <div class="lane">
+                  <div class="clip midi" style="left:5%;width:38%;">Bass Verse A<small>42 notes</small></div>
+                  <div class="clip midi" style="left:44%;width:12%;">Fill<small>12 notes</small></div>
+                </div>
+                <div class="lane">
+                  <div class="clip bus" style="left:2%;width:26%;">Kick Pattern<small>audio + midi</small></div>
+                  <div class="clip bus" style="left:30%;width:22%;">Hats<small>variation</small></div>
+                  <div class="clip bus" style="left:58%;width:30%;">Chorus Drums<small>bus render</small></div>
+                </div>
+                <div class="lane">
+                  <div class="clip midi" style="left:1%;width:74%;">Pad Chords<small>long region</small></div>
+                </div>
+                <div class="lane">
+                  <div class="clip audio" style="left:62%;width:24%;">Reverb Throw<small>printed FX</small></div>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <article class="surface rack">
+            <header class="surface-header">
+              <div class="surface-title">
+                <i class="stripe"></i>
+                <div>
+                  <h2>机架：可视化节点机架</h2>
+                  <span>GraphEdit 分区画布：Timeline / Z1 MIDI / Z2 Instrument / Z3 Audio</span>
+                </div>
+              </div>
+              <div class="tools">
+                <span class="tool primary">+ 节点</span>
+                <span class="tool">连接</span>
+                <span class="tool">Get Params</span>
+                <span class="tool">学习</span>
+              </div>
+            </header>
+            <div class="surface-body node-rack">
+              <aside class="rack-tool-column">
+                <div class="rack-tool">工具</div>
+                <div class="rack-tool">选择</div>
+                <div class="rack-tool">反选</div>
+                <div class="rack-meta">track=1007 · clips=0 · nodes=2</div>
+              </aside>
+              <div class="rack-graph">
+                <div class="rack-band timeline"><span>Timeline</span></div>
+                <div class="rack-band z1"><span>Z1 MIDI</span></div>
+                <div class="rack-band z2"><span>Z2 Instrument</span></div>
+                <div class="rack-band z3"><span>Z3 Audio / Bus</span></div>
+                <div class="rack-toast">提示系统已激活，按 [~] 隐藏</div>
+                <div class="rack-zoom"><span>100%</span><b>-</b><b>+</b></div>
+                <i class="rack-scope-line" style="left:36%"></i>
+
+                <svg class="rack-wire-layer" viewBox="0 0 1000 520" preserveAspectRatio="none" aria-hidden="true">
+                  <path class="wire-audio" d="M 75 376 C 190 376, 205 376, 300 376" />
+                  <path class="wire-audio" d="M 428 376 C 470 376, 430 454, 520 454 S 595 436, 650 426" />
+                  <path class="wire-audio" d="M 690 426 C 810 426, 830 376, 952 376" />
+                </svg>
+
+                <span class="wire-badge" style="left:15%;top:74%">[ from Rack In ]</span>
+                <span class="wire-badge" style="left:39%;top:84%">[ TDR Nova ]</span>
+                <span class="wire-badge" style="left:78%;top:77%">[ to Rack Out ]</span>
+
+                <section class="rack-anchor" style="left:28px;top:70%">
+                  Rack In
+                  <i class="port-dot" style="right:-5px;top:10px"></i>
+                </section>
+
+                <section class="rack-node selected" style="left:30%;top:68%">
+                  <i class="port-dot" style="left:-5px;top:35px"></i>
+                  <i class="port-dot" style="right:-5px;top:35px"></i>
+                  <div class="rack-node-title">TDR Nova</div>
+                  <div class="rack-node-body">
+                    <div class="rack-node-icon">⌁</div>
+                    <div class="rack-node-kind">Audio FX · learned pending</div>
+                    <div class="rack-node-actions"><span>Open UI</span><span>Get Params</span></div>
+                  </div>
+                </section>
+
+                <section class="rack-node" style="left:55%;top:78%">
+                  <i class="port-dot" style="left:-5px;top:35px"></i>
+                  <i class="port-dot" style="right:-5px;top:35px"></i>
+                  <div class="rack-node-title">ValhallaSupermassive</div>
+                  <div class="rack-node-body">
+                    <div class="rack-node-icon">∞</div>
+                    <div class="rack-node-kind">Audio FX · params ready</div>
+                    <div class="rack-node-actions"><span>Open UI</span><span>Get Params</span></div>
+                  </div>
+                </section>
+
+                <section class="rack-anchor" style="right:22px;top:70%">
+                  Rack Out
+                  <i class="port-dot" style="left:-5px;top:10px"></i>
+                </section>
+              </div>
+            </div>
+          </article>
+
+          <article class="surface midi">
+            <header class="surface-header">
+              <div class="surface-title">
+                <i class="stripe"></i>
+                <div>
+                  <h2>MIDI：精简 Piano Roll</h2>
+                  <span>保留键盘、网格、音符、velocity 和编辑工具</span>
+                </div>
+              </div>
+              <div class="tools">
+                <span class="tool">画笔</span>
+                <span class="tool">擦除</span>
+                <span class="tool">量化</span>
+                <span class="tool primary">变奏</span>
+              </div>
+            </header>
+            <div class="surface-body piano-roll">
+              <div class="midi-toolbar">Clip: Bass Verse A · bar 1-9 · C2-G3 · Snap 1/16</div>
+              <div class="keys">
+                <div class="key">C4</div><div class="key black">B3</div><div class="key">A3</div><div class="key black">G#</div><div class="key">G3</div><div class="key">F3</div><div class="key black">D#</div><div class="key">D3</div><div class="key black">C#</div><div class="key">C3</div><div class="key black">B2</div><div class="key">A2</div><div class="key">G2</div>
+              </div>
+              <div class="note-grid">
+                <i class="playhead"></i>
+                <i class="note-block" style="left:4%;top:220px;width:7%"></i>
+                <i class="note-block" style="left:13%;top:196px;width:9%"></i>
+                <i class="note-block selected" style="left:24%;top:172px;width:13%"></i>
+                <i class="note-block" style="left:39%;top:196px;width:8%"></i>
+                <i class="note-block" style="left:48%;top:220px;width:10%"></i>
+                <i class="note-block" style="left:61%;top:148px;width:15%"></i>
+                <i class="note-block" style="left:78%;top:172px;width:10%"></i>
+                <i class="note-block" style="left:8%;top:268px;width:12%"></i>
+                <i class="note-block" style="left:30%;top:244px;width:8%"></i>
+                <i class="note-block" style="left:55%;top:244px;width:9%"></i>
+                <i class="note-block" style="left:70%;top:220px;width:12%"></i>
+              </div>
+              <div class="vel-label">Velocity</div>
+              <div class="velocity">
+                <i class="vel" style="--h:36%"></i><i class="vel" style="--h:50%"></i><i class="vel selected" style="--h:80%"></i><i class="vel" style="--h:44%"></i><i class="vel" style="--h:58%"></i><i class="vel" style="--h:64%"></i><i class="vel" style="--h:42%"></i><i class="vel" style="--h:72%"></i><i class="vel" style="--h:48%"></i><i class="vel" style="--h:56%"></i>
+              </div>
+            </div>
+          </article>
+
+          <article class="surface mixer">
+            <header class="surface-header">
+              <div class="surface-title">
+                <i class="stripe"></i>
+                <div>
+                  <h2>混音台：精简 Mixer</h2>
+                  <span>保留 channel strip、meter、pan、fader、insert 摘要</span>
+                </div>
+              </div>
+              <div class="tools">
+                <span class="tool">Meters</span>
+                <span class="tool">取消独奏</span>
+                <span class="tool primary">粗混</span>
+              </div>
+            </header>
+            <div class="surface-body mixer-board">
+              <section class="strip selected">
+                <div class="strip-name">Vocal Lead</div>
+                <div class="pan-row"><span>L</span><i class="pan" style="--deg:180deg"></i><span>R</span></div>
+                <div class="meter-fader"><div class="meter"><i class="meter-fill" style="--h:72%"></i></div><div class="fader-slot" style="--top:38%"></div></div>
+                <div class="strip-buttons"><b class="mini">M</b><b class="mini on">S</b><b class="mini">R</b></div>
+                <div class="insert-summary">Pro-Q 3<br>1176 · De-ess</div>
+              </section>
+              <section class="strip">
+                <div class="strip-name">Bass Synth</div>
+                <div class="pan-row"><span>L</span><i class="pan" style="--deg:180deg"></i><span>R</span></div>
+                <div class="meter-fader"><div class="meter"><i class="meter-fill" style="--h:54%"></i></div><div class="fader-slot" style="--top:48%"></div></div>
+                <div class="strip-buttons"><b class="mini">M</b><b class="mini">S</b><b class="mini">R</b></div>
+                <div class="insert-summary">Mini V<br>Sidechain</div>
+              </section>
+              <section class="strip">
+                <div class="strip-name">Drum Bus</div>
+                <div class="pan-row"><span>L</span><i class="pan" style="--deg:190deg"></i><span>R</span></div>
+                <div class="meter-fader"><div class="meter"><i class="meter-fill" style="--h:84%"></i></div><div class="fader-slot" style="--top:34%"></div></div>
+                <div class="strip-buttons"><b class="mini">M</b><b class="mini">S</b><b class="mini">R</b></div>
+                <div class="insert-summary">Bus Comp<br>Saturator</div>
+              </section>
+              <section class="strip">
+                <div class="strip-name">Pad Texture</div>
+                <div class="pan-row"><span>L</span><i class="pan" style="--deg:135deg"></i><span>R</span></div>
+                <div class="meter-fader"><div class="meter"><i class="meter-fill" style="--h:36%"></i></div><div class="fader-slot" style="--top:57%"></div></div>
+                <div class="strip-buttons"><b class="mini">M</b><b class="mini">S</b><b class="mini">R</b></div>
+                <div class="insert-summary">Chorus<br>EQ</div>
+              </section>
+              <section class="strip">
+                <div class="strip-name">FX Return</div>
+                <div class="pan-row"><span>L</span><i class="pan" style="--deg:225deg"></i><span>R</span></div>
+                <div class="meter-fader"><div class="meter"><i class="meter-fill" style="--h:42%"></i></div><div class="fader-slot" style="--top:65%"></div></div>
+                <div class="strip-buttons"><b class="mini">M</b><b class="mini">S</b><b class="mini">R</b></div>
+                <div class="insert-summary">Plate<br>Delay</div>
+              </section>
+              <section class="strip">
+                <div class="strip-name">Music Bus</div>
+                <div class="pan-row"><span>L</span><i class="pan" style="--deg:180deg"></i><span>R</span></div>
+                <div class="meter-fader"><div class="meter"><i class="meter-fill" style="--h:70%"></i></div><div class="fader-slot" style="--top:42%"></div></div>
+                <div class="strip-buttons"><b class="mini">M</b><b class="mini">S</b><b class="mini">R</b></div>
+                <div class="insert-summary">Glue<br>Limiter</div>
+              </section>
+              <section class="strip">
+                <div class="strip-name">Master</div>
+                <div class="pan-row"><span>L</span><i class="pan" style="--deg:180deg"></i><span>R</span></div>
+                <div class="meter-fader"><div class="meter"><i class="meter-fill" style="--h:76%"></i></div><div class="fader-slot" style="--top:36%"></div></div>
+                <div class="strip-buttons"><b class="mini">M</b><b class="mini">S</b><b class="mini">R</b></div>
+                <div class="insert-summary">Meter<br>Limiter</div>
+              </section>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <footer class="target">
+        <span>当前 DAW 目标</span>
+        <strong>Track: Vocal Lead</strong>
+        <strong>Clip: Verse Vox</strong>
+        <strong>Plugin: Pro-Q 3</strong>
+        <span class="agent-cmd">Ask Vit overlay：对选中对象执行任务，不遮挡核心 DAW 视图</span>
+      </footer>
+    </main>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const view = params.get("view");
+    if (view && view !== "overview") {
+      document.body.classList.add("view-single", `view-${view}`);
+      const labelMap = { tracks: "轨道", rack: "机架", midi: "MIDI", mixer: "混音台" };
+      document.querySelectorAll(".rail button").forEach((btn) => {
+        btn.classList.toggle("active", btn.textContent.trim() === labelMap[view]);
+      });
+    }
+  </script>
+</body>
+</html>

@@ -11,6 +11,10 @@ juce::String audioFeatureTypeToString (AudioFeatureType type)
         case AudioFeatureType::TimeEnergy:              return "time_energy";
         case AudioFeatureType::SpectralField:           return "spectral_field";
         case AudioFeatureType::StereoRelationField:     return "stereo_relation_field";
+        case AudioFeatureType::BandEnergySummary:       return "band_energy_summary";
+        case AudioFeatureType::StereoRelationSummary:   return "stereo_relation_summary";
+        case AudioFeatureType::LoudnessSummary:         return "loudness_summary";
+        case AudioFeatureType::L3AcousticSummary:       return "l3_acoustic_summary";
         case AudioFeatureType::SegmentationPrimitives:  return "segmentation_primitives";
         case AudioFeatureType::ThreeDField:             return "3d_field";
         case AudioFeatureType::MasterOutputPreview:     return "master_output_preview";
@@ -29,8 +33,16 @@ AudioFeatureType audioFeatureTypeFromString (const juce::String& text, AudioFeat
         return AudioFeatureType::TimeEnergy;
     if (key == "spectral_field" || key == "spectrogram" || key == "rgba_spectral_tile")
         return AudioFeatureType::SpectralField;
-    if (key == "stereo_relation_field" || key == "stereo_relation" || key == "ba")
+    if (key == "stereo_relation_field" || key == "ba")
         return AudioFeatureType::StereoRelationField;
+    if (key == "band_energy_summary" || key == "band_energy" || key == "band_summary")
+        return AudioFeatureType::BandEnergySummary;
+    if (key == "stereo_relation_summary" || key == "stereo_relation" || key == "stereo_summary" || key == "stereo_correlation")
+        return AudioFeatureType::StereoRelationSummary;
+    if (key == "loudness_summary" || key == "loudness" || key == "lufs_summary" || key == "lufs_analysis")
+        return AudioFeatureType::LoudnessSummary;
+    if (key == "l3_acoustic_summary" || key == "l3_summary" || key == "dad_l3")
+        return AudioFeatureType::L3AcousticSummary;
     if (key == "segmentation_primitives" || key == "segmentation")
         return AudioFeatureType::SegmentationPrimitives;
     if (key == "3d_field" || key == "three_d_field" || key == "field_3d")
@@ -55,7 +67,7 @@ juce::String audioFeaturePriorityToString (AudioFeaturePriority priority)
 
 juce::String audioFeatureAnalysisVersion()
 {
-    return "audio_feature.v1";
+    return "audio_feature.v1.2";
 }
 
 juce::String audioFeatureProductVersion (AudioFeatureType type)
@@ -66,6 +78,10 @@ juce::String audioFeatureProductVersion (AudioFeatureType type)
         case AudioFeatureType::TimeEnergy:              return "time_energy.v1";
         case AudioFeatureType::SpectralField:           return "spectral_field.v2";
         case AudioFeatureType::StereoRelationField:     return "stereo_relation_field.v1";
+        case AudioFeatureType::BandEnergySummary:       return "band_energy_summary.v1";
+        case AudioFeatureType::StereoRelationSummary:   return "stereo_relation_summary.v1";
+        case AudioFeatureType::LoudnessSummary:         return "loudness_summary.v1";
+        case AudioFeatureType::L3AcousticSummary:       return "l3_acoustic_summary.v1";
         case AudioFeatureType::SegmentationPrimitives:  return "segmentation_primitives.v1";
         case AudioFeatureType::ThreeDField:             return "3d_field.v1";
         case AudioFeatureType::MasterOutputPreview:     return "master_output_preview.v1";

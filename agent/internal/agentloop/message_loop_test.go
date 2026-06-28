@@ -16,11 +16,19 @@ import (
 
 type fakeMessageCompleter struct {
 	responses []string
+	errors    []error
 	calls     [][]llm.Message
 }
 
 func (f *fakeMessageCompleter) Complete(_ context.Context, _ config.EngineConfig, messages []llm.Message) (string, error) {
 	f.calls = append(f.calls, append([]llm.Message(nil), messages...))
+	if len(f.errors) > 0 {
+		err := f.errors[0]
+		f.errors = f.errors[1:]
+		if err != nil {
+			return "", err
+		}
+	}
 	if len(f.responses) == 0 {
 		return `{"final":true,"reply":"done"}`, nil
 	}
@@ -535,7 +543,7 @@ func TestMessageLoopToolResultHistorySummarizesLargeExecutionResult(t *testing.T
 	})
 
 	if res.Status != "completed" {
-		t.Fatalf("result = status=%q reply=%q error=%q", res.Status, res.Reply, res.Error)
+		t.Fatalf("result = status=%q reply=%q error=%q trace=%+v", res.Status, res.Reply, res.Error, res.Trace)
 	}
 	if len(client.calls) != 2 {
 		t.Fatalf("LLM calls = %d, want 2", len(client.calls))
@@ -580,7 +588,7 @@ func TestMessageLoopNaturalMixRequestObservesBeforePluginLoad(t *testing.T) {
 	})
 
 	if res.Status != "completed" {
-		t.Fatalf("result = status=%q reply=%q error=%q", res.Status, res.Reply, res.Error)
+		t.Fatalf("result = status=%q reply=%q error=%q trace=%+v", res.Status, res.Reply, res.Error, res.Trace)
 	}
 	if len(exec.calls) == 0 || !isTestMixObservationTool(exec.calls[0].Tool) {
 		t.Fatalf("executor calls = %+v, want first call to be mix observation", exec.calls)
@@ -651,6 +659,347 @@ func TestMessageLoopNaturalMixRequestPreflightsWhenModelFinalsWithoutTools(t *te
 	}
 }
 
+func TestMessageLoopMixObservationUsableWithReadyAcousticEvidenceAndStaleReaderBlocker(t *testing.T) {
+	result := map[string]any{
+		"status": "ready",
+		"mixboard": map[string]any{
+			"status":        "ready",
+			"open_blockers": []any{"audio_feature_reader_not_connected"},
+			"package_status": map[string]any{
+				"mix": "baseline_ready",
+			},
+		},
+		"observation": map[string]any{
+			"status": "ready",
+			"global_summary": map[string]any{
+				"band_energy_summary": map[string]any{
+					"status": "ready",
+					"bands": map[string]any{
+						"bass": map[string]any{"energy_db": -12.0},
+					},
+				},
+				"realtime_stereo_relation_summary": map[string]any{
+					"status":               "ready",
+					"capture_mode":         "realtime_playback",
+					"correlation_estimate": 0.62,
+				},
+			},
+		},
+	}
+
+	if !messageLoopMixObservationResultUsable(result) {
+		t.Fatalf("ready acoustic evidence should make stale reader blocker non-fatal: %#v", result)
+	}
+}
+
+func TestMessageLoopMixObservationStaleReaderBlockerFatalWithoutAcousticEvidence(t *testing.T) {
+	result := map[string]any{
+		"status": "ready",
+		"mixboard": map[string]any{
+			"status":        "ready",
+			"open_blockers": []any{"audio_feature_reader_not_connected"},
+			"package_status": map[string]any{
+				"mix": "baseline_ready",
+			},
+		},
+		"observation": map[string]any{
+			"status": "ready",
+		},
+	}
+
+	if messageLoopMixObservationResultUsable(result) {
+		t.Fatalf("reader blocker without acoustic evidence should remain fatal: %#v", result)
+	}
+}
+
+func TestMessageLoopRealtimeObservationRefreshesDespiteRecentObservation(t *testing.T) {
+	client := &fakeMessageCompleter{responses: []string{
+		`{"final":true,"reply":"已读取播放后的 L2 实时频谱、电平和声像数据；只观察，不修改。","tool_calls":[]}`,
+	}}
+	exec := &fakeMessageExecutor{mixObservationResult: map[string]any{
+		"status":         "ok",
+		"mix_session_id": "mix_realtime",
+		"observation_id": "obs_realtime",
+		"observation": map[string]any{
+			"target_ref": map[string]any{"kind": "track", "id": "1007", "label": "Track 1"},
+			"source_capabilities": map[string]any{
+				"realtime_band_energy":     "ready",
+				"realtime_stereo_relation": "ready",
+			},
+			"mix_package": map[string]any{
+				"source_capabilities": map[string]any{
+					"realtime_band_energy":     "ready",
+					"realtime_stereo_relation": "ready",
+				},
+				"realtime_metrics": map[string]any{
+					"band_energy": map[string]any{
+						"status": "ready",
+						"source": "live_level_meter_spectrum",
+						"bands":  map[string]any{"bass": map[string]any{"unit_energy": 0.48}},
+					},
+					"stereo_relation": map[string]any{
+						"status":               "ready",
+						"source":               "live_level_meter_stereo",
+						"correlation_estimate": 0.87,
+					},
+				},
+			},
+		},
+	}}
+	loop := &MessageLoop{
+		Client:   client,
+		Config:   config.EngineConfig{BaseURL: "http://example.invalid", APIKey: "test", DefaultModel: "test"},
+		Executor: exec,
+		Budget:   Budget{MaxTurns: 3, MaxToolCalls: 2, MaxConsecutiveErrors: 2},
+	}
+
+	res := loop.Start(context.Background(), Input{
+		UserText:     "播放后检查一下 L2 实时频谱、电平和声像，不要修改",
+		AllowedTools: []string{"project.state", "mix.observe", "mix.read", "mix.derive"},
+		Context:      map[string]any{"selected_track_id": "1007"},
+		State:        map[string]any{"selected_track_id": "1007", "tracks": []map[string]any{{"track_id": "1007", "clips": []map[string]any{{"id": "1011"}}}}},
+		RecentObservation: &RecentObservation{
+			Tool:        "mix.observe",
+			CommandName: "mix_request_observation",
+			Status:      "ok",
+			Summary: map[string]any{
+				"status":         "ok",
+				"observation_id": "obs_previous",
+				"mix_session_id": "mix_previous",
+				"target_ref":     map[string]any{"kind": "track", "id": "1007", "label": "Track 1"},
+			},
+		},
+	})
+
+	if res.Status != "completed" {
+		t.Fatalf("result = status=%q reply=%q error=%q trace=%+v", res.Status, res.Reply, res.Error, res.Trace)
+	}
+	if len(exec.calls) == 0 || exec.calls[0].Tool != "mix.observe" {
+		t.Fatalf("executor calls = %+v, want realtime preflight mix.observe before model reply", exec.calls)
+	}
+	call := exec.calls[0]
+	if got := fmt.Sprint(call.Args["requested_layer"]); got != "l2_realtime" {
+		t.Fatalf("requested_layer = %q args=%+v", got, call.Args)
+	}
+	if got := fmt.Sprint(call.Args["capture_mode"]); got != "realtime_playback" {
+		t.Fatalf("capture_mode = %q args=%+v", got, call.Args)
+	}
+	if got := fmt.Sprint(call.Args["prefer_realtime"]); got != "true" {
+		t.Fatalf("prefer_realtime = %q args=%+v", got, call.Args)
+	}
+	if got := fmt.Sprint(call.Args["track_id"]); got != "1007" {
+		t.Fatalf("track_id = %q args=%+v", got, call.Args)
+	}
+	if got := fmt.Sprint(call.Args["clip_id"]); got != "1011" {
+		t.Fatalf("clip_id = %q args=%+v", got, call.Args)
+	}
+}
+
+func TestMessageLoopObservationFallbackCompletesWhenLLMTimeoutAfterReadOnlyObserve(t *testing.T) {
+	client := &fakeMessageCompleter{errors: []error{context.DeadlineExceeded}}
+	exec := &fakeMessageExecutor{mixObservationResult: map[string]any{
+		"status":         "ok",
+		"scope":          "full_project",
+		"mix_session_id": "mix_test",
+		"observation_id": "obs_test",
+		"acoustic_digest": map[string]any{
+			"waveform": map[string]any{
+				"status":      "ready",
+				"peak_dbfs":   -6.0,
+				"rms_dbfs":    -9.0,
+				"headroom_db": 6.0,
+			},
+			"source_capabilities": map[string]any{
+				"waveform_envelope": "ready",
+				"band_energy":       "ready",
+				"stereo_relation":   "ready",
+				"lufs_analysis":     "deferred",
+				"masking_analysis":  "deferred",
+				"reference_match":   "deferred",
+			},
+		},
+		"observation": map[string]any{
+			"status": "ready",
+			"project_package": map[string]any{
+				"tracks": []map[string]any{
+					{"track_id": "1007", "track_name": "Track 1", "peak_dbfs": -6.0, "rms_dbfs": -9.0, "headroom_db": 6.0},
+					{"track_id": "1010", "track_name": "Track 2", "peak_dbfs": 0.0, "rms_dbfs": -10.6, "headroom_db": 0.0},
+				},
+				"headroom_risk": []map[string]any{
+					{"track_id": "1010", "track_name": "Track 2", "peak_dbfs": 0.0, "rms_dbfs": -10.6, "headroom_db": 0.0, "risk": "high"},
+				},
+			},
+		},
+	}}
+	loop := &MessageLoop{
+		Client:   client,
+		Config:   config.EngineConfig{BaseURL: "http://example.invalid", APIKey: "test", DefaultModel: "test"},
+		Executor: exec,
+		Budget:   Budget{MaxTurns: 3, MaxToolCalls: 2, MaxConsecutiveErrors: 2},
+	}
+
+	res := loop.Start(context.Background(), Input{
+		UserText:     "help me inspect the overall mix",
+		AllowedTools: []string{"mix.observe", "mix.read", "mix.derive"},
+	})
+
+	if res.Status != "completed" || res.StopReason != StopReasonDone {
+		t.Fatalf("result = status=%q stop=%q reply=%q error=%q", res.Status, res.StopReason, res.Reply, res.Error)
+	}
+	if res.Error != "" || res.FailureReason != "" {
+		t.Fatalf("fallback should not surface LLM timeout as failure: error=%q failure=%q", res.Error, res.FailureReason)
+	}
+	if len(exec.calls) != 1 || exec.calls[0].Tool != "mix.observe" {
+		t.Fatalf("executor calls = %+v, want only read-only mix.observe", exec.calls)
+	}
+	for _, want := range []string{"observation read model", "Track 2", "deferred"} {
+		if !strings.Contains(res.Reply, want) {
+			t.Fatalf("fallback reply missing %q:\n%s", want, res.Reply)
+		}
+	}
+	foundFallbackTrace := false
+	for _, event := range res.Trace {
+		if event.Kind == "final_gate" && strings.Contains(event.Message, "materialized observation fallback") {
+			foundFallbackTrace = true
+			break
+		}
+	}
+	if !foundFallbackTrace {
+		t.Fatalf("fallback trace marker missing: %+v", res.Trace)
+	}
+}
+
+func TestMessageLoopObservationFallbackAsksClarificationForUnresolvedVocal(t *testing.T) {
+	client := &fakeMessageCompleter{errors: []error{context.DeadlineExceeded}}
+	exec := &fakeMessageExecutor{mixObservationResult: map[string]any{
+		"status":         "ok",
+		"scope":          "full_project_with_focus_track",
+		"mix_session_id": "mix_focus",
+		"observation_id": "obs_focus",
+		"digest": map[string]any{
+			"scope": "full_project_with_focus_track",
+			"target": map[string]any{
+				"kind": "project",
+				"id":   "current",
+			},
+		},
+		"observation": map[string]any{
+			"status":     "ready",
+			"target_ref": map[string]any{"kind": "project", "id": "current", "label": "Current project"},
+			"project_package": map[string]any{
+				"track_count":                 2,
+				"active_acoustic_track_count": 2,
+				"tracks": []map[string]any{{
+					"track_id":         "1007",
+					"name":             "Track 1",
+					"track_name":       "Track 1",
+					"user_label":       "Track 1",
+					"user_track_index": 1,
+					"role_guess":       "unknown",
+					"peak_dbfs":        -6.0,
+					"headroom_db":      6.0,
+				}, {
+					"track_id":         "1010",
+					"name":             "Track 2",
+					"track_name":       "Track 2",
+					"user_label":       "Track 2",
+					"user_track_index": 2,
+					"role_guess":       "unknown",
+					"peak_dbfs":        0.0,
+					"headroom_db":      0.0,
+				}},
+			},
+		},
+	}}
+	loop := &MessageLoop{
+		Client:   client,
+		Config:   config.EngineConfig{BaseURL: "http://example.invalid", APIKey: "test", DefaultModel: "test"},
+		Executor: exec,
+		Budget:   Budget{MaxTurns: 3, MaxToolCalls: 3, MaxConsecutiveErrors: 2},
+	}
+
+	res := loop.Start(context.Background(), Input{
+		UserText:     "make the lead vocal more forward",
+		AllowedTools: []string{"mix.observe", "mix.read", "mix.derive"},
+	})
+
+	if res.Status != "waiting_clarification" || res.StopReason != StopReasonNeedsClarification || !res.NeedsClarification {
+		t.Fatalf("result = status=%q stop=%q needs=%v reply=%q error=%q", res.Status, res.StopReason, res.NeedsClarification, res.Reply, res.Error)
+	}
+	if len(exec.calls) < 1 || exec.calls[0].Tool != "mix.observe" {
+		t.Fatalf("executor calls = %+v, want mix.observe first", exec.calls)
+	}
+	if res.ExecutionMemory.PendingMixTickCandidate != nil || res.ExecutionMemory.PendingMixTreatment != nil {
+		t.Fatalf("unresolved vocal fallback created pending action: %+v", res.ExecutionMemory)
+	}
+	if !strings.Contains(res.Reply, "Track") || (!strings.Contains(res.Reply, "vocal") && !strings.Contains(res.Reply, "\u4e3b\u5531")) {
+		t.Fatalf("clarification reply should ask for the vocal track, got %q", res.Reply)
+	}
+}
+
+func TestMessageLoopNaturalMixObservationDoesNotAskExecutionWhenDeepPackageBuilding(t *testing.T) {
+	client := &fakeMessageCompleter{responses: []string{
+		`{"final":true,"reply":"I observed the mix. L3 spectrum and stereo packages are still building.\n\nShould I execute this?","tool_calls":[]}`,
+	}}
+	exec := &fakeMessageExecutor{mixObservationResult: map[string]any{
+		"status":         "ok",
+		"mix_session_id": "mix_test",
+		"observation_id": "obs_test",
+		"track_id":       "1007",
+		"acoustic_package_status": map[string]any{
+			"schema_version":  "acoustic_package_status.v0",
+			"status":          "partial",
+			"project_id":      "current",
+			"track_id":        "1007",
+			"clip_id":         "1011",
+			"source_revision": "rev_test",
+			"package_layers": map[string]any{
+				"l1_static": map[string]any{
+					"status": "ready",
+				},
+				"l3_deep": map[string]any{
+					"status": "building",
+					"features": map[string]any{
+						"spectrogram_tiles":       map[string]any{"status": "building"},
+						"band_energy_summary":     map[string]any{"status": "building"},
+						"stereo_relation_summary": map[string]any{"status": "building"},
+						"lufs_analysis":           map[string]any{"status": "deferred"},
+						"masking_analysis":        map[string]any{"status": "deferred"},
+						"reference_match":         map[string]any{"status": "deferred"},
+					},
+				},
+			},
+		},
+	}}
+	loop := &MessageLoop{
+		Client:   client,
+		Config:   config.EngineConfig{BaseURL: "http://example.invalid", APIKey: "test", DefaultModel: "test"},
+		Executor: exec,
+		Budget:   Budget{MaxTurns: 3, MaxToolCalls: 2, MaxConsecutiveErrors: 2},
+	}
+
+	res := loop.Start(context.Background(), Input{
+		UserText:     "help me mix the current track",
+		AllowedTools: []string{"mix.observe"},
+		State: map[string]any{"tracks": []map[string]any{{
+			"track_id": "1007",
+			"clips": []map[string]any{{
+				"id": "1011",
+			}},
+		}}},
+	})
+
+	if res.Status != "completed" {
+		t.Fatalf("result = status=%q reply=%q error=%q", res.Status, res.Reply, res.Error)
+	}
+	if strings.Contains(strings.ToLower(res.Reply), "execute") || strings.Contains(res.Reply, "继续执行") {
+		t.Fatalf("building deep package reply should not ask to execute: %q", res.Reply)
+	}
+	if res.ExecutionMemory.PendingMixTickCandidate != nil || res.ExecutionMemory.PendingMixTreatment != nil {
+		t.Fatalf("building deep package observation created pending action: %+v", res.ExecutionMemory)
+	}
+}
+
 func TestMessageLoopNaturalMixRequestDoesNotAllowObserveAndPluginLoadInSameModelTurn(t *testing.T) {
 	client := &fakeMessageCompleter{responses: []string{
 		`{"final":false,"reply":"先观察再加载。","tool_calls":[{"id":"observe_mix","tool":"mix.request_observation","args":{"track_id":"1007"}},{"id":"load_eq","tool":"plugin.load_to_rack","args":{"track_id":"1007","plugin_query":"TDR Nova","zone_id":"Z3"}}]}`,
@@ -713,6 +1062,137 @@ func TestMessageLoopPanRequestBlocksPrimitivePanUntilConfirmation(t *testing.T) 
 	}
 	if strings.Contains(res.Reply, "mix_treatment_pending") {
 		t.Fatalf("reply leaked treatment marker: %q", res.Reply)
+	}
+}
+
+func TestMessageLoopReadOnlyObservationDoesNotCreatePendingCandidate(t *testing.T) {
+	client := &fakeMessageCompleter{responses: []string{
+		`{"final":true,"reply":"Track 2 is loud; lower Track 2 by 1 dB. Should I lower Track 2 by 1 dB?","tool_calls":[]}`,
+	}}
+	exec := &fakeMessageExecutor{}
+	loop := &MessageLoop{
+		Client:   client,
+		Config:   config.EngineConfig{BaseURL: "http://example.invalid", APIKey: "test", DefaultModel: "test"},
+		Executor: exec,
+		Budget:   Budget{MaxTurns: 4, MaxToolCalls: 3, MaxConsecutiveErrors: 2},
+	}
+
+	res := loop.Start(context.Background(), Input{
+		UserText:     "read-only acoustic observation: analyze current mix stereo status and loudness; do not modify.",
+		AllowedTools: []string{"mix.observe", "mix.read", "mix.derive", "mix.request_observation", "mix.propose_tick", "mix.apply_tick"},
+		State: map[string]any{"tracks": []map[string]any{{
+			"track_id":         "1007",
+			"track_name":       "Track 1",
+			"user_track_index": 1,
+		}, {
+			"track_id":         "1010",
+			"track_name":       "Track 2",
+			"user_track_index": 2,
+		}}},
+		ExecutionMemory: ExecutionMemory{
+			PendingMixTickCandidate: &PendingMixTickCandidate{Status: "pending_confirmation", TrackID: "old"},
+			PendingMixTreatment:     &MixTreatmentPending{Status: "pending_confirmation", TargetRef: "track:old"},
+		},
+	})
+
+	if res.Status != "completed" {
+		t.Fatalf("result = status=%q reply=%q error=%q", res.Status, res.Reply, res.Error)
+	}
+	if len(exec.calls) != 1 || exec.calls[0].Tool != "mix.observe" {
+		t.Fatalf("executor calls = %+v, want only mix.observe", exec.calls)
+	}
+	if exec.calls[0].Args["mutation_barrier"] != true || exec.calls[0].Args["no_pending"] != true || exec.calls[0].Args["workflow_intent"] != "observation_only" {
+		t.Fatalf("read-only observation args missing barrier metadata: %+v", exec.calls[0].Args)
+	}
+	if res.ExecutionMemory.PendingMixTickCandidate != nil || res.ExecutionMemory.PendingMixTreatment != nil {
+		t.Fatalf("read-only turn kept pending memory: %+v", res.ExecutionMemory)
+	}
+	reply := strings.ToLower(res.Reply)
+	if strings.Contains(reply, "should i") || strings.Contains(reply, "mix_treatment_pending") {
+		t.Fatalf("read-only reply leaked confirmation language or marker: %q", res.Reply)
+	}
+}
+
+func TestMessageLoopFrequencyStereoReadOnlyObservationAddsProjection(t *testing.T) {
+	args := messageLoopMixObservationArgs("观察一下当前工程的频段和声像状态，不要执行任何修改。", nil)
+	if args["projection"] != "frequency_stereo" || args["include_raw"] != false || args["target_scope"] == "" {
+		t.Fatalf("projection args missing: %+v", args)
+	}
+	if args["mutation_barrier"] != true || args["no_pending"] != true || args["workflow_intent"] != "observation_only" {
+		t.Fatalf("read-only guard args missing: %+v", args)
+	}
+	keys := messageLoopStringList(args["feature_keys"])
+	keySet := map[string]bool{}
+	for _, key := range keys {
+		keySet[key] = true
+	}
+	for _, want := range []string{"band_energy_summary", "stereo_relation_summary", "spectrogram_tiles", "acoustic_package_status", "source_identity"} {
+		if !keySet[want] {
+			t.Fatalf("feature_keys missing %s: %+v", want, args)
+		}
+	}
+}
+
+func TestMessageLoopReadOnlyObservationSuppressesTreatmentMarker(t *testing.T) {
+	client := &fakeMessageCompleter{responses: []string{
+		`{"final":true,"reply":"Observation is ready.\nmix_treatment_pending: {\"schema_version\":\"mix_treatment_pending.v0\",\"status\":\"pending_confirmation\",\"intent\":\"move guitar left\",\"target_ref\":\"track:1007\",\"action_kind\":\"pan_balance\",\"processor_type\":\"utility\",\"delta_pan\":-0.1,\"confidence\":\"high\",\"evidence_refs\":[\"observation.digest\"],\"needs_resolution\":[],\"expires_after_context_change\":true}","tool_calls":[]}`,
+	}}
+	exec := &fakeMessageExecutor{}
+	loop := &MessageLoop{
+		Client:   client,
+		Config:   config.EngineConfig{BaseURL: "http://example.invalid", APIKey: "test", DefaultModel: "test"},
+		Executor: exec,
+		Budget:   Budget{MaxTurns: 4, MaxToolCalls: 3, MaxConsecutiveErrors: 2},
+	}
+
+	res := loop.Start(context.Background(), Input{
+		UserText:     "observe only: check stereo image status and phase correlation; no changes.",
+		AllowedTools: []string{"mix.observe", "mix.read", "mix.derive", "mix.request_observation"},
+		State: map[string]any{"tracks": []map[string]any{{
+			"track_id": "1007",
+		}}},
+	})
+
+	if res.Status != "completed" {
+		t.Fatalf("result = status=%q reply=%q error=%q", res.Status, res.Reply, res.Error)
+	}
+	if res.ExecutionMemory.PendingMixTreatment != nil || res.ExecutionMemory.PendingMixTickCandidate != nil {
+		t.Fatalf("read-only turn created pending: %+v", res.ExecutionMemory)
+	}
+	if strings.Contains(res.Reply, "mix_treatment_pending") {
+		t.Fatalf("reply leaked treatment marker: %q", res.Reply)
+	}
+}
+
+func TestMessageLoopReadOnlyObservationBlocksMixTickTool(t *testing.T) {
+	client := &fakeMessageCompleter{responses: []string{
+		`{"final":false,"reply":"I will observe, then propose a tick.","tool_calls":[{"id":"observe","tool":"mix.observe","args":{"scope":"full_project"},"reason":"read-only observation"},{"id":"propose","tool":"mix.propose_tick","args":{"operation":"track_gain_adjust","track_id":"1010","delta_db":-1},"reason":"small move"}]}`,
+		`{"final":true,"reply":"Observation summary only.","tool_calls":[]}`,
+	}}
+	exec := &fakeMessageExecutor{}
+	loop := &MessageLoop{
+		Client:   client,
+		Config:   config.EngineConfig{BaseURL: "http://example.invalid", APIKey: "test", DefaultModel: "test"},
+		Executor: exec,
+		Budget:   Budget{MaxTurns: 5, MaxToolCalls: 4, MaxConsecutiveErrors: 2},
+	}
+
+	res := loop.Start(context.Background(), Input{
+		UserText:     "analysis only: observe the mix loudness and stereo status, do not execute.",
+		AllowedTools: []string{"mix.observe", "mix.read", "mix.derive", "mix.request_observation", "mix.propose_tick", "mix.apply_tick"},
+		State: map[string]any{"tracks": []map[string]any{{
+			"track_id": "1007",
+		}}},
+	})
+
+	if res.Status != "completed" {
+		t.Fatalf("result = status=%q reply=%q error=%q", res.Status, res.Reply, res.Error)
+	}
+	if len(exec.calls) != 1 || exec.calls[0].Tool != "mix.observe" {
+		t.Fatalf("executor calls = %+v, want read-only guard to block mix.propose_tick", exec.calls)
+	}
+	if res.ExecutionMemory.PendingMixTreatment != nil || res.ExecutionMemory.PendingMixTickCandidate != nil {
+		t.Fatalf("read-only turn created pending: %+v", res.ExecutionMemory)
 	}
 }
 
@@ -830,6 +1310,47 @@ func TestMessageLoopMixObserveAddsScopeFromIntent(t *testing.T) {
 	}
 }
 
+func TestMessageLoopMixObserveOverridesTrackScopeForMultitrackIntent(t *testing.T) {
+	client := &fakeMessageCompleter{responses: []string{
+		`{"final":false,"reply":"我先比较各轨关系。","tool_calls":[{"id":"observe_mix","tool":"mix.observe","args":{"scope":"track","track_id":"1012"},"reason":"先观察当前轨道"}]}`,
+		`{"final":true,"reply":"观察完成。","tool_calls":[]}`,
+	}}
+	exec := &fakeMessageExecutor{}
+	loop := &MessageLoop{
+		Client:   client,
+		Config:   config.EngineConfig{BaseURL: "http://example.invalid", APIKey: "test", DefaultModel: "test"},
+		Executor: exec,
+		Budget:   Budget{MaxTurns: 4, MaxToolCalls: 2, MaxConsecutiveErrors: 2},
+	}
+
+	res := loop.Start(context.Background(), Input{
+		UserText:     "比较一下各轨频段占用和声像关系，不要修改。",
+		AllowedTools: []string{"mix.observe", "mix.read", "mix.derive", "mix.request_observation"},
+	})
+
+	if res.Status != "completed" {
+		t.Fatalf("result = status=%q reply=%q error=%q", res.Status, res.Reply, res.Error)
+	}
+	if len(exec.calls) != 1 || exec.calls[0].Tool != "mix.observe" {
+		t.Fatalf("executor calls = %+v, want mix.observe", exec.calls)
+	}
+	if got := fmt.Sprint(exec.calls[0].Args["scope"]); got != "full_project" {
+		t.Fatalf("scope = %q, want full_project; args=%+v", got, exec.calls[0].Args)
+	}
+	if got := fmt.Sprint(exec.calls[0].Args["goal_text"]); got != "比较一下各轨频段占用和声像关系，不要修改。" {
+		t.Fatalf("goal_text = %q; args=%+v", got, exec.calls[0].Args)
+	}
+	if got := fmt.Sprint(exec.calls[0].Args["target_scope"]); got != "full_project" {
+		t.Fatalf("target_scope = %q, want full_project; args=%+v", got, exec.calls[0].Args)
+	}
+	if got := fmt.Sprint(exec.calls[0].Args["mom_intent"]); got != "project_multitrack_relation_observation" {
+		t.Fatalf("mom_intent = %q, want project_multitrack_relation_observation; args=%+v", got, exec.calls[0].Args)
+	}
+	if got := fmt.Sprint(exec.calls[0].Args["requested_layer"]); got != "project_multitrack_relation" {
+		t.Fatalf("requested_layer = %q, want project_multitrack_relation; args=%+v", got, exec.calls[0].Args)
+	}
+}
+
 func TestMessageLoopVocalForwardRequestAddsFocusScopeAndHint(t *testing.T) {
 	client := &fakeMessageCompleter{responses: []string{
 		`{"final":false,"reply":"I will observe the vocal in project context first.","tool_calls":[{"id":"observe_mix","tool":"mix.observe","args":{},"reason":"observe focus relationship before suggesting a move"}]}`,
@@ -876,6 +1397,55 @@ func TestMessageLoopVocalForwardRequestAddsFocusScopeAndHint(t *testing.T) {
 	}
 	if res.ExecutionMemory.PendingMixTickCandidate != nil {
 		t.Fatalf("relationship observation should not synthesize a pending gain tick without a concrete dB suggestion: %+v", res.ExecutionMemory.PendingMixTickCandidate)
+	}
+}
+
+func TestMessageLoopVocalForwardPendingFeatureObservationStillDerives(t *testing.T) {
+	client := &fakeMessageCompleter{responses: []string{
+		`{"final":false,"reply":"I will observe the vocal in project context first.","tool_calls":[{"id":"observe_mix","tool":"mix.observe","args":{},"reason":"observe focus relationship before suggesting a move"}]}`,
+		`{"final":true,"reply":"I need the lead vocal identity before proposing a move.","tool_calls":[]}`,
+	}}
+	exec := &fakeMessageExecutor{mixObservationResult: map[string]any{
+		"status":         "partial",
+		"observation_id": "obs_pending_features",
+		"mix_session_id": "mix_pending_features",
+		"mixboard": map[string]any{
+			"status":        "partial",
+			"open_blockers": []any{"audio_feature_request_pending"},
+			"package_status": map[string]any{
+				"mix":     "limited",
+				"project": "ready",
+				"deep":    "async_available",
+			},
+		},
+		"observation": map[string]any{
+			"status": "partial",
+			"target_ref": map[string]any{
+				"kind": "project",
+				"id":   "current",
+			},
+		},
+	}}
+	loop := &MessageLoop{
+		Client:   client,
+		Config:   config.EngineConfig{BaseURL: "http://example.invalid", APIKey: "test", DefaultModel: "test"},
+		Executor: exec,
+		Budget:   Budget{MaxTurns: 4, MaxToolCalls: 2, MaxConsecutiveErrors: 2},
+	}
+
+	res := loop.Start(context.Background(), Input{
+		UserText:     "make the lead vocal more forward",
+		AllowedTools: []string{"mix.observe", "mix.read", "mix.derive", "mix.request_observation"},
+	})
+
+	if res.Status != "completed" {
+		t.Fatalf("result = status=%q reply=%q error=%q", res.Status, res.Reply, res.Error)
+	}
+	if len(exec.calls) != 2 || exec.calls[0].Tool != "mix.observe" || exec.calls[1].Tool != "mix.derive" {
+		t.Fatalf("executor calls = %+v, want mix.observe then mix.derive", exec.calls)
+	}
+	if got := fmt.Sprint(exec.calls[1].Args["observation_id"]); got != "obs_pending_features" {
+		t.Fatalf("derive observation_id = %q; args=%+v", got, exec.calls[1].Args)
 	}
 }
 
@@ -1044,6 +1614,74 @@ func TestMessageLoopExtractsGainDeltaAfterTrackMention(t *testing.T) {
 	delta, evidence, ok := messageLoopExtractSingleGainDelta("Do you want me to make the lead vocal feel more forward by lowering the competing Track 2 by 1 dB?")
 	if !ok || delta != -1 || evidence != "1 dB" {
 		t.Fatalf("delta=%v evidence=%q ok=%v", delta, evidence, ok)
+	}
+}
+
+func TestMessageLoopExtractsGainDeltaFromChineseMetricsAndRepeatedConfirmation(t *testing.T) {
+	reply := "可以。已确认 Track 1 是主唱后，对比结果显示：Track 1 当前 RMS 约 -9.0 dBFS，比 Track 2 约高 1.6 dB；主唱峰值约 -6.0 dBFS，余量还安全。Track 2 峰值贴近 0 dBFS，余量最紧，是目前更容易把整体挤住的轨道。\n\n所以我不建议先直接把主唱推大，而是先把 Track 2 再小幅降低 1.0 dB，这样主唱会相对更靠前，也能继续释放总线余量。\n\n要我执行：Track 2 降低 1.0 dB 吗？"
+
+	delta, evidence, ok := messageLoopExtractSingleGainDelta(reply)
+	if !ok || delta != -1 || evidence != "1.0 dB" {
+		t.Fatalf("delta=%v evidence=%q ok=%v", delta, evidence, ok)
+	}
+}
+
+func TestMessageLoopExtractsActionableGainDeltaWhenReplyHasMetricAndHistoryDB(t *testing.T) {
+	reply := "Overall peak is around 0 dBFS and RMS is around -10.6 dBFS. Track 1 was already raised by +1 dB, so it is more forward. Suggested next step: lower Track 2 by 1 dB to create headroom. Should I execute this -1 dB move?"
+
+	delta, evidence, ok := messageLoopExtractSingleGainDelta(reply)
+	if !ok || delta != -1 {
+		t.Fatalf("delta=%v evidence=%q ok=%v", delta, evidence, ok)
+	}
+	if !strings.Contains(evidence, "1 dB") {
+		t.Fatalf("evidence=%q", evidence)
+	}
+}
+
+func TestMessageLoopPendingCandidateUsesRelationshipTracksAfterVocalClarification(t *testing.T) {
+	reply := "可以。已确认 Track 1 是主唱后，对比结果显示：Track 1 当前 RMS 约 -9.0 dBFS，比 Track 2 约高 1.6 dB；主唱峰值约 -6.0 dBFS，余量还安全。Track 2 峰值贴近 0 dBFS，余量最紧，是目前更容易把整体挤住的轨道。\n\n所以我不建议先直接把主唱推大，而是先把 Track 2 再小幅降低 1.0 dB，这样主唱会相对更靠前，也能继续释放总线余量。当前缺少频段/遮蔽分析，所以先不贸然做 EQ 或压缩。\n\n要我执行：Track 2 降低 1.0 dB 吗？"
+	state := &runState{
+		input: Input{UserText: "让主唱更靠前\n\nUser clarification: Track 1 是主唱"},
+		executed: []map[string]any{{
+			"tool":         "mix.derive",
+			"command_name": "mix_derive",
+			"status":       "ok",
+			"result": map[string]any{
+				"status":         "ready",
+				"observation_id": "obs_focus",
+				"mix_session_id": "mix_focus",
+				"relationship": map[string]any{
+					"focus_track": map[string]any{
+						"track_id":         "1009",
+						"name":             "Track 1",
+						"track_name":       "Track 1",
+						"user_track_index": 1,
+						"rms_dbfs":         -9.032,
+						"peak_dbfs":        -6.021,
+					},
+					"peer_track": map[string]any{
+						"track_id":         "1010",
+						"name":             "Track 2",
+						"track_name":       "Track 2",
+						"user_track_index": 2,
+						"volume_db":        0,
+						"rms_dbfs":         -10.603,
+						"peak_dbfs":        0,
+					},
+				},
+			},
+		}},
+	}
+
+	candidate := messageLoopPendingMixTickCandidateFromReply(state, reply)
+	if candidate == nil {
+		t.Fatalf("pending candidate missing")
+	}
+	if candidate.TrackID != "1010" || candidate.Operation != "track_gain_adjust" || candidate.DeltaDB != -1 {
+		t.Fatalf("candidate = %+v", candidate)
+	}
+	if candidate.Fingerprint["track_count"] != 2 {
+		t.Fatalf("fingerprint = %+v", candidate.Fingerprint)
 	}
 }
 
@@ -1452,7 +2090,7 @@ func TestMessageLoopMixObservationFinalReplyStoresPendingTickCandidate(t *testin
 	}
 }
 
-func TestMessageLoopFullProjectFinalReplyStoresPendingTickCandidateForMentionedTrack(t *testing.T) {
+func TestMessageLoopFullProjectObservationReplyDoesNotStorePendingTickCandidate(t *testing.T) {
 	client := &fakeMessageCompleter{responses: []string{
 		`{"final":true,"reply":"整体看到了 2 条有效音频轨。Track 1 余量安全；Track 2 峰值已经到 0 dBFS，headroom 为 0 dB。建议下一步做一个很小的安全动作：把 Track 2 降低约 1.5 dB，先给工程留出一点峰值空间。要我继续执行这一步吗？","tool_calls":[]}`,
 	}}
@@ -1540,15 +2178,11 @@ func TestMessageLoopFullProjectFinalReplyStoresPendingTickCandidateForMentionedT
 	if res.Status != "completed" {
 		t.Fatalf("result = status=%q reply=%q error=%q", res.Status, res.Reply, res.Error)
 	}
-	candidate := res.ExecutionMemory.PendingMixTickCandidate
-	if candidate == nil {
-		t.Fatalf("pending candidate missing; memory=%+v reply=%q", res.ExecutionMemory, res.Reply)
+	if candidate := res.ExecutionMemory.PendingMixTickCandidate; candidate != nil {
+		t.Fatalf("observation-only full-project reply created pending tick candidate: %+v", candidate)
 	}
-	if candidate.TrackID != "1012" || candidate.Operation != "track_gain_adjust" || candidate.DeltaDB != -1.5 {
-		t.Fatalf("candidate = %+v", candidate)
-	}
-	if candidate.ObservationID != "obs_project" || candidate.Fingerprint["target_scope"] != "full_project" {
-		t.Fatalf("candidate metadata = %+v", candidate)
+	if treatment := res.ExecutionMemory.PendingMixTreatment; treatment != nil {
+		t.Fatalf("observation-only full-project reply created pending treatment: %+v", treatment)
 	}
 }
 
@@ -1603,6 +2237,122 @@ func TestMessageLoopFinalReplyStoresTreatmentPendingAndStripsMarker(t *testing.T
 	}
 	if treatment.ObservationID != "obs_treatment" || treatment.Status != "pending_confirmation" {
 		t.Fatalf("pending treatment metadata = %+v", treatment)
+	}
+}
+
+func TestMessageLoopChineseActionPreflightObservesThenWaitsForConfirmation(t *testing.T) {
+	client := &fakeMessageCompleter{responses: []string{
+		`{"final":false,"reply":"先观察低频和声像依据。","tool_calls":[{"id":"observe_mix","tool":"mix.observe","args":{"scope":"track","target_ref":{"kind":"track","id":"1007"},"mom_intent":"action_preflight_observation"},"reason":"先读取 MOM observation 作为低频处理依据"}]}`,
+		`{"final":true,"reply":"依据这次 MOM 观察，低频处理只能先作为保守 EQ 方向，确认前不会写插件或参数。\nmix_treatment_pending: {\"schema_version\":\"mix_treatment_pending.v0\",\"status\":\"pending_confirmation\",\"intent\":\"reduce low end slightly\",\"target_ref\":\"track:1007\",\"action_kind\":\"plugin_treatment\",\"processor_type\":\"eq\",\"reasoning_summary\":\"low-end reduction is proposed from MOM observation evidence; uncertainty remains until plugin/profile/control resolution\",\"confidence\":\"medium\",\"evidence_refs\":[\"observation:obs_action_preflight\",\"mix.read:track.1007.slow.band_energy.summary\"],\"needs_resolution\":[\"plugin_instance\",\"plugin_profile\",\"exact_control\"],\"expires_after_context_change\":true}","tool_calls":[]}`,
+	}}
+	exec := &fakeMessageExecutor{mixObservationResult: map[string]any{
+		"status":         "ok",
+		"mix_session_id": "mix_action_preflight",
+		"observation_id": "obs_action_preflight",
+		"observation": map[string]any{
+			"target_ref": map[string]any{"kind": "track", "id": "1007", "label": "Track 1"},
+			"mom_projection": map[string]any{
+				"mom_version":    "v1.4",
+				"intent":         "action_preflight_observation",
+				"observation_id": "obs_action_preflight",
+				"trust_quality": map[string]any{
+					"overall_status":  "ready",
+					"evidence_refs":   []any{"observation:obs_action_preflight", "mix.read:track.1007.slow.band_energy.summary"},
+					"required_layers": []any{"project_structure", "action_relevant_mom_layer", "trust_quality", "evidence_refs"},
+				},
+				"llm_context": map[string]any{
+					"summary_md":                 "Action preflight must cite MOM evidence first and wait for confirmation before mutation.",
+					"do_not_include_raw_package": true,
+					"evidence_refs":              []any{"observation:obs_action_preflight"},
+				},
+			},
+		},
+	}}
+	loop := &MessageLoop{
+		Client:   client,
+		Config:   config.EngineConfig{BaseURL: "http://example.invalid", APIKey: "test", DefaultModel: "test"},
+		Executor: exec,
+		Budget:   Budget{MaxTurns: 5, MaxToolCalls: 3, MaxConsecutiveErrors: 2},
+	}
+
+	res := loop.Start(context.Background(), Input{
+		UserText:     "帮我把低频稍微收一点，但先告诉我依据。",
+		AllowedTools: []string{"mix.observe", "mix.read", "plugin_grabber_apply_control", "rack.load_plugin", "plugin.set_parameter"},
+		Context:      map[string]any{"selected_track_id": "1007"},
+		State:        map[string]any{"selected_track_id": "1007", "tracks": []map[string]any{{"track_id": "1007", "track_name": "Track 1"}}},
+	})
+
+	if res.Status != "completed" {
+		t.Fatalf("result = status=%q reply=%q error=%q", res.Status, res.Reply, res.Error)
+	}
+	if len(exec.calls) != 1 || !isTestMixObservationTool(exec.calls[0].Tool) {
+		t.Fatalf("executor calls = %+v, want only MOM observation before pending confirmation", exec.calls)
+	}
+	for _, call := range exec.calls {
+		switch call.Tool {
+		case "plugin_grabber_apply_control", "rack.load_plugin", "plugin.set_parameter":
+			t.Fatalf("action tool executed before confirmation: %+v", exec.calls)
+		}
+	}
+	if strings.Contains(res.Reply, "mix_treatment_pending") {
+		t.Fatalf("reply leaked treatment marker: %q", res.Reply)
+	}
+	if !strings.Contains(res.Reply, "依据") && !strings.Contains(res.Reply, "MOM") {
+		t.Fatalf("reply should explain evidence basis before confirmation: %q", res.Reply)
+	}
+	treatment := res.ExecutionMemory.PendingMixTreatment
+	if treatment == nil || treatment.Status != "pending_confirmation" || treatment.ActionKind != "plugin_treatment" || treatment.ProcessorType != "eq" {
+		t.Fatalf("pending treatment = %+v", treatment)
+	}
+	if treatment.ObservationID != "obs_action_preflight" || len(treatment.EvidenceRefs) == 0 {
+		t.Fatalf("pending treatment should reference MOM observation evidence: %+v", treatment)
+	}
+}
+
+func TestMessageLoopTreatmentMarkerWinsOverEQDBSuggestion(t *testing.T) {
+	client := &fakeMessageCompleter{responses: []string{
+		`{"final":false,"reply":"observe","tool_calls":[{"id":"observe_mix","tool":"mix.observe","args":{"scope":"track","target_ref":{"kind":"track","id":"1007"}},"reason":"observe"}]}`,
+		`{"final":true,"reply":"I observed first. Track 1 low-mid cut -2 dB is only an EQ treatment idea.\nmix_treatment_pending: {\"schema_version\":\"mix_treatment_pending.v0\",\"status\":\"pending_confirmation\",\"intent\":\"reduce low-end mud\",\"target_ref\":\"track:1007\",\"action_kind\":\"plugin_treatment\",\"processor_type\":\"eq\",\"reasoning_summary\":\"low end sounds muddy from available observation\",\"confidence\":\"medium\",\"evidence_refs\":[\"observation.digest\"],\"needs_resolution\":[\"plugin_instance\",\"plugin_profile\",\"exact_control\"],\"expires_after_context_change\":true}\n\nIf you approve, should I continue?","tool_calls":[]}`,
+	}}
+	exec := &fakeMessageExecutor{mixObservationResult: map[string]any{
+		"status":         "ok",
+		"mix_session_id": "mix_track",
+		"observation_id": "obs_treatment_marker",
+		"digest": map[string]any{
+			"scope":    "track",
+			"track_id": "1007",
+		},
+		"observation": map[string]any{
+			"target_ref": map[string]any{"kind": "track", "id": "1007"},
+		},
+	}}
+	loop := &MessageLoop{
+		Client:   client,
+		Config:   config.EngineConfig{BaseURL: "http://example.invalid", APIKey: "test", DefaultModel: "test"},
+		Executor: exec,
+		Budget:   Budget{MaxTurns: 5, MaxToolCalls: 3, MaxConsecutiveErrors: 2},
+	}
+
+	res := loop.Start(context.Background(), Input{
+		UserText:     "Track 1 low end is muddy; use an EQ plugin and prepare parameters.",
+		AllowedTools: []string{"mix.observe", "mix.read", "mix.request_observation"},
+		State: map[string]any{"tracks": []map[string]any{{
+			"track_id": "1007", "track_name": "Track 1",
+		}}},
+	})
+
+	if res.Status != "completed" {
+		t.Fatalf("result = status=%q reply=%q error=%q", res.Status, res.Reply, res.Error)
+	}
+	if strings.Contains(res.Reply, "mix_treatment_pending") {
+		t.Fatalf("reply leaked treatment marker: %q", res.Reply)
+	}
+	if res.ExecutionMemory.PendingMixTickCandidate != nil {
+		t.Fatalf("treatment marker was misread as gain tick: %+v", res.ExecutionMemory.PendingMixTickCandidate)
+	}
+	treatment := res.ExecutionMemory.PendingMixTreatment
+	if treatment == nil || treatment.ActionKind != "plugin_treatment" || treatment.ProcessorType != "eq" {
+		t.Fatalf("pending treatment = %+v memory=%+v", treatment, res.ExecutionMemory)
 	}
 }
 
@@ -1740,6 +2490,83 @@ func TestMessageLoopTreatmentPendingAcceptsPendingOnlyReply(t *testing.T) {
 	}
 	if strings.Contains(res.Reply, "mix_treatment_pending") {
 		t.Fatalf("reply leaked treatment marker: %q", res.Reply)
+	}
+}
+
+func TestMessageLoopImplicitPanReplyIgnoresStereoBalanceDBAsGain(t *testing.T) {
+	client := &fakeMessageCompleter{responses: []string{
+		`{"final":true,"reply":"已观察 Track 2，暂未修改工程。\n\n当前 Track 2 已经有一点偏左：左右平衡约 +1.57 dB，状态显示 left-heavy；立体声相关度约 0.20，有一定相位风险。因此如果继续往左，我建议只做很小一步：把 Track 2 声像向左移动 0.10。\n\n要我执行“Track 2 声像左移 0.10”吗？","tool_calls":[]}`,
+	}}
+	loop := &MessageLoop{
+		Client:   client,
+		Config:   config.EngineConfig{BaseURL: "http://example.invalid", APIKey: "test", DefaultModel: "test"},
+		Executor: &fakeMessageExecutor{},
+		Budget:   Budget{MaxTurns: 2, MaxToolCalls: 1, MaxConsecutiveErrors: 1},
+	}
+
+	res := loop.Start(context.Background(), Input{
+		UserText:     "Track 2 \u58f0\u50cf\u5f80\u5de6\u4e00\u70b9",
+		AllowedTools: []string{"mix.observe", "mix.propose_tick", "mix.apply_tick"},
+		State: map[string]any{
+			"tracks": []map[string]any{{"track_id": "1010", "track_name": "Track 2", "user_track_index": 2, "pan": 0.0}},
+			"last_mix_observation": map[string]any{
+				"observation_id":  "obs_pan",
+				"status":          "ready",
+				"track_id":        "1010",
+				"target_track_id": "1010",
+			},
+		},
+	})
+
+	if res.Status != "completed" {
+		t.Fatalf("result = status=%q reply=%q error=%q trace=%+v", res.Status, res.Reply, res.Error, res.Trace)
+	}
+	if candidate := res.ExecutionMemory.PendingMixTickCandidate; candidate != nil {
+		t.Fatalf("stereo balance dB was misread as gain tick: %+v", candidate)
+	}
+	treatment := res.ExecutionMemory.PendingMixTreatment
+	if treatment == nil || treatment.ActionKind != "pan_balance" || treatment.TargetRef != "track:1010" || treatment.DeltaPan != -0.1 {
+		t.Fatalf("pending treatment = %+v", treatment)
+	}
+	if treatment.DiagnosisContext["problem_kind"] != "pan_balance" {
+		t.Fatalf("diagnosis context = %+v", treatment.DiagnosisContext)
+	}
+}
+
+func TestMessageLoopExplicitChinesePanReplyPrefersTreatmentOverGainDBEvidence(t *testing.T) {
+	client := &fakeMessageCompleter{responses: []string{
+		`{"final":true,"reply":"观察到 Track 2 本身已经略偏左（约 +2 dB left-heavy），相关性约 0.33，有一点相位/宽度风险。所以如果要按你的想法往左，我建议只做很小一步：Track 2 声像向左移 0.10。要我执行这个小调整吗？","tool_calls":[]}`,
+	}}
+	loop := &MessageLoop{
+		Client:   client,
+		Config:   config.EngineConfig{BaseURL: "http://example.invalid", APIKey: "test", DefaultModel: "test"},
+		Executor: &fakeMessageExecutor{},
+		Budget:   Budget{MaxTurns: 2, MaxToolCalls: 1, MaxConsecutiveErrors: 1},
+	}
+
+	res := loop.Start(context.Background(), Input{
+		UserText:     "Track 2 声像往左一点",
+		AllowedTools: []string{"mix.observe", "mix.propose_tick", "mix.apply_tick"},
+		State: map[string]any{
+			"tracks": []map[string]any{{"track_id": "1010", "track_name": "Track 2", "user_track_index": 2, "pan": 0.0}},
+			"last_mix_observation": map[string]any{
+				"observation_id":  "obs_pan",
+				"status":          "ready",
+				"track_id":        "1010",
+				"target_track_id": "1010",
+			},
+		},
+	})
+
+	if res.Status != "completed" {
+		t.Fatalf("result = status=%q reply=%q error=%q trace=%+v", res.Status, res.Reply, res.Error, res.Trace)
+	}
+	if candidate := res.ExecutionMemory.PendingMixTickCandidate; candidate != nil {
+		t.Fatalf("pan reply dB evidence was misread as gain tick: %+v", candidate)
+	}
+	treatment := res.ExecutionMemory.PendingMixTreatment
+	if treatment == nil || treatment.ActionKind != "pan_balance" || treatment.TargetRef != "track:1010" || treatment.DeltaPan != -0.1 {
+		t.Fatalf("pending treatment = %+v", treatment)
 	}
 }
 
@@ -2097,6 +2924,84 @@ func TestMessageLoopTreatmentPendingInfersGainDeltaFromSuggestedMove(t *testing.
 	}
 }
 
+func TestMessageLoopLowMudPluginPrepSynthesizesPendingWhenReplyOmitsMarker(t *testing.T) {
+	client := &fakeMessageCompleter{responses: []string{
+		`{"final":true,"reply":"I observed Track 1, but band_energy_summary is missing, so I cannot claim a measured low-frequency buildup. I will not load EQ or change volume yet.","tool_calls":[]}`,
+	}}
+	exec := &fakeMessageExecutor{mixObservationResult: map[string]any{
+		"status":         "partial",
+		"mix_session_id": "mix_low",
+		"observation_id": "obs_low",
+		"scope":          "full_project",
+		"track_id":       "1007",
+		"acoustic_digest": map[string]any{
+			"band_energy_status": "missing",
+			"missing_metrics":    []any{"band_energy_summary"},
+		},
+		"observation": map[string]any{
+			"target_ref": map[string]any{"kind": "track", "id": "1007", "label": "Track 1"},
+			"mix_package": map[string]any{
+				"missing_metrics": []any{"band_energy_summary"},
+				"source_capabilities": map[string]any{
+					"band_energy": "missing",
+				},
+			},
+			"deep_package": map[string]any{
+				"source_capabilities": map[string]any{
+					"spectrogram_tiles": "missing",
+				},
+			},
+		},
+	}}
+	loop := &MessageLoop{
+		Client:   client,
+		Config:   config.EngineConfig{BaseURL: "http://example.invalid", APIKey: "test", DefaultModel: "test"},
+		Executor: exec,
+		Budget:   Budget{MaxTurns: 3, MaxToolCalls: 2, MaxConsecutiveErrors: 2},
+	}
+
+	res := loop.Start(context.Background(), Input{
+		UserText:     "Track 1 low end is muddy. Do not change volume; use an EQ plugin for a low cut and low-mid treatment, prepare plugin parameters first.",
+		AllowedTools: []string{"mix.observe", "mix.request_observation", "plugin.load_to_rack"},
+		State: map[string]any{
+			"tracks": []map[string]any{{"track_id": "1007", "track_name": "Track 1", "user_track_index": 1}},
+		},
+	})
+
+	if res.Status != "completed" {
+		t.Fatalf("result = status=%q reply=%q error=%q trace=%+v", res.Status, res.Reply, res.Error, res.Trace)
+	}
+	if len(exec.calls) != 1 || !isTestMixObservationTool(exec.calls[0].Tool) {
+		t.Fatalf("executor calls = %+v, want only deterministic mix observation", exec.calls)
+	}
+	if strings.Contains(res.Reply, "mix_treatment_pending") {
+		t.Fatalf("reply leaked internal marker: %q", res.Reply)
+	}
+	treatment := res.ExecutionMemory.PendingMixTreatment
+	if treatment == nil {
+		t.Fatalf("pending treatment missing; memory=%+v", res.ExecutionMemory)
+	}
+	if treatment.ActionKind != "plugin_treatment" || treatment.ProcessorType != "eq" {
+		t.Fatalf("pending treatment = %+v", treatment)
+	}
+	if treatment.TargetRef != "track:1007" || treatment.ObservationID != "obs_low" {
+		t.Fatalf("pending treatment = %+v", treatment)
+	}
+	if len(treatment.NeedsResolution) == 0 || !messageLoopDiagnosisRefsContain(treatment.EvidenceRefs, treatment.DiagnosisContextID) {
+		t.Fatalf("pending evidence/needs = refs=%+v needs=%+v diag=%q", treatment.EvidenceRefs, treatment.NeedsResolution, treatment.DiagnosisContextID)
+	}
+	if treatment.DiagnosisContext["problem_kind"] != "low_mud" {
+		t.Fatalf("diagnosis context = %+v", treatment.DiagnosisContext)
+	}
+	recommendation := messageLoopMapValue(treatment.DiagnosisContext["recommendation"])
+	if recommendation["strategy"] != "conservative_probe" {
+		t.Fatalf("recommendation = %+v", recommendation)
+	}
+	if !messageLoopDiagnosisHasMissing(treatment.DiagnosisContext, "band_energy_summary") {
+		t.Fatalf("missing evidence = %+v", treatment.DiagnosisContext["missing_evidence"])
+	}
+}
+
 func TestMessageLoopUnavailableMixObservationDoesNotUnlockPluginLoad(t *testing.T) {
 	client := &fakeMessageCompleter{responses: []string{
 		`{"final":false,"reply":"我先观察当前音频。","tool_calls":[{"id":"observe_mix","tool":"mix.request_observation","args":{"track_id":"1007"}}]}`,
@@ -2390,6 +3295,57 @@ func TestMessageLoopMixObservationSummaryIncludesStructAcousticPackages(t *testi
 	for _, want := range []string{"peak_dbfs", "rms_dbfs", "headroom_db", "crest_db", "time_energy", "baseline_ready"} {
 		if !strings.Contains(text, want) {
 			t.Fatalf("summary missing %q: %s", want, text)
+		}
+	}
+}
+
+func TestMessageLoopGeneralObservationSummaryUsesMOMContextContract(t *testing.T) {
+	result := map[string]any{
+		"status":         "ok",
+		"mix_session_id": "mix_general",
+		"observation_id": "obs_general",
+		"observation": map[string]any{
+			"target_ref":     map[string]any{"kind": "track", "id": "1007", "label": "Track 1"},
+			"global_summary": map[string]any{"peak_dbfs": -1.0},
+			"mom_projection": map[string]any{
+				"mom_version":    "v1.1",
+				"intent":         "general_band_stereo_observation",
+				"observation_id": "obs_general",
+				"trust_quality":  map[string]any{"overall_status": "ready", "required_layers": []any{"project_structure", "timbre_frequency.l3_full_song", "space_stereo.l3_full_song"}},
+				"llm_context": map[string]any{
+					"summary_md":                 "General observation prioritizes L3 full-song band/stereo evidence.",
+					"do_not_include_raw_package": true,
+					"compact_facts": []any{
+						map[string]any{"layer": "timbre_frequency.l3_full_song", "status": "ready"},
+						map[string]any{"layer": "space_stereo.l3_full_song", "status": "ready"},
+						map[string]any{"layer": "l2_realtime_status", "summary": "L2 realtime available only as status unless explicitly requested."},
+					},
+				},
+			},
+			"mix_package": map[string]any{
+				"current_metrics": map[string]any{
+					"band_energy":     map[string]any{"status": "ready", "source": "spectral_tile_derived", "bands": map[string]any{"bass": map[string]any{"energy_db": -12.0}}},
+					"stereo_relation": map[string]any{"status": "ready", "balance_db": 0.2, "correlation_estimate": 0.82},
+				},
+				"realtime_metrics": map[string]any{
+					"band_energy":     map[string]any{"status": "ready", "source": "live_level_meter_spectrum", "bands": map[string]any{"bass": map[string]any{"unit_energy": 0.88, "energy_db": -1.11}}},
+					"stereo_relation": map[string]any{"status": "ready", "source": "live_level_meter_stereo", "balance_db": 1.234, "correlation_estimate": 0.654},
+				},
+			},
+		},
+	}
+
+	summary := mixObservationPromptSummary(result)
+	data, _ := json.Marshal(summary)
+	text := string(data)
+	for _, want := range []string{"mom_projection", "general_band_stereo_observation", "timbre_frequency.l3_full_song"} {
+		if !strings.Contains(text, want) {
+			t.Fatalf("summary missing MOM contract field %s in %s", want, text)
+		}
+	}
+	for _, forbidden := range []string{"unit_energy", "-1.11", "1.234", "0.654", "realtime_metrics", "global_summary", "mix_package"} {
+		if strings.Contains(text, forbidden) {
+			t.Fatalf("summary leaked realtime/raw field %s in %s", forbidden, text)
 		}
 	}
 }

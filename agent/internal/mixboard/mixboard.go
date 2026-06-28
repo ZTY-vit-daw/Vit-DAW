@@ -11,6 +11,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"vit-daw-agent/internal/mom"
 )
 
 const (
@@ -67,28 +69,30 @@ type TimeRuler struct {
 }
 
 type ObservationPacket struct {
-	SchemaVersion      string            `json:"schema_version"`
-	ObservationID      string            `json:"observation_id"`
-	MixSessionID       string            `json:"mix_session_id"`
-	Round              int               `json:"round"`
-	Status             string            `json:"status"`
-	TargetRef          TargetRef         `json:"target_ref"`
-	MixObjects         []MixObject       `json:"mix_objects"`
-	ListenScope        ListenScope       `json:"listen_scope"`
-	TimeRuler          TimeRuler         `json:"time_ruler"`
-	GlobalSummary      map[string]any    `json:"global_summary"`
-	Digest             map[string]any    `json:"digest,omitempty"`
-	Catalog            Catalog           `json:"catalog,omitempty"`
-	EnvironmentPackage map[string]any    `json:"environment_package"`
-	ProjectPackage     map[string]any    `json:"project_package"`
-	MixPackage         map[string]any    `json:"mix_package"`
-	DeepPackage        map[string]any    `json:"deep_package"`
-	SectionCandidates  []map[string]any  `json:"section_candidates"`
-	TimelineDigest     []map[string]any  `json:"timeline_digest"`
-	Hotspots           []map[string]any  `json:"hotspots"`
-	SourceCapabilities map[string]string `json:"source_capabilities"`
-	Notes              []string          `json:"notes,omitempty"`
-	CreatedAt          string            `json:"created_at"`
+	SchemaVersion         string            `json:"schema_version"`
+	ObservationID         string            `json:"observation_id"`
+	MixSessionID          string            `json:"mix_session_id"`
+	Round                 int               `json:"round"`
+	Status                string            `json:"status"`
+	TargetRef             TargetRef         `json:"target_ref"`
+	MixObjects            []MixObject       `json:"mix_objects"`
+	ListenScope           ListenScope       `json:"listen_scope"`
+	TimeRuler             TimeRuler         `json:"time_ruler"`
+	GlobalSummary         map[string]any    `json:"global_summary"`
+	Digest                map[string]any    `json:"digest,omitempty"`
+	Catalog               Catalog           `json:"catalog,omitempty"`
+	EnvironmentPackage    map[string]any    `json:"environment_package"`
+	ProjectPackage        map[string]any    `json:"project_package"`
+	MixPackage            map[string]any    `json:"mix_package"`
+	DeepPackage           map[string]any    `json:"deep_package"`
+	MOMProjection         *mom.Projection   `json:"mom_projection,omitempty"`
+	SectionCandidates     []map[string]any  `json:"section_candidates"`
+	TimelineDigest        []map[string]any  `json:"timeline_digest"`
+	Hotspots              []map[string]any  `json:"hotspots"`
+	SourceCapabilities    map[string]string `json:"source_capabilities"`
+	AcousticPackageStatus map[string]any    `json:"acoustic_package_status,omitempty"`
+	Notes                 []string          `json:"notes,omitempty"`
+	CreatedAt             string            `json:"created_at"`
 }
 
 type Board struct {
@@ -147,19 +151,36 @@ type Store struct {
 }
 
 type featureSnapshot struct {
-	SchemaVersion          string           `json:"schema_version"`
-	UpdatedAt              string           `json:"updated_at"`
-	LatestRequest          map[string]any   `json:"latest_request"`
-	WaveformEnvelope       map[string]any   `json:"waveform_envelope"`
-	TrackWaveformEnvelopes []map[string]any `json:"track_waveform_envelopes"`
-	SpectrogramTiles       map[string]any   `json:"spectrogram_tiles"`
-	BandEnergySummary      map[string]any   `json:"band_energy_summary"`
-	StereoRelationSummary  map[string]any   `json:"stereo_relation_summary"`
+	SchemaVersion                   string           `json:"schema_version"`
+	UpdatedAt                       string           `json:"updated_at"`
+	LatestRequest                   map[string]any   `json:"latest_request"`
+	WaveformEnvelope                map[string]any   `json:"waveform_envelope"`
+	TrackWaveformEnvelopes          []map[string]any `json:"track_waveform_envelopes"`
+	SpectrogramTiles                map[string]any   `json:"spectrogram_tiles"`
+	SpectrogramTileRows             []map[string]any `json:"spectrogram_tile_rows,omitempty"`
+	BandEnergySummary               map[string]any   `json:"band_energy_summary"`
+	BandEnergySummaries             []map[string]any `json:"band_energy_summaries,omitempty"`
+	StereoRelationSummary           map[string]any   `json:"stereo_relation_summary"`
+	StereoRelationSummaries         []map[string]any `json:"stereo_relation_summaries,omitempty"`
+	LoudnessSummary                 map[string]any   `json:"loudness_summary,omitempty"`
+	LoudnessSummaries               []map[string]any `json:"loudness_summaries,omitempty"`
+	RealtimeBandEnergySummary       map[string]any   `json:"realtime_band_energy_summary,omitempty"`
+	RealtimeBandEnergySummaries     []map[string]any `json:"realtime_band_energy_summaries,omitempty"`
+	RealtimeStereoRelationSummary   map[string]any   `json:"realtime_stereo_relation_summary,omitempty"`
+	RealtimeStereoRelationSummaries []map[string]any `json:"realtime_stereo_relation_summaries,omitempty"`
+	L2RenderProbe                   map[string]any   `json:"l2_render_probe,omitempty"`
+	L2RenderProbes                  []map[string]any `json:"l2_render_probes,omitempty"`
 }
 
 func DefaultRoot() string {
 	if override := strings.TrimSpace(os.Getenv("VIT_MIXBOARD_ROOT")); override != "" {
 		return filepath.Clean(override)
+	}
+	if devRoot := strings.TrimSpace(os.Getenv("VIT_DAW_DEV_ROOT")); devRoot != "" {
+		root := filepath.Clean(devRoot)
+		if _, err := os.Stat(filepath.Join(root, "VitApp", "Workspace")); err == nil {
+			return filepath.Join(root, "VitApp", "Workspace", "Artifacts", "mixboard")
+		}
 	}
 	wd, err := os.Getwd()
 	if err != nil {
@@ -203,7 +224,7 @@ func (s Store) RequestObservation(req Request) (WriteResult, error) {
 	req.ListenScope = normalizeListenScope(req.ListenScope, req.MixObjects, req.Args)
 
 	sessionDir := filepath.Join(s.Root, safePathName(req.MixSessionID))
-	previousObservation, hasPreviousObservation := readLatestObservation(sessionDir)
+	previousObservation, hasPreviousObservation := s.readPreviousObservation(sessionDir, req.Args)
 	observation := BuildObservation(req, now)
 	applyBeforeAfterDelta(&observation, previousObservation, hasPreviousObservation, now)
 	FinalizeObservationContext(&observation, req, now)
@@ -262,11 +283,22 @@ func BuildObservation(req Request, createdAt string) ObservationPacket {
 		tempo = &bpm
 	}
 	featureSnapshot := loadFeatureSnapshot(req.Args)
+	normalizeTrackWaveformFeatureFreshness(&featureSnapshot, req.ProjectState, listenScopeAllowsLegacyProjectWaveformRows(req.ListenScope))
+	acousticPackageStatus := compactAcousticPackageStatus(mapValue(req.Args["acoustic_package_status"]))
+	if !acousticPackageMatchesLatestRequest(acousticPackageStatus, featureSnapshot.LatestRequest) {
+		acousticPackageStatus = nil
+	}
+	applyAcousticPackageStatusToFeatureSnapshot(&featureSnapshot, acousticPackageStatus)
+	promoteBestRealtimeFeatureRows(&featureSnapshot)
 	waveformStatus := featureStatus(featureSnapshot.WaveformEnvelope)
 	trackWaveformStatus := trackFeatureRowsStatus(featureSnapshot.TrackWaveformEnvelopes)
 	spectrogramStatus := featureStatus(featureSnapshot.SpectrogramTiles)
 	bandEnergyStatus := featureStatus(featureSnapshot.BandEnergySummary)
 	stereoRelationStatus := featureStatus(featureSnapshot.StereoRelationSummary)
+	loudnessStatus := featureStatus(featureSnapshot.LoudnessSummary)
+	realtimeBandEnergyStatus := featureStatus(featureSnapshot.RealtimeBandEnergySummary)
+	realtimeStereoRelationStatus := featureStatus(featureSnapshot.RealtimeStereoRelationSummary)
+	l2RenderProbeStatus := featureStatus(featureSnapshot.L2RenderProbe)
 
 	caps := map[string]string{
 		"waveform_envelope":        waveformStatus,
@@ -274,8 +306,16 @@ func BuildObservation(req Request, createdAt string) ObservationPacket {
 		"spectrogram_tiles":        spectrogramStatus,
 		"band_energy":              bandEnergyStatus,
 		"stereo_relation":          stereoRelationStatus,
-		"post_fx_probe":            "unavailable",
+		"loudness_summary":         loudnessStatus,
+		"realtime_band_energy":     realtimeBandEnergyStatus,
+		"realtime_stereo_relation": realtimeStereoRelationStatus,
+		"l2_render_probe":          l2RenderProbeStatus,
+		"masking_analysis":         "deferred",
+		"reference_match":          "deferred",
+		"lufs_analysis":            "deferred",
+		"post_fx_probe":            postFXProbeCapability(l2RenderProbeStatus),
 	}
+	applyAcousticPackageCapabilities(caps, acousticPackageStatus)
 	notes := []string{
 		"MixBoard observation initialized with project/shadow facts.",
 	}
@@ -287,6 +327,9 @@ func BuildObservation(req Request, createdAt string) ObservationPacket {
 	status := observationStatusFromFeatures(duration, waveformStatus, spectrogramStatus)
 	if duration <= 0 {
 		notes = append(notes, "duration_seconds is unavailable; timeline uses a zero-length ruler until audio feature data is connected.")
+	}
+	if len(acousticPackageStatus) > 0 {
+		notes = append(notes, "MixBoard consumed acoustic_package_status.v0 readiness before optional background feature fill.")
 	}
 	waveformMetrics := buildWaveformMetrics(featureSnapshot.WaveformEnvelope)
 	timeSegments := waveformTimeSegments(featureSnapshot.WaveformEnvelope)
@@ -310,8 +353,25 @@ func BuildObservation(req Request, createdAt string) ObservationPacket {
 	projectPackage := buildProjectPackage(req.ProjectState, target, scope, featureSnapshot)
 	bandEnergy := buildBandEnergySummary(featureSnapshot.BandEnergySummary)
 	stereoRelation := buildStereoRelationSummary(featureSnapshot.StereoRelationSummary)
-	mixPackage := buildMixPackage(req, status, waveformStatus, waveformMetrics, timeSegments, bandEnergy, stereoRelation, caps)
+	loudness := buildLoudnessSummary(featureSnapshot.LoudnessSummary)
+	realtimeBandEnergy := buildBandEnergySummary(featureSnapshot.RealtimeBandEnergySummary)
+	realtimeStereoRelation := buildStereoRelationSummary(featureSnapshot.RealtimeStereoRelationSummary)
+	l2RenderProbe := buildL2RenderProbeSummary(featureSnapshot.L2RenderProbe)
+	mixPackage := buildMixPackage(req, status, waveformStatus, waveformMetrics, timeSegments, bandEnergy, stereoRelation, loudness, realtimeBandEnergy, realtimeStereoRelation, l2RenderProbe, caps)
 	deepPackage := buildDeepPackage(spectrogramStatus, featureSnapshot)
+	globalSummary := map[string]any{
+		"rms_dbfs":              waveformMetrics["rms_dbfs"],
+		"peak_dbfs":             waveformMetrics["peak_dbfs"],
+		"crest_db":              waveformMetrics["crest_db"],
+		"dominant_problem_tags": problemTags,
+		"feature_snapshot":      compactFeatureSnapshot(featureSnapshot),
+	}
+	if len(acousticPackageStatus) > 0 {
+		globalSummary["acoustic_package_status"] = acousticPackageStatus
+		environmentPackage["acoustic_package_status"] = acousticPackageStatus
+		mixPackage["acoustic_package_status"] = acousticPackageStatus
+		deepPackage["acoustic_package_status"] = acousticPackageStatus
+	}
 
 	obs := ObservationPacket{
 		SchemaVersion: ObservationSchemaVersion,
@@ -329,23 +389,18 @@ func BuildObservation(req Request, createdAt string) ObservationPacket {
 			TempoBPM:        tempo,
 			BarMapAvailable: tempo != nil,
 		},
-		GlobalSummary: map[string]any{
-			"rms_dbfs":              waveformMetrics["rms_dbfs"],
-			"peak_dbfs":             waveformMetrics["peak_dbfs"],
-			"crest_db":              waveformMetrics["crest_db"],
-			"dominant_problem_tags": problemTags,
-			"feature_snapshot":      compactFeatureSnapshot(featureSnapshot),
-		},
-		EnvironmentPackage: environmentPackage,
-		ProjectPackage:     projectPackage,
-		MixPackage:         mixPackage,
-		DeepPackage:        deepPackage,
-		SectionCandidates:  sections,
-		TimelineDigest:     timeline,
-		Hotspots:           hotspots,
-		SourceCapabilities: caps,
-		Notes:              notes,
-		CreatedAt:          createdAt,
+		GlobalSummary:         globalSummary,
+		EnvironmentPackage:    environmentPackage,
+		ProjectPackage:        projectPackage,
+		MixPackage:            mixPackage,
+		DeepPackage:           deepPackage,
+		SectionCandidates:     sections,
+		TimelineDigest:        timeline,
+		Hotspots:              hotspots,
+		SourceCapabilities:    caps,
+		AcousticPackageStatus: acousticPackageStatus,
+		Notes:                 notes,
+		CreatedAt:             createdAt,
 	}
 	FinalizeObservationContext(&obs, req, createdAt)
 	return obs
@@ -353,7 +408,7 @@ func BuildObservation(req Request, createdAt string) ObservationPacket {
 
 func buildBoard(req Request, obs ObservationPacket, obsPath, now string) Board {
 	blockers := []string{}
-	if obs.SourceCapabilities["waveform_envelope"] != "ready" {
+	if obs.SourceCapabilities["waveform_envelope"] != "ready" && !observationHasReadyAcousticFeature(obs) {
 		if obs.SourceCapabilities["waveform_envelope"] == "requested" {
 			blockers = append(blockers, "audio_feature_request_pending")
 		} else if obs.SourceCapabilities["waveform_envelope"] == "blocked" {
@@ -381,6 +436,103 @@ func buildBoard(req Request, obs ObservationPacket, obsPath, now string) Board {
 	}
 }
 
+func observationHasReadyAcousticFeature(obs ObservationPacket) bool {
+	for _, key := range []string{
+		"waveform_envelope",
+		"track_waveform_envelopes",
+		"spectrogram_tiles",
+		"band_energy",
+		"band_energy_summary",
+		"stereo_relation",
+		"stereo_relation_summary",
+		"loudness_summary",
+		"realtime_band_energy",
+		"realtime_band_energy_summary",
+		"realtime_stereo_relation",
+		"realtime_stereo_relation_summary",
+		"l2_render_probe",
+		"post_fx_probe",
+	} {
+		if observationStatusReady(obs.SourceCapabilities[key]) {
+			return true
+		}
+	}
+	for _, row := range []map[string]any{
+		obs.GlobalSummary,
+		obs.MixPackage,
+		mapValue(obs.MixPackage["current_metrics"]),
+		mapValue(obs.MixPackage["realtime_metrics"]),
+	} {
+		if observationAnyFeatureReady(row, "band_energy_summary", "stereo_relation_summary", "loudness_summary", "realtime_band_energy_summary", "realtime_stereo_relation_summary", "l2_render_probe", "render_probe", "spectrogram_tiles", "waveform", "band_energy", "stereo_relation", "loudness") {
+			return true
+		}
+	}
+	return observationAcousticPackageHasReadyEvidence(obs.AcousticPackageStatus)
+}
+
+func observationAnyFeatureReady(row map[string]any, keys ...string) bool {
+	if len(row) == 0 {
+		return false
+	}
+	for _, key := range keys {
+		if observationFeatureReady(row[key]) {
+			return true
+		}
+	}
+	return false
+}
+
+func observationFeatureReady(value any) bool {
+	row := mapValue(value)
+	if len(row) > 0 {
+		if observationStatusReady(cleanAnyString(row["status"])) {
+			return true
+		}
+		if observationStatusReady(cleanAnyString(mapValue(row["ref"])["status"])) {
+			return true
+		}
+	}
+	return observationStatusReady(cleanAnyString(value))
+}
+
+func observationAcousticPackageHasReadyEvidence(status map[string]any) bool {
+	if len(status) == 0 || !observationStatusReady(cleanAnyString(status["status"])) {
+		return false
+	}
+	layers := mapValue(status["package_layers"])
+	for _, layerName := range []string{"l1_static", "l2_realtime", "l3_deep"} {
+		layer := mapValue(layers[layerName])
+		if !observationStatusReady(cleanAnyString(layer["status"])) {
+			continue
+		}
+		if observationAnyFeatureReady(mapValue(layer["features"]),
+			"waveform_envelope",
+			"peak_rms_summary",
+			"time_energy",
+			"live_meter",
+			"realtime_spectrum",
+			"render_probe",
+			"realtime_stereo_correlation",
+			"spectrogram_tiles",
+			"band_energy_summary",
+			"stereo_relation_summary",
+			"loudness_summary",
+		) {
+			return true
+		}
+	}
+	return false
+}
+
+func observationStatusReady(status string) bool {
+	switch strings.ToLower(strings.TrimSpace(status)) {
+	case "ready", "baseline_ready", "fresh", "available", "ok":
+		return true
+	default:
+		return false
+	}
+}
+
 func featureSnapshotPath(args map[string]any) string {
 	if path := strings.TrimSpace(fmt.Sprint(args["feature_snapshot_path"])); path != "" && path != "<nil>" {
 		return filepath.Clean(path)
@@ -398,21 +550,29 @@ func loadFeatureSnapshot(args map[string]any) featureSnapshot {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return featureSnapshot{
-			SchemaVersion:         "mixboard_feature_snapshot.v1",
-			WaveformEnvelope:      map[string]any{"status": "missing"},
-			SpectrogramTiles:      map[string]any{"status": "missing"},
-			BandEnergySummary:     map[string]any{"status": "missing"},
-			StereoRelationSummary: map[string]any{"status": "missing"},
+			SchemaVersion:                 "mixboard_feature_snapshot.v1",
+			WaveformEnvelope:              map[string]any{"status": "missing"},
+			SpectrogramTiles:              map[string]any{"status": "missing"},
+			BandEnergySummary:             map[string]any{"status": "missing"},
+			StereoRelationSummary:         map[string]any{"status": "missing"},
+			LoudnessSummary:               map[string]any{"status": "missing"},
+			RealtimeBandEnergySummary:     map[string]any{"status": "missing"},
+			RealtimeStereoRelationSummary: map[string]any{"status": "missing"},
+			L2RenderProbe:                 map[string]any{"status": "missing"},
 		}
 	}
 	var snap featureSnapshot
 	if err := json.Unmarshal(data, &snap); err != nil {
 		return featureSnapshot{
-			SchemaVersion:         "mixboard_feature_snapshot.v1",
-			WaveformEnvelope:      map[string]any{"status": "invalid"},
-			SpectrogramTiles:      map[string]any{"status": "invalid"},
-			BandEnergySummary:     map[string]any{"status": "invalid"},
-			StereoRelationSummary: map[string]any{"status": "invalid"},
+			SchemaVersion:                 "mixboard_feature_snapshot.v1",
+			WaveformEnvelope:              map[string]any{"status": "invalid"},
+			SpectrogramTiles:              map[string]any{"status": "invalid"},
+			BandEnergySummary:             map[string]any{"status": "invalid"},
+			StereoRelationSummary:         map[string]any{"status": "invalid"},
+			LoudnessSummary:               map[string]any{"status": "invalid"},
+			RealtimeBandEnergySummary:     map[string]any{"status": "invalid"},
+			RealtimeStereoRelationSummary: map[string]any{"status": "invalid"},
+			L2RenderProbe:                 map[string]any{"status": "invalid"},
 		}
 	}
 	if snap.WaveformEnvelope == nil {
@@ -427,19 +587,864 @@ func loadFeatureSnapshot(args map[string]any) featureSnapshot {
 	if snap.StereoRelationSummary == nil {
 		snap.StereoRelationSummary = map[string]any{"status": "missing"}
 	}
+	if snap.LoudnessSummary == nil {
+		snap.LoudnessSummary = map[string]any{"status": "missing"}
+	}
+	if snap.RealtimeBandEnergySummary == nil {
+		snap.RealtimeBandEnergySummary = map[string]any{"status": "missing"}
+	}
+	if snap.RealtimeStereoRelationSummary == nil {
+		snap.RealtimeStereoRelationSummary = map[string]any{"status": "missing"}
+	}
+	if snap.L2RenderProbe == nil {
+		snap.L2RenderProbe = map[string]any{"status": "missing"}
+	}
+	promoteBestL3FeatureRows(&snap)
+	normalizeBridgeFeatureFreshness(&snap)
 	return snap
+}
+
+func applyAcousticPackageStatusToFeatureSnapshot(snap *featureSnapshot, status map[string]any) {
+	if snap == nil || len(status) == 0 || cleanAnyString(status["schema_version"]) != "acoustic_package_status.v0" {
+		return
+	}
+	if !acousticPackageMatchesLatestRequest(status, snap.LatestRequest) {
+		return
+	}
+	latestRequestID := cleanAnyString(snap.LatestRequest["request_id"])
+	if row := featureRowFromAcousticPackage(status, "l1_static", "waveform_envelope", "waveform_envelope", latestRequestID); len(row) > 0 {
+		snap.WaveformEnvelope = row
+		if cleanAnyString(row["track_id"]) != "" {
+			snap.TrackWaveformEnvelopes = mergeAcousticPackageTrackWaveformRows(snap.TrackWaveformEnvelopes, row)
+		}
+	}
+	if row := featureRowFromAcousticPackage(status, "l3_deep", "spectrogram_tiles", "spectral_field", latestRequestID); len(row) > 0 {
+		snap.SpectrogramTiles = row
+		snap.SpectrogramTileRows = mergeFeatureRowsByIdentity(snap.SpectrogramTileRows, row)
+	}
+	if row := featureRowFromAcousticPackage(status, "l3_deep", "band_energy_summary", "band_energy_summary", latestRequestID); len(row) > 0 {
+		snap.BandEnergySummary = row
+		snap.BandEnergySummaries = mergeFeatureRowsByIdentity(snap.BandEnergySummaries, row)
+	}
+	if row := featureRowFromAcousticPackage(status, "l3_deep", "stereo_relation_summary", "stereo_relation_summary", latestRequestID); len(row) > 0 {
+		snap.StereoRelationSummary = row
+		snap.StereoRelationSummaries = mergeFeatureRowsByIdentity(snap.StereoRelationSummaries, row)
+	}
+	if row := featureRowFromAcousticPackage(status, "l3_deep", "loudness_summary", "loudness_summary", latestRequestID); len(row) > 0 {
+		snap.LoudnessSummary = row
+		snap.LoudnessSummaries = mergeFeatureRowsByIdentity(snap.LoudnessSummaries, row)
+	}
+	if row := featureRowFromAcousticPackage(status, "l2_realtime", "realtime_spectrum", "realtime_band_energy_summary", latestRequestID); len(row) > 0 {
+		snap.RealtimeBandEnergySummaries = mergeFeatureRowsByIdentity(snap.RealtimeBandEnergySummaries, row)
+	}
+	if row := featureRowFromAcousticPackage(status, "l2_realtime", "realtime_stereo_correlation", "realtime_stereo_relation_summary", latestRequestID); len(row) > 0 {
+		snap.RealtimeStereoRelationSummaries = mergeFeatureRowsByIdentity(snap.RealtimeStereoRelationSummaries, row)
+	}
+	if row := featureRowFromAcousticPackage(status, "l2_realtime", "render_probe", "l2_render_probe", latestRequestID); len(row) > 0 {
+		snap.L2RenderProbe = row
+		snap.L2RenderProbes = mergeFeatureRowsByIdentity(snap.L2RenderProbes, row)
+	}
+	promoteBestRealtimeFeatureRows(snap)
+}
+
+func promoteBestRealtimeFeatureRows(snap *featureSnapshot) {
+	if snap == nil {
+		return
+	}
+	target := latestRequestResolvedTarget(snap.LatestRequest)
+	if row := bestRealtimeFeatureRow(snap.RealtimeBandEnergySummary, snap.RealtimeBandEnergySummaries, target); len(row) > 0 {
+		snap.RealtimeBandEnergySummary = row
+	}
+	if row := bestRealtimeFeatureRow(snap.RealtimeStereoRelationSummary, snap.RealtimeStereoRelationSummaries, target); len(row) > 0 {
+		snap.RealtimeStereoRelationSummary = row
+	}
+	if row := bestRealtimeFeatureRow(snap.L2RenderProbe, snap.L2RenderProbes, target); len(row) > 0 {
+		snap.L2RenderProbe = row
+	}
+}
+
+func promoteBestL3FeatureRows(snap *featureSnapshot) {
+	if snap == nil {
+		return
+	}
+	target := latestRequestResolvedTarget(snap.LatestRequest)
+	if row := bestRealtimeFeatureRow(snap.BandEnergySummary, snap.BandEnergySummaries, target); len(row) > 0 {
+		snap.BandEnergySummary = row
+	}
+	if row := bestRealtimeFeatureRow(snap.StereoRelationSummary, snap.StereoRelationSummaries, target); len(row) > 0 {
+		snap.StereoRelationSummary = row
+	}
+	if row := bestRealtimeFeatureRow(snap.LoudnessSummary, snap.LoudnessSummaries, target); len(row) > 0 {
+		snap.LoudnessSummary = row
+	}
+}
+
+func latestRequestResolvedTarget(latestRequest map[string]any) map[string]any {
+	target := mapValue(latestRequest["resolved_target"])
+	if len(target) > 0 {
+		return target
+	}
+	return nil
+}
+
+func bestRealtimeFeatureRow(primary map[string]any, rows []map[string]any, target map[string]any) map[string]any {
+	candidates := make([]map[string]any, 0, len(rows)+1)
+	if len(primary) > 0 {
+		candidates = append(candidates, primary)
+	}
+	candidates = append(candidates, rows...)
+	if len(candidates) == 0 {
+		return primary
+	}
+	hasNonMismatch := false
+	for _, row := range candidates {
+		if len(row) > 0 && !featureRowMismatchesTarget(row, target) {
+			hasNonMismatch = true
+			break
+		}
+	}
+	var best map[string]any
+	for _, row := range candidates {
+		if len(row) == 0 {
+			continue
+		}
+		if hasNonMismatch && featureRowMismatchesTarget(row, target) {
+			continue
+		}
+		if len(best) == 0 || realtimeFeatureRowBeats(row, best, target) {
+			best = row
+		}
+	}
+	return best
+}
+
+func realtimeFeatureRowBeats(candidate, current map[string]any, target map[string]any) bool {
+	candidateStatus := featureStatusRank(featureStatus(candidate))
+	currentStatus := featureStatusRank(featureStatus(current))
+	if candidateStatus != currentStatus {
+		return candidateStatus > currentStatus
+	}
+	candidateTarget := featureRowTargetScore(candidate, target)
+	currentTarget := featureRowTargetScore(current, target)
+	if candidateTarget != currentTarget {
+		return candidateTarget > currentTarget
+	}
+	return featureRowProjectionCompleteness(candidate) > featureRowProjectionCompleteness(current)
+}
+
+func featureRowMismatchesTarget(row map[string]any, target map[string]any) bool {
+	if len(row) == 0 || len(target) == 0 {
+		return false
+	}
+	for _, key := range []string{"track_id", "clip_id"} {
+		rowValue := cleanAnyString(row[key])
+		targetValue := cleanAnyString(target[key])
+		if key == "clip_id" && targetValue == "" {
+			targetValue = cleanAnyString(target["id"])
+		}
+		if rowValue != "" && targetValue != "" && rowValue != targetValue {
+			return true
+		}
+	}
+	rowRevision := firstNonEmpty(cleanAnyString(row["source_revision"]), cleanAnyString(row["source_fingerprint"]), cleanAnyString(row["source_hash"]))
+	targetRevision := firstNonEmpty(cleanAnyString(target["source_revision"]), cleanAnyString(target["source_fingerprint"]), cleanAnyString(target["source_hash"]))
+	if rowRevision != "" && targetRevision != "" && rowRevision != targetRevision {
+		return true
+	}
+	rowRenderRevision := cleanAnyString(row["render_revision"])
+	targetRenderRevision := cleanAnyString(target["render_revision"])
+	if bridgeFeatureUsesRenderRevision(row) && rowRenderRevision != "" && targetRenderRevision != "" && rowRenderRevision != targetRenderRevision {
+		return true
+	}
+	rowPath := firstNonEmpty(cleanAnyString(row["file_path"]), cleanAnyString(row["source_path"]), cleanAnyString(row["current_source_path"]))
+	targetPath := firstNonEmpty(cleanAnyString(target["source_path"]), cleanAnyString(target["file_path"]), cleanAnyString(target["current_source_path"]))
+	return rowPath != "" && targetPath != "" && !pathsMatchForObservation(rowPath, targetPath)
+}
+
+func featureRowTargetScore(row map[string]any, target map[string]any) int {
+	if len(row) == 0 || len(target) == 0 {
+		return 0
+	}
+	score := 0
+	for _, key := range []string{"track_id", "clip_id"} {
+		rowValue := cleanAnyString(row[key])
+		targetValue := cleanAnyString(target[key])
+		if key == "clip_id" && targetValue == "" {
+			targetValue = cleanAnyString(target["id"])
+		}
+		if rowValue != "" && targetValue != "" && rowValue == targetValue {
+			score += 2
+		}
+	}
+	rowRevision := firstNonEmpty(cleanAnyString(row["source_revision"]), cleanAnyString(row["source_fingerprint"]), cleanAnyString(row["source_hash"]))
+	targetRevision := firstNonEmpty(cleanAnyString(target["source_revision"]), cleanAnyString(target["source_fingerprint"]), cleanAnyString(target["source_hash"]))
+	if rowRevision != "" && targetRevision != "" && rowRevision == targetRevision {
+		score++
+	}
+	rowRenderRevision := cleanAnyString(row["render_revision"])
+	targetRenderRevision := cleanAnyString(target["render_revision"])
+	if bridgeFeatureUsesRenderRevision(row) && rowRenderRevision != "" && targetRenderRevision != "" && rowRenderRevision == targetRenderRevision {
+		score++
+	}
+	rowPath := firstNonEmpty(cleanAnyString(row["file_path"]), cleanAnyString(row["source_path"]), cleanAnyString(row["current_source_path"]))
+	targetPath := firstNonEmpty(cleanAnyString(target["source_path"]), cleanAnyString(target["file_path"]), cleanAnyString(target["current_source_path"]))
+	if rowPath != "" && targetPath != "" && pathsMatchForObservation(rowPath, targetPath) {
+		score++
+	}
+	return score
+}
+
+func featureRowProjectionCompleteness(row map[string]any) int {
+	if len(row) == 0 {
+		return 0
+	}
+	score := 0
+	score += len(mapValue(row["bands"])) * 4
+	for _, key := range []string{"left_level_db", "right_level_db", "balance_db", "balance_state", "correlation_estimate", "correlation_state", "quality_status", "quality_reason", "capture_mode", "tap_point", "updated_at", "source_revision", "clip_revision", "render_revision"} {
+		if value, ok := row[key]; ok && !isEmptyFeatureValue(value) {
+			score++
+		}
+	}
+	if len(mapValue(row["quality_evidence"])) > 0 {
+		score += 3
+	}
+	return score
+}
+
+func compactAcousticPackageStatus(status map[string]any) map[string]any {
+	if len(status) == 0 || cleanAnyString(status["schema_version"]) != "acoustic_package_status.v0" {
+		return nil
+	}
+	out := map[string]any{}
+	for _, key := range []string{"schema_version", "status", "project_id", "session_id", "track_id", "clip_id", "source_hash", "source_fingerprint", "source_revision", "clip_revision", "render_revision", "analyzer_revision", "source_path", "duration_seconds", "clip_start_seconds", "source_identity", "package_layers", "updated_at", "audit"} {
+		if value, ok := status[key]; ok && !isEmptyFeatureValue(value) {
+			out[key] = value
+		}
+	}
+	return out
+}
+
+func acousticPackageMatchesLatestRequest(status map[string]any, latestRequest map[string]any) bool {
+	if len(status) == 0 || len(latestRequest) == 0 {
+		return true
+	}
+	target := mapValue(latestRequest["resolved_target"])
+	if len(target) == 0 {
+		return true
+	}
+	identity := mapValue(status["source_identity"])
+	for _, key := range []string{"track_id", "clip_id"} {
+		statusValue := firstNonEmpty(cleanAnyString(status[key]), cleanAnyString(identity[key]))
+		targetValue := cleanAnyString(target[key])
+		if key == "clip_id" && targetValue == "" {
+			targetValue = cleanAnyString(target["id"])
+		}
+		if statusValue != "" && targetValue != "" && statusValue != targetValue {
+			return false
+		}
+	}
+	statusSource := firstNonEmpty(cleanAnyString(status["source_path"]), cleanAnyString(identity["source_path"]), cleanAnyString(identity["file_path"]))
+	targetSource := firstNonEmpty(cleanAnyString(target["source_path"]), cleanAnyString(target["file_path"]), cleanAnyString(target["current_source_path"]))
+	if statusSource != "" && targetSource != "" && !pathsMatchForObservation(statusSource, targetSource) {
+		return false
+	}
+	statusRevision := firstNonEmpty(cleanAnyString(status["source_revision"]), cleanAnyString(status["source_fingerprint"]), cleanAnyString(identity["source_revision"]), cleanAnyString(identity["source_fingerprint"]))
+	targetRevision := firstNonEmpty(cleanAnyString(target["source_revision"]), cleanAnyString(target["source_fingerprint"]))
+	if statusRevision != "" && targetRevision != "" && statusRevision != targetRevision {
+		return false
+	}
+	return true
+}
+
+func pathsMatchForObservation(a, b string) bool {
+	if strings.TrimSpace(a) == "" || strings.TrimSpace(b) == "" {
+		return true
+	}
+	return strings.EqualFold(filepath.Clean(a), filepath.Clean(b))
+}
+
+func featureRowFromAcousticPackage(status map[string]any, layerName, featureName, featureType, latestRequestID string) map[string]any {
+	feature := acousticPackageFeature(status, layerName, featureName)
+	if len(feature) == 0 {
+		return nil
+	}
+	featureStatus := cleanAnyString(feature["status"])
+	row := map[string]any{}
+	if featureStatus == "ready" || featureStatus == "partial" || featureStatus == "suspect" {
+		row = mapValue(feature["ref"])
+		if len(row) == 0 {
+			row = map[string]any{}
+		}
+	}
+	row["status"] = featureStatus
+	row["feature_type"] = featureType
+	if source := cleanAnyString(feature["source"]); source != "" {
+		row["source"] = source
+	}
+	if reason := firstNonEmpty(cleanAnyString(feature["reason"]), cleanAnyString(mapValue(feature["progress"])["reason"])); reason != "" {
+		row["reason"] = reason
+	}
+	if updated := firstNonEmpty(cleanAnyString(feature["updated_at"]), cleanAnyString(mapValue(feature["progress"])["updated_at"]), cleanAnyString(status["updated_at"])); updated != "" {
+		row["updated_at"] = updated
+	}
+	for _, key := range []string{"project_id", "session_id", "track_id", "clip_id", "source_hash", "source_fingerprint", "source_revision", "clip_revision", "render_revision", "analyzer_revision", "source_path", "duration_seconds", "clip_start_seconds"} {
+		if value := cleanAnyString(status[key]); value != "" {
+			targetKey := key
+			if key == "source_path" {
+				targetKey = "file_path"
+			}
+			if key == "duration_seconds" {
+				row[targetKey] = status[key]
+				continue
+			}
+			if featureStatus != "ready" && featureStatus != "partial" {
+				row[targetKey] = value
+			} else if cleanAnyString(row[targetKey]) == "" {
+				row[targetKey] = value
+			}
+		}
+	}
+	if latestRequestID != "" && featureStatus != "ready" && featureStatus != "partial" && featureStatus != "suspect" {
+		row["request_id"] = latestRequestID
+	}
+	progress := mapValue(feature["progress"])
+	for _, key := range []string{"tile_count_seen", "tile_count_expected", "coverage_seconds", "coverage_ratio"} {
+		if value, ok := progress[key]; ok && !isEmptyFeatureValue(value) {
+			row[key] = value
+		}
+	}
+	return row
+}
+
+func acousticPackageFeature(status map[string]any, layerName, featureName string) map[string]any {
+	layers := mapValue(status["package_layers"])
+	layer := mapValue(layers[layerName])
+	features := mapValue(layer["features"])
+	return mapValue(features[featureName])
+}
+
+func applyAcousticPackageCapabilities(caps map[string]string, status map[string]any) {
+	if len(caps) == 0 || len(status) == 0 {
+		return
+	}
+	for key, ref := range map[string][2]string{
+		"waveform_envelope":        {"l1_static", "waveform_envelope"},
+		"spectrogram_tiles":        {"l3_deep", "spectrogram_tiles"},
+		"band_energy":              {"l3_deep", "band_energy_summary"},
+		"stereo_relation":          {"l3_deep", "stereo_relation_summary"},
+		"loudness_summary":         {"l3_deep", "loudness_summary"},
+		"realtime_band_energy":     {"l2_realtime", "realtime_spectrum"},
+		"realtime_stereo_relation": {"l2_realtime", "realtime_stereo_correlation"},
+		"l2_render_probe":          {"l2_realtime", "render_probe"},
+		"post_fx_probe":            {"l2_realtime", "render_probe"},
+		"masking_analysis":         {"l3_deep", "masking_analysis"},
+		"reference_match":          {"l3_deep", "reference_match"},
+		"lufs_analysis":            {"l3_deep", "lufs_analysis"},
+	} {
+		if feature := acousticPackageFeature(status, ref[0], ref[1]); len(feature) > 0 {
+			if value := cleanAnyString(feature["status"]); value != "" {
+				caps[key] = value
+			}
+		}
+	}
+}
+
+func shouldReplaceFeatureRow(existing, candidate map[string]any) bool {
+	if len(candidate) == 0 {
+		return false
+	}
+	return featureStatusRank(featureStatus(candidate)) > featureStatusRank(featureStatus(existing))
+}
+
+func featureStatusRank(status string) int {
+	switch strings.ToLower(strings.TrimSpace(status)) {
+	case "ready":
+		return 7
+	case "partial":
+		return 6
+	case "building", "requested":
+		return 5
+	case "suspect":
+		return 4
+	case "stale":
+		return 3
+	case "failed", "invalid", "blocked", "unavailable":
+		return 2
+	case "missing":
+		return 1
+	case "deferred":
+		return 0
+	default:
+		return 0
+	}
+}
+
+func mergeAcousticPackageTrackWaveformRows(rows []map[string]any, row map[string]any) []map[string]any {
+	if len(row) == 0 {
+		return rows
+	}
+	trackID := cleanAnyString(row["track_id"])
+	clipID := cleanAnyString(row["clip_id"])
+	replaced := false
+	out := make([]map[string]any, 0, len(rows)+1)
+	for _, existing := range rows {
+		if cleanAnyString(existing["track_id"]) == trackID && cleanAnyString(existing["clip_id"]) == clipID {
+			if shouldReplaceFeatureRow(existing, row) {
+				out = append(out, row)
+			} else {
+				out = append(out, existing)
+			}
+			replaced = true
+			continue
+		}
+		out = append(out, existing)
+	}
+	if !replaced {
+		out = append(out, row)
+	}
+	return out
+}
+
+func mergeFeatureRowsByIdentity(rows []map[string]any, row map[string]any) []map[string]any {
+	if len(row) == 0 {
+		return rows
+	}
+	key := featureIdentityKey(row)
+	if key == "" {
+		key = fmt.Sprintf("row_%d", len(rows))
+	}
+	out := make([]map[string]any, 0, len(rows)+1)
+	replaced := false
+	for _, existing := range rows {
+		if featureIdentityKey(existing) == key {
+			if shouldReplaceFeatureRow(existing, row) || cleanAnyString(existing["request_id"]) == cleanAnyString(row["request_id"]) {
+				out = append(out, row)
+			} else {
+				out = append(out, existing)
+			}
+			replaced = true
+			continue
+		}
+		out = append(out, existing)
+	}
+	if !replaced {
+		out = append(out, row)
+	}
+	return out
+}
+
+func featureIdentityKey(row map[string]any) string {
+	if len(row) == 0 {
+		return ""
+	}
+	parts := []string{
+		cleanAnyString(row["feature_type"]),
+		cleanAnyString(row["project_id"]),
+		cleanAnyString(row["session_id"]),
+		cleanAnyString(row["track_id"]),
+		cleanAnyString(row["clip_id"]),
+		cleanAnyString(row["clip_revision"]),
+		cleanAnyString(row["source_revision"]),
+		cleanAnyString(row["source_hash"]),
+		strings.ToLower(filepath.Clean(firstNonEmpty(cleanAnyString(row["file_path"]), cleanAnyString(row["source_path"]), cleanAnyString(row["current_source_path"])))),
+	}
+	has := false
+	for _, part := range parts {
+		if strings.TrimSpace(part) != "" && strings.TrimSpace(part) != "." {
+			has = true
+			break
+		}
+	}
+	if !has {
+		return ""
+	}
+	return strings.Join(parts, "::")
 }
 
 func featureStatus(row map[string]any) string {
 	status := strings.ToLower(strings.TrimSpace(fmt.Sprint(row["status"])))
 	switch status {
-	case "ready", "partial", "requested", "blocked", "missing", "unavailable", "invalid":
+	case "ready", "partial", "building", "stale", "suspect", "missing", "deferred", "failed", "requested", "blocked", "unavailable", "invalid":
 		return status
 	case "":
 		return "missing"
 	default:
 		return status
 	}
+}
+
+func postFXProbeCapability(status string) string {
+	switch strings.ToLower(strings.TrimSpace(status)) {
+	case "ready", "partial", "building", "stale", "suspect":
+		return strings.ToLower(strings.TrimSpace(status))
+	default:
+		return "unavailable"
+	}
+}
+
+func normalizeBridgeFeatureFreshness(snap *featureSnapshot) {
+	if snap == nil || len(snap.LatestRequest) == 0 {
+		return
+	}
+	requestID := cleanAnyString(snap.LatestRequest["request_id"])
+	if requestID == "" {
+		return
+	}
+	target, _ := snap.LatestRequest["resolved_target"].(map[string]any)
+	snap.SpectrogramTiles = freshBridgeRowOrMissing(snap.SpectrogramTiles, requestID, target, "spectral_field")
+	snap.BandEnergySummary = freshBridgeRowOrMissing(snap.BandEnergySummary, requestID, target, "band_energy_summary")
+	snap.StereoRelationSummary = freshBridgeRowOrMissing(snap.StereoRelationSummary, requestID, target, "stereo_relation_summary")
+	snap.LoudnessSummary = freshBridgeRowOrMissing(snap.LoudnessSummary, requestID, target, "loudness_summary")
+}
+
+func normalizeTrackWaveformFeatureFreshness(snap *featureSnapshot, projectState map[string]any, allowLegacyProjectRows bool) {
+	if snap == nil || len(snap.LatestRequest) == 0 {
+		return
+	}
+	requestID := cleanAnyString(snap.LatestRequest["request_id"])
+	if requestID == "" {
+		return
+	}
+	if allowLegacyProjectRows && trackWaveformLatestRequestIsNonAuthoritativeBlocked(snap.LatestRequest) {
+		return
+	}
+	target, _ := snap.LatestRequest["resolved_target"].(map[string]any)
+	snap.WaveformEnvelope = freshWaveformRowOrMissing(snap.WaveformEnvelope, requestID, target, snap.LatestRequest, projectState)
+	rows := make([]map[string]any, 0, len(snap.TrackWaveformEnvelopes))
+	for _, row := range snap.TrackWaveformEnvelopes {
+		if allowLegacyProjectRows && featureRowHasMaterialIdentity(row) && trackWaveformRowMatchesProjectState(row, projectState) {
+			rows = append(rows, row)
+			continue
+		}
+		if trackWaveformRowMatchesCurrentRequest(row, requestID, target, snap.LatestRequest, projectState) {
+			rows = append(rows, row)
+		}
+	}
+	snap.TrackWaveformEnvelopes = rows
+}
+
+func listenScopeAllowsLegacyProjectWaveformRows(scope ListenScope) bool {
+	switch strings.ToLower(strings.TrimSpace(scope.Source.Mode)) {
+	case "full_project", "full_project_with_focus_track", "track_group":
+		return true
+	default:
+		return false
+	}
+}
+
+func trackWaveformLatestRequestIsNonAuthoritativeBlocked(latestRequest map[string]any) bool {
+	if len(latestRequest) == 0 {
+		return false
+	}
+	status := strings.ToLower(cleanAnyString(latestRequest["status"]))
+	reason := strings.ToLower(cleanAnyString(latestRequest["reason"]))
+	if status != "blocked" || reason != "clip_source_required_for_current_feature_bakers" {
+		return false
+	}
+	return len(mapRowsAny(latestRequest["requested_features"])) == 0 && len(mapRowsAny(latestRequest["track_feature_targets"])) == 0
+}
+
+func freshWaveformRowOrMissing(row map[string]any, requestID string, target map[string]any, latestRequest map[string]any, projectState map[string]any) map[string]any {
+	status := featureStatus(row)
+	if status == "missing" || status == "invalid" {
+		return row
+	}
+	if trackWaveformRowMatchesCurrentRequest(row, requestID, target, latestRequest, projectState) {
+		return row
+	}
+	out := map[string]any{
+		"status":       "missing",
+		"feature_type": "waveform_envelope",
+		"request_id":   requestID,
+		"reason":       "stale_feature_snapshot_for_current_request",
+	}
+	if trackID := cleanAnyString(target["track_id"]); trackID != "" {
+		out["track_id"] = trackID
+	}
+	if clipID := cleanAnyString(target["clip_id"]); clipID != "" {
+		out["clip_id"] = clipID
+	}
+	return out
+}
+
+func trackWaveformRowMatchesCurrentRequest(row map[string]any, requestID string, target map[string]any, latestRequest map[string]any, projectState map[string]any) bool {
+	if len(row) == 0 || requestID == "" {
+		return false
+	}
+	rowRequestID := cleanAnyString(row["request_id"])
+	if rowRequestID != "" && !trackWaveformRequestIDMatches(rowRequestID, requestID, row, latestRequest) {
+		if !featureRowHasMaterialIdentity(row) {
+			return false
+		}
+	}
+	if !trackWaveformRowMatchesLatestTarget(row, requestID, target, latestRequest) {
+		return false
+	}
+	return trackWaveformRowMatchesProjectState(row, projectState)
+}
+
+func trackWaveformRequestIDMatches(rowRequestID string, requestID string, row map[string]any, latestRequest map[string]any) bool {
+	if rowRequestID == requestID {
+		return true
+	}
+	for _, requested := range mapRowsAny(latestRequest["requested_features"]) {
+		featureType := cleanAnyString(requested["feature_type"])
+		if featureType != "" && featureType != "waveform_envelope" {
+			continue
+		}
+		if cleanAnyString(requested["request_id"]) != rowRequestID {
+			continue
+		}
+		if sameTrackClip(row, requested) {
+			return true
+		}
+	}
+	return false
+}
+
+func trackWaveformRowMatchesLatestTarget(row map[string]any, requestID string, target map[string]any, latestRequest map[string]any) bool {
+	targets := mapRowsAny(latestRequest["track_feature_targets"])
+	if len(targets) > 0 {
+		for _, candidate := range targets {
+			if sameTrackClip(row, candidate) {
+				return true
+			}
+		}
+		return false
+	}
+	if cleanAnyString(row["request_id"]) == "" && sameTrackClip(row, target) {
+		return true
+	}
+	if featureRowHasMaterialIdentity(row) && sameTrackClip(row, target) {
+		return true
+	}
+	if bridgeRowMatchesRequest(row, requestID, target) {
+		return true
+	}
+	if strings.EqualFold(cleanAnyString(target["kind"]), "project") || strings.EqualFold(cleanAnyString(target["scope"]), "full_project") {
+		return true
+	}
+	return cleanAnyString(target["track_id"]) == "" && cleanAnyString(target["clip_id"]) == ""
+}
+
+func sameTrackClip(row map[string]any, target map[string]any) bool {
+	rowTrack := cleanAnyString(row["track_id"])
+	rowClip := cleanAnyString(row["clip_id"])
+	targetTrack := cleanAnyString(target["track_id"])
+	targetClip := cleanAnyString(target["clip_id"])
+	if targetTrack != "" && rowTrack != targetTrack {
+		return false
+	}
+	if targetClip != "" && rowClip != targetClip {
+		return false
+	}
+	return targetTrack != "" || targetClip != ""
+}
+
+func trackWaveformRowMatchesProjectState(row map[string]any, projectState map[string]any) bool {
+	tracks := mapRowsAny(projectState["tracks"])
+	if len(tracks) == 0 {
+		return true
+	}
+	rowTrack := cleanAnyString(row["track_id"])
+	if rowTrack == "" {
+		return true
+	}
+	var track map[string]any
+	for _, candidate := range tracks {
+		if rowTrack == firstNonEmpty(cleanAnyString(candidate["track_id"]), cleanAnyString(candidate["id"])) {
+			track = candidate
+			break
+		}
+	}
+	if len(track) == 0 {
+		return false
+	}
+	rowClip := cleanAnyString(row["clip_id"])
+	if rowClip == "" {
+		return true
+	}
+	clips := anySlice(firstPresent(track, "clips", "clip_summaries"))
+	if len(clips) == 0 {
+		return true
+	}
+	for _, raw := range clips {
+		clip, _ := raw.(map[string]any)
+		if rowClip == firstNonEmpty(cleanAnyString(clip["clip_id"]), cleanAnyString(clip["id"]), cleanAnyString(clip["item_id"])) {
+			return true
+		}
+	}
+	return false
+}
+
+func freshBridgeRowOrMissing(row map[string]any, requestID string, target map[string]any, featureType string) map[string]any {
+	status := featureStatus(row)
+	if status != "ready" && status != "partial" {
+		if bridgeRowMatchesRequest(row, requestID, target) {
+			return row
+		}
+		if sameTrackClip(row, target) || (len(target) == 0 && len(row) > 0) {
+			return currentBridgeStatusRow(row, requestID, target, featureType)
+		}
+		return currentBridgeMissingRow(requestID, target, featureType, "stale_feature_snapshot_for_current_request")
+	}
+	if bridgeRowMatchesRequest(row, requestID, target) {
+		return row
+	}
+	if featureRowHasMaterialIdentity(row) && sameTrackClip(row, target) {
+		return materialBridgeStatusRow(row, requestID, target, featureType)
+	}
+	return currentBridgeMissingRow(requestID, target, featureType, "stale_feature_snapshot_for_current_request")
+}
+
+func currentBridgeMissingRow(requestID string, target map[string]any, featureType string, reason string) map[string]any {
+	out := map[string]any{
+		"status":       "missing",
+		"feature_type": featureType,
+		"request_id":   requestID,
+		"reason":       reason,
+	}
+	if trackID := cleanAnyString(target["track_id"]); trackID != "" {
+		out["track_id"] = trackID
+	}
+	if clipID := cleanAnyString(target["clip_id"]); clipID != "" {
+		out["clip_id"] = clipID
+	}
+	return out
+}
+
+func currentBridgeStatusRow(row map[string]any, requestID string, target map[string]any, featureType string) map[string]any {
+	out := make(map[string]any, len(row)+4)
+	for key, value := range row {
+		out[key] = value
+	}
+	status := featureStatus(row)
+	out["status"] = status
+	out["feature_type"] = featureType
+	out["request_id"] = requestID
+	if status == "missing" && cleanAnyString(out["reason"]) == "" {
+		out["reason"] = "stale_feature_snapshot_for_current_request"
+	}
+	if trackID := cleanAnyString(target["track_id"]); trackID != "" {
+		out["track_id"] = trackID
+	}
+	if clipID := cleanAnyString(target["clip_id"]); clipID != "" {
+		out["clip_id"] = clipID
+	}
+	return out
+}
+
+func materialBridgeStatusRow(row map[string]any, requestID string, target map[string]any, featureType string) map[string]any {
+	out := make(map[string]any, len(row)+4)
+	for key, value := range row {
+		out[key] = value
+	}
+	out["status"] = featureStatus(row)
+	out["feature_type"] = featureType
+	rowRequestID := cleanAnyString(out["request_id"])
+	if requestID != "" && (rowRequestID == "" || materialBridgeRequestIDBelongsToLatest(rowRequestID, requestID, target)) {
+		out["request_id"] = requestID
+	}
+	if trackID := cleanAnyString(target["track_id"]); trackID != "" {
+		out["track_id"] = trackID
+	}
+	if clipID := cleanAnyString(target["clip_id"]); clipID != "" {
+		out["clip_id"] = clipID
+	}
+	return out
+}
+
+func materialBridgeRequestIDBelongsToLatest(rowRequestID string, latestRequestID string, target map[string]any) bool {
+	rowRequestID = strings.TrimSpace(rowRequestID)
+	latestRequestID = strings.TrimSpace(latestRequestID)
+	if rowRequestID == "" || latestRequestID == "" || rowRequestID == latestRequestID {
+		return false
+	}
+	if !strings.HasPrefix(rowRequestID, "kernel_prepared_") || !strings.HasPrefix(latestRequestID, "kernel_prepared_") {
+		return false
+	}
+	suffix := safeKernelPreparedRequestIDSuffix(target)
+	return suffix != "" && strings.HasSuffix(rowRequestID, "_"+suffix) && strings.HasSuffix(latestRequestID, "_"+suffix)
+}
+
+func safeKernelPreparedRequestIDSuffix(target map[string]any) string {
+	for _, value := range []string{cleanAnyString(target["clip_id"]), cleanAnyString(target["track_id"])} {
+		value = safeBridgeRequestIDPart(value)
+		if value != "" {
+			return value
+		}
+	}
+	return ""
+}
+
+func safeBridgeRequestIDPart(value string) string {
+	value = strings.TrimSpace(value)
+	if value == "" {
+		return ""
+	}
+	var b strings.Builder
+	for _, r := range value {
+		if (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') || (r >= '0' && r <= '9') {
+			b.WriteRune(r)
+			continue
+		}
+		b.WriteByte('_')
+	}
+	return strings.Trim(b.String(), "_")
+}
+
+func featureRowHasMaterialIdentity(row map[string]any) bool {
+	return cleanAnyString(row["source_revision"]) != "" ||
+		cleanAnyString(row["source_fingerprint"]) != "" ||
+		cleanAnyString(row["source_hash"]) != "" ||
+		cleanAnyString(row["clip_revision"]) != "" ||
+		cleanAnyString(row["source_path"]) != "" ||
+		cleanAnyString(row["file_path"]) != ""
+}
+
+func bridgeFeatureUsesRenderRevision(row map[string]any) bool {
+	featureType := strings.ToLower(strings.TrimSpace(firstNonEmpty(cleanAnyString(row["feature_type"]), cleanAnyString(row["type"]))))
+	switch featureType {
+	case "spectral_field", "spectrogram_tiles", "band_energy_summary", "stereo_relation_summary", "loudness_summary", "l3_acoustic_summary":
+		return false
+	}
+	source := strings.ToLower(cleanAnyString(row["source"]))
+	if strings.Contains(source, "kernel_l3_offline_analyzer") || strings.Contains(source, "spectral_tile_derived") {
+		return false
+	}
+	return true
+}
+
+func bridgeRowMatchesRequest(row map[string]any, requestID string, target map[string]any) bool {
+	if len(row) == 0 || requestID == "" {
+		return false
+	}
+	if rowRequestID := cleanAnyString(row["request_id"]); rowRequestID != requestID {
+		return false
+	}
+	if strings.EqualFold(cleanAnyString(row["scope"]), "full_project") {
+		return true
+	}
+	if len(target) == 0 {
+		return true
+	}
+	targetTrack := cleanAnyString(target["track_id"])
+	targetClip := cleanAnyString(target["clip_id"])
+	rowTrack := cleanAnyString(row["track_id"])
+	rowClip := cleanAnyString(row["clip_id"])
+	if targetTrack != "" && rowTrack == "" {
+		return false
+	}
+	if targetTrack != "" && rowTrack != targetTrack {
+		return false
+	}
+	if targetClip != "" && rowClip == "" {
+		return false
+	}
+	if targetClip != "" && rowClip != targetClip {
+		return false
+	}
+	return true
 }
 
 func trackFeatureRowsStatus(rows []map[string]any) string {
@@ -450,15 +1455,20 @@ func trackFeatureRowsStatus(rows []map[string]any) string {
 	partial := 0
 	requested := 0
 	blocked := 0
+	building := 0
+	stale := 0
 	for _, row := range rows {
 		switch featureStatus(row) {
 		case "ready":
 			ready++
 		case "partial":
 			partial++
-		case "requested":
+		case "building", "requested":
+			building++
 			requested++
-		case "blocked", "unavailable":
+		case "stale":
+			stale++
+		case "failed", "blocked", "unavailable", "invalid":
 			blocked++
 		}
 	}
@@ -467,8 +1477,10 @@ func trackFeatureRowsStatus(rows []map[string]any) string {
 		return "ready"
 	case ready > 0 || partial > 0:
 		return "partial"
-	case requested > 0:
-		return "requested"
+	case building > 0 || requested > 0:
+		return "building"
+	case stale > 0:
+		return "stale"
 	case blocked > 0:
 		return "blocked"
 	default:
@@ -476,35 +1488,121 @@ func trackFeatureRowsStatus(rows []map[string]any) string {
 	}
 }
 
-func observationStatusFromFeatures(duration float64, waveformStatus, spectrogramStatus string) string {
-	if duration <= 0 {
-		return "unavailable"
+func compactFeatureSnapshot(snap featureSnapshot) map[string]any {
+	latestRequest := compactFeatureRequest(snap.LatestRequest)
+	if len(latestRequest) == 0 {
+		latestRequest = inferredLatestRequestFromFeatureRows(snap)
 	}
-	if waveformStatus == "ready" {
-		return "ready"
+	return map[string]any{
+		"schema_version":                     snap.SchemaVersion,
+		"updated_at":                         snap.UpdatedAt,
+		"latest_request":                     latestRequest,
+		"waveform_envelope":                  compactFeatureRow(snap.WaveformEnvelope),
+		"track_waveform_envelopes":           compactTrackFeatureRows(snap.TrackWaveformEnvelopes),
+		"spectrogram_tiles":                  compactFeatureRow(snap.SpectrogramTiles),
+		"spectrogram_tile_rows":              compactTrackFeatureRows(snap.SpectrogramTileRows),
+		"band_energy_summary":                compactFeatureRow(snap.BandEnergySummary),
+		"band_energy_summaries":              compactTrackFeatureRows(snap.BandEnergySummaries),
+		"stereo_relation_summary":            compactFeatureRow(snap.StereoRelationSummary),
+		"stereo_relation_summaries":          compactTrackFeatureRows(snap.StereoRelationSummaries),
+		"loudness_summary":                   compactFeatureRow(snap.LoudnessSummary),
+		"loudness_summaries":                 compactTrackFeatureRows(snap.LoudnessSummaries),
+		"realtime_band_energy_summary":       compactFeatureRow(snap.RealtimeBandEnergySummary),
+		"realtime_band_energy_summaries":     compactTrackFeatureRows(snap.RealtimeBandEnergySummaries),
+		"realtime_stereo_relation_summary":   compactFeatureRow(snap.RealtimeStereoRelationSummary),
+		"realtime_stereo_relation_summaries": compactTrackFeatureRows(snap.RealtimeStereoRelationSummaries),
+		"l2_render_probe":                    compactFeatureRow(snap.L2RenderProbe),
+		"l2_render_probes":                   compactTrackFeatureRows(snap.L2RenderProbes),
 	}
-	if spectrogramStatus == "ready" || spectrogramStatus == "partial" {
-		return "partial"
-	}
-	return "partial"
 }
 
-func compactFeatureSnapshot(snap featureSnapshot) map[string]any {
-	return map[string]any{
-		"schema_version":           snap.SchemaVersion,
-		"updated_at":               snap.UpdatedAt,
-		"latest_request":           compactFeatureRequest(snap.LatestRequest),
-		"waveform_envelope":        compactFeatureRow(snap.WaveformEnvelope),
-		"track_waveform_envelopes": compactTrackFeatureRows(snap.TrackWaveformEnvelopes),
-		"spectrogram_tiles":        compactFeatureRow(snap.SpectrogramTiles),
-		"band_energy_summary":      compactFeatureRow(snap.BandEnergySummary),
-		"stereo_relation_summary":  compactFeatureRow(snap.StereoRelationSummary),
+func inferredLatestRequestFromFeatureRows(snap featureSnapshot) map[string]any {
+	anchor := firstMaterializedFeatureRowWithRequest(
+		snap.SpectrogramTiles,
+		snap.BandEnergySummary,
+		snap.StereoRelationSummary,
+		snap.LoudnessSummary,
+		snap.WaveformEnvelope,
+	)
+	requestID := cleanAnyString(anchor["request_id"])
+	if requestID == "" {
+		return nil
 	}
+	target := compactKeys(anchor, []string{"track_id", "clip_id", "source_revision", "source_fingerprint", "source_hash", "source_path", "file_path", "duration_seconds"})
+	if len(target) == 0 {
+		target = map[string]any{}
+	}
+	requested := inferredRequestedFeaturesFromFeatureRows(requestID, snap)
+	out := map[string]any{
+		"schema_version":     "mixboard_feature_request.v1",
+		"request_id":         requestID,
+		"status":             "materialized",
+		"reason":             "inferred_from_feature_rows",
+		"source_kind":        "feature_snapshot_rows",
+		"resolved_target":    target,
+		"requested_features": requested,
+	}
+	return out
+}
+
+func firstMaterializedFeatureRowWithRequest(rows ...map[string]any) map[string]any {
+	for _, row := range rows {
+		if materializedFeatureRowHasRequest(row) {
+			return row
+		}
+	}
+	return nil
+}
+
+func materializedFeatureRowHasRequest(row map[string]any) bool {
+	if cleanAnyString(row["request_id"]) == "" {
+		return false
+	}
+	switch featureStatus(row) {
+	case "ready", "partial", "suspect":
+		return true
+	default:
+		return false
+	}
+}
+
+func inferredRequestedFeaturesFromFeatureRows(requestID string, snap featureSnapshot) []any {
+	out := make([]any, 0, 2)
+	if materializedFeatureRowHasRequest(snap.WaveformEnvelope) || len(snap.TrackWaveformEnvelopes) > 0 {
+		out = append(out, inferredRequestedFeature("waveform_envelope", requestID, snap.WaveformEnvelope))
+	}
+	if materializedFeatureRowHasRequest(snap.SpectrogramTiles) ||
+		materializedFeatureRowHasRequest(snap.BandEnergySummary) ||
+		materializedFeatureRowHasRequest(snap.StereoRelationSummary) ||
+		materializedFeatureRowHasRequest(snap.LoudnessSummary) {
+		if materializedFeatureRowHasRequest(snap.SpectrogramTiles) {
+			out = append(out, inferredRequestedFeature("spectral_field", requestID, snap.SpectrogramTiles))
+		}
+		if materializedFeatureRowHasRequest(snap.BandEnergySummary) ||
+			materializedFeatureRowHasRequest(snap.StereoRelationSummary) ||
+			materializedFeatureRowHasRequest(snap.LoudnessSummary) {
+			out = append(out, inferredRequestedFeature("l3_acoustic_summary", requestID, firstMaterializedFeatureRowWithRequest(snap.BandEnergySummary, snap.StereoRelationSummary, snap.LoudnessSummary)))
+		}
+	}
+	return out
+}
+
+func inferredRequestedFeature(featureType, requestID string, row map[string]any) map[string]any {
+	item := map[string]any{
+		"feature_type": featureType,
+		"request_id":   firstNonEmpty(cleanAnyString(row["request_id"]), requestID),
+	}
+	for _, key := range []string{"track_id", "clip_id"} {
+		if value := cleanAnyString(row[key]); value != "" {
+			item[key] = value
+		}
+	}
+	return item
 }
 
 func compactFeatureRow(row map[string]any) map[string]any {
 	out := map[string]any{}
-	for _, key := range []string{"status", "track_id", "clip_id", "file_path", "request_id", "reason", "float_count", "tile_count_seen", "tile_count_expected", "total_duration", "rms", "peak_abs", "rms_dbfs", "peak_dbfs", "headroom_db", "crest_db", "updated_at", "time_segments", "source", "bands", "band_count", "left_level_db", "right_level_db", "balance_db", "balance_unit", "balance_state", "phase_deviation", "phase_negative_ratio", "correlation_estimate", "correlation_state", "bin_count"} {
+	for _, key := range []string{"schema_version", "status", "feature_type", "layer", "source_kind", "track_id", "clip_id", "target", "file_path", "source_path", "source_identity", "source_revision", "source_fingerprint", "source_hash", "clip_revision", "render_revision", "plugin_chain_revision", "fader_revision", "analyzer_revision", "analyzer_version", "clip_start_seconds", "request_id", "reason", "scope", "capture_mode", "tap_point", "render_mode", "capture_time", "time_basis", "quality_status", "quality_reason", "quality_reasons", "quality_evidence", "target_count", "track_ids", "float_count", "shm_bytes", "stride", "producer_format", "channels_semantics", "frequency_mapping", "derivation_status", "parse_failure_count", "parse_failures", "tile_count_seen", "tile_count_expected", "tile_count_parsed", "coverage_seconds", "coverage_ratio", "last_tile_index", "tile_duration", "tile_content_start_seconds", "frame_duration_seconds", "total_duration", "duration_seconds", "sample_rate", "channel_count", "channels", "expected_sample_count", "analyzed_sample_count", "nonzero_count", "sum_abs", "max_abs", "nan_count", "inf_count", "analyzed_range", "evidence_ref", "resolution_frame_width", "resolution_frequency_bins", "first_received_at", "last_received_at", "rms", "peak", "peak_abs", "rms_dbfs", "peak_dbfs", "headroom_db", "crest_factor", "crest_db", "integrated_lufs", "approximate_lufs", "approximate", "algorithm", "updated_at", "time_segments", "source", "bands", "band_count", "left_unit_energy", "right_unit_energy", "left_level_db", "right_level_db", "balance_db", "balance_unit", "balance_state", "phase_deviation", "phase_negative_ratio", "correlation_estimate", "correlation_state", "bin_count", "sample_count", "phase_sample_count"} {
 		if value, ok := row[key]; ok {
 			out[key] = value
 		}
@@ -530,8 +1628,40 @@ func compactFeatureRequest(row map[string]any) map[string]any {
 			out[key] = value
 		}
 	}
-	if requested, ok := row["requested_features"]; ok {
+	if requested, ok := row["requested_features"]; ok && len(mapRowsAny(requested)) > 0 {
 		out["requested_features"] = requested
+	} else if requested := inferredRequestedFeaturesForMaterializedRequest(row); len(requested) > 0 {
+		out["requested_features"] = requested
+	}
+	return out
+}
+
+func inferredRequestedFeaturesForMaterializedRequest(row map[string]any) []any {
+	requestID := cleanAnyString(row["request_id"])
+	if requestID == "" {
+		return nil
+	}
+	status := strings.ToLower(cleanAnyString(row["status"]))
+	if status != "materialized" && status != "ready" {
+		return nil
+	}
+	if !strings.HasPrefix(requestID, "kernel_prepared_waveform_envelope") {
+		return nil
+	}
+	target := mapValue(row["resolved_target"])
+	out := make([]any, 0, 2)
+	for _, featureType := range []string{"waveform_envelope", "spectral_field"} {
+		item := map[string]any{
+			"feature_type": featureType,
+			"request_id":   requestID,
+		}
+		if trackID := cleanAnyString(target["track_id"]); trackID != "" {
+			item["track_id"] = trackID
+		}
+		if clipID := cleanAnyString(target["clip_id"]); clipID != "" {
+			item["clip_id"] = clipID
+		}
+		out = append(out, item)
 	}
 	return out
 }
@@ -571,7 +1701,8 @@ func buildBandEnergySummary(row map[string]any) map[string]any {
 	out := map[string]any{
 		"status": status,
 	}
-	if status != "ready" {
+	copyOptionalFeatureFields(out, row, "schema_version", "feature_type", "layer", "source_kind", "reason", "source", "updated_at", "track_id", "clip_id", "target", "request_id", "capture_mode", "tap_point", "capture_time", "time_basis", "quality_status", "quality_reason", "quality_evidence", "source_identity", "source_revision", "clip_revision", "render_revision", "plugin_chain_revision", "fader_revision", "tile_count_seen", "tile_count_expected", "tile_count_parsed", "coverage_seconds", "coverage_ratio", "total_duration", "derivation_status")
+	if status != "ready" && status != "partial" {
 		return out
 	}
 	out["source"] = cleanAnyString(row["source"])
@@ -584,10 +1715,14 @@ func buildBandEnergySummary(row map[string]any) map[string]any {
 			continue
 		}
 		bands[id] = map[string]any{
-			"unit_energy": nullablePositive(numberFromMap(bandRow, "unit_energy")),
-			"energy_db":   firstNonNil(bandRow["energy_db"], approxDbfs(numberFromMap(bandRow, "unit_energy"))),
-			"min_hz":      numberFromMap(bandRow, "min_hz"),
-			"max_hz":      numberFromMap(bandRow, "max_hz"),
+			"status":            firstNonEmpty(cleanAnyString(bandRow["status"]), status),
+			"unit_energy":       nullablePositive(numberFromMap(bandRow, "unit_energy")),
+			"energy_db":         firstNonNil(bandRow["energy_db"], approxDbfs(numberFromMap(bandRow, "unit_energy"))),
+			"min_hz":            numberFromMap(bandRow, "min_hz"),
+			"max_hz":            numberFromMap(bandRow, "max_hz"),
+			"sample_count":      firstNonNil(bandRow["sample_count"], nil),
+			"left_unit_energy":  firstNonNil(bandRow["left_unit_energy"], nil),
+			"right_unit_energy": firstNonNil(bandRow["right_unit_energy"], nil),
 		}
 	}
 	out["bands"] = bands
@@ -599,10 +1734,11 @@ func buildStereoRelationSummary(row map[string]any) map[string]any {
 	out := map[string]any{
 		"status": status,
 	}
-	if status != "ready" {
+	copyOptionalFeatureFields(out, row, "schema_version", "feature_type", "layer", "source_kind", "reason", "source", "updated_at", "track_id", "clip_id", "target", "request_id", "capture_mode", "tap_point", "capture_time", "time_basis", "quality_status", "quality_reason", "quality_evidence", "source_identity", "source_revision", "clip_revision", "render_revision", "plugin_chain_revision", "fader_revision", "tile_count_seen", "tile_count_expected", "tile_count_parsed", "coverage_seconds", "coverage_ratio", "total_duration", "derivation_status")
+	if status != "ready" && status != "partial" {
 		return out
 	}
-	for _, key := range []string{"source", "updated_at", "balance_state", "correlation_state"} {
+	for _, key := range []string{"source", "updated_at", "track_id", "clip_id", "request_id", "balance_state", "correlation_state"} {
 		if value, ok := row[key]; ok {
 			out[key] = value
 		}
@@ -614,6 +1750,82 @@ func buildStereoRelationSummary(row map[string]any) map[string]any {
 		out["bin_count"] = int(binCount)
 	}
 	return out
+}
+
+func buildLoudnessSummary(row map[string]any) map[string]any {
+	status := featureStatus(row)
+	out := map[string]any{
+		"status": status,
+	}
+	copyOptionalFeatureFields(out, row,
+		"schema_version", "feature_type", "layer", "source_kind", "reason", "source", "updated_at",
+		"track_id", "clip_id", "target", "request_id", "quality_status", "quality_reason",
+		"quality_reasons", "quality_evidence", "source_identity", "source_revision", "clip_revision",
+		"render_revision", "analyzer_revision", "analyzer_version", "coverage_seconds", "coverage_ratio",
+		"duration_seconds", "total_duration", "sample_rate", "channel_count", "channels",
+		"expected_sample_count", "analyzed_sample_count", "nonzero_count", "sum_abs", "max_abs",
+		"nan_count", "inf_count", "evidence_ref", "algorithm", "approximate")
+	if status != "ready" && status != "partial" && status != "suspect" {
+		return out
+	}
+	for _, key := range []string{"peak", "peak_abs", "peak_dbfs", "rms", "rms_dbfs", "integrated_lufs", "approximate_lufs", "crest_factor", "crest_db"} {
+		if value, ok := row[key]; ok && !isEmptyFeatureValue(value) {
+			out[key] = round3(numberFromMap(row, key))
+		}
+	}
+	return out
+}
+
+func buildL2RenderProbeSummary(row map[string]any) map[string]any {
+	status := featureStatus(row)
+	out := map[string]any{
+		"status": status,
+	}
+	copyOptionalFeatureFields(out, row,
+		"schema_version", "feature_type", "layer", "source_kind", "reason", "source", "updated_at",
+		"track_id", "clip_id", "target", "request_id", "tap_point", "render_mode", "quality_status",
+		"quality_reason", "quality_evidence", "source_identity", "source_revision", "clip_revision",
+		"render_revision", "analyzer_revision", "duration_seconds", "sample_rate", "channel_count",
+		"analyzed_range", "evidence_ref")
+	if status != "ready" && status != "partial" && status != "suspect" {
+		return out
+	}
+	copyOptionalFeatureFields(out, row, "bands", "balance_state", "correlation_state")
+	for _, key := range []string{"peak_abs", "peak_dbfs", "rms", "rms_dbfs", "headroom_db", "crest_db", "left_level_db", "right_level_db", "balance_db", "correlation_estimate"} {
+		if value, ok := row[key]; ok && !isEmptyFeatureValue(value) {
+			out[key] = round3(numberFromMap(row, key))
+		}
+	}
+	return out
+}
+
+func copyOptionalFeatureFields(dst, src map[string]any, keys ...string) {
+	for _, key := range keys {
+		if value, ok := src[key]; ok && !isEmptyFeatureValue(value) {
+			dst[key] = value
+		}
+	}
+}
+
+func isEmptyFeatureValue(value any) bool {
+	if value == nil {
+		return true
+	}
+	text := strings.TrimSpace(fmt.Sprint(value))
+	return text == "" || text == "<nil>"
+}
+
+func observationStatusFromFeatures(duration float64, waveformStatus, spectrogramStatus string) string {
+	if duration <= 0 {
+		return "unavailable"
+	}
+	if waveformStatus == "ready" {
+		return "ready"
+	}
+	if spectrogramStatus == "ready" || spectrogramStatus == "partial" {
+		return "partial"
+	}
+	return "partial"
 }
 
 func buildEnvironmentPackage(req Request, duration, segment, frame float64, tempo *float64, caps map[string]string, snap featureSnapshot) map[string]any {
@@ -640,7 +1852,7 @@ func buildEnvironmentPackage(req Request, duration, segment, frame float64, temp
 	}
 }
 
-func buildMixPackage(req Request, observationStatus, waveformStatus string, waveformMetrics map[string]any, timeSegments []map[string]any, bandEnergy map[string]any, stereoRelation map[string]any, caps map[string]string) map[string]any {
+func buildMixPackage(req Request, observationStatus, waveformStatus string, waveformMetrics map[string]any, timeSegments []map[string]any, bandEnergy map[string]any, stereoRelation map[string]any, loudness map[string]any, realtimeBandEnergy map[string]any, realtimeStereoRelation map[string]any, l2RenderProbe map[string]any, caps map[string]string) map[string]any {
 	status := "limited"
 	if observationStatus == "ready" && waveformStatus == "ready" {
 		status = "baseline_ready"
@@ -655,7 +1867,10 @@ func buildMixPackage(req Request, observationStatus, waveformStatus string, wave
 	if cleanAnyString(stereoRelation["status"]) != "ready" {
 		missing = append(missing, "stereo_correlation")
 	}
-	missing = append(missing, "before_after_delta")
+	if cleanAnyString(loudness["status"]) != "ready" {
+		missing = append(missing, "loudness_summary")
+	}
+	missing = append(missing, "before_after_delta", "ab_result")
 	timeEnergyStatus := "missing"
 	if len(timeSegments) > 0 {
 		timeEnergyStatus = "ready"
@@ -671,6 +1886,12 @@ func buildMixPackage(req Request, observationStatus, waveformStatus string, wave
 			"time_energy":     capRows(timeSegments, 48),
 			"band_energy":     bandEnergy,
 			"stereo_relation": stereoRelation,
+			"loudness":        loudness,
+		},
+		"realtime_metrics": map[string]any{
+			"band_energy":     realtimeBandEnergy,
+			"stereo_relation": realtimeStereoRelation,
+			"render_probe":    l2RenderProbe,
 		},
 		"available_controls": []string{
 			"gain_staging_observation",
@@ -682,11 +1903,17 @@ func buildMixPackage(req Request, observationStatus, waveformStatus string, wave
 		},
 		"missing_metrics": missing,
 		"source_capabilities": map[string]string{
-			"waveform_envelope":  caps["waveform_envelope"],
-			"time_energy":        timeEnergyStatus,
-			"band_energy":        cleanAnyString(bandEnergy["status"]),
-			"stereo_correlation": cleanAnyString(stereoRelation["status"]),
-			"before_after_delta": "missing",
+			"waveform_envelope":        caps["waveform_envelope"],
+			"time_energy":              timeEnergyStatus,
+			"band_energy":              cleanAnyString(bandEnergy["status"]),
+			"stereo_correlation":       cleanAnyString(stereoRelation["status"]),
+			"loudness_summary":         cleanAnyString(loudness["status"]),
+			"realtime_band_energy":     cleanAnyString(realtimeBandEnergy["status"]),
+			"realtime_stereo_relation": cleanAnyString(realtimeStereoRelation["status"]),
+			"l2_render_probe":          cleanAnyString(l2RenderProbe["status"]),
+			"post_fx_probe":            caps["post_fx_probe"],
+			"before_after_delta":       "missing",
+			"ab_result":                "missing",
 		},
 	}
 }
@@ -702,15 +1929,27 @@ func applyBeforeAfterDelta(obs *ObservationPacket, before ObservationPacket, ok 
 		obs.MixPackage["current_metrics"] = metrics
 	}
 	metrics["before_after_delta"] = delta
+	abResult := buildABResultComparison(before, *obs, ok, now)
+	metrics["ab_result"] = abResult
 	caps, _ := obs.MixPackage["source_capabilities"].(map[string]string)
 	if caps == nil {
 		caps = map[string]string{}
 		obs.MixPackage["source_capabilities"] = caps
 	}
 	caps["before_after_delta"] = featureStatus(delta)
+	caps["ab_result"] = featureStatus(abResult)
+	if obs.SourceCapabilities == nil {
+		obs.SourceCapabilities = map[string]string{}
+	}
+	obs.SourceCapabilities["before_after_delta"] = featureStatus(delta)
+	obs.SourceCapabilities["ab_result"] = featureStatus(abResult)
 	obs.MixPackage["missing_metrics"] = removeStringFromAnySlice(obs.MixPackage["missing_metrics"], "before_after_delta")
 	if featureStatus(delta) != "ready" {
 		obs.MixPackage["missing_metrics"] = appendStringIfMissing(obs.MixPackage["missing_metrics"], "before_after_delta")
+	}
+	obs.MixPackage["missing_metrics"] = removeStringFromAnySlice(obs.MixPackage["missing_metrics"], "ab_result")
+	if featureStatus(abResult) != "ready" {
+		obs.MixPackage["missing_metrics"] = appendStringIfMissing(obs.MixPackage["missing_metrics"], "ab_result")
 	}
 }
 
@@ -760,6 +1999,266 @@ func buildBeforeAfterDelta(before, after ObservationPacket, ok bool, now string)
 func mixCurrentMetrics(obs ObservationPacket) map[string]any {
 	metrics, _ := obs.MixPackage["current_metrics"].(map[string]any)
 	return metrics
+}
+
+func buildABResultComparison(before, after ObservationPacket, ok bool, now string) map[string]any {
+	if !ok || strings.TrimSpace(before.ObservationID) == "" {
+		return map[string]any{
+			"schema_version": "mom_ab_result.v1",
+			"status":         "missing",
+			"reason":         "no_previous_mix_observation",
+			"updated_at":     now,
+		}
+	}
+	beforeProbe := observationRenderProbe(before)
+	afterProbe := observationRenderProbe(after)
+	out := map[string]any{
+		"schema_version":         "mom_ab_result.v1",
+		"source":                 "mixboard.l2_render_probe_ab",
+		"before_observation_id":  before.ObservationID,
+		"after_observation_id":   after.ObservationID,
+		"before_round":           before.Round,
+		"after_round":            after.Round,
+		"before_evidence_ref":    renderProbeEvidenceRef(beforeProbe),
+		"after_evidence_ref":     renderProbeEvidenceRef(afterProbe),
+		"before_render_revision": cleanAnyString(beforeProbe["render_revision"]),
+		"after_render_revision":  cleanAnyString(afterProbe["render_revision"]),
+		"tap_point":              cleanAnyString(afterProbe["tap_point"]),
+		"render_mode":            cleanAnyString(afterProbe["render_mode"]),
+		"updated_at":             now,
+	}
+	if goal := cleanAnyString(after.MixPackage["goal_text"]); goal != "" {
+		out["action_summary"] = goal
+	}
+	status, reason, gates := abResultQualityGate(beforeProbe, afterProbe)
+	out["status"] = status
+	if reason != "" {
+		out["reason"] = reason
+	}
+	out["quality_gates"] = gates
+	if status == "ready" {
+		out["delta"] = abRenderProbeDelta(beforeProbe, afterProbe)
+		out["summary_tags"] = abResultSummaryTags(mapValue(out["delta"]))
+		out["summary"] = abResultSummary(stringsFromAny(out["summary_tags"]))
+	} else if len(beforeProbe) == 0 || len(afterProbe) == 0 {
+		out["delta"] = map[string]any{}
+	} else {
+		out["delta"] = abRenderProbeDelta(beforeProbe, afterProbe)
+	}
+	return out
+}
+
+func observationRenderProbe(obs ObservationPacket) map[string]any {
+	realtime, _ := obs.MixPackage["realtime_metrics"].(map[string]any)
+	if row := mapValue(realtime["render_probe"]); len(row) > 0 {
+		return row
+	}
+	current, _ := obs.MixPackage["current_metrics"].(map[string]any)
+	if row := mapValue(current["render_probe"]); len(row) > 0 {
+		return row
+	}
+	if row := mapValue(mapValue(obs.GlobalSummary["feature_snapshot"])["l2_render_probe"]); len(row) > 0 {
+		return buildL2RenderProbeSummary(row)
+	}
+	return nil
+}
+
+func renderProbeEvidenceRef(row map[string]any) string {
+	if len(row) == 0 {
+		return ""
+	}
+	if ref := cleanAnyString(row["evidence_ref"]); ref != "" {
+		return ref
+	}
+	if renderRevision := cleanAnyString(row["render_revision"]); renderRevision != "" {
+		return "dad.l2_render_probe:" + renderRevision
+	}
+	return ""
+}
+
+func abResultQualityGate(beforeProbe, afterProbe map[string]any) (string, string, map[string]any) {
+	gates := map[string]any{
+		"before_probe_present":    len(beforeProbe) > 0,
+		"after_probe_present":     len(afterProbe) > 0,
+		"before_status_ready":     featureStatus(beforeProbe) == "ready",
+		"after_status_ready":      featureStatus(afterProbe) == "ready",
+		"same_tap_point":          false,
+		"same_render_mode":        false,
+		"render_revision_changed": false,
+		"before_evidence_ref":     renderProbeEvidenceRef(beforeProbe) != "",
+		"after_evidence_ref":      renderProbeEvidenceRef(afterProbe) != "",
+		"before_quality_trusted":  renderProbeQualityTrusted(beforeProbe),
+		"after_quality_trusted":   renderProbeQualityTrusted(afterProbe),
+		"raw_payload_excluded":    renderProbeRawPayloadExcluded(beforeProbe) && renderProbeRawPayloadExcluded(afterProbe),
+	}
+	if len(beforeProbe) == 0 || len(afterProbe) == 0 {
+		return "missing", "render_probe_missing", gates
+	}
+	beforeTap := cleanAnyString(beforeProbe["tap_point"])
+	afterTap := cleanAnyString(afterProbe["tap_point"])
+	gates["same_tap_point"] = beforeTap != "" && beforeTap == afterTap
+	beforeMode := cleanAnyString(beforeProbe["render_mode"])
+	afterMode := cleanAnyString(afterProbe["render_mode"])
+	gates["same_render_mode"] = beforeMode != "" && beforeMode == afterMode
+	beforeRevision := cleanAnyString(beforeProbe["render_revision"])
+	afterRevision := cleanAnyString(afterProbe["render_revision"])
+	gates["render_revision_changed"] = beforeRevision != "" && afterRevision != "" && beforeRevision != afterRevision
+	if featureStatus(beforeProbe) == "stale" || featureStatus(afterProbe) == "stale" {
+		return "stale", "render_probe_stale", gates
+	}
+	if beforeRevision == "" || afterRevision == "" {
+		return "missing", "render_revision_missing", gates
+	}
+	if beforeRevision == afterRevision {
+		return "stale", "render_revision_not_changed", gates
+	}
+	if beforeTap == "" || afterTap == "" || beforeTap != afterTap {
+		return "suspect", "tap_point_mismatch", gates
+	}
+	if beforeMode == "" || afterMode == "" || beforeMode != afterMode {
+		return "suspect", "render_mode_mismatch", gates
+	}
+	if renderProbeEvidenceRef(beforeProbe) == "" || renderProbeEvidenceRef(afterProbe) == "" {
+		return "suspect", "evidence_ref_missing", gates
+	}
+	if featureStatus(beforeProbe) != "ready" || featureStatus(afterProbe) != "ready" {
+		return "suspect", "render_probe_not_ready", gates
+	}
+	if !renderProbeQualityTrusted(beforeProbe) || !renderProbeQualityTrusted(afterProbe) {
+		return "suspect", "quality_evidence_failed", gates
+	}
+	if !renderProbeRawPayloadExcluded(beforeProbe) || !renderProbeRawPayloadExcluded(afterProbe) {
+		return "suspect", "raw_payload_present", gates
+	}
+	return "ready", "", gates
+}
+
+func renderProbeQualityTrusted(row map[string]any) bool {
+	if len(row) == 0 {
+		return false
+	}
+	qualityStatus := strings.ToLower(cleanAnyString(row["quality_status"]))
+	if qualityStatus != "" && qualityStatus != "ready" {
+		return false
+	}
+	evidence := mapValue(row["quality_evidence"])
+	if len(evidence) == 0 {
+		return false
+	}
+	if value, ok := boolFromAnyOK(evidence["nonzero"]); ok && !value {
+		return false
+	}
+	if numberFromMap(evidence, "sum_abs") <= 0 || numberFromMap(evidence, "max_abs") <= 0 {
+		return false
+	}
+	if numberFromMap(evidence, "nan_inf_count") > 0 {
+		return false
+	}
+	if coverage := numberFromMap(evidence, "coverage"); coverage <= 0 {
+		return false
+	}
+	for _, key := range []string{"latency_compensated", "tail_captured", "deterministic"} {
+		if value, ok := boolFromAnyOK(evidence[key]); ok && !value {
+			return false
+		}
+	}
+	return true
+}
+
+func renderProbeRawPayloadExcluded(row map[string]any) bool {
+	if len(row) == 0 {
+		return true
+	}
+	for _, key := range []string{"raw_waveform", "raw_samples", "time_segments", "spectral_tiles", "shared_memory", "render_file_path", "render_path"} {
+		if value, ok := row[key]; ok && !isEmptyFeatureValue(value) {
+			return false
+		}
+	}
+	return true
+}
+
+func abRenderProbeDelta(beforeProbe, afterProbe map[string]any) map[string]any {
+	out := map[string]any{}
+	if levels := metricDeltaBlock(beforeProbe, afterProbe, []string{"peak_dbfs", "rms_dbfs", "headroom_db", "crest_db", "peak_abs", "rms"}); len(levels) > 0 {
+		out["levels"] = levels
+	}
+	if bands := bandEnergyDelta(beforeProbe, afterProbe); len(bands) > 0 {
+		out["bands"] = bands
+	}
+	if stereo := metricDeltaBlock(beforeProbe, afterProbe, []string{"balance_db", "correlation_estimate", "left_level_db", "right_level_db"}); len(stereo) > 0 {
+		out["stereo"] = stereo
+	}
+	if risk := abRiskDelta(beforeProbe, afterProbe); len(risk) > 0 {
+		out["risk"] = risk
+	}
+	return out
+}
+
+func abRiskDelta(beforeProbe, afterProbe map[string]any) map[string]any {
+	beforePeak := numberFromMap(beforeProbe, "peak_dbfs")
+	afterPeak := numberFromMap(afterProbe, "peak_dbfs")
+	beforeRisk := peakRiskLabel(beforePeak)
+	afterRisk := peakRiskLabel(afterPeak)
+	if beforeRisk == "" && afterRisk == "" {
+		return nil
+	}
+	return map[string]any{
+		"peak_risk_before": beforeRisk,
+		"peak_risk_after":  afterRisk,
+		"changed":          beforeRisk != afterRisk,
+	}
+}
+
+func peakRiskLabel(peakDBFS float64) string {
+	if peakDBFS == 0 {
+		return ""
+	}
+	switch {
+	case peakDBFS >= -0.1:
+		return "clip_risk"
+	case peakDBFS >= -1.0:
+		return "hot"
+	case peakDBFS <= -18.0:
+		return "very_low"
+	default:
+		return "normal"
+	}
+}
+
+func abResultSummaryTags(delta map[string]any) []string {
+	tags := []string{}
+	levels := mapValue(delta["levels"])
+	if row := mapValue(levels["peak_dbfs"]); math.Abs(numberFromMap(row, "delta")) >= 0.5 {
+		tags = append(tags, "peak_changed")
+	}
+	if row := mapValue(levels["rms_dbfs"]); math.Abs(numberFromMap(row, "delta")) >= 0.5 {
+		tags = append(tags, "rms_changed")
+	}
+	bands := mapValue(delta["bands"])
+	for id, raw := range bands {
+		row := mapValue(raw)
+		if energyDB := mapValue(row["energy_db"]); math.Abs(numberFromMap(energyDB, "delta")) >= 1.0 {
+			tags = append(tags, "band_"+id+"_changed")
+		}
+	}
+	stereo := mapValue(delta["stereo"])
+	if row := mapValue(stereo["balance_db"]); math.Abs(numberFromMap(row, "delta")) >= 0.5 {
+		tags = append(tags, "stereo_balance_changed")
+	}
+	if row := mapValue(stereo["correlation_estimate"]); math.Abs(numberFromMap(row, "delta")) >= 0.05 {
+		tags = append(tags, "stereo_correlation_changed")
+	}
+	if len(tags) == 0 {
+		tags = append(tags, "no_significant_change")
+	}
+	return tags
+}
+
+func abResultSummary(tags []string) string {
+	if len(tags) == 0 || (len(tags) == 1 && tags[0] == "no_significant_change") {
+		return "同一 tap point 的 L2 Render Probe AB 对比显示变化很小。"
+	}
+	return "同一 tap point 的 L2 Render Probe AB 对比显示已产生可测变化。"
 }
 
 func metricDeltaBlock(beforeValue, afterValue any, keys []string) map[string]any {
@@ -869,6 +2368,74 @@ func beforeAfterDeltaSummary(tags []string) string {
 	return "本轮相对上一轮已有可测声学变化。"
 }
 
+func (s Store) readPreviousObservation(sessionDir string, args map[string]any) (ObservationPacket, bool) {
+	previousID := cleanAnyString(args["previous_observation"])
+	if previousID == "" {
+		previousID = cleanAnyString(args["previous_observation_id"])
+	}
+	previousID = normalizeObservationRef(previousID)
+	if previousID != "" {
+		if obs, ok := readObservationByID(sessionDir, previousID); ok {
+			return obs, true
+		}
+		if obs, ok := readObservationByIDAcrossRoot(s.Root, previousID); ok {
+			return obs, true
+		}
+	}
+	return readLatestObservation(sessionDir)
+}
+
+func normalizeObservationRef(ref string) string {
+	ref = strings.TrimSpace(ref)
+	ref = strings.TrimPrefix(ref, "observation:")
+	ref = strings.TrimPrefix(ref, "observation_id:")
+	ref = strings.TrimSpace(ref)
+	if ref == "" {
+		return ""
+	}
+	if strings.HasSuffix(strings.ToLower(ref), ".json") {
+		ref = strings.TrimSuffix(filepath.Base(ref), filepath.Ext(ref))
+	}
+	return ref
+}
+
+func readObservationByID(sessionDir, observationID string) (ObservationPacket, bool) {
+	observationID = normalizeObservationRef(observationID)
+	if observationID == "" {
+		return ObservationPacket{}, false
+	}
+	return readObservationPacket(filepath.Join(sessionDir, "observations", observationID+".json"))
+}
+
+func readObservationByIDAcrossRoot(root, observationID string) (ObservationPacket, bool) {
+	observationID = normalizeObservationRef(observationID)
+	if strings.TrimSpace(root) == "" || observationID == "" {
+		return ObservationPacket{}, false
+	}
+	matches, err := filepath.Glob(filepath.Join(root, "*", "observations", observationID+".json"))
+	if err != nil {
+		return ObservationPacket{}, false
+	}
+	for _, path := range matches {
+		if obs, ok := readObservationPacket(path); ok {
+			return obs, true
+		}
+	}
+	return ObservationPacket{}, false
+}
+
+func readObservationPacket(path string) (ObservationPacket, bool) {
+	path = strings.TrimSpace(path)
+	if path == "" {
+		return ObservationPacket{}, false
+	}
+	obs, err := readObservationFile(path)
+	if err != nil {
+		return ObservationPacket{}, false
+	}
+	return obs, true
+}
+
 func readLatestObservation(sessionDir string) (ObservationPacket, bool) {
 	boardPath := filepath.Join(sessionDir, "current.json")
 	data, err := os.ReadFile(boardPath)
@@ -883,15 +2450,7 @@ func readLatestObservation(sessionDir string) (ObservationPacket, bool) {
 	if path == "" {
 		return ObservationPacket{}, false
 	}
-	obsData, err := os.ReadFile(path)
-	if err != nil || len(obsData) == 0 {
-		return ObservationPacket{}, false
-	}
-	var obs ObservationPacket
-	if err := json.Unmarshal(obsData, &obs); err != nil {
-		return ObservationPacket{}, false
-	}
-	return obs, true
+	return readObservationPacket(path)
 }
 
 func removeStringFromAnySlice(value any, target string) []string {
@@ -917,25 +2476,496 @@ func appendStringIfMissing(value any, item string) []string {
 }
 
 func buildDeepPackage(spectrogramStatus string, snap featureSnapshot) map[string]any {
+	bandStatus := featureStatus(snap.BandEnergySummary)
+	stereoStatus := featureStatus(snap.StereoRelationSummary)
+	loudnessStatus := featureStatus(snap.LoudnessSummary)
+	l2RenderProbeStatus := featureStatus(snap.L2RenderProbe)
 	status := "async_missing"
-	if spectrogramStatus == "ready" || spectrogramStatus == "partial" {
+	if spectrogramStatus == "ready" {
 		status = "async_available"
+	} else if spectrogramStatus == "partial" {
+		status = "async_partial"
+	} else if bandStatus == "ready" || stereoStatus == "ready" || loudnessStatus == "ready" {
+		status = "async_available"
+	} else if bandStatus == "partial" || stereoStatus == "partial" || loudnessStatus == "partial" || loudnessStatus == "suspect" {
+		status = "async_partial"
 	}
 	return map[string]any{
 		"schema_version": "mixboard_deep_packet.v1",
 		"status":         status,
 		"role":           "slow_context_refresh",
 		"source_capabilities": map[string]string{
-			"deep_band_observation": spectrogramStatus,
+			"spectrogram_tiles":     spectrogramStatus,
+			"deep_band_observation": bandStatus,
+			"stereo_relation":       stereoStatus,
+			"loudness_summary":      loudnessStatus,
 			"section_detection":     "heuristic",
-			"masking_analysis":      "missing",
-			"reference_match":       "missing",
-			"lufs_analysis":         "missing",
+			"masking_analysis":      "deferred",
+			"reference_match":       "deferred",
+			"lufs_analysis":         "deferred",
+			"l2_render_probe":       l2RenderProbeStatus,
+			"post_fx_probe":         postFXProbeCapability(l2RenderProbeStatus),
 		},
 		"feature_snapshot": map[string]any{
-			"spectrogram_tiles": compactFeatureRow(snap.SpectrogramTiles),
+			"spectrogram_tiles":       compactFeatureRow(snap.SpectrogramTiles),
+			"band_energy_summary":     compactFeatureRow(snap.BandEnergySummary),
+			"stereo_relation_summary": compactFeatureRow(snap.StereoRelationSummary),
+			"loudness_summary":        compactFeatureRow(snap.LoudnessSummary),
 		},
 	}
+}
+
+func observationWantsBandStereoProjection(args map[string]any) bool {
+	projection := strings.ToLower(strings.TrimSpace(cleanAnyString(args["projection"])))
+	switch projection {
+	case "frequency_stereo", "band_stereo", "band_stereo_status", "frequency_stereo_status":
+		return !argBoolDefault(args["include_raw"], true)
+	}
+	keys := stringSetFromAny(args["feature_keys"])
+	if len(keys) == 0 {
+		return false
+	}
+	hasBand := keys["band_energy_summary"] || keys["band_energy"]
+	hasStereo := keys["stereo_relation_summary"] || keys["stereo_relation"]
+	hasSpectral := keys["spectrogram_tiles"] || keys["spectral_field"]
+	return hasBand && hasStereo && hasSpectral && !argBoolDefault(args["include_raw"], true)
+}
+
+func applyBandStereoProjection(obs *ObservationPacket, req Request) {
+	if obs == nil {
+		return
+	}
+	sourceIdentity := observationSourceIdentity(*obs)
+	metrics := mapValue(obs.MixPackage["current_metrics"])
+	realtimeMetrics := mapValue(obs.MixPackage["realtime_metrics"])
+	band := compactProjectedBandEnergy(mapValue(metrics["band_energy"]))
+	stereo := compactProjectedStereoRelation(mapValue(metrics["stereo_relation"]))
+	loudness := compactProjectedLoudness(mapValue(metrics["loudness"]))
+	realtimeBand := compactProjectedBandEnergy(mapValue(realtimeMetrics["band_energy"]))
+	realtimeStereo := compactProjectedStereoRelation(mapValue(realtimeMetrics["stereo_relation"]))
+	spectral := projectedSpectrogramStatus(*obs)
+	projectedFeatureSnapshot := projectedFeatureSnapshot(*obs, spectral, band, stereo, loudness, realtimeBand, realtimeStereo)
+	acousticStatus := compactAcousticStatusForDigest(obs.AcousticPackageStatus)
+	projectedCaps := projectedSourceCapabilities(obs.SourceCapabilities)
+	obs.SourceCapabilities = projectedCaps
+
+	obs.GlobalSummary = map[string]any{
+		"projection":                       "frequency_stereo",
+		"source_identity":                  sourceIdentity,
+		"acoustic_package_status":          acousticStatus,
+		"spectrogram_tiles":                spectral,
+		"band_energy_summary":              band,
+		"stereo_relation_summary":          stereo,
+		"loudness_summary":                 loudness,
+		"realtime_band_energy_summary":     realtimeBand,
+		"realtime_stereo_relation_summary": realtimeStereo,
+		"feature_snapshot":                 projectedFeatureSnapshot,
+	}
+
+	currentMetrics := map[string]any{
+		"band_energy":     band,
+		"stereo_relation": stereo,
+		"loudness":        loudness,
+	}
+	obs.MixPackage["current_metrics"] = currentMetrics
+	obs.MixPackage["realtime_metrics"] = map[string]any{
+		"band_energy":     realtimeBand,
+		"stereo_relation": realtimeStereo,
+	}
+	obs.MixPackage["projection"] = "frequency_stereo"
+	obs.MixPackage["goal_text"] = strings.TrimSpace(req.GoalText)
+	obs.MixPackage["missing_metrics"] = projectedMissingMetrics(obs.MixPackage["missing_metrics"])
+
+	obs.EnvironmentPackage = map[string]any{
+		"schema_version":          "mixboard_environment.v1",
+		"status":                  obs.EnvironmentPackage["status"],
+		"role":                    "environment",
+		"target_ref":              obs.TargetRef,
+		"listen_scope":            obs.ListenScope,
+		"time_ruler":              obs.TimeRuler,
+		"source_capabilities":     projectedCaps,
+		"source_identity":         sourceIdentity,
+		"acoustic_package_status": acousticStatus,
+	}
+	projectPackage := map[string]any{
+		"schema_version":              "mixboard_project_packet.v1",
+		"status":                      obs.ProjectPackage["status"],
+		"role":                        "project_context",
+		"duration_seconds":            obs.ProjectPackage["duration_seconds"],
+		"track_count":                 obs.ProjectPackage["track_count"],
+		"active_track_count":          obs.ProjectPackage["active_track_count"],
+		"acoustic_track_count":        obs.ProjectPackage["acoustic_track_count"],
+		"active_acoustic_track_count": obs.ProjectPackage["active_acoustic_track_count"],
+		"summary":                     obs.ProjectPackage["summary"],
+		"source_identity":             sourceIdentity,
+		"relationship_inputs":         compactKeys(mapValue(obs.ProjectPackage["relationship_inputs"]), []string{"status", "track_count", "tracks_with_acoustic"}),
+		"limitations":                 obs.ProjectPackage["limitations"],
+	}
+	if projectionShouldIncludeProjectTracks(*obs) {
+		projectPackage["tracks"] = projectedProjectTracks(obs.ProjectPackage)
+	}
+	obs.ProjectPackage = projectPackage
+	obs.DeepPackage = map[string]any{
+		"schema_version":          "mixboard_deep_packet.v1",
+		"status":                  obs.DeepPackage["status"],
+		"role":                    "slow_context_refresh",
+		"source_capabilities":     obs.DeepPackage["source_capabilities"],
+		"source_identity":         sourceIdentity,
+		"acoustic_package_status": acousticStatus,
+		"feature_snapshot":        projectedFeatureSnapshot,
+	}
+	obs.TimelineDigest = nil
+	obs.SectionCandidates = nil
+	obs.Hotspots = projectedHotspots(obs.Hotspots)
+	obs.Notes = append(obs.Notes, "Observation projection frequency_stereo returned band/stereo/package readiness without raw waveform time segments.")
+}
+
+func finalizeMOMProjection(obs *ObservationPacket, req Request) {
+	if obs == nil {
+		return
+	}
+	projection := mom.Build(momInputFromObservation(*obs, req))
+	obs.MOMProjection = &projection
+}
+
+func momInputFromObservation(obs ObservationPacket, req Request) mom.Input {
+	args := copyAnyMap(req.Args)
+	if goal := strings.TrimSpace(req.GoalText); goal != "" {
+		args["goal_text"] = goal
+	}
+	if _, ok := args["projection"]; !ok {
+		if projection := cleanAnyString(obs.MixPackage["projection"]); projection != "" {
+			args["projection"] = projection
+		}
+	}
+	return mom.Input{
+		ObservationID:         obs.ObservationID,
+		MixSessionID:          obs.MixSessionID,
+		CreatedAt:             obs.CreatedAt,
+		Args:                  args,
+		TargetRef:             mom.ToMap(obs.TargetRef),
+		ListenScope:           mom.ToMap(obs.ListenScope),
+		TimeRuler:             mom.ToMap(obs.TimeRuler),
+		GlobalSummary:         obs.GlobalSummary,
+		EnvironmentPackage:    obs.EnvironmentPackage,
+		ProjectPackage:        obs.ProjectPackage,
+		MixPackage:            obs.MixPackage,
+		DeepPackage:           obs.DeepPackage,
+		AcousticPackageStatus: obs.AcousticPackageStatus,
+		SourceCapabilities:    stringMapToAnyMap(obs.SourceCapabilities),
+	}
+}
+
+func copyAnyMap(in map[string]any) map[string]any {
+	out := map[string]any{}
+	for key, value := range in {
+		out[key] = value
+	}
+	return out
+}
+
+func stringMapToAnyMap(in map[string]string) map[string]any {
+	out := make(map[string]any, len(in))
+	for key, value := range in {
+		out[key] = value
+	}
+	return out
+}
+
+func filterBandStereoProjectionCatalog(obs *ObservationPacket) {
+	if obs == nil {
+		return
+	}
+	entries := make([]CatalogEntry, 0, len(obs.Catalog.Entries))
+	for _, entry := range obs.Catalog.Entries {
+		if entry.Key == "observation.digest" ||
+			entry.Key == "observation.mom_projection" ||
+			entry.Key == "project.limitations" ||
+			strings.Contains(entry.Key, ".static.identity") ||
+			strings.Contains(entry.Key, ".slow.band_energy.summary") ||
+			strings.Contains(entry.Key, ".slow.stereo.summary") ||
+			strings.Contains(entry.Key, ".realtime.band_energy.summary") ||
+			strings.Contains(entry.Key, ".realtime.stereo.summary") {
+			entries = append(entries, entry)
+		}
+	}
+	obs.Catalog.Entries = entries
+}
+
+func stripObservationRawKeys(obs *ObservationPacket) {
+	if obs == nil {
+		return
+	}
+	stripMapRawKeys(obs.GlobalSummary)
+	stripMapRawKeys(obs.EnvironmentPackage)
+	stripMapRawKeys(obs.ProjectPackage)
+	stripMapRawKeys(obs.MixPackage)
+	stripMapRawKeys(obs.DeepPackage)
+	stripMapRawKeys(obs.Digest)
+}
+
+func stripMapRawKeys(row map[string]any) {
+	for key, value := range row {
+		if key == "time_segments" || key == "time_energy" || key == "track_waveform_envelopes" || key == "waveform_envelope" ||
+			key == "project_track_waveforms" || key == "full_project_acoustic_render" || key == "raw_ranges" ||
+			key == "raw_waveform" || key == "raw_samples" || key == "spectral_tiles" || key == "render_file_path" || key == "render_path" || key == "shared_memory" {
+			delete(row, key)
+			continue
+		}
+		switch typed := value.(type) {
+		case map[string]any:
+			stripMapRawKeys(typed)
+		case []map[string]any:
+			for _, child := range typed {
+				stripMapRawKeys(child)
+			}
+		case []any:
+			for _, child := range typed {
+				if childMap, ok := child.(map[string]any); ok {
+					stripMapRawKeys(childMap)
+				}
+			}
+		}
+	}
+}
+
+func projectedSourceCapabilities(caps map[string]string) map[string]string {
+	out := map[string]string{}
+	for _, key := range []string{"spectrogram_tiles", "band_energy", "stereo_relation", "loudness_summary", "realtime_band_energy", "realtime_stereo_relation", "l2_render_probe", "lufs_analysis", "masking_analysis", "reference_match", "post_fx_probe"} {
+		if value := strings.TrimSpace(caps[key]); value != "" {
+			out[key] = value
+		}
+	}
+	return out
+}
+
+func observationSourceIdentity(obs ObservationPacket) map[string]any {
+	if status := mapValue(obs.AcousticPackageStatus); len(status) > 0 {
+		if identity := mapValue(status["source_identity"]); len(identity) > 0 {
+			return compactKeys(identity, []string{"project_id", "session_id", "track_id", "clip_id", "source_path", "source_hash", "source_fingerprint", "source_revision", "clip_revision", "render_revision", "analyzer_revision", "duration_seconds", "clip_start_seconds"})
+		}
+		out := compactKeys(status, []string{"project_id", "session_id", "track_id", "clip_id", "source_path", "source_hash", "source_fingerprint", "source_revision", "clip_revision", "render_revision", "analyzer_revision", "duration_seconds", "clip_start_seconds"})
+		if len(out) > 0 {
+			return out
+		}
+	}
+	return map[string]any{
+		"track_id":    obs.TargetRef.ID,
+		"target_kind": obs.TargetRef.Kind,
+	}
+}
+
+func projectedSpectrogramStatus(obs ObservationPacket) map[string]any {
+	if status := mapValue(obs.AcousticPackageStatus); len(status) > 0 {
+		layers := mapValue(status["package_layers"])
+		l3 := mapValue(layers["l3_deep"])
+		features := mapValue(l3["features"])
+		if spectral := mapValue(features["spectrogram_tiles"]); len(spectral) > 0 {
+			out := compactKeys(spectral, []string{"status", "reason", "updated_at"})
+			if progress := mapValue(spectral["progress"]); len(progress) > 0 {
+				out["progress"] = compactKeys(progress, []string{"tile_count_seen", "tile_count_expected", "coverage_seconds", "coverage_ratio", "updated_at", "reason"})
+			}
+			if ref := mapValue(spectral["ref"]); len(ref) > 0 {
+				out["ref"] = compactKeys(ref, []string{"request_id", "track_id", "clip_id", "file_path", "source_revision", "source_fingerprint", "source_hash", "clip_revision", "tile_count_seen", "tile_count_expected", "coverage_seconds", "coverage_ratio", "total_duration", "updated_at"})
+			}
+			return out
+		}
+	}
+	featureSnap := mapValue(obs.DeepPackage["feature_snapshot"])
+	return compactFeatureRow(mapValue(featureSnap["spectrogram_tiles"]))
+}
+
+func projectedFeatureSnapshot(obs ObservationPacket, spectral, band, stereo, loudness, realtimeBand, realtimeStereo map[string]any) map[string]any {
+	out := map[string]any{
+		"spectrogram_tiles":                spectral,
+		"band_energy_summary":              band,
+		"stereo_relation_summary":          stereo,
+		"loudness_summary":                 loudness,
+		"realtime_band_energy_summary":     realtimeBand,
+		"realtime_stereo_relation_summary": realtimeStereo,
+	}
+	source := mapValue(obs.GlobalSummary["feature_snapshot"])
+	if latest := compactProjectedFeatureRequest(mapValue(source["latest_request"])); len(latest) > 0 {
+		out["latest_request"] = latest
+	}
+	return out
+}
+
+func compactProjectedFeatureRequest(row map[string]any) map[string]any {
+	return compactKeys(row, []string{"schema_version", "status", "request_id", "requested_features", "resolved_target", "source_kind", "lifecycle", "project_id", "updated_at"})
+}
+
+func projectionShouldIncludeProjectTracks(obs ObservationPacket) bool {
+	if strings.EqualFold(strings.TrimSpace(obs.TargetRef.Kind), "project") {
+		return true
+	}
+	switch strings.ToLower(strings.TrimSpace(obs.ListenScope.Source.Mode)) {
+	case "full_project", "full_project_with_focus_track", "track_group":
+		return true
+	default:
+		return false
+	}
+}
+
+func projectedProjectTracks(project map[string]any) []map[string]any {
+	rows := mapRowsAny(project["tracks"])
+	out := make([]map[string]any, 0, len(rows))
+	for _, track := range rows {
+		if len(track) == 0 {
+			continue
+		}
+		row := compactKeys(track, []string{
+			"track_id", "name", "track_name", "user_label", "user_track_index", "role_guess", "active_state",
+			"clip_count", "plugin_count", "focused", "selected", "mute", "solo", "is_armed",
+			"volume_db", "pan", "level_db", "rms_dbfs", "peak_dbfs", "headroom_db", "crest_db", "left_level_db", "right_level_db",
+		})
+		if acoustic := compactProjectedTrackAcoustic(mapValue(track["acoustic"])); len(acoustic) > 0 {
+			row["acoustic"] = acoustic
+		}
+		if band := compactProjectedBandEnergy(mapValue(track["band_energy"])); len(band) > 0 {
+			row["band_energy"] = band
+		}
+		if stereo := compactProjectedStereoRelation(mapValue(track["stereo_relation"])); len(stereo) > 0 {
+			row["stereo_relation"] = stereo
+		}
+		if loudness := compactProjectedLoudness(mapValue(track["loudness"])); len(loudness) > 0 {
+			row["loudness"] = loudness
+		}
+		out = append(out, row)
+	}
+	return out
+}
+
+func compactProjectedTrackAcoustic(row map[string]any) map[string]any {
+	return compactKeys(row, []string{
+		"status", "track_id", "clip_id", "primary_clip_id", "primary_clip_name",
+		"source", "source_path", "file_path", "request_id", "rms_dbfs", "peak_dbfs", "headroom_db", "crest_db",
+		"time_energy_status", "reason", "updated_at",
+	})
+}
+
+func compactProjectedBandEnergy(row map[string]any) map[string]any {
+	if len(row) == 0 {
+		return map[string]any{"status": "missing"}
+	}
+	out := compactKeys(row, []string{"schema_version", "status", "reason", "source", "source_kind", "layer", "capture_mode", "tap_point", "capture_time", "time_basis", "quality_status", "quality_reason", "quality_evidence", "source_identity", "source_revision", "clip_revision", "render_revision", "plugin_chain_revision", "fader_revision", "updated_at", "track_id", "clip_id", "target", "request_id", "tile_count_seen", "tile_count_expected", "coverage_seconds", "coverage_ratio", "total_duration", "derivation_status"})
+	if bands := mapValue(row["bands"]); len(bands) > 0 {
+		out["bands"] = bands
+	}
+	return out
+}
+
+func compactProjectedStereoRelation(row map[string]any) map[string]any {
+	if len(row) == 0 {
+		return map[string]any{"status": "missing"}
+	}
+	return compactKeys(row, []string{"schema_version", "status", "reason", "source", "source_kind", "layer", "capture_mode", "tap_point", "capture_time", "time_basis", "quality_status", "quality_reason", "quality_evidence", "source_identity", "source_revision", "clip_revision", "render_revision", "plugin_chain_revision", "fader_revision", "updated_at", "track_id", "clip_id", "target", "request_id", "tile_count_seen", "tile_count_expected", "coverage_seconds", "coverage_ratio", "total_duration", "derivation_status", "left_level_db", "right_level_db", "balance_db", "balance_unit", "balance_state", "phase_deviation", "phase_negative_ratio", "correlation_estimate", "correlation_state", "bin_count", "sample_count", "phase_sample_count"})
+}
+
+func compactProjectedLoudness(row map[string]any) map[string]any {
+	if len(row) == 0 {
+		return map[string]any{"status": "missing"}
+	}
+	return compactKeys(row, []string{
+		"schema_version", "status", "reason", "source", "source_kind", "layer", "quality_status",
+		"quality_reason", "quality_reasons", "quality_evidence", "source_identity", "source_revision",
+		"clip_revision", "render_revision", "analyzer_revision", "analyzer_version", "updated_at",
+		"track_id", "clip_id", "target", "request_id", "duration_seconds", "sample_rate",
+		"channel_count", "channels", "expected_sample_count", "analyzed_sample_count",
+		"coverage_ratio", "nonzero_count", "sum_abs", "max_abs", "nan_count", "inf_count",
+		"peak", "peak_abs", "peak_dbfs", "rms", "rms_dbfs", "integrated_lufs",
+		"approximate_lufs", "approximate", "algorithm", "crest_factor", "crest_db", "evidence_ref",
+	})
+}
+
+func compactAcousticStatusForDigest(status map[string]any) map[string]any {
+	if len(status) == 0 {
+		return nil
+	}
+	out := compactKeys(status, []string{"schema_version", "status", "project_id", "session_id", "track_id", "clip_id", "source_path", "source_hash", "source_fingerprint", "source_revision", "clip_revision", "render_revision", "analyzer_revision", "duration_seconds", "clip_start_seconds", "source_identity", "updated_at"})
+	layers := mapValue(status["package_layers"])
+	if len(layers) == 0 {
+		return out
+	}
+	layerOut := map[string]any{}
+	for _, layerName := range []string{"l1_static", "l2_realtime", "l3_deep"} {
+		layer := mapValue(layers[layerName])
+		if len(layer) == 0 {
+			continue
+		}
+		compactLayer := compactKeys(layer, []string{"status", "reason", "updated_at"})
+		features := mapValue(layer["features"])
+		featureOut := map[string]any{}
+		for name, raw := range features {
+			feature := mapValue(raw)
+			if len(feature) == 0 {
+				continue
+			}
+			row := compactKeys(feature, []string{"status", "reason", "updated_at"})
+			if progress := mapValue(feature["progress"]); len(progress) > 0 {
+				row["progress"] = compactKeys(progress, []string{"tile_count_seen", "tile_count_expected", "coverage_seconds", "coverage_ratio", "updated_at", "reason"})
+			}
+			featureOut[name] = row
+		}
+		if len(featureOut) > 0 {
+			compactLayer["features"] = featureOut
+		}
+		layerOut[layerName] = compactLayer
+	}
+	if len(layerOut) > 0 {
+		out["package_layers"] = layerOut
+	}
+	return out
+}
+
+func projectedMissingMetrics(value any) []string {
+	missing := removeStringFromAnySlice(value, "")
+	out := make([]string, 0, len(missing))
+	for _, item := range missing {
+		switch item {
+		case "band_energy_summary", "stereo_correlation":
+			out = append(out, item)
+		}
+	}
+	return out
+}
+
+func projectedHotspots(rows []map[string]any) []map[string]any {
+	out := make([]map[string]any, 0, len(rows))
+	for _, row := range rows {
+		tag := cleanAnyString(row["tag"])
+		if strings.Contains(tag, "spectral") || strings.Contains(tag, "band") || strings.Contains(tag, "stereo") {
+			out = append(out, row)
+		}
+	}
+	return capRows(out, 6)
+}
+
+func argBoolDefault(value any, fallback bool) bool {
+	switch v := value.(type) {
+	case bool:
+		return v
+	case string:
+		text := strings.ToLower(strings.TrimSpace(v))
+		if text == "true" || text == "1" || text == "yes" {
+			return true
+		}
+		if text == "false" || text == "0" || text == "no" {
+			return false
+		}
+	}
+	return fallback
+}
+
+func stringSetFromAny(value any) map[string]bool {
+	out := map[string]bool{}
+	for _, raw := range anySlice(value) {
+		text := strings.ToLower(strings.TrimSpace(fmt.Sprint(raw)))
+		if text != "" && text != "<nil>" {
+			out[text] = true
+		}
+	}
+	return out
 }
 
 func packageStatus(obs ObservationPacket) map[string]string {
@@ -958,11 +2988,36 @@ func buildFeatureHotspots(snap featureSnapshot, waveformStatus, spectrogramStatu
 			})
 		}
 	}
-	if spectrogramStatus == "ready" || spectrogramStatus == "partial" {
+	bandStatus := featureStatus(snap.BandEnergySummary)
+	if spectrogramStatus == "partial" && bandStatus != "ready" && bandStatus != "partial" {
+		out = append(out, map[string]any{
+			"tag":        "spectral_tiles_partial_band_summary_missing",
+			"summary":    "spectral tiles are partial; band-energy diagnosis remains unavailable until a fresh band_energy_summary is ready",
+			"confidence": 0.2,
+		})
+		return out
+	}
+	if bandStatus == "partial" {
+		out = append(out, map[string]any{
+			"tag":        "spectral_tile_derived_band_summary_partial",
+			"summary":    "spectral tiles provide partial band/stereo evidence; coverage is limited to returned tiles",
+			"confidence": 0.28,
+		})
+		return out
+	}
+	if bandStatus == "ready" {
 		out = append(out, map[string]any{
 			"tag":        "deep_band_observation_available",
 			"summary":    "深度频段观察可用，可作为后续精修参考",
 			"confidence": 0.35,
+		})
+		return out
+	}
+	if spectrogramStatus == "ready" {
+		out = append(out, map[string]any{
+			"tag":        "spectral_tiles_ready_band_summary_missing",
+			"summary":    "spectral tiles are ready, but band-energy diagnosis remains unavailable until a fresh band_energy_summary is ready",
+			"confidence": 0.24,
 		})
 	}
 	return out
@@ -1068,15 +3123,23 @@ func nullablePositive(value float64) any {
 
 func buildContextPack(req Request, board Board, obs ObservationPacket, now string) ContextPack {
 	latest := map[string]any{
-		"observation_id":      obs.ObservationID,
-		"status":              obs.Status,
-		"time_ruler":          obs.TimeRuler,
-		"digest":              obs.Digest,
-		"catalog":             obs.Catalog,
-		"global_summary":      obs.GlobalSummary,
-		"timeline_digest":     capRows(obs.TimelineDigest, 12),
-		"hotspots":            capRows(obs.Hotspots, 12),
-		"source_capabilities": obs.SourceCapabilities,
+		"observation_id": obs.ObservationID,
+		"status":         obs.Status,
+		"time_ruler": map[string]any{
+			"duration_seconds": obs.TimeRuler.DurationSeconds,
+			"segment_seconds":  obs.TimeRuler.SegmentSeconds,
+			"frame_seconds":    obs.TimeRuler.FrameSeconds,
+		},
+		"source_capabilities": projectedSourceCapabilities(obs.SourceCapabilities),
+		"read_hints": []string{
+			"mix_read key=observation.mom_projection",
+			"mix_read key=observation.digest",
+			"mix_read key=observation.catalog",
+		},
+	}
+	if obs.MOMProjection != nil {
+		latest["mom_projection"] = mom.ContextProjection(*obs.MOMProjection)
+		latest["llm_context"] = obs.MOMProjection.LLMContext
 	}
 	return ContextPack{
 		SchemaVersion: ContextPackSchemaVersion,
@@ -1091,8 +3154,8 @@ func buildContextPack(req Request, board Board, obs ObservationPacket, now strin
 			"listen_scope":   obs.ListenScope,
 		},
 		LatestObservation: latest,
-		ActiveProblemMap:  capRows(board.ActiveProblemMap, 12),
-		RelevantSections:  capRows(board.SectionCandidates, 8),
+		ActiveProblemMap:  nil,
+		RelevantSections:  nil,
 		OpenBlockers:      board.OpenBlockers,
 	}
 }
@@ -1295,6 +3358,62 @@ func cleanAnyString(value any) string {
 		return ""
 	}
 	return strings.TrimSpace(fmt.Sprint(value))
+}
+
+func boolFromAnyOK(value any) (bool, bool) {
+	switch v := value.(type) {
+	case bool:
+		return v, true
+	case string:
+		text := strings.ToLower(strings.TrimSpace(v))
+		switch text {
+		case "true", "yes", "1":
+			return true, true
+		case "false", "no", "0":
+			return false, true
+		default:
+			return false, false
+		}
+	case float64:
+		return v != 0, true
+	case int:
+		return v != 0, true
+	case json.Number:
+		n, err := v.Float64()
+		if err == nil {
+			return n != 0, true
+		}
+	}
+	return false, false
+}
+
+func stringsFromAny(value any) []string {
+	out := []string{}
+	for _, raw := range anySlice(value) {
+		text := cleanAnyString(raw)
+		if text != "" {
+			out = append(out, text)
+		}
+	}
+	return out
+}
+
+func mapValue(value any) map[string]any {
+	if row, ok := value.(map[string]any); ok {
+		return row
+	}
+	if value == nil {
+		return nil
+	}
+	data, err := json.Marshal(value)
+	if err != nil || len(data) == 0 || string(data) == "null" {
+		return nil
+	}
+	var row map[string]any
+	if err := json.Unmarshal(data, &row); err != nil {
+		return nil
+	}
+	return row
 }
 
 func firstNonEmpty(values ...string) string {

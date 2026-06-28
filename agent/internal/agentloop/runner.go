@@ -275,6 +275,7 @@ func (r *Runner) loop(ctx context.Context, state *runState) Result {
 	if r.Planner == nil {
 		return r.fail(state, fmt.Errorf("goal planner is nil"))
 	}
+	messageLoopApplyReadOnlyMutationBarrier(state)
 	for {
 		if stopped, result := r.checkpoint("before_plan", state); stopped {
 			return result

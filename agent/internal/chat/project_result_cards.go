@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+
+	"vit-daw-agent/internal/executor"
 )
 
 func projectResultCardsFromExecuted(executed []map[string]any) []map[string]any {
@@ -27,6 +29,93 @@ func projectResultCardsFromExecuted(executed []map[string]any) []map[string]any 
 		"executions": candidates,
 		"target":     target,
 	}}
+}
+
+func projectResultCardsFromExecutedWithAB(executed []map[string]any, observe executor.Result) []map[string]any {
+	cards := projectResultCardsFromExecuted(executed)
+	if len(cards) == 0 {
+		return cards
+	}
+	if ab := projectResultABCardFromObserve(observe); len(ab) > 0 {
+		cards[0]["ab_result"] = ab
+	}
+	return cards
+}
+
+func projectResultABCardFromObserve(observe executor.Result) map[string]any {
+	ab := pendingMixTickABResultFromObserve(observe)
+	if len(ab) == 0 {
+		return map[string]any{
+			"schema_version": "project_result_ab.v1",
+			"status":         "missing",
+			"reason":         "ab_result_missing",
+			"display_title":  "AB Result：不可信",
+			"display_body":   "原因：ab_result_missing；没有拿到同一观测点的前后 L2 渲染观测，未标记为已验证。",
+		}
+	}
+	status := strings.ToLower(strings.TrimSpace(cleanContextText(ab["status"])))
+	if status == "" {
+		status = "missing"
+	}
+	reason := firstNonEmpty(cleanContextText(ab["reason"]), "quality_gate_not_ready")
+	tapPoint := cleanContextText(ab["tap_point"])
+	renderMode := cleanContextText(ab["render_mode"])
+	out := map[string]any{
+		"schema_version":          "project_result_ab.v1",
+		"status":                  status,
+		"reason":                  reason,
+		"tap_point":               tapPoint,
+		"render_mode":             renderMode,
+		"before_observation_id":   cleanContextText(ab["before_observation_id"]),
+		"after_observation_id":    cleanContextText(ab["after_observation_id"]),
+		"before_evidence_ref":     cleanContextText(ab["before_evidence_ref"]),
+		"after_evidence_ref":      cleanContextText(ab["after_evidence_ref"]),
+		"before_render_revision":  cleanContextText(ab["before_render_revision"]),
+		"after_render_revision":   cleanContextText(ab["after_render_revision"]),
+		"render_revision_changed": status == "ready",
+	}
+	if status == "ready" {
+		out["display_title"] = "AB Result：可信"
+		out["display_body"] = projectResultABDisplayBody(tapPoint, renderMode, pendingMixTickABDeltaText(mapValue(ab["delta"])))
+	} else {
+		out["display_title"] = "AB Result：不可信"
+		out["display_body"] = projectResultABUntrustedBody(reason, tapPoint, renderMode)
+	}
+	if delta := pendingMixTickABDeltaText(mapValue(ab["delta"])); delta != "" {
+		out["delta_summary"] = delta
+	}
+	return out
+}
+
+func projectResultABDisplayBody(tapPoint, renderMode, delta string) string {
+	parts := []string{}
+	if delta != "" {
+		parts = append(parts, "关键变化："+delta)
+	}
+	if tapPoint != "" {
+		point := tapPoint
+		if renderMode != "" {
+			point += " / " + renderMode
+		}
+		parts = append(parts, "观测点："+point)
+	}
+	if len(parts) == 0 {
+		return "同一观测点的前后 L2 渲染观测已通过。"
+	}
+	return strings.Join(parts, "；")
+}
+
+func projectResultABUntrustedBody(reason, tapPoint, renderMode string) string {
+	parts := []string{"原因：" + firstNonEmpty(reason, "quality_gate_not_ready")}
+	if tapPoint != "" {
+		point := tapPoint
+		if renderMode != "" {
+			point += " / " + renderMode
+		}
+		parts = append(parts, "观测点："+point)
+	}
+	parts = append(parts, "未标记为已验证")
+	return strings.Join(parts, "；")
 }
 
 func projectResultExecutionCandidate(entry map[string]any) bool {

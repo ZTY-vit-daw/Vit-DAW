@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"vit-daw-agent/internal/agentloop"
+	"vit-daw-agent/internal/agentprotocol"
 	"vit-daw-agent/internal/config"
 	"vit-daw-agent/internal/executor"
 	"vit-daw-agent/internal/harness"
@@ -43,6 +44,7 @@ func (s *Server) handlePendingMixTreatmentChat(ctx context.Context, conversation
 		if s != nil && s.logger != nil {
 			s.logger.Info("[mix.treatment.pending] revision requested conversation=%s message=%q action=%s processor=%s target=%s", conversationID, req.Message, treatment.ActionKind, treatment.ProcessorType, treatment.TargetRef)
 		}
+		s.transitionActivePendingCandidate(conversationID, "mix_treatment", agentprotocol.PendingStatusRevisionRequested, req.Message)
 		s.expirePendingMixTreatment(conversationID)
 		return ChatResponse{}, false
 	case messageKeepsMixTickDiscussion(req.Message):
@@ -58,6 +60,7 @@ func (s *Server) handlePendingMixTreatmentChat(ctx context.Context, conversation
 		return ChatResponse{}, false
 	case messageExplicitMixTickApply(req.Message) || messagePlainMixApproval(req.Message):
 		decision := s.resolveMixTreatment(ctx, treatment, req.Context)
+		s.transitionActivePendingCandidate(conversationID, "mix_treatment", agentprotocol.PendingStatusAccepted, "user confirmed pending mix treatment")
 		s.expirePendingMixTreatment(conversationID)
 		if s != nil && s.logger != nil {
 			s.logger.Info("[mix.treatment.pending] resolver decision conversation=%s status=%s action=%s processor=%s target=%s",
@@ -67,21 +70,23 @@ func (s *Server) handlePendingMixTreatmentChat(ctx context.Context, conversation
 			Type:     "mix_treatment.resolver_decision",
 			ItemType: "mix_treatment",
 			Status:   decision.Status,
-			Title:    "Mix treatment resolver decision",
-			Body:     decision.Reason,
+			Title:    mixTreatmentResolverEventTitle(decision),
+			Body:     mixTreatmentResolverEventBody(decision),
 			Payload: map[string]any{
-				"schema_version":   decision.SchemaVersion,
-				"status":           decision.Status,
-				"action_kind":      decision.ActionKind,
-				"processor_type":   decision.ProcessorType,
-				"target_ref":       decision.TargetRef,
-				"tool_route":       decision.ToolRoute,
-				"needs":            decision.Needs,
-				"prep_steps":       decision.PrepSteps,
-				"preparation_plan": decision.PreparationPlan,
-				"pending":          decision.Pending,
-				"command":          decision.Command,
-				"prep_command":     decision.PrepCommand,
+				"schema_version":       decision.SchemaVersion,
+				"status":               decision.Status,
+				"action_kind":          decision.ActionKind,
+				"processor_type":       decision.ProcessorType,
+				"target_ref":           decision.TargetRef,
+				"tool_route":           decision.ToolRoute,
+				"needs":                decision.Needs,
+				"prep_steps":           decision.PrepSteps,
+				"preparation_plan":     decision.PreparationPlan,
+				"pending":              decision.Pending,
+				"command":              decision.Command,
+				"prep_command":         decision.PrepCommand,
+				"diagnosis_context_id": treatment.DiagnosisContextID,
+				"diagnosis_context":    cloneContext(treatment.DiagnosisContext),
 			},
 		})
 		if decision.Status == "ready_gain_tick" {
@@ -114,6 +119,46 @@ func (s *Server) handlePendingMixTreatmentChat(ctx context.Context, conversation
 	default:
 		s.expirePendingMixTreatment(conversationID)
 		return ChatResponse{}, false
+	}
+}
+
+func mixTreatmentResolverEventTitle(decision mixResolverDecision) string {
+	switch strings.TrimSpace(decision.Status) {
+	case "needs_preparation":
+		return "混音建议需要准备"
+	case "ready_gain_tick", "ready_pan_tick", "ready_plugin_control":
+		return "混音建议已可执行"
+	case "needs_clarification":
+		return "混音建议需要澄清"
+	case "observation_only":
+		return "只读观察"
+	default:
+		return "混音建议解析结果"
+	}
+}
+
+func mixTreatmentResolverEventBody(decision mixResolverDecision) string {
+	switch strings.TrimSpace(decision.Status) {
+	case "needs_preparation":
+		if len(decision.PrepCommand) > 0 {
+			return "这个混音建议还不能直接写入参数；下一步会先准备插件实例、参数和控制映射。"
+		}
+		return "这个混音建议还需要补齐目标、插件或精确控制信息；当前不会写入任何插件参数。"
+	case "ready_gain_tick":
+		return "已确认这是一个小幅电平调整候选，可以通过安全的 mix tick 路径执行。"
+	case "ready_pan_tick":
+		return "已确认这是一个小幅声像调整候选，可以通过安全的 mix tick 路径执行。"
+	case "ready_plugin_control":
+		return "已确认目标插件和控制映射可用；执行时只走安全的 plugin_grabber.apply_control 路径。"
+	case "needs_clarification":
+		return "这个混音建议还需要先澄清目标或控制信息，当前不会修改工程。"
+	case "observation_only":
+		return "这个结果只是观察结论，不会修改工程。"
+	default:
+		if text := localizedDisplayTextFallback(strings.TrimSpace(decision.Reason)); text != "" && !looksMostlyEnglish(text) {
+			return text
+		}
+		return "混音建议已完成本地解析；当前不会绕过确认直接修改工程。"
 	}
 }
 
@@ -359,6 +404,12 @@ func mixTreatmentPreparationPlan(treatment agentloop.MixTreatmentPending, decisi
 	}
 	if len(treatment.EvidenceRefs) > 0 {
 		plan["evidence_refs"] = append([]string(nil), treatment.EvidenceRefs...)
+	}
+	if strings.TrimSpace(treatment.DiagnosisContextID) != "" {
+		plan["diagnosis_context_id"] = strings.TrimSpace(treatment.DiagnosisContextID)
+	}
+	if len(treatment.DiagnosisContext) > 0 {
+		plan["diagnosis_context"] = cloneContext(treatment.DiagnosisContext)
 	}
 	if len(decision.PrepCommand) > 0 {
 		plan["next_command"] = cloneStringAnyMap(decision.PrepCommand)
@@ -695,7 +746,7 @@ func (s *Server) executeResolvedMixTreatmentMixTick(ctx context.Context, convers
 		Operation:                 operation,
 		TrackID:                   trackID,
 		ObservationID:             treatment.ObservationID,
-		Evidence:                  map[string]any{"source": "mix_treatment_resolver", "intent": treatment.Intent, "action_kind": treatment.ActionKind},
+		Evidence:                  map[string]any{"source": "mix_treatment_resolver", "intent": treatment.Intent, "action_kind": treatment.ActionKind, "diagnosis_context_id": treatment.DiagnosisContextID, "diagnosis_context": cloneContext(treatment.DiagnosisContext), "evidence_refs": append([]string(nil), treatment.EvidenceRefs...)},
 		CreatedFromReply:          treatment.CreatedFromReply,
 		ExpiresAfterContextChange: treatment.ExpiresAfterContextChange,
 		Status:                    "pending_confirmation",
@@ -808,6 +859,8 @@ func mixTreatmentPreparationContext(ctx map[string]any, treatment agentloop.MixT
 		"mix_treatment_action_kind":      treatment.ActionKind,
 		"mix_treatment_processor":        treatment.ProcessorType,
 		"mix_treatment_target_ref":       treatment.TargetRef,
+		"diagnosis_context_id":           treatment.DiagnosisContextID,
+		"diagnosis_context":              cloneContext(treatment.DiagnosisContext),
 	})
 }
 

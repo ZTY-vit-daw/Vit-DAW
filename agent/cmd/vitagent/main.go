@@ -47,6 +47,7 @@ func main() {
 	reqTimeout := time.Duration(*timeoutMS) * time.Millisecond
 	kernelClient := kernel.New(*zmqReqURL, reqTimeout)
 	shadowProject := shadow.New(logger)
+	chatServer := chat.New(kernelClient, shadowProject, logger)
 	bridgeService := bridge.New(bridge.Config{
 		ZMQSubURL:     *zmqSubURL,
 		GodotIP:       *godotIP,
@@ -55,8 +56,8 @@ func main() {
 		ReqMaxRetries: *retries,
 		ReqTimeout:    reqTimeout,
 		FileReplyDir:  *fileReplyDir,
+		TelemetryHook: chatServer.HandleKernelTelemetry,
 	}, kernelClient, shadowProject, logger)
-	chatServer := chat.New(kernelClient, shadowProject, logger)
 	httpServer := &http.Server{
 		Addr:              *httpAddr,
 		Handler:           chatServer.Routes(),

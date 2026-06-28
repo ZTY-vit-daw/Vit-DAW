@@ -196,6 +196,120 @@ size_t handleCountForGen (const juce::String& id, uint64_t gen)
     return handleCountUnlocked (key);
 }
 
+struct QualityStats
+{
+    int64_t sampleCount = 0;
+    int64_t nonzeroCount = 0;
+    int64_t nanInfCount = 0;
+    double sumAbs = 0.0;
+    double maxAbs = 0.0;
+
+    void observe (float value)
+    {
+        ++sampleCount;
+        if (! std::isfinite (value))
+        {
+            ++nanInfCount;
+            return;
+        }
+
+        const auto absValue = std::abs ((double) value);
+        if (absValue > 0.0)
+            ++nonzeroCount;
+        sumAbs += absValue;
+        maxAbs = juce::jmax (maxAbs, absValue);
+    }
+};
+
+struct QualityDecision
+{
+    juce::String status = "failed";
+    juce::String reason = "not_evaluated";
+};
+
+QualityStats collectQualityStats (const float* data, size_t count)
+{
+    QualityStats stats;
+    if (data == nullptr)
+        return stats;
+
+    for (size_t i = 0; i < count; ++i)
+        stats.observe (data[i]);
+
+    return stats;
+}
+
+QualityDecision decideSpectralQuality (const QualityStats& readerStats,
+                                       const QualityStats& fftInputStats,
+                                       const QualityStats& fftOutputStats,
+                                       const QualityStats& tileStats,
+                                       const QualityStats& shmStats,
+                                       int64_t audioSampleCount,
+                                       int frameCount,
+                                       int activeFrameCount)
+{
+    if (audioSampleCount <= 0 || frameCount <= 0)
+        return { "failed", "empty_coverage" };
+    if (readerStats.nanInfCount > 0 || fftInputStats.nanInfCount > 0 || fftOutputStats.nanInfCount > 0
+        || tileStats.nanInfCount > 0 || shmStats.nanInfCount > 0)
+        return { "failed", "nan_or_inf_detected" };
+    if (readerStats.nonzeroCount <= 0)
+        return { "suspect", "reader_all_zero" };
+    if (activeFrameCount <= 0)
+        return { "failed", "no_active_frames_above_gate" };
+    if (fftInputStats.nonzeroCount <= 0)
+        return { "failed", "fft_input_all_zero" };
+    if (fftOutputStats.nonzeroCount <= 0)
+        return { "failed", "fft_output_all_zero" };
+    if (tileStats.nonzeroCount <= 0)
+        return { "failed", "tile_all_zero_before_write" };
+    if (shmStats.nonzeroCount <= 0)
+        return { "failed", "shared_memory_all_zero_after_write" };
+    return { "ready", "ok" };
+}
+
+void setQualityStatsProperties (juce::DynamicObject& obj,
+                                const juce::String& prefix,
+                                const QualityStats& stats)
+{
+    obj.setProperty (prefix + "sample_count", (int64) stats.sampleCount);
+    obj.setProperty (prefix + "nonzero_count", (int64) stats.nonzeroCount);
+    obj.setProperty (prefix + "sum_abs", stats.sumAbs);
+    obj.setProperty (prefix + "max_abs", stats.maxAbs);
+    obj.setProperty (prefix + "nan_inf_count", (int64) stats.nanInfCount);
+}
+
+void stampIdentityProperties (juce::DynamicObject& obj,
+                              const juce::String& trackId,
+                              const juce::String& clipId,
+                              const juce::String& sourceId,
+                              const juce::String& sourceRevision,
+                              const juce::String& clipRevision,
+                              const juce::String& renderRevision,
+                              const juce::String& filePath,
+                              double totalDurationSec)
+{
+    obj.setProperty ("project_id", "current");
+    obj.setProperty ("track_id", trackId);
+    obj.setProperty ("source_track_id", trackId);
+    obj.setProperty ("source_path", filePath);
+    obj.setProperty ("duration_seconds", totalDurationSec);
+    if (clipId.isNotEmpty())
+        obj.setProperty ("clip_id", clipId);
+    if (sourceId.isNotEmpty())
+        obj.setProperty ("source_id", sourceId);
+    if (sourceRevision.isNotEmpty())
+    {
+        obj.setProperty ("source_revision", sourceRevision);
+        obj.setProperty ("source_fingerprint", sourceRevision);
+    }
+    if (clipRevision.isNotEmpty())
+        obj.setProperty ("clip_revision", clipRevision);
+    if (renderRevision.isNotEmpty())
+        obj.setProperty ("render_revision", renderRevision);
+    obj.setProperty ("analyzer_revision", audioFeatureAnalysisVersion());
+}
+
 float globalEnv(juce::AudioFormatReader& r)
 {
     juce::AudioBuffer<float> b(2, 32768);
@@ -351,7 +465,11 @@ void TiledSpectrogramBaker::startBake(juce::String filePath,
                                        juce::String clipId,
                                        PublishCallback publish,
                                        double sourceOffsetSeconds,
-                                       double bakeLengthSeconds)
+                                       double bakeLengthSeconds,
+                                       juce::String sourceId,
+                                       juce::String sourceRevision,
+                                       juce::String clipRevision,
+                                       juce::String renderRevision)
 {
     const auto bakeKey = makeBakeKey (trackId, clipId);
     auto gen = beginGen (bakeKey);
@@ -359,6 +477,8 @@ void TiledSpectrogramBaker::startBake(juce::String filePath,
                   + " gen=" + juce::String ((int64) gen)
                   + " track_id=" + trackId
                   + " clip_id=" + clipId
+                  + " source_revision=" + sourceRevision
+                  + " clip_revision=" + clipRevision
                   + " source_offset=" + juce::String (sourceOffsetSeconds, 4)
                   + " bake_length=" + juce::String (bakeLengthSeconds, 4)
                   + " file=" + filePath);
@@ -367,6 +487,10 @@ void TiledSpectrogramBaker::startBake(juce::String filePath,
                  clipId   = std::move(clipId),
                  bakeKey  = std::move(bakeKey),
                  publish  = std::move(publish),
+                 sourceId = std::move(sourceId),
+                 sourceRevision = std::move(sourceRevision),
+                 clipRevision = std::move(clipRevision),
+                 renderRevision = std::move(renderRevision),
                  sourceOffsetSeconds,
                  bakeLengthSeconds,
                  gen]() mutable
@@ -422,13 +546,19 @@ void TiledSpectrogramBaker::startBake(juce::String filePath,
             durObj->setProperty("feature_version", audioFeatureProductVersion (AudioFeatureType::SpectralField));
             durObj->setProperty("analysis_version", audioFeatureAnalysisVersion());
             durObj->setProperty("source_kind", clipId.isNotEmpty() ? "clip" : "file");
-            durObj->setProperty("track_id",       trackId);
+            stampIdentityProperties (*durObj,
+                                     trackId,
+                                     clipId,
+                                     sourceId,
+                                     sourceRevision,
+                                     clipRevision,
+                                     renderRevision,
+                                     filePath,
+                                     totalDurationSecEarly);
             durObj->setProperty("total_duration", totalDurationSecEarly);
             durObj->setProperty("session_id",     sessionIdEarly);
             durObj->setProperty("tile_count",     totalTiles);
             durObj->setProperty("tile_duration",  kFrameSec * kFrames);
-            if (clipId.isNotEmpty())
-                durObj->setProperty("clip_id", clipId);
             publish(juce::JSON::toString(juce::var(durObj.release())));
         }
 
@@ -491,6 +621,11 @@ void TiledSpectrogramBaker::startBake(juce::String filePath,
             int prevPeakBinL = -1, prevPeakBinR = -1;
             float driftSumBinL = 0.0f, driftSumBinR = 0.0f;
             int driftCountL = 0, driftCountR = 0;
+            int activeFrameCount = 0;
+            int silentFrameCount = 0;
+            QualityStats readerStats;
+            QualityStats fftInputStats;
+            QualityStats fftOutputStats;
 
             const int64_t tileStartSample = (int64_t)tileIndex * tileSpanSamples;
 
@@ -511,22 +646,38 @@ void TiledSpectrogramBaker::startBake(juce::String filePath,
                 auto* lPtr = rb.getReadPointer(0);
                 auto* rPtr = rb.getReadPointer(
                     juce::jmin(1, rb.getNumChannels() - 1));
-
-                // Step 1: frame-level envelope (peak of hopSize window)
+                const int frameReadableSamples = (int) juce::jlimit<int64_t> (
+                    0,
+                    (int64_t) kSize,
+                    bakeTotalSamples - frameStartSample);
+                // Step 1: frame-level envelope over the FFT input window.
+                // The quality gate must follow the data actually sent into FFT;
+                // otherwise nonzero reader samples can be discarded before evidence is produced.
                 float envL = 0.0f, envR = 0.0f;
-                for (int s = 0; s < hopSize; ++s)
+                for (int s = 0; s < frameReadableSamples; ++s)
                 {
+                    readerStats.observe (lPtr[s]);
+                    readerStats.observe (rPtr[s]);
                     envL = juce::jmax(envL, std::abs(lPtr[s]));
                     envR = juce::jmax(envR, std::abs(rPtr[s]));
                 }
 
                 // Step 2: hard noise gate — skip silent frames entirely
                 if (envL < kEnvSilence && envR < kEnvSilence)
+                {
+                    ++silentFrameCount;
                     continue; // tile already zeroed, skip FFT
+                }
+                ++activeFrameCount;
 
                 // Apply Hann window and FFT
                 prepWindow(lPtr, kSize, win, fl);
                 prepWindow(rPtr, kSize, win, fr);
+                for (int i = 0; i < kSize; ++i)
+                {
+                    fftInputStats.observe (fl[(size_t) i]);
+                    fftInputStats.observe (fr[(size_t) i]);
+                }
                 fft.performRealOnlyForwardTransform(fl.data());
                 fft.performRealOnlyForwardTransform(fr.data());
 
@@ -538,6 +689,8 @@ void TiledSpectrogramBaker::startBake(juce::String filePath,
                     ri(fr, i, rr, rih);
                     rawMagL[(size_t)i] = std::sqrt(lr * lr + li * li);
                     rawMagR[(size_t)i] = std::sqrt(rr * rr + rih * rih);
+                    fftOutputStats.observe (rawMagL[(size_t)i]);
+                    fftOutputStats.observe (rawMagR[(size_t)i]);
                 }
 
                 // Step 3: log UI bin aggregation (selectable by env for diagnosis).
@@ -765,6 +918,7 @@ void TiledSpectrogramBaker::startBake(juce::String filePath,
                 ? ((double) tileValidSamples / sr)
                 : 0.0;
             const double tileContentStartSeconds = sourceOffsetSeconds + ((double) tileStartSample / sr);
+            const auto tileStats = collectQualityStats (tile.data(), tile.size());
 
             // Write tile to shared memory
             auto sessionId = bakeKey + ":" + juce::String ((int64) gen);
@@ -803,16 +957,32 @@ void TiledSpectrogramBaker::startBake(juce::String filePath,
             }
             std::memset(mapped, 0, bytes);
             std::memcpy(mapped, tile.data(), tile.size() * sizeof(float));
+            const auto shmStats = collectQualityStats (mapped, tile.size());
             UnmapViewOfFile(mapped);
 
             if (!storeHandle(bakeKey, gen, h)) { CloseHandle(h); return; }
             const auto handleCount = handleCountForGen (bakeKey, gen);
+            const auto quality = decideSpectralQuality (readerStats,
+                                                        fftInputStats,
+                                                        fftOutputStats,
+                                                        tileStats,
+                                                        shmStats,
+                                                        tileValidSamples,
+                                                        kFrames,
+                                                        activeFrameCount);
+            const double coverageRatio = bakeTotalSamples > 0
+                ? juce::jlimit (0.0, 1.0, (double) tileValidSamples / (double) bakeTotalSamples)
+                : 0.0;
             writeDiagLog ("[baker.lifecycle] publish_tile key=" + bakeKey
                           + " gen=" + juce::String ((int64) gen)
                           + " track_id=" + trackId
                           + " clip_id=" + clipId
                           + " tile_index=" + juce::String (tileIndex)
                           + " handle_count=" + juce::String ((int) handleCount)
+                          + " quality_status=" + quality.status
+                          + " quality_reason=" + quality.reason
+                          + " active_frames=" + juce::String (activeFrameCount)
+                          + " nonzero=" + juce::String ((int64) tileStats.nonzeroCount)
                           + " bytes=" + juce::String ((int64) bytes)
                           + " shm=" + shm);
 
@@ -826,8 +996,15 @@ void TiledSpectrogramBaker::startBake(juce::String filePath,
                 obj->setProperty("analysis_version", audioFeatureAnalysisVersion());
                 obj->setProperty("channels_semantics", "r=left_energy,g=right_energy,b=cross_spectrum_phase_delta,a=phase_display_weight");
                 obj->setProperty("source_kind", clipId.isNotEmpty() ? "clip" : "file");
-                obj->setProperty("track_id",      trackId);
-                obj->setProperty("source_track_id", trackId);
+                stampIdentityProperties (*obj,
+                                         trackId,
+                                         clipId,
+                                         sourceId,
+                                         sourceRevision,
+                                         clipRevision,
+                                         renderRevision,
+                                         filePath,
+                                         totalDurationSec);
                 obj->setProperty("session_id",    sessionId);
                 obj->setProperty("file_path",     filePath);
                 obj->setProperty("tile_index",    tileIndex);
@@ -836,17 +1013,30 @@ void TiledSpectrogramBaker::startBake(juce::String filePath,
                 obj->setProperty("tile_content_start_seconds", tileContentStartSeconds);
                 obj->setProperty("range_source_offset_seconds", sourceOffsetSeconds);
                 obj->setProperty("range_length_seconds", bakeLengthSeconds);
+                obj->setProperty("coverage_seconds", tileDurationSec);
+                obj->setProperty("coverage_ratio", coverageRatio);
+                obj->setProperty("frame_count", kFrames);
+                obj->setProperty("audio_sample_count", (int64) tileValidSamples);
+                obj->setProperty("active_frame_count", activeFrameCount);
+                obj->setProperty("silent_frame_count", silentFrameCount);
                 obj->setProperty("resolution_frame_width", kFrames);
                 obj->setProperty("resolution_frequency_bins", kUiBins);
                 obj->setProperty("frame_duration_seconds", kFrameSec);
                 obj->setProperty("total_duration", totalDurationSec);
                 obj->setProperty("shared_memory", shm);
+                obj->setProperty("float_count", (int64) tile.size());
                 obj->setProperty("bake_key", bakeKey);
                 obj->setProperty("generation", (int64) gen);
                 obj->setProperty("handle_count", (int) handleCount);
                 obj->setProperty("shm_bytes", (int64) bytes);
-                if (clipId.isNotEmpty())
-                    obj->setProperty("clip_id", clipId);
+                obj->setProperty("quality_status", quality.status);
+                obj->setProperty("quality_reason", quality.reason);
+                obj->setProperty("ready", quality.status == "ready");
+                setQualityStatsProperties (*obj, {}, tileStats);
+                setQualityStatsProperties (*obj, "reader_", readerStats);
+                setQualityStatsProperties (*obj, "fft_input_", fftInputStats);
+                setQualityStatsProperties (*obj, "fft_output_", fftOutputStats);
+                setQualityStatsProperties (*obj, "shm_postwrite_", shmStats);
                 publish(juce::JSON::toString(juce::var(obj.release())));
             }
         }

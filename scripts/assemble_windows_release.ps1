@@ -143,6 +143,21 @@ foreach ($dependencyDir in $godotDependencyDirs) {
         }
         Copy-Item -LiteralPath $_.FullName -Destination (Join-Path $UiDir $_.Name) -Force
     }
+
+    # CEF also needs runtime directories such as locales\. The previous installer
+    # copied only top-level files, which could leave the embedded Agent WebUI blank.
+    $runtimeSidecarDirs = @("locales", "swiftshader", "WidevineCdm")
+    Get-ChildItem -LiteralPath $dependencyDir -ErrorAction SilentlyContinue | Where-Object { $_.PSIsContainer } | ForEach-Object {
+        if (-not ($runtimeSidecarDirs -contains $_.Name)) {
+            return
+        }
+        $destDir = Join-Path $UiDir $_.Name
+        if (Test-Path -LiteralPath $destDir) {
+            Remove-Item -LiteralPath $destDir -Recurse -Force
+        }
+        Copy-Item -LiteralPath $_.FullName -Destination $destDir -Recurse -Force
+        Write-Host "Included Godot/CEF runtime directory: $($_.Name)"
+    }
 }
 
 if (-not $NoPythonBridge) {

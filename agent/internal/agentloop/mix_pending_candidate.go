@@ -1,6 +1,7 @@
 package agentloop
 
 import (
+	"fmt"
 	"math"
 	"regexp"
 	"strconv"
@@ -11,6 +12,9 @@ var messageLoopDBAdjustmentPattern = regexp.MustCompile(`(?i)(降低|降|下调|
 
 func messageLoopPendingMixTickCandidateFromReply(state *runState, reply string) *PendingMixTickCandidate {
 	if state == nil || strings.TrimSpace(reply) == "" {
+		return nil
+	}
+	if messageLoopMutationBarrierActive(state) {
 		return nil
 	}
 	delta, evidenceText, ok := messageLoopExtractSingleGainDelta(reply)
@@ -62,6 +66,324 @@ func messageLoopPendingMixTickCandidateFromReply(state *runState, reply string) 
 		Status:                    "pending_confirmation",
 		Fingerprint:               fingerprint,
 	}
+}
+
+func messageLoopDeterministicVocalClarificationPendingTick(state *runState, reply string) *PendingMixTickCandidate {
+	if state == nil || messageLoopMutationBarrierActive(state) || messageLoopHasPendingMixAction(state) {
+		return nil
+	}
+	if !messageLoopUserExplicitlyIdentifiesVocalTrackResolved(state.input.UserText) {
+		return nil
+	}
+	if !messageLoopFocusRelationshipIntent(state.input.UserText) && !messageLoopConversationHasFocusRelationshipIntent(state) {
+		return nil
+	}
+	if !messageLoopHasUsableMixObservation(state) {
+		return nil
+	}
+	userTrackIndex, ok := messageLoopUserTrackIndexFromText(state.input.UserText)
+	if !ok || userTrackIndex <= 0 {
+		return nil
+	}
+	result, relationship := messageLoopLatestFocusProjectRelationship(state)
+	if len(relationship) == 0 {
+		return nil
+	}
+	allRows := messageLoopPendingMixCandidateTrackRows(state)
+	focusID, focusRow := messageLoopVocalClarificationFocusTrack(state, relationship, allRows, userTrackIndex)
+	if focusID == "" {
+		return nil
+	}
+	targetRow := messageLoopVocalClarificationTargetTrack(relationship, allRows, focusID)
+	targetID := firstMapText(targetRow, "track_id", "id", "target_track_id")
+	if targetID == "" || strings.EqualFold(targetID, focusID) {
+		return nil
+	}
+	observationID := firstNonEmpty(firstMapText(relationship, "observation_id"), firstMapText(result, "observation_id"), messageLoopLastMixObservationField(state, "observation_id"))
+	mixSessionID := firstNonEmpty(firstMapText(relationship, "mix_session_id"), firstMapText(result, "mix_session_id"), messageLoopLastMixObservationField(state, "mix_session_id"))
+	fingerprint := map[string]any{
+		"conversation_id":   messageLoopConversationID(state),
+		"goal_id":           state.goal.GoalID,
+		"run_id":            state.goal.RunID,
+		"target_track_id":   targetID,
+		"focus_track_id":    focusID,
+		"observation_id":    observationID,
+		"target_scope":      messageLoopLastMixObservationScope(state),
+		"track_gain_db":     nil,
+		"track_count":       messageLoopPendingMixCandidateTrackCount(state),
+		"created_from_turn": state.turnsUsed,
+		"mix_session_id":    mixSessionID,
+	}
+	if len(targetRow) > 0 {
+		fingerprint["before_track"] = cloneMap(targetRow)
+		for _, key := range []string{"peak_dbfs", "rms_dbfs", "headroom_db", "crest_db"} {
+			if value, ok := targetRow[key]; ok && value != nil {
+				fingerprint[key] = value
+			}
+		}
+	}
+	if len(focusRow) > 0 {
+		fingerprint["focus_track"] = cloneMap(focusRow)
+	}
+	if currentDB, ok := messageLoopPendingMixCandidateCurrentTrackDB(state, targetID); ok {
+		fingerprint["track_gain_db"] = currentDB
+	}
+	return &PendingMixTickCandidate{
+		Operation:     "track_gain_adjust",
+		TrackID:       targetID,
+		DeltaDB:       -1,
+		ObservationID: observationID,
+		Evidence: map[string]any{
+			"source":           "deterministic_vocal_clarification",
+			"relationship":     "focus_vs_project",
+			"focus_track_id":   focusID,
+			"target_track_id":  targetID,
+			"user_track_index": userTrackIndex,
+		},
+		CreatedFromReply:          strings.TrimSpace(reply),
+		ExpiresAfterContextChange: true,
+		Status:                    "pending_confirmation",
+		Fingerprint:               fingerprint,
+	}
+}
+
+func messageLoopDeterministicVocalClarificationPendingReply(state *runState, candidate *PendingMixTickCandidate) string {
+	if candidate == nil {
+		return ""
+	}
+	targetLabel := messageLoopTrackReplyLabel(messageLoopPendingMixCandidateTrackRow(state, candidate.TrackID), candidate.TrackID)
+	focusID := firstMapText(candidate.Evidence, "focus_track_id")
+	focusLabel := messageLoopTrackReplyLabel(messageLoopPendingMixCandidateTrackRow(state, focusID), focusID)
+	if focusLabel == "" {
+		focusLabel = "Track"
+	}
+	if targetLabel == "" {
+		targetLabel = "Track " + strings.TrimSpace(candidate.TrackID)
+	}
+	return fmt.Sprintf("\u5df2\u786e\u8ba4 %s \u662f\u4e3b\u5531\u3002\u57fa\u4e8e\u8fd9\u6b21\u5173\u7cfb\u89c2\u5bdf\uff0c\u6211\u5efa\u8bae\u5148\u628a %s \u5c0f\u5e45\u964d\u4f4e 1.0 dB\uff0c\u8ba9\u4e3b\u5531\u76f8\u5bf9\u66f4\u9760\u524d\uff0c\u540c\u65f6\u7ed9\u6574\u4f53\u5cf0\u503c\u7559\u51fa\u4e00\u70b9\u4f59\u91cf\u3002\u8981\u6211\u7ee7\u7eed\u6267\u884c\u8fd9\u4e2a\u5f85\u786e\u8ba4\u7684\u5c0f\u52a8\u4f5c\u5417\uff1f", focusLabel, targetLabel)
+}
+
+func messageLoopLatestFocusProjectRelationship(state *runState) (map[string]any, map[string]any) {
+	if state == nil {
+		return nil, nil
+	}
+	for i := len(state.executed) - 1; i >= 0; i-- {
+		record := state.executed[i]
+		name := strings.ToLower(strings.TrimSpace(firstNonEmpty(messageLoopText(record["tool"]), messageLoopText(record["command_name"]))))
+		if name != "" && name != "mix.derive" && name != "mix_derive" {
+			continue
+		}
+		result := messageLoopMapValue(record["result"])
+		if len(result) == 0 {
+			continue
+		}
+		if relationship := messageLoopFocusProjectRelationshipFromResult(result); len(relationship) > 0 {
+			return result, relationship
+		}
+	}
+	for i := len(state.trace) - 1; i >= 0; i-- {
+		event := state.trace[i]
+		if event.ToolResult == nil || toolStatusFailed(event.ToolResult.Status) {
+			continue
+		}
+		name := strings.ToLower(strings.TrimSpace(event.ToolResult.Tool))
+		if name != "" && name != "mix.derive" && name != "mix_derive" {
+			continue
+		}
+		result := event.ToolResult.Result
+		if len(result) == 0 {
+			continue
+		}
+		if relationship := messageLoopFocusProjectRelationshipFromResult(result); len(relationship) > 0 {
+			return result, relationship
+		}
+	}
+	return nil, nil
+}
+
+func messageLoopFocusProjectRelationshipFromResult(result map[string]any) map[string]any {
+	if len(result) == 0 {
+		return nil
+	}
+	relationship := messageLoopMapValue(result["relationship"])
+	if len(relationship) == 0 {
+		relationship = result
+	}
+	relationshipType := firstNonEmpty(firstMapText(relationship, "type", "relationship_type"), firstMapText(result, "type", "relationship_type"))
+	if strings.EqualFold(relationshipType, "focus_vs_project") {
+		return relationship
+	}
+	if strings.Contains(strings.ToLower(firstMapText(relationship, "relationship_id", "id")), "focus_vs_project") {
+		return relationship
+	}
+	return nil
+}
+
+func messageLoopVocalClarificationFocusTrack(state *runState, relationship map[string]any, allRows []map[string]any, userTrackIndex int) (string, map[string]any) {
+	if userTrackIndex <= 0 {
+		return "", nil
+	}
+	if row := messageLoopTrackRowByUserIndex(allRows, userTrackIndex); len(row) > 0 {
+		return firstMapText(row, "track_id", "id", "target_track_id"), row
+	}
+	for _, row := range messageLoopRelationshipTrackRows(relationship) {
+		if messageLoopTrackRowMatchesUserIndex(row, userTrackIndex) {
+			return firstMapText(row, "track_id", "id", "target_track_id"), row
+		}
+	}
+	for _, row := range []map[string]any{
+		messageLoopMapValue(relationship["focus_track"]),
+		messageLoopMapValue(messageLoopMapValue(relationship["facts"])["focus_track"]),
+	} {
+		if id := firstMapText(row, "track_id", "id", "target_track_id"); id != "" && messageLoopTrackRowMatchesUserIndex(row, userTrackIndex) {
+			return id, row
+		}
+	}
+	if state != nil {
+		for _, row := range messageLoopPendingMixCandidateTrackRows(state) {
+			if messageLoopTrackRowMatchesUserIndex(row, userTrackIndex) {
+				return firstMapText(row, "track_id", "id", "target_track_id"), row
+			}
+		}
+	}
+	return "", nil
+}
+
+func messageLoopVocalClarificationTargetTrack(relationship map[string]any, allRows []map[string]any, focusID string) map[string]any {
+	focusID = strings.TrimSpace(focusID)
+	if focusID == "" {
+		return nil
+	}
+	facts := messageLoopMapValue(relationship["facts"])
+	for _, row := range []map[string]any{
+		messageLoopMapValue(relationship["peer_track"]),
+		messageLoopMapValue(facts["peer_track"]),
+	} {
+		if id := firstMapText(row, "track_id", "id", "target_track_id"); id != "" && !strings.EqualFold(id, focusID) {
+			return row
+		}
+	}
+	rows := append(messageLoopRelationshipTrackRows(relationship), allRows...)
+	var best map[string]any
+	bestScore := -1
+	for _, row := range rows {
+		id := firstMapText(row, "track_id", "id", "target_track_id")
+		if id == "" || strings.EqualFold(id, focusID) {
+			continue
+		}
+		score := messageLoopVocalClarificationTargetScore(row)
+		if best == nil || score > bestScore {
+			best = row
+			bestScore = score
+		}
+	}
+	return best
+}
+
+func messageLoopRelationshipTrackRows(relationship map[string]any) []map[string]any {
+	if len(relationship) == 0 {
+		return nil
+	}
+	var rows []map[string]any
+	addRows := func(values ...any) {
+		for _, value := range values {
+			if row := messageLoopMapValue(value); len(row) > 0 {
+				rows = append(rows, row)
+			}
+			rows = append(rows, messageLoopMapRows(value)...)
+		}
+	}
+	addProjectRows := func(projectTracks map[string]any) {
+		addRows(projectTracks["peak_risk"], projectTracks["headroom_risk"], projectTracks["peak"], projectTracks["level"], projectTracks["loudness"], projectTracks["tracks"])
+	}
+	addRows(relationship["focus_track"], relationship["peer_track"], relationship["tracks"])
+	addProjectRows(messageLoopMapValue(relationship["project_tracks"]))
+	facts := messageLoopMapValue(relationship["facts"])
+	addRows(facts["focus_track"], facts["peer_track"], facts["tracks"])
+	addProjectRows(messageLoopMapValue(facts["project_tracks"]))
+	return messageLoopUniqueTrackRows(rows)
+}
+
+func messageLoopTrackRowByUserIndex(rows []map[string]any, userTrackIndex int) map[string]any {
+	if userTrackIndex <= 0 {
+		return nil
+	}
+	for _, row := range rows {
+		if messageLoopTrackRowMatchesUserIndex(row, userTrackIndex) {
+			return row
+		}
+	}
+	return nil
+}
+
+func messageLoopTrackRowMatchesUserIndex(row map[string]any, userTrackIndex int) bool {
+	if len(row) == 0 || userTrackIndex <= 0 {
+		return false
+	}
+	if index, ok := firstNumericMapValue(row, "user_track_index", "track_index", "index"); ok && int(index) == userTrackIndex {
+		return true
+	}
+	wantSpaced := "track " + strconv.Itoa(userTrackIndex)
+	wantCompact := "track" + strconv.Itoa(userTrackIndex)
+	for _, alias := range messageLoopTrackMentionAliases(row) {
+		alias = strings.ToLower(strings.TrimSpace(alias))
+		if alias == wantSpaced || alias == wantCompact {
+			return true
+		}
+	}
+	return false
+}
+
+func messageLoopVocalClarificationTargetScore(row map[string]any) int {
+	if len(row) == 0 {
+		return 0
+	}
+	score := 1
+	switch strings.ToLower(firstMapText(row, "risk", "headroom_risk", "risk_level")) {
+	case "high", "critical", "clip", "clipping":
+		score += 100
+	case "medium", "moderate":
+		score += 50
+	}
+	if headroom, ok := firstNumericMapValue(row, "headroom_db"); ok {
+		switch {
+		case headroom <= 0:
+			score += 90
+		case headroom <= 1:
+			score += 70
+		case headroom <= 3:
+			score += 30
+		}
+	}
+	if peak, ok := firstNumericMapValue(row, "peak_dbfs", "value"); ok {
+		switch {
+		case peak >= -0.1:
+			score += 70
+		case peak >= -1:
+			score += 40
+		}
+	}
+	if rank, ok := firstNumericMapValue(row, "rank"); ok && int(rank) == 1 {
+		score += 10
+	}
+	if strings.EqualFold(firstMapText(row, "metric"), "peak_dbfs") {
+		score += 10
+	}
+	return score
+}
+
+func messageLoopTrackReplyLabel(row map[string]any, fallbackID string) string {
+	if label := firstMapText(row, "user_label", "track_name", "name", "label"); label != "" {
+		return label
+	}
+	if index, ok := firstNumericMapValue(row, "user_track_index", "track_index", "index"); ok && index > 0 {
+		return "Track " + strconv.Itoa(int(index))
+	}
+	fallbackID = strings.TrimSpace(fallbackID)
+	if fallbackID != "" {
+		return "Track " + fallbackID
+	}
+	return ""
 }
 
 func messageLoopPendingMixCandidateTrackID(state *runState, reply string, evidenceText string) string {
@@ -315,21 +637,26 @@ func messageLoopPendingMixCandidateTrackRows(state *runState) []map[string]any {
 		return nil
 	}
 	var rows []map[string]any
+	addRow := func(row map[string]any) {
+		if firstMapText(row, "track_id", "id", "target_track_id") == "" {
+			return
+		}
+		rows = append(rows, row)
+	}
 	addRows := func(values ...any) {
 		for _, value := range values {
+			if row := messageLoopMapValue(value); len(row) > 0 {
+				addRow(row)
+			}
 			for _, row := range messageLoopMapRows(value) {
-				if firstMapText(row, "track_id", "id", "target_track_id") == "" {
-					continue
-				}
-				rows = append(rows, row)
+				addRow(row)
 			}
 		}
 	}
 	addRows(state.input.State["tracks"], state.contextSnapshot["tracks"])
-	for i := len(state.executed) - 1; i >= 0; i-- {
-		result := messageLoopMapValue(state.executed[i]["result"])
+	addRowsFromResult := func(result map[string]any) {
 		if len(result) == 0 {
-			continue
+			return
 		}
 		addRows(result["tracks"])
 		project := messageLoopMapValue(result["project"])
@@ -340,6 +667,14 @@ func messageLoopPendingMixCandidateTrackRows(state *runState) []map[string]any {
 		addRows(observation["tracks"])
 		projectPackage := messageLoopMapValue(observation["project_package"])
 		addRows(projectPackage["tracks"], projectPackage["loudness_ranking"], projectPackage["level_ranking"], projectPackage["peak_ranking"], projectPackage["headroom_risk"])
+		relationship := messageLoopMapValue(result["relationship"])
+		addRows(relationship["focus_track"], relationship["peer_track"], relationship["tracks"])
+		projectTracks := messageLoopMapValue(relationship["project_tracks"])
+		addRows(projectTracks["tracks"], projectTracks["loudness"], projectTracks["level"], projectTracks["peak"], projectTracks["peak_risk"])
+		facts := messageLoopMapValue(relationship["facts"])
+		addRows(facts["focus_track"], facts["peer_track"], facts["tracks"])
+		factProjectTracks := messageLoopMapValue(facts["project_tracks"])
+		addRows(factProjectTracks["tracks"], factProjectTracks["loudness"], factProjectTracks["level"], factProjectTracks["peak"], factProjectTracks["peak_risk"])
 		digest := messageLoopMapValue(result["digest"])
 		addRows(digest["project_loudness_ranking_excerpt"], digest["project_level_ranking_excerpt"], digest["project_peak_ranking_excerpt"], digest["project_headroom_risk_excerpt"])
 		acoustic := messageLoopMapValue(result["acoustic_digest"])
@@ -352,6 +687,20 @@ func messageLoopPendingMixCandidateTrackRows(state *runState) []map[string]any {
 			value := messageLoopMapValue(item)
 			addRows(value["tracks"], value["rows"], value["rankings"], item)
 		}
+	}
+	for i := len(state.executed) - 1; i >= 0; i-- {
+		result := messageLoopMapValue(state.executed[i]["result"])
+		if len(result) == 0 {
+			continue
+		}
+		addRowsFromResult(result)
+	}
+	for i := len(state.trace) - 1; i >= 0; i-- {
+		event := state.trace[i]
+		if event.ToolResult == nil || toolStatusFailed(event.ToolResult.Status) {
+			continue
+		}
+		addRowsFromResult(event.ToolResult.Result)
 	}
 	return messageLoopUniqueTrackRows(rows)
 }
@@ -481,6 +830,13 @@ func messageLoopPendingMixCandidateTrackRow(state *runState, trackID string) map
 }
 
 func messageLoopExtractSingleGainDelta(reply string) (float64, string, bool) {
+	if delta, evidence, ok := messageLoopExtractSingleGainDeltaInText(reply); ok {
+		return delta, evidence, true
+	}
+	return messageLoopExtractSingleGainDeltaFromActionableWindow(reply)
+}
+
+func messageLoopExtractSingleGainDeltaInText(reply string) (float64, string, bool) {
 	matches := messageLoopDBAdjustmentPattern.FindAllStringSubmatch(reply, -1)
 	if len(matches) != 1 || len(matches[0]) < 3 {
 		return messageLoopExtractSingleGainDeltaFromDBAmount(reply)
@@ -501,6 +857,81 @@ func messageLoopExtractSingleGainDelta(reply string) (float64, string, bool) {
 		sign = 1
 	}
 	return sign * math.Abs(value), strings.TrimSpace(matches[0][0]), true
+}
+
+func messageLoopExtractSingleGainDeltaFromActionableWindow(reply string) (float64, string, bool) {
+	windows := messageLoopActionableGainWindows(reply)
+	for _, window := range windows {
+		delta, evidence, ok := messageLoopExtractSingleGainDeltaInText(window)
+		if ok && delta != 0 && math.Abs(delta) <= 2 {
+			return delta, evidence, true
+		}
+	}
+	return 0, "", false
+}
+
+func messageLoopActionableGainWindows(reply string) []string {
+	reply = strings.TrimSpace(reply)
+	if reply == "" {
+		return nil
+	}
+	replacer := strings.NewReplacer(
+		"\r\n", "\n",
+		"\r", "\n",
+		". ", "\n",
+		"\u3002", "\n",
+		"\uff1f", "\n",
+		"?", "\n",
+		"\uff01", "\n",
+		"!", "\n",
+		"\uff1b", "\n",
+		";", "\n",
+	)
+	rawSegments := strings.Split(replacer.Replace(reply), "\n")
+	segments := make([]string, 0, len(rawSegments))
+	for _, segment := range rawSegments {
+		segment = strings.TrimSpace(segment)
+		if segment != "" {
+			segments = append(segments, segment)
+		}
+	}
+	if len(segments) == 0 {
+		return nil
+	}
+	windows := make([]string, 0, len(segments))
+	seen := map[string]bool{}
+	addWindow := func(index int) {
+		start := index - 1
+		if start < 0 {
+			start = index
+		}
+		end := index + 1
+		if end >= len(segments) {
+			end = index
+		}
+		window := strings.TrimSpace(strings.Join(segments[start:end+1], " "))
+		if window == "" || seen[window] {
+			return
+		}
+		seen[window] = true
+		windows = append(windows, window)
+	}
+	for _, pass := range []string{"execute", "suggest"} {
+		for i, segment := range segments {
+			text := strings.ToLower(segment)
+			switch pass {
+			case "execute":
+				if messageLoopTextHasAny(text, "\u8981\u6211", "\u6267\u884c", "\u7ee7\u7eed", "should i", "shall i", "want me", "execute", "continue") {
+					addWindow(i)
+				}
+			case "suggest":
+				if messageLoopTextHasAny(text, "\u5efa\u8bae", "\u4e0b\u4e00\u6b65", "\u5148", "\u5c0f\u52a8\u4f5c", "suggest", "recommend", "next step", "first step", "safe move") {
+					addWindow(i)
+				}
+			}
+		}
+	}
+	return windows
 }
 
 func messageLoopLastMixObservationTrackID(state *runState) string {

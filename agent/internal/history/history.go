@@ -2037,10 +2037,11 @@ func isTrueValue(v any) bool {
 func compactPreview(text string) string {
 	text = strings.Join(strings.Fields(strings.TrimSpace(text)), " ")
 	const limit = 160
-	if len(text) <= limit {
+	runes := []rune(text)
+	if len(runes) <= limit {
 		return text
 	}
-	return strings.TrimSpace(text[:limit-3]) + "..."
+	return strings.TrimSpace(string(runes[:limit-3])) + "..."
 }
 
 func hashFile(path string) (string, error) {

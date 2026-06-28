@@ -180,6 +180,24 @@ function Invoke-AgentChat {
     } -TimeoutSec $ChatTimeoutSec
 }
 
+function Invoke-AgentInteractionRespond {
+    param(
+        [string]$InteractionID,
+        [string]$Decision = "approve",
+        [string]$ActionID = "approve",
+        [object]$Payload = $null
+    )
+    if ($null -eq $Payload) {
+        $Payload = @{}
+    }
+    return Invoke-Json -Method POST -Uri ($AgentHttp.TrimEnd("/") + "/agent/interaction/respond") -Body @{
+        interaction_id = $InteractionID
+        decision = $Decision
+        action_id = $ActionID
+        payload = $Payload
+    } -TimeoutSec $ChatTimeoutSec
+}
+
 function Assert-StatusOk {
     param(
         [object]$Response,
@@ -322,8 +340,65 @@ function Tool-Counts {
         daw_invoke = Count-ExecutedToolGroup -Rows $Rows -Aliases @("daw.invoke", "daw_invoke")
         track_volume = Count-ExecutedToolGroup -Rows $Rows -Aliases @("track.volume", "track_volume")
         track_pan = Count-ExecutedToolGroup -Rows $Rows -Aliases @("track.pan", "track_pan")
+        rack_add_node = Count-ExecutedToolGroup -Rows $Rows -Aliases @("rack.add_node", "rack_add_node", "plugin.load_to_rack", "plugin.instantiate", "instantiate_plugin")
+        plugin_get_parameters = Count-ExecutedToolGroup -Rows $Rows -Aliases @("plugin.get_parameters", "plugin_get_parameters", "get_plugin_parameters")
+        plugin_grabber_load_and_get_params = Count-ExecutedToolGroup -Rows $Rows -Aliases @("plugin_grabber.load_and_get_params", "plugin_grabber_load_and_get_params")
         plugin_set_parameter = Count-ExecutedToolGroup -Rows $Rows -Aliases @("plugin.set_parameter", "plugin_set_parameter", "set_plugin_param")
         plugin_grabber_apply_control = Count-ExecutedToolGroup -Rows $Rows -Aliases @("plugin_grabber.apply_control", "plugin_grabber_apply_control")
+        plugin_prep_continuation = Count-ExecutedToolGroup -Rows $Rows -Aliases @("plugin_prep_continuation")
+    }
+}
+
+function Count-TypedEventGroup {
+    param(
+        [object]$Response,
+        [string[]]$Aliases
+    )
+    $count = 0
+    foreach ($event in @((Get-OptionalProperty -Object $Response -Name "typed_events"))) {
+        $eventType = [string](Get-OptionalProperty -Object $event -Name "event_type")
+        $state = Get-OptionalProperty -Object $event -Name "state"
+        $stateKind = [string](Get-OptionalProperty -Object $state -Name "kind")
+        if (($Aliases -contains $eventType) -or ($Aliases -contains $stateKind)) {
+            $count++
+        }
+    }
+    return $count
+}
+
+function Typed-Event-Counts {
+    param([object]$Response)
+    return [ordered]@{
+        terminal_result = Count-TypedEventGroup -Response $Response -Aliases @("TerminalResult", "terminal_result")
+        user_input_request = Count-TypedEventGroup -Response $Response -Aliases @("UserInputRequest", "user_input_request")
+        pending_candidate = Count-TypedEventGroup -Response $Response -Aliases @("PendingCandidate", "pending_candidate")
+        approval_request = Count-TypedEventGroup -Response $Response -Aliases @("ApprovalRequest", "approval_request")
+    }
+}
+
+function Count-InteractionGroup {
+    param(
+        [object]$Response,
+        [string[]]$Aliases
+    )
+    $count = 0
+    foreach ($request in @((Get-OptionalProperty -Object $Response -Name "interaction_requests"))) {
+        foreach ($key in @("type", "kind", "stage", "workflow")) {
+            $value = [string](Get-OptionalProperty -Object $request -Name $key)
+            if ($Aliases -contains $value) {
+                $count++
+                break
+            }
+        }
+    }
+    return $count
+}
+
+function Interaction-Counts {
+    param([object]$Response)
+    return [ordered]@{
+        plugin_prep_continuation = Count-InteractionGroup -Response $Response -Aliases @("plugin_prep_continuation")
+        plugin_parameter_treatment = Count-InteractionGroup -Response $Response -Aliases @("plugin_parameter_treatment", "plugin_prep_worker")
     }
 }
 
@@ -351,7 +426,7 @@ function Compact-ToolResult {
         tool_status = [string](Get-OptionalProperty -Object $Row -Name "status")
         error = [string](Get-OptionalProperty -Object $Row -Name "error")
     }
-    foreach ($key in @("operation", "track_id", "track_name", "delta_db", "delta_pan", "target_pan", "before_db", "after_db", "before_pan", "after_pan", "tick_id", "kernel_command", "requires_confirmation", "requires_refresh", "observation_id")) {
+    foreach ($key in @("operation", "track_id", "track_name", "plugin_id", "plugin_name", "parameter_count", "quick_control_count", "delta_db", "delta_pan", "target_pan", "before_db", "after_db", "before_pan", "after_pan", "tick_id", "kernel_command", "requires_confirmation", "requires_refresh", "observation_id")) {
         $value = Get-OptionalProperty -Object $result -Name $key
         if ($null -ne $value -and -not [string]::IsNullOrWhiteSpace([string]$value)) {
             $compact[$key] = $value
@@ -402,8 +477,340 @@ function Extract-ResolverDecisions {
     return $out
 }
 
+function Collection-ContainsText {
+    param(
+        [object]$Values,
+        [string]$Needle
+    )
+    foreach ($value in @($Values)) {
+        if ([string]$value -like ("*" + $Needle + "*")) {
+            return $true
+        }
+    }
+    return $false
+}
+
+function Assert-DiagnosisContextPayload {
+    param(
+        [object]$Payload,
+        [string]$Label,
+        [string]$ExpectedProblemKind = "",
+        [string]$ExpectedStrategy = "",
+        [string[]]$ExpectedMissing = @()
+    )
+    $diagID = [string](Get-OptionalProperty -Object $Payload -Name "diagnosis_context_id")
+    $diagnosis = Get-OptionalProperty -Object $Payload -Name "diagnosis_context"
+    if ($null -eq $diagnosis) {
+        $diagnosis = Get-OptionalProperty -Object $Payload -Name "mix_diagnosis_context"
+    }
+    if ($null -eq $diagnosis) {
+        Fail ($Label + " did not include diagnosis_context")
+    }
+    $schema = [string](Get-OptionalProperty -Object $diagnosis -Name "schema_version")
+    if ($schema -ne "mix_diagnosis_context.v0") {
+        Fail ($Label + " diagnosis_context schema=" + $schema)
+    }
+    if ([string]::IsNullOrWhiteSpace($diagID)) {
+        $diagID = [string](Get-OptionalProperty -Object $diagnosis -Name "id")
+    }
+    if ([string]::IsNullOrWhiteSpace($diagID)) {
+        Fail ($Label + " diagnosis_context missing id")
+    }
+    if (-not [string]::IsNullOrWhiteSpace($ExpectedProblemKind)) {
+        $problemKind = [string](Get-OptionalProperty -Object $diagnosis -Name "problem_kind")
+        if ($problemKind -ne $ExpectedProblemKind) {
+            Fail ($Label + " diagnosis problem_kind=" + $problemKind + " expected=" + $ExpectedProblemKind)
+        }
+    }
+    if (-not [string]::IsNullOrWhiteSpace($ExpectedStrategy)) {
+        $recommendation = Get-OptionalProperty -Object $diagnosis -Name "recommendation"
+        $strategy = [string](Get-OptionalProperty -Object $recommendation -Name "strategy")
+        if ($strategy -ne $ExpectedStrategy) {
+            Fail ($Label + " diagnosis strategy=" + $strategy + " expected=" + $ExpectedStrategy)
+        }
+    }
+    foreach ($missingKey in $ExpectedMissing) {
+        $foundMissing = $false
+        foreach ($row in @((Get-OptionalProperty -Object $diagnosis -Name "missing_evidence"))) {
+            if ([string](Get-OptionalProperty -Object $row -Name "key") -eq $missingKey) {
+                $foundMissing = $true
+                break
+            }
+        }
+        if (-not $foundMissing) {
+            Fail ($Label + " diagnosis missing_evidence did not include " + $missingKey + ". diagnosis=" + ($diagnosis | ConvertTo-Json -Depth 12 -Compress))
+        }
+    }
+    return $diagnosis
+}
+
+function Assert-LowMudAcousticEvidence {
+    param(
+        [object]$Payload,
+        [string]$Label,
+        [switch]$AllowReady
+    )
+    $diagnosis = Assert-DiagnosisContextPayload -Payload $Payload -Label $Label -ExpectedProblemKind "low_mud"
+    $recommendation = Get-OptionalProperty -Object $diagnosis -Name "recommendation"
+    $strategy = [string](Get-OptionalProperty -Object $recommendation -Name "strategy")
+    $status = Get-OptionalProperty -Object $diagnosis -Name "evidence_status"
+    $bandStatus = [string](Get-OptionalProperty -Object $status -Name "band_energy")
+    if ([string]::IsNullOrWhiteSpace($bandStatus)) {
+        $bandStatus = "missing"
+    }
+    if ($bandStatus -eq "ready") {
+        if (-not $AllowReady) {
+            Fail ($Label + " unexpectedly had ready band evidence")
+        }
+        if ($strategy -notin @("eq_cut_low_mid", "conservative_eq_cut_low_mid", "band_observed_conservative")) {
+            Fail ($Label + " ready band evidence did not upgrade low_mud strategy. strategy=" + $strategy)
+        }
+        foreach ($row in @((Get-OptionalProperty -Object $diagnosis -Name "missing_evidence"))) {
+            if ([string](Get-OptionalProperty -Object $row -Name "key") -eq "band_energy_summary") {
+                Fail ($Label + " ready band evidence was still listed missing. diagnosis=" + ($diagnosis | ConvertTo-Json -Depth 12 -Compress))
+            }
+        }
+        $refs = @((Get-OptionalProperty -Object $diagnosis -Name "evidence_refs"))
+        if ((-not (Collection-ContainsText -Values $refs -Needle "band_energy_summary")) -and (-not (Collection-ContainsText -Values $refs -Needle "observed.band_energy"))) {
+            Fail ($Label + " ready band evidence did not cite band_energy_summary. refs=" + ($refs -join ","))
+        }
+    }
+    else {
+        if ($strategy -ne "conservative_probe") {
+            Fail ($Label + " missing band evidence did not use conservative_probe. strategy=" + $strategy)
+        }
+        $foundMissing = $false
+        $foundReason = $false
+        foreach ($row in @((Get-OptionalProperty -Object $diagnosis -Name "missing_evidence"))) {
+            if ([string](Get-OptionalProperty -Object $row -Name "key") -eq "band_energy_summary") {
+                $foundMissing = $true
+                $reason = [string](Get-OptionalProperty -Object $row -Name "reason")
+                if (-not [string]::IsNullOrWhiteSpace($reason)) {
+                    $foundReason = $true
+                }
+            }
+        }
+        if (-not $foundMissing -or -not $foundReason) {
+            Fail ($Label + " missing band evidence lacked explicit missing reason. diagnosis=" + ($diagnosis | ConvertTo-Json -Depth 12 -Compress))
+        }
+    }
+	return $diagnosis
+}
+
+function Number-Value {
+	param([object]$Value)
+	if ($null -eq $Value) {
+		return $null
+	}
+	$text = ([string]$Value).Trim()
+	if ([string]::IsNullOrWhiteSpace($text) -or $text -eq "<nil>") {
+		return $null
+	}
+	$dummy = 0.0
+	if (-not [double]::TryParse($text, [System.Globalization.NumberStyles]::Float, [System.Globalization.CultureInfo]::InvariantCulture, [ref]$dummy)) {
+		return $null
+	}
+	return $dummy
+}
+
+function Assert-RequestedFeature {
+	param(
+		[object]$LatestRequest,
+		[string]$FeatureType
+	)
+	$found = $false
+	foreach ($row in @((Get-OptionalProperty -Object $LatestRequest -Name "requested_features"))) {
+		if ([string](Get-OptionalProperty -Object $row -Name "feature_type") -eq $FeatureType) {
+			$found = $true
+			break
+		}
+	}
+	if (-not $found) {
+		Fail ("latest_request.requested_features missing " + $FeatureType)
+	}
+}
+
+function Assert-BridgeSnapshotRow {
+	param(
+		[object]$Snapshot,
+		[string]$Name,
+		[string]$ExpectedRequestID,
+		[string]$Label
+	)
+	$row = Get-OptionalProperty -Object $Snapshot -Name $Name
+	$status = [string](Get-OptionalProperty -Object $row -Name "status")
+	if ([string]::IsNullOrWhiteSpace($status)) {
+		Fail ($Label + " acoustic feature " + $Name + " missing status")
+	}
+	$rowRequestID = [string](Get-OptionalProperty -Object $row -Name "request_id")
+	if (-not [string]::IsNullOrWhiteSpace($ExpectedRequestID) -and -not [string]::IsNullOrWhiteSpace($rowRequestID) -and $rowRequestID -ne $ExpectedRequestID) {
+		$rowSourceRevision = [string](Get-OptionalProperty -Object $row -Name "source_revision")
+		$rowSourceHash = [string](Get-OptionalProperty -Object $row -Name "source_hash")
+		if ([string]::IsNullOrWhiteSpace($rowSourceRevision) -and [string]::IsNullOrWhiteSpace($rowSourceHash)) {
+			Fail ($Label + " acoustic feature " + $Name + " request_id mismatch without source revision/hash: got=" + $rowRequestID + " expected=" + $ExpectedRequestID)
+		}
+	}
+	if ($status -in @("ready", "partial")) {
+		if ([string]::IsNullOrWhiteSpace($rowRequestID)) {
+			Fail ($Label + " ready acoustic feature " + $Name + " missing request_id")
+		}
+		$source = [string](Get-OptionalProperty -Object $row -Name "source")
+		if ([string]::IsNullOrWhiteSpace($source)) {
+			Fail ($Label + " ready acoustic feature " + $Name + " missing source")
+		}
+		if ($Name -eq "spectrogram_tiles") {
+			if ([string](Get-OptionalProperty -Object $row -Name "feature_type") -ne "spectral_field") {
+				Fail ($Label + " spectrogram_tiles feature_type is not spectral_field")
+			}
+			if ($source -notin @("kernel_tile_ready_direct_collector", "kernel_tile_ready_godot_bridge")) {
+				Fail ($Label + " spectrogram_tiles source is not accepted: " + $source)
+			}
+			$seen = Number-Value -Value (Get-OptionalProperty -Object $row -Name "tile_count_seen")
+			$expected = Number-Value -Value (Get-OptionalProperty -Object $row -Name "tile_count_expected")
+			if ($null -eq $seen -or $seen -lt 1 -or $null -eq $expected) {
+				Fail ($Label + " spectrogram_tiles missing tile counts: " + ($row | ConvertTo-Json -Depth 8 -Compress))
+			}
+		}
+		return
+	}
+	if ($status -in @("requested", "building")) {
+		return
+	}
+	if ($status -in @("missing", "blocked", "unavailable", "invalid")) {
+		$reason = [string](Get-OptionalProperty -Object $row -Name "reason")
+		if ([string]::IsNullOrWhiteSpace($reason)) {
+			Fail ($Label + " acoustic feature " + $Name + " status " + $status + " missing explicit reason")
+		}
+		return
+	}
+	Fail ($Label + " acoustic feature " + $Name + " has unexpected status " + $status)
+}
+
+function Assert-ObservationAcousticBridgeReadiness {
+	param(
+		[object]$Observation,
+		[string]$Label
+	)
+	$global = Get-OptionalProperty -Object $Observation -Name "global_summary"
+	$snapshot = Get-OptionalProperty -Object $global -Name "feature_snapshot"
+	$latest = Get-OptionalProperty -Object $snapshot -Name "latest_request"
+	$requestID = [string](Get-OptionalProperty -Object $latest -Name "request_id")
+	if ([string]::IsNullOrWhiteSpace($requestID)) {
+		Fail ($Label + " feature_snapshot.latest_request.request_id missing")
+	}
+	Assert-RequestedFeature -LatestRequest $latest -FeatureType "waveform_envelope"
+	Assert-RequestedFeature -LatestRequest $latest -FeatureType "spectral_field"
+	foreach ($name in @("spectrogram_tiles", "band_energy_summary", "stereo_relation_summary")) {
+		Assert-BridgeSnapshotRow -Snapshot $snapshot -Name $name -ExpectedRequestID $requestID -Label $Label
+	}
+	$mixPackage = Get-OptionalProperty -Object $Observation -Name "mix_package"
+	$currentMetrics = Get-OptionalProperty -Object $mixPackage -Name "current_metrics"
+	foreach ($name in @("band_energy", "stereo_relation")) {
+		$row = Get-OptionalProperty -Object $currentMetrics -Name $name
+		$status = [string](Get-OptionalProperty -Object $row -Name "status")
+		if ($status -eq "missing" -and [string]::IsNullOrWhiteSpace([string](Get-OptionalProperty -Object $row -Name "reason"))) {
+			Fail ($Label + " current_metrics." + $name + " missing explicit reason")
+		}
+	}
+}
+
+function Assert-AcousticPackageStatusReadiness {
+	param(
+		[object]$Status,
+		[string]$Label
+	)
+	if ($null -eq $Status) {
+		Fail ($Label + " acoustic_package_status missing")
+	}
+	$schema = [string](Get-OptionalProperty -Object $Status -Name "schema_version")
+	if ($schema -ne "acoustic_package_status.v0") {
+		Fail ($Label + " acoustic_package_status schema mismatch: " + $schema)
+	}
+	$layers = Get-OptionalProperty -Object $Status -Name "package_layers"
+	foreach ($layerName in @("l1_static", "l2_realtime", "l3_deep")) {
+		$layer = Get-OptionalProperty -Object $layers -Name $layerName
+		if ($null -eq $layer) {
+			Fail ($Label + " acoustic_package_status missing layer " + $layerName)
+		}
+		$layerStatus = [string](Get-OptionalProperty -Object $layer -Name "status")
+		if ([string]::IsNullOrWhiteSpace($layerStatus)) {
+			Fail ($Label + " acoustic_package_status layer " + $layerName + " missing status")
+		}
+		if ($layerStatus -notin @("ready", "partial", "building", "stale", "missing", "deferred", "failed")) {
+			Fail ($Label + " acoustic_package_status layer " + $layerName + " unexpected status " + $layerStatus)
+		}
+	}
+	$l1 = Get-OptionalProperty -Object $layers -Name "l1_static"
+	$l1Features = Get-OptionalProperty -Object $l1 -Name "features"
+	foreach ($name in @("waveform_envelope", "peak_rms_summary", "time_energy")) {
+		$feature = Get-OptionalProperty -Object $l1Features -Name $name
+		$statusText = [string](Get-OptionalProperty -Object $feature -Name "status")
+		if ([string]::IsNullOrWhiteSpace($statusText)) {
+			Fail ($Label + " acoustic_package_status L1 feature " + $name + " missing status")
+		}
+		if ($statusText -in @("missing", "stale", "failed")) {
+			Fail ($Label + " acoustic_package_status L1 feature " + $name + " not ready/usable: " + $statusText)
+		}
+	}
+	$l2 = Get-OptionalProperty -Object $layers -Name "l2_realtime"
+	$l2Features = Get-OptionalProperty -Object $l2 -Name "features"
+	foreach ($name in @("live_meter", "realtime_spectrum", "post_fx_meter", "realtime_stereo_correlation")) {
+		$feature = Get-OptionalProperty -Object $l2Features -Name $name
+		$statusText = [string](Get-OptionalProperty -Object $feature -Name "status")
+		$allowed = @("deferred")
+		if ($name -ne "post_fx_meter") {
+			$allowed += @("ready", "partial")
+		}
+		if ($allowed -notcontains $statusText) {
+			Fail ($Label + " acoustic_package_status L2 feature " + $name + " has unexpected status " + $statusText)
+		}
+	}
+	$l3 = Get-OptionalProperty -Object $layers -Name "l3_deep"
+	$l3Features = Get-OptionalProperty -Object $l3 -Name "features"
+	foreach ($name in @("spectrogram_tiles", "band_energy_summary", "stereo_relation_summary", "lufs_analysis", "masking_analysis", "reference_match")) {
+		$feature = Get-OptionalProperty -Object $l3Features -Name $name
+		$statusText = [string](Get-OptionalProperty -Object $feature -Name "status")
+		if ([string]::IsNullOrWhiteSpace($statusText)) {
+			Fail ($Label + " acoustic_package_status L3 feature " + $name + " missing status")
+		}
+		if ($statusText -eq "ready") {
+			continue
+		}
+		if ($name -in @("lufs_analysis", "masking_analysis", "reference_match")) {
+			if ($statusText -ne "deferred") {
+				Fail ($Label + " acoustic_package_status deferred L3 feature " + $name + " unexpected status " + $statusText)
+			}
+			continue
+		}
+		if ($statusText -notin @("partial", "building", "deferred", "failed")) {
+			Fail ($Label + " acoustic_package_status L3 feature " + $name + " unexpected status " + $statusText)
+		}
+	}
+}
+
+function Assert-TurnAcousticBridgeReadiness {
+	param(
+		[object]$TurnResult,
+		[string]$Label
+	)
+	$packageStatus = Get-AcousticPackageStatusFromTurnResult -TurnResult $TurnResult
+	if ($null -ne $packageStatus) {
+		Assert-AcousticPackageStatusReadiness -Status $packageStatus -Label $Label
+		return
+	}
+	foreach ($row in @((Get-OptionalProperty -Object $TurnResult -Name "rows"))) {
+		$result = Get-OptionalProperty -Object $row -Name "result"
+		$observation = Get-OptionalProperty -Object $result -Name "observation"
+		if ($null -ne $observation) {
+			Assert-ObservationAcousticBridgeReadiness -Observation $observation -Label $Label
+			return
+		}
+	}
+	Fail ($Label + " did not expose a mix observation result")
+}
+
 function Assert-PluginPreparationPlan {
-    param([object]$Decision)
+	param([object]$Decision)
     $plan = Get-OptionalProperty -Object $Decision -Name "preparation_plan"
     if ($null -eq $plan) {
         Fail "plugin resolver decision did not include preparation_plan"
@@ -426,31 +833,75 @@ function Assert-PluginPreparationPlan {
     if ($steps.Count -lt 1) {
         Fail "preparation_plan did not include steps"
     }
+    [void](Assert-DiagnosisContextPayload -Payload $plan -Label "plugin preparation plan")
 }
 
-function Assert-PluginLearningPreparationPlan {
+function Assert-PluginResponsePreparationPlan {
     param([object]$Response)
-    $pluginLearning = Get-OptionalProperty -Object $Response -Name "plugin_learning"
-    if ($null -eq $pluginLearning) {
-        Fail "plugin preparation response did not include plugin_learning payload"
-    }
-    $plan = Get-OptionalProperty -Object $pluginLearning -Name "mix_treatment_preparation_plan"
+    $workflowData = Get-OptionalProperty -Object $Response -Name "workflow_data"
+    $plan = Get-OptionalProperty -Object $workflowData -Name "mix_treatment_preparation_plan"
     if ($null -eq $plan) {
-        Fail "plugin_learning payload did not include mix_treatment_preparation_plan"
+        $pluginLearning = Get-OptionalProperty -Object $Response -Name "plugin_learning"
+        $plan = Get-OptionalProperty -Object $pluginLearning -Name "mix_treatment_preparation_plan"
+    }
+    if ($null -eq $plan) {
+        Fail "plugin preparation response did not include mix_treatment_preparation_plan"
     }
     $schema = [string](Get-OptionalProperty -Object $plan -Name "schema_version")
     if ($schema -ne "mix_treatment_preparation.v0") {
-        Fail ("unexpected plugin_learning preparation plan schema=" + $schema)
+        Fail ("unexpected plugin response preparation plan schema=" + $schema)
     }
+    [void](Assert-DiagnosisContextPayload -Payload $plan -Label "plugin response preparation plan")
     $interactions = @((Get-OptionalProperty -Object $Response -Name "interaction_requests"))
     if ($interactions.Count -lt 1) {
         Fail "plugin preparation response did not include interaction_requests"
     }
-    $payload = Get-OptionalProperty -Object $interactions[0] -Name "payload"
-    $interactionPlan = Get-OptionalProperty -Object $payload -Name "mix_treatment_preparation_plan"
-    if ($null -eq $interactionPlan) {
-        Fail "plugin learning interaction did not carry mix_treatment_preparation_plan"
+    foreach ($interaction in $interactions) {
+        if ([string](Get-OptionalProperty -Object $interaction -Name "workflow") -eq "plugin_grabber_load_and_get_params") {
+            return
+        }
+        $payload = Get-OptionalProperty -Object $interaction -Name "payload"
+        $interactionPlan = Get-OptionalProperty -Object $payload -Name "mix_treatment_preparation_plan"
+        if ($null -ne $interactionPlan) {
+            return
+        }
+        $data = Get-OptionalProperty -Object $interaction -Name "data"
+        $interactionPlan = Get-OptionalProperty -Object $data -Name "mix_treatment_preparation_plan"
+        if ($null -ne $interactionPlan) {
+            return
+        }
     }
+    Fail "plugin preparation interaction did not expose workflow or mix_treatment_preparation_plan"
+}
+
+function Get-PluginPreparationInteractionID {
+    param([object]$Response)
+    foreach ($interaction in @((Get-OptionalProperty -Object $Response -Name "interaction_requests"))) {
+        if ([string](Get-OptionalProperty -Object $interaction -Name "workflow") -ne "plugin_grabber_load_and_get_params") {
+            continue
+        }
+        $id = [string](Get-OptionalProperty -Object $interaction -Name "id")
+        if (-not [string]::IsNullOrWhiteSpace($id)) {
+            return $id
+        }
+    }
+    Fail "plugin preparation response did not include a plugin_grabber_load_and_get_params interaction id"
+}
+
+function Get-PluginParameterTreatmentInteractionID {
+    param([object]$Response)
+    foreach ($interaction in @((Get-OptionalProperty -Object $Response -Name "interaction_requests"))) {
+        $type = [string](Get-OptionalProperty -Object $interaction -Name "type")
+        $workflow = [string](Get-OptionalProperty -Object $interaction -Name "workflow")
+        if ($type -ne "plugin_parameter_treatment" -and $workflow -ne "plugin_prep_worker") {
+            continue
+        }
+        $id = [string](Get-OptionalProperty -Object $interaction -Name "id")
+        if (-not [string]::IsNullOrWhiteSpace($id)) {
+            return $id
+        }
+    }
+    Fail "plugin prep worker response did not include a plugin_parameter_treatment interaction id"
 }
 
 function Extract-GainTreatmentCandidates {
@@ -492,31 +943,100 @@ function Extract-ObservationIDs {
     return $out
 }
 
-function Invoke-BlindTurn {
+function Get-AcousticPackageStatusFromTurnResult {
+    param([object]$TurnResult)
+    foreach ($row in @((Get-OptionalProperty -Object $TurnResult -Name "rows"))) {
+        $result = Get-OptionalProperty -Object $row -Name "result"
+        $status = Get-OptionalProperty -Object $result -Name "acoustic_package_status"
+        if ($null -ne $status) {
+            return $status
+        }
+        $digest = Get-OptionalProperty -Object $result -Name "acoustic_digest"
+        $status = Get-OptionalProperty -Object $digest -Name "acoustic_package_status"
+        if ($null -ne $status) {
+            return $status
+        }
+    }
+    $response = Get-OptionalProperty -Object $TurnResult -Name "response"
+    return Get-OptionalProperty -Object $response -Name "acoustic_package_status"
+}
+
+function Test-AcousticPackageDeepIncomplete {
+    param([object]$Status)
+    if ($null -eq $Status) {
+        return $false
+    }
+    $layers = Get-OptionalProperty -Object $Status -Name "package_layers"
+    $l3 = Get-OptionalProperty -Object $layers -Name "l3_deep"
+    $l3Status = [string](Get-OptionalProperty -Object $l3 -Name "status")
+    if (-not [string]::IsNullOrWhiteSpace($l3Status) -and $l3Status -ne "ready") {
+        return $true
+    }
+    $features = Get-OptionalProperty -Object $l3 -Name "features"
+    foreach ($name in @("spectrogram_tiles", "band_energy_summary", "stereo_relation_summary")) {
+        $feature = Get-OptionalProperty -Object $features -Name $name
+        $featureStatus = [string](Get-OptionalProperty -Object $feature -Name "status")
+        if ($featureStatus -ne "ready") {
+            return $true
+        }
+    }
+    return $false
+}
+
+function Test-TurnResultAcousticPackageDeepIncomplete {
+    param([object]$TurnResult)
+    return (Test-AcousticPackageDeepIncomplete -Status (Get-AcousticPackageStatusFromTurnResult -TurnResult $TurnResult))
+}
+
+function Assert-NoExecutionQuestion {
+    param(
+        [object]$Turn,
+        [string]$Label
+    )
+    $reply = [string](Get-OptionalProperty -Object $Turn -Name "reply")
+    $lower = $reply.ToLowerInvariant()
+    $continueExecute = Join-UnicodeChars @(0x7EE7, 0x7EED, 0x6267, 0x884C)
+    $executeQuestion = Join-UnicodeChars @(0x6267, 0x884C, 0x5417)
+    if ($lower.Contains("execute") -or $lower.Contains("continue") -or $reply.Contains($continueExecute) -or $reply.Contains($executeQuestion)) {
+        Fail ($Label + " asked for execution despite incomplete acoustic package: " + $reply)
+    }
+}
+
+function Convert-AgentResponseToTurn {
     param(
         [string]$ConversationID,
         [string]$Message,
-        [string]$Label
+        [string]$Label,
+        [object]$Response
     )
-    $response = Invoke-AgentChat -ConversationID $ConversationID -Message $Message
     $fileName = ("chat_" + $Label + ".json")
-    ConvertTo-JsonFile -Value $response -Path (Join-Path $ArtifactDir $fileName)
-    $rawRows = Get-OptionalProperty -Object $response -Name "executed_kernel_reply"
+    ConvertTo-JsonFile -Value $Response -Path (Join-Path $ArtifactDir $fileName)
+    $rawRows = Get-OptionalProperty -Object $Response -Name "executed_kernel_reply"
     $rows = @()
     if ($null -ne $rawRows) {
         $rows = @($rawRows)
     }
     $tools = @(Tool-Names -Rows $rows)
     $observationIDs = @(Extract-ObservationIDs -Rows $rows)
+    $resolvedConversationID = $ConversationID
+    if ([string]::IsNullOrWhiteSpace($resolvedConversationID)) {
+        $resolvedConversationID = [string](Get-OptionalProperty -Object $Response -Name "conversation_id")
+    }
+    $replyText = [string](Get-OptionalProperty -Object $Response -Name "reply")
+    if ([string]::IsNullOrWhiteSpace($replyText)) {
+        $replyText = [string](Get-OptionalProperty -Object $Response -Name "message")
+    }
     $turn = [ordered]@{
         label = $Label
-        conversation_id = $ConversationID
+        conversation_id = $resolvedConversationID
         message = $Message
-        stop_reason = [string](Get-OptionalProperty -Object $response -Name "stop_reason")
-        goal_status = [string](Get-OptionalProperty -Object $response -Name "goal_status")
-        reply = [string](Get-OptionalProperty -Object $response -Name "reply")
+        stop_reason = [string](Get-OptionalProperty -Object $Response -Name "stop_reason")
+        goal_status = [string](Get-OptionalProperty -Object $Response -Name "goal_status")
+        reply = $replyText
         tool_route = $tools
         tool_counts = Tool-Counts -Rows $rows
+        typed_event_counts = Typed-Event-Counts -Response $Response
+        interaction_counts = Interaction-Counts -Response $Response
         observations = $observationIDs
         executed = @()
         response_file = $fileName
@@ -527,11 +1047,34 @@ function Invoke-BlindTurn {
         }
     }
     return @{
-        response = $response
+        response = $Response
         turn = $turn
         rows = $rows
         tools = $tools
     }
+}
+
+function Invoke-BlindTurn {
+    param(
+        [string]$ConversationID,
+        [string]$Message,
+        [string]$Label
+    )
+    $response = Invoke-AgentChat -ConversationID $ConversationID -Message $Message
+    return Convert-AgentResponseToTurn -ConversationID $ConversationID -Message $Message -Label $Label -Response $response
+}
+
+function Invoke-BlindInteraction {
+    param(
+        [string]$ConversationID,
+        [string]$InteractionID,
+        [string]$Label,
+        [string]$Decision = "approve",
+        [string]$ActionID = "approve",
+        [object]$Payload = $null
+    )
+    $response = Invoke-AgentInteractionRespond -InteractionID $InteractionID -Decision $Decision -ActionID $ActionID -Payload $Payload
+    return Convert-AgentResponseToTurn -ConversationID $ConversationID -Message ("interaction:" + $Decision + ":" + $InteractionID) -Label $Label -Response $response
 }
 
 function Record-Turn {
@@ -543,7 +1086,8 @@ function Record-Turn {
         $script:summary["observations"] += $observationID
     }
     $counts = $Turn.tool_counts
-    if ([int]$counts.daw_invoke -gt 0 -or [int]$counts.track_volume -gt 0 -or [int]$counts.track_pan -gt 0 -or [int]$counts.plugin_set_parameter -gt 0) {
+    $allowedPluginPrepWrite = ([string]$Turn.label -eq "low_mud_parameter_candidate_confirm" -and [string]$Turn.stop_reason -eq "plugin_prep_parameter_treatment_applied_reobserved")
+    if ([int]$counts.daw_invoke -gt 0 -or [int]$counts.track_volume -gt 0 -or [int]$counts.track_pan -gt 0 -or (([int]$counts.plugin_set_parameter -gt 0) -and -not $allowedPluginPrepWrite)) {
         $script:summary["blocked_mutation_attempts"] += [ordered]@{
             label = $Turn.label
             route = $Turn.tool_route
@@ -577,7 +1121,7 @@ function Assert-ObserveOnlyFirstTurn {
         [object]$Turn,
         [string]$Label
     )
-    if ([string]$Turn.stop_reason -ne "done") {
+    if ([string]$Turn.stop_reason -notin @("done", "needs_confirmation", "needs_clarification")) {
         Fail ($Label + " stop_reason=" + [string]$Turn.stop_reason)
     }
     $counts = $Turn.tool_counts
@@ -607,6 +1151,189 @@ function Assert-ConfirmationRoute {
     Assert-ToolAbsent -Tools $Turn.tool_route -Aliases @("track.volume", "track_volume") -Label "track.volume"
     Assert-ToolAbsent -Tools $Turn.tool_route -Aliases @("track.pan", "track_pan") -Label "track.pan"
     Assert-ToolAbsent -Tools $Turn.tool_route -Aliases @("plugin.set_parameter", "plugin_set_parameter", "set_plugin_param") -Label "plugin.set_parameter"
+}
+
+function Assert-PluginPrepConfirmationGate {
+    param(
+        [object]$TurnResult,
+        [string]$Label,
+        [switch]$RequirePreparationExecution
+    )
+    $turn = $TurnResult.turn
+    $counts = $turn.tool_counts
+    $typedCounts = $turn.typed_event_counts
+    $interactionCounts = $turn.interaction_counts
+    if ([int]$counts.rack_add_node -gt 1) {
+        Fail ($Label + " loaded plugin more than once. counts=" + ($counts | ConvertTo-Json -Compress))
+    }
+    if ([int]$counts.plugin_get_parameters -gt 1) {
+        Fail ($Label + " fetched plugin parameters more than once. counts=" + ($counts | ConvertTo-Json -Compress))
+    }
+    if ([int]$counts.plugin_grabber_load_and_get_params -gt 1) {
+        Fail ($Label + " ran plugin_grabber.load_and_get_params more than once. counts=" + ($counts | ConvertTo-Json -Compress))
+    }
+    if ($RequirePreparationExecution) {
+        if (([int]$counts.rack_add_node -lt 1) -and ([int]$counts.plugin_grabber_load_and_get_params -lt 1)) {
+            Fail ($Label + " did not load or instantiate the plugin during approved preparation. counts=" + ($counts | ConvertTo-Json -Compress))
+        }
+        if (([int]$counts.plugin_get_parameters -lt 1) -and ([int]$counts.plugin_grabber_load_and_get_params -lt 1)) {
+            Fail ($Label + " did not fetch plugin parameters during approved preparation. counts=" + ($counts | ConvertTo-Json -Compress))
+        }
+        if ([string]$turn.stop_reason -notmatch "^plugin_prep_") {
+            Fail ($Label + " approved preparation did not enter the plugin prep bridge. stop_reason=" + [string]$turn.stop_reason)
+        }
+        if ([int]$typedCounts.terminal_result -lt 1) {
+            Fail ($Label + " approved preparation did not emit TerminalResult. typed_counts=" + ($typedCounts | ConvertTo-Json -Compress))
+        }
+    }
+    if ([int]$counts.plugin_prep_continuation -gt 1 -or [int]$interactionCounts.plugin_prep_continuation -gt 1) {
+        Fail ($Label + " produced more than one plugin prep continuation. turn=" + ($turn | ConvertTo-Json -Depth 12 -Compress))
+    }
+    if ([int]$counts.plugin_set_parameter -ne 0) {
+        Fail ($Label + " wrote plugin parameters during preparation. counts=" + ($counts | ConvertTo-Json -Compress))
+    }
+    if ([int]$counts.plugin_grabber_apply_control -ne 0) {
+        Fail ($Label + " applied plugin control during preparation. counts=" + ($counts | ConvertTo-Json -Compress))
+    }
+    if ([string]$turn.stop_reason -match "^plugin_prep_" -and ([int]$typedCounts.terminal_result -lt 1) -and ([int]$typedCounts.user_input_request -lt 1)) {
+        Fail ($Label + " entered plugin prep without TerminalResult or UserInputRequest. typed_counts=" + ($typedCounts | ConvertTo-Json -Compress))
+    }
+    if ([string]$turn.stop_reason -eq "plugin_prep_waiting_continuation" -and ([int]$typedCounts.user_input_request -lt 1 -or [int]$interactionCounts.plugin_prep_continuation -ne 1)) {
+        Fail ($Label + " did not expose exactly one continuation user input. turn=" + ($turn | ConvertTo-Json -Depth 12 -Compress))
+    }
+    if ([string]$turn.stop_reason -eq "plugin_prep_parameter_candidate_pending") {
+        if ([int]$typedCounts.pending_candidate -lt 1) {
+            Fail ($Label + " did not emit a PendingCandidate. typed_counts=" + ($typedCounts | ConvertTo-Json -Compress))
+        }
+        if ([int]$interactionCounts.plugin_parameter_treatment -ne 1) {
+            Fail ($Label + " did not expose exactly one plugin_parameter_treatment interaction. turn=" + ($turn | ConvertTo-Json -Depth 12 -Compress))
+        }
+        $pluginInteraction = $null
+        foreach ($interaction in @((Get-OptionalProperty -Object $TurnResult.response -Name "interaction_requests"))) {
+            $type = [string](Get-OptionalProperty -Object $interaction -Name "type")
+            $workflow = [string](Get-OptionalProperty -Object $interaction -Name "workflow")
+            if ($type -eq "plugin_parameter_treatment" -or $workflow -eq "plugin_prep_worker") {
+                $pluginInteraction = $interaction
+                break
+            }
+        }
+        if ($null -eq $pluginInteraction) {
+            Fail ($Label + " did not expose a plugin_prep_worker interaction payload")
+        }
+        $missingEvidenceText = Join-UnicodeChars @(0x672A, 0x53D6, 0x5F97, 0x53EF, 0x9760, 0x7684, 0x9891, 0x6BB5, 0x89C2, 0x6D4B)
+        $conservativeProbeText = Join-UnicodeChars @(0x4FDD, 0x5B88, 0x8BD5, 0x63A2)
+        $applyLabel = Join-UnicodeChars @(0x5E94, 0x7528, 0x5019, 0x9009)
+        $reviseLabel = Join-UnicodeChars @(0x8C03, 0x6574, 0x5019, 0x9009)
+        $cancelLabel = Join-UnicodeChars @(0x53D6, 0x6D88)
+        $body = [string](Get-OptionalProperty -Object $pluginInteraction -Name "body")
+        if ($body -match "Plugin Prep Worker prepared|Apply candidate|Revise|Cancel") {
+            Fail ($Label + " plugin prep worker body still contains English UX text: " + $body)
+        }
+        $labels = @()
+        foreach ($action in @((Get-OptionalProperty -Object $pluginInteraction -Name "actions"))) {
+            $labels += [string](Get-OptionalProperty -Object $action -Name "label")
+        }
+        foreach ($expectedLabel in @($applyLabel, $reviseLabel, $cancelLabel)) {
+            if ($labels -notcontains $expectedLabel) {
+                Fail ($Label + " plugin prep worker action labels missing " + $expectedLabel + ". labels=" + ($labels -join ","))
+            }
+        }
+        $payload = Get-OptionalProperty -Object $pluginInteraction -Name "payload"
+        $candidate = Get-OptionalProperty -Object $payload -Name "plugin_prep_worker"
+        if ($null -eq $candidate) {
+            $candidate = Get-OptionalProperty -Object $payload -Name "plugin_parameter_treatment_candidate"
+        }
+        if ($null -eq $candidate) {
+            Fail ($Label + " plugin prep worker interaction missing candidate display payload")
+        }
+        $evidenceStatus = Get-OptionalProperty -Object $candidate -Name "evidence_status"
+        $bandStatus = [string](Get-OptionalProperty -Object $evidenceStatus -Name "band_energy")
+        $statusStrategy = [string](Get-OptionalProperty -Object $evidenceStatus -Name "strategy")
+        $displaySummary = [string](Get-OptionalProperty -Object $candidate -Name "display_summary")
+        if ($bandStatus -eq "ready") {
+            if ($statusStrategy -notin @("eq_cut_low_mid", "conservative_eq_cut_low_mid", "band_observed_conservative")) {
+                Fail ($Label + " plugin prep worker ready band evidence did not upgrade strategy. evidence_status=" + ($evidenceStatus | ConvertTo-Json -Depth 8 -Compress))
+            }
+            $bandSummary = Get-OptionalProperty -Object $candidate -Name "band_energy_summary"
+            if ($null -eq $bandSummary) {
+                Fail ($Label + " plugin prep worker ready band evidence missing band_energy_summary payload")
+            }
+        }
+        else {
+            if ($bandStatus -ne "missing") {
+                Fail ($Label + " plugin prep worker evidence_status.band_energy was neither ready nor missing. evidence_status=" + ($evidenceStatus | ConvertTo-Json -Depth 8 -Compress))
+            }
+            if ($statusStrategy -ne "conservative_probe") {
+                Fail ($Label + " plugin prep worker evidence_status.strategy was not conservative_probe. evidence_status=" + ($evidenceStatus | ConvertTo-Json -Depth 8 -Compress))
+            }
+            if ((-not $body.Contains($missingEvidenceText)) -and (-not $body.Contains($conservativeProbeText))) {
+                Fail ($Label + " plugin prep worker body missing evidence degradation explanation: " + $body)
+            }
+            if ((-not $displaySummary.Contains($missingEvidenceText)) -and (-not $displaySummary.Contains($conservativeProbeText))) {
+                Fail ($Label + " plugin prep worker display_summary missing evidence degradation: " + $displaySummary)
+            }
+        }
+        $diagnosis = Assert-LowMudAcousticEvidence -Payload $candidate -Label ($Label + " plugin prep worker candidate") -AllowReady
+        $diagID = [string](Get-OptionalProperty -Object $candidate -Name "diagnosis_context_id")
+        if ([string]::IsNullOrWhiteSpace($diagID)) {
+            $diagID = [string](Get-OptionalProperty -Object $diagnosis -Name "id")
+        }
+        $candidateRefs = @((Get-OptionalProperty -Object $candidate -Name "evidence_refs"))
+        if (-not (Collection-ContainsText -Values $candidateRefs -Needle $diagID)) {
+            Fail ($Label + " plugin prep worker evidence_refs did not cite diagnosis_context_id. refs=" + ($candidateRefs -join ",") + " diag_id=" + $diagID)
+        }
+        $parameterSummary = @((Get-OptionalProperty -Object $candidate -Name "parameter_change_summary"))
+        if ($parameterSummary.Count -lt 1) {
+            Fail ($Label + " plugin prep worker candidate missing parameter_change_summary")
+        }
+        if ([int]$counts.plugin_set_parameter -ne 0 -or [int]$counts.plugin_grabber_apply_control -ne 0) {
+            Fail ($Label + " wrote plugin parameters before candidate confirmation. counts=" + ($counts | ConvertTo-Json -Compress))
+        }
+    }
+    $script:summary["plugin_prep_audit"] += [ordered]@{
+        label = $Label
+        stop_reason = [string]$turn.stop_reason
+        tool_route = $turn.tool_route
+        tool_counts = $counts
+        typed_event_counts = $typedCounts
+        interaction_counts = $interactionCounts
+        response_file = $turn.response_file
+    }
+}
+
+function Assert-PluginPrepWorkerAppliedRoute {
+    param(
+        [object]$TurnResult,
+        [string]$Label
+    )
+    $turn = $TurnResult.turn
+    $counts = $turn.tool_counts
+    $typedCounts = $turn.typed_event_counts
+    if ([string]$turn.stop_reason -ne "plugin_prep_parameter_treatment_applied_reobserved") {
+        Fail ($Label + " did not apply and reobserve. stop_reason=" + [string]$turn.stop_reason)
+    }
+    if ([int]$counts.plugin_set_parameter -lt 1) {
+        Fail ($Label + " did not write any plugin parameter after confirmation. counts=" + ($counts | ConvertTo-Json -Compress))
+    }
+    if ([int]$counts.observe -lt 1) {
+        Fail ($Label + " did not reobserve after plugin parameter write. counts=" + ($counts | ConvertTo-Json -Compress))
+    }
+    Assert-ToolAbsent -Tools $turn.tool_route -Aliases @("daw.invoke", "daw_invoke") -Label ($Label + " daw.invoke")
+    Assert-ToolAbsent -Tools $turn.tool_route -Aliases @("track.volume", "track_volume") -Label ($Label + " track.volume")
+    Assert-ToolAbsent -Tools $turn.tool_route -Aliases @("track.pan", "track_pan") -Label ($Label + " track.pan")
+    Assert-ToolAbsent -Tools $turn.tool_route -Aliases @("plugin_grabber.apply_control", "plugin_grabber_apply_control") -Label ($Label + " plugin_grabber.apply_control")
+    if ([int]$typedCounts.pending_candidate -lt 1 -or [int]$typedCounts.terminal_result -lt 1) {
+        Fail ($Label + " missing typed PendingCandidate or TerminalResult. typed_counts=" + ($typedCounts | ConvertTo-Json -Compress))
+    }
+    $script:summary["plugin_prep_audit"] += [ordered]@{
+        label = $Label
+        stop_reason = [string]$turn.stop_reason
+        tool_route = $turn.tool_route
+        tool_counts = $counts
+        typed_event_counts = $typedCounts
+        interaction_counts = $turn.interaction_counts
+        response_file = $turn.response_file
+    }
 }
 
 function Start-KernelIfRequested {
@@ -674,6 +1401,7 @@ $summary = [ordered]@{
     stop_reasons = [ordered]@{}
     blocked_mutation_attempts = @()
     resolver_decisions = @()
+    plugin_prep_audit = @()
     fixture = [ordered]@{}
     status = "running"
 }
@@ -706,8 +1434,8 @@ try {
         $smokeArgs["RestartAgent"] = $true
     }
     & $DevSmoke @smokeArgs
-    if ($LASTEXITCODE -ne 0) {
-        Fail ("dev_agent_smoke failed with exit code " + $LASTEXITCODE)
+    if (-not $?) {
+        Fail "dev_agent_smoke failed"
     }
 
     Start-KernelIfRequested -KernelExe $KernelExe -ReqPort ([int]$ZmqReqPort) -SubPort ([int]$ZmqSubPort)
@@ -751,21 +1479,30 @@ try {
     $overallMessage = Join-UnicodeChars @(0x5E2E, 0x6211, 0x770B, 0x6574, 0x4F53, 0x6DF7, 0x97F3)
     $messyMessage = Join-UnicodeChars @(0x6574, 0x4F53, 0x542C, 0x8D77, 0x6765, 0x6709, 0x70B9, 0x4E71, 0xFF0C, 0x5E2E, 0x6211, 0x5904, 0x7406, 0x4E0B)
     $vocalForwardMessage = Join-UnicodeChars @(0x4E3B, 0x5531, 0x80FD, 0x4E0D, 0x80FD, 0x66F4, 0x9760, 0x524D)
-    $lowMudMessage = Join-UnicodeChars @(0x4F4E, 0x9891, 0x6709, 0x70B9, 0x7CCA, 0xFF0C, 0x770B, 0x770B, 0x600E, 0x4E48, 0x8C03)
+    $lowMudMessage = "Track 1 " + (Join-UnicodeChars @(0x4F4E, 0x9891, 0x6709, 0x70B9, 0x7CCA, 0xFF0C, 0x522B, 0x76F4, 0x63A5, 0x8C03, 0x97F3, 0x91CF, 0xFF0C, 0x7528)) + " EQ " + (Join-UnicodeChars @(0x63D2, 0x4EF6, 0x505A, 0x4F4E, 0x5207, 0x548C, 0x4F4E, 0x4E2D, 0x9891, 0x5904, 0x7406, 0xFF0C, 0x5148, 0x51C6, 0x5907, 0x63D2, 0x4EF6, 0x53C2, 0x6570))
     $panLeftMessage = "Track 2 " + (Join-UnicodeChars @(0x58F0, 0x50CF, 0x5F80, 0x5DE6, 0x4E00, 0x70B9))
     $vocalAnswerMessage = "Track 1 " + (Join-UnicodeChars @(0x662F, 0x4E3B, 0x5531))
 
     Write-Step "Scenario A/B/D/E: natural request, discuss, reobserve, confirm"
     $conversationID = "blind_mix_main_" + $Stamp
     $summary["conversation_id"] = $conversationID
-    $first = Invoke-BlindTurn -ConversationID $conversationID -Message $overallMessage -Label "overall_observe"
-    Record-Turn -Turn $first.turn
-    Assert-ObserveOnlyFirstTurn -Turn $first.turn -Label "overall observe"
-    $eventsFirst = Record-Events -ConversationID $conversationID -Label "overall_after_observe"
+	$first = Invoke-BlindTurn -ConversationID $conversationID -Message $overallMessage -Label "overall_observe"
+	Record-Turn -Turn $first.turn
+	Assert-ObserveOnlyFirstTurn -Turn $first.turn -Label "overall observe"
+	Assert-TurnAcousticBridgeReadiness -TurnResult $first -Label "overall observe"
+	$eventsFirst = Record-Events -ConversationID $conversationID -Label "overall_after_observe"
     $firstPending = @(Extract-PendingCandidates -Events $eventsFirst)
     $firstGainTreatments = @(Extract-GainTreatmentCandidates -Events $eventsFirst)
+    $firstDeepIncomplete = Test-TurnResultAcousticPackageDeepIncomplete -TurnResult $first
     if ($firstPending.Count -lt 1 -and $firstGainTreatments.Count -lt 1) {
-        Fail "overall observe did not produce a pending gain candidate or gain treatment"
+        if ($firstDeepIncomplete) {
+            Assert-NoExecutionQuestion -Turn $first.turn -Label "overall observe"
+            $summary["overall_observe_pending_skipped_reason"] = "l3_deep_not_ready"
+            Write-Ok "overall observe stayed read-only while L3 acoustic package was incomplete"
+        }
+        else {
+            Fail "overall observe did not produce a pending gain candidate or gain treatment"
+        }
     }
 
     $why = Invoke-BlindTurn -ConversationID $conversationID -Message $whyMessage -Label "why_guard"
@@ -798,13 +1535,24 @@ try {
     Record-Turn -Turn $pendingTurn.turn
     Assert-ObserveOnlyFirstTurn -Turn $pendingTurn.turn -Label "confirm observe"
     $pendingEvents = Record-Events -ConversationID $confirmConversationID -Label "confirm_after_observe"
-    if (@(Extract-PendingCandidates -Events $pendingEvents).Count -lt 1 -and @(Extract-GainTreatmentCandidates -Events $pendingEvents).Count -lt 1) {
-        Fail "confirm observe did not produce a pending gain candidate or gain treatment"
+    $pendingDeepIncomplete = Test-TurnResultAcousticPackageDeepIncomplete -TurnResult $pendingTurn
+    $pendingHasGain = (@(Extract-PendingCandidates -Events $pendingEvents).Count -ge 1 -or @(Extract-GainTreatmentCandidates -Events $pendingEvents).Count -ge 1)
+    if (-not $pendingHasGain) {
+        if ($pendingDeepIncomplete) {
+            Assert-NoExecutionQuestion -Turn $pendingTurn.turn -Label "confirm observe"
+            $summary["confirm_gain_tick_skipped_reason"] = "l3_deep_not_ready"
+            Write-Ok "confirm observe stayed read-only while L3 acoustic package was incomplete"
+        }
+        else {
+            Fail "confirm observe did not produce a pending gain candidate or gain treatment"
+        }
     }
-    $confirmTurn = Invoke-BlindTurn -ConversationID $confirmConversationID -Message $confirmMessage -Label "confirm_execute"
-    Record-Turn -Turn $confirmTurn.turn
-    Assert-ConfirmationRoute -Turn $confirmTurn.turn
-    [void](Record-Events -ConversationID $confirmConversationID -Label "confirm_after_execute")
+    if ($pendingHasGain) {
+        $confirmTurn = Invoke-BlindTurn -ConversationID $confirmConversationID -Message $confirmMessage -Label "confirm_execute"
+        Record-Turn -Turn $confirmTurn.turn
+        Assert-ConfirmationRoute -Turn $confirmTurn.turn
+        [void](Record-Events -ConversationID $confirmConversationID -Label "confirm_after_execute")
+    }
 
     Write-Step "Scenario natural blind phrase stays observe-first"
     $messyConversationID = "blind_mix_messy_" + $Stamp
@@ -847,13 +1595,16 @@ try {
 
     Write-Step "Scenario pan treatment confirms through typed pan tick"
     $panConversationID = "blind_mix_pan_" + $Stamp
-    $panObserve = Invoke-BlindTurn -ConversationID $panConversationID -Message $panLeftMessage -Label "pan_observe"
-    Record-Turn -Turn $panObserve.turn
-    Assert-ObserveOnlyFirstTurn -Turn $panObserve.turn -Label "pan observe"
-    $panEvents = Record-Events -ConversationID $panConversationID -Label "pan_after_observe"
-    if (@(Extract-PanTreatmentCandidates -Events $panEvents).Count -lt 1) {
+	$panObserve = Invoke-BlindTurn -ConversationID $panConversationID -Message $panLeftMessage -Label "pan_observe"
+	Record-Turn -Turn $panObserve.turn
+	Assert-ObserveOnlyFirstTurn -Turn $panObserve.turn -Label "pan observe"
+	Assert-TurnAcousticBridgeReadiness -TurnResult $panObserve -Label "pan observe"
+	$panEvents = Record-Events -ConversationID $panConversationID -Label "pan_after_observe"
+    $panTreatments = @(Extract-PanTreatmentCandidates -Events $panEvents)
+    if ($panTreatments.Count -lt 1) {
         Fail "pan observe did not produce pan_balance treatment"
     }
+    [void](Assert-DiagnosisContextPayload -Payload $panTreatments[-1] -Label "pan treatment pending" -ExpectedProblemKind "pan_balance" -ExpectedStrategy "small_pan_adjust")
     $panConfirm = Invoke-BlindTurn -ConversationID $panConversationID -Message $confirmMessage -Label "pan_confirm"
     Record-Turn -Turn $panConfirm.turn
     Assert-ConfirmationRoute -Turn $panConfirm.turn
@@ -869,14 +1620,16 @@ try {
 
     Write-Step "Scenario broad/plugin-like requests stay observe-first"
     $lowConversationID = "blind_mix_low_" + $Stamp
-    $low = Invoke-BlindTurn -ConversationID $lowConversationID -Message $lowMudMessage -Label "low_mud_observe"
-    Record-Turn -Turn $low.turn
-    Assert-ObserveOnlyFirstTurn -Turn $low.turn -Label "low mud observe"
-    $lowEvents = Record-Events -ConversationID $lowConversationID -Label "low_mud_after_observe"
+	$low = Invoke-BlindTurn -ConversationID $lowConversationID -Message $lowMudMessage -Label "low_mud_observe"
+	Record-Turn -Turn $low.turn
+	Assert-ObserveOnlyFirstTurn -Turn $low.turn -Label "low mud observe"
+	Assert-TurnAcousticBridgeReadiness -TurnResult $low -Label "low mud observe"
+	$lowEvents = Record-Events -ConversationID $lowConversationID -Label "low_mud_after_observe"
     $lowTreatments = @(Extract-TreatmentPendingCandidates -Events $lowEvents)
     if ($lowTreatments.Count -lt 1) {
         Fail "low mud observe did not produce mix_treatment_pending"
     }
+    [void](Assert-LowMudAcousticEvidence -Payload $lowTreatments[-1] -Label "low mud treatment pending" -AllowReady)
     $lowConfirm = Invoke-BlindTurn -ConversationID $lowConversationID -Message $confirmMessage -Label "low_mud_treatment_confirm"
     Record-Turn -Turn $lowConfirm.turn
     $lowResolveEvents = Record-Events -ConversationID $lowConversationID -Label "low_mud_after_treatment_confirm"
@@ -906,7 +1659,16 @@ try {
         Assert-PluginPreparationPlan -Decision $latestDecision
     }
     if ([string]$lowConfirm.turn.stop_reason -eq "mix_treatment_preparation_started") {
-        Assert-PluginLearningPreparationPlan -Response $lowConfirm.response
+        Assert-PluginResponsePreparationPlan -Response $lowConfirm.response
+        Assert-PluginPrepConfirmationGate -TurnResult $lowConfirm -Label "low mud preparation card"
+        $lowPrepInteractionID = Get-PluginPreparationInteractionID -Response $lowConfirm.response
+        $lowPrepConfirm = Invoke-BlindInteraction -ConversationID $lowConversationID -InteractionID $lowPrepInteractionID -Label "low_mud_plugin_prep_confirm" -Decision "approve" -ActionID "approve"
+        Record-Turn -Turn $lowPrepConfirm.turn
+        Assert-PluginPrepConfirmationGate -TurnResult $lowPrepConfirm -Label "low mud plugin prep confirm" -RequirePreparationExecution
+        $lowParameterCandidateInteractionID = Get-PluginParameterTreatmentInteractionID -Response $lowPrepConfirm.response
+        $lowParameterConfirm = Invoke-BlindInteraction -ConversationID $lowConversationID -InteractionID $lowParameterCandidateInteractionID -Label "low_mud_parameter_candidate_confirm" -Decision "approve" -ActionID "approve"
+        Record-Turn -Turn $lowParameterConfirm.turn
+        Assert-PluginPrepWorkerAppliedRoute -TurnResult $lowParameterConfirm -Label "low mud parameter candidate confirm"
     }
     if ($decisionStatus -eq "ready_plugin_control") {
         if ([string]$lowConfirm.turn.stop_reason -ne "mix_treatment_applied_plugin_control_reobserved") {

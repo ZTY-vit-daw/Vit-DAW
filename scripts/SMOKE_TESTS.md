@@ -4,6 +4,49 @@ This directory contains stable development smoke-test entry points. Keep these
 paths stable so future agent, kernel, and mix-loop work can reuse the same
 commands.
 
+## Observation v1 Acceptance Smoke
+
+Path:
+
+```powershell
+D:\Vit_DAW\scripts\run_observation_v1_acceptance_smoke.ps1
+```
+
+Purpose:
+
+- Run one stable Observation v1 acceptance entry point before agent/action
+  refactors.
+- Parse the Godot project headlessly.
+- Run the observation Go regression set:
+  `acousticpackage`, `mom`, `mixboard`, `agentloop`, and `chat`.
+- Verify DAD L3 package evidence for `band_energy_summary`,
+  `stereo_relation_summary`, and `loudness_summary`.
+- Verify L2 Render Probe status/evidence shape and that raw render payload keys
+  do not leak.
+- Verify L2 realtime observation smoke through Godot headless script.
+- Verify MOM observation/action-preflight/AB-result contracts, including:
+  `观察当前工程的频段和声像状态，不要修改。`,
+  `比较一下各轨频段占用和声像关系，不要修改。`,
+  `帮我把低频稍微收一点，但先告诉我依据。`, and
+  `确认后检查 AB result。`
+- Run the Godot product-path lifecycle smoke and assert the product path starts
+  the expected `agent\bin\VitAgent.exe`.
+- Save a compact summary at
+  `D:\Vit_DAW\VitApp\Workspace\Artifacts\smoke\observation_v1_acceptance_<timestamp>\summary.json`.
+
+Common command:
+
+```powershell
+D:\Vit_DAW\scripts\run_observation_v1_acceptance_smoke.ps1 -RepoRoot D:\Vit_DAW -GodotProjectRoot D:\Godot\project\vit-daw-frontend -GodotExe D:\Godot\Godot_v4.6.1-stable_win64_console.exe
+```
+
+Notes:
+
+- Use `-SkipProductPath`, `-SkipKernelSmokes`, or `-SkipGodotHeadless` only for
+  local triage; the acceptance run should leave them enabled.
+- Component smoke logs and discovered artifact paths are linked from the
+  unified `summary.json`.
+
 ## Agent Health Smoke
 
 Path:
@@ -60,9 +103,10 @@ Notes:
 
 - This test mutates the current DAW/kernel state by creating a fresh project and
   importing fixture audio.
-- By default it prefers the newest local kernel at
-  `D:\Vit_DAW\VitApp\build_release\VitApp.exe`, because the old staging runtime
-  does not support the acoustic fixture path needed by this E2E.
+- By default it prefers the release artefact kernel at
+  `D:\Vit_DAW\VitApp\build_release\VitApp_artefacts\Release\VitApp.exe`,
+  falling back to older local builds only when the artefact is missing. The old
+  staging runtime does not support the acoustic fixture path needed by this E2E.
 - Use `-KernelExe <path>` to test a specific kernel build.
 - Use `-ReuseKernel` only when the currently running kernel is intentionally the
   one under test.
@@ -163,6 +207,9 @@ Purpose:
   including `test_100hz_10s.wav`, `Paper Crown.mp3`, root-level MP3 files, and a
   repo demo OGG when present.
 - Directly invoke `mix.observe scope=full_project` through agent HTTP.
+- Verify read-only full-project observe returns MOM `v1.4` with
+  `project_multitrack_relation_observation`, compact multitrack projection, and
+  no pending/confirmation request.
 - Verify every imported track has a ready lightweight acoustic package with
   peak, RMS, headroom, crest, primary clip id/name, and source path.
 - Verify loudness, peak, and headroom-risk rankings include the imported
@@ -174,6 +221,33 @@ Common command:
 
 ```powershell
 D:\Vit_DAW\scripts\run_live_material_observation_smoke.ps1 -RepoRoot D:\Vit_DAW
+```
+
+## AB Result Smoke
+
+Path:
+
+```powershell
+D:\Vit_DAW\scripts\run_ab_result_smoke.ps1
+```
+
+Purpose:
+
+- Verify MOM v1.4 AB result layer is derived locally from same-tap L2 Render
+  Probe observations.
+- Verify reused `render_revision` is stale, not ready.
+- Verify raw render payload fields stay out of LLM context.
+- Verify confirmation reports include AB Result details or explicitly mark AB
+  as untrusted.
+- Verify confirmation project result cards expose compact AB Result state for
+  the WebUI/Godot card surface.
+- Verify plugin-prep parameter confirmation carries the before observation into
+  its post-write observation and surfaces AB Result state in the reply.
+
+Common command:
+
+```powershell
+D:\Vit_DAW\scripts\run_ab_result_smoke.ps1 -RepoRoot D:\Vit_DAW
 ```
 
 Notes:

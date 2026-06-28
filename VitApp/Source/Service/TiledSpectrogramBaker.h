@@ -17,7 +17,11 @@ public:
                            juce::String clipId,
                            PublishCallback publishCallback,
                            double sourceOffsetSeconds = 0.0,
-                           double bakeLengthSeconds = -1.0);
+                           double bakeLengthSeconds = -1.0,
+                           juce::String sourceId = {},
+                           juce::String sourceRevision = {},
+                           juce::String clipRevision = {},
+                           juce::String renderRevision = {});
 
     static void releaseTrackMappings (const juce::String& trackId);
 

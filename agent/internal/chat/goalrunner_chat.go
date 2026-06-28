@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"vit-daw-agent/internal/agentloop"
+	"vit-daw-agent/internal/agentprotocol"
 	"vit-daw-agent/internal/config"
 	executorpkg "vit-daw-agent/internal/executor"
 	"vit-daw-agent/internal/harness"
@@ -448,6 +449,9 @@ func (s *Server) chatResponseFromAgentLoopResult(conversationID, mode string, re
 	if res.StopReason == agentloop.StopReasonLimitReached && !strings.Contains(reply, "\u7ee7\u7eed") {
 		reply += " \u4f60\u53ef\u4ee5\u8bf4\u201c\u7ee7\u7eed\u201d\u63a5\u7740\u8dd1\u3002"
 	}
+	if chatResponseLooksMixRelated(res) {
+		reply = localizedDisplayTextFallback(reply)
+	}
 	resp := ChatResponse{
 		ConversationID:      conversationID,
 		GoalID:              res.GoalID,
@@ -469,6 +473,7 @@ func (s *Server) chatResponseFromAgentLoopResult(conversationID, mode string, re
 		Error:               res.Error,
 		AgentPlan:           agentPlanForMode(mode, agentPlanFromAgentLoopResult(res)),
 	}
+	attachAcousticPackageStatusFromAgentLoopResult(&resp, res.Executed)
 	if res.Status == agentruntime.StatusWaitingConfirmation && res.Continuation != nil {
 		decisions := agentLoopPendingDecisions(res.Continuation)
 		plan := PendingPlan{
@@ -487,13 +492,39 @@ func (s *Server) chatResponseFromAgentLoopResult(conversationID, mode string, re
 		resp.PlanID = plan.ID
 		resp.NeedsConfirmation = true
 		resp.Commands = decisions
+		if event := typedApprovalEventFromPendingTool(plan.ID, res.Continuation, decisions, conversationID); event != nil {
+			resp.TypedEvents = append(resp.TypedEvents, event)
+		}
+	}
+	if candidate := res.ExecutionMemory.PendingMixTickCandidate; candidate != nil && strings.EqualFold(strings.TrimSpace(candidate.Status), "pending_confirmation") {
+		typed := candidate.ToPendingCandidate(conversationID, res.GoalID, res.RunID, "")
+		s.upsertPendingCandidate(typed)
+		resp.NeedsConfirmation = true
+		resp.GoalStatus = string(agentruntime.StatusWaitingConfirmation)
+		resp.StopReason = agentloop.StopReasonNeedsConfirmation
+		resp.Workflow = "mix_tick"
+		resp.WorkflowData = typedPendingPayload(pendingMixTickEventPayload(*candidate, candidate.ObservationID), typed)
+		resp.TypedEvents = append(resp.TypedEvents, agentprotocol.ToMap(agentprotocol.NewEvent(typed, typed.Source)))
+		req := mixTickInteractionRequest(conversationID, res.GoalID, res.RunID, *candidate)
+		resp.InteractionRequests = []AgentInteractionRequest{req}
+		s.storePendingInteraction(req, req.Payload)
+		if resp.AgentPlan != nil {
+			resp.AgentPlan.Status = string(agentruntime.StatusWaitingConfirmation)
+		}
 	}
 	if treatment := res.ExecutionMemory.PendingMixTreatment; treatment != nil && strings.EqualFold(strings.TrimSpace(treatment.Status), "pending_confirmation") {
+		if localized := localizedMixTreatmentUserReply(resp.Reply, *treatment); localized != "" {
+			resp.Reply = localized
+		}
+		typed := treatment.ToPendingCandidate(conversationID, res.GoalID, res.RunID, "")
+		s.upsertPendingCandidate(typed)
 		resp.NeedsConfirmation = true
 		resp.GoalStatus = string(agentruntime.StatusWaitingConfirmation)
 		resp.StopReason = agentloop.StopReasonNeedsConfirmation
 		resp.Workflow = "mix_treatment"
 		resp.WorkflowData = mixTreatmentInteractionPayload(*treatment)
+		resp.WorkflowData = typedPendingPayload(resp.WorkflowData, typed)
+		resp.TypedEvents = append(resp.TypedEvents, agentprotocol.ToMap(agentprotocol.NewEvent(typed, typed.Source)))
 		req := mixTreatmentInteractionRequest(conversationID, res.GoalID, res.RunID, resp.Reply, *treatment)
 		resp.InteractionRequests = []AgentInteractionRequest{req}
 		s.storePendingInteraction(req, req.Payload)
@@ -501,47 +532,137 @@ func (s *Server) chatResponseFromAgentLoopResult(conversationID, mode string, re
 			resp.AgentPlan.Status = string(agentruntime.StatusWaitingConfirmation)
 		}
 	}
+	if len(resp.WorkflowData) == 0 && strings.TrimSpace(res.ExecutionMemory.MixDiagnosisContextID) != "" {
+		resp.WorkflowData = mixDiagnosisContextPayload(res.ExecutionMemory)
+	}
 	return resp
 }
 
+func chatResponseLooksMixRelated(res agentloop.Result) bool {
+	if res.ExecutionMemory.PendingMixTreatment != nil || res.ExecutionMemory.PendingMixTickCandidate != nil {
+		return true
+	}
+	for _, executed := range res.Executed {
+		tool := strings.ToLower(strings.TrimSpace(firstNonEmpty(cleanContextText(executed["tool"]), cleanContextText(executed["command_name"]))))
+		if tool == "" {
+			if result := mapValue(executed["result"]); len(result) > 0 && (result["acoustic_package_status"] != nil || result["mom_projection"] != nil) {
+				return true
+			}
+			continue
+		}
+		if strings.Contains(tool, "mix.observe") || strings.Contains(tool, "mix.read") || strings.Contains(tool, "mix.request_observation") || strings.Contains(tool, "mix.derive") {
+			return true
+		}
+		if result := mapValue(executed["result"]); len(result) > 0 && (result["acoustic_package_status"] != nil || result["mom_projection"] != nil) {
+			return true
+		}
+	}
+	return false
+}
+
 func mixTreatmentInteractionPayload(treatment agentloop.MixTreatmentPending) map[string]any {
+	display := localizedMixTreatmentDisplayPayload(treatment)
 	payload := map[string]any{
-		"schema_version":    treatment.SchemaVersion,
-		"status":            treatment.Status,
-		"intent":            treatment.Intent,
-		"target_ref":        treatment.TargetRef,
-		"action_kind":       treatment.ActionKind,
-		"processor_type":    treatment.ProcessorType,
-		"delta_db":          treatment.DeltaDB,
-		"delta_pan":         treatment.DeltaPan,
-		"plugin_id":         treatment.PluginID,
-		"plugin_name":       treatment.PluginName,
-		"control":           treatment.Control,
-		"target":            cloneContext(treatment.Target),
-		"confidence":        treatment.Confidence,
-		"reasoning_summary": treatment.ReasoningSummary,
-		"evidence_refs":     append([]string(nil), treatment.EvidenceRefs...),
-		"needs_resolution":  append([]string(nil), treatment.NeedsResolution...),
-		"observation_id":    treatment.ObservationID,
+		"schema_version":       treatment.SchemaVersion,
+		"status":               treatment.Status,
+		"intent":               treatment.Intent,
+		"target_ref":           treatment.TargetRef,
+		"action_kind":          treatment.ActionKind,
+		"processor_type":       treatment.ProcessorType,
+		"delta_db":             treatment.DeltaDB,
+		"delta_pan":            treatment.DeltaPan,
+		"plugin_id":            treatment.PluginID,
+		"plugin_name":          treatment.PluginName,
+		"control":              treatment.Control,
+		"target":               cloneContext(treatment.Target),
+		"confidence":           treatment.Confidence,
+		"reasoning_summary":    treatment.ReasoningSummary,
+		"evidence_refs":        append([]string(nil), treatment.EvidenceRefs...),
+		"diagnosis_context_id": treatment.DiagnosisContextID,
+		"diagnosis_context":    cloneContext(treatment.DiagnosisContext),
+		"needs_resolution":     append([]string(nil), treatment.NeedsResolution...),
+		"observation_id":       treatment.ObservationID,
+		"display":              display,
+	}
+	if value := cleanContextText(display["confidence"]); value != "" {
+		payload["display_confidence"] = value
+	}
+	if value := cleanContextText(display["reasoning_summary"]); value != "" {
+		payload["display_reasoning_summary"] = value
+	}
+	if value := contextStringSlice(display["needs_resolution"]); len(value) > 0 {
+		payload["display_needs_resolution"] = value
 	}
 	if treatment.TargetPan != nil {
 		payload["target_pan"] = *treatment.TargetPan
+	}
+	typed := treatment.ToPendingCandidate(treatment.ConversationID, "", "", "")
+	payload = typedPendingPayload(payload, typed)
+	removeEmptyTreatmentValues(payload)
+	return payload
+}
+
+func mixDiagnosisContextPayload(memory agentloop.ExecutionMemory) map[string]any {
+	payload := map[string]any{
+		"schema_version":        "mix_diagnosis_context_payload.v0",
+		"diagnosis_context_id":  strings.TrimSpace(memory.MixDiagnosisContextID),
+		"diagnosis_context":     cloneContext(memory.MixDiagnosisContext),
+		"mix_diagnosis_context": cloneContext(memory.MixDiagnosisContext),
 	}
 	removeEmptyTreatmentValues(payload)
 	return payload
 }
 
+func typedPendingPayload(payload map[string]any, pending agentprotocol.PendingCandidate) map[string]any {
+	if payload == nil {
+		payload = map[string]any{}
+	}
+	payload["typed_state"] = agentprotocol.ToMap(pending)
+	payload["typed_event"] = agentprotocol.ToMap(agentprotocol.NewEvent(pending, pending.Source))
+	return payload
+}
+
 func mixTreatmentInteractionRequest(conversationID, goalID, runID, reply string, treatment agentloop.MixTreatmentPending) AgentInteractionRequest {
 	payload := mixTreatmentInteractionPayload(treatment)
+	typed := treatment.ToPendingCandidate(conversationID, goalID, runID, "")
+	payload = typedPendingPayload(payload, typed)
 	payload["conversation_id"] = conversationID
+	body := firstNonEmpty(cleanContextText(payload["display_reasoning_summary"]), localizedMixTreatmentReasoning(treatment), strings.TrimSpace(reply), "这个混音动作正在等待确认。")
 	return AgentInteractionRequest{
 		ID:             "interaction_" + randomID(),
 		Kind:           "mix_treatment_confirmation",
 		Type:           "mix_treatment_confirmation",
 		Source:         "vit_agent",
 		Workflow:       "mix_treatment",
-		Title:          "需要确认混音动作",
-		Body:           firstNonEmpty(strings.TrimSpace(reply), "这个混音动作正在等待确认。"),
+		Title:          "混音建议待确认",
+		Body:           body,
+		Status:         "waiting_for_user",
+		ConversationID: conversationID,
+		GoalID:         goalID,
+		RunID:          runID,
+		Payload:        payload,
+		Data:           payload,
+		Actions: []AgentInteractionAction{
+			{ID: "approve", Label: "确认执行", Style: "primary", Recommended: true},
+			{ID: "cancel", Label: "取消", Style: "secondary"},
+		},
+	}
+}
+
+func mixTickInteractionRequest(conversationID, goalID, runID string, candidate agentloop.PendingMixTickCandidate) AgentInteractionRequest {
+	typed := candidate.ToPendingCandidate(conversationID, goalID, runID, "")
+	payload := typedPendingPayload(pendingMixTickEventPayload(candidate, candidate.ObservationID), typed)
+	payload["conversation_id"] = conversationID
+	payload["request_context"] = map[string]any{"conversation_id": conversationID}
+	return AgentInteractionRequest{
+		ID:             "interaction_" + randomID(),
+		Kind:           "mix_tick_confirmation",
+		Type:           "mix_tick_confirmation",
+		Source:         "vit_agent",
+		Workflow:       "mix_tick",
+		Stage:          "pending_confirmation",
+		Title:          "混音单步待确认",
+		Body:           pendingMixTickEventBody(candidate),
 		Status:         "waiting_for_user",
 		ConversationID: conversationID,
 		GoalID:         goalID,
@@ -682,32 +803,89 @@ func (s *Server) resolveAgentLoopConfirm(ctx context.Context, planID string, pla
 	syncAgentPlanProjectHistory(&resp)
 	s.attachInteractionRequests(&resp)
 	return http.StatusOK, map[string]any{
-		"status":                status,
-		"message":               resp.Reply,
-		"reply":                 resp.Reply,
-		"plan_id":               responsePlanID,
-		"confirmed_plan_id":     planID,
-		"next_plan_id":          resp.PlanID,
-		"goal_id":               resp.GoalID,
-		"run_id":                resp.RunID,
-		"agent_mode":            mode,
-		"goal_status":           resp.GoalStatus,
-		"goal_summary":          resp.GoalSummary,
-		"current_step":          resp.CurrentStep,
-		"completed_steps":       resp.CompletedSteps,
-		"stop_reason":           resp.StopReason,
-		"limit_type":            resp.LimitType,
-		"needs_confirmation":    resp.NeedsConfirmation,
-		"preview":               resp.Preview,
-		"replies":               resp.ExecutedKernelReply,
-		"executed_kernel_reply": resp.ExecutedKernelReply,
-		"project_result_cards":  resp.ProjectResultCards,
-		"artifacts":             resp.Artifacts,
-		"project_history":       projectHistory,
-		"agent_plan":            resp.AgentPlan,
-		"interaction_requests":  resp.InteractionRequests,
-		"error":                 resp.Error,
+		"status":                       status,
+		"message":                      resp.Reply,
+		"reply":                        resp.Reply,
+		"plan_id":                      responsePlanID,
+		"confirmed_plan_id":            planID,
+		"next_plan_id":                 resp.PlanID,
+		"goal_id":                      resp.GoalID,
+		"run_id":                       resp.RunID,
+		"agent_mode":                   mode,
+		"goal_status":                  resp.GoalStatus,
+		"goal_summary":                 resp.GoalSummary,
+		"current_step":                 resp.CurrentStep,
+		"completed_steps":              resp.CompletedSteps,
+		"stop_reason":                  resp.StopReason,
+		"limit_type":                   resp.LimitType,
+		"needs_confirmation":           resp.NeedsConfirmation,
+		"preview":                      resp.Preview,
+		"replies":                      resp.ExecutedKernelReply,
+		"executed_kernel_reply":        resp.ExecutedKernelReply,
+		"project_result_cards":         resp.ProjectResultCards,
+		"artifacts":                    resp.Artifacts,
+		"project_history":              projectHistory,
+		"agent_plan":                   resp.AgentPlan,
+		"interaction_requests":         resp.InteractionRequests,
+		"typed_events":                 resp.TypedEvents,
+		"acoustic_package_status":      resp.AcousticPackageStatus,
+		"acoustic_package_status_path": resp.AcousticPackageStatusPath,
+		"error":                        resp.Error,
 	}
+}
+
+func attachAcousticPackageStatusFromAgentLoopResult(resp *ChatResponse, executed []map[string]any) {
+	if resp == nil {
+		return
+	}
+	for i := len(executed) - 1; i >= 0; i-- {
+		result := mapValue(executed[i]["result"])
+		if len(result) == 0 {
+			continue
+		}
+		status := mapValue(result["acoustic_package_status"])
+		if len(status) == 0 {
+			continue
+		}
+		if len(resp.AcousticPackageStatus) == 0 {
+			resp.AcousticPackageStatus = status
+			resp.AcousticPackageStatusPath = cleanContextText(result["acoustic_package_status_path"])
+		}
+		for _, event := range mapRowsFromAny(result["typed_events"]) {
+			if !chatResponseHasTypedEvent(resp.TypedEvents, event) {
+				resp.TypedEvents = append(resp.TypedEvents, event)
+			}
+		}
+		return
+	}
+}
+
+func chatResponseHasTypedEvent(events []map[string]any, candidate map[string]any) bool {
+	if len(candidate) == 0 {
+		return true
+	}
+	candidateType := cleanContextText(firstPresent(candidate, "event_type", "state_kind", "kind"))
+	candidateID := cleanContextText(firstPresent(candidate, "state_id", "id"))
+	for _, event := range events {
+		if len(event) == 0 {
+			continue
+		}
+		eventType := cleanContextText(firstPresent(event, "event_type", "state_kind", "kind"))
+		eventID := cleanContextText(firstPresent(event, "state_id", "id"))
+		if candidateType != "" && eventType == candidateType && candidateID != "" && eventID == candidateID {
+			return true
+		}
+	}
+	return false
+}
+
+func firstPresent(row map[string]any, keys ...string) any {
+	for _, key := range keys {
+		if value, ok := row[key]; ok {
+			return value
+		}
+	}
+	return nil
 }
 
 func AgentLoopConfirmResponsePlanID(confirmedPlanID string, resp ChatResponse) string {
@@ -728,6 +906,8 @@ func (s *Server) recordGoalResult(conversationID string, res agentloop.Result) {
 	if strings.TrimSpace(conversationID) != "" {
 		s.conversationGoals[conversationID] = res.GoalID
 		if candidate := res.ExecutionMemory.PendingMixTickCandidate; candidate != nil && strings.EqualFold(strings.TrimSpace(candidate.Status), "pending_confirmation") {
+			typed := candidate.ToPendingCandidate(conversationID, res.GoalID, res.RunID, "")
+			s.upsertPendingCandidate(typed)
 			s.pendingMixTicks[conversationID] = *candidate
 			if s.logger != nil {
 				s.logger.Info("[mix.tick.pending] stored conversation=%s goal=%s run=%s %s observation=%s",
@@ -739,12 +919,14 @@ func (s *Server) recordGoalResult(conversationID string, res agentloop.Result) {
 				RunID:    res.RunID,
 				ItemType: "mix_tick",
 				Status:   "pending_confirmation",
-				Title:    "Mix tick pending confirmation",
+				Title:    "混音单步待确认",
 				Body:     pendingMixTickEventBody(*candidate),
-				Payload:  pendingMixTickEventPayload(*candidate, candidate.ObservationID),
+				Payload:  typedPendingPayload(pendingMixTickEventPayload(*candidate, candidate.ObservationID), typed),
 			})
 		}
 		if treatment := res.ExecutionMemory.PendingMixTreatment; treatment != nil && strings.EqualFold(strings.TrimSpace(treatment.Status), "pending_confirmation") {
+			typed := treatment.ToPendingCandidate(conversationID, res.GoalID, res.RunID, "")
+			s.upsertPendingCandidate(typed)
 			if s.pendingTreatments == nil {
 				s.pendingTreatments = map[string]agentloop.MixTreatmentPending{}
 			}
@@ -753,36 +935,17 @@ func (s *Server) recordGoalResult(conversationID string, res agentloop.Result) {
 				s.logger.Info("[mix.treatment.pending] stored conversation=%s goal=%s run=%s action=%s processor=%s target=%s observation=%s",
 					conversationID, res.GoalID, res.RunID, treatment.ActionKind, treatment.ProcessorType, treatment.TargetRef, treatment.ObservationID)
 			}
-			treatmentPayload := map[string]any{
-				"schema_version":    treatment.SchemaVersion,
-				"intent":            treatment.Intent,
-				"target_ref":        treatment.TargetRef,
-				"action_kind":       treatment.ActionKind,
-				"processor_type":    treatment.ProcessorType,
-				"delta_db":          treatment.DeltaDB,
-				"delta_pan":         treatment.DeltaPan,
-				"plugin_id":         treatment.PluginID,
-				"plugin_name":       treatment.PluginName,
-				"control":           treatment.Control,
-				"target":            cloneContext(treatment.Target),
-				"confidence":        treatment.Confidence,
-				"reasoning_summary": treatment.ReasoningSummary,
-				"evidence_refs":     append([]string(nil), treatment.EvidenceRefs...),
-				"needs_resolution":  treatment.NeedsResolution,
-				"observation_id":    treatment.ObservationID,
-			}
-			removeEmptyTreatmentValues(treatmentPayload)
-			if treatment.TargetPan != nil {
-				treatmentPayload["target_pan"] = *treatment.TargetPan
-			}
+			treatmentPayload := mixTreatmentInteractionPayload(*treatment)
+			treatmentPayload["conversation_id"] = conversationID
+			treatmentPayload = typedPendingPayload(treatmentPayload, typed)
 			pendingEvents = append(pendingEvents, AgentEvent{
 				Type:     "mix_treatment.pending",
 				GoalID:   res.GoalID,
 				RunID:    res.RunID,
 				ItemType: "mix_treatment",
 				Status:   "pending_confirmation",
-				Title:    "Mix treatment pending confirmation",
-				Body:     fmt.Sprintf("%s treatment for %s is waiting for explicit confirmation.", treatment.ProcessorType, treatment.TargetRef),
+				Title:    "混音建议待确认",
+				Body:     localizedMixTreatmentReasoning(*treatment),
 				Payload:  treatmentPayload,
 			})
 		}
@@ -1009,6 +1172,12 @@ func agentLoopCapabilityNames(userText string, requestContext map[string]any) []
 	if agentLoopTextHasAny(text,
 		"\u6df7\u97f3", "\u7f29\u6df7", "\u4e3b\u5531", "\u4eba\u58f0", "\u58f0\u97f3", "\u58f0\u50cf", "\u58f0\u76f8", "\u58f0\u573a", "\u54cd\u5ea6", "\u592a\u54cd", "\u592a\u5927", "\u592a\u5c0f", "\u538b\u4f4e", "\u964d\u4f4e", "\u4e0b\u8c03", "\u8c03\u4f4e", "\u63d0\u9ad8", "\u63d0\u5347", "\u4e0a\u8c03", "\u8c03\u9ad8", "\u7535\u5e73", "\u589e\u76ca", "\u52a8\u6001", "\u7a7a\u95f4\u611f", "\u4f4e\u9891", "\u4f4e\u4e2d\u9891", "\u9ad8\u9891", "\u523a\u8033", "\u6d51\u6d4a", "\u9760\u524d", "\u9760\u540e", "\u5de6", "\u53f3", "\u5c45\u4e2d", "\u56de\u4e2d", "\u66f4\u4eae", "\u66f4\u6697", "\u66f4\u7a33", "\u66f4\u7d27",
 		"mix", "mixing", "master", "vocal", "loudness", "too loud", "too quiet", "level", "gain", "lower", "reduce", "decrease", "raise", "boost", "increase", "presence", "mud", "muddy", "harsh", "bright", "dark", "forward", "back", "space", "depth", "dynamic", "pan", "panning", "stereo", "left", "right", "center", "centre",
+	) {
+		add("mix")
+	}
+	if agentLoopTextHasAny(text,
+		"\u58f0\u5b66", "\u58f0\u5b66\u6570\u636e", "\u58f0\u5b66\u89c2\u5bdf", "\u89c2\u5bdf\u5668", "\u9891\u8c31", "\u8c31\u56fe", "\u97f3\u9891\u7279\u5f81", "\u9891\u6bb5", "\u9891\u7387", "\u6ce2\u5f62", "\u80fd\u91cf\u5206\u5e03", "\u7acb\u4f53\u58f0\u76f8\u5173", "\u58f0\u50cf\u76f8\u5173",
+		"mix.observe", "mix.read", "mix.derive", "acoustic", "observation", "observe", "observer", "spectrum", "spectral", "spectrogram", "frequency", "frequencies", "band energy", "band_energy", "stereo relation", "stereo_relation",
 	) {
 		add("mix")
 	}

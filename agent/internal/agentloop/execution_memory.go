@@ -35,6 +35,8 @@ type ExecutionMemory struct {
 	ActiveWorkTargetPluginID string                   `json:"active_work_target_plugin_id,omitempty"`
 	PendingMixTickCandidate  *PendingMixTickCandidate `json:"pending_mix_tick_candidate,omitempty"`
 	PendingMixTreatment      *MixTreatmentPending     `json:"pending_mix_treatment,omitempty"`
+	MixDiagnosisContextID    string                   `json:"mix_diagnosis_context_id,omitempty"`
+	MixDiagnosisContext      map[string]any           `json:"mix_diagnosis_context,omitempty"`
 	Bindings                 []ExecutionBinding       `json:"bindings,omitempty"`
 }
 
@@ -83,6 +85,8 @@ type MixTreatmentPending struct {
 	ReasoningSummary          string         `json:"reasoning_summary,omitempty"`
 	Confidence                string         `json:"confidence,omitempty"`
 	EvidenceRefs              []string       `json:"evidence_refs,omitempty"`
+	DiagnosisContextID        string         `json:"diagnosis_context_id,omitempty"`
+	DiagnosisContext          map[string]any `json:"diagnosis_context,omitempty"`
 	NeedsResolution           []string       `json:"needs_resolution,omitempty"`
 	ExpiresAfterContextChange bool           `json:"expires_after_context_change,omitempty"`
 	CreatedFromReply          string         `json:"created_from_reply,omitempty"`
@@ -313,6 +317,7 @@ func cloneExecutionMemory(in ExecutionMemory) ExecutionMemory {
 	out := in
 	out.PendingMixTickCandidate = clonePendingMixTickCandidate(in.PendingMixTickCandidate)
 	out.PendingMixTreatment = cloneMixTreatmentPending(in.PendingMixTreatment)
+	out.MixDiagnosisContext = cloneMap(in.MixDiagnosisContext)
 	out.Bindings = cloneExecutionBindings(in.Bindings)
 	return out
 }
@@ -342,6 +347,7 @@ func cloneMixTreatmentPending(in *MixTreatmentPending) *MixTreatmentPending {
 	}
 	out.Target = cloneMap(in.Target)
 	out.EvidenceRefs = append([]string(nil), in.EvidenceRefs...)
+	out.DiagnosisContext = cloneMap(in.DiagnosisContext)
 	out.NeedsResolution = append([]string(nil), in.NeedsResolution...)
 	out.Fingerprint = cloneMap(in.Fingerprint)
 	return &out
@@ -392,6 +398,12 @@ func executionMemoryMap(memory ExecutionMemory) map[string]any {
 	}
 	if memory.PendingMixTreatment != nil {
 		out["pending_mix_treatment"] = cloneMixTreatmentPending(memory.PendingMixTreatment)
+	}
+	if strings.TrimSpace(memory.MixDiagnosisContextID) != "" {
+		out["mix_diagnosis_context_id"] = strings.TrimSpace(memory.MixDiagnosisContextID)
+	}
+	if len(memory.MixDiagnosisContext) > 0 {
+		out["mix_diagnosis_context"] = cloneMap(memory.MixDiagnosisContext)
 	}
 	if len(memory.Bindings) > 0 {
 		out["bindings"] = cloneExecutionBindings(memory.Bindings)

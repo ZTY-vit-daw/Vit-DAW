@@ -796,6 +796,22 @@ func (s *Server) finishPluginGrabberLoadWorkflow(ctx context.Context, plan Pendi
 	if pluginID == "" {
 		return strings.TrimSpace(fallbackMessage + "\n插件已加载，但内核没有返回 plugin_id，所以还不能自动抓参数。"), replies
 	}
+	if params, status, found := pluginParameterResultFromReplies(replies, trackID, pluginID); found {
+		if s != nil && s.logger != nil {
+			s.logger.Info("[plugin_grabber.load] reusing existing get_plugin_parameters result plan=%s track=%s plugin=%s status=%s", plan.ID, trackID, pluginID, status)
+		}
+		if !pluginParameterResultOK(status, params) {
+			message := firstNonEmptyText(params, "message", "error")
+			if message == "" {
+				message = "get_plugin_parameters failed"
+			}
+			return strings.TrimSpace(fallbackMessage + "\n插件已加载；本次确认已经尝试抓参数且未重复执行，结果为：" + message), replies
+		}
+		if pluginName == "" {
+			pluginName = firstNonEmptyText(params, "plugin_name", "name", "plugin_id")
+		}
+		return formatPluginLoadExistingParameterReply(pluginName, pluginID, params), replies
+	}
 	if s.kernel == nil {
 		return strings.TrimSpace(fallbackMessage + "\n插件已加载，但 VitAgent 当前没有 kernel client，不能继续抓参数。"), replies
 	}
@@ -828,6 +844,98 @@ func (s *Server) finishPluginGrabberLoadWorkflow(ctx context.Context, plan Pendi
 		"result":       compact,
 	})
 	return formatPluginLoadGrabReply(pluginName, digest), replies
+}
+
+func pluginParameterResultFromReplies(replies []map[string]any, trackID, pluginID string) (map[string]any, string, bool) {
+	for i := len(replies) - 1; i >= 0; i-- {
+		row := replies[i]
+		if !isPluginParameterCommandName(firstNonEmptyText(row, "command_name", "tool", "command")) {
+			continue
+		}
+		result := mapValue(row["result"])
+		rowTrackID := firstNonEmptyText(result, "track_id")
+		if rowTrackID == "" {
+			rowTrackID = firstNonEmptyText(row, "track_id")
+		}
+		rowPluginID := firstNonEmptyText(result, "plugin_id", "plugin_item_id", "item_id")
+		if rowPluginID == "" {
+			rowPluginID = firstNonEmptyText(row, "plugin_id", "plugin_item_id", "item_id")
+		}
+		if trackID != "" && rowTrackID != "" && rowTrackID != trackID {
+			continue
+		}
+		if pluginID != "" && rowPluginID != "" && rowPluginID != pluginID {
+			continue
+		}
+		return result, firstNonEmptyText(row, "status"), true
+	}
+	return nil, "", false
+}
+
+func isPluginParameterCommandName(name string) bool {
+	switch strings.TrimSpace(name) {
+	case "get_plugin_parameters", "plugin.get_parameters", "plugin_get_parameters":
+		return true
+	default:
+		return false
+	}
+}
+
+func pluginParameterResultOK(rowStatus string, result map[string]any) bool {
+	status := strings.TrimSpace(rowStatus)
+	if status == "" {
+		status = firstNonEmptyText(result, "status")
+	}
+	return status == "" || strings.EqualFold(status, "ok") || strings.EqualFold(status, "success")
+}
+
+func formatPluginLoadExistingParameterReply(pluginName, pluginID string, params map[string]any) string {
+	if strings.TrimSpace(pluginName) == "" {
+		pluginName = firstNonEmptyText(params, "plugin_name", "name")
+	}
+	if strings.TrimSpace(pluginName) == "" {
+		pluginName = pluginID
+	}
+	if strings.TrimSpace(pluginName) == "" {
+		pluginName = "plugin"
+	}
+	count := firstNonEmptyText(params, "parameter_count")
+	if count == "" {
+		if rows := mapRowsFromAny(params["parameters"]); len(rows) > 0 {
+			count = fmt.Sprint(len(rows))
+		}
+	}
+	parts := []string{fmt.Sprintf("已加载 %s，并复用本次确认里已经读取的参数结果；未重复抓参数。", pluginName)}
+	if count != "" {
+		parts[0] = fmt.Sprintf("已加载 %s，并复用本次确认里已经读取的 %s 个参数结果；未重复抓参数。", pluginName, count)
+	}
+	labels := make([]string, 0, 8)
+	for _, row := range mapRowsFromAny(params["quick_controls"]) {
+		label := firstNonEmptyText(row, "label", "name", "param_id", "id")
+		if label != "" {
+			labels = append(labels, label)
+		}
+		if len(labels) >= 8 {
+			break
+		}
+	}
+	if len(labels) > 0 {
+		parts = append(parts, "Quick controls: "+strings.Join(labels, ", ")+"。")
+	}
+	groups := make([]string, 0, 8)
+	for _, row := range mapRowsFromAny(params["recommended_groups"]) {
+		name := firstNonEmptyText(row, "name", "group")
+		if name != "" {
+			groups = append(groups, name)
+		}
+		if len(groups) >= 8 {
+			break
+		}
+	}
+	if len(groups) > 0 {
+		parts = append(parts, "Groups: "+strings.Join(groups, ", ")+"。")
+	}
+	return strings.Join(parts, "\n")
 }
 
 func pluginLoadResultIDs(replies []map[string]any) (string, string, string) {

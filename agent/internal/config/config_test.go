@@ -64,3 +64,27 @@ func TestEngineConfigNormalizeBaseURL(t *testing.T) {
 		t.Fatalf("route BaseURL = %q", got)
 	}
 }
+
+func TestExplicitEnvOverridesCompleteFileConfig(t *testing.T) {
+	t.Setenv("VIT_AGENT_LLM_BASE_URL", "http://127.0.0.1:18987/v1")
+	t.Setenv("VIT_AGENT_LLM_API_KEY", "env-key")
+	t.Setenv("VIT_AGENT_LLM_MODEL", "env-model")
+
+	cfg := EngineConfig{
+		BaseURL:      "https://api.invalid/v1",
+		APIKey:       "file-key",
+		DefaultModel: "file-model",
+	}
+	applyExplicitEnvOverrides(&cfg)
+	cfg.Normalize()
+
+	if cfg.BaseURL != "http://127.0.0.1:18987/v1" {
+		t.Fatalf("BaseURL = %q", cfg.BaseURL)
+	}
+	if cfg.APIKey != "env-key" {
+		t.Fatalf("APIKey = %q", cfg.APIKey)
+	}
+	if cfg.DefaultModel != "env-model" {
+		t.Fatalf("DefaultModel = %q", cfg.DefaultModel)
+	}
+}

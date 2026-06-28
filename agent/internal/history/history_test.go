@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"unicode/utf8"
 )
 
 func TestDefaultDraftProjectPathUsesEditRoot(t *testing.T) {
@@ -668,6 +669,19 @@ func TestConversationMessagesFollowActiveNodePath(t *testing.T) {
 	}
 	if messages[0].Content != strings.Repeat("用户完整问题", 30) {
 		t.Fatalf("ask content was truncated: %q", messages[0].Content)
+	}
+}
+
+func TestCompactPreviewKeepsUnicodeBoundaries(t *testing.T) {
+	preview := compactPreview(strings.Repeat("低频冲突观察", 40))
+	if !utf8.ValidString(preview) {
+		t.Fatalf("preview is not valid utf8: %q", preview)
+	}
+	if strings.ContainsRune(preview, '\uFFFD') {
+		t.Fatalf("preview contains replacement rune: %q", preview)
+	}
+	if len([]rune(preview)) > 160 {
+		t.Fatalf("preview too long: %d %q", len([]rune(preview)), preview)
 	}
 }
 

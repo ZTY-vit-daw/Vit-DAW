@@ -58,6 +58,143 @@ te::AudioTrack* findAudioTrackByID (te::Edit& edit, const juce::String& trackID)
     return nullptr;
 }
 
+te::AudioTrack* findFirstAudioTrack (te::Edit& edit)
+{
+    for (auto* track : te::getAllTracks (edit))
+        if (auto* audioTrack = dynamic_cast<te::AudioTrack*> (track))
+            return audioTrack;
+
+    return nullptr;
+}
+
+te::Clip* findClipByID (te::Edit& edit, const juce::String& clipId)
+{
+    if (clipId.isEmpty())
+        return nullptr;
+
+    for (auto* track : te::getAllTracks (edit))
+    {
+        if (track == nullptr)
+            continue;
+
+        const int n = track->getNumTrackItems();
+        for (int i = 0; i < n; ++i)
+        {
+            auto* item = track->getTrackItem (i);
+            auto* clip = dynamic_cast<te::Clip*> (item);
+            if (clip != nullptr && clip->itemID.toString() == clipId)
+                return clip;
+        }
+    }
+
+    return nullptr;
+}
+
+te::Clip* findFirstAudioClipOnTrack (te::AudioTrack& track)
+{
+    const int n = track.getNumTrackItems();
+    for (int i = 0; i < n; ++i)
+    {
+        auto* item = track.getTrackItem (i);
+        auto* clip = dynamic_cast<te::AudioClipBase*> (item);
+        if (clip != nullptr)
+            return dynamic_cast<te::Clip*> (item);
+    }
+
+    return nullptr;
+}
+
+juce::String sourceRevisionForProbe (const juce::File& sourceFile, double audioLengthSeconds)
+{
+    if (! sourceFile.existsAsFile())
+        return {};
+
+    return sourceFile.getFullPathName()
+        + "|size=" + juce::String ((int64) sourceFile.getSize())
+        + "|mtime=" + juce::String ((int64) sourceFile.getLastModificationTime().toMilliseconds())
+        + "|length=" + juce::String (audioLengthSeconds, 4);
+}
+
+juce::String clipRevisionForProbe (const juce::String& trackId,
+                                   const juce::String& clipId,
+                                   const juce::String& sourceRevision,
+                                   double sourceOffsetSeconds,
+                                   double lengthSeconds)
+{
+    if (clipId.trim().isEmpty())
+        return {};
+
+    return "clip=" + clipId.trim()
+        + "|track=" + trackId.trim()
+        + "|source=" + sourceRevision.trim()
+        + "|offset=" + juce::String (sourceOffsetSeconds, 4)
+        + "|length=" + juce::String (lengthSeconds, 4);
+}
+
+juce::String hashValueTreeForRevision (const juce::ValueTree& tree)
+{
+    return juce::String::toHexString ((int64) tree.toXmlString().hashCode64());
+}
+
+juce::String buildL2RenderRevision (te::Edit& edit,
+                                    te::AudioTrack* track,
+                                    te::Clip* clip,
+                                    const juce::String& tapPoint,
+                                    const juce::String& renderMode,
+                                    const juce::String& trackId,
+                                    const juce::String& clipId,
+                                    const juce::String& sourceRevision,
+                                    const juce::String& clipRevision,
+                                    double startSec,
+                                    double endSec,
+                                    double tailSec)
+{
+    if (track != nullptr)
+        track->flushStateToValueTree();
+
+    const auto trackHash = track != nullptr ? hashValueTreeForRevision (track->state) : juce::String ("master");
+    const auto clipHash = clip != nullptr ? hashValueTreeForRevision (clip->state) : juce::String ("none");
+    const auto editHash = tapPoint == "master_out" ? hashValueTreeForRevision (edit.state) : juce::String();
+
+    return juce::String ("l2rp.v1")
+        + "|tap=" + tapPoint
+        + "|mode=" + renderMode
+        + "|track=" + trackId
+        + "|clip=" + clipId
+        + "|source=" + sourceRevision
+        + "|clip_revision=" + clipRevision
+        + "|range=" + juce::String (startSec, 4) + "-" + juce::String (endSec, 4)
+        + "|tail=" + juce::String (tailSec, 4)
+        + "|track_state=" + trackHash
+        + "|clip_state=" + clipHash
+        + (editHash.isNotEmpty() ? "|edit_state=" + editHash : juce::String());
+}
+
+bool readCommandRange (const juce::DynamicObject& object, double& startSec, double& endSec)
+{
+    const auto rangeVar = object.getProperty ("range");
+    if (auto* arr = rangeVar.getArray())
+    {
+        if (arr->size() >= 2)
+        {
+            startSec = static_cast<double> (arr->getReference (0));
+            endSec = static_cast<double> (arr->getReference (1));
+            return true;
+        }
+    }
+
+    if (object.hasProperty ("start_seconds") || object.hasProperty ("end_seconds"))
+    {
+        if (object.hasProperty ("start_seconds"))
+            startSec = static_cast<double> (object.getProperty ("start_seconds"));
+        if (object.hasProperty ("end_seconds"))
+            endSec = static_cast<double> (object.getProperty ("end_seconds"));
+        return true;
+    }
+
+    return false;
+}
+
 juce::StringArray mergeUniqueDeviceNames (juce::AudioIODeviceType* dtype)
 {
     juce::StringArray merged;
@@ -828,6 +965,159 @@ juce::String TransportAudioService::handleStartRender (const juce::DynamicObject
         useMasterPlugins = static_cast<bool> (object.getProperty ("use_master_plugins"));
 
     return production->startOfflineRender (*edit, juce::File (path), startSec, endSec, bitDepth, useMasterPlugins);
+}
+
+juce::String TransportAudioService::handleL2RenderProbe (const juce::DynamicObject& object, const juce::String&) const
+{
+    if (production == nullptr)
+        return makeErrorReply ("Offline render coordinator unavailable");
+
+    auto* edit = getEdit != nullptr ? getEdit() : nullptr;
+
+    if (edit == nullptr)
+        return makeErrorReply ("No active edit loaded");
+
+    auto requestedTapPoint = object.getProperty ("tap_point").toString().trim().toLowerCase();
+    if (requestedTapPoint.isEmpty())
+        requestedTapPoint = "track_post_fader";
+
+    juce::String tapPoint = requestedTapPoint;
+    if (tapPoint == "track_post_fx")
+        tapPoint = "track_post_fader";
+
+    if (tapPoint != "track_post_fader" && tapPoint != "master_out")
+        return makeErrorReply ("l2_render_probe supports track_post_fader or master_out in this build");
+
+    const auto renderMode = object.getProperty ("render_mode").toString().trim().isNotEmpty()
+        ? object.getProperty ("render_mode").toString().trim().toLowerCase()
+        : juce::String ("offline_probe");
+
+    if (renderMode != "offline_probe")
+        return makeErrorReply ("l2_render_probe currently supports render_mode=offline_probe");
+
+    auto trackId = object.getProperty ("track_id").toString().trim();
+    auto clipId = object.getProperty ("clip_id").toString().trim();
+
+    te::AudioTrack* track = nullptr;
+    if (tapPoint != "master_out")
+    {
+        track = trackId.isNotEmpty() ? findAudioTrackByID (*edit, trackId) : findFirstAudioTrack (*edit);
+        if (track == nullptr)
+            return makeErrorReply ("l2_render_probe requires an audio track");
+
+        trackId = track->itemID.toString();
+    }
+    else if (trackId.isEmpty())
+    {
+        trackId = "master_output";
+    }
+
+    te::Clip* clip = nullptr;
+    if (clipId.isNotEmpty())
+        clip = findClipByID (*edit, clipId);
+    else if (track != nullptr)
+        clip = findFirstAudioClipOnTrack (*track);
+
+    auto* audioClip = dynamic_cast<te::AudioClipBase*> (clip);
+    if (clip != nullptr)
+        clipId = clip->itemID.toString();
+
+    juce::File sourceFile;
+    double sourceOffsetSeconds = 0.0;
+    double sourceLengthSeconds = 0.0;
+    if (audioClip != nullptr)
+    {
+        sourceFile = audioClip->getCurrentSourceFile();
+        if (! sourceFile.existsAsFile())
+            sourceFile = audioClip->getOriginalFile();
+        sourceOffsetSeconds = clip->getPosition().getOffset().inSeconds();
+        sourceLengthSeconds = juce::jmax (0.0, clip->getPosition().getLength().inSeconds());
+    }
+
+    double startSec = 0.0;
+    double endSec = edit->getLength().inSeconds();
+    const bool hasExplicitRange = readCommandRange (object, startSec, endSec);
+    if (! hasExplicitRange && clip != nullptr)
+    {
+        startSec = clip->getEditTimeRange().getStart().inSeconds();
+        endSec = clip->getEditTimeRange().getEnd().inSeconds();
+    }
+
+    startSec = juce::jmax (0.0, startSec);
+    endSec = juce::jmax (startSec, endSec);
+    if (endSec <= startSec)
+        return makeErrorReply ("l2_render_probe requires a non-empty range");
+
+    double tailSec = 0.25;
+    if (object.hasProperty ("tail_seconds"))
+        tailSec = juce::jlimit (0.0, 10.0, static_cast<double> (object.getProperty ("tail_seconds")));
+
+    auto sourceRevision = object.getProperty ("source_revision").toString().trim();
+    if (sourceRevision.isEmpty())
+    {
+        if (sourceFile.existsAsFile())
+            sourceRevision = sourceRevisionForProbe (sourceFile, sourceLengthSeconds);
+        else
+            sourceRevision = "edit=" + hashValueTreeForRevision (edit->state)
+                + "|range=" + juce::String (startSec, 4) + "-" + juce::String (endSec, 4);
+    }
+
+    auto clipRevision = object.getProperty ("clip_revision").toString().trim();
+    if (clipRevision.isEmpty() && clip != nullptr)
+        clipRevision = clipRevisionForProbe (trackId,
+                                             clipId,
+                                             sourceRevision,
+                                             sourceOffsetSeconds,
+                                             sourceLengthSeconds);
+
+    auto renderRevision = object.getProperty ("render_revision").toString().trim();
+    if (renderRevision.isEmpty())
+        renderRevision = buildL2RenderRevision (*edit,
+                                                track,
+                                                clip,
+                                                tapPoint,
+                                                renderMode,
+                                                trackId,
+                                                clipId,
+                                                sourceRevision,
+                                                clipRevision,
+                                                startSec,
+                                                endSec,
+                                                tailSec);
+
+    juce::BigInteger tracksToDo;
+    bool useMasterPlugins = tapPoint == "master_out";
+    if (track != nullptr)
+        tracksToDo.setBit (track->getIndexInEditTrackList());
+
+    VitProductionCoordinator::L2RenderProbeRequest probe;
+    probe.enabled = true;
+    probe.requestId = object.getProperty ("request_id").toString().trim();
+    probe.trackId = trackId;
+    probe.clipId = clipId;
+    probe.sourcePath = sourceFile.existsAsFile() ? sourceFile.getFullPathName() : juce::String();
+    probe.sourceRevision = sourceRevision;
+    probe.clipRevision = clipRevision;
+    probe.renderRevision = renderRevision;
+    probe.tapPoint = tapPoint;
+    probe.renderMode = renderMode;
+    probe.analyzedStartSeconds = startSec;
+    probe.analyzedEndSeconds = endSec;
+    probe.tailSeconds = tailSec;
+    probe.tailCaptured = tailSec > 0.0;
+
+    const auto tempRoot = juce::File::getSpecialLocation (juce::File::tempDirectory).getChildFile ("Vit_DAW_L2RenderProbe");
+    tempRoot.createDirectory();
+    const auto destFile = tempRoot.getNonexistentChildFile ("l2_probe_" + juce::Uuid().toString(), ".wav", false);
+
+    return production->startOfflineRender (*edit,
+                                           destFile,
+                                           startSec,
+                                           endSec,
+                                           32,
+                                           useMasterPlugins,
+                                           tracksToDo,
+                                           probe);
 }
 
 juce::String TransportAudioService::handleCancelRender (const juce::DynamicObject&, const juce::String&) const

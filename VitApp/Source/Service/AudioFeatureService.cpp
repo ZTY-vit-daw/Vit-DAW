@@ -1,5 +1,6 @@
 #include "AudioFeatureService.h"
 
+#include "L3AcousticAnalyzer.h"
 #include "TiledSpectrogramBaker.h"
 #include "WaveformEnvelopeBaker.h"
 
@@ -24,7 +25,19 @@ void publishDeferredStatus (const AudioFeatureBakeRequest& request,
     obj->setProperty ("analysis_version", audioFeatureAnalysisVersion());
     obj->setProperty ("status", "deferred");
     obj->setProperty ("reason", "feature_baker_not_yet_promoted");
+    obj->setProperty ("project_id", "current");
     obj->setProperty ("track_id", request.trackId);
+    obj->setProperty ("source_path", request.filePath);
+    if (request.sourceId.isNotEmpty())
+        obj->setProperty ("source_id", request.sourceId);
+    if (request.sourceRevision.isNotEmpty())
+        obj->setProperty ("source_revision", request.sourceRevision);
+    if (request.clipRevision.isNotEmpty())
+        obj->setProperty ("clip_revision", request.clipRevision);
+    if (request.renderRevision.isNotEmpty())
+        obj->setProperty ("render_revision", request.renderRevision);
+    if (request.requestId.isNotEmpty())
+        obj->setProperty ("request_id", request.requestId);
     if (request.clipId.isNotEmpty())
         obj->setProperty ("clip_id", request.clipId);
     if (request.filePath.isNotEmpty())
@@ -45,7 +58,11 @@ void AudioFeatureService::requestBake (AudioFeatureBakeRequest request,
                                           request.clipId,
                                           std::move (publishCallback),
                                           request.range.sourceOffsetSeconds,
-                                          request.range.lengthSeconds);
+                                          request.range.lengthSeconds,
+                                          request.sourceId,
+                                          request.sourceRevision,
+                                          request.clipRevision,
+                                          request.renderRevision);
         return;
     }
 
@@ -57,7 +74,20 @@ void AudioFeatureService::requestBake (AudioFeatureBakeRequest request,
                                           std::move (publishCallback),
                                           request.range.sourceOffsetSeconds,
                                           request.range.lengthSeconds,
-                                          request.resolution.frameWidth > 0 ? request.resolution.frameWidth : 1024);
+                                          request.resolution.frameWidth > 0 ? request.resolution.frameWidth : 1024,
+                                          request.sourceId,
+                                          request.sourceRevision,
+                                          request.clipRevision,
+                                          request.renderRevision);
+        return;
+    }
+
+    if (request.featureType == AudioFeatureType::BandEnergySummary
+        || request.featureType == AudioFeatureType::StereoRelationSummary
+        || request.featureType == AudioFeatureType::LoudnessSummary
+        || request.featureType == AudioFeatureType::L3AcousticSummary)
+    {
+        L3AcousticAnalyzer::startAnalyze (std::move (request), std::move (publishCallback));
         return;
     }
 

@@ -117,6 +117,31 @@ func TestAgentLoopToolContextRoutesChineseVolumeMixRequestToMixPack(t *testing.T
 	}
 }
 
+func TestAgentLoopToolContextRoutesAcousticObservationRequestsToMixPack(t *testing.T) {
+	s := &Server{harness: harness.New(nil, nil, nil)}
+
+	cases := []string{
+		"\u5e2e\u6211\u770b\u4e00\u4e0b\u9891\u8c31",
+		"\u9700\u8981\u7528\u58f0\u5b66\u89c2\u5bdf\u5668\u8bfb\u53d6\u9891\u8c31",
+		"\u4e3a\u4ec0\u4e48\u6ca1\u6709\u83b7\u53d6\u5230\u5176\u5b83\u58f0\u5b66\u6570\u636e",
+		"please run mix.observe and read the spectral band projection",
+	}
+	for _, userText := range cases {
+		ctx := s.agentLoopToolContext(agentModeDefault, userText, nil)
+		for _, want := range []string{"mix.observe", "mix.read", "mix.derive"} {
+			if !containsToolName(ctx.AllowedTools, want) {
+				t.Fatalf("%s missing from acoustic observation context for %q: %+v", want, userText, ctx.AllowedTools)
+			}
+		}
+		if containsToolName(ctx.AllowedTools, "plugin.set_parameter") || containsToolName(ctx.AllowedTools, "daw.invoke") {
+			t.Fatalf("acoustic observation request leaked mutation-oriented tools for %q: %+v", userText, ctx.AllowedTools)
+		}
+		if !strings.Contains(ctx.CatalogSummary, "Capability pack: mix") || !strings.Contains(ctx.CatalogSummary, "mix.observe") {
+			t.Fatalf("acoustic observation request did not receive mix capability pack for %q:\n%s", userText, ctx.CatalogSummary)
+		}
+	}
+}
+
 func containsToolName(names []string, want string) bool {
 	for _, name := range names {
 		if name == want {

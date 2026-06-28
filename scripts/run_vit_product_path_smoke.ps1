@@ -567,6 +567,25 @@ function Get-ProcessPathByID {
     return [string]$proc.Path
 }
 
+function Get-ExecutableEvidence {
+    param([string]$Path)
+    if ([string]::IsNullOrWhiteSpace($Path) -or -not (Test-Path -LiteralPath $Path)) {
+        return @{
+            path = $Path
+            exists = $false
+        }
+    }
+    $item = Get-Item -LiteralPath $Path
+    $hash = Get-FileHash -LiteralPath $Path -Algorithm SHA256
+    return @{
+        path = $item.FullName
+        exists = $true
+        length = [int64]$item.Length
+        last_write_time_utc = $item.LastWriteTimeUtc.ToString("o")
+        sha256 = $hash.Hash
+    }
+}
+
 function Wait-GodotAutostartEvidence {
     param(
         [string]$LogPath,
@@ -967,8 +986,8 @@ function Compact-ToolResult {
 }
 
 function Compact-BeforeAfter {
-    param([object]$Confirm)
-    $rows = @(Get-OptionalProperty -Object $Confirm -Name "executed_kernel_reply")
+	param([object]$Confirm)
+	$rows = @(Get-OptionalProperty -Object $Confirm -Name "executed_kernel_reply")
     $compactRows = @()
     foreach ($row in $rows) {
         $compactRows += Compact-ToolResult -Row $row
@@ -977,11 +996,321 @@ function Compact-BeforeAfter {
         reply = [string](Get-OptionalProperty -Object $Confirm -Name "reply")
         executed = $compactRows
         full_response_file = "chat_confirm.json"
-    }
+	}
+}
+
+function Number-Value {
+	param([object]$Value)
+	if ($null -eq $Value) {
+		return $null
+	}
+	$text = ([string]$Value).Trim()
+	if ([string]::IsNullOrWhiteSpace($text) -or $text -eq "<nil>") {
+		return $null
+	}
+	$dummy = 0.0
+	if (-not [double]::TryParse($text, [System.Globalization.NumberStyles]::Float, [System.Globalization.CultureInfo]::InvariantCulture, [ref]$dummy)) {
+		return $null
+	}
+	return $dummy
+}
+
+function Read-JsonFile {
+	param([string]$Path)
+	if (-not (Test-Path -LiteralPath $Path)) {
+		return $null
+	}
+	$content = Get-Content -LiteralPath $Path -Raw -ErrorAction Stop
+	if ([string]::IsNullOrWhiteSpace($content)) {
+		return $null
+	}
+	return $content | ConvertFrom-Json
+}
+
+function Assert-RequestedFeature {
+	param(
+		[object]$LatestRequest,
+		[string]$FeatureType
+	)
+	$found = $false
+	foreach ($row in @((Get-OptionalProperty -Object $LatestRequest -Name "requested_features"))) {
+		if ([string](Get-OptionalProperty -Object $row -Name "feature_type") -eq $FeatureType) {
+			$found = $true
+			break
+		}
+	}
+	if (-not $found) {
+		Fail ("latest_request.requested_features missing " + $FeatureType)
+	}
+}
+
+function Assert-BridgeSnapshotRow {
+	param(
+		[object]$Snapshot,
+		[string]$Name,
+		[string]$ExpectedRequestID,
+		[string]$Label
+	)
+	$row = Get-OptionalProperty -Object $Snapshot -Name $Name
+	$status = [string](Get-OptionalProperty -Object $row -Name "status")
+	if ([string]::IsNullOrWhiteSpace($status)) {
+		Fail ($Label + " acoustic feature " + $Name + " missing status")
+	}
+	$rowRequestID = [string](Get-OptionalProperty -Object $row -Name "request_id")
+	if (-not [string]::IsNullOrWhiteSpace($ExpectedRequestID) -and -not [string]::IsNullOrWhiteSpace($rowRequestID) -and $rowRequestID -ne $ExpectedRequestID) {
+		Fail ($Label + " acoustic feature " + $Name + " request_id mismatch: got=" + $rowRequestID + " expected=" + $ExpectedRequestID)
+	}
+	if ($status -in @("ready", "partial")) {
+		if ([string]::IsNullOrWhiteSpace($rowRequestID)) {
+			Fail ($Label + " ready acoustic feature " + $Name + " missing request_id")
+		}
+		$source = [string](Get-OptionalProperty -Object $row -Name "source")
+		if ([string]::IsNullOrWhiteSpace($source)) {
+			Fail ($Label + " ready acoustic feature " + $Name + " missing source")
+		}
+		if ($Name -eq "spectrogram_tiles") {
+			if ([string](Get-OptionalProperty -Object $row -Name "feature_type") -ne "spectral_field") {
+				Fail ($Label + " spectrogram_tiles feature_type is not spectral_field")
+			}
+			if ($source -notin @("kernel_tile_ready_direct_collector", "kernel_tile_ready_godot_bridge")) {
+				Fail ($Label + " spectrogram_tiles source is not accepted: " + $source)
+			}
+			$seen = Number-Value -Value (Get-OptionalProperty -Object $row -Name "tile_count_seen")
+			$expected = Number-Value -Value (Get-OptionalProperty -Object $row -Name "tile_count_expected")
+			if ($null -eq $seen -or $seen -lt 1 -or $null -eq $expected) {
+				Fail ($Label + " spectrogram_tiles missing tile counts: " + ($row | ConvertTo-Json -Depth 8 -Compress))
+			}
+		}
+		return
+	}
+	if ($status -in @("building", "missing", "blocked", "unavailable", "invalid", "stale")) {
+		$reason = [string](Get-OptionalProperty -Object $row -Name "reason")
+		$progress = Get-OptionalProperty -Object $row -Name "progress"
+		$progressReason = [string](Get-OptionalProperty -Object $progress -Name "reason")
+		if ([string]::IsNullOrWhiteSpace($reason) -and [string]::IsNullOrWhiteSpace($progressReason)) {
+			Fail ($Label + " acoustic feature " + $Name + " status " + $status + " missing explicit reason/progress")
+		}
+		return
+	}
+	Fail ($Label + " acoustic feature " + $Name + " has unexpected status " + $status)
+}
+
+function Assert-FeatureSnapshotAcousticBridgeReadiness {
+	param(
+		[object]$Snapshot,
+		[string]$Label
+	)
+	$latest = Get-OptionalProperty -Object $Snapshot -Name "latest_request"
+	$requestID = [string](Get-OptionalProperty -Object $latest -Name "request_id")
+	if ([string]::IsNullOrWhiteSpace($requestID)) {
+		Fail ($Label + " feature_snapshot.latest_request.request_id missing")
+	}
+	Assert-RequestedFeature -LatestRequest $latest -FeatureType "waveform_envelope"
+	Assert-RequestedFeature -LatestRequest $latest -FeatureType "spectral_field"
+	foreach ($name in @("spectrogram_tiles", "band_energy_summary", "stereo_relation_summary")) {
+		Assert-BridgeSnapshotRow -Snapshot $Snapshot -Name $name -ExpectedRequestID $requestID -Label $Label
+	}
+}
+
+function Assert-ObservationAcousticBridgeReadiness {
+	param(
+		[object]$Observation,
+		[string]$Label
+	)
+	$global = Get-OptionalProperty -Object $Observation -Name "global_summary"
+	$snapshot = Get-OptionalProperty -Object $global -Name "feature_snapshot"
+	Assert-FeatureSnapshotAcousticBridgeReadiness -Snapshot $snapshot -Label $Label
+	$mixPackage = Get-OptionalProperty -Object $Observation -Name "mix_package"
+	$currentMetrics = Get-OptionalProperty -Object $mixPackage -Name "current_metrics"
+	foreach ($name in @("band_energy", "stereo_relation")) {
+		$row = Get-OptionalProperty -Object $currentMetrics -Name $name
+		$status = [string](Get-OptionalProperty -Object $row -Name "status")
+		if ($status -eq "missing" -and [string]::IsNullOrWhiteSpace([string](Get-OptionalProperty -Object $row -Name "reason"))) {
+			Fail ($Label + " current_metrics." + $name + " missing explicit reason")
+		}
+	}
+}
+
+function Assert-ResponseAcousticBridgeReadiness {
+	param(
+		[object]$Response,
+		[string]$Label
+	)
+	foreach ($row in @((Get-OptionalProperty -Object $Response -Name "executed_kernel_reply"))) {
+		$result = Get-OptionalProperty -Object $row -Name "result"
+		$observation = Get-OptionalProperty -Object $result -Name "observation"
+		if ($null -ne $observation) {
+			Assert-ObservationAcousticBridgeReadiness -Observation $observation -Label $Label
+			return
+		}
+	}
+	Fail ($Label + " did not expose a mix observation result")
+}
+
+function Get-FirstObservationFromResponse {
+	param([object]$Response)
+	foreach ($row in @((Get-OptionalProperty -Object $Response -Name "executed_kernel_reply"))) {
+		$result = Get-OptionalProperty -Object $row -Name "result"
+		$observation = Get-OptionalProperty -Object $result -Name "observation"
+		if ($null -ne $observation) {
+			return $observation
+		}
+	}
+	return $null
+}
+
+function Assert-ResponseMOMMultitrackObservation {
+	param(
+		[object]$Response,
+		[string]$Label,
+		[string]$ExpectedGoalText = ""
+	)
+	$observation = Get-FirstObservationFromResponse -Response $Response
+	if ($null -eq $observation) {
+		Fail ($Label + " did not expose an observation")
+	}
+	$target = Get-OptionalProperty -Object $observation -Name "target_ref"
+	$targetKind = [string](Get-OptionalProperty -Object $target -Name "kind")
+	$targetID = [string](Get-OptionalProperty -Object $target -Name "id")
+	if ($targetKind -ne "project" -or $targetID -ne "current") {
+		Fail ($Label + " expected project target, got kind=" + $targetKind + " id=" + $targetID)
+	}
+	$listenScope = Get-OptionalProperty -Object $observation -Name "listen_scope"
+	$listenSource = Get-OptionalProperty -Object $listenScope -Name "source"
+	$listenMode = [string](Get-OptionalProperty -Object $listenSource -Name "mode")
+	if ($listenMode -ne "full_project") {
+		Fail ($Label + " expected listen_scope.source.mode=full_project, got " + $listenMode)
+	}
+	$mom = Get-OptionalProperty -Object $observation -Name "mom_projection"
+	$intentPolicy = Get-OptionalProperty -Object $mom -Name "intent_policy"
+	$intent = [string](Get-OptionalProperty -Object $intentPolicy -Name "name")
+	if ([string]::IsNullOrWhiteSpace($intent)) {
+		$intent = [string](Get-OptionalProperty -Object $mom -Name "intent")
+	}
+	if ($intent -ne "project_multitrack_relation_observation") {
+		Fail ($Label + " expected MOM project_multitrack_relation_observation, got " + $intent)
+	}
+	$relation = Get-OptionalProperty -Object $mom -Name "multitrack_relation"
+	$relationStatus = [string](Get-OptionalProperty -Object $relation -Name "status")
+	if ($relationStatus -eq "not_applicable_single_track") {
+		Fail ($Label + " unexpectedly downgraded to not_applicable_single_track")
+	}
+	$trust = Get-OptionalProperty -Object $mom -Name "trust_quality"
+	$coverage = Get-OptionalProperty -Object $trust -Name "coverage"
+	$compared = Number-Value -Value (Get-OptionalProperty -Object $coverage -Name "compared_track_count")
+	if ($null -eq $compared -or $compared -lt 2) {
+		Fail ($Label + " expected compared_track_count>=2, got " + [string]$compared)
+	}
+	$projectPackage = Get-OptionalProperty -Object $observation -Name "project_package"
+	$projectTracks = @((Get-OptionalProperty -Object $projectPackage -Name "tracks"))
+	if ($projectTracks.Count -lt 2) {
+		Fail ($Label + " expected project_package.tracks>=2, got " + [string]$projectTracks.Count)
+	}
+	$llmContext = Get-OptionalProperty -Object $mom -Name "llm_context"
+	if ([bool](Get-OptionalProperty -Object $llmContext -Name "do_not_include_raw_package") -ne $true) {
+		Fail ($Label + " MOM llm_context did not block raw package")
+	}
+	if (-not [string]::IsNullOrWhiteSpace($ExpectedGoalText)) {
+		$mixPackage = Get-OptionalProperty -Object $observation -Name "mix_package"
+		$goalText = [string](Get-OptionalProperty -Object $mixPackage -Name "goal_text")
+		if ($goalText -ne $ExpectedGoalText) {
+			Fail ($Label + " goal_text mismatch: got=" + $goalText + " expected=" + $ExpectedGoalText)
+		}
+	}
+}
+
+function Get-AcousticPackageStatusFromResponse {
+	param([object]$Response)
+	foreach ($event in @((Get-OptionalProperty -Object $Response -Name "typed_events"))) {
+		$state = Get-OptionalProperty -Object $event -Name "state"
+		if ([string](Get-OptionalProperty -Object $state -Name "schema_version") -eq "acoustic_package_status.v0") {
+			return $state
+		}
+		if ($null -ne (Get-OptionalProperty -Object $state -Name "package_layers")) {
+			return $state
+		}
+	}
+	foreach ($row in @((Get-OptionalProperty -Object $Response -Name "executed_kernel_reply"))) {
+		$result = Get-OptionalProperty -Object $row -Name "result"
+		$status = Get-OptionalProperty -Object $result -Name "acoustic_package_status"
+		if ($null -ne $status) {
+			return $status
+		}
+		$digest = Get-OptionalProperty -Object $result -Name "acoustic_digest"
+		$status = Get-OptionalProperty -Object $digest -Name "acoustic_package_status"
+		if ($null -ne $status) {
+			return $status
+		}
+	}
+	return $null
+}
+
+function Test-AcousticPackageDeepIncomplete {
+	param([object]$Status)
+	if ($null -eq $Status) {
+		return $false
+	}
+	$layers = Get-OptionalProperty -Object $Status -Name "package_layers"
+	$l3 = Get-OptionalProperty -Object $layers -Name "l3_deep"
+	$l3Status = ([string](Get-OptionalProperty -Object $l3 -Name "status")).ToLowerInvariant()
+	if (-not [string]::IsNullOrWhiteSpace($l3Status) -and $l3Status -ne "ready") {
+		return $true
+	}
+	$features = Get-OptionalProperty -Object $l3 -Name "features"
+	foreach ($name in @("spectrogram_tiles", "band_energy_summary", "stereo_relation_summary")) {
+		$feature = Get-OptionalProperty -Object $features -Name $name
+		$statusText = ([string](Get-OptionalProperty -Object $feature -Name "status")).ToLowerInvariant()
+		if ($statusText -ne "ready") {
+			return $true
+		}
+	}
+	return $false
+}
+
+function Test-ResponseAcousticPackageDeepIncomplete {
+	param([object]$Response)
+	$status = Get-AcousticPackageStatusFromResponse -Response $Response
+	if (Test-AcousticPackageDeepIncomplete -Status $status) {
+		return $true
+	}
+	$reply = [string](Get-OptionalProperty -Object $Response -Name "reply")
+	return ($reply -match "L3|深度|spectrogram") -and ($reply -match "building|partial|未完整|未完成|不可靠|正在构建|还在构建")
+}
+
+function Assert-AuthoritativeFeatureSnapshotPath {
+	param(
+		[string]$RepoRoot,
+		[string]$GodotProjectRoot,
+		[string]$ArtifactDir,
+		[datetime]$RunStartedAt
+	)
+	$authoritative = Join-Path $RepoRoot "VitApp\Workspace\Artifacts\mixboard_feature_snapshot.json"
+	$split = Join-Path $GodotProjectRoot "VitApp\Workspace\Artifacts\mixboard_feature_snapshot.json"
+	if (-not (Test-Path -LiteralPath $authoritative)) {
+		Fail ("authoritative mixboard feature snapshot missing: " + $authoritative)
+	}
+	$snapshot = Read-JsonFile -Path $authoritative
+	Assert-FeatureSnapshotAcousticBridgeReadiness -Snapshot $snapshot -Label "authoritative snapshot"
+	Copy-Item -LiteralPath $authoritative -Destination (Join-Path $ArtifactDir "authoritative_mixboard_feature_snapshot.json") -Force
+	$out = [ordered]@{
+		authoritative_path = $authoritative
+		authoritative_last_write_utc = (Get-Item -LiteralPath $authoritative).LastWriteTimeUtc.ToString("o")
+		godot_project_split_path = $split
+		godot_project_split_exists = $false
+	}
+	if (Test-Path -LiteralPath $split) {
+		$item = Get-Item -LiteralPath $split
+		$out["godot_project_split_exists"] = $true
+		$out["godot_project_split_last_write_utc"] = $item.LastWriteTimeUtc.ToString("o")
+		if ($item.LastWriteTimeUtc -ge $RunStartedAt.ToUniversalTime().AddSeconds(-2)) {
+			Fail ("Godot project split mixboard feature snapshot was updated during this run: " + $split)
+		}
+	}
+	return $out
 }
 
 function Assert-ToolPresent {
-    param(
+	param(
         [string[]]$Tools,
         [string[]]$Aliases,
         [string]$Label
@@ -1104,8 +1433,8 @@ $Track1Path = Resolve-FirstExistingPath -Label "track 1 fixture" -Candidates @((
 $Track2Path = Resolve-FirstExistingPath -Label "track 2 fixture" -Candidates @((Join-Path $RepoRoot "test_target_3s.wav"))
 if ([string]::IsNullOrWhiteSpace($KernelExe)) {
     $KernelExe = Resolve-FirstExistingPath -Label "kernel exe" -Candidates @(
-        (Join-Path $RepoRoot "VitApp\build\VitApp_artefacts\Release\VitApp.exe"),
         (Join-Path $RepoRoot "VitApp\build_release\VitApp_artefacts\Release\VitApp.exe"),
+        (Join-Path $RepoRoot "VitApp\build\VitApp_artefacts\Release\VitApp.exe"),
         (Join-Path $RepoRoot "VitApp\build_release\VitApp.exe"),
         (Join-Path $RepoRoot "Export\staging\runtime\VitApp.exe")
     )
@@ -1124,9 +1453,10 @@ if ([string]::IsNullOrWhiteSpace($AgentExe)) {
 }
 $AgentExe = [System.IO.Path]::GetFullPath($AgentExe)
 
+$RunStartedAt = Get-Date
 $summary = [ordered]@{
-    schema_version = "vit_product_path_smoke.v1"
-    created_at = (Get-Date).ToString("o")
+	schema_version = "vit_product_path_smoke.v1"
+	created_at = $RunStartedAt.ToString("o")
     repo_root = $RepoRoot
     artifact_dir = $ArtifactDir
     interaction_path = "agent_http_after_godot_project_lifecycle"
@@ -1146,10 +1476,12 @@ $summary = [ordered]@{
     tool_route = @()
     before_after = $null
     stop_reasons = @{}
-    mix_loop_v1 = @{}
-    focus_relationship = @{}
-    vocal_clarification_loop = @{}
-    processes = @{}
+	mix_loop_v1 = @{}
+	focus_relationship = @{}
+	vocal_clarification_loop = @{}
+    snapshot_paths = @{}
+	processes = @{}
+    binary_evidence = @{}
     ports = @()
     status = "running"
 }
@@ -1186,6 +1518,8 @@ try {
         Stop-AgentIfNeededBeforeBuild -ReuseAgent ([bool]$ReuseAgent)
     }
     Build-AgentIfNeeded -RepoRoot $RepoRoot -AgentPath $AgentExe -SkipBuild ([bool]($SkipBuild -or $ReuseAgent))
+    $summary["binary_evidence"]["agent_expected"] = Get-ExecutableEvidence -Path $AgentExe
+    ConvertTo-JsonFile -Value ($summary["binary_evidence"]["agent_expected"]) -Path (Join-Path $ArtifactDir "agent_expected_binary.json")
 
     Write-Step "Start or reuse Godot project lifecycle"
     $summary["processes"]["godot_editors"] = @(Find-GodotProjectProcesses -ProjectRoot $GodotProjectRoot -RuntimeOnly $false | Where-Object { [bool]$_.is_editor })
@@ -1235,6 +1569,15 @@ try {
     $started.kernel["event_port_pid"] = [int]$kernelEventOwner.pid
     $summary["processes"]["agent"] = $started.agent
     $summary["processes"]["kernel"] = $started.kernel
+    $runningAgentPath = Get-ProcessPathByID -ProcessID ([int]$started.agent.pid)
+    if ((Normalize-ComparablePath -Path $runningAgentPath) -ne (Normalize-ComparablePath -Path $AgentExe)) {
+        Fail ("Godot product path is not using expected agent binary. expected=" + $AgentExe + " actual=" + $runningAgentPath)
+    }
+    $summary["binary_evidence"]["agent_running"] = Get-ExecutableEvidence -Path $runningAgentPath
+    if ([string]$summary["binary_evidence"]["agent_expected"].sha256 -ne [string]$summary["binary_evidence"]["agent_running"].sha256) {
+        Fail "Running agent binary hash does not match expected agent binary"
+    }
+    Write-Ok ("Godot product path agent binary verified sha256=" + [string]$summary["binary_evidence"]["agent_running"].sha256)
 
     $summary["ports"] = @(Get-ListenersSnapshot)
     ConvertTo-JsonFile -Value ($summary["ports"]) -Path (Join-Path $ArtifactDir "ports.json")
@@ -1284,77 +1627,130 @@ try {
     if ([string]$observe.stop_reason -ne "done") {
         Fail ("observe turn stop_reason=" + [string]$observe.stop_reason)
     }
-    $storedLine = Wait-LogPattern -LogPath $AgentLog -Pattern ("[mix.tick.pending] stored conversation=" + $conversationID) -TimeoutSeconds 15
-    Set-Content -LiteralPath (Join-Path $ArtifactDir "pending_log.txt") -Value $storedLine -Encoding UTF8
     $events = Invoke-Json -Method GET -Uri ($AgentHttp.TrimEnd("/") + "/agent/events?conversation_id=" + [uri]::EscapeDataString($conversationID) + "&since=0&limit=20") -TimeoutSec 10
     ConvertTo-JsonFile -Value $events -Path (Join-Path $ArtifactDir "events_after_observe.json")
     $observeEventSeq = [int64](Get-OptionalProperty -Object $events -Name "next_seq")
+    $observePendingEvents = @()
     foreach ($event in @($events.events)) {
         if ([string]$event.type -eq "mix_tick.pending") {
-            $summary["pending_candidate"] = $event.payload
-            $summary["observation_id"] = [string]$event.payload.observation_id
-            break
+            $observePendingEvents += $event
         }
     }
-    if ($null -eq $summary["pending_candidate"]) {
-        Fail "mix_tick.pending event was not emitted"
+    $observeNeedsConfirmation = [bool](Get-OptionalProperty -Object $observe -Name "needs_confirmation")
+    $summary["read_only_observation"] = [ordered]@{
+        message = $observeMessage
+        stop_reason = [string]$observe.stop_reason
+        needs_confirmation = $observeNeedsConfirmation
+        pending_event_count = $observePendingEvents.Count
     }
+    if ($observePendingEvents.Count -ne 0) {
+        Fail "read-only product observe emitted mix_tick.pending"
+    }
+    if ($observeNeedsConfirmation) {
+        Fail "read-only product observe requested confirmation"
+    }
+	Write-Ok "product observe stayed read-only with no pending event or confirmation"
+	Assert-ResponseAcousticBridgeReadiness -Response $observe -Label "product observe"
+	$summary["snapshot_paths"]["after_observe"] = Assert-AuthoritativeFeatureSnapshotPath -RepoRoot $RepoRoot -GodotProjectRoot $GodotProjectRoot -ArtifactDir $ArtifactDir -RunStartedAt $RunStartedAt
 
-    Write-Step "Confirm pending mix tick"
+	Write-Step "Chinese multitrack MOM observation scope"
+	$multitrackConversationID = "product_path_multitrack_" + $Stamp
+	$multitrackMessage = Join-UnicodeChars @(0x6BD4, 0x8F83, 0x4E00, 0x4E0B, 0x5404, 0x8F68, 0x9891, 0x6BB5, 0x5360, 0x7528, 0x548C, 0x58F0, 0x50CF, 0x5173, 0x7CFB, 0xFF0C, 0x4E0D, 0x8981, 0x4FEE, 0x6539, 0x3002)
+	$multitrack = Invoke-AgentChat -ConversationID $multitrackConversationID -Message $multitrackMessage
+	ConvertTo-JsonFile -Value $multitrack -Path (Join-Path $ArtifactDir "chat_multitrack_observe.json")
+	$summary["stop_reasons"]["multitrack_observe"] = [string](Get-OptionalProperty -Object $multitrack -Name "stop_reason")
+	if ([string]$multitrack.stop_reason -ne "done") {
+		Fail ("multitrack observe turn stop_reason=" + [string]$multitrack.stop_reason)
+	}
+	Assert-ResponseAcousticBridgeReadiness -Response $multitrack -Label "product Chinese multitrack observe"
+	Assert-ResponseMOMMultitrackObservation -Response $multitrack -Label "product Chinese multitrack observe" -ExpectedGoalText $multitrackMessage
+	$multitrackEvents = Invoke-Json -Method GET -Uri ($AgentHttp.TrimEnd("/") + "/agent/events?conversation_id=" + [uri]::EscapeDataString($multitrackConversationID) + "&since=0&limit=20") -TimeoutSec 10
+	ConvertTo-JsonFile -Value $multitrackEvents -Path (Join-Path $ArtifactDir "events_after_multitrack_observe.json")
+	$multitrackPendingEvents = @()
+	foreach ($event in @($multitrackEvents.events)) {
+		if ([string]$event.type -eq "mix_tick.pending") {
+			$multitrackPendingEvents += $event
+		}
+	}
+	$multitrackNeedsConfirmation = [bool](Get-OptionalProperty -Object $multitrack -Name "needs_confirmation")
+	$summary["read_only_multitrack_observation"] = [ordered]@{
+		conversation_id = $multitrackConversationID
+		message = $multitrackMessage
+		stop_reason = [string]$multitrack.stop_reason
+		needs_confirmation = $multitrackNeedsConfirmation
+		pending_event_count = $multitrackPendingEvents.Count
+	}
+	if ($multitrackPendingEvents.Count -ne 0) {
+		Fail "read-only multitrack observe emitted mix_tick.pending"
+	}
+	if ($multitrackNeedsConfirmation) {
+		Fail "read-only multitrack observe requested confirmation"
+	}
+	Write-Ok "Chinese multitrack observe used project MOM scope with no pending event or confirmation"
+
     $confirmMessage = Join-UnicodeChars @(0x53EF, 0x4EE5, 0x6267, 0x884C)
-    $confirm = Invoke-AgentChat -ConversationID $conversationID -Message $confirmMessage
-    ConvertTo-JsonFile -Value $confirm -Path (Join-Path $ArtifactDir "chat_confirm.json")
-    $summary["stop_reasons"]["confirm"] = [string](Get-OptionalProperty -Object $confirm -Name "stop_reason")
-    if ([string]$confirm.stop_reason -ne "mix_tick_applied_reobserved") {
-        Fail ("confirm turn stop_reason=" + [string]$confirm.stop_reason)
-    }
-    $confirmRows = @(Get-OptionalProperty -Object $confirm -Name "executed_kernel_reply")
-    $tools = Tool-Names -Rows $confirmRows
-    $summary["tool_route"] = $tools
-    Assert-ToolPresent -Tools $tools -Aliases @("mix.propose_tick", "mix_propose_tick") -Label "mix.propose_tick"
-    Assert-ToolPresent -Tools $tools -Aliases @("mix.apply_tick", "mix_apply_tick") -Label "mix.apply_tick"
-    Assert-ToolPresent -Tools $tools -Aliases @("mix.observe", "mix_observe", "mix.request_observation", "mix_request_observation") -Label "reobserve"
-    Assert-ToolAbsent -Tools $tools -Aliases @("daw.invoke", "daw_invoke") -Label "daw.invoke"
-    Assert-ToolAbsent -Tools $tools -Aliases @("track.volume", "track_volume") -Label "track.volume"
-    $toolCounts = [ordered]@{
-        propose = Count-ExecutedToolGroup -Rows $confirmRows -Aliases @("mix.propose_tick", "mix_propose_tick")
-        apply = Count-ExecutedToolGroup -Rows $confirmRows -Aliases @("mix.apply_tick", "mix_apply_tick")
-        observe = Count-ExecutedToolGroup -Rows $confirmRows -Aliases @("mix.observe", "mix_observe", "mix.request_observation", "mix_request_observation")
-        daw_invoke = Count-ExecutedToolGroup -Rows $confirmRows -Aliases @("daw.invoke", "daw_invoke")
-        track_volume = Count-ExecutedToolGroup -Rows $confirmRows -Aliases @("track.volume", "track_volume")
-    }
-    if ([int]$toolCounts.propose -ne 1 -or [int]$toolCounts.apply -ne 1 -or [int]$toolCounts.observe -ne 1) {
-        Fail ("Expected exactly one propose/apply/reobserve in confirmation turn. counts=" + ($toolCounts | ConvertTo-Json -Compress))
-    }
-    if ([int]$toolCounts.daw_invoke -ne 0 -or [int]$toolCounts.track_volume -ne 0) {
-        Fail ("Confirmation bypassed typed mix tools. counts=" + ($toolCounts | ConvertTo-Json -Compress))
-    }
-    [void](Wait-LogPattern -LogPath $AgentLog -Pattern ("[mix.tick.pending] explicit confirmation routed conversation=" + $conversationID) -TimeoutSeconds 15)
-    [void](Wait-LogPattern -LogPath $AgentLog -Pattern ("[mix.tick.pending] applied and reobserved conversation=" + $conversationID) -TimeoutSeconds 15)
-    $summary["before_after"] = Compact-BeforeAfter -Confirm $confirm
-    $eventsAfterConfirm = Invoke-Json -Method GET -Uri ($AgentHttp.TrimEnd("/") + "/agent/events?conversation_id=" + [uri]::EscapeDataString($conversationID) + "&since=" + $observeEventSeq + "&limit=40") -TimeoutSec 10
-    ConvertTo-JsonFile -Value $eventsAfterConfirm -Path (Join-Path $ArtifactDir "events_after_confirm.json")
-    $postConfirmPendingEvents = @()
-    foreach ($event in @($eventsAfterConfirm.events)) {
-        if ([string]$event.type -eq "mix_tick.pending") {
-            $postConfirmPendingEvents += $event
-        }
-    }
-    $postConfirmPendingCandidate = $null
-    if ($postConfirmPendingEvents.Count -gt 0) {
-        $postConfirmPendingCandidate = $postConfirmPendingEvents[$postConfirmPendingEvents.Count - 1].payload
-    }
-    $autoSecondApplyDetected = ([int]$toolCounts.propose -gt 1 -or [int]$toolCounts.apply -gt 1)
-    $summary["mix_loop_v1"] = [ordered]@{
-        tool_counts = $toolCounts
-        post_confirm_pending_event_count = $postConfirmPendingEvents.Count
-        post_confirm_pending_candidate = $postConfirmPendingCandidate
-        next_pending_requires_confirmation = ($null -ne $postConfirmPendingCandidate)
-        auto_second_apply_detected = $autoSecondApplyDetected
-    }
-    if ($autoSecondApplyDetected) {
-        Fail "Mix Loop v1 auto-executed more than one tick in a single confirmation turn"
-    }
+	if ($null -ne $summary["pending_candidate"]) {
+		Write-Step "Confirm pending mix tick"
+		$confirm = Invoke-AgentChat -ConversationID $conversationID -Message $confirmMessage
+		ConvertTo-JsonFile -Value $confirm -Path (Join-Path $ArtifactDir "chat_confirm.json")
+		$summary["stop_reasons"]["confirm"] = [string](Get-OptionalProperty -Object $confirm -Name "stop_reason")
+		if ([string]$confirm.stop_reason -ne "mix_tick_applied_reobserved") {
+			Fail ("confirm turn stop_reason=" + [string]$confirm.stop_reason)
+		}
+		$confirmRows = @(Get-OptionalProperty -Object $confirm -Name "executed_kernel_reply")
+		$tools = Tool-Names -Rows $confirmRows
+		$summary["tool_route"] = $tools
+		Assert-ToolPresent -Tools $tools -Aliases @("mix.propose_tick", "mix_propose_tick") -Label "mix.propose_tick"
+		Assert-ToolPresent -Tools $tools -Aliases @("mix.apply_tick", "mix_apply_tick") -Label "mix.apply_tick"
+		Assert-ToolPresent -Tools $tools -Aliases @("mix.observe", "mix_observe", "mix.request_observation", "mix_request_observation") -Label "reobserve"
+		Assert-ToolAbsent -Tools $tools -Aliases @("daw.invoke", "daw_invoke") -Label "daw.invoke"
+		Assert-ToolAbsent -Tools $tools -Aliases @("track.volume", "track_volume") -Label "track.volume"
+		$toolCounts = [ordered]@{
+			propose = Count-ExecutedToolGroup -Rows $confirmRows -Aliases @("mix.propose_tick", "mix_propose_tick")
+			apply = Count-ExecutedToolGroup -Rows $confirmRows -Aliases @("mix.apply_tick", "mix_apply_tick")
+			observe = Count-ExecutedToolGroup -Rows $confirmRows -Aliases @("mix.observe", "mix_observe", "mix.request_observation", "mix_request_observation")
+			daw_invoke = Count-ExecutedToolGroup -Rows $confirmRows -Aliases @("daw.invoke", "daw_invoke")
+			track_volume = Count-ExecutedToolGroup -Rows $confirmRows -Aliases @("track.volume", "track_volume")
+		}
+		if ([int]$toolCounts.propose -ne 1 -or [int]$toolCounts.apply -ne 1 -or [int]$toolCounts.observe -ne 1) {
+			Fail ("Expected exactly one propose/apply/reobserve in confirmation turn. counts=" + ($toolCounts | ConvertTo-Json -Compress))
+		}
+		if ([int]$toolCounts.daw_invoke -ne 0 -or [int]$toolCounts.track_volume -ne 0) {
+			Fail ("Confirmation bypassed typed mix tools. counts=" + ($toolCounts | ConvertTo-Json -Compress))
+		}
+		[void](Wait-LogPattern -LogPath $AgentLog -Pattern ("[mix.tick.pending] explicit confirmation routed conversation=" + $conversationID) -TimeoutSeconds 15)
+		[void](Wait-LogPattern -LogPath $AgentLog -Pattern ("[mix.tick.pending] applied and reobserved conversation=" + $conversationID) -TimeoutSeconds 15)
+		$confirmReply = [string](Get-OptionalProperty -Object $confirm -Name "reply")
+		if ($confirmReply -notmatch "AB Result") {
+			Fail ("confirmation reply did not include AB Result: " + $confirmReply)
+		}
+		$summary["before_after"] = Compact-BeforeAfter -Confirm $confirm
+		Assert-ResponseAcousticBridgeReadiness -Response $confirm -Label "product confirm reobserve"
+		$summary["snapshot_paths"]["after_confirm"] = Assert-AuthoritativeFeatureSnapshotPath -RepoRoot $RepoRoot -GodotProjectRoot $GodotProjectRoot -ArtifactDir $ArtifactDir -RunStartedAt $RunStartedAt
+		$eventsAfterConfirm = Invoke-Json -Method GET -Uri ($AgentHttp.TrimEnd("/") + "/agent/events?conversation_id=" + [uri]::EscapeDataString($conversationID) + "&since=" + $observeEventSeq + "&limit=40") -TimeoutSec 10
+		ConvertTo-JsonFile -Value $eventsAfterConfirm -Path (Join-Path $ArtifactDir "events_after_confirm.json")
+		$postConfirmPendingEvents = @()
+		foreach ($event in @($eventsAfterConfirm.events)) {
+			if ([string]$event.type -eq "mix_tick.pending") {
+				$postConfirmPendingEvents += $event
+			}
+		}
+		$postConfirmPendingCandidate = $null
+		if ($postConfirmPendingEvents.Count -gt 0) {
+			$postConfirmPendingCandidate = $postConfirmPendingEvents[$postConfirmPendingEvents.Count - 1].payload
+		}
+		$autoSecondApplyDetected = ([int]$toolCounts.propose -gt 1 -or [int]$toolCounts.apply -gt 1)
+		$summary["mix_loop_v1"] = [ordered]@{
+			tool_counts = $toolCounts
+			post_confirm_pending_event_count = $postConfirmPendingEvents.Count
+			post_confirm_pending_candidate = $postConfirmPendingCandidate
+			next_pending_requires_confirmation = ($null -ne $postConfirmPendingCandidate)
+			auto_second_apply_detected = $autoSecondApplyDetected
+		}
+		if ($autoSecondApplyDetected) {
+			Fail "Mix Loop v1 auto-executed more than one tick in a single confirmation turn"
+		}
+	}
 
     Write-Step "No-pending confirmation guard"
     $guardConversationID = "product_path_no_pending_" + $Stamp
@@ -1372,9 +1768,15 @@ try {
     ConvertTo-JsonFile -Value $focus -Path (Join-Path $ArtifactDir "chat_vocal_focus.json")
     $summary["stop_reasons"]["vocal_focus"] = [string](Get-OptionalProperty -Object $focus -Name "stop_reason")
     $focusStopReason = [string]$focus.stop_reason
-    $acceptedFocusStopReason = @("done", "needs_clarification") -contains $focusStopReason
+    $acceptedFocusStopReason = @("done", "needs_clarification", "needs_confirmation") -contains $focusStopReason
     if (-not $acceptedFocusStopReason) {
         Fail ("vocal focus turn stop_reason=" + [string]$focus.stop_reason)
+    }
+    $focusPendingCandidateCount = 0
+    foreach ($typedEvent in @($focus.typed_events)) {
+        if ([string]$typedEvent.event_type -eq "PendingCandidate") {
+            $focusPendingCandidateCount += 1
+        }
     }
     $focusRows = @(Get-OptionalProperty -Object $focus -Name "executed_kernel_reply")
     $focusTools = Tool-Names -Rows $focusRows
@@ -1386,8 +1788,26 @@ try {
         daw_invoke = Count-ExecutedToolGroup -Rows $focusRows -Aliases @("daw.invoke", "daw_invoke")
         track_volume = Count-ExecutedToolGroup -Rows $focusRows -Aliases @("track.volume", "track_volume")
     }
-    if ([int]$focusCounts.observe -lt 1 -or [int]$focusCounts.derive -lt 1) {
-        Fail ("Expected vocal focus route to include mix.observe and mix.derive. route=" + ($focusTools -join " -> "))
+    if ([int]$focusCounts.observe -lt 1) {
+        Fail ("Expected vocal focus route to include mix.observe. route=" + ($focusTools -join " -> "))
+    }
+    if ($focusStopReason -eq "needs_confirmation") {
+        if (-not [bool](Get-OptionalProperty -Object $focus -Name "needs_confirmation")) {
+            Fail "Vocal focus returned needs_confirmation stop reason without needs_confirmation=true"
+        }
+        if ($focusPendingCandidateCount -lt 1) {
+            Fail "Vocal focus needs_confirmation did not include a PendingCandidate typed event"
+        }
+        if ([int]$focusCounts.derive -lt 1) {
+            Fail ("Expected vocal focus pending route to include mix.derive. route=" + ($focusTools -join " -> "))
+        }
+    }
+    if ($focusStopReason -eq "done" -and [int]$focusCounts.derive -lt 1) {
+        $focusReply = [string](Get-OptionalProperty -Object $focus -Name "reply")
+        $safeNoopDone = ($focusReply -match "can't|cannot|not reliably|No mix action|no mix action|not safe|not identified|partial")
+        if (-not $safeNoopDone) {
+            Fail ("Expected completed vocal focus route to include mix.derive unless it is an explicit no-op/clarification reply. route=" + ($focusTools -join " -> "))
+        }
     }
     if ([int]$focusCounts.apply -ne 0 -or [int]$focusCounts.daw_invoke -ne 0 -or [int]$focusCounts.track_volume -ne 0) {
         Fail ("Vocal focus route mutated the project unexpectedly. counts=" + ($focusCounts | ConvertTo-Json -Compress))
@@ -1399,6 +1819,7 @@ try {
         accepted_stop_reason = $acceptedFocusStopReason
         tool_route = $focusTools
         tool_counts = $focusCounts
+        pending_candidate_count = $focusPendingCandidateCount
         full_response_file = "chat_vocal_focus.json"
     }
 
@@ -1444,8 +1865,12 @@ try {
     $clarifyAnswer = Invoke-AgentChat -ConversationID $clarifyConversationID -Message $vocalAnswerMessage
     ConvertTo-JsonFile -Value $clarifyAnswer -Path (Join-Path $ArtifactDir "chat_vocal_clarify_answer.json")
     $clarifyAnswerStop = [string](Get-OptionalProperty -Object $clarifyAnswer -Name "stop_reason")
-    if ($clarifyAnswerStop -ne "done") {
+    $acceptedClarifyAnswerStop = @("done", "needs_confirmation") -contains $clarifyAnswerStop
+    if (-not $acceptedClarifyAnswerStop) {
         Fail ("vocal clarification answer stop_reason=" + $clarifyAnswerStop + " reply=" + [string](Get-OptionalProperty -Object $clarifyAnswer -Name "reply"))
+    }
+    if ($clarifyAnswerStop -eq "needs_confirmation" -and -not [bool](Get-OptionalProperty -Object $clarifyAnswer -Name "needs_confirmation")) {
+        Fail "vocal clarification answer returned needs_confirmation stop reason without needs_confirmation=true"
     }
     [void](Wait-LogPattern -LogPath $AgentLog -Pattern ("[mix.tick.pending] stored conversation=" + $clarifyConversationID) -TimeoutSeconds 15)
     $clarifyAnswerEvents = Invoke-Json -Method GET -Uri ($AgentHttp.TrimEnd("/") + "/agent/events?conversation_id=" + [uri]::EscapeDataString($clarifyConversationID) + "&since=0&limit=40") -TimeoutSec 10
@@ -1473,6 +1898,10 @@ try {
     Assert-ToolPresent -Tools $clarifyTools -Aliases @("mix.observe", "mix_observe", "mix.request_observation", "mix_request_observation") -Label "vocal clarification reobserve"
     Assert-ToolAbsent -Tools $clarifyTools -Aliases @("daw.invoke", "daw_invoke") -Label "vocal clarification daw.invoke"
     Assert-ToolAbsent -Tools $clarifyTools -Aliases @("track.volume", "track_volume") -Label "vocal clarification track.volume"
+    $clarifyConfirmReply = [string](Get-OptionalProperty -Object $clarifyConfirm -Name "reply")
+    if ($clarifyConfirmReply -notmatch "AB Result") {
+        Fail ("vocal clarification confirmation reply did not include AB Result: " + $clarifyConfirmReply)
+    }
     $summary["stop_reasons"]["vocal_clarification_ask"] = $clarifyAskStop
     $summary["stop_reasons"]["vocal_clarification_answer"] = $clarifyAnswerStop
     $summary["stop_reasons"]["vocal_clarification_confirm"] = $clarifyConfirmStop

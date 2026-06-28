@@ -179,6 +179,7 @@ func Load() (EngineConfig, string, error) {
 			cfg.DefaultModel = env.DefaultModel
 		}
 	}
+	applyExplicitEnvOverrides(&cfg)
 	cfg.Normalize()
 	return cfg, path, nil
 }
@@ -211,6 +212,27 @@ func fromEnv() EngineConfig {
 	}
 	cfg.Normalize()
 	return cfg
+}
+
+func applyExplicitEnvOverrides(cfg *EngineConfig) {
+	if cfg == nil {
+		return
+	}
+	if v := strings.TrimSpace(os.Getenv("VIT_AGENT_LLM_BASE_URL")); v != "" {
+		cfg.BaseURL = v
+	} else if v := strings.TrimSpace(os.Getenv("OPENAI_BASE_URL")); v != "" {
+		cfg.BaseURL = v
+	}
+	if v := strings.TrimSpace(os.Getenv("VIT_AGENT_LLM_API_KEY")); v != "" {
+		cfg.APIKey = v
+	} else if v := strings.TrimSpace(os.Getenv("OPENAI_API_KEY")); v != "" {
+		cfg.APIKey = v
+	}
+	if v := strings.TrimSpace(os.Getenv("VIT_AGENT_LLM_MODEL")); v != "" {
+		cfg.DefaultModel = v
+	} else if v := strings.TrimSpace(os.Getenv("OPENAI_MODEL")); v != "" {
+		cfg.DefaultModel = v
+	}
 }
 
 func firstNonEmpty(values ...string) string {

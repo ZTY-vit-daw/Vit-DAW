@@ -58,8 +58,16 @@ func FinalizeObservationContext(obs *ObservationPacket, req Request, now string)
 	if strings.TrimSpace(now) == "" {
 		now = time.Now().UTC().Format(time.RFC3339Nano)
 	}
+	if observationWantsBandStereoProjection(req.Args) {
+		applyBandStereoProjection(obs, req)
+	}
+	finalizeMOMProjection(obs, req)
 	obs.Digest = BuildDigest(*obs, req)
 	obs.Catalog = BuildCatalog(*obs, req, now)
+	if observationWantsBandStereoProjection(req.Args) {
+		filterBandStereoProjectionCatalog(obs)
+		stripObservationRawKeys(obs)
+	}
 }
 
 func BuildDigest(obs ObservationPacket, req Request) map[string]any {
@@ -106,6 +114,20 @@ func BuildDigest(obs ObservationPacket, req Request) map[string]any {
 				out[key] = value
 			}
 		}
+	}
+	if len(obs.AcousticPackageStatus) > 0 {
+		out["acoustic_package_status"] = compactAcousticStatusForDigest(obs.AcousticPackageStatus)
+	}
+	if obs.MOMProjection != nil {
+		out["mom_projection"] = map[string]any{
+			"mom_version":   obs.MOMProjection.MOMVersion,
+			"intent":        obs.MOMProjection.Intent,
+			"trust_quality": obs.MOMProjection.TrustQuality,
+			"llm_context":   obs.MOMProjection.LLMContext,
+		}
+	}
+	if sourceIdentity := observationSourceIdentity(obs); len(sourceIdentity) > 0 {
+		out["source_identity"] = sourceIdentity
 	}
 	if missing := removeStringFromAnySlice(obs.MixPackage["missing_metrics"], ""); len(missing) > 0 {
 		out["missing_metrics"] = missing
@@ -159,6 +181,7 @@ func BuildCatalog(obs ObservationPacket, req Request, now string) Catalog {
 	targetKind := firstNonEmpty(obs.TargetRef.Kind, "selection")
 	entries := []CatalogEntry{
 		catalogEntry("observation.digest", "derived", "fresh", "cheap", "Default acoustic digest for LLM context.", "mix_read key=observation.digest", targetKind, targetID, now),
+		catalogEntry("observation.mom_projection", "mom_projection", "fresh", "cheap", "MOM v1 compact projection with trust quality, task layers, and evidence refs for LLM context.", "mix_read key=observation.mom_projection", targetKind, targetID, now),
 		catalogEntry("project.static.summary", "static", "fresh", "cheap", projectSummaryText(req.ProjectState), "mix_read key=project.static.summary", "project", "current", now),
 		catalogEntry("project.tracks.summary", "static", sourceFreshness(obs, "project_context"), "cheap", trackSummaryText(req.ProjectState), "mix_read key=project.tracks.summary", "project", "current", now),
 		catalogEntry("project.acoustic.tracks", "fast_acoustic", sourceFreshness(obs, "track_waveform_envelopes"), "cheap", "Per-track lightweight waveform packages for visible audio tracks.", "mix_read key=project.acoustic.tracks", "project", "current", now),
@@ -175,14 +198,17 @@ func BuildCatalog(obs ObservationPacket, req Request, now string) Catalog {
 		catalogEntry("track."+targetID+".slow.time_energy.summary", "slow_acoustic", sourceFreshness(obs, "time_energy"), "medium", timeEnergySummaryText(obs), "mix_read key=track."+targetID+".slow.time_energy.summary", targetKind, targetID, now),
 		catalogEntry("track."+targetID+".slow.band_energy.summary", "slow_acoustic", sourceFreshness(obs, "band_energy"), "medium", "Band energy summary for sub/bass/low_mid/mid/presence/air when available.", "mix_read key=track."+targetID+".slow.band_energy.summary", targetKind, targetID, now),
 		catalogEntry("track."+targetID+".slow.stereo.summary", "slow_acoustic", sourceFreshness(obs, "stereo_correlation"), "medium", "Stereo balance and correlation summary when available.", "mix_read key=track."+targetID+".slow.stereo.summary", targetKind, targetID, now),
+		catalogEntry("track."+targetID+".realtime.band_energy.summary", "l2_realtime", sourceFreshness(obs, "realtime_band_energy"), "cheap", "Playback-captured realtime band energy when live telemetry has provided it.", "mix_read key=track."+targetID+".realtime.band_energy.summary", targetKind, targetID, now),
+		catalogEntry("track."+targetID+".realtime.stereo.summary", "l2_realtime", sourceFreshness(obs, "realtime_stereo_relation"), "cheap", "Playback-captured realtime stereo balance/correlation when live telemetry has provided it.", "mix_read key=track."+targetID+".realtime.stereo.summary", targetKind, targetID, now),
 		catalogEntry("track."+targetID+".raw.time_energy.range", "slow_acoustic", sourceFreshness(obs, "time_energy"), "medium", "Range-readable time energy rows; use range_sec for long audio.", "mix_read key=track."+targetID+".raw.time_energy.range range_sec=[start,end]", targetKind, targetID, now),
 		catalogEntry("observation.before_after.latest", "derived", sourceFreshness(obs, "before_after_delta"), "cheap", "Delta against the previous observation in the same mix session.", "mix_derive type=before_after", targetKind, targetID, now),
-		catalogEntry("relationships.available", "derived", "fresh", "cheap", "On-demand relationship package types: before_after, rank_tracks, focus_vs_project, a_vs_b, group_overlap.", "mix_derive type=...", "relationship", "available", now),
+		catalogEntry("observation.ab_result.latest", "derived", sourceFreshness(obs, "ab_result"), "cheap", "Same-tap L2 Render Probe AB result with compact deltas and evidence refs.", "mix_derive type=ab_result", targetKind, targetID, now),
+		catalogEntry("relationships.available", "derived", "fresh", "cheap", "On-demand relationship package types: before_after, ab_result, rank_tracks, focus_vs_project, a_vs_b, group_overlap.", "mix_derive type=...", "relationship", "available", now),
 	}
 	for i := range entries {
 		switch entries[i].Key {
 		case "relationships.available":
-			entries[i].AvailableOps = []string{"before_after", "rank_tracks", "focus_vs_project", "a_vs_b", "group_overlap"}
+			entries[i].AvailableOps = []string{"before_after", "ab_result", "rank_tracks", "focus_vs_project", "a_vs_b", "group_overlap"}
 		case "track." + targetID + ".raw.time_energy.range":
 			entries[i].AvailableOps = []string{"read_range", "read_summary"}
 		default:
@@ -246,6 +272,8 @@ func (s Store) Derive(req DeriveRequest) (map[string]any, error) {
 	switch deriveType {
 	case "before_after":
 		pkg = deriveBeforeAfter(obs)
+	case "ab_result":
+		pkg = deriveABResult(obs)
 	case "rank_tracks":
 		pkg = deriveRankTracks(obs, req)
 	case "focus_vs_project", "a_vs_b", "group_overlap":
@@ -334,9 +362,15 @@ func latestObservationPath(sessionDir string) string {
 func readObservationKey(obs ObservationPacket, key string, req ReadRequest) (any, bool) {
 	targetID := firstNonEmpty(obs.TargetRef.ID, "target")
 	metrics, _ := obs.MixPackage["current_metrics"].(map[string]any)
+	realtimeMetrics, _ := obs.MixPackage["realtime_metrics"].(map[string]any)
 	switch key {
 	case "observation.digest":
 		return obs.Digest, true
+	case "observation.mom_projection":
+		if obs.MOMProjection == nil {
+			return map[string]any{"status": "missing", "reason": "mom_projection_unavailable"}, true
+		}
+		return obs.MOMProjection, true
 	case "observation.catalog":
 		return obs.Catalog, true
 	case "project.static.summary":
@@ -364,13 +398,15 @@ func readObservationKey(obs ObservationPacket, key string, req ReadRequest) (any
 			"status":      firstNonEmpty(cleanAnyString(obs.ProjectPackage["status"]), "partial"),
 			"limitations": obs.ProjectPackage["limitations"],
 			"available_detail": map[string]any{
-				"project_context":              sourceStatus(obs, "project_context"),
-				"project_track_waveforms":      sourceStatus(obs, "track_waveform_envelopes"),
-				"target_waveform_envelope":     sourceStatus(obs, "waveform_envelope"),
-				"target_time_energy":           sourceStatus(obs, "time_energy"),
-				"target_band_energy":           sourceStatus(obs, "band_energy"),
-				"target_stereo_relation":       sourceStatus(obs, "stereo_correlation"),
-				"full_project_acoustic_render": sourceStatus(obs, "track_waveform_envelopes"),
+				"project_context":                 sourceStatus(obs, "project_context"),
+				"project_track_waveforms":         sourceStatus(obs, "track_waveform_envelopes"),
+				"target_waveform_envelope":        sourceStatus(obs, "waveform_envelope"),
+				"target_time_energy":              sourceStatus(obs, "time_energy"),
+				"target_band_energy":              sourceStatus(obs, "band_energy"),
+				"target_stereo_relation":          sourceStatus(obs, "stereo_correlation"),
+				"target_realtime_band_energy":     sourceStatus(obs, "realtime_band_energy"),
+				"target_realtime_stereo_relation": sourceStatus(obs, "realtime_stereo_relation"),
+				"full_project_acoustic_render":    sourceStatus(obs, "track_waveform_envelopes"),
 			},
 		}, true
 	case "track." + targetID + ".static.identity":
@@ -390,10 +426,16 @@ func readObservationKey(obs ObservationPacket, key string, req ReadRequest) (any
 		return metrics["band_energy"], true
 	case "track." + targetID + ".slow.stereo.summary":
 		return metrics["stereo_relation"], true
+	case "track." + targetID + ".realtime.band_energy.summary":
+		return realtimeMetrics["band_energy"], true
+	case "track." + targetID + ".realtime.stereo.summary":
+		return realtimeMetrics["stereo_relation"], true
 	case "observation.before_after.latest":
 		return deriveBeforeAfter(obs), true
+	case "observation.ab_result.latest":
+		return deriveABResult(obs), true
 	case "relationships.available":
-		return map[string]any{"status": "ready", "types": []string{"before_after", "rank_tracks", "focus_vs_project", "a_vs_b", "group_overlap"}}, true
+		return map[string]any{"status": "ready", "types": []string{"before_after", "ab_result", "rank_tracks", "focus_vs_project", "a_vs_b", "group_overlap"}}, true
 	default:
 		return nil, false
 	}
@@ -437,6 +479,21 @@ func deriveBeforeAfter(obs ObservationPacket) map[string]any {
 		"summary":       delta["summary"],
 		"facts":         delta,
 		"evidence_refs": []string{"observation.before_after.latest"},
+	}
+}
+
+func deriveABResult(obs ObservationPacket) map[string]any {
+	metrics, _ := obs.MixPackage["current_metrics"].(map[string]any)
+	result, _ := metrics["ab_result"].(map[string]any)
+	if len(result) == 0 {
+		return map[string]any{"status": "missing", "type": "ab_result", "reason": "ab_result_missing"}
+	}
+	return map[string]any{
+		"status":        featureStatus(result),
+		"type":          "ab_result",
+		"summary":       result["summary"],
+		"facts":         result,
+		"evidence_refs": []string{"observation.ab_result.latest"},
 	}
 }
 

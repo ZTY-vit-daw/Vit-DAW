@@ -11,6 +11,10 @@ enum class AudioFeatureType
     TimeEnergy,
     SpectralField,
     StereoRelationField,
+    BandEnergySummary,
+    StereoRelationSummary,
+    LoudnessSummary,
+    L3AcousticSummary,
     SegmentationPrimitives,
     ThreeDField,
     MasterOutputPreview
@@ -43,6 +47,9 @@ struct AudioFeatureBakeRequest
     juce::String clipId;
     juce::String sourceId;
     juce::String sourceRevision;
+    juce::String clipRevision;
+    juce::String renderRevision;
+    juce::String requestId;
     AudioFeatureType featureType = AudioFeatureType::SpectralField;
     AudioFeaturePriority priority = AudioFeaturePriority::OnDemand;
     AudioFeatureRange range;

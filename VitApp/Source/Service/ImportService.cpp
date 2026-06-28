@@ -157,6 +157,77 @@ bool ensureMonitoringPlugins (te::AudioTrack& track)
     return changed;
 }
 
+juce::String sourceRevisionForImport (const juce::File& sourceFile, double audioLengthSeconds)
+{
+    return sourceFile.getFullPathName()
+        + "|size=" + juce::String ((int64) sourceFile.getSize())
+        + "|mtime=" + juce::String ((int64) sourceFile.getLastModificationTime().toMilliseconds())
+        + "|length=" + juce::String (audioLengthSeconds, 4);
+}
+
+juce::String clipRevisionForFeatureRequest (const juce::String& trackId,
+                                            const juce::String& clipId,
+                                            const juce::String& sourceRevision,
+                                            double sourceOffsetSeconds,
+                                            double lengthSeconds)
+{
+    if (clipId.trim().isEmpty())
+        return {};
+
+    return "clip=" + clipId.trim()
+        + "|track=" + trackId.trim()
+        + "|source=" + sourceRevision.trim()
+        + "|offset=" + juce::String (sourceOffsetSeconds, 4)
+        + "|length=" + juce::String (lengthSeconds, 4);
+}
+
+void requestImportAcousticPackages (const juce::File& sourceFile,
+                                    const juce::String& trackId,
+                                    const juce::String& clipId,
+                                    double audioLengthSeconds,
+                                    const AudioFeatureService::PublishCallback& publish)
+{
+    const auto sourceRevision = sourceRevisionForImport (sourceFile, audioLengthSeconds);
+    const auto clipRevision = clipRevisionForFeatureRequest (trackId, clipId, sourceRevision, 0.0, audioLengthSeconds);
+
+    AudioFeatureBakeRequest waveformRequest;
+    waveformRequest.filePath = sourceFile.getFullPathName();
+    waveformRequest.trackId = trackId;
+    waveformRequest.clipId = clipId;
+    waveformRequest.sourceId = sourceFile.getFullPathName();
+    waveformRequest.sourceRevision = sourceRevision;
+    waveformRequest.clipRevision = clipRevision;
+    waveformRequest.featureType = AudioFeatureType::WaveformEnvelope;
+    waveformRequest.priority = AudioFeaturePriority::ImportImmediate;
+    waveformRequest.range.lengthSeconds = audioLengthSeconds;
+    waveformRequest.resolution.frameWidth = 1024;
+    AudioFeatureService::requestBake (std::move (waveformRequest), publish);
+
+    AudioFeatureBakeRequest spectralRequest;
+    spectralRequest.filePath = sourceFile.getFullPathName();
+    spectralRequest.trackId = trackId;
+    spectralRequest.clipId = clipId;
+    spectralRequest.sourceId = sourceFile.getFullPathName();
+    spectralRequest.sourceRevision = sourceRevision;
+    spectralRequest.clipRevision = clipRevision;
+    spectralRequest.featureType = AudioFeatureType::SpectralField;
+    spectralRequest.priority = AudioFeaturePriority::BackgroundWarm;
+    spectralRequest.range.lengthSeconds = audioLengthSeconds;
+    AudioFeatureService::requestBake (std::move (spectralRequest), publish);
+
+    AudioFeatureBakeRequest l3Request;
+    l3Request.filePath = sourceFile.getFullPathName();
+    l3Request.trackId = trackId;
+    l3Request.clipId = clipId;
+    l3Request.sourceId = sourceFile.getFullPathName();
+    l3Request.sourceRevision = sourceRevision;
+    l3Request.clipRevision = clipRevision;
+    l3Request.featureType = AudioFeatureType::L3AcousticSummary;
+    l3Request.priority = AudioFeaturePriority::BackgroundWarm;
+    l3Request.range.lengthSeconds = audioLengthSeconds;
+    AudioFeatureService::requestBake (std::move (l3Request), publish);
+}
+
 } // namespace
 
 ImportService::ImportService (EditGetter editGetter,
@@ -219,16 +290,8 @@ ImportService::AudioImportInsertResult ImportService::insertWaveClipWithUndoAndS
     perf.mark ("ensure_context_allocated",
                "edit_length=" + juce::String (out.editLengthSeconds, 4));
 
-    AudioFeatureBakeRequest waveformRequest;
-    waveformRequest.filePath = sourceFile.getFullPathName();
-    waveformRequest.trackId = out.trackItemId;
-    waveformRequest.clipId = out.clipId;
-    waveformRequest.featureType = AudioFeatureType::WaveformEnvelope;
-    waveformRequest.priority = AudioFeaturePriority::ImportImmediate;
-    waveformRequest.range.lengthSeconds = audioLengthSeconds;
-    waveformRequest.resolution.frameWidth = 1024;
-    AudioFeatureService::requestBake (std::move (waveformRequest), publishMessage);
-    perf.mark ("request_waveform_envelope");
+    requestImportAcousticPackages (sourceFile, out.trackItemId, out.clipId, audioLengthSeconds, publishMessage);
+    perf.mark ("request_acoustic_package_l1_l3");
 
     if (saveProject && ! saveProject())
     {
@@ -331,16 +394,8 @@ juce::String ImportService::handleAddAudioClip (const juce::DynamicObject& objec
     edit->getTransport().ensureContextAllocated (true);
     perf.mark ("ensure_context_allocated", "edit_length=" + juce::String (editLengthSeconds, 4));
 
-    AudioFeatureBakeRequest waveformRequest;
-    waveformRequest.filePath = sourceFile.getFullPathName();
-    waveformRequest.trackId = trackID;
-    waveformRequest.clipId = newClip->itemID.toString();
-    waveformRequest.featureType = AudioFeatureType::WaveformEnvelope;
-    waveformRequest.priority = AudioFeaturePriority::ImportImmediate;
-    waveformRequest.range.lengthSeconds = audioLengthSeconds;
-    waveformRequest.resolution.frameWidth = 1024;
-    AudioFeatureService::requestBake (std::move (waveformRequest), publishMessage);
-    perf.mark ("request_waveform_envelope");
+    requestImportAcousticPackages (sourceFile, trackID, newClip->itemID.toString(), audioLengthSeconds, publishMessage);
+    perf.mark ("request_acoustic_package_l1_l3");
 
     if (saveProject && ! saveProject())
     {
@@ -662,12 +717,34 @@ juce::String ImportService::handleWarmWaveformBake (const juce::DynamicObject& o
     const auto requestedFeature = audioFeatureTypeFromString (
         object.getProperty ("feature_type").toString(),
         AudioFeatureType::WaveformEnvelope);
+    const auto priorityText = object.getProperty ("priority").toString().trim().toLowerCase();
+    auto sourceRevision = object.getProperty ("source_revision").toString().trim();
+    if (sourceRevision.isEmpty())
+        sourceRevision = sourceRevisionForImport (sourceFile, bakeLengthSeconds > 0.0 ? bakeLengthSeconds : 0.0);
+
     AudioFeatureBakeRequest featureRequest;
     featureRequest.filePath = sourceFile.getFullPathName();
     featureRequest.trackId = trackId;
     featureRequest.clipId = clipId;
+    featureRequest.sourceId = object.getProperty ("source_id").toString().trim();
+    if (featureRequest.sourceId.isEmpty())
+        featureRequest.sourceId = sourceFile.getFullPathName();
+    featureRequest.sourceRevision = sourceRevision;
+    featureRequest.clipRevision = object.getProperty ("clip_revision").toString().trim();
+    if (featureRequest.clipRevision.isEmpty())
+        featureRequest.clipRevision = clipRevisionForFeatureRequest (trackId,
+                                                                     clipId,
+                                                                     sourceRevision,
+                                                                     sourceOffsetSeconds,
+                                                                     bakeLengthSeconds);
+    featureRequest.renderRevision = object.getProperty ("render_revision").toString().trim();
+    featureRequest.requestId = object.getProperty ("request_id").toString().trim();
+    if (featureRequest.requestId.isEmpty())
+        featureRequest.requestId = object.getProperty ("mixboard_request_id").toString().trim();
     featureRequest.featureType = requestedFeature;
-    featureRequest.priority = AudioFeaturePriority::OnDemand;
+    featureRequest.priority = priorityText == "background_warm"
+        ? AudioFeaturePriority::BackgroundWarm
+        : AudioFeaturePriority::OnDemand;
     featureRequest.range.sourceOffsetSeconds = sourceOffsetSeconds;
     featureRequest.range.lengthSeconds = bakeLengthSeconds;
     AudioFeatureService::requestBake (std::move (featureRequest), publishMessage);
@@ -683,6 +760,7 @@ juce::String ImportService::handleWarmWaveformBake (const juce::DynamicObject& o
     response->setProperty ("feature_type", audioFeatureTypeToString (requestedFeature));
     response->setProperty ("feature_version", audioFeatureProductVersion (requestedFeature));
     response->setProperty ("analysis_version", audioFeatureAnalysisVersion());
+    response->setProperty ("priority", priorityText == "background_warm" ? "background_warm" : "on_demand");
     response->setProperty ("message", "Audio feature bake requested (no new clip inserted)");
     return juce::JSON::toString (juce::var (response.release()));
 }

@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"vit-daw-agent/internal/agentloop"
+	"vit-daw-agent/internal/agentprotocol"
 	"vit-daw-agent/internal/executor"
 	"vit-daw-agent/internal/planner"
 )
@@ -23,8 +24,8 @@ func (s *Server) handlePendingMixTickChat(ctx context.Context, conversationID st
 					Type:     "mix_tick.confirmation.no_candidate",
 					ItemType: "mix_tick",
 					Status:   "missing",
-					Title:    "No pending mix tick",
-					Body:     "Explicit confirmation was received, but no pending mix tick candidate was available for this conversation.",
+					Title:    "没有待确认的混音单步",
+					Body:     "收到了明确执行确认，但当前对话里没有可执行的混音单步候选。",
 				})
 			}
 			return ChatResponse{
@@ -42,6 +43,7 @@ func (s *Server) handlePendingMixTickChat(ctx context.Context, conversationID st
 		if s != nil && s.logger != nil {
 			s.logger.Info("[mix.tick.pending] revision requested conversation=%s message=%q %s", conversationID, req.Message, pendingMixTickLogSummary(candidate))
 		}
+		s.transitionActivePendingCandidate(conversationID, "mix_tick", agentprotocol.PendingStatusRevisionRequested, req.Message)
 		s.expirePendingMixTick(conversationID)
 		return ChatResponse{}, false
 	case messageKeepsMixTickDiscussion(req.Message):
@@ -59,13 +61,14 @@ func (s *Server) handlePendingMixTickChat(ctx context.Context, conversationID st
 		if s != nil && s.logger != nil {
 			s.logger.Info("[mix.tick.pending] explicit confirmation routed conversation=%s %s observation=%s", conversationID, pendingMixTickLogSummary(candidate), candidate.ObservationID)
 		}
+		s.transitionActivePendingCandidate(conversationID, "mix_tick", agentprotocol.PendingStatusAccepted, "user confirmed pending mix tick")
 		if s != nil {
 			s.emitAgentEvent(conversationID, AgentEvent{
 				Type:     "mix_tick.confirmation.routed",
 				ItemType: "mix_tick",
 				Status:   "running",
-				Title:    "Applying pending mix tick",
-				Body:     "Routing explicit confirmation through mix.propose_tick -> mix.apply_tick for " + pendingMixTickHumanSummary(candidate) + ".",
+				Title:    "正在执行已确认的混音单步",
+				Body:     "已收到明确确认，正在通过 mix.propose_tick -> mix.apply_tick 执行：" + pendingMixTickHumanSummary(candidate) + "。",
 				Payload:  pendingMixTickEventPayload(candidate, candidate.ObservationID),
 			})
 		}
@@ -200,13 +203,14 @@ func (s *Server) executePendingMixTickCandidate(ctx context.Context, conversatio
 			RunID:               goal.RunID,
 			Reply:               reply,
 			ExecutedKernelReply: executed,
-			ProjectResultCards:  projectResultCardsFromExecuted(executed),
+			ProjectResultCards:  projectResultCardsFromExecutedWithAB(executed, observe),
 			GoalStatus:          "completed",
 			StopReason:          "mix_tick_applied_reobserve_failed",
 			ProjectHistory:      s.harness.ProjectHistorySummaryForProject(ctx, goal.GoalID, projectPath),
 		}
 	}
 	s.expirePendingMixTick(conversationID)
+	s.transitionActivePendingCandidate(conversationID, "mix_tick", agentprotocol.PendingStatusCommitted, "pending mix tick applied and reobserved")
 	nextCandidate, hasNext := nextPendingMixTickCandidateFromReobserve(conversationID, goal.GoalID, goal.RunID, candidate, observe)
 	nextSuffix := ""
 	if hasNext {
@@ -223,7 +227,7 @@ func (s *Server) executePendingMixTickCandidate(ctx context.Context, conversatio
 		RunID:               goal.RunID,
 		Reply:               pendingMixTickReport(candidate, propose, apply, observe, nextSuffix),
 		ExecutedKernelReply: executed,
-		ProjectResultCards:  projectResultCardsFromExecuted(executed),
+		ProjectResultCards:  projectResultCardsFromExecutedWithAB(executed, observe),
 		Artifacts:           artifactSummariesFromExecuted(executed),
 		GoalStatus:          "completed",
 		GoalSummary:         req.Message,
@@ -265,6 +269,7 @@ func (s *Server) storePendingMixTickCandidate(conversationID, goalID, runID stri
 	}
 	s.pendingMixTicks[conversationID] = candidate
 	s.mu.Unlock()
+	s.upsertPendingCandidate(candidate.ToPendingCandidate(conversationID, goalID, runID, ""))
 	if s.logger != nil {
 		s.logger.Info("[mix.tick.pending] stored conversation=%s goal=%s run=%s %s observation=%s",
 			conversationID, goalID, runID, pendingMixTickLogSummary(candidate), candidate.ObservationID)
@@ -275,9 +280,9 @@ func (s *Server) storePendingMixTickCandidate(conversationID, goalID, runID stri
 		RunID:    runID,
 		ItemType: "mix_tick",
 		Status:   "pending_confirmation",
-		Title:    "Mix tick pending confirmation",
+		Title:    "混音单步待确认",
 		Body:     pendingMixTickEventBody(candidate),
-		Payload:  pendingMixTickEventPayload(candidate, candidate.ObservationID),
+		Payload:  typedPendingPayload(pendingMixTickEventPayload(candidate, candidate.ObservationID), candidate.ToPendingCandidate(conversationID, goalID, runID, "")),
 	})
 }
 
@@ -385,35 +390,44 @@ func pendingMixTickLogSummary(candidate agentloop.PendingMixTickCandidate) strin
 }
 
 func pendingMixTickHumanSummary(candidate agentloop.PendingMixTickCandidate) string {
+	target := pendingMixTickTrackLabel(candidate.TrackID)
 	switch strings.TrimSpace(candidate.Operation) {
 	case "track_pan_adjust":
-		return fmt.Sprintf("track %s pan %+0.2f", candidate.TrackID, candidate.DeltaPan)
+		return fmt.Sprintf("将 %s 的声像微调 %+0.2f", target, candidate.DeltaPan)
 	case "track_pan_set":
 		if candidate.TargetPan != nil {
-			return fmt.Sprintf("track %s pan set to %+0.2f", candidate.TrackID, *candidate.TargetPan)
+			return fmt.Sprintf("将 %s 的声像设置为 %+0.2f", target, *candidate.TargetPan)
 		}
-		return fmt.Sprintf("track %s pan set", candidate.TrackID)
+		return fmt.Sprintf("调整 %s 的声像", target)
 	default:
-		return fmt.Sprintf("track %s %+0.2f dB", candidate.TrackID, candidate.DeltaDB)
+		return fmt.Sprintf("将 %s 的电平调整 %+0.2f dB", target, candidate.DeltaDB)
 	}
 }
 
 func pendingMixTickEventBody(candidate agentloop.PendingMixTickCandidate) string {
-	return "Track " + candidate.TrackID + " " + pendingMixTickEventActionText(candidate) + " is waiting for explicit confirmation."
+	return pendingMixTickHumanSummary(candidate) + "，正在等待你确认；确认前不会修改工程。"
 }
 
 func pendingMixTickEventActionText(candidate agentloop.PendingMixTickCandidate) string {
 	switch strings.TrimSpace(candidate.Operation) {
 	case "track_pan_adjust":
-		return fmt.Sprintf("pan %+0.2f", candidate.DeltaPan)
+		return fmt.Sprintf("声像 %+0.2f", candidate.DeltaPan)
 	case "track_pan_set":
 		if candidate.TargetPan != nil {
-			return fmt.Sprintf("pan set to %+0.2f", *candidate.TargetPan)
+			return fmt.Sprintf("声像设置为 %+0.2f", *candidate.TargetPan)
 		}
-		return "pan set"
+		return "声像设置"
 	default:
-		return fmt.Sprintf("%+0.2f dB", candidate.DeltaDB)
+		return fmt.Sprintf("电平 %+0.2f dB", candidate.DeltaDB)
 	}
+}
+
+func pendingMixTickTrackLabel(trackID string) string {
+	trackID = strings.TrimSpace(trackID)
+	if trackID == "" {
+		return "当前轨道"
+	}
+	return "Track " + trackID
 }
 
 func pendingMixTickEventPayload(candidate agentloop.PendingMixTickCandidate, observationID string) map[string]any {
@@ -431,6 +445,11 @@ func pendingMixTickEventPayload(candidate agentloop.PendingMixTickCandidate, obs
 		}
 	default:
 		payload["delta_db"] = candidate.DeltaDB
+	}
+	payload["display"] = map[string]any{
+		"title":   "混音单步待确认",
+		"summary": pendingMixTickHumanSummary(candidate),
+		"body":    pendingMixTickEventBody(candidate),
 	}
 	return payload
 }
@@ -684,13 +703,13 @@ func nextPendingMixTickEvidence(row map[string]any, previous agentloop.PendingMi
 }
 
 func pendingMixTickNextCandidateSuffix(candidate agentloop.PendingMixTickCandidate) string {
-	return fmt.Sprintf("Next small-step suggestion is pending only: track %s %+0.2f dB. It will not run until you explicitly confirm it.",
+	return fmt.Sprintf("下一个小步建议仅进入待确认：Track %s %+0.2f dB。你明确确认前不会执行。",
 		candidate.TrackID, candidate.DeltaDB)
 }
 
 func pendingMixTickReport(candidate agentloop.PendingMixTickCandidate, propose, apply, observe executor.Result, suffix string) string {
 	if strings.HasPrefix(strings.TrimSpace(candidate.Operation), "track_pan_") {
-		return pendingMixTickPanReport(candidate, propose, apply, suffix)
+		return pendingMixTickPanReport(candidate, propose, apply, observe, suffix)
 	}
 	before := firstNonEmpty(cleanContextText(apply.Result["before_db"]), cleanContextText(propose.Result["before_db"]))
 	after := firstNonEmpty(cleanContextText(apply.Result["after_db"]), cleanContextText(propose.Result["after_db"]))
@@ -721,6 +740,7 @@ func pendingMixTickReport(candidate agentloop.PendingMixTickCandidate, propose, 
 	if peakRisk != "" {
 		lines = append(lines, peakRisk)
 	}
+	lines = append(lines, pendingMixTickABResultLines(observe)...)
 	lines = append(lines, "rollback 可用：如果听感不对，可以用项目撤销或 mix.rollback_tick 回滚这一步。")
 	if strings.TrimSpace(suffix) != "" {
 		lines = append(lines, suffix)
@@ -728,7 +748,7 @@ func pendingMixTickReport(candidate agentloop.PendingMixTickCandidate, propose, 
 	return strings.Join(lines, "\n")
 }
 
-func pendingMixTickPanReport(candidate agentloop.PendingMixTickCandidate, propose, apply executor.Result, suffix string) string {
+func pendingMixTickPanReport(candidate agentloop.PendingMixTickCandidate, propose, apply, observe executor.Result, suffix string) string {
 	before := firstNonEmpty(cleanContextText(apply.Result["before_pan"]), cleanContextText(propose.Result["before_pan"]))
 	after := firstNonEmpty(cleanContextText(apply.Result["after_pan"]), cleanContextText(propose.Result["after_pan"]))
 	lines := []string{
@@ -737,11 +757,152 @@ func pendingMixTickPanReport(candidate agentloop.PendingMixTickCandidate, propos
 	if before != "" || after != "" {
 		lines = append(lines, fmt.Sprintf("执行前后声像：%s -> %s。", firstNonEmpty(before, "未知"), firstNonEmpty(after, "未知")))
 	}
+	lines = append(lines, pendingMixTickABResultLines(observe)...)
 	lines = append(lines, "rollback 可用：如果听感不对，可以用项目撤销或 mix.rollback_tick 回滚这一步。")
 	if strings.TrimSpace(suffix) != "" {
 		lines = append(lines, suffix)
 	}
 	return strings.Join(lines, "\n")
+}
+
+func pendingMixTickABResultLines(observe executor.Result) []string {
+	ab := pendingMixTickABResultFromObserve(observe)
+	if len(ab) == 0 {
+		return []string{"AB Result：不可信（原因：ab_result_missing）。缺少同一观测点的前后 L2 渲染观测，未把这次改动标记为已验证。"}
+	}
+	status := strings.ToLower(cleanContextText(ab["status"]))
+	reason := firstNonEmpty(cleanContextText(ab["reason"]), "quality_gate_not_ready")
+	tapPoint := firstNonEmpty(cleanContextText(ab["tap_point"]), "未知")
+	renderMode := cleanContextText(ab["render_mode"])
+	if status != "ready" {
+		return []string{fmt.Sprintf("AB Result：不可信（原因：%s，观测点=%s）。质量门未通过，未把这次改动标记为已验证。", reason, tapPoint)}
+	}
+	point := tapPoint
+	if renderMode != "" {
+		point += " / " + renderMode
+	}
+	lines := []string{fmt.Sprintf("AB Result：可信（观测点=%s）。", point)}
+	if delta := pendingMixTickABDeltaText(mapValue(ab["delta"])); delta != "" {
+		lines = append(lines, "关键变化："+delta+"。")
+	}
+	return lines
+}
+
+func pendingMixTickABResultFromObserve(observe executor.Result) map[string]any {
+	observation := pendingMixTickAnyMap(observe.Result["observation"])
+	if row := pendingMixTickAnyMap(pendingMixTickAnyMap(observation["mix_package"])["current_metrics"]); len(row) > 0 {
+		if ab := pendingMixTickAnyMap(row["ab_result"]); len(ab) > 0 {
+			return ab
+		}
+	}
+	if row := pendingMixTickAnyMap(observation["mom_projection"]); len(row) > 0 {
+		if ab := pendingMixTickABResultFromProjection(row); len(ab) > 0 {
+			return ab
+		}
+	}
+	if row := pendingMixTickAnyMap(observe.Result["mom_projection"]); len(row) > 0 {
+		if ab := pendingMixTickABResultFromProjection(row); len(ab) > 0 {
+			return ab
+		}
+	}
+	if contextPack := pendingMixTickAnyMap(observe.Result["context_pack"]); len(contextPack) > 0 {
+		latest := pendingMixTickAnyMap(contextPack["latest_observation"])
+		if row := pendingMixTickAnyMap(latest["mom_projection"]); len(row) > 0 {
+			if ab := pendingMixTickABResultFromProjection(row); len(ab) > 0 {
+				return ab
+			}
+		}
+		if llmContext := pendingMixTickAnyMap(latest["llm_context"]); len(llmContext) > 0 {
+			if ab := pendingMixTickABResultFromLLMContext(llmContext); len(ab) > 0 {
+				return ab
+			}
+		}
+	}
+	return nil
+}
+
+func pendingMixTickABResultFromProjection(projection map[string]any) map[string]any {
+	if ab := pendingMixTickAnyMap(projection["ab_result"]); len(ab) > 0 {
+		return ab
+	}
+	layer := pendingMixTickAnyMap(pendingMixTickAnyMap(projection["layers"])["ab_result_comparison"])
+	if len(layer) == 0 {
+		if llmContext := pendingMixTickAnyMap(projection["llm_context"]); len(llmContext) > 0 {
+			return pendingMixTickABResultFromLLMContext(llmContext)
+		}
+		return nil
+	}
+	if ab := pendingMixTickAnyMap(pendingMixTickAnyMap(layer["facts"])["ab_result"]); len(ab) > 0 {
+		return ab
+	}
+	if strings.EqualFold(cleanContextText(layer["layer"]), "ab_result_comparison") || cleanContextText(layer["before_render_revision"]) != "" || cleanContextText(layer["after_render_revision"]) != "" {
+		return layer
+	}
+	return nil
+}
+
+func pendingMixTickABResultFromLLMContext(llmContext map[string]any) map[string]any {
+	for _, fact := range mapRowsFromAny(llmContext["compact_facts"]) {
+		if strings.EqualFold(cleanContextText(fact["layer"]), "ab_result_comparison") {
+			return fact
+		}
+	}
+	return nil
+}
+
+func pendingMixTickAnyMap(value any) map[string]any {
+	if row := mapValue(value); len(row) > 0 {
+		return row
+	}
+	if value == nil {
+		return nil
+	}
+	return mapFromJSONStruct(value)
+}
+
+func pendingMixTickABDeltaText(delta map[string]any) string {
+	parts := []string{}
+	levels := mapValue(delta["levels"])
+	if text := pendingMixTickDeltaValueText(mapValue(levels["peak_dbfs"]), "峰值", " dB"); text != "" {
+		parts = append(parts, text)
+	}
+	if text := pendingMixTickDeltaValueText(mapValue(levels["rms_dbfs"]), "RMS", " dB"); text != "" {
+		parts = append(parts, text)
+	}
+	stereo := mapValue(delta["stereo"])
+	if text := pendingMixTickDeltaValueText(mapValue(stereo["balance_db"]), "声像", " dB"); text != "" {
+		parts = append(parts, text)
+	}
+	if text := pendingMixTickDeltaValueText(mapValue(stereo["correlation_estimate"]), "相关性", ""); text != "" {
+		parts = append(parts, text)
+	}
+	if len(parts) == 0 {
+		return ""
+	}
+	return strings.Join(parts, "，")
+}
+
+func pendingMixTickDeltaValueText(row map[string]any, label, unit string) string {
+	if len(row) == 0 {
+		return ""
+	}
+	delta := cleanContextText(row["delta"])
+	if delta == "" {
+		return ""
+	}
+	if value, ok := parseOptionalFloat(delta); ok {
+		return label + " " + formatSignedDelta(value, unit)
+	}
+	return label + " " + delta + unit
+}
+
+func formatSignedDelta(value float64, unit string) string {
+	text := fmt.Sprintf("%+.3f", value)
+	text = strings.TrimRight(strings.TrimRight(text, "0"), ".")
+	if text == "-0" {
+		text = "0"
+	}
+	return text + unit
 }
 
 func pendingMixTickReportTrackFromCandidate(candidate agentloop.PendingMixTickCandidate) map[string]any {

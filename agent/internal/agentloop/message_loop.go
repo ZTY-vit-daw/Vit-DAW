@@ -194,6 +194,7 @@ func (l *MessageLoop) loop(ctx context.Context, r *Runner, state *runState) Resu
 	if !l.Config.Complete() {
 		return r.fail(state, fmt.Errorf("agent message loop LLM config incomplete"))
 	}
+	messageLoopApplyReadOnlyMutationBarrier(state)
 	for {
 		if stopped, result := l.preflightNaturalMixObservation(ctx, r, state); stopped {
 			return result
@@ -221,6 +222,20 @@ func (l *MessageLoop) loop(ctx context.Context, r *Runner, state *runState) Resu
 		l.logTiming("message_loop.llm", llmStarted, "goal=%s conversation=%s turn=%d err=%t", state.goal.GoalID, messageLoopConversationID(state), state.turnsUsed+1, err != nil)
 		state.turnsUsed++
 		if err != nil {
+			if reply, needsClarification, ok := messageLoopObservationFallbackAfterLLMError(state, err); ok {
+				state.trace = append(state.trace, planner.TraceEvent{
+					Kind:    "final_gate",
+					Message: "LLM reply failed after read-only mix observation; returned materialized observation fallback: " + err.Error(),
+				})
+				if needsClarification {
+					state.trace = append(state.trace, planner.TraceEvent{Kind: "clarification", Message: reply})
+					res := r.pause(state, agentruntime.StatusWaitingClarification, StopReasonNeedsClarification, "", reply, "", "", nil)
+					res.NeedsClarification = true
+					res.ClarificationQuestion = reply
+					return res
+				}
+				return r.complete(state, reply)
+			}
 			return r.fail(state, err)
 		}
 		out, err := parseMessageLoopOutput(raw)
@@ -277,6 +292,12 @@ func (l *MessageLoop) loop(ctx context.Context, r *Runner, state *runState) Resu
 			return r.fail(state, errors.New(out.FailureReason))
 		}
 		if out.NeedsClarification {
+			if candidate := messageLoopDeterministicVocalClarificationPendingTick(state, firstNonEmpty(out.Reply, out.ClarificationQuestion)); candidate != nil {
+				messageLoopAttachDiagnosisToMixTick(state, candidate, state.input.UserText)
+				state.executionMemory.PendingMixTickCandidate = candidate
+				state.trace = append(state.trace, planner.TraceEvent{Kind: "final_gate", Message: "resolved vocal clarification synthesized pending mix tick"})
+				return r.complete(state, messageLoopDeterministicVocalClarificationPendingReply(state, candidate))
+			}
 			if reply, ok := messageLoopClarificationAsPendingMixSuggestion(state, out); ok {
 				state.trace = append(state.trace, planner.TraceEvent{Kind: "final_gate", Message: "mix execution question normalized to pending suggestion"})
 				return r.complete(state, reply)
@@ -302,6 +323,12 @@ func (l *MessageLoop) loop(ctx context.Context, r *Runner, state *runState) Resu
 			reply := strings.TrimSpace(out.Reply)
 			if reply == "" {
 				reply = "已完成。"
+			}
+			if candidate := messageLoopDeterministicVocalClarificationPendingTick(state, reply); candidate != nil {
+				messageLoopAttachDiagnosisToMixTick(state, candidate, state.input.UserText)
+				state.executionMemory.PendingMixTickCandidate = candidate
+				state.trace = append(state.trace, planner.TraceEvent{Kind: "final_gate", Message: "resolved vocal clarification synthesized pending mix tick"})
+				return r.complete(state, messageLoopDeterministicVocalClarificationPendingReply(state, candidate))
 			}
 			if question, ok := messageLoopFinalFocusTrackClarification(state, reply); ok {
 				state.trace = append(state.trace, planner.TraceEvent{Kind: "clarification", Message: question})
@@ -525,10 +552,14 @@ func messageLoopNeedsDeterministicMixObservation(state *runState) bool {
 	if state == nil {
 		return false
 	}
-	if messageLoopObservationPackageReadRequest(state.input.UserText) && observationIsMixObservation(state.recentObservation) {
+	needsRealtimeRefresh := messageLoopRealtimeObservationRequest(state.input.UserText)
+	if messageLoopObservationPackageReadRequest(state.input.UserText) && observationIsMixObservation(state.recentObservation) && !needsRealtimeRefresh {
 		return false
 	}
-	if (!messageLoopNaturalMixRequest(state.input.UserText) && !messageLoopAudioObservationRequest(state.input.UserText)) || messageLoopExplicitPluginOrRawRequest(state.input.UserText) {
+	if !messageLoopNaturalMixRequest(state.input.UserText) && !messageLoopAudioObservationRequest(state.input.UserText) {
+		return false
+	}
+	if messageLoopExplicitPluginOrRawRequest(state.input.UserText) && !messageLoopLowMudPluginPrepRequest(state.input.UserText) && !messageLoopMutationBarrierActive(state) {
 		return false
 	}
 	if messageLoopExplicitMixExecutionConfirmation(state.input.UserText) {
@@ -537,7 +568,10 @@ func messageLoopNeedsDeterministicMixObservation(state *runState) bool {
 	if !allowedTool(messageLoopPreferredMixObservationTool(state), state.input.AllowedTools) {
 		return false
 	}
-	if messageLoopHasAnyMixObservationAttempt(state) || messageLoopHasUsableMixObservation(state) {
+	if messageLoopHasMixObservationExecution(state) {
+		return false
+	}
+	if !needsRealtimeRefresh && (messageLoopHasAnyMixObservationAttempt(state) || messageLoopHasUsableMixObservation(state)) {
 		return false
 	}
 	return true
@@ -572,6 +606,9 @@ func messageLoopDeterministicMixObservationCall(state *runState) planner.ToolCal
 
 func messageLoopDeterministicGainPendingAfterObservation(state *runState) (string, bool) {
 	if state == nil || messageLoopExplicitPluginOrRawRequest(state.input.UserText) || messageLoopExplicitMixExecutionConfirmation(state.input.UserText) {
+		return "", false
+	}
+	if messageLoopMutationBarrierActive(state) {
 		return "", false
 	}
 	if !messageLoopNaturalMixRequest(state.input.UserText) || !messageLoopHasUsableMixObservation(state) {
@@ -624,6 +661,7 @@ func messageLoopDeterministicGainPendingAfterObservation(state *runState) (strin
 	if observationID == "" {
 		treatment.EvidenceRefs = nil
 	}
+	messageLoopAttachDiagnosisToTreatment(state, treatment)
 	state.executionMemory.PendingMixTreatment = treatment
 	reply := messageLoopPendingMixTreatmentReply(treatment)
 	if !messageLoopMixReplyAsksForExecution(reply) && !messageLoopClarificationAsksForExecution(reply) {
@@ -954,6 +992,9 @@ func messageLoopMixTickProposalAsPendingTreatment(state *runState, call planner.
 	if state == nil || !messageLoopIsMixProposeTickCall(call) {
 		return "", false
 	}
+	if messageLoopMutationBarrierActive(state) {
+		return "", false
+	}
 	if (!messageLoopNaturalMixRequest(state.input.UserText) && !messageLoopImplicitPanFollowupRequest(state) && !messageLoopExplicitMixExecutionConfirmation(state.input.UserText)) || messageLoopExplicitPluginOrRawRequest(state.input.UserText) {
 		return "", false
 	}
@@ -961,6 +1002,7 @@ func messageLoopMixTickProposalAsPendingTreatment(state *runState, call planner.
 	if treatment == nil {
 		return "", false
 	}
+	messageLoopAttachDiagnosisToTreatment(state, treatment)
 	state.executionMemory.PendingMixTreatment = treatment
 	reply := strings.TrimSpace(out.Reply)
 	if reply == "" || messageLoopReplyClaimsCompletedMixWrite(reply) {
@@ -1072,6 +1114,7 @@ func messageLoopMixTreatmentPendingFromTickProposal(state *runState, call planne
 	default:
 		return nil
 	}
+	messageLoopAttachDiagnosisToTreatment(state, treatment)
 	return treatment
 }
 
@@ -1094,6 +1137,19 @@ func messageLoopPendingMixTreatmentReply(treatment *MixTreatmentPending) string 
 	default:
 		return "我已把这个混音动作整理成待确认建议。"
 	}
+}
+
+func messageLoopConservativeLowMudTreatmentPendingReply(treatment *MixTreatmentPending) string {
+	if treatment == nil {
+		return "我已把低频处理整理成待确认的保守 EQ 预备方案；当前缺少 band_energy_summary，所以只作为可回退探测，不会直接加载或写入插件参数。"
+	}
+	target := strings.TrimPrefix(strings.TrimSpace(treatment.TargetRef), "track:")
+	if target == "" || strings.EqualFold(target, "project") {
+		target = "当前目标"
+	} else {
+		target = "Track " + target
+	}
+	return fmt.Sprintf("已基于这次观察把 %s 的低频糊问题整理成一个待确认的保守 EQ 预备方案。当前 band_energy_summary / 频谱细节仍缺失，所以我不会声称已经观测到低频堆积，也不会直接加载或改参数；候选只限于可回退的低切/低中频轻微削减探测。如果你确认，我会继续进入插件准备和参数确认。", target)
 }
 
 func messageLoopPrimitiveTrackVolumeCall(call planner.ToolCall) bool {
@@ -1346,14 +1402,21 @@ func messageLoopClarificationQuestion(state *runState, question string) string {
 	}
 	if messageLoopFocusRelationshipIntent(state.input.UserText) && !messageLoopHasResolvedFocusTrack(state) {
 		if messageLoopClarificationAsksForExecution(question) || !messageLoopClarificationAsksForFocusTrack(question) {
-			return "需要先确认哪条是主唱轨。请告诉我主唱是 Track 几，或把主唱轨重命名为 vocal / 主唱后让我重新观察。"
+			return messageLoopFocusTrackClarificationQuestion()
 		}
 	}
 	return question
 }
 
+func messageLoopFocusTrackClarificationQuestion() string {
+	return "\u9700\u8981\u5148\u786e\u8ba4\u54ea\u6761\u662f\u4e3b\u5531\u8f68\u3002\u8bf7\u544a\u8bc9\u6211\u4e3b\u5531\u662f Track \u51e0\uff0c\u6216\u628a\u4e3b\u5531\u8f68\u91cd\u547d\u540d\u4e3a vocal / \u4e3b\u5531\u540e\u8ba9\u6211\u91cd\u65b0\u89c2\u5bdf\u3002"
+}
+
 func messageLoopClarificationAsPendingMixSuggestion(state *runState, out messageLoopOutput) (string, bool) {
 	if state == nil || !out.NeedsClarification {
+		return "", false
+	}
+	if messageLoopMutationBarrierActive(state) {
 		return "", false
 	}
 	if !messageLoopNaturalMixRequest(state.input.UserText) || messageLoopExplicitPluginOrRawRequest(state.input.UserText) || !messageLoopHasUsableMixObservation(state) {
@@ -1384,6 +1447,9 @@ func messageLoopClarificationAsPendingMixSuggestion(state *runState, out message
 
 func messageLoopClarificationAsPendingPanTreatment(state *runState, out messageLoopOutput) (string, bool) {
 	if state == nil || !out.NeedsClarification {
+		return "", false
+	}
+	if messageLoopMutationBarrierActive(state) {
 		return "", false
 	}
 	userText := strings.TrimSpace(state.input.UserText)
@@ -1437,6 +1503,7 @@ func messageLoopClarificationAsPendingPanTreatment(state *runState, out messageL
 			"mix_session_id":    messageLoopLastMixObservationField(state, "mix_session_id"),
 		},
 	}
+	messageLoopAttachDiagnosisToTreatment(state, treatment)
 	state.executionMemory.PendingMixTreatment = treatment
 	reply := strings.TrimSpace(out.Reply)
 	if reply == "" {
@@ -1485,8 +1552,11 @@ func messageLoopFinalFocusTrackClarification(state *runState, reply string) (str
 	if messageLoopClarificationAsksForFocusTrack(reply) && !messageLoopClarificationAsksForExecution(reply) {
 		return messageLoopClarificationQuestion(state, reply), true
 	}
-	if _, _, ok := messageLoopExtractSingleGainDelta(reply); ok || messageLoopMixReplyAsksForExecution(reply) {
-		return messageLoopClarificationQuestion(state, "需要先确认哪条是主唱轨。"), true
+	if _, _, ok := messageLoopExtractSingleGainDelta(reply); ok {
+		return messageLoopFocusTrackClarificationQuestion(), true
+	}
+	if messageLoopMixReplyAsksForExecution(reply) {
+		return messageLoopFocusTrackClarificationQuestion(), true
 	}
 	return "", false
 }
@@ -1495,7 +1565,7 @@ func messageLoopHasResolvedFocusTrack(state *runState) bool {
 	if state == nil {
 		return false
 	}
-	if messageLoopUserExplicitlyIdentifiesVocalTrack(state.input.UserText) {
+	if messageLoopUserExplicitlyIdentifiesVocalTrackResolved(state.input.UserText) {
 		return true
 	}
 	if state.recentObservation != nil && observationIsMixObservation(state.recentObservation) {
@@ -1540,12 +1610,27 @@ func messageLoopUserExplicitlyIdentifiesVocalTrack(text string) bool {
 	return false
 }
 
+func messageLoopUserExplicitlyIdentifiesVocalTrackResolved(text string) bool {
+	text = strings.TrimSpace(text)
+	if text == "" {
+		return false
+	}
+	lower := strings.ToLower(text)
+	if !messageLoopTextHasAny(lower, "\u4e3b\u5531", "\u4eba\u58f0", "\u4eba\u8072", "vocal", "lead vocal", "voice") {
+		return false
+	}
+	if idx, ok := messageLoopUserTrackIndexFromText(text); ok && idx > 0 {
+		return true
+	}
+	return false
+}
+
 func messageLoopTrackIsResolvedVocal(state *runState, trackID string) bool {
 	trackID = strings.TrimSpace(trackID)
 	if state == nil || trackID == "" {
 		return false
 	}
-	if messageLoopUserExplicitlyIdentifiesVocalTrack(state.input.UserText) {
+	if messageLoopUserExplicitlyIdentifiesVocalTrackResolved(state.input.UserText) {
 		return true
 	}
 	for i := len(state.executed) - 1; i >= 0; i-- {
@@ -1657,6 +1742,13 @@ Plan mode:
 - If the user asks you to directly execute a change, return final:true with a concise refusal that says Plan mode is read-only and the change was not executed. Do not say the DAW lacks that capability or that the tool does not exist.
 - You may provide an execution plan, prerequisites, risks, and the exact tools/commands that Default or Goal mode would use.`
 		}
+		if messageLoopReadOnlyObservationRequest(state.input.UserText) {
+			modeRules += `
+Read-only acoustic observation:
+- The current user turn explicitly asks for read-only/observe-only analysis. You may use mix.observe, mix.read, mix.derive, and read/list/project-state tools only.
+- Do not call mix.propose_tick, mix.apply_tick, track.volume, track.pan, plugin preparation/load/learn/apply/write tools, or any DAW mutation tool.
+- Do not append mix_treatment_pending and do not ask whether to continue executing. Summarize observed facts, missing or partial evidence, and state that no pending action was created.`
+		}
 	}
 	return fmt.Sprintf(`You are Ask Vit's DAW ReAct runtime inside Vit-DAW.
 Return ONLY strict JSON in one of these shapes:
@@ -1676,10 +1768,13 @@ Rules:
 - For vocal/lead/focus relationship goals, only treat a track as the vocal when the track name/metadata explicitly identifies it as vocal/voice/lead/主唱/人声, or the user explicitly identifies the track by name/index. If the project only has generic names such as Track 1 / Track 2 and you are not sure which one is the vocal, ask which track is the lead vocal. Do not propose or store an executable move while asking that clarification.
 - Do not call clip.warm_waveform_bake / warm_waveform_bake directly for broad mixing observation. mix.observe owns waveform and envelope feature preparation.
 - After mix.observe/mix.read/mix.derive for a broad mixing request, stop and summarize the observed project/audio facts plus one suggested next small move, then ask whether the user wants you to continue executing that move. Do not load plugins, learn profiles, change volume, apply controls, or write parameters in the same user request. Wait for the user to explicitly confirm a concrete follow-up action first.
+- For Chinese acoustic observation replies, use natural-language sections in this order: 结论、证据、限制、建议. Keep the evidence human-readable, such as "来自 L3 频段、声像和响度分析"; do not expose schema names, source/render revision strings, raw evidence_ref lists, raw JSON, waveform arrays, tile payloads, or internal IDs unless the user explicitly asks for technical details.
 - Treat deep/slow packages as optional. If they are missing, pending, partial, or blocked, say what uncertainty remains and base suggestions only on available evidence.
+- If acoustic_package_status.v0 shows l3_deep building or partial, reply in Chinese with the available L1 facts, the L3 feature status, tile/coverage progress when present, and say full-song band/stereo judgement is not reliable yet. Do not create pending actions or ask to continue executing for read-only observation.
 - When the user confirms the proposed small mix move, use mix.propose_tick and then mix.apply_tick; v1 supports track_gain_adjust up to +/-2 dB through set_volume and track_pan_adjust/track_pan_set through set_pan. Do not call track.volume or track.pan directly for an acoustic mix tick.
 - Keep each mixing action to one safe small step or one clearly coupled small move. v1 direct execution supports gain and pan ticks only.
-- For plugin/EQ/compressor/reverb/delay/saturation/gain/pan treatment after observation, you may propose a treatment direction but you must not execute it in the same turn. If you propose one, append one internal marker line exactly like: mix_treatment_pending: {"schema_version":"mix_treatment_pending.v0","status":"pending_confirmation","intent":"...","target_ref":"track:<id>|vocal_unknown|project","action_kind":"plugin_treatment|gain_balance|pan_balance|ask_clarification|observation_only","processor_type":"eq|compressor|reverb|delay|saturation|utility|unknown","reasoning_summary":"...","confidence":"low|medium|high","evidence_refs":["..."],"needs_resolution":["target_track","plugin_instance","plugin_profile","exact_control"],"expires_after_context_change":true}. For gain_balance only, include an explicit "delta_db" within +/-2 dB; for pan_balance include either "delta_pan" within +/-0.15 or "target_pan" within -1.0..+1.0. If you do not have an exact small value, leave exact_control in needs_resolution instead. This marker is for the local resolver and will be hidden from the user.
+- For a simple concrete gain/pan move that v1 can execute as one acoustic mix tick, ask for confirmation in normal user-facing text with the concrete small amount; do not append mix_treatment_pending for that tick. The local runtime will turn the confirmed move into mix.propose_tick/mix.apply_tick.
+- For plugin/EQ/compressor/reverb/delay/saturation or non-tick gain/pan treatment after observation, you may propose a treatment direction but you must not execute it in the same turn. If you propose one, append one internal marker line exactly like: mix_treatment_pending: {"schema_version":"mix_treatment_pending.v0","status":"pending_confirmation","intent":"...","target_ref":"track:<id>|vocal_unknown|project","action_kind":"plugin_treatment|gain_balance|pan_balance","processor_type":"eq|compressor|reverb|delay|saturation|utility|unknown","reasoning_summary":"...","confidence":"low|medium|high","evidence_refs":["..."],"needs_resolution":["target_track","plugin_instance","plugin_profile","exact_control"],"expires_after_context_change":true}. For gain_balance only, include an explicit "delta_db" within +/-2 dB; for pan_balance include either "delta_pan" within +/-0.15 or "target_pan" within -1.0..+1.0. If you do not have an exact small value, leave exact_control in needs_resolution instead. Clarification and observation-only branches must not append this marker. This marker is for the local resolver and will be hidden from the user.
 - Do not invent plugin instances, profiles, controls, or exact parameters in a treatment pending. The local resolver decides whether the confirmed treatment can execute, needs preparation, or needs clarification.
 - Use plugin.set_parameter only when the user explicitly names an exact raw parameter/value or prior tool evidence gives a high-confidence exact param_id and display domain. Never use it as a fallback for subjective acoustic mixing goals.
 - If the user says to undo or roll back the last mix move, use the available project undo/rollback path directly instead of returning to a mixing workflow.
@@ -2141,7 +2236,13 @@ func setIfEmpty(row map[string]any, key, value string) {
 }
 
 func messageLoopToolGuardIssue(state *runState, call planner.ToolCall, hadMixObservationBeforeTurn bool) string {
-	if state == nil || messageLoopExplicitPluginOrRawRequest(state.input.UserText) {
+	if state == nil {
+		return ""
+	}
+	if messageLoopMutationBarrierActive(state) {
+		return messageLoopReadOnlyGuardIssue(call)
+	}
+	if messageLoopExplicitPluginOrRawRequest(state.input.UserText) && !messageLoopLowMudPluginPrepRequest(state.input.UserText) {
 		return ""
 	}
 	isMixIntent := messageLoopNaturalMixRequest(state.input.UserText) || messageLoopImplicitPanFollowupRequest(state) || messageLoopImplicitGainFollowupRequest(state)
@@ -2245,6 +2346,7 @@ func messageLoopMixObservationResultUsable(result map[string]any) bool {
 	if len(result) == 0 {
 		return true
 	}
+	hasReadyAcousticEvidence := messageLoopMixObservationHasReadyAcousticEvidence(result)
 	for _, row := range []map[string]any{
 		result,
 		messageLoopMapValue(result["mixboard"]),
@@ -2258,10 +2360,10 @@ func messageLoopMixObservationResultUsable(result map[string]any) bool {
 		case "unavailable", "blocked", "missing", "invalid", "failed", "error":
 			return false
 		}
-		if blockers := messageLoopStringList(row["open_blockers"]); len(blockers) > 0 {
+		if blockers := messageLoopFatalObservationBlockers(messageLoopStringList(row["open_blockers"]), hasReadyAcousticEvidence); len(blockers) > 0 {
 			return false
 		}
-		if blockers := messageLoopStringList(row["blockers"]); len(blockers) > 0 {
+		if blockers := messageLoopFatalObservationBlockers(messageLoopStringList(row["blockers"]), hasReadyAcousticEvidence); len(blockers) > 0 {
 			return false
 		}
 		packageStatus := messageLoopMapValue(row["package_status"])
@@ -2276,6 +2378,134 @@ func messageLoopMixObservationResultUsable(result map[string]any) bool {
 		}
 	}
 	return true
+}
+
+func messageLoopMixObservationHasReadyAcousticEvidence(result map[string]any) bool {
+	if len(result) == 0 {
+		return false
+	}
+	for _, key := range []string{
+		"waveform_envelope",
+		"track_waveform_envelopes",
+		"spectrogram_tiles",
+		"band_energy",
+		"stereo_relation",
+		"realtime_band_energy",
+		"realtime_stereo_relation",
+	} {
+		if messageLoopCapabilityStatusReady(messageLoopObservationFallbackCapabilityStatus(nil, result, key)) {
+			return true
+		}
+	}
+	for _, row := range []map[string]any{
+		result,
+		messageLoopMapValue(result["digest"]),
+		messageLoopMapValue(result["acoustic_digest"]),
+		messageLoopObservationFromResult(result),
+	} {
+		if messageLoopObservationRowHasReadyAcousticEvidence(row) {
+			return true
+		}
+	}
+	return false
+}
+
+func messageLoopObservationRowHasReadyAcousticEvidence(row map[string]any) bool {
+	if len(row) == 0 {
+		return false
+	}
+	if messageLoopAnyFeatureReady(row, "band_energy_summary", "stereo_relation_summary", "realtime_band_energy_summary", "realtime_stereo_relation_summary", "spectrogram_tiles", "waveform", "waveform_envelope", "track_waveform_envelopes") {
+		return true
+	}
+	if messageLoopAnyFeatureReady(messageLoopMapValue(row["global_summary"]), "band_energy_summary", "stereo_relation_summary", "realtime_band_energy_summary", "realtime_stereo_relation_summary", "spectrogram_tiles", "waveform", "waveform_envelope", "track_waveform_envelopes") {
+		return true
+	}
+	if messageLoopAnyFeatureReady(messageLoopMapValue(row["available_detail"]), "band_energy", "stereo_relation", "realtime_band_energy", "realtime_stereo_relation", "spectrogram_tiles", "waveform_envelope") {
+		return true
+	}
+	mixPackage := messageLoopMapValue(row["mix_package"])
+	if messageLoopAnyFeatureReady(mixPackage, "band_energy", "stereo_relation", "realtime_band_energy", "realtime_stereo_relation") {
+		return true
+	}
+	if messageLoopAnyFeatureReady(messageLoopMapValue(mixPackage["current_metrics"]), "waveform", "band_energy", "stereo_relation") {
+		return true
+	}
+	if messageLoopAnyFeatureReady(messageLoopMapValue(mixPackage["realtime_metrics"]), "band_energy", "stereo_relation") {
+		return true
+	}
+	return messageLoopAcousticPackageHasReadyEvidence(messageLoopMapValue(row["acoustic_package_status"]))
+}
+
+func messageLoopAnyFeatureReady(row map[string]any, keys ...string) bool {
+	for _, key := range keys {
+		if messageLoopFeatureReady(row[key]) {
+			return true
+		}
+	}
+	return false
+}
+
+func messageLoopFeatureReady(value any) bool {
+	row := messageLoopMapValue(value)
+	if len(row) > 0 {
+		if messageLoopCapabilityStatusReady(messageLoopText(row["status"])) {
+			return true
+		}
+		ref := messageLoopMapValue(row["ref"])
+		if messageLoopCapabilityStatusReady(messageLoopText(ref["status"])) {
+			return true
+		}
+	}
+	return messageLoopCapabilityStatusReady(messageLoopText(value))
+}
+
+func messageLoopAcousticPackageHasReadyEvidence(status map[string]any) bool {
+	if len(status) == 0 {
+		return false
+	}
+	if !messageLoopCapabilityStatusReady(messageLoopText(status["status"])) {
+		return false
+	}
+	layers := messageLoopMapValue(status["package_layers"])
+	for _, layerName := range []string{"l1_static", "l2_realtime", "l3_deep"} {
+		layer := messageLoopMapValue(layers[layerName])
+		if !messageLoopCapabilityStatusReady(messageLoopText(layer["status"])) {
+			continue
+		}
+		features := messageLoopMapValue(layer["features"])
+		if messageLoopAnyFeatureReady(features,
+			"waveform_envelope",
+			"peak_rms_summary",
+			"time_energy",
+			"live_meter",
+			"realtime_spectrum",
+			"realtime_stereo_correlation",
+			"spectrogram_tiles",
+			"band_energy_summary",
+			"stereo_relation_summary",
+		) {
+			return true
+		}
+	}
+	return false
+}
+
+func messageLoopFatalObservationBlockers(blockers []string, hasReadyAcousticEvidence bool) []string {
+	out := make([]string, 0, len(blockers))
+	for _, blocker := range blockers {
+		switch strings.ToLower(strings.TrimSpace(blocker)) {
+		case "", "audio_feature_request_pending":
+			continue
+		case "audio_feature_reader_not_connected":
+			if hasReadyAcousticEvidence {
+				continue
+			}
+			out = append(out, blocker)
+		default:
+			out = append(out, blocker)
+		}
+	}
+	return out
 }
 
 func messageLoopMapValue(v any) map[string]any {
@@ -2381,6 +2611,22 @@ func messageLoopAudioObservationRequest(userText string) bool {
 	)
 }
 
+func messageLoopRealtimeObservationRequest(userText string) bool {
+	text := strings.ToLower(strings.TrimSpace(userText))
+	if text == "" {
+		return false
+	}
+	hasRealtimeLayer := messageLoopTextHasAny(text,
+		"l2", "realtime", "real-time", "real time", "live", "playback", "after playback", "during playback", "post playback",
+		"\u5b9e\u65f6", "\u64ad\u653e\u540e", "\u64ad\u653e\u65f6", "\u64ad\u653e\u4e2d", "\u542c\u4e86", "\u653e\u5b8c", "\u8fb9\u64ad\u8fb9", "\u5b9e\u65f6\u5c42",
+	)
+	hasAcousticTarget := messageLoopTextHasAny(text,
+		"\u7535\u5e73", "\u9891\u8c31", "\u9891\u6bb5", "\u58f0\u50cf", "\u58f0\u76f8", "\u58f0\u573a", "\u7acb\u4f53\u58f0", "\u76f8\u4f4d", "\u76f8\u5173", "\u91c7\u96c6", "\u89c2\u5bdf", "\u68c0\u67e5", "\u5206\u6790",
+		"meter", "level", "spectrum", "spectral", "band", "stereo", "phase", "correlation", "capture", "observe", "inspect", "analysis",
+	)
+	return hasRealtimeLayer && hasAcousticTarget
+}
+
 func messageLoopExplicitPluginOrRawRequest(userText string) bool {
 	text := strings.ToLower(strings.TrimSpace(userText))
 	if text == "" {
@@ -2436,19 +2682,60 @@ func messageLoopMixObservationArgs(userText string, args map[string]any) map[str
 			out["user_track_index"] = index
 		}
 	}
-	scope := strings.TrimSpace(fmt.Sprint(out["scope"]))
-	if scope == "" || scope == "<nil>" {
-		scope = messageLoopMixScopeFromIntent(userText, out)
-		out["scope"] = scope
+	setIfEmpty(out, "goal_text", strings.TrimSpace(userText))
+	scope := normalizeMessageLoopMixScope(fmt.Sprint(out["scope"]))
+	inferredScope := normalizeMessageLoopMixScope(messageLoopMixScopeFromIntent(userText, out))
+	if scope == "" {
+		scope = inferredScope
+	} else if expanded := messageLoopExpandedMixObservationScope(scope, inferredScope); expanded != "" {
+		scope = expanded
 	}
+	out["scope"] = scope
 	if _, ok := out["project_context"]; !ok {
 		out["project_context"] = scope != "selected_clip"
 	}
 	if _, ok := out["observation_only"]; !ok {
 		out["observation_only"] = true
 	}
+	if messageLoopReadOnlyObservationRequest(userText) {
+		out["workflow_intent"] = "observation_only"
+		out["mutation_barrier"] = true
+		out["no_pending"] = true
+		out["reason"] = "user_requested_read_only_observation"
+	}
 	if strings.TrimSpace(fmt.Sprint(out["disclosure"])) == "" || strings.TrimSpace(fmt.Sprint(out["disclosure"])) == "<nil>" {
 		out["disclosure"] = "digest_catalog"
+	}
+	if messageLoopBandStereoObservationRequest(userText) {
+		out["projection"] = "frequency_stereo"
+		out["include_raw"] = false
+		out["observation_ready_gate"] = true
+		out["feature_keys"] = []any{"band_energy_summary", "stereo_relation_summary", "spectrogram_tiles", "acoustic_package_status", "source_identity"}
+		if _, ok := out["max_rows"]; !ok {
+			out["max_rows"] = 8
+		}
+		out["target_scope"] = scope
+	}
+	if messageLoopProjectMultitrackObservationRequest(userText) {
+		setIfEmpty(out, "mom_intent", "project_multitrack_relation_observation")
+		setIfEmpty(out, "requested_layer", "project_multitrack_relation")
+		out["target_scope"] = scope
+	}
+	if messageLoopRealtimeObservationRequest(userText) {
+		out["projection"] = "frequency_stereo"
+		out["include_raw"] = false
+		out["capture_mode"] = "realtime_playback"
+		out["requested_layer"] = "l2_realtime"
+		out["prefer_realtime"] = true
+		out["feature_keys"] = []any{"realtime_band_energy_summary", "realtime_stereo_relation_summary", "band_energy_summary", "stereo_relation_summary", "spectrogram_tiles", "acoustic_package_status", "source_identity"}
+		if _, ok := out["max_rows"]; !ok {
+			out["max_rows"] = 8
+		}
+		out["target_scope"] = scope
+	}
+	if messageLoopLowMudPluginPrepRequest(userText) {
+		setIfEmpty(out, "mom_intent", "action_preflight_observation")
+		out["observation_ready_gate"] = true
 	}
 	if messageLoopTextHasAny(strings.ToLower(userText), "\u4e3b\u5531", "\u4eba\u58f0", "vocal", "lead vocal") {
 		focusHint := map[string]any{"role": "vocal", "source": "user_intent"}
@@ -2466,6 +2753,63 @@ func messageLoopMixObservationArgs(userText string, args map[string]any) map[str
 		})
 	}
 	return out
+}
+
+func normalizeMessageLoopMixScope(scope string) string {
+	switch strings.ToLower(strings.TrimSpace(scope)) {
+	case "", "<nil>":
+		return ""
+	case "track":
+		return "selected_track"
+	case "clip":
+		return "selected_clip"
+	case "project":
+		return "full_project"
+	default:
+		return strings.ToLower(strings.TrimSpace(scope))
+	}
+}
+
+func messageLoopExpandedMixObservationScope(current, inferred string) string {
+	switch inferred {
+	case "full_project_with_focus_track":
+		if current != "full_project_with_focus_track" {
+			return inferred
+		}
+	case "full_project":
+		switch current {
+		case "selected_clip", "selected_track", "named_track", "track_group":
+			return inferred
+		}
+	}
+	return ""
+}
+
+func messageLoopBandStereoObservationRequest(userText string) bool {
+	text := strings.ToLower(strings.TrimSpace(userText))
+	if text == "" {
+		return false
+	}
+	hasBand := messageLoopTextHasAny(text,
+		"\u9891\u6bb5", "\u9891\u8c31", "\u4f4e\u9891", "\u4e2d\u9891", "\u9ad8\u9891", "\u9891\u6bb5\u80fd\u91cf",
+		"frequency", "spectrum", "spectral", "band energy", "low end", "midrange", "high end",
+	)
+	hasStereo := messageLoopTextHasAny(text,
+		"\u58f0\u50cf", "\u58f0\u76f8", "\u58f0\u573a", "\u7acb\u4f53\u58f0", "\u76f8\u4f4d",
+		"stereo", "stereo image", "stereo field", "panning", "phase", "correlation",
+	)
+	return hasBand && hasStereo
+}
+
+func messageLoopProjectMultitrackObservationRequest(userText string) bool {
+	text := strings.ToLower(strings.TrimSpace(userText))
+	if text == "" {
+		return false
+	}
+	return messageLoopTextHasAny(text,
+		"整体混音", "全工程", "多轨", "各轨", "各个轨", "各条轨", "各轨道", "轨道关系", "轨道对比", "频段占用", "频段分布", "声像关系", "声像布局", "冲突",
+		"overall mix", "full project", "multitrack", "multi-track", "track relationship", "track relationships", "track conflict", "track conflicts", "band distribution", "stereo layout",
+	)
 }
 
 func messageLoopUserTrackIndexFromText(text string) (int, bool) {
@@ -2498,6 +2842,9 @@ func messageLoopMixScopeFromIntent(userText string, args map[string]any) string 
 		if messageLoopTextHasAny(text, "\u4e3b\u5531", "\u4eba\u58f0", "vocal", "lead vocal") {
 			return "full_project_with_focus_track"
 		}
+		return "full_project"
+	}
+	if messageLoopProjectMultitrackObservationRequest(userText) {
 		return "full_project"
 	}
 	if messageLoopTextHasAny(text, "\u4e3b\u5531", "\u4eba\u58f0", "vocal", "lead vocal") {
@@ -2672,17 +3019,24 @@ func mixObservationPromptSummary(result map[string]any) map[string]any {
 		}
 	}
 	if len(observation) > 0 {
+		momProjection := messageLoopMOMProjectionForPrompt(observation)
+		if len(momProjection) > 0 {
+			out["mom_projection"] = momProjection
+		}
+		if llmContext := messageLoopMapValue(observation["llm_context"]); len(llmContext) > 0 {
+			out["llm_context"] = llmContext
+		}
 		if target := messageLoopMapValue(observation["target_ref"]); len(target) > 0 {
 			out["target_ref"] = compactSelectedKeys(target, []string{"kind", "id", "label", "confidence"})
 		}
 		if ruler := messageLoopMapValue(observation["time_ruler"]); len(ruler) > 0 {
 			out["time_ruler"] = compactSelectedKeys(ruler, []string{"duration_seconds", "segment_seconds", "frame_seconds"})
 		}
-		if global := messageLoopMapValue(observation["global_summary"]); len(global) > 0 {
+		if global := messageLoopMapValue(observation["global_summary"]); len(global) > 0 && len(momProjection) == 0 {
 			out["global_summary"] = compactSelectedKeys(global, []string{"peak_dbfs", "rms_dbfs", "headroom_db", "crest_db", "dominant_problem_tags"})
 		}
-		if mixPkg := messageLoopMapValue(observation["mix_package"]); len(mixPkg) > 0 {
-			out["mix_package"] = compactMixPackageForPrompt(mixPkg)
+		if mixPkg := messageLoopMapValue(observation["mix_package"]); len(mixPkg) > 0 && len(momProjection) == 0 {
+			out["mix_package"] = compactMixPackageForPrompt(mixPkg, "")
 		}
 		if envPkg := messageLoopMapValue(observation["environment_package"]); len(envPkg) > 0 {
 			if caps := messageLoopMapValue(envPkg["source_capabilities"]); len(caps) > 0 {
@@ -2695,6 +3049,147 @@ func mixObservationPromptSummary(result map[string]any) map[string]any {
 	}
 	if len(out) == 0 {
 		return nil
+	}
+	return out
+}
+
+func messageLoopMOMProjectionForPrompt(observation map[string]any) map[string]any {
+	proj := messageLoopMapValue(observation["mom_projection"])
+	if len(proj) == 0 {
+		if ctx := messageLoopMapValue(observation["context_pack"]); len(ctx) > 0 {
+			latest := messageLoopMapValue(ctx["latest_observation"])
+			proj = messageLoopMapValue(latest["mom_projection"])
+		}
+	}
+	if len(proj) == 0 {
+		return nil
+	}
+	out := compactSelectedKeys(proj, []string{"mom_version", "intent", "observation_id", "mix_session_id", "llm_context"})
+	trust := messageLoopMapValue(proj["trust_quality"])
+	if project := messageLoopMOMProjectStructureForPrompt(messageLoopMapValue(proj["project_structure"]), trust); len(project) > 0 {
+		out["project_structure"] = project
+	}
+	if safeTrust := messageLoopMOMTrustQualityForPrompt(trust); len(safeTrust) > 0 {
+		out["trust_quality"] = safeTrust
+	}
+	if profile := compactMOMProjectMixProfile(messageLoopMapValue(proj["project_mix_profile"])); len(profile) > 0 {
+		out["project_mix_profile"] = profile
+	}
+	if relation := compactMOMMultitrackRelation(messageLoopMapValue(proj["multitrack_relation"])); len(relation) > 0 {
+		out["multitrack_relation"] = relation
+	}
+	return out
+}
+
+func messageLoopMOMProjectStructureForPrompt(project, trust map[string]any) map[string]any {
+	if len(project) == 0 {
+		return nil
+	}
+	out := compactSelectedKeys(project, []string{
+		"status", "freshness", "project_id", "session_id", "track_id", "clip_id", "gui_id",
+		"duration_seconds", "sample_rate", "channel_count", "target_ref", "listen_scope",
+		"evidence_refs", "limitations",
+	})
+	if status := firstMapText(trust, "source_revision_status"); status != "" {
+		out["source_revision_status"] = status
+	}
+	if status := firstMapText(trust, "clip_revision_status"); status != "" {
+		out["clip_revision_status"] = status
+	}
+	if status := firstMapText(trust, "render_revision_status"); status != "" {
+		out["render_revision_status"] = status
+	}
+	return out
+}
+
+func messageLoopMOMTrustQualityForPrompt(trust map[string]any) map[string]any {
+	if len(trust) == 0 {
+		return nil
+	}
+	return compactSelectedKeys(trust, []string{
+		"schema_version", "overall_status", "required_layers", "optional_layers", "deferred_layers",
+		"coverage", "quality_gates", "blocked_reasons", "approximate_fields", "suspect_fields",
+		"stale_fields", "missing_fields", "source_revision_status", "clip_revision_status",
+		"render_revision_status", "can_support_observation", "can_support_suggestion",
+		"can_support_action_preflight", "can_support_ab_result", "freshness", "l2_tap_point",
+		"l2_limitations", "limitations", "evidence_refs",
+	})
+}
+
+func compactMOMProjectMixProfile(row map[string]any) map[string]any {
+	if len(row) == 0 {
+		return nil
+	}
+	out := compactSelectedKeys(row, []string{"status", "freshness", "track_count", "band_tendency", "level_overview", "stereo_overview", "limitations", "evidence_refs"})
+	if rows := messageLoopMapRows(row["dominant_bands"]); len(rows) > 0 {
+		out["dominant_bands"] = capMessageLoopRows(rows, 8)
+	}
+	return out
+}
+
+func compactMOMMultitrackRelation(row map[string]any) map[string]any {
+	if len(row) == 0 {
+		return nil
+	}
+	out := compactSelectedKeys(row, []string{"status", "freshness", "track_count", "level_distribution", "stereo_distribution", "limitations", "evidence_refs"})
+	if rows := compactMOMComparedTracks(messageLoopMapRows(row["compared_tracks"]), 8); len(rows) > 0 {
+		out["compared_tracks"] = rows
+	}
+	if rows := compactMOMBandOccupancyRows(messageLoopMapRows(row["band_occupancy"]), 8); len(rows) > 0 {
+		out["band_occupancy"] = rows
+	}
+	if rows := messageLoopMapRows(row["band_conflict_candidates"]); len(rows) > 0 {
+		out["band_conflict_candidates"] = capMessageLoopRows(rows, 8)
+	}
+	if rows := messageLoopMapRows(row["phase_risk_tracks"]); len(rows) > 0 {
+		out["phase_risk_tracks"] = capMessageLoopRows(rows, 8)
+	}
+	return out
+}
+
+func compactMOMComparedTracks(rows []map[string]any, max int) []map[string]any {
+	if len(rows) == 0 {
+		return nil
+	}
+	if max > 0 && len(rows) > max {
+		rows = rows[:max]
+	}
+	out := make([]map[string]any, 0, len(rows))
+	for _, row := range rows {
+		compact := compactSelectedKeys(row, []string{"track_id", "track_name", "name", "user_label", "role_guess", "peak_dbfs", "rms_dbfs", "headroom_db", "level_db", "pan"})
+		if len(compact) > 0 {
+			out = append(out, compact)
+		}
+	}
+	return out
+}
+
+func compactMOMBandOccupancyRows(rows []map[string]any, max int) []map[string]any {
+	if len(rows) == 0 {
+		return nil
+	}
+	if max > 0 && len(rows) > max {
+		rows = rows[:max]
+	}
+	out := make([]map[string]any, 0, len(rows))
+	for _, row := range rows {
+		compact := compactSelectedKeys(row, []string{"band", "track_count", "status", "conflict_candidate"})
+		if leaders := compactMOMComparedTracks(messageLoopMapRows(row["leaders"]), 4); len(leaders) > 0 {
+			for i := range leaders {
+				source := messageLoopMapRows(row["leaders"])
+				if i < len(source) {
+					for _, key := range []string{"energy_db", "unit_energy"} {
+						if value, ok := source[i][key]; ok {
+							leaders[i][key] = value
+						}
+					}
+				}
+			}
+			compact["leaders"] = leaders
+		}
+		if len(compact) > 0 {
+			out = append(out, compact)
+		}
 	}
 	return out
 }
@@ -2715,10 +3210,13 @@ func compactMixObservationDigest(digest map[string]any) map[string]any {
 	if band := messageLoopMapValue(digest["band_energy"]); len(band) > 0 {
 		out["band_energy"] = band
 	}
+	if status := messageLoopMapValue(digest["acoustic_package_status"]); len(status) > 0 {
+		out["acoustic_package_status"] = status
+	}
 	return out
 }
 
-func compactMixPackageForPrompt(mixPkg map[string]any) map[string]any {
+func compactMixPackageForPrompt(mixPkg map[string]any, intent string) map[string]any {
 	out := compactSelectedKeys(mixPkg, []string{"status", "role", "round", "missing_metrics", "source_capabilities"})
 	metrics := messageLoopMapValue(mixPkg["current_metrics"])
 	if len(metrics) == 0 {
@@ -2739,6 +3237,19 @@ func compactMixPackageForPrompt(mixPkg map[string]any) map[string]any {
 	}
 	if len(current) > 0 {
 		out["current_metrics"] = current
+	}
+	if intent == "realtime_band_stereo_observation" {
+		realtimeMetrics := messageLoopMapValue(mixPkg["realtime_metrics"])
+		realtime := map[string]any{}
+		if band := messageLoopMapValue(realtimeMetrics["band_energy"]); len(band) > 0 {
+			realtime["band_energy"] = compactSelectedKeys(band, []string{"status", "source", "bands", "updated_at", "capture_mode", "tap_point"})
+		}
+		if stereo := messageLoopMapValue(realtimeMetrics["stereo_relation"]); len(stereo) > 0 {
+			realtime["stereo_relation"] = compactSelectedKeys(stereo, []string{"status", "source", "balance_db", "balance_state", "correlation_estimate", "correlation_state", "left_level_db", "right_level_db", "updated_at", "capture_mode", "tap_point"})
+		}
+		if len(realtime) > 0 {
+			out["realtime_metrics"] = realtime
+		}
 	}
 	return out
 }
@@ -2856,22 +3367,598 @@ func messageLoopFastCompleteReply(state *runState, out messageLoopOutput) (strin
 	return reply, true
 }
 
+func messageLoopObservationFallbackAfterLLMError(state *runState, err error) (string, bool, bool) {
+	if !messageLoopObservationFallbackEligible(state, err) {
+		return "", false, false
+	}
+	if messageLoopFocusRelationshipIntent(state.input.UserText) && !messageLoopHasResolvedFocusTrack(state) {
+		return messageLoopFocusTrackClarificationQuestion(), true, true
+	}
+	reply := messageLoopMaterializedObservationFallbackReply(state)
+	if strings.TrimSpace(reply) == "" {
+		return "", false, false
+	}
+	if question, ok := messageLoopFinalFocusTrackClarification(state, reply); ok {
+		return question, true, true
+	}
+	return messageLoopMixObservationFinalReply(state, reply), false, true
+}
+
+func messageLoopObservationFallbackEligible(state *runState, err error) bool {
+	if state == nil || err == nil {
+		return false
+	}
+	if !messageLoopTransientLLMError(err) {
+		return false
+	}
+	if !messageLoopHasMixObservationExecution(state) || !messageLoopHasUsableMixObservation(state) {
+		return false
+	}
+	if !messageLoopNaturalMixRequest(state.input.UserText) && !messageLoopAudioObservationRequest(state.input.UserText) {
+		return false
+	}
+	if messageLoopExplicitMixExecutionConfirmation(state.input.UserText) {
+		return false
+	}
+	for _, record := range state.executed {
+		if !messageLoopExecutionSucceeded(record) {
+			continue
+		}
+		name := strings.ToLower(strings.TrimSpace(firstNonEmpty(messageLoopText(record["tool"]), messageLoopText(record["command_name"]))))
+		if messageLoopReadOnlyObservationFallbackTool(name) {
+			continue
+		}
+		return false
+	}
+	return true
+}
+
+func messageLoopTransientLLMError(err error) bool {
+	if err == nil {
+		return false
+	}
+	text := strings.ToLower(strings.TrimSpace(err.Error()))
+	if text == "" {
+		return false
+	}
+	return messageLoopTextHasAny(text,
+		"context deadline exceeded", "timeout", "timed out", "awaiting headers",
+		"502", "503", "504", "temporary", "stream returned no output", "connection reset",
+	)
+}
+
+func messageLoopReadOnlyObservationFallbackTool(name string) bool {
+	name = strings.ToLower(strings.TrimSpace(name))
+	if name == "" {
+		return true
+	}
+	if messageLoopIsMixObservationName(name) {
+		return true
+	}
+	if strings.Contains(name, ".read") || strings.Contains(name, "_read") || strings.Contains(name, ".list") || strings.Contains(name, "_list") {
+		return true
+	}
+	switch name {
+	case "mix.derive", "mix_derive", "project.state", "get_project_state", "track.list", "goal.status":
+		return true
+	default:
+		return false
+	}
+}
+
+func messageLoopMaterializedObservationFallbackReply(state *runState) string {
+	result := messageLoopLastMixObservationResult(state)
+	if len(result) == 0 {
+		return ""
+	}
+	if reply := messageLoopMOMObservationFallbackReply(result); strings.TrimSpace(reply) != "" {
+		return reply
+	}
+	lines := []string{
+		"混音观察已经完成；最终自然语言生成超时，所以我先基于已物化的 observation read model 给出保守摘要。",
+	}
+	if trackCount := messageLoopPendingMixCandidateTrackCount(state); trackCount > 0 {
+		lines = append(lines, fmt.Sprintf("当前工程可读到 %d 条音频轨。", trackCount))
+	}
+	if waveform := messageLoopObservationFallbackWaveform(result); len(waveform) > 0 {
+		if summary := messageLoopObservationMetricSummary("整体电平", waveform); summary != "" {
+			lines = append(lines, summary)
+		}
+	}
+	if trackID, risk := messageLoopHeadroomRiskTrack(state); trackID != "" {
+		label := messageLoopObservationFallbackTrackLabel(trackID, risk)
+		summary := "首要注意对象是 " + label
+		if metrics := messageLoopObservationMetricSuffix(risk); metrics != "" {
+			summary += metrics
+		}
+		summary += "。"
+		lines = append(lines, summary)
+		if delta := messageLoopConservativeHeadroomDelta(risk); delta < 0 {
+			lines = append(lines, fmt.Sprintf("建议第一步：先把 %s 降低 %.2f dB，释放一点峰值余量；这只是可回退的小步电平整理，不会直接写入，除非你确认。要我继续执行这一步吗？", label, -delta))
+		}
+	}
+	if ready, deferred := messageLoopObservationFallbackCapabilities(state, result); len(ready) > 0 || len(deferred) > 0 {
+		if len(ready) > 0 {
+			lines = append(lines, "已就绪的声学投影："+strings.Join(ready, "、")+"。")
+		}
+		if len(deferred) > 0 {
+			lines = append(lines, "仍处于 deferred / O1-O2 边界内的分析："+strings.Join(deferred, "、")+"。")
+		}
+	}
+	lines = append(lines, "这条兜底路径只读取现有 observation surface，不触发新的 bake，也不加载插件或写参数。")
+	return strings.Join(lines, "\n\n")
+}
+
+func messageLoopMOMObservationFallbackReply(result map[string]any) string {
+	proj := messageLoopMOMProjectionFromResult(result)
+	if len(proj) == 0 {
+		return ""
+	}
+	profile := messageLoopMapValue(proj["project_mix_profile"])
+	relation := messageLoopMapValue(proj["multitrack_relation"])
+	if len(profile) == 0 && len(relation) == 0 {
+		return ""
+	}
+	version := firstNonEmpty(firstMapText(proj, "mom_version"), "MOM")
+	lines := []string{
+		fmt.Sprintf("混音观察已经完成；最终自然语言生成暂时失败，所以我先基于 %s 只读投影给出保守摘要。", version),
+	}
+	trackCount := 0
+	if value, ok := firstNumericMapValue(relation, "track_count"); ok {
+		trackCount = int(value)
+	} else if value, ok := firstNumericMapValue(profile, "track_count"); ok {
+		trackCount = int(value)
+	}
+	relationStatus := messageLoopMOMStatusLabel(firstNonEmpty(firstMapText(relation, "status"), firstMapText(profile, "status")))
+	if trackCount > 0 {
+		if relationStatus != "" {
+			lines = append(lines, fmt.Sprintf("当前可比较 %d 条轨，多轨关系状态：%s。", trackCount, relationStatus))
+		} else {
+			lines = append(lines, fmt.Sprintf("当前可比较 %d 条轨。", trackCount))
+		}
+	} else if status := firstMapText(relation, "status"); status == "not_applicable_single_track" {
+		lines = append(lines, "当前工程暂不适用多轨关系对比；我只保留单轨观察结论。")
+	}
+	if summary := messageLoopMOMLevelFallbackSummary(firstNonEmptyMap(relation, profile, "level_distribution", "level_overview")); summary != "" {
+		lines = append(lines, summary)
+	}
+	if summary := messageLoopMOMBandFallbackSummary(relation, profile); summary != "" {
+		lines = append(lines, summary)
+	}
+	if summary := messageLoopMOMStereoFallbackSummary(firstNonEmptyMap(relation, profile, "stereo_distribution", "stereo_overview")); summary != "" {
+		lines = append(lines, summary)
+	}
+	if limitations := messageLoopMOMFallbackLimitations(profile, relation); len(limitations) > 0 {
+		lines = append(lines, "限制： "+strings.Join(limitations, "；")+"。")
+	}
+	lines = append(lines, "这条兜底路径只读取现有 MOM projection 和 evidence refs，不触发新的 bake，不加载插件，也不写入工程。")
+	return strings.Join(lines, "\n\n")
+}
+
+func messageLoopMOMProjectionFromResult(result map[string]any) map[string]any {
+	for _, row := range []map[string]any{
+		messageLoopMapValue(result["mom_projection"]),
+		messageLoopMapValue(messageLoopMapValue(result["observation"])["mom_projection"]),
+		messageLoopMapValue(messageLoopMapValue(messageLoopMapValue(result["context_pack"])["latest_observation"])["mom_projection"]),
+	} {
+		if len(row) > 0 {
+			return row
+		}
+	}
+	observation := messageLoopObservationFromResult(result)
+	for _, row := range []map[string]any{
+		messageLoopMapValue(observation["mom_projection"]),
+		messageLoopMapValue(messageLoopMapValue(observation["latest_observation"])["mom_projection"]),
+	} {
+		if len(row) > 0 {
+			return row
+		}
+	}
+	return nil
+}
+
+func messageLoopMOMLevelFallbackSummary(row map[string]any) string {
+	if len(row) == 0 {
+		return ""
+	}
+	parts := []string{}
+	if loud := messageLoopMapValue(row["loudest_by_rms"]); len(loud) > 0 {
+		parts = append(parts, fmt.Sprintf("RMS 最突出的轨道是 %s%s", messageLoopMOMTrackLabel(loud), messageLoopMOMMetricSuffix(loud, "value", "dBFS")))
+	}
+	if peak := messageLoopMapValue(row["highest_peak"]); len(peak) > 0 {
+		parts = append(parts, fmt.Sprintf("峰值最高的是 %s%s", messageLoopMOMTrackLabel(peak), messageLoopMOMMetricSuffix(peak, "value", "dBFS")))
+	}
+	if headroom := messageLoopMapValue(row["lowest_headroom"]); len(headroom) > 0 {
+		parts = append(parts, fmt.Sprintf("余量最低的是 %s%s", messageLoopMOMTrackLabel(headroom), messageLoopMOMMetricSuffix(headroom, "value", "dB")))
+	}
+	if len(parts) == 0 {
+		return ""
+	}
+	return "电平分布：" + strings.Join(parts, "；") + "。"
+}
+
+func messageLoopMOMBandFallbackSummary(relation, profile map[string]any) string {
+	rows := messageLoopMapRows(relation["band_occupancy"])
+	if len(rows) == 0 {
+		rows = messageLoopMapRows(profile["dominant_bands"])
+	}
+	if len(rows) == 0 {
+		return ""
+	}
+	parts := []string{}
+	for _, row := range rows {
+		band := messageLoopMOMBandLabel(firstMapText(row, "band"))
+		leader := messageLoopMapValue(row["leader"])
+		if len(leader) == 0 {
+			leaders := messageLoopMapRows(row["leaders"])
+			if len(leaders) > 0 {
+				leader = leaders[0]
+			}
+		}
+		if band == "" || len(leader) == 0 {
+			continue
+		}
+		parts = append(parts, fmt.Sprintf("%s：%s%s", band, messageLoopMOMTrackLabel(leader), messageLoopMOMMetricSuffix(leader, "energy_db", "dB")))
+		if len(parts) >= 6 {
+			break
+		}
+	}
+	if len(parts) == 0 {
+		return ""
+	}
+	conflicts := len(messageLoopMapRows(relation["band_conflict_candidates"]))
+	if conflicts == 0 {
+		return "频段占用：" + strings.Join(parts, "；") + "。当前没有明确频段冲突候选。"
+	}
+	return fmt.Sprintf("频段占用：%s。当前有 %d 个频段冲突候选，需要按 evidence refs 复核。", strings.Join(parts, "；"), conflicts)
+}
+
+func messageLoopMOMStereoFallbackSummary(row map[string]any) string {
+	if len(row) == 0 {
+		return ""
+	}
+	center := len(messageLoopMapRows(row["center_heavy_tracks"]))
+	offCenter := len(messageLoopMapRows(row["off_center_tracks"]))
+	phaseRisk := len(messageLoopMapRows(row["phase_risk_tracks"]))
+	parts := []string{}
+	if center > 0 {
+		parts = append(parts, fmt.Sprintf("%d 条轨偏居中", center))
+	}
+	if offCenter > 0 {
+		parts = append(parts, fmt.Sprintf("%d 条轨明显偏左/右", offCenter))
+	}
+	if phaseRisk > 0 {
+		parts = append(parts, fmt.Sprintf("%d 条轨有相位风险", phaseRisk))
+	}
+	if len(parts) == 0 {
+		return ""
+	}
+	return "声像关系：" + strings.Join(parts, "；") + "。"
+}
+
+func messageLoopMOMFallbackLimitations(rows ...map[string]any) []string {
+	seen := map[string]bool{}
+	out := []string{}
+	for _, row := range rows {
+		for _, item := range messageLoopAnySlice(row["limitations"]) {
+			label := messageLoopMOMLimitationLabel(messageLoopText(item))
+			if label == "" || seen[label] {
+				continue
+			}
+			seen[label] = true
+			out = append(out, label)
+			if len(out) >= 4 {
+				return out
+			}
+		}
+	}
+	return out
+}
+
+func messageLoopMOMTrackLabel(row map[string]any) string {
+	label := firstMapText(row, "user_label", "track_name", "name", "label")
+	if label != "" {
+		return label
+	}
+	if id := firstMapText(row, "track_id", "id"); id != "" {
+		return "Track " + id
+	}
+	return "未知轨道"
+}
+
+func messageLoopMOMMetricSuffix(row map[string]any, key, unit string) string {
+	value, ok := firstNumericMapValue(row, key)
+	if !ok {
+		return ""
+	}
+	return fmt.Sprintf(" %.1f %s", value, unit)
+}
+
+func messageLoopMOMBandLabel(band string) string {
+	switch strings.ToLower(strings.TrimSpace(band)) {
+	case "sub":
+		return "超低频"
+	case "bass":
+		return "低频"
+	case "low_mid", "low-mid", "low mid":
+		return "低中频"
+	case "mid":
+		return "中频"
+	case "presence":
+		return "存在感频段"
+	case "air":
+		return "空气感频段"
+	default:
+		return strings.TrimSpace(band)
+	}
+}
+
+func messageLoopMOMStatusLabel(status string) string {
+	switch strings.ToLower(strings.TrimSpace(status)) {
+	case "ready", "ok", "fresh":
+		return "就绪"
+	case "partial":
+		return "部分可用"
+	case "missing":
+		return "缺失"
+	case "deferred":
+		return "暂未展开"
+	case "not_applicable_single_track":
+		return "单轨工程不适用"
+	default:
+		return strings.TrimSpace(status)
+	}
+}
+
+func messageLoopMOMLimitationLabel(value string) string {
+	switch strings.ToLower(strings.TrimSpace(value)) {
+	case "", "<nil>":
+		return ""
+	case "project_rankings_are_agent_side_lightweight_o1":
+		return "多轨排序仍是轻量本地判断"
+	case "kernel_project_contrast_analyzer_deferred_o3":
+		return "内核级工程对比分析器尚未展开"
+	case "lufs_analysis_deferred_phase_5":
+		return "LUFS 分析暂未展开"
+	case "masking_analysis_deferred_phase_5":
+		return "遮蔽分析暂未展开"
+	case "reference_match_deferred_phase_5":
+		return "参考曲匹配暂未展开"
+	case "post_fx_probe_unavailable_phase_4_1":
+		return "后级/插件后探测暂不可用"
+	default:
+		return strings.ReplaceAll(strings.TrimSpace(value), "_", " ")
+	}
+}
+
+func firstNonEmptyMap(primary, fallback map[string]any, keys ...string) map[string]any {
+	for _, key := range keys {
+		if row := messageLoopMapValue(primary[key]); len(row) > 0 {
+			return row
+		}
+		if row := messageLoopMapValue(fallback[key]); len(row) > 0 {
+			return row
+		}
+	}
+	return nil
+}
+
+func messageLoopObservationFallbackWaveform(result map[string]any) map[string]any {
+	for _, row := range []map[string]any{
+		messageLoopMapValue(messageLoopMapValue(result["acoustic_digest"])["waveform"]),
+		messageLoopMapValue(messageLoopMapValue(result["digest"])["waveform"]),
+		messageLoopMapValue(result["waveform"]),
+	} {
+		if len(row) > 0 {
+			return row
+		}
+	}
+	observation := messageLoopObservationFromResult(result)
+	for _, row := range []map[string]any{
+		messageLoopMapValue(messageLoopMapValue(messageLoopMapValue(observation["mix_package"])["current_metrics"])["waveform"]),
+		messageLoopMapValue(messageLoopMapValue(messageLoopMapValue(observation["environment_package"])["current_metrics"])["waveform"]),
+	} {
+		if len(row) > 0 {
+			return row
+		}
+	}
+	return nil
+}
+
+func messageLoopObservationMetricSummary(label string, row map[string]any) string {
+	if strings.TrimSpace(label) == "" || len(row) == 0 {
+		return ""
+	}
+	if suffix := messageLoopObservationMetricSuffix(row); suffix != "" {
+		return label + suffix + "。"
+	}
+	return ""
+}
+
+func messageLoopObservationMetricSuffix(row map[string]any) string {
+	if len(row) == 0 {
+		return ""
+	}
+	parts := []string{}
+	if peak, ok := firstNumericMapValue(row, "peak_dbfs", "peak"); ok {
+		parts = append(parts, fmt.Sprintf("峰值 %.1f dBFS", peak))
+	}
+	if rms, ok := firstNumericMapValue(row, "rms_dbfs", "rms"); ok {
+		parts = append(parts, fmt.Sprintf("RMS %.1f dBFS", rms))
+	}
+	if headroom, ok := firstNumericMapValue(row, "headroom_db", "headroom"); ok {
+		parts = append(parts, fmt.Sprintf("余量 %.1f dB", headroom))
+	}
+	if len(parts) == 0 {
+		return ""
+	}
+	return "（" + strings.Join(parts, "，") + "）"
+}
+
+func messageLoopObservationFallbackTrackLabel(trackID string, row map[string]any) string {
+	trackID = strings.TrimSpace(trackID)
+	label := firstNonEmpty(firstMapText(row, "track_name", "name", "user_label", "label"), firstMapText(messageLoopMapValue(row["track"]), "track_name", "name", "user_label", "label"))
+	if strings.TrimSpace(label) != "" {
+		return label
+	}
+	if trackID != "" {
+		return "Track " + trackID
+	}
+	return "当前目标"
+}
+
+func messageLoopObservationFallbackCapabilities(state *runState, result map[string]any) ([]string, []string) {
+	readySpecs := []struct {
+		key   string
+		label string
+	}{
+		{"waveform_envelope", "波形/峰值包络"},
+		{"track_waveform_envelopes", "轨道波形包络"},
+		{"spectrogram_tiles", "频谱覆盖"},
+		{"band_energy", "频段能量摘要"},
+		{"stereo_relation", "立体声关系摘要"},
+		{"realtime_band_energy", "L2 实时频段能量"},
+		{"realtime_stereo_relation", "L2 实时立体声关系"},
+	}
+	deferredSpecs := []struct {
+		key   string
+		label string
+	}{
+		{"lufs_analysis", "LUFS"},
+		{"masking_analysis", "遮蔽分析"},
+		{"reference_match", "参考匹配"},
+	}
+	ready := []string{}
+	for _, spec := range readySpecs {
+		if messageLoopCapabilityStatusReady(messageLoopObservationFallbackCapabilityStatus(state, result, spec.key)) {
+			ready = append(ready, spec.label)
+		}
+	}
+	deferred := []string{}
+	for _, spec := range deferredSpecs {
+		status := strings.ToLower(strings.TrimSpace(messageLoopObservationFallbackCapabilityStatus(state, result, spec.key)))
+		if status == "deferred" || status == "phase_5_deferred" {
+			deferred = append(deferred, spec.label)
+		}
+	}
+	return ready, deferred
+}
+
+func messageLoopObservationFallbackCapabilityStatus(state *runState, result map[string]any, key string) string {
+	keys := messageLoopCapabilityStatusKeys(key)
+	for _, caps := range messageLoopObservationFallbackCapabilityMaps(state, result) {
+		for _, candidate := range keys {
+			if status := firstMapText(caps, candidate); status != "" {
+				return status
+			}
+		}
+	}
+	return ""
+}
+
+func messageLoopCapabilityStatusKeys(key string) []string {
+	switch strings.TrimSpace(key) {
+	case "band_energy":
+		return []string{"band_energy", "band_energy_summary"}
+	case "stereo_relation":
+		return []string{"stereo_relation", "stereo_relation_summary", "stereo_correlation"}
+	case "realtime_band_energy":
+		return []string{"realtime_band_energy", "realtime_band_energy_summary", "realtime_spectrum", "live_meter"}
+	case "realtime_stereo_relation":
+		return []string{"realtime_stereo_relation", "realtime_stereo_relation_summary", "realtime_stereo_correlation"}
+	case "waveform_envelope":
+		return []string{"waveform_envelope", "track_waveform_envelopes"}
+	default:
+		return []string{key}
+	}
+}
+
+func messageLoopObservationFallbackCapabilityMaps(state *runState, result map[string]any) []map[string]any {
+	var maps []map[string]any
+	add := func(row map[string]any) {
+		if len(row) > 0 {
+			maps = append(maps, row)
+		}
+	}
+	add(messageLoopMapValue(result["source_capabilities"]))
+	add(messageLoopMapValue(messageLoopMapValue(result["digest"])["source_capabilities"]))
+	add(messageLoopMapValue(messageLoopMapValue(result["acoustic_digest"])["source_capabilities"]))
+	observation := messageLoopObservationFromResult(result)
+	add(messageLoopMapValue(observation["source_capabilities"]))
+	for _, key := range []string{"project_package", "mix_package", "deep_package", "environment_package"} {
+		add(messageLoopMapValue(messageLoopMapValue(observation[key])["source_capabilities"]))
+	}
+	if state != nil && state.recentObservation != nil && observationIsMixObservation(state.recentObservation) {
+		summary := state.recentObservation.Summary
+		add(messageLoopMapValue(summary["source_capabilities"]))
+		add(messageLoopMapValue(messageLoopMapValue(summary["digest"])["source_capabilities"]))
+		add(messageLoopMapValue(messageLoopMapValue(summary["acoustic_digest"])["source_capabilities"]))
+	}
+	return maps
+}
+
+func messageLoopCapabilityStatusReady(status string) bool {
+	switch strings.ToLower(strings.TrimSpace(status)) {
+	case "ready", "baseline_ready", "fresh", "available", "ok":
+		return true
+	default:
+		return false
+	}
+}
+
 func messageLoopMixObservationFinalReply(state *runState, reply string) string {
 	reply = strings.TrimSpace(reply)
 	if state == nil || reply == "" {
 		return reply
 	}
-	if (!messageLoopNaturalMixRequest(state.input.UserText) && !messageLoopImplicitPanFollowupRequest(state)) || messageLoopExplicitPluginOrRawRequest(state.input.UserText) {
+	if messageLoopMutationBarrierActive(state) {
+		return messageLoopReadOnlyFinalReply(state, reply)
+	}
+	isLowMudPluginPrep := messageLoopLowMudPluginPrepRequest(state.input.UserText)
+	isObservationFollowup := messageLoopMixObservationActionFollowupRequest(state)
+	hasTreatmentMarkup := messageLoopMixTreatmentPendingMarkupPresent(reply)
+	if !messageLoopNaturalMixRequest(state.input.UserText) && !messageLoopImplicitPanFollowupRequest(state) && !isLowMudPluginPrep && !isObservationFollowup && !hasTreatmentMarkup {
 		return reply
 	}
-	if candidate := messageLoopPendingMixTickCandidateFromReply(state, reply); candidate != nil {
+	if messageLoopExplicitPluginOrRawRequest(state.input.UserText) && !isLowMudPluginPrep {
+		return messageLoopStripMixTreatmentPendingMarkup(reply)
+	}
+	deepIncomplete := messageLoopLastMixObservationDeepPackageIncomplete(state) || messageLoopReplyMentionsIncompleteDeepPackage(reply)
+	hasResolvedActionIntent := messageLoopResolvedMixActionIntent(state)
+	if deepIncomplete && !isLowMudPluginPrep && !hasResolvedActionIntent {
+		return messageLoopStripExecutionQuestion(messageLoopStripMixTreatmentPendingMarkup(reply))
+	}
+	preferTreatmentPending := hasTreatmentMarkup || isLowMudPluginPrep || messageLoopExplicitPanActionText(state.input.UserText)
+	if preferTreatmentPending {
+		if treatment := messageLoopMixTreatmentPendingFromReply(state, reply); treatment != nil {
+			state.executionMemory.PendingMixTreatment = treatment
+			reply = messageLoopStripMixTreatmentPendingMarkup(reply)
+		} else if treatment := messageLoopConservativeLowMudTreatmentPendingFromReply(state, reply); treatment != nil {
+			state.executionMemory.PendingMixTreatment = treatment
+			reply = messageLoopConservativeLowMudTreatmentPendingReply(treatment)
+		} else if hasTreatmentMarkup {
+			reply = messageLoopStripMixTreatmentPendingMarkup(reply)
+		}
+	} else if candidate := messageLoopPendingMixTickCandidateFromReply(state, reply); candidate != nil {
+		messageLoopAttachDiagnosisToMixTick(state, candidate, state.input.UserText)
 		state.executionMemory.PendingMixTickCandidate = candidate
 	} else if treatment := messageLoopMixTreatmentPendingFromReply(state, reply); treatment != nil {
 		state.executionMemory.PendingMixTreatment = treatment
 		reply = messageLoopStripMixTreatmentPendingMarkup(reply)
+	} else if treatment := messageLoopConservativeLowMudTreatmentPendingFromReply(state, reply); treatment != nil {
+		state.executionMemory.PendingMixTreatment = treatment
+		reply = messageLoopConservativeLowMudTreatmentPendingReply(treatment)
 	}
 	if !messageLoopHasUsableMixObservation(state) {
 		return reply
+	}
+	if deepIncomplete && !messageLoopHasPendingMixAction(state) {
+		return messageLoopStripExecutionQuestion(reply)
+	}
+	if !messageLoopHasPendingMixAction(state) {
+		if treatment := messageLoopConservativeHeadroomTreatmentPending(state, reply); treatment != nil {
+			state.executionMemory.PendingMixTreatment = treatment
+		}
 	}
 	if messageLoopMixReplyAsksForExecution(reply) {
 		return reply
@@ -2879,10 +3966,190 @@ func messageLoopMixObservationFinalReply(state *runState, reply string) string {
 	return reply + "\n\n如果你认可这个小步建议，需要我继续执行吗？"
 }
 
+func messageLoopMixObservationActionFollowupRequest(state *runState) bool {
+	if state == nil || !messageLoopHasAnyMixObservationAttempt(state) {
+		return false
+	}
+	text := strings.ToLower(strings.TrimSpace(state.input.UserText))
+	if text == "" || messageLoopExplicitPluginOrRawRequest(text) {
+		return false
+	}
+	return messageLoopTextHasAny(text,
+		"\u600e\u4e48\u529e", "\u600e\u4e48\u5904\u7406", "\u600e\u4e48\u8c03", "\u8be5\u600e\u4e48", "\u4f60\u6253\u7b97", "\u6253\u7b97\u600e\u4e48",
+		"\u4e0b\u4e00\u6b65", "\u63a5\u4e0b\u6765", "\u7136\u540e\u5462", "\u5efa\u8bae", "\u5904\u7406\u5efa\u8bae", "\u65b9\u6848",
+		"\u53ef\u4ee5\u600e\u4e48", "\u8981\u600e\u4e48", "\u8be5\u4e0d\u8be5", "\u53ef\u4ee5\u5904\u7406", "\u53ef\u4ee5\u8fdb\u884c\u5904\u7406", "\u5f00\u59cb\u5904\u7406",
+		"what should", "what next", "next step", "how should", "how would you", "suggest", "recommend", "proposal",
+	)
+}
+
+func messageLoopHasPendingMixAction(state *runState) bool {
+	if state == nil {
+		return false
+	}
+	return state.executionMemory.PendingMixTickCandidate != nil || state.executionMemory.PendingMixTreatment != nil
+}
+
+func messageLoopResolvedMixActionIntent(state *runState) bool {
+	if state == nil {
+		return false
+	}
+	if messageLoopLowMudPluginPrepRequest(state.input.UserText) ||
+		messageLoopFocusRelationshipIntent(state.input.UserText) ||
+		messageLoopExplicitPanActionText(state.input.UserText) {
+		return true
+	}
+	if delta, ok := messageLoopImplicitGainDeltaFromText(state.input.UserText); ok && delta != 0 && mathAbs(delta) <= 2 {
+		return true
+	}
+	if messageLoopUserExplicitlyIdentifiesVocalTrackResolved(state.input.UserText) {
+		return messageLoopConversationHasFocusRelationshipIntent(state)
+	}
+	return false
+}
+
+func messageLoopExplicitPanActionText(userText string) bool {
+	text := strings.ToLower(strings.TrimSpace(userText))
+	if text == "" {
+		return false
+	}
+	hasPanSubject := messageLoopTextHasAny(text, "声像", "声相", "声场", "pan", "panning", "stereo")
+	hasPanDirection := messageLoopTextHasAny(text,
+		"往左", "向左", "靠左", "偏左", "左一点", "左边",
+		"往右", "向右", "靠右", "偏右", "右一点", "右边",
+		"居中", "回中", "中间", "center", "centre", "left", "right",
+	)
+	return hasPanSubject && hasPanDirection
+}
+
+func messageLoopConversationHasFocusRelationshipIntent(state *runState) bool {
+	if state == nil {
+		return false
+	}
+	for i := len(state.input.Conversation) - 1; i >= 0; i-- {
+		msg := state.input.Conversation[i]
+		if !strings.EqualFold(strings.TrimSpace(msg.Role), "user") {
+			continue
+		}
+		if strings.TrimSpace(msg.Content) == strings.TrimSpace(state.input.UserText) {
+			continue
+		}
+		if messageLoopFocusRelationshipIntent(msg.Content) {
+			return true
+		}
+	}
+	return false
+}
+
+func messageLoopLastMixObservationDeepPackageIncomplete(state *runState) bool {
+	result := messageLoopLastMixObservationResult(state)
+	if len(result) == 0 {
+		return false
+	}
+	status := messageLoopMapValue(result["acoustic_package_status"])
+	if len(status) == 0 {
+		if digest := messageLoopMapValue(result["acoustic_digest"]); len(digest) > 0 {
+			status = messageLoopMapValue(digest["acoustic_package_status"])
+		}
+	}
+	if len(status) == 0 {
+		observation := messageLoopMapValue(result["observation"])
+		status = messageLoopMapValue(observation["acoustic_package_status"])
+	}
+	if len(status) == 0 {
+		return false
+	}
+	layers := messageLoopMapValue(status["package_layers"])
+	l3 := messageLoopMapValue(layers["l3_deep"])
+	if l3Status := strings.ToLower(strings.TrimSpace(messageLoopText(l3["status"]))); l3Status != "" && l3Status != "ready" {
+		return true
+	}
+	features := messageLoopMapValue(l3["features"])
+	for _, name := range []string{"spectrogram_tiles", "band_energy_summary", "stereo_relation_summary"} {
+		feature := messageLoopMapValue(features[name])
+		switch strings.ToLower(strings.TrimSpace(messageLoopText(feature["status"]))) {
+		case "ready":
+			continue
+		case "":
+			return true
+		default:
+			return true
+		}
+	}
+	return false
+}
+
+func messageLoopReplyMentionsIncompleteDeepPackage(reply string) bool {
+	text := strings.ToLower(strings.TrimSpace(reply))
+	if text == "" {
+		return false
+	}
+	if !messageLoopTextHasAny(text, "l3", "深度", "spectrogram", "band energy", "stereo relation") {
+		return false
+	}
+	return messageLoopTextHasAny(text,
+		"building", "partial", "incomplete", "not ready",
+		"还在构建", "正在构建", "未完整", "不完整", "未完成", "不可靠", "仍是 partial", "还在 building",
+	)
+}
+
+func messageLoopLastMixObservationResult(state *runState) map[string]any {
+	if state == nil {
+		return nil
+	}
+	for i := len(state.executed) - 1; i >= 0; i-- {
+		record := state.executed[i]
+		if !messageLoopExecutionSucceeded(record) {
+			continue
+		}
+		if !messageLoopIsMixObservationName(firstNonEmpty(messageLoopText(record["tool"]), messageLoopText(record["command_name"]))) {
+			continue
+		}
+		result := messageLoopMapValue(record["result"])
+		if len(result) == 0 {
+			result = record
+		}
+		return result
+	}
+	for i := len(state.trace) - 1; i >= 0; i-- {
+		event := state.trace[i]
+		if event.ToolResult == nil || toolStatusFailed(event.ToolResult.Status) || !messageLoopIsMixObservationName(event.ToolResult.Tool) {
+			continue
+		}
+		return event.ToolResult.Result
+	}
+	return nil
+}
+
+func messageLoopStripExecutionQuestion(reply string) string {
+	reply = strings.TrimSpace(reply)
+	if reply == "" || !messageLoopMixReplyAsksForExecution(reply) {
+		return reply
+	}
+	lines := strings.Split(reply, "\n")
+	for len(lines) > 0 {
+		last := strings.TrimSpace(lines[len(lines)-1])
+		if last == "" || messageLoopMixReplyAsksForExecution(last) {
+			lines = lines[:len(lines)-1]
+			continue
+		}
+		break
+	}
+	stripped := strings.TrimSpace(strings.Join(lines, "\n"))
+	if stripped == "" {
+		return reply
+	}
+	return stripped
+}
+
 func messageLoopMixReplyAsksForExecution(reply string) bool {
 	text := strings.ToLower(strings.TrimSpace(reply))
 	if text == "" {
 		return false
+	}
+	if messageLoopTextHasAny(text,
+		"需要我继续执行吗", "要我继续执行吗", "需要我执行吗", "要我执行吗", "要我现在执行吗", "现在执行吗", "执行这个", "继续执行这一步吗",
+	) {
+		return true
 	}
 	return messageLoopTextHasAny(text,
 		"需要我继续执行吗", "要我继续执行吗", "需要我执行吗", "要我执行吗", "要我现在执行吗", "现在执行吗", "执行这个",
@@ -3214,7 +4481,7 @@ func messageLoopFinalIssue(state *runState) string {
 	if issue := messageLoopMediaFinalIssue(state); issue != "" {
 		return issue
 	}
-	if state != nil && (messageLoopNaturalMixRequest(state.input.UserText) || messageLoopAudioObservationRequest(state.input.UserText)) && !messageLoopObservationPackageReadRequest(state.input.UserText) && !messageLoopExplicitPluginOrRawRequest(state.input.UserText) && !messageLoopHasAnyMixObservationAttempt(state) {
+	if state != nil && (messageLoopNaturalMixRequest(state.input.UserText) || messageLoopAudioObservationRequest(state.input.UserText)) && !messageLoopObservationPackageReadRequest(state.input.UserText) && (!messageLoopExplicitPluginOrRawRequest(state.input.UserText) || messageLoopLowMudPluginPrepRequest(state.input.UserText) || messageLoopMutationBarrierActive(state)) && !messageLoopHasAnyMixObservationAttempt(state) {
 		return "cannot finish yet; broad acoustic mixing requests must run mix.observe first so the reply is grounded in current observation data"
 	}
 	if state == nil || !messageLoopUserRequestedMIDINotes(state.input.UserText) {

@@ -18,12 +18,14 @@ import (
 	"time"
 
 	"vit-daw-agent/internal/agentloop"
+	"vit-daw-agent/internal/agentprotocol"
 	"vit-daw-agent/internal/artifacts"
 	"vit-daw-agent/internal/config"
 	"vit-daw-agent/internal/executor"
 	"vit-daw-agent/internal/harness"
 	"vit-daw-agent/internal/history"
 	"vit-daw-agent/internal/llm"
+	"vit-daw-agent/internal/mom"
 	"vit-daw-agent/internal/planner"
 	"vit-daw-agent/internal/policy"
 	agentruntime "vit-daw-agent/internal/runtime"
@@ -2640,15 +2642,15 @@ func TestMixTreatmentPreparationPluginLoadConfirmationBypassesBroadMixGuard(t *t
 		CreatedAt: time.Now(),
 		Workflow:  pluginGrabberLoadCommand,
 		Context: map[string]any{
-			"user_message":                    "低频有点糊，帮我处理一下",
-			"mix_treatment_preparation":       true,
+			"user_message":                   "低频有点糊，帮我处理一下",
+			"mix_treatment_preparation":      true,
 			"mix_treatment_preparation_plan": map[string]any{"schema_version": "mix_treatment_preparation.v0"},
 		},
 		WorkflowData: map[string]any{
-			"conversation_id":                 "chat_mix",
-			"plugin_query":                    "eq",
-			"user_message":                    "低频有点糊，帮我处理一下",
-			"mix_treatment_preparation":       true,
+			"conversation_id":                "chat_mix",
+			"plugin_query":                   "eq",
+			"user_message":                   "低频有点糊，帮我处理一下",
+			"mix_treatment_preparation":      true,
 			"mix_treatment_preparation_plan": map[string]any{"schema_version": "mix_treatment_preparation.v0"},
 		},
 		Decisions: policy.Analyze([]map[string]any{
@@ -2694,6 +2696,50 @@ func TestRecordGoalResultStoresPendingMixTickWithoutDeadlock(t *testing.T) {
 	events, _ := server.agentEventsSince("chat_mix", 0, 10)
 	if len(events) != 1 || events[0].Type != "mix_tick.pending" {
 		t.Fatalf("events = %+v", events)
+	}
+}
+
+func TestRecordGoalResultUpsertsPendingManagerFromLegacyMixTreatment(t *testing.T) {
+	server := New(nil, shadow.New(nil), nil)
+	server.recordGoalResult("chat_mix", agentloop.Result{
+		GoalID: "goal_1",
+		RunID:  "run_1",
+		ExecutionMemory: agentloop.ExecutionMemory{
+			PendingMixTreatment: &agentloop.MixTreatmentPending{
+				SchemaVersion:    "mix_treatment_pending.v0",
+				Status:           "pending_confirmation",
+				ConversationID:   "chat_mix",
+				ObservationID:    "obs_1",
+				Intent:           "reduce low-mid mud",
+				TargetRef:        "track:1007",
+				ActionKind:       "plugin_treatment",
+				ProcessorType:    "eq",
+				PluginID:         "plugin_eq",
+				PluginName:       "Test EQ",
+				ReasoningSummary: "low-mid buildup around the vocal",
+			},
+		},
+	})
+
+	if legacy, ok := server.pendingMixTreatmentForConversation("chat_mix"); !ok || legacy.TargetRef != "track:1007" {
+		t.Fatalf("legacy pending treatment = %+v ok=%v", legacy, ok)
+	}
+	active := server.pendingManager.ActiveForConversation("chat_mix")
+	if len(active) != 1 {
+		t.Fatalf("active pending manager rows = %+v", active)
+	}
+	pending := active[0]
+	if pending.CandidateType != "mix_treatment" || pending.Status != agentprotocol.PendingStatusWaitingUser || pending.TargetRef != "track:1007" {
+		t.Fatalf("pending manager candidate = %+v", pending)
+	}
+	server.transitionActivePendingCandidate("chat_mix", "mix_treatment", agentprotocol.PendingStatusAccepted, "user approved")
+	accepted, ok := server.pendingManager.Get(pending.ID)
+	if !ok || accepted.Status != agentprotocol.PendingStatusAccepted || accepted.Source.Metadata["transition_reason"] != "user approved" {
+		t.Fatalf("accepted pending = %+v ok=%v", accepted, ok)
+	}
+	server.transitionActivePendingCandidate("chat_mix", "mix_treatment", agentprotocol.PendingStatusCommitted, "applied")
+	if rows := server.pendingManager.ActiveForConversation("chat_mix"); len(rows) != 0 {
+		t.Fatalf("committed pending should not remain active: %+v", rows)
 	}
 }
 
@@ -2935,6 +2981,9 @@ func TestPendingMixTreatmentConfirmationReturnsResolverPrep(t *testing.T) {
 	events, _ := server.agentEventsSince("chat_mix", 0, 10)
 	if len(events) != 1 || events[0].Type != "mix_treatment.resolver_decision" {
 		t.Fatalf("events = %+v", events)
+	}
+	if events[0].Title != "混音建议需要准备" || strings.Contains(events[0].Body, "plugin treatment") || strings.Contains(events[0].Body, "resolver") {
+		t.Fatalf("resolver event was not localized: %+v", events[0])
 	}
 	plan := mapValue(events[0].Payload["preparation_plan"])
 	if cleanContextText(plan["schema_version"]) != "mix_treatment_preparation.v0" {
@@ -3394,6 +3443,9 @@ func TestPendingMixTreatmentReadyPluginControlExecutesApplyControlOnly(t *testin
 	events, _ := server.agentEventsSince("chat_mix", 0, 10)
 	if len(events) != 1 || events[0].Type != "mix_treatment.resolver_decision" || events[0].Status != "ready_plugin_control" {
 		t.Fatalf("events = %+v", events)
+	}
+	if events[0].Title != "混音建议已可执行" || strings.Contains(events[0].Body, "resolver") {
+		t.Fatalf("resolver event was not localized: %+v", events[0])
 	}
 	var applyCommands []map[string]any
 	for _, cmd := range kernel.commands {
@@ -3947,6 +3999,196 @@ func TestPendingMixTickReportUsesSelectedAcousticWaveformAfterMetrics(t *testing
 	}
 	if strings.Contains(reply, "headroom 0.1 -> 未知") || strings.Contains(reply, "headroom 0.1 -> 鏈") {
 		t.Fatalf("reply should use selected acoustic waveform headroom:\n%s", reply)
+	}
+}
+
+func TestPendingMixTickReportIncludesReadyABResult(t *testing.T) {
+	reply := pendingMixTickReport(agentloop.PendingMixTickCandidate{
+		Operation:     "track_gain_adjust",
+		TrackID:       "track_1",
+		DeltaDB:       1.0,
+		ObservationID: "obs_before",
+		Status:        "pending_confirmation",
+	}, executorResultForMixTickReport("mix.propose_tick", map[string]any{"before_db": -3.0, "after_db": -2.0}), executorResultForMixTickReport("mix.apply_tick", map[string]any{"before_db": -3.0, "after_db": -2.0}), executorResultForMixTickReport("mix.observe", map[string]any{
+		"observation": map[string]any{
+			"mix_package": map[string]any{
+				"current_metrics": map[string]any{
+					"ab_result": map[string]any{
+						"status":                 "ready",
+						"tap_point":              "track_post_fader",
+						"before_evidence_ref":    "dad.l2_render_probe:render_before",
+						"after_evidence_ref":     "dad.l2_render_probe:render_after",
+						"before_render_revision": "render_before",
+						"after_render_revision":  "render_after",
+						"delta": map[string]any{
+							"levels": map[string]any{
+								"peak_dbfs": map[string]any{"delta": 0.6},
+								"rms_dbfs":  map[string]any{"delta": 1.2},
+							},
+							"stereo": map[string]any{
+								"balance_db":           map[string]any{"delta": 0.3},
+								"correlation_estimate": map[string]any{"delta": -0.08},
+							},
+						},
+					},
+				},
+			},
+		},
+	}), "")
+
+	for _, want := range []string{"AB Result：可信", "观测点=track_post_fader", "峰值 +0.6 dB", "RMS +1.2 dB", "声像 +0.3 dB", "相关性 -0.08"} {
+		if !strings.Contains(reply, want) {
+			t.Fatalf("reply missing %q:\n%s", want, reply)
+		}
+	}
+	for _, unexpected := range []string{"dad.l2_render_probe:", "render_revision："} {
+		if strings.Contains(reply, unexpected) {
+			t.Fatalf("reply should keep long evidence refs out of chat text, found %q:\n%s", unexpected, reply)
+		}
+	}
+}
+
+func TestPendingMixTickReportDoesNotTrustMissingABResult(t *testing.T) {
+	reply := pendingMixTickReport(agentloop.PendingMixTickCandidate{
+		Operation:     "track_gain_adjust",
+		TrackID:       "track_1",
+		DeltaDB:       1.0,
+		ObservationID: "obs_before",
+		Status:        "pending_confirmation",
+	}, executorResultForMixTickReport("mix.propose_tick", map[string]any{"before_db": -3.0, "after_db": -2.0}), executorResultForMixTickReport("mix.apply_tick", map[string]any{"before_db": -3.0, "after_db": -2.0}), executorResultForMixTickReport("mix.observe", map[string]any{}), "")
+
+	for _, want := range []string{"AB Result：不可信", "ab_result_missing", "未把这次改动标记为已验证"} {
+		if !strings.Contains(reply, want) {
+			t.Fatalf("reply missing %q:\n%s", want, reply)
+		}
+	}
+}
+
+func TestProjectResultCardIncludesReadyABResult(t *testing.T) {
+	executed := []map[string]any{{
+		"status":       "ok",
+		"command_name": "mix_apply_tick",
+		"result":       map[string]any{"status": "ok", "track_id": "track_1"},
+	}}
+	observe := executorResultForMixTickReport("mix.observe", map[string]any{
+		"observation": map[string]any{
+			"mix_package": map[string]any{
+				"current_metrics": map[string]any{
+					"ab_result": map[string]any{
+						"status":                 "ready",
+						"tap_point":              "track_post_fader",
+						"render_mode":            "offline_probe",
+						"before_evidence_ref":    "dad.l2_render_probe:render_before",
+						"after_evidence_ref":     "dad.l2_render_probe:render_after",
+						"before_render_revision": "render_before",
+						"after_render_revision":  "render_after",
+						"delta": map[string]any{
+							"levels": map[string]any{
+								"peak_dbfs": map[string]any{"delta": -1.0},
+								"rms_dbfs":  map[string]any{"delta": -1.0},
+							},
+						},
+					},
+				},
+			},
+		},
+	})
+
+	cards := projectResultCardsFromExecutedWithAB(executed, observe)
+	if len(cards) != 1 {
+		t.Fatalf("cards = %+v", cards)
+	}
+	ab := mapValue(cards[0]["ab_result"])
+	if cleanContextText(ab["status"]) != "ready" || cleanContextText(ab["tap_point"]) != "track_post_fader" {
+		t.Fatalf("ab card = %#v", ab)
+	}
+	if !strings.Contains(cleanContextText(ab["display_title"]), "AB Result") || !strings.Contains(cleanContextText(ab["display_body"]), "峰值 -1 dB") || !strings.Contains(cleanContextText(ab["display_body"]), "RMS -1 dB") {
+		t.Fatalf("ab display should be visible and compact: %#v", ab)
+	}
+	if cleanContextText(ab["before_render_revision"]) != "render_before" || cleanContextText(ab["after_render_revision"]) != "render_after" {
+		t.Fatalf("ab revisions = %#v", ab)
+	}
+}
+
+func TestProjectResultCardReadsReadyABResultFromMOMProjectionStruct(t *testing.T) {
+	executed := []map[string]any{{
+		"status":       "ok",
+		"command_name": "set_plugin_param",
+		"result":       map[string]any{"status": "ok", "track_id": "1007", "plugin_id": "plugin_eq"},
+	}}
+	abResult := map[string]any{
+		"schema_version":          "mom_ab_result.v1",
+		"status":                  "ready",
+		"tap_point":               "track_post_fader",
+		"render_mode":             "offline_probe",
+		"before_observation_id":   "obs_before",
+		"after_observation_id":    "obs_after",
+		"before_evidence_ref":     "dad.l2_render_probe:before",
+		"after_evidence_ref":      "dad.l2_render_probe:after",
+		"before_render_revision":  "render_before",
+		"after_render_revision":   "render_after",
+		"render_revision_changed": true,
+		"delta": map[string]any{
+			"levels": map[string]any{
+				"peak_dbfs": map[string]any{"delta": 0.393},
+				"rms_dbfs":  map[string]any{"delta": -0.372},
+			},
+			"stereo": map[string]any{
+				"balance_db":           map[string]any{"delta": -0.008},
+				"correlation_estimate": map[string]any{"delta": -0.032},
+			},
+		},
+	}
+	projection := &mom.Projection{
+		MOMVersion: "v1.3",
+		Layers: mom.Layers{
+			ABResultComparison: mom.Layer{
+				Status: "ready",
+				Facts:  map[string]any{"ab_result": abResult},
+			},
+		},
+	}
+	observe := executorResultForMixTickReport("mix.observe", map[string]any{
+		"mom_projection": projection,
+	})
+
+	reply := strings.Join(pendingMixTickABResultLines(observe), "\n")
+	if !strings.Contains(reply, "AB Result：可信") || !strings.Contains(reply, "观测点=track_post_fader / offline_probe") || !strings.Contains(reply, "峰值 +0.393 dB") {
+		t.Fatalf("reply should trust struct-shaped MOM projection, got:\n%s", reply)
+	}
+	if strings.Contains(reply, "dad.l2_render_probe:") || strings.Contains(reply, "render_revision：") {
+		t.Fatalf("reply should stay compact and keep evidence refs structured, got:\n%s", reply)
+	}
+	cards := projectResultCardsFromExecutedWithAB(executed, observe)
+	if len(cards) != 1 {
+		t.Fatalf("cards = %+v", cards)
+	}
+	ab := mapValue(cards[0]["ab_result"])
+	if cleanContextText(ab["status"]) != "ready" || cleanContextText(ab["reason"]) != "quality_gate_not_ready" {
+		t.Fatalf("ab card = %#v", ab)
+	}
+	if !strings.Contains(cleanContextText(ab["display_title"]), "AB Result：可信") || !strings.Contains(cleanContextText(ab["display_body"]), "峰值 +0.393 dB") {
+		t.Fatalf("ab card should expose trusted AB result: %#v", ab)
+	}
+}
+
+func TestProjectResultCardIncludesMissingABResult(t *testing.T) {
+	executed := []map[string]any{{
+		"status":       "ok",
+		"command_name": "set_plugin_param",
+		"result":       map[string]any{"status": "ok", "track_id": "track_1", "plugin_id": "plugin_eq"},
+	}}
+
+	cards := projectResultCardsFromExecutedWithAB(executed, executorResultForMixTickReport("mix.observe", map[string]any{}))
+	if len(cards) != 1 {
+		t.Fatalf("cards = %+v", cards)
+	}
+	ab := mapValue(cards[0]["ab_result"])
+	if cleanContextText(ab["status"]) != "missing" || cleanContextText(ab["reason"]) != "ab_result_missing" {
+		t.Fatalf("ab card = %#v", ab)
+	}
+	if !strings.Contains(cleanContextText(ab["display_title"]), "AB Result") || !strings.Contains(cleanContextText(ab["display_body"]), "ab_result_missing") {
+		t.Fatalf("missing ab should be explicit: %#v", ab)
 	}
 }
 
@@ -5448,6 +5690,10 @@ func TestConfirmationInteractionRequestUsesGenericSchema(t *testing.T) {
 	if req.Type != "confirmation" || req.Data["plan_id"] != "plan_1" {
 		t.Fatalf("legacy compatibility fields missing: %+v", req)
 	}
+	typed := mapValue(req.Payload["typed_state"])
+	if typed["kind"] != agentprotocol.KindApprovalRequest || typed["resource_domain"] != "project.commit" {
+		t.Fatalf("typed approval missing or wrong: %+v", typed)
+	}
 	raw, err := json.Marshal(req)
 	if err != nil {
 		t.Fatal(err)
@@ -5501,6 +5747,818 @@ func TestAttachInteractionRequestsHydratesPendingConfirmationPlan(t *testing.T) 
 	if len(req.Actions) != 2 || req.Actions[0].ID != "approve" || req.Actions[1].ID != "cancel" {
 		t.Fatalf("actions = %+v", req.Actions)
 	}
+	if typed := mapValue(req.Payload["typed_state"]); typed["kind"] != agentprotocol.KindApprovalRequest {
+		t.Fatalf("typed approval = %+v", typed)
+	}
+}
+
+func TestMixTreatmentInteractionPayloadIncludesTypedPendingCandidate(t *testing.T) {
+	payload := mixTreatmentInteractionPayload(agentloop.MixTreatmentPending{
+		SchemaVersion:    "mix_treatment_pending.v0",
+		Status:           "pending_confirmation",
+		ConversationID:   "chat_1",
+		TargetRef:        "track:vocal",
+		ActionKind:       "gain_balance",
+		ProcessorType:    "utility",
+		DeltaDB:          -1,
+		ReasoningSummary: "small gain move",
+	})
+	typed := mapValue(payload["typed_state"])
+	if typed["kind"] != agentprotocol.KindPendingCandidate || typed["candidate_type"] != "mix_treatment" {
+		t.Fatalf("typed pending = %+v", typed)
+	}
+	if typed["status"] != agentprotocol.PendingStatusWaitingUser {
+		t.Fatalf("typed pending status = %+v", typed)
+	}
+}
+
+func TestMixTreatmentInteractionPayloadLocalizesConfirmationDisplay(t *testing.T) {
+	treatment := agentloop.MixTreatmentPending{
+		SchemaVersion:    "mix_treatment_pending.v0",
+		Status:           "pending_confirmation",
+		ConversationID:   "chat_1",
+		TargetRef:        "track:1007",
+		ActionKind:       "plugin_treatment",
+		ProcessorType:    "eq",
+		Confidence:       "low",
+		ReasoningSummary: "Sub/bass/low-mid band energies around -40 dB are close to mid at -38.56 dB while presence is much lower.",
+		NeedsResolution:  []string{"request_more_observation", "plugin_profile"},
+	}
+	payload := mixTreatmentInteractionPayload(treatment)
+	display := mapValue(payload["display"])
+	reason := cleanContextText(display["reasoning_summary"])
+	if !strings.Contains(reason, "低频/低中频") || strings.Contains(reason, "Sub/bass") || strings.Contains(reason, "band energies") {
+		t.Fatalf("localized reasoning = %q", reason)
+	}
+	if display["confidence"] != "低" || payload["display_confidence"] != "低" {
+		t.Fatalf("localized confidence display=%+v payload=%+v", display["confidence"], payload["display_confidence"])
+	}
+	needs := contextStringSlice(payload["display_needs_resolution"])
+	if strings.Join(needs, ",") != "需要更多观察,插件控制映射" {
+		t.Fatalf("localized needs = %+v", needs)
+	}
+	req := mixTreatmentInteractionRequest("chat_1", "goal_1", "run_1", treatment.ReasoningSummary, treatment)
+	if strings.Contains(req.Body, "Sub/bass") || strings.Contains(req.Body, "band energies") || !strings.Contains(req.Body, "低频/低中频") {
+		t.Fatalf("request body = %q", req.Body)
+	}
+	reply := localizedMixTreatmentUserReply("Sub 20-60 Hz is ready, Low-mid is partial, LUFS/masking/reference deferred.", treatment)
+	for _, bad := range []string{"Sub", "Low-mid", "partial", "deferred", "masking/reference"} {
+		if strings.Contains(reply, bad) {
+			t.Fatalf("localized reply leaked %q in %q", bad, reply)
+		}
+	}
+	for _, want := range []string{"超低频", "低中频", "部分可用", "掩蔽分析", "参考匹配", "暂未展开"} {
+		if !strings.Contains(reply, want) {
+			t.Fatalf("localized reply missing %q in %q", want, reply)
+		}
+	}
+}
+
+func TestAttachInteractionRequestsAddsTypedUserInputRequest(t *testing.T) {
+	resp := ChatResponse{
+		InteractionRequests: []AgentInteractionRequest{{
+			ID:             "interaction_form",
+			Kind:           "form",
+			Type:           "plugin_learning_display_domain_form",
+			Source:         "plugin_grabber",
+			Workflow:       "plugin_grabber_auto_learn",
+			Stage:          "display_domain_form",
+			Title:          "补充显示域",
+			Body:           "请补充显示范围。",
+			Status:         "waiting_for_user",
+			ConversationID: "chat_1",
+			Fields: []AgentInteractionField{{
+				ID:   "range",
+				Kind: "text",
+			}},
+		}},
+	}
+	server := New(nil, shadow.New(nil), nil)
+	server.attachInteractionRequests(&resp)
+	if len(resp.InteractionRequests) != 1 {
+		t.Fatalf("interaction requests = %+v", resp.InteractionRequests)
+	}
+	typed := mapValue(resp.InteractionRequests[0].Payload["typed_state"])
+	if typed["kind"] != agentprotocol.KindUserInputRequest || typed["status"] != agentprotocol.UserInputStatusWaitingUser {
+		t.Fatalf("typed user input = %+v", typed)
+	}
+	if len(resp.TypedEvents) != 1 || mapValue(resp.TypedEvents[0])["event_type"] != agentprotocol.KindUserInputRequest {
+		t.Fatalf("typed events = %+v", resp.TypedEvents)
+	}
+	server.attachInteractionRequests(&resp)
+	if len(resp.TypedEvents) != 1 {
+		t.Fatalf("typed events duplicated = %+v", resp.TypedEvents)
+	}
+}
+
+func TestPluginPrepContinuationFromRepliesCreatesPendingParameterCandidate(t *testing.T) {
+	server := New(nil, shadow.New(nil), nil)
+	plan := PendingPlan{
+		ID:       "plan_plugin_load",
+		Workflow: pluginGrabberLoadCommand,
+		Context: map[string]any{
+			"conversation_id": "chat_mix",
+			"goal_id":         "goal_1",
+			"run_id":          "run_1",
+			"user_message":    "reduce low-mid mud",
+		},
+		WorkflowData: map[string]any{
+			"conversation_id":                "chat_mix",
+			"mix_treatment_preparation":      true,
+			"mix_treatment_preparation_plan": map[string]any{"schema_version": "mix_treatment_preparation.v0"},
+		},
+	}
+	replies := []map[string]any{
+		{
+			"status":       "ok",
+			"command_name": "rack_add_node",
+			"result": map[string]any{
+				"track_id":    "1007",
+				"plugin_id":   "plugin_eq",
+				"plugin_name": "Test EQ",
+			},
+		},
+		{
+			"status":       "ok",
+			"command_name": "get_plugin_parameters",
+			"result": map[string]any{
+				"track_id":            "1007",
+				"plugin_id":           "plugin_eq",
+				"plugin_name":         "Test EQ",
+				"parameter_count":     48,
+				"quick_control_count": 6,
+				"quick_controls":      testPluginPrepEQQuickControls(),
+			},
+		},
+	}
+
+	prep := server.pluginPrepContinuationFromReplies(plan, replies, "loaded")
+	if prep.GoalStatus != string(agentruntime.StatusWaitingConfirmation) || prep.StopReason != pluginPrepWorkerCandidateStopReason {
+		t.Fatalf("prep status = %+v", prep)
+	}
+	if len(prep.InteractionRequests) != 1 {
+		t.Fatalf("interaction requests = %+v", prep.InteractionRequests)
+	}
+	req := prep.InteractionRequests[0]
+	if req.Kind != "confirmation" || req.Type != pluginPrepParameterTreatmentType || req.Source != pluginPrepWorkerWorkflow || len(req.Actions) != 3 {
+		t.Fatalf("candidate request = %+v", req)
+	}
+	candidate := mapValue(req.Payload["pending_candidate"])
+	if candidate["kind"] != agentprotocol.KindPendingCandidate || candidate["candidate_type"] != pluginPrepParameterTreatmentType {
+		t.Fatalf("pending candidate = %+v", candidate)
+	}
+	if !testTypedEventsContain(prep.TypedEvents, agentprotocol.KindTerminalResult) ||
+		!testTypedEventsContain(prep.TypedEvents, agentprotocol.KindPendingCandidate) ||
+		!testTypedEventsContain(prep.TypedEvents, agentprotocol.KindApprovalRequest) ||
+		testTypedEventsContain(prep.TypedEvents, agentprotocol.KindUserInputRequest) {
+		t.Fatalf("typed events = %+v", prep.TypedEvents)
+	}
+	terminal := testTypedEventState(prep.TypedEvents, agentprotocol.KindTerminalResult)
+	if terminal["status"] != "parameters_extracted" {
+		t.Fatalf("terminal state = %+v", terminal)
+	}
+	active := server.pendingManager.ActiveForConversation("chat_mix")
+	if len(active) != 1 || active[0].CandidateType != pluginPrepParameterTreatmentType {
+		t.Fatalf("active pending = %+v", active)
+	}
+	if stored, ok := server.takePendingInteraction(req.ID); !ok || stored.Type != pluginPrepParameterTreatmentType || stored.Payload["plugin_id"] != "plugin_eq" {
+		t.Fatalf("stored interaction = %+v ok=%v", stored, ok)
+	}
+}
+
+func TestPluginPrepWorkerChineseCardAndMissingBandEvidence(t *testing.T) {
+	server := New(nil, shadow.New(nil), nil)
+	plan := testPluginPrepWorkerPlan("chat_mix", true)
+	plan.Context["user_message"] = "低频有点糊，帮我处理一下"
+	replies := testPluginPrepWorkerReplies()
+
+	prep := server.pluginPrepContinuationFromReplies(plan, replies, "已装载插件")
+	if len(prep.InteractionRequests) != 1 {
+		t.Fatalf("interaction requests = %+v", prep.InteractionRequests)
+	}
+	req := prep.InteractionRequests[0]
+	if req.Title != "确认插件参数处理" {
+		t.Fatalf("title = %q", req.Title)
+	}
+	if strings.Contains(req.Body, "Plugin Prep Worker prepared") ||
+		strings.Contains(req.Body, "Apply candidate") ||
+		!strings.Contains(req.Body, "未取得可靠的频段观测") ||
+		!strings.Contains(req.Body, "保守试探") {
+		t.Fatalf("body = %q", req.Body)
+	}
+	labels := []string{}
+	for _, action := range req.Actions {
+		labels = append(labels, action.Label)
+	}
+	if strings.Join(labels, ",") != "应用候选,调整候选,取消" {
+		t.Fatalf("labels = %+v", labels)
+	}
+	action := mapValue(req.Payload["plugin_prep_worker"])
+	if action["plugin_name"] != "TDR Nova" || action["target_ref"] != "track:1007" || action["treatment_type"] != "EQ 低频/低中频清理" {
+		t.Fatalf("candidate action = %+v", action)
+	}
+	status := mapValue(action["evidence_status"])
+	if status["band_energy"] != "missing" || status["strategy"] != "conservative_probe" || status["confidence_ceiling"] != "medium" {
+		t.Fatalf("evidence_status = %+v", status)
+	}
+	if summary := cleanContextText(action["display_summary"]); !strings.Contains(summary, "未取得可靠的频段观测") {
+		t.Fatalf("display_summary = %q", summary)
+	}
+	changes := mapRowsFromAny(action["parameter_change_summary"])
+	if len(changes) != 1 {
+		t.Fatalf("parameter_change_summary = %+v", changes)
+	}
+	if changes[0]["label"] != "B1 Gain" || changes[0]["target"] != "-1.5 dB" || changes[0]["current"] != "0.0 dB" {
+		t.Fatalf("parameter change summary = %+v", changes[0])
+	}
+	if note := cleanContextText(changes[0]["frequency_note"]); !strings.Contains(note, "180 Hz") || !strings.Contains(note, "1.20") {
+		t.Fatalf("frequency note = %q", note)
+	}
+}
+
+func TestPluginPrepWorkerConfirmationBodyLocalizesEvidenceEnums(t *testing.T) {
+	body := pluginPrepWorkerConfirmationBody(map[string]any{
+		"plugin_prep_worker": map[string]any{
+			"display_summary": "已根据诊断上下文中的频段能量观测和插件参数生成一个保守的 EQ 参数候选。确认前不会写入插件参数。",
+			"target_ref":      "track:1007",
+			"plugin_name":     "TDR Nova",
+			"treatment_type":  "EQ 低频/低中频清理",
+			"evidence_status": map[string]any{
+				"band_energy":        "available",
+				"strategy":           "request_more_observation",
+				"confidence_ceiling": "low",
+			},
+			"evidence_summary": "pending_confirmation requires request_more_observation",
+		},
+	})
+	for _, raw := range []string{"request_more_observation", "pending_confirmation", " low", "strategy"} {
+		if strings.Contains(body, raw) {
+			t.Fatalf("body leaked raw enum %q: %q", raw, body)
+		}
+	}
+	if !strings.Contains(body, "策略：需要更多观察") || !strings.Contains(body, "置信度上限：低") {
+		t.Fatalf("body missing localized evidence fields: %q", body)
+	}
+}
+
+func TestPluginPrepWorkerBandEnergyReadyIsCited(t *testing.T) {
+	server := New(nil, shadow.New(nil), nil)
+	plan := testPluginPrepWorkerPlan("chat_mix", true)
+	plan.Context["user_message"] = "低频有点糊，帮我处理一下"
+	replies := testPluginPrepWorkerReplies()
+	params := mapValue(replies[1]["result"])
+	params["band_energy_summary"] = map[string]any{
+		"status":   "ready",
+		"source":   "live_level_meter_spectrum",
+		"track_id": "1007",
+		"bands": map[string]any{
+			"bass":    "moderate",
+			"low_mid": "elevated",
+		},
+	}
+
+	prep := server.pluginPrepContinuationFromReplies(plan, replies, "已装载插件")
+	if len(prep.InteractionRequests) != 1 {
+		t.Fatalf("interaction requests = %+v", prep.InteractionRequests)
+	}
+	req := prep.InteractionRequests[0]
+	action := mapValue(req.Payload["plugin_prep_worker"])
+	status := mapValue(action["evidence_status"])
+	if status["band_energy"] != "ready" || status["strategy"] != "band_observed_conservative" {
+		t.Fatalf("evidence_status = %+v", status)
+	}
+	if summary := cleanContextText(action["evidence_summary"]); !strings.Contains(summary, "live_level_meter_spectrum") || !strings.Contains(summary, "low_mid=elevated") {
+		t.Fatalf("evidence_summary = %q", summary)
+	}
+	refs := []string{}
+	for _, ref := range action["evidence_refs"].([]string) {
+		refs = append(refs, ref)
+	}
+	if !strings.Contains(strings.Join(refs, ","), "band_energy_summary:live_level_meter_spectrum") {
+		t.Fatalf("evidence_refs = %+v", refs)
+	}
+	if strings.Contains(req.Body, "当前未取得可靠的频段观测") || !strings.Contains(req.Body, "频段能量观测可用") {
+		t.Fatalf("body = %q", req.Body)
+	}
+}
+
+func TestFinishPluginGrabberLoadWorkflowReusesExistingParameterResult(t *testing.T) {
+	server := New(nil, shadow.New(nil), nil)
+	plan := PendingPlan{
+		ID:       "plan_plugin_load",
+		Workflow: pluginGrabberLoadCommand,
+		Context: map[string]any{
+			"conversation_id": "chat_mix",
+			"goal_id":         "goal_1",
+			"run_id":          "run_1",
+			"user_message":    "reduce low-mid mud",
+		},
+		WorkflowData: map[string]any{
+			"conversation_id":           "chat_mix",
+			"mix_treatment_preparation": true,
+		},
+	}
+	replies := []map[string]any{
+		{
+			"status":       "ok",
+			"command_name": "rack_add_node",
+			"result": map[string]any{
+				"track_id":    "1007",
+				"plugin_id":   "plugin_eq",
+				"plugin_name": "Test EQ",
+			},
+		},
+		{
+			"status":       "ok",
+			"command_name": "get_plugin_parameters",
+			"result": map[string]any{
+				"status":              "ok",
+				"track_id":            "1007",
+				"plugin_id":           "plugin_eq",
+				"plugin_name":         "Test EQ",
+				"parameter_count":     48,
+				"quick_control_count": 1,
+				"quick_controls": []map[string]any{{
+					"param_id":        "band_1_gain",
+					"label":           "Band 1 Gain",
+					"normalized_role": "eq_gain",
+				}},
+			},
+		},
+	}
+
+	message, out := server.finishPluginGrabberLoadWorkflow(context.Background(), plan, replies, "loaded")
+	if !strings.Contains(message, "未重复抓参数") {
+		t.Fatalf("message did not report reused parameter fetch: %q", message)
+	}
+	if len(out) != len(replies) {
+		t.Fatalf("finish appended duplicate replies: before=%d after=%d out=%+v", len(replies), len(out), out)
+	}
+	counts := map[string]int{}
+	for _, row := range out {
+		counts[cleanContextText(row["command_name"])]++
+		switch cleanContextText(row["command_name"]) {
+		case "set_plugin_param", "plugin_set_parameter", "plugin_grabber_apply_control":
+			t.Fatalf("plugin prep finish wrote parameters unexpectedly: %+v", out)
+		}
+	}
+	if counts["get_plugin_parameters"] != 1 {
+		t.Fatalf("get_plugin_parameters count = %d, want 1; out=%+v", counts["get_plugin_parameters"], out)
+	}
+	prep := server.pluginPrepContinuationFromReplies(plan, out, message)
+	if prep.GoalStatus != string(agentruntime.StatusWaitingConfirmation) || prep.StopReason != pluginPrepWorkerCandidateStopReason {
+		t.Fatalf("prep = %+v", prep)
+	}
+	if len(prep.InteractionRequests) != 1 ||
+		!testTypedEventsContain(prep.TypedEvents, agentprotocol.KindTerminalResult) ||
+		!testTypedEventsContain(prep.TypedEvents, agentprotocol.KindPendingCandidate) ||
+		testTypedEventsContain(prep.TypedEvents, agentprotocol.KindUserInputRequest) {
+		t.Fatalf("prep did not produce terminal + pending candidate: %+v", prep)
+	}
+}
+
+func TestPluginPrepContinuationWithoutParameterDigestReturnsTypedTerminalOnly(t *testing.T) {
+	server := New(nil, shadow.New(nil), nil)
+	plan := PendingPlan{
+		ID:       "plan_plugin_load",
+		Workflow: pluginGrabberLoadCommand,
+		Context: map[string]any{
+			"conversation_id": "chat_mix",
+			"goal_id":         "goal_1",
+			"run_id":          "run_1",
+		},
+		WorkflowData: map[string]any{
+			"conversation_id":           "chat_mix",
+			"mix_treatment_preparation": true,
+		},
+	}
+	prep := server.pluginPrepContinuationFromReplies(plan, []map[string]any{
+		{"command_name": "rack_add_node", "result": map[string]any{"track_id": "1007", "plugin_id": "plugin_eq", "plugin_name": "Test EQ"}},
+	}, "loaded")
+
+	if prep.GoalStatus != "" || len(prep.InteractionRequests) != 0 || prep.StopReason != "plugin_prep_terminal_no_parameter_digest" {
+		t.Fatalf("prep = %+v", prep)
+	}
+	if !testTypedEventsContain(prep.TypedEvents, agentprotocol.KindTerminalResult) || testTypedEventsContain(prep.TypedEvents, agentprotocol.KindUserInputRequest) {
+		t.Fatalf("typed events = %+v", prep.TypedEvents)
+	}
+	terminal := testTypedEventState(prep.TypedEvents, agentprotocol.KindTerminalResult)
+	if terminal["status"] != "no_parameter_digest" {
+		t.Fatalf("terminal state = %+v", terminal)
+	}
+}
+
+func TestApplyPluginPrepContinuationResponseKeepsWaitingBridgeState(t *testing.T) {
+	server := New(nil, shadow.New(nil), nil)
+	plan := PendingPlan{
+		ID:       "plan_plugin_load",
+		Workflow: pluginGrabberLoadCommand,
+		Context: map[string]any{
+			"conversation_id": "chat_mix",
+			"goal_id":         "goal_1",
+			"run_id":          "run_1",
+		},
+		WorkflowData: map[string]any{
+			"conversation_id":                "chat_mix",
+			"mix_treatment_preparation":      true,
+			"mix_treatment_preparation_plan": map[string]any{"schema_version": "mix_treatment_preparation.v0"},
+		},
+	}
+	prep := server.pluginPrepContinuationFromReplies(plan, []map[string]any{
+		{"command_name": "rack_add_node", "result": map[string]any{"track_id": "1007", "plugin_id": "plugin_eq", "plugin_name": "Test EQ"}},
+		{"command_name": "get_plugin_parameters", "result": map[string]any{"track_id": "1007", "plugin_id": "plugin_eq", "plugin_name": "Test EQ", "parameter_count": 48, "quick_controls": testPluginPrepEQQuickControls()}},
+	}, "loaded")
+	response := map[string]any{
+		"status":       "ok",
+		"message":      "loaded",
+		"goal_status":  string(agentruntime.StatusCompleted),
+		"typed_events": []map[string]any{{"event_type": agentprotocol.KindApprovalRequest}},
+	}
+
+	response = applyPluginPrepContinuationResponse(response, prep)
+	if response["goal_status"] != string(agentruntime.StatusWaitingConfirmation) || response["stop_reason"] != pluginPrepWorkerCandidateStopReason {
+		t.Fatalf("response status = %+v", response)
+	}
+	if data := mapValue(response["workflow_data"]); data["plugin_id"] != "plugin_eq" || data["stage"] != "pending_confirmation" || data["type"] != pluginPrepParameterTreatmentType {
+		t.Fatalf("workflow_data = %+v", data)
+	}
+	requests, ok := response["interaction_requests"].([]AgentInteractionRequest)
+	if !ok || len(requests) != 1 || requests[0].Type != pluginPrepParameterTreatmentType {
+		t.Fatalf("interaction_requests = %#v", response["interaction_requests"])
+	}
+	events := mapRowsFromAny(response["typed_events"])
+	if !testTypedEventsContain(events, agentprotocol.KindApprovalRequest) ||
+		!testTypedEventsContain(events, agentprotocol.KindTerminalResult) ||
+		!testTypedEventsContain(events, agentprotocol.KindPendingCandidate) ||
+		testTypedEventsContain(events, agentprotocol.KindUserInputRequest) {
+		t.Fatalf("typed_events = %+v", events)
+	}
+}
+
+func TestChatResponseFromAgentLoopResultPromotesAcousticPackageStatus(t *testing.T) {
+	server := New(nil, shadow.New(nil), nil)
+	status := map[string]any{
+		"schema_version":  "acoustic_package_status.v0",
+		"status":          "partial",
+		"project_id":      "current",
+		"track_id":        "1007",
+		"clip_id":         "1014",
+		"source_revision": "rev_test",
+		"package_layers": map[string]any{
+			"l3_deep": map[string]any{"status": "building"},
+		},
+	}
+	event := map[string]any{
+		"event_type": agentprotocol.KindAcousticPackageStatus,
+		"state_id":   "acoustic_package_status_current_1007_1014_rev_test",
+		"status":     "partial",
+	}
+
+	resp := server.chatResponseFromAgentLoopResult("chat_acoustic", "mix", agentloop.Result{
+		Status:     agentruntime.StatusCompleted,
+		Reply:      "ok",
+		StopReason: "done",
+		Executed: []map[string]any{{
+			"tool": "mix.observe",
+			"result": map[string]any{
+				"acoustic_package_status":      status,
+				"acoustic_package_status_path": "D:\\Vit_DAW\\VitApp\\Workspace\\Artifacts\\acoustic_package_status.json",
+				"typed_events":                 []map[string]any{event},
+			},
+		}},
+	})
+
+	if resp.AcousticPackageStatus["schema_version"] != "acoustic_package_status.v0" ||
+		resp.AcousticPackageStatusPath == "" {
+		t.Fatalf("acoustic status not promoted: %+v path=%q", resp.AcousticPackageStatus, resp.AcousticPackageStatusPath)
+	}
+	if !testTypedEventsContain(resp.TypedEvents, agentprotocol.KindAcousticPackageStatus) {
+		t.Fatalf("typed events = %+v", resp.TypedEvents)
+	}
+}
+
+func TestPluginPrepWorkerWithoutQuickControlsReturnsTerminalOnly(t *testing.T) {
+	server := New(nil, shadow.New(nil), nil)
+	plan := testPluginPrepWorkerPlan("chat_mix", true)
+	prep := server.pluginPrepContinuationFromReplies(plan, []map[string]any{
+		{"command_name": "rack_add_node", "result": map[string]any{"track_id": "1007", "plugin_id": "plugin_eq", "plugin_name": "Test EQ"}},
+		{"command_name": "get_plugin_parameters", "result": map[string]any{"track_id": "1007", "plugin_id": "plugin_eq", "plugin_name": "Test EQ", "parameter_count": 48}},
+	}, "loaded")
+
+	if prep.GoalStatus != string(agentruntime.StatusCompleted) || prep.StopReason != pluginPrepWorkerTerminalNoMapping {
+		t.Fatalf("prep = %+v", prep)
+	}
+	if len(prep.InteractionRequests) != 0 ||
+		!testTypedEventsContain(prep.TypedEvents, agentprotocol.KindTerminalResult) ||
+		testTypedEventsContain(prep.TypedEvents, agentprotocol.KindPendingCandidate) {
+		t.Fatalf("typed events/interactions = %+v %+v", prep.TypedEvents, prep.InteractionRequests)
+	}
+}
+
+func TestPluginPrepWorkerAmbiguousTargetReturnsUserInput(t *testing.T) {
+	server := New(nil, shadow.New(nil), nil)
+	plan := testPluginPrepWorkerPlan("chat_mix", false)
+	prep := server.pluginPrepContinuationFromReplies(plan, []map[string]any{
+		{"command_name": "get_plugin_parameters", "result": map[string]any{"plugin_id": "plugin_eq", "plugin_name": "Test EQ", "parameter_count": 48, "quick_controls": testPluginPrepEQQuickControls()}},
+	}, "loaded")
+
+	if prep.GoalStatus != string(agentruntime.StatusWaitingClarification) || prep.StopReason != pluginPrepWorkerTerminalAmbiguousTrack {
+		t.Fatalf("prep = %+v", prep)
+	}
+	if len(prep.InteractionRequests) != 0 ||
+		!testTypedEventsContain(prep.TypedEvents, agentprotocol.KindUserInputRequest) ||
+		testTypedEventsContain(prep.TypedEvents, agentprotocol.KindPendingCandidate) {
+		t.Fatalf("typed events/interactions = %+v %+v", prep.TypedEvents, prep.InteractionRequests)
+	}
+	if active := server.pendingManager.ActiveForConversation("chat_mix"); len(active) != 0 {
+		t.Fatalf("ambiguous target should not create pending candidate: %+v", active)
+	}
+}
+
+func TestPluginPrepWorkerDuplicateTriggerReusesPendingCandidate(t *testing.T) {
+	server := New(nil, shadow.New(nil), nil)
+	plan := testPluginPrepWorkerPlan("chat_mix", true)
+	replies := testPluginPrepWorkerReplies()
+
+	first := server.pluginPrepContinuationFromReplies(plan, replies, "loaded")
+	second := server.pluginPrepContinuationFromReplies(plan, replies, "loaded again")
+	if len(first.InteractionRequests) != 1 || len(second.InteractionRequests) != 1 {
+		t.Fatalf("interactions first=%+v second=%+v", first.InteractionRequests, second.InteractionRequests)
+	}
+	firstID := cleanContextText(first.InteractionRequests[0].Payload["pending_id"])
+	secondID := cleanContextText(second.InteractionRequests[0].Payload["pending_id"])
+	if firstID == "" || firstID != secondID {
+		t.Fatalf("pending ids first=%q second=%q", firstID, secondID)
+	}
+	active := server.pendingManager.ActiveForConversation("chat_mix")
+	if len(active) != 1 || active[0].ID != firstID {
+		t.Fatalf("active pending = %+v", active)
+	}
+}
+
+func TestPluginPrepWorkerConfirmationWritesAndReobserves(t *testing.T) {
+	projectPath := filepath.Join(t.TempDir(), "mix.vit")
+	if err := os.WriteFile(projectPath, []byte("<project/>"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	shadowProject := shadow.New(nil)
+	shadowProject.Initialize(map[string]any{
+		"status":       "ok",
+		"project_path": projectPath,
+		"tracks": []any{map[string]any{
+			"track_id":       "1007",
+			"track_name":     "Vocal",
+			"track_type":     "audio",
+			"is_audio_track": true,
+		}},
+	})
+	kernel := &recordingChatKernel{replyByCommand: map[string][]map[string]any{
+		"set_plugin_param": {{
+			"status":         "ok",
+			"track_id":       "1007",
+			"plugin_id":      "plugin_eq",
+			"param_id":       "2",
+			"new_value_text": "-1.5 dB",
+		}},
+	}}
+	server := New(nil, shadowProject, nil)
+	server.harness = harness.NewWithSender(kernel, shadowProject, nil)
+	if !server.harness.ObservePluginParametersReply(testPluginPrepFullParameterSnapshot()) {
+		t.Fatal("parameter snapshot did not load")
+	}
+	plan := testPluginPrepWorkerPlan("chat_mix", true)
+	plan.Context["observation_id"] = "obs_before_plugin"
+	plan.Context["mix_session_id"] = "mix_plugin_before"
+	prep := server.pluginPrepContinuationFromReplies(plan, testPluginPrepWorkerReplies(), "loaded")
+	if len(prep.InteractionRequests) != 1 {
+		t.Fatalf("prep interactions = %+v", prep.InteractionRequests)
+	}
+	action := mapValue(prep.InteractionRequests[0].Payload["plugin_prep_worker"])
+	if cleanContextText(action["before_observation_id"]) != "obs_before_plugin" || cleanContextText(action["mix_session_id"]) != "mix_plugin_before" {
+		t.Fatalf("candidate should carry before observation context: %#v", action)
+	}
+
+	body, _ := json.Marshal(InteractionRespondRequest{
+		InteractionID: prep.InteractionRequests[0].ID,
+		ActionID:      "approve",
+		Decision:      "approve",
+	})
+	rec := httptest.NewRecorder()
+	server.handleInteractionRespond(rec, httptest.NewRequest(http.MethodPost, "/agent/interaction/respond", bytes.NewReader(body)))
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d body=%s", rec.Code, rec.Body.String())
+	}
+	var resp ChatResponse
+	if err := json.Unmarshal(rec.Body.Bytes(), &resp); err != nil {
+		t.Fatalf("decode response: %v body=%s", err, rec.Body.String())
+	}
+	if resp.StopReason != pluginPrepWorkerAppliedStopReason || resp.GoalStatus != string(agentruntime.StatusCompleted) {
+		t.Fatalf("resp = %+v", resp)
+	}
+	if len(resp.ExecutedKernelReply) < 2 {
+		t.Fatalf("executed = %+v", resp.ExecutedKernelReply)
+	}
+	if cleanContextText(resp.ExecutedKernelReply[0]["command_name"]) != "set_plugin_param" {
+		t.Fatalf("first executed = %+v", resp.ExecutedKernelReply[0])
+	}
+	if cleanContextText(resp.ExecutedKernelReply[len(resp.ExecutedKernelReply)-1]["command_name"]) != "mix_observe" {
+		t.Fatalf("reobserve missing: %+v", resp.ExecutedKernelReply)
+	}
+	if !strings.Contains(resp.Reply, "AB Result：不可信") || !strings.Contains(resp.Reply, "未把这次改动标记为已验证") {
+		t.Fatalf("plugin prep confirmation reply should surface AB verification state, got %q", resp.Reply)
+	}
+	if len(resp.ProjectResultCards) != 1 {
+		t.Fatalf("plugin prep project result card should surface AB state: %+v", resp.ProjectResultCards)
+	}
+	abCard := mapValue(resp.ProjectResultCards[0]["ab_result"])
+	if cleanContextText(abCard["status"]) == "ready" || cleanContextText(abCard["reason"]) == "" {
+		t.Fatalf("plugin prep project result card should surface AB state: %+v", resp.ProjectResultCards)
+	}
+	var setCommands []map[string]any
+	for _, cmd := range kernel.commands {
+		if cleanContextText(cmd["cmd"]) == "set_plugin_param" {
+			setCommands = append(setCommands, cmd)
+		}
+		if cleanContextText(cmd["cmd"]) == "daw.invoke" || cleanContextText(cmd["cmd"]) == "n_apply_control" {
+			t.Fatalf("unexpected fallback command: %+v", kernel.commands)
+		}
+	}
+	if len(setCommands) != 1 || cleanContextText(setCommands[0]["param_id"]) != "2" || cleanContextText(setCommands[0]["value_text"]) != "-1.5 dB" {
+		t.Fatalf("set commands = %+v all=%+v", setCommands, kernel.commands)
+	}
+	if active := server.pendingManager.ActiveForConversation("chat_mix"); len(active) != 0 {
+		t.Fatalf("candidate should be consumed: %+v", active)
+	}
+}
+
+func TestPluginPrepWorkerSetParameterStillGuarded(t *testing.T) {
+	kernel := &recordingChatKernel{replyByCommand: map[string][]map[string]any{
+		"set_plugin_param": {{"status": "ok"}},
+	}}
+	server := New(nil, shadow.New(nil), nil)
+	server.harness = harness.NewWithSender(kernel, shadow.New(nil), nil)
+	prep := server.pluginPrepContinuationFromReplies(testPluginPrepWorkerPlan("chat_mix", true), testPluginPrepWorkerReplies(), "loaded")
+	if len(prep.InteractionRequests) != 1 {
+		t.Fatalf("prep interactions = %+v", prep.InteractionRequests)
+	}
+
+	body, _ := json.Marshal(InteractionRespondRequest{
+		InteractionID: prep.InteractionRequests[0].ID,
+		ActionID:      "approve",
+		Decision:      "approve",
+	})
+	rec := httptest.NewRecorder()
+	server.handleInteractionRespond(rec, httptest.NewRequest(http.MethodPost, "/agent/interaction/respond", bytes.NewReader(body)))
+
+	var resp ChatResponse
+	if err := json.Unmarshal(rec.Body.Bytes(), &resp); err != nil {
+		t.Fatalf("decode response: %v body=%s", err, rec.Body.String())
+	}
+	if resp.GoalStatus != string(agentruntime.StatusFailed) || resp.StopReason != "plugin_prep_parameter_treatment_failed" {
+		t.Fatalf("resp = %+v", resp)
+	}
+	if len(kernel.commands) != 0 {
+		t.Fatalf("guarded set_plugin_param should not reach kernel: %+v", kernel.commands)
+	}
+	if !testTypedEventsContain(resp.TypedEvents, agentprotocol.KindPendingCandidate) || !testTypedEventsContain(resp.TypedEvents, agentprotocol.KindTerminalResult) {
+		t.Fatalf("typed events = %+v", resp.TypedEvents)
+	}
+}
+
+func TestPluginPrepWorkerPlainApprovalWithoutPendingDoesNotWrite(t *testing.T) {
+	kernel := &recordingChatKernel{}
+	server := New(nil, shadow.New(nil), nil)
+	server.harness = harness.NewWithSender(kernel, shadow.New(nil), nil)
+	resp, handled := server.handlePendingPluginParameterTreatmentChat(context.Background(), "chat_mix", ChatRequest{Message: "confirm"}, agentModeDefault)
+	if handled || len(kernel.commands) != 0 {
+		t.Fatalf("handled=%v resp=%+v commands=%+v", handled, resp, kernel.commands)
+	}
+}
+
+func testPluginPrepWorkerPlan(conversationID string, includeTrack bool) PendingPlan {
+	workflowData := map[string]any{
+		"conversation_id":           conversationID,
+		"mix_treatment_preparation": true,
+	}
+	if includeTrack {
+		workflowData["track_id"] = "1007"
+	}
+	return PendingPlan{
+		ID:       "plan_plugin_load",
+		Workflow: pluginGrabberLoadCommand,
+		Context: map[string]any{
+			"conversation_id": conversationID,
+			"goal_id":         "goal_1",
+			"run_id":          "run_1",
+			"user_message":    "reduce low-mid mud",
+		},
+		WorkflowData: workflowData,
+	}
+}
+
+func testPluginPrepWorkerReplies() []map[string]any {
+	return []map[string]any{
+		{
+			"status":       "ok",
+			"command_name": "rack_add_node",
+			"result": map[string]any{
+				"track_id":    "1007",
+				"plugin_id":   "plugin_eq",
+				"plugin_name": "TDR Nova",
+			},
+		},
+		{
+			"status":       "ok",
+			"command_name": "get_plugin_parameters",
+			"result": map[string]any{
+				"status":              "ok",
+				"track_id":            "1007",
+				"plugin_id":           "plugin_eq",
+				"plugin_name":         "TDR Nova",
+				"parameter_count":     78,
+				"quick_control_count": 4,
+				"quick_controls":      testPluginPrepEQQuickControls(),
+			},
+		},
+	}
+}
+
+func testPluginPrepEQQuickControls() []map[string]any {
+	return []map[string]any{
+		{"display_group": "Tone", "label": "B1 Freq", "normalized_role": "eq_frequency", "param_id": "4", "current_value_text": "180 Hz"},
+		{"display_group": "Tone", "label": "B1 Gain", "normalized_role": "eq_gain", "param_id": "2", "current_value_text": "0.0 dB"},
+		{"display_group": "Tone", "label": "B1 Q", "normalized_role": "eq_q", "param_id": "3", "current_value_text": "1.20"},
+		{"display_group": "Mix", "label": "Dry Mix", "normalized_role": "dry_mix", "param_id": "64"},
+	}
+}
+
+func testPluginPrepFullParameterSnapshot() map[string]any {
+	return map[string]any{
+		"status":      "ok",
+		"track_id":    "1007",
+		"plugin_id":   "plugin_eq",
+		"plugin_name": "TDR Nova",
+		"parameters": []map[string]any{
+			{"id": "2", "param_id": "2", "name": "B1 Gain"},
+			{"id": "3", "param_id": "3", "name": "B1 Q"},
+			{"id": "4", "param_id": "4", "name": "B1 Freq"},
+			{"id": "64", "param_id": "64", "name": "Dry Mix"},
+		},
+	}
+}
+
+func TestObservationToolEventsAttachTypedRequestAndResult(t *testing.T) {
+	server := New(nil, shadow.New(nil), nil)
+	in := executor.Input{
+		GoalID: "goal_1",
+		RunID:  "run_1",
+		Context: map[string]any{
+			"conversation_id": "chat_obs",
+		},
+		ToolCall: planner.ToolCall{
+			ID:     "tool_1",
+			Tool:   "mix.observe",
+			Args:   map[string]any{"track_id": "1007", "goal_text": "reduce low-mid mud"},
+			Reason: "inspect the current mix",
+		},
+		Source: "agentloop",
+	}
+
+	server.emitToolItemStarted(in, "tool_1")
+	server.emitToolItemCompleted(in, executor.Result{
+		ToolCallID:  "tool_1",
+		Tool:        "mix.observe",
+		CommandName: "mix_observe",
+		Status:      "ok",
+		Result: map[string]any{
+			"observation_id": "obs_1",
+			"summary":        "low-mid buildup",
+		},
+	}, nil)
+
+	events, _ := server.agentEventsSince("chat_obs", 0, 10)
+	if len(events) != 2 {
+		t.Fatalf("events = %+v", events)
+	}
+	started := mapValue(events[0].Payload["typed_state"])
+	if events[0].Type != "item.started" || started["kind"] != agentprotocol.KindObservationRequest || started["target_ref"] != "track:1007" {
+		t.Fatalf("started event = %+v typed=%+v", events[0], started)
+	}
+	if strings.Contains(events[0].Body, "deterministic observation") || strings.Contains(events[0].Body, "inspect the current mix") || !strings.Contains(events[0].Body, "混音") {
+		t.Fatalf("started event body was not localized: %q", events[0].Body)
+	}
+	completed := mapValue(events[1].Payload["typed_state"])
+	if events[1].Type != "item.completed" || completed["kind"] != agentprotocol.KindObservationResult || completed["context_pack_id"] != "obs_1" {
+		t.Fatalf("completed event = %+v typed=%+v", events[1], completed)
+	}
+	if events[1].Title != "已完成 混音观察" {
+		t.Fatalf("completed event title was not localized: %q", events[1].Title)
+	}
+	if mapValue(events[0].Payload["typed_event"])["event_type"] != agentprotocol.KindObservationRequest ||
+		mapValue(events[1].Payload["typed_event"])["event_type"] != agentprotocol.KindObservationResult {
+		t.Fatalf("typed events missing: started=%+v completed=%+v", events[0].Payload, events[1].Payload)
+	}
 }
 
 func TestAttachInteractionsToResponseMapAddsPlainConfirmation(t *testing.T) {
@@ -5548,6 +6606,24 @@ func TestAttachInteractionsToResponseMapAddsPlainConfirmation(t *testing.T) {
 	if len(req.Actions) != 2 || req.Actions[0].ID != "approve" || req.Actions[1].ID != "cancel" {
 		t.Fatalf("actions = %+v", req.Actions)
 	}
+}
+
+func testTypedEventsContain(events []map[string]any, eventType string) bool {
+	for _, event := range events {
+		if cleanContextText(event["event_type"]) == eventType {
+			return true
+		}
+	}
+	return false
+}
+
+func testTypedEventState(events []map[string]any, eventType string) map[string]any {
+	for _, event := range events {
+		if cleanContextText(event["event_type"]) == eventType {
+			return mapValue(event["state"])
+		}
+	}
+	return nil
 }
 
 func TestInteractionRespondStaleReturnsChineseChatResponse(t *testing.T) {
@@ -5602,6 +6678,13 @@ func TestPluginLearningCandidateInteractionUsesReviewKind(t *testing.T) {
 	}
 	if len(req.Actions) == 0 || req.Actions[0].ID != "submit" || !strings.Contains(req.Actions[0].Label, "候选草图") {
 		t.Fatalf("expected candidate confirmation action: %+v", req.Actions)
+	}
+	typed := mapValue(req.Payload["typed_state"])
+	if typed["kind"] != agentprotocol.KindUserInputRequest {
+		t.Fatalf("typed user input missing for plugin learning review: %+v", typed)
+	}
+	if len(resp.TypedEvents) != 1 || mapValue(resp.TypedEvents[0])["event_type"] != agentprotocol.KindUserInputRequest {
+		t.Fatalf("typed events = %+v", resp.TypedEvents)
 	}
 }
 

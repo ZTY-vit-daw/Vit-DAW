@@ -7,18 +7,102 @@ import (
 	"strings"
 )
 
-var messageLoopMixTreatmentPendingPattern = regexp.MustCompile(`(?im)(?:^|\n)\s*mix_treatment_pending\s*:\s*(\{[^\n]*\})\s*(?:\n|$)`)
+var messageLoopMixTreatmentPendingPattern = regexp.MustCompile(`(?im)(?:^|\n)\s*mix_treatment_pending\s*:`)
+
+type messageLoopMixTreatmentPendingMarkup struct {
+	Start   int
+	End     int
+	Payload string
+}
+
+func messageLoopMixTreatmentPendingMarkupPresent(reply string) bool {
+	return messageLoopMixTreatmentPendingPattern.MatchString(reply)
+}
+
+func messageLoopMixTreatmentPendingMarkupMatch(reply string) (messageLoopMixTreatmentPendingMarkup, bool) {
+	var out messageLoopMixTreatmentPendingMarkup
+	loc := messageLoopMixTreatmentPendingPattern.FindStringIndex(reply)
+	if len(loc) != 2 {
+		return out, false
+	}
+	out.Start = loc[0]
+	out.End = loc[1]
+	if payload, end, ok := messageLoopScanJSONObject(reply, loc[1]); ok {
+		out.Payload = payload
+		out.End = end
+	} else if lineEnd := strings.IndexByte(reply[loc[1]:], '\n'); lineEnd >= 0 {
+		out.End = loc[1] + lineEnd + 1
+	} else {
+		out.End = len(reply)
+	}
+	return out, true
+}
+
+func messageLoopScanJSONObject(text string, start int) (string, int, bool) {
+	i := start
+	for i < len(text) {
+		switch text[i] {
+		case ' ', '\t', '\r', '\n':
+			i++
+			continue
+		}
+		break
+	}
+	if i >= len(text) || text[i] != '{' {
+		return "", i, false
+	}
+	objectStart := i
+	depth := 0
+	inString := false
+	escaped := false
+	for i < len(text) {
+		ch := text[i]
+		if inString {
+			if escaped {
+				escaped = false
+			} else if ch == '\\' {
+				escaped = true
+			} else if ch == '"' {
+				inString = false
+			}
+			i++
+			continue
+		}
+		switch ch {
+		case '"':
+			inString = true
+		case '{':
+			depth++
+		case '}':
+			depth--
+			if depth == 0 {
+				end := i + 1
+				return text[objectStart:end], end, true
+			}
+		}
+		i++
+	}
+	return "", len(text), false
+}
 
 func messageLoopMixTreatmentPendingFromReply(state *runState, reply string) *MixTreatmentPending {
 	if state == nil || strings.TrimSpace(reply) == "" {
 		return nil
 	}
-	match := messageLoopMixTreatmentPendingPattern.FindStringSubmatch(reply)
-	if len(match) < 2 || strings.TrimSpace(match[1]) == "" {
-		return messageLoopImplicitPanTreatmentPendingFromReply(state, reply)
+	if messageLoopMutationBarrierActive(state) {
+		return nil
+	}
+	match, ok := messageLoopMixTreatmentPendingMarkupMatch(reply)
+	if !ok {
+		pending := messageLoopImplicitPanTreatmentPendingFromReply(state, reply)
+		messageLoopAttachDiagnosisToTreatment(state, pending)
+		return pending
+	}
+	if strings.TrimSpace(match.Payload) == "" {
+		return nil
 	}
 	var payload map[string]any
-	if err := json.Unmarshal([]byte(strings.TrimSpace(match[1])), &payload); err != nil {
+	if err := json.Unmarshal([]byte(strings.TrimSpace(match.Payload)), &payload); err != nil {
 		return nil
 	}
 	observationID := firstNonEmpty(firstMapText(payload, "observation_id"), messageLoopLastMixObservationField(state, "observation_id"))
@@ -84,6 +168,13 @@ func messageLoopMixTreatmentPendingFromReply(state *runState, reply string) *Mix
 	if !strings.EqualFold(strings.TrimSpace(pending.Status), "pending_confirmation") {
 		return nil
 	}
+	if mixWorkflowPendingActionKindBlocked(pending.ActionKind) {
+		return nil
+	}
+	if messageLoopMOMActionPreflightBlocked(state) {
+		return nil
+	}
+	messageLoopAttachDiagnosisToTreatment(state, &pending)
 	return &pending
 }
 
@@ -100,6 +191,9 @@ func messageLoopSameOptionalPan(left *float64, right *float64) bool {
 
 func messageLoopImplicitPanTreatmentPendingFromReply(state *runState, reply string) *MixTreatmentPending {
 	if state == nil || strings.TrimSpace(reply) == "" {
+		return nil
+	}
+	if messageLoopMutationBarrierActive(state) {
 		return nil
 	}
 	if !messageLoopImplicitPanFollowupRequest(state) || messageLoopExplicitPluginOrRawRequest(state.input.UserText) {
@@ -152,6 +246,98 @@ func messageLoopImplicitPanTreatmentPendingFromReply(state *runState, reply stri
 			"mix_session_id":    messageLoopLastMixObservationField(state, "mix_session_id"),
 		},
 	}
+}
+
+func messageLoopConservativeLowMudTreatmentPendingFromReply(state *runState, reply string) *MixTreatmentPending {
+	if state == nil || strings.TrimSpace(reply) == "" {
+		return nil
+	}
+	if messageLoopMutationBarrierActive(state) {
+		return nil
+	}
+	if state.executionMemory.PendingMixTreatment != nil {
+		return nil
+	}
+	if !messageLoopLowMudPluginPrepRequest(state.input.UserText) {
+		return nil
+	}
+	if !messageLoopHasAnyMixObservationAttempt(state) {
+		return nil
+	}
+	trackID := messageLoopPendingMixCandidateTrackIDFromReply(state, reply, state.input.UserText)
+	if trackID == "" {
+		trackID = messageLoopLastMixObservationTrackID(state)
+	}
+	trackID = messageLoopCanonicalMixTrackID(state, trackID)
+	targetRef := "project"
+	needsResolution := []string{"plugin_instance", "plugin_profile", "exact_control"}
+	fingerprint := map[string]any{
+		"conversation_id":   messageLoopConversationID(state),
+		"goal_id":           state.goal.GoalID,
+		"run_id":            state.goal.RunID,
+		"observation_id":    messageLoopLastMixObservationField(state, "observation_id"),
+		"target_scope":      messageLoopLastMixObservationScope(state),
+		"track_count":       messageLoopPendingMixCandidateTrackCount(state),
+		"created_from_turn": state.turnsUsed,
+		"mix_session_id":    messageLoopLastMixObservationField(state, "mix_session_id"),
+		"source":            "deterministic_low_mud_plugin_pending_after_observation",
+	}
+	if trackID != "" {
+		targetRef = "track:" + trackID
+		fingerprint["target_track_id"] = trackID
+	} else {
+		needsResolution = append([]string{"target_track"}, needsResolution...)
+	}
+	observationID := messageLoopLastMixObservationField(state, "observation_id")
+	treatment := &MixTreatmentPending{
+		SchemaVersion:             "mix_treatment_pending.v0",
+		Status:                    "pending_confirmation",
+		ConversationID:            messageLoopConversationID(state),
+		ObservationID:             observationID,
+		Intent:                    firstNonEmpty(strings.TrimSpace(state.input.UserText), strings.TrimSpace(reply)),
+		TargetRef:                 targetRef,
+		ActionKind:                "plugin_treatment",
+		ProcessorType:             "eq",
+		ReasoningSummary:          "prepare a conservative reversible low-cut or low-mid EQ probe; missing band evidence keeps this as a pending candidate only",
+		Confidence:                "low",
+		NeedsResolution:           needsResolution,
+		ExpiresAfterContextChange: true,
+		CreatedFromReply:          reply,
+		Fingerprint:               fingerprint,
+	}
+	if observationID != "" {
+		treatment.EvidenceRefs = []string{observationID}
+	}
+	messageLoopAttachDiagnosisToTreatment(state, treatment)
+	return treatment
+}
+
+func messageLoopLowMudPluginPrepRequest(userText string) bool {
+	text := strings.ToLower(strings.TrimSpace(userText))
+	if text == "" {
+		return false
+	}
+	hasLowMudIssue := messageLoopTextHasAny(text,
+		"\u4f4e\u9891", "\u4f4e\u4e2d\u9891", "\u6d51\u6d4a", "\u7cca",
+		"low end", "low-end", "low mid", "low-mid", "mud", "muddy",
+	)
+	hasEQIntent := messageLoopTextHasAny(text,
+		"eq", "\u5747\u8861", "\u4f4e\u5207", "\u9ad8\u901a", "\u6ee4\u6ce2",
+		"low cut", "low-cut", "high pass", "high-pass", "filter",
+	)
+	hasActionIntent := messageLoopTextHasAny(text,
+		"\u5e2e\u6211", "\u5904\u7406", "\u8c03\u6574", "\u8c03\u4e00\u4e0b", "\u6536\u4e00\u70b9", "\u6536\u4f4e\u9891", "\u6536\u4e00\u4e0b", "\u538b\u4f4e", "\u964d\u4f4e", "\u51cf\u5c11", "\u524a\u51cf", "\u524a\u4e00\u70b9", "\u8f7b\u5fae", "\u7a0d\u5fae", "\u53ef\u4ee5\u5904\u7406", "\u53ef\u4ee5\u8fdb\u884c\u5904\u7406",
+		"help me", "process", "treat", "adjust", "reduce", "lower", "cut", "trim", "slight", "slightly", "a little",
+	)
+	hasPrepIntent := messageLoopTextHasAny(text,
+		"\u5148\u51c6\u5907", "\u51c6\u5907", "\u53c2\u6570", "\u65b9\u6848", "\u63d2\u4ef6", "\u6548\u679c\u5668",
+		"prepare", "prep", "parameter", "parameters", "candidate", "plugin",
+	)
+	hasEvidenceFirstIntent := messageLoopTextHasAny(text,
+		"\u4f9d\u636e", "\u6839\u636e", "\u5224\u65ad", "\u4e3a\u4ec0\u4e48", "\u4e3a\u4f55", "\u5148\u544a\u8bc9", "\u5148\u8bf4",
+		"evidence", "basis", "why", "before", "first tell",
+	)
+	return hasLowMudIssue && ((hasEQIntent || hasPrepIntent) && (hasPrepIntent || hasActionIntent || hasEvidenceFirstIntent) || hasActionIntent)
 }
 
 func messageLoopImplicitPanFollowupRequest(state *runState) bool {
@@ -218,7 +404,14 @@ func messageLoopStripMixTreatmentPendingMarkup(reply string) string {
 	if reply == "" {
 		return reply
 	}
-	return strings.TrimSpace(messageLoopMixTreatmentPendingPattern.ReplaceAllString(reply, "\n"))
+	for {
+		match, ok := messageLoopMixTreatmentPendingMarkupMatch(reply)
+		if !ok {
+			break
+		}
+		reply = reply[:match.Start] + "\n" + reply[match.End:]
+	}
+	return strings.TrimSpace(reply)
 }
 
 func messageLoopStringSlice(value any) []string {
@@ -243,6 +436,57 @@ func messageLoopStringSlice(value any) []string {
 			}
 		}
 	}
+	return out
+}
+
+func messageLoopMOMActionPreflightBlocked(state *runState) bool {
+	for _, proj := range messageLoopRecentMOMProjections(state) {
+		trust := messageLoopMapValue(proj["trust_quality"])
+		if len(trust) == 0 {
+			continue
+		}
+		if value, ok := trust["can_support_action_preflight"]; ok && !messageLoopBool(value) {
+			return true
+		}
+		for _, reason := range messageLoopStringSlice(trust["blocked_reasons"]) {
+			reason = strings.ToLower(strings.TrimSpace(reason))
+			if strings.Contains(reason, "action_preflight") {
+				return true
+			}
+		}
+		if messageLoopHasActionRelevantTrustField(messageLoopStringSlice(trust["suspect_fields"])) || messageLoopHasActionRelevantTrustField(messageLoopStringSlice(trust["stale_fields"])) {
+			return true
+		}
+	}
+	return false
+}
+
+func messageLoopHasActionRelevantTrustField(fields []string) bool {
+	for _, field := range fields {
+		switch strings.ToLower(strings.TrimSpace(field)) {
+		case "project_structure", "timbre_frequency", "space_stereo":
+			return true
+		}
+	}
+	return false
+}
+
+func messageLoopRecentMOMProjections(state *runState) []map[string]any {
+	if state == nil {
+		return nil
+	}
+	out := []map[string]any{}
+	add := func(row map[string]any) {
+		if len(row) > 0 {
+			out = append(out, row)
+		}
+	}
+	if state.recentObservation != nil && observationIsMixObservation(state.recentObservation) {
+		summary := state.recentObservation.Summary
+		add(messageLoopMapValue(summary["mom_projection"]))
+		add(messageLoopMOMProjectionFromResult(summary))
+	}
+	add(messageLoopMOMProjectionFromResult(messageLoopLastMixObservationResult(state)))
 	return out
 }
 

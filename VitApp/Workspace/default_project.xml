@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<EDIT appVersion="Unknown" projectID="0/13bf882" creationTime="0" modifiedBy="VitHeadlessServer"
-      lastSignificantChange="19e076b4514">
+<EDIT appVersion="Unknown" projectID="0/26a1c04" creationTime="0" modifiedBy="VitHeadlessServer"
+      lastSignificantChange="19f0d9fac35">
   <TRANSPORT endToEnd="1" position="0.0"/>
   <TEMPOSEQUENCE>
     <TEMPO startBeat="0.0" bpm="120.0" curve="1.0"/>
@@ -37,19 +37,36 @@
   </MASTERTRACK>
   <TRACK id="1007">
     <MODIFIERS/>
-    <OUTPUTDEVICES>
-      <DEVICE name="(default audio output)"/>
-    </OUTPUTDEVICES>
     <CLIPSLOTS/>
+    <AUDIOCLIP name="test_100hz_10s" start="0.0" length="10.0" offset="0.0"
+               id="1014" source="D:\Vit_DAW\test_100hz_10s.wav" sync="0" elastiqueMode="0"
+               pan="0.0" colour="ff55ff00" proxyAllowed="1" resamplingQuality="lagrange">
+      <LOOPINFO rootNote="-1" numBeats="20.0" oneShot="0" denominator="4" numerator="4"
+                bpm="0.0" inMarker="0" outMarker="-1"/>
+      <AUTOMATIONCURVES/>
+    </AUDIOCLIP>
     <PLUGIN type="volume" id="1008" enabled="1" remapOnTempoChange="1">
       <MODIFIERASSIGNMENTS/>
     </PLUGIN>
     <PLUGIN type="level" id="1009" enabled="1"/>
-    <AUDIOCLIP name="test_100hz_10s" start="0.106422424316406" length="10.0"
-               offset="0.0" id="1011" source="D:\Vit_DAW\test_100hz_10s.wav"
-               sync="0" elastiqueMode="0" pan="0.0" colour="ff55ff00" proxyAllowed="1"
-               resamplingQuality="lagrange">
-      <LOOPINFO rootNote="-1" numBeats="20.0" oneShot="0" denominator="4" numerator="4"
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+  </TRACK>
+  <TRACK id="1010">
+    <MODIFIERS/>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+    <CLIPSLOTS/>
+    <PLUGIN type="volume" id="1011" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1012" enabled="1"/>
+    <AUDIOCLIP name="test_target_3s" start="0.0" length="3.0" offset="0.0" id="1016"
+               source="D:\Vit_DAW\test_target_3s.wav" sync="0" elastiqueMode="0"
+               pan="0.0" colour="ff00ff00" proxyAllowed="1" resamplingQuality="lagrange">
+      <LOOPINFO rootNote="-1" numBeats="6.0" oneShot="0" denominator="4" numerator="4"
                 bpm="0.0" inMarker="0" outMarker="-1"/>
       <AUTOMATIONCURVES/>
     </AUDIOCLIP>

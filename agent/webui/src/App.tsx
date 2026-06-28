@@ -4119,6 +4119,15 @@ type ProjectResultView = {
   details: Array<{ id: string; title: string; body: string }>;
 };
 
+type ProjectResultABView = {
+  title: string;
+  body: string;
+  status: string;
+  tapPoint: string;
+  renderMode: string;
+  deltaSummary: string;
+};
+
 function ActionCard(props: ActionCardProps) {
   if (isMixBoardAction(props.action)) {
     return <MixBoardActionCard {...props} />;
@@ -4148,20 +4157,21 @@ function ActionCard(props: ActionCardProps) {
 
 function MixTreatmentPendingCard({ action, respondingActionID, onInteractionAction }: ActionCardProps) {
   const payload = interactionPayload(action);
-  const targetRef = textValue(payload.target_ref ?? action.target_ref, "当前对象");
+  const display = asRecord(payload.display ?? action.display);
+  const targetRef = textValue(display.target_ref ?? payload.display_target_ref ?? payload.target_ref ?? action.target_ref, "当前对象");
   const actionKind = textValue(payload.action_kind ?? action.action_kind, "");
   const processor = textValue(payload.processor_type ?? action.processor_type, "");
   const deltaDB = textValue(payload.delta_db ?? action.delta_db, "");
   const deltaPan = textValue(payload.delta_pan ?? action.delta_pan, "");
   const targetPan = textValue(payload.target_pan ?? action.target_pan, "");
-  const confidence = textValue(payload.confidence ?? action.confidence, "");
-  const reason = textValue(payload.reasoning_summary ?? action.reasoning_summary ?? action.body, "");
+  const confidence = textValue(display.confidence ?? payload.display_confidence ?? payload.confidence ?? action.confidence, "");
+  const reason = textValue(display.reasoning_summary ?? payload.display_reasoning_summary ?? payload.reasoning_summary ?? action.reasoning_summary ?? action.body, "");
   const childActions = firstArray(action.actions)
     .map(asRecord)
     .filter((item) => Object.keys(item).length > 0);
   const interactionID = textValue(action.id ?? action.interaction_id, "");
   const renderID = actionRenderID(action);
-  const pendingLabel = mixTreatmentPendingLabel(actionKind, processor);
+  const pendingLabel = textValue(display.action_kind, "") || mixTreatmentPendingLabel(actionKind, processor);
   const valueLabel = mixTreatmentPendingValueLabel(actionKind, deltaDB, deltaPan, targetPan);
   const rows = [
     ["对象", targetRef],
@@ -4176,9 +4186,9 @@ function MixTreatmentPendingCard({ action, respondingActionID, onInteractionActi
       <div className="action-content">
         <div className="action-title-line">
           <strong>混音建议待确认</strong>
-          <span>Pending</span>
+          <span>待确认</span>
         </div>
-        {reason && <p className="action-body">{localizeDisplayText(reason)}</p>}
+        {reason && <p className="action-body">{localizeMixTreatmentCardText(reason)}</p>}
         <div className="action-detail-grid mix-treatment-pending-grid">
           {rows.map(([label, value]) => (
             <div className="action-detail" key={label}>
@@ -4191,7 +4201,7 @@ function MixTreatmentPendingCard({ action, respondingActionID, onInteractionActi
           <div className="action-buttons">
             {childActions.map((child, childIndex) => {
               const actionID = textValue(child.id ?? child.action_id ?? child.decision, `action_${childIndex + 1}`);
-              const label = textValue(child.label ?? child.title ?? actionID, actionID);
+              const label = localizeMixTreatmentCardText(textValue(child.label ?? child.title ?? actionID, actionID));
               const pendingID = interactionActionID(interactionID || renderID || "mix_treatment", actionID);
               const isBusy = respondingActionID === pendingID;
               const style = textValue(child.style, "secondary");
@@ -4635,7 +4645,7 @@ function mixBoardGoalReadinessLabel(value: string): string {
   if (status === "blocked") {
     return "已阻塞";
   }
-  return localizeDisplayText(value) || value || "Pending";
+  return localizeDisplayText(value) || value || "待确认";
 }
 
 function mixBoardGoalNextActionLabel(value: string): string {
@@ -5377,11 +5387,12 @@ function projectResultSummary(action: JsonRecord, uiState: AgentUIState | null):
   const operation = projectResultOperation(executions, target, clip);
   const readiness = projectResultReadiness(target, track, clip);
   const canAudition = readiness !== "not_auditionable";
-  const details = projectResultDetails(target, track, clip, executions);
+  const abResult = projectResultABView(action);
+  const details = projectResultDetails(target, track, clip, executions, abResult);
   return {
     title: operation.title,
     badge: projectResultReadinessBadge(readiness),
-    body: operation.body,
+    body: projectResultBodyWithAB(operation.body, abResult),
     hint: projectResultReadinessHint(readiness, track, clip),
     readiness,
     canAudition,
@@ -5395,6 +5406,32 @@ function projectResultExecutions(action: JsonRecord): JsonRecord[] {
   return firstArray(action.executions, action.executed_kernel_reply)
     .map(asRecord)
     .filter((entry) => Object.keys(entry).length > 0);
+}
+
+function projectResultABView(action: JsonRecord): ProjectResultABView | null {
+  const ab = asRecord(action.ab_result ?? action.mom_ab_result ?? action.result_ab);
+  if (Object.keys(ab).length === 0) {
+    return null;
+  }
+  const status = textValue(ab.status, "missing").toLowerCase();
+  const title = textValue(ab.display_title, status === "ready" ? "AB Result：可信" : "AB Result：不可信");
+  const body = textValue(ab.display_body, "");
+  return {
+    title,
+    body,
+    status,
+    tapPoint: textValue(ab.tap_point, ""),
+    renderMode: textValue(ab.render_mode, ""),
+    deltaSummary: textValue(ab.delta_summary, "")
+  };
+}
+
+function projectResultBodyWithAB(body: string, abResult: ProjectResultABView | null): string {
+  if (!abResult) {
+    return body;
+  }
+  const abText = abResult.title;
+  return body ? `${body} ${abText}` : abText;
 }
 
 function projectResultActionsFromResponse(response: ChatResponse): JsonRecord[] {
@@ -5654,8 +5691,26 @@ function projectResultReadinessHint(readiness: ProjectResultReadiness, track: Da
   return "";
 }
 
-function projectResultDetails(target: JsonRecord, track: DawTrack | null, clip: DawClip | null, executions: JsonRecord[]): Array<{ id: string; title: string; body: string }> {
+function projectResultDetails(
+  target: JsonRecord,
+  track: DawTrack | null,
+  clip: DawClip | null,
+  executions: JsonRecord[],
+  abResult: ProjectResultABView | null
+): Array<{ id: string; title: string; body: string }> {
   const details: Array<{ id: string; title: string; body: string }> = [];
+  if (abResult) {
+    details.push({ id: "ab_result", title: "AB Result", body: abResult.status === "ready" ? "可信" : "不可信" });
+    if (abResult.deltaSummary) {
+      details.push({ id: "ab_delta", title: "AB 变化", body: abResult.deltaSummary });
+    }
+    if (abResult.tapPoint) {
+      details.push({ id: "ab_tap", title: "观测点", body: abResult.tapPoint });
+    }
+    if (abResult.renderMode) {
+      details.push({ id: "ab_render", title: "观测方式", body: abResult.renderMode });
+    }
+  }
   const trackLabel = track?.name || textValue(target.track_id, "");
   const clipLabel = clip?.name || textValue(target.clip_id, "");
   if (trackLabel) {
@@ -5675,7 +5730,7 @@ function projectResultDetails(target: JsonRecord, track: DawTrack | null, clip: 
   if (noteCount > 0) {
     details.push({ id: "notes", title: "音符", body: `${noteCount} 个` });
   }
-  return details.slice(0, 5);
+  return details.slice(0, 6);
 }
 
 function trackHasLikelyInstrument(track: DawTrack): boolean {
@@ -6820,12 +6875,12 @@ function localizeDisplayText(value: string): string {
   const completedMatch = text.match(/^已完成\s+(.+)$/i);
   if (completedMatch) {
     const label = operationLabelFromName(completedMatch[1]);
-    return label ? `Completed: ${label}` : "Project operation completed";
+    return label ? `已完成：${label}` : "工程操作已完成";
   }
   const runningMatch = text.match(/^正在执行\s+(.+)$/i);
   if (runningMatch) {
     const label = operationLabelFromName(runningMatch[1]);
-    return label ? `Running: ${label}` : "Running project operation";
+    return label ? `正在执行：${label}` : "正在执行工程操作";
   }
   if (/^track added$/i.test(text)) {
     return "轨道已创建";
@@ -6835,12 +6890,72 @@ function localizeDisplayText(value: string): string {
   }
   const insertedMatch = text.match(/^updated midi clip:\s*inserted\s*(\d+)/i);
   if (insertedMatch) {
-    return `Updated MIDI clip: inserted ${insertedMatch[1]} notes.`;
+    return `MIDI 片段已更新：写入 ${insertedMatch[1]} 个音符。`;
   }
   if (looksLikeInternalInstruction(text)) {
     return "";
   }
   return text;
+}
+
+function localizeMixTreatmentCardText(value: string): string {
+  const raw = value.trim();
+  if (looksLikeEnglishMixTreatmentReason(raw)) {
+    return "已根据当前频段能量观察生成一个保守的低频/低中频 EQ 处理候选；确认前不会写入任何插件参数。";
+  }
+  let text = localizeDisplayText(raw);
+  if (!text) {
+    return "";
+  }
+  const exact = text.toLowerCase();
+  const exactMap: Record<string, string> = {
+    pending: "待确认",
+    pending_confirmation: "待确认",
+    waiting_for_user: "等待确认",
+    request_more_observation: "需要更多观察",
+    low: "低",
+    medium: "中",
+    high: "高",
+    plugin_treatment: "插件处理",
+    gain_balance: "电平平衡",
+    pan_balance: "声像调整",
+    eq: "EQ",
+    utility: "工具"
+  };
+  if (exactMap[exact]) {
+    return exactMap[exact];
+  }
+  text = text
+    .replace(/\brequest_more_observation\b/gi, "需要更多观察")
+    .replace(/\bpending_confirmation\b/gi, "待确认")
+    .replace(/\bwaiting_for_user\b/gi, "等待确认")
+    .replace(/\bconfidence\b/gi, "置信度")
+    .replace(/\bstrategy\b/gi, "策略")
+    .replace(/\blow[-_\s]?mid\b/gi, "低中频")
+    .replace(/\bsub\b/gi, "超低频")
+    .replace(/\bbass\b/gi, "低频")
+    .replace(/\bmid\b/gi, "中频")
+    .replace(/\bpresence\b/gi, "存在感频段")
+    .replace(/\bair\b/gi, "空气感频段")
+    .replace(/\bpeak\s*\/\s*rms\b/gi, "峰值/RMS")
+    .replace(/\blow\b/gi, "低")
+    .replace(/\bmedium\b/gi, "中")
+    .replace(/\bhigh\b/gi, "高");
+  return text;
+}
+
+function looksLikeEnglishMixTreatmentReason(text: string): boolean {
+  const compact = text.trim();
+  if (!compact) {
+    return false;
+  }
+  const lower = compact.toLowerCase();
+  if (!/(sub|bass|low[-\s]?mid|band energ|presence|peak\/rms|plugin|parameter)/.test(lower)) {
+    return false;
+  }
+  const asciiLetters = (compact.match(/[a-z]/gi) ?? []).length;
+  const cjk = (compact.match(/[\u4e00-\u9fff]/g) ?? []).length;
+  return asciiLetters >= 20 && cjk === 0;
 }
 
 function isCompactActionCard(
@@ -6912,7 +7027,7 @@ function actionBadge(action: JsonRecord, source: string, status: string): string
     return label || "Interaction";
   }
   if (source === "command") {
-    return riskLabel(action.risk ?? action.risk_level ?? status) || "Pending";
+    return riskLabel(action.risk ?? action.risk_level ?? status) || "待确认";
   }
   if (source === "executed") {
     return statusLabel(action.status ?? status, "Executed");
@@ -7693,7 +7808,7 @@ function pluginLearningProgressPercent(rows: PluginLearningStageProgress[]): num
 
 function pluginLearningStageStatusLabel(stage: PluginLearningStageProgress): string {
   if (stage.status === "pending") {
-    return "Pending";
+    return "待确认";
   }
   if (pluginLearningStageIsActive(stage.status)) {
     return "Running";

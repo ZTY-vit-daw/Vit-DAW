@@ -221,6 +221,8 @@ set(VITAPP_SOURCE_FILES
     Source/Service/AudioFeatureService.h
     Source/Service/AudioFeatureTypes.cpp
     Source/Service/AudioFeatureTypes.h
+    Source/Service/L3AcousticAnalyzer.cpp
+    Source/Service/L3AcousticAnalyzer.h
     Source/Service/TiledSpectrogramBaker.cpp
     Source/Service/TiledSpectrogramBaker.h
     Source/Service/WaveformEnvelopeBaker.cpp

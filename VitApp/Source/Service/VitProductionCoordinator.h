@@ -19,6 +19,26 @@ class VitProductionCoordinator final
 public:
     using PublishFn = std::function<void (const juce::String&)>;
 
+    struct L2RenderProbeRequest
+    {
+        bool enabled = false;
+        juce::String requestId;
+        juce::String trackId;
+        juce::String clipId;
+        juce::String sourcePath;
+        juce::String sourceRevision;
+        juce::String clipRevision;
+        juce::String renderRevision;
+        juce::String tapPoint = "track_post_fader";
+        juce::String renderMode = "offline_probe";
+        double analyzedStartSeconds = 0.0;
+        double analyzedEndSeconds = 0.0;
+        double tailSeconds = 0.25;
+        bool deterministic = true;
+        bool latencyCompensated = true;
+        bool tailCaptured = true;
+    };
+
     explicit VitProductionCoordinator (PublishFn publish);
 
     bool isRendering() const noexcept { return rendering.load(); }
@@ -28,7 +48,9 @@ public:
                                      double rangeStartSeconds,
                                      double rangeEndSeconds,
                                      int bitDepth,
-                                     bool useMasterPlugins);
+                                     bool useMasterPlugins,
+                                     const juce::BigInteger& tracksToDo = {},
+                                     L2RenderProbeRequest probeRequest = {});
 
     void cancelOfflineRender();
 

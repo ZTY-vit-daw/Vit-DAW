@@ -10,6 +10,8 @@ import (
 	"testing"
 	"time"
 
+	"vit-daw-agent/internal/acousticpackage"
+	"vit-daw-agent/internal/agentprotocol"
 	"vit-daw-agent/internal/history"
 	"vit-daw-agent/internal/journal"
 	"vit-daw-agent/internal/mixboard"
@@ -40,6 +42,16 @@ func testMap(t *testing.T, value any) map[string]any {
 		t.Fatalf("value is %T, want map[string]any: %+v", value, value)
 	}
 	return row
+}
+
+func statusIn(value any, allowed ...string) bool {
+	text := strings.TrimSpace(fmt.Sprint(value))
+	for _, candidate := range allowed {
+		if text == candidate {
+			return true
+		}
+	}
+	return false
 }
 
 func (f *fakeKernelClient) SendCommand(_ context.Context, cmd map[string]any) (map[string]any, string, error) {
@@ -2897,6 +2909,16 @@ func writeTempAudioFile(t *testing.T, name string) string {
 	return path
 }
 
+func testAcousticSourceRevision(sessionID, trackID, clipID string, duration float64) string {
+	return acousticpackage.ComputeSourceRevision(acousticpackage.Identity{
+		ProjectID:   "current",
+		SessionID:   sessionID,
+		TrackID:     trackID,
+		ClipID:      clipID,
+		DurationSec: duration,
+	})
+}
+
 func TestInvokeMixRequestObservationWritesMixBoardWithoutKernel(t *testing.T) {
 	t.Setenv("VIT_MIXBOARD_ROOT", t.TempDir())
 	h := New(nil, shadowProjectWithClips(), nil)
@@ -2962,6 +2984,47 @@ func TestInvokeMixObserveAliasReturnsDigestAndCatalog(t *testing.T) {
 	}
 }
 
+func TestInvokeMixObserveWithPreviousObservationRequestsL2RenderProbe(t *testing.T) {
+	t.Setenv("VIT_MIXBOARD_ROOT", t.TempDir())
+	t.Setenv("VIT_L2_RENDER_PROBE_WAIT_MS", "1")
+	kernel := &fakeKernelClient{}
+	h := NewWithSender(kernel, shadowProjectWithClips(), nil)
+
+	resp, err := h.Invoke(context.Background(), InvokeRequest{
+		Tool: "mix.observe",
+		Args: map[string]any{
+			"mix_session_id":       "mix_ab_reobserve",
+			"previous_observation": "obs_before",
+			"observation_only":     true,
+			"scope":                "selected_track",
+			"track_id":             "1007",
+			"target_ref": map[string]any{
+				"kind":  "track",
+				"id":    "1007",
+				"label": "Drums",
+			},
+		},
+		Confirmed: true,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if resp.Status != "ok" {
+		t.Fatalf("resp = %+v", resp)
+	}
+	commands := testCommandsByName(kernel.commands, "l2_render_probe")
+	if len(commands) != 1 {
+		t.Fatalf("l2_render_probe commands = %+v all=%+v", commands, kernel.commands)
+	}
+	if commands[0]["track_id"] != "1007" || commands[0]["tap_point"] != "track_post_fader" || commands[0]["render_mode"] != "offline_probe" {
+		t.Fatalf("l2_render_probe command = %+v", commands[0])
+	}
+	request := testMap(t, resp.Result["l2_render_probe_request"])
+	if request["status"] == "" {
+		t.Fatalf("missing l2 request summary: %+v", resp.Result)
+	}
+}
+
 func TestInvokeMixObserveFullProjectScopeKeepsProjectTarget(t *testing.T) {
 	t.Setenv("VIT_MIXBOARD_ROOT", t.TempDir())
 	t.Setenv("VIT_MIXBOARD_FEATURE_READY_WAIT_MS", "1")
@@ -2998,6 +3061,92 @@ func TestInvokeMixObserveFullProjectScopeKeepsProjectTarget(t *testing.T) {
 	}
 }
 
+func TestVisibleTrackRowsSkipsEmptyTopLevelRows(t *testing.T) {
+	state := map[string]any{
+		"tracks": []any{
+			map[string]any{"clips": []any{map[string]any{"clip_id": "ghost_clip"}}},
+		},
+		"shadow": map[string]any{
+			"tracks": []any{
+				map[string]any{"track_id": "1007", "track_name": "Track 1"},
+				map[string]any{"track_id": "1010", "track_name": "Track 2"},
+			},
+		},
+	}
+	rows := visibleTrackRows(state)
+	if len(rows) != 2 {
+		t.Fatalf("rows = %+v", rows)
+	}
+	if visibleTrackID(rows[0]) != "1007" || visibleTrackID(rows[1]) != "1010" {
+		t.Fatalf("unexpected rows = %+v", rows)
+	}
+}
+
+func TestInvokeMixObserveFullProjectRefreshesProjectState(t *testing.T) {
+	t.Setenv("VIT_MIXBOARD_ROOT", t.TempDir())
+	t.Setenv("VIT_MIXBOARD_FEATURE_READY_WAIT_MS", "1")
+	stale := shadow.New(nil)
+	stale.Initialize(map[string]any{
+		"status": "ok",
+		"tracks": []any{
+			map[string]any{"clips": []any{map[string]any{"clip_id": "ghost_clip"}}},
+		},
+	})
+	kernel := &fakeKernelClient{replies: []map[string]any{{
+		"status": "ok",
+		"tracks": []any{
+			map[string]any{
+				"track_id":         "1007",
+				"track_name":       "Track 1",
+				"user_track_index": 1,
+				"is_audio_track":   true,
+				"clips":            []any{map[string]any{"clip_id": "1014", "length_seconds": 10.0, "file_path": "D:\\Vit_DAW\\test_100hz_10s.wav"}},
+			},
+			map[string]any{
+				"track_id":         "1010",
+				"track_name":       "Track 2",
+				"user_track_index": 2,
+				"is_audio_track":   true,
+				"clips":            []any{map[string]any{"clip_id": "1016", "length_seconds": 3.0, "file_path": "D:\\Vit_DAW\\test_target_3s.wav"}},
+			},
+		},
+	}}}
+	h := NewWithSender(kernel, stale, nil)
+
+	resp, err := h.Invoke(context.Background(), InvokeRequest{
+		Tool: "mix.observe",
+		Args: map[string]any{
+			"mix_session_id": "mix_full_project_refresh",
+			"scope":          "full_project",
+			"goal_text":      "比较一下各轨频段占用和声像关系，不要修改。",
+		},
+		Confirmed: true,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(kernel.commands) == 0 || firstString(kernel.commands[0], "cmd") != "get_project_state" {
+		t.Fatalf("expected project-state refresh, commands=%+v", kernel.commands)
+	}
+	obs, _ := resp.Result["observation"].(mixboard.ObservationPacket)
+	tracks := mapRowsFromAny(obs.ProjectPackage["tracks"])
+	if len(tracks) != 2 {
+		t.Fatalf("project tracks = %+v", tracks)
+	}
+	if obs.MOMProjection == nil {
+		t.Fatalf("missing MOM projection")
+	}
+	if obs.MOMProjection.IntentPolicy.Name != "project_multitrack_relation_observation" {
+		t.Fatalf("MOM intent = %q", obs.MOMProjection.IntentPolicy.Name)
+	}
+	if obs.MOMProjection.MultitrackRelation.Status == "not_applicable_single_track" {
+		t.Fatalf("MOM relation downgraded to single track: %+v", obs.MOMProjection.MultitrackRelation)
+	}
+	if obs.MOMProjection.MultitrackRelation.TrackCount < 2 {
+		t.Fatalf("MOM relation track count = %+v", obs.MOMProjection.MultitrackRelation)
+	}
+}
+
 func TestInvokeMixObserveFullProjectWritesBlockedPerTrackAcousticsWithoutKernel(t *testing.T) {
 	root := t.TempDir()
 	t.Setenv("VIT_MIXBOARD_ROOT", filepath.Join(root, "mixboard"))
@@ -3016,12 +3165,11 @@ func TestInvokeMixObserveFullProjectWritesBlockedPerTrackAcousticsWithoutKernel(
 	if err != nil {
 		t.Fatal(err)
 	}
-	featureRequest, _ := resp.Result["feature_request"].(map[string]any)
-	if firstString(featureRequest, "status") != "blocked" || firstString(featureRequest, "reason") == "" {
-		t.Fatalf("feature request = %+v", featureRequest)
+	if _, ok := resp.Result["feature_request"]; ok {
+		t.Fatalf("feature_request should be absent for read-only observation: %+v", resp.Result["feature_request"])
 	}
 	obs, _ := resp.Result["observation"].(mixboard.ObservationPacket)
-	if got := obs.SourceCapabilities["track_waveform_envelopes"]; got != "blocked" {
+	if got := obs.SourceCapabilities["track_waveform_envelopes"]; got != "missing" {
 		t.Fatalf("track waveform capability = %q observation=%+v", got, obs)
 	}
 	project := obs.ProjectPackage
@@ -3034,27 +3182,21 @@ func TestInvokeMixObserveFullProjectWritesBlockedPerTrackAcousticsWithoutKernel(
 	}
 	for _, track := range tracks {
 		acoustic := testMap(t, track["acoustic"])
-		if firstString(acoustic, "status") != "blocked" || firstString(acoustic, "reason") == "" {
-			t.Fatalf("acoustic = %+v track=%+v", acoustic, track)
+		if firstString(acoustic, "status") != "missing" {
+			t.Fatalf("read-only observation should report missing acoustic rows: acoustic=%+v track=%+v", acoustic, track)
 		}
 	}
 	digest := testMap(t, resp.Result["digest"])
 	available := testMap(t, digest["available_detail"])
-	if available["project_track_waveforms"] != "blocked" || available["full_project_acoustic_render"] != "blocked" {
+	if !statusIn(available["project_track_waveforms"], "missing") || !statusIn(available["full_project_acoustic_render"], "missing") {
 		t.Fatalf("available detail = %+v", available)
 	}
 	snapshotPath := filepath.Join(root, "mixboard_feature_snapshot.json")
-	data, err := os.ReadFile(snapshotPath)
-	if err != nil {
-		t.Fatalf("read snapshot: %v", err)
-	}
-	var snapshot map[string]any
-	if err := json.Unmarshal(data, &snapshot); err != nil {
-		t.Fatalf("parse snapshot: %v\n%s", err, string(data))
-	}
-	rows := mapRowsFromAny(snapshot["track_waveform_envelopes"])
-	if len(rows) != 2 {
-		t.Fatalf("snapshot rows = %+v\n%s", rows, string(data))
+	if _, err := os.Stat(snapshotPath); err == nil {
+		data, _ := os.ReadFile(snapshotPath)
+		t.Fatalf("read-only observation wrote feature snapshot: %s", string(data))
+	} else if !os.IsNotExist(err) {
+		t.Fatalf("stat snapshot: %v", err)
 	}
 }
 
@@ -3261,7 +3403,7 @@ func TestProjectSnapshotExportFallsBackWhenKernelCommandMissing(t *testing.T) {
 	}
 }
 
-func TestInvokeMixRequestObservationRequestsAudioFeatures(t *testing.T) {
+func TestInvokeMixRequestObservationDoesNotRequestAudioFeatures(t *testing.T) {
 	root := t.TempDir()
 	t.Setenv("VIT_MIXBOARD_ROOT", filepath.Join(root, "mixboard"))
 	t.Setenv("VIT_MIXBOARD_FEATURE_READY_WAIT_MS", "1")
@@ -3288,32 +3430,24 @@ func TestInvokeMixRequestObservationRequestsAudioFeatures(t *testing.T) {
 	if resp.Status != "ok" {
 		t.Fatalf("resp = %+v", resp)
 	}
-	if len(kernel.commands) != 1 {
+	if len(kernel.commands) != 0 {
 		t.Fatalf("kernel commands = %+v resp=%+v", kernel.commands, resp.Result)
 	}
-	for i, feature := range []string{"waveform_envelope"} {
-		if kernel.commands[i]["cmd"] != "warm_waveform_bake" || kernel.commands[i]["feature_type"] != feature {
-			t.Fatalf("command[%d] = %+v", i, kernel.commands[i])
-		}
-		if kernel.commands[i]["track_id"] != "1007" || kernel.commands[i]["clip_id"] != "clip_a" {
-			t.Fatalf("command[%d] target = %+v", i, kernel.commands[i])
-		}
-	}
-	featureRequest, _ := resp.Result["feature_request"].(map[string]any)
-	if firstString(featureRequest, "status") != "requested" {
-		t.Fatalf("feature_request = %+v", featureRequest)
+	if _, ok := resp.Result["feature_request"]; ok {
+		t.Fatalf("feature_request should be absent for read-only observation: %+v", resp.Result["feature_request"])
 	}
 	snapshotPath := filepath.Join(root, "mixboard_feature_snapshot.json")
-	data, err := os.ReadFile(snapshotPath)
-	if err != nil {
-		t.Fatalf("read snapshot: %v", err)
-	}
-	if !strings.Contains(string(data), `"latest_request"`) || !strings.Contains(string(data), `"waveform_envelope"`) {
-		t.Fatalf("snapshot = %s", string(data))
+	if _, err := os.Stat(snapshotPath); err == nil {
+		data, _ := os.ReadFile(snapshotPath)
+		if strings.Contains(string(data), `"requested"`) || strings.Contains(string(data), `"latest_request"`) {
+			t.Fatalf("observation wrote request-style snapshot: %s", string(data))
+		}
+	} else if !os.IsNotExist(err) {
+		t.Fatalf("stat snapshot: %v", err)
 	}
 }
 
-func TestInvokeMixRequestObservationWritesRequestedSnapshotBeforeKernelBake(t *testing.T) {
+func TestInvokeMixRequestObservationDoesNotWriteRequestedSnapshot(t *testing.T) {
 	root := t.TempDir()
 	t.Setenv("VIT_MIXBOARD_ROOT", filepath.Join(root, "mixboard"))
 	t.Setenv("VIT_MIXBOARD_FEATURE_READY_WAIT_MS", "1")
@@ -3335,17 +3469,228 @@ func TestInvokeMixRequestObservationWritesRequestedSnapshotBeforeKernelBake(t *t
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(kernel.commands) != 1 {
-		t.Fatalf("kernel commands = %+v", kernel.commands)
+	if featureCommands := testCommandsByName(kernel.commands, "request_audio_feature"); len(featureCommands) != 0 {
+		t.Fatalf("feature kernel commands = %+v all=%+v", featureCommands, kernel.commands)
 	}
 	snapshotPath := filepath.Join(root, "mixboard_feature_snapshot.json")
-	data, err := os.ReadFile(snapshotPath)
-	if err != nil {
-		t.Fatalf("read snapshot: %v", err)
+	if _, err := os.Stat(snapshotPath); err == nil {
+		data, _ := os.ReadFile(snapshotPath)
+		text := string(data)
+		if strings.Contains(text, `"requested"`) || strings.Contains(text, `"mixboard_feature_request.v1"`) {
+			t.Fatalf("snapshot should not contain requested rows: %s", text)
+		}
+	} else if !os.IsNotExist(err) {
+		t.Fatalf("stat snapshot: %v", err)
 	}
-	text := string(data)
-	if !strings.Contains(text, `"status": "requested"`) || !strings.Contains(text, `"feature_type": "waveform_envelope"`) {
-		t.Fatalf("snapshot was not prepared before bake fallback: %s", text)
+}
+
+func TestInvokeMixRequestObservationReportsMissingWithoutBackgroundFill(t *testing.T) {
+	root := t.TempDir()
+	t.Setenv("VIT_MIXBOARD_ROOT", filepath.Join(root, "mixboard"))
+	t.Setenv("VIT_MIXBOARD_FEATURE_READY_WAIT_MS", "1")
+	kernel := &fakeKernelClient{}
+	h := New(nil, shadowProjectWithClips(), nil)
+	h.kernel = kernel
+
+	resp, err := h.Invoke(context.Background(), InvokeRequest{
+		Tool: "mix.request_observation",
+		Args: map[string]any{
+			"mix_session_id": "mix_feature_missing_reasons",
+			"target_ref": map[string]any{
+				"kind": "track",
+				"id":   "1007",
+			},
+		},
+		Confirmed: true,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if resp.Status != "ok" {
+		t.Fatalf("resp = %+v", resp)
+	}
+	if featureCommands := testCommandsByName(kernel.commands, "request_audio_feature"); len(featureCommands) != 0 {
+		t.Fatalf("feature kernel commands = %+v all=%+v", featureCommands, kernel.commands)
+	}
+	status := testMap(t, resp.Result["acoustic_package_status"])
+	if status["schema_version"] != acousticpackage.SchemaVersion {
+		t.Fatalf("acoustic package status missing: %+v", status)
+	}
+	layers := testMap(t, status["package_layers"])
+	l3 := testMap(t, layers["l3_deep"])
+	features := testMap(t, l3["features"])
+	for _, featureName := range []string{"spectrogram_tiles", "band_energy_summary", "stereo_relation_summary"} {
+		feature := testMap(t, features[featureName])
+		if firstString(feature, "status") == acousticpackage.StatusBuilding {
+			t.Fatalf("%s should not be marked building during read-only observation: %+v package=%+v", featureName, feature, status)
+		}
+	}
+	obs := resp.Result["observation"].(mixboard.ObservationPacket)
+	metrics := obs.MixPackage["current_metrics"].(map[string]any)
+	bandMetrics := metrics["band_energy"].(map[string]any)
+	if bandMetrics["status"] == acousticpackage.StatusBuilding {
+		t.Fatalf("observation exposed building band readiness: %+v", bandMetrics)
+	}
+}
+
+func TestInvokeMixObserveReadFirstUsesStoredBuildingPackageWithoutKernelRequest(t *testing.T) {
+	root := t.TempDir()
+	t.Setenv("VIT_MIXBOARD_ROOT", filepath.Join(root, "mixboard"))
+	statusPath := filepath.Join(root, "acoustic_package_status.json")
+	t.Setenv("VIT_ACOUSTIC_PACKAGE_STATUS_PATH", statusPath)
+	project := shadowProjectWithClips()
+	h := New(nil, project, nil)
+	state := h.UserStateSummary(context.Background())
+	if targets := visibleAudioTrackFeatureTargets(state); len(targets) == 0 {
+		t.Fatalf("test fixture has no visible audio targets: state=%+v", state)
+	}
+	cmd := map[string]any{
+		"mix_session_id": "mix_read_first",
+		"target_ref": map[string]any{
+			"kind": "track",
+			"id":   "1007",
+		},
+	}
+	target := mixTargetFromCommand(cmd)
+	resolved := resolveMixObservationTargetContext(cmd, state, target)
+	cmd = canonicalizeMixObservationCommand(cmd, target, resolved)
+	identity := acousticpackage.IdentityFromMaps(state, resolved, cmd)
+	status := acousticpackage.BuildStatus(identity, map[string]any{
+		"waveform_envelope": map[string]any{"status": "ready", "track_id": "1007", "clip_id": "clip_a", "rms": 0.2, "peak_abs": 0.8, "time_segments": []any{map[string]any{"start_seconds": 0, "end_seconds": 2}}},
+	}, "2026-06-22T00:00:00Z", "test")
+	status = acousticpackage.MarkBackgroundRequested(status, "test", "already_building", "2026-06-22T00:00:01Z")
+	if _, err := acousticpackage.NewStore(statusPath).Upsert(status); err != nil {
+		t.Fatal(err)
+	}
+	kernel := &fakeKernelClient{replies: []map[string]any{{
+		"status": "ok",
+		"tracks": []any{
+			map[string]any{
+				"track_id":       "1007",
+				"track_name":     "Drums",
+				"track_type":     "hybrid",
+				"is_audio_track": true,
+				"clips":          []any{map[string]any{"id": "clip_a", "name": "Loop A", "start_seconds": 0.0, "length_seconds": 2.0}},
+			},
+			map[string]any{
+				"track_id":       "1010",
+				"track_name":     "Bass",
+				"track_type":     "hybrid",
+				"is_audio_track": true,
+				"clips":          []any{map[string]any{"id": "clip_b", "name": "Loop B", "start_seconds": 4.0, "length_seconds": 2.0}},
+			},
+		},
+	}}}
+	h.kernel = kernel
+
+	resp, err := h.Invoke(context.Background(), InvokeRequest{
+		Tool:      "mix.observe",
+		Args:      cmd,
+		Confirmed: true,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if resp.Status != "ok" {
+		t.Fatalf("resp = %+v", resp)
+	}
+	if len(kernel.commands) != 0 {
+		t.Fatalf("read-first observe should not request more features while package is building: %+v", kernel.commands)
+	}
+	if _, ok := resp.Result["feature_request"]; ok {
+		t.Fatalf("feature_request should be absent when store already reports building: %+v", resp.Result["feature_request"])
+	}
+	acousticStatus := testMap(t, resp.Result["acoustic_package_status"])
+	l3 := testMap(t, testMap(t, acousticStatus["package_layers"])["l3_deep"])
+	if firstString(l3, "status") != acousticpackage.StatusBuilding {
+		t.Fatalf("l3 status = %+v", l3)
+	}
+	if events := mapRowsFromAny(resp.Result["typed_events"]); len(events) != 1 || firstString(events[0], "event_type") != agentprotocol.KindAcousticPackageStatus {
+		t.Fatalf("typed_events = %+v", resp.Result["typed_events"])
+	}
+}
+
+func TestInvokeMixObserveFullProjectDoesNotRefreshBackgroundWhenStoredPackageStillBuilding(t *testing.T) {
+	root := t.TempDir()
+	t.Setenv("VIT_MIXBOARD_ROOT", filepath.Join(root, "mixboard"))
+	t.Setenv("VIT_MIXBOARD_FEATURE_READY_WAIT_MS", "1")
+	statusPath := filepath.Join(root, "acoustic_package_status.json")
+	t.Setenv("VIT_ACOUSTIC_PACKAGE_STATUS_PATH", statusPath)
+	snapshotPath := filepath.Join(root, "mixboard_feature_snapshot.json")
+	if err := os.WriteFile(snapshotPath, []byte(`{
+		"schema_version":"mixboard_feature_snapshot.v1",
+		"updated_at":"2026-06-22T08:00:00Z",
+		"latest_request":{
+			"request_id":"old_blocked_selection",
+			"status":"blocked",
+			"reason":"clip_source_required_for_current_feature_bakers",
+			"resolved_target":{"kind":"selection","id":"Track 1","track_id":"Track 1"}
+		},
+		"track_waveform_envelopes":[
+			{"status":"ready","track_id":"1007","clip_id":"clip_a","request_id":"older_req_1","rms":0.2,"peak_abs":0.5,
+				"time_segments":[{"start_seconds":0,"end_seconds":2,"rms":0.2,"peak_abs":0.5,"energy_state":"high"}]},
+			{"status":"ready","track_id":"1010","clip_id":"clip_b","request_id":"older_req_2","rms":0.1,"peak_abs":0.7,
+				"time_segments":[{"start_seconds":0,"end_seconds":2,"rms":0.1,"peak_abs":0.7,"energy_state":"medium"}]}
+		],
+		"waveform_envelope":{"status":"missing"},
+		"spectrogram_tiles":{"status":"missing"},
+		"band_energy_summary":{"status":"missing"},
+		"stereo_relation_summary":{"status":"missing"}
+	}`), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	project := shadowProjectWithClips()
+	h := New(nil, project, nil)
+	state := h.UserStateSummary(context.Background())
+	cmd := map[string]any{
+		"mix_session_id":      "mix_project_read_first_refresh",
+		"scope":               "full_project",
+		"mixboard_request_id": "current_project_refresh",
+	}
+	target := mixTargetFromCommand(cmd)
+	resolved := resolveMixObservationTargetContext(cmd, state, target)
+	cmd = canonicalizeMixObservationCommand(cmd, target, resolved)
+	identity := acousticpackage.IdentityFromMaps(state, resolved, cmd)
+	status := acousticpackage.BuildStatus(identity, map[string]any{
+		"waveform_envelope": map[string]any{
+			"status":        "ready",
+			"track_id":      "1007",
+			"clip_id":       "clip_a",
+			"rms":           0.2,
+			"peak_abs":      0.8,
+			"time_segments": []any{map[string]any{"start_seconds": 0, "end_seconds": 2}},
+		},
+	}, "2026-06-22T00:00:00Z", "test")
+	status = acousticpackage.MarkBackgroundRequested(status, "test", "already_building", "2026-06-22T00:00:01Z")
+	if _, err := acousticpackage.NewStore(statusPath).Upsert(status); err != nil {
+		t.Fatal(err)
+	}
+	kernelState := testMap(t, testMap(t, project.Snapshot())["engine_snapshot"])
+	kernel := &fakeKernelClient{replies: []map[string]any{kernelState}}
+	h.kernel = kernel
+
+	resp, err := h.Invoke(context.Background(), InvokeRequest{
+		Tool:      "mix.observe",
+		Args:      cmd,
+		Confirmed: true,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if resp.Status != "ok" {
+		t.Fatalf("resp = %+v", resp)
+	}
+	if _, ok := resp.Result["feature_request"]; ok {
+		t.Fatalf("feature_request should be absent for read-only full-project observe: %+v", resp.Result["feature_request"])
+	}
+	if featureCommands := testCommandsByName(kernel.commands, "request_audio_feature"); len(featureCommands) != 0 {
+		t.Fatalf("feature kernel commands = %+v all=%+v", featureCommands, kernel.commands)
+	}
+	acousticStatus := testMap(t, resp.Result["acoustic_package_status"])
+	l3 := testMap(t, testMap(t, acousticStatus["package_layers"])["l3_deep"])
+	if firstString(l3, "status") != acousticpackage.StatusBuilding {
+		t.Fatalf("stored building package should be preserved: %+v", l3)
 	}
 }
 
@@ -3396,11 +3741,12 @@ func TestInvokeMixRequestObservationResolvesVisibleTrackClipSource(t *testing.T)
 	if resp.Status != "ok" {
 		t.Fatalf("resp = %+v", resp)
 	}
-	if len(kernel.commands) != 1 {
+	if len(kernel.commands) != 0 {
 		t.Fatalf("kernel commands = %+v resp=%+v", kernel.commands, resp.Result)
 	}
-	if kernel.commands[0]["track_id"] != "1007" || kernel.commands[0]["clip_id"] != "1011" {
-		t.Fatalf("resolved command target = %+v", kernel.commands[0])
+	resolved := testMap(t, resp.Result["resolved_target"])
+	if resolved["track_id"] != "1007" || resolved["clip_id"] != "1011" {
+		t.Fatalf("resolved target = %+v", resolved)
 	}
 	acoustic, _ := resp.Result["acoustic_digest"].(map[string]any)
 	if acoustic["clip_id"] != "1011" || acoustic["file_path"] == "" {
@@ -3463,11 +3809,12 @@ func TestInvokeMixRequestObservationResolvesTrackAliasAmongMultipleTracks(t *tes
 	if resp.Status != "ok" {
 		t.Fatalf("resp = %+v", resp)
 	}
-	if len(kernel.commands) != 1 {
+	if len(kernel.commands) != 0 {
 		t.Fatalf("kernel commands = %+v resp=%+v", kernel.commands, resp.Result)
 	}
-	if kernel.commands[0]["track_id"] != "1007" || kernel.commands[0]["clip_id"] != "1011" {
-		t.Fatalf("track alias did not resolve to audio clip source: %+v", kernel.commands[0])
+	resolved := testMap(t, resp.Result["resolved_target"])
+	if resolved["track_id"] != "1007" || resolved["clip_id"] != "1011" {
+		t.Fatalf("track alias did not resolve to audio clip source: %+v", resolved)
 	}
 	board, _ := resp.Result["mixboard"].(mixboard.Board)
 	if board.TargetRef.ID != "1007" {
@@ -3639,19 +3986,18 @@ func TestInvokeMixRequestObservationRefreshesStaleAliasTarget(t *testing.T) {
 	if resp.Status != "ok" {
 		t.Fatalf("resp = %+v", resp)
 	}
-	if len(kernel.commands) != 2 {
+	if len(kernel.commands) != 1 {
 		t.Fatalf("kernel commands = %+v", kernel.commands)
 	}
 	if kernel.commands[0]["cmd"] != "get_project_state" {
 		t.Fatalf("first command should refresh shadow: %+v", kernel.commands)
 	}
-	if kernel.commands[1]["cmd"] != "warm_waveform_bake" || kernel.commands[1]["track_id"] != "1007" || kernel.commands[1]["clip_id"] != "1011" {
-		t.Fatalf("feature command target = %+v", kernel.commands[1])
+	if _, ok := resp.Result["feature_request"]; ok {
+		t.Fatalf("feature_request should be absent for read-only observation: %+v", resp.Result["feature_request"])
 	}
-	featureRequest, _ := resp.Result["feature_request"].(map[string]any)
-	resolved, _ := featureRequest["resolved_target"].(map[string]any)
+	resolved := testMap(t, resp.Result["resolved_target"])
 	if resolved["track_id"] != "1007" || resolved["clip_id"] != "1011" {
-		t.Fatalf("feature request target = %+v", featureRequest)
+		t.Fatalf("resolved target = %+v", resolved)
 	}
 	board, _ := resp.Result["mixboard"].(mixboard.Board)
 	if board.TargetRef.ID != "1007" {
@@ -3712,17 +4058,18 @@ func TestWaveformFeatureCollectorWritesReadySnapshot(t *testing.T) {
 	}
 }
 
-func TestMixRequestObservationKeepsReadyFeatureSnapshot(t *testing.T) {
+func TestMixRequestObservationDoesNotReuseStaleBridgeFeatureSnapshot(t *testing.T) {
 	root := t.TempDir()
 	t.Setenv("VIT_MIXBOARD_ROOT", filepath.Join(root, "mixboard"))
 	snapshotPath := filepath.Join(root, "mixboard_feature_snapshot.json")
-	if err := os.WriteFile(snapshotPath, []byte(`{
+	sourceRevision := testAcousticSourceRevision("mix_ready_snapshot", "1007", "clip_a", 2)
+	if err := os.WriteFile(snapshotPath, []byte(fmt.Sprintf(`{
 		"schema_version":"mixboard_feature_snapshot.v1",
-		"waveform_envelope":{"status":"ready","track_id":"1007","clip_id":"clip_a","rms":0.2,"peak_abs":0.7},
+		"waveform_envelope":{"status":"ready","track_id":"1007","clip_id":"clip_a","source_revision":%q,"duration_seconds":2,"rms":0.2,"peak_abs":0.7},
 		"band_energy_summary":{"status":"ready","track_id":"1007","clip_id":"clip_a","source":"live_level_meter_spectrum"},
 		"stereo_relation_summary":{"status":"ready","track_id":"1007","clip_id":"clip_a","source":"live_level_meter_stereo","correlation_state":"stable"},
 		"spectrogram_tiles":{"status":"ready","track_id":"1007","clip_id":"clip_a","tile_count_seen":2,"tile_count_expected":2}
-	}`), 0o644); err != nil {
+	}`, sourceRevision)), 0o644); err != nil {
 		t.Fatal(err)
 	}
 	kernel := &fakeKernelClient{}
@@ -3764,8 +4111,798 @@ func TestMixRequestObservationKeepsReadyFeatureSnapshot(t *testing.T) {
 	if observedWaveform["peak_dbfs"] == nil || observedWaveform["rms_dbfs"] == nil || observedWaveform["headroom_db"] == nil {
 		t.Fatalf("observation did not consume ready waveform metrics: %+v", observedWaveform)
 	}
-	if !strings.Contains(string(data), `"stereo_relation_summary"`) || !strings.Contains(string(data), `"correlation_state": "stable"`) {
-		t.Fatalf("snapshot did not preserve stereo relation: %s", string(data))
+	status := testMap(t, resp.Result["acoustic_package_status"])
+	l3 := testMap(t, testMap(t, status["package_layers"])["l3_deep"])
+	features := testMap(t, l3["features"])
+	for _, featureName := range []string{"spectrogram_tiles", "band_energy_summary", "stereo_relation_summary"} {
+		feature := testMap(t, features[featureName])
+		if firstString(feature, "status") == acousticpackage.StatusReady {
+			t.Fatalf("stale %s was reused as ready: %+v package=%+v", featureName, feature, status)
+		}
+	}
+}
+
+func TestInvokeMixObserveKeepsExplicitSourceIdentityWhenLiveTargetDiffers(t *testing.T) {
+	root := t.TempDir()
+	t.Setenv("VIT_MIXBOARD_ROOT", filepath.Join(root, "mixboard"))
+	t.Setenv("VIT_ACOUSTIC_PACKAGE_STATUS_PATH", filepath.Join(root, "acoustic_package_status.json"))
+	snapshotPath := filepath.Join(root, "mixboard_feature_snapshot.json")
+	statusPath := filepath.Join(root, "explicit_acoustic_package_status.json")
+	paperPath := filepath.Join(root, "Paper Crown.mp3")
+	oldPath := filepath.Join(root, "test_100hz_10s.wav")
+
+	project := shadow.New(nil)
+	project.Initialize(map[string]any{
+		"status": "ok",
+		"tracks": []any{
+			map[string]any{
+				"track_id":       "1007",
+				"track_name":     "Track 1",
+				"is_audio_track": true,
+				"clips": []any{
+					map[string]any{
+						"id":             "1014",
+						"name":           "Old 100Hz",
+						"file_path":      oldPath,
+						"length_seconds": 10.0,
+					},
+				},
+			},
+		},
+	})
+	featureSnapshot := map[string]any{
+		"schema_version": "mixboard_feature_snapshot.v1",
+		"waveform_envelope": map[string]any{
+			"status": "ready", "track_id": "1007", "clip_id": "clip_a", "file_path": paperPath, "source_path": paperPath, "source_revision": "rev_paper", "duration_seconds": 219.0, "peak_abs": 0.55, "rms": 0.12,
+		},
+		"track_waveform_envelopes": []any{
+			map[string]any{"status": "ready", "track_id": "1007", "clip_id": "1014", "file_path": oldPath, "source_path": oldPath, "source_revision": "rev_100hz", "duration_seconds": 10.0, "peak_dbfs": -6.02, "rms_dbfs": -9.03},
+			map[string]any{"status": "ready", "track_id": "1007", "clip_id": "clip_a", "file_path": paperPath, "source_path": paperPath, "source_revision": "rev_paper", "duration_seconds": 219.0, "peak_dbfs": -5.19, "rms_dbfs": -18.41},
+		},
+		"spectrogram_tiles": map[string]any{
+			"status": "ready", "track_id": "1007", "clip_id": "1014", "file_path": oldPath, "source_path": oldPath, "source_revision": "rev_100hz", "duration_seconds": 10.0, "tile_count_seen": 2, "tile_count_expected": 2,
+		},
+		"spectrogram_tile_rows": []any{
+			map[string]any{"status": "partial", "track_id": "1007", "clip_id": "clip_a", "file_path": paperPath, "source_path": paperPath, "source_revision": "rev_paper", "duration_seconds": 219.0, "tile_count_seen": 12, "tile_count_expected": 101, "coverage_seconds": 60},
+		},
+		"band_energy_summary": map[string]any{
+			"status": "ready", "track_id": "1007", "clip_id": "1014", "file_path": oldPath, "source_path": oldPath, "source_revision": "rev_100hz", "duration_seconds": 10.0, "bands": map[string]any{"bass": map[string]any{"energy_db": -6.02, "unit_energy": 0.5}},
+		},
+		"band_energy_summaries": []any{
+			map[string]any{"status": "partial", "track_id": "1007", "clip_id": "clip_a", "file_path": paperPath, "source_path": paperPath, "source_revision": "rev_paper", "duration_seconds": 219.0, "coverage_seconds": 60, "bands": map[string]any{"bass": map[string]any{"energy_db": -18.2, "unit_energy": 0.12}}},
+		},
+		"stereo_relation_summary": map[string]any{
+			"status": "ready", "track_id": "1007", "clip_id": "1014", "file_path": oldPath, "source_path": oldPath, "source_revision": "rev_100hz", "duration_seconds": 10.0, "balance_db": 0, "correlation_estimate": 1.0,
+		},
+		"stereo_relation_summaries": []any{
+			map[string]any{"status": "partial", "track_id": "1007", "clip_id": "clip_a", "file_path": paperPath, "source_path": paperPath, "source_revision": "rev_paper", "duration_seconds": 219.0, "coverage_seconds": 60, "balance_db": 0.3, "correlation_estimate": 0.72},
+		},
+	}
+	data, err := json.MarshalIndent(featureSnapshot, "", "\t")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(snapshotPath, data, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	h := New(nil, project, nil)
+	h.kernel = &fakeKernelClient{}
+
+	resp, err := h.Invoke(context.Background(), InvokeRequest{
+		Tool: "mix.observe",
+		Args: map[string]any{
+			"mix_session_id":               "mix_source_identity",
+			"scope":                        "selected_track",
+			"track_id":                     "1007",
+			"clip_id":                      "clip_a",
+			"file_path":                    paperPath,
+			"source_revision":              "rev_paper",
+			"duration_seconds":             219.0,
+			"feature_snapshot_path":        snapshotPath,
+			"acoustic_package_status_path": statusPath,
+			"projection":                   "frequency_stereo",
+			"include_raw":                  false,
+			"feature_keys":                 []any{"band_energy_summary", "stereo_relation_summary", "spectrogram_tiles", "acoustic_package_status", "source_identity"},
+			"observation_only":             true,
+			"mutation_barrier":             true,
+			"no_pending":                   true,
+		},
+		Confirmed: true,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if resp.Status != "ok" {
+		t.Fatalf("resp = %+v", resp)
+	}
+	status := testMap(t, resp.Result["acoustic_package_status"])
+	if firstString(status, "source_revision") != "rev_paper" || firstString(status, "file_path", "source_path") != paperPath || firstString(status, "clip_id") != "clip_a" || numberFromAny(status["duration_seconds"]) != 219 {
+		t.Fatalf("acoustic status mixed explicit source identity with live target: %+v", status)
+	}
+	resultJSON, err := json.Marshal(resp.Result)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, forbidden := range []string{oldPath, "rev_100hz", "-6.02", "-9.03"} {
+		if strings.Contains(string(resultJSON), forbidden) {
+			t.Fatalf("old source evidence leaked into observe result: %s\n%s", forbidden, string(resultJSON))
+		}
+	}
+}
+
+func TestFinalizeMixboardFeatureSnapshotPreservesFreshBridgeRows(t *testing.T) {
+	root := t.TempDir()
+	snapshotPath := filepath.Join(root, "mixboard_feature_snapshot.json")
+	if err := os.WriteFile(snapshotPath, []byte(`{
+		"schema_version":"mixboard_feature_snapshot.v1",
+		"spectrogram_tiles":{"status":"ready","feature_type":"spectral_field","track_id":"1007","clip_id":"1011","request_id":"req_current","source":"kernel_tile_ready_direct_collector","tile_count_seen":2,"tile_count_expected":2},
+		"band_energy_summary":{"status":"ready","track_id":"1007","clip_id":"1011","request_id":"req_current","source":"live_level_meter_spectrum"},
+		"stereo_relation_summary":{"status":"ready","track_id":"1007","clip_id":"1011","request_id":"req_current","source":"live_level_meter_stereo","correlation_state":"stable"}
+	}`), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	packet := map[string]any{
+		"request_id": "req_current",
+		"resolved_target": map[string]any{
+			"track_id": "1007",
+			"clip_id":  "1011",
+		},
+		"requested_features": []any{
+			map[string]any{"feature_type": "waveform_envelope"},
+			map[string]any{"feature_type": "spectral_field"},
+		},
+		"spectral_tile_ready_seen": true,
+	}
+	finalizeMixboardFeatureSnapshotAfterWait(map[string]any{"feature_snapshot_path": snapshotPath}, packet, []map[string]any{{"track_id": "1007", "clip_id": "1011"}})
+	data, err := os.ReadFile(snapshotPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var snapshot map[string]any
+	if err := json.Unmarshal(data, &snapshot); err != nil {
+		t.Fatalf("parse snapshot: %v\n%s", err, string(data))
+	}
+	spectral := testMap(t, snapshot["spectrogram_tiles"])
+	if firstString(spectral, "status") != "ready" || firstString(spectral, "request_id") != "req_current" || firstString(spectral, "source") != "kernel_tile_ready_direct_collector" {
+		t.Fatalf("fresh spectral row not preserved: %+v\n%s", spectral, string(data))
+	}
+	band := testMap(t, snapshot["band_energy_summary"])
+	if firstString(band, "status") != "ready" || firstString(band, "request_id") != "req_current" || firstString(band, "source") != "live_level_meter_spectrum" {
+		t.Fatalf("fresh band row not preserved: %+v\n%s", band, string(data))
+	}
+	stereo := testMap(t, snapshot["stereo_relation_summary"])
+	if firstString(stereo, "status") != "ready" || firstString(stereo, "request_id") != "req_current" || firstString(stereo, "correlation_state") != "stable" {
+		t.Fatalf("fresh stereo row not preserved: %+v\n%s", stereo, string(data))
+	}
+}
+
+func TestSpectralFeatureCollectorSnapshotRowCarriesTileReadyMetadata(t *testing.T) {
+	collector := &spectralFeatureCollector{TrackID: "1007", ClipID: "1011", FeatureType: "spectral_field", LastTileIndex: -1}
+	collector.AddEvent(map[string]any{
+		"command":                    "tile_ready",
+		"feature_type":               "spectral_field",
+		"track_id":                   "1007",
+		"clip_id":                    "1011",
+		"file_path":                  "D:\\Vit_DAW\\Paper Crown.mp3",
+		"tile_index":                 0,
+		"tile_count":                 2,
+		"tile_duration":              5.0,
+		"tile_content_start_seconds": 0.0,
+		"total_duration":             9.5,
+		"resolution_frame_width":     256,
+		"resolution_frequency_bins":  128,
+		"shared_memory":              "vit_spectral_tile_1007_1011_0",
+	})
+	row := collector.SnapshotRow("req_spectral")
+	if firstString(row, "status") != "partial" || firstString(row, "feature_type") != "spectral_field" || firstString(row, "source") != "kernel_tile_ready_direct_collector" {
+		t.Fatalf("unexpected spectral row identity: %+v", row)
+	}
+	if firstString(row, "track_id") != "1007" || firstString(row, "clip_id") != "1011" || firstString(row, "request_id") != "req_spectral" {
+		t.Fatalf("unexpected spectral row target: %+v", row)
+	}
+	if int(numberFromAny(row["tile_count_seen"])) != 1 || int(numberFromAny(row["tile_count_expected"])) != 2 {
+		t.Fatalf("unexpected spectral tile counts: %+v", row)
+	}
+	if int(numberFromAny(row["resolution_frame_width"])) != 256 || int(numberFromAny(row["resolution_frequency_bins"])) != 128 {
+		t.Fatalf("unexpected spectral resolution metadata: %+v", row)
+	}
+	if firstString(row, "shared_memory") != "vit_spectral_tile_1007_1011_0" {
+		t.Fatalf("shared memory metadata missing: %+v", row)
+	}
+}
+
+func TestSpectralFeatureCollectorQualityFailurePreventsReady(t *testing.T) {
+	collector := &spectralFeatureCollector{TrackID: "1007", ClipID: "1011", FeatureType: "spectral_field", LastTileIndex: -1}
+	collector.AddEvent(map[string]any{
+		"command":                   "tile_ready",
+		"feature_type":              "spectral_field",
+		"track_id":                  "1007",
+		"clip_id":                   "1011",
+		"file_path":                 "D:\\Vit_DAW\\Paper Crown.mp3",
+		"source_revision":           "rev_paper",
+		"clip_revision":             "cliprev_paper",
+		"tile_index":                0,
+		"tile_count":                1,
+		"total_duration":            5.0,
+		"resolution_frame_width":    500,
+		"resolution_frequency_bins": 336,
+		"float_count":               672000,
+		"quality_status":            "failed",
+		"quality_reason":            "tile_all_zero_before_write",
+		"nonzero_count":             0,
+	})
+	row := collector.SnapshotRow("req_spectral")
+	if firstString(row, "status") == "ready" {
+		t.Fatalf("quality-failed spectral row must not be ready: %+v", row)
+	}
+	if firstString(row, "quality_status") != "failed" || firstString(row, "reason") != "tile_all_zero_before_write" {
+		t.Fatalf("quality evidence missing from spectral row: %+v", row)
+	}
+}
+
+func TestWaveformFeatureCollectorCountsUniqueTilesForReady(t *testing.T) {
+	collector := &waveformFeatureCollector{
+		TrackID:         "1007",
+		ClipID:          "1011",
+		ExpectedTiles:   2,
+		TilesSeen:       3,
+		TileIndexes:     map[int]bool{0: true, 1: true},
+		RawTileEvents:   3,
+		QualityStatus:   "ready",
+		SumSquares:      2,
+		SampleFrames:    2,
+		TimeSegments:    []map[string]any{{"start_seconds": 0.0, "end_seconds": 5.0}, {"start_seconds": 5.0, "end_seconds": 10.0}},
+		FirstReceivedAt: "2026-06-23T00:00:00Z",
+		LastReceivedAt:  "2026-06-23T00:00:01Z",
+	}
+
+	if !collector.Complete() {
+		t.Fatalf("collector should be complete from unique tile coverage")
+	}
+	row := collector.SnapshotRow("req_waveform")
+	if int(numberFromAny(row["tile_count_seen"])) != 2 {
+		t.Fatalf("tile_count_seen should use unique tile count: %+v", row)
+	}
+	if int(numberFromAny(row["tile_event_count"])) != 3 {
+		t.Fatalf("tile_event_count should preserve raw duplicate evidence: %+v", row)
+	}
+	if firstString(row, "status") != "ready" {
+		t.Fatalf("duplicate tile events should not prevent ready: %+v", row)
+	}
+}
+
+func TestWaveformFeatureCollectorRequiresCoverageForReady(t *testing.T) {
+	collector := &waveformFeatureCollector{
+		TrackID:        "1007",
+		ClipID:         "1011",
+		ExpectedTiles:  2,
+		TilesSeen:      1,
+		QualityStatus:  "ready",
+		QualityReason:  "ok",
+		PeakAbs:        0.5,
+		SumSquares:     1,
+		SampleFrames:   1,
+		NonzeroCount:   10,
+		SumAbs:         1,
+		MaxAbs:         0.5,
+		TimeSegments:   []map[string]any{{"start_seconds": 0.0, "end_seconds": 5.0}},
+		LastReceivedAt: "2026-06-23T00:00:01Z",
+	}
+
+	row := collector.SnapshotRow("req_waveform")
+	if firstString(row, "status") != "partial" {
+		t.Fatalf("incomplete coverage must not be ready: %+v", row)
+	}
+}
+
+func TestWaveformFeatureCollectorAllowsSilentTilesWhenAggregateIsNonzero(t *testing.T) {
+	collector := &waveformFeatureCollector{
+		TrackID:        "1022",
+		ClipID:         "1026",
+		ExpectedTiles:  2,
+		TilesSeen:      2,
+		QualityStatus:  "suspect",
+		QualityReason:  "input_all_zero; ok",
+		PeakAbs:        0.5,
+		SumSquares:     1,
+		SampleFrames:   2,
+		NonzeroCount:   10,
+		SumAbs:         1,
+		MaxAbs:         0.5,
+		TimeSegments:   []map[string]any{{"start_seconds": 0.0, "end_seconds": 5.0}, {"start_seconds": 5.0, "end_seconds": 10.0}},
+		LastReceivedAt: "2026-06-23T00:00:01Z",
+	}
+
+	row := collector.SnapshotRow("req_waveform")
+	if firstString(row, "status") != "ready" {
+		t.Fatalf("aggregate nonzero waveform with silent tiles should be ready: %+v", row)
+	}
+	if firstString(row, "quality_status") != "ready" || firstString(row, "quality_reason") != "ok_with_silent_tiles" {
+		t.Fatalf("aggregate quality should be normalized with evidence: %+v", row)
+	}
+	if firstString(row, "tile_quality_status") != "suspect" || firstString(row, "tile_quality_reason") != "input_all_zero; ok" {
+		t.Fatalf("tile quality evidence should be retained: %+v", row)
+	}
+}
+
+func TestSpectralTileDoesNotMaterializeL3Summaries(t *testing.T) {
+	root := t.TempDir()
+	snapshotPath := filepath.Join(root, "mixboard_feature_snapshot.json")
+	cmd := map[string]any{"feature_snapshot_path": snapshotPath}
+	packet := map[string]any{
+		"request_id": "req_tile_derived",
+		"resolved_target": map[string]any{
+			"track_id": "1007",
+			"clip_id":  "1011",
+		},
+		"requested_features": []any{
+			map[string]any{"feature_type": "spectral_field"},
+		},
+		"spectral_tile_ready_seen": true,
+	}
+	collector, _ := testSpectralCollectorWithTile(t, 24, 32, 2, func(bin, frame int) (float32, float32, float32, float32) {
+		return 0.5, 0.45, 0.1, 0.7
+	})
+	spectral := collector.SnapshotRow("req_tile_derived")
+	writeMixboardReadySpectralSnapshot(cmd, packet, spectral)
+	finalizeMixboardFeatureSnapshotAfterWait(cmd, packet, []map[string]any{{"track_id": "1007", "clip_id": "1011"}})
+	data, err := os.ReadFile(snapshotPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var snapshot map[string]any
+	if err := json.Unmarshal(data, &snapshot); err != nil {
+		t.Fatalf("parse snapshot: %v\n%s", err, string(data))
+	}
+	gotBand := testMap(t, snapshot["band_energy_summary"])
+	gotStereo := testMap(t, snapshot["stereo_relation_summary"])
+	gotLoudness := testMap(t, snapshot["loudness_summary"])
+	if firstString(gotBand, "status") != "missing" || firstString(gotBand, "reason") != "l3_acoustic_summary_not_requested_for_downstream_summary" {
+		t.Fatalf("band summary should wait for L3 analyzer: %+v\n%s", gotBand, string(data))
+	}
+	if firstString(gotStereo, "status") != "missing" || firstString(gotStereo, "reason") != "l3_acoustic_summary_not_requested_for_downstream_summary" {
+		t.Fatalf("stereo summary should wait for L3 analyzer: %+v\n%s", gotStereo, string(data))
+	}
+	if firstString(gotLoudness, "status") != "missing" || firstString(gotLoudness, "reason") != "l3_acoustic_summary_not_requested_for_downstream_summary" {
+		t.Fatalf("loudness summary should wait for L3 analyzer: %+v\n%s", gotLoudness, string(data))
+	}
+}
+
+func TestWriteMixboardReadySpectralSnapshotPromotesGrowingSpectralCoverageOnly(t *testing.T) {
+	root := t.TempDir()
+	snapshotPath := filepath.Join(root, "mixboard_feature_snapshot.json")
+	cmd := map[string]any{"feature_snapshot_path": snapshotPath}
+	packet := map[string]any{
+		"request_id": "kernel_prepared_spectral_field_1011",
+		"resolved_target": map[string]any{
+			"track_id": "1007",
+			"clip_id":  "1011",
+		},
+	}
+	spectral := map[string]any{
+		"status":              "partial",
+		"feature_type":        "spectral_field",
+		"source":              "kernel_tile_ready_direct_collector",
+		"track_id":            "1007",
+		"clip_id":             "1011",
+		"tile_count_seen":     1,
+		"tile_count_expected": 5,
+		"coverage_seconds":    5.0,
+		"total_duration":      25.0,
+	}
+	writeMixboardReadySpectralSnapshot(cmd, packet, spectral)
+
+	spectral["tile_count_seen"] = 5
+	spectral["coverage_seconds"] = 25.0
+	writeMixboardReadySpectralSnapshot(cmd, packet, spectral)
+
+	data, err := os.ReadFile(snapshotPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var snapshot map[string]any
+	if err := json.Unmarshal(data, &snapshot); err != nil {
+		t.Fatalf("parse snapshot: %v\n%s", err, string(data))
+	}
+	gotSpectral := testMap(t, snapshot["spectrogram_tiles"])
+	if numberFromAny(gotSpectral["coverage_seconds"]) != 25 || int(numberFromAny(gotSpectral["tile_count_seen"])) != 5 {
+		t.Fatalf("spectral summary did not promote later coverage: %+v\n%s", gotSpectral, string(data))
+	}
+	if got := firstString(testMap(t, snapshot["band_energy_summary"]), "status"); got != "missing" {
+		t.Fatalf("spectral write should not materialize band summary: %s\n%s", got, string(data))
+	}
+}
+
+func TestWriteMixboardReadySpectralSnapshotDoesNotReplaceLiveMeterWithDerivedSummary(t *testing.T) {
+	root := t.TempDir()
+	snapshotPath := filepath.Join(root, "mixboard_feature_snapshot.json")
+	if err := os.WriteFile(snapshotPath, []byte(`{
+		"schema_version":"mixboard_feature_snapshot.v1",
+		"band_energy_summary":{"status":"ready","source":"live_level_meter_spectrum","request_id":"kernel_prepared_spectral_field_1011","track_id":"1007","clip_id":"1011","bands":{"bass":{"unit_energy":0}}},
+		"stereo_relation_summary":{"status":"ready","source":"live_level_meter_stereo","request_id":"kernel_prepared_spectral_field_1011","track_id":"1007","clip_id":"1011","correlation_estimate":0}
+	}`), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	cmd := map[string]any{"feature_snapshot_path": snapshotPath}
+	packet := map[string]any{
+		"request_id": "kernel_prepared_spectral_field_1011",
+		"resolved_target": map[string]any{
+			"track_id": "1007",
+			"clip_id":  "1011",
+		},
+	}
+	spectral := map[string]any{"status": "partial", "feature_type": "spectral_field", "source": "kernel_tile_ready_direct_collector", "track_id": "1007", "clip_id": "1011", "tile_count_seen": 1, "tile_count_expected": 2}
+	writeMixboardReadySpectralSnapshot(cmd, packet, spectral)
+
+	data, err := os.ReadFile(snapshotPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var snapshot map[string]any
+	if err := json.Unmarshal(data, &snapshot); err != nil {
+		t.Fatalf("parse snapshot: %v\n%s", err, string(data))
+	}
+	if got := firstString(testMap(t, snapshot["band_energy_summary"]), "source"); got != "live_level_meter_spectrum" {
+		t.Fatalf("band live summary should not be replaced by spectral tile path: %s\n%s", got, string(data))
+	}
+	if got := firstString(testMap(t, snapshot["stereo_relation_summary"]), "source"); got != "live_level_meter_stereo" {
+		t.Fatalf("stereo live summary should not be replaced by spectral tile path: %s\n%s", got, string(data))
+	}
+}
+
+func TestWriteMixboardReadySpectralSnapshotRelabelsMissingButPreservesReadyL3Lineage(t *testing.T) {
+	root := t.TempDir()
+	snapshotPath := filepath.Join(root, "mixboard_feature_snapshot.json")
+	if err := os.WriteFile(snapshotPath, []byte(`{
+		"schema_version":"mixboard_feature_snapshot.v1",
+		"band_energy_summary":{"status":"missing","track_id":"1010","clip_id":"1016","request_id":"kernel_prepared_waveform_envelope_1016","reason":"awaiting_current_target_band_summary"},
+		"stereo_relation_summary":{"status":"ready","source":"kernel_l3_offline_analyzer","track_id":"1010","clip_id":"1016","request_id":"older_l3_stereo_request","source_revision":"rev_current","correlation_estimate":0.4},
+		"loudness_summary":{"status":"ready","source":"kernel_l3_offline_analyzer","track_id":"1010","clip_id":"1016","source_revision":"rev_current","approximate_lufs":-18.4}
+	}`), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	cmd := map[string]any{"feature_snapshot_path": snapshotPath}
+	packet := map[string]any{
+		"request_id": "kernel_prepared_spectral_field_1016",
+		"resolved_target": map[string]any{
+			"track_id": "1010",
+			"clip_id":  "1016",
+		},
+	}
+	spectral := map[string]any{"status": "ready", "feature_type": "spectral_field", "source": "kernel_tile_ready_direct_collector", "track_id": "1010", "clip_id": "1016", "request_id": "kernel_prepared_spectral_field_1016", "tile_count_seen": 2, "tile_count_expected": 2}
+	writeMixboardReadySpectralSnapshot(cmd, packet, spectral)
+
+	data, err := os.ReadFile(snapshotPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var snapshot map[string]any
+	if err := json.Unmarshal(data, &snapshot); err != nil {
+		t.Fatalf("parse snapshot: %v\n%s", err, string(data))
+	}
+	band := testMap(t, snapshot["band_energy_summary"])
+	if firstString(band, "request_id") != "kernel_prepared_spectral_field_1016" || firstString(band, "reason") != "awaiting_current_target_band_summary" {
+		t.Fatalf("band row was not relabelled for latest request: %+v\n%s", band, string(data))
+	}
+	stereo := testMap(t, snapshot["stereo_relation_summary"])
+	if firstString(stereo, "request_id") != "older_l3_stereo_request" || firstString(stereo, "feature_type") != "stereo_relation_summary" || firstString(stereo, "source_revision") != "rev_current" {
+		t.Fatalf("ready L3 stereo row should keep material lineage instead of latest request_id: %+v\n%s", stereo, string(data))
+	}
+	loudness := testMap(t, snapshot["loudness_summary"])
+	if firstString(loudness, "request_id") != "kernel_prepared_spectral_field_1016" || firstString(loudness, "feature_type") != "loudness_summary" || firstString(loudness, "source_revision") != "rev_current" {
+		t.Fatalf("ready L3 loudness row without request_id should be attributed to latest request: %+v\n%s", loudness, string(data))
+	}
+}
+
+func TestWriteMixboardReadySpectralSnapshotPromotesReadyL3HistoryRows(t *testing.T) {
+	root := t.TempDir()
+	snapshotPath := filepath.Join(root, "mixboard_feature_snapshot.json")
+	if err := os.WriteFile(snapshotPath, []byte(`{
+		"schema_version":"mixboard_feature_snapshot.v1",
+		"band_energy_summary":{"status":"missing","track_id":"1010","clip_id":"1016","request_id":"kernel_prepared_waveform_envelope_1016","reason":"awaiting_current_target_band_summary"},
+		"band_energy_summaries":[{"status":"ready","source":"kernel_l3_offline_analyzer","track_id":"1010","clip_id":"1016","source_path":"D:/Vit_DAW/test_target_3s.wav","source_revision":"rev_current","duration_seconds":3,"bands":{"bass":{"energy_db":-12}}}],
+		"stereo_relation_summary":{"status":"ready","source":"kernel_l3_offline_analyzer","track_id":"1010","clip_id":"1016","request_id":"kernel_prepared_stereo_relation_summary_1016","source_path":"D:/Vit_DAW/test_target_3s.wav","source_revision":"rev_current","duration_seconds":3,"correlation_state":"stable"},
+		"loudness_summary":{"status":"missing","track_id":"1010","clip_id":"1016","request_id":"kernel_prepared_waveform_envelope_1016","reason":"awaiting_current_target_loudness_summary"},
+		"loudness_summaries":[{"status":"ready","source":"kernel_l3_offline_analyzer","track_id":"1010","clip_id":"1016","source_path":"D:/Vit_DAW/test_target_3s.wav","source_revision":"rev_current","duration_seconds":3,"approximate_lufs":-18.4}]
+	}`), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	cmd := map[string]any{"feature_snapshot_path": snapshotPath}
+	packet := map[string]any{
+		"request_id": "kernel_prepared_spectral_field_1016",
+		"resolved_target": map[string]any{
+			"track_id":         "1010",
+			"clip_id":          "1016",
+			"source_path":      "D:/Vit_DAW/test_target_3s.wav",
+			"duration_seconds": 3,
+		},
+	}
+	spectral := map[string]any{"status": "ready", "feature_type": "spectral_field", "source": "kernel_tile_ready_direct_collector", "track_id": "1010", "clip_id": "1016", "request_id": "kernel_prepared_spectral_field_1016", "source_path": "D:/Vit_DAW/test_target_3s.wav", "duration_seconds": 3, "tile_count_seen": 1, "tile_count_expected": 1}
+	writeMixboardReadySpectralSnapshot(cmd, packet, spectral)
+
+	data, err := os.ReadFile(snapshotPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var snapshot map[string]any
+	if err := json.Unmarshal(data, &snapshot); err != nil {
+		t.Fatalf("parse snapshot: %v\n%s", err, string(data))
+	}
+	band := testMap(t, snapshot["band_energy_summary"])
+	if firstString(band, "status") != "ready" || firstString(band, "request_id") != "kernel_prepared_spectral_field_1016" || firstString(band, "source_revision") != "rev_current" {
+		t.Fatalf("ready L3 band history row was not promoted: %+v\n%s", band, string(data))
+	}
+	stereo := testMap(t, snapshot["stereo_relation_summary"])
+	if firstString(stereo, "status") != "ready" || firstString(stereo, "request_id") != "kernel_prepared_spectral_field_1016" || firstString(stereo, "source_revision") != "rev_current" {
+		t.Fatalf("ready sibling L3 stereo request was not normalized: %+v\n%s", stereo, string(data))
+	}
+	loudness := testMap(t, snapshot["loudness_summary"])
+	if firstString(loudness, "status") != "ready" || firstString(loudness, "request_id") != "kernel_prepared_spectral_field_1016" || firstString(loudness, "source_revision") != "rev_current" {
+		t.Fatalf("ready L3 loudness history row was not promoted: %+v\n%s", loudness, string(data))
+	}
+}
+
+func TestWriteMixboardFeatureRequestSnapshotPreservesCurrentL3HistoryRows(t *testing.T) {
+	root := t.TempDir()
+	snapshotPath := filepath.Join(root, "mixboard_feature_snapshot.json")
+	if err := os.WriteFile(snapshotPath, []byte(`{
+		"schema_version":"mixboard_feature_snapshot.v1",
+		"band_energy_summary":{"status":"missing","track_id":"1010","clip_id":"1016","request_id":"kernel_prepared_waveform_envelope_1016","reason":"awaiting_current_target_band_summary"},
+		"band_energy_summaries":[
+			{"status":"ready","source":"kernel_l3_offline_analyzer","track_id":"1007","clip_id":"1014","source_path":"D:/Vit_DAW/test_100hz_10s.wav","source_revision":"rev_old","duration_seconds":10,"bands":{"bass":{"energy_db":-18}}},
+			{"status":"ready","source":"kernel_l3_offline_analyzer","track_id":"1010","clip_id":"1016","source_path":"D:/Vit_DAW/test_target_3s.wav","source_revision":"rev_current","duration_seconds":3,"bands":{"bass":{"energy_db":-12}}}
+		],
+		"stereo_relation_summaries":[
+			{"status":"ready","source":"kernel_l3_offline_analyzer","track_id":"1010","clip_id":"1016","source_path":"D:/Vit_DAW/test_target_3s.wav","source_revision":"rev_current","duration_seconds":3,"correlation_state":"decorrelated"}
+		]
+	}`), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	cmd := map[string]any{"feature_snapshot_path": snapshotPath}
+	packet := map[string]any{
+		"request_id": "kernel_prepared_spectral_field_1016",
+		"status":     "requested",
+		"resolved_target": map[string]any{
+			"track_id":         "1010",
+			"clip_id":          "1016",
+			"source_path":      "D:/Vit_DAW/test_target_3s.wav",
+			"duration_seconds": 3,
+		},
+		"requested_features": []any{
+			map[string]any{"feature_type": "waveform_envelope", "track_id": "1010", "clip_id": "1016"},
+			map[string]any{"feature_type": "spectral_field", "track_id": "1010", "clip_id": "1016"},
+			map[string]any{"feature_type": "l3_acoustic_summary", "track_id": "1010", "clip_id": "1016"},
+		},
+	}
+	writeMixboardFeatureRequestSnapshot(cmd, packet)
+
+	data, err := os.ReadFile(snapshotPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var snapshot map[string]any
+	if err := json.Unmarshal(data, &snapshot); err != nil {
+		t.Fatalf("parse snapshot: %v\n%s", err, string(data))
+	}
+	band := testMap(t, snapshot["band_energy_summary"])
+	if firstString(band, "status") != "ready" || firstString(band, "request_id") != "kernel_prepared_spectral_field_1016" || firstString(band, "track_id") != "1010" || firstString(band, "source_revision") != "rev_current" {
+		t.Fatalf("current L3 band row was not preserved/promoted: %+v\n%s", band, string(data))
+	}
+	bands := mapRowsFromAny(snapshot["band_energy_summaries"])
+	if len(bands) != 1 || firstString(bands[0], "track_id") != "1010" || firstString(bands[0], "clip_id") != "1016" {
+		t.Fatalf("band history should keep only current target row: %+v\n%s", bands, string(data))
+	}
+	stereo := testMap(t, snapshot["stereo_relation_summary"])
+	if firstString(stereo, "status") != "ready" || firstString(stereo, "track_id") != "1010" || firstString(stereo, "source_revision") != "rev_current" {
+		t.Fatalf("current L3 stereo row was not preserved/promoted: %+v\n%s", stereo, string(data))
+	}
+}
+
+func TestReadMixboardFeatureSnapshotForAcousticPackageRelabelsAuthoritativeBridgeRows(t *testing.T) {
+	root := t.TempDir()
+	snapshotPath := filepath.Join(root, "mixboard_feature_snapshot.json")
+	if err := os.WriteFile(snapshotPath, []byte(`{
+		"schema_version":"mixboard_feature_snapshot.v1",
+		"latest_request":{
+			"schema_version":"mixboard_feature_request.v1",
+			"request_id":"kernel_prepared_spectral_field_1016",
+			"status":"materialized",
+			"resolved_target":{
+				"track_id":"1010",
+				"clip_id":"1016",
+				"source_path":"D:/Vit_DAW/test_target_3s.wav",
+				"duration_seconds":3
+			},
+			"requested_features":[
+				{"feature_type":"waveform_envelope","request_id":"kernel_prepared_spectral_field_1016","track_id":"1010","clip_id":"1016"},
+				{"feature_type":"spectral_field","request_id":"kernel_prepared_spectral_field_1016","track_id":"1010","clip_id":"1016"},
+				{"feature_type":"l3_acoustic_summary","request_id":"kernel_prepared_spectral_field_1016","track_id":"1010","clip_id":"1016"}
+			]
+		},
+		"spectrogram_tiles":{"status":"ready","feature_type":"spectral_field","track_id":"1010","clip_id":"1016","request_id":"kernel_prepared_spectral_field_1016","source_path":"D:/Vit_DAW/test_target_3s.wav","duration_seconds":3},
+		"band_energy_summary":{"status":"missing","feature_type":"band_energy_summary","track_id":"1010","clip_id":"1016","request_id":"kernel_prepared_waveform_envelope_1016","reason":"stale_feature_snapshot_for_current_request"},
+		"stereo_relation_summary":{"status":"ready","feature_type":"stereo_relation_summary","track_id":"1010","clip_id":"1016","request_id":"kernel_prepared_spectral_field_1016","source_revision":"rev_current","correlation_state":"decorrelated"}
+	}`), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	snapshot := readMixboardFeatureSnapshotForAcousticPackage(snapshotPath)
+	band := testMap(t, snapshot["band_energy_summary"])
+	if firstString(band, "request_id") != "kernel_prepared_spectral_field_1016" || firstString(band, "track_id") != "1010" || firstString(band, "clip_id") != "1016" {
+		t.Fatalf("band row was not relabelled in memory: %+v", band)
+	}
+
+	data, err := os.ReadFile(snapshotPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var persisted map[string]any
+	if err := json.Unmarshal(data, &persisted); err != nil {
+		t.Fatalf("parse snapshot: %v\n%s", err, string(data))
+	}
+	persistedBand := testMap(t, persisted["band_energy_summary"])
+	if firstString(persistedBand, "request_id") != "kernel_prepared_spectral_field_1016" {
+		t.Fatalf("band row was not relabelled on disk: %+v\n%s", persistedBand, string(data))
+	}
+}
+
+func testSpectralCollectorWithTile(t *testing.T, frameWidth, frequencyBins, expectedTiles int, fill func(bin, frame int) (float32, float32, float32, float32)) (*spectralFeatureCollector, map[string][]float32) {
+	t.Helper()
+	memoryName := fmt.Sprintf("test_spectral_tile_%d_%d_%d", frameWidth, frequencyBins, expectedTiles)
+	data := make([]float32, frameWidth*frequencyBins*spectralTileChannelStride)
+	for bin := 0; bin < frequencyBins; bin++ {
+		for frame := 0; frame < frameWidth; frame++ {
+			left, right, phase, weight := fill(bin, frame)
+			base := (bin*frameWidth + frame) * spectralTileChannelStride
+			data[base] = left
+			data[base+1] = right
+			data[base+2] = phase
+			data[base+3] = weight
+		}
+	}
+	collector := &spectralFeatureCollector{TrackID: "1007", ClipID: "1011", FeatureType: "spectral_field", LastTileIndex: -1}
+	collector.AddEvent(map[string]any{
+		"command":                    "tile_ready",
+		"feature_type":               "spectral_field",
+		"track_id":                   "1007",
+		"clip_id":                    "1011",
+		"tile_index":                 0,
+		"tile_count":                 expectedTiles,
+		"tile_duration":              5.0,
+		"tile_content_start_seconds": 0.0,
+		"total_duration":             float64(expectedTiles) * 5.0,
+		"resolution_frame_width":     frameWidth,
+		"resolution_frequency_bins":  frequencyBins,
+		"frame_duration_seconds":     0.01,
+		"shared_memory":              memoryName,
+		"float_count":                len(data),
+		"shm_bytes":                  len(data) * 4,
+		"channels_semantics":         spectralTileChannelsSemantics,
+	})
+	return collector, map[string][]float32{memoryName: data}
+}
+
+func TestWriteMixboardProjectSpectralSnapshotFromCollectorsAggregatesDirectCollectors(t *testing.T) {
+	root := t.TempDir()
+	snapshotPath := filepath.Join(root, "mixboard_feature_snapshot.json")
+	cmd := map[string]any{"feature_snapshot_path": snapshotPath}
+	packet := map[string]any{
+		"request_id": "req_project_spectral",
+		"resolved_target": map[string]any{
+			"kind":     "project",
+			"id":       "current",
+			"track_id": "",
+			"clip_id":  "",
+		},
+		"requested_features": []any{
+			map[string]any{"feature_type": "spectral_field", "track_id": "1007", "clip_id": "1011"},
+			map[string]any{"feature_type": "spectral_field", "track_id": "1012", "clip_id": "2012"},
+		},
+		"spectral_tile_ready_seen": true,
+		"spectral_direct_collectors": []any{
+			map[string]any{
+				"feature_type":              "spectral_field",
+				"track_id":                  "1007",
+				"clip_id":                   "1011",
+				"tile_count":                2,
+				"tile_count_expected":       2,
+				"tile_duration":             5.0,
+				"resolution_frame_width":    256,
+				"resolution_frequency_bins": 128,
+				"first_received_at":         "2026-06-21T10:00:00Z",
+				"last_received_at":          "2026-06-21T10:00:01Z",
+			},
+			map[string]any{
+				"feature_type":              "spectral_field",
+				"track_id":                  "1012",
+				"clip_id":                   "2012",
+				"tile_count":                3,
+				"tile_count_expected":       5,
+				"resolution_frame_width":    512,
+				"resolution_frequency_bins": 256,
+				"last_received_at":          "2026-06-21T10:00:02Z",
+			},
+		},
+	}
+	targets := []map[string]any{
+		{"track_id": "1007", "clip_id": "1011"},
+		{"track_id": "1012", "clip_id": "2012"},
+	}
+	writeMixboardProjectSpectralSnapshotFromCollectors(cmd, packet, targets)
+	finalizeMixboardFeatureSnapshotAfterWait(cmd, packet, targets)
+
+	data, err := os.ReadFile(snapshotPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var snapshot map[string]any
+	if err := json.Unmarshal(data, &snapshot); err != nil {
+		t.Fatalf("parse snapshot: %v\n%s", err, string(data))
+	}
+	spectral := testMap(t, snapshot["spectrogram_tiles"])
+	if firstString(spectral, "status") != "partial" || firstString(spectral, "feature_type") != "spectral_field" || firstString(spectral, "request_id") != "req_project_spectral" {
+		t.Fatalf("unexpected project spectral identity: %+v\n%s", spectral, string(data))
+	}
+	if firstString(spectral, "source") != "kernel_tile_ready_direct_collector" || firstString(spectral, "scope") != "full_project" {
+		t.Fatalf("unexpected project spectral source/scope: %+v", spectral)
+	}
+	if int(numberFromAny(spectral["target_count"])) != 2 || int(numberFromAny(spectral["tile_count_seen"])) != 5 || int(numberFromAny(spectral["tile_count_expected"])) != 7 {
+		t.Fatalf("unexpected aggregate counts: %+v", spectral)
+	}
+	if int(numberFromAny(spectral["resolution_frame_width"])) != 256 || int(numberFromAny(spectral["resolution_frequency_bins"])) != 128 || numberFromAny(spectral["tile_duration"]) != 5 {
+		t.Fatalf("unexpected aggregate metadata: %+v", spectral)
+	}
+	trackIDs := anyListFromAny(spectral["track_ids"])
+	if len(trackIDs) != 2 || fmt.Sprint(trackIDs[0]) != "1007" || fmt.Sprint(trackIDs[1]) != "1012" {
+		t.Fatalf("unexpected track_ids: %+v", spectral)
+	}
+}
+
+func TestProjectSpectralSnapshotDoesNotReplaceL3RowsWithSpectralDerivedSummaries(t *testing.T) {
+	root := t.TempDir()
+	snapshotPath := filepath.Join(root, "mixboard_feature_snapshot.json")
+	cmd := map[string]any{"feature_snapshot_path": snapshotPath}
+	if err := os.WriteFile(snapshotPath, []byte(`{
+		"schema_version":"mixboard_feature_snapshot.v1",
+		"band_energy_summary":{"status":"ready","source":"kernel_l3_offline_analyzer","request_id":"req_project","track_id":"1007","clip_id":"1011","source_revision":"rev_l3","bands":{"bass":{"unit_energy":0.5}}},
+		"stereo_relation_summary":{"status":"ready","source":"kernel_l3_offline_analyzer","request_id":"req_project","track_id":"1007","clip_id":"1011","source_revision":"rev_l3","correlation_estimate":0.9},
+		"loudness_summary":{"status":"ready","source":"kernel_l3_offline_analyzer","request_id":"req_project","track_id":"1007","clip_id":"1011","source_revision":"rev_l3","integrated_lufs":-18.2}
+	}`), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	packet := map[string]any{
+		"request_id": "req_project",
+		"resolved_target": map[string]any{
+			"kind": "project",
+			"id":   "current",
+		},
+		"spectral_tile_ready_seen": true,
+		"spectral_direct_collectors": []any{
+			map[string]any{"feature_type": "spectral_field", "track_id": "1007", "clip_id": "1011", "tile_count": 2, "tile_count_expected": 2, "resolution_frame_width": 32, "resolution_frequency_bins": 32},
+			map[string]any{"feature_type": "spectral_field", "track_id": "1012", "clip_id": "2012", "tile_count": 1, "tile_count_expected": 3, "resolution_frame_width": 32, "resolution_frequency_bins": 32},
+		},
+	}
+	targets := []map[string]any{{"track_id": "1007", "clip_id": "1011"}, {"track_id": "1012", "clip_id": "2012"}}
+	writeMixboardProjectSpectralSnapshotFromCollectors(cmd, packet, targets)
+	data, err := os.ReadFile(snapshotPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var snapshot map[string]any
+	if err := json.Unmarshal(data, &snapshot); err != nil {
+		t.Fatalf("parse snapshot: %v\n%s", err, string(data))
+	}
+	band := testMap(t, snapshot["band_energy_summary"])
+	if firstString(band, "status") != "ready" || firstString(band, "source") != "kernel_l3_offline_analyzer" || firstString(band, "source_revision") != "rev_l3" {
+		t.Fatalf("project spectral write should not replace L3 band row: %+v\n%s", band, string(data))
+	}
+	stereo := testMap(t, snapshot["stereo_relation_summary"])
+	if firstString(stereo, "status") != "ready" || firstString(stereo, "source") != "kernel_l3_offline_analyzer" || firstString(stereo, "source_revision") != "rev_l3" {
+		t.Fatalf("project spectral write should not replace L3 stereo row: %+v\n%s", stereo, string(data))
+	}
+	loudness := testMap(t, snapshot["loudness_summary"])
+	if firstString(loudness, "status") != "ready" || firstString(loudness, "source") != "kernel_l3_offline_analyzer" || firstString(loudness, "source_revision") != "rev_l3" {
+		t.Fatalf("project spectral write should preserve L3 loudness row: %+v\n%s", loudness, string(data))
 	}
 }
 
@@ -3774,14 +4911,15 @@ func TestMixRequestObservationTreatsWaveformReadyAsSufficient(t *testing.T) {
 	t.Setenv("VIT_MIXBOARD_ROOT", filepath.Join(root, "mixboard"))
 	t.Setenv("VIT_MIXBOARD_FEATURE_READY_WAIT_MS", "1")
 	snapshotPath := filepath.Join(root, "mixboard_feature_snapshot.json")
-	if err := os.WriteFile(snapshotPath, []byte(`{
+	sourceRevision := testAcousticSourceRevision("mix_waveform_ready_sufficient", "1007", "clip_a", 2)
+	if err := os.WriteFile(snapshotPath, []byte(fmt.Sprintf(`{
 		"schema_version":"mixboard_feature_snapshot.v1",
-		"waveform_envelope":{"status":"ready","track_id":"1007","clip_id":"clip_a","rms":0.2,"peak_abs":0.7,
+		"waveform_envelope":{"status":"ready","track_id":"1007","clip_id":"clip_a","source_revision":%q,"duration_seconds":2,"rms":0.2,"peak_abs":0.7,
 			"time_segments":[{"start_seconds":0,"end_seconds":2,"rms":0.2,"peak_abs":0.7,"energy_state":"high"}]},
 		"band_energy_summary":{"status":"missing"},
 		"stereo_relation_summary":{"status":"missing"},
 		"spectrogram_tiles":{"status":"missing"}
-	}`), 0o644); err != nil {
+	}`, sourceRevision)), 0o644); err != nil {
 		t.Fatal(err)
 	}
 	kernel := &fakeKernelClient{}
@@ -3823,5 +4961,69 @@ func TestMixRequestObservationTreatsWaveformReadyAsSufficient(t *testing.T) {
 	}
 	if len(resp.Result["mixboard"].(mixboard.Board).OpenBlockers) != 0 {
 		t.Fatalf("board blockers = %+v", resp.Result["mixboard"].(mixboard.Board).OpenBlockers)
+	}
+}
+
+func TestKernelTelemetryMaterializerWritesReadModelSnapshot(t *testing.T) {
+	root := t.TempDir()
+	t.Setenv("VIT_MIXBOARD_ROOT", filepath.Join(root, "mixboard"))
+	h := New(nil, nil, nil)
+
+	h.IngestKernelTelemetry(map[string]any{
+		"command":                    "tile_ready",
+		"feature_type":               "spectral_field",
+		"track_id":                   "track_1",
+		"clip_id":                    "clip_1",
+		"file_path":                  filepath.Join(root, "tone.wav"),
+		"tile_index":                 0,
+		"tile_count":                 2,
+		"tile_duration":              5.0,
+		"tile_content_start_seconds": 0.0,
+		"total_duration":             10.0,
+		"resolution_frame_width":     4,
+		"resolution_frequency_bins":  8,
+		"float_count":                128,
+		"shared_memory":              "vit_test_missing_shm",
+	})
+
+	snapshotPath := filepath.Join(root, "mixboard_feature_snapshot.json")
+	data, err := os.ReadFile(snapshotPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var snapshot map[string]any
+	if err := json.Unmarshal(data, &snapshot); err != nil {
+		t.Fatalf("parse snapshot: %v\n%s", err, string(data))
+	}
+	spectral := mapAnyFromAny(snapshot["spectrogram_tiles"])
+	if firstString(spectral, "status") != "partial" {
+		t.Fatalf("spectral telemetry was not materialized as partial: %+v", spectral)
+	}
+	if firstString(spectral, "source") != "kernel_tile_ready_direct_collector" {
+		t.Fatalf("spectral source should describe direct tile evidence: %+v", spectral)
+	}
+	if firstString(spectral, "materialized_by") != "kernel_prepared_telemetry" {
+		t.Fatalf("spectral row should preserve passive materializer provenance: %+v", spectral)
+	}
+	if firstString(spectral, "source_revision") == "" || firstString(spectral, "clip_revision") == "" {
+		t.Fatalf("materialized spectral row missing stable identity revisions: %+v", spectral)
+	}
+	latest := mapAnyFromAny(snapshot["latest_request"])
+	if firstString(latest, "lifecycle") != "kernel_prepared_materializer" {
+		t.Fatalf("latest request should be a materializer marker, got %+v", latest)
+	}
+	requested := mapRowsFromAny(latest["requested_features"])
+	if len(requested) != 3 {
+		t.Fatalf("materializer requested_features missing: %+v", latest)
+	}
+	seen := map[string]bool{}
+	for _, row := range requested {
+		seen[firstString(row, "feature_type")] = true
+		if firstString(row, "track_id") != "track_1" || firstString(row, "clip_id") != "clip_1" {
+			t.Fatalf("requested feature target mismatch: %+v", row)
+		}
+	}
+	if !seen["waveform_envelope"] || !seen["spectral_field"] || !seen["l3_acoustic_summary"] {
+		t.Fatalf("materializer requested features missing waveform/spectral/l3: %+v", requested)
 	}
 }

@@ -6,7 +6,9 @@ import (
 	"strings"
 	"time"
 
+	"vit-daw-agent/internal/agentprotocol"
 	executorpkg "vit-daw-agent/internal/executor"
+	"vit-daw-agent/internal/observationrouter"
 	"vit-daw-agent/internal/planner"
 )
 
@@ -28,8 +30,8 @@ type AgentEvent struct {
 }
 
 type AgentEventsResponse struct {
-	Status string       `json:"status"`
-	Events []AgentEvent `json:"events"`
+	Status  string       `json:"status"`
+	Events  []AgentEvent `json:"events"`
 	NextSeq int64        `json:"next_seq"`
 }
 
@@ -131,6 +133,7 @@ func (s *Server) emitTurnEvent(conversationID, eventType string, resp ChatRespon
 			"completed_steps":    resp.CompletedSteps,
 			"executed_count":     len(resp.ExecutedKernelReply),
 			"error":              resp.Error,
+			"typed_events":       resp.TypedEvents,
 		},
 	})
 }
@@ -141,6 +144,25 @@ func (s *Server) emitToolItemStarted(in executorpkg.Input, toolCallID string) {
 		return
 	}
 	call := in.ToolCall
+	payload := map[string]any{
+		"tool":        strings.TrimSpace(call.Tool),
+		"command":     firstNonEmpty(commandNameForEvent(call.Command), commandNameForEvent(call.Args)),
+		"confirmed":   in.Confirmed,
+		"plan_item":   strings.TrimSpace(call.PlanItemID),
+		"source":      firstNonEmpty(strings.TrimSpace(in.Source), "agentloop"),
+		"args":        compactEventMap(call.Args),
+		"command_raw": compactEventMap(call.Command),
+	}
+	if request, ok := observationrouter.RequestFromTool(call.Tool, firstNonEmptyMap(call.Args, call.Command), agentprotocol.Source{
+		ConversationID: conversationID,
+		GoalID:         strings.TrimSpace(in.GoalID),
+		RunID:          strings.TrimSpace(in.RunID),
+		ToolCallID:     strings.TrimSpace(toolCallID),
+		LegacyKind:     "tool_observation_request",
+	}); ok {
+		payload["typed_state"] = agentprotocol.ToMap(request)
+		payload["typed_event"] = agentprotocol.ToMap(agentprotocol.NewEvent(request, request.Source))
+	}
 	s.emitAgentEvent(conversationID, AgentEvent{
 		Type:     "item.started",
 		GoalID:   in.GoalID,
@@ -149,16 +171,8 @@ func (s *Server) emitToolItemStarted(in executorpkg.Input, toolCallID string) {
 		ItemType: "daw_action",
 		Status:   "running",
 		Title:    toolEventTitle(call),
-		Body:     strings.TrimSpace(call.Reason),
-		Payload: map[string]any{
-			"tool":       strings.TrimSpace(call.Tool),
-			"command":    firstNonEmpty(commandNameForEvent(call.Command), commandNameForEvent(call.Args)),
-			"confirmed":  in.Confirmed,
-			"plan_item":  strings.TrimSpace(call.PlanItemID),
-			"source":     firstNonEmpty(strings.TrimSpace(in.Source), "agentloop"),
-			"args":       compactEventMap(call.Args),
-			"command_raw": compactEventMap(call.Command),
-		},
+		Body:     toolEventBody(call),
+		Payload:  payload,
 	})
 }
 
@@ -172,6 +186,39 @@ func (s *Server) emitToolItemCompleted(in executorpkg.Input, result executorpkg.
 	if result.RequiresConfirmation || strings.EqualFold(result.Status, "needs_confirmation") {
 		eventType = "approval.requested"
 	}
+	payload := map[string]any{
+		"tool":                  firstNonEmpty(strings.TrimSpace(result.Tool), strings.TrimSpace(in.ToolCall.Tool)),
+		"command_name":          strings.TrimSpace(result.CommandName),
+		"agent_action_id":       strings.TrimSpace(result.AgentActionID),
+		"confirmed":             in.Confirmed,
+		"requires_confirmation": result.RequiresConfirmation,
+		"preview":               strings.TrimSpace(result.Preview),
+		"undo_label":            strings.TrimSpace(result.UndoLabel),
+		"error":                 firstNonEmpty(strings.TrimSpace(result.Error), errorText(err)),
+		"result":                compactEventMap(result.Result),
+	}
+	if eventType == "approval.requested" {
+		approval := typedApprovalFromToolResult(in, result, err)
+		payload["typed_state"] = agentprotocol.ToMap(approval)
+		payload["typed_event"] = agentprotocol.ToMap(agentprotocol.NewEvent(approval, approval.Source))
+	}
+	if observation, ok := observationrouter.ResultFromToolResult(firstNonEmpty(result.Tool, in.ToolCall.Tool), firstNonEmptyMap(in.ToolCall.Args, in.ToolCall.Command), result.Result, agentprotocol.Source{
+		ConversationID: conversationID,
+		GoalID:         strings.TrimSpace(in.GoalID),
+		RunID:          strings.TrimSpace(in.RunID),
+		ToolCallID:     firstNonEmpty(strings.TrimSpace(result.ToolCallID), strings.TrimSpace(in.ToolCall.ID)),
+		AgentActionID:  strings.TrimSpace(result.AgentActionID),
+		LegacyKind:     "tool_observation_result",
+	}); ok {
+		observationEvent := agentprotocol.ToMap(agentprotocol.NewEvent(observation, observation.Source))
+		payload["typed_state"] = agentprotocol.ToMap(observation)
+		payload["typed_event"] = observationEvent
+		typedEvents := []map[string]any{observationEvent}
+		if acousticEvent := typedAcousticPackageStatusEventFromToolResult(result.Result, observation.Source); len(acousticEvent) > 0 {
+			typedEvents = append(typedEvents, acousticEvent)
+		}
+		payload["typed_events"] = typedEvents
+	}
 	s.emitAgentEvent(conversationID, AgentEvent{
 		Type:     eventType,
 		GoalID:   in.GoalID,
@@ -181,18 +228,33 @@ func (s *Server) emitToolItemCompleted(in executorpkg.Input, result executorpkg.
 		Status:   status,
 		Title:    toolResultTitle(in.ToolCall, result),
 		Body:     toolResultBody(result, err),
-		Payload: map[string]any{
-			"tool":                  firstNonEmpty(strings.TrimSpace(result.Tool), strings.TrimSpace(in.ToolCall.Tool)),
-			"command_name":          strings.TrimSpace(result.CommandName),
-			"agent_action_id":       strings.TrimSpace(result.AgentActionID),
-			"confirmed":             in.Confirmed,
-			"requires_confirmation": result.RequiresConfirmation,
-			"preview":               strings.TrimSpace(result.Preview),
-			"undo_label":            strings.TrimSpace(result.UndoLabel),
-			"error":                 firstNonEmpty(strings.TrimSpace(result.Error), errorText(err)),
-			"result":                compactEventMap(result.Result),
-		},
+		Payload:  payload,
 	})
+}
+
+func typedAcousticPackageStatusEventFromToolResult(result map[string]any, source agentprotocol.Source) map[string]any {
+	status := mapValue(result["acoustic_package_status"])
+	if len(status) == 0 {
+		return nil
+	}
+	source.LegacyKind = "tool_acoustic_package_status"
+	source.LegacySchema = firstNonEmpty(cleanContextText(status["schema_version"]), "acoustic_package_status.v0")
+	typed := agentprotocol.AcousticPackageStatus{
+		ID:             agentprotocol.NormalizeID("acoustic_package_status", cleanContextText(status["project_id"]), cleanContextText(status["track_id"]), cleanContextText(status["clip_id"]), cleanContextText(status["source_revision"])),
+		Kind:           agentprotocol.KindAcousticPackageStatus,
+		SchemaVersion:  source.LegacySchema,
+		Status:         cleanContextText(status["status"]),
+		ProjectID:      cleanContextText(status["project_id"]),
+		TrackID:        cleanContextText(status["track_id"]),
+		ClipID:         cleanContextText(status["clip_id"]),
+		SourceHash:     cleanContextText(status["source_hash"]),
+		SourceRevision: cleanContextText(status["source_revision"]),
+		ArtifactPath:   cleanContextText(result["acoustic_package_status_path"]),
+		PackageLayers:  mapValue(status["package_layers"]),
+		CreatedAt:      cleanContextText(status["updated_at"]),
+		Source:         source,
+	}
+	return agentprotocol.ToMap(agentprotocol.NewEvent(typed, source))
 }
 
 func eventConversationIDFromContext(ctx map[string]any) string {
@@ -228,6 +290,25 @@ func toolEventTitle(call planner.ToolCall) string {
 	return "正在执行工程操作"
 }
 
+func toolEventBody(call planner.ToolCall) string {
+	reason := strings.TrimSpace(call.Reason)
+	switch strings.ToLower(reason) {
+	case "":
+		return ""
+	case "deterministic observation before broad acoustic mix advice":
+		return "先执行只读观察，再给出混音判断。"
+	case "inspect the current mix":
+		return "检查当前混音状态。"
+	case "confirmed mix treatment resolver route":
+		return "按已确认的混音建议执行安全路径。"
+	default:
+		if strings.Contains(strings.ToLower(reason), "observation") && strings.Contains(strings.ToLower(reason), "mix") {
+			return "执行混音观察。"
+		}
+		return localizedDisplayTextFallback(reason)
+	}
+}
+
 func toolResultTitle(call planner.ToolCall, result executorpkg.Result) string {
 	if result.RequiresConfirmation || strings.EqualFold(result.Status, "needs_confirmation") {
 		return "需要确认"
@@ -236,9 +317,28 @@ func toolResultTitle(call planner.ToolCall, result executorpkg.Result) string {
 		return "执行失败"
 	}
 	if name := firstNonEmpty(strings.TrimSpace(result.CommandName), strings.TrimSpace(result.Tool), strings.TrimSpace(call.Tool)); name != "" {
-		return "已完成 " + name
+		return "已完成 " + toolDisplayName(name)
 	}
 	return "工程操作已完成"
+}
+
+func toolDisplayName(name string) string {
+	switch strings.ToLower(strings.TrimSpace(name)) {
+	case "mix_observe", "mix.observe":
+		return "混音观察"
+	case "mix_read", "mix.read":
+		return "混音数据读取"
+	case "plugin_search", "plugin.search":
+		return "插件搜索"
+	case "rack_add_node", "rack.add_node":
+		return "加载插件"
+	case "set_plugin_param", "plugin.set_parameter":
+		return "写入插件参数"
+	case "play", "transport.play":
+		return "播放"
+	default:
+		return strings.TrimSpace(name)
+	}
 }
 
 func toolResultBody(result executorpkg.Result, err error) string {

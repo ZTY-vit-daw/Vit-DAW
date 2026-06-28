@@ -138,6 +138,109 @@ size_t handleCountForGen (const juce::String& id, uint64_t gen)
     return handleCountUnlocked (key);
 }
 
+struct QualityStats
+{
+    int64_t sampleCount = 0;
+    int64_t nonzeroCount = 0;
+    int64_t nanInfCount = 0;
+    double sumAbs = 0.0;
+    double maxAbs = 0.0;
+
+    void observe (float value)
+    {
+        ++sampleCount;
+        if (! std::isfinite (value))
+        {
+            ++nanInfCount;
+            return;
+        }
+
+        const auto absValue = std::abs ((double) value);
+        if (absValue > 0.0)
+            ++nonzeroCount;
+        sumAbs += absValue;
+        maxAbs = juce::jmax (maxAbs, absValue);
+    }
+};
+
+struct QualityDecision
+{
+    juce::String status = "failed";
+    juce::String reason = "not_evaluated";
+};
+
+QualityStats collectQualityStats (const float* data, size_t count)
+{
+    QualityStats stats;
+    if (data == nullptr)
+        return stats;
+
+    for (size_t i = 0; i < count; ++i)
+        stats.observe (data[i]);
+
+    return stats;
+}
+
+QualityDecision decideWaveformQuality (const QualityStats& inputStats,
+                                       const QualityStats& outputStats,
+                                       const QualityStats& shmStats,
+                                       int64_t audioSampleCount,
+                                       int frameCount)
+{
+    if (audioSampleCount <= 0 || frameCount <= 0)
+        return { "failed", "empty_coverage" };
+    if (inputStats.nanInfCount > 0 || outputStats.nanInfCount > 0 || shmStats.nanInfCount > 0)
+        return { "failed", "nan_or_inf_detected" };
+    if (outputStats.nonzeroCount <= 0)
+        return { inputStats.nonzeroCount > 0 ? "failed" : "suspect",
+                 inputStats.nonzeroCount > 0 ? "output_all_zero" : "input_all_zero" };
+    if (shmStats.nonzeroCount <= 0)
+        return { "failed", "shared_memory_all_zero_after_write" };
+    return { "ready", "ok" };
+}
+
+void setQualityStatsProperties (juce::DynamicObject& obj,
+                                const juce::String& prefix,
+                                const QualityStats& stats)
+{
+    obj.setProperty (prefix + "sample_count", (int64) stats.sampleCount);
+    obj.setProperty (prefix + "nonzero_count", (int64) stats.nonzeroCount);
+    obj.setProperty (prefix + "sum_abs", stats.sumAbs);
+    obj.setProperty (prefix + "max_abs", stats.maxAbs);
+    obj.setProperty (prefix + "nan_inf_count", (int64) stats.nanInfCount);
+}
+
+void stampIdentityProperties (juce::DynamicObject& obj,
+                              const juce::String& trackId,
+                              const juce::String& clipId,
+                              const juce::String& sourceId,
+                              const juce::String& sourceRevision,
+                              const juce::String& clipRevision,
+                              const juce::String& renderRevision,
+                              const juce::String& filePath,
+                              double totalDurationSec)
+{
+    obj.setProperty ("project_id", "current");
+    obj.setProperty ("track_id", trackId);
+    obj.setProperty ("source_track_id", trackId);
+    obj.setProperty ("source_path", filePath);
+    obj.setProperty ("duration_seconds", totalDurationSec);
+    if (clipId.isNotEmpty())
+        obj.setProperty ("clip_id", clipId);
+    if (sourceId.isNotEmpty())
+        obj.setProperty ("source_id", sourceId);
+    if (sourceRevision.isNotEmpty())
+    {
+        obj.setProperty ("source_revision", sourceRevision);
+        obj.setProperty ("source_fingerprint", sourceRevision);
+    }
+    if (clipRevision.isNotEmpty())
+        obj.setProperty ("clip_revision", clipRevision);
+    if (renderRevision.isNotEmpty())
+        obj.setProperty ("render_revision", renderRevision);
+    obj.setProperty ("analyzer_revision", audioFeatureAnalysisVersion());
+}
+
 void publishBakeStatus (const juce::String& status,
                         const juce::String& reason,
                         const juce::String& trackId,
@@ -171,7 +274,11 @@ void WaveformEnvelopeBaker::startBake (juce::String filePath,
                                        PublishCallback publish,
                                        double sourceOffsetSeconds,
                                        double bakeLengthSeconds,
-                                       int framesPerTile)
+                                       int framesPerTile,
+                                       juce::String sourceId,
+                                       juce::String sourceRevision,
+                                       juce::String clipRevision,
+                                       juce::String renderRevision)
 {
     const auto bakeKey = makeBakeKey (trackId, clipId);
     const auto gen = beginGen (bakeKey);
@@ -181,6 +288,8 @@ void WaveformEnvelopeBaker::startBake (juce::String filePath,
                   + " gen=" + juce::String ((int64) gen)
                   + " track_id=" + trackId
                   + " clip_id=" + clipId
+                  + " source_revision=" + sourceRevision
+                  + " clip_revision=" + clipRevision
                   + " source_offset=" + juce::String (sourceOffsetSeconds, 4)
                   + " bake_length=" + juce::String (bakeLengthSeconds, 4)
                   + " frames_per_tile=" + juce::String (safeFramesPerTile)
@@ -191,6 +300,10 @@ void WaveformEnvelopeBaker::startBake (juce::String filePath,
                   clipId = std::move (clipId),
                   bakeKey = std::move (bakeKey),
                   publish = std::move (publish),
+                  sourceId = std::move (sourceId),
+                  sourceRevision = std::move (sourceRevision),
+                  clipRevision = std::move (clipRevision),
+                  renderRevision = std::move (renderRevision),
                   sourceOffsetSeconds,
                   bakeLengthSeconds,
                    safeFramesPerTile,
@@ -288,6 +401,7 @@ void WaveformEnvelopeBaker::startBake (juce::String filePath,
             const float* left = buffer.getReadPointer (0);
             const float* right = buffer.getReadPointer (juce::jmin (1, buffer.getNumChannels() - 1));
             std::fill (envelope.begin(), envelope.end(), 0.0f);
+            QualityStats inputStats;
 
             for (int frame = 0; frame < safeFramesPerTile; ++frame)
             {
@@ -307,6 +421,8 @@ void WaveformEnvelopeBaker::startBake (juce::String filePath,
                 {
                     const float lv = left[s];
                     const float rv = right[s];
+                    inputStats.observe (lv);
+                    inputStats.observe (rv);
                     minL = juce::jmin (minL, lv);
                     maxL = juce::jmax (maxL, lv);
                     minR = juce::jmin (minR, rv);
@@ -330,6 +446,7 @@ void WaveformEnvelopeBaker::startBake (juce::String filePath,
                 envelope[base + 5] = count > 0 ? std::sqrt ((float) (sumR / (double) count)) : 0.0f;
             }
 
+            const auto outputStats = collectQualityStats (envelope.data(), envelope.size());
             const auto sessionId = bakeKey + ":" + juce::String ((int64) gen);
             const auto shm = "Vit_AudioFeature_waveform_"
                 + sanitiseBakeKeyForShm (bakeKey)
@@ -363,6 +480,7 @@ void WaveformEnvelopeBaker::startBake (juce::String filePath,
             }
 
             std::memcpy (mapped, envelope.data(), envelope.size() * sizeof (float));
+            const auto shmStats = collectQualityStats (mapped, envelope.size());
             UnmapViewOfFile (mapped);
 
             if (! storeHandle (bakeKey, gen, h))
@@ -372,6 +490,14 @@ void WaveformEnvelopeBaker::startBake (juce::String filePath,
             }
 
             const auto handleCount = handleCountForGen (bakeKey, gen);
+            const auto quality = decideWaveformQuality (inputStats,
+                                                        outputStats,
+                                                        shmStats,
+                                                        tileValidSamples64,
+                                                        safeFramesPerTile);
+            const double coverageRatio = bakeTotalSamples > 0
+                ? juce::jlimit (0.0, 1.0, (double) tileValidSamples64 / (double) bakeTotalSamples)
+                : 0.0;
             if (publish)
             {
                 auto obj = std::make_unique<juce::DynamicObject>();
@@ -382,8 +508,15 @@ void WaveformEnvelopeBaker::startBake (juce::String filePath,
                 obj->setProperty ("analysis_version", audioFeatureAnalysisVersion());
                 obj->setProperty ("channels_semantics", "l_min,l_max,r_min,r_max,l_rms,r_rms");
                 obj->setProperty ("source_kind", clipId.isNotEmpty() ? "clip" : "file");
-                obj->setProperty ("track_id", trackId);
-                obj->setProperty ("source_track_id", trackId);
+                stampIdentityProperties (*obj,
+                                         trackId,
+                                         clipId,
+                                         sourceId,
+                                         sourceRevision,
+                                         clipRevision,
+                                         renderRevision,
+                                         filePath,
+                                         totalDurationSec);
                 obj->setProperty ("session_id", sessionId);
                 obj->setProperty ("file_path", filePath);
                 obj->setProperty ("tile_index", tileIndex);
@@ -391,6 +524,10 @@ void WaveformEnvelopeBaker::startBake (juce::String filePath,
                 obj->setProperty ("tile_content_start_seconds", tileContentStartSeconds);
                 obj->setProperty ("range_source_offset_seconds", sourceOffsetSeconds);
                 obj->setProperty ("range_length_seconds", bakeLengthSeconds);
+                obj->setProperty ("coverage_seconds", tileDurationSec);
+                obj->setProperty ("coverage_ratio", coverageRatio);
+                obj->setProperty ("frame_count", safeFramesPerTile);
+                obj->setProperty ("audio_sample_count", (int64) tileValidSamples64);
                 obj->setProperty ("resolution_frame_count", safeFramesPerTile);
                 obj->setProperty ("feature_stride", kFeatureStride);
                 obj->setProperty ("frame_duration_seconds", tileDurationSec / (double) safeFramesPerTile);
@@ -401,8 +538,12 @@ void WaveformEnvelopeBaker::startBake (juce::String filePath,
                 obj->setProperty ("generation", (int64) gen);
                 obj->setProperty ("handle_count", (int) handleCount);
                 obj->setProperty ("shm_bytes", (int64) bytes);
-                if (clipId.isNotEmpty())
-                    obj->setProperty ("clip_id", clipId);
+                obj->setProperty ("quality_status", quality.status);
+                obj->setProperty ("quality_reason", quality.reason);
+                obj->setProperty ("ready", quality.status == "ready");
+                setQualityStatsProperties (*obj, {}, outputStats);
+                setQualityStatsProperties (*obj, "reader_", inputStats);
+                setQualityStatsProperties (*obj, "shm_postwrite_", shmStats);
                 publish (juce::JSON::toString (juce::var (obj.release())));
             }
             completedTiles = tileIndex + 1;

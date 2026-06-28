@@ -1,0 +1,1076 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ask Vit DAW Panels Wireframe</title>
+  <style>
+    :root {
+      --bg: #eef1f4;
+      --shell: #f8fafc;
+      --ink: #17202a;
+      --muted: #637083;
+      --line: #cfd6df;
+      --line-dark: #aeb8c5;
+      --panel: #ffffff;
+      --soft: #f1f4f7;
+      --blue: #2563eb;
+      --green: #15803d;
+      --yellow: #b7791f;
+      --red: #b91c1c;
+      --track: #2563eb;
+      --rack: #7c3aed;
+      --midi: #0f766e;
+      --mixer: #c2410c;
+      font-family: Inter, "Segoe UI", "Microsoft YaHei UI", Arial, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+    }
+
+    .stage {
+      width: 1600px;
+      min-height: 1200px;
+      padding: 28px;
+      margin: 0 auto;
+    }
+
+    .titlebar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 18px;
+      color: #1e293b;
+    }
+
+    .titlebar h1 {
+      margin: 0;
+      font-size: 26px;
+      line-height: 1.15;
+      font-weight: 760;
+      letter-spacing: 0;
+    }
+
+    .titlebar p {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .legend {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 999px;
+      display: inline-block;
+      background: var(--blue);
+    }
+
+    .app-shell {
+      display: grid;
+      grid-template-columns: 92px 1fr;
+      grid-template-rows: 64px 1fr 58px;
+      height: 1050px;
+      background: var(--shell);
+      border: 1px solid var(--line-dark);
+      box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+      overflow: hidden;
+    }
+
+    .transport {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: 92px 1fr auto;
+      align-items: center;
+      gap: 18px;
+      padding: 10px 18px;
+      border-bottom: 1px solid var(--line);
+      background: #fbfdff;
+    }
+
+    .brand {
+      font-weight: 800;
+      font-size: 15px;
+      color: #0f172a;
+    }
+
+    .transport-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .icon-button {
+      display: inline-grid;
+      place-items: center;
+      width: 36px;
+      height: 36px;
+      border-radius: 7px;
+      border: 1px solid var(--line-dark);
+      background: #fff;
+      color: #1f2937;
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .icon-button.primary {
+      background: var(--blue);
+      border-color: var(--blue);
+      color: #fff;
+    }
+
+    .transport-readout {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-left: 10px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .timecode {
+      font-family: "Cascadia Mono", Consolas, monospace;
+      color: #0f172a;
+      font-size: 18px;
+      font-weight: 720;
+      padding: 5px 10px;
+      background: #eef2f7;
+      border: 1px solid #d7dde6;
+      border-radius: 6px;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 26px;
+      padding: 4px 9px;
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 999px;
+      white-space: nowrap;
+      color: #334155;
+      font-size: 12px;
+    }
+
+    .rail {
+      grid-row: 2 / span 2;
+      border-right: 1px solid var(--line);
+      background: #f3f6f9;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      padding: 14px 10px;
+      gap: 8px;
+    }
+
+    .rail-item {
+      min-height: 54px;
+      display: grid;
+      place-items: center;
+      border: 1px solid transparent;
+      border-radius: 7px;
+      color: #475569;
+      font-size: 13px;
+      font-weight: 650;
+    }
+
+    .rail-item.active {
+      background: #fff;
+      border-color: #cdd6e3;
+      color: #0f172a;
+      box-shadow: 0 2px 5px rgba(15, 23, 42, 0.05);
+    }
+
+    .rail-spacer {
+      flex: 1;
+    }
+
+    .workspace {
+      grid-column: 2;
+      grid-row: 2;
+      padding: 20px;
+      overflow: hidden;
+    }
+
+    .target-bar {
+      grid-column: 2;
+      grid-row: 3;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 18px;
+      border-top: 1px solid var(--line);
+      background: #fbfdff;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .target-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      min-height: 30px;
+      padding: 5px 10px;
+      border: 1px solid #cbd5e1;
+      background: #fff;
+      border-radius: 7px;
+      color: #172033;
+      font-weight: 650;
+    }
+
+    .ask-field {
+      margin-left: auto;
+      min-width: 420px;
+      height: 34px;
+      border: 1px solid #cbd5e1;
+      background: #fff;
+      border-radius: 7px;
+      display: flex;
+      align-items: center;
+      padding: 0 12px;
+      color: #94a3b8;
+    }
+
+    .panel-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+      height: 100%;
+    }
+
+    .panel {
+      border: 1px solid var(--line-dark);
+      background: var(--panel);
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .panel-header {
+      min-height: 64px;
+      padding: 13px 16px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+    }
+
+    .panel-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .panel-title h2 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 780;
+      letter-spacing: 0;
+    }
+
+    .panel-title span {
+      display: block;
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .panel-mark {
+      width: 5px;
+      height: 36px;
+      border-radius: 999px;
+      background: var(--track);
+      flex: 0 0 auto;
+    }
+
+    .rack .panel-mark {
+      background: var(--rack);
+    }
+
+    .midi .panel-mark {
+      background: var(--midi);
+    }
+
+    .mixer .panel-mark {
+      background: var(--mixer);
+    }
+
+    .actions {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .btn {
+      min-height: 30px;
+      padding: 6px 10px;
+      border-radius: 6px;
+      border: 1px solid #c5ceda;
+      background: #fff;
+      color: #1f2937;
+      font-size: 12px;
+      font-weight: 650;
+      white-space: nowrap;
+    }
+
+    .btn.primary {
+      background: #1d4ed8;
+      color: #fff;
+      border-color: #1d4ed8;
+    }
+
+    .btn.disabled {
+      color: #9ca3af;
+      background: #f4f6f8;
+      border-color: #d8dee7;
+    }
+
+    .panel-body {
+      min-height: 0;
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1.25fr 0.95fr;
+    }
+
+    .panel-list,
+    .panel-detail {
+      min-width: 0;
+      min-height: 0;
+      padding: 14px;
+      overflow: hidden;
+    }
+
+    .panel-list {
+      border-right: 1px solid var(--line);
+      background: #fbfcfe;
+    }
+
+    .panel-detail {
+      background: #fff;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+
+    th,
+    td {
+      text-align: left;
+      padding: 8px 7px;
+      border-bottom: 1px solid #e3e8ef;
+      white-space: nowrap;
+    }
+
+    th {
+      color: #64748b;
+      font-size: 11px;
+      font-weight: 760;
+      text-transform: uppercase;
+    }
+
+    tr.selected td {
+      background: #eaf1ff;
+      color: #0f2d6b;
+      font-weight: 680;
+    }
+
+    .mini-toggle {
+      display: inline-grid;
+      place-items: center;
+      width: 21px;
+      height: 21px;
+      border: 1px solid #c7d0dc;
+      border-radius: 5px;
+      background: #fff;
+      color: #526172;
+      font-size: 10px;
+      font-weight: 780;
+    }
+
+    .mini-toggle.on {
+      background: #dbeafe;
+      color: #1d4ed8;
+      border-color: #93c5fd;
+    }
+
+    .detail-card {
+      border: 1px solid #d8dee7;
+      background: #fbfdff;
+      border-radius: 7px;
+      padding: 12px;
+      margin-bottom: 10px;
+    }
+
+    .detail-card h3 {
+      margin: 0 0 9px;
+      font-size: 13px;
+      color: #172033;
+    }
+
+    .kv {
+      display: grid;
+      grid-template-columns: 90px 1fr;
+      gap: 6px 10px;
+      font-size: 12px;
+      color: #526172;
+    }
+
+    .kv strong {
+      color: #182334;
+      font-weight: 680;
+    }
+
+    .chip-row {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .small-chip {
+      display: inline-flex;
+      align-items: center;
+      min-height: 25px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid #d4dbe6;
+      background: #fff;
+      color: #334155;
+      font-size: 11px;
+      font-weight: 650;
+    }
+
+    .plugin-chain {
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+    }
+
+    .plugin-row {
+      display: grid;
+      grid-template-columns: 28px 1fr auto;
+      align-items: center;
+      gap: 10px;
+      padding: 10px;
+      border: 1px solid #d8dee7;
+      border-radius: 7px;
+      background: #fff;
+    }
+
+    .plugin-row.selected {
+      border-color: #b69cff;
+      background: #f3efff;
+    }
+
+    .number {
+      width: 24px;
+      height: 24px;
+      display: grid;
+      place-items: center;
+      border-radius: 999px;
+      background: #eef2f7;
+      color: #475569;
+      font-size: 11px;
+      font-weight: 760;
+    }
+
+    .plugin-name {
+      font-weight: 720;
+      font-size: 13px;
+    }
+
+    .plugin-sub {
+      margin-top: 2px;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .slider-row {
+      display: grid;
+      grid-template-columns: 90px 1fr 62px;
+      align-items: center;
+      gap: 9px;
+      font-size: 12px;
+      margin: 10px 0;
+    }
+
+    .trackbar {
+      height: 8px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #7c3aed var(--pos, 50%), #d9dee8 var(--pos, 50%));
+      position: relative;
+    }
+
+    .trackbar::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: var(--pos, 50%);
+      width: 14px;
+      height: 14px;
+      transform: translate(-50%, -50%);
+      background: #fff;
+      border: 2px solid #7c3aed;
+      border-radius: 999px;
+    }
+
+    .clip-list {
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+    }
+
+    .track-group {
+      border: 1px solid #d8dee7;
+      border-radius: 7px;
+      background: #fff;
+      overflow: hidden;
+    }
+
+    .track-group-title {
+      padding: 8px 10px;
+      background: #eef6f5;
+      color: #0f766e;
+      font-size: 12px;
+      font-weight: 760;
+      border-bottom: 1px solid #d8dee7;
+    }
+
+    .clip-row {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 8px;
+      padding: 9px 10px;
+      border-bottom: 1px solid #e3e8ef;
+      font-size: 12px;
+      align-items: center;
+    }
+
+    .clip-row:last-child {
+      border-bottom: 0;
+    }
+
+    .clip-row.selected {
+      background: #e6f7f5;
+      color: #0f4f49;
+      font-weight: 700;
+    }
+
+    .density {
+      height: 88px;
+      display: flex;
+      align-items: end;
+      gap: 6px;
+      padding: 12px;
+      border: 1px solid #d8dee7;
+      background: #f8fafc;
+      border-radius: 7px;
+    }
+
+    .bar {
+      width: 18px;
+      background: #0f766e;
+      border-radius: 4px 4px 0 0;
+      opacity: 0.9;
+    }
+
+    .channel-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 10px;
+      grid-column: 1 / -1;
+      padding: 14px;
+      background: #fbfcfe;
+      overflow: hidden;
+    }
+
+    .channel {
+      min-width: 0;
+      border: 1px solid #d4dbe6;
+      background: #fff;
+      border-radius: 7px;
+      padding: 11px;
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+    }
+
+    .channel.selected {
+      border-color: #f59e0b;
+      background: #fff7ed;
+    }
+
+    .channel h3 {
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.2;
+      min-height: 32px;
+    }
+
+    .meter {
+      height: 96px;
+      border: 1px solid #cfd6df;
+      border-radius: 6px;
+      display: flex;
+      align-items: end;
+      justify-content: center;
+      padding: 5px;
+      background: #f5f7fa;
+    }
+
+    .meter-fill {
+      width: 28px;
+      height: var(--h, 40%);
+      border-radius: 5px 5px 2px 2px;
+      background: linear-gradient(0deg, #22c55e, #f59e0b 75%, #dc2626);
+    }
+
+    .fader {
+      height: 8px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #c2410c var(--pos, 50%), #d9dee8 var(--pos, 50%));
+    }
+
+    .channel-meta {
+      color: #526172;
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    .view-single .stage {
+      width: 1440px;
+      min-height: 980px;
+      padding: 30px;
+    }
+
+    .view-single .app-shell {
+      height: 860px;
+    }
+
+    .view-single .panel-grid {
+      display: block;
+    }
+
+    .view-single .panel {
+      display: none;
+      height: 100%;
+    }
+
+    .view-tracks .tracks,
+    .view-rack .rack,
+    .view-midi .midi,
+    .view-mixer .mixer {
+      display: flex;
+    }
+
+    .view-single .panel-body {
+      grid-template-columns: 1.15fr 0.85fr;
+    }
+
+    .view-single .channel-grid {
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+    }
+  </style>
+</head>
+<body>
+  <div class="stage">
+    <div class="titlebar">
+      <div>
+        <h1>Ask Vit DAW 面板线框稿</h1>
+        <p>分支4：轨道 / 机架 / MIDI / 混音台，接入真实工程状态与顶部播放控制器</p>
+      </div>
+      <div class="legend">
+        <span class="dot"></span>
+        <span>示例状态来自 /agent/ui/state；按钮代表真实 tool 入口</span>
+      </div>
+    </div>
+
+    <main class="app-shell">
+      <header class="transport">
+        <div class="brand">Ask Vit</div>
+        <div class="transport-controls">
+          <div class="icon-button primary">▶</div>
+          <div class="icon-button">■</div>
+          <div class="icon-button">⏮</div>
+          <div class="timecode">00:01:24.320</div>
+          <div class="transport-readout">
+            <span class="status-pill"><span class="dot" style="background:#16a34a"></span>Connected</span>
+            <span class="status-pill">120 BPM</span>
+            <span class="status-pill">48 kHz</span>
+            <span class="status-pill">Playhead 84.32s</span>
+          </div>
+        </div>
+        <div class="status-pill">当前工程 Demo Song</div>
+      </header>
+
+      <nav class="rail">
+        <div class="rail-item">对话</div>
+        <div class="rail-item active">轨道</div>
+        <div class="rail-item">机架</div>
+        <div class="rail-item">MIDI</div>
+        <div class="rail-item">混音台</div>
+        <div class="rail-spacer"></div>
+        <div class="rail-item">设置</div>
+      </nav>
+
+      <section class="workspace">
+        <div class="panel-grid">
+          <article class="panel tracks">
+            <div class="panel-header">
+              <div class="panel-title">
+                <i class="panel-mark"></i>
+                <div>
+                  <h2>轨道</h2>
+                  <span>工程对象目录，负责选择目标和基础轨道动作</span>
+                </div>
+              </div>
+              <div class="actions">
+                <button class="btn primary">+ 轨道</button>
+                <button class="btn">刷新</button>
+                <button class="btn disabled">删除需确认</button>
+              </div>
+            </div>
+            <div class="panel-body">
+              <div class="panel-list">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>轨道名</th>
+                      <th>类型</th>
+                      <th>Clips</th>
+                      <th>插件</th>
+                      <th>M S R</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr class="selected">
+                      <td>1</td>
+                      <td>Vocal Lead</td>
+                      <td>Audio</td>
+                      <td>3</td>
+                      <td>4</td>
+                      <td><span class="mini-toggle">M</span> <span class="mini-toggle on">S</span> <span class="mini-toggle">R</span></td>
+                    </tr>
+                    <tr>
+                      <td>2</td>
+                      <td>Bass Synth</td>
+                      <td>MIDI</td>
+                      <td>2</td>
+                      <td>2</td>
+                      <td><span class="mini-toggle">M</span> <span class="mini-toggle">S</span> <span class="mini-toggle">R</span></td>
+                    </tr>
+                    <tr>
+                      <td>3</td>
+                      <td>Drum Bus</td>
+                      <td>Hybrid</td>
+                      <td>5</td>
+                      <td>6</td>
+                      <td><span class="mini-toggle">M</span> <span class="mini-toggle">S</span> <span class="mini-toggle">R</span></td>
+                    </tr>
+                    <tr>
+                      <td>4</td>
+                      <td>Pad Texture</td>
+                      <td>MIDI</td>
+                      <td>1</td>
+                      <td>1</td>
+                      <td><span class="mini-toggle">M</span> <span class="mini-toggle">S</span> <span class="mini-toggle">R</span></td>
+                    </tr>
+                    <tr>
+                      <td>5</td>
+                      <td>FX Return</td>
+                      <td>Audio</td>
+                      <td>0</td>
+                      <td>3</td>
+                      <td><span class="mini-toggle">M</span> <span class="mini-toggle">S</span> <span class="mini-toggle">R</span></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <aside class="panel-detail">
+                <div class="detail-card">
+                  <h3>当前轨道</h3>
+                  <div class="kv">
+                    <span>名称</span><strong>Vocal Lead</strong>
+                    <span>类型</span><strong>Audio</strong>
+                    <span>轨道 ID</span><strong>track_1007</strong>
+                    <span>Clips</span><strong>3</strong>
+                    <span>插件</span><strong>4</strong>
+                  </div>
+                </div>
+                <div class="detail-card">
+                  <h3>快捷动作</h3>
+                  <div class="chip-row">
+                    <span class="small-chip">静音</span>
+                    <span class="small-chip">取消独奏</span>
+                    <span class="small-chip">录音准备</span>
+                    <span class="small-chip">打开机架</span>
+                    <span class="small-chip">查看 MIDI</span>
+                  </div>
+                </div>
+                <div class="detail-card">
+                  <h3>Agent 可用任务</h3>
+                  <div class="chip-row">
+                    <span class="small-chip">整理轨道命名</span>
+                    <span class="small-chip">导入音频到此轨</span>
+                    <span class="small-chip">从这里试听</span>
+                  </div>
+                </div>
+              </aside>
+            </div>
+          </article>
+
+          <article class="panel rack">
+            <div class="panel-header">
+              <div class="panel-title">
+                <i class="panel-mark"></i>
+                <div>
+                  <h2>机架</h2>
+                  <span>插件链与已学习控制，不复刻插件皮肤</span>
+                </div>
+              </div>
+              <div class="actions">
+                <button class="btn">打开插件</button>
+                <button class="btn">读取参数</button>
+                <button class="btn primary">学习插件</button>
+              </div>
+            </div>
+            <div class="panel-body">
+              <div class="panel-list">
+                <div class="plugin-chain">
+                  <div class="plugin-row">
+                    <span class="number">1</span>
+                    <div>
+                      <div class="plugin-name">Auto-Tune</div>
+                      <div class="plugin-sub">未学习 · 可打开 UI</div>
+                    </div>
+                    <span class="small-chip">Bypass</span>
+                  </div>
+                  <div class="plugin-row selected">
+                    <span class="number">2</span>
+                    <div>
+                      <div class="plugin-name">Pro-Q 3</div>
+                      <div class="plugin-sub">已学习 · 12 个快捷控制</div>
+                    </div>
+                    <span class="small-chip">Selected</span>
+                  </div>
+                  <div class="plugin-row">
+                    <span class="number">3</span>
+                    <div>
+                      <div class="plugin-name">1176 Compressor</div>
+                      <div class="plugin-sub">可读取参数 · 未学习</div>
+                    </div>
+                    <span class="small-chip">Read</span>
+                  </div>
+                  <div class="plugin-row">
+                    <span class="number">4</span>
+                    <div>
+                      <div class="plugin-name">De-esser</div>
+                      <div class="plugin-sub">已学习 · 5 个快捷控制</div>
+                    </div>
+                    <span class="small-chip">Open</span>
+                  </div>
+                </div>
+              </div>
+              <aside class="panel-detail">
+                <div class="detail-card">
+                  <h3>当前插件：Pro-Q 3</h3>
+                  <div class="kv">
+                    <span>所在轨道</span><strong>Vocal Lead</strong>
+                    <span>状态</span><strong>已学习</strong>
+                    <span>参数</span><strong>152</strong>
+                    <span>快捷控制</span><strong>12</strong>
+                  </div>
+                </div>
+                <div class="detail-card">
+                  <h3>语义控制</h3>
+                  <div class="slider-row"><span>Low Cut</span><div class="trackbar" style="--pos: 34%"></div><strong>85 Hz</strong></div>
+                  <div class="slider-row"><span>Mud</span><div class="trackbar" style="--pos: 42%"></div><strong>-2.5 dB</strong></div>
+                  <div class="slider-row"><span>Presence</span><div class="trackbar" style="--pos: 61%"></div><strong>+1.2 dB</strong></div>
+                  <div class="slider-row"><span>Air</span><div class="trackbar" style="--pos: 56%"></div><strong>+0.8 dB</strong></div>
+                </div>
+                <div class="detail-card">
+                  <h3>动作</h3>
+                  <div class="chip-row">
+                    <span class="small-chip">解释控制</span>
+                    <span class="small-chip">重新学习</span>
+                    <span class="small-chip">显示原始参数</span>
+                  </div>
+                </div>
+              </aside>
+            </div>
+          </article>
+
+          <article class="panel midi">
+            <div class="panel-header">
+              <div class="panel-title">
+                <i class="panel-mark"></i>
+                <div>
+                  <h2>MIDI</h2>
+                  <span>Clip 工作台，做摘要、定位和 Agent 编辑入口</span>
+                </div>
+              </div>
+              <div class="actions">
+                <button class="btn primary">+ MIDI Clip</button>
+                <button class="btn">读取音符</button>
+                <button class="btn">从播放头创建</button>
+              </div>
+            </div>
+            <div class="panel-body">
+              <div class="panel-list">
+                <div class="clip-list">
+                  <div class="track-group">
+                    <div class="track-group-title">Bass Synth</div>
+                    <div class="clip-row selected"><span>Bass Verse A</span><span>bar 1-9</span><span>42n</span></div>
+                    <div class="clip-row"><span>Bass Fill</span><span>bar 9-10</span><span>12n</span></div>
+                  </div>
+                  <div class="track-group">
+                    <div class="track-group-title">Pad Texture</div>
+                    <div class="clip-row"><span>Pad Chords</span><span>bar 1-17</span><span>64n</span></div>
+                  </div>
+                  <div class="track-group">
+                    <div class="track-group-title">Drum Bus</div>
+                    <div class="clip-row"><span>Kick Pattern</span><span>bar 1-9</span><span>32n</span></div>
+                    <div class="clip-row"><span>Hat Variation</span><span>bar 5-9</span><span>48n</span></div>
+                  </div>
+                </div>
+              </div>
+              <aside class="panel-detail">
+                <div class="detail-card">
+                  <h3>当前 Clip：Bass Verse A</h3>
+                  <div class="kv">
+                    <span>轨道</span><strong>Bass Synth</strong>
+                    <span>位置</span><strong>1.1.1 - 9.1.1</strong>
+                    <span>长度</span><strong>8 bars</strong>
+                    <span>音符</span><strong>42</strong>
+                    <span>音域</span><strong>C2 - G3</strong>
+                  </div>
+                </div>
+                <div class="detail-card">
+                  <h3>简化预览</h3>
+                  <div class="density">
+                    <i class="bar" style="height:28%"></i>
+                    <i class="bar" style="height:36%"></i>
+                    <i class="bar" style="height:52%"></i>
+                    <i class="bar" style="height:77%"></i>
+                    <i class="bar" style="height:34%"></i>
+                    <i class="bar" style="height:42%"></i>
+                    <i class="bar" style="height:81%"></i>
+                    <i class="bar" style="height:49%"></i>
+                  </div>
+                </div>
+                <div class="detail-card">
+                  <h3>动作</h3>
+                  <div class="chip-row">
+                    <span class="small-chip">跳到 Clip</span>
+                    <span class="small-chip">试听</span>
+                    <span class="small-chip">生成变奏</span>
+                    <span class="small-chip">让 Agent 改写</span>
+                  </div>
+                </div>
+              </aside>
+            </div>
+          </article>
+
+          <article class="panel mixer">
+            <div class="panel-header">
+              <div class="panel-title">
+                <i class="panel-mark"></i>
+                <div>
+                  <h2>混音台</h2>
+                  <span>轻量 channel overview，保留听感决策需要的信息</span>
+                </div>
+              </div>
+              <div class="actions">
+                <button class="btn">刷新电平</button>
+                <button class="btn">取消独奏</button>
+                <button class="btn primary">粗混建议</button>
+              </div>
+            </div>
+            <div class="panel-body" style="grid-template-columns: 1fr;">
+              <div class="channel-grid">
+                <section class="channel selected">
+                  <h3>Vocal Lead</h3>
+                  <div class="meter"><div class="meter-fill" style="--h: 68%"></div></div>
+                  <div class="fader" style="--pos: 62%"></div>
+                  <div class="channel-meta">Vol -4.5 dB<br>Pan C<br>Plugins 4</div>
+                  <div><span class="mini-toggle">M</span> <span class="mini-toggle on">S</span> <span class="mini-toggle">R</span></div>
+                </section>
+                <section class="channel">
+                  <h3>Bass Synth</h3>
+                  <div class="meter"><div class="meter-fill" style="--h: 48%"></div></div>
+                  <div class="fader" style="--pos: 52%"></div>
+                  <div class="channel-meta">Vol -7.0 dB<br>Pan C<br>Plugins 2</div>
+                  <div><span class="mini-toggle">M</span> <span class="mini-toggle">S</span> <span class="mini-toggle">R</span></div>
+                </section>
+                <section class="channel">
+                  <h3>Drum Bus</h3>
+                  <div class="meter"><div class="meter-fill" style="--h: 82%"></div></div>
+                  <div class="fader" style="--pos: 69%"></div>
+                  <div class="channel-meta">Vol -3.0 dB<br>Pan C<br>Plugins 6</div>
+                  <div><span class="mini-toggle">M</span> <span class="mini-toggle">S</span> <span class="mini-toggle">R</span></div>
+                </section>
+                <section class="channel">
+                  <h3>Pad Texture</h3>
+                  <div class="meter"><div class="meter-fill" style="--h: 31%"></div></div>
+                  <div class="fader" style="--pos: 44%"></div>
+                  <div class="channel-meta">Vol -9.0 dB<br>Pan L20<br>Plugins 1</div>
+                  <div><span class="mini-toggle">M</span> <span class="mini-toggle">S</span> <span class="mini-toggle">R</span></div>
+                </section>
+                <section class="channel">
+                  <h3>FX Return</h3>
+                  <div class="meter"><div class="meter-fill" style="--h: 38%"></div></div>
+                  <div class="fader" style="--pos: 39%"></div>
+                  <div class="channel-meta">Vol -12.0 dB<br>Pan R15<br>Plugins 3</div>
+                  <div><span class="mini-toggle">M</span> <span class="mini-toggle">S</span> <span class="mini-toggle">R</span></div>
+                </section>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <footer class="target-bar">
+        <span>当前目标</span>
+        <span class="target-chip">Track: Vocal Lead</span>
+        <span class="target-chip">Plugin: Pro-Q 3</span>
+        <span class="target-chip">Clip: Bass Verse A</span>
+        <div class="ask-field">对当前目标询问或下达任务，例如：从这个 clip 开始试听</div>
+      </footer>
+    </main>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const view = params.get("view");
+    if (view && view !== "overview") {
+      document.body.classList.add("view-single", `view-${view}`);
+      const railItems = Array.from(document.querySelectorAll(".rail-item"));
+      const labelMap = { tracks: "轨道", rack: "机架", midi: "MIDI", mixer: "混音台" };
+      railItems.forEach((item) => item.classList.toggle("active", item.textContent.trim() === labelMap[view]));
+    }
+  </script>
+</body>
+</html>

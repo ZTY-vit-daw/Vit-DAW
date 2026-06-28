@@ -21,6 +21,7 @@ import (
 	"time"
 
 	"vit-daw-agent/internal/agentloop"
+	"vit-daw-agent/internal/agentprotocol"
 	"vit-daw-agent/internal/artifacts"
 	"vit-daw-agent/internal/browsercapture"
 	"vit-daw-agent/internal/config"
@@ -31,6 +32,7 @@ import (
 	"vit-daw-agent/internal/llm"
 	"vit-daw-agent/internal/logx"
 	"vit-daw-agent/internal/macrocontrols"
+	"vit-daw-agent/internal/pendingmanager"
 	"vit-daw-agent/internal/planner"
 	"vit-daw-agent/internal/policy"
 	"vit-daw-agent/internal/promptruntime"
@@ -60,6 +62,7 @@ type Server struct {
 	conversationGoals map[string]string
 	pendingMixTicks   map[string]agentloop.PendingMixTickCandidate
 	pendingTreatments map[string]agentloop.MixTreatmentPending
+	pendingManager    *pendingmanager.MemoryManager
 	uiContext         map[string]any
 	events            map[string][]AgentEvent
 	eventSeq          map[string]int64
@@ -96,33 +99,36 @@ type Attachment struct {
 }
 
 type ChatResponse struct {
-	ConversationID      string                    `json:"conversation_id"`
-	GoalID              string                    `json:"goal_id,omitempty"`
-	RunID               string                    `json:"run_id,omitempty"`
-	Reply               string                    `json:"reply"`
-	AgentMode           string                    `json:"agent_mode,omitempty"`
-	AgentPlan           *AgentPlan                `json:"agent_plan,omitempty"`
-	NeedsConfirmation   bool                      `json:"needs_confirmation"`
-	PlanID              string                    `json:"plan_id,omitempty"`
-	Preview             string                    `json:"preview,omitempty"`
-	Workflow            string                    `json:"workflow,omitempty"`
-	WorkflowData        map[string]any            `json:"workflow_data,omitempty"`
-	PluginLearning      map[string]any            `json:"plugin_learning,omitempty"`
-	MixSession          map[string]any            `json:"mix_session,omitempty"`
-	InteractionRequests []AgentInteractionRequest `json:"interaction_requests,omitempty"`
-	Commands            []policy.Decision         `json:"commands,omitempty"`
-	ExecutedKernelReply []map[string]any          `json:"executed_kernel_reply,omitempty"`
-	ProjectResultCards  []map[string]any          `json:"project_result_cards,omitempty"`
-	GoalStatus          string                    `json:"goal_status,omitempty"`
-	GoalSummary         string                    `json:"goal_summary,omitempty"`
-	CurrentStep         string                    `json:"current_step,omitempty"`
-	CompletedSteps      int                       `json:"completed_steps,omitempty"`
-	StopReason          string                    `json:"stop_reason,omitempty"`
-	LimitType           string                    `json:"limit_type,omitempty"`
-	ProjectHistory      map[string]any            `json:"project_history,omitempty"`
-	Artifacts           []artifacts.Summary       `json:"artifacts,omitempty"`
-	SidePanelRequest    *SidePanelRequest         `json:"side_panel_request,omitempty"`
-	Error               string                    `json:"error,omitempty"`
+	ConversationID            string                    `json:"conversation_id"`
+	GoalID                    string                    `json:"goal_id,omitempty"`
+	RunID                     string                    `json:"run_id,omitempty"`
+	Reply                     string                    `json:"reply"`
+	AgentMode                 string                    `json:"agent_mode,omitempty"`
+	AgentPlan                 *AgentPlan                `json:"agent_plan,omitempty"`
+	NeedsConfirmation         bool                      `json:"needs_confirmation"`
+	PlanID                    string                    `json:"plan_id,omitempty"`
+	Preview                   string                    `json:"preview,omitempty"`
+	Workflow                  string                    `json:"workflow,omitempty"`
+	WorkflowData              map[string]any            `json:"workflow_data,omitempty"`
+	PluginLearning            map[string]any            `json:"plugin_learning,omitempty"`
+	MixSession                map[string]any            `json:"mix_session,omitempty"`
+	InteractionRequests       []AgentInteractionRequest `json:"interaction_requests,omitempty"`
+	TypedEvents               []map[string]any          `json:"typed_events,omitempty"`
+	AcousticPackageStatus     map[string]any            `json:"acoustic_package_status,omitempty"`
+	AcousticPackageStatusPath string                    `json:"acoustic_package_status_path,omitempty"`
+	Commands                  []policy.Decision         `json:"commands,omitempty"`
+	ExecutedKernelReply       []map[string]any          `json:"executed_kernel_reply,omitempty"`
+	ProjectResultCards        []map[string]any          `json:"project_result_cards,omitempty"`
+	GoalStatus                string                    `json:"goal_status,omitempty"`
+	GoalSummary               string                    `json:"goal_summary,omitempty"`
+	CurrentStep               string                    `json:"current_step,omitempty"`
+	CompletedSteps            int                       `json:"completed_steps,omitempty"`
+	StopReason                string                    `json:"stop_reason,omitempty"`
+	LimitType                 string                    `json:"limit_type,omitempty"`
+	ProjectHistory            map[string]any            `json:"project_history,omitempty"`
+	Artifacts                 []artifacts.Summary       `json:"artifacts,omitempty"`
+	SidePanelRequest          *SidePanelRequest         `json:"side_panel_request,omitempty"`
+	Error                     string                    `json:"error,omitempty"`
 }
 
 type SidePanelRequest struct {
@@ -257,10 +263,18 @@ func New(kernelClient *kernel.Client, shadowProject *shadow.Project, logger *log
 		conversationGoals: map[string]string{},
 		pendingMixTicks:   map[string]agentloop.PendingMixTickCandidate{},
 		pendingTreatments: map[string]agentloop.MixTreatmentPending{},
+		pendingManager:    pendingmanager.NewMemoryManager(),
 		uiContext:         map[string]any{},
 		events:            map[string][]AgentEvent{},
 		eventSeq:          map[string]int64{},
 	}
+}
+
+func (s *Server) HandleKernelTelemetry(event map[string]any) {
+	if s == nil || s.harness == nil {
+		return
+	}
+	s.harness.IngestKernelTelemetry(event)
 }
 
 func (s *Server) Routes() http.Handler {
@@ -951,6 +965,26 @@ func (s *Server) handleInvoke(w http.ResponseWriter, r *http.Request) {
 	if strings.TrimSpace(req.Source) == "" {
 		req.Source = "http"
 	}
+	if isVersionProjectNewInvoke(req) {
+		actionID := "act_" + randomID()
+		bgReq := req
+		go s.invokeVersionProjectNewInBackground(bgReq, actionID)
+		writeJSON(w, http.StatusOK, harness.InvokeResponse{
+			Status:               "ok",
+			AgentActionID:        actionID,
+			Tool:                 "version.project_new",
+			CommandName:          "version_project_new",
+			RiskLevel:            tools.RiskDirect,
+			RequiresConfirmation: false,
+			Result: map[string]any{
+				"status":   "ok",
+				"accepted": true,
+				"async":    true,
+				"message":  "Project new notification accepted",
+			},
+		})
+		return
+	}
 	if resp, ok := s.invokeMixSessionEntryWorkflow(r.Context(), req); ok {
 		writeJSON(w, http.StatusOK, resp)
 		return
@@ -991,6 +1025,37 @@ func (s *Server) handleInvoke(w http.ResponseWriter, r *http.Request) {
 		status = http.StatusBadRequest
 	}
 	writeJSON(w, status, resp)
+}
+
+func isVersionProjectNewInvoke(req harness.InvokeRequest) bool {
+	for _, candidate := range []string{
+		req.Tool,
+		tools.CommandName(req.Command),
+		tools.CommandName(req.Args),
+		firstStringFromMap(req.Command, "tool"),
+		firstStringFromMap(req.Args, "tool"),
+	} {
+		normalized := strings.ToLower(strings.TrimSpace(candidate))
+		normalized = strings.ReplaceAll(normalized, ".", "_")
+		if normalized == "version_project_new" {
+			return true
+		}
+	}
+	return false
+}
+
+func (s *Server) invokeVersionProjectNewInBackground(req harness.InvokeRequest, actionID string) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	started := time.Now()
+	resp, err := s.harness.Invoke(ctx, req)
+	if s.logger != nil {
+		s.logger.Info("[timing] async version_project_new total_ms=%d ack_action=%s status=%s err=%t",
+			time.Since(started).Milliseconds(), actionID, resp.Status, err != nil)
+		if err != nil {
+			s.logger.Warn("async version_project_new failed ack_action=%s error=%v", actionID, err)
+		}
+	}
 }
 
 func uiProjectState(state map[string]any) map[string]any {
@@ -1511,6 +1576,18 @@ func (s *Server) handleChat(w http.ResponseWriter, r *http.Request) {
 
 	chatContext := contextWithUserMessage(req.Context, req.Message)
 
+	if resp, handled := s.handlePendingPluginParameterTreatmentChat(r.Context(), conversationID, ChatRequest{
+		ConversationID: conversationID,
+		Message:        req.Message,
+		Context:        chatContext,
+		Attachments:    req.Attachments,
+		ArtifactRefs:   req.ArtifactRefs,
+	}, agentMode); handled {
+		s.remember(conversationID, req.Message, resp.Reply)
+		writeChat(http.StatusOK, resp)
+		return
+	}
+
 	if resp, handled := s.handlePendingMixTreatmentChat(r.Context(), conversationID, ChatRequest{
 		ConversationID: conversationID,
 		Message:        req.Message,
@@ -1843,27 +1920,30 @@ func chatResponseFromPendingPlanDecision(conversationID string, response map[str
 		reply = "确认已处理。"
 	}
 	resp := ChatResponse{
-		ConversationID:      conversationID,
-		GoalID:              cleanContextText(response["goal_id"]),
-		RunID:               cleanContextText(response["run_id"]),
-		Reply:               reply,
-		AgentMode:           mode,
-		NeedsConfirmation:   boolValue(response["needs_confirmation"]),
-		PlanID:              firstNonEmpty(cleanContextText(response["next_plan_id"]), cleanContextText(response["plan_id"])),
-		Preview:             cleanContextText(response["preview"]),
-		Workflow:            cleanContextText(response["workflow"]),
-		WorkflowData:        mapValue(response["workflow_data"]),
-		PluginLearning:      mapValue(response["plugin_learning"]),
-		ExecutedKernelReply: mapRowsFromAny(response["executed_kernel_reply"]),
-		ProjectResultCards:  mapRowsFromAny(response["project_result_cards"]),
-		GoalStatus:          cleanContextText(response["goal_status"]),
-		GoalSummary:         cleanContextText(response["goal_summary"]),
-		CurrentStep:         cleanContextText(response["current_step"]),
-		CompletedSteps:      chatIntValue(response["completed_steps"]),
-		StopReason:          cleanContextText(response["stop_reason"]),
-		LimitType:           cleanContextText(response["limit_type"]),
-		ProjectHistory:      mapValue(response["project_history"]),
-		Error:               cleanContextText(response["error"]),
+		ConversationID:            conversationID,
+		GoalID:                    cleanContextText(response["goal_id"]),
+		RunID:                     cleanContextText(response["run_id"]),
+		Reply:                     reply,
+		AgentMode:                 mode,
+		NeedsConfirmation:         boolValue(response["needs_confirmation"]),
+		PlanID:                    firstNonEmpty(cleanContextText(response["next_plan_id"]), cleanContextText(response["plan_id"])),
+		Preview:                   cleanContextText(response["preview"]),
+		Workflow:                  cleanContextText(response["workflow"]),
+		WorkflowData:              mapValue(response["workflow_data"]),
+		PluginLearning:            mapValue(response["plugin_learning"]),
+		ExecutedKernelReply:       mapRowsFromAny(response["executed_kernel_reply"]),
+		ProjectResultCards:        mapRowsFromAny(response["project_result_cards"]),
+		GoalStatus:                cleanContextText(response["goal_status"]),
+		GoalSummary:               cleanContextText(response["goal_summary"]),
+		CurrentStep:               cleanContextText(response["current_step"]),
+		CompletedSteps:            chatIntValue(response["completed_steps"]),
+		StopReason:                cleanContextText(response["stop_reason"]),
+		LimitType:                 cleanContextText(response["limit_type"]),
+		ProjectHistory:            mapValue(response["project_history"]),
+		TypedEvents:               mapRowsFromAny(response["typed_events"]),
+		AcousticPackageStatus:     mapValue(response["acoustic_package_status"]),
+		AcousticPackageStatusPath: cleanContextText(response["acoustic_package_status_path"]),
+		Error:                     cleanContextText(response["error"]),
 	}
 	if resp.GoalStatus == "" {
 		if boolValue(response["blocked"]) || strings.EqualFold(cleanContextText(response["status"]), "error") {
@@ -2228,6 +2308,7 @@ func (s *Server) pendingPlanForChat(conversationID string, chatContext map[strin
 
 func (s *Server) attachInteractionRequests(resp *ChatResponse) {
 	if resp == nil || len(resp.InteractionRequests) > 0 {
+		attachTypedInteractionRequests(resp)
 		return
 	}
 	if len(resp.PluginLearning) > 0 {
@@ -2235,6 +2316,7 @@ func (s *Server) attachInteractionRequests(resp *ChatResponse) {
 		if req.ID != "" {
 			resp.InteractionRequests = append(resp.InteractionRequests, req)
 			if len(req.Actions) > 0 || !responseNeedsConfirmationInteraction(*resp) {
+				attachTypedInteractionRequests(resp)
 				return
 			}
 		}
@@ -2248,6 +2330,7 @@ func (s *Server) attachInteractionRequests(resp *ChatResponse) {
 			resp.InteractionRequests = append(resp.InteractionRequests, req)
 		}
 	}
+	attachTypedInteractionRequests(resp)
 }
 
 func responseNeedsConfirmationInteraction(resp ChatResponse) bool {
@@ -2435,6 +2518,11 @@ func (s *Server) confirmationInteractionRequest(resp ChatResponse) AgentInteract
 		"plan_id":  planID,
 		"preview":  resp.Preview,
 		"commands": resp.Commands,
+	}
+	if decision, ok := firstApprovalDecision(resp.Commands); ok {
+		approval := typedApprovalFromDecision(planID, decision, resp.ConversationID, resp.GoalID, resp.RunID, resp.Reply)
+		payload["typed_state"] = agentprotocol.ToMap(approval)
+		payload["typed_event"] = agentprotocol.ToMap(agentprotocol.NewEvent(approval, approval.Source))
 	}
 	req := AgentInteractionRequest{
 		ID:             "interaction_" + randomID(),
@@ -2965,6 +3053,51 @@ func (s *Server) handleInteractionRespond(w http.ResponseWriter, r *http.Request
 		writeJSON(w, status, response)
 		return
 	}
+	if strings.EqualFold(interaction.Source, pluginPrepWorkerWorkflow) || strings.EqualFold(interaction.Type, pluginPrepParameterTreatmentType) || strings.EqualFold(interaction.Workflow, pluginPrepWorkerWorkflow) {
+		resp := s.continuePluginPrepWorkerCandidateInteraction(r.Context(), interaction, req.Payload, decision)
+		writeJSON(w, http.StatusOK, resp)
+		return
+	}
+	if strings.EqualFold(interaction.Kind, "mix_tick_confirmation") || strings.EqualFold(interaction.Type, "mix_tick_confirmation") || strings.EqualFold(interaction.Workflow, "mix_tick") {
+		if strings.EqualFold(decision, "cancel") || strings.EqualFold(decision, "cancel_mix_tick") {
+			s.expirePendingMixTick(interaction.ConversationID)
+			s.transitionActivePendingCandidate(interaction.ConversationID, "mix_tick", agentprotocol.PendingStatusRejected, "user cancelled pending mix tick")
+			writeJSON(w, http.StatusOK, ChatResponse{
+				ConversationID: interaction.ConversationID,
+				GoalID:         interaction.GoalID,
+				RunID:          interaction.RunID,
+				Reply:          "已取消这次混音单步建议，工程没有被修改。",
+				Workflow:       interaction.Workflow,
+				WorkflowData:   interaction.Payload,
+				GoalStatus:     string(agentruntime.StatusCancelled),
+			})
+			return
+		}
+		approvalText := "可以执行"
+		if strings.TrimSpace(decision) != "" && !strings.EqualFold(decision, "approve") && !strings.EqualFold(decision, "confirm") && !strings.EqualFold(decision, "execute") {
+			approvalText = decision
+		}
+		chatReq := ChatRequest{
+			ConversationID: interaction.ConversationID,
+			Message:        approvalText,
+			Context:        mergeContext(interaction.RequestContext, map[string]any{"conversation_id": interaction.ConversationID}),
+		}
+		resp, handled := s.handlePendingMixTickChat(r.Context(), interaction.ConversationID, chatReq, agentModeDefault)
+		if !handled {
+			resp = ChatResponse{
+				ConversationID: interaction.ConversationID,
+				GoalID:         interaction.GoalID,
+				RunID:          interaction.RunID,
+				Reply:          "这个混音单步确认已处理或已过期。",
+				Workflow:       interaction.Workflow,
+				WorkflowData:   interaction.Payload,
+				GoalStatus:     string(agentruntime.StatusCompleted),
+			}
+		}
+		s.attachInteractionRequests(&resp)
+		writeJSON(w, http.StatusOK, resp)
+		return
+	}
 	if strings.EqualFold(decision, "cancel") || strings.EqualFold(decision, "cancel_plugin_learning") {
 		resp := ChatResponse{
 			ConversationID: interaction.ConversationID,
@@ -3040,6 +3173,11 @@ func (s *Server) handleInteractionRespond(w http.ResponseWriter, r *http.Request
 		writeJSON(w, http.StatusOK, resp)
 		return
 	}
+	if strings.EqualFold(interaction.Source, "plugin_grabber") && strings.EqualFold(interaction.Type, "plugin_prep_continuation") {
+		resp := s.continuePluginPrepContinuationInteraction(r.Context(), interaction, decision)
+		writeJSON(w, http.StatusOK, resp)
+		return
+	}
 	if strings.EqualFold(interaction.Source, "plugin_grabber") && strings.Contains(interaction.Type, "candidate_review") && strings.EqualFold(decision, "start_experiments") {
 		next := interaction
 		next.Payload = pluginGrabberPayloadWithSubmittedReviews(interaction.Payload, req.Payload)
@@ -3102,17 +3240,18 @@ func (s *Server) attachInteractionsToResponseMap(response *map[string]any, inter
 	goalStatus := strings.TrimSpace(fmt.Sprint((*response)["goal_status"]))
 	needsConfirmation := boolValue((*response)["needs_confirmation"]) || strings.EqualFold(goalStatus, string(agentruntime.StatusWaitingConfirmation))
 	resp := ChatResponse{
-		ConversationID:    interaction.ConversationID,
-		GoalID:            firstNonEmpty(strings.TrimSpace(fmt.Sprint((*response)["goal_id"])), interaction.GoalID),
-		RunID:             firstNonEmpty(strings.TrimSpace(fmt.Sprint((*response)["run_id"])), interaction.RunID),
-		Reply:             firstNonEmpty(strings.TrimSpace(fmt.Sprint((*response)["message"])), strings.TrimSpace(fmt.Sprint((*response)["reply"]))),
-		Workflow:          firstNonEmpty(strings.TrimSpace(fmt.Sprint((*response)["workflow"])), interaction.Workflow),
-		WorkflowData:      data,
-		PluginLearning:    data,
-		NeedsConfirmation: needsConfirmation,
-		PlanID:            firstNonEmpty(strings.TrimSpace(fmt.Sprint((*response)["plan_id"])), strings.TrimSpace(fmt.Sprint((*response)["next_plan_id"]))),
-		Preview:           strings.TrimSpace(fmt.Sprint((*response)["preview"])),
-		GoalStatus:        goalStatus,
+		ConversationID:      interaction.ConversationID,
+		GoalID:              firstNonEmpty(strings.TrimSpace(fmt.Sprint((*response)["goal_id"])), interaction.GoalID),
+		RunID:               firstNonEmpty(strings.TrimSpace(fmt.Sprint((*response)["run_id"])), interaction.RunID),
+		Reply:               firstNonEmpty(strings.TrimSpace(fmt.Sprint((*response)["message"])), strings.TrimSpace(fmt.Sprint((*response)["reply"]))),
+		Workflow:            firstNonEmpty(strings.TrimSpace(fmt.Sprint((*response)["workflow"])), interaction.Workflow),
+		WorkflowData:        data,
+		PluginLearning:      data,
+		NeedsConfirmation:   needsConfirmation,
+		PlanID:              firstNonEmpty(strings.TrimSpace(fmt.Sprint((*response)["plan_id"])), strings.TrimSpace(fmt.Sprint((*response)["next_plan_id"]))),
+		Preview:             strings.TrimSpace(fmt.Sprint((*response)["preview"])),
+		GoalStatus:          goalStatus,
+		InteractionRequests: interactionRequestsFromAny((*response)["interaction_requests"]),
 	}
 	if len(data) == 0 && !responseNeedsConfirmationInteraction(resp) {
 		return
@@ -3126,6 +3265,45 @@ func (s *Server) attachInteractionsToResponseMap(response *map[string]any, inter
 	}
 	if resp.ConversationID != "" {
 		(*response)["conversation_id"] = resp.ConversationID
+	}
+}
+
+func interactionRequestsFromAny(value any) []AgentInteractionRequest {
+	switch typed := value.(type) {
+	case []AgentInteractionRequest:
+		return append([]AgentInteractionRequest(nil), typed...)
+	case []any:
+		out := make([]AgentInteractionRequest, 0, len(typed))
+		for _, item := range typed {
+			if req, ok := agentInteractionRequestFromAny(item); ok {
+				out = append(out, req)
+			}
+		}
+		return out
+	default:
+		if req, ok := agentInteractionRequestFromAny(value); ok {
+			return []AgentInteractionRequest{req}
+		}
+		return nil
+	}
+}
+
+func agentInteractionRequestFromAny(value any) (AgentInteractionRequest, bool) {
+	switch typed := value.(type) {
+	case AgentInteractionRequest:
+		return typed, true
+	case map[string]any:
+		raw, err := json.Marshal(typed)
+		if err != nil {
+			return AgentInteractionRequest{}, false
+		}
+		var req AgentInteractionRequest
+		if err := json.Unmarshal(raw, &req); err != nil || req.ID == "" {
+			return AgentInteractionRequest{}, false
+		}
+		return req, true
+	default:
+		return AgentInteractionRequest{}, false
 	}
 }
 
@@ -3807,6 +3985,7 @@ func (s *Server) handleConfirm(w http.ResponseWriter, r *http.Request) {
 			projectHistory = s.harness.ProjectHistorySummaryForProject(r.Context(), goalID, projectPath)
 		}
 		response := map[string]any{"status": "ok", "message": "cancelled", "plan_id": planID, "goal_id": goalID, "run_id": runID, "agent_mode": agentMode, "goal_status": string(agentruntime.StatusCancelled), "project_history": projectHistory}
+		response["typed_events"] = typedApprovalDecisionEvents(planID, plan, cleanContextText(plan.WorkflowData["conversation_id"]), goalID, runID, "denied", "user cancelled confirmation")
 		if data := pluginGrabberLearningCompletionData(plan, false); data != nil {
 			response["workflow"] = plan.Workflow
 			response["workflow_data"] = data
@@ -3841,6 +4020,7 @@ func (s *Server) handleConfirm(w http.ResponseWriter, r *http.Request) {
 			"agent_mode":      agentMode,
 			"replies":         replies,
 			"project_history": projectHistory,
+			"typed_events":    typedApprovalDecisionEvents(planID, plan, cleanContextText(plan.WorkflowData["conversation_id"]), goalID, runID, "denied", err.Error()),
 		}
 		if plan := agentPlanForMode(agentMode, simpleAgentPlan(goalID, runID, agentruntime.StatusFailed, "", "", err.Error(), projectHistory)); plan != nil {
 			response["agent_plan"] = plan
@@ -3849,8 +4029,10 @@ func (s *Server) handleConfirm(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	message := executedReply(beforeState, s.harness.UserStateSummary(r.Context()), plan.Decisions, replies)
+	var pluginPrep pluginPrepContinuation
 	if plan.Workflow == pluginGrabberLoadCommand {
 		message, replies = s.finishPluginGrabberLoadWorkflow(r.Context(), plan, replies, message)
+		pluginPrep = s.pluginPrepContinuationFromReplies(plan, replies, message)
 	}
 	if plan.Workflow == "goal_ui_smoke" {
 		message = "done"
@@ -3858,7 +4040,13 @@ func (s *Server) handleConfirm(w http.ResponseWriter, r *http.Request) {
 	if strings.TrimSpace(message) == "" {
 		message = "done"
 	}
-	s.harness.CompleteGoal(goalID, nil)
+	if strings.EqualFold(pluginPrep.GoalStatus, string(agentruntime.StatusWaitingConfirmation)) {
+		s.harness.SetGoalStatus(goalID, agentruntime.StatusWaitingConfirmation, nil)
+	} else if strings.EqualFold(pluginPrep.GoalStatus, string(agentruntime.StatusWaitingContinue)) {
+		s.harness.SetGoalStatus(goalID, agentruntime.StatusWaitingContinue, nil)
+	} else {
+		s.harness.CompleteGoal(goalID, nil)
+	}
 	projectResultCards := projectResultCardsFromExecuted(replies)
 	historyData := map[string]any{}
 	if len(projectResultCards) > 0 {
@@ -3880,6 +4068,7 @@ func (s *Server) handleConfirm(w http.ResponseWriter, r *http.Request) {
 		"project_result_cards":  projectResultCards,
 		"project_history":       projectHistory,
 		"goal_status":           string(agentruntime.StatusCompleted),
+		"typed_events":          typedApprovalDecisionEvents(planID, plan, cleanContextText(plan.WorkflowData["conversation_id"]), goalID, runID, "consumed", message),
 	}
 	if data := pluginGrabberLearningCompletionData(plan, true); data != nil {
 		response["workflow"] = plan.Workflow
@@ -3889,6 +4078,16 @@ func (s *Server) handleConfirm(w http.ResponseWriter, r *http.Request) {
 	}
 	if plan := agentPlanForMode(agentMode, simpleAgentPlan(goalID, runID, agentruntime.StatusCompleted, "", "", "", projectHistory)); plan != nil {
 		response["agent_plan"] = plan
+	}
+	response = applyPluginPrepContinuationResponse(response, pluginPrep)
+	if strings.EqualFold(pluginPrep.GoalStatus, string(agentruntime.StatusWaitingConfirmation)) {
+		if plan := agentPlanForMode(agentMode, simpleAgentPlan(goalID, runID, agentruntime.StatusWaitingConfirmation, "", "", "", projectHistory)); plan != nil {
+			response["agent_plan"] = plan
+		}
+	} else if strings.EqualFold(pluginPrep.GoalStatus, string(agentruntime.StatusWaitingContinue)) {
+		if plan := agentPlanForMode(agentMode, simpleAgentPlan(goalID, runID, agentruntime.StatusWaitingContinue, "", "", "", projectHistory)); plan != nil {
+			response["agent_plan"] = plan
+		}
 	}
 	writeJSON(w, http.StatusOK, response)
 }
@@ -3926,6 +4125,7 @@ func (s *Server) resolvePendingPlanDecision(ctx context.Context, planID, decisio
 			projectHistory = s.harness.ProjectHistorySummaryForProject(ctx, goalID, projectPath)
 		}
 		response := map[string]any{"status": "ok", "message": "cancelled", "plan_id": planID, "goal_id": goalID, "run_id": runID, "agent_mode": agentMode, "goal_status": string(agentruntime.StatusCancelled), "project_history": projectHistory}
+		response["typed_events"] = typedApprovalDecisionEvents(planID, plan, cleanContextText(plan.WorkflowData["conversation_id"]), goalID, runID, "denied", "user cancelled confirmation")
 		if data := pluginGrabberLearningCompletionData(plan, false); data != nil {
 			response["workflow"] = plan.Workflow
 			response["workflow_data"] = data
@@ -3958,6 +4158,7 @@ func (s *Server) resolvePendingPlanDecision(ctx context.Context, planID, decisio
 			"agent_mode":      agentMode,
 			"replies":         replies,
 			"project_history": projectHistory,
+			"typed_events":    typedApprovalDecisionEvents(planID, plan, cleanContextText(plan.WorkflowData["conversation_id"]), goalID, runID, "denied", err.Error()),
 		}
 		if plan := agentPlanForMode(agentMode, simpleAgentPlan(goalID, runID, agentruntime.StatusFailed, "", "", err.Error(), projectHistory)); plan != nil {
 			response["agent_plan"] = plan
@@ -3965,13 +4166,21 @@ func (s *Server) resolvePendingPlanDecision(ctx context.Context, planID, decisio
 		return http.StatusOK, response
 	}
 	message := executedReply(beforeState, s.harness.UserStateSummary(ctx), plan.Decisions, replies)
+	var pluginPrep pluginPrepContinuation
 	if plan.Workflow == pluginGrabberLoadCommand {
 		message, replies = s.finishPluginGrabberLoadWorkflow(ctx, plan, replies, message)
+		pluginPrep = s.pluginPrepContinuationFromReplies(plan, replies, message)
 	}
 	if strings.TrimSpace(message) == "" {
 		message = "done"
 	}
-	s.harness.CompleteGoal(goalID, nil)
+	if strings.EqualFold(pluginPrep.GoalStatus, string(agentruntime.StatusWaitingConfirmation)) {
+		s.harness.SetGoalStatus(goalID, agentruntime.StatusWaitingConfirmation, nil)
+	} else if strings.EqualFold(pluginPrep.GoalStatus, string(agentruntime.StatusWaitingContinue)) {
+		s.harness.SetGoalStatus(goalID, agentruntime.StatusWaitingContinue, nil)
+	} else {
+		s.harness.CompleteGoal(goalID, nil)
+	}
 	projectResultCards := projectResultCardsFromExecuted(replies)
 	historyData := map[string]any{}
 	if len(projectResultCards) > 0 {
@@ -3993,6 +4202,7 @@ func (s *Server) resolvePendingPlanDecision(ctx context.Context, planID, decisio
 		"project_result_cards":  projectResultCards,
 		"project_history":       projectHistory,
 		"goal_status":           string(agentruntime.StatusCompleted),
+		"typed_events":          typedApprovalDecisionEvents(planID, plan, cleanContextText(plan.WorkflowData["conversation_id"]), goalID, runID, "consumed", message),
 	}
 	if data := pluginGrabberLearningCompletionData(plan, true); data != nil {
 		response["workflow"] = plan.Workflow
@@ -4002,6 +4212,16 @@ func (s *Server) resolvePendingPlanDecision(ctx context.Context, planID, decisio
 	}
 	if plan := agentPlanForMode(agentMode, simpleAgentPlan(goalID, runID, agentruntime.StatusCompleted, "", "", "", projectHistory)); plan != nil {
 		response["agent_plan"] = plan
+	}
+	response = applyPluginPrepContinuationResponse(response, pluginPrep)
+	if strings.EqualFold(pluginPrep.GoalStatus, string(agentruntime.StatusWaitingConfirmation)) {
+		if plan := agentPlanForMode(agentMode, simpleAgentPlan(goalID, runID, agentruntime.StatusWaitingConfirmation, "", "", "", projectHistory)); plan != nil {
+			response["agent_plan"] = plan
+		}
+	} else if strings.EqualFold(pluginPrep.GoalStatus, string(agentruntime.StatusWaitingContinue)) {
+		if plan := agentPlanForMode(agentMode, simpleAgentPlan(goalID, runID, agentruntime.StatusWaitingContinue, "", "", "", projectHistory)); plan != nil {
+			response["agent_plan"] = plan
+		}
 	}
 	return http.StatusOK, response
 }
