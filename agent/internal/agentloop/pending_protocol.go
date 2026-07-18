@@ -33,6 +33,14 @@ func (candidate PendingMixTickCandidate) ToPendingCandidate(conversationID, goal
 	default:
 		action["delta_db"] = candidate.DeltaDB
 	}
+	actionKind := pendingMixTickProtocolActionKind(candidate)
+	processorType := "utility"
+	evidenceRefs := pendingMixTickProtocolEvidenceRefs(candidate)
+	confidence := pendingMixTickProtocolConfidence(candidate)
+	action["action_kind"] = actionKind
+	action["processor_type"] = processorType
+	action["evidence_refs"] = append([]string(nil), evidenceRefs...)
+	action["confidence"] = confidence
 	removeEmptyProtocolMap(action)
 	targetRef := ""
 	if strings.TrimSpace(candidate.TrackID) != "" {
@@ -44,6 +52,10 @@ func (candidate PendingMixTickCandidate) ToPendingCandidate(conversationID, goal
 		Domain:                    "mix",
 		CandidateType:             "mix_tick",
 		TargetRef:                 targetRef,
+		ActionKind:                actionKind,
+		ProcessorType:             processorType,
+		EvidenceRefs:              evidenceRefs,
+		Confidence:                confidence,
 		Summary:                   pendingMixTickProtocolSummary(candidate),
 		Rationale:                 firstNonEmpty(firstMapText(candidate.Evidence, "reason", "source", "matched_text"), strings.TrimSpace(candidate.ObservationID)),
 		CandidateAction:           action,
@@ -53,6 +65,42 @@ func (candidate PendingMixTickCandidate) ToPendingCandidate(conversationID, goal
 		CreatedAt:                 strings.TrimSpace(createdAt),
 		Source:                    source,
 	}
+}
+
+func (plan PendingStaticBalancePlan) ToPendingCandidate(conversationID, goalID, runID, createdAt string) agentprotocol.PendingCandidate {
+	actions := make([]map[string]any, 0, len(plan.Actions))
+	for _, action := range plan.Actions {
+		actions = append(actions, map[string]any{
+			"operation": action.Operation, "track_id": action.TrackID, "track_name": action.TrackName,
+			"role": action.Role, "function": action.Function, "delta_db": action.DeltaDB,
+			"before_db": action.BeforeDB, "target_db": action.TargetDB, "reason": action.Reason,
+			"evidence": cloneMap(action.Evidence),
+		})
+	}
+	source := agentprotocol.Source{
+		ConversationID: strings.TrimSpace(conversationID), GoalID: strings.TrimSpace(goalID), RunID: strings.TrimSpace(runID),
+		LegacySchema: firstNonEmpty(plan.SchemaVersion, "static_balance_pending.v0"), LegacyKind: "PendingStaticBalancePlan",
+		Metadata: map[string]any{"plan_id": plan.PlanID, "context_pack_id": plan.ContextPackID, "candidate_plan_id": plan.CandidatePlanID, "style_id": plan.StyleID, "observation_id": plan.ObservationID, "track_count": plan.TrackCount, "disclosed_track_count": plan.DisclosedTrackCount},
+	}
+	return agentprotocol.PendingCandidate{
+		ID:   agentprotocol.NormalizeID("pending", "static_balance", conversationID, goalID, plan.PlanID, plan.ContextPackID),
+		Kind: agentprotocol.KindPendingCandidate, Domain: "mix", CandidateType: "static_balance_plan", TargetRef: "project",
+		ActionKind: "static_balance", ProcessorType: "track_fader", EvidenceRefs: append([]string(nil), plan.EvidenceRefs...),
+		Confidence: strings.TrimSpace(plan.Confidence), Summary: fmt.Sprintf("B2 静态平衡：%s，包含 %d 条 track fader 调整。", firstNonEmpty(plan.StyleName, plan.StyleID), len(plan.Actions)),
+		Rationale:       firstNonEmpty(plan.DecisionReasoning, "TOM/MOM/project.state all-track relationship model solved locally; the LLM selected an existing candidate through the compact B2 capability context pack."),
+		CandidateAction: map[string]any{"plan_id": plan.PlanID, "capability_id": plan.CapabilityID, "context_pack_id": plan.ContextPackID, "candidate_plan_id": plan.CandidatePlanID, "style_id": plan.StyleID, "actions": actions},
+		Risk:            "undoable_multi_track_commit", RequiredPermissionDomains: []string{"mix.commit"},
+		Status: agentprotocol.LegacyPendingStatus(plan.Status), CreatedAt: strings.TrimSpace(createdAt), Source: source,
+	}
+}
+
+func (plan PendingPanLayoutPlan) ToPendingCandidate(conversationID, goalID, runID, createdAt string) agentprotocol.PendingCandidate {
+	actions := make([]map[string]any, 0, len(plan.Actions))
+	for _, a := range plan.Actions {
+		actions = append(actions, map[string]any{"operation": a.Operation, "track_id": a.TrackID, "track_name": a.TrackName, "role": a.Role, "function": a.Function, "before_pan": a.BeforePan, "target_pan": a.TargetPan, "delta_pan": a.DeltaPan, "reason": a.Reason, "evidence": cloneMap(a.Evidence)})
+	}
+	source := agentprotocol.Source{ConversationID: strings.TrimSpace(conversationID), GoalID: strings.TrimSpace(goalID), RunID: strings.TrimSpace(runID), LegacySchema: firstNonEmpty(plan.SchemaVersion, "pan_layout_pending.v1"), LegacyKind: "PendingPanLayoutPlan", Metadata: map[string]any{"plan_id": plan.PlanID, "context_pack_id": plan.ContextPackID, "candidate_plan_id": plan.CandidatePlanID, "style_id": plan.StyleID, "style_hash": plan.StyleHash, "observation_id": plan.ObservationID, "track_count": plan.TrackCount, "disclosed_track_count": plan.DisclosedTrackCount}}
+	return agentprotocol.PendingCandidate{ID: agentprotocol.NormalizeID("pending", "pan_layout", conversationID, goalID, plan.PlanID, plan.ContextPackID), Kind: agentprotocol.KindPendingCandidate, Domain: "mix", CandidateType: "pan_layout_plan", TargetRef: "project", ActionKind: "pan_layout", ProcessorType: "track_pan", EvidenceRefs: append([]string(nil), plan.EvidenceRefs...), Confidence: strings.TrimSpace(plan.Confidence), Summary: fmt.Sprintf("B3 声像布局：%s，包含 %d 条 track pan 调整。", firstNonEmpty(plan.StyleName, plan.StyleID), len(plan.Actions)), Rationale: firstNonEmpty(plan.DecisionReasoning, "TOM/MOM/project.state/channel/stereo all-track pan model solved locally; the LLM selected an existing candidate through the compact B3 capability context pack."), CandidateAction: map[string]any{"plan_id": plan.PlanID, "capability_id": plan.CapabilityID, "context_pack_id": plan.ContextPackID, "candidate_plan_id": plan.CandidatePlanID, "style_id": plan.StyleID, "style_hash": plan.StyleHash, "actions": actions}, Risk: "undoable_multi_track_commit", RequiredPermissionDomains: []string{"mix.commit"}, Status: agentprotocol.LegacyPendingStatus(plan.Status), CreatedAt: strings.TrimSpace(createdAt), Source: source}
 }
 
 func pendingMixTickProtocolMetadata(candidate PendingMixTickCandidate) map[string]any {
@@ -124,6 +172,7 @@ func (treatment MixTreatmentPending) ToPendingCandidate(conversationID, goalID, 
 		"diagnosis_context_id": strings.TrimSpace(treatment.DiagnosisContextID),
 		"diagnosis_context":    cloneMap(treatment.DiagnosisContext),
 		"evidence_refs":        append([]string(nil), treatment.EvidenceRefs...),
+		"confidence":           strings.TrimSpace(treatment.Confidence),
 	}
 	if treatment.TargetPan != nil {
 		action["target_pan"] = *treatment.TargetPan
@@ -135,6 +184,11 @@ func (treatment MixTreatmentPending) ToPendingCandidate(conversationID, goalID, 
 		Domain:                    "mix",
 		CandidateType:             "mix_treatment",
 		TargetRef:                 strings.TrimSpace(treatment.TargetRef),
+		ActionKind:                strings.TrimSpace(treatment.ActionKind),
+		ProcessorType:             strings.TrimSpace(treatment.ProcessorType),
+		EvidenceRefs:              append([]string(nil), treatment.EvidenceRefs...),
+		NeedsResolution:           append([]string(nil), treatment.NeedsResolution...),
+		Confidence:                strings.TrimSpace(treatment.Confidence),
 		Summary:                   pendingMixTreatmentProtocolSummary(treatment),
 		Rationale:                 pendingMixTreatmentProtocolRationale(treatment),
 		CandidateAction:           action,
@@ -144,6 +198,42 @@ func (treatment MixTreatmentPending) ToPendingCandidate(conversationID, goalID, 
 		CreatedAt:                 strings.TrimSpace(createdAt),
 		Source:                    source,
 	}
+}
+
+func pendingMixTickProtocolActionKind(candidate PendingMixTickCandidate) string {
+	switch strings.TrimSpace(candidate.Operation) {
+	case "track_pan_adjust", "track_pan_set":
+		return "pan_balance"
+	default:
+		return "gain_balance"
+	}
+}
+
+func pendingMixTickProtocolEvidenceRefs(candidate PendingMixTickCandidate) []string {
+	seen := map[string]bool{}
+	out := []string{}
+	add := func(value string) {
+		value = strings.TrimSpace(value)
+		if value == "" || seen[value] {
+			return
+		}
+		seen[value] = true
+		out = append(out, value)
+	}
+	add(candidate.ObservationID)
+	for _, key := range []string{"evidence_refs", "source_refs"} {
+		for _, value := range messageLoopStringSlice(candidate.Evidence[key]) {
+			add(value)
+		}
+	}
+	return out
+}
+
+func pendingMixTickProtocolConfidence(candidate PendingMixTickCandidate) string {
+	if value := strings.TrimSpace(firstMapText(candidate.Evidence, "confidence")); value != "" {
+		return value
+	}
+	return "medium"
 }
 
 func PendingCandidateFromExecutionMemory(memory ExecutionMemory, conversationID, goalID, runID, createdAt string) *agentprotocol.PendingCandidate {

@@ -74,7 +74,7 @@ static bool ProcessIsRunning(HANDLE hProcess) {
 }
 
 static std::wstring ErrorWithLog(const std::wstring& message, const std::wstring& logPath) {
-    return message + L"\n\nBridge log:\n" + logPath;
+    return message + L"\n\nRuntime log:\n" + logPath;
 }
 
 static bool ContainsJsonField(const std::string& json, const std::string& field, const std::string& value) {
@@ -150,6 +150,63 @@ static bool WaitForBridgeReady(HANDLE kernelProcess, HANDLE bridgeProcess, DWORD
     return false;
 }
 
+static bool WaitForVspHubReady(HANDLE kernelProcess, HANDLE hubProcess, DWORD timeoutMs) {
+    WSADATA wsa{};
+    if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0) {
+        return false;
+    }
+
+    const std::string request =
+        "GET /health HTTP/1.1\r\n"
+        "Host: 127.0.0.1:8787\r\n"
+        "Connection: close\r\n"
+        "\r\n";
+    const DWORD start = GetTickCount();
+    char buf[4096];
+
+    while (GetTickCount() - start < timeoutMs) {
+        if (!ProcessIsRunning(kernelProcess) || !ProcessIsRunning(hubProcess)) {
+            break;
+        }
+
+        SOCKET sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+        if (sock == INVALID_SOCKET) {
+            Sleep(250);
+            continue;
+        }
+
+        DWORD timeout = 350;
+        setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, reinterpret_cast<const char*>(&timeout), sizeof(timeout));
+        setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, reinterpret_cast<const char*>(&timeout), sizeof(timeout));
+
+        sockaddr_in dest{};
+        dest.sin_family = AF_INET;
+        dest.sin_port = htons(8787);
+        inet_pton(AF_INET, "127.0.0.1", &dest.sin_addr);
+
+        bool ready = false;
+        if (connect(sock, reinterpret_cast<sockaddr*>(&dest), sizeof(dest)) != SOCKET_ERROR) {
+            send(sock, request.c_str(), static_cast<int>(request.size()), 0);
+            int got = recv(sock, buf, static_cast<int>(sizeof(buf) - 1), 0);
+            if (got > 0) {
+                buf[got] = '\0';
+                std::string reply(buf, got);
+                ready = ContainsJsonField(reply, "status", "ok") && ContainsJsonField(reply, "service", "VspHub");
+            }
+        }
+        closesocket(sock);
+        if (ready) {
+            WSACleanup();
+            return true;
+        }
+
+        Sleep(250);
+    }
+
+    WSACleanup();
+    return false;
+}
+
 // Layered release layout: launcher at root, Godot UI under ui\.
 static std::wstring ResolveUiExe(const std::wstring& uiDir) {
     const std::wstring current = uiDir + L"\\Vit DAW v0.7.exe";
@@ -207,23 +264,26 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
     std::wstring baseDir = GetExeDir();
     std::wstring uiDir = baseDir + L"\\ui";
     std::wstring kernelDir = baseDir + L"\\kernel";
+    std::wstring hubDir = baseDir + L"\\hub";
     std::wstring bridgeDir = baseDir + L"\\bridge";
     std::wstring agentDir = baseDir + L"\\agent";
     std::wstring dataDir = ResolveDataDir(baseDir);
     std::wstring logsDir = dataDir + L"\\Logs";
     std::wstring uiExe = ResolveUiExe(uiDir);
     std::wstring kernelExe = kernelDir + L"\\VitApp.exe";
+    std::wstring hubExe = hubDir + L"\\VspHub.exe";
     std::wstring agentExe = agentDir + L"\\VitAgent.exe";
     std::wstring bridgeProd = bridgeDir + L"\\bridge_prod.py";
     std::wstring bridgeCore = bridgeDir + L"\\bridge_core.py";
     std::wstring bridgeScript = FileExists(bridgeProd) ? bridgeProd : bridgeCore;
     std::wstring bundledPy = baseDir + L"\\python_embed\\python.exe";
     std::wstring logPath = logsDir + L"\\bridge_last.log";
+    std::wstring hubLogPath = logsDir + L"\\vsp_hub_last.log";
     std::wstring agentLogPath = logsDir + L"\\agent_last.log";
     bool useAgent = FileExists(agentExe);
 
-    if (!FileExists(uiExe) || !FileExists(kernelExe)) {
-        MessageBoxW(nullptr, L"Missing ui\\Vit DAW*.exe or kernel\\VitApp.exe", L"Vit-DAW Launcher Error", MB_OK | MB_ICONERROR);
+    if (!FileExists(uiExe) || !FileExists(kernelExe) || !FileExists(hubExe)) {
+        MessageBoxW(nullptr, L"Missing ui\\Vit DAW*.exe, kernel\\VitApp.exe, or hub\\VspHub.exe", L"Vit-DAW Launcher Error", MB_OK | MB_ICONERROR);
         return 1;
     }
     if (!useAgent && !FileExists(bridgeScript)) {
@@ -234,7 +294,10 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
     EnsureDir(dataDir);
     EnsureDir(logsDir);
     SetEnvironmentVariableW(L"VIT_BRIDGE_LAST_LOG_PATH", logPath.c_str());
+    SetEnvironmentVariableW(L"VIT_VSP_HUB_LAST_LOG_PATH", hubLogPath.c_str());
     SetEnvironmentVariableW(L"VIT_AGENT_LAST_LOG_PATH", agentLogPath.c_str());
+    SetEnvironmentVariableW(L"VIT_AGENT_VSP_HUB_URL", L"http://127.0.0.1:8787/vsp");
+    SetEnvironmentVariableW(L"VIT_AGENT_VSP_HUB_REQUIRED", L"1");
     SetEnvironmentVariableW(L"PYTHONPATH", bridgeDir.c_str());
     std::wstring cfgPath = bridgeDir + L"\\bridge_prod.config.json";
     if (FileExists(cfgPath)) {
@@ -269,6 +332,30 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
         return 1;
     }
 
+    STARTUPINFOW siHub = { sizeof(siHub) };
+    PROCESS_INFORMATION piHub = {};
+    std::wstring hubCmd = L"\"" + hubExe + L"\"";
+    std::vector<wchar_t> hubBuf(hubCmd.begin(), hubCmd.end());
+    hubBuf.push_back(L'\0');
+    if (!CreateProcessW(nullptr, hubBuf.data(), nullptr, nullptr, FALSE, CREATE_NO_WINDOW, nullptr, hubDir.c_str(), &siHub, &piHub)) {
+        MessageBoxW(nullptr, ErrorWithLog(L"Failed to start hub\\VspHub.exe.", hubLogPath).c_str(), L"Vit-DAW Launcher Error", MB_OK | MB_ICONERROR);
+        CloseHandle(piKernel.hProcess);
+        CloseHandle(piKernel.hThread);
+        CloseHandle(hJob);
+        return 1;
+    }
+    AssignProcessToJobObject(hJob, piHub.hProcess);
+
+    if (!WaitForVspHubReady(piKernel.hProcess, piHub.hProcess, 15000)) {
+        MessageBoxW(nullptr, ErrorWithLog(L"VspHub did not become ready within 15 seconds. Expected http://127.0.0.1:8787/health to return ok.", hubLogPath).c_str(), L"Vit-DAW Launcher Error", MB_OK | MB_ICONERROR);
+        CloseHandle(piKernel.hProcess);
+        CloseHandle(piKernel.hThread);
+        CloseHandle(piHub.hProcess);
+        CloseHandle(piHub.hThread);
+        CloseHandle(hJob);
+        return 1;
+    }
+
     STARTUPINFOW siBridge = { sizeof(siBridge) };
     PROCESS_INFORMATION piBridge = {};
     std::wstring bridgeCmd;
@@ -294,6 +381,8 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
         MessageBoxW(nullptr, ErrorWithLog(useAgent ? L"Failed to start agent\\VitAgent.exe." : L"Failed to start Python bridge. Ship python_embed\\python.exe or install Python + pyzmq.", useAgent ? agentLogPath : logPath).c_str(), L"Vit-DAW Launcher Error", MB_OK | MB_ICONERROR);
         CloseHandle(piKernel.hProcess);
         CloseHandle(piKernel.hThread);
+        CloseHandle(piHub.hProcess);
+        CloseHandle(piHub.hThread);
         CloseHandle(hJob);
         return 1;
     }
@@ -303,6 +392,8 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
         MessageBoxW(nullptr, ErrorWithLog(L"Agent/bridge did not become ready within 60 seconds. Expected ping over UDP 127.0.0.1:4445 to return ok/pong.", useAgent ? agentLogPath : logPath).c_str(), L"Vit-DAW Launcher Error", MB_OK | MB_ICONERROR);
         CloseHandle(piKernel.hProcess);
         CloseHandle(piKernel.hThread);
+        CloseHandle(piHub.hProcess);
+        CloseHandle(piHub.hThread);
         CloseHandle(piBridge.hProcess);
         CloseHandle(piBridge.hThread);
         CloseHandle(hJob);
@@ -320,6 +411,8 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
         MessageBoxW(nullptr, L"Failed to start selected UI executable under ui\\", L"Vit-DAW Launcher Error", MB_OK | MB_ICONERROR);
         CloseHandle(piKernel.hProcess);
         CloseHandle(piKernel.hThread);
+        CloseHandle(piHub.hProcess);
+        CloseHandle(piHub.hThread);
         CloseHandle(piBridge.hProcess);
         CloseHandle(piBridge.hThread);
         CloseHandle(hJob);
@@ -333,6 +426,8 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
     CloseHandle(piGodot.hThread);
     CloseHandle(piBridge.hProcess);
     CloseHandle(piBridge.hThread);
+    CloseHandle(piHub.hProcess);
+    CloseHandle(piHub.hThread);
     CloseHandle(piKernel.hProcess);
     CloseHandle(piKernel.hThread);
     CloseHandle(hJob);

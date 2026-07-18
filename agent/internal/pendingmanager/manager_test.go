@@ -9,11 +9,13 @@ import (
 func TestMemoryManagerUpsertQueryTransition(t *testing.T) {
 	manager := NewMemoryManager()
 	pending := agentprotocol.PendingCandidate{
-		ID:            "pending_1",
-		Kind:          agentprotocol.KindPendingCandidate,
-		TargetRef:     "track:vocal",
-		CandidateType: "mix_treatment",
-		Status:        agentprotocol.PendingStatusWaitingUser,
+		ID:              "pending_1",
+		Kind:            agentprotocol.KindPendingCandidate,
+		TargetRef:       "track:vocal",
+		CandidateType:   "mix_treatment",
+		EvidenceRefs:    []string{"observation:obs_1"},
+		NeedsResolution: []string{"plugin_profile"},
+		Status:          agentprotocol.PendingStatusWaitingUser,
 		Source: agentprotocol.Source{
 			ConversationID: "chat_1",
 			GoalID:         "goal_1",
@@ -22,6 +24,12 @@ func TestMemoryManagerUpsertQueryTransition(t *testing.T) {
 	manager.Upsert(pending)
 	if got, ok := manager.Get("pending_1"); !ok || got.TargetRef != "track:vocal" {
 		t.Fatalf("Get = %+v ok=%v", got, ok)
+	}
+	pending.EvidenceRefs[0] = "mutated"
+	pending.NeedsResolution[0] = "mutated"
+	got, ok := manager.Get("pending_1")
+	if !ok || got.EvidenceRefs[0] != "observation:obs_1" || got.NeedsResolution[0] != "plugin_profile" {
+		t.Fatalf("manager did not clone pending refs/needs: %+v ok=%v", got, ok)
 	}
 	if rows := manager.ActiveForConversation("chat_1"); len(rows) != 1 || rows[0].ID != "pending_1" {
 		t.Fatalf("ActiveForConversation = %+v", rows)

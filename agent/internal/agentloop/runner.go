@@ -440,6 +440,27 @@ func (r *Runner) executeTool(ctx context.Context, state *runState, call planner.
 		state.input.State = cloneMap(execResult.ObservedState)
 		execRecord["observed_state"] = true
 	}
+	if interactionPause, waitingForUser := pendingInteractionPauseForResult(execResult.Result); waitingForUser {
+		// A workflow card is a real control-flow boundary, not merely a piece
+		// of display text. In particular, plugin learning must never continue
+		// into a profile write until its preceding learning card is answered.
+		state.pendingToolQueue = nil
+		ver := verifyToolExecution(call, execResult)
+		state.trace = append(state.trace, planner.TraceEvent{Kind: "verification", Verification: &ver})
+		execRecord["verification"] = ver
+		state.recentObservation = recentObservationForTool(call, execResult, ver, false, nil)
+		if strings.TrimSpace(call.PlanItemID) != "" {
+			state.planItems = markPlanItemStatus(state.planItems, call.PlanItemID, "pending", "waiting for formal user interaction")
+			state.trace = append(state.trace, planUpdateEvent(state.planItems, "plan item is waiting for formal user interaction"))
+		}
+		state.executed = append(state.executed, execRecord)
+		result := r.pause(state, interactionPause.Status, interactionPause.StopReason, "", interactionPause.Reply, execResult.Preview, execResult.UndoLabel, nil)
+		if interactionPause.Status == agentruntime.StatusWaitingClarification {
+			result.NeedsClarification = true
+			result.ClarificationQuestion = interactionPause.Reply
+		}
+		return true, result
+	}
 	if execResult.RequiresConfirmation {
 		state.pendingToolQueue = nil
 		ver := verificationForPendingConfirmation(call, execResult)

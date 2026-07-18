@@ -70,6 +70,242 @@ D:\Vit_DAW\scripts\dev_agent_smoke.ps1 -RepoRoot D:\Vit_DAW -RestartAgent -NoCha
 D:\Vit_DAW\scripts\dev_agent_smoke.ps1 -RepoRoot D:\Vit_DAW -SkipBuild -NoChatSmoke
 ```
 
+## B1 Gain Staging Agent Smokes
+
+Paths:
+
+```powershell
+python D:\Vit_DAW\scripts\b1_group_reset_agent_smoke.py --repo-root D:\Vit_DAW --timeout-sec 150
+python D:\Vit_DAW\scripts\b1_2_source_calibration_agent_smoke.py --repo-root D:\Vit_DAW --timeout-sec 150
+python D:\Vit_DAW\scripts\b1_2_a4_multiclip_agent_smoke.py --repo-root D:\Vit_DAW --project-path "D:\path\to\post-a4-project.vit" --timeout-sec 300
+python D:\Vit_DAW\scripts\b1_2_a4_multiclip_agent_smoke.py --repo-root D:\Vit_DAW --project-path "D:\path\to\post-a4-project.vit" --full-b1 --timeout-sec 300
+python D:\Vit_DAW\scripts\b1_2_a4_multiclip_agent_smoke.py --repo-root D:\Vit_DAW --project-path "D:\path\to\post-a4-project.vit" --decision approve --timeout-sec 300
+python D:\Vit_DAW\scripts\b1_3_full_gain_staging_agent_smoke.py --repo-root D:\Vit_DAW --timeout-sec 180
+```
+
+Purpose:
+
+- Verify B1.1 creates a pending `track.group.apply_control` absolute 0 dB
+  reset, then confirms and reads back target faders at unity.
+- Verify B1.2 creates a pending `clip.gain.set` source calibration action,
+  confirms it, then reads back clip gain and re-observes the project.
+- Verify a saved post-A4 multi-clip project can rebuild missing DAD rows, expand
+  each track calibration across every surviving clip, and remain unchanged when
+  the pending plan is denied.
+- Verify B1.3 chains the two confirmed steps: B1.1 confirmation re-reads
+  `project.state`, re-runs `mix.observe`, queues B1.2 `clip.gain.set`, and the
+  second confirmation verifies fader 0 dB plus calibrated clip gain.
+- Guard against accidental `mix.propose_tick` / `mix.apply_tick` routing for B1
+  technical calibration.
+
+## VSP Hub Extension Smoke
+
+Path:
+
+```powershell
+D:\Vit_DAW\scripts\vsp_hub_extension_smoke.ps1
+```
+
+Purpose:
+
+- Verify a third-party extension can register through `VspHub.exe` without using
+  VitAgent or the legacy bridge.
+- Verify `/vsp/status` lists the extension session.
+- Verify `role="extension"` is denied `command.request` by default.
+- Verify `extension.unregister` removes the session.
+
+Common command:
+
+```powershell
+D:\Vit_DAW\scripts\vsp_hub_extension_smoke.ps1 -HubUrl http://127.0.0.1:8787/vsp
+D:\Vit_DAW\scripts\vsp_hub_extension_smoke.ps1 -HubUrl http://127.0.0.1:8787/vsp -CheckKernelRoutes
+```
+
+## Codex VSP Read-Only Probe
+
+Path:
+
+```powershell
+D:\Vit_DAW\scripts\codex_vsp_readonly_probe.ps1
+```
+
+Purpose:
+
+- Verify a third-party agent can connect directly to `VspHub.exe` as
+  `client_id="codex.agent.local"` and `role="extension"` without being
+  disguised as VitAgent.
+- Verify `/health` and `/vsp/status` expose the read-only extension contract.
+- Verify the Codex probe can register, appear in `/vsp/status`, read
+  `state.snapshot`, poll `event.poll`, and unregister.
+- Verify the probe sends no `command` channel traffic.
+
+Common commands:
+
+```powershell
+D:\Vit_DAW\scripts\codex_vsp_readonly_probe.ps1 -HubUrl http://127.0.0.1:8787/vsp
+D:\Vit_DAW\scripts\codex_vsp_readonly_probe.ps1 -HubUrl http://127.0.0.1:8787/vsp -HubOnly
+```
+
+## VSP Phase 4 Hub HTTP Asset Smoke
+
+Path:
+
+```powershell
+D:\Vit_DAW\scripts\vsp_phase4_hub_http_asset_smoke.py
+```
+
+Purpose:
+
+- Verify a GUI client can use `VspHub.exe` over HTTP `/vsp`, not direct Kernel
+  ZMQ, for asset-lane routing.
+- Verify Hub status advertises `asset.manifest_request` for GUI and read-only
+  extension roles.
+- Create a temporary track and audio clip through the Hub, then verify
+  `asset.reference` and `asset.manifest` return platform-neutral refs without
+  large inline waveform/spectrum JSON payloads.
+- Remove the temporary clip and track.
+
+Common command:
+
+```powershell
+python D:\Vit_DAW\scripts\vsp_phase4_hub_http_asset_smoke.py --hub-url http://127.0.0.1:8787/vsp
+```
+
+## VSP Hub WebSocket Smoke
+
+Path:
+
+```powershell
+D:\Vit_DAW\scripts\vsp_hub_websocket_smoke.ps1
+```
+
+Purpose:
+
+- Verify `/vsp/stream` accepts VSP envelopes over WebSocket.
+- Verify a WebSocket extension can register, appear in `/vsp/status`, and
+  unregister without using VitAgent or the legacy bridge.
+- With `-CheckKernelRoutes`, verify WebSocket `session.hello` reaches Kernel
+  through the Hub and returns `transport_binding="vsp.hub.websocket"`.
+
+Common commands:
+
+```powershell
+D:\Vit_DAW\scripts\vsp_hub_websocket_smoke.ps1
+D:\Vit_DAW\scripts\vsp_hub_websocket_smoke.ps1 -CheckKernelRoutes
+```
+
+## VSP Hub Product Lifecycle Smoke
+
+Path:
+
+```powershell
+D:\Vit_DAW\scripts\run_vsp_hub_lifecycle_smoke.ps1
+```
+
+Purpose:
+
+- Start or reuse the Godot project runtime for
+  `D:\Godot\project\vit-daw-frontend`.
+- Build `VitAgent.exe` and `VspHub.exe` unless skipped or explicitly reused.
+- Let the Godot project startup lifecycle autostart Kernel, Hub, and Agent.
+- Verify Kernel ZMQ, VSP Hub HTTP (`127.0.0.1:8787`), and Agent HTTP
+  (`127.0.0.1:7878`) are present.
+- Verify the running Hub and Agent binaries match the expected binary hashes.
+- Verify `GET /health` returns `service="VspHub"` and `status="ok"`.
+- Verify `GET /vsp/status` advertises `vsp.hub.http` and lists
+  `client_id="vit.agent.official"` with `role="agent"`.
+- Run a headless Godot probe that connects to `/vsp/stream`, subscribes to
+  realtime over `vsp.hub.websocket`, publishes synthetic Hub realtime frames,
+  and verifies the GUI adapter receives them without HTTP frame fallback.
+
+Common command:
+
+```powershell
+D:\Vit_DAW\scripts\run_vsp_hub_lifecycle_smoke.ps1 -RepoRoot D:\Vit_DAW
+D:\Vit_DAW\scripts\run_vsp_hub_lifecycle_smoke.ps1 -RepoRoot D:\Vit_DAW -GodotProjectRoot D:\Godot\project\vit-daw-frontend -GodotExe D:\Godot\Godot_v4.6.1-stable_win64_console.exe
+```
+
+Notes:
+
+- This smoke intentionally stops after Hub lifecycle and realtime transport
+  verification. It does not run Ask Vit chat, mix workflow, project fixture
+  creation, or LLM-dependent checks.
+- Use this as the product infrastructure gate when changes touch Hub startup,
+  launcher behavior, packaged layout, or VSP registration.
+- Use `-ReuseGodot`, `-ReuseHub`, `-ReuseAgent`, or `-ReuseKernel` only when
+  intentionally testing already-running local components.
+
+## Project Audio Settings + Preflight Smoke
+
+Path:
+
+```powershell
+D:\Vit_DAW\scripts\run_project_audio_settings_preflight_smoke.ps1
+```
+
+Purpose:
+
+- Start or reuse the live VitApp kernel.
+- Create a temporary project and verify default project audio settings:
+  48 kHz / 24-bit / WAV/BWF.
+- Set a mismatch example, save it to a temporary `.tracktionedit`, reopen it,
+  and verify the project audio settings persisted.
+- Run `project.import_preflight` and `media.inspect_files` against the
+  development stems folder without writing tracks or clips.
+- Save a full JSON artifact with command replies, compact summaries, mismatch
+  warning evidence, and preflight counts.
+
+Common command:
+
+```powershell
+D:\Vit_DAW\scripts\run_project_audio_settings_preflight_smoke.ps1 -RepoRoot D:\Vit_DAW -KernelExe D:\Vit_DAW\VitApp\build\VitApp_artefacts\Release\VitApp.exe
+```
+
+Notes:
+
+- The default training folder is
+  `E:\BaiduNetdiskDownload\yingge - sattelites tracks out`.
+- This smoke intentionally does not import the stems folder; it only validates
+  metadata probe and import-plan generation.
+- Full artifact path is
+  `D:\Vit_DAW\VitApp\Workspace\Artifacts\smoke\project_audio_preflight_<timestamp>\summary.json`.
+
+## Project Stems Import Smoke
+
+Path:
+
+```powershell
+D:\Vit_DAW\scripts\run_project_stems_import_smoke.ps1
+```
+
+Purpose:
+
+- Start or reuse the live VitApp kernel.
+- Create a temporary saved project.
+- Preflight the development stems folder, then import it with
+  `project.import_folder_as_stems`.
+- Verify the import creates one audio track and one aligned clip per readable
+  file in one kernel command.
+- Verify created track and clip IDs are visible immediately after import and
+  still visible after reopening the saved project.
+- Run a read-only sealed-folder preflight when the sealed folder exists.
+
+Common command:
+
+```powershell
+D:\Vit_DAW\scripts\run_project_stems_import_smoke.ps1 -RepoRoot D:\Vit_DAW -KernelExe D:\Vit_DAW\VitApp\build\VitApp_artefacts\Release\VitApp.exe
+```
+
+Notes:
+
+- The default training folder is
+  `E:\BaiduNetdiskDownload\yingge - sattelites tracks out`.
+- The default sealed folder is
+  `E:\BaiduNetdiskDownload\yingge - Weekend Lover tracks out`; this smoke only
+  preflights it and does not import or mutate it.
+- Full artifact path is
+  `D:\Vit_DAW\VitApp\Workspace\Artifacts\smoke\project_stems_import_<timestamp>\summary.json`.
+
 ## Mix Single-Tick E2E Smoke
 
 Path:
@@ -123,14 +359,17 @@ Purpose:
 
 - Start or reuse the Godot project runtime for
   `D:\Godot\project\vit-daw-frontend`.
-- Build `VitAgent`, then let the Godot project lifecycle autostart the agent
-  and kernel.
-- Verify the Godot project process, agent HTTP, and kernel ZMQ ports are present
-  in one run.
-- Verify Godot lifecycle evidence for the agent/kernel chain: prefer explicit
-  autostart child logs when Godot debug logging prints them; otherwise require
-  the Godot runtime agent self-check plus matching agent/kernel port owner
-  paths.
+- Build `VitAgent.exe` and `VspHub.exe`, then let the Godot project lifecycle
+  autostart Kernel, Hub, and Agent.
+- Verify the Godot project process, VSP Hub HTTP (`127.0.0.1:8787`), agent HTTP
+  (`127.0.0.1:7878`), and kernel ZMQ ports are present in one run.
+- Verify Godot lifecycle evidence for the Kernel/Hub/Agent chain: prefer
+  explicit autostart child logs when Godot debug logging prints them; otherwise
+  require the Godot runtime Hub self-check, Agent self-check, and matching port
+  owner paths.
+- Verify `GET /health` returns `service="VspHub"` and `status="ok"`.
+- Verify `GET /vsp/status` advertises `vsp.hub.http` and lists the official
+  Agent session with `client_id="vit.agent.official"` and `role="agent"`.
 - Create the deterministic two-track fixture through the live agent/kernel path.
 - Send the full-project mix conversation through agent HTTP after the Godot
   project lifecycle is up.
@@ -164,15 +403,20 @@ D:\Vit_DAW\scripts\run_vit_product_path_smoke.ps1 -RepoRoot D:\Vit_DAW -GodotPro
 
 Notes:
 
+- For Hub-only startup regressions, prefer
+  `D:\Vit_DAW\scripts\run_vsp_hub_lifecycle_smoke.ps1`; this full product-path
+  smoke continues into Ask Vit/mix workflow behavior after lifecycle has passed.
 - Until a programmable Godot chat hook exists, this smoke records
   `interaction_path=agent_http_after_godot_project_lifecycle`. That means it
   proves the Godot project lifecycle plus the real agent/kernel mix route, but
   it does not claim automated typing into the Godot chat input.
 - The script can infer `-GodotExe` and `-GodotProjectRoot` from an already-open
   Godot editor whose command line contains `--path <project> --editor`.
-- Use `-ReuseGodot`, `-ReuseAgent`, or `-ReuseKernel` when intentionally testing
-  already-running local components. `-ReuseUI` and `-UIExe` are retained only for
-  explicit exported launcher checks; they are not the default product path.
+- Use `-ReuseGodot`, `-ReuseHub`, `-ReuseAgent`, or `-ReuseKernel` when
+  intentionally testing already-running local components. The build logic treats
+  Agent and Hub separately, so reusing one does not skip rebuilding the other.
+  `-ReuseUI` and `-UIExe` are retained only for explicit exported launcher
+  checks; they are not the default product path.
 - By default, processes started by this script are stopped at the end. Use
   `-KeepProcesses` to leave them running for manual inspection.
 

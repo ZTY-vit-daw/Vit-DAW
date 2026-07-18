@@ -22,10 +22,16 @@ public:
     juce::String handleListTracks (const juce::DynamicObject&, const juce::String&) const;
     juce::String handleAppendGhostTrack (const juce::DynamicObject&, const juce::String&) const;
     juce::String handleAddTrack (const juce::DynamicObject&, const juce::String&) const;
+    juce::String handleCreateFolderTrack (const juce::DynamicObject&, const juce::String&) const;
+    juce::String handleMoveTrackToFolder (const juce::DynamicObject&, const juce::String&) const;
+    juce::String handleSetFolderRoutingBus (const juce::DynamicObject&, const juce::String&) const;
+    juce::String handleApplyTrackOrganization (const juce::DynamicObject&, const juce::String&) const;
     juce::String handleDeleteTrack (const juce::DynamicObject&, const juce::String&) const;
     juce::String handleRenameTrack (const juce::DynamicObject&, const juce::String&) const;
     juce::String handleSetVolume (const juce::DynamicObject&, const juce::String&) const;
+    juce::String handleSetVolumeBatch (const juce::DynamicObject&, const juce::String&) const;
     juce::String handleSetPan (const juce::DynamicObject&, const juce::String&) const;
+    juce::String handleSetPanBatch (const juce::DynamicObject&, const juce::String&) const;
     juce::String handleSetMute (const juce::DynamicObject&, const juce::String&) const;
     juce::String handleSetSolo (const juce::DynamicObject&, const juce::String&) const;
 

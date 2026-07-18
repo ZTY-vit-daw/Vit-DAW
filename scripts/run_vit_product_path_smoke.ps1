@@ -1,4 +1,4 @@
-[CmdletBinding()]
+﻿[CmdletBinding()]
 param(
     [string]$RepoRoot = "D:\Vit_DAW",
     [string]$GodotExe = "",
@@ -6,12 +6,17 @@ param(
     [string]$UIExe = "",
     [string]$KernelExe = "",
     [string]$AgentExe = "",
+    [string]$VspHubExe = "",
     [switch]$ReuseGodot,
     [switch]$ReuseUI,
     [switch]$ReuseAgent,
+    [switch]$ReuseHub,
     [switch]$ReuseKernel,
     [switch]$SkipBuild,
     [switch]$KeepProcesses,
+    [switch]$ClipFadeGainAgentOnly,
+    [switch]$B3PanLayoutAgentOnly,
+    [switch]$SPALReferenceEQAgentOnly,
     [int]$TimeoutSeconds = 60
 )
 
@@ -21,6 +26,8 @@ $ErrorActionPreference = "Stop"
 $AgentHttp = "http://127.0.0.1:7878"
 $AgentHttpAddr = "127.0.0.1:7878"
 $AgentHttpPort = 7878
+$VspHubHttp = "http://127.0.0.1:8787"
+$VspHubPort = 8787
 $ZmqReqPort = 5555
 $ZmqSubPort = 5556
 
@@ -84,8 +91,39 @@ function ConvertTo-JsonFile {
 
 function Get-TcpListener {
     param([int]$Port)
-    return Get-NetTCPConnection -LocalPort $Port -State Listen -ErrorAction SilentlyContinue |
-        Select-Object -First 1
+    foreach ($line in @(& netstat -ano -p tcp 2>$null)) {
+        $text = ([string]$line).Trim()
+        if (-not $text.StartsWith("TCP", [System.StringComparison]::OrdinalIgnoreCase)) {
+            continue
+        }
+        $parts = @($text -split "\s+" | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+        if ($parts.Count -lt 5) {
+            continue
+        }
+        $local = [string]$parts[1]
+        $state = [string]$parts[3]
+        if ($state -ine "LISTENING") {
+            continue
+        }
+        $colon = $local.LastIndexOf(":")
+        if ($colon -lt 0 -or $colon -ge ($local.Length - 1)) {
+            continue
+        }
+        $portText = $local.Substring($colon + 1)
+        $parsedPort = 0
+        if (-not [int]::TryParse($portText, [ref]$parsedPort)) {
+            continue
+        }
+        if ($parsedPort -eq $Port) {
+            $address = $local.Substring(0, $colon).Trim("[", "]")
+            return [pscustomobject]@{
+                LocalAddress = $address
+                LocalPort = $parsedPort
+                OwningProcess = [int]$parts[4]
+            }
+        }
+    }
+    return $null
 }
 
 function Wait-TcpListener {
@@ -175,7 +213,7 @@ function Get-ProcessInfo {
 
 function Get-ListenersSnapshot {
     $rows = @()
-    foreach ($port in @($AgentHttpPort, $ZmqReqPort, $ZmqSubPort)) {
+    foreach ($port in @($AgentHttpPort, $VspHubPort, $ZmqReqPort, $ZmqSubPort)) {
         $listener = Get-TcpListener -Port $port
         if ($null -eq $listener) {
             $rows += [pscustomobject]@{
@@ -277,6 +315,7 @@ function Find-GodotProjectProcesses {
         }
         $rows += [pscustomobject]@{
             pid = [int]$proc.ProcessId
+            parent_pid = [int]$proc.ParentProcessId
             name = [string]$proc.Name
             executable_path = [string]$proc.ExecutablePath
             command_line = $cmd
@@ -285,6 +324,44 @@ function Find-GodotProjectProcesses {
         }
     }
     return $rows
+}
+
+function Group-GodotRuntimeProcesses {
+    param([object[]]$Processes)
+    $byPid = @{}
+    foreach ($proc in @($Processes)) {
+        $byPid[[int]$proc.pid] = $proc
+    }
+    $groups = @{}
+    foreach ($proc in @($Processes)) {
+        $root = $proc
+        $seen = @{}
+        while ($null -ne $root -and $byPid.ContainsKey([int]$root.parent_pid) -and -not $seen.ContainsKey([int]$root.pid)) {
+            $seen[[int]$root.pid] = $true
+            $root = $byPid[[int]$root.parent_pid]
+        }
+        if ($null -eq $root) {
+            $root = $proc
+        }
+        $key = [string]([int]$root.pid)
+        if (-not $groups.ContainsKey($key)) {
+            $groups[$key] = [System.Collections.ArrayList]::new()
+        }
+        [void]$groups[$key].Add($proc)
+    }
+    $out = @()
+    foreach ($key in @($groups.Keys)) {
+        $members = @($groups[$key])
+        $root = $members | Where-Object { [int]$_.pid -eq [int]$key } | Select-Object -First 1
+        if ($null -eq $root) {
+            $root = $members | Select-Object -First 1
+        }
+        $out += [pscustomobject]@{
+            root_pid = [int]$root.pid
+            processes = $members
+        }
+    }
+    return $out
 }
 
 function Resolve-GodotProjectRoot {
@@ -376,32 +453,57 @@ function Stop-ProcessByID {
     }
 }
 
-function Build-AgentIfNeeded {
+function Build-AgentAndHubIfNeeded {
     param(
         [string]$RepoRoot,
         [string]$AgentPath,
-        [bool]$SkipBuild
+        [string]$VspHubPath,
+        [bool]$SkipAgentBuild,
+        [bool]$SkipHubBuild
     )
-    if ($SkipBuild) {
+    if ($SkipAgentBuild) {
         if (-not (Test-Path -LiteralPath $AgentPath)) {
-            Fail ("Missing agent exe with -SkipBuild: " + $AgentPath)
+            Fail ("Missing agent exe while agent build is skipped: " + $AgentPath)
         }
+    }
+    if ($SkipHubBuild) {
+        if (-not (Test-Path -LiteralPath $VspHubPath)) {
+            Fail ("Missing VSP Hub exe while hub build is skipped: " + $VspHubPath)
+        }
+    }
+    if ($SkipAgentBuild -and $SkipHubBuild) {
         return
     }
     $agentDir = Join-Path $RepoRoot "agent"
     $buildExe = Join-Path $agentDir "bin\VitAgent.product-smoke.exe"
-    New-Item -ItemType Directory -Path (Split-Path -Parent $buildExe) -Force | Out-Null
+    $hubBuildExe = Join-Path $agentDir "bin\VspHub.product-smoke.exe"
+    New-Item -ItemType Directory -Path (Join-Path $agentDir "bin") -Force | Out-Null
     Push-Location $agentDir
     try {
-        & go build -o $buildExe .\cmd\vitagent
-        if ($LASTEXITCODE -ne 0) {
-            Fail ("go build failed with exit code " + $LASTEXITCODE)
+        if (-not $SkipAgentBuild) {
+            & go build -o $buildExe .\cmd\vitagent
+            if ($LASTEXITCODE -ne 0) {
+                Fail ("VitAgent go build failed with exit code " + $LASTEXITCODE)
+            }
+        }
+        if (-not $SkipHubBuild) {
+            & go build -o $hubBuildExe .\cmd\vsphub
+            if ($LASTEXITCODE -ne 0) {
+                Fail ("VspHub go build failed with exit code " + $LASTEXITCODE)
+            }
         }
     }
     finally {
         Pop-Location
     }
-    Copy-Item -LiteralPath $buildExe -Destination $AgentPath -Force
+    if (-not $SkipAgentBuild) {
+        New-Item -ItemType Directory -Path (Split-Path -Parent $AgentPath) -Force | Out-Null
+        Copy-Item -LiteralPath $buildExe -Destination $AgentPath -Force
+    }
+    if (-not $SkipHubBuild) {
+        New-Item -ItemType Directory -Path (Split-Path -Parent $VspHubPath) -Force | Out-Null
+        Copy-Item -LiteralPath $hubBuildExe -Destination $VspHubPath -Force
+    }
 }
 
 function Stop-AgentIfNeededBeforeBuild {
@@ -415,6 +517,21 @@ function Stop-AgentIfNeededBeforeBuild {
         return
     }
     Write-WarnLine ("stopping existing agent before rebuild pid=" + $listener.OwningProcess)
+    Stop-ProcessByID -ProcessID $listener.OwningProcess
+    Start-Sleep -Milliseconds 500
+}
+
+function Stop-HubIfNeededBeforeBuild {
+    param([bool]$ReuseHub)
+    $listener = Get-TcpListener -Port $VspHubPort
+    if ($null -eq $listener) {
+        return
+    }
+    if ($ReuseHub) {
+        Write-WarnLine "reusing the running VSP Hub; skipping hub rebuild to avoid replacing an active executable"
+        return
+    }
+    Write-WarnLine ("stopping existing VSP Hub before rebuild pid=" + $listener.OwningProcess)
     Stop-ProcessByID -ProcessID $listener.OwningProcess
     Start-Sleep -Milliseconds 500
 }
@@ -520,13 +637,39 @@ function Stop-PortOwnerIfNeeded {
     Start-Sleep -Milliseconds 500
 }
 
+function Read-LogText {
+    param([string]$Path)
+    if ([string]::IsNullOrWhiteSpace($Path) -or -not (Test-Path -LiteralPath $Path)) {
+        return ""
+    }
+    try {
+        $stream = [System.IO.File]::Open($Path, [System.IO.FileMode]::Open, [System.IO.FileAccess]::Read, [System.IO.FileShare]::ReadWrite)
+        try {
+            $reader = [System.IO.StreamReader]::new($stream, [System.Text.Encoding]::UTF8, $true)
+            try {
+                return $reader.ReadToEnd()
+            }
+            finally {
+                $reader.Dispose()
+            }
+        }
+        finally {
+            $stream.Dispose()
+        }
+    }
+    catch {
+        return ""
+    }
+}
+
 function Get-GodotAutostartEvidence {
     param([string]$LogPath)
     $rows = @()
-    if (-not (Test-Path -LiteralPath $LogPath)) {
+    $text = Read-LogText -Path $LogPath
+    if ([string]::IsNullOrWhiteSpace($text)) {
         return $rows
     }
-    foreach ($line in @(Get-Content -LiteralPath $LogPath -ErrorAction SilentlyContinue)) {
+    foreach ($line in @($text -split "\r?\n")) {
         $match = [regex]::Match($line, "VitIpcClient:\s+registered autostart child\s+(\w+)\s+pid=(\d+)\s+path=(.+)$")
         if (-not $match.Success) {
             continue
@@ -547,11 +690,8 @@ function Test-LogContains {
         [string]$Pattern
     )
     foreach ($logPath in $LogPaths) {
-        if ([string]::IsNullOrWhiteSpace($logPath) -or -not (Test-Path -LiteralPath $logPath)) {
-            continue
-        }
-        $hit = Select-String -Path $logPath -Pattern $Pattern -SimpleMatch -ErrorAction SilentlyContinue | Select-Object -First 1
-        if ($null -ne $hit) {
+        $text = Read-LogText -Path $logPath
+        if (-not [string]::IsNullOrWhiteSpace($text) -and $text.Contains($Pattern)) {
             return $true
         }
     }
@@ -595,16 +735,20 @@ function Wait-GodotAutostartEvidence {
     do {
         $evidence = @(Get-GodotAutostartEvidence -LogPath $LogPath)
         $hasKernel = $false
+        $hasHub = $false
         $hasAgent = $false
         foreach ($row in $evidence) {
             if ([string]$row.role -eq "kernel") {
                 $hasKernel = $true
             }
+            if ([string]$row.role -eq "hub") {
+                $hasHub = $true
+            }
             if ([string]$row.role -eq "agent") {
                 $hasAgent = $true
             }
         }
-        if ($hasKernel -and $hasAgent) {
+        if ($hasKernel -and $hasHub -and $hasAgent) {
             return $evidence
         }
         Start-Sleep -Milliseconds 250
@@ -626,31 +770,40 @@ function Wait-GodotLifecycleEvidence {
             $evidence += @(Get-GodotAutostartEvidence -LogPath $logPath)
         }
         $hasKernel = $false
+        $hasHub = $false
         $hasAgent = $false
         foreach ($row in $evidence) {
             if ([string]$row.role -eq "kernel") {
                 $hasKernel = $true
+            }
+            if ([string]$row.role -eq "hub") {
+                $hasHub = $true
             }
             if ([string]$row.role -eq "agent") {
                 $hasAgent = $true
             }
         }
         $agentListener = Get-TcpListener -Port $AgentHttpPort
+        $hubListener = Get-TcpListener -Port $VspHubPort
         $kernelReqListener = Get-TcpListener -Port $ZmqReqPort
         $kernelSubListener = Get-TcpListener -Port $ZmqSubPort
-        if ($hasKernel -and $hasAgent) {
+        $hubReadyLog = Test-LogContains -LogPaths $logPaths -Pattern "start_page: VSP Hub ready."
+        $agentReadyLog = Test-LogContains -LogPaths $logPaths -Pattern "start_page: Agent v0.5 tools ready."
+        $portsReady = ($null -ne $agentListener -and $null -ne $hubListener -and $null -ne $kernelReqListener -and $null -ne $kernelSubListener)
+        if ($hasKernel -and $hasHub -and $hasAgent -and $portsReady -and $hubReadyLog -and $agentReadyLog) {
             return @{
                 mode = "godot_autostart_log"
                 autostart = $evidence
-                agent_tools_ready_log = Test-LogContains -LogPaths $logPaths -Pattern "start_page: Agent v0.5 tools ready."
+                agent_tools_ready_log = $true
+                vsp_hub_ready_log = $hubReadyLog
             }
         }
-        if ($null -ne $agentListener -and $null -ne $kernelReqListener -and $null -ne $kernelSubListener -and
-            (Test-LogContains -LogPaths $logPaths -Pattern "start_page: Agent v0.5 tools ready.")) {
+        if ($portsReady -and $hubReadyLog -and $agentReadyLog) {
             return @{
                 mode = "godot_runtime_self_check_ports"
                 autostart = $evidence
                 agent_tools_ready_log = $true
+                vsp_hub_ready_log = $true
             }
         }
         Start-Sleep -Milliseconds 250
@@ -663,6 +816,7 @@ function Wait-GodotLifecycleEvidence {
         mode = "missing_godot_lifecycle_evidence"
         autostart = $finalEvidence
         agent_tools_ready_log = Test-LogContains -LogPaths $logPaths -Pattern "start_page: Agent v0.5 tools ready."
+        vsp_hub_ready_log = Test-LogContains -LogPaths $logPaths -Pattern "start_page: VSP Hub ready."
     }
 }
 
@@ -753,6 +907,28 @@ function Assert-GodotOwnedPort {
     }
 }
 
+function Wait-VspHubAgentSession {
+    param([int]$TimeoutSeconds)
+    $deadline = (Get-Date).AddSeconds($TimeoutSeconds)
+    $lastStatus = $null
+    do {
+        try {
+            $status = Invoke-Json -Method GET -Uri ($VspHubHttp.TrimEnd("/") + "/vsp/status") -TimeoutSec 5
+            $lastStatus = $status
+            foreach ($session in @($status.sessions)) {
+                if ([string]$session.role -eq "agent" -and [string]$session.client_id -eq "vit.agent.official") {
+                    return $status
+                }
+            }
+        }
+        catch {
+        }
+        Start-Sleep -Milliseconds 500
+    } while ((Get-Date) -lt $deadline)
+    $detail = if ($null -ne $lastStatus) { $lastStatus | ConvertTo-Json -Depth 12 -Compress } else { "<no status>" }
+    Fail ("VSP Hub did not report VitAgent session before timeout. last_status=" + $detail)
+}
+
 function Start-Or-Reuse-GodotProject {
     param(
         [string]$GodotLaunchExe,
@@ -784,8 +960,8 @@ function Start-Or-Reuse-GodotProject {
     foreach ($proc in @(Find-GodotProjectProcesses -ProjectRoot $ProjectRoot -RuntimeOnly $true)) {
         $beforePids[[int]$proc.pid] = $true
     }
-    $args = @("--path", $ProjectRoot)
-    $proc = Start-Process -FilePath $GodotLaunchExe -ArgumentList $args -WorkingDirectory $ProjectRoot -RedirectStandardOutput $StdoutLog -RedirectStandardError $StderrLog -PassThru
+    $args = @("--path", $ProjectRoot, "--log-file", $StdoutLog)
+    $proc = Start-Process -FilePath $GodotLaunchExe -ArgumentList $args -WorkingDirectory $ProjectRoot -RedirectStandardError $StderrLog -PassThru
     $deadline = (Get-Date).AddSeconds($TimeoutSeconds)
     do {
         $current = @(Find-GodotProjectProcesses -ProjectRoot $ProjectRoot -RuntimeOnly $true | Where-Object {
@@ -800,6 +976,7 @@ function Start-Or-Reuse-GodotProject {
                 launch_exe = $GodotLaunchExe
                 project_root = $ProjectRoot
                 command_line = [string]$current[0].command_line
+                log_capture = "godot_log_file"
                 stdout_log = $StdoutLog
                 stderr_log = $StderrLog
             }
@@ -817,6 +994,7 @@ function Start-Or-Reuse-GodotProject {
                     launch_exe = $GodotLaunchExe
                     project_root = $ProjectRoot
                     command_line = [string]$late[0].command_line
+                    log_capture = "godot_log_file"
                     stdout_log = $StdoutLog
                     stderr_log = $StderrLog
                 }
@@ -851,9 +1029,18 @@ function Stop-GodotProjectRuntimeIfNeeded {
         Write-WarnLine ("reusing existing Godot project runtime pid=" + $runtimeProcesses[0].pid)
         return
     }
-    foreach ($proc in $runtimeProcesses) {
-        Write-WarnLine ("stopping existing Godot project runtime pid=" + $proc.pid + " before smoke launch")
-        Stop-ProcessByID -ProcessID ([int]$proc.pid)
+    foreach ($group in @(Group-GodotRuntimeProcesses -Processes $runtimeProcesses)) {
+        $pids = @($group.processes | ForEach-Object { [int]$_.pid } | Sort-Object -Unique)
+        $childPids = @($pids | Where-Object { $_ -ne [int]$group.root_pid })
+        $message = "stopping existing Godot project runtime pid=" + [string]$group.root_pid
+        if ($childPids.Count -gt 0) {
+            $message += " child_pids=" + ($childPids -join ",")
+        }
+        $message += " before smoke launch"
+        Write-WarnLine $message
+        foreach ($processID in $pids) {
+            Stop-ProcessByID -ProcessID ([int]$processID)
+        }
     }
     Start-Sleep -Milliseconds 500
 }
@@ -878,17 +1065,31 @@ function Invoke-AgentTool {
 function Invoke-AgentChat {
     param(
         [string]$ConversationID,
-        [string]$Message
+        [string]$Message,
+        [object]$ExtraContext = $null
     )
+    $context = @{
+        agent_mode = "chat"
+        interaction_path = "agent_http_after_godot_project_lifecycle"
+        product_path_smoke = $true
+        product_lifecycle = "godot_project"
+    }
+    if ($null -ne $ExtraContext) {
+        if ($ExtraContext -is [System.Collections.IDictionary]) {
+            foreach ($key in $ExtraContext.Keys) {
+                $context[[string]$key] = $ExtraContext[$key]
+            }
+        }
+        else {
+            foreach ($prop in $ExtraContext.PSObject.Properties) {
+                $context[$prop.Name] = $prop.Value
+            }
+        }
+    }
     return Invoke-Json -Method POST -Uri ($AgentHttp.TrimEnd("/") + "/agent/chat") -Body @{
         conversation_id = $ConversationID
         message = $Message
-        context = @{
-            agent_mode = "chat"
-            interaction_path = "agent_http_after_godot_project_lifecycle"
-            product_path_smoke = $true
-            product_lifecycle = "godot_project"
-        }
+        context = $context
     } -TimeoutSec 240
 }
 
@@ -1015,6 +1216,19 @@ function Number-Value {
 	return $dummy
 }
 
+function Assert-NearNumber {
+	param(
+		[object]$Actual,
+		[double]$Expected,
+		[string]$Label,
+		[double]$Tolerance = 0.001
+	)
+	$value = Number-Value -Value $Actual
+	if ($null -eq $value -or [Math]::Abs(([double]$value) - $Expected) -gt $Tolerance) {
+		Fail ($Label + " expected " + [string]$Expected + " got " + [string]$Actual)
+	}
+}
+
 function Read-JsonFile {
 	param([string]$Path)
 	if (-not (Test-Path -LiteralPath $Path)) {
@@ -1083,7 +1297,7 @@ function Assert-BridgeSnapshotRow {
 		}
 		return
 	}
-	if ($status -in @("building", "missing", "blocked", "unavailable", "invalid", "stale")) {
+	if ($status -in @("building", "requested", "pending", "missing", "blocked", "unavailable", "invalid", "stale", "suspect", "deferred", "failed")) {
 		$reason = [string](Get-OptionalProperty -Object $row -Name "reason")
 		$progress = Get-OptionalProperty -Object $row -Name "progress"
 		$progressReason = [string](Get-OptionalProperty -Object $progress -Name "reason")
@@ -1395,6 +1609,44 @@ function Resolve-TrackID {
     return $trackID
 }
 
+function Resolve-ClipID {
+    param([object]$Response)
+    $result = Get-OptionalProperty -Object $Response -Name "result"
+    $clipID = [string](Get-OptionalProperty -Object $result -Name "clip_id")
+    if ([string]::IsNullOrWhiteSpace($clipID)) {
+        $clipID = [string](Get-OptionalProperty -Object $result -Name "id")
+    }
+    if ([string]::IsNullOrWhiteSpace($clipID)) {
+        $clipID = [string](Get-OptionalProperty -Object $Response -Name "clip_id")
+    }
+    return $clipID
+}
+
+function Set-AgentUIContext {
+    param([hashtable]$Context)
+    $resp = Invoke-Json -Method POST -Uri ($AgentHttp.TrimEnd("/") + "/agent/ui/context") -Body $Context -TimeoutSec 10
+    if ($null -eq $resp -or [string](Get-OptionalProperty -Object $resp -Name "status") -ne "ok") {
+        Fail ("agent ui context update failed: " + ($resp | ConvertTo-Json -Depth 12 -Compress))
+    }
+    return $resp
+}
+
+function Find-ExecutedToolResult {
+    param(
+        [object]$Rows,
+        [string[]]$Aliases
+    )
+    foreach ($row in @($Rows)) {
+        foreach ($key in @("tool", "command_name", "command")) {
+            $name = [string](Get-OptionalProperty -Object $row -Name $key)
+            if ($Aliases -contains $name) {
+                return Get-OptionalProperty -Object $row -Name "result"
+            }
+        }
+    }
+    return $null
+}
+
 function Import-AudioFixture {
     param(
         [string]$TrackID,
@@ -1452,6 +1704,10 @@ if ([string]::IsNullOrWhiteSpace($AgentExe)) {
     $AgentExe = Join-Path $RepoRoot "agent\bin\VitAgent.exe"
 }
 $AgentExe = [System.IO.Path]::GetFullPath($AgentExe)
+if ([string]::IsNullOrWhiteSpace($VspHubExe)) {
+    $VspHubExe = Join-Path $RepoRoot "agent\bin\VspHub.exe"
+}
+$VspHubExe = [System.IO.Path]::GetFullPath($VspHubExe)
 
 $RunStartedAt = Get-Date
 $summary = [ordered]@{
@@ -1466,6 +1722,7 @@ $summary = [ordered]@{
     godot_project_root = $GodotProjectRoot
     ui_exe_override = $UIExe
     kernel_exe = $KernelExe
+    vsp_hub_exe = $VspHubExe
     agent_exe = $AgentExe
     godot_runtime_stdout = $GodotRuntimeStdout
     godot_runtime_stderr = $GodotRuntimeStderr
@@ -1488,15 +1745,21 @@ $summary = [ordered]@{
 
 $started = @{
     agent = $null
+    hub = $null
     kernel = $null
     godot = $null
     ui_override = $null
 }
 $godotAutostartEvidence = @()
 $oldDevRoot = $env:VIT_DAW_DEV_ROOT
+$oldVspHubLastLogPath = $env:VIT_VSP_HUB_LAST_LOG_PATH
+$oldAgentVspHubUrl = $env:VIT_AGENT_VSP_HUB_URL
 $oldAgentLastLogPath = $env:VIT_AGENT_LAST_LOG_PATH
 $oldAgentKeepLogLines = $env:VIT_AGENT_KEEP_LAST_LOG_LINES
 $oldSkipDevAutostart = $env:VIT_SKIP_DEV_AUTOSTART
+$oldSPALReferenceEQProviderStore = $env:VIT_SPAL_REFERENCE_EQ_PROVIDER_STORE
+$oldVPSLibraryPath = $env:VIT_VPS_LIBRARY_V3_PATH
+$oldOrchestrationStorePath = $env:VIT_ORCHESTRATION_STORE_PATH
 $observeEventSeq = 0
 
 try {
@@ -1511,27 +1774,55 @@ try {
         Write-Host ("ui_override: " + $UIExe)
     }
     Write-Host ("expected kernel: " + $KernelExe)
+    Write-Host ("vsp_hub: " + $VspHubExe)
     Write-Host ("agent: " + $AgentExe)
 
-    Write-Step "Prepare agent"
+    Write-Step "Prepare agent + VSP Hub"
     if (-not $SkipBuild) {
         Stop-AgentIfNeededBeforeBuild -ReuseAgent ([bool]$ReuseAgent)
+        Stop-HubIfNeededBeforeBuild -ReuseHub ([bool]$ReuseHub)
     }
-    Build-AgentIfNeeded -RepoRoot $RepoRoot -AgentPath $AgentExe -SkipBuild ([bool]($SkipBuild -or $ReuseAgent))
+    Build-AgentAndHubIfNeeded -RepoRoot $RepoRoot -AgentPath $AgentExe -VspHubPath $VspHubExe -SkipAgentBuild ([bool]($SkipBuild -or $ReuseAgent)) -SkipHubBuild ([bool]($SkipBuild -or $ReuseHub))
     $summary["binary_evidence"]["agent_expected"] = Get-ExecutableEvidence -Path $AgentExe
+    $summary["binary_evidence"]["hub_expected"] = Get-ExecutableEvidence -Path $VspHubExe
     ConvertTo-JsonFile -Value ($summary["binary_evidence"]["agent_expected"]) -Path (Join-Path $ArtifactDir "agent_expected_binary.json")
+    ConvertTo-JsonFile -Value ($summary["binary_evidence"]["hub_expected"]) -Path (Join-Path $ArtifactDir "hub_expected_binary.json")
 
     Write-Step "Start or reuse Godot project lifecycle"
     $summary["processes"]["godot_editors"] = @(Find-GodotProjectProcesses -ProjectRoot $GodotProjectRoot -RuntimeOnly $false | Where-Object { [bool]$_.is_editor })
     Stop-GodotProjectRuntimeIfNeeded -ProjectRoot $GodotProjectRoot -ReuseGodot ([bool]$ReuseGodot)
     Stop-PortOwnerIfNeeded -Port $AgentHttpPort -Label "agent HTTP" -Reuse ([bool]$ReuseAgent)
+    Stop-PortOwnerIfNeeded -Port $VspHubPort -Label "VSP Hub HTTP" -Reuse ([bool]$ReuseHub)
     Stop-PortOwnerIfNeeded -Port $ZmqReqPort -Label "kernel command" -Reuse ([bool]$ReuseKernel)
     Stop-PortOwnerIfNeeded -Port $ZmqSubPort -Label "kernel event" -Reuse ([bool]$ReuseKernel)
 
+    if (-not $ReuseAgent -and -not $ReuseKernel) {
+        $ownedFeatureSnapshots = @(
+            (Join-Path $RepoRoot "VitApp\Workspace\Artifacts\mixboard_feature_snapshot.json"),
+            (Join-Path $GodotProjectRoot "VitApp\Workspace\Artifacts\mixboard_feature_snapshot.json")
+        )
+        foreach ($snapshotPath in $ownedFeatureSnapshots) {
+            if (Test-Path -LiteralPath $snapshotPath) {
+                Remove-Item -LiteralPath $snapshotPath -Force
+            }
+        }
+    }
+
     $env:VIT_DAW_DEV_ROOT = $RepoRoot
+    $env:VIT_VSP_HUB_LAST_LOG_PATH = Join-Path $ArtifactDir "vsp_hub_last.log"
+    $env:VIT_AGENT_VSP_HUB_URL = ($VspHubHttp.TrimEnd("/") + "/vsp")
     $env:VIT_AGENT_LAST_LOG_PATH = $AgentLog
     $env:VIT_AGENT_KEEP_LAST_LOG_LINES = "1200"
     $env:VIT_SKIP_DEV_AUTOSTART = "0"
+    if ($SPALReferenceEQAgentOnly) {
+        # Keep the old laboratory record, the VPS v3 Library, and Planning
+        # Sessions isolated from a developer's normal project state. Godot
+        # owns the child processes launched below, so they inherit these
+        # explicit paths before VitAgent starts.
+        $env:VIT_SPAL_REFERENCE_EQ_PROVIDER_STORE = Join-Path $ArtifactDir "spal_reference_eq_providers.json"
+		$env:VIT_VPS_LIBRARY_V3_PATH = Join-Path $ArtifactDir "vps_library_v3.json"
+        $env:VIT_ORCHESTRATION_STORE_PATH = Join-Path $ArtifactDir "spal_reference_eq_orchestration.json"
+    }
     if (Test-Path -LiteralPath (Join-Path $GodotProjectRoot "godot_runtime.log")) {
         Copy-Item -LiteralPath (Join-Path $GodotProjectRoot "godot_runtime.log") -Destination (Join-Path $ArtifactDir "godot_runtime_previous.log") -Force
         Remove-Item -LiteralPath (Join-Path $GodotProjectRoot "godot_runtime.log") -Force
@@ -1550,25 +1841,38 @@ try {
 
     $lifecycleEvidence = Wait-GodotLifecycleEvidence -StdoutLog $GodotRuntimeStdout -AlternateLog (Join-Path $GodotProjectRoot "godot_runtime.log") -TimeoutSeconds $TimeoutSeconds
     if ([string]$lifecycleEvidence.mode -eq "missing_godot_lifecycle_evidence") {
-        Fail "Missing Godot lifecycle evidence: no autostart log and no agent self-check with live ports"
+        Fail "Missing Godot lifecycle evidence: no autostart log and no Hub/agent self-check with live ports"
     }
     $summary["godot_lifecycle_evidence"] = @{
         mode = [string]$lifecycleEvidence.mode
         agent_tools_ready_log = [bool]$lifecycleEvidence.agent_tools_ready_log
+        vsp_hub_ready_log = [bool]$lifecycleEvidence.vsp_hub_ready_log
     }
     $godotAutostartEvidence = @($lifecycleEvidence.autostart)
     $summary["godot_autostart"] = $godotAutostartEvidence
     ConvertTo-JsonFile -Value $godotAutostartEvidence -Path (Join-Path $ArtifactDir "godot_autostart.json")
 
     $kernelChild = Get-GodotAutostartChild -Evidence $godotAutostartEvidence -Role "kernel"
+    $hubChild = Get-GodotAutostartChild -Evidence $godotAutostartEvidence -Role "hub"
     $agentChild = Get-GodotAutostartChild -Evidence $godotAutostartEvidence -Role "agent"
-    $cleanupGodotChildren = -not ([bool]$ReuseGodot -or [bool]$ReuseAgent -or [bool]$ReuseKernel)
+    $cleanupGodotChildren = -not ([bool]$ReuseGodot -or [bool]$ReuseAgent -or [bool]$ReuseHub -or [bool]$ReuseKernel)
     $started.agent = Assert-GodotOwnedPort -Port $AgentHttpPort -Child $agentChild -Label "agent HTTP" -AllowExisting ([bool]$ReuseAgent) -LifecycleMode ([string]$lifecycleEvidence.mode) -ExpectedPath $AgentExe -CleanupProcess $cleanupGodotChildren
+    $started.hub = Assert-GodotOwnedPort -Port $VspHubPort -Child $hubChild -Label "VSP Hub HTTP" -AllowExisting ([bool]$ReuseHub) -LifecycleMode ([string]$lifecycleEvidence.mode) -ExpectedPath $VspHubExe -CleanupProcess $cleanupGodotChildren
     $started.kernel = Assert-GodotOwnedPort -Port $ZmqReqPort -Child $kernelChild -Label "kernel command" -AllowExisting ([bool]$ReuseKernel) -LifecycleMode ([string]$lifecycleEvidence.mode) -ExpectedPath $KernelExe -CleanupProcess $cleanupGodotChildren
     $kernelEventOwner = Assert-GodotOwnedPort -Port $ZmqSubPort -Child $kernelChild -Label "kernel event" -AllowExisting ([bool]$ReuseKernel) -LifecycleMode ([string]$lifecycleEvidence.mode) -ExpectedPath $KernelExe -CleanupProcess $cleanupGodotChildren
     $started.kernel["event_port_pid"] = [int]$kernelEventOwner.pid
     $summary["processes"]["agent"] = $started.agent
+    $summary["processes"]["hub"] = $started.hub
     $summary["processes"]["kernel"] = $started.kernel
+    $runningHubPath = Get-ProcessPathByID -ProcessID ([int]$started.hub.pid)
+    if ((Normalize-ComparablePath -Path $runningHubPath) -ne (Normalize-ComparablePath -Path $VspHubExe)) {
+        Fail ("Godot product path is not using expected VSP Hub binary. expected=" + $VspHubExe + " actual=" + $runningHubPath)
+    }
+    $summary["binary_evidence"]["hub_running"] = Get-ExecutableEvidence -Path $runningHubPath
+    if ([string]$summary["binary_evidence"]["hub_expected"].sha256 -ne [string]$summary["binary_evidence"]["hub_running"].sha256) {
+        Fail "Running VSP Hub binary hash does not match expected Hub binary"
+    }
+    Write-Ok ("Godot product path VSP Hub binary verified sha256=" + [string]$summary["binary_evidence"]["hub_running"].sha256)
     $runningAgentPath = Get-ProcessPathByID -ProcessID ([int]$started.agent.pid)
     if ((Normalize-ComparablePath -Path $runningAgentPath) -ne (Normalize-ComparablePath -Path $AgentExe)) {
         Fail ("Godot product path is not using expected agent binary. expected=" + $AgentExe + " actual=" + $runningAgentPath)
@@ -1584,12 +1888,78 @@ try {
     ConvertTo-JsonFile -Value ($summary["processes"]) -Path (Join-Path $ArtifactDir "processes.json")
 
     Write-Step "Health checks"
+    $hubHealth = Invoke-Json -Method GET -Uri ($VspHubHttp.TrimEnd("/") + "/health") -TimeoutSec 10
+    ConvertTo-JsonFile -Value $hubHealth -Path (Join-Path $ArtifactDir "vsp_hub_health.json")
+    if ($null -eq $hubHealth -or [string]$hubHealth.status -ne "ok" -or [string]$hubHealth.service -ne "VspHub") {
+        Fail "GET /health did not return VspHub ok"
+    }
+    $hubStatus = Wait-VspHubAgentSession -TimeoutSeconds 20
+    ConvertTo-JsonFile -Value $hubStatus -Path (Join-Path $ArtifactDir "vsp_hub_status.json")
+    $transports = @($hubStatus.transports)
+    if (-not ($transports -contains "vsp.hub.http")) {
+        Fail "VSP Hub status did not advertise vsp.hub.http"
+    }
+    Write-Ok "VSP Hub health/status passed with VitAgent session"
+
     $state = Invoke-Json -Method GET -Uri ($AgentHttp.TrimEnd("/") + "/agent/state") -TimeoutSec 10
     ConvertTo-JsonFile -Value $state -Path (Join-Path $ArtifactDir "agent_state.json")
     if ($null -eq $state -or [string]$state.status -ne "ok") {
         Fail "GET /agent/state did not return ok"
     }
     Assert-StatusOk -Response (Invoke-AgentTool -Tool "project.state" -ToolArgs @{} -Confirmed $false) -Label "project.state"
+
+    if ($SPALReferenceEQAgentOnly) {
+        Write-Step "SPAL Reference EQ VPS v3 learning + execution smoke through Godot-owned lifecycle"
+        $spalScript = Join-Path $RepoRoot "scripts\spal_reference_eq_agent_smoke.ps1"
+        if (-not (Test-Path -LiteralPath $spalScript)) {
+            Fail ("Missing SPAL Reference EQ smoke script: " + $spalScript)
+        }
+        & $spalScript -RepoRoot $RepoRoot -AgentHttp $AgentHttp -ArtifactDir $ArtifactDir -TimeoutSeconds ([Math]::Max(300, $TimeoutSeconds))
+        $spalSummaryPath = Join-Path $ArtifactDir "spal_reference_eq_summary.json"
+        if (-not (Test-Path -LiteralPath $spalSummaryPath)) {
+            Fail "SPAL Reference EQ smoke did not produce its summary artifact"
+        }
+        $spalSummary = Get-Content -LiteralPath $spalSummaryPath -Raw -Encoding UTF8 | ConvertFrom-Json
+        if ([string]$spalSummary.status -ne "passed") {
+            Fail ("SPAL Reference EQ smoke summary is not passed: " + ($spalSummary | ConvertTo-Json -Depth 24 -Compress))
+        }
+        $summary["spal_reference_eq"] = $spalSummary
+        $summary["conversation_id"] = [string]$spalSummary.conversation_id
+		$summary["tool_route"] = @("plugin_learning.natural_language", "vps_v3_catalog", "spal.reference_eq_test.v0", "spal.rollback")
+        $summary["status"] = "passed"
+        Write-Ok "focused SPAL Reference EQ Godot product-path smoke passed"
+        return
+    }
+
+    if ($B3PanLayoutAgentOnly) {
+        Write-Step "B3 pan-layout Agent smoke through Godot-owned lifecycle"
+        $b3Script = Join-Path $RepoRoot "scripts\b3_pan_layout_agent_smoke.py"
+        if (-not (Test-Path -LiteralPath $b3Script)) {
+            Fail ("Missing B3 smoke script: " + $b3Script)
+        }
+        $b3Output = Join-Path $ArtifactDir "b3_pan_layout_stdout.json"
+        & python $b3Script --repo-root $RepoRoot --agent-http $AgentHttp --timeout-sec ([Math]::Max(240, $TimeoutSeconds)) 2>&1 |
+            Tee-Object -FilePath $b3Output
+        if ($LASTEXITCODE -ne 0) {
+            Fail ("B3 pan-layout Agent smoke failed with exit code " + $LASTEXITCODE)
+        }
+        $b3Artifact = Get-ChildItem -LiteralPath (Join-Path $RepoRoot "VitApp\Workspace\Artifacts\smoke") -Directory -Filter "b3_pan_layout_*" |
+            Sort-Object LastWriteTimeUtc -Descending |
+            Select-Object -First 1
+        if ($null -eq $b3Artifact -or -not (Test-Path -LiteralPath (Join-Path $b3Artifact.FullName "summary.json"))) {
+            Fail "B3 pan-layout smoke did not produce summary.json"
+        }
+        $b3Summary = Get-Content -LiteralPath (Join-Path $b3Artifact.FullName "summary.json") -Raw -Encoding UTF8 | ConvertFrom-Json
+        if ([string]$b3Summary.status -ne "ok") {
+            Fail ("B3 pan-layout smoke summary is not ok: " + ($b3Summary | ConvertTo-Json -Depth 16 -Compress))
+        }
+        $summary["b3_pan_layout_agent"] = $b3Summary
+        $summary["conversation_id"] = [string]$b3Summary.conversation_id
+        $summary["tool_route"] = @($b3Summary.decision_tools)
+        $summary["status"] = "passed"
+        Write-Ok "focused B3 pan-layout Godot product-path smoke passed"
+        return
+    }
 
     Write-Step "Create fixture project through agent + live kernel"
     Reset-FixtureProject
@@ -1606,9 +1976,16 @@ try {
     Assert-StatusOk -Response $import1 -Label "import Track 1"
     $import2 = Import-AudioFixture -TrackID $track2ID -FilePath $Track2Path
     Assert-StatusOk -Response $import2 -Label "import Track 2"
+    $clip1ID = Resolve-ClipID -Response $import1
+    $clip2ID = Resolve-ClipID -Response $import2
+    if ([string]::IsNullOrWhiteSpace($clip1ID)) {
+        Fail ("Could not resolve imported clip ID for Track 1: " + ($import1 | ConvertTo-Json -Depth 12 -Compress))
+    }
     ConvertTo-JsonFile -Value @{
         track1_id = $track1ID
         track2_id = $track2ID
+        clip1_id = $clip1ID
+        clip2_id = $clip2ID
         track1_name = "Lead Vocal"
         track1_path = $Track1Path
         track2_path = $Track2Path
@@ -1616,6 +1993,119 @@ try {
         import2 = $import2
     } -Path (Join-Path $ArtifactDir "fixture.json")
     Start-Sleep -Milliseconds 750
+
+    Write-Step "Clip fade/gain agent closed-loop smoke"
+    $uiContext = @{
+        selected_track_id = $track1ID
+        selected_track_name = "Lead Vocal"
+        selected_clip_id = $clip1ID
+        selected_clip_ids = @($clip1ID)
+        selected_clip_track_id = $track1ID
+        selected_clip_name = "Lead Vocal clip"
+        current_playhead_seconds = 0
+    }
+    $uiContextResp = Set-AgentUIContext -Context $uiContext
+    ConvertTo-JsonFile -Value $uiContextResp -Path (Join-Path $ArtifactDir "clip_fade_gain_ui_context.json")
+
+    $clipConversationID = "product_path_clip_fade_gain_" + $Stamp
+    $setClipGain = Invoke-AgentChat -ConversationID $clipConversationID -Message "set current clip gain to -3 dB" -ExtraContext $uiContext
+    ConvertTo-JsonFile -Value $setClipGain -Path (Join-Path $ArtifactDir "chat_clip_gain_pending.json")
+    $setRows = @(Get-OptionalProperty -Object $setClipGain -Name "executed_kernel_reply")
+    $setTools = Tool-Names -Rows $setRows
+    $setStop = [string](Get-OptionalProperty -Object $setClipGain -Name "stop_reason")
+    $setNeedsConfirmation = [bool](Get-OptionalProperty -Object $setClipGain -Name "needs_confirmation")
+    if (-not $setNeedsConfirmation) {
+        Fail ("clip gain set setup did not create a confirmation. stop_reason=" + $setStop + " tools=" + ($setTools -join " -> "))
+    }
+    Assert-ToolAbsent -Tools $setTools -Aliases @("mix.propose_tick", "mix_propose_tick", "mix.apply_tick", "mix_apply_tick", "track.volume", "track_volume", "set_volume") -Label "mix/track gain route during clip gain setup"
+
+    $readClipStateMessage = Join-UnicodeChars @(0x8BFB, 0x53D6, 0x5F53, 0x524D, 0x9009, 0x4E2D, 0x20, 0x63, 0x6C, 0x69, 0x70, 0x20, 0x7684, 0x20, 0x66, 0x61, 0x64, 0x65, 0x20, 0x548C, 0x20, 0x67, 0x61, 0x69, 0x6E, 0x20, 0x72B6, 0x6001)
+    $readClipState = Invoke-AgentChat -ConversationID $clipConversationID -Message $readClipStateMessage -ExtraContext $uiContext
+    ConvertTo-JsonFile -Value $readClipState -Path (Join-Path $ArtifactDir "chat_clip_fade_gain_read.json")
+    $readRows = @(Get-OptionalProperty -Object $readClipState -Name "executed_kernel_reply")
+    $readTools = Tool-Names -Rows $readRows
+    $readStop = [string](Get-OptionalProperty -Object $readClipState -Name "stop_reason")
+    $readNeedsConfirmation = [bool](Get-OptionalProperty -Object $readClipState -Name "needs_confirmation")
+    if ($readNeedsConfirmation -or [string](Get-OptionalProperty -Object $readClipState -Name "goal_status") -eq "waiting_confirmation" -or -not [string]::IsNullOrWhiteSpace([string](Get-OptionalProperty -Object $readClipState -Name "plan_id"))) {
+        Fail ("clip fade/gain read was intercepted by stale confirmation: " + ($readClipState | ConvertTo-Json -Depth 16 -Compress))
+    }
+    if ($readStop -ne "done") {
+        Fail ("clip fade/gain read stop_reason=" + $readStop + " reply=" + [string](Get-OptionalProperty -Object $readClipState -Name "reply"))
+    }
+    Assert-ToolPresent -Tools $readTools -Aliases @("clip.fade.read", "clip_fade_read") -Label "clip.fade.read"
+    Assert-ToolPresent -Tools $readTools -Aliases @("clip.gain.read", "clip_gain_read") -Label "clip.gain.read"
+    Assert-ToolAbsent -Tools $readTools -Aliases @("clip.gain.set", "clip_gain_set", "mix.propose_tick", "mix_propose_tick", "mix.apply_tick", "mix_apply_tick", "track.volume", "track_volume", "set_volume") -Label "stale write or mix route during clip read"
+    $fadeResult = Find-ExecutedToolResult -Rows $readRows -Aliases @("clip.fade.read", "clip_fade_read")
+    $gainResult = Find-ExecutedToolResult -Rows $readRows -Aliases @("clip.gain.read", "clip_gain_read")
+    if ([string](Get-OptionalProperty -Object $fadeResult -Name "clip_id") -ne $clip1ID) {
+        Fail ("clip.fade.read used wrong clip_id: " + ($fadeResult | ConvertTo-Json -Depth 12 -Compress))
+    }
+    if ([string](Get-OptionalProperty -Object $gainResult -Name "clip_id") -ne $clip1ID) {
+        Fail ("clip.gain.read used wrong clip_id: " + ($gainResult | ConvertTo-Json -Depth 12 -Compress))
+    }
+    $clipReply = [string](Get-OptionalProperty -Object $readClipState -Name "reply")
+    if ($clipReply -notmatch "Fade" -or $clipReply -notmatch "Clip gain") {
+        Fail ("clip fade/gain read reply did not expose fade/gain state: " + $clipReply)
+    }
+
+    $fadeSetMessage = Join-UnicodeChars @(0x628A, 0x5F53, 0x524D, 0x9009, 0x4E2D, 0x20, 0x63, 0x6C, 0x69, 0x70, 0x20, 0x7684, 0x20, 0x66, 0x61, 0x64, 0x65, 0x20, 0x69, 0x6E, 0x20, 0x8BBE, 0x7F6E, 0x4E3A, 0x20, 0x30, 0x2E, 0x31, 0x35, 0x20, 0x79D2, 0xFF0C, 0x66, 0x61, 0x64, 0x65, 0x20, 0x6F, 0x75, 0x74, 0x20, 0x8BBE, 0x7F6E, 0x4E3A, 0x20, 0x30, 0x2E, 0x32, 0x35, 0x20, 0x79D2)
+    $fadeSet = Invoke-AgentChat -ConversationID $clipConversationID -Message $fadeSetMessage -ExtraContext $uiContext
+    ConvertTo-JsonFile -Value $fadeSet -Path (Join-Path $ArtifactDir "chat_clip_fade_set_pending.json")
+    $fadeSetRows = @(Get-OptionalProperty -Object $fadeSet -Name "executed_kernel_reply")
+    $fadeSetTools = Tool-Names -Rows $fadeSetRows
+    $fadeSetNeedsConfirmation = [bool](Get-OptionalProperty -Object $fadeSet -Name "needs_confirmation")
+    if (-not $fadeSetNeedsConfirmation) {
+        Fail ("clip fade set did not request confirmation: " + ($fadeSet | ConvertTo-Json -Depth 16 -Compress))
+    }
+    Assert-ToolPresent -Tools $fadeSetTools -Aliases @("clip.fade.set", "clip_fade_set") -Label "clip.fade.set pending"
+    Assert-ToolAbsent -Tools $fadeSetTools -Aliases @("clip.fade.read", "clip_fade_read", "clip.gain.read", "clip_gain_read", "mix.propose_tick", "mix_propose_tick", "mix.apply_tick", "mix_apply_tick", "track.volume", "track_volume", "set_volume") -Label "read or mix route during clip fade set"
+
+    $clipConfirmMessage = Join-UnicodeChars @(0x53EF, 0x4EE5, 0x6267, 0x884C)
+    $fadeConfirm = Invoke-AgentChat -ConversationID $clipConversationID -Message $clipConfirmMessage -ExtraContext $uiContext
+    ConvertTo-JsonFile -Value $fadeConfirm -Path (Join-Path $ArtifactDir "chat_clip_fade_set_confirm.json")
+    $fadeConfirmRows = @(Get-OptionalProperty -Object $fadeConfirm -Name "executed_kernel_reply")
+    $fadeConfirmTools = Tool-Names -Rows $fadeConfirmRows
+    if ([bool](Get-OptionalProperty -Object $fadeConfirm -Name "needs_confirmation")) {
+        Fail ("clip fade set confirmation still needs confirmation: " + ($fadeConfirm | ConvertTo-Json -Depth 16 -Compress))
+    }
+    Assert-ToolPresent -Tools $fadeConfirmTools -Aliases @("clip.fade.set", "clip_fade_set") -Label "confirmed clip.fade.set"
+    Assert-ToolAbsent -Tools $fadeConfirmTools -Aliases @("mix.propose_tick", "mix_propose_tick", "mix.apply_tick", "mix_apply_tick", "track.volume", "track_volume", "set_volume") -Label "mix route during confirmed clip fade set"
+
+    $readAfterFadeSet = Invoke-AgentChat -ConversationID $clipConversationID -Message $readClipStateMessage -ExtraContext $uiContext
+    ConvertTo-JsonFile -Value $readAfterFadeSet -Path (Join-Path $ArtifactDir "chat_clip_fade_gain_read_after_set.json")
+    $readAfterRows = @(Get-OptionalProperty -Object $readAfterFadeSet -Name "executed_kernel_reply")
+    $readAfterTools = Tool-Names -Rows $readAfterRows
+    Assert-ToolPresent -Tools $readAfterTools -Aliases @("clip.fade.read", "clip_fade_read") -Label "clip.fade.read after fade set"
+    Assert-ToolPresent -Tools $readAfterTools -Aliases @("clip.gain.read", "clip_gain_read") -Label "clip.gain.read after fade set"
+    $fadeAfterResult = Find-ExecutedToolResult -Rows $readAfterRows -Aliases @("clip.fade.read", "clip_fade_read")
+    Assert-NearNumber -Actual (Get-OptionalProperty -Object $fadeAfterResult -Name "fade_in_seconds") -Expected 0.15 -Label "fade_in_seconds after agent fade set"
+    Assert-NearNumber -Actual (Get-OptionalProperty -Object $fadeAfterResult -Name "fade_out_seconds") -Expected 0.25 -Label "fade_out_seconds after agent fade set"
+
+    $summary["clip_fade_gain_agent"] = [ordered]@{
+        conversation_id = $clipConversationID
+        selected_track_id = $track1ID
+        selected_clip_id = $clip1ID
+        pending_setup_needs_confirmation = $setNeedsConfirmation
+        pending_setup_stop_reason = $setStop
+        pending_setup_route = $setTools
+        read_stop_reason = $readStop
+        read_needs_confirmation = $readNeedsConfirmation
+        read_route = $readTools
+        fade_set_pending_route = $fadeSetTools
+        fade_set_confirm_route = $fadeConfirmTools
+        read_after_fade_set_route = $readAfterTools
+        reply = $clipReply
+        full_response_files = @("chat_clip_gain_pending.json", "chat_clip_fade_gain_read.json", "chat_clip_fade_set_pending.json", "chat_clip_fade_set_confirm.json", "chat_clip_fade_gain_read_after_set.json")
+    }
+    Write-Ok "clip fade/gain agent read cleared stale confirmation and fade set round-tripped through typed clip tools"
+
+    if ($ClipFadeGainAgentOnly) {
+        $summary["conversation_id"] = $clipConversationID
+        $summary["tool_route"] = $readTools
+        $summary["status"] = "passed"
+        Write-Ok "focused clip fade/gain agent product-path smoke passed"
+        return
+    }
 
     Write-Step "Ask product-path mix question through agent HTTP"
     $conversationID = "product_path_mix_" + $Stamp
@@ -1939,6 +2429,9 @@ finally {
         if ($null -ne $started.agent -and [bool]$started.agent.started) {
             Stop-ProcessByID -ProcessID ([int]$started.agent.pid)
         }
+        if ($null -ne $started.hub -and [bool]$started.hub.started) {
+            Stop-ProcessByID -ProcessID ([int]$started.hub.pid)
+        }
         if ($null -ne $started.kernel -and [bool]$started.kernel.started) {
             Stop-ProcessByID -ProcessID ([int]$started.kernel.pid)
         }
@@ -1950,9 +2443,14 @@ finally {
         }
     }
     $env:VIT_DAW_DEV_ROOT = $oldDevRoot
+    $env:VIT_VSP_HUB_LAST_LOG_PATH = $oldVspHubLastLogPath
+    $env:VIT_AGENT_VSP_HUB_URL = $oldAgentVspHubUrl
     $env:VIT_AGENT_LAST_LOG_PATH = $oldAgentLastLogPath
     $env:VIT_AGENT_KEEP_LAST_LOG_LINES = $oldAgentKeepLogLines
     $env:VIT_SKIP_DEV_AUTOSTART = $oldSkipDevAutostart
+    $env:VIT_SPAL_REFERENCE_EQ_PROVIDER_STORE = $oldSPALReferenceEQProviderStore
+	$env:VIT_VPS_LIBRARY_V3_PATH = $oldVPSLibraryPath
+    $env:VIT_ORCHESTRATION_STORE_PATH = $oldOrchestrationStorePath
 }
 
 Write-Step "Summary"

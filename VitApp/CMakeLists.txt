@@ -195,6 +195,8 @@ set(VITAPP_SOURCE_FILES
     Source/Service/VitHeadlessService.h
     Source/Service/CommandDispatcher.cpp
     Source/Service/CommandDispatcher.h
+    Source/Service/VspKernelReference.cpp
+    Source/Service/VspKernelReference.h
     Source/Service/ClipService.cpp
     Source/Service/ClipService.h
     Source/Service/GeneratedAssetService.cpp
@@ -205,9 +207,15 @@ set(VITAPP_SOURCE_FILES
     Source/Service/JobEventService.h
     Source/Service/MidiService.cpp
     Source/Service/MidiService.h
-    Source/Service/ProjectService.cpp
-    Source/Service/ProjectService.h
-    Source/Service/PluginRackControlService.cpp
+    Source/Service/ProjectAudioSettingsService.cpp
+    Source/Service/ProjectAudioSettingsService.h
+      Source/Service/ProjectMarkerService.cpp
+      Source/Service/ProjectMarkerService.h
+      Source/Service/ProjectService.cpp
+      Source/Service/ProjectService.h
+      Source/Service/TrackGroupService.cpp
+      Source/Service/TrackGroupService.h
+      Source/Service/PluginRackControlService.cpp
     Source/Service/PluginRackControlService.h
     Source/Service/TrackService.cpp
     Source/Service/TrackService.h

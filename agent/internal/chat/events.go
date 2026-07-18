@@ -15,18 +15,24 @@ import (
 const agentEventBufferLimit = 500
 
 type AgentEvent struct {
-	Seq            int64          `json:"seq"`
-	Type           string         `json:"type"`
-	ConversationID string         `json:"conversation_id,omitempty"`
-	GoalID         string         `json:"goal_id,omitempty"`
-	RunID          string         `json:"run_id,omitempty"`
-	ItemID         string         `json:"item_id,omitempty"`
-	ItemType       string         `json:"item_type,omitempty"`
-	Status         string         `json:"status,omitempty"`
-	Title          string         `json:"title,omitempty"`
-	Body           string         `json:"body,omitempty"`
-	Payload        map[string]any `json:"payload,omitempty"`
-	CreatedAt      string         `json:"created_at,omitempty"`
+	Seq              int64          `json:"seq"`
+	Type             string         `json:"type"`
+	ConversationID   string         `json:"conversation_id,omitempty"`
+	GoalID           string         `json:"goal_id,omitempty"`
+	RunID            string         `json:"run_id,omitempty"`
+	ItemID           string         `json:"item_id,omitempty"`
+	ItemType         string         `json:"item_type,omitempty"`
+	Status           string         `json:"status,omitempty"`
+	Title            string         `json:"title,omitempty"`
+	Body             string         `json:"body,omitempty"`
+	Payload          map[string]any `json:"payload,omitempty"`
+	CreatedAt        string         `json:"created_at,omitempty"`
+	Lifecycle        string         `json:"lifecycle,omitempty"`
+	Persistence      string         `json:"persistence,omitempty"`
+	MessageKind      string         `json:"message_kind,omitempty"`
+	TurnID           string         `json:"turn_id,omitempty"`
+	LogicalMessageID string         `json:"logical_message_id,omitempty"`
+	Supersedes       []string       `json:"supersedes,omitempty"`
 }
 
 type AgentEventsResponse struct {
@@ -103,6 +109,21 @@ func (s *Server) emitAgentEvent(conversationID string, event AgentEvent) AgentEv
 	}
 	s.eventSeq[conversationID]++
 	event.Seq = s.eventSeq[conversationID]
+	if strings.TrimSpace(event.Lifecycle) == "" {
+		event.Lifecycle = "transient"
+	}
+	if strings.TrimSpace(event.Persistence) == "" {
+		event.Persistence = "none"
+	}
+	if strings.TrimSpace(event.MessageKind) == "" {
+		event.MessageKind = "activity"
+	}
+	if strings.TrimSpace(event.TurnID) == "" {
+		event.TurnID = firstNonEmpty(strings.TrimSpace(event.RunID), strings.TrimSpace(event.GoalID))
+	}
+	if strings.TrimSpace(event.LogicalMessageID) == "" {
+		event.LogicalMessageID = "agent_event:" + conversationID + ":" + strconv.FormatInt(event.Seq, 10)
+	}
 	rows := append(s.events[conversationID], event)
 	if len(rows) > agentEventBufferLimit {
 		rows = rows[len(rows)-agentEventBufferLimit:]
@@ -119,10 +140,12 @@ func (s *Server) emitTurnEvent(conversationID, eventType string, resp ChatRespon
 	if status == "" && eventType == "turn.started" {
 		status = "running"
 	}
+	goalID := firstNonEmpty(resp.GoalID, fallbackGoalID)
+	runID := firstNonEmpty(resp.RunID, fallbackRunID)
 	s.emitAgentEvent(conversationID, AgentEvent{
 		Type:     eventType,
-		GoalID:   firstNonEmpty(resp.GoalID, fallbackGoalID),
-		RunID:    firstNonEmpty(resp.RunID, fallbackRunID),
+		GoalID:   goalID,
+		RunID:    runID,
 		ItemType: "turn",
 		Status:   status,
 		Title:    turnEventTitle(eventType, status),
@@ -135,6 +158,7 @@ func (s *Server) emitTurnEvent(conversationID, eventType string, resp ChatRespon
 			"error":              resp.Error,
 			"typed_events":       resp.TypedEvents,
 		},
+		LogicalMessageID: "agent_turn:" + firstNonEmpty(runID, goalID, conversationID),
 	})
 }
 
@@ -164,15 +188,16 @@ func (s *Server) emitToolItemStarted(in executorpkg.Input, toolCallID string) {
 		payload["typed_event"] = agentprotocol.ToMap(agentprotocol.NewEvent(request, request.Source))
 	}
 	s.emitAgentEvent(conversationID, AgentEvent{
-		Type:     "item.started",
-		GoalID:   in.GoalID,
-		RunID:    in.RunID,
-		ItemID:   toolCallID,
-		ItemType: "daw_action",
-		Status:   "running",
-		Title:    toolEventTitle(call),
-		Body:     toolEventBody(call),
-		Payload:  payload,
+		Type:             "item.started",
+		GoalID:           in.GoalID,
+		RunID:            in.RunID,
+		ItemID:           toolCallID,
+		ItemType:         "daw_action",
+		Status:           "running",
+		Title:            toolEventTitle(call),
+		Body:             toolEventBody(call),
+		Payload:          payload,
+		LogicalMessageID: agentItemLogicalMessageID(in.RunID, in.GoalID, toolCallID),
 	})
 }
 
@@ -220,16 +245,24 @@ func (s *Server) emitToolItemCompleted(in executorpkg.Input, result executorpkg.
 		payload["typed_events"] = typedEvents
 	}
 	s.emitAgentEvent(conversationID, AgentEvent{
-		Type:     eventType,
-		GoalID:   in.GoalID,
-		RunID:    in.RunID,
-		ItemID:   firstNonEmpty(strings.TrimSpace(result.ToolCallID), strings.TrimSpace(in.ToolCall.ID)),
-		ItemType: "daw_action",
-		Status:   status,
-		Title:    toolResultTitle(in.ToolCall, result),
-		Body:     toolResultBody(result, err),
-		Payload:  payload,
+		Type:             eventType,
+		GoalID:           in.GoalID,
+		RunID:            in.RunID,
+		ItemID:           firstNonEmpty(strings.TrimSpace(result.ToolCallID), strings.TrimSpace(in.ToolCall.ID)),
+		ItemType:         "daw_action",
+		Status:           status,
+		Title:            toolResultTitle(in.ToolCall, result),
+		Body:             toolResultBody(result, err),
+		Payload:          payload,
+		LogicalMessageID: agentItemLogicalMessageID(in.RunID, in.GoalID, firstNonEmpty(strings.TrimSpace(result.ToolCallID), strings.TrimSpace(in.ToolCall.ID))),
 	})
+}
+
+func agentItemLogicalMessageID(runID, goalID, itemID string) string {
+	return "agent_item:" + strings.Join([]string{
+		firstNonEmpty(strings.TrimSpace(runID), strings.TrimSpace(goalID), "turn"),
+		firstNonEmpty(strings.TrimSpace(itemID), "item"),
+	}, ":")
 }
 
 func typedAcousticPackageStatusEventFromToolResult(result map[string]any, source agentprotocol.Source) map[string]any {

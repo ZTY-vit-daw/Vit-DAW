@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 
+	"vit-daw-agent/internal/actionworkflow"
 	"vit-daw-agent/internal/agentloop"
 	"vit-daw-agent/internal/agentprotocol"
 	"vit-daw-agent/internal/config"
@@ -39,26 +40,40 @@ func (s *Server) handlePendingMixTreatmentChat(ctx context.Context, conversation
 	if !ok {
 		return ChatResponse{}, false
 	}
+	confirmation := actionworkflow.ClassifyConfirmation(req.Message, true)
 	switch {
-	case messageRevisesPendingMixTreatment(req.Message):
+	case confirmation.Kind == actionworkflow.DecisionRevision:
 		if s != nil && s.logger != nil {
 			s.logger.Info("[mix.treatment.pending] revision requested conversation=%s message=%q action=%s processor=%s target=%s", conversationID, req.Message, treatment.ActionKind, treatment.ProcessorType, treatment.TargetRef)
 		}
 		s.transitionActivePendingCandidate(conversationID, "mix_treatment", agentprotocol.PendingStatusRevisionRequested, req.Message)
 		s.expirePendingMixTreatment(conversationID)
 		return ChatResponse{}, false
-	case messageKeepsMixTickDiscussion(req.Message):
+	case confirmation.Kind == actionworkflow.DecisionFollowup || messageKeepsMixTickDiscussion(req.Message):
 		if s != nil && s.logger != nil {
 			s.logger.Info("[mix.treatment.pending] discussion continued without resolution conversation=%s message=%q action=%s processor=%s target=%s", conversationID, req.Message, treatment.ActionKind, treatment.ProcessorType, treatment.TargetRef)
 		}
 		return ChatResponse{}, false
+	case confirmation.Kind == actionworkflow.DecisionReject:
+		if s != nil && s.logger != nil {
+			s.logger.Info("[mix.treatment.pending] rejected conversation=%s message=%q action=%s processor=%s target=%s", conversationID, req.Message, treatment.ActionKind, treatment.ProcessorType, treatment.TargetRef)
+		}
+		s.transitionActivePendingCandidate(conversationID, "mix_treatment", agentprotocol.PendingStatusRejected, "user rejected pending mix treatment")
+		s.expirePendingMixTreatment(conversationID)
+		return ChatResponse{
+			ConversationID: conversationID,
+			AgentMode:      mode,
+			Reply:          "已取消这条待确认混音建议，没有执行任何工程修改。",
+			GoalStatus:     "completed",
+			StopReason:     "mix_treatment_rejected",
+		}, true
 	case messageClearlyShiftsMixTickContext(req.Message):
 		if s != nil && s.logger != nil {
 			s.logger.Info("[mix.treatment.pending] expired on context shift conversation=%s message=%q action=%s processor=%s target=%s", conversationID, req.Message, treatment.ActionKind, treatment.ProcessorType, treatment.TargetRef)
 		}
 		s.expirePendingMixTreatment(conversationID)
 		return ChatResponse{}, false
-	case messageExplicitMixTickApply(req.Message) || messagePlainMixApproval(req.Message):
+	case confirmation.Kind == actionworkflow.DecisionAccept:
 		decision := s.resolveMixTreatment(ctx, treatment, req.Context)
 		s.transitionActivePendingCandidate(conversationID, "mix_treatment", agentprotocol.PendingStatusAccepted, "user confirmed pending mix treatment")
 		s.expirePendingMixTreatment(conversationID)
@@ -163,6 +178,9 @@ func mixTreatmentResolverEventBody(decision mixResolverDecision) string {
 }
 
 func messageRevisesPendingMixTreatment(message string) bool {
+	if actionworkflow.ClassifyConfirmation(message, true).Kind == actionworkflow.DecisionRevision {
+		return true
+	}
 	text := strings.ToLower(strings.TrimSpace(message))
 	if text == "" {
 		return false
@@ -207,12 +225,7 @@ func messageLooksLikePanRevisionRequest(message string) bool {
 }
 
 func messagePlainMixApproval(message string) bool {
-	switch strings.ToLower(strings.TrimSpace(message)) {
-	case "是的", "对", "对的", "没错", "确认", "确认一下", "可以", "好", "好的", "行", "yes", "y", "ok", "okay", "confirm":
-		return true
-	default:
-		return false
-	}
+	return actionworkflow.ClassifyConfirmation(message, true).Kind == actionworkflow.DecisionAccept
 }
 
 func (s *Server) pendingMixTreatmentForConversation(conversationID string) (agentloop.MixTreatmentPending, bool) {
@@ -990,6 +1003,8 @@ func (s *Server) executeResolvedMixTreatment(ctx context.Context, conversationID
 		Reason:  "confirmed mix treatment resolver route",
 	}
 	completedSteps := 1
+	var abObserve executor.Result
+	abObserved := false
 	if err == nil && !resultFailed(resp) {
 		trackID := firstNonEmpty(cleanContextText(decision.Command["track_id"]), trackIDFromTreatmentTarget(treatment.TargetRef))
 		observeArgs := map[string]any{
@@ -1017,16 +1032,18 @@ func (s *Server) executeResolvedMixTreatment(ctx context.Context, conversationID
 		if observeErr != nil || resultFailed(observe) {
 			stopReason = "mix_treatment_applied_plugin_control_reobserve_failed"
 			errText = firstNonEmpty(observe.Error, fmt.Sprint(observeErr))
-			reply += " Re-observe after the plugin move failed, so listen/check the project before continuing."
+			reply += "\n\nAB Result：不可信（原因：reobserve_failed）。插件处理已尝试执行，但执行后复观测失败；继续前请先听检或重新观察工程。"
 		} else {
 			stopReason = "mix_treatment_applied_plugin_control_reobserved"
 			completedSteps = 2
-			if observationID := firstNonEmpty(cleanContextText(observe.Result["observation_id"]), cleanContextText(mapValue(observe.Result["observation"])["observation_id"]), cleanContextText(mapValue(observe.Result["digest"])["observation_id"])); observationID != "" {
-				reply += " Re-observed after the plugin move: " + observationID + "."
-			} else {
-				reply += " Re-observed after the plugin move."
-			}
+			abObserve = observe
+			abObserved = true
+			reply += "\n\n" + strings.Join(pendingMixTickABResultLines(observe), "\n")
 		}
+	}
+	projectCards := projectResultCardsFromExecuted(executed)
+	if abObserved {
+		projectCards = projectResultCardsFromExecutedWithAB(executed, abObserve)
 	}
 	return ChatResponse{
 		ConversationID:      conversationID,
@@ -1036,7 +1053,7 @@ func (s *Server) executeResolvedMixTreatment(ctx context.Context, conversationID
 		Reply:               reply,
 		Commands:            []policy.Decision{commandDecision},
 		ExecutedKernelReply: executed,
-		ProjectResultCards:  projectResultCardsFromExecuted(executed),
+		ProjectResultCards:  projectCards,
 		Artifacts:           artifactSummariesFromExecuted(executed),
 		GoalStatus:          status,
 		GoalSummary:         req.Message,

@@ -1,5 +1,20 @@
 export type AgentMode = "default" | "plan" | "goal";
 
+export type MessageLifecycle = "transient" | "durable";
+
+export type MessagePersistence = "none" | "local" | "project_history";
+
+export type MessageKind =
+  | "activity"
+  | "user"
+  | "assistant"
+  | "proposal"
+  | "execution_receipt"
+  | "verification"
+  | "warning"
+  | "error"
+  | "system";
+
 export type JsonRecord = Record<string, unknown>;
 
 export interface HealthResponse {
@@ -29,6 +44,12 @@ export interface AgentEvent {
   body?: string;
   payload?: JsonRecord;
   created_at?: string;
+  lifecycle?: MessageLifecycle;
+  persistence?: MessagePersistence;
+  message_kind?: MessageKind;
+  turn_id?: string;
+  logical_message_id?: string;
+  supersedes?: string[];
 }
 
 export interface AgentEventsResponse {
@@ -174,6 +195,7 @@ export interface ChatResponse {
   needs_confirmation?: boolean;
   plan_id?: string;
   preview?: string;
+  proposal_presentation?: JsonRecord;
   workflow?: string;
   workflow_data?: JsonRecord;
   plugin_learning?: JsonRecord;
@@ -200,6 +222,12 @@ export interface ChatResponse {
     macro_panel_id?: string;
   };
   error?: string;
+  lifecycle?: MessageLifecycle;
+  persistence?: MessagePersistence;
+  message_kind?: MessageKind;
+  turn_id?: string;
+  logical_message_id?: string;
+  supersedes?: string[];
 }
 
 export interface InteractionRespondRequest {
@@ -255,6 +283,12 @@ export interface ChatMessage {
   actions?: JsonRecord[];
   createdAt: number;
   status?: "pending" | "sent" | "error";
+  lifecycle?: MessageLifecycle;
+  persistence?: MessagePersistence;
+  message_kind?: MessageKind;
+  turn_id?: string;
+  logical_message_id?: string;
+  supersedes?: string[];
 }
 
 export interface ArtifactReadResponse {

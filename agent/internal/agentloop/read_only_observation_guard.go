@@ -62,7 +62,7 @@ func messageLoopReadOnlyObservationHasActionIntent(text string) bool {
 		"apply", "execute", "do it", "go ahead", "modify", "change", "adjust", "fix", "load", "write", "prepare", "candidate", "treatment", "plugin", "eq", "compressor", "reverb", "delay", "low cut", "set parameter", "mix this", "mix it",
 		"\u5e2e\u6211\u6df7", "\u6df7\u4e00\u4e0b", "\u5904\u7406\u4e00\u4e0b", "\u8c03\u4e00\u4e0b", "\u8c03\u6574", "\u4fee\u4e00\u4e0b", "\u6539\u4e00\u4e0b",
 		"\u600e\u4e48\u8c03", "\u600e\u4e48\u5904\u7406", "\u51c6\u5907", "\u5019\u9009", "\u63d2\u4ef6", "\u5747\u8861", "\u4f4e\u5207",
-		"\u6267\u884c", "\u5e94\u7528", "\u52a0\u8f7d", "\u6302\u8f7d", "\u5199\u53c2\u6570", "\u6539\u53c2\u6570",
+		"\u6267\u884c", "\u5e94\u7528", "\u52a0\u8f7d", "\u6302\u8f7d", "\u5199\u53c2\u6570", "\u6539\u53c2\u6570", "\u6821\u51c6", "\u8865\u507f",
 	)
 }
 
@@ -71,11 +71,13 @@ func messageLoopReadOnlyAllowedTool(call planner.ToolCall) bool {
 	if name == "" {
 		name = strings.ToLower(strings.TrimSpace(call.Tool))
 	}
-	if strings.HasPrefix(name, "get_") || strings.HasPrefix(name, "list_") || strings.Contains(name, ".list") || strings.Contains(name, ".read") || strings.Contains(name, "project.state") {
+	if strings.HasPrefix(name, "get_") || strings.HasPrefix(name, "list_") || strings.Contains(name, ".list") || strings.Contains(name, ".read") || strings.Contains(name, "project.state") || strings.Contains(name, "get_audio_settings") {
 		return true
 	}
 	switch name {
-	case "project.state", "get_project_state", "track.list", "mix.observe", "mix_observe", "mix.request_observation", "mix_request_observation", "mix.read", "mix_read", "mix.derive", "mix_derive":
+	case "project.state", "get_project_state", "track.list",
+		"project.get_audio_settings", "project.validate_audio_settings_change", "project.import_preflight", "media.inspect_files",
+		"mix.observe", "mix_observe", "mix.request_observation", "mix_request_observation", "mix.read", "mix_read", "mix.derive", "mix_derive":
 		return true
 	default:
 		return false

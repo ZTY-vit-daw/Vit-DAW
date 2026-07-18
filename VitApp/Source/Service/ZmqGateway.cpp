@@ -51,6 +51,39 @@ juce::String buildDeltaUpdateJson (const DeltaEvent& event)
     return juce::JSON::toString (juce::var (o.release()));
 }
 
+int timeoutMsFromVar (const juce::var& value, int fallback)
+{
+    if (value.isInt() || value.isInt64() || value.isDouble())
+        return juce::roundToInt (static_cast<double> (value));
+
+    const auto text = value.toString().trim();
+    if (text.isEmpty())
+        return fallback;
+
+    const auto parsed = text.getIntValue();
+    return parsed > 0 ? parsed : fallback;
+}
+
+int commandTimeoutMsForPayload (const juce::String& payload)
+{
+    constexpr int defaultTimeoutMs = 5000;
+    constexpr int minTimeoutMs = 1000;
+    constexpr int maxTimeoutMs = 300000;
+
+    const auto parsed = juce::JSON::parse (payload);
+    auto* object = parsed.getDynamicObject();
+
+    if (object == nullptr)
+        return defaultTimeoutMs;
+
+    auto requested = timeoutMsFromVar (object->getProperty ("command_timeout_ms"), 0);
+    if (requested <= 0)
+        requested = timeoutMsFromVar (object->getProperty ("kernel_command_timeout_ms"), 0);
+
+    return requested > 0 ? juce::jlimit (minTimeoutMs, maxTimeoutMs, requested)
+                         : defaultTimeoutMs;
+}
+
 void writeToStdErr (const juce::String& message)
 {
     std::fputs ((message + "\n").toRawUTF8(), stderr);
@@ -159,6 +192,9 @@ void ZmqGateway::run()
 
             const auto payload = toJuceString (request);
             juce::Logger::writeToLog ("ZmqGateway: received command payload: " + payload);
+            const auto commandTimeoutMs = commandTimeoutMsForPayload (payload);
+            if (commandTimeoutMs != 5000)
+                juce::Logger::writeToLog ("ZmqGateway: command timeout budget ms=" + juce::String (commandTimeoutMs));
 
             auto responsePromise = std::make_shared<std::promise<juce::String>>();
             auto responseFuture = responsePromise->get_future();
@@ -198,7 +234,7 @@ void ZmqGateway::run()
             {
                 replyPayload = buildErrorReply ("Failed to post command to JUCE message thread");
             }
-            else if (responseFuture.wait_for (std::chrono::seconds (5)) == std::future_status::ready)
+            else if (responseFuture.wait_for (std::chrono::milliseconds (commandTimeoutMs)) == std::future_status::ready)
             {
                 replyPayload = responseFuture.get();
             }

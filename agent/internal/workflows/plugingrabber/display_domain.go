@@ -14,7 +14,10 @@ const (
 	displayDomainStatusUnknown           = "unknown"
 )
 
-var displayDomainRangePattern = regexp.MustCompile(`(?i)([-+]?\d+(?:\.\d+)?)\s*(?:db|hz|khz|%|ms|sec|s)?\s*(?:~|〜|～|至|到|to|\.{2,}|[-–—]+)\s*([-+]?\d+(?:\.\d+)?)`)
+var (
+	displayDomainRangePattern = regexp.MustCompile(`(?i)([-+]?\d+(?:\.\d+)?)\s*(?:db|hz|khz|%|ms|sec|s|q)?\s*(?:~|〜|～|至|到|to|\.{2,}|[-–—]+)\s*([-+]?\d+(?:\.\d+)?)`)
+	displayDomainQUnitPattern = regexp.MustCompile(`(?i)(?:^|[^[:alnum:]_])q(?:$|[^[:alnum:]_])`)
+)
 
 func parseDisplayDomainText(text, source string, confirmed bool) *PluginDisplayDomain {
 	text = strings.TrimSpace(text)
@@ -89,6 +92,8 @@ func inferDisplayDomainUnit(text string) string {
 		return "ms"
 	case strings.Contains(lower, "sec") || strings.Contains(lower, "second") || strings.Contains(text, "秒"):
 		return "s"
+	case displayDomainQUnitPattern.MatchString(lower) || strings.Contains(lower, "quality") || strings.Contains(lower, "bandwidth"):
+		return "Q"
 	}
 	return ""
 }
@@ -185,7 +190,7 @@ func inferredDisplayDomainForSlot(slot string, param ParameterInfo) *PluginDispl
 		param.ValueText,
 	}, " "))
 	switch {
-	case param.IsBoolean || cleanSlot == "enable" || strings.Contains(text, "enable") || strings.Contains(text, "bypass"):
+	case param.IsBoolean || cleanSlot == "enable" || cleanSlot == "dyn_enable" || strings.Contains(text, "enable") || strings.Contains(text, "bypass"):
 		return displayDomain("0~1 toggle", "toggle", 0, 1, "enum", displayDomainStatusInferred, "auto_learn_parameter_shape", 0.85)
 	case isSteppedDisplayDomainParameter(cleanSlot, text, param):
 		label := firstNonEmptyString(strings.TrimSpace(param.ValueText), param.Name, param.RawName, param.Alias, cleanSlot, "stepped values")
@@ -204,6 +209,18 @@ func inferredDisplayDomainForSlot(slot string, param ParameterInfo) *PluginDispl
 	case cleanSlot == "frequency" || cleanSlot == "freq" || strings.Contains(text, "frequency") || strings.Contains(text, "freq"):
 		return displayDomain("20~20000 Hz 对数", "Hz", 20, 20000, "log", displayDomainStatusInferred, "auto_learn_eq_slot", 0.78)
 	case cleanSlot == "q" || strings.Contains(text, "quality") || strings.Contains(text, "bandwidth"):
+		// A display probe can recover the real Q curve even when it cannot
+		// infer a literal unit label.  Prefer that observed range to the
+		// generic EQ fallback; SPAL conformance must not silently widen it.
+		if candidate := param.DisplayDomainCandidate; candidate != nil && candidate.Min != nil && candidate.Max != nil && candidate.Confidence >= 0.70 {
+			out := *candidate
+			out.Unit = "Q"
+			if strings.TrimSpace(out.Scale) == "" {
+				out.Scale = "log"
+			}
+			out.Text = fmt.Sprintf("%g~%g Q", *out.Min, *out.Max)
+			return &out
+		}
 		return displayDomain("0.1~10 Q", "Q", 0.1, 10, "log", displayDomainStatusInferred, "auto_learn_eq_slot", 0.70)
 	case strings.Contains(text, "feedback") || strings.Contains(text, "depth") || strings.Contains(text, "width") || strings.Contains(text, "density") || strings.Contains(text, "warp") || strings.Contains(text, "amount") || strings.Contains(strings.ToLower(param.ValueText), "%"):
 		return displayDomain("0~100 %", "%", 0, 100, "linear", displayDomainStatusInferred, "auto_learn_name_pattern", 0.70)

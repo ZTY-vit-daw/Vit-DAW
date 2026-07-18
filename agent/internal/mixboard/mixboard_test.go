@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"vit-daw-agent/internal/mom"
+	"vit-daw-agent/internal/tim"
 )
 
 func TestRequestObservationWritesBoardAndContextPack(t *testing.T) {
@@ -704,6 +705,146 @@ func TestProjectObserveBuildsCurrentMOMMultitrackProjection(t *testing.T) {
 	if result.ContextPack.LatestObservation["mom_projection"] == nil {
 		t.Fatalf("context pack missing projection: %#v", result.ContextPack.LatestObservation)
 	}
+}
+
+func TestProjectObserveBuildsCurrentTIMTechnicalIntegrityProjection(t *testing.T) {
+	root := t.TempDir()
+	snapshotPath := filepath.Join(root, "feature_snapshot.json")
+	if err := os.WriteFile(snapshotPath, []byte(`{
+		"schema_version":"mixboard_feature_snapshot.v1",
+		"updated_at":"2026-06-25T08:30:00Z",
+		"track_waveform_envelopes":[
+			{"status":"ready","track_id":"vocal_1","clip_id":"clip_v","rms":0.2,"peak_abs":0.6},
+			{"status":"ready","track_id":"beat_1","clip_id":"clip_b","rms":0.18,"peak_abs":0.5}
+		],
+		"waveform_envelope":{"status":"missing"},
+		"spectrogram_tiles":{"status":"missing"}
+	}`), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	store := NewStore(root)
+	result, err := store.RequestObservation(Request{
+		MixSessionID: "mix_project_tim_v0",
+		TargetRef:    TargetRef{Kind: "project", ID: "current", Label: "Current project"},
+		ListenScope:  ListenScope{Source: ListenSourceScope{Mode: "full_project"}},
+		ProjectState: map[string]any{
+			"tracks": []any{
+				map[string]any{
+					"track_id":   "vocal_1",
+					"track_name": "Lead Vocal",
+					"clips": []any{map[string]any{
+						"clip_id":               "clip_v",
+						"clip_name":             "lead_vocal",
+						"current_source_path":   "D:\\Mix\\lead_vocal.wav",
+						"length_seconds":        12.0,
+						"playback_source_valid": true,
+						"sample_rate_hz":        48000,
+						"bit_depth":             24,
+						"channel_count":         1,
+					}},
+				},
+				map[string]any{
+					"track_id":   "beat_1",
+					"track_name": "Beat Print",
+					"clips": []any{map[string]any{
+						"clip_id":               "clip_b",
+						"clip_name":             "beat_print",
+						"current_source_path":   "D:\\Mix\\beat_print.mp3",
+						"length_seconds":        12.0,
+						"playback_source_valid": true,
+						"sample_rate_hz":        48000,
+						"channel_count":         2,
+					}},
+				},
+				map[string]any{
+					"track_id":   "broken_1",
+					"track_name": "Broken Audio",
+					"clips": []any{map[string]any{
+						"clip_id":               "clip_x",
+						"clip_name":             "missing_clip",
+						"length_seconds":        12.0,
+						"playback_source_valid": false,
+						"sample_rate_hz":        44100,
+						"bit_depth":             16,
+						"channel_count":         2,
+					}},
+				},
+				map[string]any{
+					"track_id":   "empty_1",
+					"track_name": "Empty Aux",
+					"clips":      []any{},
+				},
+			},
+		},
+		Args: map[string]any{"feature_snapshot_path": snapshotPath},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	proj := result.Observation.TIMProjection
+	if proj == nil {
+		t.Fatalf("missing TIM projection")
+	}
+	if proj.SchemaVersion != tim.SchemaVersion || proj.TIMVersion != tim.Version {
+		t.Fatalf("tim version mismatch: %#v", proj)
+	}
+	if proj.Status != "suspect" || proj.RiskSummary.OverallRisk != "high" {
+		t.Fatalf("tim status/risk = %s/%s projection=%#v", proj.Status, proj.RiskSummary.OverallRisk, proj)
+	}
+	if proj.TechnicalSummary.TrackCount != 4 || proj.TechnicalSummary.ClipCount != 3 {
+		t.Fatalf("tim summary counts = %#v", proj.TechnicalSummary)
+	}
+	if proj.TechnicalSummary.CompressedSourceCount != 1 || proj.TechnicalSummary.PCMSourceCount != 1 {
+		t.Fatalf("format counts = %#v", proj.TechnicalSummary)
+	}
+	if proj.TechnicalSummary.SourceMissingCount != 1 || proj.TechnicalSummary.PlaybackInvalidCount != 1 || proj.TechnicalSummary.EmptyTrackCount != 1 {
+		t.Fatalf("source/playback/empty counts = %#v", proj.TechnicalSummary)
+	}
+	if proj.Coverage.BitDepth.KnownCount != 1 || proj.Coverage.BitDepth.TotalCount != 1 || proj.Coverage.BitDepth.NotApplicable < 1 {
+		t.Fatalf("mp3 bit depth should be not applicable, coverage=%#v", proj.Coverage.BitDepth)
+	}
+	for _, want := range []string{"source_path_missing", "playback_source_invalid", "compressed_source_format", "empty_track"} {
+		if !timIssueCodePresent(proj.Issues, want) {
+			t.Fatalf("missing TIM issue %s in %#v", want, proj.Issues)
+		}
+	}
+	if result.ContextPack.LatestObservation["tim_projection"] == nil || result.ContextPack.LatestObservation["technical_integrity_context"] == nil {
+		t.Fatalf("context pack missing TIM context: %#v", result.ContextPack.LatestObservation)
+	}
+	catalogText := fmt.Sprint(result.Observation.Catalog.Entries)
+	if !strings.Contains(catalogText, "observation.tim_projection") {
+		t.Fatalf("catalog missing TIM projection entry: %s", catalogText)
+	}
+	read, err := store.Read(ReadRequest{
+		MixSessionID: result.Observation.MixSessionID,
+		Keys:         []string{"observation.tim_projection"},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	items := mapValue(read["items"])
+	if mapValue(items["observation.tim_projection"])["schema_version"] != tim.SchemaVersion {
+		t.Fatalf("mix.read missing TIM projection: %#v", items)
+	}
+	contextData, err := json.Marshal(result.ContextPack)
+	if err != nil {
+		t.Fatal(err)
+	}
+	contextText := string(contextData)
+	for _, forbidden := range []string{`"time_segments":`, `"track_waveform_envelopes":`, "D:\\Mix", "current_source_path"} {
+		if strings.Contains(contextText, forbidden) {
+			t.Fatalf("context pack leaked raw field/path %s in %s", forbidden, contextText)
+		}
+	}
+}
+
+func timIssueCodePresent(issues []tim.Issue, code string) bool {
+	for _, issue := range issues {
+		if issue.Code == code {
+			return true
+		}
+	}
+	return false
 }
 
 func TestReadySnapshotWithStableSourceIdentitySurvivesNewRequestID(t *testing.T) {

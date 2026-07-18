@@ -4,6 +4,8 @@
 
 #include <JuceHeader.h>
 
+#include "AudioFeatureTypes.h"
+
 namespace vit
 {
 
@@ -22,10 +24,13 @@ public:
                            juce::String sourceId = {},
                            juce::String sourceRevision = {},
                            juce::String clipRevision = {},
-                           juce::String renderRevision = {});
+                           juce::String renderRevision = {},
+                           AudioFeaturePriority priority = AudioFeaturePriority::OnDemand);
 
     static void releaseTrackMappings (const juce::String& trackId);
     static void invalidateClipBake (const juce::String& clipId);
+    static juce::var getLatestBakeStatus (const juce::String& trackId,
+                                          const juce::String& clipId);
 };
 
 } // namespace vit

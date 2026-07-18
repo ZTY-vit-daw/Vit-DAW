@@ -4,12 +4,119 @@
 #include "TiledSpectrogramBaker.h"
 #include "WaveformEnvelopeBaker.h"
 
+#include <map>
 #include <utility>
 
 namespace vit
 {
 namespace
 {
+constexpr juce::int64 kAudioFeatureRequestMergeWindowMs = 30000;
+juce::CriticalSection gRecentAudioFeatureRequestLock;
+
+struct RecentAudioFeatureRequest
+{
+    juce::int64 lastMs = 0;
+    int priorityRank = 100;
+};
+
+std::map<std::string, RecentAudioFeatureRequest> gRecentAudioFeatureRequests;
+
+int audioFeaturePriorityRank (AudioFeaturePriority priority)
+{
+    switch (priority)
+    {
+        case AudioFeaturePriority::OnDemand:         return 0;
+        case AudioFeaturePriority::ImportImmediate:  return 10;
+        case AudioFeaturePriority::BackgroundWarm:   return 50;
+    }
+
+    return 100;
+}
+
+juce::String audioFeatureRequestMergeKey (const AudioFeatureBakeRequest& request)
+{
+    const auto featureType = audioFeatureTypeToString (request.featureType);
+    auto subject = request.clipId.trim();
+    if (subject.isEmpty())
+        subject = request.sourceId.trim();
+    if (subject.isEmpty())
+        subject = request.filePath.trim();
+
+    auto revision = request.clipRevision.trim();
+    if (revision.isEmpty())
+        revision = request.renderRevision.trim();
+    if (revision.isEmpty())
+        revision = request.sourceRevision.trim();
+    if (revision.isEmpty())
+        revision = request.filePath.trim();
+
+    return "track=" + request.trackId.trim()
+        + "|subject=" + subject
+        + "|feature=" + featureType
+        + "|offset=" + juce::String (request.range.sourceOffsetSeconds, 4)
+        + "|length=" + juce::String (request.range.lengthSeconds, 4)
+        + "|frame_width=" + juce::String (request.featureType == AudioFeatureType::WaveformEnvelope
+                                           ? 0
+                                           : request.resolution.frameWidth)
+        + "|revision=" + revision;
+}
+
+void pruneRecentAudioFeatureRequests (juce::int64 nowMs)
+{
+    for (auto it = gRecentAudioFeatureRequests.begin(); it != gRecentAudioFeatureRequests.end();)
+    {
+        if (nowMs - it->second.lastMs > kAudioFeatureRequestMergeWindowMs)
+            it = gRecentAudioFeatureRequests.erase (it);
+        else
+            ++it;
+    }
+}
+
+bool shouldMergeRecentAudioFeatureRequest (const AudioFeatureBakeRequest& request)
+{
+    const auto key = audioFeatureRequestMergeKey (request);
+    if (key.trim().isEmpty())
+        return false;
+
+    const auto nowMs = juce::Time::currentTimeMillis();
+    const juce::ScopedLock lock (gRecentAudioFeatureRequestLock);
+    pruneRecentAudioFeatureRequests (nowMs);
+
+    const auto keyText = key.toStdString();
+    const auto incomingPriorityRank = audioFeaturePriorityRank (request.priority);
+    auto existing = gRecentAudioFeatureRequests.find (keyText);
+    if (existing != gRecentAudioFeatureRequests.end())
+    {
+        existing->second.lastMs = nowMs;
+        if (incomingPriorityRank < existing->second.priorityRank)
+        {
+            existing->second.priorityRank = incomingPriorityRank;
+            return false;
+        }
+        return true;
+    }
+
+    gRecentAudioFeatureRequests[keyText] = { nowMs, incomingPriorityRank };
+    return false;
+}
+
+void forgetRecentAudioFeatureRequestsContaining (const juce::String& token)
+{
+    const auto needle = token.trim();
+    if (needle.isEmpty())
+        return;
+
+    const juce::ScopedLock lock (gRecentAudioFeatureRequestLock);
+    const auto text = needle.toStdString();
+    for (auto it = gRecentAudioFeatureRequests.begin(); it != gRecentAudioFeatureRequests.end();)
+    {
+        if (it->first.find (text) != std::string::npos)
+            it = gRecentAudioFeatureRequests.erase (it);
+        else
+            ++it;
+    }
+}
 
 void publishDeferredStatus (const AudioFeatureBakeRequest& request,
                             const AudioFeatureService::PublishCallback& publish)
@@ -51,6 +158,9 @@ void publishDeferredStatus (const AudioFeatureBakeRequest& request,
 void AudioFeatureService::requestBake (AudioFeatureBakeRequest request,
                                        PublishCallback publishCallback)
 {
+    if (shouldMergeRecentAudioFeatureRequest (request))
+        return;
+
     if (audioFeatureUsesSpectralTextureTile (request.featureType))
     {
         TiledSpectrogramBaker::startBake (request.filePath,
@@ -78,7 +188,8 @@ void AudioFeatureService::requestBake (AudioFeatureBakeRequest request,
                                           request.sourceId,
                                           request.sourceRevision,
                                           request.clipRevision,
-                                          request.renderRevision);
+                                          request.renderRevision,
+                                          request.priority);
         return;
     }
 
@@ -116,12 +227,14 @@ void AudioFeatureService::requestLegacySpectralFieldBake (juce::String filePath,
 
 void AudioFeatureService::releaseTrackMappings (const juce::String& trackId)
 {
+    forgetRecentAudioFeatureRequestsContaining (juce::String ("track=") + trackId.trim() + "|");
     TiledSpectrogramBaker::releaseTrackMappings (trackId);
     WaveformEnvelopeBaker::releaseTrackMappings (trackId);
 }
 
 void AudioFeatureService::invalidateClipBake (const juce::String& clipId)
 {
+    forgetRecentAudioFeatureRequestsContaining (juce::String ("subject=") + clipId.trim() + "|");
     TiledSpectrogramBaker::invalidateClipBake (clipId);
     WaveformEnvelopeBaker::invalidateClipBake (clipId);
 }

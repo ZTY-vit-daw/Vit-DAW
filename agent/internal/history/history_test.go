@@ -964,6 +964,190 @@ func TestNodeDeleteRemovesSubtree(t *testing.T) {
 	}
 }
 
+func TestProjectUUIDWorkspacesKeepConversationsIsolated(t *testing.T) {
+	root := t.TempDir()
+	projectA := filepath.Join(root, "A.vit")
+	projectB := filepath.Join(root, "B.vit")
+	if err := os.WriteFile(projectA, []byte("<EDIT projectID=\"a\"/>"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(projectB, []byte("<EDIT projectID=\"b\"/>"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	BindProjectIdentity(projectA, "vitproj_a")
+	BindProjectIdentity(projectB, "vitproj_b")
+	appendTestConversation(t, projectA, "A only")
+	appendTestConversation(t, projectB, "B only")
+	a, _ := ConversationMessages(map[string]any{"project_path": projectA})
+	b, _ := ConversationMessages(map[string]any{"project_path": projectB})
+	if got := conversationContents(a); len(got) != 1 || got[0] != "A only" {
+		t.Fatalf("project A messages = %#v", got)
+	}
+	if got := conversationContents(b); len(got) != 1 || got[0] != "B only" {
+		t.Fatalf("project B messages = %#v", got)
+	}
+	repoA, _ := Open(projectA)
+	repoB, _ := Open(projectB)
+	if repoA.HistoryDir == repoB.HistoryDir || filepath.Base(repoA.HistoryDir) != "vitproj_a" || filepath.Base(repoB.HistoryDir) != "vitproj_b" {
+		t.Fatalf("UUID history dirs not isolated: A=%s B=%s", repoA.HistoryDir, repoB.HistoryDir)
+	}
+}
+
+func TestProjectUUIDWorkspaceMigratesLegacyPathHistory(t *testing.T) {
+	root := t.TempDir()
+	project := filepath.Join(root, "Legacy.vit")
+	if err := os.WriteFile(project, []byte("<EDIT projectID=\"legacy\"/>"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	appendTestConversation(t, project, "legacy conversation")
+	legacyRepo, _ := Open(project)
+	BindProjectIdentity(project, "vitproj_migrated")
+	migratedRepo, err := Open(project)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if migratedRepo.HistoryDir == legacyRepo.HistoryDir || !fileExists(filepath.Join(migratedRepo.HistoryDir, "workspace.json")) {
+		t.Fatalf("legacy workspace was not migrated: legacy=%s migrated=%s", legacyRepo.HistoryDir, migratedRepo.HistoryDir)
+	}
+	messages, _ := ConversationMessages(map[string]any{"project_path": project})
+	if got := conversationContents(messages); len(got) != 1 || got[0] != "legacy conversation" {
+		t.Fatalf("migrated messages = %#v", got)
+	}
+}
+
+func TestProjectForkCopiesConversationThenDiverges(t *testing.T) {
+	root := t.TempDir()
+	source := filepath.Join(root, "Source.vit")
+	target := filepath.Join(root, "Target.vit")
+	if err := os.WriteFile(source, []byte("<EDIT projectID=\"source\"/>"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(target, []byte("<EDIT projectID=\"target\"/>"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	BindProjectIdentity(source, "vitproj_source")
+	appendTestConversation(t, source, "before save as")
+	result, err := ProjectFork(map[string]any{
+		"source_project_path": source,
+		"source_project_uuid": "vitproj_source",
+		"project_path":        target,
+		"project_uuid":        "vitproj_target",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if result["forked_history"] != true {
+		t.Fatalf("fork result = %#v", result)
+	}
+	appendTestConversation(t, target, "target only")
+	sourceMessages, _ := ConversationMessages(map[string]any{"project_path": source})
+	targetMessages, _ := ConversationMessages(map[string]any{"project_path": target})
+	if got := conversationContents(sourceMessages); len(got) != 1 || got[0] != "before save as" {
+		t.Fatalf("source messages after fork = %#v", got)
+	}
+	if got := conversationContents(targetMessages); len(got) != 2 || got[0] != "before save as" || got[1] != "target only" {
+		t.Fatalf("target messages after fork = %#v", got)
+	}
+}
+
+func appendTestConversation(t *testing.T, projectPath, text string) {
+	t.Helper()
+	checkpoint, err := Checkpoint(map[string]any{"project_path": projectPath, "message": text})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := AppendConversationNode(map[string]any{
+		"project_path": projectPath,
+		"commit_id":    checkpoint["commit_id"],
+		"kind":         "ask",
+		"text":         text,
+	}); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestConversationMessageLifecycleProtocol(t *testing.T) {
+	project := filepath.Join(t.TempDir(), "message-protocol.vit")
+	if err := os.WriteFile(project, []byte(`<EDIT projectID="message-protocol"/>`), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	checkpoint, err := Checkpoint(map[string]any{"project_path": project, "message": "proposal"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	result, err := AppendConversationNode(map[string]any{
+		"project_path":       project,
+		"commit_id":          checkpoint["commit_id"],
+		"kind":               "vit",
+		"text":               "B2 static balance proposal",
+		"message_kind":       "proposal",
+		"turn_id":            "run-1",
+		"logical_message_id": "proposal-1",
+		"supersedes":         []string{"proposal-0"},
+		"message_data": map[string]any{
+			"schema_version":     "vit.message_data.v1",
+			"needs_confirmation": true,
+			"plan_id":            "plan-1",
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	node := result["node"].(ConversationNode)
+	if node.Lifecycle != "durable" || node.Persistence != "project_history" || node.MessageKind != "proposal" {
+		t.Fatalf("node protocol = %#v", node)
+	}
+	messages, err := ConversationMessages(map[string]any{"project_path": project})
+	if err != nil {
+		t.Fatal(err)
+	}
+	rows := messages["conversation_messages"].([]ConversationMessage)
+	if len(rows) != 1 {
+		t.Fatalf("message count = %d", len(rows))
+	}
+	message := rows[0]
+	if message.Lifecycle != "durable" || message.Persistence != "project_history" || message.MessageKind != "proposal" || message.TurnID != "run-1" || message.LogicalMessageID != "proposal-1" {
+		t.Fatalf("message protocol = %#v", message)
+	}
+	if len(message.Supersedes) != 1 || message.Supersedes[0] != "proposal-0" {
+		t.Fatalf("message supersedes = %#v", message.Supersedes)
+	}
+	if message.MessageData["schema_version"] != "vit.message_data.v1" || message.MessageData["plan_id"] != "plan-1" {
+		t.Fatalf("message data = %#v", message.MessageData)
+	}
+}
+
+func TestConversationHistoryRejectsTransientActivity(t *testing.T) {
+	project := filepath.Join(t.TempDir(), "transient-rejected.vit")
+	if err := os.WriteFile(project, []byte(`<EDIT projectID="transient-rejected"/>`), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	checkpoint, err := Checkpoint(map[string]any{"project_path": project, "message": "activity"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = AppendConversationNode(map[string]any{
+		"project_path": project,
+		"commit_id":    checkpoint["commit_id"],
+		"kind":         "vit",
+		"text":         "reading tracks",
+		"lifecycle":    "transient",
+		"persistence":  "none",
+	})
+	if err == nil || !strings.Contains(err.Error(), "transient conversation activity") {
+		t.Fatalf("expected transient persistence rejection, got %v", err)
+	}
+}
+
+func conversationContents(result map[string]any) []string {
+	rows, _ := result["conversation_messages"].([]ConversationMessage)
+	out := make([]string, 0, len(rows))
+	for _, row := range rows {
+		out = append(out, row.Content)
+	}
+	return out
+}
+
 func OpenForTest(t *testing.T, project string) Repo {
 	t.Helper()
 	repo, err := Open(project)

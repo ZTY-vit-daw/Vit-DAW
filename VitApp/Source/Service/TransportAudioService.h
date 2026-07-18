@@ -32,6 +32,7 @@ public:
     juce::String handleSetClick (const juce::DynamicObject&, const juce::String&) const;
     juce::String handleSeek (const juce::DynamicObject&, const juce::String&) const;
     juce::String handleGetAudioDeviceTypes (const juce::DynamicObject&, const juce::String&) const;
+    juce::String handleGetAudioDeviceStatus (const juce::DynamicObject&, const juce::String&) const;
     juce::String handleGetAudioDevices (const juce::DynamicObject&, const juce::String&) const;
     juce::String handleSetAudioDevice (const juce::DynamicObject&, const juce::String&) const;
     juce::String handleGetWaveInputDevices (const juce::DynamicObject&, const juce::String&) const;

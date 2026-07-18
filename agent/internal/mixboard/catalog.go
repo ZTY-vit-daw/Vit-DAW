@@ -8,6 +8,8 @@ import (
 	"sort"
 	"strings"
 	"time"
+
+	"vit-daw-agent/internal/tim"
 )
 
 type Catalog struct {
@@ -62,6 +64,8 @@ func FinalizeObservationContext(obs *ObservationPacket, req Request, now string)
 		applyBandStereoProjection(obs, req)
 	}
 	finalizeMOMProjection(obs, req)
+	finalizeTIMProjection(obs, req)
+	finalizeFXMProjection(obs, req)
 	obs.Digest = BuildDigest(*obs, req)
 	obs.Catalog = BuildCatalog(*obs, req, now)
 	if observationWantsBandStereoProjection(req.Args) {
@@ -126,6 +130,16 @@ func BuildDigest(obs ObservationPacket, req Request) map[string]any {
 			"llm_context":   obs.MOMProjection.LLMContext,
 		}
 	}
+	if obs.TIMProjection != nil {
+		out["tim_projection"] = map[string]any{
+			"schema_version":    obs.TIMProjection.SchemaVersion,
+			"tim_version":       obs.TIMProjection.TIMVersion,
+			"status":            obs.TIMProjection.Status,
+			"technical_summary": compactTIMSummary(obs.TIMProjection.TechnicalSummary),
+			"coverage":          obs.TIMProjection.Coverage,
+			"risk_summary":      obs.TIMProjection.RiskSummary,
+		}
+	}
 	if sourceIdentity := observationSourceIdentity(obs); len(sourceIdentity) > 0 {
 		out["source_identity"] = sourceIdentity
 	}
@@ -176,12 +190,26 @@ func BuildDigest(obs ObservationPacket, req Request) map[string]any {
 	return out
 }
 
+func compactTIMSummary(summary tim.TechnicalSummary) map[string]any {
+	return map[string]any{
+		"track_count":             summary.TrackCount,
+		"clip_count":              summary.ClipCount,
+		"empty_track_count":       summary.EmptyTrackCount,
+		"source_missing_count":    summary.SourceMissingCount,
+		"playback_invalid_count":  summary.PlaybackInvalidCount,
+		"compressed_source_count": summary.CompressedSourceCount,
+		"format_family_counts":    summary.FormatFamilyCounts,
+	}
+}
+
 func BuildCatalog(obs ObservationPacket, req Request, now string) Catalog {
 	targetID := firstNonEmpty(obs.TargetRef.ID, "target")
 	targetKind := firstNonEmpty(obs.TargetRef.Kind, "selection")
 	entries := []CatalogEntry{
 		catalogEntry("observation.digest", "derived", "fresh", "cheap", "Default acoustic digest for LLM context.", "mix_read key=observation.digest", targetKind, targetID, now),
 		catalogEntry("observation.mom_projection", "mom_projection", "fresh", "cheap", "MOM v1 compact projection with trust quality, task layers, and evidence refs for LLM context.", "mix_read key=observation.mom_projection", targetKind, targetID, now),
+		catalogEntry("observation.tim_projection", "tim_projection", "fresh", "cheap", "TIM v0 technical integrity projection with source, format, metadata coverage, and import risk checks.", "mix_read key=observation.tim_projection", targetKind, targetID, now),
+		catalogEntry("observation.fxm_projection", "fxm_projection", fxmProjectionFreshness(obs), "medium", "FXM v0 counterfactual plug-in-chain transformation projection. Raw renders remain external evidence.", "mix_read key=observation.fxm_projection", targetKind, targetID, now),
 		catalogEntry("project.static.summary", "static", "fresh", "cheap", projectSummaryText(req.ProjectState), "mix_read key=project.static.summary", "project", "current", now),
 		catalogEntry("project.tracks.summary", "static", sourceFreshness(obs, "project_context"), "cheap", trackSummaryText(req.ProjectState), "mix_read key=project.tracks.summary", "project", "current", now),
 		catalogEntry("project.acoustic.tracks", "fast_acoustic", sourceFreshness(obs, "track_waveform_envelopes"), "cheap", "Per-track lightweight waveform packages for visible audio tracks.", "mix_read key=project.acoustic.tracks", "project", "current", now),
@@ -371,6 +399,16 @@ func readObservationKey(obs ObservationPacket, key string, req ReadRequest) (any
 			return map[string]any{"status": "missing", "reason": "mom_projection_unavailable"}, true
 		}
 		return obs.MOMProjection, true
+	case "observation.tim_projection":
+		if obs.TIMProjection == nil {
+			return map[string]any{"status": "missing", "reason": "tim_projection_unavailable"}, true
+		}
+		return obs.TIMProjection, true
+	case "observation.fxm_projection":
+		if obs.FXMProjection == nil {
+			return map[string]any{"status": "missing", "reason": "fxm_projection_unavailable"}, true
+		}
+		return obs.FXMProjection, true
 	case "observation.catalog":
 		return obs.Catalog, true
 	case "project.static.summary":
@@ -438,6 +476,22 @@ func readObservationKey(obs ObservationPacket, key string, req ReadRequest) (any
 		return map[string]any{"status": "ready", "types": []string{"before_after", "ab_result", "rank_tracks", "focus_vs_project", "a_vs_b", "group_overlap"}}, true
 	default:
 		return nil, false
+	}
+}
+
+func fxmProjectionFreshness(obs ObservationPacket) string {
+	if obs.FXMProjection == nil {
+		return "missing"
+	}
+	switch strings.ToLower(strings.TrimSpace(obs.FXMProjection.Status)) {
+	case "ready":
+		return "fresh"
+	case "partial":
+		return "partial"
+	case "stale":
+		return "stale"
+	default:
+		return "missing"
 	}
 }
 

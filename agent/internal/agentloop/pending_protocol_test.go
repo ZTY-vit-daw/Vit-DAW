@@ -18,6 +18,7 @@ func TestMixTreatmentPendingToPendingCandidate(t *testing.T) {
 		ActionKind:       "plugin_treatment",
 		ProcessorType:    "eq",
 		ReasoningSummary: "low-mid buildup",
+		Confidence:       "medium",
 		NeedsResolution:  []string{"plugin_profile"},
 	}
 	pending := treatment.ToPendingCandidate("chat_1", "goal_1", "run_1", "now")
@@ -26,6 +27,12 @@ func TestMixTreatmentPendingToPendingCandidate(t *testing.T) {
 	}
 	if pending.Domain != "mix" || pending.CandidateType != "mix_treatment" || pending.TargetRef != "track:bass" {
 		t.Fatalf("pending routing = %+v", pending)
+	}
+	if pending.ActionKind != "plugin_treatment" || pending.ProcessorType != "eq" || pending.Confidence != "medium" {
+		t.Fatalf("top-level pending workflow fields = %+v", pending)
+	}
+	if len(pending.NeedsResolution) != 1 || pending.NeedsResolution[0] != "plugin_profile" {
+		t.Fatalf("needs resolution = %+v", pending.NeedsResolution)
 	}
 	if len(pending.RequiredPermissionDomains) == 0 || pending.RequiredPermissionDomains[0] != "plugin.load" {
 		t.Fatalf("permission domains = %+v", pending.RequiredPermissionDomains)
@@ -48,11 +55,17 @@ func TestPendingMixTickCandidateToPendingCandidate(t *testing.T) {
 		DeltaDB:       -1,
 		ObservationID: "obs_1",
 		Status:        "pending_confirmation",
-		Evidence:      map[string]any{"reason": "headroom_risk"},
+		Evidence:      map[string]any{"reason": "headroom_risk", "evidence_refs": []any{"mix.read:track.1007.level"}, "confidence": "high"},
 	}
 	pending := candidate.ToPendingCandidate("chat_1", "goal_1", "run_1", "")
 	if pending.Kind != agentprotocol.KindPendingCandidate || pending.CandidateType != "mix_tick" {
 		t.Fatalf("pending = %+v", pending)
+	}
+	if pending.ActionKind != "gain_balance" || pending.ProcessorType != "utility" || pending.Confidence != "high" {
+		t.Fatalf("top-level mix tick workflow fields = %+v", pending)
+	}
+	if len(pending.EvidenceRefs) != 2 || pending.EvidenceRefs[0] != "obs_1" || pending.EvidenceRefs[1] != "mix.read:track.1007.level" {
+		t.Fatalf("mix tick evidence refs = %+v", pending.EvidenceRefs)
 	}
 	if pending.TargetRef != "track:1007" || pending.CandidateAction["delta_db"] != -1.0 {
 		t.Fatalf("candidate action = %+v target=%q", pending.CandidateAction, pending.TargetRef)

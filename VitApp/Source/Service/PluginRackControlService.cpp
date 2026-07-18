@@ -2412,6 +2412,9 @@ juce::String PluginRackControlService::handleSetPluginParam (const juce::Dynamic
     const auto pluginIdStr = object.getProperty ("plugin_id").toString().trim();
     const auto paramIdRaw  = object.getProperty ("param_id").toString().trim();
     const auto valueVar    = object.getProperty ("value");
+    const auto normalisedValueVar = object.hasProperty ("normalized_value") ? object.getProperty ("normalized_value")
+                                      : object.hasProperty ("normalised_value") ? object.getProperty ("normalised_value")
+                                      : juce::var();
     const auto valueText   = [&]
     {
         for (const auto& key : { "value_text", "display_value_text", "target_text", "text" })
@@ -2424,6 +2427,7 @@ juce::String PluginRackControlService::handleSetPluginParam (const juce::Dynamic
     }();
     const auto unit        = object.getProperty ("unit").toString().trim().toLowerCase();
     const auto hasNumericValue = valueVar.isDouble() || valueVar.isInt() || valueVar.isInt64();
+    const auto hasNormalisedValue = normalisedValueVar.isDouble() || normalisedValueVar.isInt() || normalisedValueVar.isInt64();
 
     if (pluginIdStr.isEmpty())
         return makeErrorReply ("set_plugin_param requires a non-empty plugin_id");
@@ -2431,8 +2435,8 @@ juce::String PluginRackControlService::handleSetPluginParam (const juce::Dynamic
     if (paramIdRaw.isEmpty())
         return makeErrorReply ("set_plugin_param requires a non-empty param_id");
 
-    if (! hasNumericValue && valueText.isEmpty())
-        return makeErrorReply ("set_plugin_param requires a numeric value field or value_text");
+    if (! hasNumericValue && ! hasNormalisedValue && valueText.isEmpty())
+        return makeErrorReply ("set_plugin_param requires a numeric value, normalized_value, or value_text");
 
     auto* plugin = findPluginInEdit (*edit, pluginIdStr);
 
@@ -2455,7 +2459,12 @@ juce::String PluginRackControlService::handleSetPluginParam (const juce::Dynamic
                                          : param->getCurrentValue();
     const auto vr = param->getValueRange();
 
-    if (valueText.isNotEmpty())
+    if (hasNormalisedValue)
+    {
+        valueToApply = juce::jlimit (0.0f, 1.0f, static_cast<float> (static_cast<double> (normalisedValueVar)));
+        valueInterpretation = "normalised";
+    }
+    else if (valueText.isNotEmpty())
     {
         const auto converted = param->stringToValue (valueText);
         if (! std::isfinite (converted) || converted < vr.getStart() || converted > vr.getEnd())
@@ -2481,7 +2490,11 @@ juce::String PluginRackControlService::handleSetPluginParam (const juce::Dynamic
                                    && (paramIdRaw.equalsIgnoreCase ("pan")
                                        || paramIdRaw.equalsIgnoreCase ("master pan"));
 
-    if (panAsNormalisedUi)
+    if (hasNormalisedValue)
+    {
+        param->setNormalisedParameter (valueToApply, juce::sendNotification);
+    }
+    else if (panAsNormalisedUi)
     {
         const float clampedNorm = juce::jlimit (0.0f, 1.0f, valueToApply);
         param->setNormalisedParameter (clampedNorm, juce::sendNotification);
@@ -2505,7 +2518,10 @@ juce::String PluginRackControlService::handleSetPluginParam (const juce::Dynamic
     response->setProperty ("plugin_id", pluginIdStr);
     response->setProperty ("param_id", paramIdRaw);
     response->setProperty ("new_value", param->getCurrentValue());
+    response->setProperty ("new_normalised_value", param->getCurrentNormalisedValue());
+    response->setProperty ("actual_normalized_value", param->getCurrentNormalisedValue());
     response->setProperty ("new_value_text", param->getCurrentValueAsString());
+    response->setProperty ("display_text", param->getCurrentValueAsString());
     response->setProperty ("value_interpretation", valueInterpretation);
     return juce::JSON::toString (juce::var (response.release()));
 }

@@ -105,6 +105,17 @@ func DefaultCatalog() *Catalog {
 	c.AddAlias("media.index_authorized_folder", "media_index_authorized_folder")
 	c.AddAlias("artifact.register_files", "media_register_assets")
 	c.AddAlias("artifact.index_media", "media_index_authorized_folder")
+	c.AddAlias("track.folder.create", "folder_track.create")
+	c.AddAlias("track.create_folder", "folder_track.create")
+	c.AddAlias("track.folder.set_routing_bus", "folder_track.set_routing_bus_enabled")
+	c.AddAlias("track.folder.set_routing_bus_enabled", "folder_track.set_routing_bus_enabled")
+	c.AddAlias("track_group.list", "track.group.list")
+	c.AddAlias("track_group.create", "track.group.create")
+	c.AddAlias("track_group.update", "track.group.update")
+	c.AddAlias("track_group.set_members", "track.group.set_members")
+	c.AddAlias("track_group.delete", "track.group.delete")
+	c.AddAlias("track_group.apply_control", "track.group.apply_control")
+	c.AddAlias("project.track_organization.apply", "project.apply_track_organization")
 	c.AddAlias("browser.fetch", "browser_fetch")
 	c.AddAlias("browser.search", "browser_search")
 	c.AddAlias("midi.read_clip_notes", "get_midi_clip_notes")
@@ -356,6 +367,10 @@ func argHint(commandName string) string {
 		return "operation:track_gain_adjust track_id:string optional delta_db:number observation_id:string evidence:object"
 	case "mix_apply_tick":
 		return "tick_id:string confirmation:boolean"
+	case "mix_apply_static_balance_batch":
+		return "actions:[{track_id:string target_db:number before_db:number delta_db:number}] observation_id:string candidate_plan_id:string"
+	case "mix_apply_pan_layout_batch":
+		return "actions:[{track_id:string target_pan:number before_pan:number delta_pan:number}] observation_id:string candidate_plan_id:string style_hash:string"
 	case "mix_rollback_tick":
 		return "optional tick_id:string"
 	case "artifact_list":
@@ -366,6 +381,52 @@ func argHint(commandName string) string {
 		return "file_paths:string[] OR file_path:string optional media_kind:string title:string limit:number"
 	case "media_index_authorized_folder":
 		return "asset_location:string optional media_kinds:string[] recursive:boolean limit:number"
+	case "project.get_audio_settings":
+		return "no args"
+	case "project.set_audio_settings":
+		return "audio_settings:{sample_rate_hz?:number record_bit_depth?:number record_file_type?:string pcm_format?:string import_sample_rate_policy?:string import_bit_depth_policy?:string media_copy_policy?:string channel_import_policy?:string render_default_*?:... dither_policy?:string}"
+	case "project.validate_audio_settings_change":
+		return "audio_settings:{sample_rate_hz?:number record_bit_depth?:number ...}"
+	case "project.import_preflight":
+		return "folder_path:string OR file_paths:string[] optional recursive:boolean intended_mode:stems_folder start_time_seconds:number target_policy:create_tracks audio_settings_snapshot:object"
+	case "project.import_folder_as_stems", "project.import_audio_files":
+		return "folder_path:string OR file_paths:string[] optional recursive:boolean start_time_seconds:number target_policy:create_tracks confirmed:boolean skip_unreadable:boolean defer_audio_analysis:boolean start_audio_analysis:boolean command_timeout_ms:number"
+	case "project.audio_analysis_start":
+		return "optional analysis_job_id:string interval_ms:number max_submit_clips:number max_submit_feature_jobs:number retry_missing:boolean rebuild_from_project:boolean"
+	case "project.audio_analysis_status", "project.audio_analysis_cancel":
+		return "optional analysis_job_id:string ensure_ready:boolean timeout_ms:number poll_interval_ms:number"
+	case "project.markers.list":
+		return "no args"
+	case "project.markers.upsert":
+		return "name:string start_seconds:number optional end_seconds:number color:string"
+	case "project.markers.apply_section_markers":
+		return "sections:[{name|label:string start_seconds:number end_seconds:number confidence?:string}] optional replace_existing:boolean source:string"
+	case "project.markers.rename":
+		return "marker_id:string name:string"
+	case "project.markers.delete":
+		return "marker_id:string"
+	case "folder_track.create":
+		return "folder_name:string optional parent_track_id:string preceding_track_id:string routing_bus_enabled:boolean"
+	case "track.move_to_folder":
+		return "track_id:string folder_track_id:string optional preceding_track_id:string"
+	case "folder_track.set_routing_bus_enabled":
+		return "folder_track_id:string routing_bus_enabled:boolean optional force_clear_plugins:boolean"
+	case "project.apply_track_organization":
+		return "groups:[{folder_name/proposed_folder:string track_ids:string[] OR assignments:[{track_id:string}] optional routing_bus_enabled:boolean}]"
+	case "track.group.list":
+		return "no args"
+	case "track.group.create":
+		return "name:string track_ids:string[] optional color:string origin:string linked_controls:{volume?:boolean pan?:boolean mute?:boolean solo?:boolean}"
+	case "track.group.update":
+		return "group_id:string optional name:string color:string enabled:boolean suspended:boolean linked_controls:object track_ids:string[]"
+	case "track.group.set_members":
+		return "group_id:string track_ids:string[]"
+	case "track.group.delete":
+		return "group_id:string"
+	case "track.group.apply_control":
+		return "group_id:string OR track_ids:string[] create_group_if_missing:bool control:volume mode:absolute|relative db:number OR delta_db:number"
+	case "media.inspect_files":
+		return "file_paths:string[] OR folder_path:string optional recursive:boolean media_kinds:string[] audio_settings_snapshot:object"
 	case "browser_fetch":
 		return "url:string optional max_bytes:number timeout_ms:number"
 	case "browser_search":
@@ -382,6 +443,24 @@ func argHint(commandName string) string {
 		return "source_clip_id:string target_track_id:string time_unit:string new_start:number"
 	case "remove_clips":
 		return "clip_ids:string[]"
+	case "clip.fade.set":
+		return "clip_id:string optional fade_in_seconds:number fade_out_seconds:number fade_in_curve:string fade_out_curve:string auto_crossfade:boolean"
+	case "clip.fade.read":
+		return "clip_id:string"
+	case "clip.gain.set":
+		return "clip_id:string gain_db:number"
+	case "clip.gain.set_batch":
+		return "pending_actions:[{args:{clip_id:string gain_db:number track_id?:string}}]"
+	case "clip.gain.read":
+		return "clip_id:string"
+	case "clip.strip_silence.analyze":
+		return "clip_id:string optional track_id:string ranges:[{clip_id:string track_id:string start_seconds:number end_seconds:number}] threshold_dbfs:number min_silence_ms:number clip_start_pad_ms:number clip_end_pad_ms:number scope:string"
+	case "clip.strip_silence.suggest":
+		return "optional clip_id:string track_id:string scope:selected_clip|selected_ranges|all_project ranges:[{clip_id:string track_id:string start_seconds:number end_seconds:number}] candidate_thresholds_dbfs:number[] min_silence_ms:number clip_start_pad_ms:number clip_end_pad_ms:number"
+	case "clip.strip_silence.apply":
+		return "clip_id:string optional track_id:string analysis_id:string strip_regions:[{clip_id:string track_id:string start_seconds:number end_seconds:number}] allow_remove_entire_clip:boolean"
+	case "clip.strip_silence.apply_batch":
+		return "pending_actions:[{args:{clip_id:string track_id:string analysis_id:string strip_regions:[{start_seconds:number end_seconds:number}]}}] allow_remove_entire_clip:boolean"
 	case "select_clip":
 		return "clip_id:string optional track_id:string clip_name:string clip_index:number"
 	case "get_plugin_parameters", "open_plugin_ui", "show_plugin_editor":
@@ -414,6 +493,10 @@ func argHint(commandName string) string {
 		return "profile_id:string OR track_id:string plugin_id:string"
 	case "plugin_grabber_apply_control":
 		return "track_id:string plugin_id:string control:string target:{freq_hz?:number gain_db?:number q?:number threshold_db?:number amount?:number|string component_id?:string}"
+	case "capability_equalizer_inspect":
+		return "optional target_ref:string track_id:string plugin_id:string provider_credential_id:string"
+	case "capability_equalizer_plan":
+		return "task:spectral_region_adjust|highpass|lowpass|output_control optional target_ref:string track_id:string plugin_id:string provider_credential_id:string band_ref:b1|b2|b3|b4 response_shape:bell|low_shelf|high_shelf frequency_hz:number gain_db:number q:number enabled:boolean cutoff_frequency_hz:number slope_db_per_octave:number bypass:boolean dry_mix_percent:number output_gain_db:number"
 	case "import_midi_to_track":
 		return "track_id:string file_path:string optional start_time_beats:number mode:merge_tracks"
 	case "get_midi_clip_notes", "get_midi_clip_data":
@@ -548,6 +631,16 @@ func defaultSpecs() []CommandSpec {
 		spec("clear_project", "project.clear", "project", "Clear the current project.", RiskConfirm, true, true, true, true),
 		spec("project_snapshot_export", "project.snapshot_export", "project", "Export the active in-memory project snapshot without saving the live .vit file.", RiskDirect, false, false, false, false),
 		spec("project_undo_state", "project.undo_state", "project", "Read whether the active project can undo or redo.", RiskDirect, false, false, false, false),
+		spec("project.get_audio_settings", "project.get_audio_settings", "project_audio", "Read the active project's audio specification metadata, including project sample rate, recording format defaults, import policies, and engine binding status.", RiskDirect, false, false, false, false),
+		spec("project.set_audio_settings", "project.set_audio_settings", "project_audio", "Update and persist the active project's audio specification metadata without changing the audio device sample rate.", RiskUndoable, true, true, false, true),
+		spec("project.validate_audio_settings_change", "project.validate_audio_settings_change", "project_audio", "Check whether an audio settings change needs user attention, especially when existing audio clips or device-rate mismatch warnings are present.", RiskDirect, false, false, false, false),
+		spec("project.import_preflight", "project.import_preflight", "project_audio", "Inspect local audio files or a stems folder and return a kernel-built import plan without writing clips or tracks.", RiskDirect, false, false, false, false),
+		spec("media.inspect_files", "media.inspect_files", "project_audio", "Read bounded local audio metadata for explicit files or a folder without importing media into the project.", RiskDirect, false, false, false, false),
+		spec("project.markers.list", "project.markers.list", "project_marker", "Read project position/range markers from the timeline marker map.", RiskDirect, false, false, false, false),
+		spec("project.markers.upsert", "project.markers.upsert", "project_marker", "Create or update one project marker. end_seconds omitted creates a position marker; end_seconds greater than start_seconds creates a range/section marker.", RiskUndoable, true, true, false, true),
+		spec("project.markers.apply_section_markers", "project.markers.apply_section_markers", "project_marker", "Write a confirmed A5/EPM section map as range markers without moving clips or changing audio.", RiskConfirm, true, true, true, true),
+		spec("project.markers.rename", "project.markers.rename", "project_marker", "Rename one project marker by marker_id.", RiskUndoable, true, true, false, true, "marker_id"),
+		spec("project.markers.delete", "project.markers.delete", "project_marker", "Delete one project marker by marker_id.", RiskConfirm, true, true, true, true, "marker_id"),
 
 		spec("goal_status", "goal.status", "runtime", "Read the current agent goal runtime status.", RiskDirect, false, false, false, false),
 		spec("goal_cancel", "goal.cancel", "runtime", "Request cancellation of the active or named agent goal.", RiskDirect, false, false, false, false),
@@ -591,6 +684,8 @@ func defaultSpecs() []CommandSpec {
 		spec("version_worktree_checkout", "version.worktree_checkout", "project_history", "Open a confirmed Project History worktree in this Vit window.", RiskConfirm, false, false, true, true),
 		spec("version_worktree_list", "version.worktree_list", "project_history", "List local Project History worktrees.", RiskDirect, false, false, false, false),
 		spec("version_project_new", "version.project_new", "project_history", "Start a fresh unsaved Project History draft for a new project.", RiskDirect, false, false, false, false),
+		spec("version_project_opened", "version.project_opened", "project_history", "Activate the Project History working session for a project opened by the host.", RiskDirect, false, false, false, false),
+		spec("version_project_save_prepare", "version.project_save_prepare", "project_history", "Freeze the active Agent working session before the host saves the project file.", RiskDirect, false, false, false, false),
 		spec("version_project_saved", "version.project_saved", "project_history", "Adopt draft Project History after an unsaved project is saved to a real path.", RiskDirect, false, false, false, false),
 		spec("version_checkout", "version.checkout", "project_history", "Checkout a confirmed Project History branch or checkpoint into the active project folder.", RiskConfirm, false, false, true, true),
 
@@ -617,10 +712,22 @@ func defaultSpecs() []CommandSpec {
 		spec("mix_derive", "mix.derive", "mix", "Derive an on-demand relationship package from stored MixBoard observations, such as before/after or focus/project comparisons.", RiskDirect, false, false, false, false),
 		spec("mix_propose_tick", "mix.propose_tick", "mix", "Agent-local proposal for one safe mix tick after observation; supports small track_gain_adjust and track_pan_adjust/track_pan_set without mutating the project.", RiskDirect, false, false, false, false, "track_id"),
 		spec("mix_apply_tick", "mix.apply_tick", "mix", "Agent-local confirmed execution of one proposed mix tick through primitive set_volume or set_pan kernel commands.", RiskUndoable, true, true, false, true),
+		spec("mix_apply_static_balance_batch", "mix.apply_static_balance_batch", "mix", "Apply one validated B2 static-balance plan as an atomic batch of absolute track fader targets.", RiskConfirm, true, true, true, true),
+		spec("mix_apply_pan_layout_batch", "mix.apply_pan_layout_batch", "mix", "Apply one validated B3 pan-layout plan as an atomic batch of absolute track pan targets.", RiskConfirm, true, true, true, true),
 		spec("mix_rollback_tick", "mix.rollback_tick", "mix", "Agent-local rollback for an applied mix tick by restoring the previous primitive track volume or pan.", RiskUndoable, true, true, false, true),
 
 		spec("add_track", "track.add", "track", "Add a new track.", RiskUndoable, true, true, false, true),
 		spec("add_audio_track", "track.add_audio", "track", "Add a new audio track.", RiskUndoable, true, true, false, true),
+		spec("folder_track.create", "track.folder.create", "track", "Create a track folder container. By default this only organizes hybrid tracks; routing_bus_enabled turns it into a folder bus.", RiskUndoable, true, true, false, true),
+		spec("track.move_to_folder", "track.move_to_folder", "track", "Move a user-visible track under a folder container without changing clips or media.", RiskUndoable, true, true, false, true, "track_id", "folder_track_id"),
+		spec("folder_track.set_routing_bus_enabled", "track.folder.set_routing_bus_enabled", "track", "Enable or disable bus routing on a folder container. Disabling refuses to clear user plugins unless force_clear_plugins is explicitly confirmed.", RiskConfirm, true, true, true, true, "folder_track_id"),
+		spec("project.apply_track_organization", "project.apply_track_organization", "project", "Apply a confirmed TOM organization proposal by creating ordinary folder containers and moving tracks into them; bus routing stays off unless explicitly requested.", RiskConfirm, true, true, true, true),
+		spec("track.group.list", "track.group.list", "track", "Read persistent track control groups from the active project.", RiskDirect, false, false, false, false),
+		spec("track.group.create", "track.group.create", "track", "Create a persistent track control group with explicit member track IDs.", RiskUndoable, true, true, false, true),
+		spec("track.group.update", "track.group.update", "track", "Update a persistent track control group's name, color, enabled/suspended state, linked controls, or members.", RiskUndoable, true, true, false, true, "group_id"),
+		spec("track.group.set_members", "track.group.set_members", "track", "Replace a track control group's member track IDs.", RiskUndoable, true, true, false, true, "group_id"),
+		spec("track.group.delete", "track.group.delete", "track", "Delete a persistent track control group by group_id.", RiskConfirm, true, true, true, true, "group_id"),
+		spec("track.group.apply_control", "track.group.apply_control", "track", "Apply a confirmed volume control operation to every member of a track group and return per-member verification; can create/reuse a group from explicit track_ids for B1 fader reset.", RiskConfirm, true, true, true, true),
 		spec("append_ghost_track", "track.append_ghost", "track", "Append a ghost track placeholder.", RiskUndoable, true, true, false, true),
 		spec("select_track", "track.select", "track", "Select a user-visible track in the UI without changing the project.", RiskDirect, false, false, false, false, "track_id"),
 		spec("delete_track", "track.delete", "track", "Delete a track by stable track_id.", RiskConfirm, true, true, true, true, "track_id"),
@@ -635,11 +742,25 @@ func defaultSpecs() []CommandSpec {
 		spec("add_audio_clip", "clip.add_audio", "clip", "Add an audio clip to a known track and start time.", RiskConfirm, true, true, true, true, "track_id"),
 		spec("import_audio", "clip.import_audio", "clip", "Import audio to a target track.", RiskConfirm, true, true, true, true, "track_id"),
 		spec("import_media_to_track", "clip.import_media_to_track", "clip", "Import media to a target track.", RiskConfirm, true, true, true, true, "track_id"),
+		spec("project.import_folder_as_stems", "project.import_folder_as_stems", "project_audio", "Import a stems folder as one audio track and clip per readable file in a single kernel command.", RiskConfirm, true, true, true, true),
+		spec("project.import_audio_files", "project.import_audio_files", "project_audio", "Import multiple audio files as one track and clip per file in a single kernel command.", RiskConfirm, true, true, true, true),
+		spec("project.audio_analysis_start", "project.audio_analysis_start", "project_audio", "Start a deferred project audio-analysis queue at a throttled background submission rate.", RiskDirect, false, false, false, false),
+		spec("project.audio_analysis_status", "project.audio_analysis_status", "project_audio", "Read lightweight status for a deferred project audio-analysis queue.", RiskDirect, false, false, false, false),
+		spec("project.audio_analysis_cancel", "project.audio_analysis_cancel", "project_audio", "Cancel pending items in a deferred project audio-analysis queue; already submitted background bakes may continue.", RiskDirect, false, false, false, false),
 		spec("move_clip", "clip.move", "clip", "Move a clip by stable track and clip IDs.", RiskConfirm, true, true, true, true, "source_track_id", "target_track_id", "clip_id"),
 		spec("resize_clip", "clip.resize", "clip", "Resize a clip by stable clip ID.", RiskConfirm, true, true, true, true, "track_id", "clip_id"),
 		spec("split_clip", "clip.split", "clip", "Split a clip at a timeline position.", RiskConfirm, true, true, true, true, "track_id", "clip_id"),
 		spec("clone_clip", "clip.clone", "clip", "Clone an existing clip.", RiskConfirm, true, true, true, true, "source_clip_id", "target_track_id"),
 		spec("remove_clips", "clip.remove", "clip", "Remove one or more clips.", RiskConfirm, true, true, true, true, "clip_ids"),
+		spec("clip.fade.set", "clip.fade.set", "clip", "Set clip-bound fade-in/fade-out lengths and fade metadata on an audio clip.", RiskConfirm, true, true, true, true, "clip_id"),
+		spec("clip.fade.read", "clip.fade.read", "clip", "Read clip-bound fade-in/fade-out state from an audio clip.", RiskDirect, false, false, false, false, "clip_id"),
+		spec("clip.gain.set", "clip.gain.set", "clip", "Set static clip gain in dB on an audio clip before track processing.", RiskConfirm, true, true, true, true, "clip_id"),
+		spec("clip.gain.set_batch", "clip.gain.set_batch", "clip", "Apply multiple confirmed static clip gain targets as one Agent tool call for B1 full-project source calibration.", RiskConfirm, true, true, true, true),
+		spec("clip.gain.read", "clip.gain.read", "clip", "Read static clip gain, pan, and mute state from an audio clip.", RiskDirect, false, false, false, false, "clip_id"),
+		spec("clip.strip_silence.analyze", "clip.strip_silence.analyze", "clip", "Analyze an audio clip or selected clip ranges for Strip Silence and return preview regions/actions without mutating the project.", RiskDirect, false, false, false, false, "clip_id"),
+		spec("clip.strip_silence.suggest", "clip.strip_silence.suggest", "clip", "Agent-local Strip Silence recommendation: sweep real kernel analysis thresholds for selected clip/ranges or all project audio, then return conservative parameters and pending clip.strip_silence.apply actions without mutating the project.", RiskDirect, false, false, false, false),
+		spec("clip.strip_silence.apply", "clip.strip_silence.apply", "clip", "Apply a confirmed Strip Silence preview by deleting the supplied silent regions from one audio clip.", RiskConfirm, true, true, true, true, "clip_id"),
+		spec("clip.strip_silence.apply_batch", "clip.strip_silence.apply_batch", "clip", "Apply multiple confirmed Strip Silence previews as one Agent tool call and return only a compact summary.", RiskConfirm, true, true, true, true),
 		spec("select_clip", "clip.select", "clip", "Select a user-visible clip in the UI without changing the project.", RiskDirect, false, false, false, false, "track_id", "clip_id"),
 		spec("warm_waveform_bake", "clip.warm_waveform_bake", "clip", "Request waveform/tile preparation.", RiskDirect, false, false, false, false),
 
@@ -673,6 +794,8 @@ func defaultSpecs() []CommandSpec {
 		spec("plugin_grabber_upsert_project_profile", "plugin_grabber.upsert_project_profile", "plugin_grabber", "Save project-scoped plugin grabber profile annotations for one plugin.", RiskConfirm, true, false, true, true, "track_id", "plugin_id"),
 		spec("plugin_grabber_remove_project_profile", "plugin_grabber.remove_project_profile", "plugin_grabber", "Remove a project-scoped plugin grabber profile.", RiskConfirm, true, false, true, true),
 		spec("plugin_grabber_apply_control", "plugin_grabber.apply_control", "plugin_grabber", "Apply a learned plugin grabber runtime control from an acoustic target using the current validated parameter profile; result.applied_parameters[].new_value_text is the actual applied display value.", RiskUndoable, true, true, false, true, "track_id", "plugin_id"),
+		spec("capability_equalizer_inspect", "capability.equalizer.inspect", "capability", "Read the equalizer work-card contract, currently loaded Provider candidates, conformed generic actions, and capability gaps without learning a plugin or exposing raw parameter IDs.", RiskDirect, false, false, false, false),
+		spec("capability_equalizer_plan", "capability.equalizer.plan", "capability", "Submit a vendor-neutral equalizer task action to the capability layer. The capability layer returns semantic gaps or Band resource choices to the Agent, and only a complete action is handed to SPAL for verified VPS Provider binding and a governed Proposal. Never substitute Plugin Learning for this tool.", RiskUndoable, true, true, false, true),
 		spec("delete_plugin", "plugin.delete", "plugin", "Delete a plugin instance.", RiskConfirm, true, true, true, true, "track_id", "plugin_id"),
 		spec("move_plugin", "plugin.move", "plugin", "Move a plugin instance.", RiskConfirm, true, true, true, true, "track_id", "plugin_id"),
 
@@ -713,11 +836,38 @@ func withDefaultBindingSpecs(specs []CommandSpec) []CommandSpec {
 				{Key: "last_created_track", Kind: "track", ResultKeys: []string{"track_id", "id", "item_id"}},
 				{Key: "active_work_target_track", Kind: "track", ResultKeys: []string{"track_id", "id", "item_id"}},
 			}
+		case "folder_track.create":
+			specs[i].ProducedBindings = []BindingSpec{
+				{Key: "last_created_folder_track", Kind: "track", ResultKeys: []string{"folder_track_id", "track_id", "id", "item_id"}},
+			}
+		case "track.move_to_folder":
+			specs[i].ConsumedBindings = []BindingSpec{
+				{Key: "target_track", Kind: "track", Arg: "track_id"},
+				{Key: "target_folder_track", Kind: "track", Arg: "folder_track_id"},
+			}
+		case "folder_track.set_routing_bus_enabled":
+			specs[i].ConsumedBindings = []BindingSpec{{Key: "target_folder_track", Kind: "track", Arg: "folder_track_id"}}
+		case "project.apply_track_organization":
+			specs[i].ProducedBindings = []BindingSpec{
+				{Key: "last_created_folder_track", Kind: "track", ResultKeys: []string{"created_folder_ids", "folder_track_id", "track_id", "id"}},
+			}
+		case "track.group.create":
+			specs[i].ProducedBindings = []BindingSpec{
+				{Key: "last_created_track_group", Kind: "track_group", ResultKeys: []string{"group_id", "id"}},
+				{Key: "active_work_target_track_group", Kind: "track_group", ResultKeys: []string{"group_id", "id"}},
+			}
+		case "track.group.update", "track.group.set_members", "track.group.delete", "track.group.apply_control":
+			specs[i].ConsumedBindings = []BindingSpec{{Key: "target_track_group", Kind: "track_group", Arg: "group_id"}}
 		case "create_midi_clip", "insert_midi_clip", "import_midi_to_track", "import_audio", "import_media_to_track", "add_audio_clip":
 			specs[i].ConsumedBindings = []BindingSpec{{Key: "target_track", Kind: "track", Arg: "track_id"}}
 			specs[i].ProducedBindings = []BindingSpec{
 				{Key: "last_created_clip", Kind: "clip", ResultKeys: []string{"clip_id", "id", "item_id"}},
 				{Key: "active_work_target_clip", Kind: "clip", ResultKeys: []string{"clip_id", "id", "item_id"}},
+			}
+		case "project.import_folder_as_stems", "project.import_audio_files":
+			specs[i].ProducedBindings = []BindingSpec{
+				{Key: "last_created_track", Kind: "track", ResultKeys: []string{"last_created_track_id", "track_id", "id", "item_id"}},
+				{Key: "last_created_clip", Kind: "clip", ResultKeys: []string{"last_created_clip_id", "clip_id", "id", "item_id"}},
 			}
 		case "rack_add_node", "instantiate_plugin":
 			specs[i].ConsumedBindings = []BindingSpec{{Key: "target_track", Kind: "track", Arg: "track_id"}}

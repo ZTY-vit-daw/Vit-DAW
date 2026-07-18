@@ -12,7 +12,9 @@ import (
 	"strings"
 	"time"
 
+	"vit-daw-agent/internal/fxm"
 	"vit-daw-agent/internal/mom"
+	"vit-daw-agent/internal/tim"
 )
 
 const (
@@ -85,7 +87,9 @@ type ObservationPacket struct {
 	ProjectPackage        map[string]any    `json:"project_package"`
 	MixPackage            map[string]any    `json:"mix_package"`
 	DeepPackage           map[string]any    `json:"deep_package"`
+	FXMProjection         *fxm.Projection   `json:"fxm_projection,omitempty"`
 	MOMProjection         *mom.Projection   `json:"mom_projection,omitempty"`
+	TIMProjection         *tim.Projection   `json:"tim_projection,omitempty"`
 	SectionCandidates     []map[string]any  `json:"section_candidates"`
 	TimelineDigest        []map[string]any  `json:"timeline_digest"`
 	Hotspots              []map[string]any  `json:"hotspots"`
@@ -546,6 +550,9 @@ func FeatureSnapshotPath(args map[string]any) string {
 }
 
 func loadFeatureSnapshot(args map[string]any) featureSnapshot {
+	if snap, ok := featureSnapshotFromAny(args["feature_snapshot"]); ok {
+		return normalizeFeatureSnapshot(snap)
+	}
 	path := featureSnapshotPath(args)
 	data, err := os.ReadFile(path)
 	if err != nil {
@@ -574,6 +581,28 @@ func loadFeatureSnapshot(args map[string]any) featureSnapshot {
 			RealtimeStereoRelationSummary: map[string]any{"status": "invalid"},
 			L2RenderProbe:                 map[string]any{"status": "invalid"},
 		}
+	}
+	return normalizeFeatureSnapshot(snap)
+}
+
+func featureSnapshotFromAny(value any) (featureSnapshot, bool) {
+	if value == nil {
+		return featureSnapshot{}, false
+	}
+	data, err := json.Marshal(value)
+	if err != nil || len(data) == 0 || string(data) == "null" {
+		return featureSnapshot{}, false
+	}
+	var snap featureSnapshot
+	if err := json.Unmarshal(data, &snap); err != nil {
+		return featureSnapshot{}, false
+	}
+	return snap, true
+}
+
+func normalizeFeatureSnapshot(snap featureSnapshot) featureSnapshot {
+	if snap.SchemaVersion == "" {
+		snap.SchemaVersion = "mixboard_feature_snapshot.v1"
 	}
 	if snap.WaveformEnvelope == nil {
 		snap.WaveformEnvelope = map[string]any{"status": "missing"}
@@ -2628,6 +2657,35 @@ func finalizeMOMProjection(obs *ObservationPacket, req Request) {
 	obs.MOMProjection = &projection
 }
 
+func finalizeTIMProjection(obs *ObservationPacket, req Request) {
+	if obs == nil {
+		return
+	}
+	projection := tim.Build(timInputFromObservation(*obs, req))
+	obs.TIMProjection = &projection
+}
+
+func finalizeFXMProjection(obs *ObservationPacket, req Request) {
+	if obs == nil {
+		return
+	}
+	input := fxm.Input{}
+	if raw, ok := req.Args["fxm_measurement"]; ok {
+		data, err := json.Marshal(raw)
+		if err == nil {
+			_ = json.Unmarshal(data, &input)
+		}
+	}
+	input.ObservationID = obs.ObservationID
+	input.MixSessionID = obs.MixSessionID
+	input.CreatedAt = obs.CreatedAt
+	if len(input.TargetRef) == 0 {
+		input.TargetRef = map[string]any{"kind": obs.TargetRef.Kind, "id": obs.TargetRef.ID, "label": obs.TargetRef.Label}
+	}
+	projection := fxm.Build(input)
+	obs.FXMProjection = &projection
+}
+
 func momInputFromObservation(obs ObservationPacket, req Request) mom.Input {
 	args := copyAnyMap(req.Args)
 	if goal := strings.TrimSpace(req.GoalText); goal != "" {
@@ -2651,6 +2709,22 @@ func momInputFromObservation(obs ObservationPacket, req Request) mom.Input {
 		ProjectPackage:        obs.ProjectPackage,
 		MixPackage:            obs.MixPackage,
 		DeepPackage:           obs.DeepPackage,
+		AcousticPackageStatus: obs.AcousticPackageStatus,
+		SourceCapabilities:    stringMapToAnyMap(obs.SourceCapabilities),
+	}
+}
+
+func timInputFromObservation(obs ObservationPacket, req Request) tim.Input {
+	args := copyAnyMap(req.Args)
+	if goal := strings.TrimSpace(req.GoalText); goal != "" {
+		args["goal_text"] = goal
+	}
+	return tim.Input{
+		ObservationID:         obs.ObservationID,
+		MixSessionID:          obs.MixSessionID,
+		CreatedAt:             obs.CreatedAt,
+		Args:                  args,
+		ProjectPackage:        obs.ProjectPackage,
 		AcousticPackageStatus: obs.AcousticPackageStatus,
 		SourceCapabilities:    stringMapToAnyMap(obs.SourceCapabilities),
 	}
@@ -2680,6 +2754,7 @@ func filterBandStereoProjectionCatalog(obs *ObservationPacket) {
 	for _, entry := range obs.Catalog.Entries {
 		if entry.Key == "observation.digest" ||
 			entry.Key == "observation.mom_projection" ||
+			entry.Key == "observation.tim_projection" ||
 			entry.Key == "project.limitations" ||
 			strings.Contains(entry.Key, ".static.identity") ||
 			strings.Contains(entry.Key, ".slow.band_energy.summary") ||
@@ -3133,6 +3208,8 @@ func buildContextPack(req Request, board Board, obs ObservationPacket, now strin
 		"source_capabilities": projectedSourceCapabilities(obs.SourceCapabilities),
 		"read_hints": []string{
 			"mix_read key=observation.mom_projection",
+			"mix_read key=observation.tim_projection",
+			"mix_read key=observation.fxm_projection",
 			"mix_read key=observation.digest",
 			"mix_read key=observation.catalog",
 		},
@@ -3140,6 +3217,14 @@ func buildContextPack(req Request, board Board, obs ObservationPacket, now strin
 	if obs.MOMProjection != nil {
 		latest["mom_projection"] = mom.ContextProjection(*obs.MOMProjection)
 		latest["llm_context"] = obs.MOMProjection.LLMContext
+	}
+	if obs.TIMProjection != nil {
+		latest["tim_projection"] = tim.ContextProjection(*obs.TIMProjection)
+		latest["technical_integrity_context"] = obs.TIMProjection.LLMContext
+	}
+	if obs.FXMProjection != nil {
+		latest["fxm_projection"] = fxm.ContextProjection(*obs.FXMProjection)
+		latest["effects_transformation_context"] = obs.FXMProjection.LLMContext
 	}
 	return ContextPack{
 		SchemaVersion: ContextPackSchemaVersion,

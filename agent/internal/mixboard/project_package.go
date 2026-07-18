@@ -89,6 +89,7 @@ func buildTrackSummaries(state map[string]any, target TargetRef, scope ListenSco
 		}
 		trackType := cleanAnyString(row["track_type"])
 		clips := anySlice(firstPresent(row, "clips", "clip_summaries"))
+		primaryClip := primaryTrackClip(clips)
 		plugins := anySlice(firstPresent(row, "plugins", "rack_nodes", "plugin_chain"))
 		summary := map[string]any{
 			"track_id":             id,
@@ -108,6 +109,9 @@ func buildTrackSummaries(state map[string]any, target TargetRef, scope ListenSco
 			"solo":                 boolFromAny(firstPresent(row, "solo", "is_solo")),
 			"is_armed":             boolFromAny(firstPresent(row, "is_armed", "armed")),
 			"stereo_position":      stereoPositionSummary(row),
+		}
+		if compactClip := compactPrimaryClip(primaryClip); len(compactClip) > 0 {
+			summary["primary_clip"] = compactClip
 		}
 		copyFirstNumber(summary, row, "volume_db", "volume_db", "gain_db", "fader_db", "db")
 		copyFirstNumber(summary, row, "pan", "pan", "pan_value", "balance")
@@ -469,6 +473,36 @@ func primaryTrackClip(clips []any) map[string]any {
 		}
 	}
 	return best
+}
+
+func compactPrimaryClip(clip map[string]any) map[string]any {
+	if len(clip) == 0 {
+		return nil
+	}
+	out := map[string]any{}
+	if id := firstNonEmpty(cleanAnyString(firstPresent(clip, "clip_id", "id", "item_id"))); id != "" {
+		out["clip_id"] = id
+	}
+	if name := firstNonEmpty(cleanAnyString(firstPresent(clip, "clip_name", "name"))); name != "" {
+		out["clip_name"] = name
+	}
+	if clipType := cleanAnyString(clip["clip_type"]); clipType != "" {
+		out["clip_type"] = clipType
+	}
+	for _, key := range []string{"file_path", "source_path", "current_source_path"} {
+		if value := cleanAnyString(clip[key]); value != "" {
+			out[key] = value
+		}
+	}
+	for _, key := range []string{"start_seconds", "end_seconds", "length_seconds", "duration_seconds", "offset_in_source_seconds", "sample_rate_hz", "sample_rate", "bit_depth", "bits_per_sample", "channel_count", "channels"} {
+		if value, ok := numberField(clip, key); ok {
+			out[key] = round3(value)
+		}
+	}
+	if value, ok := clip["playback_source_valid"].(bool); ok {
+		out["playback_source_valid"] = value
+	}
+	return out
 }
 
 func applyAcousticMetricsToTrack(track, acoustic map[string]any) {

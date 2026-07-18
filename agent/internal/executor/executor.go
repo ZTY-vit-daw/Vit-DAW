@@ -92,9 +92,48 @@ func resultRequiresConfirmation(result map[string]any) bool {
 		return false
 	}
 	value, ok := result["requires_confirmation"]
-	if !ok {
-		return false
+	if ok && truthyResultValue(value) {
+		return true
 	}
+	return resultHasExecutablePendingAction(result)
+}
+
+func resultHasExecutablePendingAction(result map[string]any) bool {
+	for _, action := range resultPendingActionRows(result) {
+		tool := strings.TrimSpace(firstNonEmpty(firstMapText(action, "tool_name", "tool"), commandName(resultMapValue(action["args"]))))
+		if strings.EqualFold(tool, "clip.strip_silence.apply") {
+			return true
+		}
+	}
+	return false
+}
+
+func resultPendingActionRows(result map[string]any) []map[string]any {
+	rows := make([]map[string]any, 0)
+	if row := resultMapValue(result["pending_action"]); len(row) > 0 {
+		rows = append(rows, row)
+	}
+	switch typed := result["pending_actions"].(type) {
+	case []map[string]any:
+		rows = append(rows, typed...)
+	case []any:
+		for _, item := range typed {
+			if row := resultMapValue(item); len(row) > 0 {
+				rows = append(rows, row)
+			}
+		}
+	}
+	return rows
+}
+
+func resultMapValue(value any) map[string]any {
+	if row, ok := value.(map[string]any); ok {
+		return row
+	}
+	return nil
+}
+
+func truthyResultValue(value any) bool {
 	switch typed := value.(type) {
 	case bool:
 		return typed

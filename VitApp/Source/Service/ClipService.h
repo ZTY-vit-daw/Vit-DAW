@@ -22,6 +22,13 @@ public:
     juce::String handleResizeClip (const juce::DynamicObject&, const juce::String&) const;
     juce::String handleSplitClip (const juce::DynamicObject&, const juce::String&) const;
     juce::String handleRemoveClips (const juce::DynamicObject&, const juce::String&) const;
+    juce::String handleSetClipFade (const juce::DynamicObject&, const juce::String&) const;
+    juce::String handleReadClipFade (const juce::DynamicObject&, const juce::String&) const;
+    juce::String handleSetClipGain (const juce::DynamicObject&, const juce::String&) const;
+    juce::String handleSetClipGainBatch (const juce::DynamicObject&, const juce::String&) const;
+    juce::String handleReadClipGain (const juce::DynamicObject&, const juce::String&) const;
+    juce::String handleAnalyzeStripSilence (const juce::DynamicObject&, const juce::String&) const;
+    juce::String handleApplyStripSilence (const juce::DynamicObject&, const juce::String&) const;
 
 private:
     static juce::String makeStatusReply (const juce::String& status, const juce::String& message);

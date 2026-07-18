@@ -9,18 +9,24 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
 
+	"vit-daw-agent/internal/actionworkflow"
 	"vit-daw-agent/internal/config"
 	"vit-daw-agent/internal/contextruntime"
+	"vit-daw-agent/internal/epm"
 	executorpkg "vit-daw-agent/internal/executor"
 	"vit-daw-agent/internal/llm"
 	"vit-daw-agent/internal/logx"
+	"vit-daw-agent/internal/mixboard"
 	"vit-daw-agent/internal/planner"
 	"vit-daw-agent/internal/promptruntime"
 	agentruntime "vit-daw-agent/internal/runtime"
+	"vit-daw-agent/internal/tim"
+	"vit-daw-agent/internal/tom"
 )
 
 type MessageCompleter interface {
@@ -36,6 +42,11 @@ type MessageLoop struct {
 	Now      func() time.Time
 	Logger   *logx.Logger
 }
+
+var (
+	messageLoopQuotedLocalPathPattern = regexp.MustCompile(`(?i)["'“”‘’]([a-z]:[\\/][^"'“”‘’\r\n]+|\\\\[^"'“”‘’\r\n]+)["'“”‘’]`)
+	messageLoopLocalPathPattern       = regexp.MustCompile(`(?i)([a-z]:[\\/][^\r\n"'<>|]+|\\\\[^\r\n"'<>|]+)`)
+)
 
 func (l *MessageLoop) logTiming(stage string, started time.Time, format string, args ...any) {
 	if l == nil || l.Logger == nil || started.IsZero() {
@@ -177,6 +188,30 @@ func (l *MessageLoop) ResumeAfterConfirmation(ctx context.Context, cont Continua
 		messageLoopAppendGuardGate(&state, call, issue)
 		return l.loop(ctx, r, &state)
 	}
+	settingsPatch := messageLoopProjectAudioSettingsPatchForConfirmedImport(call)
+	if len(settingsPatch) > 0 {
+		if !allowedTool("project.set_audio_settings", state.input.AllowedTools) {
+			return r.fail(&state, fmt.Errorf("project.set_audio_settings is required before this import but is not allowed"))
+		}
+		settingsCall := messageLoopSetAudioSettingsCallForImport(call, settingsPatch)
+		if issue := messageLoopToolGuardIssue(&state, settingsCall, messageLoopHasUsableMixObservation(&state)); issue != "" {
+			messageLoopAppendGuardGate(&state, settingsCall, issue)
+			return l.loop(ctx, r, &state)
+		}
+		toolStarted := time.Now()
+		stopped, result := r.executeTool(ctx, &state, settingsCall, true, nil)
+		l.logTiming("message_loop.tool", toolStarted, "goal=%s tool=%s confirmed=true stems_import_sample_rate_patch=true stopped=%t status=%s", state.goal.GoalID, settingsCall.Tool, stopped, result.Status)
+		if stopped {
+			return result
+		}
+		appendMessageLoopToolResult(&state)
+		if len(state.executed) == 0 || !messageLoopExecutionSucceeded(state.executed[len(state.executed)-1]) {
+			return r.fail(&state, fmt.Errorf("project.set_audio_settings failed before stems import"))
+		}
+	}
+	if handled, result := l.executeConfirmedStripSilenceBundle(ctx, r, &state, call); handled {
+		return result
+	}
 	toolStarted := time.Now()
 	stopped, result := r.executeTool(ctx, &state, call, true, nil)
 	l.logTiming("message_loop.tool", toolStarted, "goal=%s tool=%s confirmed=true stopped=%t status=%s", state.goal.GoalID, call.Tool, stopped, result.Status)
@@ -184,7 +219,98 @@ func (l *MessageLoop) ResumeAfterConfirmation(ctx context.Context, cont Continua
 		return result
 	}
 	appendMessageLoopToolResult(&state)
+	if len(settingsPatch) > 0 {
+		messageLoopAnnotateLastExecutionResultWithSampleRatePatch(&state, settingsPatch)
+	}
+	if len(state.executed) > 0 {
+		record := state.executed[len(state.executed)-1]
+		if reply, stopped, result := l.messageLoopStemsImportCompleteReplyWithDADGate(ctx, r, &state, record); stopped {
+			return result
+		} else if strings.TrimSpace(reply) != "" {
+			state.trace = append(state.trace, planner.TraceEvent{Kind: "final_gate", Message: "deterministic stems import report completed the turn"})
+			return r.complete(&state, messageLoopMixObservationFinalReply(&state, reply))
+		}
+		if reply := messageLoopTrackOrganizationFastCompleteReply(record); strings.TrimSpace(reply) != "" {
+			state.trace = append(state.trace, planner.TraceEvent{Kind: "final_gate", Message: "deterministic track organization report completed the turn"})
+			return r.complete(&state, reply)
+		}
+		if len(state.pendingToolQueue) == 0 {
+			if reply, handled, result := l.messageLoopB12SourceCalibrationCompleteReply(ctx, r, &state, call); handled {
+				if result.Status != "" {
+					return result
+				}
+				state.trace = append(state.trace, planner.TraceEvent{Kind: "final_gate", Message: "confirmed B1.2 source calibration completed with verification"})
+				return r.complete(&state, reply)
+			}
+			if reply, handled, result := l.messageLoopB1FaderResetCompleteOrchestrate(ctx, r, &state, call); handled {
+				if result.Status != "" {
+					return result
+				}
+				state.trace = append(state.trace, planner.TraceEvent{Kind: "final_gate", Message: "confirmed B1 fader reset completed with B1.2 orchestration"})
+				return r.complete(&state, reply)
+			}
+			if reply, ok := messageLoopClipFadeGainSetReply(&state, call); ok {
+				state.trace = append(state.trace, planner.TraceEvent{Kind: "final_gate", Message: "confirmed clip fade/gain set completed the turn"})
+				return r.complete(&state, reply)
+			}
+			if reply, ok := messageLoopTrackGroupApplyControlReply(&state, call); ok {
+				state.trace = append(state.trace, planner.TraceEvent{Kind: "final_gate", Message: "confirmed track group apply_control completed the turn"})
+				return r.complete(&state, reply)
+			}
+			if messageLoopIsStripSilenceApplyCall(call) {
+				if !messageLoopExecutionSucceeded(record) {
+					errText := firstNonEmpty(messageLoopText(record["error"]), "confirmed Strip Silence apply failed")
+					return r.fail(&state, fmt.Errorf("%s", errText))
+				}
+				state.trace = append(state.trace, planner.TraceEvent{Kind: "final_gate", Message: "confirmed Strip Silence apply completed the turn"})
+				return r.complete(&state, messageLoopStripSilenceApplyCompleteReply(record, call))
+			}
+		}
+	}
 	return l.loop(ctx, r, &state)
+}
+
+func (l *MessageLoop) executeConfirmedStripSilenceBundle(ctx context.Context, r *Runner, state *runState, call planner.ToolCall) (bool, Result) {
+	calls, ok := messageLoopStripSilenceBundleCalls(call)
+	if !ok {
+		return false, Result{}
+	}
+	if len(calls) == 0 {
+		return true, r.fail(state, fmt.Errorf("confirmed Strip Silence bundle has no executable apply actions"))
+	}
+	batchCall := messageLoopStripSilenceBatchCallFromActions(call, calls)
+	if !allowedTool(batchCall.Tool, state.input.AllowedTools) && !allowedTool(call.Tool, state.input.AllowedTools) {
+		return true, r.fail(state, fmt.Errorf("unknown or disallowed tool: %s", strings.TrimSpace(batchCall.Tool)))
+	}
+	if stopped, result := r.checkpoint("before_confirmed_strip_silence_apply_batch", state); stopped {
+		return true, result
+	}
+	if limit, result := r.checkToolBudget(state); limit {
+		return true, result
+	}
+	if issue := messageLoopToolGuardIssue(state, batchCall, messageLoopHasUsableMixObservation(state)); issue != "" {
+		messageLoopAppendGuardGate(state, batchCall, issue)
+		return true, r.fail(state, fmt.Errorf("%s", issue))
+	}
+	toolStarted := time.Now()
+	stopped, result := r.executeTool(ctx, state, batchCall, true, nil)
+	l.logTiming("message_loop.tool", toolStarted, "goal=%s tool=%s confirmed=true strip_silence_legacy_bundle=true stopped=%t status=%s", state.goal.GoalID, batchCall.Tool, stopped, result.Status)
+	if stopped {
+		return true, result
+	}
+	appendMessageLoopToolResult(state)
+	if len(state.executed) == 0 || !messageLoopExecutionSucceeded(state.executed[len(state.executed)-1]) {
+		errText := ""
+		if len(state.executed) > 0 {
+			errText = messageLoopText(state.executed[len(state.executed)-1]["error"])
+		}
+		if strings.TrimSpace(errText) == "" {
+			errText = "confirmed Strip Silence batch apply failed"
+		}
+		return true, r.fail(state, fmt.Errorf("%s", errText))
+	}
+	state.trace = append(state.trace, planner.TraceEvent{Kind: "final_gate", Message: "confirmed Strip Silence bundle completed"})
+	return true, r.complete(state, messageLoopStripSilenceApplyCompleteReply(state.executed[len(state.executed)-1], batchCall))
 }
 
 func (l *MessageLoop) loop(ctx context.Context, r *Runner, state *runState) Result {
@@ -196,7 +322,31 @@ func (l *MessageLoop) loop(ctx context.Context, r *Runner, state *runState) Resu
 	}
 	messageLoopApplyReadOnlyMutationBarrier(state)
 	for {
+		if stopped, result := l.preflightStaticMixCapabilityContract(ctx, r, state); stopped {
+			return result
+		}
+		if stopped, result := l.preflightProjectBlackboardStatus(ctx, r, state); stopped {
+			return result
+		}
+		if stopped, result := l.preflightClipFadeGainSet(ctx, r, state); stopped {
+			return result
+		}
+		if stopped, result := l.preflightClipFadeGainRead(ctx, r, state); stopped {
+			return result
+		}
+		if stopped, result := l.preflightStripSilenceSuggest(ctx, r, state); stopped {
+			return result
+		}
+		if stopped, result := l.preflightStemsFolderImport(ctx, r, state); stopped {
+			return result
+		}
+		if stopped, result := l.preflightPendingSectionMarkersApply(ctx, r, state); stopped {
+			return result
+		}
 		if stopped, result := l.preflightNaturalMixObservation(ctx, r, state); stopped {
+			return result
+		}
+		if stopped, result := l.preflightStaticMixGainStagingContextPack(ctx, r, state); stopped {
 			return result
 		}
 		if stopped, result := r.checkpoint("before_message_loop_model", state); stopped {
@@ -234,6 +384,13 @@ func (l *MessageLoop) loop(ctx context.Context, r *Runner, state *runState) Resu
 					res.ClarificationQuestion = reply
 					return res
 				}
+				return r.complete(state, reply)
+			}
+			if reply, ok := messageLoopExecutionFallbackAfterLLMError(state, err); ok {
+				state.trace = append(state.trace, planner.TraceEvent{
+					Kind:    "final_gate",
+					Message: "LLM reply failed after verified execution; returned deterministic execution fallback: " + err.Error(),
+				})
 				return r.complete(state, reply)
 			}
 			return r.fail(state, err)
@@ -292,6 +449,12 @@ func (l *MessageLoop) loop(ctx context.Context, r *Runner, state *runState) Resu
 			return r.fail(state, errors.New(out.FailureReason))
 		}
 		if out.NeedsClarification {
+			if handled, stopped, result := l.maybeStartStemsImportConfirmation(ctx, r, state, out, "clarification_after_preflight"); handled {
+				if stopped {
+					return result
+				}
+				continue
+			}
 			if candidate := messageLoopDeterministicVocalClarificationPendingTick(state, firstNonEmpty(out.Reply, out.ClarificationQuestion)); candidate != nil {
 				messageLoopAttachDiagnosisToMixTick(state, candidate, state.input.UserText)
 				state.executionMemory.PendingMixTickCandidate = candidate
@@ -315,6 +478,12 @@ func (l *MessageLoop) loop(ctx context.Context, r *Runner, state *runState) Resu
 			return res
 		}
 		if out.Final || len(out.ToolCalls) == 0 {
+			if handled, stopped, result := l.maybeStartStemsImportConfirmation(ctx, r, state, out, "final_after_preflight"); handled {
+				if stopped {
+					return result
+				}
+				continue
+			}
 			if issue := messageLoopFinalIssue(state); issue != "" {
 				state.trace = append(state.trace, planner.TraceEvent{Kind: "final_gate", Message: issue, PlanItems: append([]planner.PlanItem(nil), state.planItems...)})
 				state.input.Conversation = append(state.input.Conversation, llm.Message{Role: "user", Content: "<final_gate>" + issue + "</final_gate>"})
@@ -406,6 +575,1561 @@ func (l *MessageLoop) loop(ctx context.Context, r *Runner, state *runState) Resu
 			return r.complete(state, messageLoopMixObservationFinalReply(state, reply))
 		}
 	}
+}
+
+func (l *MessageLoop) preflightStaticMixCapabilityContract(_ context.Context, r *Runner, state *runState) (bool, Result) {
+	if state == nil || !messageLoopStaticMixCapabilityContractRequest(state.input.UserText) {
+		return false, Result{}
+	}
+	state.trace = append(state.trace, planner.TraceEvent{Kind: "final_gate", Message: "static mix capability contract completed the turn"})
+	return true, r.complete(state, messageLoopStaticMixCapabilityContractReply(state))
+}
+
+func (l *MessageLoop) preflightProjectBlackboardStatus(ctx context.Context, r *Runner, state *runState) (bool, Result) {
+	if state == nil || !messageLoopProjectBlackboardStatusRequest(state.input.UserText) {
+		return false, Result{}
+	}
+	if record := messageLoopProjectBlackboardExecutionResult(state); len(record) > 0 {
+		state.trace = append(state.trace, planner.TraceEvent{Kind: "final_gate", Message: "project blackboard status report completed from existing project.state"})
+		return true, r.complete(state, messageLoopProjectBlackboardReportFromRecord(state, record))
+	}
+	call := messageLoopProjectBlackboardStateCall()
+	if stopped, result := r.checkpoint("before_message_loop_project_blackboard_status", state); stopped {
+		return true, result
+	}
+	if limit, result := r.checkToolBudget(state); limit {
+		return true, result
+	}
+	if !allowedTool(call.Tool, state.input.AllowedTools) {
+		record := map[string]any{
+			"tool_call_id": call.ID,
+			"tool":         call.Tool,
+			"status":       "error",
+			"error":        "unknown or disallowed tool: " + strings.TrimSpace(call.Tool),
+		}
+		state.trace = append(state.trace,
+			planner.TraceEvent{Kind: "tool_call", ToolCall: cloneToolCallPtr(call), Message: "project blackboard status report requires project.state"},
+			planner.TraceEvent{Kind: "final_gate", Message: "project blackboard status report could not read project.state"},
+		)
+		return true, r.complete(state, messageLoopProjectBlackboardReportFromRecord(state, record))
+	}
+	state.trace = append(state.trace, planner.TraceEvent{
+		Kind:     "tool_call_rewritten",
+		Message:  "project status request was routed through Project Blackboard Status Report v0",
+		ToolCall: cloneToolCallPtr(call),
+	})
+	toolStarted := time.Now()
+	stopped, result := r.executeTool(ctx, state, call, false, nil)
+	l.logTiming("message_loop.tool", toolStarted, "goal=%s tool=%s confirmed=false project_blackboard_status=true stopped=%t status=%s", state.goal.GoalID, call.Tool, stopped, result.Status)
+	if stopped {
+		return true, result
+	}
+	appendMessageLoopToolResult(state)
+	record := messageLoopProjectBlackboardExecutionResult(state)
+	if len(record) == 0 {
+		record = messageLoopProjectBlackboardFallbackRecord(call, result.Error)
+	}
+	state.trace = append(state.trace, planner.TraceEvent{Kind: "final_gate", Message: "project blackboard status report completed the turn"})
+	return true, r.complete(state, messageLoopProjectBlackboardReportFromRecord(state, record))
+}
+
+func (l *MessageLoop) preflightClipFadeGainRead(ctx context.Context, r *Runner, state *runState) (bool, Result) {
+	if state != nil && messageLoopClipFadeGainReadRequest(state.input.UserText) && messageLoopCurrentClipID(state) == "" {
+		reply := "\u8bf7\u5148\u5728 GUI \u91cc\u9009\u4e2d\u4e00\u4e2a\u97f3\u9891 clip\uff0c\u7136\u540e\u6211\u518d\u8bfb\u53d6\u5b83\u7684 fade \u548c clip gain \u72b6\u6001\u3002"
+		state.trace = append(state.trace, planner.TraceEvent{Kind: "clarification", Message: reply})
+		res := r.pause(state, agentruntime.StatusWaitingClarification, StopReasonNeedsClarification, "", reply, "", "", nil)
+		res.NeedsClarification = true
+		res.ClarificationQuestion = reply
+		return true, res
+	}
+	calls, ok := messageLoopDeterministicClipFadeGainReadCalls(state)
+	if !ok {
+		return false, Result{}
+	}
+	if stopped, result := r.checkpoint("before_message_loop_clip_fade_gain_read", state); stopped {
+		return true, result
+	}
+	for _, call := range calls {
+		if limit, result := r.checkToolBudget(state); limit {
+			return true, result
+		}
+		if !allowedTool(call.Tool, state.input.AllowedTools) {
+			result := planner.ToolResult{ToolCallID: call.ID, Tool: call.Tool, Status: "error", Error: "unknown or disallowed tool: " + strings.TrimSpace(call.Tool)}
+			state.trace = append(state.trace,
+				planner.TraceEvent{Kind: "tool_call", ToolCall: cloneToolCallPtr(call), Message: "deterministic clip fade/gain read"},
+				planner.TraceEvent{Kind: "tool_result", ToolResult: &result},
+				planner.TraceEvent{Kind: "final_gate", Message: result.Error},
+			)
+			state.input.Conversation = append(state.input.Conversation, llm.Message{Role: "user", Content: "<final_gate>" + result.Error + "</final_gate>"})
+			return false, Result{}
+		}
+		state.trace = append(state.trace, planner.TraceEvent{
+			Kind:     "tool_call_rewritten",
+			Message:  "clip fade/gain read was routed through typed clip tools",
+			ToolCall: cloneToolCallPtr(call),
+		})
+		toolStarted := time.Now()
+		stopped, result := r.executeTool(ctx, state, call, false, nil)
+		l.logTiming("message_loop.tool", toolStarted, "goal=%s tool=%s confirmed=false clip_fade_gain_read=true stopped=%t status=%s", state.goal.GoalID, call.Tool, stopped, result.Status)
+		if stopped {
+			return true, result
+		}
+		appendMessageLoopToolResult(state)
+	}
+	if reply := messageLoopClipFadeGainReadReply(state); strings.TrimSpace(reply) != "" {
+		state.trace = append(state.trace, planner.TraceEvent{Kind: "final_gate", Message: "deterministic clip fade/gain read completed the turn"})
+		return true, r.complete(state, reply)
+	}
+	return true, r.complete(state, "Clip fade/gain read completed.")
+}
+
+func (l *MessageLoop) preflightClipFadeGainSet(ctx context.Context, r *Runner, state *runState) (bool, Result) {
+	call, ok := messageLoopDeterministicClipFadeGainSetCall(state)
+	if !ok {
+		return false, Result{}
+	}
+	if stopped, result := r.checkpoint("before_message_loop_clip_fade_gain_set", state); stopped {
+		return true, result
+	}
+	if limit, result := r.checkToolBudget(state); limit {
+		return true, result
+	}
+	if !allowedTool(call.Tool, state.input.AllowedTools) {
+		result := planner.ToolResult{ToolCallID: call.ID, Tool: call.Tool, Status: "error", Error: "unknown or disallowed tool: " + strings.TrimSpace(call.Tool)}
+		state.trace = append(state.trace,
+			planner.TraceEvent{Kind: "tool_call", ToolCall: cloneToolCallPtr(call), Message: "deterministic clip fade/gain set"},
+			planner.TraceEvent{Kind: "tool_result", ToolResult: &result},
+			planner.TraceEvent{Kind: "final_gate", Message: result.Error},
+		)
+		state.input.Conversation = append(state.input.Conversation, llm.Message{Role: "user", Content: "<final_gate>" + result.Error + "</final_gate>"})
+		return false, Result{}
+	}
+	state.trace = append(state.trace, planner.TraceEvent{
+		Kind:     "tool_call_rewritten",
+		Message:  "clip fade/gain set was routed through typed clip tools",
+		ToolCall: cloneToolCallPtr(call),
+	})
+	toolStarted := time.Now()
+	stopped, result := r.executeTool(ctx, state, call, false, nil)
+	l.logTiming("message_loop.tool", toolStarted, "goal=%s tool=%s confirmed=false clip_fade_gain_set=true stopped=%t status=%s", state.goal.GoalID, call.Tool, stopped, result.Status)
+	if stopped {
+		return true, result
+	}
+	appendMessageLoopToolResult(state)
+	if reply, ok := messageLoopClipFadeGainSetReply(state, call); ok {
+		state.trace = append(state.trace, planner.TraceEvent{Kind: "final_gate", Message: "deterministic clip fade/gain set completed the turn"})
+		return true, r.complete(state, reply)
+	}
+	return true, r.complete(state, "Clip fade/gain set completed.")
+}
+
+func (l *MessageLoop) preflightStripSilenceSuggest(ctx context.Context, r *Runner, state *runState) (bool, Result) {
+	call, ok := messageLoopDeterministicStripSilenceSuggestCall(state)
+	if !ok {
+		return false, Result{}
+	}
+	if stopped, result := r.checkpoint("before_message_loop_strip_silence_suggest", state); stopped {
+		return true, result
+	}
+	if limit, result := r.checkToolBudget(state); limit {
+		return true, result
+	}
+	if !allowedTool(call.Tool, state.input.AllowedTools) {
+		result := planner.ToolResult{ToolCallID: call.ID, Tool: call.Tool, Status: "error", Error: "unknown or disallowed tool: " + strings.TrimSpace(call.Tool)}
+		state.trace = append(state.trace,
+			planner.TraceEvent{Kind: "tool_call", ToolCall: cloneToolCallPtr(call), Message: "deterministic strip silence suggest"},
+			planner.TraceEvent{Kind: "tool_result", ToolResult: &result},
+			planner.TraceEvent{Kind: "final_gate", Message: result.Error},
+		)
+		state.input.Conversation = append(state.input.Conversation, llm.Message{Role: "user", Content: "<final_gate>" + result.Error + "</final_gate>"})
+		return false, Result{}
+	}
+	state.trace = append(state.trace, planner.TraceEvent{
+		Kind:     "tool_call_rewritten",
+		Message:  "strip silence recommendation was routed through clip.strip_silence.suggest",
+		ToolCall: cloneToolCallPtr(call),
+	})
+	toolStarted := time.Now()
+	stopped, result := r.executeTool(ctx, state, call, false, nil)
+	l.logTiming("message_loop.tool", toolStarted, "goal=%s tool=%s confirmed=false strip_silence_suggest=true stopped=%t status=%s", state.goal.GoalID, call.Tool, stopped, result.Status)
+	if stopped {
+		return true, result
+	}
+	appendMessageLoopToolResult(state)
+	if reply := messageLoopStripSilenceSuggestReply(state); strings.TrimSpace(reply) != "" {
+		state.trace = append(state.trace, planner.TraceEvent{Kind: "final_gate", Message: "deterministic strip silence suggest completed the turn"})
+		return true, r.complete(state, reply)
+	}
+	return true, r.complete(state, "清理静音分析完成。")
+}
+
+func messageLoopDeterministicClipFadeGainReadCalls(state *runState) ([]planner.ToolCall, bool) {
+	if state == nil || state.pendingToolCall != nil || len(state.pendingToolQueue) > 0 {
+		return nil, false
+	}
+	if !messageLoopClipFadeGainReadRequest(state.input.UserText) {
+		return nil, false
+	}
+	clipID := messageLoopCurrentClipID(state)
+	if clipID == "" {
+		return nil, false
+	}
+	args := map[string]any{"clip_id": clipID}
+	return []planner.ToolCall{
+		{
+			ID:      "read_clip_fade",
+			Tool:    "clip.fade.read",
+			Args:    cloneMap(args),
+			Command: map[string]any{"cmd": "clip.fade.read", "clip_id": clipID},
+			Reason:  "Read selected clip fade state.",
+		},
+		{
+			ID:      "read_clip_gain",
+			Tool:    "clip.gain.read",
+			Args:    cloneMap(args),
+			Command: map[string]any{"cmd": "clip.gain.read", "clip_id": clipID},
+			Reason:  "Read selected clip gain state.",
+		},
+	}, true
+}
+
+func messageLoopClipFadeGainReadRequest(userText string) bool {
+	text := strings.ToLower(strings.TrimSpace(userText))
+	if !messageLoopClipFadeGainRequest(text) {
+		return false
+	}
+	hasReadIntent := messageLoopTextHasAny(text,
+		"read", "show", "inspect", "status", "state", "get",
+		"\u8bfb\u53d6", "\u67e5\u770b", "\u770b\u4e00\u4e0b", "\u72b6\u6001",
+	)
+	hasWriteIntent := messageLoopTextHasAny(text,
+		"set", "adjust", "change", "drag", "write", "apply",
+		"\u8bbe\u7f6e", "\u8c03\u6574", "\u4fee\u6539", "\u62d6", "\u62c9", "\u5199\u5165", "\u5e94\u7528",
+	)
+	if !hasReadIntent && messageLoopTextHasAny(text, "db", "d b", "\u5206\u8d1d") {
+		return false
+	}
+	return hasReadIntent || !hasWriteIntent
+}
+
+func messageLoopDeterministicClipFadeGainSetCall(state *runState) (planner.ToolCall, bool) {
+	if state == nil || state.pendingToolCall != nil || len(state.pendingToolQueue) > 0 {
+		return planner.ToolCall{}, false
+	}
+	if !messageLoopClipFadeGainSetRequest(state.input.UserText) {
+		return planner.ToolCall{}, false
+	}
+	clipID := messageLoopCurrentClipID(state)
+	if clipID == "" {
+		return planner.ToolCall{}, false
+	}
+	if args, ok := messageLoopClipFadeSetArgs(state.input.UserText, clipID); ok {
+		return planner.ToolCall{
+			ID:      "set_clip_fade",
+			Tool:    "clip.fade.set",
+			Args:    cloneMap(args),
+			Command: cloneMap(args),
+			Reason:  messageLoopClipFadeSetReason(args),
+		}, true
+	}
+	if gainDB, ok := messageLoopClipGainSetValueDB(state.input.UserText); ok {
+		args := map[string]any{"clip_id": clipID, "gain_db": gainDB}
+		return planner.ToolCall{
+			ID:      "set_clip_gain",
+			Tool:    "clip.gain.set",
+			Args:    args,
+			Command: map[string]any{"cmd": "clip.gain.set", "clip_id": clipID, "gain_db": gainDB},
+			Reason:  fmt.Sprintf("Set selected clip gain to %+.2f dB.", gainDB),
+		}, true
+	}
+	return planner.ToolCall{}, false
+}
+
+func messageLoopDeterministicStripSilenceSuggestCall(state *runState) (planner.ToolCall, bool) {
+	if state == nil || state.pendingToolCall != nil || len(state.pendingToolQueue) > 0 {
+		return planner.ToolCall{}, false
+	}
+	if !messageLoopStripSilenceSuggestRequest(state.input.UserText) {
+		return planner.ToolCall{}, false
+	}
+	args := map[string]any{"scope": "selected_clip"}
+	if messageLoopStripSilenceAllProjectRequest(state.input.UserText) {
+		args["scope"] = "all_project"
+	} else {
+		clipID := messageLoopCurrentClipID(state)
+		trackID := messageLoopCurrentClipTrackID(state)
+		ranges := messageLoopSelectedClipRanges(state)
+		if messageLoopStripSilenceSelectedTrackRequest(state.input.UserText) {
+			if trackID == "" {
+				return planner.ToolCall{}, false
+			}
+			args["scope"] = "selected_track"
+			args["track_id"] = trackID
+		} else if useRanges := len(ranges) > 0 && (messageLoopStripSilenceRangeRequest(state.input.UserText) || clipID == ""); useRanges {
+			args["scope"] = "selected_ranges"
+			args["selected_clip_ranges"] = ranges
+		} else {
+			if clipID != "" {
+				args["clip_id"] = clipID
+			}
+			if trackID != "" {
+				args["track_id"] = trackID
+			}
+		}
+		if args["clip_id"] == nil && args["selected_clip_ranges"] == nil && args["track_id"] == nil {
+			return planner.ToolCall{}, false
+		}
+	}
+	command := cloneMap(args)
+	command["cmd"] = "clip.strip_silence.suggest"
+	return planner.ToolCall{
+		ID:      "suggest_strip_silence",
+		Tool:    "clip.strip_silence.suggest",
+		Args:    args,
+		Command: command,
+		Reason:  "Recommend Strip Silence parameters and pending apply actions without mutating the project.",
+	}, true
+}
+
+func messageLoopClipFadeSetArgs(userText, clipID string) (map[string]any, bool) {
+	text := strings.ToLower(strings.TrimSpace(userText))
+	if text == "" || !messageLoopTextHasAny(text, "fade", "\u6de1\u5165", "\u6de1\u51fa", "\u6de1\u5316") {
+		return nil, false
+	}
+	args := map[string]any{"cmd": "clip.fade.set", "clip_id": clipID}
+	if seconds, ok := messageLoopExtractFadeSeconds(text, true); ok {
+		args["fade_in_seconds"] = seconds
+	}
+	if seconds, ok := messageLoopExtractFadeSeconds(text, false); ok {
+		args["fade_out_seconds"] = seconds
+	}
+	if _, hasIn := args["fade_in_seconds"]; hasIn {
+		return args, true
+	}
+	if _, hasOut := args["fade_out_seconds"]; hasOut {
+		return args, true
+	}
+	return nil, false
+}
+
+func messageLoopExtractFadeSeconds(text string, fadeIn bool) (float64, bool) {
+	labels := []string{`fade\s*in`, `fade-in`, `fadein`, "\u6de1\u5165"}
+	if !fadeIn {
+		labels = []string{`fade\s*out`, `fade-out`, `fadeout`, "\u6de1\u51fa"}
+	}
+	unitPattern := `ms|msec|milliseconds?|millisecond|` + "\u6beb\u79d2" + `|s|sec|seconds?|second|` + "\u79d2"
+	pattern := regexp.MustCompile(`(?i)(?:` + strings.Join(labels, "|") + `)[^\d+\-]{0,32}([+\-]?\d+(?:\.\d+)?)\s*(` + unitPattern + `)?`)
+	match := pattern.FindStringSubmatch(text)
+	if len(match) < 2 {
+		return 0, false
+	}
+	value, err := strconv.ParseFloat(strings.TrimSpace(match[1]), 64)
+	if err != nil || value < 0 {
+		return 0, false
+	}
+	unit := ""
+	if len(match) >= 3 {
+		unit = strings.ToLower(strings.TrimSpace(match[2]))
+	}
+	switch unit {
+	case "ms", "msec", "millisecond", "milliseconds", "\u6beb\u79d2":
+		value = value / 1000.0
+	}
+	if value > 600 {
+		return 0, false
+	}
+	return value, true
+}
+
+func messageLoopClipFadeSetReason(args map[string]any) string {
+	parts := []string{}
+	if seconds, ok := firstNumericMapValue(args, "fade_in_seconds"); ok {
+		parts = append(parts, fmt.Sprintf("fade in %.3fs", seconds))
+	}
+	if seconds, ok := firstNumericMapValue(args, "fade_out_seconds"); ok {
+		parts = append(parts, fmt.Sprintf("fade out %.3fs", seconds))
+	}
+	if len(parts) == 0 {
+		return "Set selected clip fade."
+	}
+	return "Set selected clip " + strings.Join(parts, ", ") + "."
+}
+
+func messageLoopClipFadeGainSetRequest(userText string) bool {
+	text := strings.ToLower(strings.TrimSpace(userText))
+	if !messageLoopClipFadeGainRequest(text) {
+		return false
+	}
+	return messageLoopTextHasAny(text,
+		"set", "adjust", "change", "drag", "write", "apply", "to ", "at ",
+		"\u8bbe\u7f6e", "\u8c03\u6574", "\u4fee\u6539", "\u62d6", "\u62c9", "\u5199\u5165", "\u5e94\u7528", "\u5230", "\u4e3a",
+	)
+}
+
+func messageLoopClipGainSetValueDB(userText string) (float64, bool) {
+	text := strings.ToLower(strings.TrimSpace(userText))
+	if text == "" || !messageLoopTextHasAny(text, "clip gain", "\u589e\u76ca") {
+		return 0, false
+	}
+	return messageLoopExtractAbsoluteDBAmount(text)
+}
+
+func messageLoopExtractAbsoluteDBAmount(text string) (float64, bool) {
+	matches := messageLoopDBAmountPattern.FindAllStringSubmatch(text, -1)
+	if len(matches) != 1 || len(matches[0]) < 2 {
+		return 0, false
+	}
+	value, err := strconv.ParseFloat(strings.TrimSpace(matches[0][1]), 64)
+	if err != nil {
+		return 0, false
+	}
+	if mathAbs(value) > 60 {
+		return 0, false
+	}
+	return value, true
+}
+
+func messageLoopClipFadeGainSetReply(state *runState, call planner.ToolCall) (string, bool) {
+	if state == nil || len(state.executed) == 0 {
+		return "", false
+	}
+	record := state.executed[len(state.executed)-1]
+	if !messageLoopExecutionSucceeded(record) {
+		return "", false
+	}
+	name := strings.ToLower(strings.TrimSpace(firstNonEmpty(messageLoopText(record["tool"]), messageLoopText(record["command_name"]), call.Tool)))
+	if name != "clip.gain.set" && name != "clip.fade.set" {
+		return "", false
+	}
+	clipID := firstNonEmpty(firstMapText(messageLoopMapValue(record["result"]), "clip_id", "id", "item_id"), firstMapText(call.Args, "clip_id"))
+	if name == "clip.gain.set" {
+		if gainDB, ok := firstNumericMapValue(messageLoopMapValue(record["result"]), "clip_gain_db", "gain_db", "db"); ok {
+			return fmt.Sprintf("Clip %s gain 已设置为 %+.2f dB。", clipID, gainDB), true
+		}
+		if gainDB, ok := firstNumericMapValue(call.Args, "gain_db", "clip_gain_db", "db"); ok {
+			return fmt.Sprintf("Clip %s gain 已设置为 %+.2f dB。", clipID, gainDB), true
+		}
+	}
+	if name == "clip.fade.set" {
+		result := messageLoopMapValue(record["result"])
+		inSeconds, hasIn := firstNumericMapValue(result, "fade_in_seconds", "fade_in", "fadeInSeconds")
+		outSeconds, hasOut := firstNumericMapValue(result, "fade_out_seconds", "fade_out", "fadeOutSeconds")
+		if !hasIn {
+			inSeconds, hasIn = firstNumericMapValue(call.Args, "fade_in_seconds", "fade_in", "fadeInSeconds")
+		}
+		if !hasOut {
+			outSeconds, hasOut = firstNumericMapValue(call.Args, "fade_out_seconds", "fade_out", "fadeOutSeconds")
+		}
+		parts := []string{}
+		if hasIn {
+			parts = append(parts, fmt.Sprintf("fade in %.3fs", inSeconds))
+		}
+		if hasOut {
+			parts = append(parts, fmt.Sprintf("fade out %.3fs", outSeconds))
+		}
+		if len(parts) > 0 {
+			return fmt.Sprintf("Clip %s fade 已设置：%s。", clipID, strings.Join(parts, "，")), true
+		}
+	}
+	return "Clip fade/gain set completed.", true
+}
+
+func messageLoopTrackGroupApplyControlReply(state *runState, call planner.ToolCall) (string, bool) {
+	if state == nil || len(state.executed) == 0 || strings.TrimSpace(call.Tool) != "track.group.apply_control" {
+		return "", false
+	}
+	mode := strings.ToLower(firstNonEmpty(firstMapText(call.Args, "mode", "operation"), "absolute"))
+	control := strings.ToLower(firstNonEmpty(firstMapText(call.Args, "control", "param", "parameter"), "volume"))
+	targetDB, targetOK := firstNumericMapValue(call.Args, "db", "target_db", "value_db", "volume_db")
+	if control != "volume" && control != "track.volume" {
+		return "", false
+	}
+	if mode != "absolute" && mode != "set" && mode != "volume_absolute" {
+		return "", false
+	}
+	if !targetOK || mathAbs(targetDB) > 0.0001 {
+		return "", false
+	}
+	record := state.executed[len(state.executed)-1]
+	if !messageLoopExecutionSucceeded(record) {
+		return "", false
+	}
+	result := messageLoopMapValue(record["result"])
+	groupID := firstNonEmpty(firstMapText(result, "group_id", "id"), firstMapText(call.Args, "group_id", "id"))
+	applied := firstPositiveMapInt(result, "applied_count")
+	verified := firstPositiveMapInt(result, "verified_count")
+	if applied == 0 {
+		applied = len(messageLoopMapRows(result["members"]))
+	}
+	if verified == 0 {
+		for _, member := range messageLoopMapRows(result["members"]) {
+			if ok, exists := firstMapBool(member, "verified"); exists && ok {
+				verified++
+			}
+		}
+	}
+	if groupID == "" {
+		groupID = "B1 reference group"
+	}
+	return fmt.Sprintf("B1 参考电平校准第一步已执行：%s 的 %d 条成员轨道 fader 已绝对设置为 0 dB，其中 %d 条通过回读验证。", groupID, applied, verified), true
+}
+
+func messageLoopCurrentClipID(state *runState) string {
+	if state == nil {
+		return ""
+	}
+	for _, row := range []map[string]any{
+		state.input.Context,
+		messageLoopMapValue(state.input.Context["current_selection"]),
+		messageLoopMapValue(state.input.Context["ui_context"]),
+		state.input.ContextSnapshot,
+		messageLoopMapValue(state.input.ContextSnapshot["current_selection"]),
+		messageLoopMapValue(state.input.ContextSnapshot["ui_context"]),
+		state.input.State,
+		messageLoopMapValue(state.input.State["current_selection"]),
+		messageLoopMapValue(state.input.State["ui_context"]),
+	} {
+		if clipID := firstMapText(row, "selected_clip_id", "primary_selected_clip_id", "piano_roll_focus_clip_id", "clip_id", "target_clip_id"); clipID != "" {
+			return clipID
+		}
+		for _, value := range []any{row["selected_clip_ids"], row["clip_ids"]} {
+			for _, item := range messageLoopAnySlice(value) {
+				if clipID := strings.TrimSpace(fmt.Sprint(item)); clipID != "" && clipID != "<nil>" {
+					return clipID
+				}
+			}
+		}
+	}
+	return firstNonEmpty(
+		state.executionMemory.ActiveWorkTargetClipID,
+		state.executionMemory.LastCreatedClipID,
+	)
+}
+
+func messageLoopCurrentClipTrackID(state *runState) string {
+	if state == nil {
+		return ""
+	}
+	for _, row := range []map[string]any{
+		state.input.Context,
+		messageLoopMapValue(state.input.Context["current_selection"]),
+		messageLoopMapValue(state.input.Context["ui_context"]),
+		state.input.ContextSnapshot,
+		messageLoopMapValue(state.input.ContextSnapshot["current_selection"]),
+		messageLoopMapValue(state.input.ContextSnapshot["ui_context"]),
+		state.input.State,
+		messageLoopMapValue(state.input.State["current_selection"]),
+		messageLoopMapValue(state.input.State["ui_context"]),
+	} {
+		if trackID := firstMapText(row, "selected_clip_track_id", "selected_track_id", "track_id", "focused_track_id"); trackID != "" {
+			return trackID
+		}
+	}
+	return state.executionMemory.ActiveWorkTargetTrackID
+}
+
+func messageLoopSelectedClipRanges(state *runState) []map[string]any {
+	if state == nil {
+		return nil
+	}
+	for _, row := range []map[string]any{
+		state.input.Context,
+		messageLoopMapValue(state.input.Context["current_selection"]),
+		messageLoopMapValue(state.input.Context["ui_context"]),
+		state.input.ContextSnapshot,
+		messageLoopMapValue(state.input.ContextSnapshot["current_selection"]),
+		messageLoopMapValue(state.input.ContextSnapshot["ui_context"]),
+		state.input.State,
+		messageLoopMapValue(state.input.State["current_selection"]),
+		messageLoopMapValue(state.input.State["ui_context"]),
+	} {
+		if ranges := messageLoopMapRows(row["selected_clip_ranges"]); len(ranges) > 0 {
+			return messageLoopCompactClipRanges(ranges)
+		}
+		if single := messageLoopMapValue(row["selected_clip_range"]); len(single) > 0 {
+			return messageLoopCompactClipRanges([]map[string]any{single})
+		}
+	}
+	return nil
+}
+
+func messageLoopCompactClipRanges(ranges []map[string]any) []map[string]any {
+	out := make([]map[string]any, 0, len(ranges))
+	for _, row := range ranges {
+		compact := map[string]any{}
+		for _, key := range []string{
+			"range_id", "clip_id", "track_id",
+			"start_seconds", "end_seconds", "duration_seconds",
+			"clip_local_start_seconds", "clip_local_end_seconds",
+			"local_start_seconds", "local_end_seconds",
+		} {
+			if value, ok := row[key]; ok && !messageLoopEmptyValue(value) {
+				compact[key] = value
+			}
+		}
+		if len(compact) > 0 {
+			out = append(out, compact)
+		}
+	}
+	return out
+}
+
+func messageLoopClipFadeGainReadReply(state *runState) string {
+	if state == nil {
+		return ""
+	}
+	var fade map[string]any
+	var gain map[string]any
+	var fadeErr string
+	var gainErr string
+	clipID := messageLoopCurrentClipID(state)
+	for _, record := range state.executed {
+		name := strings.ToLower(strings.TrimSpace(firstNonEmpty(messageLoopText(record["tool"]), messageLoopText(record["command_name"]))))
+		if name != "clip.fade.read" && name != "clip.gain.read" {
+			continue
+		}
+		if !messageLoopExecutionSucceeded(record) {
+			if errText := messageLoopText(record["error"]); errText != "" {
+				if name == "clip.fade.read" {
+					fadeErr = errText
+				} else {
+					gainErr = errText
+				}
+			}
+			continue
+		}
+		result := messageLoopMapValue(record["result"])
+		if id := firstMapText(result, "clip_id", "id", "item_id"); id != "" {
+			clipID = id
+		}
+		if name == "clip.fade.read" {
+			fade = result
+		} else {
+			gain = result
+		}
+	}
+	if len(fade) == 0 && len(gain) == 0 && fadeErr == "" && gainErr == "" {
+		return ""
+	}
+	lines := []string{}
+	if clipID != "" {
+		lines = append(lines, fmt.Sprintf("Clip %s \u5f53\u524d\u72b6\u6001\uff1a", clipID))
+	} else {
+		lines = append(lines, "\u5f53\u524d clip \u72b6\u6001\uff1a")
+	}
+	if len(fade) > 0 {
+		inSeconds, _ := firstNumericMapValue(fade, "fade_in_seconds", "fade_in", "fadeInSeconds")
+		outSeconds, _ := firstNumericMapValue(fade, "fade_out_seconds", "fade_out", "fadeOutSeconds")
+		lines = append(lines, fmt.Sprintf("- Fade in\uff1a%.3fs", inSeconds))
+		lines = append(lines, fmt.Sprintf("- Fade out\uff1a%.3fs", outSeconds))
+	} else if fadeErr != "" {
+		lines = append(lines, "- Fade\uff1a\u8bfb\u53d6\u5931\u8d25\uff0c"+fadeErr)
+	}
+	if len(gain) > 0 {
+		if gainDB, ok := firstNumericMapValue(gain, "clip_gain_db", "gain_db", "db"); ok {
+			lines = append(lines, fmt.Sprintf("- Clip gain\uff1a%+.2f dB", gainDB))
+		} else {
+			lines = append(lines, "- Clip gain\uff1a\u8bfb\u53d6\u6210\u529f\uff0c\u4f46\u7ed3\u679c\u91cc\u6ca1\u6709 dB \u6570\u503c")
+		}
+	} else if gainErr != "" {
+		lines = append(lines, "- Clip gain\uff1a\u8bfb\u53d6\u5931\u8d25\uff0c"+gainErr)
+	}
+	return strings.Join(lines, "\n")
+}
+
+func messageLoopStripSilenceSuggestReply(state *runState) string {
+	if state == nil {
+		return ""
+	}
+	var result map[string]any
+	for i := len(state.executed) - 1; i >= 0; i-- {
+		record := state.executed[i]
+		name := strings.ToLower(strings.TrimSpace(firstNonEmpty(messageLoopText(record["tool"]), messageLoopText(record["command_name"]))))
+		if name != "clip.strip_silence.suggest" {
+			continue
+		}
+		if !messageLoopExecutionSucceeded(record) {
+			if errText := messageLoopText(record["error"]); errText != "" {
+				return "清理静音建议失败：" + errText
+			}
+			return "清理静音建议失败。"
+		}
+		result = messageLoopMapValue(record["result"])
+		break
+	}
+	if len(result) == 0 {
+		return ""
+	}
+	params := messageLoopMapValue(result["recommended_params"])
+	analysis := messageLoopMapValue(result["analysis"])
+	threshold, _ := firstNumericMapValue(params, "threshold_dbfs")
+	minSilence, _ := firstNumericMapValue(params, "min_silence_ms")
+	startPad, _ := firstNumericMapValue(params, "clip_start_pad_ms")
+	endPad, _ := firstNumericMapValue(params, "clip_end_pad_ms")
+	stripCount := intNumberFromAny(firstNonEmptyAny(analysis["strip_region_count"], result["strip_region_count"]))
+	actionCount := intNumberFromAny(result["pending_action_count"])
+	confidence := firstNonEmpty(firstMapText(result, "confidence"), "unknown")
+	scope := firstNonEmpty(firstMapText(result, "scope"), "selected_clip")
+
+	lines := []string{
+		"清理静音建议已生成。",
+		fmt.Sprintf("- 范围：%s", messageLoopStripSilenceScopeLabel(scope)),
+		fmt.Sprintf("- 推荐参数：阈值 %.1f dBFS，最短静音 %.0f ms，起始保留 %.0f ms，结束保留 %.0f ms", threshold, minSilence, startPad, endPad),
+		fmt.Sprintf("- 预览结果：%d 个可清理区域，%d 个待确认动作", stripCount, actionCount),
+		fmt.Sprintf("- 置信度：%s", confidence),
+	}
+	if risks := messageLoopStringRows(result["risks"], 2); len(risks) > 0 {
+		lines = append(lines, "- 风险提示："+strings.Join(risks, "；"))
+	}
+	if actionCount > 0 {
+		lines = append(lines, "如果你确认应用，我会使用这次分析返回的真实清理区域执行，不会重新猜区域。")
+	} else {
+		lines = append(lines, "当前没有可应用的清理动作。")
+	}
+	return strings.Join(lines, "\n")
+}
+
+func messageLoopStripSilenceScopeLabel(scope string) string {
+	switch strings.ToLower(strings.TrimSpace(scope)) {
+	case "all_project":
+		return "全工程音频片段"
+	case "selected_ranges":
+		return "当前选中片段范围"
+	default:
+		return "当前片段"
+	}
+}
+
+func messageLoopStringRows(value any, limit int) []string {
+	items := messageLoopAnySlice(value)
+	out := make([]string, 0, len(items))
+	for _, item := range items {
+		text := strings.TrimSpace(fmt.Sprint(item))
+		if text == "" || text == "<nil>" {
+			continue
+		}
+		out = append(out, text)
+		if limit > 0 && len(out) >= limit {
+			break
+		}
+	}
+	return out
+}
+
+func firstNonEmptyAny(values ...any) any {
+	for _, value := range values {
+		if !messageLoopEmptyValue(value) {
+			return value
+		}
+	}
+	return nil
+}
+
+func intNumberFromAny(value any) int {
+	switch typed := value.(type) {
+	case int:
+		return typed
+	case int64:
+		return int(typed)
+	case float64:
+		return int(typed)
+	case json.Number:
+		n, _ := typed.Int64()
+		return int(n)
+	default:
+		n, _ := strconv.Atoi(strings.TrimSpace(fmt.Sprint(value)))
+		return n
+	}
+}
+
+type messageLoopImportPreflightCandidate struct {
+	call       planner.ToolCall
+	result     map[string]any
+	toolCallID string
+	traceIndex int
+}
+
+func (l *MessageLoop) preflightStemsFolderImport(ctx context.Context, r *Runner, state *runState) (bool, Result) {
+	call, ok := messageLoopDeterministicStemsPreflightCall(state)
+	if !ok {
+		return false, Result{}
+	}
+	if stopped, result := r.checkpoint("before_message_loop_stems_import_preflight", state); stopped {
+		return true, result
+	}
+	if limit, result := r.checkToolBudget(state); limit {
+		return true, result
+	}
+	if !allowedTool(call.Tool, state.input.AllowedTools) {
+		result := planner.ToolResult{ToolCallID: call.ID, Tool: call.Tool, Status: "error", Error: "未知或不允许的工具：" + strings.TrimSpace(call.Tool)}
+		state.trace = append(state.trace,
+			planner.TraceEvent{Kind: "tool_call", ToolCall: cloneToolCallPtr(call), Message: "deterministic stems import preflight"},
+			planner.TraceEvent{Kind: "tool_result", ToolResult: &result},
+			planner.TraceEvent{Kind: "final_gate", Message: result.Error},
+		)
+		state.input.Conversation = append(state.input.Conversation, llm.Message{Role: "user", Content: "<final_gate>" + result.Error + "</final_gate>"})
+		return false, Result{}
+	}
+	state.trace = append(state.trace, planner.TraceEvent{
+		Kind:     "tool_call_rewritten",
+		Message:  "stems folder import request was routed through deterministic project.import_preflight",
+		ToolCall: cloneToolCallPtr(call),
+	})
+	toolStarted := time.Now()
+	stopped, result := r.executeTool(ctx, state, call, false, nil)
+	l.logTiming("message_loop.tool", toolStarted, "goal=%s tool=%s confirmed=false stems_import_preflight=true stopped=%t status=%s", state.goal.GoalID, call.Tool, stopped, result.Status)
+	if stopped {
+		return true, result
+	}
+	appendMessageLoopToolResult(state)
+	if handled, stopped, result := l.maybeStartStemsImportConfirmation(ctx, r, state, messageLoopOutput{}, "deterministic_preflight"); handled {
+		return stopped, result
+	}
+	return false, Result{}
+}
+
+func (l *MessageLoop) preflightPendingSectionMarkersApply(ctx context.Context, r *Runner, state *runState) (bool, Result) {
+	call, ok := messageLoopDeterministicSectionMarkersApplyCall(state)
+	if !ok {
+		return false, Result{}
+	}
+	if stopped, result := r.checkpoint("before_message_loop_section_markers_apply", state); stopped {
+		return true, result
+	}
+	if limit, result := r.checkToolBudget(state); limit {
+		return true, result
+	}
+	if !allowedTool(call.Tool, state.input.AllowedTools) {
+		result := planner.ToolResult{ToolCallID: call.ID, Tool: call.Tool, Status: "error", Error: "未知或不允许的工具：" + strings.TrimSpace(call.Tool)}
+		state.trace = append(state.trace,
+			planner.TraceEvent{Kind: "tool_call", ToolCall: cloneToolCallPtr(call), Message: "deterministic A5 section marker apply"},
+			planner.TraceEvent{Kind: "tool_result", ToolResult: &result},
+			planner.TraceEvent{Kind: "final_gate", Message: result.Error},
+		)
+		state.input.Conversation = append(state.input.Conversation, llm.Message{Role: "user", Content: "<final_gate>" + result.Error + "</final_gate>"})
+		return false, Result{}
+	}
+	state.trace = append(state.trace, planner.TraceEvent{
+		Kind:     "tool_call_rewritten",
+		Message:  "confirmed A5/EPM section map was routed to project.markers.apply_section_markers",
+		ToolCall: cloneToolCallPtr(call),
+	})
+	toolStarted := time.Now()
+	stopped, result := r.executeTool(ctx, state, call, true, nil)
+	l.logTiming("message_loop.tool", toolStarted, "goal=%s tool=%s confirmed=true section_markers_apply=true stopped=%t status=%s", state.goal.GoalID, call.Tool, stopped, result.Status)
+	if stopped {
+		return true, result
+	}
+	appendMessageLoopToolResult(state)
+	if len(state.executed) > 0 {
+		if reply := messageLoopProjectMarkersFastCompleteReply(state.executed[len(state.executed)-1]); strings.TrimSpace(reply) != "" {
+			state.trace = append(state.trace, planner.TraceEvent{Kind: "final_gate", Message: "deterministic section marker write completed the turn"})
+			return true, r.complete(state, reply)
+		}
+	}
+	return true, r.complete(state, "已写入段落 marker。")
+}
+
+func messageLoopDeterministicSectionMarkersApplyCall(state *runState) (planner.ToolCall, bool) {
+	if state == nil || state.pendingToolCall != nil || len(state.pendingToolQueue) > 0 {
+		return planner.ToolCall{}, false
+	}
+	if messageLoopMutationBarrierActive(state) || messageLoopPlanMode(state.input.Context) {
+		return planner.ToolCall{}, false
+	}
+	if len(state.executionMemory.PendingSectionMarkers) == 0 {
+		return planner.ToolCall{}, false
+	}
+	if !messageLoopPendingSectionMarkersApplyRequest(firstNonEmpty(state.input.UserText, state.input.Summary)) {
+		return planner.ToolCall{}, false
+	}
+	sections := pendingSectionMarkersToolSections(state.executionMemory.PendingSectionMarkers)
+	if len(sections) == 0 {
+		return planner.ToolCall{}, false
+	}
+	args := map[string]any{
+		"sections":         sections,
+		"replace_existing": true,
+		"source":           firstNonEmpty(firstMapText(state.executionMemory.PendingSectionMarkers, "source"), "epm_a5"),
+	}
+	if replace, ok := firstMapBool(state.executionMemory.PendingSectionMarkers, "replace_existing"); ok {
+		args["replace_existing"] = replace
+	}
+	command := cloneMap(args)
+	command["cmd"] = "project.markers.apply_section_markers"
+	return planner.ToolCall{
+		ID:      "apply_pending_section_markers",
+		Tool:    "project.markers.apply_section_markers",
+		Args:    args,
+		Command: command,
+		Reason:  "User confirmed writing the pending A5/EPM section map as project markers.",
+	}, true
+}
+
+func messageLoopPendingSectionMarkersApplyRequest(text string) bool {
+	text = strings.ToLower(strings.TrimSpace(text))
+	if text == "" {
+		return false
+	}
+	hasSectionMarkerTarget := messageLoopTextHasAny(text,
+		"marker", "markers", "section", "sections", "a5", "epm",
+		"标记", "段落", "段落地图",
+	)
+	if !hasSectionMarkerTarget {
+		return false
+	}
+	return messageLoopTextHasAny(text,
+		"确认", "写入", "应用", "执行", "落地", "生成", "添加", "创建",
+		"confirm", "write", "apply", "execute", "add", "create",
+	)
+}
+
+func messageLoopDeterministicStemsPreflightCall(state *runState) (planner.ToolCall, bool) {
+	if state == nil || state.pendingToolCall != nil || len(state.pendingToolQueue) > 0 {
+		return planner.ToolCall{}, false
+	}
+	if messageLoopMutationBarrierActive(state) || messageLoopPlanMode(state.input.Context) {
+		return planner.ToolCall{}, false
+	}
+	if !allowedTool("project.import_preflight", state.input.AllowedTools) || !allowedTool("project.import_folder_as_stems", state.input.AllowedTools) {
+		return planner.ToolCall{}, false
+	}
+	userText := firstNonEmpty(state.input.UserText, state.input.Summary)
+	if messageLoopUserRequestedMediaArtifacts(userText) && !messageLoopStemsFolderImportRequest(userText) {
+		return planner.ToolCall{}, false
+	}
+	if !messageLoopStemsFolderImportRequest(state.input.UserText) && !messageLoopStemsFolderImportRequest(state.input.Summary) {
+		return planner.ToolCall{}, false
+	}
+	if messageLoopHasImportPreflightAttempt(state) || messageLoopHasStemsImportAttemptAfter(state, -1) {
+		return planner.ToolCall{}, false
+	}
+	folderPath, folderHint := messageLoopStemsImportFolderCandidate(state)
+	if strings.TrimSpace(folderPath) == "" {
+		return planner.ToolCall{}, false
+	}
+	if !messageLoopStemsImportFolderObject(folderPath, folderHint, state.input.UserText, state.input.Summary) {
+		return planner.ToolCall{}, false
+	}
+	args := map[string]any{
+		"folder_path":        folderPath,
+		"recursive":          false,
+		"media_kinds":        []string{"audio"},
+		"intended_mode":      "stems_folder",
+		"target_policy":      "create_tracks",
+		"start_time_seconds": 0,
+		"command_timeout_ms": 120000,
+	}
+	command := cloneMap(args)
+	command["cmd"] = "project.import_preflight"
+	return planner.ToolCall{
+		ID:      "stems_import_preflight",
+		Tool:    "project.import_preflight",
+		Args:    args,
+		Command: command,
+		Reason:  "preflight a stems/multitrack folder before project-level batch import",
+	}, true
+}
+
+func messageLoopStemsFolderImportRequest(text string) bool {
+	text = strings.ToLower(strings.TrimSpace(text))
+	if text == "" {
+		return false
+	}
+	hasImport := messageLoopTextHasAny(text,
+		"import", "importing", "add to project", "bring into project", "into the project", "create tracks",
+		"\u5bfc\u5165", "\u532f\u5165", "\u8f7d\u5165", "\u52a0\u5165\u5de5\u7a0b", "\u52a0\u5230\u5de5\u7a0b", "\u5bfc\u5230\u5de5\u7a0b", "\u653e\u8fdb\u5de5\u7a0b",
+	)
+	if !hasImport {
+		return false
+	}
+	hasFolderOrStems := messageLoopTextHasAny(text,
+		"stem", "stems", "stem folder", "multi-track", "multitrack", "tracks out", "folder", "directory",
+		"\u5206\u8f68", "\u591a\u8f68", "\u6587\u4ef6\u5939", "\u76ee\u5f55", "\u521b\u5efa\u8f68", "\u521b\u5efa\u8f68\u9053", "\u5efa\u8f68",
+	)
+	hasProjectTarget := messageLoopTextHasAny(text,
+		"project", "create tracks", "add to project", "bring into project",
+		"\u5de5\u7a0b", "\u521b\u5efa\u8f68", "\u521b\u5efa\u8f68\u9053", "\u5efa\u8f68",
+	)
+	return hasFolderOrStems || hasProjectTarget
+}
+
+func messageLoopStemsImportFolderPath(state *runState) string {
+	path, _ := messageLoopStemsImportFolderCandidate(state)
+	return path
+}
+
+func messageLoopStemsImportFolderCandidate(state *runState) (string, bool) {
+	if state == nil {
+		return "", false
+	}
+	for _, row := range []map[string]any{
+		state.input.Context,
+		messageLoopMapValue(state.input.Context["current_selection"]),
+		state.input.ContextSnapshot,
+		messageLoopMapValue(state.input.ContextSnapshot["current_selection"]),
+		state.input.State,
+	} {
+		if path := firstMapText(row,
+			"folder_path", "folder", "directory", "asset_folder", "source_folder_path",
+			"selected_folder_path", "selected_directory_path", "selected_library_folder_path", "selected_asset_folder_path",
+		); path != "" {
+			return messageLoopCleanExtractedLocalPath(path), true
+		}
+		if path := firstMapText(row, "asset_location", "source_root", "asset_path", "selected_asset_path"); path != "" {
+			return messageLoopCleanExtractedLocalPath(path), false
+		}
+	}
+	return firstNonEmpty(
+		messageLoopExtractLocalFolderPath(state.input.UserText),
+		messageLoopExtractLocalFolderPath(state.input.Summary),
+	), false
+}
+
+func messageLoopExtractLocalFolderPath(text string) string {
+	text = strings.TrimSpace(text)
+	if text == "" {
+		return ""
+	}
+	if match := messageLoopQuotedLocalPathPattern.FindStringSubmatch(text); len(match) > 1 {
+		return messageLoopCleanExtractedLocalPath(match[1])
+	}
+	if match := messageLoopLocalPathPattern.FindStringSubmatch(text); len(match) > 1 {
+		return messageLoopCleanExtractedLocalPath(match[1])
+	}
+	return ""
+}
+
+func messageLoopCleanExtractedLocalPath(path string) string {
+	path = strings.TrimSpace(path)
+	path = strings.Trim(path, " \t\r\n\"'`“”‘’<>[]{}()（）【】，,。；;")
+	if path == "" {
+		return ""
+	}
+	for _, marker := range []string{
+		" \u8fd9\u4e2a", " \u8fd9\u4e9b", " \u8be5", " \u8fd9\u4efd", " \u6587\u4ef6\u5939", " \u76ee\u5f55", " \u8def\u5f84", " \u5bfc\u5165", " \u52a0\u5165", " \u52a0\u5230", " \u653e\u8fdb",
+		" into ", " to project", " as stems", " as stem", " import ", " please ",
+	} {
+		lower := strings.ToLower(path)
+		if idx := strings.Index(lower, strings.ToLower(marker)); idx > 0 {
+			path = strings.TrimSpace(path[:idx])
+		}
+	}
+	return strings.Trim(path, " \t\r\n\"'`“”‘’<>[]{}()（）【】，,。；;")
+}
+
+func messageLoopStemsImportFolderObject(path string, folderHint bool, texts ...string) bool {
+	path = strings.TrimSpace(path)
+	if path == "" {
+		return false
+	}
+	if info, err := os.Stat(path); err == nil {
+		return info.IsDir()
+	}
+	if messageLoopPathLooksSingleMediaFile(path) {
+		return false
+	}
+	if folderHint {
+		return true
+	}
+	return messageLoopTextHasStemsFolderObjectHint(strings.Join(texts, "\n"))
+}
+
+func messageLoopTextHasStemsFolderObjectHint(text string) bool {
+	text = strings.ToLower(strings.TrimSpace(text))
+	if text == "" {
+		return false
+	}
+	return messageLoopTextHasAny(text,
+		"stem", "stems", "stem folder", "multi-track", "multitrack", "tracks out", "folder", "directory",
+		"\u5206\u8f68", "\u591a\u8f68", "\u6587\u4ef6\u5939", "\u76ee\u5f55",
+	)
+}
+
+func messageLoopPathLooksSingleMediaFile(path string) bool {
+	ext := strings.ToLower(filepath.Ext(strings.TrimSpace(path)))
+	switch ext {
+	case ".wav", ".mp3", ".flac", ".aif", ".aiff", ".ogg", ".oga", ".m4a", ".wma",
+		".mp4", ".mov", ".mkv", ".webm", ".avi", ".m4v",
+		".mid", ".midi":
+		return true
+	default:
+		return false
+	}
+}
+
+func (l *MessageLoop) maybeStartStemsImportConfirmation(ctx context.Context, r *Runner, state *runState, out messageLoopOutput, gate string) (bool, bool, Result) {
+	call, ok := messageLoopDeterministicStemsImportCall(state, out)
+	if !ok {
+		return false, false, Result{}
+	}
+	if stopped, result := r.checkpoint("before_message_loop_stems_import_confirmation", state); stopped {
+		return true, true, result
+	}
+	if limit, result := r.checkToolBudget(state); limit {
+		return true, true, result
+	}
+	state.trace = append(state.trace, planner.TraceEvent{
+		Kind:     "tool_call_rewritten",
+		Message:  "successful stems preflight was routed to pending import confirmation: " + strings.TrimSpace(gate),
+		ToolCall: cloneToolCallPtr(call),
+	})
+	toolStarted := time.Now()
+	stopped, result := r.executeTool(ctx, state, call, false, nil)
+	l.logTiming("message_loop.tool", toolStarted, "goal=%s tool=%s confirmed=false stems_import_preflight=true stopped=%t status=%s", state.goal.GoalID, call.Tool, stopped, result.Status)
+	if stopped {
+		return true, true, result
+	}
+	appendMessageLoopToolResult(state)
+	return true, false, Result{}
+}
+
+func messageLoopDeterministicStemsImportCall(state *runState, out messageLoopOutput) (planner.ToolCall, bool) {
+	if state == nil || state.pendingToolCall != nil || len(state.pendingToolQueue) > 0 {
+		return planner.ToolCall{}, false
+	}
+	if messageLoopMutationBarrierActive(state) || messageLoopPlanMode(state.input.Context) {
+		return planner.ToolCall{}, false
+	}
+	if !allowedTool("project.import_folder_as_stems", state.input.AllowedTools) {
+		return planner.ToolCall{}, false
+	}
+	preflight, ok := messageLoopLastSuccessfulImportPreflight(state)
+	if !ok || messageLoopHasStemsImportAttemptAfter(state, preflight.traceIndex) {
+		return planner.ToolCall{}, false
+	}
+	if !messageLoopPreflightCanBecomeStemsImport(state, preflight, out) {
+		return planner.ToolCall{}, false
+	}
+	rows := messageLoopImportRows(preflight)
+	folderPath := firstNonEmpty(
+		firstMapText(preflight.call.Args, "folder_path", "folder", "directory", "asset_location", "asset_folder"),
+		firstMapText(preflight.call.Command, "folder_path", "folder", "directory", "asset_location", "asset_folder"),
+		messageLoopFirstImportText(rows, "folder_path", "folder", "directory", "asset_location", "asset_folder"),
+	)
+	if strings.TrimSpace(folderPath) == "" {
+		return planner.ToolCall{}, false
+	}
+	args := cloneMap(preflight.call.Args)
+	if args == nil {
+		args = map[string]any{}
+	}
+	delete(args, "cmd")
+	delete(args, "command")
+	delete(args, "tool")
+	args["folder_path"] = folderPath
+	args["target_policy"] = "create_tracks"
+	args["start_time_seconds"] = messageLoopFirstImportValueOrDefault(rows, 0.0, "start_time_seconds", "start_time", "offset_time", "start", "start_seconds", "position_seconds", "time")
+	args["command_timeout_ms"] = messageLoopFirstImportValueOrDefault(rows, 120000, "command_timeout_ms")
+	if value, ok := messageLoopFirstImportValue(rows, "recursive"); ok {
+		args["recursive"] = value
+	}
+	if value, ok := messageLoopFirstImportValue(rows, "skip_unreadable"); ok {
+		args["skip_unreadable"] = value
+	}
+	if decision := messageLoopSampleRateDecisionFromPreflight(preflight); len(decision) > 0 {
+		args["sample_rate_decision"] = decision
+		if messageLoopUserExplicitlyRequestsProjectSampleRateSwitch(state) && allowedTool("project.set_audio_settings", state.input.AllowedTools) {
+			if patch := messageLoopProjectAudioSettingsPatchFromDecision(decision); len(patch) > 0 {
+				args["project_audio_settings_patch"] = patch
+				args["apply_project_audio_settings_patch"] = true
+			}
+		}
+	}
+	command := cloneMap(args)
+	command["cmd"] = "project.import_folder_as_stems"
+	id := strings.TrimSpace(preflight.call.ID)
+	if id == "" {
+		id = strings.TrimSpace(preflight.toolCallID)
+	}
+	if id == "" {
+		id = "stems_import_after_preflight"
+	} else {
+		id += "_import"
+	}
+	return planner.ToolCall{
+		ID:      id,
+		Tool:    "project.import_folder_as_stems",
+		Args:    args,
+		Command: command,
+		Reason:  "create one audio track and clip per readable file from the preflighted stems folder",
+	}, true
+}
+
+func messageLoopSampleRateDecisionFromPreflight(preflight messageLoopImportPreflightCandidate) map[string]any {
+	result := preflight.result
+	plan := messageLoopMapValue(result["import_plan"])
+	summary := messageLoopMapValue(result["summary"])
+	for _, row := range []map[string]any{result, plan, summary} {
+		if decision := messageLoopMapValue(row["sample_rate_decision"]); len(decision) > 0 {
+			return cloneMap(decision)
+		}
+	}
+	return nil
+}
+
+func messageLoopSampleRateDecisionRecommendsSwitch(decision map[string]any) bool {
+	if len(decision) == 0 {
+		return false
+	}
+	recommended := strings.ToLower(firstMapText(decision, "recommended_action"))
+	if recommended == "switch_project_to_source_rate_then_import" || recommended == "switch_project_sample_rate_then_import" {
+		return true
+	}
+	canSwitch, ok := firstMapBool(decision, "can_switch_project_sample_rate")
+	return ok && canSwitch
+}
+
+func messageLoopUserExplicitlyRequestsProjectSampleRateSwitch(state *runState) bool {
+	if state == nil {
+		return false
+	}
+	text := strings.ToLower(strings.TrimSpace(firstNonEmpty(state.input.UserText, state.input.Summary)))
+	if text == "" {
+		return false
+	}
+	return messageLoopTextHasAny(text,
+		"switch project sample rate", "change project sample rate", "match source sample rate", "match the source sample rate",
+		"set project sample rate", "use source sample rate", "use the source sample rate",
+		"切换工程采样率", "更改工程采样率", "修改工程采样率", "匹配素材采样率", "使用素材采样率", "用素材采样率",
+		"跟随素材采样率", "工程采样率跟随", "切到素材采样率",
+	)
+}
+
+func messageLoopProjectAudioSettingsPatchFromDecision(decision map[string]any) map[string]any {
+	if len(decision) == 0 {
+		return nil
+	}
+	return cloneMap(messageLoopMapValue(decision["project_audio_settings_patch"]))
+}
+
+func messageLoopProjectAudioSettingsPatchForConfirmedImport(call planner.ToolCall) map[string]any {
+	if !messageLoopIsStemsImportName(call.Tool) && !messageLoopIsStemsImportName(firstMapText(call.Args, "cmd")) && !messageLoopIsStemsImportName(firstMapText(call.Command, "cmd")) {
+		return nil
+	}
+	for _, row := range []map[string]any{call.Args, call.Command} {
+		applyPatch, ok := firstMapBool(row, "apply_project_audio_settings_patch")
+		if !ok || !applyPatch {
+			continue
+		}
+		if patch := messageLoopMapValue(row["project_audio_settings_patch"]); len(patch) > 0 {
+			return cloneMap(patch)
+		}
+	}
+	return nil
+}
+
+func messageLoopSetAudioSettingsCallForImport(importCall planner.ToolCall, patch map[string]any) planner.ToolCall {
+	args := map[string]any{
+		"audio_settings":                  patch,
+		"change_origin":                   "stems_import_sample_rate_preflight",
+		"allow_import_sample_rate_switch": true,
+	}
+	command := cloneMap(args)
+	command["cmd"] = "project.set_audio_settings"
+	id := strings.TrimSpace(importCall.ID)
+	if id == "" {
+		id = "stems_import"
+	}
+	return planner.ToolCall{
+		ID:         id + "_set_audio_settings",
+		Tool:       "project.set_audio_settings",
+		Args:       args,
+		Command:    command,
+		Reason:     "apply the preflight-approved project sample-rate metadata before importing stems",
+		PlanItemID: importCall.PlanItemID,
+	}
+}
+
+func messageLoopAnnotateLastExecutionResultWithSampleRatePatch(state *runState, patch map[string]any) {
+	if state == nil || len(state.executed) == 0 || len(patch) == 0 {
+		return
+	}
+	record := state.executed[len(state.executed)-1]
+	result := messageLoopMapValue(record["result"])
+	if len(result) == 0 {
+		return
+	}
+	result["project_audio_settings_patch"] = cloneMap(patch)
+	result["project_audio_settings_changed_before_import"] = true
+	record["result"] = result
+	state.executed[len(state.executed)-1] = record
+}
+
+func messageLoopLastSuccessfulImportPreflight(state *runState) (messageLoopImportPreflightCandidate, bool) {
+	if state == nil {
+		return messageLoopImportPreflightCandidate{}, false
+	}
+	for i := len(state.trace) - 1; i >= 0; i-- {
+		event := state.trace[i]
+		if event.ToolResult == nil || !messageLoopIsImportPreflightName(event.ToolResult.Tool) || toolStatusFailed(event.ToolResult.Status) {
+			continue
+		}
+		result := messageLoopMapValue(event.ToolResult.Result)
+		if !messageLoopImportPreflightResultOK(result) {
+			continue
+		}
+		call := messageLoopTraceToolCallForResult(state.trace, i, event.ToolResult.ToolCallID, "project.import_preflight")
+		return messageLoopImportPreflightCandidate{
+			call:       call,
+			result:     result,
+			toolCallID: strings.TrimSpace(event.ToolResult.ToolCallID),
+			traceIndex: i,
+		}, true
+	}
+	for i := len(state.executed) - 1; i >= 0; i-- {
+		record := state.executed[i]
+		if !messageLoopExecutionSucceeded(record) || !messageLoopIsImportPreflightName(firstNonEmpty(messageLoopText(record["tool"]), messageLoopText(record["command_name"]))) {
+			continue
+		}
+		result := messageLoopMapValue(record["result"])
+		if !messageLoopImportPreflightResultOK(result) {
+			continue
+		}
+		toolCallID := messageLoopText(record["tool_call_id"])
+		return messageLoopImportPreflightCandidate{
+			call:       messageLoopTraceToolCallForResult(state.trace, len(state.trace), toolCallID, "project.import_preflight"),
+			result:     result,
+			toolCallID: toolCallID,
+			traceIndex: -1,
+		}, true
+	}
+	return messageLoopImportPreflightCandidate{}, false
+}
+
+func messageLoopTraceToolCallForResult(trace []planner.TraceEvent, before int, toolCallID, fallbackTool string) planner.ToolCall {
+	if before > len(trace) || before < 0 {
+		before = len(trace)
+	}
+	toolCallID = strings.TrimSpace(toolCallID)
+	for i := before - 1; i >= 0; i-- {
+		if trace[i].ToolCall == nil {
+			continue
+		}
+		call := *trace[i].ToolCall
+		if toolCallID != "" && strings.TrimSpace(call.ID) == toolCallID {
+			return call
+		}
+	}
+	for i := before - 1; i >= 0; i-- {
+		if trace[i].ToolCall == nil {
+			continue
+		}
+		call := *trace[i].ToolCall
+		if messageLoopIsImportPreflightName(firstNonEmpty(call.Tool, firstMapText(call.Args, "cmd"), firstMapText(call.Command, "cmd"), fallbackTool)) {
+			return call
+		}
+	}
+	return planner.ToolCall{Tool: fallbackTool}
+}
+
+func messageLoopPreflightCanBecomeStemsImport(state *runState, preflight messageLoopImportPreflightCandidate, out messageLoopOutput) bool {
+	if messageLoopImportPreflightTracksToCreate(preflight.result) <= 0 {
+		return false
+	}
+	rows := messageLoopImportRows(preflight)
+	if firstNonEmpty(
+		firstMapText(preflight.call.Args, "folder_path", "folder", "directory", "asset_location", "asset_folder"),
+		firstMapText(preflight.call.Command, "folder_path", "folder", "directory", "asset_location", "asset_folder"),
+		messageLoopFirstImportText(rows, "folder_path", "folder", "directory", "asset_location", "asset_folder"),
+	) == "" {
+		return false
+	}
+	if messageLoopStemsImportIntent(state.input.UserText) ||
+		messageLoopStemsImportIntent(state.input.Summary) ||
+		messageLoopStemsImportIntent(preflight.call.Reason) ||
+		messageLoopStemsImportIntent(firstNonEmpty(out.Reply, out.ClarificationQuestion)) ||
+		messageLoopUserConfirmsStemsImport(state.input.UserText) {
+		return true
+	}
+	mode := strings.ToLower(messageLoopFirstImportText(rows, "intended_mode", "mode", "import_mode"))
+	targetPolicy := strings.ToLower(messageLoopFirstImportText(rows, "target_policy"))
+	return strings.Contains(mode, "stems") || strings.Contains(mode, "folder") || targetPolicy == "create_tracks"
+}
+
+func messageLoopHasStemsImportAttemptAfter(state *runState, traceIndex int) bool {
+	if state == nil {
+		return false
+	}
+	for i := len(state.trace) - 1; i >= 0; i-- {
+		if traceIndex >= 0 && i <= traceIndex {
+			break
+		}
+		event := state.trace[i]
+		if event.ToolCall != nil && messageLoopIsStemsImportName(firstNonEmpty(event.ToolCall.Tool, firstMapText(event.ToolCall.Args, "cmd"), firstMapText(event.ToolCall.Command, "cmd"))) {
+			return true
+		}
+		if event.ToolResult != nil && messageLoopIsStemsImportName(firstNonEmpty(event.ToolResult.Tool, firstMapText(event.ToolResult.Result, "command", "cmd"))) {
+			return true
+		}
+	}
+	for _, record := range state.executed {
+		if messageLoopIsStemsImportName(firstNonEmpty(messageLoopText(record["tool"]), messageLoopText(record["command_name"]))) {
+			return true
+		}
+		if messageLoopIsStemsImportName(firstMapText(messageLoopMapValue(record["result"]), "command", "cmd")) {
+			return true
+		}
+	}
+	return false
+}
+
+func messageLoopHasImportPreflightAttempt(state *runState) bool {
+	if state == nil {
+		return false
+	}
+	for _, event := range state.trace {
+		if event.ToolCall != nil && messageLoopIsImportPreflightName(firstNonEmpty(event.ToolCall.Tool, firstMapText(event.ToolCall.Args, "cmd"), firstMapText(event.ToolCall.Command, "cmd"))) {
+			return true
+		}
+		if event.ToolResult != nil && messageLoopIsImportPreflightName(event.ToolResult.Tool) {
+			return true
+		}
+	}
+	for _, record := range state.executed {
+		if messageLoopIsImportPreflightName(firstNonEmpty(messageLoopText(record["tool"]), messageLoopText(record["command_name"]))) {
+			return true
+		}
+	}
+	return false
+}
+
+func messageLoopImportPreflightResultOK(result map[string]any) bool {
+	if len(result) == 0 {
+		return false
+	}
+	status := strings.ToLower(firstNonEmpty(firstMapText(result, "status"), "ok"))
+	if toolStatusFailed(status) {
+		return false
+	}
+	return messageLoopImportPreflightTracksToCreate(result) > 0
+}
+
+func messageLoopImportPreflightTracksToCreate(result map[string]any) int {
+	if len(result) == 0 {
+		return 0
+	}
+	summary := messageLoopMapValue(result["summary"])
+	plan := messageLoopMapValue(result["import_plan"])
+	for _, value := range []any{
+		plan["tracks_to_create"],
+		summary["tracks_to_create"],
+		summary["readable_file_count"],
+		result["tracks_to_create"],
+		result["readable_file_count"],
+	} {
+		if n := int(messageLoopImportNumber(value)); n > 0 {
+			return n
+		}
+	}
+	return 0
+}
+
+func messageLoopImportRows(preflight messageLoopImportPreflightCandidate) []map[string]any {
+	result := preflight.result
+	plan := messageLoopMapValue(result["import_plan"])
+	summary := messageLoopMapValue(result["summary"])
+	return []map[string]any{
+		preflight.call.Args,
+		preflight.call.Command,
+		plan,
+		summary,
+		result,
+	}
+}
+
+func messageLoopFirstImportText(rows []map[string]any, keys ...string) string {
+	value, ok := messageLoopFirstImportValue(rows, keys...)
+	if !ok {
+		return ""
+	}
+	return messageLoopText(value)
+}
+
+func messageLoopFirstImportValueOrDefault(rows []map[string]any, fallback any, keys ...string) any {
+	if value, ok := messageLoopFirstImportValue(rows, keys...); ok {
+		return value
+	}
+	return fallback
+}
+
+func messageLoopFirstImportValue(rows []map[string]any, keys ...string) (any, bool) {
+	for _, row := range rows {
+		if len(row) == 0 {
+			continue
+		}
+		for _, key := range keys {
+			if value, ok := row[key]; ok && !messageLoopEmptyValue(value) {
+				return value, true
+			}
+		}
+	}
+	return nil, false
+}
+
+func messageLoopImportNumber(value any) float64 {
+	switch typed := value.(type) {
+	case int:
+		return float64(typed)
+	case int32:
+		return float64(typed)
+	case int64:
+		return float64(typed)
+	case float32:
+		return float64(typed)
+	case float64:
+		return typed
+	case json.Number:
+		n, _ := typed.Float64()
+		return n
+	case string:
+		n, _ := strconv.ParseFloat(strings.TrimSpace(typed), 64)
+		return n
+	default:
+		n, _ := strconv.ParseFloat(strings.TrimSpace(fmt.Sprint(value)), 64)
+		return n
+	}
+}
+
+func messageLoopIsImportPreflightName(name string) bool {
+	switch strings.ToLower(strings.TrimSpace(name)) {
+	case "project.import_preflight":
+		return true
+	default:
+		return false
+	}
+}
+
+func messageLoopIsStemsImportName(name string) bool {
+	switch strings.ToLower(strings.TrimSpace(name)) {
+	case "project.import_folder_as_stems":
+		return true
+	default:
+		return false
+	}
+}
+
+func messageLoopStemsImportIntent(text string) bool {
+	text = strings.ToLower(strings.TrimSpace(text))
+	if text == "" {
+		return false
+	}
+	return messageLoopTextHasAny(text,
+		"import", "importing", "stem", "stems", "stem folder", "multi-track", "multitrack", "create tracks", "add to project", "bring into project",
+		"\u5bfc\u5165", "\u532f\u5165", "\u8f7d\u5165", "\u52a0\u5165\u5de5\u7a0b", "\u52a0\u5230\u5de5\u7a0b", "\u5bfc\u5230\u5de5\u7a0b",
+		"\u5206\u8f68", "\u591a\u8f68", "\u8f68\u9053", "\u521b\u5efa\u8f68", "\u521b\u5efa\u8f68\u9053", "\u5efa\u8f68",
+	)
+}
+
+func messageLoopUserConfirmsStemsImport(text string) bool {
+	text = strings.ToLower(strings.TrimSpace(text))
+	if text == "" {
+		return false
+	}
+	return messageLoopTextHasAny(text,
+		"confirm", "confirmed", "yes", "ok", "okay", "go ahead", "continue", "do it", "execute", "import it", "import them",
+		"\u786e\u8ba4", "\u53ef\u4ee5", "\u597d", "\u597d\u7684", "\u7ee7\u7eed", "\u6267\u884c", "\u5f00\u59cb", "\u5bfc\u5165\u5427", "\u5c31\u8fd9\u6837",
+	)
 }
 
 func (l *MessageLoop) preflightNaturalMixObservation(ctx context.Context, r *Runner, state *runState) (bool, Result) {
@@ -552,6 +2276,12 @@ func messageLoopNeedsDeterministicMixObservation(state *runState) bool {
 	if state == nil {
 		return false
 	}
+	if messageLoopClipFadeGainRequest(state.input.UserText) {
+		return false
+	}
+	if messageLoopGainStagingCapabilityRequest(state.input.UserText) {
+		return false
+	}
 	needsRealtimeRefresh := messageLoopRealtimeObservationRequest(state.input.UserText)
 	if messageLoopObservationPackageReadRequest(state.input.UserText) && observationIsMixObservation(state.recentObservation) && !needsRealtimeRefresh {
 		return false
@@ -608,6 +2338,9 @@ func messageLoopDeterministicGainPendingAfterObservation(state *runState) (strin
 	if state == nil || messageLoopExplicitPluginOrRawRequest(state.input.UserText) || messageLoopExplicitMixExecutionConfirmation(state.input.UserText) {
 		return "", false
 	}
+	if messageLoopClipFadeGainRequest(state.input.UserText) {
+		return "", false
+	}
 	if messageLoopMutationBarrierActive(state) {
 		return "", false
 	}
@@ -627,6 +2360,9 @@ func messageLoopDeterministicGainPendingAfterObservation(state *runState) (strin
 	trackID = messageLoopCanonicalMixTrackID(state, trackID)
 	if trackID == "" {
 		return "", false
+	}
+	if gate, blocked := messageLoopActionWorkflowPreflightGate(state); blocked {
+		return actionworkflow.RenderBlockedPreflightReply(gate), true
 	}
 	observationID := messageLoopLastMixObservationField(state, "observation_id")
 	treatment := &MixTreatmentPending{
@@ -663,11 +2399,7 @@ func messageLoopDeterministicGainPendingAfterObservation(state *runState) (strin
 	}
 	messageLoopAttachDiagnosisToTreatment(state, treatment)
 	state.executionMemory.PendingMixTreatment = treatment
-	reply := messageLoopPendingMixTreatmentReply(treatment)
-	if !messageLoopMixReplyAsksForExecution(reply) && !messageLoopClarificationAsksForExecution(reply) {
-		reply += "\n\n如果你认可这个混音建议，需要我继续执行吗？"
-	}
-	return reply, true
+	return messageLoopPendingMixTreatmentReply(treatment), true
 }
 
 func firstStateTrackID(values ...map[string]any) string {
@@ -950,6 +2682,9 @@ func coerceMixTickPrimitiveCall(state *runState, call planner.ToolCall) planner.
 }
 
 func messageLoopPendingConfirmationCall(call planner.ToolCall, result executorpkg.Result) planner.ToolCall {
+	if pending, ok := messageLoopStripSilencePendingConfirmationCall(call, result); ok {
+		return pending
+	}
 	if !messageLoopIsMixProposeTickCall(call) {
 		return call
 	}
@@ -969,6 +2704,296 @@ func messageLoopPendingConfirmationCall(call planner.ToolCall, result executorpk
 		pending.Args["track_id"] = trackID
 	}
 	return pending
+}
+
+func messageLoopStripSilencePendingConfirmationCall(call planner.ToolCall, result executorpkg.Result) (planner.ToolCall, bool) {
+	actions := messageLoopStripSilencePendingActionCalls(call, result.Result)
+	if len(actions) == 0 {
+		return planner.ToolCall{}, false
+	}
+	if len(actions) == 1 {
+		if messageLoopStripSilenceShouldBatchSingleAction(result.Result) {
+			batch := messageLoopStripSilenceBatchCallFromActions(call, actions)
+			messageLoopAnnotateStripSilenceBatchSourceStats(batch.Args, result.Result, len(actions))
+			batch.Command = cloneMap(batch.Args)
+			return batch, true
+		}
+		return actions[0], true
+	}
+	batch := messageLoopStripSilenceBatchCallFromActions(call, actions)
+	messageLoopAnnotateStripSilenceBatchSourceStats(batch.Args, result.Result, len(actions))
+	batch.Command = cloneMap(batch.Args)
+	return batch, true
+}
+
+func messageLoopStripSilenceShouldBatchSingleAction(result map[string]any) bool {
+	if result == nil {
+		return false
+	}
+	if firstPositiveMapInt(result, "target_count", "analyzed_clip_count") > 1 {
+		return true
+	}
+	if firstPositiveMapInt(result, "no_cleanup_needed_clip_count", "analysis_failed_clip_count") > 0 {
+		return true
+	}
+	analysis := messageLoopMapValue(result["analysis"])
+	return firstPositiveMapInt(analysis, "analysis_count") > 1 ||
+		firstPositiveMapInt(analysis, "no_cleanup_needed_clip_count", "analysis_failed_clip_count") > 0
+}
+
+func messageLoopStripSilenceBatchCallFromActions(parent planner.ToolCall, actions []planner.ToolCall) planner.ToolCall {
+	args := map[string]any{
+		"cmd": "clip.strip_silence.apply_batch",
+	}
+	args["pending_action_count"] = len(actions)
+	args["pending_actions"] = messageLoopStripSilenceActionCallsAsRows(actions)
+	messageLoopCopyStripSilenceBatchMetadata(args, parent.Args)
+	command := cloneMap(args)
+	return planner.ToolCall{
+		ID:      firstNonEmpty(parent.ID, "apply_strip_silence_batch"),
+		Tool:    "clip.strip_silence.apply_batch",
+		Args:    args,
+		Command: command,
+		Reason:  fmt.Sprintf("apply %d confirmed Strip Silence action(s)", len(actions)),
+	}
+}
+
+func messageLoopAnnotateStripSilenceBatchSourceStats(args map[string]any, result map[string]any, actionCount int) {
+	if args == nil || result == nil {
+		return
+	}
+	messageLoopCopyStripSilenceBatchMetadata(args, result)
+	analysis := messageLoopMapValue(result["analysis"])
+	messageLoopCopyStripSilenceBatchMetadata(args, analysis)
+	if scanned := firstPositiveMapInt(result, "target_count"); scanned > 0 {
+		args["scanned_clip_count"] = scanned
+		args["target_count"] = scanned
+	}
+	analyzed := firstPositiveMapInt(result, "analyzed_clip_count")
+	if analyzed <= 0 {
+		analyzed = firstPositiveMapInt(analysis, "analysis_count")
+	}
+	if analyzed > 0 {
+		args["analyzed_clip_count"] = analyzed
+		if _, exists := args["no_cleanup_needed_clip_count"]; !exists {
+			noCleanup := analyzed - actionCount
+			if noCleanup < 0 {
+				noCleanup = 0
+			}
+			args["no_cleanup_needed_clip_count"] = noCleanup
+		}
+	}
+}
+
+func messageLoopCopyStripSilenceBatchMetadata(dst map[string]any, src map[string]any) {
+	if dst == nil || src == nil {
+		return
+	}
+	for _, key := range []string{
+		"scope",
+		"target_count",
+		"scanned_clip_count",
+		"analyzed_clip_count",
+		"analysis_failed_clip_count",
+		"no_cleanup_needed_clip_count",
+	} {
+		if value, ok := src[key]; ok {
+			dst[key] = value
+		}
+	}
+}
+
+func messageLoopStripSilencePendingActionCalls(parent planner.ToolCall, result map[string]any) []planner.ToolCall {
+	actions := messageLoopStripSilencePendingActionRows(result)
+	out := make([]planner.ToolCall, 0, len(actions))
+	baseID := firstNonEmpty(parent.ID, "apply_strip_silence")
+	for i, action := range actions {
+		tool := firstNonEmpty(firstMapText(action, "tool_name", "tool"), firstMapText(messageLoopMapValue(action["args"]), "cmd", "command"))
+		if !strings.EqualFold(strings.TrimSpace(tool), "clip.strip_silence.apply") {
+			continue
+		}
+		args := cloneMap(messageLoopMapValue(action["args"]))
+		if len(args) == 0 {
+			args = cloneMap(action)
+		}
+		delete(args, "tool_name")
+		delete(args, "tool")
+		if len(messageLoopMapRows(args["strip_regions"])) == 0 {
+			continue
+		}
+		args["cmd"] = "clip.strip_silence.apply"
+		command := cloneMap(args)
+		command["cmd"] = "clip.strip_silence.apply"
+		out = append(out, planner.ToolCall{
+			ID:      fmt.Sprintf("%s_apply_%02d", baseID, i+1),
+			Tool:    "clip.strip_silence.apply",
+			Args:    args,
+			Command: command,
+			Reason:  firstNonEmpty(firstMapText(action, "reason", "summary"), "apply confirmed Strip Silence preview"),
+		})
+	}
+	return out
+}
+
+func messageLoopStripSilencePendingActionRows(result map[string]any) []map[string]any {
+	rows := make([]map[string]any, 0)
+	seen := map[string]bool{}
+	add := func(row map[string]any) {
+		if len(row) == 0 {
+			return
+		}
+		key := messageLoopStripSilencePendingActionKey(row)
+		if key != "" {
+			if seen[key] {
+				return
+			}
+			seen[key] = true
+		}
+		rows = append(rows, row)
+	}
+	if row := messageLoopMapValue(result["pending_action"]); len(row) > 0 {
+		add(row)
+	}
+	for _, row := range messageLoopMapRows(result["pending_actions"]) {
+		add(row)
+	}
+	return rows
+}
+
+func messageLoopStripSilencePendingActionKey(row map[string]any) string {
+	if len(row) == 0 {
+		return ""
+	}
+	args := messageLoopMapValue(row["args"])
+	if len(args) == 0 {
+		args = row
+	}
+	tool := strings.ToLower(strings.TrimSpace(firstNonEmpty(firstMapText(row, "tool_name", "tool"), firstMapText(args, "cmd", "command"))))
+	payload := map[string]any{
+		"tool":          tool,
+		"clip_id":       firstMapText(args, "clip_id"),
+		"track_id":      firstMapText(args, "track_id"),
+		"analysis_id":   firstMapText(args, "analysis_id"),
+		"strip_regions": messageLoopMapRows(args["strip_regions"]),
+	}
+	data, err := json.Marshal(payload)
+	if err != nil || len(data) == 0 {
+		return fmt.Sprintf("%s|%s|%s|%s|%d", tool, payload["clip_id"], payload["track_id"], payload["analysis_id"], len(messageLoopMapRows(args["strip_regions"])))
+	}
+	return string(data)
+}
+
+func messageLoopStripSilenceActionCallsAsRows(calls []planner.ToolCall) []map[string]any {
+	rows := make([]map[string]any, 0, len(calls))
+	for _, call := range calls {
+		rows = append(rows, map[string]any{
+			"tool_name": call.Tool,
+			"tool":      call.Tool,
+			"args":      cloneMap(call.Args),
+			"reason":    strings.TrimSpace(call.Reason),
+		})
+	}
+	return rows
+}
+
+func messageLoopStripSilenceBundleCalls(call planner.ToolCall) ([]planner.ToolCall, bool) {
+	bundled, _ := firstMapBool(call.Args, "_strip_silence_pending_bundle")
+	if !bundled {
+		return nil, false
+	}
+	rows := messageLoopMapRows(call.Args["pending_actions"])
+	if len(rows) == 0 {
+		return nil, true
+	}
+	calls := messageLoopStripSilencePendingActionCalls(call, map[string]any{"pending_actions": rows})
+	return calls, true
+}
+
+func messageLoopStripSilenceBundleCompleteReply(calls []planner.ToolCall) string {
+	return fmt.Sprintf(
+		"\u5df2\u6267\u884c\u7247\u6bb5\u6e05\u7406\uff1a\u5df2\u5bf9 %d \u4e2a clip \u5e94\u7528 Strip Silence\uff0c\u5171\u5220\u9664 %d \u4e2a\u9759\u97f3\u533a\u57df\u3002",
+		len(calls),
+		messageLoopStripSilenceApplyRegionCount(calls),
+	)
+}
+
+func messageLoopStripSilenceApplyRegionCount(calls []planner.ToolCall) int {
+	total := 0
+	for _, call := range calls {
+		total += len(messageLoopMapRows(call.Args["strip_regions"]))
+	}
+	return total
+}
+
+func messageLoopIsStripSilenceApplyCall(call planner.ToolCall) bool {
+	name := strings.ToLower(strings.TrimSpace(normalizedActionName(call, executorpkg.Result{})))
+	return name == "clip.strip_silence.apply" || name == "clip.strip_silence.apply_batch"
+}
+
+func messageLoopStripSilenceApplyCompleteReply(record map[string]any, call planner.ToolCall) string {
+	result := messageLoopMapValue(record["result"])
+	name := strings.ToLower(strings.TrimSpace(normalizedActionName(call, executorpkg.Result{})))
+	if name == "clip.strip_silence.apply_batch" {
+		clipCount := firstPositiveMapInt(result, "applied_clip_count", "affected_clip_count")
+		if clipCount <= 0 {
+			clipCount = firstPositiveMapInt(result, "pending_action_count")
+		}
+		regionCount := firstPositiveMapInt(result, "applied_region_count", "deleted_region_count", "strip_region_count")
+		if regionCount <= 0 {
+			for _, row := range messageLoopMapRows(call.Args["pending_actions"]) {
+				args := messageLoopMapValue(row["args"])
+				if len(args) == 0 {
+					args = row
+				}
+				regionCount += len(messageLoopMapRows(args["strip_regions"]))
+			}
+		}
+		scannedCount := firstPositiveMapInt(result, "scanned_clip_count", "target_count", "analyzed_clip_count")
+		noCleanupCount := firstPositiveMapInt(result, "no_cleanup_needed_clip_count", "no_cleanup_clip_count")
+		skippedCount := firstPositiveMapInt(result, "protected_skip_clip_count", "skipped_clip_count")
+		analysisFailedCount := firstPositiveMapInt(result, "analysis_failed_clip_count")
+		failedCount := firstPositiveMapInt(result, "true_failed_clip_count", "failed_clip_count", "error_count")
+		if analysisFailedCount > 0 {
+			failedCount += analysisFailedCount
+		}
+		if scannedCount > 0 {
+			details := []string{}
+			if noCleanupCount > 0 {
+				details = append(details, fmt.Sprintf("%d 个无需清理", noCleanupCount))
+			}
+			if skippedCount > 0 {
+				details = append(details, fmt.Sprintf("%d 个保护跳过", skippedCount))
+			}
+			if failedCount > 0 || skippedCount > 0 {
+				details = append(details, fmt.Sprintf("%d 个真正失败", failedCount))
+			}
+			reply := fmt.Sprintf("已执行片段清理：扫描 %d 个 clip，成功清理 %d 个，删除 %d 个静音区域", scannedCount, clipCount, regionCount)
+			if len(details) > 0 {
+				reply += "；" + strings.Join(details, "，")
+			}
+			return reply + "。"
+		}
+		if failedCount > 0 || skippedCount > 0 {
+			details := []string{}
+			if skippedCount > 0 {
+				details = append(details, fmt.Sprintf("%d 个保护跳过", skippedCount))
+			}
+			if failedCount > 0 {
+				details = append(details, fmt.Sprintf("%d 个真正失败", failedCount))
+			}
+			return fmt.Sprintf("已执行片段清理：成功清理 %d 个 clip，删除 %d 个静音区域；%s。", clipCount, regionCount, strings.Join(details, "，"))
+		}
+		return fmt.Sprintf("已执行片段清理：已处理 %d 个 clip，共删除 %d 个静音区域。", clipCount, regionCount)
+	}
+	count := firstPositiveMapInt(result, "deleted_region_count", "applied_region_count", "strip_region_count")
+	if count <= 0 {
+		count = len(messageLoopMapRows(call.Args["strip_regions"]))
+	}
+	clipID := firstNonEmpty(firstMapText(result, "clip_id"), firstMapText(call.Args, "clip_id"))
+	if clipID == "" {
+		clipID = "clip"
+	}
+	return fmt.Sprintf("\u5df2\u6267\u884c\u7247\u6bb5\u6e05\u7406\uff1a%s \u5df2\u5220\u9664 %d \u4e2a\u9759\u97f3\u533a\u57df\u3002", clipID, count)
 }
 
 func messageLoopShouldAutoApplyConfirmedMixTick(state *runState, call planner.ToolCall, result executorpkg.Result) bool {
@@ -1012,10 +3037,7 @@ func messageLoopMixTickProposalAsPendingTreatment(state *runState, call planner.
 	if reply == "" {
 		reply = messageLoopPendingMixTreatmentReply(treatment)
 	}
-	if !messageLoopMixReplyAsksForExecution(reply) && !messageLoopClarificationAsksForExecution(reply) {
-		reply += "\n\n如果你认可这个混音建议，需要我继续执行吗？"
-	}
-	return reply, true
+	return messageLoopStripExecutionQuestion(reply), true
 }
 
 func messageLoopReplyClaimsCompletedMixWrite(reply string) bool {
@@ -1122,34 +3144,14 @@ func messageLoopPendingMixTreatmentReply(treatment *MixTreatmentPending) string 
 	if treatment == nil {
 		return "我已把这个混音动作整理成待确认建议。"
 	}
-	target := strings.TrimPrefix(strings.TrimSpace(treatment.TargetRef), "track:")
-	if target == "" {
-		target = "当前目标"
-	}
-	switch strings.TrimSpace(treatment.ActionKind) {
-	case "gain_balance":
-		return fmt.Sprintf("我建议先把 %s 的电平调整 %.2f dB。", target, treatment.DeltaDB)
-	case "pan_balance":
-		if treatment.TargetPan != nil {
-			return fmt.Sprintf("我建议先把 %s 的声像设置到 %.2f。", target, *treatment.TargetPan)
-		}
-		return fmt.Sprintf("我建议先把 %s 的声像调整 %.2f。", target, treatment.DeltaPan)
-	default:
-		return "我已把这个混音动作整理成待确认建议。"
-	}
+	return actionworkflow.RenderReply(messageLoopActionWorkflowSpecFromTreatment(*treatment), actionworkflow.PreflightGate{CanCreateExecutablePending: true, CanSuggest: true})
 }
 
 func messageLoopConservativeLowMudTreatmentPendingReply(treatment *MixTreatmentPending) string {
 	if treatment == nil {
-		return "我已把低频处理整理成待确认的保守 EQ 预备方案；当前缺少 band_energy_summary，所以只作为可回退探测，不会直接加载或写入插件参数。"
+		return "结论：低频处理只能先作为保守 EQ 预备方案。\n\n依据：当前观察不足以直接支持精确处理。\n\n待确认动作：无。\n\n限制：确认前不会加载插件或写入参数。"
 	}
-	target := strings.TrimPrefix(strings.TrimSpace(treatment.TargetRef), "track:")
-	if target == "" || strings.EqualFold(target, "project") {
-		target = "当前目标"
-	} else {
-		target = "Track " + target
-	}
-	return fmt.Sprintf("已基于这次观察把 %s 的低频糊问题整理成一个待确认的保守 EQ 预备方案。当前 band_energy_summary / 频谱细节仍缺失，所以我不会声称已经观测到低频堆积，也不会直接加载或改参数；候选只限于可回退的低切/低中频轻微削减探测。如果你确认，我会继续进入插件准备和参数确认。", target)
+	return actionworkflow.RenderReply(messageLoopActionWorkflowSpecFromTreatment(*treatment), actionworkflow.PreflightGate{CanCreateExecutablePending: true, CanSuggest: true})
 }
 
 func messageLoopPrimitiveTrackVolumeCall(call planner.ToolCall) bool {
@@ -1182,6 +3184,9 @@ func messageLoopImplicitGainFollowupRequest(state *runState) bool {
 	if state == nil {
 		return false
 	}
+	if messageLoopClipFadeGainRequest(state.input.UserText) {
+		return false
+	}
 	if messageLoopNaturalMixRequest(state.input.UserText) {
 		return true
 	}
@@ -1197,6 +3202,9 @@ func messageLoopImplicitGainFollowupRequest(state *runState) bool {
 func messageLoopImplicitGainDeltaFromText(text string) (float64, bool) {
 	text = strings.ToLower(strings.TrimSpace(text))
 	if text == "" {
+		return 0, false
+	}
+	if messageLoopClipFadeGainRequest(text) {
 		return 0, false
 	}
 	if delta, _, ok := messageLoopExtractSingleGainDelta(text); ok && delta != 0 && mathAbs(delta) <= 2 {
@@ -1509,10 +3517,7 @@ func messageLoopClarificationAsPendingPanTreatment(state *runState, out messageL
 	if reply == "" {
 		reply = "我已把这个声像小动作作为待确认混音步骤。"
 	}
-	if !messageLoopMixReplyAsksForExecution(reply) && !messageLoopClarificationAsksForExecution(reply) {
-		reply += "\n\n如果你认可这个小步建议，需要我继续执行吗？"
-	}
-	return reply, true
+	return messageLoopStripExecutionQuestion(reply), true
 }
 
 func messageLoopHasPanPendingContext(state *runState) bool {
@@ -1759,10 +3764,16 @@ Return ONLY strict JSON in one of these shapes:
 Rules:
 - Use only tools from Allowed tools. For low-level DAW commands, use tool:"daw.invoke" only when it is explicitly allowed, with args containing cmd.
 - Tool results appear in <tool_result> JSON messages. Treat those results as the source of truth for executed actions, refreshed DAW state, bindings, and verification.
+- Capability context packs appear in <capability_context_pack> JSON messages. Treat them as deterministic default starting context for a named capability, not as a restriction; call additional allowed tools when the pack says evidence is missing, partial, stale, or too narrow.
+- For an explicit equalizer/EQ control request, reason in task-level musical semantics and use capability.equalizer.plan. Use capability.equalizer.inspect when you need the current work-card matrix or Provider status. Read the structured capability result, then reason again: fill only choices you can justify, ask the user about unresolved musical choices, and resubmit a complete task action. Never require the user to know a plug-in parameter ID. Do not route an ordinary EQ control request to Plugin Grabber learning, plugin_grabber.apply_control, or plugin.set_parameter.
+- capability.equalizer.plan accepts vendor-neutral tasks. For spectral_region_adjust, frequency_hz and gain_db describe the requested region; response_shape and q are musical choices. band_ref is a technical resource choice: if omitted, use the returned Band resource candidates and recommendation before resubmitting. Low cut means task:highpass; high cut means task:lowpass. If a compatible verified Provider is not loaded, use the returned provisioning candidates and reason about a separate plug-in load action; after loading, call capability.equalizer.plan again against fresh state.
+- Plugin Grabber learning is a separate user-initiated authoring workflow. Never call plugin_grabber.learn_project_profile unless the user explicitly asks to learn, teach, profile, or save plug-in controls.
 - For plugin_grabber_apply_control results, prefer applied_parameters[].new_value_text, applied_value, and confirmed display_domain data. Do not infer control limits from a parameter's current value_text or from advisory safety notes.
 - For exact one-parameter plugin writes with explicit param_id and high-confidence get_plugin_parameters display_probe evidence, plugin.set_parameter may use value_text such as "1000 ms" or "28 percent". Do not use this for acoustic goals, multi-parameter moves, or automatic mixing; those require plugin_grabber.apply_control and a learned profile.
 - Mixing is a native Ask Vit conversation task, not a separate Auto Mix/Co-Mix mode. Do not create or ask the user to fill a planning card for mixing.
 - For natural/broad mixing goals such as making a vocal more forward, increasing loudness, reducing mud/harshness, tightening dynamics, adding space, or "mix this audio", you MUST call mix.observe first and wait for its result before choosing plugins, learning plugin profiles, loading effects, changing volume, or writing parameters.
+- Clip fade/gain is an edit-domain operation, not a mixing-domain operation. For selected/current clip fade/gain status, use clip.fade.read and clip.gain.read. For static clip gain edits, use clip.gain.set. Do not route clip fade/gain wording to mix.observe, mix.propose_tick, mix.apply_tick, track.volume, or track.pan.
+- Strip Silence / clip cleanup is an edit-domain operation. For parameter recommendation, noise-floor estimation, selected-range cleanup advice, selected-track cleanup advice, or all-project cleanup advice, use clip.strip_silence.suggest first. Choose scope from intent: all_project for whole-project/all-track cleanup, selected_track for current/selected track cleanup, selected_ranges for selected range cleanup, and selected_clip for current/selected clip cleanup. It does not mutate the project and returns pending clip.strip_silence.apply actions built from real analyze strip_regions. After explicit confirmation, run a single clip.strip_silence.apply for one action or clip.strip_silence.apply_batch for multiple actions; do not invent strip_regions.
 - Choose mix.observe scope from intent, not trigger phrases: selected_clip, selected_track, named_track, track_group, full_project, or full_project_with_focus_track. Use project_context for current-track mixing, full_project for overall mix questions, and full_project_with_focus_track for vocal/lead/focus relationships.
 - mix.observe returns a digest and catalog. Use mix.read for the catalog entries you need and mix.derive for local relationship packages such as rank_tracks, focus_vs_project, a_vs_b, group_overlap, or before_after. Do not manually compare large raw packages in your hidden reasoning when a relationship package can be derived locally.
 - For vocal/lead/focus relationship goals, only treat a track as the vocal when the track name/metadata explicitly identifies it as vocal/voice/lead/主唱/人声, or the user explicitly identifies the track by name/index. If the project only has generic names such as Track 1 / Track 2 and you are not sure which one is the vocal, ask which track is the lead vocal. Do not propose or store an executable move while asking that clarification.
@@ -1771,18 +3782,23 @@ Rules:
 - For Chinese acoustic observation replies, use natural-language sections in this order: 结论、证据、限制、建议. Keep the evidence human-readable, such as "来自 L3 频段、声像和响度分析"; do not expose schema names, source/render revision strings, raw evidence_ref lists, raw JSON, waveform arrays, tile payloads, or internal IDs unless the user explicitly asks for technical details.
 - Treat deep/slow packages as optional. If they are missing, pending, partial, or blocked, say what uncertainty remains and base suggestions only on available evidence.
 - If acoustic_package_status.v0 shows l3_deep building or partial, reply in Chinese with the available L1 facts, the L3 feature status, tile/coverage progress when present, and say full-song band/stereo judgement is not reliable yet. Do not create pending actions or ask to continue executing for read-only observation.
-- When the user confirms the proposed small mix move, use mix.propose_tick and then mix.apply_tick; v1 supports track_gain_adjust up to +/-2 dB through set_volume and track_pan_adjust/track_pan_set through set_pan. Do not call track.volume or track.pan directly for an acoustic mix tick.
-- Keep each mixing action to one safe small step or one clearly coupled small move. v1 direct execution supports gain and pan ticks only.
+- For B1 gain-staging fader unity reset, use track.group.apply_control with mode:absolute and db:0 after confirmation; this is an engineering state reset, not a B2 small mix tick, and is not limited to +/-2 dB.
+- B2 whole-project static balance and B3 whole-project pan layout are owned by Project-aware Capability Runtime v1 before AgentLoop. If either request reaches this loop, do not create a pending plan, do not issue gain/pan mutations, and do not emulate the capability with local mix ticks; return a concise routing failure so the request can be retried through the v1 PlanningSession path.
+- For local gain/pan moves outside B2 whole-project static balance, keep each action to one safe small step or one clearly coupled small move. After confirmation use mix.propose_tick then mix.apply_tick; do not call track.volume or track.pan directly.
 - For a simple concrete gain/pan move that v1 can execute as one acoustic mix tick, ask for confirmation in normal user-facing text with the concrete small amount; do not append mix_treatment_pending for that tick. The local runtime will turn the confirmed move into mix.propose_tick/mix.apply_tick.
-- For plugin/EQ/compressor/reverb/delay/saturation or non-tick gain/pan treatment after observation, you may propose a treatment direction but you must not execute it in the same turn. If you propose one, append one internal marker line exactly like: mix_treatment_pending: {"schema_version":"mix_treatment_pending.v0","status":"pending_confirmation","intent":"...","target_ref":"track:<id>|vocal_unknown|project","action_kind":"plugin_treatment|gain_balance|pan_balance","processor_type":"eq|compressor|reverb|delay|saturation|utility|unknown","reasoning_summary":"...","confidence":"low|medium|high","evidence_refs":["..."],"needs_resolution":["target_track","plugin_instance","plugin_profile","exact_control"],"expires_after_context_change":true}. For gain_balance only, include an explicit "delta_db" within +/-2 dB; for pan_balance include either "delta_pan" within +/-0.15 or "target_pan" within -1.0..+1.0. If you do not have an exact small value, leave exact_control in needs_resolution instead. Clarification and observation-only branches must not append this marker. This marker is for the local resolver and will be hidden from the user.
+- For plugin/EQ/compressor/reverb/delay/saturation or non-tick gain/pan treatment after observation, propose the treatment direction in normal user-facing Chinese only. Do not append internal markers, schemas, raw JSON, or hidden pending payloads. The local runtime constructs PendingCandidate/MixTreatmentPending deterministically from MOM projection, evidence refs, trust quality, and the user request; if the runtime cannot resolve target/action/processor/confidence safely, ask for clarification or keep the result as advice only.
 - Do not invent plugin instances, profiles, controls, or exact parameters in a treatment pending. The local resolver decides whether the confirmed treatment can execute, needs preparation, or needs clarification.
 - Use plugin.set_parameter only when the user explicitly names an exact raw parameter/value or prior tool evidence gives a high-confidence exact param_id and display domain. Never use it as a fallback for subjective acoustic mixing goals.
 - If the user says to undo or roll back the last mix move, use the available project undo/rollback path directly instead of returning to a mixing workflow.
 - Do not invent track_id, clip_id, plugin_id, or tool names.
 - Prefer read-only observation before risky writes, but do not over-observe when the current context already contains enough state.
 - For dependent DAW edits, you may emit multiple tool calls in one response. Use symbolic refs such as {"track_ref":"last_created_track"} or {"track_id":"$last_created_track"} for later calls that target an object created by an earlier call.
+- For folder-track edits, use folder refs such as {"folder_track_ref":"last_created_folder_track"} or {"folder_track_id":"$last_created_folder_track"}. After project.apply_track_organization succeeds, stop and summarize the created folders/moved tracks instead of decomposing the same organization into extra manual folder_track.create + track.move_to_folder calls.
+- If recent_goal_context.execution_memory.pending_track_organization exists and the user confirms the TOM/A3 organization proposal, use that complete manifest with project.apply_track_organization. Do not claim only visible_tracks are available, and do not rebuild the proposal from the capped visible_tracks summary.
+- If recent_goal_context.execution_memory.pending_section_markers exists and the user confirms the A5/EPM section map, use project.markers.apply_section_markers with that complete sections manifest. Marker writing must not move clips or tracks.
 - The local runtime resolves symbolic refs from prior tool results and execution bindings. Do not call the model again only to bind an ID that the tool result already produced.
 - Target priority is: explicit user-named/indexed target, object created in this turn, explicit current/selected UI target, single unambiguous default, otherwise ask for clarification.
+- For a single explicit audio file or selected library item that should be placed into a known track, use clip.import_media_to_track. For stems, multitrack folders, folders of audio files, or explicit create-tracks-from-folder requests, use project.import_preflight first, then project.import_folder_as_stems for the write; never simulate a folder/stems import with repeated track.add_audio plus clip.import_media_to_track calls.
 - Audio effects such as EQ, compressor, delay, reverb, analyzer, meter, or distortion belong in rack zone Z3. Instruments, synths, and samplers belong in Z2. If plugin metadata is unavailable, omit zone_id and let the tool resolve it.
 - For ordinary plugin/effect loading, use plugin.load_to_rack or rack.add_node. Do not use plugin.instantiate unless the user explicitly asks for a track-level plugin outside the rack.
 - For MIDI note writing, prefer midi.apply_note_patch with time_unit:"beats" and operations[]. Use insert_note/delete_note/move_note/resize_note/transpose_note/set_velocity/quantize_region/replace_region. Do not use legacy MIDI note tools for new note-writing plans unless midi.apply_note_patch is unavailable.
@@ -2130,10 +4146,22 @@ func resolveMessageLoopBindings(state *runState, call planner.ToolCall) planner.
 	if state == nil {
 		return call
 	}
+	mirrorCommand := len(call.Command) > 0
 	call.Args = cloneMap(call.Args)
-	call.Command = cloneMap(call.Command)
 	if call.Args == nil {
 		call.Args = map[string]any{}
+	}
+	if mirrorCommand {
+		call.Command = cloneMap(call.Command)
+	} else if tool := strings.TrimSpace(call.Tool); tool != "" && tool != "daw.invoke" {
+		call.Command = cloneMap(call.Args)
+		if call.Command == nil {
+			call.Command = map[string]any{}
+		}
+		call.Command["tool"] = tool
+		mirrorCommand = true
+	} else {
+		call.Command = nil
 	}
 	trackID := resolveTrackRef(state, firstMapText(call.Args, "track_ref", "target_track_ref", "track_id", "target_track_id", "selected_track_id"))
 	if trackID == "" && messageLoopToolWantsTrack(call) {
@@ -2141,7 +4169,26 @@ func resolveMessageLoopBindings(state *runState, call planner.ToolCall) planner.
 	}
 	if trackID != "" && messageLoopToolWantsTrack(call) {
 		setIfEmpty(call.Args, "track_id", trackID)
-		setIfEmpty(call.Command, "track_id", trackID)
+		if mirrorCommand {
+			setIfEmpty(call.Command, "track_id", trackID)
+		}
+	}
+	folderTrackID := resolveFolderTrackRef(state, firstMapText(call.Args, "folder_track_ref", "target_folder_track_ref", "folder_track_id", "target_folder_track_id"))
+	if folderTrackID == "" && messageLoopToolWantsFolderTrack(call) {
+		folderTrackID = firstNonEmpty(state.executionMemory.ActiveWorkTargetFolderTrackID, state.executionMemory.LastCreatedFolderTrackID)
+	}
+	if folderTrackID != "" && messageLoopToolWantsFolderTrack(call) {
+		setIfEmpty(call.Args, "folder_track_id", folderTrackID)
+		if mirrorCommand {
+			setIfEmpty(call.Command, "folder_track_id", folderTrackID)
+		}
+	}
+	parentFolderTrackID := resolveFolderTrackRef(state, firstMapText(call.Args, "parent_folder_track_ref", "parent_folder_track_id"))
+	if parentFolderTrackID != "" {
+		setIfEmpty(call.Args, "parent_folder_track_id", parentFolderTrackID)
+		if mirrorCommand {
+			setIfEmpty(call.Command, "parent_folder_track_id", parentFolderTrackID)
+		}
 	}
 	clipID := resolveClipRef(state, firstMapText(call.Args, "clip_ref", "target_clip_ref", "clip_id", "selected_clip_id", "primary_selected_clip_id"))
 	if clipID == "" && messageLoopToolWantsClip(call) {
@@ -2149,7 +4196,9 @@ func resolveMessageLoopBindings(state *runState, call planner.ToolCall) planner.
 	}
 	if clipID != "" && messageLoopToolWantsClip(call) {
 		setIfEmpty(call.Args, "clip_id", clipID)
-		setIfEmpty(call.Command, "clip_id", clipID)
+		if mirrorCommand {
+			setIfEmpty(call.Command, "clip_id", clipID)
+		}
 	}
 	tickID := resolveMixTickRef(state, firstMapText(call.Args, "tick_ref", "mix_tick_ref", "tick_id"))
 	if tickID == "" && messageLoopToolWantsMixTick(call) {
@@ -2157,9 +4206,197 @@ func resolveMessageLoopBindings(state *runState, call planner.ToolCall) planner.
 	}
 	if tickID != "" && messageLoopToolWantsMixTick(call) {
 		setIfEmpty(call.Args, "tick_id", tickID)
-		setIfEmpty(call.Command, "tick_id", tickID)
+		if mirrorCommand {
+			setIfEmpty(call.Command, "tick_id", tickID)
+		}
+	}
+	call = resolvePendingTrackOrganizationCall(state, call)
+	call = resolvePendingSectionMarkersCall(state, call)
+	return call
+}
+
+func resolvePendingTrackOrganizationCall(state *runState, call planner.ToolCall) planner.ToolCall {
+	if state == nil || len(state.executionMemory.PendingTrackOrganization) == 0 || !messageLoopIsApplyTrackOrganizationCall(call) {
+		return call
+	}
+	pending := state.executionMemory.PendingTrackOrganization
+	pendingGroups := pendingTrackOrganizationToolGroups(pending)
+	if len(pendingGroups) == 0 {
+		return call
+	}
+	desiredCount := firstPositiveMapInt(pending, "assignment_coverage_count", "track_count")
+	currentCount := messageLoopApplyTrackOrganizationTrackCount(call.Args["groups"])
+	usePending := currentCount == 0
+	if desiredCount > 0 && currentCount > 0 && currentCount < desiredCount {
+		usePending = true
+	}
+	if requested, ok := firstMapBool(call.Args, "use_pending_track_organization", "use_tom_manifest", "use_pending_tom_manifest"); ok && requested {
+		usePending = true
+	}
+	if !usePending {
+		return call
+	}
+	call.Args["groups"] = pendingGroups
+	setIfEmpty(call.Args, "source", "pending_track_organization")
+	if call.Command != nil {
+		call.Command["groups"] = pendingGroups
+		setIfEmpty(call.Command, "source", "pending_track_organization")
 	}
 	return call
+}
+
+func messageLoopIsApplyTrackOrganizationCall(call planner.ToolCall) bool {
+	name := strings.ToLower(strings.TrimSpace(firstNonEmpty(
+		call.Tool,
+		firstMapText(call.Args, "cmd", "command", "action"),
+		firstMapText(call.Command, "cmd", "command", "action"),
+	)))
+	switch name {
+	case "project.apply_track_organization", "project.track_organization.apply", "apply_track_organization":
+		return true
+	default:
+		return false
+	}
+}
+
+func pendingTrackOrganizationToolGroups(pending map[string]any) []map[string]any {
+	rows := messageLoopMapRows(pending["groups"])
+	if len(rows) == 0 {
+		return nil
+	}
+	groups := []map[string]any{}
+	for _, row := range rows {
+		trackIDs := messageLoopSplitTrackIDsCSV(firstMapText(row, "track_ids_csv"))
+		if len(trackIDs) == 0 {
+			continue
+		}
+		folderName := firstMapText(row, "folder_name", "proposed_folder", "label", "group_id")
+		if folderName == "" {
+			continue
+		}
+		group := map[string]any{
+			"folder_name":         folderName,
+			"track_ids":           trackIDs,
+			"routing_bus_enabled": false,
+		}
+		if enabled, ok := firstMapBool(row, "routing_bus_enabled"); ok {
+			group["routing_bus_enabled"] = enabled
+		}
+		groups = append(groups, group)
+	}
+	return groups
+}
+
+func messageLoopApplyTrackOrganizationTrackCount(value any) int {
+	total := 0
+	for _, group := range messageLoopMapRows(value) {
+		total += len(messageLoopStringSliceFromAny(group["track_ids"]))
+		if assignments := messageLoopMapRows(group["assignments"]); len(assignments) > 0 {
+			for _, assignment := range assignments {
+				if firstMapText(assignment, "track_id") != "" {
+					total++
+				}
+			}
+		}
+	}
+	return total
+}
+
+func messageLoopSplitTrackIDsCSV(value string) []string {
+	if strings.TrimSpace(value) == "" {
+		return nil
+	}
+	parts := strings.Split(value, ",")
+	out := make([]string, 0, len(parts))
+	seen := map[string]bool{}
+	for _, part := range parts {
+		id := strings.TrimSpace(part)
+		if id == "" || seen[id] {
+			continue
+		}
+		seen[id] = true
+		out = append(out, id)
+	}
+	return out
+}
+
+func resolvePendingSectionMarkersCall(state *runState, call planner.ToolCall) planner.ToolCall {
+	if state == nil || len(state.executionMemory.PendingSectionMarkers) == 0 || !messageLoopIsApplySectionMarkersCall(call) {
+		return call
+	}
+	pending := state.executionMemory.PendingSectionMarkers
+	pendingSections := pendingSectionMarkersToolSections(pending)
+	if len(pendingSections) == 0 {
+		return call
+	}
+	desiredCount := firstPositiveMapInt(pending, "section_count")
+	currentCount := len(messageLoopMapRows(call.Args["sections"]))
+	if currentCount == 0 {
+		currentCount = len(messageLoopMapRows(call.Args["markers"]))
+	}
+	usePending := currentCount == 0
+	if desiredCount > 0 && currentCount > 0 && currentCount < desiredCount {
+		usePending = true
+	}
+	if requested, ok := firstMapBool(call.Args, "use_pending_section_markers", "use_epm_section_map", "use_pending_a5_sections"); ok && requested {
+		usePending = true
+	}
+	if !usePending {
+		return call
+	}
+	call.Args["sections"] = pendingSections
+	setIfMissing(call.Args, "replace_existing", pending["replace_existing"])
+	setIfEmpty(call.Args, "source", firstNonEmpty(firstMapText(pending, "source"), "epm_a5"))
+	if call.Command != nil {
+		call.Command["sections"] = pendingSections
+		setIfMissing(call.Command, "replace_existing", pending["replace_existing"])
+		setIfEmpty(call.Command, "source", firstNonEmpty(firstMapText(pending, "source"), "epm_a5"))
+	}
+	return call
+}
+
+func messageLoopIsApplySectionMarkersCall(call planner.ToolCall) bool {
+	name := strings.ToLower(strings.TrimSpace(firstNonEmpty(
+		call.Tool,
+		firstMapText(call.Args, "cmd", "command", "action"),
+		firstMapText(call.Command, "cmd", "command", "action"),
+	)))
+	switch name {
+	case "project.markers.apply_section_markers", "project_apply_section_markers":
+		return true
+	default:
+		return false
+	}
+}
+
+func pendingSectionMarkersToolSections(pending map[string]any) []map[string]any {
+	rows := messageLoopMapRows(pending["sections"])
+	if len(rows) == 0 {
+		return nil
+	}
+	sections := []map[string]any{}
+	for i, row := range rows {
+		start := firstPresentNumber(row, "start_seconds", "start")
+		end := firstPresentNumber(row, "end_seconds", "end")
+		if end <= start {
+			continue
+		}
+		name := firstNonEmpty(firstMapText(row, "name", "label"), fmt.Sprintf("Section %d", i+1))
+		section := map[string]any{
+			"name":          name,
+			"label":         name,
+			"start_seconds": start,
+			"end_seconds":   end,
+		}
+		if sectionID := firstMapText(row, "section_id", "id"); sectionID != "" {
+			section["section_id"] = sectionID
+		}
+		if confidence := firstMapText(row, "confidence"); confidence != "" {
+			section["confidence"] = confidence
+		}
+		sections = append(sections, section)
+	}
+	return sections
 }
 
 func resolveTrackRef(state *runState, ref string) string {
@@ -2170,6 +4407,49 @@ func resolveTrackRef(state *runState, ref string) string {
 	default:
 		return ref
 	}
+}
+
+func resolveFolderTrackRef(state *runState, ref string) string {
+	ref = strings.TrimSpace(strings.TrimPrefix(ref, "$"))
+	switch strings.ToLower(ref) {
+	case "last_created_folder_track", "new_folder_track", "created_folder_track", "active_work_target_folder_track", "target_folder_track":
+		return firstNonEmpty(
+			state.executionMemory.ActiveWorkTargetFolderTrackID,
+			state.executionMemory.LastCreatedFolderTrackID,
+			executionBindingID(state.executionMemory, "active_work_target_folder_track", "last_created_folder_track", "target_folder_track"),
+		)
+	case "last_created_track", "new_track", "created_track":
+		return firstNonEmpty(
+			state.executionMemory.ActiveWorkTargetFolderTrackID,
+			state.executionMemory.LastCreatedFolderTrackID,
+			executionBindingID(state.executionMemory, "active_work_target_folder_track", "last_created_folder_track", "target_folder_track"),
+		)
+	default:
+		return ref
+	}
+}
+
+func executionBindingID(memory ExecutionMemory, keys ...string) string {
+	if len(keys) == 0 || len(memory.Bindings) == 0 {
+		return ""
+	}
+	wanted := map[string]bool{}
+	for _, key := range keys {
+		key = strings.ToLower(strings.TrimSpace(key))
+		if key != "" {
+			wanted[key] = true
+		}
+	}
+	for i := len(memory.Bindings) - 1; i >= 0; i-- {
+		binding := memory.Bindings[i]
+		if !wanted[strings.ToLower(strings.TrimSpace(binding.Key))] {
+			continue
+		}
+		if id := strings.TrimSpace(binding.ID); id != "" {
+			return id
+		}
+	}
+	return ""
 }
 
 func resolveClipRef(state *runState, ref string) string {
@@ -2197,7 +4477,18 @@ func messageLoopToolWantsTrack(call planner.ToolCall) bool {
 	switch name {
 	case "plugin.load_to_rack", "rack.add_node", "rack_add_node", "instantiate_plugin", "plugin.instantiate",
 		"midi.create_clip", "midi.insert_clip", "midi.import_file", "clip.import_media_to_track", "clip.import_audio", "clip.add_audio",
-		"create_midi_clip", "insert_midi_clip", "import_midi_to_track", "import_audio", "import_media_to_track", "add_audio_clip":
+		"create_midi_clip", "insert_midi_clip", "import_midi_to_track", "import_audio", "import_media_to_track", "add_audio_clip",
+		"track.move_to_folder":
+		return true
+	default:
+		return false
+	}
+}
+
+func messageLoopToolWantsFolderTrack(call planner.ToolCall) bool {
+	name := normalizedActionName(call, executorpkg.Result{})
+	switch name {
+	case "track.move_to_folder", "folder_track.set_routing_bus_enabled", "track.folder.set_routing_bus_enabled":
 		return true
 	default:
 		return false
@@ -2235,14 +4526,32 @@ func setIfEmpty(row map[string]any, key, value string) {
 	}
 }
 
+func setIfMissing(row map[string]any, key string, value any) {
+	if row == nil || value == nil {
+		return
+	}
+	if current := strings.TrimSpace(fmt.Sprint(row[key])); current == "" || current == "<nil>" || strings.HasPrefix(current, "$") {
+		row[key] = value
+	}
+}
+
 func messageLoopToolGuardIssue(state *runState, call planner.ToolCall, hadMixObservationBeforeTurn bool) string {
 	if state == nil {
+		return ""
+	}
+	if messageLoopIsDADAnalysisControlTool(call) {
+		return "DAD analysis is automatic; the agent may read project.audio_analysis_status but must not start or cancel DAD analysis"
+	}
+	if strings.EqualFold(strings.TrimSpace(call.Tool), "capability.equalizer.inspect") || strings.EqualFold(strings.TrimSpace(call.Tool), "capability.equalizer.plan") {
 		return ""
 	}
 	if messageLoopMutationBarrierActive(state) {
 		return messageLoopReadOnlyGuardIssue(call)
 	}
 	if messageLoopExplicitPluginOrRawRequest(state.input.UserText) && !messageLoopLowMudPluginPrepRequest(state.input.UserText) {
+		return ""
+	}
+	if messageLoopGainStagingFaderResetRequest(state.input.UserText) && strings.TrimSpace(call.Tool) == "track.group.apply_control" {
 		return ""
 	}
 	isMixIntent := messageLoopNaturalMixRequest(state.input.UserText) || messageLoopImplicitPanFollowupRequest(state) || messageLoopImplicitGainFollowupRequest(state)
@@ -2579,6 +4888,9 @@ func messageLoopNaturalMixRequest(userText string) bool {
 	if text == "" {
 		return false
 	}
+	if messageLoopClipFadeGainRequest(text) {
+		return false
+	}
 	if messageLoopTextHasAny(text, "\u5de6", "\u53f3", "\u5c45\u4e2d", "\u56de\u4e2d", "\u4e2d\u95f4", "left", "right", "center", "centre") &&
 		messageLoopTextHasAny(text, "\u58f0\u50cf", "\u58f0\u76f8", "\u8f68\u9053", "\u5409\u4ed6", "\u8d1d\u65af", "\u9f13", "\u4e3b\u5531", "\u4eba\u58f0", "pan", "panning", "track", "guitar", "bass", "drum", "vocal", "voice") {
 		return true
@@ -2589,6 +4901,120 @@ func messageLoopNaturalMixRequest(userText string) bool {
 		"\u9760\u524d", "\u5f80\u524d", "\u63d0\u5347\u54cd\u5ea6", "\u54cd\u5ea6", "\u592a\u54cd", "\u592a\u5927", "\u592a\u5c0f", "\u538b\u4f4e", "\u964d\u4f4e", "\u4e0b\u8c03", "\u8c03\u4f4e", "\u63d0\u9ad8", "\u63d0\u5347", "\u4e0a\u8c03", "\u8c03\u9ad8", "\u97f3\u91cf", "\u7535\u5e73", "\u589e\u76ca", "\u66f4\u4eae", "\u660e\u4eae", "\u6d51\u6d4a", "\u523a\u8033",
 		"\u4f4e\u9891", "\u4f4e\u4e2d\u9891", "\u7a7a\u95f4\u611f", "\u52a0\u4e00\u70b9\u7a7a\u95f4", "\u58f0\u50cf", "\u58f0\u76f8", "\u58f0\u573a", "\u52a8\u6001", "\u538b\u7f29",
 		"mix", "mixing", "loudness", "louder", "too loud", "too quiet", "volume", "level", "gain", "lower", "reduce", "decrease", "raise", "boost", "increase", "forward", "mud", "muddy", "harsh", "bright", "space", "reverb", "pan", "panning", "stereo field", "dynamic",
+	)
+}
+
+func messageLoopClipFadeGainRequest(userText string) bool {
+	text := strings.ToLower(strings.TrimSpace(userText))
+	if text == "" {
+		return false
+	}
+	if messageLoopGainStagingExplicitRequest(text) {
+		return false
+	}
+	hasClipTarget := messageLoopTextHasAny(text,
+		"clip", "clips", "selected clip", "current clip", "this clip", "audio clip",
+		"\u7247\u6bb5", "\u97f3\u9891\u7247\u6bb5", "\u5f53\u524d\u7247\u6bb5", "\u9009\u4e2d\u7247\u6bb5",
+		"\u5f53\u524d\u9009\u4e2d clip", "\u5f53\u524d clip", "\u9009\u4e2d clip", "\u8fd9\u4e2a clip",
+	)
+	if !hasClipTarget {
+		return false
+	}
+	hasFadeOrGain := messageLoopTextHasAny(text,
+		"fade", "fade in", "fade out", "clip gain", "gain",
+		"\u6de1\u5165", "\u6de1\u51fa", "\u6de1\u5316", "\u589e\u76ca",
+	)
+	if !hasFadeOrGain {
+		return false
+	}
+	if messageLoopTextHasAny(text, "fade", "gain", "clip gain", "fade/gain") && messageLoopTextHasAny(text, "clip", "audio clip") {
+		return true
+	}
+	return messageLoopTextHasAny(text,
+		"read", "show", "inspect", "status", "state", "get", "set", "adjust", "change", "drag",
+		"\u8bfb\u53d6", "\u67e5\u770b", "\u770b\u4e00\u4e0b", "\u72b6\u6001", "\u8bbe\u7f6e", "\u8c03\u6574", "\u4fee\u6539", "\u62d6", "\u62c9",
+	)
+}
+
+func messageLoopStripSilenceSuggestRequest(userText string) bool {
+	text := strings.ToLower(strings.TrimSpace(userText))
+	if text == "" {
+		return false
+	}
+	hasStripIntent := messageLoopTextHasAny(text,
+		"strip silence", "strip_silence", "silence cleanup", "remove silence", "trim silence",
+		"清理静音", "片段清理", "清理空白", "去静音", "去掉静音", "去掉空白", "删除静音", "过滤静音", "噪声底",
+	) || messageLoopA4ClipCleanupRequest(text)
+	if !hasStripIntent {
+		return false
+	}
+	if messageLoopA4ClipCleanupRequest(text) {
+		return true
+	}
+	hasApplyOnlyIntent := messageLoopTextHasAny(text,
+		"apply", "execute", "confirm", "do it", "go ahead",
+		"应用", "执行", "确认", "按这个", "就这样", "继续",
+	)
+	hasAnalysisIntent := messageLoopTextHasAny(text,
+		"suggest", "recommend", "analyze", "analyse", "estimate", "parameter", "threshold", "preview",
+		"建议", "推荐", "分析", "估算", "参数", "阈值", "预览", "检查",
+	)
+	return !hasApplyOnlyIntent || hasAnalysisIntent
+}
+
+func messageLoopStripSilenceAllProjectRequest(userText string) bool {
+	text := strings.ToLower(strings.TrimSpace(userText))
+	if messageLoopTextHasAny(text,
+		"\u5168\u5de5\u7a0b", "\u6574\u4e2a\u5de5\u7a0b", "\u5168\u90e8\u5de5\u7a0b",
+		"\u5168\u9879\u76ee", "\u6574\u4e2a\u9879\u76ee", "\u6240\u6709\u7247\u6bb5",
+		"\u6240\u6709\u8f68\u9053", "\u5168\u90e8\u8f68\u9053", "\u6240\u6709\u97f3\u8f68", "\u5168\u90e8\u97f3\u8f68",
+	) {
+		return true
+	}
+	return messageLoopTextHasAny(text,
+		"all project", "whole project", "full project", "entire project", "global", "all tracks", "every track", "all clips",
+		"全工程", "整个工程", "全部工程", "所有片段", "全项目", "所有轨道", "全部轨道",
+	) || messageLoopA4ClipCleanupWholeProjectRequest(text)
+}
+
+func messageLoopStripSilenceSelectedTrackRequest(userText string) bool {
+	text := strings.ToLower(strings.TrimSpace(userText))
+	return messageLoopTextHasAny(text,
+		"selected track", "current track", "this track", "current selected track", "selected audio track",
+		"\u9009\u4e2d\u8f68\u9053", "\u5f53\u524d\u8f68\u9053", "\u8fd9\u6761\u8f68", "\u8fd9\u4e2a\u8f68\u9053",
+		"\u9009\u4e2d\u97f3\u8f68", "\u5f53\u524d\u97f3\u8f68",
+	)
+}
+
+func messageLoopStripSilenceRangeRequest(userText string) bool {
+	text := strings.ToLower(strings.TrimSpace(userText))
+	return messageLoopTextHasAny(text,
+		"selected range", "selected ranges", "clip range", "clip ranges",
+		"time range", "time ranges", "time selection", "range selection",
+		"\u9009\u4e2d\u8303\u56f4", "\u5f53\u524d\u8303\u56f4", "\u7247\u6bb5\u8303\u56f4",
+		"\u65f6\u95f4\u8303\u56f4", "\u9009\u533a", "\u8303\u56f4",
+	)
+}
+
+func messageLoopA4ClipCleanupRequest(text string) bool {
+	text = strings.ToLower(strings.TrimSpace(text))
+	if text == "" || !messageLoopTextHasAny(text, "a4", "a 4", "epm") {
+		return false
+	}
+	return messageLoopTextHasAny(text,
+		"clip cleanup", "clip trim", "clip trimming", "trim clips", "cleanup clips",
+		"片段裁剪", "片段清理", "裁剪片段", "清理片段", "裁剪", "清理",
+	)
+}
+
+func messageLoopA4ClipCleanupWholeProjectRequest(text string) bool {
+	text = strings.ToLower(strings.TrimSpace(text))
+	if !messageLoopA4ClipCleanupRequest(text) {
+		return false
+	}
+	return !messageLoopTextHasAny(text,
+		"selected", "current", "this clip", "this track", "selected clip", "selected track", "current clip", "current track", "selected range", "range",
+		"选中", "当前片段", "当前轨道", "选中片段", "选中轨道", "这个片段", "这条轨", "范围", "选区",
 	)
 }
 
@@ -2901,6 +5327,19 @@ func messageLoopIsWaveformBakeTool(call planner.ToolCall) bool {
 	}
 }
 
+func messageLoopIsDADAnalysisControlTool(call planner.ToolCall) bool {
+	name := strings.ToLower(strings.TrimSpace(normalizedActionName(call, executorpkg.Result{})))
+	if name == "" {
+		name = strings.ToLower(strings.TrimSpace(call.Tool))
+	}
+	switch name {
+	case "project.audio_analysis_start", "audio_analysis_start", "project.audio_analysis_cancel", "audio_analysis_cancel":
+		return true
+	default:
+		return false
+	}
+}
+
 func messageLoopMixObserveFirstAllowedTool(call planner.ToolCall) bool {
 	name := strings.ToLower(strings.TrimSpace(normalizedActionName(call, executorpkg.Result{})))
 	if name == "" {
@@ -2975,13 +5414,17 @@ func compactMessageLoopExecution(record map[string]any) map[string]any {
 		if summary := mixObservationPromptSummary(result); len(summary) > 0 {
 			out["mix_observation_summary"] = summary
 		}
-		out["result_summary"] = contextruntime.SummarizeToolResult(planner.ToolResult{
-			ToolCallID: messageLoopText(record["tool_call_id"]),
-			Tool:       messageLoopText(record["tool"]),
-			Status:     messageLoopText(record["status"]),
-			Error:      messageLoopText(record["error"]),
-			Result:     result,
-		}, opts)
+		if summary := messageLoopMediaArtifactResultSummary(record, result); len(summary) > 0 {
+			out["media_artifact_summary"] = summary
+		} else {
+			out["result_summary"] = contextruntime.SummarizeToolResult(planner.ToolResult{
+				ToolCallID: messageLoopText(record["tool_call_id"]),
+				Tool:       messageLoopText(record["tool"]),
+				Status:     messageLoopText(record["status"]),
+				Error:      messageLoopText(record["error"]),
+				Result:     result,
+			}, opts)
+		}
 	}
 	if verification, ok := record["verification"]; ok && !messageLoopEmptyValue(verification) {
 		out["verification"] = contextruntime.CompactValue(verification, opts)
@@ -3301,9 +5744,91 @@ func capMessageLoopRows(rows []map[string]any, max int) []map[string]any {
 func messageLoopCompactOptions() contextruntime.Options {
 	return contextruntime.Options{
 		MaxTextRunes:           900,
-		MaxListItems:           20,
-		MaxPreviewBytes:        12 * 1024,
+		MaxListItems:           8,
+		MaxPreviewBytes:        6 * 1024,
 		SkipPluginSemanticLoad: true,
+	}
+}
+
+func messageLoopMediaArtifactResultSummary(record map[string]any, result map[string]any) map[string]any {
+	if len(result) == 0 {
+		return nil
+	}
+	name := firstNonEmpty(messageLoopText(record["tool"]), messageLoopText(record["command_name"]))
+	rows := messageLoopMapRows(result["artifacts"])
+	count := firstPositiveMapInt(result, "count", "artifact_count")
+	if count <= 0 {
+		count = len(rows)
+	}
+	if count <= 0 || (!messageLoopIsMediaArtifactToolName(name) && len(rows) == 0) {
+		return nil
+	}
+	out := map[string]any{
+		"status": messageLoopText(result["status"]),
+		"count":  count,
+	}
+	for _, key := range []string{"skipped_count", "recursive", "limit"} {
+		if value, ok := result[key]; ok && !messageLoopEmptyValue(value) {
+			out[key] = value
+		}
+	}
+	if locations := messageLoopStringSlice(result["locations"]); len(locations) > 0 {
+		out["locations"] = firstMessageLoopStrings(locations, 4)
+		if len(locations) > 4 {
+			out["locations_omitted_count"] = len(locations) - 4
+		}
+	}
+	if len(rows) > 0 {
+		kinds := map[string]int{}
+		sampleLimit := len(rows)
+		if sampleLimit > 6 {
+			sampleLimit = 6
+		}
+		samples := make([]map[string]any, 0, sampleLimit)
+		for i, row := range rows {
+			kind := firstMapText(row, "kind", "media_type", "type")
+			if kind != "" {
+				kinds[kind]++
+			}
+			if i >= 6 {
+				continue
+			}
+			sample := map[string]any{}
+			for _, key := range []string{"id", "kind", "title", "status", "summary", "mime", "size_bytes"} {
+				if value, ok := row[key]; ok && !messageLoopEmptyValue(value) {
+					sample[key] = value
+				}
+			}
+			if len(sample) > 0 {
+				samples = append(samples, sample)
+			}
+		}
+		if len(kinds) > 0 {
+			out["kind_counts"] = kinds
+		}
+		if len(samples) > 0 {
+			out["sample_artifacts"] = samples
+		}
+		if len(rows) > len(samples) {
+			out["sample_omitted_count"] = len(rows) - len(samples)
+		}
+	}
+	removeMessageLoopEmpty(out)
+	return out
+}
+
+func firstMessageLoopStrings(values []string, limit int) []string {
+	if limit <= 0 || len(values) <= limit {
+		return append([]string(nil), values...)
+	}
+	return append([]string(nil), values[:limit]...)
+}
+
+func removeMessageLoopEmpty(row map[string]any) {
+	for key, value := range row {
+		if messageLoopEmptyValue(value) {
+			delete(row, key)
+		}
 	}
 }
 
@@ -3337,6 +5862,15 @@ func messageLoopFastCompleteReply(state *runState, out messageLoopOutput) (strin
 	record := state.executed[len(state.executed)-1]
 	if !messageLoopFastCompleteRecordMatches(call, record) || !messageLoopExecutionSucceeded(record) {
 		return "", false
+	}
+	if reply := messageLoopStemsImportFastCompleteReply(record); strings.TrimSpace(reply) != "" {
+		return reply, true
+	}
+	if reply := messageLoopTrackOrganizationFastCompleteReply(record); strings.TrimSpace(reply) != "" {
+		return reply, true
+	}
+	if reply := messageLoopProjectMarkersFastCompleteReply(record); strings.TrimSpace(reply) != "" {
+		return reply, true
 	}
 	ver, ok := messageLoopExecutionVerification(record)
 	if !ok {
@@ -3411,6 +5945,2135 @@ func messageLoopObservationFallbackEligible(state *runState, err error) bool {
 		return false
 	}
 	return true
+}
+
+func messageLoopExecutionFallbackAfterLLMError(state *runState, err error) (string, bool) {
+	if state == nil || err == nil || !messageLoopTransientLLMError(err) {
+		return "", false
+	}
+	for i := len(state.executed) - 1; i >= 0; i-- {
+		record := state.executed[i]
+		if !messageLoopExecutionSucceeded(record) {
+			continue
+		}
+		ver, ok := messageLoopExecutionVerification(record)
+		if ok {
+			switch ver.Status {
+			case verificationVerified, verificationNotRequired:
+			default:
+				continue
+			}
+		}
+		reply := messageLoopVerifiedExecutionFallbackReply(state, record, ver)
+		if strings.TrimSpace(reply) == "" {
+			continue
+		}
+		return reply + "\n\n" + "\u6700\u7ec8\u81ea\u7136\u8bed\u8a00\u56de\u590d\u9047\u5230\u4e34\u65f6\u9519\u8bef\uff0c\u6211\u5148\u6839\u636e\u5df2\u9a8c\u8bc1\u7684\u6267\u884c\u7ed3\u679c\u7ed9\u51fa\u8fd9\u4e2a\u6458\u8981\u3002", true
+	}
+	return "", false
+}
+
+func messageLoopVerifiedExecutionFallbackReply(state *runState, record map[string]any, ver planner.VerificationResult) string {
+	if state == nil || len(record) == 0 {
+		return ""
+	}
+	if reply := messageLoopStemsImportFastCompleteReply(record); strings.TrimSpace(reply) != "" {
+		return reply
+	}
+	if reply := messageLoopTrackOrganizationFastCompleteReply(record); strings.TrimSpace(reply) != "" {
+		return reply
+	}
+	if reply := messageLoopProjectMarkersFastCompleteReply(record); strings.TrimSpace(reply) != "" {
+		return reply
+	}
+	if messageLoopMediaArtifactResultSummary(record, messageLoopMapValue(record["result"])) != nil {
+		return messageLoopMediaArtifactsFastCompleteReply(record)
+	}
+	postcondition := strings.TrimSpace(ver.Postcondition)
+	if postcondition == "" {
+		postcondition = postconditionFor(planner.ToolCall{Tool: messageLoopText(record["tool"])}, executorpkg.Result{CommandName: messageLoopText(record["command_name"])})
+	}
+	switch postcondition {
+	case postconditionTrackPresent:
+		return messageLoopTrackPresentFastCompleteReply(state, record, ver)
+	case postconditionClipPresent:
+		return messageLoopClipExecutionFallbackReply(state, record, ver)
+	case postconditionMIDINotesPresent:
+		return messageLoopMIDINotesFastCompleteReply(state)
+	case postconditionRackNodePresent:
+		return messageLoopRackNodeFastCompleteReply(record, ver)
+	case postconditionNoObservableDawPostcondition, "":
+		return "\u5de5\u5177\u64cd\u4f5c\u5df2\u5b8c\u6210\u3002"
+	default:
+		return "\u5de5\u5177\u64cd\u4f5c\u5df2\u6267\u884c\u5e76\u8bb0\u5f55\u3002"
+	}
+}
+
+func messageLoopProjectMarkersFastCompleteReply(record map[string]any) string {
+	if len(record) == 0 || !messageLoopExecutionSucceeded(record) {
+		return ""
+	}
+	result := messageLoopMapValue(record["result"])
+	actionName := strings.ToLower(strings.TrimSpace(firstNonEmpty(
+		messageLoopText(record["tool"]),
+		messageLoopText(record["command_name"]),
+		firstMapText(result, "command", "cmd", "action"),
+	)))
+	switch actionName {
+	case "project.markers.apply_section_markers", "project_apply_section_markers":
+		written := firstPositiveMapInt(result, "written_count", "marker_count")
+		if written <= 0 {
+			written = messageLoopListCount(result["markers"])
+		}
+		if written <= 0 {
+			return ""
+		}
+		return fmt.Sprintf("已写入 %d 个段落 marker。", written)
+	case "project.markers.upsert", "project_marker_upsert":
+		marker := messageLoopMapValue(result["marker"])
+		name := firstMapText(marker, "name", "label")
+		kind := firstMapText(marker, "kind")
+		if strings.EqualFold(kind, "range") {
+			if name != "" {
+				return fmt.Sprintf("已写入段落 marker：%s。", name)
+			}
+			return "已写入段落 marker。"
+		}
+		if name != "" {
+			return fmt.Sprintf("已写入定位 marker：%s。", name)
+		}
+		return "已写入定位 marker。"
+	case "project.markers.rename", "project_marker_rename":
+		return "marker 已重命名。"
+	case "project.markers.delete", "project_marker_delete":
+		return "marker 已删除。"
+	default:
+		return ""
+	}
+}
+
+func messageLoopTrackOrganizationFastCompleteReply(record map[string]any) string {
+	if len(record) == 0 || !messageLoopExecutionSucceeded(record) {
+		return ""
+	}
+	result := messageLoopMapValue(record["result"])
+	actionName := strings.ToLower(strings.TrimSpace(firstNonEmpty(
+		messageLoopText(record["tool"]),
+		messageLoopText(record["command_name"]),
+		firstMapText(result, "command", "cmd", "action"),
+	)))
+	if actionName != "project.apply_track_organization" {
+		return ""
+	}
+	createdFolders := firstPositiveMapInt(result, "created_folder_count", "folder_count", "folders_created")
+	movedTracks := firstPositiveMapInt(result, "moved_track_count", "tracks_moved")
+	groups := messageLoopMapRows(result["groups"])
+	if createdFolders <= 0 {
+		createdFolders = messageLoopListCount(result["created_folder_ids"])
+	}
+	if movedTracks <= 0 {
+		for _, group := range groups {
+			movedTracks += firstPositiveMapInt(group, "moved_track_count", "track_count")
+		}
+	}
+	groupParts := []string{}
+	routingBusEnabled := 0
+	for _, group := range groups {
+		name := firstMapText(group, "folder_name", "name", "group_name", "label")
+		count := firstPositiveMapInt(group, "moved_track_count", "track_count")
+		if name != "" && count > 0 && len(groupParts) < 8 {
+			groupParts = append(groupParts, fmt.Sprintf("%s x%d", name, count))
+		}
+		if enabled, ok := firstMapBool(group, "routing_bus_enabled"); ok && enabled {
+			routingBusEnabled++
+		}
+	}
+	lines := []string{"整理完成。", ""}
+	if createdFolders > 0 {
+		appendMessageLoopBullet(&lines, fmt.Sprintf("新建文件夹：%d", createdFolders))
+	}
+	if movedTracks > 0 {
+		appendMessageLoopBullet(&lines, fmt.Sprintf("已移动轨道：%d", movedTracks))
+	}
+	if len(groupParts) > 0 {
+		appendMessageLoopBullet(&lines, "分组："+strings.Join(groupParts, " / "))
+	}
+	if routingBusEnabled > 0 {
+		appendMessageLoopBullet(&lines, fmt.Sprintf("路由 Bus：已启用 %d 个", routingBusEnabled))
+	} else {
+		appendMessageLoopBullet(&lines, "路由 Bus：未启用，当前是普通文件夹整理")
+	}
+	return strings.Join(lines, "\n")
+}
+
+func messageLoopStemsImportFastCompleteReply(record map[string]any) string {
+	if len(record) == 0 || !messageLoopExecutionSucceeded(record) {
+		return ""
+	}
+	result := messageLoopMapValue(record["result"])
+	actionName := strings.ToLower(strings.TrimSpace(firstNonEmpty(
+		messageLoopText(record["tool"]),
+		messageLoopText(record["command_name"]),
+		firstMapText(result, "command", "cmd", "action"),
+	)))
+	if !messageLoopIsStemsImportName(actionName) && actionName != "import_folder_as_stems" {
+		return ""
+	}
+	summary := messageLoopMapValue(result["summary"])
+	rows := messageLoopStemsImportRows(result)
+	messageLoopRefreshImportTIMFromDADSnapshot(result)
+	settings := messageLoopMapValue(result["audio_settings_snapshot"])
+	analysisJob := messageLoopMapValue(result["analysis_job"])
+
+	tracksCreated := firstPositiveMapInt(summary, "tracks_created", "created_track_count", "created_tracks", "track_count", "tracks_to_create")
+	if tracksCreated <= 0 {
+		tracksCreated = firstPositiveMapInt(result, "tracks_created", "created_track_count", "created_track_count_reported")
+	}
+	if tracksCreated <= 0 {
+		tracksCreated = messageLoopListCount(result["created_track_ids"])
+	}
+	if tracksCreated <= 0 {
+		tracksCreated = messageLoopListCount(result["created_track_ids_preview"])
+	}
+	if tracksCreated <= 0 {
+		tracksCreated = len(rows)
+	}
+
+	clipsCreated := firstPositiveMapInt(summary, "clips_created", "created_clip_count", "created_clips", "clip_count")
+	if clipsCreated <= 0 {
+		clipsCreated = firstPositiveMapInt(result, "clips_created", "created_clip_count", "created_clip_count_reported")
+	}
+	if clipsCreated <= 0 {
+		clipsCreated = messageLoopListCount(result["created_clip_ids"])
+	}
+	if clipsCreated <= 0 {
+		clipsCreated = messageLoopListCount(result["created_clip_ids_preview"])
+	}
+	if clipsCreated <= 0 && tracksCreated > 0 {
+		clipsCreated = tracksCreated
+	}
+	timReady := messageLoopTIMImportResultReadyForA2(result, tracksCreated)
+	if !timReady {
+		return ""
+	}
+
+	lines := []string{
+		fmt.Sprintf("A1 工程接收整理完成：已导入 %d 条轨道 / %d 个音频片段。", tracksCreated, clipsCreated),
+	}
+
+	discovered := firstPositiveMapInt(summary, "discovered_audio_file_count", "audio_file_count", "file_count", "discovered_file_count")
+	readable := firstPositiveMapInt(summary, "readable_file_count", "readable_audio_file_count")
+	unreadable := firstPositiveMapInt(summary, "unreadable_file_count", "unreadable_audio_file_count")
+	if unreadable <= 0 {
+		unreadable = messageLoopCountRowsOrList(result["unreadable_files"])
+	}
+	if unreadable <= 0 {
+		unreadable = messageLoopCountRowsOrList(result["unreadable_file_examples"])
+	}
+	if discovered > 0 || readable > 0 || unreadable > 0 {
+		lines = append(lines, fmt.Sprintf("素材清点：发现 %d 个音频文件，可读取 %d 个，不可读 %d 个。", discovered, readable, unreadable))
+	}
+
+	firstRow := messageLoopFirstStemsImportRow(rows)
+	start, hasStart := firstNumericMapValue(summary, "start_time_seconds", "start_time", "start_seconds", "position_seconds")
+	if !hasStart {
+		start, hasStart = firstNumericMapValue(firstRow, "start_time_seconds", "start_time", "start_seconds", "position_seconds")
+	}
+	length, hasLength := firstNumericMapValue(summary, "edit_length_seconds", "duration_seconds", "max_duration_seconds", "longest_duration_seconds", "timeline_length_seconds")
+	if !hasLength {
+		length, hasLength = firstNumericMapValue(firstRow, "duration_seconds", "edit_length_seconds", "length_seconds")
+	}
+	if hasStart || hasLength {
+		parts := []string{}
+		if hasStart {
+			parts = append(parts, fmt.Sprintf("start %.2fs", start))
+		}
+		if hasLength {
+			parts = append(parts, fmt.Sprintf("length %.2fs", length))
+		}
+		lines = append(lines, "时间对齐："+strings.Join(parts, " / ")+"。")
+	}
+
+	sourceSpec := messageLoopAudioSpecText(
+		firstPositiveMapInt(firstRow, "source_sample_rate_hz", "sample_rate_hz"),
+		firstPositiveMapInt(firstRow, "source_bit_depth", "bit_depth"),
+		firstMapText(firstRow, "source_pcm_format", "pcm_format"),
+	)
+	if channels := firstPositiveMapInt(firstRow, "channel_count", "channels"); channels > 0 {
+		if sourceSpec != "" {
+			sourceSpec += fmt.Sprintf(" / %dch", channels)
+		} else {
+			sourceSpec = fmt.Sprintf("%dch", channels)
+		}
+	}
+	if sourceSpec != "" {
+		lines = append(lines, "Source preview: "+sourceSpec+"。")
+	}
+
+	projectSpec := messageLoopAudioSpecText(
+		firstPositiveMapInt(settings, "sample_rate_hz", "project_sample_rate_hz"),
+		firstPositiveMapInt(settings, "record_bit_depth", "project_record_bit_depth"),
+		firstMapText(settings, "pcm_format"),
+	)
+	sampleRateMismatches := firstPositiveMapInt(summary, "sample_rate_mismatch_count", "sample_rate_mismatches")
+	if sampleRateMismatches <= 0 {
+		sampleRateMismatches = messageLoopCountRowsOrList(result["sample_rate_mismatches"])
+	}
+	if sampleRateMismatches <= 0 {
+		sampleRateMismatches = messageLoopCountRowsOrList(result["sample_rate_mismatch_examples"])
+	}
+	bitDepthMismatches := firstPositiveMapInt(summary, "bit_depth_or_format_mismatch_count", "bit_depth_or_format_mismatches")
+	if bitDepthMismatches <= 0 {
+		bitDepthMismatches = messageLoopCountRowsOrList(result["bit_depth_or_format_mismatches"])
+	}
+	if bitDepthMismatches <= 0 {
+		bitDepthMismatches = messageLoopCountRowsOrList(result["bit_depth_or_format_mismatch_examples"])
+	}
+	if projectSpec != "" {
+		lines = append(lines, fmt.Sprintf("Project spec: %s；sample-rate mismatch: %d，bit-depth/format mismatch: %d。", projectSpec, sampleRateMismatches, bitDepthMismatches))
+	} else {
+		lines = append(lines, fmt.Sprintf("规格预检：sample-rate mismatch: %d，bit-depth/format mismatch: %d。", sampleRateMismatches, bitDepthMismatches))
+	}
+	if changed, ok := firstMapBool(result, "project_audio_settings_changed_before_import"); ok && changed {
+		patch := messageLoopMapValue(result["project_audio_settings_patch"])
+		if sampleRateHz := firstPositiveMapInt(patch, "sample_rate_hz"); sampleRateHz > 0 {
+			lines = append(lines, fmt.Sprintf("工程采样率已在导入前切换为 %d Hz。", sampleRateHz))
+		}
+	}
+	projectSettingsChanged := false
+	projectSettingsPatchSpec := ""
+	if changed, ok := firstMapBool(result, "project_audio_settings_changed_before_import"); ok && changed {
+		projectSettingsChanged = true
+		patch := messageLoopMapValue(result["project_audio_settings_patch"])
+		projectSettingsPatchSpec = messageLoopAudioSpecText(
+			firstPositiveMapInt(patch, "sample_rate_hz", "project_sample_rate_hz"),
+			firstPositiveMapInt(patch, "record_bit_depth", "render_default_bit_depth", "bit_depth"),
+			firstMapText(patch, "pcm_format"),
+		)
+		if projectSettingsPatchSpec == "" {
+			projectSettingsPatchSpec = messageLoopAudioSpecText(
+				firstPositiveMapInt(settings, "sample_rate_hz", "project_sample_rate_hz"),
+				firstPositiveMapInt(settings, "record_bit_depth", "project_record_bit_depth"),
+				firstMapText(settings, "pcm_format"),
+			)
+		}
+	}
+
+	copyPolicy := firstNonEmpty(
+		firstMapText(summary, "copy_policy", "media_copy_policy"),
+		firstMapText(result, "copy_policy", "media_copy_policy"),
+		firstMapText(settings, "media_copy_policy"),
+		firstMapText(firstRow, "media_copy_policy"),
+	)
+	if copyPolicy != "" {
+		lines = append(lines, "媒体策略："+copyPolicy+"。")
+	}
+
+	analysisDeferred, hasAnalysisDeferred := firstMapBool(result, "analysis_deferred")
+	if !hasAnalysisDeferred {
+		analysisDeferred, hasAnalysisDeferred = firstMapBool(summary, "analysis_deferred")
+	}
+	queueStatus := firstNonEmpty(
+		firstMapText(result, "analysis_queue_status", "background_analysis_status", "baking_status"),
+		firstMapText(summary, "analysis_queue_status", "background_analysis_status", "baking_status"),
+		firstMapText(analysisJob, "analysis_queue_status", "status"),
+	)
+	jobID := firstNonEmpty(
+		firstMapText(result, "analysis_job_id", "job_id", "audio_analysis_job_id"),
+		firstMapText(summary, "analysis_job_id", "job_id", "audio_analysis_job_id"),
+		firstMapText(analysisJob, "analysis_job_id", "job_id"),
+	)
+	queuedJobs := firstPositiveMapInt(result, "analysis_jobs_queued", "analysis_total_clips", "analysis_total_feature_jobs")
+	if queuedJobs <= 0 {
+		queuedJobs = firstPositiveMapInt(summary, "analysis_jobs_queued", "analysis_total_clips", "analysis_total_feature_jobs")
+	}
+	if hasAnalysisDeferred || queueStatus != "" || jobID != "" || queuedJobs > 0 {
+		prefix := "Analysis"
+		if hasAnalysisDeferred && analysisDeferred {
+			prefix = "Analysis deferred"
+		}
+		parts := []string{}
+		if queueStatus != "" {
+			parts = append(parts, "status "+queueStatus)
+		}
+		if queuedJobs > 0 {
+			parts = append(parts, fmt.Sprintf("queued %d", queuedJobs))
+		}
+		if jobID != "" {
+			parts = append(parts, "job "+jobID)
+		}
+		if len(parts) > 0 {
+			lines = append(lines, prefix+"："+strings.Join(parts, " / ")+"。")
+		} else {
+			lines = append(lines, prefix+"。")
+		}
+	}
+
+	return messageLoopFormatStemsImportDADGatedReply(messageLoopStemsImportReportData{
+		TracksCreated:            tracksCreated,
+		ClipsCreated:             clipsCreated,
+		Discovered:               discovered,
+		Readable:                 readable,
+		Unreadable:               unreadable,
+		StartSeconds:             start,
+		HasStart:                 hasStart,
+		LengthSeconds:            length,
+		HasLength:                hasLength,
+		SourceSpec:               sourceSpec,
+		ProjectSpec:              projectSpec,
+		SampleRateMismatches:     sampleRateMismatches,
+		BitDepthMismatches:       bitDepthMismatches,
+		ProjectSettingsChanged:   projectSettingsChanged,
+		ProjectSettingsPatchSpec: projectSettingsPatchSpec,
+		CopyPolicy:               copyPolicy,
+		AnalysisDeferred:         analysisDeferred,
+		HasAnalysisDeferred:      hasAnalysisDeferred,
+		AnalysisStatus:           queueStatus,
+		AnalysisQueued:           queuedJobs,
+		AnalysisJobID:            jobID,
+		WarningCount:             messageLoopCountRowsOrList(result["warnings"]),
+		TIMReady:                 timReady,
+		TIMLines:                 messageLoopTIMImportReportBullets(result, tracksCreated, clipsCreated),
+		TOMLines:                 messageLoopTOMOrganizationReportBullets(result),
+		A4EPMLines:               messageLoopEPMClipEditReportBullets(result),
+		A5EPMLines:               messageLoopEPMSectionMapReportBullets(result),
+	})
+}
+
+type messageLoopStemsImportReportData struct {
+	TracksCreated            int
+	ClipsCreated             int
+	Discovered               int
+	Readable                 int
+	Unreadable               int
+	StartSeconds             float64
+	HasStart                 bool
+	LengthSeconds            float64
+	HasLength                bool
+	SourceSpec               string
+	ProjectSpec              string
+	SampleRateMismatches     int
+	BitDepthMismatches       int
+	ProjectSettingsChanged   bool
+	ProjectSettingsPatchSpec string
+	CopyPolicy               string
+	AnalysisDeferred         bool
+	HasAnalysisDeferred      bool
+	AnalysisStatus           string
+	AnalysisQueued           int
+	AnalysisJobID            string
+	WarningCount             int
+	TIMReady                 bool
+	TIMLines                 []string
+	TOMLines                 []string
+	A4EPMLines               []string
+	A5EPMLines               []string
+}
+
+func messageLoopFormatStemsImportDADGatedReply(data messageLoopStemsImportReportData) string {
+	if !data.TIMReady {
+		return ""
+	}
+	return messageLoopProjectBlackboardReportFromImport(data)
+}
+
+func (l *MessageLoop) messageLoopStemsImportCompleteReplyWithDADGate(ctx context.Context, r *Runner, state *runState, record map[string]any) (string, bool, Result) {
+	result, ok := messageLoopStemsImportResultFromRecord(record)
+	if !ok {
+		return "", false, Result{}
+	}
+	expectedTracks := messageLoopStemsImportExpectedTrackCount(result)
+	messageLoopRefreshImportTIMFromDADSnapshot(result)
+	if ready, readyCount, totalCount := messageLoopTIMImportResultAcousticReady(result, expectedTracks); ready {
+		messageLoopSetImportDADGate(result, "ready", readyCount, totalCount)
+		return messageLoopStemsImportFastCompleteReply(record), false, Result{}
+	}
+	if !allowedTool("project.audio_analysis_status", state.input.AllowedTools) {
+		return "", true, r.fail(state, fmt.Errorf("project.audio_analysis_status is required to wait for automatic DAD facts before replying with A2 TIM"))
+	}
+
+	jobID := messageLoopAnalysisJobIDFromImportResult(result)
+	interval := messageLoopDADGatePollInterval()
+	idleTimeout := messageLoopDADGateIdleTimeout()
+	maxWait := messageLoopDADGateMaxWait()
+	waitStartedAt := time.Now()
+	lastProgressAt := waitStartedAt
+	_, readyCount, totalCount := messageLoopTIMImportResultAcousticReady(result, expectedTracks)
+	lastProgressSignature := messageLoopDADGateProgressSignature(result, readyCount, totalCount)
+	for attempt := 1; ; attempt++ {
+		if messageLoopCanReadDADStatus(state, jobID) {
+			call := messageLoopDADStatusToolCall(jobID, attempt)
+			toolStarted := time.Now()
+			toolCallsUsedBeforeStatusRead := state.toolCallsUsed
+			stopped, toolResult := r.executeTool(ctx, state, call, false, nil)
+			state.toolCallsUsed = toolCallsUsedBeforeStatusRead
+			l.logTiming("message_loop.tool", toolStarted, "goal=%s tool=%s confirmed=false dad_gate=true stopped=%t status=%s", state.goal.GoalID, call.Tool, stopped, toolResult.Status)
+			if stopped {
+				return "", true, toolResult
+			}
+			if len(state.executed) > 0 {
+				statusRecord := state.executed[len(state.executed)-1]
+				if messageLoopExecutionSucceeded(statusRecord) {
+					messageLoopMergeDADStatusIntoImportResult(result, messageLoopMapValue(statusRecord["result"]))
+				}
+			}
+		}
+		messageLoopRefreshImportTIMFromDADSnapshot(result)
+		ready, readyCount, totalCount := messageLoopTIMImportResultAcousticReady(result, expectedTracks)
+		if ready {
+			messageLoopSetImportDADGate(result, "ready", readyCount, totalCount)
+			return messageLoopStemsImportFastCompleteReply(record), false, Result{}
+		}
+		now := time.Now()
+		progressSignature := messageLoopDADGateProgressSignature(result, readyCount, totalCount)
+		if progressSignature != lastProgressSignature {
+			lastProgressSignature = progressSignature
+			lastProgressAt = now
+		}
+		messageLoopSetImportDADGate(result, "polling", readyCount, totalCount)
+		if idleTimeout > 0 && now.Sub(lastProgressAt) >= idleTimeout {
+			messageLoopSetImportDADGate(result, "timeout", readyCount, totalCount)
+			return "", true, r.fail(state, messageLoopDADGateTimeoutError("no_progress", jobID, result, readyCount, totalCount, idleTimeout, maxWait))
+		}
+		if maxWait > 0 && now.Sub(waitStartedAt) >= maxWait {
+			messageLoopSetImportDADGate(result, "timeout", readyCount, totalCount)
+			return "", true, r.fail(state, messageLoopDADGateTimeoutError("max_wait", jobID, result, readyCount, totalCount, idleTimeout, maxWait))
+		}
+		if interval > 0 {
+			if err := messageLoopSleepContext(ctx, interval); err != nil {
+				return "", true, r.fail(state, err)
+			}
+		}
+	}
+}
+
+func messageLoopStemsImportResultFromRecord(record map[string]any) (map[string]any, bool) {
+	if len(record) == 0 || !messageLoopExecutionSucceeded(record) {
+		return nil, false
+	}
+	result := messageLoopMapValue(record["result"])
+	actionName := strings.ToLower(strings.TrimSpace(firstNonEmpty(
+		messageLoopText(record["tool"]),
+		messageLoopText(record["command_name"]),
+		firstMapText(result, "command", "cmd", "action"),
+	)))
+	if !messageLoopIsStemsImportName(actionName) && actionName != "import_folder_as_stems" {
+		return nil, false
+	}
+	return result, len(result) > 0
+}
+
+func messageLoopDADGatePollInterval() time.Duration {
+	return messageLoopDurationEnvMS("VIT_AGENT_DAD_GATE_POLL_MS", 250*time.Millisecond)
+}
+
+func messageLoopDADGateIdleTimeout() time.Duration {
+	return messageLoopDurationEnvMS("VIT_AGENT_DAD_GATE_IDLE_TIMEOUT_MS", 45*time.Second)
+}
+
+func messageLoopDADGateMaxWait() time.Duration {
+	return messageLoopDurationEnvMS("VIT_AGENT_DAD_GATE_MAX_WAIT_MS", 10*time.Minute)
+}
+
+func messageLoopDurationEnvMS(name string, fallback time.Duration) time.Duration {
+	if raw := strings.TrimSpace(os.Getenv(name)); raw != "" {
+		if value, err := strconv.Atoi(raw); err == nil && value >= 0 {
+			return time.Duration(value) * time.Millisecond
+		}
+	}
+	return fallback
+}
+
+func messageLoopDADGateProgressSignature(result map[string]any, readyCount, totalCount int) string {
+	return fmt.Sprintf(
+		"ready=%d/%d|status=%s|submitted_clips=%.0f|pending_clips=%.0f|submitted_feature_jobs=%.0f|pending_feature_jobs=%.0f|progress=%.4f|progress_percent=%.4f",
+		readyCount,
+		totalCount,
+		messageLoopDADGateFieldText(result, "analysis_queue_status", "status"),
+		messageLoopDADGateFieldNumber(result, "submitted_clips"),
+		messageLoopDADGateFieldNumber(result, "pending_clips"),
+		messageLoopDADGateFieldNumber(result, "submitted_feature_jobs"),
+		messageLoopDADGateFieldNumber(result, "pending_feature_jobs"),
+		messageLoopDADGateFieldNumber(result, "progress"),
+		messageLoopDADGateFieldNumber(result, "progress_percent"),
+	)
+}
+
+func messageLoopDADGateTimeoutError(reason, jobID string, result map[string]any, readyCount, totalCount int, idleTimeout, maxWait time.Duration) error {
+	reasonText := "DAD 自动分析长时间没有进展"
+	if reason == "max_wait" {
+		reasonText = "DAD 自动分析超过总等待上限"
+	}
+	jobLabel := firstNonEmpty(strings.TrimSpace(jobID), messageLoopAnalysisJobIDFromImportResult(result), "latest")
+	status := firstNonEmpty(messageLoopDADGateFieldText(result, "analysis_queue_status", "status"), "unknown")
+	submittedFeatureJobs := int(messageLoopDADGateFieldNumber(result, "submitted_feature_jobs"))
+	totalFeatureJobs := int(messageLoopDADGateFieldNumber(result, "total_feature_jobs"))
+	pendingFeatureJobs := int(messageLoopDADGateFieldNumber(result, "pending_feature_jobs"))
+	return fmt.Errorf(
+		"A2 TIM 等待 DAD 自动分析超时：%s（job=%s，队列=%s，A2 ready=%d/%d，feature jobs=%d/%d，pending=%d，idle_timeout=%s，max_wait=%s）。agent 只读取 project.audio_analysis_status，没有启动或取消 DAD；请检查 VitApp 自动分析队列",
+		reasonText,
+		jobLabel,
+		status,
+		readyCount,
+		totalCount,
+		submittedFeatureJobs,
+		totalFeatureJobs,
+		pendingFeatureJobs,
+		idleTimeout,
+		maxWait,
+	)
+}
+
+func messageLoopDADGateFieldText(result map[string]any, keys ...string) string {
+	for _, source := range messageLoopDADGateFieldMaps(result) {
+		if text := firstMapText(source, keys...); text != "" {
+			return text
+		}
+	}
+	return ""
+}
+
+func messageLoopDADGateFieldNumber(result map[string]any, keys ...string) float64 {
+	for _, source := range messageLoopDADGateFieldMaps(result) {
+		for _, key := range keys {
+			if value, ok := source[key]; ok && !messageLoopEmptyValue(value) {
+				return messageLoopImportNumber(value)
+			}
+		}
+	}
+	return 0
+}
+
+func messageLoopDADGateFieldMaps(result map[string]any) []map[string]any {
+	if len(result) == 0 {
+		return nil
+	}
+	out := []map[string]any{result}
+	if summary := messageLoopMapValue(result["summary"]); len(summary) > 0 {
+		out = append(out, summary)
+		if job := messageLoopMapValue(summary["analysis_job"]); len(job) > 0 {
+			out = append(out, job)
+		}
+	}
+	if job := messageLoopMapValue(result["analysis_job"]); len(job) > 0 {
+		out = append(out, job)
+	}
+	return out
+}
+
+func messageLoopSleepContext(ctx context.Context, duration time.Duration) error {
+	if duration <= 0 {
+		return nil
+	}
+	timer := time.NewTimer(duration)
+	defer timer.Stop()
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-timer.C:
+		return nil
+	}
+}
+
+func messageLoopCanReadDADStatus(state *runState, _ string) bool {
+	if state == nil || !allowedTool("project.audio_analysis_status", state.input.AllowedTools) {
+		return false
+	}
+	return true
+}
+
+func messageLoopImportHasAnalysisJobHint(state *runState) bool {
+	if state == nil {
+		return false
+	}
+	for i := len(state.executed) - 1; i >= 0; i-- {
+		result := messageLoopMapValue(state.executed[i]["result"])
+		if messageLoopAnalysisJobIDFromImportResult(result) != "" {
+			return true
+		}
+	}
+	return false
+}
+
+func messageLoopDADStatusToolCall(jobID string, attempt int) planner.ToolCall {
+	args := map[string]any{"latest": true}
+	if strings.TrimSpace(jobID) != "" {
+		args["analysis_job_id"] = strings.TrimSpace(jobID)
+		args["job_id"] = strings.TrimSpace(jobID)
+	}
+	command := cloneMap(args)
+	command["cmd"] = "project.audio_analysis_status"
+	return planner.ToolCall{
+		ID:      fmt.Sprintf("dad_readiness_status_%d", attempt),
+		Tool:    "project.audio_analysis_status",
+		Args:    args,
+		Command: command,
+		Reason:  "read DAD queue status without starting analysis",
+	}
+}
+
+func messageLoopMergeDADStatusIntoImportResult(importResult, statusResult map[string]any) {
+	if len(importResult) == 0 || len(statusResult) == 0 {
+		return
+	}
+	status := messageLoopMapValue(statusResult["analysis_job"])
+	if len(status) == 0 {
+		status = statusResult
+	}
+	for _, key := range []string{
+		"analysis_queue_status", "status", "submitted_clips", "pending_clips", "total_clips",
+		"submitted_feature_jobs", "pending_feature_jobs", "total_feature_jobs", "progress", "progress_percent",
+		"dad_fact_status", "dad_fact_ready_count", "dad_fact_total_count", "dad_fact_pending_count", "dad_fact_failed_count",
+		"dad_fact_completion_scope", "track_waveform_envelopes",
+		"feature_snapshot_path", "mixboard_feature_snapshot_path",
+	} {
+		if value, ok := status[key]; ok && !messageLoopEmptyValue(value) {
+			switch key {
+			case "status":
+				importResult["analysis_queue_status"] = value
+			default:
+				importResult[key] = value
+			}
+		}
+	}
+	if proj := messageLoopMapValue(statusResult["tim_projection"]); len(proj) > 0 {
+		importResult["tim_projection"] = proj
+	}
+	if proj := messageLoopMapValue(status["tim_projection"]); len(proj) > 0 {
+		importResult["tim_projection"] = proj
+	}
+}
+
+func messageLoopRefreshImportTIMFromDADSnapshot(result map[string]any) {
+	if len(result) == 0 {
+		return
+	}
+	expectedTracks := messageLoopStemsImportExpectedTrackCount(result)
+	candidate := messageLoopTIMProjectionFromImportDADSnapshot(result)
+	if len(candidate) == 0 {
+		return
+	}
+	current := messageLoopMapValue(result["tim_projection"])
+	if messageLoopTIMProjectionShouldReplace(current, candidate, expectedTracks) {
+		result["tim_projection"] = candidate
+	}
+}
+
+func messageLoopTIMProjectionShouldReplace(current, candidate map[string]any, expectedTracks int) bool {
+	if len(candidate) == 0 {
+		return false
+	}
+	if len(current) == 0 {
+		return true
+	}
+	candidateReady, candidateReadyCount, candidateTotal := messageLoopTIMProjectionAcousticReady(candidate, expectedTracks)
+	currentReady, currentReadyCount, currentTotal := messageLoopTIMProjectionAcousticReady(current, expectedTracks)
+	if candidateReady && !currentReady {
+		return true
+	}
+	if expectedTracks > 0 && candidateTotal >= expectedTracks && currentTotal < expectedTracks {
+		return true
+	}
+	if candidateReadyCount > currentReadyCount {
+		return true
+	}
+	return candidateReadyCount == currentReadyCount && candidateTotal > currentTotal
+}
+
+func messageLoopTIMProjectionFromImportDADSnapshot(result map[string]any) map[string]any {
+	rows := messageLoopStemsImportRows(result)
+	if len(rows) == 0 {
+		return nil
+	}
+	projectState := messageLoopProjectStateFromImportRows(result, rows)
+	if messageLoopListCount(projectState["tracks"]) == 0 {
+		return nil
+	}
+	args := map[string]any{}
+	if duration, ok := firstNumericMapValue(messageLoopMapValue(result["summary"]), "edit_length_seconds", "duration_seconds", "max_duration_seconds", "longest_duration_seconds", "timeline_length_seconds"); ok && duration > 0 {
+		args["duration_seconds"] = duration
+	}
+	if snapshot := messageLoopImportDADFeatureSnapshotFromStatus(result, rows); len(snapshot) > 0 {
+		args["feature_snapshot"] = snapshot
+	} else {
+		for _, source := range []map[string]any{result, messageLoopMapValue(result["summary"])} {
+			if path := firstMapText(source, "feature_snapshot_path", "mixboard_feature_snapshot_path"); path != "" {
+				args["feature_snapshot_path"] = path
+				if snapshot := messageLoopFilteredImportDADFeatureSnapshot(path, rows); len(snapshot) > 0 {
+					args["feature_snapshot"] = snapshot
+				}
+				break
+			}
+		}
+	}
+	obs := mixboard.BuildObservation(mixboard.Request{
+		MixSessionID: "stems_import_dad_gate",
+		TargetRef:    mixboard.TargetRef{Kind: "project", ID: "current", Label: "Imported project"},
+		ListenScope: mixboard.ListenScope{
+			Time:   mixboard.ListenTimeScope{Mode: "full_project"},
+			Source: mixboard.ListenSourceScope{Mode: "full_project"},
+		},
+		ProjectState: projectState,
+		Args:         args,
+	}, time.Now().UTC().Format(time.RFC3339Nano))
+	if obs.TIMProjection == nil {
+		return nil
+	}
+	return tim.ContextProjectionMap(*obs.TIMProjection)
+}
+
+func messageLoopImportDADFeatureSnapshotFromStatus(result map[string]any, importRows []map[string]any) map[string]any {
+	if len(result) == 0 || len(importRows) == 0 {
+		return nil
+	}
+	targets := messageLoopBuildImportDADTargets(importRows)
+	if len(targets.byTrackClip) == 0 && len(targets.bySourcePath) == 0 {
+		return nil
+	}
+	rows := messageLoopImportDADStatusWaveformRows(result)
+	if len(rows) == 0 {
+		return nil
+	}
+	filteredRows := messageLoopFilterImportDADTrackWaveformRows(rows, targets)
+	if len(filteredRows) == 0 {
+		return nil
+	}
+	return messageLoopImportDADFeatureSnapshotFromRows(filteredRows, "audio_analysis_status")
+}
+
+func messageLoopImportDADStatusWaveformRows(result map[string]any) []map[string]any {
+	if len(result) == 0 {
+		return nil
+	}
+	sources := []any{
+		result["track_waveform_envelopes"],
+		messageLoopMapValue(result["analysis_job"])["track_waveform_envelopes"],
+		messageLoopMapValue(result["summary"])["track_waveform_envelopes"],
+	}
+	rows := []map[string]any{}
+	for _, source := range sources {
+		for _, row := range messageLoopMapRows(source) {
+			if len(row) > 0 {
+				rows = append(rows, row)
+			}
+		}
+	}
+	return rows
+}
+
+func messageLoopImportDADFeatureSnapshotFromRows(rows []map[string]any, source string) map[string]any {
+	if len(rows) == 0 {
+		return nil
+	}
+	out := map[string]any{
+		"schema_version":           "mixboard_feature_snapshot.v1",
+		"latest_request":           map[string]any{"request_id": source, "status": "ready", "scope": "stems_import"},
+		"track_waveform_envelopes": rows,
+		"waveform_envelope":        map[string]any{"status": "missing"},
+		"spectrogram_tiles":        map[string]any{"status": "missing"},
+		"band_energy_summary":      map[string]any{"status": "missing"},
+		"stereo_relation_summary":  map[string]any{"status": "missing"},
+		"loudness_summary":         map[string]any{"status": "missing"},
+	}
+	if waveform := messageLoopBestImportDADWaveformRow(rows); len(waveform) > 0 {
+		out["waveform_envelope"] = waveform
+	}
+	return out
+}
+
+func messageLoopFilteredImportDADFeatureSnapshot(path string, importRows []map[string]any) map[string]any {
+	path = strings.TrimSpace(path)
+	if path == "" || len(importRows) == 0 {
+		return nil
+	}
+	data, err := os.ReadFile(filepath.Clean(path))
+	if err != nil || len(data) == 0 {
+		return nil
+	}
+	snapshot := map[string]any{}
+	if err := json.Unmarshal(data, &snapshot); err != nil {
+		return nil
+	}
+	targets := messageLoopBuildImportDADTargets(importRows)
+	if len(targets.byTrackClip) == 0 && len(targets.bySourcePath) == 0 {
+		return nil
+	}
+	filteredRows := messageLoopFilterImportDADTrackWaveformRows(messageLoopMapRows(snapshot["track_waveform_envelopes"]), targets)
+	out := messageLoopImportDADFeatureSnapshotFromRows(filteredRows, "filtered_mixboard_feature_snapshot")
+	if len(out) == 0 {
+		return nil
+	}
+	out["schema_version"] = firstNonEmpty(firstMapText(snapshot, "schema_version"), "mixboard_feature_snapshot.v1")
+	for _, key := range []string{"spectrogram_tiles", "band_energy_summary", "stereo_relation_summary", "loudness_summary"} {
+		if value, ok := snapshot[key]; ok && !messageLoopEmptyValue(value) {
+			out[key] = value
+		} else if _, ok := out[key]; !ok {
+			out[key] = map[string]any{"status": "missing"}
+		}
+	}
+	return out
+}
+
+type messageLoopImportDADTargetSet struct {
+	byTrackClip  map[string]map[string]any
+	bySourcePath map[string]map[string]any
+	order        []string
+}
+
+func messageLoopBuildImportDADTargets(rows []map[string]any) messageLoopImportDADTargetSet {
+	targets := messageLoopImportDADTargetSet{
+		byTrackClip:  map[string]map[string]any{},
+		bySourcePath: map[string]map[string]any{},
+	}
+	for _, row := range rows {
+		if len(row) == 0 {
+			continue
+		}
+		trackID := firstMapText(row, "track_id", "id")
+		clipID := firstMapText(row, "clip_id", "primary_clip_id", "item_id")
+		key := messageLoopTrackClipKey(trackID, clipID)
+		if key != "" {
+			targets.byTrackClip[key] = row
+			targets.order = append(targets.order, key)
+		}
+		if sourcePath := messageLoopNormalizeImportSourcePath(firstNonEmpty(firstMapText(row,
+			"source_file_path", "current_source_path", "source_path", "file_path",
+			"imported_file_path", "copied_file_path", "path",
+		))); sourcePath != "" {
+			targets.bySourcePath[sourcePath] = row
+		}
+	}
+	return targets
+}
+
+func messageLoopFilterImportDADTrackWaveformRows(rows []map[string]any, targets messageLoopImportDADTargetSet) []map[string]any {
+	if len(rows) == 0 {
+		return nil
+	}
+	best := map[string]map[string]any{}
+	for _, row := range rows {
+		target, key := messageLoopImportDADTargetForRow(row, targets)
+		if len(target) == 0 || key == "" {
+			continue
+		}
+		normalized := messageLoopNormalizeImportDADTrackWaveformRow(row)
+		if len(normalized) == 0 {
+			continue
+		}
+		existing := best[key]
+		if len(existing) == 0 || messageLoopImportDADRowScore(normalized) > messageLoopImportDADRowScore(existing) {
+			best[key] = normalized
+		}
+	}
+	out := make([]map[string]any, 0, len(best))
+	seen := map[string]bool{}
+	for _, key := range targets.order {
+		if seen[key] {
+			continue
+		}
+		if row := best[key]; len(row) > 0 {
+			out = append(out, row)
+			seen[key] = true
+		}
+	}
+	for key, row := range best {
+		if !seen[key] && len(row) > 0 {
+			out = append(out, row)
+		}
+	}
+	return out
+}
+
+func messageLoopImportDADTargetForRow(row map[string]any, targets messageLoopImportDADTargetSet) (map[string]any, string) {
+	if len(row) == 0 {
+		return nil, ""
+	}
+	rowTrackID := firstMapText(row, "track_id", "id")
+	rowClipID := firstMapText(row, "clip_id", "primary_clip_id", "item_id")
+	if key := messageLoopTrackClipKey(rowTrackID, rowClipID); key != "" {
+		if target := targets.byTrackClip[key]; len(target) > 0 && messageLoopImportDADRowSourceCompatible(row, target) {
+			return target, key
+		}
+	}
+	if sourcePath := messageLoopNormalizeImportSourcePath(firstNonEmpty(firstMapText(row,
+		"source_file_path", "current_source_path", "source_path", "file_path",
+		"imported_file_path", "copied_file_path", "path",
+	))); sourcePath != "" {
+		if target := targets.bySourcePath[sourcePath]; len(target) > 0 {
+			return target, messageLoopTrackClipKey(firstMapText(target, "track_id", "id"), firstMapText(target, "clip_id", "primary_clip_id", "item_id"))
+		}
+	}
+	return nil, ""
+}
+
+func messageLoopImportDADRowSourceCompatible(row, target map[string]any) bool {
+	rowPath := messageLoopNormalizeImportSourcePath(firstNonEmpty(firstMapText(row,
+		"source_file_path", "current_source_path", "source_path", "file_path",
+		"imported_file_path", "copied_file_path", "path",
+	)))
+	targetPath := messageLoopNormalizeImportSourcePath(firstNonEmpty(firstMapText(target,
+		"source_file_path", "current_source_path", "source_path", "file_path",
+		"imported_file_path", "copied_file_path", "path",
+	)))
+	if rowPath != "" && targetPath != "" && rowPath != targetPath && filepath.Base(rowPath) != filepath.Base(targetPath) {
+		return false
+	}
+	for _, key := range []string{"source_revision", "source_fingerprint", "source_hash", "clip_revision"} {
+		rowValue := strings.TrimSpace(firstMapText(row, key))
+		targetValue := strings.TrimSpace(firstMapText(target, key))
+		if rowValue != "" && targetValue != "" && rowValue != targetValue {
+			return false
+		}
+	}
+	return true
+}
+
+func messageLoopNormalizeImportDADTrackWaveformRow(row map[string]any) map[string]any {
+	if len(row) == 0 {
+		return nil
+	}
+	out := cloneMap(row)
+	seen, expected := messageLoopImportDADTileCounts(out)
+	if expected > 0 && seen >= 0 && seen < expected {
+		out["status"] = tim.StatusPartial
+		out["reason"] = "waveform_tiles_incomplete_for_import_target"
+	}
+	return out
+}
+
+func messageLoopImportDADTileCounts(row map[string]any) (int, int) {
+	metadata := messageLoopMapValue(row["metadata"])
+	seen := firstPositiveMapInt(row, "tile_count_seen", "tile_count_parsed", "completed_tiles", "tiles_seen")
+	if seen <= 0 {
+		seen = firstPositiveMapInt(metadata, "tile_count_seen", "tile_count_parsed", "completed_tiles", "tiles_seen")
+	}
+	if seen <= 0 {
+		if tileIndex := firstPositiveMapInt(row, "tile_index"); tileIndex > 0 {
+			seen = tileIndex + 1
+		} else if tileIndex := firstPositiveMapInt(metadata, "tile_index"); tileIndex > 0 {
+			seen = tileIndex + 1
+		}
+	}
+	expected := firstPositiveMapInt(row, "tile_count_expected", "tile_count", "total_tiles", "expected_tiles")
+	if expected <= 0 {
+		expected = firstPositiveMapInt(metadata, "tile_count_expected", "tile_count", "total_tiles", "expected_tiles")
+	}
+	return seen, expected
+}
+
+func messageLoopImportDADRowScore(row map[string]any) int {
+	score := 0
+	switch strings.ToLower(strings.TrimSpace(firstMapText(row, "status"))) {
+	case tim.StatusReady:
+		score += 100000
+	case tim.StatusPartial:
+		score += 50000
+	case "requested", "building":
+		score += 10000
+	}
+	seen, expected := messageLoopImportDADTileCounts(row)
+	if expected > 0 && seen >= expected {
+		score += 1000
+	}
+	score += seen
+	if updatedAt := strings.TrimSpace(firstMapText(row, "updated_at", "created_at")); updatedAt != "" {
+		score += len(updatedAt)
+	}
+	return score
+}
+
+func messageLoopBestImportDADWaveformRow(rows []map[string]any) map[string]any {
+	var best map[string]any
+	bestScore := -1
+	for _, row := range rows {
+		if score := messageLoopImportDADRowScore(row); len(row) > 0 && score > bestScore {
+			best = row
+			bestScore = score
+		}
+	}
+	return best
+}
+
+func messageLoopTrackClipKey(trackID, clipID string) string {
+	trackID = strings.TrimSpace(trackID)
+	clipID = strings.TrimSpace(clipID)
+	if trackID == "" && clipID == "" {
+		return ""
+	}
+	return trackID + "\x00" + clipID
+}
+
+func messageLoopNormalizeImportSourcePath(path string) string {
+	path = strings.TrimSpace(path)
+	if path == "" {
+		return ""
+	}
+	path = filepath.Clean(path)
+	path = strings.ReplaceAll(path, "\\", "/")
+	return strings.ToLower(path)
+}
+
+func messageLoopProjectStateFromImportRows(result map[string]any, rows []map[string]any) map[string]any {
+	tracks := make([]map[string]any, 0, len(rows))
+	for i, row := range rows {
+		if len(row) == 0 {
+			continue
+		}
+		trackID := firstNonEmpty(firstMapText(row, "track_id", "id"), fmt.Sprintf("imported_track_%d", i+1))
+		trackName := firstNonEmpty(firstMapText(row, "track_name", "name"), firstMapText(row, "clip_name", "file_name"), trackID)
+		clipID := firstNonEmpty(firstMapText(row, "clip_id", "primary_clip_id"), fmt.Sprintf("%s_clip", trackID))
+		clipName := firstNonEmpty(firstMapText(row, "clip_name", "file_name", "name"), clipID)
+		sourcePath := firstNonEmpty(firstMapText(row,
+			"source_file_path", "current_source_path", "source_path", "file_path",
+			"imported_file_path", "copied_file_path", "path",
+		))
+		clip := map[string]any{
+			"id":        clipID,
+			"clip_id":   clipID,
+			"name":      clipName,
+			"clip_name": clipName,
+			"clip_type": "audio",
+			"type":      "audio",
+		}
+		if sourcePath != "" {
+			clip["current_source_path"] = sourcePath
+			clip["source_path"] = sourcePath
+			clip["file_path"] = sourcePath
+		}
+		for _, key := range []string{"start_time_seconds", "start_seconds", "length_seconds", "duration_seconds", "sample_rate_hz", "sample_rate", "bit_depth", "bits_per_sample", "channel_count", "channels"} {
+			if value, ok := firstNumericMapValue(row, key); ok {
+				clip[key] = value
+			}
+		}
+		if valid, ok := firstMapBool(row, "playback_source_valid", "source_valid"); ok {
+			clip["playback_source_valid"] = valid
+		}
+		tracks = append(tracks, map[string]any{
+			"track_id":   trackID,
+			"id":         trackID,
+			"track_name": trackName,
+			"name":       trackName,
+			"track_type": "audio",
+			"clips":      []map[string]any{clip},
+		})
+	}
+	projectState := map[string]any{
+		"tracks":      tracks,
+		"track_count": len(tracks),
+	}
+	if duration, ok := firstNumericMapValue(messageLoopMapValue(result["summary"]), "edit_length_seconds", "duration_seconds", "timeline_length_seconds"); ok && duration > 0 {
+		projectState["duration_seconds"] = duration
+	}
+	return projectState
+}
+
+func messageLoopTIMImportResultReadyForA2(result map[string]any, expectedTracks int) bool {
+	ready, _, _ := messageLoopTIMImportResultAcousticReady(result, expectedTracks)
+	return ready
+}
+
+func messageLoopTIMImportResultAcousticReady(result map[string]any, expectedTracks int) (bool, int, int) {
+	return messageLoopTIMProjectionAcousticReady(messageLoopTIMProjectionForImportResult(result), expectedTracks)
+}
+
+func messageLoopTIMProjectionAcousticReady(proj map[string]any, expectedTracks int) (bool, int, int) {
+	if len(proj) == 0 {
+		return false, 0, maxInt(expectedTracks, 0)
+	}
+	summary := messageLoopMapValue(proj["technical_summary"])
+	coverage := messageLoopMapValue(proj["coverage"])
+	acoustic := messageLoopMapValue(coverage["acoustic_package"])
+	readyCount := firstPositiveMapInt(acoustic, "known_count")
+	if readyCount <= 0 {
+		readyCount = firstPositiveMapInt(summary, "acoustic_ready_track_count")
+	}
+	totalCount := firstPositiveMapInt(acoustic, "total_count")
+	if totalCount <= 0 {
+		totalCount = firstPositiveMapInt(summary, "track_count")
+	}
+	if totalCount <= 0 {
+		totalCount = expectedTracks
+	}
+	status := strings.TrimSpace(firstMapText(acoustic, "status"))
+	ready := status == tim.StatusReady && readyCount > 0
+	if totalCount > 0 {
+		ready = ready && readyCount >= totalCount
+	}
+	if expectedTracks > 0 {
+		ready = ready && readyCount >= expectedTracks
+	}
+	return ready, readyCount, totalCount
+}
+
+func messageLoopSetImportDADGate(result map[string]any, status string, readyCount, totalCount int) {
+	if len(result) == 0 {
+		return
+	}
+	result["dad_readiness_gate"] = map[string]any{
+		"status":      status,
+		"ready_count": readyCount,
+		"total_count": totalCount,
+		"policy":      "read_only_wait_for_automatic_dad",
+	}
+}
+
+func messageLoopAnalysisJobIDFromImportResult(result map[string]any) string {
+	if len(result) == 0 {
+		return ""
+	}
+	summary := messageLoopMapValue(result["summary"])
+	analysisJob := messageLoopMapValue(result["analysis_job"])
+	return firstNonEmpty(
+		firstMapText(result, "analysis_job_id", "job_id", "audio_analysis_job_id"),
+		firstMapText(summary, "analysis_job_id", "job_id", "audio_analysis_job_id"),
+		firstMapText(analysisJob, "analysis_job_id", "job_id"),
+	)
+}
+
+func messageLoopStemsImportExpectedTrackCount(result map[string]any) int {
+	if len(result) == 0 {
+		return 0
+	}
+	summary := messageLoopMapValue(result["summary"])
+	rows := messageLoopStemsImportRows(result)
+	count := firstPositiveMapInt(summary, "tracks_created", "created_track_count", "created_tracks", "track_count", "tracks_to_create")
+	if count <= 0 {
+		count = firstPositiveMapInt(result, "tracks_created", "created_track_count", "created_track_count_reported")
+	}
+	if count <= 0 {
+		count = messageLoopListCount(result["created_track_ids"])
+	}
+	if count <= 0 {
+		count = messageLoopListCount(result["created_track_ids_preview"])
+	}
+	if count <= 0 {
+		count = len(rows)
+	}
+	return count
+}
+
+func maxInt(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
+}
+
+func messageLoopFormatStemsImportCompactReply(data messageLoopStemsImportReportData) string {
+	lines := []string{"导入完成。", "", "A1 工程接收"}
+	appendMessageLoopBullet(&lines, fmt.Sprintf("轨道/片段：%d / %d", data.TracksCreated, data.ClipsCreated))
+	if data.Discovered > 0 || data.Readable > 0 || data.Unreadable > 0 {
+		appendMessageLoopBullet(&lines, fmt.Sprintf("素材清点：发现 %d，可读 %d，不可读 %d", data.Discovered, data.Readable, data.Unreadable))
+	}
+	if data.HasStart || data.HasLength {
+		parts := []string{}
+		if data.HasStart {
+			parts = append(parts, fmt.Sprintf("%.2fs 起", data.StartSeconds))
+		}
+		if data.HasLength {
+			parts = append(parts, fmt.Sprintf("%.2fs 长", data.LengthSeconds))
+		}
+		appendMessageLoopBullet(&lines, "时间范围："+strings.Join(parts, "，"))
+	}
+	if data.SourceSpec != "" {
+		appendMessageLoopBullet(&lines, "素材规格："+data.SourceSpec)
+	}
+	if data.ProjectSpec != "" {
+		appendMessageLoopBullet(&lines, "工程规格："+data.ProjectSpec)
+	}
+	appendMessageLoopBullet(&lines, fmt.Sprintf("差异：采样率不匹配 %d；位深/格式不匹配 %d", data.SampleRateMismatches, data.BitDepthMismatches))
+	if data.ProjectSettingsChanged {
+		if data.ProjectSettingsPatchSpec != "" {
+			appendMessageLoopBullet(&lines, "工程设置：导入前已同步到 "+data.ProjectSettingsPatchSpec)
+		} else {
+			appendMessageLoopBullet(&lines, "工程设置：导入前已同步")
+		}
+	}
+	if data.CopyPolicy != "" {
+		appendMessageLoopBullet(&lines, "媒体策略："+messageLoopMediaPolicyLabel(data.CopyPolicy))
+	}
+
+	lines = append(lines, "", "A2 TIM 技术完整性")
+	if len(data.TIMLines) > 0 {
+		lines = append(lines, data.TIMLines...)
+	} else {
+		appendMessageLoopBullet(&lines, "元数据预检已完成；静音、削波和噪声需要等待音频分析返回后复查。")
+	}
+	if len(data.TOMLines) > 0 {
+		lines = append(lines, "", "A3 TOM 智能整理建议")
+		lines = append(lines, data.TOMLines...)
+	}
+	if len(data.A4EPMLines) > 0 {
+		lines = append(lines, "", "A4 EPM Clip 裁剪/Fade 建议")
+		lines = append(lines, data.A4EPMLines...)
+	}
+	if len(data.A5EPMLines) > 0 {
+		lines = append(lines, "", "A5 EPM 段落地图推荐")
+		lines = append(lines, data.A5EPMLines...)
+	}
+
+	if data.WarningCount > 0 {
+		lines = append(lines, "", "提醒")
+		appendMessageLoopBullet(&lines, fmt.Sprintf("工具返回 %d 条警告，可在详情里查看。", data.WarningCount))
+	}
+	return strings.Join(lines, "\n")
+}
+
+func appendMessageLoopBullet(lines *[]string, text string) {
+	text = strings.TrimSpace(text)
+	if text != "" {
+		*lines = append(*lines, "- "+text)
+	}
+}
+
+func messageLoopMediaPolicyLabel(policy string) string {
+	switch strings.TrimSpace(policy) {
+	case "reference_original":
+		return "引用原文件"
+	case "copy_to_project":
+		return "复制到工程"
+	default:
+		return strings.TrimSpace(policy)
+	}
+}
+
+func messageLoopAnalysisStatusLabel(status string) string {
+	switch strings.TrimSpace(status) {
+	case "queued":
+		return "队列中"
+	case "running":
+		return "分析中"
+	case "completed", "done":
+		return "已完成"
+	default:
+		return strings.TrimSpace(status)
+	}
+}
+
+func messageLoopTIMImportReportBullets(result map[string]any, tracksCreated, clipsCreated int) []string {
+	proj := messageLoopTIMProjectionForImportResult(result)
+	if len(proj) == 0 {
+		return nil
+	}
+	summary := messageLoopMapValue(proj["technical_summary"])
+	coverage := messageLoopMapValue(proj["coverage"])
+	risk := messageLoopMapValue(proj["risk_summary"])
+	trackCount := firstPositiveMapInt(summary, "track_count")
+	if trackCount <= 0 {
+		trackCount = tracksCreated
+	}
+	clipCount := firstPositiveMapInt(summary, "clip_count")
+	if clipCount <= 0 {
+		clipCount = clipsCreated
+	}
+	status := firstNonEmpty(firstMapText(proj, "status"), "partial")
+	overallRisk := firstNonEmpty(firstMapText(risk, "overall_risk"), "unknown")
+	lines := []string{
+		fmt.Sprintf("- 状态：%s；风险：%s", messageLoopTIMStatusLabel(status), messageLoopTIMRiskLabel(overallRisk)),
+		fmt.Sprintf("- 检查范围：%d 轨 / %d 片段", trackCount, clipCount),
+	}
+	sourceCoverage := messageLoopMapValue(coverage["source_path"])
+	playbackCoverage := messageLoopMapValue(coverage["playback_validity"])
+	sourceKnown := firstPositiveMapInt(sourceCoverage, "known_count")
+	sourceTotal := firstPositiveMapInt(sourceCoverage, "total_count")
+	playbackInvalid := firstPositiveMapInt(playbackCoverage, "invalid_count")
+	playbackUnknown := firstPositiveMapInt(playbackCoverage, "missing_count")
+	if sourceTotal > 0 || playbackInvalid > 0 || playbackUnknown > 0 {
+		lines = append(lines, fmt.Sprintf("- 素材：路径 %d/%d；播放源无效 %d，未知 %d", sourceKnown, sourceTotal, playbackInvalid, playbackUnknown))
+	}
+	pcmCount := firstPositiveMapInt(summary, "pcm_source_count")
+	compressedCount := firstPositiveMapInt(summary, "compressed_source_count")
+	unknownFormatCount := firstPositiveMapInt(summary, "unknown_format_count")
+	if pcmCount > 0 || compressedCount > 0 || unknownFormatCount > 0 {
+		lines = append(lines, fmt.Sprintf("- 格式：无损/PCM %d；压缩 %d；未知 %d", pcmCount, compressedCount, unknownFormatCount))
+	}
+	lines = append(lines, fmt.Sprintf(
+		"- 规格分布：采样率 %s；位深 %s；声道 %s",
+		messageLoopTIMCountsText(messageLoopMapValue(summary["sample_rate_counts"]), "sample_rate"),
+		messageLoopTIMCountsText(messageLoopMapValue(summary["bit_depth_counts"]), "bit_depth"),
+		messageLoopTIMCountsText(messageLoopMapValue(summary["channel_count_counts"]), "channel_count"),
+	))
+	if issueLine := messageLoopTIMPrimaryBlockingIssueBullet(risk); issueLine != "" {
+		lines = append(lines, issueLine)
+	}
+	acousticCoverage := messageLoopMapValue(coverage["acoustic_package"])
+	acousticStatus := firstMapText(acousticCoverage, "status")
+	if acousticStatus == "" || acousticStatus == "missing" || acousticStatus == "partial" {
+		lines = append(lines, "- 待补：波形、静音、削波、噪声分析仍在后台队列中")
+	}
+	if messageLoopTIMProjectionSubsetLimited(proj) {
+		lines = append(lines, "- 限制：本次统计来自导入工具回传行；全工程 observation 后会刷新")
+	}
+	return lines
+}
+
+func messageLoopTIMImportReportLines(result map[string]any, tracksCreated, clipsCreated int) []string {
+	proj := messageLoopTIMProjectionForImportResult(result)
+	if len(proj) == 0 {
+		return nil
+	}
+	summary := messageLoopMapValue(proj["technical_summary"])
+	coverage := messageLoopMapValue(proj["coverage"])
+	risk := messageLoopMapValue(proj["risk_summary"])
+	trackCount := firstPositiveMapInt(summary, "track_count")
+	if trackCount <= 0 {
+		trackCount = tracksCreated
+	}
+	clipCount := firstPositiveMapInt(summary, "clip_count")
+	if clipCount <= 0 {
+		clipCount = clipsCreated
+	}
+	status := firstNonEmpty(firstMapText(proj, "status"), "partial")
+	overallRisk := firstNonEmpty(firstMapText(risk, "overall_risk"), "unknown")
+	lines := []string{
+		fmt.Sprintf("A2 TIM 技术完整性检查：状态 %s / 风险 %s；已检查 %d 条轨道 / %d 个音频片段。", messageLoopTIMStatusLabel(status), messageLoopTIMRiskLabel(overallRisk), trackCount, clipCount),
+	}
+	sourceCoverage := messageLoopMapValue(coverage["source_path"])
+	playbackCoverage := messageLoopMapValue(coverage["playback_validity"])
+	sourceKnown := firstPositiveMapInt(sourceCoverage, "known_count")
+	sourceTotal := firstPositiveMapInt(sourceCoverage, "total_count")
+	playbackInvalid := firstPositiveMapInt(playbackCoverage, "invalid_count")
+	playbackUnknown := firstPositiveMapInt(playbackCoverage, "missing_count")
+	if sourceTotal > 0 || playbackInvalid > 0 || playbackUnknown > 0 {
+		lines = append(lines, fmt.Sprintf("素材可读性：source path %d/%d；播放源无效 %d，未知 %d。", sourceKnown, sourceTotal, playbackInvalid, playbackUnknown))
+	}
+	pcmCount := firstPositiveMapInt(summary, "pcm_source_count")
+	compressedCount := firstPositiveMapInt(summary, "compressed_source_count")
+	unknownFormatCount := firstPositiveMapInt(summary, "unknown_format_count")
+	specParts := []string{}
+	if pcmCount > 0 || compressedCount > 0 || unknownFormatCount > 0 {
+		specParts = append(specParts, fmt.Sprintf("PCM/lossless %d，压缩格式 %d，未知格式 %d", pcmCount, compressedCount, unknownFormatCount))
+	}
+	specParts = append(specParts,
+		"采样率 "+messageLoopTIMCountsText(messageLoopMapValue(summary["sample_rate_counts"]), "sample_rate"),
+		"bit depth "+messageLoopTIMCountsText(messageLoopMapValue(summary["bit_depth_counts"]), "bit_depth"),
+		"声道 "+messageLoopTIMCountsText(messageLoopMapValue(summary["channel_count_counts"]), "channel_count"),
+	)
+	lines = append(lines, "格式/规格："+strings.Join(specParts, "；")+"。")
+	if issueLine := messageLoopTIMPrimaryIssueLine(risk); issueLine != "" {
+		lines = append(lines, issueLine)
+	}
+	acousticCoverage := messageLoopMapValue(coverage["acoustic_package"])
+	acousticStatus := firstMapText(acousticCoverage, "status")
+	if acousticStatus == "" || acousticStatus == "missing" || acousticStatus == "partial" {
+		lines = append(lines, "待补观察：DAD 波形/静音/削波/noise 分析尚未全部返回；metadata precheck 已完成，audio analysis 返回后 TIM 会更新这些判断。")
+	}
+	if messageLoopTIMProjectionSubsetLimited(proj) {
+		lines = append(lines, "限制：本次 TIM 基于导入工具回传的轨道行生成，若工具只返回 preview，完整性统计会在下一次全工程 observation 后刷新。")
+	}
+	return lines
+}
+
+func messageLoopTIMProjectionForImportResult(result map[string]any) map[string]any {
+	if len(result) == 0 {
+		return nil
+	}
+	if proj := messageLoopMapValue(result["tim_projection"]); len(proj) > 0 {
+		return proj
+	}
+	rows := messageLoopStemsImportRows(result)
+	if len(rows) == 0 {
+		return nil
+	}
+	projection := tim.BuildFromImportRows(tim.ImportInput{
+		Summary:       messageLoopMapValue(result["summary"]),
+		Rows:          rows,
+		AudioSettings: messageLoopMapValue(result["audio_settings_snapshot"]),
+	})
+	proj := tim.ContextProjectionMap(projection)
+	result["tim_projection"] = proj
+	return proj
+}
+
+func messageLoopTOMProjectionForImportResult(result map[string]any) map[string]any {
+	if len(result) == 0 {
+		return nil
+	}
+	if proj := messageLoopMapValue(result["tom_projection"]); len(proj) > 0 {
+		return proj
+	}
+	rows := messageLoopStemsImportRows(result)
+	if len(rows) == 0 {
+		return nil
+	}
+	projection := tom.BuildFromImportRows(tom.ImportInput{
+		Summary:         messageLoopMapValue(result["summary"]),
+		Rows:            rows,
+		TIMProjection:   messageLoopTIMProjectionForImportResult(result),
+		DADWaveformRows: messageLoopImportDADStatusWaveformRows(result),
+	})
+	proj := tom.ContextProjectionMap(projection)
+	result["tom_projection"] = proj
+	return proj
+}
+
+func messageLoopEPMProjectionForImportResult(result map[string]any) map[string]any {
+	if len(result) == 0 {
+		return nil
+	}
+	if proj := messageLoopMapValue(result["epm_projection"]); len(proj) > 0 {
+		return proj
+	}
+	rows := messageLoopStemsImportRows(result)
+	if len(rows) == 0 {
+		return nil
+	}
+	projection := epm.BuildFromImportRows(epm.ImportInput{
+		Summary:         messageLoopMapValue(result["summary"]),
+		Rows:            rows,
+		TIMProjection:   messageLoopTIMProjectionForImportResult(result),
+		TOMProjection:   messageLoopTOMProjectionForImportResult(result),
+		DADWaveformRows: messageLoopImportDADStatusWaveformRows(result),
+	})
+	proj := epm.ContextProjectionMap(projection)
+	result["epm_projection"] = proj
+	return proj
+}
+
+func messageLoopEPMClipEditReportBullets(result map[string]any) []string {
+	proj := messageLoopEPMProjectionForImportResult(result)
+	if len(proj) == 0 {
+		return nil
+	}
+	cleanup := messageLoopMapValue(proj["clip_cleanup"])
+	if len(cleanup) == 0 {
+		return nil
+	}
+	trackCount := firstPositiveMapInt(cleanup, "track_count")
+	clipCount := firstPositiveMapInt(cleanup, "clip_count")
+	lines := []string{
+		fmt.Sprintf("- 检查范围：%d 轨 / %d 片段", trackCount, clipCount),
+	}
+	preserve, _ := firstMapBool(cleanup, "preserve_stem_alignment")
+	fullLength, _ := firstMapBool(cleanup, "full_length_stem_detected")
+	confidence := messageLoopEPMConfidenceLabel(firstMapText(cleanup, "stem_alignment_confidence"))
+	if fullLength || preserve {
+		lines = append(lines, fmt.Sprintf("- 对齐保护：检测到整首 Stem 对齐；置信度：%s；默认不自动裁剪", confidence))
+	} else {
+		lines = append(lines, fmt.Sprintf("- 对齐保护：未确认整首 Stem 对齐；置信度：%s", confidence))
+	}
+	lines = append(lines, fmt.Sprintf(
+		"- 裁剪：%s；Fade：%s；Crossfade：%s",
+		messageLoopEPMRecommendationLabel(firstMapText(cleanup, "trim_recommendation")),
+		messageLoopEPMRecommendationLabel(firstMapText(cleanup, "fade_recommendation")),
+		messageLoopEPMRecommendationLabel(firstMapText(cleanup, "crossfade_recommendation")),
+	))
+	candidates := messageLoopMapValue(cleanup["candidate_summary"])
+	trimCount := firstPositiveMapInt(candidates, "trim_candidate_count")
+	fadeCount := firstPositiveMapInt(candidates, "fade_candidate_count")
+	shortCount := firstPositiveMapInt(candidates, "short_clip_review_count")
+	silenceCount := firstPositiveMapInt(candidates, "silence_review_count")
+	hotCount := firstPositiveMapInt(candidates, "hot_peak_review_count")
+	if trimCount > 0 || fadeCount > 0 || shortCount > 0 || silenceCount > 0 || hotCount > 0 {
+		lines = append(lines, fmt.Sprintf("- 复核候选：裁剪 %d；Fade %d；短片段 %d；静音 %d；过热 %d", trimCount, fadeCount, shortCount, silenceCount, hotCount))
+	} else {
+		lines = append(lines, "- 复核候选：暂无明显裁剪/Fade 风险")
+	}
+	lines = append(lines, "- 当前未修改任何片段；需要用户确认后才执行裁剪或 Fade")
+	return lines
+}
+
+func messageLoopEPMSectionMapReportBullets(result map[string]any) []string {
+	proj := messageLoopEPMProjectionForImportResult(result)
+	if len(proj) == 0 {
+		return nil
+	}
+	section := messageLoopMapValue(proj["section_map"])
+	if len(section) > 0 {
+		status := messageLoopEPMSectionStatusLabel(firstMapText(section, "status"))
+		strategy := messageLoopEPMSectionStrategyLabel(firstMapText(section, "reference_strategy"))
+		confidence := messageLoopEPMConfidenceLabel(firstMapText(section, "confidence"))
+		marker := messageLoopEPMMarkerSupportLabel(firstMapText(section, "marker_write_support"))
+		count := firstPositiveMapInt(section, "candidate_count")
+		duration := messageLoopFloatFromAny(section["duration_seconds"])
+		lines := []string{
+			fmt.Sprintf("- 状态：%s；置信度：%s；参考策略：%s", status, confidence, strategy),
+		}
+		coverage := messageLoopFloatFromAny(section["coverage_seconds"])
+		if coverage <= 0 {
+			coverage = duration
+		}
+		if duration > 0 || count > 0 {
+			lines = append(lines, fmt.Sprintf("- 推荐段落：%d 段；覆盖 %.2fs", count, coverage))
+		}
+		if text := messageLoopEPMSectionListText(messageLoopMapRows(section["sections"]), 6); text != "" {
+			lines = append(lines, "- 段落草案："+text)
+		}
+		if basis := messageLoopEPMSectionEvidenceText(messageLoopMapValue(section["evidence_summary"])); basis != "" {
+			lines = append(lines, "- 依据："+basis)
+		}
+		if strings.EqualFold(firstMapText(section, "marker_write_support"), "ready") {
+			lines = append(lines, "- Marker 写入："+marker+"；确认后会写入为段落 marker，当前未修改工程")
+		} else {
+			lines = append(lines, "- Marker 写入："+marker+"；当前只生成建议，不修改工程")
+		}
+		return lines
+	}
+	return nil
+}
+
+func messageLoopTOMOrganizationReportBullets(result map[string]any) []string {
+	proj := messageLoopTOMProjectionForImportResult(result)
+	if len(proj) == 0 {
+		return nil
+	}
+	summary := messageLoopMapValue(proj["organization_summary"])
+	disclosure := messageLoopMapValue(proj["disclosure_plan"])
+	manifest := messageLoopMapValue(proj["full_assignment_manifest"])
+	groups := messageLoopMapRows(proj["group_proposals"])
+	if len(groups) == 0 {
+		return nil
+	}
+	trackCount := firstPositiveMapInt(summary, "track_count")
+	groupText := messageLoopTOMGroupListText(groups, 8)
+	lines := []string{}
+	if coverage := firstPositiveMapInt(manifest, "assignment_coverage_count"); coverage > 0 && trackCount > 0 {
+		lines = append(lines, fmt.Sprintf("- 整理清单：覆盖 %d/%d；状态：%s", coverage, trackCount, messageLoopTOMCoverageStatusText(firstMapText(manifest, "coverage_status"))))
+	}
+	if stage := messageLoopTOMDisclosureStageText(firstMapText(disclosure, "selected_stage")); stage != "" {
+		lines = append(lines, "- 当前依据："+stage)
+	}
+	if groupText != "" {
+		lines = append(lines, "- 建议分组："+groupText)
+	}
+	highText := messageLoopTOMGroupsByConfidenceText(groups, "high", 5)
+	if highText != "" {
+		lines = append(lines, "- 高置信："+highText)
+	}
+	reviewCount := firstPositiveMapInt(summary, "needs_review_track_count")
+	reviewText := messageLoopTOMReviewGroupsText(groups, 5)
+	if reviewCount > 0 && reviewText != "" {
+		lines = append(lines, fmt.Sprintf("- 需要确认：%d 轨低置信或仅技术聚类；重点复核 %s", reviewCount, reviewText))
+	} else if reviewCount > 0 {
+		lines = append(lines, fmt.Sprintf("- 需要确认：%d 轨低置信或仅技术聚类", reviewCount))
+	}
+	namingMatched := firstPositiveMapInt(summary, "naming_matched_track_count")
+	technicalFallback := firstPositiveMapInt(summary, "technical_fallback_track_count")
+	if trackCount > 0 {
+		lines = append(lines, fmt.Sprintf("- 依据：命名/ID 命中 %d/%d；技术补充分组 %d", namingMatched, trackCount, technicalFallback))
+	}
+	lines = append(lines, "- 下一步：确认后再整理为文件夹轨道；当前未修改工程")
+	return lines
+}
+
+func messageLoopTOMCoverageStatusText(status string) string {
+	switch strings.ToLower(strings.TrimSpace(status)) {
+	case "complete":
+		return "完整"
+	case "partial":
+		return "部分"
+	case "":
+		return "未知"
+	default:
+		return status
+	}
+}
+
+func messageLoopTOMDisclosureStageText(stage string) string {
+	switch strings.ToLower(strings.TrimSpace(stage)) {
+	case "naming_id":
+		return "命名/ID 阶段"
+	case "technical_cluster":
+		return "技术聚类阶段"
+	case "dad_lightweight":
+		return "命名/ID + 技术聚类 + DAD 轻量观察"
+	default:
+		return strings.TrimSpace(stage)
+	}
+}
+
+func messageLoopTOMGroupListText(groups []map[string]any, limit int) string {
+	parts := []string{}
+	for _, group := range groups {
+		label := messageLoopTOMGroupDisplayLabel(group)
+		count := firstPositiveMapInt(group, "track_count")
+		if label == "" || count <= 0 {
+			continue
+		}
+		parts = append(parts, fmt.Sprintf("%s x%d", label, count))
+		if limit > 0 && len(parts) >= limit {
+			break
+		}
+	}
+	if len(groups) > len(parts) && limit > 0 {
+		parts = append(parts, fmt.Sprintf("另 %d 组", len(groups)-len(parts)))
+	}
+	return strings.Join(parts, " / ")
+}
+
+func messageLoopTOMGroupsByConfidenceText(groups []map[string]any, confidence string, limit int) string {
+	parts := []string{}
+	for _, group := range groups {
+		if firstMapText(group, "confidence") != confidence {
+			continue
+		}
+		label := messageLoopTOMGroupDisplayLabel(group)
+		count := firstPositiveMapInt(group, "track_count")
+		if label == "" || count <= 0 {
+			continue
+		}
+		parts = append(parts, fmt.Sprintf("%s x%d", label, count))
+		if limit > 0 && len(parts) >= limit {
+			break
+		}
+	}
+	return strings.Join(parts, " / ")
+}
+
+func messageLoopTOMReviewGroupsText(groups []map[string]any, limit int) string {
+	parts := []string{}
+	for _, group := range groups {
+		confidence := firstMapText(group, "confidence")
+		needsConfirmation, _ := firstMapBool(group, "needs_confirmation")
+		if confidence == "high" && !needsConfirmation {
+			continue
+		}
+		label := messageLoopTOMGroupDisplayLabel(group)
+		count := firstPositiveMapInt(group, "track_count")
+		if label == "" || count <= 0 {
+			continue
+		}
+		parts = append(parts, fmt.Sprintf("%s x%d", label, count))
+		if limit > 0 && len(parts) >= limit {
+			break
+		}
+	}
+	return strings.Join(parts, " / ")
+}
+
+func messageLoopTOMGroupDisplayLabel(group map[string]any) string {
+	groupID := firstMapText(group, "group_id")
+	switch groupID {
+	case "vocals":
+		return "主人声"
+	case "backing_vocals":
+		return "和声/背景人声"
+	case "drums":
+		return "鼓组"
+	case "bass":
+		return "贝斯/低频"
+	case "strings":
+		return "弦乐"
+	case "synths":
+		return "合成器"
+	case "guitars":
+		return "吉他"
+	case "keys":
+		return "键盘/钢琴"
+	case "fx":
+		return "FX/转场"
+	case "returns":
+		return "效果返回"
+	case "buses_prints":
+		return "总线/打印轨"
+	case "silent_candidates":
+		return "疑似静音/空轨"
+	case "hot_clipping_review":
+		return "过热/削波复核"
+	case "mono_sources":
+		return "单声道素材"
+	case "short_clips":
+		return "短片段/FX候选"
+	case "long_stereo_stems":
+		return "长立体声Stem"
+	case "needs_review":
+		return "待人工确认"
+	default:
+		return firstMapText(group, "label", "proposed_folder", "group_id")
+	}
+}
+
+func messageLoopEPMConfidenceLabel(confidence string) string {
+	switch strings.ToLower(strings.TrimSpace(confidence)) {
+	case "high":
+		return "高"
+	case "medium":
+		return "中"
+	case "low_medium":
+		return "中低"
+	case "low":
+		return "低"
+	default:
+		return "未知"
+	}
+}
+
+func messageLoopEPMRecommendationLabel(value string) string {
+	switch strings.ToLower(strings.TrimSpace(value)) {
+	case "no_cleanup_needed":
+		return "无需清理"
+	case "review_candidates":
+		return "复核候选"
+	case "limited_missing_facts":
+		return "信息不足"
+	case "not_recommended_for_stems":
+		return "整首 Stem 默认不裁剪"
+	case "candidate_review_required":
+		return "需人工确认候选"
+	case "not_enough_data":
+		return "数据不足"
+	case "not_recommended_by_default":
+		return "默认不添加"
+	case "review_boundary_risk_only":
+		return "仅复核边界风险"
+	case "not_recommended_for_single_full_length_stems":
+		return "整首 Stem 默认不交叉淡化"
+	default:
+		if strings.TrimSpace(value) == "" {
+			return "未知"
+		}
+		return strings.TrimSpace(value)
+	}
+}
+
+func messageLoopEPMSectionStatusLabel(status string) string {
+	switch strings.ToLower(strings.TrimSpace(status)) {
+	case "framework_ready":
+		return "前置框架已准备"
+	case "recommended":
+		return "已生成推荐"
+	case "suggested_low_confidence":
+		return "低置信推荐"
+	case "limited":
+		return "信息不足"
+	case "not_computed":
+		return "未生成"
+	default:
+		if strings.TrimSpace(status) == "" {
+			return "未知"
+		}
+		return strings.TrimSpace(status)
+	}
+}
+
+func messageLoopEPMSectionStrategyLabel(strategy string) string {
+	switch strings.ToLower(strings.TrimSpace(strategy)) {
+	case "single_track_proxy":
+		return "单轨参考"
+	case "few_track_proxy_mix":
+		return "少轨代理混合"
+	case "multitrack_group_activity":
+		return "多轨组活动图"
+	default:
+		if strings.TrimSpace(strategy) == "" {
+			return "未知"
+		}
+		return strings.TrimSpace(strategy)
+	}
+}
+
+func messageLoopEPMSectionListText(sections []map[string]any, limit int) string {
+	parts := []string{}
+	for _, section := range sections {
+		label := firstMapText(section, "label", "label_hint", "section_id")
+		start := messageLoopFloatFromAny(section["start_seconds"])
+		end := messageLoopFloatFromAny(section["end_seconds"])
+		confidence := messageLoopEPMConfidenceLabel(firstMapText(section, "confidence"))
+		if label == "" || end <= start {
+			continue
+		}
+		parts = append(parts, fmt.Sprintf("%s %.2f-%.2fs（%s）", label, start, end, confidence))
+		if limit > 0 && len(parts) >= limit {
+			break
+		}
+	}
+	if len(sections) > len(parts) && limit > 0 {
+		parts = append(parts, fmt.Sprintf("另 %d 段", len(sections)-len(parts)))
+	}
+	return strings.Join(parts, " / ")
+}
+
+func messageLoopEPMSectionEvidenceText(evidence map[string]any) string {
+	if len(evidence) == 0 {
+		return ""
+	}
+	source := firstMapText(evidence, "boundary_source")
+	timeSegmentTracks := firstPositiveMapInt(evidence, "time_segment_track_count")
+	timeSegments := firstPositiveMapInt(evidence, "time_segment_count")
+	boundaries := firstPositiveMapInt(evidence, "boundary_candidate_count")
+	parts := []string{}
+	switch source {
+	case "dad_time_segment_activity":
+		parts = append(parts, "DAD 时间能量/活动变化")
+	case "duration_template":
+		parts = append(parts, "工程时长保守模板")
+	case "":
+	default:
+		parts = append(parts, source)
+	}
+	if timeSegmentTracks > 0 || timeSegments > 0 {
+		parts = append(parts, fmt.Sprintf("time segments %d 轨/%d 段", timeSegmentTracks, timeSegments))
+	}
+	if boundaries > 0 {
+		parts = append(parts, fmt.Sprintf("边界候选 %d", boundaries))
+	}
+	return strings.Join(parts, "；")
+}
+
+func messageLoopEPMMarkerSupportLabel(status string) string {
+	switch strings.ToLower(strings.TrimSpace(status)) {
+	case "not_connected":
+		return "尚未接入"
+	case "ready":
+		return "可写入"
+	default:
+		if strings.TrimSpace(status) == "" {
+			return "未知"
+		}
+		return strings.TrimSpace(status)
+	}
+}
+
+func messageLoopFloatFromAny(value any) float64 {
+	switch typed := value.(type) {
+	case float64:
+		return typed
+	case float32:
+		return float64(typed)
+	case int:
+		return float64(typed)
+	case int64:
+		return float64(typed)
+	case int32:
+		return float64(typed)
+	case uint:
+		return float64(typed)
+	case uint64:
+		return float64(typed)
+	case json.Number:
+		parsed, _ := strconv.ParseFloat(typed.String(), 64)
+		return parsed
+	case string:
+		parsed, _ := strconv.ParseFloat(strings.TrimSpace(typed), 64)
+		return parsed
+	default:
+		return 0
+	}
+}
+
+func messageLoopTIMCountsText(counts map[string]any, kind string) string {
+	if len(counts) == 0 {
+		return "未知"
+	}
+	keys := make([]string, 0, len(counts))
+	for key := range counts {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+	parts := []string{}
+	for _, key := range keys {
+		label := messageLoopTIMCountLabel(key, kind)
+		count := firstPositiveMapInt(counts, key)
+		if count > 0 {
+			parts = append(parts, fmt.Sprintf("%s x%d", label, count))
+		} else {
+			parts = append(parts, label)
+		}
+		if len(parts) >= 4 {
+			break
+		}
+	}
+	if len(parts) == 0 {
+		return "未知"
+	}
+	if len(keys) > len(parts) {
+		parts = append(parts, fmt.Sprintf("另 %d 类", len(keys)-len(parts)))
+	}
+	return strings.Join(parts, " / ")
+}
+
+func messageLoopTIMCountLabel(key, kind string) string {
+	key = strings.TrimSpace(key)
+	switch kind {
+	case "sample_rate":
+		return strings.TrimSuffix(key, "_hz") + " Hz"
+	case "bit_depth":
+		return strings.TrimSuffix(key, "_bit") + "-bit"
+	case "channel_count":
+		return strings.TrimSuffix(key, "_ch") + "ch"
+	default:
+		return key
+	}
+}
+
+func messageLoopTIMPrimaryIssueLine(risk map[string]any) string {
+	codes := messageLoopStringSliceFromAny(risk["primary_codes"])
+	if len(codes) == 0 {
+		return ""
+	}
+	labels := []string{}
+	for _, code := range codes {
+		if label := messageLoopTIMIssueLabel(code); label != "" {
+			labels = append(labels, label)
+		}
+		if len(labels) >= 5 {
+			break
+		}
+	}
+	if len(labels) == 0 {
+		return ""
+	}
+	return "主要风险：" + strings.Join(labels, " / ") + "。"
+}
+
+func messageLoopTIMPrimaryBlockingIssueBullet(risk map[string]any) string {
+	codes := messageLoopStringSliceFromAny(risk["primary_codes"])
+	if len(codes) == 0 {
+		return ""
+	}
+	labels := []string{}
+	for _, code := range codes {
+		switch strings.TrimSpace(code) {
+		case "acoustic_package_missing_or_partial", "compressed_source_format":
+			continue
+		}
+		if label := messageLoopTIMIssueLabel(code); label != "" {
+			labels = append(labels, label)
+		}
+		if len(labels) >= 4 {
+			break
+		}
+	}
+	if len(labels) == 0 {
+		return ""
+	}
+	return "- 风险：" + strings.Join(labels, " / ")
+}
+
+func messageLoopTIMIssueLabel(code string) string {
+	switch strings.TrimSpace(code) {
+	case "source_path_missing":
+		return "素材路径缺失"
+	case "playback_source_invalid":
+		return "播放源无效"
+	case "empty_track":
+		return "空轨"
+	case "abnormally_short_clip":
+		return "异常短片段"
+	case "compressed_source_format":
+		return "压缩格式素材"
+	case "acoustic_package_missing_or_partial":
+		return "DAD 波形分析待完成"
+	case "possible_clipping_or_no_headroom":
+		return "可能削波/余量不足"
+	case "possible_silence":
+		return "可能静音"
+	default:
+		return strings.TrimSpace(code)
+	}
+}
+
+func messageLoopTIMStatusLabel(status string) string {
+	switch strings.TrimSpace(status) {
+	case "ready":
+		return "通过"
+	case "suspect":
+		return "需复查"
+	case "missing":
+		return "缺失"
+	default:
+		return "部分完成"
+	}
+}
+
+func messageLoopTIMRiskLabel(risk string) string {
+	switch strings.TrimSpace(risk) {
+	case "none":
+		return "无"
+	case "low":
+		return "低"
+	case "high":
+		return "高"
+	default:
+		return "中"
+	}
+}
+
+func messageLoopTIMProjectionSubsetLimited(proj map[string]any) bool {
+	for _, value := range messageLoopAnySlice(proj["limitations"]) {
+		if strings.TrimSpace(fmt.Sprint(value)) == "tim_import_projection_built_from_returned_track_rows_subset" {
+			return true
+		}
+	}
+	return false
+}
+
+func messageLoopStringSliceFromAny(value any) []string {
+	items := messageLoopAnySlice(value)
+	out := make([]string, 0, len(items))
+	for _, item := range items {
+		text := strings.TrimSpace(fmt.Sprint(item))
+		if text != "" && text != "<nil>" {
+			out = append(out, text)
+		}
+	}
+	return out
+}
+
+func messageLoopStemsImportRows(result map[string]any) []map[string]any {
+	if len(result) == 0 {
+		return nil
+	}
+	if rows := mapRows(result["imported_track_refs"]); len(rows) > 0 {
+		return rows
+	}
+	if rows := mapRows(result["imported_tracks"]); len(rows) > 0 {
+		return rows
+	}
+	return mapRows(result["imported_tracks_preview"])
+}
+
+func messageLoopFirstStemsImportRow(rows []map[string]any) map[string]any {
+	if len(rows) == 0 {
+		return nil
+	}
+	return rows[0]
+}
+
+func messageLoopCountRowsOrList(value any) int {
+	if rows := mapRows(value); len(rows) > 0 {
+		return len(rows)
+	}
+	return messageLoopListCount(value)
+}
+
+func messageLoopAudioSpecText(sampleRate int, bitDepth int, pcmFormat string) string {
+	parts := []string{}
+	if sampleRate > 0 {
+		parts = append(parts, fmt.Sprintf("%d Hz", sampleRate))
+	}
+	if bitDepth > 0 {
+		parts = append(parts, fmt.Sprintf("%d-bit", bitDepth))
+	}
+	if pcmFormat = strings.TrimSpace(pcmFormat); pcmFormat != "" {
+		parts = append(parts, pcmFormat)
+	}
+	return strings.Join(parts, " / ")
+}
+
+func messageLoopClipExecutionFallbackReply(state *runState, record map[string]any, ver planner.VerificationResult) string {
+	result, _ := record["result"].(map[string]any)
+	action := strings.ToLower(firstNonEmpty(messageLoopText(record["tool"]), messageLoopText(record["command_name"])))
+	isImport := strings.Contains(action, "import") || strings.Contains(action, "media") || strings.Contains(action, "audio")
+	if !isImport {
+		return messageLoopClipPresentFastCompleteReply(state, record, ver)
+	}
+	clipName := firstNonEmpty(
+		firstMapText(result, "clip_name", "name", "file_name", "source_name"),
+		firstMapText(ver.Evidence, "observed_clip_name", "expected_clip_name"),
+		state.executionMemory.LastCreatedClipName,
+	)
+	trackName := firstNonEmpty(firstMapText(result, "track_name"), firstMapText(ver.Evidence, "observed_track_name", "expected_track_name"))
+	if clipName != "" && trackName != "" {
+		return fmt.Sprintf("\u5df2\u6210\u529f\u5c06\u97f3\u9891\u7247\u6bb5\u300c%s\u300d\u5bfc\u5165\u5230\u8f68\u9053\u300c%s\u300d\u3002", clipName, trackName)
+	}
+	if clipName != "" {
+		return fmt.Sprintf("\u5df2\u6210\u529f\u5bfc\u5165\u97f3\u9891\u7247\u6bb5\u300c%s\u300d\u3002", clipName)
+	}
+	if trackName != "" {
+		return fmt.Sprintf("\u5df2\u6210\u529f\u628a\u97f3\u9891\u5bfc\u5165\u5230\u8f68\u9053\u300c%s\u300d\u3002", trackName)
+	}
+	return "\u5df2\u6210\u529f\u628a\u97f3\u9891\u5bfc\u5165\u5230\u5de5\u7a0b\u8f68\u9053\u3002"
 }
 
 func messageLoopTransientLLMError(err error) bool {
@@ -3932,7 +8595,7 @@ func messageLoopMixObservationFinalReply(state *runState, reply string) string {
 	if preferTreatmentPending {
 		if treatment := messageLoopMixTreatmentPendingFromReply(state, reply); treatment != nil {
 			state.executionMemory.PendingMixTreatment = treatment
-			reply = messageLoopStripMixTreatmentPendingMarkup(reply)
+			reply = messageLoopPendingMixTreatmentReply(treatment)
 		} else if treatment := messageLoopConservativeLowMudTreatmentPendingFromReply(state, reply); treatment != nil {
 			state.executionMemory.PendingMixTreatment = treatment
 			reply = messageLoopConservativeLowMudTreatmentPendingReply(treatment)
@@ -3944,7 +8607,7 @@ func messageLoopMixObservationFinalReply(state *runState, reply string) string {
 		state.executionMemory.PendingMixTickCandidate = candidate
 	} else if treatment := messageLoopMixTreatmentPendingFromReply(state, reply); treatment != nil {
 		state.executionMemory.PendingMixTreatment = treatment
-		reply = messageLoopStripMixTreatmentPendingMarkup(reply)
+		reply = messageLoopPendingMixTreatmentReply(treatment)
 	} else if treatment := messageLoopConservativeLowMudTreatmentPendingFromReply(state, reply); treatment != nil {
 		state.executionMemory.PendingMixTreatment = treatment
 		reply = messageLoopConservativeLowMudTreatmentPendingReply(treatment)
@@ -3960,6 +8623,9 @@ func messageLoopMixObservationFinalReply(state *runState, reply string) string {
 			state.executionMemory.PendingMixTreatment = treatment
 		}
 	}
+	if messageLoopHasPendingMixAction(state) {
+		return messageLoopStripExecutionQuestion(reply)
+	}
 	if messageLoopMixReplyAsksForExecution(reply) {
 		return reply
 	}
@@ -3972,6 +8638,9 @@ func messageLoopMixObservationActionFollowupRequest(state *runState) bool {
 	}
 	text := strings.ToLower(strings.TrimSpace(state.input.UserText))
 	if text == "" || messageLoopExplicitPluginOrRawRequest(text) {
+		return false
+	}
+	if messageLoopClipFadeGainRequest(text) {
 		return false
 	}
 	return messageLoopTextHasAny(text,
@@ -4098,9 +8767,6 @@ func messageLoopLastMixObservationResult(state *runState) map[string]any {
 	}
 	for i := len(state.executed) - 1; i >= 0; i-- {
 		record := state.executed[i]
-		if !messageLoopExecutionSucceeded(record) {
-			continue
-		}
 		if !messageLoopIsMixObservationName(firstNonEmpty(messageLoopText(record["tool"]), messageLoopText(record["command_name"]))) {
 			continue
 		}
@@ -4108,7 +8774,9 @@ func messageLoopLastMixObservationResult(state *runState) map[string]any {
 		if len(result) == 0 {
 			result = record
 		}
-		return result
+		if messageLoopExecutionSucceeded(record) || (messageLoopText(record["error"]) == "" && messageLoopMixObservationResultUsable(result)) {
+			return result
+		}
 	}
 	for i := len(state.trace) - 1; i >= 0; i-- {
 		event := state.trace[i]

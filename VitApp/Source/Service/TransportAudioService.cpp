@@ -2,6 +2,8 @@
 
 #include "VitProductionCoordinator.h"
 
+#include <cmath>
+
 namespace vit
 {
 
@@ -471,6 +473,41 @@ juce::String TransportAudioService::handleGetAudioDeviceTypes (const juce::Dynam
     auto response = std::make_unique<juce::DynamicObject>();
     response->setProperty ("status", "ok");
     response->setProperty ("types", juce::var (types));
+    return juce::JSON::toString (juce::var (response.release()));
+}
+
+juce::String TransportAudioService::handleGetAudioDeviceStatus (const juce::DynamicObject&, const juce::String&) const
+{
+    auto* edit = getEdit != nullptr ? getEdit() : nullptr;
+
+    if (edit == nullptr)
+        return makeErrorReply ("No active edit loaded");
+
+    auto& engineDeviceManager = edit->engine.getDeviceManager();
+    auto& jdm = engineDeviceManager.deviceManager;
+    const auto setup = jdm.getAudioDeviceSetup();
+    auto* currentDevice = jdm.getCurrentAudioDevice();
+    const auto cpuUsage = static_cast<double> (engineDeviceManager.getCpuUsage());
+
+    auto response = std::make_unique<juce::DynamicObject>();
+    response->setProperty ("status", "ok");
+    response->setProperty ("command", "get_audio_device_status");
+    response->setProperty ("current_device_type", jdm.getCurrentAudioDeviceType());
+    response->setProperty ("current_device", currentDeviceSummary (setup));
+    response->setProperty ("current_output_device", setup.outputDeviceName);
+    response->setProperty ("current_input_device", setup.inputDeviceName);
+    response->setProperty ("current_sample_rate", setup.sampleRate);
+    response->setProperty ("current_buffer_size", setup.bufferSize);
+    response->setProperty ("device_open", currentDevice != nullptr);
+    response->setProperty ("engine_audio_cpu_usage", cpuUsage);
+    response->setProperty ("engine_audio_cpu_percent", cpuUsage * 100.0);
+
+    if (currentDevice != nullptr)
+    {
+        response->setProperty ("active_device_name", currentDevice->getName());
+        response->setProperty ("active_device_type", currentDevice->getTypeName());
+    }
+
     return juce::JSON::toString (juce::var (response.release()));
 }
 
@@ -1052,6 +1089,29 @@ juce::String TransportAudioService::handleL2RenderProbe (const juce::DynamicObje
     if (object.hasProperty ("tail_seconds"))
         tailSec = juce::jlimit (0.0, 10.0, static_cast<double> (object.getProperty ("tail_seconds")));
 
+    const bool hasAnalysisBandLow = object.hasProperty ("analysis_band_low_hz");
+    const bool hasAnalysisBandHigh = object.hasProperty ("analysis_band_high_hz");
+    if (hasAnalysisBandLow != hasAnalysisBandHigh)
+        return makeErrorReply ("l2_render_probe requires both analysis_band_low_hz and analysis_band_high_hz");
+
+    double analysisBandLowHz = 0.0;
+    double analysisBandHighHz = 0.0;
+    auto analysisBandId = object.getProperty ("analysis_band_id").toString().trim();
+    if (hasAnalysisBandLow)
+    {
+        analysisBandLowHz = static_cast<double> (object.getProperty ("analysis_band_low_hz"));
+        analysisBandHighHz = static_cast<double> (object.getProperty ("analysis_band_high_hz"));
+        if (! std::isfinite (analysisBandLowHz) || ! std::isfinite (analysisBandHighHz)
+            || analysisBandLowHz <= 0.0 || analysisBandHighHz <= analysisBandLowHz)
+            return makeErrorReply ("l2_render_probe requires finite analysis_band_low_hz < analysis_band_high_hz");
+        if (analysisBandId.isEmpty())
+            analysisBandId = "target";
+    }
+    else if (analysisBandId.isNotEmpty())
+    {
+        return makeErrorReply ("l2_render_probe analysis_band_id requires an analysis band range");
+    }
+
     auto sourceRevision = object.getProperty ("source_revision").toString().trim();
     if (sourceRevision.isEmpty())
     {
@@ -1105,6 +1165,9 @@ juce::String TransportAudioService::handleL2RenderProbe (const juce::DynamicObje
     probe.analyzedEndSeconds = endSec;
     probe.tailSeconds = tailSec;
     probe.tailCaptured = tailSec > 0.0;
+    probe.analysisBandLowHz = analysisBandLowHz;
+    probe.analysisBandHighHz = analysisBandHighHz;
+    probe.analysisBandId = analysisBandId;
 
     const auto tempRoot = juce::File::getSpecialLocation (juce::File::tempDirectory).getChildFile ("Vit_DAW_L2RenderProbe");
     tempRoot.createDirectory();

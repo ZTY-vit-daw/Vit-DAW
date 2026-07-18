@@ -205,7 +205,7 @@ try {
             Invoke-NativeLogged -LogPath $log -Action {
                 Push-Location $AgentRoot
                 try {
-                    & go test ./internal/acousticpackage ./internal/mom ./internal/mixboard ./internal/agentloop ./internal/chat -count=1
+                    & go test ./internal/acousticpackage ./internal/mom ./internal/tim ./internal/mixboard ./internal/agentloop ./internal/chat -count=1
                 }
                 finally {
                     Pop-Location
@@ -218,16 +218,16 @@ try {
         Invoke-LoggedStep "DAD L3 package smoke" {
             $log = Join-Path $ArtifactDir "dad_l3_package_smoke.log"
             $scriptPath = Join-Path $RepoRoot "scripts\run_dad_l3_package_smoke.ps1"
-            $args = @{
+            $stepArgs = @{
                 RepoRoot = $RepoRoot
                 PythonExe = $PythonExe
                 WaitSeconds = $TimeoutSeconds
             }
-            if (-not [string]::IsNullOrWhiteSpace($KernelExe)) { $args["KernelExe"] = $KernelExe }
-            if (-not [string]::IsNullOrWhiteSpace($MaterialPath)) { $args["MaterialPath"] = $MaterialPath }
-            if ($ReuseKernel) { $args["ReuseKernel"] = $true }
+            if (-not [string]::IsNullOrWhiteSpace($KernelExe)) { $stepArgs["KernelExe"] = $KernelExe }
+            if (-not [string]::IsNullOrWhiteSpace($MaterialPath)) { $stepArgs["MaterialPath"] = $MaterialPath }
+            if ($ReuseKernel) { $stepArgs["ReuseKernel"] = $true }
             Invoke-NativeLogged -LogPath $log -Action {
-                & $scriptPath @args
+                & $scriptPath @stepArgs
             }
             $latest = Get-LatestChildPath -Root $DadProbeRoot -Filter "dad_probe_summary.json" -Recurse
             $script:Summary["artifacts"]["dad_l3_summary"] = $latest
@@ -237,17 +237,17 @@ try {
         Invoke-LoggedStep "L2 render probe smoke" {
             $log = Join-Path $ArtifactDir "l2_render_probe_smoke.log"
             $scriptPath = Join-Path $RepoRoot "scripts\run_kernel_dad_probe_smoke.ps1"
-            $args = @{
+            $stepArgs = @{
                 RepoRoot = $RepoRoot
                 PythonExe = $PythonExe
                 Features = "waveform_envelope,spectral_field,l2_render_probe"
                 WaitSeconds = $TimeoutSeconds
             }
-            if (-not [string]::IsNullOrWhiteSpace($KernelExe)) { $args["KernelExe"] = $KernelExe }
-            if (-not [string]::IsNullOrWhiteSpace($MaterialPath)) { $args["MaterialPath"] = $MaterialPath }
-            if ($ReuseKernel) { $args["ReuseKernel"] = $true }
+            if (-not [string]::IsNullOrWhiteSpace($KernelExe)) { $stepArgs["KernelExe"] = $KernelExe }
+            if (-not [string]::IsNullOrWhiteSpace($MaterialPath)) { $stepArgs["MaterialPath"] = $MaterialPath }
+            if ($ReuseKernel) { $stepArgs["ReuseKernel"] = $true }
             Invoke-NativeLogged -LogPath $log -Action {
-                & $scriptPath @args
+                & $scriptPath @stepArgs
             }
             $latest = Get-LatestChildPath -Root $DadProbeRoot -Filter "dad_probe_summary.json" -Recurse
             Validate-L2RenderProbeSummary -SummaryPath $latest
@@ -258,14 +258,14 @@ try {
         Invoke-LoggedStep "L2 realtime observation smoke" {
             $log = Join-Path $ArtifactDir "l2_realtime_observation_smoke.log"
             $scriptPath = Join-Path $RepoRoot "scripts\run_l2_realtime_observation_smoke.ps1"
-            $args = @{
+            $stepArgs = @{
                 RepoRoot = $RepoRoot
                 GodotProjectRoot = $GodotProjectRoot
                 GodotExe = $GodotExe
             }
-            if (-not [string]::IsNullOrWhiteSpace($MaterialPath)) { $args["MaterialPath"] = $MaterialPath }
+            if (-not [string]::IsNullOrWhiteSpace($MaterialPath)) { $stepArgs["MaterialPath"] = $MaterialPath }
             Invoke-NativeLogged -LogPath $log -Action {
-                & $scriptPath @args
+                & $scriptPath @stepArgs
             }
             $latest = Get-LatestChildPath -Root $SmokeRoot -Filter "l2_realtime_observation_*"
             $script:Summary["artifacts"]["l2_realtime_observation_dir"] = $latest
@@ -286,20 +286,20 @@ try {
             $log = Join-Path $ArtifactDir "product_path_smoke.log"
             $scriptPath = Join-Path $RepoRoot "scripts\run_vit_product_path_smoke.ps1"
             $agentExe = Join-Path $RepoRoot "agent\bin\VitAgent.exe"
-            $args = @{
+            $stepArgs = @{
                 RepoRoot = $RepoRoot
                 GodotProjectRoot = $GodotProjectRoot
                 GodotExe = $GodotExe
                 AgentExe = $agentExe
                 TimeoutSeconds = $TimeoutSeconds
             }
-            if (-not [string]::IsNullOrWhiteSpace($KernelExe)) { $args["KernelExe"] = $KernelExe }
-            if ($SkipBuild) { $args["SkipBuild"] = $true }
-            if ($ReuseGodot) { $args["ReuseGodot"] = $true }
-            if ($ReuseAgent) { $args["ReuseAgent"] = $true }
-            if ($ReuseKernel) { $args["ReuseKernel"] = $true }
+            if (-not [string]::IsNullOrWhiteSpace($KernelExe)) { $stepArgs["KernelExe"] = $KernelExe }
+            if ($SkipBuild) { $stepArgs["SkipBuild"] = $true }
+            if ($ReuseGodot) { $stepArgs["ReuseGodot"] = $true }
+            if ($ReuseAgent) { $stepArgs["ReuseAgent"] = $true }
+            if ($ReuseKernel) { $stepArgs["ReuseKernel"] = $true }
             Invoke-NativeLogged -LogPath $log -Action {
-                & $scriptPath @args
+                & $scriptPath @stepArgs
             }
             $latest = Get-LatestChildPath -Root $SmokeRoot -Filter "product_path_*"
             $script:Summary["artifacts"]["product_path_dir"] = $latest

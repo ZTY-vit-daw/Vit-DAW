@@ -1,6 +1,5 @@
 #include "VitProductionCoordinator.h"
 
-#include <array>
 #include <cmath>
 #include <limits>
 #include <thread>
@@ -63,7 +62,7 @@ juce::String correlationStateForValue (double value)
 
 struct L2BandSummary
 {
-    const char* name = "";
+    juce::String name;
     double minHz = 0.0;
     double maxHz = 0.0;
     double energy = 0.0;
@@ -91,24 +90,15 @@ struct L2ProbeAnalysis
     double coverage = 0.0;
     juce::String status = "suspect";
     juce::String reason;
-    std::array<L2BandSummary, 6> bands {{
+    std::vector<L2BandSummary> bands {
         { "sub",      20.0,    60.0,    0.0, 0 },
         { "bass",     60.0,    250.0,   0.0, 0 },
         { "low_mid",  250.0,   500.0,   0.0, 0 },
         { "mid",      500.0,   2000.0,  0.0, 0 },
         { "presence", 2000.0,  6000.0,  0.0, 0 },
         { "air",      6000.0,  20000.0, 0.0, 0 }
-    }};
+    };
 };
-
-int bandIndexForFrequency (double hz, const std::array<L2BandSummary, 6>& bands)
-{
-    for (int i = 0; i < (int) bands.size(); ++i)
-        if (hz >= bands[(size_t) i].minHz && hz < bands[(size_t) i].maxHz)
-            return i;
-
-    return -1;
-}
 
 void stampL2ProbeIdentity (juce::DynamicObject& obj,
                            const VitProductionCoordinator::L2RenderProbeRequest& request)
@@ -129,6 +119,12 @@ void stampL2ProbeIdentity (juce::DynamicObject& obj,
     obj.setProperty ("clip_revision", request.clipRevision);
     obj.setProperty ("render_revision", request.renderRevision);
     obj.setProperty ("evidence_ref", "dad.l2_render_probe:" + request.renderRevision);
+    if (request.analysisBandLowHz > 0.0 && request.analysisBandHighHz > request.analysisBandLowHz)
+    {
+        obj.setProperty ("analysis_band_low_hz", request.analysisBandLowHz);
+        obj.setProperty ("analysis_band_high_hz", request.analysisBandHighHz);
+        obj.setProperty ("analysis_band_id", request.analysisBandId);
+    }
     if (request.requestId.isNotEmpty())
         obj.setProperty ("request_id", request.requestId);
 
@@ -187,6 +183,14 @@ L2ProbeAnalysis analyseL2ProbeFile (const juce::File& renderFile,
                                     const VitProductionCoordinator::L2RenderProbeRequest& request)
 {
     L2ProbeAnalysis out;
+    if (request.analysisBandLowHz > 0.0 && request.analysisBandHighHz > request.analysisBandLowHz)
+    {
+        out.bands.push_back ({ request.analysisBandId.isNotEmpty() ? request.analysisBandId : juce::String ("target"),
+                               request.analysisBandLowHz,
+                               request.analysisBandHighHz,
+                               0.0,
+                               0 });
+    }
 
     juce::AudioFormatManager fm;
     fm.registerBasicFormats();
@@ -280,13 +284,18 @@ L2ProbeAnalysis analyseL2ProbeFile (const juce::File& renderFile,
                 continue;
 
             const double hz = ((double) bin * out.sampleRate) / (double) fftSize;
-            const int bandIndex = bandIndexForFrequency (hz, out.bands);
-            if (bandIndex < 0)
-                continue;
-
-            out.bands[(size_t) bandIndex].energy += mag2;
-            out.bands[(size_t) bandIndex].binHits += 1;
-            out.spectralEnergy += mag2;
+            bool covered = false;
+            for (auto& band : out.bands)
+            {
+                if (hz >= band.minHz && hz < band.maxHz)
+                {
+                    band.energy += mag2;
+                    ++band.binHits;
+                    covered = true;
+                }
+            }
+            if (covered)
+                out.spectralEnergy += mag2;
         }
     }
 
@@ -364,7 +373,7 @@ void publishL2ProbeAnalysis (const VitProductionCoordinator::PublishFn& publish,
         bandObject->setProperty ("min_hz", band.minHz);
         bandObject->setProperty ("max_hz", band.maxHz);
         bandObject->setProperty ("coverage_ratio", band.binHits > 0 ? analysis.coverage : 0.0);
-        bandsObject->setProperty (band.name, juce::var (bandObject.release()));
+        bandsObject->setProperty (juce::Identifier (band.name), juce::var (bandObject.release()));
     }
     obj->setProperty ("bands", juce::var (bandsObject.release()));
 
@@ -507,6 +516,12 @@ juce::String VitProductionCoordinator::startOfflineRender (te::Edit& edit,
         reply->setProperty ("clip_revision", probeRequest.clipRevision);
         reply->setProperty ("render_revision", probeRequest.renderRevision);
         reply->setProperty ("evidence_ref", "dad.l2_render_probe:" + probeRequest.renderRevision);
+        if (probeRequest.analysisBandLowHz > 0.0 && probeRequest.analysisBandHighHz > probeRequest.analysisBandLowHz)
+        {
+            reply->setProperty ("analysis_band_low_hz", probeRequest.analysisBandLowHz);
+            reply->setProperty ("analysis_band_high_hz", probeRequest.analysisBandHighHz);
+            reply->setProperty ("analysis_band_id", probeRequest.analysisBandId);
+        }
         reply->setProperty ("probe_status", "building");
     }
     return juce::JSON::toString (juce::var (reply.release()));

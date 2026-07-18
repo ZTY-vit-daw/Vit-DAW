@@ -17,6 +17,16 @@ func Command(spec tools.CommandSpec, cmd map[string]any) string {
 		return LegacyMidiNotes(spec, cmd)
 	case "import_midi_to_track":
 		return ImportMidiFile(spec, cmd)
+	case "project.import_folder_as_stems", "project.import_audio_files":
+		return ImportProjectAudioFiles(spec, cmd)
+	case "project.apply_track_organization":
+		return ApplyTrackOrganization(spec, cmd)
+	case "track.group.create", "track.group.update", "track.group.set_members":
+		return TrackGroupMutation(spec, cmd)
+	case "track.group.delete":
+		return TrackGroupDelete(spec, cmd)
+	case "track.group.apply_control":
+		return TrackGroupApplyControl(spec, cmd)
 	case "rack_add_node":
 		return RackAddNode(spec, cmd)
 	case "control_add_macro":
@@ -30,6 +40,113 @@ func Command(spec tools.CommandSpec, cmd map[string]any) string {
 	}
 	raw, _ := json.Marshal(cmd)
 	return fmt.Sprintf("%s [%s]: %s\n%s", spec.CommandName, spec.RiskLevel, spec.Description, string(raw))
+}
+
+func ImportProjectAudioFiles(spec tools.CommandSpec, cmd map[string]any) string {
+	folderPath := firstString(cmd, "folder_path", "folder", "directory")
+	folderName := firstNonEmpty(filepath.Base(folderPath), folderPath)
+	var b strings.Builder
+	fmt.Fprintf(&b, "%s [%s]: %s\n", spec.CommandName, spec.RiskLevel, spec.Description)
+	if folderName != "" {
+		fmt.Fprintf(&b, "Folder %s\n", folderName)
+	}
+	if tracks := firstNonEmpty(firstString(cmd, "tracks_to_create"), firstString(cmd, "readable_file_count")); tracks != "" {
+		fmt.Fprintf(&b, "Tracks to create %s\n", tracks)
+	}
+	decision := mapFromAny(cmd["sample_rate_decision"])
+	patch := mapFromAny(cmd["project_audio_settings_patch"])
+	if len(decision) > 0 {
+		projectSR := firstString(decision, "project_sample_rate_hz")
+		sourceSR := firstString(decision, "source_sample_rate_hz")
+		if newSR := firstString(patch, "sample_rate_hz"); newSR != "" {
+			fmt.Fprintf(&b, "Project sample rate %s Hz -> %s Hz before import\n", firstNonEmpty(projectSR, "<current>"), newSR)
+		} else if sourceSR != "" && projectSR != "" && sourceSR != projectSR {
+			fmt.Fprintf(&b, "Sample-rate mismatch: source %s Hz, project %s Hz; keep project rate unless changed separately\n", sourceSR, projectSR)
+		}
+	}
+	fmt.Fprintf(&b, "Start %s", firstNonEmpty(firstString(cmd, "start_time_seconds", "start_time"), "0"))
+	return strings.TrimSpace(b.String())
+}
+
+func ApplyTrackOrganization(spec tools.CommandSpec, cmd map[string]any) string {
+	groups := operationRowsFromAny(cmd["groups"])
+	if len(groups) == 0 {
+		groups = operationRowsFromAny(cmd["group_proposals"])
+	}
+
+	var b strings.Builder
+	fmt.Fprintf(&b, "%s [%s]: %s\n", spec.CommandName, spec.RiskLevel, spec.Description)
+	fmt.Fprintf(&b, "Folders to create %d", len(groups))
+
+	totalTracks := 0
+	for i, group := range groups {
+		trackIDs := stringSliceFromAny(group["track_ids"])
+		if len(trackIDs) == 0 {
+			for _, assignment := range operationRowsFromAny(group["assignments"]) {
+				if id := firstString(assignment, "track_id", "id"); id != "" {
+					trackIDs = append(trackIDs, id)
+				}
+			}
+		}
+		totalTracks += len(trackIDs)
+		if i >= 6 {
+			continue
+		}
+		folder := firstNonEmpty(firstString(group, "folder_name", "proposed_folder", "label", "name", "group_id"), "Folder")
+		fmt.Fprintf(&b, "\n%d. %s: %d tracks", i+1, folder, len(trackIDs))
+		if enabled, ok := boolValue(group["routing_bus_enabled"]); ok && enabled {
+			b.WriteString(" / bus routing")
+		}
+	}
+	if len(groups) > 6 {
+		fmt.Fprintf(&b, "\n... %d more folders", len(groups)-6)
+	}
+	fmt.Fprintf(&b, "\nTracks to move %d", totalTracks)
+	return strings.TrimSpace(b.String())
+}
+
+func TrackGroupMutation(spec tools.CommandSpec, cmd map[string]any) string {
+	trackIDs := stringSliceFromAny(firstPresent(cmd, "track_ids", "member_track_ids", "members"))
+	name := firstNonEmpty(firstString(cmd, "name", "group_name", "label"), firstString(cmd, "group_id", "id"), "Track group")
+	var b strings.Builder
+	fmt.Fprintf(&b, "%s [%s]: %s\n", spec.CommandName, spec.RiskLevel, spec.Description)
+	fmt.Fprintf(&b, "Group %s\n", name)
+	if groupID := firstString(cmd, "group_id", "id"); groupID != "" {
+		fmt.Fprintf(&b, "ID %s\n", groupID)
+	}
+	fmt.Fprintf(&b, "Members %d", len(trackIDs))
+	if len(trackIDs) > 0 {
+		fmt.Fprintf(&b, ": %s", strings.Join(firstNStrings(trackIDs, 10), ", "))
+	}
+	return strings.TrimSpace(b.String())
+}
+
+func TrackGroupDelete(spec tools.CommandSpec, cmd map[string]any) string {
+	var b strings.Builder
+	fmt.Fprintf(&b, "%s [%s]: %s\n", spec.CommandName, spec.RiskLevel, spec.Description)
+	fmt.Fprintf(&b, "Group %s", firstNonEmpty(firstString(cmd, "group_id", "id"), "<group_id>"))
+	return strings.TrimSpace(b.String())
+}
+
+func TrackGroupApplyControl(spec tools.CommandSpec, cmd map[string]any) string {
+	mode := strings.ToLower(firstNonEmpty(firstString(cmd, "mode", "operation"), "absolute"))
+	control := firstNonEmpty(firstString(cmd, "control", "param", "parameter"), "volume")
+	trackIDs := stringSliceFromAny(firstPresent(cmd, "track_ids", "member_track_ids", "members"))
+	value := firstString(cmd, "db", "target_db", "value_db", "volume_db")
+	if mode == "relative" || mode == "delta" || mode == "volume_relative" {
+		value = firstString(cmd, "delta_db", "db_delta", "amount_db")
+	}
+	var b strings.Builder
+	fmt.Fprintf(&b, "%s [%s]: %s\n", spec.CommandName, spec.RiskLevel, spec.Description)
+	fmt.Fprintf(&b, "Group %s\n", firstNonEmpty(firstString(cmd, "group_id", "id"), "<group_id>"))
+	if len(trackIDs) > 0 {
+		fmt.Fprintf(&b, "Members %d: %s\n", len(trackIDs), strings.Join(firstNStrings(trackIDs, 10), ", "))
+	}
+	fmt.Fprintf(&b, "Control %s %s", control, mode)
+	if value != "" {
+		fmt.Fprintf(&b, " %s dB", value)
+	}
+	return strings.TrimSpace(b.String())
 }
 
 func ImportMidiFile(spec tools.CommandSpec, cmd map[string]any) string {
@@ -224,6 +341,15 @@ func firstNonEmpty(values ...string) string {
 	return ""
 }
 
+func firstPresent(row map[string]any, keys ...string) any {
+	for _, key := range keys {
+		if v, ok := row[key]; ok && !isEmptyValue(v) {
+			return v
+		}
+	}
+	return nil
+}
+
 func stringSliceFromAny(v any) []string {
 	switch x := v.(type) {
 	case nil:
@@ -301,6 +427,13 @@ func operationRowsFromAny(v any) []map[string]any {
 	default:
 		return nil
 	}
+}
+
+func mapFromAny(v any) map[string]any {
+	if row, ok := v.(map[string]any); ok {
+		return row
+	}
+	return nil
 }
 
 func boolValue(v any) (bool, bool) {

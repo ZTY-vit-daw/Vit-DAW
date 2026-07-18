@@ -33,10 +33,20 @@ func projectResultCardsFromExecuted(executed []map[string]any) []map[string]any 
 
 func projectResultCardsFromExecutedWithAB(executed []map[string]any, observe executor.Result) []map[string]any {
 	cards := projectResultCardsFromExecuted(executed)
-	if len(cards) == 0 {
+	ab := projectResultABCardFromObserve(observe)
+	if len(ab) == 0 {
 		return cards
 	}
-	if ab := projectResultABCardFromObserve(observe); len(ab) > 0 {
+	if len(cards) == 0 {
+		return []map[string]any{{
+			"kind":       "project_result",
+			"type":       "project_result",
+			"id":         "project_result_ab_" + projectResultStableID(executed),
+			"executions": executed,
+			"ab_result":  ab,
+		}}
+	}
+	if len(ab) > 0 {
 		cards[0]["ab_result"] = ab
 	}
 	return cards

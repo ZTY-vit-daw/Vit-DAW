@@ -39,21 +39,25 @@ private:
     {
         te::LevelMeterPlugin* plugin = nullptr;
         std::unique_ptr<te::LevelMeasurer::Client> client;
+        std::unique_ptr<te::LevelMeasurer::Client> vspClient;
     };
 
     static constexpr int telemetryIntervalMs = 50;
 
     bool reloadProjectFromDefaultXml();
     bool saveProjectToDefaultXml();
+    bool saveProjectToCurrentPathOrDefaultXml();
     bool loadProjectFromFile (const juce::File& projectFile);
     bool loadEncryptedProjectFromFile (const juce::File& projectFile);
     bool applyLoadedEdit (std::unique_ptr<te::Edit> loadedEdit, const juce::File& openedProject);
     juce::String ipcGetRecentProjects();
-    juce::String ipcNewBlankProject();
+    juce::String ipcNewBlankProject (const juce::DynamicObject& object);
     juce::String ipcOpenProjectAt (const juce::DynamicObject& object, const juce::File& projectFile);
     juce::String ipcSaveProjectWithPayload (const juce::DynamicObject& object);
-    juce::String ipcSaveEncryptedProjectToPath (const juce::File& fileFromPayload);
-    juce::String ipcSaveProjectToCurrentPath();
+    juce::String ipcSaveEncryptedProjectToPath (const juce::File& fileFromPayload,
+                                                bool createNewProjectIdentity,
+                                                const juce::DynamicObject& object);
+    juce::String ipcSaveProjectToCurrentPath (const juce::DynamicObject* object = nullptr);
     juce::String ipcSaveAsProjectAt (const juce::DynamicObject& object, const juce::File& targetFile);
     void clearLevelMeterClients();
     void syncLevelMeterClients();
@@ -61,6 +65,7 @@ private:
     void broadcastTelemetry();
     void broadcastTransportTelemetry();
     void broadcastLevelsTelemetry();
+    juce::var buildVspRealtimeDataForStream (const juce::DynamicObject& stream);
     juce::String handleIncomingCommandOnMessageThread (const juce::var& command, const juce::String& payload);
     void onEditReloaded (const juce::File& xmlFile) override;
     void onGhostTrackDetected (const GhostTrackDescriptor& descriptor) override;

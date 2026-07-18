@@ -6,17 +6,28 @@
 
 Observation v1 的封口目标是稳定这条观测链路：
 
-`Godot -> kernel -> feature snapshot -> acoustic package -> MOM projection -> LLM context`
+`Godot -> kernel -> feature snapshot -> DAD evidence layer -> Observation Model Layer (MOM/TIM/TOM/DOM projections) -> LLM context`
 
-本次不扩展新能力，只固定观测基础、smoke 入口和防回归契约，避免后续 agent/action workflow 重构破坏 DAD/MOM/Godot 的观测面。
+本次不扩展新能力，只固定观测基础、smoke 入口和防回归契约，避免后续 agent/action workflow 重构破坏 DAD / Observation Model Layer / Godot 的观测面。
 
-## DAD / MOM 分层
+## DAD / Observation Model Layer 分层
+
+2026-07-06 架构校准：
+
+- DAD 是 Evidence Layer，负责事实采集、轻量派生、状态标注和 evidence refs；DAD 不直接承担“混音判断”“工程整理建议”或“交付审查”。
+- Observation Model Layer 位于 DAD 之上，负责把事实层压缩为面向任务的 compact projection，供 agent / LLM 使用。
+- MOM = Mixing Observation Model，继续负责混音关系观察、action preflight 和 AB result 相关 compact context。
+- TIM = Technical Integrity Model，负责工程技术完整性检查，例如 source/path/playback 有效性、格式归类、采样率/bit depth/声道覆盖率、DAD acoustic readiness、静音/削波等导入风险。
+- TOM = Track Organization Model，后续负责智能轨道整理提案；它应优先基于 ID/命名关联、长度、mono/stereo、格式、声像和轻量波形特征聚类，再谨慎提出角色假设。
+- DOM = Delivery Observation Model，后续负责导出/交付/响度/格式审查。
+- 每个 model 输出自己的 projection artifact，例如 `mom.projection.v1.x`、`tim.projection.v0`、`tom.projection.v0`；LLM 默认消费 projection/context，不消费 raw waveform、spectrogram payload 或完整工程 dump。
 
 - DAD 负责采集、派生和标注证据。输入来自 kernel/Godot 的 feature snapshot，输出 lightweight acoustic package 与 per-feature 状态。
 - L1/L2/L3 是观测层，不是行动层。L1 提供 waveform/peak/RMS/time-energy，L2 提供 realtime/live meter 或 L2 Render Probe，L3 提供 full-song band/stereo/loudness summary。
 - `band_energy_summary`、`stereo_relation_summary`、`loudness_summary` 必须带状态和 evidence ref；ready/suspect 都可以被报告，但 suspect 不能被当作可执行依据。
 - L2 Render Probe 的 AB result 只在同 tap point、同 render mode、before/after 都 ready、且 render revision 改变时可信。
 - MOM v1.4 负责把 DAD/feature snapshot/project package 投影为 LLM 可读的 compact observation。它只输出摘要、质量门、限制、evidence refs，不输出 raw package、waveform arrays、spectrogram tile payload、shared memory、文件路径或 revision 大串。
+- FXM v0 = Effects Transformation Model，和 MOM/TIM/TOM/EPM 同级；它比较同源、同时间窗、同路由和同渲染设置下的 bypass/processed 插件链结果，输出电平、频段能量、动态与延迟的 compact transformation delta。FXM 是带条件的派生观察，不是音乐质量判断，也不把 raw render 写入 LLM context。
 
 ## 状态规则
 
@@ -62,6 +73,7 @@ D:\Vit_DAW\scripts\run_observation_v1_acceptance_smoke.ps1 -RepoRoot D:\Vit_DAW 
 - L2 Render Probe smoke
 - L2 realtime observation smoke
 - MOM observation/action preflight/raw leakage tests
+- TIM technical integrity projection tests
 - AB result smoke
 - Godot product-path lifecycle smoke
 

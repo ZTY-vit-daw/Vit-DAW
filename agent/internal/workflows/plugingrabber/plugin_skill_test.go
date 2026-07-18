@@ -22,7 +22,7 @@ func TestAutoLearnTDRNovaBuildsEQBandsAndRuntimeOperation(t *testing.T) {
 		t.Fatalf("b1 group missing: %+v", patch.Groups)
 	}
 	params := mapValue(b1["params"])
-	for _, slot := range []string{"frequency", "gain", "q", "enable"} {
+	for _, slot := range []string{"frequency", "gain", "q", "enable", "dyn_enable", "type"} {
 		if len(mapValue(params[slot])) == 0 {
 			t.Fatalf("b1 missing %s mapping: %+v", slot, params)
 		}
@@ -43,6 +43,15 @@ func TestAutoLearnTDRNovaBuildsEQBandsAndRuntimeOperation(t *testing.T) {
 	frequencyDomain := mapValue(frequency["display_domain"])
 	if frequencyDomain["unit"] != "Hz" || frequencyDomain["status"] != displayDomainStatusInferred {
 		t.Fatalf("frequency display domain = %+v", frequencyDomain)
+	}
+	dynEnable := mapValue(params["dyn_enable"])
+	dynEnableDomain := mapValue(dynEnable["display_domain"])
+	if dynEnable["param_id"] != "B1 Dyn" || dynEnableDomain["unit"] != "toggle" || dynEnableDomain["min"] != 0.0 || dynEnableDomain["max"] != 1.0 {
+		t.Fatalf("dynamic enable mapping = %+v", dynEnable)
+	}
+	shape := mapValue(params["type"])
+	if shape["param_id"] != "B1 Type" {
+		t.Fatalf("band shape mapping = %+v", shape)
 	}
 	domainSummary, ok := summary["display_domain_summary"].(map[string]int)
 	if !ok || domainSummary[displayDomainStatusInferred] == 0 {
@@ -252,6 +261,33 @@ func TestTeachModeDisplayDomainParsesInlineUnitRange(t *testing.T) {
 	}
 }
 
+func TestDisplayDomainParsesConfirmedEQQRange(t *testing.T) {
+	domain := parseDisplayDomainText("0.1~10 Q", "auto_learn_user_review", true)
+	if domain == nil {
+		t.Fatal("domain is nil")
+	}
+	if domain.Unit != "Q" || domain.Status != displayDomainStatusConfirmed {
+		t.Fatalf("domain unit/status = %+v", domain)
+	}
+	if domain.Min == nil || domain.Max == nil || *domain.Min != 0.1 || *domain.Max != 10 {
+		t.Fatalf("domain range = %+v", domain)
+	}
+}
+
+func TestAutoLearnPrefersObservedQCurveOverGenericFallback(t *testing.T) {
+	minValue, maxValue := 0.1, 6.0
+	domain := inferredDisplayDomainForSlot("q", ParameterInfo{
+		ID: "B1 Q", Name: "B1 Q",
+		DisplayDomainCandidate: &PluginDisplayDomain{
+			Text: "0.1~6", Min: &minValue, Max: &maxValue, Scale: "log",
+			Status: displayDomainStatusInferred, Source: "display_probe_inferred", Confidence: 0.76,
+		},
+	})
+	if domain == nil || domain.Unit != "Q" || domain.Min == nil || domain.Max == nil || *domain.Min != minValue || *domain.Max != maxValue || domain.Scale != "log" {
+		t.Fatalf("observed Q curve was not retained: %+v", domain)
+	}
+}
+
 func TestAutoLearnPreservesUserDemonstratedMapping(t *testing.T) {
 	digest := tdrNovaDigest()
 	digest.Parameters = append(digest.Parameters, ParameterInfo{ID: "User B2 Gain", Name: "User B2 Gain", HostControllable: true})
@@ -293,6 +329,8 @@ func tdrNovaDigest() ParameterDigest {
 			ParameterInfo{ID: prefix + " Gain", Name: prefix + " Gain", HostControllable: true},
 			ParameterInfo{ID: prefix + " Q", Name: prefix + " Q", HostControllable: true},
 			ParameterInfo{ID: prefix + " Enable", Name: prefix + " Enable", HostControllable: true, IsBoolean: true},
+			ParameterInfo{ID: prefix + " Dyn", Name: prefix + " Dyn", HostControllable: true, IsBoolean: true},
+			ParameterInfo{ID: prefix + " Type", Name: prefix + " Type", HostControllable: true, ValueText: "Bell"},
 		)
 	}
 	return ParameterDigest{

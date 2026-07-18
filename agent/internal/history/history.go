@@ -18,6 +18,7 @@ import (
 
 const DirName = ".vit_history"
 const conversationGraphFile = "conversation_graph.json"
+const agentRuntimeStateFile = "agent_runtime_state.json"
 const draftProjectFileName = "Unsaved.vit"
 const rootWorktreeName = "main"
 const worktreesDirName = "Worktrees"
@@ -27,6 +28,19 @@ var draftProject = struct {
 	root string
 	path string
 }{}
+
+var projectIdentityRegistry = struct {
+	sync.RWMutex
+	byPath map[string]projectWorkspaceBinding
+}{byPath: map[string]projectWorkspaceBinding{}}
+
+type projectWorkspaceBinding struct {
+	ProjectUUID  string
+	WorkspaceDir string
+	SessionID    string
+}
+
+var identityMigrationMu sync.Mutex
 
 type FileEntry struct {
 	Path   string `json:"path"`
@@ -42,6 +56,7 @@ type Commit struct {
 	Message         string         `json:"message,omitempty"`
 	CreatedAt       time.Time      `json:"created_at"`
 	ProjectPath     string         `json:"project_path"`
+	ProjectUUID     string         `json:"project_uuid,omitempty"`
 	Branch          string         `json:"branch,omitempty"`
 	GoalID          string         `json:"goal_id,omitempty"`
 	RunID           string         `json:"run_id,omitempty"`
@@ -54,33 +69,48 @@ type Commit struct {
 }
 
 type ConversationNode struct {
-	ID           string           `json:"id"`
-	Kind         string           `json:"kind"`
-	CommitID     string           `json:"commit_id"`
-	ParentNodeID string           `json:"parent_node_id,omitempty"`
-	Branch       string           `json:"branch,omitempty"`
-	Text         string           `json:"text,omitempty"`
-	TextPreview  string           `json:"text_preview,omitempty"`
-	Artifacts    []map[string]any `json:"artifacts,omitempty"`
-	ProjectCards []map[string]any `json:"project_result_cards,omitempty"`
-	GoalID       string           `json:"goal_id,omitempty"`
-	RunID        string           `json:"run_id,omitempty"`
-	CreatedAt    time.Time        `json:"created_at"`
+	ID               string           `json:"id"`
+	Kind             string           `json:"kind"`
+	CommitID         string           `json:"commit_id"`
+	ParentNodeID     string           `json:"parent_node_id,omitempty"`
+	Branch           string           `json:"branch,omitempty"`
+	Text             string           `json:"text,omitempty"`
+	TextPreview      string           `json:"text_preview,omitempty"`
+	Artifacts        []map[string]any `json:"artifacts,omitempty"`
+	ProjectCards     []map[string]any `json:"project_result_cards,omitempty"`
+	MessageData      map[string]any   `json:"message_data,omitempty"`
+	GoalID           string           `json:"goal_id,omitempty"`
+	RunID            string           `json:"run_id,omitempty"`
+	Lifecycle        string           `json:"lifecycle,omitempty"`
+	Persistence      string           `json:"persistence,omitempty"`
+	MessageKind      string           `json:"message_kind,omitempty"`
+	TurnID           string           `json:"turn_id,omitempty"`
+	LogicalMessageID string           `json:"logical_message_id,omitempty"`
+	Supersedes       []string         `json:"supersedes,omitempty"`
+	CreatedAt        time.Time        `json:"created_at"`
 }
 
 type ConversationMessage struct {
-	Role         string           `json:"role"`
-	Content      string           `json:"content"`
-	NodeID       string           `json:"node_id,omitempty"`
-	CommitID     string           `json:"commit_id,omitempty"`
-	Branch       string           `json:"branch,omitempty"`
-	Artifacts    []map[string]any `json:"artifacts,omitempty"`
-	ProjectCards []map[string]any `json:"project_result_cards,omitempty"`
-	CreatedAt    time.Time        `json:"created_at,omitempty"`
+	Role             string           `json:"role"`
+	Content          string           `json:"content"`
+	NodeID           string           `json:"node_id,omitempty"`
+	CommitID         string           `json:"commit_id,omitempty"`
+	Branch           string           `json:"branch,omitempty"`
+	Artifacts        []map[string]any `json:"artifacts,omitempty"`
+	ProjectCards     []map[string]any `json:"project_result_cards,omitempty"`
+	MessageData      map[string]any   `json:"message_data,omitempty"`
+	Lifecycle        string           `json:"lifecycle,omitempty"`
+	Persistence      string           `json:"persistence,omitempty"`
+	MessageKind      string           `json:"message_kind,omitempty"`
+	TurnID           string           `json:"turn_id,omitempty"`
+	LogicalMessageID string           `json:"logical_message_id,omitempty"`
+	Supersedes       []string         `json:"supersedes,omitempty"`
+	CreatedAt        time.Time        `json:"created_at,omitempty"`
 }
 
 type ConversationGraph struct {
 	ProjectPath    string             `json:"project_path"`
+	ProjectUUID    string             `json:"project_uuid,omitempty"`
 	ActiveNodeID   string             `json:"active_node_id,omitempty"`
 	ActiveBranch   string             `json:"active_branch,omitempty"`
 	ActiveWorktree string             `json:"active_worktree,omitempty"`
@@ -89,11 +119,59 @@ type ConversationGraph struct {
 
 type Repo struct {
 	ProjectPath string
+	ProjectUUID string
 	ProjectDir  string
 	MediaDir    string
 	HistoryDir  string
 	StateDir    string
 	Draft       bool
+}
+
+func BindProjectIdentity(projectPath, projectUUID string) string {
+	projectPath = strings.TrimSpace(projectPath)
+	projectUUID = safeName(strings.TrimSpace(projectUUID))
+	if projectPath == "" {
+		if draftPath, err := defaultDraftProjectPath(); err == nil {
+			projectPath = draftPath
+		}
+	}
+	if projectPath == "" || projectUUID == "" {
+		return projectPath
+	}
+	if abs, err := filepath.Abs(projectPath); err == nil {
+		projectPath = filepath.Clean(abs)
+	}
+	projectIdentityRegistry.Lock()
+	key := normalizeProjectPath(projectPath)
+	binding := projectIdentityRegistry.byPath[key]
+	if binding.ProjectUUID != projectUUID {
+		binding = projectWorkspaceBinding{}
+	}
+	binding.ProjectUUID = projectUUID
+	projectIdentityRegistry.byPath[key] = binding
+	projectIdentityRegistry.Unlock()
+	return projectPath
+}
+
+func IsDraftProjectPath(projectPath string) bool {
+	projectPath = strings.TrimSpace(projectPath)
+	if projectPath == "" {
+		return true
+	}
+	return strings.EqualFold(filepath.Base(projectPath), draftProjectFileName) &&
+		strings.Contains(strings.ToLower(filepath.ToSlash(projectPath)), "/projecthistory/drafts/")
+}
+
+func boundProjectIdentity(projectPath string) string {
+	projectIdentityRegistry.RLock()
+	defer projectIdentityRegistry.RUnlock()
+	return projectIdentityRegistry.byPath[normalizeProjectPath(projectPath)].ProjectUUID
+}
+
+func boundProjectWorkspace(projectPath string) projectWorkspaceBinding {
+	projectIdentityRegistry.RLock()
+	defer projectIdentityRegistry.RUnlock()
+	return projectIdentityRegistry.byPath[normalizeProjectPath(projectPath)]
 }
 
 func Open(projectPath string) (Repo, error) {
@@ -114,15 +192,34 @@ func Open(projectPath string) (Repo, error) {
 	base := strings.TrimSuffix(filepath.Base(abs), filepath.Ext(abs))
 	projectDir := filepath.Dir(abs)
 	clean := filepath.Clean(abs)
-	historyDir := filepath.Join(projectDir, DirName)
-	return Repo{
+	historyRoot := filepath.Join(projectDir, DirName)
+	historyDir := historyRoot
+	stateDir := filepath.Join(historyRoot, "projects", projectKey(clean))
+	binding := boundProjectWorkspace(clean)
+	projectUUID := binding.ProjectUUID
+	if projectUUID != "" {
+		historyDir = filepath.Join(historyRoot, safeName(projectUUID))
+		stateDir = filepath.Join(historyDir, "state")
+	}
+	if strings.TrimSpace(binding.WorkspaceDir) != "" {
+		historyDir = filepath.Clean(binding.WorkspaceDir)
+		stateDir = filepath.Join(historyDir, "state")
+	}
+	repo := Repo{
 		ProjectPath: clean,
+		ProjectUUID: projectUUID,
 		ProjectDir:  projectDir,
 		MediaDir:    filepath.Join(projectDir, base+"_Media"),
 		HistoryDir:  historyDir,
-		StateDir:    filepath.Join(historyDir, "projects", projectKey(clean)),
+		StateDir:    stateDir,
 		Draft:       draft,
-	}, nil
+	}
+	if projectUUID != "" && strings.TrimSpace(binding.WorkspaceDir) == "" {
+		if err := migrateLegacyHistoryWorkspace(repo, historyRoot); err != nil {
+			return Repo{}, err
+		}
+	}
+	return repo, nil
 }
 
 func Status(args map[string]any) (map[string]any, error) {
@@ -133,6 +230,7 @@ func Status(args map[string]any) (map[string]any, error) {
 	commits, _ := listCommits(repo)
 	out := historyState(repo, len(commits))
 	out["project_path"] = repo.ProjectPath
+	out["project_uuid"] = repo.ProjectUUID
 	out["history_dir"] = repo.HistoryDir
 	out["initialized"] = dirExists(repo.HistoryDir)
 	return out, nil
@@ -142,6 +240,7 @@ func historyState(repo Repo, commitCount int) map[string]any {
 	graph := readConversationGraphOrDefault(repo)
 	return map[string]any{
 		"project_path":          repo.ProjectPath,
+		"project_uuid":          repo.ProjectUUID,
 		"history_dir":           repo.HistoryDir,
 		"root_project_path":     rootProjectPath(repo),
 		"state_dir":             repo.StateDir,
@@ -180,6 +279,7 @@ func Checkpoint(args map[string]any) (map[string]any, error) {
 		CreatedAt:   time.Now().UTC(),
 		Message:     value(args, "message"),
 		ProjectPath: repo.ProjectPath,
+		ProjectUUID: repo.ProjectUUID,
 		GoalID:      value(args, "goal_id"),
 		RunID:       value(args, "run_id"),
 		Source:      value(args, "source"),
@@ -614,6 +714,64 @@ func ProjectSaved(args map[string]any) (map[string]any, error) {
 	return out, nil
 }
 
+func ProjectFork(args map[string]any) (map[string]any, error) {
+	sourcePath := firstNonEmpty(value(args, "source_project_path"), value(args, "from_project_path"))
+	targetPath := firstNonEmpty(value(args, "project_path"), value(args, "target_project_path"))
+	sourceUUID := firstNonEmpty(value(args, "source_project_uuid"), value(args, "from_project_uuid"))
+	targetUUID := firstNonEmpty(value(args, "project_uuid"), value(args, "target_project_uuid"))
+	if sourcePath == "" || targetPath == "" || sourceUUID == "" || targetUUID == "" {
+		return nil, errors.New("source/target project path and UUID are required for project fork")
+	}
+	if sourceUUID == targetUUID {
+		return nil, errors.New("project fork requires a new target project UUID")
+	}
+	BindProjectIdentity(sourcePath, sourceUUID)
+	BindProjectIdentity(targetPath, targetUUID)
+	sourceRepo, err := Open(sourcePath)
+	if err != nil {
+		return nil, err
+	}
+	targetRepo, err := Open(targetPath)
+	if err != nil {
+		return nil, err
+	}
+	if historyHasUserData(targetRepo) {
+		return nil, errors.New("target project workspace already contains history")
+	}
+	if !historyHasUserData(sourceRepo) {
+		commits, _ := listCommits(targetRepo)
+		out := historyState(targetRepo, len(commits))
+		out["status"] = "ok"
+		out["forked_history"] = false
+		out["fork_reason"] = "source_history_empty"
+		return out, nil
+	}
+	if dirExists(targetRepo.HistoryDir) {
+		if err := os.RemoveAll(targetRepo.HistoryDir); err != nil {
+			return nil, err
+		}
+	}
+	if err := copyDir(sourceRepo.HistoryDir, targetRepo.HistoryDir); err != nil {
+		return nil, err
+	}
+	if err := adoptVisibleWorktrees(targetRepo, sourceRepo); err != nil {
+		return nil, err
+	}
+	if err := rewriteAdoptedDraftHistory(targetRepo, sourceRepo); err != nil {
+		return nil, err
+	}
+	ensureRootWorktreeItem(targetRepo)
+	commits, _ := listCommits(targetRepo)
+	out := historyState(targetRepo, len(commits))
+	out["status"] = "ok"
+	out["forked_history"] = true
+	out["source_project_path"] = sourceRepo.ProjectPath
+	out["source_project_uuid"] = sourceRepo.ProjectUUID
+	out["project_path"] = targetRepo.ProjectPath
+	out["project_uuid"] = targetRepo.ProjectUUID
+	return out, nil
+}
+
 func ProjectNew(args map[string]any) (map[string]any, error) {
 	draftProject.Lock()
 	draftProject.root = ""
@@ -687,6 +845,9 @@ func AppendConversationNode(args map[string]any) (map[string]any, error) {
 	if !commitBelongsToProject(repo, commit) {
 		return nil, fmt.Errorf("checkpoint %s belongs to a different project", commitID)
 	}
+	if strings.EqualFold(value(args, "lifecycle"), "transient") || strings.EqualFold(value(args, "persistence"), "none") {
+		return nil, errors.New("transient conversation activity cannot be written to Project History")
+	}
 	graph := readConversationGraphOrDefault(repo)
 	branch := value(args, "branch")
 	if branch == "" && !isDetached(repo) {
@@ -697,21 +858,42 @@ func AppendConversationNode(args map[string]any) (map[string]any, error) {
 		parentNodeID = graph.ActiveNodeID
 	}
 	nodeText := firstNonEmpty(value(args, "text"), value(args, "text_preview"), value(args, "message"))
+	nodeID := firstNonEmpty(value(args, "node_id"), "n_"+time.Now().UTC().Format("20060102T150405")+"_"+shortID())
+	nodeKind := firstNonEmpty(value(args, "kind"), value(args, "node_type"), "checkpoint")
+	messageKind := value(args, "message_kind")
+	if messageKind == "" {
+		switch strings.ToLower(strings.TrimSpace(nodeKind)) {
+		case "ask":
+			messageKind = "user"
+		case "vit":
+			messageKind = "assistant"
+		default:
+			messageKind = "system"
+		}
+	}
 	node := ConversationNode{
-		ID:           firstNonEmpty(value(args, "node_id"), "n_"+time.Now().UTC().Format("20060102T150405")+"_"+shortID()),
-		Kind:         firstNonEmpty(value(args, "kind"), value(args, "node_type"), "checkpoint"),
-		CommitID:     commitID,
-		ParentNodeID: parentNodeID,
-		Branch:       branch,
-		Text:         nodeText,
-		TextPreview:  compactPreview(nodeText),
-		Artifacts:    conversationArtifactRows(args["artifacts"]),
-		ProjectCards: conversationProjectResultRows(args["project_result_cards"]),
-		GoalID:       value(args, "goal_id"),
-		RunID:        value(args, "run_id"),
-		CreatedAt:    time.Now().UTC(),
+		ID:               nodeID,
+		Kind:             nodeKind,
+		CommitID:         commitID,
+		ParentNodeID:     parentNodeID,
+		Branch:           branch,
+		Text:             nodeText,
+		TextPreview:      compactPreview(nodeText),
+		Artifacts:        conversationArtifactRows(args["artifacts"]),
+		ProjectCards:     conversationProjectResultRows(args["project_result_cards"]),
+		MessageData:      conversationMessageData(args["message_data"]),
+		GoalID:           value(args, "goal_id"),
+		RunID:            value(args, "run_id"),
+		Lifecycle:        firstNonEmpty(value(args, "lifecycle"), "durable"),
+		Persistence:      firstNonEmpty(value(args, "persistence"), "project_history"),
+		MessageKind:      messageKind,
+		TurnID:           firstNonEmpty(value(args, "turn_id"), value(args, "run_id"), value(args, "goal_id")),
+		LogicalMessageID: firstNonEmpty(value(args, "logical_message_id"), nodeID),
+		Supersedes:       conversationStringValues(args["supersedes"]),
+		CreatedAt:        time.Now().UTC(),
 	}
 	graph.ProjectPath = repo.ProjectPath
+	graph.ProjectUUID = repo.ProjectUUID
 	graph.ActiveBranch = publicActiveBranch(repo)
 	graph.ActiveWorktree = activeWorktree(repo)
 	graph.Nodes = append(graph.Nodes, node)
@@ -743,6 +925,32 @@ func ConversationMessages(args map[string]any) (map[string]any, error) {
 		"conversation_messages": conversationMessagesForGraph(graph),
 		"conversation_graph":    graph,
 	}, nil
+}
+
+func WriteAgentRuntimeState(projectPath, projectUUID string, data []byte) error {
+	projectPath = BindProjectIdentity(projectPath, projectUUID)
+	repo, err := Open(projectPath)
+	if err != nil {
+		return err
+	}
+	if err := os.MkdirAll(repo.StateDir, 0o755); err != nil {
+		return err
+	}
+	target := filepath.Join(repo.StateDir, agentRuntimeStateFile)
+	temp := target + ".tmp"
+	if err := os.WriteFile(temp, data, 0o644); err != nil {
+		return err
+	}
+	return os.Rename(temp, target)
+}
+
+func ReadAgentRuntimeState(projectPath, projectUUID string) ([]byte, error) {
+	projectPath = BindProjectIdentity(projectPath, projectUUID)
+	repo, err := Open(projectPath)
+	if err != nil {
+		return nil, err
+	}
+	return os.ReadFile(filepath.Join(repo.StateDir, agentRuntimeStateFile))
 }
 
 func NodeDelete(args map[string]any) (map[string]any, error) {
@@ -1268,10 +1476,13 @@ func listBranches(repo Repo) map[string]string {
 func readConversationGraphOrDefault(repo Repo) ConversationGraph {
 	graph := ConversationGraph{}
 	_ = readJSON(filepath.Join(repo.StateDir, conversationGraphFile), &graph)
-	if !sameProjectPath(graph.ProjectPath, repo.ProjectPath) {
+	if graph.ProjectUUID != "" && repo.ProjectUUID != "" && graph.ProjectUUID != repo.ProjectUUID {
+		graph = ConversationGraph{}
+	} else if graph.ProjectUUID == "" && !sameProjectPath(graph.ProjectPath, repo.ProjectPath) {
 		graph = ConversationGraph{}
 	}
 	graph.ProjectPath = repo.ProjectPath
+	graph.ProjectUUID = repo.ProjectUUID
 	graph.ActiveBranch = publicActiveBranch(repo)
 	graph.ActiveWorktree = activeWorktree(repo)
 	if graph.Nodes == nil {
@@ -1334,15 +1545,70 @@ func conversationMessagesForGraph(graph ConversationGraph) []ConversationMessage
 			continue
 		}
 		out = append(out, ConversationMessage{
-			Role:         role,
-			Content:      content,
-			NodeID:       node.ID,
-			CommitID:     node.CommitID,
-			Branch:       node.Branch,
-			Artifacts:    node.Artifacts,
-			ProjectCards: node.ProjectCards,
-			CreatedAt:    node.CreatedAt,
+			Role:             role,
+			Content:          content,
+			NodeID:           node.ID,
+			CommitID:         node.CommitID,
+			Branch:           node.Branch,
+			Artifacts:        node.Artifacts,
+			ProjectCards:     node.ProjectCards,
+			MessageData:      conversationMessageData(node.MessageData),
+			Lifecycle:        firstNonEmpty(node.Lifecycle, "durable"),
+			Persistence:      firstNonEmpty(node.Persistence, "project_history"),
+			MessageKind:      firstNonEmpty(node.MessageKind, role),
+			TurnID:           firstNonEmpty(node.TurnID, node.RunID, node.GoalID),
+			LogicalMessageID: firstNonEmpty(node.LogicalMessageID, node.ID),
+			Supersedes:       append([]string(nil), node.Supersedes...),
+			CreatedAt:        node.CreatedAt,
 		})
+	}
+	return out
+}
+
+func conversationStringValues(value any) []string {
+	var raw []any
+	switch rows := value.(type) {
+	case []any:
+		raw = rows
+	case []string:
+		out := make([]string, 0, len(rows))
+		for _, row := range rows {
+			if clean := strings.TrimSpace(row); clean != "" {
+				out = append(out, clean)
+			}
+		}
+		return out
+	case string:
+		if clean := strings.TrimSpace(rows); clean != "" {
+			return []string{clean}
+		}
+		return nil
+	default:
+		return nil
+	}
+	out := make([]string, 0, len(raw))
+	for _, row := range raw {
+		if clean := strings.TrimSpace(fmt.Sprint(row)); clean != "" {
+			out = append(out, clean)
+		}
+	}
+	return out
+}
+
+func conversationMessageData(value any) map[string]any {
+	row, ok := value.(map[string]any)
+	if !ok || len(row) == 0 {
+		return nil
+	}
+	out := make(map[string]any, len(row))
+	for key, item := range row {
+		if strings.TrimSpace(key) == "" || item == nil {
+			continue
+		}
+		out[key] = item
+	}
+	if len(out) == 0 {
+		return nil
 	}
 	return out
 }
@@ -1545,6 +1811,7 @@ func conversationNodeCommitLooksFinal(commit Commit) bool {
 
 func writeConversationGraph(repo Repo, graph ConversationGraph) error {
 	graph.ProjectPath = repo.ProjectPath
+	graph.ProjectUUID = repo.ProjectUUID
 	graph.ActiveBranch = firstNonEmpty(graph.ActiveBranch, publicActiveBranch(repo))
 	graph.ActiveWorktree = firstNonEmpty(graph.ActiveWorktree, activeWorktree(repo))
 	if graph.Nodes == nil {
@@ -1676,7 +1943,15 @@ func rootRepoForWorktrees(repo Repo) Repo {
 }
 
 func visibleWorktreeRoot(repo Repo) string {
-	return filepath.Join(repo.ProjectDir, worktreesDirName)
+	root := filepath.Join(repo.ProjectDir, worktreesDirName)
+	if strings.TrimSpace(repo.ProjectUUID) == "" {
+		return root
+	}
+	base := safeFileName(strings.TrimSuffix(filepath.Base(repo.ProjectPath), filepath.Ext(repo.ProjectPath)))
+	if base == "" {
+		base = "Project"
+	}
+	return filepath.Join(root, base+"_"+safeFileName(repo.ProjectUUID))
 }
 
 func worktreeProjectFileName(repo Repo, worktreeName string) string {
@@ -1970,6 +2245,9 @@ func sameProjectPath(a, b string) bool {
 }
 
 func commitBelongsToProject(repo Repo, commit Commit) bool {
+	if repo.ProjectUUID != "" && commit.ProjectUUID != "" {
+		return repo.ProjectUUID == commit.ProjectUUID
+	}
 	return sameProjectPath(commit.ProjectPath, repo.ProjectPath)
 }
 
@@ -2073,6 +2351,9 @@ func historyHasUserData(repo Repo) bool {
 	if err == nil && len(commits) > 0 {
 		return true
 	}
+	if fileExists(filepath.Join(repo.StateDir, agentRuntimeStateFile)) || currentHead(repo) != "" || len(listRefs(repo)) > 0 {
+		return true
+	}
 	graph := readConversationGraphOrDefault(repo)
 	return len(graph.Nodes) > 0
 }
@@ -2084,7 +2365,27 @@ func rewriteAdoptedDraftHistory(repo Repo, draftRepo Repo) error {
 	if err := rewriteAdoptedConversationGraph(repo, draftRepo); err != nil {
 		return err
 	}
-	return rewriteAdoptedWorktreeMetadata(repo, draftRepo)
+	if err := rewriteAgentRuntimeIdentity(repo); err != nil {
+		return err
+	}
+	if err := rewriteAdoptedWorktreeMetadata(repo, draftRepo); err != nil {
+		return err
+	}
+	return writeWorkspaceIdentity(repo.HistoryDir, repo.ProjectPath, repo.ProjectUUID)
+}
+
+func rewriteAgentRuntimeIdentity(repo Repo) error {
+	path := filepath.Join(repo.StateDir, agentRuntimeStateFile)
+	state := map[string]any{}
+	if err := readJSON(path, &state); err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return nil
+		}
+		return err
+	}
+	state["project_path"] = repo.ProjectPath
+	state["project_uuid"] = repo.ProjectUUID
+	return writeJSON(path, state)
 }
 
 func adoptCopiedStateDir(repo Repo, draftRepo Repo) error {
@@ -2147,6 +2448,7 @@ func rewriteAdoptedCommitFiles(repo Repo, draftRepo Repo) error {
 			return err
 		}
 		commit.ProjectPath = repo.ProjectPath
+		commit.ProjectUUID = repo.ProjectUUID
 		if sameSlashPath(commit.ProjectFile.Path, oldProjectBase) || commit.ProjectFile.Kind == "project" || commit.ProjectFile.Kind == "project_snapshot" {
 			commit.ProjectFile.Path = filepath.ToSlash(newProjectBase)
 		}
@@ -2170,6 +2472,7 @@ func rewriteAdoptedConversationGraph(repo Repo, _ Repo) error {
 		return err
 	}
 	graph.ProjectPath = repo.ProjectPath
+	graph.ProjectUUID = repo.ProjectUUID
 	graph.ActiveWorktree = ""
 	if graph.ActiveBranch == "" {
 		graph.ActiveBranch = publicActiveBranch(repo)
@@ -2220,6 +2523,7 @@ func rewriteAdoptedWorktreeMeta(repo Repo, draftRepo Repo, meta map[string]any) 
 		if value == "" || value == "<nil>" {
 			continue
 		}
+		value = replacePathPrefix(value, visibleWorktreeRoot(draftRepo), visibleWorktreeRoot(repo))
 		value = replacePathPrefix(value, draftRepo.ProjectDir, repo.ProjectDir)
 		value = strings.ReplaceAll(value, filepath.Clean(draftRepo.StateDir), filepath.Clean(repo.StateDir))
 		value = strings.ReplaceAll(value, filepath.ToSlash(filepath.Clean(draftRepo.StateDir)), filepath.ToSlash(filepath.Clean(repo.StateDir)))
@@ -2237,7 +2541,8 @@ func rewriteAdoptedWorktreeMeta(repo Repo, draftRepo Repo, meta map[string]any) 
 	worktreePath := strings.TrimSpace(fmt.Sprint(meta["path"]))
 	projectFilePath := strings.TrimSpace(fmt.Sprint(meta["project_file_path"]))
 	if name != "" && worktreePath != "" && worktreePath != "<nil>" && pathWithin(worktreePath, visibleWorktreeRoot(repo)) {
-		oldCopiedProjectFilePath := replacePathPrefix(oldProjectFilePath, draftRepo.ProjectDir, repo.ProjectDir)
+		oldCopiedProjectFilePath := replacePathPrefix(oldProjectFilePath, visibleWorktreeRoot(draftRepo), visibleWorktreeRoot(repo))
+		oldCopiedProjectFilePath = replacePathPrefix(oldCopiedProjectFilePath, draftRepo.ProjectDir, repo.ProjectDir)
 		if oldCopiedProjectFilePath == "" || oldCopiedProjectFilePath == "<nil>" {
 			oldCopiedProjectFilePath = projectFilePath
 		}
@@ -2425,6 +2730,62 @@ func pathWithin(path, root string) bool {
 
 func sameSlashPath(a, b string) bool {
 	return strings.EqualFold(filepath.ToSlash(filepath.Clean(strings.TrimSpace(a))), filepath.ToSlash(filepath.Clean(strings.TrimSpace(b))))
+}
+
+func migrateLegacyHistoryWorkspace(repo Repo, historyRoot string) error {
+	if repo.ProjectUUID == "" || sameProjectPath(repo.HistoryDir, historyRoot) {
+		return nil
+	}
+	marker := filepath.Join(repo.HistoryDir, "workspace.json")
+	if fileExists(marker) || dirExists(repo.StateDir) {
+		return nil
+	}
+
+	identityMigrationMu.Lock()
+	defer identityMigrationMu.Unlock()
+	if fileExists(marker) || dirExists(repo.StateDir) {
+		return nil
+	}
+
+	legacyStateDir := filepath.Join(historyRoot, "projects", projectKey(repo.ProjectPath))
+	hasLegacyState := dirExists(legacyStateDir)
+	hasLegacyCommits := dirExists(filepath.Join(historyRoot, "commits"))
+	if !hasLegacyState && !hasLegacyCommits {
+		return nil
+	}
+	if err := os.MkdirAll(repo.HistoryDir, 0o755); err != nil {
+		return err
+	}
+	for _, name := range []string{"commits", "objects", "refs", "worktrees"} {
+		src := filepath.Join(historyRoot, name)
+		if dirExists(src) {
+			if err := copyDir(src, filepath.Join(repo.HistoryDir, name)); err != nil {
+				return err
+			}
+		}
+	}
+	for _, name := range []string{"HEAD", "ACTIVE_BRANCH", "DETACHED"} {
+		src := filepath.Join(historyRoot, name)
+		if fileExists(src) {
+			if err := copyFile(src, filepath.Join(repo.HistoryDir, name)); err != nil {
+				return err
+			}
+		}
+	}
+	if hasLegacyState {
+		if err := copyDir(legacyStateDir, repo.StateDir); err != nil {
+			return err
+		}
+	}
+	return writeJSON(marker, map[string]any{
+		"schema_version":         "vit_project_workspace.v1",
+		"project_uuid":           repo.ProjectUUID,
+		"project_path":           repo.ProjectPath,
+		"migrated_from_legacy":   true,
+		"legacy_history_root":    historyRoot,
+		"legacy_project_state":   legacyStateDir,
+		"migration_completed_at": time.Now().UTC(),
+	})
 }
 
 func copyDir(src, dst string) error {

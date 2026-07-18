@@ -6,6 +6,7 @@ import (
 	"math"
 	"strings"
 
+	"vit-daw-agent/internal/actionworkflow"
 	"vit-daw-agent/internal/agentloop"
 	"vit-daw-agent/internal/agentprotocol"
 	"vit-daw-agent/internal/executor"
@@ -38,26 +39,40 @@ func (s *Server) handlePendingMixTickChat(ctx context.Context, conversationID st
 		}
 		return ChatResponse{}, false
 	}
+	confirmation := actionworkflow.ClassifyConfirmation(req.Message, true)
 	switch {
-	case messageRevisesPendingMixTick(req.Message):
+	case confirmation.Kind == actionworkflow.DecisionRevision:
 		if s != nil && s.logger != nil {
 			s.logger.Info("[mix.tick.pending] revision requested conversation=%s message=%q %s", conversationID, req.Message, pendingMixTickLogSummary(candidate))
 		}
 		s.transitionActivePendingCandidate(conversationID, "mix_tick", agentprotocol.PendingStatusRevisionRequested, req.Message)
 		s.expirePendingMixTick(conversationID)
 		return ChatResponse{}, false
-	case messageKeepsMixTickDiscussion(req.Message):
+	case confirmation.Kind == actionworkflow.DecisionFollowup || messageKeepsMixTickDiscussion(req.Message):
 		if s != nil && s.logger != nil {
 			s.logger.Info("[mix.tick.pending] discussion continued without execution conversation=%s message=%q %s", conversationID, req.Message, pendingMixTickLogSummary(candidate))
 		}
 		return ChatResponse{}, false
+	case confirmation.Kind == actionworkflow.DecisionReject:
+		if s != nil && s.logger != nil {
+			s.logger.Info("[mix.tick.pending] rejected conversation=%s message=%q %s", conversationID, req.Message, pendingMixTickLogSummary(candidate))
+		}
+		s.transitionActivePendingCandidate(conversationID, "mix_tick", agentprotocol.PendingStatusRejected, "user rejected pending mix tick")
+		s.expirePendingMixTick(conversationID)
+		return ChatResponse{
+			ConversationID: conversationID,
+			AgentMode:      mode,
+			Reply:          "已取消这条待确认混音单步，没有执行任何工程修改。",
+			GoalStatus:     "completed",
+			StopReason:     "mix_tick_rejected",
+		}, true
 	case messageClearlyShiftsMixTickContext(req.Message):
 		if s != nil && s.logger != nil {
 			s.logger.Info("[mix.tick.pending] expired on context shift conversation=%s message=%q %s", conversationID, req.Message, pendingMixTickLogSummary(candidate))
 		}
 		s.expirePendingMixTick(conversationID)
 		return ChatResponse{}, false
-	case messageExplicitMixTickApply(req.Message) || messagePlainMixApproval(req.Message):
+	case confirmation.Kind == actionworkflow.DecisionAccept:
 		if s != nil && s.logger != nil {
 			s.logger.Info("[mix.tick.pending] explicit confirmation routed conversation=%s %s observation=%s", conversationID, pendingMixTickLogSummary(candidate), candidate.ObservationID)
 		}

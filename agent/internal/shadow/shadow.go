@@ -95,12 +95,19 @@ func (p *Project) Summary() map[string]any {
 	engine, _ := p.state["engine_snapshot"].(map[string]any)
 	nodes, _ := p.state["nodes_by_uid"].(map[string]any)
 	tracks := asArray(engine["tracks"])
-	userTracks := compactUserTracks(tracks, nodes)
+	trackGroups := compactTrackGroups(firstPresent(engine, "track_groups", "groups"))
+	groupsByTrack := trackGroupsByTrackID(trackGroups)
+	userTracks := compactUserTracks(tracks, nodes, groupsByTrack)
 	observability := sanitizedObservability(engine["observability"], len(userTracks))
 
+	project, _ := cloneMap(engine["project"]).(map[string]any)
 	out := map[string]any{
 		"initialized":          p.initialized,
-		"project_path":         fmt.Sprint(engine["project_path"]),
+		"project_path":         cleanSummaryText(firstNonNilValue(engine["project_path"], project["project_path"])),
+		"project_uuid":         cleanSummaryText(firstNonNilValue(engine["project_uuid"], project["project_uuid"], engine["project_id"])),
+		"project_id":           cleanSummaryText(firstNonNilValue(engine["project_uuid"], project["project_uuid"], engine["project_id"])),
+		"parent_project_uuid":  cleanSummaryText(firstNonNilValue(engine["parent_project_uuid"], project["parent_project_uuid"])),
+		"analysis_manifest":    cloneMap(firstNonNilValue(engine["analysis_manifest"], project["analysis_manifest"])),
 		"track_count":          len(userTracks),
 		"user_track_count":     len(userTracks),
 		"engine_track_count":   len(tracks),
@@ -110,12 +117,31 @@ func (p *Project) Summary() map[string]any {
 		"last_delta_seq":       p.lastDeltaSeqID,
 		"delta_seq_gaps":       p.seqGapCount,
 		"tracks":               userTracks,
+		"track_groups":         trackGroups,
+		"groups":               trackGroups,
+		"track_group_count":    len(trackGroups),
 		"observability":        observability,
 		"project_health":       cloneMap(engine["project_health"]),
 		"graph_revision":       engine["graph_revision"],
 		"pending_job_data":     cloneMap(engine["jobs"]),
 	}
 	return out
+}
+
+func firstNonNilValue(values ...any) any {
+	for _, value := range values {
+		if value != nil {
+			return value
+		}
+	}
+	return nil
+}
+
+func cleanSummaryText(value any) string {
+	if value == nil {
+		return ""
+	}
+	return strings.TrimSpace(fmt.Sprint(value))
 }
 
 func (p *Project) applyDeltaLocked(delta map[string]any, fromReplay bool) {
@@ -286,23 +312,25 @@ func compactTracks(tracks []any) []map[string]any {
 	return out
 }
 
-func compactUserTracks(tracks []any, nodes map[string]any) []map[string]any {
+func compactUserTracks(tracks []any, nodes map[string]any, groupsByTrack map[string][]map[string]any) []map[string]any {
 	out := make([]map[string]any, 0, len(tracks))
 	for _, it := range tracks {
 		row, ok := it.(map[string]any)
 		if !ok || !isUserTrack(row) {
 			continue
 		}
-		out = append(out, compactTrack(trackRowWithDeltaProperties(row, nodes), len(out)+1))
+		merged := trackRowWithDeltaProperties(row, nodes)
+		annotateTrackGroups(merged, groupsByTrack[trackIDFromRow(merged)])
+		out = append(out, compactTrack(merged, len(out)+1))
 	}
 	return out
 }
 
 func trackRowWithDeltaProperties(row map[string]any, nodes map[string]any) map[string]any {
-	if len(nodes) == 0 {
-		return row
-	}
 	out := clone(row)
+	if len(nodes) == 0 {
+		return out
+	}
 	applyTrackDeltaProperties(out, nodeDeltaProperties(nodes, trackIDFromRow(row)))
 	for _, plugin := range asArray(firstPresent(row, "plugins", "rack_nodes")) {
 		pluginRow, ok := plugin.(map[string]any)
@@ -433,32 +461,120 @@ func volumeFaderPositionToDB(v any) (float64, bool) {
 	return math.Max(-100, 20*math.Log(position)+6), true
 }
 
+func compactTrackGroups(v any) []map[string]any {
+	groups := asArray(v)
+	out := make([]map[string]any, 0, len(groups))
+	for _, it := range groups {
+		row, ok := it.(map[string]any)
+		if !ok {
+			continue
+		}
+		groupID := strings.TrimSpace(fmt.Sprint(firstPresent(row, "group_id", "id")))
+		if groupID == "" || groupID == "<nil>" {
+			continue
+		}
+		trackIDs := stringSliceFromAny(firstPresent(row, "member_track_ids", "track_ids", "members"))
+		name := strings.TrimSpace(fmt.Sprint(firstPresent(row, "name", "label", "title")))
+		if name == "" || name == "<nil>" {
+			name = groupID
+		}
+		out = append(out, map[string]any{
+			"group_id":         groupID,
+			"id":               groupID,
+			"name":             name,
+			"color":            firstPresent(row, "color", "colour"),
+			"type":             firstPresent(row, "type", "group_type"),
+			"origin":           firstPresent(row, "origin"),
+			"enabled":          firstPresent(row, "enabled"),
+			"suspended":        firstPresent(row, "suspended"),
+			"track_ids":        trackIDs,
+			"member_track_ids": trackIDs,
+			"member_count":     len(trackIDs),
+			"linked_controls":  cloneMap(row["linked_controls"]),
+		})
+	}
+	return out
+}
+
+func trackGroupsByTrackID(groups []map[string]any) map[string][]map[string]any {
+	out := map[string][]map[string]any{}
+	for _, group := range groups {
+		for _, trackID := range stringSliceFromAny(firstPresent(group, "member_track_ids", "track_ids")) {
+			if trackID == "" {
+				continue
+			}
+			out[trackID] = append(out[trackID], group)
+		}
+	}
+	return out
+}
+
+func annotateTrackGroups(row map[string]any, groups []map[string]any) {
+	if len(groups) == 0 {
+		row["track_group_ids"] = []string{}
+		row["track_group_names"] = []string{}
+		row["track_groups"] = []map[string]any{}
+		return
+	}
+	groupIDs := make([]string, 0, len(groups))
+	groupNames := make([]string, 0, len(groups))
+	compact := make([]map[string]any, 0, len(groups))
+	for _, group := range groups {
+		groupID := strings.TrimSpace(fmt.Sprint(firstPresent(group, "group_id", "id")))
+		if groupID == "" || groupID == "<nil>" {
+			continue
+		}
+		name := strings.TrimSpace(fmt.Sprint(firstPresent(group, "name", "label")))
+		if name == "" || name == "<nil>" {
+			name = groupID
+		}
+		groupIDs = append(groupIDs, groupID)
+		groupNames = append(groupNames, name)
+		compact = append(compact, map[string]any{
+			"group_id": groupID,
+			"id":       groupID,
+			"name":     name,
+			"color":    firstPresent(group, "color", "colour"),
+		})
+	}
+	row["track_group_ids"] = groupIDs
+	row["group_ids"] = groupIDs
+	row["track_group_names"] = groupNames
+	row["group_names"] = groupNames
+	row["track_groups"] = compact
+}
+
 func compactTrack(row map[string]any, userIndex int) map[string]any {
 	return map[string]any{
-		"user_track_index": userIndex,
-		"is_user_visible":  true,
-		"id":               firstPresent(row, "id", "track_id"),
-		"track_id":         firstPresent(row, "track_id", "id"),
-		"name":             firstPresent(row, "name", "track_name"),
-		"track_name":       firstPresent(row, "track_name", "name"),
-		"type":             firstPresent(row, "type", "track_type"),
-		"track_type":       firstPresent(row, "track_type", "type"),
-		"is_audio_track":   row["is_audio_track"],
-		"mute":             firstPresent(row, "mute", "muted"),
-		"solo":             firstPresent(row, "solo", "is_solo"),
-		"is_armed":         firstPresent(row, "is_armed", "armed"),
-		"armed":            firstPresent(row, "armed", "is_armed"),
-		"volume_db":        firstPresent(row, "volume_db", "volumeDb"),
-		"fader_db":         firstPresent(row, "fader_db", "faderDb"),
-		"gain_db":          firstPresent(row, "gain_db", "gainDb"),
-		"pan":              firstPresent(row, "pan", "pan_value", "panValue"),
-		"pan_value":        firstPresent(row, "pan_value", "panValue", "pan"),
-		"level_db":         firstPresent(row, "level_db", "levelDb", "peak_db", "peakDb", "meter_peak_db", "meter_level_db"),
-		"left_level_db":    firstPresent(row, "left_level_db", "leftLevelDb", "left_peak_db", "leftPeakDb", "level_l_db", "peak_l_db"),
-		"right_level_db":   firstPresent(row, "right_level_db", "rightLevelDb", "right_peak_db", "rightPeakDb", "level_r_db", "peak_r_db"),
-		"plugins":          row["plugins"],
-		"clips":            row["clips"],
-		"rack":             row["rack"],
+		"user_track_index":  userIndex,
+		"is_user_visible":   true,
+		"id":                firstPresent(row, "id", "track_id"),
+		"track_id":          firstPresent(row, "track_id", "id"),
+		"name":              firstPresent(row, "name", "track_name"),
+		"track_name":        firstPresent(row, "track_name", "name"),
+		"type":              firstPresent(row, "type", "track_type"),
+		"track_type":        firstPresent(row, "track_type", "type"),
+		"is_audio_track":    row["is_audio_track"],
+		"mute":              firstPresent(row, "mute", "muted"),
+		"solo":              firstPresent(row, "solo", "is_solo"),
+		"is_armed":          firstPresent(row, "is_armed", "armed"),
+		"armed":             firstPresent(row, "armed", "is_armed"),
+		"volume_db":         firstPresent(row, "volume_db", "volumeDb"),
+		"fader_db":          firstPresent(row, "fader_db", "faderDb"),
+		"gain_db":           firstPresent(row, "gain_db", "gainDb"),
+		"pan":               firstPresent(row, "pan", "pan_value", "panValue"),
+		"pan_value":         firstPresent(row, "pan_value", "panValue", "pan"),
+		"level_db":          firstPresent(row, "level_db", "levelDb", "peak_db", "peakDb", "meter_peak_db", "meter_level_db"),
+		"left_level_db":     firstPresent(row, "left_level_db", "leftLevelDb", "left_peak_db", "leftPeakDb", "level_l_db", "peak_l_db"),
+		"right_level_db":    firstPresent(row, "right_level_db", "rightLevelDb", "right_peak_db", "rightPeakDb", "level_r_db", "peak_r_db"),
+		"track_group_ids":   firstPresent(row, "track_group_ids", "group_ids"),
+		"group_ids":         firstPresent(row, "group_ids", "track_group_ids"),
+		"track_group_names": firstPresent(row, "track_group_names", "group_names"),
+		"group_names":       firstPresent(row, "group_names", "track_group_names"),
+		"track_groups":      row["track_groups"],
+		"plugins":           row["plugins"],
+		"clips":             row["clips"],
+		"rack":              row["rack"],
 	}
 }
 
@@ -570,6 +686,56 @@ func asArray(v any) []any {
 		return arr
 	}
 	return nil
+}
+
+func stringSliceFromAny(v any) []string {
+	switch x := v.(type) {
+	case []string:
+		return append([]string(nil), x...)
+	case []any:
+		out := make([]string, 0, len(x))
+		seen := map[string]bool{}
+		for _, it := range x {
+			if row, ok := it.(map[string]any); ok {
+				for _, nested := range stringSliceFromAny(firstPresent(row, "track_id", "id", "member_track_id")) {
+					if nested != "" && !seen[nested] {
+						seen[nested] = true
+						out = append(out, nested)
+					}
+				}
+				continue
+			}
+			text := strings.TrimSpace(fmt.Sprint(it))
+			if text == "" || text == "<nil>" {
+				continue
+			}
+			for _, part := range strings.Split(text, ",") {
+				part = strings.TrimSpace(part)
+				if part != "" && !seen[part] {
+					seen[part] = true
+					out = append(out, part)
+				}
+			}
+		}
+		return out
+	case string:
+		var out []string
+		seen := map[string]bool{}
+		for _, part := range strings.Split(x, ",") {
+			part = strings.TrimSpace(part)
+			if part != "" && part != "<nil>" && !seen[part] {
+				seen[part] = true
+				out = append(out, part)
+			}
+		}
+		return out
+	default:
+		text := strings.TrimSpace(fmt.Sprint(v))
+		if text == "" || text == "<nil>" {
+			return nil
+		}
+		return stringSliceFromAny(text)
+	}
 }
 
 func float64From(v any) (float64, bool) {

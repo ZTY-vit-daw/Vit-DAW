@@ -6,6 +6,7 @@
       Vit DAW.exe              launcher entry
       ui\                      Godot UI export + UI/CEF runtime files and dirs
       kernel\                  VitApp.exe
+      hub\                     VspHub.exe
       agent\                   VitAgent.exe + webui\dist
 
     This release is Go-agent-only. It intentionally does not ship the legacy
@@ -20,6 +21,7 @@ param(
     [string]$UiExe = "D:\Vit_DAW\Export\Vit DAW v0.93.exe",
     [string]$ReleaseDir = "",
     [string]$KernelExe = "D:\Vit_DAW\VitApp\build_release\VitApp.exe",
+    [string]$VspHubExe = "D:\Vit_DAW\agent\bin\VspHub.exe",
     [string]$AgentExe = "D:\Vit_DAW\agent\bin\VitAgent.exe",
     [string]$LauncherExe = "",
     [string]$UiDependencyDir = "D:\Godot\project\vit-daw-frontend",
@@ -27,6 +29,7 @@ param(
     [string]$InnoCompiler = "",
     [switch]$SkipWebUIBuild,
     [switch]$SkipAgentBuild,
+    [switch]$SkipHubBuild,
     [switch]$SkipLauncherBuild,
     [switch]$SkipInnoCompile
 )
@@ -88,7 +91,7 @@ if (-not [string]::IsNullOrWhiteSpace($UiDependencyDir) -and -not (Test-Path -Li
 }
 
 if (-not $SkipWebUIBuild) {
-    Write-Host "[1/5] Building Ask Vit WebUI ..."
+    Write-Host "[1/6] Building Ask Vit WebUI ..."
     Push-Location $WebUIDir
     try {
         npm run build
@@ -101,7 +104,7 @@ if (-not $SkipWebUIBuild) {
 Assert-WebUIDist (Join-Path $WebUIDir "dist")
 
 if (-not $SkipAgentBuild) {
-    Write-Host "[2/5] Building VitAgent ..."
+    Write-Host "[2/6] Building VitAgent ..."
     Push-Location (Join-Path $RepoRoot "agent")
     try {
         go build -o $AgentExe .\cmd\vitagent
@@ -115,8 +118,23 @@ if (-not (Test-Path -LiteralPath $AgentExe)) {
     throw "VitAgent.exe not found: $AgentExe"
 }
 
+if (-not $SkipHubBuild) {
+    Write-Host "[3/6] Building VspHub ..."
+    Push-Location (Join-Path $RepoRoot "agent")
+    try {
+        go build -o $VspHubExe .\cmd\vsphub
+    }
+    finally {
+        Pop-Location
+    }
+    if ($LASTEXITCODE -ne 0) { throw "VspHub build failed with exit code $LASTEXITCODE" }
+}
+if (-not (Test-Path -LiteralPath $VspHubExe)) {
+    throw "VspHub.exe not found: $VspHubExe"
+}
+
 if (-not $SkipLauncherBuild) {
-    Write-Host "[3/5] Building launcher ..."
+    Write-Host "[4/6] Building launcher ..."
     $LauncherSourceDir = Join-Path $RepoRoot "Export"
     $LauncherBuildDir = Join-Path $RepoRoot "Export\build_launcher_v0.93"
     cmake -S $LauncherSourceDir -B $LauncherBuildDir -A x64
@@ -128,11 +146,12 @@ if (-not (Test-Path -LiteralPath $LauncherExe)) {
     throw "Launcher exe not found: $LauncherExe"
 }
 
-Write-Host "[4/5] Assembling v0.93 Go-agent-only release folder ..."
+Write-Host "[5/6] Assembling v0.93 Go-agent-only release folder ..."
 $assembleArgs = @{
     GodotUiExe           = $UiExe
     OutDir               = $ReleaseDir
     KernelExe            = $KernelExe
+    VspHubExe            = $VspHubExe
     AgentExe             = $AgentExe
     LauncherExe          = $LauncherExe
     GodotUiDependencyDir = $UiDependencyDir
@@ -140,15 +159,19 @@ $assembleArgs = @{
     LayeredPayload       = $true
     NoPythonBridge       = $true
     RequireAgent         = $true
+    RequireHub           = $true
 }
 & $AssembleScript @assembleArgs
 
 Assert-WebUIDist (Join-Path $ReleaseDir "agent\webui\dist")
 Assert-UiRuntime (Join-Path $ReleaseDir "ui")
-Write-Host "Verified release includes Ask Vit WebUI dist and Godot/CEF runtime directories."
+if (-not (Test-Path -LiteralPath (Join-Path $ReleaseDir "hub\VspHub.exe"))) {
+    throw "VSP Hub payload missing from release: $(Join-Path $ReleaseDir "hub\VspHub.exe")"
+}
+Write-Host "Verified release includes Ask Vit WebUI dist, VSP Hub, and Godot/CEF runtime directories."
 
 if ($SkipInnoCompile) {
-    Write-Host "[5/5] Skipped Inno compile by request."
+    Write-Host "[6/6] Skipped Inno compile by request."
     Write-Host "Release folder ready: $ReleaseDir"
     exit 0
 }
@@ -164,7 +187,7 @@ if ([string]::IsNullOrWhiteSpace($InnoCompiler) -or -not (Test-Path -LiteralPath
     throw "ISCC.exe not found. Install Inno Setup 6, or pass -InnoCompiler <path-to-ISCC.exe>."
 }
 
-Write-Host "[5/5] Compiling installer with Inno Setup ..."
+Write-Host "[6/6] Compiling installer with Inno Setup ..."
 $releaseDefineArg = "/DCustomReleaseDir=$ReleaseDir"
 & $InnoCompiler $releaseDefineArg $IssPath
 if ($LASTEXITCODE -ne 0) { throw "Inno compile failed with exit code $LASTEXITCODE" }

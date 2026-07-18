@@ -26,9 +26,16 @@ try {
     $outExe = Join-Path $OutDir "VitAgent.exe"
     go build -o $outExe .\cmd\vitagent
     if ($LASTEXITCODE -ne 0) {
-        throw "go build failed with exit code $LASTEXITCODE"
+        throw "VitAgent go build failed with exit code $LASTEXITCODE"
     }
     Write-Host "Built VitAgent: $outExe"
+
+    $hubExe = Join-Path $OutDir "VspHub.exe"
+    go build -o $hubExe .\cmd\vsphub
+    if ($LASTEXITCODE -ne 0) {
+        throw "VspHub go build failed with exit code $LASTEXITCODE"
+    }
+    Write-Host "Built VspHub: $hubExe"
 }
 finally {
     Pop-Location

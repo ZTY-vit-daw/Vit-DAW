@@ -63,12 +63,12 @@ juce::String ProjectService::handleOpenProject (const juce::DynamicObject& objec
     return openProjectReply (object, target);
 }
 
-juce::String ProjectService::handleNewProject (const juce::DynamicObject&, const juce::String&) const
+juce::String ProjectService::handleNewProject (const juce::DynamicObject& object, const juce::String&) const
 {
     if (! newBlankProjectReply)
         return makeErrorReply ("new_project is not available in this build");
 
-    return newBlankProjectReply();
+    return newBlankProjectReply (object);
 }
 
 juce::String ProjectService::handleSaveAsProject (const juce::DynamicObject& object, const juce::String&) const

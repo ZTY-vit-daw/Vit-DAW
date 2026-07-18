@@ -9,13 +9,29 @@ import (
 )
 
 func localizedMixTreatmentDisplayPayload(treatment agentloop.MixTreatmentPending) map[string]any {
+	workflowDisplay := agentloop.ActionWorkflowDisplayFromMixTreatment(treatment)
+	reasoning := localizedMixTreatmentReasoning(treatment)
+	if reasoning != "" {
+		workflowDisplay.Conclusion = reasoning
+		workflowDisplay.CardBody = strings.Join([]string{
+			"结论：" + workflowDisplay.Conclusion,
+			"依据：" + workflowDisplay.Evidence,
+			"待确认动作：" + workflowDisplay.PendingAction,
+			"限制：" + workflowDisplay.Limitations,
+		}, "\n")
+	}
 	display := map[string]any{
-		"status":            "待确认",
-		"target_ref":        localizedMixTreatmentTargetRef(treatment.TargetRef),
-		"action_kind":       localizedMixTreatmentActionKind(treatment.ActionKind),
-		"processor_type":    localizedMixTreatmentProcessor(treatment.ProcessorType),
-		"confidence":        localizedMixTreatmentConfidence(treatment.Confidence),
-		"reasoning_summary": localizedMixTreatmentReasoning(treatment),
+		"status":            firstNonEmpty(workflowDisplay.StatusLabel, "待确认"),
+		"target_ref":        firstNonEmpty(workflowDisplay.TargetLabel, localizedMixTreatmentTargetRef(treatment.TargetRef)),
+		"action_kind":       firstNonEmpty(workflowDisplay.ActionLabel, localizedMixTreatmentActionKind(treatment.ActionKind)),
+		"processor_type":    firstNonEmpty(workflowDisplay.ProcessorLabel, localizedMixTreatmentProcessor(treatment.ProcessorType)),
+		"confidence":        firstNonEmpty(workflowDisplay.ConfidenceLabel, localizedMixTreatmentConfidence(treatment.Confidence)),
+		"reasoning_summary": firstNonEmpty(reasoning, workflowDisplay.Conclusion),
+		"evidence":          workflowDisplay.Evidence,
+		"pending_action":    workflowDisplay.PendingAction,
+		"limitations":       workflowDisplay.Limitations,
+		"card_title":        workflowDisplay.CardTitle,
+		"card_body":         workflowDisplay.CardBody,
 		"needs_resolution":  localizedMixTreatmentNeeds(treatment.NeedsResolution),
 	}
 	removeEmptyTreatmentValues(display)

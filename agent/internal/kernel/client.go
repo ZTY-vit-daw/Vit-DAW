@@ -5,14 +5,18 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/go-zeromq/zmq4"
 )
 
 type Client struct {
-	Endpoint string
-	Timeout  time.Duration
+	Endpoint     string
+	Timeout      time.Duration
+	mu           sync.Mutex
+	sessionID    string
+	featureFlags map[string]bool
 }
 
 func New(endpoint string, timeout time.Duration) *Client {
@@ -22,7 +26,7 @@ func New(endpoint string, timeout time.Duration) *Client {
 	if timeout <= 0 {
 		timeout = 120 * time.Second
 	}
-	return &Client{Endpoint: endpoint, Timeout: timeout}
+	return &Client{Endpoint: endpoint, Timeout: timeout, featureFlags: map[string]bool{}}
 }
 
 func (c *Client) SendRaw(ctx context.Context, payload string) (string, error) {

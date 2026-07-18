@@ -16,9 +16,11 @@ import (
 	executorpkg "vit-daw-agent/internal/executor"
 	"vit-daw-agent/internal/harness"
 	"vit-daw-agent/internal/llm"
+	"vit-daw-agent/internal/panlayout"
 	"vit-daw-agent/internal/planner"
 	"vit-daw-agent/internal/policy"
 	agentruntime "vit-daw-agent/internal/runtime"
+	"vit-daw-agent/internal/staticbalance"
 	"vit-daw-agent/internal/tools"
 )
 
@@ -204,33 +206,36 @@ func (s *Server) runAgentLoopChat(ctx context.Context, conversationID string, re
 			state["project_history"] = projectHistory
 		}
 		toolContext := s.agentLoopToolContext(mode, userText, chatContext)
+		executionMemory := s.agentLoopExecutionMemoryForConversation(conversationID)
 		if useLegacyPlannerLoop() {
 			res = legacyRunner.Start(ctx, agentloop.Input{
-				GoalID:         goalID,
-				RunID:          runID,
-				UserText:       userText,
-				Summary:        userText,
-				Context:        chatContext,
-				ProjectHistory: projectHistory,
-				Conversation:   s.freshAgentLoopConversation(conversationID, userText, projectHistory),
-				State:          state,
-				CatalogSummary: toolContext.CatalogSummary,
-				AllowedTools:   toolContext.AllowedTools,
-				Budget:         agentLoopBudgetForMode(mode),
+				GoalID:          goalID,
+				RunID:           runID,
+				UserText:        userText,
+				Summary:         userText,
+				Context:         chatContext,
+				ProjectHistory:  projectHistory,
+				Conversation:    s.freshAgentLoopConversation(conversationID, userText, projectHistory),
+				State:           state,
+				CatalogSummary:  toolContext.CatalogSummary,
+				AllowedTools:    toolContext.AllowedTools,
+				Budget:          agentLoopBudgetForMode(mode),
+				ExecutionMemory: executionMemory,
 			})
 		} else {
 			res = messageLoop.Start(ctx, agentloop.Input{
-				GoalID:         goalID,
-				RunID:          runID,
-				UserText:       userText,
-				Summary:        userText,
-				Context:        chatContext,
-				ProjectHistory: projectHistory,
-				Conversation:   s.freshAgentLoopConversation(conversationID, userText, projectHistory),
-				State:          state,
-				CatalogSummary: toolContext.CatalogSummary,
-				AllowedTools:   toolContext.AllowedTools,
-				Budget:         agentLoopBudgetForMode(mode),
+				GoalID:          goalID,
+				RunID:           runID,
+				UserText:        userText,
+				Summary:         userText,
+				Context:         chatContext,
+				ProjectHistory:  projectHistory,
+				Conversation:    s.freshAgentLoopConversation(conversationID, userText, projectHistory),
+				State:           state,
+				CatalogSummary:  toolContext.CatalogSummary,
+				AllowedTools:    toolContext.AllowedTools,
+				Budget:          agentLoopBudgetForMode(mode),
+				ExecutionMemory: executionMemory,
 			})
 		}
 	}
@@ -319,6 +324,49 @@ func (e pluginGrabberWorkflowExecutor) RunToolCall(ctx context.Context, in execu
 	if e.server != nil {
 		e.server.emitToolItemStarted(in, toolCallID)
 	}
+	if e.server != nil && isEqualizerCapabilityToolCall(in.ToolCall) {
+		out, err := e.server.invokeEqualizerCapabilityTool(ctx, in)
+		if strings.TrimSpace(out.ToolCallID) == "" {
+			out.ToolCallID = toolCallID
+		}
+		e.server.emitToolItemCompleted(in, out, err)
+		return out, err
+	}
+	if e.server != nil && agentLoopSelectedPluginEQProviderFallbackLoadBlocked(in) {
+		out := executorpkg.Result{
+			ToolCallID:  toolCallID,
+			Tool:        firstNonEmpty(strings.TrimSpace(in.ToolCall.Tool), "plugin.load_to_rack"),
+			CommandName: "plugin.load_to_rack",
+			Status:      "ok",
+			Result: map[string]any{
+				"status":                   "blocked",
+				"blocker":                  "selected_plugin_provider_fallback_forbidden",
+				"message":                  "当前已选择一个插件实例；普通 EQ 控制不能因为该实例没有 verified Provider 而自动加载或替换为另一款插件。请使用当前实例的 staging/verified 路径，或明确要求加载指定插件。",
+				"required_capability_tool": equalizerCapabilityPlanTool,
+				"plugin_loading":           "requires_explicit_user_request",
+			},
+		}
+		e.server.emitToolItemCompleted(in, out, nil)
+		return out, nil
+	}
+	if isPluginGrabberLearnToolCall(in.ToolCall) && !agentLoopExplicitPluginLearningRequest(in) {
+		out := executorpkg.Result{
+			ToolCallID:  toolCallID,
+			Tool:        pluginGrabberLearnTool,
+			CommandName: pluginGrabberLearnCommand,
+			Status:      "ok",
+			Result: map[string]any{
+				"status":                   "blocked",
+				"blocker":                  "plugin_learning_requires_explicit_user_intent",
+				"message":                  "Plugin Learning 是用户明确发起的建档流程，不能作为普通插件控制失败后的自动回退。对于 EQ 控制，请改用 capability.equalizer.plan。",
+				"required_capability_tool": equalizerCapabilityPlanTool,
+			},
+		}
+		if e.server != nil {
+			e.server.emitToolItemCompleted(in, out, nil)
+		}
+		return out, nil
+	}
 	if e.server == nil || !isPluginGrabberLearnToolCall(in.ToolCall) {
 		out, err := e.base.RunToolCall(ctx, in)
 		if e.server != nil {
@@ -366,6 +414,48 @@ func (e pluginGrabberWorkflowExecutor) RunToolCall(ctx context.Context, in execu
 		e.server.emitToolItemCompleted(in, out, err)
 	}
 	return out, err
+}
+
+func agentLoopExplicitPluginLearningRequest(in executorpkg.Input) bool {
+	userText := cleanContextText(in.Context["user_message"])
+	return len(synthesizePluginGrabberLearningCommands(userText, in.Context)) > 0
+}
+
+func agentLoopSelectedPluginEQProviderFallbackLoadBlocked(in executorpkg.Input) bool {
+	if !agentLoopPluginLoadToolCall(in.ToolCall) {
+		return false
+	}
+	if !contextHasAnyValue(in.Context, "selected_plugin_id", "primary_selected_plugin_id") {
+		return false
+	}
+	text := strings.ToLower(strings.TrimSpace(cleanContextText(in.Context["user_message"])))
+	if !agentLoopTextHasAny(text,
+		"均衡", "低切", "高切", "高通", "低通", "eq", "equalizer", "highpass", "high-pass", "lowpass", "low-pass",
+	) {
+		return false
+	}
+	return !agentLoopExplicitPluginLoadRequest(text)
+}
+
+func agentLoopPluginLoadToolCall(call planner.ToolCall) bool {
+	name := strings.ToLower(strings.TrimSpace(call.Tool))
+	if name == "" {
+		command := workflowCommandArgs(call.Command)
+		name = strings.ToLower(firstNonEmpty(cleanContextText(command["cmd"]), cleanContextText(command["command"]), cleanContextText(command["tool"])))
+	}
+	switch name {
+	case "plugin.load_to_rack", "rack.add_node", "rack_add_node", "instantiate_plugin", "plugin.instantiate":
+		return true
+	default:
+		return false
+	}
+}
+
+func agentLoopExplicitPluginLoadRequest(text string) bool {
+	return agentLoopTextHasAny(text,
+		"加载一个", "加载插件", "添加插件", "插入插件", "挂载插件", "新建插件", "加载 tdr", "加载 nova", "加载 pro-q",
+		"load a plugin", "load plugin", "add plugin", "insert plugin", "instantiate plugin", "load tdr", "load nova", "load pro-q",
+	)
 }
 
 func isPluginGrabberLearnToolCall(call planner.ToolCall) bool {
@@ -425,6 +515,7 @@ func agentLoopBudgetForMode(mode string) agentloop.Budget {
 	}
 }
 func (s *Server) chatResponseFromAgentLoopResult(conversationID, mode string, res agentloop.Result) ChatResponse {
+	res = s.applyLegacyCapabilityCreationGate(res)
 	s.recordGoalResult(conversationID, res)
 	reply := strings.TrimSpace(res.Reply)
 	if reply == "" {
@@ -452,6 +543,7 @@ func (s *Server) chatResponseFromAgentLoopResult(conversationID, mode string, re
 	if chatResponseLooksMixRelated(res) {
 		reply = localizedDisplayTextFallback(reply)
 	}
+	visibleExecuted := compactAgentLoopExecutedForResponse(res.Executed)
 	resp := ChatResponse{
 		ConversationID:      conversationID,
 		GoalID:              res.GoalID,
@@ -460,9 +552,10 @@ func (s *Server) chatResponseFromAgentLoopResult(conversationID, mode string, re
 		AgentMode:           mode,
 		NeedsConfirmation:   res.Status == agentruntime.StatusWaitingConfirmation,
 		Preview:             res.Preview,
-		ExecutedKernelReply: res.Executed,
-		ProjectResultCards:  projectResultCardsFromExecuted(res.Executed),
-		Artifacts:           artifactSummariesFromExecuted(res.Executed),
+		ExecutedKernelReply: visibleExecuted,
+		InteractionRequests: agentLoopInteractionRequests(res.Executed),
+		ProjectResultCards:  projectResultCardsFromExecuted(visibleExecuted),
+		Artifacts:           artifactSummariesFromExecuted(visibleExecuted),
 		GoalStatus:          string(res.Status),
 		GoalSummary:         res.GoalSummary,
 		CurrentStep:         res.CurrentStep,
@@ -476,6 +569,7 @@ func (s *Server) chatResponseFromAgentLoopResult(conversationID, mode string, re
 	attachAcousticPackageStatusFromAgentLoopResult(&resp, res.Executed)
 	if res.Status == agentruntime.StatusWaitingConfirmation && res.Continuation != nil {
 		decisions := agentLoopPendingDecisions(res.Continuation)
+		responseDecisions := compactAgentLoopDecisionsForResponse(decisions)
 		plan := PendingPlan{
 			ID:               "plan_" + randomID(),
 			CreatedAt:        time.Now(),
@@ -491,8 +585,8 @@ func (s *Server) chatResponseFromAgentLoopResult(conversationID, mode string, re
 		s.mu.Unlock()
 		resp.PlanID = plan.ID
 		resp.NeedsConfirmation = true
-		resp.Commands = decisions
-		if event := typedApprovalEventFromPendingTool(plan.ID, res.Continuation, decisions, conversationID); event != nil {
+		resp.Commands = responseDecisions
+		if event := typedApprovalEventFromPendingTool(plan.ID, res.Continuation, responseDecisions, conversationID); event != nil {
 			resp.TypedEvents = append(resp.TypedEvents, event)
 		}
 	}
@@ -538,8 +632,31 @@ func (s *Server) chatResponseFromAgentLoopResult(conversationID, mode string, re
 	return resp
 }
 
+// Agent-loop tools keep their original response under executed[].result. A
+// formal interaction there is still the card the UI must render; promoting it
+// prevents a generic confirmation card from replacing a workflow-specific
+// choice such as Plugin Learning's optional UI-reference step.
+func agentLoopInteractionRequests(executed []map[string]any) []AgentInteractionRequest {
+	requests := make([]AgentInteractionRequest, 0)
+	seen := map[string]bool{}
+	for _, row := range executed {
+		result := mapValue(row["result"])
+		for _, request := range interactionRequestsFromAny(result["interaction_requests"]) {
+			id := strings.TrimSpace(request.ID)
+			if id != "" {
+				if seen[id] {
+					continue
+				}
+				seen[id] = true
+			}
+			requests = append(requests, request)
+		}
+	}
+	return requests
+}
+
 func chatResponseLooksMixRelated(res agentloop.Result) bool {
-	if res.ExecutionMemory.PendingMixTreatment != nil || res.ExecutionMemory.PendingMixTickCandidate != nil {
+	if res.ExecutionMemory.PendingMixTreatment != nil || res.ExecutionMemory.PendingMixTickCandidate != nil || res.ExecutionMemory.PendingStaticBalancePlan != nil || res.ExecutionMemory.PendingPanLayoutPlan != nil {
 		return true
 	}
 	for _, executed := range res.Executed {
@@ -590,6 +707,9 @@ func mixTreatmentInteractionPayload(treatment agentloop.MixTreatmentPending) map
 	if value := cleanContextText(display["reasoning_summary"]); value != "" {
 		payload["display_reasoning_summary"] = value
 	}
+	if value := cleanContextText(display["card_body"]); value != "" {
+		payload["display_card_body"] = value
+	}
 	if value := contextStringSlice(display["needs_resolution"]); len(value) > 0 {
 		payload["display_needs_resolution"] = value
 	}
@@ -627,7 +747,8 @@ func mixTreatmentInteractionRequest(conversationID, goalID, runID, reply string,
 	typed := treatment.ToPendingCandidate(conversationID, goalID, runID, "")
 	payload = typedPendingPayload(payload, typed)
 	payload["conversation_id"] = conversationID
-	body := firstNonEmpty(cleanContextText(payload["display_reasoning_summary"]), localizedMixTreatmentReasoning(treatment), strings.TrimSpace(reply), "这个混音动作正在等待确认。")
+	payload["request_context"] = contextWithGoal(map[string]any{"conversation_id": conversationID}, goalID, runID)
+	body := firstNonEmpty(cleanContextText(payload["display_card_body"]), cleanContextText(payload["display_reasoning_summary"]), localizedMixTreatmentReasoning(treatment), strings.TrimSpace(reply), "这个混音动作正在等待确认。")
 	return AgentInteractionRequest{
 		ID:             "interaction_" + randomID(),
 		Kind:           "mix_treatment_confirmation",
@@ -653,7 +774,7 @@ func mixTickInteractionRequest(conversationID, goalID, runID string, candidate a
 	typed := candidate.ToPendingCandidate(conversationID, goalID, runID, "")
 	payload := typedPendingPayload(pendingMixTickEventPayload(candidate, candidate.ObservationID), typed)
 	payload["conversation_id"] = conversationID
-	payload["request_context"] = map[string]any{"conversation_id": conversationID}
+	payload["request_context"] = contextWithGoal(map[string]any{"conversation_id": conversationID}, goalID, runID)
 	return AgentInteractionRequest{
 		ID:             "interaction_" + randomID(),
 		Kind:           "mix_tick_confirmation",
@@ -778,6 +899,7 @@ func (s *Server) resolveAgentLoopConfirm(ctx context.Context, planID string, pla
 			time.Since(resumeStarted).Milliseconds(), planID, res.GoalID, mode, res.Status, res.StopReason, len(res.Executed))
 	}
 	resp := s.chatResponseFromAgentLoopResult(conversationID, mode, res)
+	ensureChatResponseMessageProtocol(&resp)
 	status := "ok"
 	if strings.TrimSpace(resp.Error) != "" {
 		status = "error"
@@ -785,7 +907,7 @@ func (s *Server) resolveAgentLoopConfirm(ctx context.Context, planID string, pla
 	responsePlanID := AgentLoopConfirmResponsePlanID(planID, resp)
 	projectHistory := resp.ProjectHistory
 	if strings.TrimSpace(resp.Reply) != "" {
-		historyData := map[string]any{}
+		historyData := chatResponseHistoryData(resp, map[string]any{})
 		if len(resp.Artifacts) > 0 {
 			historyData["artifacts"] = artifactSummaryRows(resp.Artifacts)
 		}
@@ -800,6 +922,7 @@ func (s *Server) resolveAgentLoopConfirm(ctx context.Context, planID string, pla
 		projectHistory = s.harness.ProjectHistorySummaryForProject(ctx, resp.GoalID, projectPath)
 	}
 	resp.ProjectHistory = projectHistory
+	syncChatResponseMessageIdentityFromHistory(&resp)
 	syncAgentPlanProjectHistory(&resp)
 	s.attachInteractionRequests(&resp)
 	return http.StatusOK, map[string]any{
@@ -831,6 +954,12 @@ func (s *Server) resolveAgentLoopConfirm(ctx context.Context, planID string, pla
 		"acoustic_package_status":      resp.AcousticPackageStatus,
 		"acoustic_package_status_path": resp.AcousticPackageStatusPath,
 		"error":                        resp.Error,
+		"lifecycle":                    resp.Lifecycle,
+		"persistence":                  resp.Persistence,
+		"message_kind":                 resp.MessageKind,
+		"turn_id":                      resp.TurnID,
+		"logical_message_id":           resp.LogicalMessageID,
+		"supersedes":                   resp.Supersedes,
 	}
 }
 
@@ -905,6 +1034,11 @@ func (s *Server) recordGoalResult(conversationID string, res agentloop.Result) {
 	s.mu.Lock()
 	if strings.TrimSpace(conversationID) != "" {
 		s.conversationGoals[conversationID] = res.GoalID
+		if hasAgentLoopExecutionMemory(res.ExecutionMemory) {
+			s.conversationMemory[conversationID] = cloneAgentLoopExecutionMemory(res.ExecutionMemory)
+		} else {
+			delete(s.conversationMemory, conversationID)
+		}
 		if candidate := res.ExecutionMemory.PendingMixTickCandidate; candidate != nil && strings.EqualFold(strings.TrimSpace(candidate.Status), "pending_confirmation") {
 			typed := candidate.ToPendingCandidate(conversationID, res.GoalID, res.RunID, "")
 			s.upsertPendingCandidate(typed)
@@ -945,7 +1079,7 @@ func (s *Server) recordGoalResult(conversationID string, res agentloop.Result) {
 				ItemType: "mix_treatment",
 				Status:   "pending_confirmation",
 				Title:    "混音建议待确认",
-				Body:     localizedMixTreatmentReasoning(*treatment),
+				Body:     firstNonEmpty(cleanContextText(treatmentPayload["display_card_body"]), localizedMixTreatmentReasoning(*treatment)),
 				Payload:  treatmentPayload,
 			})
 		}
@@ -959,6 +1093,66 @@ func (s *Server) recordGoalResult(conversationID string, res agentloop.Result) {
 	for _, pendingEvent := range pendingEvents {
 		s.emitAgentEvent(conversationID, pendingEvent)
 	}
+}
+
+func (s *Server) agentLoopExecutionMemoryForConversation(conversationID string) agentloop.ExecutionMemory {
+	if s == nil || strings.TrimSpace(conversationID) == "" {
+		return agentloop.ExecutionMemory{}
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return cloneAgentLoopExecutionMemory(s.conversationMemory[conversationID])
+}
+
+func cloneAgentLoopExecutionMemory(in agentloop.ExecutionMemory) agentloop.ExecutionMemory {
+	out := in
+	if in.PendingStaticBalancePlan != nil {
+		plan := *in.PendingStaticBalancePlan
+		plan.Actions = append([]agentloop.PendingStaticBalanceAction(nil), in.PendingStaticBalancePlan.Actions...)
+		plan.Assumptions = append([]string(nil), in.PendingStaticBalancePlan.Assumptions...)
+		plan.Limitations = append([]string(nil), in.PendingStaticBalancePlan.Limitations...)
+		plan.EvidenceRefs = append([]string(nil), in.PendingStaticBalancePlan.EvidenceRefs...)
+		plan.FunctionSummary = append([]staticbalance.FunctionSummary(nil), in.PendingStaticBalancePlan.FunctionSummary...)
+		out.PendingStaticBalancePlan = &plan
+	}
+	if in.PendingPanLayoutPlan != nil {
+		plan := *in.PendingPanLayoutPlan
+		plan.Actions = append([]agentloop.PendingPanLayoutAction(nil), in.PendingPanLayoutPlan.Actions...)
+		plan.Assumptions = append([]string(nil), in.PendingPanLayoutPlan.Assumptions...)
+		plan.Limitations = append([]string(nil), in.PendingPanLayoutPlan.Limitations...)
+		plan.EvidenceRefs = append([]string(nil), in.PendingPanLayoutPlan.EvidenceRefs...)
+		plan.GroupSummary = append([]panlayout.GroupSummary(nil), in.PendingPanLayoutPlan.GroupSummary...)
+		out.PendingPanLayoutPlan = &plan
+	}
+	out.PendingTrackOrganization = cloneContext(in.PendingTrackOrganization)
+	if len(in.Bindings) > 0 {
+		out.Bindings = append([]agentloop.ExecutionBinding(nil), in.Bindings...)
+	}
+	return out
+}
+
+func hasAgentLoopExecutionMemory(memory agentloop.ExecutionMemory) bool {
+	return strings.TrimSpace(memory.LastCreatedTrackID) != "" ||
+		strings.TrimSpace(memory.LastCreatedTrackName) != "" ||
+		strings.TrimSpace(memory.LastCreatedFolderTrackID) != "" ||
+		strings.TrimSpace(memory.LastCreatedFolderTrackName) != "" ||
+		strings.TrimSpace(memory.LastCreatedClipID) != "" ||
+		strings.TrimSpace(memory.LastCreatedClipName) != "" ||
+		strings.TrimSpace(memory.LastLoadedPluginID) != "" ||
+		strings.TrimSpace(memory.LastLoadedPluginName) != "" ||
+		strings.TrimSpace(memory.LastMixTickID) != "" ||
+		strings.TrimSpace(memory.ActiveWorkTargetTrackID) != "" ||
+		strings.TrimSpace(memory.ActiveWorkTargetFolderTrackID) != "" ||
+		strings.TrimSpace(memory.ActiveWorkTargetClipID) != "" ||
+		strings.TrimSpace(memory.ActiveWorkTargetPluginID) != "" ||
+		memory.PendingMixTickCandidate != nil ||
+		memory.PendingStaticBalancePlan != nil ||
+		memory.PendingPanLayoutPlan != nil ||
+		memory.PendingMixTreatment != nil ||
+		len(memory.PendingTrackOrganization) > 0 ||
+		strings.TrimSpace(memory.MixDiagnosisContextID) != "" ||
+		len(memory.MixDiagnosisContext) > 0 ||
+		len(memory.Bindings) > 0
 }
 
 func (s *Server) clearGoalContinuation(goalID string) {
@@ -1062,7 +1256,9 @@ func toolNamesForAgentLoop(h *harness.Harness, mode string) []string {
 	seen := map[string]bool{}
 	if agentModeFromString(mode) != agentModePlan {
 		seen["daw.invoke"] = true
+		seen["capability.equalizer.plan"] = true
 	}
+	seen["capability.equalizer.inspect"] = true
 	if h == nil {
 		return sortedToolNameKeys(seen)
 	}
@@ -1093,6 +1289,13 @@ func toolNamesForAgentLoopCapabilities(h *harness.Harness, mode string, capabili
 	if agentModeFromString(mode) != agentModePlan && available["daw.invoke"] && allowRawInvoke {
 		seen["daw.invoke"] = true
 	}
+	projectAudioRequested := false
+	for _, capability := range capabilities {
+		if capability == "project_audio" {
+			projectAudioRequested = true
+			break
+		}
+	}
 	add := func(names ...string) {
 		for _, name := range names {
 			name = strings.TrimSpace(name)
@@ -1104,14 +1307,22 @@ func toolNamesForAgentLoopCapabilities(h *harness.Harness, mode string, capabili
 	add(agentLoopBaseTools()...)
 	for _, capability := range capabilities {
 		switch capability {
+		case "static_mix_pan_layout":
+			add(agentLoopStaticMixPanLayoutTools()...)
+		case "static_mix_static_balance":
+			add(agentLoopStaticMixStaticBalanceTools()...)
+		case "static_mix_gain_staging":
+			add(agentLoopStaticMixGainStagingTools()...)
 		case "track":
 			add(agentLoopTrackTools()...)
 		case "midi":
 			add(agentLoopTrackTools()...)
 			add(agentLoopMidiTools()...)
 		case "clip":
-			add(agentLoopTrackTools()...)
-			add(agentLoopClipTools()...)
+			if !projectAudioRequested {
+				add(agentLoopTrackTools()...)
+				add(agentLoopClipTools()...)
+			}
 		case "plugin":
 			add(agentLoopTrackTools()...)
 			add(agentLoopPluginTools()...)
@@ -1126,7 +1337,13 @@ func toolNamesForAgentLoopCapabilities(h *harness.Harness, mode string, capabili
 			add(agentLoopClipTools()...)
 		case "media":
 			add(agentLoopMediaTools()...)
-			add(agentLoopClipTools()...)
+			if !projectAudioRequested {
+				add(agentLoopClipTools()...)
+			}
+		case "project_audio":
+			add(agentLoopProjectAudioTools()...)
+		case "project_marker":
+			add(agentLoopProjectMarkerTools()...)
 		case "workspace":
 			add(agentLoopWorkspaceTools()...)
 		}
@@ -1139,16 +1356,34 @@ func toolNamesForAgentLoopCapabilities(h *harness.Harness, mode string, capabili
 
 func agentLoopCapabilityNames(userText string, requestContext map[string]any) []string {
 	text := strings.ToLower(strings.TrimSpace(userText))
+	projectAudioImportRequested := agentLoopProjectAudioImportIntent(text, requestContext)
+	trackOrganizationRequested := !projectAudioImportRequested && agentLoopTrackOrganizationIntent(text)
+	route := agentLoopClassifyCapabilityRoute(userText, requestContext)
 	seen := map[string]bool{}
 	add := func(name string) {
 		if strings.TrimSpace(name) != "" {
 			seen[name] = true
 		}
 	}
-	if agentLoopTextHasAny(text,
+	if route.clipFadeGain {
+		add("clip")
+	}
+	panLayoutRequested := agentLoopStaticMixPanLayoutIntent(text)
+	staticBalanceRequested := agentLoopStaticMixStaticBalanceIntent(text)
+	if panLayoutRequested {
+		add("static_mix_pan_layout")
+	} else if staticBalanceRequested {
+		add("static_mix_static_balance")
+	} else if agentLoopStaticMixGainStagingIntent(text) {
+		add("static_mix_gain_staging")
+	}
+	if !projectAudioImportRequested && agentLoopTextHasAny(text,
 		"\u8f68\u9053", "\u97f3\u8f68", "\u9759\u97f3", "\u72ec\u594f", "\u97f3\u91cf", "\u5f55\u97f3", "\u51bb\u7ed3",
 		"track", "mute", "solo", "volume", "arm", "freeze",
 	) {
+		add("track")
+	}
+	if trackOrganizationRequested {
 		add("track")
 	}
 	if agentLoopTextHasAny(text,
@@ -1157,9 +1392,10 @@ func agentLoopCapabilityNames(userText string, requestContext map[string]any) []
 	) {
 		add("midi")
 	}
-	if agentLoopTextHasAny(text,
+	if !projectAudioImportRequested && agentLoopTextHasAny(text,
 		"clip", "\u7247\u6bb5", "\u97f3\u9891", "\u5bfc\u5165", "\u7d20\u6750", "\u6587\u4ef6", "\u5207\u5206", "\u88c1\u526a", "\u590d\u5236\u7247\u6bb5",
-		"audio", "media", "import", "split", "duplicate",
+		"\u7247\u6bb5\u6e05\u7406", "\u6e05\u7406\u7a7a\u767d", "\u7a7a\u767d", "\u9759\u97f3\u6e05\u7406",
+		"audio", "media", "import", "split", "duplicate", "strip silence", "strip_silence", "silence", "silent",
 	) {
 		add("clip")
 	}
@@ -1169,17 +1405,29 @@ func agentLoopCapabilityNames(userText string, requestContext map[string]any) []
 	) {
 		add("plugin")
 	}
-	if agentLoopTextHasAny(text,
+	if route.allowsNaturalMixKeywords() && agentLoopTextHasAny(text,
 		"\u6df7\u97f3", "\u7f29\u6df7", "\u4e3b\u5531", "\u4eba\u58f0", "\u58f0\u97f3", "\u58f0\u50cf", "\u58f0\u76f8", "\u58f0\u573a", "\u54cd\u5ea6", "\u592a\u54cd", "\u592a\u5927", "\u592a\u5c0f", "\u538b\u4f4e", "\u964d\u4f4e", "\u4e0b\u8c03", "\u8c03\u4f4e", "\u63d0\u9ad8", "\u63d0\u5347", "\u4e0a\u8c03", "\u8c03\u9ad8", "\u7535\u5e73", "\u589e\u76ca", "\u52a8\u6001", "\u7a7a\u95f4\u611f", "\u4f4e\u9891", "\u4f4e\u4e2d\u9891", "\u9ad8\u9891", "\u523a\u8033", "\u6d51\u6d4a", "\u9760\u524d", "\u9760\u540e", "\u5de6", "\u53f3", "\u5c45\u4e2d", "\u56de\u4e2d", "\u66f4\u4eae", "\u66f4\u6697", "\u66f4\u7a33", "\u66f4\u7d27",
 		"mix", "mixing", "master", "vocal", "loudness", "too loud", "too quiet", "level", "gain", "lower", "reduce", "decrease", "raise", "boost", "increase", "presence", "mud", "muddy", "harsh", "bright", "dark", "forward", "back", "space", "depth", "dynamic", "pan", "panning", "stereo", "left", "right", "center", "centre",
 	) {
 		add("mix")
 	}
-	if agentLoopTextHasAny(text,
+	if route.allowsNaturalMixKeywords() && agentLoopTextHasAny(text,
 		"\u58f0\u5b66", "\u58f0\u5b66\u6570\u636e", "\u58f0\u5b66\u89c2\u5bdf", "\u89c2\u5bdf\u5668", "\u9891\u8c31", "\u8c31\u56fe", "\u97f3\u9891\u7279\u5f81", "\u9891\u6bb5", "\u9891\u7387", "\u6ce2\u5f62", "\u80fd\u91cf\u5206\u5e03", "\u7acb\u4f53\u58f0\u76f8\u5173", "\u58f0\u50cf\u76f8\u5173",
 		"mix.observe", "mix.read", "mix.derive", "acoustic", "observation", "observe", "observer", "spectrum", "spectral", "spectrogram", "frequency", "frequencies", "band energy", "band_energy", "stereo relation", "stereo_relation",
 	) {
 		add("mix")
+	}
+	if projectAudioImportRequested || agentLoopTextHasAny(text,
+		"\u5de5\u7a0b\u97f3\u9891", "\u5de5\u7a0b\u89c4\u683c", "\u91c7\u6837\u7387", "\u4f4d\u6df1", "\u5f55\u97f3\u683c\u5f0f", "\u5f55\u97f3\u6587\u4ef6\u7c7b\u578b", "\u97f3\u9891\u89c4\u683c", "\u5bfc\u5165\u9884\u68c0", "\u9884\u68c0", "\u5bfc\u5165\u8ba1\u5212",
+		"project audio", "audio settings", "sample rate", "sample_rate", "bit depth", "bit_depth", "record format", "record_file_type", "import preflight", "preflight", "stems folder", "stems",
+	) {
+		add("project_audio")
+	}
+	if agentLoopTextHasAny(text,
+		"marker", "markers", "section marker", "section markers", "section map", "timeline marker",
+		"\u6807\u8bb0", "\u6bb5\u843d", "\u6bb5\u843d\u6807\u8bb0", "\u6bb5\u843d\u5730\u56fe", "\u5de5\u7a0b\u6807\u8bb0", "\u65f6\u95f4\u7ebf\u6807\u8bb0",
+	) {
+		add("project_marker")
 	}
 	if agentLoopTextHasAny(text,
 		"\u64ad\u653e", "\u505c\u6b62", "\u6682\u505c", "\u5b9a\u4f4d", "\u8282\u62cd\u5668", "\u5f55\u97f3",
@@ -1199,7 +1447,7 @@ func agentLoopCapabilityNames(userText string, requestContext map[string]any) []
 	) {
 		add("artifact")
 	}
-	if agentLoopTextHasAny(text,
+	if !projectAudioImportRequested && !trackOrganizationRequested && agentLoopTextHasAny(text,
 		"\u7d20\u6750", "\u5a92\u4f53\u6c60", "\u97f3\u9891", "\u89c6\u9891", "\u56fe\u7247", "\u6587\u4ef6\u5939", "\u8def\u5f84", "\u97f3\u89c6\u9891",
 		"media", "asset", "assets", "folder", "path", ".wav", ".mp3", ".flac", ".mp4", ".mov", ".mid", ".midi",
 	) {
@@ -1217,7 +1465,7 @@ func agentLoopCapabilityNames(userText string, requestContext map[string]any) []
 	if agentLoopTextHasAny(text, "midi", "音符", "旋律", "和弦", "鼓", "note", "notes", "melody", "chord", "drum", "quantize", "transpose", "velocity") {
 		add("midi")
 	}
-	if agentLoopTextHasAny(text, "clip", "片段", "音频", "audio", "导入", "素材", "文件", "media", "import", "split", "裁剪", "复制片段", "duplicate") {
+	if agentLoopTextHasAny(text, "clip", "片段", "音频", "audio", "导入", "素材", "文件", "media", "import", "split", "裁剪", "复制片段", "duplicate", "片段清理", "清理空白", "空白", "静音清理", "strip silence", "strip_silence", "silence", "silent") {
 		add("clip")
 	}
 	if agentLoopTextHasAny(text, "插件", "效果器", "plugin", "vst", "eq", "均衡", "compressor", "压缩", "reverb", "混响", "delay", "延迟", "grabber", "抓手", "参数", "param") {
@@ -1238,7 +1486,7 @@ func agentLoopCapabilityNames(userText string, requestContext map[string]any) []
 	if contextHasAnyValue(requestContext, "attachments", "attachment", "artifacts", "artifact", "selected_attachment_file_path", "attachment_import_file_path") {
 		add("artifact")
 	}
-	if contextHasAnyValue(requestContext, "selected_track_id", "selected_clip_id", "selected_clip_ids", "selected_clip_track_id") && agentLoopTextHasAny(text,
+	if route.allowsNaturalMixKeywords() && contextHasAnyValue(requestContext, "selected_track_id", "selected_clip_id", "selected_clip_ids", "selected_clip_track_id") && agentLoopTextHasAny(text,
 		"\u8c03", "\u6df7", "\u9760\u524d", "\u9760\u540e", "\u54cd\u4e00\u70b9", "\u5c0f\u4e00\u70b9", "\u5927\u4e00\u70b9", "\u592a\u54cd", "\u592a\u5927", "\u592a\u5c0f", "\u538b\u4f4e", "\u964d\u4f4e", "\u63d0\u9ad8", "\u63d0\u5347", "\u97f3\u91cf", "\u7535\u5e73", "\u589e\u76ca", "\u7a7a\u95f4", "\u4f4e\u9891", "\u9ad8\u9891", "\u4eba\u58f0", "\u4e3b\u5531",
 		"mix", "forward", "back", "louder", "quieter", "too loud", "too quiet", "volume", "level", "gain", "lower", "reduce", "decrease", "raise", "boost", "increase", "space", "presence", "mud", "harsh", "vocal",
 	) {
@@ -1247,10 +1495,261 @@ func agentLoopCapabilityNames(userText string, requestContext map[string]any) []
 	if contextHasAnyValue(requestContext, "selected_plugin_id", "selected_plugin_name") && agentLoopTextHasAny(text, "调", "大一点", "小一点", "亮", "暗", "浑浊", "刺耳", "mud", "harsh", "presence", "boost", "cut") {
 		add("plugin")
 	}
+	if seen["static_mix_pan_layout"] {
+		delete(seen, "static_mix_static_balance")
+		delete(seen, "static_mix_gain_staging")
+		delete(seen, "track")
+		delete(seen, "mix")
+	} else if seen["static_mix_static_balance"] {
+		delete(seen, "static_mix_gain_staging")
+		delete(seen, "track")
+		delete(seen, "mix")
+	} else if seen["static_mix_gain_staging"] {
+		delete(seen, "track")
+		delete(seen, "mix")
+	}
 	if seen["mix"] {
 		delete(seen, "track")
 	}
+	if projectAudioImportRequested {
+		delete(seen, "track")
+		delete(seen, "clip")
+		delete(seen, "media")
+		delete(seen, "artifact")
+	}
 	return sortedToolNameKeys(seen)
+}
+
+type agentLoopCapabilityRoute struct {
+	clipFadeGain bool
+}
+
+func agentLoopClassifyCapabilityRoute(userText string, _ map[string]any) agentLoopCapabilityRoute {
+	return agentLoopCapabilityRoute{
+		clipFadeGain: chatClipFadeGainRequest(userText),
+	}
+}
+
+func (route agentLoopCapabilityRoute) allowsNaturalMixKeywords() bool {
+	return !route.clipFadeGain
+}
+
+func agentLoopStaticMixGainStagingIntent(text string) bool {
+	text = strings.ToLower(strings.TrimSpace(text))
+	if text == "" {
+		return false
+	}
+	if agentLoopTextHasAny(text, "b1", "b 1", "b1.1", "b 1.1", "b1-1", "b1_1", "b1.2", "b 1.2", "b1-2", "b 1-2", "b1_2") {
+		return true
+	}
+	hasB1 := agentLoopTextHasAny(text, "b1", "b 1", "static_mix.gain_staging", "gain staging", "gain-staging", "gainstage")
+	hasGainHealth := agentLoopTextHasAny(text,
+		"gain staging", "gain structure", "gain health", "headroom", "level health", "level check", "level scan", "level audit", "input level", "source level", "peak check", "rms check", "loudness check",
+		"\u589e\u76ca\u7ed3\u6784", "\u589e\u76ca\u6574\u7406", "\u589e\u76ca\u9636\u6bb5", "\u7535\u5e73\u7ed3\u6784", "\u7535\u5e73\u5065\u5eb7", "\u7535\u5e73\u68c0\u67e5", "\u7535\u5e73\u626b\u63cf", "\u7535\u5e73\u5ba1\u8ba1", "\u8f93\u5165\u7535\u5e73", "\u6e90\u7535\u5e73", "\u97f3\u91cf\u68c0\u67e5", "\u97f3\u91cf\u626b\u63cf", "\u97f3\u91cf\u5ba1\u8ba1", "\u54cd\u5ea6\u68c0\u67e5", "\u5cf0\u503c\u68c0\u67e5", "\u4f59\u91cf",
+	)
+	hasProjectLevelCheck := agentLoopTextHasAny(text, "full project", "whole project", "entire project", "all tracks", "\u6574\u4e2a\u5de5\u7a0b", "\u5168\u5de5\u7a0b", "\u6574\u4f53", "\u5168\u5c40", "\u6240\u6709\u8f68\u9053", "\u5168\u90e8\u8f68\u9053") &&
+		agentLoopTextHasAny(text, "gain", "level", "volume", "loudness", "peak", "rms", "lufs", "headroom", "\u589e\u76ca", "\u7535\u5e73", "\u97f3\u91cf", "\u54cd\u5ea6", "\u5cf0\u503c", "\u5747\u65b9\u6839", "\u4f59\u91cf") &&
+		agentLoopTextHasAny(text, "check", "scan", "audit", "inspect", "analyze", "analyse", "\u68c0\u67e5", "\u626b\u63cf", "\u5ba1\u8ba1", "\u67e5\u770b", "\u5206\u6790")
+	if hasB1 && agentLoopTextHasAny(text, "gain", "level", "volume", "loudness", "peak", "rms", "lufs", "headroom", "\u589e\u76ca", "\u7535\u5e73", "\u97f3\u91cf", "\u54cd\u5ea6", "\u5cf0\u503c", "\u5747\u65b9\u6839", "\u4f59\u91cf") {
+		return true
+	}
+	return hasGainHealth || hasProjectLevelCheck
+}
+
+func agentLoopStaticMixStaticBalanceIntent(text string) bool {
+	text = strings.ToLower(strings.TrimSpace(text))
+	if text == "" {
+		return false
+	}
+	if agentLoopTextHasAny(text, "b2", "b 2", "static_mix.static_balance", "static balance", "静态平衡", "靜態平衡") {
+		return true
+	}
+	projectWide := agentLoopTextHasAny(text, "全工程", "整个工程", "整個工程", "整体", "整體", "多轨", "多軌", "all tracks", "whole project", "full project", "multitrack")
+	levelBalance := agentLoopTextHasAny(text, "音量平衡", "电平平衡", "電平平衡", "推子平衡", "volume balance", "level balance", "fader balance")
+	return projectWide && levelBalance
+}
+
+func agentLoopStaticMixPanLayoutIntent(text string) bool {
+	text = strings.ToLower(strings.TrimSpace(text))
+	if text == "" {
+		return false
+	}
+	if agentLoopTextHasAny(text,
+		"b3", "b 3", "static_mix.pan_layout", "pan layout", "static pan layout",
+		"声像布局", "聲像佈局", "声场布局", "聲場佈局", "静态声像", "靜態聲像",
+	) {
+		return true
+	}
+	projectWide := agentLoopTextHasAny(text,
+		"全工程", "整个工程", "整個工程", "整体", "整體", "多轨", "多軌",
+		"all tracks", "whole project", "full project", "multitrack",
+	)
+	panLayout := agentLoopTextHasAny(text,
+		"声像布局", "聲像佈局", "声场布局", "聲場佈局", "声像平衡", "聲像平衡",
+		"pan layout", "panning layout", "stereo placement", "stereo layout",
+	)
+	return projectWide && panLayout
+}
+
+func agentLoopProjectAudioImportIntent(text string, requestContext map[string]any) bool {
+	text = strings.ToLower(strings.TrimSpace(text))
+	if text == "" {
+		return false
+	}
+	hasImport := agentLoopTextHasAny(text,
+		"import", "importing", "add to project", "bring into project", "into the project", "create tracks",
+		"\u5bfc\u5165", "\u532f\u5165", "\u8f7d\u5165", "\u52a0\u5165\u5de5\u7a0b", "\u52a0\u5230\u5de5\u7a0b", "\u5bfc\u5230\u5de5\u7a0b", "\u653e\u8fdb\u5de5\u7a0b",
+	)
+	if !hasImport {
+		return false
+	}
+	if agentLoopHasSingleAudioImportObject(text, requestContext) {
+		return false
+	}
+	hasFolderOrStems := agentLoopFolderOrStemsImportHint(text)
+	hasProjectTarget := agentLoopTextHasAny(text,
+		"project", "create tracks", "add to project", "bring into project",
+		"\u5de5\u7a0b", "\u521b\u5efa\u8f68", "\u521b\u5efa\u8f68\u9053", "\u5efa\u8f68",
+	)
+	if hasFolderOrStems {
+		return true
+	}
+	return hasProjectTarget && agentLoopHasFolderImportObject(text, requestContext)
+}
+
+func agentLoopTrackOrganizationIntent(text string) bool {
+	text = strings.ToLower(strings.TrimSpace(text))
+	if text == "" {
+		return false
+	}
+	hasGroupingAction := agentLoopTextHasAny(text,
+		"\u6574\u7406", "\u5206\u7ec4", "\u805a\u7c7b", "\u5efa\u8bae\u5206\u7ec4", "\u6309\u5efa\u8bae",
+		"organize", "organisation", "organization", "group", "grouping", "cluster", "proposal", "tom",
+	)
+	hasFolderTarget := agentLoopTextHasAny(text,
+		"\u6587\u4ef6\u5939", "\u6587\u4ef6\u5939\u8f68", "\u8f68\u9053\u6587\u4ef6\u5939", "\u8def\u7531\u6587\u4ef6\u5939", "folder", "folder track", "track folder",
+	)
+	hasTrackTreeAction := agentLoopTextHasAny(text,
+		"\u8f68\u9053\u6587\u4ef6\u5939", "\u6587\u4ef6\u5939\u8f68", "\u8def\u7531\u6587\u4ef6\u5939",
+		"folder track", "track folder",
+	)
+	return hasTrackTreeAction || (hasGroupingAction && hasFolderTarget)
+}
+
+func agentLoopFolderOrStemsImportHint(text string) bool {
+	text = strings.ToLower(strings.TrimSpace(text))
+	if text == "" {
+		return false
+	}
+	return agentLoopTextHasAny(text,
+		"stem", "stems", "stem folder", "multi-track", "multitrack", "tracks out", "folder", "directory",
+		"\u5206\u8f68", "\u591a\u8f68", "\u6587\u4ef6\u5939", "\u76ee\u5f55", "\u521b\u5efa\u8f68", "\u521b\u5efa\u8f68\u9053", "\u5efa\u8f68",
+	)
+}
+
+func agentLoopHasSingleAudioImportObject(text string, requestContext map[string]any) bool {
+	if agentLoopTextHasAudioFileExtension(text) {
+		return true
+	}
+	for _, row := range agentLoopContextRows(requestContext) {
+		if agentLoopContextKindIsAudio(row, "selected_attachment_kind", "attachment_import_kind", "selected_library_kind", "selected_asset_kind", "media_kind", "kind") {
+			return true
+		}
+		if agentLoopContextPathLooksAudioFile(row,
+			"attachment_import_file_path", "selected_attachment_file_path", "selected_library_file_path",
+			"file_path", "selected_file_path", "asset_path", "path",
+		) {
+			return true
+		}
+	}
+	return false
+}
+
+func agentLoopHasFolderImportObject(text string, requestContext map[string]any) bool {
+	for _, row := range agentLoopContextRows(requestContext) {
+		if path := agentLoopFirstContextText(row,
+			"folder_path", "folder", "directory", "asset_folder", "source_folder_path",
+			"selected_folder_path", "selected_directory_path", "selected_library_folder_path", "selected_asset_folder_path",
+		); path != "" && !agentLoopPathLooksAudioFile(path) {
+			return true
+		}
+		if path := agentLoopFirstContextText(row, "asset_location", "source_root"); path != "" {
+			if info, err := os.Stat(path); err == nil && info.IsDir() {
+				return true
+			}
+		}
+	}
+	for _, path := range existingLocalPathsFromText(text) {
+		if info, err := os.Stat(path); err == nil && info.IsDir() {
+			return true
+		}
+	}
+	return false
+}
+
+func agentLoopContextRows(ctx map[string]any) []map[string]any {
+	if ctx == nil {
+		return nil
+	}
+	rows := []map[string]any{ctx}
+	if current := agentLoopContextMapValue(ctx["current_selection"]); current != nil {
+		rows = append(rows, current)
+	}
+	return rows
+}
+
+func agentLoopContextMapValue(value any) map[string]any {
+	if row, ok := value.(map[string]any); ok {
+		return row
+	}
+	return nil
+}
+
+func agentLoopContextKindIsAudio(row map[string]any, keys ...string) bool {
+	for _, key := range keys {
+		if strings.EqualFold(agentLoopFirstContextText(row, key), "audio") {
+			return true
+		}
+	}
+	return false
+}
+
+func agentLoopContextPathLooksAudioFile(row map[string]any, keys ...string) bool {
+	for _, key := range keys {
+		if agentLoopPathLooksAudioFile(agentLoopFirstContextText(row, key)) {
+			return true
+		}
+	}
+	return false
+}
+
+func agentLoopFirstContextText(row map[string]any, keys ...string) string {
+	if row == nil {
+		return ""
+	}
+	for _, key := range keys {
+		if value := cleanContextText(row[key]); value != "" {
+			return value
+		}
+	}
+	return ""
+}
+
+func agentLoopTextHasAudioFileExtension(text string) bool {
+	text = strings.ToLower(strings.TrimSpace(text))
+	if text == "" {
+		return false
+	}
+	for _, ext := range []string{".wav", ".mp3", ".flac", ".aif", ".aiff", ".ogg", ".oga", ".m4a", ".wma"} {
+		if strings.Contains(text, ext) {
+			return true
+		}
+	}
+	return false
+}
+
+func agentLoopPathLooksAudioFile(path string) bool {
+	return resolveAttachmentKind(strings.TrimSpace(path)) == "audio"
 }
 
 func agentLoopTextHasAny(text string, needles ...string) bool {
@@ -1285,7 +1784,10 @@ func agentLoopBaseTools() []string {
 func agentLoopTrackTools() []string {
 	return []string{
 		"track.add", "track.add_audio", "track.rename", "track.delete",
-		"track.mute", "track.solo", "track.arm", "track.volume",
+		"track.folder.create", "track.move_to_folder", "track.folder.set_routing_bus_enabled",
+		"project.apply_track_organization",
+		"track.group.list", "track.group.create", "track.group.update", "track.group.set_members", "track.group.delete", "track.group.apply_control",
+		"track.mute", "track.solo", "track.arm", "track.volume", "track.pan",
 		"track.freeze", "track.unfreeze",
 	}
 }
@@ -1303,12 +1805,15 @@ func agentLoopClipTools() []string {
 	return []string{
 		"clip.add_audio", "clip.import_audio", "clip.import_media_to_track",
 		"clip.move", "clip.resize", "clip.split", "clip.clone", "clip.remove", "clip.select", "clip.warm_waveform_bake",
+		"clip.fade.set", "clip.fade.read", "clip.gain.set", "clip.gain.set_batch", "clip.gain.read",
+		"clip.strip_silence.analyze", "clip.strip_silence.suggest", "clip.strip_silence.apply", "clip.strip_silence.apply_batch",
 		"artifact.list", "artifact.read", "artifact.extract",
 	}
 }
 
 func agentLoopPluginTools() []string {
 	return []string{
+		"capability.equalizer.inspect", "capability.equalizer.plan",
 		"plugin.list_available", "plugin.search", "plugin.semantic_search", "plugin.semantic_get", "plugin.semantic_build_index", "plugin.scan",
 		"plugin.load_to_rack", "rack.add_node",
 		"plugin.get_parameters", "plugin.set_parameter", "plugin.open", "plugin.show_editor",
@@ -1325,6 +1830,34 @@ func agentLoopMixTools() []string {
 	}
 }
 
+func agentLoopStaticMixGainStagingTools() []string {
+	return []string{
+		"project.state", "project.audio_analysis_status", "project.audio_analysis_start", "track.list",
+		"mix.observe", "mix.read", "mix.derive", "mix.request_observation",
+		"clip.gain.read", "clip.gain.set", "clip.gain.set_batch",
+		"track.group.list", "track.group.apply_control",
+		"project.undo", "project.redo",
+	}
+}
+
+func agentLoopStaticMixStaticBalanceTools() []string {
+	return []string{
+		"project.state", "project.audio_analysis_status",
+		"mix.observe", "mix.read", "mix.derive", "mix.request_observation",
+		"mix.propose_tick", "mix.apply_tick", "mix.rollback_tick",
+		"project.undo", "project.redo",
+	}
+}
+
+func agentLoopStaticMixPanLayoutTools() []string {
+	return []string{
+		"project.state", "project.audio_analysis_status",
+		"mix.observe", "mix.read", "mix.derive", "mix.request_observation",
+		"mix.apply_pan_layout_batch",
+		"project.undo", "project.redo",
+	}
+}
+
 func agentLoopTransportTools() []string {
 	return []string{
 		"transport.play", "transport.stop", "transport.return_to_zero", "transport.seek",
@@ -1337,7 +1870,7 @@ func agentLoopVersionTools() []string {
 	return []string{
 		"version.status", "version.checkpoint", "version.list", "version.show", "version.diff",
 		"version.restore_preview", "version.restore", "version.branch_create", "version.node_checkout", "version.node_delete",
-		"version.worktree_create", "version.worktree_checkout", "version.worktree_list", "version.project_new", "version.project_saved", "version.checkout",
+		"version.worktree_create", "version.worktree_checkout", "version.worktree_list", "version.project_new", "version.project_opened", "version.project_save_prepare", "version.project_saved", "version.checkout",
 	}
 }
 
@@ -1354,6 +1887,20 @@ func agentLoopMediaTools() []string {
 	return []string{
 		"artifact.list", "artifact.read", "artifact.extract",
 		"media.register_assets", "media.index_authorized_folder",
+	}
+}
+
+func agentLoopProjectAudioTools() []string {
+	return []string{
+		"project.get_audio_settings", "project.validate_audio_settings_change", "project.set_audio_settings",
+		"project.import_preflight", "project.import_folder_as_stems", "project.import_audio_files", "project.audio_analysis_status", "media.inspect_files",
+	}
+}
+
+func agentLoopProjectMarkerTools() []string {
+	return []string{
+		"project.markers.list", "project.markers.upsert", "project.markers.apply_section_markers",
+		"project.markers.rename", "project.markers.delete",
 	}
 }
 

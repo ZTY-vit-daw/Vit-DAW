@@ -47,6 +47,186 @@ func TestDefaultCatalogExposesCoreCommands(t *testing.T) {
 	if solo.CommandName != "set_solo" || solo.RequiresConfirmation {
 		t.Fatalf("track.solo metadata = %+v", solo)
 	}
+
+	folder, ok := catalog.LookupTool("track.folder.create")
+	if !ok {
+		t.Fatal("track.folder.create missing")
+	}
+	if folder.CommandName != "folder_track.create" || folder.RequiresConfirmation || folder.RiskLevel != RiskUndoable {
+		t.Fatalf("track.folder.create metadata = %+v", folder)
+	}
+
+	applyOrg, ok := catalog.LookupTool("project.apply_track_organization")
+	if !ok {
+		t.Fatal("project.apply_track_organization missing")
+	}
+	if applyOrg.CommandName != "project.apply_track_organization" || !applyOrg.RequiresConfirmation || applyOrg.RiskLevel != RiskConfirm {
+		t.Fatalf("project.apply_track_organization metadata = %+v", applyOrg)
+	}
+}
+
+func TestProjectAudioToolsAreCataloged(t *testing.T) {
+	catalog := DefaultCatalog()
+	for _, tt := range []struct {
+		tool    string
+		command string
+		risk    RiskLevel
+		mutates bool
+		undo    bool
+		confirm bool
+		argHint string
+	}{
+		{"project.get_audio_settings", "project.get_audio_settings", RiskDirect, false, false, false, "no args"},
+		{"project.set_audio_settings", "project.set_audio_settings", RiskUndoable, true, true, false, "audio_settings"},
+		{"project.validate_audio_settings_change", "project.validate_audio_settings_change", RiskDirect, false, false, false, "record_bit_depth"},
+		{"project.import_preflight", "project.import_preflight", RiskDirect, false, false, false, "stems_folder"},
+		{"project.import_folder_as_stems", "project.import_folder_as_stems", RiskConfirm, true, true, true, "target_policy:create_tracks"},
+		{"project.import_audio_files", "project.import_audio_files", RiskConfirm, true, true, true, "file_paths:string[]"},
+		{"media.inspect_files", "media.inspect_files", RiskDirect, false, false, false, "file_paths"},
+	} {
+		spec, ok := catalog.LookupTool(tt.tool)
+		if !ok {
+			t.Fatalf("%s missing", tt.tool)
+		}
+		if spec.CommandName != tt.command || spec.RiskLevel != tt.risk || spec.MutatesProject != tt.mutates || spec.SupportsUndo != tt.undo || spec.RequiresConfirmation != tt.confirm {
+			t.Fatalf("%s metadata = %+v", tt.tool, spec)
+		}
+		line := modelSummaryLine(spec)
+		if !strings.Contains(line, tt.argHint) {
+			t.Fatalf("%s arg hint missing %q in %q", tt.tool, tt.argHint, line)
+		}
+	}
+}
+
+func TestProjectMarkerToolsAreCataloged(t *testing.T) {
+	catalog := DefaultCatalog()
+	for _, tt := range []struct {
+		tool    string
+		command string
+		risk    RiskLevel
+		mutates bool
+		confirm bool
+		argHint string
+	}{
+		{"project.markers.list", "project.markers.list", RiskDirect, false, false, "no args"},
+		{"project.markers.upsert", "project.markers.upsert", RiskUndoable, true, false, "start_seconds"},
+		{"project.markers.apply_section_markers", "project.markers.apply_section_markers", RiskConfirm, true, true, "sections"},
+		{"project.markers.rename", "project.markers.rename", RiskUndoable, true, false, "marker_id"},
+		{"project.markers.delete", "project.markers.delete", RiskConfirm, true, true, "marker_id"},
+	} {
+		spec, ok := catalog.LookupTool(tt.tool)
+		if !ok {
+			t.Fatalf("%s missing", tt.tool)
+		}
+		if spec.CommandName != tt.command || spec.RiskLevel != tt.risk || spec.MutatesProject != tt.mutates || spec.RequiresConfirmation != tt.confirm {
+			t.Fatalf("%s metadata = %+v", tt.tool, spec)
+		}
+		line := modelSummaryLine(spec)
+		if !strings.Contains(line, tt.argHint) {
+			t.Fatalf("%s arg hint missing %q in %q", tt.tool, tt.argHint, line)
+		}
+	}
+}
+
+func TestTrackGroupToolsAreCataloged(t *testing.T) {
+	catalog := DefaultCatalog()
+	for _, tt := range []struct {
+		tool    string
+		command string
+		risk    RiskLevel
+		mutates bool
+		undo    bool
+		confirm bool
+		argHint string
+	}{
+		{"track.group.list", "track.group.list", RiskDirect, false, false, false, "no args"},
+		{"track.group.create", "track.group.create", RiskUndoable, true, true, false, "track_ids:string[]"},
+		{"track.group.update", "track.group.update", RiskUndoable, true, true, false, "group_id:string"},
+		{"track.group.set_members", "track.group.set_members", RiskUndoable, true, true, false, "track_ids:string[]"},
+		{"track.group.delete", "track.group.delete", RiskConfirm, true, true, true, "group_id:string"},
+		{"track.group.apply_control", "track.group.apply_control", RiskConfirm, true, true, true, "mode:absolute|relative"},
+	} {
+		spec, ok := catalog.LookupTool(tt.tool)
+		if !ok {
+			t.Fatalf("%s missing", tt.tool)
+		}
+		if spec.CommandName != tt.command || spec.RiskLevel != tt.risk || spec.MutatesProject != tt.mutates || spec.SupportsUndo != tt.undo || spec.RequiresConfirmation != tt.confirm || !spec.RefreshAfter && tt.mutates {
+			t.Fatalf("%s metadata = %+v", tt.tool, spec)
+		}
+		line := modelSummaryLine(spec)
+		if !strings.Contains(line, tt.argHint) {
+			t.Fatalf("%s arg hint missing %q in %q", tt.tool, tt.argHint, line)
+		}
+	}
+
+	alias, ok := catalog.LookupTool("track_group.apply_control")
+	if !ok || alias.CommandName != "track.group.apply_control" || !alias.RequiresConfirmation {
+		t.Fatalf("track_group.apply_control alias metadata = %+v ok=%v", alias, ok)
+	}
+	if len(alias.RequiredTargetIDs) != 0 {
+		t.Fatalf("track.group.apply_control should allow group_id OR track_ids, required IDs = %+v", alias.RequiredTargetIDs)
+	}
+}
+
+func TestClipFadeGainToolsAreCataloged(t *testing.T) {
+	catalog := DefaultCatalog()
+	for _, tt := range []struct {
+		tool    string
+		command string
+		risk    RiskLevel
+		mutates bool
+		undo    bool
+		confirm bool
+		argHint string
+	}{
+		{"clip.fade.set", "clip.fade.set", RiskConfirm, true, true, true, "fade_in_seconds"},
+		{"clip.fade.read", "clip.fade.read", RiskDirect, false, false, false, "clip_id:string"},
+		{"clip.gain.set", "clip.gain.set", RiskConfirm, true, true, true, "gain_db"},
+		{"clip.gain.set_batch", "clip.gain.set_batch", RiskConfirm, true, true, true, "pending_actions"},
+		{"clip.gain.read", "clip.gain.read", RiskDirect, false, false, false, "clip_id:string"},
+	} {
+		spec, ok := catalog.LookupTool(tt.tool)
+		if !ok {
+			t.Fatalf("%s missing", tt.tool)
+		}
+		if spec.CommandName != tt.command || spec.RiskLevel != tt.risk || spec.MutatesProject != tt.mutates || spec.SupportsUndo != tt.undo || spec.RequiresConfirmation != tt.confirm || !spec.RefreshAfter && tt.mutates {
+			t.Fatalf("%s metadata = %+v", tt.tool, spec)
+		}
+		line := modelSummaryLine(spec)
+		if !strings.Contains(line, tt.argHint) {
+			t.Fatalf("%s arg hint missing %q in %q", tt.tool, tt.argHint, line)
+		}
+	}
+}
+
+func TestClipStripSilenceToolsAreCataloged(t *testing.T) {
+	catalog := DefaultCatalog()
+	for _, tt := range []struct {
+		tool    string
+		command string
+		risk    RiskLevel
+		mutates bool
+		undo    bool
+		confirm bool
+		argHint string
+	}{
+		{"clip.strip_silence.analyze", "clip.strip_silence.analyze", RiskDirect, false, false, false, "threshold_dbfs"},
+		{"clip.strip_silence.suggest", "clip.strip_silence.suggest", RiskDirect, false, false, false, "candidate_thresholds_dbfs"},
+		{"clip.strip_silence.apply", "clip.strip_silence.apply", RiskConfirm, true, true, true, "strip_regions"},
+		{"clip.strip_silence.apply_batch", "clip.strip_silence.apply_batch", RiskConfirm, true, true, true, "pending_actions"},
+	} {
+		spec, ok := catalog.LookupTool(tt.tool)
+		if !ok {
+			t.Fatalf("%s missing", tt.tool)
+		}
+		if spec.CommandName != tt.command || spec.RiskLevel != tt.risk || spec.MutatesProject != tt.mutates || spec.SupportsUndo != tt.undo || spec.RequiresConfirmation != tt.confirm || !spec.RefreshAfter && tt.mutates {
+			t.Fatalf("%s metadata = %+v", tt.tool, spec)
+		}
+		line := modelSummaryLine(spec)
+		if !strings.Contains(line, tt.argHint) {
+			t.Fatalf("%s arg hint missing %q in %q", tt.tool, tt.argHint, line)
+		}
+	}
 }
 
 func TestPluginGrabberAliasIsCataloged(t *testing.T) {
@@ -142,6 +322,14 @@ func TestPluginGrabberAliasIsCataloged(t *testing.T) {
 	if applyControl.CommandName != "plugin_grabber_apply_control" || applyControl.RequiresConfirmation || applyControl.RiskLevel != RiskUndoable || !applyControl.SupportsUndo {
 		t.Fatalf("apply control metadata = %+v", applyControl)
 	}
+	inspectEQ, ok := catalog.LookupTool("capability.equalizer.inspect")
+	if !ok || inspectEQ.CommandName != "capability_equalizer_inspect" || inspectEQ.RiskLevel != RiskDirect || inspectEQ.MutatesProject {
+		t.Fatalf("equalizer inspect metadata = %+v found=%t", inspectEQ, ok)
+	}
+	planEQ, ok := catalog.LookupTool("capability.equalizer.plan")
+	if !ok || planEQ.CommandName != "capability_equalizer_plan" || planEQ.RiskLevel != RiskUndoable || !planEQ.MutatesProject || !planEQ.SupportsUndo {
+		t.Fatalf("equalizer plan metadata = %+v found=%t", planEQ, ok)
+	}
 }
 
 func TestMidiPatchToolsAreCataloged(t *testing.T) {
@@ -201,6 +389,8 @@ func TestCoreMutationToolsExposeBindingMetadata(t *testing.T) {
 		{"midi.create_clip", "last_created_clip", "clip"},
 		{"midi.import_file", "last_created_clip", "clip"},
 		{"clip.import_media_to_track", "last_created_clip", "clip"},
+		{"project.import_folder_as_stems", "last_created_track", "track"},
+		{"project.import_folder_as_stems", "last_created_clip", "clip"},
 		{"plugin.load_to_rack", "last_loaded_plugin", "plugin"},
 	} {
 		spec, ok := catalog.LookupTool(tt.tool)
@@ -339,15 +529,42 @@ func TestModelSummaryForMediaCapabilityPack(t *testing.T) {
 		"artifact.list",
 		"media.register_assets",
 		"media.index_authorized_folder",
+		"project.import_preflight",
+		"media.inspect_files",
 	})
 	for _, want := range []string{
 		"Capability pack: media",
 		"media_register_assets tool=media.register_assets",
 		"media_index_authorized_folder tool=media.index_authorized_folder",
+		"project.import_preflight tool=project.import_preflight",
+		"media.inspect_files tool=media.inspect_files",
 		"clickable preview cards",
 	} {
 		if !strings.Contains(summary, want) {
 			t.Fatalf("media capability summary missing %q in:\n%s", want, summary)
+		}
+	}
+}
+
+func TestModelSummaryForProjectAudioCapabilityPack(t *testing.T) {
+	summary := DefaultCatalog().ModelSummaryForCapabilityPacks([]string{"project_audio"}, []string{
+		"project.state",
+		"project.get_audio_settings",
+		"project.set_audio_settings",
+		"project.validate_audio_settings_change",
+		"project.import_preflight",
+		"media.inspect_files",
+	})
+	for _, want := range []string{
+		"Capability pack: project_audio",
+		"not audio-device configuration",
+		"project.get_audio_settings tool=project.get_audio_settings",
+		"project.set_audio_settings tool=project.set_audio_settings risk=undoable",
+		"project.import_preflight tool=project.import_preflight",
+		"do not simulate folder import by repeated clip.import_audio",
+	} {
+		if !strings.Contains(summary, want) {
+			t.Fatalf("project audio capability summary missing %q in:\n%s", want, summary)
 		}
 	}
 }

@@ -17,13 +17,15 @@ param(
     [string]$TemplateDir = "",
     [string]$KernelExe = "",
     [string]$AgentExe = "",
+    [string]$VspHubExe = "",
     [string]$LauncherExe = "",
     [string]$PythonEmbedDir = "",
     [string]$GodotUiDependencyDir = "",
     [switch]$LayeredPayload,
     [switch]$MinimalPayloadOnly,
     [switch]$NoPythonBridge,
-    [switch]$RequireAgent
+    [switch]$RequireAgent,
+    [switch]$RequireHub
 )
 
 Set-StrictMode -Version Latest
@@ -35,6 +37,9 @@ if ([string]::IsNullOrWhiteSpace($KernelExe)) {
 }
 if ([string]::IsNullOrWhiteSpace($AgentExe)) {
     $AgentExe = Join-Path $RepoRoot "agent\bin\VitAgent.exe"
+}
+if ([string]::IsNullOrWhiteSpace($VspHubExe)) {
+    $VspHubExe = Join-Path $RepoRoot "agent\bin\VspHub.exe"
 }
 if ([string]::IsNullOrWhiteSpace($LauncherExe)) {
     $LauncherExe = Join-Path $RepoRoot "Export\build_launcher\Release\Vit_DAW_Launcher.exe"
@@ -55,6 +60,7 @@ if (-not $MinimalPayloadOnly) {
 }
 
 $RuntimeDir = if ($LayeredPayload) { Join-Path $OutDir "kernel" } else { Join-Path $OutDir "runtime" }
+$HubDir = if ($LayeredPayload) { Join-Path $OutDir "hub" } else { $RuntimeDir }
 $BridgeDir = if ($LayeredPayload) { Join-Path $OutDir "bridge" } else { $RuntimeDir }
 $AgentDir = if ($LayeredPayload) { Join-Path $OutDir "agent" } else { $RuntimeDir }
 $UiDir = if ($LayeredPayload) { Join-Path $OutDir "ui" } else { $OutDir }
@@ -70,12 +76,23 @@ if (-not $MinimalPayloadOnly) {
 
 Write-Host "Updating kernel + agent payload"
 New-Item -ItemType Directory -Path $RuntimeDir -Force | Out-Null
+New-Item -ItemType Directory -Path $HubDir -Force | Out-Null
 if (-not $NoPythonBridge) {
     New-Item -ItemType Directory -Path $BridgeDir -Force | Out-Null
 }
 New-Item -ItemType Directory -Path $AgentDir -Force | Out-Null
 New-Item -ItemType Directory -Path $UiDir -Force | Out-Null
 Copy-Item -LiteralPath $KernelExe -Destination (Join-Path $RuntimeDir "VitApp.exe") -Force
+if (Test-Path -LiteralPath $VspHubExe) {
+    Copy-Item -LiteralPath $VspHubExe -Destination (Join-Path $HubDir "VspHub.exe") -Force
+    Write-Host "Included VspHub.exe: $VspHubExe"
+}
+else {
+    if ($RequireHub) {
+        throw "VspHub.exe not found at $VspHubExe. Build D:\Vit_DAW\agent first."
+    }
+    Write-Warning "VspHub.exe not found at $VspHubExe; VSP Hub will not be included."
+}
 if (Test-Path -LiteralPath $AgentExe) {
     Copy-Item -LiteralPath $AgentExe -Destination (Join-Path $AgentDir "VitAgent.exe") -Force
     Write-Host "Included VitAgent.exe: $AgentExe"
@@ -201,18 +218,18 @@ else {
         Write-Host "Done. Layered release folder: $OutDir"
         Write-Host "Main entry for users: $mainLauncher"
         if ($NoPythonBridge) {
-            Write-Host "Included: ui\\$(Split-Path -Leaf $GodotUiExe), kernel\\VitApp.exe, agent\\VitAgent.exe"
+            Write-Host "Included: ui\\$(Split-Path -Leaf $GodotUiExe), kernel\\VitApp.exe, hub\\VspHub.exe, agent\\VitAgent.exe"
         }
         else {
-            Write-Host "Included: ui\\$(Split-Path -Leaf $GodotUiExe), kernel\\VitApp.exe, agent\\VitAgent.exe when built, bridge\\bridge_core.py/bridge_prod.py fallback, python_embed\\*"
+            Write-Host "Included: ui\\$(Split-Path -Leaf $GodotUiExe), kernel\\VitApp.exe, hub\\VspHub.exe when built, agent\\VitAgent.exe when built, bridge\\bridge_core.py/bridge_prod.py fallback, python_embed\\*"
         }
         return
     }
     Write-Host "Done. Minimal release folder: $OutDir"
     if ($NoPythonBridge) {
-        Write-Host "Included: $(Split-Path -Leaf $GodotUiExe), runtime\\VitApp.exe, runtime\\VitAgent.exe"
+        Write-Host "Included: $(Split-Path -Leaf $GodotUiExe), runtime\\VitApp.exe, runtime\\VspHub.exe, runtime\\VitAgent.exe"
     }
     else {
-        Write-Host "Included: $(Split-Path -Leaf $GodotUiExe), runtime\\VitApp.exe, runtime\\VitAgent.exe when built, runtime\\bridge_core.py/bridge_prod.py fallback, python_embed\\*"
+        Write-Host "Included: $(Split-Path -Leaf $GodotUiExe), runtime\\VitApp.exe, runtime\\VspHub.exe when built, runtime\\VitAgent.exe when built, runtime\\bridge_core.py/bridge_prod.py fallback, python_embed\\*"
     }
 }

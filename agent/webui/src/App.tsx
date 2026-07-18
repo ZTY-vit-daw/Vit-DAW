@@ -43,7 +43,7 @@ import {
   ZoomOut
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import type { RefObject } from "react";
+import type { CSSProperties, RefObject } from "react";
 import { FormEvent, KeyboardEvent as ReactKeyboardEvent, MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent, WheelEvent as ReactWheelEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   artifactFileURL,
@@ -70,6 +70,25 @@ import {
   uploadArtifacts,
   watchDownloads
 } from "./lib/api";
+import {
+  dismissActivitiesForTurn,
+  dismissActivityByID,
+  durableMessage,
+  durableMessagesForStorage,
+  historyMessageProtocol,
+  inferMessageKind,
+  isDurableMessage,
+  isLegacyTransientMessage,
+  messageProtocolIdentityKeys,
+  mergeMessageCollections,
+  proposalActionIdentity,
+  proposalDecisionTranscript,
+  reduceAgentEventActivities,
+  resolveSupersededMessages,
+  responseMessageProtocol,
+  transientMessage,
+  upsertActivity
+} from "./messageLifecycle";
 import type {
   AgentConfigResponse,
   AgentEvent,
@@ -88,7 +107,7 @@ import type {
   RuntimeStatusResponse
 } from "./types";
 
-const WEBUI_BUILD_MARK = "mix-treatment-pending-card-v20-20260620";
+const WEBUI_BUILD_MARK = "vit-message-lifecycle-copy-v1-20260713";
 
 console.info(`[VitWebUI] loaded ${WEBUI_BUILD_MARK}`);
 
@@ -122,9 +141,12 @@ const defaultExternalBrowserURL = "https://www.bing.com/";
 const conversationMessagesStoragePrefix = "ask_vit_conversation_messages";
 const conversationScopedIDStoragePrefix = "ask_vit_conversation_id_scope";
 const attachedArtifactStorageKey = "ask_vit_attached_artifact";
+const panelWidthStoragePrefix = "ask_vit_project_workbench_width";
+const defaultRightPanelWidth = 390;
+const minRightPanelWidth = 280;
 
 const modeItems: Array<{ key: AgentMode; label: string; hint: string; icon: LucideIcon }> = [
-  { key: "default", label: "即时", hint: "直接执行", icon: Bot },
+  { key: "default", label: "协作", hint: "自然对话", icon: Bot },
   { key: "plan", label: "计划", hint: "只读分析", icon: Brain },
   { key: "goal", label: "目标", hint: "长任务", icon: Wand2 }
 ];
@@ -138,9 +160,9 @@ const focusItems: Array<{ key: FocusMode; label: string; icon: LucideIcon }> = [
 ];
 
 const workbenchTabs: Array<{ key: WorkbenchTab; label: string; icon: LucideIcon }> = [
-  { key: "history", label: "历史", icon: Clock },
-  { key: "media", label: "媒体", icon: Archive },
-  { key: "macro", label: "宏控制", icon: Wand2 }
+  { key: "media", label: "资料库", icon: Archive },
+  { key: "macro", label: "宏控制", icon: Wand2 },
+  { key: "history", label: "历史树", icon: Clock }
 ];
 
 const settingsTabs: Array<{ key: SettingsTab; label: string; icon: LucideIcon }> = [
@@ -165,7 +187,10 @@ const initialMessage: ChatMessage = {
   id: "intro",
   role: "assistant",
   content: "Ask Vit 就绪。",
-  createdAt: Date.now()
+  createdAt: Date.now(),
+  lifecycle: "durable",
+  persistence: "local",
+  message_kind: "assistant"
 };
 
 function App() {
@@ -177,6 +202,7 @@ function App() {
   const [runtimeStatus, setRuntimeStatus] = useState<RuntimeStatusResponse | null>(null);
   const [uiState, setUIState] = useState<AgentUIState | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([initialMessage]);
+  const [activities, setActivities] = useState<ChatMessage[]>([]);
   const [conversationID, setConversationID] = useState(initialConversationID);
   const [mode, setMode] = useState<AgentMode>("default");
   const [activeFocus, setActiveFocus] = useState<FocusMode>("dialogue");
@@ -185,6 +211,8 @@ function App() {
   const [pendingArtifacts, setPendingArtifacts] = useState<ArtifactSummary[]>([]);
   const [pendingMacroRefs, setPendingMacroRefs] = useState<MacroControl[]>([]);
   const [activeTab, setActiveTab] = useState<WorkbenchTab>("media");
+  const [rightPanelOpen, setRightPanelOpen] = useState(true);
+  const [rightPanelWidths, setRightPanelWidths] = useState<Record<WorkbenchTab, number>>(() => loadRightPanelWidths());
   const [selectedArtifactID, setSelectedArtifactID] = useState<string>("");
   const [isSending, setIsSending] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -199,6 +227,7 @@ function App() {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const composerRef = useRef<HTMLFormElement | null>(null);
   const noticeRef = useRef<HTMLDivElement | null>(null);
+  const workspaceRef = useRef<HTMLElement | null>(null);
   const historyScopeRef = useRef("");
   const scopedConversationRef = useRef("");
   const pausedHistoryScopeRef = useRef("");
@@ -327,7 +356,11 @@ function App() {
               events: events.map(summarizeAgentEventForConfirmation)
             });
           }
-          setMessages((current) => mergeAgentEventsIntoMessages(current, events, mode));
+          setActivities((current) => reduceAgentEventActivities(
+            current,
+            events,
+            (agentEvent) => chatMessageFromAgentEvent(agentEvent, mode)
+          ));
         } else if (!isSending && !respondingActionID && !pluginLearningBusy) {
           idleTicks += 1;
           if (idleTicks >= 4) {
@@ -357,16 +390,20 @@ function App() {
       return;
     }
     const historyMessages = historyMessagesFromUIState(uiState);
+    const scopeChanged = historyScopeRef.current !== nextScope;
+    if (scopeChanged) {
+      setActivities([]);
+    }
     setMessages((current) => {
       const hasPendingInteraction = hasPendingComposerInteraction(current);
       const baseMessages = hasPendingInteraction ? current : removeDisposableConfirmationPromptMessages(current);
       debugConfirmation("history-sync", {
-        scopeChanged: historyScopeRef.current !== nextScope,
+        scopeChanged,
         current: summarizeMessagesForConfirmation(current),
         current_after_prompt_filter: summarizeMessagesForConfirmation(baseMessages),
         incoming: summarizeMessagesForConfirmation(historyMessages)
       });
-      if (historyScopeRef.current !== nextScope) {
+      if (scopeChanged) {
         historyScopeRef.current = nextScope;
         const nextConversationID = conversationIDFromURL() || loadStoredScopedConversationID(nextScope) || createConversationID();
         saveStoredScopedConversationID(nextScope, nextConversationID);
@@ -401,8 +438,24 @@ function App() {
   const selectedArtifact = useMemo(() => {
     return artifacts.find((artifact) => artifact.id === selectedArtifactID) ?? artifacts[0] ?? null;
   }, [artifacts, selectedArtifactID]);
+  const conversationTitle = useMemo(() => currentConversationTitle(uiState, messages), [messages, uiState]);
+  const rightPanelWidth = rightPanelWidths[activeTab] ?? defaultRightPanelWidth;
+  const workspaceStyle = {
+    "--right-panel-width": `${rightPanelWidth}px`
+  } as CSSProperties;
   const composerInteraction = useMemo(() => latestComposerInteraction(messages, dismissedInteractionIDs), [messages, dismissedInteractionIDs]);
   const composerInteractionID = composerInteraction ? actionRenderID(composerInteraction) : "";
+
+  useEffect(() => {
+    const collapseForViewport = () => {
+      if (window.innerWidth < 1120) {
+        setRightPanelOpen(false);
+      }
+    };
+    collapseForViewport();
+    window.addEventListener("resize", collapseForViewport);
+    return () => window.removeEventListener("resize", collapseForViewport);
+  }, []);
 
   useEffect(() => {
     const measureBottomInset = () => {
@@ -520,8 +573,12 @@ function App() {
       artifacts: attached,
       actions: macroRefs.map((macro) => macroControlCardAction(macro, "reference")),
       createdAt: Date.now(),
-      status: "sent"
+      status: "sent",
+      lifecycle: "durable",
+      persistence: "project_history",
+      message_kind: "user"
     };
+    setActivities([]);
     setMessages((current) => [...current, userMessage]);
     setInput("");
     setIsSending(true);
@@ -537,6 +594,7 @@ function App() {
       debugConfirmation("chat-response", summarizeChatResponseForConfirmation(response));
       postAgentMutationsFromChatResponse(response, "chat");
       const assistantMessage = assistantMessageFromResponse(response);
+      setActivities((current) => dismissActivitiesForTurn(current, response.turn_id || response.run_id || response.goal_id || ""));
       debugConfirmation("assistant-message", summarizeMessageForConfirmation(assistantMessage));
       setMessages((current) => mergeAssistantMessageIntoChat(current, assistantMessage));
       setPendingArtifacts([]);
@@ -550,6 +608,7 @@ function App() {
     } catch (chatError) {
       const message = chatError instanceof Error ? chatError.message : "发送失败";
       setError(message);
+      setActivities([]);
       setMessages((current) => [
         ...current,
         {
@@ -557,7 +616,10 @@ function App() {
           role: "system",
           content: message,
           createdAt: Date.now(),
-          status: "error"
+          status: "error",
+          lifecycle: "durable",
+          persistence: "local",
+          message_kind: "error"
         }
       ]);
       setInput(messageText);
@@ -582,7 +644,7 @@ function App() {
   const insertMacroControlCard = useCallback((macro: MacroControl) => {
     setMessages((current) => [
       ...current,
-      {
+      durableMessage({
         id: uniqueID("macro_card"),
         role: "assistant",
         content: "已放入宏控制卡片。",
@@ -590,7 +652,7 @@ function App() {
         actions: [macroControlCardAction(macro, "live_card")],
         createdAt: Date.now(),
         status: "sent"
-      }
+      }, { kind: "assistant", persistence: "local" })
     ]);
   }, [mode]);
 
@@ -712,10 +774,12 @@ function App() {
       saveStoredScopedConversationID(currentScope, nextConversationID);
     }
     setMessages([{ ...initialMessage, id: uniqueID("intro"), createdAt: Date.now() }]);
+    setActivities([]);
     setPendingArtifacts([]);
     setPendingMacroRefs([]);
     setPendingPluginLearningMode(null);
     setDismissedInteractionIDs([]);
+    setActiveFocus("dialogue");
     setInput("");
     setError("");
   };
@@ -792,7 +856,10 @@ function App() {
       content: targetText,
       mode,
       createdAt: Date.now(),
-      status: "sent"
+      status: "sent",
+      lifecycle: "durable",
+      persistence: "project_history",
+      message_kind: "user"
     };
     setMessages((current) => [...current, userMessage]);
     setInput("");
@@ -820,14 +887,14 @@ function App() {
     setError("");
     setMessages((current) => [
       ...current,
-      {
+      durableMessage({
         id: uniqueID("plugin_learning_cancel"),
         role: "assistant",
         content: "已退出 Plugin Grabber 学习模式。",
         mode,
         createdAt: Date.now(),
         status: "sent"
-      }
+      }, { kind: "assistant", persistence: "local" })
     ]);
   };
 
@@ -864,11 +931,8 @@ function App() {
       });
       postAgentMutationsFromInvokeResponse(response, "invoke");
       const nextMessage = invokeMessageFromResponse(response, mode, learningMode);
-      setMessages((current) => (
-        processingMessageID
-          ? replaceChatMessageByID(current, processingMessageID, nextMessage)
-          : [...current, nextMessage]
-      ));
+      setActivities((current) => processingMessageID ? dismissActivityByID(current, processingMessageID) : []);
+      setMessages((current) => mergeAssistantMessageIntoChat(current, nextMessage));
       const result = asRecord(response.result);
       const sidePanel = asRecord(result.side_panel_request ?? asRecord(response).side_panel_request);
       const artifactID = textValue(sidePanel.artifact_id, "");
@@ -885,13 +949,13 @@ function App() {
         role: "system",
         content: message,
         createdAt: Date.now(),
-        status: "error"
+        status: "error",
+        lifecycle: "durable",
+        persistence: "local",
+        message_kind: "error"
       };
-      setMessages((current) => (
-        processingMessageID
-          ? replaceChatMessageByID(current, processingMessageID, errorMessage)
-          : [...current, errorMessage]
-      ));
+      setActivities((current) => processingMessageID ? dismissActivityByID(current, processingMessageID) : []);
+      setMessages((current) => [...current, errorMessage]);
     } finally {
       setPluginLearningBusy(false);
     }
@@ -949,10 +1013,13 @@ function App() {
         content: intent,
         mode,
         createdAt: Date.now(),
-        status: "sent"
-      },
-      processingChatMessage(processingMessageID, "正在启动插件学习", mode)
+        status: "sent",
+        lifecycle: "durable",
+        persistence: "project_history",
+        message_kind: "user"
+      }
     ]);
+    setActivities((current) => upsertActivity(current, processingChatMessage(processingMessageID, "正在启动插件学习", mode)));
     await invokePluginLearning(learningMode, target, intent, latestUIState, processingMessageID);
   };
 
@@ -972,6 +1039,9 @@ function App() {
     }
     const pendingID = interactionActionID(interactionID, actionID);
     const actionLabel = textValue(action.label ?? action.title ?? actionID, actionID);
+    const transcriptText = isCapabilityProposalInteraction(interaction)
+      ? proposalDecisionTranscript(actionID, actionLabel)
+      : actionLabel;
     const renderID = actionRenderID(interaction);
     const processingMessageID = uniqueID("interaction_processing");
     const persistentMixBoard = isMixBoardAction(interaction);
@@ -1002,17 +1072,20 @@ function App() {
         {
           id: uniqueID("interaction"),
           role: "user",
-          content: actionLabel,
+          content: transcriptText,
           mode,
           createdAt: Date.now(),
-          status: "sent"
-        },
-        progressMessage
+          status: "sent",
+          lifecycle: "durable",
+          persistence: "project_history",
+          message_kind: "user"
+        }
       ]);
+      setActivities((current) => upsertActivity(current, progressMessage));
     }
     try {
       const decision = textValue(action.decision ?? actionID, actionID);
-      const response = isSyntheticConfirmationInteraction(interaction)
+      const response = isSyntheticConfirmationInteraction(interaction) && !isCapabilityProposalInteraction(interaction)
         ? await confirmPlan({
             plan_id: textValue(interaction.plan_id ?? asRecord(interaction.payload).plan_id, ""),
             decision
@@ -1026,14 +1099,16 @@ function App() {
       debugConfirmation("interaction-response", summarizeChatResponseForConfirmation(response));
       postAgentMutationsFromChatResponse(response, "interaction");
       const assistantMessage = assistantMessageFromResponse(response);
+      setActivities((current) => dismissActivityByID(
+        dismissActivitiesForTurn(current, response.turn_id || response.run_id || response.goal_id || ""),
+        processingMessageID
+      ));
       debugConfirmation("assistant-message", summarizeMessageForConfirmation(assistantMessage));
       setMessages((current) => {
         const resolved = persistentMixBoard ? current : resolveInteractionInMessages(current, interactionID, actionID, response);
-        const next = persistentMixBoard
+        const next = persistentMixBoard || messageMixBoardAction(assistantMessage)
           ? upsertPersistentMixBoardMessage(resolved, assistantMessage)
-          : messageMixBoardAction(assistantMessage)
-            ? upsertPersistentMixBoardMessage(replaceChatMessageByID(resolved, processingMessageID, { ...assistantMessage, actions: [] }), assistantMessage)
-            : replaceChatMessageByID(resolved, processingMessageID, assistantMessage);
+          : mergeAssistantMessageIntoChat(resolved, assistantMessage);
         debugConfirmation("interaction-response-replace", {
           interaction_id: interactionID,
           action_id: actionID,
@@ -1061,13 +1136,17 @@ function App() {
     } catch (interactionError) {
       const message = interactionError instanceof Error ? interactionError.message : "交互提交失败";
       setError(message);
-      setMessages((current) => replaceChatMessageByID(current, processingMessageID, {
+      setActivities((current) => dismissActivityByID(current, processingMessageID));
+      setMessages((current) => [...current, {
           id: uniqueID("interaction_err"),
           role: "system",
           content: message,
           createdAt: Date.now(),
-          status: "error"
-      }));
+          status: "error",
+          lifecycle: "durable",
+          persistence: "local",
+          message_kind: "error"
+      }]);
     } finally {
       setRespondingActionID("");
     }
@@ -1088,14 +1167,14 @@ function App() {
         const learningMode = pluginLearningModeFromValue(action.learning_mode) ?? pluginLearningModeFromValue(asRecord(completion.payload).mode) ?? "auto_learn";
         setMessages((current) => [
           ...current,
-          {
+          durableMessage({
             id: uniqueID("plugin_learning_user"),
             role: "user",
             content: actionLabel,
             mode,
             createdAt: Date.now(),
             status: "sent"
-          }
+          }, { kind: "user", persistence: "project_history" })
         ]);
         await invokePluginLearning(learningMode, completionTarget, actionLabel);
         return;
@@ -1107,7 +1186,10 @@ function App() {
         content: actionLabel,
         mode,
         createdAt: Date.now(),
-        status: "sent"
+        status: "sent",
+        lifecycle: "durable",
+        persistence: "project_history",
+        message_kind: "user"
       };
       setMessages((current) => [...current, userMessage]);
       const response = await sendChat({
@@ -1129,13 +1211,13 @@ function App() {
       setError(message);
       setMessages((current) => [
         ...current,
-        {
+        durableMessage({
           id: uniqueID("completion_action_err"),
           role: "system",
           content: message,
           createdAt: Date.now(),
           status: "error"
-        }
+        }, { kind: "error", persistence: "local" })
       ]);
     } finally {
       setRespondingActionID("");
@@ -1156,9 +1238,52 @@ function App() {
     />
   );
 
+  const openWorkbenchTab = (tab: WorkbenchTab) => {
+    setActiveTab(tab);
+    setRightPanelOpen(true);
+  };
+
+  const handleFocusChange = (nextFocus: FocusMode) => {
+    setSettingsOpen(false);
+    setActiveFocus(nextFocus);
+  };
+
+  const rightPanelMaximum = () => {
+    const workspaceWidth = workspaceRef.current?.getBoundingClientRect().width ?? window.innerWidth;
+    return Math.max(minRightPanelWidth, Math.min(workspaceWidth * 0.45, workspaceWidth - 460));
+  };
+
+  const updateRightPanelWidth = (width: number, persist = false) => {
+    const next = Math.round(clampNumber(width, minRightPanelWidth, rightPanelMaximum()));
+    setRightPanelWidths((current) => ({ ...current, [activeTab]: next }));
+    if (persist) {
+      savePanelWidth("right", activeTab, next);
+    }
+  };
+
+  const beginRightPanelResize = (event: ReactPointerEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    const startX = event.clientX;
+    const startWidth = rightPanelWidth;
+    let nextWidth = startWidth;
+    document.body.classList.add("panel-resizing");
+    const move = (moveEvent: PointerEvent) => {
+      nextWidth = clampNumber(startWidth + startX - moveEvent.clientX, minRightPanelWidth, rightPanelMaximum());
+      setRightPanelWidths((current) => ({ ...current, [activeTab]: Math.round(nextWidth) }));
+    };
+    const finish = () => {
+      document.body.classList.remove("panel-resizing");
+      document.removeEventListener("pointermove", move);
+      document.removeEventListener("pointerup", finish);
+      savePanelWidth("right", activeTab, Math.round(nextWidth));
+    };
+    document.addEventListener("pointermove", move);
+    document.addEventListener("pointerup", finish, { once: true });
+  };
+
   const workbenchPanel = (
     <aside className={`workbench-panel ${isWorkbenchSurface ? "standalone" : ""}`}>
-      <WorkbenchTabs activeTab={activeTab} setActiveTab={setActiveTab} />
+      <WorkbenchTabs activeTab={activeTab} setActiveTab={openWorkbenchTab} onCollapse={isWorkbenchSurface ? undefined : () => setRightPanelOpen(false)} />
       <Workbench
         activeTab={activeTab}
         uiState={uiState}
@@ -1184,18 +1309,13 @@ function App() {
 
   const conversationPanel = (
     <section className="conversation-panel">
-      <div className="conversation-header">
-        <div>
-          <p className="eyebrow">Ask Vit</p>
-          <h1>{focusTitle(activeFocus)}</h1>
-        </div>
+      <div className="conversation-toolbar" aria-label="对话模式">
         <ModeSwitch value={mode} onChange={setMode} />
       </div>
 
-      {activeFocus !== "dialogue" && <FocusSummary activeFocus={activeFocus} uiState={uiState} />}
-
       <MessageStream
         messages={messages}
+        activities={activities}
         respondingActionID={respondingActionID}
         hiddenActionID={composerInteractionID}
         bottomInset={messageBottomInset}
@@ -1291,6 +1411,8 @@ function App() {
         healthLabel={healthLabel}
         runtimeStatus={runtimeStatus}
         uiState={uiState}
+        conversationTitle={conversationTitle}
+        onOpenHistory={() => openWorkbenchTab("history")}
         onRefresh={refreshState}
         onTransportCommand={runTransportCommand}
         transportBusy={transportBusy}
@@ -1300,15 +1422,16 @@ function App() {
         <SideRail
           activeFocus={activeFocus}
           settingsOpen={settingsOpen}
-          onFocusChange={(nextFocus) => {
-            setActiveFocus(nextFocus);
-            setSettingsOpen(false);
-          }}
+          onFocusChange={handleFocusChange}
           onNewConversation={handleNewConversation}
           onOpenSettings={() => setSettingsOpen(true)}
         />
 
-        <section className={`workspace-grid ${isMainSurface ? "main-only" : ""}`}>
+        <section
+          ref={workspaceRef}
+          className={`workspace-grid project-aware ${isMainSurface ? "main-only" : ""} ${rightPanelOpen ? "right-open" : "right-collapsed"}`}
+          style={workspaceStyle}
+        >
           {settingsOpen ? (
             <SettingsPage
               runtimeStatus={runtimeStatus}
@@ -1326,9 +1449,21 @@ function App() {
                   connection={connection}
                   onInvoke={invokeDawAction}
                   onRefresh={refreshState}
+                  onClose={() => handleFocusChange("dialogue")}
                 />
               )}
-              {!isMainSurface && workbenchPanel}
+              {!isMainSurface && rightPanelOpen && (
+                <>
+                  <PanelResizeHandle
+                    side="right"
+                    onPointerDown={beginRightPanelResize}
+                    onReset={() => updateRightPanelWidth(defaultRightPanelWidth, true)}
+                    onNudge={(delta) => updateRightPanelWidth(rightPanelWidth - delta, true)}
+                  />
+                  {workbenchPanel}
+                </>
+              )}
+              {!isMainSurface && !rightPanelOpen && <CollapsedWorkbench activeTab={activeTab} onOpen={openWorkbenchTab} />}
             </>
           )}
         </section>
@@ -1745,6 +1880,8 @@ function TopStatusBar({
   healthLabel,
   runtimeStatus,
   uiState,
+  conversationTitle,
+  onOpenHistory,
   onRefresh,
   onTransportCommand,
   transportBusy
@@ -1753,6 +1890,8 @@ function TopStatusBar({
   healthLabel: string;
   runtimeStatus: RuntimeStatusResponse | null;
   uiState: AgentUIState | null;
+  conversationTitle: string;
+  onOpenHistory: () => void;
   onRefresh: () => Promise<void>;
   onTransportCommand: (tool: string, args?: JsonRecord) => Promise<void>;
   transportBusy: boolean;
@@ -1782,10 +1921,13 @@ function TopStatusBar({
   return (
     <header className="top-status">
       <div className="brand-block">
-        <span className={`connection-dot ${connection}`} />
-        <div>
-          <strong>{projectName}</strong>
-          <span title={diagnosticTitle}>{diagnosticLine}</span>
+        <div className="vit-mondrian-mark" aria-label="Vit"><strong>V</strong><i /><b /></div>
+        <div className="conversation-identity">
+          <button type="button" className="conversation-title-button" title="打开历史树切换对话流" onClick={onOpenHistory}>
+            <strong>{conversationTitle}</strong>
+            <ChevronRight size={14} />
+          </button>
+          <span title={`${projectPath} · ${diagnosticTitle}`}><i className={`connection-dot ${connection}`} />{projectName} · {diagnosticLine}</span>
         </div>
       </div>
 
@@ -1909,13 +2051,15 @@ function DawFocusPanel({
   uiState,
   connection,
   onInvoke,
-  onRefresh
+  onRefresh,
+  onClose
 }: {
   activeFocus: Exclude<FocusMode, "dialogue">;
   uiState: AgentUIState | null;
   connection: ConnectionStatus;
   onInvoke: DawInvoke;
   onRefresh: () => Promise<void>;
+  onClose: () => void;
 }) {
   const tracks = useMemo(() => dawTracksFromUIState(uiState), [uiState]);
   const title = focusTitle(activeFocus);
@@ -1933,6 +2077,9 @@ function DawFocusPanel({
           <button className="ghost-button" type="button" onClick={() => void onRefresh()}>
             <RefreshCw size={15} />
             刷新
+          </button>
+          <button className="icon-button" type="button" title="收起左侧面板" onClick={onClose}>
+            <X size={15} />
           </button>
         </div>
       </header>
@@ -2895,7 +3042,7 @@ function DawMixerPanel({ tracks, onInvoke }: { tracks: DawTrack[]; onInvoke: Daw
             </button>
             <div className="mixer-zone-stack" aria-label={`${track.name} rack zones`}>
               <span>Z1 MIDI FX</span>
-              <span>Z2 涔愬櫒</span>
+              <span>Z2 乐器</span>
               <span>Z3 音频效果</span>
             </div>
             <div className="mixer-strip-core">
@@ -3929,6 +4076,7 @@ function ModeSwitch({ value, onChange }: { value: AgentMode; onChange: (mode: Ag
 
 function MessageStream({
   messages,
+  activities,
   respondingActionID,
   hiddenActionID,
   bottomInset,
@@ -3940,6 +4088,7 @@ function MessageStream({
   onMacroValueCommit
 }: {
   messages: ChatMessage[];
+  activities: ChatMessage[];
   respondingActionID: string;
   hiddenActionID: string;
   bottomInset: number;
@@ -3957,7 +4106,7 @@ function MessageStream({
       bottomRef.current?.scrollIntoView({ block: "end", behavior: "smooth" });
     });
     return () => window.cancelAnimationFrame(frameID);
-  }, [messages.length, respondingActionID, bottomInset]);
+  }, [activities.length, messages.length, respondingActionID, bottomInset]);
 
   return (
     <div className="message-stream">
@@ -3967,9 +4116,12 @@ function MessageStream({
         }
         const modeLabel = agentModeLabel(message.mode);
         const actionsBeforeContent = shouldRenderActionsBeforeContent(message);
-        const contentBlock = message.status === "pending" && message.role === "assistant"
-          ? <TypingMessage content={message.content} />
-          : <p>{message.content}</p>;
+        const suppressProposalContent = shouldSuppressProposalContent(message);
+        const contentBlock = suppressProposalContent
+          ? null
+          : message.status === "pending" && message.role === "assistant"
+            ? <TypingMessage content={message.content} />
+            : <p>{message.content}</p>;
         const actionCardsBlock = message.actions && message.actions.length > 0
           ? (
               <ActionCards
@@ -4015,6 +4167,17 @@ function MessageStream({
           </article>
         );
       })}
+      {activities.length > 0 && (
+        <section className="activity-lane" aria-label="即时活动" aria-live="polite">
+          {activities.map((activity) => (
+            <div key={activity.id} className={`activity-lane-item ${activity.status ?? "pending"}`}>
+              {activity.status === "error" ? <AlertTriangle size={14} /> : <Loader2 className="spin" size={14} />}
+              <span>{activity.content}</span>
+              {activity.status !== "error" && <span className="typing-dots" aria-hidden="true"><i /><i /><i /></span>}
+            </div>
+          ))}
+        </section>
+      )}
       <div ref={bottomRef} className="message-scroll-anchor" style={{ height: `${bottomInset}px` }} />
     </div>
   );
@@ -4129,6 +4292,9 @@ type ProjectResultABView = {
 };
 
 function ActionCard(props: ActionCardProps) {
+  if (isCapabilityProposalInteraction(props.action)) {
+    return <CapabilityProposalCard {...props} />;
+  }
   if (isMixBoardAction(props.action)) {
     return <MixBoardActionCard {...props} />;
   }
@@ -4153,6 +4319,174 @@ function ActionCard(props: ActionCardProps) {
     return <PluginUIReferenceRequestCard {...props} />;
   }
   return <StandardActionCard {...props} />;
+}
+
+function shouldSuppressProposalContent(message: ChatMessage): boolean {
+  if (message.role !== "assistant" || !message.actions?.length) {
+    return false;
+  }
+  return message.actions.map(asRecord).some(isCapabilityProposalInteraction);
+}
+
+function CapabilityProposalCard({ action, respondingActionID, onInteractionAction }: ActionCardProps) {
+  const payload = interactionPayload(action);
+  const presentation = asRecord(payload.proposal_presentation ?? action.proposal_presentation);
+  const childActions = firstArray(action.actions)
+    .map(asRecord)
+    .filter((item) => Object.keys(item).length > 0);
+  const interactionID = textValue(action.id ?? action.interaction_id, "");
+  const renderID = actionRenderID(action);
+  const title = textValue(presentation.title ?? action.title, "方案等待确认");
+  const conclusion = textValue(presentation.conclusion ?? action.body, "");
+  const recommendation = textValue(presentation.recommendation, "");
+  const revision = finiteNumber(presentation.proposal_revision ?? payload.proposal_revision, 0);
+  const actionCount = finiteNumber(presentation.action_count, 0);
+  const analyzedTracks = finiteNumber(presentation.analyzed_tracks, 0);
+  const risk = textValue(presentation.risk, "");
+  const reversible = truthy(presentation.reversible);
+  const status = textValue(action.status ?? action.stage, "waiting_for_user").toLowerCase();
+  const resolved = childActions.length === 0 || status.includes("complete") || status.includes("cancel") || status.includes("fail");
+  const readiness = firstArray(presentation.readiness).map(asRecord).filter((item) => Object.keys(item).length > 0);
+  const groups = firstArray(presentation.change_groups).map(asRecord).filter((item) => Object.keys(item).length > 0);
+  const previews = firstArray(presentation.actions).map(asRecord).filter((item) => Object.keys(item).length > 0);
+  const summaries = firstArray(presentation.analysis_summary).map((item) => textValue(item, "")).filter(Boolean);
+  const limitations = firstArray(presentation.limitations).map((item) => textValue(item, "")).filter(Boolean);
+  const badge = resolved
+    ? status.includes("cancel") ? "已取消" : status.includes("fail") ? "已失效" : "已确认"
+    : `Proposal${revision > 0 ? ` · r${revision}` : ""}`;
+
+  return (
+    <div className={`action-card capability-proposal-card ${resolved ? "resolved" : "attention"}`}>
+      <SlidersHorizontal size={16} />
+      <div className="action-content">
+        <div className="action-title-line capability-proposal-title">
+          <strong>{title}</strong>
+          <span>{badge}</span>
+        </div>
+        {conclusion && <p className="capability-proposal-conclusion">{conclusion}</p>}
+        <div className="capability-proposal-facts" aria-label="方案摘要">
+          {analyzedTracks > 0 && <span>已分析 {analyzedTracks} 轨</span>}
+          <span>{actionCount} 项修改</span>
+          {risk && <span>风险 {localizeDisplayText(risk)}</span>}
+          <span>{reversible ? "可回滚" : "不可回滚"}</span>
+        </div>
+        {groups.length > 0 && (
+          <div className="capability-proposal-groups">
+            {groups.slice(0, 6).map((group, index) => {
+              const label = textValue(group.label ?? group.role ?? group.function, `分组 ${index + 1}`);
+              const count = finiteNumber(group.move_count ?? group.track_count, 0);
+              const unit = textValue(group.unit, "");
+              const min = finiteNumber(group.min_value, 0);
+              const max = finiteNumber(group.max_value, 0);
+              const range = min === max ? formatProposalValue(min, unit) : `${formatProposalValue(min, unit)} ～ ${formatProposalValue(max, unit)}`;
+              return <span key={`${textValue(group.id, label)}-${index}`}><strong>{label}</strong>{count > 0 ? ` · ${count} 项` : ""}{unit ? ` · ${range}` : ""}</span>;
+            })}
+          </div>
+        )}
+        {(summaries.length > 0 || recommendation || readiness.length > 0 || previews.length > 0 || limitations.length > 0) && (
+          <details className="capability-proposal-details">
+            <summary>查看分析依据与逐轨修改</summary>
+            {summaries.length > 0 && (
+              <section>
+                <h4>分析摘要</h4>
+                <ul>{summaries.map((item, index) => <li key={`${item}-${index}`}>{item}</li>)}</ul>
+              </section>
+            )}
+            {recommendation && <section><h4>推荐理由</h4><p>{recommendation}</p></section>}
+            {readiness.length > 0 && (
+              <section>
+                <h4>证据覆盖</h4>
+                <div className="capability-proposal-metrics">
+                  {readiness.map((metric, index) => (
+                    <span key={`${textValue(metric.id, "metric")}-${index}`}>
+                      <strong>{textValue(metric.label, "指标")}</strong>
+                      {textValue(metric.value, "—")}
+                    </span>
+                  ))}
+                </div>
+              </section>
+            )}
+            {previews.length > 0 && (
+              <section>
+                <h4>逐轨修改</h4>
+                <div className="capability-proposal-preview-list">
+                  {previews.map((preview, index) => {
+                    const unit = textValue(preview.unit, "");
+                    const before = finiteNumber(preview.before, 0);
+                    const target = finiteNumber(preview.target, 0);
+                    const delta = finiteNumber(preview.delta, 0);
+                    return (
+                      <div key={`${textValue(preview.action_id ?? preview.track_id, "change")}-${index}`}>
+                        <strong>{textValue(preview.track_name ?? preview.track_id, `轨道 ${index + 1}`)}</strong>
+                        <span>{formatProposalValue(before, unit)} → {formatProposalValue(target, unit)} ({formatProposalDelta(delta, unit)})</span>
+                        {textValue(preview.reason, "") && <small>{textValue(preview.reason, "")}</small>}
+                      </div>
+                    );
+                  })}
+                </div>
+              </section>
+            )}
+            {limitations.length > 0 && (
+              <section className="capability-proposal-limitations">
+                <h4>限制与风险</h4>
+                <ul>{limitations.map((item, index) => <li key={`${item}-${index}`}>{item}</li>)}</ul>
+              </section>
+            )}
+          </details>
+        )}
+        {!resolved && <p className="capability-proposal-hint">可直接回复“执行这个方案”，也可以继续提问、排除轨道或修改数值。</p>}
+        {!resolved && childActions.length > 0 && (
+          <div className="action-buttons capability-proposal-actions">
+            {childActions.map((child, childIndex) => {
+              const actionID = textValue(child.id ?? child.action_id ?? child.decision, `action_${childIndex + 1}`);
+              const label = textValue(child.label ?? child.title ?? actionID, actionID);
+              const pendingID = interactionActionID(interactionID || renderID || "proposal", actionID);
+              const isBusy = respondingActionID === pendingID;
+              return (
+                <button
+                  key={`${actionID}-${childIndex}`}
+                  className={`action-button ${textValue(child.style, "secondary")}`}
+                  type="button"
+                  disabled={respondingActionID !== ""}
+                  onClick={() => onInteractionAction(action, child, capabilityProposalInteractionPayload(action, child))}
+                >
+                  {isBusy && <Loader2 className="spin" size={14} />}
+                  <span>{label}</span>
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function formatProposalValue(value: number, unit: string): string {
+  const suffix = unit.trim() ? ` ${unit.trim()}` : "";
+  return `${value.toFixed(2)}${suffix}`;
+}
+
+function capabilityProposalInteractionPayload(interaction: JsonRecord, action: JsonRecord): JsonRecord {
+  const parent = interactionPayload(interaction);
+  return {
+    ...interactionPayloadForAction(interaction, action, {}),
+    workflow: "capability_runtime_v1",
+    approval_mode: textValue(parent.approval_mode, "conversational"),
+    conversation_id: textValue(interaction.conversation_id ?? parent.conversation_id, ""),
+    goal_id: textValue(interaction.goal_id ?? parent.goal_id, ""),
+    run_id: textValue(interaction.run_id ?? parent.run_id, ""),
+    session_id: textValue(parent.session_id, ""),
+    capability_id: textValue(parent.capability_id, ""),
+    proposal_id: textValue(parent.proposal_id ?? interaction.plan_id, ""),
+    proposal_revision: finiteNumber(parent.proposal_revision, 0),
+    action_set_hash: textValue(parent.action_set_hash, ""),
+    project_cut_hash: textValue(parent.project_cut_hash, "")
+  };
+}
+
+function formatProposalDelta(value: number, unit: string): string {
+  return `${value > 0 ? "+" : ""}${formatProposalValue(value, unit)}`;
 }
 
 function MixTreatmentPendingCard({ action, respondingActionID, onInteractionAction }: ActionCardProps) {
@@ -5968,10 +6302,17 @@ function isDisposableConfirmationPromptText(content: string): boolean {
   if (!text) {
     return false;
   }
+  const compact = text.replace(/\s+/g, " ");
+  const genericChineseConfirmation = compact.length <= 160 && (
+    /^(?:这个|此|该)?操作.*(?:需要|等待).*确认.*(?:执行|继续)[。.!！]?$/u.test(compact) ||
+    /^(?:确认|批准)后(?:才会|将会|即可)?.*(?:执行|继续)[。.!！]?$/u.test(compact) ||
+    /^(?:需要|等待)你(?:的)?确认(?:后才会执行)?[。.!！]?$/u.test(compact)
+  );
   return (
     text === "This action requires confirmation before execution." ||
     text === "This action will modify the project and requires confirmation." ||
-    (text.includes("confirm") && text.length <= 120)
+    (text.toLowerCase().includes("confirm") && text.length <= 120) ||
+    genericChineseConfirmation
   );
 }
 
@@ -5982,99 +6323,6 @@ function isApprovalPromptAction(action: JsonRecord): boolean {
   const type = textValue(action.type, "").toLowerCase();
   const status = textValue(action.status ?? action.stage, "").toLowerCase();
   return type === "approval.requested" || status.includes("waiting") || status.includes("confirm") || truthy(action.requires_confirmation);
-}
-
-function replaceChatMessageByID(messages: ChatMessage[], messageID: string, replacement: ChatMessage): ChatMessage[] {
-  if (!messageID) {
-    return [...messages, replacement];
-  }
-  let replaced = false;
-  const nextMessages = messages.map((message) => {
-    if (message.id !== messageID) {
-      return message;
-    }
-    replaced = true;
-    return replacement;
-  });
-  return replaced ? nextMessages : [...nextMessages, replacement];
-}
-
-function mergeAgentEventsIntoMessages(current: ChatMessage[], events: AgentEvent[], mode?: AgentMode | string): ChatMessage[] {
-  if (events.length === 0) {
-    return current;
-  }
-  const debugEvents = shouldDebugAgentEvents(events);
-  let next = current;
-  events.forEach((event) => {
-    if (shouldDismissAgentTurnMessages(event)) {
-      next = dismissAgentTurnMessages(next, event);
-      return;
-    }
-    if (shouldDismissAgentEventMessage(event)) {
-      const sourceID = agentEventSourceID(event);
-      next = sourceID ? next.filter((message) => (message.source_id || message.id) !== sourceID) : next;
-      return;
-    }
-    const message = chatMessageFromAgentEvent(event, mode);
-    if (!message) {
-      return;
-    }
-    const key = message.source_id || message.id;
-    const existingIndex = next.findIndex((item) => (item.source_id || item.id) === key);
-    if (existingIndex < 0) {
-      next = [...next, message];
-      return;
-    }
-    next = next.map((item, index) => {
-      if (index !== existingIndex) {
-        return item;
-      }
-      return {
-        ...item,
-        ...message,
-        createdAt: item.createdAt,
-        actions: mergeMessageActions(item.actions ?? [], message.actions ?? [])
-      };
-    });
-  });
-  if (debugEvents) {
-    debugConfirmation("agent-events-merged", {
-      events: events.map(summarizeAgentEventForConfirmation),
-      before: summarizeMessagesForConfirmation(current),
-      after: summarizeMessagesForConfirmation(next)
-    });
-  }
-  return next;
-}
-
-function shouldDismissAgentTurnMessages(event: AgentEvent): boolean {
-  const type = textValue(event.type, "");
-  const status = textValue(event.status, "").toLowerCase();
-  if (type !== "turn.completed") {
-    return false;
-  }
-  return !status.includes("waiting") && !status.includes("confirm") && status !== "failed" && status !== "error";
-}
-
-function dismissAgentTurnMessages(messages: ChatMessage[], event: AgentEvent): ChatMessage[] {
-  const goalID = textValue(event.goal_id, "") || "goal";
-  const prefix = `agent_event_${goalID}_`;
-  return messages.filter((message) => {
-    const sourceID = message.source_id || message.id;
-    if (!sourceID.startsWith(prefix)) {
-      return true;
-    }
-    return message.status === "error";
-  });
-}
-
-function shouldDismissAgentEventMessage(event: AgentEvent): boolean {
-  const type = textValue(event.type, "");
-  const status = textValue(event.status, "").toLowerCase();
-  if (type !== "item.completed") {
-    return false;
-  }
-  return status === "" || ["completed", "complete", "done", "ok", "success", "succeeded", "applied"].includes(status);
 }
 
 function chatMessageFromAgentEvent(event: AgentEvent, mode?: AgentMode | string): ChatMessage | null {
@@ -6090,7 +6338,7 @@ function chatMessageFromAgentEvent(event: AgentEvent, mode?: AgentMode | string)
   }
   const isRunning = type === "item.started" || status === "running" || status === "in_progress";
   const isError = type === "turn.failed" || status === "failed" || status === "error";
-  return {
+  return transientMessage({
     id: sourceID,
     source_id: sourceID,
     role: isError ? "system" : "assistant",
@@ -6099,7 +6347,7 @@ function chatMessageFromAgentEvent(event: AgentEvent, mode?: AgentMode | string)
     createdAt: agentEventCreatedAt(event),
     status: isRunning ? "pending" : isError ? "error" : "sent",
     actions: [agentEventAction(event)]
-  };
+  });
 }
 
 function agentEventSourceID(event: AgentEvent): string {
@@ -6160,14 +6408,14 @@ function agentEventCreatedAt(event: AgentEvent): number {
 }
 
 function processingChatMessage(id: string, content: string, mode?: AgentMode | string): ChatMessage {
-  return {
+  return transientMessage({
     id,
     role: "assistant",
     content,
     mode,
     createdAt: Date.now(),
     status: "pending"
-  };
+  });
 }
 
 function pluginLearningProcessingMessageForInteraction(
@@ -6269,6 +6517,9 @@ function isComposerInteraction(action: JsonRecord): boolean {
   if (textValue(action._ui_source, "") !== "interaction" || isPluginLearningCompletion(action)) {
     return false;
   }
+  if (isCapabilityProposalInteraction(action)) {
+    return false;
+  }
   const id = textValue(action.id ?? action.interaction_id, "");
   const status = textValue(action.status ?? action.stage, "").toLowerCase();
   const kind = textValue(action.kind, "").toLowerCase();
@@ -6289,6 +6540,14 @@ function isComposerInteraction(action: JsonRecord): boolean {
     return false;
   }
   return true;
+}
+
+function isCapabilityProposalInteraction(action: JsonRecord): boolean {
+  const payload = interactionPayload(action);
+  const presentation = asRecord(payload.proposal_presentation ?? action.proposal_presentation);
+  const kind = textValue(action.kind, "").toLowerCase();
+  const type = textValue(action.type, "").toLowerCase();
+  return kind === "proposal_approval" || type === "proposal_approval" || textValue(presentation.schema_version, "") === "vit.proposal_presentation.v1";
 }
 
 function hasPendingComposerInteraction(messages: ChatMessage[]): boolean {
@@ -6579,7 +6838,7 @@ function messageRoleLabel(role: ChatMessage["role"]): string {
 function agentModeLabel(mode?: AgentMode | string): string {
   const value = textValue(mode, "").toLowerCase();
   if (value === "default") {
-    return "即时";
+    return "";
   }
   if (value === "plan") {
     return "计划";
@@ -7397,6 +7656,12 @@ function summarizeConfirmationCommands(commands: JsonRecord[], preview: string):
   }
   if (joined.includes("create_midi_clip") || joined.includes("midi clip")) {
     return "Ready to create MIDI clip";
+  }
+  if (joined.includes("clip.gain.set") || joined.includes("clip_gain_set")) {
+    return "Ready to modify clip gain";
+  }
+  if (joined.includes("clip.fade.set") || joined.includes("clip_fade_set")) {
+    return "Ready to modify clip fade";
   }
   if (joined.includes("create_track") || joined.includes("track")) {
     return "Ready to modify track structure";
@@ -8244,7 +8509,65 @@ function Composer({
   );
 }
 
-function WorkbenchTabs({ activeTab, setActiveTab }: { activeTab: WorkbenchTab; setActiveTab: (tab: WorkbenchTab) => void }) {
+function PanelResizeHandle({
+  side,
+  onPointerDown,
+  onReset,
+  onNudge
+}: {
+  side: "left" | "right";
+  onPointerDown: (event: ReactPointerEvent<HTMLDivElement>) => void;
+  onReset: () => void;
+  onNudge: (delta: number) => void;
+}) {
+  return (
+    <div
+      className={`panel-resize-handle ${side}`}
+      role="separator"
+      aria-label={`${side === "left" ? "左" : "右"}侧面板宽度`}
+      aria-orientation="vertical"
+      tabIndex={0}
+      title="拖拽调整宽度；双击恢复默认"
+      onPointerDown={onPointerDown}
+      onDoubleClick={onReset}
+      onKeyDown={(event) => {
+        if (event.key === "ArrowLeft") {
+          event.preventDefault();
+          onNudge(-16);
+        } else if (event.key === "ArrowRight") {
+          event.preventDefault();
+          onNudge(16);
+        } else if (event.key === "Home") {
+          event.preventDefault();
+          onReset();
+        }
+      }}
+    />
+  );
+}
+
+function CollapsedWorkbench({ activeTab, onOpen }: { activeTab: WorkbenchTab; onOpen: (tab: WorkbenchTab) => void }) {
+  return (
+    <aside className="workbench-collapsed" aria-label="右侧工程面板">
+      {workbenchTabs.map(({ key, label, icon: Icon }) => (
+        <button key={key} type="button" className={activeTab === key ? "active" : ""} title={`打开${label}`} onClick={() => onOpen(key)}>
+          <Icon size={16} />
+          <span>{label}</span>
+        </button>
+      ))}
+    </aside>
+  );
+}
+
+function WorkbenchTabs({
+  activeTab,
+  setActiveTab,
+  onCollapse
+}: {
+  activeTab: WorkbenchTab;
+  setActiveTab: (tab: WorkbenchTab) => void;
+  onCollapse?: () => void;
+}) {
   return (
     <div className="workbench-tabs">
       {workbenchTabs.map(({ key, label, icon: Icon }) => (
@@ -8253,6 +8576,12 @@ function WorkbenchTabs({ activeTab, setActiveTab }: { activeTab: WorkbenchTab; s
           <span>{label}</span>
         </button>
       ))}
+      {onCollapse && (
+        <button className="collapse-workbench" type="button" title="收起右侧面板" onClick={onCollapse}>
+          <ChevronRight size={16} />
+          <span>收起</span>
+        </button>
+      )}
     </div>
   );
 }
@@ -8573,7 +8902,7 @@ function MediaPane({
       if (result.artifact) {
         onSelectArtifact(result.artifact.id);
       }
-      setMenuStatus("链接已保存到媒体池");
+      setMenuStatus("链接已保存到资料库");
       await onRefresh();
     } catch (saveError) {
       setMenuStatus(saveError instanceof Error ? saveError.message : "保存链接失败");
@@ -8643,7 +8972,7 @@ function MediaPane({
     setArtifactActionBusy(true);
     try {
       await onDeleteArtifact(deleteTarget.id);
-      setMenuStatus("已从媒体池移除");
+      setMenuStatus("已从资料库移除");
       setDeleteTarget(null);
     } catch (deleteError) {
       setMenuStatus(deleteError instanceof Error ? deleteError.message : "删除失败");
@@ -8658,7 +8987,7 @@ function MediaPane({
         <button className="media-pool-title-button" type="button" onClick={() => setListOpen((open) => !open)}>
           <Archive size={18} />
           <span>
-            <strong>媒体池</strong>
+            <strong>资料库</strong>
             <small>{artifacts.length} 个文件</small>
           </span>
         </button>
@@ -8692,8 +9021,8 @@ function MediaPane({
         <button
           className="tool-button media-icon-button"
           type="button"
-          title="保存链接到媒体池"
-          aria-label="保存链接到媒体池"
+          title="保存链接到资料库"
+          aria-label="保存链接到资料库"
           onClick={saveResourceURL}
           disabled={resourceBusy}
         >
@@ -8712,7 +9041,7 @@ function MediaPane({
       </form>
       <div className={`media-status-line ${menuStatus ? "" : "empty"}`}>{menuStatus}</div>
       <div className={`media-grid ${listOpen ? "list-open" : "list-closed"}`}>
-        <section className="artifact-list" aria-label="媒体文件列表">
+        <section className="artifact-list" aria-label="资料库文件列表">
           <div className="artifact-list-header">
             <span>文件</span>
             <small>{formatBytes(artifacts.reduce((total, artifact) => total + Number(artifact.size_bytes ?? 0), 0))}</small>
@@ -8721,7 +9050,7 @@ function MediaPane({
             </button>
           </div>
           <div className="artifact-list-scroll">
-            {artifacts.length === 0 && <EmptyState label="No artifacts" />}
+            {artifacts.length === 0 && <EmptyState label="暂无资料" />}
             {artifacts.map((artifact) => (
               <div
                 key={artifact.id}
@@ -8827,7 +9156,7 @@ function MediaPane({
           <div className="media-dialog" onClick={(event) => event.stopPropagation()}>
             <h3>从列表删除</h3>
             <p>{artifactLabel(deleteTarget)}</p>
-            <span>只会从媒体池移除此记录，不会删除硬盘上的原文件。</span>
+            <span>只会从资料库移除此记录，不会删除硬盘上的原文件。</span>
             <div className="media-dialog-actions">
               <button type="button" onClick={() => setDeleteTarget(null)} disabled={artifactActionBusy}>
                 取消
@@ -8874,7 +9203,7 @@ function ArtifactPreview({
   }, [selectedArtifact?.id]);
 
   if (!selectedArtifact) {
-    return <EmptyState label="No selection" />;
+    return <EmptyState label="尚未选择资料" />;
   }
   const current = artifact ?? selectedArtifact;
   const isImagePreview = artifactIsImage(current);
@@ -9034,7 +9363,7 @@ function BrowserPane({
       });
       if (result.artifact) {
         onCapturedRef.current(result.artifact);
-        setMessage("已捕获到媒体池，并附加到当前对话");
+        setMessage("已捕获到资料库，并附加到当前对话");
         await onRefreshRef.current();
       } else {
         setMessage("捕获完成，但没有返回媒体记录");
@@ -9186,7 +9515,7 @@ function BrowserPane({
           <span>{textValue(browserState.title, "") || textValue(browserState.url, "") || "WebView2 companion browser"}</span>
           <button className="tool-button" type="button" onClick={capture} disabled={busy || !bridgeReady || !browserState.ready}>
             {busy ? <Loader2 className="spin" size={16} /> : <Archive size={16} />}
-            <span>捕获到媒体池</span>
+            <span>捕获到资料库</span>
           </button>
         </div>
         <div ref={viewportRef} className="browser-viewport" onClick={() => postBrowserMessage("focus")}>
@@ -11293,16 +11622,18 @@ function assistantMessageFromResponse(response: ChatResponse): ChatMessage {
     ...(response.commands ?? []).map((action) => ({ ...action, _ui_source: "command" })),
     ...(response.executed_kernel_reply ?? []).map((action) => ({ ...action, _ui_source: "executed" }))
   ];
-  return {
+  const content = response.error || response.reply || response.message || response.preview || "Vit 已返回。";
+  return durableMessage({
     id: uniqueID("reply"),
     role: response.error ? "system" : "assistant",
-    content: response.error || response.reply || response.message || response.preview || "Vit 已返回。",
+    content,
     mode: response.agent_mode,
     artifacts: response.artifacts,
     actions,
     createdAt: Date.now(),
-    status: response.error ? "error" : "sent"
-  };
+    status: response.error ? "error" : "sent",
+    ...responseMessageProtocol(response, content)
+  });
 }
 
 function confirmationFallbackActionsFromResponse(response: ChatResponse): JsonRecord[] {
@@ -11312,28 +11643,37 @@ function confirmationFallbackActionsFromResponse(response: ChatResponse): JsonRe
   }
   const body = textValue(response.reply ?? response.message, "这个操作需要你确认后才会执行。");
   const preview = textValue(response.preview, "");
+  const workflowData = asRecord(response.workflow_data);
+  const proposalPresentation = asRecord(response.proposal_presentation ?? workflowData.proposal_presentation);
+  const isCapabilityProposal = textValue(response.workflow, "").toLowerCase() === "capability_runtime_v1" && Object.keys(proposalPresentation).length > 0;
+  const payload: JsonRecord = {
+    plan_id: planID,
+    preview,
+    commands: response.commands ?? []
+  };
+  if (isCapabilityProposal) {
+    ["session_id", "capability_id", "proposal_id", "proposal_revision", "action_set_hash", "project_cut_hash", "approval_mode"].forEach((key) => {
+      if (workflowData[key] !== undefined) {
+        payload[key] = workflowData[key];
+      }
+    });
+    payload.proposal_presentation = proposalPresentation;
+  }
   return [
     {
       _ui_source: "interaction",
       _synthetic_confirmation: true,
       id: `confirmation_${planID}`,
-      kind: "confirmation",
-      type: "confirmation",
+      kind: isCapabilityProposal ? "proposal_approval" : "confirmation",
+      type: isCapabilityProposal ? "proposal_approval" : "confirmation",
       source: "vit_agent",
-      title: "需要确认",
+      title: isCapabilityProposal ? textValue(proposalPresentation.title, "方案等待确认") : "需要确认",
       body,
       status: "waiting_for_user",
       plan_id: planID,
-      payload: {
-        plan_id: planID,
-        preview,
-        commands: response.commands ?? []
-      },
-      data: {
-        plan_id: planID,
-        preview,
-        commands: response.commands ?? []
-      },
+      workflow: response.workflow,
+      payload,
+      data: payload,
       command: {
         preview,
         commands: response.commands ?? []
@@ -11436,7 +11776,7 @@ function pluginLearningPromptMessage(
     (hasTarget
       ? `检测到当前插件：${pluginLearningTargetLabel(target)}。可以直接使用当前插件，也可以输入另一个插件名。`
       : "请直接输入要学习的插件名；也可以先在机架里选中插件后再打开这个模式。");
-  return {
+  return durableMessage({
     id: uniqueID("plugin_learning_prompt"),
     role: "assistant",
     content: `进入 Plugin Grabber ${modeLabel}。要学习哪个插件？`,
@@ -11477,7 +11817,7 @@ function pluginLearningPromptMessage(
     ],
     createdAt: Date.now(),
     status: "sent"
-  };
+  }, { kind: "assistant", persistence: "local" });
 }
 
 function invokeMessageFromResponse(response: AgentInvokeResponse, mode: AgentMode, learningMode: PluginLearningMode = "auto_learn"): ChatMessage {
@@ -11521,7 +11861,7 @@ function invokeMessageFromResponse(response: AgentInvokeResponse, mode: AgentMod
       status: textValue(pluginLearning.status ?? pluginLearning.stage, response.status ?? "")
     });
   }
-  return {
+  return durableMessage({
     id: uniqueID("invoke"),
     role: hasError ? "system" : "assistant",
     content,
@@ -11530,7 +11870,7 @@ function invokeMessageFromResponse(response: AgentInvokeResponse, mode: AgentMod
     actions,
     createdAt: Date.now(),
     status: hasError ? "error" : "sent"
-  };
+  }, { kind: hasError ? "error" : "assistant", persistence: "local" });
 }
 
 function mixBoardActionFromPayload(...values: unknown[]): JsonRecord | null {
@@ -11864,7 +12204,7 @@ function saveStoredConversationMessages(conversationID: string, scope: string, m
   if (typeof window === "undefined" || !conversationID || !scope) {
     return;
   }
-  const rows = messages
+  const rows = durableMessagesForStorage(messages)
     .filter((message) => message.id !== "intro")
     .slice(-120)
     .map(sanitizeChatMessageForStorage);
@@ -11872,7 +12212,7 @@ function saveStoredConversationMessages(conversationID: string, scope: string, m
     return;
   }
   const payload = JSON.stringify({
-    schema_version: "ask_vit_conversation_messages.v1",
+    schema_version: "ask_vit_conversation_messages.v2",
     conversation_id: conversationID,
     scope,
     saved_at: new Date().toISOString(),
@@ -11886,7 +12226,7 @@ function saveStoredConversationMessages(conversationID: string, scope: string, m
 }
 
 function sanitizeChatMessageForStorage(message: ChatMessage): ChatMessage {
-  return {
+  return durableMessage({
     id: textValue(message.id, uniqueID("stored_msg")),
     source_id: textValue(message.source_id, ""),
     role: message.role,
@@ -11895,8 +12235,14 @@ function sanitizeChatMessageForStorage(message: ChatMessage): ChatMessage {
     artifacts: message.artifacts ?? [],
     actions: (message.actions ?? []).map(asRecord).filter((action) => Object.keys(action).length > 0),
     createdAt: Number.isFinite(message.createdAt) ? message.createdAt : Date.now(),
-    status: message.status
-  };
+    status: message.status,
+    lifecycle: message.lifecycle,
+    persistence: message.persistence,
+    message_kind: message.message_kind,
+    turn_id: message.turn_id,
+    logical_message_id: message.logical_message_id,
+    supersedes: message.supersedes
+  });
 }
 
 function sanitizeStoredChatMessage(value: unknown): ChatMessage | null {
@@ -11910,7 +12256,7 @@ function sanitizeStoredChatMessage(value: unknown): ChatMessage | null {
     return null;
   }
   const createdAt = Number(row.createdAt ?? row.created_at);
-  return {
+  const candidate: ChatMessage = {
     id: textValue(row.id, uniqueID("stored_msg")),
     source_id: textValue(row.source_id, ""),
     role,
@@ -11919,8 +12265,18 @@ function sanitizeStoredChatMessage(value: unknown): ChatMessage | null {
     artifacts,
     actions,
     createdAt: Number.isFinite(createdAt) ? createdAt : Date.now(),
-    status: chatMessageStatusFromStored(row.status)
+    status: chatMessageStatusFromStored(row.status),
+    lifecycle: textValue(row.lifecycle, "") as ChatMessage["lifecycle"],
+    persistence: textValue(row.persistence, "") as ChatMessage["persistence"],
+    message_kind: textValue(row.message_kind, "") as ChatMessage["message_kind"],
+    turn_id: textValue(row.turn_id, ""),
+    logical_message_id: textValue(row.logical_message_id, ""),
+    supersedes: firstArray(row.supersedes).map((item) => textValue(item, "")).filter(Boolean)
   };
+  if (isLegacyTransientMessage(candidate) || !isDurableMessage(candidate)) {
+    return null;
+  }
+  return durableMessage(candidate);
 }
 
 function chatMessageStatusFromStored(value: unknown): ChatMessage["status"] {
@@ -11949,9 +12305,30 @@ function historyMessagesFromUIState(uiState: AgentUIState | null): ChatMessage[]
       return;
     }
     const created = Date.parse(textValue(row.created_at, ""));
+    const messageData = asRecord(row.message_data);
+    const workflowData = asRecord(messageData.workflow_data);
+    const messageInteractions = interactionActionsFrom(messageData.interaction_requests);
+    const historyResponse: ChatResponse = {
+      reply: content,
+      needs_confirmation: truthy(messageData.needs_confirmation),
+      plan_id: textValue(messageData.plan_id, ""),
+      preview: textValue(messageData.preview, ""),
+      workflow: textValue(messageData.workflow, ""),
+      workflow_data: workflowData,
+      proposal_presentation: asRecord(messageData.proposal_presentation ?? workflowData.proposal_presentation),
+      interaction_requests: firstArray(messageData.interaction_requests).map(asRecord),
+      message_kind: textValue(row.message_kind, "") as ChatResponse["message_kind"],
+      lifecycle: "durable",
+      persistence: "project_history"
+    };
+    const historyFallbackActions = messageInteractions.some(isPendingInteractionAction)
+      ? []
+      : confirmationFallbackActionsFromResponse(historyResponse);
     const actions =
       role === "assistant"
         ? [
+            ...messageInteractions,
+            ...historyFallbackActions,
             ...pluginLearningCompletionActions(row.plugin_learning, row.artifacts ?? artifacts, {
               message: content,
               artifacts
@@ -11969,18 +12346,22 @@ function historyMessagesFromUIState(uiState: AgentUIState | null): ChatMessage[]
           ]
         : [];
     const messageArtifacts = artifactSummariesFrom(row.artifacts);
-    messages.push({
+    const protocol = historyMessageProtocol(row, role);
+    const historyMessage = durableMessage({
       id: `history_${sourceID}`,
-      source_id: sourceID,
       role,
       content,
       artifacts: messageArtifacts,
       actions,
       createdAt: Number.isFinite(created) ? created : Date.now() + index,
-      status: "sent"
-    });
+      status: "sent",
+      ...protocol
+    }, { persistence: "project_history" });
+    if (isDurableMessage(historyMessage)) {
+      messages.push(historyMessage);
+    }
   });
-  return messages;
+  return resolveSupersededMessages(messages);
 }
 
 function removeDisposableConfirmationPromptMessages(messages: ChatMessage[]): ChatMessage[] {
@@ -11992,19 +12373,7 @@ function mergeChatMessages(current: ChatMessage[], incoming: ChatMessage[]): Cha
     return current;
   }
   const base = current.length === 1 && current[0].id === "intro" ? [] : current;
-  const seen = new Map<string, number>();
-  const merged: ChatMessage[] = [];
-  [...base, ...incoming].forEach((message) => {
-    const keys = chatMessageKeys(message);
-    const existingIndex = keys.map((key) => seen.get(key)).find((index) => index !== undefined);
-    if (existingIndex !== undefined) {
-      merged[existingIndex] = mergeChatMessage(merged[existingIndex], message);
-      return;
-    }
-    keys.forEach((key) => seen.set(key, merged.length));
-    merged.push(message);
-  });
-  return merged.sort((left, right) => left.createdAt - right.createdAt);
+  return mergeMessageCollections(base, incoming, chatMessageKeys, mergeChatMessage);
 }
 
 function mergeAssistantMessageIntoChat(current: ChatMessage[], incoming: ChatMessage): ChatMessage[] {
@@ -12095,6 +12464,16 @@ function mergeChatMessage(existing: ChatMessage, incoming: ChatMessage): ChatMes
     ...incoming,
     ...existing,
     source_id: existing.source_id || incoming.source_id,
+    lifecycle: existing.lifecycle === "durable" || incoming.lifecycle === "durable" ? "durable" : existing.lifecycle ?? incoming.lifecycle,
+    persistence: existing.persistence === "project_history" || incoming.persistence === "project_history"
+      ? "project_history"
+      : existing.persistence ?? incoming.persistence,
+    message_kind: inferMessageKind(existing) === "proposal" || inferMessageKind(incoming) === "proposal"
+      ? "proposal"
+      : existing.message_kind ?? incoming.message_kind,
+    turn_id: existing.turn_id || incoming.turn_id,
+    logical_message_id: existing.logical_message_id || incoming.logical_message_id,
+    supersedes: Array.from(new Set([...(existing.supersedes ?? []), ...(incoming.supersedes ?? [])])),
     artifacts: mergeArtifacts(existing.artifacts ?? [], incoming.artifacts ?? []),
     actions: mergeMessageActions(existing.actions ?? [], incoming.actions ?? []),
     createdAt: Math.min(existing.createdAt, incoming.createdAt),
@@ -12136,6 +12515,12 @@ function mergeActionRecord(existing: JsonRecord, incoming: JsonRecord): JsonReco
 }
 
 function actionMergeKey(action: JsonRecord, index: number): string {
+  if (isCapabilityProposalInteraction(action)) {
+    const proposalID = proposalActionIdentity(action);
+    if (proposalID) {
+      return `proposal:${proposalID}`;
+    }
+  }
   return actionRenderID(action) || stableActionIdentity(action) || `${textValue(action._ui_source, "action")}:${index}`;
 }
 
@@ -12181,19 +12566,17 @@ function chatMessageKeys(message: ChatMessage): string[] {
     .filter(isMessageMergeKeyAction)
     .map((action) => actionRenderID(action))
     .filter(Boolean);
-  const keys: string[] = [];
-  if (message.source_id) {
-    keys.push(`source:${message.source_id}`);
-  }
+  const keys: string[] = messageProtocolIdentityKeys(message);
   if (message.id) {
     keys.push(`id:${message.id}`);
   }
   if (actionKeys.length > 0) {
     keys.push(`actions:${message.role}:${actionKeys.join("|")}`);
-  } else if (!actions.some(isProjectResultAction)) {
+  }
+  if (!actions.some(isProjectResultAction) && (actionKeys.length === 0 || inferMessageKind(message) === "proposal")) {
     keys.push(`text:${message.role}:${message.content}`);
   }
-  return keys;
+  return Array.from(new Set(keys));
 }
 
 function isMessageMergeKeyAction(action: JsonRecord): boolean {
@@ -12251,12 +12634,37 @@ function mergeSettingsConfig(config?: EngineConfig): EngineConfig {
 
 function buildChatContext(mode: AgentMode, activeFocus: FocusMode, uiState: AgentUIState | null, artifacts: ArtifactSummary[], macroRefs: MacroControl[] = []): JsonRecord {
   const selectedTrack = asRecord(uiState?.selected_track);
+  const uiContext = asRecord(uiState?.ui_context);
+  const selectedTrackID = selectedTrackIDFromUIState(uiState);
+  const selectedTrackName = textValue(selectedTrack.name ?? selectedTrack.track_name ?? uiContext.selected_track_name, "");
+  const selectedClipID = selectedClipIDFromUIState(uiState);
+  const selectedClipIDs = Array.from(selectedClipIDsFromUIState(uiState));
+  const selectedClipTrackID = textValue(uiContext.selected_clip_track_id ?? selectedTrackID, "");
+  const pianoRollFocusClipID = textValue(uiContext.piano_roll_focus_clip_id, "");
+  const pianoRollFocusTrackID = textValue(uiContext.piano_roll_focus_track_id, "");
+  const playheadSeconds = uiContext.playhead_seconds ?? uiContext.current_playhead_seconds ?? uiContext.transport_position_seconds;
+  const currentSelection = compactChatContextRecord({
+    selected_track_id: selectedTrackID,
+    selected_track_name: selectedTrackName,
+    selected_clip_id: selectedClipID,
+    selected_clip_ids: selectedClipIDs,
+    selected_clip_track_id: selectedClipTrackID,
+    piano_roll_focus_clip_id: pianoRollFocusClipID,
+    piano_roll_focus_track_id: pianoRollFocusTrackID,
+    playhead_seconds: playheadSeconds,
+    current_playhead_seconds: uiContext.current_playhead_seconds ?? playheadSeconds,
+    transport_position_seconds: uiContext.transport_position_seconds ?? playheadSeconds
+  });
+  const mergedUIContext = compactChatContextRecord({
+    ...uiContext,
+    ...currentSelection
+  });
   const pluginTarget = pluginLearningTargetFromUIState(uiState);
   const project = asRecord(uiState?.project);
   const projectHistory = asRecord(uiState?.project_history);
   const scope = artifactScopeMetadata(uiState);
   const macroControls = macroControlsFromUIState(uiState);
-  return {
+  return compactChatContextRecord({
     agent_mode: mode,
     active_focus: activeFocus,
     history_scope_key: scope.history_scope_key,
@@ -12266,8 +12674,18 @@ function buildChatContext(mode: AgentMode, activeFocus: FocusMode, uiState: Agen
     active_branch: textValue(projectHistory.active_branch, ""),
     active_node_id: textValue(projectHistory.active_node_id, ""),
     active_worktree: textValue(projectHistory.active_worktree, ""),
-    selected_track_id: textValue(selectedTrack.id ?? selectedTrack.track_id, ""),
-    selected_track_name: textValue(selectedTrack.name ?? selectedTrack.track_name, ""),
+    selected_track_id: selectedTrackID,
+    selected_track_name: selectedTrackName,
+    selected_clip_id: selectedClipID,
+    selected_clip_ids: selectedClipIDs,
+    selected_clip_track_id: selectedClipTrackID,
+    piano_roll_focus_clip_id: pianoRollFocusClipID,
+    piano_roll_focus_track_id: pianoRollFocusTrackID,
+    playhead_seconds: playheadSeconds,
+    current_playhead_seconds: currentSelection.current_playhead_seconds,
+    transport_position_seconds: currentSelection.transport_position_seconds,
+    current_selection: currentSelection,
+    ui_context: mergedUIContext,
     selected_plugin_track_id: pluginTarget.track_id,
     selected_plugin_id: pluginTarget.plugin_id,
     selected_plugin_name: pluginTarget.plugin_name,
@@ -12279,7 +12697,21 @@ function buildChatContext(mode: AgentMode, activeFocus: FocusMode, uiState: Agen
       title: artifactLabel(artifact),
       mime: artifact.mime
     }))
-  };
+  });
+}
+
+function compactChatContextRecord(record: JsonRecord): JsonRecord {
+  return Object.fromEntries(
+    Object.entries(record).filter(([, value]) => {
+      if (Array.isArray(value)) {
+        return value.length > 0;
+      }
+      if (value && typeof value === "object") {
+        return Object.keys(value as JsonRecord).length > 0;
+      }
+      return textValue(value, "") !== "";
+    })
+  );
 }
 
 function compactMacroForContext(macro: MacroControl): JsonRecord {
@@ -12658,6 +13090,86 @@ function lastPathPart(path: string): string {
 
 function uniqueID(prefix: string): string {
   return `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function currentConversationTitle(uiState: AgentUIState | null, messages: ChatMessage[]): string {
+  const history = asRecord(uiState?.project_history);
+  const graph = asRecord(history.conversation_graph);
+  const nodes = firstArray(graph.nodes).map(asRecord);
+  const activeNodeID = textValue(history.active_node_id ?? graph.active_node_id, "");
+  const byID = new Map(nodes.map((node) => [textValue(node.id, ""), node]));
+  const activePath: JsonRecord[] = [];
+  const visited = new Set<string>();
+  let cursor = activeNodeID ? byID.get(activeNodeID) : undefined;
+  while (cursor) {
+    const id = textValue(cursor.id, "");
+    if (!id || visited.has(id)) {
+      break;
+    }
+    visited.add(id);
+    activePath.unshift(cursor);
+    cursor = byID.get(textValue(cursor.parent_node_id, ""));
+  }
+  const latestTaskAsk = [...activePath].reverse().find((node) => {
+    if (textValue(node.kind, "").toLowerCase() !== "ask") {
+      return false;
+    }
+    return conversationTitleCandidate(textValue(node.text_preview ?? node.text ?? node.message, ""));
+  });
+  const latestTaskText = latestTaskAsk ? textValue(latestTaskAsk.text_preview ?? latestTaskAsk.text ?? latestTaskAsk.message, "") : "";
+  if (latestTaskText) {
+    return compactConversationTitle(latestTaskText);
+  }
+  const localTaskMessage = [...messages].reverse().find((message) => message.role === "user" && conversationTitleCandidate(textValue(message.content, "")));
+  return localTaskMessage ? compactConversationTitle(localTaskMessage.content) : "新对话";
+}
+
+function conversationTitleCandidate(value: string): boolean {
+  const clean = value.replace(/\s+/g, " ").trim().toLowerCase();
+  if (clean.length < 3) {
+    return false;
+  }
+  return !/^(可以|可以执行|执行|确认|确定|同意|继续|好的|好|ok|okay|yes|取消|不用了)[。.!！\s]*$/i.test(clean);
+}
+
+function compactConversationTitle(value: string): string {
+  const clean = value.replace(/\s+/g, " ").replace(/^[#>*`\-\s]+/, "").trim();
+  if (!clean) {
+    return "新对话";
+  }
+  return clean.length > 28 ? `${clean.slice(0, 27)}…` : clean;
+}
+
+function panelWidthStorageKey(side: "left" | "right", panel: string): string {
+  return `${panelWidthStoragePrefix}_${side}_${panel}`;
+}
+
+function loadPanelWidth(side: "left" | "right", panel: string, fallback: number, minimum: number): number {
+  if (typeof window === "undefined") {
+    return fallback;
+  }
+  try {
+    const stored = Number(window.localStorage.getItem(panelWidthStorageKey(side, panel)));
+    return Number.isFinite(stored) && stored >= minimum ? stored : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function savePanelWidth(side: "left" | "right", panel: string, width: number): void {
+  try {
+    window.localStorage.setItem(panelWidthStorageKey(side, panel), String(Math.round(width)));
+  } catch {
+    // Panel sizing is best-effort and must never block the workbench.
+  }
+}
+
+function loadRightPanelWidths(): Record<WorkbenchTab, number> {
+  return {
+    media: loadPanelWidth("right", "media", defaultRightPanelWidth, minRightPanelWidth),
+    macro: loadPanelWidth("right", "macro", defaultRightPanelWidth, minRightPanelWidth),
+    history: loadPanelWidth("right", "history", defaultRightPanelWidth, minRightPanelWidth)
+  };
 }
 
 function interactionActionID(interactionID: string, actionID: string): string {

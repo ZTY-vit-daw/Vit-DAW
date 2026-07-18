@@ -176,6 +176,79 @@ func TestToolImportantFieldsAreDeterministic(t *testing.T) {
 	}
 }
 
+func TestSelectionArtifactsArePromptSafe(t *testing.T) {
+	opts := fixedOptions()
+	opts.MaxListItems = 2
+	snap := Build(Input{Context: map[string]any{
+		"artifacts": []map[string]any{
+			{
+				"id":       "art_1",
+				"kind":     "audio",
+				"title":    "lead.wav",
+				"path":     `E:\BaiduNetdiskDownload\sattelites\lead.wav`,
+				"metadata": map[string]any{"sample_rate": 48000, "channels": 2},
+				"summary":  "Audio file, duration 120.00s",
+			},
+			{
+				"id":       "art_2",
+				"kind":     "audio",
+				"title":    "bass.wav",
+				"path":     `E:\BaiduNetdiskDownload\sattelites\bass.wav`,
+				"metadata": map[string]any{"sample_rate": 48000, "channels": 2},
+				"summary":  "Audio file, duration 120.00s",
+			},
+			{
+				"id":       "art_3",
+				"kind":     "audio",
+				"title":    "drums.wav",
+				"path":     `E:\BaiduNetdiskDownload\sattelites\drums.wav`,
+				"metadata": map[string]any{"sample_rate": 48000, "channels": 2},
+				"summary":  "Audio file, duration 120.00s",
+			},
+		},
+	}}, opts)
+	data, err := json.Marshal(snap.CurrentSelection)
+	if err != nil {
+		t.Fatalf("marshal selection: %v", err)
+	}
+	text := string(data)
+	if !strings.Contains(text, `"artifact_count":3`) || !strings.Contains(text, `"artifacts_omitted_count":1`) {
+		t.Fatalf("selection missing artifact catalog summary: %s", text)
+	}
+	if strings.Contains(text, "BaiduNetdiskDownload") || strings.Contains(text, "metadata") || strings.Contains(text, "drums.wav") {
+		t.Fatalf("selection leaked prompt-heavy artifact details: %s", text)
+	}
+}
+
+func TestSelectionKeepsSelectedClipRanges(t *testing.T) {
+	snap := Build(Input{Context: map[string]any{
+		"selected_clip_ranges": []any{
+			map[string]any{
+				"range_id":                 "range_1",
+				"clip_id":                  "clip_a",
+				"track_id":                 "track_1",
+				"start_seconds":            2.0,
+				"end_seconds":              3.5,
+				"duration_seconds":         1.5,
+				"clip_local_start_seconds": 0.5,
+				"clip_local_end_seconds":   2.0,
+				"source":                   "range_tool_drag",
+			},
+		},
+		"selected_clip_range_count": 1,
+	}}, fixedOptions())
+	if snap.CurrentSelection["selected_clip_range_count"] != 1 {
+		t.Fatalf("selection lost range count: %+v", snap.CurrentSelection)
+	}
+	ranges, ok := snap.CurrentSelection["selected_clip_ranges"].([]map[string]any)
+	if !ok || len(ranges) != 1 {
+		t.Fatalf("selection lost ranges: %+v", snap.CurrentSelection["selected_clip_ranges"])
+	}
+	if ranges[0]["clip_id"] != "clip_a" || ranges[0]["duration_seconds"] != 1.5 {
+		t.Fatalf("range summary = %+v", ranges[0])
+	}
+}
+
 func TestToolResultPreviewBudgetSummarizesLargeNestedPayload(t *testing.T) {
 	opts := fixedOptions()
 	opts.MaxPreviewBytes = 1200

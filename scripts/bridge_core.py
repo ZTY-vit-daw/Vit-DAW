@@ -3,7 +3,9 @@ import copy
 import json
 import queue
 import socket
+import tempfile
 import threading
+import uuid
 from collections import deque
 from dataclasses import dataclass
 from datetime import datetime
@@ -11,6 +13,15 @@ from pathlib import Path
 from typing import Any, Deque, Dict, List, Optional, Set
 
 import zmq
+
+CONTROL_REPLY_INLINE_LIMIT_BYTES = 60000
+TELEMETRY_INLINE_LIMIT_BYTES = 32 * 1024
+
+
+def _bridge_reply_dir() -> Path:
+    reply_dir = Path(tempfile.gettempdir()) / "vit_daw_bridge_replies"
+    reply_dir.mkdir(parents=True, exist_ok=True)
+    return reply_dir
 
 
 def _disable_udp_connreset(sock: socket.socket) -> None:
@@ -21,6 +32,106 @@ def _disable_udp_connreset(sock: socket.socket) -> None:
         sock.ioctl(socket.SIO_UDP_CONNRESET, False)
     except OSError:
         pass
+
+
+def _safe_reply_request_id(parsed_cmd: Optional[dict]) -> str:
+    if not isinstance(parsed_cmd, dict):
+        return ""
+    return str(parsed_cmd.get("request_id", "")).strip()
+
+
+def _safe_file_stem(value: str) -> str:
+    safe = "".join(ch if ch.isalnum() or ch in ("-", "_") else "_" for ch in value)
+    return safe[:80] or uuid.uuid4().hex
+
+
+def _make_file_reply(reply: str, request_id: str, logger: "BridgeLogger") -> str:
+    reply_bytes = reply.encode("utf-8")
+    reply_dir = _bridge_reply_dir()
+    stamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+    reply_path = reply_dir / f"{stamp}_{_safe_file_stem(request_id)}.json"
+    reply_path.write_text(reply, encoding="utf-8")
+    logger.debug(f"[control] large reply written to file: bytes={len(reply_bytes)} path={reply_path}")
+    return json.dumps(
+        {
+            "transport": "file_reply",
+            "request_id": request_id,
+            "reply_file": str(reply_path),
+            "reply_bytes": len(reply_bytes),
+        },
+        ensure_ascii=False,
+    )
+
+
+def _telemetry_packet_label(metadata: Optional[dict]) -> str:
+    if not isinstance(metadata, dict):
+        return "telemetry"
+    command = str(metadata.get("command", "")).strip()
+    if command:
+        return command
+    topic = str(metadata.get("topic", "")).strip()
+    subtopic = str(metadata.get("subtopic", "")).strip()
+    if topic and subtopic:
+        return f"{topic}_{subtopic}"
+    if topic:
+        return topic
+    packet_type = str(metadata.get("type", "")).strip()
+    if packet_type:
+        return packet_type
+    return "telemetry"
+
+
+def _make_telemetry_file_reply(packet: bytes, metadata: Optional[dict]) -> bytes:
+    reply_dir = _bridge_reply_dir()
+    label = _telemetry_packet_label(metadata)
+    stamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+    telemetry_path = reply_dir / f"{stamp}_telemetry_{_safe_file_stem(label)}.json"
+    telemetry_path.write_bytes(packet)
+    envelope = {
+        "transport": "file_reply",
+        "reply_file": str(telemetry_path),
+        "telemetry_file": str(telemetry_path),
+        "reply_bytes": len(packet),
+        "telemetry_bytes": len(packet),
+    }
+    if isinstance(metadata, dict):
+        for key in ("command", "topic", "type"):
+            value = str(metadata.get(key, "")).strip()
+            if value:
+                envelope[key] = value
+    return json.dumps(envelope, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+
+
+def _send_control_reply(
+    recv_sock: socket.socket,
+    reply: str,
+    addr,
+    parsed_cmd: Optional[dict],
+    logger: "BridgeLogger",
+) -> None:
+    request_id = _safe_reply_request_id(parsed_cmd)
+    wire_reply = reply
+    used_file_reply = False
+    out_bytes = wire_reply.encode("utf-8")
+
+    if len(out_bytes) > CONTROL_REPLY_INLINE_LIMIT_BYTES:
+        wire_reply = _make_file_reply(reply, request_id, logger)
+        used_file_reply = True
+        out_bytes = wire_reply.encode("utf-8")
+
+    try:
+        recv_sock.sendto(out_bytes, addr)
+        return
+    except OSError as exc:
+        if used_file_reply:
+            logger.warn(f"[control] UDP file_reply send failed: {exc}")
+            return
+
+    try:
+        wire_reply = _make_file_reply(reply, request_id, logger)
+        recv_sock.sendto(wire_reply.encode("utf-8"), addr)
+    except Exception as file_exc:
+        logger.warn(f"[control] UDP reply send failed and file_reply fallback failed: {file_exc}")
 
 
 @dataclass
@@ -277,6 +388,7 @@ def run_bridge(cfg: BridgeConfig):
         send_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         _disable_udp_connreset(send_sock)
         udp_send_fail_count = 0
+        telemetry_spill_count = 0
         delta_seq_gap_count = 0
         tile_ready_count = 0
         last_delta_seq: Optional[int] = None
@@ -285,8 +397,11 @@ def run_bridge(cfg: BridgeConfig):
             while True:
                 msg = zmq_sub.recv_string()
                 out_bytes = msg.encode("utf-8")
+                parsed_telemetry: Optional[dict] = None
                 try:
                     d = json.loads(msg)
+                    if isinstance(d, dict):
+                        parsed_telemetry = d
                     if isinstance(d, dict) and d.get("type") == "delta_update":
                         shadow.apply_delta(d)
                         try:
@@ -320,6 +435,23 @@ def run_bridge(cfg: BridgeConfig):
                     out_bytes = json.dumps(d, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
                 except (json.JSONDecodeError, TypeError, ValueError):
                     pass
+                if len(out_bytes) > TELEMETRY_INLINE_LIMIT_BYTES:
+                    raw_bytes = out_bytes
+                    try:
+                        out_bytes = _make_telemetry_file_reply(raw_bytes, parsed_telemetry)
+                        telemetry_spill_count += 1
+                        if telemetry_spill_count == 1 or telemetry_spill_count % 100 == 0:
+                            logger.info(
+                                f"[telemetry] large packet spilled to file count={telemetry_spill_count} "
+                                f"bytes={len(raw_bytes)} label={_telemetry_packet_label(parsed_telemetry)} "
+                                f"envelope_bytes={len(out_bytes)}"
+                            )
+                    except Exception as exc:
+                        logger.warn(
+                            f"[telemetry] file_reply fallback failed bytes={len(raw_bytes)} "
+                            f"label={_telemetry_packet_label(parsed_telemetry)} error={exc}"
+                        )
+                        continue
                 try:
                     send_sock.sendto(out_bytes, (cfg.godot_ip, cfg.udp_to_godot))
                 except OSError as exc:
@@ -405,10 +537,7 @@ def run_bridge(cfg: BridgeConfig):
                     except json.JSONDecodeError:
                         logger.debug("[shadow] get_project_state 应答 JSON 解析失败，跳过影子初始化")
 
-                try:
-                    recv_sock.sendto(reply.encode("utf-8"), addr)
-                except OSError:
-                    pass
+                _send_control_reply(recv_sock, reply, addr, parsed_cmd, logger)
             except ConnectionResetError:
                 continue
             except Exception as exc:

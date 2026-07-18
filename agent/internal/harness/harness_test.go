@@ -14,9 +14,12 @@ import (
 	"vit-daw-agent/internal/agentprotocol"
 	"vit-daw-agent/internal/history"
 	"vit-daw-agent/internal/journal"
+	"vit-daw-agent/internal/kernel"
 	"vit-daw-agent/internal/mixboard"
 	"vit-daw-agent/internal/pluginsemantics"
+	"vit-daw-agent/internal/projectworkspace"
 	"vit-daw-agent/internal/shadow"
+	"vit-daw-agent/internal/tim"
 	"vit-daw-agent/internal/tools"
 	"vit-daw-agent/internal/workflows/plugingrabber"
 )
@@ -24,6 +27,82 @@ import (
 type fakeKernelClient struct {
 	replies  []map[string]any
 	commands []map[string]any
+}
+
+func TestEnsureProjectAudioAnalysisUsesPersistedManifestWithoutKernelCall(t *testing.T) {
+	projectPath := filepath.Join(t.TempDir(), "persisted.vit")
+	projectUUID := "vitproj_manifest_hit"
+	status := map[string]any{
+		"dad_fact_status":      "ready",
+		"dad_fact_ready_count": 1,
+		"dad_fact_total_count": 1,
+		"track_waveform_envelopes": []map[string]any{{
+			"status": "ready", "track_id": "track_1", "clip_id": "clip_1", "rms_dbfs": -18.0, "peak_dbfs": -6.0,
+		}},
+	}
+	if _, _, err := projectworkspace.SaveAnalysisManifest(projectPath, projectUUID, status); err != nil {
+		t.Fatal(err)
+	}
+	project := shadow.New(nil)
+	project.Initialize(map[string]any{"project_path": projectPath, "project_uuid": projectUUID})
+	kernel := &fakeKernelClient{}
+	h := NewWithSender(kernel, project, nil)
+
+	result, err := h.ensureProjectAudioAnalysis(context.Background(), map[string]any{"timeout_ms": 1000})
+	if err != nil || !audioAnalysisFactsReady(result) {
+		t.Fatalf("result=%+v err=%v", result, err)
+	}
+	if len(kernel.commands) != 0 || result["analysis_manifest_recovered"] != true {
+		t.Fatalf("manifest recovery should avoid kernel calls: commands=%+v result=%+v", kernel.commands, result)
+	}
+}
+
+func TestEnsureProjectAudioAnalysisRebuildsMissingRuntimeJob(t *testing.T) {
+	projectPath := filepath.Join(t.TempDir(), "rebuild.vit")
+	projectUUID := "vitproj_manifest_rebuild"
+	project := shadow.New(nil)
+	project.Initialize(map[string]any{"project_path": projectPath, "project_uuid": projectUUID})
+	kernel := &fakeKernelClient{replies: []map[string]any{
+		{"status": "error", "message": "project.audio_analysis_status could not find an analysis job"},
+		{"status": "ok", "analysis_job_id": "job_rebuilt"},
+		{"status": "ok", "dad_fact_status": "partial", "dad_fact_ready_count": 0, "dad_fact_total_count": 1},
+		{"status": "ok", "dad_fact_status": "ready", "dad_fact_ready_count": 1, "dad_fact_total_count": 1,
+			"track_waveform_envelopes": []map[string]any{{"status": "ready", "track_id": "track_1", "clip_id": "clip_1", "rms_dbfs": -20.0, "peak_dbfs": -8.0}}},
+	}}
+	h := NewWithSender(kernel, project, nil)
+
+	result, err := h.ensureProjectAudioAnalysis(context.Background(), map[string]any{"timeout_ms": 2000, "poll_interval_ms": 50})
+	if err != nil || !audioAnalysisFactsReady(result) || result["analysis_ensure_rebuilt"] != true {
+		t.Fatalf("result=%+v err=%v", result, err)
+	}
+	var commands []string
+	for _, command := range kernel.commands {
+		commands = append(commands, firstString(command, "cmd"))
+	}
+	want := []string{"project.audio_analysis_status", "project.audio_analysis_start", "project.audio_analysis_status", "project.audio_analysis_status"}
+	if fmt.Sprint(commands) != fmt.Sprint(want) {
+		t.Fatalf("commands=%v want=%v", commands, want)
+	}
+	if _, _, err := projectworkspace.LoadAnalysisManifest(projectPath, projectUUID); err != nil {
+		t.Fatalf("rebuilt ready facts were not persisted: %v", err)
+	}
+}
+
+func TestEnsureProjectAudioAnalysisHonorsCancellation(t *testing.T) {
+	projectPath := filepath.Join(t.TempDir(), "cancel.vit")
+	project := shadow.New(nil)
+	project.Initialize(map[string]any{"project_path": projectPath, "project_uuid": "vitproj_manifest_cancel"})
+	kernel := &fakeKernelClient{replies: []map[string]any{
+		{"status": "error", "message": "missing job"},
+		{"status": "ok", "analysis_job_id": "job_pending"},
+		{"status": "ok", "dad_fact_status": "partial", "dad_fact_ready_count": 0, "dad_fact_total_count": 1},
+	}}
+	h := NewWithSender(kernel, project, nil)
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	if _, err := h.ensureProjectAudioAnalysis(ctx, map[string]any{"timeout_ms": 5000, "poll_interval_ms": 50}); err == nil {
+		t.Fatal("cancelled ensure unexpectedly succeeded")
+	}
 }
 
 func testMap(t *testing.T, value any) map[string]any {
@@ -54,6 +133,80 @@ func statusIn(value any, allowed ...string) bool {
 	return false
 }
 
+func TestPublicAudioAnalysisResultKeepsDADFactRows(t *testing.T) {
+	reply := map[string]any{
+		"status":                    "ok",
+		"analysis_job_id":           "audio_analysis_rows",
+		"dad_fact_status":           "partial",
+		"dad_fact_ready_count":      1,
+		"dad_fact_total_count":      2,
+		"dad_fact_pending_count":    1,
+		"dad_fact_completion_scope": "waveform_baker_latest_status",
+		"track_waveform_envelopes": []any{
+			map[string]any{
+				"status":               "ready",
+				"track_id":             "track_001",
+				"clip_id":              "clip_001",
+				"source_path":          "E:/stems/stem_001.wav",
+				"rms_dbfs":             -18.25,
+				"peak_dbfs":            -1.5,
+				"headroom_db":          1.5,
+				"balance_db":           0.2,
+				"correlation_estimate": 0.91,
+				"tile_count_seen":      46,
+				"tile_count_expected":  46,
+				"large_raw_payload":    strings.Repeat("x", 256),
+			},
+		},
+		"analysis_job": map[string]any{
+			"analysis_job_id":           "audio_analysis_rows",
+			"dad_fact_status":           "partial",
+			"dad_fact_ready_count":      1,
+			"dad_fact_total_count":      2,
+			"dad_fact_pending_count":    1,
+			"dad_fact_completion_scope": "waveform_baker_latest_status",
+			"track_waveform_envelopes": []any{
+				map[string]any{
+					"status":               "ready",
+					"track_id":             "track_001",
+					"clip_id":              "clip_001",
+					"source_path":          "E:/stems/stem_001.wav",
+					"rms_dbfs":             -18.25,
+					"peak_dbfs":            -1.5,
+					"headroom_db":          1.5,
+					"balance_db":           0.2,
+					"correlation_estimate": 0.91,
+					"tile_count_seen":      46,
+					"tile_count_expected":  46,
+					"large_raw_payload":    strings.Repeat("x", 256),
+				},
+			},
+		},
+	}
+
+	out := publicAudioAnalysisResult("project.audio_analysis_status", nil, reply)
+	if firstString(out, "dad_fact_completion_scope") != "waveform_baker_latest_status" {
+		t.Fatalf("top-level dad fact scope missing: %+v", out)
+	}
+	rows := mapRowsFromAny(out["track_waveform_envelopes"])
+	if len(rows) != 1 || firstString(rows[0], "track_id") != "track_001" {
+		t.Fatalf("top-level waveform rows missing: %+v", out)
+	}
+	if _, ok := rows[0]["large_raw_payload"]; ok {
+		t.Fatalf("raw waveform payload should be compacted out: %+v", rows[0])
+	}
+	for _, key := range []string{"rms_dbfs", "peak_dbfs", "headroom_db", "balance_db", "correlation_estimate"} {
+		if _, ok := rows[0][key]; !ok {
+			t.Fatalf("compact DAD waveform row should retain %s: %+v", key, rows[0])
+		}
+	}
+	job := testMap(t, out["analysis_job"])
+	jobRows := mapRowsFromAny(job["track_waveform_envelopes"])
+	if firstString(job, "dad_fact_completion_scope") != "waveform_baker_latest_status" || len(jobRows) != 1 {
+		t.Fatalf("analysis_job dad fact rows missing: %+v", job)
+	}
+}
+
 func (f *fakeKernelClient) SendCommand(_ context.Context, cmd map[string]any) (map[string]any, string, error) {
 	f.commands = append(f.commands, tools.CloneCommand(cmd))
 	if len(f.replies) == 0 {
@@ -65,6 +218,166 @@ func (f *fakeKernelClient) SendCommand(_ context.Context, cmd map[string]any) (m
 		return reply, "", fmt.Errorf("%s", errText)
 	}
 	return reply, "", nil
+}
+
+func TestProjectOpenLifecycleRecoversParentWorkspaceUsingCommandPath(t *testing.T) {
+	root := t.TempDir()
+	sourcePath := filepath.Join(root, "B1完成.vit")
+	targetPath := filepath.Join(root, "B2完成.vit")
+	if err := os.WriteFile(sourcePath, []byte("b1"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(targetPath, []byte("b2"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	const sourceUUID = "vitproj_open_parent"
+	const targetUUID = "vitproj_open_child"
+	history.BindProjectIdentity(sourcePath, sourceUUID)
+	if _, err := history.EnsureWorkingSession(sourcePath, sourceUUID); err != nil {
+		t.Fatal(err)
+	}
+	checkpoint, err := history.Checkpoint(map[string]any{
+		"project_path": sourcePath, "message": "B1 baseline", "source": "test",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := history.AppendConversationNode(map[string]any{
+		"project_path": sourcePath, "kind": "vit", "commit_id": checkpoint["commit_id"], "text": "B1 complete",
+	}); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := history.CommitWorkingSession(sourcePath, sourceUUID); err != nil {
+		t.Fatal(err)
+	}
+
+	h := New(nil, nil, nil)
+	result, err := h.applyProjectLifecycle(context.Background(), tools.CommandSpec{CommandName: "open_project"},
+		map[string]any{"file_path": targetPath},
+		map[string]any{
+			"status": "ok", "project_lifecycle": "open",
+			"project_path": filepath.Join(root, "B2瀹屾垚.vit"),
+			"project_uuid": targetUUID, "parent_project_uuid": sourceUUID,
+		})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := firstString(result, "project_path"); !samePath(got, targetPath) {
+		t.Fatalf("project path=%q want=%q result=%+v", got, targetPath, result)
+	}
+	graph := testMap(t, result["conversation_graph"])
+	nodes := mapRowsFromAny(graph["nodes"])
+	if len(nodes) != 1 || firstString(nodes[0], "text") != "B1 complete" {
+		t.Fatalf("child did not inherit parent conversation: %+v", result)
+	}
+	if _, err := os.Stat(filepath.Join(root, history.DirName, targetUUID, "workspace.json")); err != nil {
+		t.Fatalf("target canonical workspace missing: %v", err)
+	}
+}
+
+type fakeVSPKernelClient struct {
+	fakeKernelClient
+	snapshots      []*kernel.VSPStateResult
+	deltas         []*kernel.VSPStateResult
+	resyncs        []*kernel.VSPStateResult
+	vspCommands    []string
+	vspLegacyCmds  []string
+	commandReplies []*kernel.VSPCommandResult
+}
+
+func (f *fakeVSPKernelClient) SendVSPCommand(_ context.Context, command string, args map[string]any) (*kernel.VSPCommandResult, error) {
+	f.vspCommands = append(f.vspCommands, command)
+	if len(f.commandReplies) > 0 {
+		reply := f.commandReplies[0]
+		f.commandReplies = f.commandReplies[1:]
+		reply.Command = command
+		return reply, nil
+	}
+	return fakeVSPCommandReply(command, "legacy", map[string]any{"status": "ok"}), nil
+}
+
+func (f *fakeVSPKernelClient) SendVSPLegacyCommand(_ context.Context, cmd map[string]any) (*kernel.VSPCommandResult, error) {
+	legacy := strings.TrimSpace(fmt.Sprint(cmd["cmd"]))
+	f.vspLegacyCmds = append(f.vspLegacyCmds, legacy)
+	if len(f.commandReplies) > 0 {
+		reply := f.commandReplies[0]
+		f.commandReplies = f.commandReplies[1:]
+		reply.Command = "legacy.command"
+		reply.LegacyCommand = legacy
+		return reply, nil
+	}
+	return fakeVSPCommandReply("legacy.command", legacy, map[string]any{"status": "ok"}), nil
+}
+
+func (f *fakeVSPKernelClient) VSPStateSnapshot(_ context.Context, scope string) (*kernel.VSPStateResult, error) {
+	if len(f.snapshots) > 0 {
+		reply := f.snapshots[0]
+		f.snapshots = f.snapshots[1:]
+		return reply, nil
+	}
+	return fakeVSPSnapshot(1, scope, []any{}), nil
+}
+
+func (f *fakeVSPKernelClient) VSPStateDelta(_ context.Context, baseRevision int64, scope string) (*kernel.VSPStateResult, error) {
+	if len(f.deltas) > 0 {
+		reply := f.deltas[0]
+		f.deltas = f.deltas[1:]
+		return reply, nil
+	}
+	return fakeVSPDelta(baseRevision, baseRevision, scope, nil), nil
+}
+
+func (f *fakeVSPKernelClient) VSPStateResync(_ context.Context, scope string) (*kernel.VSPStateResult, error) {
+	if len(f.resyncs) > 0 {
+		reply := f.resyncs[0]
+		f.resyncs = f.resyncs[1:]
+		return reply, nil
+	}
+	return fakeVSPSnapshot(1, scope, []any{}), nil
+}
+
+func fakeVSPCommandReply(command, legacyCommand string, legacyReply map[string]any) *kernel.VSPCommandResult {
+	return &kernel.VSPCommandResult{
+		Response: map[string]any{
+			"type": "command.response",
+			"ack":  map[string]any{"stage": "completed", "message": "ok"},
+		},
+		Payload:       map[string]any{"command": command, "legacy_command": legacyCommand, "legacy_reply": legacyReply},
+		LegacyReply:   legacyReply,
+		Command:       command,
+		LegacyCommand: legacyCommand,
+		TransactionID: "tx_fake",
+	}
+}
+
+func fakeVSPSnapshot(revision int64, scope string, tracks []any) *kernel.VSPStateResult {
+	project := map[string]any{"project_id": "project_current", "project_path": "D:/song/test.vit", "scope": scope, "track_count": len(tracks)}
+	legacy := map[string]any{"status": "ok", "project_path": "D:/song/test.vit", "tracks": tracks}
+	payload := map[string]any{"status": "ok", "scope": scope, "snapshot_hash": fmt.Sprintf("hash_%d", revision), "project": project, "tracks": tracks, "snapshot": map[string]any{"project": project, "tracks": tracks}}
+	return &kernel.VSPStateResult{
+		Response:     map[string]any{"type": "state.snapshot", "ack": map[string]any{"stage": "completed"}},
+		Payload:      payload,
+		LegacyState:  legacy,
+		Revision:     revision,
+		ProjectEpoch: "epoch_test",
+		SnapshotHash: fmt.Sprintf("hash_%d", revision),
+		Scope:        scope,
+	}
+}
+
+func fakeVSPDelta(baseRevision, revision int64, scope string, ops []any) *kernel.VSPStateResult {
+	payload := map[string]any{"status": "ok", "scope": scope, "snapshot_hash": fmt.Sprintf("hash_%d", revision), "ops": ops}
+	return &kernel.VSPStateResult{
+		Response:      map[string]any{"type": "state.delta", "ack": map[string]any{"stage": "completed"}},
+		Payload:       payload,
+		Revision:      revision,
+		BaseRevision:  baseRevision,
+		ProjectEpoch:  "epoch_test",
+		SnapshotHash:  fmt.Sprintf("hash_%d", revision),
+		Scope:         scope,
+		Ops:           ops,
+		ChangedTracks: []any{"track_2"},
+	}
 }
 
 func TestInvokeConfirmCommandDoesNotNeedKernelBeforeApproval(t *testing.T) {
@@ -628,6 +941,69 @@ func testCommandsByName(commands []map[string]any, name string) []map[string]any
 	return out
 }
 
+func TestInvokeProjectStateUsesVSPObserve(t *testing.T) {
+	tracks := []any{
+		map[string]any{"track_id": "track_1", "track_name": "Lead", "track_type": "hybrid", "is_audio_track": true},
+	}
+	kernel := &fakeVSPKernelClient{snapshots: []*kernel.VSPStateResult{fakeVSPSnapshot(7, "project.timeline", tracks)}}
+	h := NewWithSender(kernel, shadow.New(nil), nil)
+
+	resp, err := h.Invoke(context.Background(), InvokeRequest{Tool: "project.state", Source: "test"})
+	if err != nil || resp.Status != "ok" {
+		t.Fatalf("project.state = status=%q result=%+v err=%v", resp.Status, resp.Result, err)
+	}
+	if len(kernel.commands) != 0 {
+		t.Fatalf("legacy SendCommand used: %+v", kernel.commands)
+	}
+	observe := testMap(t, resp.Result["project_observe"])
+	if fmt.Sprint(observe["revision"]) != "7" || observe["source"] != "vsp.state.snapshot" {
+		t.Fatalf("project_observe = %+v", observe)
+	}
+	if fmt.Sprint(resp.Result["track_count"]) != "1" {
+		t.Fatalf("visible state not initialized from VSP: %+v", resp.Result)
+	}
+}
+
+func TestInvokeMutatingCommandUsesVSPCommandDeltaAndResync(t *testing.T) {
+	beforeTracks := []any{
+		map[string]any{"track_id": "track_1", "track_name": "Lead", "track_type": "hybrid", "is_audio_track": true},
+	}
+	afterTracks := append(append([]any{}, beforeTracks...), map[string]any{"track_id": "track_2", "track_name": "Harmony", "track_type": "hybrid", "is_audio_track": true})
+	deltaOps := []any{map[string]any{"op": "add", "path": "/tracks/track_2", "track_id": "track_2"}}
+	kernel := &fakeVSPKernelClient{
+		snapshots: []*kernel.VSPStateResult{fakeVSPSnapshot(10, "project.timeline", beforeTracks)},
+		deltas:    []*kernel.VSPStateResult{fakeVSPDelta(10, 11, "project.timeline", deltaOps)},
+		resyncs:   []*kernel.VSPStateResult{fakeVSPSnapshot(11, "project.timeline", afterTracks)},
+		commandReplies: []*kernel.VSPCommandResult{
+			fakeVSPCommandReply("track.create", "add_track", map[string]any{"status": "ok", "track_id": "track_2", "track_name": "Harmony"}),
+		},
+	}
+	h := NewWithSender(kernel, shadow.New(nil), nil)
+
+	resp, err := h.Invoke(context.Background(), InvokeRequest{Tool: "track.add", Args: map[string]any{"track_name": "Harmony"}, Source: "test"})
+	if err != nil || resp.Status != "ok" {
+		t.Fatalf("track.add = status=%q result=%+v err=%v", resp.Status, resp.Result, err)
+	}
+	if len(kernel.commands) != 0 {
+		t.Fatalf("legacy SendCommand used: %+v", kernel.commands)
+	}
+	if len(kernel.vspCommands) != 1 || kernel.vspCommands[0] != "track.create" {
+		t.Fatalf("vsp commands = %+v", kernel.vspCommands)
+	}
+	ack := testMap(t, resp.Result["command_ack"])
+	if ack["command"] != "track.create" || ack["legacy_command"] != "add_track" {
+		t.Fatalf("command_ack = %+v", ack)
+	}
+	delta := testMap(t, resp.Result["state_delta"])
+	if fmt.Sprint(delta["ops_count"]) != "1" {
+		t.Fatalf("state_delta = %+v", delta)
+	}
+	resync := testMap(t, resp.Result["state_resync"])
+	if fmt.Sprint(resync["revision"]) != "11" {
+		t.Fatalf("state_resync = %+v", resync)
+	}
+}
+
 func TestInvokeControlAddBindingResolvesExistingMacroByName(t *testing.T) {
 	h := New(nil, nil, nil)
 	resp, err := h.Invoke(context.Background(), InvokeRequest{
@@ -744,6 +1120,26 @@ func TestResolveToolAcceptsCommandName(t *testing.T) {
 	}
 	if spec.CommandName != "get_project_state" || cmd["cmd"] != "get_project_state" {
 		t.Fatalf("resolved = spec:%+v cmd:%+v", spec, cmd)
+	}
+}
+
+func TestResolveCommandAcceptsTypedToolCommandPayload(t *testing.T) {
+	h := New(nil, nil, nil)
+	cmd, spec, err := h.resolveCommand(InvokeRequest{
+		Command: map[string]any{
+			"tool":     "mix.apply_tick",
+			"tick_id":  "mix_tick_test",
+			"track_id": "1192",
+		},
+	})
+	if err != nil {
+		t.Fatalf("resolve typed tool command payload: %v", err)
+	}
+	if spec.CommandName != "mix_apply_tick" || cmd["cmd"] != "mix_apply_tick" {
+		t.Fatalf("resolved = spec:%+v cmd:%+v", spec, cmd)
+	}
+	if cmd["tick_id"] != "mix_tick_test" || cmd["track_id"] != "1192" {
+		t.Fatalf("resolved command lost args: %+v", cmd)
 	}
 }
 
@@ -1312,6 +1708,188 @@ func TestPluginParametersPublicResultKeepsCompactDisplayProbeWhenIncluded(t *tes
 	}
 }
 
+func TestProjectAudioSettingsPublicResultKeepsUserFacingFields(t *testing.T) {
+	h := New(nil, nil, nil)
+	result := h.publicResult(tools.CommandSpec{CommandName: "project.get_audio_settings"}, nil, map[string]any{
+		"status":  "ok",
+		"command": "project.get_audio_settings",
+		"audio_settings": map[string]any{
+			"sample_rate_hz":            48000,
+			"record_bit_depth":          24,
+			"record_file_type":          "WAV/BWF",
+			"import_sample_rate_policy": "ask",
+			"recommended_presets": []any{map[string]any{
+				"preset_id":                    "cd_export",
+				"name":                         "CD Export",
+				"role":                         "delivery_export",
+				"sample_rate_hz":               44100,
+				"bit_depth":                    16,
+				"file_type":                    "WAV",
+				"default_project_working_spec": false,
+				"raw_internal_note":            strings.Repeat("x", 128),
+			}},
+			"capabilities": map[string]any{
+				"project_sample_rate_is_audio_device_sample_rate": false,
+				"changes_audio_device_sample_rate":                false,
+			},
+		},
+		"warnings": []any{map[string]any{
+			"code":                        "project_sample_rate_differs_from_audio_device",
+			"project_sample_rate_hz":      48000,
+			"audio_device_sample_rate_hz": 44100,
+			"debug_internal_blob":         strings.Repeat("x", 128),
+		}},
+	})
+	settings := testMap(t, result["audio_settings"])
+	if settings["sample_rate_hz"] != 48000 || settings["record_bit_depth"] != 24 || settings["record_file_type"] != "WAV/BWF" {
+		t.Fatalf("settings = %+v", settings)
+	}
+	presets := mapRowsFromAny(settings["recommended_presets"])
+	if len(presets) != 1 || presets[0]["preset_id"] != "cd_export" || presets[0]["default_project_working_spec"] != false {
+		t.Fatalf("recommended presets = %+v", presets)
+	}
+	if _, ok := presets[0]["raw_internal_note"]; ok {
+		t.Fatalf("preset leaked internal field: %+v", presets[0])
+	}
+	warnings := anySliceFromAny(result["warnings"])
+	if len(warnings) != 1 {
+		t.Fatalf("warnings = %+v", result["warnings"])
+	}
+	if _, ok := testMap(t, warnings[0])["debug_internal_blob"]; ok {
+		t.Fatalf("warning leaked debug field: %+v", warnings[0])
+	}
+}
+
+func TestAudioPreflightPublicResultIsCompact(t *testing.T) {
+	h := New(nil, nil, nil)
+	files := []any{}
+	for i := 0; i < 12; i++ {
+		files = append(files, map[string]any{
+			"file_path":            fmt.Sprintf("E:/stems/stem_%02d.wav", i),
+			"file_name":            fmt.Sprintf("stem_%02d.wav", i),
+			"readable":             true,
+			"duration_seconds":     12.5,
+			"sample_rate_hz":       44100,
+			"bit_depth":            16,
+			"channel_count":        2,
+			"suggested_track_name": fmt.Sprintf("stem %02d", i),
+			"large_internal_field": strings.Repeat("raw", 100),
+		})
+	}
+	result := h.publicResult(tools.CommandSpec{CommandName: "project.import_preflight"}, nil, map[string]any{
+		"status":  "ok",
+		"command": "project.import_preflight",
+		"summary": map[string]any{
+			"discovered_audio_file_count":        12,
+			"readable_file_count":                12,
+			"tracks_to_create":                   12,
+			"sample_rate_mismatch_count":         12,
+			"bit_depth_or_format_mismatch_count": 12,
+			"requires_user_confirmation":         true,
+		},
+		"audio_settings_snapshot": map[string]any{"sample_rate_hz": 48000, "record_bit_depth": 24},
+		"files":                   files,
+		"import_plan": map[string]any{
+			"tracks_to_create": 12,
+			"track_plan":       files,
+			"sample_rate_mismatches": []any{map[string]any{
+				"file_path":              "E:/stems/stem_00.wav",
+				"source_sample_rate_hz":  44100,
+				"project_sample_rate_hz": 48000,
+				"policy":                 "ask",
+			}},
+			"bit_depth_or_format_mismatches": []any{map[string]any{
+				"file_path":                "E:/stems/stem_00.wav",
+				"source_bit_depth":         16,
+				"project_record_bit_depth": 24,
+				"policy":                   "keep_source",
+			}},
+		},
+	})
+	if _, ok := result["files"]; ok {
+		t.Fatalf("public result leaked full files list: %+v", result)
+	}
+	preview := mapRowsFromAny(result["file_preview"])
+	if len(preview) != 8 {
+		t.Fatalf("file preview len=%d result=%+v", len(preview), result)
+	}
+	if _, ok := preview[0]["large_internal_field"]; ok {
+		t.Fatalf("file preview leaked large field: %+v", preview[0])
+	}
+	plan := testMap(t, result["import_plan"])
+	if len(mapRowsFromAny(plan["track_plan_preview"])) != 8 || len(mapRowsFromAny(plan["sample_rate_mismatch_examples"])) != 1 {
+		t.Fatalf("compact plan = %+v", plan)
+	}
+}
+
+func TestStemsImportPublicResultIsCompact(t *testing.T) {
+	h := New(nil, nil, nil)
+	rows := []any{}
+	ids := []any{}
+	for i := 0; i < 20; i++ {
+		trackID := fmt.Sprintf("track_%02d", i)
+		ids = append(ids, trackID)
+		rows = append(rows, map[string]any{
+			"track_id":             trackID,
+			"track_name":           fmt.Sprintf("stem %02d", i),
+			"clip_id":              fmt.Sprintf("clip_%02d", i),
+			"clip_name":            fmt.Sprintf("stem %02d", i),
+			"source_file_path":     fmt.Sprintf("E:/stems/stem_%02d.wav", i),
+			"duration_seconds":     12.5,
+			"sample_rate_hz":       44100,
+			"bit_depth":            16,
+			"channel_count":        2,
+			"baking_status":        "baking_started",
+			"large_internal_field": strings.Repeat("raw", 100),
+		})
+	}
+	result := h.publicResult(tools.CommandSpec{CommandName: "project.import_folder_as_stems"}, nil, map[string]any{
+		"status":                "ok",
+		"command":               "project.import_folder_as_stems",
+		"last_created_track_id": "track_19",
+		"last_created_clip_id":  "clip_19",
+		"summary": map[string]any{
+			"tracks_created":      20,
+			"clips_created":       20,
+			"edit_length_seconds": 12.5,
+		},
+		"created_track_ids": ids,
+		"created_clip_ids":  ids,
+		"imported_tracks":   rows,
+	})
+	if _, ok := result["imported_tracks"]; ok {
+		t.Fatalf("public result leaked full imported_tracks: %+v", result)
+	}
+	preview := mapRowsFromAny(result["imported_tracks_preview"])
+	if len(preview) != 12 {
+		t.Fatalf("import preview len=%d result=%+v", len(preview), result)
+	}
+	if _, ok := preview[0]["large_internal_field"]; ok {
+		t.Fatalf("import preview leaked large field: %+v", preview[0])
+	}
+	refs := mapRowsFromAny(result["imported_track_refs"])
+	if len(refs) != 20 {
+		t.Fatalf("import refs len=%d result=%+v", len(refs), result)
+	}
+	if _, ok := refs[0]["large_internal_field"]; ok {
+		t.Fatalf("import refs leaked large field: %+v", refs[0])
+	}
+	if refs[19]["track_id"] != "track_19" || refs[19]["clip_id"] != "clip_19" {
+		t.Fatalf("import refs should keep all imported identities: %+v", refs[19])
+	}
+	if result["last_created_track_id"] != "track_19" || result["last_created_clip_id"] != "clip_19" {
+		t.Fatalf("last created IDs missing: %+v", result)
+	}
+	timProjection := mapFromAny(result["tim_projection"])
+	if timProjection["schema_version"] != tim.SchemaVersion {
+		t.Fatalf("TIM projection missing from public import result: %+v", result)
+	}
+	timSummary := mapFromAny(timProjection["technical_summary"])
+	if got, _ := firstPositiveInt(timSummary, "track_count"); got != 20 {
+		t.Fatalf("TIM projection should use all imported rows before preview capping, got %d summary=%+v", got, timSummary)
+	}
+}
+
 func TestNormalizeTrackBooleanAliases(t *testing.T) {
 	h := New(nil, nil, nil)
 	cases := []struct {
@@ -1773,7 +2351,7 @@ func TestConfirmedMutatingToolCreatesOneGoalBaseline(t *testing.T) {
 	if fmt.Sprint(second.ProjectHistory["baseline_commit"]) != baselineID {
 		t.Fatalf("baseline changed: first=%+v second=%+v", first.ProjectHistory, second.ProjectHistory)
 	}
-	if len(kernel.commands) != 3 || kernel.commands[0]["cmd"] != "project_snapshot_export" || kernel.commands[1]["cmd"] != "save_project" || kernel.commands[2]["cmd"] != "save_project" {
+	if len(kernel.commands) != 3 || kernel.commands[0]["cmd"] != "project.snapshot_export" || kernel.commands[1]["cmd"] != "save_project" || kernel.commands[2]["cmd"] != "save_project" {
 		t.Fatalf("kernel commands = %+v", kernel.commands)
 	}
 	actions := h.Actions(2)
@@ -1883,7 +2461,7 @@ func TestProjectHistoryWorktreeCheckoutOpensTargetProject(t *testing.T) {
 		t.Fatalf("resp = %+v target=%s", resp, targetProject)
 	}
 	if len(kernel.commands) != 3 ||
-		kernel.commands[0]["cmd"] != "project_snapshot_export" ||
+		kernel.commands[0]["cmd"] != "project.snapshot_export" ||
 		kernel.commands[1]["cmd"] != "open_project" ||
 		kernel.commands[1]["file_path"] != targetProject ||
 		kernel.commands[2]["cmd"] != "get_project_state" {
@@ -2051,6 +2629,350 @@ func TestRemoveClipsPublicResultIncludesUIAction(t *testing.T) {
 	requested := result["requested_clip_ids"].([]string)
 	if len(requested) != 2 || requested[0] != "clip_a" || requested[1] != "clip_b" {
 		t.Fatalf("requested = %#v", requested)
+	}
+}
+
+func TestResolveClipFadeSetDefaultsSelectedClipAndAliases(t *testing.T) {
+	h := New(nil, shadowProjectWithClips(), nil)
+	cmd, spec, err := h.resolveCommand(InvokeRequest{
+		Tool: "clip.fade.set",
+		Args: map[string]any{"fade_in": 0.01, "fade_out": 0.02},
+	})
+	if err != nil {
+		t.Fatalf("resolveCommand: %v", err)
+	}
+	if !spec.RequiresConfirmation || spec.RiskLevel != tools.RiskConfirm {
+		t.Fatalf("fade set spec = %+v", spec)
+	}
+	if err := h.resolveImplicitTargets(context.Background(), spec, cmd, map[string]any{
+		"selected_clip_id":       "clip_a",
+		"selected_clip_track_id": "1007",
+	}); err != nil {
+		t.Fatalf("resolveImplicitTargets: %v", err)
+	}
+	if cmd["clip_id"] != "clip_a" || cmd["track_id"] != "1007" {
+		t.Fatalf("cmd = %+v", cmd)
+	}
+	if cmd["fade_in_seconds"] != 0.01 || cmd["fade_out_seconds"] != 0.02 {
+		t.Fatalf("fade args = %+v", cmd)
+	}
+}
+
+func TestClipFadeGainPublicResultIncludesUIAction(t *testing.T) {
+	h := New(nil, shadowProjectWithClips(), nil)
+	for _, toolName := range []string{"clip.fade.read", "clip.gain.set"} {
+		_, spec, err := h.resolveCommand(InvokeRequest{
+			Tool: toolName,
+			Args: map[string]any{"clip_id": "clip_a"},
+		})
+		if err != nil {
+			t.Fatalf("resolveCommand %s: %v", toolName, err)
+		}
+		result := h.publicResult(spec,
+			map[string]any{"clip_id": "clip_a", "track_id": "1007"},
+			map[string]any{"status": "ok", "clip_id": "clip_a", "track_id": "1007"},
+		)
+		if result["ui_action"] != "clip_state_changed" || result["clip_id"] != "clip_a" || result["track_id"] != "1007" {
+			t.Fatalf("%s result = %+v", toolName, result)
+		}
+	}
+}
+
+func TestApplyClipGainBatchUsesOneNativeKernelCommand(t *testing.T) {
+	kernelClient := &fakeKernelClient{replies: []map[string]any{
+		{
+			"status":         "ok",
+			"schema_version": "clip.gain.set_batch.v1",
+			"applied_count":  2,
+			"failed_count":   0,
+			"actions": []any{
+				map[string]any{"status": "ok", "clip_id": "clip_a", "clip_gain_db": -3.0},
+				map[string]any{"status": "ok", "clip_id": "clip_b", "clip_gain_db": 2.0},
+			},
+		},
+		{"status": "ok", "tracks": []any{}},
+	}}
+	h := NewWithSender(kernelClient, shadow.New(nil), nil)
+	result, err := h.applyClipGainBatch(context.Background(), map[string]any{
+		"pending_actions": []any{
+			map[string]any{"clip_id": "clip_a", "track_id": "track_a", "gain_db": -3.0},
+			map[string]any{"clip_id": "clip_b", "track_id": "track_b", "gain_db": 2.0},
+		},
+	})
+	if err != nil {
+		t.Fatalf("applyClipGainBatch: %v", err)
+	}
+	if len(kernelClient.commands) != 2 {
+		t.Fatalf("kernel commands = %+v", kernelClient.commands)
+	}
+	if got := tools.CommandName(kernelClient.commands[0]); got != "clip.gain.set_batch" {
+		t.Fatalf("first kernel command = %q, want native batch", got)
+	}
+	if rows := mapRowsFromAny(kernelClient.commands[0]["pending_actions"]); len(rows) != 2 {
+		t.Fatalf("native batch pending actions = %+v", kernelClient.commands[0])
+	}
+	if result["internal_apply_tool"] != "clip.gain.set_batch" || result["applied_count"] != 2 {
+		t.Fatalf("result = %+v", result)
+	}
+}
+
+func TestApplyStaticBalanceBatchUsesOneNativeKernelCommand(t *testing.T) {
+	kernelClient := &fakeKernelClient{replies: []map[string]any{
+		{
+			"status": "ok", "schema_version": "track.volume.set_batch.v1", "applied_count": 2, "failed_count": 0,
+			"actions": []any{
+				map[string]any{"status": "ok", "track_id": "track_a", "volume_db": -2.0},
+				map[string]any{"status": "ok", "track_id": "track_b", "volume_db": 1.5},
+			},
+		},
+		{"status": "ok", "tracks": []any{}},
+	}}
+	h := NewWithSender(kernelClient, shadow.New(nil), nil)
+	result, err := h.applyStaticBalanceBatch(context.Background(), map[string]any{
+		"observation_id":    "obs_b2",
+		"candidate_plan_id": "sbp_1",
+		"actions": []any{
+			map[string]any{"track_id": "track_a", "before_db": 0.0, "delta_db": -2.0, "target_db": -2.0},
+			map[string]any{"track_id": "track_b", "before_db": 0.0, "delta_db": 1.5, "target_db": 1.5},
+		},
+	})
+	if err != nil {
+		t.Fatalf("applyStaticBalanceBatch: %v", err)
+	}
+	if len(kernelClient.commands) != 2 {
+		t.Fatalf("kernel commands = %+v", kernelClient.commands)
+	}
+	if got := tools.CommandName(kernelClient.commands[0]); got != "track.volume.set_batch" {
+		t.Fatalf("first kernel command = %q, want native fader batch", got)
+	}
+	if rows := mapRowsFromAny(kernelClient.commands[0]["actions"]); len(rows) != 2 {
+		t.Fatalf("native batch actions = %+v", kernelClient.commands[0])
+	}
+	if result["internal_apply_tool"] != "track.volume.set_batch" || result["applied_count"] != 2 {
+		t.Fatalf("result = %+v", result)
+	}
+}
+
+func TestApplyPanLayoutBatchUsesOneNativeKernelCommand(t *testing.T) {
+	kernelClient := &fakeKernelClient{replies: []map[string]any{
+		{
+			"status": "ok", "schema_version": "track.pan.set_batch.v1", "applied_count": 2,
+			"actions": []any{
+				map[string]any{"status": "ok", "track_id": "track_a", "pan": -0.5},
+				map[string]any{"status": "ok", "track_id": "track_b", "pan": 0.5},
+			},
+		},
+		{"status": "ok", "tracks": []any{}},
+	}}
+	h := NewWithSender(kernelClient, shadow.New(nil), nil)
+	result, err := h.applyPanLayoutBatch(context.Background(), map[string]any{
+		"observation_id": "obs_b3", "candidate_plan_id": "pan_1", "style_hash": "style_hash",
+		"actions": []any{
+			map[string]any{"track_id": "track_a", "before_pan": 0.0, "delta_pan": -0.5, "target_pan": -0.5},
+			map[string]any{"track_id": "track_b", "before_pan": 0.0, "delta_pan": 0.5, "target_pan": 0.5},
+		},
+	})
+	if err != nil {
+		t.Fatalf("applyPanLayoutBatch: %v", err)
+	}
+	if len(kernelClient.commands) != 2 {
+		t.Fatalf("kernel commands=%+v", kernelClient.commands)
+	}
+	if got := tools.CommandName(kernelClient.commands[0]); got != "track.pan.set_batch" {
+		t.Fatalf("first kernel command=%q, want native pan batch", got)
+	}
+	if rows := mapRowsFromAny(kernelClient.commands[0]["actions"]); len(rows) != 2 {
+		t.Fatalf("native pan actions=%+v", kernelClient.commands[0])
+	}
+	if result["internal_apply_tool"] != "track.pan.set_batch" || result["internal_apply_count"] != 2 {
+		t.Fatalf("result=%+v", result)
+	}
+}
+
+func TestTrackGroupApplyControlRequiresConfirmationAndUpdatesPublicResult(t *testing.T) {
+	project := shadow.New(nil)
+	project.Initialize(map[string]any{
+		"status": "ok",
+		"tracks": []any{
+			map[string]any{"track_id": "1007", "track_name": "Vox", "is_audio_track": true, "volume_db": -12.0},
+			map[string]any{"track_id": "1010", "track_name": "Gtr", "is_audio_track": true, "volume_db": -18.0},
+		},
+		"track_groups": []any{
+			map[string]any{"group_id": "grp_v1", "name": "Smoke Group", "member_track_ids": []any{"1007", "1010"}},
+		},
+	})
+	kernel := &fakeKernelClient{
+		replies: []map[string]any{
+			{
+				"status":         "ok",
+				"group_id":       "grp_v1",
+				"applied_count":  2,
+				"verified_count": 2,
+				"members": []any{
+					map[string]any{"track_id": "1007", "after_db": 0.0},
+					map[string]any{"track_id": "1010", "after_db": 0.0},
+				},
+			},
+			{
+				"status": "ok",
+				"tracks": []any{
+					map[string]any{"track_id": "1007", "track_name": "Vox", "is_audio_track": true, "volume_db": 0.0},
+					map[string]any{"track_id": "1010", "track_name": "Gtr", "is_audio_track": true, "volume_db": 0.0},
+				},
+				"track_groups": []any{
+					map[string]any{"group_id": "grp_v1", "name": "Smoke Group", "member_track_ids": []any{"1007", "1010"}},
+				},
+			},
+		},
+	}
+	h := New(nil, project, nil)
+	h.kernel = kernel
+
+	pending, err := h.Invoke(context.Background(), InvokeRequest{
+		Tool: "track.group.apply_control",
+		Args: map[string]any{"group_id": "grp_v1", "control": "volume", "mode": "absolute", "db": 0.0},
+	})
+	if err != nil {
+		t.Fatalf("pending invoke: %v", err)
+	}
+	if pending.Status != "needs_confirmation" || !pending.RequiresConfirmation || len(kernel.commands) != 0 {
+		t.Fatalf("pending response = %+v commands=%+v", pending, kernel.commands)
+	}
+	if !strings.Contains(pending.Preview, "grp_v1") || !strings.Contains(pending.Preview, "0") {
+		t.Fatalf("preview = %q", pending.Preview)
+	}
+
+	resp, err := h.Invoke(context.Background(), InvokeRequest{
+		Tool:      "track.group.apply_control",
+		Args:      map[string]any{"group_id": "grp_v1", "control": "volume", "mode": "absolute", "db": 0.0},
+		Confirmed: true,
+	})
+	if err != nil {
+		t.Fatalf("confirmed invoke: %v", err)
+	}
+	if resp.Status != "ok" || resp.Result["ui_action"] != "track_group_control_applied" || resp.Result["group_id"] != "grp_v1" {
+		t.Fatalf("confirmed response = %+v", resp)
+	}
+	affected := stringSliceFromAny(resp.Result["affected_track_ids"])
+	if len(affected) != 2 || affected[0] != "1007" || affected[1] != "1010" {
+		t.Fatalf("affected tracks = %#v", affected)
+	}
+	if len(kernel.commands) != 2 || kernel.commands[0]["cmd"] != "track.group.apply_control" || kernel.commands[1]["cmd"] != "get_project_state" {
+		t.Fatalf("kernel commands = %+v", kernel.commands)
+	}
+	summary := project.Summary()
+	rows := mapRowsFromAny(summary["tracks"])
+	if len(rows) != 2 {
+		t.Fatalf("summary tracks = %+v", summary["tracks"])
+	}
+	for _, row := range rows {
+		db, ok := numberValueFromMap(row, "volume_db")
+		if !ok || db != 0.0 {
+			t.Fatalf("shadow track not refreshed to 0 dB: %+v", row)
+		}
+	}
+}
+
+func TestTrackGroupApplyControlAllowsCreateGroupFromExplicitTrackIDs(t *testing.T) {
+	project := shadow.New(nil)
+	project.Initialize(map[string]any{
+		"status": "ok",
+		"tracks": []any{
+			map[string]any{"track_id": "1007", "track_name": "Vox", "is_audio_track": true, "volume_db": -60.0},
+			map[string]any{"track_id": "1010", "track_name": "Gtr", "is_audio_track": true, "volume_db": -60.0},
+		},
+	})
+	kernel := &fakeKernelClient{
+		replies: []map[string]any{
+			{
+				"status":         "ok",
+				"group_id":       "grp_b1_generated",
+				"applied_count":  2,
+				"verified_count": 2,
+				"members": []any{
+					map[string]any{"track_id": "1007", "after_db": 0.0, "verified": true},
+					map[string]any{"track_id": "1010", "after_db": 0.0, "verified": true},
+				},
+			},
+			{
+				"status": "ok",
+				"tracks": []any{
+					map[string]any{"track_id": "1007", "track_name": "Vox", "is_audio_track": true, "volume_db": 0.0},
+					map[string]any{"track_id": "1010", "track_name": "Gtr", "is_audio_track": true, "volume_db": 0.0},
+				},
+				"track_groups": []any{
+					map[string]any{"group_id": "grp_b1_generated", "name": "B1 Fader Reset", "member_track_ids": []any{"1007", "1010"}},
+				},
+			},
+		},
+	}
+	h := New(nil, project, nil)
+	h.kernel = kernel
+	args := map[string]any{
+		"track_ids":               []any{"1007", "1010"},
+		"create_group_if_missing": true,
+		"control":                 "volume",
+		"mode":                    "absolute",
+		"db":                      0.0,
+	}
+
+	pending, err := h.Invoke(context.Background(), InvokeRequest{
+		Tool: "track.group.apply_control",
+		Args: cloneAnyMap(args),
+	})
+	if err != nil {
+		t.Fatalf("pending invoke without group_id: %v", err)
+	}
+	if pending.Status != "needs_confirmation" || len(kernel.commands) != 0 {
+		t.Fatalf("pending response = %+v commands=%+v", pending, kernel.commands)
+	}
+	if !strings.Contains(pending.Preview, "1007") || !strings.Contains(pending.Preview, "1010") {
+		t.Fatalf("preview should name explicit members: %q", pending.Preview)
+	}
+
+	resp, err := h.Invoke(context.Background(), InvokeRequest{
+		Tool:      "track.group.apply_control",
+		Args:      cloneAnyMap(args),
+		Confirmed: true,
+	})
+	if err != nil {
+		t.Fatalf("confirmed invoke without group_id: %v", err)
+	}
+	if resp.Status != "ok" || resp.Result["group_id"] != "grp_b1_generated" {
+		t.Fatalf("confirmed response = %+v", resp)
+	}
+	if len(kernel.commands) != 2 || kernel.commands[0]["cmd"] != "track.group.apply_control" || kernel.commands[1]["cmd"] != "get_project_state" {
+		t.Fatalf("kernel commands = %+v", kernel.commands)
+	}
+	firstCmd := kernel.commands[0]
+	if firstCmd["group_id"] != nil {
+		t.Fatalf("expected no synthetic group_id before kernel call, got %+v", firstCmd)
+	}
+	if !boolValueDefault(firstCmd["create_group_if_missing"], false) {
+		t.Fatalf("create_group_if_missing not preserved: %+v", firstCmd)
+	}
+	affected := stringSliceFromAny(resp.Result["affected_track_ids"])
+	if len(affected) != 2 || affected[0] != "1007" || affected[1] != "1010" {
+		t.Fatalf("affected tracks = %#v", affected)
+	}
+}
+
+func TestTrackGroupApplyControlRejectsTrackIDsWithoutCreateGroup(t *testing.T) {
+	h := New(nil, shadow.New(nil), nil)
+	resp, err := h.Invoke(context.Background(), InvokeRequest{
+		Tool: "track.group.apply_control",
+		Args: map[string]any{
+			"track_ids": []any{"1007", "1010"},
+			"control":   "volume",
+			"mode":      "absolute",
+			"db":        0.0,
+		},
+	})
+	if err == nil {
+		t.Fatalf("expected validation error, response=%+v", resp)
+	}
+	if !strings.Contains(err.Error(), "create_group_if_missing") {
+		t.Fatalf("unexpected error: %v", err)
 	}
 }
 
@@ -2900,6 +3822,433 @@ func shadowProjectWithClips() *shadow.Project {
 	return project
 }
 
+func TestInvokeClipStripSilenceSuggestUsesAnalyzeAndBuildsPendingApply(t *testing.T) {
+	kernel := &fakeKernelClient{replies: []map[string]any{
+		{
+			"status":              "ok",
+			"analysis_id":         "analysis_low",
+			"clip_id":             "clip_a",
+			"track_id":            "1007",
+			"clip_length_seconds": 2.0,
+			"analysis_ranges": []any{map[string]any{
+				"range_id":      "range_1",
+				"start_seconds": 0.25,
+				"end_seconds":   1.75,
+			}},
+			"keep_segment_count": 1,
+			"strip_region_count": 0,
+			"keep_segments": []any{map[string]any{
+				"start_seconds": 0.25,
+				"end_seconds":   1.75,
+			}},
+			"strip_regions": []any{},
+		},
+		{
+			"status":              "ok",
+			"analysis_id":         "analysis_rec",
+			"clip_id":             "clip_a",
+			"track_id":            "1007",
+			"clip_length_seconds": 2.0,
+			"analysis_ranges": []any{map[string]any{
+				"range_id":      "range_1",
+				"start_seconds": 0.25,
+				"end_seconds":   1.75,
+			}},
+			"keep_segment_count": 1,
+			"strip_region_count": 1,
+			"keep_segments": []any{map[string]any{
+				"start_seconds": 0.55,
+				"end_seconds":   1.45,
+			}},
+			"strip_regions": []any{map[string]any{
+				"range_id":      "range_1",
+				"clip_id":       "clip_a",
+				"track_id":      "1007",
+				"start_seconds": 0.25,
+				"end_seconds":   0.55,
+			}},
+		},
+	}}
+	h := NewWithSender(kernel, shadowProjectWithClips(), nil)
+
+	resp, err := h.Invoke(context.Background(), InvokeRequest{
+		Tool: "clip.strip_silence.suggest",
+		Args: map[string]any{
+			"candidate_thresholds_dbfs": []any{-60.0, -48.0},
+			"min_silence_ms":            120.0,
+		},
+		Context: map[string]any{
+			"current_selection": map[string]any{
+				"selected_clip_id":       "clip_a",
+				"selected_clip_track_id": "1007",
+				"selected_clip_ranges": []any{map[string]any{
+					"range_id":         "range_1",
+					"clip_id":          "clip_a",
+					"track_id":         "1007",
+					"start_seconds":    0.25,
+					"end_seconds":      1.75,
+					"duration_seconds": 1.5,
+				}},
+			},
+		},
+		Source: "test",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if resp.Status != "ok" {
+		t.Fatalf("resp = %+v", resp)
+	}
+	if len(kernel.commands) != 2 {
+		t.Fatalf("kernel commands = %+v", kernel.commands)
+	}
+	for _, cmd := range kernel.commands {
+		if got := fmt.Sprint(cmd["cmd"]); got != "clip.strip_silence.analyze" {
+			t.Fatalf("suggest should only call analyze, got %+v", kernel.commands)
+		}
+		if firstString(cmd, "clip_id") != "clip_a" || firstString(cmd, "track_id") != "1007" {
+			t.Fatalf("analyze target = %+v", cmd)
+		}
+		if ranges := mapRowsFromAny(cmd["ranges"]); len(ranges) != 1 || firstString(ranges[0], "range_id") != "range_1" {
+			t.Fatalf("selected ranges not forwarded: %+v", cmd)
+		}
+	}
+	params := testMap(t, resp.Result["recommended_params"])
+	if params["threshold_dbfs"] != -48.0 {
+		t.Fatalf("recommended params = %+v", params)
+	}
+	action := testMap(t, resp.Result["pending_action"])
+	if firstString(action, "tool_name") != "clip.strip_silence.apply" {
+		t.Fatalf("pending_action = %+v", action)
+	}
+	args := testMap(t, action["args"])
+	if firstString(args, "analysis_id") != "analysis_rec" {
+		t.Fatalf("pending args did not use recommended analysis: %+v", args)
+	}
+	regions := mapRowsFromAny(args["strip_regions"])
+	if len(regions) != 1 || firstString(regions[0], "range_id") != "range_1" {
+		t.Fatalf("pending strip_regions = %+v", regions)
+	}
+	if resp.RequiresConfirmation {
+		t.Fatalf("suggest itself must not require confirmation: %+v", resp)
+	}
+}
+
+func TestInvokeClipStripSilenceSuggestExplicitClipScopeIgnoresContextRanges(t *testing.T) {
+	kernel := &fakeKernelClient{replies: []map[string]any{
+		{
+			"status":              "ok",
+			"analysis_id":         "analysis_clip",
+			"clip_id":             "clip_a",
+			"track_id":            "1007",
+			"clip_length_seconds": 2.0,
+			"keep_segment_count":  1,
+			"strip_region_count":  1,
+			"keep_segments": []any{map[string]any{
+				"start_seconds": 0.35,
+				"end_seconds":   0.70,
+			}},
+			"strip_regions": []any{map[string]any{
+				"clip_id":       "clip_a",
+				"track_id":      "1007",
+				"start_seconds": 0.0,
+				"end_seconds":   0.35,
+			}},
+		},
+	}}
+	h := NewWithSender(kernel, shadowProjectWithClips(), nil)
+
+	resp, err := h.Invoke(context.Background(), InvokeRequest{
+		Tool: "clip.strip_silence.suggest",
+		Args: map[string]any{
+			"scope":                     "selected_clip",
+			"clip_id":                   "clip_a",
+			"track_id":                  "1007",
+			"candidate_thresholds_dbfs": []any{-48.0},
+		},
+		Context: map[string]any{
+			"current_selection": map[string]any{
+				"selected_clip_id":       "clip_a",
+				"selected_clip_track_id": "1007",
+				"selected_clip_ranges": []any{map[string]any{
+					"range_id":         "stale_range",
+					"clip_id":          "old_clip",
+					"track_id":         "old_track",
+					"start_seconds":    10.0,
+					"end_seconds":      11.0,
+					"duration_seconds": 1.0,
+				}},
+			},
+		},
+		Source: "test",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if resp.Status != "ok" {
+		t.Fatalf("resp = %+v", resp)
+	}
+	if len(kernel.commands) != 1 {
+		t.Fatalf("kernel commands = %+v", kernel.commands)
+	}
+	cmd := kernel.commands[0]
+	if got := fmt.Sprint(cmd["cmd"]); got != "clip.strip_silence.analyze" {
+		t.Fatalf("suggest should only call analyze, got %+v", kernel.commands)
+	}
+	if firstString(cmd, "clip_id") != "clip_a" || firstString(cmd, "track_id") != "1007" {
+		t.Fatalf("analyze target = %+v", cmd)
+	}
+	if ranges := mapRowsFromAny(cmd["ranges"]); len(ranges) != 0 {
+		t.Fatalf("explicit selected_clip scope should not forward stale ranges: %+v", cmd)
+	}
+	if scope := firstString(cmd, "scope"); scope != "selected_clip" {
+		t.Fatalf("analyze scope = %q, cmd=%+v", scope, cmd)
+	}
+}
+
+func TestInvokeClipStripSilenceSuggestSelectedTrackUsesSelectedTrackClips(t *testing.T) {
+	kernel := &fakeKernelClient{replies: []map[string]any{
+		{
+			"status":              "ok",
+			"analysis_id":         "analysis_track",
+			"clip_id":             "clip_b",
+			"track_id":            "1010",
+			"clip_length_seconds": 2.0,
+			"keep_segment_count":  1,
+			"strip_region_count":  1,
+			"keep_segments": []any{map[string]any{
+				"start_seconds": 4.35,
+				"end_seconds":   5.70,
+			}},
+			"strip_regions": []any{map[string]any{
+				"clip_id":       "clip_b",
+				"track_id":      "1010",
+				"start_seconds": 4.0,
+				"end_seconds":   4.35,
+			}},
+		},
+	}}
+	h := NewWithSender(kernel, shadowProjectWithClips(), nil)
+
+	resp, err := h.Invoke(context.Background(), InvokeRequest{
+		Tool: "clip.strip_silence.suggest",
+		Args: map[string]any{
+			"scope":                     "selected_track",
+			"candidate_thresholds_dbfs": []any{-48.0},
+		},
+		Context: map[string]any{
+			"current_selection": map[string]any{
+				"selected_track_id":      "1010",
+				"selected_clip_id":       "clip_a",
+				"selected_clip_track_id": "1007",
+				"selected_clip_ranges": []any{map[string]any{
+					"range_id":      "stale_range",
+					"clip_id":       "clip_a",
+					"track_id":      "1007",
+					"start_seconds": 0.0,
+					"end_seconds":   1.0,
+				}},
+			},
+		},
+		Source: "test",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if resp.Status != "ok" {
+		t.Fatalf("resp = %+v", resp)
+	}
+	if len(kernel.commands) != 1 {
+		t.Fatalf("kernel commands = %+v", kernel.commands)
+	}
+	cmd := kernel.commands[0]
+	if firstString(cmd, "scope") != "selected_track" {
+		t.Fatalf("analyze scope = %+v", cmd)
+	}
+	if firstString(cmd, "clip_id") != "clip_b" || firstString(cmd, "track_id") != "1010" {
+		t.Fatalf("selected track analyze target = %+v", cmd)
+	}
+	if ranges := mapRowsFromAny(cmd["ranges"]); len(ranges) != 0 {
+		t.Fatalf("selected_track should not forward stale clip ranges: %+v", cmd)
+	}
+	if firstString(resp.Result, "scope") != "selected_track" || int(numberFromAny(resp.Result["target_count"])) != 1 {
+		t.Fatalf("suggest result = %+v", resp.Result)
+	}
+}
+
+func TestInvokeClipStripSilenceApplyBatchRunsKernelAppliesAndReturnsCompactSummary(t *testing.T) {
+	kernel := &fakeKernelClient{replies: []map[string]any{
+		{
+			"status":               "ok",
+			"clip_id":              "clip_a",
+			"track_id":             "1007",
+			"applied_region_count": 1,
+			"strip_regions": []any{map[string]any{
+				"clip_id":       "clip_a",
+				"track_id":      "1007",
+				"start_seconds": 0.0,
+				"end_seconds":   0.25,
+			}},
+			"created_clip_ids":  []any{"clip_a_1", "clip_a_2"},
+			"affected_clip_ids": []any{"clip_a", "clip_a_1", "clip_a_2"},
+		},
+		{
+			"status":               "ok",
+			"clip_id":              "clip_b",
+			"track_id":             "1010",
+			"applied_region_count": 2,
+			"strip_regions": []any{
+				map[string]any{"clip_id": "clip_b", "track_id": "1010", "start_seconds": 1.0, "end_seconds": 1.25},
+				map[string]any{"clip_id": "clip_b", "track_id": "1010", "start_seconds": 2.0, "end_seconds": 2.25},
+			},
+			"removed_clip_ids":  []any{"clip_b"},
+			"affected_clip_ids": []any{"clip_b"},
+		},
+	}}
+	h := NewWithSender(kernel, nil, nil)
+
+	resp, err := h.Invoke(context.Background(), InvokeRequest{
+		Tool:      "clip.strip_silence.apply_batch",
+		Confirmed: true,
+		Args: map[string]any{
+			"pending_actions": []any{
+				map[string]any{
+					"tool_name": "clip.strip_silence.apply",
+					"args": map[string]any{
+						"clip_id":     "clip_a",
+						"track_id":    "1007",
+						"analysis_id": "analysis_a",
+						"strip_regions": []any{map[string]any{
+							"clip_id":       "clip_a",
+							"track_id":      "1007",
+							"start_seconds": 0.0,
+							"end_seconds":   0.25,
+						}},
+					},
+				},
+				map[string]any{
+					"tool_name": "clip.strip_silence.apply",
+					"args": map[string]any{
+						"clip_id":     "clip_b",
+						"track_id":    "1010",
+						"analysis_id": "analysis_b",
+						"strip_regions": []any{
+							map[string]any{"clip_id": "clip_b", "track_id": "1010", "start_seconds": 1.0, "end_seconds": 1.25},
+							map[string]any{"clip_id": "clip_b", "track_id": "1010", "start_seconds": 2.0, "end_seconds": 2.25},
+						},
+					},
+				},
+			},
+		},
+		Source: "test",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if resp.Status != "ok" {
+		t.Fatalf("resp = %+v", resp)
+	}
+	if len(kernel.commands) != 2 {
+		t.Fatalf("kernel commands = %+v", kernel.commands)
+	}
+	for _, cmd := range kernel.commands {
+		if firstString(cmd, "cmd") != "clip.strip_silence.apply" {
+			t.Fatalf("batch should only issue apply commands internally: %+v", kernel.commands)
+		}
+	}
+	if firstString(resp.Result, "schema_version") != "clip.strip_silence.apply_batch.v0" {
+		t.Fatalf("batch result = %+v", resp.Result)
+	}
+	if int(numberFromAny(resp.Result["applied_clip_count"])) != 2 || int(numberFromAny(resp.Result["applied_region_count"])) != 3 {
+		t.Fatalf("batch counts = %+v", resp.Result)
+	}
+	if _, ok := resp.Result["strip_regions"]; ok {
+		t.Fatalf("batch result should not expose raw strip_regions: %+v", resp.Result)
+	}
+}
+
+func TestInvokeClipStripSilenceApplyBatchClassifiesNoCleanupSkipAndRealFailure(t *testing.T) {
+	kernel := &fakeKernelClient{replies: []map[string]any{
+		{
+			"status":               "ok",
+			"clip_id":              "clip_apply",
+			"track_id":             "track_apply",
+			"applied_region_count": 1,
+		},
+		{
+			"status":   "error",
+			"clip_id":  "clip_protected",
+			"track_id": "track_protected",
+			"message":  "clip.strip_silence.apply would remove the entire clip; set allow_remove_entire_clip=true to confirm",
+		},
+	}}
+	h := NewWithSender(kernel, nil, nil)
+
+	resp, err := h.Invoke(context.Background(), InvokeRequest{
+		Tool:      "clip.strip_silence.apply_batch",
+		Confirmed: true,
+		Args: map[string]any{
+			"target_count":                 3,
+			"analyzed_clip_count":          3,
+			"no_cleanup_needed_clip_count": 1,
+			"analysis_failed_clip_count":   0,
+			"pending_actions": []any{
+				map[string]any{
+					"tool_name": "clip.strip_silence.apply",
+					"args": map[string]any{
+						"clip_id":     "clip_apply",
+						"track_id":    "track_apply",
+						"analysis_id": "analysis_apply",
+						"strip_regions": []any{map[string]any{
+							"clip_id":       "clip_apply",
+							"track_id":      "track_apply",
+							"start_seconds": 0.0,
+							"end_seconds":   0.25,
+						}},
+					},
+				},
+				map[string]any{
+					"tool_name": "clip.strip_silence.apply",
+					"args": map[string]any{
+						"clip_id":     "clip_protected",
+						"track_id":    "track_protected",
+						"analysis_id": "analysis_protected",
+						"strip_regions": []any{map[string]any{
+							"clip_id":       "clip_protected",
+							"track_id":      "track_protected",
+							"start_seconds": 0.0,
+							"end_seconds":   2.0,
+						}},
+					},
+				},
+			},
+		},
+		Source: "test",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if firstString(resp.Result, "status") != "partial" {
+		t.Fatalf("result status = %q, result = %+v", firstString(resp.Result, "status"), resp.Result)
+	}
+	if got := int(numberFromAny(resp.Result["applied_clip_count"])); got != 1 {
+		t.Fatalf("applied_clip_count = %d, result = %+v", got, resp.Result)
+	}
+	if got := int(numberFromAny(resp.Result["no_cleanup_needed_clip_count"])); got != 1 {
+		t.Fatalf("no_cleanup_needed_clip_count = %d, result = %+v", got, resp.Result)
+	}
+	if got := int(numberFromAny(resp.Result["protected_skip_clip_count"])); got != 1 {
+		t.Fatalf("protected_skip_clip_count = %d, result = %+v", got, resp.Result)
+	}
+	if got := int(numberFromAny(resp.Result["failed_clip_count"])); got != 0 {
+		t.Fatalf("failed_clip_count should mean real failure only, got %d: %+v", got, resp.Result)
+	}
+	errors := mapRowsFromAny(resp.Result["errors"])
+	if len(errors) != 1 || firstString(errors[0], "disposition") != "protected_skip" {
+		t.Fatalf("protected skip error row missing classification: %+v", resp.Result)
+	}
+}
+
 func writeTempAudioFile(t *testing.T, name string) string {
 	t.Helper()
 	path := filepath.Join(t.TempDir(), name)
@@ -3380,6 +4729,7 @@ func TestInvokeMixReadAndDeriveUseStoredObservation(t *testing.T) {
 
 func TestProjectSnapshotExportFallsBackWhenKernelCommandMissing(t *testing.T) {
 	kernel := &fakeKernelClient{replies: []map[string]any{
+		{"status": "error", "message": "Unknown command: project.snapshot_export"},
 		{"status": "error", "message": "Unknown command: project_snapshot_export"},
 	}}
 	h := New(nil, shadowProjectWithClips(), nil)
@@ -5025,5 +6375,34 @@ func TestKernelTelemetryMaterializerWritesReadModelSnapshot(t *testing.T) {
 	}
 	if !seen["waveform_envelope"] || !seen["spectral_field"] || !seen["l3_acoustic_summary"] {
 		t.Fatalf("materializer requested features missing waveform/spectral/l3: %+v", requested)
+	}
+}
+
+func TestVisiblePluginRefsIncludesRackNodes(t *testing.T) {
+	refs := visiblePluginRefs(map[string]any{
+		"tracks": []any{map[string]any{
+			"track_id":       "1007",
+			"track_name":     "Bass",
+			"is_audio_track": true,
+			"plugins": []any{map[string]any{
+				"plugin_id": "1008",
+				"name":      "Volume & Pan",
+			}},
+			"rack": map[string]any{
+				"rack_item_id": "1012",
+				"nodes": []any{map[string]any{
+					"plugin_item_id": "1013",
+					"node_id":        "1013",
+					"name":           "TDR Nova",
+				}},
+			},
+		}},
+	}, "1007")
+
+	if len(refs) != 2 {
+		t.Fatalf("visible plugin refs = %+v, want track plugin plus rack node", refs)
+	}
+	if refs[1].ID != "1013" || refs[1].Name != "TDR Nova" || refs[1].TrackID != "1007" {
+		t.Fatalf("rack node ref = %+v", refs[1])
 	}
 }

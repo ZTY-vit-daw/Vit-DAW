@@ -89,6 +89,33 @@ func (m *MemoryManager) Transition(id string, status string, reason string) (age
 	return cloneCandidate(candidate), true
 }
 
+func (m *MemoryManager) Snapshot() []agentprotocol.PendingCandidate {
+	if m == nil {
+		return nil
+	}
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	out := make([]agentprotocol.PendingCandidate, 0, len(m.candidates))
+	for _, candidate := range m.candidates {
+		out = append(out, cloneCandidate(candidate))
+	}
+	return out
+}
+
+func (m *MemoryManager) Restore(candidates []agentprotocol.PendingCandidate) {
+	if m == nil {
+		return
+	}
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.candidates = make(map[string]agentprotocol.PendingCandidate, len(candidates))
+	for _, candidate := range candidates {
+		if strings.TrimSpace(candidate.ID) != "" {
+			m.candidates[candidate.ID] = cloneCandidate(candidate)
+		}
+	}
+}
+
 func (m *MemoryManager) active(match func(agentprotocol.PendingCandidate) bool) []agentprotocol.PendingCandidate {
 	if m == nil || match == nil {
 		return nil
@@ -120,6 +147,8 @@ func isActiveStatus(status string) bool {
 }
 
 func cloneCandidate(candidate agentprotocol.PendingCandidate) agentprotocol.PendingCandidate {
+	candidate.EvidenceRefs = append([]string(nil), candidate.EvidenceRefs...)
+	candidate.NeedsResolution = append([]string(nil), candidate.NeedsResolution...)
 	candidate.RequiredPermissionDomains = append([]string(nil), candidate.RequiredPermissionDomains...)
 	candidate.CandidateAction = cloneMap(candidate.CandidateAction)
 	candidate.Source.ArtifactIDs = append([]string(nil), candidate.Source.ArtifactIDs...)

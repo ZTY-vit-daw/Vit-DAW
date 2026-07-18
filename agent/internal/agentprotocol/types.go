@@ -67,6 +67,11 @@ type PendingCandidate struct {
 	Domain                    string         `json:"domain,omitempty"`
 	CandidateType             string         `json:"candidate_type,omitempty"`
 	TargetRef                 string         `json:"target_ref,omitempty"`
+	ActionKind                string         `json:"action_kind,omitempty"`
+	ProcessorType             string         `json:"processor_type,omitempty"`
+	EvidenceRefs              []string       `json:"evidence_refs,omitempty"`
+	NeedsResolution           []string       `json:"needs_resolution,omitempty"`
+	Confidence                string         `json:"confidence,omitempty"`
 	Summary                   string         `json:"summary,omitempty"`
 	Rationale                 string         `json:"rationale,omitempty"`
 	CandidateAction           map[string]any `json:"candidate_action,omitempty"`

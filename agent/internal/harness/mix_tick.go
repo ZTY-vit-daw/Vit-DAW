@@ -7,6 +7,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"vit-daw-agent/internal/tools"
 )
 
 const (
@@ -314,11 +316,19 @@ func (h *Harness) applyTrackGainMixTick(ctx context.Context, rec *mixTickRecord)
 	if rec.AfterDB != nil {
 		after = *rec.AfterDB
 	}
-	reply, _, err := h.kernel.SendCommand(ctx, map[string]any{
+	kernelCmd := map[string]any{
 		"cmd":      "set_volume",
 		"track_id": rec.TrackID,
 		"db":       after,
-	})
+	}
+	volumeSpec := tools.CommandSpec{CommandName: "set_volume", MutatesProject: true, RefreshAfter: true}
+	if h.catalog != nil {
+		if spec, ok := h.catalog.LookupCommand("set_volume"); ok {
+			volumeSpec = spec
+		}
+	}
+	execution := h.executeKernelCommand(ctx, volumeSpec, kernelCmd)
+	reply, err := execution.reply, execution.err
 	if err != nil || !kernelReplySucceeded(reply) {
 		return map[string]any{
 			"status":   "error",
@@ -326,11 +336,6 @@ func (h *Harness) applyTrackGainMixTick(ctx context.Context, rec *mixTickRecord)
 			"tick_id":  rec.TickID,
 			"track_id": rec.TrackID,
 		}, err
-	}
-	if h.catalog != nil {
-		if volumeSpec, ok := h.catalog.LookupCommand("set_volume"); ok {
-			h.afterKernelReply(ctx, volumeSpec, reply)
-		}
 	}
 	now := time.Now()
 	rec.Status = "applied"
@@ -360,11 +365,19 @@ func (h *Harness) applyTrackPanMixTick(ctx context.Context, rec *mixTickRecord) 
 	if rec.AfterPan != nil {
 		after = *rec.AfterPan
 	}
-	reply, _, err := h.kernel.SendCommand(ctx, map[string]any{
+	kernelCmd := map[string]any{
 		"cmd":      "set_pan",
 		"track_id": rec.TrackID,
 		"pan":      after,
-	})
+	}
+	panSpec := tools.CommandSpec{CommandName: "set_pan", MutatesProject: true, RefreshAfter: true}
+	if h.catalog != nil {
+		if spec, ok := h.catalog.LookupCommand("set_pan"); ok {
+			panSpec = spec
+		}
+	}
+	execution := h.executeKernelCommand(ctx, panSpec, kernelCmd)
+	reply, err := execution.reply, execution.err
 	if err != nil || !kernelReplySucceeded(reply) {
 		return map[string]any{
 			"status":   "error",
@@ -372,11 +385,6 @@ func (h *Harness) applyTrackPanMixTick(ctx context.Context, rec *mixTickRecord) 
 			"tick_id":  rec.TickID,
 			"track_id": rec.TrackID,
 		}, err
-	}
-	if h.catalog != nil {
-		if panSpec, ok := h.catalog.LookupCommand("set_pan"); ok {
-			h.afterKernelReply(ctx, panSpec, reply)
-		}
 	}
 	observed := h.observedMixTickTrackRow(ctx, rec.TrackID)
 	observedPan, observedPanOK := observedTrackPan(observed)
@@ -438,11 +446,19 @@ func (h *Harness) rollbackTrackGainMixTick(ctx context.Context, rec *mixTickReco
 	if rec.BeforeDB == nil {
 		return map[string]any{"status": "error", "error": "mix tick has no rollback state", "tick_id": rec.TickID}, nil
 	}
-	reply, _, err := h.kernel.SendCommand(ctx, map[string]any{
+	kernelCmd := map[string]any{
 		"cmd":      "set_volume",
 		"track_id": rec.TrackID,
 		"db":       *rec.BeforeDB,
-	})
+	}
+	volumeSpec := tools.CommandSpec{CommandName: "set_volume", MutatesProject: true, RefreshAfter: true}
+	if h.catalog != nil {
+		if spec, ok := h.catalog.LookupCommand("set_volume"); ok {
+			volumeSpec = spec
+		}
+	}
+	execution := h.executeKernelCommand(ctx, volumeSpec, kernelCmd)
+	reply, err := execution.reply, execution.err
 	if err != nil || !kernelReplySucceeded(reply) {
 		return map[string]any{
 			"status":   "error",
@@ -450,11 +466,6 @@ func (h *Harness) rollbackTrackGainMixTick(ctx context.Context, rec *mixTickReco
 			"tick_id":  rec.TickID,
 			"track_id": rec.TrackID,
 		}, err
-	}
-	if h.catalog != nil {
-		if volumeSpec, ok := h.catalog.LookupCommand("set_volume"); ok {
-			h.afterKernelReply(ctx, volumeSpec, reply)
-		}
 	}
 	rec.Status = "rolled_back"
 	rec.UpdatedAt = time.Now()
@@ -478,11 +489,19 @@ func (h *Harness) rollbackTrackPanMixTick(ctx context.Context, rec *mixTickRecor
 	if rec.BeforePan == nil {
 		return map[string]any{"status": "error", "error": "mix tick has no rollback state", "tick_id": rec.TickID}, nil
 	}
-	reply, _, err := h.kernel.SendCommand(ctx, map[string]any{
+	kernelCmd := map[string]any{
 		"cmd":      "set_pan",
 		"track_id": rec.TrackID,
 		"pan":      *rec.BeforePan,
-	})
+	}
+	panSpec := tools.CommandSpec{CommandName: "set_pan", MutatesProject: true, RefreshAfter: true}
+	if h.catalog != nil {
+		if spec, ok := h.catalog.LookupCommand("set_pan"); ok {
+			panSpec = spec
+		}
+	}
+	execution := h.executeKernelCommand(ctx, panSpec, kernelCmd)
+	reply, err := execution.reply, execution.err
 	if err != nil || !kernelReplySucceeded(reply) {
 		return map[string]any{
 			"status":   "error",
@@ -490,11 +509,6 @@ func (h *Harness) rollbackTrackPanMixTick(ctx context.Context, rec *mixTickRecor
 			"tick_id":  rec.TickID,
 			"track_id": rec.TrackID,
 		}, err
-	}
-	if h.catalog != nil {
-		if panSpec, ok := h.catalog.LookupCommand("set_pan"); ok {
-			h.afterKernelReply(ctx, panSpec, reply)
-		}
 	}
 	rec.Status = "rolled_back"
 	rec.UpdatedAt = time.Now()
@@ -538,14 +552,20 @@ func (h *Harness) observedMixTickTrackRow(ctx context.Context, trackID string) m
 		return nil
 	}
 	if h.kernel != nil && h.shadow != nil {
-		reply, _, err := h.kernel.SendCommand(ctx, map[string]any{"cmd": "get_project_state"})
-		if err == nil && kernelReplySucceeded(reply) {
-			h.shadow.Initialize(reply)
-			if row := firstTrackRow(h.UserStateSummary(ctx), trackID); row != nil {
-				return row
-			}
-			if row := firstTrackRow(reply, trackID); row != nil {
-				return row
+		h.refreshShadow(ctx, "mix_tick_observed_track")
+		if row := firstTrackRow(h.UserStateSummary(ctx), trackID); row != nil {
+			return row
+		}
+		if _, ok := h.vspKernel(); !ok {
+			reply, _, err := h.kernel.SendCommand(ctx, map[string]any{"cmd": "get_project_state"})
+			if err == nil && kernelReplySucceeded(reply) {
+				h.shadow.Initialize(reply)
+				if row := firstTrackRow(h.UserStateSummary(ctx), trackID); row != nil {
+					return row
+				}
+				if row := firstTrackRow(reply, trackID); row != nil {
+					return row
+				}
 			}
 		}
 	}

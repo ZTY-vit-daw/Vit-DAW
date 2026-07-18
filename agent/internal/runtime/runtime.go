@@ -60,6 +60,12 @@ type Runtime struct {
 	lastGoal string
 }
 
+type Snapshot struct {
+	Sequence   int64  `json:"sequence,omitempty"`
+	LastGoalID string `json:"last_goal_id,omitempty"`
+	Goals      []Goal `json:"goals,omitempty"`
+}
+
 type ExecutionContext struct {
 	RunID      string `json:"run_id,omitempty"`
 	GoalID     string `json:"goal_id,omitempty"`
@@ -68,6 +74,41 @@ type ExecutionContext struct {
 
 func New() *Runtime {
 	return &Runtime{goals: map[string]Goal{}}
+}
+
+func (r *Runtime) Snapshot() Snapshot {
+	if r == nil {
+		return Snapshot{}
+	}
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	out := Snapshot{Sequence: r.seq, LastGoalID: r.lastGoal, Goals: make([]Goal, 0, len(r.goals))}
+	for _, goal := range r.goals {
+		out.Goals = append(out.Goals, cloneGoal(goal))
+	}
+	return out
+}
+
+func (r *Runtime) Restore(snapshot Snapshot) {
+	if r == nil {
+		return
+	}
+	goals := make(map[string]Goal, len(snapshot.Goals))
+	for _, goal := range snapshot.Goals {
+		goal.GoalID = strings.TrimSpace(goal.GoalID)
+		if goal.GoalID != "" {
+			goals[goal.GoalID] = cloneGoal(goal)
+		}
+	}
+	lastGoal := strings.TrimSpace(snapshot.LastGoalID)
+	if _, ok := goals[lastGoal]; !ok {
+		lastGoal = ""
+	}
+	r.mu.Lock()
+	r.seq = snapshot.Sequence
+	r.goals = goals
+	r.lastGoal = lastGoal
+	r.mu.Unlock()
 }
 
 func (r *Runtime) Create(summary string) Goal {

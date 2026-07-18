@@ -292,6 +292,7 @@ func TestInteractionRespondMixTreatmentConfirmationExecutesPendingTreatment(t *t
 	}}
 	server := New(nil, shadowProject, nil)
 	server.harness = harness.NewWithSender(kernel, shadowProject, nil)
+	server.harness.EnsureGoal("goal_1", "run_1", "bring vocal down slightly")
 	initial := server.chatResponseFromAgentLoopResult("chat_mix", agentModeDefault, agentloop.Result{
 		GoalID: "goal_1",
 		RunID:  "run_1",
@@ -365,6 +366,195 @@ func TestInteractionRespondMixTreatmentConfirmationExecutesPendingTreatment(t *t
 	}
 	if len(setVolumeCommands) != 1 || cleanContextText(setVolumeCommands[0]["track_id"]) != "1007" || fmt.Sprint(setVolumeCommands[0]["db"]) != "-4.5" {
 		t.Fatalf("set_volume commands = %+v all=%+v", setVolumeCommands, kernel.commands)
+	}
+	if goal := server.harness.RuntimeStatus("goal_1"); goal.Status != agentruntime.StatusCompleted || goal.RunID != "run_1" || goal.Summary != "bring vocal down slightly" {
+		t.Fatalf("goal not finalized on original runtime entry: %+v", goal)
+	}
+	if current := server.harness.RuntimeStatus(""); current.GoalID != "goal_1" {
+		t.Fatalf("interaction response should not create a fresh current goal: %+v", current)
+	}
+	if !testAgentEventsContainTurnCompleted(server, "chat_mix", "goal_1", agentruntime.StatusCompleted) {
+		t.Fatalf("missing final turn.completed event: %+v", mustAgentEvents(server, "chat_mix"))
+	}
+}
+
+func TestInteractionRespondMixTickConfirmationFinalizesRuntimeAndEvents(t *testing.T) {
+	projectPath := filepath.Join(t.TempDir(), "mix.vit")
+	if err := os.WriteFile(projectPath, []byte("<project/>"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	shadowProject := shadow.New(nil)
+	shadowProject.Initialize(map[string]any{
+		"status":       "ok",
+		"project_path": projectPath,
+		"tracks": []any{map[string]any{
+			"track_id":       "1010",
+			"track_name":     "Band",
+			"track_type":     "hybrid",
+			"is_audio_track": true,
+			"volume_db":      0.0,
+		}},
+	})
+	kernel := &recordingChatKernel{replies: []map[string]any{
+		{"status": "ok", "project_path": projectPath, "snapshot_xml": "<project/>"},
+		{"status": "ok", "track_id": "1010", "volume_db": -1.0},
+		{"status": "ok", "project_path": projectPath, "tracks": []any{map[string]any{
+			"track_id":       "1010",
+			"track_name":     "Band",
+			"track_type":     "hybrid",
+			"is_audio_track": true,
+			"volume_db":      -1.0,
+		}}},
+	}}
+	server := New(nil, shadowProject, nil)
+	server.harness = harness.NewWithSender(kernel, shadowProject, nil)
+	server.harness.EnsureGoal("goal_1", "run_1", "bring vocal forward")
+	candidate := agentloop.PendingMixTickCandidate{
+		Operation:     "track_gain_adjust",
+		TrackID:       "1010",
+		DeltaDB:       -1,
+		ObservationID: "obs_before",
+		Status:        "pending_confirmation",
+	}
+	server.storePendingMixTickCandidate("chat_mix", "goal_1", "run_1", candidate)
+	interaction := mixTickInteractionRequest("chat_mix", "goal_1", "run_1", candidate)
+	server.storePendingInteraction(interaction, interaction.Payload)
+
+	body, _ := json.Marshal(InteractionRespondRequest{
+		InteractionID: interaction.ID,
+		ActionID:      "approve",
+		Decision:      "approve",
+	})
+	rec := httptest.NewRecorder()
+	server.handleInteractionRespond(rec, httptest.NewRequest(http.MethodPost, "/agent/interaction/respond", bytes.NewReader(body)))
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d body=%s", rec.Code, rec.Body.String())
+	}
+	var resp ChatResponse
+	if err := json.Unmarshal(rec.Body.Bytes(), &resp); err != nil {
+		t.Fatalf("decode response: %v body=%s", err, rec.Body.String())
+	}
+	if resp.StopReason != "mix_tick_applied_reobserved" || resp.GoalStatus != string(agentruntime.StatusCompleted) {
+		t.Fatalf("resp = %+v", resp)
+	}
+	if goal := server.harness.RuntimeStatus("goal_1"); goal.Status != agentruntime.StatusCompleted || goal.RunID != "run_1" || goal.Summary != "bring vocal forward" {
+		t.Fatalf("goal not finalized on original runtime entry: %+v", goal)
+	}
+	if current := server.harness.RuntimeStatus(""); current.GoalID != "goal_1" {
+		t.Fatalf("interaction response should not create a fresh current goal: %+v", current)
+	}
+	if !testAgentEventsContainTurnCompleted(server, "chat_mix", "goal_1", agentruntime.StatusCompleted) {
+		t.Fatalf("missing final turn.completed event: %+v", mustAgentEvents(server, "chat_mix"))
+	}
+}
+
+func TestInteractionRespondMixTickCancelFinalizesAndExpiresPending(t *testing.T) {
+	server := New(nil, shadow.New(nil), nil)
+	server.harness.EnsureGoal("goal_1", "run_1", "bring vocal forward")
+	candidate := agentloop.PendingMixTickCandidate{
+		Operation:     "track_gain_adjust",
+		TrackID:       "1010",
+		DeltaDB:       -1,
+		ObservationID: "obs_before",
+		Status:        "pending_confirmation",
+	}
+	server.storePendingMixTickCandidate("chat_mix", "goal_1", "run_1", candidate)
+	interaction := mixTickInteractionRequest("chat_mix", "goal_1", "run_1", candidate)
+	server.storePendingInteraction(interaction, interaction.Payload)
+
+	body, _ := json.Marshal(InteractionRespondRequest{
+		InteractionID: interaction.ID,
+		ActionID:      "cancel",
+		Decision:      "cancel",
+	})
+	rec := httptest.NewRecorder()
+	server.handleInteractionRespond(rec, httptest.NewRequest(http.MethodPost, "/agent/interaction/respond", bytes.NewReader(body)))
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d body=%s", rec.Code, rec.Body.String())
+	}
+	var resp ChatResponse
+	if err := json.Unmarshal(rec.Body.Bytes(), &resp); err != nil {
+		t.Fatalf("decode response: %v body=%s", err, rec.Body.String())
+	}
+	if resp.GoalStatus != string(agentruntime.StatusCancelled) || len(resp.ExecutedKernelReply) != 0 {
+		t.Fatalf("cancel response = %+v", resp)
+	}
+	if _, ok := server.pendingMixTicks["chat_mix"]; ok {
+		t.Fatal("cancelled mix tick should expire")
+	}
+	if active := server.pendingManager.ActiveForConversation("chat_mix"); len(active) != 0 {
+		t.Fatalf("cancelled mix tick should not remain active: %+v", active)
+	}
+	if goal := server.harness.RuntimeStatus("goal_1"); goal.Status != agentruntime.StatusCancelled {
+		t.Fatalf("goal not cancelled: %+v", goal)
+	}
+	if !testAgentEventsContainTurnCompleted(server, "chat_mix", "goal_1", agentruntime.StatusCancelled) {
+		t.Fatalf("missing final cancelled turn.completed event: %+v", mustAgentEvents(server, "chat_mix"))
+	}
+}
+
+func TestInteractionRespondMixTreatmentCancelUsesTreatmentRejectPath(t *testing.T) {
+	server := New(nil, shadow.New(nil), nil)
+	server.harness.EnsureGoal("goal_1", "run_1", "reduce low-mid mud")
+	initial := server.chatResponseFromAgentLoopResult("chat_mix", agentModeDefault, agentloop.Result{
+		GoalID: "goal_1",
+		RunID:  "run_1",
+		Status: agentruntime.StatusCompleted,
+		Reply:  "confirm treatment",
+		ExecutionMemory: agentloop.ExecutionMemory{
+			PendingMixTreatment: &agentloop.MixTreatmentPending{
+				SchemaVersion:    "mix_treatment_pending.v0",
+				Status:           "pending_confirmation",
+				ConversationID:   "chat_mix",
+				ObservationID:    "obs_1",
+				Intent:           "reduce low-mid mud",
+				TargetRef:        "track:1007",
+				ActionKind:       "plugin_treatment",
+				ProcessorType:    "eq",
+				PluginID:         "plugin_eq",
+				PluginName:       "Test EQ",
+				ReasoningSummary: "low-mid buildup around the vocal",
+			},
+		},
+	})
+	if len(initial.InteractionRequests) != 1 {
+		t.Fatalf("interaction requests = %+v", initial.InteractionRequests)
+	}
+
+	body, _ := json.Marshal(InteractionRespondRequest{
+		InteractionID: initial.InteractionRequests[0].ID,
+		ActionID:      "cancel",
+		Decision:      "cancel",
+	})
+	rec := httptest.NewRecorder()
+	server.handleInteractionRespond(rec, httptest.NewRequest(http.MethodPost, "/agent/interaction/respond", bytes.NewReader(body)))
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d body=%s", rec.Code, rec.Body.String())
+	}
+	var resp ChatResponse
+	if err := json.Unmarshal(rec.Body.Bytes(), &resp); err != nil {
+		t.Fatalf("decode response: %v body=%s", err, rec.Body.String())
+	}
+	if resp.StopReason != "mix_treatment_rejected" || resp.GoalStatus != string(agentruntime.StatusCompleted) || len(resp.ExecutedKernelReply) != 0 {
+		t.Fatalf("cancel should route through treatment reject path: %+v", resp)
+	}
+	if len(resp.InteractionRequests) != 0 {
+		t.Fatalf("mix treatment cancel should not return generic mode-boundary card: %+v", resp.InteractionRequests)
+	}
+	if _, ok := server.pendingMixTreatmentForConversation("chat_mix"); ok {
+		t.Fatal("cancelled mix treatment should expire")
+	}
+	if active := server.pendingManager.ActiveForConversation("chat_mix"); len(active) != 0 {
+		t.Fatalf("cancelled mix treatment should not remain active: %+v", active)
+	}
+	if goal := server.harness.RuntimeStatus("goal_1"); goal.Status != agentruntime.StatusCompleted {
+		t.Fatalf("goal not completed after reject: %+v", goal)
+	}
+	if !testAgentEventsContainTurnCompleted(server, "chat_mix", "goal_1", agentruntime.StatusCompleted) {
+		t.Fatalf("missing final turn.completed event: %+v", mustAgentEvents(server, "chat_mix"))
 	}
 }
 
@@ -489,6 +679,46 @@ func TestAgentLoopFailedAfterExecutionReportsPartialSuccess(t *testing.T) {
 	}
 }
 
+func TestContextWithArtifactSummariesCompactsMultiArtifactPrompt(t *testing.T) {
+	summaries := make([]artifacts.Summary, 0, 14)
+	for i := 0; i < 14; i++ {
+		summaries = append(summaries, artifacts.Summary{
+			ID:        fmt.Sprintf("art_%02d", i),
+			Kind:      "audio",
+			Title:     fmt.Sprintf("stem_%02d.wav", i),
+			Path:      fmt.Sprintf(`E:\BaiduNetdiskDownload\sattelites\stem_%02d.wav`, i),
+			MIME:      "audio/wav",
+			SizeBytes: 1000 + int64(i),
+			Status:    "ready",
+			Metadata:  map[string]any{"sample_rate": 48000},
+			Summary:   "Audio file, duration 120.00s",
+		})
+	}
+
+	ctx := contextWithArtifactSummaries(nil, summaries)
+	if ctx["artifact_count"] != 14 || ctx["artifacts_omitted_count"] != 2 {
+		t.Fatalf("artifact catalog fields = %+v", ctx)
+	}
+	rows := mapRowsValue(ctx["artifacts"])
+	if len(rows) != 12 {
+		t.Fatalf("prompt artifact rows = %d, ctx=%+v", len(rows), ctx)
+	}
+	data, err := json.Marshal(ctx)
+	if err != nil {
+		t.Fatalf("marshal context: %v", err)
+	}
+	text := string(data)
+	if strings.Contains(text, "BaiduNetdiskDownload") || strings.Contains(text, "metadata") || strings.Contains(text, "stem_13.wav") {
+		t.Fatalf("multi-artifact prompt context leaked full payload: %s", text)
+	}
+
+	single := contextWithArtifactSummaries(nil, summaries[:1])
+	row := mapRowsValue(single["artifacts"])[0]
+	if !strings.Contains(fmt.Sprint(row["path"]), "BaiduNetdiskDownload") {
+		t.Fatalf("single explicit artifact should retain path for direct import: %+v", single)
+	}
+}
+
 func TestBeginChatGoalStartsFreshAfterTerminalContextGoal(t *testing.T) {
 	server := New(nil, shadow.New(nil), nil)
 	old := server.harness.BeginGoal("previous completed goal")
@@ -551,6 +781,212 @@ func TestRoutingUsesAgentLoopBeforeFastPaths(t *testing.T) {
 	}
 	if cmds := synthesizePluginLibraryCommands(text); len(cmds) != 0 {
 		t.Fatalf("load intent should not be downgraded to library-only search: %+v", cmds)
+	}
+}
+
+func TestHandleChatMergesCachedUIContextForSelectedClipFadeGain(t *testing.T) {
+	t.Setenv("VIT_AGENT_LLM_BASE_URL", "http://127.0.0.1:9/v1")
+	t.Setenv("VIT_AGENT_LLM_API_KEY", "test-key")
+	t.Setenv("VIT_AGENT_LLM_MODEL", "test-model")
+
+	kernel := &recordingChatKernel{replyByCommand: map[string][]map[string]any{
+		"clip.fade.read": {{
+			"status":           "ok",
+			"clip_id":          "1011",
+			"fade_in_seconds":  0.125,
+			"fade_out_seconds": 0.25,
+		}},
+		"clip.gain.read": {{
+			"status":  "ok",
+			"clip_id": "1011",
+			"gain_db": 1.5,
+		}},
+	}}
+	shadowProject := shadow.New(nil)
+	server := New(nil, shadowProject, nil)
+	server.harness = harness.NewWithSender(kernel, shadowProject, nil)
+	server.uiContext = sanitizeUIContext(map[string]any{
+		"selected_track_id":        "1007",
+		"selected_track_name":      "Track 1",
+		"selected_clip_id":         "1011",
+		"selected_clip_ids":        []any{"1011"},
+		"selected_clip_track_id":   "1007",
+		"current_playhead_seconds": 0,
+	})
+
+	body, _ := json.Marshal(ChatRequest{
+		ConversationID: "chat_clip_ui_context",
+		Message:        "read selected clip fade and gain status",
+		Context: map[string]any{
+			"agent_mode":        agentModeDefault,
+			"selected_track_id": "1007",
+		},
+	})
+	rec := httptest.NewRecorder()
+	server.handleChat(rec, httptest.NewRequest(http.MethodPost, "/agent/chat", bytes.NewReader(body)))
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d body=%s", rec.Code, rec.Body.String())
+	}
+	var resp ChatResponse
+	if err := json.Unmarshal(rec.Body.Bytes(), &resp); err != nil {
+		t.Fatal(err)
+	}
+	if resp.GoalStatus == string(agentruntime.StatusWaitingClarification) || resp.StopReason == "needs_clarification" || strings.Contains(resp.Reply, "Please select") || strings.Contains(resp.Reply, "请先在 GUI") {
+		t.Fatalf("selected clip from cached UI context was not recognized: %+v", resp)
+	}
+	seen := map[string]map[string]any{}
+	for _, cmd := range kernel.commands {
+		name := cleanContextText(cmd["cmd"])
+		if name != "" {
+			seen[name] = cmd
+		}
+		if strings.HasPrefix(name, "mix.") {
+			t.Fatalf("clip fade/gain chat routed to mix command %s; commands=%+v", name, kernel.commands)
+		}
+	}
+	for _, want := range []string{"clip.fade.read", "clip.gain.read"} {
+		cmd := seen[want]
+		if cmd == nil {
+			t.Fatalf("missing %s command; commands=%+v response=%+v", want, kernel.commands, resp)
+		}
+		if cleanContextText(cmd["clip_id"]) != "1011" {
+			t.Fatalf("%s clip_id = %q, want 1011; cmd=%+v", want, cleanContextText(cmd["clip_id"]), cmd)
+		}
+	}
+}
+
+func TestSelectedClipRangesSurvivePromptAndCurrentSelectionContext(t *testing.T) {
+	uiContext := map[string]any{
+		"selected_clip_ranges": []any{
+			map[string]any{
+				"range_id":                 "range_1",
+				"clip_id":                  "1011",
+				"track_id":                 "1007",
+				"start_seconds":            2.0,
+				"end_seconds":              3.5,
+				"duration_seconds":         1.5,
+				"clip_local_start_seconds": 0.5,
+				"clip_local_end_seconds":   2.0,
+			},
+		},
+		"selected_clip_range_count": 1,
+	}
+	merged := contextWithCachedUIContext(map[string]any{}, uiContext)
+	withMessage := contextWithUserMessage(merged, "检查这个范围")
+	current := mapValue(withMessage["current_selection"])
+	if current["selected_clip_range_count"] != 1 {
+		t.Fatalf("current selection lost range count: %+v", current)
+	}
+	ranges, ok := current["selected_clip_ranges"].([]any)
+	if !ok || len(ranges) != 1 {
+		t.Fatalf("current selection lost clip ranges: %+v", current["selected_clip_ranges"])
+	}
+	prompt := agentContextForPrompt(withMessage)
+	for _, want := range []string{"selected_clip_ranges", "range_1", "1011", "duration_seconds"} {
+		if !strings.Contains(prompt, want) {
+			t.Fatalf("prompt context missing %q: %s", want, prompt)
+		}
+	}
+}
+
+func TestHandleChatClipFadeGainReadExpiresStaleClipGainConfirmation(t *testing.T) {
+	t.Setenv("VIT_AGENT_LLM_BASE_URL", "http://127.0.0.1:9/v1")
+	t.Setenv("VIT_AGENT_LLM_API_KEY", "test-key")
+	t.Setenv("VIT_AGENT_LLM_MODEL", "test-model")
+
+	kernel := &recordingChatKernel{replyByCommand: map[string][]map[string]any{
+		"clip.fade.read": {{
+			"status":           "ok",
+			"clip_id":          "1011",
+			"fade_in_seconds":  0.125,
+			"fade_out_seconds": 0.25,
+		}},
+		"clip.gain.read": {{
+			"status":       "ok",
+			"clip_id":      "1011",
+			"clip_gain_db": -3.0,
+		}},
+	}}
+	shadowProject := shadow.New(nil)
+	server := New(nil, shadowProject, nil)
+	server.harness = harness.NewWithSender(kernel, shadowProject, nil)
+	server.uiContext = sanitizeUIContext(map[string]any{
+		"selected_track_id":      "1007",
+		"selected_clip_id":       "1011",
+		"selected_clip_ids":      []any{"1011"},
+		"selected_clip_track_id": "1007",
+	})
+
+	server.pending["plan_stale_clip_gain"] = PendingPlan{
+		ID:        "plan_stale_clip_gain",
+		CreatedAt: time.Now(),
+		Context: map[string]any{
+			"conversation_id": "chat_clip_pending",
+			"goal_id":         "goal_stale",
+			"run_id":          "run_stale",
+		},
+		WorkflowData: map[string]any{"conversation_id": "chat_clip_pending"},
+		Decisions: []policy.Decision{{
+			Name: "clip.gain.set",
+			Risk: policy.RiskConfirm,
+			Command: map[string]any{
+				"cmd":      "clip.gain.set",
+				"clip_id":  "1011",
+				"track_id": "1007",
+				"gain_db":  -3,
+			},
+		}},
+	}
+	server.storePendingInteraction(AgentInteractionRequest{
+		ID:             "interaction_stale_clip_gain",
+		Kind:           "confirmation",
+		Type:           "confirmation",
+		PlanID:         "plan_stale_clip_gain",
+		ConversationID: "chat_clip_pending",
+		GoalID:         "goal_stale",
+		RunID:          "run_stale",
+	}, map[string]any{"plan_id": "plan_stale_clip_gain"})
+	server.goalContinuations["goal_stale"] = agentloop.Continuation{GoalID: "goal_stale", RunID: "run_stale"}
+
+	body, _ := json.Marshal(ChatRequest{
+		ConversationID: "chat_clip_pending",
+		Message:        "读取当前选中 clip 的 fade 和 gain 状态",
+		Context:        map[string]any{"agent_mode": agentModeDefault},
+	})
+	rec := httptest.NewRecorder()
+	server.handleChat(rec, httptest.NewRequest(http.MethodPost, "/agent/chat", bytes.NewReader(body)))
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d body=%s", rec.Code, rec.Body.String())
+	}
+	var resp ChatResponse
+	if err := json.Unmarshal(rec.Body.Bytes(), &resp); err != nil {
+		t.Fatal(err)
+	}
+	if resp.NeedsConfirmation || resp.GoalStatus == string(agentruntime.StatusWaitingConfirmation) || resp.PlanID != "" {
+		t.Fatalf("clip read should not be intercepted by stale confirmation: %+v", resp)
+	}
+	if strings.Contains(resp.Reply, "等待确认") || strings.Contains(resp.Reply, "waiting") {
+		t.Fatalf("reply still looks like pending confirmation: %q", resp.Reply)
+	}
+	seen := map[string]bool{}
+	for _, cmd := range kernel.commands {
+		seen[cleanContextText(cmd["cmd"])] = true
+	}
+	for _, want := range []string{"clip.fade.read", "clip.gain.read"} {
+		if !seen[want] {
+			t.Fatalf("missing %s command; commands=%+v response=%+v", want, kernel.commands, resp)
+		}
+	}
+	if _, ok := server.pending["plan_stale_clip_gain"]; ok {
+		t.Fatal("stale clip gain pending plan should be expired")
+	}
+	if _, ok := server.goalContinuations["goal_stale"]; ok {
+		t.Fatal("stale goal continuation should be cleared")
+	}
+	if _, ok := server.takePendingInteraction("interaction_stale_clip_gain"); ok {
+		t.Fatal("stale clip gain interaction should be expired")
 	}
 }
 
@@ -729,6 +1165,106 @@ func TestUIContextSelectionMergesIntoUIState(t *testing.T) {
 	plugins := rack["plugins"].([]any)
 	if len(plugins) != 1 || plugins[0].(map[string]any)["selected"] != true {
 		t.Fatalf("plugin rack selection = %+v", rack["plugins"])
+	}
+}
+
+func TestUIContextPreservesSelectedClipRanges(t *testing.T) {
+	server := New(nil, shadow.New(nil), nil)
+	payload := strings.NewReader(`{
+		"selected_clip_ranges": [
+			{
+				"range_id": "range_1",
+				"clip_id": "clip_a",
+				"track_id": "track_a",
+				"start_seconds": 2.0,
+				"end_seconds": 3.5,
+				"duration_seconds": 1.5,
+				"clip_local_start_seconds": 0.5,
+				"clip_local_end_seconds": 2.0
+			}
+		],
+		"selected_clip_range_count": 1,
+		"selected_clip_range": {
+			"range_id": "range_1",
+			"clip_id": "clip_a",
+			"track_id": "track_a",
+			"start_seconds": 2.0,
+			"end_seconds": 3.5,
+			"duration_seconds": 1.5,
+			"clip_local_start_seconds": 0.5,
+			"clip_local_end_seconds": 2.0
+		}
+	}`)
+	contextReq := httptest.NewRequest(http.MethodPost, "/agent/ui/context", payload)
+	contextRec := httptest.NewRecorder()
+	server.handleUIContext(contextRec, contextReq)
+	if contextRec.Code != http.StatusOK {
+		t.Fatalf("context status = %d body=%s", contextRec.Code, contextRec.Body.String())
+	}
+
+	var body map[string]any
+	if err := json.Unmarshal(contextRec.Body.Bytes(), &body); err != nil {
+		t.Fatal(err)
+	}
+	context := mapValue(body["context"])
+	if context["selected_clip_range_count"] != float64(1) {
+		t.Fatalf("range count was not preserved: %+v", context)
+	}
+	ranges, ok := context["selected_clip_ranges"].([]any)
+	if !ok || len(ranges) != 1 {
+		t.Fatalf("selected_clip_ranges not preserved: %+v", context["selected_clip_ranges"])
+	}
+	first := mapValue(ranges[0])
+	if cleanContextText(first["range_id"]) != "range_1" || cleanContextText(first["clip_id"]) != "clip_a" {
+		t.Fatalf("unexpected range payload: %+v", first)
+	}
+}
+
+func TestChatSmokeRangeContextUsesCachedUIContext(t *testing.T) {
+	server := New(nil, shadow.New(nil), nil)
+	payload := strings.NewReader(`{
+		"selected_clip_ranges": [
+			{
+				"range_id": "range_1",
+				"clip_id": "clip_a",
+				"track_id": "track_a",
+				"start_seconds": 2.0,
+				"end_seconds": 3.5,
+				"duration_seconds": 1.5,
+				"clip_local_start_seconds": 0.5,
+				"clip_local_end_seconds": 2.0
+			}
+		],
+		"selected_clip_range_count": 1
+	}`)
+	contextReq := httptest.NewRequest(http.MethodPost, "/agent/ui/context", payload)
+	contextRec := httptest.NewRecorder()
+	server.handleUIContext(contextRec, contextReq)
+	if contextRec.Code != http.StatusOK {
+		t.Fatalf("context status = %d body=%s", contextRec.Code, contextRec.Body.String())
+	}
+
+	body, _ := json.Marshal(ChatRequest{
+		ConversationID: "chat_range_context_smoke",
+		Message:        "/smoke range_context",
+		Context:        map[string]any{"agent_mode": agentModeDefault},
+	})
+	rec := httptest.NewRecorder()
+	server.handleChat(rec, httptest.NewRequest(http.MethodPost, "/agent/chat", bytes.NewReader(body)))
+	if rec.Code != http.StatusOK {
+		t.Fatalf("chat status = %d body=%s", rec.Code, rec.Body.String())
+	}
+	var resp ChatResponse
+	if err := json.Unmarshal(rec.Body.Bytes(), &resp); err != nil {
+		t.Fatal(err)
+	}
+	if resp.StopReason != "range_context_smoke_ok" {
+		t.Fatalf("range context smoke failed: %+v", resp)
+	}
+	for _, want := range []string{"top_level", "current_selection", "ui_context", "prompt_context"} {
+		if !strings.Contains(resp.Reply, want) {
+			t.Fatalf("range context smoke reply missing %q: %q", want, resp.Reply)
+		}
 	}
 }
 
@@ -2805,28 +3341,32 @@ func TestPendingMixTickApprovalPhraseClassification(t *testing.T) {
 }
 
 func TestPlainApprovalWithoutPendingDoesNotRunAgentLoop(t *testing.T) {
-	server := New(nil, shadow.New(nil), nil)
-	body, _ := json.Marshal(ChatRequest{
-		ConversationID: "chat_plain_approval",
-		Message:        "是的",
-		Context:        map[string]any{"agent_mode": agentModeDefault},
-	})
+	for _, message := range []string{"\u662f\u7684", "\u53ef\u4ee5"} {
+		t.Run(message, func(t *testing.T) {
+			server := New(nil, shadow.New(nil), nil)
+			body, _ := json.Marshal(ChatRequest{
+				ConversationID: "chat_plain_approval",
+				Message:        message,
+				Context:        map[string]any{"agent_mode": agentModeDefault},
+			})
 
-	rec := httptest.NewRecorder()
-	server.handleChat(rec, httptest.NewRequest(http.MethodPost, "/agent/chat", bytes.NewReader(body)))
+			rec := httptest.NewRecorder()
+			server.handleChat(rec, httptest.NewRequest(http.MethodPost, "/agent/chat", bytes.NewReader(body)))
 
-	if rec.Code != http.StatusOK {
-		t.Fatalf("status = %d body=%s", rec.Code, rec.Body.String())
-	}
-	var resp ChatResponse
-	if err := json.Unmarshal(rec.Body.Bytes(), &resp); err != nil {
-		t.Fatalf("decode response: %v body=%s", err, rec.Body.String())
-	}
-	if resp.StopReason != "plain_approval_without_pending_confirmation" {
-		t.Fatalf("resp = %+v", resp)
-	}
-	if len(resp.ExecutedKernelReply) != 0 || resp.NeedsConfirmation {
-		t.Fatalf("plain approval without pending should not execute or ask confirmation: %+v", resp)
+			if rec.Code != http.StatusOK {
+				t.Fatalf("status = %d body=%s", rec.Code, rec.Body.String())
+			}
+			var resp ChatResponse
+			if err := json.Unmarshal(rec.Body.Bytes(), &resp); err != nil {
+				t.Fatalf("decode response: %v body=%s", err, rec.Body.String())
+			}
+			if resp.StopReason != "plain_approval_without_pending_confirmation" {
+				t.Fatalf("resp = %+v", resp)
+			}
+			if len(resp.ExecutedKernelReply) != 0 || resp.NeedsConfirmation {
+				t.Fatalf("plain approval without pending should not execute or ask confirmation: %+v", resp)
+			}
+		})
 	}
 }
 
@@ -2852,6 +3392,77 @@ func TestPendingMixTreatmentRevisionFallsThroughAndExpiresOldPending(t *testing.
 	}
 	if _, ok := server.pendingTreatments["chat_mix"]; ok {
 		t.Fatal("old pending treatment should expire before revised proposal is generated")
+	}
+}
+
+func TestClipFadeGainRequestExpiresPendingMixStateBeforeChatHandlers(t *testing.T) {
+	server := New(nil, shadow.New(nil), nil)
+	server.pendingTreatments["chat_mix"] = agentloop.MixTreatmentPending{
+		SchemaVersion:             "mix_treatment_pending.v0",
+		Status:                    "pending_confirmation",
+		ConversationID:            "chat_mix",
+		ObservationID:             "obs_1",
+		Intent:                    "bring the selected track down slightly",
+		TargetRef:                 "track:1007",
+		ActionKind:                "gain_balance",
+		ProcessorType:             "utility",
+		DeltaDB:                   -1,
+		ExpiresAfterContextChange: true,
+	}
+	server.pendingMixTicks["chat_mix"] = agentloop.PendingMixTickCandidate{
+		Operation:                 "track_gain_adjust",
+		TrackID:                   "1007",
+		DeltaDB:                   -1,
+		Status:                    "pending_confirmation",
+		ExpiresAfterContextChange: true,
+	}
+	server.upsertPendingCandidate(server.pendingTreatments["chat_mix"].ToPendingCandidate("chat_mix", "goal_mix", "run_mix", "now"))
+	server.upsertPendingCandidate(server.pendingMixTicks["chat_mix"].ToPendingCandidate("chat_mix", "goal_mix", "run_mix", "now"))
+	server.storePendingInteraction(AgentInteractionRequest{
+		ID:             "interaction_mix_treatment",
+		Kind:           "mix_treatment_confirmation",
+		Type:           "mix_treatment_confirmation",
+		Workflow:       "mix_treatment",
+		ConversationID: "chat_mix",
+		GoalID:         "goal_mix",
+		RunID:          "run_mix",
+	}, map[string]any{})
+	server.storePendingInteraction(AgentInteractionRequest{
+		ID:             "interaction_mix_tick",
+		Kind:           "mix_tick_confirmation",
+		Type:           "mix_tick_confirmation",
+		Workflow:       "mix_tick",
+		ConversationID: "chat_mix",
+		GoalID:         "goal_mix",
+		RunID:          "run_mix",
+	}, map[string]any{})
+
+	cleared := server.clearPendingMixForClipFadeGainRequest("chat_mix", "\u8bfb\u53d6\u5f53\u524d\u9009\u4e2d clip \u7684 fade \u548c gain \u72b6\u6001")
+
+	if !cleared {
+		t.Fatal("clip fade/gain request should clear stale pending mix state")
+	}
+	if _, ok := server.pendingTreatments["chat_mix"]; ok {
+		t.Fatal("pending mix treatment should be removed")
+	}
+	if _, ok := server.pendingMixTicks["chat_mix"]; ok {
+		t.Fatal("pending mix tick should be removed")
+	}
+	if active := server.pendingManager.ActiveForConversation("chat_mix"); len(active) != 0 {
+		t.Fatalf("pending manager candidates should become inactive: %+v", active)
+	}
+	if _, ok := server.takePendingInteraction("interaction_mix_treatment"); ok {
+		t.Fatal("pending mix treatment interaction should be expired")
+	}
+	if _, ok := server.takePendingInteraction("interaction_mix_tick"); ok {
+		t.Fatal("pending mix tick interaction should be expired")
+	}
+	clipRequest := "\u8bfb\u53d6\u5f53\u524d\u9009\u4e2d clip \u7684 fade \u548c gain \u72b6\u6001"
+	if resp, handled := server.handlePendingMixTreatmentChat(context.Background(), "chat_mix", ChatRequest{Message: clipRequest}, agentModeDefault); handled {
+		t.Fatalf("cleared pending treatment should not handle followup, resp=%+v", resp)
+	}
+	if resp, handled := server.handlePendingMixTickChat(context.Background(), "chat_mix", ChatRequest{Message: clipRequest}, agentModeDefault); handled {
+		t.Fatalf("cleared pending tick should not handle followup, resp=%+v", resp)
 	}
 }
 
@@ -2941,6 +3552,70 @@ func TestPendingMixTickRevisionFallsThroughAndExpiresOldPending(t *testing.T) {
 	}
 	if _, ok := server.pendingMixTicks["chat_mix"]; ok {
 		t.Fatal("old pending mix tick should expire before revised proposal is generated")
+	}
+}
+
+func TestPendingMixTickRejectExpiresWithoutExecuting(t *testing.T) {
+	server := New(nil, shadow.New(nil), nil)
+	server.storePendingMixTickCandidate("chat_mix", "goal_1", "run_1", agentloop.PendingMixTickCandidate{
+		Operation:     "track_gain_adjust",
+		TrackID:       "track_1",
+		DeltaDB:       -1,
+		ObservationID: "obs_1",
+		Status:        "pending_confirmation",
+	})
+
+	resp, handled := server.handlePendingMixTickChat(context.Background(), "chat_mix", ChatRequest{Message: "\u4e0d\u8981"}, agentModeDefault)
+
+	if !handled || resp.StopReason != "mix_tick_rejected" {
+		t.Fatalf("resp=%+v handled=%v", resp, handled)
+	}
+	if len(resp.ExecutedKernelReply) != 0 {
+		t.Fatalf("reject should not execute: %+v", resp.ExecutedKernelReply)
+	}
+	if _, ok := server.pendingMixTicks["chat_mix"]; ok {
+		t.Fatal("rejected pending mix tick should expire")
+	}
+	if active := server.pendingManager.ActiveForConversation("chat_mix"); len(active) != 0 {
+		t.Fatalf("rejected pending mix tick should not remain active: %+v", active)
+	}
+}
+
+func TestPendingMixTreatmentRejectExpiresWithoutExecuting(t *testing.T) {
+	server := New(nil, shadow.New(nil), nil)
+	server.recordGoalResult("chat_mix", agentloop.Result{
+		GoalID: "goal_1",
+		RunID:  "run_1",
+		ExecutionMemory: agentloop.ExecutionMemory{
+			PendingMixTreatment: &agentloop.MixTreatmentPending{
+				SchemaVersion:    "mix_treatment_pending.v0",
+				Status:           "pending_confirmation",
+				ConversationID:   "chat_mix",
+				ObservationID:    "obs_1",
+				Intent:           "reduce low-mid mud",
+				TargetRef:        "track:1007",
+				ActionKind:       "plugin_treatment",
+				ProcessorType:    "eq",
+				PluginID:         "plugin_eq",
+				PluginName:       "Test EQ",
+				ReasoningSummary: "low-mid buildup around the vocal",
+			},
+		},
+	})
+
+	resp, handled := server.handlePendingMixTreatmentChat(context.Background(), "chat_mix", ChatRequest{Message: "\u4e0d\u8981"}, agentModeDefault)
+
+	if !handled || resp.StopReason != "mix_treatment_rejected" {
+		t.Fatalf("resp=%+v handled=%v", resp, handled)
+	}
+	if len(resp.ExecutedKernelReply) != 0 {
+		t.Fatalf("reject should not execute: %+v", resp.ExecutedKernelReply)
+	}
+	if _, ok := server.pendingTreatments["chat_mix"]; ok {
+		t.Fatal("rejected pending treatment should expire")
+	}
+	if active := server.pendingManager.ActiveForConversation("chat_mix"); len(active) != 0 {
+		t.Fatalf("rejected pending treatment should not remain active: %+v", active)
 	}
 }
 
@@ -3433,6 +4108,16 @@ func TestPendingMixTreatmentReadyPluginControlExecutesApplyControlOnly(t *testin
 	}
 	if cleanContextText(mapValue(reobserve["result"])["observation_id"]) == "" {
 		t.Fatalf("reobserve missing observation_id: %+v", reobserve)
+	}
+	if !strings.Contains(resp.Reply, "AB Result：不可信") || !strings.Contains(resp.Reply, "未把这次改动标记为已验证") {
+		t.Fatalf("plugin treatment reply should surface compact AB state, got %q", resp.Reply)
+	}
+	if len(resp.ProjectResultCards) != 1 {
+		t.Fatalf("plugin treatment project result cards should surface AB state: %+v", resp.ProjectResultCards)
+	}
+	abCard := mapValue(resp.ProjectResultCards[0]["ab_result"])
+	if cleanContextText(abCard["reason"]) == "" {
+		t.Fatalf("plugin treatment AB card = %+v", resp.ProjectResultCards)
 	}
 	if testStringSliceContains([]string{cleanContextText(executed["tool"]), cleanContextText(executed["command_name"])}, "daw.invoke") {
 		t.Fatalf("execution used raw route: %+v", executed)
@@ -4484,6 +5169,20 @@ func testAnyStringSliceContains(value any, needle string) bool {
 			if cleanContextText(row) == needle {
 				return true
 			}
+		}
+	}
+	return false
+}
+
+func mustAgentEvents(server *Server, conversationID string) []AgentEvent {
+	events, _ := server.agentEventsSince(conversationID, 0, 100)
+	return events
+}
+
+func testAgentEventsContainTurnCompleted(server *Server, conversationID, goalID string, status agentruntime.GoalStatus) bool {
+	for _, event := range mustAgentEvents(server, conversationID) {
+		if event.Type == "turn.completed" && event.GoalID == goalID && event.Status == string(status) {
+			return true
 		}
 	}
 	return false
@@ -5662,6 +6361,43 @@ func TestPendingPlanForChatDropsStalePluginGrabberLearningAlias(t *testing.T) {
 	}
 	if len(server.pending) != 0 {
 		t.Fatalf("stale alias was not removed: %+v", server.pending)
+	}
+}
+
+func TestPendingPlanForChatDoesNotUseOnlyPendingPlanFromOtherConversation(t *testing.T) {
+	server := New(nil, shadow.New(nil), nil)
+	server.pending["plan_old_strip"] = PendingPlan{
+		ID:        "plan_old_strip",
+		Workflow:  agentLoopConfirmationWorkflow,
+		CreatedAt: time.Now(),
+		Context: map[string]any{
+			"conversation_id": "chat_old",
+			"goal_id":         "goal_old",
+			"run_id":          "run_old",
+		},
+		WorkflowData: map[string]any{"conversation_id": "chat_old"},
+		Decisions: []policy.Decision{{
+			Name: "clip.strip_silence.apply",
+			Risk: policy.RiskConfirm,
+			Command: map[string]any{
+				"cmd":      "clip.strip_silence.apply",
+				"clip_id":  "old_clip",
+				"track_id": "old_track",
+				"strip_regions": []any{map[string]any{
+					"clip_id":       "old_clip",
+					"track_id":      "old_track",
+					"start_seconds": 0.0,
+					"end_seconds":   0.5,
+				}},
+			},
+		}},
+	}
+
+	if pending, ok := server.pendingPlanForChat("chat_new", map[string]any{"goal_id": "goal_new"}); ok {
+		t.Fatalf("unrelated pending plan should not block new chat: %+v", pending)
+	}
+	if pending, ok := server.pendingPlanForChat("chat_old", map[string]any{"goal_id": "goal_old"}); !ok || pending.ID != "plan_old_strip" {
+		t.Fatalf("matching pending plan should still be available, got %+v ok=%v", pending, ok)
 	}
 }
 

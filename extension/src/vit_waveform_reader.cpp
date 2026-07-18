@@ -40,6 +40,9 @@ PackedFloat32Array VitWaveformReader::read_shared_memory(String memory_name, int
         }
     }
     if (file_mapping == nullptr) {
+        if (open_error == ERROR_FILE_NOT_FOUND) {
+            return result;
+        }
         UtilityFunctions::push_warning(
             String("OpenFileMappingA failed for shared memory: ")
             + memory_name

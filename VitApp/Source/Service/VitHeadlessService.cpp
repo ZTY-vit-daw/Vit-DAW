@@ -1,6 +1,7 @@
 #include "VitHeadlessService.h"
 
 #include "AudioFeatureService.h"
+#include "ProjectAudioSettingsService.h"
 
 #include "../Core/VitEncryptionCore.h"
 #include "../Core/VitGraphSwapCoordinator.h"
@@ -18,6 +19,98 @@ namespace
 
 constexpr float minimumTelemetryDb = -100.0f;
 constexpr float maximumTelemetryDb = 0.0f;
+constexpr int maxVspVisibleTracks = 17;
+constexpr auto vitProjectUUIDProperty = "vit_project_uuid";
+constexpr auto vitProjectParentUUIDProperty = "vit_project_parent_uuid";
+constexpr auto vitAgentHistoryGenerationProperty = "vit_agent_history_generation";
+constexpr auto vitAnalysisManifestProperty = "vit_analysis_manifest_json";
+
+juce::String normaliseLegacyProjectID (const juce::String& projectID)
+{
+    auto safe = projectID.trim().toLowerCase().retainCharacters ("abcdefghijklmnopqrstuvwxyz0123456789");
+    return safe.isNotEmpty() ? "vitproj_legacy_" + safe : juce::String();
+}
+
+juce::String ensureVitProjectUUID (te::Edit& edit, bool forceNew = false)
+{
+    auto projectUUID = edit.state.getProperty (vitProjectUUIDProperty).toString().trim();
+
+    if (forceNew || projectUUID.isEmpty())
+    {
+        if (forceNew)
+            projectUUID.clear();
+        else
+            projectUUID = normaliseLegacyProjectID (edit.state.getProperty ("projectID").toString());
+
+        if (projectUUID.isEmpty())
+            projectUUID = "vitproj_" + juce::Uuid().toString().toLowerCase();
+
+        edit.state.setProperty (vitProjectUUIDProperty, projectUUID, nullptr);
+    }
+
+    return projectUUID;
+}
+
+juce::String makeProjectLifecycleReply (const juce::String& message,
+                                        const juce::String& lifecycle,
+                                        const juce::File& projectPath,
+                                        const juce::String& projectUUID,
+                                        const juce::String& sourceProjectUUID = {},
+                                        const juce::String& parentProjectUUID = {},
+                                        const juce::String& agentHistoryGeneration = {},
+                                        const juce::String& historyPrepareID = {})
+{
+    auto response = std::make_unique<juce::DynamicObject>();
+    response->setProperty ("status", "ok");
+    response->setProperty ("message", message);
+    response->setProperty ("project_lifecycle", lifecycle);
+    response->setProperty ("project_path", projectPath.getFullPathName());
+    response->setProperty ("current_project_path", projectPath.getFullPathName());
+    response->setProperty ("project_uuid", projectUUID);
+    response->setProperty ("project_id", projectUUID);
+    if (sourceProjectUUID.isNotEmpty())
+        response->setProperty ("source_project_uuid", sourceProjectUUID);
+    const auto effectiveParentUUID = parentProjectUUID.isNotEmpty()
+                                       ? parentProjectUUID
+                                       : (lifecycle == "save_as" ? sourceProjectUUID : juce::String());
+    if (effectiveParentUUID.isNotEmpty())
+        response->setProperty ("parent_project_uuid", effectiveParentUUID);
+    if (agentHistoryGeneration.isNotEmpty())
+        response->setProperty ("agent_history_generation", agentHistoryGeneration);
+    if (historyPrepareID.isNotEmpty())
+        response->setProperty ("history_prepare_id", historyPrepareID);
+    return juce::JSON::toString (juce::var (response.release()));
+}
+
+void embedDerivedAnalysisManifest (te::Edit& edit, const juce::File& projectFile)
+{
+    if (projectFile.getFullPathName().isEmpty())
+        return;
+    const auto projectUUID = ensureVitProjectUUID (edit);
+    const auto manifestFile = projectFile.getParentDirectory()
+                                         .getChildFile (".vit_derived")
+                                         .getChildFile (projectUUID)
+                                         .getChildFile ("analysis_manifest.json");
+    if (! manifestFile.existsAsFile())
+        return;
+    const auto parsed = juce::JSON::parse (manifestFile.loadFileAsString());
+    auto* manifest = parsed.getDynamicObject();
+    if (manifest == nullptr || manifest->getProperty ("project_uuid").toString() != projectUUID)
+        return;
+    edit.state.setProperty (vitAnalysisManifestProperty, juce::JSON::toString (parsed, true), nullptr);
+}
+
+void rebindEmbeddedAnalysisManifest (te::Edit& edit, const juce::String& projectUUID, const juce::File& projectFile)
+{
+    const auto parsed = juce::JSON::parse (edit.state.getProperty (vitAnalysisManifestProperty).toString());
+    if (auto* manifest = parsed.getDynamicObject())
+    {
+        manifest->setProperty ("project_uuid", projectUUID);
+        if (projectFile.getFullPathName().isNotEmpty())
+            manifest->setProperty ("project_path", projectFile.getFullPathName());
+        edit.state.setProperty (vitAnalysisManifestProperty, juce::JSON::toString (parsed, true), nullptr);
+    }
+}
 
 float normaliseLevelDbForTelemetry (float rawLevelDb)
 {
@@ -35,6 +128,29 @@ juce::var spectrumArrayToVar (const float* values, int count)
         out.add (juce::var ((double) juce::jlimit (0.0f, 1.0f, values[i])));
 
     return juce::var (out);
+}
+
+juce::StringArray stringArrayFromVar (const juce::var& value)
+{
+    juce::StringArray result;
+
+    if (auto* values = value.getArray())
+    {
+        for (const auto& item : *values)
+        {
+            const auto text = item.toString().trim();
+            if (text.isNotEmpty())
+                result.addIfNotAlreadyThere (text);
+        }
+    }
+    else
+    {
+        const auto text = value.toString().trim();
+        if (text.isNotEmpty())
+            result.addIfNotAlreadyThere (text);
+    }
+
+    return result;
 }
 
 bool ensureMonitoringPlugins (te::AudioTrack& track)
@@ -278,7 +394,7 @@ VitHeadlessService::VitHeadlessService (juce::String applicationName)
         },
         [this]()
         {
-            return saveProjectToDefaultXml();
+            return saveProjectToCurrentPathOrDefaultXml();
         },
         [this](const juce::String& payload)
         {
@@ -289,9 +405,9 @@ VitHeadlessService::VitHeadlessService (juce::String applicationName)
         {
             return ipcGetRecentProjects();
         },
-        [this]()
+        [this](const juce::DynamicObject& object)
         {
-            return ipcNewBlankProject();
+            return ipcNewBlankProject (object);
         },
         [this](const juce::DynamicObject& object, const juce::File& projectFile)
         {
@@ -308,6 +424,10 @@ VitHeadlessService::VitHeadlessService (juce::String applicationName)
         [this]()
         {
             return currentProjectPath.getFullPathName();
+        },
+        [this](const juce::DynamicObject& stream)
+        {
+            return buildVspRealtimeDataForStream (stream);
         },
         productionCoordinator.get());
 }
@@ -384,6 +504,7 @@ bool VitHeadlessService::reloadProjectFromDefaultXml()
 
     clearLevelMeterClients();
     loadedEdit->playInStopEnabled = true;
+    const auto audioSettingsChanged = ProjectAudioSettingsService::ensureDefaultAudioSettings (*loadedEdit, "reload_project").changed;
     const auto monitoringPluginsAdded = ensureMonitoringPluginsForEdit (*loadedEdit);
     const auto trackRackChanged = ensureTrackRackGraphForEdit (*loadedEdit);
     primeEditPlaybackGraph (*loadedEdit);
@@ -397,7 +518,7 @@ bool VitHeadlessService::reloadProjectFromDefaultXml()
     if (edit != nullptr)
         deltaHub.attach (edit->state);
 
-    if (monitoringPluginsAdded || trackRackChanged)
+    if (audioSettingsChanged || monitoringPluginsAdded || trackRackChanged)
         saveProjectToDefaultXml();
 
     currentProjectPath = juce::File();
@@ -498,6 +619,8 @@ bool VitHeadlessService::applyLoadedEdit (std::unique_ptr<te::Edit> loadedEdit, 
     edit.reset();
 
     loadedEdit->playInStopEnabled = true;
+    ensureVitProjectUUID (*loadedEdit);
+    const auto audioSettingsChanged = ProjectAudioSettingsService::ensureDefaultAudioSettings (*loadedEdit, "open_project").changed;
     const auto monitoringPluginsAdded = ensureMonitoringPluginsForEdit (*loadedEdit);
     const auto trackRackChanged = ensureTrackRackGraphForEdit (*loadedEdit);
     primeEditPlaybackGraph (*loadedEdit);
@@ -516,7 +639,7 @@ bool VitHeadlessService::applyLoadedEdit (std::unique_ptr<te::Edit> loadedEdit, 
     if (edit != nullptr)
         deltaHub.attach (edit->state);
 
-    if (monitoringPluginsAdded || trackRackChanged)
+    if (audioSettingsChanged || monitoringPluginsAdded || trackRackChanged)
         saveProjectToDefaultXml();
 
     juce::Logger::writeToLog ("VitHeadlessService: loaded project from " + openedProject.getFullPathName());
@@ -531,6 +654,7 @@ bool VitHeadlessService::saveProjectToDefaultXml()
         return false;
     }
 
+    ensureVitProjectUUID (*edit);
     const auto xmlFile = paths::ensureDefaultProjectXmlFileExists();
 
     for (auto* track : te::getAllTracks (*edit))
@@ -550,6 +674,22 @@ bool VitHeadlessService::saveProjectToDefaultXml()
     return false;
 }
 
+bool VitHeadlessService::saveProjectToCurrentPathOrDefaultXml()
+{
+    if (currentProjectPath.getFullPathName().isEmpty())
+        return saveProjectToDefaultXml();
+
+    const auto reply = ipcSaveProjectToCurrentPath();
+    const auto parsed = juce::JSON::parse (reply);
+
+    if (auto* object = parsed.getDynamicObject())
+        if (object->getProperty ("status").toString() == "ok")
+            return true;
+
+    juce::Logger::writeToLog ("VitHeadlessService: failed to save current project: " + reply);
+    return false;
+}
+
 void VitHeadlessService::clearLevelMeterClients()
 {
     for (auto& [trackID, registration] : trackLevelClients)
@@ -558,6 +698,9 @@ void VitHeadlessService::clearLevelMeterClients()
 
         if (registration.plugin != nullptr && registration.client != nullptr)
             registration.plugin->measurer.removeClient (*registration.client);
+
+        if (registration.plugin != nullptr && registration.vspClient != nullptr)
+            registration.plugin->measurer.removeClient (*registration.vspClient);
     }
 
     trackLevelClients.clear();
@@ -588,15 +731,22 @@ void VitHeadlessService::syncLevelMeterClients()
         activeTrackIDs.insert (trackID);
         auto& registration = trackLevelClients[trackID];
 
-        if (registration.plugin == meterPlugin && registration.client != nullptr)
+        if (registration.plugin == meterPlugin
+            && registration.client != nullptr
+            && registration.vspClient != nullptr)
             continue;
 
         if (registration.plugin != nullptr && registration.client != nullptr)
             registration.plugin->measurer.removeClient (*registration.client);
 
+        if (registration.plugin != nullptr && registration.vspClient != nullptr)
+            registration.plugin->measurer.removeClient (*registration.vspClient);
+
         registration.plugin = meterPlugin;
         registration.client = std::make_unique<te::LevelMeasurer::Client>();
+        registration.vspClient = std::make_unique<te::LevelMeasurer::Client>();
         meterPlugin->measurer.addClient (*registration.client);
+        meterPlugin->measurer.addClient (*registration.vspClient);
     }
 
     for (auto it = trackLevelClients.begin(); it != trackLevelClients.end();)
@@ -609,6 +759,9 @@ void VitHeadlessService::syncLevelMeterClients()
 
         if (it->second.plugin != nullptr && it->second.client != nullptr)
             it->second.plugin->measurer.removeClient (*it->second.client);
+
+        if (it->second.plugin != nullptr && it->second.vspClient != nullptr)
+            it->second.plugin->measurer.removeClient (*it->second.vspClient);
 
         it = trackLevelClients.erase (it);
     }
@@ -730,6 +883,186 @@ void VitHeadlessService::broadcastLevelsTelemetry()
     zmqGateway->publishMessage (juce::JSON::toString (juce::var (response.release())));
 }
 
+juce::var VitHeadlessService::buildVspRealtimeDataForStream (const juce::DynamicObject& stream)
+{
+    const auto streamName = stream.getProperty ("stream").toString().trim();
+    auto data = std::make_unique<juce::DynamicObject>();
+    data->setProperty ("source", "engine_realtime");
+    data->setProperty ("timestamp_ms", static_cast<juce::int64> (juce::Time::currentTimeMillis()));
+
+    if (edit == nullptr)
+    {
+        data->setProperty ("source", "engine_unavailable");
+        return juce::var (data.release());
+    }
+
+    if (streamName == "transport.playhead")
+    {
+        auto& transport = edit->getTransport();
+        data->setProperty ("position_seconds", transport.getPosition().inSeconds());
+        data->setProperty ("is_playing", transport.isPlaying());
+        data->setProperty ("is_recording", transport.isRecording());
+        return juce::var (data.release());
+    }
+
+    if (streamName == "recording.status")
+    {
+        auto& transport = edit->getTransport();
+        data->setProperty ("is_recording", transport.isRecording());
+        data->setProperty ("position_seconds", transport.getPosition().inSeconds());
+        data->setProperty ("armed_track_count", 0);
+        return juce::var (data.release());
+    }
+
+    if (streamName != "meters.visible_tracks" && streamName != "spectrum.visible_tracks")
+        return juce::var();
+
+    syncLevelMeterClients();
+
+    const auto requestedTrackIds = stringArrayFromVar (stream.getProperty ("track_ids"));
+    std::unordered_set<std::string> requestedTrackSet;
+    for (const auto& trackId : requestedTrackIds)
+        requestedTrackSet.insert (trackId.toStdString());
+
+    juce::Array<juce::var> tracksArray;
+    juce::Array<juce::var> assetRefs;
+    int editIndex = 0;
+
+    for (auto* track : te::getAllTracks (*edit))
+    {
+        auto* audioTrack = dynamic_cast<te::AudioTrack*> (track);
+
+        if (audioTrack == nullptr)
+            continue;
+
+        const auto trackId = audioTrack->itemID.toString();
+        const auto trackIdKey = trackId.toStdString();
+
+        if (! requestedTrackSet.empty() && ! requestedTrackSet.contains (trackIdKey))
+        {
+            ++editIndex;
+            continue;
+        }
+
+        if (tracksArray.size() >= maxVspVisibleTracks)
+            break;
+
+        if (streamName == "meters.visible_tracks")
+        {
+            float levelDb = minimumTelemetryDb;
+            float leftLevelDb = minimumTelemetryDb;
+            float rightLevelDb = minimumTelemetryDb;
+            bool clipped = false;
+            bool peakHeld = false;
+            int numChannels = 0;
+
+            if (const auto it = trackLevelClients.find (trackIdKey);
+                it != trackLevelClients.end() && it->second.vspClient != nullptr)
+            {
+                numChannels = juce::jmax (1, it->second.vspClient->getNumChannelsUsed());
+
+                for (int channel = 0; channel < juce::jmin (numChannels, 2); ++channel)
+                {
+                    const auto channelDb = normaliseLevelDbForTelemetry (it->second.vspClient->getAndClearAudioLevel (channel).dB);
+                    levelDb = juce::jmax (levelDb, channelDb);
+
+                    if (channel == 0)
+                        leftLevelDb = channelDb;
+                    else
+                        rightLevelDb = channelDb;
+                }
+
+                if (numChannels == 1)
+                    rightLevelDb = leftLevelDb;
+
+                clipped = it->second.vspClient->getAndClearOverload();
+                peakHeld = it->second.vspClient->getAndClearPeak();
+            }
+
+            auto row = std::make_unique<juce::DynamicObject>();
+            row->setProperty ("track_id", trackId);
+            row->setProperty ("id", trackId);
+            row->setProperty ("name", audioTrack->getName());
+            row->setProperty ("track_name", audioTrack->getName());
+            row->setProperty ("edit_index", editIndex);
+            row->setProperty ("level_db", levelDb);
+            row->setProperty ("peak_db", levelDb);
+            row->setProperty ("rms_db", levelDb);
+            row->setProperty ("left_level_db", leftLevelDb);
+            row->setProperty ("right_level_db", rightLevelDb);
+            row->setProperty ("left_peak_db", leftLevelDb);
+            row->setProperty ("right_peak_db", rightLevelDb);
+            row->setProperty ("clipped", clipped);
+            row->setProperty ("peak_held", peakHeld);
+            row->setProperty ("channel_count", numChannels);
+            row->setProperty ("source", "engine_level_meter");
+            tracksArray.add (juce::var (row.release()));
+        }
+        else
+        {
+            auto row = std::make_unique<juce::DynamicObject>();
+            row->setProperty ("track_id", trackId);
+            row->setProperty ("id", trackId);
+            row->setProperty ("name", audioTrack->getName());
+            row->setProperty ("track_name", audioTrack->getName());
+            row->setProperty ("edit_index", editIndex);
+            row->setProperty ("kind", "spectrum_frame");
+            row->setProperty ("source", "engine_level_meter");
+
+            te::SpectrumFrame spectrumFrame;
+            bool hasSpectrumFrame = false;
+            if (const auto it = trackLevelClients.find (trackIdKey);
+                it != trackLevelClients.end() && it->second.vspClient != nullptr)
+            {
+                hasSpectrumFrame = it->second.vspClient->getAndClearSpectrumFrame (spectrumFrame);
+            }
+
+            if (hasSpectrumFrame)
+            {
+                row->setProperty ("spectrum_bin_count", te::SpectrumFrame::numBins);
+                row->setProperty ("spectrum_min_hz", 20.0);
+                row->setProperty ("spectrum_max_hz", 20000.0);
+                row->setProperty ("spectrum_input_peak", spectrumFrame.inputPeak);
+                row->setProperty ("spectrum_output_peak", spectrumFrame.outputPeak);
+                row->setProperty ("spectrum_left", spectrumArrayToVar (spectrumFrame.left, te::SpectrumFrame::numBins));
+                row->setProperty ("spectrum_right", spectrumArrayToVar (spectrumFrame.right, te::SpectrumFrame::numBins));
+                row->setProperty ("spectrum_phase", spectrumArrayToVar (spectrumFrame.phase, te::SpectrumFrame::numBins));
+                row->setProperty ("spectrum_weight", spectrumArrayToVar (spectrumFrame.weight, te::SpectrumFrame::numBins));
+            }
+            else
+            {
+                row->setProperty ("status", "no_frame");
+            }
+
+            auto ref = std::make_unique<juce::DynamicObject>();
+            ref->setProperty ("track_id", trackId);
+            ref->setProperty ("kind", "spectrum_frame");
+            ref->setProperty ("uri", "vit-cache://project_current/tracks/" + trackId + "/spectrum/latest");
+            ref->setProperty ("source", hasSpectrumFrame ? "engine_level_meter" : "engine_level_meter_no_frame");
+
+            assetRefs.add (juce::var (ref.release()));
+            tracksArray.add (juce::var (row.release()));
+        }
+
+        ++editIndex;
+    }
+
+    if (streamName == "meters.visible_tracks")
+    {
+        data->setProperty ("tracks", juce::var (tracksArray));
+        data->setProperty ("visible_track_count", tracksArray.size());
+    }
+    else
+    {
+        data->setProperty ("tracks", juce::var (tracksArray));
+        data->setProperty ("asset_refs", juce::var (assetRefs));
+        data->setProperty ("visible_track_count", tracksArray.size());
+        data->setProperty ("inline_bins", true);
+    }
+
+    return juce::var (data.release());
+}
+
 juce::String VitHeadlessService::handleIncomingCommandOnMessageThread (const juce::var& command, const juce::String& payload)
 {
     jassert (juce::MessageManager::getInstance()->isThisTheMessageThread());
@@ -762,7 +1095,7 @@ juce::String VitHeadlessService::ipcGetRecentProjects()
     return globalProjectConfig->buildGetRecentProjectsReply();
 }
 
-juce::String VitHeadlessService::ipcNewBlankProject()
+juce::String VitHeadlessService::ipcNewBlankProject (const juce::DynamicObject& object)
 {
     auto loadedEdit = loadEditFromXmlString (engineDevice.getEngine(),
                                              paths::detail::getBlankProjectXmlTemplate(),
@@ -783,12 +1116,27 @@ juce::String VitHeadlessService::ipcNewBlankProject()
     edit.reset();
 
     loadedEdit->playInStopEnabled = true;
+    bool audioSettingsChanged = ProjectAudioSettingsService::ensureDefaultAudioSettings (*loadedEdit, "new_project").changed;
+    juce::Array<juce::var> audioSettingsWarnings;
+    if (auto* audioSettingsObject = object.getProperty ("audio_settings").getDynamicObject())
+    {
+        ProjectAudioSettingsService::applyAudioSettingsToEdit (*loadedEdit,
+                                                               *audioSettingsObject,
+                                                               "new_project_payload",
+                                                               false,
+                                                               &audioSettingsWarnings);
+        audioSettingsChanged = true;
+    }
     const auto monitoringPluginsAdded = ensureMonitoringPluginsForEdit (*loadedEdit);
     const auto trackRackChanged = ensureTrackRackGraphForEdit (*loadedEdit);
     primeEditPlaybackGraph (*loadedEdit);
 
     edit = std::move (loadedEdit);
     lastTransportRecording = (edit != nullptr && edit->getTransport().isRecording());
+
+    const auto projectUUID = ensureVitProjectUUID (*edit, true);
+    edit->state.removeProperty (vitProjectParentUUIDProperty, nullptr);
+    edit->state.removeProperty (vitAnalysisManifestProperty, nullptr);
 
     if (edit != nullptr)
         VitGraphSwapCoordinator::resetForEdit (*edit, "Blank project created");
@@ -798,13 +1146,23 @@ juce::String VitHeadlessService::ipcNewBlankProject()
     if (edit != nullptr)
         deltaHub.attach (edit->state);
 
-    if (monitoringPluginsAdded || trackRackChanged)
+    if (audioSettingsChanged || monitoringPluginsAdded || trackRackChanged)
         saveProjectToDefaultXml();
 
     edit->getUndoManager().clearUndoHistory();
     currentProjectPath = juce::File();
 
-    return CommandDispatcher::makeStatusReply ("ok", "Blank project created");
+    auto response = std::make_unique<juce::DynamicObject>();
+    response->setProperty ("status", "ok");
+    response->setProperty ("message", "Blank project created");
+    response->setProperty ("project_lifecycle", "new");
+    response->setProperty ("project_uuid", projectUUID);
+    response->setProperty ("project_id", projectUUID);
+    response->setProperty ("project_path", "");
+    response->setProperty ("current_project_path", "");
+    if (! audioSettingsWarnings.isEmpty())
+        response->setProperty ("warnings", juce::var (audioSettingsWarnings));
+    return juce::JSON::toString (juce::var (response.release()));
 }
 
 juce::String VitHeadlessService::ipcOpenProjectAt (const juce::DynamicObject& object, const juce::File& projectFile)
@@ -824,7 +1182,13 @@ juce::String VitHeadlessService::ipcOpenProjectAt (const juce::DynamicObject& ob
     if (globalProjectConfig != nullptr)
         globalProjectConfig->prependRecentProject (currentProjectPath);
 
-    return CommandDispatcher::makeStatusReply ("ok", "Project opened");
+    return makeProjectLifecycleReply ("Project opened",
+                                      "open",
+                                      currentProjectPath,
+                                      ensureVitProjectUUID (*edit),
+                                      {},
+                                      edit->state.getProperty (vitProjectParentUUIDProperty).toString().trim(),
+                                      edit->state.getProperty (vitAgentHistoryGenerationProperty).toString().trim());
 }
 
 juce::String VitHeadlessService::ipcSaveProjectWithPayload (const juce::DynamicObject& object)
@@ -836,13 +1200,19 @@ juce::String VitHeadlessService::ipcSaveProjectWithPayload (const juce::DynamicO
         if (pathStr.isEmpty())
             return CommandDispatcher::makeErrorReply ("save_project with app_bound_aes requires a non-empty file_path");
 
-        return ipcSaveEncryptedProjectToPath (juce::File (pathStr));
+        const auto target = normalizeProjectPathForSave (juce::File (pathStr));
+        const auto current = normalizeProjectPathForSave (currentProjectPath);
+        const bool createsNewProject = currentProjectPath.getFullPathName().isEmpty()
+                                    || current.getFullPathName() != target.getFullPathName();
+        return ipcSaveEncryptedProjectToPath (target, createsNewProject, object);
     }
 
-    return ipcSaveProjectToCurrentPath();
+    return ipcSaveProjectToCurrentPath (&object);
 }
 
-juce::String VitHeadlessService::ipcSaveEncryptedProjectToPath (const juce::File& fileFromPayload)
+juce::String VitHeadlessService::ipcSaveEncryptedProjectToPath (const juce::File& fileFromPayload,
+                                                                bool createNewProjectIdentity,
+                                                                const juce::DynamicObject& object)
 {
     auto* activeEdit = edit.get();
 
@@ -860,6 +1230,32 @@ juce::String VitHeadlessService::ipcSaveEncryptedProjectToPath (const juce::File
         if (! parentDir.createDirectory())
             return CommandDispatcher::makeErrorReply ("save_project: cannot create directory " + parentDir.getFullPathName());
 
+    const auto sourceProjectUUID = ensureVitProjectUUID (*activeEdit);
+    embedDerivedAnalysisManifest (*activeEdit, currentProjectPath);
+    const auto sourceParentUUID = activeEdit->state.getProperty (vitProjectParentUUIDProperty);
+    const auto sourceAgentHistoryGeneration = activeEdit->state.getProperty (vitAgentHistoryGenerationProperty);
+    const auto agentHistoryGeneration = object.getProperty ("agent_history_generation").toString().trim();
+    const auto historyPrepareID = object.getProperty ("history_prepare_id").toString().trim();
+    if (agentHistoryGeneration.isNotEmpty())
+        activeEdit->state.setProperty (vitAgentHistoryGenerationProperty, agentHistoryGeneration, nullptr);
+    const auto projectUUID = createNewProjectIdentity ? ensureVitProjectUUID (*activeEdit, true)
+                                                      : sourceProjectUUID;
+    if (createNewProjectIdentity)
+    {
+        activeEdit->state.setProperty (vitProjectParentUUIDProperty, sourceProjectUUID, nullptr);
+        rebindEmbeddedAnalysisManifest (*activeEdit, projectUUID, saveTarget);
+    }
+    const auto restoreSourceIdentity = [&]
+    {
+        activeEdit->state.setProperty (vitAgentHistoryGenerationProperty, sourceAgentHistoryGeneration, nullptr);
+        if (createNewProjectIdentity)
+        {
+            activeEdit->state.setProperty (vitProjectUUIDProperty, sourceProjectUUID, nullptr);
+            activeEdit->state.setProperty (vitProjectParentUUIDProperty, sourceParentUUID, nullptr);
+            rebindEmbeddedAnalysisManifest (*activeEdit, sourceProjectUUID, currentProjectPath);
+        }
+    };
+
     for (auto* track : te::getAllTracks (*activeEdit))
         if (track != nullptr)
             track->flushStateToValueTree();
@@ -869,37 +1265,67 @@ juce::String VitHeadlessService::ipcSaveEncryptedProjectToPath (const juce::File
         const auto blob = VitEncryptionCore::encryptProject (xml->toString());
 
         if (blob.empty())
+        {
+            restoreSourceIdentity();
             return CommandDispatcher::makeErrorReply ("save_project: encryption failed");
+        }
 
         if (! saveTarget.replaceWithData (blob.data(), blob.size()))
+        {
+            restoreSourceIdentity();
             return CommandDispatcher::makeErrorReply ("save_project: failed to write " + saveTarget.getFullPathName());
+        }
 
         currentProjectPath = juce::File (saveTarget.getFullPathName());
 
         if (globalProjectConfig != nullptr)
             globalProjectConfig->prependRecentProject (currentProjectPath);
 
-        return CommandDispatcher::makeStatusReply ("ok", "Project saved");
+        return makeProjectLifecycleReply ("Project saved",
+                                          createNewProjectIdentity ? "save_as" : "save",
+                                          currentProjectPath,
+                                          projectUUID,
+                                          createNewProjectIdentity ? sourceProjectUUID : juce::String(),
+                                          {},
+                                          agentHistoryGeneration,
+                                          historyPrepareID);
     }
 
+    restoreSourceIdentity();
     return CommandDispatcher::makeErrorReply ("save_project: failed to serialize edit state");
 }
 
-juce::String VitHeadlessService::ipcSaveProjectToCurrentPath()
+juce::String VitHeadlessService::ipcSaveProjectToCurrentPath (const juce::DynamicObject* object)
 {
     auto* activeEdit = edit.get();
 
     if (activeEdit == nullptr)
         return CommandDispatcher::makeErrorReply ("No active edit loaded");
 
+    const auto projectUUID = ensureVitProjectUUID (*activeEdit);
+    embedDerivedAnalysisManifest (*activeEdit, currentProjectPath);
+    const auto sourceAgentHistoryGeneration = activeEdit->state.getProperty (vitAgentHistoryGenerationProperty);
+    const auto agentHistoryGeneration = object != nullptr ? object->getProperty ("agent_history_generation").toString().trim()
+                                                          : juce::String();
+    const auto historyPrepareID = object != nullptr ? object->getProperty ("history_prepare_id").toString().trim()
+                                                    : juce::String();
+    if (agentHistoryGeneration.isNotEmpty())
+        activeEdit->state.setProperty (vitAgentHistoryGenerationProperty, agentHistoryGeneration, nullptr);
+
     if (currentProjectPath.getFullPathName().isEmpty())
+    {
+        activeEdit->state.setProperty (vitAgentHistoryGenerationProperty, sourceAgentHistoryGeneration, nullptr);
         return CommandDispatcher::makeStatusReply ("require_path", "Please prompt Save As");
+    }
 
     const auto parentDir = currentProjectPath.getParentDirectory();
 
     if (! parentDir.isDirectory())
         if (! parentDir.createDirectory())
+        {
+            activeEdit->state.setProperty (vitAgentHistoryGenerationProperty, sourceAgentHistoryGeneration, nullptr);
             return CommandDispatcher::makeErrorReply ("save_project: cannot create directory " + parentDir.getFullPathName());
+        }
 
     for (auto* track : te::getAllTracks (*activeEdit))
         if (track != nullptr)
@@ -908,7 +1334,10 @@ juce::String VitHeadlessService::ipcSaveProjectToCurrentPath()
     const auto saveTarget = normalizeProjectPathForSave (currentProjectPath);
 
     if (! te::EditFileOperations (*activeEdit).saveAs (saveTarget, true))
+    {
+        activeEdit->state.setProperty (vitAgentHistoryGenerationProperty, sourceAgentHistoryGeneration, nullptr);
         return CommandDispatcher::makeErrorReply ("save_project: failed to write " + saveTarget.getFullPathName());
+    }
 
     currentProjectPath = saveTarget;
 
@@ -916,24 +1345,43 @@ juce::String VitHeadlessService::ipcSaveProjectToCurrentPath()
         if (auto xml = activeEdit->state.createXml())
             writeClearXmlSidecarSilently (saveTarget, *xml);
 
-    return CommandDispatcher::makeStatusReply ("ok", "Project saved");
+    return makeProjectLifecycleReply ("Project saved", "save", currentProjectPath, projectUUID,
+                                      {}, {}, agentHistoryGeneration, historyPrepareID);
 }
 
 juce::String VitHeadlessService::ipcSaveAsProjectAt (const juce::DynamicObject& object, const juce::File& targetFile)
 {
     if (isAppBoundEncryption (object))
-        return ipcSaveEncryptedProjectToPath (targetFile);
+        return ipcSaveEncryptedProjectToPath (targetFile, true, object);
 
     auto* activeEdit = edit.get();
 
     if (activeEdit == nullptr)
         return CommandDispatcher::makeErrorReply ("No active edit loaded");
 
+    const auto sourceProjectUUID = ensureVitProjectUUID (*activeEdit);
+    embedDerivedAnalysisManifest (*activeEdit, currentProjectPath);
+    const auto sourceParentUUID = activeEdit->state.getProperty (vitProjectParentUUIDProperty);
+    const auto sourceAgentHistoryGeneration = activeEdit->state.getProperty (vitAgentHistoryGenerationProperty);
+    const auto agentHistoryGeneration = object.getProperty ("agent_history_generation").toString().trim();
+    const auto historyPrepareID = object.getProperty ("history_prepare_id").toString().trim();
+    if (agentHistoryGeneration.isNotEmpty())
+        activeEdit->state.setProperty (vitAgentHistoryGenerationProperty, agentHistoryGeneration, nullptr);
+    const auto projectUUID = ensureVitProjectUUID (*activeEdit, true);
+    activeEdit->state.setProperty (vitProjectParentUUIDProperty, sourceProjectUUID, nullptr);
+    rebindEmbeddedAnalysisManifest (*activeEdit, projectUUID, targetFile);
+
     const auto parentDir = targetFile.getParentDirectory();
 
     if (! parentDir.isDirectory())
         if (! parentDir.createDirectory())
+        {
+            activeEdit->state.setProperty (vitProjectUUIDProperty, sourceProjectUUID, nullptr);
+            activeEdit->state.setProperty (vitProjectParentUUIDProperty, sourceParentUUID, nullptr);
+            activeEdit->state.setProperty (vitAgentHistoryGenerationProperty, sourceAgentHistoryGeneration, nullptr);
+            rebindEmbeddedAnalysisManifest (*activeEdit, sourceProjectUUID, currentProjectPath);
             return CommandDispatcher::makeErrorReply ("save_as_project: cannot create directory " + parentDir.getFullPathName());
+        }
 
     for (auto* track : te::getAllTracks (*activeEdit))
         if (track != nullptr)
@@ -942,7 +1390,13 @@ juce::String VitHeadlessService::ipcSaveAsProjectAt (const juce::DynamicObject& 
     const auto saveTarget = normalizeProjectPathForSave (targetFile);
 
     if (! te::EditFileOperations (*activeEdit).saveAs (saveTarget, true))
+    {
+        activeEdit->state.setProperty (vitProjectUUIDProperty, sourceProjectUUID, nullptr);
+        activeEdit->state.setProperty (vitProjectParentUUIDProperty, sourceParentUUID, nullptr);
+        activeEdit->state.setProperty (vitAgentHistoryGenerationProperty, sourceAgentHistoryGeneration, nullptr);
+        rebindEmbeddedAnalysisManifest (*activeEdit, sourceProjectUUID, currentProjectPath);
         return CommandDispatcher::makeErrorReply ("save_as_project: failed to write " + saveTarget.getFullPathName());
+    }
 
     currentProjectPath = juce::File (saveTarget.getFullPathName());
 
@@ -953,7 +1407,14 @@ juce::String VitHeadlessService::ipcSaveAsProjectAt (const juce::DynamicObject& 
         if (auto xml = activeEdit->state.createXml())
             writeClearXmlSidecarSilently (saveTarget, *xml);
 
-    return CommandDispatcher::makeStatusReply ("ok", "Project saved");
+    return makeProjectLifecycleReply ("Project saved",
+                                      "save_as",
+                                      currentProjectPath,
+                                      projectUUID,
+                                      sourceProjectUUID,
+                                      {},
+                                      agentHistoryGeneration,
+                                      historyPrepareID);
 }
 
 } // namespace vit

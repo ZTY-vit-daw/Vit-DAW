@@ -7,6 +7,8 @@
 #include <JuceHeader.h>
 #include <tracktion_engine/tracktion_engine.h>
 
+#include "VspKernelReference.h"
+
 namespace vit
 {
 
@@ -16,7 +18,10 @@ class VitProductionCoordinator;
 class ImportService;
 class GeneratedAssetService;
 class JobEventService;
+class ProjectAudioSettingsService;
+class ProjectMarkerService;
 class ProjectService;
+class TrackGroupService;
 class TrackService;
 class ClipService;
 class MidiService;
@@ -29,9 +34,10 @@ public:
     using EditGetter = std::function<te::Edit*()>;
     using BoolAction = std::function<bool()>;
     using PublishAction = std::function<void(const juce::String&)>;
+    using RealtimeDataProvider = VspKernelReference::RealtimeDataProvider;
 
     using RecentProjectsReply = std::function<juce::String()>;
-    using NewBlankProjectReply = std::function<juce::String()>;
+    using NewBlankProjectReply = std::function<juce::String (const juce::DynamicObject&)>;
     using OpenProjectReply = std::function<juce::String (const juce::DynamicObject&, const juce::File&)>;
     using SaveProjectReply = std::function<juce::String (const juce::DynamicObject&)>;
     using SaveAsProjectReply = std::function<juce::String (const juce::DynamicObject&, const juce::File&)>;
@@ -48,6 +54,7 @@ public:
                        SaveProjectReply saveProjectReply,
                        SaveAsProjectReply saveAsProjectReply,
                        CurrentProjectPathGetter currentProjectPathGetter,
+                       RealtimeDataProvider realtimeDataProvider = {},
                        VitProductionCoordinator* productionCoordinator = nullptr);
     ~CommandDispatcher();
 
@@ -73,11 +80,15 @@ private:
     BoolAction saveProject;
     PublishAction publishMessage;
     CurrentProjectPathGetter getCurrentProjectPath;
+    RealtimeDataProvider getRealtimeData;
     VitProductionCoordinator* production = nullptr;
     std::unique_ptr<ImportService> importService;
     std::unique_ptr<GeneratedAssetService> generatedAssetService;
     std::unique_ptr<JobEventService> jobEventService;
+    std::unique_ptr<ProjectAudioSettingsService> projectAudioSettingsService;
+    std::unique_ptr<ProjectMarkerService> projectMarkerService;
     std::unique_ptr<ProjectService> projectService;
+    std::unique_ptr<TrackGroupService> trackGroupService;
     std::unique_ptr<TrackService> trackService;
     std::unique_ptr<ClipService> clipService;
     std::unique_ptr<MidiService> midiService;

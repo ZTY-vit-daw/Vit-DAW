@@ -370,6 +370,17 @@ function Assert-Equals {
     }
 }
 
+function Assert-InSet {
+    param(
+        [string]$Actual,
+        [string[]]$Expected,
+        [string]$Label
+    )
+    if ($Expected -notcontains $Actual) {
+        Fail ($Label + ": got '" + $Actual + "', want one of [" + ($Expected -join ", ") + "]")
+    }
+}
+
 function Wait-LogPattern {
     param(
         [string]$LogPath,
@@ -561,7 +572,7 @@ $executeNeedle = Join-UnicodeChars @(0x6267, 0x884C)
 $continueNeedle = Join-UnicodeChars @(0x7EE7, 0x7EED)
 $observe = Invoke-AgentChat -ConversationID $conversationID -Message $observeMessage
 $observeStop = [string](Get-OptionalProperty -Object $observe -Name "stop_reason")
-Assert-Equals -Actual $observeStop -Expected "done" -Label "observe turn stop_reason"
+Assert-InSet -Actual $observeStop -Expected @("done", "needs_confirmation") -Label "observe turn stop_reason"
 $observeReply = [string](Get-OptionalProperty -Object $observe -Name "reply")
 $readOnlyDueToIncompleteL3 = $false
 if (($observeReply -notmatch [regex]::Escape($executeNeedle)) -and ($observeReply -notmatch [regex]::Escape($continueNeedle))) {

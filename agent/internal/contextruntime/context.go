@@ -533,7 +533,7 @@ func summarizeSelection(ctx map[string]any, opts Options) map[string]any {
 	out := map[string]any{}
 	keys := []string{
 		"selected_track_id", "selected_track_name", "selected_scene_track_id",
-		"selected_clip_id", "selected_clip_track_id", "selected_clip_name",
+		"selected_clip_id", "selected_clip_track_id", "selected_clip_name", "selected_clip_range_count",
 		"piano_roll_focus_clip_id", "piano_roll_focus_track_id",
 		"selected_plugin_id", "selected_plugin_name", "selected_plugin_track_id", "selected_plugin_source",
 		"playhead_seconds", "current_playhead_seconds", "transport_position_seconds",
@@ -547,6 +547,18 @@ func summarizeSelection(ctx map[string]any, opts Options) map[string]any {
 	if ids := stringSlice(ctx["selected_clip_ids"]); len(ids) > 0 {
 		out["selected_clip_ids"] = ids
 	}
+	if ranges := mapRows(ctx["selected_clip_ranges"]); len(ranges) > 0 {
+		out["selected_clip_ranges"] = compactRows(ranges, []string{
+			"range_id", "clip_id", "clip_name", "track_id",
+			"start_seconds", "end_seconds", "duration_seconds",
+			"clip_start_seconds", "clip_end_seconds",
+			"clip_local_start_seconds", "clip_local_end_seconds",
+			"source", "revision",
+		}, opts)
+	}
+	if singleRange := firstNonEmptyMap(ctx, "selected_clip_range"); singleRange != nil {
+		out["selected_clip_range"] = compactValue(singleRange, opts, 0)
+	}
 	if places := stringSlice(ctx["library_places"]); len(places) > 0 {
 		out["library_places"] = firstStrings(places, opts.MaxListItems)
 	}
@@ -554,7 +566,11 @@ func summarizeSelection(ctx map[string]any, opts Options) map[string]any {
 		out["attachments"] = compactValue(attachments, opts, 0)
 	}
 	if artifacts := mapRows(ctx["artifacts"]); len(artifacts) > 0 {
-		out["artifacts"] = compactRows(artifacts, []string{"id", "kind", "title", "source", "status", "summary", "mime", "size_bytes", "url", "path"}, opts)
+		out["artifact_count"] = len(artifacts)
+		out["artifacts"] = compactRows(artifacts, []string{"id", "kind", "title", "status", "summary", "mime", "size_bytes"}, opts)
+		if len(artifacts) > opts.MaxListItems {
+			out["artifacts_omitted_count"] = len(artifacts) - opts.MaxListItems
+		}
 	}
 	if ids := stringSlice(ctx["artifact_ids"]); len(ids) > 0 {
 		out["artifact_ids"] = firstStrings(ids, opts.MaxListItems)

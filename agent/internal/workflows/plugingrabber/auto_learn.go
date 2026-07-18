@@ -38,7 +38,12 @@ func BuildAutoLearnProfilePatch(digest ParameterDigest) (ProfilePatch, map[strin
 
 	for _, band := range bands {
 		params := map[string]any{}
-		for _, slot := range []string{"enable", "frequency", "gain", "q"} {
+		// Keep these implementation-facing slots inside Plugin Learning.  They
+		// are not exposed as semantic SPAL controls: a later Provider adapter
+		// decides whether a learned EQ can prove a safe static-Bell binding.
+		// In particular, dyn_enable and type let a conformance workflow verify
+		// that it will not silently enable dynamic processing or change shape.
+		for _, slot := range []string{"enable", "dyn_enable", "frequency", "gain", "q", "type"} {
 			param, ok := band.Params[slot]
 			if !ok {
 				if slot == "frequency" || slot == "gain" {
@@ -198,7 +203,7 @@ func classifyEQBandParam(param ParameterInfo) (int, string, int) {
 		if !paramTextHasBand(param, band) {
 			continue
 		}
-		for _, slot := range []string{"frequency", "gain", "q", "enable"} {
+		for _, slot := range []string{"frequency", "gain", "q", "enable", "dyn_enable", "type"} {
 			score := classifyEQBandSlotScore(param, band, slot)
 			if score > bestScore {
 				bestBand = band
@@ -248,6 +253,21 @@ func classifyEQBandSlotScore(param ParameterInfo, band int, slot string) int {
 		}
 		if strings.Contains(compact, fmt.Sprintf("b%don", band)) || strings.Contains(compact, fmt.Sprintf("band%don", band)) {
 			score += 7
+		}
+	case "dyn_enable":
+		if strings.Contains(compact, fmt.Sprintf("b%ddyn", band)) || strings.Contains(compact, fmt.Sprintf("band%ddyn", band)) {
+			score += 10
+		}
+		if strings.Contains(compact, "dynamic") || strings.Contains(compact, "dyn") {
+			score += 4
+		}
+	case "type":
+		if strings.Contains(compact, fmt.Sprintf("b%dtype", band)) || strings.Contains(compact, fmt.Sprintf("band%dtype", band)) ||
+			strings.Contains(compact, fmt.Sprintf("b%dshape", band)) || strings.Contains(compact, fmt.Sprintf("band%dshape", band)) {
+			score += 10
+		}
+		if strings.Contains(compact, "type") || strings.Contains(compact, "shape") {
+			score += 4
 		}
 	}
 	if !param.HostControllable {

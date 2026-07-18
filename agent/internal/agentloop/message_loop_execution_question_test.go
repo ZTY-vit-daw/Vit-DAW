@@ -108,8 +108,10 @@ mix_treatment_pending: {
 	if strings.Contains(got, "mix_treatment_pending") || strings.Contains(got, "schema_version") || strings.Contains(got, "action_kind") {
 		t.Fatalf("internal pending marker leaked: %q", got)
 	}
-	if !strings.Contains(got, "低频整理") {
-		t.Fatalf("visible recommendation was lost: %q", got)
+	for _, want := range []string{"结论：", "依据：", "待确认动作：", "限制：", "低频"} {
+		if !strings.Contains(got, want) {
+			t.Fatalf("rendered pending reply missing %q: %q", want, got)
+		}
 	}
 }
 

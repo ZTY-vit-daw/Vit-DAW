@@ -5267,6 +5267,11 @@ func (s *Server) runPluginGrabberLearningWorkflow(ctx context.Context, conversat
 	workflowData["validation_warnings"] = validation.Warnings
 	workflowData["validation_summary"] = validation.CoverageSummary
 	workflowData["profile_patch"] = patch
+	// Keep the validated document alongside the pending confirmation. The
+	// post-save VPS v3 transaction consumes this exact Skill and then checks it
+	// against a fresh host parameter surface; it never reconstructs authority
+	// from the project profile alone.
+	workflowData["plugin_skill"] = upsert["plugin_skill"]
 	workflowData["plugin_identity"] = digest.PluginIdentity
 	if value := firstPresentAny(upsert, "param_signature_hash"); value != nil {
 		workflowData["param_signature_hash"] = value

@@ -15,6 +15,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	goruntime "runtime"
+	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -32,14 +33,18 @@ import (
 	"vit-daw-agent/internal/llm"
 	"vit-daw-agent/internal/logx"
 	"vit-daw-agent/internal/macrocontrols"
+	"vit-daw-agent/internal/orchestration"
+	"vit-daw-agent/internal/orchestrationruntime"
 	"vit-daw-agent/internal/pendingmanager"
 	"vit-daw-agent/internal/planner"
 	"vit-daw-agent/internal/policy"
+	"vit-daw-agent/internal/projectworkspace"
 	"vit-daw-agent/internal/promptruntime"
 	"vit-daw-agent/internal/resourceintake"
 	agentruntime "vit-daw-agent/internal/runtime"
 	"vit-daw-agent/internal/shadow"
 	"vit-daw-agent/internal/tools"
+	"vit-daw-agent/internal/vps"
 	"vit-daw-agent/internal/workflows/plugingrabber"
 )
 
@@ -49,24 +54,34 @@ type Server struct {
 	llm          *llm.Client
 	logger       *logx.Logger
 	harness      *harness.Harness
+	vpsLibrary   *vps.Library
 	artifactRoot string
 	webUIRoot    string
 	startedAt    time.Time
 
-	mu                sync.Mutex
-	conversations     map[string][]llm.Message
-	pending           map[string]PendingPlan
-	interactions      map[string]PendingInteraction
-	mixSessions       map[string]MixSession
-	goalContinuations map[string]agentloop.Continuation
-	conversationGoals map[string]string
-	pendingMixTicks   map[string]agentloop.PendingMixTickCandidate
-	pendingTreatments map[string]agentloop.MixTreatmentPending
-	pendingManager    *pendingmanager.MemoryManager
-	uiContext         map[string]any
-	events            map[string][]AgentEvent
-	eventSeq          map[string]int64
-	webUILogged       bool
+	mu                       sync.Mutex
+	conversations            map[string][]llm.Message
+	pending                  map[string]PendingPlan
+	interactions             map[string]PendingInteraction
+	mixSessions              map[string]MixSession
+	goalContinuations        map[string]agentloop.Continuation
+	conversationGoals        map[string]string
+	conversationMemory       map[string]agentloop.ExecutionMemory
+	pendingMixTicks          map[string]agentloop.PendingMixTickCandidate
+	pendingTreatments        map[string]agentloop.MixTreatmentPending
+	pendingManager           *pendingmanager.MemoryManager
+	orchestrationRuntime     *orchestrationruntime.Runtime
+	uiContext                map[string]any
+	events                   map[string][]AgentEvent
+	eventSeq                 map[string]int64
+	webUILogged              bool
+	workspaceMu              sync.Mutex
+	activeWorkspacePath      string
+	activeWorkspaceUUID      string
+	activeWorkspaceSessionID string
+	vpsDraftTestMu           sync.Mutex
+	vpsDraftTestRunMu        sync.Mutex
+	vpsDraftTestTickets      map[string]vpsDraftTestTicket
 }
 
 type PendingPlan struct {
@@ -77,7 +92,29 @@ type PendingPlan struct {
 	Preview          string                  `json:"preview"`
 	Workflow         string                  `json:"workflow,omitempty"`
 	WorkflowData     map[string]any          `json:"workflow_data,omitempty"`
-	GoalContinuation *agentloop.Continuation `json:"-"`
+	GoalContinuation *agentloop.Continuation `json:"goal_continuation,omitempty"`
+}
+
+type projectAgentRuntimeState struct {
+	SchemaVersion      string                                       `json:"schema_version"`
+	ProjectPath        string                                       `json:"project_path"`
+	ProjectUUID        string                                       `json:"project_uuid"`
+	SavedAt            time.Time                                    `json:"saved_at"`
+	Conversations      map[string][]llm.Message                     `json:"conversations,omitempty"`
+	Pending            map[string]PendingPlan                       `json:"pending,omitempty"`
+	Interactions       map[string]PendingInteraction                `json:"interactions,omitempty"`
+	MixSessions        map[string]MixSession                        `json:"mix_sessions,omitempty"`
+	GoalContinuations  map[string]agentloop.Continuation            `json:"goal_continuations,omitempty"`
+	ConversationGoals  map[string]string                            `json:"conversation_goals,omitempty"`
+	ConversationMemory map[string]agentloop.ExecutionMemory         `json:"conversation_memory,omitempty"`
+	PendingMixTicks    map[string]agentloop.PendingMixTickCandidate `json:"pending_mix_ticks,omitempty"`
+	// Decode-only migration fields. Runtime v1 never writes or executes these
+	// legacy B2/B3 pending records; restore retires them as rejected audit data.
+	PendingStaticBalancePlans map[string]agentloop.PendingStaticBalancePlan `json:"pending_static_balance_plans,omitempty"`
+	PendingPanLayoutPlans     map[string]agentloop.PendingPanLayoutPlan     `json:"pending_pan_layout_plans,omitempty"`
+	PendingTreatments         map[string]agentloop.MixTreatmentPending      `json:"pending_treatments,omitempty"`
+	PendingCandidates         []agentprotocol.PendingCandidate              `json:"pending_candidates,omitempty"`
+	GoalRuntime               agentruntime.Snapshot                         `json:"goal_runtime,omitempty"`
 }
 
 type ChatRequest struct {
@@ -99,36 +136,43 @@ type Attachment struct {
 }
 
 type ChatResponse struct {
-	ConversationID            string                    `json:"conversation_id"`
-	GoalID                    string                    `json:"goal_id,omitempty"`
-	RunID                     string                    `json:"run_id,omitempty"`
-	Reply                     string                    `json:"reply"`
-	AgentMode                 string                    `json:"agent_mode,omitempty"`
-	AgentPlan                 *AgentPlan                `json:"agent_plan,omitempty"`
-	NeedsConfirmation         bool                      `json:"needs_confirmation"`
-	PlanID                    string                    `json:"plan_id,omitempty"`
-	Preview                   string                    `json:"preview,omitempty"`
-	Workflow                  string                    `json:"workflow,omitempty"`
-	WorkflowData              map[string]any            `json:"workflow_data,omitempty"`
-	PluginLearning            map[string]any            `json:"plugin_learning,omitempty"`
-	MixSession                map[string]any            `json:"mix_session,omitempty"`
-	InteractionRequests       []AgentInteractionRequest `json:"interaction_requests,omitempty"`
-	TypedEvents               []map[string]any          `json:"typed_events,omitempty"`
-	AcousticPackageStatus     map[string]any            `json:"acoustic_package_status,omitempty"`
-	AcousticPackageStatusPath string                    `json:"acoustic_package_status_path,omitempty"`
-	Commands                  []policy.Decision         `json:"commands,omitempty"`
-	ExecutedKernelReply       []map[string]any          `json:"executed_kernel_reply,omitempty"`
-	ProjectResultCards        []map[string]any          `json:"project_result_cards,omitempty"`
-	GoalStatus                string                    `json:"goal_status,omitempty"`
-	GoalSummary               string                    `json:"goal_summary,omitempty"`
-	CurrentStep               string                    `json:"current_step,omitempty"`
-	CompletedSteps            int                       `json:"completed_steps,omitempty"`
-	StopReason                string                    `json:"stop_reason,omitempty"`
-	LimitType                 string                    `json:"limit_type,omitempty"`
-	ProjectHistory            map[string]any            `json:"project_history,omitempty"`
-	Artifacts                 []artifacts.Summary       `json:"artifacts,omitempty"`
-	SidePanelRequest          *SidePanelRequest         `json:"side_panel_request,omitempty"`
-	Error                     string                    `json:"error,omitempty"`
+	ConversationID            string                              `json:"conversation_id"`
+	GoalID                    string                              `json:"goal_id,omitempty"`
+	RunID                     string                              `json:"run_id,omitempty"`
+	Reply                     string                              `json:"reply"`
+	AgentMode                 string                              `json:"agent_mode,omitempty"`
+	AgentPlan                 *AgentPlan                          `json:"agent_plan,omitempty"`
+	NeedsConfirmation         bool                                `json:"needs_confirmation"`
+	PlanID                    string                              `json:"plan_id,omitempty"`
+	Preview                   string                              `json:"preview,omitempty"`
+	ProposalPresentation      *orchestration.ProposalPresentation `json:"proposal_presentation,omitempty"`
+	Workflow                  string                              `json:"workflow,omitempty"`
+	WorkflowData              map[string]any                      `json:"workflow_data,omitempty"`
+	PluginLearning            map[string]any                      `json:"plugin_learning,omitempty"`
+	MixSession                map[string]any                      `json:"mix_session,omitempty"`
+	InteractionRequests       []AgentInteractionRequest           `json:"interaction_requests,omitempty"`
+	TypedEvents               []map[string]any                    `json:"typed_events,omitempty"`
+	AcousticPackageStatus     map[string]any                      `json:"acoustic_package_status,omitempty"`
+	AcousticPackageStatusPath string                              `json:"acoustic_package_status_path,omitempty"`
+	Commands                  []policy.Decision                   `json:"commands,omitempty"`
+	ExecutedKernelReply       []map[string]any                    `json:"executed_kernel_reply,omitempty"`
+	ProjectResultCards        []map[string]any                    `json:"project_result_cards,omitempty"`
+	GoalStatus                string                              `json:"goal_status,omitempty"`
+	GoalSummary               string                              `json:"goal_summary,omitempty"`
+	CurrentStep               string                              `json:"current_step,omitempty"`
+	CompletedSteps            int                                 `json:"completed_steps,omitempty"`
+	StopReason                string                              `json:"stop_reason,omitempty"`
+	LimitType                 string                              `json:"limit_type,omitempty"`
+	ProjectHistory            map[string]any                      `json:"project_history,omitempty"`
+	Artifacts                 []artifacts.Summary                 `json:"artifacts,omitempty"`
+	SidePanelRequest          *SidePanelRequest                   `json:"side_panel_request,omitempty"`
+	Error                     string                              `json:"error,omitempty"`
+	Lifecycle                 string                              `json:"lifecycle,omitempty"`
+	Persistence               string                              `json:"persistence,omitempty"`
+	MessageKind               string                              `json:"message_kind,omitempty"`
+	TurnID                    string                              `json:"turn_id,omitempty"`
+	LogicalMessageID          string                              `json:"logical_message_id,omitempty"`
+	Supersedes                []string                            `json:"supersedes,omitempty"`
 }
 
 type SidePanelRequest struct {
@@ -136,6 +180,125 @@ type SidePanelRequest struct {
 	Tab          string `json:"tab,omitempty"`
 	ArtifactID   string `json:"artifact_id,omitempty"`
 	MacroPanelID string `json:"macro_panel_id,omitempty"`
+}
+
+func ensureChatResponseMessageProtocol(resp *ChatResponse) {
+	if resp == nil {
+		return
+	}
+	if strings.TrimSpace(resp.Lifecycle) == "" {
+		resp.Lifecycle = "durable"
+	}
+	if strings.TrimSpace(resp.Persistence) == "" {
+		resp.Persistence = "project_history"
+	}
+	if strings.TrimSpace(resp.MessageKind) == "" {
+		resp.MessageKind = chatResponseMessageKind(*resp)
+	}
+	if strings.TrimSpace(resp.TurnID) == "" {
+		resp.TurnID = firstNonEmpty(strings.TrimSpace(resp.RunID), strings.TrimSpace(resp.GoalID))
+	}
+	proposalID := ""
+	if resp.ProposalPresentation != nil {
+		proposalID = strings.TrimSpace(resp.ProposalPresentation.ProposalID)
+	}
+	if proposalID == "" {
+		proposalID = firstNonEmpty(
+			cleanContextText(resp.WorkflowData["proposal_id"]),
+			cleanContextText(resp.WorkflowData["plan_id"]),
+		)
+	}
+	if resp.MessageKind == "proposal" && strings.TrimSpace(resp.LogicalMessageID) == "" && proposalID != "" {
+		resp.LogicalMessageID = proposalID
+	}
+	if resp.MessageKind != "proposal" && proposalID != "" && !containsString(resp.Supersedes, proposalID) {
+		resp.Supersedes = append(resp.Supersedes, proposalID)
+	}
+}
+
+func chatResponseMessageKind(resp ChatResponse) string {
+	status := strings.ToLower(strings.TrimSpace(resp.GoalStatus))
+	workflowStage := strings.ToLower(cleanContextText(resp.WorkflowData["canary_stage"]))
+	hasVerification := cleanContextText(resp.WorkflowData["verification"]) != "" || len(mapValue(resp.WorkflowData["verification_result"])) > 0 || strings.HasPrefix(workflowStage, "executed_")
+	hasExecutionReceipt := cleanContextText(resp.WorkflowData["execution_id"]) != "" || cleanContextText(resp.WorkflowData["execution_status"]) != "" || chatIntValue(resp.WorkflowData["receipt_count"]) > 0
+	switch {
+	case strings.TrimSpace(resp.Error) != "" || status == "error" || status == "failed":
+		return "error"
+	case resp.NeedsConfirmation || resp.ProposalPresentation != nil || strings.Contains(status, "confirmation"):
+		return "proposal"
+	case hasVerification:
+		return "verification"
+	case hasExecutionReceipt || len(resp.ExecutedKernelReply) > 0 || len(resp.ProjectResultCards) > 0:
+		return "execution_receipt"
+	case strings.Contains(strings.ToLower(strings.TrimSpace(resp.CurrentStep)), "verif"):
+		return "verification"
+	default:
+		return "assistant"
+	}
+}
+
+func chatResponseHistoryData(resp ChatResponse, data map[string]any) map[string]any {
+	if data == nil {
+		data = map[string]any{}
+	}
+	data["lifecycle"] = firstNonEmpty(resp.Lifecycle, "durable")
+	data["persistence"] = firstNonEmpty(resp.Persistence, "project_history")
+	data["message_kind"] = firstNonEmpty(resp.MessageKind, chatResponseMessageKind(resp))
+	data["turn_id"] = firstNonEmpty(resp.TurnID, resp.RunID, resp.GoalID)
+	if strings.TrimSpace(resp.LogicalMessageID) != "" {
+		data["logical_message_id"] = strings.TrimSpace(resp.LogicalMessageID)
+	}
+	if len(resp.Supersedes) > 0 {
+		data["supersedes"] = append([]string(nil), resp.Supersedes...)
+	}
+	if messageData := chatResponseMessageData(resp); len(messageData) > 0 {
+		data["message_data"] = messageData
+	}
+	return data
+}
+
+func chatResponseMessageData(resp ChatResponse) map[string]any {
+	if resp.MessageKind != "proposal" && !resp.NeedsConfirmation && len(resp.InteractionRequests) == 0 {
+		return nil
+	}
+	data := map[string]any{
+		"schema_version":     "vit.message_data.v1",
+		"needs_confirmation": resp.NeedsConfirmation,
+		"plan_id":            strings.TrimSpace(resp.PlanID),
+		"preview":            strings.TrimSpace(resp.Preview),
+		"workflow":           strings.TrimSpace(resp.Workflow),
+	}
+	if resp.ProposalPresentation != nil {
+		data["proposal_presentation"] = resp.ProposalPresentation
+	}
+	if len(resp.WorkflowData) > 0 {
+		data["workflow_data"] = resp.WorkflowData
+	}
+	if len(resp.InteractionRequests) > 0 {
+		data["interaction_requests"] = resp.InteractionRequests
+	}
+	return data
+}
+
+func syncChatResponseMessageIdentityFromHistory(resp *ChatResponse) {
+	if resp == nil || strings.TrimSpace(resp.LogicalMessageID) != "" {
+		return
+	}
+	rows := dictionaryRowsFromAny(resp.ProjectHistory["conversation_messages"])
+	expected := strings.TrimSpace(resp.Reply)
+	for index := len(rows) - 1; index >= 0; index-- {
+		row := rows[index]
+		role := strings.ToLower(strings.TrimSpace(firstNonEmpty(cleanContextText(row["role"]), cleanContextText(row["kind"]))))
+		if role != "assistant" && role != "vit" {
+			continue
+		}
+		content := strings.TrimSpace(firstNonEmpty(cleanContextText(row["content"]), cleanContextText(row["text"]), cleanContextText(row["text_preview"])))
+		if expected != "" && content != expected {
+			continue
+		}
+		resp.LogicalMessageID = firstNonEmpty(cleanContextText(row["logical_message_id"]), cleanContextText(row["node_id"]), cleanContextText(row["id"]))
+		return
+	}
 }
 
 type ConfirmRequest struct {
@@ -248,25 +411,41 @@ var devToolSmokeNames = []string{
 }
 
 func New(kernelClient *kernel.Client, shadowProject *shadow.Project, logger *logx.Logger) *Server {
+	vpsLibrary, vpsLibraryErr := vps.OpenDefaultLibrary()
+	if vpsLibraryErr != nil && logger != nil {
+		logger.Warn("[vps] user-level library unavailable: %v", vpsLibraryErr)
+	}
+	orchestrationRuntime := orchestrationruntime.New()
+	if storePath := orchestration.DefaultFileStorePath(); storePath != "" {
+		if store, err := orchestration.NewFileStore(storePath); err == nil {
+			orchestrationRuntime = orchestrationruntime.NewWithStore(store)
+		} else if logger != nil {
+			logger.Warn("[orchestration] persistent store unavailable path=%s error=%v; using memory store", storePath, err)
+		}
+	}
 	return &Server{
-		kernel:            kernelClient,
-		shadow:            shadowProject,
-		llm:               &llm.Client{},
-		logger:            logger,
-		harness:           harness.New(kernelClient, shadowProject, logger),
-		startedAt:         time.Now(),
-		conversations:     map[string][]llm.Message{},
-		pending:           map[string]PendingPlan{},
-		interactions:      map[string]PendingInteraction{},
-		mixSessions:       map[string]MixSession{},
-		goalContinuations: map[string]agentloop.Continuation{},
-		conversationGoals: map[string]string{},
-		pendingMixTicks:   map[string]agentloop.PendingMixTickCandidate{},
-		pendingTreatments: map[string]agentloop.MixTreatmentPending{},
-		pendingManager:    pendingmanager.NewMemoryManager(),
-		uiContext:         map[string]any{},
-		events:            map[string][]AgentEvent{},
-		eventSeq:          map[string]int64{},
+		kernel:               kernelClient,
+		shadow:               shadowProject,
+		llm:                  &llm.Client{},
+		logger:               logger,
+		harness:              harness.New(kernelClient, shadowProject, logger),
+		vpsLibrary:           vpsLibrary,
+		startedAt:            time.Now(),
+		conversations:        map[string][]llm.Message{},
+		pending:              map[string]PendingPlan{},
+		interactions:         map[string]PendingInteraction{},
+		mixSessions:          map[string]MixSession{},
+		goalContinuations:    map[string]agentloop.Continuation{},
+		conversationGoals:    map[string]string{},
+		conversationMemory:   map[string]agentloop.ExecutionMemory{},
+		pendingMixTicks:      map[string]agentloop.PendingMixTickCandidate{},
+		pendingTreatments:    map[string]agentloop.MixTreatmentPending{},
+		pendingManager:       pendingmanager.NewMemoryManager(),
+		orchestrationRuntime: orchestrationRuntime,
+		uiContext:            map[string]any{},
+		events:               map[string][]AgentEvent{},
+		eventSeq:             map[string]int64{},
+		vpsDraftTestTickets:  map[string]vpsDraftTestTicket{},
 	}
 }
 
@@ -285,6 +464,11 @@ func (s *Server) Routes() http.Handler {
 	mux.HandleFunc("/agent/runtime/status", s.handleRuntimeStatus)
 	mux.HandleFunc("/agent/events", s.handleAgentEvents)
 	mux.HandleFunc("/agent/state", s.handleState)
+	mux.HandleFunc("/agent/vps/catalog", s.handleVPSCatalog)
+	mux.HandleFunc("/agent/vps/draft-tests", s.handleVPSDraftTests)
+	mux.HandleFunc("/agent/vps/draft-tests/prepare", s.handleVPSDraftTestPrepare)
+	mux.HandleFunc("/agent/vps/draft-tests/execute", s.handleVPSDraftTestExecute)
+	mux.HandleFunc("/agent/vps/draft-tests/rollback", s.handleVPSDraftTestManualRollback)
 	mux.HandleFunc("/agent/ui/state", s.handleUIState)
 	mux.HandleFunc("/agent/ui/context", s.handleUIContext)
 	mux.HandleFunc("/agent/chat", s.handleChat)
@@ -366,7 +550,7 @@ func (s *Server) logWebUIRootOnce(root string) {
 	if st, err := os.Stat(indexPath); err == nil {
 		indexMod = st.ModTime().Format(time.RFC3339)
 	}
-	s.logger.Info("[webui] serving root=%s index_mod=%s assets=%s build_mark=mix-treatment-pending-card-v20-20260620", root, indexMod, assetSummary)
+	s.logger.Info("[webui] serving root=%s index_mod=%s assets=%s build_mark=project-aware-mondrian-workbench-v1-20260713", root, indexMod, assetSummary)
 }
 
 func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {
@@ -599,6 +783,7 @@ func (s *Server) handleUIState(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusMethodNotAllowed, map[string]any{"status": "error", "error": "GET required"})
 		return
 	}
+	s.activateCurrentProjectWorkspace(r.Context())
 	goal := s.harness.RuntimeStatus("")
 	uiContext := s.uiContextSnapshot()
 	state := mergeUIContext(s.harness.UserStateSummary(r.Context()), uiContext)
@@ -962,6 +1147,17 @@ func (s *Server) handleInvoke(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusBadRequest, map[string]any{"status": "error", "error": "invalid JSON: " + err.Error()})
 		return
 	}
+	tool := strings.ToLower(strings.TrimSpace(req.Tool))
+	hostLifecycleNotification := tool == "version.project_saved" || tool == "version.project_opened" || tool == "version.project_new"
+	if hostLifecycleNotification {
+		// The Kernel has already switched identity. Preserve the old in-memory
+		// workspace until the lifecycle notification establishes the new one.
+		s.persistCurrentProjectWorkspace()
+	} else {
+		s.activateCurrentProjectWorkspace(r.Context())
+		s.persistCurrentProjectWorkspace()
+	}
+	defer s.syncCurrentProjectWorkspace(r.Context())
 	if strings.TrimSpace(req.Source) == "" {
 		req.Source = "http"
 	}
@@ -986,7 +1182,16 @@ func (s *Server) handleInvoke(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if resp, ok := s.invokeMixSessionEntryWorkflow(r.Context(), req); ok {
-		writeJSON(w, http.StatusOK, resp)
+		writeJSON(w, http.StatusOK, compactStripSilenceInvokeResponseForTransport(resp))
+		return
+	}
+	if equalizerCapabilityInvokeRequest(req) {
+		resp, err := s.invokeEqualizerCapabilityHTTP(r.Context(), req)
+		status := http.StatusOK
+		if err != nil && resp.Status == "error" {
+			status = http.StatusBadRequest
+		}
+		writeJSON(w, status, compactStripSilenceInvokeResponseForTransport(resp))
 		return
 	}
 	if workflowCmd, ok := pluginGrabberLearningInvokeCommand(req); ok {
@@ -1024,7 +1229,7 @@ func (s *Server) handleInvoke(w http.ResponseWriter, r *http.Request) {
 	if err != nil && resp.Status == "error" {
 		status = http.StatusBadRequest
 	}
-	writeJSON(w, status, resp)
+	writeJSON(w, status, compactStripSilenceInvokeResponseForTransport(resp))
 }
 
 func isVersionProjectNewInvoke(req harness.InvokeRequest) bool {
@@ -1313,6 +1518,9 @@ func sanitizeUIContext(in map[string]any) map[string]any {
 		"selected_clip_ids",
 		"selected_clip_track_id",
 		"selected_clip_name",
+		"selected_clip_ranges",
+		"selected_clip_range_count",
+		"selected_clip_range",
 		"piano_roll_focus_clip_id",
 		"piano_roll_focus_track_id",
 		"selected_plugin_id",
@@ -1406,6 +1614,10 @@ func (s *Server) handleChat(w http.ResponseWriter, r *http.Request) {
 	}
 	logConversationID = conversationID
 	req.Context = contextWithConversationID(req.Context, conversationID)
+	req.Context = contextWithCachedUIContext(req.Context, s.uiContextSnapshot())
+	req.Context = s.contextWithCurrentProjectWorkspace(r.Context(), req.Context)
+	s.activateCurrentProjectWorkspace(r.Context())
+	defer s.syncCurrentProjectWorkspace(r.Context())
 	projectPath := projectPathFromChatContext(req.Context)
 	agentMode := agentModeFromContext(req.Context)
 	goal := s.beginChatGoal(conversationID, req.Message, req.Context)
@@ -1435,17 +1647,20 @@ func (s *Server) handleChat(w http.ResponseWriter, r *http.Request) {
 		if resp.RunID == "" {
 			resp.RunID = goal.RunID
 		}
+		compactStripSilenceChatResponseForTransport(&resp)
 		if len(resp.ProjectResultCards) == 0 {
 			resp.ProjectResultCards = projectResultCardsFromExecuted(resp.ExecutedKernelReply)
 		}
 		goalID := firstNonEmpty(resp.GoalID, goal.GoalID)
+		ensureChatResponseMessageProtocol(&resp)
 		resp.Artifacts = mergeArtifactSummaries(resp.Artifacts, artifactSummariesFromExecuted(resp.ExecutedKernelReply))
 		resp.Artifacts = mergeArtifactSummaries(resp.Artifacts, s.artifactsFromDialogueMediaReferences(req.Message, resp.Reply, conversationID, goalID, firstNonEmpty(resp.RunID, goal.RunID), attachmentScope))
 		resp.Artifacts = mergeArtifactSummaries(resp.Artifacts, requestArtifacts)
+		s.attachInteractionRequests(&resp)
 		if strings.TrimSpace(resp.Reply) != "" {
-			historyData := map[string]any{
+			historyData := chatResponseHistoryData(resp, map[string]any{
 				"artifacts": artifactSummaryRows(resp.Artifacts),
-			}
+			})
 			if len(resp.ProjectResultCards) > 0 {
 				historyData["project_result_cards"] = resp.ProjectResultCards
 			}
@@ -1456,6 +1671,7 @@ func (s *Server) handleChat(w http.ResponseWriter, r *http.Request) {
 		if len(resp.ProjectHistory) == 0 {
 			resp.ProjectHistory = s.harness.ProjectHistorySummaryForProject(r.Context(), goalID, projectPath)
 		}
+		syncChatResponseMessageIdentityFromHistory(&resp)
 		if resp.GoalStatus == "" {
 			resp.GoalStatus = inferredGoalStatus(resp)
 		}
@@ -1473,7 +1689,7 @@ func (s *Server) handleChat(w http.ResponseWriter, r *http.Request) {
 		if resp.AgentPlan != nil {
 			syncAgentPlanProjectHistory(&resp)
 		}
-		s.attachInteractionRequests(&resp)
+		compactStripSilenceChatResponseForTransport(&resp)
 		switch {
 		case resp.NeedsConfirmation || resp.GoalStatus == string(agentruntime.StatusWaitingConfirmation):
 			s.harness.SetGoalStatus(goalID, agentruntime.StatusWaitingConfirmation, nil)
@@ -1496,6 +1712,24 @@ func (s *Server) handleChat(w http.ResponseWriter, r *http.Request) {
 		}
 		s.emitTurnEvent(conversationID, eventType, resp, goal.GoalID, goal.RunID)
 		writeJSON(w, status, resp)
+	}
+
+	chatContext := contextWithUserMessage(req.Context, req.Message)
+	s.clearPendingMixForClipFadeGainRequest(conversationID, req.Message)
+
+	// The v1 capability runtime is an opt-in canary. Its Session owner is fixed
+	// before any planning state is created, so legacy pending cannot consume the
+	// new Proposal or Authorization.
+	if resp, handled := s.handleCapabilityRuntimeCanary(r.Context(), conversationID, ChatRequest{
+		ConversationID: conversationID,
+		Message:        req.Message,
+		Context:        chatContext,
+		Attachments:    req.Attachments,
+		ArtifactRefs:   req.ArtifactRefs,
+	}, goal); handled {
+		s.remember(conversationID, req.Message, resp.Reply)
+		writeChat(http.StatusOK, resp)
+		return
 	}
 
 	if !strings.HasPrefix(req.Message, "/") {
@@ -1528,7 +1762,7 @@ func (s *Server) handleChat(w http.ResponseWriter, r *http.Request) {
 					Preview:           plan.Preview,
 					Workflow:          plan.Workflow,
 					WorkflowData:      plan.WorkflowData,
-					Commands:          plan.Decisions,
+					Commands:          compactAgentLoopDecisionsForResponse(plan.Decisions),
 					GoalStatus:        string(agentruntime.StatusWaitingConfirmation),
 					ProjectHistory:    projectHistory,
 				}
@@ -1556,7 +1790,7 @@ func (s *Server) handleChat(w http.ResponseWriter, r *http.Request) {
 				Preview:           plan.Preview,
 				Workflow:          plan.Workflow,
 				WorkflowData:      plan.WorkflowData,
-				Commands:          plan.Decisions,
+				Commands:          compactAgentLoopDecisionsForResponse(plan.Decisions),
 			}
 			if isPluginGrabberLearningPlan(plan) {
 				resp.PluginLearning = plan.WorkflowData
@@ -1573,8 +1807,6 @@ func (s *Server) handleChat(w http.ResponseWriter, r *http.Request) {
 		writeChat(http.StatusOK, resp)
 		return
 	}
-
-	chatContext := contextWithUserMessage(req.Context, req.Message)
 
 	if resp, handled := s.handlePendingPluginParameterTreatmentChat(r.Context(), conversationID, ChatRequest{
 		ConversationID: conversationID,
@@ -1931,7 +2163,7 @@ func chatResponseFromPendingPlanDecision(conversationID string, response map[str
 		Workflow:                  cleanContextText(response["workflow"]),
 		WorkflowData:              mapValue(response["workflow_data"]),
 		PluginLearning:            mapValue(response["plugin_learning"]),
-		ExecutedKernelReply:       mapRowsFromAny(response["executed_kernel_reply"]),
+		ExecutedKernelReply:       compactAgentLoopExecutedForResponse(mapRowsFromAny(response["executed_kernel_reply"])),
 		ProjectResultCards:        mapRowsFromAny(response["project_result_cards"]),
 		GoalStatus:                cleanContextText(response["goal_status"]),
 		GoalSummary:               cleanContextText(response["goal_summary"]),
@@ -1945,6 +2177,7 @@ func chatResponseFromPendingPlanDecision(conversationID string, response map[str
 		AcousticPackageStatusPath: cleanContextText(response["acoustic_package_status_path"]),
 		Error:                     cleanContextText(response["error"]),
 	}
+	resp.Commands = compactAgentLoopDecisionsForResponse(resp.Commands)
 	if resp.GoalStatus == "" {
 		if boolValue(response["blocked"]) || strings.EqualFold(cleanContextText(response["status"]), "error") {
 			resp.GoalStatus = string(agentruntime.StatusFailed)
@@ -2294,15 +2527,6 @@ func (s *Server) pendingPlanForChat(conversationID string, chatContext map[strin
 			return plan, true
 		}
 	}
-	if len(s.pending) == 1 {
-		for key, plan := range s.pending {
-			if s.pendingPlanAliasIsStaleLocked(key, plan) {
-				delete(s.pending, key)
-				continue
-			}
-			return plan, true
-		}
-	}
 	return PendingPlan{}, false
 }
 
@@ -2372,7 +2596,7 @@ func (s *Server) hydrateConfirmationResponse(resp *ChatResponse) {
 		resp.WorkflowData = copyStringAnyMap(plan.WorkflowData)
 	}
 	if len(resp.Commands) == 0 && len(plan.Decisions) > 0 {
-		resp.Commands = plan.Decisions
+		resp.Commands = compactAgentLoopDecisionsForResponse(plan.Decisions)
 	}
 }
 
@@ -2491,6 +2715,41 @@ func decisionIsMixConfirmation(decision policy.Decision) bool {
 	), "mix.apply_tick", "mix_apply_tick", "mix.propose_tick", "mix_propose_tick", "track.pan", "track_pan", "set_pan", "track.volume", "set_volume")
 }
 
+func pendingPlanToolIsClipFadeGainWrite(call *planner.ToolCall) bool {
+	if call == nil {
+		return false
+	}
+	return commandNameIsClipFadeGainWrite(firstNonEmpty(
+		strings.TrimSpace(call.Tool),
+		cleanContextText(call.Command["tool"]),
+		cleanContextText(call.Args["tool"]),
+		cleanContextText(call.Command["cmd"]),
+		cleanContextText(call.Args["cmd"]),
+	))
+}
+
+func decisionIsClipFadeGainWrite(decision policy.Decision) bool {
+	if commandNameIsClipFadeGainWrite(decision.Name) {
+		return true
+	}
+	cmd := decision.Command
+	return commandNameIsClipFadeGainWrite(firstNonEmpty(
+		cleanContextText(cmd["tool"]),
+		cleanContextText(cmd["cmd"]),
+		cleanContextText(cmd["command"]),
+		cleanContextText(cmd["action"]),
+	))
+}
+
+func commandNameIsClipFadeGainWrite(name string) bool {
+	switch strings.ToLower(strings.TrimSpace(name)) {
+	case "clip.fade.set", "clip_fade_set", "clip.gain.set", "clip_gain_set":
+		return true
+	default:
+		return false
+	}
+}
+
 func messageLooksLikeNewMixRequest(message string) bool {
 	text := strings.ToLower(strings.TrimSpace(message))
 	if text == "" {
@@ -2514,25 +2773,62 @@ func (s *Server) confirmationInteractionRequest(resp ChatResponse) AgentInteract
 	if planID == "" {
 		return AgentInteractionRequest{}
 	}
+	commands := compactAgentLoopDecisionsForResponse(resp.Commands)
 	payload := map[string]any{
 		"plan_id":  planID,
 		"preview":  resp.Preview,
-		"commands": resp.Commands,
+		"commands": commands,
 	}
-	if decision, ok := firstApprovalDecision(resp.Commands); ok {
+	presentationMap := mapValue(resp.WorkflowData["proposal_presentation"])
+	isCapabilityProposal := strings.EqualFold(resp.Workflow, "capability_runtime_v1") &&
+		(resp.ProposalPresentation != nil || cleanContextText(presentationMap["proposal_id"]) != "")
+	if isCapabilityProposal {
+		for _, key := range []string{"session_id", "capability_id", "proposal_id", "proposal_revision", "action_set_hash", "project_cut_hash", "approval_mode", "proposal_presentation"} {
+			if value, ok := resp.WorkflowData[key]; ok {
+				payload[key] = value
+			}
+		}
+		if _, ok := payload["proposal_presentation"]; !ok && resp.ProposalPresentation != nil {
+			payload["proposal_presentation"] = resp.ProposalPresentation
+		}
+		if s.orchestrationRuntime != nil && s.orchestrationRuntime.Store != nil {
+			if session, ok := s.orchestrationRuntime.Store.Load(cleanContextText(resp.WorkflowData["session_id"])); ok && session.ActiveProposal != nil {
+				payload["action_set_hash"] = session.ActiveProposal.ActionSetHash
+			}
+		}
+	}
+	if decision, ok := firstApprovalDecision(commands); ok {
 		approval := typedApprovalFromDecision(planID, decision, resp.ConversationID, resp.GoalID, resp.RunID, resp.Reply)
 		payload["typed_state"] = agentprotocol.ToMap(approval)
 		payload["typed_event"] = agentprotocol.ToMap(agentprotocol.NewEvent(approval, approval.Source))
 	}
+	kind := "confirmation"
+	title := "需要确认"
+	body := firstNonEmpty(strings.TrimSpace(resp.Reply), "Vit 需要你确认后再继续。")
+	stage := "waiting_for_user"
+	if isCapabilityProposal {
+		kind = "proposal_approval"
+		stage = "proposal_review"
+		presentation := mapValue(payload["proposal_presentation"])
+		presentationTitle := cleanContextText(presentation["title"])
+		presentationConclusion := cleanContextText(presentation["conclusion"])
+		if resp.ProposalPresentation != nil {
+			presentationTitle = firstNonEmpty(resp.ProposalPresentation.Title, presentationTitle)
+			presentationConclusion = firstNonEmpty(resp.ProposalPresentation.Conclusion, presentationConclusion)
+		}
+		title = firstNonEmpty(presentationTitle, "方案等待确认")
+		body = firstNonEmpty(presentationConclusion, strings.TrimSpace(resp.Preview), "方案已完成分析并等待你的授权。")
+	}
 	req := AgentInteractionRequest{
 		ID:             "interaction_" + randomID(),
-		Kind:           "confirmation",
-		Type:           "confirmation",
+		Kind:           kind,
+		Type:           kind,
 		Source:         "vit_agent",
-		Title:          "需要确认",
-		Body:           firstNonEmpty(strings.TrimSpace(resp.Reply), "Vit 需要你确认后再继续。"),
+		Title:          title,
+		Body:           body,
 		Status:         "waiting_for_user",
 		Workflow:       resp.Workflow,
+		Stage:          stage,
 		PlanID:         planID,
 		ConversationID: resp.ConversationID,
 		GoalID:         resp.GoalID,
@@ -2797,6 +3093,42 @@ func (s *Server) recoverMixBoardInteractionFromPayload(interactionID string, pay
 	}, true
 }
 
+func (s *Server) recoverCapabilityRuntimeInteractionFromPayload(interactionID string, payload map[string]any) (PendingInteraction, bool) {
+	if s == nil || s.orchestrationRuntime == nil || s.orchestrationRuntime.Store == nil || len(payload) == 0 {
+		return PendingInteraction{}, false
+	}
+	if !strings.EqualFold(cleanContextText(payload["workflow"]), "capability_runtime_v1") ||
+		!strings.EqualFold(firstNonEmpty(cleanContextText(payload["approval_mode"]), "conversational"), "conversational") {
+		return PendingInteraction{}, false
+	}
+	sessionID := cleanContextText(payload["session_id"])
+	capabilityID := cleanContextText(payload["capability_id"])
+	proposalID := cleanContextText(payload["proposal_id"])
+	proposalRevision := int64(chatIntValue(payload["proposal_revision"]))
+	actionSetHash := cleanContextText(payload["action_set_hash"])
+	projectCutHash := cleanContextText(payload["project_cut_hash"])
+	if sessionID == "" || capabilityID == "" || proposalID == "" || proposalRevision < 1 || actionSetHash == "" || projectCutHash == "" {
+		return PendingInteraction{}, false
+	}
+	session, ok := s.orchestrationRuntime.Store.Load(sessionID)
+	if !ok || session.ActiveProposal == nil || session.FrozenPlan == nil ||
+		(session.Status != orchestration.StatusWaiting && session.Status != orchestration.StatusReady) ||
+		session.Invocation.CapabilityID != capabilityID || session.ActiveProposal.ID != proposalID ||
+		session.ActiveProposal.Revision != proposalRevision || session.ActiveProposal.ActionSetHash != actionSetHash ||
+		session.ActiveProposal.ProjectCutHash != projectCutHash {
+		return PendingInteraction{}, false
+	}
+	data := copyStringAnyMap(payload)
+	requestContext := mapValue(payload["request_context"])
+	conversationID := firstNonEmpty(cleanContextText(payload["conversation_id"]), session.Invocation.ConversationID, interactionID)
+	return PendingInteraction{
+		ID: interactionID, CreatedAt: time.Now(), Kind: "proposal_approval", Type: "proposal_approval",
+		Source: "vit_agent", Workflow: "capability_runtime_v1", Stage: "proposal_review", PlanID: proposalID,
+		ConversationID: conversationID, GoalID: cleanContextText(payload["goal_id"]), RunID: cleanContextText(payload["run_id"]),
+		RequestContext: requestContext, Payload: data, Data: data,
+	}, true
+}
+
 func writeMixBoardDiag(event string, fields map[string]any) {
 	logDir := `D:\Vit_DAW\VitApp\Workspace\Logs`
 	if st, err := os.Stat(logDir); err != nil || !st.IsDir() {
@@ -3001,6 +3333,8 @@ func (s *Server) handleInteractionRespond(w http.ResponseWriter, r *http.Request
 		writeJSON(w, http.StatusMethodNotAllowed, map[string]any{"error": "POST required"})
 		return
 	}
+	s.activateCurrentProjectWorkspace(r.Context())
+	defer s.syncCurrentProjectWorkspace(r.Context())
 	var req InteractionRespondRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		writeJSON(w, http.StatusBadRequest, map[string]any{"error": "invalid JSON: " + err.Error()})
@@ -3038,6 +3372,12 @@ func (s *Server) handleInteractionRespond(w http.ResponseWriter, r *http.Request
 		}
 	}
 	if !ok {
+		interaction, ok = s.recoverCapabilityRuntimeInteractionFromPayload(interactionID, req.Payload)
+		if ok && s != nil && s.logger != nil {
+			s.logger.Info("[capability.interaction] recovered expired interaction=%s session=%s proposal=%s revision=%v", interactionID, cleanContextText(req.Payload["session_id"]), cleanContextText(req.Payload["proposal_id"]), req.Payload["proposal_revision"])
+		}
+	}
+	if !ok {
 		writeJSON(w, http.StatusOK, ChatResponse{
 			ConversationID: interactionID,
 			Reply:          "这个交互已处理或已过期。",
@@ -3046,6 +3386,42 @@ func (s *Server) handleInteractionRespond(w http.ResponseWriter, r *http.Request
 		return
 	}
 	kind := firstNonEmpty(interaction.Kind, interaction.Type)
+	isMixTickInteraction := strings.EqualFold(interaction.Kind, "mix_tick_confirmation") || strings.EqualFold(interaction.Type, "mix_tick_confirmation") || strings.EqualFold(interaction.Workflow, "mix_tick")
+	isMixTreatmentInteraction := strings.EqualFold(interaction.Kind, "mix_treatment_confirmation") || strings.EqualFold(interaction.Type, "mix_treatment_confirmation") || strings.EqualFold(interaction.Workflow, "mix_treatment")
+	isCapabilityRuntimeInteraction := strings.EqualFold(interaction.Workflow, "capability_runtime_v1") && firstNonEmpty(cleanContextText(interaction.Data["session_id"]), cleanContextText(interaction.Payload["session_id"])) != ""
+	if isCapabilityRuntimeInteraction {
+		capabilityID := firstNonEmpty(cleanContextText(interaction.Data["capability_id"]), cleanContextText(interaction.Payload["capability_id"]))
+		sessionID := firstNonEmpty(cleanContextText(interaction.Data["session_id"]), cleanContextText(interaction.Payload["session_id"]))
+		message := "可以执行"
+		if strings.EqualFold(decision, "cancel") || strings.Contains(strings.ToLower(decision), "cancel") {
+			message = "取消"
+		}
+		requestContext := mergeContext(interaction.RequestContext, map[string]any{
+			"capability_runtime_v1": true, "capability_id": capabilityID,
+			"capability_session_id": sessionID, "expected_proposal_id": interaction.PlanID,
+			"expected_proposal_revision": firstNonEmpty(cleanContextText(interaction.Data["proposal_revision"]), cleanContextText(interaction.Payload["proposal_revision"])),
+			"expected_action_set_hash":   firstNonEmpty(cleanContextText(interaction.Data["action_set_hash"]), cleanContextText(interaction.Payload["action_set_hash"])),
+			"expected_project_cut_hash":  firstNonEmpty(cleanContextText(interaction.Data["project_cut_hash"]), cleanContextText(interaction.Payload["project_cut_hash"])),
+			"conversation_id":            interaction.ConversationID,
+		})
+		// A Forge-controlled acceptance response is still an exact approval of
+		// this frozen Proposal. The mode only changes the mutation port from
+		// production persistence to write/readback/restore; it cannot broaden
+		// the action set or bypass the Proposal binding above.
+		if capabilityID == spalEQV2CapabilityID && strings.EqualFold(cleanContextText(req.Payload["vpsforge_execution_mode"]), vpsForgeControlledAcceptanceMode) {
+			requestContext["vpsforge_execution_mode"] = vpsForgeControlledAcceptanceMode
+		}
+		resp, handled := s.handleCapabilityRuntimeCanary(r.Context(), interaction.ConversationID, ChatRequest{
+			ConversationID: interaction.ConversationID, Message: message, Context: requestContext,
+		}, agentruntime.Goal{GoalID: interaction.GoalID, RunID: interaction.RunID})
+		if !handled {
+			resp = capabilityCanaryBlockedResponse(interaction.ConversationID, agentruntime.Goal{GoalID: interaction.GoalID, RunID: interaction.RunID}, "v1 capability confirmation 已过期或 owner 不匹配。")
+		}
+		s.attachInteractionRequests(&resp)
+		s.finalizeInteractionChatResponse(r.Context(), &resp, interaction, message)
+		writeJSON(w, http.StatusOK, resp)
+		return
+	}
 	if strings.TrimSpace(interaction.PlanID) != "" && (kind == "confirmation" || strings.Contains(interaction.Type, "final_review") || strings.Contains(interaction.Type, "teach_review")) {
 		status, response := s.resolvePendingPlanDecision(r.Context(), interaction.PlanID, decision)
 		response["interaction_id"] = interaction.ID
@@ -3058,11 +3434,11 @@ func (s *Server) handleInteractionRespond(w http.ResponseWriter, r *http.Request
 		writeJSON(w, http.StatusOK, resp)
 		return
 	}
-	if strings.EqualFold(interaction.Kind, "mix_tick_confirmation") || strings.EqualFold(interaction.Type, "mix_tick_confirmation") || strings.EqualFold(interaction.Workflow, "mix_tick") {
+	if isMixTickInteraction {
 		if strings.EqualFold(decision, "cancel") || strings.EqualFold(decision, "cancel_mix_tick") {
 			s.expirePendingMixTick(interaction.ConversationID)
 			s.transitionActivePendingCandidate(interaction.ConversationID, "mix_tick", agentprotocol.PendingStatusRejected, "user cancelled pending mix tick")
-			writeJSON(w, http.StatusOK, ChatResponse{
+			resp := ChatResponse{
 				ConversationID: interaction.ConversationID,
 				GoalID:         interaction.GoalID,
 				RunID:          interaction.RunID,
@@ -3070,7 +3446,9 @@ func (s *Server) handleInteractionRespond(w http.ResponseWriter, r *http.Request
 				Workflow:       interaction.Workflow,
 				WorkflowData:   interaction.Payload,
 				GoalStatus:     string(agentruntime.StatusCancelled),
-			})
+			}
+			s.finalizeInteractionChatResponse(r.Context(), &resp, interaction, decision)
+			writeJSON(w, http.StatusOK, resp)
 			return
 		}
 		approvalText := "可以执行"
@@ -3080,7 +3458,7 @@ func (s *Server) handleInteractionRespond(w http.ResponseWriter, r *http.Request
 		chatReq := ChatRequest{
 			ConversationID: interaction.ConversationID,
 			Message:        approvalText,
-			Context:        mergeContext(interaction.RequestContext, map[string]any{"conversation_id": interaction.ConversationID}),
+			Context:        contextWithGoal(mergeContext(interaction.RequestContext, map[string]any{"conversation_id": interaction.ConversationID}), interaction.GoalID, interaction.RunID),
 		}
 		resp, handled := s.handlePendingMixTickChat(r.Context(), interaction.ConversationID, chatReq, agentModeDefault)
 		if !handled {
@@ -3095,10 +3473,11 @@ func (s *Server) handleInteractionRespond(w http.ResponseWriter, r *http.Request
 			}
 		}
 		s.attachInteractionRequests(&resp)
+		s.finalizeInteractionChatResponse(r.Context(), &resp, interaction, approvalText)
 		writeJSON(w, http.StatusOK, resp)
 		return
 	}
-	if strings.EqualFold(decision, "cancel") || strings.EqualFold(decision, "cancel_plugin_learning") {
+	if (strings.EqualFold(decision, "cancel") || strings.EqualFold(decision, "cancel_plugin_learning")) && !isMixTreatmentInteraction {
 		resp := ChatResponse{
 			ConversationID: interaction.ConversationID,
 			GoalID:         interaction.GoalID,
@@ -3135,7 +3514,7 @@ func (s *Server) handleInteractionRespond(w http.ResponseWriter, r *http.Request
 		writeJSON(w, mixSessionHTTPStatus(resp), resp)
 		return
 	}
-	if strings.EqualFold(interaction.Kind, "mix_treatment_confirmation") || strings.EqualFold(interaction.Type, "mix_treatment_confirmation") || strings.EqualFold(interaction.Workflow, "mix_treatment") {
+	if isMixTreatmentInteraction {
 		approvalText := "可以执行"
 		if strings.EqualFold(decision, "approve") || strings.EqualFold(decision, "confirm") || strings.EqualFold(decision, "execute") {
 			approvalText = "可以执行"
@@ -3145,7 +3524,7 @@ func (s *Server) handleInteractionRespond(w http.ResponseWriter, r *http.Request
 		chatReq := ChatRequest{
 			ConversationID: interaction.ConversationID,
 			Message:        approvalText,
-			Context:        mergeContext(interaction.RequestContext, map[string]any{"conversation_id": interaction.ConversationID}),
+			Context:        contextWithGoal(mergeContext(interaction.RequestContext, map[string]any{"conversation_id": interaction.ConversationID}), interaction.GoalID, interaction.RunID),
 		}
 		resp, handled := s.handlePendingMixTreatmentChat(r.Context(), interaction.ConversationID, chatReq, agentModeDefault)
 		if !handled {
@@ -3160,6 +3539,7 @@ func (s *Server) handleInteractionRespond(w http.ResponseWriter, r *http.Request
 			}
 		}
 		s.attachInteractionRequests(&resp)
+		s.finalizeInteractionChatResponse(r.Context(), &resp, interaction, approvalText)
 		writeJSON(w, http.StatusOK, resp)
 		return
 	}
@@ -3227,6 +3607,99 @@ func (s *Server) handleInteractionRespond(w http.ResponseWriter, r *http.Request
 		Workflow:       interaction.Workflow,
 		WorkflowData:   interaction.Payload,
 	})
+}
+
+func (s *Server) finalizeInteractionChatResponse(ctx context.Context, resp *ChatResponse, interaction PendingInteraction, userText string) {
+	if s == nil || resp == nil {
+		return
+	}
+	ctxGoalID, ctxRunID := goalIDsFromContext(interaction.RequestContext)
+	if resp.ConversationID == "" {
+		resp.ConversationID = interaction.ConversationID
+	}
+	if resp.GoalID == "" {
+		resp.GoalID = firstNonEmpty(interaction.GoalID, ctxGoalID)
+	}
+	if resp.RunID == "" {
+		resp.RunID = firstNonEmpty(interaction.RunID, ctxRunID)
+	}
+	if resp.AgentMode == "" {
+		resp.AgentMode = agentModeFromContext(interaction.RequestContext)
+	}
+	if resp.Workflow == "" {
+		resp.Workflow = interaction.Workflow
+	}
+	if len(resp.WorkflowData) == 0 && len(interaction.Payload) > 0 {
+		resp.WorkflowData = interaction.Payload
+	}
+	compactStripSilenceChatResponseForTransport(resp)
+	if len(resp.ProjectResultCards) == 0 {
+		resp.ProjectResultCards = projectResultCardsFromExecuted(resp.ExecutedKernelReply)
+	}
+	resp.Artifacts = mergeArtifactSummaries(resp.Artifacts, artifactSummariesFromExecuted(resp.ExecutedKernelReply))
+	ensureChatResponseMessageProtocol(resp)
+	projectPath := projectPathFromChatContext(interaction.RequestContext)
+	if s.harness != nil {
+		if currentPath, _ := s.harness.CurrentProjectIdentity(ctx); strings.TrimSpace(currentPath) != "" {
+			projectPath = currentPath
+		}
+		goalID := firstNonEmpty(resp.GoalID, interaction.GoalID, ctxGoalID)
+		runID := firstNonEmpty(resp.RunID, interaction.RunID, ctxRunID)
+		if strings.TrimSpace(userText) != "" {
+			s.harness.RecordConversationNodeForProject(ctx, projectPath, "ask", userText, goalID, runID)
+		}
+		if strings.TrimSpace(resp.Reply) != "" {
+			historyData := chatResponseHistoryData(*resp, map[string]any{"artifacts": artifactSummaryRows(resp.Artifacts)})
+			if len(resp.ProjectResultCards) > 0 {
+				historyData["project_result_cards"] = resp.ProjectResultCards
+			}
+			if projectHistory := s.harness.RecordConversationNodeForProjectWithData(ctx, projectPath, "vit", resp.Reply, goalID, runID, historyData); len(projectHistory) > 0 {
+				resp.ProjectHistory = projectHistory
+			}
+		}
+		if len(resp.ProjectHistory) == 0 {
+			resp.ProjectHistory = s.harness.ProjectHistorySummaryForProject(ctx, goalID, projectPath)
+		}
+	}
+	syncChatResponseMessageIdentityFromHistory(resp)
+	if strings.TrimSpace(userText) != "" || strings.TrimSpace(resp.Reply) != "" {
+		s.remember(resp.ConversationID, userText, resp.Reply)
+	}
+	if strings.TrimSpace(resp.GoalStatus) == "" {
+		resp.GoalStatus = inferredGoalStatus(*resp)
+	}
+	if resp.AgentPlan == nil && shouldExposeAgentPlan(resp.AgentMode, *resp) {
+		resp.AgentPlan = simpleAgentPlan(resp.GoalID, resp.RunID, agentruntime.GoalStatus(resp.GoalStatus), resp.GoalSummary, resp.CurrentStep, resp.Error, resp.ProjectHistory)
+	}
+	if resp.AgentPlan != nil {
+		syncAgentPlanProjectHistory(resp)
+	}
+	goalID := firstNonEmpty(resp.GoalID, interaction.GoalID, ctxGoalID)
+	if goalID != "" {
+		switch {
+		case resp.NeedsConfirmation || resp.GoalStatus == string(agentruntime.StatusWaitingConfirmation):
+			s.harness.SetGoalStatus(goalID, agentruntime.StatusWaitingConfirmation, nil)
+		case resp.GoalStatus == string(agentruntime.StatusWaitingClarification):
+			s.harness.SetGoalStatus(goalID, agentruntime.StatusWaitingClarification, nil)
+		case resp.GoalStatus == string(agentruntime.StatusWaitingContinue):
+			s.harness.SetGoalStatus(goalID, agentruntime.StatusWaitingContinue, nil)
+		case resp.GoalStatus == string(agentruntime.StatusCancelled):
+			s.harness.SetGoalStatus(goalID, agentruntime.StatusCancelled, nil)
+		case resp.GoalStatus == string(agentruntime.StatusRunning):
+			s.harness.SetGoalStatus(goalID, agentruntime.StatusRunning, nil)
+		case strings.TrimSpace(resp.Error) != "":
+			s.harness.CompleteGoal(goalID, fmt.Errorf("%s", resp.Error))
+		default:
+			s.harness.CompleteGoal(goalID, nil)
+		}
+	}
+	eventType := "turn.completed"
+	if strings.TrimSpace(resp.Error) != "" || resp.GoalStatus == string(agentruntime.StatusFailed) {
+		eventType = "turn.failed"
+	}
+	if resp.ConversationID != "" {
+		s.emitTurnEvent(resp.ConversationID, eventType, *resp, firstNonEmpty(interaction.GoalID, ctxGoalID), firstNonEmpty(interaction.RunID, ctxRunID))
+	}
 }
 
 func (s *Server) attachInteractionsToResponseMap(response *map[string]any, interaction PendingInteraction) {
@@ -3804,7 +4277,17 @@ func appendPluginGrabberUnresolvedDisplayDomainFields(fields []AgentInteractionF
 		componentID := firstNonEmptyText(group, "id", "component_id")
 		componentLabel := firstNonEmptyText(group, "label", "name", "id")
 		params := mapValue(group["params"])
-		for rawSlot, rawMapping := range params {
+		// The form is built once for display and built again on submit to map
+		// submitted field IDs back to their parameter slots.  Map iteration is
+		// deliberately random in Go, so this order must be stable or a user's
+		// confirmed range can be written to a neighbouring parameter.
+		slots := make([]string, 0, len(params))
+		for rawSlot := range params {
+			slots = append(slots, fmt.Sprint(rawSlot))
+		}
+		sort.Strings(slots)
+		for _, rawSlot := range slots {
+			rawMapping := params[rawSlot]
 			slot := strings.TrimSpace(fmt.Sprint(rawSlot))
 			mapping := mapValue(rawMapping)
 			paramID := firstNonEmptyText(mapping, "param_id", "id")
@@ -3859,6 +4342,16 @@ func pluginGrabberPayloadWithSubmittedReviews(base, submitted map[string]any) ma
 func pluginGrabberMappingNeedsDisplayReview(mapping map[string]any) bool {
 	if len(mapping) == 0 || boolValue(mapping["confirmed"]) {
 		return false
+	}
+	// A deterministic mapping may be high-confidence enough to be useful in a
+	// draft, but it is still not a confirmed control.  If the draft explicitly
+	// says that user review is missing, surface it in the review form instead of
+	// silently saving an unconfirmed mapping.  This is especially important for
+	// processor conformance paths that require bounded, confirmed parameters.
+	for _, missing := range stringListValue(mapping["missing_evidence"]) {
+		if strings.EqualFold(strings.TrimSpace(missing), "user_review") {
+			return true
+		}
 	}
 	domain := mapValue(mapping["display_domain"])
 	if len(domain) == 0 {
@@ -3944,6 +4437,8 @@ func (s *Server) handleConfirm(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusMethodNotAllowed, map[string]any{"error": "POST required"})
 		return
 	}
+	s.activateCurrentProjectWorkspace(r.Context())
+	defer s.syncCurrentProjectWorkspace(r.Context())
 	var req ConfirmRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		writeJSON(w, http.StatusBadRequest, map[string]any{"error": "invalid JSON: " + err.Error()})
@@ -3999,6 +4494,11 @@ func (s *Server) handleConfirm(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusOK, response)
 		return
 	}
+	if plan.Workflow == vpsForgeStagingEQWorkflow {
+		status, response := s.resolveVPSForgeStagingEQPlan(r.Context(), planID, plan)
+		writeJSON(w, status, response)
+		return
+	}
 	if response, blocked := s.legacyPendingPlanBroadMixBlockedConfirmResponse(r.Context(), planID, plan, goalID, runID, agentMode, projectPath); blocked {
 		writeJSON(w, http.StatusOK, response)
 		return
@@ -4018,7 +4518,7 @@ func (s *Server) handleConfirm(w http.ResponseWriter, r *http.Request) {
 			"goal_id":         goalID,
 			"run_id":          runID,
 			"agent_mode":      agentMode,
-			"replies":         replies,
+			"replies":         compactAgentLoopExecutedForResponse(replies),
 			"project_history": projectHistory,
 			"typed_events":    typedApprovalDecisionEvents(planID, plan, cleanContextText(plan.WorkflowData["conversation_id"]), goalID, runID, "denied", err.Error()),
 		}
@@ -4037,6 +4537,7 @@ func (s *Server) handleConfirm(w http.ResponseWriter, r *http.Request) {
 	if plan.Workflow == "goal_ui_smoke" {
 		message = "done"
 	}
+	message = s.finalizePluginLearningVPSV3(r.Context(), &plan, message)
 	if strings.TrimSpace(message) == "" {
 		message = "done"
 	}
@@ -4047,7 +4548,8 @@ func (s *Server) handleConfirm(w http.ResponseWriter, r *http.Request) {
 	} else {
 		s.harness.CompleteGoal(goalID, nil)
 	}
-	projectResultCards := projectResultCardsFromExecuted(replies)
+	visibleReplies := compactAgentLoopExecutedForResponse(replies)
+	projectResultCards := projectResultCardsFromExecuted(visibleReplies)
 	historyData := map[string]any{}
 	if len(projectResultCards) > 0 {
 		historyData["project_result_cards"] = projectResultCards
@@ -4063,8 +4565,8 @@ func (s *Server) handleConfirm(w http.ResponseWriter, r *http.Request) {
 		"goal_id":               goalID,
 		"run_id":                runID,
 		"agent_mode":            agentMode,
-		"replies":               replies,
-		"executed_kernel_reply": replies,
+		"replies":               visibleReplies,
+		"executed_kernel_reply": visibleReplies,
 		"project_result_cards":  projectResultCards,
 		"project_history":       projectHistory,
 		"goal_status":           string(agentruntime.StatusCompleted),
@@ -4074,6 +4576,9 @@ func (s *Server) handleConfirm(w http.ResponseWriter, r *http.Request) {
 		response["workflow"] = plan.Workflow
 		response["workflow_data"] = data
 		response["plugin_learning"] = data
+		if vpsData := mapValue(data["vps_v3"]); len(vpsData) > 0 {
+			response["vps_v3"] = vpsData
+		}
 		attachPluginGrabberCompletionAssets(response, data)
 	}
 	if plan := agentPlanForMode(agentMode, simpleAgentPlan(goalID, runID, agentruntime.StatusCompleted, "", "", "", projectHistory)); plan != nil {
@@ -4138,6 +4643,9 @@ func (s *Server) resolvePendingPlanDecision(ctx context.Context, planID, decisio
 		}
 		return http.StatusOK, response
 	}
+	if plan.Workflow == vpsForgeStagingEQWorkflow {
+		return s.resolveVPSForgeStagingEQPlan(ctx, planID, plan)
+	}
 	if response, blocked := s.legacyPendingPlanBroadMixBlockedConfirmResponse(ctx, planID, plan, goalID, runID, agentMode, projectPath); blocked {
 		return http.StatusOK, response
 	}
@@ -4156,7 +4664,7 @@ func (s *Server) resolvePendingPlanDecision(ctx context.Context, planID, decisio
 			"goal_id":         goalID,
 			"run_id":          runID,
 			"agent_mode":      agentMode,
-			"replies":         replies,
+			"replies":         compactAgentLoopExecutedForResponse(replies),
 			"project_history": projectHistory,
 			"typed_events":    typedApprovalDecisionEvents(planID, plan, cleanContextText(plan.WorkflowData["conversation_id"]), goalID, runID, "denied", err.Error()),
 		}
@@ -4171,6 +4679,7 @@ func (s *Server) resolvePendingPlanDecision(ctx context.Context, planID, decisio
 		message, replies = s.finishPluginGrabberLoadWorkflow(ctx, plan, replies, message)
 		pluginPrep = s.pluginPrepContinuationFromReplies(plan, replies, message)
 	}
+	message = s.finalizePluginLearningVPSV3(ctx, &plan, message)
 	if strings.TrimSpace(message) == "" {
 		message = "done"
 	}
@@ -4181,7 +4690,8 @@ func (s *Server) resolvePendingPlanDecision(ctx context.Context, planID, decisio
 	} else {
 		s.harness.CompleteGoal(goalID, nil)
 	}
-	projectResultCards := projectResultCardsFromExecuted(replies)
+	visibleReplies := compactAgentLoopExecutedForResponse(replies)
+	projectResultCards := projectResultCardsFromExecuted(visibleReplies)
 	historyData := map[string]any{}
 	if len(projectResultCards) > 0 {
 		historyData["project_result_cards"] = projectResultCards
@@ -4197,8 +4707,8 @@ func (s *Server) resolvePendingPlanDecision(ctx context.Context, planID, decisio
 		"goal_id":               goalID,
 		"run_id":                runID,
 		"agent_mode":            agentMode,
-		"replies":               replies,
-		"executed_kernel_reply": replies,
+		"replies":               visibleReplies,
+		"executed_kernel_reply": visibleReplies,
 		"project_result_cards":  projectResultCards,
 		"project_history":       projectHistory,
 		"goal_status":           string(agentruntime.StatusCompleted),
@@ -4208,6 +4718,9 @@ func (s *Server) resolvePendingPlanDecision(ctx context.Context, planID, decisio
 		response["workflow"] = plan.Workflow
 		response["workflow_data"] = data
 		response["plugin_learning"] = data
+		if vpsData := mapValue(data["vps_v3"]); len(vpsData) > 0 {
+			response["vps_v3"] = vpsData
+		}
 		attachPluginGrabberCompletionAssets(response, data)
 	}
 	if plan := agentPlanForMode(agentMode, simpleAgentPlan(goalID, runID, agentruntime.StatusCompleted, "", "", "", projectHistory)); plan != nil {
@@ -4228,6 +4741,13 @@ func (s *Server) resolvePendingPlanDecision(ctx context.Context, planID, decisio
 
 func (s *Server) handleDevChatCommand(ctx context.Context, conversationID string, req ChatRequest) (ChatResponse, bool) {
 	msg := strings.TrimSpace(req.Message)
+	if msg == "/capability-runtime/status" || msg == "/orchestration/status" {
+		report := s.capabilityAuthorityReport()
+		return ChatResponse{
+			ConversationID: conversationID, Reply: capabilityAuthorityReportReply(report),
+			Workflow: "capability_runtime_v1", WorkflowData: map[string]any{"authority_report": report},
+		}, true
+	}
 	if msg == "/tools" || msg == "/agent/tools" {
 		return ChatResponse{
 			ConversationID: conversationID,
@@ -4260,6 +4780,9 @@ func (s *Server) handleDevChatCommand(ctx context.Context, conversationID string
 	}
 	if msg == "/smoke goal" {
 		return s.startGoalUISmoke(conversationID, req.Context), true
+	}
+	if msg == "/smoke range_context" {
+		return smokeRangeContextResponse(conversationID, req.Context), true
 	}
 	tool, args, confirmed, ok, err := parseChatToolCommand(msg)
 	if !ok {
@@ -4398,6 +4921,48 @@ func (s *Server) startGoalUISmoke(conversationID string, chatContext map[string]
 	}
 	s.attachInteractionRequests(&resp)
 	return resp
+}
+
+func smokeRangeContextResponse(conversationID string, chatContext map[string]any) ChatResponse {
+	checks := []string{}
+	failures := []string{}
+	if ranges := contextClipRangeRows(chatContext["selected_clip_ranges"]); len(ranges) > 0 {
+		checks = append(checks, "top_level")
+	} else {
+		failures = append(failures, "missing top-level selected_clip_ranges")
+	}
+	current := mapValue(chatContext["current_selection"])
+	if ranges := contextClipRangeRows(current["selected_clip_ranges"]); len(ranges) > 0 {
+		checks = append(checks, "current_selection")
+	} else {
+		failures = append(failures, "missing current_selection.selected_clip_ranges")
+	}
+	uiContext := mapValue(chatContext["ui_context"])
+	if ranges := contextClipRangeRows(uiContext["selected_clip_ranges"]); len(ranges) > 0 {
+		checks = append(checks, "ui_context")
+	} else {
+		failures = append(failures, "missing ui_context.selected_clip_ranges")
+	}
+	prompt := agentContextForPrompt(chatContext)
+	if strings.Contains(prompt, "selected_clip_ranges") && strings.Contains(prompt, "duration_seconds") {
+		checks = append(checks, "prompt_context")
+	} else {
+		failures = append(failures, "missing prompt selected_clip_ranges")
+	}
+	if len(failures) > 0 {
+		detail := strings.Join(failures, "; ")
+		return ChatResponse{
+			ConversationID: conversationID,
+			Reply:          "range_context smoke failed: " + detail,
+			StopReason:     "range_context_smoke_failed",
+			Error:          detail,
+		}
+	}
+	return ChatResponse{
+		ConversationID: conversationID,
+		Reply:          "range_context smoke ok: " + strings.Join(checks, ", "),
+		StopReason:     "range_context_smoke_ok",
+	}
 }
 
 func (s *Server) runRollbackSmoke(ctx context.Context, chatContext map[string]any) string {
@@ -4967,7 +5532,8 @@ For arm_track / track.arm you MUST include is_armed:true or is_armed:false.
 For resize_clip / clip.resize you MUST include new_length and time_unit when the user asks to trim, shorten, lengthen, or change a clip duration.
 For split_clip / clip.split you MUST include clip_id, track_id, split_time, and time_unit. If the user says to split at the playhead, use playhead_seconds from current_selection as split_time.
 For clone_clip / clip.clone you MUST include source_clip_id, target_track_id, time_unit, and new_start. If the user asks to duplicate a clip without naming a time, place the copy immediately after the source clip.
-For importing audio, prefer clip.import_media_to_track with file_path, track_id, start_time, media_type:"audio", mode:"non_destructive". If the user says "this audio", "selected library item", or "this file", use selected_library_file_path from current_selection. If the user gives an absolute path, copy it exactly into file_path. If the user asks to search the library, use asset_query and the selected/current track; the agent will search only the library Places roots.
+For a single explicit audio file or selected library item that should be placed into a known track, use clip.import_media_to_track with file_path, track_id, start_time, media_type:"audio", mode:"non_destructive". If the user says "this audio", "selected library item", or "this file", use selected_library_file_path from current_selection. If the user gives an absolute path, copy it exactly into file_path. If the user asks to search the library, use asset_query and the selected/current track; the agent will search only the library Places roots. For stems, multitrack folders, folders of audio files, or explicit create-tracks-from-folder requests, use project.import_preflight first, then project.import_folder_as_stems for the write; never simulate a folder/stems import with repeated track.add_audio plus clip.import_media_to_track calls.
+When the user confirms a TOM/A3 track organization proposal, use project.apply_track_organization with the proposal groups/assignments. This creates ordinary folder containers by default and moves hybrid tracks into them; do not enable routing_bus_enabled unless the user explicitly asks for folder bus/submix routing.
 Attachments appear in current_selection.attachments, and their artifact refs appear in current_selection.artifacts. Use artifact.read or artifact.extract when the user asks about attachment/web artifact contents. Documents may include extracted text in the artifact digest; answer from that extracted text when available. Do not claim to inspect raw images, audio, or video beyond the available artifact digest/metadata. Video attachments are local media previews only unless a future explicit video-analysis digest is available. For an audio attachment the user wants placed in a track, use clip.import_media_to_track. For a MIDI attachment the user wants imported, use midi.import_file with file_path, track_id, start_time_beats:0, mode:"merge_tracks". Browser WebView pages are only readable after the user explicitly captures the page into a web_page artifact.
 When the user gives a local asset file or folder and asks what media is available, use media.register_assets or media.index_authorized_folder so the response can include clickable media pool artifact cards. Do not replace artifact cards with long raw path lists.
 For MIDI reading, use midi.read_clip_notes with clip_id from piano_roll_focus_clip_id first, then selected_clip_id, when the user asks to inspect or describe the current MIDI clip.
@@ -4985,22 +5551,27 @@ Never use or mention hidden engine/internal track IDs that are not present in Cu
 get_project_state and list_tracks results are sanitized for Ask Vit; they are for user-visible DAW work, not raw engine inspection.
 Selected DAW context appears as current_selection in the Context snapshot and comes from the Godot UI. When the user says "this track", "current track", or "selected track", use selected_track_id if it is present and it appears in daw_state_summary.tracks[].
 When the user says "this clip", "current clip", or "selected clip", use piano_roll_focus_clip_id first for MIDI editor tasks, then selected_clip_id or selected_clip_ids from current_selection. If no clip is selected and multiple clips exist, ask the user to select or name one instead of guessing.
+When the user says "this range", "these ranges", "selected range", "选中的范围", "这个范围", or "这些范围", use selected_clip_ranges from current_selection. Each selected clip range is local to one clip and includes clip_id, track_id, start_seconds, end_seconds, duration_seconds, and clip-local offsets.
+For Strip Silence / clip cleanup recommendation requests, use clip.strip_silence.suggest first. Choose scope from intent: all_project for whole-project/all-track cleanup, selected_track for current/selected track cleanup, selected_ranges for selected range cleanup, and selected_clip for current/selected clip cleanup. It analyzes real kernel previews, returns recommended threshold/pad settings, and creates pending clip.strip_silence.apply actions without mutating the project. Use clip.strip_silence.analyze only when the user gives concrete manual parameters. After explicit user confirmation, use one clip.strip_silence.apply for one action or one clip.strip_silence.apply_batch for multiple actions; do not invent strip regions.
 When the user says "at the playhead", use playhead_seconds from current_selection.
 When importing audio and no target track is named, use selected_track_id as the target. If selected_track_id is absent and multiple tracks exist, ask the user which track to import into.
 If commands is non-empty, keep reply as a short internal intent summary. VitAgent will replace it with the final user-facing result after execution, so do not rely on "about to" wording as the final answer.
 
 For plugin loading/grabber setup requests such as loading TDR Nova, finding an EQ/compressor, or loading a plugin and grabbing useful controls, use the special chat workflow command {"cmd":"plugin_grabber_load_and_get_params","track_id":"...","plugin_query":"TDR Nova","intent":"short user intent"}. This workflow searches indexed plugins, asks for confirmation before loading a rack node, then reads parameters after the load succeeds. Do not use instantiate_plugin for these requests; instantiate_plugin requires an exact plugin_path and bypasses the rack grabber workflow.
 For project-scoped plugin grabber learning requests such as learning a plugin, saving quick controls, grouping plugin parameters, or improving plugin control names on an already loaded/selected plugin, use the special chat workflow command {"cmd":"plugin_grabber_learn_project_profile","track_id":"...","plugin_id":"...","intent":"short user intent"}. This workflow is agent-side: it first reads full parameters, asks AI for a profile patch, validates parameter IDs, then asks the user to confirm before saving. Do not use it for ordinary parameter value changes.
+For explicit equalizer/EQ control, use capability_equalizer_plan / capability.equalizer.plan with a vendor-neutral task such as spectral_region_adjust, highpass, lowpass, or output_control. Read its structured capability gaps or Band resource candidates and reason again before resubmitting. Never route ordinary EQ control to Plugin Grabber learning, a learned-profile control, or raw parameter writes.
 For plugin grabber explanation, summary, context pack, or "explain controls" requests on an already loaded/selected plugin, use the special read-only workflow command {"cmd":"plugin_grabber_explain_controls","track_id":"...","plugin_id":"...","intent":"short user intent"}. This workflow reads full parameters, then returns a compact context pack with quick controls, groups, roles, and full-parameter access hints. It does not filter or save parameters.
 For basic macro-control creation requests such as creating a generic macro knob/slider, use {"cmd":"control_add_macro","track_id":"...","name":"Macro","control_type":"slider","value":0.5,"bindings":[]}. Do not use rack.add_macro. Semantic macro generation from plugin skills should be proposed for confirmation before writing bindings.
 For macro-control rename requests, use {"cmd":"control_rename_macro","macro_id":"...","name":"New Macro Name"}. If the user names the macro by visible label, resolve it from macro_refs or available_macro_controls; do not create a new macro to rename one.
 When the user asks to bind/map a plugin parameter to an existing macro control, such as "bind B1 Gain to Macro 1", "bind it to this macro", or "绑定到已有宏控件", do not call control_add_macro first. Use the existing macro_id from macro_refs or available_macro_controls and call {"cmd":"control_add_binding","macro_id":"...","track_id":"...","plugin_id":"...","param_id":"...","param_name":"...","target_min":...,"target_max":...}. If the named macro is ambiguous or absent, ask which macro to use instead of creating a new one.
-For runtime acoustic plugin adjustments on an already learned plugin, such as "cut 500Hz mud", "boost presence", "reduce harshness", or similar mixing targets, use {"cmd":"plugin_grabber_apply_control","track_id":"...","plugin_id":"...","control":"eq.cut_region|eq.boost_region|eq.set_region","target":{"freq_hz":500,"gain_db":-2.5,"q":1.1}}. Do not use set_plugin_param/plugin.set_parameter for these acoustic targets unless the user explicitly gives an exact param_id and raw value. If the profile is missing or stale, the command will report that Get Param/Learn is needed.
+For an already learned non-EQ plug-in's user-requested provider-specific control, plugin_grabber_apply_control may be used only when that learned profile is the intended authority. Equalizer frequency/gain/Q, shelves, pass filters, and output controls always use capability_equalizer_plan / capability.equalizer.plan instead. Do not use set_plugin_param/plugin.set_parameter for semantic acoustic targets unless the user explicitly gives an exact param_id and raw value. A missing or stale learned profile is a blocker, not permission to start learning.
 For explicit one-parameter plugin control where the user gives a concrete param_id and a display value/unit, and get_plugin_parameters display_probe evidence is high confidence, set_plugin_param/plugin.set_parameter may use value_text such as "1000 ms" or "28 percent" without a saved profile. Do not use this for semantic mixing, multi-parameter control, or automatic mixing.
 For plugin_grabber_apply_control results, treat applied_parameters[].new_value_text, applied_value, and confirmed display_domain data as the evidence. Do not infer a control's min/max from the current value_text snapshot or advisory safety notes.
+For selected/current clip fade/gain read/write requests, use clip.fade.read/set and clip.gain.read/set. Clip gain is static clip-level gain before track processing; do not route it to mixing, track.volume, mix.propose_tick, or mix.apply_tick.
 Mixing is a native Ask Vit conversation capability, not a separate Auto Mix/Co-Mix mode. Do not create a planning card or ask the user to fill one for mixing.
 For natural mixing goals such as making a vocal more forward, increasing loudness, reducing mud/harshness, tightening dynamics, or adding space, resolve the target from the user's wording and selected DAW context, then prefer mix_request_observation / mix.request_observation before choosing a write.
-Keep each mixing action to one safe small step or one clearly coupled small move. Use track.volume for simple gain staging, or plugin_grabber_apply_control / plugin_grabber.apply_control for learned plugin changes. If the needed plugin profile/skill is missing or stale, stop and route to plugin_grabber_learn_project_profile / plugin_grabber.learn_project_profile; do not guess raw plugin parameters.
+For B1 gain-staging fader unity reset, use track.group.apply_control with mode:absolute and db:0 after confirmation; this is an engineering state reset, not a small subjective mix move.
+For B2 whole-project static balance, use the dedicated TOM/MOM/project.state CCB plus Mix Style/VMS path and one multi-track pending fader plan; do not reduce B2 to a local single-track move and never use clip gain. For local B3 or explicit small track moves, use mix.propose_tick then mix.apply_tick after confirmation; do not call track.volume directly. For learned non-EQ plugin changes use plugin_grabber_apply_control / plugin_grabber.apply_control. If a learned profile is missing or stale, report the blocker; invoke Plugin Grabber learning only when the user explicitly asks to learn, teach, profile, or save plug-in controls.
 If the user says to undo or roll back the last mix move, use the available undo/rollback path directly instead of returning to a mixing workflow.
 
 Mode instruction:
@@ -5080,6 +5651,13 @@ func dictionaryRowsFromAny(value any) []map[string]any {
 				"branch":               item.Branch,
 				"artifacts":            item.Artifacts,
 				"project_result_cards": item.ProjectCards,
+				"message_data":         item.MessageData,
+				"lifecycle":            item.Lifecycle,
+				"persistence":          item.Persistence,
+				"message_kind":         item.MessageKind,
+				"turn_id":              item.TurnID,
+				"logical_message_id":   item.LogicalMessageID,
+				"supersedes":           item.Supersedes,
 				"created_at":           item.CreatedAt,
 			})
 		}
@@ -5190,13 +5768,19 @@ func (s *Server) executeDecisions(ctx context.Context, decisions []policy.Decisi
 
 func agentContextForPrompt(requestContext map[string]any) string {
 	safe := map[string]any{}
-	for _, key := range []string{"selected_track_id", "selected_track_name", "selected_scene_track_id", "selected_clip_id", "selected_clip_track_id", "piano_roll_focus_clip_id", "piano_roll_focus_track_id", "selected_plugin_id", "selected_plugin_name", "selected_plugin_track_id", "selected_plugin_source", "playhead_seconds", "current_playhead_seconds", "transport_position_seconds", "selected_library_file_path", "selected_library_item_name", "selected_library_kind", "library_search_query"} {
+	for _, key := range []string{"selected_track_id", "selected_track_name", "selected_scene_track_id", "selected_clip_id", "selected_clip_track_id", "selected_clip_range_count", "piano_roll_focus_clip_id", "piano_roll_focus_track_id", "selected_plugin_id", "selected_plugin_name", "selected_plugin_track_id", "selected_plugin_source", "playhead_seconds", "current_playhead_seconds", "transport_position_seconds", "selected_library_file_path", "selected_library_item_name", "selected_library_kind", "library_search_query"} {
 		if value := strings.TrimSpace(fmt.Sprint(requestContext[key])); value != "" && value != "<nil>" {
 			safe[key] = value
 		}
 	}
 	if ids := contextStringSlice(requestContext["selected_clip_ids"]); len(ids) > 0 {
 		safe["selected_clip_ids"] = ids
+	}
+	if ranges := contextClipRangeRows(requestContext["selected_clip_ranges"]); len(ranges) > 0 {
+		safe["selected_clip_ranges"] = ranges
+	}
+	if singleRange := firstMapFromAny(requestContext["selected_clip_range"]); len(singleRange) > 0 {
+		safe["selected_clip_range"] = singleRange
 	}
 	if places := contextStringSlice(requestContext["library_places"]); len(places) > 0 {
 		safe["library_places"] = places
@@ -5250,6 +5834,31 @@ func contextAttachmentRows(v any) []map[string]any {
 	default:
 		return nil
 	}
+}
+
+func contextClipRangeRows(v any) []map[string]any {
+	rows := mapRowsFromAny(v)
+	out := make([]map[string]any, 0, len(rows))
+	for _, row := range rows {
+		clipID := firstStringFromMap(row, "clip_id")
+		if strings.TrimSpace(clipID) == "" {
+			continue
+		}
+		item := map[string]any{}
+		for _, key := range []string{
+			"range_id", "clip_id", "clip_name", "track_id",
+			"start_seconds", "end_seconds", "duration_seconds",
+			"clip_start_seconds", "clip_end_seconds",
+			"clip_local_start_seconds", "clip_local_end_seconds",
+			"source", "revision",
+		} {
+			if value, ok := row[key]; ok && !isEmptyContextValue(row, key) {
+				item[key] = value
+			}
+		}
+		out = append(out, item)
+	}
+	return out
 }
 
 func mapRowsFromAny(v any) []map[string]any {
@@ -5388,6 +5997,47 @@ func contextWithConversationID(in map[string]any, conversationID string) map[str
 	return out
 }
 
+func contextWithCachedUIContext(in map[string]any, uiContext map[string]any) map[string]any {
+	out := cloneContext(in)
+	if out == nil {
+		out = map[string]any{}
+	}
+	if len(uiContext) == 0 {
+		return out
+	}
+	current := cloneContext(mapValue(out["current_selection"]))
+	if current == nil {
+		current = map[string]any{}
+	}
+	for key, value := range uiContext {
+		if isEmptyContextValue(uiContext, key) {
+			continue
+		}
+		if isEmptyContextValue(out, key) {
+			out[key] = value
+		}
+		if isEmptyContextValue(current, key) {
+			current[key] = value
+		}
+	}
+	if len(current) > 0 {
+		out["current_selection"] = current
+	}
+	uiRow := cloneContext(mapValue(out["ui_context"]))
+	if uiRow == nil {
+		uiRow = map[string]any{}
+	}
+	for key, value := range uiContext {
+		if !isEmptyContextValue(uiContext, key) && isEmptyContextValue(uiRow, key) {
+			uiRow[key] = value
+		}
+	}
+	if len(uiRow) > 0 {
+		out["ui_context"] = uiRow
+	}
+	return out
+}
+
 func goalIDsFromContext(in map[string]any) (string, string) {
 	if in == nil {
 		return "", ""
@@ -5407,6 +6057,31 @@ func contextWithUserMessage(in map[string]any, message string) map[string]any {
 	out := cloneContext(in)
 	if out == nil {
 		out = map[string]any{}
+	}
+	if current := mapValue(out["current_selection"]); len(current) > 0 {
+		for _, key := range []string{
+			"selected_track_id",
+			"selected_track_name",
+			"selected_clip_id",
+			"selected_clip_ids",
+			"selected_clip_track_id",
+			"selected_clip_name",
+			"selected_clip_ranges",
+			"selected_clip_range",
+			"selected_clip_range_count",
+			"piano_roll_focus_clip_id",
+			"piano_roll_focus_track_id",
+			"playhead_seconds",
+			"current_playhead_seconds",
+			"transport_position_seconds",
+		} {
+			if _, exists := out[key]; exists {
+				continue
+			}
+			if value, ok := current[key]; ok && !isEmptyContextValue(current, key) {
+				out[key] = value
+			}
+		}
 	}
 	if strings.TrimSpace(message) != "" {
 		out["user_message"] = strings.TrimSpace(message)
@@ -5605,10 +6280,27 @@ func contextWithArtifactSummaries(in map[string]any, summaries []artifacts.Summa
 	if out == nil {
 		out = map[string]any{}
 	}
+	const promptArtifactLimit = 12
+	includePath := len(summaries) == 1
+	limit := len(summaries)
+	if limit > promptArtifactLimit {
+		limit = promptArtifactLimit
+	}
 	rows := make([]map[string]any, 0, len(summaries))
 	ids := make([]string, 0, len(summaries))
-	for _, summary := range summaries {
-		row := artifactSummaryRow(summary)
+	kindCounts := map[string]int{}
+	sampleTitles := make([]string, 0, minInt(len(summaries), 8))
+	for i, summary := range summaries {
+		if strings.TrimSpace(summary.Kind) != "" {
+			kindCounts[summary.Kind]++
+		}
+		if len(sampleTitles) < 8 && strings.TrimSpace(summary.Title) != "" {
+			sampleTitles = append(sampleTitles, summary.Title)
+		}
+		if i >= limit {
+			continue
+		}
+		row := artifactPromptSummaryRow(summary, includePath)
 		if len(row) == 0 {
 			continue
 		}
@@ -5620,6 +6312,16 @@ func contextWithArtifactSummaries(in map[string]any, summaries []artifacts.Summa
 	}
 	out["artifacts"] = rows
 	out["artifact_ids"] = ids
+	out["artifact_count"] = len(summaries)
+	if len(kindCounts) > 0 {
+		out["artifact_kind_counts"] = kindCounts
+	}
+	if len(sampleTitles) > 0 {
+		out["artifact_sample_titles"] = sampleTitles
+	}
+	if len(summaries) > len(rows) {
+		out["artifacts_omitted_count"] = len(summaries) - len(rows)
+	}
 	if len(rows) == 1 {
 		out["artifact"] = rows[0]
 		out["selected_artifact_id"] = ids[0]
@@ -5679,6 +6381,40 @@ func artifactSummaryRow(summary artifacts.Summary) map[string]any {
 	} {
 		if !isEmptyContextValue(map[string]any{"v": value}, "v") {
 			out[key] = value
+		}
+	}
+	return out
+}
+
+func artifactPromptSummaryRow(summary artifacts.Summary, includePath bool) map[string]any {
+	out := map[string]any{
+		"id":     summary.ID,
+		"kind":   summary.Kind,
+		"title":  summary.Title,
+		"status": summary.Status,
+	}
+	for key, value := range map[string]any{
+		"mime":       summary.MIME,
+		"size_bytes": summary.SizeBytes,
+		"summary":    summary.Summary,
+	} {
+		if !isEmptyContextValue(map[string]any{"v": value}, "v") {
+			out[key] = value
+		}
+	}
+	if includePath {
+		for key, value := range map[string]any{
+			"path": summary.Path,
+			"url":  summary.URL,
+		} {
+			if !isEmptyContextValue(map[string]any{"v": value}, "v") {
+				out[key] = value
+			}
+		}
+	}
+	for key, value := range out {
+		if isEmptyContextValue(map[string]any{"v": value}, "v") {
+			delete(out, key)
 		}
 	}
 	return out
@@ -5824,6 +6560,16 @@ func isEmptyContextValue(ctx map[string]any, key string) bool {
 	if !ok {
 		return true
 	}
+	switch x := value.(type) {
+	case []any:
+		return len(x) == 0
+	case []string:
+		return len(x) == 0
+	case map[string]any:
+		return len(x) == 0
+	case map[string]string:
+		return len(x) == 0
+	}
 	s := strings.TrimSpace(fmt.Sprint(value))
 	return s == "" || s == "<nil>"
 }
@@ -5845,6 +6591,181 @@ func projectPathFromChatContext(ctx map[string]any) string {
 		}
 	}
 	return ""
+}
+
+func (s *Server) contextWithCurrentProjectWorkspace(ctx context.Context, in map[string]any) map[string]any {
+	out := cloneContext(in)
+	if out == nil {
+		out = map[string]any{}
+	}
+	if s == nil || s.harness == nil {
+		return out
+	}
+	projectPath, projectUUID := s.harness.CurrentProjectIdentity(ctx)
+	if projectUUID == "" {
+		return out
+	}
+	out["project_path"] = projectPath
+	out["current_project_path"] = projectPath
+	out["project_uuid"] = projectUUID
+	out["project_id"] = projectUUID
+	delete(out, "project_history")
+	return out
+}
+
+func (s *Server) activateCurrentProjectWorkspace(ctx context.Context) {
+	if s == nil || s.harness == nil {
+		return
+	}
+	projectPath, projectUUID := s.harness.CurrentProjectIdentity(ctx)
+	parentProjectUUID := s.harness.CurrentProjectParentUUID()
+	if projectUUID == "" {
+		return
+	}
+	s.workspaceMu.Lock()
+	defer s.workspaceMu.Unlock()
+	boundSessionID := history.WorkingSessionID(projectPath)
+	sameIdentity := s.activeWorkspaceUUID == projectUUID && sameWorkspacePath(s.activeWorkspacePath, projectPath)
+	if sameIdentity && boundSessionID != "" && s.activeWorkspaceSessionID == boundSessionID {
+		return
+	}
+	// Reopening the same project binds a new draft from Saved HEAD. Do not copy
+	// the previous unsaved in-memory runtime into that clean working session.
+	if s.activeWorkspaceUUID != "" && !(sameIdentity && boundSessionID != "" && boundSessionID != s.activeWorkspaceSessionID) {
+		s.persistActiveProjectWorkspaceLocked()
+	}
+	if parentProjectUUID != "" && parentProjectUUID != projectUUID {
+		sourcePath := ""
+		if parentProjectUUID == s.activeWorkspaceUUID {
+			sourcePath = s.activeWorkspacePath
+		}
+		if _, recoverErr := history.RecoverMissingProjectFork(sourcePath, parentProjectUUID, projectPath, projectUUID); recoverErr != nil && s.logger != nil {
+			s.logger.Warn("[workspace] parent history recovery failed parent=%s target=%s error=%v", parentProjectUUID, projectUUID, recoverErr)
+		}
+		if sourcePath == "" {
+			sourcePath = history.ProjectPathForUUID(projectPath, parentProjectUUID)
+		}
+		if sourcePath != "" {
+			if _, _, loadErr := projectworkspace.LoadAnalysisManifest(projectPath, projectUUID); os.IsNotExist(loadErr) {
+				_, _ = projectworkspace.ForkDerived(sourcePath, parentProjectUUID, projectPath, projectUUID)
+			}
+		}
+	}
+	session, err := history.EnsureWorkingSession(projectPath, projectUUID)
+	if err != nil {
+		if s.logger != nil {
+			s.logger.Warn("[workspace] working session activation failed project=%s uuid=%s error=%v", projectPath, projectUUID, err)
+		}
+		return
+	}
+	state := projectAgentRuntimeState{}
+	if data, err := history.ReadAgentRuntimeState(projectPath, projectUUID); err == nil {
+		if decodeErr := json.Unmarshal(data, &state); decodeErr != nil && s.logger != nil {
+			s.logger.Warn("[workspace] runtime state decode failed project=%s uuid=%s error=%v", projectPath, projectUUID, decodeErr)
+		}
+	} else if !os.IsNotExist(err) && s.logger != nil {
+		s.logger.Warn("[workspace] runtime state load failed project=%s uuid=%s error=%v", projectPath, projectUUID, err)
+	}
+	s.mu.Lock()
+	s.restoreProjectAgentRuntimeStateLocked(state)
+	s.activeWorkspacePath = projectPath
+	s.activeWorkspaceUUID = projectUUID
+	s.activeWorkspaceSessionID = session.SessionID
+	s.mu.Unlock()
+	if s.logger != nil {
+		s.logger.Info("[workspace] activated project=%q uuid=%s conversations=%d retired_legacy_b2=%d retired_legacy_b3=%d", projectPath, projectUUID, len(state.Conversations), len(state.PendingStaticBalancePlans), len(state.PendingPanLayoutPlans))
+	}
+}
+
+func (s *Server) persistCurrentProjectWorkspace() {
+	if s == nil {
+		return
+	}
+	s.workspaceMu.Lock()
+	defer s.workspaceMu.Unlock()
+	s.persistActiveProjectWorkspaceLocked()
+}
+
+func (s *Server) syncCurrentProjectWorkspace(ctx context.Context) {
+	s.activateCurrentProjectWorkspace(ctx)
+	s.persistCurrentProjectWorkspace()
+}
+
+func (s *Server) persistActiveProjectWorkspaceLocked() {
+	if s.activeWorkspaceUUID == "" || s.activeWorkspacePath == "" {
+		return
+	}
+	s.mu.Lock()
+	state := s.projectAgentRuntimeStateLocked()
+	data, err := json.MarshalIndent(state, "", "  ")
+	s.mu.Unlock()
+	if err == nil {
+		err = history.WriteAgentRuntimeState(s.activeWorkspacePath, s.activeWorkspaceUUID, data)
+	}
+	if err != nil && s.logger != nil {
+		s.logger.Warn("[workspace] runtime state save failed project=%s uuid=%s error=%v", s.activeWorkspacePath, s.activeWorkspaceUUID, err)
+	}
+}
+
+func (s *Server) projectAgentRuntimeStateLocked() projectAgentRuntimeState {
+	state := projectAgentRuntimeState{
+		SchemaVersion:      "vit_project_agent_runtime.v1",
+		ProjectPath:        s.activeWorkspacePath,
+		ProjectUUID:        s.activeWorkspaceUUID,
+		SavedAt:            time.Now().UTC(),
+		Conversations:      s.conversations,
+		Pending:            s.pending,
+		Interactions:       s.interactions,
+		MixSessions:        s.mixSessions,
+		GoalContinuations:  s.goalContinuations,
+		ConversationGoals:  s.conversationGoals,
+		ConversationMemory: s.conversationMemory,
+		PendingMixTicks:    s.pendingMixTicks,
+		PendingTreatments:  s.pendingTreatments,
+	}
+	if s.pendingManager != nil {
+		state.PendingCandidates = s.pendingManager.Snapshot()
+	}
+	if s.harness != nil {
+		state.GoalRuntime = s.harness.RuntimeSnapshot()
+	}
+	return state
+}
+
+func (s *Server) restoreProjectAgentRuntimeStateLocked(state projectAgentRuntimeState) {
+	// Collect migration audit rows before clearing legacy pointers from the
+	// shared ConversationMemory map.
+	retiredCandidates := retireLegacyCapabilityCandidates(state)
+	s.conversations = nonNilMap(state.Conversations)
+	s.pending = retireLegacyCapabilityPendingPlans(nonNilMap(state.Pending))
+	s.interactions = retireLegacyCapabilityInteractions(nonNilMap(state.Interactions))
+	s.mixSessions = nonNilMap(state.MixSessions)
+	s.goalContinuations = nonNilMap(state.GoalContinuations)
+	s.conversationGoals = nonNilMap(state.ConversationGoals)
+	s.conversationMemory = retireLegacyCapabilityExecutionMemory(nonNilMap(state.ConversationMemory))
+	s.pendingMixTicks = nonNilMap(state.PendingMixTicks)
+	s.pendingTreatments = nonNilMap(state.PendingTreatments)
+	if s.pendingManager == nil {
+		s.pendingManager = pendingmanager.NewMemoryManager()
+	}
+	s.pendingManager.Restore(retiredCandidates)
+	if s.harness != nil {
+		s.harness.RestoreRuntime(state.GoalRuntime)
+	}
+}
+
+func nonNilMap[K comparable, V any](in map[K]V) map[K]V {
+	if in == nil {
+		return map[K]V{}
+	}
+	return in
+}
+
+func sameWorkspacePath(a, b string) bool {
+	if strings.TrimSpace(a) == "" || strings.TrimSpace(b) == "" {
+		return false
+	}
+	return strings.EqualFold(filepath.Clean(a), filepath.Clean(b))
 }
 
 func cleanContextString(value any) string {

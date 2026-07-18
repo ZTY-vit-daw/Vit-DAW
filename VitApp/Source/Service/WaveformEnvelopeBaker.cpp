@@ -6,12 +6,19 @@
 #include <algorithm>
 #include <chrono>
 #include <cmath>
+#include <condition_variable>
+#include <cstdlib>
 #include <cstring>
+#include <deque>
 #include <fstream>
+#include <functional>
 #include <limits>
 #include <map>
 #include <mutex>
+#include <string>
 #include <thread>
+#include <utility>
+#include <vector>
 #include <windows.h>
 
 namespace vit
@@ -22,12 +29,50 @@ namespace
 constexpr double kTileSeconds = 5.0;
 constexpr int kDefaultFramesPerTile = 1024;
 constexpr int kFeatureStride = 6; // L_min, L_max, R_min, R_max, L_rms, R_rms
-constexpr int kRetiredHandleGraceMs = 5000;
+// Godot drains audio_feature_data_ready on a small per-frame budget. Under
+// visible-priority multitrack waveform preparation, old generations can arrive
+// well after a newer request supersedes them, so retired SHM handles need to
+// outlive short UI backlogs.
+constexpr int kRetiredHandleGraceMs = 120000;
 
 std::mutex gMutex;
 std::mutex gDiagLogMutex;
 std::map<std::string, std::vector<HANDLE>> gHandles;
 std::map<std::string, uint64_t> gGen;
+
+struct BakeSummary
+{
+    juce::String bakeKey;
+    uint64_t gen = 0;
+    juce::String status = "missing";
+    juce::String reason;
+    juce::String trackId;
+    juce::String clipId;
+    juce::String filePath;
+    juce::String sourceId;
+    juce::String sourceRevision;
+    juce::String clipRevision;
+    juce::String renderRevision;
+    int completedTiles = 0;
+    int totalTiles = 0;
+    int handleCount = 0;
+    int frameCount = 0;
+    int featureStride = kFeatureStride;
+    double sampleRate = 0.0;
+    double totalDurationSeconds = 0.0;
+    int64_t metricFrameCount = 0;
+    int64_t nonzeroCount = 0;
+    int64_t nanInfCount = 0;
+    double sumSquares = 0.0;
+    double sumAbs = 0.0;
+    double maxAbs = 0.0;
+    double peakAbs = 0.0;
+    juce::Time updatedAt;
+};
+
+std::map<std::string, BakeSummary> gBakeSummaries;
+
+void writeDiagLog (const juce::String& line);
 
 struct RetiredHandle
 {
@@ -39,10 +84,193 @@ struct RetiredHandle
 
 std::vector<RetiredHandle> gRetiredHandles;
 
+struct QueuedWaveformBake
+{
+    juce::String bakeKey;
+    uint64_t gen = 0;
+    int priorityRank = 100;
+    uint64_t sequence = 0;
+    std::function<void()> run;
+};
+
+std::mutex gQueueMutex;
+std::condition_variable gQueueCondition;
+std::deque<QueuedWaveformBake> gWaveformQueue;
+std::vector<std::thread> gWaveformWorkers;
+uint64_t gWaveformQueueSequence = 0;
+bool gWaveformWorkersStarted = false;
+
+constexpr int kDefaultWaveformQueueMax = 256;
+constexpr int kDefaultWaveformWorkerMax = 4;
+
+int envInt (const char* name, int fallback, int minValue, int maxValue)
+{
+    if (name == nullptr)
+        return fallback;
+    if (const auto* raw = std::getenv (name))
+    {
+        try
+        {
+            return juce::jlimit (minValue, maxValue, std::stoi (std::string (raw)));
+        }
+        catch (...) {}
+    }
+    return fallback;
+}
+
+int waveformPriorityRank (AudioFeaturePriority priority)
+{
+    switch (priority)
+    {
+        case AudioFeaturePriority::OnDemand:         return 0;
+        case AudioFeaturePriority::ImportImmediate:  return 10;
+        case AudioFeaturePriority::BackgroundWarm:   return 50;
+    }
+
+    return 100;
+}
+
+int waveformWorkerCount()
+{
+    const auto hardware = (int) std::thread::hardware_concurrency();
+    const auto derived = juce::jlimit (1, kDefaultWaveformWorkerMax, hardware > 0 ? hardware / 2 : 2);
+    return envInt ("VIT_WAVEFORM_BAKER_WORKERS", derived, 1, 16);
+}
+
+int waveformQueueMax()
+{
+    return envInt ("VIT_WAVEFORM_BAKER_QUEUE_MAX", kDefaultWaveformQueueMax, 16, 4096);
+}
+
+size_t bestQueuedBakeIndexUnlocked()
+{
+    size_t best = 0;
+    for (size_t i = 1; i < gWaveformQueue.size(); ++i)
+    {
+        const auto& candidate = gWaveformQueue[i];
+        const auto& current = gWaveformQueue[best];
+        if (candidate.priorityRank < current.priorityRank
+            || (candidate.priorityRank == current.priorityRank && candidate.sequence < current.sequence))
+            best = i;
+    }
+    return best;
+}
+
+bool dropWorstQueuedBakeForUnlocked (int incomingPriorityRank)
+{
+    if (gWaveformQueue.empty())
+        return true;
+
+    size_t worst = 0;
+    for (size_t i = 1; i < gWaveformQueue.size(); ++i)
+    {
+        const auto& candidate = gWaveformQueue[i];
+        const auto& current = gWaveformQueue[worst];
+        if (candidate.priorityRank > current.priorityRank
+            || (candidate.priorityRank == current.priorityRank && candidate.sequence > current.sequence))
+            worst = i;
+    }
+
+    if (gWaveformQueue[worst].priorityRank <= incomingPriorityRank)
+        return false;
+
+    writeDiagLog ("[waveform_envelope.queue] drop_queued key=" + gWaveformQueue[worst].bakeKey
+                  + " gen=" + juce::String ((int64) gWaveformQueue[worst].gen)
+                  + " priority_rank=" + juce::String (gWaveformQueue[worst].priorityRank)
+                  + " reason=queue_full");
+    gWaveformQueue.erase (gWaveformQueue.begin() + (std::ptrdiff_t) worst);
+    return true;
+}
+
+void waveformWorkerLoop()
+{
+    for (;;)
+    {
+        QueuedWaveformBake job;
+        {
+            std::unique_lock<std::mutex> lock (gQueueMutex);
+            gQueueCondition.wait (lock, [] { return ! gWaveformQueue.empty(); });
+            const auto best = bestQueuedBakeIndexUnlocked();
+            job = std::move (gWaveformQueue[best]);
+            gWaveformQueue.erase (gWaveformQueue.begin() + (std::ptrdiff_t) best);
+        }
+
+        if (job.run)
+            job.run();
+    }
+}
+
+void ensureWaveformWorkersStartedUnlocked()
+{
+    if (gWaveformWorkersStarted)
+        return;
+
+    gWaveformWorkersStarted = true;
+    const auto count = waveformWorkerCount();
+    gWaveformWorkers.reserve ((size_t) count);
+    for (int i = 0; i < count; ++i)
+    {
+        gWaveformWorkers.emplace_back ([] { waveformWorkerLoop(); });
+        gWaveformWorkers.back().detach();
+    }
+
+    writeDiagLog ("[waveform_envelope.queue] workers_started count=" + juce::String (count)
+                  + " queue_max=" + juce::String (waveformQueueMax()));
+}
+
+bool enqueueWaveformBake (QueuedWaveformBake job)
+{
+    std::lock_guard<std::mutex> lock (gQueueMutex);
+    ensureWaveformWorkersStartedUnlocked();
+
+    for (auto it = gWaveformQueue.begin(); it != gWaveformQueue.end();)
+    {
+        if (it->bakeKey == job.bakeKey)
+        {
+            writeDiagLog ("[waveform_envelope.queue] supersede_queued key=" + it->bakeKey
+                          + " old_gen=" + juce::String ((int64) it->gen)
+                          + " new_gen=" + juce::String ((int64) job.gen));
+            it = gWaveformQueue.erase (it);
+        }
+        else
+        {
+            ++it;
+        }
+    }
+
+    const auto queueMax = (size_t) waveformQueueMax();
+    if (gWaveformQueue.size() >= queueMax && ! dropWorstQueuedBakeForUnlocked (job.priorityRank))
+    {
+        writeDiagLog ("[waveform_envelope.queue] reject key=" + job.bakeKey
+                      + " gen=" + juce::String ((int64) job.gen)
+                      + " priority_rank=" + juce::String (job.priorityRank)
+                      + " queue_size=" + juce::String ((int) gWaveformQueue.size())
+                      + " reason=queue_full");
+        return false;
+    }
+
+    job.sequence = ++gWaveformQueueSequence;
+    writeDiagLog ("[waveform_envelope.queue] enqueue key=" + job.bakeKey
+                  + " gen=" + juce::String ((int64) job.gen)
+                  + " priority_rank=" + juce::String (job.priorityRank)
+                  + " queue_size=" + juce::String ((int) gWaveformQueue.size() + 1));
+    gWaveformQueue.push_back (std::move (job));
+    gQueueCondition.notify_one();
+    return true;
+}
+
 juce::String makeBakeKey (const juce::String& trackId, const juce::String& clipId)
 {
     auto key = clipId.trim();
     return key.isNotEmpty() ? key : trackId.trim();
+}
+
+double waveformDbFromLinear (double value)
+{
+    constexpr double kSilenceDb = -120.0;
+    if (value <= 0.0 || ! std::isfinite (value))
+        return kSilenceDb;
+    return juce::jmax (kSilenceDb, 20.0 * std::log10 (value));
 }
 
 juce::String sanitiseBakeKeyForShm (juce::String key)
@@ -103,6 +331,7 @@ uint64_t beginGen (const juce::String& id)
             gRetiredHandles.push_back ({ key, gen - 1, h, releaseAt });
     }
     handles.clear();
+    gBakeSummaries.erase (key);
     writeDiagLog ("[waveform_envelope.lifecycle] begin_gen key=" + id
                   + " gen=" + juce::String ((int64) gen)
                   + " retired_handles=" + juce::String ((int) releasedCount));
@@ -136,6 +365,110 @@ size_t handleCountForGen (const juce::String& id, uint64_t gen)
     if (it == gGen.end() || it->second != gen)
         return 0u;
     return handleCountUnlocked (key);
+}
+
+void recordBakeSummary (BakeSummary summary)
+{
+    std::lock_guard<std::mutex> lock (gMutex);
+    auto key = summary.bakeKey.toStdString();
+    const auto it = gGen.find (key);
+    if (it == gGen.end() || it->second != summary.gen)
+        return;
+
+    summary.updatedAt = juce::Time::getCurrentTime();
+    gBakeSummaries[key] = std::move (summary);
+}
+
+juce::var bakeSummaryToVar (const BakeSummary& summary)
+{
+    auto obj = std::make_unique<juce::DynamicObject>();
+    obj->setProperty ("status", summary.status);
+    obj->setProperty ("reason", summary.reason);
+    obj->setProperty ("feature_type", audioFeatureTypeToString (AudioFeatureType::WaveformEnvelope));
+    obj->setProperty ("feature_version", audioFeatureProductVersion (AudioFeatureType::WaveformEnvelope));
+    obj->setProperty ("analysis_version", audioFeatureAnalysisVersion());
+    obj->setProperty ("source_kind", "waveform_baker_status");
+    obj->setProperty ("source", "waveform_envelope_baker");
+    obj->setProperty ("bake_key", summary.bakeKey);
+    obj->setProperty ("generation", (int64) summary.gen);
+    obj->setProperty ("track_id", summary.trackId);
+    obj->setProperty ("source_track_id", summary.trackId);
+    if (summary.clipId.isNotEmpty())
+        obj->setProperty ("clip_id", summary.clipId);
+    obj->setProperty ("source_path", summary.filePath);
+    obj->setProperty ("file_path", summary.filePath);
+    if (summary.sourceId.isNotEmpty())
+        obj->setProperty ("source_id", summary.sourceId);
+    if (summary.sourceRevision.isNotEmpty())
+    {
+        obj->setProperty ("source_revision", summary.sourceRevision);
+        obj->setProperty ("source_fingerprint", summary.sourceRevision);
+    }
+    if (summary.clipRevision.isNotEmpty())
+        obj->setProperty ("clip_revision", summary.clipRevision);
+    if (summary.renderRevision.isNotEmpty())
+        obj->setProperty ("render_revision", summary.renderRevision);
+    obj->setProperty ("tile_count_seen", summary.completedTiles);
+    obj->setProperty ("tile_count_expected", summary.totalTiles);
+    obj->setProperty ("completed_tiles", summary.completedTiles);
+    obj->setProperty ("total_tiles", summary.totalTiles);
+    obj->setProperty ("handle_count", summary.handleCount);
+    obj->setProperty ("frame_count", summary.frameCount);
+    obj->setProperty ("feature_stride", summary.featureStride);
+    obj->setProperty ("sample_rate", summary.sampleRate);
+    obj->setProperty ("duration_seconds", summary.totalDurationSeconds);
+    obj->setProperty ("total_duration", summary.totalDurationSeconds);
+    if (summary.metricFrameCount > 0)
+    {
+        const auto rms = std::sqrt (summary.sumSquares / (double) summary.metricFrameCount);
+        const auto peakDb = waveformDbFromLinear (summary.peakAbs);
+        const auto rmsDb = waveformDbFromLinear (rms);
+        obj->setProperty ("rms", rms);
+        obj->setProperty ("peak_abs", summary.peakAbs);
+        obj->setProperty ("rms_dbfs", rms > 0.0 ? juce::var (rmsDb) : juce::var());
+        obj->setProperty ("peak_dbfs", summary.peakAbs > 0.0 ? juce::var (peakDb) : juce::var());
+        obj->setProperty ("headroom_db", summary.peakAbs > 0.0 ? juce::var (-peakDb) : juce::var());
+        obj->setProperty ("crest_db", (summary.peakAbs > 0.0 && rms > 0.0) ? juce::var (peakDb - rmsDb) : juce::var());
+        obj->setProperty ("metric_frame_count", (int64) summary.metricFrameCount);
+        obj->setProperty ("sample_count", (int64) summary.metricFrameCount);
+        obj->setProperty ("nonzero_count", (int64) summary.nonzeroCount);
+        obj->setProperty ("sum_abs", summary.sumAbs);
+        obj->setProperty ("max_abs", summary.maxAbs);
+        obj->setProperty ("nan_inf_count", (int64) summary.nanInfCount);
+    }
+    obj->setProperty ("ready", summary.status == "ready");
+    if (summary.updatedAt.toMilliseconds() > 0)
+        obj->setProperty ("updated_at", summary.updatedAt.toISO8601 (true));
+    return juce::var (obj.release());
+}
+
+BakeSummary baseBakeSummary (const juce::String& bakeKey,
+                             uint64_t gen,
+                             const juce::String& status,
+                             const juce::String& reason,
+                             const juce::String& trackId,
+                             const juce::String& clipId,
+                             const juce::String& filePath,
+                             const juce::String& sourceId,
+                             const juce::String& sourceRevision,
+                             const juce::String& clipRevision,
+                             const juce::String& renderRevision,
+                             int frameCount)
+{
+    BakeSummary summary;
+    summary.bakeKey = bakeKey;
+    summary.gen = gen;
+    summary.status = status;
+    summary.reason = reason;
+    summary.trackId = trackId;
+    summary.clipId = clipId;
+    summary.filePath = filePath;
+    summary.sourceId = sourceId;
+    summary.sourceRevision = sourceRevision;
+    summary.clipRevision = clipRevision;
+    summary.renderRevision = renderRevision;
+    summary.frameCount = frameCount;
+    return summary;
 }
 
 struct QualityStats
@@ -278,14 +611,17 @@ void WaveformEnvelopeBaker::startBake (juce::String filePath,
                                        juce::String sourceId,
                                        juce::String sourceRevision,
                                        juce::String clipRevision,
-                                       juce::String renderRevision)
+                                       juce::String renderRevision,
+                                       AudioFeaturePriority priority)
 {
     const auto bakeKey = makeBakeKey (trackId, clipId);
     const auto gen = beginGen (bakeKey);
     const int safeFramesPerTile = juce::jmax (16, framesPerTile > 0 ? framesPerTile : kDefaultFramesPerTile);
+    const auto priorityRank = waveformPriorityRank (priority);
 
     writeDiagLog ("[waveform_envelope.lifecycle] start_bake key=" + bakeKey
                   + " gen=" + juce::String ((int64) gen)
+                  + " priority_rank=" + juce::String (priorityRank)
                   + " track_id=" + trackId
                   + " clip_id=" + clipId
                   + " source_revision=" + sourceRevision
@@ -295,10 +631,32 @@ void WaveformEnvelopeBaker::startBake (juce::String filePath,
                   + " frames_per_tile=" + juce::String (safeFramesPerTile)
                   + " file=" + filePath);
 
-    std::thread ([filePath = std::move (filePath),
+    recordBakeSummary (baseBakeSummary (bakeKey,
+                                        gen,
+                                        "building",
+                                        "waveform_bake_queued",
+                                        trackId,
+                                        clipId,
+                                        filePath,
+                                        sourceId,
+                                        sourceRevision,
+                                        clipRevision,
+                                        renderRevision,
+                                        safeFramesPerTile));
+
+    const auto dropFilePath = filePath;
+    const auto dropTrackId = trackId;
+    const auto dropClipId = clipId;
+    const auto dropPublish = publish;
+
+    QueuedWaveformBake queued;
+    queued.bakeKey = bakeKey;
+    queued.gen = gen;
+    queued.priorityRank = priorityRank;
+    queued.run = [filePath = std::move (filePath),
                   trackId = std::move (trackId),
                   clipId = std::move (clipId),
-                  bakeKey = std::move (bakeKey),
+                  bakeKey,
                   publish = std::move (publish),
                   sourceId = std::move (sourceId),
                   sourceRevision = std::move (sourceRevision),
@@ -306,8 +664,8 @@ void WaveformEnvelopeBaker::startBake (juce::String filePath,
                   renderRevision = std::move (renderRevision),
                   sourceOffsetSeconds,
                   bakeLengthSeconds,
-                   safeFramesPerTile,
-                   gen]() mutable
+                  safeFramesPerTile,
+                  gen]() mutable
     {
         const auto bakeStartMs = juce::Time::getMillisecondCounterHiRes();
         auto logPerf = [&] (const juce::String& stage, const juce::String& details = {})
@@ -329,6 +687,18 @@ void WaveformEnvelopeBaker::startBake (juce::String filePath,
 
         if (! reader || reader->lengthInSamples <= 0 || reader->sampleRate <= 0.0)
         {
+            recordBakeSummary (baseBakeSummary (bakeKey,
+                                                gen,
+                                                "failed",
+                                                "reader_failed",
+                                                trackId,
+                                                clipId,
+                                                filePath,
+                                                sourceId,
+                                                sourceRevision,
+                                                clipRevision,
+                                                renderRevision,
+                                                safeFramesPerTile));
             writeDiagLog ("[waveform_envelope.lifecycle] reader_failed key=" + bakeKey
                           + " gen=" + juce::String ((int64) gen)
                           + " file=" + filePath);
@@ -349,6 +719,18 @@ void WaveformEnvelopeBaker::startBake (juce::String filePath,
 
         if (bakeTotalSamples <= 0)
         {
+            recordBakeSummary (baseBakeSummary (bakeKey,
+                                                gen,
+                                                "failed",
+                                                "empty_range",
+                                                trackId,
+                                                clipId,
+                                                filePath,
+                                                sourceId,
+                                                sourceRevision,
+                                                clipRevision,
+                                                renderRevision,
+                                                safeFramesPerTile));
             publishBakeStatus ("error", "empty_range", trackId, clipId, filePath, publish);
             logPerf ("finish", "status=error reason=empty_range");
             return;
@@ -365,7 +747,32 @@ void WaveformEnvelopeBaker::startBake (juce::String filePath,
                  + " total_tiles=" + juce::String (totalTiles)
                  + " total_duration=" + juce::String (totalDurationSec, 4)
                  + " frames_per_tile=" + juce::String (safeFramesPerTile));
+        {
+            auto summary = baseBakeSummary (bakeKey,
+                                            gen,
+                                            "partial",
+                                            "waveform_tiles_pending",
+                                            trackId,
+                                            clipId,
+                                            filePath,
+                                            sourceId,
+                                            sourceRevision,
+                                            clipRevision,
+                                            renderRevision,
+                                            safeFramesPerTile);
+            summary.totalTiles = totalTiles;
+            summary.sampleRate = sr;
+            summary.totalDurationSeconds = totalDurationSec;
+            recordBakeSummary (std::move (summary));
+        }
         int completedTiles = 0;
+        int64_t aggregateMetricFrames = 0;
+        int64_t aggregateNonzeroCount = 0;
+        int64_t aggregateNanInfCount = 0;
+        double aggregateSumSquares = 0.0;
+        double aggregateSumAbs = 0.0;
+        double aggregateMaxAbs = 0.0;
+        double aggregatePeakAbs = 0.0;
 
         for (int tileIndex = 0; tileIndex < totalTiles; ++tileIndex)
         {
@@ -444,9 +851,22 @@ void WaveformEnvelopeBaker::startBake (juce::String filePath,
                 envelope[base + 3] = maxR;
                 envelope[base + 4] = count > 0 ? std::sqrt ((float) (sumL / (double) count)) : 0.0f;
                 envelope[base + 5] = count > 0 ? std::sqrt ((float) (sumR / (double) count)) : 0.0f;
+
+                const double framePeak = juce::jmax (juce::jmax (std::abs ((double) minL), std::abs ((double) maxL)),
+                                                     juce::jmax (std::abs ((double) minR), std::abs ((double) maxR)));
+                const double frameRmsL = (double) envelope[base + 4];
+                const double frameRmsR = (double) envelope[base + 5];
+                const double frameRms = std::sqrt ((frameRmsL * frameRmsL + frameRmsR * frameRmsR) / 2.0);
+                aggregatePeakAbs = juce::jmax (aggregatePeakAbs, framePeak);
+                aggregateSumSquares += frameRms * frameRms;
+                ++aggregateMetricFrames;
             }
 
             const auto outputStats = collectQualityStats (envelope.data(), envelope.size());
+            aggregateNonzeroCount += outputStats.nonzeroCount;
+            aggregateNanInfCount += outputStats.nanInfCount;
+            aggregateSumAbs += outputStats.sumAbs;
+            aggregateMaxAbs = juce::jmax (aggregateMaxAbs, outputStats.maxAbs);
             const auto sessionId = bakeKey + ":" + juce::String ((int64) gen);
             const auto shm = "Vit_AudioFeature_waveform_"
                 + sanitiseBakeKeyForShm (bakeKey)
@@ -547,6 +967,33 @@ void WaveformEnvelopeBaker::startBake (juce::String filePath,
                 publish (juce::JSON::toString (juce::var (obj.release())));
             }
             completedTiles = tileIndex + 1;
+            {
+                auto summary = baseBakeSummary (bakeKey,
+                                                gen,
+                                                completedTiles >= totalTiles ? "ready" : "partial",
+                                                completedTiles >= totalTiles ? "ok" : "waveform_tiles_pending",
+                                                trackId,
+                                                clipId,
+                                                filePath,
+                                                sourceId,
+                                                sourceRevision,
+                                                clipRevision,
+                                                renderRevision,
+                                                safeFramesPerTile);
+                summary.completedTiles = completedTiles;
+                summary.totalTiles = totalTiles;
+                summary.handleCount = (int) handleCount;
+                summary.sampleRate = sr;
+                summary.totalDurationSeconds = totalDurationSec;
+                summary.metricFrameCount = aggregateMetricFrames;
+                summary.nonzeroCount = aggregateNonzeroCount;
+                summary.nanInfCount = aggregateNanInfCount;
+                summary.sumSquares = aggregateSumSquares;
+                summary.sumAbs = aggregateSumAbs;
+                summary.maxAbs = aggregateMaxAbs;
+                summary.peakAbs = aggregatePeakAbs;
+                recordBakeSummary (std::move (summary));
+            }
             if (tileIndex == 0 || completedTiles == totalTiles || (completedTiles % 25) == 0)
             {
                 logPerf ("tile_progress",
@@ -560,7 +1007,10 @@ void WaveformEnvelopeBaker::startBake (juce::String filePath,
         logPerf ("finish",
                  juce::String ("status=ok completed_tiles=") + juce::String (completedTiles)
                  + " total_tiles=" + juce::String (totalTiles));
-    }).detach();
+    };
+
+    if (! enqueueWaveformBake (std::move (queued)))
+        publishBakeStatus ("dropped", "waveform_queue_full", dropTrackId, dropClipId, dropFilePath, dropPublish);
 }
 
 void WaveformEnvelopeBaker::releaseTrackMappings (const juce::String& trackId)
@@ -573,6 +1023,35 @@ void WaveformEnvelopeBaker::invalidateClipBake (const juce::String& clipId)
     const auto trimmed = clipId.trim();
     if (trimmed.isNotEmpty())
         beginGen (trimmed);
+}
+
+juce::var WaveformEnvelopeBaker::getLatestBakeStatus (const juce::String& trackId,
+                                                      const juce::String& clipId)
+{
+    const auto bakeKey = makeBakeKey (trackId, clipId);
+    if (bakeKey.trim().isEmpty())
+        return {};
+
+    BakeSummary summary;
+    {
+        std::lock_guard<std::mutex> lock (gMutex);
+        const auto key = bakeKey.toStdString();
+        const auto genIt = gGen.find (key);
+        const auto summaryIt = gBakeSummaries.find (key);
+        if (genIt == gGen.end() || summaryIt == gBakeSummaries.end() || summaryIt->second.gen != genIt->second)
+        {
+            summary.bakeKey = bakeKey;
+            summary.gen = genIt == gGen.end() ? 0 : genIt->second;
+            summary.status = "missing";
+            summary.reason = "waveform_bake_status_not_recorded";
+            summary.trackId = trackId;
+            summary.clipId = clipId;
+            return bakeSummaryToVar (summary);
+        }
+        summary = summaryIt->second;
+    }
+
+    return bakeSummaryToVar (summary);
 }
 
 } // namespace vit

@@ -149,7 +149,10 @@ juce::Array<juce::var> VitPluginGrabber::buildParameterDescriptors (te::External
         row->setProperty ("max", valueRange.getEnd());
         row->setProperty ("is_discrete", isDiscrete);
         row->setProperty ("num_steps", numStates);
-        row->setProperty ("is_boolean", numStates == 2 || normalizedRole == "common_bypass" || normalizedRole.contains ("enable"));
+        // Keep observed host metadata separate from UI/semantic heuristics.
+        // A two-state parameter is not necessarily declared by the plug-in as
+        // a boolean control, and its label must not promote it to one.
+        row->setProperty ("is_boolean", parameter->isBoolean());
         row->setProperty ("normalized_role", normalizedRole);
         row->setProperty ("display_group", displayGroup);
         row->setProperty ("host_controllable", true);

@@ -5,12 +5,16 @@
 #include "ImportService.h"
 #include "JobEventService.h"
 #include "MidiService.h"
+#include "ProjectAudioSettingsService.h"
+#include "ProjectMarkerService.h"
 #include "ProjectService.h"
 #include "PluginRackControlService.h"
+#include "TrackGroupService.h"
 #include "TiledSpectrogramBaker.h"
 #include "TrackService.h"
 #include "TransportAudioService.h"
 #include "VitProductionCoordinator.h"
+#include "VspKernelReference.h"
 
 #include "../Core/VitAIGCJobRuntime.h"
 #include "../Core/VitClipRouteRegistry.h"
@@ -220,7 +224,52 @@ int removeLogicalAudioConnections (te::RackType& rackType,
 		if (rackType.removeConnection (sourceId, pins.sourcePin, destId, pins.destPin))
 			++removed;
 
-	return removed;
+    return removed;
+}
+
+juce::String fadeCurveToString (te::AudioFadeCurve::Type type)
+{
+    switch (type)
+    {
+        case te::AudioFadeCurve::convex:  return "convex";
+        case te::AudioFadeCurve::concave: return "concave";
+        case te::AudioFadeCurve::sCurve:  return "s_curve";
+        case te::AudioFadeCurve::linear:  break;
+    }
+
+    return "linear";
+}
+
+juce::String fadeBehaviourToString (te::AudioClipBase::FadeBehaviour behaviour)
+{
+    switch (behaviour)
+    {
+        case te::AudioClipBase::speedRamp: return "speed";
+        case te::AudioClipBase::gainFade:  break;
+    }
+
+    return "gain";
+}
+
+void appendClipFadeGainState (juce::DynamicObject& target, const te::AudioClipBase& audioClip)
+{
+    target.setProperty ("clip_gain_db", audioClip.getGainDB());
+    target.setProperty ("clip_pan", audioClip.getPan());
+    target.setProperty ("clip_mute", audioClip.isMuted());
+    target.setProperty ("gain_db", audioClip.getGainDB());
+    target.setProperty ("pan", audioClip.getPan());
+    target.setProperty ("mute", audioClip.isMuted());
+    target.setProperty ("fade_in_seconds", audioClip.getFadeIn().inSeconds());
+    target.setProperty ("fade_out_seconds", audioClip.getFadeOut().inSeconds());
+    target.setProperty ("fade_in_curve", fadeCurveToString (audioClip.getFadeInType()));
+    target.setProperty ("fade_out_curve", fadeCurveToString (audioClip.getFadeOutType()));
+    target.setProperty ("fade_in_curve_type", static_cast<int> (audioClip.getFadeInType()));
+    target.setProperty ("fade_out_curve_type", static_cast<int> (audioClip.getFadeOutType()));
+    target.setProperty ("fade_in_behaviour", fadeBehaviourToString (audioClip.getFadeInBehaviour()));
+    target.setProperty ("fade_out_behaviour", fadeBehaviourToString (audioClip.getFadeOutBehaviour()));
+    target.setProperty ("fade_in_behaviour_type", static_cast<int> (audioClip.getFadeInBehaviour()));
+    target.setProperty ("fade_out_behaviour_type", static_cast<int> (audioClip.getFadeOutBehaviour()));
+    target.setProperty ("auto_crossfade", audioClip.getAutoCrossfade());
 }
 
 std::unordered_set<std::string> collectAudioReachableRackNodeIds (te::RackType& rackType)
@@ -713,6 +762,65 @@ juce::Array<juce::var> createPluginArray (te::Track& track)
     return pluginsArray;
 }
 
+void appendTrackTreeState (juce::DynamicObject& trackObject, te::Track& track)
+{
+    auto* parentTrack = track.getParentTrack();
+    auto* parentFolder = track.getParentFolderTrack();
+    auto* folderTrack = dynamic_cast<te::FolderTrack*> (&track);
+    juce::Array<juce::var> directChildIds;
+    juce::Array<juce::var> descendantTrackIds;
+
+    for (auto* child : track.getAllSubTracks (false))
+        if (child != nullptr)
+            directChildIds.add (child->itemID.toString());
+
+    for (auto* child : track.getAllSubTracks (true))
+        if (child != nullptr)
+            descendantTrackIds.add (child->itemID.toString());
+
+    trackObject.setProperty ("parent_track_id",
+                             parentTrack != nullptr ? juce::var (parentTrack->itemID.toString()) : juce::var());
+    trackObject.setProperty ("parent_folder_track_id",
+                             parentFolder != nullptr ? juce::var (parentFolder->itemID.toString()) : juce::var());
+    trackObject.setProperty ("depth", track.getTrackDepth());
+    trackObject.setProperty ("track_depth", track.getTrackDepth());
+    trackObject.setProperty ("child_track_ids", juce::var (directChildIds));
+    trackObject.setProperty ("direct_child_track_ids", juce::var (directChildIds));
+    trackObject.setProperty ("descendant_track_ids", juce::var (descendantTrackIds));
+    trackObject.setProperty ("child_track_count", directChildIds.size());
+    trackObject.setProperty ("descendant_track_count", descendantTrackIds.size());
+    trackObject.setProperty ("has_child_tracks", directChildIds.size() > 0);
+    trackObject.setProperty ("is_folder_track", folderTrack != nullptr);
+    trackObject.setProperty ("is_folder_container", folderTrack != nullptr);
+    trackObject.setProperty ("can_contain_child_tracks", folderTrack != nullptr);
+
+    if (folderTrack == nullptr)
+    {
+        trackObject.setProperty ("is_submix_folder", false);
+        trackObject.setProperty ("routing_bus_enabled", false);
+        trackObject.setProperty ("folder_behavior", juce::var());
+        return;
+    }
+
+    const auto routingBusEnabled = folderTrack->isSubmixFolder();
+    trackObject.setProperty ("is_submix_folder", routingBusEnabled);
+    trackObject.setProperty ("routing_bus_enabled", routingBusEnabled);
+    trackObject.setProperty ("folder_behavior", routingBusEnabled ? "routing_bus" : "container");
+    trackObject.setProperty ("mute", folderTrack->isMuted (false));
+    trackObject.setProperty ("solo", folderTrack->isSolo (false));
+
+    if (auto* volumePlugin = folderTrack->getVolumePlugin())
+    {
+        const auto db = volumePlugin->getVolumeDb();
+        trackObject.setProperty ("db", db);
+        trackObject.setProperty ("volume_db", db);
+        trackObject.setProperty ("gain_db", db);
+        trackObject.setProperty ("fader_db", db);
+        trackObject.setProperty ("pan", volumePlugin->getPan());
+        trackObject.setProperty ("pan_value", volumePlugin->getPan());
+    }
+}
+
 juce::String getTrackKind (const te::Track& track)
 {
     if (dynamic_cast<const te::MasterTrack*> (&track) != nullptr)
@@ -741,6 +849,7 @@ juce::var createTrackState (te::Track& track)
     trackObject->setProperty ("vit_intent", track.state.getProperty ("vit_intent").toString());
     trackObject->setProperty ("plugin_count", pluginsArray.size());
     trackObject->setProperty ("plugins", juce::var (pluginsArray));
+    appendTrackTreeState (*trackObject, track);
 
     if (auto* audioTrack = dynamic_cast<te::AudioTrack*> (&track))
     {
@@ -845,6 +954,8 @@ juce::Array<juce::var> createProjectStateClipsArray (te::Track& track)
         {
             if (auto* audioClip = dynamic_cast<te::AudioClipBase*> (clip))
             {
+                appendClipFadeGainState (*row, *audioClip);
+
                 const auto srcFile = audioClip->getOriginalFile();
                 const auto curFile = audioClip->getCurrentSourceFile();
 
@@ -1705,7 +1816,14 @@ juce::var createRackState (te::Track& track, const juce::String& requestScope)
 
         node->setProperty ("node_id", nodeId);
         node->setProperty ("plugin_item_id", nodeId);
+        // Rack nodes are consumed by the VSP projection, the Godot graph rack,
+        // and agent-side plugin targeting.  Keep a canonical identity plus the
+        // legacy aliases so every consumer resolves the same physical instance.
+        node->setProperty ("item_id", nodeId);
+        node->setProperty ("id", nodeId);
+        node->setProperty ("plugin_id", nodeId);
         node->setProperty ("name", plugin->getName().trim());
+        node->setProperty ("plugin_name", plugin->getName().trim());
         node->setProperty ("type", plugin->getPluginType());
         node->setProperty ("enabled", plugin->isEnabled());
         node->setProperty ("x", pos.x);
@@ -1714,8 +1832,26 @@ juce::var createRackState (te::Track& track, const juce::String& requestScope)
         node->setProperty ("clip_scope", clipScope);
         node->setProperty ("template_role", templateRole);
 		node->setProperty ("audio_reachable_from_rack_input", audioReachable);
-		node->setProperty ("vit_orphan_bypass_candidate", zoneId == "Z3" && ! audioReachable);
+        node->setProperty ("vit_orphan_bypass_candidate", zoneId == "Z3" && ! audioReachable);
         node->setProperty ("supports_param_grabber", dynamic_cast<te::ExternalPlugin*> (plugin) != nullptr);
+
+        if (auto* external = dynamic_cast<te::ExternalPlugin*> (plugin))
+        {
+            const auto pluginPath = external->desc.fileOrIdentifier.trim();
+            const auto pluginFormat = external->desc.pluginFormatName.trim();
+
+            if (pluginPath.isNotEmpty())
+            {
+                node->setProperty ("plugin_path", pluginPath);
+                node->setProperty ("path", pluginPath);
+            }
+
+            if (pluginFormat.isNotEmpty())
+            {
+                node->setProperty ("plugin_format", pluginFormat);
+                node->setProperty ("format", pluginFormat);
+            }
+        }
         nodes.add (juce::var (node.release()));
     }
 
@@ -1958,19 +2094,24 @@ CommandDispatcher::CommandDispatcher (EditGetter editGetter,
                                       SaveProjectReply saveProjectReplyAction,
                                       SaveAsProjectReply saveAsProjectReplyAction,
                                       CurrentProjectPathGetter currentProjectPathGetterAction,
+                                      RealtimeDataProvider realtimeDataProvider,
                                       VitProductionCoordinator* productionCoordinator)
     : getEdit (std::move (editGetter)),
       saveProject (std::move (saveProjectAction)),
       publishMessage (std::move (publishAction)),
       getCurrentProjectPath (std::move (currentProjectPathGetterAction)),
+      getRealtimeData (std::move (realtimeDataProvider)),
       production (productionCoordinator)
 {
-    importService = std::make_unique<ImportService> (getEdit, saveProject, publishMessage);
+    importService = std::make_unique<ImportService> (getEdit, saveProject, publishMessage, getCurrentProjectPath);
     generatedAssetService = std::make_unique<GeneratedAssetService> (getEdit,
                                                                      saveProject,
                                                                      getCurrentProjectPath,
                                                                      importService.get());
     jobEventService = std::make_unique<JobEventService> (getCurrentProjectPath);
+    projectAudioSettingsService = std::make_unique<ProjectAudioSettingsService> (getEdit, saveProject);
+    projectMarkerService = std::make_unique<ProjectMarkerService> (getEdit, saveProject);
+    trackGroupService = std::make_unique<TrackGroupService> (getEdit, saveProject);
     projectService = std::make_unique<ProjectService> (std::move (reloadProjectAction),
                                                        std::move (recentProjectsReplyAction),
                                                        std::move (newBlankProjectReplyAction),
@@ -1998,6 +2139,17 @@ juce::String CommandDispatcher::dispatch (const juce::var& command, const juce::
     if (object == nullptr)
         return makeErrorReply ("JSON payload must be an object with a cmd field");
 
+    if (VspKernelReference::isVspEnvelope (*object))
+    {
+        return VspKernelReference::dispatchEnvelope (*object,
+                                                     rawPayload,
+                                                     [this] (const juce::var& legacyCommand, const juce::String& legacyRaw)
+                                                     {
+                                                         return dispatch (legacyCommand, legacyRaw);
+                                                     },
+                                                     getRealtimeData);
+    }
+
     auto cmd = object->getProperty ("cmd").toString().trim();
 
     if (cmd.isEmpty())
@@ -2015,11 +2167,16 @@ juce::String CommandDispatcher::dispatch (const juce::var& command, const juce::
             "ping",
             "get_project_state",
             "list_tracks",
+            "track.group.list",
+            "track_group_list",
             "get_recent_projects",
+            "get_audio_device_status",
             "get_midi_clip_notes",
             "get_midi_clip_data",
             "get_plugin_parameters",
             "project_health_check",
+            "project.audio_analysis_status",
+            "project.audio_analysis_cancel",
             "get_audio_device_types",
             "get_audio_devices",
             "get_wave_input_devices",
@@ -2065,6 +2222,154 @@ void CommandDispatcher::registerBuiltinCommands()
                                          : makeErrorReply ("Project service unavailable");
     });
 
+    handlers.emplace ("project.get_audio_settings", [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return projectAudioSettingsService != nullptr ? projectAudioSettingsService->handleGetAudioSettings (object, raw)
+                                                      : makeErrorReply ("Project audio settings service unavailable");
+    });
+
+    handlers.emplace ("project.set_audio_settings", [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return projectAudioSettingsService != nullptr ? projectAudioSettingsService->handleSetAudioSettings (object, raw)
+                                                      : makeErrorReply ("Project audio settings service unavailable");
+    });
+
+    handlers.emplace ("project.validate_audio_settings_change", [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return projectAudioSettingsService != nullptr ? projectAudioSettingsService->handleValidateAudioSettingsChange (object, raw)
+                                                      : makeErrorReply ("Project audio settings service unavailable");
+    });
+
+    handlers.emplace ("project.import_preflight", [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return projectAudioSettingsService != nullptr ? projectAudioSettingsService->handleImportPreflight (object, raw)
+                                                      : makeErrorReply ("Project audio settings service unavailable");
+    });
+
+    handlers.emplace ("media.inspect_files", [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return projectAudioSettingsService != nullptr ? projectAudioSettingsService->handleInspectFiles (object, raw)
+                                                      : makeErrorReply ("Project audio settings service unavailable");
+    });
+
+    auto listProjectMarkersHandler = [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return projectMarkerService != nullptr ? projectMarkerService->handleListMarkers (object, raw)
+                                               : makeErrorReply ("Project marker service unavailable");
+    };
+    handlers.emplace ("project.markers.list", listProjectMarkersHandler);
+    handlers.emplace ("project_markers_list", listProjectMarkersHandler);
+
+    auto upsertProjectMarkerHandler = [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return projectMarkerService != nullptr ? projectMarkerService->handleUpsertMarker (object, raw)
+                                               : makeErrorReply ("Project marker service unavailable");
+    };
+    handlers.emplace ("project.markers.upsert", upsertProjectMarkerHandler);
+    handlers.emplace ("project_marker_upsert", upsertProjectMarkerHandler);
+
+    auto applySectionMarkersHandler = [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return projectMarkerService != nullptr ? projectMarkerService->handleApplySectionMarkers (object, raw)
+                                               : makeErrorReply ("Project marker service unavailable");
+    };
+    handlers.emplace ("project.markers.apply_section_markers", applySectionMarkersHandler);
+    handlers.emplace ("project_apply_section_markers", applySectionMarkersHandler);
+
+    auto renameProjectMarkerHandler = [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return projectMarkerService != nullptr ? projectMarkerService->handleRenameMarker (object, raw)
+                                               : makeErrorReply ("Project marker service unavailable");
+    };
+    handlers.emplace ("project.markers.rename", renameProjectMarkerHandler);
+    handlers.emplace ("project_marker_rename", renameProjectMarkerHandler);
+
+    auto deleteProjectMarkerHandler = [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return projectMarkerService != nullptr ? projectMarkerService->handleDeleteMarker (object, raw)
+                                               : makeErrorReply ("Project marker service unavailable");
+    };
+    handlers.emplace ("project.markers.delete", deleteProjectMarkerHandler);
+    handlers.emplace ("project_marker_delete", deleteProjectMarkerHandler);
+
+    auto listTrackGroupsHandler = [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return trackGroupService != nullptr ? trackGroupService->handleListGroups (object, raw)
+                                            : makeErrorReply ("Track group service unavailable");
+    };
+    handlers.emplace ("track.group.list", listTrackGroupsHandler);
+    handlers.emplace ("track_group_list", listTrackGroupsHandler);
+
+    auto createTrackGroupHandler = [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return trackGroupService != nullptr ? trackGroupService->handleCreateGroup (object, raw)
+                                            : makeErrorReply ("Track group service unavailable");
+    };
+    handlers.emplace ("track.group.create", createTrackGroupHandler);
+    handlers.emplace ("track_group_create", createTrackGroupHandler);
+
+    auto updateTrackGroupHandler = [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return trackGroupService != nullptr ? trackGroupService->handleUpdateGroup (object, raw)
+                                            : makeErrorReply ("Track group service unavailable");
+    };
+    handlers.emplace ("track.group.update", updateTrackGroupHandler);
+    handlers.emplace ("track_group_update", updateTrackGroupHandler);
+
+    auto setTrackGroupMembersHandler = [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return trackGroupService != nullptr ? trackGroupService->handleSetGroupMembers (object, raw)
+                                            : makeErrorReply ("Track group service unavailable");
+    };
+    handlers.emplace ("track.group.set_members", setTrackGroupMembersHandler);
+    handlers.emplace ("track_group_set_members", setTrackGroupMembersHandler);
+
+    auto deleteTrackGroupHandler = [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return trackGroupService != nullptr ? trackGroupService->handleDeleteGroup (object, raw)
+                                            : makeErrorReply ("Track group service unavailable");
+    };
+    handlers.emplace ("track.group.delete", deleteTrackGroupHandler);
+    handlers.emplace ("track_group_delete", deleteTrackGroupHandler);
+
+    auto applyTrackGroupControlHandler = [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return trackGroupService != nullptr ? trackGroupService->handleApplyGroupControl (object, raw)
+                                            : makeErrorReply ("Track group service unavailable");
+    };
+    handlers.emplace ("track.group.apply_control", applyTrackGroupControlHandler);
+    handlers.emplace ("track_group_apply_control", applyTrackGroupControlHandler);
+
+    handlers.emplace ("project.import_folder_as_stems", [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return importService != nullptr ? importService->handleImportFolderAsStems (object, raw)
+                                        : makeErrorReply ("Import service unavailable");
+    });
+
+    handlers.emplace ("project.import_audio_files", [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return importService != nullptr ? importService->handleImportFolderAsStems (object, raw)
+                                        : makeErrorReply ("Import service unavailable");
+    });
+
+    handlers.emplace ("project.audio_analysis_start", [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return importService != nullptr ? importService->handleAudioAnalysisStart (object, raw)
+                                        : makeErrorReply ("Import service unavailable");
+    });
+
+    handlers.emplace ("project.audio_analysis_status", [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return importService != nullptr ? importService->handleAudioAnalysisStatus (object, raw)
+                                        : makeErrorReply ("Import service unavailable");
+    });
+
+    handlers.emplace ("project.audio_analysis_cancel", [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return importService != nullptr ? importService->handleAudioAnalysisCancel (object, raw)
+                                        : makeErrorReply ("Import service unavailable");
+    });
+
     handlers.emplace ("open_project", [this] (const juce::DynamicObject& object, const juce::String& raw)
     {
         return projectService != nullptr ? projectService->handleOpenProject (object, raw)
@@ -2081,6 +2386,13 @@ void CommandDispatcher::registerBuiltinCommands()
     {
         return handleGetProjectState (object, raw);
     });
+
+    auto snapshotExportHandler = [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return handleProjectSnapshotExport (object, raw);
+    };
+    handlers.emplace ("project.snapshot_export", snapshotExportHandler);
+    handlers.emplace ("project_snapshot_export", snapshotExportHandler);
 
     handlers.emplace ("set_tempo", [this] (const juce::DynamicObject& object, const juce::String& raw)
     {
@@ -2104,6 +2416,38 @@ void CommandDispatcher::registerBuiltinCommands()
         return trackService != nullptr ? trackService->handleAddTrack (object, raw)
                                        : makeErrorReply ("Track service unavailable");
     });
+
+    auto createFolderTrackHandler = [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return trackService != nullptr ? trackService->handleCreateFolderTrack (object, raw)
+                                       : makeErrorReply ("Track service unavailable");
+    };
+    handlers.emplace ("folder_track.create", createFolderTrackHandler);
+    handlers.emplace ("create_folder_track", createFolderTrackHandler);
+
+    auto moveTrackToFolderHandler = [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return trackService != nullptr ? trackService->handleMoveTrackToFolder (object, raw)
+                                       : makeErrorReply ("Track service unavailable");
+    };
+    handlers.emplace ("track.move_to_folder", moveTrackToFolderHandler);
+    handlers.emplace ("move_track_to_folder", moveTrackToFolderHandler);
+
+    auto setFolderRoutingBusHandler = [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return trackService != nullptr ? trackService->handleSetFolderRoutingBus (object, raw)
+                                       : makeErrorReply ("Track service unavailable");
+    };
+    handlers.emplace ("folder_track.set_routing_bus_enabled", setFolderRoutingBusHandler);
+    handlers.emplace ("set_folder_routing_bus", setFolderRoutingBusHandler);
+
+    auto applyTrackOrganizationHandler = [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return trackService != nullptr ? trackService->handleApplyTrackOrganization (object, raw)
+                                       : makeErrorReply ("Track service unavailable");
+    };
+    handlers.emplace ("project.apply_track_organization", applyTrackOrganizationHandler);
+    handlers.emplace ("apply_track_organization", applyTrackOrganizationHandler);
 
     handlers.emplace ("delete_track", [this] (const juce::DynamicObject& object, const juce::String& raw)
     {
@@ -2199,6 +2543,69 @@ void CommandDispatcher::registerBuiltinCommands()
                                       : makeErrorReply ("Clip service unavailable");
     });
 
+    auto setClipFadeHandler = [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return clipService != nullptr ? clipService->handleSetClipFade (object, raw)
+                                      : makeErrorReply ("Clip service unavailable");
+    };
+    handlers.emplace ("clip.fade.set", setClipFadeHandler);
+    handlers.emplace ("clip_fade_set", setClipFadeHandler);
+    handlers.emplace ("set_clip_fade", setClipFadeHandler);
+
+    auto readClipFadeHandler = [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return clipService != nullptr ? clipService->handleReadClipFade (object, raw)
+                                      : makeErrorReply ("Clip service unavailable");
+    };
+    handlers.emplace ("clip.fade.read", readClipFadeHandler);
+    handlers.emplace ("clip_fade_read", readClipFadeHandler);
+    handlers.emplace ("read_clip_fade", readClipFadeHandler);
+
+    auto setClipGainHandler = [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return clipService != nullptr ? clipService->handleSetClipGain (object, raw)
+                                      : makeErrorReply ("Clip service unavailable");
+    };
+    handlers.emplace ("clip.gain.set", setClipGainHandler);
+    handlers.emplace ("clip_gain_set", setClipGainHandler);
+    handlers.emplace ("set_clip_gain", setClipGainHandler);
+
+    auto setClipGainBatchHandler = [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return clipService != nullptr ? clipService->handleSetClipGainBatch (object, raw)
+                                      : makeErrorReply ("Clip service unavailable");
+    };
+    handlers.emplace ("clip.gain.set_batch", setClipGainBatchHandler);
+    handlers.emplace ("clip_gain_set_batch", setClipGainBatchHandler);
+    handlers.emplace ("set_clip_gain_batch", setClipGainBatchHandler);
+
+    auto readClipGainHandler = [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return clipService != nullptr ? clipService->handleReadClipGain (object, raw)
+                                      : makeErrorReply ("Clip service unavailable");
+    };
+    handlers.emplace ("clip.gain.read", readClipGainHandler);
+    handlers.emplace ("clip_gain_read", readClipGainHandler);
+    handlers.emplace ("read_clip_gain", readClipGainHandler);
+
+    auto analyzeStripSilenceHandler = [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return clipService != nullptr ? clipService->handleAnalyzeStripSilence (object, raw)
+                                      : makeErrorReply ("Clip service unavailable");
+    };
+    handlers.emplace ("clip.strip_silence.analyze", analyzeStripSilenceHandler);
+    handlers.emplace ("strip_silence_analyze", analyzeStripSilenceHandler);
+    handlers.emplace ("analyze_strip_silence", analyzeStripSilenceHandler);
+
+    auto applyStripSilenceHandler = [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return clipService != nullptr ? clipService->handleApplyStripSilence (object, raw)
+                                      : makeErrorReply ("Clip service unavailable");
+    };
+    handlers.emplace ("clip.strip_silence.apply", applyStripSilenceHandler);
+    handlers.emplace ("strip_silence_apply", applyStripSilenceHandler);
+    handlers.emplace ("apply_strip_silence", applyStripSilenceHandler);
+
     handlers.emplace ("import_audio", [this] (const juce::DynamicObject& object, const juce::String& raw)
     {
         return importService != nullptr ? importService->handleImportAudio (object, raw)
@@ -2240,11 +2647,27 @@ void CommandDispatcher::registerBuiltinCommands()
         return trackService != nullptr ? trackService->handleSetVolume (object, raw)
                                        : makeErrorReply ("Track service unavailable");
     });
+    auto setVolumeBatchHandler = [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return trackService != nullptr ? trackService->handleSetVolumeBatch (object, raw)
+                                       : makeErrorReply ("Track service unavailable");
+    };
+    handlers.emplace ("track.volume.set_batch", setVolumeBatchHandler);
+    handlers.emplace ("track_volume_set_batch", setVolumeBatchHandler);
+    handlers.emplace ("set_volume_batch", setVolumeBatchHandler);
     handlers.emplace ("set_pan", [this] (const juce::DynamicObject& object, const juce::String& raw)
     {
         return trackService != nullptr ? trackService->handleSetPan (object, raw)
                                        : makeErrorReply ("Track service unavailable");
     });
+    auto setPanBatchHandler = [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return trackService != nullptr ? trackService->handleSetPanBatch (object, raw)
+                                       : makeErrorReply ("Track service unavailable");
+    };
+    handlers.emplace ("track.pan.set_batch", setPanBatchHandler);
+    handlers.emplace ("track_pan_set_batch", setPanBatchHandler);
+    handlers.emplace ("set_pan_batch", setPanBatchHandler);
 
     handlers.emplace ("set_mute", [this] (const juce::DynamicObject& object, const juce::String& raw)
     {
@@ -2416,6 +2839,12 @@ void CommandDispatcher::registerBuiltinCommands()
     handlers.emplace ("get_audio_device_types", [this] (const juce::DynamicObject& object, const juce::String& raw)
     {
         return transportAudioService != nullptr ? transportAudioService->handleGetAudioDeviceTypes (object, raw)
+                                             : makeErrorReply ("Transport/audio service unavailable");
+    });
+
+    handlers.emplace ("get_audio_device_status", [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return transportAudioService != nullptr ? transportAudioService->handleGetAudioDeviceStatus (object, raw)
                                              : makeErrorReply ("Transport/audio service unavailable");
     });
 
@@ -2680,6 +3109,8 @@ juce::String CommandDispatcher::handleGetProjectState (const juce::DynamicObject
     if (edit == nullptr)
         return makeErrorReply ("No active project");
 
+    ProjectAudioSettingsService::ensureDefaultAudioSettings (*edit, "get_project_state");
+
     if (ensureTrackRackGraphForEdit (*edit))
     {
         edit->dispatchPendingUpdatesSynchronously();
@@ -2711,6 +3142,7 @@ juce::String CommandDispatcher::handleGetProjectState (const juce::DynamicObject
         row->setProperty ("track_type", getTrackKind (*track));
         row->setProperty ("is_audio_track", track->isAudioTrack());
         row->setProperty ("is_audio", track->isAudioTrack());
+        appendTrackTreeState (*row, *track);
         row->setProperty ("plugins", juce::var (createProjectStatePluginsArray (*track)));
         row->setProperty ("clips", juce::var (createProjectStateClipsArray (*track)));
         row->setProperty ("rack", createRackState (*track, requestScope));
@@ -2767,8 +3199,27 @@ juce::String CommandDispatcher::handleGetProjectState (const juce::DynamicObject
 
     response->setProperty ("status", "ok");
     response->setProperty ("project_path", projectPath);
+    const auto projectUUID = edit->state.getProperty ("vit_project_uuid").toString().trim();
+    response->setProperty ("project_uuid", projectUUID);
+    response->setProperty ("project_id", projectUUID);
+    response->setProperty ("parent_project_uuid", edit->state.getProperty ("vit_project_parent_uuid").toString().trim());
+    response->setProperty ("agent_history_generation", edit->state.getProperty ("vit_agent_history_generation").toString().trim());
+    const auto embeddedAnalysisManifest = juce::JSON::parse (edit->state.getProperty ("vit_analysis_manifest_json").toString());
+    if (! embeddedAnalysisManifest.isVoid())
+        response->setProperty ("analysis_manifest", embeddedAnalysisManifest);
     response->setProperty ("scope", requestScope);
+    if (projectAudioSettingsService != nullptr)
+    {
+        const auto settingsReply = juce::JSON::parse (projectAudioSettingsService->handleGetAudioSettings (object, {}));
+        if (auto* settingsObject = settingsReply.getDynamicObject())
+            response->setProperty ("audio_settings", settingsObject->getProperty ("audio_settings"));
+    }
     response->setProperty ("tracks", juce::var (tracksArray));
+    response->setProperty ("markers", ProjectMarkerService::createMarkersSnapshot (*edit));
+    const auto trackGroups = TrackGroupService::createGroupsSnapshot (*edit);
+    response->setProperty ("track_groups", trackGroups);
+    response->setProperty ("groups", trackGroups);
+    response->setProperty ("track_group_count", trackGroups.getArray() != nullptr ? trackGroups.getArray()->size() : 0);
     response->setProperty ("control_graph", createControlGraphState (*edit));
     response->setProperty ("node_registry", VitNodeRegistry::createSnapshot (effectiveProjectFile));
     response->setProperty ("connector_profiles", juce::var (VitConnectorPluginSpec::snapshotProfiles (effectiveProjectFile)));
@@ -2827,6 +3278,41 @@ juce::String CommandDispatcher::handleProjectHealthCheck (const juce::DynamicObj
     response->setProperty ("observability", VitGraphTrace::createObservabilitySnapshot (projectFile, *edit));
     response->setProperty ("project_health", VitProjectHealthCheck::createReport (projectFile, *edit));
     response->setProperty ("export_policy", VitProjectHealthCheck::createExportPolicy (projectFile, *edit));
+    appendGraphRevisionProperties (*response, *edit);
+    return juce::JSON::toString (juce::var (response.release()));
+}
+
+juce::String CommandDispatcher::handleProjectSnapshotExport (const juce::DynamicObject&, const juce::String&) const
+{
+    auto* edit = getEdit != nullptr ? getEdit() : nullptr;
+
+    if (edit == nullptr)
+        return makeErrorReply ("No active edit loaded");
+
+    for (auto* track : te::getAllTracks (*edit))
+        if (track != nullptr)
+            track->flushStateToValueTree();
+
+    auto xml = edit->state.createXml();
+    if (xml == nullptr)
+        return makeErrorReply ("project.snapshot_export: failed to serialize edit state");
+
+    auto response = std::make_unique<juce::DynamicObject>();
+    response->setProperty ("status", "ok");
+    response->setProperty ("command", "project.snapshot_export");
+    response->setProperty ("snapshot_xml", xml->toString());
+    const auto projectUUID = edit->state.getProperty ("vit_project_uuid").toString().trim();
+    response->setProperty ("project_uuid", projectUUID);
+    response->setProperty ("project_id", projectUUID);
+    response->setProperty ("parent_project_uuid", edit->state.getProperty ("vit_project_parent_uuid").toString().trim());
+    response->setProperty ("agent_history_generation", edit->state.getProperty ("vit_agent_history_generation").toString().trim());
+    const auto embeddedAnalysisManifest = juce::JSON::parse (edit->state.getProperty ("vit_analysis_manifest_json").toString());
+    if (! embeddedAnalysisManifest.isVoid())
+        response->setProperty ("analysis_manifest", embeddedAnalysisManifest);
+
+    if (getCurrentProjectPath != nullptr)
+        response->setProperty ("project_path", getCurrentProjectPath());
+
     appendGraphRevisionProperties (*response, *edit);
     return juce::JSON::toString (juce::var (response.release()));
 }

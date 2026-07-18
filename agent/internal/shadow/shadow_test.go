@@ -2,6 +2,7 @@ package shadow
 
 import (
 	"math"
+	"sync"
 	"testing"
 )
 
@@ -133,6 +134,83 @@ func TestSummaryHidesInternalTracktionTracks(t *testing.T) {
 	if got := profile["track_count"]; got != 1 {
 		t.Fatalf("observability profile track_count = %#v, want 1", got)
 	}
+}
+
+func TestSummaryTrackGroupAnnotationsDoNotMutateSnapshot(t *testing.T) {
+	p := New(nil)
+	p.Initialize(map[string]any{
+		"tracks": []any{
+			map[string]any{
+				"track_id":       "1007",
+				"track_name":     "Kick",
+				"track_type":     "hybrid",
+				"is_audio_track": true,
+			},
+		},
+		"track_groups": []any{
+			map[string]any{
+				"group_id":         "drums",
+				"name":             "Drums",
+				"member_track_ids": []any{"1007"},
+			},
+		},
+	})
+
+	summary := p.Summary()
+	track := summary["tracks"].([]map[string]any)[0]
+	if got := track["track_group_ids"].([]string); len(got) != 1 || got[0] != "drums" {
+		t.Fatalf("summary track groups = %#v, want drums", got)
+	}
+
+	snapshot := p.Snapshot()
+	engine := snapshot["engine_snapshot"].(map[string]any)
+	original := engine["tracks"].([]any)[0].(map[string]any)
+	if _, exists := original["track_group_ids"]; exists {
+		t.Fatalf("Summary mutated the shadow engine track: %+v", original)
+	}
+}
+
+func TestSummarySupportsConcurrentReaders(t *testing.T) {
+	p := New(nil)
+	tracks := make([]any, 0, 61)
+	memberIDs := make([]any, 0, 61)
+	for i := 0; i < 61; i++ {
+		id := string(rune('A' + i))
+		tracks = append(tracks, map[string]any{
+			"track_id":       id,
+			"track_name":     "Track " + id,
+			"track_type":     "hybrid",
+			"is_audio_track": true,
+			"pan":            float64(i) / 61,
+		})
+		memberIDs = append(memberIDs, id)
+	}
+	p.Initialize(map[string]any{
+		"tracks": tracks,
+		"track_groups": []any{
+			map[string]any{"group_id": "all", "name": "All", "member_track_ids": memberIDs},
+		},
+	})
+
+	const readers = 16
+	const iterations = 50
+	start := make(chan struct{})
+	var wg sync.WaitGroup
+	for i := 0; i < readers; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			<-start
+			for j := 0; j < iterations; j++ {
+				if got := p.Summary()["track_count"]; got != 61 {
+					t.Errorf("track_count = %#v, want 61", got)
+					return
+				}
+			}
+		}()
+	}
+	close(start)
+	wg.Wait()
 }
 
 func TestSummaryOverlaysTrackVolumePluginDelta(t *testing.T) {

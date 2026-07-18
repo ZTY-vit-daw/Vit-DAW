@@ -12,7 +12,7 @@ class ProjectService final
 public:
     using BoolAction = std::function<bool()>;
     using RecentProjectsReply = std::function<juce::String()>;
-    using NewBlankProjectReply = std::function<juce::String()>;
+    using NewBlankProjectReply = std::function<juce::String (const juce::DynamicObject&)>;
     using OpenProjectReply = std::function<juce::String (const juce::DynamicObject&, const juce::File&)>;
     using SaveProjectReply = std::function<juce::String (const juce::DynamicObject&)>;
     using SaveAsProjectReply = std::function<juce::String (const juce::DynamicObject&, const juce::File&)>;

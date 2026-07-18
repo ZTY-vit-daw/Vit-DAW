@@ -205,7 +205,21 @@ def resolve_l2_probe_target(req_socket: Any, material_path: Path, requested_trac
     track = first_audio_track(state, requested_track_id)
     track_id = str(track.get("track_id") or track.get("id") or requested_track_id).strip()
     if not track_id:
-        raise RuntimeError("l2_render_probe requires an audio track in the current project")
+        reply = send_command(req_socket, {"cmd": "add_audio_track", "name": "DAD Probe"})
+        if str(reply.get("status") or "").lower() != "ok":
+            raise RuntimeError("add_audio_track for l2_render_probe failed: " + json.dumps(reply, ensure_ascii=False))
+        track_id = str(reply.get("track_id") or reply.get("id") or "").strip()
+        if not track_id:
+            raise RuntimeError("add_audio_track for l2_render_probe did not return track_id: " + json.dumps(reply, ensure_ascii=False))
+        track = {"track_id": track_id, "clips": []}
+    elif requested_track_id and str(track.get("track_id") or track.get("id") or "").strip() != requested_track_id:
+        reply = send_command(req_socket, {"cmd": "add_audio_track", "name": "DAD Probe"})
+        if str(reply.get("status") or "").lower() != "ok":
+            raise RuntimeError("add_audio_track for requested l2_render_probe target failed: " + json.dumps(reply, ensure_ascii=False))
+        track_id = str(reply.get("track_id") or reply.get("id") or "").strip()
+        if not track_id:
+            raise RuntimeError("add_audio_track for requested l2_render_probe target did not return track_id: " + json.dumps(reply, ensure_ascii=False))
+        track = {"track_id": track_id, "clips": []}
     clip_id = first_clip_id(track)
     if not clip_id:
         reply = send_command(req_socket, {

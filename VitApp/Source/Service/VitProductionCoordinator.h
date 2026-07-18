@@ -34,6 +34,9 @@ public:
         double analyzedStartSeconds = 0.0;
         double analyzedEndSeconds = 0.0;
         double tailSeconds = 0.25;
+        double analysisBandLowHz = 0.0;
+        double analysisBandHighHz = 0.0;
+        juce::String analysisBandId;
         bool deterministic = true;
         bool latencyCompensated = true;
         bool tailCaptured = true;

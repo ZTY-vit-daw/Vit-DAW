@@ -7,13 +7,18 @@ import (
 
 func TestPendingCandidateSerializesStableKindAndStatus(t *testing.T) {
 	pending := PendingCandidate{
-		ID:            "pending_1",
-		Kind:          KindPendingCandidate,
-		Domain:        "mix",
-		CandidateType: "mix_treatment",
-		TargetRef:     "track:bass",
-		Status:        PendingStatusWaitingUser,
-		Source:        Source{ConversationID: "chat_1", LegacySchema: "mix_treatment_pending.v0"},
+		ID:              "pending_1",
+		Kind:            KindPendingCandidate,
+		Domain:          "mix",
+		CandidateType:   "mix_treatment",
+		TargetRef:       "track:bass",
+		ActionKind:      "plugin_treatment",
+		ProcessorType:   "eq",
+		EvidenceRefs:    []string{"observation:obs_1"},
+		NeedsResolution: []string{"plugin_profile"},
+		Confidence:      "medium",
+		Status:          PendingStatusWaitingUser,
+		Source:          Source{ConversationID: "chat_1", LegacySchema: "mix_treatment_pending.v0"},
 	}
 	raw, err := json.Marshal(pending)
 	if err != nil {
@@ -25,6 +30,12 @@ func TestPendingCandidateSerializesStableKindAndStatus(t *testing.T) {
 	}
 	if decoded.Kind != KindPendingCandidate || decoded.Status != PendingStatusWaitingUser || decoded.Source.LegacySchema == "" {
 		t.Fatalf("decoded pending = %+v", decoded)
+	}
+	if decoded.ActionKind != "plugin_treatment" || decoded.ProcessorType != "eq" || decoded.Confidence != "medium" {
+		t.Fatalf("decoded workflow fields = %+v", decoded)
+	}
+	if len(decoded.EvidenceRefs) != 1 || decoded.EvidenceRefs[0] != "observation:obs_1" || len(decoded.NeedsResolution) != 1 {
+		t.Fatalf("decoded refs/needs = %+v", decoded)
 	}
 	event := NewEvent(decoded, decoded.Source)
 	if event.EventType != KindPendingCandidate || event.StateKind != KindPendingCandidate || event.StateID != "pending_1" {
