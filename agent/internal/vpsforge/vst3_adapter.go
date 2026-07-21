@@ -2,6 +2,8 @@ package vpsforge
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -10,8 +12,6 @@ import (
 	"strings"
 	"sync"
 	"time"
-
-	"vit-daw-agent/internal/vps"
 	"vit-daw-agent/internal/vst3host"
 )
 
@@ -281,14 +281,14 @@ func NormalizeVST3WorkerSnapshot(raw json.RawMessage, logs []string) (HostSnapsh
 	if strings.TrimSpace(source.Identity.Name) == "" || len(source.Parameters) == 0 {
 		return HostSnapshot{}, fmt.Errorf("native snapshot has no plugin name or parameters")
 	}
-	identity := vps.PluginIdentity{
+	identity := PluginIdentity{
 		Manufacturer: source.Identity.Manufacturer,
 		Name:         source.Identity.Name,
 		Format:       strings.ToUpper(firstNonEmpty(source.Identity.Format, "VST3")),
 		Version:      source.Identity.Version,
 		InstallPath:  source.Identity.InstallPath,
 	}
-	descriptors := make([]vps.ParameterSurfaceDescriptor, 0, len(source.Parameters))
+	descriptors := make([]parameterSurfaceDescriptor, 0, len(source.Parameters))
 	parameters := make([]SurfaceParameter, 0, len(source.Parameters))
 	allStableIDs := true
 	for _, parameter := range source.Parameters {
@@ -308,7 +308,7 @@ func NormalizeVST3WorkerSnapshot(raw json.RawMessage, logs []string) (HostSnapsh
 			kind = "enum"
 		}
 		allStableIDs = allStableIDs && parameter.StableID
-		descriptors = append(descriptors, vps.ParameterSurfaceDescriptor{
+		descriptors = append(descriptors, parameterSurfaceDescriptor{
 			ID: parameter.ID, Type: kind, Min: &minimum, Max: &maximum,
 			EnumValues: parameter.DisplayChoices, DisplayDomain: "normalized_to_host_display", Unit: parameter.Unit, Scale: "normalized",
 		})
@@ -324,7 +324,7 @@ func NormalizeVST3WorkerSnapshot(raw json.RawMessage, logs []string) (HostSnapsh
 			Automation:             parameter.Automation,
 			IDProvenance:           parameter.IDProvenance,
 			StableID:               parameter.StableID,
-			DisplayDomain:          vps.DisplayDomain{Text: parameter.Display, Unit: parameter.Unit, Min: &minimum, Max: &maximum, Scale: "normalized"},
+			DisplayDomain:          DisplayDomain{Text: parameter.Display, Unit: parameter.Unit, Min: &minimum, Max: &maximum, Scale: "normalized"},
 			Observed: map[string]any{
 				"is_discrete": parameter.Discrete, "is_boolean": parameter.Boolean, "is_meta": parameter.Meta,
 				"num_steps": parameter.NumSteps, "category": parameter.Category, "display_choices": parameter.DisplayChoices,
@@ -332,7 +332,7 @@ func NormalizeVST3WorkerSnapshot(raw json.RawMessage, logs []string) (HostSnapsh
 		})
 	}
 	if allStableIDs && strings.TrimSpace(source.Identity.FileFingerprint) != "" {
-		if fingerprint, err := vps.BuildPluginFingerprint(source.Identity.FileFingerprint, descriptors); err == nil {
+		if fingerprint, err := buildPluginFingerprint(source.Identity.FileFingerprint, descriptors); err == nil {
 			identity.Fingerprint = fingerprint
 		}
 	}
@@ -379,4 +379,27 @@ func boundedHostLogs(values []string) []string {
 		}
 	}
 	return out
+}
+
+type parameterSurfaceDescriptor struct {
+	ID            string   `json:"id"`
+	Type          string   `json:"type"`
+	Min           *float64 `json:"min,omitempty"`
+	Max           *float64 `json:"max,omitempty"`
+	EnumValues    []string `json:"enum_values,omitempty"`
+	DisplayDomain string   `json:"display_domain,omitempty"`
+	Unit          string   `json:"unit,omitempty"`
+	Scale         string   `json:"scale,omitempty"`
+}
+
+func buildPluginFingerprint(installation string, descriptors []parameterSurfaceDescriptor) (PluginFingerprint, error) {
+	if strings.TrimSpace(installation) == "" {
+		return PluginFingerprint{}, fmt.Errorf("installation fingerprint is required")
+	}
+	raw, err := json.Marshal(descriptors)
+	if err != nil {
+		return PluginFingerprint{}, err
+	}
+	sum := sha256.Sum256(raw)
+	return PluginFingerprint{Installation: installation, ParameterSurface: "sha256:" + hex.EncodeToString(sum[:])}, nil
 }

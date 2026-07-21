@@ -116,11 +116,91 @@ def prepare_fixture(base_url: str, project_path: Path, audio_path: Path, timeout
     return {"project_path": str(project_path), "created": created, "track_count": len(state.get("tracks", []))}
 
 
+def request_project_l3_preflight(base_url: str, timeout: float) -> dict[str, Any]:
+    response = request_json(
+        "POST",
+        base_url.rstrip("/") + "/agent/invoke",
+        {
+            "tool": "mix.observe",
+            "confirmed": True,
+            "source": "b3_pan_layout_agent_smoke.fixture_l3_preflight",
+            "args": {
+                "scope": "full_project",
+                "project_context": True,
+                "observation_only": True,
+                "observation_ready_gate": True,
+                "disclosure": "digest_catalog",
+                "mom_intent": "action_preflight_observation",
+                "mix_session_id": "b3_pan_layout_fixture_l3_preflight",
+                "goal_text": "Prepare isolated B3 fixture L3 stereo evidence",
+            },
+        },
+        timeout,
+    )
+    result = result_map(response)
+    return {
+        "status": response.get("status"),
+        "result_status": result.get("status"),
+        "reason": result.get("reason"),
+        "missing_required_features": result.get("missing_required_features"),
+    }
+
+
+def wait_mom_relationships(base_url: str, timeout: float) -> dict[str, Any]:
+    deadline = time.monotonic() + timeout
+    latest: dict[str, Any] = {}
+    while time.monotonic() < deadline:
+        latest = invoke_tool(
+            base_url,
+            "mix.observe",
+            {
+                "scope": "full_project",
+                "project_context": True,
+                "observation_only": True,
+                "disclosure": "digest_catalog",
+                "mom_intent": "project_multitrack_relation_observation",
+                "mix_session_id": "b3_pan_layout_fixture_readiness",
+                "goal_text": "B3 fixture relationship readiness",
+            },
+            timeout,
+        )
+        result = result_map(latest)
+        projection = result.get("mom_projection") if isinstance(result.get("mom_projection"), dict) else {}
+        relation = (
+            projection.get("multitrack_relation")
+            if isinstance(projection.get("multitrack_relation"), dict)
+            else {}
+        )
+        stereo = relation.get("stereo_distribution") if isinstance(relation.get("stereo_distribution"), dict) else {}
+        relation_status = str(relation.get("status", "")).strip().lower()
+        stereo_status = str(stereo.get("status", "")).strip().lower()
+        if (
+            str(result.get("observation_id", "")).strip()
+            and projection
+            and relation_status == "ready"
+            and stereo_status == "ready"
+        ):
+            return {
+                "observation_id": result.get("observation_id"),
+                "multitrack_relation_status": relation_status,
+                "stereo_distribution_status": stereo_status,
+                "track_count": relation.get("track_count"),
+                "missing_track_count": relation.get("missing_track_count"),
+            }
+        time.sleep(0.5)
+    raise RuntimeError(
+        "B3 fixture MOM stereo relationships did not become ready: "
+        + json.dumps(result_map(latest), ensure_ascii=False)[:4000]
+    )
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--repo-root", default=str(Path(__file__).resolve().parents[1]))
     parser.add_argument("--agent-http", default="http://127.0.0.1:7878")
     parser.add_argument("--timeout-sec", type=float, default=240.0)
+    parser.add_argument("--dad-timeout-sec", type=float, default=240.0)
+    parser.add_argument("--prepare-stems-folder", default="")
     parser.add_argument("--skip-fixture", action="store_true")
     args = parser.parse_args()
 
@@ -131,7 +211,25 @@ def main() -> int:
 
     health = wait_agent(args.agent_http, args.timeout_sec)
     fixture = None
-    if not args.skip_fixture:
+    if args.prepare_stems_folder:
+        stems_folder = Path(args.prepare_stems_folder).resolve()
+        if not stems_folder.is_dir():
+            raise RuntimeError(f"fixture stems folder not found: {stems_folder}")
+        from b2_static_balance_agent_smoke import prepare_stems_fixture
+
+        project_path = artifact_dir / "fixture_project.vit"
+        fixture = prepare_stems_fixture(
+            args.agent_http,
+            stems_folder,
+            project_path,
+            args.timeout_sec,
+            args.dad_timeout_sec,
+        )
+        fixture["project_path"] = str(project_path)
+        fixture["stems_folder"] = str(stems_folder)
+        fixture["l3_preflight"] = request_project_l3_preflight(args.agent_http, args.timeout_sec)
+        fixture["mom_readiness"] = wait_mom_relationships(args.agent_http, args.timeout_sec)
+    elif not args.skip_fixture:
         audio_path = repo / "test_target_3s.wav"
         if not audio_path.is_file():
             raise RuntimeError(f"fixture audio not found: {audio_path}")
@@ -154,46 +252,82 @@ def main() -> int:
     )
 
     preflight_tools = execution_tools(pending)
-    required_preflight = {"mix.observe", "project.state"}
-    missing_preflight = sorted(required_preflight.difference(preflight_tools))
-    forbidden_preflight = sorted(
-        {"mix.apply_pan_layout_batch", "mix.apply_tick", "track.pan", "clip.gain.set"}.intersection(preflight_tools)
-    )
     workflow_data = pending.get("workflow_data") if isinstance(pending.get("workflow_data"), dict) else {}
-    actions = workflow_data.get("actions") if isinstance(workflow_data.get("actions"), list) else []
+    presentation = (
+        workflow_data.get("proposal_presentation")
+        if isinstance(workflow_data.get("proposal_presentation"), dict)
+        else {}
+    )
+    actions = presentation.get("actions") if isinstance(presentation.get("actions"), list) else workflow_data.get("actions")
+    if not isinstance(actions, list):
+        actions = []
+    interaction_kinds = [
+        str(row.get("kind", ""))
+        for row in pending.get("interaction_requests", [])
+        if isinstance(row, dict)
+    ]
     interaction = next(
         (
             row
             for row in pending.get("interaction_requests", [])
-            if isinstance(row, dict) and str(row.get("kind", "")) == "pan_layout_confirmation"
+            if isinstance(row, dict)
+            and str(row.get("kind", "")) in {"proposal_approval", "pan_layout_confirmation"}
         ),
         None,
+    )
+    current_runtime = str(pending.get("workflow", "")) == "capability_runtime_v1"
+    evidence_refs = {str(value) for value in presentation.get("evidence_refs", [])}
+    required_evidence = {"mix.observe", "project.state"}
+    legacy_required_preflight = {"mix.observe", "project.state"}
+    missing_preflight = sorted(legacy_required_preflight.difference(preflight_tools)) if not current_runtime else []
+    forbidden_preflight = sorted(
+        {"mix.apply_pan_layout_batch", "mix.apply_tick", "track.pan", "clip.gain.set"}.intersection(preflight_tools)
+    )
+    runtime_binding_ok = (
+        str(workflow_data.get("canary_stage", "")) == "proposal"
+        and str(workflow_data.get("capability_id", "")) == "static_mix.pan_layout.v0"
+        and str(workflow_data.get("proposal_id", "")).strip()
+        and int(workflow_data.get("proposal_revision", 0) or 0) > 0
+        and str(workflow_data.get("action_set_hash", "")).strip()
+        and required_evidence.issubset(evidence_refs)
+    )
+    legacy_binding_ok = (
+        str(pending.get("workflow", "")) == "pan_layout"
+        and str(pending.get("stop_reason", "")) == "needs_confirmation"
+        and "pan_layout_confirmation" in interaction_kinds
+        and not missing_preflight
     )
     after_pending = track_pans(args.agent_http, args.timeout_sec)
     changed_before_confirmation = [
         track_id for track_id, value in before.items() if abs(after_pending.get(track_id, value) - value) > 0.001
     ]
-    if (
-        pending.get("needs_confirmation") is not True
-        or str(pending.get("workflow", "")) != "pan_layout"
-        or str(pending.get("stop_reason", "")) != "needs_confirmation"
-        or not isinstance(interaction, dict)
-        or not actions
-        or missing_preflight
-        or forbidden_preflight
-        or changed_before_confirmation
-    ):
+    pending_ok = (
+        pending.get("needs_confirmation") is True
+        and isinstance(interaction, dict)
+        and len(actions) > 0
+        and not forbidden_preflight
+        and not changed_before_confirmation
+        and (runtime_binding_ok if current_runtime else legacy_binding_ok)
+    )
+    if not pending_ok:
         raise RuntimeError(
-            "B3 did not produce a read-only complete pending plan: "
+            "B3 did not produce a read-only governed pending pan-layout proposal: "
             + json.dumps(
                 {
                     "workflow": pending.get("workflow"),
                     "stop_reason": pending.get("stop_reason"),
                     "needs_confirmation": pending.get("needs_confirmation"),
+                    "canary_stage": workflow_data.get("canary_stage"),
+                    "capability_id": workflow_data.get("capability_id"),
+                    "proposal_id": workflow_data.get("proposal_id"),
+                    "proposal_revision": workflow_data.get("proposal_revision"),
+                    "action_set_hash": workflow_data.get("action_set_hash"),
                     "action_count": len(actions),
+                    "interaction_kinds": interaction_kinds,
                     "preflight_tools": preflight_tools,
                     "missing_preflight": missing_preflight,
                     "forbidden_preflight": forbidden_preflight,
+                    "evidence_refs": sorted(evidence_refs),
                     "changed_before_confirmation": changed_before_confirmation,
                     "reply": pending.get("reply"),
                 },
@@ -216,22 +350,51 @@ def main() -> int:
         json.dumps(decision, ensure_ascii=False, indent=2), encoding="utf-8"
     )
     decision_tools = execution_tools(decision)
-    expected_tools = ["mix.apply_pan_layout_batch", "project.state", "mix.observe"]
-    if decision_tools != expected_tools or str(decision.get("stop_reason", "")) != "pan_layout_applied_verified":
+    decision_workflow = decision.get("workflow_data") if isinstance(decision.get("workflow_data"), dict) else {}
+    if current_runtime:
+        verification_result = decision_workflow.get("verification_result")
+        verification_status = (
+            str(verification_result.get("status", ""))
+            if isinstance(verification_result, dict)
+            else str(verification_result or "")
+        )
+        execution_ok = (
+            str(decision.get("workflow", "")) == "capability_runtime_v1"
+            and str(decision_workflow.get("canary_stage", "")) == "executed_verified"
+            and verification_status == "pass"
+            and int(decision_workflow.get("receipt_count", 0) or 0) > 0
+            and str(decision.get("goal_status", "")) == "completed"
+        )
+    else:
+        execution_ok = (
+            decision_tools == ["mix.apply_pan_layout_batch", "project.state", "mix.observe"]
+            and str(decision.get("stop_reason", "")) == "pan_layout_applied_verified"
+        )
+    if not execution_ok:
         raise RuntimeError(
-            "B3 approval did not use one batch plus two readbacks: "
+            "B3 approval did not complete through governed execution and verification: "
             + json.dumps(
-                {"tools": decision_tools, "stop_reason": decision.get("stop_reason"), "reply": decision.get("reply")},
+                {
+                    "workflow": decision.get("workflow"),
+                    "goal_status": decision.get("goal_status"),
+                    "canary_stage": decision_workflow.get("canary_stage"),
+                    "execution_status": decision_workflow.get("execution_status"),
+                    "verification_result": decision_workflow.get("verification_result"),
+                    "receipt_count": decision_workflow.get("receipt_count"),
+                    "tools": decision_tools,
+                    "stop_reason": decision.get("stop_reason"),
+                    "reply": decision.get("reply"),
+                },
                 ensure_ascii=False,
-            )[:3200]
+            )[:4000]
         )
 
     targets = {
-        str(row.get("track_id", "")): float(row.get("target_pan"))
+        str(row.get("track_id", "")): float(row.get("target", row.get("target_pan")))
         for row in actions
         if isinstance(row, dict)
         and str(row.get("track_id", "")).strip()
-        and isinstance(row.get("target_pan"), (int, float))
+        and isinstance(row.get("target", row.get("target_pan")), (int, float))
     }
     after = track_pans(args.agent_http, args.timeout_sec)
     mismatched = [
@@ -307,12 +470,16 @@ def main() -> int:
             )
 
     summary = {
-        "schema_version": "b3_pan_layout_agent_smoke.v1",
+        "schema_version": "b3_pan_layout_agent_smoke.v2",
         "status": "ok",
         "health": health,
         "fixture": fixture,
         "conversation_id": conversation_id,
         "preflight_tools": preflight_tools,
+        "workflow": pending.get("workflow"),
+        "capability_id": workflow_data.get("capability_id"),
+        "proposal_id": workflow_data.get("proposal_id"),
+        "proposal_revision": workflow_data.get("proposal_revision"),
         "action_count": len(actions),
         "changed_before_confirmation": changed_before_confirmation,
         "decision_tools": decision_tools,

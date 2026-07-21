@@ -1,3 +1,5 @@
+Status: superseded by ADR-AGENT-CLEANUP-0001
+
 # VPS v3 Foundation
 
 本文记录 ADR-SPAL-001 的第一阶段实现边界。它建立用户级 VPS Library、

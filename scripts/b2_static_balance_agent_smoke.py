@@ -182,10 +182,11 @@ def main() -> int:
     )
 
     tools = execution_tools(pending)
-    required_tools = {"mix.observe", "project.state", "project.audio_analysis_status"}
-    missing_tools = sorted(required_tools.difference(tools))
-    forbidden_tools = sorted({"project.audio_analysis_start", "project.audio_analysis_cancel"}.intersection(tools))
-    actions = ((pending.get("workflow_data") or {}).get("actions") or [])
+    workflow_data = pending.get("workflow_data") if isinstance(pending.get("workflow_data"), dict) else {}
+    presentation = workflow_data.get("proposal_presentation") if isinstance(workflow_data.get("proposal_presentation"), dict) else {}
+    actions = presentation.get("actions") if isinstance(presentation.get("actions"), list) else workflow_data.get("actions")
+    if not isinstance(actions, list):
+        actions = []
     interaction_kinds = [
         str(row.get("kind", ""))
         for row in pending.get("interaction_requests", [])
@@ -195,33 +196,55 @@ def main() -> int:
         (
             row
             for row in pending.get("interaction_requests", [])
-            if isinstance(row, dict) and str(row.get("kind", "")) == "static_balance_confirmation"
+            if isinstance(row, dict)
+            and str(row.get("kind", "")) in {"proposal_approval", "static_balance_confirmation"}
         ),
         None,
     )
-    pending_ok = (
-        pending.get("needs_confirmation") is True
-        and str(pending.get("workflow", "")) == "static_balance"
+    current_runtime = str(pending.get("workflow", "")) == "capability_runtime_v1"
+    evidence_refs = {str(value) for value in presentation.get("evidence_refs", [])}
+    required_evidence = {"mix.observe", "project.state"}
+    legacy_required_tools = {"mix.observe", "project.state", "project.audio_analysis_status"}
+    missing_tools = sorted(legacy_required_tools.difference(tools)) if not current_runtime else []
+    forbidden_tools = sorted({"project.audio_analysis_start", "project.audio_analysis_cancel"}.intersection(tools))
+    runtime_binding_ok = (
+        str(workflow_data.get("canary_stage", "")) == "proposal"
+        and str(workflow_data.get("capability_id", "")) == "static_mix.static_balance.v0"
+        and str(workflow_data.get("proposal_id", "")).strip()
+        and int(workflow_data.get("proposal_revision", 0) or 0) > 0
+        and str(workflow_data.get("action_set_hash", "")).strip()
+        and required_evidence.issubset(evidence_refs)
+    )
+    legacy_binding_ok = (
+        str(pending.get("workflow", "")) == "static_balance"
         and str(pending.get("stop_reason", "")) == "needs_confirmation"
         and "static_balance_confirmation" in interaction_kinds
-        and isinstance(actions, list)
-        and len(actions) > 0
         and not missing_tools
+    )
+    pending_ok = (
+        pending.get("needs_confirmation") is True
+        and isinstance(static_balance_interaction, dict)
+        and len(actions) > 0
         and not forbidden_tools
+        and (runtime_binding_ok if current_runtime else legacy_binding_ok)
     )
     if not pending_ok:
         raise RuntimeError(
-            "B2 did not produce a complete pending static-balance plan: "
+            "B2 did not produce a complete governed pending static-balance proposal: "
             + json.dumps(
                 {
                     "needs_confirmation": pending.get("needs_confirmation"),
                     "workflow": pending.get("workflow"),
                     "stop_reason": pending.get("stop_reason"),
-                    "action_count": len(actions) if isinstance(actions, list) else -1,
+                    "canary_stage": workflow_data.get("canary_stage"),
+                    "capability_id": workflow_data.get("capability_id"),
+                    "proposal_id": workflow_data.get("proposal_id"),
+                    "action_count": len(actions),
                     "interaction_kinds": interaction_kinds,
                     "tools": tools,
                     "missing_tools": missing_tools,
                     "forbidden_tools": forbidden_tools,
+                    "evidence_refs": sorted(evidence_refs),
                     "reply": pending.get("reply"),
                 },
                 ensure_ascii=False,
@@ -260,16 +283,50 @@ def main() -> int:
         )
         decision_duration_seconds = time.monotonic() - started
         decision_tools = execution_tools(decision_response)
-        expected_tools = ["mix.apply_static_balance_batch", "project.state", "mix.observe"]
-        if decision_tools != expected_tools or str(decision_response.get("stop_reason", "")) != "static_balance_applied_verified":
+        decision_workflow = decision_response.get("workflow_data") if isinstance(decision_response.get("workflow_data"), dict) else {}
+        if current_runtime:
+            verification_result = decision_workflow.get("verification_result")
+            verification_status = (
+                str(verification_result.get("status", ""))
+                if isinstance(verification_result, dict)
+                else str(verification_result or "")
+            )
+            execution_ok = (
+                str(decision_response.get("workflow", "")) == "capability_runtime_v1"
+                and str(decision_workflow.get("canary_stage", "")) == "executed_verified"
+                and verification_status == "pass"
+                and int(decision_workflow.get("receipt_count", 0) or 0) > 0
+                and str(decision_response.get("goal_status", "")) == "completed"
+            )
+        else:
+            execution_ok = (
+                decision_tools == ["mix.apply_static_balance_batch", "project.state", "mix.observe"]
+                and str(decision_response.get("stop_reason", "")) == "static_balance_applied_verified"
+            )
+        if not execution_ok:
             raise RuntimeError(
-                "B2 approve did not complete through one batch and verification: "
-                + json.dumps({"tools": decision_tools, "stop_reason": decision_response.get("stop_reason"), "reply": decision_response.get("reply")}, ensure_ascii=False)[:3000]
+                "B2 approve did not complete through governed execution and verification: "
+                + json.dumps(
+                    {
+                        "workflow": decision_response.get("workflow"),
+                        "goal_status": decision_response.get("goal_status"),
+                        "canary_stage": decision_workflow.get("canary_stage"),
+                        "execution_status": decision_workflow.get("execution_status"),
+                        "verification_result": decision_workflow.get("verification_result"),
+                        "receipt_count": decision_workflow.get("receipt_count"),
+                        "tools": decision_tools,
+                        "stop_reason": decision_response.get("stop_reason"),
+                        "reply": decision_response.get("reply"),
+                    },
+                    ensure_ascii=False,
+                )[:4000]
             )
         targets = {
-            str(row.get("track_id", "")): float(row.get("target_db"))
+            str(row.get("track_id", "")): float(row.get("target", row.get("target_db")))
             for row in actions
-            if isinstance(row, dict) and str(row.get("track_id", "")).strip() and isinstance(row.get("target_db"), (int, float))
+            if isinstance(row, dict)
+            and str(row.get("track_id", "")).strip()
+            and isinstance(row.get("target", row.get("target_db")), (int, float))
         }
         after_volumes = track_volumes(args.agent_http, args.timeout_sec)
         mismatched = [track_id for track_id, target in targets.items() if track_id not in after_volumes or abs(after_volumes[track_id] - target) > 0.05]

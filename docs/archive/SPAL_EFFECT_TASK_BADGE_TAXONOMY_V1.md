@@ -1,3 +1,5 @@
+Status: superseded by ADR-AGENT-CLEANUP-0001
+
 # SPAL Effect Task Badge Taxonomy v1
 
 Status: planning and authoring guidance only. This document does not create a

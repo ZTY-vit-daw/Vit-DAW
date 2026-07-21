@@ -1,3 +1,5 @@
+Status: superseded by ADR-AGENT-CLEANUP-0001
+
 # SPAL Lab v0 手测手册
 
 `SPAL Lab` 是 SPAL 的开发者实验入口。它验证的是：

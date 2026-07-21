@@ -15,9 +15,11 @@ param(
     [switch]$SkipBuild,
     [switch]$KeepProcesses,
     [switch]$ClipFadeGainAgentOnly,
+    [switch]$B2StaticBalanceAgentOnly,
+    [string]$B2StemsFolder = "",
     [switch]$B3PanLayoutAgentOnly,
+    [string]$B3StemsFolder = "",
     [switch]$B4LowEndRelationAgentOnly,
-    [switch]$SPALReferenceEQAgentOnly,
     [int]$TimeoutSeconds = 60
 )
 
@@ -1758,9 +1760,6 @@ $oldAgentVspHubUrl = $env:VIT_AGENT_VSP_HUB_URL
 $oldAgentLastLogPath = $env:VIT_AGENT_LAST_LOG_PATH
 $oldAgentKeepLogLines = $env:VIT_AGENT_KEEP_LAST_LOG_LINES
 $oldSkipDevAutostart = $env:VIT_SKIP_DEV_AUTOSTART
-$oldSPALReferenceEQProviderStore = $env:VIT_SPAL_REFERENCE_EQ_PROVIDER_STORE
-$oldVPSLibraryPath = $env:VIT_VPS_LIBRARY_V3_PATH
-$oldOrchestrationStorePath = $env:VIT_ORCHESTRATION_STORE_PATH
 $observeEventSeq = 0
 
 try {
@@ -1815,15 +1814,6 @@ try {
     $env:VIT_AGENT_LAST_LOG_PATH = $AgentLog
     $env:VIT_AGENT_KEEP_LAST_LOG_LINES = "1200"
     $env:VIT_SKIP_DEV_AUTOSTART = "0"
-    if ($SPALReferenceEQAgentOnly) {
-        # Keep the old laboratory record, the VPS v3 Library, and Planning
-        # Sessions isolated from a developer's normal project state. Godot
-        # owns the child processes launched below, so they inherit these
-        # explicit paths before VitAgent starts.
-        $env:VIT_SPAL_REFERENCE_EQ_PROVIDER_STORE = Join-Path $ArtifactDir "spal_reference_eq_providers.json"
-		$env:VIT_VPS_LIBRARY_V3_PATH = Join-Path $ArtifactDir "vps_library_v3.json"
-        $env:VIT_ORCHESTRATION_STORE_PATH = Join-Path $ArtifactDir "spal_reference_eq_orchestration.json"
-    }
     if (Test-Path -LiteralPath (Join-Path $GodotProjectRoot "godot_runtime.log")) {
         Copy-Item -LiteralPath (Join-Path $GodotProjectRoot "godot_runtime.log") -Destination (Join-Path $ArtifactDir "godot_runtime_previous.log") -Force
         Remove-Item -LiteralPath (Join-Path $GodotProjectRoot "godot_runtime.log") -Force
@@ -1909,26 +1899,42 @@ try {
     }
     Assert-StatusOk -Response (Invoke-AgentTool -Tool "project.state" -ToolArgs @{} -Confirmed $false) -Label "project.state"
 
-    if ($SPALReferenceEQAgentOnly) {
-        Write-Step "SPAL Reference EQ VPS v3 learning + execution smoke through Godot-owned lifecycle"
-        $spalScript = Join-Path $RepoRoot "scripts\spal_reference_eq_agent_smoke.ps1"
-        if (-not (Test-Path -LiteralPath $spalScript)) {
-            Fail ("Missing SPAL Reference EQ smoke script: " + $spalScript)
+
+    if ($B2StaticBalanceAgentOnly) {
+        Write-Step "B2 static-balance Agent smoke through Godot-owned lifecycle"
+        $b2Script = Join-Path $RepoRoot "scripts\b2_static_balance_agent_smoke.py"
+        if (-not (Test-Path -LiteralPath $b2Script)) {
+            Fail ("Missing B2 smoke script: " + $b2Script)
         }
-        & $spalScript -RepoRoot $RepoRoot -AgentHttp $AgentHttp -ArtifactDir $ArtifactDir -TimeoutSeconds ([Math]::Max(300, $TimeoutSeconds))
-        $spalSummaryPath = Join-Path $ArtifactDir "spal_reference_eq_summary.json"
-        if (-not (Test-Path -LiteralPath $spalSummaryPath)) {
-            Fail "SPAL Reference EQ smoke did not produce its summary artifact"
+        $b2Output = Join-Path $ArtifactDir "b2_static_balance_stdout.json"
+        if ([string]::IsNullOrWhiteSpace($B2StemsFolder) -or -not (Test-Path -LiteralPath $B2StemsFolder -PathType Container)) {
+            Fail "B2 focused smoke requires -B2StemsFolder with at least two representative stems"
         }
-        $spalSummary = Get-Content -LiteralPath $spalSummaryPath -Raw -Encoding UTF8 | ConvertFrom-Json
-        if ([string]$spalSummary.status -ne "passed") {
-            Fail ("SPAL Reference EQ smoke summary is not passed: " + ($spalSummary | ConvertTo-Json -Depth 24 -Compress))
+        $b2StemsDir = (Resolve-Path -LiteralPath $B2StemsFolder).Path
+        $previousErrorActionPreference = $ErrorActionPreference
+        $ErrorActionPreference = "Continue"
+        & python $b2Script --repo-root $RepoRoot --agent-http $AgentHttp --timeout-sec ([Math]::Max(240, $TimeoutSeconds)) --dad-timeout-sec ([Math]::Max(240, $TimeoutSeconds)) --prepare-stems-folder $b2StemsDir --decision approve 2>&1 |
+            Tee-Object -FilePath $b2Output
+        $b2ExitCode = $LASTEXITCODE
+        $ErrorActionPreference = $previousErrorActionPreference
+        if ($b2ExitCode -ne 0) {
+            Fail ("B2 static-balance Agent smoke failed with exit code " + $b2ExitCode)
         }
-        $summary["spal_reference_eq"] = $spalSummary
-        $summary["conversation_id"] = [string]$spalSummary.conversation_id
-		$summary["tool_route"] = @("plugin_learning.natural_language", "vps_v3_catalog", "spal.reference_eq_test.v0", "spal.rollback")
+        $b2Artifact = Get-ChildItem -LiteralPath (Join-Path $RepoRoot "VitApp\Workspace\Artifacts\smoke") -Directory -Filter "b2_static_balance_*" |
+            Sort-Object LastWriteTimeUtc -Descending |
+            Select-Object -First 1
+        if ($null -eq $b2Artifact -or -not (Test-Path -LiteralPath (Join-Path $b2Artifact.FullName "summary.json"))) {
+            Fail "B2 static-balance smoke did not produce summary.json"
+        }
+        $b2Summary = Get-Content -LiteralPath (Join-Path $b2Artifact.FullName "summary.json") -Raw -Encoding UTF8 | ConvertFrom-Json
+        if ([string]$b2Summary.status -ne "ok") {
+            Fail ("B2 static-balance smoke summary is not ok: " + ($b2Summary | ConvertTo-Json -Depth 16 -Compress))
+        }
+        $summary["b2_static_balance_agent"] = $b2Summary
+        $summary["conversation_id"] = [string]$b2Summary.conversation_id
+        $summary["tool_route"] = @($b2Summary.preflight_tools)
         $summary["status"] = "passed"
-        Write-Ok "focused SPAL Reference EQ Godot product-path smoke passed"
+        Write-Ok "focused B2 static-balance Godot product-path smoke passed"
         return
     }
 
@@ -1939,10 +1945,14 @@ try {
             Fail ("Missing B4 smoke script: " + $b4Script)
         }
         $b4Output = Join-Path $ArtifactDir "b4_low_end_relation_stdout.json"
+        $previousErrorActionPreference = $ErrorActionPreference
+        $ErrorActionPreference = "Continue"
         & python $b4Script --repo-root $RepoRoot --agent-http $AgentHttp --timeout-sec ([Math]::Max(180, $TimeoutSeconds)) --dad-timeout-sec ([Math]::Max(240, $TimeoutSeconds)) 2>&1 |
             Tee-Object -FilePath $b4Output
-        if ($LASTEXITCODE -ne 0) {
-            Fail ("B4 low-end relation Agent smoke failed with exit code " + $LASTEXITCODE)
+        $b4ExitCode = $LASTEXITCODE
+        $ErrorActionPreference = $previousErrorActionPreference
+        if ($b4ExitCode -ne 0) {
+            Fail ("B4 low-end relation Agent smoke failed with exit code " + $b4ExitCode)
         }
         $b4Artifact = Get-ChildItem -LiteralPath (Join-Path $RepoRoot "VitApp\Workspace\Artifacts\smoke") -Directory -Filter "b4_low_end_relation_*" |
             Sort-Object LastWriteTimeUtc -Descending |
@@ -1969,10 +1979,18 @@ try {
             Fail ("Missing B3 smoke script: " + $b3Script)
         }
         $b3Output = Join-Path $ArtifactDir "b3_pan_layout_stdout.json"
-        & python $b3Script --repo-root $RepoRoot --agent-http $AgentHttp --timeout-sec ([Math]::Max(240, $TimeoutSeconds)) 2>&1 |
+        if ([string]::IsNullOrWhiteSpace($B3StemsFolder) -or -not (Test-Path -LiteralPath $B3StemsFolder -PathType Container)) {
+            Fail "B3 focused smoke requires -B3StemsFolder with representative analyzed stems"
+        }
+        $b3StemsDir = (Resolve-Path -LiteralPath $B3StemsFolder).Path
+        $previousErrorActionPreference = $ErrorActionPreference
+        $ErrorActionPreference = "Continue"
+        & python $b3Script --repo-root $RepoRoot --agent-http $AgentHttp --timeout-sec ([Math]::Max(240, $TimeoutSeconds)) --dad-timeout-sec ([Math]::Max(240, $TimeoutSeconds)) --prepare-stems-folder $b3StemsDir 2>&1 |
             Tee-Object -FilePath $b3Output
-        if ($LASTEXITCODE -ne 0) {
-            Fail ("B3 pan-layout Agent smoke failed with exit code " + $LASTEXITCODE)
+        $b3ExitCode = $LASTEXITCODE
+        $ErrorActionPreference = $previousErrorActionPreference
+        if ($b3ExitCode -ne 0) {
+            Fail ("B3 pan-layout Agent smoke failed with exit code " + $b3ExitCode)
         }
         $b3Artifact = Get-ChildItem -LiteralPath (Join-Path $RepoRoot "VitApp\Workspace\Artifacts\smoke") -Directory -Filter "b3_pan_layout_*" |
             Sort-Object LastWriteTimeUtc -Descending |
@@ -2479,9 +2497,6 @@ finally {
     $env:VIT_AGENT_LAST_LOG_PATH = $oldAgentLastLogPath
     $env:VIT_AGENT_KEEP_LAST_LOG_LINES = $oldAgentKeepLogLines
     $env:VIT_SKIP_DEV_AUTOSTART = $oldSkipDevAutostart
-    $env:VIT_SPAL_REFERENCE_EQ_PROVIDER_STORE = $oldSPALReferenceEQProviderStore
-	$env:VIT_VPS_LIBRARY_V3_PATH = $oldVPSLibraryPath
-    $env:VIT_ORCHESTRATION_STORE_PATH = $oldOrchestrationStorePath
 }
 
 Write-Step "Summary"

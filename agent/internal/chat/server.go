@@ -45,7 +45,6 @@ import (
 	agentruntime "vit-daw-agent/internal/runtime"
 	"vit-daw-agent/internal/shadow"
 	"vit-daw-agent/internal/tools"
-	"vit-daw-agent/internal/vps"
 	"vit-daw-agent/internal/workflows/plugingrabber"
 )
 
@@ -55,7 +54,6 @@ type Server struct {
 	llm          *llm.Client
 	logger       *logx.Logger
 	harness      *harness.Harness
-	vpsLibrary   *vps.Library
 	pluginVPS    *pluginvps.Registry
 	artifactRoot string
 	webUIRoot    string
@@ -82,9 +80,6 @@ type Server struct {
 	activeWorkspacePath                string
 	activeWorkspaceUUID                string
 	activeWorkspaceSessionID           string
-	vpsDraftTestMu                     sync.Mutex
-	vpsDraftTestRunMu                  sync.Mutex
-	vpsDraftTestTickets                map[string]vpsDraftTestTicket
 }
 
 type PendingPlan struct {
@@ -414,10 +409,6 @@ var devToolSmokeNames = []string{
 }
 
 func New(kernelClient *kernel.Client, shadowProject *shadow.Project, logger *logx.Logger) *Server {
-	vpsLibrary, vpsLibraryErr := vps.OpenDefaultLibrary()
-	if vpsLibraryErr != nil && logger != nil {
-		logger.Warn("[vps] user-level library unavailable: %v", vpsLibraryErr)
-	}
 	pluginVPS, pluginVPSWarnings := pluginvps.LoadDirectory(pluginvps.DefaultDirectory())
 	if logger != nil {
 		for _, warning := range pluginVPSWarnings {
@@ -438,7 +429,6 @@ func New(kernelClient *kernel.Client, shadowProject *shadow.Project, logger *log
 		llm:                  &llm.Client{},
 		logger:               logger,
 		harness:              harness.New(kernelClient, shadowProject, logger),
-		vpsLibrary:           vpsLibrary,
 		pluginVPS:            pluginVPS,
 		startedAt:            time.Now(),
 		conversations:        map[string][]llm.Message{},
@@ -455,7 +445,6 @@ func New(kernelClient *kernel.Client, shadowProject *shadow.Project, logger *log
 		uiContext:            map[string]any{},
 		events:               map[string][]AgentEvent{},
 		eventSeq:             map[string]int64{},
-		vpsDraftTestTickets:  map[string]vpsDraftTestTicket{},
 	}
 }
 
@@ -474,11 +463,6 @@ func (s *Server) Routes() http.Handler {
 	mux.HandleFunc("/agent/runtime/status", s.handleRuntimeStatus)
 	mux.HandleFunc("/agent/events", s.handleAgentEvents)
 	mux.HandleFunc("/agent/state", s.handleState)
-	mux.HandleFunc("/agent/vps/catalog", s.handleVPSCatalog)
-	mux.HandleFunc("/agent/vps/draft-tests", s.handleVPSDraftTests)
-	mux.HandleFunc("/agent/vps/draft-tests/prepare", s.handleVPSDraftTestPrepare)
-	mux.HandleFunc("/agent/vps/draft-tests/execute", s.handleVPSDraftTestExecute)
-	mux.HandleFunc("/agent/vps/draft-tests/rollback", s.handleVPSDraftTestManualRollback)
 	mux.HandleFunc("/agent/ui/state", s.handleUIState)
 	mux.HandleFunc("/agent/ui/context", s.handleUIContext)
 	mux.HandleFunc("/agent/chat", s.handleChat)
@@ -1197,15 +1181,6 @@ func (s *Server) handleInvoke(w http.ResponseWriter, r *http.Request) {
 	}
 	if pluginGrabberApplyInvokeRequest(req) {
 		resp, err := s.invokePluginEffectControlHTTP(r.Context(), req)
-		status := http.StatusOK
-		if err != nil && resp.Status == "error" {
-			status = http.StatusBadRequest
-		}
-		writeJSON(w, status, compactStripSilenceInvokeResponseForTransport(resp))
-		return
-	}
-	if equalizerCapabilityInvokeRequest(req) {
-		resp, err := s.invokeEqualizerCapabilityHTTP(r.Context(), req)
 		status := http.StatusOK
 		if err != nil && resp.Status == "error" {
 			status = http.StatusBadRequest
@@ -3423,13 +3398,6 @@ func (s *Server) handleInteractionRespond(w http.ResponseWriter, r *http.Request
 			"expected_project_cut_hash":  firstNonEmpty(cleanContextText(interaction.Data["project_cut_hash"]), cleanContextText(interaction.Payload["project_cut_hash"])),
 			"conversation_id":            interaction.ConversationID,
 		})
-		// A Forge-controlled acceptance response is still an exact approval of
-		// this frozen Proposal. The mode only changes the mutation port from
-		// production persistence to write/readback/restore; it cannot broaden
-		// the action set or bypass the Proposal binding above.
-		if capabilityID == spalEQV2CapabilityID && strings.EqualFold(cleanContextText(req.Payload["vpsforge_execution_mode"]), vpsForgeControlledAcceptanceMode) {
-			requestContext["vpsforge_execution_mode"] = vpsForgeControlledAcceptanceMode
-		}
 		resp, handled := s.handleCapabilityRuntimeCanary(r.Context(), interaction.ConversationID, ChatRequest{
 			ConversationID: interaction.ConversationID, Message: message, Context: requestContext,
 		}, agentruntime.Goal{GoalID: interaction.GoalID, RunID: interaction.RunID})
@@ -4513,11 +4481,6 @@ func (s *Server) handleConfirm(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusOK, response)
 		return
 	}
-	if plan.Workflow == vpsForgeStagingEQWorkflow {
-		status, response := s.resolveVPSForgeStagingEQPlan(r.Context(), planID, plan)
-		writeJSON(w, status, response)
-		return
-	}
 	if response, blocked := s.legacyPendingPlanBroadMixBlockedConfirmResponse(r.Context(), planID, plan, goalID, runID, agentMode, projectPath); blocked {
 		writeJSON(w, http.StatusOK, response)
 		return
@@ -4556,7 +4519,6 @@ func (s *Server) handleConfirm(w http.ResponseWriter, r *http.Request) {
 	if plan.Workflow == "goal_ui_smoke" {
 		message = "done"
 	}
-	message = s.finalizePluginLearningVPSV3(r.Context(), &plan, message)
 	if strings.TrimSpace(message) == "" {
 		message = "done"
 	}
@@ -4662,9 +4624,6 @@ func (s *Server) resolvePendingPlanDecision(ctx context.Context, planID, decisio
 		}
 		return http.StatusOK, response
 	}
-	if plan.Workflow == vpsForgeStagingEQWorkflow {
-		return s.resolveVPSForgeStagingEQPlan(ctx, planID, plan)
-	}
 	if response, blocked := s.legacyPendingPlanBroadMixBlockedConfirmResponse(ctx, planID, plan, goalID, runID, agentMode, projectPath); blocked {
 		return http.StatusOK, response
 	}
@@ -4698,7 +4657,6 @@ func (s *Server) resolvePendingPlanDecision(ctx context.Context, planID, decisio
 		message, replies = s.finishPluginGrabberLoadWorkflow(ctx, plan, replies, message)
 		pluginPrep = s.pluginPrepContinuationFromReplies(plan, replies, message)
 	}
-	message = s.finalizePluginLearningVPSV3(ctx, &plan, message)
 	if strings.TrimSpace(message) == "" {
 		message = "done"
 	}
@@ -5593,12 +5551,12 @@ If commands is non-empty, keep reply as a short internal intent summary. VitAgen
 
 For plugin loading/grabber setup requests such as loading TDR Nova, finding an EQ/compressor, or loading a plugin and grabbing useful controls, use the special chat workflow command {"cmd":"plugin_grabber_load_and_get_params","track_id":"...","plugin_query":"TDR Nova","intent":"short user intent"}. This workflow searches indexed plugins, asks for confirmation before loading a rack node, then reads parameters after the load succeeds. Do not use instantiate_plugin for these requests; instantiate_plugin requires an exact plugin_path and bypasses the rack grabber workflow.
 For project-scoped plugin grabber learning requests such as learning a plugin, saving quick controls, grouping plugin parameters, or improving plugin control names on an already loaded/selected plugin, use the special chat workflow command {"cmd":"plugin_grabber_learn_project_profile","track_id":"...","plugin_id":"...","intent":"short user intent"}. This workflow is agent-side: it first reads full parameters, asks AI for a profile patch, validates parameter IDs, then asks the user to confirm before saving. Do not use it for ordinary parameter value changes.
-For explicit equalizer/EQ control, use capability_equalizer_plan / capability.equalizer.plan with a vendor-neutral task such as spectral_region_adjust, highpass, lowpass, or output_control. This compatibility tool delegates a complete request to the governed B4 plug-in effect path. Provide the selected track_id and plugin_id plus semantic target fields; do not provide band_ref, Provider credentials, or raw parameter IDs. If the selected plug-in has no verified runtime control for the requested operation, fail closed and explain the blocker.
+For explicit equalizer/EQ control, use plugin_grabber_apply_control / plugin_grabber.apply_control with the selected track_id, plugin_id, semantic control, and target fields. Do not provide Provider credentials or raw parameter IDs. If the selected plug-in has no verified runtime control for the requested operation, fail closed and explain the blocker.
 For plugin grabber explanation, summary, context pack, or "explain controls" requests on an already loaded/selected plugin, use the special read-only workflow command {"cmd":"plugin_grabber_explain_controls","track_id":"...","plugin_id":"...","intent":"short user intent"}. This workflow reads full parameters, then returns a compact context pack with quick controls, groups, roles, and full-parameter access hints. It does not filter or save parameters.
 For basic macro-control creation requests such as creating a generic macro knob/slider, use {"cmd":"control_add_macro","track_id":"...","name":"Macro","control_type":"slider","value":0.5,"bindings":[]}. Do not use rack.add_macro. Semantic macro generation from plugin skills should be proposed for confirmation before writing bindings.
 For macro-control rename requests, use {"cmd":"control_rename_macro","macro_id":"...","name":"New Macro Name"}. If the user names the macro by visible label, resolve it from macro_refs or available_macro_controls; do not create a new macro to rename one.
 When the user asks to bind/map a plugin parameter to an existing macro control, such as "bind B1 Gain to Macro 1", "bind it to this macro", or "绑定到已有宏控件", do not call control_add_macro first. Use the existing macro_id from macro_refs or available_macro_controls and call {"cmd":"control_add_binding","macro_id":"...","track_id":"...","plugin_id":"...","param_id":"...","param_name":"...","target_min":...,"target_max":...}. If the named macro is ambiguous or absent, ask which macro to use instead of creating a new one.
-For an already learned plug-in's user-requested provider-specific control, use plugin_grabber_apply_control only when the validated profile is the intended authority. Equalizer frequency/gain/Q, shelves, pass filters, and output controls use capability_equalizer_plan / capability.equalizer.plan, which delegates to the same governed B4 plugin effect path. A missing, stale, or incompatible profile is a blocker, not permission to write raw parameters, start learning, or silently swap the selected plugin.
+For an already learned plug-in's user-requested control, including equalizer frequency/gain/Q, shelves, pass filters, and output controls, use plugin_grabber_apply_control only when the validated profile is the intended authority. A missing, stale, or incompatible profile is a blocker, not permission to write raw parameters, start learning, or silently swap the selected plugin.
 Never request raw plug-in parameter mutation. Use semantic controls backed by a verified runtime profile so the B4 Proposal can freeze parameter identities and the complete preimage before authorization.
 For plugin_grabber_apply_control results, treat applied_parameters[].new_value_text, applied_value, and confirmed display_domain data as the evidence. Do not infer a control's min/max from the current value_text snapshot or advisory safety notes.
 For selected/current clip fade/gain read/write requests, use clip.fade.read/set and clip.gain.read/set. Clip gain is static clip-level gain before track processing; do not route it to mixing, track.volume, mix.propose_tick, or mix.apply_tick.

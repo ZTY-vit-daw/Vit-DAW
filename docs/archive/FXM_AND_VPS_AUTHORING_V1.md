@@ -1,3 +1,5 @@
+Status: superseded by ADR-AGENT-CLEANUP-0001
+
 # FXM v0 and the standalone VPS authoring workflow
 
 ## Model name and responsibility

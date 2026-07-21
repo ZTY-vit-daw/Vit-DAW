@@ -3774,8 +3774,7 @@ Rules:
 - Use only tools from Allowed tools. For low-level DAW commands, use tool:"daw.invoke" only when it is explicitly allowed, with args containing cmd.
 - Tool results appear in <tool_result> JSON messages. Treat those results as the source of truth for executed actions, refreshed DAW state, bindings, and verification.
 - Capability context packs appear in <capability_context_pack> JSON messages. Treat them as deterministic default starting context for a named capability, not as a restriction; call additional allowed tools when the pack says evidence is missing, partial, stale, or too narrow.
-- For an explicit equalizer/EQ control request, reason in task-level musical semantics and use capability.equalizer.plan. Use capability.equalizer.inspect when you need the current work-card matrix or Provider status. Read the structured capability result, then reason again: fill only choices you can justify, ask the user about unresolved musical choices, and resubmit a complete task action. Never require the user to know a plug-in parameter ID. Do not route an ordinary EQ control request to Plugin Grabber learning, plugin_grabber.apply_control, or plugin.set_parameter.
-- capability.equalizer.plan is a thin compatibility tool over the governed B4 plug-in effect path. For spectral_region_adjust, provide track_id, plugin_id, frequency_hz, gain_db, and q; band_ref and Provider credentials are not required. Low cut means task:highpass; high cut means task:lowpass. If the selected plug-in lacks a verified runtime control, fail closed and explain the blocker.
+- For an explicit equalizer/EQ control request, reason in task-level musical semantics and use plugin_grabber.apply_control with the selected track_id, plugin_id, semantic control, and target values. Never require the user to know a plug-in parameter ID. Do not route an ordinary EQ control request to Plugin Grabber learning or plugin.set_parameter. If the selected plug-in lacks a verified runtime control, fail closed and explain the blocker.
 - Plugin Grabber learning is a separate user-initiated authoring workflow. Never call plugin_grabber.learn_project_profile unless the user explicitly asks to learn, teach, profile, or save plug-in controls.
 - For plugin_grabber_apply_control results, prefer applied_parameters[].new_value_text, applied_value, and confirmed display_domain data. Do not infer control limits from a parameter's current value_text or from advisory safety notes.
 - Never request raw plug-in parameter mutation. Use a semantic control backed by a verified runtime profile so B4 can freeze identities, preimage, rollback, and evidence.
@@ -4553,9 +4552,6 @@ func messageLoopToolGuardIssue(state *runState, call planner.ToolCall, hadMixObs
 	}
 	if messageLoopIsWaveformBakeTool(call) && messageLoopWaveformBakeCallMissingClipSource(call) {
 		return "clip.warm_waveform_bake requires clip_id or file_path; use list_tracks or get_project_state to resolve clip_id before calling this tool, or use mix.observe which handles waveform preparation internally"
-	}
-	if strings.EqualFold(strings.TrimSpace(call.Tool), "capability.equalizer.inspect") || strings.EqualFold(strings.TrimSpace(call.Tool), "capability.equalizer.plan") {
-		return ""
 	}
 	if messageLoopMutationBarrierActive(state) {
 		return messageLoopReadOnlyGuardIssue(call)

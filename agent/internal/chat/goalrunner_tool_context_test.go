@@ -44,19 +44,16 @@ func TestAgentLoopToolContextIncludesMidiPack(t *testing.T) {
 	}
 }
 
-func TestAgentLoopToolContextExposesEqualizerCapabilityBridge(t *testing.T) {
+func TestAgentLoopToolContextRoutesEqualizerControlToGovernedB4(t *testing.T) {
 	s := &Server{harness: harness.New(nil, nil, nil)}
-	ctx := s.agentLoopToolContext(agentModeDefault, "我想通过当前加载的均衡器调节3400Hz频段增益3dB", map[string]any{"selected_track_id": "1007", "selected_plugin_id": "1013"})
-	for _, want := range []string{"capability.equalizer.inspect", "capability.equalizer.plan"} {
-		if !containsToolName(ctx.AllowedTools, want) {
-			t.Fatalf("%s missing from equalizer capability context: %+v", want, ctx.AllowedTools)
-		}
+	ctx := s.agentLoopToolContext(agentModeDefault, "使用当前加载的均衡器调节 3400Hz 频段增益 3dB", map[string]any{"selected_track_id": "1007", "selected_plugin_id": "1013"})
+	if !containsToolName(ctx.AllowedTools, "plugin_grabber.apply_control") {
+		t.Fatalf("governed B4 tool missing from equalizer context: %+v", ctx.AllowedTools)
 	}
-	if !strings.Contains(ctx.CatalogSummary, "capability_equalizer_plan tool=capability.equalizer.plan") {
-		t.Fatalf("equalizer capability contract missing from catalog:\n%s", ctx.CatalogSummary)
+	if !strings.Contains(ctx.CatalogSummary, "plugin_grabber_apply_control tool=plugin_grabber.apply_control") {
+		t.Fatalf("governed B4 contract missing from catalog:\n%s", ctx.CatalogSummary)
 	}
 }
-
 func TestAgentLoopToolContextRoutesRealChineseTrackRequestToPack(t *testing.T) {
 	s := &Server{harness: harness.New(nil, nil, nil)}
 

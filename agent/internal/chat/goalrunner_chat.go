@@ -330,14 +330,6 @@ func (e pluginGrabberWorkflowExecutor) RunToolCall(ctx context.Context, in execu
 		e.server.emitToolItemCompleted(in, out, err)
 		return out, err
 	}
-	if e.server != nil && isEqualizerCapabilityToolCall(in.ToolCall) {
-		out, err := e.server.invokeEqualizerCapabilityTool(ctx, in)
-		if strings.TrimSpace(out.ToolCallID) == "" {
-			out.ToolCallID = toolCallID
-		}
-		e.server.emitToolItemCompleted(in, out, err)
-		return out, err
-	}
 	if e.server != nil && agentLoopSelectedPluginEQProviderFallbackLoadBlocked(in) {
 		out := executorpkg.Result{
 			ToolCallID:  toolCallID,
@@ -345,11 +337,11 @@ func (e pluginGrabberWorkflowExecutor) RunToolCall(ctx context.Context, in execu
 			CommandName: "plugin.load_to_rack",
 			Status:      "ok",
 			Result: map[string]any{
-				"status":                   "blocked",
-				"blocker":                  "selected_plugin_provider_fallback_forbidden",
-				"message":                  "当前已选择一个插件实例；普通 EQ 控制不能因为该实例没有 verified Provider 而自动加载或替换为另一款插件。请使用当前实例的 staging/verified 路径，或明确要求加载指定插件。",
-				"required_capability_tool": equalizerCapabilityPlanTool,
-				"plugin_loading":           "requires_explicit_user_request",
+				"status":                "blocked",
+				"blocker":               "selected_plugin_provider_fallback_forbidden",
+				"message":               "当前已选择一个插件实例；普通 EQ 控制不能因为该实例没有 verified Provider 而自动加载或替换为另一款插件。请使用当前实例的 staging/verified 路径，或明确要求加载指定插件。",
+				"required_control_tool": "plugin_grabber.apply_control",
+				"plugin_loading":        "requires_explicit_user_request",
 			},
 		}
 		e.server.emitToolItemCompleted(in, out, nil)
@@ -362,10 +354,10 @@ func (e pluginGrabberWorkflowExecutor) RunToolCall(ctx context.Context, in execu
 			CommandName: pluginGrabberLearnCommand,
 			Status:      "ok",
 			Result: map[string]any{
-				"status":                   "blocked",
-				"blocker":                  "plugin_learning_requires_explicit_user_intent",
-				"message":                  "Plugin Learning 是用户明确发起的建档流程，不能作为普通插件控制失败后的自动回退。对于 EQ 控制，请改用 capability.equalizer.plan。",
-				"required_capability_tool": equalizerCapabilityPlanTool,
+				"status":                "blocked",
+				"blocker":               "plugin_learning_requires_explicit_user_intent",
+				"message":               "Plugin Learning 是用户明确发起的建档流程，不能作为普通插件控制失败后的自动回退。普通 EQ 控制只走受治理的 plugin_grabber.apply_control。",
+				"required_control_tool": "plugin_grabber.apply_control",
 			},
 		}
 		if e.server != nil {
@@ -1294,9 +1286,7 @@ func toolNamesForAgentLoop(h *harness.Harness, mode string) []string {
 	seen := map[string]bool{}
 	if agentModeFromString(mode) != agentModePlan {
 		seen["daw.invoke"] = true
-		seen["capability.equalizer.plan"] = true
 	}
-	seen["capability.equalizer.inspect"] = true
 	if h == nil {
 		return sortedToolNameKeys(seen)
 	}
@@ -1849,7 +1839,6 @@ func agentLoopClipTools() []string {
 
 func agentLoopPluginTools() []string {
 	return []string{
-		"capability.equalizer.inspect", "capability.equalizer.plan",
 		"plugin.list_available", "plugin.search", "plugin.semantic_search", "plugin.semantic_get", "plugin.semantic_build_index", "plugin.scan",
 		"plugin.load_to_rack", "rack.add_node",
 		"plugin.get_parameters", "plugin.open", "plugin.show_editor",

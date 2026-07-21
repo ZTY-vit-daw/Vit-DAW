@@ -16,7 +16,7 @@ type capabilityOwnerResolution struct {
 
 func (s *Server) resolveCapabilityOwner(conversationID string, req ChatRequest) capabilityOwnerResolution {
 	explicitCapability := firstStringFromMap(req.Context, "capability_id", "capability")
-	if explicitCapability != staticBalanceCapabilityID && explicitCapability != panLayoutCapabilityID && explicitCapability != lowEndRelationCapabilityID && explicitCapability != spalReferenceEQProviderRegistrationCapabilityID && explicitCapability != spalReferenceEQTestCapabilityID && explicitCapability != spalEQV2CapabilityID && explicitCapability != pluginEffectControlCapabilityID {
+	if explicitCapability != staticBalanceCapabilityID && explicitCapability != panLayoutCapabilityID && explicitCapability != lowEndRelationCapabilityID && explicitCapability != pluginEffectControlCapabilityID {
 		explicitCapability = ""
 	}
 	// A recovered Proposal interaction already carries the exact durable
@@ -93,7 +93,7 @@ func (s *Server) activeCapabilitySessions(conversationID string) []orchestration
 		if session.EngineOwner != orchestration.EngineV1 || session.Terminal() || !sessionBelongsToConversation(session, conversationID) {
 			continue
 		}
-		if session.Invocation.CapabilityID == staticBalanceCapabilityID || session.Invocation.CapabilityID == panLayoutCapabilityID || session.Invocation.CapabilityID == lowEndRelationCapabilityID || session.Invocation.CapabilityID == spalReferenceEQProviderRegistrationCapabilityID || session.Invocation.CapabilityID == spalReferenceEQTestCapabilityID || session.Invocation.CapabilityID == spalEQV2CapabilityID || session.Invocation.CapabilityID == pluginEffectControlCapabilityID {
+		if session.Invocation.CapabilityID == staticBalanceCapabilityID || session.Invocation.CapabilityID == panLayoutCapabilityID || session.Invocation.CapabilityID == lowEndRelationCapabilityID || session.Invocation.CapabilityID == pluginEffectControlCapabilityID {
 			out = append(out, session)
 		}
 	}
@@ -121,12 +121,6 @@ func capabilitySessionBase(conversationID, capabilityID string) string {
 		prefix += "_b3"
 	} else if capabilityID == lowEndRelationCapabilityID {
 		prefix += "_b4"
-	} else if capabilityID == spalReferenceEQProviderRegistrationCapabilityID {
-		prefix += "_spal_provider"
-	} else if capabilityID == spalReferenceEQTestCapabilityID {
-		prefix += "_spal_refeq"
-	} else if capabilityID == spalEQV2CapabilityID {
-		prefix += "_spal_eq_v2"
 	} else if capabilityID == pluginEffectControlCapabilityID {
 		prefix += "_plugin_effect"
 	} else {
@@ -151,13 +145,6 @@ func sessionBelongsToConversation(session orchestration.PlanningSession, convers
 
 func inferProjectAwareCapability(message string) string {
 	text := strings.ToLower(strings.TrimSpace(message))
-	if isSPALReferenceEQProviderRegistrationIntent(message, text) {
-		return spalReferenceEQProviderRegistrationCapabilityID
-	}
-	// Ordinary EQ language belongs to AgentLoop. The Agent first reasons about
-	// a task-level equalizer action, then calls the capability-layer tool. Only
-	// an already active PlanningSession or an explicit capability context may
-	// enter the SPAL runtime before AgentLoop.
 	for _, marker := range []string{"static_mix.static_balance", "b2", "静态平衡", "静态音量", "推子平衡", "static balance"} {
 		if strings.Contains(text, marker) {
 			return staticBalanceCapabilityID
@@ -173,19 +160,5 @@ func inferProjectAwareCapability(message string) string {
 			return lowEndRelationCapabilityID
 		}
 	}
-	for _, marker := range []string{"spal reference eq", "spal reference-eq", "spal 参考eq", "spal 参考 eq", "spal reference eq 测试", "reference eq test"} {
-		if strings.Contains(text, marker) {
-			return spalReferenceEQTestCapabilityID
-		}
-	}
 	return ""
-}
-
-func isSPALReferenceEQProviderRegistrationIntent(message, lower string) bool {
-	if !strings.Contains(lower, "spal") {
-		return false
-	}
-	registration := strings.Contains(lower, "register") || strings.Contains(lower, "registration") || strings.Contains(message, "注册") || strings.Contains(message, "登记")
-	provider := strings.Contains(lower, "provider") || strings.Contains(lower, "reference eq") || strings.Contains(message, "提供器")
-	return registration && provider
 }

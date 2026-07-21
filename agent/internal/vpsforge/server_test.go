@@ -5,13 +5,11 @@ import (
 	"net/http/httptest"
 	"testing"
 	"time"
-
-	"vit-daw-agent/internal/vps"
 )
 
 func TestLocalHandlerExposesWorkspaceWithoutInstallationRoute(t *testing.T) {
 	root := t.TempDir() + "/authoring"
-	if _, err := Init(InitRequest{Root: root, Identity: vps.PluginIdentity{Name: "Test EQ", Format: "VST3"}, Capabilities: []string{vps.EqualizerCapabilityID}, Now: time.Now()}); err != nil {
+	if _, err := Init(InitRequest{Root: root, Identity: PluginIdentity{Name: "Test EQ", Format: "VST3"}, Capabilities: []string{"equalizer.v2"}, Now: time.Now()}); err != nil {
 		t.Fatal(err)
 	}
 	handler := Handler(root)

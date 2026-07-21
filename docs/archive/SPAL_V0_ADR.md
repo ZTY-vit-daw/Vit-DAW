@@ -1,3 +1,5 @@
+Status: superseded by ADR-AGENT-CLEANUP-0001
+
 # ADR-SPAL-0001: Semantic Parameter Application Layer v0
 
 Status: accepted

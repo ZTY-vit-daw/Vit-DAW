@@ -41,15 +41,6 @@ func (s *Server) recoverCapabilityExecution(ctx context.Context, conversationID 
 				Invoker: s.harness, PreviousObservationID: frozen.PreviousObservationID, MixSessionID: session.ID, GoalText: session.Goal,
 			}},
 		)
-	case spalReferenceEQTestCapabilityID:
-		if err = s.validateSPALReferenceEQFrozenProvider(ctx, frozen); err == nil {
-			port := s.spalReferenceEQMutationPort(ctx)
-			recovered, err = s.orchestrationRuntime.ReconcileActionSet(
-				ctx, session.ID, frozen.ActionSet,
-				port,
-				executionverifiers.SPAL{Signal: executionverifiers.ReceiptSPALSignalProbe{}},
-			)
-		}
 	default:
 		err = fmt.Errorf("unsupported recovery capability %s", frozen.ActionSet.CapabilityID)
 	}
@@ -59,8 +50,6 @@ func (s *Server) recoverCapabilityExecution(ctx context.Context, conversationID 
 	var response ChatResponse
 	if frozen.ActionSet.CapabilityID == panLayoutCapabilityID {
 		response = panLayoutCanaryExecutionResponse(conversationID, goal, recovered, envelope, err)
-	} else if frozen.ActionSet.CapabilityID == spalReferenceEQTestCapabilityID {
-		response = spalReferenceEQExecutionResponse(conversationID, goal, recovered, envelope, err)
 	} else {
 		response = capabilityCanaryExecutionResponse(conversationID, goal, recovered, envelope, err)
 	}

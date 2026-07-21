@@ -1,3 +1,5 @@
+Status: superseded by ADR-AGENT-CLEANUP-0001
+
 # Read this first: Vit VPS Forge
 
 This document is the portable entry point for Codex, Claude, OpenCode, Hermes

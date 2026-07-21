@@ -23,9 +23,6 @@ import (
 const staticBalanceCapabilityID = "static_mix.static_balance.v0"
 const panLayoutCapabilityID = "static_mix.pan_layout.v0"
 const lowEndRelationCapabilityID = "static_mix.low_end_relation.v0"
-const spalReferenceEQProviderRegistrationCapabilityID = "spal.reference_eq_provider_registration.v0"
-const spalReferenceEQTestCapabilityID = "spal.reference_eq_test.v0"
-const spalEQV2CapabilityID = "spal.eq.v2"
 const pluginEffectControlCapabilityID = "plugin.effect_control.v0"
 
 // handleCapabilityRuntimeCanary is the permanent B2/B3 abstraction seam.
@@ -99,15 +96,6 @@ func (s *Server) handleCapabilityRuntimeCanary(ctx context.Context, conversation
 	}
 	if capabilityID == lowEndRelationCapabilityID {
 		return s.handleLowEndRelationRuntimeCanary(ctx, conversationID, req, goal), true
-	}
-	if capabilityID == spalReferenceEQProviderRegistrationCapabilityID {
-		return s.handleSPALReferenceEQProviderRegistration(ctx, conversationID, req, goal), true
-	}
-	if capabilityID == spalReferenceEQTestCapabilityID {
-		return s.handleSPALReferenceEQRuntime(ctx, conversationID, req, goal), true
-	}
-	if capabilityID == spalEQV2CapabilityID {
-		return s.handleSPALEQV2Runtime(ctx, conversationID, req, goal), true
 	}
 	if capabilityID == pluginEffectControlCapabilityID {
 		return s.handlePluginEffectControlRuntime(ctx, conversationID, req, goal), true

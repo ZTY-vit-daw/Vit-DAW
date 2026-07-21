@@ -1,3 +1,5 @@
+Status: superseded by ADR-AGENT-CLEANUP-0001
+
 # SPAL Reference EQ Product Path v0 — VPS v3 Provider Bridge
 
 状态：实验性产品竖切；手测门禁。

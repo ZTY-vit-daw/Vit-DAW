@@ -3,8 +3,6 @@ package vpsforge
 import (
 	"encoding/json"
 	"testing"
-
-	"vit-daw-agent/internal/vps"
 )
 
 func TestNormalizeVST3WorkerSnapshotUsesSharedEnumFingerprintGrammar(t *testing.T) {
@@ -36,7 +34,7 @@ func TestNormalizeVST3WorkerSnapshotUsesSharedEnumFingerprintGrammar(t *testing.
 		t.Fatalf("NormalizeVST3WorkerSnapshot: %v", err)
 	}
 	minimum, maximum := 0.0, 1.0
-	expected, err := vps.BuildPluginFingerprint("sha256:test-install", []vps.ParameterSurfaceDescriptor{
+	expected, err := buildPluginFingerprint("sha256:test-install", []parameterSurfaceDescriptor{
 		{ID: "0", Type: "enum", Min: &minimum, Max: &maximum, EnumValues: []string{"Bell", "Low Cut", "High Cut"}, DisplayDomain: "normalized_to_host_display", Scale: "normalized"},
 		{ID: "1", Type: "continuous", Min: &minimum, Max: &maximum, DisplayDomain: "normalized_to_host_display", Unit: "Hz", Scale: "normalized"},
 	})

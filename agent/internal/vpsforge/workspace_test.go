@@ -6,20 +6,17 @@ import (
 	"strings"
 	"testing"
 	"time"
-
 	"vit-daw-agent/internal/fxm"
-	"vit-daw-agent/internal/vps"
 )
 
 func float(value float64) *float64 { return &value }
-
-func TestWorkspaceIsStagingOnlyAndRecordsFXM(t *testing.T) {
-	root := t.TempDir() + "/nova"
-	status, err := Init(InitRequest{Root: root, Identity: vps.PluginIdentity{Manufacturer: "Tokyo Dawn Labs", Name: "TDR Nova", Format: "VST3", Version: "2.2.2"}, Capabilities: []string{vps.EqualizerCapabilityID}, Now: time.Date(2026, 7, 17, 0, 0, 0, 0, time.UTC)})
+func TestWorkspaceRecordsGenericSurfaceEvidenceAndFXM(t *testing.T) {
+	root := filepath.Join(t.TempDir(), "nova")
+	status, err := Init(InitRequest{Root: root, Identity: PluginIdentity{Manufacturer: "Tokyo Dawn Labs", Name: "TDR Nova", Format: "VST3", Version: "2.2.2"}, Capabilities: []string{"equalizer.v2"}, Now: time.Date(2026, 7, 17, 0, 0, 0, 0, time.UTC)})
 	if err != nil {
 		t.Fatal(err)
 	}
-	if status.Draft.Status != vps.VPSStatusDraft || len(status.Draft.ProviderCredentials) != 0 || len(status.Draft.FXMMeasurements) != 1 {
+	if status.Manifest.Status != "discovery" || status.Validation.InstallReady {
 		t.Fatalf("unsafe initial workspace: %+v", status)
 	}
 	window := fxm.MeasurementWindow{SourceRevision: "source", StartSeconds: 0, EndSeconds: 3, SampleRate: 48000, ChannelCount: 2}
@@ -28,17 +25,13 @@ func TestWorkspaceIsStagingOnlyAndRecordsFXM(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !status.FXMAvailable || status.FXMStatus != fxm.StatusReady || status.Draft.FXMMeasurements[0].Status != "observed" {
-		t.Fatalf("FXM was not recorded: %+v", status)
-	}
-	if status.Validation.InstallReady || len(status.Draft.ProviderCredentials) != 0 {
-		t.Fatal("authoring evidence must not install or issue a Credential")
+	if !status.FXMAvailable || status.FXMStatus != fxm.StatusReady || status.Validation.InstallReady {
+		t.Fatalf("FXM was not recorded safely: %+v", status)
 	}
 }
-
 func TestLegacyAuthoringManifestRemainsReadableAfterForgeRename(t *testing.T) {
 	root := filepath.Join(t.TempDir(), "legacy")
-	if _, err := Init(InitRequest{Root: root, Identity: vps.PluginIdentity{Manufacturer: "Vit Test", Name: "Legacy Workspace", Format: "VST3", Version: "0"}}); err != nil {
+	if _, err := Init(InitRequest{Root: root, Identity: PluginIdentity{Manufacturer: "Vit Test", Name: "Legacy Workspace", Format: "VST3", Version: "0"}}); err != nil {
 		t.Fatal(err)
 	}
 	path := filepath.Join(root, manifestFile)
@@ -47,7 +40,7 @@ func TestLegacyAuthoringManifestRemainsReadableAfterForgeRename(t *testing.T) {
 		t.Fatal(err)
 	}
 	data = []byte(strings.Replace(string(data), ManifestSchema, LegacyManifestSchema, 1))
-	if err := os.WriteFile(path, data, 0o600); err != nil {
+	if err := os.WriteFile(path, data, 0600); err != nil {
 		t.Fatal(err)
 	}
 	validation := Validate(root)

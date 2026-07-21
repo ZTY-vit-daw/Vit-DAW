@@ -322,14 +322,6 @@ func TestPluginGrabberAliasIsCataloged(t *testing.T) {
 	if applyControl.CommandName != "plugin_grabber_apply_control" || applyControl.RequiresConfirmation || applyControl.RiskLevel != RiskUndoable || !applyControl.SupportsUndo {
 		t.Fatalf("apply control metadata = %+v", applyControl)
 	}
-	inspectEQ, ok := catalog.LookupTool("capability.equalizer.inspect")
-	if !ok || inspectEQ.CommandName != "capability_equalizer_inspect" || inspectEQ.RiskLevel != RiskDirect || inspectEQ.MutatesProject {
-		t.Fatalf("equalizer inspect metadata = %+v found=%t", inspectEQ, ok)
-	}
-	planEQ, ok := catalog.LookupTool("capability.equalizer.plan")
-	if !ok || planEQ.CommandName != "capability_equalizer_plan" || planEQ.RiskLevel != RiskUndoable || !planEQ.MutatesProject || !planEQ.SupportsUndo {
-		t.Fatalf("equalizer plan metadata = %+v found=%t", planEQ, ok)
-	}
 }
 
 func TestMidiPatchToolsAreCataloged(t *testing.T) {
