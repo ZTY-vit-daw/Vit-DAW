@@ -1422,6 +1422,29 @@ func TestBroadMixRequestCannotLoadPluginThroughHarness(t *testing.T) {
 	}
 }
 
+func TestNamedPluginAcousticApplyBypassesHarnessObserveFirstGuard(t *testing.T) {
+	spec := tools.CommandSpec{ToolName: "plugin_grabber.apply_control", CommandName: "plugin_grabber_apply_control"}
+	cmd := map[string]any{
+		"cmd":       "plugin_grabber_apply_control",
+		"track_id":  "1007",
+		"plugin_id": "1013",
+		"control":   "eq.cut_region",
+		"target":    map[string]any{"freq_hz": 200.0, "gain_db": -2.5},
+	}
+	ctx := map[string]any{
+		"user_message": "用 Pro-Q 3 切掉 200Hz 附近的浑浊",
+		"tracks": []any{map[string]any{
+			"track_id": "1007",
+			"rack": map[string]any{"nodes": []any{map[string]any{
+				"plugin_id": "1013", "plugin_name": "Pro-Q 3",
+			}}},
+		}},
+	}
+	if err := broadMixObserveFirstWriteGuard(ctx, spec, cmd); err != nil {
+		t.Fatalf("named plug-in apply was blocked by duplicate harness observe-first guard: %v", err)
+	}
+}
+
 func TestExplicitPluginLoadStillReachesHarness(t *testing.T) {
 	t.Setenv("VIT_PLUGIN_SEMANTICS_PATH", filepath.Join(t.TempDir(), "missing_plugin_semantics.json"))
 	kernel := &fakeKernelClient{replies: []map[string]any{{"status": "ok", "plugin_id": "1015"}}}

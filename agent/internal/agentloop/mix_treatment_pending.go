@@ -196,7 +196,7 @@ func messageLoopImplicitPanTreatmentPendingFromReply(state *runState, reply stri
 	if messageLoopMutationBarrierActive(state) {
 		return nil
 	}
-	if !messageLoopImplicitPanFollowupRequest(state) || messageLoopExplicitPluginOrRawRequest(state.input.UserText) {
+	if !messageLoopImplicitPanFollowupRequest(state) || messageLoopExplicitPluginRequest(state) {
 		return nil
 	}
 	if !messageLoopReplyAsksForPanConfirmation(reply) {
@@ -258,7 +258,7 @@ func messageLoopConservativeLowMudTreatmentPendingFromReply(state *runState, rep
 	if state.executionMemory.PendingMixTreatment != nil {
 		return nil
 	}
-	if !messageLoopLowMudPluginPrepRequest(state.input.UserText) {
+	if !messageLoopLowMudPluginPrepForState(state) {
 		return nil
 	}
 	if !messageLoopHasAnyMixObservationAttempt(state) {

@@ -1053,6 +1053,19 @@ func (f *fakeMessageExecutor) RunToolCall(_ context.Context, in executorpkg.Inpu
 				"actions":       resultRows,
 			},
 		}, nil
+	case "plugin_grabber.apply_control", "plugin_grabber_apply_control":
+		return executorpkg.Result{
+			ToolCallID:  in.ToolCall.ID,
+			Tool:        in.ToolCall.Tool,
+			CommandName: "plugin_grabber_apply_control",
+			Status:      "ok",
+			Result: map[string]any{
+				"status":    "ok",
+				"track_id":  firstMapText(in.ToolCall.Args, "track_id"),
+				"plugin_id": firstMapText(in.ToolCall.Args, "plugin_id"),
+				"control":   firstMapText(in.ToolCall.Args, "control"),
+			},
+		}, nil
 	case "track.group.apply_control":
 		groupID := firstMapText(in.ToolCall.Args, "group_id", "id")
 		trackIDs := messageLoopStringSlice(in.ToolCall.Args["track_ids"])
@@ -2074,7 +2087,6 @@ func TestMessageLoopProjectBlackboardStatusReadsProjectStateWithoutLLM(t *testin
 		t.Fatalf("status report must not enforce a linear gate:\n%s", res.Reply)
 	}
 }
-
 
 func TestMessageLoopStaticMixCapabilityContractAnswersWithoutLLM(t *testing.T) {
 	client := &fakeMessageCompleter{responses: []string{
@@ -6827,7 +6839,6 @@ func TestMessageLoopImplicitPanReplyIgnoresStereoBalanceDBAsGain(t *testing.T) {
 func TestMessageLoopExplicitChinesePanReplyPrefersTreatmentOverGainDBEvidence(t *testing.T) {
 	client := &fakeMessageCompleter{responses: []string{
 		`{"final":true,"reply":"顺便说一下，相比之前的观察，Track 2 大概响了 +2 dB left-heavy，声像目前在 0.33。要不要我先把 Track 2 的声像往左调一点，到 0.10？","tool_calls":[]}`,
-
 	}}
 	loop := &MessageLoop{
 		Client:   client,
@@ -7520,6 +7531,48 @@ func TestMessageLoopExplicitPluginLoadDoesNotRequireMixObservation(t *testing.T)
 	}
 	if len(exec.calls) != 1 || exec.calls[0].Tool != "plugin.load_to_rack" {
 		t.Fatalf("executor calls = %+v, want plugin load", exec.calls)
+	}
+}
+
+func TestMessageLoopNamedPluginAcousticActionReachesGrabberApplyWithoutObservation(t *testing.T) {
+	client := &fakeMessageCompleter{responses: []string{
+		`{"final":false,"reply":"正在处理。","tool_calls":[{"id":"apply_nova","tool":"plugin_grabber.apply_control","args":{"track_id":"1007","plugin_id":"1013","control":"eq.cut_region","target":{"freq_hz":200,"gain_db":-2.5}}}]}`,
+		`{"final":true,"reply":"已通过 TDR Nova 完成处理。","tool_calls":[]}`,
+	}}
+	exec := &fakeMessageExecutor{}
+	loop := &MessageLoop{
+		Client:   client,
+		Config:   config.EngineConfig{BaseURL: "http://example.invalid", APIKey: "test", DefaultModel: "test"},
+		Executor: exec,
+		Budget:   Budget{MaxTurns: 4, MaxToolCalls: 2, MaxConsecutiveErrors: 2},
+	}
+
+	res := loop.Start(context.Background(), Input{
+		UserText:     "用 TDR Nova 切掉 200Hz 附近的浑浊",
+		AllowedTools: []string{"plugin_grabber.apply_control", "mix.observe", "mix.request_observation"},
+		Context: map[string]any{
+			"selected_track_id":  "1007",
+			"selected_plugin_id": "1013",
+			"tracks": []any{map[string]any{
+				"track_id": "1007",
+				"plugins":  []any{map[string]any{"plugin_id": "1013", "plugin_name": "TDR Nova"}},
+			}},
+		},
+	})
+
+	if res.Status != "completed" {
+		t.Fatalf("result = status=%q reply=%q error=%q trace=%+v", res.Status, res.Reply, res.Error, res.Trace)
+	}
+	if len(exec.calls) != 1 {
+		t.Fatalf("executor calls = %+v, want exactly one grabber apply", exec.calls)
+	}
+	if exec.calls[0].Tool != "plugin_grabber.apply_control" {
+		t.Fatalf("executor call = %+v, want plugin_grabber.apply_control", exec.calls[0])
+	}
+	for _, call := range exec.calls {
+		if isTestMixObservationTool(call.Tool) {
+			t.Fatalf("named plug-in action was diverted into observation: %+v", exec.calls)
+		}
 	}
 }
 

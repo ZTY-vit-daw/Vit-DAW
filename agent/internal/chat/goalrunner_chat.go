@@ -21,6 +21,7 @@ import (
 	"vit-daw-agent/internal/policy"
 	agentruntime "vit-daw-agent/internal/runtime"
 	"vit-daw-agent/internal/staticbalance"
+	"vit-daw-agent/internal/toolpolicy"
 	"vit-daw-agent/internal/tools"
 )
 
@@ -1399,10 +1400,8 @@ func agentLoopCapabilityNames(userText string, requestContext map[string]any) []
 	) {
 		add("clip")
 	}
-	if agentLoopTextHasAny(text,
-		"\u63d2\u4ef6", "\u6548\u679c\u5668", "\u5747\u8861", "\u538b\u7f29", "\u6df7\u54cd", "\u5ef6\u8fdf", "\u6293\u624b", "\u53c2\u6570", "\u5b8f\u63a7", "\u5b8f\u63a7\u4ef6", "\u5b8f\u63a7\u5236",
-		"plugin", "vst", "eq", "compressor", "reverb", "delay", "grabber", "param", "macro",
-	) {
+	knownPluginNames := toolpolicy.CollectPluginNames(requestContext)
+	if toolpolicy.MentionsPlugin(userText, knownPluginNames) || toolpolicy.ExplicitPluginRequest(userText, knownPluginNames) {
 		add("plugin")
 	}
 	if route.allowsNaturalMixKeywords() && agentLoopTextHasAny(text,

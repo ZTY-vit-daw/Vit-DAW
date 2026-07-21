@@ -27,6 +27,7 @@ import (
 	agentruntime "vit-daw-agent/internal/runtime"
 	"vit-daw-agent/internal/tim"
 	"vit-daw-agent/internal/tom"
+	"vit-daw-agent/internal/toolpolicy"
 )
 
 type MessageCompleter interface {
@@ -2289,7 +2290,7 @@ func messageLoopNeedsDeterministicMixObservation(state *runState) bool {
 	if !messageLoopNaturalMixRequest(state.input.UserText) && !messageLoopAudioObservationRequest(state.input.UserText) {
 		return false
 	}
-	if messageLoopExplicitPluginOrRawRequest(state.input.UserText) && !messageLoopLowMudPluginPrepRequest(state.input.UserText) && !messageLoopMutationBarrierActive(state) {
+	if messageLoopExplicitPluginRequest(state) && !messageLoopLowMudPluginPrepForState(state) && !messageLoopMutationBarrierActive(state) {
 		return false
 	}
 	if messageLoopExplicitMixExecutionConfirmation(state.input.UserText) {
@@ -2335,7 +2336,7 @@ func messageLoopDeterministicMixObservationCall(state *runState) planner.ToolCal
 }
 
 func messageLoopDeterministicGainPendingAfterObservation(state *runState) (string, bool) {
-	if state == nil || messageLoopExplicitPluginOrRawRequest(state.input.UserText) || messageLoopExplicitMixExecutionConfirmation(state.input.UserText) {
+	if state == nil || messageLoopExplicitPluginRequest(state) || messageLoopExplicitMixExecutionConfirmation(state.input.UserText) {
 		return "", false
 	}
 	if messageLoopClipFadeGainRequest(state.input.UserText) {
@@ -2601,7 +2602,7 @@ func messageLoopLooksLikePluginParameterRead(call planner.ToolCall) bool {
 }
 
 func coerceMixTickPrimitiveCall(state *runState, call planner.ToolCall) planner.ToolCall {
-	if state == nil || messageLoopExplicitPluginOrRawRequest(state.input.UserText) {
+	if state == nil || messageLoopExplicitPluginRequest(state) {
 		return call
 	}
 	isPanPrimitive := messageLoopPrimitiveTrackPanCall(call)
@@ -3028,7 +3029,7 @@ func messageLoopMixTickProposalAsPendingTreatment(state *runState, call planner.
 	if messageLoopMutationBarrierActive(state) {
 		return "", false
 	}
-	if (!messageLoopNaturalMixRequest(state.input.UserText) && !messageLoopImplicitPanFollowupRequest(state) && !messageLoopExplicitMixExecutionConfirmation(state.input.UserText)) || messageLoopExplicitPluginOrRawRequest(state.input.UserText) {
+	if (!messageLoopNaturalMixRequest(state.input.UserText) && !messageLoopImplicitPanFollowupRequest(state) && !messageLoopExplicitMixExecutionConfirmation(state.input.UserText)) || messageLoopExplicitPluginRequest(state) {
 		return "", false
 	}
 	treatment := messageLoopMixTreatmentPendingFromTickProposal(state, call, out)
@@ -3435,7 +3436,7 @@ func messageLoopClarificationAsPendingMixSuggestion(state *runState, out message
 	if messageLoopMutationBarrierActive(state) {
 		return "", false
 	}
-	if !messageLoopNaturalMixRequest(state.input.UserText) || messageLoopExplicitPluginOrRawRequest(state.input.UserText) || !messageLoopHasUsableMixObservation(state) {
+	if !messageLoopNaturalMixRequest(state.input.UserText) || messageLoopExplicitPluginRequest(state) || !messageLoopHasUsableMixObservation(state) {
 		return "", false
 	}
 	reply := strings.TrimSpace(firstNonEmpty(out.Reply, out.ClarificationQuestion))
@@ -3779,14 +3780,14 @@ Rules:
 - For plugin_grabber_apply_control results, prefer applied_parameters[].new_value_text, applied_value, and confirmed display_domain data. Do not infer control limits from a parameter's current value_text or from advisory safety notes.
 - For exact one-parameter plugin writes with explicit param_id and high-confidence get_plugin_parameters display_probe evidence, plugin.set_parameter may use value_text such as "1000 ms" or "28 percent". Do not use this for acoustic goals, multi-parameter moves, or automatic mixing; those require plugin_grabber.apply_control and a learned profile.
 - Mixing is a native Ask Vit conversation task, not a separate Auto Mix/Co-Mix mode. Do not create or ask the user to fill a planning card for mixing.
-- For natural/broad mixing goals such as making a vocal more forward, increasing loudness, reducing mud/harshness, tightening dynamics, adding space, or "mix this audio", you MUST call mix.observe first and wait for its result before choosing plugins, learning plugin profiles, loading effects, changing volume, or writing parameters.
+- For natural/broad mixing goals with no explicitly named plug-in action, prefer mix.observe first so treatment choices are grounded. When the user explicitly names a loaded/learned plug-in and asks for a concrete action, you may proceed through the governed plug-in control path without an extra observe-only turn.
 - Clip fade/gain is an edit-domain operation, not a mixing-domain operation. For selected/current clip fade/gain status, use clip.fade.read and clip.gain.read. For static clip gain edits, use clip.gain.set. Do not route clip fade/gain wording to mix.observe, mix.propose_tick, mix.apply_tick, track.volume, or track.pan.
 - Strip Silence / clip cleanup is an edit-domain operation. For parameter recommendation, noise-floor estimation, selected-range cleanup advice, selected-track cleanup advice, or all-project cleanup advice, use clip.strip_silence.suggest first. Choose scope from intent: all_project for whole-project/all-track cleanup, selected_track for current/selected track cleanup, selected_ranges for selected range cleanup, and selected_clip for current/selected clip cleanup. It does not mutate the project and returns pending clip.strip_silence.apply actions built from real analyze strip_regions. After explicit confirmation, run a single clip.strip_silence.apply for one action or clip.strip_silence.apply_batch for multiple actions; do not invent strip_regions.
 - Choose mix.observe scope from intent, not trigger phrases: selected_clip, selected_track, named_track, track_group, full_project, or full_project_with_focus_track. Use project_context for current-track mixing, full_project for overall mix questions, and full_project_with_focus_track for vocal/lead/focus relationships.
 - mix.observe returns a digest and catalog. Use mix.read for the catalog entries you need and mix.derive for local relationship packages such as rank_tracks, focus_vs_project, a_vs_b, group_overlap, or before_after. Do not manually compare large raw packages in your hidden reasoning when a relationship package can be derived locally.
 - For vocal/lead/focus relationship goals, only treat a track as the vocal when the track name/metadata explicitly identifies it as vocal/voice/lead/主唱/人声, or the user explicitly identifies the track by name/index. If the project only has generic names such as Track 1 / Track 2 and you are not sure which one is the vocal, ask which track is the lead vocal. Do not propose or store an executable move while asking that clarification.
 - Do not call clip.warm_waveform_bake / warm_waveform_bake directly for broad mixing observation. mix.observe owns waveform and envelope feature preparation.
-- After mix.observe/mix.read/mix.derive for a broad mixing request, stop and summarize the observed project/audio facts plus one suggested next small move, then ask whether the user wants you to continue executing that move. Do not load plugins, learn profiles, change volume, apply controls, or write parameters in the same user request. Wait for the user to explicitly confirm a concrete follow-up action first.
+- After mix.observe/mix.read/mix.derive for a broad request, normally summarize the observed facts and propose one small move. If the same user turn already explicitly names a loaded/learned plug-in and a concrete action, the governed control path may continue using the usable observation; otherwise ask for confirmation before mutation.
 - For Chinese acoustic observation replies, use natural-language sections in this order: 结论、证据、限制、建议. Keep the evidence human-readable, such as "来自 L3 频段、声像和响度分析"; do not expose schema names, source/render revision strings, raw evidence_ref lists, raw JSON, waveform arrays, tile payloads, or internal IDs unless the user explicitly asks for technical details.
 - Treat deep/slow packages as optional. If they are missing, pending, partial, or blocked, say what uncertainty remains and base suggestions only on available evidence.
 - If acoustic_package_status.v0 shows l3_deep building or partial, reply in Chinese with the available L1 facts, the L3 feature status, tile/coverage progress when present, and say full-song band/stereo judgement is not reliable yet. Do not create pending actions or ask to continue executing for read-only observation.
@@ -4559,7 +4560,19 @@ func messageLoopToolGuardIssue(state *runState, call planner.ToolCall, hadMixObs
 	if messageLoopMutationBarrierActive(state) {
 		return messageLoopReadOnlyGuardIssue(call)
 	}
-	if messageLoopExplicitPluginOrRawRequest(state.input.UserText) && !messageLoopLowMudPluginPrepRequest(state.input.UserText) {
+	pluginDecision := toolpolicy.Decide(toolpolicy.TurnContext{
+		UserText:             state.input.UserText,
+		KnownPluginNames:     messageLoopKnownPluginNames(state),
+		HasUsableObservation: messageLoopHasUsableMixObservation(state),
+		ObservedBeforeTurn:   hadMixObservationBeforeTurn,
+	}, messageLoopPluginPolicyCall(call))
+	if pluginDecision.Verdict == toolpolicy.Allow {
+		return ""
+	}
+	if pluginDecision.Verdict == toolpolicy.Deny {
+		return pluginDecision.Reason
+	}
+	if messageLoopExplicitPluginRequest(state) && !messageLoopLowMudPluginPrepForState(state) {
 		return ""
 	}
 	if messageLoopGainStagingFaderResetRequest(state.input.UserText) && strings.TrimSpace(call.Tool) == "track.group.apply_control" {
@@ -5066,21 +5079,49 @@ func messageLoopRealtimeObservationRequest(userText string) bool {
 }
 
 func messageLoopExplicitPluginOrRawRequest(userText string) bool {
-	text := strings.ToLower(strings.TrimSpace(userText))
-	if text == "" {
-		return false
+	return toolpolicy.ExplicitPluginRequest(userText, nil)
+}
+
+func messageLoopKnownPluginNames(state *runState) []string {
+	if state == nil {
+		return nil
 	}
-	hasExplicitVerb := messageLoopTextHasAny(text,
-		"\u52a0\u8f7d", "\u6302\u8f7d", "\u6253\u5f00", "\u5b66\u4e60", "\u6293\u624b", "\u63d2\u5165", "\u65b0\u589e",
-		"\u8bbe\u7f6e\u53c2\u6570", "\u5199\u53c2\u6570", "\u6539\u53c2\u6570", "\u8c03\u53c2\u6570",
-		"load", "insert", "open", "learn", "grabber", "set parameter", "write parameter",
-	)
-	hasPluginObject := messageLoopTextHasAny(text,
-		"\u63d2\u4ef6", "\u6548\u679c\u5668", "\u5747\u8861\u5668", "\u538b\u7f29\u5668", "\u6df7\u54cd", "\u5ef6\u8fdf",
-		"plugin", "vst", "eq", "compressor", "reverb", "delay", "tdr", "nova", "zl",
-	)
-	hasRawParam := messageLoopTextHasAny(text, "param_id", "parameter id", "\u53c2\u6570 id", "\u5f52\u4e00\u5316", "normalized")
-	return hasRawParam || (hasExplicitVerb && hasPluginObject)
+	values := []any{
+		state.input.Context,
+		state.input.State,
+		state.contextSnapshot,
+		state.projectHistory,
+		state.executed,
+	}
+	if state.recentObservation != nil {
+		values = append(values, state.recentObservation.Summary)
+	}
+	if name := strings.TrimSpace(state.executionMemory.LastLoadedPluginName); name != "" {
+		values = append(values, map[string]any{"plugin_name": name})
+	}
+	return toolpolicy.CollectPluginNames(values...)
+}
+
+func messageLoopExplicitPluginRequest(state *runState) bool {
+	return state != nil && toolpolicy.ExplicitPluginRequest(state.input.UserText, messageLoopKnownPluginNames(state))
+}
+
+func messageLoopLowMudPluginPrepForState(state *runState) bool {
+	return state != nil && toolpolicy.LowMudNeedsObservation(state.input.UserText, messageLoopKnownPluginNames(state))
+}
+
+func messageLoopPluginPolicyCall(call planner.ToolCall) toolpolicy.ToolCall {
+	name := strings.TrimSpace(normalizedActionName(call, executorpkg.Result{}))
+	if name == "" {
+		name = strings.TrimSpace(call.Tool)
+	}
+	args := cloneToolArgs(call.Args)
+	for key, value := range call.Command {
+		if _, exists := args[key]; !exists {
+			args[key] = value
+		}
+	}
+	return toolpolicy.ToolCall{Name: name, Args: args}
 }
 
 func messageLoopExplicitMixExecutionConfirmation(userText string) bool {
@@ -8601,13 +8642,13 @@ func messageLoopMixObservationFinalReply(state *runState, reply string) string {
 	if messageLoopMutationBarrierActive(state) {
 		return messageLoopReadOnlyFinalReply(state, reply)
 	}
-	isLowMudPluginPrep := messageLoopLowMudPluginPrepRequest(state.input.UserText)
+	isLowMudPluginPrep := messageLoopLowMudPluginPrepForState(state)
 	isObservationFollowup := messageLoopMixObservationActionFollowupRequest(state)
 	hasTreatmentMarkup := messageLoopMixTreatmentPendingMarkupPresent(reply)
 	if !messageLoopNaturalMixRequest(state.input.UserText) && !messageLoopImplicitPanFollowupRequest(state) && !isLowMudPluginPrep && !isObservationFollowup && !hasTreatmentMarkup {
 		return reply
 	}
-	if messageLoopExplicitPluginOrRawRequest(state.input.UserText) && !isLowMudPluginPrep {
+	if messageLoopExplicitPluginRequest(state) && !isLowMudPluginPrep {
 		return messageLoopStripMixTreatmentPendingMarkup(reply)
 	}
 	deepIncomplete := messageLoopLastMixObservationDeepPackageIncomplete(state) || messageLoopReplyMentionsIncompleteDeepPackage(reply)
@@ -8691,7 +8732,7 @@ func messageLoopResolvedMixActionIntent(state *runState) bool {
 	if state == nil {
 		return false
 	}
-	if messageLoopLowMudPluginPrepRequest(state.input.UserText) ||
+	if messageLoopLowMudPluginPrepForState(state) ||
 		messageLoopFocusRelationshipIntent(state.input.UserText) ||
 		messageLoopExplicitPanActionText(state.input.UserText) {
 		return true
@@ -9178,7 +9219,7 @@ func messageLoopFinalIssue(state *runState) string {
 	if issue := messageLoopMediaFinalIssue(state); issue != "" {
 		return issue
 	}
-	if state != nil && (messageLoopNaturalMixRequest(state.input.UserText) || messageLoopAudioObservationRequest(state.input.UserText)) && !messageLoopObservationPackageReadRequest(state.input.UserText) && (!messageLoopExplicitPluginOrRawRequest(state.input.UserText) || messageLoopLowMudPluginPrepRequest(state.input.UserText) || messageLoopMutationBarrierActive(state)) && !messageLoopHasAnyMixObservationAttempt(state) {
+	if state != nil && (messageLoopNaturalMixRequest(state.input.UserText) || messageLoopAudioObservationRequest(state.input.UserText)) && !messageLoopObservationPackageReadRequest(state.input.UserText) && (!messageLoopExplicitPluginRequest(state) || messageLoopLowMudPluginPrepForState(state) || messageLoopMutationBarrierActive(state)) && !messageLoopHasAnyMixObservationAttempt(state) {
 		return "cannot finish yet; broad acoustic mixing requests must run mix.observe first so the reply is grounded in current observation data"
 	}
 	if state == nil || !messageLoopUserRequestedMIDINotes(state.input.UserText) {

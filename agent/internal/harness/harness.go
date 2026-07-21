@@ -43,6 +43,7 @@ import (
 	"vit-daw-agent/internal/shadow"
 	"vit-daw-agent/internal/shelltools"
 	"vit-daw-agent/internal/tim"
+	"vit-daw-agent/internal/toolpolicy"
 	"vit-daw-agent/internal/tools"
 	"vit-daw-agent/internal/webtools"
 	"vit-daw-agent/internal/workflows/plugingrabber"
@@ -1260,7 +1261,8 @@ func broadMixObserveFirstWriteGuard(requestContext map[string]any, spec tools.Co
 		return nil
 	}
 	userText := broadMixGuardUserText(requestContext)
-	if !broadMixNaturalRequest(userText) || broadMixExplicitPluginOrRawRequest(userText) {
+	knownPluginNames := toolpolicy.CollectPluginNames(requestContext, cmd)
+	if !broadMixNaturalRequest(userText) || toolpolicy.ExplicitPluginRequest(userText, knownPluginNames) {
 		return nil
 	}
 	return fmt.Errorf("ordinary acoustic mixing requests must run mix.request_observation and receive a concrete observation before loading plugins, learning plugin profiles, changing volume, applying controls, or writing parameters")
@@ -1305,24 +1307,6 @@ func broadMixNaturalRequest(userText string) bool {
 		"\u4f4e\u9891", "\u4f4e\u4e2d\u9891", "\u7a7a\u95f4\u611f", "\u52a0\u4e00\u70b9\u7a7a\u95f4", "\u52a8\u6001", "\u538b\u7f29",
 		"mix", "mixing", "loudness", "louder", "forward", "mud", "muddy", "harsh", "bright", "space", "reverb", "dynamic",
 	)
-}
-
-func broadMixExplicitPluginOrRawRequest(userText string) bool {
-	text := strings.ToLower(strings.TrimSpace(userText))
-	if text == "" {
-		return false
-	}
-	hasExplicitVerb := broadMixTextHasAny(text,
-		"\u52a0\u8f7d", "\u6302\u8f7d", "\u6253\u5f00", "\u5b66\u4e60", "\u6293\u624b", "\u63d2\u5165", "\u65b0\u589e",
-		"\u8bbe\u7f6e\u53c2\u6570", "\u5199\u53c2\u6570", "\u6539\u53c2\u6570", "\u8c03\u53c2\u6570",
-		"load", "insert", "open", "learn", "grabber", "set parameter", "write parameter",
-	)
-	hasPluginObject := broadMixTextHasAny(text,
-		"\u63d2\u4ef6", "\u6548\u679c\u5668", "\u5747\u8861\u5668", "\u538b\u7f29\u5668", "\u6df7\u54cd", "\u5ef6\u8fdf",
-		"plugin", "vst", "eq", "compressor", "reverb", "delay", "tdr", "nova", "zl",
-	)
-	hasRawParam := broadMixTextHasAny(text, "param_id", "parameter id", "\u53c2\u6570 id", "\u5f52\u4e00\u5316", "normalized")
-	return hasRawParam || (hasExplicitVerb && hasPluginObject)
 }
 
 func broadMixTextHasAny(text string, needles ...string) bool {
