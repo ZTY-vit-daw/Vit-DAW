@@ -49,3 +49,42 @@ func TestFreezePluginEffectControlRejectsMissingPreimage(t *testing.T) {
 		t.Fatal("expected missing resolve-only preimage to be rejected")
 	}
 }
+
+func TestFreezePluginEffectControlDeepFreezesVerifiedVPSProfiles(t *testing.T) {
+	mapping := map[string]any{
+		"parameter_id":    "8",
+		"verified_values": map[string]any{"bell": 0.0, "notch": 1.0},
+	}
+	profiles := []any{map[string]any{
+		"source": "verified_vps",
+		"groups": []any{map[string]any{
+			"id":     "b1",
+			"params": map[string]any{"response_shape": mapping},
+		}},
+	}}
+	applyArgs := map[string]any{"verified_vps_profiles": profiles}
+
+	_, actionSet, err := FreezePluginEffectControl(PluginEffectControlPlan{
+		TrackID: "track-1", PluginID: "plugin-1", Control: "set bell",
+		ApplyArgs:          applyArgs,
+		ResolvedParameters: []PluginResolvedParameter{{ParameterID: "8", OldNormalizedValue: 0.5}},
+	}, executablePluginCut(), 1)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	mapping["parameter_id"] = "mutated"
+	mapping["verified_values"].(map[string]any)["bell"] = 0.75
+	profiles[0].(map[string]any)["source"] = "mutated"
+
+	frozenProfiles := actionSet.Actions[0].Args["apply_args"].(map[string]any)["verified_vps_profiles"].([]any)
+	frozenProfile := frozenProfiles[0].(map[string]any)
+	frozenGroup := frozenProfile["groups"].([]any)[0].(map[string]any)
+	frozenMapping := frozenGroup["params"].(map[string]any)["response_shape"].(map[string]any)
+	if frozenProfile["source"] != "verified_vps" || frozenMapping["parameter_id"] != "8" {
+		t.Fatalf("frozen profile was mutated through source aliases: %#v", frozenProfile)
+	}
+	if got := frozenMapping["verified_values"].(map[string]any)["bell"]; got != 0.0 {
+		t.Fatalf("frozen verified enum value changed: %#v", got)
+	}
+}

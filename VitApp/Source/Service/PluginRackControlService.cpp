@@ -28,6 +28,9 @@
 #include "../Core/VitTakeHistoryStack.h"
 #include "../Core/VitZoneBufferAdapter.h"
 
+#include <sodium.h>
+
+#include <array>
 #include <cctype>
 #include <cmath>
 #include <cstdlib>
@@ -1093,6 +1096,7 @@ struct RuntimeDisplayDomain
     juce::String status;
     juce::String text;
     juce::StringArray enumLabels;
+    std::vector<std::pair<juce::String, float>> verifiedEnumValues;
 };
 
 float normalisedLogValue (double value, double minValue, double maxValue)
@@ -1260,6 +1264,29 @@ RuntimeDisplayDomain displayDomainFromProfileMapping (const juce::var& mapping)
         }
     }
 
+    if (auto* verifiedValues = mappingObject->getProperty ("verified_values").getDynamicObject())
+    {
+        const auto& properties = verifiedValues->getProperties();
+        for (int i = 0; i < properties.size(); ++i)
+        {
+            double normalised = 0.0;
+            const auto label = properties.getName (i).toString().trim();
+            if (label.isNotEmpty() && readNumericVar (properties.getValueAt (i), normalised)
+                && std::isfinite (normalised) && normalised >= 0.0 && normalised <= 1.0)
+            {
+                out.verifiedEnumValues.emplace_back (label, static_cast<float> (normalised));
+            }
+        }
+        if (! out.verifiedEnumValues.empty())
+        {
+            out.present = true;
+            out.isEnum = true;
+            out.scale = "enum";
+            if (out.status.isEmpty())
+                out.status = "verified";
+        }
+    }
+
     const auto text = mappingObject->getProperty ("display_domain_text").toString().trim();
     if (out.text.isEmpty() && text.isNotEmpty())
     {
@@ -1356,6 +1383,28 @@ ResolvedApplyValue resolveEnumApplyValue (te::AutomatableParameter& param,
         return failedResolvedApplyValue ("enum apply control requires a non-empty label for " + param.getParameterName());
 
     const auto range = param.getValueRange();
+    if (! domain.verifiedEnumValues.empty())
+    {
+        for (const auto& entry : domain.verifiedEnumValues)
+        {
+            if (normalisedResolverToken (entry.first) != requested)
+                continue;
+
+            const auto nativeValue = range.getStart() + entry.second * range.getLength();
+            const auto roundTrip = normalisedResolverToken (param.valueToString (nativeValue));
+            if (roundTrip != requested)
+                return failedResolvedApplyValue ("verified enum label \"" + entry.first
+                                                 + "\" did not round-trip through valueToString for "
+                                                 + param.getParameterName());
+
+            return { entry.second, true, "enum_verified_profile_roundtrip" };
+        }
+
+        return failedResolvedApplyValue ("enum apply control label \"" + requestedText
+                                         + "\" is absent from the verified label table for "
+                                         + param.getParameterName());
+    }
+
     const auto direct = param.stringToValue (requestedText);
     if (std::isfinite (direct) && direct >= range.getStart() && direct <= range.getEnd())
     {
@@ -1641,6 +1690,156 @@ juce::var cloneVarObject (const juce::var& value)
         return juce::var (object->clone().release());
 
     return {};
+}
+
+
+juce::String pluginVPSHexDigest (const unsigned char* digest)
+{
+    std::array<char, crypto_hash_sha256_BYTES * 2 + 1> hex {};
+    sodium_bin2hex (hex.data(), hex.size(), digest, crypto_hash_sha256_BYTES);
+    return juce::String::fromUTF8 (hex.data());
+}
+
+juce::String pluginVPSMemoryHash (const void* data, size_t size)
+{
+    std::array<unsigned char, crypto_hash_sha256_BYTES> digest {};
+    if (crypto_hash_sha256 (digest.data(), static_cast<const unsigned char*> (data), static_cast<unsigned long long> (size)) != 0)
+        return {};
+    return "sha256:" + pluginVPSHexDigest (digest.data());
+}
+
+juce::String pluginVPSSurfaceHash (const juce::Array<juce::var>& parameterDescriptors)
+{
+    juce::StringArray ids;
+    for (const auto& descriptor : parameterDescriptors)
+        if (auto* object = descriptor.getDynamicObject())
+        {
+            const auto id = firstNonEmptyProperty (*object, { "param_id", "parameter_id", "id" });
+            if (id.isNotEmpty())
+                ids.addIfNotAlreadyThere (id);
+        }
+    ids.sort (true);
+    const auto joined = ids.joinIntoString ("\n");
+    return pluginVPSMemoryHash (joined.toRawUTF8(), static_cast<size_t> (joined.getNumBytesAsUTF8()));
+}
+
+juce::String pluginVPSFileHash (const juce::String& path)
+{
+    const juce::File file (path);
+    if (! file.existsAsFile())
+        return {};
+
+    juce::FileInputStream input (file);
+    if (! input.openedOk())
+        return {};
+
+    crypto_hash_sha256_state state {};
+    if (crypto_hash_sha256_init (&state) != 0)
+        return {};
+    std::array<unsigned char, 64 * 1024> buffer {};
+    for (;;)
+    {
+        const auto count = input.read (buffer.data(), static_cast<int> (buffer.size()));
+        if (count < 0)
+            return {};
+        if (count == 0)
+            break;
+        if (crypto_hash_sha256_update (&state, buffer.data(), static_cast<unsigned long long> (count)) != 0)
+            return {};
+    }
+    std::array<unsigned char, crypto_hash_sha256_BYTES> digest {};
+    if (crypto_hash_sha256_final (&state, digest.data()) != 0)
+        return {};
+    return "sha256:" + pluginVPSHexDigest (digest.data());
+}
+
+bool pluginVPSMappingsAreLive (const juce::Array<juce::var>& groups,
+                               const std::unordered_set<std::string>& validParamIds)
+{
+    for (const auto& groupVar : groups)
+    {
+        auto* group = groupVar.getDynamicObject();
+        if (group == nullptr)
+            return false;
+        auto* params = group->getProperty (profileField::groupParams).getDynamicObject();
+        if (params == nullptr)
+            return false;
+        const auto& properties = params->getProperties();
+        for (int i = 0; i < properties.size(); ++i)
+        {
+            const auto id = paramIdFromProfileMapping (properties.getValueAt (i));
+            if (id.isEmpty() || validParamIds.find (id.toStdString()) == validParamIds.end())
+                return false;
+        }
+    }
+    return groups.size() > 0;
+}
+
+juce::Result applyVerifiedVPSProfile (const juce::DynamicObject& request,
+                                      const juce::var& pluginIdentity,
+                                      const juce::Array<juce::var>& parameterDescriptors,
+                                      VitPluginGrabberProjectProfile::MergeResult& result)
+{
+    const auto profilesVar = request.getProperty ("verified_vps_profiles");
+    const auto* profiles = profilesVar.getArray();
+    if (profiles == nullptr)
+        return juce::Result::ok();
+
+    auto* identity = pluginIdentity.getDynamicObject();
+    if (identity == nullptr)
+        return juce::Result::fail ("verified VPS could not inspect the live plugin identity");
+    const auto liveName = identity->getProperty ("plugin_name").toString().trim();
+    const auto livePath = identity->getProperty ("plugin_path").toString().trim();
+    const auto liveSurfaceHash = pluginVPSSurfaceHash (parameterDescriptors);
+    const auto validParamIds = collectCurrentParamIds (parameterDescriptors);
+
+    for (const auto& profileVar : *profiles)
+    {
+        auto* profile = profileVar.getDynamicObject();
+        if (profile == nullptr || ! static_cast<bool> (profile->getProperty ("verified")))
+            continue;
+        auto* plugin = profile->getProperty ("plugin").getDynamicObject();
+        if (plugin == nullptr)
+            continue;
+        const auto expectedName = plugin->getProperty ("name").toString().trim();
+        const auto expectedPath = plugin->getProperty ("install_path").toString().trim();
+        if (! liveName.equalsIgnoreCase (expectedName)
+            && ! juce::File (livePath).getFullPathName().equalsIgnoreCase (juce::File (expectedPath).getFullPathName()))
+            continue;
+
+        if (! livePath.equalsIgnoreCase (expectedPath))
+            return juce::Result::fail ("verified VPS install path does not match the live plugin");
+        const auto expectedInstallationHash = plugin->getProperty ("installation_hash").toString().trim().toLowerCase();
+        const auto liveInstallationHash = pluginVPSFileHash (livePath).toLowerCase();
+        if (expectedInstallationHash.isEmpty() || liveInstallationHash != expectedInstallationHash)
+            return juce::Result::fail ("verified VPS installation fingerprint does not match the live plugin");
+        auto* verification = profile->getProperty ("verification").getDynamicObject();
+        if (verification == nullptr
+            || verification->getProperty ("installation_hash").toString().trim().toLowerCase() != expectedInstallationHash
+            || verification->getProperty ("parameter_surface_hash").toString().trim().toLowerCase() != liveSurfaceHash.toLowerCase())
+            return juce::Result::fail ("verified VPS parameter surface fingerprint does not match the live plugin");
+
+        auto* groups = profile->getProperty (profileField::groups).getArray();
+        if (groups == nullptr || ! pluginVPSMappingsAreLive (*groups, validParamIds))
+            return juce::Result::fail ("verified VPS contains a stale or invalid parameter mapping");
+
+        result.profileApplied = true;
+        result.profileSource = "verified_vps";
+        result.profile = profileVar;
+        result.pluginClass = profile->getProperty (profileField::pluginClass).toString().trim();
+        result.groups = *groups;
+        result.virtualControls.clear();
+        if (auto* controls = profile->getProperty (profileField::virtualControls).getArray())
+            result.virtualControls = *controls;
+        if (auto* safety = profile->getProperty (profileField::safety).getDynamicObject())
+            result.safety = juce::var (safety->clone().release());
+        result.globalProfileApplied = false;
+        result.globalProfile = juce::var();
+        result.globalProfileSource.clear();
+        result.staleParamIds.clear();
+        return juce::Result::ok();
+    }
+    return juce::Result::ok();
 }
 
 bool hasUsableRuntimeProfile (const VitPluginGrabberProjectProfile::MergeResult& profileMerge)
@@ -3651,6 +3850,8 @@ juce::String PluginRackControlService::handlePluginGrabberApplyControl (const ju
     const auto pluginIdentity = VitPluginGrabberProjectProfile::createPluginIdentity (*ext, pluginID);
     auto profileMerge = VitPluginGrabberProjectProfile::applyProjectDefault (projectFile, pluginIdentity, parametersArray);
     const auto currentSignatureHash = paramSignature::computeHash (parametersArray);
+    if (const auto verifiedVPS = applyVerifiedVPSProfile (object, pluginIdentity, parametersArray, profileMerge); verifiedVPS.failed())
+        return makeErrorReply (verifiedVPS.getErrorMessage());
     const auto storedSignatureHash = paramSignature::loadFromProfile (profileMerge.profile.isObject() ? profileMerge.profile
                                                                                                       : profileMerge.globalProfile);
 

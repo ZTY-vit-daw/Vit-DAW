@@ -37,6 +37,7 @@ import (
 	"vit-daw-agent/internal/orchestrationruntime"
 	"vit-daw-agent/internal/pendingmanager"
 	"vit-daw-agent/internal/planner"
+	"vit-daw-agent/internal/pluginvps"
 	"vit-daw-agent/internal/policy"
 	"vit-daw-agent/internal/projectworkspace"
 	"vit-daw-agent/internal/promptruntime"
@@ -55,6 +56,7 @@ type Server struct {
 	logger       *logx.Logger
 	harness      *harness.Harness
 	vpsLibrary   *vps.Library
+	pluginVPS    *pluginvps.Registry
 	artifactRoot string
 	webUIRoot    string
 	startedAt    time.Time
@@ -416,6 +418,12 @@ func New(kernelClient *kernel.Client, shadowProject *shadow.Project, logger *log
 	if vpsLibraryErr != nil && logger != nil {
 		logger.Warn("[vps] user-level library unavailable: %v", vpsLibraryErr)
 	}
+	pluginVPS, pluginVPSWarnings := pluginvps.LoadDirectory(pluginvps.DefaultDirectory())
+	if logger != nil {
+		for _, warning := range pluginVPSWarnings {
+			logger.Warn("[pluginvps] ignored VPS: %v", warning)
+		}
+	}
 	orchestrationRuntime := orchestrationruntime.New()
 	if storePath := orchestration.DefaultFileStorePath(); storePath != "" {
 		if store, err := orchestration.NewFileStore(storePath); err == nil {
@@ -431,6 +439,7 @@ func New(kernelClient *kernel.Client, shadowProject *shadow.Project, logger *log
 		logger:               logger,
 		harness:              harness.New(kernelClient, shadowProject, logger),
 		vpsLibrary:           vpsLibrary,
+		pluginVPS:            pluginVPS,
 		startedAt:            time.Now(),
 		conversations:        map[string][]llm.Message{},
 		pending:              map[string]PendingPlan{},

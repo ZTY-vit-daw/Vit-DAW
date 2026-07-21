@@ -303,3 +303,15 @@ func samePhysicalParameters(left, right []spal.PhysicalParameter) bool {
 	}
 	return true
 }
+
+func TestSPALVSPPortRefusesSemanticDisplayWritesOutsideB4(t *testing.T) {
+	client := &fakeSPALVSPClient{}
+	port := &SPALVSPPort{Client: client}
+	manifest := spal.ExecutionManifest{Binding: spal.RuntimeBinding{Instance: spal.ProviderInstance{TrackID: "track-1", PluginID: "plugin-1"}}}
+	_, err := port.sendBatch(context.Background(), manifest, []spal.PhysicalParameter{{
+		ParameterID: "freq", Value: 632, ValueMode: spal.PhysicalValueModeDisplay, BindingRef: "frequency_hz", Unit: "Hz",
+	}}, 7, "request", "transaction")
+	if err == nil || len(client.batchCalls) != 0 {
+		t.Fatalf("semantic write escaped to raw parameter batch: err=%v calls=%#v", err, client.batchCalls)
+	}
+}

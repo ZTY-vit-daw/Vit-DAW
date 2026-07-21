@@ -10,8 +10,9 @@ import (
 // EnumParameterBinding records only enum states that passed capability-level
 // conformance.  Observed labels that are absent here remain non-dispatchable.
 type EnumParameterBinding struct {
-	ParameterID string             `json:"parameter_id"`
-	Values      map[string]float64 `json:"values"`
+	ParameterID   string             `json:"parameter_id"`
+	Values        map[string]float64 `json:"values"`
+	DisplayLabels map[string]string  `json:"display_labels,omitempty"`
 }
 
 type EQV2BandBinding struct {
@@ -179,7 +180,7 @@ func (a *VPSEQV2Adapter) bindingsFor(instruction Instruction) (map[string]Parame
 			return nil, nil, fmt.Errorf("EQ v2 Credential has not conformed Band %s", bandRef)
 		}
 		shape := strings.ToLower(strings.TrimSpace(instruction.StringParameters["response_shape"]))
-		shapeValue, ok := enumValue(band.ResponseShape, shape)
+		_, ok = enumValue(band.ResponseShape, shape)
 		if !ok {
 			return nil, nil, fmt.Errorf("EQ v2 Credential has not conformed %s on Band %s", shape, bandRef)
 		}
@@ -191,8 +192,7 @@ func (a *VPSEQV2Adapter) bindingsFor(instruction Instruction) (map[string]Parame
 			bindings["allocated"] = *band.Allocated
 		}
 		invariants["band_ref"], invariants["component_id"] = bandRef, band.ComponentID
-		invariants["response_shape"] = shape
-		invariants["response_shape_normalized"] = strconv.FormatFloat(shapeValue, 'g', -1, 64)
+		invariants["response_shape"] = enumDispatchLabel(band.ResponseShape, shape)
 	case EQPassFilterPatchControlID:
 		kind := strings.ToLower(strings.TrimSpace(instruction.StringParameters["filter_kind"]))
 		var filter *EQV2PassFilterBinding
@@ -205,7 +205,7 @@ func (a *VPSEQV2Adapter) bindingsFor(instruction Instruction) (map[string]Parame
 			return nil, nil, fmt.Errorf("EQ v2 Credential has not conformed %s", kind)
 		}
 		slopeKey := canonicalNumberKey(instruction.Parameters["slope_db_per_octave"])
-		slopeValue, ok := enumValue(filter.SlopeDBPerOctave, slopeKey)
+		_, ok := enumValue(filter.SlopeDBPerOctave, slopeKey)
 		if !ok {
 			return nil, nil, fmt.Errorf("EQ v2 Credential has not conformed %s dB/oct for %s", slopeKey, kind)
 		}
@@ -214,15 +214,15 @@ func (a *VPSEQV2Adapter) bindingsFor(instruction Instruction) (map[string]Parame
 			bindings["allocated"] = *filter.Allocated
 		}
 		if filter.ResponseShape != nil {
-			shapeValue, supported := enumValue(*filter.ResponseShape, kind)
+			_, supported := enumValue(*filter.ResponseShape, kind)
 			if !supported {
 				return nil, nil, fmt.Errorf("EQ v2 Credential has not conformed %s response shape", kind)
 			}
 			bindings["response_shape"] = enumAsParameter(*filter.ResponseShape)
-			invariants["response_shape_normalized"] = strconv.FormatFloat(shapeValue, 'g', -1, 64)
+			invariants["response_shape"] = enumDispatchLabel(*filter.ResponseShape, kind)
 		}
 		invariants["filter_kind"], invariants["component_id"] = kind, filter.ComponentID
-		invariants["slope_normalized"] = strconv.FormatFloat(slopeValue, 'g', -1, 64)
+		invariants["slope_label"] = enumDispatchLabel(filter.SlopeDBPerOctave, slopeKey)
 	case EQDynamicBandPatchControlID:
 		bandRef := strings.ToLower(strings.TrimSpace(instruction.StringParameters["band_ref"]))
 		band, ok := a.definition.Binding.Bands[bandRef]
@@ -231,12 +231,12 @@ func (a *VPSEQV2Adapter) bindingsFor(instruction Instruction) (map[string]Parame
 		}
 		dynamic := band.Dynamic
 		mode := strings.ToLower(strings.TrimSpace(instruction.StringParameters["dynamics_mode"]))
-		modeValue, ok := enumValue(dynamic.Mode, mode)
+		_, ok = enumValue(dynamic.Mode, mode)
 		if !ok {
 			return nil, nil, fmt.Errorf("EQ v2 Credential has not conformed dynamics mode %s", mode)
 		}
 		routing := strings.ToLower(strings.TrimSpace(instruction.StringParameters["routing_scope"]))
-		routingValue, ok := enumValue(dynamic.Routing, routing)
+		_, ok = enumValue(dynamic.Routing, routing)
 		if !ok || routing != "independent" {
 			return nil, nil, fmt.Errorf("EQ v2 Credential has not conformed independent dynamic routing")
 		}
@@ -250,8 +250,8 @@ func (a *VPSEQV2Adapter) bindingsFor(instruction Instruction) (map[string]Parame
 			}
 		}
 		invariants["band_ref"], invariants["component_id"] = bandRef, band.ComponentID
-		invariants["dynamics_mode_normalized"] = strconv.FormatFloat(modeValue, 'g', -1, 64)
-		invariants["routing_scope_normalized"] = strconv.FormatFloat(routingValue, 'g', -1, 64)
+		invariants["dynamics_mode"] = mode
+		invariants["routing_scope"] = routing
 	case EQOutputPatchControlID:
 		if a.definition.Binding.Output == nil {
 			return nil, nil, fmt.Errorf("EQ v2 Credential has not conformed output control")
@@ -277,51 +277,45 @@ func (a *VPSEQV2Adapter) compileBand(i Instruction, b RuntimeBinding) ([]Physica
 	if value, ok := i.Parameters["enabled"]; ok {
 		enabled = value
 	}
-	shape, err := strconv.ParseFloat(b.Invariants["response_shape_normalized"], 64)
-	if err != nil {
-		return nil, err
-	}
 	values := []valuePair{}
 	if _, allocated := b.ParameterBindings["allocated"]; allocated {
-		values = append(values, valuePair{"allocated", 1})
+		values = append(values, numericValue("allocated", 1))
 	}
-	values = append(values, valuePair{"enabled", enabled}, valuePair{"response_shape", shape}, valuePair{"frequency_hz", i.Parameters["frequency_hz"]}, valuePair{"gain_db", i.Parameters["gain_db"]}, valuePair{"q", i.Parameters["q"]})
+	values = append(values,
+		numericValue("enabled", enabled),
+		enumLabelValue("response_shape", b.Invariants["response_shape"]),
+		numericValue("frequency_hz", i.Parameters["frequency_hz"]),
+		numericValue("gain_db", i.Parameters["gain_db"]),
+		numericValue("q", i.Parameters["q"]),
+	)
 	return compileOrdered(b, values)
 }
 
 func (a *VPSEQV2Adapter) compilePassFilter(i Instruction, b RuntimeBinding) ([]PhysicalParameter, error) {
-	slope, err := strconv.ParseFloat(b.Invariants["slope_normalized"], 64)
-	if err != nil {
-		return nil, err
-	}
 	values := []valuePair{}
 	if _, allocated := b.ParameterBindings["allocated"]; allocated {
-		values = append(values, valuePair{"allocated", 1})
+		values = append(values, numericValue("allocated", 1))
 	}
 	if _, shapeBound := b.ParameterBindings["response_shape"]; shapeBound {
-		shape, shapeErr := strconv.ParseFloat(b.Invariants["response_shape_normalized"], 64)
-		if shapeErr != nil {
-			return nil, shapeErr
-		}
-		values = append(values, valuePair{"response_shape", shape})
+		values = append(values, enumLabelValue("response_shape", b.Invariants["response_shape"]))
 	}
-	values = append(values, valuePair{"enabled", i.Parameters["enabled"]}, valuePair{"cutoff_frequency_hz", i.Parameters["cutoff_frequency_hz"]}, valuePair{"slope_db_per_octave", slope})
+	values = append(values,
+		numericValue("enabled", i.Parameters["enabled"]),
+		numericValue("cutoff_frequency_hz", i.Parameters["cutoff_frequency_hz"]),
+		enumLabelValue("slope_db_per_octave", b.Invariants["slope_label"]),
+	)
 	return compileOrdered(b, values)
 }
 
 func (a *VPSEQV2Adapter) compileDynamic(i Instruction, b RuntimeBinding) ([]PhysicalParameter, error) {
-	mode, err := strconv.ParseFloat(b.Invariants["dynamics_mode_normalized"], 64)
-	if err != nil {
-		return nil, err
+	values := []valuePair{
+		enumLabelValue("dynamics_mode", b.Invariants["dynamics_mode"]),
+		enumLabelValue("routing_scope", b.Invariants["routing_scope"]),
+		numericValue("threshold_db", i.Parameters["threshold_db"]),
 	}
-	routing, err := strconv.ParseFloat(b.Invariants["routing_scope_normalized"], 64)
-	if err != nil {
-		return nil, err
-	}
-	values := []valuePair{{"dynamics_mode", mode}, {"routing_scope", routing}, {"threshold_db", i.Parameters["threshold_db"]}}
 	for _, key := range []string{"ratio", "attack_ms", "release_ms"} {
 		if value, ok := i.Parameters[key]; ok {
-			values = append(values, valuePair{key, value})
+			values = append(values, numericValue(key, value))
 		}
 	}
 	return compileOrdered(b, values)
@@ -331,15 +325,24 @@ func (a *VPSEQV2Adapter) compileOutput(i Instruction, b RuntimeBinding) ([]Physi
 	values := []valuePair{}
 	for _, key := range []string{"bypass", "dry_mix_percent", "output_gain_db"} {
 		if value, ok := i.Parameters[key]; ok {
-			values = append(values, valuePair{key, value})
+			values = append(values, numericValue(key, value))
 		}
 	}
 	return compileOrdered(b, values)
 }
 
 type valuePair struct {
-	key   string
-	value float64
+	key       string
+	value     float64
+	enumLabel string
+}
+
+func numericValue(key string, value float64) valuePair {
+	return valuePair{key: key, value: value}
+}
+
+func enumLabelValue(key, label string) valuePair {
+	return valuePair{key: key, enumLabel: strings.TrimSpace(label)}
 }
 
 func compileOrdered(binding RuntimeBinding, values []valuePair) ([]PhysicalParameter, error) {
@@ -349,15 +352,25 @@ func compileOrdered(binding RuntimeBinding, values []valuePair) ([]PhysicalParam
 		if !ok {
 			return nil, fmt.Errorf("binding omits %s", item.key)
 		}
-		value := item.value
-		if item.key != "response_shape" && item.key != "slope_db_per_octave" && item.key != "dynamics_mode" && item.key != "routing_scope" {
-			normalized, err := staticEQNormalizedValue(parameter, value)
-			if err != nil {
-				return nil, fmt.Errorf("EQ v2 %s: %w", item.key, err)
-			}
-			value = normalized
+		row := PhysicalParameter{
+			ParameterID: parameter.ParameterID,
+			BindingRef:  item.key,
+			Unit:        parameter.Unit,
 		}
-		rows = append(rows, PhysicalParameter{ParameterID: parameter.ParameterID, Value: value, Unit: parameter.Unit})
+		if item.enumLabel != "" {
+			row.ValueMode = PhysicalValueModeEnumLabel
+			row.EnumLabel = item.enumLabel
+		} else {
+			if !finite(item.value) || item.value < parameter.Min || item.value > parameter.Max {
+				return nil, fmt.Errorf("EQ v2 %s: %.6f is outside verified display range %.6f..%.6f", item.key, item.value, parameter.Min, parameter.Max)
+			}
+			row.ValueMode = PhysicalValueModeDisplay
+			row.Value = item.value
+		}
+		if err := row.Valid(); err != nil {
+			return nil, fmt.Errorf("EQ v2 %s: %w", item.key, err)
+		}
+		rows = append(rows, row)
 	}
 	return rows, nil
 }
@@ -506,6 +519,14 @@ func validEnumBinding(name string, binding EnumParameterBinding) error {
 			return fmt.Errorf("EQ v2 %s enum value %q is invalid", name, key)
 		}
 	}
+	for key, label := range binding.DisplayLabels {
+		if _, ok := binding.Values[key]; !ok {
+			return fmt.Errorf("EQ v2 %s display label %q has no enum value", name, key)
+		}
+		if strings.TrimSpace(label) == "" {
+			return fmt.Errorf("EQ v2 %s display label %q is empty", name, key)
+		}
+	}
 	return nil
 }
 
@@ -515,6 +536,13 @@ func enumAsParameter(binding EnumParameterBinding) ParameterBinding {
 func enumValue(binding EnumParameterBinding, key string) (float64, bool) {
 	value, ok := binding.Values[strings.ToLower(strings.TrimSpace(key))]
 	return value, ok
+}
+func enumDispatchLabel(binding EnumParameterBinding, key string) string {
+	canonical := strings.ToLower(strings.TrimSpace(key))
+	if label := strings.TrimSpace(binding.DisplayLabels[canonical]); label != "" {
+		return label
+	}
+	return canonical
 }
 func canonicalNumberKey(value float64) string { return strconv.FormatFloat(value, 'f', -1, 64) }
 func containsString(values []string, wanted string) bool {
@@ -551,10 +579,13 @@ func cloneEQV2ProviderDefinition(in EQV2ProviderDefinition) EQV2ProviderDefiniti
 			band.Allocated = &allocated
 		}
 		band.ResponseShape.Values = cloneStringFloatMap(band.ResponseShape.Values)
+		band.ResponseShape.DisplayLabels = cloneStringMap(band.ResponseShape.DisplayLabels)
 		if band.Dynamic != nil {
 			dynamic := *band.Dynamic
 			dynamic.Mode.Values = cloneStringFloatMap(dynamic.Mode.Values)
+			dynamic.Mode.DisplayLabels = cloneStringMap(dynamic.Mode.DisplayLabels)
 			dynamic.Routing.Values = cloneStringFloatMap(dynamic.Routing.Values)
+			dynamic.Routing.DisplayLabels = cloneStringMap(dynamic.Routing.DisplayLabels)
 			band.Dynamic = &dynamic
 		}
 		out.Binding.Bands[key] = band
@@ -568,9 +599,11 @@ func cloneEQV2ProviderDefinition(in EQV2ProviderDefinition) EQV2ProviderDefiniti
 		if value.ResponseShape != nil {
 			shape := *value.ResponseShape
 			shape.Values = cloneStringFloatMap(shape.Values)
+			shape.DisplayLabels = cloneStringMap(shape.DisplayLabels)
 			value.ResponseShape = &shape
 		}
 		value.SlopeDBPerOctave.Values = cloneStringFloatMap(value.SlopeDBPerOctave.Values)
+		value.SlopeDBPerOctave.DisplayLabels = cloneStringMap(value.SlopeDBPerOctave.DisplayLabels)
 		out.Binding.HighPass = &value
 	}
 	if in.Binding.LowPass != nil {
@@ -582,9 +615,11 @@ func cloneEQV2ProviderDefinition(in EQV2ProviderDefinition) EQV2ProviderDefiniti
 		if value.ResponseShape != nil {
 			shape := *value.ResponseShape
 			shape.Values = cloneStringFloatMap(shape.Values)
+			shape.DisplayLabels = cloneStringMap(shape.DisplayLabels)
 			value.ResponseShape = &shape
 		}
 		value.SlopeDBPerOctave.Values = cloneStringFloatMap(value.SlopeDBPerOctave.Values)
+		value.SlopeDBPerOctave.DisplayLabels = cloneStringMap(value.SlopeDBPerOctave.DisplayLabels)
 		out.Binding.LowPass = &value
 	}
 	if in.Binding.Output != nil {

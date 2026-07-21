@@ -524,23 +524,53 @@ func (b RuntimeBinding) Valid() error {
 	return nil
 }
 
+const (
+	PhysicalValueModeHostNative = "host_native"
+	PhysicalValueModeDisplay    = "display"
+	PhysicalValueModeEnumLabel  = "enum_label"
+)
+
 type PhysicalParameter struct {
 	ParameterID string `json:"parameter_id"`
-	// Value is the host-native value accepted and returned by the VSP parameter
-	// endpoint.  It is intentionally not the capability's semantic value: a
-	// Provider Adapter owns the conversion from Hz/dB/Q into this control
-	// domain (which is often 0..1 for VST parameters).
-	Value float64 `json:"value"`
-	// Unit is retained as an audit label for the semantic parameter family; it
-	// must not be used to reinterpret Value at the VSP boundary.
-	Unit string `json:"unit,omitempty"`
+	// Value is host-native only when ValueMode is empty/host_native. For the
+	// retained EQ v2 data-driven compiler, display mode preserves the semantic
+	// Hz/dB/Q/toggle value so the C++ plug-in control authority performs the
+	// final display-to-normalised conversion required by ADR D5.
+	Value float64 `json:"value,omitempty"`
+	// ValueMode distinguishes legacy host-native readback/preimage values from
+	// semantic display instructions and verified enum labels.
+	ValueMode  string `json:"value_mode,omitempty"`
+	EnumLabel  string `json:"enum_label,omitempty"`
+	BindingRef string `json:"binding_ref,omitempty"`
+	Unit       string `json:"unit,omitempty"`
 }
 
 func (p PhysicalParameter) Valid() error {
-	if strings.TrimSpace(p.ParameterID) == "" || !finite(p.Value) {
-		return fmt.Errorf("physical parameter id and finite value are required")
+	if strings.TrimSpace(p.ParameterID) == "" {
+		return fmt.Errorf("physical parameter id is required")
+	}
+	switch strings.ToLower(strings.TrimSpace(p.ValueMode)) {
+	case "", PhysicalValueModeHostNative:
+		if !finite(p.Value) {
+			return fmt.Errorf("host-native physical parameter requires a finite value")
+		}
+	case PhysicalValueModeDisplay:
+		if !finite(p.Value) || strings.TrimSpace(p.BindingRef) == "" {
+			return fmt.Errorf("display parameter requires a finite semantic value and binding_ref")
+		}
+	case PhysicalValueModeEnumLabel:
+		if strings.TrimSpace(p.EnumLabel) == "" || strings.TrimSpace(p.BindingRef) == "" {
+			return fmt.Errorf("enum parameter requires enum_label and binding_ref")
+		}
+	default:
+		return fmt.Errorf("unsupported physical parameter value_mode %q", p.ValueMode)
 	}
 	return nil
+}
+
+func (p PhysicalParameter) RequiresKernelDisplayResolution() bool {
+	mode := strings.ToLower(strings.TrimSpace(p.ValueMode))
+	return mode == PhysicalValueModeDisplay || mode == PhysicalValueModeEnumLabel
 }
 
 type Adapter interface {

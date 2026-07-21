@@ -66,7 +66,7 @@ func (s *Server) handlePluginEffectControlRuntime(ctx context.Context, conversat
 		return pluginEffectControlProposalResponse(conversationID, goal, session)
 	}
 
-	applyArgs := pluginEffectApplyArgs(req.Context)
+	applyArgs := s.pluginEffectApplyArgsWithVerifiedVPS(req.Context)
 	if len(applyArgs) == 0 {
 		return capabilityCanaryBlockedResponse(conversationID, goal, "插件控制请求缺少冻结的 plugin_grabber.apply_control 参数；没有修改工程。")
 	}
@@ -316,6 +316,17 @@ func (s *Server) invokePluginEffectControlHTTP(ctx context.Context, req harness.
 		return out, fmt.Errorf("%s", response.Error)
 	}
 	return out, nil
+}
+
+func (s *Server) pluginEffectApplyArgsWithVerifiedVPS(ctx map[string]any) map[string]any {
+	applyArgs := pluginEffectApplyArgs(ctx)
+	if len(applyArgs) == 0 || s == nil || s.pluginVPS == nil {
+		return applyArgs
+	}
+	if profiles := s.pluginVPS.RuntimeProfiles(); len(profiles) > 0 {
+		applyArgs["verified_vps_profiles"] = profiles
+	}
+	return applyArgs
 }
 
 func pluginEffectApplyArgs(ctx map[string]any) map[string]any {

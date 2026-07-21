@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"vit-daw-agent/internal/fxm"
+	"vit-daw-agent/internal/pluginvps"
 	"vit-daw-agent/internal/probeaudio"
 	"vit-daw-agent/internal/vps"
 	"vit-daw-agent/internal/vpsforge"
@@ -32,6 +33,10 @@ func main() {
 	var value any
 	var err error
 	switch os.Args[1] {
+	case "draft":
+		value, err = runPluginVPSDraft(os.Args[2:])
+	case "verify":
+		value, err = runPluginVPSVerify(os.Args[2:])
 	case "init":
 		value, err = runInit(os.Args[2:])
 	case "status":
@@ -106,6 +111,60 @@ func main() {
 	}
 	encoded, _ := json.MarshalIndent(value, "", "  ")
 	fmt.Println(string(encoded))
+}
+
+func runPluginVPSDraft(args []string) (any, error) {
+	fs := flag.NewFlagSet("draft", flag.ContinueOnError)
+	surface := fs.String("surface", "", "surface_snapshot.json path")
+	output := fs.String("output", "", "output <plugin>.vps.json path")
+	if err := fs.Parse(args); err != nil {
+		return nil, err
+	}
+	if fs.NArg() != 1 {
+		return nil, fmt.Errorf("draft requires one plugin name, surface file, or workspace")
+	}
+	resolved, err := pluginvps.ResolveSurface(fs.Arg(0), *surface)
+	if err != nil {
+		return nil, err
+	}
+	doc, err := pluginvps.DraftFromSurfaceFile(resolved)
+	if err != nil {
+		return nil, err
+	}
+	path := strings.TrimSpace(*output)
+	if path == "" {
+		path = filepath.Join(pluginvps.DefaultDirectory(), pluginvps.Slug(doc.Plugin.Name)+".vps.json")
+	}
+	if err := pluginvps.Save(path, doc); err != nil {
+		return nil, err
+	}
+	return map[string]any{"status": "draft", "path": path, "document": doc}, nil
+}
+
+func runPluginVPSVerify(args []string) (any, error) {
+	fs := flag.NewFlagSet("verify", flag.ContinueOnError)
+	worker := fs.String("worker", defaultVST3WorkerPath(), "native vpsforge_vst3_worker.exe path")
+	if err := fs.Parse(args); err != nil {
+		return nil, err
+	}
+	if fs.NArg() != 1 {
+		return nil, fmt.Errorf("verify requires one <plugin>.vps.json file")
+	}
+	path := fs.Arg(0)
+	doc, err := pluginvps.Load(path)
+	if err != nil {
+		return nil, err
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Minute)
+	defer cancel()
+	result, err := pluginvps.Verify(ctx, doc, pluginvps.VerifyOptions{WorkerPath: *worker})
+	if err != nil {
+		return nil, err
+	}
+	if err := pluginvps.Save(path, result.Document); err != nil {
+		return nil, err
+	}
+	return map[string]any{"status": "verified", "path": path, "checks": result.Checks, "parameters": result.Parameters, "verification": result.Document.Verification}, nil
 }
 
 func runInit(args []string) (any, error) {
@@ -731,5 +790,5 @@ func (values *repeatedStringFlag) Set(value string) error {
 }
 
 func usage() {
-	fmt.Fprintln(os.Stderr, "usage: vpsforge <desktop|init|status|validate|ingest-surface|measure|probe|preflight|stereo-placement-probe|pro-q-3-eq-core-probe|pro-q-3-static-lifecycle-probe|pro-q-3-resource-isolation-probe|pro-q-3-review-summary|equalizer-v2-proposal-draft|equalizer-v2-scope-record|equalizer-v2-static-eq-matrix|equalizer-v2-conformance-decision-draft|pro-q-3-static-eq-draft-test-profile|pro-q-3-static-eq-stage-vps|pro-q-3-equalizer-v2-promotion|serve|host|witness|witness-record|test-audio> [flags]")
+	fmt.Fprintln(os.Stderr, "usage: vpsforge <draft|verify|desktop|init|status|validate|ingest-surface|measure|probe|preflight|stereo-placement-probe|pro-q-3-eq-core-probe|pro-q-3-static-lifecycle-probe|pro-q-3-resource-isolation-probe|pro-q-3-review-summary|equalizer-v2-proposal-draft|equalizer-v2-scope-record|equalizer-v2-static-eq-matrix|equalizer-v2-conformance-decision-draft|pro-q-3-static-eq-draft-test-profile|pro-q-3-static-eq-stage-vps|pro-q-3-equalizer-v2-promotion|serve|host|witness|witness-record|test-audio> [flags]")
 }

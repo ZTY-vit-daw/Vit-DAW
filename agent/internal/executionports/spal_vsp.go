@@ -295,6 +295,9 @@ func (p *SPALVSPPort) failedReceipt(actionID string, manifest spal.ExecutionMani
 func (p *SPALVSPPort) sendBatch(ctx context.Context, manifest spal.ExecutionManifest, parameters []spal.PhysicalParameter, baseRevision int64, requestID, transactionID string) (*kernel.VSPCommandResult, error) {
 	rows := make([]any, 0, len(parameters))
 	for _, parameter := range parameters {
+		if parameter.RequiresKernelDisplayResolution() {
+			return nil, fmt.Errorf("semantic display/enum write for %s must be delegated to governed B4 plugin control", parameter.ParameterID)
+		}
 		row := map[string]any{"parameter_id": parameter.ParameterID, "value": parameter.Value}
 		if parameter.Unit != "" {
 			row["unit"] = parameter.Unit

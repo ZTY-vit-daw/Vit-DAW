@@ -29,7 +29,7 @@ func TestVPSEQV2StagingAdapterReusesCompilerWithoutBecomingVerifiedProvider(t *t
 		t.Fatal(err)
 	}
 	writes, err := adapter.Compile(instruction, binding)
-	if err != nil || len(writes) != 5 || writes[0].ParameterID != "0" || writes[1].Value != .25 {
+	if err != nil || len(writes) != 5 || writes[0].ParameterID != "0" || writes[1].ValueMode != PhysicalValueModeEnumLabel || writes[1].EnumLabel != "highpass" {
 		t.Fatalf("staging compiler writes=%#v err=%v", writes, err)
 	}
 	instruction.Parameters["slope_db_per_octave"] = 24

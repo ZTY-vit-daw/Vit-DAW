@@ -1,6 +1,9 @@
 package spal
 
-import "testing"
+import (
+	"strings"
+	"testing"
+)
 
 func TestVPSEQV2AdapterCompilesBandShapeAsStateOfBand(t *testing.T) {
 	definition := testEQV2Definition([]string{EQBandPatchControlID})
@@ -18,8 +21,13 @@ func TestVPSEQV2AdapterCompilesBandShapeAsStateOfBand(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(writes) != 5 || writes[1].ParameterID != "17" || writes[1].Value != .75 || writes[2].ParameterID != "16" {
+	if len(writes) != 5 || writes[1].ParameterID != "17" || writes[1].ValueMode != PhysicalValueModeEnumLabel || writes[1].EnumLabel != "high_shelf" || writes[2].ParameterID != "16" || writes[2].ValueMode != PhysicalValueModeDisplay || writes[2].Value != 632 {
 		t.Fatalf("shape was not compiled inside Band II: %#v", writes)
+	}
+	for key := range binding.Invariants {
+		if strings.Contains(strings.ToLower(key), "normalized") || strings.Contains(strings.ToLower(key), "normalised") {
+			t.Fatalf("Go runtime binding leaked a normalized enum value: %#v", binding.Invariants)
+		}
 	}
 }
 
@@ -56,7 +64,7 @@ func TestVPSEQV2AdapterCompilesPassFilterEnumAndPartialOutput(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(writes) != 3 || writes[2].ParameterID != "51" || writes[2].Value < .66 || writes[2].Value > .67 {
+	if len(writes) != 3 || writes[2].ParameterID != "51" || writes[2].ValueMode != PhysicalValueModeEnumLabel || writes[2].EnumLabel != "24" || writes[1].Value != 80 {
 		t.Fatalf("unexpected pass-filter writes: %#v", writes)
 	}
 	output := Instruction{SchemaID: EQOutputPatchControlID, TargetRef: "track:1", Parameters: map[string]float64{"output_gain_db": -2}}
@@ -68,7 +76,7 @@ func TestVPSEQV2AdapterCompilesPassFilterEnumAndPartialOutput(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(writes) != 1 || writes[0].ParameterID != "65" || writes[0].Value != .45 {
+	if len(writes) != 1 || writes[0].ParameterID != "65" || writes[0].ValueMode != PhysicalValueModeDisplay || writes[0].Value != -2 || writes[0].BindingRef != "output_gain_db" {
 		t.Fatalf("unexpected output writes: %#v", writes)
 	}
 }
@@ -79,10 +87,10 @@ func TestVPSEQV2AdapterCompilesBandBackedPassFilterWithAllocation(t *testing.T) 
 		Descriptor: ProviderDescriptor{ID: "band-backed-eq", AdapterVersion: "v2", Status: ProviderVerified, SupportedSchemas: []string{EQPassFilterPatchControlID}}, VPSID: "vps", CredentialID: "credential",
 		Binding: EQV2Binding{ConformedSchemas: []string{EQPassFilterPatchControlID}, HighPass: &EQV2PassFilterBinding{
 			ComponentID: "b1", Allocated: &allocation,
-			ResponseShape:     &EnumParameterBinding{ParameterID: "8", Values: map[string]float64{"highpass": .25}},
+			ResponseShape:     &EnumParameterBinding{ParameterID: "8", Values: map[string]float64{"highpass": .25}, DisplayLabels: map[string]string{"highpass": "Low Cut"}},
 			Enabled:           ParameterBinding{ParameterID: "1", Unit: "toggle", Min: 0, Max: 1, Scale: "linear"},
 			CutoffFrequencyHz: ParameterBinding{ParameterID: "2", Unit: "Hz", Min: 10, Max: 30000, Scale: "log"},
-			SlopeDBPerOctave:  EnumParameterBinding{ParameterID: "9", Values: map[string]float64{"12": 1.0 / 9.0}},
+			SlopeDBPerOctave:  EnumParameterBinding{ParameterID: "9", Values: map[string]float64{"12": 1.0 / 9.0}, DisplayLabels: map[string]string{"12": "12 dB/oct"}},
 		}},
 	}
 	adapter, err := NewVPSEQV2Adapter(definition)
@@ -98,7 +106,7 @@ func TestVPSEQV2AdapterCompilesBandBackedPassFilterWithAllocation(t *testing.T) 
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(writes) != 5 || writes[0].ParameterID != "0" || writes[0].Value != 1 || writes[1].ParameterID != "8" || writes[1].Value != .25 || writes[4].ParameterID != "9" {
+	if len(writes) != 5 || writes[0].ParameterID != "0" || writes[0].Value != 1 || writes[1].ParameterID != "8" || writes[1].ValueMode != PhysicalValueModeEnumLabel || writes[1].EnumLabel != "Low Cut" || writes[4].ParameterID != "9" || writes[4].EnumLabel != "12 dB/oct" {
 		t.Fatalf("band-backed pass-filter compiler lost allocation/shape order: %#v", writes)
 	}
 }

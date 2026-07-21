@@ -95,6 +95,31 @@ func TestPluginGrabberApplyUsesFreshReadback(t *testing.T) {
 	}
 }
 
+func TestPluginGrabberApplyForwardsVerifiedVPSProfileToKernel(t *testing.T) {
+	action := pluginGrabberTestAction("gain")
+	applyArgs := action.Args["apply_args"].(map[string]any)
+	applyArgs["verified_vps_profiles"] = []any{map[string]any{
+		"source": "verified_vps",
+		"groups": []any{map[string]any{"id": "b1", "params": map[string]any{
+			"response_shape": map[string]any{"parameter_id": "shape", "verified_values": map[string]any{"Bell": 0.0}},
+		}}},
+	}}
+	client := &scriptedPluginGrabberClient{replies: map[string][]*kernel.VSPCommandResult{
+		"plugin.apply_control":  {pluginAppliedResult("gain", 0.6)},
+		"plugin.parameters.get": {pluginParametersResult("gain", 0.6)},
+	}}
+	if _, err := (PluginGrabberPort{Client: client}).Apply(context.Background(), action, "idem-vps"); err != nil {
+		t.Fatal(err)
+	}
+	if len(client.calls) == 0 || client.calls[0].command != "plugin.apply_control" {
+		t.Fatalf("governed apply was not dispatched: %#v", client.calls)
+	}
+	profiles, ok := client.calls[0].args["verified_vps_profiles"].([]any)
+	if !ok || len(profiles) != 1 || profiles[0].(map[string]any)["source"] != "verified_vps" {
+		t.Fatalf("verified VPS profile was not consumed by governed kernel dispatch: %#v", client.calls[0].args)
+	}
+}
+
 func TestPluginGrabberIdentityMismatchRestoresCompletePreimage(t *testing.T) {
 	client := &scriptedPluginGrabberClient{replies: map[string][]*kernel.VSPCommandResult{
 		"plugin.apply_control":    {pluginAppliedResult("gain", 0.6)},
