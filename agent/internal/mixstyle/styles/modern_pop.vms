@@ -1,0 +1,53 @@
+{
+  "schema_version": "vit.mix_style.v1",
+  "kind": "mix_style",
+  "identity": {
+    "id": "modern_pop",
+    "name": "Modern Pop",
+    "version": "1.0.0",
+    "author": "Vit",
+    "description": "Clear foreground, firm rhythm anchors, disciplined support layers, and structured width.",
+    "tags": [
+      "pop",
+      "modern",
+      "vocal_forward"
+    ]
+  },
+  "compatibility": {
+    "capability_contracts": {
+      "static_mix.static_balance": "v1",
+      "static_mix.pan_layout": "v1"
+    }
+  },
+  "style_intent": {
+    "density": "medium_high",
+    "contrast": "high",
+    "center_focus": "foreground",
+    "symmetry": "balanced",
+    "conservatism": "medium"
+  },
+  "capabilities": {
+    "static_balance": {
+      "schema_version": "vit.mix_style.static_balance.v1",
+      "foreground_priority": 0.85,
+      "rhythm_anchor_weight": 0.55,
+      "low_end_anchor_weight": 0.35,
+      "harmonic_bed_depth": -0.25,
+      "support_layer_distance": 0.55,
+      "transient_control_bias": 0.35,
+      "density_clearance": 0.75,
+      "natural_dynamic_tolerance": -0.35
+    },
+    "pan_layout": {
+      "schema_version": "vit.mix_style.pan_layout.v1",
+      "center_density": 0.58,
+      "spread_amount": 0.76,
+      "symmetry_bias": 0,
+      "complementary_pair_bias": 0.88,
+      "mono_safety": 0.9,
+      "stereo_source_conservatism": 0.78,
+      "support_layer_spread": 0.78,
+      "rhythm_peripheral_allowance": 0.46
+    }
+  }
+}

@@ -1,0 +1,82 @@
+package chat
+
+import (
+	"context"
+	"fmt"
+
+	"vit-daw-agent/internal/executionports"
+	"vit-daw-agent/internal/executionverifiers"
+	"vit-daw-agent/internal/orchestration"
+	agentruntime "vit-daw-agent/internal/runtime"
+)
+
+func (s *Server) recoverCapabilityExecution(ctx context.Context, conversationID string, goal agentruntime.Goal, session orchestration.PlanningSession) ChatResponse {
+	if session.FrozenPlan == nil || s == nil || s.orchestrationRuntime == nil || s.kernel == nil || s.harness == nil {
+		return capabilityCanaryBlockedResponse(conversationID, goal, "v1 execution recovery 缺少 FrozenPlan、Kernel 或 Harness。")
+	}
+	frozen := *session.FrozenPlan
+	envelope, err := s.orchestrationRuntime.BuildCapabilityContextEnvelope(
+		session.ID,
+		orchestration.ContextBundle{ID: frozen.ContextBundleID, CapabilityID: frozen.ActionSet.CapabilityID, ProjectCutHash: frozen.ProjectCut.Hash, ArtifactRefs: []string{"capability-pack:" + frozen.ContextBundleID}},
+		capabilityCanaryToolSchemas(s), nil, orchestration.DefaultContextWindowBudget(),
+	)
+	if err != nil {
+		return capabilityCanaryBlockedResponse(conversationID, goal, "recovery Context Envelope 无效："+err.Error())
+	}
+	var recovered orchestration.PlanningSession
+	switch frozen.ActionSet.CapabilityID {
+	case staticBalanceCapabilityID:
+		recovered, err = s.orchestrationRuntime.ReconcileActionSet(
+			ctx, session.ID, frozen.ActionSet,
+			&executionports.StaticBalanceVSPPort{Client: s.kernel},
+			executionverifiers.StaticBalance{State: s.kernel, Acoustic: executionverifiers.HarnessAcoustic{
+				Invoker: s.harness, PreviousObservationID: frozen.PreviousObservationID, MixSessionID: session.ID, GoalText: session.Goal,
+			}},
+		)
+	case panLayoutCapabilityID:
+		recovered, err = s.orchestrationRuntime.ReconcileActionSet(
+			ctx, session.ID, frozen.ActionSet,
+			&executionports.PanLayoutVSPPort{Client: s.kernel},
+			executionverifiers.PanLayout{State: s.kernel, Acoustic: executionverifiers.HarnessAcoustic{
+				Invoker: s.harness, PreviousObservationID: frozen.PreviousObservationID, MixSessionID: session.ID, GoalText: session.Goal,
+			}},
+		)
+	case spalReferenceEQTestCapabilityID:
+		if err = s.validateSPALReferenceEQFrozenProvider(ctx, frozen); err == nil {
+			port := s.spalReferenceEQMutationPort(ctx)
+			recovered, err = s.orchestrationRuntime.ReconcileActionSet(
+				ctx, session.ID, frozen.ActionSet,
+				port,
+				executionverifiers.SPAL{Signal: executionverifiers.ReceiptSPALSignalProbe{}},
+			)
+		}
+	default:
+		err = fmt.Errorf("unsupported recovery capability %s", frozen.ActionSet.CapabilityID)
+	}
+	if recovered.ID == "" {
+		recovered = session
+	}
+	var response ChatResponse
+	if frozen.ActionSet.CapabilityID == panLayoutCapabilityID {
+		response = panLayoutCanaryExecutionResponse(conversationID, goal, recovered, envelope, err)
+	} else if frozen.ActionSet.CapabilityID == spalReferenceEQTestCapabilityID {
+		response = spalReferenceEQExecutionResponse(conversationID, goal, recovered, envelope, err)
+	} else {
+		response = capabilityCanaryExecutionResponse(conversationID, goal, recovered, envelope, err)
+	}
+	response.WorkflowData["recovery"] = true
+	response.ProjectHistory = s.harness.ProjectHistorySummary(ctx, firstNonEmpty(goal.GoalID, session.ID))
+	return response
+}
+
+func authorizedCapabilityWaitingResponse(conversationID string, goal agentruntime.Goal, session orchestration.PlanningSession) ChatResponse {
+	return ChatResponse{
+		ConversationID: conversationID, GoalID: goal.GoalID, RunID: goal.RunID,
+		Reply:    "当前 v1 Proposal 已授权但尚未进入 Execution。FrozenPlan 不会被重新规划；请明确说“继续执行”以恢复执行，或说“取消”。",
+		Workflow: "capability_runtime_v1", GoalStatus: string(agentruntime.StatusWaitingContinue),
+		WorkflowData: map[string]any{
+			"session_id": session.ID, "capability_id": session.Invocation.CapabilityID,
+			"engine_owner": session.EngineOwner, "canary_stage": "authorized_recovery_waiting",
+		},
+	}
+}

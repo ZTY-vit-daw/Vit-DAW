@@ -1,0 +1,87 @@
+{
+  "schema_version": "vit.vps_authoring_target_matrix.v1",
+  "status": "planning_only",
+  "selection_policy": "Install and author only the minimum products needed to cover real project roles. Famous alternatives are deferred until a measured capability gap appears.",
+  "project_evidence": [
+    {
+      "path": "E:\\BaiduNetdiskDownload\\yingge - sattelites tracks out",
+      "audio_file_count": 61,
+      "observed_roles": ["lead_vocal", "backing_vocal", "drums", "percussion", "bass", "synth", "keys", "melodic_effects", "printed_effect_returns"],
+      "interpretation_correction": "Plugin names embedded in rendered WAV filenames describe processing printed by the source engineer. They are not evidence that Vit should install or prioritize those products.",
+      "trust": "observed_directory_and_filename_role_evidence"
+    },
+    {
+      "path": "E:\\BaiduNetdiskDownload\\长河分轨",
+      "audio_file_count": 93,
+      "observed_roles": ["lead_vocal", "backing_vocal", "drums", "bass", "electric_guitar", "piano_keys", "synth", "strings", "traditional_instruments", "effects"],
+      "trust": "observed_directory_and_filename_evidence"
+    }
+  ],
+  "minimum_complete_chain": [
+    {
+      "priority": 1,
+      "role": "parametric_dynamic_eq",
+      "preferred_first_product": "FabFilter Pro-Q (one locally licensed version only)",
+      "existing_fallback": "TDR Nova",
+      "desired_work_card": "equalizer.v2",
+      "reason": "Universal corrective, tonal and dynamic EQ for all observed track roles. Product choice is based on broad use and coverage, not printed source-track names."
+    },
+    {
+      "priority": 2,
+      "role": "general_compression",
+      "preferred_first_product": "FabFilter Pro-C 2",
+      "desired_work_card": "compressor.v1",
+      "reason": "One flexible compressor can cover drums, bass, vocals, instruments and buses before authoring character alternatives."
+    },
+    {
+      "priority": 3,
+      "role": "general_reverb",
+      "preferred_first_product": "ValhallaVintageVerb",
+      "desired_work_card": "reverb.v1",
+      "reason": "A widely used, focused reverb product gives the first suite vendor diversity and covers the principal algorithmic reverb spaces."
+    },
+    {
+      "priority": 4,
+      "role": "delay",
+      "preferred_first_product": "Soundtoys EchoBoy",
+      "desired_work_card": "delay.v1",
+      "reason": "A widely used delay with timing, feedback, stereo and style behavior exercises a different vendor surface and special capabilities."
+    },
+    {
+      "priority": 5,
+      "role": "limiting_output",
+      "preferred_first_product": "FabFilter Pro-L 2",
+      "desired_work_card": "limiter.v1",
+      "reason": "Required for output safety and loudness-stage experiments."
+    },
+    {
+      "priority": 6,
+      "role": "de_essing",
+      "preferred_first_product": "FabFilter Pro-DS",
+      "desired_work_card": "de_esser.v1",
+      "reason": "Second-batch addition for the substantial lead/backing vocal material when dynamic EQ is not the preferred workflow."
+    },
+    {
+      "priority": 7,
+      "role": "saturation_tone",
+      "preferred_first_product": "Soundtoys Decapitator",
+      "desired_work_card": "saturation.v1",
+      "reason": "Second-batch addition for a focused, widely used harmonic-color workflow; a multiband saturation product is deferred until needed."
+    }
+  ],
+  "deferred_until_real_gap": [
+    {
+      "products": ["FabFilter Pro-MB", "Waves C6"],
+      "gap": "multiband dynamics cannot be achieved adequately by current EQ/compressor capabilities"
+    },
+    {
+      "products": ["Waves CLA-76", "Waves CLA-2A", "Waves CLA-3A"],
+      "gap": "a specific character, detector behavior or time-constant workflow is requested; CLA-76 is the first candidate"
+    },
+    {
+      "products": ["Waves CLA Vocals"],
+      "gap": "the user explicitly wants the composite vendor workflow and its special capabilities"
+    }
+  ],
+  "authority": "No entry is a VPS, Credential or Catalog capability until the locally installed version and format pass human semantic witness, conformance and FXM evidence requirements."
+}

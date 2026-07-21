@@ -1,0 +1,233 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vit-daw.local/schema/vsp/v1/envelope.schema.json",
+  "title": "VSP v1 Envelope",
+  "description": "Base envelope for Vit Session Protocol v1 messages.",
+  "type": "object",
+  "required": [
+    "vsp_version",
+    "schema",
+    "message_id",
+    "session_id",
+    "client_id",
+    "role",
+    "channel",
+    "type",
+    "created_at",
+    "payload"
+  ],
+  "additionalProperties": true,
+  "properties": {
+    "vsp_version": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "schema": {
+      "type": "string",
+      "pattern": "^vsp\\.[a-z0-9_.-]+\\.v[0-9]+$"
+    },
+    "message_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "session_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "client_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "role": {
+      "$ref": "#/$defs/role"
+    },
+    "channel": {
+      "$ref": "#/$defs/channel"
+    },
+    "type": {
+      "$ref": "#/$defs/message_type"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "request_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "correlation_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "transaction_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "trace_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "project_epoch": {
+      "type": "string",
+      "minLength": 1
+    },
+    "base_revision": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "capabilities": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/capability"
+      },
+      "uniqueItems": true
+    },
+    "feature_flags": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "boolean"
+      }
+    },
+    "payload": {
+      "type": "object"
+    },
+    "ack": {
+      "$ref": "#/$defs/ack"
+    },
+    "error": {
+      "$ref": "#/$defs/error"
+    }
+  },
+  "$defs": {
+    "role": {
+      "type": "string",
+      "enum": [
+        "kernel",
+        "gui",
+        "agent",
+        "controller",
+        "analyzer",
+        "gateway",
+        "extension",
+        "legacy_adapter",
+        "test"
+      ]
+    },
+    "channel": {
+      "type": "string",
+      "enum": [
+        "session",
+        "command",
+        "state",
+        "realtime",
+        "asset",
+        "event",
+        "log"
+      ]
+    },
+    "message_type": {
+      "type": "string",
+      "enum": [
+        "session.hello",
+        "session.hello_ack",
+        "session.heartbeat",
+        "session.capability_update",
+        "session.close",
+        "command.request",
+        "command.ack",
+        "command.response",
+        "command.error",
+        "command.cancel",
+        "state.snapshot_request",
+        "state.snapshot",
+        "state.subscribe",
+        "state.delta",
+        "state.resync_request",
+        "state.resync_required",
+        "realtime.subscribe",
+        "realtime.unsubscribe",
+        "realtime.frame",
+        "realtime.stream_status",
+        "asset.request",
+        "asset.reference",
+        "asset.manifest_request",
+        "asset.manifest",
+        "asset.changed",
+        "asset.invalidated",
+        "asset.error",
+        "event.subscribe",
+        "event.notification",
+        "event.progress",
+        "event.completed",
+        "event.error",
+        "log.record"
+      ]
+    },
+    "capability": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$"
+    },
+    "ack": {
+      "type": "object",
+      "required": ["stage"],
+      "additionalProperties": true,
+      "properties": {
+        "stage": {
+          "type": "string",
+          "enum": [
+            "accepted",
+            "rejected",
+            "in_progress",
+            "completed",
+            "no_op"
+          ]
+        },
+        "message": {
+          "type": "string"
+        },
+        "progress": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      }
+    },
+    "error": {
+      "type": "object",
+      "required": ["code", "message"],
+      "additionalProperties": true,
+      "properties": {
+        "code": {
+          "type": "string",
+          "enum": [
+            "validation_error",
+            "not_found",
+            "conflict",
+            "busy",
+            "permission_denied",
+            "capability_not_supported",
+            "timeout",
+            "transport_error",
+            "asset_unavailable",
+            "partial_failure",
+            "internal_error",
+            "legacy_adapter_error"
+          ]
+        },
+        "message": {
+          "type": "string"
+        },
+        "retryable": {
+          "type": "boolean"
+        },
+        "details": {
+          "type": "object"
+        }
+      }
+    }
+  }
+}

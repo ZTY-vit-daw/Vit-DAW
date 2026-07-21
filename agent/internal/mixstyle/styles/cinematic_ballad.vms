@@ -1,0 +1,53 @@
+{
+  "schema_version": "vit.mix_style.v1",
+  "kind": "mix_style",
+  "identity": {
+    "id": "cinematic_ballad",
+    "name": "Cinematic Ballad",
+    "version": "1.0.0",
+    "author": "Vit",
+    "description": "Prominent lead with deep harmonic support, broad orchestral placement, and preserved natural dynamics.",
+    "tags": [
+      "cinematic",
+      "ballad",
+      "orchestral"
+    ]
+  },
+  "compatibility": {
+    "capability_contracts": {
+      "static_mix.static_balance": "v1",
+      "static_mix.pan_layout": "v1"
+    }
+  },
+  "style_intent": {
+    "density": "medium_high",
+    "contrast": "medium",
+    "center_focus": "lead",
+    "symmetry": "broad",
+    "conservatism": "medium"
+  },
+  "capabilities": {
+    "static_balance": {
+      "schema_version": "vit.mix_style.static_balance.v1",
+      "foreground_priority": 0.8,
+      "rhythm_anchor_weight": -0.35,
+      "low_end_anchor_weight": 0.05,
+      "harmonic_bed_depth": 0.75,
+      "support_layer_distance": 0.2,
+      "transient_control_bias": -0.65,
+      "density_clearance": 0.35,
+      "natural_dynamic_tolerance": 0.9
+    },
+    "pan_layout": {
+      "schema_version": "vit.mix_style.pan_layout.v1",
+      "center_density": 0.6,
+      "spread_amount": 0.82,
+      "symmetry_bias": 0,
+      "complementary_pair_bias": 0.86,
+      "mono_safety": 0.88,
+      "stereo_source_conservatism": 0.72,
+      "support_layer_spread": 0.84,
+      "rhythm_peripheral_allowance": 0.32
+    }
+  }
+}

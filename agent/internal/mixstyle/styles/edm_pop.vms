@@ -1,0 +1,53 @@
+{
+  "schema_version": "vit.mix_style.v1",
+  "kind": "mix_style",
+  "identity": {
+    "id": "edm_pop",
+    "name": "EDM Pop",
+    "version": "1.0.0",
+    "author": "Vit",
+    "description": "Strong low-end and rhythm anchors with high density clearance and controlled wide support.",
+    "tags": [
+      "edm",
+      "pop",
+      "dance"
+    ]
+  },
+  "compatibility": {
+    "capability_contracts": {
+      "static_mix.static_balance": "v1",
+      "static_mix.pan_layout": "v1"
+    }
+  },
+  "style_intent": {
+    "density": "high",
+    "contrast": "high",
+    "center_focus": "rhythm_and_low_end",
+    "symmetry": "balanced",
+    "conservatism": "medium"
+  },
+  "capabilities": {
+    "static_balance": {
+      "schema_version": "vit.mix_style.static_balance.v1",
+      "foreground_priority": 0.55,
+      "rhythm_anchor_weight": 0.9,
+      "low_end_anchor_weight": 0.95,
+      "harmonic_bed_depth": -0.45,
+      "support_layer_distance": 0.65,
+      "transient_control_bias": 0.7,
+      "density_clearance": 0.9,
+      "natural_dynamic_tolerance": -0.6
+    },
+    "pan_layout": {
+      "schema_version": "vit.mix_style.pan_layout.v1",
+      "center_density": 0.52,
+      "spread_amount": 0.84,
+      "symmetry_bias": 0,
+      "complementary_pair_bias": 0.92,
+      "mono_safety": 0.92,
+      "stereo_source_conservatism": 0.8,
+      "support_layer_spread": 0.88,
+      "rhythm_peripheral_allowance": 0.62
+    }
+  }
+}

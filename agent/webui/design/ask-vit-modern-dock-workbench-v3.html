@@ -1,0 +1,1044 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Ask Vit Modern Dock Workbench v3</title>
+    <style>
+      :root {
+        --ink: #17191f;
+        --muted: #667085;
+        --line: #d8dee8;
+        --line-strong: #17191f;
+        --paper: #f5f6f8;
+        --panel: #ffffff;
+        --panel-soft: #fafbfc;
+        --blue: #2558d8;
+        --blue-soft: #eaf0ff;
+        --yellow: #f2c94c;
+        --yellow-soft: #fff6d8;
+        --red: #d84a3d;
+        --red-soft: #ffebe8;
+        --shadow: 0 12px 34px rgba(20, 24, 35, 0.08);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        overflow: hidden;
+        background: var(--paper);
+        color: var(--ink);
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+      }
+
+      button,
+      textarea {
+        font: inherit;
+      }
+
+      button {
+        cursor: default;
+      }
+
+      .shell {
+        display: grid;
+        grid-template-rows: 58px minmax(0, 1fr);
+        width: 100vw;
+        height: 100vh;
+        background: var(--paper);
+      }
+
+      .topbar {
+        display: grid;
+        grid-template-columns: 252px minmax(0, 1fr) 310px;
+        align-items: stretch;
+        border-bottom: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.94);
+        backdrop-filter: blur(18px);
+      }
+
+      .brand,
+      .project,
+      .transport {
+        display: flex;
+        align-items: center;
+        min-width: 0;
+      }
+
+      .brand {
+        gap: 12px;
+        padding: 0 18px;
+        border-right: 1px solid var(--line);
+      }
+
+      .brand-mark {
+        width: 22px;
+        height: 22px;
+        border: 3px solid var(--ink);
+        background:
+          linear-gradient(90deg, var(--blue) 0 48%, var(--panel) 48% 58%, var(--yellow) 58% 100%);
+      }
+
+      .brand strong,
+      .brand span,
+      .project strong,
+      .project span {
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .brand strong {
+        font-size: 15px;
+      }
+
+      .brand span,
+      .project span {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .project {
+        gap: 12px;
+        padding: 0 16px;
+      }
+
+      .state-pill {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 94px;
+        height: 30px;
+        border: 1px solid rgba(23, 25, 31, 0.18);
+        border-radius: 8px;
+        background: var(--yellow-soft);
+        color: #7a5b00;
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      .transport {
+        justify-content: flex-end;
+        gap: 8px;
+        padding: 0 14px;
+        border-left: 1px solid var(--line);
+      }
+
+      .icon-button {
+        display: grid;
+        place-items: center;
+        width: 32px;
+        height: 32px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--panel);
+        color: var(--ink);
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      .timecode {
+        display: grid;
+        place-items: center;
+        min-width: 102px;
+        height: 32px;
+        border-radius: 8px;
+        background: var(--ink);
+        color: var(--panel);
+        font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+        font-size: 12px;
+      }
+
+      .main {
+        display: grid;
+        grid-template-columns: 66px minmax(0, 1fr);
+        min-height: 0;
+      }
+
+      .rail {
+        display: grid;
+        grid-template-rows: 72px minmax(0, 1fr) 72px;
+        border-right: 1px solid var(--line);
+        background: var(--panel);
+      }
+
+      .rail-logo {
+        display: grid;
+        place-items: center;
+        border-bottom: 1px solid var(--line);
+        font-size: 13px;
+        font-weight: 900;
+      }
+
+      .rail-nav,
+      .rail-foot {
+        display: grid;
+        align-content: start;
+        gap: 8px;
+        padding: 10px 8px;
+      }
+
+      .rail-item {
+        display: grid;
+        place-items: center;
+        width: 48px;
+        height: 48px;
+        border: 1px solid transparent;
+        border-radius: 8px;
+        background: transparent;
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 800;
+      }
+
+      .rail-item.active {
+        border-color: rgba(37, 88, 216, 0.2);
+        background: var(--blue);
+        color: var(--panel);
+        box-shadow: 0 10px 24px rgba(37, 88, 216, 0.22);
+      }
+
+      .workspace {
+        display: grid;
+        grid-template-columns: minmax(640px, 1fr) 8px 430px;
+        min-width: 0;
+        min-height: 0;
+      }
+
+      .dialogue {
+        display: grid;
+        grid-template-rows: 74px minmax(0, 1fr) 148px;
+        min-width: 0;
+        min-height: 0;
+        background: var(--paper);
+      }
+
+      .dialogue-head {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 308px;
+        align-items: center;
+        padding: 0 22px;
+        border-bottom: 1px solid var(--line);
+        background: var(--panel);
+      }
+
+      .title-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-width: 0;
+      }
+
+      .title-flag {
+        width: 9px;
+        height: 38px;
+        border-radius: 8px;
+        background: var(--blue);
+      }
+
+      .title-row p,
+      .title-row h1 {
+        margin: 0;
+      }
+
+      .title-row p {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .title-row h1 {
+        overflow: hidden;
+        margin-top: 2px;
+        font-size: 23px;
+        line-height: 1.1;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .mode-switch {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        padding: 4px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--panel-soft);
+      }
+
+      .mode-switch button {
+        height: 34px;
+        border: 0;
+        border-radius: 6px;
+        background: transparent;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      .mode-switch .active {
+        background: var(--panel);
+        color: var(--blue);
+        box-shadow: 0 4px 14px rgba(20, 24, 35, 0.08);
+      }
+
+      .thread-area {
+        min-height: 0;
+        overflow: hidden;
+        padding: 24px 28px 20px;
+      }
+
+      .thread {
+        max-width: 850px;
+        margin: 0 auto;
+      }
+
+      .turn {
+        display: grid;
+        grid-template-columns: 58px minmax(0, 1fr);
+        gap: 14px;
+        margin-bottom: 18px;
+      }
+
+      .speaker {
+        padding-top: 12px;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 800;
+        text-align: right;
+      }
+
+      .bubble {
+        min-width: 0;
+        padding: 15px 16px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--panel);
+        box-shadow: 0 8px 24px rgba(20, 24, 35, 0.04);
+        line-height: 1.55;
+      }
+
+      .bubble p {
+        margin: 0;
+      }
+
+      .bubble small {
+        display: block;
+        margin-top: 6px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .assistant .bubble {
+        border-left: 4px solid var(--blue);
+      }
+
+      .pending-card {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 150px;
+        gap: 0;
+        margin-top: 12px;
+        overflow: hidden;
+        border: 1px solid rgba(122, 91, 0, 0.24);
+        border-radius: 8px;
+        background: var(--yellow-soft);
+      }
+
+      .pending-main {
+        display: grid;
+        gap: 11px;
+        padding: 14px;
+      }
+
+      .pending-title {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        min-width: 0;
+      }
+
+      .status-dot {
+        width: 10px;
+        height: 10px;
+        border: 2px solid var(--ink);
+        background: var(--yellow);
+      }
+
+      .pending-title strong,
+      .pending-title span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .pending-title span {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .pending-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8px;
+      }
+
+      .mini-field {
+        min-width: 0;
+        padding: 8px;
+        border: 1px solid rgba(122, 91, 0, 0.18);
+        border-radius: 6px;
+        background: rgba(255, 255, 255, 0.72);
+      }
+
+      .mini-field em,
+      .mini-field b {
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .mini-field em {
+        color: var(--muted);
+        font-size: 10px;
+        font-style: normal;
+        font-weight: 800;
+      }
+
+      .mini-field b {
+        margin-top: 2px;
+        font-size: 12px;
+      }
+
+      .pending-actions {
+        display: grid;
+        grid-template-rows: 1fr 1fr;
+        border-left: 1px solid rgba(122, 91, 0, 0.22);
+      }
+
+      .pending-actions button {
+        border: 0;
+        border-bottom: 1px solid rgba(122, 91, 0, 0.22);
+        background: rgba(255, 255, 255, 0.72);
+        color: var(--ink);
+        font-size: 13px;
+        font-weight: 900;
+      }
+
+      .pending-actions .primary {
+        background: var(--blue);
+        color: var(--panel);
+      }
+
+      .pending-actions button:last-child {
+        border-bottom: 0;
+      }
+
+      .evidence-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        height: 24px;
+        padding: 0 8px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--panel);
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 800;
+      }
+
+      .composer {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 126px;
+        gap: 12px;
+        padding: 16px 22px 18px 28px;
+        border-top: 1px solid var(--line);
+        background: var(--panel);
+      }
+
+      .composer textarea {
+        width: 100%;
+        height: 100%;
+        min-height: 0;
+        resize: none;
+        padding: 14px 15px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        outline: none;
+        background: var(--panel-soft);
+        color: var(--ink);
+        font-size: 14px;
+        line-height: 1.45;
+      }
+
+      .send-column {
+        display: grid;
+        grid-template-rows: 1fr 1fr;
+        gap: 10px;
+      }
+
+      .send-column button {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--panel);
+        font-weight: 900;
+      }
+
+      .send-column .send {
+        border-color: var(--blue);
+        background: var(--blue);
+        color: var(--panel);
+      }
+
+      .resizer {
+        border-right: 1px solid var(--line);
+        border-left: 1px solid rgba(255, 255, 255, 0.8);
+        background: linear-gradient(90deg, transparent 0 3px, rgba(23, 25, 31, 0.18) 3px 4px, transparent 4px 8px);
+      }
+
+      .dock {
+        display: grid;
+        grid-template-rows: 54px minmax(0, 1fr);
+        min-width: 0;
+        min-height: 0;
+        background: var(--panel);
+      }
+
+      .dock-tabs {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 6px;
+        align-items: center;
+        padding: 10px;
+        border-bottom: 1px solid var(--line);
+        background: var(--panel);
+      }
+
+      .dock-tab {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        height: 34px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--panel-soft);
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 900;
+      }
+
+      .dock-tab.active {
+        border-color: rgba(37, 88, 216, 0.24);
+        background: var(--blue);
+        color: var(--panel);
+      }
+
+      .dock-tab.history {
+        border-color: rgba(216, 74, 61, 0.28);
+      }
+
+      .dock-tab.macro {
+        border-color: rgba(122, 91, 0, 0.24);
+      }
+
+      .badge {
+        display: inline-grid;
+        place-items: center;
+        min-width: 18px;
+        height: 18px;
+        padding: 0 5px;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.22);
+        font-size: 10px;
+        font-weight: 900;
+      }
+
+      .dock-scroll {
+        min-height: 0;
+        overflow: hidden;
+        padding: 14px;
+        background:
+          linear-gradient(90deg, rgba(23, 25, 31, 0.035) 0 1px, transparent 1px 56px),
+          var(--panel-soft);
+      }
+
+      .dock-stack {
+        display: grid;
+        gap: 12px;
+      }
+
+      .dock-section {
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--panel);
+        box-shadow: 0 8px 22px rgba(20, 24, 35, 0.04);
+      }
+
+      .section-head {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: center;
+        min-height: 40px;
+        padding: 0 11px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .section-head strong {
+        overflow: hidden;
+        font-size: 12px;
+        text-overflow: ellipsis;
+        text-transform: uppercase;
+        white-space: nowrap;
+      }
+
+      .section-head span {
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 800;
+      }
+
+      .node-map {
+        position: relative;
+        height: 138px;
+        background: var(--panel);
+      }
+
+      .node-map svg {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+      }
+
+      .node-map path {
+        fill: none;
+        stroke: var(--line-strong);
+        stroke-width: 1.5;
+        opacity: 0.55;
+      }
+
+      .node {
+        position: absolute;
+        display: grid;
+        align-content: center;
+        gap: 1px;
+        width: 100px;
+        height: 42px;
+        padding: 6px 8px;
+        border: 1px solid var(--line-strong);
+        border-radius: 8px;
+        background: var(--panel);
+      }
+
+      .node.blue {
+        border-color: var(--blue);
+        background: var(--blue);
+        color: var(--panel);
+      }
+
+      .node.yellow {
+        border-color: #c99b00;
+        background: var(--yellow-soft);
+      }
+
+      .node strong,
+      .node span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .node strong {
+        font-size: 11px;
+      }
+
+      .node span {
+        font-size: 10px;
+        opacity: 0.82;
+      }
+
+      .decision-list,
+      .evidence-list,
+      .dock-preview {
+        display: grid;
+        gap: 8px;
+        padding: 11px;
+      }
+
+      .decision-row {
+        display: grid;
+        grid-template-columns: 82px minmax(0, 1fr);
+        align-items: center;
+        min-height: 30px;
+        padding: 6px 8px;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        background: var(--panel-soft);
+        font-size: 12px;
+      }
+
+      .decision-row strong,
+      .decision-row span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .decision-row strong {
+        color: var(--blue);
+      }
+
+      .decision-row span {
+        color: var(--muted);
+      }
+
+      .evidence-row {
+        display: grid;
+        grid-template-columns: 72px minmax(0, 1fr) 50px;
+        align-items: center;
+        gap: 8px;
+        min-height: 30px;
+        font-size: 12px;
+      }
+
+      .evidence-row b,
+      .evidence-row span,
+      .evidence-row em {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .evidence-row b {
+        color: var(--blue);
+      }
+
+      .evidence-row span {
+        color: var(--muted);
+      }
+
+      .evidence-row em {
+        color: var(--ink);
+        font-style: normal;
+        font-weight: 900;
+        text-align: right;
+      }
+
+      .mini-bars {
+        display: grid;
+        gap: 8px;
+        padding: 0 11px 12px;
+      }
+
+      .bar-row {
+        display: grid;
+        grid-template-columns: 62px minmax(0, 1fr) 42px;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+      }
+
+      .bar {
+        height: 8px;
+        overflow: hidden;
+        border-radius: 8px;
+        background: #edf0f5;
+      }
+
+      .bar i {
+        display: block;
+        height: 100%;
+        border-radius: inherit;
+        background: var(--blue);
+      }
+
+      .bar.yellow i {
+        background: var(--yellow);
+      }
+
+      .preview-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+      }
+
+      .preview-tile {
+        min-width: 0;
+        min-height: 62px;
+        padding: 9px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--panel-soft);
+      }
+
+      .preview-tile.red {
+        border-color: rgba(216, 74, 61, 0.26);
+        background: var(--red-soft);
+      }
+
+      .preview-tile.yellow {
+        border-color: rgba(122, 91, 0, 0.22);
+        background: var(--yellow-soft);
+      }
+
+      .preview-tile.blue {
+        border-color: rgba(37, 88, 216, 0.22);
+        background: var(--blue-soft);
+      }
+
+      .preview-tile strong,
+      .preview-tile span {
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .preview-tile strong {
+        font-size: 12px;
+      }
+
+      .preview-tile span {
+        margin-top: 8px;
+        color: var(--muted);
+        font-size: 11px;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topbar">
+        <div class="brand">
+          <div class="brand-mark"></div>
+          <div>
+            <strong>Vit DAW</strong>
+            <span>Ask Vit</span>
+          </div>
+        </div>
+        <div class="project">
+          <div class="state-pill">待确认</div>
+          <div>
+            <strong>自动混音：人声清晰度处理</strong>
+            <span>Agent Action Workflow v1 / evidence gated</span>
+          </div>
+        </div>
+        <div class="transport">
+          <button class="icon-button">II</button>
+          <button class="icon-button">S</button>
+          <button class="icon-button">P</button>
+          <div class="timecode">01:12.480</div>
+        </div>
+      </header>
+
+      <section class="main">
+        <nav class="rail">
+          <div class="rail-logo">VIT</div>
+          <div class="rail-nav">
+            <button class="rail-item active">Ask</button>
+            <button class="rail-item">工程</button>
+            <button class="rail-item">混音</button>
+            <button class="rail-item">素材</button>
+          </div>
+          <div class="rail-foot">
+            <button class="rail-item">设置</button>
+          </div>
+        </nav>
+
+        <section class="workspace">
+          <section class="dialogue">
+            <header class="dialogue-head">
+              <div class="title-row">
+                <div class="title-flag"></div>
+                <div>
+                  <p>当前目标</p>
+                  <h1>Ask Vit 工作台</h1>
+                </div>
+              </div>
+              <div class="mode-switch">
+                <button>即时</button>
+                <button>计划</button>
+                <button class="active">目标</button>
+              </div>
+            </header>
+
+            <div class="thread-area">
+              <div class="thread">
+                <article class="turn user">
+                  <div class="speaker">你</div>
+                  <div class="bubble">
+                    <p>人声有点糊，先帮我看一下要不要动。</p>
+                    <small>当前对象：Lead Vocal Bus / Demo Session</small>
+                  </div>
+                </article>
+
+                <article class="turn assistant">
+                  <div class="speaker">Vit</div>
+                  <div class="bubble">
+                    <p>结论：建议先做轻量 EQ treatment。现在不会写入工程；我已基于 MOM projection 生成一个 typed pending。</p>
+                    <small>可信度 0.84。鼓组低频稳定，暂不建议优先调整鼓组。</small>
+                    <div class="pending-card">
+                      <div class="pending-main">
+                        <div class="pending-title">
+                          <div class="status-dot"></div>
+                          <strong>待确认动作</strong>
+                          <span>确认后执行，并触发 AB 复观测</span>
+                        </div>
+                        <div class="pending-grid">
+                          <div class="mini-field"><em>target</em><b>Lead Vocal</b></div>
+                          <div class="mini-field"><em>action</em><b>EQ treatment</b></div>
+                          <div class="mini-field"><em>trust</em><b>0.84</b></div>
+                          <div class="mini-field"><em>route</em><b>typed only</b></div>
+                        </div>
+                        <div class="evidence-chips">
+                          <span class="chip">MOM-42</span>
+                          <span class="chip">DAD-17</span>
+                          <span class="chip">plugin safe route</span>
+                        </div>
+                      </div>
+                      <div class="pending-actions">
+                        <button class="primary">确认执行</button>
+                        <button>换个方案</button>
+                      </div>
+                    </div>
+                  </div>
+                </article>
+
+                <article class="turn assistant">
+                  <div class="speaker">Vit</div>
+                  <div class="bubble">
+                    <p>依据：2-5 kHz 清晰度不足，动态峰值没有异常；限制：确认前不写插件、参数、音量、声像。</p>
+                  </div>
+                </article>
+              </div>
+            </div>
+
+            <form class="composer">
+              <textarea>可以，执行后给我 AB 结果。</textarea>
+              <div class="send-column">
+                <button type="button">附件</button>
+                <button class="send" type="button">发送</button>
+              </div>
+            </form>
+          </section>
+
+          <div class="resizer"></div>
+
+          <aside class="dock">
+            <header class="dock-tabs">
+              <button class="dock-tab active">任务 <span class="badge">1</span></button>
+              <button class="dock-tab history">历史</button>
+              <button class="dock-tab macro">宏</button>
+              <button class="dock-tab">资源</button>
+            </header>
+
+            <div class="dock-scroll">
+              <div class="dock-stack">
+                <section class="dock-section">
+                  <header class="section-head">
+                    <strong>Agent Structure</strong>
+                    <span>可展开</span>
+                  </header>
+                  <div class="node-map">
+                    <svg viewBox="0 0 402 138" preserveAspectRatio="none">
+                      <path d="M76 68 C118 68 122 36 164 36" />
+                      <path d="M76 68 C118 68 122 100 164 100" />
+                      <path d="M264 36 C302 36 300 68 338 68" />
+                      <path d="M264 100 C302 100 300 68 338 68" />
+                    </svg>
+                    <div class="node blue" style="left: 18px; top: 47px;">
+                      <strong>主代理</strong>
+                      <span>router</span>
+                    </div>
+                    <div class="node" style="left: 156px; top: 15px;">
+                      <strong>MOM</strong>
+                      <span>projection</span>
+                    </div>
+                    <div class="node" style="left: 156px; top: 79px;">
+                      <strong>低频检查</strong>
+                      <span>worker</span>
+                    </div>
+                    <div class="node yellow" style="left: 300px; top: 47px;">
+                      <strong>Pending</strong>
+                      <span>confirm</span>
+                    </div>
+                  </div>
+                </section>
+
+                <section class="dock-section">
+                  <header class="section-head">
+                    <strong>Current Decision</strong>
+                    <span>typed pending</span>
+                  </header>
+                  <div class="decision-list">
+                    <div class="decision-row"><strong>对象</strong><span>Lead Vocal Bus</span></div>
+                    <div class="decision-row"><strong>动作</strong><span>EQ treatment / plugin safe route</span></div>
+                    <div class="decision-row"><strong>护栏</strong><span>确认前禁止写入，确认后 typed executor only</span></div>
+                  </div>
+                </section>
+
+                <section class="dock-section">
+                  <header class="section-head">
+                    <strong>Evidence / AB</strong>
+                    <span>compact</span>
+                  </header>
+                  <div class="evidence-list">
+                    <div class="evidence-row"><b>MOM-42</b><span>vocal clarity projection</span><em>0.84</em></div>
+                    <div class="evidence-row"><b>DAD-17</b><span>spectral balance note</span><em>stable</em></div>
+                  </div>
+                  <div class="mini-bars">
+                    <div class="bar-row">
+                      <span>清晰度</span>
+                      <div class="bar"><i style="width: 68%;"></i></div>
+                      <b>+12%</b>
+                    </div>
+                    <div class="bar-row">
+                      <span>风险</span>
+                      <div class="bar yellow"><i style="width: 25%;"></i></div>
+                      <b>低</b>
+                    </div>
+                  </div>
+                </section>
+
+                <section class="dock-section">
+                  <header class="section-head">
+                    <strong>Dock Views</strong>
+                    <span>保留</span>
+                  </header>
+                  <div class="dock-preview">
+                    <div class="preview-grid">
+                      <div class="preview-tile red">
+                        <strong>历史树</strong>
+                        <span>6 nodes</span>
+                      </div>
+                      <div class="preview-tile yellow">
+                        <strong>宏面板</strong>
+                        <span>3 macros</span>
+                      </div>
+                      <div class="preview-tile blue">
+                        <strong>媒体池</strong>
+                        <span>42 items</span>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+              </div>
+            </div>
+          </aside>
+        </section>
+      </section>
+    </main>
+  </body>
+</html>

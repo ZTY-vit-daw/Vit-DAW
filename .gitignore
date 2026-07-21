@@ -69,3 +69,20 @@ yarn-error.log*
 # Keep placeholder files if used
 # -----------------------------
 !.gitkeep
+# -----------------------------
+# Agent cleanup ADR: runtime/generated state
+# -----------------------------
+/artifacts/
+/.vit_history/
+/*.vit
+
+/agent/.playwright-cli/
+/agent/output/
+/agent/*.json
+/agent/*.txt
+/agent/*.exe
+/agent/*.bak
+
+/VPSForge/staging/
+/VPSForge/lib/
+/VPSForge/*.exe

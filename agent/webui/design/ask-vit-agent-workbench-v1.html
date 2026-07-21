@@ -1,0 +1,1044 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ask Vit Agent Workbench V1</title>
+  <style>
+    :root {
+      --ink: #14171f;
+      --muted: #687285;
+      --line: #d8dee8;
+      --strong: #151820;
+      --panel: #f6f7fa;
+      --paper: #ffffff;
+      --blue: #2157d6;
+      --blue-2: #1740a8;
+      --blue-soft: #e9efff;
+      --green: #127c58;
+      --green-soft: #e9f7f1;
+      --yellow: #b88205;
+      --yellow-soft: #fff7df;
+      --red: #cc3128;
+      --red-soft: #fff0ee;
+      --cyan: #0d6f88;
+      --cyan-soft: #e7f7fb;
+      --shadow: 0 18px 48px rgba(18, 22, 32, 0.12);
+      font-family: Inter, "Segoe UI", "Microsoft YaHei", system-ui, sans-serif;
+      color: var(--ink);
+      background: #eceff4;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.7), rgba(236,239,244,0.92)),
+        repeating-linear-gradient(90deg, rgba(20,23,31,0.045) 0 1px, transparent 1px 120px);
+    }
+
+    button {
+      font: inherit;
+    }
+
+    .stage {
+      width: min(1560px, calc(100vw - 48px));
+      height: min(920px, calc(100vh - 48px));
+      min-height: 760px;
+      border: 1px solid rgba(20, 23, 31, 0.18);
+      border-radius: 10px;
+      background: var(--paper);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      display: grid;
+      grid-template-rows: 58px minmax(0, 1fr);
+    }
+
+    .topbar {
+      display: grid;
+      grid-template-columns: minmax(240px, 1fr) minmax(430px, 560px) minmax(280px, 1fr);
+      border-bottom: 2px solid var(--strong);
+      background: #fff;
+    }
+
+    .brand, .transport, .status {
+      min-width: 0;
+      display: flex;
+      align-items: center;
+    }
+
+    .brand {
+      gap: 12px;
+      padding: 0 18px;
+      border-right: 1px solid var(--line);
+    }
+
+    .brand-mark {
+      width: 15px;
+      height: 15px;
+      border: 2px solid var(--strong);
+      background: var(--blue);
+    }
+
+    .brand strong, .brand span {
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .brand strong {
+      font-size: 15px;
+    }
+
+    .brand span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .transport {
+      justify-content: center;
+      gap: 9px;
+      padding: 0 14px;
+      border-right: 1px solid var(--line);
+      background: #fbfcff;
+    }
+
+    .icon-button {
+      width: 34px;
+      height: 34px;
+      display: inline-grid;
+      place-items: center;
+      border: 1px solid var(--strong);
+      border-radius: 6px;
+      color: var(--ink);
+      background: #fff;
+    }
+
+    .timecode {
+      min-width: 128px;
+      padding: 8px 12px;
+      border-radius: 6px;
+      background: var(--strong);
+      color: #fff;
+      text-align: center;
+      font-family: "Cascadia Mono", Consolas, monospace;
+      font-weight: 800;
+      letter-spacing: 0;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      height: 30px;
+      padding: 0 10px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #fff;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .pill.ok {
+      color: var(--green);
+      border-color: rgba(18, 124, 88, 0.3);
+      background: var(--green-soft);
+    }
+
+    .status {
+      justify-content: flex-end;
+      gap: 8px;
+      padding: 0 14px;
+    }
+
+    .shell {
+      min-height: 0;
+      display: grid;
+      grid-template-columns: 76px minmax(0, 1fr);
+      background: var(--panel);
+    }
+
+    .rail {
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr) auto;
+      border-right: 2px solid var(--strong);
+      background: #fff;
+    }
+
+    .rail-logo {
+      padding: 16px 8px 14px;
+      border-bottom: 1px solid var(--line);
+      text-align: center;
+      font-weight: 900;
+      line-height: 1.05;
+    }
+
+    .rail-logo span {
+      display: block;
+      color: var(--blue);
+    }
+
+    .rail-main, .rail-foot {
+      display: grid;
+      align-content: start;
+      gap: 8px;
+      padding: 10px 8px;
+    }
+
+    .rail-foot {
+      align-content: end;
+      border-top: 1px solid var(--line);
+    }
+
+    .rail button {
+      min-height: 54px;
+      border: 1px solid transparent;
+      border-radius: 7px;
+      background: transparent;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .rail button.active {
+      color: #fff;
+      border-color: var(--blue-2);
+      background: var(--blue);
+    }
+
+    .workspace {
+      min-width: 0;
+      min-height: 0;
+      display: grid;
+      grid-template-columns: minmax(560px, 1fr) 10px minmax(360px, 440px);
+      overflow: hidden;
+    }
+
+    .session {
+      min-width: 0;
+      min-height: 0;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr) auto;
+      background: #fbfcff;
+    }
+
+    .session-head {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 18px;
+      align-items: center;
+      padding: 16px 22px 14px;
+      border-bottom: 1px solid var(--line);
+      background: #fff;
+    }
+
+    .eyebrow {
+      margin: 0 0 3px;
+      color: var(--blue);
+      font-size: 12px;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+
+    h1, h2, h3, p {
+      margin: 0;
+    }
+
+    h1 {
+      font-size: 26px;
+      line-height: 1.15;
+    }
+
+    .mode-switch {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(116px, 1fr));
+      gap: 6px;
+      padding: 6px;
+      border: 1px solid rgba(20, 23, 31, 0.34);
+      border-radius: 10px;
+      background: #f7f8fb;
+    }
+
+    .mode-switch button {
+      min-height: 48px;
+      border: 1px solid transparent;
+      border-radius: 7px;
+      background: transparent;
+      color: var(--muted);
+      text-align: left;
+      padding: 7px 10px;
+      font-weight: 900;
+    }
+
+    .mode-switch button span {
+      display: block;
+      color: inherit;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .mode-switch button.active {
+      color: #fff;
+      background: var(--blue);
+      border-color: var(--blue-2);
+    }
+
+    .goal-strip {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto auto;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 22px;
+      border-bottom: 1px solid var(--line);
+      background: #f8faff;
+    }
+
+    .goal-chip {
+      padding: 5px 8px;
+      border: 1px solid rgba(33, 87, 214, 0.24);
+      border-radius: 6px;
+      color: var(--blue);
+      background: var(--blue-soft);
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .goal-strip strong {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 13px;
+    }
+
+    .goal-strip small {
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .timeline {
+      min-height: 0;
+      overflow: auto;
+      padding: 22px 28px 12px;
+    }
+
+    .message-row {
+      display: grid;
+      grid-template-columns: 34px minmax(0, 880px);
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .avatar {
+      width: 34px;
+      height: 34px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--strong);
+      border-radius: 8px;
+      background: var(--strong);
+      color: #fff;
+      font-weight: 900;
+    }
+
+    .bubble {
+      min-width: 0;
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      line-height: 1.48;
+    }
+
+    .bubble.meta {
+      padding: 0;
+      border: 0;
+      background: transparent;
+    }
+
+    .meta-line {
+      margin-bottom: 7px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .user-row {
+      grid-template-columns: minmax(0, 720px) 34px;
+      justify-content: end;
+    }
+
+    .user-row .avatar {
+      grid-column: 2;
+      background: var(--blue);
+      border-color: var(--blue-2);
+    }
+
+    .user-row .bubble {
+      grid-column: 1;
+      background: #deebff;
+      border-color: transparent;
+    }
+
+    .card-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .agent-card {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      gap: 10px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-left: 4px solid var(--blue);
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    .agent-card.pending {
+      border-left-color: var(--green);
+      background: #f8fdfb;
+    }
+
+    .agent-card.ab {
+      border-left-color: var(--yellow);
+      background: #fffdf6;
+    }
+
+    .agent-card.audio {
+      border-left-color: var(--cyan);
+      background: #f7fdff;
+    }
+
+    .card-icon {
+      width: 28px;
+      height: 28px;
+      display: grid;
+      place-items: center;
+      border: 1px solid currentColor;
+      border-radius: 7px;
+      color: var(--blue);
+      background: #fff;
+      font-weight: 900;
+    }
+
+    .pending .card-icon {
+      color: var(--green);
+    }
+
+    .ab .card-icon {
+      color: var(--yellow);
+    }
+
+    .audio .card-icon {
+      color: var(--cyan);
+    }
+
+    .card-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .card-head strong {
+      display: block;
+      font-size: 14px;
+    }
+
+    .card-head span {
+      flex: 0 0 auto;
+      padding: 3px 7px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: #fff;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .card-body {
+      margin-top: 7px;
+      color: #252a35;
+      font-size: 13px;
+      line-height: 1.46;
+    }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 7px;
+      margin-top: 10px;
+    }
+
+    .detail {
+      min-width: 0;
+      padding: 7px 8px;
+      border: 1px solid rgba(20, 23, 31, 0.12);
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.78);
+    }
+
+    .detail span, .metric span {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .detail strong, .metric strong {
+      display: block;
+      margin-top: 3px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 13px;
+    }
+
+    .card-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .action {
+      min-height: 32px;
+      padding: 7px 11px;
+      border: 1px solid var(--strong);
+      border-radius: 6px;
+      background: #fff;
+      font-weight: 900;
+      color: var(--ink);
+    }
+
+    .action.primary {
+      color: #fff;
+      border-color: var(--blue-2);
+      background: var(--blue);
+    }
+
+    .action.safe {
+      color: #fff;
+      border-color: #0b5f41;
+      background: var(--green);
+    }
+
+    .waveform {
+      margin-top: 10px;
+      height: 56px;
+      display: grid;
+      grid-template-columns: repeat(44, 1fr);
+      align-items: center;
+      gap: 2px;
+      padding: 8px;
+      border: 1px solid rgba(13, 111, 136, 0.2);
+      border-radius: 7px;
+      background: #fff;
+    }
+
+    .waveform i {
+      display: block;
+      height: var(--h);
+      min-height: 6px;
+      border-radius: 2px;
+      background: linear-gradient(180deg, #36a7c0, #0d6f88);
+    }
+
+    .metric-row {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 9px;
+    }
+
+    .metric {
+      padding: 7px 8px;
+      border: 1px solid rgba(20, 23, 31, 0.1);
+      border-radius: 6px;
+      background: rgba(255,255,255,0.78);
+    }
+
+    .composer {
+      padding: 12px 20px 16px;
+      background: #fbfcff;
+    }
+
+    .composer-main {
+      display: grid;
+      grid-template-columns: 38px minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 10px;
+      padding: 10px;
+      border: 2px solid var(--strong);
+      border-radius: 10px;
+      background: #fff;
+    }
+
+    .composer-main input {
+      min-width: 0;
+      height: 38px;
+      border: 0;
+      outline: 0;
+      font-size: 18px;
+    }
+
+    .send {
+      min-height: 40px;
+      padding: 0 16px;
+      border: 1px solid var(--blue-2);
+      border-radius: 7px;
+      color: #fff;
+      background: var(--blue);
+      font-size: 16px;
+      font-weight: 900;
+    }
+
+    .splitter {
+      display: grid;
+      place-items: center;
+      border-left: 1px solid var(--line);
+      border-right: 1px solid var(--line);
+      background: #eef1f6;
+      cursor: col-resize;
+    }
+
+    .splitter i {
+      width: 3px;
+      height: 52px;
+      border-radius: 999px;
+      background: #aeb7c8;
+      box-shadow: 0 -8px 0 #aeb7c8, 0 8px 0 #aeb7c8;
+    }
+
+    .dock {
+      min-width: 0;
+      min-height: 0;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+      background: #f7f8fb;
+    }
+
+    .dock-tabs {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 6px;
+      padding: 14px 14px 10px;
+      border-bottom: 1px solid var(--line);
+      background: #fff;
+    }
+
+    .dock-tabs button {
+      min-width: 0;
+      min-height: 36px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: #fff;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .dock-tabs button.active {
+      color: #fff;
+      border-color: var(--blue-2);
+      background: var(--blue);
+    }
+
+    .dock-body {
+      min-height: 0;
+      overflow: auto;
+      padding: 14px;
+      display: grid;
+      align-content: start;
+      gap: 12px;
+    }
+
+    .panel-block {
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    .panel-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .panel-title strong {
+      font-size: 14px;
+    }
+
+    .panel-title span {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .job-list {
+      display: grid;
+      gap: 7px;
+    }
+
+    .job {
+      display: grid;
+      grid-template-columns: 10px minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 8px;
+      min-height: 38px;
+      padding: 7px 8px;
+      border: 1px solid rgba(20, 23, 31, 0.1);
+      border-radius: 7px;
+      background: #fbfcff;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: var(--muted);
+    }
+
+    .job.done .dot {
+      background: var(--green);
+    }
+
+    .job.running .dot {
+      background: var(--blue);
+      box-shadow: 0 0 0 4px rgba(33, 87, 214, 0.12);
+    }
+
+    .job.waiting .dot {
+      background: var(--yellow);
+    }
+
+    .job strong {
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 12px;
+    }
+
+    .job span {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .object-list {
+      display: grid;
+      gap: 6px;
+    }
+
+    .object-row {
+      display: grid;
+      grid-template-columns: 72px minmax(0, 1fr);
+      gap: 8px;
+      padding: 7px 0;
+      border-top: 1px solid rgba(20, 23, 31, 0.08);
+      font-size: 12px;
+    }
+
+    .object-row:first-child {
+      border-top: 0;
+    }
+
+    .object-row span {
+      color: var(--muted);
+      font-weight: 800;
+    }
+
+    .object-row strong {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    @media (max-width: 1180px) {
+      .stage {
+        width: 100vw;
+        height: 100vh;
+        min-height: 0;
+        border-radius: 0;
+      }
+
+      .topbar {
+        grid-template-columns: minmax(160px, 1fr) minmax(320px, 460px);
+      }
+
+      .status {
+        display: none;
+      }
+
+      .workspace {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      .splitter, .dock {
+        display: none;
+      }
+
+      .mode-switch {
+        grid-template-columns: repeat(3, 98px);
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="stage">
+    <header class="topbar">
+      <section class="brand">
+        <i class="brand-mark"></i>
+        <div>
+          <strong>Vit Project</strong>
+          <span>VitAgent 已连接 · 1 条轨道 · 多代理预览</span>
+        </div>
+      </section>
+      <section class="transport">
+        <button class="icon-button" title="播放">▶</button>
+        <button class="icon-button" title="停止">■</button>
+        <button class="icon-button" title="回到开头">↤</button>
+        <div class="timecode">00:00:00</div>
+        <span class="pill">sec</span>
+        <span class="pill ok">Agent Ready</span>
+      </section>
+      <section class="status">
+        <span class="pill">48 kHz</span>
+        <span class="pill">DSP 12.5%</span>
+        <span class="pill ok">main</span>
+      </section>
+    </header>
+
+    <section class="shell">
+      <nav class="rail">
+        <div class="rail-logo">Ask<span>Vit</span></div>
+        <div class="rail-main">
+          <button class="active">对话</button>
+          <button>轨道</button>
+          <button>机架</button>
+          <button>MIDI</button>
+          <button>混音台</button>
+        </div>
+        <div class="rail-foot">
+          <button>新建</button>
+          <button>设置</button>
+        </div>
+      </nav>
+
+      <section class="workspace">
+        <section class="session">
+          <header class="session-head">
+            <div>
+              <p class="eyebrow">Ask Vit</p>
+              <h1>Agent Session</h1>
+            </div>
+            <div class="mode-switch">
+              <button class="active">即时<span>单步确认</span></button>
+              <button>计划<span>只读分析</span></button>
+              <button>目标<span>长任务</span></button>
+            </div>
+          </header>
+
+          <div class="goal-strip">
+            <span class="goal-chip">当前目标</span>
+            <strong>让主唱更靠前，并先给出一个可撤回的小步建议</strong>
+            <small>Goal: running</small>
+            <small>Commit: 需确认</small>
+          </div>
+
+          <section class="timeline">
+            <article class="message-row user-row">
+              <div class="bubble">让主唱更靠前</div>
+              <div class="avatar">你</div>
+            </article>
+
+            <article class="message-row">
+              <div class="avatar">Vit</div>
+              <div class="bubble meta">
+                <div class="meta-line">主代理 · 即时模式</div>
+                <p>我会先观察当前工程，不会直接修改音量、声像或插件参数。若目标轨道不明确，会先向你确认。</p>
+              </div>
+            </article>
+
+            <article class="message-row">
+              <div class="avatar">Vit</div>
+              <div class="bubble meta">
+                <div class="meta-line">多代理计划 · 只读阶段</div>
+                <div class="card-list">
+                  <section class="agent-card">
+                    <div class="card-icon">1</div>
+                    <div>
+                      <div class="card-head">
+                        <strong>Track Mix Analysis</strong>
+                        <span>completed</span>
+                      </div>
+                      <p class="card-body">已基于 MOM projection 检查主唱与伴奏关系，建议先做保守电平微调，不直接加载插件。</p>
+                      <div class="detail-grid">
+                        <div class="detail"><span>对象</span><strong>Track 1010</strong></div>
+                        <div class="detail"><span>证据</span><strong>6 refs</strong></div>
+                        <div class="detail"><span>风险</span><strong>low</strong></div>
+                      </div>
+                    </div>
+                  </section>
+
+                  <section class="agent-card pending">
+                    <div class="card-icon">✓</div>
+                    <div>
+                      <div class="card-head">
+                        <strong>混音单步待确认</strong>
+                        <span>waiting user</span>
+                      </div>
+                      <p class="card-body">将 Track 1010 的电平调整 -1.00 dB，确认前不会修改工程。确认后只走 typed executor，并自动复观测。</p>
+                      <div class="detail-grid">
+                        <div class="detail"><span>动作</span><strong>track_gain_adjust</strong></div>
+                        <div class="detail"><span>幅度</span><strong>-1.00 dB</strong></div>
+                        <div class="detail"><span>可信度</span><strong>medium</strong></div>
+                      </div>
+                      <div class="card-actions">
+                        <button class="action safe">确认执行</button>
+                        <button class="action">换个方案</button>
+                        <button class="action">取消</button>
+                      </div>
+                    </div>
+                  </section>
+                </div>
+              </div>
+            </article>
+
+            <article class="message-row">
+              <div class="avatar">Vit</div>
+              <div class="bubble meta">
+                <div class="meta-line">执行结果 · AB reobserve</div>
+                <div class="card-list">
+                  <section class="agent-card ab">
+                    <div class="card-icon">AB</div>
+                    <div>
+                      <div class="card-head">
+                        <strong>Before / After 复观测</strong>
+                        <span>不可信</span>
+                      </div>
+                      <p class="card-body">执行前后音量：0 dB -> -1 dB。AB Result 不可信，原因：render_revision_missing。质量门未通过，未把这次改动标记为已验证。</p>
+                      <div class="metric-row">
+                        <div class="metric"><span>Peak</span><strong>-0 -> -0 dBFS</strong></div>
+                        <div class="metric"><span>RMS</span><strong>-8.99 -> -8.99</strong></div>
+                        <div class="metric"><span>Headroom</span><strong>0 -> 0 dB</strong></div>
+                        <div class="metric"><span>Rollback</span><strong>可用</strong></div>
+                      </div>
+                    </div>
+                  </section>
+
+                  <section class="agent-card audio">
+                    <div class="card-icon">▶</div>
+                    <div>
+                      <div class="card-head">
+                        <strong>实时结果试听</strong>
+                        <span>A/B ready</span>
+                      </div>
+                      <p class="card-body">同一卡片内完成 before / after 播放、循环区间和音量匹配，避免用户去媒体池里找渲染文件。</p>
+                      <div class="waveform" aria-hidden="true">
+                        <i style="--h:24%"></i><i style="--h:48%"></i><i style="--h:34%"></i><i style="--h:66%"></i><i style="--h:52%"></i><i style="--h:74%"></i><i style="--h:40%"></i><i style="--h:58%"></i><i style="--h:80%"></i><i style="--h:44%"></i><i style="--h:36%"></i><i style="--h:72%"></i><i style="--h:56%"></i><i style="--h:30%"></i><i style="--h:68%"></i><i style="--h:78%"></i><i style="--h:42%"></i><i style="--h:62%"></i><i style="--h:50%"></i><i style="--h:70%"></i><i style="--h:46%"></i><i style="--h:32%"></i><i style="--h:60%"></i><i style="--h:82%"></i><i style="--h:54%"></i><i style="--h:38%"></i><i style="--h:76%"></i><i style="--h:44%"></i><i style="--h:64%"></i><i style="--h:28%"></i><i style="--h:58%"></i><i style="--h:72%"></i><i style="--h:36%"></i><i style="--h:48%"></i><i style="--h:78%"></i><i style="--h:52%"></i><i style="--h:34%"></i><i style="--h:66%"></i><i style="--h:46%"></i><i style="--h:60%"></i><i style="--h:40%"></i><i style="--h:72%"></i><i style="--h:55%"></i><i style="--h:33%"></i>
+                      </div>
+                      <div class="card-actions">
+                        <button class="action primary">播放 After</button>
+                        <button class="action">A/B 切换</button>
+                        <button class="action">循环当前段</button>
+                      </div>
+                    </div>
+                  </section>
+                </div>
+              </div>
+            </article>
+          </section>
+
+          <footer class="composer">
+            <div class="composer-main">
+              <button class="icon-button" title="添加上下文">+</button>
+              <input value="" placeholder="和 Vit 说..." />
+              <button class="send">发送</button>
+            </div>
+          </footer>
+        </section>
+
+        <div class="splitter" title="拖拽调整 Ask Vit 与右侧面板宽度"><i></i></div>
+
+        <aside class="dock">
+          <nav class="dock-tabs">
+            <button class="active">运行</button>
+            <button>历史</button>
+            <button>媒体</button>
+            <button>宏控</button>
+            <button>详情</button>
+          </nav>
+          <section class="dock-body">
+            <section class="panel-block">
+              <div class="panel-title">
+                <strong>Goal</strong>
+                <span>orchestrator</span>
+              </div>
+              <div class="object-list">
+                <div class="object-row"><span>目标</span><strong>让主唱更靠前</strong></div>
+                <div class="object-row"><span>授权</span><strong>单步确认后执行</strong></div>
+                <div class="object-row"><span>状态</span><strong>等待用户确认</strong></div>
+              </div>
+            </section>
+
+            <section class="panel-block">
+              <div class="panel-title">
+                <strong>Workers</strong>
+                <span>4 jobs</span>
+              </div>
+              <div class="job-list">
+                <div class="job done"><i class="dot"></i><strong>Observation Preflight</strong><span>done</span></div>
+                <div class="job done"><i class="dot"></i><strong>Track Mix Analysis</strong><span>done</span></div>
+                <div class="job waiting"><i class="dot"></i><strong>Review Merge</strong><span>waiting</span></div>
+                <div class="job running"><i class="dot"></i><strong>AB Reobserve</strong><span>ready after commit</span></div>
+              </div>
+            </section>
+
+            <section class="panel-block">
+              <div class="panel-title">
+                <strong>Pending</strong>
+                <span>1 action</span>
+              </div>
+              <div class="object-list">
+                <div class="object-row"><span>对象</span><strong>track:1010</strong></div>
+                <div class="object-row"><span>动作</span><strong>track_gain_adjust</strong></div>
+                <div class="object-row"><span>执行器</span><strong>mix tick typed executor</strong></div>
+              </div>
+            </section>
+
+            <section class="panel-block">
+              <div class="panel-title">
+                <strong>DAW 对象锚点</strong>
+                <span>可投射</span>
+              </div>
+              <div class="object-list">
+                <div class="object-row"><span>Track</span><strong>Vocal Lead / 1010</strong></div>
+                <div class="object-row"><span>Clip</span><strong>test_target_3s</strong></div>
+                <div class="object-row"><span>Highlight</span><strong>轨道 + 混音台 fader</strong></div>
+              </div>
+            </section>
+          </section>
+        </aside>
+      </section>
+    </section>
+  </main>
+</body>
+</html>

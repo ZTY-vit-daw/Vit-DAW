@@ -1,0 +1,855 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Vit Project-aware Mondrian Workbench v8</title>
+  <style>
+    :root {
+      --ink: #111111;
+      --paper: #ffffff;
+      --canvas: #f4f4f1;
+      --soft: #ecece7;
+      --muted: #656565;
+      --blue: #1557d6;
+      --blue-soft: #e8efff;
+      --yellow: #ffd42a;
+      --yellow-soft: #fff8cf;
+      --red: #e63426;
+      --red-soft: #ffebe8;
+      --green: #1a8d5b;
+      --hair: #c9c9c3;
+      --line: 2px solid var(--ink);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      color: var(--ink);
+      background: var(--canvas);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+        "Segoe UI", "Microsoft YaHei", sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    button, textarea { font: inherit; color: inherit; }
+    button { cursor: default; }
+
+    .app {
+      display: grid;
+      grid-template-rows: 72px minmax(0, 1fr);
+      width: 100vw;
+      height: 100vh;
+      min-width: 1180px;
+      background: var(--canvas);
+    }
+
+    /* project / transport */
+    .topbar {
+      display: grid;
+      grid-template-columns: 392px minmax(500px, 1fr) 330px;
+      align-items: stretch;
+      border-bottom: var(--line);
+      background: var(--paper);
+    }
+
+    .brand-project {
+      display: grid;
+      grid-template-columns: 72px minmax(0, 1fr);
+      min-width: 0;
+      border-right: var(--line);
+    }
+
+    .mondrian-mark {
+      position: relative;
+      overflow: hidden;
+      border-right: var(--line);
+      background: var(--paper);
+    }
+
+    .mondrian-mark::before {
+      position: absolute;
+      inset: 0 25px 25px 0;
+      border-right: var(--line);
+      border-bottom: var(--line);
+      background: var(--blue);
+      content: "";
+    }
+
+    .mondrian-mark::after {
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      width: 25px;
+      height: 25px;
+      border-top: var(--line);
+      border-left: var(--line);
+      background: var(--yellow);
+      content: "";
+    }
+
+    .red-plane {
+      position: absolute;
+      z-index: 1;
+      bottom: 0;
+      left: 0;
+      width: 23px;
+      height: 25px;
+      border-top: var(--line);
+      border-right: var(--line);
+      background: var(--red);
+    }
+
+    .mark-letter {
+      position: absolute;
+      z-index: 2;
+      top: 15px;
+      left: 19px;
+      color: white;
+      font-size: 28px;
+      font-weight: 950;
+      line-height: 1;
+      letter-spacing: -2px;
+    }
+
+    .project {
+      display: grid;
+      align-content: center;
+      gap: 4px;
+      min-width: 0;
+      padding: 0 18px;
+    }
+
+    .project strong {
+      overflow: hidden;
+      font-size: 15px;
+      font-weight: 850;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .history-heading {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 24px;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .history-switch {
+      display: grid;
+      place-items: center;
+      width: 24px;
+      height: 24px;
+      padding: 0;
+      border: 1px solid var(--ink);
+      background: var(--paper);
+      font-size: 11px;
+      font-weight: 900;
+    }
+
+    .project-meta {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 650;
+      letter-spacing: .02em;
+    }
+
+    .live-dot {
+      width: 7px;
+      height: 7px;
+      border: 1px solid var(--ink);
+      background: #51cf85;
+    }
+
+    .transport {
+      display: grid;
+      grid-template-columns: auto 148px minmax(150px, 280px);
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      padding: 0 18px;
+    }
+
+    .transport-buttons {
+      display: grid;
+      grid-template-columns: repeat(4, 36px);
+      border: 1px solid var(--ink);
+    }
+
+    .transport-button {
+      display: grid;
+      place-items: center;
+      height: 34px;
+      padding: 0;
+      border: 0;
+      border-right: 1px solid var(--ink);
+      background: var(--paper);
+      font-size: 12px;
+      font-weight: 950;
+    }
+
+    .transport-button:last-child { border-right: 0; }
+    .transport-button.play { color: white; background: var(--blue); }
+
+    .timecode {
+      display: grid;
+      place-items: center;
+      height: 36px;
+      border: 1px solid var(--ink);
+      background: var(--paper);
+      font-family: "SFMono-Regular", Consolas, monospace;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: .08em;
+    }
+
+    .meters { display: grid; gap: 5px; }
+    .meter { display: grid; grid-template-columns: 13px 1fr; align-items: center; gap: 7px; }
+    .meter label { color: var(--muted); font-size: 9px; font-weight: 900; }
+    .meter-track { height: 7px; border: 1px solid var(--ink); background: var(--paper); }
+    .meter-track i { display: block; height: 100%; background: var(--blue); }
+    .meter:nth-child(2) .meter-track i { background: var(--yellow); }
+
+    .work-context {
+      display: grid;
+      grid-template-columns: 1fr 96px;
+      min-width: 0;
+      border-left: var(--line);
+    }
+
+    .context-copy {
+      display: grid;
+      align-content: center;
+      gap: 4px;
+      min-width: 0;
+      padding: 0 16px;
+    }
+
+    .eyebrow {
+      color: var(--muted);
+      font-size: 9px;
+      font-weight: 900;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+
+    .context-copy strong {
+      overflow: hidden;
+      font-size: 13px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .ready-block {
+      display: grid;
+      place-items: center;
+      border-left: var(--line);
+      background: var(--blue);
+      color: white;
+      text-align: center;
+    }
+
+    .ready-block b { font-size: 13px; }
+    .ready-block span { display: block; margin-top: 2px; font-size: 9px; font-weight: 800; opacity: .76; }
+
+    /* body */
+    .body {
+      display: grid;
+      grid-template-columns: 82px minmax(0, 1fr);
+      min-height: 0;
+    }
+
+    .rail {
+      display: grid;
+      grid-template-rows: minmax(0, 1fr) auto;
+      border-right: var(--line);
+      background: var(--paper);
+    }
+
+    .rail-nav, .rail-bottom {
+      display: grid;
+      align-content: start;
+      gap: 7px;
+      padding: 10px 8px;
+    }
+
+    .rail-bottom { align-content: end; }
+
+    .rail-item {
+      display: grid;
+      place-items: center;
+      gap: 5px;
+      width: 64px;
+      height: 62px;
+      padding: 7px 3px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: #4a4a4a;
+      font-size: 10px;
+      font-weight: 800;
+    }
+
+    .rail-item::before {
+      display: block;
+      width: 17px;
+      height: 17px;
+      border: 2px solid currentColor;
+      content: "";
+    }
+
+    .rail-item.active {
+      border: 1px solid var(--ink);
+      background: var(--blue);
+      color: white;
+    }
+
+    .rail-item:nth-child(2)::before { border-radius: 50%; }
+    .rail-item:nth-child(3)::before { width: 20px; height: 12px; border-left-width: 5px; border-right-width: 5px; }
+    .rail-item:nth-child(4)::before { width: 20px; height: 12px; border-top: 0; }
+    .rail-item:nth-child(5)::before { width: 22px; height: 14px; border-width: 0 2px; box-shadow: inset 5px 0 0 transparent, 5px 0 0 currentColor, 11px 0 0 transparent, 13px 0 0 currentColor; }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(720px, 1fr) 344px;
+      min-width: 0;
+      min-height: 0;
+    }
+
+    /* conversation */
+    .chat {
+      display: grid;
+      grid-template-rows: minmax(0, 1fr) 116px;
+      min-width: 0;
+      min-height: 0;
+      background: var(--canvas);
+    }
+
+    .conversation {
+      min-height: 0;
+      overflow: hidden;
+      padding: 24px 30px 20px;
+    }
+
+    .thread {
+      display: grid;
+      gap: 16px;
+      width: min(930px, 100%);
+      margin: 0 auto;
+    }
+
+    .user-message { display: grid; justify-items: end; }
+
+    .user-bubble {
+      max-width: 610px;
+      padding: 13px 16px;
+      border: 1px solid var(--ink);
+      background: var(--paper);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .vit-message { display: grid; gap: 10px; }
+
+    .vit-byline {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 800;
+    }
+
+    .vit-avatar {
+      display: grid;
+      place-items: center;
+      width: 26px;
+      height: 26px;
+      border: 1px solid var(--ink);
+      background: var(--blue);
+      color: white;
+      font-size: 12px;
+      font-weight: 950;
+    }
+
+    .analysis {
+      display: grid;
+      grid-template-columns: 108px minmax(0, 1fr);
+      border: 1px solid var(--ink);
+      background: var(--paper);
+    }
+
+    .analysis-label {
+      display: grid;
+      align-content: space-between;
+      min-height: 116px;
+      padding: 13px;
+      border-right: 1px solid var(--ink);
+      background: var(--blue);
+      color: white;
+    }
+
+    .analysis-label strong { font-size: 15px; }
+    .analysis-label span { font-size: 9px; font-weight: 800; line-height: 1.45; opacity: .75; }
+
+    .analysis-copy {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      min-width: 0;
+    }
+
+    .analysis-section {
+      min-width: 0;
+      padding: 13px 14px;
+      border-right: 1px solid var(--hair);
+    }
+
+    .analysis-section:last-child { border-right: 0; }
+    .analysis-section b { display: block; margin-bottom: 6px; font-size: 11px; }
+    .analysis-section p { margin: 0; color: #4f4f4f; font-size: 11px; line-height: 1.55; }
+    .analysis-section.limit { background: #f6f6f2; }
+
+    .proposal {
+      display: grid;
+      grid-template-columns: 92px minmax(0, 1fr) 170px;
+      border: var(--line);
+      background: var(--yellow-soft);
+    }
+
+    .proposal-state {
+      display: grid;
+      align-content: space-between;
+      padding: 14px 12px;
+      border-right: var(--line);
+      background: var(--yellow);
+    }
+
+    .proposal-state span { font-size: 9px; font-weight: 900; letter-spacing: .1em; }
+    .proposal-state b { font-size: 17px; line-height: 1.05; }
+    .proposal-state small { font-size: 9px; font-weight: 750; line-height: 1.35; }
+
+    .proposal-main {
+      display: grid;
+      gap: 10px;
+      min-width: 0;
+      padding: 14px 15px;
+    }
+
+    .proposal-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .proposal-head h2 { margin: 0; font-size: 15px; line-height: 1.3; }
+    .proposal-head p { margin: 3px 0 0; color: var(--muted); font-size: 10px; }
+
+    .revision {
+      flex: none;
+      padding: 3px 6px;
+      border: 1px solid var(--ink);
+      background: var(--paper);
+      font: 800 10px "SFMono-Regular", Consolas, monospace;
+    }
+
+    .change-list {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      border: 1px solid var(--ink);
+      background: rgba(255,255,255,.65);
+    }
+
+    .change {
+      padding: 8px 9px;
+      border-right: 1px solid var(--ink);
+    }
+
+    .change:last-child { border-right: 0; }
+    .change span { display: block; color: var(--muted); font-size: 9px; font-weight: 800; }
+    .change b { display: block; margin-top: 3px; font-size: 11px; }
+    .change em { color: var(--blue); font-style: normal; }
+
+    .proposal-foot { display: flex; align-items: center; justify-content: space-between; gap: 9px; }
+    .guardrails { display: flex; flex-wrap: wrap; gap: 5px; }
+    .chip { padding: 3px 6px; border: 1px solid var(--ink); background: var(--paper); font-size: 9px; font-weight: 800; }
+    .details-link { color: var(--blue); font-size: 10px; font-weight: 900; white-space: nowrap; }
+
+    .proposal-actions {
+      display: grid;
+      grid-template-rows: 1fr 54px;
+      border-left: var(--line);
+      background: var(--paper);
+    }
+
+    .approve {
+      display: grid;
+      place-items: center;
+      padding: 14px;
+      border: 0;
+      border-bottom: var(--line);
+      background: var(--blue);
+      color: white;
+      text-align: center;
+    }
+
+    .approve b { display: block; font-size: 14px; }
+    .approve span { display: block; margin-top: 4px; font-size: 9px; font-weight: 750; opacity: .76; }
+
+    .revise { border: 0; background: var(--paper); font-size: 11px; font-weight: 900; }
+
+    .after-approval {
+      display: grid;
+      grid-template-columns: 118px 1fr;
+      border: 1px dashed #999;
+      background: rgba(255,255,255,.5);
+      opacity: .86;
+    }
+
+    .after-label { padding: 9px 11px; border-right: 1px dashed #999; color: var(--muted); font-size: 9px; font-weight: 900; }
+    .after-flow { display: flex; align-items: center; gap: 7px; padding: 8px 11px; font-size: 9px; font-weight: 800; }
+    .step { display: inline-flex; align-items: center; gap: 5px; }
+    .step i { width: 7px; height: 7px; border: 1px solid var(--ink); background: var(--paper); }
+    .step.future { color: var(--muted); }
+    .arrow { color: #888; }
+
+    .composer-wrap { padding: 10px 30px 17px; }
+    .composer {
+      display: grid;
+      grid-template-columns: 42px minmax(0, 1fr) auto;
+      align-items: center;
+      width: min(930px, 100%);
+      height: 88px;
+      margin: 0 auto;
+      border: var(--line);
+      background: var(--paper);
+      box-shadow: 8px 8px 0 rgba(17,17,17,.08);
+    }
+
+    .attach { width: 34px; height: 34px; margin-left: 10px; border: 1px solid var(--ink); background: var(--paper); font-size: 20px; }
+    .composer textarea { width: 100%; height: 58px; padding: 19px 12px; resize: none; border: 0; outline: 0; background: transparent; font-size: 13px; }
+    .send { height: 100%; min-width: 108px; border: 0; border-left: var(--line); background: var(--ink); color: white; font-size: 12px; font-weight: 900; }
+    .send span { display: block; margin-top: 3px; color: #aaa; font-size: 8px; }
+
+    /* contextual dock */
+    .dock {
+      display: grid;
+      grid-template-rows: 52px minmax(0, 1fr);
+      min-width: 0;
+      min-height: 0;
+      border-left: var(--line);
+      background: var(--paper);
+    }
+
+    .dock-tabs { display: grid; grid-template-columns: repeat(4, 1fr); border-bottom: var(--line); }
+    .dock-tab { border: 0; border-right: 1px solid var(--ink); background: var(--paper); font-size: 11px; font-weight: 900; }
+    .dock-tab:last-child { border-right: 0; }
+    .dock-tab.active { background: var(--blue); color: white; }
+
+    .dock-content {
+      min-height: 0;
+      overflow: hidden;
+      padding: 16px;
+      background:
+        linear-gradient(90deg, transparent 27px, rgba(17,17,17,.035) 28px),
+        linear-gradient(transparent 27px, rgba(17,17,17,.035) 28px),
+        var(--paper);
+      background-size: 28px 28px;
+    }
+
+    .dock-stack { display: grid; gap: 12px; }
+    .dock-card { border: 1px solid var(--ink); background: var(--paper); }
+    .dock-card-head { display: flex; align-items: center; justify-content: space-between; min-height: 38px; padding: 0 11px; border-bottom: 1px solid var(--ink); }
+    .dock-card-head strong { font-size: 10px; letter-spacing: .08em; }
+    .dock-card-head span { color: var(--muted); font-size: 9px; font-weight: 800; }
+
+    .current-work { display: grid; grid-template-columns: 11px minmax(0, 1fr); }
+    .work-color { background: var(--yellow); border-right: 1px solid var(--ink); }
+    .work-copy { display: grid; gap: 9px; padding: 11px 12px; }
+    .work-name { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+    .work-name b { font-size: 13px; }
+    .waiting { flex: none; padding: 3px 6px; border: 1px solid var(--ink); background: var(--yellow-soft); font-size: 9px; font-weight: 900; }
+    .work-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .work-field { padding: 7px 8px; border: 1px solid var(--hair); background: #f7f7f3; }
+    .work-field span { display: block; color: var(--muted); font-size: 8px; font-weight: 800; }
+    .work-field b { display: block; margin-top: 2px; font-size: 10px; }
+
+    .path { display: grid; gap: 0; padding: 11px; }
+    .path-row { display: grid; grid-template-columns: 76px 14px minmax(0, 1fr); align-items: stretch; min-height: 34px; }
+    .path-key { display: grid; align-items: center; padding: 0 8px; border: 1px solid var(--ink); background: var(--blue-soft); font-size: 9px; font-weight: 900; }
+    .path-row:nth-child(4) .path-key { background: var(--yellow); }
+    .path-row.future .path-key { background: var(--paper); color: var(--muted); }
+    .path-line { position: relative; }
+    .path-line::before { position: absolute; top: 0; bottom: 0; left: 6px; width: 1px; background: var(--ink); content: ""; }
+    .path-row:first-child .path-line::before { top: 17px; }
+    .path-row:last-child .path-line::before { bottom: 17px; }
+    .path-line::after { position: absolute; z-index: 1; top: 14px; left: 3px; width: 6px; height: 6px; border: 1px solid var(--ink); background: var(--paper); content: ""; }
+    .path-row.current .path-line::after { background: var(--yellow); }
+    .path-value { display: grid; align-content: center; padding-left: 6px; color: #454545; font-size: 9px; line-height: 1.25; }
+    .path-value b { color: var(--ink); font-size: 10px; }
+
+    .coverage { display: grid; gap: 10px; padding: 11px 12px 12px; }
+    .coverage-row { display: grid; grid-template-columns: 94px minmax(0, 1fr) 42px; align-items: center; gap: 8px; }
+    .coverage-row label { font-size: 9px; font-weight: 800; }
+    .coverage-track { height: 8px; border: 1px solid var(--ink); background: var(--paper); }
+    .coverage-track i { display: block; height: 100%; background: var(--blue); }
+    .coverage-row b { font-size: 9px; text-align: right; }
+    .limitation { padding: 8px; border-left: 6px solid var(--yellow); background: #f5f5f1; color: #555; font-size: 9px; line-height: 1.45; }
+
+    .dock-views { display: grid; grid-template-columns: repeat(3, 1fr); }
+    .dock-view { min-height: 68px; padding: 9px; border-right: 1px solid var(--ink); background: var(--paper); }
+    .dock-view:last-child { border-right: 0; }
+    .dock-view b { display: block; font-size: 10px; }
+    .dock-view span { display: block; margin-top: 5px; color: var(--muted); font-size: 8px; line-height: 1.35; }
+    .dock-view .plane { width: 17px; height: 5px; margin-top: 8px; background: var(--blue); }
+    .dock-view:nth-child(2) .plane { background: var(--yellow); }
+    .dock-view:nth-child(3) .plane { background: var(--ink); }
+
+    .status-line { display: flex; align-items: center; gap: 7px; padding: 8px 10px; border-top: 1px solid var(--ink); color: var(--muted); font-size: 8px; font-weight: 800; }
+    .status-line i { width: 6px; height: 6px; background: var(--green); border: 1px solid var(--ink); }
+
+    .context-list { display: grid; }
+
+    .context-row {
+      display: grid;
+      grid-template-columns: 88px minmax(0, 1fr);
+      align-items: center;
+      min-height: 48px;
+      border-bottom: 1px solid var(--hair);
+    }
+
+    .context-row:last-child { border-bottom: 0; }
+    .context-row > span { padding-left: 11px; color: var(--muted); font-size: 9px; font-weight: 850; }
+    .context-row > div { padding: 8px 11px; border-left: 1px solid var(--hair); }
+    .context-row b { display: block; font-size: 10px; }
+    .context-row small { display: block; margin-top: 3px; color: var(--muted); font-size: 8px; }
+
+    .compact-ready {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--blue);
+    }
+
+    .compact-ready::before {
+      width: 7px;
+      height: 7px;
+      border: 1px solid var(--ink);
+      background: var(--blue);
+      content: "";
+    }
+
+    .panel-list { display: grid; }
+
+    .panel-launch {
+      display: grid;
+      grid-template-columns: 34px minmax(0, 1fr) auto 18px;
+      align-items: center;
+      min-height: 58px;
+      padding: 0 10px;
+      border-bottom: 1px solid var(--hair);
+      background: var(--paper);
+    }
+
+    .panel-launch:last-child { border-bottom: 0; }
+    .panel-plane { width: 18px; height: 18px; border: 1px solid var(--ink); background: var(--blue); }
+    .panel-launch:nth-child(2) .panel-plane { background: var(--yellow); }
+    .panel-launch:nth-child(3) .panel-plane { background: var(--paper); }
+    .panel-label b { display: block; font-size: 10px; }
+    .panel-label span { display: block; margin-top: 3px; color: var(--muted); font-size: 8px; }
+    .panel-count { padding: 3px 6px; border: 1px solid var(--hair); color: var(--muted); font-size: 8px; font-weight: 850; }
+    .panel-arrow { color: var(--blue); font-size: 14px; font-weight: 900; text-align: right; }
+
+    .advanced-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 42px;
+      padding: 0 11px;
+      border: 1px solid var(--hair);
+      background: rgba(255,255,255,.84);
+      color: var(--muted);
+      font-size: 9px;
+      font-weight: 800;
+    }
+
+    .advanced-row b { color: var(--ink); font-size: 12px; }
+
+    @media (max-width: 1350px) {
+      .workspace { grid-template-columns: minmax(680px, 1fr) 330px; }
+      .topbar { grid-template-columns: 350px minmax(470px, 1fr) 300px; }
+      .analysis-label { display: none; }
+      .analysis { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <section class="brand-project">
+        <div class="mondrian-mark"><span class="mark-letter">V</span><i class="red-plane"></i></div>
+        <div class="project">
+          <div class="history-heading"><strong>副歌人声与节奏平衡</strong><button class="history-switch">⌄</button></div>
+          <div class="project-meta"><i class="live-dot"></i>Satellite Mix.rpp · 当前历史树</div>
+        </div>
+      </section>
+
+      <section class="transport" aria-label="DAW transport">
+        <div class="transport-buttons">
+          <button class="transport-button">|◀</button>
+          <button class="transport-button">■</button>
+          <button class="transport-button play">▶</button>
+          <button class="transport-button">●</button>
+        </div>
+        <div class="timecode">01:12.480</div>
+        <div class="meters">
+          <div class="meter"><label>L</label><span class="meter-track"><i style="width:73%"></i></span></div>
+          <div class="meter"><label>R</label><span class="meter-track"><i style="width:62%"></i></span></div>
+        </div>
+      </section>
+
+      <section class="work-context">
+        <div class="context-copy">
+          <span class="eyebrow">CURRENT WORK / B2</span>
+          <strong>静态音量平衡 · Proposal r3</strong>
+        </div>
+        <div class="ready-block"><div><b>READY</b><span>ProjectCut 有效</span></div></div>
+      </section>
+    </header>
+
+    <div class="body">
+      <nav class="rail">
+        <div class="rail-nav">
+          <button class="rail-item active">对话</button>
+          <button class="rail-item">轨道</button>
+          <button class="rail-item">机架</button>
+          <button class="rail-item">MIDI</button>
+          <button class="rail-item">混音台</button>
+        </div>
+        <div class="rail-bottom"><button class="rail-item">设置</button></div>
+      </nav>
+
+      <section class="workspace">
+        <section class="chat">
+          <div class="conversation">
+            <div class="thread">
+              <div class="user-message">
+                <div class="user-bubble">检查一下 B2 的静态平衡。先告诉我你发现了什么，不要直接改工程。</div>
+              </div>
+
+              <article class="vit-message">
+                <div class="vit-byline"><span class="vit-avatar">V</span>Vit · 已查阅当前工程状态与最近一次有效观察</div>
+                <div class="analysis">
+                  <div class="analysis-label"><strong>分析</strong><span>基于工程证据<br/>没有写入操作</span></div>
+                  <div class="analysis-copy">
+                    <section class="analysis-section">
+                      <b>结论</b>
+                      <p>人声主体稳定，但副歌中的吉他总线与底鼓正在遮挡 Lead Vocal，建议先做小范围推子调整。</p>
+                    </section>
+                    <section class="analysis-section">
+                      <b>分析依据</b>
+                      <p>3 条目标轨角色明确；有效电平、推子位置与路由关系均已覆盖，变化集中在 01:04–01:28。</p>
+                    </section>
+                    <section class="analysis-section limit">
+                      <b>限制</b>
+                      <p>本轮不调整插件、声像或自动化。鼓组瞬态观测仅覆盖当前 ProjectCut。</p>
+                    </section>
+                  </div>
+                </div>
+
+                <section class="proposal">
+                  <div class="proposal-state">
+                    <span>PROPOSAL</span>
+                    <b>等待<br/>决定</b>
+                    <small>黄色代表<br/>申请执行</small>
+                  </div>
+                  <div class="proposal-main">
+                    <div class="proposal-head">
+                      <div>
+                        <h2>B2 · 静态音量平衡方案</h2>
+                        <p>3 条轨道 · 3 项调整 · 预计影响 24 秒范围</p>
+                      </div>
+                      <span class="revision">r3</span>
+                    </div>
+                    <div class="change-list">
+                      <div class="change"><span>Lead Vocal</span><b><em>+0.7 dB</em> · 主体</b></div>
+                      <div class="change"><span>Guitar Bus</span><b><em>−1.2 dB</em> · 副歌</b></div>
+                      <div class="change"><span>Kick</span><b><em>−0.4 dB</em> · 瞬态</b></div>
+                    </div>
+                    <div class="proposal-foot">
+                      <div class="guardrails"><span class="chip">仅推子</span><span class="chip">可撤销</span><span class="chip">执行后 A/B 验证</span></div>
+                      <span class="details-link">查看逐轨修改与证据 ›</span>
+                    </div>
+                  </div>
+                  <div class="proposal-actions">
+                    <button class="approve"><div><b>确认并执行</b><span>使用当前 ProjectCut</span></div></button>
+                    <button class="revise">继续讨论 / 修改方案</button>
+                  </div>
+                </section>
+
+                <div class="after-approval">
+                  <div class="after-label">确认后自动继续</div>
+                  <div class="after-flow">
+                    <span class="step"><i></i>锁定 ProjectCut</span><span class="arrow">→</span>
+                    <span class="step future"><i></i>执行</span><span class="arrow">→</span>
+                    <span class="step future"><i></i>Verification</span><span class="arrow">→</span>
+                    <span class="step future"><i></i>Receipt / 可回滚</span>
+                  </div>
+                </div>
+              </article>
+            </div>
+          </div>
+
+          <div class="composer-wrap">
+            <div class="composer">
+              <button class="attach">＋</button>
+              <textarea aria-label="Message" placeholder="继续和 Vit 讨论，或要求修改当前方案…"></textarea>
+              <button class="send">发送给 Vit<span>Enter</span></button>
+            </div>
+          </div>
+        </section>
+
+        <aside class="dock">
+          <div class="dock-tabs">
+            <button class="dock-tab active">上下文</button>
+            <button class="dock-tab">资料库</button>
+            <button class="dock-tab">宏控制</button>
+            <button class="dock-tab">历史树</button>
+          </div>
+          <div class="dock-content">
+            <div class="dock-stack">
+              <section class="dock-card">
+                <header class="dock-card-head"><strong>PROJECT CONTEXT</strong><span>当前对话流</span></header>
+                <div class="context-list">
+                  <div class="context-row"><span>工程</span><div><b>Satellite Mix.rpp</b><small>Reaper · 48 kHz · 已连接</small></div></div>
+                  <div class="context-row"><span>ProjectCut</span><div><b>14:32:08 · 有效</b><small>执行前会再次检查漂移</small></div></div>
+                  <div class="context-row"><span>Readiness</span><div><b class="compact-ready">B2 可以形成候选</b><small>角色、电平与推子证据完整</small></div></div>
+                </div>
+                <div class="status-line"><i></i>工程持久化在线 · 最近保存 14:32:08</div>
+              </section>
+
+              <section class="dock-card">
+                <header class="dock-card-head"><strong>PROJECT PANELS</strong><span>按需打开</span></header>
+                <div class="panel-list">
+                  <div class="panel-launch"><i class="panel-plane"></i><div class="panel-label"><b>资料库</b><span>参考音频与工程资产</span></div><span class="panel-count">42</span><span class="panel-arrow">›</span></div>
+                  <div class="panel-launch"><i class="panel-plane"></i><div class="panel-label"><b>宏控制</b><span>映射与快捷控制</span></div><span class="panel-count">3</span><span class="panel-arrow">›</span></div>
+                  <div class="panel-launch"><i class="panel-plane"></i><div class="panel-label"><b>历史树</b><span>对话流、分支与恢复点</span></div><span class="panel-count">12</span><span class="panel-arrow">›</span></div>
+                </div>
+              </section>
+
+              <div class="advanced-row"><span>能力路径、原始证据与诊断信息</span><b>＋</b></div>
+            </div>
+          </div>
+        </aside>
+      </section>
+    </div>
+  </main>
+</body>
+</html>

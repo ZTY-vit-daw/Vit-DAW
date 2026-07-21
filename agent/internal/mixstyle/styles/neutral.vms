@@ -1,0 +1,51 @@
+{
+  "schema_version": "vit.mix_style.v1",
+  "kind": "mix_style",
+  "identity": {
+    "id": "neutral",
+    "name": "Neutral",
+    "version": "1.0.0",
+    "author": "Vit",
+    "description": "Balanced functional hierarchy with minimal genre bias.",
+    "tags": [
+      "neutral"
+    ]
+  },
+  "compatibility": {
+    "capability_contracts": {
+      "static_mix.static_balance": "v1",
+      "static_mix.pan_layout": "v1"
+    }
+  },
+  "style_intent": {
+    "density": "medium",
+    "contrast": "medium",
+    "center_focus": "balanced",
+    "symmetry": "balanced",
+    "conservatism": "high"
+  },
+  "capabilities": {
+    "static_balance": {
+      "schema_version": "vit.mix_style.static_balance.v1",
+      "foreground_priority": 0,
+      "rhythm_anchor_weight": 0,
+      "low_end_anchor_weight": 0,
+      "harmonic_bed_depth": 0,
+      "support_layer_distance": 0,
+      "transient_control_bias": 0,
+      "density_clearance": 0,
+      "natural_dynamic_tolerance": 0
+    },
+    "pan_layout": {
+      "schema_version": "vit.mix_style.pan_layout.v1",
+      "center_density": 0.65,
+      "spread_amount": 0.55,
+      "symmetry_bias": 0,
+      "complementary_pair_bias": 0.65,
+      "mono_safety": 0.9,
+      "stereo_source_conservatism": 0.85,
+      "support_layer_spread": 0.55,
+      "rhythm_peripheral_allowance": 0.35
+    }
+  }
+}

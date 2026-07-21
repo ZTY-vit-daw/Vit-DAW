@@ -1,0 +1,893 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Ask Vit Mondrian Agent Workbench v2</title>
+    <style>
+      :root {
+        --black: #111318;
+        --white: #ffffff;
+        --paper: #f7f8fa;
+        --blue: #1f55d8;
+        --yellow: #f1bd17;
+        --red: #d02b22;
+        --muted: #596273;
+        --soft-line: #d8dee8;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        overflow: hidden;
+        color: var(--black);
+        background: var(--paper);
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+      }
+
+      button,
+      textarea {
+        font: inherit;
+      }
+
+      .shell {
+        display: grid;
+        grid-template-rows: 62px minmax(0, 1fr);
+        width: 100vw;
+        height: 100vh;
+        background: var(--white);
+      }
+
+      .topbar {
+        display: grid;
+        grid-template-columns: 292px minmax(0, 1fr) 360px;
+        border-bottom: 3px solid var(--black);
+        background: var(--white);
+      }
+
+      .brand,
+      .project-state,
+      .transport {
+        display: flex;
+        align-items: center;
+        min-width: 0;
+        border-right: 2px solid var(--black);
+      }
+
+      .transport {
+        justify-content: flex-end;
+        gap: 9px;
+        padding: 0 14px;
+        border-right: 0;
+      }
+
+      .brand {
+        gap: 12px;
+        padding: 0 18px;
+      }
+
+      .brand-mark {
+        width: 18px;
+        height: 18px;
+        border: 3px solid var(--black);
+        background: var(--blue);
+      }
+
+      .brand strong,
+      .brand span,
+      .project-state strong,
+      .project-state span {
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .brand strong {
+        font-size: 16px;
+      }
+
+      .brand span,
+      .project-state span {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .project-state {
+        gap: 12px;
+        padding: 0 16px;
+      }
+
+      .state-block {
+        display: grid;
+        place-items: center;
+        min-width: 92px;
+        height: 36px;
+        border: 2px solid var(--black);
+        color: var(--black);
+        background: var(--yellow);
+        font-size: 12px;
+        font-weight: 900;
+      }
+
+      .timecode {
+        min-width: 112px;
+        padding: 8px 10px;
+        border: 2px solid var(--black);
+        background: var(--black);
+        color: var(--white);
+        text-align: center;
+        font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+        font-size: 13px;
+      }
+
+      .top-button {
+        display: grid;
+        place-items: center;
+        width: 34px;
+        height: 34px;
+        border: 2px solid var(--black);
+        background: var(--white);
+        font-weight: 900;
+      }
+
+      .main {
+        display: grid;
+        grid-template-columns: 74px minmax(0, 1fr);
+        min-height: 0;
+      }
+
+      .rail {
+        display: grid;
+        grid-template-rows: 70px minmax(0, 1fr) 74px;
+        border-right: 3px solid var(--black);
+        background: var(--white);
+      }
+
+      .rail-logo {
+        display: grid;
+        place-items: center;
+        border-bottom: 2px solid var(--black);
+        font-size: 17px;
+        font-weight: 950;
+      }
+
+      .rail-nav,
+      .rail-foot {
+        display: grid;
+        align-content: start;
+        gap: 0;
+      }
+
+      .rail-item {
+        display: grid;
+        place-items: center;
+        min-height: 66px;
+        border: 0;
+        border-bottom: 2px solid var(--black);
+        background: var(--white);
+        color: var(--black);
+        font-size: 12px;
+        font-weight: 900;
+      }
+
+      .rail-item.active {
+        background: var(--blue);
+        color: var(--white);
+      }
+
+      .rail-item.warn {
+        background: var(--yellow);
+      }
+
+      .workspace {
+        display: grid;
+        grid-template-columns: minmax(560px, 1fr) 420px;
+        min-width: 0;
+        min-height: 0;
+      }
+
+      .dialogue,
+      .right-grid {
+        min-width: 0;
+        min-height: 0;
+        overflow: hidden;
+      }
+
+      .dialogue {
+        display: grid;
+        grid-template-rows: 74px minmax(0, 1fr) 164px;
+        border-right: 3px solid var(--black);
+        background: var(--paper);
+      }
+
+      .dialogue-head {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 318px;
+        align-items: stretch;
+        border-bottom: 3px solid var(--black);
+        background: var(--white);
+      }
+
+      .title-area {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        min-width: 0;
+        padding: 0 22px;
+      }
+
+      .title-slab {
+        width: 18px;
+        height: 46px;
+        border: 2px solid var(--black);
+        background: var(--blue);
+      }
+
+      .title-area p,
+      .title-area h1 {
+        margin: 0;
+      }
+
+      .title-area p {
+        color: var(--blue);
+        font-size: 12px;
+        font-weight: 950;
+        text-transform: uppercase;
+      }
+
+      .title-area h1 {
+        overflow: hidden;
+        font-size: 24px;
+        line-height: 1.05;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .mode-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        border-left: 3px solid var(--black);
+      }
+
+      .mode-cell {
+        display: grid;
+        place-items: center;
+        border-right: 2px solid var(--black);
+        font-size: 13px;
+        font-weight: 950;
+      }
+
+      .mode-cell:last-child {
+        border-right: 0;
+      }
+
+      .mode-cell.active {
+        background: var(--blue);
+        color: var(--white);
+      }
+
+      .flow {
+        min-height: 0;
+        overflow: hidden;
+        padding: 24px 28px 20px;
+        background:
+          linear-gradient(90deg, rgba(17, 19, 24, 0.035) 0 1px, transparent 1px 120px),
+          var(--paper);
+      }
+
+      .thread {
+        max-width: 840px;
+        margin: 0 auto;
+      }
+
+      .turn {
+        display: grid;
+        grid-template-columns: 64px minmax(0, 1fr);
+        gap: 16px;
+        margin-bottom: 18px;
+      }
+
+      .speaker {
+        padding-top: 10px;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 900;
+        text-align: right;
+      }
+
+      .message {
+        min-width: 0;
+        padding: 14px 16px;
+        border: 2px solid var(--black);
+        background: var(--white);
+        line-height: 1.55;
+      }
+
+      .message p {
+        margin: 0;
+      }
+
+      .message small {
+        display: block;
+        margin-top: 5px;
+        color: var(--muted);
+      }
+
+      .assistant .message {
+        border-left-width: 8px;
+        border-left-color: var(--blue);
+      }
+
+      .decision-card {
+        display: grid;
+        grid-template-columns: 12px minmax(0, 1fr) 156px;
+        margin-top: 10px;
+        border: 2px solid var(--black);
+        background: var(--white);
+      }
+
+      .decision-band {
+        background: var(--yellow);
+        border-right: 2px solid var(--black);
+      }
+
+      .decision-body {
+        display: grid;
+        gap: 10px;
+        padding: 13px 14px;
+      }
+
+      .decision-body strong,
+      .decision-body span {
+        display: block;
+      }
+
+      .decision-body span {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .decision-fields {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8px;
+      }
+
+      .field {
+        min-width: 0;
+        padding: 8px 9px;
+        border: 1px solid var(--soft-line);
+        background: #fbfcff;
+      }
+
+      .field b,
+      .field em {
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .field em {
+        color: var(--muted);
+        font-size: 10.5px;
+        font-style: normal;
+        font-weight: 900;
+      }
+
+      .field b {
+        margin-top: 2px;
+        font-size: 12px;
+      }
+
+      .decision-actions {
+        display: grid;
+        gap: 0;
+        border-left: 2px solid var(--black);
+      }
+
+      .decision-actions button {
+        border: 0;
+        border-bottom: 2px solid var(--black);
+        background: var(--white);
+        font-weight: 950;
+      }
+
+      .decision-actions button:last-child {
+        border-bottom: 0;
+      }
+
+      .decision-actions .primary {
+        background: var(--blue);
+        color: var(--white);
+      }
+
+      .composer {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 142px;
+        gap: 0;
+        border-top: 3px solid var(--black);
+        background: var(--white);
+      }
+
+      .composer textarea {
+        width: 100%;
+        height: 100%;
+        min-height: 0;
+        resize: none;
+        padding: 18px 20px;
+        border: 0;
+        color: var(--black);
+        background: var(--white);
+        font-size: 15px;
+        line-height: 1.45;
+        outline: none;
+      }
+
+      .send-stack {
+        display: grid;
+        grid-template-rows: 1fr 1fr;
+        border-left: 3px solid var(--black);
+      }
+
+      .send-stack button {
+        border: 0;
+        border-bottom: 2px solid var(--black);
+        background: var(--white);
+        font-weight: 950;
+      }
+
+      .send-stack button:last-child {
+        border-bottom: 0;
+        background: var(--blue);
+        color: var(--white);
+      }
+
+      .right-grid {
+        display: grid;
+        grid-template-rows: 230px 242px minmax(0, 1fr);
+        background: var(--white);
+      }
+
+      .context-panel {
+        min-height: 0;
+        overflow: hidden;
+        border-bottom: 3px solid var(--black);
+      }
+
+      .context-head {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 86px;
+        min-height: 46px;
+        border-bottom: 2px solid var(--black);
+      }
+
+      .context-head h2 {
+        display: flex;
+        align-items: center;
+        min-width: 0;
+        margin: 0;
+        padding: 0 14px;
+        font-size: 15px;
+        text-transform: uppercase;
+      }
+
+      .context-head .label {
+        display: grid;
+        place-items: center;
+        border-left: 2px solid var(--black);
+        background: var(--blue);
+        color: var(--white);
+        font-size: 11px;
+        font-weight: 950;
+      }
+
+      .context-head .label.pending {
+        background: var(--yellow);
+        color: var(--black);
+      }
+
+      .context-head .label.risk {
+        background: var(--red);
+      }
+
+      .map-body {
+        position: relative;
+        height: calc(100% - 48px);
+        background:
+          linear-gradient(90deg, rgba(17, 19, 24, 0.04) 0 1px, transparent 1px 52px),
+          linear-gradient(0deg, rgba(17, 19, 24, 0.04) 0 1px, transparent 1px 52px),
+          #fbfcff;
+      }
+
+      .map-edge {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+      }
+
+      .map-edge path {
+        fill: none;
+        stroke: var(--black);
+        stroke-width: 2;
+      }
+
+      .map-node {
+        position: absolute;
+        display: grid;
+        align-content: center;
+        gap: 2px;
+        width: 108px;
+        height: 52px;
+        padding: 7px 9px;
+        border: 2px solid var(--black);
+        background: var(--white);
+      }
+
+      .map-node.blue {
+        background: var(--blue);
+        color: var(--white);
+      }
+
+      .map-node.yellow {
+        background: var(--yellow);
+      }
+
+      .map-node.red {
+        background: var(--red);
+        color: var(--white);
+      }
+
+      .map-node strong,
+      .map-node span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .map-node strong {
+        font-size: 12px;
+      }
+
+      .map-node span {
+        font-size: 10px;
+        opacity: 0.82;
+      }
+
+      .map-expand {
+        position: absolute;
+        right: 12px;
+        bottom: 12px;
+        min-height: 30px;
+        padding: 0 10px;
+        border: 2px solid var(--black);
+        background: var(--white);
+        font-size: 12px;
+        font-weight: 950;
+      }
+
+      .stack-body {
+        display: grid;
+        grid-template-columns: 12px minmax(0, 1fr);
+        height: calc(100% - 48px);
+      }
+
+      .stack-band {
+        border-right: 2px solid var(--black);
+        background: var(--yellow);
+      }
+
+      .stack-content {
+        display: grid;
+        align-content: start;
+        gap: 8px;
+        min-width: 0;
+        padding: 10px;
+      }
+
+      .compact-row {
+        display: grid;
+        grid-template-columns: 96px minmax(0, 1fr);
+        gap: 9px;
+        align-items: center;
+        min-height: 30px;
+        padding: 5px 8px;
+        border: 1px solid var(--soft-line);
+        background: #fbfcff;
+        font-size: 12px;
+      }
+
+      .compact-row strong,
+      .compact-row span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .compact-row strong {
+        color: var(--blue);
+      }
+
+      .compact-row span {
+        color: var(--muted);
+      }
+
+      .split-metrics {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+
+      .metric {
+        min-height: 44px;
+        padding: 7px 9px;
+        border: 2px solid var(--black);
+        background: var(--white);
+      }
+
+      .metric em {
+        display: block;
+        color: var(--muted);
+        font-size: 10px;
+        font-style: normal;
+        font-weight: 950;
+      }
+
+      .metric b {
+        display: block;
+        margin-top: 3px;
+        font-size: 15px;
+      }
+
+      .result-body {
+        display: grid;
+        align-content: start;
+        gap: 10px;
+        height: calc(100% - 48px);
+        padding: 13px;
+      }
+
+      .bars {
+        display: grid;
+        gap: 9px;
+      }
+
+      .bar-row {
+        display: grid;
+        grid-template-columns: 70px minmax(0, 1fr) 46px;
+        align-items: center;
+        gap: 9px;
+        font-size: 12px;
+      }
+
+      .bar {
+        height: 10px;
+        border: 1px solid var(--black);
+        background: var(--white);
+      }
+
+      .bar i {
+        display: block;
+        height: 100%;
+        background: var(--blue);
+      }
+
+      .bar.yellow i {
+        background: var(--yellow);
+      }
+
+      .note-block {
+        padding: 10px 11px;
+        border: 2px solid var(--black);
+        background: var(--paper);
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.45;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topbar">
+        <div class="brand">
+          <div class="brand-mark"></div>
+          <div>
+            <strong>Vit DAW</strong>
+            <span>Ask Vit Workbench</span>
+          </div>
+        </div>
+        <div class="project-state">
+          <div class="state-block">PENDING</div>
+          <div>
+            <strong>自动混音：人声清晰度处理</strong>
+            <span>Agent Action Workflow v1 / typed pending</span>
+          </div>
+        </div>
+        <div class="transport">
+          <button class="top-button">II</button>
+          <button class="top-button">S</button>
+          <button class="top-button">P</button>
+          <div class="timecode">01:12.480</div>
+        </div>
+      </header>
+
+      <section class="main">
+        <nav class="rail">
+          <div class="rail-logo">VIT</div>
+          <div class="rail-nav">
+            <button class="rail-item active">Ask</button>
+            <button class="rail-item warn">待定</button>
+            <button class="rail-item">轨道</button>
+            <button class="rail-item">机架</button>
+            <button class="rail-item">媒体</button>
+          </div>
+          <div class="rail-foot">
+            <button class="rail-item">设置</button>
+          </div>
+        </nav>
+
+        <section class="workspace">
+          <section class="dialogue">
+            <header class="dialogue-head">
+              <div class="title-area">
+                <div class="title-slab"></div>
+                <div>
+                  <p>Ask Vit</p>
+                  <h1>对话流为主，结构层随任务浮现</h1>
+                </div>
+              </div>
+              <div class="mode-grid">
+                <div class="mode-cell">即时</div>
+                <div class="mode-cell">计划</div>
+                <div class="mode-cell active">目标</div>
+              </div>
+            </header>
+
+            <div class="flow">
+              <div class="thread">
+                <article class="turn user">
+                  <div class="speaker">你</div>
+                  <div class="message">
+                    <p>人声有点糊，先帮我看一下要不要动。</p>
+                    <small>当前对象：Lead Vocal Bus / 工程 Demo Session</small>
+                  </div>
+                </article>
+
+                <article class="turn assistant">
+                  <div class="speaker">Vit</div>
+                  <div class="message">
+                    <p>结论：建议先做轻量 EQ treatment。现在不会写入工程；已基于 MOM projection 生成一个 typed pending。</p>
+                    <small>观察可信度 0.84，低频平衡检查没有建议优先改动鼓组。</small>
+                    <div class="decision-card">
+                      <div class="decision-band"></div>
+                      <div class="decision-body">
+                        <div>
+                          <strong>待确认动作</strong>
+                          <span>确认后只走 typed executor，并在执行后触发 AB 复观测。</span>
+                        </div>
+                        <div class="decision-fields">
+                          <div class="field"><em>target</em><b>Lead Vocal</b></div>
+                          <div class="field"><em>action</em><b>EQ treatment</b></div>
+                          <div class="field"><em>trust</em><b>0.84</b></div>
+                          <div class="field"><em>risk</em><b>低</b></div>
+                        </div>
+                      </div>
+                      <div class="decision-actions">
+                        <button class="primary">确认执行</button>
+                        <button>换个方案</button>
+                      </div>
+                    </div>
+                  </div>
+                </article>
+
+                <article class="turn assistant">
+                  <div class="speaker">Vit</div>
+                  <div class="message">
+                    <p>依据：MOM-42 指向 2-5 kHz 清晰度不足；DAD-17 显示鼓组低频仍稳定。限制：确认前不写插件、参数、音量、声像。</p>
+                  </div>
+                </article>
+              </div>
+            </div>
+
+            <form class="composer">
+              <textarea>可以，执行后给我 AB 结果。</textarea>
+              <div class="send-stack">
+                <button type="button">附加</button>
+                <button type="button">发送</button>
+              </div>
+            </form>
+          </section>
+
+          <aside class="right-grid">
+            <section class="context-panel">
+              <header class="context-head">
+                <h2>Agent Structure</h2>
+                <div class="label">结构</div>
+              </header>
+              <div class="map-body">
+                <svg class="map-edge" viewBox="0 0 420 198" preserveAspectRatio="none">
+                  <path d="M84 95 C128 95 130 49 174 49" />
+                  <path d="M84 95 C128 95 130 141 174 141" />
+                  <path d="M282 49 C316 49 306 95 340 95" />
+                  <path d="M282 141 C316 141 306 95 340 95" />
+                </svg>
+                <div class="map-node blue" style="left: 18px; top: 73px;">
+                  <strong>主代理</strong>
+                  <span>router</span>
+                </div>
+                <div class="map-node" style="left: 164px; top: 27px;">
+                  <strong>MOM</strong>
+                  <span>observation</span>
+                </div>
+                <div class="map-node" style="left: 164px; top: 119px;">
+                  <strong>低频检查</strong>
+                  <span>worker job</span>
+                </div>
+                <div class="map-node yellow" style="left: 306px; top: 73px;">
+                  <strong>Pending</strong>
+                  <span>confirm</span>
+                </div>
+                <button class="map-expand" type="button">展开画布</button>
+              </div>
+            </section>
+
+            <section class="context-panel">
+              <header class="context-head">
+                <h2>Current Decision</h2>
+                <div class="label pending">待定</div>
+              </header>
+              <div class="stack-body">
+                <div class="stack-band"></div>
+                <div class="stack-content">
+                  <div class="split-metrics">
+                    <div class="metric"><em>pending id</em><b>MX-041</b></div>
+                    <div class="metric"><em>trust</em><b>0.84</b></div>
+                  </div>
+                  <div class="compact-row"><strong>对象</strong><span>Lead Vocal Bus</span></div>
+                  <div class="compact-row"><strong>处理</strong><span>EQ treatment / plugin safe route</span></div>
+                  <div class="compact-row"><strong>护栏</strong><span>typed executor only / AB reobserve</span></div>
+                </div>
+              </div>
+            </section>
+
+            <section class="context-panel">
+              <header class="context-head">
+                <h2>Evidence / AB</h2>
+                <div class="label risk">证据</div>
+              </header>
+              <div class="result-body">
+                <div class="compact-row"><strong>MOM-42</strong><span>vocal clarity projection</span></div>
+                <div class="compact-row"><strong>DAD-17</strong><span>spectral balance note</span></div>
+                <div class="bars">
+                  <div class="bar-row">
+                    <span>清晰度</span>
+                    <div class="bar"><i style="width: 68%;"></i></div>
+                    <b>+12%</b>
+                  </div>
+                  <div class="bar-row">
+                    <span>风险</span>
+                    <div class="bar yellow"><i style="width: 26%;"></i></div>
+                    <b>低</b>
+                  </div>
+                </div>
+                <div class="note-block">
+                  AB 结果执行后填充。此处只展示 compact before-after，不展示 raw payload。
+                </div>
+              </div>
+            </section>
+          </aside>
+        </section>
+      </section>
+    </main>
+  </body>
+</html>

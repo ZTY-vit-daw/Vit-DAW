@@ -1,0 +1,1111 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Ask Vit Agent Native DAW Bar v6</title>
+    <style>
+      :root {
+        --ink: #17191f;
+        --muted: #667085;
+        --line: #d8dee8;
+        --surface: #f7f8fa;
+        --panel: #ffffff;
+        --soft: #f0f3f8;
+        --blue: #2a5bd7;
+        --blue-soft: #eaf0ff;
+        --yellow: #f2c94c;
+        --yellow-soft: #fff7dc;
+        --red: #d94a3a;
+        --red-soft: #ffebe8;
+        --green: #1f9a66;
+        --shadow: 0 18px 40px rgba(18, 24, 38, 0.08);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        overflow: hidden;
+        background: var(--surface);
+        color: var(--ink);
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+      }
+
+      button,
+      textarea {
+        font: inherit;
+      }
+
+      button {
+        cursor: default;
+      }
+
+      .shell {
+        display: grid;
+        grid-template-rows: 76px minmax(0, 1fr);
+        width: 100vw;
+        height: 100vh;
+      }
+
+      .agent-bar {
+        display: grid;
+        grid-template-columns: 292px minmax(430px, 1fr) 370px;
+        align-items: center;
+        gap: 14px;
+        min-width: 0;
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.94);
+        backdrop-filter: blur(18px);
+      }
+
+      .project-context,
+      .listen-strip,
+      .agent-state {
+        min-width: 0;
+      }
+
+      .project-context {
+        display: grid;
+        grid-template-columns: 24px minmax(0, 1fr);
+        align-items: center;
+        gap: 11px;
+      }
+
+      .brand-mark {
+        width: 22px;
+        height: 22px;
+        border: 2px solid var(--ink);
+        background:
+          linear-gradient(90deg, var(--blue) 0 45%, #fff 45% 56%, var(--yellow) 56% 100%);
+      }
+
+      .project-context strong,
+      .project-context span,
+      .selected-object strong,
+      .selected-object span,
+      .state-card strong,
+      .state-card span {
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .project-context strong {
+        font-size: 14px;
+      }
+
+      .project-context span,
+      .selected-object span,
+      .state-card span {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .listen-strip {
+        display: grid;
+        grid-template-columns: 148px minmax(0, 1fr) 132px;
+        align-items: center;
+        gap: 12px;
+        padding: 8px 10px;
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        background: var(--panel);
+        box-shadow: 0 8px 24px rgba(18, 24, 38, 0.04);
+      }
+
+      .listen-buttons {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 7px;
+      }
+
+      .listen-button {
+        display: grid;
+        place-items: center;
+        height: 34px;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: var(--surface);
+        color: var(--ink);
+        font-size: 13px;
+        font-weight: 950;
+      }
+
+      .listen-button.primary {
+        border-color: rgba(42, 91, 215, 0.22);
+        background: var(--blue);
+        color: var(--panel);
+      }
+
+      .selection-view {
+        display: grid;
+        gap: 6px;
+        min-width: 0;
+      }
+
+      .selection-top {
+        display: grid;
+        grid-template-columns: 82px minmax(0, 1fr) 68px;
+        align-items: center;
+        gap: 10px;
+        color: var(--muted);
+        font-size: 11px;
+      }
+
+      .selection-top strong {
+        color: var(--ink);
+        font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+        font-size: 13px;
+      }
+
+      .range-line {
+        position: relative;
+        height: 9px;
+        overflow: hidden;
+        border-radius: 999px;
+        background:
+          repeating-linear-gradient(90deg, transparent 0 55px, rgba(23, 25, 31, 0.1) 55px 56px),
+          #edf1f6;
+      }
+
+      .range-line::before {
+        position: absolute;
+        left: 25%;
+        top: 0;
+        width: 34%;
+        height: 100%;
+        border-radius: inherit;
+        background: rgba(242, 201, 76, 0.86);
+        content: "";
+      }
+
+      .range-line::after {
+        position: absolute;
+        left: 39%;
+        top: -5px;
+        width: 3px;
+        height: 19px;
+        border-radius: 999px;
+        background: var(--blue);
+        content: "";
+      }
+
+      .ab-toggle {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        height: 34px;
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: var(--surface);
+      }
+
+      .ab-toggle button {
+        border: 0;
+        border-right: 1px solid var(--line);
+        background: transparent;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 950;
+      }
+
+      .ab-toggle button:last-child {
+        border-right: 0;
+      }
+
+      .ab-toggle .active {
+        background: var(--blue-soft);
+        color: var(--blue);
+      }
+
+      .agent-state {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 126px;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .selected-object {
+        min-width: 0;
+        padding: 8px 10px;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: var(--panel);
+      }
+
+      .state-card {
+        min-width: 0;
+        padding: 8px 10px;
+        border: 1px solid rgba(151, 112, 0, 0.24);
+        border-radius: 14px;
+        background: var(--yellow-soft);
+      }
+
+      .state-card strong {
+        color: #725600;
+        font-size: 12px;
+      }
+
+      .main {
+        display: grid;
+        grid-template-columns: 66px minmax(0, 1fr);
+        min-height: 0;
+      }
+
+      .rail {
+        display: grid;
+        grid-template-rows: 70px minmax(0, 1fr) 70px;
+        border-right: 1px solid var(--line);
+        background: var(--panel);
+      }
+
+      .rail-logo {
+        display: grid;
+        place-items: center;
+        border-bottom: 1px solid var(--line);
+        font-weight: 950;
+      }
+
+      .rail-nav,
+      .rail-foot {
+        display: grid;
+        align-content: start;
+        gap: 8px;
+        padding: 10px 8px;
+      }
+
+      .rail-item {
+        display: grid;
+        place-items: center;
+        width: 48px;
+        height: 48px;
+        border: 1px solid transparent;
+        border-radius: 12px;
+        background: transparent;
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 850;
+      }
+
+      .rail-item.active {
+        border-color: rgba(42, 91, 215, 0.22);
+        background: var(--blue);
+        color: var(--panel);
+        box-shadow: 0 12px 24px rgba(42, 91, 215, 0.2);
+      }
+
+      .workspace {
+        display: grid;
+        grid-template-columns: minmax(620px, 1fr) 8px 426px;
+        min-width: 0;
+        min-height: 0;
+      }
+
+      .chat {
+        display: grid;
+        grid-template-rows: minmax(0, 1fr) 128px;
+        min-width: 0;
+        min-height: 0;
+        background: var(--surface);
+      }
+
+      .conversation {
+        min-height: 0;
+        overflow: hidden;
+        padding: 28px 34px 24px;
+      }
+
+      .thread {
+        display: grid;
+        gap: 18px;
+        max-width: 980px;
+        margin: 0 auto;
+      }
+
+      .message-row {
+        display: grid;
+        min-width: 0;
+      }
+
+      .message-row.user {
+        justify-items: end;
+      }
+
+      .message-row.vit {
+        justify-items: start;
+      }
+
+      .bubble {
+        max-width: min(690px, 76%);
+        padding: 15px 18px;
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        background: var(--panel);
+        box-shadow: 0 10px 26px rgba(23, 25, 31, 0.04);
+        line-height: 1.55;
+      }
+
+      .user .bubble {
+        border-color: transparent;
+        border-top-right-radius: 7px;
+        background: #eceef2;
+        box-shadow: none;
+        font-size: 16px;
+      }
+
+      .vit .bubble {
+        border-top-left-radius: 7px;
+      }
+
+      .bubble p {
+        margin: 0;
+      }
+
+      .byline {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 7px;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 850;
+      }
+
+      .avatar {
+        display: grid;
+        place-items: center;
+        width: 22px;
+        height: 22px;
+        border-radius: 7px;
+        background: var(--blue);
+        color: var(--panel);
+        font-size: 11px;
+        font-weight: 950;
+      }
+
+      .processing {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .processing::after {
+        flex: 1;
+        height: 1px;
+        background: var(--line);
+        content: "";
+      }
+
+      .answer {
+        display: grid;
+        gap: 12px;
+      }
+
+      .answer-section {
+        display: grid;
+        gap: 4px;
+      }
+
+      .answer-section strong {
+        color: var(--ink);
+      }
+
+      .answer-section span {
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .pending-card {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 142px;
+        margin-top: 3px;
+        overflow: hidden;
+        border: 1px solid rgba(151, 112, 0, 0.22);
+        border-radius: 12px;
+        background: var(--yellow-soft);
+      }
+
+      .pending-body {
+        display: grid;
+        gap: 11px;
+        padding: 13px;
+      }
+
+      .pending-title {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        min-width: 0;
+      }
+
+      .pending-dot {
+        width: 10px;
+        height: 10px;
+        border: 2px solid var(--ink);
+        background: var(--yellow);
+      }
+
+      .pending-title strong,
+      .pending-title span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .pending-title span {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .pending-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .field {
+        min-width: 0;
+        padding: 8px 9px;
+        border: 1px solid rgba(151, 112, 0, 0.18);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.7);
+      }
+
+      .field em,
+      .field b {
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .field em {
+        color: var(--muted);
+        font-size: 10px;
+        font-style: normal;
+        font-weight: 850;
+      }
+
+      .field b {
+        margin-top: 2px;
+        font-size: 12px;
+      }
+
+      .evidence-line {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 7px;
+      }
+
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        height: 24px;
+        padding: 0 8px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: var(--panel);
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 850;
+      }
+
+      .pending-actions {
+        display: grid;
+        grid-template-rows: 1fr 1fr;
+        border-left: 1px solid rgba(151, 112, 0, 0.2);
+      }
+
+      .pending-actions button {
+        border: 0;
+        border-bottom: 1px solid rgba(151, 112, 0, 0.2);
+        background: rgba(255, 255, 255, 0.74);
+        font-size: 13px;
+        font-weight: 950;
+      }
+
+      .pending-actions .primary {
+        background: var(--blue);
+        color: var(--panel);
+      }
+
+      .pending-actions button:last-child {
+        border-bottom: 0;
+      }
+
+      .composer-wrap {
+        padding: 14px 28px 18px;
+        border-top: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.84);
+        backdrop-filter: blur(18px);
+      }
+
+      .composer {
+        display: grid;
+        grid-template-columns: 42px minmax(0, 1fr) 42px;
+        gap: 10px;
+        max-width: 980px;
+        height: 96px;
+        margin: 0 auto;
+        padding: 10px;
+        border: 1px solid var(--line);
+        border-radius: 24px;
+        background: var(--panel);
+        box-shadow: var(--shadow);
+      }
+
+      .composer button {
+        display: grid;
+        place-items: center;
+        width: 34px;
+        height: 34px;
+        align-self: end;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: var(--panel);
+        color: var(--ink);
+        font-size: 22px;
+      }
+
+      .composer .send {
+        border-color: var(--ink);
+        background: var(--ink);
+        color: var(--panel);
+        font-size: 18px;
+      }
+
+      .composer textarea {
+        width: 100%;
+        height: 100%;
+        min-height: 0;
+        resize: none;
+        padding: 12px 4px;
+        border: 0;
+        outline: none;
+        color: var(--ink);
+        background: transparent;
+        font-size: 15px;
+        line-height: 1.45;
+      }
+
+      .resizer {
+        border-right: 1px solid var(--line);
+        border-left: 1px solid rgba(255, 255, 255, 0.8);
+        background: linear-gradient(90deg, transparent 0 3px, rgba(23, 25, 31, 0.16) 3px 4px, transparent 4px 8px);
+      }
+
+      .dock {
+        display: grid;
+        grid-template-rows: 54px minmax(0, 1fr);
+        min-width: 0;
+        min-height: 0;
+        background: var(--panel);
+      }
+
+      .dock-tabs {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 6px;
+        align-items: center;
+        padding: 10px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .dock-tab {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        height: 34px;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: var(--surface);
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 900;
+      }
+
+      .dock-tab.active {
+        border-color: rgba(42, 91, 215, 0.24);
+        background: var(--blue);
+        color: var(--panel);
+      }
+
+      .dock-tab.history {
+        border-color: rgba(217, 74, 58, 0.32);
+        background: var(--red-soft);
+        color: #8d2b22;
+      }
+
+      .dock-tab.macro {
+        border-color: rgba(151, 112, 0, 0.25);
+        background: var(--yellow-soft);
+        color: #755800;
+      }
+
+      .badge {
+        display: inline-grid;
+        place-items: center;
+        min-width: 18px;
+        height: 18px;
+        padding: 0 5px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.24);
+        font-size: 10px;
+        font-weight: 950;
+      }
+
+      .dock-body {
+        min-height: 0;
+        overflow: hidden;
+        padding: 14px;
+        background: #fbfcfe;
+      }
+
+      .dock-stack {
+        display: grid;
+        gap: 12px;
+      }
+
+      .dock-section {
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: var(--panel);
+        box-shadow: 0 10px 24px rgba(23, 25, 31, 0.04);
+      }
+
+      .section-head {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: center;
+        min-height: 40px;
+        padding: 0 12px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .section-head strong {
+        overflow: hidden;
+        font-size: 12px;
+        text-overflow: ellipsis;
+        text-transform: uppercase;
+        white-space: nowrap;
+      }
+
+      .section-head span {
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 850;
+      }
+
+      .task-list,
+      .evidence-list,
+      .dock-preview {
+        display: grid;
+        gap: 8px;
+        padding: 11px;
+      }
+
+      .task-row {
+        display: grid;
+        grid-template-columns: 80px minmax(0, 1fr);
+        align-items: center;
+        min-height: 30px;
+        padding: 6px 8px;
+        border: 1px solid var(--line);
+        border-radius: 9px;
+        background: var(--surface);
+        font-size: 12px;
+      }
+
+      .task-row strong,
+      .task-row span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .task-row strong {
+        color: var(--blue);
+      }
+
+      .task-row span {
+        color: var(--muted);
+      }
+
+      .node-map {
+        position: relative;
+        height: 126px;
+      }
+
+      .node-map svg {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+      }
+
+      .node-map path {
+        fill: none;
+        stroke: var(--ink);
+        stroke-width: 1.5;
+        opacity: 0.42;
+      }
+
+      .node {
+        position: absolute;
+        display: grid;
+        align-content: center;
+        gap: 1px;
+        width: 96px;
+        height: 40px;
+        padding: 6px 8px;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: var(--panel);
+      }
+
+      .node.blue {
+        border-color: var(--blue);
+        background: var(--blue);
+        color: var(--panel);
+      }
+
+      .node.yellow {
+        border-color: rgba(151, 112, 0, 0.28);
+        background: var(--yellow-soft);
+      }
+
+      .node strong,
+      .node span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .node strong {
+        font-size: 11px;
+      }
+
+      .node span {
+        font-size: 10px;
+        opacity: 0.78;
+      }
+
+      .evidence-row {
+        display: grid;
+        grid-template-columns: 72px minmax(0, 1fr) 48px;
+        align-items: center;
+        gap: 8px;
+        min-height: 28px;
+        font-size: 12px;
+      }
+
+      .evidence-row b,
+      .evidence-row span,
+      .evidence-row em {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .evidence-row b {
+        color: var(--blue);
+      }
+
+      .evidence-row span {
+        color: var(--muted);
+      }
+
+      .evidence-row em {
+        font-style: normal;
+        font-weight: 900;
+        text-align: right;
+      }
+
+      .preview-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+      }
+
+      .preview-tile {
+        min-width: 0;
+        min-height: 58px;
+        padding: 8px;
+        border: 1px solid var(--line);
+        border-radius: 11px;
+        background: var(--surface);
+      }
+
+      .preview-tile.red {
+        border-color: rgba(217, 74, 58, 0.28);
+        background: var(--red-soft);
+      }
+
+      .preview-tile.yellow {
+        border-color: rgba(151, 112, 0, 0.24);
+        background: var(--yellow-soft);
+      }
+
+      .preview-tile.blue {
+        border-color: rgba(42, 91, 215, 0.22);
+        background: var(--blue-soft);
+      }
+
+      .preview-tile strong,
+      .preview-tile span {
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .preview-tile strong {
+        font-size: 12px;
+      }
+
+      .preview-tile span {
+        margin-top: 7px;
+        color: var(--muted);
+        font-size: 11px;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="shell">
+      <header class="agent-bar">
+        <section class="project-context">
+          <div class="brand-mark"></div>
+          <div>
+            <strong>Demo Session</strong>
+            <span>Vit DAW / 48 kHz / Ask Vit</span>
+          </div>
+        </section>
+
+        <section class="listen-strip">
+          <div class="listen-buttons">
+            <button class="listen-button">|&lt;</button>
+            <button class="listen-button">■</button>
+            <button class="listen-button primary">▶</button>
+            <button class="listen-button">⟳</button>
+          </div>
+          <div class="selection-view">
+            <div class="selection-top">
+              <span>选区 17.1-25.1</span>
+              <strong>01:12.480</strong>
+              <span>124 BPM</span>
+            </div>
+            <div class="range-line"></div>
+          </div>
+          <div class="ab-toggle">
+            <button class="active">Before</button>
+            <button>After</button>
+          </div>
+        </section>
+
+        <section class="agent-state">
+          <div class="selected-object">
+            <strong>Lead Vocal Bus</strong>
+            <span>当前对象 / 观察可信度 0.84</span>
+          </div>
+          <div class="state-card">
+            <strong>待确认</strong>
+            <span>不写入工程</span>
+          </div>
+        </section>
+      </header>
+
+      <section class="main">
+        <nav class="rail">
+          <div class="rail-logo">VIT</div>
+          <div class="rail-nav">
+            <button class="rail-item active">Ask</button>
+            <button class="rail-item">工程</button>
+            <button class="rail-item">混音</button>
+            <button class="rail-item">素材</button>
+          </div>
+          <div class="rail-foot">
+            <button class="rail-item">设置</button>
+          </div>
+        </nav>
+
+        <section class="workspace">
+          <section class="chat">
+            <div class="conversation">
+              <div class="thread">
+                <article class="message-row user">
+                  <div class="bubble">
+                    <p>人声有点糊，先帮我看一下要不要动。</p>
+                  </div>
+                </article>
+
+                <div class="processing">已处理 12s</div>
+
+                <article class="message-row vit">
+                  <div class="bubble">
+                    <div class="byline"><span class="avatar">V</span><span>Vit</span></div>
+                    <div class="answer">
+                      <div class="answer-section">
+                        <strong>结论</strong>
+                        <span>建议先做轻量 EQ treatment。现在不会写入工程，我已基于 MOM projection 生成一个 typed pending。</span>
+                      </div>
+                      <div class="answer-section">
+                        <strong>依据</strong>
+                        <span>2-5 kHz 清晰度不足；动态峰值没有异常；鼓组低频稳定，暂不建议优先调整鼓组。</span>
+                      </div>
+                      <div class="pending-card">
+                        <div class="pending-body">
+                          <div class="pending-title">
+                            <div class="pending-dot"></div>
+                            <strong>待确认动作</strong>
+                            <span>确认后执行，并触发 AB 复观测</span>
+                          </div>
+                          <div class="pending-grid">
+                            <div class="field"><em>target</em><b>Lead Vocal</b></div>
+                            <div class="field"><em>action</em><b>EQ treatment</b></div>
+                            <div class="field"><em>trust</em><b>0.84</b></div>
+                            <div class="field"><em>route</em><b>typed only</b></div>
+                          </div>
+                          <div class="evidence-line">
+                            <span class="chip">MOM-42</span>
+                            <span class="chip">DAD-17</span>
+                            <span class="chip">plugin safe route</span>
+                          </div>
+                        </div>
+                        <div class="pending-actions">
+                          <button class="primary">确认执行</button>
+                          <button>换个方案</button>
+                        </div>
+                      </div>
+                      <div class="answer-section">
+                        <strong>限制</strong>
+                        <span>确认前不写插件、参数、音量、声像；确认后只走 typed executor。</span>
+                      </div>
+                    </div>
+                  </div>
+                </article>
+
+                <article class="message-row user">
+                  <div class="bubble">
+                    <p>可以，执行后给我 AB 结果。</p>
+                  </div>
+                </article>
+              </div>
+            </div>
+
+            <footer class="composer-wrap">
+              <form class="composer">
+                <button type="button">+</button>
+                <textarea>继续输入给 Vit 的任务...</textarea>
+                <button class="send" type="button">↑</button>
+              </form>
+            </footer>
+          </section>
+
+          <div class="resizer"></div>
+
+          <aside class="dock">
+            <header class="dock-tabs">
+              <button class="dock-tab active">任务 <span class="badge">1</span></button>
+              <button class="dock-tab history">历史</button>
+              <button class="dock-tab macro">宏</button>
+              <button class="dock-tab">资源</button>
+            </header>
+
+            <div class="dock-body">
+              <div class="dock-stack">
+                <section class="dock-section">
+                  <header class="section-head">
+                    <strong>Current Decision</strong>
+                    <span>typed pending</span>
+                  </header>
+                  <div class="task-list">
+                    <div class="task-row"><strong>对象</strong><span>Lead Vocal Bus</span></div>
+                    <div class="task-row"><strong>动作</strong><span>EQ treatment / plugin safe route</span></div>
+                    <div class="task-row"><strong>护栏</strong><span>确认前禁止写入，确认后 typed executor only</span></div>
+                  </div>
+                </section>
+
+                <section class="dock-section">
+                  <header class="section-head">
+                    <strong>Agent Structure</strong>
+                    <span>可展开</span>
+                  </header>
+                  <div class="node-map">
+                    <svg viewBox="0 0 398 126" preserveAspectRatio="none">
+                      <path d="M78 63 C120 63 122 32 164 32" />
+                      <path d="M78 63 C120 63 122 94 164 94" />
+                      <path d="M260 32 C300 32 298 63 338 63" />
+                      <path d="M260 94 C300 94 298 63 338 63" />
+                    </svg>
+                    <div class="node blue" style="left: 18px; top: 43px;">
+                      <strong>主代理</strong>
+                      <span>router</span>
+                    </div>
+                    <div class="node" style="left: 156px; top: 12px;">
+                      <strong>MOM</strong>
+                      <span>projection</span>
+                    </div>
+                    <div class="node" style="left: 156px; top: 74px;">
+                      <strong>低频检查</strong>
+                      <span>worker</span>
+                    </div>
+                    <div class="node yellow" style="left: 300px; top: 43px;">
+                      <strong>Pending</strong>
+                      <span>confirm</span>
+                    </div>
+                  </div>
+                </section>
+
+                <section class="dock-section">
+                  <header class="section-head">
+                    <strong>Evidence / AB</strong>
+                    <span>compact</span>
+                  </header>
+                  <div class="evidence-list">
+                    <div class="evidence-row"><b>MOM-42</b><span>vocal clarity projection</span><em>0.84</em></div>
+                    <div class="evidence-row"><b>DAD-17</b><span>spectral balance note</span><em>stable</em></div>
+                  </div>
+                </section>
+
+                <section class="dock-section">
+                  <header class="section-head">
+                    <strong>Dock Views</strong>
+                    <span>保留</span>
+                  </header>
+                  <div class="dock-preview">
+                    <div class="preview-grid">
+                      <div class="preview-tile red">
+                        <strong>历史树</strong>
+                        <span>6 nodes</span>
+                      </div>
+                      <div class="preview-tile yellow">
+                        <strong>宏面板</strong>
+                        <span>3 macros</span>
+                      </div>
+                      <div class="preview-tile blue">
+                        <strong>媒体池</strong>
+                        <span>42 items</span>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+              </div>
+            </div>
+          </aside>
+        </section>
+      </section>
+    </main>
+  </body>
+</html>

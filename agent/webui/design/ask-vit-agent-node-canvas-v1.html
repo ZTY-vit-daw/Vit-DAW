@@ -1,0 +1,1248 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Ask Vit Agent Node Canvas v1</title>
+    <style>
+      :root {
+        --white: #ffffff;
+        --ink: #111318;
+        --muted: #667085;
+        --line: #d8dee8;
+        --line-strong: #111318;
+        --blue: #1f55d8;
+        --blue-dark: #123ba0;
+        --blue-soft: #e8efff;
+        --red: #d02b22;
+        --yellow: #f1bd17;
+        --yellow-soft: #fff7d7;
+        --green: #12805c;
+        --panel: #fbfcff;
+        --canvas: #f7f9fc;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        overflow: hidden;
+        background: #f5f6f8;
+        color: var(--ink);
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+      }
+
+      button,
+      textarea {
+        font: inherit;
+      }
+
+      .app-shell {
+        display: grid;
+        grid-template-rows: 64px minmax(0, 1fr);
+        width: 100vw;
+        height: 100vh;
+        background:
+          linear-gradient(#f5f6f8, #f5f6f8) padding-box,
+          repeating-linear-gradient(90deg, rgba(17, 19, 24, 0.04) 0 1px, transparent 1px 120px);
+      }
+
+      .top-status {
+        display: grid;
+        grid-template-columns: minmax(220px, 1fr) minmax(300px, 520px) minmax(280px, 1fr);
+        align-items: stretch;
+        background: var(--white);
+        border-bottom: 2px solid var(--line-strong);
+      }
+
+      .brand-block,
+      .transport-strip,
+      .status-cells {
+        display: flex;
+        align-items: center;
+        min-width: 0;
+      }
+
+      .brand-block {
+        gap: 12px;
+        padding: 0 20px;
+        border-right: 1px solid var(--line);
+      }
+
+      .connection-dot {
+        width: 14px;
+        height: 14px;
+        border: 2px solid var(--ink);
+        background: var(--blue);
+      }
+
+      .brand-title strong,
+      .brand-title span {
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .brand-title strong {
+        font-size: 15px;
+      }
+
+      .brand-title span {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .transport-strip {
+        justify-content: center;
+        gap: 10px;
+        padding: 0 18px;
+        border-right: 1px solid var(--line);
+        background: #fdfdfd;
+      }
+
+      .icon-button {
+        display: grid;
+        place-items: center;
+        width: 34px;
+        height: 34px;
+        border: 1px solid var(--line-strong);
+        border-radius: 6px;
+        color: var(--ink);
+        background: var(--white);
+        font-size: 13px;
+        font-weight: 900;
+      }
+
+      .timecode {
+        min-width: 112px;
+        padding: 8px 10px;
+        border: 1px solid var(--ink);
+        border-radius: 6px;
+        background: #111318;
+        color: #ffffff;
+        text-align: center;
+        font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+        font-size: 13px;
+      }
+
+      .mini-meter {
+        display: grid;
+        grid-template-columns: repeat(5, 8px);
+        align-items: end;
+        gap: 3px;
+        height: 28px;
+        padding: 4px;
+        border: 1px solid var(--line-strong);
+        border-radius: 6px;
+        background: var(--white);
+      }
+
+      .mini-meter i {
+        display: block;
+        width: 8px;
+        background: var(--blue);
+      }
+
+      .mini-meter i:nth-child(1) { height: 8px; }
+      .mini-meter i:nth-child(2) { height: 16px; }
+      .mini-meter i:nth-child(3) { height: 22px; }
+      .mini-meter i:nth-child(4) { height: 13px; }
+      .mini-meter i:nth-child(5) { height: 19px; background: var(--yellow); }
+
+      .status-cells {
+        justify-content: flex-end;
+        gap: 8px;
+        padding: 0 16px;
+      }
+
+      .status-cell {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        max-width: 170px;
+        padding: 8px 10px;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        color: var(--muted);
+        background: var(--white);
+        font-size: 12px;
+        white-space: nowrap;
+      }
+
+      .status-cell.ok {
+        color: var(--blue);
+        border-color: var(--blue);
+      }
+
+      .main-workspace {
+        display: grid;
+        grid-template-columns: 76px minmax(0, 1fr);
+        min-height: 0;
+        overflow: hidden;
+      }
+
+      .side-rail {
+        display: grid;
+        grid-template-rows: auto minmax(0, 1fr) auto;
+        min-width: 0;
+        min-height: 0;
+        background: var(--white);
+        border-right: 2px solid var(--line-strong);
+      }
+
+      .rail-brand {
+        display: grid;
+        place-items: center;
+        min-height: 64px;
+        border-bottom: 1px solid var(--line);
+        font-weight: 900;
+      }
+
+      .rail-main,
+      .rail-footer {
+        display: grid;
+        align-content: start;
+        gap: 6px;
+        padding: 10px 8px;
+      }
+
+      .rail-footer {
+        align-content: end;
+        border-top: 1px solid var(--line);
+      }
+
+      .rail-button {
+        display: grid;
+        place-items: center;
+        gap: 5px;
+        min-height: 54px;
+        padding: 7px 4px;
+        border: 1px solid transparent;
+        border-radius: 6px;
+        color: var(--muted);
+        background: transparent;
+        font-size: 11px;
+        font-weight: 800;
+      }
+
+      .rail-button.active {
+        color: var(--white);
+        background: var(--blue);
+        border-color: var(--blue-dark);
+      }
+
+      .agent-workspace {
+        display: grid;
+        grid-template-columns: 322px minmax(0, 1fr) 306px;
+        min-width: 0;
+        min-height: 0;
+        overflow: hidden;
+      }
+
+      .chat-console,
+      .agent-canvas-shell,
+      .node-inspector {
+        min-width: 0;
+        min-height: 0;
+        overflow: hidden;
+        background: var(--panel);
+      }
+
+      .chat-console {
+        display: grid;
+        grid-template-rows: auto auto minmax(0, 1fr) auto;
+        border-right: 2px solid var(--line-strong);
+      }
+
+      .panel-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        padding: 16px 18px 13px;
+        border-bottom: 1px solid var(--line);
+        background: var(--white);
+      }
+
+      .panel-header p,
+      .panel-header h1,
+      .panel-header h2 {
+        margin: 0;
+      }
+
+      .eyebrow {
+        margin-bottom: 3px;
+        color: var(--blue);
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+      }
+
+      h1 {
+        font-size: 22px;
+        line-height: 1.1;
+      }
+
+      h2 {
+        font-size: 15px;
+      }
+
+      .mode-switch {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 5px;
+        padding: 4px;
+        border: 1px solid var(--line-strong);
+        border-radius: 8px;
+        background: #f3f5f9;
+      }
+
+      .mode-switch span {
+        display: grid;
+        place-items: center;
+        min-width: 52px;
+        min-height: 30px;
+        padding: 0 7px;
+        border-radius: 6px;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      .mode-switch .active {
+        color: var(--white);
+        background: var(--blue);
+      }
+
+      .goal-strip {
+        display: grid;
+        gap: 8px;
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--line);
+        background: #fbfcff;
+      }
+
+      .goal-strip strong,
+      .goal-strip span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .goal-strip strong {
+        font-size: 13px;
+      }
+
+      .goal-strip span {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .message-stream {
+        min-height: 0;
+        overflow: hidden;
+        padding: 18px 16px;
+      }
+
+      .message {
+        display: grid;
+        grid-template-columns: 26px minmax(0, 1fr);
+        gap: 9px;
+        margin-bottom: 14px;
+      }
+
+      .avatar {
+        display: grid;
+        place-items: center;
+        width: 26px;
+        height: 26px;
+        border: 1px solid var(--line-strong);
+        border-radius: 6px;
+        background: var(--white);
+        font-size: 11px;
+        font-weight: 900;
+      }
+
+      .bubble {
+        min-width: 0;
+        padding: 10px 11px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--white);
+        font-size: 12px;
+        line-height: 1.45;
+      }
+
+      .bubble strong,
+      .bubble span {
+        display: block;
+      }
+
+      .bubble span {
+        color: var(--muted);
+      }
+
+      .pending-card {
+        display: grid;
+        gap: 9px;
+        margin-top: 6px;
+        padding: 11px;
+        border: 1px solid var(--line-strong);
+        border-radius: 8px;
+        background: var(--yellow-soft);
+      }
+
+      .pending-card header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+      }
+
+      .pending-card h3 {
+        margin: 0;
+        font-size: 13px;
+      }
+
+      .tag {
+        display: inline-flex;
+        align-items: center;
+        min-height: 22px;
+        padding: 0 7px;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        background: var(--white);
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 800;
+        white-space: nowrap;
+      }
+
+      .tag.blue {
+        color: var(--blue);
+        border-color: var(--blue);
+        background: var(--blue-soft);
+      }
+
+      .tag.green {
+        color: var(--green);
+        border-color: rgba(18, 128, 92, 0.55);
+        background: #ecf8f3;
+      }
+
+      .tag.red {
+        color: var(--red);
+        border-color: rgba(208, 43, 34, 0.48);
+        background: #fff4f2;
+      }
+
+      .pending-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 7px;
+      }
+
+      .kv {
+        min-width: 0;
+        padding: 7px;
+        border: 1px solid rgba(17, 19, 24, 0.12);
+        border-radius: 6px;
+        background: rgba(255, 255, 255, 0.74);
+      }
+
+      .kv span {
+        color: var(--muted);
+        font-size: 10px;
+        font-weight: 800;
+      }
+
+      .kv strong {
+        margin-top: 2px;
+        font-size: 12px;
+      }
+
+      .pending-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+
+      .button {
+        display: inline-grid;
+        place-items: center;
+        min-height: 34px;
+        border: 1px solid var(--line-strong);
+        border-radius: 6px;
+        background: var(--white);
+        color: var(--ink);
+        font-size: 12px;
+        font-weight: 900;
+      }
+
+      .button.primary {
+        color: var(--white);
+        border-color: var(--blue-dark);
+        background: var(--blue);
+      }
+
+      .composer {
+        display: grid;
+        gap: 8px;
+        padding: 12px 14px 14px;
+        border-top: 2px solid var(--line-strong);
+        background: var(--white);
+      }
+
+      .composer textarea {
+        width: 100%;
+        min-height: 68px;
+        resize: none;
+        padding: 10px 11px;
+        border: 1px solid var(--line-strong);
+        border-radius: 8px;
+        color: var(--ink);
+        background: #fbfcff;
+        outline: none;
+      }
+
+      .composer-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+      }
+
+      .agent-canvas-shell {
+        display: grid;
+        grid-template-rows: auto minmax(0, 1fr);
+        border-right: 2px solid var(--line-strong);
+      }
+
+      .canvas-toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        min-height: 58px;
+        padding: 10px 14px;
+        border-bottom: 1px solid var(--line);
+        background: var(--white);
+      }
+
+      .canvas-title {
+        min-width: 0;
+      }
+
+      .canvas-title strong,
+      .canvas-title span {
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .canvas-title span {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .canvas-actions {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .tool-button {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        min-height: 32px;
+        padding: 0 9px;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        color: var(--ink);
+        background: var(--white);
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      .canvas {
+        position: relative;
+        min-width: 0;
+        min-height: 0;
+        overflow: hidden;
+        background:
+          linear-gradient(to right, rgba(17, 19, 24, 0.06) 1px, transparent 1px),
+          linear-gradient(to bottom, rgba(17, 19, 24, 0.06) 1px, transparent 1px),
+          var(--canvas);
+        background-size: 24px 24px;
+      }
+
+      .canvas-stage {
+        position: absolute;
+        inset: 0;
+      }
+
+      .edge-layer {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+      }
+
+      .edge {
+        fill: none;
+        stroke: #111318;
+        stroke-width: 2.2;
+        stroke-linecap: round;
+      }
+
+      .edge.context {
+        stroke: var(--blue);
+      }
+
+      .edge.pending {
+        stroke: #bb8800;
+        stroke-dasharray: 7 5;
+      }
+
+      .edge.future {
+        stroke: #9aa4b2;
+        stroke-dasharray: 5 7;
+      }
+
+      .agent-node {
+        position: absolute;
+        display: grid;
+        grid-template-rows: auto minmax(0, 1fr) auto;
+        gap: 8px;
+        width: 188px;
+        min-height: 118px;
+        padding: 10px;
+        border: 1px solid var(--line-strong);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.95);
+        box-shadow: 0 12px 28px rgba(17, 19, 24, 0.08);
+      }
+
+      .agent-node.selected {
+        border-width: 2px;
+        border-color: #bb8800;
+        box-shadow: 0 16px 34px rgba(187, 136, 0, 0.18);
+      }
+
+      .agent-node.done {
+        border-color: rgba(18, 128, 92, 0.72);
+      }
+
+      .agent-node.running {
+        border-color: var(--blue);
+      }
+
+      .agent-node.locked {
+        border-color: #9aa4b2;
+        background: rgba(255, 255, 255, 0.76);
+      }
+
+      .node-head {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 7px;
+      }
+
+      .node-glyph {
+        display: grid;
+        place-items: center;
+        width: 28px;
+        height: 28px;
+        border: 1px solid var(--line-strong);
+        border-radius: 7px;
+        background: var(--blue-soft);
+        color: var(--blue);
+        font-size: 11px;
+        font-weight: 900;
+      }
+
+      .node-head strong,
+      .node-head span,
+      .agent-node p {
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .node-head strong {
+        display: block;
+        font-size: 13px;
+        white-space: nowrap;
+      }
+
+      .node-head span {
+        display: block;
+        color: var(--muted);
+        font-size: 10.5px;
+        white-space: nowrap;
+      }
+
+      .status-dot {
+        width: 10px;
+        height: 10px;
+        border: 1px solid var(--line-strong);
+        border-radius: 999px;
+        background: var(--muted);
+      }
+
+      .status-dot.done {
+        background: var(--green);
+      }
+
+      .status-dot.running {
+        background: var(--blue);
+      }
+
+      .status-dot.pending {
+        background: var(--yellow);
+      }
+
+      .agent-node p {
+        min-height: 34px;
+        margin: 0;
+        color: var(--muted);
+        font-size: 11.5px;
+        line-height: 1.35;
+      }
+
+      .node-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+      }
+
+      .node-port {
+        position: absolute;
+        top: 50%;
+        width: 10px;
+        height: 10px;
+        border: 1px solid var(--line-strong);
+        border-radius: 999px;
+        background: var(--white);
+        transform: translateY(-50%);
+      }
+
+      .node-port.in {
+        left: -6px;
+      }
+
+      .node-port.out {
+        right: -6px;
+      }
+
+      .node-1 { left: 28px; top: 184px; }
+      .node-2 { left: 272px; top: 72px; }
+      .node-3 { left: 272px; top: 284px; }
+      .node-4 { left: 518px; top: 180px; }
+      .node-5 { left: 518px; top: 384px; }
+
+      .canvas-mini-map {
+        position: absolute;
+        right: 14px;
+        bottom: 14px;
+        width: 150px;
+        height: 92px;
+        border: 1px solid var(--line-strong);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.9);
+        box-shadow: 0 10px 28px rgba(17, 19, 24, 0.12);
+      }
+
+      .mini-node {
+        position: absolute;
+        width: 22px;
+        height: 14px;
+        border: 1px solid var(--line-strong);
+        border-radius: 3px;
+        background: var(--blue-soft);
+      }
+
+      .node-inspector {
+        display: grid;
+        grid-template-rows: auto minmax(0, 1fr);
+        background: var(--white);
+      }
+
+      .inspector-body {
+        min-height: 0;
+        overflow: hidden;
+        padding: 14px;
+      }
+
+      .inspector-section {
+        display: grid;
+        gap: 9px;
+        margin-bottom: 14px;
+        padding-bottom: 14px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .inspector-section:last-child {
+        border-bottom: 0;
+      }
+
+      .inspector-section h3 {
+        margin: 0;
+        font-size: 13px;
+      }
+
+      .metric-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+
+      .metric {
+        padding: 9px;
+        border: 1px solid var(--line);
+        border-radius: 7px;
+        background: #fbfcff;
+      }
+
+      .metric span {
+        display: block;
+        color: var(--muted);
+        font-size: 10px;
+        font-weight: 800;
+      }
+
+      .metric strong {
+        display: block;
+        margin-top: 4px;
+        font-size: 13px;
+      }
+
+      .evidence-list {
+        display: grid;
+        gap: 6px;
+      }
+
+      .evidence-row {
+        display: grid;
+        grid-template-columns: 58px minmax(0, 1fr);
+        gap: 7px;
+        align-items: center;
+        min-height: 30px;
+        padding: 6px;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        background: #fbfcff;
+        font-size: 11px;
+      }
+
+      .evidence-row strong,
+      .evidence-row span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .evidence-row strong {
+        color: var(--blue);
+      }
+
+      .evidence-row span {
+        color: var(--muted);
+      }
+
+      .ab-card {
+        display: grid;
+        gap: 8px;
+        padding: 10px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #f7f9fc;
+      }
+
+      .ab-line {
+        display: grid;
+        grid-template-columns: 70px minmax(0, 1fr) 42px;
+        gap: 8px;
+        align-items: center;
+        color: var(--muted);
+        font-size: 11px;
+      }
+
+      .bar {
+        position: relative;
+        height: 8px;
+        border-radius: 999px;
+        background: #e5e9f2;
+        overflow: hidden;
+      }
+
+      .bar i {
+        position: absolute;
+        inset: 0 auto 0 0;
+        border-radius: 999px;
+        background: var(--blue);
+      }
+
+      .resize-handle {
+        position: absolute;
+        top: 64px;
+        bottom: 0;
+        width: 8px;
+        z-index: 5;
+      }
+
+      .resize-handle.left {
+        left: 397px;
+      }
+
+      .resize-handle.right {
+        right: 306px;
+      }
+
+      .resize-handle::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 2px;
+        width: 4px;
+        height: 58px;
+        border-radius: 999px;
+        background: rgba(17, 19, 24, 0.18);
+        transform: translateY(-50%);
+      }
+    </style>
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="top-status">
+        <div class="brand-block">
+          <span class="connection-dot"></span>
+          <div class="brand-title">
+            <strong>Vit DAW</strong>
+            <span>Ask Vit / Agent Canvas</span>
+          </div>
+        </div>
+        <div class="transport-strip">
+          <button class="icon-button">II</button>
+          <button class="icon-button">S</button>
+          <button class="icon-button">P</button>
+          <div class="timecode">01:12.480</div>
+          <div class="mini-meter"><i></i><i></i><i></i><i></i><i></i></div>
+        </div>
+        <div class="status-cells">
+          <div class="status-cell ok">Agent ready</div>
+          <div class="status-cell">MOM trust 0.84</div>
+          <div class="status-cell">AB idle</div>
+        </div>
+      </header>
+
+      <section class="main-workspace">
+        <nav class="side-rail">
+          <div class="rail-brand">VIT</div>
+          <div class="rail-main">
+            <button class="rail-button">对话</button>
+            <button class="rail-button active">目标</button>
+            <button class="rail-button">轨道</button>
+            <button class="rail-button">机架</button>
+            <button class="rail-button">混音台</button>
+          </div>
+          <div class="rail-footer">
+            <button class="rail-button">设置</button>
+          </div>
+        </nav>
+
+        <section class="agent-workspace">
+          <aside class="chat-console">
+            <div class="panel-header">
+              <div>
+                <p class="eyebrow">Ask Vit</p>
+                <h1>目标任务</h1>
+              </div>
+              <div class="mode-switch">
+                <span>即时</span>
+                <span>计划</span>
+                <span class="active">目标</span>
+              </div>
+            </div>
+
+            <div class="goal-strip">
+              <strong>自动混音：让人声更贴前，鼓组保持冲击</strong>
+              <span>工作流 AAW-003 / 当前等待确认</span>
+            </div>
+
+            <div class="message-stream">
+              <div class="message">
+                <div class="avatar">你</div>
+                <div class="bubble">
+                  <strong>人声有点糊，先帮我看一下要不要动。</strong>
+                  <span>目标模式 / 当前工程 Demo Session</span>
+                </div>
+              </div>
+
+              <div class="message">
+                <div class="avatar">V</div>
+                <div class="bubble">
+                  <strong>结论：建议先做轻量 EQ 处理，不直接写工程。</strong>
+                  <span>依据来自 MOM projection，未读取 raw acoustic package。</span>
+                </div>
+              </div>
+
+              <div class="pending-card">
+                <header>
+                  <h3>待确认动作</h3>
+                  <span class="tag red">pending</span>
+                </header>
+                <div class="pending-grid">
+                  <div class="kv">
+                    <span>对象</span>
+                    <strong>Lead Vocal Bus</strong>
+                  </div>
+                  <div class="kv">
+                    <span>动作</span>
+                    <strong>Plugin treatment</strong>
+                  </div>
+                  <div class="kv">
+                    <span>处理器</span>
+                    <strong>EQ</strong>
+                  </div>
+                  <div class="kv">
+                    <span>可信度</span>
+                    <strong>0.84</strong>
+                  </div>
+                </div>
+                <div class="pending-actions">
+                  <button class="button primary">确认执行</button>
+                  <button class="button">换个方案</button>
+                </div>
+              </div>
+            </div>
+
+            <form class="composer">
+              <textarea>可以，执行后给我 AB 结果。</textarea>
+              <div class="composer-row">
+                <span class="tag blue">已绑定画布节点</span>
+                <button class="button primary" type="button">发送</button>
+              </div>
+            </form>
+          </aside>
+
+          <section class="agent-canvas-shell">
+            <div class="canvas-toolbar">
+              <div class="canvas-title">
+                <strong>Agent Node Canvas</strong>
+                <span>观察 → 子任务 → Pending → Executor → AB result</span>
+              </div>
+              <div class="canvas-actions">
+                <button class="tool-button">适配</button>
+                <button class="tool-button">-</button>
+                <button class="tool-button">100%</button>
+                <button class="tool-button">+</button>
+              </div>
+            </div>
+
+            <div class="canvas">
+              <svg class="edge-layer" viewBox="0 0 744 612" preserveAspectRatio="none">
+                <path class="edge context" d="M216 243 C250 243 238 131 272 131" />
+                <path class="edge context" d="M216 243 C250 243 238 343 272 343" />
+                <path class="edge pending" d="M460 131 C496 131 482 239 518 239" />
+                <path class="edge pending" d="M460 343 C496 343 482 239 518 239" />
+                <path class="edge future" d="M612 298 C642 338 640 420 612 443" />
+              </svg>
+
+              <article class="agent-node running node-1">
+                <span class="node-port out"></span>
+                <div class="node-head">
+                  <div class="node-glyph">M</div>
+                  <div>
+                    <strong>主代理编排</strong>
+                    <span>orchestrator</span>
+                  </div>
+                  <i class="status-dot running"></i>
+                </div>
+                <p>读取目标、路由意图、拆出观察与动作候选。</p>
+                <div class="node-tags">
+                  <span class="tag blue">goal</span>
+                  <span class="tag">router</span>
+                </div>
+              </article>
+
+              <article class="agent-node done node-2">
+                <span class="node-port in"></span>
+                <span class="node-port out"></span>
+                <div class="node-head">
+                  <div class="node-glyph">O</div>
+                  <div>
+                    <strong>MOM 观测</strong>
+                    <span>projection only</span>
+                  </div>
+                  <i class="status-dot done"></i>
+                </div>
+                <p>确认人声 2-5 kHz 清晰度不足，证据可追溯。</p>
+                <div class="node-tags">
+                  <span class="tag green">trust 0.84</span>
+                </div>
+              </article>
+
+              <article class="agent-node done node-3">
+                <span class="node-port in"></span>
+                <span class="node-port out"></span>
+                <div class="node-head">
+                  <div class="node-glyph">W</div>
+                  <div>
+                    <strong>低频平衡检查</strong>
+                    <span>worker job</span>
+                  </div>
+                  <i class="status-dot done"></i>
+                </div>
+                <p>鼓组低频稳定，不建议先动 kick/bass。</p>
+                <div class="node-tags">
+                  <span class="tag">read only</span>
+                </div>
+              </article>
+
+              <article class="agent-node selected node-4">
+                <span class="node-port in"></span>
+                <span class="node-port out"></span>
+                <div class="node-head">
+                  <div class="node-glyph">P</div>
+                  <div>
+                    <strong>Pending Builder</strong>
+                    <span>typed candidate</span>
+                  </div>
+                  <i class="status-dot pending"></i>
+                </div>
+                <p>构造 MixTreatmentPending，等待用户确认。</p>
+                <div class="node-tags">
+                  <span class="tag red">needs confirm</span>
+                </div>
+              </article>
+
+              <article class="agent-node locked node-5">
+                <span class="node-port in"></span>
+                <div class="node-head">
+                  <div class="node-glyph">AB</div>
+                  <div>
+                    <strong>AB 复观测</strong>
+                    <span>after execute</span>
+                  </div>
+                  <i class="status-dot"></i>
+                </div>
+                <p>确认后触发 L2 render probe 和 compact before-after。</p>
+                <div class="node-tags">
+                  <span class="tag">waiting</span>
+                </div>
+              </article>
+
+              <div class="canvas-mini-map">
+                <span class="mini-node" style="left: 12px; top: 38px;"></span>
+                <span class="mini-node" style="left: 62px; top: 18px;"></span>
+                <span class="mini-node" style="left: 62px; top: 58px;"></span>
+                <span class="mini-node" style="left: 112px; top: 38px; background: var(--yellow-soft);"></span>
+              </div>
+            </div>
+          </section>
+
+          <aside class="node-inspector">
+            <div class="panel-header">
+              <div>
+                <p class="eyebrow">Inspector</p>
+                <h2>Pending Builder</h2>
+              </div>
+              <span class="tag red">待确认</span>
+            </div>
+
+            <div class="inspector-body">
+              <section class="inspector-section">
+                <h3>当前节点</h3>
+                <div class="metric-grid">
+                  <div class="metric">
+                    <span>target</span>
+                    <strong>Lead Vocal Bus</strong>
+                  </div>
+                  <div class="metric">
+                    <span>kind</span>
+                    <strong>EQ treatment</strong>
+                  </div>
+                  <div class="metric">
+                    <span>executor</span>
+                    <strong>typed only</strong>
+                  </div>
+                  <div class="metric">
+                    <span>needs</span>
+                    <strong>confirm</strong>
+                  </div>
+                </div>
+              </section>
+
+              <section class="inspector-section">
+                <h3>依据</h3>
+                <div class="evidence-list">
+                  <div class="evidence-row">
+                    <strong>MOM-42</strong>
+                    <span>vocal clarity projection</span>
+                  </div>
+                  <div class="evidence-row">
+                    <strong>DAD-17</strong>
+                    <span>spectral balance note</span>
+                  </div>
+                  <div class="evidence-row">
+                    <strong>L2-08</strong>
+                    <span>render probe available</span>
+                  </div>
+                </div>
+              </section>
+
+              <section class="inspector-section">
+                <h3>限制</h3>
+                <div class="evidence-list">
+                  <div class="evidence-row">
+                    <strong>写入</strong>
+                    <span>确认前禁止</span>
+                  </div>
+                  <div class="evidence-row">
+                    <strong>旁路</strong>
+                    <span>raw invoke 禁止</span>
+                  </div>
+                  <div class="evidence-row">
+                    <strong>复测</strong>
+                    <span>执行后自动 AB</span>
+                  </div>
+                </div>
+              </section>
+
+              <section class="inspector-section">
+                <h3>预期 AB</h3>
+                <div class="ab-card">
+                  <div class="ab-line">
+                    <span>清晰度</span>
+                    <div class="bar"><i style="width: 62%;"></i></div>
+                    <strong>+12%</strong>
+                  </div>
+                  <div class="ab-line">
+                    <span>刺耳风险</span>
+                    <div class="bar"><i style="width: 24%; background: var(--yellow);"></i></div>
+                    <strong>低</strong>
+                  </div>
+                  <div class="ab-line">
+                    <span>可信性</span>
+                    <div class="bar"><i style="width: 84%; background: var(--green);"></i></div>
+                    <strong>0.84</strong>
+                  </div>
+                </div>
+              </section>
+            </div>
+          </aside>
+        </section>
+      </section>
+    </main>
+  </body>
+</html>
