@@ -162,7 +162,7 @@ func TestMatchEqGrabberFallbackProfilePicksCurrentlyLoadedPluginNotRecycledSlot(
 			},
 		},
 	}
-	got := matchEqGrabberFallbackProfile(profiles, "1015", "Pro-Q 3", `C:\Program Files\Common Files\VST3\FabFilter\FabFilter Pro-Q 3.vst3`)
+	got := matchEqGrabberFallbackProfile(profiles, "1007", "1015", "Pro-Q 3", `C:\Program Files\Common Files\VST3\FabFilter\FabFilter Pro-Q 3.vst3`)
 	if got == nil {
 		t.Fatal("expected a matching fallback profile for the currently loaded plug-in")
 	}
@@ -170,8 +170,11 @@ func TestMatchEqGrabberFallbackProfilePicksCurrentlyLoadedPluginNotRecycledSlot(
 		t.Fatalf("matched wrong profile: got %#v, want Pro-Q 3's profile_key", got)
 	}
 
-	if got := matchEqGrabberFallbackProfile(profiles, "1015", "Some Other Plugin", `C:\nonexistent.vst3`); got != nil {
+	if got := matchEqGrabberFallbackProfile(profiles, "1007", "1015", "Some Other Plugin", `C:\nonexistent.vst3`); got != nil {
 		t.Fatalf("expected no match when name/path do not match any profile for the recycled slot, got %#v", got)
+	}
+	if got := matchEqGrabberFallbackProfile(profiles, "", "1015", "Pro-Q 3", `C:\Program Files\Common Files\VST3\FabFilter\FabFilter Pro-Q 3.vst3`); got != nil {
+		t.Fatalf("expected no executable fallback without the inspected track_id, got %#v", got)
 	}
 }
 
@@ -192,11 +195,11 @@ func TestMatchEqGrabberFallbackProfileMatchesByPathEvenWhenSavedPluginIDHasDrift
 			},
 		},
 	}
-	got := matchEqGrabberFallbackProfile(profiles, "1013", "Pro-Q 3", `C:\Program Files\Common Files\VST3\FabFilter\FabFilter Pro-Q 3.vst3`)
+	got := matchEqGrabberFallbackProfile(profiles, "1007", "1013", "Pro-Q 3", `C:\Program Files\Common Files\VST3\FabFilter\FabFilter Pro-Q 3.vst3`)
 	if got == nil {
 		t.Fatal("expected path-based match despite drifted plugin_id")
 	}
-	if got["profile_key"] != "plugin_c29109a41b7a1d93" || got["plugin_id"] != "1013" {
+	if got["profile_key"] != "plugin_c29109a41b7a1d93" || got["track_id"] != "1007" || got["plugin_id"] != "1013" {
 		t.Fatalf("unexpected match result: %#v", got)
 	}
 }

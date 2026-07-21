@@ -1358,7 +1358,16 @@ ResolvedApplyValue resolveEnumApplyValue (te::AutomatableParameter& param,
     const auto range = param.getValueRange();
     const auto direct = param.stringToValue (requestedText);
     if (std::isfinite (direct) && direct >= range.getStart() && direct <= range.getEnd())
-        return { direct, false, "enum_plugin_text_conversion" };
+    {
+        // Some plug-ins return 0.0 for text they cannot parse.  A range check
+        // alone therefore turns an unknown enum label into a valid state-zero
+        // write.  Treat the plug-in conversion as usable only when it can
+        // round-trip back to the requested label; verified profile mappings
+        // and discrete labels remain the authoritative fallbacks below.
+        const auto roundTrip = normalisedResolverToken (param.valueToString (direct));
+        if (roundTrip == requested)
+            return { direct, false, "enum_plugin_text_roundtrip" };
+    }
 
     if (param.isDiscrete())
     {

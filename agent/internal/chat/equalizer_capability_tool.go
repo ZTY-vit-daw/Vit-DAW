@@ -627,7 +627,7 @@ func (s *Server) inspectEqualizerCapability(ctx context.Context, args, requestCo
 // are the identity of the plug-in actually observed in the target rack slot
 // right now.
 func (s *Server) eqLearnedGrabberFallback(ctx context.Context, requestContext map[string]any, target, pluginID, pluginName, pluginPath string) map[string]any {
-	if s == nil || s.harness == nil || (pluginName == "" && pluginPath == "") {
+	if s == nil || s.harness == nil || target == "" || pluginID == "" || (pluginName == "" && pluginPath == "") {
 		return nil
 	}
 	args := map[string]any{}
@@ -651,15 +651,15 @@ func (s *Server) eqLearnedGrabberFallback(ctx context.Context, requestContext ma
 	if len(profiles) == 0 {
 		profiles = mapRowsValue(resp.Result["profiles"])
 	}
-	return matchEqGrabberFallbackProfile(profiles, pluginID, pluginName, pluginPath)
+	return matchEqGrabberFallbackProfile(profiles, target, pluginID, pluginName, pluginPath)
 }
 
 // matchEqGrabberFallbackProfile finds the profile whose plugin_identity
 // matches the plug-in actually loaded right now, by plugin_path first (most
 // stable) then by normalized plugin name - never by the recycled rack slot
 // plugin_id. See eqLearnedGrabberFallback for why plugin_id is untrustworthy.
-func matchEqGrabberFallbackProfile(profiles []map[string]any, pluginID, pluginName, pluginPath string) map[string]any {
-	if pluginName == "" && pluginPath == "" {
+func matchEqGrabberFallbackProfile(profiles []map[string]any, trackID, pluginID, pluginName, pluginPath string) map[string]any {
+	if trackID == "" || pluginID == "" || (pluginName == "" && pluginPath == "") {
 		return nil
 	}
 	normalizedExpectName := strings.ToLower(strings.TrimSpace(pluginName))
@@ -685,7 +685,8 @@ func matchEqGrabberFallbackProfile(profiles []map[string]any, pluginID, pluginNa
 		}
 		return map[string]any{
 			"status":           status,
-			"plugin_id":        firstNonEmpty(pluginID, cleanContextText(identity["plugin_id"]), cleanContextText(profile["plugin_id"])),
+			"track_id":         trackID,
+			"plugin_id":        pluginID,
 			"profile_key":      firstNonEmpty(cleanContextText(identity["profile_key"]), cleanContextText(profile["profile_id"])),
 			"grabber_controls": []string{"eq.cut_region", "eq.boost_region", "eq.set_region"},
 		}
