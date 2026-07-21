@@ -16,6 +16,7 @@ param(
     [switch]$KeepProcesses,
     [switch]$ClipFadeGainAgentOnly,
     [switch]$B3PanLayoutAgentOnly,
+    [switch]$B4LowEndRelationAgentOnly,
     [switch]$SPALReferenceEQAgentOnly,
     [int]$TimeoutSeconds = 60
 )
@@ -1928,6 +1929,36 @@ try {
 		$summary["tool_route"] = @("plugin_learning.natural_language", "vps_v3_catalog", "spal.reference_eq_test.v0", "spal.rollback")
         $summary["status"] = "passed"
         Write-Ok "focused SPAL Reference EQ Godot product-path smoke passed"
+        return
+    }
+
+    if ($B4LowEndRelationAgentOnly) {
+        Write-Step "B4 low-end relation Agent smoke through Godot-owned lifecycle"
+        $b4Script = Join-Path $RepoRoot "scripts\b4_low_end_relation_agent_smoke.py"
+        if (-not (Test-Path -LiteralPath $b4Script)) {
+            Fail ("Missing B4 smoke script: " + $b4Script)
+        }
+        $b4Output = Join-Path $ArtifactDir "b4_low_end_relation_stdout.json"
+        & python $b4Script --repo-root $RepoRoot --agent-http $AgentHttp --timeout-sec ([Math]::Max(180, $TimeoutSeconds)) --dad-timeout-sec ([Math]::Max(240, $TimeoutSeconds)) 2>&1 |
+            Tee-Object -FilePath $b4Output
+        if ($LASTEXITCODE -ne 0) {
+            Fail ("B4 low-end relation Agent smoke failed with exit code " + $LASTEXITCODE)
+        }
+        $b4Artifact = Get-ChildItem -LiteralPath (Join-Path $RepoRoot "VitApp\Workspace\Artifacts\smoke") -Directory -Filter "b4_low_end_relation_*" |
+            Sort-Object LastWriteTimeUtc -Descending |
+            Select-Object -First 1
+        if ($null -eq $b4Artifact -or -not (Test-Path -LiteralPath (Join-Path $b4Artifact.FullName "summary.json"))) {
+            Fail "B4 low-end relation smoke did not produce summary.json"
+        }
+        $b4Summary = Get-Content -LiteralPath (Join-Path $b4Artifact.FullName "summary.json") -Raw -Encoding UTF8 | ConvertFrom-Json
+        if ([string]$b4Summary.status -ne "ok") {
+            Fail ("B4 low-end relation smoke summary is not ok: " + ($b4Summary | ConvertTo-Json -Depth 16 -Compress))
+        }
+        $summary["b4_low_end_relation_agent"] = $b4Summary
+        $summary["conversation_id"] = [string]$b4Summary.conversation_id
+        $summary["tool_route"] = @($b4Summary.turns.analysis.tools)
+        $summary["status"] = "passed"
+        Write-Ok "focused B4 low-end relation Godot product-path smoke passed"
         return
     }
 

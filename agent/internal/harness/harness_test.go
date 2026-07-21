@@ -5044,6 +5044,52 @@ func TestInvokeMixObserveFullProjectDoesNotRefreshBackgroundWhenStoredPackageSti
 	}
 }
 
+func TestInvokeMixObserveFullProjectAutoTriggersL3BandAnalysisWhenMissing(t *testing.T) {
+	root := t.TempDir()
+	t.Setenv("VIT_MIXBOARD_ROOT", filepath.Join(root, "mixboard"))
+	t.Setenv("VIT_MIXBOARD_FEATURE_READY_WAIT_MS", "1")
+	t.Setenv("VIT_MIXBOARD_BACKGROUND_SUBSCRIBE_WAIT_MS", "1")
+	t.Setenv("VIT_MIXBOARD_BACKGROUND_SEND_WAIT_MS", "50")
+	project := shadowProjectWithClips()
+	h := New(nil, project, nil)
+	kernelState := testMap(t, testMap(t, project.Snapshot())["engine_snapshot"])
+	kernel := &fakeKernelClient{replies: []map[string]any{kernelState}}
+	h.kernel = kernel
+
+	resp, err := h.Invoke(context.Background(), InvokeRequest{
+		Tool: "mix.observe",
+		Args: map[string]any{
+			"mix_session_id": "mix_full_project_auto_trigger",
+			"scope":          "full_project",
+			"mom_intent":     "project_multitrack_relation_observation",
+			"goal_text":      "low end relations",
+		},
+		Confirmed: true,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if resp.Status != "ok" {
+		t.Fatalf("resp = %+v", resp)
+	}
+	featureRequest := testMap(t, resp.Result["feature_request"])
+	if firstString(featureRequest, "status") != "requested" {
+		t.Fatalf("feature_request should report requested when L3 core is missing: %+v", featureRequest)
+	}
+	if firstString(featureRequest, "scope") != "full_project" {
+		t.Fatalf("feature_request scope = %+v", featureRequest)
+	}
+	bandCommands := 0
+	for _, cmd := range testCommandsByName(kernel.commands, "warm_waveform_bake") {
+		if fmt.Sprint(cmd["feature_type"]) == "l3_acoustic_summary" {
+			bandCommands++
+		}
+	}
+	if bandCommands == 0 {
+		t.Fatalf("expected at least one l3_acoustic_summary warm_waveform_bake command, commands=%+v", kernel.commands)
+	}
+}
+
 func TestInvokeMixRequestObservationResolvesVisibleTrackClipSource(t *testing.T) {
 	root := t.TempDir()
 	t.Setenv("VIT_MIXBOARD_ROOT", filepath.Join(root, "mixboard"))

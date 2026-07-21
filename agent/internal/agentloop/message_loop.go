@@ -2449,7 +2449,15 @@ func messageLoopAppendGuardGate(state *runState, call planner.ToolCall, issue st
 }
 
 func coerceWaveformBakeToMixObservation(state *runState, call planner.ToolCall) planner.ToolCall {
-	if state == nil || !messageLoopAudioObservationRequest(state.input.UserText) || !messageLoopIsWaveformBakeTool(call) {
+	if state == nil || !messageLoopIsWaveformBakeTool(call) {
+		return call
+	}
+	// Redirect whenever the user text reads as an audio-observation request,
+	// OR the call is structurally malformed (track_id without clip_id/file_path)
+	// regardless of user text — a bare warm_waveform_bake call like that always
+	// fails in the kernel (ImportService::handleWarmWaveformBake), so there is
+	// no case where forwarding it unmodified is useful.
+	if !messageLoopAudioObservationRequest(state.input.UserText) && !messageLoopWaveformBakeCallMissingClipSource(call) {
 		return call
 	}
 	next := call
@@ -4542,6 +4550,9 @@ func messageLoopToolGuardIssue(state *runState, call planner.ToolCall, hadMixObs
 	if messageLoopIsDADAnalysisControlTool(call) {
 		return "DAD analysis is automatic; the agent may read project.audio_analysis_status but must not start or cancel DAD analysis"
 	}
+	if messageLoopIsWaveformBakeTool(call) && messageLoopWaveformBakeCallMissingClipSource(call) {
+		return "clip.warm_waveform_bake requires clip_id or file_path; use list_tracks or get_project_state to resolve clip_id before calling this tool, or use mix.observe which handles waveform preparation internally"
+	}
 	if strings.EqualFold(strings.TrimSpace(call.Tool), "capability.equalizer.inspect") || strings.EqualFold(strings.TrimSpace(call.Tool), "capability.equalizer.plan") {
 		return ""
 	}
@@ -4901,6 +4912,7 @@ func messageLoopNaturalMixRequest(userText string) bool {
 		"\u9760\u524d", "\u5f80\u524d", "\u63d0\u5347\u54cd\u5ea6", "\u54cd\u5ea6", "\u592a\u54cd", "\u592a\u5927", "\u592a\u5c0f", "\u538b\u4f4e", "\u964d\u4f4e", "\u4e0b\u8c03", "\u8c03\u4f4e", "\u63d0\u9ad8", "\u63d0\u5347", "\u4e0a\u8c03", "\u8c03\u9ad8", "\u97f3\u91cf", "\u7535\u5e73", "\u589e\u76ca", "\u66f4\u4eae", "\u660e\u4eae", "\u6d51\u6d4a", "\u523a\u8033",
 		"\u4f4e\u9891", "\u4f4e\u4e2d\u9891", "\u7a7a\u95f4\u611f", "\u52a0\u4e00\u70b9\u7a7a\u95f4", "\u58f0\u50cf", "\u58f0\u76f8", "\u58f0\u573a", "\u52a8\u6001", "\u538b\u7f29",
 		"mix", "mixing", "loudness", "louder", "too loud", "too quiet", "volume", "level", "gain", "lower", "reduce", "decrease", "raise", "boost", "increase", "forward", "mud", "muddy", "harsh", "bright", "space", "reverb", "pan", "panning", "stereo field", "dynamic",
+		"low end", "low-end", "bass", "kick",
 	)
 }
 
@@ -5325,6 +5337,18 @@ func messageLoopIsWaveformBakeTool(call planner.ToolCall) bool {
 	default:
 		return false
 	}
+}
+
+// messageLoopWaveformBakeCallMissingClipSource reports whether a direct
+// warm_waveform_bake tool call is missing the clip_id/file_path it needs.
+// The kernel handler (ImportService::handleWarmWaveformBake) requires one of
+// these once track_id is present; without this check the malformed call
+// reaches the kernel and fails there instead of being caught here.
+func messageLoopWaveformBakeCallMissingClipSource(call planner.ToolCall) bool {
+	trackID := firstMapText(call.Args, "track_id")
+	clipID := firstMapText(call.Args, "clip_id")
+	filePath := firstMapText(call.Args, "file_path")
+	return trackID != "" && clipID == "" && filePath == ""
 }
 
 func messageLoopIsDADAnalysisControlTool(call planner.ToolCall) bool {
@@ -8591,14 +8615,17 @@ func messageLoopMixObservationFinalReply(state *runState, reply string) string {
 	if deepIncomplete && !isLowMudPluginPrep && !hasResolvedActionIntent {
 		return messageLoopStripExecutionQuestion(messageLoopStripMixTreatmentPendingMarkup(reply))
 	}
+	replyAlreadyRendered := false
 	preferTreatmentPending := hasTreatmentMarkup || isLowMudPluginPrep || messageLoopExplicitPanActionText(state.input.UserText)
 	if preferTreatmentPending {
 		if treatment := messageLoopMixTreatmentPendingFromReply(state, reply); treatment != nil {
 			state.executionMemory.PendingMixTreatment = treatment
 			reply = messageLoopPendingMixTreatmentReply(treatment)
+			replyAlreadyRendered = true
 		} else if treatment := messageLoopConservativeLowMudTreatmentPendingFromReply(state, reply); treatment != nil {
 			state.executionMemory.PendingMixTreatment = treatment
 			reply = messageLoopConservativeLowMudTreatmentPendingReply(treatment)
+			replyAlreadyRendered = true
 		} else if hasTreatmentMarkup {
 			reply = messageLoopStripMixTreatmentPendingMarkup(reply)
 		}
@@ -8608,9 +8635,11 @@ func messageLoopMixObservationFinalReply(state *runState, reply string) string {
 	} else if treatment := messageLoopMixTreatmentPendingFromReply(state, reply); treatment != nil {
 		state.executionMemory.PendingMixTreatment = treatment
 		reply = messageLoopPendingMixTreatmentReply(treatment)
+		replyAlreadyRendered = true
 	} else if treatment := messageLoopConservativeLowMudTreatmentPendingFromReply(state, reply); treatment != nil {
 		state.executionMemory.PendingMixTreatment = treatment
 		reply = messageLoopConservativeLowMudTreatmentPendingReply(treatment)
+		replyAlreadyRendered = true
 	}
 	if !messageLoopHasUsableMixObservation(state) {
 		return reply
@@ -8623,7 +8652,7 @@ func messageLoopMixObservationFinalReply(state *runState, reply string) string {
 			state.executionMemory.PendingMixTreatment = treatment
 		}
 	}
-	if messageLoopHasPendingMixAction(state) {
+	if replyAlreadyRendered {
 		return messageLoopStripExecutionQuestion(reply)
 	}
 	if messageLoopMixReplyAsksForExecution(reply) {

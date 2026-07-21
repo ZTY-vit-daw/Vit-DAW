@@ -98,6 +98,41 @@ Purpose:
 - Guard against accidental `mix.propose_tick` / `mix.apply_tick` routing for B1
   technical calibration.
 
+## B4 Low-End Relation Agent Smoke
+
+Path:
+
+```powershell
+python D:\Vit_DAW\scripts\b4_low_end_relation_agent_smoke.py --repo-root D:\Vit_DAW --timeout-sec 180 --dad-timeout-sec 240
+```
+
+Purpose:
+
+- Verify `static_mix.low_end_relation.v0` (B4), a read-only project observation
+  capability, never writes anything and never produces a Proposal: every turn
+  must resolve to `OutcomeAnalysis` (`canary_stage="analysis"`) or
+  `OutcomeBlocked`, with `needs_confirmation` false and no
+  `interaction_requests`.
+- Guard against B4 regressing into a permanent dead end when band-energy data
+  is missing — verify it self-triggers `project.audio_analysis_start` via the
+  harness instead of returning a static blocked reply forever.
+- Verify the cold-start turn (before any audio analysis has run) reaches
+  `canary_stage="band_analysis_triggered"`, then confirm via a follow-up
+  `project.audio_analysis_status` call that an analysis job now really exists.
+  The `capability_runtime_v1` canary handler family (B2/B3/B4) never populates
+  `executed_kernel_reply`, so this real side-effect check is the reliable proof
+  that the trigger fired a kernel command and not just a claim in reply text.
+- Poll `project.audio_analysis_status` to `dad_fact_status="ready"`, then
+  verify a re-ask reaches `canary_stage="analysis"` with a non-empty
+  `workflow_data.low_end_summary` (`sub_band_track_count` /
+  `bass_band_track_count` > 0).
+- Verify no B4 turn ever mutates track volume/pan, by diffing `project.state`
+  fader/pan values from before the first turn to after the third turn.
+- Verify idempotent re-trigger safety: once readiness is satisfied, asking
+  again goes straight to `canary_stage="analysis"` rather than looping back to
+  `band_analysis_triggered`, which would mean B4 redundantly re-triggered
+  audio analysis after readiness was already satisfied.
+
 ## VSP Hub Extension Smoke
 
 Path:

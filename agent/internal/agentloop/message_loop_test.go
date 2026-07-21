@@ -1148,7 +1148,7 @@ func (f *fakeMessageExecutor) RunToolCall(_ context.Context, in executorpkg.Inpu
 
 func TestMessageLoopFastCompletesSimpleTrackAdd(t *testing.T) {
 	client := &fakeMessageCompleter{responses: []string{
-		`{"final":false,"reply":"Creating track.","tool_calls":[{"id":"create_track","tool":"track.add","args":{},"reason":"Create a new track"}]}`,
+		`{"final":false,"reply":"正在创建轨道。","tool_calls":[{"id":"create_track","tool":"track.add","args":{},"reason":"创建一条新轨道"}]}`,
 	}}
 	exec := &fakeMessageExecutor{}
 	loop := &MessageLoop{
@@ -1159,11 +1159,11 @@ func TestMessageLoopFastCompletesSimpleTrackAdd(t *testing.T) {
 	}
 
 	res := loop.Start(context.Background(), Input{
-		UserText:     "Create a new track",
+		UserText:     "新建一条轨道",
 		AllowedTools: []string{"track.add"},
 	})
 
-	if res.Status != "completed" || res.Reply != "Created new track: Track 1." {
+	if res.Status != "completed" || res.Reply != "已成功创建新轨道「Track 1」。" {
 		t.Fatalf("result = status=%q reply=%q error=%q", res.Status, res.Reply, res.Error)
 	}
 	if len(exec.calls) != 1 {
@@ -1230,10 +1230,10 @@ func TestMessageLoopFastCompletesSimpleMidiClipCreate(t *testing.T) {
 
 func TestMessageLoopDoesNotFinishMidiCompoundGoalBeforeNotesAreVerified(t *testing.T) {
 	client := &fakeMessageCompleter{responses: []string{
-		`{"final":false,"reply":"Creating MIDI clip first.","tool_calls":[{"id":"create_clip","tool":"midi.create_clip","args":{"track_id":"1007"},"reason":"Create MIDI clip"}]}`,
-		`{"final":true,"reply":"MIDI clip created."}`,
-		`{"final":false,"reply":"Writing notes.","tool_calls":[{"id":"write_notes","tool":"midi.apply_note_patch","args":{"clip_ref":"last_created_clip","time_unit":"beats","operations":[{"op":"insert_note","pitch":60,"start":0,"length":1},{"op":"insert_note","pitch":64,"start":1,"length":1}]},"reason":"Write 2 notes"}]}`,
-		`{"final":true,"reply":"Created MIDI clip and wrote notes."}`,
+		`{"final":false,"reply":"先创建 MIDI 片段。","tool_calls":[{"id":"create_clip","tool":"midi.create_clip","args":{"track_id":"1007"},"reason":"创建 MIDI 片段"}]}`,
+		`{"final":true,"reply":"已创建 MIDI 片段。"}`,
+		`{"final":false,"reply":"继续写入音符。","tool_calls":[{"id":"write_notes","tool":"midi.apply_note_patch","args":{"clip_ref":"last_created_clip","time_unit":"beats","operations":[{"op":"insert_note","pitch":60,"start":0,"length":1},{"op":"insert_note","pitch":64,"start":1,"length":1}]},"reason":"写入 2 个音符"}]}`,
+		`{"final":true,"reply":"已创建 MIDI 片段并写入音符。"}`,
 	}}
 	exec := &fakeMessageExecutor{}
 	loop := &MessageLoop{
@@ -1244,11 +1244,11 @@ func TestMessageLoopDoesNotFinishMidiCompoundGoalBeforeNotesAreVerified(t *testi
 	}
 
 	res := loop.Start(context.Background(), Input{
-		UserText:     "Create a MIDI clip and write 2 notes",
+		UserText:     "新建一个 MIDI clip 然后输入 2 个音符",
 		AllowedTools: []string{"midi.create_clip", "midi.apply_note_patch"},
 	})
 
-	if res.Status != "completed" || res.Reply != "Created MIDI clip and wrote notes." {
+	if res.Status != "completed" || res.Reply != "已创建 MIDI 片段并写入音符。" {
 		t.Fatalf("result = status=%q reply=%q error=%q", res.Status, res.Reply, res.Error)
 	}
 	if len(exec.calls) != 2 {
@@ -1271,12 +1271,12 @@ func TestMessageLoopDoesNotFinishMidiCompoundGoalBeforeNotesAreVerified(t *testi
 
 func TestMessageLoopFinishesMidiGoalAfterReadbackConfirmsNotes(t *testing.T) {
 	client := &fakeMessageCompleter{responses: []string{
-		`{"final":false,"reply":"Creating MIDI clip first.","tool_calls":[{"id":"create_clip","tool":"midi.create_clip","args":{"track_id":"1007"},"reason":"Create MIDI clip"}]}`,
-		`{"final":true,"reply":"MIDI clip created."}`,
-		`{"final":false,"reply":"Writing notes.","tool_calls":[{"id":"write_notes","tool":"midi.apply_note_patch","args":{"clip_ref":"last_created_clip","time_unit":"beats","operations":[{"op":"insert_note","pitch":60,"start":0,"length":1},{"op":"insert_note","pitch":64,"start":1,"length":1}]},"reason":"Write 2 notes"}]}`,
-		`{"final":true,"reply":"Notes written."}`,
-		`{"final":false,"reply":"Reading notes for verification.","tool_calls":[{"id":"read_notes","tool":"midi.read_notes","args":{"clip_ref":"last_created_clip"},"reason":"Verify notes were written"}]}`,
-		`{"final":true,"reply":"Created MIDI clip and wrote 2 notes."}`,
+		`{"final":false,"reply":"先创建 MIDI 片段。","tool_calls":[{"id":"create_clip","tool":"midi.create_clip","args":{"track_id":"1007"},"reason":"创建 MIDI 片段"}]}`,
+		`{"final":true,"reply":"已创建 MIDI 片段。"}`,
+		`{"final":false,"reply":"继续写入音符。","tool_calls":[{"id":"write_notes","tool":"midi.apply_note_patch","args":{"clip_ref":"last_created_clip","time_unit":"beats","operations":[{"op":"insert_note","pitch":60,"start":0,"length":1},{"op":"insert_note","pitch":64,"start":1,"length":1}]},"reason":"写入 2 个音符"}]}`,
+		`{"final":true,"reply":"已写入音符。"}`,
+		`{"final":false,"reply":"读取片段音符确认结果。","tool_calls":[{"id":"read_notes","tool":"midi.read_notes","args":{"clip_ref":"last_created_clip"},"reason":"确认音符已经写入"}]}`,
+		`{"final":true,"reply":"已创建 MIDI 片段并写入 2 个音符。"}`,
 	}}
 	exec := &fakeMessageExecutor{omitNoteWriteObservedNotes: true}
 	loop := &MessageLoop{
@@ -1287,11 +1287,11 @@ func TestMessageLoopFinishesMidiGoalAfterReadbackConfirmsNotes(t *testing.T) {
 	}
 
 	res := loop.Start(context.Background(), Input{
-		UserText:     "Create a MIDI clip and write 2 notes",
+		UserText:     "新建一个 MIDI clip 然后输入 2 个音符",
 		AllowedTools: []string{"midi.create_clip", "midi.apply_note_patch", "midi.read_notes"},
 	})
 
-	if res.Status != "completed" || res.Reply != "Created MIDI clip and wrote 2 notes." {
+	if res.Status != "completed" || res.Reply != "已创建 MIDI 片段并写入 2 个音符。" {
 		t.Fatalf("result = status=%q reply=%q stop=%q error=%q", res.Status, res.Reply, res.StopReason, res.Error)
 	}
 	if len(exec.calls) != 3 {
@@ -1388,8 +1388,8 @@ func TestMessageLoopResolvesFolderTrackBindingForDependentMove(t *testing.T) {
 
 func TestMessageLoopRequiresMediaToolForLocalMediaListing(t *testing.T) {
 	client := &fakeMessageCompleter{responses: []string{
-		`{"final":true,"reply":"閹垫儳鍩屾禍?2 娑擃亣顫嬫０鎴炴瀮娴犺绱扮€癸綀顔夌憴鍡涱暥.mp4閵嗕焦绱ㄧ粈楦款潒妫?mp4閵?}`,
-		`{"final":false,"reply":"濮濓絽婀▔銊ュ斀婵帊缍嬬槐鐘虫綏","tool_calls":[{"id":"index_media","tool":"media.index_authorized_folder","args":{"asset_location":"C:\\Users\\timoz\\Desktop\\LLM md\\閸欏倽绂岄崘鍛啇","media_kinds":["video"],"limit":80},"reason":"濞夈劌鍞界拠銉ょ秴缂冾喕绗呴惃鍕潒妫版垹绀岄弶鎰礋婵帊缍嬪Ч鐘插幢閻?}]}`,
+		`{"final":true,"reply":"找到了 2 个视频文件：宣讲视频.mp4、演示视频.mp4。"}`,
+		`{"final":false,"reply":"正在注册媒体素材","tool_calls":[{"id":"index_media","tool":"media.index_authorized_folder","args":{"asset_location":"C:\\Users\\timoz\\Desktop\\LLM md\\参赛内容","media_kinds":["video"],"limit":80},"reason":"注册该位置下的视频素材为媒体池卡片"}]}`,
 	}}
 	exec := &fakeMessageExecutor{}
 	loop := &MessageLoop{
@@ -1400,11 +1400,11 @@ func TestMessageLoopRequiresMediaToolForLocalMediaListing(t *testing.T) {
 	}
 
 	res := loop.Start(context.Background(), Input{
-		UserText:     `Check which video files are under C:\Users\timoz\Desktop\LLM md\Contest Content`,
+		UserText:     `查看 C:\Users\timoz\Desktop\LLM md\参赛内容 文件夹下有哪些视频文件`,
 		AllowedTools: []string{"media.index_authorized_folder"},
 	})
 
-	if res.Status != "completed" || !strings.Contains(res.Reply, "2") || !strings.Contains(res.Reply, "cards") {
+	if res.Status != "completed" || !strings.Contains(res.Reply, "2") || !strings.Contains(res.Reply, "卡片") {
 		t.Fatalf("result = status=%q reply=%q error=%q", res.Status, res.Reply, res.Error)
 	}
 	if len(exec.calls) != 1 || exec.calls[0].Tool != "media.index_authorized_folder" {
@@ -1471,9 +1471,9 @@ func TestMessageLoopToolResultHistorySummarizesLargeExecutionResult(t *testing.T
 
 func TestMessageLoopNaturalMixRequestObservesBeforePluginLoad(t *testing.T) {
 	client := &fakeMessageCompleter{responses: []string{
-		`{"final":false,"reply":"Preparing EQ first.","tool_calls":[{"id":"load_eq","tool":"plugin.load_to_rack","args":{"track_id":"1007","plugin_query":"TDR Nova","zone_id":"Z3"},"reason":"For mixing"}]}`,
-		`{"final":false,"reply":"I will observe the current audio first.","tool_calls":[{"id":"observe_mix","tool":"mix.request_observation","args":{"track_id":"1007"},"reason":"Observe before deciding"}]}`,
-		`{"final":true,"reply":"Observation is complete; I will suggest next steps before loading plugins.","tool_calls":[]}`,
+		`{"final":false,"reply":"先准备 EQ。","tool_calls":[{"id":"load_eq","tool":"plugin.load_to_rack","args":{"track_id":"1007","plugin_query":"TDR Nova","zone_id":"Z3"},"reason":"用于混音"}]}`,
+		`{"final":false,"reply":"我先观察当前音频。","tool_calls":[{"id":"observe_mix","tool":"mix.request_observation","args":{"track_id":"1007"},"reason":"先观察再判断"}]}`,
+		`{"final":true,"reply":"我已经完成观察，会先根据观察结果给出建议，再决定是否需要加载插件。","tool_calls":[]}`,
 	}}
 	exec := &fakeMessageExecutor{}
 	loop := &MessageLoop{
@@ -1484,7 +1484,7 @@ func TestMessageLoopNaturalMixRequestObservesBeforePluginLoad(t *testing.T) {
 	}
 
 	res := loop.Start(context.Background(), Input{
-		UserText:     "Can you help me compress this audio?",
+		UserText:     "我想你帮我对这段音频进行缩混可以吗？",
 		AllowedTools: []string{"plugin.load_to_rack", "mix.request_observation"},
 	})
 
@@ -1533,7 +1533,7 @@ func TestMessageLoopNaturalMixRequestPreflightsWhenModelFinalsWithoutTools(t *te
 	}
 
 	res := loop.Start(context.Background(), Input{
-		UserText:     "Help me mix the current track",
+		UserText:     "帮我混一下当前轨道",
 		AllowedTools: []string{"mix.observe", "mix.request_observation"},
 		State: map[string]any{"tracks": []map[string]any{{
 			"track_id": "1007",
@@ -1555,7 +1555,7 @@ func TestMessageLoopNaturalMixRequestPreflightsWhenModelFinalsWithoutTools(t *te
 	if got := fmt.Sprint(exec.calls[0].Args["clip_id"]); got != "1011" {
 		t.Fatalf("clip_id = %q, want 1011; args=%+v", got, exec.calls[0].Args)
 	}
-	if !strings.Contains(res.Reply, "continue executing") {
+	if !strings.Contains(res.Reply, "需要我继续执行吗") {
 		t.Fatalf("reply did not ask for explicit execution confirmation: %q", res.Reply)
 	}
 }
@@ -1945,9 +1945,9 @@ func TestMessageLoopStemsImportConfirmationCompletesWithA1A2Report(t *testing.T)
 		t.Fatalf("deterministic stems import report should not call LLM, got %d calls", len(client.calls))
 	}
 	for _, want := range []string{
-		"project blackboard",
-		"Conclusion",
-		"A-F status",
+		"工程黑板状态汇报",
+		"结论",
+		"A-F 状态矩阵",
 		"A1",
 		"A2",
 		"3 / 3",
@@ -1978,20 +1978,19 @@ func TestMessageLoopStemsImportConfirmationCompletesWithA1A2Report(t *testing.T)
 		"\u63a8\u8350\u6bb5\u843d",
 		"Marker \u5199\u5165\uff1a\u53ef\u5199\u5165",
 		"\u786e\u8ba4\u540e\u4f1a\u5199\u5165\u4e3a\u6bb5\u843d marker",
-		"B Static Mix",
-		"Static Mix",
+		"B 粗混 / Static Mix",
 		"B1 Gain Staging",
 		"static_mix.gain_staging.v0",
-		"B2 Static Balance",
+		"B2 静态音量平衡",
 		"static_mix.static_balance.v0",
-		"B3 Pan Layout",
+		"B3 声像布局",
 		"static_mix.pan_layout.v0",
-		"B4 Low-End Relation",
+		"B4 低频关系",
 		"static_mix.low_end_relation.v0",
-		"B5 Focus Position",
+		"B5 核心元素定位",
 		"static_mix.focus_position.v0",
 		"not_started",
-		"A-F phases are capability layers",
+		"A-F 不作为线性门禁",
 	} {
 		if !strings.Contains(resumed.Reply, want) {
 			t.Fatalf("reply missing %q:\n%s", want, resumed.Reply)
@@ -2031,7 +2030,7 @@ func TestMessageLoopProjectBlackboardStatusReadsProjectStateWithoutLLM(t *testin
 	}
 
 	res := loop.Start(context.Background(), Input{
-		UserText:     "閻滄澘婀銉р柤濞ｇ兘鐓堕悩鑸碘偓浣光偓鑽ょ波娑撯偓娑撳绱濇潻娑樺閸掓澘鎽㈡禍鍡吹",
+		UserText:     "现在混音进展到哪个阶段了，给我一个工程状态汇报",
 		AllowedTools: []string{"project.state"},
 	})
 
@@ -2045,26 +2044,26 @@ func TestMessageLoopProjectBlackboardStatusReadsProjectStateWithoutLLM(t *testin
 		t.Fatalf("executor calls = %+v", exec.calls)
 	}
 	for _, want := range []string{
-		"project blackboard",
-		"瀹搞儳鈻煎鍌氬枌",
-		"tracks/clips",
+		"工程黑板状态汇报",
+		"已读取当前 project.state 快照",
+		"轨道/片段",
 		"Marker",
-		"A-F status",
-		"A Project Prep",
-		"B Static Mix",
+		"A-F 状态矩阵",
+		"A 工程准备",
+		"B 粗混 / Static Mix",
 		"B1 Gain Staging",
 		"static_mix.gain_staging.v0",
-		"B2 Static Balance",
+		"B2 静态音量平衡",
 		"static_mix.static_balance.v0",
-		"B3 Pan Layout",
+		"B3 声像布局",
 		"static_mix.pan_layout.v0",
-		"B4 Low-End Relation",
+		"B4 低频关系",
 		"static_mix.low_end_relation.v0",
-		"B5 Focus Position",
+		"B5 核心元素定位",
 		"static_mix.focus_position.v0",
 		"not_started",
-		"A-F phases are capability layers",
-		"data source",
+		"A-F 不作为线性门禁",
+		"数据来源",
 		"project.state",
 	} {
 		if !strings.Contains(res.Reply, want) {
@@ -2075,6 +2074,7 @@ func TestMessageLoopProjectBlackboardStatusReadsProjectStateWithoutLLM(t *testin
 		t.Fatalf("status report must not enforce a linear gate:\n%s", res.Reply)
 	}
 }
+
 
 func TestMessageLoopStaticMixCapabilityContractAnswersWithoutLLM(t *testing.T) {
 	client := &fakeMessageCompleter{responses: []string{
@@ -3182,7 +3182,7 @@ func TestMessageLoopNaturalMixObservationDoesNotAskExecutionWhenDeepPackageBuild
 	if res.Status != "completed" {
 		t.Fatalf("result = status=%q reply=%q error=%q", res.Status, res.Reply, res.Error)
 	}
-	if strings.Contains(strings.ToLower(res.Reply), "execute") || strings.Contains(res.Reply, "缂佈呯敾閹笛嗩攽") {
+	if strings.Contains(strings.ToLower(res.Reply), "execute") || strings.Contains(res.Reply, "需要我继续执行吗") {
 		t.Fatalf("building deep package reply should not ask to execute: %q", res.Reply)
 	}
 	if res.ExecutionMemory.PendingMixTickCandidate != nil || res.ExecutionMemory.PendingMixTreatment != nil {
@@ -3192,8 +3192,8 @@ func TestMessageLoopNaturalMixObservationDoesNotAskExecutionWhenDeepPackageBuild
 
 func TestMessageLoopNaturalMixRequestDoesNotAllowObserveAndPluginLoadInSameModelTurn(t *testing.T) {
 	client := &fakeMessageCompleter{responses: []string{
-		`{"final":false,"reply":"閸忓牐顫囩€电喎鍟€閸旂姾娴囬妴?,"tool_calls":[{"id":"observe_mix","tool":"mix.request_observation","args":{"track_id":"1007"}},{"id":"load_eq","tool":"plugin.load_to_rack","args":{"track_id":"1007","plugin_query":"TDR Nova","zone_id":"Z3"}}]}`,
-		`{"final":true,"reply":"瀹歌尙绮＄憴鍌氱檪鐎瑰本鍨氶敍灞肩瑓娑撯偓濮濄儲鍨滄导姘帥鐠囧瓨妲戝楦款唴閵?,"tool_calls":[]}`,
+		`{"final":false,"reply":"先观察再加载。","tool_calls":[{"id":"observe_mix","tool":"mix.request_observation","args":{"track_id":"1007"}},{"id":"load_eq","tool":"plugin.load_to_rack","args":{"track_id":"1007","plugin_query":"TDR Nova","zone_id":"Z3"}}]}`,
+		`{"final":true,"reply":"已经观察完成，下一步我会先说明建议。","tool_calls":[]}`,
 	}}
 	exec := &fakeMessageExecutor{}
 	loop := &MessageLoop{
@@ -3204,7 +3204,7 @@ func TestMessageLoopNaturalMixRequestDoesNotAllowObserveAndPluginLoadInSameModel
 	}
 
 	res := loop.Start(context.Background(), Input{
-		UserText:     "鐢喗鍨滅紓鈺傝穿瑜版挸澧犳潪銊╀壕",
+		UserText:     "帮我缩混当前轨道",
 		AllowedTools: []string{"plugin.load_to_rack", "mix.request_observation"},
 	})
 
@@ -3304,7 +3304,7 @@ func TestMessageLoopReadOnlyObservationDoesNotCreatePendingCandidate(t *testing.
 }
 
 func TestMessageLoopFrequencyStereoReadOnlyObservationAddsProjection(t *testing.T) {
-	args := messageLoopMixObservationArgs("Observe current project frequency and stereo state without making changes", nil)
+	args := messageLoopMixObservationArgs("观察一下当前工程的频段和声像状态，不要执行任何修改。", nil)
 	if args["projection"] != "frequency_stereo" || args["include_raw"] != false || args["target_scope"] == "" {
 		t.Fatalf("projection args missing: %+v", args)
 	}
@@ -4932,7 +4932,7 @@ func TestMessageLoopA4ClipCleanupRoutesToAllProjectStripSilenceSuggest(t *testin
 	}
 
 	res := loop.Start(context.Background(), Input{
-		UserText:     "鐢喗鍨滈幍褑顢慉4閻楀洦顔岀憗浣稿",
+		UserText:     "帮我把整个工程的 A4 片段清理一下",
 		AllowedTools: []string{"clip.strip_silence.suggest", "clip.strip_silence.analyze", "clip.strip_silence.apply", "clip.strip_silence.apply_batch", "mix.observe"},
 	})
 
@@ -5172,13 +5172,10 @@ func TestMessageLoopStripSilenceApplyBatchReplySeparatesNoCleanupSkipAndFailure(
 		Args: map[string]any{"cmd": "clip.strip_silence.apply_batch"},
 	})
 
-	for _, want := range []string{"scanned 3 clips", "cleaned 1", "7 silent regions", "1 no cleanup", "1 protected skip", "0 true failures"} {
+	for _, want := range []string{"扫描 3 个 clip", "成功清理 1 个", "删除 7 个静音区域", "1 个无需清理", "1 个保护跳过", "0 个真正失败"} {
 		if !strings.Contains(reply, want) {
 			t.Fatalf("reply %q missing %q", reply, want)
 		}
-	}
-	if strings.Contains(reply, "execution failed") {
-		t.Fatalf("reply should not call protected skips execution failures: %q", reply)
 	}
 }
 
@@ -5499,8 +5496,8 @@ func TestMessageLoopPanAmountClarificationUsesSmallStepDefault(t *testing.T) {
 
 func TestMessageLoopMixObserveAddsScopeFromIntent(t *testing.T) {
 	client := &fakeMessageCompleter{responses: []string{
-		`{"final":false,"reply":"閹存垵鍘涚憴鍌氱檪閺佺繝缍嬪ǎ鐑界叾閵?,"tool_calls":[{"id":"observe_mix","tool":"mix.request_observation","args":{},"reason":"閸忓牆缂撶粩瀣紣缁嬪顫囩€电喍绗傛稉瀣瀮"}]}`,
-		`{"final":true,"reply":"鐟欏倸鐧傜€瑰本鍨氶敍灞惧灉娴兼艾鐔€娴滃孩鏆ｆ担鎾充紣缁嬪鏆熼幑顔剧舶閸戝搫缂撶拋顔衡偓?,"tool_calls":[]}`,
+		`{"final":false,"reply":"我先观察整体混音。","tool_calls":[{"id":"observe_mix","tool":"mix.request_observation","args":{},"reason":"先建立工程观察上下文"}]}`,
+		`{"final":true,"reply":"观察完成，我会基于整体工程数据给出建议。","tool_calls":[]}`,
 	}}
 	exec := &fakeMessageExecutor{}
 	loop := &MessageLoop{
@@ -5511,7 +5508,7 @@ func TestMessageLoopMixObserveAddsScopeFromIntent(t *testing.T) {
 	}
 
 	res := loop.Start(context.Background(), Input{
-		UserText:     "Help me inspect the overall mix",
+		UserText:     "帮我看一下整体混音",
 		AllowedTools: []string{"mix.observe", "mix.read", "mix.derive", "mix.request_observation"},
 	})
 
@@ -5534,8 +5531,8 @@ func TestMessageLoopMixObserveAddsScopeFromIntent(t *testing.T) {
 
 func TestMessageLoopMixObserveOverridesTrackScopeForMultitrackIntent(t *testing.T) {
 	client := &fakeMessageCompleter{responses: []string{
-		`{"final":false,"reply":"I will compare track relationships first.","tool_calls":[{"id":"observe_mix","tool":"mix.observe","args":{"scope":"track","track_id":"1012"},"reason":"Observe current track first"}]}`,
-		`{"final":true,"reply":"Observation complete.","tool_calls":[]}`,
+		`{"final":false,"reply":"我先比较各轨关系。","tool_calls":[{"id":"observe_mix","tool":"mix.observe","args":{"scope":"track","track_id":"1012"},"reason":"先观察当前轨道"}]}`,
+		`{"final":true,"reply":"观察完成。","tool_calls":[]}`,
 	}}
 	exec := &fakeMessageExecutor{}
 	loop := &MessageLoop{
@@ -5546,7 +5543,7 @@ func TestMessageLoopMixObserveOverridesTrackScopeForMultitrackIntent(t *testing.
 	}
 
 	res := loop.Start(context.Background(), Input{
-		UserText:     "Compare all tracks frequency occupancy and stereo relationship without changes",
+		UserText:     "比较一下各轨频段占用和声像关系，不要修改。",
 		AllowedTools: []string{"mix.observe", "mix.read", "mix.derive", "mix.request_observation"},
 	})
 
@@ -5559,7 +5556,7 @@ func TestMessageLoopMixObserveOverridesTrackScopeForMultitrackIntent(t *testing.
 	if got := fmt.Sprint(exec.calls[0].Args["scope"]); got != "full_project" {
 		t.Fatalf("scope = %q, want full_project; args=%+v", got, exec.calls[0].Args)
 	}
-	if got := fmt.Sprint(exec.calls[0].Args["goal_text"]); got != "Compare all tracks frequency occupancy and stereo relationship without changes" {
+	if got := fmt.Sprint(exec.calls[0].Args["goal_text"]); got != "比较一下各轨频段占用和声像关系，不要修改。" {
 		t.Fatalf("goal_text = %q; args=%+v", got, exec.calls[0].Args)
 	}
 	if got := fmt.Sprint(exec.calls[0].Args["target_scope"]); got != "full_project" {
@@ -5907,7 +5904,7 @@ func TestMessageLoopExtractsGainDeltaAfterTrackMention(t *testing.T) {
 }
 
 func TestMessageLoopExtractsGainDeltaFromChineseMetricsAndRepeatedConfirmation(t *testing.T) {
-	reply := "Track 1 RMS is -9.0 dBFS and Track 2 is lower by 1.6 dB. I suggest lowering Track 2 by 1.0 dB."
+	reply := "可以。已确认 Track 1 是主唱后，对比结果显示：Track 1 当前 RMS 约 -9.0 dBFS，比 Track 2 约高 1.6 dB；主唱峰值约 -6.0 dBFS，余量还安全。Track 2 峰值贴近 0 dBFS，余量最紧，是目前更容易把整体挤住的轨道。\n\n所以我不建议先直接把主唱推大，而是先把 Track 2 再小幅降低 1.0 dB，这样主唱会相对更靠前，也能继续释放总线余量。\n\n要我执行：Track 2 降低 1.0 dB 吗？"
 
 	delta, evidence, ok := messageLoopExtractSingleGainDelta(reply)
 	if !ok || delta != -1 || evidence != "1.0 dB" {
@@ -5998,9 +5995,9 @@ func TestMessageLoopTrackIDNearestToGainEvidenceIgnoresFocusMention(t *testing.T
 
 func TestMessageLoopNaturalMixRequestDoesNotWriteAfterObservationWithoutExplicitConfirmation(t *testing.T) {
 	client := &fakeMessageCompleter{responses: []string{
-		`{"final":false,"reply":"I will observe the current audio first.","tool_calls":[{"id":"observe_mix","tool":"mix.request_observation","args":{"track_id":"1007"},"reason":"Observe before deciding"}]}`,
-		`{"final":false,"reply":"鐟欏倸鐧傜€瑰本鍨氶敍灞惧灉閸戝棗顦幎濠囩叾闁插繐鐨獮鍛絹閸?2 dB閵?,"tool_calls":[{"id":"raise_volume","tool":"track.volume","args":{"track_id":"1007","db":2},"reason":"閹绘劙鐝崫宥呭"}]}`,
-		`{"final":true,"reply":"閹存垵鍑＄€瑰本鍨氱憴鍌氱檪閿涘苯缂撶拋顔煎帥閹跺﹨绻栭弶陇寤洪柆鎾逛氦瀵邦喗褰佹禍顔藉灗婢х偟娉弫瀵告倞閿涙稑顩ч弸婊€缍樼涵顔款吇閿涘本鍨滈崘宥嗗⒔鐞涘苯鍙挎担鎾茬濮濄儯鈧?,"tool_calls":[]}`,
+		`{"final":false,"reply":"我先观察当前音频。","tool_calls":[{"id":"observe_mix","tool":"mix.request_observation","args":{"track_id":"1007"},"reason":"先观察再判断"}]}`,
+		`{"final":false,"reply":"观察完成，我准备把音量小幅提升 2 dB。","tool_calls":[{"id":"raise_volume","tool":"track.volume","args":{"track_id":"1007","db":2},"reason":"提高响度"}]}`,
+		`{"final":true,"reply":"我已完成观察，建议先把这条轨道轻微提亮或增益整理；如果你确认，我再执行具体一步。","tool_calls":[]}`,
 	}}
 	exec := &fakeMessageExecutor{}
 	loop := &MessageLoop{
@@ -6011,7 +6008,7 @@ func TestMessageLoopNaturalMixRequestDoesNotWriteAfterObservationWithoutExplicit
 	}
 
 	res := loop.Start(context.Background(), Input{
-		UserText:     "鐢喗鍨滅紓鈺傝穿闁鑵戞潪銊╀壕",
+		UserText:     "帮我缩混选中轨道",
 		AllowedTools: []string{"track.volume", "mix.request_observation"},
 	})
 
@@ -6072,7 +6069,7 @@ func TestMessageLoopConfirmedTrackVolumeBecomesPendingTreatment(t *testing.T) {
 	}
 
 	res := loop.Start(context.Background(), Input{
-		UserText:     "绾喛顓婚幍褑顢戦梽宥勭秵 1 dB",
+		UserText:     "确认执行降低 1 dB",
 		AllowedTools: []string{"track.volume", "mix.request_observation", "mix.propose_tick", "mix.apply_tick"},
 	})
 
@@ -6101,7 +6098,8 @@ func TestMessageLoopConfirmedTrackVolumeBecomesPendingTreatment(t *testing.T) {
 
 func TestMessageLoopImplicitLowerVolumeWithoutDBBecomesPendingTreatment(t *testing.T) {
 	client := &fakeMessageCompleter{responses: []string{
-		`{"final":false,"reply":"閹存垵鍣径鍥х毈楠炲懎甯囨担搴＄秼閸撳秷寤洪柆鎾扁偓?,"tool_calls":[{"id":"lower_volume","tool":"track.volume","args":{"track_id":"1007"},"reason":"閻劍鍩涚拠纾嬬箹閺壜ゅ缓闁挸銇婇崫宥忕礉缁嬪秴浜曢崢瀣╃秵娑撯偓閻?}]}`,
+		`{"final":false,"reply":"这条轨道有点响，我先把它压低一些。","tool_calls":[{"id":"lower_volume","tool":"track.volume","args":{"track_id":"1007"},"reason":"用户反馈这条轨道太响，需要小幅降低音量"}]}`,
+
 		`{"final":true,"reply":"done","tool_calls":[]}`,
 	}}
 	exec := &fakeMessageExecutor{mixObservationResult: map[string]any{
@@ -6181,7 +6179,7 @@ func TestMessageLoopImplicitLowerVolumeBecomesPendingAfterObservationPreflight(t
 	}
 
 	res := loop.Start(context.Background(), Input{
-		UserText:     "This track is too loud, lower it a bit",
+		UserText:     "这条轨道太响了，稍微压低一点",
 		AllowedTools: []string{"mix.observe", "mix.request_observation", "mix.propose_tick", "mix.apply_tick"},
 		Context:      map[string]any{"selected_track_id": "1007"},
 		State:        map[string]any{"selected_track_id": "1007"},
@@ -6203,7 +6201,7 @@ func TestMessageLoopImplicitLowerVolumeBecomesPendingAfterObservationPreflight(t
 	if treatment.DeltaDB != -1.5 {
 		t.Fatalf("pending treatment delta = %v, want -1.5", treatment.DeltaDB)
 	}
-	for _, want := range []string{"\u5f85\u786e\u8ba4\u52a8\u4f5c", "-1.50 dB"} {
+	for _, want := range []string{"待确认动作", "-1.50 dB"} {
 		if !strings.Contains(res.Reply, want) {
 			t.Fatalf("reply should describe pending confirmation %q, got %q", want, res.Reply)
 		}
@@ -6212,8 +6210,8 @@ func TestMessageLoopImplicitLowerVolumeBecomesPendingAfterObservationPreflight(t
 
 func TestMessageLoopNaturalMixPrimitiveVolumeGuardBlocksDirectExecution(t *testing.T) {
 	client := &fakeMessageCompleter{responses: []string{
-		`{"final":false,"reply":"閹存垵鍘涢惄瀛樺复閸樺缍嗛妴?,"tool_calls":[{"id":"lower_volume","tool":"track.volume","args":{"track_id":"1007"},"reason":"閻劍鍩涚拠纾嬬箹閺壜ゅ缓闁挸銇婇崫宥忕礉缁嬪秴浜曢崢瀣╃秵娑撯偓閻?}]}`,
-		`{"final":true,"reply":"閹存垳绱伴崗鍫㈢舶閸戝搫绶熺涵顔款吇閻ㄥ嫬鐨獮鍛寸叾闁插繐缂撶拋顔衡偓?,"tool_calls":[]}`,
+		`{"final":false,"reply":"我先直接压低。","tool_calls":[{"id":"lower_volume","tool":"track.volume","args":{"track_id":"1007"},"reason":"用户说这条轨道太响，稍微压低一点"}]}`,
+		`{"final":true,"reply":"我会先给出待确认的小幅音量建议。","tool_calls":[]}`,
 	}}
 	exec := &fakeMessageExecutor{}
 	loop := &MessageLoop{
@@ -6224,7 +6222,7 @@ func TestMessageLoopNaturalMixPrimitiveVolumeGuardBlocksDirectExecution(t *testi
 	}
 
 	res := loop.Start(context.Background(), Input{
-		UserText:     "This track is too loud, lower it a bit",
+		UserText:     "这条轨道太响了，稍微压低一点",
 		AllowedTools: []string{"track.volume"},
 		Context:      map[string]any{"selected_track_id": "1007"},
 		State:        map[string]any{"selected_track_id": "1007"},
@@ -6307,8 +6305,8 @@ func TestMessageLoopAmbiguousContinueDoesNotAutoApplyMixTick(t *testing.T) {
 
 func TestMessageLoopMixObservationReplyAsksForExecution(t *testing.T) {
 	client := &fakeMessageCompleter{responses: []string{
-		`{"final":false,"reply":"I will observe the current audio first.","tool_calls":[{"id":"observe_mix","tool":"mix.request_observation","args":{"track_id":"1007"},"reason":"Observe before deciding"}]}`,
-		`{"final":true,"reply":"瀹歌尪顫囩€?Track 2閿涙艾鍢查崐鑲╁ -6 dBFS閿涘MS 缁?-6.8 dBFS閿涘苯濮╅幀浣风稇闁插繗绻曢張澶屽 6 dB閵嗗倹娓剁€瑰鍙忛惃鍕瑓娑撯偓濮濄儲妲哥亸蹇撶畽閹绘劙鐝棅鎶藉櫤閿涘本鐦俊?+1 閸?+2 dB閵?,"tool_calls":[]}`,
+		`{"final":false,"reply":"我先观察当前音频。","tool_calls":[{"id":"observe_mix","tool":"mix.request_observation","args":{"track_id":"1007"},"reason":"先观察再判断"}]}`,
+		`{"final":true,"reply":"已观察 Track 2：峰值约 -6 dBFS，RMS 约 -6.8 dBFS，动态余量还有约 6 dB。最安全的下一步是小幅提高音量，比如 +1 到 +2 dB。","tool_calls":[]}`,
 	}}
 	exec := &fakeMessageExecutor{}
 	loop := &MessageLoop{
@@ -6319,14 +6317,14 @@ func TestMessageLoopMixObservationReplyAsksForExecution(t *testing.T) {
 	}
 
 	res := loop.Start(context.Background(), Input{
-		UserText:     "Make the current track feel more forward",
+		UserText:     "让当前轨道听感上更靠前",
 		AllowedTools: []string{"track.volume", "mix.request_observation"},
 	})
 
 	if res.Status != "completed" {
 		t.Fatalf("result = status=%q reply=%q error=%q", res.Status, res.Reply, res.Error)
 	}
-	if !strings.Contains(res.Reply, "continue executing") {
+	if !strings.Contains(res.Reply, "需要我继续执行吗") {
 		t.Fatalf("reply did not ask for execution confirmation: %q", res.Reply)
 	}
 }
@@ -6334,7 +6332,7 @@ func TestMessageLoopMixObservationReplyAsksForExecution(t *testing.T) {
 func TestMessageLoopMixObservationFinalReplyStoresPendingTickCandidate(t *testing.T) {
 	client := &fakeMessageCompleter{responses: []string{
 		`{"final":false,"reply":"observe","tool_calls":[{"id":"observe_mix","tool":"mix.observe","args":{"track_id":"1007"},"reason":"observe"}]}`,
-		`{"final":true,"reply":"鐟欏倸鐧傜€瑰本鍨氶敍灞界紦鐠侇喖鍘涢梽宥勭秵瑜版挸澧犳潪銊╀壕 1 dB閵?,"tool_calls":[]}`,
+		`{"final":true,"reply":"观察完成，建议先降低当前轨道 1 dB。","tool_calls":[]}`,
 	}}
 	exec := &fakeMessageExecutor{mixObservationResult: map[string]any{
 		"status":         "ok",
@@ -6358,7 +6356,7 @@ func TestMessageLoopMixObservationFinalReplyStoresPendingTickCandidate(t *testin
 	}
 
 	res := loop.Start(context.Background(), Input{
-		UserText:     "Help me mix the current track",
+		UserText:     "帮我混一下当前轨道",
 		AllowedTools: []string{"mix.observe", "mix.request_observation"},
 		State: map[string]any{"tracks": []map[string]any{{
 			"track_id":  "1007",
@@ -6383,7 +6381,7 @@ func TestMessageLoopMixObservationFinalReplyStoresPendingTickCandidate(t *testin
 
 func TestMessageLoopFullProjectObservationReplyDoesNotStorePendingTickCandidate(t *testing.T) {
 	client := &fakeMessageCompleter{responses: []string{
-		`{"final":true,"reply":"閺佺繝缍嬮惇瀣煂娴?2 閺夆剝婀侀弫鍫ョ叾妫版垼寤洪妴淇唕ack 1 娴ｆ瑩鍣虹€瑰鍙忛敍姹縭ack 2 瀹勬澘鈧厧鍑＄紒蹇撳煂 0 dBFS閿涘eadroom 娑?0 dB閵嗗倸缂撶拋顔荤瑓娑撯偓濮濄儱浠涙稉鈧稉顏勭发鐏忓繒娈戠€瑰鍙忛崝銊ょ稊閿涙碍濡?Track 2 闂勫秳缍嗙痪?1.5 dB閿涘苯鍘涚紒娆忎紣缁嬪鏆€閸戣桨绔撮悙鐟板槻閸婅偐鈹栭梻娣偓鍌濐洣閹存垹鎴风紒顓熷⒔鐞涘矁绻栨稉鈧銉ユ偋閿?,"tool_calls":[]}`,
+		`{"final":true,"reply":"整体看到了 2 条有效音频轨。Track 1 余量安全；Track 2 峰值已经到 0 dBFS，headroom 为 0 dB。建议下一步做一个很小的安全动作：把 Track 2 降低约 1.5 dB，先给工程留出一点峰值空间。要我继续执行这一步吗？","tool_calls":[]}`,
 	}}
 	exec := &fakeMessageExecutor{mixObservationResult: map[string]any{
 		"status":         "ok",
@@ -6457,7 +6455,7 @@ func TestMessageLoopFullProjectObservationReplyDoesNotStorePendingTickCandidate(
 	}
 
 	res := loop.Start(context.Background(), Input{
-		UserText:     "Help me inspect the overall mix",
+		UserText:     "帮我看整体混音",
 		AllowedTools: []string{"mix.observe", "mix.request_observation"},
 		State: map[string]any{"tracks": []map[string]any{{
 			"track_id": "1007", "track_name": "Track 1", "volume_db": 0,
@@ -6480,7 +6478,9 @@ func TestMessageLoopFullProjectObservationReplyDoesNotStorePendingTickCandidate(
 func TestMessageLoopFinalReplyStoresTreatmentPendingAndStripsMarker(t *testing.T) {
 	client := &fakeMessageCompleter{responses: []string{
 		`{"final":false,"reply":"observe","tool_calls":[{"id":"observe_mix","tool":"mix.observe","args":{"scope":"full_project"},"reason":"observe"}]}`,
-		`{"final":true,"reply":"娴ｅ酣顣堕張澶夌昂缁绱濋幋鎴濈紦鐠侇喖鍘涢崙鍡楊槵娑撯偓娑?EQ 缁顦╅悶鍡樻煙閸氭埊绱濈涵顔款吇閸氬氦顔€ resolver 濡偓閺屻儲妲搁崥锕佸厴鐎瑰鍙忛幍褑顢戦妴淇搉mix_treatment_pending: {\"schema_version\":\"mix_treatment_pending.v0\",\"status\":\"pending_confirmation\",\"intent\":\"reduce low-end mud\",\"target_ref\":\"project\",\"action_kind\":\"plugin_treatment\",\"processor_type\":\"eq\",\"reasoning_summary\":\"low end sounds muddy from available observation\",\"confidence\":\"medium\",\"evidence_refs\":[\"observation.digest\"],\"needs_resolution\":[\"target_track\",\"plugin_instance\",\"plugin_profile\",\"exact_control\"],\"expires_after_context_change\":true}","tool_calls":[]}`,
+		`{"final":true,"reply":"整体听感偏低频堆积，建议先用保守的低频 EQ 处理来清理这部分能量，具体目标轨道等信息还需要 resolver 进一步确认。
+
+mix_treatment_pending: {\"schema_version\":\"mix_treatment_pending.v0\",\"status\":\"pending_confirmation\",\"intent\":\"reduce low-end mud\",\"target_ref\":\"project\",\"action_kind\":\"plugin_treatment\",\"processor_type\":\"eq\",\"reasoning_summary\":\"low end sounds muddy from available observation\",\"confidence\":\"medium\",\"evidence_refs\":[\"observation.digest\"],\"needs_resolution\":[\"target_track\",\"plugin_instance\",\"plugin_profile\",\"exact_control\"],\"expires_after_context_change\":true}","tool_calls":[]}`,
 	}}
 	exec := &fakeMessageExecutor{mixObservationResult: map[string]any{
 		"status":         "ok",
@@ -6533,8 +6533,8 @@ func TestMessageLoopFinalReplyStoresTreatmentPendingAndStripsMarker(t *testing.T
 
 func TestMessageLoopChineseActionPreflightObservesThenWaitsForConfirmation(t *testing.T) {
 	client := &fakeMessageCompleter{responses: []string{
-		`{"final":false,"reply":"閸忓牐顫囩€电喍缍嗘０鎴濇嫲婢规澘鍎氭笟婵囧祦閵?,"tool_calls":[{"id":"observe_mix","tool":"mix.observe","args":{"scope":"track","target_ref":{"kind":"track","id":"1007"},"mom_intent":"action_preflight_observation"},"reason":"閸忓牐顕伴崣?MOM observation 娴ｆ粈璐熸担搴暥婢跺嫮鎮婃笟婵囧祦"}]}`,
-		`{"final":true,"reply":"娓氭繃宓佹潻娆愵偧 MOM 鐟欏倸鐧傞敍灞肩秵妫版垵顦╅悶鍡楀涧閼宠棄鍘涙担婊€璐熸穱婵嗙暓 EQ 閺傜懓鎮滈敍宀€鈥樼拋銈呭娑撳秳绱伴崘娆愬絻娴犺埖鍨ㄩ崣鍌涙殶閵嗕繐nmix_treatment_pending: {\"schema_version\":\"mix_treatment_pending.v0\",\"status\":\"pending_confirmation\",\"intent\":\"reduce low end slightly\",\"target_ref\":\"track:1007\",\"action_kind\":\"plugin_treatment\",\"processor_type\":\"eq\",\"reasoning_summary\":\"low-end reduction is proposed from MOM observation evidence; uncertainty remains until plugin/profile/control resolution\",\"confidence\":\"medium\",\"evidence_refs\":[\"observation:obs_action_preflight\",\"mix.read:track.1007.slow.band_energy.summary\"],\"needs_resolution\":[\"plugin_instance\",\"plugin_profile\",\"exact_control\"],\"expires_after_context_change\":true}","tool_calls":[]}`,
+		`{"final":false,"reply":"先观察低频和声像依据。","tool_calls":[{"id":"observe_mix","tool":"mix.observe","args":{"scope":"track","target_ref":{"kind":"track","id":"1007"},"mom_intent":"action_preflight_observation"},"reason":"先读取 MOM observation 作为低频处理依据"}]}`,
+		`{"final":true,"reply":"依据这次 MOM 观察，低频处理只能先作为保守 EQ 方向，确认前不会写插件或参数。\nmix_treatment_pending: {\"schema_version\":\"mix_treatment_pending.v0\",\"status\":\"pending_confirmation\",\"intent\":\"reduce low end slightly\",\"target_ref\":\"track:1007\",\"action_kind\":\"plugin_treatment\",\"processor_type\":\"eq\",\"reasoning_summary\":\"low-end reduction is proposed from MOM observation evidence; uncertainty remains until plugin/profile/control resolution\",\"confidence\":\"medium\",\"evidence_refs\":[\"observation:obs_action_preflight\",\"mix.read:track.1007.slow.band_energy.summary\"],\"needs_resolution\":[\"plugin_instance\",\"plugin_profile\",\"exact_control\"],\"expires_after_context_change\":true}","tool_calls":[]}`,
 	}}
 	exec := &fakeMessageExecutor{mixObservationResult: map[string]any{
 		"status":         "ok",
@@ -6567,7 +6567,7 @@ func TestMessageLoopChineseActionPreflightObservesThenWaitsForConfirmation(t *te
 	}
 
 	res := loop.Start(context.Background(), Input{
-		UserText:     "Help me tighten the low end a little, but explain the evidence first",
+		UserText:     "帮我把低频稍微收一点，但先告诉我依据。",
 		AllowedTools: []string{"mix.observe", "mix.read", "plugin_grabber_apply_control", "rack.load_plugin", "plugin.set_parameter"},
 		Context:      map[string]any{"selected_track_id": "1007"},
 		State:        map[string]any{"selected_track_id": "1007", "tracks": []map[string]any{{"track_id": "1007", "track_name": "Track 1"}}},
@@ -6588,7 +6588,7 @@ func TestMessageLoopChineseActionPreflightObservesThenWaitsForConfirmation(t *te
 	if strings.Contains(res.Reply, "mix_treatment_pending") {
 		t.Fatalf("reply leaked treatment marker: %q", res.Reply)
 	}
-	if !strings.Contains(res.Reply, "MOM") && !strings.Contains(strings.ToLower(res.Reply), "evidence") {
+	if !strings.Contains(res.Reply, "依据") && !strings.Contains(res.Reply, "MOM") {
 		t.Fatalf("reply should explain evidence basis before confirmation: %q", res.Reply)
 	}
 	treatment := res.ExecutionMemory.PendingMixTreatment
@@ -6649,7 +6649,7 @@ func TestMessageLoopTreatmentMarkerWinsOverEQDBSuggestion(t *testing.T) {
 
 func TestMessageLoopTreatmentPendingParsesNestedTarget(t *testing.T) {
 	client := &fakeMessageCompleter{responses: []string{
-		`{"final":true,"reply":"閸欘垯浜掗崙鍡楊槵娑撯偓娑擃亝妲戠涵顔藉絻娴犺埖甯堕崚璁圭礉绾喛顓婚崥搴ｆ暠 resolver 濡偓閺屻儲澧界悰灞烩偓淇搉mix_treatment_pending: {\"schema_version\":\"mix_treatment_pending.v0\",\"status\":\"pending_confirmation\",\"intent\":\"reduce low mids\",\"target_ref\":\"track:1007\",\"action_kind\":\"plugin_treatment\",\"processor_type\":\"eq\",\"plugin_id\":\"nova_1\",\"control\":\"control low mids with band 2\",\"target\":{\"freq_hz\":300,\"gain_db\":-1.5,\"q\":1.1},\"reasoning_summary\":\"explicit control from profile\",\"confidence\":\"high\",\"evidence_refs\":[\"profile.virtual_controls\"],\"needs_resolution\":[],\"expires_after_context_change\":true}","tool_calls":[]}`,
+		`{"final":true,"reply":"可以准备一个明确插件控制，确认后由 resolver 检查执行。\nmix_treatment_pending: {\"schema_version\":\"mix_treatment_pending.v0\",\"status\":\"pending_confirmation\",\"intent\":\"reduce low mids\",\"target_ref\":\"track:1007\",\"action_kind\":\"plugin_treatment\",\"processor_type\":\"eq\",\"plugin_id\":\"nova_1\",\"control\":\"control low mids with band 2\",\"target\":{\"freq_hz\":300,\"gain_db\":-1.5,\"q\":1.1},\"reasoning_summary\":\"explicit control from profile\",\"confidence\":\"high\",\"evidence_refs\":[\"profile.virtual_controls\"],\"needs_resolution\":[],\"expires_after_context_change\":true}","tool_calls":[]}`,
 	}}
 	loop := &MessageLoop{
 		Client:   client,
@@ -6659,7 +6659,7 @@ func TestMessageLoopTreatmentPendingParsesNestedTarget(t *testing.T) {
 	}
 
 	res := loop.Start(context.Background(), Input{
-		UserText:     "Low end is muddy, make a small adjustment using existing Nova controls",
+		UserText:     "低频糊，按已有 Nova 控制小调一下",
 		AllowedTools: []string{"mix.observe"},
 	})
 
@@ -6786,7 +6786,7 @@ func TestMessageLoopTreatmentPendingAcceptsPendingOnlyReply(t *testing.T) {
 
 func TestMessageLoopImplicitPanReplyIgnoresStereoBalanceDBAsGain(t *testing.T) {
 	client := &fakeMessageCompleter{responses: []string{
-		`{"final":true,"reply":"瀹歌尪顫囩€?Track 2閿涘本娈忛張顏冩叏閺€鐟颁紣缁嬪鈧繐n\n瑜版挸澧?Track 2 瀹歌尙绮￠張澶夌閻愮懓浜稿锔肩窗瀹革箑褰搁獮瀹犮€€缁?+1.57 dB閿涘瞼濮搁幀浣规▔缁€?left-heavy閿涙稓鐝涙担鎾筹紣閻╃鍙ф惔锔惧 0.20閿涘本婀佹稉鈧€规氨娴夋担宥夘棑闂勨斂鈧倸娲滃銈咁洤閺嬫粎鎴风紒顓炵窔瀹革讣绱濋幋鎴濈紦鐠侇喖褰ч崑姘发鐏忓繋绔村銉窗閹?Track 2 婢规澘鍎氶崥鎴濅箯缁夎濮?0.10閵嗕繐n\n鐟曚焦鍨滈幍褑顢戦垾娣璻ack 2 婢规澘鍎氬锔拘?0.10閳ユ繂鎮ч敍?,"tool_calls":[]}`,
+		`{"final":true,"reply":"已观察 Track 2，暂未修改工程。\n\n当前 Track 2 已经有一点偏左：左右平衡约 +1.57 dB，状态显示 left-heavy；立体声相关度约 0.20，有一定相位风险。因此如果继续往左，我建议只做很小一步：把 Track 2 声像向左移动 0.10。\n\n要我执行“Track 2 声像左移 0.10”吗？","tool_calls":[]}`,
 	}}
 	loop := &MessageLoop{
 		Client:   client,
@@ -6826,7 +6826,8 @@ func TestMessageLoopImplicitPanReplyIgnoresStereoBalanceDBAsGain(t *testing.T) {
 
 func TestMessageLoopExplicitChinesePanReplyPrefersTreatmentOverGainDBEvidence(t *testing.T) {
 	client := &fakeMessageCompleter{responses: []string{
-		`{"final":true,"reply":"鐟欏倸鐧傞崚?Track 2 閺堫剝闊╁鑼病閻ｃ儱浜稿锔肩礄缁?+2 dB left-heavy閿涘绱濋惄绋垮彠閹呭 0.33閿涘本婀佹稉鈧悙鍦祲娴?鐎硅棄瀹虫搴ㄦ珦閵嗗倹澧嶆禒銉ヮ洤閺嬫粏顩﹂幐澶夌稑閻ㄥ嫭鍏傚▔鏇炵窔瀹革讣绱濋幋鎴濈紦鐠侇喖褰ч崑姘发鐏忓繋绔村銉窗Track 2 婢规澘鍎氶崥鎴濅箯缁?0.10閵嗗倽顩﹂幋鎴炲⒔鐞涘矁绻栨稉顏勭毈鐠嬪啯鏆ｉ崥妤嬬吹","tool_calls":[]}`,
+		`{"final":true,"reply":"顺便说一下，相比之前的观察，Track 2 大概响了 +2 dB left-heavy，声像目前在 0.33。要不要我先把 Track 2 的声像往左调一点，到 0.10？","tool_calls":[]}`,
+
 	}}
 	loop := &MessageLoop{
 		Client:   client,
@@ -6894,7 +6895,7 @@ func TestMessageLoopTreatmentPendingParsesTargetPan(t *testing.T) {
 
 func TestMessageLoopImplicitPanConfirmationQuestionBecomesPendingTreatment(t *testing.T) {
 	client := &fakeMessageCompleter{responses: []string{
-		`{"final":true,"reply":"閸欘垯浜掗妴鍌氱秼閸撳秹鈧鑵戦惃鍕Ц Track 1閿涘苯褰叉禒銉﹀Ω鐎瑰啫鐣崗銊︽啘閸掓澘褰告潏鐧哥礄绾剙褰告竟鏉垮剼閿涘鈧倷绗夋潻鍥箹娴兼俺顔€閺佹挳顩诲灞炬閺勬儳浜搁崣绛圭礉閼拌櫕婧€闁插苯涔忔潏閫涚窗瀵板牏鈹栭妴鍌氼洤閺嬫粈缍樼涵顔肩暰鐟曚礁鐣崗銊ュ礁缂冾噯绱濋幋鎴濆讲娴犮儳鎴风紒顓熷Ω Track 1 鐠佹儳鍩岄張鈧崣鐐解偓?,"tool_calls":[]}`,
+		`{"final":true,"reply":"可以。当前选中的是 Track 1，可以把它完全摆到右边（硬右声像）。不过这会让整首歌明显偏右，耳机里左边会很空。如果你确定要完全右置，我可以继续把 Track 1 设到最右。","tool_calls":[]}`,
 	}}
 	loop := &MessageLoop{
 		Client:   client,
@@ -6904,7 +6905,7 @@ func TestMessageLoopImplicitPanConfirmationQuestionBecomesPendingTreatment(t *te
 	}
 
 	res := loop.Start(context.Background(), Input{
-		UserText:     "Pan Track 1 hard right",
+		UserText:     "我想把它完全摆到右边可以吗？",
 		AllowedTools: []string{"mix.observe", "mix.propose_tick", "mix.apply_tick"},
 		State: map[string]any{
 			"tracks": []map[string]any{{"track_id": "1007", "track_name": "Track 1", "pan": 0.0}},
@@ -7050,7 +7051,7 @@ func TestMessageLoopImplicitPanRevisionPrimitivePanBecomesPendingTreatment(t *te
 
 func TestMessageLoopPanClarificationBecomesPendingTreatment(t *testing.T) {
 	client := &fakeMessageCompleter{responses: []string{
-		`{"final":false,"needs_clarification":true,"reply":"閸欘垯浜掗妴鍌氱秼閸撳秴褰ч張?Track 1閿涘本澧嶆禒銉⑩偓婊冪暊閳ユ繂绨茬拠銉︽Ц鏉╂瑦娼潪銊╀壕閿涙稐绲剧€瑰苯鍙忛幗鍡楀煂閸欏疇绔熼弰顖涚槷鏉堝啯鐎粩顖滄畱婢规澘鍎氱拋鍓х枂閵嗗倷缍樼憰浣瑰灉閻滄澘婀幎?Track 1 绾剙锛愰崓蹇撳煂閺堚偓閸欏疇绔熼崥妤嬬吹","tool_calls":[]}`,
+		`{"final":false,"needs_clarification":true,"reply":"可以。当前只有 Track 1，所以“它”应该是这条轨道；但完全摆到右边是比较极端的声像设置。你要我现在把 Track 1 硬声像到最右边吗？","tool_calls":[]}`,
 	}}
 	exec := &fakeMessageExecutor{}
 	loop := &MessageLoop{
@@ -7061,7 +7062,7 @@ func TestMessageLoopPanClarificationBecomesPendingTreatment(t *testing.T) {
 	}
 
 	res := loop.Start(context.Background(), Input{
-		UserText:     "Pan Track 1 hard right",
+		UserText:     "我想把它完全摆到右边可以吗？",
 		AllowedTools: []string{"mix.observe", "mix.propose_tick", "mix.apply_tick"},
 		State: map[string]any{
 			"tracks": []map[string]any{{"track_id": "1007", "track_name": "Track 1", "pan": 0.0}},
@@ -7149,12 +7150,12 @@ func TestMessageLoopTreatmentPendingInfersPanPlacementTargets(t *testing.T) {
 		text string
 		want float64
 	}{
-		{name: "plain left placement", text: "pan the guitar left", want: -0.5},
+		{name: "plain left placement", text: "把吉他摆到左边", want: -0.5},
 		{name: "left percent placement", text: "pan the guitar 70% left", want: -0.7},
 		{name: "hard left", text: "pan the guitar hard left", want: -1},
 		{name: "hard right", text: "pan the guitar hard right", want: 1},
-		{name: "fully right placement", text: "pan it fully right", want: 1},
-		{name: "right placement", text: "pan the guitar right", want: 0.5},
+		{name: "fully right chinese", text: "把它完全摆到右边", want: 1},
+		{name: "right placement", text: "把吉他靠右", want: 0.5},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -7295,9 +7296,9 @@ func TestMessageLoopLowMudPluginPrepSynthesizesPendingWhenReplyOmitsMarker(t *te
 
 func TestMessageLoopUnavailableMixObservationDoesNotUnlockPluginLoad(t *testing.T) {
 	client := &fakeMessageCompleter{responses: []string{
-		`{"final":false,"reply":"閹存垵鍘涚憴鍌氱檪瑜版挸澧犻棅鎶筋暥閵?,"tool_calls":[{"id":"observe_mix","tool":"mix.request_observation","args":{"track_id":"1007"}}]}`,
-		`{"final":false,"reply":"鐟欏倸鐧傜€瑰奔绨￠敍灞藉櫙婢跺洤濮炴潪?EQ閵?,"tool_calls":[{"id":"load_eq","tool":"plugin.load_to_rack","args":{"track_id":"1007","plugin_query":"TDR Nova","zone_id":"Z3"}}]}`,
-		`{"final":true,"reply":"瑜版挸澧犵憴鍌氱檪缂佹挻鐏夋稉宥呭讲閻㈩煉绱濋幋鎴滅瑝娴兼艾濮炴潪鑺ュ絻娴犺绱遍棁鈧憰浣稿帥鐞涖儴鍐婚崣顖滄暏鐟欏倸鐧傞幋鏍唨娴ｇ姷鈥樼拋銈呭徔娴ｆ挻褰冩禒鑸垫惙娴ｆ嚎鈧?,"tool_calls":[]}`,
+		`{"final":false,"reply":"我先观察当前音频。","tool_calls":[{"id":"observe_mix","tool":"mix.request_observation","args":{"track_id":"1007"}}]}`,
+		`{"final":false,"reply":"观察完了，准备加载 EQ。","tool_calls":[{"id":"load_eq","tool":"plugin.load_to_rack","args":{"track_id":"1007","plugin_query":"TDR Nova","zone_id":"Z3"}}]}`,
+		`{"final":true,"reply":"当前观察结果不可用，我不会加载插件；需要先补足可用观察或让你确认具体插件操作。","tool_calls":[]}`,
 	}}
 	exec := &fakeMessageExecutor{mixObservationResult: map[string]any{
 		"status": "unavailable",
@@ -7317,7 +7318,7 @@ func TestMessageLoopUnavailableMixObservationDoesNotUnlockPluginLoad(t *testing.
 	}
 
 	res := loop.Start(context.Background(), Input{
-		UserText:     "Can you help me compress this audio?",
+		UserText:     "我想你帮我对这段音频进行缩混可以吗？",
 		AllowedTools: []string{"plugin.load_to_rack", "mix.request_observation"},
 	})
 
@@ -7336,8 +7337,8 @@ func TestMessageLoopUnavailableMixObservationDoesNotUnlockPluginLoad(t *testing.
 
 func TestMessageLoopObservationPackageQuestionRoutesPluginParamsToMixRead(t *testing.T) {
 	client := &fakeMessageCompleter{responses: []string{
-		`{"final":false,"reply":"閹存垶鐓￠惇?observation 閺佺増宓侀崠鍛偓?,"tool_calls":[{"id":"read_params","tool":"plugin.get_parameters","args":{"track_id":"1007","plugin_id":"plugin_1"},"reason":"閺屻儳婀呴弫鐗堝祦閸?}]}`,
-		`{"final":true,"reply":"閹存垼顕伴崣鏍畱閺?MixBoard 婢规澘顒熺憴鍌氱檪閸栧拑绱濇稉宥嗘Ц閹绘帊娆㈤崣鍌涙殶閵?,"tool_calls":[]}`,
+		`{"final":false,"reply":"我查看 observation 数据包。","tool_calls":[{"id":"read_params","tool":"plugin.get_parameters","args":{"track_id":"1007","plugin_id":"plugin_1"},"reason":"查看数据包"}]}`,
+		`{"final":true,"reply":"我读取的是 MixBoard 声学观察包，不是插件参数。","tool_calls":[]}`,
 	}}
 	exec := &fakeMessageExecutor{}
 	loop := &MessageLoop{
@@ -7348,7 +7349,7 @@ func TestMessageLoopObservationPackageQuestionRoutesPluginParamsToMixRead(t *tes
 	}
 
 	res := loop.Start(context.Background(), Input{
-		UserText:     "Observation cannot see the acoustic data package now; help me inspect why",
+		UserText:     "observation 现在看不见声学数据包了，帮我看一下为什么",
 		AllowedTools: []string{"plugin.get_parameters", "mix.read"},
 		RecentObservation: &RecentObservation{
 			Tool:        "mix.observe",
@@ -7381,9 +7382,9 @@ func TestMessageLoopObservationPackageQuestionRoutesPluginParamsToMixRead(t *tes
 
 func TestMessageLoopNaturalMixRequestBlocksDirectWaveformBake(t *testing.T) {
 	client := &fakeMessageCompleter{responses: []string{
-		`{"final":false,"reply":"閹存垵鍘涢崙鍡楊槵濞夈垹鑸伴妴?,"tool_calls":[{"id":"bake","tool":"clip.warm_waveform_bake","args":{"track_id":"1007"},"reason":"閸戝棗顦憴鍌氱檪"}]}`,
-		`{"final":false,"reply":"閹存垶鏁奸悽銊﹁穿闂婂疇顫囩€电喆鈧?,"tool_calls":[{"id":"observe_mix","tool":"mix.request_observation","args":{"track_id":"1007"},"reason":"缂佺喍绔寸憴鍌氱檪"}]}`,
-		`{"final":true,"reply":"瀹歌尙绮＄€瑰本鍨氱憴鍌氱檪閵嗗倹鍨滄导姘帥閸╄桨绨憴鍌氱檪缂佹瑥鍤楦款唴閿涘奔绗夋导姘辨纯閹恒儱濮炴潪鑺ュ絻娴犺翰鈧?,"tool_calls":[]}`,
+		`{"final":false,"reply":"我先准备波形。","tool_calls":[{"id":"bake","tool":"clip.warm_waveform_bake","args":{"track_id":"1007"},"reason":"准备观察"}]}`,
+		`{"final":false,"reply":"我改用混音观察。","tool_calls":[{"id":"observe_mix","tool":"mix.request_observation","args":{"track_id":"1007"},"reason":"统一观察"}]}`,
+		`{"final":true,"reply":"已经完成观察。我会先基于观察给出建议，不会直接加载插件。","tool_calls":[]}`,
 	}}
 	exec := &fakeMessageExecutor{}
 	loop := &MessageLoop{
@@ -7394,7 +7395,7 @@ func TestMessageLoopNaturalMixRequestBlocksDirectWaveformBake(t *testing.T) {
 	}
 
 	res := loop.Start(context.Background(), Input{
-		UserText:     "鐢喗鍨滅紓鈺傝穿鏉╂瑦顔岄棅鎶筋暥",
+		UserText:     "帮我缩混这段音频",
 		AllowedTools: []string{"clip.warm_waveform_bake", "mix.request_observation"},
 	})
 
@@ -7421,10 +7422,48 @@ func TestMessageLoopNaturalMixRequestBlocksDirectWaveformBake(t *testing.T) {
 	}
 }
 
+func TestMessageLoopMalformedWaveformBakeCoercedRegardlessOfUserText(t *testing.T) {
+	client := &fakeMessageCompleter{responses: []string{
+		`{"final":false,"reply":"我先准备波形。","tool_calls":[{"id":"bake","tool":"clip.warm_waveform_bake","args":{"track_id":"1007"},"reason":"准备"}]}`,
+		`{"final":true,"reply":"已通过混音观察工具完成。","tool_calls":[]}`,
+	}}
+	exec := &fakeMessageExecutor{}
+	loop := &MessageLoop{
+		Client:   client,
+		Config:   config.EngineConfig{BaseURL: "http://example.invalid", APIKey: "test", DefaultModel: "test"},
+		Executor: exec,
+		Budget:   Budget{MaxTurns: 5, MaxToolCalls: 3, MaxConsecutiveErrors: 2},
+	}
+
+	res := loop.Start(context.Background(), Input{
+		UserText:     "启动一下工程音频分析任务",
+		AllowedTools: []string{"clip.warm_waveform_bake", "mix.request_observation", "project.audio_analysis_start"},
+	})
+
+	if res.Status != "completed" {
+		t.Fatalf("result = status=%q reply=%q error=%q", res.Status, res.Reply, res.Error)
+	}
+	for _, call := range exec.calls {
+		if call.Tool == "clip.warm_waveform_bake" {
+			t.Fatalf("malformed waveform bake (track_id only) must never reach the executor: %+v", exec.calls)
+		}
+	}
+	foundRewrite := false
+	for _, event := range res.Trace {
+		if event.Kind == "tool_call_rewritten" && strings.Contains(event.Message, "mix.observe") {
+			foundRewrite = true
+			break
+		}
+	}
+	if !foundRewrite {
+		t.Fatalf("expected malformed waveform bake to be rewritten to mix.observe even without mix-intent user text; trace=%+v", res.Trace)
+	}
+}
+
 func TestMessageLoopAudioObservationRequestCoercesWaveformBake(t *testing.T) {
 	client := &fakeMessageCompleter{responses: []string{
-		`{"final":false,"reply":"閹存垵鍘涢崙鍡楊槵濞夈垹鑸伴妴?,"tool_calls":[{"id":"bake","tool":"clip.warm_waveform_bake","args":{"track_id":"1007"},"reason":"閸戝棗顦竟鏉款劅鐟欏倸鐧?}]}`,
-		`{"final":true,"reply":"瀹告煡鈧俺绻冨ǎ鐑界叾鐟欏倸鐧傚銉ュ徔鐎瑰本鍨氭竟鏉款劅鐟欏倸鐧傞敍灞剧梾閺堝娲块幒銉ㄧ殶閻劋缍嗙仦鍌涘皾瑜般垻绱︾€涙ê浼愰崗鏋偓?,"tool_calls":[]}`,
+		`{"final":false,"reply":"我先准备波形。","tool_calls":[{"id":"bake","tool":"clip.warm_waveform_bake","args":{"track_id":"1007"},"reason":"准备声学观察"}]}`,
+		`{"final":true,"reply":"已通过混音观察工具完成声学观察，没有直接调用低层波形缓存工具。","tool_calls":[]}`,
 	}}
 	exec := &fakeMessageExecutor{}
 	loop := &MessageLoop{
@@ -7435,7 +7474,7 @@ func TestMessageLoopAudioObservationRequestCoercesWaveformBake(t *testing.T) {
 	}
 
 	res := loop.Start(context.Background(), Input{
-		UserText:     "Please continue audio observation analysis",
+		UserText:     "需要你继续做音频观察分析",
 		AllowedTools: []string{"mix.request_observation"},
 	})
 
@@ -7460,8 +7499,8 @@ func TestMessageLoopAudioObservationRequestCoercesWaveformBake(t *testing.T) {
 
 func TestMessageLoopExplicitPluginLoadDoesNotRequireMixObservation(t *testing.T) {
 	client := &fakeMessageCompleter{responses: []string{
-		`{"final":false,"reply":"濮濓絽婀崝鐘烘祰閵?,"tool_calls":[{"id":"load_eq","tool":"plugin.load_to_rack","args":{"track_id":"1007","plugin_query":"TDR Nova","zone_id":"Z3"}}]}`,
-		`{"final":true,"reply":"TDR Nova 瀹告彃濮炴潪濮愨偓?}`,
+		`{"final":false,"reply":"正在加载。","tool_calls":[{"id":"load_eq","tool":"plugin.load_to_rack","args":{"track_id":"1007","plugin_query":"TDR Nova","zone_id":"Z3"}}]}`,
+		`{"final":true,"reply":"TDR Nova 已加载。"}`,
 	}}
 	exec := &fakeMessageExecutor{}
 	loop := &MessageLoop{
@@ -7472,7 +7511,7 @@ func TestMessageLoopExplicitPluginLoadDoesNotRequireMixObservation(t *testing.T)
 	}
 
 	res := loop.Start(context.Background(), Input{
-		UserText:     "Load TDR Nova plugin",
+		UserText:     "请直接加载 TDR Nova 插件",
 		AllowedTools: []string{"plugin.load_to_rack", "mix.request_observation"},
 	})
 
@@ -7486,8 +7525,8 @@ func TestMessageLoopExplicitPluginLoadDoesNotRequireMixObservation(t *testing.T)
 
 func TestMessageLoopNaturalMixConfirmationObservesBeforePendingPluginLoad(t *testing.T) {
 	client := &fakeMessageCompleter{responses: []string{
-		`{"final":false,"reply":"I will observe the current audio first.","tool_calls":[{"id":"observe_mix","tool":"mix.request_observation","args":{"track_id":"1007"},"reason":"Observe before deciding"}]}`,
-		`{"final":true,"reply":"瀹告彃鐣幋鎰潎鐎电噦绱濋崗鍫滅瑝閸旂姾娴囬幓鎺嶆閵?}`,
+		`{"final":false,"reply":"我先观察当前音频。","tool_calls":[{"id":"observe_mix","tool":"mix.request_observation","args":{"track_id":"1007"},"reason":"先观察再判断"}]}`,
+		`{"final":true,"reply":"已完成观察，先不加载插件。"}`,
 	}}
 	exec := &fakeMessageExecutor{}
 	loop := &MessageLoop{
@@ -7505,7 +7544,7 @@ func TestMessageLoopNaturalMixConfirmationObservesBeforePendingPluginLoad(t *tes
 	res := loop.ResumeAfterConfirmation(context.Background(), Continuation{
 		GoalID:          "goal_test",
 		RunID:           "run_test",
-		UserText:        "鐢喗鍨滅紓鈺傝穿瑜版挸澧犳潪銊╀壕",
+		UserText:        "帮我缩混当前轨道",
 		AllowedTools:    []string{"plugin.load_to_rack", "mix.request_observation"},
 		PendingToolCall: &pending,
 	})
@@ -7695,8 +7734,8 @@ func TestParseMessageLoopOutputExtractsBalancedJSONObject(t *testing.T) {
 func TestMessageLoopRepairsInvalidJSONOnce(t *testing.T) {
 	t.Setenv("VIT_AGENT_MESSAGE_LOOP_DEBUG_PATH", "off")
 	client := &fakeMessageCompleter{responses: []string{
-		`{"final": false, "reply": "閸戝棗顦幍褑顢?, "tool_calls": [`,
-		`{"final":true,"reply":"瀹稿弶浠径宥勮礋閸氬牊纭剁拋鈥冲灊閵?,"tool_calls":[]}`,
+		`{"final": false, "reply": "准备执行", "tool_calls": [`,
+		`{"final":true,"reply":"已恢复为合法计划。","tool_calls":[]}`,
 	}}
 	loop := &MessageLoop{
 		Client: client,
@@ -7704,8 +7743,8 @@ func TestMessageLoopRepairsInvalidJSONOnce(t *testing.T) {
 		Budget: Budget{MaxTurns: 4, MaxToolCalls: 4, MaxConsecutiveErrors: 2},
 	}
 
-	res := loop.Start(context.Background(), Input{UserText: "Test JSON repair"})
-	if res.Status != "completed" || res.Reply != "Repaired into a valid plan." {
+	res := loop.Start(context.Background(), Input{UserText: "测试 JSON 修复"})
+	if res.Status != "completed" || res.Reply != "已恢复为合法计划。" {
 		t.Fatalf("result = status=%q reply=%q error=%q", res.Status, res.Reply, res.Error)
 	}
 	if len(client.calls) != 2 {

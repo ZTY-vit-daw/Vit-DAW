@@ -2479,7 +2479,11 @@ func (h *Harness) prepareMixObservationAcousticPackage(ctx context.Context, cmd 
 	if _, err := store.Upsert(status); err != nil && h != nil && h.logger != nil {
 		h.logger.Warn("[acoustic_package] store upsert failed path=%s err=%v", storePath, err)
 	}
-	return acousticpackage.ToMap(status), storePath, nil
+	var featureRequest map[string]any
+	if h != nil && h.kernel != nil && mixObservationProjectBackgroundFillNeeded(cmd, featureSnapshot, status) {
+		featureRequest = h.requestMixObservationFeaturesBackground(ctx, cmd, state, target)
+	}
+	return acousticpackage.ToMap(status), storePath, featureRequest
 }
 
 func readMixboardFeatureSnapshotForAcousticPackage(path string) map[string]any {
@@ -5504,6 +5508,9 @@ func mixObservationProjectBackgroundFillNeeded(cmd map[string]any, featureSnapsh
 	if acousticPackageL3CoreReady(status) {
 		return false
 	}
+	if acousticPackageL3CoreBuilding(status) {
+		return false
+	}
 	latest, _ := featureSnapshot["latest_request"].(map[string]any)
 	if len(latest) == 0 {
 		return true
@@ -5530,6 +5537,20 @@ func acousticPackageL3CoreReady(status acousticpackage.Status) bool {
 		}
 	}
 	return true
+}
+
+func acousticPackageL3CoreBuilding(status acousticpackage.Status) bool {
+	layer := status.PackageLayers["l3_deep"]
+	if len(layer.Features) == 0 {
+		return false
+	}
+	for _, featureName := range []string{"spectrogram_tiles", "band_energy_summary", "stereo_relation_summary", "loudness_summary"} {
+		switch strings.ToLower(layer.Features[featureName].Status) {
+		case acousticpackage.StatusBuilding, "requested", "pending":
+			return true
+		}
+	}
+	return false
 }
 
 func visibleAudioTrackFeatureTargets(state map[string]any) []map[string]any {
