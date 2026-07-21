@@ -274,6 +274,17 @@ func TestDisplayDomainParsesConfirmedEQQRange(t *testing.T) {
 	}
 }
 
+func TestDisplayDomainParsesConfirmedEnumFilterShape(t *testing.T) {
+	text := "enum: Bell / Low Shelf / Low Cut / High Shelf / High Cut / Notch / Band Pass / Tilt Shelf"
+	domain := parseDisplayDomainText(text, "auto_learn_user_review", true)
+	if domain == nil {
+		t.Fatal("domain is nil")
+	}
+	if domain.Unit != "enum" || domain.Status != displayDomainStatusConfirmed {
+		t.Fatalf("domain unit/status = %+v, want unit=enum status=confirmed (discrete_labels already resolve every step)", domain)
+	}
+}
+
 func TestAutoLearnPrefersObservedQCurveOverGenericFallback(t *testing.T) {
 	minValue, maxValue := 0.1, 6.0
 	domain := inferredDisplayDomainForSlot("q", ParameterInfo{

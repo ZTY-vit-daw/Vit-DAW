@@ -52,9 +52,13 @@ func parseDisplayDomainText(text, source string, confirmed bool) *PluginDisplayD
 	if domain.Unit == "" && strings.Contains(strings.ToLower(text), "toggle") {
 		domain.Unit = "toggle"
 	}
+	if domain.Unit == "" && looksLikeEnumDisplayDomainText(text) {
+		domain.Unit = "enum"
+		domain.Scale = "enum"
+	}
 	if confirmed && domain.Min != nil && domain.Max != nil {
 		domain.Status = displayDomainStatusConfirmed
-	} else if confirmed && domain.Unit == "toggle" {
+	} else if confirmed && (domain.Unit == "toggle" || domain.Unit == "enum") {
 		domain.Status = displayDomainStatusConfirmed
 	} else if confirmed {
 		domain.Status = displayDomainStatusNeedsConfirmation
@@ -107,6 +111,21 @@ func inferDisplayDomainScale(text string) string {
 		return "linear"
 	}
 	return ""
+}
+
+// looksLikeEnumDisplayDomainText reports whether text is a discrete-label
+// enumeration such as "enum: Bell / Low Shelf / Notch" — the format
+// displayDomainFromDiscreteProbe emits for multi-value stepped parameters
+// (filter shape, slope, stereo placement). These have no numeric Min/Max and
+// aren't a boolean "toggle", so without this check a user-reviewed enum
+// domain with confirmed=true would fall through to needs_confirmation even
+// though the discrete label set fully resolves every step's value.
+func looksLikeEnumDisplayDomainText(text string) bool {
+	lower := strings.ToLower(strings.TrimSpace(text))
+	if strings.HasPrefix(lower, "enum:") || strings.HasPrefix(lower, "enum：") {
+		return true
+	}
+	return strings.Contains(text, "/") && strings.Contains(lower, "enum")
 }
 
 func displayDomainFromAny(value any) *PluginDisplayDomain {

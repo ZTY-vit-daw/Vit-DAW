@@ -1018,6 +1018,34 @@ bool readNumericFromTarget (const juce::DynamicObject& command,
         || readNumericProperty (command, keyArray, out);
 }
 
+bool readStringProperty (const juce::DynamicObject& object, const juce::StringArray& keys, juce::String& out)
+{
+    for (const auto& k : keys)
+    {
+        const auto text = object.getProperty (k).toString().trim();
+        if (text.isNotEmpty())
+        {
+            out = text;
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool readStringFromTarget (const juce::DynamicObject& command,
+                           const juce::DynamicObject& target,
+                           std::initializer_list<const char*> keys,
+                           juce::String& out)
+{
+    juce::StringArray keyArray;
+    for (const auto* key : keys)
+        keyArray.add (key);
+
+    return readStringProperty (target, keyArray, out)
+        || readStringProperty (command, keyArray, out);
+}
+
 double defaultEqGainDbForAmount (const juce::String& controlName, const juce::DynamicObject& target)
 {
     const auto amount = firstNonEmptyProperty (target, { "amount", "strength", "intensity" }).toLowerCase();
@@ -1057,12 +1085,14 @@ struct RuntimeDisplayDomain
     bool present = false;
     bool hasRange = false;
     bool confirmed = false;
+    bool isEnum = false;
     double minValue = 0.0;
     double maxValue = 1.0;
     juce::String unit;
     juce::String scale;
     juce::String status;
     juce::String text;
+    juce::StringArray enumLabels;
 };
 
 float normalisedLogValue (double value, double minValue, double maxValue)
@@ -1153,6 +1183,26 @@ void fillDisplayDomainFromText (RuntimeDisplayDomain& domain)
         return;
 
     const auto lower = text.toLowerCase();
+    if (domain.scale == "enum" || lower.startsWith ("enum:") || lower.startsWith ("enum "))
+    {
+        domain.isEnum = true;
+        domain.scale = "enum";
+        auto labelsText = text;
+        if (lower.startsWith ("enum:"))
+            labelsText = text.substring (5);
+        else if (lower.startsWith ("enum "))
+            labelsText = text.substring (5);
+
+        for (const auto& label : juce::StringArray::fromTokens (labelsText, "/", ""))
+        {
+            const auto trimmed = label.trim();
+            if (trimmed.isNotEmpty())
+                domain.enumLabels.add (trimmed);
+        }
+
+        return;
+    }
+
     if (domain.unit.isEmpty())
     {
         if (lower.contains ("db"))
@@ -1295,6 +1345,50 @@ ResolvedApplyValue failedResolvedApplyValue (const juce::String& message)
     out.ok = false;
     out.error = message;
     return out;
+}
+
+ResolvedApplyValue resolveEnumApplyValue (te::AutomatableParameter& param,
+                                          const juce::String& requestedText,
+                                          const RuntimeDisplayDomain& domain)
+{
+    const auto requested = normalisedResolverToken (requestedText);
+    if (requested.isEmpty())
+        return failedResolvedApplyValue ("enum apply control requires a non-empty label for " + param.getParameterName());
+
+    const auto range = param.getValueRange();
+    const auto direct = param.stringToValue (requestedText);
+    if (std::isfinite (direct) && direct >= range.getStart() && direct <= range.getEnd())
+        return { direct, false, "enum_plugin_text_conversion" };
+
+    if (param.isDiscrete())
+    {
+        const auto numStates = param.getNumberOfStates();
+        for (int state = 0; state < numStates; ++state)
+        {
+            const auto value = param.getValueForState (state);
+            const auto label = normalisedResolverToken (param.getLabelForValue (value));
+            if (label == requested)
+                return { value, false, "enum_discrete_label_match" };
+        }
+    }
+
+    for (int i = 0; i < domain.enumLabels.size(); ++i)
+    {
+        if (normalisedResolverToken (domain.enumLabels[i]) != requested)
+            continue;
+
+        if (param.isDiscrete() && i < param.getNumberOfStates())
+            return { param.getValueForState (i), false, "enum_profile_label_match" };
+
+        if (domain.enumLabels.size() > 1)
+        {
+            const auto normalised = static_cast<float> (i) / static_cast<float> (domain.enumLabels.size() - 1);
+            return { normalised, true, "enum_profile_label_normalised" };
+        }
+    }
+
+    return failedResolvedApplyValue ("enum apply control could not match \"" + requestedText
+                                     + "\" against known labels for " + param.getParameterName());
 }
 
 juce::String displayDomainClarificationMessage (const juce::String& slot,
@@ -1459,6 +1553,44 @@ juce::Result applyRuntimeProfileParam (te::Plugin& plugin,
     return juce::Result::ok();
 }
 
+juce::Result applyRuntimeProfileEnumParam (te::Plugin& plugin,
+                                           const std::unordered_set<std::string>& validParamIds,
+                                           const juce::StringArray& staleParamIds,
+                                           const juce::String& slot,
+                                           const juce::String& paramId,
+                                           const juce::String& requestedText,
+                                           const RuntimeDisplayDomain& domain,
+                                           juce::Array<juce::var>& applied)
+{
+    if (paramId.isEmpty())
+        return juce::Result::ok();
+
+    if (! validParamIds.contains (paramId.toStdString()))
+        return juce::Result::fail ("runtime profile mapped " + slot + " to param_id not in current snapshot: " + paramId);
+
+    if (staleParamIds.contains (paramId))
+        return juce::Result::fail ("runtime profile mapped " + slot + " to stale param_id: " + paramId);
+
+    auto param = resolvePluginParameterByID (plugin, paramId);
+    if (param == nullptr)
+        return juce::Result::fail ("runtime profile mapped " + slot + " to unresolved param_id: " + paramId);
+
+    const auto previousValue = param->getCurrentValue();
+    const auto resolved = resolveEnumApplyValue (*param, requestedText, domain);
+    if (! resolved.ok)
+        return juce::Result::fail (resolved.error);
+
+    param->parameterChangeGestureBegin();
+    if (resolved.normalised)
+        param->setNormalisedParameter (resolved.value, juce::sendNotification);
+    else
+        param->setParameter (resolved.value, juce::sendNotification);
+    param->parameterChangeGestureEnd();
+
+    applied.add (makeAppliedParameterRecord (slot, paramId, *param, 0.0, resolved, previousValue));
+    return juce::Result::ok();
+}
+
 juce::var cloneVarObject (const juce::var& value)
 {
     if (auto* object = value.getDynamicObject())
@@ -1587,6 +1719,24 @@ bool readNumericTargetValue (const juce::DynamicObject& command,
         || readNumericPropertyWithKey (command, keys, out, matchedKey);
 }
 
+bool readEnumTargetValue (const juce::DynamicObject& command,
+                          const juce::DynamicObject& target,
+                          const juce::String& slot,
+                          juce::String& out)
+{
+    juce::StringArray keys;
+    keys.add (slot);
+    keys.add (slot.toLowerCase());
+
+    const auto normalisedSlot = normalisedResolverToken (slot);
+    if (normalisedSlot.contains ("type") || normalisedSlot.contains ("shape"))
+        addStringKeys (keys, { "type", "shape", "filter_type", "response_shape", "band_type" });
+    else if (normalisedSlot.contains ("enable"))
+        addStringKeys (keys, { "enabled", "enable" });
+
+    return readStringProperty (target, keys, out) || readStringProperty (command, keys, out);
+}
+
 juce::Result applyVirtualControlParams (te::Plugin& plugin,
                                         const std::unordered_set<std::string>& validParamIds,
                                         const juce::StringArray& staleParamIds,
@@ -1620,7 +1770,31 @@ juce::Result applyVirtualControlParams (te::Plugin& plugin,
         double value = 0.0;
         juce::String targetKey;
         if (! readNumericTargetValue (command, target, slot, inputKeys, value, targetKey))
+        {
+            const auto domain = displayDomainFromProfileMapping (profileMapping);
+            juce::String enumText;
+            if (! domain.isEnum || ! readEnumTargetValue (command, target, slot, enumText))
+                continue;
+
+            auto param = resolvePluginParameterByID (plugin, paramId);
+            if (param == nullptr)
+                return juce::Result::fail ("runtime profile mapped " + slot + " to unresolved param_id: " + paramId);
+
+            const auto previousValue = param->getCurrentValue();
+            const auto resolved = resolveEnumApplyValue (*param, enumText, domain);
+            if (! resolved.ok)
+                return juce::Result::fail (resolved.error);
+
+            param->parameterChangeGestureBegin();
+            if (resolved.normalised)
+                param->setNormalisedParameter (resolved.value, juce::sendNotification);
+            else
+                param->setParameter (resolved.value, juce::sendNotification);
+            param->parameterChangeGestureEnd();
+
+            applied.add (makeAppliedParameterRecord (slot, paramId, *param, 0.0, resolved, previousValue));
             continue;
+        }
 
         const auto cleanSlot = normalisedResolverToken (slot);
         if (cleanSlot.contains ("gain") || cleanSlot.contains ("level") || cleanSlot.contains ("amount"))
@@ -1681,14 +1855,33 @@ juce::Result applyEqRuntimeControl (te::Plugin& plugin,
     const auto qMapping = lookupGroupParamMapping (selectedGroup, { "q", "quality", "width", "bandwidth" });
     const auto enableMapping = lookupGroupParamMapping (selectedGroup, { "enable", "enabled", "active", "band_enable", "on" });
     const auto thresholdMapping = lookupGroupParamMapping (selectedGroup, { "threshold", "threshold_db" });
+    const auto typeMapping = lookupGroupParamMapping (selectedGroup, { "type", "shape", "filter_type", "band_type", "response_shape" });
+    const auto dynEnableMapping = lookupGroupParamMapping (selectedGroup, { "dyn_enable", "dynamic_enable", "dynamics_enabled", "dynamics_enable" });
     const auto frequencyParamId = paramIdFromProfileMapping (frequencyMapping);
     const auto gainParamId = paramIdFromProfileMapping (gainMapping);
     const auto qParamId = paramIdFromProfileMapping (qMapping);
     const auto enableParamId = paramIdFromProfileMapping (enableMapping);
     const auto thresholdParamId = paramIdFromProfileMapping (thresholdMapping);
+    const auto typeParamId = paramIdFromProfileMapping (typeMapping);
+    const auto dynEnableParamId = paramIdFromProfileMapping (dynEnableMapping);
 
     const auto requestedMode = command.getProperty ("value_mode").toString().trim();
     const auto groupId = group != nullptr ? firstNonEmptyProperty (*group, { "id", "component_id", "name", "label" }) : juce::String();
+
+    juce::String requestedType;
+    if (typeParamId.isNotEmpty() && readEnumTargetValue (command, target, "type", requestedType))
+    {
+        const auto typeDomain = displayDomainFromProfileMapping (typeMapping);
+        if (const auto result = applyRuntimeProfileEnumParam (plugin,
+                                                              validParamIds,
+                                                              staleParamIds,
+                                                              "type",
+                                                               typeParamId,
+                                                               requestedType,
+                                                               typeDomain,
+                                                               applied); result.failed())
+            return result;
+    }
 
     if (const auto result = applyRuntimeProfileParam (plugin,
                                                       validParamIds,
@@ -1757,17 +1950,38 @@ juce::Result applyEqRuntimeControl (te::Plugin& plugin,
     }
 
     if (enableParamId.isNotEmpty())
+    {
+        double enableValue = 1.0;
+        readNumericFromTarget (command, target, { "enabled", "enable", "band_enable" }, enableValue);
         if (const auto result = applyRuntimeProfileParam (plugin,
                                                           validParamIds,
                                                           staleParamIds,
                                                           "enable",
                                                            enableParamId,
-                                                           1.0,
+                                                           enableValue,
                                                            requestedMode,
                                                            enableMapping,
                                                            "enable",
                                                            applied); result.failed())
             return result;
+    }
+
+    double dynEnableValue = 0.0;
+    if (dynEnableParamId.isNotEmpty()
+        && readNumericFromTarget (command, target, { "dyn_enable", "dynamic_enable", "dynamics_enabled" }, dynEnableValue))
+    {
+        if (const auto result = applyRuntimeProfileParam (plugin,
+                                                          validParamIds,
+                                                          staleParamIds,
+                                                          "dyn_enable",
+                                                           dynEnableParamId,
+                                                           dynEnableValue,
+                                                           requestedMode,
+                                                           dynEnableMapping,
+                                                           "dyn_enable",
+                                                           applied); result.failed())
+            return result;
+    }
 
     if (applied.isEmpty())
         return juce::Result::fail ("EQ runtime control resolved no writable parameters for group: " + groupId);

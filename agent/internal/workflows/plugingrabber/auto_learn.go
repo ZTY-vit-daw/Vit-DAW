@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"sort"
+	"strconv"
 	"strings"
 	"unicode"
 )
@@ -11,6 +12,10 @@ import (
 const (
 	autoLearnSourceEQBandPattern = "auto_learn_eq_band_pattern"
 	autoLearnConfidence          = 0.94
+	// maxEQBandIndex bounds how many band numbers auto-learn scans for.
+	// Simple parametric EQs (TDR Nova) have 3-4 bands; graphic/multiband EQs
+	// (Fabfilter Pro-Q 3) go up to 24, so this needs real headroom above that.
+	maxEQBandIndex = 32
 )
 
 type eqBandDraft struct {
@@ -172,7 +177,7 @@ func detectEQBands(digest ParameterDigest) []eqBandDraft {
 		}
 	}
 	out := []eqBandDraft{}
-	sort.Strings(order)
+	sort.Slice(order, func(i, j int) bool { return eqBandIndex(order[i]) < eqBandIndex(order[j]) })
 	for _, id := range order {
 		band := byID[id]
 		if band == nil {
@@ -195,11 +200,21 @@ func detectEQBands(digest ParameterDigest) []eqBandDraft {
 	return nil
 }
 
+// eqBandIndex parses the numeric suffix of a "b<N>" band ID for numeric
+// sorting (band IDs must otherwise sort as strings: b1, b10..b19, b2, ...).
+func eqBandIndex(id string) int {
+	n, err := strconv.Atoi(strings.TrimPrefix(id, "b"))
+	if err != nil {
+		return 0
+	}
+	return n
+}
+
 func classifyEQBandParam(param ParameterInfo) (int, string, int) {
 	bestBand := 0
 	bestSlot := ""
 	bestScore := 0
-	for band := 1; band <= 8; band++ {
+	for band := 1; band <= maxEQBandIndex; band++ {
 		if !paramTextHasBand(param, band) {
 			continue
 		}
@@ -219,10 +234,10 @@ func classifyEQBandSlotScore(param ParameterInfo, band int, slot string) int {
 	text := normalizedParamText(param)
 	compact := compactTokenText(text)
 	score := 0
-	if strings.Contains(compact, fmt.Sprintf("b%d", band)) {
+	if hasBoundedBandToken(compact, "b", band) {
 		score += 4
 	}
-	if strings.Contains(compact, fmt.Sprintf("band%d", band)) {
+	if hasBoundedBandToken(compact, "band", band) {
 		score += 5
 	}
 	switch slot {
@@ -254,6 +269,7 @@ func classifyEQBandSlotScore(param ParameterInfo, band int, slot string) int {
 		if strings.Contains(compact, fmt.Sprintf("b%don", band)) || strings.Contains(compact, fmt.Sprintf("band%don", band)) {
 			score += 7
 		}
+		score += booleanToggleBonus(param)
 	case "dyn_enable":
 		if strings.Contains(compact, fmt.Sprintf("b%ddyn", band)) || strings.Contains(compact, fmt.Sprintf("band%ddyn", band)) {
 			score += 10
@@ -261,6 +277,7 @@ func classifyEQBandSlotScore(param ParameterInfo, band int, slot string) int {
 		if strings.Contains(compact, "dynamic") || strings.Contains(compact, "dyn") {
 			score += 4
 		}
+		score += booleanToggleBonus(param)
 	case "type":
 		if strings.Contains(compact, fmt.Sprintf("b%dtype", band)) || strings.Contains(compact, fmt.Sprintf("band%dtype", band)) ||
 			strings.Contains(compact, fmt.Sprintf("b%dshape", band)) || strings.Contains(compact, fmt.Sprintf("band%dshape", band)) {
@@ -276,12 +293,47 @@ func classifyEQBandSlotScore(param ParameterInfo, band int, slot string) int {
 	return int(math.Max(0, float64(score)))
 }
 
+// booleanToggleBonus rewards parameters that are actually a two-state
+// toggle over ones that merely share an "enable"/"dyn" keyword. Without this,
+// a continuous amount parameter (e.g. "Band 1 Dynamic Range", -30~30dB) and
+// the real boolean toggle (e.g. "Band 1 Dynamics Enabled") score identically
+// on keyword match alone, and the strict-greater-than tie-break in
+// detectEQBands then keeps whichever one was encountered first — which is
+// not necessarily the toggle.
+func booleanToggleBonus(param ParameterInfo) int {
+	if param.IsBoolean || (param.IsDiscrete && param.NumSteps == 2) {
+		return 6
+	}
+	return 0
+}
+
 func paramTextHasBand(param ParameterInfo, band int) bool {
 	text := normalizedParamText(param)
 	compact := compactTokenText(text)
-	return strings.Contains(compact, fmt.Sprintf("b%d", band)) ||
-		strings.Contains(compact, fmt.Sprintf("band%d", band)) ||
+	return hasBoundedBandToken(compact, "b", band) ||
+		hasBoundedBandToken(compact, "band", band) ||
 		strings.Contains(text, fmt.Sprintf("band %d", band))
+}
+
+// hasBoundedBandToken reports whether compact contains prefix+strconv.Itoa(band)
+// as a whole token — i.e. not immediately followed by another digit. Without
+// this check, "band1" matches inside "band10".."band19" (and "b1" inside
+// "b10".."b19"), silently merging a 24-band plugin's higher bands into band 1.
+func hasBoundedBandToken(compact, prefix string, band int) bool {
+	token := prefix + strconv.Itoa(band)
+	idx := 0
+	for {
+		pos := strings.Index(compact[idx:], token)
+		if pos < 0 {
+			return false
+		}
+		pos += idx
+		end := pos + len(token)
+		if end >= len(compact) || !unicode.IsDigit(rune(compact[end])) {
+			return true
+		}
+		idx = pos + 1
+	}
 }
 
 func normalizedParamText(param ParameterInfo) string {
