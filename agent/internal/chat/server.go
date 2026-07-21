@@ -59,29 +59,30 @@ type Server struct {
 	webUIRoot    string
 	startedAt    time.Time
 
-	mu                       sync.Mutex
-	conversations            map[string][]llm.Message
-	pending                  map[string]PendingPlan
-	interactions             map[string]PendingInteraction
-	mixSessions              map[string]MixSession
-	goalContinuations        map[string]agentloop.Continuation
-	conversationGoals        map[string]string
-	conversationMemory       map[string]agentloop.ExecutionMemory
-	pendingMixTicks          map[string]agentloop.PendingMixTickCandidate
-	pendingTreatments        map[string]agentloop.MixTreatmentPending
-	pendingManager           *pendingmanager.MemoryManager
-	orchestrationRuntime     *orchestrationruntime.Runtime
-	uiContext                map[string]any
-	events                   map[string][]AgentEvent
-	eventSeq                 map[string]int64
-	webUILogged              bool
-	workspaceMu              sync.Mutex
-	activeWorkspacePath      string
-	activeWorkspaceUUID      string
-	activeWorkspaceSessionID string
-	vpsDraftTestMu           sync.Mutex
-	vpsDraftTestRunMu        sync.Mutex
-	vpsDraftTestTickets      map[string]vpsDraftTestTicket
+	mu                                 sync.Mutex
+	conversations                      map[string][]llm.Message
+	pending                            map[string]PendingPlan
+	interactions                       map[string]PendingInteraction
+	mixSessions                        map[string]MixSession
+	goalContinuations                  map[string]agentloop.Continuation
+	conversationGoals                  map[string]string
+	conversationMemory                 map[string]agentloop.ExecutionMemory
+	pendingMixTicks                    map[string]agentloop.PendingMixTickCandidate
+	pendingTreatments                  map[string]agentloop.MixTreatmentPending
+	pendingManager                     *pendingmanager.MemoryManager
+	orchestrationRuntime               *orchestrationruntime.Runtime
+	pluginEffectControlRuntimeOverride func(context.Context, string, ChatRequest, agentruntime.Goal) ChatResponse
+	uiContext                          map[string]any
+	events                             map[string][]AgentEvent
+	eventSeq                           map[string]int64
+	webUILogged                        bool
+	workspaceMu                        sync.Mutex
+	activeWorkspacePath                string
+	activeWorkspaceUUID                string
+	activeWorkspaceSessionID           string
+	vpsDraftTestMu                     sync.Mutex
+	vpsDraftTestRunMu                  sync.Mutex
+	vpsDraftTestTickets                map[string]vpsDraftTestTicket
 }
 
 type PendingPlan struct {
@@ -1183,6 +1184,15 @@ func (s *Server) handleInvoke(w http.ResponseWriter, r *http.Request) {
 	}
 	if resp, ok := s.invokeMixSessionEntryWorkflow(r.Context(), req); ok {
 		writeJSON(w, http.StatusOK, compactStripSilenceInvokeResponseForTransport(resp))
+		return
+	}
+	if pluginGrabberApplyInvokeRequest(req) {
+		resp, err := s.invokePluginEffectControlHTTP(r.Context(), req)
+		status := http.StatusOK
+		if err != nil && resp.Status == "error" {
+			status = http.StatusBadRequest
+		}
+		writeJSON(w, status, compactStripSilenceInvokeResponseForTransport(resp))
 		return
 	}
 	if equalizerCapabilityInvokeRequest(req) {
@@ -5574,13 +5584,13 @@ If commands is non-empty, keep reply as a short internal intent summary. VitAgen
 
 For plugin loading/grabber setup requests such as loading TDR Nova, finding an EQ/compressor, or loading a plugin and grabbing useful controls, use the special chat workflow command {"cmd":"plugin_grabber_load_and_get_params","track_id":"...","plugin_query":"TDR Nova","intent":"short user intent"}. This workflow searches indexed plugins, asks for confirmation before loading a rack node, then reads parameters after the load succeeds. Do not use instantiate_plugin for these requests; instantiate_plugin requires an exact plugin_path and bypasses the rack grabber workflow.
 For project-scoped plugin grabber learning requests such as learning a plugin, saving quick controls, grouping plugin parameters, or improving plugin control names on an already loaded/selected plugin, use the special chat workflow command {"cmd":"plugin_grabber_learn_project_profile","track_id":"...","plugin_id":"...","intent":"short user intent"}. This workflow is agent-side: it first reads full parameters, asks AI for a profile patch, validates parameter IDs, then asks the user to confirm before saving. Do not use it for ordinary parameter value changes.
-For explicit equalizer/EQ control, first use capability_equalizer_plan / capability.equalizer.plan with a vendor-neutral task such as spectral_region_adjust, highpass, lowpass, or output_control. Read its structured capability gaps or Band resource candidates and reason again before resubmitting. If capability_equalizer_inspect reports status selected_plugin_not_routable (the explicitly selected plugin has no verified SPAL provider) and its response includes a non-empty learned_grabber_fallback object, that IS a usable path, not a dead end: immediately call plugin_grabber_apply_control with an eq.cut_region/eq.boost_region/eq.set_region control using that object's plugin_id, instead of asking the user to swap to a different plugin. The "forbidden"/"no_..._fallback" wording elsewhere in that same payload refers only to auto-loading or auto-swapping a different plug-in - it does not apply to learned_grabber_fallback. Only ask about swapping the plugin when there is no verified SPAL provider AND learned_grabber_fallback is absent or empty.
+For explicit equalizer/EQ control, use capability_equalizer_plan / capability.equalizer.plan with a vendor-neutral task such as spectral_region_adjust, highpass, lowpass, or output_control. This compatibility tool delegates a complete request to the governed B4 plug-in effect path. Provide the selected track_id and plugin_id plus semantic target fields; do not provide band_ref, Provider credentials, or raw parameter IDs. If the selected plug-in has no verified runtime control for the requested operation, fail closed and explain the blocker.
 For plugin grabber explanation, summary, context pack, or "explain controls" requests on an already loaded/selected plugin, use the special read-only workflow command {"cmd":"plugin_grabber_explain_controls","track_id":"...","plugin_id":"...","intent":"short user intent"}. This workflow reads full parameters, then returns a compact context pack with quick controls, groups, roles, and full-parameter access hints. It does not filter or save parameters.
 For basic macro-control creation requests such as creating a generic macro knob/slider, use {"cmd":"control_add_macro","track_id":"...","name":"Macro","control_type":"slider","value":0.5,"bindings":[]}. Do not use rack.add_macro. Semantic macro generation from plugin skills should be proposed for confirmation before writing bindings.
 For macro-control rename requests, use {"cmd":"control_rename_macro","macro_id":"...","name":"New Macro Name"}. If the user names the macro by visible label, resolve it from macro_refs or available_macro_controls; do not create a new macro to rename one.
 When the user asks to bind/map a plugin parameter to an existing macro control, such as "bind B1 Gain to Macro 1", "bind it to this macro", or "绑定到已有宏控件", do not call control_add_macro first. Use the existing macro_id from macro_refs or available_macro_controls and call {"cmd":"control_add_binding","macro_id":"...","track_id":"...","plugin_id":"...","param_id":"...","param_name":"...","target_min":...,"target_max":...}. If the named macro is ambiguous or absent, ask which macro to use instead of creating a new one.
-For an already learned non-EQ plug-in's user-requested provider-specific control, plugin_grabber_apply_control may be used only when that learned profile is the intended authority. Equalizer frequency/gain/Q, shelves, pass filters, and output controls prefer capability_equalizer_plan / capability.equalizer.plan; fall back to plugin_grabber_apply_control with an eq.cut_region/eq.boost_region/eq.set_region control only when capability_equalizer_inspect reports the explicitly selected plugin has no verified SPAL provider and a fresh learned Plugin Grabber profile exists for it. Do not use set_plugin_param/plugin.set_parameter for semantic acoustic targets unless the user explicitly gives an exact param_id and raw value. A missing or stale learned profile is a blocker, not permission to start learning, and is not grounds to silently swap the selected plugin.
-For explicit one-parameter plugin control where the user gives a concrete param_id and a display value/unit, and get_plugin_parameters display_probe evidence is high confidence, set_plugin_param/plugin.set_parameter may use value_text such as "1000 ms" or "28 percent" without a saved profile. Do not use this for semantic mixing, multi-parameter control, or automatic mixing.
+For an already learned plug-in's user-requested provider-specific control, use plugin_grabber_apply_control only when the validated profile is the intended authority. Equalizer frequency/gain/Q, shelves, pass filters, and output controls use capability_equalizer_plan / capability.equalizer.plan, which delegates to the same governed B4 plugin effect path. A missing, stale, or incompatible profile is a blocker, not permission to write raw parameters, start learning, or silently swap the selected plugin.
+Never request raw plug-in parameter mutation. Use semantic controls backed by a verified runtime profile so the B4 Proposal can freeze parameter identities and the complete preimage before authorization.
 For plugin_grabber_apply_control results, treat applied_parameters[].new_value_text, applied_value, and confirmed display_domain data as the evidence. Do not infer a control's min/max from the current value_text snapshot or advisory safety notes.
 For selected/current clip fade/gain read/write requests, use clip.fade.read/set and clip.gain.read/set. Clip gain is static clip-level gain before track processing; do not route it to mixing, track.volume, mix.propose_tick, or mix.apply_tick.
 Mixing is a native Ask Vit conversation capability, not a separate Auto Mix/Co-Mix mode. Do not create a planning card or ask the user to fill one for mixing.

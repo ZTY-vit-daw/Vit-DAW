@@ -22,6 +22,7 @@ const LowEndRelationCapabilityID = "static_mix.low_end_relation.v0"
 const SPALReferenceEQProviderRegistrationCapabilityID = "spal.reference_eq_provider_registration.v0"
 const SPALReferenceEQTestCapabilityID = "spal.reference_eq_test.v0"
 const SPALEQV2CapabilityID = "spal.eq.v2"
+const PluginEffectControlCapabilityID = "plugin.effect_control.v0"
 
 const capabilityRuntimeSystemContext = "Vit Project-aware Capability Runtime v1. Use the fixed PlanningSession engine owner, typed ContextBundle, ProjectCut, Proposal, Authorization, ActionSet, Execution and Verification contracts. Readiness is not authorization. Full derived models remain behind evidence or artifact references unless explicitly requested and admitted by budget."
 
@@ -71,6 +72,15 @@ func (r *Runtime) StartSPALReferenceEQTestChatSession(sessionID, conversationID,
 		"reference_eq_test_only",
 		"no_provider_auto_provisioning",
 		"structural_signal_musical_verification_separated",
+	})
+}
+
+func (r *Runtime) StartPluginEffectControlChatSession(sessionID, conversationID, projectUUID, goal string, mode orchestration.InteractionMode) (orchestration.PlanningSession, error) {
+	return r.startCapabilitySession(sessionID, conversationID, projectUUID, goal, mode, PluginEffectControlCapabilityID, "v0", []string{
+		"verified_runtime_profile_resolution_required",
+		"frozen_parameter_preimage_required",
+		"fresh_readback_and_full_compensation_required",
+		"directional_and_quantitative_evidence_required",
 	})
 }
 

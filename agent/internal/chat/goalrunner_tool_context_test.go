@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"vit-daw-agent/internal/harness"
+	"vit-daw-agent/internal/tools"
 )
 
 func TestAgentLoopToolContextNarrowsTrackRequest(t *testing.T) {
@@ -447,4 +448,22 @@ func containsToolName(names []string, want string) bool {
 		}
 	}
 	return false
+}
+
+func TestAgentLoopNeverExposesRawPluginParameterMutation(t *testing.T) {
+	s := &Server{harness: harness.New(nil, nil, nil)}
+	for _, tc := range []struct {
+		name string
+		ctx  agentLoopToolContext
+	}{
+		{name: "broad", ctx: s.agentLoopToolContext(agentModeDefault, "inspect the project", nil)},
+		{name: "plugin", ctx: s.agentLoopToolContext(agentModeDefault, "adjust the selected TDR Nova EQ", map[string]any{"selected_plugin_name": "TDR Nova"})},
+	} {
+		if containsToolName(tc.ctx.AllowedTools, "plugin.set_parameter") {
+			t.Fatalf("%s model tools expose plugin.set_parameter: %#v", tc.name, tc.ctx.AllowedTools)
+		}
+	}
+	if _, ok := tools.DefaultCatalog().LookupTool("plugin.set_parameter"); !ok {
+		t.Fatal("internal catalog must retain plugin.set_parameter for compensation/internal execution")
+	}
 }

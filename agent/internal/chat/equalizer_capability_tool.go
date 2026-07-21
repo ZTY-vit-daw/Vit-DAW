@@ -32,6 +32,13 @@ type equalizerCapabilityPlan struct {
 	MissingTechnical []string
 }
 
+type equalizerPluginEffectPlan struct {
+	Task             string
+	ApplyArgs        map[string]any
+	MissingSemantic  []string
+	MissingTechnical []string
+}
+
 func isEqualizerCapabilityToolCall(call planner.ToolCall) bool {
 	tool := strings.ToLower(strings.TrimSpace(call.Tool))
 	if tool == equalizerCapabilityInspectTool || tool == equalizerCapabilityPlanTool || tool == equalizerCapabilityInspectCommand || tool == equalizerCapabilityPlanCommand {
@@ -45,8 +52,7 @@ func isEqualizerCapabilityToolCall(call planner.ToolCall) bool {
 // equalizerCapabilityInvokeRequest recognizes the capability seam at the
 // stable HTTP invocation boundary as well as inside AgentLoop.  The generic
 // Harness must not forward this name to Vit as a legacy host command: it is an
-// Agent-owned semantic planner which may then create a governed staging or
-// SPAL Proposal.
+// Agent-owned compatibility planner which creates a governed B4 Proposal.
 func equalizerCapabilityInvokeRequest(req harness.InvokeRequest) bool {
 	return isEqualizerCapabilityToolCall(planner.ToolCall{
 		Tool:    strings.TrimSpace(req.Tool),
@@ -149,10 +155,8 @@ func (s *Server) invokeEqualizerCapabilityTool(ctx context.Context, in executorp
 		command = equalizerCapabilityInspectCommand
 	}
 	base := executorpkg.Result{ToolCallID: toolCallID, Tool: tool, CommandName: command, Status: "ok"}
-	// A VPS Forge staging bridge owns its own narrow, rollback-only execution
-	// path.  It deliberately does not require a SPAL/Catalog runtime, because
-	// a staging VPS must remain invisible to those authority-bearing systems.
-	// The normal SPAL path still performs its stricter runtime check below.
+	// Inspect remains read-only. Complete plans delegate directly to the B4
+	// semantic plug-in control owner and never enter SPAL/Catalog execution.
 	if s == nil || s.harness == nil {
 		base.Status = "error"
 		base.Error = "equalizer capability runtime is unavailable"
@@ -164,7 +168,7 @@ func (s *Server) invokeEqualizerCapabilityTool(ctx context.Context, in executorp
 		return base, nil
 	}
 
-	plan := buildEqualizerCapabilityPlan(args, in.Context)
+	plan := buildEqualizerPluginEffectPlan(args, in.Context)
 	if len(plan.MissingSemantic) > 0 || len(plan.MissingTechnical) > 0 {
 		payload := map[string]any{
 			"status":                   "needs_agent_input",
@@ -173,39 +177,33 @@ func (s *Server) invokeEqualizerCapabilityTool(ctx context.Context, in executorp
 			"task":                     plan.Task,
 			"missing_semantic_fields":  append([]string(nil), plan.MissingSemantic...),
 			"missing_technical_fields": append([]string(nil), plan.MissingTechnical...),
-			"plugin_learning_fallback": "forbidden",
-			"semantic_action":          instructionMap(plan.Request.Instruction),
+			"execution_route":          pluginEffectControlCapabilityID,
+			"reply":                    equalizerPluginEffectGapReply(plan),
 		}
-		if len(plan.MissingSemantic) == 0 && containsIgnoreCase(plan.MissingTechnical, "band_ref") {
-			if resources, err := s.inspectEqualizerBandResources(ctx, plan.Request); err == nil {
-				for key, value := range resources {
-					payload[key] = value
-				}
-				payload["status"] = "needs_agent_resource_choice"
-			} else {
-				payload["provider_resolution_error"] = err.Error()
-				payload["provider_catalog"] = s.inspectEqualizerCapability(ctx, args, in.Context)
-			}
-		}
-		payload["reply"] = equalizerCapabilityGapReply(plan, payload)
 		base.Result = payload
 		return base, nil
 	}
 
 	conversationID := firstNonEmpty(cleanContextText(in.Context["conversation_id"]), "agent_equalizer_"+in.GoalID)
 	message := firstNonEmpty(cleanContextText(in.Context["user_message"]), cleanContextText(args["intent"]), "equalizer capability action")
-	req := ChatRequest{
+	requestContext := pluginEffectControlInvocationContext(
+		contextWithGoal(contextWithConversationID(cloneStringAnyMap(in.Context), conversationID), in.GoalID, in.RunID),
+		plan.ApplyArgs,
+		toolCallID,
+	)
+	if in.Confirmed {
+		requestContext["raw_tool_confirmation_ignored"] = true
+	}
+	response := s.runPluginEffectControlRuntime(ctx, conversationID, ChatRequest{
 		ConversationID: conversationID,
 		Message:        message,
-		Context:        contextWithGoal(contextWithConversationID(cloneStringAnyMap(in.Context), conversationID), in.GoalID, in.RunID),
-	}
-	response := s.handleSPALEQV2StructuredRuntime(ctx, conversationID, req, agentruntime.Goal{GoalID: in.GoalID, RunID: in.RunID, Summary: message}, plan.Request)
+		Context:        requestContext,
+	}, agentruntime.Goal{GoalID: in.GoalID, RunID: in.RunID, Summary: message, Status: agentruntime.StatusRunning})
 	s.attachInteractionRequests(&response)
 	base.Result = equalizerCapabilityResponsePayload(response)
 	base.Preview = response.Preview
 	base.ProjectHistory = response.ProjectHistory
-	// A capability Proposal owns its own durable interaction. Returning a
-	// generic AgentLoop confirmation as well would create a second authority.
+	// The delegated B4 Proposal owns the durable confirmation interaction.
 	base.RequiresConfirmation = false
 	if strings.TrimSpace(response.Error) != "" {
 		base.Status = "error"
@@ -216,28 +214,22 @@ func (s *Server) invokeEqualizerCapabilityTool(ctx context.Context, in executorp
 }
 
 func equalizerCapabilityResponsePayload(response ChatResponse) map[string]any {
-	executionRoute := firstNonEmpty(cleanContextText(response.WorkflowData["execution_route"]), spalEQV2CapabilityID)
-	source := firstNonEmpty(cleanContextText(response.WorkflowData["source"]), "spal")
-	routingEligible := true
-	if value, exists := response.WorkflowData["routing_eligible"]; exists {
-		routingEligible = boolValue(value)
-	}
+	executionRoute := firstNonEmpty(cleanContextText(response.WorkflowData["execution_route"]), pluginEffectControlCapabilityID)
+	source := firstNonEmpty(cleanContextText(response.WorkflowData["source"]), "b4_plugin_effect_control")
 	payload := map[string]any{
-		"status":                   response.GoalStatus,
-		"reply":                    response.Reply,
-		"needs_confirmation":       response.NeedsConfirmation,
-		"plan_id":                  response.PlanID,
-		"preview":                  response.Preview,
-		"workflow":                 response.Workflow,
-		"workflow_data":            response.WorkflowData,
-		"proposal_presentation":    response.ProposalPresentation,
-		"interaction_requests":     response.InteractionRequests,
-		"role":                     "equalizer",
-		"work_card_capability_id":  vps.EqualizerCapabilityID,
-		"execution_route":          executionRoute,
-		"source":                   source,
-		"routing_eligible":         routingEligible,
-		"plugin_learning_fallback": "forbidden",
+		"status":                  response.GoalStatus,
+		"reply":                   response.Reply,
+		"needs_confirmation":      response.NeedsConfirmation,
+		"plan_id":                 response.PlanID,
+		"preview":                 response.Preview,
+		"workflow":                response.Workflow,
+		"workflow_data":           response.WorkflowData,
+		"proposal_presentation":   response.ProposalPresentation,
+		"interaction_requests":    response.InteractionRequests,
+		"role":                    "equalizer",
+		"work_card_capability_id": vps.EqualizerCapabilityID,
+		"execution_route":         executionRoute,
+		"source":                  source,
 	}
 	if len(response.ProjectHistory) > 0 {
 		payload["project_history"] = response.ProjectHistory
@@ -246,6 +238,115 @@ func equalizerCapabilityResponsePayload(response ChatResponse) map[string]any {
 		payload["error"] = response.Error
 	}
 	return payload
+}
+
+func buildEqualizerPluginEffectPlan(args, requestContext map[string]any) equalizerPluginEffectPlan {
+	values := cloneStringAnyMap(args)
+	if values == nil {
+		values = map[string]any{}
+	}
+	task := normalizeEqualizerTask(firstNonEmpty(cleanContextText(values["task"]), cleanContextText(values["action"]), cleanContextText(values["operation"])))
+	trackID := firstNonEmpty(
+		cleanContextText(values["track_id"]), cleanContextText(values["target_ref"]),
+		spalReferenceEQContextText(requestContext, "selected_track_id"), spalReferenceEQContextText(requestContext, "selected_plugin_track_id"),
+		spalReferenceEQContextText(requestContext, "primary_selected_track_id"),
+	)
+	pluginID := firstNonEmpty(cleanContextText(values["plugin_id"]), spalReferenceEQContextText(requestContext, "selected_plugin_id"), spalReferenceEQContextText(requestContext, "primary_selected_plugin_id"))
+	result := equalizerPluginEffectPlan{Task: task}
+	if task == "" {
+		result.MissingSemantic = append(result.MissingSemantic, "task")
+	}
+	if trackID == "" {
+		result.MissingTechnical = append(result.MissingTechnical, "track_id")
+	}
+	if pluginID == "" {
+		result.MissingTechnical = append(result.MissingTechnical, "plugin_id")
+	}
+	target := map[string]any{}
+	control := ""
+	switch task {
+	case "spectral_region_adjust":
+		frequency, frequencyOK := equalizerNumber(values["frequency_hz"])
+		gain, gainOK := equalizerNumber(values["gain_db"])
+		q, qOK := equalizerNumber(values["q"])
+		if !frequencyOK || frequency <= 0 {
+			result.MissingSemantic = append(result.MissingSemantic, "frequency_hz")
+		} else {
+			target["freq_hz"] = frequency
+		}
+		if !gainOK {
+			result.MissingSemantic = append(result.MissingSemantic, "gain_db")
+		} else {
+			target["gain_db"] = gain
+			switch {
+			case gain < 0:
+				control = "eq.cut_region"
+			case gain > 0:
+				control = "eq.boost_region"
+			default:
+				control = "eq.set_region"
+			}
+		}
+		if !qOK || q <= 0 {
+			result.MissingSemantic = append(result.MissingSemantic, "q")
+		} else {
+			target["q"] = q
+		}
+		if shape := normalizeEqualizerShape(cleanContextText(values["response_shape"])); shape != "" {
+			target["response_shape"] = shape
+		}
+		if _, exists := values["enabled"]; exists {
+			target["enabled"] = equalizerBooleanNumber(values["enabled"], 1)
+		}
+	case "highpass", "lowpass":
+		control = "eq." + task
+		frequency, frequencyOK := equalizerNumber(firstNonNil(values["cutoff_frequency_hz"], values["frequency_hz"]))
+		if !frequencyOK || frequency <= 0 {
+			result.MissingSemantic = append(result.MissingSemantic, "cutoff_frequency_hz")
+		} else {
+			target["freq_hz"] = frequency
+		}
+		if slope, ok := equalizerNumber(values["slope_db_per_octave"]); ok && slope > 0 {
+			target["slope_db_per_octave"] = slope
+		} else {
+			result.MissingSemantic = append(result.MissingSemantic, "slope_db_per_octave")
+		}
+	case "output_control":
+		control = "eq.output_control"
+		if _, exists := values["bypass"]; exists {
+			target["bypass"] = equalizerBooleanNumber(values["bypass"], 0)
+		}
+		if value, ok := equalizerNumber(values["dry_mix_percent"]); ok {
+			target["dry_mix_percent"] = value
+		}
+		if value, ok := equalizerNumber(values["output_gain_db"]); ok {
+			target["output_gain_db"] = value
+		}
+		if len(target) == 0 {
+			result.MissingSemantic = append(result.MissingSemantic, "bypass_or_dry_mix_percent_or_output_gain_db")
+		}
+	case "":
+	default:
+		result.MissingSemantic = append(result.MissingSemantic, "supported_task(spectral_region_adjust|highpass|lowpass|output_control)")
+	}
+	if len(result.MissingSemantic) == 0 && len(result.MissingTechnical) == 0 {
+		result.ApplyArgs = map[string]any{"track_id": trackID, "plugin_id": pluginID, "control": control, "target": target}
+	}
+	return result
+}
+
+func equalizerPluginEffectGapReply(plan equalizerPluginEffectPlan) string {
+	missing := append(append([]string(nil), plan.MissingSemantic...), plan.MissingTechnical...)
+	return "equalizer 兼容工具还不能形成 B4 插件控制提案；请补充：" + strings.Join(missing, "、") + "。"
+}
+
+func firstNonNil(values ...any) any {
+	for _, value := range values {
+		if value != nil && strings.TrimSpace(fmt.Sprint(value)) != "" {
+			return value
+		}
+	}
+	return nil
 }
 
 func buildEqualizerCapabilityPlan(args, requestContext map[string]any) equalizerCapabilityPlan {
@@ -451,11 +552,10 @@ func equalizerBooleanNumber(value any, fallback float64) float64 {
 
 func (s *Server) inspectEqualizerCapability(ctx context.Context, args, requestContext map[string]any) map[string]any {
 	result := map[string]any{
-		"role":                     "equalizer",
-		"work_card_capability_id":  vps.EqualizerCapabilityID,
-		"execution_route":          spalEQV2CapabilityID,
-		"plugin_learning_fallback": "forbidden",
-		"status":                   "blocked",
+		"role":                    "equalizer",
+		"work_card_capability_id": vps.EqualizerCapabilityID,
+		"execution_route":         pluginEffectControlCapabilityID,
+		"status":                  "blocked",
 	}
 	if staging := s.inspectVPSForgeStagingEQ(ctx, args, requestContext); len(staging) > 0 {
 		result["vpsforge_staging"] = staging

@@ -56,6 +56,15 @@ func DefaultRegistry() *Registry {
 			VerificationRef: "spal.spectral.static_bell.verification.v0",
 		},
 		CapabilityDefinition{
+			ID:              "plugin.effect_control.v0",
+			Version:         "v0",
+			Family:          "semantic_parameter_application",
+			Description:     "Apply one verified plug-in semantic control through the governed grabber path with frozen preimage, rollback, and evidence verification.",
+			Effects:         []string{"project_mutation", "plugin_parameter_mutation"},
+			RiskCeiling:     "bounded_reversible",
+			VerificationRef: "plugin.effect_control.verification.v0",
+		},
+		CapabilityDefinition{
 			ID:              "spal.eq.v2",
 			Version:         "v2",
 			Family:          "semantic_parameter_application",

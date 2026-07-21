@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"math"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -192,26 +191,19 @@ func proQ3StagingBellRequest() spalEQV2Request {
 	}
 }
 
-func TestVPSForgeStagingEQBridgePlansAndRollsBackWithoutRoutingAuthority(t *testing.T) {
-	server, kernel, library, _ := newVPSForgeStagingEQRuntimeServer(t)
-	before := map[string]float64{}
-	for id, value := range kernel.params {
-		before[id] = value
-	}
-	inspection := server.inspectEqualizerCapability(context.Background(), map[string]any{
-		"track_id": "track_proq", "plugin_id": "plugin_proq",
-	}, map[string]any{"selected_track_id": "track_proq", "selected_plugin_id": "plugin_proq"})
-	if cleanContextText(inspection["status"]) != "staging_candidate" {
-		t.Fatalf("normal Agent inspection did not expose the isolated staging candidate: %#v", inspection)
-	}
-	stagingInspection := mapValue(inspection["vpsforge_staging"])
-	if boolValue(stagingInspection["routing_eligible"]) || cleanContextText(stagingInspection["status"]) != "selected_staging_candidate" {
-		t.Fatalf("staging inspection lost its authority boundary: %#v", stagingInspection)
+func TestVPSForgeStagingEQCandidateDoesNotOwnEqualizerPlanExecution(t *testing.T) {
+	server, kernel, _, _ := newVPSForgeStagingEQRuntimeServer(t)
+	server.pluginEffectControlRuntimeOverride = func(_ context.Context, conversationID string, req ChatRequest, goal agentruntime.Goal) ChatResponse {
+		apply := pluginEffectApplyArgs(req.Context)
+		if cleanContextText(apply["control"]) != "eq.boost_region" {
+			t.Fatalf("equalizer plan did not delegate to B4: %#v", apply)
+		}
+		return pluginEffectProposalTestResponse(conversationID, goal)
 	}
 	out, invokeErr := server.invokeEqualizerCapabilityTool(context.Background(), executorpkg.Input{
 		GoalID: "goal_staging", RunID: "run_staging",
 		ToolCall: planner.ToolCall{ID: "call_staging", Tool: equalizerCapabilityPlanTool, Args: map[string]any{
-			"task": "spectral_region_adjust", "band_ref": "b1", "response_shape": "bell",
+			"task": "spectral_region_adjust", "response_shape": "bell",
 			"frequency_hz": 3188.1, "gain_db": 7.5, "q": 3.024,
 		}},
 		Context: map[string]any{
@@ -220,59 +212,26 @@ func TestVPSForgeStagingEQBridgePlansAndRollsBackWithoutRoutingAuthority(t *test
 		},
 	})
 	if invokeErr != nil || out.Status != "ok" {
-		t.Fatalf("normal Agent staging tool err=%v result=%#v", invokeErr, out)
+		t.Fatalf("B4 delegated tool err=%v result=%#v", invokeErr, out)
 	}
-	result := out.Result
-	planID := cleanContextText(result["plan_id"])
-	if planID == "" || cleanContextText(result["execution_route"]) != vpsForgeStagingEQWorkflow {
-		t.Fatalf("normal Agent staging plan=%#v", result)
-	}
-	if cleanContextText(result["source"]) != vpsForgeStagingEQSource || boolValue(result["routing_eligible"]) {
-		t.Fatalf("staging authority boundary missing: %#v", result)
+	if cleanContextText(out.Result["execution_route"]) != pluginEffectControlCapabilityID {
+		t.Fatalf("staging path retained execution authority: %#v", out.Result)
 	}
 	if writes := vpsForgeStagingEQWriteCount(kernel.commands); writes != 0 {
-		t.Fatalf("planning wrote %d plugin parameters", writes)
-	}
-	status, executed := server.resolvePendingPlanDecision(context.Background(), planID, "approve")
-	if status != 200 || cleanContextText(executed["status"]) != "ok" {
-		t.Fatalf("staging execution status=%d result=%#v", status, executed)
-	}
-	summary := mapValue(executed["staging_execution"])
-	if cleanContextText(summary["source"]) != vpsForgeStagingEQSource || boolValue(summary["routing_eligible"]) || cleanContextText(summary["report_path"]) == "" {
-		t.Fatalf("staging execution boundary/result=%#v", summary)
-	}
-	if _, err := os.Stat(cleanContextText(summary["report_path"])); err != nil {
-		t.Fatalf("staging report missing: %v", err)
-	}
-	for id, wanted := range before {
-		if math.Abs(kernel.params[id]-wanted) > 0.0001 {
-			t.Fatalf("parameter %s not restored: got=%v want=%v all=%#v", id, kernel.params[id], wanted, kernel.params)
-		}
-	}
-	if writes := vpsForgeStagingEQWriteCount(kernel.commands); writes < 6 {
-		t.Fatalf("expected probe and rollback writes, got %d commands=%#v", writes, kernel.commands)
-	}
-	if strings.Contains(strings.ToLower(fmt.Sprint(summary["report"])), "conformed") {
-		t.Fatalf("staging report was promoted beyond observed evidence: %#v", summary)
-	}
-	catalog, err := library.Catalog()
-	if err != nil || len(catalog.Entries) != 0 {
-		t.Fatalf("staging bridge created Catalog authority: catalog=%#v err=%v", catalog, err)
-	}
-	canonicalLibrary, canonicalErr := server.userVPSLibrary()
-	canonicalCatalog, catalogErr := canonicalLibrary.Catalog()
-	if canonicalErr != nil || catalogErr != nil || len(canonicalCatalog.Entries) != 0 {
-		t.Fatalf("staging bridge touched the normal Agent Catalog: library=%#v catalog=%#v errors=%v/%v", canonicalLibrary, canonicalCatalog, canonicalErr, catalogErr)
+		t.Fatalf("proposal planning wrote %d plugin parameters", writes)
 	}
 }
 
-func TestVPSForgeStagingEQHTTPInvokeUsesCapabilitySeam(t *testing.T) {
+func TestEqualizerHTTPInvokeDelegatesPastStagingToB4(t *testing.T) {
 	server, kernel, _, _ := newVPSForgeStagingEQRuntimeServer(t)
+	server.pluginEffectControlRuntimeOverride = func(_ context.Context, conversationID string, _ ChatRequest, goal agentruntime.Goal) ChatResponse {
+		return pluginEffectProposalTestResponse(conversationID, goal)
+	}
 	body, err := json.Marshal(harness.InvokeRequest{
 		Tool: equalizerCapabilityPlanCommand,
 		Args: map[string]any{
 			"task": "spectral_region_adjust", "track_id": "track_proq", "plugin_id": "plugin_proq",
-			"band_ref": "b1", "response_shape": "bell", "frequency_hz": 3188.1, "gain_db": 7.5, "q": 3.024, "enabled": true,
+			"frequency_hz": 3188.1, "gain_db": 7.5, "q": 3.024, "enabled": true,
 		},
 		Source: "vpsforge_http_test",
 	})
@@ -293,8 +252,8 @@ func TestVPSForgeStagingEQHTTPInvokeUsesCapabilitySeam(t *testing.T) {
 	if response.Status != "ok" || response.Tool != equalizerCapabilityPlanTool || response.CommandName != equalizerCapabilityPlanCommand {
 		t.Fatalf("HTTP capability response=%#v", response)
 	}
-	if planID := cleanContextText(response.Result["plan_id"]); planID == "" || cleanContextText(response.Result["execution_route"]) != vpsForgeStagingEQWorkflow {
-		t.Fatalf("HTTP invoke did not create a staging proposal: %#v", response.Result)
+	if cleanContextText(response.Result["execution_route"]) != pluginEffectControlCapabilityID {
+		t.Fatalf("HTTP invoke did not create a B4 proposal: %#v", response.Result)
 	}
 	if writes := vpsForgeStagingEQWriteCount(kernel.commands); writes != 0 {
 		t.Fatalf("HTTP planning wrote %d plug-in parameters", writes)

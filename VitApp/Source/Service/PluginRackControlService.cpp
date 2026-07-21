@@ -1511,6 +1511,27 @@ juce::var makeAppliedParameterRecord (const juce::String& slot,
     return juce::var (row.release());
 }
 
+juce::var makeResolvedParameterRecord (const juce::String& slot,
+                                       const juce::String& paramId,
+                                       te::AutomatableParameter& param,
+                                       double requestedValue,
+                                       const ResolvedApplyValue& resolved)
+{
+    auto row = std::make_unique<juce::DynamicObject>();
+    row->setProperty ("slot", slot);
+    row->setProperty ("param_id", paramId);
+    row->setProperty ("param_name", param.getParameterName());
+    row->setProperty ("requested_value", requestedValue);
+    row->setProperty ("value_mode", resolved.mode);
+    row->setProperty ("resolved_value", resolved.value);
+    row->setProperty ("resolved_as_normalised", resolved.normalised);
+    row->setProperty ("old_value", param.getCurrentValue());
+    row->setProperty ("old_normalised_value", param.getCurrentNormalisedValue());
+    row->setProperty ("old_value_text", param.getCurrentValueAsString());
+    row->setProperty ("resolution_only", true);
+    return juce::var (row.release());
+}
+
 std::unordered_set<std::string> collectCurrentParamIds (const juce::Array<juce::var>& parameterDescriptors)
 {
     std::unordered_set<std::string> validParamIds;
@@ -1531,6 +1552,7 @@ juce::Result applyRuntimeProfileParam (te::Plugin& plugin,
                                        const juce::String& requestedMode,
                                        const juce::var& profileMapping,
                                        const juce::String& targetKey,
+                                       bool resolveOnly,
                                        juce::Array<juce::var>& applied)
 {
     if (paramId.isEmpty())
@@ -1551,6 +1573,12 @@ juce::Result applyRuntimeProfileParam (te::Plugin& plugin,
     if (! resolved.ok)
         return juce::Result::fail (resolved.error);
 
+    if (resolveOnly)
+    {
+        applied.add (makeResolvedParameterRecord (slot, paramId, *param, requestedValue, resolved));
+        return juce::Result::ok();
+    }
+
     param->parameterChangeGestureBegin();
     if (resolved.normalised)
         param->setNormalisedParameter (resolved.value, juce::sendNotification);
@@ -1569,6 +1597,7 @@ juce::Result applyRuntimeProfileEnumParam (te::Plugin& plugin,
                                            const juce::String& paramId,
                                            const juce::String& requestedText,
                                            const RuntimeDisplayDomain& domain,
+                                           bool resolveOnly,
                                            juce::Array<juce::var>& applied)
 {
     if (paramId.isEmpty())
@@ -1588,6 +1617,12 @@ juce::Result applyRuntimeProfileEnumParam (te::Plugin& plugin,
     const auto resolved = resolveEnumApplyValue (*param, requestedText, domain);
     if (! resolved.ok)
         return juce::Result::fail (resolved.error);
+
+    if (resolveOnly)
+    {
+        applied.add (makeResolvedParameterRecord (slot, paramId, *param, 0.0, resolved));
+        return juce::Result::ok();
+    }
 
     param->parameterChangeGestureBegin();
     if (resolved.normalised)
@@ -1753,6 +1788,7 @@ juce::Result applyVirtualControlParams (te::Plugin& plugin,
                                         const juce::DynamicObject& command,
                                         const juce::DynamicObject& target,
                                         const juce::var& safety,
+                                        bool resolveOnly,
                                         juce::Array<juce::var>& applied)
 {
     auto* control = virtualControl.getDynamicObject();
@@ -1785,23 +1821,16 @@ juce::Result applyVirtualControlParams (te::Plugin& plugin,
             if (! domain.isEnum || ! readEnumTargetValue (command, target, slot, enumText))
                 continue;
 
-            auto param = resolvePluginParameterByID (plugin, paramId);
-            if (param == nullptr)
-                return juce::Result::fail ("runtime profile mapped " + slot + " to unresolved param_id: " + paramId);
-
-            const auto previousValue = param->getCurrentValue();
-            const auto resolved = resolveEnumApplyValue (*param, enumText, domain);
-            if (! resolved.ok)
-                return juce::Result::fail (resolved.error);
-
-            param->parameterChangeGestureBegin();
-            if (resolved.normalised)
-                param->setNormalisedParameter (resolved.value, juce::sendNotification);
-            else
-                param->setParameter (resolved.value, juce::sendNotification);
-            param->parameterChangeGestureEnd();
-
-            applied.add (makeAppliedParameterRecord (slot, paramId, *param, 0.0, resolved, previousValue));
+            if (const auto result = applyRuntimeProfileEnumParam (plugin,
+                                                                  validParamIds,
+                                                                  staleParamIds,
+                                                                  slot,
+                                                                  paramId,
+                                                                  enumText,
+                                                                  domain,
+                                                           resolveOnly,
+                                                                  applied); result.failed())
+                return result;
             continue;
         }
 
@@ -1822,6 +1851,7 @@ juce::Result applyVirtualControlParams (te::Plugin& plugin,
                                                            requestedMode,
                                                            profileMapping,
                                                            targetKey,
+                                                           resolveOnly,
                                                            applied); result.failed())
             return result;
     }
@@ -1840,6 +1870,7 @@ juce::Result applyEqRuntimeControl (te::Plugin& plugin,
                                     const juce::DynamicObject& target,
                                     const juce::String& preferredComponentId,
                                     const juce::var& safety,
+                                    bool resolveOnly,
                                     juce::Array<juce::var>& applied,
                                     juce::var& selectedGroup)
 {
@@ -1888,6 +1919,7 @@ juce::Result applyEqRuntimeControl (te::Plugin& plugin,
                                                                typeParamId,
                                                                requestedType,
                                                                typeDomain,
+                                                           resolveOnly,
                                                                applied); result.failed())
             return result;
     }
@@ -1901,6 +1933,7 @@ juce::Result applyEqRuntimeControl (te::Plugin& plugin,
                                                        requestedMode,
                                                        frequencyMapping,
                                                        "freq_hz",
+                                                           resolveOnly,
                                                        applied); result.failed())
         return result;
 
@@ -1922,6 +1955,7 @@ juce::Result applyEqRuntimeControl (te::Plugin& plugin,
                                                        requestedMode,
                                                        gainMapping,
                                                        "gain_db",
+                                                           resolveOnly,
                                                        applied); result.failed())
         return result;
 
@@ -1938,6 +1972,7 @@ juce::Result applyEqRuntimeControl (te::Plugin& plugin,
                                                        requestedMode,
                                                        qMapping,
                                                        "q",
+                                                           resolveOnly,
                                                        applied); result.failed())
         return result;
 
@@ -1954,6 +1989,7 @@ juce::Result applyEqRuntimeControl (te::Plugin& plugin,
                                                            requestedMode,
                                                            thresholdMapping,
                                                            "threshold_db",
+                                                           resolveOnly,
                                                            applied); result.failed())
             return result;
     }
@@ -1971,6 +2007,7 @@ juce::Result applyEqRuntimeControl (te::Plugin& plugin,
                                                            requestedMode,
                                                            enableMapping,
                                                            "enable",
+                                                           resolveOnly,
                                                            applied); result.failed())
             return result;
     }
@@ -1988,6 +2025,7 @@ juce::Result applyEqRuntimeControl (te::Plugin& plugin,
                                                            requestedMode,
                                                            dynEnableMapping,
                                                            "dyn_enable",
+                                                           resolveOnly,
                                                            applied); result.failed())
             return result;
     }
@@ -3576,6 +3614,8 @@ juce::String PluginRackControlService::handlePluginGrabberApplyControl (const ju
     if (trackID.isEmpty() || pluginID.isEmpty() || controlName.isEmpty())
         return makeErrorReply ("plugin_grabber_apply_control requires track_id, plugin_id, and control");
 
+    const auto resolveOnly = static_cast<bool> (object.getProperty ("resolve_only"))
+                          || static_cast<bool> (object.getProperty ("preview"));
     const auto targetVar = object.getProperty ("target");
     const auto* targetObject = targetVar.getDynamicObject();
     if (targetObject == nullptr)
@@ -3644,6 +3684,7 @@ juce::String PluginRackControlService::handlePluginGrabberApplyControl (const ju
                                                          object,
                                                          *targetObject,
                                                          profileMerge.safety,
+                                                           resolveOnly,
                                                          applied);
         }
     }
@@ -3659,6 +3700,7 @@ juce::String PluginRackControlService::handlePluginGrabberApplyControl (const ju
                                              *targetObject,
                                              componentId,
                                              profileMerge.safety,
+                                                           resolveOnly,
                                              applied,
                                              selectedGroup);
     }
@@ -3673,13 +3715,18 @@ juce::String PluginRackControlService::handlePluginGrabberApplyControl (const ju
         return makeErrorReply (message);
     }
 
-    flushPluginOrOwnerState (*plugin);
-    edit->dispatchPendingUpdatesSynchronously();
-    edit->getTransport().ensureContextAllocated (true);
+    if (! resolveOnly)
+    {
+        flushPluginOrOwnerState (*plugin);
+        edit->dispatchPendingUpdatesSynchronously();
+        edit->getTransport().ensureContextAllocated (true);
+    }
 
     auto response = std::make_unique<juce::DynamicObject>();
     response->setProperty ("status", "ok");
-    response->setProperty ("message", "Plugin grabber control applied");
+    response->setProperty ("message", resolveOnly ? "Plugin grabber control resolved without mutation"
+                                                   : "Plugin grabber control applied");
+    response->setProperty ("resolution_only", resolveOnly);
     response->setProperty ("track_id", trackID);
     response->setProperty ("plugin_id", pluginID);
     response->setProperty ("control", controlName);
@@ -3692,7 +3739,10 @@ juce::String PluginRackControlService::handlePluginGrabberApplyControl (const ju
         response->setProperty ("profile_param_signature_hash", storedSignatureHash);
     response->setProperty ("profile_stale_param_ids", juce::var (stringArrayToVarArray (profileMerge.staleParamIds)));
     response->setProperty ("resolution", makeControlResolutionRecord (resolver, componentId, selectedVirtualControl, selectedGroup));
-    response->setProperty ("applied_parameters", juce::var (applied));
+    if (resolveOnly)
+        response->setProperty ("resolved_parameters", juce::var (applied));
+    else
+        response->setProperty ("applied_parameters", juce::var (applied));
     return juce::JSON::toString (juce::var (response.release()));
 }
 

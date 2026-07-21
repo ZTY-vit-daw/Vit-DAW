@@ -496,7 +496,7 @@ func argHint(commandName string) string {
 	case "capability_equalizer_inspect":
 		return "optional target_ref:string track_id:string plugin_id:string provider_credential_id:string"
 	case "capability_equalizer_plan":
-		return "task:spectral_region_adjust|highpass|lowpass|output_control optional target_ref:string track_id:string plugin_id:string provider_credential_id:string band_ref:b1|b2|b3|b4 response_shape:bell|low_shelf|high_shelf frequency_hz:number gain_db:number q:number enabled:boolean cutoff_frequency_hz:number slope_db_per_octave:number bypass:boolean dry_mix_percent:number output_gain_db:number"
+		return "task:spectral_region_adjust|highpass|lowpass|output_control track_id:string plugin_id:string optional response_shape:bell|low_shelf|high_shelf frequency_hz:number gain_db:number q:number enabled:boolean cutoff_frequency_hz:number slope_db_per_octave:number bypass:boolean dry_mix_percent:number output_gain_db:number"
 	case "import_midi_to_track":
 		return "track_id:string file_path:string optional start_time_beats:number mode:merge_tracks"
 	case "get_midi_clip_notes", "get_midi_clip_data":
@@ -795,7 +795,7 @@ func defaultSpecs() []CommandSpec {
 		spec("plugin_grabber_remove_project_profile", "plugin_grabber.remove_project_profile", "plugin_grabber", "Remove a project-scoped plugin grabber profile.", RiskConfirm, true, false, true, true),
 		spec("plugin_grabber_apply_control", "plugin_grabber.apply_control", "plugin_grabber", "Apply a learned plugin grabber runtime control from an acoustic target using the current validated parameter profile; result.applied_parameters[].new_value_text is the actual applied display value.", RiskUndoable, true, true, false, true, "track_id", "plugin_id"),
 		spec("capability_equalizer_inspect", "capability.equalizer.inspect", "capability", "Read the equalizer work-card contract, currently loaded Provider candidates, conformed generic actions, and capability gaps without learning a plugin or exposing raw parameter IDs.", RiskDirect, false, false, false, false),
-		spec("capability_equalizer_plan", "capability.equalizer.plan", "capability", "Submit a vendor-neutral equalizer task action to the capability layer. The capability layer returns semantic gaps or Band resource choices to the Agent, and only a complete action is handed to SPAL for verified VPS Provider binding and a governed Proposal. Never substitute Plugin Learning for this tool.", RiskUndoable, true, true, false, true),
+		spec("capability_equalizer_plan", "capability.equalizer.plan", "capability", "Compatibility tool for vendor-neutral equalizer tasks. A complete request is translated to one semantic plugin_grabber control and delegated to the governed B4 Proposal path; no raw parameter mutation or SPAL/Catalog credential fallback is allowed.", RiskUndoable, true, true, false, true),
 		spec("delete_plugin", "plugin.delete", "plugin", "Delete a plugin instance.", RiskConfirm, true, true, true, true, "track_id", "plugin_id"),
 		spec("move_plugin", "plugin.move", "plugin", "Move a plugin instance.", RiskConfirm, true, true, true, true, "track_id", "plugin_id"),
 

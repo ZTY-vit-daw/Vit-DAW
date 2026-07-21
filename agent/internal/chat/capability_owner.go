@@ -16,7 +16,7 @@ type capabilityOwnerResolution struct {
 
 func (s *Server) resolveCapabilityOwner(conversationID string, req ChatRequest) capabilityOwnerResolution {
 	explicitCapability := firstStringFromMap(req.Context, "capability_id", "capability")
-	if explicitCapability != staticBalanceCapabilityID && explicitCapability != panLayoutCapabilityID && explicitCapability != lowEndRelationCapabilityID && explicitCapability != spalReferenceEQProviderRegistrationCapabilityID && explicitCapability != spalReferenceEQTestCapabilityID && explicitCapability != spalEQV2CapabilityID {
+	if explicitCapability != staticBalanceCapabilityID && explicitCapability != panLayoutCapabilityID && explicitCapability != lowEndRelationCapabilityID && explicitCapability != spalReferenceEQProviderRegistrationCapabilityID && explicitCapability != spalReferenceEQTestCapabilityID && explicitCapability != spalEQV2CapabilityID && explicitCapability != pluginEffectControlCapabilityID {
 		explicitCapability = ""
 	}
 	// A recovered Proposal interaction already carries the exact durable
@@ -93,7 +93,7 @@ func (s *Server) activeCapabilitySessions(conversationID string) []orchestration
 		if session.EngineOwner != orchestration.EngineV1 || session.Terminal() || !sessionBelongsToConversation(session, conversationID) {
 			continue
 		}
-		if session.Invocation.CapabilityID == staticBalanceCapabilityID || session.Invocation.CapabilityID == panLayoutCapabilityID || session.Invocation.CapabilityID == lowEndRelationCapabilityID || session.Invocation.CapabilityID == spalReferenceEQProviderRegistrationCapabilityID || session.Invocation.CapabilityID == spalReferenceEQTestCapabilityID || session.Invocation.CapabilityID == spalEQV2CapabilityID {
+		if session.Invocation.CapabilityID == staticBalanceCapabilityID || session.Invocation.CapabilityID == panLayoutCapabilityID || session.Invocation.CapabilityID == lowEndRelationCapabilityID || session.Invocation.CapabilityID == spalReferenceEQProviderRegistrationCapabilityID || session.Invocation.CapabilityID == spalReferenceEQTestCapabilityID || session.Invocation.CapabilityID == spalEQV2CapabilityID || session.Invocation.CapabilityID == pluginEffectControlCapabilityID {
 			out = append(out, session)
 		}
 	}
@@ -127,6 +127,8 @@ func capabilitySessionBase(conversationID, capabilityID string) string {
 		prefix += "_spal_refeq"
 	} else if capabilityID == spalEQV2CapabilityID {
 		prefix += "_spal_eq_v2"
+	} else if capabilityID == pluginEffectControlCapabilityID {
+		prefix += "_plugin_effect"
 	} else {
 		prefix += "_cap"
 	}

@@ -325,6 +325,11 @@ func (e pluginGrabberWorkflowExecutor) RunToolCall(ctx context.Context, in execu
 	if e.server != nil {
 		e.server.emitToolItemStarted(in, toolCallID)
 	}
+	if e.server != nil && isPluginGrabberApplyToolCall(in.ToolCall) {
+		out, err := e.invokeGovernedPluginEffectControl(ctx, in, toolCallID)
+		e.server.emitToolItemCompleted(in, out, err)
+		return out, err
+	}
 	if e.server != nil && isEqualizerCapabilityToolCall(in.ToolCall) {
 		out, err := e.server.invokeEqualizerCapabilityTool(ctx, in)
 		if strings.TrimSpace(out.ToolCallID) == "" {
@@ -415,6 +420,38 @@ func (e pluginGrabberWorkflowExecutor) RunToolCall(ctx context.Context, in execu
 		e.server.emitToolItemCompleted(in, out, err)
 	}
 	return out, err
+}
+
+func isPluginGrabberApplyToolCall(call planner.ToolCall) bool {
+	name := strings.ToLower(strings.TrimSpace(call.Tool))
+	if name == "plugin_grabber.apply_control" || name == "plugin_grabber.apply" || name == "plugin_grabber_apply_control" {
+		return true
+	}
+	cmd := workflowCommandArgs(call.Command)
+	name = strings.ToLower(firstNonEmpty(cleanContextText(cmd["cmd"]), cleanContextText(cmd["command"]), cleanContextText(cmd["tool"])))
+	return name == "plugin_grabber.apply_control" || name == "plugin_grabber.apply" || name == "plugin_grabber_apply_control" || name == "n_apply_control"
+}
+
+func (e pluginGrabberWorkflowExecutor) invokeGovernedPluginEffectControl(ctx context.Context, in executorpkg.Input, toolCallID string) (executorpkg.Result, error) {
+	conversationID := firstNonEmpty(cleanContextText(in.Context["conversation_id"]), cleanContextText(in.Context["chat_conversation_id"]), "agentloop_"+sanitizeCanaryID(in.GoalID))
+	message := firstNonEmpty(cleanContextText(in.Context["user_message"]), cleanContextText(in.Context["goal_summary"]), "执行已请求的插件语义控制")
+	requestContext := pluginEffectControlInvocationContext(in.Context, in.ToolCall.Args, toolCallID)
+	goal := agentruntime.Goal{GoalID: in.GoalID, RunID: in.RunID, Summary: message, Status: agentruntime.StatusRunning}
+	response := e.server.runPluginEffectControlRuntime(ctx, conversationID, ChatRequest{ConversationID: conversationID, Message: message, Context: requestContext}, goal)
+	status := "needs_confirmation"
+	if response.Error != "" {
+		status = "error"
+	}
+	result := pluginEffectControlResult(response, status)
+	out := executorpkg.Result{
+		ToolCallID: toolCallID, Tool: "plugin_grabber.apply_control", CommandName: "plugin.effect_control.v0",
+		Status: status, RequiresConfirmation: response.NeedsConfirmation, Preview: response.Preview,
+		UndoLabel: "Apply governed plugin control", Result: result, ProjectHistory: response.ProjectHistory, Error: response.Error,
+	}
+	if response.Error != "" {
+		return out, fmt.Errorf("%s", response.Error)
+	}
+	return out, nil
 }
 
 func agentLoopExplicitPluginLearningRequest(in executorpkg.Input) bool {
@@ -1265,7 +1302,7 @@ func toolNamesForAgentLoop(h *harness.Harness, mode string) []string {
 	}
 	for _, tool := range h.Tools() {
 		name := strings.TrimSpace(tool.Name)
-		if name == "" || name == "plugin.instantiate" {
+		if name == "" || name == "plugin.instantiate" || name == "plugin.set_parameter" {
 			continue
 		}
 		if agentModeFromString(mode) == agentModePlan && !isPlanReadOnlyTool(tool) {
@@ -1815,7 +1852,7 @@ func agentLoopPluginTools() []string {
 		"capability.equalizer.inspect", "capability.equalizer.plan",
 		"plugin.list_available", "plugin.search", "plugin.semantic_search", "plugin.semantic_get", "plugin.semantic_build_index", "plugin.scan",
 		"plugin.load_to_rack", "rack.add_node",
-		"plugin.get_parameters", "plugin.set_parameter", "plugin.open", "plugin.show_editor",
+		"plugin.get_parameters", "plugin.open", "plugin.show_editor",
 		"plugin_grabber.get_project_profiles", "plugin_grabber.explain_controls", "plugin_grabber.learn_project_profile", "plugin_grabber.upsert_project_profile", "plugin_grabber.remove_project_profile", "plugin_grabber.apply_control",
 		"control.add_macro", "control.rename_macro", "control.add_binding", "control.set_macro_values",
 	}
