@@ -1094,6 +1094,14 @@ func summarizePluginContextPack(pack map[string]any, opts Options) (map[string]a
 		}
 		out["all_parameters"] = compacted
 	}
+	// eq_band_summary provides the resolved EQ operation model (fixed_slot or
+	// free_floating) and a structured band list with current freq/gain values.
+	// It must survive context compaction unchanged — the model needs exact
+	// param_ids to write, and a truncated band list would silently drop the
+	// entry it should pick.
+	if eqSummary, ok := pack["eq_band_summary"]; ok && !isEmptyValue(eqSummary) {
+		out["eq_band_summary"] = compactValue(eqSummary, opts, 0)
+	}
 	if rows := mapRows(pack["quick_controls"]); len(rows) > 0 {
 		out["quick_controls"] = compactRows(rows, []string{"param_id", "label", "widget", "display_group", "normalized_role", "value", "normalized_value", "value_text", "host_controllable", "control_relevance", "display_domain_candidate", "display_probe", "explanation_hint", "full_parameter_ref"}, opts)
 	}

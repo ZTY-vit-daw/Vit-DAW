@@ -59,7 +59,12 @@ func BuildContextPack(digest ParameterDigest) map[string]any {
 	groups := buildPluginContextGroups(digest, quickIDs)
 	roles := buildPluginRoleSummary(digest)
 	macroCandidates := buildPluginMacroCandidates(quickRows)
-	allParameters := buildPluginAllParameterRows(digest)
+	eqBandSummary := BuildEQBandSummary(digest)
+	// When an EQ band summary is available it already carries the band param_ids
+	// and their display domains, so the flat parameter list can drop its verbose
+	// per-parameter domain objects. Keeping both blew past the model's context
+	// window on a 78-parameter plugin.
+	allParameters := buildPluginAllParameterRows(digest, eqBandSummary == nil)
 	runtimeProfile := buildPluginRuntimeProfile(digest)
 	pluginName := digest.PluginName
 	if pluginName == "" {
@@ -105,6 +110,7 @@ func BuildContextPack(digest ParameterDigest) map[string]any {
 		"groups":           groups,
 		"role_summary":     roles,
 		"runtime_profile":  runtimeProfile,
+		"eq_band_summary":  eqBandSummary,
 		"full_parameter_access": map[string]any{
 			"command":   "get_plugin_parameters",
 			"track_id":  digest.TrackID,
@@ -256,13 +262,12 @@ func compactPluginSkillParams(value any, limit int) []map[string]any {
 	return out
 }
 
-// buildPluginAllParameterRows emits the complete controllable surface so the LLM
-// can pick any param_id, not just the heuristic quick-control subset. Each row
-// carries the inferred display domain (unit/min/max/scale) when available; the
-// raw 5-point probe samples are attached only when that inference is missing or
-// low confidence, so a large plugin stays a few KB rather than hundreds of rows
-// of sample text.
-func buildPluginAllParameterRows(digest ParameterDigest) []map[string]any {
+// buildPluginAllParameterRows emits the complete controllable surface.
+// When includeDomain is true, each row carries display_domain_candidate so the
+// LLM can compute normalized values. When false (i.e. eq_band_summary is present
+// and already embeds domain info for the relevant bands), domain objects are
+// omitted to keep the total context pack within the model's window.
+func buildPluginAllParameterRows(digest ParameterDigest, includeDomain bool) []map[string]any {
 	out := make([]map[string]any, 0, len(digest.Parameters))
 	for _, param := range digest.Parameters {
 		row := map[string]any{
@@ -286,15 +291,42 @@ func buildPluginAllParameterRows(digest ParameterDigest) []map[string]any {
 		if !param.HostControllable {
 			row["host_controllable"] = false
 		}
-		needProbe := true
-		if param.DisplayDomainCandidate != nil {
-			row["display_domain_candidate"] = param.DisplayDomainCandidate
-			needProbe = param.DisplayDomainCandidate.Confidence < 0.80
-		}
-		if needProbe && param.DisplayProbe != nil {
-			row["display_probe"] = param.DisplayProbe
+		if includeDomain {
+			needProbe := true
+			if param.DisplayDomainCandidate != nil {
+				row["display_domain_candidate"] = param.DisplayDomainCandidate
+				needProbe = param.DisplayDomainCandidate.Confidence < 0.80
+			}
+			if needProbe && param.DisplayProbe != nil {
+				row["display_probe"] = param.DisplayProbe
+			}
+		} else if param.DisplayDomainCandidate != nil {
+			// Compact form: just the numbers needed for unit conversion.
+			row["domain"] = compactDomain(param.DisplayDomainCandidate)
 		}
 		out = append(out, row)
+	}
+	return out
+}
+
+// compactDomain returns a minimal {unit, min, max, scale} object that is
+// enough for unit conversion without the verbose Text/Status/Source fields.
+func compactDomain(d *PluginDisplayDomain) map[string]any {
+	if d == nil {
+		return nil
+	}
+	out := map[string]any{}
+	if d.Unit != "" {
+		out["unit"] = d.Unit
+	}
+	if d.Scale != "" {
+		out["scale"] = d.Scale
+	}
+	if d.Min != nil {
+		out["min"] = d.Min
+	}
+	if d.Max != nil {
+		out["max"] = d.Max
 	}
 	return out
 }

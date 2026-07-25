@@ -447,7 +447,13 @@ func containsToolName(names []string, want string) bool {
 	return false
 }
 
-func TestAgentLoopNeverExposesRawPluginParameterMutation(t *testing.T) {
+// plugin.set_parameter is the Tier 2 direct-control write path. It used to be
+// withheld from the model on the theory that every plugin write should go
+// through a verified semantic profile, but plugins without a profile then had no
+// reachable write path at all and the model failed closed instead of adjusting
+// anything. It is now exposed; correctness comes from eq_band_summary telling the
+// model which param_id to write, not from hiding the tool.
+func TestAgentLoopExposesPluginParameterWriteForDirectControl(t *testing.T) {
 	s := &Server{harness: harness.New(nil, nil, nil)}
 	for _, tc := range []struct {
 		name string
@@ -456,11 +462,20 @@ func TestAgentLoopNeverExposesRawPluginParameterMutation(t *testing.T) {
 		{name: "broad", ctx: s.agentLoopToolContext(agentModeDefault, "inspect the project", nil)},
 		{name: "plugin", ctx: s.agentLoopToolContext(agentModeDefault, "adjust the selected TDR Nova EQ", map[string]any{"selected_plugin_name": "TDR Nova"})},
 	} {
-		if containsToolName(tc.ctx.AllowedTools, "plugin.set_parameter") {
-			t.Fatalf("%s model tools expose plugin.set_parameter: %#v", tc.name, tc.ctx.AllowedTools)
+		if !containsToolName(tc.ctx.AllowedTools, "plugin.set_parameter") {
+			t.Fatalf("%s model tools must expose plugin.set_parameter for Tier 2 direct control: %#v", tc.name, tc.ctx.AllowedTools)
 		}
 	}
 	if _, ok := tools.DefaultCatalog().LookupTool("plugin.set_parameter"); !ok {
 		t.Fatal("internal catalog must retain plugin.set_parameter for compensation/internal execution")
+	}
+}
+
+// Plan mode stays read-only, so the write path must not leak into it.
+func TestAgentLoopPlanModeWithholdsPluginParameterWrite(t *testing.T) {
+	s := &Server{harness: harness.New(nil, nil, nil)}
+	ctx := s.agentLoopToolContext(agentModePlan, "adjust the selected TDR Nova EQ", map[string]any{"selected_plugin_name": "TDR Nova"})
+	if containsToolName(ctx.AllowedTools, "plugin.set_parameter") {
+		t.Fatalf("plan mode must stay read-only: %#v", ctx.AllowedTools)
 	}
 }
