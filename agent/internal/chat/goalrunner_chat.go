@@ -584,7 +584,7 @@ func (s *Server) chatResponseFromAgentLoopResult(conversationID, mode string, re
 		Preview:             res.Preview,
 		ExecutedKernelReply: visibleExecuted,
 		InteractionRequests: agentLoopInteractionRequests(res.Executed),
-		ProjectResultCards:  projectResultCardsFromExecuted(visibleExecuted),
+		ProjectResultCards:  nil,
 		Artifacts:           artifactSummariesFromExecuted(visibleExecuted),
 		GoalStatus:          string(res.Status),
 		GoalSummary:         res.GoalSummary,
@@ -595,6 +595,9 @@ func (s *Server) chatResponseFromAgentLoopResult(conversationID, mode string, re
 		ProjectHistory:      res.ProjectHistory,
 		Error:               res.Error,
 		AgentPlan:           agentPlanForMode(mode, agentPlanFromAgentLoopResult(res)),
+	}
+	if !chatResponseTurnFailed(resp) {
+		resp.ProjectResultCards = projectResultCardsFromExecuted(visibleExecuted)
 	}
 	attachAcousticPackageStatusFromAgentLoopResult(&resp, res.Executed)
 	if res.Status == agentruntime.StatusWaitingConfirmation && res.Continuation != nil {
@@ -1292,7 +1295,12 @@ func toolNamesForAgentLoop(h *harness.Harness, mode string) []string {
 	}
 	for _, tool := range h.Tools() {
 		name := strings.TrimSpace(tool.Name)
-		if name == "" || name == "plugin.instantiate" || name == "plugin.set_parameter" {
+		// plugin.set_parameter (set_plugin_param) is the Tier 2 direct-control
+		// write path: when a plugin has no verified runtime profile, the model
+		// reads all_parameters + display_domain_candidate from explain_controls
+		// and writes a normalized value directly. Excluding it here left the
+		// model with prompt instructions for a tool it could not call.
+		if name == "" || name == "plugin.instantiate" {
 			continue
 		}
 		if agentModeFromString(mode) == agentModePlan && !isPlanReadOnlyTool(tool) {
@@ -1842,6 +1850,7 @@ func agentLoopPluginTools() []string {
 		"plugin.list_available", "plugin.search", "plugin.semantic_search", "plugin.semantic_get", "plugin.semantic_build_index", "plugin.scan",
 		"plugin.load_to_rack", "rack.add_node",
 		"plugin.get_parameters", "plugin.open", "plugin.show_editor",
+		"plugin.set_parameter", // Tier 2 direct-control path: write normalized value when no verified profile exists
 		"plugin_grabber.get_project_profiles", "plugin_grabber.explain_controls", "plugin_grabber.learn_project_profile", "plugin_grabber.upsert_project_profile", "plugin_grabber.remove_project_profile", "plugin_grabber.apply_control",
 		"control.add_macro", "control.rename_macro", "control.add_binding", "control.set_macro_values",
 	}

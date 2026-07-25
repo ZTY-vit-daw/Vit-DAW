@@ -463,7 +463,9 @@ func argHint(commandName string) string {
 		return "pending_actions:[{args:{clip_id:string track_id:string analysis_id:string strip_regions:[{start_seconds:number end_seconds:number}]}}] allow_remove_entire_clip:boolean"
 	case "select_clip":
 		return "clip_id:string optional track_id:string clip_name:string clip_index:number"
-	case "get_plugin_parameters", "open_plugin_ui", "show_plugin_editor":
+	case "get_plugin_parameters":
+		return "track_id:string plugin_id:string optional include_parameters:boolean offset:number limit:number"
+	case "open_plugin_ui", "show_plugin_editor":
 		return "track_id:string plugin_id:string"
 	case "plugin_list_available":
 		return "optional format:string limit:number"
@@ -782,7 +784,7 @@ func defaultSpecs() []CommandSpec {
 		spec("open_plugin_ui", "plugin.open", "plugin", "Open a plugin editor window.", RiskDirect, false, false, false, false, "track_id", "plugin_id"),
 		spec("show_plugin_editor", "plugin.show_editor", "plugin", "Open a plugin editor window.", RiskDirect, false, false, false, false, "track_id", "plugin_id"),
 		spec("get_plugin_parameters", "plugin.get_parameters", "plugin", "Read normalized plugin parameter values.", RiskDirect, false, false, false, false, "track_id", "plugin_id"),
-		spec("set_plugin_param", "plugin.set_parameter", "plugin", "Set one explicit plugin parameter by raw/normalized value, or by plugin-exposed display text via value_text such as 1000 ms when get_plugin_parameters display_probe is high confidence.", RiskUndoable, true, true, false, true, "track_id", "plugin_id", "param_id"),
+		spec("set_plugin_param", "plugin.set_parameter", "plugin", "Set one explicit plugin parameter by normalized value (0.0-1.0). Use display_domain_candidate from explain_controls all_parameters to convert human-unit targets to normalized before calling. Do NOT pass value_text — that path is unreliable and will silently write the wrong value.", RiskUndoable, true, true, false, true, "track_id", "plugin_id", "param_id"),
 		spec("set_plugin_param_aliases", "plugin.set_aliases", "plugin", "Store semantic aliases for plugin parameters.", RiskUndoable, true, true, false, true, "plugin_id"),
 		spec("plugin_grabber_get_project_profiles", "plugin_grabber.get_project_profiles", "plugin_grabber", "Read project-scoped plugin grabber profiles.", RiskDirect, false, false, false, false),
 		spec("plugin_grabber_explain_controls", "plugin_grabber.explain_controls", "plugin_grabber", "Build a compact AI-friendly context pack for one loaded plugin without filtering full parameters.", RiskDirect, false, false, false, false, "track_id", "plugin_id"),

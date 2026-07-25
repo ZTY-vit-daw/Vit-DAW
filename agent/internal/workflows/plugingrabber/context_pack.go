@@ -59,6 +59,7 @@ func BuildContextPack(digest ParameterDigest) map[string]any {
 	groups := buildPluginContextGroups(digest, quickIDs)
 	roles := buildPluginRoleSummary(digest)
 	macroCandidates := buildPluginMacroCandidates(quickRows)
+	allParameters := buildPluginAllParameterRows(digest)
 	runtimeProfile := buildPluginRuntimeProfile(digest)
 	pluginName := digest.PluginName
 	if pluginName == "" {
@@ -78,11 +79,13 @@ func BuildContextPack(digest ParameterDigest) map[string]any {
 		"plugin_name":             pluginName,
 		"plugin_identity":         digest.PluginIdentity,
 		"template_role":           digest.TemplateRole,
-		"profile_source":          source,
-		"profile_applied":         digest.ProfileApplied,
-		"profile_stale_param_ids": digest.ProfileStaleParamIDs,
-		"global_profile_applied":  digest.GlobalProfileApplied,
-		"global_profile_source":   digest.GlobalProfileSource,
+		"profile_source":               source,
+		"profile_applied":              digest.ProfileApplied,
+		"profile_stale_param_ids":      digest.ProfileStaleParamIDs,
+		"global_profile_applied":       digest.GlobalProfileApplied,
+		"global_profile_source":        digest.GlobalProfileSource,
+		"current_param_signature_hash": digest.CurrentParamSignatureHash,
+		"profile_param_signature_hash": digest.ProfileParamSignatureHash,
 		"plugin_class":            digest.PluginClass,
 		"parameters_retained":     true,
 		"parameter_count":         digest.ParameterCount,
@@ -94,18 +97,21 @@ func BuildContextPack(digest ParameterDigest) map[string]any {
 			"source": "local_semantic_hint_rule",
 			"caveat": "Hints are prior clues for AI/user reasoning, not verified facts about the plugin DSP. Keep raw param_id/name and verify by listening or opening the plugin UI when precision matters.",
 		},
-		"quick_controls":   quickRows,
-		"macro_candidates": macroCandidates,
+		"quick_controls":       quickRows,
+		"all_parameters":       allParameters,
+		"all_parameter_count":  len(allParameters),
+		"all_parameters_note":  "This is the complete controllable surface. quick_controls is a small UI convenience subset chosen by local heuristics, NOT the limit of what can be controlled. Always pick param_id from all_parameters when writing a parameter.",
+		"macro_candidates":     macroCandidates,
 		"groups":           groups,
 		"role_summary":     roles,
 		"runtime_profile":  runtimeProfile,
 		"full_parameter_access": map[string]any{
-			"command":       "get_plugin_parameters",
-			"track_id":      digest.TrackID,
-			"plugin_id":     digest.PluginID,
-			"note":          "Use this when more detail is needed; the context pack does not filter or replace the full parameter list.",
-			"all_view":      true,
-			"parameter_ids": firstParameterIDs(digest.Parameters, 24),
+			"command":   "get_plugin_parameters",
+			"track_id":  digest.TrackID,
+			"plugin_id": digest.PluginID,
+			"args":      map[string]any{"include_parameters": true},
+			"note":      "all_parameters above already carries the complete controllable surface. Call this only to re-read live values after a write, or to page through a very large plugin via offset/limit.",
+			"all_view":  true,
 		},
 	}
 }
@@ -246,6 +252,49 @@ func compactPluginSkillParams(value any, limit int) []map[string]any {
 		if row["param_id"] != nil {
 			out = append(out, row)
 		}
+	}
+	return out
+}
+
+// buildPluginAllParameterRows emits the complete controllable surface so the LLM
+// can pick any param_id, not just the heuristic quick-control subset. Each row
+// carries the inferred display domain (unit/min/max/scale) when available; the
+// raw 5-point probe samples are attached only when that inference is missing or
+// low confidence, so a large plugin stays a few KB rather than hundreds of rows
+// of sample text.
+func buildPluginAllParameterRows(digest ParameterDigest) []map[string]any {
+	out := make([]map[string]any, 0, len(digest.Parameters))
+	for _, param := range digest.Parameters {
+		row := map[string]any{
+			"param_id":         param.ID,
+			"name":             parameterDisplayName(param),
+			"normalized_value": param.NormalizedValue,
+			"value_text":       param.ValueText,
+		}
+		if group := strings.TrimSpace(param.DisplayGroup); group != "" {
+			row["display_group"] = group
+		}
+		if role := strings.TrimSpace(param.NormalizedRole); role != "" && role != "other" {
+			row["normalized_role"] = role
+		}
+		if param.IsBoolean {
+			row["is_boolean"] = true
+		}
+		if param.IsDiscrete {
+			row["is_discrete"] = true
+		}
+		if !param.HostControllable {
+			row["host_controllable"] = false
+		}
+		needProbe := true
+		if param.DisplayDomainCandidate != nil {
+			row["display_domain_candidate"] = param.DisplayDomainCandidate
+			needProbe = param.DisplayDomainCandidate.Confidence < 0.80
+		}
+		if needProbe && param.DisplayProbe != nil {
+			row["display_probe"] = param.DisplayProbe
+		}
+		out = append(out, row)
 	}
 	return out
 }
@@ -630,19 +679,6 @@ func firstNonEmptyString(values ...string) string {
 		}
 	}
 	return ""
-}
-
-func firstParameterIDs(params []ParameterInfo, limit int) []string {
-	ids := make([]string, 0, len(params))
-	for _, param := range params {
-		if strings.TrimSpace(param.ID) != "" {
-			ids = append(ids, param.ID)
-		}
-		if len(ids) >= limit {
-			break
-		}
-	}
-	return ids
 }
 
 func groupSortKey(group string) string {

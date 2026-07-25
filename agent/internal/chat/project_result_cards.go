@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"vit-daw-agent/internal/executor"
+	"vit-daw-agent/internal/tools"
 )
 
 func projectResultCardsFromExecuted(executed []map[string]any) []map[string]any {
@@ -34,15 +35,21 @@ func projectResultCardsFromExecuted(executed []map[string]any) []map[string]any 
 func projectResultCardsFromExecutedWithAB(executed []map[string]any, observe executor.Result) []map[string]any {
 	cards := projectResultCardsFromExecuted(executed)
 	ab := projectResultABCardFromObserve(observe)
-	if len(ab) == 0 {
-		return cards
-	}
 	if len(cards) == 0 {
+		candidates := make([]map[string]any, 0, len(executed))
+		for _, entry := range executed {
+			if projectResultExecutionCandidate(entry) {
+				candidates = append(candidates, entry)
+			}
+		}
+		if len(candidates) == 0 {
+			return nil
+		}
 		return []map[string]any{{
 			"kind":       "project_result",
 			"type":       "project_result",
-			"id":         "project_result_ab_" + projectResultStableID(executed),
-			"executions": executed,
+			"id":         "project_result_ab_" + projectResultStableID(candidates),
+			"executions": candidates,
 			"ab_result":  ab,
 		}}
 	}
@@ -128,12 +135,35 @@ func projectResultABUntrustedBody(reason, tapPoint, renderMode string) string {
 	return strings.Join(parts, "；")
 }
 
+// chatResponseTurnFailed reports whether a turn ended in failure, so callers can
+// avoid synthesising project-result cards for it. A blocked capability turn
+// (capabilityCanaryBlockedResponse) sets both Error and a failed GoalStatus
+// while still carrying read-only kernel replies from the evidence it collected
+// before bailing out.
+func chatResponseTurnFailed(resp ChatResponse) bool {
+	if strings.TrimSpace(resp.Error) != "" {
+		return true
+	}
+	switch strings.ToLower(strings.TrimSpace(resp.GoalStatus)) {
+	case "failed", "error", "blocked", "cancelled", "canceled":
+		return true
+	}
+	return false
+}
+
 func projectResultExecutionCandidate(entry map[string]any) bool {
 	if len(entry) == 0 || !projectResultExecutionSucceeded(entry) {
 		return false
 	}
 	commandName := projectResultCommandName(entry)
-	if commandName == "" || projectResultReadOnlyCommand(commandName) {
+	if commandName == "" {
+		return false
+	}
+	if mutates, known := projectResultCatalogMutates(commandName); known {
+		if !mutates {
+			return false
+		}
+	} else if projectResultReadOnlyCommand(commandName) {
 		return false
 	}
 	if strings.Contains(commandName, "browser.") || strings.Contains(commandName, "artifact.") || strings.Contains(commandName, "media.register") {
@@ -144,6 +174,22 @@ func projectResultExecutionCandidate(entry map[string]any) bool {
 		return true
 	}
 	return projectResultLooksLikeProjectMutation(commandName, projectResultUIText(entry))
+}
+
+// projectResultCatalogMutates reports the tool catalog's authoritative
+// MutatesProject flag for commandName, and whether the catalog knows this
+// command at all. Read-only commands (e.g. plugin_grabber.explain_controls,
+// plugin_grabber.get_project_profiles) contain "plugin"/"control" substrings
+// that would otherwise trip the keyword-based mutation heuristic below.
+func projectResultCatalogMutates(commandName string) (mutates bool, known bool) {
+	catalog := tools.DefaultCatalog()
+	if spec, ok := catalog.LookupCommand(commandName); ok {
+		return spec.MutatesProject, true
+	}
+	if spec, ok := catalog.LookupTool(commandName); ok {
+		return spec.MutatesProject, true
+	}
+	return false, false
 }
 
 func projectResultExecutionSucceeded(entry map[string]any) bool {

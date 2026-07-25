@@ -6062,6 +6062,20 @@ func pendingMixboardFeatureRow(featureType string, packet map[string]any, existi
 	}
 	if reason := firstString(packet, "reason"); reason != "" {
 		out["reason"] = reason
+	} else {
+		// A non-terminal status (requested/missing/blocked) must always carry an
+		// explicit reason, mirroring acousticpackage.featureFromRow's default for
+		// StatusBuilding. Without this, a mix.observe response snapshotted while
+		// the kernel bridge is still in flight surfaces "requested" with no
+		// explanation of what it is waiting on.
+		switch rowStatus {
+		case "requested":
+			out["reason"] = "awaiting_kernel_feature_materialization"
+		case "missing":
+			out["reason"] = "feature_not_yet_requested"
+		case "blocked":
+			out["reason"] = "feature_request_blocked"
+		}
 	}
 	return out
 }
@@ -6396,6 +6410,17 @@ func reusableMixboardBridgeFeatureRow(key string, existing map[string]any, packe
 	}
 	if requestID := firstString(packet, "request_id"); requestID != "" {
 		out["request_id"] = requestID
+	}
+	// A non-terminal fallback status must carry an explicit reason so a
+	// mix.observe response snapshotted before the kernel bridge has replied
+	// never surfaces e.g. "missing" with no explanation (mirrors the
+	// pendingMixboardFeatureRow default for spectrogram_tiles/waveform).
+	switch strings.ToLower(strings.TrimSpace(fmt.Sprint(out["status"]))) {
+	case "ready", "partial", "suspect":
+	default:
+		if firstString(out, "reason") == "" {
+			out["reason"] = key + "_not_yet_requested"
+		}
 	}
 	return out
 }
@@ -10510,7 +10535,17 @@ func publicPluginParametersResult(cmd map[string]any, reply map[string]any) map[
 		out["parameters"] = fullParameters
 		out["vps_v3_parameter_surface"] = true
 	} else if includeParameters {
-		out["parameters"] = compactPluginParameterSnapshotRows(params, digest, 512)
+		offset := int(numberFromAny(cmd["offset"]))
+		limit := int(numberFromAny(cmd["limit"]))
+		if limit <= 0 {
+			limit = 512
+		}
+		out["parameters"] = compactPluginParameterSnapshotRows(params, digest, offset, limit)
+		out["parameter_page"] = map[string]any{
+			"offset": offset,
+			"limit":  limit,
+			"total":  len(params),
+		}
 	}
 	if skill := compactPublicPluginSkill(pluginSkill); len(skill) > 0 {
 		out["plugin_skill"] = skill
@@ -10537,9 +10572,16 @@ func compactQuickControls(rows []map[string]any, limit int) []map[string]any {
 	return out
 }
 
-func compactPluginParameterSnapshotRows(rows []map[string]any, digest plugingrabber.ParameterDigest, limit int) []map[string]any {
-	if limit <= 0 || limit > len(rows) {
-		limit = len(rows)
+func compactPluginParameterSnapshotRows(rows []map[string]any, digest plugingrabber.ParameterDigest, offset int, limit int) []map[string]any {
+	if offset < 0 {
+		offset = 0
+	}
+	if offset > len(rows) {
+		offset = len(rows)
+	}
+	end := len(rows)
+	if limit > 0 && offset+limit < end {
+		end = offset + limit
 	}
 	byID := map[string]plugingrabber.ParameterInfo{}
 	for _, param := range digest.Parameters {
@@ -10547,8 +10589,8 @@ func compactPluginParameterSnapshotRows(rows []map[string]any, digest plugingrab
 			byID[param.ID] = param
 		}
 	}
-	out := make([]map[string]any, 0, limit)
-	for i := 0; i < limit; i++ {
+	out := make([]map[string]any, 0, end-offset)
+	for i := offset; i < end; i++ {
 		row := rows[i]
 		paramID := firstString(row, "id", "param_id")
 		compact := map[string]any{

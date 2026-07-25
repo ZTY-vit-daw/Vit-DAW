@@ -1069,11 +1069,30 @@ func summarizePluginContextPack(pack map[string]any, opts Options) (map[string]a
 		"plugin_identity", "template_role", "profile_source", "profile_applied",
 		"parameters_retained", "parameter_count", "quick_control_count",
 		"recommended_group_count", "profile_stale_param_ids",
-		"display_probe_summary",
+		"display_probe_summary", "all_parameter_count", "all_parameters_note",
+		"current_param_signature_hash", "profile_param_signature_hash",
 	} {
 		if value, ok := pack[key]; ok && !isEmptyValue(value) {
 			out[key] = compactValue(value, opts, 0)
 		}
+	}
+	// all_parameters is the complete controllable surface and is the only thing
+	// the model can pick a param_id from. It must survive context compaction --
+	// dropping it leaves the model guessing from the 8-entry quick_controls
+	// heuristic subset.
+	if rows := mapRows(pack["all_parameters"]); len(rows) > 0 {
+		keys := []string{"param_id", "name", "normalized_value", "value_text", "display_group", "normalized_role", "is_boolean", "is_discrete", "host_controllable", "display_domain_candidate", "display_probe"}
+		compacted := make([]map[string]any, 0, len(rows))
+		for _, row := range rows {
+			item := map[string]any{}
+			for _, key := range keys {
+				if value, ok := row[key]; ok && !isEmptyValue(value) {
+					item[key] = compactValue(value, opts, 0)
+				}
+			}
+			compacted = append(compacted, item)
+		}
+		out["all_parameters"] = compacted
 	}
 	if rows := mapRows(pack["quick_controls"]); len(rows) > 0 {
 		out["quick_controls"] = compactRows(rows, []string{"param_id", "label", "widget", "display_group", "normalized_role", "value", "normalized_value", "value_text", "host_controllable", "control_relevance", "display_domain_candidate", "display_probe", "explanation_hint", "full_parameter_ref"}, opts)

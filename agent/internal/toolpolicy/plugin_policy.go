@@ -99,7 +99,7 @@ func ExplicitPluginRequest(userText string, knownPluginNames []string) bool {
 		return true
 	}
 	hasVerb := containsAny(text,
-		"加载", "挂载", "打开", "学习", "抓手", "插入", "新增", "设置参数", "写参数", "改参数", "调参数",
+		"加载", "挂载", "打开", "学习", "抓手", "插入", "新增", "设置参数", "写参数", "改参数", "调参数", "调整",
 		"用", "使用", "通过", "切掉", "削掉", "提升", "降低", "应用", "执行",
 		"load", "insert", "open", "learn", "grabber", "set parameter", "write parameter", "use", "apply", "through",
 	)
@@ -112,7 +112,7 @@ func MentionsPlugin(userText string, knownPluginNames []string) bool {
 		return false
 	}
 	if containsAny(text,
-		"插件", "效果器", "均衡器", "压缩器", "混响", "延迟",
+		"插件", "效果器", "均衡器", "均衡", "压缩器", "混响", "延迟",
 		"plugin", "vst", "eq", "compressor", "reverb", "delay", "tdr", "nova", "zl",
 	) {
 		return true
