@@ -136,6 +136,8 @@ juce::Array<juce::var> VitPluginGrabber::buildParameterDescriptors (te::External
         const auto valueRange = parameter->getValueRange();
         const auto isDiscrete = parameter->isDiscrete();
         const auto numStates = isDiscrete ? parameter->getNumberOfStates() : 0;
+        const auto isTracktionWrapperParameter = parameter == plugin.dryGain.get()
+                                              || parameter == plugin.wetGain.get();
         auto row = std::make_unique<juce::DynamicObject>();
         row->setProperty ("id", rawParamId);
         row->setProperty ("param_id", rawParamId);
@@ -160,7 +162,8 @@ juce::Array<juce::var> VitPluginGrabber::buildParameterDescriptors (te::External
         row->setProperty ("control_priority", VitPluginTemplateRegistry::controlPriorityForRelevance (controlRelevance));
         row->setProperty ("alias", rawName);
         row->setProperty ("supports_automation", true);
-        row->setProperty ("source", "tracktion_automatable");
+        row->setProperty ("source", isTracktionWrapperParameter ? "tracktion_wrapper"
+                                                                  : "hosted_plugin_parameter");
         row->setProperty ("display_probe", buildParameterDisplayProbe (*parameter, isDiscrete, numStates));
         parameters.add (juce::var (row.release()));
     }

@@ -48,6 +48,8 @@ type ParameterDigest struct {
 	PluginClass          string                 `json:"plugin_class,omitempty"`
 	PluginGroups         []map[string]any       `json:"plugin_groups,omitempty"`
 	VirtualControls      []map[string]any       `json:"virtual_controls,omitempty"`
+	CurrentParamSignatureHash string            `json:"current_param_signature_hash,omitempty"`
+	ProfileParamSignatureHash string            `json:"profile_param_signature_hash,omitempty"`
 	SafetyLimits         map[string]any         `json:"safety_limits,omitempty"`
 	PluginSkill          map[string]any         `json:"plugin_skill,omitempty"`
 	ParameterCount       int                    `json:"parameter_count"`

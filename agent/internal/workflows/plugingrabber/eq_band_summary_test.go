@@ -1,6 +1,7 @@
 package plugingrabber
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 )
@@ -37,19 +38,22 @@ func eqSummaryTDRNovaDigest() ParameterDigest {
 func eqSummaryProQ3Digest() ParameterDigest {
 	params := []ParameterInfo{}
 	for _, band := range []struct {
-		used, enabled, freq, gain, q, shape string
-		number                              string
+		used, enabled, freq, gain, dynamic, q, shape string
+		number                                       string
 	}{
-		{"0", "1", "2", "3", "7", "8", "1"},
-		{"15", "16", "17", "18", "22", "23", "2"},
-		{"30", "31", "32", "33", "37", "38", "3"},
+		{"0", "1", "2", "3", "4", "7", "8", "1"},
+		{"15", "16", "17", "18", "19", "22", "23", "2"},
+		{"30", "31", "32", "33", "34", "37", "38", "3"},
 	} {
 		params = append(params,
 			ParameterInfo{ID: band.used, Name: "Band " + band.number + " Used", ValueText: "Unused"},
 			ParameterInfo{ID: band.enabled, Name: "Band " + band.number + " Enabled", ValueText: "Enabled"},
-			ParameterInfo{ID: band.freq, Name: "Band " + band.number + " Frequency", ValueText: "1000.0 Hz"},
-			ParameterInfo{ID: band.gain, Name: "Band " + band.number + " Gain", ValueText: "0.00 dB"},
-			ParameterInfo{ID: band.q, Name: "Band " + band.number + " Q", ValueText: "1.000"},
+			eqParam(band.freq, "Band "+band.number+" Frequency", "1000.0 Hz", eqRange(10, 30000, "log")),
+			eqParam(band.gain, "Band "+band.number+" Gain", "0.00 dB", eqRange(-30, 30, "linear")),
+			// Pro-Q 3 exposes an identically-ranged "Dynamic Range" alongside the
+			// gain; only the name tells them apart.
+			eqParam(band.dynamic, "Band "+band.number+" Dynamic Range", "0.00 dB", eqRange(-30, 30, "linear")),
+			eqParam(band.q, "Band "+band.number+" Q", "1.000", eqRange(0.025, 40, "log")),
 			ParameterInfo{ID: band.shape, Name: "Band " + band.number + " Shape", ValueText: "Bell"},
 		)
 	}
@@ -93,8 +97,10 @@ func TestBuildEQBandSummaryDetectsFixedSlotAdjustable(t *testing.T) {
 	}
 }
 
-func TestBuildEQBandSummaryDetectsFixedFreq(t *testing.T) {
-	// Simulate a 4-band graphic EQ where frequency is fixed (no continuous Hz domain).
+// Parameters whose display probe yielded no numeric range at all carry no
+// evidence of what they control, so no band may be built from them. Guessing a
+// role from the name alone is what produced writes to the wrong parameter.
+func TestBuildEQBandSummarySkipsBandsWithNoMeasuredRange(t *testing.T) {
 	summary := BuildEQBandSummary(ParameterDigest{
 		TemplateRole: "eq",
 		Parameters: []ParameterInfo{
@@ -104,11 +110,18 @@ func TestBuildEQBandSummaryDetectsFixedFreq(t *testing.T) {
 			{ID: "4", Name: "Band 2 Frequency", ValueText: "1000", IsDiscrete: true},
 		},
 	})
-	if summary == nil {
-		t.Fatal("expected a summary for fixed-freq EQ, got nil")
+	if summary != nil {
+		t.Fatalf("expected nil when no parameter has a measured range, got %v", summary)
 	}
-	if got := summary["eq_model"]; got != "fixed_freq" {
-		t.Fatalf("eq_model = %v, want fixed_freq (freq has no continuous Hz domain)", got)
+}
+
+// The real fixed-frequency case is covered by
+// TestBuildEQBandSummaryZamGEQ31TakesFrequenciesFromBandLabels, where the
+// frequency comes from the band label rather than from a parameter reading.
+func TestBuildEQBandSummaryFixedFreqDescriptionIsGainOnly(t *testing.T) {
+	summary := BuildEQBandSummary(eqZamGEQ31Digest())
+	if summary == nil || summary["eq_model"] != "fixed_freq" {
+		t.Fatalf("expected a fixed_freq summary, got %v", summary)
 	}
 	bands, _ := summary["bands"].([]map[string]any)
 	for _, b := range bands {
@@ -122,6 +135,32 @@ func TestBuildEQBandSummaryDetectsFixedFreq(t *testing.T) {
 	desc := summary["how_to_pick_a_band"].(string)
 	if !strings.Contains(desc, "ONLY gain_param_id") {
 		t.Errorf("fixed_freq description must say 'ONLY gain_param_id', got: %s", desc)
+	}
+}
+
+func TestBuildEQBandSummaryDetectsMarvelGEQ(t *testing.T) {
+	params := make([]ParameterInfo, 0, 16)
+	for i := 0; i < 16; i++ {
+		minDB, maxDB := -12.0, 12.0
+		params = append(params, ParameterInfo{
+			ID: fmt.Sprintf("%d", i), Name: fmt.Sprintf("1EQ%d", i), ValueText: "0.0",
+			DisplayDomainCandidate: &PluginDisplayDomain{Unit: "dB", Scale: "linear", Min: &minDB, Max: &maxDB},
+		})
+	}
+	summary := BuildEQBandSummary(ParameterDigest{
+		TemplateRole:   "eq",
+		PluginIdentity: map[string]any{"plugin_name": "Marvel GEQ", "manufacturer": "Voxengo"},
+		Parameters:     params,
+	})
+	if summary == nil || summary["eq_model"] != "fixed_freq" {
+		t.Fatalf("expected Marvel GEQ fixed_freq summary, got %#v", summary)
+	}
+	bands, _ := summary["bands"].([]map[string]any)
+	if len(bands) != 16 || bands[11]["fixed_freq_hz"] != 3150.0 {
+		t.Fatalf("Marvel bands = %#v, expected 16 bands with B12=3150Hz", bands)
+	}
+	if bands[11]["gain_param_id"] != "11" {
+		t.Fatalf("Marvel B12 gain param = %#v, want 11", bands[11]["gain_param_id"])
 	}
 }
 

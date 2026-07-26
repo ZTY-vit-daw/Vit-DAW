@@ -76,6 +76,19 @@ func TestCollectPluginNames(t *testing.T) {
 	}
 }
 
+func TestSelectedPluginNameIsRecognizedForExplicitControl(t *testing.T) {
+	got := CollectPluginNames(map[string]any{
+		"selected_plugin_id":   "1018",
+		"selected_plugin_name": "FabFilter Pro-Q 3",
+	})
+	if !MentionsPlugin("用 Pro-Q 3 将 3400 Hz 降低 3 dB，Q 设置为 0.5。", got) {
+		t.Fatalf("selected plugin name was not recognized: %#v", got)
+	}
+	if !ExplicitPluginRequest("用 Pro-Q 3 将 3400 Hz 降低 3 dB，Q 设置为 0.5。", got) {
+		t.Fatalf("selected Pro-Q request was not recognized as explicit control: %#v", got)
+	}
+}
+
 func TestExplicitPluginRequestLegacyShadowConsistency(t *testing.T) {
 	// These cases were already classified as explicit by the pre-centralization
 	// message-loop heuristic. Keeping them here as a shadow oracle prevents the

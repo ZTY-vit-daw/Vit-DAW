@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<EDIT appVersion="Unknown" projectID="0/8d130b" creationTime="0" modifiedBy="VitHeadlessServer"
-      vit_project_uuid="vitproj_af24aa549e1a4cafb785fb8bfd66f727" lastSignificantChange="19f75500baa">
-  <TRANSPORT endToEnd="1" position="0.0"/>
+<EDIT appVersion="Unknown" projectID="0/15c2f98" creationTime="0" modifiedBy="VitHeadlessServer"
+      vit_project_uuid="vitproj_befaac9cfadb409e8322184d4d2ae57a">
+  <TRANSPORT endToEnd="1"/>
   <TEMPOSEQUENCE>
     <TEMPO startBeat="0.0" bpm="120.0" curve="1.0"/>
     <TIMESIG numerator="4" denominator="4" startBeat="0.0"/>
@@ -14,33 +14,7 @@
       <MODIFIERASSIGNMENTS/>
     </PLUGIN>
   </MASTERVOLUME>
-  <RACKS>
-    <RACK id="1010" name="New Rack">
-      <WINDOWSTATE windowPos=""/>
-      <OUTPUT name="midi output"/>
-      <OUTPUT name="output 1 (left)"/>
-      <OUTPUT name="output 2 (right)"/>
-      <INPUT name="midi input"/>
-      <INPUT name="input 1 (left)"/>
-      <INPUT name="input 2 (right)"/>
-      <MODIFIERS/>
-      <MACROPARAMETERS id="1011" remapOnTempoChange="1"/>
-      <PLUGININSTANCE x="1.0" y="1.0" vit_zone_id="Z3" vit_clip_scope="track" vit_template_role="other">
-        <PLUGIN type="vst" uniqueId="ba5f7ab2" uid="8c4652e9" filename="C:\Program Files\Common Files\VST3\FabFilter\FabFilter Pro-Q 3.vst3"
-                name="Pro-Q 3" manufacturer="FabFilter" id="1013" enabled="1"
-                remapOnTempoChange="1" process="1" state="2189.VMjLgPHB...O+fWarAhckI2bo8la8HRLt.iHfTlai8FYo41Y8HRUTYTK3HxO9.BOVMEUy.Ea0cVZtMEcgQWY9vSRC8Vav8lak4Fc9DCM0XiKFkkZPMUQt3hKtXVVA4hKt3hKt3hKt3hKtjSZwjGNQAkKt3hKt3hKt3hKt3hKtLySt3hKlshKt3hK2LjKt3hKt3hKtX1Jt3hKt3BQt3hKy7jKt3hKt3hKt3hKt3hKtLySZ8jLGETPt3hKt3hKt3hKt3hKtX1Jt3hKtjyPt3hK18jKt3hKt3hKt3RNC4hKt3BTt3hKlshKt3hKt3hKt3hKt3hKtX1JtgiXkQDQt3hKt3hKt3hKt3hKt3RNC4hKtLySt3hKtrhKt3hKt3hKt3xLO4hKt3hKA4hKtjyPt3hKt3hKt3hKt3hKt3RNoESd3DETt3hKt3hKt3hKt3hKt3xLO4hKtX1Jt3hKtbyPt3hKt3hKt3hYq3hKt3hKD4hKtLySt3hKt3hKt3hKt3hKt3xLOo0SxbTPA4hKt3hKt3hKt3hKt3hYq3hKt3RNC4hKtX2St3hKt3hKt3hK4LjKt3hKP4hKtX1Jt3hKt3hKt3hKt3hKt3hYq3FNhUFQD4hKt3hKt3hKt3hKt3hK4LjKt3xLO4hKt3xJt3hKt3hKt3hKy7jKt3hKtDjKt3RNC4hKt3hKt3hKt3hKt3hK4jVL4gSTP4hKt3hKt3hKt3hKt3hKy7jKt3hYq3hKt3xMC4hKt3hKt3hKlshKt3hKtPjKt3xLO4hKt3hKt3hKt3hKt3hKy7jVOIyQAEjKt3hKt3hKt3hKt3hKlshKt3hK4LjKt3hcO4hKt3hKt3hKtjyPt3hKt.kKt3hYq3hKt3hKt3hKt3hKt3hKlsha3HVYDQjKt3hKt3hKt3hKt3hKtjyPt3hKy7jKt3hKq3hKt3hKt3hKtLySt3hKt3RPt3hK4LjKt3hKt3hKt3hKt3hKtjSZwjGNQAkKt3hKt3hKt3hKt3hKtLySt3hKlshKt3hK2LjKt3hKt3hKtX1Jt3hKt3BQt3hKy7jKt3hKt3hKt3hKt3hKtLySZ8jLGETPt3hKt3hKt3hKt3hKtX1Jt3hKtjyPt3hK18jKt3hKt3hKt3RNC4hKt3BTt3hKlshKt3hKt3hKt3hKt3hKtX1JtgiXkQDQt3hKt3hKt3hKt3hKt3RNC4hKtLySt3hKtrhKt3hKt3hKt3xLO4hKt3hKA4hKtjyPt3hKt3hKt3hKt3hKt3RNoESd3DETt3hKt3hKt3hKt3hKt3xLO4hKtX1Jt3hKtbyPt3hKt3hKt3hYq3hKt3hKD4hKtLySt3hKt3hKt3hKt3hKt3xLOo0SxbTPA4hKt3hKt3hKt3hKt3hYq3hKt3RNC4hKtX2St3hKt3hKt3hK4LjKt3hKP4hKtX1Jt3hKt3hKt3hKt3hKt3hYq3FNhUFQD4hKt3hKt3hKt3hKt3hK4LjKt3xLO4hKt3xJt3hKt3hKt3hKy7jKt3hKtDjKt3RNC4hKt3hKt3hKt3hKt3hK4jVL4gSTP4hKt3hKt3hKt3hKt3hKy7jKt3hYq3hKt3xMC4hKt3hKt3hKlshKt3hKtPjKt3xLO4hKt3hKt3hKt3hKt3hKy7jVOIyQAEjKt3hKt3hKt3hKt3hKlshKt3hK4LjKt3hcO4hKt3hKt3hKtjyPt3hKt.kKt3hYq3hKt3hKt3hKt3hKt3hKlsha3HVYDQjKt3hKt3hKt3hKt3hKtjyPt3hKy7jKt3hKq3hKt3hKt3hKtLySt3hKt3RPt3hK4LjKt3hKt3hKt3hKt3hKtjSZwjGNQAkKt3hKt3hKt3hKt3hKtLySt3hKlshKt3hK2LjKt3hKt3hKtX1Jt3hKt3BQt3hKy7jKt3hKt3hKt3hKt3hKtLySZ8jLGETPt3hKt3hKt3hKt3hKtX1Jt3hKtjyPt3hK18jKt3hKt3hKt3RNC4hKt3BTt3hKlshKt3hKt3hKt3hKt3hKtX1JtgiXkQDQt3hKt3hKt3hKt3hKt3RNC4hKtLySt3hKtrhKt3hKt3hKt3xLO4hKt3hKA4hKtjyPt3hKt3hKt3hKt3hKt3RNoESd3DETt3hKt3hKt3hKt3hKt3xLO4hKtX1Jt3hKtbyPt3hKt3hKt3hYq3hKt3hKD4hKtLySt3hKt3hKt3hKt3hKt3xLOo0SxbTPA4hKt3hKt3hKt3hKt3hYq3hKt3RNC4hKtX2St3hKt3hKt3hK4LjKt3hKP4hKtX1Jt3hKt3hKt3hKt3hKt3hYq3FNhUFQD4hKt3hKt3hKt3hKt3hK4LjKt3xLO4hKt3xJt3hKt3hKt3hKy7jKt3hKtDjKt3RNC4hKt3hKt3hKt3hKt3hK4LjKt3xLO4hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKlshKt3hK4LjKt3xL04hKtX1Jt3hKt3BQt3hKt.kKt3BTtDjKt3hKt3hKtLySt3hKlshKt3hKtPjKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3BVpEkcIckKt3hKt3hKt3hKtvyKIMzasA2atUlaz4COIUDYoQ2Pu4Fcx8FarUlb9biLtXTQvvjcM4hKt3hcC4hKt3BQUwVVmU0QgoWP3Q0ZQczXuQSLYsxJqrxJG4hKt3BTA4hKt3BTIISXyQTQt3hKt3xPUICUVUjKt3hKt3hKt3hKFkEUYoVPt3hKt3hKt3hKtvyKIUDYoQ2Pu4Fcx8FarUlb9vyKVMEUy.Ea0cVZtMEcgQWY9.."
-                base64:layout="133.LETVOUEU..P.BjjSPUEUSA..AHfPUME.AHPZtQVY3AP.ED......rEVduUGc.DPAEvDHRA..BU0T.Df.o4FYkgG.ATP.A....vVX48VczAP.ET.SfHE..7TUTAUUTME..DP.BU0T.Df.o4FYkgG.ATP......vVX48VczAP.ET.SfHE...">
-          <MODIFIERASSIGNMENTS/>
-        </PLUGIN>
-      </PLUGININSTANCE>
-      <CONNECTION src="0" dst="1013" srcPin="1" dstPin="1"/>
-      <CONNECTION src="0" dst="1013" srcPin="2" dstPin="2"/>
-      <CONNECTION src="1013" dst="0" srcPin="1" dstPin="1"/>
-      <CONNECTION src="1013" dst="0" srcPin="2" dstPin="2"/>
-      <CONNECTION src="0" dst="1013" srcPin="0" dstPin="0"/>
-      <CONNECTION src="1013" dst="0" srcPin="0" dstPin="0"/>
-    </RACK>
-  </RACKS>
+  <RACKS/>
   <MASTERPLUGINS/>
   <INPUTDEVICES>
     <INPUTDEVICE deviceID="all_midi_in" name="All MIDI Ins"/>
@@ -52,13 +26,6 @@
   <PITCHSEQUENCE>
     <PITCH startBeat="0.0" pitch="60"/>
   </PITCHSEQUENCE>
-  <VIT_AUDIO_SETTINGS migration_state="stored" defaulted_origin="new_project" schema_version="vit_project_audio_settings.v1"
-                      sample_rate_hz="48000" record_file_type="WAV/BWF" record_bit_depth="24"
-                      pcm_format="int24" internal_processing_format="unknown" import_sample_rate_policy="ask"
-                      import_bit_depth_policy="keep_source" media_copy_policy="reference_original"
-                      channel_import_policy="preserve_interleaved" render_default_sample_rate_hz="48000"
-                      render_default_bit_depth="24" render_default_file_type="WAV"
-                      dither_policy="unknown"/>
   <ARRANGERTRACK name="Arranger" id="1002"/>
   <CHORDTRACK name="Chord" id="1003"/>
   <MARKERTRACK id="1004" name="Marker"/>
@@ -68,25 +35,11 @@
   <MASTERTRACK name="Master" id="1006">
     <MODIFIERS/>
   </MASTERTRACK>
-  <TRACK id="1007">
-    <MODIFIERS/>
-    <OUTPUTDEVICES>
-      <DEVICE name="(default audio output)"/>
-    </OUTPUTDEVICES>
-    <CLIPSLOTS/>
-    <PLUGIN type="rack" rackType="1010" id="1012" enabled="1">
-      <MODIFIERASSIGNMENTS/>
-    </PLUGIN>
-    <PLUGIN type="volume" id="1008" enabled="1" remapOnTempoChange="1">
-      <MODIFIERASSIGNMENTS/>
-    </PLUGIN>
-    <PLUGIN type="level" id="1009" enabled="1"/>
-    <AUDIOCLIP name="Paper Crown" start="0.0" length="219.384" offset="0.0"
-               id="1015" source="D:\Vit_DAW\Paper Crown.mp3" sync="0" elastiqueMode="0"
-               pan="0.0" colour="ff55ff00" proxyAllowed="1" resamplingQuality="lagrange">
-      <LOOPINFO bpm="0.0" numBeats="438.768" denominator="4" numerator="4" oneShot="0"
-                rootNote="-1" inMarker="0" outMarker="-1"/>
-      <AUTOMATIONCURVES/>
-    </AUDIOCLIP>
-  </TRACK>
+  <VIT_AUDIO_SETTINGS migration_state="stored" defaulted_origin="new_project" schema_version="vit_project_audio_settings.v1"
+                      sample_rate_hz="48000" record_file_type="WAV/BWF" record_bit_depth="24"
+                      pcm_format="int24" internal_processing_format="unknown" import_sample_rate_policy="ask"
+                      import_bit_depth_policy="keep_source" media_copy_policy="reference_original"
+                      channel_import_policy="preserve_interleaved" render_default_sample_rate_hz="48000"
+                      render_default_bit_depth="24" render_default_file_type="WAV"
+                      dither_policy="unknown"/>
 </EDIT>

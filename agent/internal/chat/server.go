@@ -1218,6 +1218,15 @@ func (s *Server) handleInvoke(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, status, resp)
 		return
 	}
+	if workflowCmd, ok := pluginGrabberSetEQPointInvokeCommand(req); ok {
+		resp, err := s.invokePluginGrabberSetEQPointWorkflow(r.Context(), req, workflowCmd)
+		status := http.StatusOK
+		if err != nil && resp.Status == "error" {
+			status = http.StatusBadRequest
+		}
+		writeJSON(w, status, resp)
+		return
+	}
 	resp, err := s.harness.Invoke(r.Context(), req)
 	status := http.StatusOK
 	if err != nil && resp.Status == "error" {
@@ -5557,7 +5566,7 @@ For plugin loading/grabber setup requests such as loading TDR Nova, finding an E
 For project-scoped plugin grabber learning requests such as learning a plugin, saving quick controls, grouping plugin parameters, or improving plugin control names on an already loaded/selected plugin, use the special chat workflow command {"cmd":"plugin_grabber_learn_project_profile","track_id":"...","plugin_id":"...","intent":"short user intent"}. This workflow is agent-side: it first reads full parameters, asks AI for a profile patch, validates parameter IDs, then asks the user to confirm before saving. Do not use it for ordinary parameter value changes.
 For explicit plugin effect control (EQ, compression, or any other effect), use this two-tier approach:
   TIER 1 — verified profile only: use plugin_grabber_apply_control ONLY when runtime_profile.virtual_controls is non-empty AND eq_band_summary is absent from the explain_controls result.
-  TIER 2 — when eq_band_summary is present OR no virtual_controls: call plugin_grabber_explain_controls first. The result contains eq_band_summary with exact param_ids, domain info, and how_to_pick_a_band. Do NOT call apply_control. Follow how_to_pick_a_band exactly — it specifies the correct write sequence for the EQ type (fixed_slot_adjustable, fixed_freq, or free_floating). Then IMMEDIATELY call plugin.set_parameter IN THE SAME TURN.
+  TIER 2 — when eq_band_summary is present OR no virtual_controls: call plugin_grabber_explain_controls first. The result contains eq_band_summary with exact param_ids, domain info, and how_to_pick_a_band. For EQ, call plugin_grabber.set_eq_point(track_id, plugin_id, freq_hz, gain_db, q) when the user specifies Q — Go selects the correct band and normalises the values, so do NOT call set_plugin_param or apply_control for EQ when set_eq_point is available. For non-EQ effects with no virtual_controls, pick the relevant param from all_parameters and call set_plugin_param with a normalized value.
   For non-EQ effects, pick the relevant param from all_parameters using domain for normalization.
   After writing, call get_plugin_parameters (include_parameters:true) to confirm. Never pass value_text.
 Do not fail closed simply because no virtual_controls exist.

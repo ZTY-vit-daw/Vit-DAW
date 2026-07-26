@@ -1,7 +1,7 @@
 package plugingrabber
 
 import (
-	"sort"
+	"fmt"
 	"strconv"
 	"strings"
 )
@@ -15,10 +15,23 @@ const (
 	eqSlotQ     = "q"
 )
 
+// Marvel GEQ exposes its 16 fixed graphic bands as channel-1 parameters
+// named 1EQ0..1EQ15 and does not expose frequency parameters at all. These
+// are the standard ISO graphic-EQ center frequencies shown by its UI.
+var marvelGEQFixedFrequenciesHz = []float64{
+	20, 31.5, 50, 80, 125, 200, 315, 500,
+	800, 1250, 2000, 3150, 5000, 8000, 12500, 20000,
+}
+
 type eqBandSlot struct {
 	ParamID   string
 	ValueText string
 	Domain    *PluginDisplayDomain
+	// Curve holds the (normalised, displayed value) pairs the kernel measured by
+	// rendering this parameter at five positions. It is the parameter's actual
+	// response, and the only sound basis for turning a target value into a
+	// normalised one — see eqNormalizedFromCurve.
+	Curve [][2]float64
 }
 
 type eqBandEntry struct {
@@ -51,15 +64,18 @@ type eqBandEntry struct {
 // list as evidence so it works with any EQ regardless of whether it has been
 // profiled.
 func BuildEQBandSummary(digest ParameterDigest) map[string]any {
-	role := strings.ToLower(strings.TrimSpace(digest.TemplateRole))
-	class := strings.ToLower(strings.TrimSpace(digest.PluginClass))
-	isEQByMeta := role == "eq" || class == "eq"
-	if !isEQByMeta && !looksLikeEQFromParameters(digest.Parameters) {
+	if summary := buildMarvelGEQSummary(digest); summary != nil {
+		return summary
+	}
+	bands, order, indexFrequencies := collectEQBandsStructural(digest)
+	if len(bands) == 0 {
 		return nil
 	}
 
-	bands, order := collectEQBands(digest)
-	if len(bands) == 0 {
+	role := strings.ToLower(strings.TrimSpace(digest.TemplateRole))
+	class := strings.ToLower(strings.TrimSpace(digest.PluginClass))
+	isEQByMeta := role == "eq" || class == "eq"
+	if !isEQByMeta && !eqBandsLookStructural(bands, indexFrequencies) {
 		return nil
 	}
 
@@ -69,100 +85,50 @@ func BuildEQBandSummary(digest ParameterDigest) map[string]any {
 	if eqBandsHaveAdjustableFreq(bands) {
 		return buildFixedSlotAdjustableSummary(bands, order)
 	}
-	return buildFixedFreqSummary(bands, order)
+	return buildFixedFreqSummary(bands, order, indexFrequencies)
 }
 
-// looksLikeEQFromParameters returns true when the parameter list contains
-// multiple "Band N Frequency" entries, which is the structural marker for any
-// multi-band EQ plugin even when template_role has not been set by a learn step.
-func looksLikeEQFromParameters(params []ParameterInfo) bool {
-	freqCount := 0
-	for _, p := range params {
-		name := strings.ToLower(strings.TrimSpace(p.Name))
-		if strings.HasPrefix(name, "band ") && strings.Contains(name, "freq") {
-			freqCount++
-			if freqCount >= 2 {
-				return true
-			}
-		}
+func buildMarvelGEQSummary(digest ParameterDigest) map[string]any {
+	name := strings.ToLower(strings.TrimSpace(firstNonEmptyText(digest.PluginIdentity, "plugin_name")))
+	if !strings.Contains(name, "marvel geq") {
+		return nil
 	}
-	return false
-}
-
-// collectEQBands groups parameters named "Band N <slot>" by band number.
-func collectEQBands(digest ParameterDigest) (map[string]*eqBandEntry, []string) {
-	bands := map[string]*eqBandEntry{}
-	order := []string{}
-
+	byID := map[string]ParameterInfo{}
 	for _, param := range digest.Parameters {
-		name := strings.TrimSpace(param.Name)
-		if name == "" {
-			name = strings.TrimSpace(param.Alias)
-		}
-		if name == "" {
-			name = strings.TrimSpace(param.RawName)
-		}
-		if !strings.HasPrefix(strings.ToLower(name), "band ") {
-			continue
-		}
-		fields := strings.SplitN(name, " ", 3)
-		if len(fields) < 3 {
-			continue
-		}
-		bandNumber := strings.TrimSpace(fields[1])
-		if bandNumber == "" {
-			continue
-		}
-		slot := normalizeEQSlotName(fields[2])
-		if slot == "" {
-			continue
-		}
-		entry := bands[bandNumber]
-		if entry == nil {
-			entry = &eqBandEntry{Slots: map[string]eqBandSlot{}}
-			bands[bandNumber] = entry
-			order = append(order, bandNumber)
-		}
-		// First writer wins: parameter lists occasionally repeat a slot name
-		// (e.g. an "Ex Band 1 ..." variant); the primary one comes first.
-		if _, seen := entry.Slots[slot]; !seen {
-			entry.Slots[slot] = eqBandSlot{
-				ParamID:   param.ID,
-				ValueText: param.ValueText,
-				Domain:    param.DisplayDomainCandidate,
+		byID[strings.TrimSpace(param.ID)] = param
+	}
+	rows := make([]map[string]any, 0, len(marvelGEQFixedFrequenciesHz))
+	for index, frequency := range marvelGEQFixedFrequenciesHz {
+		paramID := ""
+		for _, param := range digest.Parameters {
+			if strings.EqualFold(strings.TrimSpace(param.Name), fmt.Sprintf("1EQ%d", index)) {
+				paramID = strings.TrimSpace(param.ID)
+				break
 			}
 		}
-	}
-
-	sort.SliceStable(order, func(i, j int) bool {
-		ni, errI := strconv.Atoi(order[i])
-		nj, errJ := strconv.Atoi(order[j])
-		if errI == nil && errJ == nil {
-			return ni < nj
+		param, ok := byID[paramID]
+		if !ok || paramID == "" {
+			return nil
 		}
-		return order[i] < order[j]
-	})
-	return bands, order
-}
-
-func normalizeEQSlotName(raw string) string {
-	slot := strings.ToLower(strings.TrimSpace(raw))
-	switch slot {
-	case "frequency", "freq", "freq hz", "center frequency", "cutoff":
-		return eqSlotFreq
-	case "gain", "gain db", "level":
-		return eqSlotGain
-	case "used", "in use":
-		return eqSlotUsed
-	case "shape", "type", "filter type":
-		return eqSlotShape
-	case "q", "width", "bandwidth":
-		return eqSlotQ
+		row := map[string]any{
+			"band":          fmt.Sprintf("B%d", index+1),
+			"gain_param_id": paramID,
+			"fixed_freq_hz": frequency,
+		}
+		if d := eqDomainFields(param.DisplayDomainCandidate); d != nil {
+			row["gain_domain"] = d
+		}
+		if db, ok := parseDisplayDB(param.ValueText); ok {
+			row["current_gain_db"] = db
+		}
+		rows = append(rows, row)
 	}
-	if strings.HasPrefix(slot, "freq") {
-		return eqSlotFreq
+	return map[string]any{
+		"eq_model":           "fixed_freq",
+		"band_count":         len(rows),
+		"bands":              rows,
+		"how_to_pick_a_band": "This is a fixed-frequency 16-band graphic EQ. Select the band whose fixed_freq_hz is closest to the target and write only its gain_param_id. Frequency is selection metadata, not a writable parameter; Q is not supported.",
 	}
-	return ""
 }
 
 // eqBandsAreFreeFloating reports whether any band exposes a "Used" slot parked
@@ -180,21 +146,17 @@ func eqBandsAreFreeFloating(bands map[string]*eqBandEntry) bool {
 	return false
 }
 
-// eqBandsHaveAdjustableFreq reports whether at least one band has a frequency
-// slot with a continuous Hz domain, meaning the frequency can be repositioned
-// anywhere in the spectrum (parametric EQ behaviour, e.g. TDR Nova).
-// When false the bands are either fixed-frequency or have no frequency slot at
-// all (e.g. a 30-band graphic EQ where only the gain can be changed).
+// eqBandsHaveAdjustableFreq reports whether any band owns a frequency slot.
+//
+// A frequency slot is only assigned when some control in that band has a
+// frequency-shaped measured range, so its mere presence means the frequency can
+// be repositioned. This deliberately no longer inspects Domain.Unit: that string
+// is absent whenever a plugin neither declares getLabel() nor prints the unit in
+// its value text, and requiring it made FreeEQ8 — a fully parametric 8-band EQ —
+// report as fixed-frequency.
 func eqBandsHaveAdjustableFreq(bands map[string]*eqBandEntry) bool {
 	for _, entry := range bands {
-		freq, ok := entry.Slots[eqSlotFreq]
-		if !ok || freq.Domain == nil {
-			continue
-		}
-		d := freq.Domain
-		if strings.ToLower(strings.TrimSpace(d.Unit)) == "hz" &&
-			d.Scale != "enum" && d.Min != nil && d.Max != nil &&
-			*d.Max > *d.Min {
+		if _, ok := entry.Slots[eqSlotFreq]; ok {
 			return true
 		}
 	}
@@ -234,6 +196,9 @@ func buildFixedSlotAdjustableSummary(bands map[string]*eqBandEntry, order []stri
 		if d := eqDomainFields(freq.Domain); d != nil {
 			row["freq_domain"] = d
 		}
+		if len(freq.Curve) > 0 {
+			row["freq_curve"] = freq.Curve
+		}
 		if gain := entry.Slots[eqSlotGain]; gain.ParamID != "" {
 			row["gain_param_id"] = gain.ParamID
 			if db, ok := parseDisplayDB(gain.ValueText); ok {
@@ -242,9 +207,18 @@ func buildFixedSlotAdjustableSummary(bands map[string]*eqBandEntry, order []stri
 			if d := eqDomainFields(gain.Domain); d != nil {
 				row["gain_domain"] = d
 			}
+			if len(gain.Curve) > 0 {
+				row["gain_curve"] = gain.Curve
+			}
 		}
 		if q := entry.Slots[eqSlotQ]; q.ParamID != "" {
 			row["q_param_id"] = q.ParamID
+			if d := eqDomainFields(q.Domain); d != nil {
+				row["q_domain"] = d
+			}
+			if len(q.Curve) > 0 {
+				row["q_curve"] = q.Curve
+			}
 		}
 		if shape := entry.Slots[eqSlotShape]; shape.ParamID != "" {
 			row["shape_param_id"] = shape.ParamID
@@ -272,8 +246,22 @@ func buildFixedSlotAdjustableSummary(bands map[string]*eqBandEntry, order []stri
 // buildFixedFreqSummary builds the summary for EQs where band frequencies are
 // fixed and cannot be changed — only the gain at each fixed frequency can be
 // adjusted (e.g. 30-band graphic EQ, classic SSL-style fixed-frequency EQ).
-func buildFixedFreqSummary(bands map[string]*eqBandEntry, order []string) map[string]any {
+// buildFixedFreqSummary is only reached when no band owns a frequency slot, so
+// every band here is a gain fader at a frequency the host cannot move.
+//
+// fixed_freq_hz is populated strictly from indexFrequencies — band labels that
+// carry a real frequency, such as ZamGEQ31's "32Hz".."20000Hz". It must never be
+// back-filled from a frequency parameter's current reading: doing that reported
+// the position a movable band happened to be resting at as though it were fixed,
+// which is what let a 3400 Hz request land on 4000 Hz and still return success.
+//
+// When indexFrequencies is empty the bands are structurally sound but
+// unlabelled (Marvel GEQ's "1EQ0".."1EQ15"). Band selection by frequency is not
+// possible from parameter data alone in that case, and eqWritePlanFixedFreq
+// refuses rather than guessing.
+func buildFixedFreqSummary(bands map[string]*eqBandEntry, order []string, indexFrequencies map[string]float64) map[string]any {
 	rows := make([]map[string]any, 0, len(order))
+	labelled := 0
 	for _, number := range order {
 		entry := bands[number]
 		gain := entry.Slots[eqSlotGain]
@@ -290,18 +278,31 @@ func buildFixedFreqSummary(bands map[string]*eqBandEntry, order []string) map[st
 		if d := eqDomainFields(gain.Domain); d != nil {
 			row["gain_domain"] = d
 		}
-		// Frequency is fixed — include it for band selection but not as a
-		// writeable param. If there is a freq slot, read its value for the
-		// current_fixed_freq_hz field so the model knows where this band sits.
-		if freq := entry.Slots[eqSlotFreq]; freq.ParamID != "" {
-			if hz, ok := parseDisplayHz(freq.ValueText); ok {
-				row["fixed_freq_hz"] = hz
-			}
+		if len(gain.Curve) > 0 {
+			row["gain_curve"] = gain.Curve
+		}
+		if hz, ok := indexFrequencies[number]; ok {
+			row["fixed_freq_hz"] = hz
+			labelled++
 		}
 		rows = append(rows, row)
 	}
 	if len(rows) == 0 {
 		return nil
+	}
+	if labelled == 0 {
+		return map[string]any{
+			"eq_model":   "fixed_freq",
+			"band_count": len(rows),
+			"bands":      rows,
+			"frequency_labels": "unknown — this plugin exposes its bands as opaque gain " +
+				"controls and publishes no centre frequency for any of them. Band order is " +
+				"almost certainly ascending in frequency, but the actual values are not " +
+				"recoverable from parameter data.",
+			"how_to_pick_a_band": "Frequency-targeted requests cannot be served: there is no " +
+				"way to tell which band sits at a given Hz. Requests naming a band position " +
+				"directly (\"the 5th band\") can be served by writing that band's gain_param_id.",
+		}
 	}
 	return map[string]any{
 		"eq_model":   "fixed_freq",
@@ -338,6 +339,24 @@ func buildFreeFloatingSummary(bands map[string]*eqBandEntry, order []string) map
 		}
 		if q := entry.Slots[eqSlotQ]; q.ParamID != "" {
 			row["q_param_id"] = q.ParamID
+			if d := eqDomainFields(q.Domain); d != nil {
+				row["q_domain"] = d
+			}
+			if len(q.Curve) > 0 {
+				row["q_curve"] = q.Curve
+			}
+		}
+		if d := eqDomainFields(freq.Domain); d != nil {
+			row["freq_domain"] = d
+		}
+		if len(freq.Curve) > 0 {
+			row["freq_curve"] = freq.Curve
+		}
+		if d := eqDomainFields(gain.Domain); d != nil {
+			row["gain_domain"] = d
+		}
+		if len(gain.Curve) > 0 {
+			row["gain_curve"] = gain.Curve
 		}
 
 		if eqSlotIsUnused(used.ValueText) {
@@ -347,14 +366,8 @@ func buildFreeFloatingSummary(bands map[string]*eqBandEntry, order []string) map
 		if fv, ok := parseDisplayHz(freq.ValueText); ok {
 			row["current_freq_hz"] = fv
 		}
-		if d := eqDomainFields(freq.Domain); d != nil {
-			row["freq_domain"] = d
-		}
 		if db, ok := parseDisplayDB(gain.ValueText); ok {
 			row["current_gain_db"] = db
-		}
-		if d := eqDomainFields(gain.Domain); d != nil {
-			row["gain_domain"] = d
 		}
 		active = append(active, row)
 	}

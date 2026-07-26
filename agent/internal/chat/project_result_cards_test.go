@@ -128,6 +128,58 @@ func TestProjectResultCardsSkipInnerErrorResult(t *testing.T) {
 	}
 }
 
+func TestProjectResultCardsWithABSkipWhenMutationFailed(t *testing.T) {
+	executed := []map[string]any{
+		{
+			"status":       "completed",
+			"command_name": "plugin.effect_control.v0",
+			"result": map[string]any{
+				"status":    "error",
+				"message":   "verified VPS parameter surface fingerprint does not match the live plugin",
+				"track_id":  "1007",
+				"plugin_id": "1015",
+			},
+		},
+	}
+	observe := executorResultForMixTickReport("mix.observe", map[string]any{
+		"observation": map[string]any{
+			"mix_package": map[string]any{
+				"current_metrics": map[string]any{
+					"ab_result": map[string]any{"status": "ready"},
+				},
+			},
+		},
+	})
+
+	if cards := projectResultCardsFromExecutedWithAB(executed, observe); len(cards) != 0 {
+		t.Fatalf("cards = %#v, want none for failed mutation", cards)
+	}
+}
+
+func TestProjectResultCardsSkipReadOnlyPluginGrabberQueries(t *testing.T) {
+	executed := []map[string]any{
+		{
+			"status":       "ok",
+			"command_name": "plugin_grabber.explain_controls",
+			"result": map[string]any{
+				"status":    "ok",
+				"track_id":  "1007",
+				"plugin_id": "1013",
+			},
+		},
+		{
+			"status":       "ok",
+			"command_name": "plugin_grabber.get_project_profiles",
+			"result": map[string]any{
+				"status": "ok",
+			},
+		},
+	}
+	if cards := projectResultCardsFromExecuted(executed); len(cards) != 0 {
+		t.Fatalf("cards = %#v, want none for read-only plugin grabber queries", cards)
+	}
+}
+
 func TestProjectResultStableIDPrefersAgentActionID(t *testing.T) {
 	cards := projectResultCardsFromExecuted([]map[string]any{
 		{

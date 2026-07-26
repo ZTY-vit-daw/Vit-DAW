@@ -879,6 +879,31 @@ juce::var findVirtualControlByName (const juce::Array<juce::var>& virtualControl
     return {};
 }
 
+// Learned virtual-control names plus the always-available semantic EQ verbs
+// (see isEqRuntimeControl) that plugin_grabber_apply_control accepts for this
+// plugin. Surfaced in the "unsupported control" error so a caller (LLM or
+// otherwise) can self-correct instead of guessing a filter-shape word like
+// "bell" that was never a control name to begin with.
+juce::StringArray availablePluginGrabberControlNames (const juce::Array<juce::var>& virtualControls)
+{
+    juce::StringArray names;
+    for (const auto& control : virtualControls)
+    {
+        if (auto* object = control.getDynamicObject())
+        {
+            const auto name = firstNonEmptyProperty (*object, { "name", "operation", "control" }).trim();
+            if (name.isNotEmpty())
+                names.addIfNotAlreadyThere (name);
+        }
+    }
+    static const char* const semanticEqControls[] = {
+        "eq.cut_region", "eq.boost_region", "eq.set_region", "presence", "harsh", "reduce_mud"
+    };
+    for (const auto* control : semanticEqControls)
+        names.addIfNotAlreadyThere (control);
+    return names;
+}
+
 bool isEqRuntimeControl (const juce::String& control)
 {
     const auto clean = normalisedResolverToken (control);
@@ -1710,14 +1735,24 @@ juce::String pluginVPSMemoryHash (const void* data, size_t size)
 
 juce::String pluginVPSSurfaceHash (const juce::Array<juce::var>& parameterDescriptors)
 {
-    juce::StringArray ids;
+    juce::StringArray allIds;
+    juce::StringArray hostedPluginIds;
     for (const auto& descriptor : parameterDescriptors)
         if (auto* object = descriptor.getDynamicObject())
         {
             const auto id = firstNonEmptyProperty (*object, { "param_id", "parameter_id", "id" });
-            if (id.isNotEmpty())
-                ids.addIfNotAlreadyThere (id);
+            if (id.isEmpty())
+                continue;
+
+            allIds.addIfNotAlreadyThere (id);
+            if (object->getProperty ("source").toString().trim().equalsIgnoreCase ("hosted_plugin_parameter"))
+                hostedPluginIds.addIfNotAlreadyThere (id);
         }
+
+    // New ExternalPlugin descriptors distinguish Tracktion's dry/wet wrappers from
+    // the hosted plug-in surface. Keep the all-parameter fallback for legacy and
+    // synthetic descriptors that do not yet carry this source metadata.
+    auto& ids = hostedPluginIds.isEmpty() ? allIds : hostedPluginIds;
     ids.sort (true);
     const auto joined = ids.joinIntoString ("\n");
     return pluginVPSMemoryHash (joined.toRawUTF8(), static_cast<size_t> (joined.getNumBytesAsUTF8()));
@@ -3623,16 +3658,56 @@ juce::String PluginRackControlService::handleConnectorRemoveProfile (const juce:
 
 
 
-juce::String PluginRackControlService::handlePluginGrabberGetProjectProfiles (const juce::DynamicObject&, const juce::String&) const
+juce::String PluginRackControlService::handlePluginGrabberGetProjectProfiles (const juce::DynamicObject& object, const juce::String&) const
 {
     auto* edit = getEdit != nullptr ? getEdit() : nullptr;
     if (edit == nullptr)
         return makeErrorReply ("No active edit loaded");
 
     const auto projectFile = getEffectiveProjectFile (getCurrentProjectPath);
+    auto profiles = VitPluginGrabberProjectProfile::snapshotProfiles (projectFile);
+
+    // plugin_id is a runtime-assigned, reusable identifier, not a stable
+    // profile identity (see profile_key). Filtering by resolving the live
+    // plugin's profile_key avoids matching against a stale profile that
+    // happens to share a recycled plugin_id from an earlier session.
+    const auto requestedPluginID = object.getProperty ("plugin_id").toString().trim();
+    if (requestedPluginID.isNotEmpty())
+    {
+        const auto requestedTrackID = object.getProperty ("track_id").toString().trim();
+        te::Plugin* plugin = requestedTrackID.isNotEmpty()
+            ? [&]() -> te::Plugin* {
+                  auto* track = findTrackByID (*edit, requestedTrackID);
+                  if (track == nullptr)
+                      return nullptr;
+                  auto* found = findPluginInEdit (*edit, requestedPluginID);
+                  return (found != nullptr && pluginBelongsToTrackGraph (*track, *found)) ? found : nullptr;
+              }()
+            : findPluginInEdit (*edit, requestedPluginID);
+
+        if (auto* ext = dynamic_cast<te::ExternalPlugin*> (plugin))
+        {
+            const auto profileKey = VitPluginGrabberProjectProfile::profileKeyForPlugin (*ext);
+            juce::Array<juce::var> filtered;
+            for (const auto& profileVar : profiles)
+                if (auto* profileObject = profileVar.getDynamicObject())
+                    if (profileObject->getProperty ("profile_id").toString().trim() == profileKey)
+                        filtered.add (profileVar);
+            profiles = filtered;
+        }
+        else
+        {
+            // Plugin not found or not an external plugin instance: no live
+            // profile_key to filter by, so return no profiles rather than the
+            // unfiltered full-project list (which previously misled callers,
+            // e.g. surfacing an unrelated plugin's old profile as "current").
+            profiles = {};
+        }
+    }
+
     auto response = std::make_unique<juce::DynamicObject>();
     response->setProperty ("status", "ok");
-    response->setProperty ("plugin_grabber_profiles", juce::var (VitPluginGrabberProjectProfile::snapshotProfiles (projectFile)));
+    response->setProperty ("plugin_grabber_profiles", juce::var (profiles));
     return juce::JSON::toString (juce::var (response.release()));
 }
 
@@ -3908,10 +3983,24 @@ juce::String PluginRackControlService::handlePluginGrabberApplyControl (const ju
 
     if (applyResult.failed())
     {
-        const auto message = applyResult.getErrorMessage();
+        auto message = applyResult.getErrorMessage();
         const juce::String clarificationPrefix = "display_domain_clarification:";
         if (message.startsWith (clarificationPrefix))
             return makeStatusReply ("needs_clarification", message.substring (clarificationPrefix.length()).trim());
+
+        if (message.startsWith ("unsupported plugin grabber control"))
+        {
+            // Surface the plugin's actual learned control vocabulary so the
+            // caller (typically an LLM) can self-correct instead of guessing
+            // again, e.g. echoing a filter-shape label like "bell" as if it
+            // were a callable control name.
+            const auto availableControls = availablePluginGrabberControlNames (profileMerge.virtualControls);
+            if (! availableControls.isEmpty())
+                message << "; available controls for this plugin: " << availableControls.joinIntoString (", ")
+                        << "; or a generic semantic control such as eq.cut_region / eq.boost_region / eq.set_region";
+            else
+                message << "; this plugin has no learned virtual controls yet, and does not match a generic semantic control such as eq.cut_region / eq.boost_region / eq.set_region";
+        }
 
         return makeErrorReply (message);
     }

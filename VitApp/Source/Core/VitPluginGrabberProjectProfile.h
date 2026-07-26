@@ -50,8 +50,10 @@ public:
                                        const juce::String& profileId,
                                        bool& removed);
 
-    /** Populate the global-profile fields of a MergeResult from the cached global store. */
-    static void populateGlobalInfo (const juce::var& pluginIdentity, MergeResult& result);
+    /** Populate the global-profile fields of a MergeResult from the cached global store.
+        liveSignature gates the merge against a stale parameter surface, mirroring the
+        project-profile signature check in applyProjectDefault. */
+    static void populateGlobalInfo (const juce::var& pluginIdentity, MergeResult& result, const juce::String& liveSignature);
 
     static MergeResult applyProjectDefault (const juce::File& projectFile,
                                             const juce::var& pluginIdentity,

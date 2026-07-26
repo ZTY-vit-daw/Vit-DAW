@@ -495,6 +495,8 @@ func argHint(commandName string) string {
 		return "profile_id:string OR track_id:string plugin_id:string"
 	case "plugin_grabber_apply_control":
 		return "track_id:string plugin_id:string control:string target:{freq_hz?:number gain_db?:number q?:number threshold_db?:number amount?:number|string component_id?:string}"
+	case "plugin_grabber_set_eq_point":
+		return "track_id:string plugin_id:string freq_hz:number gain_db:number q?:number"
 	case "import_midi_to_track":
 		return "track_id:string file_path:string optional start_time_beats:number mode:merge_tracks"
 	case "get_midi_clip_notes", "get_midi_clip_data":
@@ -792,6 +794,7 @@ func defaultSpecs() []CommandSpec {
 		spec("plugin_grabber_upsert_project_profile", "plugin_grabber.upsert_project_profile", "plugin_grabber", "Save project-scoped plugin grabber profile annotations for one plugin.", RiskConfirm, true, false, true, true, "track_id", "plugin_id"),
 		spec("plugin_grabber_remove_project_profile", "plugin_grabber.remove_project_profile", "plugin_grabber", "Remove a project-scoped plugin grabber profile.", RiskConfirm, true, false, true, true),
 		spec("plugin_grabber_apply_control", "plugin_grabber.apply_control", "plugin_grabber", "Apply a learned plugin grabber runtime control from an acoustic target using the current validated parameter profile; result.applied_parameters[].new_value_text is the actual applied display value.", RiskUndoable, true, true, false, true, "track_id", "plugin_id"),
+		spec("plugin_grabber_set_eq_point", "plugin_grabber.set_eq_point", "plugin_grabber", "Set one EQ point by target frequency (Hz), gain (dB), and optional Q. Go picks the nearest band deterministically — the LLM does not choose. Handles fixed_slot_adjustable (TDR Nova), fixed_freq (graphic EQ), and free_floating (Pro-Q 3) models. Use this instead of calling set_plugin_param manually when eq_band_summary is present in explain_controls.", RiskUndoable, true, true, false, true, "track_id", "plugin_id"),
 		spec("delete_plugin", "plugin.delete", "plugin", "Delete a plugin instance.", RiskConfirm, true, true, true, true, "track_id", "plugin_id"),
 		spec("move_plugin", "plugin.move", "plugin", "Move a plugin instance.", RiskConfirm, true, true, true, true, "track_id", "plugin_id"),
 

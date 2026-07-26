@@ -183,7 +183,7 @@ func CollectPluginNames(values ...any) []string {
 		case map[string]any:
 			for key, child := range typed {
 				cleanKey := strings.ToLower(strings.TrimSpace(key))
-				if cleanKey == "plugin_name" || cleanKey == "last_loaded_plugin_name" || (cleanKey == "name" && strings.Contains(parentKey, "plugin")) {
+				if cleanKey == "plugin_name" || cleanKey == "last_loaded_plugin_name" || cleanKey == "selected_plugin_name" || (cleanKey == "name" && strings.Contains(parentKey, "plugin")) {
 					if text := strings.TrimSpace(fmt.Sprint(child)); text != "" && text != "<nil>" {
 						seen[strings.ToLower(text)] = text
 					}

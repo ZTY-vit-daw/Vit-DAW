@@ -380,7 +380,7 @@ juce::Result VitPluginGrabberProjectProfile::removeProfile (const juce::File& pr
     return writeProfilesFile (projectFile, profiles);
 }
 
-void VitPluginGrabberProjectProfile::populateGlobalInfo (const juce::var& pluginIdentity, MergeResult& result)
+void VitPluginGrabberProjectProfile::populateGlobalInfo (const juce::var& pluginIdentity, MergeResult& result, const juce::String& liveSignature)
 {
     const auto profileKey = propertyString (pluginIdentity, "profile_key");
     if (profileKey.isEmpty())
@@ -389,6 +389,12 @@ void VitPluginGrabberProjectProfile::populateGlobalInfo (const juce::var& plugin
     const auto globalProfile = VitPluginGrabberGlobalProfile::findGlobalProfile (profileKey);
     auto* globalProfileObject = globalProfile.getDynamicObject();
     if (globalProfileObject == nullptr)
+        return;
+
+    // Same profile_key staleness hazard as the project profile: reject a global
+    // profile whose recorded parameter signature no longer matches the live plugin.
+    const auto storedSignature = paramSignature::loadFromProfile (globalProfile);
+    if (storedSignature.isNotEmpty() && liveSignature.isNotEmpty() && storedSignature != liveSignature)
         return;
 
     result.globalProfileApplied = true;
@@ -407,9 +413,23 @@ VitPluginGrabberProjectProfile::MergeResult VitPluginGrabberProjectProfile::appl
     if (profileId.isEmpty())
         return result;
 
+    // profile_key only hashes plugin format/manufacturer/name/path, so a
+    // plugin binary update that renumbers ParamIDs (e.g. sequential -> native
+    // VST3 IDs) keeps the same profile_key. Gate the alias/group merge on the
+    // stored parameter signature so a stale profile cannot splice old param
+    // IDs onto a live plugin with a different parameter surface.
+    const auto liveSignature = paramSignature::computeHash (parameterDescriptors);
+
     const auto profile = findProfileById (readProfilesFile (projectFile), profileId);
     auto* profileObject = profile.getDynamicObject();
-    if (profileObject != nullptr)
+    // A stale-signature project profile must not block the independent
+    // global-profile lookup below: only skip applying THIS profile's
+    // alias/group/virtual-control fields, don't early-return the function.
+    const auto storedSignature = profileObject != nullptr ? paramSignature::loadFromProfile (profile) : juce::String();
+    const auto projectProfileIsStale = storedSignature.isNotEmpty() && storedSignature != liveSignature;
+    if (projectProfileIsStale)
+        result.profileSource = "stale_signature_mismatch";
+    if (profileObject != nullptr && ! projectProfileIsStale)
     {
         result.profile = profile;
         mergeExtendedProfileFields (*profileObject, result, true);
@@ -463,7 +483,7 @@ VitPluginGrabberProjectProfile::MergeResult VitPluginGrabberProjectProfile::appl
         }
     }
 
-    populateGlobalInfo (pluginIdentity, result);
+    populateGlobalInfo (pluginIdentity, result, liveSignature);
 
     return result;
 }

@@ -20,46 +20,58 @@ func TestBuildEQBandSummaryWorksWithoutTemplateRole(t *testing.T) {
 	}
 }
 
-func TestLooksLikeEQFromParameters(t *testing.T) {
+// The structural gate replaces the old "two Band N Frequency parameters" check.
+// It has to accept EQs that never use the word "Band" and reject effects whose
+// parameters merely happen to be numbered.
+func TestEQStructuralGate(t *testing.T) {
 	cases := []struct {
 		name   string
 		params []ParameterInfo
 		want   bool
 	}{
 		{
-			name: "two band frequencies",
+			name: "numbered parametric bands",
 			params: []ParameterInfo{
-				{Name: "Band 1 Frequency"},
-				{Name: "Band 2 Frequency"},
+				eqParam("1", "Band 1 Frequency", "100", eqRange(20, 20000, "log")),
+				eqParam("2", "Band 1 Gain", "0", eqRange(-18, 18, "linear")),
+				eqParam("3", "Band 2 Frequency", "1000", eqRange(20, 20000, "log")),
+				eqParam("4", "Band 2 Gain", "0", eqRange(-18, 18, "linear")),
 			},
 			want: true,
 		},
 		{
-			name:   "single band frequency is not enough",
-			params: []ParameterInfo{{Name: "Band 1 Frequency"}},
-			want:   false,
-		},
-		{
-			name: "compressor parameters",
+			name: "one band is not a series",
 			params: []ParameterInfo{
-				{Name: "Threshold"},
-				{Name: "Ratio"},
-				{Name: "Attack"},
+				eqParam("1", "Band 1 Frequency", "100", eqRange(20, 20000, "log")),
+				eqParam("2", "Band 1 Gain", "0", eqRange(-18, 18, "linear")),
 			},
 			want: false,
 		},
 		{
-			name: "shelf-only EQ has no numbered bands",
+			name: "compressor parameters",
 			params: []ParameterInfo{
-				{Name: "Low Shelf Frequency"},
-				{Name: "High Shelf Frequency"},
+				eqParam("1", "Threshold", "-18.0", eqRange(-60, 0, "linear")),
+				eqParam("2", "Ratio", "4.0", eqRange(1, 20, "linear")),
+				eqParam("3", "Attack", "10.0", eqRange(0.1, 100, "log")),
+			},
+			want: false,
+		},
+		{
+			name: "multiband compressor bands are not EQ bands",
+			params: []ParameterInfo{
+				eqParam("1", "Band 1 Threshold", "-18.0", eqRange(-60, 0, "linear")),
+				eqParam("2", "Band 1 Ratio", "4.0", eqRange(1, 20, "linear")),
+				eqParam("3", "Band 2 Threshold", "-18.0", eqRange(-60, 0, "linear")),
+				eqParam("4", "Band 2 Ratio", "4.0", eqRange(1, 20, "linear")),
 			},
 			want: false,
 		},
 	}
 	for _, tc := range cases {
-		if got := looksLikeEQFromParameters(tc.params); got != tc.want {
-			t.Errorf("%s: looksLikeEQFromParameters = %v, want %v", tc.name, got, tc.want)
+		bands, order, indexFrequencies := collectEQBandsStructural(ParameterDigest{Parameters: tc.params})
+		got := len(bands) > 0 && eqBandsLookStructural(bands, indexFrequencies)
+		if got != tc.want {
+			t.Errorf("%s: structural gate = %v, want %v (bands=%v)", tc.name, got, tc.want, order)
 		}
 	}
 }
