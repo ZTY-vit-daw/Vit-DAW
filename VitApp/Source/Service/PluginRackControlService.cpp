@@ -65,7 +65,10 @@ juce::Array<juce::var> stringArrayToVarArray (const juce::StringArray& values)
 }
 
 juce::ValueTree findRackPluginInstanceState (te::RackType& rackType, te::EditItemID pluginItemId);
-juce::Result resolveExternalPluginDescription (te::Edit& edit, const juce::String& pluginPath, juce::PluginDescription& outDesc);
+juce::Result resolveExternalPluginDescription (te::Edit& edit,
+                                               const juce::String& pluginPath,
+                                               const juce::String& pluginIdentifier,
+                                               juce::PluginDescription& outDesc);
 te::Plugin* findPluginInEdit (te::Edit& edit, const juce::String& pluginIdStr);
 juce::String describeExternalPluginLoadState (te::Edit& edit, te::ExternalPlugin& plugin);
 bool ensureExternalPluginInstanceReady (te::Edit& edit,
@@ -2588,34 +2591,84 @@ juce::ValueTree findRackPluginInstanceState (te::RackType& rackType, te::EditIte
     return {};
 }
 
-juce::Result resolveExternalPluginDescription (te::Edit& edit, const juce::String& pluginPath, juce::PluginDescription& outDesc)
+juce::Result resolveExternalPluginDescription (te::Edit& edit,
+                                               const juce::String& pluginPath,
+                                               const juce::String& pluginIdentifier,
+                                               juce::PluginDescription& outDesc)
 {
+    auto& pluginManager = edit.engine.getPluginManager();
+    auto& knownPluginList = pluginManager.knownPluginList;
+    const auto requestedIdentifier = pluginIdentifier.trim();
+
+    if (requestedIdentifier.isNotEmpty())
+    {
+        for (const auto& desc : knownPluginList.getTypes())
+        {
+            if (desc.createIdentifierString() != requestedIdentifier)
+                continue;
+
+            outDesc = desc;
+            // Tracktion refreshes a non-shell description from the instantiated
+            // processor.  Waves exposes many members through one WaveShell, so
+            // preserve the selected member description across that refresh.
+            if (outDesc.fileOrIdentifier.isNotEmpty())
+            {
+                for (const auto& sibling : knownPluginList.getTypes())
+                {
+                    if (sibling.createIdentifierString() == requestedIdentifier)
+                        continue;
+
+                    if (sibling.fileOrIdentifier.equalsIgnoreCase (outDesc.fileOrIdentifier))
+                    {
+                        outDesc.hasSharedContainer = true;
+                        break;
+                    }
+                }
+            }
+            const auto resolvedPath = desc.fileOrIdentifier.isNotEmpty() ? desc.fileOrIdentifier : pluginPath;
+            normaliseAndRegisterExternalPluginDescription (edit,
+                                                           outDesc,
+                                                           resolvedPath,
+                                                           "resolveExternalPluginDescription/identifier");
+            return juce::Result::ok();
+        }
+
+        return juce::Result::fail ("plugin_identifier not found in known plugin list: " + requestedIdentifier);
+    }
+
+    if (pluginPath.isEmpty())
+        return juce::Result::fail ("plugin_path or plugin_identifier is required");
+
     juce::File pluginFile (pluginPath);
 
     if (! pluginFile.exists())
         return juce::Result::fail ("plugin_path does not exist: " + pluginPath);
 
-    auto& pluginManager = edit.engine.getPluginManager();
-    auto& knownPluginList = pluginManager.knownPluginList;
     const auto targetCanon = pluginFile.getFullPathName();
+    juce::Array<juce::PluginDescription> pathMatches;
 
     for (const auto& desc : knownPluginList.getTypes())
     {
         if (desc.fileOrIdentifier.equalsIgnoreCase (targetCanon))
         {
-            outDesc = desc;
-            normaliseAndRegisterExternalPluginDescription (edit, outDesc, targetCanon, "resolveExternalPluginDescription/cache-exact");
-            return juce::Result::ok();
+            pathMatches.add (desc);
+            continue;
         }
 
         juce::File descFile (desc.fileOrIdentifier);
 
         if (descFile.getFullPathName().equalsIgnoreCase (targetCanon))
-        {
-            outDesc = desc;
-            normaliseAndRegisterExternalPluginDescription (edit, outDesc, targetCanon, "resolveExternalPluginDescription/cache-canon");
-            return juce::Result::ok();
-        }
+            pathMatches.add (desc);
+    }
+
+    if (pathMatches.size() > 1)
+        return juce::Result::fail ("plugin_path is ambiguous; plugin_identifier is required for shell plugins: " + pluginPath);
+
+    if (pathMatches.size() == 1)
+    {
+        outDesc = pathMatches.getReference (0);
+        normaliseAndRegisterExternalPluginDescription (edit, outDesc, targetCanon, "resolveExternalPluginDescription/cache-path");
+        return juce::Result::ok();
     }
 
     juce::AudioPluginFormat* vst3Format = nullptr;
@@ -2639,6 +2692,9 @@ juce::Result resolveExternalPluginDescription (te::Edit& edit, const juce::Strin
 
     if (discovered.isEmpty())
         return juce::Result::fail ("Plugin not in cache and VST3 introspection failed (check path). CLAP is not implemented in rack_add_node yet.");
+
+    if (discovered.size() > 1)
+        return juce::Result::fail ("plugin_path resolved to multiple plugins; scan it first and provide plugin_identifier: " + pluginPath);
 
     if (auto* first = discovered.getFirst())
     {
@@ -4549,14 +4605,10 @@ juce::String PluginRackControlService::handleInstantiatePlugin (const juce::Dyna
         return makeErrorReply ("instantiate_plugin requires non-empty track_id (or legacy track_index)");
 
     const auto pluginPath = object.getProperty ("plugin_path").toString().trim();
+    const auto pluginIdentifier = object.getProperty ("plugin_identifier").toString().trim();
 
-    if (pluginPath.isEmpty())
-        return makeErrorReply ("instantiate_plugin requires plugin_path");
-
-    juce::File pluginFile (pluginPath);
-
-    if (! pluginFile.exists())
-        return makeErrorReply ("plugin_path does not exist: " + pluginPath);
+    if (pluginPath.isEmpty() && pluginIdentifier.isEmpty())
+        return makeErrorReply ("instantiate_plugin requires plugin_path or plugin_identifier");
 
     auto* targetTrack = findTrackByID (*edit, trackID);
     if (targetTrack == nullptr)
@@ -4565,64 +4617,9 @@ juce::String PluginRackControlService::handleInstantiatePlugin (const juce::Dyna
     if (auto* audioTrack = dynamic_cast<te::AudioTrack*> (targetTrack))
         ensureMonitoringPlugins (*audioTrack);
 
-    auto& pluginManager = edit->engine.getPluginManager();
-    auto& knownPluginList = pluginManager.knownPluginList;
-
     juce::PluginDescription chosenDesc;
-    bool haveDesc = false;
-    const auto targetCanon = pluginFile.getFullPathName();
-
-    for (const auto& desc : knownPluginList.getTypes())
-    {
-        if (desc.fileOrIdentifier.equalsIgnoreCase (targetCanon))
-        {
-            chosenDesc = desc;
-            normaliseAndRegisterExternalPluginDescription (*edit, chosenDesc, targetCanon, "instantiate_plugin/cache-exact");
-            haveDesc = true;
-            break;
-        }
-
-        juce::File descFile (desc.fileOrIdentifier);
-
-        if (descFile.getFullPathName().equalsIgnoreCase (targetCanon))
-        {
-            chosenDesc = desc;
-            normaliseAndRegisterExternalPluginDescription (*edit, chosenDesc, targetCanon, "instantiate_plugin/cache-canon");
-            haveDesc = true;
-            break;
-        }
-    }
-
-    if (! haveDesc)
-    {
-        juce::AudioPluginFormat* vst3Format = nullptr;
-
-        for (int i = 0; i < pluginManager.pluginFormatManager.getNumFormats(); ++i)
-        {
-            auto* f = pluginManager.pluginFormatManager.getFormat (i);
-
-            if (f != nullptr && f->getName() == "VST3")
-            {
-                vst3Format = f;
-                break;
-            }
-        }
-
-        if (vst3Format == nullptr)
-            return makeErrorReply ("VST3 format not available");
-
-        juce::OwnedArray<juce::PluginDescription> discovered;
-        vst3Format->findAllTypesForFile (discovered, pluginFile.getFullPathName());
-
-        if (discovered.isEmpty())
-            return makeErrorReply ("Plugin not in cache and VST3 introspection failed (check path). CLAP is not implemented in instantiate_plugin yet.");
-
-        if (auto* first = discovered.getFirst())
-            chosenDesc = *first;
-
-        normaliseAndRegisterExternalPluginDescription (*edit, chosenDesc, targetCanon, "instantiate_plugin/introspection");
-        haveDesc = true;
-    }
+    if (const auto result = resolveExternalPluginDescription (*edit, pluginPath, pluginIdentifier, chosenDesc); result.failed())
+        return makeErrorReply (result.getErrorMessage());
 
     auto plugin = edit->getPluginCache().createNewPlugin (te::ExternalPlugin::xmlTypeName, chosenDesc);
 
@@ -4654,8 +4651,9 @@ juce::String PluginRackControlService::handleInstantiatePlugin (const juce::Dyna
     response->setProperty ("track_id", trackID);
     response->setProperty ("plugin_id", pluginItemIdString (*plugin));
     response->setProperty ("plugin_item_id", pluginItemIdString (*plugin));
-    response->setProperty ("template_role", templateRole);
     response->setProperty ("plugin_name", plugin->getName());
+    response->setProperty ("plugin_identifier", chosenDesc.createIdentifierString());
+    response->setProperty ("template_role", templateRole);
     appendGraphRevisionProperties (*response, graphSnapshot);
     return juce::JSON::toString (juce::var (response.release()));
 }
@@ -4957,6 +4955,7 @@ juce::String PluginRackControlService::handleRackAddNode (const juce::DynamicObj
     const auto trackID = object.getProperty ("track_id").toString().trim();
     const auto rackItemId = object.getProperty ("rack_item_id").toString().trim();
     const auto pluginPath = object.getProperty ("plugin_path").toString().trim();
+    const auto pluginIdentifier = object.getProperty ("plugin_identifier").toString().trim();
     const auto xVar = object.getProperty ("x");
     const auto yVar = object.getProperty ("y");
     const auto autoConnectVar = object.getProperty ("auto_connect");
@@ -4964,8 +4963,8 @@ juce::String PluginRackControlService::handleRackAddNode (const juce::DynamicObj
     if (trackID.isEmpty())
         return makeErrorReply ("rack_add_node requires track_id");
 
-    if (pluginPath.isEmpty())
-        return makeErrorReply ("rack_add_node requires plugin_path");
+    if (pluginPath.isEmpty() && pluginIdentifier.isEmpty())
+        return makeErrorReply ("rack_add_node requires plugin_path or plugin_identifier");
 
     if ((! xVar.isDouble() && ! xVar.isInt() && ! xVar.isInt64())
         || (! yVar.isDouble() && ! yVar.isInt() && ! yVar.isInt64()))
@@ -4989,7 +4988,7 @@ juce::String PluginRackControlService::handleRackAddNode (const juce::DynamicObj
         return makeErrorReply ("No rack instance found on the specified track");
 
     juce::PluginDescription chosenDesc;
-    if (const auto result = resolveExternalPluginDescription (*edit, pluginPath, chosenDesc); result.failed())
+    if (const auto result = resolveExternalPluginDescription (*edit, pluginPath, pluginIdentifier, chosenDesc); result.failed())
         return makeErrorReply (result.getErrorMessage());
 
     auto plugin = edit->getPluginCache().createNewPlugin (te::ExternalPlugin::xmlTypeName, chosenDesc);
@@ -5065,6 +5064,8 @@ juce::String PluginRackControlService::handleRackAddNode (const juce::DynamicObj
     response->setProperty ("rack_item_id", rack->itemID.toString());
     response->setProperty ("plugin_id", pluginItemIdString (*plugin));
     response->setProperty ("plugin_item_id", pluginItemIdString (*plugin));
+    response->setProperty ("plugin_name", plugin->getName());
+    response->setProperty ("plugin_identifier", chosenDesc.createIdentifierString());
     response->setProperty ("zone_id", zoneId);
     response->setProperty ("clip_scope", clipScope);
     response->setProperty ("template_role", templateRole);

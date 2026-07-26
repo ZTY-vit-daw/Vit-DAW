@@ -64,3 +64,21 @@ func TestSaveLoadRoundTrip(t *testing.T) {
 		t.Fatalf("summary = %+v", loaded.Summary)
 	}
 }
+
+func TestBuildKeepsShellMembersWithDistinctIdentifiers(t *testing.T) {
+	const shellPath = `C:\Program Files\Common Files\VST3\WaveShell1-VST3 17.1_x64.vst3`
+	idx := Build([]map[string]any{
+		{"name": "Waves A", "manufacturer": "Waves", "plugin_path": shellPath, "identifier": "VST3-Waves-A"},
+		{"name": "Waves B", "manufacturer": "Waves", "plugin_path": shellPath, "identifier": "VST3-Waves-B"},
+	}, time.Unix(10, 0).UTC())
+	if len(idx.Entries) != 2 {
+		t.Fatalf("shell members collapsed: entries = %d", len(idx.Entries))
+	}
+	ids := map[string]bool{}
+	for _, entry := range idx.Entries {
+		ids[entry.ID] = true
+	}
+	if !ids["VST3-Waves-A"] || !ids["VST3-Waves-B"] {
+		t.Fatalf("identifier-first IDs missing: %+v", ids)
+	}
+}

@@ -471,7 +471,9 @@ func sortedTags(scores map[string]int) []SemanticTag {
 }
 
 func stableID(entry Entry) string {
-	for _, value := range []string{entry.PluginPath, entry.Identifier, entry.Format + ":" + entry.Manufacturer + ":" + entry.Name} {
+	// Shell formats such as Waves expose many distinct plugins from one file.
+	// JUCE's identifier names the member; the file path only names the shell.
+	for _, value := range []string{entry.Identifier, entry.PluginPath, entry.Format + ":" + entry.Manufacturer + ":" + entry.Name} {
 		value = strings.TrimSpace(value)
 		if value != "" && value != "::" {
 			return value
