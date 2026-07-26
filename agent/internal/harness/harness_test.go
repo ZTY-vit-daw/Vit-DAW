@@ -3,6 +3,7 @@ package harness
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -1671,6 +1672,58 @@ func TestPluginSemanticBuildIndexUsesScannedPluginInventory(t *testing.T) {
 	}
 	if len(idx.Entries) != 1 || idx.Entries[0].Name != "Live Compressor" {
 		t.Fatalf("index entries = %+v", idx.Entries)
+	}
+}
+
+func TestScanAvailablePluginRowsPollsAsyncScanAndListsCompletedInventory(t *testing.T) {
+	wavesPath := `C:\Program Files\Common Files\VST3\WaveShell1-VST3 17.0_x64.vst3`
+	kernel := &fakeKernelClient{replies: []map[string]any{
+		{"status": "scanning", "scan_id": "scan-waves", "completed_files": 0, "total_files": 1},
+		{"status": "scanning", "scan_id": "scan-waves", "completed_files": 0, "total_files": 1},
+		{"status": "completed", "scan_id": "scan-waves", "completed_files": 1, "total_files": 1},
+		{"status": "ok", "plugins": []any{map[string]any{"name": "Waves SSL EV2", "path": wavesPath}}},
+	}}
+	h := New(nil, nil, nil)
+	h.kernel = kernel
+
+	rows, paths, err := h.scanAvailablePluginRows(context.Background(), map[string]any{
+		"paths":                 []string{`C:\Program Files\Common Files\VST3`},
+		"scan_poll_interval_ms": 10,
+	})
+	if err != nil {
+		t.Fatalf("scanAvailablePluginRows: %v", err)
+	}
+	if len(rows) != 1 || firstString(rows[0], "name") != "Waves SSL EV2" || len(paths) != 1 {
+		t.Fatalf("rows=%+v paths=%+v", rows, paths)
+	}
+	var commands []string
+	for _, command := range kernel.commands {
+		commands = append(commands, firstString(command, "cmd"))
+	}
+	want := []string{"scan_plugins", "plugin_scan_status", "plugin_scan_status", "plugin_list_available"}
+	if fmt.Sprint(commands) != fmt.Sprint(want) {
+		t.Fatalf("commands=%v want=%v", commands, want)
+	}
+	if got := firstString(kernel.commands[1], "scan_id"); got != "scan-waves" {
+		t.Fatalf("status scan_id=%q", got)
+	}
+}
+
+func TestScanAvailablePluginRowsHonorsContextCancellationWhilePolling(t *testing.T) {
+	kernel := &fakeKernelClient{replies: []map[string]any{
+		{"status": "scanning", "scan_id": "scan-cancel"},
+	}}
+	h := New(nil, nil, nil)
+	h.kernel = kernel
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	_, _, err := h.scanAvailablePluginRows(ctx, map[string]any{"scan_poll_interval_ms": 10})
+	if !errors.Is(err, context.Canceled) {
+		t.Fatalf("error=%v, want context.Canceled", err)
+	}
+	if len(kernel.commands) != 1 || firstString(kernel.commands[0], "cmd") != "scan_plugins" {
+		t.Fatalf("kernel commands=%+v", kernel.commands)
 	}
 }
 

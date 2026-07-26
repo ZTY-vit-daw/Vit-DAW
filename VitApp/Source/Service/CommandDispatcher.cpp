@@ -2875,7 +2875,19 @@ void CommandDispatcher::registerBuiltinCommands()
     handlers.emplace ("scan_plugins", [this] (const juce::DynamicObject& object, const juce::String& raw)
     {
         return pluginRackControlService != nullptr ? pluginRackControlService->handleScanPlugins (object, raw)
-                                             : makeErrorReply ("Plugin/rack/control service unavailable");
+                                              : makeErrorReply ("Plugin/rack/control service unavailable");
+    });
+
+    handlers.emplace ("plugin_scan_status", [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return pluginRackControlService != nullptr ? pluginRackControlService->handlePluginScanStatus (object, raw)
+                                              : makeErrorReply ("Plugin/rack/control service unavailable");
+    });
+
+    handlers.emplace ("plugin_scan_cancel", [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return pluginRackControlService != nullptr ? pluginRackControlService->handleCancelPluginScan (object, raw)
+                                              : makeErrorReply ("Plugin/rack/control service unavailable");
     });
 
     handlers.emplace ("plugin_list_available", [this] (const juce::DynamicObject& object, const juce::String& raw)

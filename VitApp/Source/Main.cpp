@@ -17,10 +17,19 @@ public:
 
     const juce::String getApplicationName() override       { return ProjectInfo::projectName; }
     const juce::String getApplicationVersion() override    { return ProjectInfo::versionString; }
-    bool moreThanOneInstanceAllowed() override             { return false; }
-
-    void initialise (const juce::String&) override
+    bool moreThanOneInstanceAllowed() override
     {
+        // JUCE performs its single-instance check before initialise(). The
+        // Tracktion scanner must reach initialise() so it can attach to the
+        // parent, while ordinary VitApp launches remain single-instance.
+        return getCommandLineParameters().trim().startsWith ("--PluginScan:");
+    }
+
+    void initialise (const juce::String& commandLine) override
+    {
+        if (te::PluginManager::startChildProcessPluginScan (commandLine))
+            return;
+
         initialiseLogger();
 
         juce::Logger::writeToLog ("VitHeadlessServer: application startup.");

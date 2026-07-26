@@ -7131,22 +7131,84 @@ func (h *Harness) scanAvailablePluginRows(ctx context.Context, cmd map[string]an
 	if err != nil {
 		return nil, paths, err
 	}
-	if pluginKernelErrored(reply) {
-		return nil, paths, fmt.Errorf("%s", firstNonEmpty(firstString(reply, "message"), firstString(reply, "error"), "scan_plugins failed"))
+	status := strings.ToLower(strings.TrimSpace(firstString(reply, "status")))
+	if status == "ok" || status == "success" {
+		// Compatibility with kernels predating asynchronous plugin scanning.
+		return normalizePluginInventoryRows(mapRowsFromAny(reply["plugins"])), paths, nil
 	}
-	rows := normalizePluginInventoryRows(mapRowsFromAny(reply["plugins"]))
-	return rows, paths, nil
+	if status == "completed" {
+		rows, err := h.listPluginRowsAfterScan(ctx)
+		return rows, paths, err
+	}
+	if status != "scanning" && status != "cancelling" {
+		return nil, paths, pluginScanReplyError(reply, "scan_plugins returned an invalid status")
+	}
+
+	scanID := firstString(reply, "scan_id")
+	if scanID == "" {
+		return nil, paths, fmt.Errorf("scan_plugins returned %s without scan_id", status)
+	}
+	pollMS := int(numberFromAny(firstNonNil(cmd["scan_poll_interval_ms"], cmd["poll_interval_ms"])))
+	if pollMS <= 0 {
+		pollMS = 250
+	}
+	pollInterval := time.Duration(pollMS) * time.Millisecond
+	if pollInterval < 10*time.Millisecond {
+		pollInterval = 10 * time.Millisecond
+	}
+	statusCmd := map[string]any{"cmd": "plugin_scan_status", "scan_id": scanID}
+	for {
+		timer := time.NewTimer(pollInterval)
+		select {
+		case <-ctx.Done():
+			timer.Stop()
+			return nil, paths, ctx.Err()
+		case <-timer.C:
+		}
+
+		reply, _, err = h.kernel.SendCommand(ctx, statusCmd)
+		if err != nil {
+			return nil, paths, err
+		}
+		status = strings.ToLower(strings.TrimSpace(firstString(reply, "status")))
+		switch status {
+		case "scanning", "cancelling":
+			continue
+		case "completed":
+			rows, listErr := h.listPluginRowsAfterScan(ctx)
+			return rows, paths, listErr
+		case "cancelled", "failed", "error":
+			return nil, paths, pluginScanReplyError(reply, "plugin scan "+status)
+		default:
+			return nil, paths, pluginScanReplyError(reply, "plugin_scan_status returned an invalid status")
+		}
+	}
+}
+
+func (h *Harness) listPluginRowsAfterScan(ctx context.Context) ([]map[string]any, error) {
+	reply, _, err := h.kernel.SendCommand(ctx, map[string]any{"cmd": "plugin_list_available"})
+	if err != nil {
+		return nil, err
+	}
+	if pluginKernelErrored(reply) || !kernelReplySucceeded(reply) {
+		return nil, pluginScanReplyError(reply, "plugin_list_available failed")
+	}
+	rows := mapRowsFromAny(firstNonNil(reply["plugins"], reply["entries"]))
+	return normalizePluginInventoryRows(rows), nil
+}
+
+func pluginScanReplyError(reply map[string]any, fallback string) error {
+	return fmt.Errorf("%s", firstNonEmpty(firstString(reply, "message"), firstString(reply, "error"), fallback))
 }
 
 func defaultPluginScanPaths() []string {
-	out := []string{`C:\Program Files\Common Files\VST3`}
+	if commonProgramFiles := strings.TrimSpace(os.Getenv("CommonProgramFiles")); commonProgramFiles != "" {
+		return []string{filepath.Join(commonProgramFiles, "VST3")}
+	}
 	if programFiles := strings.TrimSpace(os.Getenv("ProgramFiles")); programFiles != "" {
-		out = append(out, filepath.Join(programFiles, "Steinberg", "VSTPlugins"))
+		return []string{filepath.Join(programFiles, "Common Files", "VST3")}
 	}
-	if localAppData := strings.TrimSpace(os.Getenv("LOCALAPPDATA")); localAppData != "" {
-		out = append(out, filepath.Join(localAppData, "Programs", "Common", "CLAP"))
-	}
-	return out
+	return []string{`C:\Program Files\Common Files\VST3`}
 }
 
 func normalizePluginInventoryRows(rows []map[string]any) []map[string]any {

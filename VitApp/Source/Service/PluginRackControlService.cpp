@@ -2886,17 +2886,333 @@ float convertRequestedDbToPluginDb (double requestedDb)
     return juce::Decibels::gainToDecibels (gain, minimumVolumeDb);
 }
 
+juce::String expandPluginScanPathEnvironment (juce::String path)
+{
+    static constexpr std::array<const char*, 4> variableNames {
+        "ProgramFiles", "ProgramFiles(x86)", "CommonProgramFiles", "LOCALAPPDATA"
+    };
+
+    for (const auto* variableName : variableNames)
+    {
+        const auto value = juce::SystemStats::getEnvironmentVariable (variableName, {}).trim();
+        if (value.isNotEmpty())
+            path = path.replace ("%" + juce::String (variableName) + "%", value, true);
+    }
+
+    return path.trim().unquoted();
+}
+
 
 } // namespace
+
+class PluginScanCoordinator final : private juce::Thread
+{
+public:
+    PluginScanCoordinator()
+        : juce::Thread ("Vit plugin scanner")
+    {
+    }
+
+    ~PluginScanCoordinator() override
+    {
+        cancel();
+        if (! stopThread (15000))
+            juce::Logger::writeToLog ("PluginScanCoordinator: scanner thread required forced shutdown");
+    }
+
+    juce::var start (te::PluginManager& managerToUse,
+                     juce::AudioPluginFormat& formatToUse,
+                     const juce::FileSearchPath& searchPathToUse,
+                     const juce::StringArray& scannedPathsToUse,
+                     const juce::StringArray& invalidPathsToUse)
+    {
+        {
+            const juce::ScopedLock lock (stateLock);
+            if (state == "scanning" || state == "cancelling")
+            {
+                coalescedRequest = true;
+                return createSnapshotUnlocked();
+            }
+        }
+
+        // finish() publishes the terminal state just before run() returns. A
+        // scan requested in that small window must wait for the old Thread to
+        // finish or JUCE will keep the old thread and never launch the new job.
+        if (isThreadRunning() && ! waitForThreadToExit (5000))
+        {
+            const juce::ScopedLock lock (stateLock);
+            state = "failed";
+            error = "Previous plugin scanner worker thread did not exit";
+            finishedAt = juce::Time::getCurrentTime().toISO8601 (true);
+            return createSnapshotUnlocked();
+        }
+
+        {
+            const juce::ScopedLock lock (stateLock);
+            if (state == "scanning" || state == "cancelling")
+            {
+                coalescedRequest = true;
+                return createSnapshotUnlocked();
+            }
+            pluginManager = &managerToUse;
+            format = &formatToUse;
+            searchPath = searchPathToUse;
+            scannedPaths = scannedPathsToUse;
+            invalidPaths = invalidPathsToUse;
+            failedFiles.clear();
+            scanID = juce::Uuid().toString();
+            state = "scanning";
+            error.clear();
+            currentFile.clear();
+            progress = 0.0;
+            totalFiles = 0;
+            completedFiles = 0;
+            cachedCountBefore = countVst3Plugins (managerToUse.knownPluginList);
+            pluginCount = cachedCountBefore;
+            startedAt = juce::Time::getCurrentTime().toISO8601 (true);
+            finishedAt.clear();
+            coalescedRequest = false;
+        }
+
+        if (! startThread (juce::Thread::Priority::normal))
+        {
+            const juce::ScopedLock lock (stateLock);
+            state = "failed";
+            error = "Could not start plugin scanner worker thread";
+            finishedAt = juce::Time::getCurrentTime().toISO8601 (true);
+        }
+
+        return snapshot();
+    }
+
+    juce::var snapshot() const
+    {
+        const juce::ScopedLock lock (stateLock);
+        return createSnapshotUnlocked();
+    }
+
+    juce::var cancel()
+    {
+        te::PluginManager* manager = nullptr;
+        {
+            const juce::ScopedLock lock (stateLock);
+            if (state != "scanning" && state != "cancelling")
+                return createSnapshotUnlocked();
+
+            state = "cancelling";
+            manager = pluginManager;
+        }
+
+        signalThreadShouldExit();
+        if (manager != nullptr && manager->abortCurrentPluginScan != nullptr)
+            manager->abortCurrentPluginScan();
+        return snapshot();
+    }
+
+private:
+    static int countVst3Plugins (const juce::KnownPluginList& list)
+    {
+        int count = 0;
+        for (const auto& desc : list.getTypes())
+            if (desc.pluginFormatName == "VST3")
+                ++count;
+        return count;
+    }
+
+    static juce::StringArray collectFailedFiles (const juce::PluginDirectoryScanner& scanner,
+                                                  const juce::KnownPluginList& list,
+                                                  const juce::StringArray& filesInScan)
+    {
+        auto failures = scanner.getFailedFiles();
+        for (const auto& blacklisted : list.getBlacklistedFiles())
+            if (filesInScan.contains (blacklisted))
+                failures.addIfNotAlreadyThere (blacklisted);
+        return failures;
+    }
+
+    static int watchdogTimeoutMs()
+    {
+        constexpr int defaultTimeoutMs = 10 * 60 * 1000;
+        const auto configured = juce::SystemStats::getEnvironmentVariable ("TRACKTION_PLUGIN_SCAN_TIMEOUT_MS", {})
+                                    .trim()
+                                    .getIntValue();
+        return configured > 0 ? juce::jlimit (1000, 60 * 60 * 1000, configured) : defaultTimeoutMs;
+    }
+
+    juce::var createSnapshotUnlocked() const
+    {
+        auto response = std::make_unique<juce::DynamicObject>();
+        response->setProperty ("status", state);
+        response->setProperty ("scan_id", scanID);
+        response->setProperty ("progress", progress);
+        response->setProperty ("current_file", currentFile);
+        response->setProperty ("total_files", totalFiles);
+        response->setProperty ("completed_files", completedFiles);
+        response->setProperty ("cached_count_before", cachedCountBefore);
+        response->setProperty ("plugin_count", pluginCount);
+        response->setProperty ("discovered_count", juce::jmax (0, pluginCount - cachedCountBefore));
+        response->setProperty ("scanned_paths", juce::var (stringArrayToVarArray (scannedPaths)));
+        response->setProperty ("invalid_paths", juce::var (stringArrayToVarArray (invalidPaths)));
+        response->setProperty ("failed_files", juce::var (stringArrayToVarArray (failedFiles)));
+        response->setProperty ("started_at", startedAt);
+        response->setProperty ("finished_at", finishedAt);
+        response->setProperty ("error", error);
+        response->setProperty ("coalesced", coalescedRequest);
+        response->setProperty ("out_of_process", pluginManager != nullptr && pluginManager->usesSeparateProcessForScanning());
+        response->setProperty ("watchdog_timeout_ms", watchdogTimeoutMs());
+        return juce::var (response.release());
+    }
+
+    void updateProgress (double nextProgress,
+                         int nextCompletedFiles,
+                         const juce::String& nextCurrentFile,
+                         const juce::StringArray& nextFailedFiles)
+    {
+        const juce::ScopedLock lock (stateLock);
+        progress = juce::jlimit (0.0, 1.0, nextProgress);
+        completedFiles = nextCompletedFiles;
+        currentFile = nextCurrentFile;
+        failedFiles = nextFailedFiles;
+        if (pluginManager != nullptr)
+            pluginCount = countVst3Plugins (pluginManager->knownPluginList);
+    }
+
+    void finish (const juce::String& finalState, const juce::String& finalError = {})
+    {
+        const juce::ScopedLock lock (stateLock);
+        state = finalState;
+        error = finalError;
+        if (finalState == "completed")
+            progress = 1.0;
+        if (pluginManager != nullptr)
+            pluginCount = countVst3Plugins (pluginManager->knownPluginList);
+        finishedAt = juce::Time::getCurrentTime().toISO8601 (true);
+    }
+
+    void run() override
+    {
+        te::PluginManager* manager = nullptr;
+        juce::AudioPluginFormat* formatToScan = nullptr;
+        juce::FileSearchPath pathsToScan;
+        juce::String activeScanID;
+        {
+            const juce::ScopedLock lock (stateLock);
+            manager = pluginManager;
+            formatToScan = format;
+            pathsToScan = searchPath;
+            activeScanID = scanID;
+        }
+
+        if (manager == nullptr || formatToScan == nullptr)
+        {
+            finish ("failed", "Plugin scanner was started without a plugin manager or format");
+            return;
+        }
+
+        juce::Logger::writeToLog ("PluginScanCoordinator: scan " + activeScanID
+                                  + " started paths=" + pathsToScan.toString());
+
+        try
+        {
+            const auto files = formatToScan->searchPathsForPlugins (pathsToScan, true, false);
+            {
+                const juce::ScopedLock lock (stateLock);
+                totalFiles = files.size();
+            }
+
+            if (files.isEmpty())
+            {
+                finish ("completed");
+                juce::Logger::writeToLog ("PluginScanCoordinator: scan " + activeScanID + " completed; no VST3 files found");
+                return;
+            }
+
+            const auto deadMansPedal = paths::getSettingsDirectory().getChildFile ("plugin_scan_dead_mans_pedal.txt");
+            {
+                juce::PluginDirectoryScanner scanner (manager->knownPluginList,
+                                                       *formatToScan,
+                                                       juce::FileSearchPath(),
+                                                       true,
+                                                       deadMansPedal,
+                                                       false);
+                scanner.setFilesOrIdentifiersToScan (files);
+
+                bool moreFiles = true;
+                int completed = 0;
+                while (moreFiles && ! threadShouldExit())
+                {
+                    const auto fileIndex = files.size() - completed - 1;
+                    const auto file = juce::isPositiveAndBelow (fileIndex, files.size()) ? files[fileIndex]
+                                                                                         : juce::String();
+                    updateProgress (scanner.getProgress(), completed, file,
+                                    collectFailedFiles (scanner, manager->knownPluginList, files));
+                    juce::Logger::writeToLog ("PluginScanCoordinator: scan " + activeScanID
+                                              + " probing " + file);
+
+                    juce::String pluginName;
+                    moreFiles = scanner.scanNextFile (true, pluginName);
+                    ++completed;
+                    updateProgress (scanner.getProgress(), completed, file,
+                                    collectFailedFiles (scanner, manager->knownPluginList, files));
+                }
+
+                updateProgress (scanner.getProgress(), completed, {},
+                                collectFailedFiles (scanner, manager->knownPluginList, files));
+            }
+
+            if (threadShouldExit())
+            {
+                finish ("cancelled", "Plugin scan was cancelled");
+                juce::Logger::writeToLog ("PluginScanCoordinator: scan " + activeScanID + " cancelled");
+                return;
+            }
+
+            finish ("completed");
+            juce::Logger::writeToLog ("PluginScanCoordinator: scan " + activeScanID
+                                      + " completed plugins=" + juce::String (countVst3Plugins (manager->knownPluginList)));
+        }
+        catch (const std::exception& exception)
+        {
+            finish ("failed", "Plugin scan exception: " + juce::String (exception.what()));
+        }
+        catch (...)
+        {
+            finish ("failed", "Plugin scan failed with an unknown exception");
+        }
+    }
+
+    mutable juce::CriticalSection stateLock;
+    te::PluginManager* pluginManager = nullptr;
+    juce::AudioPluginFormat* format = nullptr;
+    juce::FileSearchPath searchPath;
+    juce::StringArray scannedPaths;
+    juce::StringArray invalidPaths;
+    juce::StringArray failedFiles;
+    juce::String scanID;
+    juce::String state { "idle" };
+    juce::String error;
+    juce::String currentFile;
+    juce::String startedAt;
+    juce::String finishedAt;
+    double progress = 0.0;
+    int totalFiles = 0;
+    int completedFiles = 0;
+    int cachedCountBefore = 0;
+    int pluginCount = 0;
+    bool coalescedRequest = false;
+};
 
 PluginRackControlService::PluginRackControlService (EditGetter editGetter,
                                                     SaveProjectAction saveProjectAction,
                                                     CurrentProjectPathGetter currentProjectPathGetter)
     : getEdit (std::move (editGetter)),
       saveProject (std::move (saveProjectAction)),
-      getCurrentProjectPath (std::move (currentProjectPathGetter))
+      getCurrentProjectPath (std::move (currentProjectPathGetter)),
+      pluginScanCoordinator (std::make_unique<PluginScanCoordinator>())
 {
 }
+
+PluginRackControlService::~PluginRackControlService() = default;
 juce::String PluginRackControlService::handleSetPluginParam (const juce::DynamicObject& object, const juce::String&) const
 {
     auto* edit = getEdit != nullptr ? getEdit() : nullptr;
@@ -4056,28 +4372,39 @@ juce::String PluginRackControlService::handleScanPlugins (const juce::DynamicObj
         return makeErrorReply ("scan_plugins requires paths array");
 
     juce::FileSearchPath searchPath;
+    juce::StringArray scannedPaths;
+    juce::StringArray invalidPaths;
 
     for (const auto& item : *arr)
     {
-        const auto path = item.toString().trim();
+        const auto rawPath = item.toString().trim();
+        const auto path = expandPluginScanPathEnvironment (rawPath);
 
-        if (path.isNotEmpty())
-            searchPath.add (juce::File (path));
+        if (path.isEmpty())
+            continue;
+
+        const juce::File directory (path);
+        if (directory.isDirectory())
+        {
+            searchPath.add (directory);
+            scannedPaths.addIfNotAlreadyThere (directory.getFullPathName());
+        }
+        else
+        {
+            invalidPaths.addIfNotAlreadyThere (rawPath == path ? path : rawPath + " -> " + path);
+        }
     }
 
     searchPath.removeRedundantPaths();
 
     auto& pluginManager = edit->engine.getPluginManager();
     auto& formatManager = pluginManager.pluginFormatManager;
-    auto& knownPluginList = pluginManager.knownPluginList;
-
-    juce::Array<juce::var> pluginsJson;
-
     if (searchPath.getNumPaths() == 0)
     {
         auto response = std::make_unique<juce::DynamicObject>();
-        response->setProperty ("status", "ok");
-        response->setProperty ("plugins", juce::var (pluginsJson));
+        response->setProperty ("status", "error");
+        response->setProperty ("message", "scan_plugins requires at least one existing VST3 directory");
+        response->setProperty ("invalid_paths", juce::var (stringArrayToVarArray (invalidPaths)));
         return juce::JSON::toString (juce::var (response.release()));
     }
 
@@ -4097,36 +4424,46 @@ juce::String PluginRackControlService::handleScanPlugins (const juce::DynamicObj
     if (vst3Format == nullptr)
         return makeErrorReply ("VST3 plugin format is not available in this build");
 
-    {
-        juce::PluginDirectoryScanner scanner (knownPluginList,
-                                              *vst3Format,
-                                              searchPath,
-                                              true,
-                                              juce::File(),
-                                              false);
-        juce::String pluginName;
+    if (pluginScanCoordinator == nullptr)
+        return makeErrorReply ("Plugin scan coordinator is unavailable");
 
-        while (scanner.scanNextFile (true, pluginName))
-        {
-        }
-    }
+    return juce::JSON::toString (pluginScanCoordinator->start (pluginManager,
+                                                               *vst3Format,
+                                                               searchPath,
+                                                               scannedPaths,
+                                                               invalidPaths));
+}
 
-    for (const auto& desc : knownPluginList.getTypes())
-    {
-        if (desc.pluginFormatName != "VST3")
-            continue;
+juce::String PluginRackControlService::handlePluginScanStatus (const juce::DynamicObject& object,
+                                                               const juce::String&) const
+{
+    if (pluginScanCoordinator == nullptr)
+        return makeErrorReply ("Plugin scan coordinator is unavailable");
 
-        pluginsJson.add (pluginDescriptionToJson (desc));
-    }
+    const auto status = pluginScanCoordinator->snapshot();
+    const auto requestedScanID = object.getProperty ("scan_id").toString().trim();
+    if (requestedScanID.isNotEmpty())
+        if (auto* statusObject = status.getDynamicObject())
+            if (statusObject->getProperty ("scan_id").toString() != requestedScanID)
+                return makeErrorReply ("Unknown plugin scan_id: " + requestedScanID);
 
-    auto response = std::make_unique<juce::DynamicObject>();
-    response->setProperty ("status", "ok");
-    juce::StringArray scannedPaths;
-    for (int i = 0; i < searchPath.getNumPaths(); ++i)
-        scannedPaths.add (searchPath[i].getFullPathName());
-    response->setProperty ("scanned_paths", juce::var (stringArrayToVarArray (scannedPaths)));
-    response->setProperty ("plugins", juce::var (pluginsJson));
-    return juce::JSON::toString (juce::var (response.release()));
+    return juce::JSON::toString (status);
+}
+
+juce::String PluginRackControlService::handleCancelPluginScan (const juce::DynamicObject& object,
+                                                               const juce::String&) const
+{
+    if (pluginScanCoordinator == nullptr)
+        return makeErrorReply ("Plugin scan coordinator is unavailable");
+
+    const auto status = pluginScanCoordinator->snapshot();
+    const auto requestedScanID = object.getProperty ("scan_id").toString().trim();
+    if (requestedScanID.isNotEmpty())
+        if (auto* statusObject = status.getDynamicObject())
+            if (statusObject->getProperty ("scan_id").toString() != requestedScanID)
+                return makeErrorReply ("Unknown plugin scan_id: " + requestedScanID);
+
+    return juce::JSON::toString (pluginScanCoordinator->cancel());
 }
 
 juce::String PluginRackControlService::handleListPlugins (const juce::DynamicObject& object, const juce::String&) const

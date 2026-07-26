@@ -16,6 +16,7 @@ class VitEngineBehaviour final : public te::EngineBehaviour
 public:
     VitEngineBehaviour() = default;
 
+    bool canScanPluginsOutOfProcess() override { return true; }
     juce::File getDefaultFolderForAudioRecordings (te::Edit& edit) override;
     juce::File getFileForNewAudioRecording (te::Track& track, const juce::String& fileExtension) override;
 
