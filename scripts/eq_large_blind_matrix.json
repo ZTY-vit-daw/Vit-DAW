@@ -1,0 +1,61 @@
+{
+  "schema_version": "plugin_grabber.eq_blind_matrix.v1",
+  "defaults": {
+    "target": {
+      "freq_hz": 3400.0,
+      "gain_db": -3.0
+    }
+  },
+  "cases": [
+    {
+      "id": "curves_aq_stereo_blind",
+      "plugin_name": "Curves AQ Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3"
+    },
+    {
+      "id": "tract_stereo_blind",
+      "plugin_name": "TRACT Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3"
+    },
+    {
+      "id": "rchannel_stereo_blind",
+      "plugin_name": "RChannel Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3"
+    },
+    {
+      "id": "scheps_omni_channel_2_stereo_blind",
+      "plugin_name": "Scheps Omni Channel 2 Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3"
+    },
+    {
+      "id": "magma_channel_strip_stereo_blind",
+      "plugin_name": "Magma Channel Strip Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3"
+    },
+    {
+      "id": "cla_mixhub_stereo_blind",
+      "plugin_name": "CLA MixHub Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3"
+    },
+    {
+      "id": "abbey_road_emi_tg12345_channel_stereo_blind",
+      "plugin_name": "Abbey Road EMI TG12345 Ch Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3"
+    },
+    {
+      "id": "abbey_road_redd_37_51_stereo_blind",
+      "plugin_name": "Abbey Road REDD.37.51 Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3"
+    },
+    {
+      "id": "q_clone_stereo_blind",
+      "plugin_name": "Q-Clone Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3"
+    },
+    {
+      "id": "zam_head_x2_blind",
+      "plugin_name": "ZamHeadX2",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\zam-plugins-4.5-win64\\zam-plugins-4.5\\ZamHeadX2.vst3\\Contents\\x86_64-win\\ZamHeadX2.vst3"
+    }
+  ]
+}

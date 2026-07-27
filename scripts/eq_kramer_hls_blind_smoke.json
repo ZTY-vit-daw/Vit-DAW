@@ -1,0 +1,16 @@
+{
+  "schema_version": "plugin_grabber.eq_blind_candidate.v1",
+  "defaults": {
+    "target": {
+      "freq_hz": 3400.0,
+      "gain_db": -3.0
+    }
+  },
+  "cases": [
+    {
+      "id": "kramer_hls_stereo_blind",
+      "plugin_name": "Kramer HLS Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3"
+    }
+  ]
+}

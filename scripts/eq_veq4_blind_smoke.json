@@ -1,0 +1,37 @@
+{
+  "schema_version": "plugin_grabber.eq_blind_candidate.v1",
+  "defaults": {
+    "target": {
+      "freq_hz": 3400.0
+    }
+  },
+  "cases": [
+    {
+      "id": "veq4_stereo_level1_blind",
+      "plugin_name": "VEQ4 Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "expected_model": "fixed_slot_adjustable",
+      "expected_band_count": 4,
+      "expected_parameter_count": 21,
+      "expected_filter_kinds": ["bell", "low_cut", "high_cut"],
+      "expect_quantized_roles": ["freq"],
+      "target": {
+        "freq_hz": 3400.0,
+        "gain_db": -3.0
+      }
+    },
+    {
+      "id": "veq4_stereo_level2_low_cut_blind",
+      "plugin_name": "VEQ4 Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "expected_model": "fixed_slot_adjustable",
+      "expected_band_count": 4,
+      "expected_parameter_count": 21,
+      "expected_filter_kinds": ["bell", "low_cut", "high_cut"],
+      "target": {
+        "freq_hz": 82.0,
+        "shape": "low_cut"
+      }
+    }
+  ]
+}

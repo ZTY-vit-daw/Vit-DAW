@@ -308,6 +308,14 @@ def smoke_case(base: str, case: dict[str, Any], track_id: str, plugin_id: str,
             f"parameter_count={len(parameter_rows(before))}, expected={expected_parameters}")
     if summary.get("mapping_source") != "generic_structural":
         raise RuntimeError(f"unexpected generic mapping source: {summary.get('mapping_source')!r}")
+    expected_kinds = {str(value).casefold() for value in
+                      case.get("expected_filter_kinds", [])}
+    actual_kinds = {str(value).casefold() for value in
+                    (summary.get("supported_filter_kinds") or [])}
+    if expected_kinds and not expected_kinds.issubset(actual_kinds):
+        raise RuntimeError(
+            f"supported_filter_kinds={sorted(actual_kinds)!r}, "
+            f"missing={sorted(expected_kinds-actual_kinds)!r}")
     completeness = summary.get("completeness")
     if expected_supported and (
             not isinstance(completeness, dict) or not completeness.get("complete")):
@@ -357,6 +365,25 @@ def smoke_case(base: str, case: dict[str, Any], track_id: str, plugin_id: str,
     touched.discard("")
     if not touched:
         raise RuntimeError("set_eq_point returned no touched parameters")
+    requested_shape = str(target.get("shape", "")).casefold()
+    if requested_shape:
+        selected = applied.get("selected_section")
+        if not isinstance(selected, dict) or str(selected.get("shape", "")).casefold() != requested_shape:
+            raise RuntimeError(
+                f"selected_section did not confirm requested shape {requested_shape!r}: {selected!r}")
+        expected_partial = bool(case.get("expected_partial", False))
+        if bool(applied.get("partial")) != expected_partial:
+            raise RuntimeError(
+                f"partial={applied.get('partial')!r}, expected={expected_partial!r}; "
+                f"limitations={applied.get('limitations')!r}")
+    expected_quantized = {str(value).casefold() for value in
+                          case.get("expect_quantized_roles", [])}
+    actual_quantized = {first_text(row, "role").casefold() for row in writes
+                        if bool(row.get("quantized"))}
+    if expected_quantized and not expected_quantized.issubset(actual_quantized):
+        raise RuntimeError(
+            f"quantized_roles={sorted(actual_quantized)!r}, "
+            f"expected at least={sorted(expected_quantized)!r}")
     activation_indices = [i for i, row in enumerate(writes)
                           if first_text(row, "role") == "used"]
     if activation_indices and activation_indices != list(
@@ -364,6 +391,9 @@ def smoke_case(base: str, case: dict[str, Any], track_id: str, plugin_id: str,
         raise RuntimeError("activation writes were not last")
     actual_by_id = {first_text(row, "param_id"): row for row in
                     applied.get("actual_readback", []) if isinstance(row, dict)}
+    if set(actual_by_id) != touched:
+        raise RuntimeError(
+            f"actual_readback ids={sorted(actual_by_id)!r}, touched={sorted(touched)!r}")
     inactive_labels = {"unused", "disabled", "off", "out", "bypass", "bypassed"}
     for index in activation_indices:
         pid = first_text(writes[index], "param_id")

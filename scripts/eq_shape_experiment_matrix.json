@@ -1,0 +1,82 @@
+{
+  "schema_version": "plugin_grabber.eq_shape_experiment.v1",
+  "defaults": {
+    "target": {
+      "freq_hz": 3400.0
+    }
+  },
+  "cases": [
+    {
+      "id": "h_eq_stereo_shape_experiment",
+      "plugin_name": "H-EQ Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "expected_model": "fixed_slot_adjustable",
+      "expected_band_count": 5,
+      "expected_parameter_count": 61,
+      "expected_filter_kinds": ["bell", "low_shelf", "high_shelf", "low_cut", "high_cut"],
+      "target": {"freq_hz": 200.0, "gain_db": -3.0, "shape": "low_shelf"}
+    },
+    {
+      "id": "sslchannel_stereo_shape_experiment",
+      "plugin_name": "SSLChannel Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "expected_model": "fixed_slot_adjustable",
+      "expected_band_count": 4,
+      "expected_parameter_count": 36,
+      "expected_filter_kinds": ["bell", "low_cut", "high_cut"],
+      "target": {"freq_hz": 120.0, "shape": "low_cut"},
+      "forbidden_write_name_tokens": ["comp", "exp", "dynamic", "threshold", "attack", "release", "ratio"]
+    },
+    {
+      "id": "api_550a_stereo_shape_experiment",
+      "plugin_name": "API-550A Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "expected_model": "fixed_slot_adjustable",
+      "expected_band_count": 3,
+      "expected_parameter_count": 16,
+      "expected_filter_kinds": ["bell", "low_shelf", "high_shelf"],
+      "target": {"freq_hz": 10000.0, "gain_db": -3.0, "shape": "high_shelf"},
+      "expect_quantized_roles": ["gain"]
+    },
+    {
+      "id": "q10_stereo_shape_experiment",
+      "plugin_name": "Q10 Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "expected_model": "fixed_slot_adjustable",
+      "expected_band_count": 10,
+      "expected_parameter_count": 60,
+      "expected_filter_kinds": ["bell", "low_shelf", "high_shelf", "low_cut", "high_cut"],
+      "target": {"freq_hz": 5000.0, "q": 0.7, "shape": "high_cut"}
+    },
+    {
+      "id": "tdr_nova_shape_experiment",
+      "plugin_name": "TDR Nova",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\TDR Nova.vst3",
+      "expected_model": "fixed_slot_adjustable",
+      "expected_band_count": 4,
+      "expected_parameter_count": 78,
+      "expected_filter_kinds": ["bell", "low_shelf", "high_shelf", "low_cut", "high_cut"],
+      "target": {"freq_hz": 80.0, "shape": "low_cut", "slope_db_per_oct": 24.0},
+      "forbidden_write_name_tokens": ["dyn", "threshold", "attack", "release", "ratio", "wide band"]
+    },
+    {
+      "id": "geq_modern_stereo_shape_experiment",
+      "plugin_name": "GEQ Modern Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "expected_model": "fixed_freq",
+      "expected_band_count": 30,
+      "expected_parameter_count": 82,
+      "expected_channels": ["left", "right"],
+      "expected_filter_kinds": ["bell", "low_cut", "high_cut"],
+      "target": {"freq_hz": 5000.0, "shape": "high_cut"}
+    },
+    {
+      "id": "pro_q_3_stereo_shape_experiment",
+      "plugin_name": "Pro-Q 3",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\FabFilter\\FabFilter Pro-Q 3.vst3",
+      "expected_model": "free_floating",
+      "expected_filter_kinds": ["bell", "low_shelf", "high_shelf", "low_cut", "high_cut", "notch"],
+      "target": {"freq_hz": 3400.0, "q": 0.7, "shape": "notch"}
+    }
+  ]
+}

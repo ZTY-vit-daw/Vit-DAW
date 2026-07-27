@@ -2,6 +2,7 @@ package plugingrabber
 
 import (
 	"fmt"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -94,6 +95,8 @@ func eqModelSummary(model *EQModel) map[string]any {
 			"gain":                 model.Capabilities.Gain,
 			"q":                    model.Capabilities.Q,
 			"shape":                model.Capabilities.Shape,
+			"slope":                model.Capabilities.Slope,
+			"filter_design":        model.Capabilities.FilterDesign,
 			"activation":           model.Capabilities.Activation,
 			"multi_channel":        model.Capabilities.MultiChannel,
 		},
@@ -134,6 +137,19 @@ func eqModelSummary(model *EQModel) map[string]any {
 		summary["active_bands"] = active
 		summary["available_slots"] = available
 	}
+	sectionRows := make([]map[string]any, 0, len(model.Sections))
+	kinds := []string{}
+	for _, section := range model.Sections {
+		sectionRows = append(sectionRows, eqSectionSummaryRow(section))
+		if section.Complete {
+			for _, kind := range section.ReachableKinds {
+				kinds = append(kinds, string(kind))
+			}
+		}
+	}
+	summary["section_count"] = len(sectionRows)
+	summary["sections"] = sectionRows
+	summary["supported_filter_kinds"] = uniqueEQStrings(kinds)
 	return summary
 }
 
@@ -143,11 +159,12 @@ func eqBandSummaryRow(band EQBand) map[string]any {
 		publicBand = "B" + strings.ToUpper(publicBand)
 	}
 	row := map[string]any{
-		"band":             publicBand,
-		"complete":         band.Complete,
-		"active":           band.Active,
-		"activation_known": band.ActivationKnown,
-		"issues":           band.Issues,
+		"band":                publicBand,
+		"complete":            band.Complete,
+		"active":              band.Active,
+		"activation_known":    band.ActivationKnown,
+		"activation_strategy": band.ActivationStrategy,
+		"issues":              band.Issues,
 	}
 	if band.FixedFrequencyHz != nil {
 		row["fixed_freq_hz"] = *band.FixedFrequencyHz
@@ -178,6 +195,9 @@ func eqBandSummaryRow(band EQBand) map[string]any {
 				reachable := make([]map[string]any, 0, len(binding.Reachable))
 				for _, value := range binding.Reachable {
 					item := map[string]any{"normalized": value.Normalized, "label": value.Label}
+					if isKnownEQFilterKind(value.Kind) {
+						item["kind"] = string(value.Kind)
+					}
 					if value.Physical != nil {
 						item["physical"] = *value.Physical
 					}
@@ -230,6 +250,82 @@ func eqBandSummaryRow(band EQBand) map[string]any {
 		}
 	}
 	return row
+}
+
+func eqSectionSummaryRow(section EQSection) map[string]any {
+	row := map[string]any{
+		"section":         section.Key,
+		"primary":         section.Primary,
+		"complete":        section.Complete,
+		"issues":          section.Issues,
+		"dedicated_kind":  string(section.DedicatedKind),
+		"reachable_kinds": eqFilterKindStrings(section.ReachableKinds),
+		"active":          section.Activation.Active,
+		"activation": map[string]any{
+			"strategy": section.Activation.Strategy,
+			"known":    section.Activation.Known,
+			"active":   section.Activation.Active,
+		},
+	}
+	if section.FixedFrequencyHz != nil {
+		row["fixed_freq_hz"] = *section.FixedFrequencyHz
+	}
+	channels := map[string]bool{}
+	for role, bindings := range section.Bindings {
+		bindingRows := make([]map[string]any, 0, len(bindings))
+		for _, binding := range bindings {
+			item := map[string]any{
+				"param_id":           binding.ParamID,
+				"name":               binding.Name,
+				"channel":            binding.Channel,
+				"current_normalized": binding.CurrentNormalized,
+				"current_text":       binding.CurrentText,
+			}
+			if binding.Channel != "shared" {
+				channels[binding.Channel] = true
+			}
+			if binding.CurrentPhysical != nil {
+				item["current_physical"] = *binding.CurrentPhysical
+			}
+			if d := eqDomainFields(binding.Domain); d != nil {
+				item["domain"] = d
+			}
+			if len(binding.Curve) > 0 {
+				item["curve"] = binding.Curve
+			}
+			if len(binding.Reachable) > 0 {
+				reachable := make([]map[string]any, 0, len(binding.Reachable))
+				for _, value := range binding.Reachable {
+					reachableItem := map[string]any{"normalized": value.Normalized, "label": value.Label}
+					if isKnownEQFilterKind(value.Kind) {
+						reachableItem["kind"] = string(value.Kind)
+					}
+					if value.Physical != nil {
+						reachableItem["physical"] = *value.Physical
+					}
+					reachable = append(reachable, reachableItem)
+				}
+				item["reachable_values"] = reachable
+			}
+			bindingRows = append(bindingRows, item)
+		}
+		row[role+"_bindings"] = bindingRows
+	}
+	channelRows := make([]string, 0, len(channels))
+	for channel := range channels {
+		channelRows = append(channelRows, channel)
+	}
+	sort.Strings(channelRows)
+	row["channel_bindings"] = channelRows
+	return row
+}
+
+func eqFilterKindStrings(kinds []EQFilterKind) []string {
+	out := make([]string, 0, len(kinds))
+	for _, kind := range kinds {
+		out = append(out, string(kind))
+	}
+	return out
 }
 
 func buildMarvelGEQSummary(digest ParameterDigest) map[string]any {

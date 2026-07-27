@@ -1,0 +1,88 @@
+{
+  "schema_version": "plugin_grabber.eq_large_safe_smoke.v1",
+  "defaults": {
+    "target": {
+      "freq_hz": 3400.0
+    }
+  },
+  "cases": [
+    {
+      "id": "curves_aq_stereo_level1",
+      "plugin_name": "Curves AQ Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "expected_model": "fixed_slot_adjustable",
+      "expected_band_count": 13,
+      "expected_parameter_count": 105,
+      "expected_filter_kinds": ["bell"],
+      "target": {"freq_hz": 3400.0, "gain_db": -3.0}
+    },
+    {
+      "id": "rchannel_stereo_level1",
+      "plugin_name": "RChannel Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "expected_model": "fixed_slot_adjustable",
+      "expected_band_count": 4,
+      "expected_parameter_count": 54,
+      "expected_filter_kinds": ["bell", "low_cut", "low_shelf", "high_shelf", "high_cut"],
+      "forbidden_write_name_tokens": ["comp", "gate", "threshold", "attack", "release", "ratio", "sidechain"],
+      "target": {"freq_hz": 3400.0, "gain_db": -3.0}
+    },
+    {
+      "id": "rchannel_stereo_level2_low_cut",
+      "plugin_name": "RChannel Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "expected_model": "fixed_slot_adjustable",
+      "expected_band_count": 4,
+      "expected_parameter_count": 54,
+      "expected_filter_kinds": ["bell", "low_cut", "low_shelf", "high_shelf", "high_cut"],
+      "forbidden_write_name_tokens": ["comp", "gate", "threshold", "attack", "release", "ratio", "sidechain"],
+      "target": {"freq_hz": 82.0, "shape": "low_cut"}
+    },
+    {
+      "id": "tract_stereo_expected_unsupported",
+      "plugin_name": "TRACT Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "expected_model": "fixed_freq",
+      "expected_band_count": 8,
+      "expected_parameter_count": 117,
+      "expected_supported": false,
+      "expected_reason": "incomplete band",
+      "target": {"freq_hz": 3400.0, "gain_db": -3.0}
+    },
+    {
+      "id": "tg12345_channel_expected_unsupported",
+      "plugin_name": "Abbey Road EMI TG12345 Ch Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "expected_model": "fixed_freq",
+      "expected_band_count": 2,
+      "expected_parameter_count": 38,
+      "expected_supported": false,
+      "expected_reason": "incomplete band",
+      "target": {"freq_hz": 3400.0, "gain_db": -3.0}
+    },
+    {
+      "id": "magma_channel_strip_expected_non_eq",
+      "plugin_name": "Magma Channel Strip Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "expected_eq": false
+    },
+    {
+      "id": "redd_37_51_expected_non_eq",
+      "plugin_name": "Abbey Road REDD.37.51 Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "expected_eq": false
+    },
+    {
+      "id": "q_clone_expected_non_eq",
+      "plugin_name": "Q-Clone Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "expected_eq": false
+    },
+    {
+      "id": "zam_head_x2_expected_non_eq",
+      "plugin_name": "ZamHeadX2",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\zam-plugins-4.5-win64\\zam-plugins-4.5\\ZamHeadX2.vst3\\Contents\\x86_64-win\\ZamHeadX2.vst3",
+      "expected_eq": false
+    }
+  ]
+}
