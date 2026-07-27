@@ -524,8 +524,18 @@ func eqCurveFromProbe(param ParameterInfo) [][2]float64 {
 		}
 		curve = append(curve, [2]float64{sample.NormalizedValue, value})
 	}
+	direction := 0
 	for i := 1; i < len(curve); i++ {
-		if curve[i][0] <= curve[i-1][0] || curve[i][1] <= curve[i-1][1] {
+		if curve[i][0] <= curve[i-1][0] || curve[i][1] == curve[i-1][1] {
+			return nil
+		}
+		step := 1
+		if curve[i][1] < curve[i-1][1] {
+			step = -1
+		}
+		if direction == 0 {
+			direction = step
+		} else if direction != step {
 			return nil
 		}
 	}

@@ -1,0 +1,24 @@
+{
+  "schema_version": "plugin_grabber.eq_compat_matrix.v1",
+  "defaults": {
+    "target": {
+      "freq_hz": 3400.0,
+      "gain_db": -3.0
+    },
+    "tolerance": {
+      "freq_hz": 80.0,
+      "gain_db": 0.15,
+      "q": 0.05,
+      "normalized": 0.0001
+    }
+  },
+  "cases": [
+    {
+      "id": "mannym_eq_stereo_blackbox",
+      "plugin_name": "MannyM EQ Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "request_q": false,
+      "generic_coverage": true
+    }
+  ]
+}

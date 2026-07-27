@@ -1,0 +1,125 @@
+{
+  "schema_version": "plugin_grabber.eq_compat_matrix.v1",
+  "defaults": {
+    "target": {
+      "freq_hz": 3400.0,
+      "gain_db": -3.0,
+      "q": 0.5
+    },
+    "tolerance": {
+      "freq_hz": 80.0,
+      "gain_db": 0.15,
+      "q": 0.05,
+      "normalized": 0.0001
+    }
+  },
+  "cases": [
+    {
+      "id": "emo_q4_stereo",
+      "plugin_name": "EMO-Q4 Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "expected_model": "fixed_slot_adjustable",
+      "expected_band_count": 4,
+      "expected_channels": [
+        "left",
+        "right"
+      ],
+      "generic_coverage": true
+    },
+    {
+      "id": "h_eq_stereo",
+      "plugin_name": "H-EQ Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "expected_model": "fixed_slot_adjustable",
+      "expected_band_count": 3,
+      "target": {
+        "q": 1.0
+      },
+      "generic_coverage": true
+    },
+    {
+      "id": "geq_classic_stereo",
+      "plugin_name": "GEQ Classic Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "expected_model": "fixed_freq",
+      "expected_band_count": 30,
+      "expected_channels": [
+        "left",
+        "right"
+      ],
+      "request_q": false,
+      "generic_coverage": true
+    },
+    {
+      "id": "lineq_broadband_stereo",
+      "plugin_name": "LinEQ Broadband Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "expected_model": "fixed_freq",
+      "expected_band_count": 6,
+      "expected_supported": false,
+      "expected_reason": "incomplete band",
+      "request_q": false,
+      "generic_coverage": true
+    },
+    {
+      "id": "scheps_73_stereo",
+      "plugin_name": "Scheps 73 Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "expected_model": "fixed_slot_adjustable",
+      "expected_band_count": 2,
+      "expected_channels": [
+        "left",
+        "right"
+      ],
+      "request_q": false,
+      "generic_coverage": true
+    },
+    {
+      "id": "rs56_passive_eq_stereo",
+      "plugin_name": "Abbey Road RS56 Passive EQ Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "expected_eq": false,
+      "generic_coverage": true
+    },
+    {
+      "id": "zam_dynamic_eq",
+      "plugin_name": "ZamDynamicEQ",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\zam-plugins-4.5-win64\\zam-plugins-4.5\\ZamDynamicEQ.vst3",
+      "expected_eq": false,
+      "generic_coverage": true
+    },
+    {
+      "id": "emo_f2_stereo",
+      "plugin_name": "EMO-F2 Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "expected_eq": false,
+      "generic_coverage": true
+    },
+    {
+      "id": "curves_equator_stereo_negative",
+      "plugin_name": "Curves Equator Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "expected_model": "fixed_slot_adjustable",
+      "expected_band_count": 8,
+      "expected_supported": false,
+      "expected_reason": "role conflict",
+      "forbidden_write_name_tokens": [
+        "sidechain",
+        "attack",
+        "release"
+      ],
+      "generic_coverage": true
+    },
+    {
+      "id": "volcano_3_negative",
+      "plugin_name": "Volcano 3",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\FabFilter\\FabFilter Volcano 3.vst3",
+      "expected_model": "fixed_freq",
+      "expected_band_count": 4,
+      "expected_supported": false,
+      "expected_reason": "incomplete band",
+      "request_q": false,
+      "generic_coverage": true
+    }
+  ]
+}

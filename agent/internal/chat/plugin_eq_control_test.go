@@ -106,3 +106,54 @@ func TestEQNormalizedFromCurveStaysBracketedOnAnOddCurve(t *testing.T) {
 		t.Errorf("normalized = %.3f for the midpoint sample, want within [0.25, 0.75]", got)
 	}
 }
+
+func TestEQNormalizedFromCurveSupportsDecreasingPhysicalCurve(t *testing.T) {
+	curve := [][2]float64{{0, 3.5}, {0.25, 2.25}, {0.5, 1.5}, {0.75, 0.88}, {1, 0.1}}
+	got, ok := eqNormalizedFromCurve(0.5, curve)
+	if !ok || got < 0.85 || got > 0.95 {
+		t.Fatalf("decreasing Q curve normalized=%v ok=%v, want about 0.9", got, ok)
+	}
+}
+
+func TestEQWritePlanWritesAllChannelsAndRejectsMissingQ(t *testing.T) {
+	summary := map[string]any{
+		"eq_model": "fixed_freq", "set_eq_point_supported": true,
+		"completeness": map[string]any{"complete": true},
+		"bands": []map[string]any{{
+			"band": "B3400", "fixed_freq_hz": 3400.0,
+			"gain_bindings": []map[string]any{
+				{"param_id": "left", "channel": "left", "domain": map[string]any{"min": -6.0, "max": 6.0}},
+				{"param_id": "right", "channel": "right", "domain": map[string]any{"min": -6.0, "max": 6.0}},
+			},
+		}},
+	}
+	writes, _, err := eqBandWritePlan(summary, 3400, -3, nil)
+	if err != nil || len(writes) != 2 || writes[0].Channel != "left" || writes[1].Channel != "right" {
+		t.Fatalf("multi-channel writes=%+v err=%v", writes, err)
+	}
+	q := 0.5
+	if _, _, err := eqBandWritePlan(summary, 3400, -3, &q); err == nil {
+		t.Fatal("fixed band without Q must reject a Q request before writing")
+	}
+}
+
+func TestEQFreeFloatingActivationIsLast(t *testing.T) {
+	summary := map[string]any{
+		"eq_model": "free_floating", "set_eq_point_supported": true,
+		"completeness": map[string]any{"complete": true}, "active_bands": []map[string]any{},
+		"available_slots": []map[string]any{{
+			"band": "B1", "active": false,
+			"frequency_bindings": []map[string]any{{"param_id": "freq", "channel": "shared"}},
+			"gain_bindings":      []map[string]any{{"param_id": "gain", "channel": "shared"}},
+			"activation_bindings": []map[string]any{{"param_id": "used", "channel": "shared",
+				"reachable_values": []map[string]any{{"normalized": 0.0, "label": "Unused"}, {"normalized": 1.0, "label": "Used"}}}},
+		}},
+	}
+	writes, _, err := eqBandWritePlan(summary, 3400, -3, nil)
+	if err != nil || len(writes) != 3 || writes[len(writes)-1].Role != "used" {
+		t.Fatalf("free-floating writes=%+v err=%v", writes, err)
+	}
+	if writes[len(writes)-1].NormalizedValue != 1 {
+		t.Fatalf("activation selected normalized=%v, want Used=1 rather than Unused=0", writes[len(writes)-1].NormalizedValue)
+	}
+}

@@ -1,0 +1,154 @@
+{
+  "schema_version": "plugin_grabber.eq_compat_matrix.v1",
+  "defaults": {
+    "target": {
+      "freq_hz": 3400.0,
+      "gain_db": -3.0,
+      "q": 0.5
+    },
+    "tolerance": {
+      "freq_hz": 80.0,
+      "gain_db": 0.15,
+      "q": 0.05,
+      "normalized": 0.0001
+    }
+  },
+  "cases": [
+    {
+      "id": "tdr_nova",
+      "plugin_name": "TDR Nova",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\TDR Nova.vst3",
+      "expected_model": "fixed_slot_adjustable",
+      "expected_band_count": 4,
+      "generic_coverage": true
+    },
+    {
+      "id": "freeeq8",
+      "plugin_name": "FreeEQ8",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\FreeEQ8.vst3",
+      "expected_model": "fixed_slot_adjustable",
+      "expected_band_count": 8,
+      "generic_coverage": true
+    },
+    {
+      "id": "pro_q_3",
+      "plugin_name": "Pro-Q 3",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\FabFilter\\FabFilter Pro-Q 3.vst3",
+      "expected_model": "free_floating",
+      "generic_coverage": true
+    },
+    {
+      "id": "zameq2",
+      "plugin_name": "ZamEQ2",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\zam-plugins-4.5-win64\\zam-plugins-4.5\\ZamEQ2.vst3",
+      "expected_model": "fixed_slot_adjustable",
+      "expected_band_count": 4,
+      "request_q": false,
+      "generic_coverage": true
+    },
+    {
+      "id": "zamgeq31",
+      "plugin_name": "ZamGEQ31",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\zam-plugins-4.5-win64\\zam-plugins-4.5\\ZamGEQ31.vst3",
+      "expected_model": "fixed_freq",
+      "expected_band_count": 29,
+      "expected_parameter_count": 33,
+      "installed_version_note": "ZamGEQ31 4.5.0 exposes 29 host faders from 32 Hz through 20801 Hz",
+      "request_q": false,
+      "generic_coverage": true
+    },
+    {
+      "id": "api_550a_stereo",
+      "plugin_name": "API-550A Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "expected_model": "fixed_slot_adjustable",
+      "request_q": false,
+      "generic_coverage": true
+    },
+    {
+      "id": "api_550b_stereo",
+      "plugin_name": "API-550B Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "expected_model": "fixed_slot_adjustable",
+      "request_q": false,
+      "generic_coverage": true
+    },
+    {
+      "id": "api_560_stereo",
+      "plugin_name": "API-560 Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "expected_model": "fixed_freq",
+      "expected_band_count": 10,
+      "request_q": false,
+      "generic_coverage": true
+    },
+    {
+      "id": "q10_stereo",
+      "plugin_name": "Q10 Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "expected_model": "fixed_slot_adjustable",
+      "generic_coverage": true
+    },
+    {
+      "id": "req_6_stereo",
+      "plugin_name": "REQ 6 Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "expected_model": "fixed_slot_adjustable",
+      "generic_coverage": true
+    },
+    {
+      "id": "ssleq_stereo",
+      "plugin_name": "SSLEQ Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "expected_model": "fixed_slot_adjustable",
+      "generic_coverage": true
+    },
+    {
+      "id": "sslchannel_stereo",
+      "plugin_name": "SSLChannel Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "expected_model": "fixed_slot_adjustable",
+      "generic_coverage": true
+    },
+    {
+      "id": "f6_stereo",
+      "plugin_name": "F6 Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "expected_model": "fixed_slot_adjustable",
+      "generic_coverage": true,
+      "forbidden_write_name_tokens": [
+        "range",
+        "threshold",
+        "attack",
+        "release"
+      ]
+    },
+    {
+      "id": "geq_modern_stereo",
+      "plugin_name": "GEQ Modern Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "expected_model": "fixed_freq",
+      "request_q": false,
+      "generic_coverage": true,
+      "expected_channels": [
+        "left",
+        "right"
+      ]
+    },
+    {
+      "id": "puigtec_eqp1a_stereo",
+      "plugin_name": "PuigTec EQP1A Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "expected_supported": false,
+      "expected_reason": "coupled boost/attenuate topology",
+      "generic_coverage": true
+    },
+    {
+      "id": "zl_compressor_negative",
+      "plugin_name": "ZL Compressor",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\ZL Compressor.vst3",
+      "expected_eq": false,
+      "generic_coverage": true
+    }
+  ]
+}

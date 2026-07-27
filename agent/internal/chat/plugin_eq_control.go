@@ -4,10 +4,13 @@ import (
 	"context"
 	"fmt"
 	"math"
+	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 
 	"vit-daw-agent/internal/harness"
+	"vit-daw-agent/internal/kernel"
 	"vit-daw-agent/internal/tools"
 
 	plugingrabber "vit-daw-agent/internal/workflows/plugingrabber"
@@ -136,51 +139,28 @@ func (s *Server) runPluginGrabberSetEQPointWorkflow(ctx context.Context,
 		return fail(err)
 	}
 
-	goalID := firstNonEmptyText(requestContext, "goal_id")
-	runID := firstNonEmptyText(requestContext, "run_id")
-	baseCallID := firstNonEmptyText(requestContext, "tool_call_id", "set_eq_point")
-
-	var lastResp harness.InvokeResponse
-	executed := make([]map[string]any, 0, len(writes))
-	for i, w := range writes {
-		r, invokeErr := s.harness.Invoke(ctx, harness.InvokeRequest{
-			Command: map[string]any{
-				"cmd":       "set_plugin_param",
-				"track_id":  target.TrackID,
-				"plugin_id": target.PluginID,
-				"param_id":  w.ParamID,
-				"value":     w.NormalizedValue,
-			},
-			Context:    requestContext,
-			Source:     pluginGrabberSetEQPointCommand,
-			Confirmed:  true,
-			GoalID:     goalID,
-			RunID:      runID,
-			ToolCallID: fmt.Sprintf("%s_%d", baseCallID, i),
-		})
-		if invokeErr != nil || r.Status == "error" {
-			msg := firstNonEmpty(r.Error, errorText(invokeErr), "set_plugin_param failed")
-			return fail(fmt.Errorf("write param %s (%s): %s", w.ParamID, w.Role, msg))
-		}
-		lastResp = r
-		executed = append(executed, map[string]any{"param_id": w.ParamID, "role": w.Role, "value": w.NormalizedValue})
+	preimage, err := eqWritePreimage(digest, writes)
+	if err != nil {
+		return fail(err)
+	}
+	executed, actual, err := s.executeEQTransaction(ctx, target.TrackID, target.PluginID, writes, preimage)
+	if err != nil {
+		return fail(err)
 	}
 
 	result := map[string]any{
-		"status":        "ok",
-		"track_id":      target.TrackID,
-		"plugin_id":     target.PluginID,
-		"freq_hz":       freqHz,
-		"gain_db":       gainDB,
-		"eq_model":      summary["eq_model"],
-		"selected_band": selectionInfo,
-		"writes":        executed,
+		"status":          "ok",
+		"track_id":        target.TrackID,
+		"plugin_id":       target.PluginID,
+		"requested":       map[string]any{"freq_hz": freqHz, "gain_db": gainDB},
+		"eq_model":        summary["eq_model"],
+		"mapping_source":  summary["mapping_source"],
+		"selected_band":   selectionInfo,
+		"writes":          executed,
+		"actual_readback": actual,
 	}
 	if qProvided {
-		result["q"] = qValue
-	}
-	if lastResp.AgentActionID != "" {
-		result["agent_action_id"] = lastResp.AgentActionID
+		result["requested"].(map[string]any)["q"] = qValue
 	}
 	return ChatResponse{
 		ConversationID: conversationID,
@@ -192,12 +172,377 @@ func (s *Server) runPluginGrabberSetEQPointWorkflow(ctx context.Context,
 
 // eqWriteStep is one normalised parameter write inside a set_eq_point operation.
 type eqWriteStep struct {
-	ParamID         string
-	NormalizedValue float64
-	Role            string // "freq" | "gain" | "q" | "used" | "shape"
+	ParamID            string
+	NormalizedValue    float64
+	Role               string // "freq" | "gain" | "q" | "used" | "shape"
+	Channel            string
+	RequestedPhysical  *float64
+	Quantized          bool
+	CorrectionLow      float64
+	CorrectionHigh     float64
+	PhysicalDecreasing bool
+}
+
+type eqPreimageValue struct {
+	ParamID    string
+	Normalized float64
+	Role       string
+}
+
+func eqWritePreimage(digest plugingrabber.ParameterDigest, writes []eqWriteStep) ([]eqPreimageValue, error) {
+	byID := map[string]plugingrabber.ParameterInfo{}
+	for _, param := range digest.Parameters {
+		byID[strings.TrimSpace(param.ID)] = param
+	}
+	seen := map[string]bool{}
+	out := make([]eqPreimageValue, 0, len(writes))
+	for _, write := range writes {
+		if seen[write.ParamID] {
+			continue
+		}
+		param, ok := byID[write.ParamID]
+		if !ok {
+			return nil, fmt.Errorf("transaction preimage omitted parameter %s", write.ParamID)
+		}
+		value, ok := numericAny(param.NormalizedValue)
+		if !ok {
+			return nil, fmt.Errorf("parameter %s has no numeric normalized preimage", write.ParamID)
+		}
+		seen[write.ParamID] = true
+		out = append(out, eqPreimageValue{ParamID: write.ParamID, Normalized: value, Role: write.Role})
+	}
+	return out, nil
+}
+
+func numericAny(value any) (float64, bool) {
+	switch typed := value.(type) {
+	case float64:
+		return typed, true
+	case float32:
+		return float64(typed), true
+	case int:
+		return float64(typed), true
+	case int64:
+		return float64(typed), true
+	case string:
+		parsed, err := strconv.ParseFloat(strings.TrimSpace(typed), 64)
+		return parsed, err == nil
+	}
+	return 0, false
+}
+
+func (s *Server) executeEQTransaction(ctx context.Context, trackID, pluginID string,
+	writes []eqWriteStep, preimage []eqPreimageValue) ([]map[string]any, []map[string]any, error) {
+	if s.kernel == nil {
+		return nil, nil, fmt.Errorf("kernel client is nil")
+	}
+	parameters := make([]map[string]any, 0, len(writes))
+	for _, write := range writes {
+		parameters = append(parameters, map[string]any{"parameter_id": write.ParamID, "normalized_value": write.NormalizedValue})
+	}
+	result, err := s.kernel.SendVSPCommand(ctx, "plugin.set_params_batch", map[string]any{
+		"track_id": trackID, "plugin_id": pluginID, "parameters": parameters, "readback": true,
+	})
+	if err != nil || eqVSPFailure(result) != "" {
+		failure := firstNonEmpty(errorText(err), eqVSPFailure(result), "EQ parameter batch failed")
+		rollbackErr := s.rollbackEQTransaction(ctx, trackID, pluginID, preimage)
+		if rollbackErr != nil {
+			return nil, nil, fmt.Errorf("%s; rollback failed: %w", failure, rollbackErr)
+		}
+		return nil, nil, fmt.Errorf("%s; full preimage restored", failure)
+	}
+
+	actualRows, err := s.readEQParameters(ctx, trackID, pluginID)
+	if err != nil {
+		rollbackErr := s.rollbackEQTransaction(ctx, trackID, pluginID, preimage)
+		if rollbackErr != nil {
+			return nil, nil, fmt.Errorf("fresh readback failed: %w; rollback failed: %v", err, rollbackErr)
+		}
+		return nil, nil, fmt.Errorf("fresh readback failed: %w; full preimage restored", err)
+	}
+	index := eqParameterRowIndex(actualRows)
+	if corrected, correctionErr := s.correctEQPhysicalReadback(ctx, trackID, pluginID, writes, index); correctionErr != nil {
+		rollbackErr := s.rollbackEQTransaction(ctx, trackID, pluginID, preimage)
+		if rollbackErr != nil {
+			return nil, nil, fmt.Errorf("%v; rollback failed: %v", correctionErr, rollbackErr)
+		}
+		return nil, nil, fmt.Errorf("%v; full preimage restored", correctionErr)
+	} else if corrected {
+		actualRows, err = s.readEQParameters(ctx, trackID, pluginID)
+		if err != nil {
+			_ = s.rollbackEQTransaction(ctx, trackID, pluginID, preimage)
+			return nil, nil, err
+		}
+		index = eqParameterRowIndex(actualRows)
+	}
+	executed := make([]map[string]any, 0, len(writes))
+	actual := make([]map[string]any, 0, len(writes))
+	for _, write := range writes {
+		row, ok := index[write.ParamID]
+		if !ok {
+			_ = s.rollbackEQTransaction(ctx, trackID, pluginID, preimage)
+			return nil, nil, fmt.Errorf("fresh readback omitted touched parameter %s; full preimage restored", write.ParamID)
+		}
+		actualNormalized, ok := firstNumericAny(row, "normalized_value", "normalised_value", "current_normalized_value")
+		if !ok {
+			_ = s.rollbackEQTransaction(ctx, trackID, pluginID, preimage)
+			return nil, nil, fmt.Errorf("fresh readback has no normalized value for %s; full preimage restored", write.ParamID)
+		}
+		if math.Abs(actualNormalized-write.NormalizedValue) > 1e-4 {
+			_ = s.rollbackEQTransaction(ctx, trackID, pluginID, preimage)
+			return nil, nil, fmt.Errorf("parameter %s normalized readback mismatch requested %.9f actual %.9f; full preimage restored", write.ParamID, write.NormalizedValue, actualNormalized)
+		}
+		entry := map[string]any{"param_id": write.ParamID, "role": write.Role, "channel": write.Channel,
+			"requested_normalized": write.NormalizedValue, "actual_normalized": actualNormalized, "quantized": write.Quantized}
+		if write.RequestedPhysical != nil {
+			entry["requested_physical"] = *write.RequestedPhysical
+		}
+		physical, physicalOK := physicalReadbackForRole(write.Role, row)
+		if write.RequestedPhysical != nil && isEQPhysicalRole(write.Role) && !write.Quantized {
+			if !physicalOK || math.Abs(physical-*write.RequestedPhysical) > eqPhysicalTolerance(write.Role, *write.RequestedPhysical) {
+				_ = s.rollbackEQTransaction(ctx, trackID, pluginID, preimage)
+				return nil, nil, fmt.Errorf("parameter %s physical readback mismatch requested %g actual %s; full preimage restored",
+					write.ParamID, *write.RequestedPhysical, firstNonEmptyText(row, "value_text"))
+			}
+		}
+		if physicalOK {
+			entry["actual_physical"] = physical
+		}
+		executed = append(executed, entry)
+		actual = append(actual, map[string]any{"param_id": write.ParamID, "role": write.Role,
+			"channel": write.Channel, "normalized": actualNormalized, "value_text": firstNonEmptyText(row, "value_text"),
+			"physical": func() any {
+				if physicalOK {
+					return physical
+				}
+				return nil
+			}()})
+	}
+	return executed, actual, nil
+}
+
+func (s *Server) correctEQPhysicalReadback(ctx context.Context, trackID, pluginID string,
+	writes []eqWriteStep, index map[string]map[string]any) (bool, error) {
+	corrected := false
+	const maxPhysicalCorrectionIterations = 6
+	for iteration := 0; iteration < maxPhysicalCorrectionIterations; iteration++ {
+		corrections := []map[string]any{}
+		anyMismatch := false
+		for i := range writes {
+			write := &writes[i]
+			if write.Quantized || write.RequestedPhysical == nil || !isEQPhysicalRole(write.Role) {
+				continue
+			}
+			row, ok := index[write.ParamID]
+			if !ok {
+				return corrected, fmt.Errorf("physical correction readback omitted %s", write.ParamID)
+			}
+			actual, ok := physicalReadbackForRole(write.Role, row)
+			if !ok {
+				return corrected, fmt.Errorf("cannot parse %s physical readback %q", write.Role, firstNonEmptyText(row, "value_text"))
+			}
+			target := *write.RequestedPhysical
+			if math.Abs(actual-target) <= eqPhysicalTolerance(write.Role, target) {
+				continue
+			}
+			anyMismatch = true
+			if actual < target && !write.PhysicalDecreasing {
+				write.CorrectionLow = math.Max(write.CorrectionLow, write.NormalizedValue)
+			} else if !write.PhysicalDecreasing {
+				write.CorrectionHigh = math.Min(write.CorrectionHigh, write.NormalizedValue)
+			} else if actual < target {
+				write.CorrectionHigh = math.Min(write.CorrectionHigh, write.NormalizedValue)
+			} else {
+				write.CorrectionLow = math.Max(write.CorrectionLow, write.NormalizedValue)
+			}
+			next := (write.CorrectionLow + write.CorrectionHigh) / 2
+			if math.Abs(next-write.NormalizedValue) < 1e-7 {
+				return corrected, fmt.Errorf("%s correction stalled at %g (target %g actual %g)", write.ParamID, next, target, actual)
+			}
+			write.NormalizedValue = next
+			corrections = append(corrections, map[string]any{"parameter_id": write.ParamID, "normalized_value": next})
+		}
+		if !anyMismatch {
+			return corrected, nil
+		}
+		result, err := s.kernel.SendVSPCommand(ctx, "plugin.set_params_batch", map[string]any{
+			"track_id": trackID, "plugin_id": pluginID, "parameters": corrections, "readback": true})
+		if err != nil || eqVSPFailure(result) != "" {
+			return corrected, fmt.Errorf("physical correction failed: %s", firstNonEmpty(errorText(err), eqVSPFailure(result)))
+		}
+		corrected = true
+		rows, err := s.readEQParameters(ctx, trackID, pluginID)
+		if err != nil {
+			return corrected, err
+		}
+		index = eqParameterRowIndex(rows)
+	}
+	for _, write := range writes {
+		if write.Quantized || write.RequestedPhysical == nil || !isEQPhysicalRole(write.Role) {
+			continue
+		}
+		actual, ok := physicalReadbackForRole(write.Role, index[write.ParamID])
+		if !ok || math.Abs(actual-*write.RequestedPhysical) > eqPhysicalTolerance(write.Role, *write.RequestedPhysical) {
+			return corrected, fmt.Errorf("parameter %s did not reach requested %s after %d bounded corrections: requested=%g actual=%g tolerance=%g",
+				write.ParamID, write.Role, maxPhysicalCorrectionIterations, *write.RequestedPhysical, actual,
+				eqPhysicalTolerance(write.Role, *write.RequestedPhysical))
+		}
+	}
+	return corrected, nil
+}
+
+func isEQPhysicalRole(role string) bool { return role == "freq" || role == "gain" || role == "q" }
+
+func eqPhysicalTolerance(role string, target float64) float64 {
+	switch role {
+	case "freq":
+		return math.Max(1, math.Abs(target)*0.0025)
+	case "gain":
+		return 0.15
+	case "q":
+		return math.Max(0.05, math.Abs(target)*0.02)
+	}
+	return 0
+}
+
+func (s *Server) readEQParameters(ctx context.Context, trackID, pluginID string) ([]map[string]any, error) {
+	reply, _, err := s.kernel.SendCommand(ctx, map[string]any{"cmd": "get_plugin_parameters",
+		"track_id": trackID, "plugin_id": pluginID, "include_parameters": true})
+	if err != nil {
+		return nil, err
+	}
+	if !kernelReplyOK(reply) {
+		return nil, fmt.Errorf("%s", firstNonEmptyText(reply, "message", "error"))
+	}
+	digest := buildPluginParameterDigest(reply)
+	rows := make([]map[string]any, 0, len(digest.Parameters))
+	for _, param := range digest.Parameters {
+		rows = append(rows, map[string]any{"param_id": param.ID, "normalized_value": param.NormalizedValue,
+			"value_text": param.ValueText})
+	}
+	return rows, nil
+}
+
+func (s *Server) rollbackEQTransaction(ctx context.Context, trackID, pluginID string, preimage []eqPreimageValue) error {
+	sort.SliceStable(preimage, func(i, j int) bool {
+		return preimage[i].Role == "used" && preimage[j].Role != "used"
+	})
+	parameters := make([]map[string]any, 0, len(preimage))
+	for _, value := range preimage {
+		parameters = append(parameters, map[string]any{"parameter_id": value.ParamID, "normalized_value": value.Normalized})
+	}
+	result, err := s.kernel.SendVSPCommand(ctx, "plugin.set_params_batch", map[string]any{
+		"track_id": trackID, "plugin_id": pluginID, "parameters": parameters, "readback": true,
+	})
+	if err != nil {
+		return err
+	}
+	if failure := eqVSPFailure(result); failure != "" {
+		return fmt.Errorf("%s", failure)
+	}
+	rows, err := s.readEQParameters(ctx, trackID, pluginID)
+	if err != nil {
+		return err
+	}
+	index := eqParameterRowIndex(rows)
+	for _, expected := range preimage {
+		row, ok := index[expected.ParamID]
+		if !ok {
+			return fmt.Errorf("rollback readback omitted %s", expected.ParamID)
+		}
+		actual, ok := firstNumericAny(row, "normalized_value")
+		if !ok || math.Abs(actual-expected.Normalized) > 1e-4 {
+			return fmt.Errorf("rollback mismatch for %s", expected.ParamID)
+		}
+	}
+	return nil
+}
+
+func eqVSPFailure(result any) string {
+	if result == nil {
+		return "empty VSP response"
+	}
+	// VSPCommandResult is intentionally inspected through its public maps so
+	// this transaction remains local to the direct Plugin Grabber path.
+	typed, ok := result.(*kernel.VSPCommandResult)
+	if !ok {
+		return "invalid VSP response"
+	}
+	for _, candidate := range []map[string]any{typed.Payload, typed.Response, typed.LegacyReply} {
+		status := strings.ToLower(firstNonEmptyText(candidate, "status", "stage"))
+		if status == "error" || status == "failed" || status == "partial_failure" || status == "rejected" {
+			return firstNonEmptyText(candidate, "message", "error", "status")
+		}
+		if payload := mapValue(candidate["payload"]); len(payload) > 0 {
+			status = strings.ToLower(firstNonEmptyText(payload, "status"))
+			if status == "error" || status == "failed" || status == "partial_failure" {
+				return firstNonEmptyText(payload, "message", "error", "status")
+			}
+		}
+	}
+	return ""
+}
+
+func eqParameterRowIndex(rows []map[string]any) map[string]map[string]any {
+	out := map[string]map[string]any{}
+	for _, row := range rows {
+		if id := firstNonEmptyText(row, "param_id", "parameter_id", "id"); id != "" {
+			out[id] = row
+		}
+	}
+	return out
+}
+
+func firstNumericAny(row map[string]any, keys ...string) (float64, bool) {
+	for _, key := range keys {
+		if value, ok := numericAny(row[key]); ok {
+			return value, true
+		}
+	}
+	return 0, false
+}
+
+func physicalReadbackForRole(role string, row map[string]any) (float64, bool) {
+	text := firstNonEmptyText(row, "value_text", "current_value_text")
+	switch role {
+	case "freq":
+		return parseEQFrequencyReadback(text)
+	case "gain", "q":
+		match := regexp.MustCompile(`[-+]?\d+(?:\.\d+)?`).FindString(text)
+		if match == "" {
+			return 0, false
+		}
+		value, err := strconv.ParseFloat(match, 64)
+		return value, err == nil
+	}
+	return 0, false
+}
+
+func parseEQFrequencyReadback(text string) (float64, bool) {
+	lower := strings.ToLower(strings.ReplaceAll(strings.TrimSpace(text), " ", ""))
+	match := regexp.MustCompile(`[-+]?\d+(?:\.\d+)?`).FindString(lower)
+	if match == "" {
+		return 0, false
+	}
+	value, err := strconv.ParseFloat(match, 64)
+	if err != nil {
+		return 0, false
+	}
+	if strings.Contains(lower, "khz") {
+		value *= 1000
+	}
+	return value, value > 0
 }
 
 func eqBandWritePlan(summary map[string]any, freqHz, gainDB float64, q *float64) ([]eqWriteStep, map[string]any, error) {
+	if supported, ok := summary["set_eq_point_supported"].(bool); ok && !supported {
+		return nil, nil, fmt.Errorf("set_eq_point is not supported: %s", firstNonEmptyText(summary, "reason"))
+	}
+	if completeness := mapValue(summary["completeness"]); len(completeness) > 0 {
+		if complete, ok := completeness["complete"].(bool); ok && !complete {
+			return nil, nil, fmt.Errorf("EQ structure is incomplete: %s", firstNonEmptyText(summary, "reason"))
+		}
+	}
 	model := firstNonEmptyText(summary, "eq_model")
 	switch model {
 	case "fixed_slot_adjustable":
@@ -227,34 +572,31 @@ func eqWritePlanFixedSlotAdjustable(bands []map[string]any, freqHz, gainDB float
 			best = b
 		}
 	}
-	freqParamID := firstNonEmptyText(best, "freq_param_id")
-	gainParamID := firstNonEmptyText(best, "gain_param_id")
-	if freqParamID == "" || gainParamID == "" {
-		return nil, nil, fmt.Errorf("band %v is missing freq_param_id or gain_param_id", best["band"])
+	writes := []eqWriteStep{}
+	if active, ok := best["active"].(bool); ok && !active {
+		shapeWrites, _ := eqEnumWritesForRole(best, "shape", "shape", []string{"bell", "peak"})
+		writes = append(writes, shapeWrites...)
 	}
-	writes := []eqWriteStep{
-		{ParamID: freqParamID, Role: "freq", NormalizedValue: eqNormalizeTarget(freqHz,
-			eqBandCurve(best, "freq_curve"), mapValue(best["freq_domain"]), 20, 20000, "log")},
-		{ParamID: gainParamID, Role: "gain", NormalizedValue: eqNormalizeTarget(gainDB,
-			eqBandCurve(best, "gain_curve"), mapValue(best["gain_domain"]), -24, 24, "linear")},
+	freqWrites, err := eqWritesForRole(best, "frequency", "freq", freqHz, 20, 20000, "log")
+	if err != nil {
+		return nil, nil, err
 	}
-	writes, qSkipped, err := appendEQQWrite(writes, best, q)
+	writes = append(writes, freqWrites...)
+	gainWrites, err := eqWritesForRole(best, "gain", "gain", gainDB, -24, 24, "linear")
+	if err != nil {
+		return nil, nil, err
+	}
+	writes = append(writes, gainWrites...)
+	writes, err = appendEQQWrite(writes, best, q)
 	if err != nil {
 		return nil, nil, err
 	}
 	info := map[string]any{"band": best["band"], "current_freq_hz": best["current_freq_hz"], "freq_distance_hz": bestDist}
-	noteSkippedQ(info, qSkipped)
-	return writes, info, nil
-}
-
-// noteSkippedQ records that a requested Q could not be applied to the band that
-// was selected, so the caller can say so instead of implying it was set.
-func noteSkippedQ(info map[string]any, skipped bool) {
-	if skipped {
-		info["q_skipped"] = true
-		info["q_skipped_reason"] = "the selected band exposes no width control (shelf, " +
-			"pass filter, or fixed-frequency fader); frequency and gain were still applied"
+	writes, err = appendEQActivationLast(writes, best)
+	if err != nil {
+		return nil, nil, err
 	}
+	return writes, info, nil
 }
 
 func eqWritePlanFixedFreq(bands []map[string]any, freqHz, gainDB float64, q *float64) ([]eqWriteStep, map[string]any, error) {
@@ -280,20 +622,15 @@ func eqWritePlanFixedFreq(bands []map[string]any, freqHz, gainDB float64, q *flo
 		return nil, nil, fmt.Errorf("this EQ has %d fixed-frequency bands but publishes no centre "+
 			"frequency for any of them, so the band nearest %.0f Hz cannot be identified", len(bands), freqHz)
 	}
-	gainParamID := firstNonEmptyText(best, "gain_param_id")
-	if gainParamID == "" {
-		return nil, nil, fmt.Errorf("band %v is missing gain_param_id", best["band"])
+	writes, err := eqWritesForRole(best, "gain", "gain", gainDB, -24, 24, "linear")
+	if err != nil {
+		return nil, nil, err
 	}
-	writes := []eqWriteStep{
-		{ParamID: gainParamID, Role: "gain", NormalizedValue: eqNormalizeTarget(gainDB,
-			eqBandCurve(best, "gain_curve"), mapValue(best["gain_domain"]), -24, 24, "linear")},
-	}
-	writes, qSkipped, err := appendEQQWrite(writes, best, q)
+	writes, err = appendEQQWrite(writes, best, q)
 	if err != nil {
 		return nil, nil, err
 	}
 	info := map[string]any{"band": best["band"], "fixed_freq_hz": best["fixed_freq_hz"], "freq_distance_hz": bestDist}
-	noteSkippedQ(info, qSkipped)
 	return writes, info, nil
 }
 
@@ -305,20 +642,15 @@ func eqWritePlanFreeFloating(active, available []map[string]any, freqHz, gainDB 
 			continue
 		}
 		if cur > 0 && math.Abs(math.Log2(freqHz/cur)) < 0.5 {
-			gainParamID := firstNonEmptyText(b, "gain_param_id")
-			if gainParamID == "" {
+			writes, err := eqWritesForRole(b, "gain", "gain", gainDB, -24, 24, "linear")
+			if err != nil {
 				continue
 			}
-			writes := []eqWriteStep{
-				{ParamID: gainParamID, Role: "gain", NormalizedValue: eqNormalizeTarget(gainDB,
-					eqBandCurve(b, "gain_curve"), mapValue(b["gain_domain"]), -24, 24, "linear")},
-			}
-			writes, qSkipped, err := appendEQQWrite(writes, b, q)
+			writes, err = appendEQQWrite(writes, b, q)
 			if err != nil {
 				return nil, nil, err
 			}
 			info := map[string]any{"band": b["band"], "operation": "adjust_existing", "current_freq_hz": cur}
-			noteSkippedQ(info, qSkipped)
 			return writes, info, nil
 		}
 	}
@@ -327,50 +659,202 @@ func eqWritePlanFreeFloating(active, available []map[string]any, freqHz, gainDB 
 		return nil, nil, fmt.Errorf("free_floating EQ has no available slots to create a new band")
 	}
 	slot := available[0]
-	usedParamID := firstNonEmptyText(slot, "used_param_id")
-	freqParamID := firstNonEmptyText(slot, "freq_param_id")
-	gainParamID := firstNonEmptyText(slot, "gain_param_id")
-	if usedParamID == "" || freqParamID == "" || gainParamID == "" {
-		return nil, nil, fmt.Errorf("available slot %v is missing used_param_id, freq_param_id, or gain_param_id", slot["band"])
+	writes := []eqWriteStep{}
+	shapeWrites, _ := eqEnumWritesForRole(slot, "shape", "shape", []string{"bell", "peak"})
+	writes = append(writes, shapeWrites...)
+	freqWrites, err := eqWritesForRole(slot, "frequency", "freq", freqHz, 20, 20000, "log")
+	if err != nil {
+		return nil, nil, err
 	}
-	writes := []eqWriteStep{
-		{ParamID: usedParamID, NormalizedValue: 1.0, Role: "used"},
-		{ParamID: freqParamID, Role: "freq", NormalizedValue: eqNormalizeTarget(freqHz,
-			eqBandCurve(slot, "freq_curve"), mapValue(slot["freq_domain"]), 20, 20000, "log")},
-		{ParamID: gainParamID, Role: "gain", NormalizedValue: eqNormalizeTarget(gainDB,
-			eqBandCurve(slot, "gain_curve"), mapValue(slot["gain_domain"]), -24, 24, "linear")},
+	writes = append(writes, freqWrites...)
+	gainWrites, err := eqWritesForRole(slot, "gain", "gain", gainDB, -24, 24, "linear")
+	if err != nil {
+		return nil, nil, err
 	}
-	writes, qSkipped, err := appendEQQWrite(writes, slot, q)
+	writes = append(writes, gainWrites...)
+	writes, err = appendEQQWrite(writes, slot, q)
+	if err != nil {
+		return nil, nil, err
+	}
+	writes, err = appendEQActivationLast(writes, slot)
 	if err != nil {
 		return nil, nil, err
 	}
 	info := map[string]any{"band": slot["band"], "operation": "create_band"}
-	noteSkippedQ(info, qSkipped)
 	return writes, info, nil
 }
 
 // appendEQQWrite adds the Q write when the selected band has one.
 //
-// Plenty of legitimate bands do not: shelves and high/low-pass sections
-// generally expose no width control, and a graphic-EQ fader has nothing but
-// gain. Aborting the whole operation in that case threw away a frequency and
-// gain move the user did ask for. The skip is reported back instead of being
-// swallowed, so a requested Q that could not be applied stays visible.
-func appendEQQWrite(writes []eqWriteStep, band map[string]any, q *float64) ([]eqWriteStep, bool, error) {
+// Missing Q is valid only when Q was not requested.  An explicit Q target with
+// no binding rejects the whole plan before any parameter is touched.
+func appendEQQWrite(writes []eqWriteStep, band map[string]any, q *float64) ([]eqWriteStep, error) {
 	if q == nil {
-		return writes, false, nil
+		return writes, nil
 	}
-	qParamID := firstNonEmptyText(band, "q_param_id")
-	if qParamID == "" {
-		return writes, true, nil
+	qWrites, err := eqWritesForRole(band, "q", "q", *q, 0.1, 6, "log")
+	if err != nil {
+		return nil, fmt.Errorf("requested Q cannot be applied: %w", err)
 	}
-	writes = append(writes, eqWriteStep{
-		ParamID: qParamID,
-		Role:    "q",
-		NormalizedValue: eqNormalizeTarget(*q,
-			eqBandCurve(band, "q_curve"), mapValue(band["q_domain"]), 0.1, 6, "log"),
-	})
-	return writes, false, nil
+	return append(writes, qWrites...), nil
+}
+
+func eqWritesForRole(band map[string]any, summaryRole, writeRole string, target,
+	fallbackMin, fallbackMax float64, fallbackScale string) ([]eqWriteStep, error) {
+	bindings := mapRowsValue(band[summaryRole+"_bindings"])
+	if len(bindings) == 0 {
+		legacy := summaryRole
+		if summaryRole == "frequency" {
+			legacy = "freq"
+		}
+		paramID := firstNonEmptyText(band, legacy+"_param_id")
+		if paramID == "" {
+			return nil, fmt.Errorf("band %v is missing %s binding", band["band"], summaryRole)
+		}
+		bindings = []map[string]any{{
+			"param_id": paramID,
+			"domain":   band[legacy+"_domain"],
+			"curve":    band[legacy+"_curve"],
+			"channel":  "shared",
+		}}
+	}
+	out := make([]eqWriteStep, 0, len(bindings))
+	for _, binding := range bindings {
+		paramID := firstNonEmptyText(binding, "param_id")
+		if paramID == "" {
+			return nil, fmt.Errorf("band %v has an empty %s binding", band["band"], summaryRole)
+		}
+		normalized, quantized := eqBindingTarget(target, binding, fallbackMin, fallbackMax, fallbackScale)
+		low, high := eqBindingCorrectionBounds(target, binding)
+		curve := eqBandCurve(binding, "curve")
+		decreasing := len(curve) >= 2 && curve[len(curve)-1][1] < curve[0][1]
+		requested := target
+		out = append(out, eqWriteStep{ParamID: paramID, Role: writeRole,
+			Channel: firstNonEmptyText(binding, "channel"), NormalizedValue: normalized,
+			RequestedPhysical: &requested, Quantized: quantized,
+			CorrectionLow: low, CorrectionHigh: high, PhysicalDecreasing: decreasing})
+	}
+	return out, nil
+}
+
+func eqBindingTarget(target float64, binding map[string]any,
+	fallbackMin, fallbackMax float64, fallbackScale string) (float64, bool) {
+	reachable := mapRowsValue(binding["reachable_values"])
+	bestDistance := math.MaxFloat64
+	best := 0.0
+	found := false
+	for _, row := range reachable {
+		physical, ok := eqBandFloatAny(row, "physical")
+		if !ok {
+			continue
+		}
+		normalized, normalizedOK := eqBandFloatAny(row, "normalized")
+		if !normalizedOK {
+			continue
+		}
+		if distance := math.Abs(target - physical); distance < bestDistance {
+			bestDistance, best, found = distance, normalized, true
+		}
+	}
+	if found {
+		return best, bestDistance > 1e-9
+	}
+	curve := eqBandCurve(binding, "curve")
+	domain := mapValue(binding["domain"])
+	return eqNormalizeTarget(target, curve, domain, fallbackMin, fallbackMax, fallbackScale), false
+}
+
+func eqBindingCorrectionBounds(target float64, binding map[string]any) (float64, float64) {
+	curve := eqBandCurve(binding, "curve")
+	if len(curve) < 2 {
+		return 0, 1
+	}
+	increasing := curve[len(curve)-1][1] > curve[0][1]
+	for i := 1; i < len(curve); i++ {
+		if increasing && target <= curve[i][1] || !increasing && target >= curve[i][1] {
+			return curve[i-1][0], curve[i][0]
+		}
+	}
+	return curve[len(curve)-2][0], curve[len(curve)-1][0]
+}
+
+func eqEnumWritesForRole(band map[string]any, summaryRole, writeRole string, preferred []string) ([]eqWriteStep, error) {
+	bindings := mapRowsValue(band[summaryRole+"_bindings"])
+	out := []eqWriteStep{}
+	for _, binding := range bindings {
+		value, ok := eqReachableLabelTarget(binding, preferred)
+		if !ok {
+			continue
+		}
+		out = append(out, eqWriteStep{ParamID: firstNonEmptyText(binding, "param_id"), Role: writeRole,
+			Channel: firstNonEmptyText(binding, "channel"), NormalizedValue: value, Quantized: true})
+	}
+	return out, nil
+}
+
+func appendEQActivationLast(writes []eqWriteStep, band map[string]any) ([]eqWriteStep, error) {
+	if active, ok := band["active"].(bool); ok && active {
+		return writes, nil
+	}
+	bindings := mapRowsValue(band["activation_bindings"])
+	if len(bindings) == 0 {
+		return nil, fmt.Errorf("band %v is inactive and has no activation binding", band["band"])
+	}
+	for _, binding := range bindings {
+		value, ok := eqReachableLabelTarget(binding, []string{"used", "enabled", "active", "on", "in", "not bypassed"})
+		if !ok {
+			return nil, fmt.Errorf("band %v activation binding %s has no provable active value", band["band"], firstNonEmptyText(binding, "param_id"))
+		}
+		writes = append(writes, eqWriteStep{ParamID: firstNonEmptyText(binding, "param_id"), Role: "used",
+			Channel: firstNonEmptyText(binding, "channel"), NormalizedValue: value, Quantized: true})
+	}
+	return writes, nil
+}
+
+func eqReachableLabelTarget(binding map[string]any, preferred []string) (float64, bool) {
+	rows := mapRowsValue(binding["reachable_values"])
+	// Exact matches must win globally. A substring-first search would match
+	// "used" against "Unused" and leave a free-floating band inactive.
+	for _, want := range preferred {
+		for _, row := range rows {
+			label := strings.ToLower(strings.TrimSpace(firstNonEmptyText(row, "label")))
+			if label == want {
+				value, ok := eqBandFloatAny(row, "normalized")
+				if ok {
+					return value, true
+				}
+			}
+		}
+	}
+	for _, want := range preferred {
+		for _, row := range rows {
+			label := strings.ToLower(strings.TrimSpace(firstNonEmptyText(row, "label")))
+			fields := strings.FieldsFunc(label, func(r rune) bool { return r < 'a' || r > 'z' })
+			for _, field := range fields {
+				if field == want {
+					value, ok := eqBandFloatAny(row, "normalized")
+					if ok {
+						return value, true
+					}
+				}
+			}
+		}
+	}
+	return 0, false
+}
+
+func eqBandFloatAny(row map[string]any, key string) (float64, bool) {
+	switch value := row[key].(type) {
+	case float64:
+		return value, true
+	case float32:
+		return float64(value), true
+	case int:
+		return float64(value), true
+	case int64:
+		return float64(value), true
+	}
+	return 0, false
 }
 
 // eqNormalizeTarget converts a target display value into the normalised value to
@@ -411,6 +895,22 @@ func eqNormalizedFromCurve(target float64, curve [][2]float64) (float64, bool) {
 	}
 	first, last := curve[0], curve[len(curve)-1]
 	lo, hi := first[1], last[1]
+	if hi < lo {
+		if target >= lo {
+			return clampUnit(first[0]), true
+		}
+		if target <= hi {
+			return clampUnit(last[0]), true
+		}
+		for i := 1; i < len(curve); i++ {
+			upper, lower := curve[i-1], curve[i]
+			if target <= upper[1] && target >= lower[1] {
+				fraction := (upper[1] - target) / (upper[1] - lower[1])
+				return clampUnit(upper[0] + fraction*(lower[0]-upper[0])), true
+			}
+		}
+		return 0, false
+	}
 	span := hi - lo
 	if span <= 0 {
 		return 0, false

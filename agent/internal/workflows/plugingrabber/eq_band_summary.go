@@ -67,25 +67,169 @@ func BuildEQBandSummary(digest ParameterDigest) map[string]any {
 	if summary := buildMarvelGEQSummary(digest); summary != nil {
 		return summary
 	}
-	bands, order, indexFrequencies := collectEQBandsStructural(digest)
-	if len(bands) == 0 {
+	model := DetectEQModel(digest)
+	if model == nil {
 		return nil
 	}
+	return eqModelSummary(model)
+}
 
-	role := strings.ToLower(strings.TrimSpace(digest.TemplateRole))
-	class := strings.ToLower(strings.TrimSpace(digest.PluginClass))
-	isEQByMeta := role == "eq" || class == "eq"
-	if !isEQByMeta && !eqBandsLookStructural(bands, indexFrequencies) {
+func eqModelSummary(model *EQModel) map[string]any {
+	if model == nil {
 		return nil
 	}
+	summary := map[string]any{
+		"eq_model":       model.Classification,
+		"mapping_source": model.MappingSource,
+		"confidence":     model.Confidence,
+		"completeness": map[string]any{
+			"complete":             model.Completeness.Complete,
+			"complete_band_count":  model.Completeness.CompleteBands,
+			"candidate_band_count": model.Completeness.CandidateBands,
+			"issues":               model.Completeness.Issues,
+		},
+		"capabilities": map[string]any{
+			"frequency_adjustable": model.Capabilities.FrequencyAdjustable,
+			"fixed_frequency":      model.Capabilities.FixedFrequency,
+			"gain":                 model.Capabilities.Gain,
+			"q":                    model.Capabilities.Q,
+			"shape":                model.Capabilities.Shape,
+			"activation":           model.Capabilities.Activation,
+			"multi_channel":        model.Capabilities.MultiChannel,
+		},
+		"set_eq_point_supported": model.SetEQPointSupported,
+		"channel_bindings":       model.Channels,
+	}
+	if model.Reason != "" {
+		summary["reason"] = model.Reason
+	}
+	switch model.Classification {
+	case "fixed_slot_adjustable":
+		summary["how_to_pick_a_band"] = "Select the closest current frequency, then write every frequency_binding/freq_param_id and gain_binding/gain_param_id for that band."
+	case "fixed_freq":
+		summary["how_to_pick_a_band"] = "Select the closest fixed_freq_hz and write ONLY gain_param_id (or all gain_bindings for mirrored channels) for that band."
+	case "free_floating":
+		summary["how_to_pick_a_band"] = "Use a nearby active band or initialise an available slot; write shape/frequency/Q/gain before activation."
+		summary["create_sequence_notes"] = "Initialise shape, frequency, Q and gain first; write used/enable activation last."
+	}
+	if model.Classification == "fixed_freq" && !model.Capabilities.FixedFrequency {
+		summary["frequency_labels"] = "unknown; fixed frequency is not recoverable from parameter data"
+	}
+	rows := make([]map[string]any, 0, len(model.Bands))
+	active, available := []map[string]any{}, []map[string]any{}
+	for _, band := range model.Bands {
+		row := eqBandSummaryRow(band)
+		rows = append(rows, row)
+		if model.Classification == "free_floating" && !band.Active {
+			available = append(available, row)
+		} else {
+			active = append(active, row)
+		}
+	}
+	summary["band_count"] = len(rows)
+	summary["bands"] = rows
+	if model.Classification == "free_floating" {
+		summary["active_band_count"] = len(active)
+		summary["available_slot_count"] = len(available)
+		summary["active_bands"] = active
+		summary["available_slots"] = available
+	}
+	return summary
+}
 
-	if eqBandsAreFreeFloating(bands) {
-		return buildFreeFloatingSummary(bands, order)
+func eqBandSummaryRow(band EQBand) map[string]any {
+	publicBand := band.Key
+	if !strings.HasPrefix(strings.ToUpper(publicBand), "B") {
+		publicBand = "B" + strings.ToUpper(publicBand)
 	}
-	if eqBandsHaveAdjustableFreq(bands) {
-		return buildFixedSlotAdjustableSummary(bands, order)
+	row := map[string]any{
+		"band":             publicBand,
+		"complete":         band.Complete,
+		"active":           band.Active,
+		"activation_known": band.ActivationKnown,
+		"issues":           band.Issues,
 	}
-	return buildFixedFreqSummary(bands, order, indexFrequencies)
+	if band.FixedFrequencyHz != nil {
+		row["fixed_freq_hz"] = *band.FixedFrequencyHz
+	}
+	for role, bindings := range band.Bindings {
+		bindingRows := make([]map[string]any, 0, len(bindings))
+		for _, binding := range bindings {
+			bindingRow := map[string]any{
+				"param_id":           binding.ParamID,
+				"name":               binding.Name,
+				"channel":            binding.Channel,
+				"current_normalized": binding.CurrentNormalized,
+				"current_text":       binding.CurrentText,
+			}
+			if binding.CurrentPhysical != nil {
+				bindingRow["current_physical"] = *binding.CurrentPhysical
+			}
+			if binding.ActivationKind != "" {
+				bindingRow["activation_kind"] = binding.ActivationKind
+			}
+			if d := eqDomainFields(binding.Domain); d != nil {
+				bindingRow["domain"] = d
+			}
+			if len(binding.Curve) > 0 {
+				bindingRow["curve"] = binding.Curve
+			}
+			if len(binding.Reachable) > 0 {
+				reachable := make([]map[string]any, 0, len(binding.Reachable))
+				for _, value := range binding.Reachable {
+					item := map[string]any{"normalized": value.Normalized, "label": value.Label}
+					if value.Physical != nil {
+						item["physical"] = *value.Physical
+					}
+					reachable = append(reachable, item)
+				}
+				bindingRow["reachable_values"] = reachable
+			}
+			bindingRows = append(bindingRows, bindingRow)
+		}
+		row[role+"_bindings"] = bindingRows
+		if role == eqRoleActivation && len(bindings) > 0 {
+			selected := bindings[0]
+			for _, binding := range bindings {
+				if binding.ActivationKind == "used" {
+					selected = binding
+					break
+				}
+			}
+			row["activation_param_id"] = selected.ParamID
+			row["used_param_id"] = selected.ParamID
+		}
+		// Preserve the single-binding fields used by older clients.
+		if len(bindings) == 1 {
+			legacyRole := role
+			switch role {
+			case eqRoleFrequency:
+				legacyRole = "freq"
+			case eqRoleActivation:
+				legacyRole = "used"
+			}
+			row[legacyRole+"_param_id"] = bindings[0].ParamID
+			if role == eqRoleActivation {
+				row["activation_param_id"] = bindings[0].ParamID
+				row["used_param_id"] = bindings[0].ParamID
+			}
+			if bindings[0].CurrentPhysical != nil {
+				switch role {
+				case eqRoleFrequency:
+					row["current_freq_hz"] = *bindings[0].CurrentPhysical
+				case eqRoleGain:
+					row["current_gain_db"] = *bindings[0].CurrentPhysical
+				}
+			}
+			if d := eqDomainFields(bindings[0].Domain); d != nil {
+				row[legacyRole+"_domain"] = d
+			}
+			if len(bindings[0].Curve) > 0 {
+				row[legacyRole+"_curve"] = bindings[0].Curve
+			}
+		}
+	}
+	return row
 }
 
 func buildMarvelGEQSummary(digest ParameterDigest) map[string]any {
@@ -124,10 +268,13 @@ func buildMarvelGEQSummary(digest ParameterDigest) map[string]any {
 		rows = append(rows, row)
 	}
 	return map[string]any{
-		"eq_model":           "fixed_freq",
-		"band_count":         len(rows),
-		"bands":              rows,
-		"how_to_pick_a_band": "This is a fixed-frequency 16-band graphic EQ. Select the band whose fixed_freq_hz is closest to the target and write only its gain_param_id. Frequency is selection metadata, not a writable parameter; Q is not supported.",
+		"eq_model":               "fixed_freq",
+		"mapping_source":         "plugin_specific_knowledge",
+		"set_eq_point_supported": false,
+		"reason":                 "plugin-specific fixed-frequency table is excluded from generic execution",
+		"band_count":             len(rows),
+		"bands":                  rows,
+		"how_to_pick_a_band":     "This is a fixed-frequency 16-band graphic EQ. Select the band whose fixed_freq_hz is closest to the target and write only its gain_param_id. Frequency is selection metadata, not a writable parameter; Q is not supported.",
 	}
 }
 
