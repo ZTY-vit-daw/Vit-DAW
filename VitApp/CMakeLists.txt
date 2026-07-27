@@ -104,6 +104,15 @@ juce_add_console_app(VitApp
     PRODUCT_NAME "VitHeadlessServer"
     COMPANY_NAME "Vit-DAW")
 
+if (WIN32)
+    # VitApp is a console process, but it also hosts native plug-in windows.
+    # Declare Per-Monitor V2 awareness in the executable manifest so Windows
+    # applies the correct DPI context before JUCE creates its hidden message
+    # window. Setting awareness later at runtime is too late for that window.
+    target_sources(VitApp PRIVATE
+        Resources/Windows/VitApp.manifest)
+endif()
+
 juce_generate_juce_header(VitApp)
 target_compile_features(VitApp PRIVATE cxx_std_20)
 
