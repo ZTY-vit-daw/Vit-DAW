@@ -1,0 +1,352 @@
+{
+  "schema_version": "vit.eq_vps.control_graph.v1",
+  "plugin": {
+    "manufacturer": "Plugin Alliance",
+    "name": "AMEK EQ 250",
+    "format": "VST3",
+    "version": "1.2.0.0"
+  },
+  "surface_signature": "p_4af7c332c48e5fac",
+  "public_classification": "fixed_slot_adjustable",
+  "channel_contract": "mirrored",
+  "bindings": {
+    "hmf_frequency_left": {
+      "kind": "number",
+      "parameter_id": "1752000049",
+      "parameter_name": "HMF Freq 1",
+      "channel": "left",
+      "domain": {
+        "unit": "Hz",
+        "minimum": 400,
+        "maximum": 25600,
+        "curve": [[0, 400], [0.25, 800], [0.5, 3200], [0.75, 12800], [1, 25600]],
+        "value_law": "logarithmic"
+      }
+    },
+    "hmf_frequency_right": {
+      "kind": "number",
+      "parameter_id": "1752000050",
+      "parameter_name": "HMF Freq 2",
+      "channel": "right",
+      "domain": {
+        "unit": "Hz",
+        "minimum": 400,
+        "maximum": 25600,
+        "curve": [[0, 400], [0.25, 800], [0.5, 3200], [0.75, 12800], [1, 25600]],
+        "value_law": "logarithmic"
+      }
+    },
+    "hmf_gain_left": {
+      "kind": "number",
+      "parameter_id": "1752000305",
+      "parameter_name": "HMF Gain 1",
+      "channel": "left",
+      "domain": {
+        "unit": "dB",
+        "minimum": -12,
+        "maximum": 12,
+        "curve": [[0, -12], [0.25, -5], [0.5, 0], [0.75, 5], [1, 12]],
+        "value_law": "linear"
+      }
+    },
+    "hmf_gain_right": {
+      "kind": "number",
+      "parameter_id": "1752000306",
+      "parameter_name": "HMF Gain 2",
+      "channel": "right",
+      "domain": {
+        "unit": "dB",
+        "minimum": -12,
+        "maximum": 12,
+        "curve": [[0, -12], [0.25, -5], [0.5, 0], [0.75, 5], [1, 12]],
+        "value_law": "linear"
+      }
+    },
+    "hmf_q_left": {
+      "kind": "number",
+      "parameter_id": "1752002865",
+      "parameter_name": "HMF Q 1",
+      "channel": "left",
+      "domain": {
+        "unit": "",
+        "minimum": 0.4,
+        "maximum": 4,
+        "curve": [[0, 0.4], [0.25, 0.5], [0.5, 2], [0.75, 3], [1, 4]],
+        "value_law": "linear"
+      }
+    },
+    "hmf_q_right": {
+      "kind": "number",
+      "parameter_id": "1752002866",
+      "parameter_name": "HMF Q 2",
+      "channel": "right",
+      "domain": {
+        "unit": "",
+        "minimum": 0.4,
+        "maximum": 4,
+        "curve": [[0, 0.4], [0.25, 0.5], [0.5, 2], [0.75, 3], [1, 4]],
+        "value_law": "linear"
+      }
+    },
+    "hmf_activation_left": {
+      "kind": "enum",
+      "parameter_id": "1751999025",
+      "parameter_name": "HMF Bypass 1",
+      "channel": "left",
+      "values": {
+        "out": {"normalized": 0, "label": "Out"},
+        "in": {"normalized": 1, "label": "In"}
+      }
+    },
+    "hmf_activation_right": {
+      "kind": "enum",
+      "parameter_id": "1751999026",
+      "parameter_name": "HMF Bypass 2",
+      "channel": "right",
+      "values": {
+        "out": {"normalized": 0, "label": "Out"},
+        "in": {"normalized": 1, "label": "In"}
+      }
+    },
+    "low_cut_frequency_left": {
+      "kind": "number",
+      "parameter_id": "1752196657",
+      "parameter_name": "HP Freq 1",
+      "channel": "left",
+      "domain": {
+        "unit": "Hz",
+        "minimum": 20,
+        "maximum": 10000,
+        "curve": [[0, 20], [0.25, 95], [0.5, 447], [0.75, 2100], [1, 10000]],
+        "value_law": "logarithmic"
+      }
+    },
+    "low_cut_frequency_right": {
+      "kind": "number",
+      "parameter_id": "1752196658",
+      "parameter_name": "HP Freq 2",
+      "channel": "right",
+      "domain": {
+        "unit": "Hz",
+        "minimum": 20,
+        "maximum": 10000,
+        "curve": [[0, 20], [0.25, 95], [0.5, 447], [0.75, 2100], [1, 10000]],
+        "value_law": "logarithmic"
+      }
+    },
+    "low_cut_activation_left": {
+      "kind": "enum",
+      "parameter_id": "1752195633",
+      "parameter_name": "HP Bypass 1",
+      "channel": "left",
+      "values": {
+        "out": {"normalized": 0, "label": "Out"},
+        "in": {"normalized": 1, "label": "In"}
+      }
+    },
+    "low_cut_activation_right": {
+      "kind": "enum",
+      "parameter_id": "1752195634",
+      "parameter_name": "HP Bypass 2",
+      "channel": "right",
+      "values": {
+        "out": {"normalized": 0, "label": "Out"},
+        "in": {"normalized": 1, "label": "In"}
+      }
+    },
+    "high_cut_frequency_left": {
+      "kind": "number",
+      "parameter_id": "1819305521",
+      "parameter_name": "LP Freq 1",
+      "channel": "left",
+      "domain": {
+        "unit": "Hz",
+        "minimum": 20,
+        "maximum": 30000,
+        "curve": [[0, 20], [0.25, 124], [0.5, 775], [0.75, 4800], [1, 30000]],
+        "value_law": "logarithmic"
+      }
+    },
+    "high_cut_frequency_right": {
+      "kind": "number",
+      "parameter_id": "1819305522",
+      "parameter_name": "LP Freq 2",
+      "channel": "right",
+      "domain": {
+        "unit": "Hz",
+        "minimum": 20,
+        "maximum": 30000,
+        "curve": [[0, 20], [0.25, 124], [0.5, 775], [0.75, 4800], [1, 30000]],
+        "value_law": "logarithmic"
+      }
+    },
+    "high_cut_activation_left": {
+      "kind": "enum",
+      "parameter_id": "1819304497",
+      "parameter_name": "LP Bypass 1",
+      "channel": "left",
+      "values": {
+        "out": {"normalized": 0, "label": "Out"},
+        "in": {"normalized": 1, "label": "In"}
+      }
+    },
+    "high_cut_activation_right": {
+      "kind": "enum",
+      "parameter_id": "1819304498",
+      "parameter_name": "LP Bypass 2",
+      "channel": "right",
+      "values": {
+        "out": {"normalized": 0, "label": "Out"},
+        "in": {"normalized": 1, "label": "In"}
+      }
+    }
+  },
+  "sections": [
+    {
+      "section_key": "hmf",
+      "display_name": "High Mid",
+      "addressing": "resident",
+      "activation": {"state": "explicit"},
+      "selection": {"frequency_binding": "frequency_left"},
+      "bindings": {
+        "frequency_left": "hmf_frequency_left",
+        "frequency_right": "hmf_frequency_right",
+        "gain_left": "hmf_gain_left",
+        "gain_right": "hmf_gain_right",
+        "q_left": "hmf_q_left",
+        "q_right": "hmf_q_right",
+        "activation_left": "hmf_activation_left",
+        "activation_right": "hmf_activation_right"
+      },
+      "shapes": {
+        "bell": {
+          "actions": {
+            "upsert": {"program": "set", "required_inputs": ["frequency_hz", "gain_db"], "optional_inputs": ["q"]},
+            "modify": {"program": "set", "optional_inputs": ["frequency_hz", "gain_db", "q"]},
+            "disable": {"program": "disable"}
+          }
+        }
+      },
+      "programs": {
+        "set": {
+          "inputs": {
+            "frequency_hz": {"type": "number"},
+            "gain_db": {"type": "number"},
+            "q": {"type": "number"}
+          },
+          "writes": [
+            {"binding": "frequency_left", "role": "frequency", "when": {"op": "present", "input": "frequency_hz"}, "value": {"op": "input", "input": "frequency_hz"}},
+            {"binding": "frequency_right", "role": "frequency", "when": {"op": "present", "input": "frequency_hz"}, "value": {"op": "input", "input": "frequency_hz"}},
+            {"binding": "gain_left", "role": "gain", "when": {"op": "present", "input": "gain_db"}, "value": {"op": "input", "input": "gain_db"}},
+            {"binding": "gain_right", "role": "gain", "when": {"op": "present", "input": "gain_db"}, "value": {"op": "input", "input": "gain_db"}},
+            {"binding": "q_left", "role": "q", "when": {"op": "present", "input": "q"}, "value": {"op": "input", "input": "q"}},
+            {"binding": "q_right", "role": "q", "when": {"op": "present", "input": "q"}, "value": {"op": "input", "input": "q"}},
+            {"binding": "activation_left", "role": "activation", "phase": "activation", "value": {"op": "constant", "value": "in"}},
+            {"binding": "activation_right", "role": "activation", "phase": "activation", "value": {"op": "constant", "value": "in"}}
+          ]
+        },
+        "disable": {
+          "writes": [
+            {"binding": "activation_left", "role": "activation", "phase": "activation", "value": {"op": "constant", "value": "out"}},
+            {"binding": "activation_right", "role": "activation", "phase": "activation", "value": {"op": "constant", "value": "out"}}
+          ]
+        }
+      }
+    },
+    {
+      "section_key": "low_cut",
+      "display_name": "Low Cut",
+      "addressing": "resident",
+      "activation": {"state": "explicit"},
+      "selection": {"frequency_binding": "frequency_left"},
+      "bindings": {
+        "frequency_left": "low_cut_frequency_left",
+        "frequency_right": "low_cut_frequency_right",
+        "activation_left": "low_cut_activation_left",
+        "activation_right": "low_cut_activation_right"
+      },
+      "shapes": {
+        "low_cut": {
+          "actions": {
+            "upsert": {"program": "set", "required_inputs": ["frequency_hz"]},
+            "modify": {"program": "set", "optional_inputs": ["frequency_hz"]},
+            "disable": {"program": "disable"}
+          }
+        }
+      },
+      "programs": {
+        "set": {
+          "inputs": {"frequency_hz": {"type": "number"}},
+          "writes": [
+            {"binding": "frequency_left", "role": "frequency", "when": {"op": "present", "input": "frequency_hz"}, "value": {"op": "input", "input": "frequency_hz"}},
+            {"binding": "frequency_right", "role": "frequency", "when": {"op": "present", "input": "frequency_hz"}, "value": {"op": "input", "input": "frequency_hz"}},
+            {"binding": "activation_left", "role": "activation", "phase": "activation", "value": {"op": "constant", "value": "in"}},
+            {"binding": "activation_right", "role": "activation", "phase": "activation", "value": {"op": "constant", "value": "in"}}
+          ]
+        },
+        "disable": {
+          "writes": [
+            {"binding": "activation_left", "role": "activation", "phase": "activation", "value": {"op": "constant", "value": "out"}},
+            {"binding": "activation_right", "role": "activation", "phase": "activation", "value": {"op": "constant", "value": "out"}}
+          ]
+        }
+      }
+    },
+    {
+      "section_key": "high_cut",
+      "display_name": "High Cut",
+      "addressing": "resident",
+      "activation": {"state": "explicit"},
+      "selection": {"frequency_binding": "frequency_left"},
+      "bindings": {
+        "frequency_left": "high_cut_frequency_left",
+        "frequency_right": "high_cut_frequency_right",
+        "activation_left": "high_cut_activation_left",
+        "activation_right": "high_cut_activation_right"
+      },
+      "shapes": {
+        "high_cut": {
+          "actions": {
+            "upsert": {"program": "set", "required_inputs": ["frequency_hz"]},
+            "modify": {"program": "set", "optional_inputs": ["frequency_hz"]},
+            "disable": {"program": "disable"}
+          }
+        }
+      },
+      "programs": {
+        "set": {
+          "inputs": {"frequency_hz": {"type": "number"}},
+          "writes": [
+            {"binding": "frequency_left", "role": "frequency", "when": {"op": "present", "input": "frequency_hz"}, "value": {"op": "input", "input": "frequency_hz"}},
+            {"binding": "frequency_right", "role": "frequency", "when": {"op": "present", "input": "frequency_hz"}, "value": {"op": "input", "input": "frequency_hz"}},
+            {"binding": "activation_left", "role": "activation", "phase": "activation", "value": {"op": "constant", "value": "in"}},
+            {"binding": "activation_right", "role": "activation", "phase": "activation", "value": {"op": "constant", "value": "in"}}
+          ]
+        },
+        "disable": {
+          "writes": [
+            {"binding": "activation_left", "role": "activation", "phase": "activation", "value": {"op": "constant", "value": "out"}},
+            {"binding": "activation_right", "role": "activation", "phase": "activation", "value": {"op": "constant", "value": "out"}}
+          ]
+        }
+      }
+    }
+  ],
+  "provenance": {
+    "q10_reference": ["D:/Vit_DAW/docs/VPS_REFERENCE_Q10_STEREO.md"],
+    "vit_parameter_surface": ["D:/Vit_DAW_worktrees/eq-vps-control-graph/artifacts/plugin_alliance_eq_two_level/20260728_233113/pages/amek_eq_250_initial/page_0000.json"],
+    "baseline_smoke": ["D:/Vit_DAW_worktrees/eq-vps-control-graph/artifacts/plugin_alliance_eq_two_level/20260728_233113/summary.json"]
+  },
+  "unresolved": [
+    "LF and HF Q combine a non-numeric Shelf sentinel with numeric Q values; v1 does not publish those polymorphic sections.",
+    "LMF and MF are omitted from this bounded canary document; only the HMF Bell relationship is asserted.",
+    "Range, Monitoring, Mid Side, Param Link, gain scaling, and global utility controls are outside the public section contract."
+  ],
+  "metadata": {
+    "authoring": {
+      "observed_facts": "fresh complete Vit parameter pagination 83/83",
+      "semantic_relations": "agent inferred mirrored left/right HMF and cut sections from names, domains, and public EQ requirements",
+      "human_entered_target_fields": 0
+    }
+  }
+}

@@ -316,7 +316,10 @@ func (s *Server) readLiveEQControlSurface(ctx context.Context, trackID, pluginID
 	}
 	s.observePluginParametersReply(reply)
 	digest := buildPluginParameterDigest(reply)
-	summary := plugingrabber.BuildEQBandSummary(digest)
+	summary, graphErr := plugingrabber.BuildEQBandSummaryWithConfiguredControlGraph(digest)
+	if graphErr != nil {
+		return digest, nil, rejectEQControl("vps_control_graph_invalid", "%v", graphErr)
+	}
 	if summary == nil {
 		return digest, nil, rejectEQControl("not_static_eq", "the selected plugin has no provable static EQ control topology")
 	}
@@ -415,6 +418,11 @@ func planEQReferencedEdit(summary map[string]any, edit eqEditRequest, trackID, p
 	quantized := false
 	if edit.Action == "modify" {
 		writes, quantized, err = planEQModifyWrites(section, edit, shape)
+	} else if _, ok := eqControlGraphRuntime(section); ok {
+		writes, err = eqControlGraphCompileWrites(section, shape, edit.Action, nil)
+		if err != nil {
+			err = normalizeEQPlanningError(err, shape, edit.Action)
+		}
 	} else {
 		writes, err = planEQDeactivateWrites(section, edit.Action == "remove")
 	}
@@ -437,6 +445,13 @@ func planEQModifyWrites(section map[string]any, edit eqEditRequest, shape string
 	}
 	if (shape == "low_cut" || shape == "high_cut") && edit.GainDB != nil {
 		return nil, false, rejectEQControl("invalid_field_for_shape", "gain_db is not applicable to %s", shape)
+	}
+	if _, ok := eqControlGraphRuntime(section); ok {
+		writes, err := eqControlGraphCompileWrites(section, shape, "modify", eqControlGraphEditInputs(edit))
+		if err != nil {
+			return nil, false, normalizeEQPlanningError(err, shape, "modify")
+		}
+		return writes, eqWritesAreQuantized(writes), nil
 	}
 	writes := []eqWriteStep{}
 	if edit.Shape != "" {

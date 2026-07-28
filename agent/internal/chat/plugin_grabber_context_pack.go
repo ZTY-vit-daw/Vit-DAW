@@ -83,7 +83,11 @@ func (s *Server) runPluginGrabberExplainWorkflow(ctx context.Context, conversati
 
 	s.observePluginParametersReply(paramsReply)
 	digest := buildPluginParameterDigest(paramsReply)
-	pack := buildPluginGrabberContextPack(digest)
+	pack, err := plugingrabber.BuildContextPackWithConfiguredControlGraph(digest)
+	if err != nil {
+		err = rejectEQControl("vps_control_graph_invalid", "%v", err)
+		return ChatResponse{ConversationID: conversationID, Reply: friendlyExecutionError(err), Error: err.Error()}
+	}
 	decision := policy.Decision{
 		Name:    pluginGrabberExplainCommand,
 		Risk:    policy.RiskDirect,

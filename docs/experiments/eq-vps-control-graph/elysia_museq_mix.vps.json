@@ -1,0 +1,1155 @@
+{
+  "schema_version": "vit.eq_vps.control_graph.v1",
+  "plugin": {
+    "manufacturer": "Plugin Alliance",
+    "name": "elysia museq Mix",
+    "format": "VST3",
+    "version": "1.14.1.0"
+  },
+  "surface_signature": "p_7829852e0655a09a",
+  "public_classification": "fixed_slot_adjustable",
+  "channel_contract": "shared",
+  "bindings": {
+    "low_frequency": {
+      "kind": "number",
+      "parameter_id": "1282360881",
+      "parameter_name": "Low Frequency",
+      "channel": "shared",
+      "domain": {
+        "unit": "Hz",
+        "minimum": 9,
+        "maximum": 200,
+        "curve": [
+          [
+            0,
+            9
+          ],
+          [
+            0.25,
+            16
+          ],
+          [
+            0.5,
+            60
+          ],
+          [
+            0.75,
+            101
+          ],
+          [
+            1,
+            200
+          ]
+        ],
+        "value_law": "logarithmic"
+      }
+    },
+    "low_gain": {
+      "kind": "number",
+      "parameter_id": "1282361137",
+      "parameter_name": "Low Gain",
+      "channel": "shared",
+      "domain": {
+        "unit": "dB",
+        "minimum": 0,
+        "maximum": 15,
+        "curve": [
+          [
+            0,
+            0
+          ],
+          [
+            0.25,
+            3.6
+          ],
+          [
+            0.5,
+            6.5
+          ],
+          [
+            0.75,
+            9.5
+          ],
+          [
+            1,
+            15
+          ]
+        ],
+        "value_law": "linear"
+      }
+    },
+    "low_mode": {
+      "kind": "enum",
+      "parameter_id": "1282362673",
+      "parameter_name": "Low Mode",
+      "channel": "shared",
+      "values": {
+        "boost": {
+          "normalized": 0,
+          "label": "Boost"
+        },
+        "cut": {
+          "normalized": 1,
+          "label": "Cut"
+        }
+      }
+    },
+    "low_type": {
+      "kind": "enum",
+      "parameter_id": "1282364465",
+      "parameter_name": "Low Type",
+      "channel": "shared",
+      "values": {
+        "low_shelf": {
+          "normalized": 0,
+          "label": "Shelf"
+        },
+        "low_cut": {
+          "normalized": 1,
+          "label": "Cut"
+        }
+      }
+    },
+    "bottom_frequency": {
+      "kind": "number",
+      "parameter_id": "1114916401",
+      "parameter_name": "Bottom Frequency",
+      "channel": "shared",
+      "domain": {
+        "unit": "Hz",
+        "minimum": 18,
+        "maximum": 400,
+        "curve": [
+          [
+            0,
+            18
+          ],
+          [
+            0.25,
+            32
+          ],
+          [
+            0.5,
+            120
+          ],
+          [
+            0.75,
+            195
+          ],
+          [
+            1,
+            400
+          ]
+        ],
+        "value_law": "logarithmic"
+      }
+    },
+    "bottom_gain": {
+      "kind": "number",
+      "parameter_id": "1114916657",
+      "parameter_name": "Bottom Gain",
+      "channel": "shared",
+      "domain": {
+        "unit": "dB",
+        "minimum": 0,
+        "maximum": 15,
+        "curve": [
+          [
+            0,
+            0
+          ],
+          [
+            0.25,
+            3.1
+          ],
+          [
+            0.5,
+            6
+          ],
+          [
+            0.75,
+            11.5
+          ],
+          [
+            1,
+            15
+          ]
+        ],
+        "value_law": "linear"
+      }
+    },
+    "bottom_mode": {
+      "kind": "enum",
+      "parameter_id": "1114918193",
+      "parameter_name": "Bottom Mode",
+      "channel": "shared",
+      "values": {
+        "boost": {
+          "normalized": 0,
+          "label": "Boost"
+        },
+        "cut": {
+          "normalized": 1,
+          "label": "Cut"
+        }
+      }
+    },
+    "middle_frequency": {
+      "kind": "number",
+      "parameter_id": "1298417201",
+      "parameter_name": "Middle Frequency",
+      "channel": "shared",
+      "domain": {
+        "unit": "Hz",
+        "minimum": 150,
+        "maximum": 3500,
+        "curve": [
+          [
+            0,
+            150
+          ],
+          [
+            0.25,
+            274
+          ],
+          [
+            0.5,
+            920
+          ],
+          [
+            0.75,
+            1612
+          ],
+          [
+            1,
+            3500
+          ]
+        ],
+        "value_law": "logarithmic"
+      }
+    },
+    "middle_gain": {
+      "kind": "number",
+      "parameter_id": "1298417457",
+      "parameter_name": "Middle Gain",
+      "channel": "shared",
+      "domain": {
+        "unit": "dB",
+        "minimum": 0,
+        "maximum": 15,
+        "curve": [
+          [
+            0,
+            0
+          ],
+          [
+            0.25,
+            3.1
+          ],
+          [
+            0.5,
+            6
+          ],
+          [
+            0.75,
+            11.5
+          ],
+          [
+            1,
+            15
+          ]
+        ],
+        "value_law": "linear"
+      }
+    },
+    "middle_mode": {
+      "kind": "enum",
+      "parameter_id": "1298418993",
+      "parameter_name": "Middle Mode",
+      "channel": "shared",
+      "values": {
+        "boost": {
+          "normalized": 0,
+          "label": "Boost"
+        },
+        "cut": {
+          "normalized": 1,
+          "label": "Cut"
+        }
+      }
+    },
+    "top_frequency": {
+      "kind": "number",
+      "parameter_id": "1416644145",
+      "parameter_name": "Top Frequency",
+      "channel": "shared",
+      "domain": {
+        "unit": "Hz",
+        "minimum": 700,
+        "maximum": 16000,
+        "curve": [
+          [
+            0,
+            700
+          ],
+          [
+            0.25,
+            1489
+          ],
+          [
+            0.5,
+            4258
+          ],
+          [
+            0.75,
+            7596
+          ],
+          [
+            1,
+            16000
+          ]
+        ],
+        "value_law": "logarithmic"
+      }
+    },
+    "top_gain": {
+      "kind": "number",
+      "parameter_id": "1416644401",
+      "parameter_name": "Top Gain",
+      "channel": "shared",
+      "domain": {
+        "unit": "dB",
+        "minimum": 0,
+        "maximum": 15,
+        "curve": [
+          [
+            0,
+            0
+          ],
+          [
+            0.25,
+            3.1
+          ],
+          [
+            0.5,
+            6
+          ],
+          [
+            0.75,
+            11.5
+          ],
+          [
+            1,
+            15
+          ]
+        ],
+        "value_law": "linear"
+      }
+    },
+    "top_mode": {
+      "kind": "enum",
+      "parameter_id": "1416645937",
+      "parameter_name": "Top Mode",
+      "channel": "shared",
+      "values": {
+        "boost": {
+          "normalized": 0,
+          "label": "Boost"
+        },
+        "cut": {
+          "normalized": 1,
+          "label": "Cut"
+        }
+      }
+    },
+    "high_frequency": {
+      "kind": "number",
+      "parameter_id": "1214858801",
+      "parameter_name": "High Frequency",
+      "channel": "shared",
+      "domain": {
+        "unit": "Hz",
+        "minimum": 1800,
+        "maximum": 35000,
+        "curve": [
+          [
+            0,
+            1800
+          ],
+          [
+            0.25,
+            3218
+          ],
+          [
+            0.5,
+            10954
+          ],
+          [
+            0.75,
+            18132
+          ],
+          [
+            1,
+            35000
+          ]
+        ],
+        "value_law": "logarithmic"
+      }
+    },
+    "high_gain": {
+      "kind": "number",
+      "parameter_id": "1214859057",
+      "parameter_name": "High Gain",
+      "channel": "shared",
+      "domain": {
+        "unit": "dB",
+        "minimum": 0,
+        "maximum": 15,
+        "curve": [
+          [
+            0,
+            0
+          ],
+          [
+            0.25,
+            3.6
+          ],
+          [
+            0.5,
+            6.5
+          ],
+          [
+            0.75,
+            9.5
+          ],
+          [
+            1,
+            15
+          ]
+        ],
+        "value_law": "linear"
+      }
+    },
+    "high_mode": {
+      "kind": "enum",
+      "parameter_id": "1214860593",
+      "parameter_name": "High Mode",
+      "channel": "shared",
+      "values": {
+        "boost": {
+          "normalized": 0,
+          "label": "Boost"
+        },
+        "cut": {
+          "normalized": 1,
+          "label": "Cut"
+        }
+      }
+    },
+    "high_type": {
+      "kind": "enum",
+      "parameter_id": "1214862385",
+      "parameter_name": "High Type",
+      "channel": "shared",
+      "values": {
+        "high_shelf": {
+          "normalized": 0,
+          "label": "Shelf"
+        },
+        "high_cut": {
+          "normalized": 1,
+          "label": "Cut"
+        }
+      }
+    }
+  },
+  "sections": [
+    {
+      "section_key": "low",
+      "display_name": "Low",
+      "addressing": "resident",
+      "activation": {
+        "state": "always_active"
+      },
+      "selection": {
+        "frequency_binding": "frequency"
+      },
+      "bindings": {
+        "frequency": "low_frequency",
+        "gain": "low_gain",
+        "mode": "low_mode",
+        "shape": "low_type"
+      },
+      "shapes": {
+        "low_shelf": {
+          "actions": {
+            "upsert": {
+              "program": "tonal",
+              "required_inputs": [
+                "frequency_hz",
+                "gain_db"
+              ]
+            },
+            "modify": {
+              "program": "tonal",
+              "optional_inputs": [
+                "frequency_hz",
+                "gain_db"
+              ]
+            }
+          }
+        },
+        "low_cut": {
+          "actions": {
+            "upsert": {
+              "program": "cut",
+              "required_inputs": [
+                "frequency_hz"
+              ]
+            },
+            "modify": {
+              "program": "cut",
+              "optional_inputs": [
+                "frequency_hz"
+              ]
+            }
+          }
+        }
+      },
+      "programs": {
+        "tonal": {
+          "inputs": {
+            "frequency_hz": {
+              "type": "number"
+            },
+            "gain_db": {
+              "type": "number"
+            }
+          },
+          "writes": [
+            {
+              "binding": "shape",
+              "role": "shape",
+              "value": {
+                "op": "input",
+                "input": "shape"
+              }
+            },
+            {
+              "binding": "frequency",
+              "role": "frequency",
+              "when": {
+                "op": "present",
+                "input": "frequency_hz"
+              },
+              "value": {
+                "op": "input",
+                "input": "frequency_hz"
+              }
+            },
+            {
+              "binding": "gain",
+              "role": "gain",
+              "when": {
+                "op": "present",
+                "input": "gain_db"
+              },
+              "value": {
+                "op": "abs",
+                "args": [
+                  {
+                    "op": "input",
+                    "input": "gain_db"
+                  }
+                ]
+              }
+            },
+            {
+              "binding": "mode",
+              "role": "gain_polarity",
+              "when": {
+                "op": "present",
+                "input": "gain_db"
+              },
+              "value": {
+                "op": "select",
+                "condition": {
+                  "op": "less_than",
+                  "args": [
+                    {
+                      "op": "input",
+                      "input": "gain_db"
+                    },
+                    {
+                      "op": "constant",
+                      "value": 0
+                    }
+                  ]
+                },
+                "then": {
+                  "op": "constant",
+                  "value": "cut"
+                },
+                "else": {
+                  "op": "constant",
+                  "value": "boost"
+                }
+              }
+            }
+          ]
+        },
+        "cut": {
+          "inputs": {
+            "frequency_hz": {
+              "type": "number"
+            }
+          },
+          "writes": [
+            {
+              "binding": "shape",
+              "role": "shape",
+              "value": {
+                "op": "input",
+                "input": "shape"
+              }
+            },
+            {
+              "binding": "frequency",
+              "role": "frequency",
+              "when": {
+                "op": "present",
+                "input": "frequency_hz"
+              },
+              "value": {
+                "op": "input",
+                "input": "frequency_hz"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "section_key": "bottom",
+      "display_name": "Bottom",
+      "addressing": "resident",
+      "activation": {
+        "state": "always_active"
+      },
+      "selection": {
+        "frequency_binding": "frequency"
+      },
+      "bindings": {
+        "frequency": "bottom_frequency",
+        "gain": "bottom_gain",
+        "mode": "bottom_mode"
+      },
+      "shapes": {
+        "bell": {
+          "actions": {
+            "upsert": {
+              "program": "tonal",
+              "required_inputs": [
+                "frequency_hz",
+                "gain_db"
+              ]
+            },
+            "modify": {
+              "program": "tonal",
+              "optional_inputs": [
+                "frequency_hz",
+                "gain_db"
+              ]
+            }
+          }
+        }
+      },
+      "programs": {
+        "tonal": {
+          "inputs": {
+            "frequency_hz": {
+              "type": "number"
+            },
+            "gain_db": {
+              "type": "number"
+            }
+          },
+          "writes": [
+            {
+              "binding": "frequency",
+              "role": "frequency",
+              "when": {
+                "op": "present",
+                "input": "frequency_hz"
+              },
+              "value": {
+                "op": "input",
+                "input": "frequency_hz"
+              }
+            },
+            {
+              "binding": "gain",
+              "role": "gain",
+              "when": {
+                "op": "present",
+                "input": "gain_db"
+              },
+              "value": {
+                "op": "abs",
+                "args": [
+                  {
+                    "op": "input",
+                    "input": "gain_db"
+                  }
+                ]
+              }
+            },
+            {
+              "binding": "mode",
+              "role": "gain_polarity",
+              "when": {
+                "op": "present",
+                "input": "gain_db"
+              },
+              "value": {
+                "op": "select",
+                "condition": {
+                  "op": "less_than",
+                  "args": [
+                    {
+                      "op": "input",
+                      "input": "gain_db"
+                    },
+                    {
+                      "op": "constant",
+                      "value": 0
+                    }
+                  ]
+                },
+                "then": {
+                  "op": "constant",
+                  "value": "cut"
+                },
+                "else": {
+                  "op": "constant",
+                  "value": "boost"
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "section_key": "middle",
+      "display_name": "Middle",
+      "addressing": "resident",
+      "activation": {
+        "state": "always_active"
+      },
+      "selection": {
+        "frequency_binding": "frequency"
+      },
+      "bindings": {
+        "frequency": "middle_frequency",
+        "gain": "middle_gain",
+        "mode": "middle_mode"
+      },
+      "shapes": {
+        "bell": {
+          "actions": {
+            "upsert": {
+              "program": "tonal",
+              "required_inputs": [
+                "frequency_hz",
+                "gain_db"
+              ]
+            },
+            "modify": {
+              "program": "tonal",
+              "optional_inputs": [
+                "frequency_hz",
+                "gain_db"
+              ]
+            }
+          }
+        }
+      },
+      "programs": {
+        "tonal": {
+          "inputs": {
+            "frequency_hz": {
+              "type": "number"
+            },
+            "gain_db": {
+              "type": "number"
+            }
+          },
+          "writes": [
+            {
+              "binding": "frequency",
+              "role": "frequency",
+              "when": {
+                "op": "present",
+                "input": "frequency_hz"
+              },
+              "value": {
+                "op": "input",
+                "input": "frequency_hz"
+              }
+            },
+            {
+              "binding": "gain",
+              "role": "gain",
+              "when": {
+                "op": "present",
+                "input": "gain_db"
+              },
+              "value": {
+                "op": "abs",
+                "args": [
+                  {
+                    "op": "input",
+                    "input": "gain_db"
+                  }
+                ]
+              }
+            },
+            {
+              "binding": "mode",
+              "role": "gain_polarity",
+              "when": {
+                "op": "present",
+                "input": "gain_db"
+              },
+              "value": {
+                "op": "select",
+                "condition": {
+                  "op": "less_than",
+                  "args": [
+                    {
+                      "op": "input",
+                      "input": "gain_db"
+                    },
+                    {
+                      "op": "constant",
+                      "value": 0
+                    }
+                  ]
+                },
+                "then": {
+                  "op": "constant",
+                  "value": "cut"
+                },
+                "else": {
+                  "op": "constant",
+                  "value": "boost"
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "section_key": "top",
+      "display_name": "Top",
+      "addressing": "resident",
+      "activation": {
+        "state": "always_active"
+      },
+      "selection": {
+        "frequency_binding": "frequency"
+      },
+      "bindings": {
+        "frequency": "top_frequency",
+        "gain": "top_gain",
+        "mode": "top_mode"
+      },
+      "shapes": {
+        "bell": {
+          "actions": {
+            "upsert": {
+              "program": "tonal",
+              "required_inputs": [
+                "frequency_hz",
+                "gain_db"
+              ]
+            },
+            "modify": {
+              "program": "tonal",
+              "optional_inputs": [
+                "frequency_hz",
+                "gain_db"
+              ]
+            }
+          }
+        }
+      },
+      "programs": {
+        "tonal": {
+          "inputs": {
+            "frequency_hz": {
+              "type": "number"
+            },
+            "gain_db": {
+              "type": "number"
+            }
+          },
+          "writes": [
+            {
+              "binding": "frequency",
+              "role": "frequency",
+              "when": {
+                "op": "present",
+                "input": "frequency_hz"
+              },
+              "value": {
+                "op": "input",
+                "input": "frequency_hz"
+              }
+            },
+            {
+              "binding": "gain",
+              "role": "gain",
+              "when": {
+                "op": "present",
+                "input": "gain_db"
+              },
+              "value": {
+                "op": "abs",
+                "args": [
+                  {
+                    "op": "input",
+                    "input": "gain_db"
+                  }
+                ]
+              }
+            },
+            {
+              "binding": "mode",
+              "role": "gain_polarity",
+              "when": {
+                "op": "present",
+                "input": "gain_db"
+              },
+              "value": {
+                "op": "select",
+                "condition": {
+                  "op": "less_than",
+                  "args": [
+                    {
+                      "op": "input",
+                      "input": "gain_db"
+                    },
+                    {
+                      "op": "constant",
+                      "value": 0
+                    }
+                  ]
+                },
+                "then": {
+                  "op": "constant",
+                  "value": "cut"
+                },
+                "else": {
+                  "op": "constant",
+                  "value": "boost"
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "section_key": "high",
+      "display_name": "High",
+      "addressing": "resident",
+      "activation": {
+        "state": "always_active"
+      },
+      "selection": {
+        "frequency_binding": "frequency"
+      },
+      "bindings": {
+        "frequency": "high_frequency",
+        "gain": "high_gain",
+        "mode": "high_mode",
+        "shape": "high_type"
+      },
+      "shapes": {
+        "high_shelf": {
+          "actions": {
+            "upsert": {
+              "program": "tonal",
+              "required_inputs": [
+                "frequency_hz",
+                "gain_db"
+              ]
+            },
+            "modify": {
+              "program": "tonal",
+              "optional_inputs": [
+                "frequency_hz",
+                "gain_db"
+              ]
+            }
+          }
+        },
+        "high_cut": {
+          "actions": {
+            "upsert": {
+              "program": "cut",
+              "required_inputs": [
+                "frequency_hz"
+              ]
+            },
+            "modify": {
+              "program": "cut",
+              "optional_inputs": [
+                "frequency_hz"
+              ]
+            }
+          }
+        }
+      },
+      "programs": {
+        "tonal": {
+          "inputs": {
+            "frequency_hz": {
+              "type": "number"
+            },
+            "gain_db": {
+              "type": "number"
+            }
+          },
+          "writes": [
+            {
+              "binding": "shape",
+              "role": "shape",
+              "value": {
+                "op": "input",
+                "input": "shape"
+              }
+            },
+            {
+              "binding": "frequency",
+              "role": "frequency",
+              "when": {
+                "op": "present",
+                "input": "frequency_hz"
+              },
+              "value": {
+                "op": "input",
+                "input": "frequency_hz"
+              }
+            },
+            {
+              "binding": "gain",
+              "role": "gain",
+              "when": {
+                "op": "present",
+                "input": "gain_db"
+              },
+              "value": {
+                "op": "abs",
+                "args": [
+                  {
+                    "op": "input",
+                    "input": "gain_db"
+                  }
+                ]
+              }
+            },
+            {
+              "binding": "mode",
+              "role": "gain_polarity",
+              "when": {
+                "op": "present",
+                "input": "gain_db"
+              },
+              "value": {
+                "op": "select",
+                "condition": {
+                  "op": "less_than",
+                  "args": [
+                    {
+                      "op": "input",
+                      "input": "gain_db"
+                    },
+                    {
+                      "op": "constant",
+                      "value": 0
+                    }
+                  ]
+                },
+                "then": {
+                  "op": "constant",
+                  "value": "cut"
+                },
+                "else": {
+                  "op": "constant",
+                  "value": "boost"
+                }
+              }
+            }
+          ]
+        },
+        "cut": {
+          "inputs": {
+            "frequency_hz": {
+              "type": "number"
+            }
+          },
+          "writes": [
+            {
+              "binding": "shape",
+              "role": "shape",
+              "value": {
+                "op": "input",
+                "input": "shape"
+              }
+            },
+            {
+              "binding": "frequency",
+              "role": "frequency",
+              "when": {
+                "op": "present",
+                "input": "frequency_hz"
+              },
+              "value": {
+                "op": "input",
+                "input": "frequency_hz"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "provenance": {
+    "q10_reference": [
+      "D:/Vit_DAW/docs/VPS_REFERENCE_Q10_STEREO.md"
+    ],
+    "vit_parameter_surface": [
+      "D:/Vit_DAW_worktrees/eq-vps-overlay-canary/artifacts/plugin_alliance_eq_two_level/20260728_214018/pages/elysia_museq_mix_initial/page_0000.json"
+    ],
+    "prior_live_evidence": [
+      "D:/Vit_DAW_worktrees/eq-vps-overlay-canary/artifacts/eq_vps_overlay_canary/20260728_220129/summary.json"
+    ]
+  },
+  "unresolved": [
+    "Bottom, Middle, and Top Q expose only Wide/Narrow labels; no numeric public Q relation is asserted.",
+    "No per-section activation parameter exists; resident sections cannot provide disable or remove.",
+    "Unnamed host parameters and global Active, Warm, and Bypass controls are outside the section EQ contract."
+  ],
+  "metadata": {
+    "authoring": {
+      "observed_facts": "Vit parameter pagination",
+      "semantic_relations": "agent inferred from names, layout, and public EQ requirements",
+      "human_entered_target_fields": 0
+    }
+  }
+}
+

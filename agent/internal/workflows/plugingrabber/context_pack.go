@@ -7,6 +7,18 @@ import (
 )
 
 func BuildContextPack(digest ParameterDigest) map[string]any {
+	return buildContextPack(digest, BuildEQBandSummary(digest))
+}
+
+func BuildContextPackWithConfiguredControlGraph(digest ParameterDigest) (map[string]any, error) {
+	summary, err := BuildEQBandSummaryWithConfiguredControlGraph(digest)
+	if err != nil {
+		return nil, err
+	}
+	return buildContextPack(digest, summary), nil
+}
+
+func buildContextPack(digest ParameterDigest, eqBandSummary map[string]any) map[string]any {
 	paramIndex := map[string]ParameterInfo{}
 	for _, param := range digest.Parameters {
 		paramIndex[param.ID] = param
@@ -59,7 +71,6 @@ func BuildContextPack(digest ParameterDigest) map[string]any {
 	groups := buildPluginContextGroups(digest, quickIDs)
 	roles := buildPluginRoleSummary(digest)
 	macroCandidates := buildPluginMacroCandidates(quickRows)
-	eqBandSummary := BuildEQBandSummary(digest)
 	// When an EQ band summary is available it already carries the band param_ids
 	// and their display domains, so the flat parameter list can drop its verbose
 	// per-parameter domain objects. Keeping both blew past the model's context
@@ -76,14 +87,14 @@ func BuildContextPack(digest ParameterDigest) map[string]any {
 	}
 
 	return map[string]any{
-		"status":                  "ok",
-		"schema_version":          "plugin_grabber_context_pack.v1",
-		"context_strategy":        "summary_first_full_parameters_available",
-		"track_id":                digest.TrackID,
-		"plugin_id":               digest.PluginID,
-		"plugin_name":             pluginName,
-		"plugin_identity":         digest.PluginIdentity,
-		"template_role":           digest.TemplateRole,
+		"status":                       "ok",
+		"schema_version":               "plugin_grabber_context_pack.v1",
+		"context_strategy":             "summary_first_full_parameters_available",
+		"track_id":                     digest.TrackID,
+		"plugin_id":                    digest.PluginID,
+		"plugin_name":                  pluginName,
+		"plugin_identity":              digest.PluginIdentity,
+		"template_role":                digest.TemplateRole,
 		"profile_source":               source,
 		"profile_applied":              digest.ProfileApplied,
 		"profile_stale_param_ids":      digest.ProfileStaleParamIDs,
@@ -91,26 +102,26 @@ func BuildContextPack(digest ParameterDigest) map[string]any {
 		"global_profile_source":        digest.GlobalProfileSource,
 		"current_param_signature_hash": digest.CurrentParamSignatureHash,
 		"profile_param_signature_hash": digest.ProfileParamSignatureHash,
-		"plugin_class":            digest.PluginClass,
-		"parameters_retained":     true,
-		"parameter_count":         digest.ParameterCount,
-		"display_probe_summary":   DisplayProbeSummary(digest),
-		"quick_control_count":     len(digest.QuickControls),
-		"recommended_group_count": len(groups),
+		"plugin_class":                 digest.PluginClass,
+		"parameters_retained":          true,
+		"parameter_count":              digest.ParameterCount,
+		"display_probe_summary":        DisplayProbeSummary(digest),
+		"quick_control_count":          len(digest.QuickControls),
+		"recommended_group_count":      len(groups),
 		"semantic_hint_policy": map[string]any{
 			"kind":   "weak_local_heuristic",
 			"source": "local_semantic_hint_rule",
 			"caveat": "Hints are prior clues for AI/user reasoning, not verified facts about the plugin DSP. Keep raw param_id/name and verify by listening or opening the plugin UI when precision matters.",
 		},
-		"quick_controls":       quickRows,
-		"all_parameters":       allParameters,
-		"all_parameter_count":  len(allParameters),
-		"all_parameters_note":  "This is the complete controllable surface. quick_controls is a small UI convenience subset chosen by local heuristics, NOT the limit of what can be controlled. Always pick param_id from all_parameters when writing a parameter.",
-		"macro_candidates":     macroCandidates,
-		"groups":           groups,
-		"role_summary":     roles,
-		"runtime_profile":  runtimeProfile,
-		"eq_band_summary":  eqBandSummary,
+		"quick_controls":      quickRows,
+		"all_parameters":      allParameters,
+		"all_parameter_count": len(allParameters),
+		"all_parameters_note": "This is the complete controllable surface. quick_controls is a small UI convenience subset chosen by local heuristics, NOT the limit of what can be controlled. Always pick param_id from all_parameters when writing a parameter.",
+		"macro_candidates":    macroCandidates,
+		"groups":              groups,
+		"role_summary":        roles,
+		"runtime_profile":     runtimeProfile,
+		"eq_band_summary":     eqBandSummary,
 		"full_parameter_access": map[string]any{
 			"command":   "get_plugin_parameters",
 			"track_id":  digest.TrackID,

@@ -1,0 +1,17 @@
+{
+  "schema_version": "vit.eq_vps.verification.v1",
+  "vps_hash": "sha256:0fcd33142e942043ce59448a438a33bff20e53ebbc5b5c1cc3e340882036fad3",
+  "surface_signature": "p_7829852e0655a09a",
+  "status": "verified",
+  "verified_at": "2026-07-28T15:07:48.4958838Z",
+  "static_checks": 102,
+  "live_checks": {
+    "apply_readback": true,
+    "formal_undo_zero_drift": true,
+    "unload_restores_baseline": true
+  },
+  "evidence": [
+    "..\\artifacts\\eq_vps_control_graph\\20260728_230506\\summary.json",
+    "successful_apply_readback_cases=2"
+  ]
+}

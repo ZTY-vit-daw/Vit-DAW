@@ -613,6 +613,9 @@ func parseEQFrequencyReadback(text string) (float64, bool) {
 }
 
 func eqTypedSectionWritePlan(summary map[string]any, request eqTypedPointRequest) ([]eqWriteStep, map[string]any, error) {
+	if strings.EqualFold(firstNonEmptyText(summary, "mapping_source"), "vps_control_graph") {
+		return eqControlGraphUpsertWritePlan(summary, request)
+	}
 	sections := mapRowsValue(summary["sections"])
 	if len(sections) == 0 {
 		return nil, nil, fmt.Errorf("EQ summary has no typed sections for requested shape %s", request.Shape)

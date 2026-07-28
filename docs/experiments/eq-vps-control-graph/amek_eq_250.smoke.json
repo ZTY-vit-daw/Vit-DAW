@@ -1,0 +1,51 @@
+{
+  "schema_version": "vit.eq_vps.control_graph.smoke_plan.v1",
+  "case": {
+    "id": "amek_eq_250",
+    "plugin_name": "AMEK EQ 250",
+    "vendor": "Plugin Alliance",
+    "category": "Fx|EQ",
+    "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\AMEK EQ 250.vst3"
+  },
+  "baseline_eq_present": true,
+  "expected_section_count": 3,
+  "baseline_stages": [
+    {
+      "id": "bell_q_sentinel",
+      "edit": {"action": "upsert", "shape": "bell", "frequency_hz": 3400, "gain_db": -3, "q": 0.5},
+      "expect": "rejected",
+      "rejection_codes": ["atomic_execution_failed"]
+    },
+    {
+      "id": "low_cut_existing",
+      "edit": {"action": "upsert", "shape": "low_cut", "frequency_hz": 80},
+      "expect": "exact_or_quantized",
+      "expected_roles": ["freq"],
+      "expected_activation_strategy": "always_active"
+    }
+  ],
+  "graph_stages": [
+    {
+      "id": "bell_mirrored",
+      "edit": {"action": "upsert", "shape": "bell", "frequency_hz": 3400, "gain_db": -3, "q": 0.5},
+      "expect": "exact_or_quantized",
+      "expected_roles": ["freq", "gain", "q", "used"],
+      "expected_labels": {"used": "In"},
+      "expected_activation_strategy": "explicit"
+    },
+    {
+      "id": "low_cut_mirrored",
+      "edit": {"action": "upsert", "shape": "low_cut", "frequency_hz": 80},
+      "expect": "exact_or_quantized",
+      "expected_roles": ["freq", "used"],
+      "expected_labels": {"used": "In"},
+      "expected_activation_strategy": "explicit"
+    },
+    {
+      "id": "low_cut_out_of_range",
+      "edit": {"action": "upsert", "shape": "low_cut", "frequency_hz": 15000},
+      "expect": "rejected",
+      "rejection_codes": ["explicit_field_unavailable"]
+    }
+  ]
+}

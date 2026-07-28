@@ -56,6 +56,13 @@ type eqBandEntry struct {
 // list as evidence so it works with any EQ regardless of whether it has been
 // profiled.
 func BuildEQBandSummary(digest ParameterDigest) map[string]any {
+	if summary, err := BuildEQBandSummaryWithConfiguredControlGraph(digest); err == nil && summary != nil {
+		return summary
+	}
+	return buildGenericEQBandSummary(digest)
+}
+
+func buildGenericEQBandSummary(digest ParameterDigest) map[string]any {
 	model := DetectEQModel(digest)
 	if model == nil {
 		return nil

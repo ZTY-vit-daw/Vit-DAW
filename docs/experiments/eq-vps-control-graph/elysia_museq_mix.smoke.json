@@ -1,0 +1,56 @@
+{
+  "schema_version": "vit.eq_vps.control_graph.smoke_plan.v1",
+  "case": {
+    "id": "target_eq",
+    "plugin_name": "elysia museq Mix",
+    "vendor": "Plugin Alliance",
+    "category": "Fx|EQ",
+    "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\elysia museq mix.vst3"
+  },
+  "baseline_eq_present": false,
+  "expected_section_count": 5,
+  "baseline_stages": [
+    {
+      "id": "bell",
+      "expect": "rejected",
+      "rejection_codes": ["not_static_eq"],
+      "edit": {"action": "upsert", "shape": "bell", "frequency_hz": 3400, "gain_db": -3, "q": 0.5}
+    },
+    {
+      "id": "low_cut",
+      "expect": "rejected",
+      "rejection_codes": ["not_static_eq"],
+      "edit": {"action": "upsert", "shape": "low_cut", "frequency_hz": 80}
+    }
+  ],
+  "graph_stages": [
+    {
+      "id": "bell_compound_gain",
+      "expect": "success",
+      "expected_roles": ["freq", "gain", "gain_polarity"],
+      "expected_labels": {"gain_polarity": "Cut"},
+      "expected_activation_strategy": "always_active",
+      "edit": {"action": "upsert", "shape": "bell", "frequency_hz": 3400, "gain_db": -3}
+    },
+    {
+      "id": "bell_numeric_q",
+      "expect": "rejected",
+      "rejection_codes": ["explicit_field_unavailable"],
+      "edit": {"action": "upsert", "shape": "bell", "frequency_hz": 3400, "gain_db": -3, "q": 0.5}
+    },
+    {
+      "id": "low_cut_shape_activation",
+      "expect": "success",
+      "expected_roles": ["shape", "freq"],
+      "expected_labels": {"shape": "Cut"},
+      "expected_activation_strategy": "always_active",
+      "edit": {"action": "upsert", "shape": "low_cut", "frequency_hz": 80}
+    },
+    {
+      "id": "low_cut_out_of_range",
+      "expect": "rejected",
+      "rejection_codes": ["shape_not_provably_reachable", "explicit_field_unavailable"],
+      "edit": {"action": "upsert", "shape": "low_cut", "frequency_hz": 500}
+    }
+  ]
+}

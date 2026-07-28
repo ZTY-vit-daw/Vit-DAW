@@ -1,0 +1,52 @@
+{
+  "schema_version": "vit.eq_vps.control_graph.smoke_plan.v1",
+  "case": {
+    "id": "reference_eq",
+    "plugin_name": "Q10 Stereo",
+    "vendor": "Waves",
+    "category": "Fx|EQ",
+    "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3"
+  },
+  "baseline_eq_present": true,
+  "expected_section_count": 10,
+  "baseline_stages": [
+    {
+      "id": "bell_frequency_gain_q",
+      "expect": "success",
+      "expected_roles": ["shape", "freq", "gain", "q", "used"],
+      "expected_labels": {"shape": "Bell", "used": "In"},
+      "edit": {"action": "upsert", "shape": "bell", "frequency_hz": 3396, "gain_db": -3, "q": 0.5}
+    },
+    {
+      "id": "low_cut_shape_activation",
+      "expect": "success",
+      "expected_roles": ["shape", "freq", "used"],
+      "expected_labels": {"shape": "Hi-Pass", "used": "In"},
+      "edit": {"action": "upsert", "shape": "low_cut", "frequency_hz": 80}
+    }
+  ],
+  "graph_stages": [
+    {
+      "id": "bell_frequency_gain_q",
+      "expect": "success",
+      "expected_roles": ["shape", "freq", "gain", "q", "used"],
+      "expected_labels": {"shape": "Bell", "used": "In"},
+      "expected_activation_strategy": "explicit",
+      "edit": {"action": "upsert", "shape": "bell", "frequency_hz": 3396, "gain_db": -3, "q": 0.5}
+    },
+    {
+      "id": "low_cut_shape_activation",
+      "expect": "success",
+      "expected_roles": ["shape", "freq", "used"],
+      "expected_labels": {"shape": "Hi-Pass", "used": "In"},
+      "expected_activation_strategy": "explicit",
+      "edit": {"action": "upsert", "shape": "low_cut", "frequency_hz": 80}
+    },
+    {
+      "id": "frequency_out_of_range",
+      "expect": "rejected",
+      "rejection_codes": ["shape_not_provably_reachable", "explicit_field_unavailable"],
+      "edit": {"action": "upsert", "shape": "bell", "frequency_hz": 30000, "gain_db": 1}
+    }
+  ]
+}
