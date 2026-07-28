@@ -322,6 +322,18 @@ func TestPluginGrabberAliasIsCataloged(t *testing.T) {
 	if applyControl.CommandName != "plugin_grabber_apply_control" || applyControl.RequiresConfirmation || applyControl.RiskLevel != RiskUndoable || !applyControl.SupportsUndo {
 		t.Fatalf("apply control metadata = %+v", applyControl)
 	}
+	applyEQEdits, ok := catalog.LookupTool("plugin_grabber.apply_eq_edits")
+	if !ok {
+		t.Fatal("plugin_grabber.apply_eq_edits missing")
+	}
+	if applyEQEdits.CommandName != "plugin_grabber_apply_eq_edits" || applyEQEdits.RequiresConfirmation ||
+		applyEQEdits.RiskLevel != RiskUndoable || !applyEQEdits.SupportsUndo || !applyEQEdits.MutatesProject {
+		t.Fatalf("apply EQ edits metadata = %+v", applyEQEdits)
+	}
+	if hint := argHint("plugin_grabber_apply_eq_edits"); !strings.Contains(hint, "edits:") ||
+		!strings.Contains(hint, "operation_ref") {
+		t.Fatalf("apply EQ edits argument hint = %q", hint)
+	}
 }
 
 func TestMidiPatchToolsAreCataloged(t *testing.T) {

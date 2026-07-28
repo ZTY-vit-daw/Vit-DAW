@@ -1,0 +1,70 @@
+{
+  "schema_version": "plugin_grabber.eq_compat_matrix.v1",
+  "defaults": {
+    "target": {
+      "freq_hz": 3400.0,
+      "gain_db": -3.0,
+      "q": 0.5
+    },
+    "tolerance": {
+      "freq_hz": 80.0,
+      "gain_db": 0.15,
+      "q": 0.05,
+      "normalized": 0.0001
+    }
+  },
+  "cases": [
+    {
+      "id": "api_550a_stereo",
+      "plugin_name": "API-550A Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "expected_model": "fixed_slot_adjustable",
+      "request_q": false,
+      "generic_coverage": true
+    },
+    {
+      "id": "api_560_stereo",
+      "plugin_name": "API-560 Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "expected_model": "fixed_freq",
+      "expected_band_count": 10,
+      "request_q": false,
+      "generic_coverage": true
+    },
+    {
+      "id": "q10_stereo",
+      "plugin_name": "Q10 Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "expected_model": "fixed_slot_adjustable",
+      "generic_coverage": true
+    },
+    {
+      "id": "emo_q4_stereo",
+      "plugin_name": "EMO-Q4 Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "expected_model": "fixed_slot_adjustable",
+      "expected_band_count": 4,
+      "expected_channels": ["left", "right"],
+      "generic_coverage": true
+    },
+    {
+      "id": "h_eq_stereo",
+      "plugin_name": "H-EQ Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "expected_model": "fixed_slot_adjustable",
+      "expected_band_count": 5,
+      "target": {"q": 1.0},
+      "generic_coverage": true
+    },
+    {
+      "id": "sslchannel_stereo",
+      "plugin_name": "SSLChannel Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "expected_model": "fixed_slot_adjustable",
+      "generic_coverage": true,
+      "forbidden_write_name_tokens": [
+        "threshold", "attack", "release", "ratio", "compressor", "gate"
+      ]
+    }
+  ]
+}

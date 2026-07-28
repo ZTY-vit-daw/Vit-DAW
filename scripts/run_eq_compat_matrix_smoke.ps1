@@ -126,6 +126,7 @@ try {
     $godotProcess = Start-Process -FilePath $GodotExe `
         -ArgumentList @("--path", $GodotProject) `
         -WorkingDirectory $GodotProject `
+        -WindowStyle Hidden `
         -RedirectStandardOutput $godotStdout `
         -RedirectStandardError $godotStderr `
         -PassThru

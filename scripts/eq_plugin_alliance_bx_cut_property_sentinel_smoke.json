@@ -1,0 +1,33 @@
+{
+  "schema_version": "plugin_grabber.eq_two_level_holdout.v1",
+  "protocol": {
+    "shape_phase": "apply, verify requested shape and activation, formal undo, verify zero drift",
+    "atomic": true,
+    "complete_parameter_pagination": true
+  },
+  "cases": [
+    {
+      "id": "bx_digital_v3_property_sentinel_cut",
+      "plugin_name": "bx_digital V3",
+      "vendor": "Plugin Alliance",
+      "category": "Fx|EQ",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\bx_digital V3.vst3",
+      "tests": [
+        {
+          "level": "parameter",
+          "instruction": "设置 120 Hz Low Cut，Slope 为 12 dB/oct",
+          "edits": [
+            {"action": "upsert", "shape": "low_cut", "frequency_hz": 120.0, "slope_db_per_oct": 12.0}
+          ]
+        },
+        {
+          "level": "shape",
+          "instruction": "打开 80 Hz Low Cut",
+          "edits": [
+            {"action": "upsert", "shape": "low_cut", "frequency_hz": 80.0}
+          ]
+        }
+      ]
+    }
+  ]
+}

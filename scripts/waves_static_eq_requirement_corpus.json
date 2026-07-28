@@ -1,0 +1,182 @@
+{
+  "schema_version": "static_eq.control_requirement_corpus.v1",
+  "scope": {
+    "name": "generic_static_eq",
+    "channel_scope": "linked_stereo",
+    "atomic_batches": true,
+    "allow_quantization": true,
+    "allow_missing_explicit_fields": false,
+    "included_shapes": [
+      "bell",
+      "low_shelf",
+      "high_shelf",
+      "low_cut",
+      "high_cut"
+    ],
+    "included_actions": [
+      "upsert",
+      "modify",
+      "disable",
+      "remove",
+      "undo"
+    ],
+    "excluded_generic_families": [
+      "dynamic_eq",
+      "coupled_analog_tone_network",
+      "stateful_capture_match_calibration",
+      "mid_side_or_asymmetric_channel_control",
+      "notch"
+    ]
+  },
+  "shape_contracts": {
+    "bell": {
+      "required_roles": ["frequency", "gain"],
+      "optional_roles": ["q"],
+      "gain_applicability": "required",
+      "shape_evidence": "explicit_bell_or_complete_peak_section_or_fixed_graphic_anchor"
+    },
+    "low_shelf": {
+      "required_roles": ["frequency", "gain"],
+      "optional_roles": ["q"],
+      "gain_applicability": "required",
+      "shape_evidence": "explicit_low_shelf_direction_required"
+    },
+    "high_shelf": {
+      "required_roles": ["frequency", "gain"],
+      "optional_roles": ["q"],
+      "gain_applicability": "required",
+      "shape_evidence": "explicit_high_shelf_direction_required"
+    },
+    "low_cut": {
+      "required_roles": ["frequency"],
+      "optional_roles": ["q", "slope"],
+      "gain_applicability": "forbidden",
+      "shape_evidence": "explicit_low_cut_or_high_pass_required"
+    },
+    "high_cut": {
+      "required_roles": ["frequency"],
+      "optional_roles": ["q", "slope"],
+      "gain_applicability": "forbidden",
+      "shape_evidence": "explicit_high_cut_or_low_pass_required"
+    }
+  },
+  "action_contracts": {
+    "upsert": {
+      "reference": "none",
+      "selection": "request_dependent_section_selection_or_allocation",
+      "rollback": "atomic_snapshot_restore"
+    },
+    "modify": {
+      "reference": "valid_control_ref",
+      "selection": "resolve_exact_section_reference",
+      "rollback": "atomic_snapshot_restore"
+    },
+    "disable": {
+      "reference": "valid_control_ref_or_unambiguous_shape_selector",
+      "selection": "resolve_existing_section",
+      "rollback": "atomic_snapshot_restore"
+    },
+    "remove": {
+      "reference": "valid_control_ref",
+      "selection": "resolve_allocatable_section",
+      "rollback": "atomic_snapshot_restore"
+    },
+    "undo": {
+      "reference": "valid_operation_ref",
+      "selection": "transaction_journal_lookup",
+      "rollback": "restore_recorded_before_snapshot"
+    }
+  },
+  "canonical_intents": [
+    {
+      "intent_id": "bell_basic",
+      "action": "upsert",
+      "shape": "bell",
+      "fields": {"frequency_hz": 3400, "gain_db": -3.0}
+    },
+    {
+      "intent_id": "bell_q_smoke",
+      "action": "upsert",
+      "shape": "bell",
+      "fields": {"frequency_hz": 3400, "gain_db": -3.0, "q": 0.5}
+    },
+    {
+      "intent_id": "low_shelf_basic",
+      "action": "upsert",
+      "shape": "low_shelf",
+      "fields": {"frequency_hz": 120, "gain_db": 2.0}
+    },
+    {
+      "intent_id": "high_shelf_basic",
+      "action": "upsert",
+      "shape": "high_shelf",
+      "fields": {"frequency_hz": 10000, "gain_db": 1.5}
+    },
+    {
+      "intent_id": "low_cut_basic",
+      "action": "upsert",
+      "shape": "low_cut",
+      "fields": {"frequency_hz": 80}
+    },
+    {
+      "intent_id": "low_cut_slope_smoke",
+      "action": "upsert",
+      "shape": "low_cut",
+      "fields": {"frequency_hz": 80, "slope_db_per_oct": 24}
+    },
+    {
+      "intent_id": "high_cut_basic",
+      "action": "upsert",
+      "shape": "high_cut",
+      "fields": {"frequency_hz": 16000}
+    },
+    {
+      "intent_id": "modify_bell_by_ref",
+      "action": "modify",
+      "shape": "bell",
+      "fields": {"control_ref": "opaque", "gain_db": -4.0}
+    },
+    {
+      "intent_id": "disable_low_cut",
+      "action": "disable",
+      "shape": "low_cut",
+      "fields": {"enabled": false}
+    },
+    {
+      "intent_id": "remove_bell",
+      "action": "remove",
+      "shape": "bell",
+      "fields": {"control_ref": "opaque"}
+    },
+    {
+      "intent_id": "undo_last_eq_transaction",
+      "action": "undo",
+      "shape": "bell",
+      "fields": {"operation_ref": "opaque"}
+    }
+  ],
+  "identity_free_archetype_prototypes": [
+    {
+      "prototype_id": "anchored",
+      "frequency_mode": "fixed_label",
+      "activation_strategy": "always_active_or_unexposed",
+      "roles": ["gain"],
+      "fixed_frequency_hz": 1000,
+      "shape": "bell"
+    },
+    {
+      "prototype_id": "resident",
+      "frequency_mode": "writable_continuous",
+      "activation_strategy": "explicit_binding",
+      "roles": ["frequency", "gain", "q", "filter_kind", "activation"],
+      "shape": "bell"
+    },
+    {
+      "prototype_id": "allocatable",
+      "frequency_mode": "writable_continuous",
+      "activation_strategy": "slot_lifecycle",
+      "roles": ["frequency", "gain", "q", "filter_kind", "activation"],
+      "shape": "bell"
+    }
+  ]
+}

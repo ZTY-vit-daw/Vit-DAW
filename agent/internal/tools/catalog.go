@@ -495,8 +495,10 @@ func argHint(commandName string) string {
 		return "profile_id:string OR track_id:string plugin_id:string"
 	case "plugin_grabber_apply_control":
 		return "track_id:string plugin_id:string control:string target:{freq_hz?:number gain_db?:number q?:number threshold_db?:number amount?:number|string component_id?:string}"
+	case "plugin_grabber_apply_eq_edits":
+		return "track_id:string plugin_id:string atomic?:true edits:{action:upsert|modify|disable|remove|undo shape?:bell|low_shelf|high_shelf|low_cut|high_cut frequency_hz?:number gain_db?:number q?:number slope_db_per_oct?:number control_ref?:string operation_ref?:string}[]"
 	case "plugin_grabber_set_eq_point":
-		return "track_id:string plugin_id:string freq_hz:number gain_db?:number q?:number shape?:bell|low_shelf|high_shelf|low_cut|high_cut|notch slope_db_per_oct?:number"
+		return "track_id:string plugin_id:string freq_hz:number gain_db?:number q?:number shape?:bell|low_shelf|high_shelf|low_cut|high_cut slope_db_per_oct?:number"
 	case "import_midi_to_track":
 		return "track_id:string file_path:string optional start_time_beats:number mode:merge_tracks"
 	case "get_midi_clip_notes", "get_midi_clip_data":
@@ -794,7 +796,8 @@ func defaultSpecs() []CommandSpec {
 		spec("plugin_grabber_upsert_project_profile", "plugin_grabber.upsert_project_profile", "plugin_grabber", "Save project-scoped plugin grabber profile annotations for one plugin.", RiskConfirm, true, false, true, true, "track_id", "plugin_id"),
 		spec("plugin_grabber_remove_project_profile", "plugin_grabber.remove_project_profile", "plugin_grabber", "Remove a project-scoped plugin grabber profile.", RiskConfirm, true, false, true, true),
 		spec("plugin_grabber_apply_control", "plugin_grabber.apply_control", "plugin_grabber", "Apply a learned plugin grabber runtime control from an acoustic target using the current validated parameter profile; result.applied_parameters[].new_value_text is the actual applied display value.", RiskUndoable, true, true, false, true, "track_id", "plugin_id"),
-		spec("plugin_grabber_set_eq_point", "plugin_grabber.set_eq_point", "plugin_grabber", "Set one EQ section by freq_hz and optional gain_db, q, shape, and slope_db_per_oct. Supported shape values: bell, low_shelf, high_shelf, low_cut, high_cut, notch. gain_db is required for Bell/Shelf and not applicable to Cut/Notch. Go selects the section, converts values, writes all channel bindings, activates last, verifies physical readback, and rolls back on failure. The result reports actual values, quantization, partial application, and limitations. Use this instead of set_plugin_param for recognised EQs.", RiskUndoable, true, true, false, true, "track_id", "plugin_id"),
+		spec("plugin_grabber_apply_eq_edits", "plugin_grabber.apply_eq_edits", "plugin_grabber", "Atomically apply one or more generic static EQ edits from acoustic fields. Supports Bell, Low/High Shelf, Low/High Cut and upsert/modify/disable/remove/undo. All edits are planned from one live topology snapshot, explicit fields are hard requirements, activation writes run last, every touched parameter is freshly read back, and any failure restores the full preimage. Returns exact/quantized/rejected plus control_ref and operation_ref.", RiskUndoable, true, true, false, true, "track_id", "plugin_id"),
+		spec("plugin_grabber_set_eq_point", "plugin_grabber.set_eq_point", "plugin_grabber", "Compatibility adapter for one atomic EQ upsert. Set one Bell/Shelf/Cut section by freq_hz and optional gain_db, q, shape, and slope_db_per_oct. Explicit fields are hard requirements; unsupported fields reject before writing. Prefer plugin_grabber.apply_eq_edits for new callers.", RiskUndoable, true, true, false, true, "track_id", "plugin_id"),
 		spec("delete_plugin", "plugin.delete", "plugin", "Delete a plugin instance.", RiskConfirm, true, true, true, true, "track_id", "plugin_id"),
 		spec("move_plugin", "plugin.move", "plugin", "Move a plugin instance.", RiskConfirm, true, true, true, true, "track_id", "plugin_id"),
 

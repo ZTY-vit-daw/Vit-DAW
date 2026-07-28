@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"math"
-	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -20,6 +19,21 @@ const (
 	pluginGrabberSetEQPointCommand = "plugin_grabber_set_eq_point"
 	pluginGrabberSetEQPointTool    = "plugin_grabber.set_eq_point"
 )
+
+type eqKernelTransport interface {
+	SendCommand(context.Context, map[string]any) (map[string]any, string, error)
+	SendVSPCommand(context.Context, string, map[string]any) (*kernel.VSPCommandResult, error)
+}
+
+func (s *Server) eqKernelClient() eqKernelTransport {
+	if s.eqKernelOverride != nil {
+		return s.eqKernelOverride
+	}
+	if s.kernel == nil {
+		return nil
+	}
+	return s.kernel
+}
 
 func pluginGrabberSetEQPointInvokeCommand(req harness.InvokeRequest) (map[string]any, bool) {
 	toolName := strings.TrimSpace(req.Tool)
@@ -73,146 +87,36 @@ func (s *Server) runPluginGrabberSetEQPointWorkflow(ctx context.Context,
 	workflowCmd map[string]any,
 	requestContext map[string]any,
 ) ChatResponse {
-	fail := func(err error) ChatResponse {
-		return ChatResponse{ConversationID: conversationID, Reply: friendlyExecutionError(err), Error: err.Error()}
-	}
-
-	target, err := s.resolvePluginLearningTarget(ctx, workflowCmd, requestContext, "")
-	if err != nil {
-		return fail(err)
-	}
-	if s.kernel == nil {
-		return fail(fmt.Errorf("kernel client is nil"))
-	}
-
 	args := workflowCommandArgs(workflowCmd)
-	freqHz, err := parseFloat64Arg(args, "freq_hz")
-	if err != nil {
-		return fail(fmt.Errorf("freq_hz: %w", err))
+	edit := map[string]any{
+		"action": "upsert",
+		"shape":  firstNonEmpty(firstNonEmptyText(args, "shape", "filter_type"), "bell"),
 	}
-	gainDB, gainProvided, err := parseOptionalFloat64Arg(args, "gain_db")
-	if err != nil {
-		return fail(fmt.Errorf("gain_db: %w", err))
+	if value, ok := args["freq_hz"]; ok {
+		edit["frequency_hz"] = value
 	}
-	if freqHz <= 0 {
-		return fail(fmt.Errorf("freq_hz must be positive, got %g", freqHz))
-	}
-	qValue, qProvided, err := parseOptionalFloat64Arg(args, "q")
-	if err != nil {
-		return fail(fmt.Errorf("q: %w", err))
-	}
-	if qProvided && qValue <= 0 {
-		return fail(fmt.Errorf("q must be positive, got %g", qValue))
-	}
-	shape, err := normalizeRequestedEQShape(firstNonEmptyText(args, "shape", "filter_type"))
-	if err != nil {
-		return fail(err)
-	}
-	slopeValue, slopeProvided, err := parseOptionalFloat64Arg(args, "slope_db_per_oct")
-	if err != nil {
-		return fail(fmt.Errorf("slope_db_per_oct: %w", err))
-	}
-	if slopeProvided && slopeValue <= 0 {
-		return fail(fmt.Errorf("slope_db_per_oct must be positive, got %g", slopeValue))
-	}
-	if shape == "" && !gainProvided {
-		return fail(fmt.Errorf("gain_db is required when shape is not specified"))
-	}
-	if (shape == "bell" || shape == "low_shelf" || shape == "high_shelf") && !gainProvided {
-		return fail(fmt.Errorf("gain_db is required for shape %s", shape))
-	}
-	var qTarget *float64
-	if qProvided {
-		qTarget = &qValue
-	}
-
-	// Read live parameters — also seeds the snapshot cache so harness.Invoke's
-	// validateSetPluginParam guard passes without a separate pre-read.
-	paramsReply, _, err := s.kernel.SendCommand(ctx, map[string]any{
-		"cmd":       "get_plugin_parameters",
-		"track_id":  target.TrackID,
-		"plugin_id": target.PluginID,
-	})
-	if err != nil {
-		return fail(fmt.Errorf("get_plugin_parameters: %w", err))
-	}
-	if !kernelReplyOK(paramsReply) {
-		msg := firstNonEmptyText(paramsReply, "message", "error")
-		if msg == "" {
-			msg = "get_plugin_parameters failed"
-		}
-		return fail(fmt.Errorf("%s", msg))
-	}
-	s.observePluginParametersReply(paramsReply)
-
-	digest := buildPluginParameterDigest(paramsReply)
-	summary := plugingrabber.BuildEQBandSummary(digest)
-	if summary == nil {
-		return fail(fmt.Errorf("plugin %s/%s is not recognised as an EQ (no 'Band N Frequency' parameters found)", target.TrackID, target.PluginID))
-	}
-
-	var writes []eqWriteStep
-	var selectionInfo map[string]any
-	if shape == "" {
-		writes, selectionInfo, err = eqBandWritePlan(summary, freqHz, gainDB, qTarget)
-	} else {
-		request := eqTypedPointRequest{FreqHz: freqHz, Shape: shape, Q: qTarget}
-		if gainProvided {
-			request.GainDB = &gainDB
-		}
-		if slopeProvided {
-			request.SlopeDBPerOct = &slopeValue
-		}
-		writes, selectionInfo, err = eqTypedSectionWritePlan(summary, request)
-	}
-	if err != nil {
-		return fail(err)
-	}
-
-	preimage, err := eqWritePreimage(digest, writes)
-	if err != nil {
-		return fail(err)
-	}
-	executed, actual, err := s.executeEQTransaction(ctx, target.TrackID, target.PluginID, writes, preimage)
-	if err != nil {
-		return fail(err)
-	}
-
-	result := map[string]any{
-		"status":          "ok",
-		"track_id":        target.TrackID,
-		"plugin_id":       target.PluginID,
-		"requested":       map[string]any{"freq_hz": freqHz},
-		"eq_model":        summary["eq_model"],
-		"mapping_source":  summary["mapping_source"],
-		"selected_band":   selectionInfo,
-		"writes":          executed,
-		"actual_readback": actual,
-	}
-	if gainProvided {
-		result["requested"].(map[string]any)["gain_db"] = gainDB
-	}
-	if qProvided {
-		result["requested"].(map[string]any)["q"] = qValue
-	}
-	if shape != "" {
-		result["requested"].(map[string]any)["shape"] = shape
-		result["selected_section"] = selectionInfo
-	}
-	if slopeProvided {
-		result["requested"].(map[string]any)["slope_db_per_oct"] = slopeValue
-	}
-	for _, key := range []string{"partial", "applied_fields", "unsupported_fields", "limitations"} {
-		if value, ok := selectionInfo[key]; ok {
-			result[key] = value
+	for _, key := range []string{"gain_db", "q", "slope_db_per_oct"} {
+		if value, ok := args[key]; ok {
+			edit[key] = value
 		}
 	}
-	return ChatResponse{
-		ConversationID: conversationID,
-		ExecutedKernelReply: []map[string]any{
-			{"status": "ok", "command_name": pluginGrabberSetEQPointCommand, "result": result},
-		},
+	compat := make(map[string]any, len(args)+2)
+	for key, value := range args {
+		compat[key] = value
 	}
+	compat["cmd"] = pluginGrabberApplyEQEditsCommand
+	compat["atomic"] = true
+	compat["edits"] = []map[string]any{edit}
+	result, err := s.applyPluginGrabberEQEdits(ctx, compat, requestContext)
+	if err != nil {
+		return ChatResponse{ConversationID: conversationID, Reply: friendlyExecutionError(err), Error: err.Error(),
+			ExecutedKernelReply: []map[string]any{{"status": "rejected", "command_name": pluginGrabberSetEQPointCommand,
+				"result": map[string]any{"status": "rejected", "rejection_code": eqControlFailureCode(err), "message": err.Error()}}}}
+	}
+	result["compatibility_adapter"] = pluginGrabberSetEQPointTool
+	return ChatResponse{ConversationID: conversationID, ExecutedKernelReply: []map[string]any{
+		{"status": "ok", "command_name": pluginGrabberSetEQPointCommand, "result": result},
+	}}
 }
 
 // eqWriteStep is one normalised parameter write inside a set_eq_point operation.
@@ -228,6 +132,9 @@ type eqWriteStep struct {
 	PhysicalDecreasing bool
 	RequestedLabel     string
 	ExpectedLabel      string
+	ActivationLast     bool
+	PhysicalMultiplier float64
+	DiscretePhysical   bool
 }
 
 type eqTypedPointRequest struct {
@@ -269,6 +176,21 @@ func eqWritePreimage(digest plugingrabber.ParameterDigest, writes []eqWriteStep)
 	return out, nil
 }
 
+func eqParameterSnapshot(digest plugingrabber.ParameterDigest) []eqPreimageValue {
+	out := make([]eqPreimageValue, 0, len(digest.Parameters))
+	seen := map[string]bool{}
+	for _, param := range digest.Parameters {
+		paramID := strings.TrimSpace(param.ID)
+		value, ok := numericAny(param.NormalizedValue)
+		if paramID == "" || !ok || seen[paramID] {
+			continue
+		}
+		seen[paramID] = true
+		out = append(out, eqPreimageValue{ParamID: paramID, Normalized: value, Role: "snapshot"})
+	}
+	return out
+}
+
 func numericAny(value any) (float64, bool) {
 	switch typed := value.(type) {
 	case float64:
@@ -287,75 +209,81 @@ func numericAny(value any) (float64, bool) {
 }
 
 func (s *Server) executeEQTransaction(ctx context.Context, trackID, pluginID string,
-	writes []eqWriteStep, preimage []eqPreimageValue) ([]map[string]any, []map[string]any, error) {
-	if s.kernel == nil {
+	writes []eqWriteStep, preimage, snapshot []eqPreimageValue) ([]map[string]any, []map[string]any, error) {
+	client := s.eqKernelClient()
+	if client == nil {
 		return nil, nil, fmt.Errorf("kernel client is nil")
 	}
 	parameters := make([]map[string]any, 0, len(writes))
 	for _, write := range writes {
 		parameters = append(parameters, map[string]any{"parameter_id": write.ParamID, "normalized_value": write.NormalizedValue})
 	}
-	result, err := s.kernel.SendVSPCommand(ctx, "plugin.set_params_batch", map[string]any{
+	result, err := client.SendVSPCommand(ctx, "plugin.set_params_batch", map[string]any{
 		"track_id": trackID, "plugin_id": pluginID, "parameters": parameters, "readback": true,
 	})
 	if err != nil || eqVSPFailure(result) != "" {
 		failure := firstNonEmpty(errorText(err), eqVSPFailure(result), "EQ parameter batch failed")
-		rollbackErr := s.rollbackEQTransaction(ctx, trackID, pluginID, preimage)
-		if rollbackErr != nil {
-			return nil, nil, fmt.Errorf("%s; rollback failed: %w", failure, rollbackErr)
-		}
-		return nil, nil, fmt.Errorf("%s; full preimage restored", failure)
+		return nil, nil, s.eqTransactionFailure(ctx, trackID, pluginID, preimage, failure)
 	}
 
 	actualRows, err := s.readEQParameters(ctx, trackID, pluginID)
 	if err != nil {
-		rollbackErr := s.rollbackEQTransaction(ctx, trackID, pluginID, preimage)
-		if rollbackErr != nil {
-			return nil, nil, fmt.Errorf("fresh readback failed: %w; rollback failed: %v", err, rollbackErr)
-		}
-		return nil, nil, fmt.Errorf("fresh readback failed: %w; full preimage restored", err)
+		return nil, nil, s.eqTransactionFailure(ctx, trackID, pluginID, preimage,
+			fmt.Sprintf("fresh readback failed: %v", err))
 	}
 	index := eqParameterRowIndex(actualRows)
+	if unexpected := unexpectedEQParameterChanges(snapshot, writes, index); len(unexpected) > 0 {
+		failure := s.eqTransactionFailure(ctx, trackID, pluginID, append(preimage, unexpected...),
+			fmt.Sprintf("unplanned parameter changes: %s", eqPreimageParamIDs(unexpected)))
+		return nil, nil, rejectEQControl("unplanned_parameter_change", "%v", failure)
+	}
 	if corrected, correctionErr := s.correctEQPhysicalReadback(ctx, trackID, pluginID, writes, index); correctionErr != nil {
-		rollbackErr := s.rollbackEQTransaction(ctx, trackID, pluginID, preimage)
-		if rollbackErr != nil {
-			return nil, nil, fmt.Errorf("%v; rollback failed: %v", correctionErr, rollbackErr)
-		}
-		return nil, nil, fmt.Errorf("%v; full preimage restored", correctionErr)
+		return nil, nil, s.eqTransactionFailure(ctx, trackID, pluginID, preimage, correctionErr.Error())
 	} else if corrected {
 		actualRows, err = s.readEQParameters(ctx, trackID, pluginID)
 		if err != nil {
-			_ = s.rollbackEQTransaction(ctx, trackID, pluginID, preimage)
-			return nil, nil, err
+			return nil, nil, s.eqTransactionFailure(ctx, trackID, pluginID, preimage,
+				fmt.Sprintf("post-correction readback failed: %v", err))
 		}
 		index = eqParameterRowIndex(actualRows)
+		if unexpected := unexpectedEQParameterChanges(snapshot, writes, index); len(unexpected) > 0 {
+			failure := s.eqTransactionFailure(ctx, trackID, pluginID, append(preimage, unexpected...),
+				fmt.Sprintf("unplanned parameter changes: %s", eqPreimageParamIDs(unexpected)))
+			return nil, nil, rejectEQControl("unplanned_parameter_change", "%v", failure)
+		}
 	}
 	executed := make([]map[string]any, 0, len(writes))
 	actual := make([]map[string]any, 0, len(writes))
 	for _, write := range writes {
 		row, ok := index[write.ParamID]
 		if !ok {
-			_ = s.rollbackEQTransaction(ctx, trackID, pluginID, preimage)
-			return nil, nil, fmt.Errorf("fresh readback omitted touched parameter %s; full preimage restored", write.ParamID)
+			return nil, nil, s.eqTransactionFailure(ctx, trackID, pluginID, preimage,
+				fmt.Sprintf("fresh readback omitted touched parameter %s", write.ParamID))
 		}
 		actualNormalized, ok := firstNumericAny(row, "normalized_value", "normalised_value", "current_normalized_value")
 		if !ok {
-			_ = s.rollbackEQTransaction(ctx, trackID, pluginID, preimage)
-			return nil, nil, fmt.Errorf("fresh readback has no normalized value for %s; full preimage restored", write.ParamID)
+			return nil, nil, s.eqTransactionFailure(ctx, trackID, pluginID, preimage,
+				fmt.Sprintf("fresh readback has no normalized value for %s", write.ParamID))
 		}
 		if math.Abs(actualNormalized-write.NormalizedValue) > 1e-4 {
-			_ = s.rollbackEQTransaction(ctx, trackID, pluginID, preimage)
-			return nil, nil, fmt.Errorf("parameter %s normalized readback mismatch requested %.9f actual %.9f; full preimage restored", write.ParamID, write.NormalizedValue, actualNormalized)
+			return nil, nil, s.eqTransactionFailure(ctx, trackID, pluginID, preimage,
+				fmt.Sprintf("parameter %s normalized readback mismatch requested %.9f actual %.9f",
+					write.ParamID, write.NormalizedValue, actualNormalized))
 		}
 		if write.ExpectedLabel != "" && !strings.EqualFold(strings.TrimSpace(firstNonEmptyText(row, "value_text")), strings.TrimSpace(write.ExpectedLabel)) {
-			_ = s.rollbackEQTransaction(ctx, trackID, pluginID, preimage)
-			return nil, nil, fmt.Errorf("parameter %s enum readback mismatch requested %s actual %s; full preimage restored",
-				write.ParamID, write.ExpectedLabel, firstNonEmptyText(row, "value_text"))
+			return nil, nil, s.eqTransactionFailure(ctx, trackID, pluginID, preimage,
+				fmt.Sprintf("parameter %s enum readback mismatch requested %s actual %s",
+					write.ParamID, write.ExpectedLabel, firstNonEmptyText(row, "value_text")))
 		}
 		if write.Role == "used" && eqActivationReadbackInactive(firstNonEmptyText(row, "value_text")) {
-			_ = s.rollbackEQTransaction(ctx, trackID, pluginID, preimage)
-			return nil, nil, fmt.Errorf("parameter %s remained inactive after activation (%s); full preimage restored",
-				write.ParamID, firstNonEmptyText(row, "value_text"))
+			return nil, nil, s.eqTransactionFailure(ctx, trackID, pluginID, preimage,
+				fmt.Sprintf("parameter %s remained inactive after activation (%s)",
+					write.ParamID, firstNonEmptyText(row, "value_text")))
+		}
+		if (write.Role == "disabled" || write.Role == "removed") && !eqActivationReadbackInactive(firstNonEmptyText(row, "value_text")) {
+			return nil, nil, s.eqTransactionFailure(ctx, trackID, pluginID, preimage,
+				fmt.Sprintf("parameter %s remained active after %s (%s)",
+					write.ParamID, write.Role, firstNonEmptyText(row, "value_text")))
 		}
 		entry := map[string]any{"param_id": write.ParamID, "role": write.Role, "channel": write.Channel,
 			"requested_normalized": write.NormalizedValue, "actual_normalized": actualNormalized, "quantized": write.Quantized}
@@ -366,16 +294,21 @@ func (s *Server) executeEQTransaction(ctx context.Context, trackID, pluginID str
 			entry["requested_label"] = write.RequestedLabel
 			entry["actual_label"] = firstNonEmptyText(row, "value_text")
 		}
-		physical, physicalOK := physicalReadbackForRole(write.Role, row)
+		displayPhysical, physicalOK := physicalReadbackForRole(write.Role, row)
+		physical := eqEffectivePhysicalReadback(write, displayPhysical)
 		if write.RequestedPhysical != nil && isEQPhysicalRole(write.Role) && !write.Quantized {
 			if !physicalOK || math.Abs(physical-*write.RequestedPhysical) > eqPhysicalTolerance(write.Role, *write.RequestedPhysical) {
-				_ = s.rollbackEQTransaction(ctx, trackID, pluginID, preimage)
-				return nil, nil, fmt.Errorf("parameter %s physical readback mismatch requested %g actual %s; full preimage restored",
-					write.ParamID, *write.RequestedPhysical, firstNonEmptyText(row, "value_text"))
+				return nil, nil, s.eqTransactionFailure(ctx, trackID, pluginID, preimage,
+					fmt.Sprintf("parameter %s physical readback mismatch requested %g actual %s",
+						write.ParamID, *write.RequestedPhysical, firstNonEmptyText(row, "value_text")))
 			}
 		}
 		if physicalOK {
 			entry["actual_physical"] = physical
+			if eqWritePhysicalMultiplier(write) != 1 {
+				entry["display_physical"] = displayPhysical
+				entry["physical_multiplier"] = eqWritePhysicalMultiplier(write)
+			}
 		}
 		executed = append(executed, entry)
 		actual = append(actual, map[string]any{"param_id": write.ParamID, "role": write.Role,
@@ -390,6 +323,47 @@ func (s *Server) executeEQTransaction(ctx context.Context, trackID, pluginID str
 	return executed, actual, nil
 }
 
+func unexpectedEQParameterChanges(snapshot []eqPreimageValue, writes []eqWriteStep,
+	index map[string]map[string]any) []eqPreimageValue {
+	planned := map[string]bool{}
+	for _, write := range writes {
+		planned[write.ParamID] = true
+	}
+	out := []eqPreimageValue{}
+	for _, before := range snapshot {
+		if planned[before.ParamID] {
+			continue
+		}
+		row, ok := index[before.ParamID]
+		if !ok {
+			continue
+		}
+		after, ok := firstNumericAny(row, "normalized_value", "normalised_value", "current_normalized_value")
+		if ok && math.Abs(after-before.Normalized) > 1e-4 {
+			before.Role = "side_effect"
+			out = append(out, before)
+		}
+	}
+	return out
+}
+
+func eqPreimageParamIDs(values []eqPreimageValue) string {
+	ids := make([]string, 0, len(values))
+	for _, value := range values {
+		ids = append(ids, value.ParamID)
+	}
+	sort.Strings(ids)
+	return strings.Join(ids, ",")
+}
+
+func (s *Server) eqTransactionFailure(ctx context.Context, trackID, pluginID string,
+	preimage []eqPreimageValue, failure string) error {
+	if rollbackErr := s.rollbackEQTransaction(ctx, trackID, pluginID, preimage); rollbackErr != nil {
+		return fmt.Errorf("%s; rollback failed: %w", failure, rollbackErr)
+	}
+	return fmt.Errorf("%s; full preimage restored", failure)
+}
+
 func eqActivationReadbackInactive(text string) bool {
 	lower := strings.ToLower(strings.TrimSpace(text))
 	for _, token := range []string{"unused", "disabled", "bypass", "bypassed", "off", "out", "false"} {
@@ -402,6 +376,10 @@ func eqActivationReadbackInactive(text string) bool {
 
 func (s *Server) correctEQPhysicalReadback(ctx context.Context, trackID, pluginID string,
 	writes []eqWriteStep, index map[string]map[string]any) (bool, error) {
+	client := s.eqKernelClient()
+	if client == nil {
+		return false, fmt.Errorf("kernel client is nil")
+	}
 	corrected := false
 	// Five-point curves provide the initial estimate.  Twelve bisection steps
 	// then give enough resolution for coarse/nonlinear host mappings (notably
@@ -412,17 +390,18 @@ func (s *Server) correctEQPhysicalReadback(ctx context.Context, trackID, pluginI
 		anyMismatch := false
 		for i := range writes {
 			write := &writes[i]
-			if write.Quantized || write.RequestedPhysical == nil || !isEQPhysicalRole(write.Role) {
+			if write.Quantized || write.DiscretePhysical || write.RequestedPhysical == nil || !isEQPhysicalRole(write.Role) {
 				continue
 			}
 			row, ok := index[write.ParamID]
 			if !ok {
 				return corrected, fmt.Errorf("physical correction readback omitted %s", write.ParamID)
 			}
-			actual, ok := physicalReadbackForRole(write.Role, row)
+			displayPhysical, ok := physicalReadbackForRole(write.Role, row)
 			if !ok {
 				return corrected, fmt.Errorf("cannot parse %s physical readback %q", write.Role, firstNonEmptyText(row, "value_text"))
 			}
+			actual := eqEffectivePhysicalReadback(*write, displayPhysical)
 			target := *write.RequestedPhysical
 			if math.Abs(actual-target) <= eqPhysicalTolerance(write.Role, target) {
 				continue
@@ -447,7 +426,7 @@ func (s *Server) correctEQPhysicalReadback(ctx context.Context, trackID, pluginI
 		if !anyMismatch {
 			return corrected, nil
 		}
-		result, err := s.kernel.SendVSPCommand(ctx, "plugin.set_params_batch", map[string]any{
+		result, err := client.SendVSPCommand(ctx, "plugin.set_params_batch", map[string]any{
 			"track_id": trackID, "plugin_id": pluginID, "parameters": corrections, "readback": true})
 		if err != nil || eqVSPFailure(result) != "" {
 			return corrected, fmt.Errorf("physical correction failed: %s", firstNonEmpty(errorText(err), eqVSPFailure(result)))
@@ -460,10 +439,11 @@ func (s *Server) correctEQPhysicalReadback(ctx context.Context, trackID, pluginI
 		index = eqParameterRowIndex(rows)
 	}
 	for _, write := range writes {
-		if write.Quantized || write.RequestedPhysical == nil || !isEQPhysicalRole(write.Role) {
+		if write.Quantized || write.DiscretePhysical || write.RequestedPhysical == nil || !isEQPhysicalRole(write.Role) {
 			continue
 		}
-		actual, ok := physicalReadbackForRole(write.Role, index[write.ParamID])
+		displayPhysical, ok := physicalReadbackForRole(write.Role, index[write.ParamID])
+		actual := eqEffectivePhysicalReadback(write, displayPhysical)
 		if !ok || math.Abs(actual-*write.RequestedPhysical) > eqPhysicalTolerance(write.Role, *write.RequestedPhysical) {
 			return corrected, fmt.Errorf("parameter %s did not reach requested %s after %d bounded corrections: requested=%g actual=%g tolerance=%g",
 				write.ParamID, write.Role, maxPhysicalCorrectionIterations, *write.RequestedPhysical, actual,
@@ -471,6 +451,17 @@ func (s *Server) correctEQPhysicalReadback(ctx context.Context, trackID, pluginI
 		}
 	}
 	return corrected, nil
+}
+
+func eqWritePhysicalMultiplier(write eqWriteStep) float64 {
+	if write.Role == "freq" && write.PhysicalMultiplier > 0 {
+		return write.PhysicalMultiplier
+	}
+	return 1
+}
+
+func eqEffectivePhysicalReadback(write eqWriteStep, displayPhysical float64) float64 {
+	return displayPhysical * eqWritePhysicalMultiplier(write)
 }
 
 func isEQPhysicalRole(role string) bool {
@@ -492,7 +483,11 @@ func eqPhysicalTolerance(role string, target float64) float64 {
 }
 
 func (s *Server) readEQParameters(ctx context.Context, trackID, pluginID string) ([]map[string]any, error) {
-	reply, _, err := s.kernel.SendCommand(ctx, map[string]any{"cmd": "get_plugin_parameters",
+	client := s.eqKernelClient()
+	if client == nil {
+		return nil, fmt.Errorf("kernel client is nil")
+	}
+	reply, _, err := client.SendCommand(ctx, map[string]any{"cmd": "get_plugin_parameters",
 		"track_id": trackID, "plugin_id": pluginID, "include_parameters": true})
 	if err != nil {
 		return nil, err
@@ -510,14 +505,28 @@ func (s *Server) readEQParameters(ctx context.Context, trackID, pluginID string)
 }
 
 func (s *Server) rollbackEQTransaction(ctx context.Context, trackID, pluginID string, preimage []eqPreimageValue) error {
-	sort.SliceStable(preimage, func(i, j int) bool {
-		return preimage[i].Role == "used" && preimage[j].Role != "used"
+	client := s.eqKernelClient()
+	if client == nil {
+		return fmt.Errorf("kernel client is nil")
+	}
+	ordered := append([]eqPreimageValue(nil), preimage...)
+	sort.SliceStable(ordered, func(i, j int) bool {
+		rank := func(role string) int {
+			if role == "side_effect" {
+				return 2
+			}
+			if role == "used" || role == "disabled" || role == "removed" {
+				return 1
+			}
+			return 0
+		}
+		return rank(ordered[i].Role) < rank(ordered[j].Role)
 	})
-	parameters := make([]map[string]any, 0, len(preimage))
-	for _, value := range preimage {
+	parameters := make([]map[string]any, 0, len(ordered))
+	for _, value := range ordered {
 		parameters = append(parameters, map[string]any{"parameter_id": value.ParamID, "normalized_value": value.Normalized})
 	}
-	result, err := s.kernel.SendVSPCommand(ctx, "plugin.set_params_batch", map[string]any{
+	result, err := client.SendVSPCommand(ctx, "plugin.set_params_batch", map[string]any{
 		"track_id": trackID, "plugin_id": pluginID, "parameters": parameters, "readback": true,
 	})
 	if err != nil {
@@ -594,51 +603,54 @@ func physicalReadbackForRole(role string, row map[string]any) (float64, bool) {
 	case "freq":
 		return parseEQFrequencyReadback(text)
 	case "gain", "q", "slope":
-		match := regexp.MustCompile(`[-+]?\d+(?:\.\d+)?`).FindString(text)
-		if match == "" {
-			return 0, false
-		}
-		value, err := strconv.ParseFloat(match, 64)
-		return value, err == nil
+		return plugingrabber.ParseEQLocalizedNumber(text)
 	}
 	return 0, false
 }
 
 func parseEQFrequencyReadback(text string) (float64, bool) {
-	lower := strings.ToLower(strings.ReplaceAll(strings.TrimSpace(text), " ", ""))
-	match := regexp.MustCompile(`[-+]?\d+(?:\.\d+)?`).FindString(lower)
-	if match == "" {
-		return 0, false
-	}
-	value, err := strconv.ParseFloat(match, 64)
-	if err != nil {
-		return 0, false
-	}
-	if strings.Contains(lower, "khz") {
-		value *= 1000
-	}
-	return value, value > 0
+	return plugingrabber.ParseEQFrequencyText(text)
 }
 
 func eqTypedSectionWritePlan(summary map[string]any, request eqTypedPointRequest) ([]eqWriteStep, map[string]any, error) {
-	if supported, ok := summary["set_eq_point_supported"].(bool); ok && !supported {
-		return nil, nil, fmt.Errorf("set_eq_point is not supported: %s", firstNonEmptyText(summary, "reason"))
-	}
 	sections := mapRowsValue(summary["sections"])
 	if len(sections) == 0 {
 		return nil, nil, fmt.Errorf("EQ summary has no typed sections for requested shape %s", request.Shape)
 	}
-	candidates := []map[string]any{}
+	if (request.Shape == "low_cut" || request.Shape == "high_cut") && request.GainDB != nil {
+		return nil, nil, fmt.Errorf("invalid_field_for_shape: gain_db is not applicable to %s", request.Shape)
+	}
+	structuralCandidates := []map[string]any{}
 	for _, section := range sections {
 		complete, _ := section["complete"].(bool)
-		if !complete || !eqSectionSupportsKind(section, request.Shape) {
+		if !complete || !eqSectionActionSupported(section, request.Shape, "upsert") {
+			continue
+		}
+		if !eqSectionFrequencyTargetInRange(section, request.FreqHz) {
+			continue
+		}
+		structuralCandidates = append(structuralCandidates, section)
+	}
+	if len(structuralCandidates) == 0 {
+		return nil, nil, fmt.Errorf("requested shape %s at %g Hz is not provably reachable in any section; available shapes: %v",
+			request.Shape, request.FreqHz, summary["supported_filter_kinds"])
+	}
+	candidates := make([]map[string]any, 0, len(structuralCandidates))
+	candidateFailures := make([]string, 0, len(structuralCandidates))
+	for _, section := range structuralCandidates {
+		if err := eqTypedSectionExplicitFieldsAvailable(section, request); err != nil {
+			sectionName := firstNonEmptyText(section, "section", "band")
+			if sectionName == "" {
+				sectionName = "<unnamed>"
+			}
+			candidateFailures = append(candidateFailures, fmt.Sprintf("%s: %v", sectionName, err))
 			continue
 		}
 		candidates = append(candidates, section)
 	}
 	if len(candidates) == 0 {
-		return nil, nil, fmt.Errorf("requested shape %s is not provably reachable; available shapes: %v",
-			request.Shape, summary["supported_filter_kinds"])
+		return nil, nil, fmt.Errorf("explicit_field_unavailable: no %s section at %g Hz can satisfy all explicitly requested fields (%s)",
+			request.Shape, request.FreqHz, strings.Join(candidateFailures, "; "))
 	}
 	selected := selectEQSectionByFrequency(candidates, request.FreqHz, firstNonEmptyText(summary, "eq_model"))
 	if selected == nil {
@@ -647,8 +659,6 @@ func eqTypedSectionWritePlan(summary map[string]any, request eqTypedPointRequest
 
 	writes := []eqWriteStep{}
 	applied := []string{"shape"}
-	unsupported := []string{}
-	limitations := []string{}
 	shapeWrites, err := eqFilterKindWrites(selected, request.Shape)
 	if err != nil {
 		return nil, nil, err
@@ -657,13 +667,11 @@ func eqTypedSectionWritePlan(summary map[string]any, request eqTypedPointRequest
 
 	frequencyQuantized := false
 	if len(mapRowsValue(selected["frequency_bindings"])) > 0 {
-		freqWrites, freqErr := eqWritesForRole(selected, "frequency", "freq", request.FreqHz, 20, 20000, "log")
+		freqWrites, quantized, freqErr := eqFrequencyWritesForSection(selected, request.FreqHz)
 		if freqErr != nil {
 			return nil, nil, freqErr
 		}
-		for _, write := range freqWrites {
-			frequencyQuantized = frequencyQuantized || write.Quantized
-		}
+		frequencyQuantized = quantized
 		writes = append(writes, freqWrites...)
 		applied = append(applied, "frequency")
 	} else if fixed, ok := eqBandFloat(selected, "fixed_freq_hz"); ok {
@@ -676,35 +684,26 @@ func eqTypedSectionWritePlan(summary map[string]any, request eqTypedPointRequest
 	if request.Q != nil {
 		qWrites, qErr := eqWritesForRole(selected, "q", "q", *request.Q, 0.1, 6, "log")
 		if qErr != nil {
-			unsupported = append(unsupported, "q")
-			limitations = append(limitations, "requested Q is not exposed by the selected section")
-		} else {
-			writes = append(writes, qWrites...)
-			applied = append(applied, "q")
+			return nil, nil, fmt.Errorf("explicit_field_unavailable: requested Q cannot be applied: %w", qErr)
 		}
+		writes = append(writes, qWrites...)
+		applied = append(applied, "q")
 	}
 	if request.SlopeDBPerOct != nil {
 		slopeWrites, slopeErr := eqWritesForRole(selected, "slope", "slope", *request.SlopeDBPerOct, 6, 96, "linear")
 		if slopeErr != nil {
-			unsupported = append(unsupported, "slope_db_per_oct")
-			limitations = append(limitations, "requested slope is not exposed by the selected section")
-		} else {
-			writes = append(writes, slopeWrites...)
-			applied = append(applied, "slope_db_per_oct")
+			return nil, nil, fmt.Errorf("explicit_field_unavailable: requested slope cannot be applied: %w", slopeErr)
 		}
+		writes = append(writes, slopeWrites...)
+		applied = append(applied, "slope_db_per_oct")
 	}
 	if request.GainDB != nil {
-		if request.Shape == "low_cut" || request.Shape == "high_cut" || request.Shape == "notch" {
-			unsupported = append(unsupported, "gain_db")
-			limitations = append(limitations, "gain is not applicable to the requested filter topology")
-		} else {
-			gainWrites, gainErr := eqWritesForRole(selected, "gain", "gain", *request.GainDB, -24, 24, "linear")
-			if gainErr != nil {
-				return nil, nil, fmt.Errorf("requested gain cannot be applied: %w", gainErr)
-			}
-			writes = append(writes, gainWrites...)
-			applied = append(applied, "gain_db")
+		gainWrites, gainErr := eqWritesForRole(selected, "gain", "gain", *request.GainDB, -24, 24, "linear")
+		if gainErr != nil {
+			return nil, nil, fmt.Errorf("requested gain cannot be applied: %w", gainErr)
 		}
+		writes = append(writes, gainWrites...)
+		applied = append(applied, "gain_db")
 	}
 
 	activation := mapValue(selected["activation"])
@@ -719,6 +718,12 @@ func eqTypedSectionWritePlan(summary map[string]any, request eqTypedPointRequest
 		case "implicit_in_domain":
 			// Writing the frequency moves the control out of its sentinel "Out"
 			// value and is itself the proven activation operation.
+		case "property_sentinel":
+			writes, err = appendEQPropertySentinelActivation(writes, selected)
+			if err != nil {
+				return nil, nil, err
+			}
+			applied = append(applied, "activation")
 		default:
 			return nil, nil, fmt.Errorf("inactive section %v has no safe activation strategy", selected["section"])
 		}
@@ -733,10 +738,10 @@ func eqTypedSectionWritePlan(summary map[string]any, request eqTypedPointRequest
 		"channel_bindings":    selected["channel_bindings"],
 		"activation":          activation,
 		"frequency_quantized": frequencyQuantized,
-		"partial":             len(unsupported) > 0,
+		"partial":             false,
 		"applied_fields":      uniqueStrings(applied),
-		"unsupported_fields":  uniqueStrings(unsupported),
-		"limitations":         uniqueStrings(limitations),
+		"unsupported_fields":  []string{},
+		"limitations":         []string{},
 	}
 	if fixed, ok := eqBandFloat(selected, "fixed_freq_hz"); ok {
 		info["actual_selected_freq_hz"] = fixed
@@ -744,6 +749,82 @@ func eqTypedSectionWritePlan(summary map[string]any, request eqTypedPointRequest
 		info["previous_freq_hz"] = current
 	}
 	return writes, info, nil
+}
+
+func eqSectionActionSupported(section map[string]any, shape, action string) bool {
+	for _, capability := range mapRowsValue(section["shape_capabilities"]) {
+		if !strings.EqualFold(firstNonEmptyText(capability, "shape"), shape) {
+			continue
+		}
+		actions := mapValue(capability["actions"])
+		supported, _ := actions[action].(bool)
+		return supported
+	}
+	// Legacy summaries predate the multi-axis capability projection.
+	return action == "upsert" && eqSectionSupportsKind(section, shape)
+}
+
+func eqSectionFrequencyTargetInRange(section map[string]any, target float64) bool {
+	bindings := mapRowsValue(section["frequency_bindings"])
+	if len(bindings) == 0 {
+		// Fixed-frequency sections are selected and reported as quantized later.
+		_, fixed := eqBandFloat(section, "fixed_freq_hz")
+		return fixed
+	}
+	_, _, err := eqFrequencyWritesForSection(section, target)
+	return err == nil
+}
+
+// eqTypedSectionExplicitFieldsAvailable performs a dry, side-effect-free plan
+// for every field the caller explicitly requested. Section ranking must only
+// see candidates that can execute the whole atomic operation; otherwise a
+// frequency-nearest section can mask another section whose Q/Gain/Slope domain
+// actually satisfies the request.
+func eqTypedSectionExplicitFieldsAvailable(section map[string]any, request eqTypedPointRequest) error {
+	if _, err := eqFilterKindWrites(section, request.Shape); err != nil {
+		return fmt.Errorf("shape cannot be applied: %w", err)
+	}
+	if len(mapRowsValue(section["frequency_bindings"])) > 0 {
+		if _, _, err := eqFrequencyWritesForSection(section, request.FreqHz); err != nil {
+			return fmt.Errorf("frequency cannot be applied: %w", err)
+		}
+	} else if _, ok := eqBandFloat(section, "fixed_freq_hz"); !ok {
+		return fmt.Errorf("frequency cannot be applied: section has no writable or fixed frequency")
+	}
+	if request.Q != nil {
+		if _, err := eqWritesForRole(section, "q", "q", *request.Q, 0.1, 6, "log"); err != nil {
+			return fmt.Errorf("Q cannot be applied: %w", err)
+		}
+	}
+	if request.SlopeDBPerOct != nil {
+		if _, err := eqWritesForRole(section, "slope", "slope", *request.SlopeDBPerOct, 6, 96, "linear"); err != nil {
+			return fmt.Errorf("slope cannot be applied: %w", err)
+		}
+	}
+	if request.GainDB != nil {
+		if _, err := eqWritesForRole(section, "gain", "gain", *request.GainDB, -24, 24, "linear"); err != nil {
+			return fmt.Errorf("gain cannot be applied: %w", err)
+		}
+	}
+	activation := mapValue(section["activation"])
+	if active, _ := activation["active"].(bool); !active {
+		switch firstNonEmptyText(activation, "strategy") {
+		case "explicit_binding":
+			if _, err := appendEQActivationLast(nil, section); err != nil {
+				return fmt.Errorf("activation cannot be applied: %w", err)
+			}
+		case "implicit_in_domain":
+			// The frequency write already proved the transition out of the
+			// inactive sentinel domain.
+		case "property_sentinel":
+			if _, err := appendEQPropertySentinelActivation(nil, section); err != nil {
+				return fmt.Errorf("activation cannot be applied: %w", err)
+			}
+		default:
+			return fmt.Errorf("activation cannot be applied: no safe activation strategy")
+		}
+	}
+	return nil
 }
 
 func eqSectionSupportsKind(section map[string]any, wanted string) bool {
@@ -818,6 +899,11 @@ func eqFrequencySelectionScore(row map[string]any, target float64) (eqFrequencyS
 				values = append(values, physical)
 			}
 		}
+		for _, point := range eqBandCurve(binding, "curve") {
+			if point[1] > 0 {
+				values = append(values, point[1])
+			}
+		}
 	}
 	if len(values) == 0 {
 		minValue, maxValue := math.MaxFloat64, -math.MaxFloat64
@@ -875,10 +961,34 @@ func eqSectionCurrentFrequency(section map[string]any) (float64, bool) {
 	}
 	for _, binding := range mapRowsValue(section["frequency_bindings"]) {
 		if current, ok := eqBandFloatAny(binding, "current_physical"); ok {
-			return current, true
+			factor, factorOK := eqCurrentFrequencyTransformFactor(section)
+			if !factorOK {
+				factor = 1
+			}
+			return current * factor, true
 		}
 	}
 	return 0, false
+}
+
+func eqCurrentFrequencyTransformFactor(section map[string]any) (float64, bool) {
+	bindings := mapRowsValue(section["frequency_transform_bindings"])
+	if len(bindings) == 0 {
+		return 1, true
+	}
+	factor := 0.0
+	for _, binding := range bindings {
+		current, ok := eqBandFloatAny(binding, "current_physical")
+		if !ok || current <= 0 {
+			return 0, false
+		}
+		if factor == 0 {
+			factor = current
+		} else if math.Abs(factor-current) > 1e-9 {
+			return 0, false
+		}
+	}
+	return factor, factor > 0
 }
 
 func eqFilterKindWrites(section map[string]any, wanted string) ([]eqWriteStep, error) {
@@ -958,10 +1068,8 @@ func normalizeRequestedEQShape(value string) (string, error) {
 		return "low_cut", nil
 	case "highcut", "hicut", "lowpass", "lopass", "lp":
 		return "high_cut", nil
-	case "notch", "bandstop", "bandreject":
-		return "notch", nil
 	}
-	return "", fmt.Errorf("unsupported EQ shape %q; use bell, low_shelf, high_shelf, low_cut, high_cut, or notch", value)
+	return "", fmt.Errorf("unsupported EQ shape %q; use bell, low_shelf, high_shelf, low_cut, or high_cut", value)
 }
 
 func eqBandWritePlan(summary map[string]any, freqHz, gainDB float64, q *float64) ([]eqWriteStep, map[string]any, error) {
@@ -1195,17 +1303,171 @@ func eqWritesForRole(band map[string]any, summaryRole, writeRole string, target,
 		if paramID == "" {
 			return nil, fmt.Errorf("band %v has an empty %s binding", band["band"], summaryRole)
 		}
+		minimum, maximum, ok := eqBindingTargetRange(binding, fallbackMin, fallbackMax)
+		if ok && !eqPhysicalTargetInRange(target, minimum, maximum) {
+			return nil, fmt.Errorf("requested %s %g is outside parameter %s physical domain [%g, %g]",
+				summaryRole, target, paramID, minimum, maximum)
+		}
 		normalized, quantized := eqBindingTarget(target, binding, fallbackMin, fallbackMax, fallbackScale)
 		low, high := eqBindingCorrectionBounds(target, binding)
 		curve := eqBandCurve(binding, "curve")
 		decreasing := len(curve) >= 2 && curve[len(curve)-1][1] < curve[0][1]
+		discretePhysical := strings.EqualFold(firstNonEmptyText(mapValue(binding["domain"]), "scale"), "enum") &&
+			len(mapRowsValue(binding["reachable_values"])) > 0
 		requested := target
 		out = append(out, eqWriteStep{ParamID: paramID, Role: writeRole,
 			Channel: firstNonEmptyText(binding, "channel"), NormalizedValue: normalized,
 			RequestedPhysical: &requested, Quantized: quantized,
-			CorrectionLow: low, CorrectionHigh: high, PhysicalDecreasing: decreasing})
+			CorrectionLow: low, CorrectionHigh: high, PhysicalDecreasing: decreasing,
+			DiscretePhysical: discretePhysical})
 	}
 	return out, nil
+}
+
+func eqFrequencyWritesForSection(section map[string]any, effectiveTarget float64) ([]eqWriteStep, bool, error) {
+	transforms := mapRowsValue(section["frequency_transform_bindings"])
+	if len(transforms) == 0 {
+		writes, err := eqWritesForRole(section, "frequency", "freq", effectiveTarget, 20, 20000, "log")
+		return writes, eqWritesAreQuantized(writes), err
+	}
+	factors := eqCommonFrequencyTransformFactors(transforms)
+	if len(factors) == 0 {
+		return nil, false, fmt.Errorf("section %v has no common reachable frequency transform", section["section"])
+	}
+	if current, ok := eqCurrentFrequencyTransformFactor(section); ok {
+		for index, factor := range factors {
+			if math.Abs(factor-current) <= 1e-9 {
+				factors[0], factors[index] = factors[index], factors[0]
+				break
+			}
+		}
+	}
+	var failures []string
+	for _, factor := range factors {
+		baseTarget := effectiveTarget / factor
+		frequencyWrites, err := eqWritesForRole(section, "frequency", "freq", baseTarget, 20, 20000, "log")
+		if err != nil {
+			failures = append(failures, fmt.Sprintf("x%g: %v", factor, err))
+			continue
+		}
+		for index := range frequencyWrites {
+			requested := effectiveTarget
+			frequencyWrites[index].RequestedPhysical = &requested
+			frequencyWrites[index].PhysicalMultiplier = factor
+		}
+		transformWrites, err := eqFrequencyTransformWrites(transforms, factor)
+		if err != nil {
+			failures = append(failures, fmt.Sprintf("x%g: %v", factor, err))
+			continue
+		}
+		writes := append(frequencyWrites, transformWrites...)
+		return writes, eqWritesAreQuantized(frequencyWrites), nil
+	}
+	return nil, false, fmt.Errorf("requested frequency %g is unavailable through section transforms (%s)",
+		effectiveTarget, strings.Join(failures, "; "))
+}
+
+func eqCommonFrequencyTransformFactors(bindings []map[string]any) []float64 {
+	common := []float64{}
+	for index, binding := range bindings {
+		values := []float64{}
+		for _, row := range mapRowsValue(binding["reachable_values"]) {
+			if factor, ok := eqBandFloatAny(row, "physical"); ok && factor > 0 {
+				values = append(values, factor)
+			}
+		}
+		if index == 0 {
+			common = values
+			continue
+		}
+		filtered := common[:0]
+		for _, candidate := range common {
+			for _, value := range values {
+				if math.Abs(candidate-value) <= 1e-9 {
+					filtered = append(filtered, candidate)
+					break
+				}
+			}
+		}
+		common = filtered
+	}
+	sort.Float64s(common)
+	return common
+}
+
+func eqFrequencyTransformWrites(bindings []map[string]any, factor float64) ([]eqWriteStep, error) {
+	writes := []eqWriteStep{}
+	for _, binding := range bindings {
+		current, currentOK := eqBandFloatAny(binding, "current_physical")
+		if currentOK && math.Abs(current-factor) <= 1e-9 {
+			continue
+		}
+		found := false
+		for _, row := range mapRowsValue(binding["reachable_values"]) {
+			physical, physicalOK := eqBandFloatAny(row, "physical")
+			normalized, normalizedOK := eqBandFloatAny(row, "normalized")
+			if !physicalOK || !normalizedOK || math.Abs(physical-factor) > 1e-9 {
+				continue
+			}
+			label := firstNonEmptyText(row, "label")
+			writes = append(writes, eqWriteStep{ParamID: firstNonEmptyText(binding, "param_id"),
+				Role: "frequency_transform", Channel: firstNonEmptyText(binding, "channel"),
+				NormalizedValue: normalized, Quantized: true, RequestedLabel: fmt.Sprintf("x%g", factor), ExpectedLabel: label})
+			found = true
+			break
+		}
+		if !found {
+			return nil, fmt.Errorf("frequency transform binding %s has no x%g value",
+				firstNonEmptyText(binding, "param_id"), factor)
+		}
+	}
+	return writes, nil
+}
+
+func eqBindingTargetRange(binding map[string]any, fallbackMin, fallbackMax float64) (float64, float64, bool) {
+	values := make([]float64, 0)
+	for _, row := range mapRowsValue(binding["reachable_values"]) {
+		if physical, ok := eqBandFloatAny(row, "physical"); ok && !math.IsNaN(physical) && !math.IsInf(physical, 0) {
+			values = append(values, physical)
+		}
+	}
+	if len(values) == 0 {
+		for _, point := range eqBandCurve(binding, "curve") {
+			if !math.IsNaN(point[1]) && !math.IsInf(point[1], 0) {
+				values = append(values, point[1])
+			}
+		}
+	}
+	if len(values) > 0 {
+		minimum, maximum := values[0], values[0]
+		for _, value := range values[1:] {
+			minimum, maximum = math.Min(minimum, value), math.Max(maximum, value)
+		}
+		return minimum, maximum, true
+	}
+	domain := mapValue(binding["domain"])
+	minimum, minOK := eqBandFloatAny(domain, "min")
+	maximum, maxOK := eqBandFloatAny(domain, "max")
+	if minOK && maxOK && !math.IsNaN(minimum) && !math.IsNaN(maximum) &&
+		!math.IsInf(minimum, 0) && !math.IsInf(maximum, 0) {
+		if minimum > maximum {
+			minimum, maximum = maximum, minimum
+		}
+		return minimum, maximum, true
+	}
+	if !math.IsNaN(fallbackMin) && !math.IsNaN(fallbackMax) &&
+		!math.IsInf(fallbackMin, 0) && !math.IsInf(fallbackMax, 0) {
+		if fallbackMin > fallbackMax {
+			fallbackMin, fallbackMax = fallbackMax, fallbackMin
+		}
+		return fallbackMin, fallbackMax, true
+	}
+	return 0, 0, false
+}
+
+func eqPhysicalTargetInRange(target, minimum, maximum float64) bool {
+	margin := 1e-9 * math.Max(1, math.Max(math.Abs(minimum), math.Abs(maximum)))
+	return target >= minimum-margin && target <= maximum+margin
 }
 
 func eqBindingTarget(target float64, binding map[string]any,
@@ -1283,6 +1545,59 @@ func appendEQActivationLast(writes []eqWriteStep, band map[string]any) ([]eqWrit
 			Channel: firstNonEmptyText(binding, "channel"), NormalizedValue: value, Quantized: true})
 	}
 	return writes, nil
+}
+
+func appendEQPropertySentinelActivation(writes []eqWriteStep, section map[string]any) ([]eqWriteStep, error) {
+	bindings := mapRowsValue(section["slope_bindings"])
+	if len(bindings) == 0 {
+		return nil, fmt.Errorf("section %v has property-sentinel activation but no slope binding", section["section"])
+	}
+	for _, binding := range bindings {
+		paramID := firstNonEmptyText(binding, "param_id")
+		planned := false
+		for index := range writes {
+			if writes[index].ParamID != paramID {
+				continue
+			}
+			writes[index].ActivationLast = true
+			planned = true
+			break
+		}
+		if planned {
+			continue
+		}
+		if !eqActivationReadbackInactive(firstNonEmptyText(binding, "current_text")) {
+			continue
+		}
+		normalized, label, ok := eqLowestActiveSlopeTarget(binding)
+		if !ok {
+			return nil, fmt.Errorf("section %v slope binding %s has no provable active slope value",
+				section["section"], paramID)
+		}
+		writes = append(writes, eqWriteStep{ParamID: paramID, Role: "used",
+			Channel: firstNonEmptyText(binding, "channel"), NormalizedValue: normalized, Quantized: true,
+			RequestedLabel: "active", ExpectedLabel: label, ActivationLast: true})
+	}
+	return writes, nil
+}
+
+func eqLowestActiveSlopeTarget(binding map[string]any) (float64, string, bool) {
+	bestPhysical := math.MaxFloat64
+	bestNormalized := 0.0
+	bestLabel := ""
+	for _, row := range mapRowsValue(binding["reachable_values"]) {
+		label := firstNonEmptyText(row, "label")
+		if eqActivationReadbackInactive(label) {
+			continue
+		}
+		physical, physicalOK := eqBandFloatAny(row, "physical")
+		normalized, normalizedOK := eqBandFloatAny(row, "normalized")
+		if !physicalOK || !normalizedOK || physical <= 0 || physical >= bestPhysical {
+			continue
+		}
+		bestPhysical, bestNormalized, bestLabel = physical, normalized, label
+	}
+	return bestNormalized, bestLabel, bestLabel != ""
 }
 
 func eqReachableLabelTarget(binding map[string]any, preferred []string) (float64, bool) {

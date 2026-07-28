@@ -330,6 +330,11 @@ func (e pluginGrabberWorkflowExecutor) RunToolCall(ctx context.Context, in execu
 		e.server.emitToolItemCompleted(in, out, err)
 		return out, err
 	}
+	if e.server != nil && isPluginGrabberApplyEQEditsToolCall(in.ToolCall) {
+		out, err := e.invokePluginGrabberApplyEQEdits(ctx, in, toolCallID)
+		e.server.emitToolItemCompleted(in, out, err)
+		return out, err
+	}
 	if e.server != nil && isPluginGrabberSetEQPointToolCall(in.ToolCall) {
 		out, err := e.invokePluginGrabberSetEQPoint(ctx, in, toolCallID)
 		e.server.emitToolItemCompleted(in, out, err)
@@ -437,6 +442,47 @@ func isPluginGrabberSetEQPointToolCall(call planner.ToolCall) bool {
 	cmd := workflowCommandArgs(call.Command)
 	name = strings.ToLower(firstNonEmpty(cleanContextText(cmd["cmd"]), cleanContextText(cmd["command"]), cleanContextText(cmd["tool"])))
 	return name == "plugin_grabber.set_eq_point" || name == "plugin_grabber_set_eq_point"
+}
+
+func isPluginGrabberApplyEQEditsToolCall(call planner.ToolCall) bool {
+	name := strings.ToLower(strings.TrimSpace(call.Tool))
+	if name == pluginGrabberApplyEQEditsTool || name == pluginGrabberApplyEQEditsCommand {
+		return true
+	}
+	cmd := workflowCommandArgs(call.Command)
+	name = strings.ToLower(firstNonEmpty(cleanContextText(cmd["cmd"]), cleanContextText(cmd["command"]), cleanContextText(cmd["tool"])))
+	return name == pluginGrabberApplyEQEditsTool || name == pluginGrabberApplyEQEditsCommand
+}
+
+func (e pluginGrabberWorkflowExecutor) invokePluginGrabberApplyEQEdits(ctx context.Context, in executorpkg.Input,
+	toolCallID string) (executorpkg.Result, error) {
+	req := harness.InvokeRequest{
+		Tool: strings.TrimSpace(in.ToolCall.Tool), Args: cloneStringAnyMap(in.ToolCall.Args),
+		Command: cloneStringAnyMap(in.ToolCall.Command),
+		Context: contextWithAgentLoopIDs(in.Context, in.GoalID, in.RunID, toolCallID),
+		Source:  firstNonEmpty(strings.TrimSpace(in.Source), "agentloop"), Confirmed: in.Confirmed,
+		GoalID: in.GoalID, RunID: in.RunID, ToolCallID: toolCallID,
+	}
+	workflowCmd, ok := pluginGrabberApplyEQEditsInvokeCommand(req)
+	if !ok {
+		workflowCmd = cloneStringAnyMap(in.ToolCall.Args)
+		workflowCmd["cmd"] = pluginGrabberApplyEQEditsCommand
+	}
+	resp, err := e.server.invokePluginGrabberApplyEQEditsWorkflow(ctx, req, workflowCmd)
+	out := executorpkg.Result{
+		ToolCallID: toolCallID, Tool: firstNonEmpty(resp.Tool, in.ToolCall.Tool, pluginGrabberApplyEQEditsTool),
+		CommandName: resp.CommandName, AgentActionID: resp.AgentActionID, Status: resp.Status,
+		RequiresConfirmation: resp.RequiresConfirmation || resp.Status == "needs_confirmation",
+		Preview:              resp.Preview, UndoLabel: resp.UndoLabel, Result: resp.Result,
+		ProjectHistory: resp.ProjectHistory, Error: resp.Error, Response: resp,
+	}
+	if err != nil && out.Error == "" {
+		out.Error = err.Error()
+	}
+	if !out.RequiresConfirmation && err == nil && out.Status != "error" && e.server.harness != nil {
+		out.ObservedState = e.server.harness.UserStateSummary(ctx)
+	}
+	return out, err
 }
 
 func (e pluginGrabberWorkflowExecutor) invokePluginGrabberSetEQPoint(ctx context.Context, in executorpkg.Input, toolCallID string) (executorpkg.Result, error) {
@@ -1908,7 +1954,8 @@ func agentLoopPluginTools() []string {
 		"plugin.get_parameters", "plugin.open", "plugin.show_editor",
 		"plugin.set_parameter", // Tier 2 direct-control path: write normalized value when no verified profile exists
 		"plugin_grabber.get_project_profiles", "plugin_grabber.explain_controls", "plugin_grabber.learn_project_profile", "plugin_grabber.upsert_project_profile", "plugin_grabber.remove_project_profile", "plugin_grabber.apply_control",
-		"plugin_grabber.set_eq_point", // deterministic Go-side band selection; preferred over set_plugin_param for EQ
+		"plugin_grabber.apply_eq_edits", // generic static EQ atomic planner/executor
+		"plugin_grabber.set_eq_point",   // deterministic Go-side band selection; preferred over set_plugin_param for EQ
 		"control.add_macro", "control.rename_macro", "control.add_binding", "control.set_macro_values",
 	}
 }

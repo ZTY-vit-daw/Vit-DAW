@@ -64,6 +64,20 @@ func TestDisplayProbeInfersBooleanToggle(t *testing.T) {
 	}
 }
 
+func TestDisplayProbeScalesBareKOnlyInFrequencyContext(t *testing.T) {
+	reply := map[string]any{"parameters": []any{
+		probedParam("freq", "Frequency", "Hz", []string{"20", "115", "663", "3.82k", "22.00k"}),
+		probedParam("gain", "Gain", "dB", []string{"0", "1k", "2k", "3k", "4k"}),
+	}}
+	digest := BuildParameterDigest(reply)
+	byID := map[string]ParameterInfo{}
+	for _, param := range digest.Parameters {
+		byID[param.ID] = param
+	}
+	assertDomain(t, byID["freq"].DisplayDomainCandidate, "Hz", 20, 22000)
+	assertDomain(t, byID["gain"].DisplayDomainCandidate, "dB", 0, 4)
+}
+
 func probedParam(id, name, label string, texts []string) map[string]any {
 	samples := make([]any, 0, len(texts))
 	for i, text := range texts {

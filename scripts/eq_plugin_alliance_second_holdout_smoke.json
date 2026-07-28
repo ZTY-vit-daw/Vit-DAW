@@ -1,0 +1,113 @@
+{
+  "schema_version": "plugin_grabber.eq_two_level_holdout.v1",
+  "protocol": {
+    "parameter_phase": "apply, verify exact_or_quantized, formal undo, verify zero drift",
+    "shape_phase": "apply, verify requested shape and activation, formal undo, verify zero drift",
+    "atomic": true,
+    "complete_parameter_pagination": true
+  },
+  "cases": [
+    {
+      "id": "bx_digital_v3",
+      "plugin_name": "bx_digital V3",
+      "vendor": "Plugin Alliance",
+      "category": "Fx|EQ",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\bx_digital V3.vst3",
+      "tests": [
+        {
+          "level": "parameter",
+          "instruction": "将 3400 Hz 降低 3 dB，Q 值为 0.5，保持 Bell",
+          "edits": [
+            {"action": "upsert", "shape": "bell", "frequency_hz": 3400.0, "gain_db": -3.0, "q": 0.5}
+          ]
+        },
+        {
+          "level": "shape",
+          "instruction": "打开 80 Hz Low Cut",
+          "edits": [
+            {"action": "upsert", "shape": "low_cut", "frequency_hz": 80.0}
+          ]
+        }
+      ]
+    },
+    {
+      "id": "amek_eq_200",
+      "plugin_name": "AMEK EQ 200",
+      "vendor": "Plugin Alliance",
+      "category": "Fx|EQ",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\AMEK EQ 200.vst3",
+      "tests": [
+        {
+          "level": "parameter",
+          "instruction": "将 3400 Hz 降低 3 dB，Q 值为 0.5，保持 Bell",
+          "edits": [
+            {"action": "upsert", "shape": "bell", "frequency_hz": 3400.0, "gain_db": -3.0, "q": 0.5}
+          ]
+        },
+        {
+          "level": "shape",
+          "instruction": "设置 10 kHz High Shelf，提升 2 dB",
+          "edits": [
+            {"action": "upsert", "shape": "high_shelf", "frequency_hz": 10000.0, "gain_db": 2.0}
+          ]
+        }
+      ]
+    },
+    {
+      "id": "spl_pq",
+      "plugin_name": "SPL PQ",
+      "vendor": "Plugin Alliance",
+      "category": "Fx|EQ",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\SPL PQ.vst3",
+      "tests": [
+        {
+          "level": "parameter",
+          "instruction": "将 3400 Hz 降低 3 dB，Q 值为 0.5，保持 Bell",
+          "edits": [
+            {"action": "upsert", "shape": "bell", "frequency_hz": 3400.0, "gain_db": -3.0, "q": 0.5}
+          ]
+        },
+        {
+          "level": "shape",
+          "instruction": "设置 120 Hz Low Shelf，降低 2 dB",
+          "edits": [
+            {"action": "upsert", "shape": "low_shelf", "frequency_hz": 120.0, "gain_db": -2.0}
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lindell_80_channel",
+      "plugin_name": "Lindell 80 Channel",
+      "vendor": "Plugin Alliance",
+      "category": "Fx|Channel Strip",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\Lindell 80 Channel.vst3",
+      "tests": [
+        {
+          "level": "parameter",
+          "instruction": "将 3400 Hz 降低 3 dB，保持 Bell",
+          "edits": [
+            {"action": "upsert", "shape": "bell", "frequency_hz": 3400.0, "gain_db": -3.0}
+          ]
+        },
+        {
+          "level": "shape",
+          "instruction": "打开 80 Hz Low Cut",
+          "edits": [
+            {"action": "upsert", "shape": "low_cut", "frequency_hz": 80.0}
+          ]
+        }
+      ],
+      "forbidden_write_name_tokens": [
+        "threshold",
+        "attack",
+        "release",
+        "ratio",
+        "compressor",
+        "gate",
+        "sidechain",
+        "detector"
+      ]
+    }
+  ]
+}

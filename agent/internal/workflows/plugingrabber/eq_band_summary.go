@@ -1,7 +1,6 @@
 package plugingrabber
 
 import (
-	"fmt"
 	"sort"
 	"strconv"
 	"strings"
@@ -15,14 +14,6 @@ const (
 	eqSlotShape = "shape"
 	eqSlotQ     = "q"
 )
-
-// Marvel GEQ exposes its 16 fixed graphic bands as channel-1 parameters
-// named 1EQ0..1EQ15 and does not expose frequency parameters at all. These
-// are the standard ISO graphic-EQ center frequencies shown by its UI.
-var marvelGEQFixedFrequenciesHz = []float64{
-	20, 31.5, 50, 80, 125, 200, 315, 500,
-	800, 1250, 2000, 3150, 5000, 8000, 12500, 20000,
-}
 
 type eqBandSlot struct {
 	ParamID   string
@@ -65,9 +56,6 @@ type eqBandEntry struct {
 // list as evidence so it works with any EQ regardless of whether it has been
 // profiled.
 func BuildEQBandSummary(digest ParameterDigest) map[string]any {
-	if summary := buildMarvelGEQSummary(digest); summary != nil {
-		return summary
-	}
 	model := DetectEQModel(digest)
 	if model == nil {
 		return nil
@@ -102,6 +90,13 @@ func eqModelSummary(model *EQModel) map[string]any {
 		},
 		"set_eq_point_supported": model.SetEQPointSupported,
 		"channel_bindings":       model.Channels,
+		"control_topology": map[string]any{
+			"schema_version":        model.ControlTopology.SchemaVersion,
+			"generation":            model.ControlTopology.Generation,
+			"public_classification": model.ControlTopology.PublicClassification,
+			"addressing_kinds":      eqAddressingKindStrings(model.ControlTopology.AddressingKinds),
+			"shape_capabilities":    eqShapeCapabilityRows(model.ControlTopology.ShapeCapabilities),
+		},
 	}
 	if model.Reason != "" {
 		summary["reason"] = model.Reason
@@ -141,9 +136,9 @@ func eqModelSummary(model *EQModel) map[string]any {
 	kinds := []string{}
 	for _, section := range model.Sections {
 		sectionRows = append(sectionRows, eqSectionSummaryRow(section))
-		if section.Complete {
-			for _, kind := range section.ReachableKinds {
-				kinds = append(kinds, string(kind))
+		for _, capability := range section.ShapeCapabilities {
+			if capability.Upsert {
+				kinds = append(kinds, string(capability.Shape))
 			}
 		}
 	}
@@ -254,18 +249,27 @@ func eqBandSummaryRow(band EQBand) map[string]any {
 
 func eqSectionSummaryRow(section EQSection) map[string]any {
 	row := map[string]any{
-		"section":         section.Key,
-		"primary":         section.Primary,
-		"complete":        section.Complete,
-		"issues":          section.Issues,
-		"dedicated_kind":  string(section.DedicatedKind),
-		"reachable_kinds": eqFilterKindStrings(section.ReachableKinds),
-		"active":          section.Activation.Active,
+		"section":             section.Key,
+		"primary":             section.Primary,
+		"complete":            section.Complete,
+		"issues":              section.Issues,
+		"dedicated_kind":      string(section.DedicatedKind),
+		"reachable_kinds":     eqFilterKindStrings(section.ReachableKinds),
+		"active":              section.Activation.Active,
+		"activation_strategy": section.Activation.Strategy,
 		"activation": map[string]any{
-			"strategy": section.Activation.Strategy,
-			"known":    section.Activation.Known,
-			"active":   section.Activation.Active,
+			"strategy":     section.Activation.Strategy,
+			"binding_role": section.Activation.BindingRole,
+			"known":        section.Activation.Known,
+			"active":       section.Activation.Active,
 		},
+		"addressing":         string(section.Addressing),
+		"deallocatable":      section.Deallocatable,
+		"exclusion_codes":    section.ExclusionCodes,
+		"shape_capabilities": eqShapeCapabilityRows(section.ShapeCapabilities),
+	}
+	if section.Activation.BindingRole != "" {
+		row["activation_binding_role"] = section.Activation.BindingRole
 	}
 	if section.FixedFrequencyHz != nil {
 		row["fixed_freq_hz"] = *section.FixedFrequencyHz
@@ -280,6 +284,16 @@ func eqSectionSummaryRow(section EQSection) map[string]any {
 				"channel":            binding.Channel,
 				"current_normalized": binding.CurrentNormalized,
 				"current_text":       binding.CurrentText,
+			}
+			if binding.ActivationKind != "" {
+				item["activation_kind"] = binding.ActivationKind
+			}
+			if binding.GainPolarity != "" {
+				item["gain_polarity"] = binding.GainPolarity
+			}
+			if binding.TransformFactor > 1 {
+				item["transform_kind"] = "multiplier"
+				item["transform_factor"] = binding.TransformFactor
 			}
 			if binding.Channel != "shared" {
 				channels[binding.Channel] = true
@@ -320,58 +334,39 @@ func eqSectionSummaryRow(section EQSection) map[string]any {
 	return row
 }
 
+func eqAddressingKindStrings(values []EQAddressingKind) []string {
+	out := make([]string, 0, len(values))
+	for _, value := range values {
+		out = append(out, string(value))
+	}
+	return out
+}
+
+func eqShapeCapabilityRows(values []EQShapeCapability) []map[string]any {
+	out := make([]map[string]any, 0, len(values))
+	for _, value := range values {
+		rejections := map[string]any{}
+		for action, codes := range value.RejectionCodes {
+			rejections[action] = codes
+		}
+		out = append(out, map[string]any{
+			"shape": value.Shape,
+			"actions": map[string]any{
+				"upsert": value.Upsert, "modify": value.Modify, "disable": value.Disable,
+				"remove": value.Remove, "undo": value.Undo,
+			},
+			"rejection_codes": rejections,
+		})
+	}
+	return out
+}
+
 func eqFilterKindStrings(kinds []EQFilterKind) []string {
 	out := make([]string, 0, len(kinds))
 	for _, kind := range kinds {
 		out = append(out, string(kind))
 	}
 	return out
-}
-
-func buildMarvelGEQSummary(digest ParameterDigest) map[string]any {
-	name := strings.ToLower(strings.TrimSpace(firstNonEmptyText(digest.PluginIdentity, "plugin_name")))
-	if !strings.Contains(name, "marvel geq") {
-		return nil
-	}
-	byID := map[string]ParameterInfo{}
-	for _, param := range digest.Parameters {
-		byID[strings.TrimSpace(param.ID)] = param
-	}
-	rows := make([]map[string]any, 0, len(marvelGEQFixedFrequenciesHz))
-	for index, frequency := range marvelGEQFixedFrequenciesHz {
-		paramID := ""
-		for _, param := range digest.Parameters {
-			if strings.EqualFold(strings.TrimSpace(param.Name), fmt.Sprintf("1EQ%d", index)) {
-				paramID = strings.TrimSpace(param.ID)
-				break
-			}
-		}
-		param, ok := byID[paramID]
-		if !ok || paramID == "" {
-			return nil
-		}
-		row := map[string]any{
-			"band":          fmt.Sprintf("B%d", index+1),
-			"gain_param_id": paramID,
-			"fixed_freq_hz": frequency,
-		}
-		if d := eqDomainFields(param.DisplayDomainCandidate); d != nil {
-			row["gain_domain"] = d
-		}
-		if db, ok := parseDisplayDB(param.ValueText); ok {
-			row["current_gain_db"] = db
-		}
-		rows = append(rows, row)
-	}
-	return map[string]any{
-		"eq_model":               "fixed_freq",
-		"mapping_source":         "plugin_specific_knowledge",
-		"set_eq_point_supported": false,
-		"reason":                 "plugin-specific fixed-frequency table is excluded from generic execution",
-		"band_count":             len(rows),
-		"bands":                  rows,
-		"how_to_pick_a_band":     "This is a fixed-frequency 16-band graphic EQ. Select the band whose fixed_freq_hz is closest to the target and write only its gain_param_id. Frequency is selection metadata, not a writable parameter; Q is not supported.",
-	}
 }
 
 // eqBandsAreFreeFloating reports whether any band exposes a "Used" slot parked

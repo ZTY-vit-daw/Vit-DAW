@@ -509,8 +509,11 @@ func eqIndexDerivedFrequencies(bands map[string]*eqBandEntry, order []string) ma
 // declaring "Hz". Collapsing that to a log-or-linear flag and then applying a
 // formula put a 3400 Hz request at 11064 Hz on FreeEQ8 and 5119 Hz on ZamEQ2.
 //
-// Returns nil unless the samples are strictly increasing on both axes, which is
-// what makes the response invertible.
+// Explicit inactive sentinels such as "Out Hz" have no physical value and are
+// omitted. The remaining active samples may increase or decrease physically,
+// but must be strictly monotonic so the response stays invertible. Keeping an
+// active suffix is important for cut controls whose sentinel occupies one end
+// of the normalised domain (for example Out / 10.7 kHz / ... / 3 kHz).
 func eqCurveFromProbe(param ParameterInfo) [][2]float64 {
 	probe := param.DisplayProbe
 	if probe == nil || len(probe.Samples) < 3 {
@@ -518,11 +521,17 @@ func eqCurveFromProbe(param ParameterInfo) [][2]float64 {
 	}
 	curve := make([][2]float64, 0, len(probe.Samples))
 	for _, sample := range probe.Samples {
+		if eqFrequencyTextIsInactive(sample.Text) {
+			continue
+		}
 		value, _, ok := parseProbeDisplayNumber(sample.Text, probe.Label)
 		if !ok {
 			return nil
 		}
 		curve = append(curve, [2]float64{sample.NormalizedValue, value})
+	}
+	if len(curve) < 3 {
+		return nil
 	}
 	direction := 0
 	for i := 1; i < len(curve); i++ {

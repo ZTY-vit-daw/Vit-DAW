@@ -1,0 +1,58 @@
+{
+  "schema_version": "plugin_grabber.eq_compat_matrix.v1",
+  "defaults": {
+    "target": {"freq_hz": 80.0, "shape": "low_cut"},
+    "tolerance": {
+      "freq_hz": 80.0,
+      "gain_db": 0.15,
+      "q": 0.05,
+      "normalized": 0.0001
+    }
+  },
+  "cases": [
+    {
+      "id": "q10_low_cut",
+      "plugin_name": "Q10 Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "expected_model": "fixed_slot_adjustable",
+      "request_q": false,
+      "generic_coverage": true
+    },
+    {
+      "id": "sslchannel_high_cut",
+      "plugin_name": "SSLChannel Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "expected_model": "fixed_slot_adjustable",
+      "request_q": false,
+      "target": {"freq_hz": 8000.0, "shape": "high_cut"},
+      "generic_coverage": true,
+      "forbidden_write_name_tokens": [
+        "threshold", "attack", "release", "ratio", "compressor", "gate"
+      ]
+    },
+    {
+      "id": "ssl_ev2_high_cut",
+      "plugin_name": "SSL EV2 Channel Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "expected_model": "fixed_slot_adjustable",
+      "request_q": false,
+      "target": {"freq_hz": 8000.0, "shape": "high_cut"},
+      "generic_coverage": true,
+      "forbidden_write_name_tokens": [
+        "threshold", "attack", "release", "ratio", "compressor", "gate"
+      ]
+    },
+    {
+      "id": "sslgchannel_high_cut",
+      "plugin_name": "SSLGChannel Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "expected_model": "fixed_slot_adjustable",
+      "request_q": false,
+      "target": {"freq_hz": 8000.0, "shape": "high_cut"},
+      "generic_coverage": true,
+      "forbidden_write_name_tokens": [
+        "threshold", "attack", "release", "ratio", "compressor", "gate"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "schema_version": "plugin_grabber.eq_two_level_holdout.v1",
+  "selection": {
+    "method": "frozen_consumed_holdout_regression",
+    "source_run": "20260728_125659",
+    "locked_before_parameter_read": true
+  },
+  "protocol": {
+    "parameter_phase": "apply, verify exact_or_quantized, formal undo, verify zero drift",
+    "shape_phase": "apply, verify requested shape and activation, formal undo, verify zero drift",
+    "atomic": true,
+    "complete_parameter_pagination": true
+  },
+  "cases": [
+    {
+      "id": "knif_audio_soma_lexical_closure",
+      "plugin_name": "Knif Audio Soma",
+      "vendor": "Plugin Alliance",
+      "category": "Fx|EQ",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\Knif Audio Soma.vst3",
+      "tests": [
+        {
+          "level": "parameter",
+          "instruction": "将 3400 Hz 降低 3 dB，Q 值为 0.5，保持 Bell",
+          "edits": [
+            {"action": "upsert", "shape": "bell", "frequency_hz": 3400.0, "gain_db": -3.0, "q": 0.5}
+          ]
+        },
+        {
+          "level": "shape",
+          "instruction": "打开 80 Hz Low Cut",
+          "edits": [
+            {"action": "upsert", "shape": "low_cut", "frequency_hz": 80.0}
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -282,6 +282,23 @@ def normalized_value(row: dict[str, Any]) -> float:
     return float(value)
 
 
+def actual_readback_rows(result: dict[str, Any]) -> list[dict[str, Any]]:
+    """Return readback rows from either legacy or atomic EQ result schemas."""
+    direct = result.get("actual_readback")
+    if isinstance(direct, list):
+        return [row for row in direct if isinstance(row, dict)]
+    rows: list[dict[str, Any]] = []
+    edits = result.get("edits")
+    if isinstance(edits, list):
+        for edit in edits:
+            if not isinstance(edit, dict):
+                continue
+            readback = edit.get("actual_readback")
+            if isinstance(readback, list):
+                rows.extend(row for row in readback if isinstance(row, dict))
+    return rows
+
+
 def smoke_case(base: str, case: dict[str, Any], track_id: str, plugin_id: str,
                before: dict[str, Any], explain: dict[str, Any],
                defaults: dict[str, Any], timeout: float) -> dict[str, Any]:
@@ -365,44 +382,53 @@ def smoke_case(base: str, case: dict[str, Any], track_id: str, plugin_id: str,
     touched.discard("")
     if not touched:
         raise RuntimeError("set_eq_point returned no touched parameters")
-    requested_shape = str(target.get("shape", "")).casefold()
-    if requested_shape:
-        selected = applied.get("selected_section")
-        if not isinstance(selected, dict) or str(selected.get("shape", "")).casefold() != requested_shape:
-            raise RuntimeError(
-                f"selected_section did not confirm requested shape {requested_shape!r}: {selected!r}")
-        expected_partial = bool(case.get("expected_partial", False))
-        if bool(applied.get("partial")) != expected_partial:
-            raise RuntimeError(
-                f"partial={applied.get('partial')!r}, expected={expected_partial!r}; "
-                f"limitations={applied.get('limitations')!r}")
-    expected_quantized = {str(value).casefold() for value in
-                          case.get("expect_quantized_roles", [])}
-    actual_quantized = {first_text(row, "role").casefold() for row in writes
-                        if bool(row.get("quantized"))}
-    if expected_quantized and not expected_quantized.issubset(actual_quantized):
-        raise RuntimeError(
-            f"quantized_roles={sorted(actual_quantized)!r}, "
-            f"expected at least={sorted(expected_quantized)!r}")
-    activation_indices = [i for i, row in enumerate(writes)
-                          if first_text(row, "role") == "used"]
-    if activation_indices and activation_indices != list(
-            range(len(writes)-len(activation_indices), len(writes))):
-        raise RuntimeError("activation writes were not last")
-    actual_by_id = {first_text(row, "param_id"): row for row in
-                    applied.get("actual_readback", []) if isinstance(row, dict)}
-    if set(actual_by_id) != touched:
-        raise RuntimeError(
-            f"actual_readback ids={sorted(actual_by_id)!r}, touched={sorted(touched)!r}")
-    inactive_labels = {"unused", "disabled", "off", "out", "bypass", "bypassed"}
-    for index in activation_indices:
-        pid = first_text(writes[index], "param_id")
-        label = first_text(actual_by_id.get(pid, {}), "value_text").casefold()
-        if not label or label in inactive_labels:
-            raise RuntimeError(
-                f"activation parameter {pid} did not read back active: {label!r}")
     validation_error: Exception | None = None
     try:
+        requested_shape = str(target.get("shape", "")).casefold()
+        if requested_shape:
+            edits = [row for row in applied.get("edits", [])
+                     if isinstance(row, dict)]
+            selected = applied.get("selected_section")
+            selected_shape = (str(selected.get("shape", "")).casefold()
+                              if isinstance(selected, dict) else "")
+            if not selected_shape and edits:
+                selected_shape = first_text(edits[0], "shape").casefold()
+            if selected_shape != requested_shape:
+                raise RuntimeError(
+                    f"EQ result did not confirm requested shape {requested_shape!r}: "
+                    f"selected_section={selected!r} edits={edits!r}")
+            expected_partial = bool(case.get("expected_partial", False))
+            actual_partial = bool(applied.get("partial", False))
+            if actual_partial != expected_partial:
+                raise RuntimeError(
+                    f"partial={actual_partial!r}, expected={expected_partial!r}; "
+                    f"limitations={applied.get('limitations')!r}")
+        expected_quantized = {str(value).casefold() for value in
+                              case.get("expect_quantized_roles", [])}
+        actual_quantized = {first_text(row, "role").casefold() for row in writes
+                            if bool(row.get("quantized"))}
+        if expected_quantized and not expected_quantized.issubset(actual_quantized):
+            raise RuntimeError(
+                f"quantized_roles={sorted(actual_quantized)!r}, "
+                f"expected at least={sorted(expected_quantized)!r}")
+        activation_indices = [i for i, row in enumerate(writes)
+                              if first_text(row, "role") == "used"]
+        if activation_indices and activation_indices != list(
+                range(len(writes)-len(activation_indices), len(writes))):
+            raise RuntimeError("activation writes were not last")
+        actual_by_id = {first_text(row, "param_id"): row for row in
+                        actual_readback_rows(applied)}
+        if set(actual_by_id) != touched:
+            raise RuntimeError(
+                f"actual_readback ids={sorted(actual_by_id)!r}, touched={sorted(touched)!r}")
+        inactive_labels = {"unused", "disabled", "off", "out", "bypass", "bypassed"}
+        for index in activation_indices:
+            pid = first_text(writes[index], "param_id")
+            label = first_text(actual_by_id.get(pid, {}), "value_text").casefold()
+            if not label or label in inactive_labels:
+                raise RuntimeError(
+                    f"activation parameter {pid} did not read back active: {label!r}")
+
         forbidden = [str(token).casefold() for token in
                      case.get("forbidden_write_name_tokens", [])]
         by_id = {param_id(row): row for row in before_rows}

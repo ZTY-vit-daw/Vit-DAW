@@ -138,7 +138,7 @@ func TestBuildEQBandSummaryFixedFreqDescriptionIsGainOnly(t *testing.T) {
 	}
 }
 
-func TestBuildEQBandSummaryDetectsMarvelGEQ(t *testing.T) {
+func TestBuildEQBandSummaryNeverUsesPluginIdentityToInventFixedFrequencies(t *testing.T) {
 	params := make([]ParameterInfo, 0, 16)
 	for i := 0; i < 16; i++ {
 		minDB, maxDB := -12.0, 12.0
@@ -152,15 +152,20 @@ func TestBuildEQBandSummaryDetectsMarvelGEQ(t *testing.T) {
 		PluginIdentity: map[string]any{"plugin_name": "Marvel GEQ", "manufacturer": "Voxengo"},
 		Parameters:     params,
 	})
-	if summary == nil || summary["eq_model"] != "fixed_freq" {
-		t.Fatalf("expected Marvel GEQ fixed_freq summary, got %#v", summary)
+	if summary == nil || summary["eq_model"] != "fixed_freq" || summary["mapping_source"] != "generic_structural" {
+		t.Fatalf("expected identity-free structural summary, got %#v", summary)
 	}
 	bands, _ := summary["bands"].([]map[string]any)
-	if len(bands) != 16 || bands[11]["fixed_freq_hz"] != 3150.0 {
-		t.Fatalf("Marvel bands = %#v, expected 16 bands with B12=3150Hz", bands)
+	if len(bands) != 16 {
+		t.Fatalf("structural bands = %#v, expected all 16 observed gain controls", bands)
 	}
-	if bands[11]["gain_param_id"] != "11" {
-		t.Fatalf("Marvel B12 gain param = %#v, want 11", bands[11]["gain_param_id"])
+	for _, band := range bands {
+		if _, invented := band["fixed_freq_hz"]; invented {
+			t.Fatalf("plugin identity invented an unobserved fixed frequency: %#v", band)
+		}
+	}
+	if supported, _ := summary["set_eq_point_supported"].(bool); supported {
+		t.Fatalf("opaque fixed-frequency surface must fail closed: %#v", summary)
 	}
 }
 

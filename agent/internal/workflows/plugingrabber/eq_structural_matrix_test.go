@@ -69,6 +69,78 @@ func typedContinuousParam(id, name, current string, min, max float64) ParameterI
 		DisplayDomainCandidate: eqRange(min, max, "linear")}
 }
 
+func TestEQCurveFromProbeKeepsDecreasingActiveSuffixAfterSentinel(t *testing.T) {
+	param := ParameterInfo{ID: "lp", Name: "LP Frequency", ValueText: "Out KHz",
+		DisplayProbe: &ParameterDisplayProbe{Samples: []ParameterDisplayProbeSample{
+			{NormalizedValue: 0, Text: "Out KHz"},
+			{NormalizedValue: 0.25, Text: "10.7 KHz"},
+			{NormalizedValue: 0.5, Text: "5.0 KHz"},
+			{NormalizedValue: 0.75, Text: "3.7 KHz"},
+			{NormalizedValue: 1, Text: "3.0 KHz"},
+		}}}
+	curve := eqCurveFromProbe(param)
+	want := [][2]float64{{0.25, 10700}, {0.5, 5000}, {0.75, 3700}, {1, 3000}}
+	if !slices.Equal(curve, want) {
+		t.Fatalf("sentinel-trimmed curve=%v, want %v", curve, want)
+	}
+}
+
+func TestParseEQFrequencyTextSupportsMixedHzAndBareKDisplays(t *testing.T) {
+	tests := map[string]float64{
+		"20": 20, "115 Hz": 115, "663": 663, "3.82k": 3820, "22.00K": 22000, "12 kHz": 12000,
+		"1k0": 1000, "2k7": 2700, "3k3 Hz": 3300, "0,5 kHz": 500,
+	}
+	for text, want := range tests {
+		got, ok := ParseEQFrequencyText(text)
+		if !ok || got != want {
+			t.Fatalf("ParseEQFrequencyText(%q)=(%g,%v), want (%g,true)", text, got, ok, want)
+		}
+	}
+}
+
+func TestParseEQLocalizedNumberSupportsDecimalComma(t *testing.T) {
+	for text, want := range map[string]float64{"0,5": 0.5, "-3,0 dB": -3, "+1.25": 1.25} {
+		got, ok := ParseEQLocalizedNumber(text)
+		if !ok || got != want {
+			t.Fatalf("ParseEQLocalizedNumber(%q)=(%g,%v), want (%g,true)", text, got, ok, want)
+		}
+	}
+}
+
+func TestDetectEQModelUnifiesAbbreviatedSectionsAndLocalizedEnumValues(t *testing.T) {
+	params := []ParameterInfo{
+		typedEnumParam("hm-f", "High Mid Frequency 1", "2k7", "560", "1k0", "2k7", "3k3", "3k9"),
+		typedEnumParam("hm-g", "HM Boost 1", "0.0", "-8.0", "-3.0", "0.0", "3.0", "8.0"),
+		typedEnumParam("hm-q", "HM Bandwidth 1", "1", "0,5", "0,7", "1", "1,5", "Shelf"),
+		typedEnumParam("hm-on", "High Mid Band On 1", "On", "Off", "On"),
+	}
+	model := DetectEQModel(ParameterDigest{Parameters: params})
+	section := findEQSection(t, model, "high mid 1")
+	if !section.Complete || len(section.Bindings[eqRoleFrequency]) != 1 ||
+		len(section.Bindings[eqRoleGain]) != 1 || len(section.Bindings[eqRoleQ]) != 1 {
+		t.Fatalf("abbreviated/localized section was not unified: %+v", section)
+	}
+	qValues := section.Bindings[eqRoleQ][0].Reachable
+	if len(qValues) < 1 || qValues[0].Physical == nil || *qValues[0].Physical != 0.5 {
+		t.Fatalf("localized Q values=%+v", qValues)
+	}
+	frequencyValues := section.Bindings[eqRoleFrequency][0].Reachable
+	if len(frequencyValues) < 4 || frequencyValues[3].Physical == nil || *frequencyValues[3].Physical != 3300 {
+		t.Fatalf("engineering frequency values=%+v", frequencyValues)
+	}
+}
+
+func TestEQCurveFromProbeDoesNotInventCurveFromTooFewActiveSamples(t *testing.T) {
+	param := ParameterInfo{DisplayProbe: &ParameterDisplayProbe{Samples: []ParameterDisplayProbeSample{
+		{NormalizedValue: 0, Text: "Out Hz"},
+		{NormalizedValue: 0.5, Text: "80 Hz"},
+		{NormalizedValue: 1, Text: "160 Hz"},
+	}}}
+	if curve := eqCurveFromProbe(param); curve != nil {
+		t.Fatalf("two active samples cannot prove a response curve: %v", curve)
+	}
+}
+
 func addTwoBellBands(params []ParameterInfo) []ParameterInfo {
 	for i := 1; i <= 2; i++ {
 		prefix := "Band " + string(rune('0'+i))
@@ -159,7 +231,78 @@ func TestDetectEQModelRecoversCompactDedicatedCutsWithOffEnum(t *testing.T) {
 	}
 }
 
-func TestDetectEQModelRecoversNamedBellToggleWithoutInventingShelf(t *testing.T) {
+func TestDetectEQModelRecoversNumberedCompoundCutWithSlopePropertySentinel(t *testing.T) {
+	for _, test := range []struct {
+		current string
+		active  bool
+	}{{"Off", false}, {"12 dB", true}} {
+		params := []ParameterInfo{
+			typedEnumParam("hpf", "High-pass 1 Frequency", "20", "20", "115", "663", "3.82k", "22.00k"),
+			typedEnumParam("hps", "High-pass 1 Slope", test.current, "Off", "6 dB", "12 dB"),
+		}
+		model := DetectEQModel(ParameterDigest{Parameters: params})
+		section := findEQSection(t, model, "low cut 1")
+		if section.DedicatedKind != EQFilterLowCut || !section.Complete ||
+			section.Activation.Strategy != EQActivationPropertySentinel ||
+			section.Activation.BindingRole != eqRoleSlope || section.Activation.Active != test.active {
+			t.Fatalf("current=%q compound property-sentinel section=%+v", test.current, section)
+		}
+		capability := findEQShapeCapability(t, section.ShapeCapabilities, EQFilterLowCut)
+		if !capability.Upsert || !capability.Modify || !capability.Disable {
+			t.Fatalf("current=%q cut capability=%+v", test.current, capability)
+		}
+	}
+}
+
+func TestDetectEQModelProjectsQualityByLocalPhysicalEvidence(t *testing.T) {
+	qMin, qMax := 0.3, 15.0
+	params := []ParameterInfo{
+		typedContinuousParam("mf-f", "1 Mf Frequency", "3.15k", 20, 26000),
+		typedContinuousParam("mf-g", "1 Mf Gain", "0.0", -12, 12),
+		{ID: "mf-quality", Name: "1 Mf Quality", ValueText: "0.5", NormalizedValue: 0.13,
+			DisplayDomainCandidate: eqRange(qMin, qMax, "log")},
+		typedEnumParam("mf-on", "1 Mf On/Off", "On", "Off", "On"),
+		typedContinuousParam("hp-f", "1 HP Frequency", "80", 20, 26000),
+		typedEnumParam("hp-quality", "1 HP Quality", "18 dB/o", "0.3", "6.0", "6 dB/o", "12 dB/o", "18 dB/o"),
+		typedEnumParam("hp-on", "1 HP On/Off", "On", "Off", "On"),
+	}
+	model := DetectEQModel(ParameterDigest{Parameters: params})
+	bell := findEQSection(t, model, "1 mf")
+	if len(bell.Bindings[eqRoleQ]) != 1 || bell.Bindings[eqRoleQ][0].ParamID != "mf-quality" {
+		t.Fatalf("numeric Quality was not projected to Q: %+v", bell)
+	}
+	cut := findEQSection(t, model, "1 low cut")
+	if len(cut.Bindings[eqRoleSlope]) != 1 || cut.Bindings[eqRoleSlope][0].ParamID != "hp-quality" {
+		t.Fatalf("Cut Quality was not projected to Slope: %+v", cut)
+	}
+	for _, value := range cut.Bindings[eqRoleSlope][0].Reachable {
+		if value.Physical != nil && !textLooksLikeSlopeUnit(value.Label) {
+			t.Fatalf("non-slope Quality label gained slope physical value: %+v", value)
+		}
+	}
+}
+
+func TestDetectEQModelRecoversFrequencyMultiplierBinding(t *testing.T) {
+	params := []ParameterInfo{
+		typedContinuousParam("hmf-f", "High-Mid Frequency 1", "1425", 250, 2500),
+		typedEnumParam("hmf-x10", "High-Mid Frequency X10 1", "Off", "Off", "On"),
+		typedContinuousParam("hmf-q", "High-Mid Q 1", "1.0", 0.4, 4),
+		typedContinuousParam("hmf-g", "High-Mid Gain 1", "0.0", -20, 20),
+		typedEnumParam("hmf-on", "High-Mid In/Out 1", "In", "Out", "In"),
+	}
+	model := DetectEQModel(ParameterDigest{Parameters: params})
+	section := findEQSection(t, model, "high mid 1")
+	bindings := section.Bindings[eqRoleFrequencyTransform]
+	if len(bindings) != 1 || bindings[0].TransformFactor != 10 || bindings[0].CurrentPhysical == nil || *bindings[0].CurrentPhysical != 1 {
+		t.Fatalf("frequency multiplier binding=%+v section=%+v", bindings, section)
+	}
+	if len(bindings[0].Reachable) != 2 || bindings[0].Reachable[0].Physical == nil || *bindings[0].Reachable[0].Physical != 1 ||
+		bindings[0].Reachable[1].Physical == nil || *bindings[0].Reachable[1].Physical != 10 {
+		t.Fatalf("frequency multiplier reachable values=%+v", bindings[0].Reachable)
+	}
+}
+
+func TestDetectEQModelRecoversDirectionalShelfAlternativeFromBellSelector(t *testing.T) {
 	params := []ParameterInfo{
 		typedEnumParam("lf-f", "LFF", "100 Hz", "33 Hz", "100 Hz", "330 Hz"),
 		typedContinuousParam("lf-g", "LFG", "0.0 dB", -18, 18),
@@ -169,11 +312,12 @@ func TestDetectEQModelRecoversNamedBellToggleWithoutInventingShelf(t *testing.T)
 	}
 	model := DetectEQModel(ParameterDigest{Parameters: params})
 	section := findEQSection(t, model, "low")
-	if !slices.Contains(section.ReachableKinds, EQFilterBell) || slices.Contains(section.ReachableKinds, EQFilterLowShelf) {
+	if !slices.Contains(section.ReachableKinds, EQFilterBell) || !slices.Contains(section.ReachableKinds, EQFilterLowShelf) {
 		t.Fatalf("named Bell topology=%+v", section)
 	}
 	bindings := section.Bindings[eqRoleFilterKind]
-	if len(bindings) != 1 || len(bindings[0].Reachable) != 2 || bindings[0].Reachable[1].Kind != EQFilterBell {
+	if len(bindings) != 1 || len(bindings[0].Reachable) != 2 || bindings[0].Reachable[0].Kind != EQFilterLowShelf ||
+		bindings[0].Reachable[1].Kind != EQFilterBell {
 		t.Fatalf("named Bell binding=%+v", bindings)
 	}
 }
@@ -322,4 +466,127 @@ func TestDetectEQModelUsesEnumPhysicalValuesAndRejectsCompressorClassification(t
 	if DetectEQModel(ParameterDigest{TemplateRole: "comp", Parameters: params}) != nil {
 		t.Fatal("compressor-classified local filter bank must not become a top-level EQ")
 	}
+}
+
+func TestDetectEQModelRecognizesFilterOnlySurfaceWithoutGainBands(t *testing.T) {
+	params := []ParameterInfo{
+		typedEnumParam("hp", "High Pass Frequency", "80 Hz", "Off", "40 Hz", "80 Hz", "160 Hz"),
+		typedEnumParam("lp", "Low Pass Frequency", "12 kHz", "4 kHz", "8 kHz", "12 kHz", "Off"),
+	}
+	model := DetectEQModel(ParameterDigest{Parameters: params})
+	if model == nil || len(model.Sections) != 2 {
+		t.Fatalf("filter-only model=%+v", model)
+	}
+	for _, test := range []struct {
+		key   string
+		shape EQFilterKind
+	}{{"low cut", EQFilterLowCut}, {"high cut", EQFilterHighCut}} {
+		section := findEQSection(t, model, test.key)
+		capability := findEQShapeCapability(t, section.ShapeCapabilities, test.shape)
+		if !section.Complete || !capability.Upsert || !capability.Modify || !capability.Disable {
+			t.Fatalf("filter-only %s capability=%+v section=%+v", test.shape, capability, section)
+		}
+	}
+}
+
+func TestDetectEQModelRejectsCoupledGainLocallyButKeepsIndependentCut(t *testing.T) {
+	params := []ParameterInfo{
+		typedEnumParam("f1", "Band 1 Frequency", "100 Hz", "50 Hz", "100 Hz", "200 Hz"),
+		typedContinuousParam("boost", "Band 1 Boost", "2 dB", 0, 12),
+		typedContinuousParam("atten", "Band 1 Attenuate", "0 dB", 0, 12),
+		typedEnumParam("hp", "High Pass Frequency", "80 Hz", "Off", "40 Hz", "80 Hz", "160 Hz"),
+	}
+	model := DetectEQModel(ParameterDigest{Parameters: params})
+	if model == nil {
+		t.Fatal("local coupled section must not reject the whole plugin")
+	}
+	bell := findEQShapeCapability(t, findEQSection(t, model, "1").ShapeCapabilities, EQFilterBell)
+	if bell.Upsert || !slices.Contains(bell.RejectionCodes["upsert"], "gain_law_not_arbitrary_bipolar") {
+		t.Fatalf("coupled Bell capability=%+v", bell)
+	}
+	cut := findEQShapeCapability(t, findEQSection(t, model, "low cut").ShapeCapabilities, EQFilterLowCut)
+	if !cut.Upsert {
+		t.Fatalf("independent static cut was blocked by another section: %+v", cut)
+	}
+}
+
+func TestDetectEQModelKeepsStaticCoreWhenBandHasDynamicAuxiliaryParameters(t *testing.T) {
+	params := []ParameterInfo{
+		typedContinuousParam("f1", "Band 1 Frequency", "1000 Hz", 20, 20000),
+		typedContinuousParam("g1", "Band 1 Gain", "0 dB", -12, 12),
+		typedContinuousParam("q1", "Band 1 Q", "1.0", 0.1, 10),
+		typedContinuousParam("t1", "Band 1 Threshold", "-20 dB", -80, 0),
+		typedContinuousParam("r1", "Band 1 Dynamic Range", "0 dB", -12, 12),
+		typedEnumParam("sc1", "Band 1 External Sidechain", "Off", "Off", "On"),
+		typedEnumParam("hp", "High Pass Frequency", "80 Hz", "Off", "40 Hz", "80 Hz", "160 Hz"),
+	}
+	model := DetectEQModel(ParameterDigest{Parameters: params})
+	bellSection := findEQSection(t, model, "1")
+	bell := findEQShapeCapability(t, bellSection.ShapeCapabilities, EQFilterBell)
+	if !bell.Upsert || slices.Contains(bellSection.ExclusionCodes, "dynamic_section_excluded") ||
+		slices.Contains(bellSection.ExclusionCodes, "sidechain_or_detector_section_excluded") {
+		t.Fatalf("static core was polluted by auxiliary siblings: capability=%+v section=%+v", bell, bellSection)
+	}
+	cut := findEQShapeCapability(t, findEQSection(t, model, "low cut").ShapeCapabilities, EQFilterLowCut)
+	if !cut.Upsert {
+		t.Fatalf("independent cut must remain available: %+v", cut)
+	}
+}
+
+func TestDetectEQModelStillExcludesOwnedDynamicAndSidechainComponents(t *testing.T) {
+	params := []ParameterInfo{
+		typedContinuousParam("main-f", "Band 1 Frequency", "1000 Hz", 20, 20000),
+		typedContinuousParam("main-g", "Band 1 Gain", "0 dB", -12, 12),
+		typedContinuousParam("de-f", "DeEsser Frequency", "6000 Hz", 1000, 16000),
+		typedContinuousParam("de-g", "DeEsser Gain", "0 dB", -12, 12),
+		typedContinuousParam("sc-f", "SC Bell Frequency", "120 Hz", 20, 20000),
+		typedContinuousParam("sc-g", "SC Bell Gain", "0 dB", -12, 12),
+	}
+	model := DetectEQModel(ParameterDigest{Parameters: params})
+	main := findEQShapeCapability(t, findEQSection(t, model, "1").ShapeCapabilities, EQFilterBell)
+	if !main.Upsert {
+		t.Fatalf("main static EQ section was excluded: %+v", main)
+	}
+	deEsser := findEQSection(t, model, "de esser")
+	deEsserBell := findEQShapeCapability(t, deEsser.ShapeCapabilities, EQFilterBell)
+	if deEsserBell.Upsert || !slices.Contains(deEsser.ExclusionCodes, "dynamic_section_excluded") {
+		t.Fatalf("DeEsser component was not excluded: section=%+v capability=%+v", deEsser, deEsserBell)
+	}
+	sidechain := findEQSection(t, model, "sc bell")
+	sidechainBell := findEQShapeCapability(t, sidechain.ShapeCapabilities, EQFilterBell)
+	if sidechainBell.Upsert || !slices.Contains(sidechain.ExclusionCodes, "sidechain_or_detector_section_excluded") {
+		t.Fatalf("sidechain component was not excluded: section=%+v capability=%+v", sidechain, sidechainBell)
+	}
+}
+
+func TestEQTopologyGenerationIgnoresIdentityAndCurrentValues(t *testing.T) {
+	makeDigest := func(identity string, freqText, gainText string, normalized float64) ParameterDigest {
+		params := []ParameterInfo{
+			typedContinuousParam("f1", "Band 1 Frequency", freqText, 20, 20000),
+			typedContinuousParam("g1", "Band 1 Gain", gainText, -12, 12),
+			typedContinuousParam("q1", "Band 1 Q", "1.0", 0.1, 10),
+			typedContinuousParam("f2", "Band 2 Frequency", "4000 Hz", 20, 20000),
+			typedContinuousParam("g2", "Band 2 Gain", "0 dB", -12, 12),
+			typedContinuousParam("q2", "Band 2 Q", "1.0", 0.1, 10),
+		}
+		params[0].NormalizedValue = normalized
+		return ParameterDigest{PluginIdentity: map[string]any{"plugin_name": identity}, Parameters: params}
+	}
+	one := DetectEQModel(makeDigest("Identity A", "1000 Hz", "0 dB", 0.4))
+	two := DetectEQModel(makeDigest("Identity B", "1200 Hz", "-3 dB", 0.5))
+	if one == nil || two == nil || one.ControlTopology.Generation == "" ||
+		one.ControlTopology.Generation != two.ControlTopology.Generation {
+		t.Fatalf("topology generations must be identity/value independent: one=%+v two=%+v", one, two)
+	}
+}
+
+func findEQShapeCapability(t *testing.T, capabilities []EQShapeCapability, shape EQFilterKind) EQShapeCapability {
+	t.Helper()
+	for _, capability := range capabilities {
+		if capability.Shape == shape {
+			return capability
+		}
+	}
+	t.Fatalf("shape capability %s not found in %+v", shape, capabilities)
+	return EQShapeCapability{}
 }

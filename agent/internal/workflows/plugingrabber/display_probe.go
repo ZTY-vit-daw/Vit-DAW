@@ -174,13 +174,13 @@ func parseProbeDisplayNumber(text, label string) (float64, string, bool) {
 	}
 	unitSource := text
 	unit := inferDisplayDomainUnit(unitSource)
-	lower := strings.ToLower(unitSource)
-	if strings.Contains(lower, "khz") {
-		unit = "Hz"
-		value *= 1000
-	}
 	if unit == "" {
 		unit = inferDisplayDomainUnit(label)
+	}
+	if strings.EqualFold(unit, "Hz") {
+		if frequency, ok := ParseEQFrequencyText(text); ok {
+			value = frequency
+		}
 	}
 	return value, unit, true
 }
