@@ -68,7 +68,7 @@ func TestPlanB4EQBatchRepairsMissingPurposeUsingSharedOrdinaryEQContract(t *test
 	validAction := semanticEQPlannerTestAction("kick", "eq-a")
 	validBatch := `{"schema_version":"semantic_effect_batch.v1","project_goal":"separate low end","atomic":true,"actions":[` + validAction + `]}`
 	invalidBatch := strings.Replace(validBatch, `"purpose":`, `"omitted_purpose":`, 1)
-	server, cfg, calls, bodies := semanticEQPlannerTestServer(t, []string{invalidBatch, validBatch})
+	server, cfg, calls, bodies := semanticEQPlannerTestServer(t, []string{invalidBatch, validBatch + "}"})
 	treatment := lowendrelation.TreatmentPlan{
 		SchemaVersion:    lowendrelation.TreatmentPlanSchema,
 		PlanID:           "plan-1",
@@ -97,6 +97,97 @@ func TestPlanB4EQBatchRepairsMissingPurposeUsingSharedOrdinaryEQContract(t *test
 	}
 	if len(*bodies) != 2 || !strings.Contains((*bodies)[0], "distinct acoustic purpose") || !strings.Contains((*bodies)[1], "purpose is required") {
 		t.Fatalf("shared ordinary-EQ contract missing from B4 plan/repair requests")
+	}
+}
+
+func TestPlanB4EQBatchStopsAfterBoundedRepairAttempts(t *testing.T) {
+	server, cfg, calls, _ := semanticEQPlannerTestServer(t, []string{"not JSON", "still not JSON", "also not JSON"})
+	treatment := lowendrelation.TreatmentPlan{
+		SchemaVersion: lowendrelation.TreatmentPlanSchema,
+		PlanID:        "plan-1", DiagnosisID: "diag-1", ObservationID: "obs-1", ObservationScope: "full_project",
+		Summary: "separate low end",
+		Targets: []lowendrelation.TreatmentTarget{{TargetID: "target-1", Order: 1, TrackID: "kick", ListeningGoal: "make room for bass"}},
+	}
+	targets := []b4EQTargetContext{{
+		Treatment: treatment.Targets[0],
+		Instance:  semanticTreatmentInstance{TrackID: "kick", PluginID: "eq-a", PluginName: "Test EQ", Topology: map[string]any{"sections": []any{map[string]any{"section": "1", "reachable_shapes": []any{"bell"}}}}},
+	}}
+
+	_, err := server.planB4EQBatch(context.Background(), "conversation-1", treatment, targets, cfg, "")
+	if err == nil || !strings.Contains(err.Error(), "after 2 repair attempts") {
+		t.Fatalf("bounded invalid planner result: calls=%d err=%v", *calls, err)
+	}
+	if *calls != 3 {
+		t.Fatalf("LLM calls=%d, want initial call plus exactly two repairs", *calls)
+	}
+}
+
+func TestPlanB4EQBatchCompletesOnlyMissingOrderedSuffixAfterTruncatedPrefix(t *testing.T) {
+	action1 := semanticEQPlannerTestAction("kick", "eq-a")
+	action2 := semanticEQPlannerTestAction("bass", "eq-b")
+	action3 := semanticEQPlannerTestAction("toms", "eq-c")
+	prefixWithoutActionsClose := `{"schema_version":"semantic_effect_batch.v1","project_goal":"separate low end","atomic":true,"actions":[` + action1 + `,` + action2 + `}`
+	remainingBatch := `{"schema_version":"semantic_effect_batch.v1","project_goal":"separate low end","atomic":true,"actions":[` + action3 + `]}`
+	server, cfg, calls, bodies := semanticEQPlannerTestServer(t, []string{prefixWithoutActionsClose, remainingBatch})
+	treatment := lowendrelation.TreatmentPlan{
+		SchemaVersion: lowendrelation.TreatmentPlanSchema,
+		PlanID:        "plan-1", DiagnosisID: "diag-1", ObservationID: "obs-1", ObservationScope: "full_project",
+		Summary: "separate low end",
+		Targets: []lowendrelation.TreatmentTarget{
+			{TargetID: "target-1", Order: 1, TrackID: "kick", ListeningGoal: "anchor the transient"},
+			{TargetID: "target-2", Order: 2, TrackID: "bass", ListeningGoal: "retain the bass body"},
+			{TargetID: "target-3", Order: 3, TrackID: "toms", ListeningGoal: "remove low-end masking"},
+		},
+	}
+	targets := []b4EQTargetContext{
+		{Treatment: treatment.Targets[0], Instance: semanticTreatmentInstance{TrackID: "kick", PluginID: "eq-a", PluginName: "Test EQ", Topology: map[string]any{"sections": []any{map[string]any{"section": "1", "reachable_shapes": []any{"bell"}}}}}},
+		{Treatment: treatment.Targets[1], Instance: semanticTreatmentInstance{TrackID: "bass", PluginID: "eq-b", PluginName: "Test EQ", Topology: map[string]any{"sections": []any{map[string]any{"section": "1", "reachable_shapes": []any{"bell"}}}}}},
+		{Treatment: treatment.Targets[2], Instance: semanticTreatmentInstance{TrackID: "toms", PluginID: "eq-c", PluginName: "Test EQ", Topology: map[string]any{"sections": []any{map[string]any{"section": "1", "reachable_shapes": []any{"bell"}}}}}},
+	}
+
+	batch, err := server.planB4EQBatch(context.Background(), "conversation-1", treatment, targets, cfg, "")
+	if err != nil {
+		t.Fatalf("complete missing B4 suffix: %v", err)
+	}
+	if *calls != 2 || len(batch.Actions) != 3 {
+		t.Fatalf("calls=%d actions=%d, want one suffix repair and three final actions", *calls, len(batch.Actions))
+	}
+	for index, wantTrack := range []string{"kick", "bass", "toms"} {
+		if batch.Actions[index].Target.TrackID != wantTrack {
+			t.Fatalf("action %d track=%q, want exact ordered target %q", index+1, batch.Actions[index].Target.TrackID, wantTrack)
+		}
+	}
+	if len(*bodies) != 2 || !strings.Contains((*bodies)[1], "Do not repeat completed actions") || !strings.Contains((*bodies)[1], `\"track_id\":\"toms\"`) {
+		t.Fatalf("suffix repair request did not isolate the missing exact target: %s", (*bodies)[1])
+	}
+}
+
+func TestDecodeB4EQBatchTailRecoveryPreservesExactTargetValidation(t *testing.T) {
+	validAction := semanticEQPlannerTestAction("kick", "eq-a")
+	validBatch := `{"schema_version":"semantic_effect_batch.v1","project_goal":"separate low end","atomic":true,"actions":[` + validAction + `]}`
+	treatment := lowendrelation.TreatmentPlan{
+		SchemaVersion: lowendrelation.TreatmentPlanSchema,
+		ObservationID: "obs-1", ObservationScope: "full_project", Summary: "separate low end",
+		Targets: []lowendrelation.TreatmentTarget{{TargetID: "target-1", Order: 1, TrackID: "kick", ListeningGoal: "make room for bass"}},
+	}
+	targets := []b4EQTargetContext{{Treatment: treatment.Targets[0], Instance: semanticTreatmentInstance{TrackID: "kick", PluginID: "eq-a"}}}
+
+	if _, err := decodeB4EQBatchResponse(validBatch+"}\ntrailing noise", treatment, targets); err != nil {
+		t.Fatalf("valid first object with tail noise was not recovered: %v", err)
+	}
+	invented := strings.Replace(validBatch, `"plugin_id":"eq-a"`, `"plugin_id":"invented"`, 1)
+	if _, err := decodeB4EQBatchResponse(invented+"}", treatment, targets); err == nil {
+		t.Fatal("tail recovery bypassed exact target validation")
+	}
+	missingActionsClose := validBatch[:len(validBatch)-2] + "}"
+	if _, err := decodeB4EQBatchResponse(missingActionsClose, treatment, targets); err != nil {
+		t.Fatalf("missing actions array closure was not deterministically recovered: %v", err)
+	}
+	inventedMissingClose := invented[:len(invented)-2] + "}"
+	if _, err := decodeB4EQBatchResponse(inventedMissingClose, treatment, targets); err == nil {
+		t.Fatal("array-closure recovery bypassed exact target validation")
+	} else if !strings.Contains(err.Error(), "changed or reordered exact target") {
+		t.Fatalf("recovered semantic failure was masked by the original syntax error: %v", err)
 	}
 }
 

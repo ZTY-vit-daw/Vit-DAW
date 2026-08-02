@@ -4318,6 +4318,55 @@ func TestMessageLoopB12SourceCalibrationCreatesClipGainPendingAndVerifiesAfterCo
 	}
 }
 
+func TestMessageLoopB12CompletionFailsWhenPostWriteEffectivePeakIsUnsafe(t *testing.T) {
+	exec := &fakeMessageExecutor{
+		projectState: map[string]any{
+			"status": "ok",
+			"tracks": []map[string]any{
+				b12MessageLoopTestTrack("1062", "Quiet metal", "1066"),
+				b12MessageLoopTestTrack("ref_a", "Reference A", "ref_clip_a"),
+				b12MessageLoopTestTrack("ref_b", "Reference B", "ref_clip_b"),
+			},
+		},
+		mixObservationResult: map[string]any{
+			"status": "ok", "observation_id": "obs_unsafe_b12", "mix_session_id": "mix_unsafe_b12",
+			"observation": map[string]any{
+				"observation_id": "obs_unsafe_b12",
+				"project_package": map[string]any{"tracks": []map[string]any{
+					{"track_id": "1062", "rms_dbfs": -72.905, "peak_dbfs": -23.718, "effective_static_peak_dbfs": 0.282},
+					{"track_id": "ref_a", "rms_dbfs": -48.905, "peak_dbfs": -10.0, "effective_static_peak_dbfs": -10.0},
+					{"track_id": "ref_b", "rms_dbfs": -48.905, "peak_dbfs": -10.0, "effective_static_peak_dbfs": -10.0},
+				}},
+			},
+		},
+	}
+	loop := &MessageLoop{
+		Client: &fakeMessageCompleter{}, Config: config.EngineConfig{BaseURL: "http://example.invalid", APIKey: "test", DefaultModel: "test"},
+		Executor: exec, Now: func() time.Time { return time.Date(2026, 8, 2, 1, 2, 3, 0, time.UTC) },
+	}
+	res := loop.Start(context.Background(), Input{
+		UserText:     "Continue B1.2 source level calibration from full-project level evidence",
+		AllowedTools: []string{"project.state", "mix.observe", "mix.request_observation", "clip.gain.set"},
+	})
+	if res.Status != agentruntime.StatusWaitingConfirmation || res.Continuation.PendingToolCall == nil {
+		t.Fatalf("pending result = status=%q stop=%q error=%q reply=%q", res.Status, res.StopReason, res.Error, res.Reply)
+	}
+	if gain, ok := firstNumericMapValue(res.Continuation.PendingToolCall.Args, "gain_db"); !ok || mathAbs(gain-22.718) > 0.001 {
+		t.Fatalf("pending call = %+v", res.Continuation.PendingToolCall)
+	}
+	confirmed := loop.ResumeAfterConfirmation(context.Background(), *res.Continuation)
+	if confirmed.Status != agentruntime.StatusFailed || !strings.Contains(confirmed.Error, "effective static peak") || !strings.Contains(confirmed.Error, "Quiet metal") {
+		t.Fatalf("confirmed result = status=%q stop=%q error=%q reply=%q", confirmed.Status, confirmed.StopReason, confirmed.Error, confirmed.Reply)
+	}
+}
+
+func b12MessageLoopTestTrack(trackID, trackName, clipID string) map[string]any {
+	return map[string]any{
+		"track_id": trackID, "track_name": trackName, "is_audio_track": true, "volume_db": 0.0,
+		"clips": []map[string]any{{"clip_id": clipID, "type": "audio", "clip_gain_db": 0.0, "duration_seconds": 12.0}},
+	}
+}
+
 func TestMessageLoopB12StrictReferenceCalibrationCreatesSingleBatchForManyTracks(t *testing.T) {
 	client := &fakeMessageCompleter{responses: []string{
 		`{"final":true,"reply":"model should not be needed","tool_calls":[]}`,

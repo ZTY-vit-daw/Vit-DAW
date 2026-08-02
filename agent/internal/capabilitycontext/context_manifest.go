@@ -146,8 +146,10 @@ func StaticMixGainStagingContextManifest() ContextManifest {
 			{ID: "active_rms_dbfs", Aliases: []string{"active_rms_dbfs", "gated_rms_dbfs", "silence_gated_rms_dbfs"}, Semantic: "silence-gated RMS", EvidenceKind: "loudness", Usage: "preferred fallback when available"},
 			{ID: "rms_dbfs", Aliases: []string{"rms_dbfs", "level_db", "rms_db"}, Semantic: "RMS level", EvidenceKind: "level", Usage: "B1.2 fallback loudness proxy"},
 			{ID: "peak_dbfs", Aliases: []string{"peak_dbfs", "peak_db"}, Semantic: "sample peak level", EvidenceKind: "headroom", Usage: "headroom/safety evidence; last-resort source-level fallback"},
+			{ID: "effective_static_peak_dbfs", Aliases: []string{"effective_static_peak_dbfs"}, Semantic: "source peak after current static clip and track gain", EvidenceKind: "headroom", Usage: "B1 completion and safety verification"},
 			{ID: "headroom_db", Aliases: []string{"headroom_db"}, Semantic: "peak headroom", EvidenceKind: "headroom", Usage: "B1 safety risk"},
 			{ID: "crest_db", Aliases: []string{"crest_db"}, Semantic: "crest factor", EvidenceKind: "dynamics", Usage: "transient/source-shape hint"},
+			{ID: "effective_static_rms_dbfs", Aliases: []string{"effective_static_rms_dbfs"}, Semantic: "source RMS after current static clip and track gain", EvidenceKind: "level", Usage: "B1 post-write result verification"},
 			{ID: "reference_level", Aliases: []string{"reference_level"}, Semantic: "RLM selected median reference level", EvidenceKind: "reference_level", Usage: "B1.2 strict/coarse calibration basis"},
 			{ID: "target_clip_gain_db", Aliases: []string{"target_clip_gain_db"}, Semantic: "RLM target writable clip gain", EvidenceKind: "clip_gain", Usage: "B1.2 pending clip.gain.set_batch target", Writable: true, ControlTarget: true},
 		},
@@ -172,7 +174,7 @@ func StaticMixGainStagingContextManifest() ContextManifest {
 		},
 		Guidance: []string{
 			"This pack is a default B1 starting context, not a restriction on follow-up tool use.",
-			"Use B1 for reference-level calibration before static balance: first reset target track faders to 0 dB, then calibrate source/clip/trim levels from objective meters.",
+			"Use B1 for reference-level calibration from the current project state: within a full B1 run, first reset target track faders to 0 dB, then calibrate source/clip/trim levels from objective meters.",
 			"Track fader reset is an engineering state reset and may use track.group.apply_control mode=absolute db=0 after confirmation; it is not limited by small B2 mix-tick deltas.",
 			"B1.2 source calibration uses same-metric LUFS/RMS/peak references and pending clip.gain.set/trim-style actions; it must not use track faders, track groups, or mix ticks as source calibration controls.",
 			"RLM is the B1.2 reference-level projection. Strict mode uses LUFS or active/gated RMS when available; full-clip RMS is marked coarse, not silently treated as strict loudness.",
@@ -298,6 +300,7 @@ func StaticMixLowEndRelationContextManifest() ContextManifest {
 		FollowUpTools: []string{"mix.observe", "mix.read", "mix.derive"},
 		Excluded:      []string{"clip gain", "plugins", "stereo width", "automation", "raw waveform arrays"},
 		Guidance: []string{
+			"Evaluate B4 from current project and MOM evidence; B1, B2, or B3 history is not a prerequisite.",
 			"B4 v0 produces analysis and observations only; no pending action or execution is created.",
 			"Low-end identification is based on MOM band energy occupancy, not assumed role names.",
 			"Masking conflicts are detected by MOM band_conflict_candidates narrowed to sub/bass bands.",
@@ -332,6 +335,7 @@ func FineMixFrequencyCleanupContextManifest() ContextManifest {
 		FollowUpTools: []string{"project.state", "mix.observe", "mix.read", "mix.derive"},
 		Excluded:      []string{"dynamic EQ parameters", "compression parameters", "space processing", "automation", "vendor parameter rules", "raw waveform arrays", "observer duplication"},
 		Guidance: []string{
+			"Evaluate C1 diagnosis and planning from current full-project frequency evidence; B1-B4 history is not a prerequisite.",
 			"Classify every project track explicitly as static_eq, a C2/C3/C4 deferral, arrangement_or_source, or no_change.",
 			"Energy overlap is a diagnostic candidate, not proof of psychoacoustic masking.",
 			"Diagnosis may use source_file_pre_fx evidence, but mutation requires target-scoped same-tap post-FX L2 evidence selected after classification.",

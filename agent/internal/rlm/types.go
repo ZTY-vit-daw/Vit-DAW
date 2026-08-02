@@ -104,20 +104,24 @@ type ReferenceLevelRow struct {
 }
 
 type CalibrationRow struct {
-	TrackID           string   `json:"track_id,omitempty"`
-	TrackName         string   `json:"track_name,omitempty"`
-	ClipID            string   `json:"clip_id,omitempty"`
-	ClipName          string   `json:"clip_name,omitempty"`
-	Metric            string   `json:"metric"`
-	Unit              string   `json:"unit,omitempty"`
-	Mode              string   `json:"mode,omitempty"`
-	ObservedLevel     float64  `json:"observed_level"`
-	ReferenceLevel    float64  `json:"reference_level"`
-	CurrentClipGainDB float64  `json:"current_clip_gain_db"`
-	TargetClipGainDB  float64  `json:"target_clip_gain_db"`
-	RequestedDeltaDB  float64  `json:"requested_delta_db"`
-	AppliedDeltaDB    float64  `json:"applied_delta_db"`
-	TargetClipped     bool     `json:"target_clipped_to_bound,omitempty"`
-	Risk              string   `json:"risk,omitempty"`
-	EvidenceRefs      []string `json:"evidence_refs,omitempty"`
+	TrackID            string   `json:"track_id,omitempty"`
+	TrackName          string   `json:"track_name,omitempty"`
+	ClipID             string   `json:"clip_id,omitempty"`
+	ClipName           string   `json:"clip_name,omitempty"`
+	Metric             string   `json:"metric"`
+	Unit               string   `json:"unit,omitempty"`
+	Mode               string   `json:"mode,omitempty"`
+	ObservedLevel      float64  `json:"observed_level"`
+	ReferenceLevel     float64  `json:"reference_level"`
+	CurrentClipGainDB  float64  `json:"current_clip_gain_db"`
+	TargetClipGainDB   float64  `json:"target_clip_gain_db"`
+	RequestedDeltaDB   float64  `json:"requested_delta_db"`
+	AppliedDeltaDB     float64  `json:"applied_delta_db"`
+	TargetClipped      bool     `json:"target_clipped_to_bound,omitempty"`
+	PeakSafetyClipped  bool     `json:"target_clipped_to_peak_safety,omitempty"`
+	SourcePeakDBFS     *float64 `json:"observed_source_peak_dbfs,omitempty"`
+	ProjectedPeakDBFS  *float64 `json:"projected_static_peak_dbfs,omitempty"`
+	PeakSafetyAchieved *bool    `json:"peak_safety_achieved,omitempty"`
+	Risk               string   `json:"risk,omitempty"`
+	EvidenceRefs       []string `json:"evidence_refs,omitempty"`
 }

@@ -48,6 +48,68 @@ func TestActivatePublishesOnlyValidProjectIdentity(t *testing.T) {
 	}
 }
 
+func TestEnsureRebindsCopiedProjectStorePathWithoutMutatingSource(t *testing.T) {
+	root := t.TempDir()
+	sourcePath := filepath.Join(root, "source", "song.vit")
+	targetPath := filepath.Join(root, "target", "song.vit")
+	sourceRoots, _, err := Ensure(sourcePath, "vitproj_copied")
+	if err != nil {
+		t.Fatal(err)
+	}
+	observationDir := filepath.Join(sourceRoots.Agent, "observations")
+	if err := os.MkdirAll(observationDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	sourceObservation := filepath.Join(observationDir, "obs.json")
+	sourceObservationData, err := json.Marshal(map[string]any{
+		"project_uuid": "vitproj_copied",
+		"project_path": sourcePath,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(sourceObservation, sourceObservationData, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	targetRoots, err := Resolve(targetPath, "vitproj_copied")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := copyDir(sourceRoots.Agent, targetRoots.Agent); err != nil {
+		t.Fatal(err)
+	}
+
+	ensuredRoots, manifest, err := Ensure(targetPath, "vitproj_copied")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if ensuredRoots != targetRoots || !samePath(manifest.ProjectPath, targetPath) {
+		t.Fatalf("rebound roots/manifest = %+v %+v", ensuredRoots, manifest)
+	}
+	targetData, err := os.ReadFile(filepath.Join(targetRoots.Agent, "observations", "obs.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var targetObservation map[string]any
+	if err := json.Unmarshal(targetData, &targetObservation); err != nil {
+		t.Fatal(err)
+	}
+	if !samePath(targetObservation["project_path"].(string), targetPath) {
+		t.Fatalf("target observation was not rebound: %+v", targetObservation)
+	}
+	sourceData, err := os.ReadFile(sourceObservation)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var sourceValue map[string]any
+	if err := json.Unmarshal(sourceData, &sourceValue); err != nil {
+		t.Fatal(err)
+	}
+	if !samePath(sourceValue["project_path"].(string), sourcePath) {
+		t.Fatalf("source observation changed: %+v", sourceValue)
+	}
+}
+
 func TestForkAgentStoreCopiesAndRebindsWithoutMutatingSource(t *testing.T) {
 	root := t.TempDir()
 	sourcePath := filepath.Join(root, "source", "song.vit")

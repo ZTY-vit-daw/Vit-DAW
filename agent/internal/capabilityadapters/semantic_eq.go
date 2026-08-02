@@ -39,10 +39,11 @@ type SemanticEQPlan struct {
 // project-wide all-or-rollback semantics without changing the existing
 // single-instance EQ executor.
 type SemanticEQBatchPlan struct {
-	Treatment lowendrelation.TreatmentPlan `json:"treatment_plan"`
-	Diagnosis lowendrelation.Model         `json:"diagnosis_model"`
-	Batch     semanticeffect.Batch         `json:"semantic_batch"`
-	Leaves    []SemanticEQPlan             `json:"leaves"`
+	Treatment           lowendrelation.TreatmentPlan `json:"treatment_plan"`
+	Diagnosis           lowendrelation.Model         `json:"diagnosis_model"`
+	VerificationContext any                          `json:"verification_context,omitempty"`
+	Batch               semanticeffect.Batch         `json:"semantic_batch"`
+	Leaves              []SemanticEQPlan             `json:"leaves"`
 }
 
 // ProjectSemanticEQBatchSpec parameterizes the shared project-level freezer.
@@ -79,7 +80,7 @@ func FreezeSemanticEQBatch(plan SemanticEQBatchPlan, cut orchestration.ProjectCu
 		TargetRef: "project:low_end_relationships", CandidatePrefix: "b4_eq_", VerificationRef: "static_mix.low_end_relation.eq_batch.verification.v1",
 		Summary:          fmt.Sprintf("Apply %d full-project B4 generic-EQ target(s) as one all-or-rollback batch", len(plan.Leaves)),
 		IdempotencyClass: "b4_project_eq_all_or_rollback", Treatment: plan.Treatment, Diagnosis: plan.Diagnosis,
-		Batch: plan.Batch, Leaves: plan.Leaves, ExpectedTargetCount: len(plan.Treatment.Targets),
+		VerificationContext: plan.VerificationContext, Batch: plan.Batch, Leaves: plan.Leaves, ExpectedTargetCount: len(plan.Treatment.Targets),
 	}, cut, revision)
 }
 

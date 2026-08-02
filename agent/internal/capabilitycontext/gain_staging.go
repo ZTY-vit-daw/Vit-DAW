@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"vit-daw-agent/internal/levelsafety"
 	"vit-daw-agent/internal/rlm"
 )
 
@@ -22,30 +23,33 @@ type GainStagingInput struct {
 }
 
 type TrackGainRow struct {
-	TrackID        string         `json:"track_id,omitempty"`
-	TrackName      string         `json:"track_name,omitempty"`
-	UserTrackIndex any            `json:"user_track_index,omitempty"`
-	RoleGuess      string         `json:"role_guess,omitempty"`
-	TrackType      string         `json:"track_type,omitempty"`
-	Selected       bool           `json:"selected,omitempty"`
-	Mute           bool           `json:"mute,omitempty"`
-	Solo           bool           `json:"solo,omitempty"`
-	VolumeDB       *float64       `json:"volume_db,omitempty"`
-	Pan            *float64       `json:"pan,omitempty"`
-	PeakDBFS       *float64       `json:"peak_dbfs,omitempty"`
-	ActiveRMSDBFS  *float64       `json:"active_rms_dbfs,omitempty"`
-	RMSDBFS        *float64       `json:"rms_dbfs,omitempty"`
-	IntegratedLUFS *float64       `json:"integrated_lufs,omitempty"`
-	ApproxLUFS     *float64       `json:"approximate_lufs,omitempty"`
-	HeadroomDB     *float64       `json:"headroom_db,omitempty"`
-	CrestDB        *float64       `json:"crest_db,omitempty"`
-	AcousticStatus string         `json:"acoustic_status,omitempty"`
-	ClipCount      int            `json:"clip_count,omitempty"`
-	AudioClipCount int            `json:"audio_clip_count,omitempty"`
-	PrimaryClip    *ClipGainRow   `json:"primary_clip,omitempty"`
-	ClipGainStats  map[string]any `json:"clip_gain_stats,omitempty"`
-	Risks          []string       `json:"risks,omitempty"`
-	EvidenceRefs   []string       `json:"evidence_refs,omitempty"`
+	TrackID                 string         `json:"track_id,omitempty"`
+	TrackName               string         `json:"track_name,omitempty"`
+	UserTrackIndex          any            `json:"user_track_index,omitempty"`
+	RoleGuess               string         `json:"role_guess,omitempty"`
+	TrackType               string         `json:"track_type,omitempty"`
+	Selected                bool           `json:"selected,omitempty"`
+	Mute                    bool           `json:"mute,omitempty"`
+	Solo                    bool           `json:"solo,omitempty"`
+	VolumeDB                *float64       `json:"volume_db,omitempty"`
+	Pan                     *float64       `json:"pan,omitempty"`
+	PeakDBFS                *float64       `json:"peak_dbfs,omitempty"`
+	EffectiveStaticPeakDBFS *float64       `json:"effective_static_peak_dbfs,omitempty"`
+	ActiveRMSDBFS           *float64       `json:"active_rms_dbfs,omitempty"`
+	RMSDBFS                 *float64       `json:"rms_dbfs,omitempty"`
+	EffectiveStaticRMSDBFS  *float64       `json:"effective_static_rms_dbfs,omitempty"`
+	IntegratedLUFS          *float64       `json:"integrated_lufs,omitempty"`
+	ApproxLUFS              *float64       `json:"approximate_lufs,omitempty"`
+	HeadroomDB              *float64       `json:"headroom_db,omitempty"`
+	CrestDB                 *float64       `json:"crest_db,omitempty"`
+	SilentSource            bool           `json:"silent_source,omitempty"`
+	AcousticStatus          string         `json:"acoustic_status,omitempty"`
+	ClipCount               int            `json:"clip_count,omitempty"`
+	AudioClipCount          int            `json:"audio_clip_count,omitempty"`
+	PrimaryClip             *ClipGainRow   `json:"primary_clip,omitempty"`
+	ClipGainStats           map[string]any `json:"clip_gain_stats,omitempty"`
+	Risks                   []string       `json:"risks,omitempty"`
+	EvidenceRefs            []string       `json:"evidence_refs,omitempty"`
 }
 
 type ClipGainRow struct {
@@ -310,12 +314,30 @@ func applyAcousticFields(track *TrackGainRow, row map[string]any) {
 	if track == nil || len(row) == 0 {
 		return
 	}
+	peakAbs, peakAbsOK := firstNumber(row, "peak_abs")
+	rmsAbs, rmsAbsOK := firstNumber(row, "rms")
+	if peakAbsOK && rmsAbsOK && *peakAbs <= 0 && *rmsAbs <= 0 {
+		track.SilentSource = true
+		track.PeakDBFS = nil
+		track.EffectiveStaticPeakDBFS = nil
+		track.ActiveRMSDBFS = nil
+		track.RMSDBFS = nil
+		track.EffectiveStaticRMSDBFS = nil
+		track.IntegratedLUFS = nil
+		track.ApproxLUFS = nil
+		track.HeadroomDB = nil
+		track.CrestDB = nil
+		return
+	}
 	if value, ok := firstNumber(row, "peak_dbfs", "peak_db"); ok {
 		track.PeakDBFS = ptrRound(value)
 	} else if value, ok := firstNumber(row, "peak_abs", "peak"); ok {
 		if db, dbOK := dbfsFromAbs(*value); dbOK {
 			track.PeakDBFS = db
 		}
+	}
+	if value, ok := firstNumber(row, "effective_static_peak_dbfs"); ok {
+		track.EffectiveStaticPeakDBFS = ptrRound(value)
 	}
 	if value, ok := firstNumber(row, "active_rms_dbfs", "gated_rms_dbfs", "silence_gated_rms_dbfs"); ok {
 		track.ActiveRMSDBFS = ptrRound(value)
@@ -326,6 +348,9 @@ func applyAcousticFields(track *TrackGainRow, row map[string]any) {
 		if db, dbOK := dbfsFromAbs(*value); dbOK {
 			track.RMSDBFS = db
 		}
+	}
+	if value, ok := firstNumber(row, "effective_static_rms_dbfs"); ok {
+		track.EffectiveStaticRMSDBFS = ptrRound(value)
 	}
 	if value, ok := firstNumber(row, "integrated_lufs"); ok {
 		track.IntegratedLUFS = ptrRound(value)
@@ -460,15 +485,16 @@ func compactClipGainStats(rows []ClipGainRow) map[string]any {
 
 func gainStagingRisks(row TrackGainRow) []string {
 	risks := []string{}
-	if row.PeakDBFS != nil {
+	safetyPeak := gainStagingSafetyPeakDBFS(row)
+	if safetyPeak != nil {
 		switch {
-		case *row.PeakDBFS >= -0.1:
+		case *safetyPeak >= -0.1:
 			risks = append(risks, "possible_clipping_or_no_headroom")
-		case *row.PeakDBFS >= -1.0:
+		case *safetyPeak >= -1.0:
 			risks = append(risks, "peak_near_full_scale")
 		}
 	}
-	if row.HeadroomDB != nil {
+	if row.EffectiveStaticPeakDBFS == nil && row.HeadroomDB != nil {
 		switch {
 		case *row.HeadroomDB <= 0.1:
 			risks = append(risks, "possible_clipping_or_no_headroom")
@@ -496,34 +522,48 @@ func gainStagingRisks(row TrackGainRow) []string {
 			risks = append(risks, "large_clip_gain_offset")
 		}
 	}
-	if row.PeakDBFS == nil && row.ActiveRMSDBFS == nil && row.RMSDBFS == nil && row.HeadroomDB == nil {
+	if safetyPeak == nil && row.ActiveRMSDBFS == nil && row.RMSDBFS == nil && row.HeadroomDB == nil {
 		risks = append(risks, "missing_acoustic_level_evidence")
 	}
 	return addUnique(nil, risks...)
 }
 
+func gainStagingSafetyPeakDBFS(row TrackGainRow) *float64 {
+	if row.EffectiveStaticPeakDBFS != nil {
+		return ptrRound(row.EffectiveStaticPeakDBFS)
+	}
+	if row.PeakDBFS == nil {
+		return nil
+	}
+	peak := *row.PeakDBFS
+	if row.PrimaryClip != nil && row.PrimaryClip.GainDB != nil {
+		peak += *row.PrimaryClip.GainDB
+	}
+	return ptrRound(&peak)
+}
+
 func gainStagingRankings(tracks []TrackGainRow, limit int, sourceAdmission sourceLevelAdmission, rlmProjection rlm.Projection, strictReference bool) map[string][]RankRow {
 	out := map[string][]RankRow{}
 	for _, track := range tracks {
-		if track.HeadroomDB != nil {
+		safetyPeak := gainStagingSafetyPeakDBFS(track)
+		if safetyPeak != nil {
+			headroom := round3(-*safetyPeak)
 			risk := ""
-			if *track.HeadroomDB <= 0.1 {
+			if headroom <= 0.1 {
 				risk = "high"
-			} else if *track.HeadroomDB < 1 {
+			} else if headroom < 1 {
 				risk = "medium"
 			}
 			if risk != "" {
-				out["headroom_risk"] = append(out["headroom_risk"], rankFromTrack(track, "headroom_db", *track.HeadroomDB, "dB", risk, "smallest headroom"))
+				out["headroom_risk"] = append(out["headroom_risk"], rankFromTrack(track, "effective_static_headroom_db", headroom, "dB", risk, "smallest effective static headroom"))
 			}
-		} else if track.PeakDBFS != nil && *track.PeakDBFS >= -1 {
-			out["headroom_risk"] = append(out["headroom_risk"], rankFromTrack(track, "peak_dbfs", *track.PeakDBFS, "dBFS", "medium", "peak near full scale"))
 		}
-		if track.PeakDBFS != nil && *track.PeakDBFS >= -1 {
+		if safetyPeak != nil && *safetyPeak >= -1 {
 			risk := "medium"
-			if *track.PeakDBFS >= -0.1 {
+			if *safetyPeak >= -0.1 {
 				risk = "high"
 			}
-			out["peak_risk"] = append(out["peak_risk"], rankFromTrack(track, "peak_dbfs", *track.PeakDBFS, "dBFS", risk, "highest peak"))
+			out["peak_risk"] = append(out["peak_risk"], rankFromTrack(track, "effective_static_peak_dbfs", *safetyPeak, "dBFS", risk, "highest effective static peak"))
 		}
 		if track.ActiveRMSDBFS != nil && *track.ActiveRMSDBFS <= -42 {
 			out["low_level"] = append(out["low_level"], rankFromTrack(track, "active_rms_dbfs", *track.ActiveRMSDBFS, "dBFS", "medium", "very low active RMS"))
@@ -579,29 +619,40 @@ func gainStagingRLMCalibrationRows(projection rlm.Projection) []RankRow {
 			Reason:       "RLM strict/coarse reference-level calibration candidate",
 			EvidenceRefs: append([]string(nil), candidate.EvidenceRefs...),
 			Metadata: map[string]any{
-				"reference_metric":        candidate.Metric,
-				"reference_level":         round3(candidate.ReferenceLevel),
-				"reference_unit":          candidate.Unit,
-				"observed_level":          round3(candidate.ObservedLevel),
-				"current_clip_gain_db":    round3(candidate.CurrentClipGainDB),
-				"target_clip_gain_db":     round3(candidate.TargetClipGainDB),
-				"requested_delta_db":      round3(candidate.RequestedDeltaDB),
-				"applied_delta_db":        round3(candidate.AppliedDeltaDB),
-				"clip_gain_bound_db":      24.0,
-				"target_clipped_to_bound": candidate.TargetClipped,
-				"same_metric_comparison":  true,
-				"comparison_status":       projection.Status,
-				"calibration_mode":        projection.Mode,
-				"rlm_projection_id":       projection.ProjectionID,
-				"candidate_count":         projection.Summary.CandidateCount,
-				"eligible_track_count":    projection.Summary.EligibleTrackCount,
-				"known_track_count":       projection.Summary.CandidateCount,
-				"covered_track_count":     projection.Summary.CandidateCount,
-				"calibration_ready_count": projection.Summary.CalibrationReadyCount,
-				"metric_approximate":      projection.Mode == rlm.ModeCoarse,
-				"metric_last_resort":      false,
-				"strict_reference_model":  true,
+				"reference_metric":              candidate.Metric,
+				"reference_level":               round3(candidate.ReferenceLevel),
+				"reference_unit":                candidate.Unit,
+				"observed_level":                round3(candidate.ObservedLevel),
+				"current_clip_gain_db":          round3(candidate.CurrentClipGainDB),
+				"target_clip_gain_db":           round3(candidate.TargetClipGainDB),
+				"requested_delta_db":            round3(candidate.RequestedDeltaDB),
+				"applied_delta_db":              round3(candidate.AppliedDeltaDB),
+				"clip_gain_bound_db":            24.0,
+				"target_clipped_to_bound":       candidate.TargetClipped,
+				"target_clipped_to_peak_safety": candidate.PeakSafetyClipped,
+				"peak_safety_ceiling_dbfs":      levelsafety.StaticPeakCeilingDBFS,
+				"same_metric_comparison":        true,
+				"comparison_status":             projection.Status,
+				"calibration_mode":              projection.Mode,
+				"rlm_projection_id":             projection.ProjectionID,
+				"candidate_count":               projection.Summary.CandidateCount,
+				"eligible_track_count":          projection.Summary.EligibleTrackCount,
+				"known_track_count":             projection.Summary.CandidateCount,
+				"covered_track_count":           projection.Summary.CandidateCount,
+				"calibration_ready_count":       projection.Summary.CalibrationReadyCount,
+				"metric_approximate":            projection.Mode == rlm.ModeCoarse,
+				"metric_last_resort":            false,
+				"strict_reference_model":        true,
 			},
+		}
+		if candidate.SourcePeakDBFS != nil {
+			row.Metadata["observed_source_peak_dbfs"] = round3(*candidate.SourcePeakDBFS)
+		}
+		if candidate.ProjectedPeakDBFS != nil {
+			row.Metadata["projected_static_peak_dbfs"] = round3(*candidate.ProjectedPeakDBFS)
+		}
+		if candidate.PeakSafetyAchieved != nil {
+			row.Metadata["peak_safety_achieved"] = *candidate.PeakSafetyAchieved
 		}
 		rows = append(rows, row)
 	}
@@ -669,18 +720,9 @@ func gainStagingSourceLevelOutlierRows(admission sourceLevelAdmission, limit int
 		if math.Abs(delta) < 3.0 {
 			continue
 		}
-		targetClipGain := round3(candidate.ClipGainDB + delta)
-		appliedDelta := delta
-		clamped := false
-		if targetClipGain > 24 {
-			targetClipGain = 24
-			appliedDelta = round3(targetClipGain - candidate.ClipGainDB)
-			clamped = true
-		} else if targetClipGain < -24 {
-			targetClipGain = -24
-			appliedDelta = round3(targetClipGain - candidate.ClipGainDB)
-			clamped = true
-		}
+		constraint := levelsafety.ConstrainSourceClipGain(candidate.ClipGainDB, delta, 24, candidate.Track.PeakDBFS)
+		targetClipGain := round3(constraint.TargetClipGainDB)
+		appliedDelta := round3(constraint.AppliedDeltaDB)
 		risk := "medium"
 		if math.Abs(delta) >= 9 {
 			risk = "high"
@@ -690,25 +732,36 @@ func gainStagingSourceLevelOutlierRows(admission sourceLevelAdmission, limit int
 		row.ClipID = track.PrimaryClip.ClipID
 		row.ClipName = track.PrimaryClip.ClipName
 		row.Metadata = map[string]any{
-			"reference_metric":        candidate.LevelKind,
-			"reference_level":         round3(reference),
-			"reference_unit":          candidate.Unit,
-			"observed_level":          round3(candidate.LevelValue),
-			"current_clip_gain_db":    round3(candidate.ClipGainDB),
-			"target_clip_gain_db":     targetClipGain,
-			"requested_delta_db":      delta,
-			"applied_delta_db":        appliedDelta,
-			"clip_gain_bound_db":      24.0,
-			"target_clipped_to_bound": clamped,
-			"same_metric_comparison":  true,
-			"comparison_status":       admission.Status,
-			"candidate_count":         admission.Selected.CandidateCount,
-			"eligible_track_count":    admission.Selected.EligibleTrackCount,
-			"known_track_count":       admission.Selected.KnownTrackCount,
-			"covered_track_count":     admission.Selected.CandidateCount,
-			"calibration_ready_count": admission.Selected.CalibrationReadyCount,
-			"metric_approximate":      admission.Selected.Approximate,
-			"metric_last_resort":      admission.Selected.LastResort,
+			"reference_metric":              candidate.LevelKind,
+			"reference_level":               round3(reference),
+			"reference_unit":                candidate.Unit,
+			"observed_level":                round3(candidate.LevelValue),
+			"current_clip_gain_db":          round3(candidate.ClipGainDB),
+			"target_clip_gain_db":           targetClipGain,
+			"requested_delta_db":            delta,
+			"applied_delta_db":              appliedDelta,
+			"clip_gain_bound_db":            24.0,
+			"target_clipped_to_bound":       constraint.ClipGainBoundClamped,
+			"target_clipped_to_peak_safety": constraint.PeakSafetyClamped,
+			"peak_safety_ceiling_dbfs":      levelsafety.StaticPeakCeilingDBFS,
+			"same_metric_comparison":        true,
+			"comparison_status":             admission.Status,
+			"candidate_count":               admission.Selected.CandidateCount,
+			"eligible_track_count":          admission.Selected.EligibleTrackCount,
+			"known_track_count":             admission.Selected.KnownTrackCount,
+			"covered_track_count":           admission.Selected.CandidateCount,
+			"calibration_ready_count":       admission.Selected.CalibrationReadyCount,
+			"metric_approximate":            admission.Selected.Approximate,
+			"metric_last_resort":            admission.Selected.LastResort,
+		}
+		if candidate.Track.PeakDBFS != nil {
+			row.Metadata["observed_source_peak_dbfs"] = round3(*candidate.Track.PeakDBFS)
+		}
+		if constraint.ProjectedPeakDBFS != nil {
+			row.Metadata["projected_static_peak_dbfs"] = round3(*constraint.ProjectedPeakDBFS)
+		}
+		if constraint.PeakSafetyAchieved != nil {
+			row.Metadata["peak_safety_achieved"] = *constraint.PeakSafetyAchieved
 		}
 		rows = append(rows, row)
 	}
@@ -843,7 +896,7 @@ func trackCanReceiveSourceLevelCalibration(track TrackGainRow) bool {
 }
 
 func trackEligibleForSourceLevelObservation(track TrackGainRow) bool {
-	if track.Mute {
+	if track.Mute || track.SilentSource {
 		return false
 	}
 	trackType := strings.ToLower(strings.TrimSpace(track.TrackType))
@@ -1171,10 +1224,11 @@ func sortTrackRowsForPack(rows []TrackGainRow) {
 
 func trackRiskSortScore(row TrackGainRow) int {
 	score := len(row.Risks)
-	if row.HeadroomDB != nil && *row.HeadroomDB <= 0.1 {
+	safetyPeak := gainStagingSafetyPeakDBFS(row)
+	if safetyPeak != nil && *safetyPeak >= -0.1 {
 		score += 5
 	}
-	if row.PeakDBFS != nil && *row.PeakDBFS >= -0.1 {
+	if safetyPeak != nil && *safetyPeak >= -1.0 {
 		score += 4
 	}
 	if row.ActiveRMSDBFS != nil && *row.ActiveRMSDBFS <= -42 {
@@ -1267,22 +1321,23 @@ func gainStagingEvidenceStatus(projectState, mixObservation map[string]any, trac
 	if len(mixObservation) > 0 {
 		out["mix_observation"] = EvidenceStatus{Status: "ready", TotalCount: total}
 	}
-	acoustic := countTracksWithAcoustics(tracks)
+	acousticTotal := countSourceLevelEvidenceTracks(tracks)
+	acoustic := countTracksWithAcousticsForSourceLevel(tracks)
 	status := "missing"
-	if acoustic == total && total > 0 {
+	if acoustic == acousticTotal && acousticTotal > 0 {
 		status = "ready"
 	} else if acoustic > 0 {
 		status = "partial"
 	}
-	out["track_acoustic"] = EvidenceStatus{Status: status, KnownCount: acoustic, TotalCount: total}
-	loudness := countTracksWithLoudness(tracks)
+	out["track_acoustic"] = EvidenceStatus{Status: status, KnownCount: acoustic, TotalCount: acousticTotal}
+	loudness := countTracksWithLoudnessForSourceLevel(tracks)
 	status = "missing"
-	if loudness == total && total > 0 {
+	if loudness == acousticTotal && acousticTotal > 0 {
 		status = "ready"
 	} else if loudness > 0 {
 		status = "partial"
 	}
-	out["track_loudness"] = EvidenceStatus{Status: status, KnownCount: loudness, TotalCount: total}
+	out["track_loudness"] = EvidenceStatus{Status: status, KnownCount: loudness, TotalCount: acousticTotal}
 	out["b1_2_source_level_admission"] = sourceAdmission.EvidenceStatus()
 	trackGain := countTracksWithTrackGain(tracks)
 	status = "missing"
@@ -1315,6 +1370,36 @@ func gainStagingEvidenceStatus(projectState, mixObservation map[string]any, trac
 	}
 	out["tom_role_summary"] = EvidenceStatus{Status: status, KnownCount: roleCount, TotalCount: total}
 	return out
+}
+
+func countSourceLevelEvidenceTracks(rows []TrackGainRow) int {
+	count := 0
+	for _, row := range rows {
+		if trackEligibleForSourceLevelObservation(row) {
+			count++
+		}
+	}
+	return count
+}
+
+func countTracksWithAcousticsForSourceLevel(rows []TrackGainRow) int {
+	count := 0
+	for _, row := range rows {
+		if trackEligibleForSourceLevelObservation(row) && (row.PeakDBFS != nil || row.ActiveRMSDBFS != nil || row.RMSDBFS != nil || row.HeadroomDB != nil || row.CrestDB != nil) {
+			count++
+		}
+	}
+	return count
+}
+
+func countTracksWithLoudnessForSourceLevel(rows []TrackGainRow) int {
+	count := 0
+	for _, row := range rows {
+		if trackEligibleForSourceLevelObservation(row) && (row.IntegratedLUFS != nil || row.ApproxLUFS != nil || row.ActiveRMSDBFS != nil || row.RMSDBFS != nil) {
+			count++
+		}
+	}
+	return count
 }
 
 func gainStagingLimitations(status map[string]EvidenceStatus, mixProject map[string]any, budget Budget, total, returned int, sourceAdmission sourceLevelAdmission) []string {

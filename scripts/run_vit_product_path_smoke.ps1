@@ -25,6 +25,9 @@ param(
     [switch]$B4LowEndRelationAgentOnly,
     [switch]$C1FrequencyCleanupAgentOnly,
     [string]$C1StemsFolder = "",
+    [switch]$NonlinearMixMatrixAgentOnly,
+    [string]$NonlinearA5SourceProject = "",
+    [string]$NonlinearMixScenarios = "",
     [ValidateSet("", "create", "reopen", "recover")]
     [string]$ProjectPackagePhase = "",
     [string]$ProjectPackageProjectPath = "",
@@ -1982,6 +1985,45 @@ try {
         $summary["telemetry_buffer_warning_count"] = 0
         $summary["status"] = "passed"
         Write-Ok ("project-package " + $ProjectPackagePhase + " phase passed")
+        return
+    }
+
+    if ($NonlinearMixMatrixAgentOnly) {
+        Write-Step "Non-linear B1-B4/C1 A5 matrix through Godot-owned lifecycle"
+        $matrixScript = Join-Path $RepoRoot "scripts\nonlinear_mix_workflow_a5_smoke.py"
+        if (-not (Test-Path -LiteralPath $matrixScript -PathType Leaf)) {
+            Fail ("Missing non-linear matrix smoke script: " + $matrixScript)
+        }
+        if ([string]::IsNullOrWhiteSpace($NonlinearA5SourceProject) -or -not (Test-Path -LiteralPath $NonlinearA5SourceProject -PathType Leaf)) {
+            Fail "Non-linear matrix smoke requires -NonlinearA5SourceProject"
+        }
+        $matrixArtifactDir = Join-Path $ArtifactDir "nonlinear_mix_matrix"
+        New-Item -ItemType Directory -Path $matrixArtifactDir -Force | Out-Null
+        $matrixOutput = Join-Path $matrixArtifactDir "stdout.log"
+        $previousErrorActionPreference = $ErrorActionPreference
+        $ErrorActionPreference = "Continue"
+        $matrixArgs = @($matrixScript, "--repo-root", $RepoRoot, "--agent-http", $AgentHttp, "--source-project", (Resolve-Path -LiteralPath $NonlinearA5SourceProject).Path, "--artifact-dir", $matrixArtifactDir, "--timeout-sec", [string]([Math]::Max(900, $TimeoutSeconds)))
+        if (-not [string]::IsNullOrWhiteSpace($NonlinearMixScenarios)) {
+            $matrixArgs += @("--scenarios", $NonlinearMixScenarios)
+        }
+        & python @matrixArgs 2>&1 |
+            Tee-Object -FilePath $matrixOutput
+        $matrixExitCode = $LASTEXITCODE
+        $ErrorActionPreference = $previousErrorActionPreference
+        if ($matrixExitCode -ne 0) {
+            Fail ("Non-linear A5 matrix smoke failed with exit code " + $matrixExitCode + "; output=" + $matrixOutput)
+        }
+        $matrixSummaryPath = Join-Path $matrixArtifactDir "summary.json"
+        if (-not (Test-Path -LiteralPath $matrixSummaryPath -PathType Leaf)) {
+            Fail "Non-linear A5 matrix smoke did not produce summary.json"
+        }
+        $matrixSummary = Get-Content -LiteralPath $matrixSummaryPath -Raw -Encoding UTF8 | ConvertFrom-Json
+        if ([string]$matrixSummary.status -ne "passed") {
+            Fail ("Non-linear A5 matrix summary is not passed: " + ($matrixSummary | ConvertTo-Json -Depth 24 -Compress))
+        }
+        $summary["nonlinear_mix_matrix"] = $matrixSummary
+        $summary["status"] = "passed"
+        Write-Ok "non-linear B1-B4/C1 A5 matrix passed"
         return
     }
 

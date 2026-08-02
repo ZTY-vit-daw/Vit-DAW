@@ -10,6 +10,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"vit-daw-agent/internal/levelsafety"
 )
 
 const (
@@ -196,11 +198,22 @@ func mergeMap(dst map[string]any, src map[string]any) {
 		return
 	}
 	if sourceClipID, targetClipID := sourceClipIdentity(src), sourceClipIdentity(dst); sourceClipID != "" && targetClipID != "" && sourceClipID != targetClipID {
-		// Track IDs are not sufficient after A4 clip splitting. Keep structural
-		// facts from a different clip, but do not let its RMS/peak/gain replace
-		// the current track-level aggregate or primary-clip evidence.
+		// Track IDs are not sufficient after A4 clip splitting. Keep writable
+		// primary-clip identity from project.state. A DAD track aggregate may be
+		// attached to another representative clip, though, so use its acoustic
+		// facts only where an earlier mix-level aggregate did not already supply
+		// that same field.
 		for key, value := range src {
-			if rlmAcousticField(key) || rlmClipIdentityField(key) {
+			if rlmClipIdentityField(key) {
+				continue
+			}
+			if rlmAcousticField(key) {
+				if existing, exists := dst[key]; exists && cleanText(existing) != "" {
+					continue
+				}
+				if cleanText(value) != "" {
+					dst[key] = value
+				}
 				continue
 			}
 			if cleanText(value) != "" {
@@ -583,41 +596,52 @@ func buildCalibrationRows(rows []ReferenceLevelRow, profile MetricProfile, refer
 		if math.Abs(requestedDelta) < minActionDeltaDB {
 			continue
 		}
-		target := round3(*row.ClipGainDB + requestedDelta)
-		appliedDelta := requestedDelta
-		clipped := false
-		if target > clipGainBoundDB {
-			target = clipGainBoundDB
-			appliedDelta = round3(target - *row.ClipGainDB)
-			clipped = true
-		} else if target < -clipGainBoundDB {
-			target = -clipGainBoundDB
-			appliedDelta = round3(target - *row.ClipGainDB)
-			clipped = true
-		}
+		constraint := levelsafety.ConstrainSourceClipGain(*row.ClipGainDB, requestedDelta, clipGainBoundDB, row.PeakDBFS)
+		target := round3(constraint.TargetClipGainDB)
+		appliedDelta := round3(constraint.AppliedDeltaDB)
 		out = append(out, CalibrationRow{
-			TrackID:           row.TrackID,
-			TrackName:         row.TrackName,
-			ClipID:            row.PrimaryClipID,
-			ClipName:          row.PrimaryClipName,
-			Metric:            profile.Metric,
-			Unit:              profile.Unit,
-			Mode:              profile.Mode,
-			ObservedLevel:     round3(candidate.Value),
-			ReferenceLevel:    round3(reference),
-			CurrentClipGainDB: round3(*row.ClipGainDB),
-			TargetClipGainDB:  target,
-			RequestedDeltaDB:  requestedDelta,
-			AppliedDeltaDB:    appliedDelta,
-			TargetClipped:     clipped,
-			Risk:              calibrationRisk(requestedDelta),
-			EvidenceRefs:      append([]string(nil), row.EvidenceRefs...),
+			TrackID:            row.TrackID,
+			TrackName:          row.TrackName,
+			ClipID:             row.PrimaryClipID,
+			ClipName:           row.PrimaryClipName,
+			Metric:             profile.Metric,
+			Unit:               profile.Unit,
+			Mode:               profile.Mode,
+			ObservedLevel:      round3(candidate.Value),
+			ReferenceLevel:     round3(reference),
+			CurrentClipGainDB:  round3(*row.ClipGainDB),
+			TargetClipGainDB:   target,
+			RequestedDeltaDB:   requestedDelta,
+			AppliedDeltaDB:     appliedDelta,
+			TargetClipped:      constraint.ClipGainBoundClamped,
+			PeakSafetyClipped:  constraint.PeakSafetyClamped,
+			SourcePeakDBFS:     ptrRoundOptional(row.PeakDBFS),
+			ProjectedPeakDBFS:  ptrRoundOptional(constraint.ProjectedPeakDBFS),
+			PeakSafetyAchieved: cloneBoolPointer(constraint.PeakSafetyAchieved),
+			Risk:               calibrationRisk(requestedDelta),
+			EvidenceRefs:       append([]string(nil), row.EvidenceRefs...),
 		})
 	}
 	sort.SliceStable(out, func(i, j int) bool {
 		return math.Abs(out[i].RequestedDeltaDB) > math.Abs(out[j].RequestedDeltaDB)
 	})
 	return out
+}
+
+func ptrRoundOptional(value *float64) *float64 {
+	if value == nil {
+		return nil
+	}
+	rounded := round3(*value)
+	return &rounded
+}
+
+func cloneBoolPointer(value *bool) *bool {
+	if value == nil {
+		return nil
+	}
+	cloned := *value
+	return &cloned
 }
 
 func applySelectedReferenceToRows(rows []ReferenceLevelRow, profile MetricProfile, reference float64, calibration []CalibrationRow) {

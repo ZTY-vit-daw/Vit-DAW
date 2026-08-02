@@ -13,7 +13,10 @@ import (
 	"vit-daw-agent/internal/semanticeffect"
 )
 
-const b4EQPlannerTimeout = 3 * time.Minute
+const (
+	b4EQPlannerTimeout           = 3 * time.Minute
+	b4EQPlannerMaxRepairAttempts = 2
+)
 
 type b4EQTargetContext struct {
 	Treatment lowendrelation.TreatmentTarget `json:"treatment"`
@@ -184,20 +187,60 @@ Rules:
 	if err != nil {
 		return semanticeffect.Batch{}, err
 	}
-	batch, decodeErr := decodeB4EQBatch(response.Text, treatment, targets)
-	if decodeErr == nil {
-		return batch, nil
+	completed := semanticeffect.Batch{}
+	pendingTargets := append([]b4EQTargetContext(nil), targets...)
+	for repairAttempt := 0; ; repairAttempt++ {
+		batch, decodeErr := decodeB4EQBatchResponse(response.Text, treatment, pendingTargets)
+		if decodeErr == nil {
+			if len(completed.Actions) == 0 {
+				return batch, nil
+			}
+			completed.Actions = append(completed.Actions, batch.Actions...)
+			if completed.ProjectGoal == "" {
+				completed.ProjectGoal = batch.ProjectGoal
+			}
+			if err := validateB4EQBatchTargets(completed, treatment, targets, true); err != nil {
+				return semanticeffect.Batch{}, fmt.Errorf("B4 EQ suffix assembly failed validation: %w", err)
+			}
+			return completed, nil
+		}
+		validPrefix := validateB4EQBatchTargets(batch, treatment, pendingTargets, false) == nil && len(batch.Actions) < len(pendingTargets)
+		if validPrefix {
+			if len(completed.Actions) == 0 {
+				completed = semanticeffect.Batch{SchemaVersion: batch.SchemaVersion, ProjectGoal: batch.ProjectGoal, Atomic: batch.Atomic}
+			}
+			completed.Actions = append(completed.Actions, batch.Actions...)
+			pendingTargets = pendingTargets[len(batch.Actions):]
+		}
+		if repairAttempt >= b4EQPlannerMaxRepairAttempts {
+			return semanticeffect.Batch{}, fmt.Errorf("B4 EQ batch remained invalid after %d repair attempts: %w", b4EQPlannerMaxRepairAttempts, decodeErr)
+		}
+		repairPrompt := fmt.Sprintf("The batch was invalid: %s\nReturn only a corrected semantic_effect_batch.v1 object for every exact supplied target. Every corrected atom must obey: %s", decodeErr, semanticeffect.StaticEQAtomPromptRules)
+		if validPrefix {
+			remaining, _ := json.Marshal(b4EQRemainingTargetRows(pendingTargets))
+			repairPrompt = fmt.Sprintf("The response ended after a valid ordered prefix. Do not repeat completed actions. Return ONLY one semantic_effect_batch.v1 object containing exactly %d actions for ONLY these remaining_targets, in this exact order: %s. Every atom must obey: %s", len(pendingTargets), remaining, semanticeffect.StaticEQAtomPromptRules)
+		}
+		req.Messages = append(req.Messages,
+			llm.Message{Role: "assistant", Content: response.Text},
+			llm.Message{Role: "user", Content: repairPrompt},
+		)
+		response, err = s.llm.CompleteRequest(ctx, cfg, req)
+		if err != nil {
+			return semanticeffect.Batch{}, err
+		}
 	}
-	req.Messages = append(req.Messages, llm.Message{Role: "assistant", Content: response.Text}, llm.Message{Role: "user", Content: fmt.Sprintf("The batch was invalid: %s\nReturn only a corrected semantic_effect_batch.v1 object for every exact supplied target. Every corrected atom must obey: %s", decodeErr, semanticeffect.StaticEQAtomPromptRules)})
-	response, err = s.llm.CompleteRequest(ctx, cfg, req)
-	if err != nil {
-		return semanticeffect.Batch{}, err
+}
+
+func b4EQRemainingTargetRows(targets []b4EQTargetContext) []map[string]any {
+	rows := make([]map[string]any, 0, len(targets))
+	for _, target := range targets {
+		rows = append(rows, map[string]any{
+			"track_id": target.Instance.TrackID, "plugin_id": target.Instance.PluginID,
+			"listening_goal":    target.Treatment.ListeningGoal,
+			"relationship_refs": append([]string(nil), target.Treatment.RelationshipRefs...),
+		})
 	}
-	batch, err = decodeB4EQBatch(response.Text, treatment, targets)
-	if err != nil {
-		return semanticeffect.Batch{}, fmt.Errorf("B4 EQ batch remained invalid after repair: %w", err)
-	}
-	return batch, nil
+	return rows
 }
 
 func b4EQPlannerInput(treatment lowendrelation.TreatmentPlan, targets []b4EQTargetContext, rejection string) (map[string]any, int) {
@@ -246,23 +289,176 @@ func decodeB4EQBatch(text string, treatment lowendrelation.TreatmentPlan, target
 	if err := decodePluginRecommendationJSON(text, &batch); err != nil {
 		return batch, err
 	}
+	return batch, validateB4EQBatchTargets(batch, treatment, targets, true)
+}
+
+func validateB4EQBatchTargets(batch semanticeffect.Batch, treatment lowendrelation.TreatmentPlan, targets []b4EQTargetContext, requireComplete bool) error {
 	if err := batch.Validate(); err != nil {
-		return batch, err
+		return err
 	}
-	if len(batch.Actions) != len(targets) {
-		return batch, fmt.Errorf("batch must contain exactly %d actions", len(targets))
+	if len(batch.Actions) > len(targets) || (requireComplete && len(batch.Actions) != len(targets)) {
+		return fmt.Errorf("batch must contain exactly %d actions", len(targets))
 	}
 	for index, action := range batch.Actions {
 		want := targets[index]
 		if action.Target.TrackID != want.Instance.TrackID || action.Target.PluginID != want.Instance.PluginID {
-			return batch, fmt.Errorf("action %d changed or reordered exact target", index+1)
+			return fmt.Errorf("action %d changed or reordered exact target", index+1)
 		}
 		if strings.TrimSpace(action.UserGoal) == "" {
-			return batch, fmt.Errorf("action %d omitted listening goal", index+1)
+			return fmt.Errorf("action %d omitted listening goal", index+1)
 		}
 		if (action.Evidence.Basis == "observation" || action.Evidence.Basis == "both") && action.Evidence.ObservationID != treatment.ObservationID {
-			return batch, fmt.Errorf("action %d changed observation identity", index+1)
+			return fmt.Errorf("action %d changed observation identity", index+1)
 		}
 	}
-	return batch, nil
+	return nil
+}
+
+// decodeB4EQBatchResponse keeps the semantic batch decoder strict while
+// tolerating transport-like tail noise after one complete JSON object. This
+// specifically covers model responses such as a valid batch followed by an
+// extra closing brace; the recovered object still passes every schema,
+// identity, order, and observation check in decodeB4EQBatch.
+func decodeB4EQBatchResponse(text string, treatment lowendrelation.TreatmentPlan, targets []b4EQTargetContext) (semanticeffect.Batch, error) {
+	batch, initialErr := decodeB4EQBatch(text, treatment, targets)
+	if initialErr == nil {
+		return batch, nil
+	}
+	bestBatch := batch
+	var recoveryErr error
+	candidate, ok := firstCompleteJSONObject(text)
+	if ok && strings.TrimSpace(candidate) != strings.TrimSpace(text) {
+		recovered, err := decodeB4EQBatch(candidate, treatment, targets)
+		if err == nil {
+			return recovered, nil
+		}
+		if len(recovered.Actions) > len(bestBatch.Actions) {
+			bestBatch = recovered
+		}
+		recoveryErr = err
+	}
+	if repaired, repairedOK := repairMissingArrayClosures(text); repairedOK {
+		recovered, err := decodeB4EQBatch(repaired, treatment, targets)
+		if err == nil {
+			return recovered, nil
+		}
+		if len(recovered.Actions) > len(bestBatch.Actions) {
+			bestBatch = recovered
+		}
+		recoveryErr = err
+	}
+	if recoveryErr != nil {
+		return bestBatch, fmt.Errorf("deterministically recovered JSON remained invalid: %w", recoveryErr)
+	}
+	return bestBatch, initialErr
+}
+
+func firstCompleteJSONObject(text string) (string, bool) {
+	start := strings.IndexByte(text, '{')
+	if start < 0 {
+		return "", false
+	}
+	depth := 0
+	inString := false
+	escaped := false
+	for index := start; index < len(text); index++ {
+		current := text[index]
+		if inString {
+			if escaped {
+				escaped = false
+				continue
+			}
+			switch current {
+			case '\\':
+				escaped = true
+			case '"':
+				inString = false
+			}
+			continue
+		}
+		switch current {
+		case '"':
+			inString = true
+		case '{':
+			depth++
+		case '}':
+			depth--
+			if depth == 0 {
+				return text[start : index+1], true
+			}
+			if depth < 0 {
+				return "", false
+			}
+		}
+	}
+	return "", false
+}
+
+// repairMissingArrayClosures handles a narrow model syntax failure where a
+// JSON object closes while one or more surrounding arrays are still open,
+// e.g. semantic_effect_batch actions ending with "...}}" instead of "...}]}".
+// It only inserts the missing closing brackets at an observed delimiter
+// mismatch; strict batch/schema/identity validation still decides acceptance.
+func repairMissingArrayClosures(text string) (string, bool) {
+	start := strings.IndexByte(text, '{')
+	if start < 0 {
+		return "", false
+	}
+	stack := make([]byte, 0, 16)
+	var repaired strings.Builder
+	repaired.Grow(len(text) + 4)
+	inString := false
+	escaped := false
+	changed := false
+	for index := start; index < len(text); index++ {
+		current := text[index]
+		if inString {
+			repaired.WriteByte(current)
+			if escaped {
+				escaped = false
+				continue
+			}
+			switch current {
+			case '\\':
+				escaped = true
+			case '"':
+				inString = false
+			}
+			continue
+		}
+		switch current {
+		case '"':
+			inString = true
+			repaired.WriteByte(current)
+		case '{', '[':
+			stack = append(stack, current)
+			repaired.WriteByte(current)
+		case ']':
+			if len(stack) == 0 || stack[len(stack)-1] != '[' {
+				return "", false
+			}
+			stack = stack[:len(stack)-1]
+			repaired.WriteByte(current)
+		case '}':
+			for len(stack) > 0 && stack[len(stack)-1] == '[' {
+				repaired.WriteByte(']')
+				stack = stack[:len(stack)-1]
+				changed = true
+			}
+			if len(stack) == 0 || stack[len(stack)-1] != '{' {
+				return "", false
+			}
+			stack = stack[:len(stack)-1]
+			repaired.WriteByte(current)
+			if len(stack) == 0 {
+				if !changed {
+					return "", false
+				}
+				return repaired.String(), true
+			}
+		default:
+			repaired.WriteByte(current)
+		}
+	}
+	return "", false
 }

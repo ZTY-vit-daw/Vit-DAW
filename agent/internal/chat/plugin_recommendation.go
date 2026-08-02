@@ -220,6 +220,32 @@ func pluginRecommendationCandidatesFromRows(rows []map[string]any) []pluginRecom
 	return out
 }
 
+// genericStaticEQRecommendationCandidates is the pre-load admission boundary
+// for B4/C1. Their governed executor can materialize only ordinary static EQ
+// atoms, so catalog entries explicitly classified or named as dynamic EQ must
+// not become an exact load Proposal. Post-load topology qualification remains
+// authoritative for every admitted candidate.
+func genericStaticEQRecommendationCandidates(candidates []pluginRecommendationCandidate) []pluginRecommendationCandidate {
+	out := make([]pluginRecommendationCandidate, 0, len(candidates))
+	for _, candidate := range candidates {
+		category := strings.ToLower(candidate.Category)
+		name := strings.ToLower(firstNonEmpty(candidate.DescriptiveName, candidate.Name))
+		dynamicCategory := false
+		for _, token := range strings.FieldsFunc(category, func(r rune) bool { return r == '|' || r == ',' || r == ';' || r == '/' }) {
+			if strings.TrimSpace(token) == "dynamics" {
+				dynamicCategory = true
+				break
+			}
+		}
+		dynamicName := strings.Contains(name, "dynamic eq") || strings.Contains(name, "dynamic-eq") || strings.Contains(name, "dyneq") || strings.Contains(name, "dyn eq")
+		if dynamicCategory || dynamicName {
+			continue
+		}
+		out = append(out, candidate)
+	}
+	return out
+}
+
 func (s *Server) planPluginRecommendation(ctx context.Context, conversationID, userText, processorType string, requestContext map[string]any, observation *agentloop.RecentObservation, candidates []pluginRecommendationCandidate, cfg config.EngineConfig) (pluginRecommendationPlan, error) {
 	if s == nil || s.llm == nil {
 		return pluginRecommendationPlan{}, fmt.Errorf("plugin recommendation LLM is unavailable")

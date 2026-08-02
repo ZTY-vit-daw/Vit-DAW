@@ -79,3 +79,62 @@ func TestGainStagingBatchExpandsTrackDeltaToAllSurvivingClips(t *testing.T) {
 		t.Fatalf("calibration summary = %+v", summary)
 	}
 }
+
+func TestB12CompletionRejectsUnsafeEffectiveStaticPeak(t *testing.T) {
+	peak := -23.718
+	effectivePeak := 0.282
+	gain := 24.0
+	pack := capabilitycontext.Pack{
+		Tracks: []capabilitycontext.TrackGainRow{{
+			TrackID: "1062", TrackName: "Quiet metal",
+			PeakDBFS: &peak, EffectiveStaticPeakDBFS: &effectivePeak,
+			PrimaryClip: &capabilitycontext.ClipGainRow{ClipID: "1066", GainDB: &gain},
+		}},
+	}
+	unsafe := messageLoopB12UnsafeTargetPeaks(pack, []messageLoopB12SourceCalibrationTarget{{TrackID: "1062", ClipID: "1066", TargetGainDB: 24}})
+	if len(unsafe) != 1 || unsafe[0].TrackID != "1062" || unsafe[0].PeakDBFS != 0.282 {
+		t.Fatalf("unsafe peaks = %+v", unsafe)
+	}
+}
+
+func TestGainStagingBatchExpansionKeepsEverySplitClipPeakSafe(t *testing.T) {
+	delta := 22.718
+	target := 22.718
+	action := capabilitycontext.GainStagingSuggestion{
+		ActionKind: "source_clip_gain_calibration", Tool: "clip.gain.set", TrackID: "1062", ClipID: "1066",
+		DeltaDB: &delta, TargetDB: &target, Metadata: map[string]any{"observed_source_peak_dbfs": -23.718},
+	}
+	projectState := map[string]any{"tracks": []any{map[string]any{
+		"track_id": "1062", "clips": []any{
+			map[string]any{"clip_id": "1066", "clip_type": "wave", "clip_gain_db": 0.0},
+			map[string]any{"clip_id": "1911", "clip_type": "wave", "clip_gain_db": 5.0},
+		},
+	}}}
+	expanded := messageLoopGainStagingExpandTrackCalibration(action, projectState)
+	if len(expanded) != 2 {
+		t.Fatalf("expanded = %+v", expanded)
+	}
+	for _, row := range expanded {
+		if row.TargetDB == nil || *row.TargetDB > 22.718+0.001 {
+			t.Fatalf("split clip target is not peak-safe: %+v", row)
+		}
+	}
+	if expanded[1].DeltaDB == nil || mathAbs(*expanded[1].DeltaDB-17.718) > 0.001 {
+		t.Fatalf("second split clip delta = %+v", expanded[1])
+	}
+}
+
+func TestB12CompletionAcceptsPeakAtSafetyCeiling(t *testing.T) {
+	peak := -23.718
+	gain := 22.718
+	pack := capabilitycontext.Pack{
+		Tracks: []capabilitycontext.TrackGainRow{{
+			TrackID: "1062", TrackName: "Quiet metal", PeakDBFS: &peak,
+			PrimaryClip: &capabilitycontext.ClipGainRow{ClipID: "1066", GainDB: &gain},
+		}},
+	}
+	unsafe := messageLoopB12UnsafeTargetPeaks(pack, []messageLoopB12SourceCalibrationTarget{{TrackID: "1062", ClipID: "1066", TargetGainDB: gain}})
+	if len(unsafe) != 0 {
+		t.Fatalf("unsafe peaks = %+v", unsafe)
+	}
+}

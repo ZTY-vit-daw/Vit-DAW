@@ -172,6 +172,45 @@ func TestRestoreProjectPersistencePrefersV2OverLegacyPackage(t *testing.T) {
 	}
 }
 
+func TestRestoreProjectPersistenceRebindsCopiedV2StorePath(t *testing.T) {
+	root := t.TempDir()
+	sourcePath := filepath.Join(root, "source", "song.vit")
+	targetPath := filepath.Join(root, "target", "song.vit")
+	const projectUUID = "vitproj_restore_relocated"
+	sourceRoots, _, err := projectstore.Ensure(sourcePath, projectUUID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	manifestData, err := os.ReadFile(filepath.Join(sourceRoots.Agent, projectstore.ManifestFile))
+	if err != nil {
+		t.Fatal(err)
+	}
+	targetRoots, err := projectstore.Resolve(targetPath, projectUUID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.MkdirAll(targetRoots.Agent, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(targetRoots.Agent, projectstore.ManifestFile), manifestData, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	restored, err := restoreProjectPersistence(targetPath, projectUUID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if restored.Status != "v2" {
+		t.Fatalf("restore=%+v", restored)
+	}
+	manifest, err := projectstore.Load(targetRoots)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !samePath(manifest.ProjectPath, targetPath) {
+		t.Fatalf("copied store path was not rebound: %+v", manifest)
+	}
+}
+
 func TestActiveV2WorkflowDoesNotWriteLegacyWorkspaceStores(t *testing.T) {
 	projectstore.Deactivate()
 	t.Cleanup(projectstore.Deactivate)

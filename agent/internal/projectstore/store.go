@@ -128,6 +128,15 @@ func Ensure(projectPath, projectUUID string) (Roots, Manifest, error) {
 		return Roots{}, Manifest{}, err
 	}
 	manifest, err := Load(roots)
+	if err != nil && !os.IsNotExist(err) {
+		if rebound, ok, rebindErr := rebindRelocatedStore(roots); ok {
+			if rebindErr != nil {
+				return Roots{}, Manifest{}, rebindErr
+			}
+			manifest = rebound
+			err = nil
+		}
+	}
 	if os.IsNotExist(err) {
 		now := time.Now().UTC()
 		manifest = Manifest{
@@ -151,6 +160,33 @@ func Ensure(projectPath, projectUUID string) (Roots, Manifest, error) {
 		return Roots{}, Manifest{}, err
 	}
 	return roots, manifest, nil
+}
+
+// rebindRelocatedStore accepts a project folder that was copied or moved as a
+// unit. The store is already scoped by the same project UUID and lives beside
+// the opened .vit file; only its persisted absolute project path is stale.
+// Rebinding the copied tree keeps the original folder untouched while making
+// the local store usable at its new location.
+func rebindRelocatedStore(roots Roots) (Manifest, bool, error) {
+	data, err := os.ReadFile(filepath.Join(roots.Agent, ManifestFile))
+	if err != nil {
+		return Manifest{}, false, nil
+	}
+	manifest := Manifest{}
+	if err := json.Unmarshal(data, &manifest); err != nil ||
+		manifest.SchemaVersion != ManifestSchemaVersion ||
+		SafeName(manifest.ProjectUUID) != roots.ProjectUUID {
+		return Manifest{}, false, nil
+	}
+	oldPath := strings.TrimSpace(manifest.ProjectPath)
+	if oldPath == "" || samePath(oldPath, roots.ProjectPath) {
+		return Manifest{}, false, nil
+	}
+	if err := RebindProjectTree(roots.Agent, oldPath, roots.ProjectUUID, roots.ProjectPath, roots.ProjectUUID); err != nil {
+		return Manifest{}, true, err
+	}
+	rebound, err := Load(roots)
+	return rebound, true, err
 }
 
 func Activate(projectPath, projectUUID string) (Roots, Manifest, error) {

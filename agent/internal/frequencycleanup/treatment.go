@@ -30,8 +30,11 @@ func FinalizeTreatmentPlan(plan TreatmentPlan, model Model) (TreatmentPlan, erro
 		allowedRefs[candidate.ID] = true
 	}
 	allowedEvidence := map[string]bool{}
+	evidenceAliases := map[string][]string{}
 	for _, ref := range model.EvidenceRefs {
 		allowedEvidence[ref] = true
+		key := evidenceRefAliasKey(ref)
+		evidenceAliases[key] = append(evidenceAliases[key], ref)
 	}
 	seenTracks, seenOrders := map[string]bool{}, map[int]bool{}
 	for index := range plan.Items {
@@ -60,20 +63,24 @@ func FinalizeTreatmentPlan(plan TreatmentPlan, model Model) (TreatmentPlan, erro
 				return TreatmentPlan{}, fmt.Errorf("item %d invented diagnosis_ref %q", index+1, ref)
 			}
 		}
-		for _, ref := range item.EvidenceRefs {
-			if !allowedEvidence[ref] {
+		for refIndex, ref := range item.EvidenceRefs {
+			canonical, ok := resolveSuppliedEvidenceRef(ref, allowedEvidence, evidenceAliases)
+			if !ok {
 				return TreatmentPlan{}, fmt.Errorf("item %d invented evidence_ref %q", index+1, ref)
 			}
+			item.EvidenceRefs[refIndex] = canonical
 		}
 		seenTracks[item.TrackID], seenOrders[item.Order] = true, true
 		item.TrackName = track.TrackName
 		item.ItemID = stableID("fci", map[string]any{"diagnosis": model.ModelID, "track": item.TrackID, "classification": item.Classification, "order": item.Order})
 		item.DiagnosisRefs, item.Constraints, item.EvidenceRefs = unique(item.DiagnosisRefs), unique(item.Constraints), unique(item.EvidenceRefs)
 	}
-	for _, ref := range plan.EvidenceRefs {
-		if !allowedEvidence[ref] {
+	for refIndex, ref := range plan.EvidenceRefs {
+		canonical, ok := resolveSuppliedEvidenceRef(ref, allowedEvidence, evidenceAliases)
+		if !ok {
 			return TreatmentPlan{}, fmt.Errorf("plan invented evidence_ref %q", ref)
 		}
+		plan.EvidenceRefs[refIndex] = canonical
 	}
 	sort.SliceStable(plan.Items, func(i, j int) bool { return plan.Items[i].Order < plan.Items[j].Order })
 	plan.DiagnosisID, plan.ObservationID, plan.ObservationScope = model.ModelID, model.ObservationID, "full_project"
@@ -84,6 +91,41 @@ func FinalizeTreatmentPlan(plan TreatmentPlan, model Model) (TreatmentPlan, erro
 	plan.Limitations = unique(append(plan.Limitations, model.Limitations...))
 	plan.PlanID = stableID("fcp", map[string]any{"diagnosis": model.ModelID, "items": plan.Items, "summary": plan.Summary})
 	return plan, nil
+}
+
+// LLMs occasionally preserve an opaque evidence identity except for swapping
+// a dot and underscore inside a generated timestamp suffix. Resolve that typo
+// only when it maps to exactly one supplied authoritative ref, then retain the
+// authoritative spelling. All other invented or ambiguous refs stay rejected.
+func resolveSuppliedEvidenceRef(ref string, exact map[string]bool, aliases map[string][]string) (string, bool) {
+	ref = strings.TrimSpace(ref)
+	if exact[ref] {
+		return ref, true
+	}
+	matches := aliases[evidenceRefAliasKey(ref)]
+	if len(matches) != 1 {
+		return "", false
+	}
+	return matches[0], true
+}
+
+func evidenceRefAliasKey(ref string) string {
+	ref = strings.TrimSpace(ref)
+	prefix := ""
+	if boundary := strings.LastIndexByte(ref, ':'); boundary >= 0 {
+		prefix, ref = ref[:boundary+1], ref[boundary+1:]
+	}
+	var out strings.Builder
+	out.Grow(len(prefix) + len(ref))
+	out.WriteString(prefix)
+	for _, current := range ref {
+		if current == '.' || current == '_' {
+			out.WriteByte('~')
+			continue
+		}
+		out.WriteRune(current)
+	}
+	return out.String()
 }
 
 func StaticEQItems(plan TreatmentPlan) []TreatmentItem {

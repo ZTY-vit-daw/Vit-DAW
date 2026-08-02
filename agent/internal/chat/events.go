@@ -1,6 +1,7 @@
 package chat
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -349,6 +350,9 @@ func toolResultTitle(call planner.ToolCall, result executorpkg.Result) string {
 	if isEventErrorStatus(result.Status) || strings.TrimSpace(result.Error) != "" {
 		return "执行失败"
 	}
+	if ready, total, _, ok := audioAnalysisProgress(result.Result); ok {
+		return fmt.Sprintf("素材分析 %.0f/%.0f", ready, total)
+	}
 	if name := firstNonEmpty(strings.TrimSpace(result.CommandName), strings.TrimSpace(result.Tool), strings.TrimSpace(call.Tool)); name != "" {
 		return "已完成 " + toolDisplayName(name)
 	}
@@ -383,6 +387,12 @@ func toolResultBody(result executorpkg.Result, err error) string {
 	if result.RequiresConfirmation || strings.EqualFold(result.Status, "needs_confirmation") {
 		return firstNonEmpty(strings.TrimSpace(result.Preview), "这个操作需要你确认后才会执行。")
 	}
+	if ready, total, pending, ok := audioAnalysisProgress(result.Result); ok {
+		if ready >= total {
+			return fmt.Sprintf("全工程素材分析已完成：%.0f/%.0f。", ready, total)
+		}
+		return fmt.Sprintf("B1 正在等待全工程素材分析：%.0f/%.0f，剩余 %.0f。", ready, total, pending)
+	}
 	if result.Result != nil {
 		for _, key := range []string{"message", "summary", "track_name", "clip_name", "plugin_name"} {
 			if text := strings.TrimSpace(cleanContextText(result.Result[key])); text != "" {
@@ -391,6 +401,47 @@ func toolResultBody(result executorpkg.Result, err error) string {
 		}
 	}
 	return ""
+}
+
+func audioAnalysisProgress(result map[string]any) (ready, total, pending float64, ok bool) {
+	if len(result) == 0 {
+		return 0, 0, 0, false
+	}
+	job := mapValue(result["analysis_job"])
+	if len(job) == 0 {
+		job = mapValue(mapValue(result["result"])["analysis_job"])
+	}
+	if len(job) == 0 {
+		return 0, 0, 0, false
+	}
+	parse := func(keys ...string) (float64, bool) {
+		for _, key := range keys {
+			text := strings.TrimSpace(cleanContextText(job[key]))
+			if text == "" {
+				continue
+			}
+			value, err := strconv.ParseFloat(text, 64)
+			if err == nil {
+				return value, true
+			}
+		}
+		return 0, false
+	}
+	var readyOK, totalOK bool
+	ready, readyOK = parse("dad_fact_ready_count", "ready_clips")
+	total, totalOK = parse("dad_fact_total_count", "total_clips")
+	if !readyOK || !totalOK || total <= 0 {
+		return 0, 0, 0, false
+	}
+	if value, pendingOK := parse("dad_fact_pending_count", "pending_clips"); pendingOK {
+		pending = value
+	} else {
+		pending = total - ready
+		if pending < 0 {
+			pending = 0
+		}
+	}
+	return ready, total, pending, true
 }
 
 func normalizeEventStatus(status string, err error, needsConfirmation bool) string {

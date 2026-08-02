@@ -52,14 +52,16 @@ func (s *Server) recoverCapabilityExecution(ctx context.Context, conversationID 
 	case lowEndRelationCapabilityID:
 		var treatment lowendrelation.TreatmentPlan
 		var before lowendrelation.Model
+		var beforePostFX lowendrelation.TargetPostFXBaseline
 		if len(frozen.ActionSet.Actions) == 1 {
 			_ = decodeAnyJSON(frozen.ActionSet.Actions[0].Args["treatment_plan"], &treatment)
 			_ = decodeAnyJSON(frozen.ActionSet.Actions[0].Args["diagnosis_model"], &before)
+			_ = decodeAnyJSON(frozen.ActionSet.Actions[0].Args["verification_context"], &beforePostFX)
 		}
 		recovered, err = s.orchestrationRuntime.ReconcileActionSet(
 			ctx, session.ID, frozen.ActionSet,
 			&b4BatchMutationPort{server: s},
-			b4BatchVerifier{server: s, treatment: treatment, before: before, sessionID: session.ID, goalText: session.Goal},
+			b4BatchVerifier{server: s, treatment: treatment, before: before, beforePostFX: beforePostFX, sessionID: session.ID, goalText: session.Goal},
 		)
 	case frequencyCleanupCapabilityID:
 		var before frequencycleanup.TargetPostFXBaseline

@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"vit-daw-agent/internal/capabilitycontext"
+	"vit-daw-agent/internal/levelsafety"
 	"vit-daw-agent/internal/llm"
 	"vit-daw-agent/internal/planner"
 )
@@ -734,7 +735,12 @@ func messageLoopGainStagingExpandTrackCalibration(action capabilitycontext.GainS
 			if !ok {
 				continue
 			}
-			target := math.Round(math.Max(-24, math.Min(24, current+delta))*1000) / 1000
+			var sourcePeak *float64
+			if value, ok := firstNumericMapValue(action.Metadata, "observed_source_peak_dbfs"); ok {
+				sourcePeak = &value
+			}
+			constraint := levelsafety.ConstrainSourceClipGain(current, delta, 24, sourcePeak)
+			target := math.Round(constraint.TargetClipGainDB*1000) / 1000
 			currentRounded := math.Round(current*1000) / 1000
 			deltaRounded := math.Round((target-currentRounded)*1000) / 1000
 			next := action
@@ -749,6 +755,14 @@ func messageLoopGainStagingExpandTrackCalibration(action capabilitycontext.GainS
 			}
 			next.Metadata["track_calibration_delta_db"] = delta
 			next.Metadata["expanded_to_all_track_clips"] = true
+			next.Metadata["target_clipped_to_bound"] = constraint.ClipGainBoundClamped
+			next.Metadata["target_clipped_to_peak_safety"] = constraint.PeakSafetyClamped
+			if constraint.ProjectedPeakDBFS != nil {
+				next.Metadata["projected_static_peak_dbfs"] = math.Round(*constraint.ProjectedPeakDBFS*1000) / 1000
+			}
+			if constraint.PeakSafetyAchieved != nil {
+				next.Metadata["peak_safety_achieved"] = *constraint.PeakSafetyAchieved
+			}
 			out = append(out, next)
 		}
 		if len(out) > 0 {
@@ -1358,6 +1372,20 @@ func (l *MessageLoop) messageLoopB12SourceCalibrationCompleteReply(ctx context.C
 	}
 	lines := []string{"B1.2 源素材 clip gain 校准已执行。", ""}
 	lines = append(lines, "验证")
+	if issue := messageLoopB12ClipGainVerificationIssue(state, resultRows, targets, ranProjectState); issue != "" {
+		return "", true, r.fail(state, fmt.Errorf("B1.2 source calibration write verification failed: %s", issue))
+	}
+	if unsafe := messageLoopB12UnsafeTargetPeaks(pack, targets); len(unsafe) > 0 {
+		parts := make([]string, 0, len(unsafe))
+		for i, row := range unsafe {
+			if i >= 8 {
+				parts = append(parts, fmt.Sprintf("and %d more", len(unsafe)-i))
+				break
+			}
+			parts = append(parts, fmt.Sprintf("track=%s peak=%+.3f dBFS", firstNonEmpty(row.TrackName, row.TrackID, row.ClipID), row.PeakDBFS))
+		}
+		return "", true, r.fail(state, fmt.Errorf("B1.2 source calibration acoustic verification failed: effective static peak exceeds the %+.1f dBFS safety ceiling (%s)", levelsafety.StaticPeakCeilingDBFS, strings.Join(parts, "; ")))
+	}
 	verifiedCount := 0
 	for i, target := range targets {
 		if i >= 8 {
@@ -1410,6 +1438,81 @@ func (l *MessageLoop) messageLoopB12SourceCalibrationCompleteReply(ctx context.C
 	}
 	messageLoopCompactB1PreflightState(state, pack)
 	return strings.Join(lines, "\n"), true, Result{}
+}
+
+func messageLoopB12ClipGainVerificationIssue(state *runState, resultRows []map[string]any, targets []messageLoopB12SourceCalibrationTarget, ranProjectState bool) string {
+	for _, target := range targets {
+		verifiedGain, ok := messageLoopB12ClipGainFromProjectState(state, target.ClipID)
+		if !ok {
+			verifiedGain, ok = messageLoopB12ClipGainFromResultRows(resultRows, target.ClipID)
+		}
+		label := firstNonEmpty(target.ClipID, target.TrackID, "target clip")
+		if !ok {
+			if ranProjectState {
+				return fmt.Sprintf("target %s was not present in refreshed project.state or the write result", label)
+			}
+			continue
+		}
+		if mathAbs(verifiedGain-target.TargetGainDB) > 0.01 {
+			return fmt.Sprintf("target %s is %+.3f dB, expected %+.3f dB", label, verifiedGain, target.TargetGainDB)
+		}
+	}
+	return ""
+}
+
+type messageLoopB12UnsafePeak struct {
+	TrackID   string
+	TrackName string
+	ClipID    string
+	PeakDBFS  float64
+}
+
+func messageLoopB12UnsafeTargetPeaks(pack capabilitycontext.Pack, targets []messageLoopB12SourceCalibrationTarget) []messageLoopB12UnsafePeak {
+	targetTracks := map[string]bool{}
+	targetClips := map[string]bool{}
+	for _, target := range targets {
+		if trackID := strings.TrimSpace(target.TrackID); trackID != "" {
+			targetTracks[trackID] = true
+		}
+		if clipID := strings.TrimSpace(target.ClipID); clipID != "" {
+			targetClips[clipID] = true
+		}
+	}
+	out := []messageLoopB12UnsafePeak{}
+	for _, track := range pack.Tracks {
+		clipID := ""
+		if track.PrimaryClip != nil {
+			clipID = strings.TrimSpace(track.PrimaryClip.ClipID)
+		}
+		if !targetTracks[strings.TrimSpace(track.TrackID)] && !targetClips[clipID] {
+			continue
+		}
+		peak, ok := messageLoopB12EffectiveStaticPeak(track)
+		if !ok || peak <= levelsafety.StaticPeakCeilingDBFS+0.001 {
+			continue
+		}
+		out = append(out, messageLoopB12UnsafePeak{
+			TrackID:   strings.TrimSpace(track.TrackID),
+			TrackName: strings.TrimSpace(track.TrackName),
+			ClipID:    clipID,
+			PeakDBFS:  peak,
+		})
+	}
+	return out
+}
+
+func messageLoopB12EffectiveStaticPeak(track capabilitycontext.TrackGainRow) (float64, bool) {
+	if track.EffectiveStaticPeakDBFS != nil {
+		return *track.EffectiveStaticPeakDBFS, true
+	}
+	if track.PeakDBFS == nil {
+		return 0, false
+	}
+	peak := *track.PeakDBFS
+	if track.PrimaryClip != nil && track.PrimaryClip.GainDB != nil {
+		peak += *track.PrimaryClip.GainDB
+	}
+	return peak, true
 }
 
 func messageLoopB12SourceCalibrationTargets(call planner.ToolCall) []messageLoopB12SourceCalibrationTarget {

@@ -90,6 +90,29 @@ func TestFinalizeTreatmentPlanForcesDeterministicSilenceToNoChange(t *testing.T)
 	}
 }
 
+func TestFinalizeTreatmentPlanRestoresOnlyUniqueSuppliedEvidenceAlias(t *testing.T) {
+	model := BuildModel(Input{MOMProjection: testFrequencyProjection("track_post_fader", true), MixObservation: map[string]any{"observation_id": "obs_before"}})
+	canonical := "dad.band_energy_summary:1297:mixboard_20260801T063504.151719800"
+	alias := "dad.band_energy_summary:1297:mixboard_20260801T063504_151719800"
+	model.EvidenceRefs = []string{canonical}
+	plan := TreatmentPlan{SchemaVersion: TreatmentPlanSchema, Summary: "classify all tracks", EvidenceRefs: []string{alias}, Items: []TreatmentItem{
+		{Order: 1, TrackID: "t1", Classification: TreatmentNoChange, Rationale: "no justified static change", EvidenceRefs: []string{alias}},
+		{Order: 2, TrackID: "t2", Classification: TreatmentNoChange, Rationale: "no justified static change"},
+	}}
+	finalized, err := FinalizeTreatmentPlan(plan, model)
+	if err != nil {
+		t.Fatalf("unique supplied evidence alias was not restored: %v", err)
+	}
+	if len(finalized.Items[0].EvidenceRefs) != 1 || finalized.Items[0].EvidenceRefs[0] != canonical || finalized.EvidenceRefs[0] != canonical {
+		t.Fatalf("authoritative evidence spelling was not retained: %+v", finalized)
+	}
+
+	plan.Items[0].EvidenceRefs = []string{"dad.band_energy_summary:1297:invented"}
+	if _, err = FinalizeTreatmentPlan(plan, model); err == nil {
+		t.Fatal("unrelated invented evidence ref was accepted")
+	}
+}
+
 func TestVerifyRelationshipsRequiresSameTapPostFX(t *testing.T) {
 	before := BuildModel(Input{MOMProjection: testFrequencyProjection("track_post_fader", true)}).FrequencyRelationship
 	after := before

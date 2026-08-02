@@ -2,6 +2,7 @@ package capabilitycontext
 
 import (
 	"encoding/json"
+	"math"
 	"strings"
 	"testing"
 	"time"
@@ -432,6 +433,33 @@ func TestBuildGainStagingPackB12AdmissionUsesAudioAnalysisStatusForFullProjectMe
 	}
 }
 
+func TestBuildGainStagingPackB12ExcludesExplicitSilentSourceFromCoverage(t *testing.T) {
+	pack := BuildGainStagingPack(GainStagingInput{
+		UserIntent: "B1.2 source calibration",
+		ProjectState: map[string]any{"tracks": []map[string]any{
+			b1TestTrackWithClip("track_quiet", "Quiet", "clip_quiet", 0),
+			b1TestTrackWithClip("track_ref", "Reference", "clip_ref", 0),
+			b1TestTrackWithClip("track_silent", "Silent", "clip_silent", 0),
+		}},
+		AudioAnalysisStatus: map[string]any{"analysis_job": map[string]any{"track_waveform_envelopes": []map[string]any{
+			{"track_id": "track_quiet", "clip_id": "clip_quiet", "rms_dbfs": -30.0, "peak_dbfs": -12.0},
+			{"track_id": "track_ref", "clip_id": "clip_ref", "rms_dbfs": -20.0, "peak_dbfs": -8.0},
+			{"track_id": "track_silent", "clip_id": "clip_silent", "rms": 0.0, "peak_abs": 0.0, "status": "ready"},
+		}}},
+		GeneratedAt: time.Date(2026, 8, 2, 0, 0, 0, 0, time.UTC),
+	})
+	admission := b1AdmissionSummary(t, pack)
+	if admission["status"] != "ready" || admission["candidate_count"] != 2 || admission["eligible_track_count"] != 2 {
+		t.Fatalf("silent source should not block B1.2 coverage: %+v limitations=%+v", admission, pack.Limitations)
+	}
+	if status := pack.EvidenceStatus["track_acoustic"]; status.Status != "ready" || status.KnownCount != 2 || status.TotalCount != 2 {
+		t.Fatalf("acoustic evidence should use non-silent denominator: %+v", status)
+	}
+	if suggestions := BuildGainStagingSuggestions(pack); suggestions.Status != "suggested" || suggestions.PrimaryAction == nil {
+		t.Fatalf("silent source blocked actionable calibration: %+v", suggestions)
+	}
+}
+
 func TestBuildGainStagingSuggestionsSourceLevelOutliersUseBatchWhenMultipleTargets(t *testing.T) {
 	pack := BuildGainStagingPack(GainStagingInput{
 		UserIntent: "B1.2 source calibration",
@@ -802,6 +830,57 @@ func TestBuildGainStagingSuggestionsLowLevelRiskIsReportOnlyInV1(t *testing.T) {
 	}
 	if !strings.Contains(strings.Join(suggestions.Limitations, ","), "low_level_risk_requires_source_or_clip_trim_calibration") {
 		t.Fatalf("low-level limitations = %+v", suggestions.Limitations)
+	}
+}
+
+func TestBuildGainStagingPackClampsA5QuietTrackToPeakSafeClipGain(t *testing.T) {
+	pack := BuildGainStagingPack(GainStagingInput{
+		UserIntent: "B1.2 source calibration",
+		ProjectState: map[string]any{"tracks": []map[string]any{
+			b1TestTrackWithClip("1062", "Quiet metal", "1066", 0),
+			b1TestTrackWithClip("ref_a", "Reference A", "ref_clip_a", 0),
+			b1TestTrackWithClip("ref_b", "Reference B", "ref_clip_b", 0),
+		}},
+		AudioAnalysisStatus: map[string]any{
+			"track_waveform_envelopes": []map[string]any{
+				{"track_id": "1062", "clip_id": "1066", "rms_dbfs": -72.905, "peak_dbfs": -23.718},
+				{"track_id": "ref_a", "clip_id": "ref_clip_a", "rms_dbfs": -48.905, "peak_dbfs": -10.0},
+				{"track_id": "ref_b", "clip_id": "ref_clip_b", "rms_dbfs": -48.905, "peak_dbfs": -10.0},
+			},
+		},
+		GeneratedAt: time.Date(2026, 8, 2, 0, 0, 0, 0, time.UTC),
+	})
+
+	rows := pack.Rankings["source_level_reference_calibration"]
+	if len(rows) != 1 || rows[0].TrackID != "1062" {
+		t.Fatalf("calibration rows = %+v", rows)
+	}
+	target, _ := numberValue(rows[0].Metadata["target_clip_gain_db"])
+	projectedPeak, _ := numberValue(rows[0].Metadata["projected_static_peak_dbfs"])
+	if math.Abs(target-22.718) > 0.001 || math.Abs(projectedPeak-(-1.0)) > 0.001 {
+		t.Fatalf("peak-safe metadata = %+v", rows[0].Metadata)
+	}
+	if rows[0].Metadata["target_clipped_to_peak_safety"] != true || rows[0].Metadata["peak_safety_achieved"] != true {
+		t.Fatalf("peak safety flags = %+v", rows[0].Metadata)
+	}
+	if suggestions := BuildGainStagingSuggestions(pack); suggestions.PrimaryAction == nil || suggestions.PrimaryAction.TargetDB == nil || math.Abs(*suggestions.PrimaryAction.TargetDB-22.718) > 0.001 {
+		t.Fatalf("suggestions = %+v", suggestions)
+	}
+}
+
+func TestGainStagingRisksUseEffectiveStaticPeakAfterClipGain(t *testing.T) {
+	peak := -23.718
+	effectivePeak := 0.282
+	gain := 24.0
+	row := TrackGainRow{
+		TrackID:                 "1062",
+		PeakDBFS:                &peak,
+		EffectiveStaticPeakDBFS: &effectivePeak,
+		PrimaryClip:             &ClipGainRow{ClipID: "1066", GainDB: &gain},
+	}
+	risks := strings.Join(gainStagingRisks(row), ",")
+	if !strings.Contains(risks, "possible_clipping_or_no_headroom") {
+		t.Fatalf("risks = %q", risks)
 	}
 }
 

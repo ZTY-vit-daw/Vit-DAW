@@ -113,7 +113,7 @@ func gainStagingFaderUnitySuggestion(pack Pack) (GainStagingSuggestion, bool) {
 		TargetDB:             &target,
 		DeltaDB:              &delta,
 		Risk:                 first.Risk,
-		Reason:               "large track fader offset; reset track faders to unity before B2 static balance",
+		Reason:               "large track fader offset; reset track faders to unity as B1 engineering calibration without making B2 musical-balance decisions",
 		EvidenceRefs:         append([]string(nil), first.EvidenceRefs...),
 		RequiresConfirmation: true,
 		Metadata: map[string]any{

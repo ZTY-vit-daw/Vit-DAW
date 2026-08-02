@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"vit-daw-agent/internal/capabilityadapters"
-	"vit-daw-agent/internal/capabilitycontext"
 	"vit-daw-agent/internal/config"
 	"vit-daw-agent/internal/executionports"
 	"vit-daw-agent/internal/harness"
@@ -19,7 +18,6 @@ import (
 	"vit-daw-agent/internal/lowendrelation"
 	"vit-daw-agent/internal/orchestration"
 	"vit-daw-agent/internal/projectcut"
-	"vit-daw-agent/internal/protocolvalue"
 	agentruntime "vit-daw-agent/internal/runtime"
 	"vit-daw-agent/internal/semanticeffect"
 )
@@ -215,6 +213,7 @@ func (s *Server) buildB4ActionableResponse(ctx context.Context, conversationID s
 	}
 	if len(resolution.Missing) > 0 {
 		candidates, searchErr := s.localPluginRecommendationCandidates(ctx, "eq")
+		candidates = genericStaticEQRecommendationCandidates(candidates)
 		if searchErr != nil || len(candidates) == 0 {
 			return capabilityCanaryBlockedResponse(conversationID, goal, "B4 需要为部分目标加载 EQ，但本地 EQ 候选不可用；没有加载或写入："+firstNonEmpty(errorText(searchErr), "no local EQ candidates"))
 		}
@@ -295,7 +294,11 @@ func (s *Server) createB4EQProposal(ctx context.Context, conversationID string, 
 	if err != nil || state == nil || !state.OK() {
 		return capabilityCanaryBlockedResponse(conversationID, goal, "B4 EQ Proposal 无法取得强工程快照；没有写入。")
 	}
-	dependencies := []string{"b4-treatment:" + treatment.PlanID, "b4-semantic-batch:" + semanticEQHash(batch)}
+	baseline, baselineErr := s.collectB4TargetPostFXBaseline(ctx, sessionID, goal.Summary, "pre_parameter", state, treatment, model, false)
+	if baselineErr != nil {
+		return b4TargetPreflightBlockedResponse(conversationID, goal, sessionID, treatment, baseline, baselineErr)
+	}
+	dependencies := []string{"b4-treatment:" + treatment.PlanID, "b4-target-post-fx:" + baseline.BaselineID, "b4-semantic-batch:" + semanticEQHash(batch)}
 	targetFingerprints := []string{}
 	for _, leaf := range leaves {
 		targetFingerprints = append(targetFingerprints, "plugin:"+leaf.Action.Target.TrackID+":"+leaf.Action.Target.PluginID, "eq-topology:"+leaf.TopologyGeneration)
@@ -304,11 +307,11 @@ func (s *Server) createB4EQProposal(ctx context.Context, conversationID string, 
 		}
 	}
 	decisionRefs, _ := mixboardDecisionContextForState(state.LegacyState, lowEndRelationCapabilityID)
-	cut, err := projectcut.Build(projectcut.BuildRequest{State: state, Guarantee: capabilityCanaryCutGuarantee(ctx, s.kernel), DependencyFingerprints: dependencies, TargetFingerprints: targetFingerprints, ArtifactRefs: appendUniqueStrings(treatment.EvidenceRefs, mixboardDecisionArtifactRefs(decisionRefs)...), ContractVersions: []string{"capability:" + lowEndRelationCapabilityID, "treatment:" + lowendrelation.TreatmentPlanSchema, "batch:" + semanticeffect.BatchSchema, "action:" + semanticeffect.ActionSchema, "executor:plugin_grabber.apply_eq_edits"}})
+	cut, err := projectcut.Build(projectcut.BuildRequest{State: state, Guarantee: capabilityCanaryCutGuarantee(ctx, s.kernel), DependencyFingerprints: dependencies, TargetFingerprints: targetFingerprints, ArtifactRefs: appendUniqueStrings(append(append([]string(nil), treatment.EvidenceRefs...), baseline.EvidenceRefs...), mixboardDecisionArtifactRefs(decisionRefs)...), ContractVersions: []string{"capability:" + lowEndRelationCapabilityID, "treatment:" + lowendrelation.TreatmentPlanSchema, "baseline:" + lowendrelation.TargetPostFXBaselineSchema, "batch:" + semanticeffect.BatchSchema, "action:" + semanticeffect.ActionSchema, "executor:plugin_grabber.apply_eq_edits"}})
 	if err != nil || !cut.IsExecutable() {
 		return capabilityCanaryBlockedResponse(conversationID, goal, "B4 EQ Proposal 无法建立强 ProjectCut；没有写入。")
 	}
-	proposal, actionSet, err := capabilityadapters.FreezeSemanticEQBatch(capabilityadapters.SemanticEQBatchPlan{Treatment: treatment, Diagnosis: model, Batch: batch, Leaves: leaves}, cut, 1)
+	proposal, actionSet, err := capabilityadapters.FreezeSemanticEQBatch(capabilityadapters.SemanticEQBatchPlan{Treatment: treatment, Diagnosis: model, VerificationContext: baseline, Batch: batch, Leaves: leaves}, cut, 1)
 	if err != nil {
 		return capabilityCanaryBlockedResponse(conversationID, goal, "B4 EQ 批冻结失败；没有写入："+err.Error())
 	}
@@ -318,6 +321,32 @@ func (s *Server) createB4EQProposal(ctx context.Context, conversationID string, 
 		return capabilityCanaryBlockedResponse(conversationID, goal, "B4 EQ Proposal 持久化失败；没有写入："+err.Error())
 	}
 	return b4ProposalResponse(conversationID, goal, session)
+}
+
+func (s *Server) collectB4TargetPostFXBaseline(ctx context.Context, sessionID, goalText, phase string, state *kernel.VSPStateResult, treatment lowendrelation.TreatmentPlan, model lowendrelation.Model, forceFresh bool) (lowendrelation.TargetPostFXBaseline, error) {
+	trackIDs := lowendrelation.TargetPostFXTrackIDs(treatment, model)
+	if len(trackIDs) == 0 {
+		return lowendrelation.TargetPostFXBaseline{}, fmt.Errorf("B4 target preflight has no treatment target or referenced relationship peer")
+	}
+	if s == nil || s.harness == nil {
+		return lowendrelation.TargetPostFXBaseline{}, fmt.Errorf("B4 target post-FX collector is unavailable")
+	}
+	collected, err := s.harness.CollectL2RenderProbeBatch(ctx, harness.L2RenderProbeBatchRequest{SessionID: sessionID, GoalText: goalText, TrackIDs: trackIDs, TapPoint: "track_post_fader", ForceFresh: forceFresh})
+	projectID := firstNonEmpty(firstStringFromMap(state.LegacyState, "project_uuid"), firstStringFromMap(firstMapFromAny(state.LegacyState["project"]), "project_uuid", "uuid", "id"), "current")
+	baseline := lowendrelation.BuildTargetPostFXBaseline(sessionID, phase, projectID, trackIDs, collected.Rows, time.Now().UTC())
+	baseline.Collection = lowendrelation.TargetBaselineCollection{ElapsedMS: collected.ElapsedMS, RenderedTrackIDs: append([]string(nil), collected.RenderedTrackIDs...), CacheHitTrackIDs: append([]string(nil), collected.CacheHitTrackIDs...)}
+	if err != nil {
+		return baseline, err
+	}
+	if !baseline.Readiness.CanProceed {
+		return baseline, fmt.Errorf("B4 target post-FX readiness blocked: %s", strings.Join(baseline.Readiness.BlockedBy, ", "))
+	}
+	return baseline, nil
+}
+
+func b4TargetPreflightBlockedResponse(conversationID string, goal agentruntime.Goal, sessionID string, treatment lowendrelation.TreatmentPlan, baseline lowendrelation.TargetPostFXBaseline, err error) ChatResponse {
+	reason := firstNonEmpty(errorText(err), strings.Join(baseline.Readiness.BlockedBy, ", "), "target post-FX evidence unavailable")
+	return ChatResponse{ConversationID: conversationID, GoalID: goal.GoalID, RunID: goal.RunID, Reply: "B4 completed relationship planning, but exact target/peer post-FX preflight is blocked; no EQ parameter Proposal or write was created: " + reason, Workflow: "capability_runtime_v1", GoalStatus: string(agentruntime.StatusWaitingContinue), WorkflowData: map[string]any{"session_id": sessionID, "capability_id": lowEndRelationCapabilityID, "canary_stage": "target_preflight_blocked", "treatment_plan": treatment, "target_post_fx_baseline": baseline, "mutation_performed": false}}
 }
 
 func b4EQRejectedResponse(conversationID string, goal agentruntime.Goal, treatment lowendrelation.TreatmentPlan, code, reason string) ChatResponse {
@@ -709,6 +738,7 @@ type b4BatchVerifier struct {
 	server              *Server
 	treatment           lowendrelation.TreatmentPlan
 	before              lowendrelation.Model
+	beforePostFX        lowendrelation.TargetPostFXBaseline
 	sessionID, goalText string
 }
 
@@ -725,71 +755,39 @@ func (v b4BatchVerifier) Verify(ctx context.Context, actionSet orchestration.Act
 		result.Summary = "插件加载与每个实际实例的 generic EQ topology 资格确认通过；尚未执行 EQ 参数。"
 		return result, nil
 	}
-	if v.server == nil || v.server.harness == nil || v.server.kernel == nil {
+	return v.verifyTargetPostFX(ctx, result)
+}
+
+func (v b4BatchVerifier) verifyTargetPostFX(ctx context.Context, result orchestration.VerificationResult) (orchestration.VerificationResult, error) {
+	if v.server == nil || v.server.harness == nil || v.server.kernel == nil || v.beforePostFX.SchemaVersion != lowendrelation.TargetPostFXBaselineSchema || !v.beforePostFX.Readiness.CanProceed {
 		result.Acoustic = "unavailable"
 		result.SpecialistRelationship = "inconclusive"
-		result.Summary = "结构读回通过，但 fresh full-project B4 verification 不可用。"
-		return result, nil
-	}
-	response, err := v.server.harness.Invoke(ctx, harness.InvokeRequest{Tool: "mix.observe", Args: map[string]any{"scope": "full_project", "project_context": true, "observation_only": true, "disclosure": "digest_catalog", "mom_intent": "project_multitrack_relation_observation", "previous_observation": v.treatment.ObservationID, "mix_session_id": v.sessionID, "goal_text": v.goalText}, Context: map[string]any{"capability_runtime_v1": true, "observation_only": true, "b4_verifier": true}, Source: "b4_full_project_relationship_verifier", Confirmed: true, ToolCallID: "verify:" + actionSet.ID + ":mix.observe"})
-	if err != nil || !strings.EqualFold(response.Status, "ok") {
-		result.Acoustic = "inconclusive"
-		result.SpecialistRelationship = "inconclusive"
-		result.Summary = "所有 EQ 结构读回通过，但 fresh full-project observation 不可用：" + firstNonEmpty(errorText(err), response.Error, response.Status)
-		return result, nil
-	}
-	afterObservationID := firstStringFromMap(response.Result, "observation_id")
-	if afterObservationID == "" || afterObservationID == v.treatment.ObservationID {
-		result.Acoustic = "inconclusive"
-		result.SpecialistRelationship = "inconclusive"
-		result.Summary = "所有 EQ 结构读回通过，但 post-execution full-project observation 没有证明 fresh 身份。"
+		result.Summary = "Structural readback passed, but the frozen B4 target/peer post-FX baseline is unavailable."
 		return result, nil
 	}
 	state, stateErr := v.server.kernel.VSPStateSnapshot(ctx, "project.timeline")
 	if stateErr != nil || state == nil || !state.OK() {
 		result.Acoustic = "inconclusive"
 		result.SpecialistRelationship = "inconclusive"
-		result.Summary = "结构读回通过，但验证 Project snapshot 不可用。"
+		result.Summary = "Structural readback passed, but the B4 verification project snapshot is unavailable."
 		return result, nil
 	}
-	afterPack := capabilitycontext.BuildLowEndRelationPack(capabilitycontext.LowEndRelationInput{UserIntent: v.goalText, ProjectState: cloneContext(state.LegacyState), MixObservation: cloneContext(response.Result), MOMProjection: protocolvalue.Object(response.Result["mom_projection"]), TOMProjection: capabilitycontext.BuildProjectTOMProjection(state.LegacyState, afterObservationID, v.sessionID)})
-	after := afterPack.Model()
-	beforeRefs, afterRefs := map[string]bool{}, map[string]bool{}
-	for _, conflict := range v.before.Conflicts {
-		beforeRefs[conflict.ID] = true
+	after, collectErr := v.server.collectB4TargetPostFXBaseline(ctx, v.sessionID, v.goalText, "post_execution", state, v.treatment, v.before, true)
+	if collectErr != nil {
+		result.Acoustic = "inconclusive"
+		result.SpecialistRelationship = "inconclusive"
+		result.Summary = "Structural readback passed, but fresh B4 target/peer post-FX verification failed: " + collectErr.Error()
+		return result, nil
 	}
-	for _, conflict := range after.Conflicts {
-		afterRefs[conflict.ID] = true
+	verification := lowendrelation.VerifyTargetPostFXBaselines(v.beforePostFX, after)
+	result.EvidenceRefs = append(result.EvidenceRefs, verification.EvidenceRefs...)
+	result.SpecialistSummary = fmt.Sprintf("B4 exact target/peer same-tap post-FX comparison: comparable=%v, changed_dimensions=%s, reasons=%s", verification.Comparable, strings.Join(verification.ChangedDimensions, ","), strings.Join(verification.Reasons, ","))
+	if verification.Status == "observed_change" && verification.Comparable {
+		result.Status, result.Acoustic, result.SpecialistRelationship = "pass", "observed", "observed_change"
+	} else {
+		result.Status, result.Acoustic, result.SpecialistRelationship = "inconclusive", "inconclusive", "unchanged_or_unavailable"
 	}
-	remaining, removed, introduced := 0, 0, 0
-	for _, target := range v.treatment.Targets {
-		for _, ref := range target.RelationshipRefs {
-			if beforeRefs[ref] {
-				if afterRefs[ref] {
-					remaining++
-				} else {
-					removed++
-				}
-			}
-		}
-	}
-	for ref := range afterRefs {
-		if !beforeRefs[ref] {
-			introduced++
-		}
-	}
-	relationship := "unchanged"
-	if introduced > removed || len(after.Conflicts) > len(v.before.Conflicts) {
-		relationship = "worse"
-	} else if removed > 0 && introduced == 0 {
-		relationship = "improved"
-	} else if removed > 0 && introduced > 0 {
-		relationship = "inconclusive"
-	}
-	result.Status, result.Acoustic, result.SpecialistRelationship = "inconclusive", "inconclusive", relationship
-	result.SpecialistSummary = fmt.Sprintf("fresh full-project B4 comparison: %d referenced conflicts removed, %d remain, %d new conflicts introduced; total conflicts %d -> %d", removed, remaining, introduced, len(v.before.Conflicts), len(after.Conflicts))
-	result.Summary = "所有叶子结构读回通过；" + result.SpecialistSummary + "。这是关系证据比较，不声称用户听感已验收。"
-	result.EvidenceRefs = append(result.EvidenceRefs, "mix.observe:"+afterObservationID)
+	result.Summary = "All B4 EQ leaves passed structural readback. " + result.SpecialistSummary + ". User listening acceptance remains unknown."
 	return result, nil
 }
 
@@ -817,10 +815,12 @@ func (s *Server) authorizeB4Batch(ctx context.Context, conversationID string, re
 	_ = decodeAnyJSON(frozen.ActionSet.Actions[0].Args["treatment_plan"], &treatment)
 	var before lowendrelation.Model
 	_ = decodeAnyJSON(frozen.ActionSet.Actions[0].Args["diagnosis_model"], &before)
+	var beforePostFX lowendrelation.TargetPostFXBaseline
+	_ = decodeAnyJSON(frozen.ActionSet.Actions[0].Args["verification_context"], &beforePostFX)
 	if before.ModelID == "" && frozen.ActionSet.Actions[0].Command == b4EQBatchCommand {
 		before = lowendrelation.Model{ModelID: treatment.DiagnosisID, ObservationID: treatment.ObservationID}
 	}
-	executed, executeErr := s.orchestrationRuntime.ExecuteActionSetWithPersistence(ctx, session.ID, frozen.ActionSet, frozen.ProjectCut, &b4BatchMutationPort{server: s}, b4BatchVerifier{server: s, treatment: treatment, before: before, sessionID: session.ID, goalText: session.Goal}, executionports.ProjectHistory{Harness: s.harness, GoalID: firstNonEmpty(goal.GoalID, session.ID), RunID: goal.RunID})
+	executed, executeErr := s.orchestrationRuntime.ExecuteActionSetWithPersistence(ctx, session.ID, frozen.ActionSet, frozen.ProjectCut, &b4BatchMutationPort{server: s}, b4BatchVerifier{server: s, treatment: treatment, before: before, beforePostFX: beforePostFX, sessionID: session.ID, goalText: session.Goal}, executionports.ProjectHistory{Harness: s.harness, GoalID: firstNonEmpty(goal.GoalID, session.ID), RunID: goal.RunID})
 	response := b4ExecutionResponse(conversationID, goal, executed, executeErr)
 	attachMixboardDecisionProjection(&response, executed)
 	if executeErr == nil && len(frozen.ActionSet.Actions) == 1 && frozen.ActionSet.Actions[0].Command == b4LoadBatchCommand && executed.Execution != nil && len(executed.Execution.Receipts) == 1 {
@@ -861,6 +861,9 @@ func b4ExecutionResponse(conversationID string, goal agentruntime.Goal, session 
 	}
 	if session.Execution != nil {
 		data["execution_id"], data["execution_status"], data["receipts"], data["verification"] = session.Execution.ID, session.Execution.Status, session.Execution.Receipts, session.Execution.VerificationResult
+		if strings.EqualFold(session.Execution.Status, "verified") {
+			data["canary_stage"] = "executed_verified"
+		}
 		if len(session.Execution.Receipts) > 0 {
 			receipt := session.Execution.Receipts[0]
 			data["result"] = receipt.Details

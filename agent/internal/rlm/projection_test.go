@@ -60,7 +60,7 @@ func TestMergeSourceRowsKeepsTrackAggregateWhenDADUsesAnotherClip(t *testing.T) 
 			"track_id":  "track_a",
 			"clip_id":   "clip_other",
 			"rms_dbfs":  -40.0,
-			"peak_dbfs": -10.0,
+			"peak_dbfs": -20.0,
 		}}, "project.audio_analysis_status:track_waveform_envelopes"),
 	)
 	if len(merged) != 1 {
@@ -72,6 +72,37 @@ func TestMergeSourceRowsKeepsTrackAggregateWhenDADUsesAnotherClip(t *testing.T) 
 	}
 	if row.RMSDBFS == nil || math.Abs(*row.RMSDBFS-(-20.0)) > 0.001 {
 		t.Fatalf("different DAD clip overwrote track aggregate: row=%+v data=%+v", row, merged[0].Data)
+	}
+}
+
+func TestBuildReferenceLevelModelUsesDADAggregateWhenRepresentativeClipDiffers(t *testing.T) {
+	tracks := []map[string]any{}
+	waveforms := []map[string]any{}
+	for i, level := range []float64{-30, -20, -20} {
+		trackID := fmt.Sprintf("track_%d", i)
+		tracks = append(tracks, map[string]any{
+			"track_id": trackID,
+			"clips": []map[string]any{
+				{"clip_id": "dad_clip_" + trackID, "clip_gain_db": 0.0, "duration_seconds": 2.0, "type": "audio"},
+				{"clip_id": "primary_clip_" + trackID, "clip_gain_db": 0.0, "duration_seconds": 12.0, "type": "audio"},
+			},
+		})
+		waveforms = append(waveforms, map[string]any{
+			"track_id":  trackID,
+			"clip_id":   "dad_clip_" + trackID,
+			"rms_dbfs":  level,
+			"peak_dbfs": -20.0,
+		})
+	}
+	proj := Build(Input{
+		ProjectState:        map[string]any{"tracks": tracks},
+		AudioAnalysisStatus: map[string]any{"analysis_job": map[string]any{"track_waveform_envelopes": waveforms}},
+	})
+	if proj.Status != StatusReady || proj.Summary.CandidateCount != 3 {
+		t.Fatalf("DAD aggregate was lost on representative clip mismatch: status=%s summary=%+v rows=%+v", proj.Status, proj.Summary, proj.Rows)
+	}
+	if len(proj.Calibration) != 1 || proj.Calibration[0].ClipID != "primary_clip_track_0" || proj.Calibration[0].TargetClipGainDB != 10 {
+		t.Fatalf("calibration should target writable primary clip: %+v", proj.Calibration)
 	}
 }
 
@@ -241,6 +272,33 @@ func TestBuildReferenceLevelModelCreatesManyRowsForBatchUse(t *testing.T) {
 	}
 	if len(proj.Calibration) != 64 {
 		t.Fatalf("strict reference should keep all actionable rows, got %d: %+v", len(proj.Calibration), proj.Calibration)
+	}
+}
+
+func TestBuildReferenceLevelModelClampsCalibrationToSourcePeakSafety(t *testing.T) {
+	proj := Build(Input{
+		GeneratedAt: "2026-08-02T00:00:00Z",
+		ProjectState: map[string]any{"tracks": []map[string]any{
+			testTrack("1062", "1066", 0),
+			testTrack("ref_a", "ref_clip_a", 0),
+			testTrack("ref_b", "ref_clip_b", 0),
+		}},
+		AudioAnalysisStatus: map[string]any{"track_waveform_envelopes": []map[string]any{
+			{"track_id": "1062", "clip_id": "1066", "rms_dbfs": -72.905, "peak_dbfs": -23.718},
+			{"track_id": "ref_a", "clip_id": "ref_clip_a", "rms_dbfs": -48.905, "peak_dbfs": -10.0},
+			{"track_id": "ref_b", "clip_id": "ref_clip_b", "rms_dbfs": -48.905, "peak_dbfs": -10.0},
+		}},
+	})
+
+	if len(proj.Calibration) != 1 {
+		t.Fatalf("calibration = %+v", proj.Calibration)
+	}
+	row := proj.Calibration[0]
+	if math.Abs(row.TargetClipGainDB-22.718) > 0.001 || math.Abs(row.AppliedDeltaDB-22.718) > 0.001 {
+		t.Fatalf("calibration row = %+v", row)
+	}
+	if !row.PeakSafetyClipped || row.ProjectedPeakDBFS == nil || math.Abs(*row.ProjectedPeakDBFS-(-1.0)) > 0.001 || row.PeakSafetyAchieved == nil || !*row.PeakSafetyAchieved {
+		t.Fatalf("peak safety = %+v", row)
 	}
 }
 

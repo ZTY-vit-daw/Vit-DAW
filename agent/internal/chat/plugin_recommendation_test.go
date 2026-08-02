@@ -91,6 +91,18 @@ func TestPluginRecommendationCandidatesPreserveOnlyLoadableHardFacts(t *testing.
 	}
 }
 
+func TestGenericStaticEQRecommendationCandidatesExcludeExplicitDynamicEQ(t *testing.T) {
+	candidates := []pluginRecommendationCandidate{
+		{Key: "dynamic-category", Name: "bx_dynEQ V2", Category: "Fx|EQ|Dynamics"},
+		{Key: "dynamic-name", Name: "Example Dynamic EQ", Category: "Fx|EQ"},
+		{Key: "static", Name: "Pro-Q 3", Category: "Fx|EQ"},
+	}
+	got := genericStaticEQRecommendationCandidates(candidates)
+	if len(got) != 1 || got[0].Key != "static" {
+		t.Fatalf("static EQ admission=%#v", got)
+	}
+}
+
 func TestPluginRecommendationSelectionResponseOffersOnePrimaryTwoAlternativesWithoutMutation(t *testing.T) {
 	server := New(nil, shadow.New(nil), nil)
 	plan, err := decodeAndValidatePluginRecommendationPlan(pluginRecommendationTestJSON(), "eq", "减少一些浑浊", pluginRecommendationTestCandidates())

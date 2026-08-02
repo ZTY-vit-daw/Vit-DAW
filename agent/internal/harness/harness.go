@@ -2061,8 +2061,8 @@ func restoreProjectPersistence(projectPath, projectUUID string) (projectpackage.
 		return projectpackage.RestoreResult{}, err
 	}
 	if _, statErr := os.Stat(filepath.Join(roots.Agent, projectstore.ManifestFile)); statErr == nil {
-		if _, loadErr := projectstore.Load(roots); loadErr != nil {
-			return projectpackage.RestoreResult{}, loadErr
+		if _, _, ensureErr := projectstore.Ensure(projectPath, projectUUID); ensureErr != nil {
+			return projectpackage.RestoreResult{}, ensureErr
 		}
 		return projectpackage.RestoreResult{
 			Status: "v2", PackagePath: roots.Agent, ManifestVerified: true,

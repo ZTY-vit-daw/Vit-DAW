@@ -284,6 +284,7 @@ func c1PluginSelectionRequiredResponse(conversationID string, goal agentruntime.
 
 func (s *Server) createC1LoadProposal(ctx context.Context, conversationID string, goal agentruntime.Goal, sessionID string, treatment frequencycleanup.TreatmentPlan, model frequencycleanup.Model, missing []frequencycleanup.TreatmentItem, cfg config.EngineConfig) ChatResponse {
 	candidates, err := s.localPluginRecommendationCandidates(ctx, "eq")
+	candidates = genericStaticEQRecommendationCandidates(candidates)
 	if err != nil || len(candidates) == 0 {
 		return capabilityCanaryBlockedResponse(conversationID, goal, "C1 needs a static EQ on some tracks, but no qualified local EQ candidate is available: "+firstNonEmpty(errorText(err), "no local EQ candidates"))
 	}
@@ -464,8 +465,11 @@ func (v c1BatchVerifier) Verify(ctx context.Context, actionSet orchestration.Act
 	projectID := firstNonEmpty(firstStringFromMap(state.LegacyState, "project_uuid"), firstStringFromMap(firstMapFromAny(state.LegacyState["project"]), "project_uuid", "uuid", "id"), "current")
 	after := frequencycleanup.BuildTargetPostFXBaseline(v.sessionID, "post_execution", projectID, v.before.RequestedTrackIDs, collected.Rows, time.Now().UTC())
 	verification := frequencycleanup.VerifyTargetPostFXBaselines(v.before, after)
-	result.Acoustic = verification.Status
-	result.SpecialistRelationship = verification.Status
+	if verification.Status == "observed" && verification.Comparable && len(verification.ChangedDimensions) > 0 {
+		result.Status, result.Acoustic, result.SpecialistRelationship = "pass", "observed", "observed_change"
+	} else {
+		result.Status, result.Acoustic, result.SpecialistRelationship = "inconclusive", "inconclusive", "unchanged_or_unavailable"
+	}
 	result.SpecialistSummary = fmt.Sprintf("C1 target-scoped same-tap post-FX comparison: comparable=%v, changed_dimensions=%s, reasons=%s", verification.Comparable, strings.Join(verification.ChangedDimensions, ","), strings.Join(verification.Reasons, ","))
 	result.Summary = "All static-EQ leaves passed structural readback. " + result.SpecialistSummary + ". This records observable relationship change and does not claim user listening acceptance."
 	result.EvidenceRefs = append(result.EvidenceRefs, verification.EvidenceRefs...)
@@ -542,6 +546,9 @@ func c1ExecutionResponse(conversationID string, goal agentruntime.Goal, session 
 	}
 	if session.Execution != nil {
 		data["execution_id"], data["execution_status"], data["receipts"], data["verification"] = session.Execution.ID, session.Execution.Status, session.Execution.Receipts, session.Execution.VerificationResult
+		if strings.EqualFold(session.Execution.Status, "verified") {
+			data["canary_stage"] = "executed_verified"
+		}
 		if len(session.Execution.Receipts) > 0 {
 			receipt := session.Execution.Receipts[0]
 			data["result"] = receipt.Details
