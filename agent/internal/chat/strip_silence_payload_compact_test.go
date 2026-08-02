@@ -160,11 +160,20 @@ func TestChatResponseTransportOmitsRepeatedLargeProjectHistory(t *testing.T) {
 			"project_path":       `D:\\songs\\mix.vit`,
 			"active_branch":      "main",
 			"conversation_graph": largeGraph,
+			"conversation_messages": []map[string]any{
+				{"role": "assistant", "content": "old proposal", "message_data": largeGraph},
+				{"role": "user", "content": "可以执行", "node_id": "node-user"},
+				{"role": "assistant", "content": "执行与验证均通过。", "node_id": "node-agent", "message_kind": "result", "logical_message_id": "result-1", "message_data": largeGraph},
+			},
 		},
 		AgentPlan: &AgentPlan{ProjectHistory: map[string]any{
 			"available":          true,
 			"project_path":       `D:\\songs\\mix.vit`,
 			"conversation_graph": largeGraph,
+			"conversation_messages": []map[string]any{
+				{"role": "user", "content": "可以执行"},
+				{"role": "assistant", "content": "执行与验证均通过。"},
+			},
 		}},
 		ExecutedKernelReply: []map[string]any{{
 			"status": "ok",
@@ -183,6 +192,32 @@ func TestChatResponseTransportOmitsRepeatedLargeProjectHistory(t *testing.T) {
 	}
 	if strings.Contains(string(data), "conversation_graph") {
 		t.Fatal("transport response retained a conversation graph")
+	}
+	messages := dictionaryRowsFromAny(resp.ProjectHistory["conversation_messages"])
+	if len(messages) != 2 {
+		t.Fatalf("chat transport response did not retain the two-message tail: %+v", messages)
+	}
+	if got := firstStringFromMap(messages[0], "role"); got != "user" {
+		t.Fatalf("first retained role = %q, want user", got)
+	}
+	if got := firstStringFromMap(messages[0], "content"); got != "可以执行" {
+		t.Fatalf("first retained content = %q", got)
+	}
+	if got := firstStringFromMap(messages[1], "role"); got != "assistant" {
+		t.Fatalf("last retained role = %q, want assistant", got)
+	}
+	if got := firstStringFromMap(messages[1], "content"); got != "执行与验证均通过。" {
+		t.Fatalf("last retained content = %q", got)
+	}
+	if got := firstStringFromMap(messages[1], "logical_message_id"); got != "result-1" {
+		t.Fatalf("last retained logical_message_id = %q", got)
+	}
+	if _, ok := messages[1]["message_data"]; ok {
+		t.Fatal("chat transport response retained large message_data")
+	}
+	planMessages := dictionaryRowsFromAny(resp.AgentPlan.ProjectHistory["conversation_messages"])
+	if len(planMessages) != 2 {
+		t.Fatalf("agent plan did not retain the two-message tail: %+v", planMessages)
 	}
 	if len(data) >= 1<<20 {
 		t.Fatalf("chat transport response is unexpectedly large: %d bytes", len(data))

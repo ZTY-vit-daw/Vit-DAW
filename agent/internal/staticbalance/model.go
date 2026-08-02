@@ -186,11 +186,11 @@ func assessReadiness(tracks []Track, coverage Coverage, mom, tom, projectState m
 
 	staticRelation := mapValue(mom["static_level_relationship"])
 	staticStatus := strings.ToLower(firstText(staticRelation, "status"))
-	staticReady := staticStatus == "ready" || staticStatus == "approximate"
+	staticReady := staticStatus == "ready" || staticStatus == "approximate" || (staticStatus == "partial" && levelReady)
 	conditions = append(conditions, readinessCondition(
 		"mom_static_level_relationship", true, staticReady, coverage.ProjectedLevelKnownCount, coverage.RoleCandidateCount,
 		fmt.Sprintf("MOM static-level relationship status is %s", defaultText(staticStatus, "missing")), refs,
-		"Refresh the MOM static-level relationship; stale, suspect, partial, or missing projections cannot support B2 planning.",
+		"Refresh the MOM static-level relationship; stale, suspect, missing, or partial projections below 95% usable coverage cannot support B2 planning.",
 	))
 	relationCut := firstText(staticRelation, "project_cut_ref")
 	currentCut := currentProjectCutRef(projectState)

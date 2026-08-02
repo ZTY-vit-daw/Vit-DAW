@@ -420,7 +420,10 @@ func fakeVSPCommandReply(command, legacyCommand string, legacyReply map[string]a
 
 func fakeVSPSnapshot(revision int64, scope string, tracks []any) *kernel.VSPStateResult {
 	project := map[string]any{"project_id": "project_current", "project_path": "D:/song/test.vit", "scope": scope, "track_count": len(tracks)}
-	legacy := map[string]any{"status": "ok", "project_path": "D:/song/test.vit", "tracks": tracks}
+	legacy := map[string]any{
+		"status": "ok", "project_path": "D:/song/test.vit", "tracks": tracks,
+		"snapshot_hash": fmt.Sprintf("hash_%d", revision), "project_revision": revision, "project_epoch": "epoch_test",
+	}
 	payload := map[string]any{"status": "ok", "scope": scope, "snapshot_hash": fmt.Sprintf("hash_%d", revision), "project": project, "tracks": tracks, "snapshot": map[string]any{"project": project, "tracks": tracks}}
 	return &kernel.VSPStateResult{
 		Response:     map[string]any{"type": "state.snapshot", "ack": map[string]any{"stage": "completed"}},
@@ -1029,6 +1032,54 @@ func TestInvokeProjectStateUsesVSPObserve(t *testing.T) {
 	}
 	if fmt.Sprint(resp.Result["track_count"]) != "1" {
 		t.Fatalf("visible state not initialized from VSP: %+v", resp.Result)
+	}
+	if resp.Result["snapshot_hash"] != "hash_7" || fmt.Sprint(resp.Result["project_revision"]) != "7" || resp.Result["project_epoch"] != "epoch_test" {
+		t.Fatalf("VSP project cut missing from visible state: %+v", resp.Result)
+	}
+}
+
+func TestInvokeMixObserveCarriesVSPProjectCutIntoMOM(t *testing.T) {
+	t.Setenv("VIT_MIXBOARD_ROOT", t.TempDir())
+	t.Setenv("VIT_MIXBOARD_FEATURE_READY_WAIT_MS", "1")
+	tracks := []any{
+		map[string]any{"track_id": "track_1", "track_name": "Lead", "track_type": "hybrid", "is_audio_track": true},
+		map[string]any{"track_id": "track_2", "track_name": "Drums", "track_type": "hybrid", "is_audio_track": true},
+	}
+	kernel := &fakeVSPKernelClient{snapshots: []*kernel.VSPStateResult{fakeVSPSnapshot(9, "project.timeline", tracks)}}
+	initial := shadow.New(nil)
+	initial.Initialize(map[string]any{"status": "ok", "tracks": []any{}})
+	h := NewWithSender(kernel, initial, nil)
+
+	resp, err := h.Invoke(context.Background(), InvokeRequest{
+		Tool:      "mix.observe",
+		Args:      map[string]any{"mix_session_id": "mix_vsp_cut", "scope": "full_project", "goal_text": "B2"},
+		Confirmed: true,
+	})
+	if err != nil || resp.Status != "ok" {
+		t.Fatalf("mix.observe = status=%q result=%+v err=%v", resp.Status, resp.Result, err)
+	}
+	obs, _ := resp.Result["observation"].(mixboard.ObservationPacket)
+	if obs.MOMProjection == nil || obs.MOMProjection.StaticLevelRelationship == nil || obs.MOMProjection.StaticLevelRelationship.ProjectCutRef != "hash_9" {
+		t.Fatalf("VSP project cut did not reach MOM: %+v", obs.MOMProjection)
+	}
+}
+
+func TestProjectStateLoadsPersistedAnalysisManifest(t *testing.T) {
+	projectPath := filepath.Join(t.TempDir(), "manifest-project.vit")
+	projectUUID := "vitproj_manifest_project"
+	_, _, err := projectworkspace.SaveAnalysisManifest(projectPath, projectUUID, map[string]any{
+		"dad_fact_status": "ready",
+		"track_waveform_envelopes": []any{map[string]any{
+			"status": "ready", "track_id": "track_1", "clip_id": "clip_1", "source_path": "D:/audio/lead.wav", "rms_dbfs": -24.0, "peak_dbfs": -8.0,
+		}},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	state := projectStateWithPersistedAnalysisManifest(map[string]any{"project_path": projectPath, "project_uuid": projectUUID})
+	manifest := mapFromAny(state["analysis_manifest"])
+	if manifest["status"] != "ready" || len(mapRowsFromAny(manifest["l1_waveform_rows"])) != 1 {
+		t.Fatalf("persisted analysis manifest was not loaded: %#v", state)
 	}
 }
 

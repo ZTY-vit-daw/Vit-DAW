@@ -825,6 +825,40 @@ func compactAgentStateProjectHistory(history map[string]any) map[string]any {
 	return out
 }
 
+// compactChatResponseProjectHistory keeps the small conversation tail needed
+// by clients to reconcile an interaction response with the durable project
+// history. The full graph remains available through the history APIs, while
+// omitting it here avoids Godot's 16 MiB HTTP chunk limit on large projects.
+func compactChatResponseProjectHistory(history map[string]any) map[string]any {
+	out := compactAgentStateProjectHistory(history)
+	rows := dictionaryRowsFromAny(history["conversation_messages"])
+	if len(rows) == 0 {
+		return out
+	}
+	start := len(rows) - 2
+	if start < 0 {
+		start = 0
+	}
+	messages := make([]map[string]any, 0, len(rows)-start)
+	for _, row := range rows[start:] {
+		message := map[string]any{}
+		for _, key := range []string{
+			"role", "content", "node_id", "message_kind", "logical_message_id",
+		} {
+			if value, ok := row[key]; ok && !stripSilenceCompactEmpty(value) {
+				message[key] = value
+			}
+		}
+		if len(message) > 0 {
+			messages = append(messages, message)
+		}
+	}
+	if len(messages) > 0 {
+		out["conversation_messages"] = messages
+	}
+	return out
+}
+
 func (s *Server) handleUIState(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		writeJSON(w, http.StatusMethodNotAllowed, map[string]any{"status": "error", "error": "GET required"})

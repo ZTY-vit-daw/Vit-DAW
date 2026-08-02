@@ -69,9 +69,9 @@ func compactStripSilenceChatResponseForTransport(resp *ChatResponse) {
 	for i := range resp.InteractionRequests {
 		resp.InteractionRequests[i] = compactStripSilenceInteractionRequestForTransport(resp.InteractionRequests[i])
 	}
-	resp.ProjectHistory = compactAgentStateProjectHistory(resp.ProjectHistory)
+	resp.ProjectHistory = compactChatResponseProjectHistory(resp.ProjectHistory)
 	if resp.AgentPlan != nil {
-		resp.AgentPlan.ProjectHistory = compactAgentStateProjectHistory(resp.AgentPlan.ProjectHistory)
+		resp.AgentPlan.ProjectHistory = compactChatResponseProjectHistory(resp.AgentPlan.ProjectHistory)
 	}
 }
 

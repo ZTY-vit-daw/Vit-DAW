@@ -145,6 +145,7 @@ def main() -> int:
     parser.add_argument("--timeout-sec", type=float, default=180.0)
     parser.add_argument("--dad-timeout-sec", type=float, default=240.0)
     parser.add_argument("--prepare-stems-folder", default="")
+    parser.add_argument("--project-path", default="")
     parser.add_argument("--decision", choices=("cancel", "approve"), default="cancel")
     args = parser.parse_args()
 
@@ -155,6 +156,8 @@ def main() -> int:
 
     health = wait_agent(args.agent_http, args.timeout_sec)
     fixture: dict[str, Any] | None = None
+    if args.prepare_stems_folder and args.project_path:
+        raise RuntimeError("choose either --prepare-stems-folder or --project-path, not both")
     if args.prepare_stems_folder:
         folder = Path(args.prepare_stems_folder).resolve()
         if not folder.is_dir():
@@ -166,6 +169,23 @@ def main() -> int:
             args.timeout_sec,
             args.dad_timeout_sec,
         )
+    elif args.project_path:
+        project_path = Path(args.project_path).resolve()
+        if not project_path.is_file():
+            raise RuntimeError(f"fixture project not found: {project_path}")
+        opened = invoke_tool(
+            args.agent_http,
+            "project.open",
+            {"file_path": str(project_path), "project_path": str(project_path)},
+            args.timeout_sec,
+            confirmed=True,
+        )
+        state = result_map(invoke_tool(args.agent_http, "project.state", {}, args.timeout_sec))
+        fixture = {
+            "project_path": str(project_path),
+            "opened_status": opened.get("status"),
+            "track_count": len(state.get("tracks", [])) if isinstance(state.get("tracks"), list) else 0,
+        }
     conversation_id = f"b2_static_balance_smoke_{run_stamp}"
     pending = request_json(
         "POST",
@@ -254,20 +274,36 @@ def main() -> int:
     before_volumes = track_volumes(args.agent_http, args.timeout_sec)
     decision_response: dict[str, Any]
     decision_duration_seconds = 0.0
+    cancellation_faders_unchanged: bool | None = None
     if args.decision == "cancel":
+        cancel_action = "cancel" if current_runtime else "cancel_static_balance"
         decision_response = request_json(
             "POST",
             args.agent_http.rstrip("/") + "/agent/interaction/respond",
             {
                 "interaction_id": str(static_balance_interaction.get("id", "")),
-                "action_id": "cancel_static_balance",
-                "decision": "cancel_static_balance",
+                "action_id": cancel_action,
+                "decision": cancel_action,
                 "payload": {},
             },
             args.timeout_sec,
         )
         if str(decision_response.get("goal_status", "")) != "cancelled":
             raise RuntimeError("B2 pending plan was not cleanly cancelled: " + json.dumps(decision_response, ensure_ascii=False)[:1800])
+        after_volumes = track_volumes(args.agent_http, args.timeout_sec)
+        changed_tracks = sorted(
+            track_id
+            for track_id in set(before_volumes).union(after_volumes)
+            if track_id not in before_volumes
+            or track_id not in after_volumes
+            or abs(after_volumes[track_id] - before_volumes[track_id]) > 0.0001
+        )
+        cancellation_faders_unchanged = not changed_tracks
+        if changed_tracks:
+            raise RuntimeError(
+                "B2 cancellation changed track faders: "
+                + json.dumps(changed_tracks[:40], ensure_ascii=False)
+            )
     else:
         started = time.monotonic()
         decision_response = request_json(
@@ -371,6 +407,7 @@ def main() -> int:
         "history_tail_roles": [str(row.get("role", "")) for row in history_messages[-2:] if isinstance(row, dict)],
         "decision_stop_reason": decision_response.get("stop_reason"),
         "decision_duration_seconds": round(decision_duration_seconds, 3),
+        "cancellation_faders_unchanged": cancellation_faders_unchanged,
         "artifact_dir": str(artifact_dir),
     }
     (artifact_dir / "summary.json").write_text(

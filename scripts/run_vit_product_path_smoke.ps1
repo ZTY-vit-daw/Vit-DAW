@@ -17,6 +17,9 @@ param(
     [switch]$ClipFadeGainAgentOnly,
     [switch]$B2StaticBalanceAgentOnly,
     [string]$B2StemsFolder = "",
+    [string]$B2ProjectPath = "",
+    [ValidateSet("approve", "cancel")]
+    [string]$B2Decision = "approve",
     [switch]$B3PanLayoutAgentOnly,
     [string]$B3StemsFolder = "",
     [switch]$B4LowEndRelationAgentOnly,
@@ -2039,13 +2042,32 @@ try {
             Fail ("Missing B2 smoke script: " + $b2Script)
         }
         $b2Output = Join-Path $ArtifactDir "b2_static_balance_stdout.json"
-        if ([string]::IsNullOrWhiteSpace($B2StemsFolder) -or -not (Test-Path -LiteralPath $B2StemsFolder -PathType Container)) {
-            Fail "B2 focused smoke requires -B2StemsFolder with at least two representative stems"
+        if (-not [string]::IsNullOrWhiteSpace($B2StemsFolder) -and -not [string]::IsNullOrWhiteSpace($B2ProjectPath)) {
+            Fail "B2 focused smoke accepts either -B2StemsFolder or -B2ProjectPath, not both"
         }
-        $b2StemsDir = (Resolve-Path -LiteralPath $B2StemsFolder).Path
+        $b2CommandArgs = @(
+            $b2Script,
+            "--repo-root", $RepoRoot,
+            "--agent-http", $AgentHttp,
+            "--timeout-sec", ([Math]::Max(240, $TimeoutSeconds)),
+            "--dad-timeout-sec", ([Math]::Max(240, $TimeoutSeconds)),
+            "--decision", $B2Decision
+        )
+        if (-not [string]::IsNullOrWhiteSpace($B2ProjectPath)) {
+            if (-not (Test-Path -LiteralPath $B2ProjectPath -PathType Leaf)) {
+                Fail ("B2 focused smoke project not found: " + $B2ProjectPath)
+            }
+            $b2CommandArgs += @("--project-path", (Resolve-Path -LiteralPath $B2ProjectPath).Path)
+        }
+        elseif (-not [string]::IsNullOrWhiteSpace($B2StemsFolder) -and (Test-Path -LiteralPath $B2StemsFolder -PathType Container)) {
+            $b2CommandArgs += @("--prepare-stems-folder", (Resolve-Path -LiteralPath $B2StemsFolder).Path)
+        }
+        else {
+            Fail "B2 focused smoke requires -B2StemsFolder or -B2ProjectPath"
+        }
         $previousErrorActionPreference = $ErrorActionPreference
         $ErrorActionPreference = "Continue"
-        & python $b2Script --repo-root $RepoRoot --agent-http $AgentHttp --timeout-sec ([Math]::Max(240, $TimeoutSeconds)) --dad-timeout-sec ([Math]::Max(240, $TimeoutSeconds)) --prepare-stems-folder $b2StemsDir --decision approve 2>&1 |
+        & python @b2CommandArgs 2>&1 |
             Tee-Object -FilePath $b2Output
         $b2ExitCode = $LASTEXITCODE
         $ErrorActionPreference = $previousErrorActionPreference

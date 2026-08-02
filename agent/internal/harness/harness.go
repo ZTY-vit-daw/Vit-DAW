@@ -2573,6 +2573,7 @@ func (h *Harness) requestMixObservation(ctx context.Context, cmd map[string]any)
 			}
 		}
 	}
+	state = projectStateWithPersistedAnalysisManifest(state)
 	cmd = mixObservationCommandWithLiveProjectIdentity(cmd, state)
 	explicitSourceIdentityArgs := map[string]any(nil)
 	if mixObservationHasExplicitSourceIdentity(cmd) {
@@ -2720,6 +2721,29 @@ func (h *Harness) requestMixObservation(ctx context.Context, cmd map[string]any)
 		out["l2_render_probe_request"] = l2ProbeRequest
 	}
 	return out, nil
+}
+
+func projectStateWithPersistedAnalysisManifest(state map[string]any) map[string]any {
+	if len(state) == 0 || len(mapFromAny(state["analysis_manifest"])) > 0 {
+		return state
+	}
+	projectPath := projectPathFromState(state)
+	projectUUID := firstNonEmpty(firstString(state, "project_uuid", "project_id"), firstString(mapFromAny(state["project"]), "project_uuid", "project_id"))
+	manifest, _, err := projectworkspace.LoadAnalysisManifest(projectPath, projectUUID)
+	if err != nil || len(manifest.Rows) == 0 {
+		return state
+	}
+	out := cloneAnyMap(state)
+	out["analysis_manifest"] = map[string]any{
+		"schema_version":   manifest.SchemaVersion,
+		"project_uuid":     manifest.ProjectUUID,
+		"project_path":     manifest.ProjectPath,
+		"analyzer":         manifest.Analyzer,
+		"status":           manifest.Status,
+		"l1_waveform_rows": manifest.Rows,
+		"updated_at":       manifest.UpdatedAt,
+	}
+	return out
 }
 
 func (h *Harness) requestMixObservationL2RenderProbe(ctx context.Context, cmd map[string]any, state map[string]any, target mixboard.TargetRef, resolvedContext map[string]any) map[string]any {

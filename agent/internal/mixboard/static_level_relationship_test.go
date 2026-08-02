@@ -124,6 +124,36 @@ func TestProjectStaticLevelRelationshipRollsUpReadyTracksAsReady(t *testing.T) {
 	}
 }
 
+func TestBuildObservationHydratesStaticLevelsFromProjectAnalysisManifest(t *testing.T) {
+	state := map[string]any{
+		"snapshot_hash": "cut-manifest",
+		"tracks": []any{
+			map[string]any{"track_id": "track-1", "track_name": "Lead", "volume_db": -2.0, "clips": []any{map[string]any{"clip_id": "clip-a", "source_path": "lead.wav", "length_seconds": 10.0}}},
+			map[string]any{"track_id": "track-2", "track_name": "Drums", "volume_db": 0.0, "clips": []any{map[string]any{"clip_id": "clip-b", "source_path": "drums.wav", "length_seconds": 10.0}}},
+		},
+		"analysis_manifest": map[string]any{
+			"schema_version": "vit_analysis_manifest.v1", "status": "ready",
+			"l1_waveform_rows": []any{
+				map[string]any{"status": "ready", "track_id": "track-1", "clip_id": "clip-a", "source_path": "lead.wav", "rms_dbfs": -24.0, "peak_dbfs": -8.0},
+				map[string]any{"status": "ready", "track_id": "track-2", "clip_id": "clip-b", "source_path": "drums.wav", "rms_dbfs": -20.0, "peak_dbfs": -6.0},
+			},
+		},
+	}
+	obs := buildObservation(Request{
+		MixSessionID: "manifest-b2", GoalText: "B2", ProjectState: state,
+		TargetRef:   TargetRef{Kind: "project", ID: "current"},
+		ListenScope: ListenScope{Source: ListenSourceScope{Mode: "full_project"}},
+	}, "2026-08-02T00:00:00Z", featureSnapshot{})
+	relation := obs.MOMProjection.StaticLevelRelationship
+	if relation == nil {
+		t.Fatal("analysis manifest did not produce a static-level relationship")
+	}
+	usable, _ := numberField(relation.Coverage, "usable_track_count")
+	if relation.Status != "ready" || relation.ProjectCutRef != "cut-manifest" || usable != 2 {
+		t.Fatalf("analysis manifest did not produce ready cut-bound static levels: %+v", relation)
+	}
+}
+
 func TestProjectStaticLevelPreservesUntrustedSourceStatus(t *testing.T) {
 	for _, status := range []string{"stale", "suspect"} {
 		t.Run(status, func(t *testing.T) {

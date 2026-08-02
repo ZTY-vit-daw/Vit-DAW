@@ -302,11 +302,12 @@ func verifierFloat(value any) (float64, bool) {
 }
 
 // verifyStaticBalanceMOM consumes the same typed MOM projection used for B2
-// planning. Missing, stale, suspect, or partial evidence requests review; it
-// never falls through to generic multitrack fields or raw acoustic packages.
+// planning. Missing, stale, suspect, or partial evidence below the B2 95%
+// usable-coverage contract requests review; it never falls through to generic
+// multitrack fields or raw acoustic packages.
 func verifyStaticBalanceMOM(relation map[string]any, actionSet orchestration.ActionSet) (string, string) {
 	status := verifierStatus(relation)
-	if status != mom.StatusReady && status != mom.StatusApprox {
+	if status != mom.StatusReady && status != mom.StatusApprox && status != mom.StatusPartial {
 		return "inconclusive", "B2 MOM static-level relationship is " + firstVerifierText(status, "missing")
 	}
 	compared := verifierRows(relation["tracks"])
@@ -318,8 +319,18 @@ func verifyStaticBalanceMOM(relation map[string]any, actionSet orchestration.Act
 	if trackCount < 2 || len(compared) < 2 {
 		return "inconclusive", "B2 MOM static-level projection omitted a comparable full-project track inventory"
 	}
-	if float64(len(compared))/float64(trackCount) < 0.95 {
-		return "inconclusive", fmt.Sprintf("B2 MOM static-level coverage is %d/%d", len(compared), trackCount)
+	usableCount := 0
+	for _, row := range compared {
+		rowStatus := verifierStatus(row)
+		if rowStatus != mom.StatusReady && rowStatus != mom.StatusApprox {
+			continue
+		}
+		if _, ok := verifierFirstFloat(row, "effective_static_rms_dbfs"); ok {
+			usableCount++
+		}
+	}
+	if float64(usableCount)/float64(trackCount) < 0.95 {
+		return "inconclusive", fmt.Sprintf("B2 MOM usable static-level coverage is %d/%d", usableCount, trackCount)
 	}
 	indexed := verifierTrackIndex(compared)
 	for _, action := range actionSet.Actions {
@@ -331,7 +342,7 @@ func verifyStaticBalanceMOM(relation map[string]any, actionSet orchestration.Act
 			return "inconclusive", "B2 fresh MOM static-level target " + strings.TrimSpace(action.TargetRef) + " is " + firstVerifierText(rowStatus, "missing")
 		}
 	}
-	return "pass", fmt.Sprintf("B2 typed static-level relationship verified for %d/%d tracks", len(compared), trackCount)
+	return "pass", fmt.Sprintf("B2 typed static-level relationship verified for %d/%d usable tracks", usableCount, trackCount)
 }
 
 // verifyPanLayoutMOM deliberately keeps B3 stricter than B2: a pan change

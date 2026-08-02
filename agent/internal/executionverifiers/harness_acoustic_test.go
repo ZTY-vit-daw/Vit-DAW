@@ -131,6 +131,57 @@ func TestHarnessAcousticUntrustedStaticMOMIsInconclusive(t *testing.T) {
 	}
 }
 
+func TestHarnessAcousticAcceptsPartialStaticMOMAtNinetyFivePercentUsableCoverage(t *testing.T) {
+	tracks := make([]any, 0, 61)
+	for index := 1; index <= 59; index++ {
+		tracks = append(tracks, verifierStaticTrack(fmt.Sprintf("track_%d", index), -20.0))
+	}
+	tracks = append(tracks,
+		map[string]any{"track_id": "track_60", "status": "partial", "metric": "effective_static_rms_dbfs"},
+		map[string]any{"track_id": "track_61", "status": "missing", "metric": "effective_static_rms_dbfs"},
+	)
+	invoker := &recordingHarnessInvoker{Response: harness.InvokeResponse{Status: "ok", Result: map[string]any{
+		"observation_id": "obs_after_partial_95",
+		"observation":    map[string]any{"created_at": "2026-08-02T10:00:00Z"},
+		"mom_projection": map[string]any{
+			"intent": mom.IntentProjectMultitrackObservation,
+			"static_level_relationship": map[string]any{
+				"status": "partial", "freshness": "fresh",
+				"coverage": map[string]any{"track_count": 61, "usable_track_count": 59},
+				"tracks":   tracks,
+			},
+		},
+	}}}
+	actionSet := orchestration.ActionSet{ID: "as_partial_95", Actions: []orchestration.Action{{ID: "a1", TargetRef: "track_1"}}}
+	result, err := (HarnessAcoustic{Invoker: invoker, PreviousObservationID: "obs_before"}).VerifyStaticBalance(context.Background(), actionSet)
+	if err != nil || result.Status != "pass" || result.MOMStatus != mom.StatusPartial {
+		t.Fatalf(">=95%% usable partial MOM should verify B2: result=%#v err=%v", result, err)
+	}
+}
+
+func TestHarnessAcousticRejectsPartialStaticMOMBelowNinetyFivePercentUsableCoverage(t *testing.T) {
+	tracks := []any{
+		verifierStaticTrack("track_1", -20.0), verifierStaticTrack("track_2", -22.0),
+		map[string]any{"track_id": "track_3", "status": "missing", "metric": "effective_static_rms_dbfs"},
+	}
+	invoker := &recordingHarnessInvoker{Response: harness.InvokeResponse{Status: "ok", Result: map[string]any{
+		"observation_id": "obs_after_partial_sparse",
+		"observation":    map[string]any{"created_at": "2026-08-02T10:00:00Z"},
+		"mom_projection": map[string]any{
+			"intent": mom.IntentProjectMultitrackObservation,
+			"static_level_relationship": map[string]any{
+				"status": "partial", "freshness": "fresh",
+				"coverage": map[string]any{"track_count": 3, "usable_track_count": 2},
+				"tracks":   tracks,
+			},
+		},
+	}}}
+	result, err := (HarnessAcoustic{Invoker: invoker, PreviousObservationID: "obs_before"}).VerifyStaticBalance(context.Background(), orchestration.ActionSet{ID: "as_sparse"})
+	if err != nil || result.Status != "inconclusive" {
+		t.Fatalf("<95%% usable partial MOM must remain inconclusive: result=%#v err=%v", result, err)
+	}
+}
+
 func TestHarnessAcousticB2UsesReadyStaticProjectionWhenGenericMOMIsPartial(t *testing.T) {
 	compared := make([]any, 0, 61)
 	for index := 1; index <= 61; index++ {

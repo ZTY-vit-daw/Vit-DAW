@@ -85,6 +85,13 @@ func TestB2PublicChatProposalExposesFunctionalHierarchySmoke(t *testing.T) {
 	if !functions["foreground"] || !functions["support"] {
 		t.Fatalf("public proposal omitted foreground/support hierarchy: %#v", response.ProposalPresentation.Actions)
 	}
+	refs := map[string]bool{}
+	for _, ref := range response.ProposalPresentation.EvidenceRefs {
+		refs[ref] = true
+	}
+	if !refs["project.state"] || !refs["mix.observe"] {
+		t.Fatalf("public proposal omitted governed source evidence: %#v", response.ProposalPresentation.EvidenceRefs)
+	}
 }
 
 func chatStaticLevel(trackID string, rms, peak float64) map[string]any {

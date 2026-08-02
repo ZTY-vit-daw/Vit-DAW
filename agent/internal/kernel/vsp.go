@@ -280,6 +280,15 @@ func parseVSPStateResult(reply map[string]any, raw string) *VSPStateResult {
 		ChangedTracks: sliceFromAny(payload["changed_tracks"]),
 		ChangedClips:  sliceFromAny(payload["changed_clips"]),
 	}
+	if out.SnapshotHash != "" {
+		out.LegacyState["snapshot_hash"] = out.SnapshotHash
+	}
+	if out.Revision != 0 {
+		out.LegacyState["project_revision"] = out.Revision
+	}
+	if out.ProjectEpoch != "" {
+		out.LegacyState["project_epoch"] = out.ProjectEpoch
+	}
 	return out
 }
 

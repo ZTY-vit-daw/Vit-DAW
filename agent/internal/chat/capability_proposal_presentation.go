@@ -36,7 +36,7 @@ func staticBalanceProposalPresentation(proposal orchestration.Proposal, pack cap
 			{ID: "effective_level_coverage", Label: "有效电平覆盖", Value: percentText(coverage.EffectiveLevelCoverage), Status: metricStatus(coverage.EffectiveLevelCoverage, .95)},
 			{ID: "fader_coverage", Label: "推子覆盖", Value: fmt.Sprintf("%d/%d", coverage.FaderKnownCount, coverage.RoleCandidateCount), Status: countMetricStatus(coverage.FaderKnownCount, coverage.RoleCandidateCount)},
 		},
-		Limitations: proposalLimitations(candidate.Limitations, result.Limitations), EvidenceRefs: firstProposalRefs(result.EvidenceRefs, 12),
+		Limitations: proposalLimitations(candidate.Limitations, result.Limitations), EvidenceRefs: firstProposalRefs(appendUniqueStrings([]string{"project.state", "mix.observe"}, result.EvidenceRefs...), 12),
 		ApprovalPrompt: "你可以直接回复“执行这个方案”、提出问题、要求排除/只处理某些轨道，或取消。",
 	}
 	for _, group := range candidate.FunctionSummary {

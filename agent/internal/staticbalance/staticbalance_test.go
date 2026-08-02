@@ -128,6 +128,47 @@ func TestB2BlocksPartialStaticLevelProjection(t *testing.T) {
 	}
 }
 
+func TestB2AcceptsPartialStaticLevelProjectionAtNinetyFivePercentCoverage(t *testing.T) {
+	input := largeProjectInput(t, 61, 59)
+	input.ProjectState["snapshot_hash"] = "cut-1"
+	projection := mapValue(input.MixObservation["mom_projection"])
+	staticRelation := mapValue(projection["static_level_relationship"])
+	staticRelation["status"] = "partial"
+	staticRelation["tracks"] = append(rowsToAny(rowsValue(staticRelation["tracks"])),
+		map[string]any{"track_id": "track_060", "status": "partial", "freshness": "fresh", "metric": "effective_static_rms_dbfs"},
+		map[string]any{"track_id": "track_061", "status": "missing", "freshness": "fresh", "metric": "effective_static_rms_dbfs"},
+	)
+
+	model := BuildModel(input)
+	if model.Coverage.ProjectedLevelKnownCount != 59 || model.Coverage.RoleCandidateCount != 61 || model.Coverage.EffectiveLevelCoverage < 0.95 {
+		t.Fatalf("unexpected partial coverage: %+v", model.Coverage)
+	}
+	if !model.Readiness.CanProceed {
+		t.Fatalf(">=95%% usable partial relationship should be B2-ready: %+v", model.Readiness)
+	}
+	if candidates := Solve(model).Candidates; len(candidates) == 0 {
+		t.Fatal(">=95% usable partial relationship produced no candidates")
+	}
+}
+
+func TestB2BlocksOverallStaleOrSuspectStaticLevelProjectionEvenAtFullCoverage(t *testing.T) {
+	for _, status := range []string{"stale", "suspect"} {
+		t.Run(status, func(t *testing.T) {
+			input := largeProjectInput(t, 61, 61)
+			projection := mapValue(input.MixObservation["mom_projection"])
+			mapValue(projection["static_level_relationship"])["status"] = status
+
+			model := BuildModel(input)
+			if model.Coverage.EffectiveLevelCoverage != 1 {
+				t.Fatalf("test requires full usable coverage: %+v", model.Coverage)
+			}
+			if model.Readiness.CanProceed || len(Solve(model).Candidates) != 0 {
+				t.Fatalf("overall %s relationship must block B2: %+v", status, model.Readiness)
+			}
+		})
+	}
+}
+
 func TestB2BlocksStaleOrSuspectStaticLevelProjection(t *testing.T) {
 	for _, status := range []string{"stale", "suspect"} {
 		t.Run(status, func(t *testing.T) {
@@ -196,6 +237,25 @@ func TestB2BlocksStaticProjectionFromDifferentProjectCut(t *testing.T) {
 	}
 }
 
+func TestB2BlocksStaticProjectionWithoutProjectCut(t *testing.T) {
+	input := largeProjectInput(t, 3, 3)
+	projection := mapValue(input.MixObservation["mom_projection"])
+	delete(mapValue(projection["static_level_relationship"]), "project_cut_ref")
+	model := BuildModel(input)
+	if model.Readiness.CanProceed {
+		t.Fatalf("projection without project cut must block B2: %+v", model.Readiness)
+	}
+	found := false
+	for _, blocker := range model.Readiness.BlockedBy {
+		if blocker == "mom_static_level_project_cut" {
+			found = true
+		}
+	}
+	if !found {
+		t.Fatalf("missing project-cut blocker not reported: %+v", model.Readiness)
+	}
+}
+
 func staticLevelProjection(status string, tracks []any) map[string]any {
 	return map[string]any{"schema_version": "mom.static_level_relationship.v1", "status": status, "freshness": "fresh", "project_cut_ref": "cut-1", "tracks": tracks}
 }
@@ -206,6 +266,14 @@ func staticLevelRow(trackID, status string, rms, peak float64, clipIDs ...string
 		"tap_point": "derived_static_control_model", "effective_static_rms_dbfs": rms, "effective_static_peak_dbfs": peak,
 		"included_clip_ids": clipIDs, "aggregation_method": "duration_weighted_linear_energy_source_plus_clip_gain_plus_fader",
 	}
+}
+
+func rowsToAny(rows []map[string]any) []any {
+	out := make([]any, len(rows))
+	for index := range rows {
+		out[index] = rows[index]
+	}
+	return out
 }
 
 func TestKeysOrSynthRoleMapsToHarmonicBed(t *testing.T) {

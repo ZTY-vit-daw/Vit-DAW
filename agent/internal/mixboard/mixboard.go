@@ -1006,6 +1006,7 @@ func buildObservation(req Request, createdAt string, featureSnapshot featureSnap
 	} else if bpm := firstPositiveFloat(req.ProjectState, "tempo_bpm", "bpm"); bpm > 0 {
 		tempo = &bpm
 	}
+	hydrateFeatureSnapshotFromAnalysisManifest(&featureSnapshot, req.ProjectState)
 	normalizeTrackWaveformFeatureFreshness(&featureSnapshot, req.ProjectState, listenScopeAllowsLegacyProjectWaveformRows(req.ListenScope))
 	acousticPackageStatus := compactAcousticPackageStatus(mapValue(req.Args["acoustic_package_status"]))
 	if !acousticPackageMatchesLatestRequest(acousticPackageStatus, featureSnapshot.LatestRequest) {
@@ -1129,6 +1130,26 @@ func buildObservation(req Request, createdAt string, featureSnapshot featureSnap
 	}
 	FinalizeObservationContext(&obs, req, createdAt)
 	return obs
+}
+
+func hydrateFeatureSnapshotFromAnalysisManifest(snap *featureSnapshot, projectState map[string]any) {
+	if snap == nil {
+		return
+	}
+	manifest := mapValue(projectState["analysis_manifest"])
+	for _, sourceRow := range mapRowsAny(manifest["l1_waveform_rows"]) {
+		row := copyAnyMap(sourceRow)
+		if cleanAnyString(row["track_id"]) == "" || cleanAnyString(row["clip_id"]) == "" {
+			continue
+		}
+		if cleanAnyString(row["feature_type"]) == "" {
+			row["feature_type"] = "waveform_envelope"
+		}
+		if cleanAnyString(row["source"]) == "" {
+			row["source"] = "project_analysis_manifest"
+		}
+		snap.TrackWaveformEnvelopes = mergeFeatureRowsByCurrentMaterial(snap.TrackWaveformEnvelopes, row)
+	}
 }
 
 func buildBoard(req Request, obs ObservationPacket, obsPath, now string) Board {

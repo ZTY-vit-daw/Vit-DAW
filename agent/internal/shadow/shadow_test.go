@@ -101,6 +101,21 @@ func TestSummaryPreservesDeterministicTrackAndClipStateRevisions(t *testing.T) {
 	}
 }
 
+func TestSummaryPreservesAuthoritativeProjectCutMetadata(t *testing.T) {
+	p := New(nil)
+	p.Initialize(map[string]any{
+		"snapshot_hash":    "cut-42",
+		"project_revision": int64(42),
+		"project_epoch":    "epoch-a5",
+		"tracks":           []any{},
+	})
+
+	summary := p.Summary()
+	if summary["snapshot_hash"] != "cut-42" || summary["project_revision"] != float64(42) || summary["project_epoch"] != "epoch-a5" {
+		t.Fatalf("project cut metadata missing from shadow summary: %#v", summary)
+	}
+}
+
 func TestSummaryHidesInternalTracktionTracks(t *testing.T) {
 	p := New(nil)
 	p.Initialize(map[string]any{
