@@ -31,6 +31,8 @@ type AcousticResult struct {
 	MOMStatus           string
 	EvidenceRefs        []string
 	Summary             string
+	RelationshipStatus  string
+	RelationshipSummary string
 }
 
 type StaticBalance struct {
@@ -85,6 +87,8 @@ func (v StaticBalance) Verify(ctx context.Context, actionSet orchestration.Actio
 	result.Acoustic = strings.TrimSpace(acoustic.Status)
 	result.EvidenceRefs = append(result.EvidenceRefs, acoustic.EvidenceRefs...)
 	result.Summary = strings.TrimSpace(acoustic.Summary)
+	result.SpecialistRelationship = strings.TrimSpace(acoustic.RelationshipStatus)
+	result.SpecialistSummary = strings.TrimSpace(acoustic.RelationshipSummary)
 	if err != nil {
 		return result, err
 	}

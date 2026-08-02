@@ -21,6 +21,8 @@ const (
 )
 
 type Action struct {
+	SchemaVersion        string         `json:"schema_version,omitempty"`
+	ProjectUUID          string         `json:"project_uuid,omitempty"`
 	AgentActionID        string         `json:"agent_action_id"`
 	RunID                string         `json:"run_id,omitempty"`
 	GoalID               string         `json:"goal_id,omitempty"`
@@ -32,7 +34,8 @@ type Action struct {
 	Summary              string         `json:"summary"`
 	Tool                 string         `json:"tool"`
 	CommandName          string         `json:"command_name"`
-	Command              map[string]any `json:"command"`
+	Command              map[string]any `json:"command,omitempty"`
+	ArgsSummary          string         `json:"args_summary,omitempty"`
 	RiskLevel            string         `json:"risk_level"`
 	RequiresConfirmation bool           `json:"requires_confirmation"`
 	ConfirmationStatus   string         `json:"confirmation_status"`
@@ -43,14 +46,26 @@ type Action struct {
 	RollbackState        string         `json:"rollback_state,omitempty"`
 	VersionCommitID      string         `json:"version_commit_id,omitempty"`
 	Result               map[string]any `json:"result,omitempty"`
+	ResultSummary        map[string]any `json:"result_summary,omitempty"`
+	ResultRef            string         `json:"result_ref,omitempty"`
+	EvidenceRefs         []string       `json:"evidence_refs,omitempty"`
+	DecisionRefs         []string       `json:"decision_refs,omitempty"`
+	ProjectRevision      string         `json:"project_revision,omitempty"`
+	DurationMS           int64          `json:"duration_ms,omitempty"`
 	Error                string         `json:"error,omitempty"`
 }
 
 type Journal struct {
-	mu      sync.RWMutex
-	max     int
-	path    string
-	actions []Action
+	mu              sync.RWMutex
+	max             int
+	path            string
+	root            string
+	projectUUID     string
+	sharded         bool
+	shardMaxBytes   int64
+	shardMaxRecords int64
+	shardMaxShards  int64
+	actions         []Action
 }
 
 func New(max int) *Journal {
@@ -83,11 +98,19 @@ func (j *Journal) Record(action Action) Action {
 	action.UpdatedAt = now
 	j.mu.Lock()
 	defer j.mu.Unlock()
+	if j.sharded {
+		action.SchemaVersion = JournalSchemaVersion
+		action.ProjectUUID = j.projectUUID
+	}
 	j.actions = append(j.actions, cloneAction(action))
 	if len(j.actions) > j.max {
 		j.actions = append([]Action(nil), j.actions[len(j.actions)-j.max:]...)
 	}
-	_ = j.persistLocked()
+	if j.sharded {
+		_ = j.appendV2Locked(action)
+	} else {
+		_ = j.persistLocked()
+	}
 	return action
 }
 
@@ -109,7 +132,11 @@ func (j *Journal) MarkResult(actionID string, status ActionStatus, result map[st
 		} else {
 			j.actions[i].Error = ""
 		}
-		_ = j.persistLocked()
+		if j.sharded {
+			_ = j.appendV2Locked(j.actions[i])
+		} else {
+			_ = j.persistLocked()
+		}
 		return
 	}
 }
@@ -130,7 +157,11 @@ func (j *Journal) MarkRollback(targetActionID, rollbackActionID, state string) {
 		if state == "succeeded" {
 			j.actions[i].Status = StatusRolledBack
 		}
-		_ = j.persistLocked()
+		if j.sharded {
+			_ = j.appendV2Locked(j.actions[i])
+		} else {
+			_ = j.persistLocked()
+		}
 		return
 	}
 }
@@ -172,6 +203,9 @@ func (j *Journal) Path() string {
 	}
 	j.mu.RLock()
 	defer j.mu.RUnlock()
+	if j.sharded {
+		return j.root
+	}
 	return j.path
 }
 
@@ -198,7 +232,7 @@ func (j *Journal) load() error {
 }
 
 func (j *Journal) persistLocked() error {
-	if j == nil || j.path == "" {
+	if j == nil || j.path == "" || j.sharded {
 		return nil
 	}
 	dir := filepath.Dir(j.path)
@@ -222,6 +256,9 @@ func (j *Journal) persistLocked() error {
 func cloneAction(in Action) Action {
 	in.Command = cloneMap(in.Command)
 	in.Result = cloneMap(in.Result)
+	in.ResultSummary = cloneMap(in.ResultSummary)
+	in.EvidenceRefs = append([]string(nil), in.EvidenceRefs...)
+	in.DecisionRefs = append([]string(nil), in.DecisionRefs...)
 	return in
 }
 

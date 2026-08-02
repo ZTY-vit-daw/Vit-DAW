@@ -367,6 +367,97 @@ func TestOpenRecoversPreparedSaveAsAfterPostSaveNotificationIsLost(t *testing.T)
 	assertConversationTexts(t, readConversationGraphOrDefault(mustOpenRepo(t, targetPath)), []string{"B1 complete", "B2 complete"})
 }
 
+func TestRecoverMatchingProjectHistoryAdoptsExactSnapshotIntoCurrentUUID(t *testing.T) {
+	root := t.TempDir()
+	projectPath := filepath.Join(root, "legacy.vit")
+	if err := os.WriteFile(projectPath, []byte("legacy project snapshot"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	const historicalUUID = "vitproj_historical"
+	const currentUUID = "vitproj_legacy_runtime"
+	BindProjectIdentity(projectPath, historicalUUID)
+	commit, err := Checkpoint(map[string]any{"project_path": projectPath, "message": "B1 complete", "source": "test"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := AppendConversationNode(map[string]any{
+		"project_path": projectPath, "kind": "vit", "commit_id": commit["commit_id"], "text": "B1 history marker",
+	}); err != nil {
+		t.Fatal(err)
+	}
+	historicalRepo, err := canonicalRepoWithMigration(projectPath, historicalUUID, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	legacyCommit := Commit{}
+	legacyCommitPath := filepath.Join(historicalRepo.HistoryDir, "commits", fmt.Sprint(commit["commit_id"])+".json")
+	if err := readJSON(legacyCommitPath, &legacyCommit); err != nil {
+		t.Fatal(err)
+	}
+	legacyCommit.ProjectUUID = ""
+	legacyCommit.ProjectPath = filepath.Join(root, "old", "B1.vit")
+	if err := writeJSON(legacyCommitPath, legacyCommit); err != nil {
+		t.Fatal(err)
+	}
+	currentBefore, err := canonicalRepoWithMigration(projectPath, currentUUID, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.MkdirAll(currentBefore.HistoryDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(currentBefore.HistoryDir, "legacy-sentinel.txt"), []byte("preserve me"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	recovered, err := RecoverMatchingProjectHistory(projectPath, currentUUID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if recovered["recovered"] != true || recovered["recovery_reason"] != "matching_project_snapshot" || recovered["source_project_uuid"] != historicalUUID {
+		t.Fatalf("recovery=%+v", recovered)
+	}
+	backupDir := fmt.Sprint(recovered["previous_empty_history_backup"])
+	if data, err := os.ReadFile(filepath.Join(backupDir, "legacy-sentinel.txt")); err != nil || string(data) != "preserve me" {
+		t.Fatalf("pre-existing empty history was not preserved: backup=%s data=%q err=%v", backupDir, data, err)
+	}
+	BindProjectIdentity(projectPath, currentUUID)
+	currentRepo, err := Open(projectPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	assertConversationTexts(t, readConversationGraphOrDefault(currentRepo), []string{"B1 history marker"})
+	if !historyHasUserData(currentRepo) {
+		t.Fatal("recovered current UUID history is empty")
+	}
+	historicalRepo, err = canonicalRepoWithMigration(projectPath, historicalUUID, false)
+	if err != nil || !historyHasUserData(historicalRepo) {
+		t.Fatalf("historical source was modified or lost: repo=%+v err=%v", historicalRepo, err)
+	}
+}
+
+func TestRecoverMatchingProjectHistoryRejectsNonMatchingSnapshot(t *testing.T) {
+	root := t.TempDir()
+	projectPath := filepath.Join(root, "legacy.vit")
+	if err := os.WriteFile(projectPath, []byte("historical snapshot"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	BindProjectIdentity(projectPath, "vitproj_historical")
+	if _, err := Checkpoint(map[string]any{"project_path": projectPath, "message": "historical", "source": "test"}); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(projectPath, []byte("different current file"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	recovered, err := RecoverMatchingProjectHistory(projectPath, "vitproj_runtime")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if recovered["recovered"] != false || recovered["reason"] != "matching_snapshot_history_not_found" {
+		t.Fatalf("non-matching history was adopted: %+v", recovered)
+	}
+}
+
 func TestRecoverLegacySharedWorkspaceSplitsPostMigrationHistoryIntoChild(t *testing.T) {
 	root := t.TempDir()
 	sourcePath := filepath.Join(root, "B1.vit")

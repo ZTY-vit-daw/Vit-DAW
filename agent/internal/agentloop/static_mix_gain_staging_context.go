@@ -1293,6 +1293,33 @@ func (l *MessageLoop) messageLoopB12SourceCalibrationCompleteReply(ctx context.C
 		appendMessageLoopToolResult(state)
 		ranProjectState = true
 	}
+	if allowedTool("project.audio_analysis_status", state.input.AllowedTools) {
+		verifyCall := messageLoopGainStagingAudioAnalysisStatusCall(
+			"b1_2_source_calibration_verify_audio_analysis_status",
+			"refresh full-project DAD source facts after B1.2 source calibration",
+		)
+		if stopped, result := r.checkpoint("before_b1_2_source_calibration_audio_analysis_status_verify", state); stopped {
+			return "", true, result
+		}
+		if limit, result := r.checkToolBudget(state); limit {
+			return "", true, result
+		}
+		toolStarted := time.Now()
+		stopped, result := r.executeTool(ctx, state, verifyCall, false, nil)
+		l.logTiming("message_loop.tool", toolStarted, "goal=%s tool=%s confirmed=false b1_2_verify_audio_analysis_status=true stopped=%t status=%s", state.goal.GoalID, verifyCall.Tool, stopped, result.Status)
+		if stopped {
+			return "", true, result
+		}
+		if len(state.executed) == 0 || !messageLoopExecutionSucceeded(state.executed[len(state.executed)-1]) {
+			return "", true, r.fail(state, fmt.Errorf("B1.2 source calibration could not refresh project.audio_analysis_status"))
+		}
+		appendMessageLoopToolResult(state)
+		status := messageLoopMapValue(state.executed[len(state.executed)-1]["result"])
+		if incomplete, detail := messageLoopGainStagingAnalysisExplicitlyIncomplete(status); incomplete {
+			return "", true, r.fail(state, fmt.Errorf("B1.2 source calibration DAD verification is incomplete: %s", detail))
+		}
+		ranAudioStatus = true
+	}
 	if allowedTool("mix.observe", state.input.AllowedTools) || allowedTool("mix.request_observation", state.input.AllowedTools) {
 		verifyCall := messageLoopGainStagingObservationCall(state)
 		verifyCall.ID = "b1_2_source_calibration_verify_observe"
@@ -1830,6 +1857,29 @@ func messageLoopGainStagingAnalysisReady(status map[string]any) bool {
 	total, totalOK := firstNumericMapValue(job, "dad_fact_total_count", "total_clips")
 	ready, readyOK := firstNumericMapValue(job, "dad_fact_ready_count")
 	return totalOK && readyOK && total > 0 && ready >= total && strings.EqualFold(firstMapText(job, "dad_fact_status"), "ready")
+}
+
+func messageLoopGainStagingAnalysisExplicitlyIncomplete(status map[string]any) (bool, string) {
+	job := messageLoopGainStagingAnalysisJob(status)
+	if len(job) == 0 {
+		return false, ""
+	}
+	total, totalOK := firstNumericMapValue(job, "dad_fact_total_count", "total_clips")
+	ready, readyOK := firstNumericMapValue(job, "dad_fact_ready_count")
+	pending, pendingOK := firstNumericMapValue(job, "dad_fact_pending_count", "pending_clips")
+	if totalOK && readyOK && total > 0 && ready < total {
+		return true, fmt.Sprintf("ready=%.0f/%.0f", ready, total)
+	}
+	if pendingOK && pending > 0 {
+		return true, fmt.Sprintf("pending=%.0f", pending)
+	}
+	statusText := strings.ToLower(strings.TrimSpace(firstMapText(job, "dad_fact_status")))
+	for _, marker := range []string{"partial", "stale", "suspect", "missing", "invalid", "failed", "error"} {
+		if strings.Contains(statusText, marker) {
+			return true, "dad_fact_status=" + statusText
+		}
+	}
+	return false, ""
 }
 
 func (l *MessageLoop) messageLoopGainStagingWaitForAnalysisReady(ctx context.Context, r *Runner, state *runState) (bool, Result) {

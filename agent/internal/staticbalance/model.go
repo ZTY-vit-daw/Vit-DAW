@@ -33,13 +33,13 @@ func BuildModel(in Input) Model {
 	tom := findTOMProjection(in.TOMProjection, in.ContextSnapshot, in.RequestContext, in.ProjectState, in.ExecutionMemory)
 	projectRows := findProjectRows(in.ProjectState, in.ContextSnapshot, in.RequestContext)
 	momRows := collectMOMRows(mom, in.MixObservation)
-	dadRows := indexDADRows(collectDADRows(in.AudioAnalysisStatus))
+	staticLevelRows := collectMOMStaticLevelRows(mom)
 	tomRoles := collectTOMRoles(tom)
 
 	tracks := make([]Track, 0, len(projectRows))
 	seen := map[string]bool{}
 	for _, row := range projectRows {
-		track := buildTrack(row, momRows, dadRows, tomRoles)
+		track := buildTrack(row, momRows, staticLevelRows, tomRoles)
 		if track.TrackID == "" || seen[track.TrackID] {
 			continue
 		}
@@ -56,8 +56,9 @@ func BuildModel(in Input) Model {
 	if len(mom) > 0 {
 		evidenceRefs = append(evidenceRefs, "mix.observe", "MOM")
 	}
-	if len(dadRows) > 0 {
-		evidenceRefs = append(evidenceRefs, "project.audio_analysis_status:track_waveform_envelopes", "DAD")
+	if relation := mapValue(mom["static_level_relationship"]); len(relation) > 0 {
+		evidenceRefs = append(evidenceRefs, "MOM:static_level_relationship")
+		evidenceRefs = append(evidenceRefs, stringSlice(relation["evidence_refs"])...)
 	}
 	if len(tom) > 0 {
 		evidenceRefs = append(evidenceRefs, "TOM")
@@ -67,7 +68,7 @@ func BuildModel(in Input) Model {
 		evidenceRefs = append(evidenceRefs, observationID)
 	}
 	evidenceRefs = uniqueStrings(evidenceRefs)
-	readiness := assessReadiness(tracks, coverage, mom, tom, evidenceRefs)
+	readiness := assessReadiness(tracks, coverage, mom, tom, in.ProjectState, evidenceRefs)
 	limitations := append([]string(nil), readiness.BlockedBy...)
 	limitations = append(limitations, readiness.Warnings...)
 
@@ -115,9 +116,12 @@ func measureCoverage(tracks []Track) Coverage {
 			}
 			if track.LevelDB != nil {
 				out.LevelKnownCount++
-				if track.LevelSource == "dad_waveform_effective_static" {
-					out.DADLevelKnownCount++
+				out.ProjectedLevelKnownCount++
+				if track.LevelStatus == "approximate" {
+					out.ApproximateLevelCount++
 				}
+			} else if track.LevelStatus != "" && track.LevelStatus != "ready" && track.LevelStatus != "approximate" {
+				out.BlockedLevelCount++
 			}
 		}
 		if track.Eligible {
@@ -137,7 +141,7 @@ func measureCoverage(tracks []Track) Coverage {
 	return out
 }
 
-func assessReadiness(tracks []Track, coverage Coverage, mom, tom map[string]any, refs []string) capabilityruntime.Readiness {
+func assessReadiness(tracks []Track, coverage Coverage, mom, tom, projectState map[string]any, refs []string) capabilityruntime.Readiness {
 	conditions := []capabilityruntime.Condition{}
 	conditions = append(conditions, readinessCondition(
 		"project_structure", true, len(tracks) > 0, len(tracks), len(tracks),
@@ -176,8 +180,30 @@ func assessReadiness(tracks []Track, coverage Coverage, mom, tom map[string]any,
 	levelReady := coverage.LevelKnownCount >= 2 && coverage.EffectiveLevelCoverage >= 0.95
 	conditions = append(conditions, readinessCondition(
 		"effective_l1_track_levels", true, levelReady, coverage.LevelKnownCount, coverage.RoleCandidateCount,
-		fmt.Sprintf("effective source+clip-gain+fader level coverage is %.0f%% (%d DAD-derived); solver-comparable coverage is %.0f%%", coverage.EffectiveLevelCoverage*100, coverage.DADLevelKnownCount, coverage.LevelCoverage*100), refs,
-		"Wait for automatic DAD waveform facts, read project.audio_analysis_status, and refresh the B2 context.",
+		fmt.Sprintf("MOM static-level coverage is %.0f%% (%d approximate, %d blocked); solver-comparable coverage is %.0f%%", coverage.EffectiveLevelCoverage*100, coverage.ApproximateLevelCount, coverage.BlockedLevelCount, coverage.LevelCoverage*100), refs,
+		"Refresh one full-project mix.observe MOM static-level projection after the latest project edit.",
+	))
+
+	staticRelation := mapValue(mom["static_level_relationship"])
+	staticStatus := strings.ToLower(firstText(staticRelation, "status"))
+	staticReady := staticStatus == "ready" || staticStatus == "approximate"
+	conditions = append(conditions, readinessCondition(
+		"mom_static_level_relationship", true, staticReady, coverage.ProjectedLevelKnownCount, coverage.RoleCandidateCount,
+		fmt.Sprintf("MOM static-level relationship status is %s", defaultText(staticStatus, "missing")), refs,
+		"Refresh the MOM static-level relationship; stale, suspect, partial, or missing projections cannot support B2 planning.",
+	))
+	relationCut := firstText(staticRelation, "project_cut_ref")
+	currentCut := currentProjectCutRef(projectState)
+	cutReady := relationCut != "" && (currentCut == "" || relationCut == currentCut)
+	cutSummary := "MOM static-level projection identifies its source project cut"
+	if relationCut == "" {
+		cutSummary = "MOM static-level projection omitted project_cut_ref"
+	} else if currentCut != "" && relationCut != currentCut {
+		cutSummary = "MOM static-level projection belongs to a different project cut"
+	}
+	conditions = append(conditions, readinessCondition(
+		"mom_static_level_project_cut", true, cutReady, boolInt(cutReady), 1, cutSummary, refs,
+		"Refresh mix.observe against the current project revision before B2 planning.",
 	))
 
 	conditions = append(conditions, readinessCondition(
@@ -221,6 +247,26 @@ func assessReadiness(tracks []Track, coverage Coverage, mom, tom map[string]any,
 	return capabilityruntime.Evaluate(CapabilityID, conditions)
 }
 
+func currentProjectCutRef(projectState map[string]any) string {
+	project := mapValue(projectState["project"])
+	for _, value := range []string{
+		firstText(projectState, "snapshot_hash", "project_state_hash", "project_revision", "revision"),
+		firstText(project, "snapshot_hash", "project_state_hash", "project_revision", "revision"),
+	} {
+		if strings.TrimSpace(value) != "" {
+			return strings.TrimSpace(value)
+		}
+	}
+	return ""
+}
+
+func boolInt(value bool) int {
+	if value {
+		return 1
+	}
+	return 0
+}
+
 func readinessCondition(id string, required, ready bool, known, total int, summary string, refs []string, remediation string) capabilityruntime.Condition {
 	status := capabilityruntime.ConditionReady
 	if !ready {
@@ -232,10 +278,11 @@ func readinessCondition(id string, required, ready bool, known, total int, summa
 	}
 }
 
-func buildTrack(row map[string]any, momRows map[string]map[string]any, dadRows map[string][]map[string]any, tomRoles map[string]roleEvidence) Track {
+func buildTrack(row map[string]any, momRows, staticLevelRows map[string]map[string]any, tomRoles map[string]roleEvidence) Track {
 	id := firstText(row, "track_id", "id")
 	merged := cloneMap(row)
-	if momRow := momRows[id]; len(momRow) > 0 {
+	momRow := momRows[id]
+	if len(momRow) > 0 {
 		for key, value := range momRow {
 			if acousticField(key) || emptyValue(merged[key]) {
 				merged[key] = value
@@ -262,34 +309,18 @@ func buildTrack(row map[string]any, momRows map[string]map[string]any, dadRows m
 	}
 	track.Function = roleFunction(track.Role)
 	track.FaderDB, _ = firstNumber(row, "volume_db", "fader_db", "track_gain_db", "gain_db", "db")
-	for _, metric := range []struct {
-		name string
-		keys []string
-	}{
-		{"lufs_i", []string{"lufs_i", "integrated_lufs", "loudness_lufs"}},
-		{"active_rms_dbfs", []string{"active_rms_dbfs", "active_level_db"}},
-		{"rms_dbfs", []string{"rms_dbfs", "rms_db", "level_db"}},
-	} {
-		if value, ok := firstNumber(merged, metric.keys...); ok {
-			track.LevelDB, track.LevelMetric = value, metric.name
-			break
-		}
-	}
-	if level := effectiveDADTrackLevel(row, dadRows[id], track.FaderDB); level.Ready {
-		track.LevelDB = numberPtr(level.RMSDBFS)
-		track.LevelMetric = "effective_static_rms_dbfs"
-		track.LevelSource = "dad_waveform_effective_static"
-		track.SourceLevelDB = numberPtr(level.SourceRMSDBFS)
-		track.PeakDBFS = numberPtr(level.PeakDBFS)
-		track.HeadroomDB = numberPtr(math.Max(0, -level.PeakDBFS))
-	} else if track.LevelDB != nil {
-		track.LevelSource = "mom_or_project_level"
-	}
-	if track.PeakDBFS == nil {
-		track.PeakDBFS, _ = firstNumber(merged, "peak_dbfs", "peak_db")
-	}
-	if track.HeadroomDB == nil {
-		track.HeadroomDB, _ = firstNumber(merged, "headroom_db", "headroom")
+	levelRow := staticLevelRows[id]
+	track.LevelStatus = strings.ToLower(firstText(levelRow, "status"))
+	track.LevelFreshness = firstText(levelRow, "freshness")
+	track.LevelTapPoint = firstText(levelRow, "tap_point")
+	track.IncludedClipIDs = stringSlice(levelRow["included_clip_ids"])
+	track.AggregationMethod = firstText(levelRow, "aggregation_method")
+	if usableStaticLevelStatus(track.LevelStatus) {
+		track.LevelDB, _ = firstNumber(levelRow, "effective_static_rms_dbfs")
+		track.LevelMetric = defaultText(firstText(levelRow, "metric"), "effective_static_rms_dbfs")
+		track.LevelSource = "mom_static_level_relationship"
+		track.SourceLevelDB, _ = firstNumber(levelRow, "source_rms_dbfs")
+		track.PeakDBFS, _ = firstNumber(levelRow, "effective_static_peak_dbfs")
 	}
 	if track.HeadroomDB == nil && track.PeakDBFS != nil {
 		value := math.Max(0, -*track.PeakDBFS)
@@ -297,6 +328,17 @@ func buildTrack(row map[string]any, momRows map[string]map[string]any, dadRows m
 	}
 	track.Eligible, track.Exclusion = trackEligibility(merged, track)
 	return track
+}
+
+func usableStaticLevelStatus(status string) bool {
+	return status == "ready" || status == "approximate"
+}
+
+func defaultText(value, fallback string) string {
+	if strings.TrimSpace(value) != "" {
+		return strings.TrimSpace(value)
+	}
+	return fallback
 }
 
 func trackEligibility(row map[string]any, track Track) (bool, string) {
@@ -456,108 +498,16 @@ func collectMOMRows(mom, observation map[string]any) map[string]map[string]any {
 	return out
 }
 
-func collectDADRows(status map[string]any) []map[string]any {
-	if len(status) == 0 {
-		return nil
-	}
-	out := []map[string]any{}
-	seen := map[string]bool{}
-	for _, source := range []map[string]any{status, mapValue(status["analysis_job"]), mapValue(status["summary"])} {
-		for _, row := range rowsValue(source["track_waveform_envelopes"]) {
-			key := strings.Join([]string{
-				firstText(row, "track_id", "source_track_id", "id"),
-				firstText(row, "clip_id", "bake_key", "source_path", "file_path"),
-			}, "\x00")
-			if key == "\x00" || seen[key] {
-				continue
-			}
-			seen[key] = true
-			out = append(out, row)
-		}
-	}
-	return out
-}
-
-func indexDADRows(rows []map[string]any) map[string][]map[string]any {
-	out := map[string][]map[string]any{}
-	for _, row := range rows {
-		trackID := firstText(row, "track_id", "source_track_id", "id")
+func collectMOMStaticLevelRows(mom map[string]any) map[string]map[string]any {
+	out := map[string]map[string]any{}
+	relation := mapValue(mom["static_level_relationship"])
+	for _, row := range rowsValue(relation["tracks"]) {
+		trackID := firstText(row, "track_id", "id")
 		if trackID != "" {
-			out[trackID] = append(out[trackID], row)
+			out[trackID] = row
 		}
 	}
 	return out
-}
-
-type effectiveTrackLevel struct {
-	Ready         bool
-	RMSDBFS       float64
-	SourceRMSDBFS float64
-	PeakDBFS      float64
-}
-
-func effectiveDADTrackLevel(projectTrack map[string]any, rows []map[string]any, faderDB *float64) effectiveTrackLevel {
-	if len(rows) == 0 {
-		return effectiveTrackLevel{}
-	}
-	clips := rowsValue(projectTrack["clips"])
-	clipsByID := map[string]map[string]any{}
-	for _, clip := range clips {
-		if id := firstText(clip, "clip_id", "id"); id != "" {
-			clipsByID[id] = clip
-		}
-	}
-	fader := 0.0
-	if faderDB != nil {
-		fader = *faderDB
-	}
-	sourceEnergy, effectiveEnergy, totalWeight := 0.0, 0.0, 0.0
-	peak := math.Inf(-1)
-	for _, row := range rows {
-		if status, ok := row["status"]; ok && strings.TrimSpace(fmt.Sprint(status)) != "" && !strings.EqualFold(strings.TrimSpace(fmt.Sprint(status)), "ready") {
-			continue
-		}
-		rms, rmsOK := firstNumber(row, "rms_dbfs", "rms_db")
-		rowPeak, peakOK := firstNumber(row, "peak_dbfs", "peak_db")
-		if !rmsOK || !peakOK {
-			continue
-		}
-		clip := clipsByID[firstText(row, "clip_id", "bake_key")]
-		if len(clip) == 0 && len(clips) == 1 {
-			clip = clips[0]
-		}
-		if len(clips) > 1 && len(clip) == 0 {
-			continue
-		}
-		if boolValue(clip["clip_mute"]) || boolValue(clip["mute"]) {
-			continue
-		}
-		clipGain := 0.0
-		if value, ok := firstNumber(clip, "clip_gain_db", "gain_db"); ok {
-			clipGain = *value
-		}
-		weight := 1.0
-		if value, ok := firstNumber(row, "duration_seconds", "total_duration"); ok && *value > 0 {
-			weight = *value
-		} else if value, ok := firstNumber(clip, "length_seconds", "duration_seconds"); ok && *value > 0 {
-			weight = *value
-		}
-		sourceEnergy += math.Pow(10, *rms/10) * weight
-		effectiveEnergy += math.Pow(10, (*rms+clipGain+fader)/10) * weight
-		totalWeight += weight
-		if adjustedPeak := *rowPeak + clipGain + fader; adjustedPeak > peak {
-			peak = adjustedPeak
-		}
-	}
-	if totalWeight <= 0 || sourceEnergy <= 0 || effectiveEnergy <= 0 || math.IsInf(peak, -1) {
-		return effectiveTrackLevel{}
-	}
-	return effectiveTrackLevel{
-		Ready:         true,
-		RMSDBFS:       10 * math.Log10(effectiveEnergy/totalWeight),
-		SourceRMSDBFS: 10 * math.Log10(sourceEnergy/totalWeight),
-		PeakDBFS:      peak,
-	}
 }
 
 func compactMOM(mom map[string]any) map[string]any {
@@ -573,6 +523,9 @@ func compactMOM(mom map[string]any) map[string]any {
 	}
 	if relation := mapValue(mom["multitrack_relation"]); len(relation) > 0 {
 		out["multitrack_relation"] = compactMap(relation, "status", "track_count", "level_distribution", "limitations", "evidence_refs")
+	}
+	if relation := mapValue(mom["static_level_relationship"]); len(relation) > 0 {
+		out["static_level_relationship"] = compactMap(relation, "schema_version", "status", "freshness", "project_cut_ref", "coverage", "limitations", "evidence_refs")
 	}
 	return out
 }
@@ -636,7 +589,7 @@ func observationID(observation, mom map[string]any) string {
 
 func acousticField(key string) bool {
 	switch key {
-	case "lufs_i", "integrated_lufs", "loudness_lufs", "rms_dbfs", "rms_db", "level_db", "active_rms_dbfs", "active_level_db", "peak_dbfs", "peak_db", "headroom_db", "headroom":
+	case "lufs_i", "integrated_lufs", "loudness_lufs", "effective_static_rms_dbfs", "rms_dbfs", "rms_db", "level_db", "active_rms_dbfs", "active_level_db", "peak_dbfs", "peak_db", "headroom_db", "headroom":
 		return true
 	default:
 		return false

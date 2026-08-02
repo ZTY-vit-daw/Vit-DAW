@@ -43,6 +43,9 @@ func allEvidenceRefs(proj Projection) []string {
 	refs = append(refs, proj.ProjectStructure.EvidenceRefs...)
 	refs = append(refs, proj.ProjectMixProfile.EvidenceRefs...)
 	refs = append(refs, proj.MultitrackRelation.EvidenceRefs...)
+	if proj.FrequencyRelationship != nil {
+		refs = append(refs, proj.FrequencyRelationship.EvidenceRefs...)
+	}
 	refs = append(refs, proj.Layers.BasicEnergy.EvidenceRefs...)
 	refs = append(refs, proj.Layers.TimbreFrequency.EvidenceRefs...)
 	refs = append(refs, proj.Layers.SpaceStereo.EvidenceRefs...)

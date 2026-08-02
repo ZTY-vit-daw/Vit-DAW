@@ -14,6 +14,13 @@ func Build(input Input) Projection {
 	project := buildProjectStructure(input)
 	projectMixProfile := buildProjectMixProfile(input)
 	multitrackRelation := buildMultitrackRelation(input, projectMixProfile)
+	staticLevelRelationship := buildStaticLevelRelationship(input)
+	frequencyRelationship := FrequencyRelationship{}
+	var frequencyRelationshipProjection *FrequencyRelationship
+	if intent == IntentProjectFrequencyObservation {
+		frequencyRelationship = buildFrequencyRelationship(input)
+		frequencyRelationshipProjection = &frequencyRelationship
+	}
 	layers := Layers{
 		BasicEnergy:            buildBasicEnergy(input),
 		TimbreFrequency:        buildTimbreFrequency(input, intent),
@@ -22,18 +29,20 @@ func Build(input Input) Projection {
 		MultitrackRelationship: multitrackRelationLayer(multitrackRelation),
 		ABResultComparison:     buildABResultComparison(input),
 	}
-	trust := buildTrustQuality(input, intent, project, projectMixProfile, multitrackRelation, layers)
+	trust := buildTrustQuality(input, intent, project, projectMixProfile, multitrackRelation, frequencyRelationship, layers)
 	proj := Projection{
-		MOMVersion:         Version,
-		Intent:             intent,
-		IntentPolicy:       intentPolicy,
-		ObservationID:      input.ObservationID,
-		MixSessionID:       input.MixSessionID,
-		ProjectStructure:   project,
-		ProjectMixProfile:  projectMixProfile,
-		MultitrackRelation: multitrackRelation,
-		Layers:             layers,
-		TrustQuality:       trust,
+		MOMVersion:              Version,
+		Intent:                  intent,
+		IntentPolicy:            intentPolicy,
+		ObservationID:           input.ObservationID,
+		MixSessionID:            input.MixSessionID,
+		ProjectStructure:        project,
+		ProjectMixProfile:       projectMixProfile,
+		MultitrackRelation:      multitrackRelation,
+		StaticLevelRelationship: staticLevelRelationship,
+		FrequencyRelationship:   frequencyRelationshipProjection,
+		Layers:                  layers,
+		TrustQuality:            trust,
 	}
 	proj.LLMContext = BuildLLMContext(proj)
 	return proj
@@ -357,34 +366,42 @@ func abResultLimitations(ab map[string]any, status string) []string {
 	return limitations
 }
 
-func buildTrustQuality(input Input, intent string, project ProjectStructure, profile ProjectMixProfile, relation MultitrackRelation, layers Layers) TrustQuality {
+func buildTrustQuality(input Input, intent string, project ProjectStructure, profile ProjectMixProfile, relation MultitrackRelation, frequency FrequencyRelationship, layers Layers) TrustQuality {
 	identity := sourceIdentity(input)
 	renderProbe := l2RenderProbe(input)
 	overall := rollupStatus(intent, layers, project)
 	if intent == IntentProjectMultitrackObservation {
 		overall = rollupMultitrackStatus(project, profile, relation)
+	} else if intent == IntentProjectFrequencyObservation {
+		overall = rollupStatusFromList(project.Status, frequency.Status)
 	} else if intent == IntentABResultObservation {
 		overall = StatusFromSource(layers.ABResultComparison.Status)
 	}
 	refs := append([]string{observationRef(input)}, allEvidenceRefs(Projection{
-		ProjectStructure:   project,
-		ProjectMixProfile:  profile,
-		MultitrackRelation: relation,
-		Layers:             layers,
+		ProjectStructure:      project,
+		ProjectMixProfile:     profile,
+		MultitrackRelation:    relation,
+		FrequencyRelationship: &frequency,
+		Layers:                layers,
 	})...)
 	l2TapPoint := l2TapPoint(input)
 	limitations := []string{}
-	if l2TapPoint == "" || strings.EqualFold(l2TapPoint, "unknown_live_meter") {
+	l2Limitations := []string{}
+	if intent != IntentProjectFrequencyObservation && (l2TapPoint == "" || strings.EqualFold(l2TapPoint, "unknown_live_meter")) {
 		l2TapPoint = firstNonEmpty(l2TapPoint, "unknown_live_meter")
-		limitations = append(limitations, "l2_tap_point_not_fully_closed_loop")
+		l2Limitations = append(l2Limitations, "l2_tap_point_not_fully_closed_loop")
+		limitations = append(limitations, l2Limitations...)
+	} else if intent == IntentProjectFrequencyObservation {
+		l2TapPoint = ""
+		limitations = append(limitations, frequency.Limitations...)
 	}
 	required := IntentRequiredLayers(intent)
 	optional := IntentOptionalLayers(intent)
-	coverage := trustCoverage(input, profile, relation)
+	coverage := trustCoverage(input, intent, profile, relation, frequency)
 	deferred := deferredLayers(intent, profile, relation, layers)
-	gates := trustQualityGates(intent, project, profile, relation, layers, l2TapPoint)
+	gates := trustQualityGates(intent, project, profile, relation, frequency, layers, l2TapPoint)
 	approximateFields := approximateFields(input, layers)
-	suspectFields, staleFields, missingFields := trustStatusFields(intent, project, profile, relation, layers)
+	suspectFields, staleFields, missingFields := trustStatusFields(intent, project, profile, relation, frequency, layers)
 	if len(approximateFields) > 0 {
 		gates = append(gates, fmt.Sprintf("approximate_fields:%d", len(approximateFields)))
 	}
@@ -403,9 +420,12 @@ func buildTrustQuality(input Input, intent string, project ProjectStructure, pro
 	sourceRevisionStatus := revisionStatus(sourceRevision)
 	clipRevisionStatus := revisionStatus(clipRevision)
 	renderRevisionStatus := revisionStatus(renderRevision)
-	canObserve := canSupportObservation(intent, project, profile, relation, layers)
+	canObserve := canSupportObservation(intent, project, profile, relation, frequency, layers)
 	canSuggest := canObserve && len(suspectFields) == 0 && len(staleFields) == 0
 	canAction := canSupportActionPreflight(project, layers, refs)
+	if intent == IntentProjectFrequencyObservation {
+		canAction = false
+	}
 	canAB := canSupportABResult(layers)
 	blockedReasons := blockedReasonsForTrust(intent, canObserve, canSuggest, canAction, canAB, suspectFields, staleFields, missingFields)
 	return TrustQuality{
@@ -431,7 +451,7 @@ func buildTrustQuality(input Input, intent string, project ProjectStructure, pro
 		Freshness:                 FreshnessForStatus(overall),
 		Source:                    "mom_projection_from_dad_v1_2_acoustic_package_and_mixboard",
 		L2TapPoint:                l2TapPoint,
-		L2Limitations:             limitations,
+		L2Limitations:             l2Limitations,
 		Limitations:               evidenceRefs(append(append([]string{}, limitations...), blockedReasons...)...),
 		EvidenceRefs:              evidenceRefs(refs...),
 		UpdatedAt:                 firstNonEmpty(text(input.AcousticPackageStatus["updated_at"]), input.CreatedAt),
@@ -445,8 +465,8 @@ func revisionStatus(value string) string {
 	return StatusReady
 }
 
-func trustStatusFields(intent string, project ProjectStructure, profile ProjectMixProfile, relation MultitrackRelation, layers Layers) ([]string, []string, []string) {
-	rows := trustStatusRowsForIntent(intent, project, profile, relation, layers)
+func trustStatusFields(intent string, project ProjectStructure, profile ProjectMixProfile, relation MultitrackRelation, frequency FrequencyRelationship, layers Layers) ([]string, []string, []string) {
+	rows := trustStatusRowsForIntent(intent, project, profile, relation, frequency, layers)
 	suspect := []string{}
 	stale := []string{}
 	missing := []string{}
@@ -466,7 +486,7 @@ func trustStatusFields(intent string, project ProjectStructure, profile ProjectM
 	return suspect, stale, missing
 }
 
-func trustStatusRowsForIntent(intent string, project ProjectStructure, profile ProjectMixProfile, relation MultitrackRelation, layers Layers) []struct {
+func trustStatusRowsForIntent(intent string, project ProjectStructure, profile ProjectMixProfile, relation MultitrackRelation, frequency FrequencyRelationship, layers Layers) []struct {
 	name   string
 	status string
 } {
@@ -488,6 +508,11 @@ func trustStatusRowsForIntent(intent string, project ProjectStructure, profile P
 				status string
 			}{"multitrack_relation", relation.Status},
 		)
+	case IntentProjectFrequencyObservation:
+		return append(base, struct {
+			name   string
+			status string
+		}{"frequency_relationship", frequency.Status})
 	case IntentABResultObservation:
 		return append(base, struct {
 			name   string
@@ -557,8 +582,8 @@ func collectApproximateFields(prefix string, value any, out *[]string) {
 	}
 }
 
-func canSupportObservation(intent string, project ProjectStructure, profile ProjectMixProfile, relation MultitrackRelation, layers Layers) bool {
-	for _, status := range requiredLayerStatuses(intent, project, profile, relation, layers) {
+func canSupportObservation(intent string, project ProjectStructure, profile ProjectMixProfile, relation MultitrackRelation, frequency FrequencyRelationship, layers Layers) bool {
+	for _, status := range requiredLayerStatuses(intent, project, profile, relation, frequency, layers) {
 		switch StatusFromSource(status) {
 		case StatusReady, StatusPartial, StatusApprox:
 			continue
@@ -585,13 +610,15 @@ func canSupportABResult(layers Layers) bool {
 	return StatusFromSource(layers.ABResultComparison.Status) == StatusReady
 }
 
-func requiredLayerStatuses(intent string, project ProjectStructure, profile ProjectMixProfile, relation MultitrackRelation, layers Layers) []string {
+func requiredLayerStatuses(intent string, project ProjectStructure, profile ProjectMixProfile, relation MultitrackRelation, frequency FrequencyRelationship, layers Layers) []string {
 	switch intent {
 	case IntentProjectMultitrackObservation:
 		if relation.Status == "not_applicable_single_track" {
 			return []string{project.Status, profile.Status}
 		}
 		return []string{project.Status, profile.Status, relation.Status}
+	case IntentProjectFrequencyObservation:
+		return []string{project.Status, frequency.Status}
 	case IntentABResultObservation:
 		return []string{project.Status, layers.ABResultComparison.Status}
 	default:
@@ -657,7 +684,10 @@ func deferredLayers(intent string, profile ProjectMixProfile, relation Multitrac
 	return out
 }
 
-func trustCoverage(input Input, profile ProjectMixProfile, relation MultitrackRelation) map[string]any {
+func trustCoverage(input Input, intent string, profile ProjectMixProfile, relation MultitrackRelation, frequency FrequencyRelationship) map[string]any {
+	if intent == IntentProjectFrequencyObservation {
+		return frequency.Coverage
+	}
 	tracks := projectTrackRows(input)
 	return map[string]any{
 		"track_count":                 profile.TrackCount,
@@ -679,7 +709,7 @@ func countTracksWithStatus(tracks []map[string]any, key string) int {
 	return count
 }
 
-func trustQualityGates(intent string, project ProjectStructure, profile ProjectMixProfile, relation MultitrackRelation, layers Layers, l2TapPoint string) []string {
+func trustQualityGates(intent string, project ProjectStructure, profile ProjectMixProfile, relation MultitrackRelation, frequency FrequencyRelationship, layers Layers, l2TapPoint string) []string {
 	gates := []string{}
 	if status := StatusFromSource(project.Status); status != StatusReady {
 		gates = append(gates, "project_structure:"+status)
@@ -704,15 +734,27 @@ func trustQualityGates(intent string, project ProjectStructure, profile ProjectM
 			gates = append(gates, fmt.Sprintf("phase_risk_tracks:%d", len(relation.PhaseRiskTracks)))
 		}
 	}
-	for _, row := range []struct {
-		name  string
-		layer Layer
-	}{
-		{"timbre_frequency", layers.TimbreFrequency},
-		{"space_stereo", layers.SpaceStereo},
-	} {
-		if status := StatusFromSource(row.layer.Status); status == StatusStale || status == StatusSuspect || status == StatusMissing {
-			gates = append(gates, row.name+":"+status)
+	if intent == IntentProjectFrequencyObservation {
+		gates = append(gates, "frequency_relationship:"+StatusFromSource(frequency.Status))
+		gates = append(gates, "frequency_relationship.tap_point:"+firstNonEmpty(frequency.TapPoint, "unknown"))
+		if boolValue(frequency.Coverage["decision_tracks_truncated"]) {
+			gates = append(gates, "frequency_relationship.decision_tracks_truncated:true")
+		}
+		if !boolValue(frequency.Coverage["supports_post_fx_compare"]) {
+			gates = append(gates, "frequency_relationship.post_fx_compare:false")
+		}
+	}
+	if intent != IntentProjectFrequencyObservation {
+		for _, row := range []struct {
+			name  string
+			layer Layer
+		}{
+			{"timbre_frequency", layers.TimbreFrequency},
+			{"space_stereo", layers.SpaceStereo},
+		} {
+			if status := StatusFromSource(row.layer.Status); status == StatusStale || status == StatusSuspect || status == StatusMissing {
+				gates = append(gates, row.name+":"+status)
+			}
 		}
 	}
 	if intent == IntentABResultObservation || StatusFromSource(layers.ABResultComparison.Status) != StatusMissing {
@@ -720,10 +762,12 @@ func trustQualityGates(intent string, project ProjectStructure, profile ProjectM
 			gates = append(gates, "ab_result_comparison:"+status)
 		}
 	}
-	if l2TapPoint == "" || strings.EqualFold(l2TapPoint, "unknown_live_meter") {
-		gates = append(gates, "l2_tap_point:unknown")
-	} else {
-		gates = append(gates, "l2_tap_point:"+l2TapPoint)
+	if intent != IntentProjectFrequencyObservation {
+		if l2TapPoint == "" || strings.EqualFold(l2TapPoint, "unknown_live_meter") {
+			gates = append(gates, "l2_tap_point:unknown")
+		} else {
+			gates = append(gates, "l2_tap_point:"+l2TapPoint)
+		}
 	}
 	if intent == IntentABResultObservation || StatusFromSource(layers.ABResultComparison.Status) != StatusMissing {
 		ab := mapValue(layers.ABResultComparison.Facts["ab_result"])

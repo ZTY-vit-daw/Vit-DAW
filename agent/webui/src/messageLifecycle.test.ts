@@ -7,6 +7,7 @@ import {
   proposalActionIdentity,
   proposalDecisionTranscript,
   reduceAgentEventActivities,
+  resolveCompletedTurnProposals,
   resolveSupersededMessages,
   responseMessageProtocol,
   transientMessage
@@ -184,6 +185,72 @@ describe("Vit message lifecycle v1", () => {
     expect(resolved[0].content).toBe("B2 proposal");
     expect(resolved[0].actions?.[0]).toMatchObject({ status: "completed", actions: [] });
     expect(resolved[1]).toEqual(receipt);
+  });
+
+  it("closes a restored generic confirmation when the same turn has a later execution receipt", () => {
+    const proposal: ChatMessage = {
+      id: "b1-proposal",
+      role: "assistant",
+      content: "B1 clip gain proposal",
+      actions: [{
+        id: "interaction-b1",
+        kind: "confirmation",
+        status: "waiting_for_user",
+        actions: [{ id: "approve" }, { id: "cancel" }]
+      }],
+      createdAt: 1,
+      turn_id: "run-b1",
+      message_kind: "proposal"
+    };
+    const receipt: ChatMessage = {
+      id: "b1-receipt",
+      role: "assistant",
+      content: "B1 clip gain applied and verified",
+      createdAt: 2,
+      turn_id: "run-b1",
+      message_kind: "execution_receipt"
+    };
+
+    const resolved = resolveCompletedTurnProposals([proposal, receipt]);
+    expect(resolved[0].actions?.[0]).toMatchObject({
+      status: "completed",
+      stage: "completed",
+      resolved_action_id: "turn_terminal_receipt",
+      actions: []
+    });
+  });
+
+  it("keeps a later staged Proposal actionable when no terminal receipt follows it", () => {
+    const firstProposal: ChatMessage = {
+      id: "stage-one",
+      role: "assistant",
+      content: "Stage one proposal",
+      actions: [{ id: "confirm-one", kind: "confirmation", actions: [{ id: "approve" }] }],
+      createdAt: 1,
+      turn_id: "run-staged",
+      message_kind: "proposal"
+    };
+    const receipt: ChatMessage = {
+      id: "stage-one-receipt",
+      role: "assistant",
+      content: "Stage one complete",
+      createdAt: 2,
+      turn_id: "run-staged",
+      message_kind: "execution_receipt"
+    };
+    const nextProposal: ChatMessage = {
+      id: "stage-two",
+      role: "assistant",
+      content: "Stage two proposal",
+      actions: [{ id: "confirm-two", kind: "confirmation", status: "waiting_for_user", actions: [{ id: "approve" }] }],
+      createdAt: 3,
+      turn_id: "run-staged",
+      message_kind: "proposal"
+    };
+
+    const resolved = resolveCompletedTurnProposals([firstProposal, receipt, nextProposal]);
+    expect(resolved[0].actions?.[0]).toMatchObject({ status: "completed", actions: [] });
+    expect(resolved[2].actions?.[0]).toMatchObject({ status: "waiting_for_user", actions: [{ id: "approve" }] });
   });
 
   it("gives live and history-restored actions the same Proposal identity", () => {

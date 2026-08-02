@@ -67,10 +67,11 @@ func (s *Server) handlePanLayoutRuntimeCanary(ctx context.Context, conversationI
 	if err != nil {
 		return capabilityCanaryBlockedResponse(conversationID, goal, "B3 CCB 只读上下文获取失败："+err.Error())
 	}
+	decisionRefs, decisionRefsErr := mixboardDecisionContextForState(state.LegacyState, panLayoutCapabilityID)
 	buildCut := projectcut.BuildRequest{
 		State: state, Guarantee: capabilityCanaryCutGuarantee(ctx, s.kernel),
 		DependencyFingerprints: dependencies, TargetFingerprints: canaryPanFingerprints(state.LegacyState),
-		ArtifactRefs:     canaryStringSlice(req.Context["artifact_refs"]),
+		ArtifactRefs:     appendUniqueStrings(canaryStringSlice(req.Context["artifact_refs"]), mixboardDecisionArtifactRefs(decisionRefs)...),
 		ContractVersions: []string{"capability:static_mix.pan_layout.v0", "context:static_mix.pan_layout.context_pack.v1"},
 	}
 	cut, err := projectcut.Build(buildCut)
@@ -87,6 +88,7 @@ func (s *Server) handlePanLayoutRuntimeCanary(ctx context.Context, conversationI
 	if err != nil {
 		return capabilityCanaryBlockedResponse(conversationID, goal, "B3 Shadow 失败："+err.Error())
 	}
+	attachMixboardDecisionContext(&planned.Bundle, decisionRefs, decisionRefsErr)
 	envelope, err := s.orchestrationRuntime.BuildCapabilityContextEnvelope(
 		sessionID, planned.Bundle, capabilityCanaryToolSchemas(s),
 		[]orchestration.ContextEntry{{ID: firstNonEmpty(goal.RunID, "current_turn"), Content: req.Message, Reference: "chat-history:" + conversationID, Priority: 100}},
@@ -198,7 +200,7 @@ func (s *Server) handlePanLayoutCanaryAuthorization(ctx context.Context, convers
 	}
 	envelope, err := s.orchestrationRuntime.BuildCapabilityContextEnvelope(
 		session.ID,
-		orchestration.ContextBundle{ID: frozen.ContextBundleID, CapabilityID: frozen.ActionSet.CapabilityID, ProjectCutHash: frozen.ProjectCut.Hash, ArtifactRefs: []string{"capability-pack:" + frozen.ContextBundleID}},
+		orchestration.ContextBundle{ID: frozen.ContextBundleID, CapabilityID: frozen.ActionSet.CapabilityID, ProjectCutHash: frozen.ProjectCut.Hash, ArtifactRefs: appendUniqueStrings([]string{"capability-pack:" + frozen.ContextBundleID}, frozen.ProjectCut.ArtifactRefs...)},
 		capabilityCanaryToolSchemas(s),
 		[]orchestration.ContextEntry{{ID: firstNonEmpty(goal.RunID, "authorization_turn"), Content: req.Message, Reference: "chat-history:" + conversationID, Priority: 100}},
 		orchestration.DefaultContextWindowBudget(),
@@ -235,6 +237,7 @@ func (s *Server) handlePanLayoutCanaryAuthorization(ctx context.Context, convers
 	}
 	response := panLayoutCanaryExecutionResponse(conversationID, goal, executed, envelope, executeErr)
 	response.ProjectHistory = s.harness.ProjectHistorySummary(ctx, firstNonEmpty(goal.GoalID, session.ID))
+	attachMixboardDecisionProjection(&response, executed)
 	return response
 }
 

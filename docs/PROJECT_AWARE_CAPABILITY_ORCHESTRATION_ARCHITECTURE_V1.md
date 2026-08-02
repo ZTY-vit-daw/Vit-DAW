@@ -497,15 +497,17 @@ Phase F 完成后的 B2/B3 进程内 rollback 开关不再存在；需要回滚�
 - 验证 allowed-tools、取消、失败隔离、并行预算和 structured result；
 - 不改变父 Session 的 authorization/execution authority。
 
-### Phase H — More capabilities and arrangement
+### Phase H — More capabilities, decision ledger and arrangement
 
-- B1/B4/B5、插件 treatment、自动化、编曲/AIGC 逐能力复用同一接缝；
+- B1/B4、插件 treatment、自动化、编曲/AIGC 逐能力复用同一接缝；旧 B5 退役并作为 B2 兼容意图；
+- Mixboard 只投影 Session、Project History、Receipt 和 Observation 引用，通过影响维度形成跨能力 `needs_review`，不建立第二套 authority；
+- `mix_report.v1` 是只读报告；缺少最终测量、存在 unresolved/needs_review 或当前工程有未记录变化时不得声称 export ready；
 - 编曲 Worker 产 ghost/draft candidate，正式写工程仍由父 Session Coordinator 完成。
 
 ## 9. 当前落地状态
 
 已完成：Phase A–F 的 B2/B3 首批切面，包括固定 v1 owner、legacy executable authority 物理退役、单向旧 JSON migration、真实 Release Kernel live verification、完整 VerificationResult、typed projection 规范化和多进程 Store 锁。
 
-仍保留：更广泛 `internal/agentloop` 旧测试域尚未清理；Worker Runtime 仍是 Phase G，不应被误报为当前 v1 已实现。保留的 B2/B3 legacy 类型只服务 decode-only migration，不具备确认或 mutation authority。
+仍保留：更广泛 `internal/agentloop` 旧测试域尚未清理；Worker Runtime 仍是 Phase G，不应被误报为当前 v1 已实现。保留的 B2/B3 legacy 类型只服务 decode-only migration，不具备确认或 mutation authority。Mixboard 决策账本合同见 `MIXBOARD_DECISION_LEDGER_V1.md`。
 
 权威门禁与现场证据见 `PROJECT_AWARE_CAPABILITY_RUNTIME_V1_GATES.md`，代码状态见 `ARCHITECTURE_V1_IMPLEMENTATION_STATUS.md`。

@@ -23,7 +23,16 @@ func compactAgentLoopExecutedForResponse(rows []map[string]any) []map[string]any
 
 func compactAgentLoopExecutionForResponse(row map[string]any) map[string]any {
 	if !executionLooksLikeStripSilence(row) {
-		return row
+		if _, carriesHistory := row["project_history"]; !carriesHistory {
+			return row
+		}
+		out := make(map[string]any, len(row)-1)
+		for key, value := range row {
+			if key != "project_history" {
+				out[key] = value
+			}
+		}
+		return out
 	}
 	out := map[string]any{}
 	for _, key := range []string{"status", "tool_call_id", "agent_action_id", "tool", "command_name", "preview", "undo_label", "error"} {
@@ -59,6 +68,10 @@ func compactStripSilenceChatResponseForTransport(resp *ChatResponse) {
 	resp.Commands = compactAgentLoopDecisionsForResponse(resp.Commands)
 	for i := range resp.InteractionRequests {
 		resp.InteractionRequests[i] = compactStripSilenceInteractionRequestForTransport(resp.InteractionRequests[i])
+	}
+	resp.ProjectHistory = compactAgentStateProjectHistory(resp.ProjectHistory)
+	if resp.AgentPlan != nil {
+		resp.AgentPlan.ProjectHistory = compactAgentStateProjectHistory(resp.AgentPlan.ProjectHistory)
 	}
 }
 

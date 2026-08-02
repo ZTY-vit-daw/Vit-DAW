@@ -55,6 +55,9 @@ func TestBuildModelWithBandOccupancy(t *testing.T) {
 	if len(model.Conflicts) == 0 {
 		t.Fatal("expected bass conflict candidate")
 	}
+	if model.Conflicts[0].ID == "" {
+		t.Fatal("expected stable conflict identity for treatment handoff")
+	}
 	if model.Summary.LowEndTendency != "prominent" {
 		t.Errorf("tendency = %q, want prominent", model.Summary.LowEndTendency)
 	}
@@ -73,6 +76,32 @@ func TestBuildModelNoMOMData(t *testing.T) {
 	}
 	if len(model.Tracks) != 0 {
 		t.Errorf("expected no tracks, got %d", len(model.Tracks))
+	}
+}
+
+func TestBuildModelKeepsCompleteDecisionRosterSeparateFromConflictMembers(t *testing.T) {
+	decisionTracks := []map[string]any{
+		{"track_id": "t1", "unit_energy": 0.9},
+		{"track_id": "t2", "unit_energy": 0.8},
+		{"track_id": "t3", "unit_energy": 0.7},
+		{"track_id": "t4", "unit_energy": 0.6},
+		{"track_id": "t5", "unit_energy": 0.5},
+	}
+	model := BuildModel(Input{MOMProjection: map[string]any{
+		"multitrack_relation": map[string]any{
+			"band_occupancy": []map[string]any{{
+				"band": "bass", "leaders": decisionTracks[:3], "decision_tracks": decisionTracks,
+			}},
+			"band_conflict_candidates": []map[string]any{{
+				"band": "bass", "tracks": decisionTracks[:3], "decision_tracks": decisionTracks,
+			}},
+		},
+	}})
+	if got := len(model.Tracks); got != 5 {
+		t.Fatalf("model tracks = %d, want all 5 decision tracks", got)
+	}
+	if got := len(model.Conflicts); got != 1 || len(model.Conflicts[0].Tracks) != 3 {
+		t.Fatalf("model conflicts = %#v, want the three concrete conflict members only", model.Conflicts)
 	}
 }
 

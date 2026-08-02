@@ -32,11 +32,17 @@ func TestStaticBalanceAdapterPlansWithoutMutationAndFreezesExistingCandidate(t *
 			}}},
 			MixObservation: map[string]any{"observation_id": "obs-1", "mom_projection": map[string]any{
 				"trust_quality": map[string]any{"can_support_action_preflight": true},
-				"multitrack_relation": map[string]any{"compared_tracks": []any{
+				"multitrack_relation": map[string]any{"status": "ready", "compared_tracks": []any{
 					map[string]any{"track_id": "v", "rms_dbfs": -18.0, "headroom_db": 8.0},
 					map[string]any{"track_id": "d", "rms_dbfs": -20.0, "headroom_db": 6.0},
 					map[string]any{"track_id": "b", "rms_dbfs": -22.0, "headroom_db": 7.0},
 				}},
+				"static_level_relationship": map[string]any{
+					"schema_version": "mom.static_level_relationship.v1", "status": "ready", "freshness": "fresh", "project_cut_ref": "cut-1",
+					"tracks": []any{
+						adapterStaticLevel("v", -18, -8), adapterStaticLevel("d", -20, -6), adapterStaticLevel("b", -22, -7),
+					},
+				},
 			}},
 		},
 	}
@@ -53,6 +59,25 @@ func TestStaticBalanceAdapterPlansWithoutMutationAndFreezesExistingCandidate(t *
 	}
 	if proposal.ActionSetHash == "" || proposal.ProjectCutHash == "" || len(proposal.TargetScope) == 0 {
 		t.Fatalf("proposal was not frozen: %#v", proposal)
+	}
+	actionSet, err := StaticBalanceActionSet(planned.Pack, request.ProjectCut, planned.CandidateIDs[0])
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, action := range actionSet.Actions {
+		for _, key := range []string{"hierarchy_role", "hierarchy_function", "before_effective_level_db", "before_effective_level_source", "before_effective_level_metric", "before_effective_level_tap_point", "before_effective_level_status", "function_current_relative_db", "function_target_relative_db"} {
+			if _, ok := action.Args[key]; !ok {
+				t.Fatalf("action %s omitted hierarchy metadata %q: %#v", action.ID, key, action.Args)
+			}
+		}
+	}
+}
+
+func adapterStaticLevel(trackID string, rms, peak float64) map[string]any {
+	return map[string]any{
+		"track_id": trackID, "status": "ready", "freshness": "fresh", "metric": "effective_static_rms_dbfs",
+		"tap_point": "derived_static_control_model", "effective_static_rms_dbfs": rms, "effective_static_peak_dbfs": peak,
+		"aggregation_method": "duration_weighted_linear_energy_source_plus_clip_gain_plus_fader",
 	}
 }
 

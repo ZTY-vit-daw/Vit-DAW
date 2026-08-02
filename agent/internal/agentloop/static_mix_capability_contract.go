@@ -41,11 +41,11 @@ func messageLoopStaticMixCapabilitySpecs() []staticMixCapabilitySpec {
 		{
 			Stage:     "B2",
 			ID:        "static_mix.static_balance.v0",
-			Name:      "静态音量平衡",
+			Name:      "静态主次与音量平衡",
 			NameEN:    "Static Balance",
-			Purpose:   "不依赖插件，先建立主次关系",
+			Purpose:   "不依赖插件，用静态推子建立 foreground、anchors、support 与 effects 的主次关系",
 			Observe:   "project.state / mix.observe / mix.read",
-			Execution: "mix.propose_tick -> mix.apply_tick -> track.volume",
+			Execution: "Frozen ActionSet -> Execution Coordinator -> static track fader -> VSP readback + fresh MOM",
 		},
 		{
 			Stage:     "B3",
@@ -64,15 +64,6 @@ func messageLoopStaticMixCapabilitySpecs() []staticMixCapabilitySpec {
 			Purpose:   "kick、bass、low synth、低频堆积和遮蔽",
 			Observe:   "mix.observe / mix.read / mix.derive",
 			Execution: "v0 优先观察和建议；证据足够时才进入待确认动作",
-		},
-		{
-			Stage:     "B5",
-			ID:        "static_mix.focus_position.v0",
-			Name:      "核心元素定位",
-			NameEN:    "Focus Position",
-			Purpose:   "lead vocal / lead instrument / snare / bass 的前后关系",
-			Observe:   "mix.observe / mix.read / mix.derive",
-			Execution: "v0 优先观察和建议；静态定位可映射到 track.volume / track.pan",
 		},
 	}
 }
@@ -103,7 +94,8 @@ func messageLoopStaticMixCapabilityContractRequest(text string) bool {
 
 func messageLoopStaticMixCapabilityContractReply(state *runState) string {
 	lines := []string{"B Capability Contract v0", "", "结论"}
-	appendMessageLoopBullet(&lines, "B 粗混 / Static Mix 是 static_mix capability 能力族，不是线性工作流。B1-B5 可以按用户目标独立调用，不互相阻塞。")
+	appendMessageLoopBullet(&lines, "B 粗混 / Static Mix 是 static_mix capability 能力族，不是线性工作流。B1-B4 可以按用户目标独立调用，不互相阻塞。")
+	appendMessageLoopBullet(&lines, "B5 / static_mix.focus_position.v0 已退役：静态焦点、主次和支撑关系属于 B2；插件产生的空间深度属于后续 C 系列。focus_position 仅保留为 B2 用户意图别名。")
 
 	lines = append(lines, "", "B 能力状态")
 	messageLoopAppendStaticMixCapabilityContractStatusLines(&lines, state)
@@ -124,14 +116,14 @@ func messageLoopStaticMixCapabilityContractReply(state *runState) string {
 
 	lines = append(lines, "", "边界")
 	appendMessageLoopBullet(&lines, "B1-B3 可以在 v0 中形成待确认动作；所有修改都必须等用户确认。")
-	appendMessageLoopBullet(&lines, "B4-B5 先偏观察和建议，证据不足时不能伪造 EQ、压缩或空间处理。")
+	appendMessageLoopBullet(&lines, "B4 只能复用已验证的普通 Agent generic-EQ 闭环；证据不足时不能伪造 EQ、压缩或空间处理。")
 	appendMessageLoopBullet(&lines, "大工程使用 project-level compact observation，不做每轨 LLM 循环。")
-	appendMessageLoopBullet(&lines, "A-F 与 B1-B5 都不作为线性门禁；A-F and B1-B5 are capability layers, not a linear gate.")
+	appendMessageLoopBullet(&lines, "A-F 与 B1-B4 都不作为线性门禁；A-F and B1-B4 are capability layers, not a linear gate.")
 	return strings.Join(lines, "\n")
 }
 
 func messageLoopAppendStaticMixCapabilityStatusLines(lines *[]string, state *runState) {
-	appendMessageLoopBullet(lines, "B 粗混 / Static Mix：能力族已建模；B1-B5 独立状态见下方；尚未记录为已执行")
+	appendMessageLoopBullet(lines, "B 粗混 / Static Mix：能力族已建模；B1-B4 独立状态见下方；尚未记录为已执行")
 	for _, spec := range messageLoopStaticMixCapabilitySpecs() {
 		status := messageLoopStaticMixCapabilityStatus(spec, state)
 		appendMessageLoopBullet(lines, fmt.Sprintf("%s %s（%s）：%s；%s", spec.Stage, spec.Name, spec.ID, messageLoopStaticMixCapabilityStatusLabel(status), spec.Purpose))
@@ -139,7 +131,7 @@ func messageLoopAppendStaticMixCapabilityStatusLines(lines *[]string, state *run
 }
 
 func messageLoopAppendStaticMixCapabilityContractStatusLines(lines *[]string, state *runState) {
-	appendMessageLoopBullet(lines, "B 粗混 / Static Mix：能力族已建模；B1-B5 独立状态见下方；尚未记录为已执行")
+	appendMessageLoopBullet(lines, "B 粗混 / Static Mix：能力族已建模；B1-B4 独立状态见下方；尚未记录为已执行")
 	for _, spec := range messageLoopStaticMixCapabilitySpecs() {
 		status := messageLoopStaticMixCapabilityStatus(spec, state)
 		appendMessageLoopBullet(lines, fmt.Sprintf("%s %s（%s）：%s；%s", spec.Stage, spec.NameEN, spec.ID, messageLoopStaticMixCapabilityStatusLabel(status), spec.Purpose))

@@ -18,6 +18,7 @@ type LoadTarget struct {
 	TrackID     string
 	PluginQuery string
 	PluginPath  string
+	Identifier  string
 	PluginName  string
 	Intent      string
 	IntentKind  string
@@ -26,6 +27,7 @@ type LoadTarget struct {
 type LoadCandidate struct {
 	Name         string
 	Path         string
+	Identifier   string
 	Format       string
 	Manufacturer string
 	Category     string
@@ -34,28 +36,28 @@ type LoadCandidate struct {
 }
 
 type ParameterDigest struct {
-	TrackID              string                 `json:"track_id"`
-	PluginID             string                 `json:"plugin_id"`
-	PluginName           string                 `json:"plugin_name,omitempty"`
-	PluginIdentity       map[string]any         `json:"plugin_identity,omitempty"`
-	TemplateRole         string                 `json:"template_role,omitempty"`
-	ProfileSource        string                 `json:"profile_source,omitempty"`
-	ProfileApplied       bool                   `json:"profile_applied"`
-	ProfileStaleParamIDs []string               `json:"profile_stale_param_ids,omitempty"`
-	GlobalProfileApplied bool                   `json:"global_profile_applied,omitempty"`
-	GlobalProfileSource  string                 `json:"global_profile_source,omitempty"`
-	GlobalProfile        map[string]any         `json:"global_profile,omitempty"`
-	PluginClass          string                 `json:"plugin_class,omitempty"`
-	PluginGroups         []map[string]any       `json:"plugin_groups,omitempty"`
-	VirtualControls      []map[string]any       `json:"virtual_controls,omitempty"`
-	CurrentParamSignatureHash string            `json:"current_param_signature_hash,omitempty"`
-	ProfileParamSignatureHash string            `json:"profile_param_signature_hash,omitempty"`
-	SafetyLimits         map[string]any         `json:"safety_limits,omitempty"`
-	PluginSkill          map[string]any         `json:"plugin_skill,omitempty"`
-	ParameterCount       int                    `json:"parameter_count"`
-	QuickControls        []QuickControlDigest   `json:"quick_controls,omitempty"`
-	RecommendedGroups    []RecommendedGroupInfo `json:"recommended_groups,omitempty"`
-	Parameters           []ParameterInfo        `json:"parameters"`
+	TrackID                   string                 `json:"track_id"`
+	PluginID                  string                 `json:"plugin_id"`
+	PluginName                string                 `json:"plugin_name,omitempty"`
+	PluginIdentity            map[string]any         `json:"plugin_identity,omitempty"`
+	TemplateRole              string                 `json:"template_role,omitempty"`
+	ProfileSource             string                 `json:"profile_source,omitempty"`
+	ProfileApplied            bool                   `json:"profile_applied"`
+	ProfileStaleParamIDs      []string               `json:"profile_stale_param_ids,omitempty"`
+	GlobalProfileApplied      bool                   `json:"global_profile_applied,omitempty"`
+	GlobalProfileSource       string                 `json:"global_profile_source,omitempty"`
+	GlobalProfile             map[string]any         `json:"global_profile,omitempty"`
+	PluginClass               string                 `json:"plugin_class,omitempty"`
+	PluginGroups              []map[string]any       `json:"plugin_groups,omitempty"`
+	VirtualControls           []map[string]any       `json:"virtual_controls,omitempty"`
+	CurrentParamSignatureHash string                 `json:"current_param_signature_hash,omitempty"`
+	ProfileParamSignatureHash string                 `json:"profile_param_signature_hash,omitempty"`
+	SafetyLimits              map[string]any         `json:"safety_limits,omitempty"`
+	PluginSkill               map[string]any         `json:"plugin_skill,omitempty"`
+	ParameterCount            int                    `json:"parameter_count"`
+	QuickControls             []QuickControlDigest   `json:"quick_controls,omitempty"`
+	RecommendedGroups         []RecommendedGroupInfo `json:"recommended_groups,omitempty"`
+	Parameters                []ParameterInfo        `json:"parameters"`
 }
 
 type ParameterInfo struct {

@@ -18,7 +18,7 @@ func RequestFromTool(tool string, args map[string]any, source agentprotocol.Sour
 	if name != "mix.observe" && name != "mix.request_observation" {
 		return agentprotocol.ObservationRequest{}, false
 	}
-	intent := firstNonEmpty(text(args["intent"]), text(args["goal_text"]), text(args["goal"]), "mix_diagnosis")
+	intent := firstNonEmpty(text(args["mom_intent"]), text(args["projection_intent"]), text(args["workflow_intent"]), text(args["intent"]), text(args["goal_text"]), text(args["goal"]), "mix_diagnosis")
 	targetRef := "project"
 	if trackID := firstNonEmpty(text(args["track_id"]), text(args["selected_track_id"])); trackID != "" {
 		targetRef = "track:" + trackID

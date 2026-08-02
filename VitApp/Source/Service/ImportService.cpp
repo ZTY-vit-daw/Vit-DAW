@@ -18,8 +18,10 @@ namespace vit
 namespace
 {
 
-constexpr int kImportAnalysisFeaturesPerClip = 1;
-constexpr int kImportAnalysisAutoSubmitIntervalMs = 100;
+constexpr int kImportAnalysisFeaturesPerClip = 2;
+// L3 reads the complete source file. Submit clips slowly enough that a large
+// stems import does not create one detached analyzer thread per track at once.
+constexpr int kImportAnalysisAutoSubmitIntervalMs = 1000;
 
 juce::String describeTransportState (te::Edit& edit)
 {
@@ -550,6 +552,8 @@ void requestImportAcousticPackages (const juce::File& sourceFile,
                                     const juce::String& trackId,
                                     const juce::String& clipId,
                                     double audioLengthSeconds,
+									const juce::String& projectId,
+									const juce::String& projectPath,
                                     const AudioFeatureService::PublishCallback& publish)
 {
     const auto sourceRevision = sourceRevisionForImport (sourceFile, audioLengthSeconds);
@@ -568,8 +572,23 @@ void requestImportAcousticPackages (const juce::File& sourceFile,
     waveformRequest.resolution.frameWidth = 1024;
     AudioFeatureService::requestBake (std::move (waveformRequest), publish);
 
-    // Timeline import stays lightweight. Heavy spectral/L3 analysis is requested
-    // explicitly by detail/mixboard views through warm_waveform_bake.
+    // The observation layer also prepares the portable source-file summaries
+    // required by project specialists such as C1. This stays outside C1's CCB
+    // assembly: imports submit the work in a throttled background queue, while
+    // C1 only reads completed Acoustic Package evidence.
+    AudioFeatureBakeRequest l3Request;
+	l3Request.projectId = projectId;
+	l3Request.projectPath = projectPath;
+    l3Request.filePath = sourceFile.getFullPathName();
+    l3Request.trackId = trackId;
+    l3Request.clipId = clipId;
+    l3Request.sourceId = sourceFile.getFullPathName();
+    l3Request.sourceRevision = sourceRevision;
+    l3Request.clipRevision = clipRevision;
+    l3Request.featureType = AudioFeatureType::L3AcousticSummary;
+    l3Request.priority = AudioFeaturePriority::BackgroundWarm;
+    l3Request.range.lengthSeconds = audioLengthSeconds;
+    AudioFeatureService::requestBake (std::move (l3Request), publish);
 }
 
 } // namespace
@@ -855,10 +874,16 @@ void ImportService::timerCallback()
     }
 
     const auto clip = job->clips[job->nextClipIndex++];
+	juce::String projectId;
+	if (auto* edit = getEdit != nullptr ? getEdit() : nullptr)
+		projectId = edit->state.getProperty ("vit_project_uuid").toString().trim();
+	const auto projectPath = getCurrentProjectPath != nullptr ? getCurrentProjectPath() : juce::String();
     requestImportAcousticPackages (juce::File (clip.filePath),
                                    clip.trackId,
                                    clip.clipId,
                                    clip.durationSeconds,
+									projectId,
+									projectPath,
                                    publishMessage);
     job->submittedClips += 1;
     job->submittedFeatureJobs += kImportAnalysisFeaturesPerClip;
@@ -929,7 +954,13 @@ ImportService::AudioImportInsertResult ImportService::insertWaveClipWithUndoAndS
     perf.mark ("ensure_context_allocated",
                "edit_length=" + juce::String (out.editLengthSeconds, 4));
 
-    requestImportAcousticPackages (sourceFile, out.trackItemId, out.clipId, audioLengthSeconds, publishMessage);
+    requestImportAcousticPackages (sourceFile,
+									out.trackItemId,
+									out.clipId,
+									audioLengthSeconds,
+									edit.state.getProperty ("vit_project_uuid").toString().trim(),
+									getCurrentProjectPath != nullptr ? getCurrentProjectPath() : juce::String(),
+									publishMessage);
     perf.mark ("request_import_waveform_envelope");
 
     if (saveProject && ! saveProject())
@@ -1033,7 +1064,13 @@ juce::String ImportService::handleAddAudioClip (const juce::DynamicObject& objec
     edit->getTransport().ensureContextAllocated (true);
     perf.mark ("ensure_context_allocated", "edit_length=" + juce::String (editLengthSeconds, 4));
 
-    requestImportAcousticPackages (sourceFile, trackID, newClip->itemID.toString(), audioLengthSeconds, publishMessage);
+    requestImportAcousticPackages (sourceFile,
+									trackID,
+									newClip->itemID.toString(),
+									audioLengthSeconds,
+									edit->state.getProperty ("vit_project_uuid").toString().trim(),
+									getCurrentProjectPath != nullptr ? getCurrentProjectPath() : juce::String(),
+									publishMessage);
     perf.mark ("request_import_waveform_envelope");
 
     if (saveProject && ! saveProject())
@@ -1500,7 +1537,13 @@ juce::String ImportService::handleImportFolderAsStems (const juce::DynamicObject
 
         if (startBackgroundAnalysis)
         {
-            requestImportAcousticPackages (candidate.insertFile, trackId, clipId, candidate.durationSeconds, publishMessage);
+            requestImportAcousticPackages (candidate.insertFile,
+										trackId,
+										clipId,
+										candidate.durationSeconds,
+										edit->state.getProperty ("vit_project_uuid").toString().trim(),
+										getCurrentProjectPath != nullptr ? getCurrentProjectPath() : juce::String(),
+										publishMessage);
             analysisJobsCreated += kImportAnalysisFeaturesPerClip;
         }
         else
@@ -1798,6 +1841,8 @@ juce::String ImportService::handleWarmWaveformBake (const juce::DynamicObject& o
         sourceRevision = sourceRevisionForImport (sourceFile, bakeLengthSeconds > 0.0 ? bakeLengthSeconds : 0.0);
 
     AudioFeatureBakeRequest featureRequest;
+	featureRequest.projectId = edit->state.getProperty ("vit_project_uuid").toString().trim();
+	featureRequest.projectPath = getCurrentProjectPath != nullptr ? getCurrentProjectPath() : juce::String();
     featureRequest.filePath = sourceFile.getFullPathName();
     featureRequest.trackId = trackId;
     featureRequest.clipId = clipId;

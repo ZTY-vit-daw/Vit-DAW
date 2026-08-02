@@ -80,26 +80,27 @@ func TestBuildStatusPromotesL2RenderProbeIntoPostFXMeter(t *testing.T) {
 	identity := Identity{ProjectID: "current", TrackID: "track_1", ClipID: "clip_1", SourceRevision: "rev_1", ClipRevision: "cliprev_1", RenderRevision: "render_1", DurationSec: 10}
 	status := BuildStatus(identity, map[string]any{
 		"l2_render_probe": map[string]any{
-			"status":            "ready",
-			"feature_type":      "l2_render_probe",
-			"layer":             "l2_realtime",
-			"source":            "l2_render_probe",
-			"track_id":          "track_1",
-			"clip_id":           "clip_1",
-			"source_revision":   "rev_1",
-			"clip_revision":     "cliprev_1",
-			"render_revision":   "render_1",
-			"tap_point":         "track_post_fader",
-			"render_mode":       "offline_probe",
-			"duration_seconds":  10.0,
-			"sample_rate":       48000.0,
-			"channel_count":     2,
-			"peak_abs":          0.5,
-			"rms":               0.35,
-			"quality_evidence":  map[string]any{"nonzero": true, "sum_abs": 10.0, "max_abs": 0.5, "nan_inf_count": 0, "coverage": 1.0, "latency_compensated": true, "tail_captured": true, "deterministic": true},
-			"bands":             map[string]any{"bass": map[string]any{"unit_energy": 0.9}},
-			"correlation_state": "highly_correlated",
-			"evidence_ref":      "dad.l2_render_probe:render_1",
+			"status":                  "ready",
+			"feature_type":            "l2_render_probe",
+			"layer":                   "l2_realtime",
+			"source":                  "l2_render_probe",
+			"track_id":                "track_1",
+			"clip_id":                 "clip_1",
+			"source_revision":         "rev_1",
+			"clip_revision":           "cliprev_1",
+			"render_revision":         "render_1",
+			"track_state_fingerprint": "trackstate_1234",
+			"tap_point":               "track_post_fader",
+			"render_mode":             "offline_probe",
+			"duration_seconds":        10.0,
+			"sample_rate":             48000.0,
+			"channel_count":           2,
+			"peak_abs":                0.5,
+			"rms":                     0.35,
+			"quality_evidence":        map[string]any{"nonzero": true, "sum_abs": 10.0, "max_abs": 0.5, "nan_inf_count": 0, "coverage": 1.0, "latency_compensated": true, "tail_captured": true, "deterministic": true},
+			"bands":                   map[string]any{"bass": map[string]any{"unit_energy": 0.9}},
+			"correlation_state":       "highly_correlated",
+			"evidence_ref":            "dad.l2_render_probe:render_1",
 		},
 	}, "2026-06-22T00:00:00Z", "test")
 
@@ -111,7 +112,7 @@ func TestBuildStatusPromotesL2RenderProbeIntoPostFXMeter(t *testing.T) {
 	if postFX.Status != StatusReady || postFX.Source != "l2_render_probe" {
 		t.Fatalf("post_fx_meter = %+v", postFX)
 	}
-	if postFX.Ref["tap_point"] != "track_post_fader" || postFX.Ref["render_revision"] != "render_1" {
+	if postFX.Ref["tap_point"] != "track_post_fader" || postFX.Ref["render_revision"] != "render_1" || postFX.Ref["track_state_fingerprint"] != "trackstate_1234" {
 		t.Fatalf("post_fx_meter ref missing tap/render identity: %#v", postFX.Ref)
 	}
 }
@@ -209,6 +210,52 @@ func TestBuildStatusKeepsReadyL3RowsAcrossRenderRevisionChange(t *testing.T) {
 		if feature.Reason == "render_revision_mismatch" || len(feature.Ref) == 0 {
 			t.Fatalf("%s lost ready L3 evidence: %+v", name, feature)
 		}
+	}
+}
+
+func TestBuildStatusReusesExactSourceFileL3AcrossProjectIdentity(t *testing.T) {
+	identity := Identity{ProjectID: "vitproj_current", TrackID: "track_1", ClipID: "clip_1", SourcePath: `D:\audio\one.wav`, SourceRevision: "source-rev-1", ClipRevision: "clip-rev-1", RenderRevision: "render-new", DurationSec: 10}
+	status := BuildStatus(identity, map[string]any{
+		"band_energy_summary": map[string]any{
+			"status": "ready", "feature_type": "band_energy_summary", "layer": "l3_deep", "source": "kernel_l3_offline_analyzer",
+			"project_id": "current", "track_id": "track_1", "clip_id": "clip_1", "source_path": `D:\audio\one.wav`,
+			"source_revision": "source-rev-1", "clip_revision": "clip-rev-1", "render_revision": "render-old",
+			"quality_status": "ready", "bands": map[string]any{"bass": map[string]any{"unit_energy": .35}},
+		},
+		"l2_render_probe": map[string]any{
+			"status": "ready", "feature_type": "l2_render_probe", "layer": "l2_realtime", "source": "l2_render_probe",
+			"project_id": "current", "track_id": "track_1", "clip_id": "clip_1", "source_path": `D:\audio\one.wav`,
+			"source_revision": "source-rev-1", "clip_revision": "clip-rev-1", "render_revision": "render-old", "bands": map[string]any{"bass": map[string]any{"unit_energy": .9}},
+		},
+	}, "2026-07-30T00:00:00Z", "test")
+	if got := status.PackageLayers["l3_deep"].Features["band_energy_summary"]; got.Status != StatusReady || len(got.Ref) == 0 {
+		t.Fatalf("exact source-file L3 should survive project relabel: %+v", got)
+	}
+	if got := status.PackageLayers["l2_realtime"].Features["render_probe"]; got.Status != StatusStale || len(got.Ref) != 0 {
+		t.Fatalf("render-dependent L2 must not use project/source-file exception: %+v", got)
+	}
+}
+
+func TestStoreReplacesRenderRevisionWithoutStalingSourceFileL3(t *testing.T) {
+	store := NewStore(filepath.Join(t.TempDir(), "acoustic_package_status.json"))
+	old := BuildStatus(Identity{ProjectID: "p1", TrackID: "t1", ClipID: "c1", SourceRevision: "source-1", ClipRevision: "clip-1", RenderRevision: "render-old"}, map[string]any{
+		"band_energy_summary": map[string]any{"status": "ready", "feature_type": "band_energy_summary", "source": "kernel_l3_offline_analyzer", "project_id": "p1", "track_id": "t1", "clip_id": "c1", "source_revision": "source-1", "clip_revision": "clip-1", "bands": map[string]any{"bass": map[string]any{"unit_energy": .3}}},
+	}, "2026-07-30T00:00:00Z", "test")
+	if _, err := store.Upsert(old); err != nil {
+		t.Fatal(err)
+	}
+	derived := BuildStatus(Identity{ProjectID: "p1", TrackID: "t1", ClipID: "c1", SourceRevision: "source-1", ClipRevision: "clip-1", RenderRevision: "render-new"}, nil, "2026-07-30T00:01:00Z", "test")
+	merged := MergeStatus(old, derived)
+	written, err := store.Upsert(merged)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(written.Packages) != 1 {
+		t.Fatalf("render revision created duplicate package identities: %+v", written.Packages)
+	}
+	feature := written.Packages[0].PackageLayers["l3_deep"].Features["band_energy_summary"]
+	if feature.Status != StatusReady || len(feature.Ref) == 0 || written.Packages[0].RenderRevision != "render-new" {
+		t.Fatalf("source-file L3 did not survive package render update: package=%+v feature=%+v", written.Packages[0], feature)
 	}
 }
 
@@ -432,6 +479,24 @@ func TestComputeSourceRevisionIgnoresSessionAndPlacement(t *testing.T) {
 	}
 }
 
+func TestSourceRevisionMatchesIdentityUsesDescriptorAndCurrentFileMetadata(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "source.wav")
+	if err := os.WriteFile(path, []byte("exact material"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	info, err := os.Stat(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	descriptor := fmt.Sprintf("%s|size=%d|mtime=%d|length=10.0000", path, info.Size(), info.ModTime().UTC().UnixMilli())
+	if !SourceRevisionMatchesIdentity(descriptor, Identity{SourcePath: path}) {
+		t.Fatal("exact descriptor/file identity was rejected")
+	}
+	if SourceRevisionMatchesIdentity(descriptor, Identity{SourcePath: filepath.Join(t.TempDir(), "other.wav")}) {
+		t.Fatal("different current path was accepted")
+	}
+}
+
 func TestStoreUpsertKeepsStaleRowsSeparateFromCurrentRevision(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "acoustic_package_status.json")
 	store := NewStore(path)
@@ -599,6 +664,45 @@ func TestIdentityFromMapsKeepsExplicitSourceIdentityTogether(t *testing.T) {
 	}
 	if identity.DurationSec != 219 {
 		t.Fatalf("duration = %v, want 219", identity.DurationSec)
+	}
+}
+
+func TestNormalizeFeatureStatusDoesNotReuseGenericCurrentRequestAcrossProjects(t *testing.T) {
+	identity := Identity{
+		ProjectID:  "vitproj_goal5_live",
+		TrackID:    "1032",
+		ClipID:     "1036",
+		SourcePath: "C:/fixtures/g5_02/stems/Vocals.wav",
+	}
+	legacy := map[string]any{
+		"status":     "requested",
+		"project_id": "current",
+		"request_id": "old_project_request",
+		"track_id":   "1032",
+		"clip_id":    "1036",
+	}
+	if got := normalizeFeatureStatus(legacy, identity); got != StatusStale {
+		t.Fatalf("generic prior-project request status=%q, want stale", got)
+	}
+	legacyWithoutProject := map[string]any{
+		"status":     "requested",
+		"request_id": "old_unstamped_request",
+		"track_id":   "1032",
+		"clip_id":    "1036",
+	}
+	if got := normalizeFeatureStatus(legacyWithoutProject, identity); got != StatusStale {
+		t.Fatalf("unstamped prior-project request status=%q, want stale", got)
+	}
+
+	current := map[string]any{
+		"status":     "requested",
+		"project_id": "vitproj_goal5_live",
+		"request_id": "current_project_request",
+		"track_id":   "1032",
+		"clip_id":    "1036",
+	}
+	if got := normalizeFeatureStatus(current, identity); got != StatusBuilding {
+		t.Fatalf("specific current-project request status=%q, want building", got)
 	}
 }
 

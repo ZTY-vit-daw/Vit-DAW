@@ -10,11 +10,13 @@ const (
 	CapabilityID        = "static_mix.low_end_relation.v0"
 	ModelSchemaVersion  = "low_end_relation.model.v0"
 	ResultSchemaVersion = "low_end_relation.result.v0"
+	TreatmentPlanSchema = "low_end_relation.treatment_plan.v1"
 )
 
 // Input feeds the B4 model from CCB-assembled evidence.
-// AudioAnalysisStatus and MixStyle are intentionally absent:
-// B4 v0 operates on MOM band occupancy alone and produces analysis only.
+// AudioAnalysisStatus and MixStyle are intentionally absent: the deterministic
+// B4 diagnosis operates on MOM/TOM evidence. A later chat orchestration phase
+// may turn that diagnosis into a separately governed generic-EQ treatment.
 type Input struct {
 	UserIntent      string
 	ProjectState    map[string]any
@@ -30,27 +32,60 @@ type Input struct {
 // LowEndTrack represents one track identified as a low-end contributor.
 // Tracks are included when they appear in MOM sub or bass band occupancy.
 type LowEndTrack struct {
-	TrackID          string   `json:"track_id"`
-	TrackName        string   `json:"track_name,omitempty"`
-	Role             string   `json:"role,omitempty"`
-	RoleSource       string   `json:"role_source,omitempty"`
-	RoleConfidence   float64  `json:"role_confidence,omitempty"`
-	SubUnitEnergy    *float64 `json:"sub_unit_energy,omitempty"`
-	SubEnergyDB      *float64 `json:"sub_energy_db,omitempty"`
-	SubRank          int      `json:"sub_rank,omitempty"`
-	BassUnitEnergy   *float64 `json:"bass_unit_energy,omitempty"`
-	BassEnergyDB     *float64 `json:"bass_energy_db,omitempty"`
-	BassRank         int      `json:"bass_rank,omitempty"`
-	FaderDB          *float64 `json:"fader_db,omitempty"`
-	ConflictBands    []string `json:"conflict_bands,omitempty"`
+	TrackID        string   `json:"track_id"`
+	TrackName      string   `json:"track_name,omitempty"`
+	Role           string   `json:"role,omitempty"`
+	RoleSource     string   `json:"role_source,omitempty"`
+	RoleConfidence float64  `json:"role_confidence,omitempty"`
+	SubUnitEnergy  *float64 `json:"sub_unit_energy,omitempty"`
+	SubEnergyDB    *float64 `json:"sub_energy_db,omitempty"`
+	SubRank        int      `json:"sub_rank,omitempty"`
+	BassUnitEnergy *float64 `json:"bass_unit_energy,omitempty"`
+	BassEnergyDB   *float64 `json:"bass_energy_db,omitempty"`
+	BassRank       int      `json:"bass_rank,omitempty"`
+	FaderDB        *float64 `json:"fader_db,omitempty"`
+	ConflictBands  []string `json:"conflict_bands,omitempty"`
 }
 
 // LowEndConflict is a masking-conflict candidate from MOM band_conflict_candidates
 // narrowed to the sub and bass bands.
 type LowEndConflict struct {
+	ID         string           `json:"conflict_id"`
 	Band       string           `json:"band"`
 	Tracks     []map[string]any `json:"tracks,omitempty"`
 	Confidence string           `json:"confidence,omitempty"`
+	Reason     string           `json:"reason,omitempty"`
+}
+
+// TreatmentTarget is one leaf in a project-wide B4 treatment plan. It binds
+// the specialist relationship decision to an exact track, but deliberately
+// contains no plug-in identity, topology, or EQ parameter. Those remain the
+// responsibility of the reusable generic-EQ flow after instance resolution.
+type TreatmentTarget struct {
+	TargetID         string   `json:"target_id"`
+	Order            int      `json:"order"`
+	TrackID          string   `json:"track_id"`
+	TrackName        string   `json:"track_name,omitempty"`
+	RelationshipRefs []string `json:"relationship_refs"`
+	ListeningGoal    string   `json:"listening_goal"`
+	Constraints      []string `json:"constraints,omitempty"`
+	EvidenceRefs     []string `json:"evidence_refs,omitempty"`
+}
+
+// TreatmentPlan is the bounded project-level handoff from B4 diagnosis to
+// generic EQ. The observation scope remains the whole project while Targets
+// enumerate every exact leaf that the project-level plan requires.
+type TreatmentPlan struct {
+	SchemaVersion     string            `json:"schema_version"`
+	PlanID            string            `json:"plan_id"`
+	DiagnosisID       string            `json:"diagnosis_id"`
+	ObservationID     string            `json:"observation_id"`
+	ObservationScope  string            `json:"observation_scope"`
+	Summary           string            `json:"summary"`
+	Targets           []TreatmentTarget `json:"targets"`
+	GlobalConstraints []string          `json:"global_constraints,omitempty"`
+	EvidenceRefs      []string          `json:"evidence_refs,omitempty"`
+	Limitations       []string          `json:"limitations,omitempty"`
 }
 
 // LowEndSummary is a compact project-level overview of the low-end landscape.
@@ -65,21 +100,21 @@ type LowEndSummary struct {
 
 // Coverage records evidence availability for B4 readiness evaluation.
 type Coverage struct {
-	AnalyzedTrackCount       int     `json:"analyzed_track_count"`
-	BandEvidenceKnownCount   int     `json:"band_evidence_known_count"`
-	SubBandLeaderCount       int     `json:"sub_band_leader_count"`
-	BassBandLeaderCount      int     `json:"bass_band_leader_count"`
-	ConflictCandidateCount   int     `json:"conflict_candidate_count"`
-	LowEndTendencyAvailable  bool    `json:"low_end_tendency_available"`
-	RoleKnownCount           int     `json:"role_known_count"`
-	BandEvidenceCoverage     float64 `json:"band_evidence_coverage"`
+	AnalyzedTrackCount      int     `json:"analyzed_track_count"`
+	BandEvidenceKnownCount  int     `json:"band_evidence_known_count"`
+	SubBandLeaderCount      int     `json:"sub_band_leader_count"`
+	BassBandLeaderCount     int     `json:"bass_band_leader_count"`
+	ConflictCandidateCount  int     `json:"conflict_candidate_count"`
+	LowEndTendencyAvailable bool    `json:"low_end_tendency_available"`
+	RoleKnownCount          int     `json:"role_known_count"`
+	BandEvidenceCoverage    float64 `json:"band_evidence_coverage"`
 }
 
 // Observation is one structured low-end finding surfaced to the LLM layer.
 type Observation struct {
-	ID        string         `json:"id"`
-	Kind      string         `json:"kind"`
-	Summary   string         `json:"summary"`
+	ID         string         `json:"id"`
+	Kind       string         `json:"kind"`
+	Summary    string         `json:"summary"`
 	TrackRefs  []string       `json:"track_refs,omitempty"`
 	Risk       string         `json:"risk,omitempty"`
 	Confidence string         `json:"confidence,omitempty"`

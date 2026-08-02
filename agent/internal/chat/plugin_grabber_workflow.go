@@ -227,7 +227,7 @@ func copyWorkflowField(dst map[string]any, src map[string]any, target string, ke
 	plugingrabber.CopyWorkflowField(dst, src, target, keys...)
 }
 func (s *Server) runPluginGrabberLoadWorkflow(ctx context.Context, conversationID, userText string, requestContext map[string]any, workflowCmd map[string]any) ChatResponse {
-	if !boolValue(requestContext["mix_treatment_preparation"]) && legacyChatBroadMixRequestNeedsObservation(userText) && !legacyChatExplicitPluginOrRawRequest(userText) {
+	if !boolValue(requestContext["mix_treatment_preparation"]) && !boolValue(requestContext["semantic_plugin_recommendation_selection"]) && legacyChatBroadMixRequestNeedsObservation(userText) && !legacyChatExplicitPluginOrRawRequest(userText) {
 		reply := "我不会因为宽泛的混音目标直接加载效果器。先做一次 mix.request_observation，基于当前轨道/音频的实际观察给出建议；你确认一个具体小动作后，我再执行可撤回的单步调整。"
 		return ChatResponse{
 			ConversationID: conversationID,
@@ -244,7 +244,7 @@ func (s *Server) runPluginGrabberLoadWorkflow(ctx context.Context, conversationI
 		return ChatResponse{ConversationID: conversationID, Reply: friendlyExecutionError(err), Error: err.Error()}
 	}
 
-	candidate := pluginLoadCandidate{Name: target.PluginName, Path: target.PluginPath}
+	candidate := pluginLoadCandidate{Name: target.PluginName, Path: target.PluginPath, Identifier: target.Identifier}
 	if target.PluginPath == "" {
 		candidates, err := s.searchPluginLoadCandidates(ctx, target.PluginQuery, strings.TrimSpace(target.Intent+" "+target.IntentKind))
 		if err != nil {
@@ -256,6 +256,7 @@ func (s *Server) runPluginGrabberLoadWorkflow(ctx context.Context, conversationI
 		}
 		candidate = candidates[0]
 		target.PluginPath = candidate.Path
+		target.Identifier = candidate.Identifier
 		target.PluginName = candidate.Name
 	}
 	if strings.TrimSpace(target.PluginPath) == "" {
@@ -281,6 +282,9 @@ func (s *Server) runPluginGrabberLoadWorkflow(ctx context.Context, conversationI
 		"y":           260.0,
 		"zone_id":     zone,
 	}
+	if strings.TrimSpace(target.Identifier) != "" {
+		loadCommand["plugin_identifier"] = target.Identifier
+	}
 	decisions := policy.Analyze([]map[string]any{loadCommand})
 	preview, err := s.confirmationPreview(ctx, decisions, requestContext)
 	if err != nil {
@@ -294,13 +298,14 @@ func (s *Server) runPluginGrabberLoadWorkflow(ctx context.Context, conversationI
 		Preview:   preview,
 		Workflow:  pluginGrabberLoadCommand,
 		WorkflowData: map[string]any{
-			"track_id":     target.TrackID,
-			"plugin_query": target.PluginQuery,
-			"plugin_name":  target.PluginName,
-			"plugin_path":  target.PluginPath,
-			"plugin_kind":  pluginKind,
-			"user_message": userText,
-			"intent":       target.Intent,
+			"track_id":          target.TrackID,
+			"plugin_query":      target.PluginQuery,
+			"plugin_name":       target.PluginName,
+			"plugin_path":       target.PluginPath,
+			"plugin_identifier": target.Identifier,
+			"plugin_kind":       pluginKind,
+			"user_message":      userText,
+			"intent":            target.Intent,
 		},
 	}
 	if boolValue(requestContext["mix_treatment_preparation"]) {
@@ -308,6 +313,15 @@ func (s *Server) runPluginGrabberLoadWorkflow(ctx context.Context, conversationI
 		if preparationPlan := cloneContext(mapValue(requestContext["mix_treatment_preparation_plan"])); len(preparationPlan) > 0 {
 			plan.WorkflowData["mix_treatment_preparation_plan"] = preparationPlan
 		}
+	}
+	if boolValue(requestContext["semantic_eq_post_load_handoff"]) {
+		plan.WorkflowData["semantic_eq_post_load_handoff"] = true
+		plan.WorkflowData["semantic_eq_post_load_goal"] = firstNonEmpty(
+			firstStringFromMap(requestContext, "semantic_eq_post_load_goal"),
+			strings.TrimSpace(userText),
+		)
+		plan.WorkflowData["semantic_eq_post_load_request_context"] = cloneContext(requestContext)
+		plan.WorkflowData["semantic_eq_post_load_observation_context"] = cloneContext(firstMapFromAny(requestContext["semantic_eq_post_load_observation_context"]))
 	}
 	s.mu.Lock()
 	s.pending[plan.ID] = plan
@@ -336,6 +350,7 @@ func (s *Server) resolvePluginLoadTarget(ctx context.Context, workflowCmd map[st
 		TrackID:     firstNonEmptyText(args, "track_id", "selected_track_id", "selected_plugin_track_id"),
 		PluginQuery: firstNonEmptyText(args, "plugin_query", "query", "plugin_name", "plugin", "name"),
 		PluginPath:  firstNonEmptyText(args, "plugin_path", "path", "file_path"),
+		Identifier:  firstNonEmptyText(args, "plugin_identifier", "identifier", "file_or_identifier"),
 		PluginName:  firstNonEmptyText(args, "plugin_name", "name"),
 		Intent:      firstNonEmptyText(args, "intent", "user_intent"),
 		IntentKind:  firstNonEmptyText(args, "plugin_intent_kind", "intent_kind", "plugin_type", "type"),
@@ -439,6 +454,7 @@ func semanticIndexPluginLoadCandidates(query, intent string) ([]pluginLoadCandid
 		out = append(out, pluginLoadCandidate{
 			Name:         firstNonEmptyText(map[string]any{"name": entry.Name, "descriptive_name": entry.DescriptiveName}, "name", "descriptive_name"),
 			Path:         entry.PluginPath,
+			Identifier:   entry.Identifier,
 			Format:       entry.Format,
 			Manufacturer: entry.Manufacturer,
 			Category:     entry.Category,
@@ -495,6 +511,7 @@ func pluginLoadCandidatesFromRows(rows []map[string]any) []pluginLoadCandidate {
 		candidate := pluginLoadCandidate{
 			Name:         firstNonEmptyText(row, "name", "descriptive_name"),
 			Path:         firstNonEmptyText(row, "plugin_path", "path", "file_or_identifier", "file_path"),
+			Identifier:   firstNonEmptyText(row, "identifier", "plugin_identifier"),
 			Format:       firstNonEmptyText(row, "format"),
 			Manufacturer: firstNonEmptyText(row, "manufacturer"),
 			Category:     firstNonEmptyText(row, "category"),
@@ -541,7 +558,7 @@ func mergePluginLoadCandidates(primary []pluginLoadCandidate, secondary []plugin
 }
 
 func pluginLoadCandidateKey(candidate pluginLoadCandidate) string {
-	for _, value := range []string{candidate.Path, candidate.Name} {
+	for _, value := range []string{candidate.Identifier, candidate.Path, candidate.Name} {
 		value = strings.ToLower(strings.TrimSpace(value))
 		if value != "" {
 			return value

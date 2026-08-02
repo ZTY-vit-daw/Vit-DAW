@@ -197,8 +197,10 @@ func Classify(row map[string]any, now time.Time) Entry {
 
 func Search(idx Index, opts SearchOptions) []Entry {
 	limit := opts.Limit
-	if limit <= 0 || limit > 50 {
+	if limit <= 0 {
 		limit = 12
+	} else if limit > 500 {
+		limit = 500
 	}
 	query := normalize(opts.Query)
 	wantTypes := queryTypes(query)

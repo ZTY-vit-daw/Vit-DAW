@@ -8,17 +8,21 @@ import (
 	"math"
 	"os"
 	"path/filepath"
+	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
+	"vit-daw-agent/internal/acousticpackage"
 	"vit-daw-agent/internal/fxm"
 	"vit-daw-agent/internal/mom"
+	"vit-daw-agent/internal/projectstore"
 	"vit-daw-agent/internal/tim"
 )
 
 const (
-	ObservationSchemaVersion   = "mix_observation.v1"
+	ObservationSchemaVersion   = "mix_observation.v2"
 	BoardSchemaVersion         = "mixboard.v1"
 	ContextPackSchemaVersion   = "mixboard_context_pack.v1"
 	ObservationCatalogVersion  = "mix_observation_catalog.v1"
@@ -72,6 +76,7 @@ type TimeRuler struct {
 
 type ObservationPacket struct {
 	SchemaVersion         string            `json:"schema_version"`
+	ProjectUUID           string            `json:"project_uuid,omitempty"`
 	ObservationID         string            `json:"observation_id"`
 	MixSessionID          string            `json:"mix_session_id"`
 	Round                 int               `json:"round"`
@@ -96,6 +101,7 @@ type ObservationPacket struct {
 	SourceCapabilities    map[string]string `json:"source_capabilities"`
 	AcousticPackageStatus map[string]any    `json:"acoustic_package_status,omitempty"`
 	Notes                 []string          `json:"notes,omitempty"`
+	EvidenceRefs          []string          `json:"evidence_refs,omitempty"`
 	CreatedAt             string            `json:"created_at"`
 }
 
@@ -154,6 +160,720 @@ type Store struct {
 	Now  func() time.Time
 }
 
+// FrequencyContext is the compact, non-persisted observation surface used by
+// project specialists that only need an existing MOM projection. It keeps
+// acoustic materialization and MixBoard persistence out of the CCB read path.
+type FrequencyContext struct {
+	ObservationID string         `json:"observation_id"`
+	Status        string         `json:"status"`
+	MOMProjection map[string]any `json:"mom_projection"`
+	Digest        map[string]any `json:"digest,omitempty"`
+	Catalog       Catalog        `json:"catalog,omitempty"`
+	Assembly      map[string]any `json:"assembly,omitempty"`
+}
+
+// AssembleFrequencyContext projects the current feature snapshot and project
+// state without requesting new analysis and without writing an Observation,
+// MixBoard, Context Pack, action, or journal payload.
+func AssembleFrequencyContext(projectState map[string]any, mixSessionID, goalText, featureSnapshotPath string) FrequencyContext {
+	started := time.Now()
+	args := map[string]any{
+		"scope":            "full_project",
+		"project_context":  true,
+		"observation_only": true,
+		"disclosure":       "digest_catalog",
+		"mom_intent":       mom.IntentProjectFrequencyObservation,
+	}
+	if strings.TrimSpace(featureSnapshotPath) != "" {
+		args["feature_snapshot_path"] = filepath.Clean(featureSnapshotPath)
+	}
+	featureSnapshot := loadFeatureSnapshot(args)
+	recovery := recoverFrequencySnapshotFromPriorObservations(&featureSnapshot, projectState, mixSessionID)
+	assembly := hydrateFrequencySnapshotFromAcousticPackages(&featureSnapshot, projectState, args)
+	// C1 assembles an existing-evidence-only snapshot. Normalize the hydrated
+	// rows before the generic observation projection so a stale primary row from
+	// the shared feature snapshot cannot hide current acoustic-package rows.
+	// buildObservation repeats this normalization defensively; doing it here
+	// also makes the assembly contract observable before MOM projection.
+	normalizeProjectFeatureMaterialFreshness(&featureSnapshot, projectState)
+	promoteBestL3FeatureRows(&featureSnapshot)
+	promoteBestRealtimeFeatureRows(&featureSnapshot)
+	assembly["normalized_l2_row_count"] = usableFrequencyL2TrackCount(featureSnapshot.L2RenderProbes)
+	for key, value := range recovery {
+		assembly["prior_observation_"+key] = value
+	}
+	now := time.Now().UTC().Format(time.RFC3339Nano)
+	observation := buildObservation(Request{
+		MixSessionID: strings.TrimSpace(mixSessionID),
+		Round:        1,
+		GoalText:     strings.TrimSpace(goalText),
+		TargetRef:    TargetRef{Kind: "project", ID: "current", Label: "Current project", Source: "c1_ccb_existing_evidence", Confidence: "high"},
+		ListenScope:  ListenScope{Time: ListenTimeScope{Mode: "full_song", Source: "scope_full_project"}, Source: ListenSourceScope{Mode: "full_project"}},
+		ProjectState: projectState,
+		Args:         args,
+	}, now, featureSnapshot)
+	projection := map[string]any{}
+	if observation.MOMProjection != nil {
+		projection = mom.ContextProjection(*observation.MOMProjection)
+	}
+	frequency := mapValue(projection["frequency_relationship"])
+	coverage := mapValue(frequency["coverage"])
+	assembly["projected_profile_count"] = len(mapRowsAny(frequency["track_profiles"]))
+	assembly["projected_eligible_track_count"] = int(numberFromMap(coverage, "eligible_track_count"))
+	assembly["projected_missing_track_count"] = int(numberFromMap(coverage, "missing_track_count"))
+	assembly["projected_tap_point"] = cleanAnyString(frequency["tap_point"])
+	if int(numberFromMap(assembly, "matched_l2_track_count")) > 0 && int(numberFromMap(coverage, "eligible_track_count")) == 0 {
+		assembly["status"] = "projection_mismatch"
+		assembly["reason"] = "matched_acoustic_l2_was_not_projected_to_mom"
+	}
+	return FrequencyContext{
+		ObservationID: observation.ObservationID,
+		Status:        observation.Status,
+		MOMProjection: projection,
+		Digest:        observation.Digest,
+		Catalog:       observation.Catalog,
+		Assembly:      mergeFrequencyAssemblyTiming(assembly, time.Since(started)),
+	}
+}
+
+func usableFrequencyL2TrackCount(rows []map[string]any) int {
+	tracks := map[string]bool{}
+	for _, row := range rows {
+		status := featureStatus(row)
+		if status != "ready" && status != "partial" {
+			continue
+		}
+		if len(mapValue(row["bands"])) == 0 || !strings.EqualFold(cleanAnyString(row["tap_point"]), "track_post_fader") {
+			continue
+		}
+		if trackID := cleanAnyString(row["track_id"]); trackID != "" {
+			tracks[trackID] = true
+		}
+	}
+	return len(tracks)
+}
+
+var frequencyAcousticSnapshotCache struct {
+	sync.Mutex
+	path    string
+	size    int64
+	modTime time.Time
+	snap    acousticpackage.Snapshot
+}
+
+var frequencyObservationRecoveryCache struct {
+	sync.Mutex
+	key       string
+	signature string
+	rows      featureSnapshot
+}
+
+func recoverFrequencySnapshotFromPriorObservations(snap *featureSnapshot, projectState map[string]any, mixSessionID string) map[string]any {
+	result := map[string]any{"status": "missing", "file_count": 0, "matched_track_count": 0}
+	if snap == nil || !strings.HasPrefix(strings.TrimSpace(mixSessionID), "cap_v1_c1_") {
+		return result
+	}
+	family := c1SessionFamily(mixSessionID)
+	if family == "" {
+		return result
+	}
+	paths, signature := c1ObservationFamilyFiles(DefaultRoot(), family)
+	result["file_count"] = len(paths)
+	if len(paths) == 0 {
+		return result
+	}
+	frequencyObservationRecoveryCache.Lock()
+	var recovered featureSnapshot
+	if frequencyObservationRecoveryCache.key == family && frequencyObservationRecoveryCache.signature == signature {
+		recovered = frequencyObservationRecoveryCache.rows
+	} else {
+		recovered = readFrequencyRowsFromObservations(paths)
+		frequencyObservationRecoveryCache.key = family
+		frequencyObservationRecoveryCache.signature = signature
+		frequencyObservationRecoveryCache.rows = recovered
+	}
+	frequencyObservationRecoveryCache.Unlock()
+	snap.BandEnergySummaries = append(snap.BandEnergySummaries, recovered.BandEnergySummaries...)
+	snap.StereoRelationSummaries = append(snap.StereoRelationSummaries, recovered.StereoRelationSummaries...)
+	snap.LoudnessSummaries = append(snap.LoudnessSummaries, recovered.LoudnessSummaries...)
+	matched := map[string]bool{}
+	for _, row := range recovered.BandEnergySummaries {
+		if trackWaveformRowMatchesProjectState(row, projectState) {
+			matched[cleanAnyString(row["track_id"])] = true
+		}
+	}
+	result["matched_track_count"] = len(matched)
+	if len(matched) > 0 {
+		result["status"] = "ready"
+	}
+	return result
+}
+
+func c1SessionFamily(sessionID string) string {
+	sessionID = strings.TrimSpace(sessionID)
+	index := strings.LastIndex(sessionID, "_")
+	if index <= 0 || index == len(sessionID)-1 {
+		return sessionID
+	}
+	if _, err := strconv.Atoi(sessionID[index+1:]); err == nil {
+		return sessionID[:index]
+	}
+	return sessionID
+}
+
+func c1ObservationFamilyFiles(root, family string) ([]string, string) {
+	root, family = strings.TrimSpace(root), strings.TrimSpace(family)
+	if root == "" || family == "" {
+		return nil, ""
+	}
+	dirs, _ := filepath.Glob(filepath.Join(root, safePathName(family)+"_*"))
+	paths := []string{}
+	var totalSize int64
+	var newest int64
+	for _, dir := range dirs {
+		matches, _ := filepath.Glob(filepath.Join(dir, "observations", "*.json"))
+		if data, err := os.ReadFile(filepath.Join(dir, "current.json")); err == nil {
+			var board Board
+			if json.Unmarshal(data, &board) == nil && strings.TrimSpace(board.LatestObservationPath) != "" {
+				matches = append(matches, filepath.Clean(board.LatestObservationPath))
+			}
+		}
+		for _, path := range matches {
+			info, err := os.Stat(path)
+			if err != nil || info.Size() <= 0 || info.Size() > 32*1024*1024 {
+				continue
+			}
+			paths = append(paths, path)
+			totalSize += info.Size()
+			if modified := info.ModTime().UnixNano(); modified > newest {
+				newest = modified
+			}
+		}
+	}
+	paths = uniquePaths(paths)
+	sort.Strings(paths)
+	return paths, fmt.Sprintf("%d:%d:%d", len(paths), totalSize, newest)
+}
+
+func uniquePaths(paths []string) []string {
+	seen := map[string]bool{}
+	out := make([]string, 0, len(paths))
+	for _, path := range paths {
+		path = filepath.Clean(strings.TrimSpace(path))
+		key := strings.ToLower(path)
+		if path == "." || seen[key] {
+			continue
+		}
+		seen[key] = true
+		out = append(out, path)
+	}
+	return out
+}
+
+func readFrequencyRowsFromObservations(paths []string) featureSnapshot {
+	out := featureSnapshot{}
+	bandByKey := map[string]map[string]any{}
+	stereoByKey := map[string]map[string]any{}
+	loudnessByKey := map[string]map[string]any{}
+	for _, path := range paths {
+		observation, err := readObservationFile(path)
+		if err != nil {
+			continue
+		}
+		snapshot := mapValue(observation.GlobalSummary["feature_snapshot"])
+		collectRecoveredFrequencyRows(bandByKey, snapshot["band_energy_summary"], snapshot["band_energy_summaries"])
+		collectRecoveredFrequencyRows(stereoByKey, snapshot["stereo_relation_summary"], snapshot["stereo_relation_summaries"])
+		collectRecoveredFrequencyRows(loudnessByKey, snapshot["loudness_summary"], snapshot["loudness_summaries"])
+	}
+	out.BandEnergySummaries = sortedRecoveredFrequencyRows(bandByKey)
+	out.StereoRelationSummaries = sortedRecoveredFrequencyRows(stereoByKey)
+	out.LoudnessSummaries = sortedRecoveredFrequencyRows(loudnessByKey)
+	return out
+}
+
+func collectRecoveredFrequencyRows(out map[string]map[string]any, values ...any) {
+	for _, value := range values {
+		rows := mapRowsAny(value)
+		if row := mapValue(value); len(row) > 0 {
+			rows = append(rows, row)
+		}
+		for _, row := range rows {
+			status := featureStatus(row)
+			if status != "ready" && status != "partial" {
+				continue
+			}
+			if bridgeFeatureUsesRenderRevision(row) || !featureRowHasMaterialIdentity(row) {
+				continue
+			}
+			key := strings.Join([]string{cleanAnyString(row["track_id"]), cleanAnyString(row["clip_id"]), firstNonEmpty(cleanAnyString(row["source_revision"]), cleanAnyString(row["source_fingerprint"]))}, "\x00")
+			if key == "\x00\x00" {
+				continue
+			}
+			if current := out[key]; len(current) == 0 || recoveredFrequencyRowScore(row) > recoveredFrequencyRowScore(current) {
+				out[key] = row
+			}
+		}
+	}
+}
+
+func recoveredFrequencyRowScore(row map[string]any) int {
+	score := 0
+	if featureStatus(row) == "ready" {
+		score += 100
+	}
+	if len(mapValue(row["bands"])) > 0 {
+		score += 20
+	}
+	for _, key := range []string{"evidence_ref", "source_revision", "source_fingerprint", "quality_status", "updated_at"} {
+		if cleanAnyString(row[key]) != "" {
+			score++
+		}
+	}
+	return score
+}
+
+func sortedRecoveredFrequencyRows(rows map[string]map[string]any) []map[string]any {
+	keys := make([]string, 0, len(rows))
+	for key := range rows {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+	out := make([]map[string]any, 0, len(keys))
+	for _, key := range keys {
+		out = append(out, rows[key])
+	}
+	return out
+}
+
+func readFrequencyAcousticSnapshot(args map[string]any) (acousticpackage.Snapshot, string, error) {
+	path := acousticpackage.DefaultStorePath(args)
+	info, err := os.Stat(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return acousticpackage.Snapshot{SchemaVersion: acousticpackage.SchemaVersion}, path, nil
+		}
+		return acousticpackage.Snapshot{}, path, err
+	}
+	frequencyAcousticSnapshotCache.Lock()
+	defer frequencyAcousticSnapshotCache.Unlock()
+	if frequencyAcousticSnapshotCache.path == path && frequencyAcousticSnapshotCache.size == info.Size() && frequencyAcousticSnapshotCache.modTime.Equal(info.ModTime()) {
+		return frequencyAcousticSnapshotCache.snap, path, nil
+	}
+	snap, err := acousticpackage.NewStore(path).Read()
+	if err != nil {
+		return acousticpackage.Snapshot{}, path, err
+	}
+	frequencyAcousticSnapshotCache.path = path
+	frequencyAcousticSnapshotCache.size = info.Size()
+	frequencyAcousticSnapshotCache.modTime = info.ModTime()
+	frequencyAcousticSnapshotCache.snap = snap
+	return snap, path, nil
+}
+
+func hydrateFrequencySnapshotFromAcousticPackages(snap *featureSnapshot, projectState map[string]any, args map[string]any) map[string]any {
+	result := map[string]any{"source": "existing_acoustic_package", "status": "missing", "matched_track_count": 0, "matched_l2_track_count": 0, "matched_l3_track_count": 0, "package_read_count": 0}
+	if snap == nil {
+		result["reason"] = "feature_snapshot_unavailable"
+		return result
+	}
+	packages, path, err := readFrequencyAcousticSnapshot(args)
+	result["acoustic_package_path"] = path
+	result["package_read_count"] = len(packages.Packages)
+	if err != nil {
+		result["status"], result["reason"] = "unavailable", err.Error()
+		return result
+	}
+	projectID := projectIdentityFromState(projectState)
+	currentByTarget := map[string]acousticpackage.Status{}
+	currentCandidatesByTarget := map[string][]acousticpackage.Status{}
+	allCandidatesByTarget := map[string][]acousticpackage.Status{}
+	readyBySource := map[string][]acousticpackage.Status{}
+	readyBySourcePath := map[string][]acousticpackage.Status{}
+	for _, pkg := range packages.Packages {
+		if pkg.TrackID != "" || pkg.ClipID != "" {
+			key := pkg.TrackID + "\x00" + pkg.ClipID
+			allCandidatesByTarget[key] = append(allCandidatesByTarget[key], pkg)
+			if packageProjectMatches(pkg.ProjectID, projectID) {
+				currentCandidatesByTarget[key] = append(currentCandidatesByTarget[key], pkg)
+				if newerAcousticPackage(pkg, currentByTarget[key]) {
+					currentByTarget[key] = pkg
+				}
+			}
+		}
+		if sourceKey := acousticSourceIdentityKey(pkg.SourceRevision, pkg.SourceFingerprint); sourceKey != "" && packageHasReadySourceFileL3(pkg) {
+			readyBySource[sourceKey] = append(readyBySource[sourceKey], pkg)
+		}
+		if sourcePath := normalizedFeatureMaterialPath(pkg.SourcePath); sourcePath != "" && packageHasReadySourceFileL3(pkg) {
+			readyBySourcePath[sourcePath] = append(readyBySourcePath[sourcePath], pkg)
+		}
+	}
+	matchedTracks := map[string]bool{}
+	matchedL2Tracks := map[string]bool{}
+	matchedL3Tracks := map[string]bool{}
+	for _, track := range mapRowsAny(projectState["tracks"]) {
+		trackID := firstNonEmpty(cleanAnyString(track["track_id"]), cleanAnyString(track["id"]))
+		for _, rawClip := range anySlice(firstPresent(track, "clips", "clip_summaries")) {
+			clip := mapValue(rawClip)
+			clipID := firstNonEmpty(cleanAnyString(clip["clip_id"]), cleanAnyString(clip["id"]), cleanAnyString(clip["item_id"]))
+			targetKey := trackID + "\x00" + clipID
+			current := currentByTarget[targetKey]
+			currentL2 := newestCurrentAcousticL2(currentCandidatesByTarget[targetKey], projectID, trackID, clipID, track, clip)
+			l2Added := appendFrequencyL2PackageRow(snap, currentL2, projectID, trackID, clipID, false)
+			if !l2Added {
+				portableL2 := newestPortableAcousticL2(allCandidatesByTarget[targetKey], trackID, clipID, track, clip)
+				l2Added = appendFrequencyL2PackageRow(snap, portableL2, projectID, trackID, clipID, true)
+			}
+			if l2Added {
+				matchedTracks[trackID] = true
+				matchedL2Tracks[trackID] = true
+			}
+			sourceRevision := firstNonEmpty(
+				cleanAnyString(clip["source_revision"]), cleanAnyString(clip["source_fingerprint"]),
+				current.SourceRevision, current.SourceFingerprint,
+			)
+			candidates := readyBySource[acousticSourceIdentityKey(sourceRevision, sourceRevision)]
+			stateSourcePath := firstNonEmpty(
+				cleanAnyString(clip["current_source_path"]), cleanAnyString(clip["source_path"]), cleanAnyString(clip["file_path"]),
+				cleanAnyString(track["source_path"]), cleanAnyString(track["file_path"]),
+			)
+			if len(candidates) == 0 && stateSourcePath != "" {
+				for _, candidate := range readyBySourcePath[normalizedFeatureMaterialPath(stateSourcePath)] {
+					packageRevision := firstNonEmpty(candidate.SourceRevision, candidate.SourceFingerprint, candidate.SourceHash)
+					if acousticpackage.SourceRevisionMatchesIdentity(packageRevision, acousticpackage.Identity{SourcePath: stateSourcePath}) {
+						candidates = append(candidates, candidate)
+					}
+				}
+			}
+			if len(candidates) == 0 {
+				continue
+			}
+			best := newestReadySourceFileL3(candidates)
+			matchedRevision := firstNonEmpty(sourceRevision, best.SourceRevision, best.SourceFingerprint)
+			added := appendFrequencyL3PackageRows(snap, best, projectID, trackID, clipID, clip, matchedRevision)
+			if added > 0 {
+				matchedTracks[trackID] = true
+				matchedL3Tracks[trackID] = true
+			}
+		}
+	}
+	result["matched_track_count"] = len(matchedTracks)
+	result["matched_l2_track_count"] = len(matchedL2Tracks)
+	result["matched_l3_track_count"] = len(matchedL3Tracks)
+	if len(matchedTracks) > 0 {
+		result["status"] = "ready"
+	}
+	return result
+}
+
+func newestCurrentAcousticL2(candidates []acousticpackage.Status, projectID, trackID, clipID string, track, clip map[string]any) acousticpackage.Status {
+	best := acousticpackage.Status{}
+	for _, candidate := range candidates {
+		if currentAcousticL2MatchesProjectMaterial(candidate, projectID, trackID, clipID, track, clip) && newerAcousticPackage(candidate, best) {
+			best = candidate
+		}
+	}
+	return best
+}
+
+func newestPortableAcousticL2(candidates []acousticpackage.Status, trackID, clipID string, track, clip map[string]any) acousticpackage.Status {
+	best := acousticpackage.Status{}
+	for _, candidate := range candidates {
+		if portableAcousticL2MatchesCurrentState(candidate, trackID, clipID, track, clip) && newerAcousticPackage(candidate, best) {
+			best = candidate
+		}
+	}
+	return best
+}
+
+// Save As changes project identity while preserving the underlying Tracktion
+// ValueTrees. A prior-project L2 row is portable only when the current source
+// file and the exact deterministic track/clip state revisions all match the
+// revisions embedded by the existing L2 renderer. This is intentionally much
+// stricter than matching track IDs or source paths alone.
+func portableAcousticL2MatchesCurrentState(pkg acousticpackage.Status, trackID, clipID string, track, clip map[string]any) bool {
+	if strings.TrimSpace(pkg.TrackID) != strings.TrimSpace(trackID) || strings.TrimSpace(pkg.ClipID) != strings.TrimSpace(clipID) {
+		return false
+	}
+	layer, ok := pkg.PackageLayers["l2_realtime"]
+	if !ok {
+		return false
+	}
+	feature, ok := layer.Features["render_probe"]
+	if !ok || (feature.Status != acousticpackage.StatusReady && feature.Status != acousticpackage.StatusPartial) || len(feature.Ref) == 0 {
+		return false
+	}
+	if !strings.EqualFold(cleanAnyString(feature.Ref["tap_point"]), "track_post_fader") || len(mapValue(feature.Ref["bands"])) == 0 {
+		return false
+	}
+	stateSourcePath := firstNonEmpty(cleanAnyString(clip["current_source_path"]), cleanAnyString(clip["source_path"]), cleanAnyString(clip["file_path"]), cleanAnyString(track["source_path"]), cleanAnyString(track["file_path"]))
+	packageSourceRevision := firstNonEmpty(pkg.SourceRevision, pkg.SourceFingerprint, pkg.SourceHash, cleanAnyString(feature.Ref["source_revision"]), cleanAnyString(feature.Ref["source_fingerprint"]), cleanAnyString(feature.Ref["source_hash"]))
+	if stateSourcePath == "" || packageSourceRevision == "" || (pkg.SourcePath != "" && normalizedFeatureMaterialPath(pkg.SourcePath) != normalizedFeatureMaterialPath(stateSourcePath)) {
+		return false
+	}
+	if !acousticpackage.SourceRevisionMatchesIdentity(packageSourceRevision, acousticpackage.Identity{SourcePath: stateSourcePath}) {
+		return false
+	}
+	trackStateRevision := cleanAnyString(track["track_state_revision"])
+	clipStateRevision := cleanAnyString(clip["clip_state_revision"])
+	renderRevision := firstNonEmpty(cleanAnyString(feature.Ref["render_revision"]), pkg.RenderRevision)
+	if trackStateRevision == "" || clipStateRevision == "" || renderRevision == "" {
+		return false
+	}
+	return strings.EqualFold(renderRevisionIdentityField(renderRevision, "track_state"), trackStateRevision) &&
+		strings.EqualFold(renderRevisionIdentityField(renderRevision, "clip_state"), clipStateRevision)
+}
+
+func renderRevisionIdentityField(revision, field string) string {
+	prefix := strings.TrimSpace(field) + "="
+	if prefix == "=" {
+		return ""
+	}
+	for _, part := range strings.Split(revision, "|") {
+		part = strings.TrimSpace(part)
+		if strings.HasPrefix(part, prefix) {
+			return strings.TrimSpace(strings.TrimPrefix(part, prefix))
+		}
+	}
+	return ""
+}
+
+// Diagnosis may reuse a ready post-fader package row without turning it into a
+// mutation cache hit. The package must describe the exact current project,
+// track, clip, and source material. A later mutation preflight still requires
+// an exact track_state_fingerprint through CollectL2RenderProbeBatch.
+func currentAcousticL2MatchesProjectMaterial(pkg acousticpackage.Status, projectID, trackID, clipID string, track, clip map[string]any) bool {
+	if strings.TrimSpace(projectID) == "" || strings.TrimSpace(pkg.ProjectID) == "" || !strings.EqualFold(strings.TrimSpace(pkg.ProjectID), strings.TrimSpace(projectID)) {
+		return false
+	}
+	if strings.TrimSpace(pkg.TrackID) != strings.TrimSpace(trackID) || strings.TrimSpace(pkg.ClipID) != strings.TrimSpace(clipID) {
+		return false
+	}
+	stateSourceRevision := firstNonEmpty(cleanAnyString(clip["source_revision"]), cleanAnyString(clip["source_fingerprint"]), cleanAnyString(clip["source_hash"]))
+	packageSourceRevision := firstNonEmpty(pkg.SourceRevision, pkg.SourceFingerprint, pkg.SourceHash)
+	stateSourcePath := firstNonEmpty(cleanAnyString(clip["current_source_path"]), cleanAnyString(clip["source_path"]), cleanAnyString(clip["file_path"]), cleanAnyString(track["source_path"]), cleanAnyString(track["file_path"]))
+	if packageSourceRevision == "" || (pkg.SourcePath != "" && stateSourcePath != "" && normalizedFeatureMaterialPath(pkg.SourcePath) != normalizedFeatureMaterialPath(stateSourcePath)) {
+		return false
+	}
+	if !acousticpackage.SourceRevisionMatchesIdentity(packageSourceRevision, acousticpackage.Identity{SourcePath: stateSourcePath, SourceRevision: stateSourceRevision, SourceFingerprint: stateSourceRevision, SourceHash: cleanAnyString(clip["source_hash"])}) {
+		return false
+	}
+	stateClipRevision := firstNonEmpty(cleanAnyString(clip["clip_revision"]), cleanAnyString(clip["revision"]))
+	if stateClipRevision != "" && pkg.ClipRevision != "" && stateClipRevision != pkg.ClipRevision {
+		return false
+	}
+	stateRenderRevision := firstNonEmpty(cleanAnyString(track["render_revision"]), cleanAnyString(track["track_render_revision"]), cleanAnyString(clip["render_revision"]))
+	if stateRenderRevision != "" && pkg.RenderRevision != "" && stateRenderRevision != pkg.RenderRevision {
+		return false
+	}
+	return true
+}
+
+func appendFrequencyL2PackageRow(snap *featureSnapshot, pkg acousticpackage.Status, projectID, trackID, clipID string, allowProjectRebind bool) bool {
+	if snap == nil || pkg.TrackID == "" || pkg.ClipID == "" {
+		return false
+	}
+	layer, ok := pkg.PackageLayers["l2_realtime"]
+	if !ok {
+		return false
+	}
+	feature, ok := layer.Features["render_probe"]
+	silenceConfirmed := acousticPackageConfirmsDeterministicSilence(pkg, feature)
+	if !ok || ((feature.Status != acousticpackage.StatusReady && feature.Status != acousticpackage.StatusPartial) && !silenceConfirmed) || len(feature.Ref) == 0 {
+		return false
+	}
+	row := make(map[string]any, len(feature.Ref)+8)
+	for key, value := range feature.Ref {
+		row[key] = value
+	}
+	if rowProjectID := cleanAnyString(row["project_id"]); rowProjectID != "" && !strings.EqualFold(rowProjectID, projectID) && !allowProjectRebind {
+		return false
+	}
+	if rowTrackID := cleanAnyString(row["track_id"]); rowTrackID != "" && rowTrackID != trackID {
+		return false
+	}
+	if rowClipID := cleanAnyString(row["clip_id"]); rowClipID != "" && rowClipID != clipID {
+		return false
+	}
+	packageSourceRevision := firstNonEmpty(pkg.SourceRevision, pkg.SourceFingerprint, pkg.SourceHash)
+	if rowSourceRevision := firstNonEmpty(cleanAnyString(row["source_revision"]), cleanAnyString(row["source_fingerprint"]), cleanAnyString(row["source_hash"])); rowSourceRevision != "" && acousticSourceIdentityKey(rowSourceRevision, rowSourceRevision) != acousticSourceIdentityKey(packageSourceRevision, packageSourceRevision) {
+		return false
+	}
+	if len(mapValue(row["bands"])) == 0 || !strings.EqualFold(cleanAnyString(row["tap_point"]), "track_post_fader") {
+		return false
+	}
+	row["status"] = feature.Status
+	if silenceConfirmed {
+		// A current exact source that is all-zero both before and after the track
+		// chain is valid C1 evidence: it proves that no spectral action is
+		// available. Keep it comparable at the real post-fader tap while marking
+		// the row partial so the decision layer must classify it as no_change.
+		row["status"] = acousticpackage.StatusPartial
+		row["silence_confirmed"] = true
+		row["silence_reason"] = "source_and_post_fader_all_zero"
+		row["original_quality_status"] = feature.Status
+	}
+	row["feature_type"] = "l2_render_probe"
+	row["source"] = firstNonEmpty(cleanAnyString(row["source"]), feature.Source, "l2_render_probe")
+	row["tap_point"] = "track_post_fader"
+	row["project_id"], row["track_id"], row["clip_id"] = projectID, trackID, clipID
+	row["source_revision"] = firstNonEmpty(cleanAnyString(row["source_revision"]), pkg.SourceRevision, pkg.SourceFingerprint)
+	row["clip_revision"] = firstNonEmpty(cleanAnyString(row["clip_revision"]), pkg.ClipRevision)
+	row["render_revision"] = firstNonEmpty(cleanAnyString(row["render_revision"]), pkg.RenderRevision)
+	snap.L2RenderProbes = mergeFeatureRowsByCurrentMaterial(snap.L2RenderProbes, row)
+	return true
+}
+
+func acousticPackageConfirmsDeterministicSilence(pkg acousticpackage.Status, renderProbe acousticpackage.FeatureStatus) bool {
+	if !strings.EqualFold(strings.TrimSpace(renderProbe.Status), acousticpackage.StatusSuspect) ||
+		!strings.EqualFold(firstNonEmpty(strings.TrimSpace(renderProbe.Reason), cleanAnyString(renderProbe.Ref["reason"])), "all_zero_render") ||
+		!strings.EqualFold(cleanAnyString(renderProbe.Ref["tap_point"]), "track_post_fader") {
+		return false
+	}
+	layer, ok := pkg.PackageLayers["l1_static"]
+	if !ok {
+		return false
+	}
+	waveform, ok := layer.Features["waveform_envelope"]
+	if !ok || len(waveform.Ref) == 0 {
+		return false
+	}
+	qualityReason := firstNonEmpty(
+		strings.TrimSpace(waveform.Reason),
+		cleanAnyString(waveform.Ref["quality_reason"]),
+		cleanAnyString(waveform.Ref["reason"]),
+	)
+	return strings.EqualFold(qualityReason, "input_all_zero") || strings.EqualFold(qualityReason, "all_zero_source")
+}
+
+func packageProjectMatches(packageID, projectID string) bool {
+	if !concreteProjectIdentity(projectID) || !concreteProjectIdentity(packageID) {
+		return true
+	}
+	return strings.EqualFold(strings.TrimSpace(packageID), strings.TrimSpace(projectID))
+}
+
+func projectIdentityFromState(state map[string]any) string {
+	project := mapValue(state["project"])
+	return firstNonEmpty(cleanAnyString(state["project_uuid"]), cleanAnyString(state["project_id"]), cleanAnyString(project["project_uuid"]), cleanAnyString(project["uuid"]), cleanAnyString(project["project_id"]), cleanAnyString(project["id"]))
+}
+
+func acousticSourceIdentityKey(revision, fingerprint string) string {
+	value := firstNonEmpty(strings.TrimSpace(revision), strings.TrimSpace(fingerprint))
+	if value == "" {
+		return ""
+	}
+	return strings.ToLower(strings.ReplaceAll(value, "\\", "/"))
+}
+
+func newerAcousticPackage(candidate, current acousticpackage.Status) bool {
+	if current.TrackID == "" && current.ClipID == "" {
+		return true
+	}
+	return candidate.UpdatedAt > current.UpdatedAt
+}
+
+func packageHasReadySourceFileL3(pkg acousticpackage.Status) bool {
+	layer, ok := pkg.PackageLayers["l3_deep"]
+	if !ok {
+		return false
+	}
+	for _, key := range []string{"band_energy_summary", "stereo_relation_summary", "loudness_summary"} {
+		feature := layer.Features[key]
+		if ((feature.Status == acousticpackage.StatusReady || feature.Status == acousticpackage.StatusPartial) || l3FeatureConfirmsDeterministicSilence(feature)) && len(feature.Ref) > 0 {
+			return true
+		}
+	}
+	return false
+}
+
+func newestReadySourceFileL3(candidates []acousticpackage.Status) acousticpackage.Status {
+	best := acousticpackage.Status{}
+	for _, candidate := range candidates {
+		if packageHasReadySourceFileL3(candidate) && newerAcousticPackage(candidate, best) {
+			best = candidate
+		}
+	}
+	return best
+}
+
+func appendFrequencyL3PackageRows(snap *featureSnapshot, pkg acousticpackage.Status, projectID, trackID, clipID string, clip map[string]any, sourceRevision string) int {
+	layer := pkg.PackageLayers["l3_deep"]
+	added := 0
+	for _, spec := range []struct {
+		key  string
+		rows *[]map[string]any
+	}{
+		{key: "band_energy_summary", rows: &snap.BandEnergySummaries},
+		{key: "stereo_relation_summary", rows: &snap.StereoRelationSummaries},
+		{key: "loudness_summary", rows: &snap.LoudnessSummaries},
+	} {
+		feature := layer.Features[spec.key]
+		silenceConfirmed := l3FeatureConfirmsDeterministicSilence(feature)
+		if (feature.Status != acousticpackage.StatusReady && feature.Status != acousticpackage.StatusPartial && !silenceConfirmed) || len(feature.Ref) == 0 {
+			continue
+		}
+		ref := mapValue(feature.Ref)
+		if len(ref) == 0 {
+			continue
+		}
+		row := make(map[string]any, len(ref)+8)
+		for key, value := range ref {
+			row[key] = value
+		}
+		row["status"] = feature.Status
+		if silenceConfirmed {
+			row["status"] = acousticpackage.StatusPartial
+			row["silence_confirmed"] = true
+			row["silence_reason"] = "source_file_all_zero"
+			row["original_quality_status"] = feature.Status
+		}
+		row["feature_type"] = spec.key
+		row["source"] = firstNonEmpty(cleanAnyString(row["source"]), feature.Source, "kernel_l3_offline_analyzer")
+		row["source_kind"] = "source_file"
+		row["tap_point"] = "source_file_pre_fx"
+		row["project_id"], row["track_id"], row["clip_id"] = projectID, trackID, clipID
+		row["source_revision"], row["source_fingerprint"] = sourceRevision, sourceRevision
+		if path := firstNonEmpty(cleanAnyString(clip["current_source_path"]), cleanAnyString(clip["source_path"]), cleanAnyString(clip["file_path"]), pkg.SourcePath); path != "" {
+			row["source_path"], row["file_path"] = path, path
+		}
+		*spec.rows = mergeFeatureRowsByCurrentMaterial(*spec.rows, row)
+		added++
+	}
+	return added
+}
+
+func l3FeatureConfirmsDeterministicSilence(feature acousticpackage.FeatureStatus) bool {
+	if !strings.EqualFold(strings.TrimSpace(feature.Status), acousticpackage.StatusSuspect) || len(feature.Ref) == 0 {
+		return false
+	}
+	reason := firstNonEmpty(strings.TrimSpace(feature.Reason), cleanAnyString(feature.Ref["quality_reason"]), cleanAnyString(feature.Ref["reason"]))
+	if !strings.EqualFold(reason, "all_zero_audio") && !strings.EqualFold(reason, "all_zero_source") && !strings.EqualFold(reason, "input_all_zero") {
+		return false
+	}
+	return numberFromMap(feature.Ref, "coverage_ratio") >= 0.999
+}
+
+func mergeFeatureRowsByCurrentMaterial(rows []map[string]any, update map[string]any) []map[string]any {
+	out := make([]map[string]any, 0, len(rows)+1)
+	for _, row := range rows {
+		if cleanAnyString(row["track_id"]) == cleanAnyString(update["track_id"]) && cleanAnyString(row["clip_id"]) == cleanAnyString(update["clip_id"]) {
+			continue
+		}
+		out = append(out, row)
+	}
+	return append(out, update)
+}
+
+func mergeFrequencyAssemblyTiming(result map[string]any, elapsed time.Duration) map[string]any {
+	if result == nil {
+		result = map[string]any{}
+	}
+	result["elapsed_ms"] = elapsed.Milliseconds()
+	result["persistence_writes"] = 0
+	result["mix_observe_calls"] = 0
+	return result
+}
+
 type featureSnapshot struct {
 	SchemaVersion                   string           `json:"schema_version"`
 	UpdatedAt                       string           `json:"updated_at"`
@@ -180,31 +900,16 @@ func DefaultRoot() string {
 	if override := strings.TrimSpace(os.Getenv("VIT_MIXBOARD_ROOT")); override != "" {
 		return filepath.Clean(override)
 	}
+	if roots, ok := projectstore.Current(); ok {
+		return filepath.Join(roots.Agent, "mixboard", "sessions")
+	}
 	if devRoot := strings.TrimSpace(os.Getenv("VIT_DAW_DEV_ROOT")); devRoot != "" {
 		root := filepath.Clean(devRoot)
 		if _, err := os.Stat(filepath.Join(root, "VitApp", "Workspace")); err == nil {
 			return filepath.Join(root, "VitApp", "Workspace", "Artifacts", "mixboard")
 		}
 	}
-	wd, err := os.Getwd()
-	if err != nil {
-		return filepath.Join("VitApp", "Workspace", "Artifacts", "mixboard")
-	}
-	for dir := wd; dir != ""; dir = filepath.Dir(dir) {
-		if filepath.Base(dir) == "agent" {
-			if _, err := os.Stat(filepath.Join(dir, "go.mod")); err == nil {
-				return filepath.Join(filepath.Dir(dir), "VitApp", "Workspace", "Artifacts", "mixboard")
-			}
-		}
-		if _, err := os.Stat(filepath.Join(dir, "VitApp", "Workspace")); err == nil {
-			return filepath.Join(dir, "VitApp", "Workspace", "Artifacts", "mixboard")
-		}
-		parent := filepath.Dir(dir)
-		if parent == dir {
-			break
-		}
-	}
-	return filepath.Join(wd, "VitApp", "Workspace", "Artifacts", "mixboard")
+	return filepath.Join(os.TempDir(), "vit-daw-unbound", fmt.Sprint(os.Getpid()), "mixboard")
 }
 
 func NewStore(root string) Store {
@@ -229,28 +934,39 @@ func (s Store) RequestObservation(req Request) (WriteResult, error) {
 
 	sessionDir := filepath.Join(s.Root, safePathName(req.MixSessionID))
 	previousObservation, hasPreviousObservation := s.readPreviousObservation(sessionDir, req.Args)
-	observation := BuildObservation(req, now)
+	featureSnapshot := loadFeatureSnapshot(req.Args)
+	observation := buildObservation(req, now, featureSnapshot)
 	applyBeforeAfterDelta(&observation, previousObservation, hasPreviousObservation, now)
 	FinalizeObservationContext(&observation, req, now)
-	obsDir := filepath.Join(sessionDir, "observations")
-	actionsDir := filepath.Join(sessionDir, "actions")
-	if err := os.MkdirAll(obsDir, 0o755); err != nil {
-		return WriteResult{}, err
+	persistedObservation, canonicalObservationPath, persistenceErr := projectObservationForPersistence(req, observation, featureSnapshot)
+	if persistenceErr != nil {
+		return WriteResult{}, persistenceErr
 	}
+	actionsDir := filepath.Join(sessionDir, "actions")
 	if err := os.MkdirAll(actionsDir, 0o755); err != nil {
 		return WriteResult{}, err
 	}
 
-	observationPath := filepath.Join(obsDir, observation.ObservationID+".json")
-	if err := writeJSON(observationPath, observation); err != nil {
-		return WriteResult{}, err
+	observationPath := canonicalObservationPath
+	if observationPath == "" {
+		// Legacy/dev stores keep their self-contained session layout. In v2 the
+		// canonical project observation is written once under
+		// .vit_agent/<uuid>/observations and the board references it directly.
+		obsDir := filepath.Join(sessionDir, "observations")
+		if err := os.MkdirAll(obsDir, 0o755); err != nil {
+			return WriteResult{}, err
+		}
+		observationPath = filepath.Join(obsDir, persistedObservation.ObservationID+".json")
+		if err := writeJSON(observationPath, persistedObservation); err != nil {
+			return WriteResult{}, err
+		}
 	}
-	board := buildBoard(req, observation, observationPath, now)
+	board := buildBoard(req, persistedObservation, observationPath, now)
 	boardPath := filepath.Join(sessionDir, "current.json")
 	if err := writeJSON(boardPath, board); err != nil {
 		return WriteResult{}, err
 	}
-	contextPack := buildContextPack(req, board, observation, now)
+	contextPack := buildContextPack(req, board, persistedObservation, now)
 	contextPackPath := filepath.Join(sessionDir, "context_pack.json")
 	if err := writeJSON(contextPackPath, contextPack); err != nil {
 		return WriteResult{}, err
@@ -262,12 +978,16 @@ func (s Store) RequestObservation(req Request) (WriteResult, error) {
 		ObservationPath: observationPath,
 		ContextPackPath: contextPackPath,
 		Board:           board,
-		Observation:     observation,
+		Observation:     persistedObservation,
 		ContextPack:     contextPack,
 	}, nil
 }
 
 func BuildObservation(req Request, createdAt string) ObservationPacket {
+	return buildObservation(req, createdAt, loadFeatureSnapshot(req.Args))
+}
+
+func buildObservation(req Request, createdAt string, featureSnapshot featureSnapshot) ObservationPacket {
 	duration := firstPositiveFloat(req.Args, "duration_seconds", "duration")
 	if duration <= 0 {
 		duration = projectDuration(req.ProjectState)
@@ -286,13 +1006,14 @@ func BuildObservation(req Request, createdAt string) ObservationPacket {
 	} else if bpm := firstPositiveFloat(req.ProjectState, "tempo_bpm", "bpm"); bpm > 0 {
 		tempo = &bpm
 	}
-	featureSnapshot := loadFeatureSnapshot(req.Args)
 	normalizeTrackWaveformFeatureFreshness(&featureSnapshot, req.ProjectState, listenScopeAllowsLegacyProjectWaveformRows(req.ListenScope))
 	acousticPackageStatus := compactAcousticPackageStatus(mapValue(req.Args["acoustic_package_status"]))
 	if !acousticPackageMatchesLatestRequest(acousticPackageStatus, featureSnapshot.LatestRequest) {
 		acousticPackageStatus = nil
 	}
 	applyAcousticPackageStatusToFeatureSnapshot(&featureSnapshot, acousticPackageStatus)
+	normalizeProjectFeatureMaterialFreshness(&featureSnapshot, req.ProjectState)
+	promoteBestL3FeatureRows(&featureSnapshot)
 	promoteBestRealtimeFeatureRows(&featureSnapshot)
 	waveformStatus := featureStatus(featureSnapshot.WaveformEnvelope)
 	trackWaveformStatus := trackFeatureRowsStatus(featureSnapshot.TrackWaveformEnvelopes)
@@ -1289,21 +2010,177 @@ func trackWaveformRowMatchesProjectState(row map[string]any, projectState map[st
 	if len(track) == 0 {
 		return false
 	}
-	rowClip := cleanAnyString(row["clip_id"])
-	if rowClip == "" {
-		return true
+	if !featureRowMatchesProjectIdentity(row, projectState) {
+		return false
 	}
+	rowClip := cleanAnyString(row["clip_id"])
 	clips := anySlice(firstPresent(track, "clips", "clip_summaries"))
 	if len(clips) == 0 {
 		return true
 	}
+	if rowClip == "" {
+		if len(clips) == 1 {
+			clip, _ := clips[0].(map[string]any)
+			return featureRowMatchesClipMaterial(row, clip)
+		}
+		return !featureRowHasPathIdentity(row)
+	}
 	for _, raw := range clips {
 		clip, _ := raw.(map[string]any)
 		if rowClip == firstNonEmpty(cleanAnyString(clip["clip_id"]), cleanAnyString(clip["id"]), cleanAnyString(clip["item_id"])) {
-			return true
+			return featureRowMatchesClipMaterial(row, clip)
 		}
 	}
 	return false
+}
+
+func normalizeProjectFeatureMaterialFreshness(snap *featureSnapshot, projectState map[string]any) {
+	if snap == nil || len(mapRowsAny(projectState["tracks"])) == 0 {
+		return
+	}
+	filter := func(rows []map[string]any) []map[string]any {
+		out := make([]map[string]any, 0, len(rows))
+		for _, row := range rows {
+			if trackWaveformRowMatchesProjectState(row, projectState) {
+				out = append(out, row)
+			}
+		}
+		return out
+	}
+	snap.TrackWaveformEnvelopes = filter(snap.TrackWaveformEnvelopes)
+	snap.SpectrogramTileRows = filter(snap.SpectrogramTileRows)
+	snap.BandEnergySummaries = filter(snap.BandEnergySummaries)
+	snap.StereoRelationSummaries = filter(snap.StereoRelationSummaries)
+	snap.LoudnessSummaries = filter(snap.LoudnessSummaries)
+	snap.RealtimeBandEnergySummaries = filter(snap.RealtimeBandEnergySummaries)
+	snap.RealtimeStereoRelationSummaries = filter(snap.RealtimeStereoRelationSummaries)
+	snap.L2RenderProbes = filter(snap.L2RenderProbes)
+	snap.WaveformEnvelope = currentProjectFeatureRowOrMissing(snap.WaveformEnvelope, projectState, "waveform_envelope")
+	snap.SpectrogramTiles = currentProjectFeatureRowOrMissing(snap.SpectrogramTiles, projectState, "spectral_field")
+	snap.BandEnergySummary = currentProjectFeatureRowOrMissing(snap.BandEnergySummary, projectState, "band_energy_summary")
+	snap.StereoRelationSummary = currentProjectFeatureRowOrMissing(snap.StereoRelationSummary, projectState, "stereo_relation_summary")
+	snap.LoudnessSummary = currentProjectFeatureRowOrMissing(snap.LoudnessSummary, projectState, "loudness_summary")
+	snap.RealtimeBandEnergySummary = currentProjectFeatureRowOrMissing(snap.RealtimeBandEnergySummary, projectState, "realtime_band_energy_summary")
+	snap.RealtimeStereoRelationSummary = currentProjectFeatureRowOrMissing(snap.RealtimeStereoRelationSummary, projectState, "realtime_stereo_relation_summary")
+	snap.L2RenderProbe = currentProjectFeatureRowOrMissing(snap.L2RenderProbe, projectState, "l2_render_probe")
+}
+
+func currentProjectFeatureRowOrMissing(row map[string]any, projectState map[string]any, featureType string) map[string]any {
+	if len(row) == 0 || cleanAnyString(row["track_id"]) == "" || trackWaveformRowMatchesProjectState(row, projectState) {
+		return row
+	}
+	out := map[string]any{
+		"status":       "missing",
+		"feature_type": featureType,
+		"reason":       "project_material_identity_mismatch",
+	}
+	for _, key := range []string{"request_id", "track_id", "clip_id"} {
+		if value := cleanAnyString(row[key]); value != "" {
+			out[key] = value
+		}
+	}
+	return out
+}
+
+func featureRowMatchesProjectIdentity(row map[string]any, projectState map[string]any) bool {
+	current := firstNonEmpty(
+		cleanAnyString(projectState["project_id"]),
+		cleanAnyString(projectState["project_uuid"]),
+	)
+	identity := mapValue(row["source_identity"])
+	rowProject := firstNonEmpty(cleanAnyString(row["project_id"]), cleanAnyString(identity["project_id"]))
+	if !concreteProjectIdentity(current) || !concreteProjectIdentity(rowProject) {
+		return true
+	}
+	return strings.EqualFold(current, rowProject)
+}
+
+func concreteProjectIdentity(value string) bool {
+	value = strings.ToLower(strings.TrimSpace(value))
+	return value != "" && value != "current" && value != "project_current" && value != "project"
+}
+
+func featureRowMatchesClipMaterial(row map[string]any, clip map[string]any) bool {
+	currentPath := normalizedFeatureMaterialPath(firstNonEmpty(
+		cleanAnyString(clip["current_source_path"]),
+		cleanAnyString(clip["source_path"]),
+		cleanAnyString(clip["file_path"]),
+	))
+	if currentPath == "" {
+		return true
+	}
+	if rowPath := normalizedFeatureMaterialPath(featureRowSourcePath(row)); rowPath != "" {
+		return rowPath == currentPath
+	}
+	for _, key := range []string{"source_revision", "source_fingerprint", "clip_revision"} {
+		identity := normalizedFeatureMaterialIdentity(cleanAnyString(row[key]))
+		if identity == "" {
+			continue
+		}
+		if strings.Contains(identity, currentPath) {
+			return true
+		}
+		if featureMaterialIdentityContainsPath(identity) {
+			return false
+		}
+	}
+	identity := mapValue(row["source_identity"])
+	for _, key := range []string{"source_revision", "source_fingerprint", "clip_revision"} {
+		value := normalizedFeatureMaterialIdentity(cleanAnyString(identity[key]))
+		if value == "" {
+			continue
+		}
+		if strings.Contains(value, currentPath) {
+			return true
+		}
+		if featureMaterialIdentityContainsPath(value) {
+			return false
+		}
+	}
+	return true
+}
+
+func featureRowHasPathIdentity(row map[string]any) bool {
+	if normalizedFeatureMaterialPath(featureRowSourcePath(row)) != "" {
+		return true
+	}
+	identity := mapValue(row["source_identity"])
+	for _, source := range []map[string]any{row, identity} {
+		for _, key := range []string{"source_revision", "source_fingerprint", "clip_revision"} {
+			if featureMaterialIdentityContainsPath(normalizedFeatureMaterialIdentity(cleanAnyString(source[key]))) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func featureRowSourcePath(row map[string]any) string {
+	identity := mapValue(row["source_identity"])
+	return firstNonEmpty(
+		cleanAnyString(row["source_path"]),
+		cleanAnyString(row["file_path"]),
+		cleanAnyString(identity["source_path"]),
+		cleanAnyString(identity["file_path"]),
+		cleanAnyString(identity["source_id"]),
+	)
+}
+
+func normalizedFeatureMaterialPath(value string) string {
+	value = strings.TrimSpace(value)
+	if value == "" {
+		return ""
+	}
+	value = filepath.ToSlash(filepath.Clean(value))
+	return strings.ToLower(value)
+}
+
+func normalizedFeatureMaterialIdentity(value string) string {
+	return strings.ToLower(strings.ReplaceAll(strings.TrimSpace(value), "\\", "/"))
+}
+
+func featureMaterialIdentityContainsPath(value string) bool {
+	return strings.Contains(value, ":/") || strings.HasPrefix(value, "/") || strings.HasPrefix(value, "//")
 }
 
 func freshBridgeRowOrMissing(row map[string]any, requestID string, target map[string]any, featureType string) map[string]any {
@@ -1727,10 +2604,19 @@ func buildWaveformMetrics(row map[string]any) map[string]any {
 
 func buildBandEnergySummary(row map[string]any) map[string]any {
 	status := featureStatus(row)
+	silenceConfirmed := status == "suspect" && l3BandRowConfirmsDeterministicSilence(row)
+	if silenceConfirmed {
+		status = "partial"
+	}
 	out := map[string]any{
 		"status": status,
 	}
-	copyOptionalFeatureFields(out, row, "schema_version", "feature_type", "layer", "source_kind", "reason", "source", "updated_at", "track_id", "clip_id", "target", "request_id", "capture_mode", "tap_point", "capture_time", "time_basis", "quality_status", "quality_reason", "quality_evidence", "source_identity", "source_revision", "clip_revision", "render_revision", "plugin_chain_revision", "fader_revision", "tile_count_seen", "tile_count_expected", "tile_count_parsed", "coverage_seconds", "coverage_ratio", "total_duration", "derivation_status")
+	copyOptionalFeatureFields(out, row, "schema_version", "feature_type", "layer", "source_kind", "reason", "source", "updated_at", "track_id", "clip_id", "target", "request_id", "capture_mode", "tap_point", "capture_time", "time_basis", "quality_status", "quality_reason", "quality_evidence", "source_identity", "source_revision", "clip_revision", "render_revision", "plugin_chain_revision", "fader_revision", "tile_count_seen", "tile_count_expected", "tile_count_parsed", "coverage_seconds", "coverage_ratio", "total_duration", "derivation_status", "silence_confirmed", "silence_reason", "original_quality_status")
+	if silenceConfirmed {
+		out["silence_confirmed"] = true
+		out["silence_reason"] = "source_file_all_zero"
+		out["original_quality_status"] = "suspect"
+	}
 	if status != "ready" && status != "partial" {
 		return out
 	}
@@ -1756,6 +2642,14 @@ func buildBandEnergySummary(row map[string]any) map[string]any {
 	}
 	out["bands"] = bands
 	return out
+}
+
+func l3BandRowConfirmsDeterministicSilence(row map[string]any) bool {
+	reason := firstNonEmpty(cleanAnyString(row["quality_reason"]), cleanAnyString(row["reason"]))
+	if !strings.EqualFold(reason, "all_zero_audio") && !strings.EqualFold(reason, "all_zero_source") && !strings.EqualFold(reason, "input_all_zero") {
+		return false
+	}
+	return numberFromMap(row, "coverage_ratio") >= 0.999 && len(mapValue(row["bands"])) > 0
 }
 
 func buildStereoRelationSummary(row map[string]any) map[string]any {
@@ -1815,7 +2709,7 @@ func buildL2RenderProbeSummary(row map[string]any) map[string]any {
 		"track_id", "clip_id", "target", "request_id", "tap_point", "render_mode", "quality_status",
 		"quality_reason", "quality_evidence", "source_identity", "source_revision", "clip_revision",
 		"render_revision", "analyzer_revision", "duration_seconds", "sample_rate", "channel_count",
-		"analyzed_range", "evidence_ref")
+		"analyzed_range", "evidence_ref", "silence_confirmed", "silence_reason", "original_quality_status")
 	if status != "ready" && status != "partial" && status != "suspect" {
 		return out
 	}
@@ -2441,6 +3335,11 @@ func readObservationByIDAcrossRoot(root, observationID string) (ObservationPacke
 	if strings.TrimSpace(root) == "" || observationID == "" {
 		return ObservationPacket{}, false
 	}
+	if canonicalRoot := canonicalObservationRoot(root); canonicalRoot != "" {
+		if obs, ok := readObservationPacket(filepath.Join(canonicalRoot, observationID+".json")); ok {
+			return obs, true
+		}
+	}
 	matches, err := filepath.Glob(filepath.Join(root, "*", "observations", observationID+".json"))
 	if err != nil {
 		return ObservationPacket{}, false
@@ -2545,6 +3444,9 @@ func buildDeepPackage(spectrogramStatus string, snap featureSnapshot) map[string
 }
 
 func observationWantsBandStereoProjection(args map[string]any) bool {
+	if mom.ResolveIntent(args, firstNonEmpty(cleanAnyString(args["mom_intent"]), cleanAnyString(args["intent"]))) == mom.IntentProjectFrequencyObservation {
+		return true
+	}
 	projection := strings.ToLower(strings.TrimSpace(cleanAnyString(args["projection"])))
 	switch projection {
 	case "frequency_stereo", "band_stereo", "band_stereo_status", "frequency_stereo_status":
@@ -2620,6 +3522,10 @@ func applyBandStereoProjection(obs *ObservationPacket, req Request) {
 		"schema_version":              "mixboard_project_packet.v1",
 		"status":                      obs.ProjectPackage["status"],
 		"role":                        "project_context",
+		"project_uuid":                obs.ProjectPackage["project_uuid"],
+		"project_epoch":               obs.ProjectPackage["project_epoch"],
+		"project_revision":            obs.ProjectPackage["project_revision"],
+		"project_state_hash":          obs.ProjectPackage["project_state_hash"],
 		"duration_seconds":            obs.ProjectPackage["duration_seconds"],
 		"track_count":                 obs.ProjectPackage["track_count"],
 		"active_track_count":          obs.ProjectPackage["active_track_count"],
@@ -2630,8 +3536,12 @@ func applyBandStereoProjection(obs *ObservationPacket, req Request) {
 		"relationship_inputs":         compactKeys(mapValue(obs.ProjectPackage["relationship_inputs"]), []string{"status", "track_count", "tracks_with_acoustic"}),
 		"limitations":                 obs.ProjectPackage["limitations"],
 	}
+	frequencyIntent := mom.ResolveIntent(req.Args, firstNonEmpty(cleanAnyString(req.Args["mom_intent"]), cleanAnyString(req.Args["intent"]))) == mom.IntentProjectFrequencyObservation
+	if frequencyIntent {
+		projectPackage["frequency_relationship_inputs"] = compactFrequencyRelationshipInputs(mapValue(obs.ProjectPackage["frequency_relationship_inputs"]))
+	}
 	if projectionShouldIncludeProjectTracks(*obs) {
-		projectPackage["tracks"] = projectedProjectTracks(obs.ProjectPackage)
+		projectPackage["tracks"] = projectedProjectTracks(obs.ProjectPackage, frequencyIntent)
 	}
 	obs.ProjectPackage = projectPackage
 	obs.DeepPackage = map[string]any{
@@ -2882,7 +3792,7 @@ func projectionShouldIncludeProjectTracks(obs ObservationPacket) bool {
 	}
 }
 
-func projectedProjectTracks(project map[string]any) []map[string]any {
+func projectedProjectTracks(project map[string]any, includeFrequencyEvidence bool) []map[string]any {
 	rows := mapRowsAny(project["tracks"])
 	out := make([]map[string]any, 0, len(rows))
 	for _, track := range rows {
@@ -2891,14 +3801,24 @@ func projectedProjectTracks(project map[string]any) []map[string]any {
 		}
 		row := compactKeys(track, []string{
 			"track_id", "name", "track_name", "user_label", "user_track_index", "role_guess", "active_state",
-			"clip_count", "plugin_count", "focused", "selected", "mute", "solo", "is_armed",
-			"volume_db", "pan", "level_db", "rms_dbfs", "peak_dbfs", "headroom_db", "crest_db", "left_level_db", "right_level_db",
+			"track_type", "clip_count", "plugin_count", "focused", "selected", "mute", "solo", "is_armed",
+			"is_audio", "is_audio_track", "is_folder_track", "is_folder_container", "is_submix_folder",
+			"has_child_tracks", "child_track_count", "descendant_track_count",
+			"volume_db", "pan", "level_db", "rms_dbfs", "effective_static_rms_dbfs", "peak_dbfs", "effective_static_peak_dbfs", "headroom_db", "crest_db", "left_level_db", "right_level_db",
 		})
+		if level := compactProjectedStaticLevel(mapValue(track["static_level"])); len(level) > 0 {
+			row["static_level"] = level
+		}
 		if acoustic := compactProjectedTrackAcoustic(mapValue(track["acoustic"])); len(acoustic) > 0 {
 			row["acoustic"] = acoustic
 		}
 		if band := compactProjectedBandEnergy(mapValue(track["band_energy"])); len(band) > 0 {
 			row["band_energy"] = band
+		}
+		if includeFrequencyEvidence {
+			if frequency := compactProjectedFrequencyEvidence(mapValue(track["frequency_evidence"])); len(frequency) > 0 {
+				row["frequency_evidence"] = frequency
+			}
 		}
 		if stereo := compactProjectedStereoRelation(mapValue(track["stereo_relation"])); len(stereo) > 0 {
 			row["stereo_relation"] = stereo
@@ -2919,6 +3839,30 @@ func compactProjectedTrackAcoustic(row map[string]any) map[string]any {
 	})
 }
 
+func compactProjectedStaticLevel(row map[string]any) map[string]any {
+	return compactKeys(row, []string{
+		"schema_version", "track_id", "status", "metric", "tap_point", "source_rms_dbfs",
+		"effective_static_rms_dbfs", "effective_static_peak_dbfs", "fader_db",
+		"included_clip_ids", "missing_clip_ids", "aggregation_method", "evidence_refs", "limitations",
+	})
+}
+
+func compactStaticLevelRelationshipInputs(row map[string]any) map[string]any {
+	if len(row) == 0 {
+		return nil
+	}
+	out := compactKeys(row, []string{"schema_version", "status", "project_cut_ref", "track_count", "usable_track_count", "ready_track_count", "evidence_refs", "limitations"})
+	tracks := mapRowsAny(row["tracks"])
+	compactTracks := make([]map[string]any, 0, len(tracks))
+	for _, track := range tracks {
+		if compact := compactProjectedStaticLevel(track); len(compact) > 0 {
+			compactTracks = append(compactTracks, compact)
+		}
+	}
+	out["tracks"] = compactTracks
+	return out
+}
+
 func compactProjectedBandEnergy(row map[string]any) map[string]any {
 	if len(row) == 0 {
 		return map[string]any{"status": "missing"}
@@ -2928,6 +3872,24 @@ func compactProjectedBandEnergy(row map[string]any) map[string]any {
 		out["bands"] = bands
 	}
 	return out
+}
+
+func compactProjectedFrequencyEvidence(row map[string]any) map[string]any {
+	if len(row) == 0 {
+		return map[string]any{"status": "missing"}
+	}
+	out := compactKeys(row, []string{"schema_version", "feature_type", "status", "reason", "source", "source_kind", "layer", "evidence_layer", "capture_mode", "tap_point", "render_mode", "capture_time", "time_basis", "quality_status", "quality_reason", "track_id", "clip_id", "request_id", "coverage_seconds", "coverage_ratio", "total_duration", "duration_seconds", "evidence_ref", "silence_confirmed", "silence_reason", "original_quality_status"})
+	if bands := mapValue(row["bands"]); len(bands) > 0 {
+		out["bands"] = bands
+	}
+	return out
+}
+
+func compactFrequencyRelationshipInputs(row map[string]any) map[string]any {
+	if len(row) == 0 {
+		return nil
+	}
+	return compactKeys(row, []string{"schema_version", "status", "track_count", "usable_track_count", "tap_points", "tracks", "decision_tracks_truncated"})
 }
 
 func compactProjectedStereoRelation(row map[string]any) map[string]any {

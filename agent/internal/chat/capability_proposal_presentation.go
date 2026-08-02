@@ -22,7 +22,7 @@ func staticBalanceProposalPresentation(proposal orchestration.Proposal, pack cap
 	presentation := &orchestration.ProposalPresentation{
 		SchemaVersion: orchestration.ProposalPresentationSchema,
 		ProposalID:    proposal.ID, ProposalRevision: proposal.Revision, CapabilityID: proposal.CapabilityID,
-		Title:      "B2 静态音量平衡方案",
+		Title:      "B2 静态主次与音量平衡方案",
 		Conclusion: fmt.Sprintf("已分析 %d 条轨道，推荐以 %s 策略调整 %d 条轨道。", result.AnalyzedTrackCount, candidate.Label, len(candidate.Actions)),
 		AnalysisSummary: []string{
 			fmt.Sprintf("角色覆盖 %.0f%%，有效电平覆盖 %.0f%%，可比较电平覆盖 %.0f%%。", coverage.RoleCoverage*100, coverage.EffectiveLevelCoverage*100, coverage.LevelCoverage*100),

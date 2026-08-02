@@ -1,11 +1,11 @@
 #Requires -Version 5.1
 <#
 .SYNOPSIS
-    Full end-to-end smoke test for natural-language EQ control.
+    Full end-to-end smoke test for ordinary-Agent semantic EQ control.
     Starts kernel + agent, creates a test project, loads TDR Nova,
-    then runs eq_nl_agent_smoke.py to verify that the natural-language
-    TDR Nova request (3400 Hz, -3 dB, Q 0.5) reaches
-    plugin_grabber.set_eq_point and succeeds end-to-end.
+    then runs eq_nl_agent_smoke.py to verify discussion-only routing plus
+    typed semantic action -> frozen Proposal -> confirmation -> governed
+    apply_eq_edits -> readback/verification for actionable listening goals.
 
 .EXAMPLE
     D:\Vit_DAW\scripts\run_eq_nl_agent_smoke.ps1 -RepoRoot D:\Vit_DAW
@@ -20,6 +20,7 @@ param(
     [string]$TdrNovaPath    = "C:\Program Files\Common Files\VST3\TDR Nova.vst3",
     [string]$TrackId        = "",
     [string]$PluginId       = "",
+    [string]$OutputDir      = "",
     [float]$TimeoutSec      = 120,
     [int]$WaitSeconds       = 30,
     [switch]$SkipBuild,
@@ -245,58 +246,29 @@ if ([string]::IsNullOrWhiteSpace($TargetTrackId) -or [string]::IsNullOrWhiteSpac
 }
 
 # ------------------------------------------------------------------
-# 5. Verify VPS via explain_controls
+# 5. Run the Python ordinary-Agent semantic EQ smoke script
 # ------------------------------------------------------------------
-Write-Step "Verify TDR Nova VPS"
-$ec = Invoke-Tool "plugin_grabber.explain_controls" -ToolArgs @{
-    track_id = $TargetTrackId; plugin_id = $TargetPluginId
-} -Confirmed $false
-$ecStatus = [string](Get-OptionalProperty $ec "status")
-if ($ecStatus -ne "ok") {
-    $ecErr = [string](Get-OptionalProperty $ec "error")
-    Fail "explain_controls failed: $ecStatus $ecErr"
-}
-$ecResult = Get-OptionalProperty $ec "result"
-$ecResultStatus = [string](Get-OptionalProperty $ecResult "status")
-if ($ecResultStatus -notin @("ok","success","")) {
-    Fail "explain_controls inner result failed: $ecResultStatus"
-}
-# virtual_controls is nested under runtime_profile by
-# plugingrabber.BuildContextPack (agent/internal/workflows/plugingrabber/context_pack.go),
-# not at the top level of the explain_controls result.
-$runtimeProfile = Get-OptionalProperty $ecResult "runtime_profile"
-$vcRaw = Get-OptionalProperty $runtimeProfile "virtual_controls"
-[array]$vcs = @()
-if ($null -ne $vcRaw) { [array]$vcs = @($vcRaw | Where-Object { $_ -ne $null }) }
-$globalApplied = [string](Get-OptionalProperty $ecResult "global_profile_applied")
-if ($vcs.Count -eq 0) {
-    Write-Warn ("No virtual_controls for track=$TargetTrackId plugin=$TargetPluginId. " +
-                "set_eq_point does not require a VPS profile — continuing.")
-} else {
-    $vcNames = ($vcs | ForEach-Object { [string](Get-OptionalProperty $_ "name") } | Where-Object { $_ }) -join ", "
-    Write-Ok "VPS info: $($vcs.Count) virtual controls present: $vcNames"
-}
-
-# ------------------------------------------------------------------
-# 6. Run the Python NL EQ smoke script
-# ------------------------------------------------------------------
-Write-Step "Run NL EQ control smoke (track=$TargetTrackId plugin=$TargetPluginId)"
+Write-Step "Run ordinary-Agent semantic EQ smoke (track=$TargetTrackId plugin=$TargetPluginId)"
 
 $pyScript = Join-Path $RepoRoot "scripts\eq_nl_agent_smoke.py"
 if (-not (Test-Path $pyScript)) { Fail "eq_nl_agent_smoke.py not found at $pyScript" }
+if ([string]::IsNullOrWhiteSpace($OutputDir)) {
+    $OutputDir = Join-Path ([IO.Path]::GetTempPath()) ("vit_semantic_eq_smoke_" + (Get-Date -Format "yyyyMMdd_HHmmss"))
+}
 
 & python $pyScript `
     --agent-http $AgentHttp `
     --track-id   $TargetTrackId `
     --plugin-id  $TargetPluginId `
     --plugin-name "TDR Nova" `
-    --timeout-sec ([int]$TimeoutSec)
+    --timeout-sec ([int]$TimeoutSec) `
+    --output-dir $OutputDir
 
 $exitCode = $LASTEXITCODE
 
 Write-Host ""
 if ($exitCode -eq 0) {
-    Write-Ok "NL EQ control smoke PASSED."
+    Write-Ok "ordinary-Agent semantic EQ smoke PASSED. Evidence: $OutputDir"
 } else {
-    Fail "NL EQ control smoke FAILED (exit $exitCode)"
+    Fail "ordinary-Agent semantic EQ smoke FAILED (exit $exitCode). Evidence: $OutputDir"
 }

@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Set
 
 
-EXPECTED_IMPORT_FEATURES_PER_CLIP = 1
+EXPECTED_IMPORT_FEATURES_PER_CLIP = 2
 
 
 def now_iso() -> str:
@@ -248,7 +248,7 @@ def run_probe(args: argparse.Namespace) -> int:
         if int(imported.get("analysis_jobs_queued") or 0) != readable_count * EXPECTED_IMPORT_FEATURES_PER_CLIP:
             raise RuntimeError(
                 "default stems import should queue "
-                f"{EXPECTED_IMPORT_FEATURES_PER_CLIP} lightweight analysis job per clip"
+                f"{EXPECTED_IMPORT_FEATURES_PER_CLIP} background analysis jobs per clip"
             )
         initial_analysis_job = require_analysis_job("training_stems_import_folder_as_stems", imported)
         if str(initial_analysis_job.get("analysis_queue_status", "")).lower() != "queued":
@@ -287,7 +287,7 @@ def run_probe(args: argparse.Namespace) -> int:
         if submitted_clips != 1 or submitted_feature_jobs != EXPECTED_IMPORT_FEATURES_PER_CLIP:
             raise RuntimeError(
                 "throttled analysis should submit exactly one clip / "
-                f"{EXPECTED_IMPORT_FEATURES_PER_CLIP} feature, got {submitted_clips}/{submitted_feature_jobs}"
+                f"{EXPECTED_IMPORT_FEATURES_PER_CLIP} features, got {submitted_clips}/{submitted_feature_jobs}"
             )
         if readable_count > 1 and str(throttled_job.get("analysis_queue_status", "")).lower() != "paused":
             raise RuntimeError("throttled analysis should pause after max_submit_clips rather than draining the full queue")

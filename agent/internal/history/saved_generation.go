@@ -40,6 +40,32 @@ type PreparedSave struct {
 	CommittedAt   time.Time `json:"committed_at,omitempty"`
 }
 
+// PreparedSaveWorkspace returns the immutable history workspace frozen by a
+// successful save-prepare. Project-package persistence uses this exact draft
+// boundary so the portable Agent state and the .vit file share one generation.
+func PreparedSaveWorkspace(projectPath, projectUUID, prepareID string) (string, error) {
+	prepareID = strings.TrimSpace(prepareID)
+	if prepareID == "" {
+		return "", errors.New("history save prepare_id is required")
+	}
+	repo, err := canonicalRepo(projectPath, projectUUID)
+	if err != nil {
+		return "", err
+	}
+	prepared := PreparedSave{}
+	path := filepath.Join(filepath.Dir(repo.HistoryDir), savePreparesDirName, safeName(prepareID), "prepare.json")
+	if err := readJSON(path, &prepared); err != nil {
+		return "", err
+	}
+	if prepared.Status != "prepared" || prepared.ProjectUUID != repo.ProjectUUID || !sameProjectPath(prepared.ProjectPath, repo.ProjectPath) {
+		return "", errors.New("history save prepare does not match project identity")
+	}
+	if !dirExists(prepared.WorkspaceDir) {
+		return "", errors.New("prepared history workspace is missing")
+	}
+	return prepared.WorkspaceDir, nil
+}
+
 func PrepareWorkingSessionSave(projectPath, projectUUID, saveKind string) (map[string]any, error) {
 	projectPath = BindProjectIdentity(projectPath, projectUUID)
 	if projectPath == "" || strings.TrimSpace(projectUUID) == "" {

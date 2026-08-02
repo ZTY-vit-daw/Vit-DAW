@@ -472,6 +472,7 @@ juce::Array<juce::var> normaliseClipArray (const juce::var& clipsVar, const juce
         copyPropertyIfPresent (*clip, *row, "active_take_id");
         copyPropertyIfPresent (*clip, *row, "ghost_state");
         copyPropertyIfPresent (*clip, *row, "current_source_path");
+        copyPropertyIfPresent (*clip, *row, "clip_state_revision");
         copyPropertyIfPresent (*clip, *row, "playback_source_valid");
 
         clips.add (juce::var (row.release()));
@@ -628,6 +629,7 @@ juce::Array<juce::var> normaliseTrackArray (const juce::var& tracksVar, bool use
         copyPropertyIfPresent (*track, *row, "fader_db");
         copyPropertyIfPresent (*track, *row, "pan");
         copyPropertyIfPresent (*track, *row, "pan_value");
+        copyPropertyIfPresent (*track, *row, "track_state_revision");
 
         const auto rack = normaliseRackState (track->getProperty ("rack"));
         if (rack.getDynamicObject() != nullptr)

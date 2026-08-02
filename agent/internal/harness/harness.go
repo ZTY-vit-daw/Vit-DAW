@@ -34,8 +34,12 @@ import (
 	"vit-daw-agent/internal/macrocontrols"
 	"vit-daw-agent/internal/mixboard"
 	"vit-daw-agent/internal/mom"
+	"vit-daw-agent/internal/orchestration"
 	"vit-daw-agent/internal/pluginsemantics"
 	"vit-daw-agent/internal/preview"
+	"vit-daw-agent/internal/projectcut"
+	"vit-daw-agent/internal/projectpackage"
+	"vit-daw-agent/internal/projectstore"
 	"vit-daw-agent/internal/projectworkspace"
 	"vit-daw-agent/internal/resourceintake"
 	"vit-daw-agent/internal/rollback"
@@ -51,17 +55,21 @@ import (
 )
 
 type Harness struct {
-	kernel        KernelSender
-	shadow        *shadow.Project
-	catalog       *tools.Catalog
-	journal       *journal.Journal
-	runtime       *agentruntime.Runtime
-	mixTicks      *mixTickStore
-	logger        *logx.Logger
-	snapshotCache *PluginSnapshotCache
-	featureMu     sync.Mutex
-	waveforms     map[string]*waveformFeatureCollector
-	spectrals     map[string]*spectralFeatureCollector
+	kernel          KernelSender
+	shadow          *shadow.Project
+	catalog         *tools.Catalog
+	journal         *journal.Journal
+	runtime         *agentruntime.Runtime
+	mixTicks        *mixTickStore
+	logger          *logx.Logger
+	snapshotCache   *PluginSnapshotCache
+	featureMu       sync.Mutex
+	projectStoreMu  sync.Mutex
+	projectStore    projectstore.Roots
+	journalOverride bool
+	waveforms       map[string]*waveformFeatureCollector
+	spectrals       map[string]*spectralFeatureCollector
+	l2ProbeCollect  func(context.Context, map[string]any, string, string, string) (map[string]any, map[string]any, error)
 }
 
 type KernelSender interface {
@@ -131,21 +139,25 @@ func NewWithSender(sender KernelSender, shadowProject *shadow.Project, logger *l
 }
 
 func newWithSender(sender KernelSender, shadowProject *shadow.Project, logger *logx.Logger) *Harness {
-	j, err := journal.NewPersistent(500, defaultJournalPath())
-	if err != nil {
-		j = journal.New(500)
+	journalPath := defaultJournalPath()
+	j := journal.New(500)
+	if journalPath != "" {
+		if persistent, err := journal.NewPersistent(500, journalPath); err == nil {
+			j = persistent
+		}
 	}
 	return &Harness{
-		kernel:        sender,
-		shadow:        shadowProject,
-		catalog:       tools.DefaultCatalog(),
-		journal:       j,
-		runtime:       agentruntime.New(),
-		mixTicks:      newMixTickStore(),
-		snapshotCache: NewPluginSnapshotCache(),
-		logger:        logger,
-		waveforms:     map[string]*waveformFeatureCollector{},
-		spectrals:     map[string]*spectralFeatureCollector{},
+		kernel:          sender,
+		shadow:          shadowProject,
+		catalog:         tools.DefaultCatalog(),
+		journal:         j,
+		runtime:         agentruntime.New(),
+		mixTicks:        newMixTickStore(),
+		snapshotCache:   NewPluginSnapshotCache(),
+		logger:          logger,
+		waveforms:       map[string]*waveformFeatureCollector{},
+		spectrals:       map[string]*spectralFeatureCollector{},
+		journalOverride: journalPath != "",
 	}
 }
 
@@ -156,22 +168,7 @@ func defaultJournalPath() string {
 		}
 		return envPath
 	}
-	wd, err := os.Getwd()
-	if err != nil {
-		return ""
-	}
-	for dir := wd; dir != ""; dir = filepath.Dir(dir) {
-		if filepath.Base(dir) == "agent" {
-			if _, err := os.Stat(filepath.Join(dir, "go.mod")); err == nil {
-				return filepath.Join(filepath.Dir(dir), "VitApp", "Workspace", "Logs", "agent_journal.json")
-			}
-		}
-		parent := filepath.Dir(dir)
-		if parent == dir {
-			break
-		}
-	}
-	return filepath.Join(wd, "VitApp", "Workspace", "Logs", "agent_journal.json")
+	return ""
 }
 
 func (h *Harness) Tools() []tools.Tool {
@@ -333,6 +330,36 @@ func (h *Harness) CurrentProjectIdentity(ctx context.Context) (string, string) {
 	}
 	_ = ctx
 	return projectPath, projectUUID
+}
+
+func (h *Harness) ActivateProjectStore(projectPath, projectUUID string) (projectstore.Roots, error) {
+	if h == nil {
+		return projectstore.Roots{}, errors.New("harness is nil")
+	}
+	roots, manifest, err := projectstore.Activate(projectPath, projectUUID)
+	if err != nil {
+		return projectstore.Roots{}, err
+	}
+	h.projectStoreMu.Lock()
+	defer h.projectStoreMu.Unlock()
+	sameStore := h.projectStore.ProjectUUID == roots.ProjectUUID && samePath(h.projectStore.ProjectPath, roots.ProjectPath)
+	if !sameStore && !h.journalOverride {
+		if h.journal == nil {
+			h.journal = journal.New(500)
+		}
+		if err := h.journal.RebindSharded(filepath.Join(roots.Agent, "journal"), roots.ProjectUUID); err != nil {
+			return projectstore.Roots{}, err
+		}
+		h.journal.SetShardLimits(manifest.Budgets.JournalShardMaxBytes, manifest.Budgets.JournalShardMaxRecords, manifest.Budgets.JournalMaxShards)
+	}
+	if !h.journalOverride && h.journal != nil {
+		h.journal.SetShardLimits(manifest.Budgets.JournalShardMaxBytes, manifest.Budgets.JournalShardMaxRecords, manifest.Budgets.JournalMaxShards)
+	}
+	h.projectStore = roots
+	if !sameStore {
+		_, _ = projectstore.Recalibrate(roots)
+	}
+	return roots, nil
 }
 
 func (h *Harness) CurrentProjectParentUUID() string {
@@ -592,9 +619,12 @@ func (h *Harness) Invoke(ctx context.Context, req InvokeRequest) (resp InvokeRes
 		Status:               journal.StatusRunning,
 		UndoLabel:            undoLabel,
 	}
+	deferForkJournal := spec.CommandName == "save_as_project" || spec.CommandName == "save_as_folder"
 	if needsConfirmation {
 		action.Status = journal.StatusPendingConfirmation
-		h.journal.Record(action)
+		if !deferForkJournal {
+			h.journal.Record(action)
+		}
 		preview := PreviewCommand(spec, cmd)
 		if shouldAutoGoalBaseline(spec) && goalID != "" {
 			preview = "\u786e\u8ba4\u540e\uff0cVitAgent \u4f1a\u5148\u521b\u5efa\u4e00\u4e2a\u9879\u76ee\u5386\u53f2\u5b89\u5168\u68c0\u67e5\u70b9\u3002\n" + preview
@@ -616,7 +646,9 @@ func (h *Harness) Invoke(ctx context.Context, req InvokeRequest) (resp InvokeRes
 	if baselineID, err := h.ensureProjectHistoryBaseline(ctx, spec, cmd, goalID, runID); err != nil {
 		action.Status = journal.StatusFailed
 		action.Error = err.Error()
-		h.journal.Record(action)
+		if !deferForkJournal {
+			h.journal.Record(action)
+		}
 		resp := InvokeResponse{
 			Status:               "error",
 			AgentActionID:        actionID,
@@ -633,11 +665,15 @@ func (h *Harness) Invoke(ctx context.Context, req InvokeRequest) (resp InvokeRes
 		action.VersionCommitID = baselineID
 	}
 
-	h.journal.Record(action)
+	if !deferForkJournal {
+		h.journal.Record(action)
+	}
 	if result, ok := h.invokeLocal(ctx, spec, cmd, req.Context); ok {
 		if strings.EqualFold(strings.TrimSpace(fmt.Sprint(result["status"])), "error") {
 			err := fmt.Errorf("%s", firstNonEmpty(fmt.Sprint(result["error"]), "local tool failed"))
-			h.journal.MarkResult(actionID, journal.StatusFailed, result, err)
+			if !deferForkJournal {
+				h.journal.MarkResult(actionID, journal.StatusFailed, result, err)
+			}
 			resp := InvokeResponse{
 				Status:               "error",
 				AgentActionID:        actionID,
@@ -652,7 +688,11 @@ func (h *Harness) Invoke(ctx context.Context, req InvokeRequest) (resp InvokeRes
 			}
 			return resp, err
 		}
-		h.journal.MarkResult(actionID, journal.StatusSucceeded, result, nil)
+		if deferForkJournal {
+			_ = h.persistDeferredForkAction(action, journal.StatusSucceeded, result, nil)
+		} else {
+			h.journal.MarkResult(actionID, journal.StatusSucceeded, result, nil)
+		}
 		resp := InvokeResponse{
 			Status:               "ok",
 			AgentActionID:        actionID,
@@ -668,7 +708,9 @@ func (h *Harness) Invoke(ctx context.Context, req InvokeRequest) (resp InvokeRes
 	}
 	if h.kernel == nil {
 		err := fmt.Errorf("kernel client is nil")
-		h.journal.MarkResult(actionID, journal.StatusFailed, nil, err)
+		if !deferForkJournal {
+			h.journal.MarkResult(actionID, journal.StatusFailed, nil, err)
+		}
 		resp := InvokeResponse{
 			Status:         "error",
 			AgentActionID:  actionID,
@@ -683,7 +725,9 @@ func (h *Harness) Invoke(ctx context.Context, req InvokeRequest) (resp InvokeRes
 	}
 
 	if err := h.prepareProjectLifecycleCommand(spec, cmd); err != nil {
-		h.journal.MarkResult(actionID, journal.StatusFailed, nil, err)
+		if !deferForkJournal {
+			h.journal.MarkResult(actionID, journal.StatusFailed, nil, err)
+		}
 		return InvokeResponse{
 			Status: "error", AgentActionID: actionID, Tool: spec.ToolName,
 			CommandName: spec.CommandName, RiskLevel: spec.RiskLevel,
@@ -700,7 +744,9 @@ func (h *Harness) Invoke(ctx context.Context, req InvokeRequest) (resp InvokeRes
 			time.Since(kernelStarted).Milliseconds(), spec.CommandName, spec.ToolName, req.Confirmed, err != nil)
 	}
 	if err != nil {
-		h.journal.MarkResult(actionID, journal.StatusFailed, nil, err)
+		if !deferForkJournal {
+			h.journal.MarkResult(actionID, journal.StatusFailed, nil, err)
+		}
 		resp := InvokeResponse{
 			Status:         "error",
 			AgentActionID:  actionID,
@@ -717,6 +763,12 @@ func (h *Harness) Invoke(ctx context.Context, req InvokeRequest) (resp InvokeRes
 		if recovered, recoverErr := h.recoverAudioAnalysisManifest(ctx); recoverErr == nil {
 			reply = recovered
 			execution.reply = recovered
+		} else if missing, ok := recoverableMissingLatestAudioAnalysisStatus(cmd, reply); ok {
+			// A latest-status probe is also the discovery step for B1 recovery.
+			// No in-memory job after a Kernel restart is an observable empty state,
+			// not a failed tool execution. Explicit stale job IDs remain errors.
+			reply = missing
+			execution.reply = missing
 		}
 	}
 
@@ -727,15 +779,22 @@ func (h *Harness) Invoke(ctx context.Context, req InvokeRequest) (resp InvokeRes
 		journalStatus = journal.StatusFailed
 		err = fmt.Errorf("%s", firstNonEmpty(fmt.Sprint(reply["message"]), fmt.Sprint(reply["error"]), "kernel command failed"))
 	}
-	h.journal.MarkResult(actionID, journalStatus, reply, err)
+	if !deferForkJournal {
+		h.journal.MarkResult(actionID, journalStatus, reply, err)
+	}
 	result := h.publicResult(spec, cmd, reply)
 	attachVSPExecutionResult(result, execution.vsp)
+	var lifecycleErr error
 	if status == "ok" {
 		if workspace, workspaceErr := h.applyProjectLifecycle(ctx, spec, cmd, result); workspaceErr != nil {
+			lifecycleErr = workspaceErr
 			result["project_workspace_warning"] = workspaceErr.Error()
 		} else if len(workspace) > 0 {
 			result["project_workspace"] = workspace
 		}
+	}
+	if deferForkJournal && status == "ok" && lifecycleErr == nil {
+		_ = h.persistDeferredForkAction(action, journalStatus, result, err)
 	}
 	resp = InvokeResponse{
 		Status:               status,
@@ -754,6 +813,46 @@ func (h *Harness) Invoke(ctx context.Context, req InvokeRequest) (resp InvokeRes
 	return resp, err
 }
 
+// persistDeferredForkAction writes the completed audit record only after the
+// new project store exists. This keeps Save As and folder export from mutating
+// the source project's journal while still making the action auditable in the
+// newly created project.
+func (h *Harness) persistDeferredForkAction(action journal.Action, status journal.ActionStatus, result map[string]any, actionErr error) error {
+	action.Status = status
+	action.Result = cloneAnyMap(result)
+	if actionErr != nil {
+		action.Error = actionErr.Error()
+	}
+	if action.CommandName == "save_as_folder" {
+		targetPath := firstString(result, "project_path", "current_project_path")
+		targetUUID := firstString(result, "project_uuid", "project_id")
+		roots, err := projectstore.Resolve(targetPath, targetUUID)
+		if err != nil {
+			return err
+		}
+		manifest, err := projectstore.Load(roots)
+		if err != nil {
+			return err
+		}
+		forkJournal, err := journal.NewSharded(500, filepath.Join(roots.Agent, "journal"), roots.ProjectUUID)
+		if err != nil {
+			return err
+		}
+		forkJournal.SetShardLimits(manifest.Budgets.JournalShardMaxBytes, manifest.Budgets.JournalShardMaxRecords, manifest.Budgets.JournalMaxShards)
+		forkJournal.Record(action)
+		_, _ = projectstore.Recalibrate(roots)
+		return nil
+	}
+	if h == nil || h.journal == nil {
+		return errors.New("target journal is unavailable")
+	}
+	h.journal.Record(action)
+	if roots, ok := projectstore.Current(); ok {
+		_, _ = projectstore.Recalibrate(roots)
+	}
+	return nil
+}
+
 func (h *Harness) prepareProjectLifecycleCommand(spec tools.CommandSpec, cmd map[string]any) error {
 	if h == nil || cmd == nil {
 		return nil
@@ -770,6 +869,7 @@ func (h *Harness) prepareProjectLifecycleCommand(spec tools.CommandSpec, cmd map
 		if projectUUID != "" {
 			cmd["source_project_uuid"] = projectUUID
 		}
+		ensureAppBoundVitSaveCommand(cmd, projectPath)
 		saveKind := "save"
 		if spec.CommandName == "save_as_project" {
 			saveKind = "save_as"
@@ -780,8 +880,25 @@ func (h *Harness) prepareProjectLifecycleCommand(spec tools.CommandSpec, cmd map
 		}
 		cmd["history_prepare_id"] = firstString(prepared, "prepare_id")
 		cmd["agent_history_generation"] = firstString(prepared, "agent_history_generation", "generation_id")
+		if roots, ok := projectstore.Current(); !ok || roots.ProjectUUID != projectstore.SafeName(projectUUID) || !samePath(roots.ProjectPath, projectPath) {
+			_, _ = h.ActivateProjectStore(projectPath, projectUUID)
+		}
 	}
 	return nil
+}
+
+func ensureAppBoundVitSaveCommand(cmd map[string]any, currentProjectPath string) {
+	if cmd == nil {
+		return
+	}
+	targetPath := firstNonEmpty(firstString(cmd, "file_path", "project_path"), strings.TrimSpace(currentProjectPath))
+	if !strings.EqualFold(filepath.Ext(targetPath), ".vit") {
+		return
+	}
+	cmd["file_path"] = targetPath
+	if _, exists := cmd["encryption"]; !exists {
+		cmd["encryption"] = map[string]any{"mode": "app_bound_aes"}
+	}
 }
 
 func (h *Harness) applyProjectLifecycle(ctx context.Context, spec tools.CommandSpec, cmd, result map[string]any) (map[string]any, error) {
@@ -815,6 +932,11 @@ func (h *Harness) applyProjectLifecycle(ctx context.Context, spec tools.CommandS
 		if _, err := history.EnsureWorkingSession(projectPath, projectUUID); err != nil {
 			return nil, err
 		}
+		if projectUUID != "" {
+			if _, err := h.ActivateProjectStore(projectPath, projectUUID); err != nil {
+				return nil, err
+			}
+		}
 		return history.Status(map[string]any{"project_path": projectPath})
 	case "open":
 		// The command path is the authoritative host input. Some legacy kernel
@@ -825,6 +947,14 @@ func (h *Harness) applyProjectLifecycle(ctx context.Context, spec tools.CommandS
 		}
 		parentUUID := firstString(result, "parent_project_uuid")
 		generationID := firstString(result, "agent_history_generation", "history_generation")
+		packageRestore, packageErr := restoreProjectPersistence(projectPath, projectUUID)
+		if packageErr != nil {
+			return nil, packageErr
+		}
+		historySnapshotRecovery, historyRecoveryErr := recoverMatchingHistoryOnOpen(projectPath, projectUUID, packageRestore)
+		if historyRecoveryErr != nil {
+			return nil, historyRecoveryErr
+		}
 		recovered, err := history.RecoverPreparedSaveOnOpen(
 			projectPath, projectUUID, firstString(result, "source_project_path"), parentUUID,
 			generationID, firstString(result, "history_prepare_id"),
@@ -841,27 +971,47 @@ func (h *Harness) applyProjectLifecycle(ctx context.Context, spec tools.CommandS
 		if _, err := history.OpenWorkingSessionAtGeneration(projectPath, projectUUID, generationID); err != nil {
 			return nil, err
 		}
-		return history.Status(map[string]any{"project_path": projectPath})
+		if _, err := h.ActivateProjectStore(projectPath, projectUUID); err != nil {
+			return nil, err
+		}
+		workspace, err := history.Status(map[string]any{"project_path": projectPath})
+		if workspace != nil {
+			workspace["project_package_restore"] = packageRestore
+			if boolValueDefault(historySnapshotRecovery["recovered"], false) {
+				workspace["project_history_snapshot_recovery"] = historySnapshotRecovery
+			}
+			if projectPackageNeedsBackgroundMigration(packageRestore) {
+				workspace["project_package_migration"] = "scheduled"
+				h.scheduleLegacyProjectPackageMigration(projectPath, projectUUID)
+			}
+		}
+		return workspace, err
 	case "save":
 		if projectPath == "" || projectUUID == "" {
 			return nil, errors.New("project lifecycle reply omitted project path or UUID")
 		}
-		return history.CommitPreparedWorkingSession(
+		prepareID := firstNonEmpty(firstString(result, "history_prepare_id"), firstString(cmd, "history_prepare_id"))
+		generationID := firstNonEmpty(firstString(result, "agent_history_generation", "history_generation"), firstString(cmd, "agent_history_generation"))
+		workspace, err := history.CommitPreparedWorkingSession(
 			projectPath, projectUUID, projectPath, projectUUID,
-			firstNonEmpty(firstString(result, "history_prepare_id"), firstString(cmd, "history_prepare_id")),
-			firstNonEmpty(firstString(result, "agent_history_generation", "history_generation"), firstString(cmd, "agent_history_generation")),
+			prepareID, generationID,
 			"save",
 		)
+		if err != nil {
+			return workspace, err
+		}
+		return workspace, nil
 	case "save_as":
 		sourcePath := firstString(cmd, "source_project_path")
 		sourceUUID := firstNonEmpty(firstString(result, "source_project_uuid"), firstString(cmd, "source_project_uuid"))
 		if sourcePath == "" || sourceUUID == "" || projectPath == "" || projectUUID == "" {
 			return nil, errors.New("save as lifecycle omitted source/target project identity")
 		}
+		prepareID := firstNonEmpty(firstString(result, "history_prepare_id"), firstString(cmd, "history_prepare_id"))
+		generationID := firstNonEmpty(firstString(result, "agent_history_generation", "history_generation"), firstString(cmd, "agent_history_generation"))
 		workspace, err := history.CommitPreparedWorkingSession(
 			sourcePath, sourceUUID, projectPath, projectUUID,
-			firstNonEmpty(firstString(result, "history_prepare_id"), firstString(cmd, "history_prepare_id")),
-			firstNonEmpty(firstString(result, "agent_history_generation", "history_generation"), firstString(cmd, "agent_history_generation")),
+			prepareID, generationID,
 			"save_as",
 		)
 		if err != nil {
@@ -874,10 +1024,63 @@ func (h *Harness) applyProjectLifecycle(ctx context.Context, spec tools.CommandS
 			workspace["derived_dir"] = derivedDir
 			workspace["forked_derived"] = true
 		}
+		agentDir, agentErr := projectstore.ForkAgentStore(sourcePath, sourceUUID, projectPath, projectUUID)
+		if agentErr != nil {
+			return workspace, agentErr
+		}
+		workspace["agent_store_dir"] = agentDir
+		workspace["forked_agent_store"] = true
+		if _, activateErr := h.ActivateProjectStore(projectPath, projectUUID); activateErr != nil {
+			return workspace, activateErr
+		}
 		return workspace, nil
 	default:
 		return nil, nil
 	}
+}
+
+func prepareProjectPackage(projectPath, projectUUID, saveKind string, historyPrepared map[string]any) (projectpackage.Prepared, error) {
+	prepareID := firstString(historyPrepared, "prepare_id")
+	generationID := firstString(historyPrepared, "agent_history_generation", "generation_id")
+	workspace, err := history.PreparedSaveWorkspace(projectPath, projectUUID, prepareID)
+	if err != nil {
+		return projectpackage.Prepared{}, err
+	}
+	return projectpackage.Prepare(projectpackage.PrepareOptions{
+		ProjectPath: projectPath, ProjectUUID: projectUUID, PrepareID: prepareID,
+		GenerationID: generationID, SaveKind: saveKind, HistoryWorkspace: workspace,
+	})
+}
+
+func attachCommittedProjectPackage(workspace map[string]any, opts projectpackage.CommitOptions) (map[string]any, error) {
+	if workspace == nil {
+		workspace = map[string]any{}
+	}
+	manifest, path, err := projectpackage.Commit(opts)
+	if errors.Is(err, os.ErrNotExist) {
+		// Compatibility for a save prepared by an older Agent (or a recovered
+		// history-only client): create the package from the just-committed target
+		// workspace, then commit it under the same generation identity.
+		historyWorkspace := filepath.Join(filepath.Dir(opts.TargetPath), history.DirName, opts.TargetUUID)
+		_, prepareErr := projectpackage.Prepare(projectpackage.PrepareOptions{
+			ProjectPath: opts.SourcePath, ProjectUUID: opts.SourceUUID,
+			OriginProjectUUID: opts.SourceUUID, PrepareID: opts.PrepareID,
+			GenerationID: opts.GenerationID, SaveKind: opts.SaveKind,
+			HistoryWorkspace: historyWorkspace,
+		})
+		if prepareErr == nil {
+			manifest, path, err = projectpackage.Commit(opts)
+		} else {
+			err = prepareErr
+		}
+	}
+	if err != nil {
+		return workspace, err
+	}
+	workspace["project_package_committed"] = true
+	workspace["project_package_path"] = path
+	workspace["project_package_manifest"] = manifest
+	return workspace, nil
 }
 
 func (h *Harness) logPreJournalInvokeFailure(stage string, req InvokeRequest, spec tools.CommandSpec, cmd map[string]any, err error) {
@@ -1071,9 +1274,15 @@ func (h *Harness) executeKernelCommandVSP(ctx context.Context, vsp VSPKernelSend
 }
 
 func (h *Harness) afterKernelReplyVSP(ctx context.Context, spec tools.CommandSpec, reply map[string]any, observed *kernel.VSPStateResult) {
-	_ = ctx
 	if !kernelReplySucceeded(reply) {
 		return
+	}
+	// Keep VSP and legacy command paths persistence-equivalent. The Kernel job
+	// registry is intentionally runtime-only; the ready DAD rows belong to the
+	// project's canonical .vit_derived root so reopen and folder export can
+	// restore evidence without replaying analysis.
+	if spec.CommandName == "project.audio_analysis_status" || spec.CommandName == "project.audio_analysis_start" {
+		h.persistAudioAnalysisManifest(ctx, reply)
 	}
 	if spec.CommandName == "get_plugin_parameters" || spec.CommandName == "plugin_grabber_explain_controls" {
 		h.ObservePluginParametersReply(reply)
@@ -1256,8 +1465,37 @@ func attachVSPExecutionResult(result map[string]any, vsp map[string]any) {
 	}
 }
 
+const semanticPluginSelectionAuthorizationContextKey = "__vit_internal_semantic_plugin_selection_authorization"
+
+// semanticPluginSelectionAuthorization is deliberately unexported and stored
+// as a concrete Go value. JSON callers cannot manufacture it: only the chat
+// server can attach one after it has verified a pending target-3 selection
+// against the single rack_add_node command that is about to execute.
+type semanticPluginSelectionAuthorization struct {
+	TrackID          string
+	PluginPath       string
+	PluginIdentifier string
+}
+
+// AuthorizeSemanticPluginSelectionLoad returns an execution-only context for
+// one exact plug-in load selected through the governed recommendation flow.
+// It grants no authority to learn profiles, write parameters, or run another
+// mutation command.
+func AuthorizeSemanticPluginSelectionLoad(requestContext map[string]any, trackID, pluginPath, pluginIdentifier string) map[string]any {
+	out := cloneAnyMap(requestContext)
+	out[semanticPluginSelectionAuthorizationContextKey] = semanticPluginSelectionAuthorization{
+		TrackID:          strings.TrimSpace(trackID),
+		PluginPath:       strings.TrimSpace(pluginPath),
+		PluginIdentifier: strings.TrimSpace(pluginIdentifier),
+	}
+	return out
+}
+
 func broadMixObserveFirstWriteGuard(requestContext map[string]any, spec tools.CommandSpec, cmd map[string]any) error {
 	if !broadMixWriteCommand(spec, cmd) {
+		return nil
+	}
+	if qualifiedSemanticPluginSelectionLoad(requestContext, spec, cmd) {
 		return nil
 	}
 	userText := broadMixGuardUserText(requestContext)
@@ -1266,6 +1504,26 @@ func broadMixObserveFirstWriteGuard(requestContext map[string]any, spec tools.Co
 		return nil
 	}
 	return fmt.Errorf("ordinary acoustic mixing requests must run mix.request_observation and receive a concrete observation before loading plugins, learning plugin profiles, changing volume, applying controls, or writing parameters")
+}
+
+func qualifiedSemanticPluginSelectionLoad(requestContext map[string]any, spec tools.CommandSpec, cmd map[string]any) bool {
+	authorization, ok := requestContext[semanticPluginSelectionAuthorizationContextKey].(semanticPluginSelectionAuthorization)
+	if !ok || authorization.TrackID == "" || authorization.PluginPath == "" {
+		return false
+	}
+	name := strings.ToLower(strings.TrimSpace(firstNonEmpty(spec.CommandName, tools.CommandName(cmd), fmt.Sprint(cmd["tool"]))))
+	if name != "rack_add_node" && name != "rack.add_node" && name != "plugin.load_to_rack" {
+		return false
+	}
+	if strings.TrimSpace(firstString(cmd, "track_id", "target_track_id", "selected_track_id")) != authorization.TrackID ||
+		!strings.EqualFold(strings.TrimSpace(firstString(cmd, "plugin_path", "path", "file_path")), authorization.PluginPath) {
+		return false
+	}
+	actualIdentifier := strings.TrimSpace(firstString(cmd, "plugin_identifier", "identifier", "file_or_identifier"))
+	if authorization.PluginIdentifier != "" && !strings.EqualFold(actualIdentifier, authorization.PluginIdentifier) {
+		return false
+	}
+	return true
 }
 
 func broadMixWriteCommand(spec tools.CommandSpec, cmd map[string]any) bool {
@@ -1459,6 +1717,9 @@ func (h *Harness) invokeLocal(ctx context.Context, spec tools.CommandSpec, cmd m
 		return map[string]any{"goal": goal}, true
 	case "project_snapshot_export":
 		return h.projectSnapshotExportCompat(cmd), true
+	case "save_as_folder":
+		result, err := h.saveAsFolder(ctx, cmd)
+		return resultWithErr(result, err), true
 	case "mix_observe", "mix_request_observation":
 		result, err := h.requestMixObservation(ctx, cmd)
 		return resultWithErr(result, err), true
@@ -1467,6 +1728,9 @@ func (h *Harness) invokeLocal(ctx context.Context, spec tools.CommandSpec, cmd m
 		return resultWithErr(result, err), true
 	case "mix_derive":
 		result, err := h.deriveMixObservation(cmd)
+		return resultWithErr(result, err), true
+	case "mix_report":
+		result, err := h.requestMixReport(ctx, cmd)
 		return resultWithErr(result, err), true
 	case "mix_propose_tick":
 		result, err := h.proposeMixTick(ctx, cmd)
@@ -1679,7 +1943,15 @@ func (h *Harness) invokeLocal(ctx context.Context, spec tools.CommandSpec, cmd m
 		if projectPath == "" || projectUUID == "" {
 			projectPath, projectUUID = h.CurrentProjectIdentity(ctx)
 		}
-		result, err := history.PrepareWorkingSessionSave(projectPath, projectUUID, firstString(cmd, "save_kind"))
+		if projectPath == "" || projectUUID == "" {
+			h.refreshShadow(ctx, "version_project_save_prepare_identity")
+			projectPath, projectUUID = h.CurrentProjectIdentity(ctx)
+		}
+		saveKind := firstString(cmd, "save_kind")
+		result, err := history.PrepareWorkingSessionSave(projectPath, projectUUID, saveKind)
+		if err == nil {
+			_, _ = h.ActivateProjectStore(projectPath, projectUUID)
+		}
 		return resultWithErr(result, err), true
 	case "version_project_saved":
 		result, err := h.applyExternalProjectSaved(ctx, cmd)
@@ -1705,6 +1977,9 @@ func (h *Harness) applyExternalProjectNew(ctx context.Context, cmd map[string]an
 		if _, err := history.EnsureWorkingSession(projectPath, projectUUID); err != nil {
 			return result, err
 		}
+		if _, err := h.ActivateProjectStore(projectPath, projectUUID); err != nil {
+			return result, err
+		}
 		result, err = history.Status(map[string]any{"project_path": projectPath})
 		if err != nil {
 			return result, err
@@ -1720,6 +1995,14 @@ func (h *Harness) applyExternalProjectOpened(ctx context.Context, cmd map[string
 	projectUUID := firstString(cmd, "project_uuid", "project_id")
 	if projectPath == "" || projectUUID == "" {
 		return nil, errors.New("external project open notification omitted project path or UUID")
+	}
+	packageRestore, packageErr := restoreProjectPersistence(projectPath, projectUUID)
+	if packageErr != nil {
+		return nil, packageErr
+	}
+	historySnapshotRecovery, historyRecoveryErr := recoverMatchingHistoryOnOpen(projectPath, projectUUID, packageRestore)
+	if historyRecoveryErr != nil {
+		return nil, historyRecoveryErr
 	}
 	parentUUID := firstString(cmd, "parent_project_uuid")
 	generationID := firstString(cmd, "agent_history_generation", "history_generation")
@@ -1739,6 +2022,9 @@ func (h *Harness) applyExternalProjectOpened(ctx context.Context, cmd map[string
 	if _, err := history.OpenWorkingSessionAtGeneration(projectPath, projectUUID, generationID); err != nil {
 		return nil, err
 	}
+	if _, err := h.ActivateProjectStore(projectPath, projectUUID); err != nil {
+		return nil, err
+	}
 	result, err := history.Status(map[string]any{"project_path": projectPath})
 	if err != nil {
 		return nil, err
@@ -1747,8 +2033,89 @@ func (h *Harness) applyExternalProjectOpened(ctx context.Context, cmd map[string
 	if boolValueDefault(recovered["recovered"], false) {
 		result["prepared_save_recovery"] = recovered
 	}
+	result["project_package_restore"] = packageRestore
+	if boolValueDefault(historySnapshotRecovery["recovered"], false) {
+		result["project_history_snapshot_recovery"] = historySnapshotRecovery
+	}
 	result["refresh"] = h.refreshShadowWithStatus(ctx, "version_project_opened")
+	if projectPackageNeedsBackgroundMigration(packageRestore) {
+		result["project_package_migration"] = "scheduled"
+		h.scheduleLegacyProjectPackageMigration(projectPath, projectUUID)
+	}
 	return result, nil
+}
+
+func recoverMatchingHistoryOnOpen(projectPath, projectUUID string, restored projectpackage.RestoreResult) (map[string]any, error) {
+	if restored.Status == "v2" || restored.Status == "ok" {
+		return map[string]any{"status": "ok", "recovered": false, "reason": "project_package_available"}, nil
+	}
+	return history.RecoverMatchingProjectHistory(projectPath, projectUUID)
+}
+
+// restoreProjectPersistence keeps the v2 store authoritative once its
+// manifest exists. The legacy .vit_project package remains a read-only
+// compatibility source for projects that have not yet acquired v2 roots.
+func restoreProjectPersistence(projectPath, projectUUID string) (projectpackage.RestoreResult, error) {
+	roots, err := projectstore.Resolve(projectPath, projectUUID)
+	if err != nil {
+		return projectpackage.RestoreResult{}, err
+	}
+	if _, statErr := os.Stat(filepath.Join(roots.Agent, projectstore.ManifestFile)); statErr == nil {
+		if _, loadErr := projectstore.Load(roots); loadErr != nil {
+			return projectpackage.RestoreResult{}, loadErr
+		}
+		return projectpackage.RestoreResult{
+			Status: "v2", PackagePath: roots.Agent, ManifestVerified: true,
+			Reason: "agent_store_v2_authoritative",
+		}, nil
+	} else if !os.IsNotExist(statErr) {
+		return projectpackage.RestoreResult{}, statErr
+	}
+	return projectpackage.InspectLegacy(projectPath, projectUUID)
+}
+
+func projectPackageNeedsBackgroundMigration(restored projectpackage.RestoreResult) bool {
+	switch restored.Status {
+	case "v2":
+		return false
+	case "ok":
+		return restored.AcousticPackagesRestored == 0
+	default:
+		return true
+	}
+}
+
+// Legacy projects are migrated at project-open time. This starts the existing
+// throttled kernel analysis queue and returns immediately; C1 readiness remains
+// a read-only consumer and never becomes an implicit measurement trigger.
+func (h *Harness) scheduleLegacyProjectPackageMigration(projectPath, projectUUID string) {
+	if h == nil || h.kernel == nil {
+		return
+	}
+	go func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+		currentPath, currentUUID := h.CurrentProjectIdentity(ctx)
+		if !samePath(currentPath, projectPath) || !strings.EqualFold(currentUUID, projectUUID) {
+			return
+		}
+		command := map[string]any{
+			"cmd": "project.audio_analysis_start", "retry_missing": true,
+			"rebuild_from_project": true, "interval_ms": 50,
+			"migration_source": "project_package_open",
+		}
+		reply, _, err := h.kernel.SendCommand(ctx, command)
+		if err != nil || !kernelReplySucceeded(reply) {
+			if h.logger != nil {
+				h.logger.Warn("[project_package] legacy background migration start failed project=%s uuid=%s error=%v reply=%v", projectPath, projectUUID, err, reply)
+			}
+			return
+		}
+		h.persistAudioAnalysisManifest(ctx, reply)
+		if h.logger != nil {
+			h.logger.Info("[project_package] legacy background migration scheduled project=%s uuid=%s job=%s", projectPath, projectUUID, firstString(reply, "analysis_job_id", "job_id"))
+		}
+	}()
 }
 
 func (h *Harness) applyExternalProjectSaved(ctx context.Context, cmd map[string]any) (map[string]any, error) {
@@ -1778,6 +2145,15 @@ func (h *Harness) applyExternalProjectSaved(ctx context.Context, cmd map[string]
 			} else if derivedDir != "" {
 				result["derived_dir"] = derivedDir
 				result["forked_derived"] = true
+			}
+			if agentDir, agentErr := projectstore.ForkAgentStore(sourcePath, sourceUUID, targetPath, targetUUID); agentErr != nil {
+				err = agentErr
+			} else {
+				result["agent_store_dir"] = agentDir
+				result["forked_agent_store"] = true
+			}
+			if err == nil {
+				_, err = h.ActivateProjectStore(targetPath, targetUUID)
 			}
 		}
 	} else {
@@ -2197,6 +2573,7 @@ func (h *Harness) requestMixObservation(ctx context.Context, cmd map[string]any)
 			}
 		}
 	}
+	cmd = mixObservationCommandWithLiveProjectIdentity(cmd, state)
 	explicitSourceIdentityArgs := map[string]any(nil)
 	if mixObservationHasExplicitSourceIdentity(cmd) {
 		explicitSourceIdentityArgs = cloneAnyMap(cmd)
@@ -2393,12 +2770,17 @@ func (h *Harness) requestMixObservationL2RenderProbe(ctx context.Context, cmd ma
 			kernelCmd[key] = value
 		}
 	}
-	row, reply, err := h.collectMixObservationL2RenderProbe(ctx, kernelCmd, requestID, trackID, clipID)
+	collector := h.l2ProbeCollect
+	if collector == nil {
+		collector = h.collectMixObservationL2RenderProbe
+	}
+	row, reply, err := collector(ctx, kernelCmd, requestID, trackID, clipID)
 	if err != nil {
 		packet["status"] = "requested"
 		packet["reason"] = err.Error()
 	} else if len(row) > 0 {
 		row = stampMixboardFeatureRowIdentity(row, packet, resolved)
+		row["track_state_fingerprint"] = mixObservationTrackStateFingerprint(state, trackID)
 		writeMixboardReadyL2RenderProbeSnapshot(cmd, packet, row)
 		packet["status"] = firstNonEmpty(firstString(row, "status"), "ready")
 		packet["render_revision"] = firstString(row, "render_revision")
@@ -2551,7 +2933,7 @@ func mixObservationReadyGateApplies(cmd map[string]any, intent string) bool {
 
 func mixObservationReadyGateRequiredFeatures(intent string) []string {
 	switch intent {
-	case mom.IntentABResultObservation, mom.IntentProjectMultitrackObservation:
+	case mom.IntentABResultObservation, mom.IntentProjectMultitrackObservation, mom.IntentProjectFrequencyObservation:
 		return nil
 	default:
 		return []string{"band_energy_summary", "stereo_relation_summary", "loudness_summary"}
@@ -2688,7 +3070,7 @@ func (h *Harness) ingestKernelWaveformTelemetry(event map[string]any) {
 		return
 	}
 	target := kernelFeatureMaterializerTarget(event, trackID, clipID)
-	packet := kernelFeatureMaterializerPacket(event, target)
+	packet := h.kernelFeatureMaterializerPacket(event, target)
 	row["source"] = "kernel_prepared_telemetry"
 	writeMixboardReadyProjectTrackWaveformSnapshot(nil, packet, row)
 }
@@ -2714,7 +3096,7 @@ func (h *Harness) ingestKernelSpectralTelemetry(event map[string]any) {
 		return
 	}
 	target := kernelFeatureMaterializerTarget(event, trackID, clipID)
-	packet := kernelFeatureMaterializerPacket(event, target)
+	packet := h.kernelFeatureMaterializerPacket(event, target)
 	row["source"] = firstNonEmpty(firstString(row, "source"), "kernel_tile_ready_direct_collector")
 	row["materialized_by"] = "kernel_prepared_telemetry"
 	writeMixboardReadySpectralSnapshot(nil, packet, row)
@@ -2744,13 +3126,39 @@ func (h *Harness) ingestKernelL3AcousticTelemetry(event map[string]any) {
 	row["source"] = firstNonEmpty(firstString(row, "source"), "kernel_l3_offline_analyzer")
 	row["materialized_by"] = "kernel_prepared_l3_telemetry"
 	target := kernelFeatureMaterializerTarget(event, trackID, clipID)
-	packet := kernelFeatureMaterializerPacket(event, target)
+	packet := h.kernelFeatureMaterializerPacket(event, target)
+	projectID := firstString(packet, "project_id", "project_uuid")
+	if projectID != "" && !strings.EqualFold(projectID, "current") {
+		row["project_id"] = projectID
+		row["project_uuid"] = projectID
+		if sourceIdentity := mapAnyFromAny(row["source_identity"]); len(sourceIdentity) > 0 {
+			sourceIdentity["project_id"] = projectID
+			sourceIdentity["project_uuid"] = projectID
+		}
+	}
 	if requestID := firstString(event, "request_id"); requestID != "" {
 		packet["request_id"] = requestID
 	}
+	if roots, ok := projectstore.Current(); ok {
+		eventProjectID := firstString(event, "project_uuid", "project_id")
+		if eventProjectID == "" {
+			eventProjectID = firstString(mapAnyFromAny(event["source_identity"]), "project_uuid", "project_id")
+		}
+		if eventProjectID == "" || strings.EqualFold(eventProjectID, "current") || strings.EqualFold(projectstore.SafeName(eventProjectID), roots.ProjectUUID) {
+			row["project_id"] = roots.ProjectUUID
+			row["project_uuid"] = roots.ProjectUUID
+			if sourceIdentity := mapAnyFromAny(row["source_identity"]); len(sourceIdentity) > 0 {
+				sourceIdentity["project_id"] = roots.ProjectUUID
+				sourceIdentity["project_uuid"] = roots.ProjectUUID
+			}
+			if _, _, err := projectworkspace.AppendL3Feature(roots.ProjectPath, roots.ProjectUUID, row); err != nil && h.logger != nil {
+				h.logger.Warn("[mixboard] failed to persist agent-owned L3 row feature_type=%s track_id=%s clip_id=%s error=%v", featureType, trackID, clipID, err)
+			}
+		}
+	}
 	writeMixboardReadyL3SummarySnapshot(nil, packet, row)
 	if h != nil && h.logger != nil {
-		h.logger.Info("[mixboard] ingested L3 summary feature_type=%s track_id=%s clip_id=%s status=%s", featureType, trackID, clipID, firstString(row, "status"))
+		h.logger.Info("[mixboard] ingested L3 summary feature_type=%s track_id=%s clip_id=%s project_id=%s target_path=%s status=%s", featureType, trackID, clipID, firstString(packet, "project_id"), firstString(target, "file_path", "source_path"), firstString(row, "status"))
 	}
 }
 
@@ -2793,6 +3201,41 @@ func kernelFeatureMaterializerPacket(event map[string]any, target map[string]any
 		"updated_at":       time.Now().UTC().Format(time.RFC3339Nano),
 		"kernel_event_cmd": firstString(event, "command", "cmd"),
 	}
+}
+
+func (h *Harness) kernelFeatureMaterializerPacket(event map[string]any, target map[string]any) map[string]any {
+	packet := kernelFeatureMaterializerPacket(event, target)
+	if h == nil {
+		return packet
+	}
+	state := h.UserStateSummary(context.Background())
+	if liveProjectID := kernelFeatureMaterializerLiveProjectID(state, target); liveProjectID != "" {
+		packet["project_id"] = liveProjectID
+		if projectPath := projectPathFromState(state); projectPath != "" && !history.IsDraftProjectPath(projectPath) {
+			packet["project_path"] = projectPath
+		}
+	}
+	return packet
+}
+
+func kernelFeatureMaterializerLiveProjectID(state map[string]any, target map[string]any) string {
+	liveProjectID := firstString(state, "project_id", "project_uuid")
+	trackID := firstString(target, "track_id")
+	clipID := firstString(target, "clip_id")
+	sourcePath := firstString(target, "file_path", "source_path", "current_source_path")
+	if liveProjectID == "" || trackID == "" || clipID == "" || sourcePath == "" {
+		return ""
+	}
+	for _, current := range visibleAudioTrackFeatureTargets(state) {
+		if firstString(current, "track_id") != trackID || firstString(current, "clip_id") != clipID {
+			continue
+		}
+		currentPath := firstString(current, "file_path", "source_path", "current_source_path")
+		if currentPath != "" && strings.EqualFold(filepath.Clean(currentPath), filepath.Clean(sourcePath)) {
+			return liveProjectID
+		}
+	}
+	return ""
 }
 
 func kernelFeatureMaterializerRequestedFeatures(requestID string, target map[string]any) []any {
@@ -3062,6 +3505,51 @@ func (h *Harness) deriveMixObservation(cmd map[string]any) (map[string]any, erro
 	return mixboard.NewStore("").Derive(req)
 }
 
+func (h *Harness) requestMixReport(ctx context.Context, cmd map[string]any) (map[string]any, error) {
+	state := map[string]any{}
+	if h != nil {
+		state = h.UserStateSummary(ctx)
+	}
+	project := mapAnyFromAny(state["project"])
+	projectUUID := firstNonEmpty(
+		firstString(cmd, "project_uuid", "project_id"),
+		firstString(state, "project_uuid", "project_id", "id"),
+		firstString(project, "project_uuid", "project_id", "id"),
+	)
+	var currentCut *orchestration.ProjectCut
+	if h != nil {
+		if vsp, ok := h.vspKernel(); ok {
+			if snapshot, err := vsp.VSPStateSnapshot(ctx, "project.timeline"); err == nil {
+				if cut, err := projectcut.Build(projectcut.BuildRequest{
+					State: snapshot, ProjectUUID: projectUUID, Guarantee: projectcut.GuaranteeAdapterSnapshot,
+					ContractVersions: []string{"mix_report.v1", "mix_decision_record.v1"},
+				}); err == nil {
+					currentCut = &cut
+					projectUUID = cut.ProjectUUID
+				}
+			}
+		}
+	}
+	report, err := mixboard.NewStore("").BuildMixReport(mixboard.MixReportRequest{
+		ProjectUUID: projectUUID, CurrentProjectCut: currentCut,
+		MixIntent: mapAnyFromAny(cmd["mix_intent"]), FinalMeasurements: mapAnyFromAny(cmd["final_measurements"]),
+	})
+	if err != nil {
+		return nil, err
+	}
+	data, err := json.Marshal(report)
+	if err != nil {
+		return nil, err
+	}
+	out := map[string]any{}
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, err
+	}
+	out["report_ref"] = "mix-report:" + report.ProjectUUID + ":" + report.ProjectCut.Hash
+	out["mixboard_decision_board_ref"] = "mixboard-project:" + report.ProjectUUID
+	return out, nil
+}
+
 func observationReadKeys(cmd map[string]any) []string {
 	keys := stringSliceFromAny(cmd["keys"])
 	if len(keys) == 0 {
@@ -3126,6 +3614,9 @@ func mixObservationResolutionNeedsRefreshForCommand(cmd map[string]any, resolved
 }
 
 func mixObservationScopeNeedsFreshProjectState(cmd map[string]any) bool {
+	if mom.ResolveIntent(cmd, firstString(cmd, "mom_intent", "intent", "workflow_intent")) == mom.IntentProjectFrequencyObservation {
+		return true
+	}
 	switch normalizeMixObservationScope(firstString(cmd, "scope", "observation_scope")) {
 	case "full_project", "full_project_with_focus_track", "track_group":
 		return true
@@ -3141,7 +3632,11 @@ func canonicalizeMixObservationCommand(cmd map[string]any, target mixboard.Targe
 	}
 	scope := normalizeMixObservationScope(firstString(cmd, "scope", "observation_scope"))
 	if scope == "" {
-		scope = "selected_track"
+		if mom.ResolveIntent(cmd, firstString(cmd, "mom_intent", "intent", "workflow_intent")) == mom.IntentProjectFrequencyObservation {
+			scope = "full_project"
+		} else {
+			scope = "selected_track"
+		}
 	}
 	cmd["scope"] = scope
 	trackID := firstString(resolved, "track_id")
@@ -5476,6 +5971,28 @@ func newMixboardFeatureRequestPacket(cmd map[string]any, target mixboard.TargetR
 	}
 }
 
+func mixObservationCommandWithLiveProjectIdentity(cmd, state map[string]any) map[string]any {
+	if len(cmd) == 0 || len(state) == 0 {
+		return cmd
+	}
+	liveProjectID := firstString(state, "project_id", "project_uuid")
+	requestedProjectID := firstString(cmd, "project_id")
+	if liveProjectID == "" || (requestedProjectID != "" && !mixObservationGenericProjectIdentity(requestedProjectID)) {
+		return cmd
+	}
+	cmd["project_id"] = liveProjectID
+	return cmd
+}
+
+func mixObservationGenericProjectIdentity(value string) bool {
+	switch strings.ToLower(strings.TrimSpace(value)) {
+	case "", "current", "project_current", "current_project":
+		return true
+	default:
+		return false
+	}
+}
+
 func mixObservationWantsProjectAcoustics(cmd map[string]any) bool {
 	switch normalizeMixObservationScope(firstString(cmd, "scope", "observation_scope")) {
 	case "full_project", "full_project_with_focus_track", "track_group":
@@ -5706,6 +6223,15 @@ func writeMixboardFeatureRequestSnapshot(cmd map[string]any, packet map[string]a
 		"stereo_relation_summaries": reusableMixboardBridgeFeatureRows("stereo_relation_summaries", existing, packet),
 		"loudness_summary":          reusableMixboardBridgeFeatureRow("loudness_summary", existing, packet, map[string]any{"status": "missing"}),
 		"loudness_summaries":        reusableMixboardBridgeFeatureRows("loudness_summaries", existing, packet),
+		// L2 evidence has a different lifecycle from a new L1/L3 materialization
+		// request. Preserve the per-track post-chain cache instead of rebuilding
+		// the snapshot without it while an offline request is pending.
+		"realtime_band_energy_summary":       existing["realtime_band_energy_summary"],
+		"realtime_band_energy_summaries":     existing["realtime_band_energy_summaries"],
+		"realtime_stereo_relation_summary":   existing["realtime_stereo_relation_summary"],
+		"realtime_stereo_relation_summaries": existing["realtime_stereo_relation_summaries"],
+		"l2_render_probe":                    existing["l2_render_probe"],
+		"l2_render_probes":                   existing["l2_render_probes"],
 	}
 	writeMixboardFeatureSnapshotFile(path, snapshot, packet)
 }
@@ -6487,7 +7013,7 @@ func bridgeFeatureRowBeats(candidate, current map[string]any) bool {
 func reusableMixboardBridgeFeatureRows(key string, existing map[string]any, packet map[string]any) []map[string]any {
 	rows := make([]map[string]any, 0)
 	for _, row := range mapRowsFromAny(existing[key]) {
-		if mixboardBridgeFeatureRowFreshForPacket(row, packet) {
+		if mixboardBridgeFeatureRowFreshForPacketContext(row, packet) {
 			rows = append(rows, cloneAnyMap(row))
 		}
 	}
@@ -6502,7 +7028,12 @@ func stampMixboardFeatureRowIdentity(row map[string]any, packet map[string]any, 
 	if len(target) == 0 {
 		target = mapAnyFromAny(packet["resolved_target"])
 	}
-	projectID := firstNonEmpty(firstString(out, "project_id"), firstString(packet, "project_id"), "current")
+	rowProjectID := firstString(out, "project_id")
+	packetProjectID := firstString(packet, "project_id")
+	projectID := rowProjectID
+	if mixObservationGenericProjectIdentity(rowProjectID) {
+		projectID = firstNonEmpty(packetProjectID, rowProjectID, "current")
+	}
 	sessionID := firstNonEmpty(firstString(out, "session_id"), firstString(packet, "session_id", "mix_session_id"))
 	trackID := firstNonEmpty(firstString(out, "track_id"), firstString(target, "track_id"))
 	clipID := firstNonEmpty(firstString(out, "clip_id"), firstString(target, "clip_id"))
@@ -6643,6 +7174,41 @@ func mixboardBridgeFeatureRowFreshForPacket(row map[string]any, packet map[strin
 		return false
 	}
 	return true
+}
+
+// mixboardBridgeFeatureRowFreshForPacketContext extends the primary/focus-row
+// freshness rule to the explicitly requested project context. It is deliberately
+// used only for plural summary arrays: choosing a primary summary must continue
+// to resolve against packet.resolved_target rather than another project track.
+func mixboardBridgeFeatureRowFreshForPacketContext(row map[string]any, packet map[string]any) bool {
+	if mixboardBridgeFeatureRowFreshForPacket(row, packet) {
+		return true
+	}
+	if !mixboardFeatureRowHasMaterialIdentity(row) || mixboardBridgeFeatureProjectConflicts(row, packet) {
+		return false
+	}
+	// Plural source-file L3 rows are a project evidence cache, not the focus
+	// row of the latest request. Keep their strong material lineage across a
+	// later single-target/L2 request; BuildObservation still validates every
+	// row against the current project track/clip material before consuming it.
+	if !harnessBridgeFeatureUsesRenderRevision(row) && requestedFeatureIncludesFeature(packet, "l2_render_probe") {
+		return true
+	}
+	for _, target := range mapRowsFromAny(packet["track_feature_targets"]) {
+		if sameFeatureTarget(row, target) {
+			return true
+		}
+	}
+	return false
+}
+
+func mixboardBridgeFeatureProjectConflicts(row map[string]any, packet map[string]any) bool {
+	rowProjectID := firstString(row, "project_id")
+	packetProjectID := firstString(packet, "project_id")
+	if rowProjectID == "" || packetProjectID == "" || mixObservationGenericProjectIdentity(rowProjectID) || mixObservationGenericProjectIdentity(packetProjectID) {
+		return false
+	}
+	return !strings.EqualFold(rowProjectID, packetProjectID)
 }
 
 func mixboardFeatureRowHasMaterialIdentity(row map[string]any) bool {
@@ -9847,6 +10413,26 @@ func (h *Harness) recoverAudioAnalysisManifest(ctx context.Context) (map[string]
 	return manifest.AudioAnalysisStatus(path), nil
 }
 
+func recoverableMissingLatestAudioAnalysisStatus(cmd, reply map[string]any) (map[string]any, bool) {
+	if firstString(cmd, "analysis_job_id", "job_id", "audio_analysis_job_id") != "" ||
+		!boolValueDefault(cmd["latest"], true) {
+		return nil, false
+	}
+	message := firstNonEmpty(firstString(reply, "message", "error"), "")
+	if !strings.Contains(strings.ToLower(message), "could not find an analysis job") {
+		return nil, false
+	}
+	return map[string]any{
+		"status":                     "ok",
+		"command":                    "project.audio_analysis_status",
+		"message":                    "No active audio analysis job; rebuild from the current project if fresh DAD facts are required",
+		"analysis_queue_status":      "missing",
+		"dad_fact_status":            "missing",
+		"analysis_job_missing":       true,
+		"analysis_recovery_required": true,
+	}, true
+}
+
 func (h *Harness) ensureProjectAudioAnalysis(ctx context.Context, cmd map[string]any) (map[string]any, error) {
 	if recovered, err := h.recoverAudioAnalysisManifest(ctx); err == nil && audioAnalysisFactsReady(recovered) {
 		return recovered, nil
@@ -10312,6 +10898,7 @@ func publicAudioAnalysisResult(commandName string, cmd map[string]any, reply map
 		"dad_fact_completion_scope",
 		"feature_snapshot_path", "mixboard_feature_snapshot_path",
 		"analysis_manifest_path", "analysis_manifest_row_count", "analysis_manifest_recovered", "project_uuid",
+		"analysis_job_missing", "analysis_recovery_required",
 	} {
 		if value, ok := reply[key]; ok && !isEmptyValue(value) {
 			out[key] = value

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"math"
+	"sort"
 	"strings"
 
 	"vit-daw-agent/internal/harness"
@@ -30,16 +31,40 @@ type HarnessAcoustic struct {
 }
 
 func (v HarnessAcoustic) VerifyStaticBalance(ctx context.Context, actionSet orchestration.ActionSet) (AcousticResult, error) {
-	return v.verifyFreshMOM(ctx, actionSet, verifyStaticBalanceMOM)
+	result, err := v.verifyFreshMOM(ctx, actionSet, "static_level_relationship", verifyStaticBalanceMOM)
+	if err != nil || result.RelationshipStatus != "fail" || strings.TrimSpace(result.ObservationID) == "" {
+		return result, err
+	}
+
+	// The effective-level projection can briefly lag behind the structural
+	// project snapshot while a preceding B1 analysis refresh is still
+	// converging. A single contradictory hierarchy sample must therefore not
+	// turn 29/29 applied receipts plus an exact fader readback into a terminal
+	// B2 failure. Require the contradiction to survive one independently fresh
+	// MOM observation before treating it as acoustic evidence of failure.
+	retry := v
+	retry.PreviousObservationID = result.ObservationID
+	confirmed, retryErr := retry.verifyFreshMOM(ctx, actionSet, "static_level_relationship", verifyStaticBalanceMOM)
+	confirmed.EvidenceRefs = appendUniqueVerifierRefs(result.EvidenceRefs, confirmed.EvidenceRefs...)
+	if retryErr != nil {
+		return confirmed, retryErr
+	}
+	if confirmed.RelationshipStatus != "fail" {
+		confirmed.Summary = firstVerifierText(
+			confirmed.Summary+"; initial contradictory hierarchy sample was not reproduced",
+			"initial contradictory hierarchy sample was not reproduced",
+		)
+	}
+	return confirmed, nil
 }
 
 func (v HarnessAcoustic) VerifyPanLayout(ctx context.Context, actionSet orchestration.ActionSet) (AcousticResult, error) {
-	return v.verifyFreshMOM(ctx, actionSet, verifyPanLayoutMOM)
+	return v.verifyFreshMOM(ctx, actionSet, "multitrack_relation", verifyPanLayoutMOM)
 }
 
 type freshMOMPolicy func(map[string]any, orchestration.ActionSet) (string, string)
 
-func (v HarnessAcoustic) verifyFreshMOM(ctx context.Context, actionSet orchestration.ActionSet, policy freshMOMPolicy) (AcousticResult, error) {
+func (v HarnessAcoustic) verifyFreshMOM(ctx context.Context, actionSet orchestration.ActionSet, relationKey string, policy freshMOMPolicy) (AcousticResult, error) {
 	result := AcousticResult{Status: "inconclusive", MOMStatus: "not_run"}
 	if v.Invoker == nil {
 		return result, fmt.Errorf("harness invoker is required")
@@ -107,12 +132,12 @@ func (v HarnessAcoustic) verifyFreshMOM(ctx context.Context, actionSet orchestra
 		result.Summary = "post-execution MOM projection is missing the project multitrack intent"
 		return result, nil
 	}
-	relation := verifierMap(projection["multitrack_relation"])
+	relation := verifierMap(projection[relationKey])
 	result.MOMStatus = strings.ToLower(verifierString(relation, "status"))
 	result.EvidenceRefs = appendUniqueVerifierRefs(result.EvidenceRefs, verifierStrings(relation["evidence_refs"])...)
 	if result.MOMStatus == "" {
 		result.MOMStatus = "missing"
-		result.Summary = "fresh observation omitted MOM multitrack relation status"
+		result.Summary = "fresh observation omitted MOM " + relationKey + " status"
 		return result, nil
 	}
 	if policy == nil {
@@ -120,40 +145,193 @@ func (v HarnessAcoustic) verifyFreshMOM(ctx context.Context, actionSet orchestra
 		return result, nil
 	}
 	result.Status, result.Summary = policy(relation, actionSet)
+	if result.Status == "pass" {
+		result.RelationshipStatus, result.RelationshipSummary = verifyStaticBalanceHierarchy(relation, actionSet)
+		switch result.RelationshipStatus {
+		case "fail":
+			result.Status = "fail"
+		case "inconclusive":
+			result.Status = "inconclusive"
+		}
+		if result.RelationshipSummary != "" {
+			result.Summary = firstVerifierText(result.Summary+"; "+result.RelationshipSummary, result.RelationshipSummary)
+		}
+	}
 	if result.Summary != "" {
 		result.Summary = fmt.Sprintf("fresh observation %s at %s: %s; musical acceptance remains unknown", observationID, result.ObservationRevision, result.Summary)
 	}
 	return result, nil
 }
 
-// verifyStaticBalanceMOM mirrors B2 admission semantics. Static balance needs
-// a fresh full-project level relationship, not complete L3 spectral/stereo
-// evidence. A generic MOM partial status is acceptable only when the level
-// projection is ready and the compared-track inventory is effectively full.
+type hierarchySample struct {
+	before float64
+	after  float64
+	delta  float64
+}
+
+// verifyStaticBalanceHierarchy checks the acoustic realization of the exact
+// approved functional correction. It does not impose a universal instrument
+// loudness order: the expected direction comes from the frozen B2 candidate.
+func verifyStaticBalanceHierarchy(relation map[string]any, actionSet orchestration.ActionSet) (string, string) {
+	compared := verifierTrackIndex(verifierRows(relation["tracks"]))
+	byFunction := map[string][]hierarchySample{}
+	metadataCount := 0
+	for _, action := range actionSet.Actions {
+		function := verifierString(action.Args, "hierarchy_function")
+		if function == "" {
+			continue
+		}
+		metadataCount++
+		before, beforeOK := verifierFloat(action.Args["before_effective_level_db"])
+		delta, deltaOK := verifierFloat(action.Args["delta_db"])
+		row := compared[strings.TrimSpace(action.TargetRef)]
+		after, afterOK := verifierFirstFloat(row, "effective_static_rms_dbfs")
+		if !beforeOK || !deltaOK || !afterOK {
+			return "inconclusive", fmt.Sprintf("B2 hierarchy evidence is incomplete for %s/%s", action.TargetRef, function)
+		}
+		beforeMetric := verifierString(action.Args, "before_effective_level_metric")
+		afterMetric := verifierString(row, "metric")
+		beforeTap := verifierString(action.Args, "before_effective_level_tap_point")
+		afterTap := verifierString(row, "tap_point")
+		if beforeMetric == "" || afterMetric == "" || !strings.EqualFold(beforeMetric, afterMetric) || beforeTap == "" || afterTap == "" || !strings.EqualFold(beforeTap, afterTap) {
+			return "inconclusive", fmt.Sprintf("B2 hierarchy metric/tap changed for %s/%s (before %s@%s, after %s@%s)", action.TargetRef, function, beforeMetric, beforeTap, afterMetric, afterTap)
+		}
+		rowStatus := verifierStatus(row)
+		if rowStatus != mom.StatusReady && rowStatus != mom.StatusApprox {
+			return "inconclusive", fmt.Sprintf("B2 hierarchy projection for %s/%s is %s", action.TargetRef, function, firstVerifierText(rowStatus, "missing"))
+		}
+		observedDelta := after - before
+		if math.Abs(delta) >= 0.125 {
+			if observedDelta*delta <= 0 || math.Abs(observedDelta-delta) > 0.75 {
+				return "fail", fmt.Sprintf("B2 hierarchy correction for %s/%s moved %.3f dB, expected %.3f dB", action.TargetRef, function, observedDelta, delta)
+			}
+		}
+		byFunction[function] = append(byFunction[function], hierarchySample{before: before, after: after, delta: delta})
+	}
+	if metadataCount == 0 {
+		return "not_assessed", ""
+	}
+	functions := make([]string, 0, len(byFunction))
+	for function := range byFunction {
+		functions = append(functions, function)
+	}
+	sort.Strings(functions)
+	pairCount := 0
+	for i := 0; i < len(functions); i++ {
+		for j := i + 1; j < len(functions); j++ {
+			left, right := byFunction[functions[i]], byFunction[functions[j]]
+			expectedShift := hierarchyMedianDelta(left) - hierarchyMedianDelta(right)
+			if math.Abs(expectedShift) < 0.125 {
+				continue
+			}
+			pairCount++
+			observedShift := (hierarchyMedianAfter(left) - hierarchyMedianAfter(right)) - (hierarchyMedianBefore(left) - hierarchyMedianBefore(right))
+			if observedShift*expectedShift <= 0 || math.Abs(observedShift-expectedShift) > 1.0 {
+				return "fail", fmt.Sprintf("B2 %s/%s relationship moved %.3f dB, expected %.3f dB", functions[i], functions[j], observedShift, expectedShift)
+			}
+		}
+	}
+	if len(functions) < 2 || pairCount == 0 {
+		return "inconclusive", "B2 post-observation did not expose two differently corrected functions for hierarchy verification"
+	}
+	return "pass", fmt.Sprintf("B2 approved functional hierarchy was acoustically realized across %d functions and %d relative comparisons", len(functions), pairCount)
+}
+
+func hierarchyMedianBefore(samples []hierarchySample) float64 {
+	values := make([]float64, 0, len(samples))
+	for _, sample := range samples {
+		values = append(values, sample.before)
+	}
+	return verifierMedian(values)
+}
+
+func hierarchyMedianAfter(samples []hierarchySample) float64 {
+	values := make([]float64, 0, len(samples))
+	for _, sample := range samples {
+		values = append(values, sample.after)
+	}
+	return verifierMedian(values)
+}
+
+func hierarchyMedianDelta(samples []hierarchySample) float64 {
+	values := make([]float64, 0, len(samples))
+	for _, sample := range samples {
+		values = append(values, sample.delta)
+	}
+	return verifierMedian(values)
+}
+
+func verifierMedian(values []float64) float64 {
+	if len(values) == 0 {
+		return 0
+	}
+	values = append([]float64(nil), values...)
+	sort.Float64s(values)
+	mid := len(values) / 2
+	if len(values)%2 == 0 {
+		return (values[mid-1] + values[mid]) / 2
+	}
+	return values[mid]
+}
+
+func verifierFirstFloat(row map[string]any, keys ...string) (float64, bool) {
+	for _, key := range keys {
+		if value, ok := verifierFloat(row[key]); ok {
+			return value, true
+		}
+	}
+	return 0, false
+}
+
+func verifierFloat(value any) (float64, bool) {
+	switch typed := value.(type) {
+	case float64:
+		return typed, true
+	case float32:
+		return float64(typed), true
+	case int:
+		return float64(typed), true
+	case int64:
+		return float64(typed), true
+	case json.Number:
+		parsed, err := typed.Float64()
+		return parsed, err == nil
+	default:
+		return 0, false
+	}
+}
+
+// verifyStaticBalanceMOM consumes the same typed MOM projection used for B2
+// planning. Missing, stale, suspect, or partial evidence requests review; it
+// never falls through to generic multitrack fields or raw acoustic packages.
 func verifyStaticBalanceMOM(relation map[string]any, actionSet orchestration.ActionSet) (string, string) {
 	status := verifierStatus(relation)
-	if verifierStatusUnsafe(status) {
-		return "fail", "B2 MOM multitrack relation is " + status
+	if status != mom.StatusReady && status != mom.StatusApprox {
+		return "inconclusive", "B2 MOM static-level relationship is " + firstVerifierText(status, "missing")
 	}
-	compared := verifierRows(relation["compared_tracks"])
-	trackCount := verifierInt(relation["track_count"])
+	compared := verifierRows(relation["tracks"])
+	coverage := verifierMap(relation["coverage"])
+	trackCount := verifierInt(coverage["track_count"])
+	if trackCount == 0 {
+		trackCount = len(compared)
+	}
 	if trackCount < 2 || len(compared) < 2 {
-		return "inconclusive", "B2 MOM omitted a comparable full-project track inventory"
+		return "inconclusive", "B2 MOM static-level projection omitted a comparable full-project track inventory"
 	}
 	if float64(len(compared))/float64(trackCount) < 0.95 {
-		return "inconclusive", fmt.Sprintf("B2 MOM compared-track coverage is %d/%d", len(compared), trackCount)
-	}
-	level := verifierMap(relation["level_distribution"])
-	if verifierStatus(level) != mom.StatusReady {
-		return "inconclusive", "B2 level_distribution is " + firstVerifierText(verifierStatus(level), "missing")
+		return "inconclusive", fmt.Sprintf("B2 MOM static-level coverage is %d/%d", len(compared), trackCount)
 	}
 	indexed := verifierTrackIndex(compared)
 	for _, action := range actionSet.Actions {
-		if indexed[strings.TrimSpace(action.TargetRef)] == nil {
-			return "inconclusive", "B2 fresh MOM inventory omitted action target " + strings.TrimSpace(action.TargetRef)
+		row := indexed[strings.TrimSpace(action.TargetRef)]
+		if row == nil {
+			return "inconclusive", "B2 fresh MOM static-level projection omitted action target " + strings.TrimSpace(action.TargetRef)
+		}
+		if rowStatus := verifierStatus(row); rowStatus != mom.StatusReady && rowStatus != mom.StatusApprox {
+			return "inconclusive", "B2 fresh MOM static-level target " + strings.TrimSpace(action.TargetRef) + " is " + firstVerifierText(rowStatus, "missing")
 		}
 	}
-	return "pass", fmt.Sprintf("B2 level relationship verified with ready level_distribution and %d/%d compared tracks; absent band/stereo evidence remains an optional limitation", len(compared), trackCount)
+	return "pass", fmt.Sprintf("B2 typed static-level relationship verified for %d/%d tracks", len(compared), trackCount)
 }
 
 // verifyPanLayoutMOM deliberately keeps B3 stricter than B2: a pan change

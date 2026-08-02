@@ -14,7 +14,7 @@ func BuildLLMContext(proj Projection) LLMContext {
 		EvidenceRefs:           sanitizeEvidenceRefsForLLM(allEvidenceRefs(proj)),
 		QualitySummary:         llmQualitySummary(proj.TrustQuality),
 		TaskPolicy:             taskPolicyContext(proj),
-		LimitationNotes:        evidenceRefs(append(append([]string{}, proj.TrustQuality.Limitations...), proj.MultitrackRelation.Limitations...)...),
+		LimitationNotes:        evidenceRefs(append(append(append([]string{}, proj.TrustQuality.Limitations...), proj.MultitrackRelation.Limitations...), frequencyRelationshipValue(proj).Limitations...)...),
 		SafetyGates:            proj.TrustQuality.QualityGates,
 		SuggestedNextStep:      suggestedNextStep(proj),
 	}
@@ -31,6 +31,11 @@ func llmFactsForIntent(proj Projection) []map[string]any {
 			projectMixProfileFact(proj.ProjectMixProfile),
 			multitrackRelationFact(proj.MultitrackRelation),
 			compactFact("trust_quality.coverage", proj.TrustQuality.OverallStatus, "Coverage and quality gates summarize the compact multitrack projection.", proj.TrustQuality.EvidenceRefs),
+		)
+	case IntentProjectFrequencyObservation:
+		facts = append(facts,
+			frequencyRelationshipFact(frequencyRelationshipValue(proj)),
+			compactFact("trust_quality.frequency_relationship", proj.TrustQuality.OverallStatus, "Frequency relationship readiness is bounded by tap point, whole-project coverage, freshness, and persistence limitations.", proj.TrustQuality.EvidenceRefs),
 		)
 	case IntentRealtimeBandStereoObservation:
 		facts = append(facts,
@@ -104,6 +109,23 @@ func multitrackRelationFact(relation MultitrackRelation) map[string]any {
 	return fact
 }
 
+func frequencyRelationshipFact(relation FrequencyRelationship) map[string]any {
+	fact := compactFact("frequency_relationship", relation.Status, "Compact project frequency relationship projection; overlap rows are candidates, not masking facts.", relation.EvidenceRefs)
+	fact["schema_version"] = relation.SchemaVersion
+	fact["project_cut_ref"] = relation.ProjectCutRef
+	fact["scope"] = relation.Scope
+	fact["tap_point"] = relation.TapPoint
+	fact["coverage"] = relation.Coverage
+	fact["track_profiles"] = relation.TrackProfiles
+	fact["frequency_regions"] = relation.FrequencyRegions
+	fact["conflict_candidates"] = relation.ConflictCandidates
+	fact["tonal_tendencies"] = relation.TonalTendencies
+	fact["persistence_summary"] = relation.PersistenceSummary
+	fact["verification_dimensions"] = relation.VerificationDimensions
+	fact["limitations"] = relation.Limitations
+	return fact
+}
+
 func layerFact(name string, layer Layer) map[string]any {
 	out := compactFact(name, layer.Status, layer.Summary, layer.EvidenceRefs)
 	if primary := strings.TrimSpace(fmt.Sprint(layer.Facts["primary_layer"])); primary != "" && primary != "<nil>" {
@@ -149,6 +171,9 @@ func summaryMD(proj Projection) string {
 	switch proj.Intent {
 	case IntentProjectMultitrackObservation:
 		lines = append(lines, fmt.Sprintf("Compact project_mix_profile and multitrack_relation are primary; track_count=%d; limitations=%s.", proj.ProjectMixProfile.TrackCount, strings.Join(proj.MultitrackRelation.Limitations, ",")))
+	case IntentProjectFrequencyObservation:
+		frequency := frequencyRelationshipValue(proj)
+		lines = append(lines, fmt.Sprintf("MOM frequency_relationship is primary; tap_point=%s; eligible_tracks=%v; overlap rows are candidates rather than masking facts; limitations=%s.", frequency.TapPoint, frequency.Coverage["eligible_track_count"], strings.Join(frequency.Limitations, ",")))
 	case IntentRealtimeBandStereoObservation:
 		lines = append(lines, fmt.Sprintf("L2 render/live post-chain observation is primary; tap_point=%s; limitations=%s.", proj.TrustQuality.L2TapPoint, strings.Join(proj.TrustQuality.L2Limitations, ",")))
 	case IntentActionPreflightObservation:
@@ -163,7 +188,7 @@ func summaryMD(proj Projection) string {
 }
 
 func ContextProjection(proj Projection) map[string]any {
-	return map[string]any{
+	out := map[string]any{
 		"mom_version":    proj.MOMVersion,
 		"intent":         proj.Intent,
 		"intent_policy":  proj.IntentPolicy,
@@ -193,6 +218,20 @@ func ContextProjection(proj Projection) map[string]any {
 		"trust_quality":       trustQualityContext(proj.TrustQuality),
 		"llm_context":         proj.LLMContext,
 	}
+	if proj.StaticLevelRelationship != nil {
+		out["static_level_relationship"] = proj.StaticLevelRelationship
+	}
+	if proj.FrequencyRelationship != nil {
+		out["frequency_relationship"] = proj.FrequencyRelationship
+	}
+	return out
+}
+
+func frequencyRelationshipValue(proj Projection) FrequencyRelationship {
+	if proj.FrequencyRelationship == nil {
+		return FrequencyRelationship{}
+	}
+	return *proj.FrequencyRelationship
 }
 
 func trustQualityContext(trust TrustQuality) map[string]any {
@@ -270,6 +309,8 @@ func suggestedNextStep(proj Projection) string {
 		return "Run same-tap before/after render probes before trusting AB."
 	case IntentProjectMultitrackObservation:
 		return "Explain the local project relation projection without recalculating raw packages."
+	case IntentProjectFrequencyObservation:
+		return "Use the bounded frequency relationship facts for readiness/diagnosis only; do not infer masking, EQ parameters, or execution authority."
 	default:
 		return "Summarize conclusion, evidence, limitations, and a non-mutating suggestion."
 	}

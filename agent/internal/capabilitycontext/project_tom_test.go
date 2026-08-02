@@ -1,6 +1,7 @@
 package capabilitycontext
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -27,17 +28,20 @@ func TestProjectTOMProjectionRestoresB2RoleCoverageWithoutCreatingAuthority(t *t
 	}
 
 	compared := make([]any, 0, len(tracks)-1)
+	staticLevels := make([]any, 0, len(tracks)-1)
 	for _, value := range tracks[1:] {
 		track := mapValue(value)
 		compared = append(compared, map[string]any{
 			"track_id": track["track_id"], "rms_dbfs": track["rms_dbfs"], "peak_dbfs": -8.0,
 		})
+		staticLevels = append(staticLevels, testStaticLevelTrack(fmt.Sprint(track["track_id"]), track["rms_dbfs"].(float64), -8.0))
 	}
 	pack := BuildStaticBalancePack(StaticBalanceInput{
 		UserIntent: "B2 static balance", ProjectState: projectState, TOMProjection: projection,
 		MOMProjection: map[string]any{
-			"mom_version": "v1.4", "trust_quality": map[string]any{"can_support_action_preflight": true},
-			"multitrack_relation": map[string]any{"status": "ready", "compared_tracks": compared},
+			"mom_version": "v1.5", "trust_quality": map[string]any{"can_support_action_preflight": true},
+			"multitrack_relation":       map[string]any{"status": "ready", "compared_tracks": compared},
+			"static_level_relationship": testStaticLevelRelationship(staticLevels),
 		},
 		Style: mixstyle.Default(), GeneratedAt: time.Unix(1700000000, 0),
 	})

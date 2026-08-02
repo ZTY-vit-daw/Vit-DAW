@@ -936,6 +936,7 @@ juce::Array<juce::var> createProjectStateClipsArray (te::Track& track)
         const auto pos = clip->getPosition();
         auto row = std::make_unique<juce::DynamicObject>();
         row->setProperty ("id", clip->itemID.toString());
+        row->setProperty ("clip_state_revision", TransportAudioService::stateRevisionForValueTree (clip->state));
         row->setProperty ("name", clip->getName());
         row->setProperty ("clip_type", juce::String (te::TrackItem::typeToString (clip->type)));
         row->setProperty ("start_seconds", pos.getStart().inSeconds());
@@ -2093,6 +2094,7 @@ CommandDispatcher::CommandDispatcher (EditGetter editGetter,
                                       OpenProjectReply openProjectReplyAction,
                                       SaveProjectReply saveProjectReplyAction,
                                       SaveAsProjectReply saveAsProjectReplyAction,
+                                      SaveAsProjectReply saveProjectCopyReplyAction,
                                       CurrentProjectPathGetter currentProjectPathGetterAction,
                                       RealtimeDataProvider realtimeDataProvider,
                                       VitProductionCoordinator* productionCoordinator)
@@ -2117,7 +2119,8 @@ CommandDispatcher::CommandDispatcher (EditGetter editGetter,
                                                        std::move (newBlankProjectReplyAction),
                                                        std::move (openProjectReplyAction),
                                                        std::move (saveProjectReplyAction),
-                                                       std::move (saveAsProjectReplyAction));
+                                                       std::move (saveAsProjectReplyAction),
+                                                       std::move (saveProjectCopyReplyAction));
     trackService = std::make_unique<TrackService> (getEdit, saveProject);
     clipService = std::make_unique<ClipService> (getEdit);
     midiService = std::make_unique<MidiService> (getEdit);
@@ -2842,6 +2845,12 @@ void CommandDispatcher::registerBuiltinCommands()
                                              : makeErrorReply ("Transport/audio service unavailable");
     });
 
+    handlers.emplace ("save_project_copy", [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return projectService != nullptr ? projectService->handleSaveProjectCopy (object, raw)
+                                         : makeErrorReply ("Project service unavailable");
+    });
+
     handlers.emplace ("get_audio_device_status", [this] (const juce::DynamicObject& object, const juce::String& raw)
     {
         return transportAudioService != nullptr ? transportAudioService->handleGetAudioDeviceStatus (object, raw)
@@ -3148,8 +3157,10 @@ juce::String CommandDispatcher::handleGetProjectState (const juce::DynamicObject
         if (track == nullptr)
             continue;
 
+        track->flushStateToValueTree();
         auto row = std::make_unique<juce::DynamicObject>();
         row->setProperty ("track_id", track->itemID.toString());
+        row->setProperty ("track_state_revision", TransportAudioService::stateRevisionForValueTree (track->state));
         row->setProperty ("track_name", track->getName());
         row->setProperty ("track_type", getTrackKind (*track));
         row->setProperty ("is_audio_track", track->isAudioTrack());

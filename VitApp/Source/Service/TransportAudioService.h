@@ -46,6 +46,11 @@ public:
     juce::String handleL2RenderProbe (const juce::DynamicObject&, const juce::String&) const;
     juce::String handleCancelRender (const juce::DynamicObject&, const juce::String&) const;
 
+    // Deterministic ValueTree identity shared by project.state and the L2
+    // renderer. Save As may change the project UUID, but it must not change
+    // this exact track/clip state identity.
+    static juce::String stateRevisionForValueTree (const juce::ValueTree& tree);
+
 private:
     static juce::String makeStatusReply (const juce::String& status, const juce::String& message);
     static juce::String makeErrorReply (const juce::String& message);

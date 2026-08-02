@@ -22,8 +22,9 @@ type LowEndRelationPlanResult struct {
 	Pack    capabilitycontext.LowEndRelationPack
 }
 
-// PlanLowEndRelation is read/compute-only. B4 v0 always produces OutcomeAnalysis:
-// it surfaces band-occupancy findings without generating a pending action or Proposal.
+// PlanLowEndRelation is the read/compute-only B4 diagnosis adapter. It always
+// produces OutcomeAnalysis; chat orchestration may subsequently ask the LLM
+// for a treatment plan and freeze generic-EQ load/parameter Proposals.
 func PlanLowEndRelation(request LowEndRelationPlanRequest) (LowEndRelationPlanResult, error) {
 	if strings.TrimSpace(request.SessionID) == "" || strings.TrimSpace(request.Goal) == "" {
 		return LowEndRelationPlanResult{}, fmt.Errorf("session id and goal are required")

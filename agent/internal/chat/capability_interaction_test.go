@@ -50,6 +50,66 @@ func TestCapabilityRuntimeInteractionCancelReturnsToV1Owner(t *testing.T) {
 	}
 }
 
+func TestCapabilityRuntimeInteractionRejectAliasCancelsWithoutExecution(t *testing.T) {
+	t.Setenv("VIT_ORCHESTRATION_STORE_PATH", "memory")
+	server := New(nil, shadow.New(nil), nil)
+	session, err := server.orchestrationRuntime.StartB2ChatSession("cap_v1_b2_chat-reject_1", "chat-reject", "p1", "B2", orchestration.InteractionPropose)
+	if err != nil {
+		t.Fatal(err)
+	}
+	response := ChatResponse{
+		ConversationID: "chat-reject", GoalID: "goal", RunID: "run",
+		Reply: "confirm", NeedsConfirmation: true, PlanID: "proposal-1",
+		Workflow: "capability_runtime_v1", GoalStatus: string(agentruntime.StatusWaitingConfirmation),
+		WorkflowData: map[string]any{"session_id": session.ID, "capability_id": staticBalanceCapabilityID},
+	}
+	server.attachInteractionRequests(&response)
+	body, _ := json.Marshal(InteractionRespondRequest{
+		InteractionID: response.InteractionRequests[0].ID, ActionID: "reject", Decision: "reject",
+	})
+	recorder := httptest.NewRecorder()
+	server.handleInteractionRespond(recorder, httptest.NewRequest(http.MethodPost, "/agent/interaction/respond", bytes.NewReader(body)))
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("status=%d body=%s", recorder.Code, recorder.Body.String())
+	}
+	stored, _ := server.orchestrationRuntime.Store.Load(session.ID)
+	if stored.Status != orchestration.StatusCancelled || stored.Authorization != nil || stored.Execution != nil {
+		t.Fatalf("reject alias executed or failed to cancel: session=%#v", stored)
+	}
+}
+
+func TestCapabilityRuntimeInteractionUnknownDecisionFailsClosed(t *testing.T) {
+	t.Setenv("VIT_ORCHESTRATION_STORE_PATH", "memory")
+	server := New(nil, shadow.New(nil), nil)
+	session, err := server.orchestrationRuntime.StartB2ChatSession("cap_v1_b2_chat-invalid_1", "chat-invalid", "p1", "B2", orchestration.InteractionPropose)
+	if err != nil {
+		t.Fatal(err)
+	}
+	response := ChatResponse{
+		ConversationID: "chat-invalid", GoalID: "goal", RunID: "run",
+		Reply: "confirm", NeedsConfirmation: true, PlanID: "proposal-1",
+		Workflow: "capability_runtime_v1", GoalStatus: string(agentruntime.StatusWaitingConfirmation),
+		WorkflowData: map[string]any{"session_id": session.ID, "capability_id": staticBalanceCapabilityID},
+	}
+	server.attachInteractionRequests(&response)
+	interactionID := response.InteractionRequests[0].ID
+	body, _ := json.Marshal(InteractionRespondRequest{
+		InteractionID: interactionID, ActionID: "unexpected", Decision: "unexpected",
+	})
+	recorder := httptest.NewRecorder()
+	server.handleInteractionRespond(recorder, httptest.NewRequest(http.MethodPost, "/agent/interaction/respond", bytes.NewReader(body)))
+	if recorder.Code != http.StatusBadRequest {
+		t.Fatalf("unknown decision status=%d body=%s", recorder.Code, recorder.Body.String())
+	}
+	stored, _ := server.orchestrationRuntime.Store.Load(session.ID)
+	if stored.Status != orchestration.StatusAnalyzing || stored.Authorization != nil || stored.Execution != nil {
+		t.Fatalf("unknown decision changed session: %#v", stored)
+	}
+	if _, ok := server.takePendingInteraction(interactionID); !ok {
+		t.Fatal("unknown decision consumed the pending interaction")
+	}
+}
+
 func TestExpectedProposalMatchesRejectsStaleButtonRevision(t *testing.T) {
 	proposal := &orchestration.Proposal{ID: "proposal-r2", Revision: 2, ActionSetHash: "actions-r2", ProjectCutHash: "cut-r2"}
 	stale := map[string]any{

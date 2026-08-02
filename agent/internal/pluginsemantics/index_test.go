@@ -1,6 +1,7 @@
 package pluginsemantics
 
 import (
+	"fmt"
 	"path/filepath"
 	"testing"
 	"time"
@@ -80,5 +81,20 @@ func TestBuildKeepsShellMembersWithDistinctIdentifiers(t *testing.T) {
 	}
 	if !ids["VST3-Waves-A"] || !ids["VST3-Waves-B"] {
 		t.Fatalf("identifier-first IDs missing: %+v", ids)
+	}
+}
+
+func TestSearchHonorsLargeExplicitLimitForLLMCandidateRecall(t *testing.T) {
+	rows := make([]map[string]any, 0, 80)
+	for i := 0; i < 80; i++ {
+		rows = append(rows, map[string]any{
+			"name": fmt.Sprintf("EQ Candidate %03d", i), "category": "Fx|EQ",
+			"plugin_path": fmt.Sprintf(`C:\VST3\EQ Candidate %03d.vst3`, i),
+		})
+	}
+	idx := Build(rows, time.Unix(10, 0).UTC())
+	results := Search(idx, SearchOptions{Query: "eq", Type: "eq", Limit: 80})
+	if len(results) != 80 {
+		t.Fatalf("large explicit search limit returned %d entries, want 80", len(results))
 	}
 }

@@ -39,22 +39,43 @@ func ResolveTrackIDForPluginLoad(state map[string]any, requestContext map[string
 
 func VisiblePluginRefs(state map[string]any, trackScope string) []PluginRef {
 	out := []PluginRef{}
+	seen := map[string]struct{}{}
 	scope := strings.TrimSpace(trackScope)
 	for _, track := range trackRows(state) {
 		trackID := firstNonEmptyText(track, "track_id", "id")
 		if scope != "" && trackID != scope {
 			continue
 		}
-		for _, plugin := range mapRowsValue(track["plugins"]) {
-			id := firstNonEmptyText(plugin, "plugin_id", "item_id", "id")
-			if id == "" {
-				continue
+
+		pluginRows := [][]map[string]any{
+			mapRowsValue(track["plugins"]),
+			mapRowsValue(track["rack_nodes"]),
+		}
+		if rack, ok := track["rack"].(map[string]any); ok {
+			pluginRows = append(pluginRows, mapRowsValue(rack["nodes"]))
+		}
+
+		for _, rows := range pluginRows {
+			for _, plugin := range rows {
+				id := firstNonEmptyText(plugin, "plugin_id", "plugin_item_id", "node_id", "item_id", "id")
+				if id == "" {
+					continue
+				}
+				key := trackID + "::" + id
+				if _, exists := seen[key]; exists {
+					continue
+				}
+				seen[key] = struct{}{}
+				name := firstNonEmptyText(plugin, "plugin_name", "name", "display_name", "path")
+				if name == "" {
+					name = id
+				}
+				out = append(out, PluginRef{
+					ID:      id,
+					Name:    name,
+					TrackID: trackID,
+				})
 			}
-			out = append(out, PluginRef{
-				ID:      id,
-				Name:    firstNonEmptyText(plugin, "plugin_name", "name", "path"),
-				TrackID: trackID,
-			})
 		}
 	}
 	return out

@@ -84,6 +84,7 @@ import {
   proposalActionIdentity,
   proposalDecisionTranscript,
   reduceAgentEventActivities,
+  resolveCompletedTurnProposals,
   resolveSupersededMessages,
   responseMessageProtocol,
   transientMessage,
@@ -107,7 +108,7 @@ import type {
   RuntimeStatusResponse
 } from "./types";
 
-const WEBUI_BUILD_MARK = "vit-message-lifecycle-copy-v1-20260713";
+const WEBUI_BUILD_MARK = "vit-confirmation-consumption-v1-20260801";
 
 console.info(`[VitWebUI] loaded ${WEBUI_BUILD_MARK}`);
 
@@ -12361,7 +12362,7 @@ function historyMessagesFromUIState(uiState: AgentUIState | null): ChatMessage[]
       messages.push(historyMessage);
     }
   });
-  return resolveSupersededMessages(messages);
+  return resolveCompletedTurnProposals(resolveSupersededMessages(messages));
 }
 
 function removeDisposableConfirmationPromptMessages(messages: ChatMessage[]): ChatMessage[] {
@@ -12373,7 +12374,7 @@ function mergeChatMessages(current: ChatMessage[], incoming: ChatMessage[]): Cha
     return current;
   }
   const base = current.length === 1 && current[0].id === "intro" ? [] : current;
-  return mergeMessageCollections(base, incoming, chatMessageKeys, mergeChatMessage);
+  return resolveCompletedTurnProposals(mergeMessageCollections(base, incoming, chatMessageKeys, mergeChatMessage));
 }
 
 function mergeAssistantMessageIntoChat(current: ChatMessage[], incoming: ChatMessage): ChatMessage[] {

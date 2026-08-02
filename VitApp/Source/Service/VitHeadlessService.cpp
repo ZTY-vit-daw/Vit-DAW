@@ -9,7 +9,9 @@
 #include "../Core/VitPaths.h"
 #include "../Core/VitProjectFile.h"
 
+#include <unordered_map>
 #include <unordered_set>
+#include <vector>
 
 namespace vit
 {
@@ -420,6 +422,10 @@ VitHeadlessService::VitHeadlessService (juce::String applicationName)
         [this](const juce::DynamicObject& object, const juce::File& targetFile)
         {
             return ipcSaveAsProjectAt (object, targetFile);
+        },
+        [this](const juce::DynamicObject& object, const juce::File& targetFile)
+        {
+            return ipcSaveProjectCopyAt (object, targetFile);
         },
         [this]()
         {
@@ -1167,12 +1173,16 @@ juce::String VitHeadlessService::ipcNewBlankProject (const juce::DynamicObject& 
 
 juce::String VitHeadlessService::ipcOpenProjectAt (const juce::DynamicObject& object, const juce::File& projectFile)
 {
-    const bool useEncryptedLoader = isAppBoundEncryption (object) || looksLikeEncryptedProjectFile (projectFile);
-    if (useEncryptedLoader && ! isAppBoundEncryption (object))
+    const bool encryptedFile = looksLikeEncryptedProjectFile (projectFile);
+    const bool encryptionRequested = isAppBoundEncryption (object);
+    if (encryptedFile && ! encryptionRequested)
         juce::Logger::writeToLog ("VitHeadlessService: auto-detected encrypted project " + projectFile.getFullPathName());
+    else if (encryptionRequested && ! encryptedFile)
+        juce::Logger::writeToLog ("VitHeadlessService: app-bound open requested for legacy clear XML project; "
+                                  "loading clear XML for migration: " + projectFile.getFullPathName());
 
-    const bool ok = useEncryptedLoader ? loadEncryptedProjectFromFile (projectFile)
-                                       : loadProjectFromFile (projectFile);
+    const bool ok = encryptedFile ? loadEncryptedProjectFromFile (projectFile)
+                                  : loadProjectFromFile (projectFile);
 
     if (! ok)
         return CommandDispatcher::makeErrorReply ("open_project failed for " + projectFile.getFullPathName());
@@ -1193,14 +1203,19 @@ juce::String VitHeadlessService::ipcOpenProjectAt (const juce::DynamicObject& ob
 
 juce::String VitHeadlessService::ipcSaveProjectWithPayload (const juce::DynamicObject& object)
 {
-    if (isAppBoundEncryption (object))
+    const juce::String requestedPath = object.getProperty ("file_path").toString().trim();
+    const auto target = requestedPath.isNotEmpty() ? normalizeProjectPathForSave (juce::File (requestedPath))
+                                                   : normalizeProjectPathForSave (currentProjectPath);
+    const bool savesVitProject = target.getFileExtension().equalsIgnoreCase (".vit");
+
+    // A .vit file is always an app-bound encrypted container.  Do not let a
+    // stale GUI repository snapshot or a direct Agent save silently downgrade
+    // the active project to clear Tracktion XML.
+    if (isAppBoundEncryption (object) || savesVitProject)
     {
-        const juce::String pathStr = object.getProperty ("file_path").toString().trim();
+        if (target.getFullPathName().isEmpty())
+            return CommandDispatcher::makeStatusReply ("require_path", "Please prompt Save As");
 
-        if (pathStr.isEmpty())
-            return CommandDispatcher::makeErrorReply ("save_project with app_bound_aes requires a non-empty file_path");
-
-        const auto target = normalizeProjectPathForSave (juce::File (pathStr));
         const auto current = normalizeProjectPathForSave (currentProjectPath);
         const bool createsNewProject = currentProjectPath.getFullPathName().isEmpty()
                                     || current.getFullPathName() != target.getFullPathName();
@@ -1245,8 +1260,43 @@ juce::String VitHeadlessService::ipcSaveEncryptedProjectToPath (const juce::File
         activeEdit->state.setProperty (vitProjectParentUUIDProperty, sourceProjectUUID, nullptr);
         rebindEmbeddedAnalysisManifest (*activeEdit, projectUUID, saveTarget);
     }
+    struct SaveAsMediaBinding
+    {
+        te::AudioClipBase* clip = nullptr;
+        juce::String originalReference;
+    };
+    std::vector<SaveAsMediaBinding> saveAsMediaBindings;
+    if (createNewProjectIdentity)
+    {
+        for (auto* track : te::getAllTracks (*activeEdit))
+        {
+            if (track == nullptr)
+                continue;
+            for (int index = 0; index < track->getNumTrackItems(); ++index)
+            {
+                auto* clip = dynamic_cast<te::AudioClipBase*> (track->getTrackItem (index));
+                if (clip == nullptr)
+                    continue;
+                auto& reference = clip->getSourceFileReference();
+                auto sourceFile = reference.getFile();
+                if (sourceFile.getFullPathName().isEmpty())
+                    sourceFile = clip->getOriginalFile();
+                if (sourceFile.getFullPathName().isEmpty())
+                    continue;
+                saveAsMediaBindings.push_back ({ clip, reference.source.get() });
+                // Save As creates a new project identity but does not collect
+                // media. Stabilise references against the source project so a
+                // target in another directory does not reinterpret a relative
+                // token and immediately go offline.
+                reference.source = sourceFile.getFullPathName();
+            }
+        }
+    }
     const auto restoreSourceIdentity = [&]
     {
+        for (const auto& binding : saveAsMediaBindings)
+            if (binding.clip != nullptr)
+                binding.clip->getSourceFileReference().source = binding.originalReference;
         activeEdit->state.setProperty (vitAgentHistoryGenerationProperty, sourceAgentHistoryGeneration, nullptr);
         if (createNewProjectIdentity)
         {
@@ -1351,7 +1401,7 @@ juce::String VitHeadlessService::ipcSaveProjectToCurrentPath (const juce::Dynami
 
 juce::String VitHeadlessService::ipcSaveAsProjectAt (const juce::DynamicObject& object, const juce::File& targetFile)
 {
-    if (isAppBoundEncryption (object))
+    if (isAppBoundEncryption (object) || targetFile.getFileExtension().equalsIgnoreCase (".vit"))
         return ipcSaveEncryptedProjectToPath (targetFile, true, object);
 
     auto* activeEdit = edit.get();
@@ -1415,6 +1465,223 @@ juce::String VitHeadlessService::ipcSaveAsProjectAt (const juce::DynamicObject& 
                                       {},
                                       agentHistoryGeneration,
                                       historyPrepareID);
+}
+
+juce::String VitHeadlessService::ipcSaveProjectCopyAt (const juce::DynamicObject& object,
+                                                       const juce::File& logicalTargetFile)
+{
+    auto* activeEdit = edit.get();
+
+    if (activeEdit == nullptr)
+        return CommandDispatcher::makeErrorReply ("No active edit loaded");
+
+    const auto logicalTarget = normalizeProjectPathForSave (logicalTargetFile);
+    const auto writePathText = object.getProperty ("write_path").toString().trim();
+    const auto writeTarget = normalizeProjectPathForSave (writePathText.isNotEmpty() ? juce::File (writePathText)
+                                                                                     : logicalTarget);
+    if (! logicalTarget.getFileExtension().equalsIgnoreCase (".vit")
+        || ! writeTarget.getFileExtension().equalsIgnoreCase (".vit"))
+        return CommandDispatcher::makeErrorReply ("save_project_copy requires .vit file_path and write_path");
+
+    struct ClipSourceBinding
+    {
+        te::AudioClipBase* clip = nullptr;
+        juce::String originalReference;
+        juce::File sourceFile;
+        juce::String sourceKey;
+    };
+
+    struct MediaSource
+    {
+        juce::File sourceFile;
+        juce::File logicalTargetFile;
+        juce::File physicalTargetFile;
+        juce::String relativeTargetPath;
+        bool exists = false;
+        bool external = false;
+    };
+
+    std::vector<ClipSourceBinding> clipBindings;
+    std::vector<MediaSource> mediaSources;
+    std::unordered_map<std::string, size_t> mediaIndexBySource;
+    std::unordered_map<std::string, juce::String> sourceByTargetName;
+    const auto projectBase = logicalTarget.getFileNameWithoutExtension();
+    const auto logicalMediaDir = logicalTarget.getSiblingFile (projectBase + "_Media").getChildFile ("Audio");
+    const auto physicalMediaDir = writeTarget.getSiblingFile (projectBase + "_Media").getChildFile ("Audio");
+
+    for (auto* track : te::getAllTracks (*activeEdit))
+    {
+        if (track == nullptr)
+            continue;
+
+        const int itemCount = track->getNumTrackItems();
+        for (int index = 0; index < itemCount; ++index)
+        {
+            auto* clip = dynamic_cast<te::AudioClipBase*> (track->getTrackItem (index));
+            if (clip == nullptr)
+                continue;
+
+            auto& reference = clip->getSourceFileReference();
+            auto sourceFile = reference.getFile();
+            if (sourceFile.getFullPathName().isEmpty())
+                sourceFile = clip->getOriginalFile();
+            const auto sourceKey = sourceFile.getFullPathName().toLowerCase().toStdString();
+            clipBindings.push_back ({ clip, reference.source.get(), sourceFile, juce::String (sourceKey) });
+
+            if (sourceKey.empty() || mediaIndexBySource.find (sourceKey) != mediaIndexBySource.end())
+                continue;
+
+            auto targetName = sourceFile.getFileName();
+            const auto targetKey = targetName.toLowerCase().toStdString();
+            const auto collision = sourceByTargetName.find (targetKey);
+            if (collision != sourceByTargetName.end()
+                && ! collision->second.equalsIgnoreCase (sourceFile.getFullPathName()))
+            {
+                const auto suffix = juce::String::toHexString (static_cast<juce::int64> (sourceFile.getFullPathName().hashCode64())).substring (0, 8);
+                targetName = sourceFile.getFileNameWithoutExtension() + "_" + suffix + sourceFile.getFileExtension();
+            }
+            sourceByTargetName[targetName.toLowerCase().toStdString()] = sourceFile.getFullPathName();
+            MediaSource media;
+            media.sourceFile = sourceFile;
+            media.logicalTargetFile = logicalMediaDir.getChildFile (targetName);
+            media.physicalTargetFile = physicalMediaDir.getChildFile (targetName);
+            media.relativeTargetPath = media.logicalTargetFile.getRelativePathFrom (logicalTarget.getParentDirectory()).replaceCharacter ('\\', '/');
+            media.exists = sourceFile.existsAsFile();
+            media.external = ! sourceFile.isAChildOf (currentProjectPath.getParentDirectory());
+            mediaIndexBySource[sourceKey] = mediaSources.size();
+            mediaSources.push_back (std::move (media));
+        }
+    }
+
+    int64 estimatedCopyBytes = 0;
+    int missingAudioCount = 0;
+    int externalAudioCount = 0;
+    for (const auto& media : mediaSources)
+    {
+        if (media.exists)
+            estimatedCopyBytes += media.sourceFile.getSize();
+        else
+            ++missingAudioCount;
+        if (media.external)
+            ++externalAudioCount;
+    }
+
+    const auto mediaPolicy = object.getProperty ("media_policy").toString().trim().toLowerCase();
+    const auto buildMediaReply = [&] (const juce::String& status, const juce::String& message)
+    {
+        auto response = std::make_unique<juce::DynamicObject>();
+        response->setProperty ("status", status);
+        response->setProperty ("message", message);
+        response->setProperty ("referenced_audio_count", static_cast<int> (mediaSources.size()));
+        response->setProperty ("external_audio_count", externalAudioCount);
+        response->setProperty ("missing_audio_count", missingAudioCount);
+        response->setProperty ("estimated_copy_bytes", estimatedCopyBytes);
+        response->setProperty ("media_policy", mediaPolicy);
+        return response;
+    };
+
+    if (! mediaSources.empty() && mediaPolicy.isEmpty())
+        return juce::JSON::toString (juce::var (buildMediaReply ("require_media_policy", "Please choose whether to package referenced audio").release()));
+
+    if (mediaPolicy.isNotEmpty() && mediaPolicy != "reference_only" && mediaPolicy != "copy_referenced_audio")
+        return CommandDispatcher::makeErrorReply ("Unsupported media_policy: " + mediaPolicy);
+
+    if (static_cast<bool> (object.getProperty ("preflight_only")))
+        return juce::JSON::toString (juce::var (buildMediaReply ("media_preflight", "Project folder media preflight complete").release()));
+
+    if (mediaPolicy == "copy_referenced_audio" && missingAudioCount > 0)
+        return juce::JSON::toString (juce::var (buildMediaReply ("media_missing", "Referenced audio is missing; complete package was not created").release()));
+
+    const auto sourceProjectUUID = ensureVitProjectUUID (*activeEdit);
+    const auto sourceParentUUID = activeEdit->state.getProperty (vitProjectParentUUIDProperty);
+    const auto sourceAgentHistoryGeneration = activeEdit->state.getProperty (vitAgentHistoryGenerationProperty);
+    const auto sourceProjectPath = currentProjectPath;
+    embedDerivedAnalysisManifest (*activeEdit, sourceProjectPath);
+    const auto agentHistoryGeneration = object.getProperty ("agent_history_generation").toString().trim();
+    const auto historyPrepareID = object.getProperty ("history_prepare_id").toString().trim();
+    if (agentHistoryGeneration.isNotEmpty())
+        activeEdit->state.setProperty (vitAgentHistoryGenerationProperty, agentHistoryGeneration, nullptr);
+    const auto targetProjectUUID = ensureVitProjectUUID (*activeEdit, true);
+    activeEdit->state.setProperty (vitProjectParentUUIDProperty, sourceProjectUUID, nullptr);
+    rebindEmbeddedAnalysisManifest (*activeEdit, targetProjectUUID, logicalTarget);
+
+    const auto restoreSourceState = [&]
+    {
+        for (const auto& binding : clipBindings)
+            if (binding.clip != nullptr)
+                binding.clip->getSourceFileReference().source = binding.originalReference;
+        activeEdit->state.setProperty (vitProjectUUIDProperty, sourceProjectUUID, nullptr);
+        activeEdit->state.setProperty (vitProjectParentUUIDProperty, sourceParentUUID, nullptr);
+        activeEdit->state.setProperty (vitAgentHistoryGenerationProperty, sourceAgentHistoryGeneration, nullptr);
+        rebindEmbeddedAnalysisManifest (*activeEdit, sourceProjectUUID, sourceProjectPath);
+    };
+
+    for (const auto& binding : clipBindings)
+    {
+        if (binding.clip == nullptr || binding.sourceKey.isEmpty())
+            continue;
+        const auto found = mediaIndexBySource.find (binding.sourceKey.toStdString());
+        if (found == mediaIndexBySource.end())
+            continue;
+        const auto& media = mediaSources[found->second];
+        binding.clip->getSourceFileReference().source = mediaPolicy == "copy_referenced_audio"
+                                                     ? media.relativeTargetPath
+                                                     : media.sourceFile.getFullPathName();
+    }
+
+    for (auto* track : te::getAllTracks (*activeEdit))
+        if (track != nullptr)
+            track->flushStateToValueTree();
+
+    const auto parentDir = writeTarget.getParentDirectory();
+    if (! parentDir.isDirectory() && ! parentDir.createDirectory())
+    {
+        restoreSourceState();
+        return CommandDispatcher::makeErrorReply ("save_project_copy: cannot create directory " + parentDir.getFullPathName());
+    }
+
+    if (auto xml = activeEdit->state.createXml())
+    {
+        const auto blob = VitEncryptionCore::encryptProject (xml->toString());
+        if (blob.empty() || ! writeTarget.replaceWithData (blob.data(), blob.size()))
+        {
+            restoreSourceState();
+            return CommandDispatcher::makeErrorReply ("save_project_copy: failed to write " + writeTarget.getFullPathName());
+        }
+    }
+    else
+    {
+        restoreSourceState();
+        return CommandDispatcher::makeErrorReply ("save_project_copy: failed to serialize edit state");
+    }
+
+    auto response = buildMediaReply ("ok", "Project folder snapshot created");
+    response->setProperty ("project_lifecycle", "save_as_folder");
+    response->setProperty ("project_path", logicalTarget.getFullPathName());
+    response->setProperty ("snapshot_path", writeTarget.getFullPathName());
+    response->setProperty ("project_uuid", targetProjectUUID);
+    response->setProperty ("source_project_path", sourceProjectPath.getFullPathName());
+    response->setProperty ("source_project_uuid", sourceProjectUUID);
+    response->setProperty ("active_project_path", sourceProjectPath.getFullPathName());
+    response->setProperty ("active_project_uuid", sourceProjectUUID);
+    response->setProperty ("active_project_unchanged", true);
+    response->setProperty ("agent_history_generation", agentHistoryGeneration);
+    response->setProperty ("history_prepare_id", historyPrepareID);
+    juce::Array<juce::var> mediaRows;
+    for (const auto& media : mediaSources)
+    {
+        auto row = std::make_unique<juce::DynamicObject>();
+        row->setProperty ("kind", "audio");
+        row->setProperty ("source_path", media.sourceFile.getFullPathName());
+        row->setProperty ("target_path", mediaPolicy == "copy_referenced_audio" ? media.relativeTargetPath : juce::String());
+        row->setProperty ("copy_path", mediaPolicy == "copy_referenced_audio" ? media.physicalTargetFile.getFullPathName() : juce::String());
+        row->setProperty ("size", media.exists ? media.sourceFile.getSize() : 0);
+        row->setProperty ("status", media.exists ? (mediaPolicy == "copy_referenced_audio" ? "pending_copy" : "referenced") : "missing");
+        mediaRows.add (juce::var (row.release()));
+    }
+    response->setProperty ("media", juce::var (mediaRows));
+    restoreSourceState();
+    return juce::JSON::toString (juce::var (response.release()));
 }
 
 } // namespace vit

@@ -195,11 +195,60 @@ func mergeMap(dst map[string]any, src map[string]any) {
 	if dst == nil || len(src) == 0 {
 		return
 	}
+	if sourceClipID, targetClipID := sourceClipIdentity(src), sourceClipIdentity(dst); sourceClipID != "" && targetClipID != "" && sourceClipID != targetClipID {
+		// Track IDs are not sufficient after A4 clip splitting. Keep structural
+		// facts from a different clip, but do not let its RMS/peak/gain replace
+		// the current track-level aggregate or primary-clip evidence.
+		for key, value := range src {
+			if rlmAcousticField(key) || rlmClipIdentityField(key) {
+				continue
+			}
+			if cleanText(value) != "" {
+				dst[key] = value
+			}
+		}
+		return
+	}
 	for key, value := range src {
 		if cleanText(value) == "" {
 			continue
 		}
 		dst[key] = value
+	}
+}
+
+func sourceClipIdentity(row map[string]any) string {
+	if len(row) == 0 {
+		return ""
+	}
+	if value := firstText(row, "clip_id", "source_clip_id", "primary_clip_id", "bake_key"); value != "" {
+		return value
+	}
+	clip := mapValue(row["primary_clip"])
+	if len(clip) > 0 {
+		return firstText(clip, "clip_id", "id", "item_id")
+	}
+	if clip = primaryClip(row); len(clip) > 0 {
+		return firstText(clip, "clip_id", "id", "item_id")
+	}
+	return ""
+}
+
+func rlmAcousticField(key string) bool {
+	switch key {
+	case "rms", "rms_db", "rms_dbfs", "active_rms_dbfs", "gated_rms_dbfs", "silence_gated_rms_dbfs", "peak", "peak_abs", "peak_db", "peak_dbfs", "headroom_db", "integrated_lufs", "approximate_lufs", "lufs", "lufs_estimate", "crest_db":
+		return true
+	default:
+		return false
+	}
+}
+
+func rlmClipIdentityField(key string) bool {
+	switch key {
+	case "clip_id", "source_clip_id", "primary_clip_id", "bake_key", "clip_name", "clip_gain_db", "gain_db", "start_seconds", "end_seconds", "duration_seconds", "length_seconds":
+		return true
+	default:
+		return false
 	}
 }
 

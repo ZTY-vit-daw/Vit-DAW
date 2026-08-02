@@ -226,6 +226,51 @@ export function resolveSupersededMessages(messages: ChatMessage[]): ChatMessage[
   });
 }
 
+// Project History v1 appends the execution receipt but does not rewrite the
+// earlier Proposal node. When a UI state refresh restores both rows, the old
+// waiting_for_user interaction must be treated as consumed. Otherwise the
+// composer can surface the already-approved action again even though the
+// Agent goal is complete. The receipt must be later in the same turn so a
+// genuinely new Proposal in a multi-stage turn remains actionable.
+export function resolveCompletedTurnProposals(messages: ChatMessage[]): ChatMessage[] {
+  const lastTerminalIndexByTurn = new Map<string, number>();
+  messages.forEach((message, index) => {
+    const turnID = text(message.turn_id);
+    const kind = inferMessageKind(message);
+    if (turnID && (kind === "execution_receipt" || kind === "verification" || kind === "error")) {
+      lastTerminalIndexByTurn.set(turnID, index);
+    }
+  });
+  if (lastTerminalIndexByTurn.size === 0) {
+    return messages;
+  }
+  return messages.map((message, index) => {
+    const turnID = text(message.turn_id);
+    const terminalIndex = turnID ? lastTerminalIndexByTurn.get(turnID) : undefined;
+    if (terminalIndex === undefined || terminalIndex <= index || !message.actions?.some(isProposalAction)) {
+      return message;
+    }
+    const terminalKind = inferMessageKind(messages[terminalIndex]);
+    const resolvedStatus = terminalKind === "error" ? "failed" : "completed";
+    return {
+      ...message,
+      actions: message.actions.map((actionValue) => {
+        const action = record(actionValue);
+        if (!isProposalAction(action)) {
+          return action;
+        }
+        return {
+          ...action,
+          status: resolvedStatus,
+          stage: resolvedStatus,
+          resolved_action_id: "turn_terminal_receipt",
+          actions: []
+        };
+      })
+    };
+  });
+}
+
 export function eventTurnID(event: AgentEvent): string {
   return text(event.turn_id ?? event.run_id ?? event.goal_id);
 }
@@ -330,7 +375,10 @@ function isProposalAction(value: unknown): boolean {
   const action = record(value);
   const payload = record(action.payload ?? action.data);
   const kind = text(action.kind ?? action.type).toLowerCase();
-  return kind === "proposal_approval" || Object.keys(record(payload.proposal_presentation ?? action.proposal_presentation)).length > 0;
+  return kind === "confirmation" ||
+    kind === "proposal_approval" ||
+    Boolean(action._synthetic_confirmation) ||
+    Object.keys(record(payload.proposal_presentation ?? action.proposal_presentation)).length > 0;
 }
 
 function activityKey(message: ChatMessage): string {

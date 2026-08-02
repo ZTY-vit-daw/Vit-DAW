@@ -197,12 +197,17 @@ func bandOccupancyFromProjectPackage(row map[string]any) []map[string]any {
 			continue
 		}
 		leaders := rowsFromAny(firstPresentAny(band, "dominant_tracks", "leaders", "tracks"))
+		decisionTracks := rowsFromAny(band["decision_tracks"])
+		if len(decisionTracks) == 0 {
+			decisionTracks = leaders
+		}
 		out = append(out, map[string]any{
 			"band":                bandID,
 			"status":              StatusFromSource(text(band["status"])),
 			"track_count":         firstNonZeroInt(band["track_count"], len(leaders)),
 			"average_unit_energy": band["average_unit_energy"],
 			"leaders":             capRelationRows(leaders, 3),
+			"decision_tracks":     decisionTracks,
 			"evidence_ref":        firstNonEmpty(text(band["evidence_ref"]), "project_package.project_band_occupancy."+bandID),
 		})
 	}
@@ -336,7 +341,7 @@ func projectTrackRows(input Input) []map[string]any {
 func compactComparedTracks(tracks []map[string]any) []map[string]any {
 	out := []map[string]any{}
 	for _, track := range tracks {
-		row := compactMap(track, "track_id", "name", "track_name", "user_label", "role_guess", "active_state", "selected", "focused", "level_db", "rms_dbfs", "peak_dbfs", "headroom_db", "pan")
+		row := compactMap(track, "track_id", "name", "track_name", "user_label", "role_guess", "active_state", "selected", "focused", "volume_db", "level_db", "rms_dbfs", "effective_static_rms_dbfs", "peak_dbfs", "effective_static_peak_dbfs", "headroom_db", "pan")
 		if len(row) > 0 {
 			out = append(out, row)
 		}

@@ -134,6 +134,7 @@ func (s *Server) runAgentLoopChat(ctx context.Context, conversationID string, re
 	}
 	userText := agentLoopUserText(req.Message)
 	chatContext := contextWithUserMessage(req.Context, userText)
+	chatContext = s.agentLoopContextWithGenericEQTopology(ctx, userText, chatContext)
 	mode := agentModeFromContext(chatContext)
 	messageLoop := s.newAgentMessageLoop(cfg, mode)
 	legacyRunner := s.newAgentLoopRunner(cfg, mode)
@@ -240,7 +241,84 @@ func (s *Server) runAgentLoopChat(ctx context.Context, conversationID string, re
 			})
 		}
 	}
+	if response, routed := s.routeOrdinaryAgentSemanticEQ(ctx, conversationID, mode, userText, chatContext, res, cfg); routed {
+		return response, true
+	}
+	if response, routed := s.routeOrdinaryAgentTreatmentStrategy(ctx, conversationID, mode, userText, chatContext, res, cfg); routed {
+		return response, true
+	}
+	if res.SemanticAction == nil && ordinaryAgentPluginRecommendationIntent(userText, chatContext) {
+		return s.ordinaryAgentPluginRecommendationResponse(ctx, conversationID, mode, userText, chatContext, res, cfg), true
+	}
+	if res.SemanticAction != nil {
+		req.Context = chatContext
+		return s.materializeAgentSemanticEQAction(ctx, conversationID, req, mode, res), true
+	}
 	return s.chatResponseFromAgentLoopResult(conversationID, mode, res), true
+}
+
+func (s *Server) semanticEQPluginSelectionRequiredResponse(conversationID, mode, userText string, requestContext map[string]any, res agentloop.Result) ChatResponse {
+	trackID := firstStringFromMap(requestContext, "selected_track_id", "selected_plugin_track_id")
+	trackName := firstStringFromMap(requestContext, "selected_track_name")
+	res.ExecutionMemory.PendingMixTreatment = nil
+	res.Status = agentruntime.StatusCompleted
+	res.StopReason = ""
+	res.Error = ""
+	res.Continuation = nil
+	res.Reply = "当前选中轨道尚未选择可执行的 EQ。已保留听感目标和观察证据，但没有创建旧式 profile/learn 方案，也没有加载插件或写入参数；下一步需要进入效果器推荐与选择。"
+	resp := s.chatResponseFromAgentLoopResult(conversationID, mode, res)
+	resp.NeedsConfirmation = false
+	resp.Workflow = "plugin_selection_required"
+	resp.WorkflowData = map[string]any{
+		"schema_version":      "plugin_selection_required.v1",
+		"status":              "required",
+		"processor_type":      "eq",
+		"listening_goal":      strings.TrimSpace(userText),
+		"target_ref":          map[string]any{"kind": "track", "id": trackID, "label": trackName},
+		"selection_performed": false,
+		"mutation_performed":  false,
+		"next_stage":          "plugin_recommendation_and_selection",
+	}
+	if res.RecentObservation != nil {
+		texts := semanticEQRecursiveText(res.RecentObservation.Summary)
+		if observationID := semanticEQFirstRecursive(texts, "observation_id"); observationID != "" {
+			resp.WorkflowData["observation_id"] = observationID
+			resp.WorkflowData["evidence_refs"] = []string{"mix.observe:" + observationID}
+		}
+	}
+	return resp
+}
+
+// agentLoopContextWithGenericEQTopology supplies deterministic structural
+// constraints before LLM acoustic planning. This is not an observation or a
+// semantic mapping: the model still chooses Shape/Frequency/Gain/Q, while the
+// existing recognizer states which controls are actually reachable.
+func (s *Server) agentLoopContextWithGenericEQTopology(ctx context.Context, userText string, requestContext map[string]any) map[string]any {
+	if s == nil || !agentLoopNeedsGenericEQTopology(userText, requestContext) {
+		return requestContext
+	}
+	trackID := firstStringFromMap(requestContext, "selected_plugin_track_id", "selected_track_id")
+	pluginID := firstStringFromMap(requestContext, "selected_plugin_id")
+	if trackID == "" || pluginID == "" {
+		return requestContext
+	}
+	_, summary, err := s.readLiveEQControlSurface(ctx, trackID, pluginID)
+	if err != nil || len(summary) == 0 {
+		return requestContext
+	}
+	out := cloneContext(requestContext)
+	if out == nil {
+		out = map[string]any{}
+	}
+	out["generic_eq_topology"] = semanticEQTopologyPromptSummary(trackID, pluginID, summary)
+	return out
+}
+
+func agentLoopNeedsGenericEQTopology(userText string, requestContext map[string]any) bool {
+	if !contextHasAnyValue(requestContext, "selected_plugin_id") {
+		return false
+	}
+	return ordinaryAgentSemanticEQTextTopic(userText)
 }
 func (s *Server) recentConversationMessages(conversationID string, limit int, projectHistory map[string]any) []llm.Message {
 	if s == nil || limit == 0 {
@@ -1628,7 +1706,10 @@ func agentLoopCapabilityNames(userText string, requestContext map[string]any) []
 	) {
 		add("mix")
 	}
-	if contextHasAnyValue(requestContext, "selected_plugin_id", "selected_plugin_name") && agentLoopTextHasAny(text, "调", "大一点", "小一点", "亮", "暗", "浑浊", "刺耳", "mud", "harsh", "presence", "boost", "cut") {
+	if contextHasAnyValue(requestContext, "selected_plugin_id", "selected_plugin_name") && agentLoopTextHasAny(text,
+		"调", "调整", "大一点", "小一点", "亮", "暗", "浑浊", "刺耳", "高频", "低频", "中频", "低中频", "空气感", "清晰", "均衡",
+		"mud", "muddy", "harsh", "presence", "boost", "cut", "bright", "dark", "high", "treble", "air", "clear", "clarity", "eq",
+	) {
 		add("plugin")
 	}
 	if seen["static_mix_pan_layout"] {
@@ -1980,7 +2061,7 @@ func agentLoopStaticMixGainStagingTools() []string {
 
 func agentLoopStaticMixStaticBalanceTools() []string {
 	return []string{
-		"project.state", "project.audio_analysis_status",
+		"project.state",
 		"mix.observe", "mix.read", "mix.derive", "mix.request_observation",
 		"mix.propose_tick", "mix.apply_tick", "mix.rollback_tick",
 		"project.undo", "project.redo",

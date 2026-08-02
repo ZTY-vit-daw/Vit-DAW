@@ -25,6 +25,7 @@ import (
 	"vit-daw-agent/internal/planner"
 	"vit-daw-agent/internal/promptruntime"
 	agentruntime "vit-daw-agent/internal/runtime"
+	"vit-daw-agent/internal/semanticeffect"
 	"vit-daw-agent/internal/tim"
 	"vit-daw-agent/internal/tom"
 	"vit-daw-agent/internal/toolpolicy"
@@ -61,12 +62,13 @@ func (l *MessageLoop) logTiming(stage string, started time.Time, format string, 
 }
 
 type messageLoopOutput struct {
-	Final                 bool               `json:"final"`
-	Reply                 string             `json:"reply,omitempty"`
-	NeedsClarification    bool               `json:"needs_clarification,omitempty"`
-	ClarificationQuestion string             `json:"clarification_question,omitempty"`
-	FailureReason         string             `json:"failure_reason,omitempty"`
-	ToolCalls             []planner.ToolCall `json:"tool_calls,omitempty"`
+	Final                 bool                   `json:"final"`
+	Reply                 string                 `json:"reply,omitempty"`
+	NeedsClarification    bool                   `json:"needs_clarification,omitempty"`
+	ClarificationQuestion string                 `json:"clarification_question,omitempty"`
+	FailureReason         string                 `json:"failure_reason,omitempty"`
+	ToolCalls             []planner.ToolCall     `json:"tool_calls,omitempty"`
+	SemanticAction        *semanticeffect.Action `json:"semantic_action,omitempty"`
 }
 
 func (l *MessageLoop) Start(ctx context.Context, in Input) Result {
@@ -485,6 +487,18 @@ func (l *MessageLoop) loop(ctx context.Context, r *Runner, state *runState) Resu
 				}
 				continue
 			}
+			if messageLoopOrdinarySemanticEQRequest(state) && out.SemanticAction == nil && !messageLoopHasGenericEQTopologyEvidence(state) {
+				issue := "this is an actionable ordinary-Agent generic EQ listening goal with an exact selected plugin target; do not create MixTreatmentPending or use profile/B4 preparation. Read the live EQ topology if needed, then emit semantic_effect_action.v1, or ask a genuine target clarification"
+				state.trace = append(state.trace, planner.TraceEvent{Kind: "final_gate", Message: issue})
+				state.input.Conversation = append(state.input.Conversation, llm.Message{Role: "user", Content: "<final_gate>" + issue + "</final_gate>"})
+				continue
+			}
+			if out.SemanticAction != nil && messageLoopOrdinarySemanticEQRequest(state) && !messageLoopHasGenericEQTopologyEvidence(state) {
+				issue := "before freezing semantic_action, call plugin_grabber.explain_controls for the exact selected track/plugin and use only its live generic EQ eq_band_summary/control_topology evidence (not runtime profiles) to choose a provably reachable Shape and explicit fields"
+				state.trace = append(state.trace, planner.TraceEvent{Kind: "final_gate", Message: issue})
+				state.input.Conversation = append(state.input.Conversation, llm.Message{Role: "user", Content: "<final_gate>" + issue + "</final_gate>"})
+				continue
+			}
 			if issue := messageLoopFinalIssue(state); issue != "" {
 				state.trace = append(state.trace, planner.TraceEvent{Kind: "final_gate", Message: issue, PlanItems: append([]planner.PlanItem(nil), state.planItems...)})
 				state.input.Conversation = append(state.input.Conversation, llm.Message{Role: "user", Content: "<final_gate>" + issue + "</final_gate>"})
@@ -493,6 +507,21 @@ func (l *MessageLoop) loop(ctx context.Context, r *Runner, state *runState) Resu
 			reply := strings.TrimSpace(out.Reply)
 			if reply == "" {
 				reply = "已完成。"
+			}
+			if out.SemanticAction != nil {
+				if !messageLoopSemanticEffectProposalAllowed(state) {
+					issue := "the current turn is discussion/read-only; answer the question without semantic_action, Proposal, pending state, or mutation authority"
+					state.trace = append(state.trace, planner.TraceEvent{Kind: "final_gate", Message: issue})
+					state.input.Conversation = append(state.input.Conversation, llm.Message{Role: "user", Content: "<final_gate>" + issue + "</final_gate>"})
+					continue
+				}
+				if err := out.SemanticAction.Validate(); err != nil {
+					issue := "semantic_action is invalid: " + err.Error() + "; correct the typed action without changing the user's acoustic goal"
+					state.trace = append(state.trace, planner.TraceEvent{Kind: "final_gate", Message: issue})
+					state.input.Conversation = append(state.input.Conversation, llm.Message{Role: "user", Content: "<final_gate>" + issue + "</final_gate>"})
+					continue
+				}
+				state.semanticAction = cloneSemanticEffectAction(out.SemanticAction)
 			}
 			if candidate := messageLoopDeterministicVocalClarificationPendingTick(state, reply); candidate != nil {
 				messageLoopAttachDiagnosisToMixTick(state, candidate, state.input.UserText)
@@ -2311,14 +2340,26 @@ func messageLoopNeedsDeterministicMixObservation(state *runState) bool {
 func messageLoopDeterministicMixObservationCall(state *runState) planner.ToolCall {
 	args := messageLoopMixObservationArgs(state.input.UserText, map[string]any{})
 	scope := strings.ToLower(strings.TrimSpace(fmt.Sprint(args["scope"])))
-	if scope != "full_project" && scope != "full_project_with_focus_track" {
-		if trackID := firstNonEmpty(
-			state.executionMemory.ActiveWorkTargetTrackID,
-			firstStateTrackID(state.input.Context),
-			firstStateTrackID(state.input.State),
-		); trackID != "" {
+	trackID := firstNonEmpty(
+		messageLoopExactSelectedTrackID(state),
+		state.executionMemory.ActiveWorkTargetTrackID,
+	)
+	if scope == "full_project" && trackID != "" && (messageLoopOrdinarySemanticEQRequest(state) || messageLoopSemanticEQNeedsPluginSelection(state)) {
+		scope = "full_project_with_focus_track"
+		args["scope"] = scope
+	}
+	if scope != "full_project" {
+		if trackID != "" {
 			setIfEmpty(args, "track_id", trackID)
 		}
+		if scope == "full_project_with_focus_track" && trackID != "" {
+			setIfEmptyMap(args, "focus_hint", map[string]any{
+				"track_id": trackID,
+				"source":   "exact_selected_track",
+			})
+		}
+	}
+	if scope != "full_project" && scope != "full_project_with_focus_track" {
 		if clipID := firstNonEmpty(
 			state.executionMemory.ActiveWorkTargetClipID,
 			firstStateClipID(state.input.Context),
@@ -2333,6 +2374,41 @@ func messageLoopDeterministicMixObservationCall(state *runState) planner.ToolCal
 		Args:   args,
 		Reason: "deterministic observation before broad acoustic mix advice",
 	}
+}
+
+func messageLoopExactSelectedTrackID(state *runState) string {
+	if state == nil {
+		return ""
+	}
+	for _, source := range []map[string]any{
+		state.input.Context,
+		messageLoopMapValue(state.input.Context["current_selection"]),
+		messageLoopMapValue(state.input.Context["ui_context"]),
+		state.input.ContextSnapshot,
+		messageLoopMapValue(state.input.ContextSnapshot["current_selection"]),
+		messageLoopMapValue(state.input.ContextSnapshot["ui_context"]),
+		state.input.State,
+		messageLoopMapValue(state.input.State["current_selection"]),
+		messageLoopMapValue(state.input.State["ui_context"]),
+	} {
+		if trackID := firstMapText(source, "selected_track_id", "selected_clip_track_id", "focused_track_id"); trackID != "" {
+			return trackID
+		}
+	}
+	onlyTrackID := ""
+	for _, source := range []map[string]any{state.input.Context, state.input.ContextSnapshot, state.input.State} {
+		for _, track := range messageLoopMapRows(source["tracks"]) {
+			trackID := firstMapText(track, "track_id", "id", "item_id")
+			if trackID == "" {
+				continue
+			}
+			if onlyTrackID != "" && onlyTrackID != trackID {
+				return ""
+			}
+			onlyTrackID = trackID
+		}
+	}
+	return onlyTrackID
 }
 
 func messageLoopDeterministicGainPendingAfterObservation(state *runState) (string, bool) {
@@ -3769,11 +3845,19 @@ Return ONLY strict JSON in one of these shapes:
 {"final":true,"reply":"short final user-facing reply","tool_calls":[]}
 {"final":false,"needs_clarification":true,"clarification_question":"ask exactly what target/choice is missing","reply":"same question","tool_calls":[]}
 {"final":false,"reply":"short progress note","tool_calls":[{"tool":"track.add","args":{},"reason":"why"}]}
+{"final":true,"reply":"concrete EQ proposal for confirmation","semantic_action":{"schema_version":"semantic_effect_action.v1","action_type":"eq_edit","payload_schema":"semantic_effect.eq_plan.v1","target":{"track_id":"real id","plugin_id":"real id"},"user_goal":"the user's acoustic goal","negative_constraints":[],"evidence_decision":{"choice":"reuse|read|derive|observe|not_needed","basis":"user_report|observation|both","reason":"why this evidence is sufficient","observation_id":"real id when used","evidence_refs":[]},"limitations":[],"eq_plan":{"schema_version":"semantic_effect.eq_plan.v1","atomic":true,"atoms":[{"atom_id":"stable semantic id","action":"upsert","shape":"bell|low_shelf|high_shelf|low_cut|high_cut","frequency_hz":3500,"gain_db":-1.0,"q":1.2,"purpose":"acoustic purpose","field_origins":{"frequency_hz":"user_fixed|llm_selected|context_inherited","gain_db":"user_fixed|llm_selected|context_inherited","q":"user_fixed|llm_selected|context_inherited"},"evidence_refs":[],"confidence":"low|medium|high"}]}},"tool_calls":[]}
 
 Rules:
 - Use only tools from Allowed tools. For low-level DAW commands, use tool:"daw.invoke" only when it is explicitly allowed, with args containing cmd.
 - Tool results appear in <tool_result> JSON messages. Treat those results as the source of truth for executed actions, refreshed DAW state, bindings, and verification.
 - Capability context packs appear in <capability_context_pack> JSON messages. Treat them as deterministic default starting context for a named capability, not as a restriction; call additional allowed tools when the pack says evidence is missing, partial, stale, or too narrow.
+- Ordinary semantic effect discussion is always available and is not B4 or any A-F stage. If the user is asking why, comparing options, requesting analysis, or explicitly asking for read-only observation, reply normally and do not emit semantic_action.
+- For an actionable generic static-EQ listening goal, decide whether current context is sufficient. Reuse a fresh matching observation when possible; call mix.read or mix.derive for an existing artifact/projection; call mix.observe only when scope, freshness, or evidence is insufficient. A conservative plan may use basis:user_report with choice:not_needed when the user's report itself is sufficient, but disclose that limitation.
+- Once enough evidence and an exact selected track/plugin target exist, emit one semantic_effect_action.v1 with semantic_effect.eq_plan.v1. The LLM owns the acoustic Frequency/Gain/Q/Shape judgement and may infer fields the user did not state. Preserve negative constraints and use 1-3 jointly authorized atoms. Do not use a phrase-to-parameter lookup table.
+- Treat a simultaneous positive goal and negative listening constraint as one coupled authorization. When one EQ atom cannot independently express both (for example, adding brightness while controlling harshness), use 2-3 coordinated atoms with distinct acoustic purposes and preserve the shared negative constraint; do not collapse the constraint into prose while proposing only the positive move.
+- Before freezing an actionable generic EQ semantic_action, obtain the selected instance's live generic EQ eq_band_summary/control_topology through plugin_grabber.explain_controls unless matching topology evidence is already present in this run. Use only that generic topology evidence to choose reachable shapes/fields; do not use runtime profiles or learned controls. A shape is usable only when a concrete section reports shape_capabilities.actions.upsert=true with every explicitly requested field writable; supported_filter_kinds alone is informational and is not execution authority. A topology rejection must lead to another LLM acoustic choice, not a vendor rule or phrase table.
+- A <generic_eq_topology> or context.generic_eq_topology block is deterministic structural evidence for the selected instance. It says only which shapes and fields are reachable; use it to make your own acoustic choice. Do not ask whether to use a dynamic band, compressor, profile, or plug-in-specific mode: this stage is generic static EQ only, so express the listening goal and negative constraint with static EQ atoms or disclose a limitation.
+- semantic_action has no mutation authority. Never call plugin_grabber.apply_eq_edits, set_eq_point, apply_control, set_plugin_param, profile, learn, SPAL, or plugin loading for an abstract or explicit generic-EQ adjustment. The server will validate, freeze, confirm, and execute the action through the governed runtime.
 - For an explicit plugin effect control request, use this two-tier approach. TIER 1 — verified profile only: use plugin_grabber.apply_control ONLY when runtime_profile.virtual_controls is non-empty AND eq_band_summary is absent. TIER 2 — when eq_band_summary is present OR no virtual_controls exist: call plugin_grabber.explain_controls first. For generic static EQ call plugin_grabber.apply_eq_edits(track_id, plugin_id, edits, atomic:true). Shapes: bell, low_shelf, high_shelf, low_cut, high_cut. Actions: upsert, modify, disable, remove, undo. Send acoustic targets only; gain_db is required for Bell/Shelf upsert and forbidden for Cut. A modify/disable/remove must reuse control_ref; undo must reuse operation_ref. Explicit Q and slope are hard requirements, so a rejected result means nothing was written. Report exact/quantized/rejected and actual readback. plugin_grabber.set_eq_point is only a legacy single-upsert adapter. Never call set_plugin_param or apply_control for a recognised generic static EQ. For non-EQ effects without virtual controls, use set_plugin_param with a normalized value from the observed display domain, then call get_plugin_parameters. Never pass value_text.
 - plugin_grabber.apply_control's control argument is not a filter-shape label. Never pass a bare word like "eq", "bell", "shelf", or "notch" as control — those describe a band's shape, not a callable control name. Use a fully qualified semantic verb: eq.cut_region, eq.boost_region, or eq.set_region for a specific frequency/gain/Q move, or presence/harsh/reduce_mud for a named tonal adjustment. If the plug-in has its own learned virtual_controls (from a prior plugin_grabber.explain_controls call), prefer matching the request to one of those exact names instead of guessing.
 - Plugin Grabber learning is a separate user-initiated authoring workflow. Never call plugin_grabber.learn_project_profile unless the user explicitly asks to learn, teach, profile, or save plug-in controls.
@@ -3910,7 +3994,7 @@ func decodeMessageLoopCandidate(text string) (messageLoopOutput, error) {
 }
 
 func messageLoopOutputHasShape(out messageLoopOutput) bool {
-	if out.Final || out.NeedsClarification || strings.TrimSpace(out.FailureReason) != "" || len(out.ToolCalls) > 0 {
+	if out.Final || out.NeedsClarification || strings.TrimSpace(out.FailureReason) != "" || len(out.ToolCalls) > 0 || out.SemanticAction != nil {
 		return true
 	}
 	reply := strings.TrimSpace(out.Reply)
@@ -4137,6 +4221,88 @@ func normalizeMessageLoopOutput(out messageLoopOutput) messageLoopOutput {
 		out.ToolCalls = nil
 	}
 	return out
+}
+
+func messageLoopSemanticEffectProposalAllowed(state *runState) bool {
+	if state == nil || messageLoopPlanMode(state.input.Context) || messageLoopReadOnlyObservationRequest(state.input.UserText) {
+		return false
+	}
+	text := strings.ToLower(strings.TrimSpace(state.input.UserText))
+	if text == "" {
+		return false
+	}
+	discussion := messageLoopTextHasAny(text, "为什么", "為什麼", "什么原因", "什麼原因", "怎么判断", "怎麼判斷", "分析一下", "解释一下", "解釋一下", "why", "what causes", "how do you know")
+	action := messageLoopSemanticEffectActionRequested(state.input.UserText)
+	return !discussion || action
+}
+
+func messageLoopSemanticEffectActionRequested(userText string) bool {
+	text := strings.ToLower(strings.TrimSpace(userText))
+	return messageLoopTextHasAny(text, "减少", "減少", "降低", "收一点", "收一些", "削", "切", "提高", "提升", "增加", "更亮", "更暗", "处理", "處理", "调整", "調整", "修改", "执行", "執行", "apply", "reduce", "cut", "boost", "raise", "lower", "make it", "adjust", "change", "execute")
+}
+
+func messageLoopSemanticEQTopic(state *runState) bool {
+	if state == nil {
+		return false
+	}
+	pluginID := firstNonEmpty(firstMapText(state.input.Context, "selected_plugin_id", "plugin_id"), firstMapText(state.input.State, "selected_plugin_id", "plugin_id"))
+	if pluginID == "" {
+		return false
+	}
+	return messageLoopSemanticEQIntent(state.input.UserText)
+}
+
+func messageLoopSemanticEQIntent(userText string) bool {
+	text := strings.ToLower(strings.TrimSpace(userText))
+	return messageLoopTextHasAny(text,
+		"浑浊", "浑", "闷", "刺耳", "尖锐", "更亮", "更暗", "高频", "低频", "中频", "低中频", "空气感", "清晰", "均衡", "频段", "赫兹",
+		"mud", "muddy", "boxy", "harsh", "bright", "dark", "treble", "bass", "mid", "air", "clarity", "presence", "eq", "equalizer", "hz", "shelf", "bell", "cut",
+	)
+}
+
+func messageLoopOrdinarySemanticEQRequest(state *runState) bool {
+	return messageLoopSemanticEQTopic(state) && messageLoopSemanticEffectProposalAllowed(state)
+}
+
+func messageLoopSemanticEQNeedsPluginSelection(state *runState) bool {
+	if state == nil || !messageLoopSemanticEQIntent(state.input.UserText) || !messageLoopSemanticEffectProposalAllowed(state) || !messageLoopSemanticEffectActionRequested(state.input.UserText) {
+		return false
+	}
+	pluginID := firstNonEmpty(firstMapText(state.input.Context, "selected_plugin_id", "plugin_id"), firstMapText(state.input.State, "selected_plugin_id", "plugin_id"))
+	return pluginID == "" && firstNonEmpty(messageLoopExactSelectedTrackID(state), state.executionMemory.ActiveWorkTargetTrackID) != ""
+}
+
+func messageLoopHasGenericEQTopologyEvidence(state *runState) bool {
+	if state == nil {
+		return false
+	}
+	for _, source := range []map[string]any{state.input.Context, state.input.State} {
+		if len(messageLoopMapValue(source["eq_band_summary"])) > 0 || len(messageLoopMapValue(source["control_topology"])) > 0 || len(messageLoopMapValue(source["generic_eq_topology"])) > 0 {
+			return true
+		}
+	}
+	for _, record := range state.executed {
+		name := strings.ToLower(strings.TrimSpace(firstNonEmpty(messageLoopText(record["tool"]), messageLoopText(record["command_name"]))))
+		if (name == "plugin_grabber.explain_controls" || name == "plugin_grabber_explain_controls") && messageLoopExecutionSucceeded(record) {
+			return true
+		}
+	}
+	sawTopologyRead := false
+	for _, event := range state.trace {
+		if event.ToolCall != nil {
+			name := strings.ToLower(strings.TrimSpace(event.ToolCall.Tool))
+			if name == "plugin_grabber.explain_controls" || name == "plugin_grabber_explain_controls" {
+				sawTopologyRead = true
+			}
+		}
+		if sawTopologyRead && event.ToolResult != nil {
+			status := strings.ToLower(strings.TrimSpace(event.ToolResult.Status))
+			if status == "ok" || status == "success" || status == "completed" {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 func normalizeMessageLoopToolCall(call planner.ToolCall, step int) planner.ToolCall {
@@ -4551,6 +4717,18 @@ func messageLoopToolGuardIssue(state *runState, call planner.ToolCall, hadMixObs
 	if messageLoopIsDADAnalysisControlTool(call) {
 		return "DAD analysis is automatic; the agent may read project.audio_analysis_status but must not start or cancel DAD analysis"
 	}
+	if messageLoopSemanticEQTopic(state) && !messageLoopSemanticEffectProposalAllowed(state) && messageLoopForbiddenOrdinarySemanticEQTool(call) {
+		return "discussion-only or read-only generic EQ turns cannot call effect mutation tools or create mutation authority"
+	}
+	if messageLoopOrdinarySemanticEQRequest(state) && messageLoopForbiddenOrdinarySemanticEQTool(call) {
+		return "ordinary-Agent generic EQ listening goals must emit a typed semantic_effect_action after read-only topology/evidence selection; profile, learn, SPAL, plugin loading, apply_control, raw parameter writes, and direct EQ mutation tools are forbidden"
+	}
+	if messageLoopSemanticEQNeedsPluginSelection(state) && messageLoopForbiddenOrdinarySemanticEQTool(call) {
+		return "ordinary-Agent generic EQ listening goals without a selected EQ must stop at plugin_selection_required; profile, learn, plugin loading, apply_control, raw parameter writes, and direct EQ mutation tools are forbidden"
+	}
+	if isPluginGrabberApplyEQEditsTool(call) || isPluginGrabberSetEQPointTool(call) {
+		return "ordinary Agent EQ mutations require a validated semantic_effect_action, frozen Proposal, and authorization; emit semantic_action instead of calling the EQ mutation tool directly"
+	}
 	if messageLoopIsWaveformBakeTool(call) && messageLoopWaveformBakeCallMissingClipSource(call) {
 		return "clip.warm_waveform_bake requires clip_id or file_path; use list_tracks or get_project_state to resolve clip_id before calling this tool, or use mix.observe which handles waveform preparation internally"
 	}
@@ -4601,6 +4779,43 @@ func messageLoopToolGuardIssue(state *runState, call planner.ToolCall, hadMixObs
 		return "mix.observe is complete; broad mixing requests must stop here, summarize the observation, propose one concrete next move, and wait for explicit user confirmation before loading plugins, learning profiles, changing volume, applying controls, or writing parameters"
 	}
 	return "ordinary acoustic mixing requests must run mix.observe and wait for its result before loading plugins, learning plugin profiles, changing volume, applying controls, or writing parameters"
+}
+
+func messageLoopForbiddenOrdinarySemanticEQTool(call planner.ToolCall) bool {
+	name := strings.ToLower(strings.TrimSpace(normalizedActionName(call, executorpkg.Result{})))
+	if name == "" {
+		name = strings.ToLower(strings.TrimSpace(call.Tool))
+	}
+	switch name {
+	case "plugin.load_to_rack", "rack.add_node", "rack_add_node", "instantiate_plugin", "plugin.instantiate",
+		"plugin_grabber.learn_project_profile", "plugin_grabber_learn_project_profile",
+		"plugin_grabber.apply_control", "plugin_grabber_apply_control", "plugin_grabber.apply",
+		"plugin_grabber.apply_eq_edits", "plugin_grabber_apply_eq_edits",
+		"plugin_grabber.set_eq_point", "plugin_grabber_set_eq_point",
+		"plugin.set_parameter", "plugin_set_parameter", "set_plugin_param",
+		"spal.apply", "spal.eq.apply", "spal.reference_eq_test":
+		return true
+	default:
+		return strings.HasPrefix(name, "spal.") || strings.HasPrefix(name, "spal_")
+	}
+}
+
+func isPluginGrabberApplyEQEditsTool(call planner.ToolCall) bool {
+	name := strings.ToLower(strings.TrimSpace(call.Tool))
+	if name == "plugin_grabber.apply_eq_edits" || name == "plugin_grabber_apply_eq_edits" {
+		return true
+	}
+	name = strings.ToLower(firstNonEmpty(firstMapText(call.Command, "cmd"), firstMapText(call.Command, "command"), firstMapText(call.Command, "tool")))
+	return name == "plugin_grabber.apply_eq_edits" || name == "plugin_grabber_apply_eq_edits"
+}
+
+func isPluginGrabberSetEQPointTool(call planner.ToolCall) bool {
+	name := strings.ToLower(strings.TrimSpace(call.Tool))
+	if name == "plugin_grabber.set_eq_point" || name == "plugin_grabber_set_eq_point" {
+		return true
+	}
+	name = strings.ToLower(firstNonEmpty(firstMapText(call.Command, "cmd"), firstMapText(call.Command, "command"), firstMapText(call.Command, "tool")))
+	return name == "plugin_grabber.set_eq_point" || name == "plugin_grabber_set_eq_point"
 }
 
 func messageLoopHasUsableMixObservation(state *runState) bool {
@@ -5314,6 +5529,7 @@ func messageLoopUserTrackIndexFromText(text string) (int, bool) {
 
 func messageLoopMixScopeFromIntent(userText string, args map[string]any) string {
 	text := strings.ToLower(strings.TrimSpace(userText))
+	hasExactTrackFocus := firstMapText(args, "track_id", "selected_track_id", "target_track_id") != "" || messageLoopTextHasAny(text, "\u5f53\u524d\u8f68\u9053", "\u9009\u4e2d\u8f68\u9053", "current track", "selected track")
 	if messageLoopTextHasAny(text, "\u6574\u4f53", "\u6574\u9996", "\u5168\u5de5\u7a0b", "\u8fd9\u9996\u6b4c", "\u5168\u5c40", "overall", "whole song", "full project", "entire mix") {
 		if messageLoopTextHasAny(text, "\u4e3b\u5531", "\u4eba\u58f0", "vocal", "lead vocal") {
 			return "full_project_with_focus_track"
@@ -5327,6 +5543,9 @@ func messageLoopMixScopeFromIntent(userText string, args map[string]any) string 
 		return "full_project_with_focus_track"
 	}
 	if messageLoopTextHasAny(text, "\u4f4e\u9891", "\u4f4e\u4e2d\u9891", "\u6d51\u6d4a", "\u8d1d\u65af", "\u5e95\u9f13", "low end", "bass", "kick", "mud", "muddy") {
+		if hasExactTrackFocus {
+			return "full_project_with_focus_track"
+		}
 		return "full_project"
 	}
 	if firstMapText(args, "clip_id", "selected_clip_id") != "" || messageLoopTextHasAny(text, "clip", "\u7247\u6bb5") {
@@ -5335,7 +5554,7 @@ func messageLoopMixScopeFromIntent(userText string, args map[string]any) string 
 	if firstMapText(args, "track_name", "target_track_name", "name") != "" {
 		return "named_track"
 	}
-	if firstMapText(args, "track_id", "selected_track_id", "target_track_id") != "" || messageLoopTextHasAny(text, "\u5f53\u524d\u8f68\u9053", "\u9009\u4e2d\u8f68\u9053", "current track", "selected track") {
+	if hasExactTrackFocus {
 		return "selected_track"
 	}
 	return "selected_track"
@@ -5411,7 +5630,7 @@ func messageLoopMixObserveFirstAllowedTool(call planner.ToolCall) bool {
 		return true
 	}
 	switch name {
-	case "project.state", "get_project_state", "track.list", "mix.read", "mix_read", "mix.derive", "mix_derive",
+	case "project.state", "get_project_state", "track.list", "mix.read", "mix_read", "mix.derive", "mix_derive", "mix.report", "mix_report",
 		"mix.propose_tick", "mix_propose_tick", "mix.apply_tick", "mix_apply_tick", "mix.rollback_tick", "mix_rollback_tick":
 		return true
 	default:
@@ -8165,7 +8384,7 @@ func messageLoopReadOnlyObservationFallbackTool(name string) bool {
 		return true
 	}
 	switch name {
-	case "mix.derive", "mix_derive", "project.state", "get_project_state", "track.list", "goal.status":
+	case "mix.derive", "mix_derive", "mix.report", "mix_report", "project.state", "get_project_state", "track.list", "goal.status":
 		return true
 	default:
 		return false
@@ -8639,6 +8858,17 @@ func messageLoopMixObservationFinalReply(state *runState, reply string) string {
 	}
 	if messageLoopMutationBarrierActive(state) {
 		return messageLoopReadOnlyFinalReply(state, reply)
+	}
+	if messageLoopOrdinarySemanticEQRequest(state) {
+		// The typed semantic action is materialized by Chat after AgentLoop.
+		// Never synthesize the legacy profile-oriented MixTreatmentPending here.
+		return messageLoopStripExecutionQuestion(messageLoopStripMixTreatmentPendingMarkup(reply))
+	}
+	if messageLoopSemanticEQNeedsPluginSelection(state) {
+		// Plugin recommendation/loading is a separate governed stage. Do not let
+		// the legacy profile-oriented treatment path create mutation authority.
+		state.executionMemory.PendingMixTreatment = nil
+		return messageLoopStripExecutionQuestion(messageLoopStripMixTreatmentPendingMarkup(reply))
 	}
 	isLowMudPluginPrep := messageLoopLowMudPluginPrepForState(state)
 	isObservationFollowup := messageLoopMixObservationActionFollowupRequest(state)

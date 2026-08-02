@@ -6,7 +6,7 @@ import (
 	"vit-daw-agent/internal/planner"
 )
 
-func TestNamedPluginAcousticApplyBypassesObserveFirstPolicy(t *testing.T) {
+func TestNamedPluginAcousticApplyUsesTypedSemanticEQPolicy(t *testing.T) {
 	state := &runState{
 		input: Input{
 			UserText:     "用 TDR Nova 切掉 200Hz 附近的浑浊",
@@ -30,8 +30,8 @@ func TestNamedPluginAcousticApplyBypassesObserveFirstPolicy(t *testing.T) {
 	if messageLoopNeedsDeterministicMixObservation(state) {
 		t.Fatal("explicit named plug-in action was incorrectly diverted into deterministic observe-first")
 	}
-	if issue := messageLoopToolGuardIssue(state, call, false); issue != "" {
-		t.Fatalf("explicit named plug-in apply was blocked before L4 controls: %s", issue)
+	if issue := messageLoopToolGuardIssue(state, call, false); issue == "" {
+		t.Fatal("ordinary-Agent EQ listening goal bypassed the typed semantic proposal policy")
 	}
 }
 
@@ -43,5 +43,26 @@ func TestNamedPluginApplyStillRequiresCompleteLiveTarget(t *testing.T) {
 	}
 	if issue := messageLoopToolGuardIssue(state, call, false); issue == "" {
 		t.Fatal("incomplete plug-in apply target must be denied before execution")
+	}
+}
+
+func TestDiscussionOnlySemanticEQBlocksDirectMutation(t *testing.T) {
+	state := &runState{input: Input{
+		UserText:     "为什么听起来浑？",
+		AllowedTools: []string{"mix.observe", "plugin_grabber.apply_control"},
+		Context: map[string]any{
+			"selected_track_id":  "1007",
+			"selected_plugin_id": "1013",
+		},
+	}}
+	call := planner.ToolCall{
+		Tool: "plugin_grabber.apply_control",
+		Args: map[string]any{
+			"track_id": "1007", "plugin_id": "1013", "control": "reduce_mud",
+		},
+	}
+
+	if issue := messageLoopToolGuardIssue(state, call, false); issue == "" {
+		t.Fatal("discussion-only semantic EQ turn allowed a direct effect mutation")
 	}
 }

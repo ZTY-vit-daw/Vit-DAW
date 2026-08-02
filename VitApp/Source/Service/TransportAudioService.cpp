@@ -133,11 +133,6 @@ juce::String clipRevisionForProbe (const juce::String& trackId,
         + "|length=" + juce::String (lengthSeconds, 4);
 }
 
-juce::String hashValueTreeForRevision (const juce::ValueTree& tree)
-{
-    return juce::String::toHexString ((int64) tree.toXmlString().hashCode64());
-}
-
 juce::String buildL2RenderRevision (te::Edit& edit,
                                     te::AudioTrack* track,
                                     te::Clip* clip,
@@ -154,9 +149,9 @@ juce::String buildL2RenderRevision (te::Edit& edit,
     if (track != nullptr)
         track->flushStateToValueTree();
 
-    const auto trackHash = track != nullptr ? hashValueTreeForRevision (track->state) : juce::String ("master");
-    const auto clipHash = clip != nullptr ? hashValueTreeForRevision (clip->state) : juce::String ("none");
-    const auto editHash = tapPoint == "master_out" ? hashValueTreeForRevision (edit.state) : juce::String();
+    const auto trackHash = track != nullptr ? TransportAudioService::stateRevisionForValueTree (track->state) : juce::String ("master");
+    const auto clipHash = clip != nullptr ? TransportAudioService::stateRevisionForValueTree (clip->state) : juce::String ("none");
+    const auto editHash = tapPoint == "master_out" ? TransportAudioService::stateRevisionForValueTree (edit.state) : juce::String();
 
     return juce::String ("l2rp.v1")
         + "|tap=" + tapPoint
@@ -272,6 +267,11 @@ void appendSampleRatesFromDevice (juce::AudioIODevice* dev, juce::Array<juce::va
 }
 
 } // namespace
+
+juce::String TransportAudioService::stateRevisionForValueTree (const juce::ValueTree& tree)
+{
+    return juce::String::toHexString ((int64) tree.toXmlString().hashCode64());
+}
 
 TransportAudioService::TransportAudioService (EditGetter editGetter,
                                               SaveProjectAction saveProjectAction,
@@ -1118,7 +1118,7 @@ juce::String TransportAudioService::handleL2RenderProbe (const juce::DynamicObje
         if (sourceFile.existsAsFile())
             sourceRevision = sourceRevisionForProbe (sourceFile, sourceLengthSeconds);
         else
-            sourceRevision = "edit=" + hashValueTreeForRevision (edit->state)
+            sourceRevision = "edit=" + TransportAudioService::stateRevisionForValueTree (edit->state)
                 + "|range=" + juce::String (startSec, 4) + "-" + juce::String (endSec, 4);
     }
 

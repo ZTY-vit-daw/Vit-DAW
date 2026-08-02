@@ -21,6 +21,7 @@ import (
 	"sync"
 	"time"
 
+	"vit-daw-agent/internal/actionworkflow"
 	"vit-daw-agent/internal/agentloop"
 	"vit-daw-agent/internal/agentprotocol"
 	"vit-daw-agent/internal/artifacts"
@@ -759,7 +760,11 @@ func (s *Server) handleState(w http.ResponseWriter, r *http.Request) {
 	goal := s.harness.RuntimeStatus("")
 	shadowState := s.harness.StateSummary(r.Context())
 	projectHistory := s.harness.ProjectHistorySummaryForProject(r.Context(), goal.GoalID, firstStringFromMap(shadowState, "project_path", "current_project_path"))
-	agentPlan := s.activeGoalPlan(goal, projectHistory)
+	stateHistory := compactAgentStateProjectHistory(projectHistory)
+	if strings.EqualFold(strings.TrimSpace(r.URL.Query().Get("detail")), "full") {
+		stateHistory = projectHistory
+	}
+	agentPlan := s.activeGoalPlan(goal, stateHistory)
 	writeJSON(w, http.StatusOK, map[string]any{
 		"status": "ok",
 		"shadow": shadowState,
@@ -767,12 +772,57 @@ func (s *Server) handleState(w http.ResponseWriter, r *http.Request) {
 		"active_goal": map[string]any{
 			"goal":            goal,
 			"agent_plan":      agentPlan,
-			"project_history": projectHistory,
+			"project_history": stateHistory,
 		},
-		"project_history": projectHistory,
+		"project_history": stateHistory,
 		"direct_commands": s.harness.DirectCommandNames(),
 		"tool_count":      len(s.harness.Tools()),
 	})
+}
+
+// compactAgentStateProjectHistory keeps /agent/state suitable for frequent GUI
+// polling. Full conversation nodes can carry large proposal/readback payloads and
+// are available through the history tools (or /agent/state?detail=full), but
+// including them several times in this response exceeds Godot's 16 MiB HTTP
+// chunk limit on real projects.
+func compactAgentStateProjectHistory(history map[string]any) map[string]any {
+	if len(history) == 0 {
+		return map[string]any{}
+	}
+	keys := []string{
+		"available",
+		"project_path",
+		"current_project_path",
+		"project_uuid",
+		"root_project_path",
+		"initialized",
+		"draft",
+		"unsaved",
+		"project_label",
+		"active_branch",
+		"active_node_id",
+		"active_worktree",
+		"detached",
+		"head",
+		"commit_count",
+		"worktree_count",
+		"baseline_commit",
+		"baseline_created",
+		"goal_active_branch",
+		"goal_detached",
+		"branches",
+		"refs",
+		"worktrees",
+		"recent_checkpoints",
+		"warnings",
+	}
+	out := make(map[string]any, len(keys))
+	for _, key := range keys {
+		if value, ok := history[key]; ok {
+			out[key] = value
+		}
+	}
+	return out
 }
 
 func (s *Server) handleUIState(w http.ResponseWriter, r *http.Request) {
@@ -1244,7 +1294,114 @@ func (s *Server) handleInvoke(w http.ResponseWriter, r *http.Request) {
 	if err != nil && resp.Status == "error" {
 		status = http.StatusBadRequest
 	}
+	if isVersionProjectSavePrepareInvoke(req) {
+		resp = compactProjectSavePrepareInvokeResponseForTransport(resp)
+	} else if isProjectSaveAsFolderInvoke(req) {
+		resp = compactSaveAsFolderInvokeResponseForTransport(resp)
+	} else if hostLifecycleNotification {
+		resp = compactHostLifecycleInvokeResponseForTransport(resp)
+	}
+	// ProjectHistory is auxiliary context on invoke responses. The actual tool
+	// result remains authoritative, while full history is available from the
+	// history APIs. Returning the full conversation graph after every tool call
+	// makes large action sets (for example B1) exceed Godot's 16 MiB chunk
+	// parser limit and turns successful executions into transport failures.
+	resp.ProjectHistory = compactAgentStateProjectHistory(resp.ProjectHistory)
 	writeJSON(w, status, compactStripSilenceInvokeResponseForTransport(resp))
+}
+
+// A project-save prepare may freeze a very large Agent workspace, but the host
+// only needs the immutable prepare identity before asking the Kernel to write
+// the .vit file. Returning ProjectHistory here can exceed Godot's 16 MiB HTTP
+// chunk limit and strand a valid prepared package before the Kernel save.
+func compactProjectSavePrepareInvokeResponseForTransport(resp harness.InvokeResponse) harness.InvokeResponse {
+	result := map[string]any{}
+	for _, key := range []string{
+		"status", "prepared", "prepare_id", "history_prepare_id",
+		"generation_id", "agent_history_generation", "project_path", "current_project_path",
+		"project_uuid", "project_id", "save_kind", "working_session_id",
+		"project_package_prepared",
+	} {
+		if value, ok := resp.Result[key]; ok {
+			result[key] = value
+		}
+	}
+	resp.Result = result
+	resp.ProjectHistory = nil
+	return resp
+}
+
+func compactHostLifecycleInvokeResponseForTransport(resp harness.InvokeResponse) harness.InvokeResponse {
+	result := map[string]any{}
+	for _, key := range []string{
+		"status", "project_path", "current_project_path", "project_uuid", "project_id",
+		"parent_project_uuid", "source_project_uuid", "history_prepare_id", "agent_history_generation",
+		"project_package_committed", "project_package_path",
+		"prepared_save_recovery", "project_workspace_warning", "refresh",
+	} {
+		if value, ok := resp.Result[key]; ok {
+			result[key] = value
+		}
+	}
+	resp.Result = result
+	resp.ProjectHistory = compactAgentStateProjectHistory(resp.ProjectHistory)
+	return resp
+}
+
+// Folder export has a two-step protocol: a small media preflight followed by
+// the actual snapshot publication. Preserve every field the Godot dialog and
+// verification path consume, but never echo the source project's full history
+// graph as part of either response.
+func compactSaveAsFolderInvokeResponseForTransport(resp harness.InvokeResponse) harness.InvokeResponse {
+	result := map[string]any{}
+	for _, key := range []string{
+		"status", "message", "error", "project_lifecycle",
+		"project_path", "current_project_path", "project_uuid", "project_id",
+		"source_project_path", "source_project_uuid", "directory_path", "media_policy",
+		"referenced_audio_count", "external_audio_count", "missing_audio_count", "estimated_copy_bytes",
+		"audio_self_contained", "package_status", "package_manifest_path", "active_project_unchanged",
+	} {
+		if value, ok := resp.Result[key]; ok {
+			result[key] = value
+		}
+	}
+	resp.Result = result
+	resp.ProjectHistory = nil
+	return resp
+}
+
+func isProjectSaveAsFolderInvoke(req harness.InvokeRequest) bool {
+	for _, candidate := range []string{
+		req.Tool,
+		tools.CommandName(req.Command),
+		tools.CommandName(req.Args),
+		firstStringFromMap(req.Command, "tool"),
+		firstStringFromMap(req.Args, "tool"),
+	} {
+		normalized := strings.ToLower(strings.TrimSpace(candidate))
+		normalized = strings.ReplaceAll(normalized, ".", "_")
+		if normalized == "project_save_as_folder" || normalized == "save_as_folder" {
+			return true
+		}
+	}
+	return false
+}
+
+func isVersionProjectSavePrepareInvoke(req harness.InvokeRequest) bool {
+	for _, candidate := range []string{
+		req.Tool,
+		tools.CommandName(req.Command),
+		tools.CommandName(req.Args),
+		firstStringFromMap(req.Command, "tool"),
+		firstStringFromMap(req.Args, "tool"),
+	} {
+		normalized := strings.ToLower(strings.TrimSpace(candidate))
+		normalized = strings.ReplaceAll(normalized, ".", "_")
+		if normalized == "version_project_save_prepare" {
+			return true
+		}
+	}
+	return false
 }
 
 func isVersionProjectNewInvoke(req harness.InvokeRequest) bool {
@@ -2268,7 +2425,7 @@ func chatAgentPlanFromAny(value any) *AgentPlan {
 }
 
 func (s *Server) legacyPendingPlanBroadMixBlockedConfirmResponse(ctx context.Context, planID string, plan PendingPlan, goalID, runID, agentMode, projectPath string) (map[string]any, bool) {
-	if pendingPlanIsMixTreatmentPreparation(plan) {
+	if pendingPlanIsMixTreatmentPreparation(plan) || pendingPlanHasQualifiedSemanticPluginSelection(plan) {
 		return nil, false
 	}
 	userMessage := legacyPendingPlanUserMessage(plan)
@@ -2306,6 +2463,50 @@ func (s *Server) legacyPendingPlanBroadMixBlockedConfirmResponse(ctx context.Con
 		response["project_history"] = projectHistory
 	}
 	return response, true
+}
+
+// A target-3 selection is already a bounded user decision over exact local
+// catalog facts. Let that one exact rack_add_node reach its normal confirmation
+// without weakening the guard for arbitrary broad-mix loading plans.
+func pendingPlanHasQualifiedSemanticPluginSelection(plan PendingPlan) bool {
+	if plan.Workflow != pluginGrabberLoadCommand || !boolValue(plan.Context["semantic_plugin_recommendation_selection"]) {
+		return false
+	}
+	candidate := firstMapFromAny(plan.Context["semantic_plugin_recommendation_candidate"])
+	wantTrack := firstStringFromMap(plan.Context, "selected_track_id", "selected_plugin_track_id")
+	wantPath := firstStringFromMap(candidate, "plugin_path")
+	wantIdentifier := firstStringFromMap(candidate, "identifier")
+	if wantTrack == "" || wantPath == "" || len(plan.Decisions) != 1 {
+		return false
+	}
+	command := workflowCommandArgs(plan.Decisions[0].Command)
+	if firstStringFromMap(command, "cmd", "command") != "rack_add_node" ||
+		firstStringFromMap(command, "track_id") != wantTrack ||
+		!strings.EqualFold(firstStringFromMap(command, "plugin_path"), wantPath) {
+		return false
+	}
+	if wantIdentifier != "" && !strings.EqualFold(firstStringFromMap(command, "plugin_identifier"), wantIdentifier) {
+		return false
+	}
+	return true
+}
+
+// pendingPlanExecutionContext converts a server-verified target-3 choice into
+// the narrow, in-process harness authorization needed for exactly one plug-in
+// load. Keeping this token out of the persisted/client payload prevents a
+// caller from asserting that an arbitrary broad-mix load was selected.
+func pendingPlanExecutionContext(plan PendingPlan) map[string]any {
+	if !pendingPlanHasQualifiedSemanticPluginSelection(plan) {
+		return plan.Context
+	}
+	candidate := firstMapFromAny(plan.Context["semantic_plugin_recommendation_candidate"])
+	command := workflowCommandArgs(plan.Decisions[0].Command)
+	return harness.AuthorizeSemanticPluginSelectionLoad(
+		plan.Context,
+		firstStringFromMap(command, "track_id"),
+		firstStringFromMap(command, "plugin_path"),
+		firstStringFromMap(candidate, "identifier"),
+	)
 }
 
 func pendingPlanIsMixTreatmentPreparation(plan PendingPlan) bool {
@@ -3073,6 +3274,26 @@ func (s *Server) takePendingInteraction(interactionID string) (PendingInteractio
 	return interaction, ok
 }
 
+func (s *Server) restorePendingInteraction(interaction PendingInteraction) {
+	if s == nil || strings.TrimSpace(interaction.ID) == "" {
+		return
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.interactions[interaction.ID] = interaction
+}
+
+func capabilityInteractionConfirmationKind(decision string) string {
+	switch strings.ToLower(strings.TrimSpace(decision)) {
+	case "approve", "approve_once", "approved":
+		return actionworkflow.DecisionAccept
+	case "cancel", "reject", "deny", "decline", "stop", "no":
+		return actionworkflow.DecisionReject
+	default:
+		return actionworkflow.ClassifyConfirmation(decision, true).Kind
+	}
+}
+
 func (s *Server) recoverMixBoardInteractionFromPayload(interactionID string, payload map[string]any) (PendingInteraction, bool) {
 	if len(payload) == 0 {
 		return PendingInteraction{}, false
@@ -3398,6 +3619,24 @@ func (s *Server) handleInteractionRespond(w http.ResponseWriter, r *http.Request
 		}
 	}
 	if !ok {
+		interaction, ok = recoverPluginRecommendationInteractionFromPayload(interactionID, req.Payload)
+		if ok && s != nil && s.logger != nil {
+			s.logger.Info("[plugin.recommendation] recovered workspace-transition interaction=%s decision=%s", interactionID, decision)
+		}
+	}
+	if !ok {
+		interaction, ok = recoverSemanticTreatmentInteractionFromPayload(interactionID, req.Payload)
+		if ok && s != nil && s.logger != nil {
+			s.logger.Info("[semantic.treatment] recovered workspace-transition interaction=%s decision=%s", interactionID, decision)
+		}
+	}
+	if !ok {
+		interaction, ok = recoverB4PluginSelectionInteraction(interactionID, req.Payload)
+		if ok && s != nil && s.logger != nil {
+			s.logger.Info("[b4.plugin-selection] recovered interaction=%s decision=%s", interactionID, decision)
+		}
+	}
+	if !ok {
 		writeJSON(w, http.StatusOK, ChatResponse{
 			ConversationID: interactionID,
 			Reply:          "这个交互已处理或已过期。",
@@ -3412,9 +3651,19 @@ func (s *Server) handleInteractionRespond(w http.ResponseWriter, r *http.Request
 	if isCapabilityRuntimeInteraction {
 		capabilityID := firstNonEmpty(cleanContextText(interaction.Data["capability_id"]), cleanContextText(interaction.Payload["capability_id"]))
 		sessionID := firstNonEmpty(cleanContextText(interaction.Data["session_id"]), cleanContextText(interaction.Payload["session_id"]))
-		message := "可以执行"
-		if strings.EqualFold(decision, "cancel") || strings.Contains(strings.ToLower(decision), "cancel") {
+		message := ""
+		switch capabilityInteractionConfirmationKind(decision) {
+		case actionworkflow.DecisionAccept:
+			message = "可以执行"
+		case actionworkflow.DecisionReject:
 			message = "取消"
+		default:
+			s.restorePendingInteraction(interaction)
+			writeJSON(w, http.StatusBadRequest, map[string]any{
+				"status": "error", "message": "capability proposal requires an explicit approve or cancel decision",
+				"interaction_id": interactionID,
+			})
+			return
 		}
 		requestContext := mergeContext(interaction.RequestContext, map[string]any{
 			"capability_runtime_v1": true, "capability_id": capabilityID,
@@ -3444,6 +3693,27 @@ func (s *Server) handleInteractionRespond(w http.ResponseWriter, r *http.Request
 	}
 	if strings.EqualFold(interaction.Source, pluginPrepWorkerWorkflow) || strings.EqualFold(interaction.Type, pluginPrepParameterTreatmentType) || strings.EqualFold(interaction.Workflow, pluginPrepWorkerWorkflow) {
 		resp := s.continuePluginPrepWorkerCandidateInteraction(r.Context(), interaction, req.Payload, decision)
+		writeJSON(w, http.StatusOK, resp)
+		return
+	}
+	if strings.EqualFold(interaction.Source, "plugin_recommendation") || strings.EqualFold(interaction.Workflow, pluginRecommendationWorkflow) || strings.EqualFold(interaction.Type, "plugin_recommendation_selection") {
+		resp := s.continuePluginRecommendationInteraction(r.Context(), interaction, decision)
+		s.attachInteractionRequests(&resp)
+		s.finalizeInteractionChatResponse(r.Context(), &resp, interaction, decision)
+		writeJSON(w, http.StatusOK, resp)
+		return
+	}
+	if strings.EqualFold(interaction.Source, "semantic_treatment") || strings.EqualFold(interaction.Workflow, semanticTreatmentWorkflow) || strings.EqualFold(interaction.Type, "semantic_treatment_selection") {
+		resp := s.continueSemanticTreatmentInteraction(r.Context(), interaction, decision)
+		s.attachInteractionRequests(&resp)
+		s.finalizeInteractionChatResponse(r.Context(), &resp, interaction, decision)
+		writeJSON(w, http.StatusOK, resp)
+		return
+	}
+	if strings.EqualFold(interaction.Source, "b4_plugin_selection") || strings.EqualFold(interaction.Type, "b4_plugin_selection") {
+		resp := s.continueB4PluginSelectionInteraction(r.Context(), interaction, decision)
+		s.attachInteractionRequests(&resp)
+		s.finalizeInteractionChatResponse(r.Context(), &resp, interaction, decision)
 		writeJSON(w, http.StatusOK, resp)
 		return
 	}
@@ -3713,6 +3983,7 @@ func (s *Server) finalizeInteractionChatResponse(ctx context.Context, resp *Chat
 	if resp.ConversationID != "" {
 		s.emitTurnEvent(resp.ConversationID, eventType, *resp, firstNonEmpty(interaction.GoalID, ctxGoalID), firstNonEmpty(interaction.RunID, ctxRunID))
 	}
+	compactStripSilenceChatResponseForTransport(resp)
 }
 
 func (s *Server) attachInteractionsToResponseMap(response *map[string]any, interaction PendingInteraction) {
@@ -4512,7 +4783,7 @@ func (s *Server) handleConfirm(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	beforeState := s.harness.UserStateSummary(r.Context())
-	replies, err := s.executeDecisions(r.Context(), plan.Decisions, true, plan.Context)
+	replies, err := s.executeDecisions(r.Context(), plan.Decisions, true, pendingPlanExecutionContext(plan))
 	if err != nil {
 		s.harness.CompleteGoal(goalID, err)
 		projectHistory := s.harness.RecordConversationNodeForProject(r.Context(), projectPath, "vit", err.Error(), goalID, runID)
@@ -4538,9 +4809,15 @@ func (s *Server) handleConfirm(w http.ResponseWriter, r *http.Request) {
 	}
 	message := executedReply(beforeState, s.harness.UserStateSummary(r.Context()), plan.Decisions, replies)
 	var pluginPrep pluginPrepContinuation
+	var semanticEQHandoff *ChatResponse
 	if plan.Workflow == pluginGrabberLoadCommand {
 		message, replies = s.finishPluginGrabberLoadWorkflow(r.Context(), plan, replies, message)
 		pluginPrep = s.pluginPrepContinuationFromReplies(plan, replies, message)
+		if handoff, ok := s.semanticEQPostLoadHandoff(r.Context(), plan, replies); ok {
+			s.attachInteractionRequests(&handoff)
+			semanticEQHandoff = &handoff
+			message = handoff.Reply
+		}
 	}
 	if plan.Workflow == "goal_ui_smoke" {
 		message = "done"
@@ -4548,7 +4825,9 @@ func (s *Server) handleConfirm(w http.ResponseWriter, r *http.Request) {
 	if strings.TrimSpace(message) == "" {
 		message = "done"
 	}
-	if strings.EqualFold(pluginPrep.GoalStatus, string(agentruntime.StatusWaitingConfirmation)) {
+	if semanticEQHandoff != nil && semanticEQHandoff.NeedsConfirmation {
+		s.harness.SetGoalStatus(goalID, agentruntime.StatusWaitingConfirmation, nil)
+	} else if strings.EqualFold(pluginPrep.GoalStatus, string(agentruntime.StatusWaitingConfirmation)) {
 		s.harness.SetGoalStatus(goalID, agentruntime.StatusWaitingConfirmation, nil)
 	} else if strings.EqualFold(pluginPrep.GoalStatus, string(agentruntime.StatusWaitingContinue)) {
 		s.harness.SetGoalStatus(goalID, agentruntime.StatusWaitingContinue, nil)
@@ -4560,6 +4839,12 @@ func (s *Server) handleConfirm(w http.ResponseWriter, r *http.Request) {
 	historyData := map[string]any{}
 	if len(projectResultCards) > 0 {
 		historyData["project_result_cards"] = projectResultCards
+	}
+	if semanticEQHandoff != nil {
+		if messageData := chatResponseMessageData(*semanticEQHandoff); len(messageData) > 0 {
+			historyData["message_data"] = messageData
+		}
+		historyData["message_kind"] = chatResponseMessageKind(*semanticEQHandoff)
 	}
 	projectHistory := s.harness.RecordConversationNodeForProjectWithData(r.Context(), projectPath, "vit", message, goalID, runID, historyData)
 	if len(projectHistory) == 0 {
@@ -4592,6 +4877,14 @@ func (s *Server) handleConfirm(w http.ResponseWriter, r *http.Request) {
 		response["agent_plan"] = plan
 	}
 	response = applyPluginPrepContinuationResponse(response, pluginPrep)
+	if semanticEQHandoff != nil {
+		response = applySemanticEQPostLoadHandoffResponse(response, *semanticEQHandoff)
+		if semanticEQHandoff.NeedsConfirmation {
+			if agentPlan := agentPlanForMode(agentMode, simpleAgentPlan(goalID, runID, agentruntime.StatusWaitingConfirmation, semanticEQHandoff.GoalSummary, "", "", projectHistory)); agentPlan != nil {
+				response["agent_plan"] = agentPlan
+			}
+		}
+	}
 	if strings.EqualFold(pluginPrep.GoalStatus, string(agentruntime.StatusWaitingConfirmation)) {
 		if plan := agentPlanForMode(agentMode, simpleAgentPlan(goalID, runID, agentruntime.StatusWaitingConfirmation, "", "", "", projectHistory)); plan != nil {
 			response["agent_plan"] = plan
@@ -4654,7 +4947,7 @@ func (s *Server) resolvePendingPlanDecision(ctx context.Context, planID, decisio
 		return http.StatusOK, response
 	}
 	beforeState := s.harness.UserStateSummary(ctx)
-	replies, err := s.executeDecisions(ctx, plan.Decisions, true, plan.Context)
+	replies, err := s.executeDecisions(ctx, plan.Decisions, true, pendingPlanExecutionContext(plan))
 	if err != nil {
 		s.harness.CompleteGoal(goalID, err)
 		projectHistory := s.harness.RecordConversationNodeForProject(ctx, projectPath, "vit", err.Error(), goalID, runID)
@@ -4679,14 +4972,22 @@ func (s *Server) resolvePendingPlanDecision(ctx context.Context, planID, decisio
 	}
 	message := executedReply(beforeState, s.harness.UserStateSummary(ctx), plan.Decisions, replies)
 	var pluginPrep pluginPrepContinuation
+	var semanticEQHandoff *ChatResponse
 	if plan.Workflow == pluginGrabberLoadCommand {
 		message, replies = s.finishPluginGrabberLoadWorkflow(ctx, plan, replies, message)
 		pluginPrep = s.pluginPrepContinuationFromReplies(plan, replies, message)
+		if handoff, ok := s.semanticEQPostLoadHandoff(ctx, plan, replies); ok {
+			s.attachInteractionRequests(&handoff)
+			semanticEQHandoff = &handoff
+			message = handoff.Reply
+		}
 	}
 	if strings.TrimSpace(message) == "" {
 		message = "done"
 	}
-	if strings.EqualFold(pluginPrep.GoalStatus, string(agentruntime.StatusWaitingConfirmation)) {
+	if semanticEQHandoff != nil && semanticEQHandoff.NeedsConfirmation {
+		s.harness.SetGoalStatus(goalID, agentruntime.StatusWaitingConfirmation, nil)
+	} else if strings.EqualFold(pluginPrep.GoalStatus, string(agentruntime.StatusWaitingConfirmation)) {
 		s.harness.SetGoalStatus(goalID, agentruntime.StatusWaitingConfirmation, nil)
 	} else if strings.EqualFold(pluginPrep.GoalStatus, string(agentruntime.StatusWaitingContinue)) {
 		s.harness.SetGoalStatus(goalID, agentruntime.StatusWaitingContinue, nil)
@@ -4698,6 +4999,12 @@ func (s *Server) resolvePendingPlanDecision(ctx context.Context, planID, decisio
 	historyData := map[string]any{}
 	if len(projectResultCards) > 0 {
 		historyData["project_result_cards"] = projectResultCards
+	}
+	if semanticEQHandoff != nil {
+		if messageData := chatResponseMessageData(*semanticEQHandoff); len(messageData) > 0 {
+			historyData["message_data"] = messageData
+		}
+		historyData["message_kind"] = chatResponseMessageKind(*semanticEQHandoff)
 	}
 	projectHistory := s.harness.RecordConversationNodeForProjectWithData(ctx, projectPath, "vit", message, goalID, runID, historyData)
 	if len(projectHistory) == 0 {
@@ -4730,6 +5037,14 @@ func (s *Server) resolvePendingPlanDecision(ctx context.Context, planID, decisio
 		response["agent_plan"] = plan
 	}
 	response = applyPluginPrepContinuationResponse(response, pluginPrep)
+	if semanticEQHandoff != nil {
+		response = applySemanticEQPostLoadHandoffResponse(response, *semanticEQHandoff)
+		if semanticEQHandoff.NeedsConfirmation {
+			if agentPlan := agentPlanForMode(agentMode, simpleAgentPlan(goalID, runID, agentruntime.StatusWaitingConfirmation, semanticEQHandoff.GoalSummary, "", "", projectHistory)); agentPlan != nil {
+				response["agent_plan"] = agentPlan
+			}
+		}
+	}
 	if strings.EqualFold(pluginPrep.GoalStatus, string(agentruntime.StatusWaitingConfirmation)) {
 		if plan := agentPlanForMode(agentMode, simpleAgentPlan(goalID, runID, agentruntime.StatusWaitingConfirmation, "", "", "", projectHistory)); plan != nil {
 			response["agent_plan"] = plan
@@ -6645,6 +6960,12 @@ func (s *Server) activateCurrentProjectWorkspace(ctx context.Context) {
 	if projectUUID == "" {
 		return
 	}
+	if _, err := s.harness.ActivateProjectStore(projectPath, projectUUID); err != nil {
+		if s.logger != nil {
+			s.logger.Warn("[workspace] v2 project store activation failed project=%s uuid=%s error=%v", projectPath, projectUUID, err)
+		}
+		return
+	}
 	s.workspaceMu.Lock()
 	defer s.workspaceMu.Unlock()
 	boundSessionID := history.WorkingSessionID(projectPath)
@@ -6843,9 +7164,15 @@ func revealLocalPath(path string) error {
 }
 
 func writeJSON(w http.ResponseWriter, status int, body any) {
+	data, err := json.Marshal(body)
+	if err != nil {
+		status = http.StatusInternalServerError
+		data = []byte(`{"status":"error","error":"failed to encode JSON response"}`)
+	}
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.Header().Set("Content-Length", strconv.Itoa(len(data)))
 	w.WriteHeader(status)
-	_ = json.NewEncoder(w).Encode(body)
+	_, _ = w.Write(data)
 }
 
 func randomID() string {

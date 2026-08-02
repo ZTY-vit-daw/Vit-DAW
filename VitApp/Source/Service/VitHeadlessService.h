@@ -59,6 +59,7 @@ private:
                                                 const juce::DynamicObject& object);
     juce::String ipcSaveProjectToCurrentPath (const juce::DynamicObject* object = nullptr);
     juce::String ipcSaveAsProjectAt (const juce::DynamicObject& object, const juce::File& targetFile);
+    juce::String ipcSaveProjectCopyAt (const juce::DynamicObject& object, const juce::File& logicalTargetFile);
     void clearLevelMeterClients();
     void syncLevelMeterClients();
     void timerCallback() override;

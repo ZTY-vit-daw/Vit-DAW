@@ -31,14 +31,18 @@ func TestBuildStaticBalancePackAndMultiTrackPlan(t *testing.T) {
 			},
 		}},
 		MixObservation: map[string]any{"observation_id": "obs_b2", "mom_projection": map[string]any{
-			"mom_version":   "v1.4",
+			"mom_version":   "v1.5",
 			"trust_quality": map[string]any{"can_support_action_preflight": true},
-			"multitrack_relation": map[string]any{"compared_tracks": []any{
+			"multitrack_relation": map[string]any{"status": "ready", "compared_tracks": []any{
 				map[string]any{"track_id": "v", "rms_dbfs": -18.0, "headroom_db": 8.0},
 				map[string]any{"track_id": "d", "rms_dbfs": -18.0, "headroom_db": 6.0},
 				map[string]any{"track_id": "b", "rms_dbfs": -18.0, "headroom_db": 7.0},
 				map[string]any{"track_id": "s", "rms_dbfs": -18.0, "headroom_db": 9.0},
 			}},
+			"static_level_relationship": testStaticLevelRelationship([]any{
+				testStaticLevelTrack("v", -18, -8), testStaticLevelTrack("d", -18, -6),
+				testStaticLevelTrack("b", -18, -7), testStaticLevelTrack("s", -18, -9),
+			}),
 		}},
 	})
 	if pack.SchemaVersion != StaticBalanceContextPackSchema || pack.ContextManifestID != "static_mix.static_balance.context_manifest.v1" || pack.ContextBuilder != CapabilityContextBuilderVersion || pack.Style.ID != "modern_pop" || len(pack.Tracks) != 4 {
@@ -59,12 +63,14 @@ func TestStaticBalanceDisclosureCapNeverCapsAnalysisOrPlan(t *testing.T) {
 	const trackCount = 61
 	tracks := make([]any, 0, trackCount)
 	levels := make([]any, 0, trackCount)
+	staticLevels := make([]any, 0, trackCount)
 	roles := []string{"lead_vocal", "drums", "bass", "strings"}
 	assignments := make([][]any, len(roles))
 	for index := 0; index < trackCount; index++ {
 		id := fmt.Sprintf("t_%02d", index+1)
 		tracks = append(tracks, map[string]any{"track_id": id, "track_name": id, "track_type": "audio", "volume_db": 0.0})
 		levels = append(levels, map[string]any{"track_id": id, "rms_dbfs": -24.0 + float64(index%9), "peak_dbfs": -8.0})
+		staticLevels = append(staticLevels, testStaticLevelTrack(id, -24.0+float64(index%9), -8.0))
 		assignments[index%len(roles)] = append(assignments[index%len(roles)], map[string]any{"track_id": id, "confidence": "high"})
 	}
 	groups := make([]any, len(roles))
@@ -77,8 +83,9 @@ func TestStaticBalanceDisclosureCapNeverCapsAnalysisOrPlan(t *testing.T) {
 		ProjectState:    map[string]any{"tracks": tracks},
 		ContextSnapshot: map[string]any{"tom_projection": map[string]any{"full_assignment_manifest": map[string]any{"track_count": trackCount, "groups": groups}}},
 		MixObservation: map[string]any{"observation_id": "obs_61", "mom_projection": map[string]any{
-			"trust_quality":       map[string]any{"can_support_action_preflight": true},
-			"multitrack_relation": map[string]any{"track_count": trackCount, "compared_tracks": levels},
+			"trust_quality":             map[string]any{"can_support_action_preflight": true},
+			"multitrack_relation":       map[string]any{"status": "ready", "track_count": trackCount, "compared_tracks": levels},
+			"static_level_relationship": testStaticLevelRelationship(staticLevels),
 		}},
 	})
 	if pack.AnalyzedTrackCount != trackCount || pack.DisclosedTrackCount != 7 || len(pack.Tracks) != 7 {
@@ -137,6 +144,21 @@ func recommendedStaticBalanceActions(pack StaticBalancePack) []staticbalance.Act
 		}
 	}
 	return nil
+}
+
+func testStaticLevelRelationship(tracks []any) map[string]any {
+	return map[string]any{
+		"schema_version": "mom.static_level_relationship.v1", "status": "ready", "freshness": "fresh",
+		"project_cut_ref": "test-cut", "tracks": tracks,
+	}
+}
+
+func testStaticLevelTrack(trackID string, rms, peak float64) map[string]any {
+	return map[string]any{
+		"track_id": trackID, "status": "ready", "freshness": "fresh", "metric": "effective_static_rms_dbfs",
+		"tap_point": "derived_static_control_model", "effective_static_rms_dbfs": rms, "effective_static_peak_dbfs": peak,
+		"aggregation_method": "duration_weighted_linear_energy_source_plus_clip_gain_plus_fader",
+	}
 }
 
 func mustTestMixStyle(t *testing.T, id string) mixstyle.MixStyle {

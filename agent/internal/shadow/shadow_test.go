@@ -80,6 +80,27 @@ func TestSummaryOverlaysTrackRenameDelta(t *testing.T) {
 	}
 }
 
+func TestSummaryPreservesDeterministicTrackAndClipStateRevisions(t *testing.T) {
+	p := New(nil)
+	p.Initialize(map[string]any{
+		"project_uuid": "project-save-as",
+		"tracks": []any{map[string]any{
+			"track_id": "1007", "track_name": "Track 1", "track_type": "hybrid", "is_audio_track": true,
+			"track_state_revision": "track-state-1",
+			"clips":                []any{map[string]any{"clip_id": "1010", "clip_state_revision": "clip-state-1"}},
+		}},
+	})
+	tracks := p.Summary()["tracks"].([]map[string]any)
+	if len(tracks) != 1 || tracks[0]["track_state_revision"] != "track-state-1" {
+		t.Fatalf("track state revision missing from summary: %#v", tracks)
+	}
+	clips := tracks[0]["clips"].([]any)
+	clip := clips[0].(map[string]any)
+	if clip["clip_state_revision"] != "clip-state-1" {
+		t.Fatalf("clip state revision missing from summary: %#v", clip)
+	}
+}
+
 func TestSummaryHidesInternalTracktionTracks(t *testing.T) {
 	p := New(nil)
 	p.Initialize(map[string]any{

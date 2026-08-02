@@ -23,7 +23,9 @@ import (
 const staticBalanceCapabilityID = "static_mix.static_balance.v0"
 const panLayoutCapabilityID = "static_mix.pan_layout.v0"
 const lowEndRelationCapabilityID = "static_mix.low_end_relation.v0"
+const frequencyCleanupCapabilityID = "fine_mix.frequency_cleanup.v1"
 const pluginEffectControlCapabilityID = "plugin.effect_control.v0"
+const retiredFocusPositionCapabilityID = "static_mix.focus_position.v0"
 
 // handleCapabilityRuntimeCanary is the permanent B2/B3 abstraction seam.
 // The historical name is retained for API/source compatibility, but every
@@ -59,11 +61,13 @@ func (s *Server) handleCapabilityRuntimeCanary(ctx context.Context, conversation
 			if err != nil {
 				return capabilityCanaryBlockedResponse(conversationID, goal, "v1 Session 取消失败："+err.Error()), true
 			}
-			return ChatResponse{
+			response := ChatResponse{
 				ConversationID: conversationID, GoalID: goal.GoalID, RunID: goal.RunID,
 				Reply: "已取消当前 Proposal/PlanningSession；没有执行新的工程修改。", Workflow: "capability_runtime_v1", GoalStatus: string(agentruntime.StatusCancelled),
 				WorkflowData: map[string]any{"session_id": cancelled.ID, "capability_id": capabilityID, "engine_owner": cancelled.EngineOwner, "canary_stage": "cancelled"},
-			}, true
+			}
+			attachMixboardDecisionProjection(&response, cancelled)
+			return response, true
 		}
 	}
 	if resolution.SessionID != "" {
@@ -79,13 +83,24 @@ func (s *Server) handleCapabilityRuntimeCanary(ctx context.Context, conversation
 				if err != nil {
 					return capabilityCanaryBlockedResponse(conversationID, goal, "v1 Session 取消失败："+err.Error()), true
 				}
-				return ChatResponse{
+				response := ChatResponse{
 					ConversationID: conversationID, GoalID: goal.GoalID, RunID: goal.RunID,
 					Reply: "已取消当前 Proposal；没有执行新的工程修改。", Workflow: "capability_runtime_v1", GoalStatus: string(agentruntime.StatusCancelled),
 					WorkflowData: map[string]any{"session_id": cancelled.ID, "capability_id": capabilityID, "engine_owner": cancelled.EngineOwner, "canary_stage": "cancelled", "approval_decision": decision},
-				}, true
+				}
+				attachMixboardDecisionProjection(&response, cancelled)
+				return response, true
 			case orchestration.ApprovalQuestion:
 				return proposalQuestionResponse(conversationID, goal, pendingSession), true
+			case orchestration.ApprovalRevise, orchestration.ApprovalNarrow:
+				if capabilityID == agentSemanticEQCapabilityID {
+					if _, err := s.orchestrationRuntime.CancelPlanningSession(resolution.SessionID); err != nil {
+						return capabilityCanaryBlockedResponse(conversationID, goal, "无法取消旧 EQ Proposal 以重新规划："+err.Error()), true
+					}
+					// Let the ordinary Agent interpret the revised acoustic goal and
+					// produce a brand-new semantic action. No frozen action is edited.
+					return ChatResponse{}, false
+				}
 			case orchestration.ApprovalAmbiguous, orchestration.ApprovalNoDecision:
 				return proposalAmbiguousResponse(conversationID, goal, pendingSession), true
 			}
@@ -97,8 +112,14 @@ func (s *Server) handleCapabilityRuntimeCanary(ctx context.Context, conversation
 	if capabilityID == lowEndRelationCapabilityID {
 		return s.handleLowEndRelationRuntimeCanary(ctx, conversationID, req, goal), true
 	}
+	if capabilityID == frequencyCleanupCapabilityID {
+		return s.handleFrequencyCleanupRuntime(ctx, conversationID, req, goal), true
+	}
 	if capabilityID == pluginEffectControlCapabilityID {
 		return s.handlePluginEffectControlRuntime(ctx, conversationID, req, goal), true
+	}
+	if capabilityID == agentSemanticEQCapabilityID {
+		return s.handleSemanticEQRuntime(ctx, conversationID, req, goal), true
 	}
 	if capabilityID != staticBalanceCapabilityID {
 		return ChatResponse{}, false
@@ -158,12 +179,13 @@ func (s *Server) handleCapabilityRuntimeCanary(ctx context.Context, conversation
 		return capabilityCanaryBlockedResponse(conversationID, goal, "B2 CCB 只读上下文获取失败："+err.Error()), true
 	}
 	cutGuarantee := capabilityCanaryCutGuarantee(ctx, s.kernel)
+	decisionRefs, decisionRefsErr := mixboardDecisionContextForState(state.LegacyState, staticBalanceCapabilityID)
 	buildCut := projectcut.BuildRequest{
 		State:                  state,
 		Guarantee:              cutGuarantee,
 		DependencyFingerprints: dependencies,
 		TargetFingerprints:     canaryTrackFingerprints(state.LegacyState),
-		ArtifactRefs:           canaryStringSlice(req.Context["artifact_refs"]),
+		ArtifactRefs:           appendUniqueStrings(canaryStringSlice(req.Context["artifact_refs"]), mixboardDecisionArtifactRefs(decisionRefs)...),
 		ContractVersions:       []string{"capability:static_mix.static_balance.v0", "context:static_mix.static_balance.context_pack.v1"},
 	}
 	cut, err := projectcut.Build(buildCut)
@@ -182,6 +204,7 @@ func (s *Server) handleCapabilityRuntimeCanary(ctx context.Context, conversation
 	if err != nil {
 		return capabilityCanaryBlockedResponse(conversationID, goal, "B2 Shadow 失败："+err.Error()), true
 	}
+	attachMixboardDecisionContext(&planned.Bundle, decisionRefs, decisionRefsErr)
 	envelope, err := s.orchestrationRuntime.BuildB2ContextEnvelope(
 		sessionID,
 		planned.Bundle,
@@ -244,13 +267,6 @@ func (s *Server) acquireCapabilityCanaryB2Context(ctx context.Context, sessionID
 	if s == nil || s.harness == nil || state == nil {
 		return capabilitycontext.StaticBalanceInput{}, nil, fmt.Errorf("harness and VSP state are required")
 	}
-	audio, err := s.harness.Invoke(ctx, harness.InvokeRequest{
-		Tool: "project.audio_analysis_status", Args: map[string]any{}, Context: map[string]any{"observation_only": true},
-		Source: "capability_runtime_v1_ccb", Confirmed: true, ToolCallID: "ccb:" + sessionID + ":audio_analysis_status",
-	})
-	if err != nil || !strings.EqualFold(audio.Status, "ok") {
-		return capabilitycontext.StaticBalanceInput{}, nil, fmt.Errorf("project.audio_analysis_status: %s", firstNonEmpty(audio.Error, canaryErrorText(err), audio.Status))
-	}
 	observe, err := s.harness.Invoke(ctx, harness.InvokeRequest{
 		Tool: "mix.observe",
 		Args: map[string]any{
@@ -272,15 +288,18 @@ func (s *Server) acquireCapabilityCanaryB2Context(ctx context.Context, sessionID
 	dependencies := []string{
 		"vsp.snapshot:" + state.SnapshotHash,
 		"MOM:" + observationID,
-		"DAD:" + firstNonEmpty(firstStringFromMap(audio.Result, "analysis_job_id", "job_id", "analysis_manifest_path"), "status-only"),
 	}
 	if len(tomProjection) > 0 {
 		dependencies = append(dependencies, "TOM:"+firstNonEmpty(firstStringFromMap(tomProjection, "tom_version"), "project-state-derived")+":"+observationID)
 	}
+	projectState := cloneContext(state.LegacyState)
+	projectState["snapshot_hash"] = state.SnapshotHash
+	projectState["project_revision"] = state.Revision
+	projectState["project_epoch"] = state.ProjectEpoch
 	return capabilitycontext.StaticBalanceInput{
-		UserIntent: req.Message, ProjectState: cloneContext(state.LegacyState),
+		UserIntent: req.Message, ProjectState: projectState,
 		MixObservation: cloneContext(observe.Result), MOMProjection: protocolvalue.Object(observe.Result["mom_projection"]),
-		AudioAnalysisStatus: cloneContext(audio.Result), TOMProjection: tomProjection, RequestContext: cloneContext(req.Context),
+		TOMProjection: tomProjection, RequestContext: cloneContext(req.Context),
 		ExecutionMemory: firstMapFromAny(req.Context["execution_memory"]),
 	}, dependencies, nil
 }
@@ -308,7 +327,7 @@ func (s *Server) handleCapabilityCanaryAuthorization(ctx context.Context, conver
 	}
 	envelope, envelopeErr := s.orchestrationRuntime.BuildB2ContextEnvelope(
 		session.ID,
-		orchestration.ContextBundle{ID: frozen.ContextBundleID, CapabilityID: frozen.ActionSet.CapabilityID, ProjectCutHash: frozen.ProjectCut.Hash, ArtifactRefs: []string{"capability-pack:" + frozen.ContextBundleID}},
+		orchestration.ContextBundle{ID: frozen.ContextBundleID, CapabilityID: frozen.ActionSet.CapabilityID, ProjectCutHash: frozen.ProjectCut.Hash, ArtifactRefs: appendUniqueStrings([]string{"capability-pack:" + frozen.ContextBundleID}, frozen.ProjectCut.ArtifactRefs...)},
 		capabilityCanaryToolSchemas(s),
 		[]orchestration.ContextEntry{{ID: firstNonEmpty(goal.RunID, "authorization_turn"), Content: req.Message, Reference: "chat-history:" + conversationID, Priority: 100}},
 		orchestration.DefaultContextWindowBudget(),
@@ -350,6 +369,7 @@ func (s *Server) handleCapabilityCanaryAuthorization(ctx context.Context, conver
 	}
 	response := capabilityCanaryExecutionResponse(conversationID, goal, executed, envelope, executeErr)
 	response.ProjectHistory = s.harness.ProjectHistorySummary(ctx, firstNonEmpty(goal.GoalID, session.ID))
+	attachMixboardDecisionProjection(&response, executed)
 	return response
 }
 
@@ -383,7 +403,7 @@ func canaryErrorText(err error) string {
 }
 
 func capabilityCanaryToolSchemas(s *Server) []orchestration.ContextEntry {
-	names := []string{"project.state", "project.audio_analysis_status", "mix.observe", "mix.read", "mix.derive"}
+	names := []string{"project.state", "mix.observe", "mix.read", "mix.derive"}
 	entries := make([]orchestration.ContextEntry, 0, len(names))
 	for index, name := range names {
 		content := ""

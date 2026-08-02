@@ -191,26 +191,25 @@ func StaticMixStaticBalanceContextManifest() ContextManifest {
 		DefaultBudget:  Budget{MaxDisclosedTracks: 12, MaxRankingRows: 8, MaxStringRunes: 96},
 		Sources: []ContextSourceSpec{
 			{ID: "project_state", Description: "Current full-project user-track faders and project structure.", Required: true},
-			{ID: "audio_analysis_status", Description: "Read-only automatic DAD waveform facts used to derive source+clip-gain+fader effective levels.", Required: true},
 			{ID: "tom_projection", Description: "Track organization and role hypotheses with confidence; deterministically rebuilt from current project state when absent."},
-			{ID: "mom_projection", Description: "Whole-project multitrack relationship inventory; its generic L3-aware action gate is not the B2 readiness gate.", Required: true},
+			{ID: "mom_projection", Description: "Whole-project relationship inventory plus typed static-level relationship projection; raw acoustic packages remain behind the observation boundary.", Required: true},
 			{ID: "mix_style", Description: "Validated Vit Mix Style weights from a built-in or future external .vms module.", Required: true},
 		},
 		RowSets: []ContextRowSetSpec{
 			{ID: "project_tracks", SourceID: "project_state", Paths: [][]string{{"tracks"}, {"visible_tracks"}, {"daw_state_summary", "tracks"}}, KeyAliases: []string{"track_id", "id"}, EvidenceRef: "project.state:tracks"},
-			{ID: "dad_track_waveforms", SourceID: "audio_analysis_status", Paths: [][]string{{"track_waveform_envelopes"}, {"analysis_job", "track_waveform_envelopes"}, {"summary", "track_waveform_envelopes"}}, KeyAliases: []string{"track_id", "source_track_id", "id"}, EvidenceRef: "project.audio_analysis_status:track_waveform_envelopes"},
 			{ID: "tom_assignments", SourceID: "tom_projection", Paths: [][]string{{"group_proposals", "assignment_excerpt"}, {"full_assignment_manifest", "groups", "assignments"}}, KeyAliases: []string{"track_id", "id"}, EvidenceRef: "TOM:role_assignments"},
 			{ID: "mom_compared_tracks", SourceID: "mom_projection", Paths: [][]string{{"multitrack_relation", "compared_tracks"}}, KeyAliases: []string{"track_id", "id"}, EvidenceRef: "MOM:multitrack_relation.compared_tracks"},
+			{ID: "mom_static_levels", SourceID: "mom_projection", Paths: [][]string{{"static_level_relationship", "tracks"}}, KeyAliases: []string{"track_id", "id"}, EvidenceRef: "MOM:static_level_relationship.tracks"},
 		},
-		Merges: []ContextMergeSpec{{ID: "static_balance_tracks", RowSetIDs: []string{"project_tracks", "dad_track_waveforms", "tom_assignments", "mom_compared_tracks"}, KeyAliases: []string{"track_id", "id"}, MergePolicy: "project_identity_fader_and_clip_gain_plus_dad_source_level_plus_tom_role_plus_mom_relation"}},
+		Merges: []ContextMergeSpec{{ID: "static_balance_tracks", RowSetIDs: []string{"project_tracks", "tom_assignments", "mom_compared_tracks", "mom_static_levels"}, KeyAliases: []string{"track_id", "id"}, MergePolicy: "project_identity_and_fader_plus_tom_role_plus_mom_relation_and_typed_static_level"}},
 		Fields: []ContextFieldSpec{
 			{ID: "track_id", Aliases: []string{"track_id", "id"}, Semantic: "stable track identifier", EvidenceKind: "identity", Usage: "row_key"},
 			{ID: "role", Aliases: []string{"role_guess", "role_hypothesis", "role"}, Semantic: "track content/function hypothesis", EvidenceKind: "TOM", Usage: "functional relationship classification", Primary: true},
 			{ID: "volume_db", Aliases: []string{"volume_db", "fader_db", "track_gain_db"}, Semantic: "current track fader", EvidenceKind: "project_state", Usage: "B2 writable target and stale-plan fingerprint", Writable: true, ControlTarget: true},
-			{ID: "level_db", Aliases: []string{"effective_static_rms_dbfs", "active_rms_dbfs", "rms_dbfs", "level_db"}, Semantic: "source DAD RMS plus current clip gain and track fader", EvidenceKind: "B2 derived L1", Usage: "bounded relationship correction", Primary: true},
-			{ID: "headroom_db", Aliases: []string{"headroom_db", "peak_dbfs"}, Semantic: "gain-adjusted effective peak headroom", EvidenceKind: "B2 derived L1", Usage: "headroom gate"},
+			{ID: "level_db", Aliases: []string{"effective_static_rms_dbfs"}, Semantic: "typed MOM static-level relationship value", EvidenceKind: "MOM static-level projection", Usage: "bounded relationship correction", Primary: true},
+			{ID: "headroom_db", Aliases: []string{"effective_static_peak_dbfs"}, Semantic: "typed MOM effective static peak", EvidenceKind: "MOM static-level projection", Usage: "headroom gate"},
 		},
-		FollowUpTools: []string{"project.state", "project.audio_analysis_status", "mix.observe", "mix.read", "mix.derive", "mix.propose_tick", "mix.apply_tick", "mix.rollback_tick"},
+		FollowUpTools: []string{"project.state", "mix.observe", "mix.read", "mix.derive", "mix.propose_tick", "mix.apply_tick", "mix.rollback_tick"},
 		Excluded:      []string{"clip gain", "plugins", "pan", "automation", "raw waveform arrays", "spectrogram tiles", "full TOM tree", "direct track.volume"},
 		Guidance: []string{
 			"Run deterministic B2 readiness before solving; capability history is not a prerequisite.",
@@ -278,7 +277,7 @@ func StaticMixLowEndRelationContextManifest() ContextManifest {
 		},
 		RowSets: []ContextRowSetSpec{
 			{ID: "project_tracks", SourceID: "project_state",
-				Paths: [][]string{{"tracks"}, {"visible_tracks"}, {"daw_state_summary", "tracks"}},
+				Paths:      [][]string{{"tracks"}, {"visible_tracks"}, {"daw_state_summary", "tracks"}},
 				KeyAliases: []string{"track_id", "id"}, EvidenceRef: "project.state:tracks"},
 			{ID: "mom_band_occupancy", SourceID: "mom_projection",
 				Paths:       [][]string{{"multitrack_relation", "band_occupancy"}},
@@ -303,6 +302,41 @@ func StaticMixLowEndRelationContextManifest() ContextManifest {
 			"Low-end identification is based on MOM band energy occupancy, not assumed role names.",
 			"Masking conflicts are detected by MOM band_conflict_candidates narrowed to sub/bass bands.",
 			"Suggested remediation directions (EQ, fader, pan) belong to B2/B3/SPAL; B4 does not execute them.",
+		},
+	})
+}
+
+func FineMixFrequencyCleanupContextManifest() ContextManifest {
+	return normalizeContextManifest(ContextManifest{
+		ManifestID:     "fine_mix.frequency_cleanup.context_manifest.v1",
+		CapabilityID:   FrequencyCleanupCapabilityID,
+		CapabilityName: "C1 Frequency Cleanup",
+		DefaultBudget:  Budget{MaxStringRunes: 160, MaxRankingRows: 8},
+		Sources: []ContextSourceSpec{
+			{ID: "project_state", Description: "Current full-project identity, routing and plug-in state.", Required: true},
+			{ID: "mom_frequency_relationship", Description: "Whole-project six-region frequency relationship projection with explicit tap and coverage.", Required: true},
+			{ID: "tom_projection", Description: "Track role hypotheses used as context, never as acoustic truth."},
+			{ID: "mixboard_decisions", Description: "Prior capability decisions and dimensions that require revalidation."},
+		},
+		RowSets: []ContextRowSetSpec{
+			{ID: "project_tracks", SourceID: "project_state", Paths: [][]string{{"tracks"}, {"visible_tracks"}, {"daw_state_summary", "tracks"}}, KeyAliases: []string{"track_id", "id"}, EvidenceRef: "project.state:tracks"},
+			{ID: "frequency_track_profiles", SourceID: "mom_frequency_relationship", Paths: [][]string{{"frequency_relationship", "track_profiles"}}, KeyAliases: []string{"track_id"}, EvidenceRef: "MOM:frequency_relationship.track_profiles"},
+			{ID: "frequency_conflicts", SourceID: "mom_frequency_relationship", Paths: [][]string{{"frequency_relationship", "conflict_candidates"}}, KeyAliases: []string{"conflict_id"}, EvidenceRef: "MOM:frequency_relationship.conflict_candidates"},
+		},
+		Fields: []ContextFieldSpec{
+			{ID: "track_id", Aliases: []string{"track_id", "id"}, Semantic: "stable project track identifier", EvidenceKind: "identity", Usage: "whole-project decision key"},
+			{ID: "role", Aliases: []string{"role_guess", "role_hypothesis", "role"}, Semantic: "track function hypothesis", EvidenceKind: "TOM", Usage: "context only"},
+			{ID: "tap_point", Aliases: []string{"tap_point"}, Semantic: "frequency evidence observation point", EvidenceKind: "MOM", Usage: "readiness and before/after comparability", Primary: true},
+			{ID: "frequency_bands", Aliases: []string{"bands"}, Semantic: "six-region normalized frequency evidence", EvidenceKind: "MOM", Usage: "C1 diagnosis", Primary: true},
+		},
+		FollowUpTools: []string{"project.state", "mix.observe", "mix.read", "mix.derive"},
+		Excluded:      []string{"dynamic EQ parameters", "compression parameters", "space processing", "automation", "vendor parameter rules", "raw waveform arrays", "observer duplication"},
+		Guidance: []string{
+			"Classify every project track explicitly as static_eq, a C2/C3/C4 deferral, arrangement_or_source, or no_change.",
+			"Energy overlap is a diagnostic candidate, not proof of psychoacoustic masking.",
+			"Diagnosis may use source_file_pre_fx evidence, but mutation requires target-scoped same-tap post-FX L2 evidence selected after classification.",
+			"Only static_eq items may enter the shared generic static-EQ execution path.",
+			"C1 must reuse existing EQ qualification, topology, materialization, preimage, execution, rollback and recovery.",
 		},
 	})
 }

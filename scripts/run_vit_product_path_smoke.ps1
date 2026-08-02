@@ -20,6 +20,15 @@ param(
     [switch]$B3PanLayoutAgentOnly,
     [string]$B3StemsFolder = "",
     [switch]$B4LowEndRelationAgentOnly,
+    [switch]$C1FrequencyCleanupAgentOnly,
+    [string]$C1StemsFolder = "",
+    [ValidateSet("", "create", "reopen", "recover")]
+    [string]$ProjectPackagePhase = "",
+    [string]$ProjectPackageProjectPath = "",
+    [string]$ProjectPackageStemsFolder = "",
+    [string]$ProjectPackageSourceProjectPath = "",
+    [string]$ProjectPackageRequiredHistoryText = "",
+    [string]$ProjectPackageArtifactDir = "",
     [int]$TimeoutSeconds = 60
 )
 
@@ -1855,6 +1864,9 @@ try {
     $summary["processes"]["agent"] = $started.agent
     $summary["processes"]["hub"] = $started.hub
     $summary["processes"]["kernel"] = $started.kernel
+    $runningKernelPath = Get-ProcessPathByID -ProcessID ([int]$started.kernel.pid)
+    $summary["binary_evidence"]["kernel_running"] = Get-ExecutableEvidence -Path $runningKernelPath
+    Write-Ok ("Godot product path Kernel binary recorded path=" + $runningKernelPath + " sha256=" + [string]$summary["binary_evidence"]["kernel_running"].sha256)
     $runningHubPath = Get-ProcessPathByID -ProcessID ([int]$started.hub.pid)
     if ((Normalize-ComparablePath -Path $runningHubPath) -ne (Normalize-ComparablePath -Path $VspHubExe)) {
         Fail ("Godot product path is not using expected VSP Hub binary. expected=" + $VspHubExe + " actual=" + $runningHubPath)
@@ -1898,6 +1910,126 @@ try {
         Fail "GET /agent/state did not return ok"
     }
     Assert-StatusOk -Response (Invoke-AgentTool -Tool "project.state" -ToolArgs @{} -Confirmed $false) -Label "project.state"
+
+    if (-not [string]::IsNullOrWhiteSpace($ProjectPackagePhase)) {
+        Write-Step ("Project-package " + $ProjectPackagePhase + " phase through Godot-owned lifecycle")
+        $packageScript = Join-Path $RepoRoot "scripts\project_package_reopen_c1_smoke.py"
+        if (-not (Test-Path -LiteralPath $packageScript -PathType Leaf)) {
+            Fail ("Missing project-package smoke script: " + $packageScript)
+        }
+        if ([string]::IsNullOrWhiteSpace($ProjectPackageProjectPath)) {
+            Fail "Project-package smoke requires -ProjectPackageProjectPath"
+        }
+        if ($ProjectPackagePhase -eq "create" -and ([string]::IsNullOrWhiteSpace($ProjectPackageStemsFolder) -or -not (Test-Path -LiteralPath $ProjectPackageStemsFolder -PathType Container))) {
+            Fail "Project-package create phase requires -ProjectPackageStemsFolder"
+        }
+        if ($ProjectPackagePhase -eq "recover" -and ([string]::IsNullOrWhiteSpace($ProjectPackageSourceProjectPath) -or -not (Test-Path -LiteralPath $ProjectPackageSourceProjectPath -PathType Leaf))) {
+            Fail "Project-package recover phase requires -ProjectPackageSourceProjectPath"
+        }
+        $packageArtifactDir = $ProjectPackageArtifactDir
+        if ([string]::IsNullOrWhiteSpace($packageArtifactDir)) {
+            $packageArtifactDir = Join-Path $ArtifactDir ("project_package_" + $ProjectPackagePhase)
+        }
+        New-Item -ItemType Directory -Path $packageArtifactDir -Force | Out-Null
+        $packageOutput = Join-Path $packageArtifactDir "stdout.log"
+        $pythonArgs = @(
+            $packageScript,
+            "--phase", $ProjectPackagePhase,
+            "--repo-root", $RepoRoot,
+            "--agent-http", $AgentHttp,
+            "--project-path", $ProjectPackageProjectPath,
+            "--artifact-dir", $packageArtifactDir,
+            "--timeout-sec", ([string][Math]::Max(600, $TimeoutSeconds))
+        )
+        if ($ProjectPackagePhase -eq "create") {
+            $pythonArgs += @("--stems-folder", $ProjectPackageStemsFolder)
+        }
+        if ($ProjectPackagePhase -eq "recover") {
+            $pythonArgs += @("--source-project-path", $ProjectPackageSourceProjectPath)
+            if (-not [string]::IsNullOrWhiteSpace($ProjectPackageRequiredHistoryText)) {
+                $pythonArgs += @("--required-history-text", $ProjectPackageRequiredHistoryText)
+            }
+        }
+        $previousErrorActionPreference = $ErrorActionPreference
+        $ErrorActionPreference = "Continue"
+        & python @pythonArgs 2>&1 | Tee-Object -FilePath $packageOutput
+        $packageExitCode = $LASTEXITCODE
+        $ErrorActionPreference = $previousErrorActionPreference
+        if ($packageExitCode -ne 0) {
+            Fail ("Project-package smoke phase failed with exit code " + $packageExitCode + "; output=" + $packageOutput)
+        }
+        $packageSummaryPath = Join-Path $packageArtifactDir "summary.json"
+        if (-not (Test-Path -LiteralPath $packageSummaryPath -PathType Leaf)) {
+            Fail "Project-package smoke phase did not produce summary.json"
+        }
+        $packageSummary = Get-Content -LiteralPath $packageSummaryPath -Raw -Encoding UTF8 | ConvertFrom-Json
+        if ([string]$packageSummary.status -ne "passed") {
+            Fail ("Project-package smoke summary is not passed: " + ($packageSummary | ConvertTo-Json -Depth 24 -Compress))
+        }
+        $telemetryWarnings = @()
+        foreach ($logPath in @($GodotRuntimeStdout, (Join-Path $GodotProjectRoot "godot_runtime.log"))) {
+            if (Test-Path -LiteralPath $logPath -PathType Leaf) {
+                $telemetryWarnings += @(Select-String -LiteralPath $logPath -Pattern "Buffer full, dropping packets" -SimpleMatch -ErrorAction SilentlyContinue)
+            }
+        }
+        if ($telemetryWarnings.Count -gt 0) {
+            Fail ("Godot telemetry buffer overflow warnings detected during project-package smoke: " + [string]$telemetryWarnings.Count)
+        }
+        $summary["project_package_phase"] = $packageSummary
+        $summary["telemetry_buffer_warning_count"] = 0
+        $summary["status"] = "passed"
+        Write-Ok ("project-package " + $ProjectPackagePhase + " phase passed")
+        return
+    }
+
+    if ($C1FrequencyCleanupAgentOnly) {
+        Write-Step "C1 frequency-cleanup Agent smoke through Godot-owned lifecycle"
+        $c1Script = Join-Path $RepoRoot "scripts\c1_frequency_cleanup_agent_smoke.py"
+        if (-not (Test-Path -LiteralPath $c1Script)) {
+            Fail ("Missing C1 smoke script: " + $c1Script)
+        }
+        if ([string]::IsNullOrWhiteSpace($C1StemsFolder) -or -not (Test-Path -LiteralPath $C1StemsFolder -PathType Container)) {
+            Fail "C1 focused smoke requires -C1StemsFolder with the full project stems"
+        }
+        $c1StemsDir = (Resolve-Path -LiteralPath $C1StemsFolder).Path
+        $c1ArtifactDir = Join-Path $ArtifactDir "c1_frequency_cleanup"
+        $c1ProjectPath = Join-Path $c1ArtifactDir "temp_project\c1_frequency_cleanup_product_path.vit"
+        New-Item -ItemType Directory -Path $c1ArtifactDir -Force | Out-Null
+        $c1Output = Join-Path $c1ArtifactDir "stdout.log"
+        $previousErrorActionPreference = $ErrorActionPreference
+        $ErrorActionPreference = "Continue"
+        & python $c1Script --repo-root $RepoRoot --agent-http $AgentHttp --stems-folder $c1StemsDir --project-path $c1ProjectPath --artifact-dir $c1ArtifactDir --timeout-sec ([Math]::Max(360, $TimeoutSeconds)) 2>&1 |
+            Tee-Object -FilePath $c1Output
+        $c1ExitCode = $LASTEXITCODE
+        $ErrorActionPreference = $previousErrorActionPreference
+        if ($c1ExitCode -ne 0) {
+            Fail ("C1 frequency-cleanup Agent smoke failed with exit code " + $c1ExitCode + "; output=" + $c1Output)
+        }
+        $c1SummaryPath = Join-Path $c1ArtifactDir "summary.json"
+        if (-not (Test-Path -LiteralPath $c1SummaryPath -PathType Leaf)) {
+            Fail "C1 frequency-cleanup smoke did not produce summary.json"
+        }
+        $c1Summary = Get-Content -LiteralPath $c1SummaryPath -Raw -Encoding UTF8 | ConvertFrom-Json
+        if ([string]$c1Summary.status -ne "passed") {
+            Fail ("C1 frequency-cleanup smoke summary is not passed: " + ($c1Summary | ConvertTo-Json -Depth 20 -Compress))
+        }
+        $telemetryWarnings = @()
+        foreach ($logPath in @($GodotRuntimeStdout, (Join-Path $GodotProjectRoot "godot_runtime.log"))) {
+            if (Test-Path -LiteralPath $logPath -PathType Leaf) {
+                $telemetryWarnings += @(Select-String -LiteralPath $logPath -Pattern "Buffer full, dropping packets" -SimpleMatch -ErrorAction SilentlyContinue)
+            }
+        }
+        if ($telemetryWarnings.Count -gt 0) {
+            Fail ("Godot telemetry buffer overflow warnings detected during C1 smoke: " + [string]$telemetryWarnings.Count)
+        }
+        $summary["c1_frequency_cleanup_agent"] = $c1Summary
+        $summary["conversation_id"] = [string]$c1Summary.conversation_id
+        $summary["tool_route"] = @($c1Summary.tool_route)
+        $summary["telemetry_buffer_warning_count"] = 0
+        $summary["status"] = "passed"
+        Write-Ok "focused C1 frequency-cleanup Godot product-path smoke passed"
+        return
+    }
 
 
     if ($B2StaticBalanceAgentOnly) {

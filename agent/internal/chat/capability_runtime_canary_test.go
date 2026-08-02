@@ -5,11 +5,95 @@ import (
 	"errors"
 	"strings"
 	"testing"
+	"time"
 
+	"vit-daw-agent/internal/capabilityadapters"
+	"vit-daw-agent/internal/capabilitycontext"
+	"vit-daw-agent/internal/mixstyle"
 	"vit-daw-agent/internal/orchestration"
 	"vit-daw-agent/internal/orchestrationruntime"
 	agentruntime "vit-daw-agent/internal/runtime"
 )
+
+func TestB2PublicChatProposalExposesFunctionalHierarchySmoke(t *testing.T) {
+	cut := orchestration.ProjectCut{ProjectUUID: "project-smoke", ProjectEpoch: "epoch", BaseProjectRevision: "1", Consistency: "strong"}
+	cut.Hash = cut.ComputeHash()
+	request := capabilityadapters.StaticBalancePlanRequest{
+		SessionID: "b2-public-smoke", Goal: "建立主次并突出主唱", Mode: orchestration.InteractionPropose, ProjectCut: cut,
+		Input: capabilitycontext.StaticBalanceInput{
+			GeneratedAt: time.Unix(1_700_000_000, 0).UTC(), Style: mixstyle.Default(),
+			ProjectState: map[string]any{"tracks": []any{
+				map[string]any{"track_id": "vocal", "track_name": "Lead Vocal", "volume_db": 0.0},
+				map[string]any{"track_id": "drums", "track_name": "Drums", "volume_db": 0.0},
+				map[string]any{"track_id": "bass", "track_name": "Bass", "volume_db": 0.0},
+				map[string]any{"track_id": "backing", "track_name": "Backing Vocal", "volume_db": 0.0},
+			}},
+			TOMProjection: map[string]any{"tom_version": "v0.2", "full_assignment_manifest": map[string]any{"groups": []any{
+				map[string]any{"role_hypothesis": "lead_vocal", "confidence": "high", "assignments": []any{map[string]any{"track_id": "vocal", "confidence": "high"}}},
+				map[string]any{"role_hypothesis": "drums", "confidence": "high", "assignments": []any{map[string]any{"track_id": "drums", "confidence": "high"}}},
+				map[string]any{"role_hypothesis": "bass", "confidence": "high", "assignments": []any{map[string]any{"track_id": "bass", "confidence": "high"}}},
+				map[string]any{"role_hypothesis": "backing_vocal", "confidence": "high", "assignments": []any{map[string]any{"track_id": "backing", "confidence": "high"}}},
+			}}},
+			MOMProjection: map[string]any{
+				"mom_version":   "v1.5",
+				"trust_quality": map[string]any{"can_support_action_preflight": true},
+				"multitrack_relation": map[string]any{"status": "ready", "compared_tracks": []any{
+					map[string]any{"track_id": "vocal", "level_db": -20.0, "headroom_db": 8.0},
+					map[string]any{"track_id": "drums", "level_db": -20.0, "headroom_db": 8.0},
+					map[string]any{"track_id": "bass", "level_db": -20.0, "headroom_db": 8.0},
+					map[string]any{"track_id": "backing", "level_db": -20.0, "headroom_db": 8.0},
+				}},
+				"static_level_relationship": map[string]any{
+					"schema_version": "mom.static_level_relationship.v1", "status": "ready", "freshness": "fresh", "project_cut_ref": cut.Hash,
+					"tracks": []any{
+						chatStaticLevel("vocal", -20, -8), chatStaticLevel("drums", -20, -8),
+						chatStaticLevel("bass", -20, -8), chatStaticLevel("backing", -20, -8),
+					},
+				},
+			},
+		},
+	}
+	planned, err := capabilityadapters.PlanStaticBalance(request)
+	if err != nil || len(planned.CandidateIDs) == 0 {
+		t.Fatalf("B2 plan=%#v err=%v", planned.Outcome, err)
+	}
+	session, err := orchestration.NewSession(request.SessionID, cut.ProjectUUID, request.Goal, orchestration.EngineV1, orchestration.CapabilityInvocation{
+		CapabilityID: staticBalanceCapabilityID, CapabilityVer: "v0", InteractionMode: orchestration.InteractionPropose, ProcessingPath: orchestration.PathCapability,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	frozen, err := capabilityadaptersFreezeStaticBalance(planned, cut, recommendedCanaryCandidate(planned.Pack), session)
+	if err != nil {
+		t.Fatal(err)
+	}
+	session, err = session.SetFrozenPlan(frozen)
+	if err != nil {
+		t.Fatal(err)
+	}
+	response := capabilityCanaryProposalResponse("conversation", agentruntime.Goal{}, session, planned, orchestration.ContextEnvelope{Valid: true})
+	if response.Workflow != "capability_runtime_v1" || response.WorkflowData["capability_id"] != staticBalanceCapabilityID || !response.NeedsConfirmation {
+		t.Fatalf("public B2 response=%#v", response)
+	}
+	if !strings.Contains(response.Reply, "B2 静态主次与音量平衡方案") {
+		t.Fatalf("public reply lost B2 hierarchy semantics: %s", response.Reply)
+	}
+	functions := map[string]bool{}
+	for _, action := range response.ProposalPresentation.Actions {
+		functions[action.Function] = true
+	}
+	if !functions["foreground"] || !functions["support"] {
+		t.Fatalf("public proposal omitted foreground/support hierarchy: %#v", response.ProposalPresentation.Actions)
+	}
+}
+
+func chatStaticLevel(trackID string, rms, peak float64) map[string]any {
+	return map[string]any{
+		"track_id": trackID, "status": "ready", "freshness": "fresh", "metric": "effective_static_rms_dbfs",
+		"tap_point": "derived_static_control_model", "effective_static_rms_dbfs": rms, "effective_static_peak_dbfs": peak,
+		"aggregation_method": "duration_weighted_linear_energy_source_plus_clip_gain_plus_fader",
+	}
+}
 
 func TestCapabilityRuntimeCanaryRequiresOptInAndCapabilityID(t *testing.T) {
 	if capabilityRuntimeCanaryEnabled(map[string]any{"capability_id": "static_mix.static_balance.v0"}) {
@@ -20,6 +104,22 @@ func TestCapabilityRuntimeCanaryRequiresOptInAndCapabilityID(t *testing.T) {
 	}
 	if firstStringFromMap(map[string]any{"capability_id": "static_mix.static_balance.v0"}, "capability_id") != staticBalanceCapabilityID {
 		t.Fatal("capability id helper mismatch")
+	}
+}
+
+func TestB2CapabilityRuntimeSchemasDoNotExposeDirectDAD(t *testing.T) {
+	entries := capabilityCanaryToolSchemas(nil)
+	seen := map[string]bool{}
+	for _, entry := range entries {
+		seen[entry.ID] = true
+	}
+	for _, want := range []string{"project.state", "mix.observe", "mix.read", "mix.derive"} {
+		if !seen[want] {
+			t.Fatalf("B2 runtime schema omitted %s: %+v", want, entries)
+		}
+	}
+	if seen["project.audio_analysis_status"] {
+		t.Fatalf("B2 runtime schema exposes direct DAD tool: %+v", entries)
 	}
 }
 

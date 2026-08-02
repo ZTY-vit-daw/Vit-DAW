@@ -16,13 +16,15 @@ public:
     using OpenProjectReply = std::function<juce::String (const juce::DynamicObject&, const juce::File&)>;
     using SaveProjectReply = std::function<juce::String (const juce::DynamicObject&)>;
     using SaveAsProjectReply = std::function<juce::String (const juce::DynamicObject&, const juce::File&)>;
+    using SaveProjectCopyReply = std::function<juce::String (const juce::DynamicObject&, const juce::File&)>;
 
     ProjectService (BoolAction reloadProjectAction,
                     RecentProjectsReply recentProjectsReply,
                     NewBlankProjectReply newBlankProjectReply,
                     OpenProjectReply openProjectReply,
                     SaveProjectReply saveProjectReply,
-                    SaveAsProjectReply saveAsProjectReply);
+                    SaveAsProjectReply saveAsProjectReply,
+                    SaveProjectCopyReply saveProjectCopyReply);
 
     juce::String handleReloadProject (const juce::DynamicObject&, const juce::String&) const;
     juce::String handleSaveProject (const juce::DynamicObject&, const juce::String&) const;
@@ -30,6 +32,7 @@ public:
     juce::String handleOpenProject (const juce::DynamicObject&, const juce::String&) const;
     juce::String handleNewProject (const juce::DynamicObject&, const juce::String&) const;
     juce::String handleSaveAsProject (const juce::DynamicObject&, const juce::String&) const;
+    juce::String handleSaveProjectCopy (const juce::DynamicObject&, const juce::String&) const;
 
 private:
     static juce::String makeStatusReply (const juce::String& status, const juce::String& message);
@@ -41,6 +44,7 @@ private:
     OpenProjectReply openProjectReply;
     SaveProjectReply saveProjectReply;
     SaveAsProjectReply saveAsProjectReply;
+    SaveProjectCopyReply saveProjectCopyReply;
 };
 
 } // namespace vit

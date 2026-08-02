@@ -34,3 +34,18 @@ func TestAnalysisManifestRoundTrip(t *testing.T) {
 		t.Fatalf("recovered status = %#v", recovered)
 	}
 }
+
+func TestBuildAnalysisManifestUsesNestedDADReadiness(t *testing.T) {
+	manifest := BuildAnalysisManifest("D:/song/test.vit", "vitproj_nested", map[string]any{
+		"status": "ok",
+		"analysis_job": map[string]any{
+			"dad_fact_status": "ready",
+			"track_waveform_envelopes": []any{map[string]any{
+				"status": "ready", "track_id": "track_1", "clip_id": "clip_1",
+			}},
+		},
+	})
+	if manifest.Status != "ready" || len(manifest.Rows) != 1 {
+		t.Fatalf("nested DAD readiness was not promoted: %+v", manifest)
+	}
+}

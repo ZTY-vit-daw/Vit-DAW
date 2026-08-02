@@ -289,6 +289,10 @@ type VerificationResult struct {
 	UserAcceptance string   `json:"user_acceptance,omitempty"`
 	EvidenceRefs   []string `json:"evidence_refs,omitempty"`
 	Summary        string   `json:"summary,omitempty"`
+	// SpecialistRelationship reports a capability-domain comparison without
+	// overloading the structural readback or claiming user acceptance.
+	SpecialistRelationship string `json:"specialist_relationship,omitempty"`
+	SpecialistSummary      string `json:"specialist_summary,omitempty"`
 }
 
 // FrozenPlan is the immutable execution input authorized by the user. Hashes

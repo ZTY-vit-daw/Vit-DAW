@@ -51,6 +51,33 @@ func TestStaticMixGainStagingContextManifestDefinesB1EvidenceSemantics(t *testin
 	}
 }
 
+func TestStaticMixStaticBalanceManifestKeepsRawDADBehindMOMBoundary(t *testing.T) {
+	manifest := StaticMixStaticBalanceContextManifest()
+	foundStaticLevels := false
+	for _, source := range manifest.Sources {
+		if strings.Contains(strings.ToLower(source.ID+" "+source.Description), "audio_analysis_status") || strings.Contains(strings.ToLower(source.ID+" "+source.Description), "dad") {
+			t.Fatalf("B2 manifest exposes raw DAD source: %+v", source)
+		}
+	}
+	for _, rowset := range manifest.RowSets {
+		text := strings.ToLower(rowset.ID + " " + rowset.SourceID + " " + rowset.EvidenceRef + " " + rowset.Description)
+		if strings.Contains(text, "audio_analysis_status") || strings.Contains(text, "dad") || strings.Contains(text, "track_waveform") {
+			t.Fatalf("B2 manifest exposes raw acoustic rowset: %+v", rowset)
+		}
+		if rowset.ID == "mom_static_levels" && rowset.SourceID == "mom_projection" && rowset.EvidenceRef == "MOM:static_level_relationship.tracks" {
+			foundStaticLevels = true
+		}
+	}
+	if !foundStaticLevels {
+		t.Fatalf("B2 manifest omitted typed MOM static levels: %+v", manifest.RowSets)
+	}
+	for _, tool := range manifest.FollowUpTools {
+		if tool == "project.audio_analysis_status" {
+			t.Fatalf("B2 manifest exposes direct DAD follow-up: %+v", manifest.FollowUpTools)
+		}
+	}
+}
+
 func TestCapabilityContextBuilderMergesB1RowsFromManifest(t *testing.T) {
 	contextBuild := BuildCapabilityContext(ContextInput{
 		Manifest: StaticMixGainStagingContextManifest(),

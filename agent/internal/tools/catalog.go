@@ -93,6 +93,7 @@ func DefaultCatalog() *Catalog {
 	c.AddAlias("mix.observe", "mix_observe")
 	c.AddAlias("mix.read", "mix_read")
 	c.AddAlias("mix.derive", "mix_derive")
+	c.AddAlias("mix.report", "mix_report")
 	c.AddAlias("control.add_macro", "control_add_macro")
 	c.AddAlias("rack.add_macro", "control_add_macro")
 	c.AddAlias("macro.create", "control_add_macro")
@@ -363,6 +364,8 @@ func argHint(commandName string) string {
 		return "observation_id:string OR mix_session_id:string keys:string[] optional range_sec:[start,end] detail:string max_items:number"
 	case "mix_derive":
 		return "observation_id:string OR mix_session_id:string type:string optional focus/a/b:object dimensions:string[] max_items:number"
+	case "mix_report":
+		return "optional project_uuid:string mix_intent:object final_measurements:object"
 	case "mix_propose_tick":
 		return "operation:track_gain_adjust track_id:string optional delta_db:number observation_id:string evidence:object"
 	case "mix_apply_tick":
@@ -480,7 +483,7 @@ func argHint(commandName string) string {
 	case "scan_plugins":
 		return "optional paths:string[] path:string use_default_paths:boolean"
 	case "rack_add_node":
-		return "track_id:string plugin_path:string optional x:number y:number zone_id:string"
+		return "track_id:string plugin_path?:string plugin_identifier?:string (plugin_path or plugin_identifier required) optional x:number y:number zone_id:string"
 	case "set_plugin_param":
 		return "track_id:string plugin_id:string param_id:string value:number"
 	case "plugin_grabber_get_project_profiles":
@@ -626,6 +629,7 @@ func defaultSpecs() []CommandSpec {
 		spec("redo", "project.redo", "project", "Redo the latest kernel edit transaction.", RiskUndoable, true, true, false, true),
 		spec("save_project", "project.save", "project", "Save the active project file.", RiskConfirm, true, false, true, false),
 		spec("save_as_project", "project.save_as", "project", "Save the project to a new path.", RiskConfirm, true, false, true, false),
+		spec("save_as_folder", "project.save_as_folder", "project", "Create an independent project folder snapshot and explicitly choose whether referenced audio is copied.", RiskConfirm, true, false, true, false),
 		spec("open_project", "project.open", "project", "Open an existing project.", RiskConfirm, true, false, true, true),
 		spec("load_project", "project.load", "project", "Load an existing project.", RiskConfirm, true, false, true, true),
 		spec("reload_project", "project.reload", "project", "Reload the current project.", RiskConfirm, true, false, true, true),
@@ -712,6 +716,7 @@ func defaultSpecs() []CommandSpec {
 		spec("mix_observe", "mix.observe", "mix", "Observe the requested mix scope and return a compact acoustic digest plus a readable observation catalog; does not mutate the project.", RiskDirect, false, false, false, false),
 		spec("mix_read", "mix.read", "mix", "Read selected catalog entries from a stored MixBoard observation, including bounded ranges for long acoustic rows.", RiskDirect, false, false, false, false),
 		spec("mix_derive", "mix.derive", "mix", "Derive an on-demand relationship package from stored MixBoard observations, such as before/after or focus/project comparisons.", RiskDirect, false, false, false, false),
+		spec("mix_report", "mix.report", "mix", "Build a read-only mix_report.v1 projection from the project Mixboard decision ledger and the current Project Cut; never mutates the project.", RiskDirect, false, false, false, false),
 		spec("mix_propose_tick", "mix.propose_tick", "mix", "Agent-local proposal for one safe mix tick after observation; supports small track_gain_adjust and track_pan_adjust/track_pan_set without mutating the project.", RiskDirect, false, false, false, false, "track_id"),
 		spec("mix_apply_tick", "mix.apply_tick", "mix", "Agent-local confirmed execution of one proposed mix tick through primitive set_volume or set_pan kernel commands.", RiskUndoable, true, true, false, true),
 		spec("mix_apply_static_balance_batch", "mix.apply_static_balance_batch", "mix", "Apply one validated B2 static-balance plan as an atomic batch of absolute track fader targets.", RiskConfirm, true, true, true, true),

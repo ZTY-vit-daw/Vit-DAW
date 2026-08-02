@@ -361,6 +361,8 @@ func toolDisplayName(name string) string {
 		return "混音观察"
 	case "mix_read", "mix.read":
 		return "混音数据读取"
+	case "mix_report", "mix.report":
+		return "混音报告"
 	case "plugin_search", "plugin.search":
 		return "插件搜索"
 	case "rack_add_node", "rack.add_node":

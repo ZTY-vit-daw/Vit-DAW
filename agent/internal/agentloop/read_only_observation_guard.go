@@ -42,6 +42,8 @@ func messageLoopReadOnlyObservationRequest(userText string) bool {
 		"\u5e2e\u6211\u770b", "\u5e2e\u6211\u770b\u770b", "\u5e2e\u5fd9\u770b", "\u7ed9\u6211\u770b",
 		"\u5206\u6790", "\u5206\u6790\u4e00\u4e0b", "\u68c0\u67e5", "\u68c0\u67e5\u4e00\u4e0b", "\u8bca\u65ad", "\u8bc4\u4f30",
 		"\u542c\u4e00\u4e0b", "\u542c\u542c",
+		"\u4e3a\u4ec0\u4e48", "\u70ba\u4ec0\u9ebc", "\u4ec0\u4e48\u539f\u56e0", "\u4ec0\u9ebc\u539f\u56e0", "\u600e\u4e48\u5224\u65ad", "\u600e\u9ebc\u5224\u65b7",
+		"why", "what causes", "how do you know",
 	)
 	if !hasObserveIntent {
 		return false
@@ -77,7 +79,7 @@ func messageLoopReadOnlyAllowedTool(call planner.ToolCall) bool {
 	switch name {
 	case "project.state", "get_project_state", "track.list",
 		"project.get_audio_settings", "project.validate_audio_settings_change", "project.import_preflight", "media.inspect_files",
-		"mix.observe", "mix_observe", "mix.request_observation", "mix_request_observation", "mix.read", "mix_read", "mix.derive", "mix_derive":
+		"mix.observe", "mix_observe", "mix.request_observation", "mix_request_observation", "mix.read", "mix_read", "mix.derive", "mix_derive", "mix.report", "mix_report":
 		return true
 	default:
 		return false
@@ -88,7 +90,7 @@ func messageLoopReadOnlyGuardIssue(call planner.ToolCall) string {
 	if messageLoopReadOnlyAllowedTool(call) {
 		return ""
 	}
-	return "read-only acoustic observation allows only mix.observe, mix.read, mix.derive, and read/list/project-state tools; it must not propose/apply mix ticks, write track gain/pan, prepare plugins, or mutate the project"
+	return "read-only acoustic observation allows only mix.observe, mix.read, mix.derive, mix.report, and read/list/project-state tools; it must not propose/apply mix ticks, write track gain/pan, prepare plugins, or mutate the project"
 }
 
 func messageLoopReadOnlyFinalReply(state *runState, reply string) string {

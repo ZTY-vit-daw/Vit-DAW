@@ -6,11 +6,14 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"sort"
 	"strings"
 	"time"
+
+	"vit-daw-agent/internal/projectstore"
 )
 
 const (
@@ -25,25 +28,16 @@ type Store struct {
 }
 
 func DefaultRoot() string {
-	wd, err := os.Getwd()
-	if err != nil {
-		return filepath.Join("VitApp", "Workspace", DefaultDirName)
+	if roots, ok := projectstore.Current(); ok {
+		return filepath.Join(roots.Agent, "artifacts")
 	}
-	for dir := wd; dir != ""; dir = filepath.Dir(dir) {
-		if filepath.Base(dir) == "agent" {
-			if _, err := os.Stat(filepath.Join(dir, "go.mod")); err == nil {
-				return filepath.Join(filepath.Dir(dir), "VitApp", "Workspace", DefaultDirName)
-			}
-		}
-		if _, err := os.Stat(filepath.Join(dir, "VitApp", "Workspace")); err == nil {
-			return filepath.Join(dir, "VitApp", "Workspace", DefaultDirName)
-		}
-		parent := filepath.Dir(dir)
-		if parent == dir {
-			break
+	if devRoot := strings.TrimSpace(os.Getenv("VIT_DAW_DEV_ROOT")); devRoot != "" {
+		root := filepath.Clean(devRoot)
+		if _, err := os.Stat(filepath.Join(root, "VitApp", "Workspace")); err == nil {
+			return filepath.Join(root, "VitApp", "Workspace", DefaultDirName)
 		}
 	}
-	return filepath.Join(wd, "VitApp", "Workspace", DefaultDirName)
+	return filepath.Join(os.TempDir(), "vit-daw-unbound", fmt.Sprint(os.Getpid()), "artifacts")
 }
 
 func NewStore(root string) Store {

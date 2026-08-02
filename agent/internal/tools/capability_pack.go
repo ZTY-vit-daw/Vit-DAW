@@ -345,7 +345,7 @@ func defaultCapabilityPacks() []CapabilityPack {
 			},
 			Tools: []string{
 				"project.state", "track.list",
-				"mix.observe", "mix.read", "mix.derive", "mix.request_observation",
+				"mix.observe", "mix.read", "mix.derive", "mix.report", "mix.request_observation",
 				"clip.gain.read", "clip.gain.set", "clip.gain.set_batch",
 				"track.group.list", "track.group.apply_control",
 				"project.undo", "project.redo",
@@ -360,12 +360,12 @@ func defaultCapabilityPacks() []CapabilityPack {
 			Name:        "static_mix_static_balance",
 			Title:       "B2 Static Balance with Mix Style",
 			Domain:      "Whole-project musical level relationships when the current project satisfies the B2 readiness contract.",
-			Description: "Evaluate B2 readiness, build an all-track StaticBalanceModel from project.state, automatic DAD facts, TOM, and MOM, apply a bounded Vit Mix Style (.vms), solve deterministic candidates, then disclose a compact CCB for LLM candidate selection.",
+			Description: "Evaluate B2 readiness, build an all-track StaticBalanceModel from project.state, TOM, and the typed MOM static-level relationship projection, apply a bounded Vit Mix Style (.vms), solve deterministic candidates, then disclose a compact CCB for LLM candidate selection.",
 			StateSlices: []string{
 				"TOM role assignments and confidence establish track content hypotheses such as lead vocal, drums, bass, strings, harmonic beds, and support layers",
 				"MOM multitrack_relation provides the full-project relationship inventory; its generic L3-aware action-preflight flag is advisory for B2",
-				"project.audio_analysis_status provides automatic DAD source RMS/peak facts without starting or cancelling analysis",
-				"project.state provides clip gain, current track fader values, and the track fingerprint used to derive effective levels and expire stale plans",
+				"MOM static_level_relationship provides observation-layer clip aggregation, effective RMS/peak values, metric/tap identity, freshness, evidence references, and project-cut identity; raw DAD rows remain behind MOM",
+				"project.state provides current track fader values and the project fingerprint used to expire stale plans",
 				"Mix Style schema vit.mix_style.v1 (.vms) supplies bounded weights over fixed relationship dimensions",
 			},
 			Preconditions: []string{
@@ -391,7 +391,7 @@ func defaultCapabilityPacks() []CapabilityPack {
 				"Run one fresh full-project mix.observe/MOM read after the plan and report whether both state and acoustic re-observation succeeded.",
 			},
 			Tools: []string{
-				"project.state", "project.audio_analysis_status", "mix.observe", "mix.read", "mix.derive", "mix.request_observation",
+				"project.state", "mix.observe", "mix.read", "mix.derive", "mix.request_observation",
 				"mix.propose_tick", "mix.apply_tick", "mix.rollback_tick", "project.undo", "project.redo",
 			},
 			Examples: []string{

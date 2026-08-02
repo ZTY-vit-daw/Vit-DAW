@@ -528,6 +528,23 @@ func TestModelSummaryForCapabilityPacksIncludesPackGuidance(t *testing.T) {
 	}
 }
 
+func TestStaticBalanceCapabilityPackExposesMOMInsteadOfDirectDAD(t *testing.T) {
+	packs := DefaultCatalog().CapabilityPacks([]string{"static_mix_static_balance"})
+	if len(packs) != 1 {
+		t.Fatalf("static balance capability packs = %+v", packs)
+	}
+	pack := packs[0]
+	for _, tool := range pack.Tools {
+		if tool == "project.audio_analysis_status" {
+			t.Fatalf("B2 capability pack exposes direct DAD tool: %+v", pack.Tools)
+		}
+	}
+	joined := strings.ToLower(pack.Description + " " + strings.Join(pack.StateSlices, " "))
+	if !strings.Contains(joined, "static_level_relationship") || !strings.Contains(joined, "raw dad rows remain behind mom") {
+		t.Fatalf("B2 capability pack does not describe the MOM observation boundary: %s", joined)
+	}
+}
+
 func TestModelSummaryForMediaCapabilityPack(t *testing.T) {
 	summary := DefaultCatalog().ModelSummaryForCapabilityPacks([]string{"media"}, []string{
 		"artifact.list",

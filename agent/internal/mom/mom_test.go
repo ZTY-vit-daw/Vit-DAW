@@ -37,6 +37,16 @@ func TestGeneralProjectionPrefersL3AndKeepsL2StatusOnly(t *testing.T) {
 	}
 }
 
+func TestCompactComparedTracksPreservesB2EffectiveStaticRelationship(t *testing.T) {
+	rows := compactComparedTracks([]map[string]any{{
+		"track_id": "vocal", "volume_db": -2.0, "rms_dbfs": -20.0,
+		"effective_static_rms_dbfs": -21.0, "effective_static_peak_dbfs": -7.0,
+	}})
+	if len(rows) != 1 || rows[0]["effective_static_rms_dbfs"] != -21.0 || rows[0]["volume_db"] != -2.0 {
+		t.Fatalf("B2 relationship fields were dropped: %#v", rows)
+	}
+}
+
 func TestRealtimeProjectionUsesL2AndReportsTapPoint(t *testing.T) {
 	input := testInput(map[string]any{"requested_layer": "l2_realtime", "prefer_realtime": true})
 	proj := Build(input)
@@ -548,6 +558,10 @@ func TestProjectMultitrackConsumesDADV12ProjectProjection(t *testing.T) {
 			"bass": map[string]any{
 				"status":              "ready",
 				"average_unit_energy": 0.41,
+				"decision_tracks": []any{
+					map[string]any{"track_id": "track_2", "name": "Bass", "unit_energy": 0.7, "energy_db": -3.1},
+					map[string]any{"track_id": "track_1", "name": "Lead Vocal", "unit_energy": 0.4, "energy_db": -7.9},
+				},
 				"dominant_tracks": []any{
 					map[string]any{"track_id": "track_2", "name": "Bass", "unit_energy": 0.7, "energy_db": -3.1},
 				},
@@ -581,6 +595,9 @@ func TestProjectMultitrackConsumesDADV12ProjectProjection(t *testing.T) {
 	}
 	if len(proj.MultitrackRelation.BandOccupancy) != 1 || proj.MultitrackRelation.BandOccupancy[0]["band"] != "bass" {
 		t.Fatalf("band occupancy did not use project projection: %#v", proj.MultitrackRelation.BandOccupancy)
+	}
+	if got := len(rowsFromAny(proj.MultitrackRelation.BandOccupancy[0]["decision_tracks"])); got != 2 {
+		t.Fatalf("decision tracks were truncated: %#v", proj.MultitrackRelation.BandOccupancy[0])
 	}
 	if !containsString(proj.MultitrackRelation.Limitations, "project_relation_from_dad_v1_2_projection") {
 		t.Fatalf("limitations = %#v", proj.MultitrackRelation.Limitations)

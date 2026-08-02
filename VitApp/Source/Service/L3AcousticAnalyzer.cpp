@@ -1,12 +1,12 @@
 #include "L3AcousticAnalyzer.h"
 
 #include "../Core/VitPaths.h"
+#include "OfflineAudioReadCoordinator.h"
 
 #include <array>
 #include <cmath>
 #include <fstream>
 #include <limits>
-#include <thread>
 #include <vector>
 
 namespace vit
@@ -16,6 +16,8 @@ namespace
 
 constexpr const char* kAnalyzerVersion = "dad_l3_offline_analyzer.v1";
 constexpr double kSilenceDb = -160.0;
+
+void writeDiagLog (const juce::String& line);
 
 struct BandDefinition
 {
@@ -212,7 +214,9 @@ std::unique_ptr<juce::DynamicObject> makeSourceIdentity (const AudioFeatureBakeR
                                                          const L3Evidence& evidence)
 {
     auto identity = std::make_unique<juce::DynamicObject>();
-    identity->setProperty ("project_id", "current");
+	identity->setProperty ("project_id", request.projectId.isNotEmpty() ? request.projectId : "current");
+	if (request.projectId.isNotEmpty())
+		identity->setProperty ("project_uuid", request.projectId);
     identity->setProperty ("track_id", request.trackId);
     identity->setProperty ("clip_id", request.clipId);
     identity->setProperty ("source_path", request.filePath);
@@ -292,7 +296,11 @@ void stampCommon (juce::DynamicObject& obj,
     obj.setProperty ("quality_reason", analysis.evidence.reasons[0]);
     obj.setProperty ("quality_reasons", juce::var (qualityReasonsVar (analysis.evidence)));
     obj.setProperty ("ready", analysis.evidence.status == "ready");
-    obj.setProperty ("project_id", "current");
+	obj.setProperty ("project_id", request.projectId.isNotEmpty() ? request.projectId : "current");
+	if (request.projectId.isNotEmpty())
+		obj.setProperty ("project_uuid", request.projectId);
+	if (request.projectPath.isNotEmpty())
+		obj.setProperty ("project_path", request.projectPath);
     obj.setProperty ("track_id", request.trackId);
     obj.setProperty ("source_track_id", request.trackId);
     obj.setProperty ("clip_id", request.clipId);
@@ -371,7 +379,8 @@ void publishBandSummary (const AudioFeatureBakeRequest& request,
     obj->setProperty ("bands", juce::var (bandsObject.release()));
     obj->setProperty ("band_count", (int) analysis.bands.size());
 
-    publish (juce::JSON::toString (juce::var (obj.release())));
+	const auto payload = juce::JSON::toString (juce::var (obj.release()), true);
+	publish (payload);
 }
 
 void publishStereoSummary (const AudioFeatureBakeRequest& request,
@@ -395,7 +404,8 @@ void publishStereoSummary (const AudioFeatureBakeRequest& request,
     obj->setProperty ("mono_compatibility_risk", monoCompatibilityRisk (analysis.correlation));
     obj->setProperty ("frame_count", (int64) analysis.audioFrameCount);
 
-    publish (juce::JSON::toString (juce::var (obj.release())));
+	const auto payload = juce::JSON::toString (juce::var (obj.release()), true);
+	publish (payload);
 }
 
 void publishLoudnessSummary (const AudioFeatureBakeRequest& request,
@@ -421,16 +431,28 @@ void publishLoudnessSummary (const AudioFeatureBakeRequest& request,
     obj->setProperty ("crest_factor", analysis.rms > 0.0 ? analysis.peakAbs / analysis.rms : 0.0);
     obj->setProperty ("crest_db", peakDb - rmsDb);
 
-    publish (juce::JSON::toString (juce::var (obj.release())));
+	const auto payload = juce::JSON::toString (juce::var (obj.release()), true);
+	publish (payload);
 }
 
 L3Analysis analyzeFile (const AudioFeatureBakeRequest& request)
 {
     L3Analysis analysis;
 
+    const auto leaseWaitStartMs = juce::Time::getMillisecondCounterHiRes();
+    auto sourceReadLease = OfflineAudioReadCoordinator::acquire (request.filePath);
+    writeDiagLog ("[dad_l3] source_read_lease track_id=" + request.trackId
+                  + " wait_ms=" + juce::String (juce::Time::getMillisecondCounterHiRes() - leaseWaitStartMs, 2)
+                  + " file=" + request.filePath);
+
     juce::AudioFormatManager fm;
     fm.registerBasicFormats();
+    const auto readerOpenStartMs = juce::Time::getMillisecondCounterHiRes();
     std::unique_ptr<juce::AudioFormatReader> reader (fm.createReaderFor (juce::File (request.filePath)));
+    writeDiagLog ("[dad_l3] reader_open track_id=" + request.trackId
+                  + " elapsed_ms=" + juce::String (juce::Time::getMillisecondCounterHiRes() - readerOpenStartMs, 2)
+                  + " reader_ok=" + juce::String (reader != nullptr ? "true" : "false")
+                  + " file=" + request.filePath);
     if (reader == nullptr || reader->sampleRate <= 0.0 || reader->lengthInSamples <= 0)
     {
         finishEvidence (analysis, "reader_failed");
@@ -470,14 +492,29 @@ L3Analysis analyzeFile (const AudioFeatureBakeRequest& request)
     juce::AudioBuffer<float> buffer (2, fftSize);
     std::vector<float> fftData ((size_t) fftSize * 2, 0.0f);
 
+    const auto progressIntervalSamples = juce::jmax<int64> (fftSize, (int64) std::llround (sr * 60.0));
+    int64 nextProgressSample = 0;
     for (int64 pos = 0; pos < totalSamples; pos += fftSize)
     {
         const int valid = (int) juce::jmin<int64> ((int64) fftSize, totalSamples - pos);
         if (valid <= 0)
             break;
 
+        const bool logReadProgress = pos >= nextProgressSample || pos + valid >= totalSamples;
+        if (logReadProgress)
+        {
+            writeDiagLog ("[dad_l3] reader_read_begin track_id=" + request.trackId
+                          + " sample=" + juce::String ((int64) (sourceStartSample + pos))
+                          + " valid=" + juce::String (valid)
+                          + " total_samples=" + juce::String ((int64) totalSamples));
+            nextProgressSample = pos + progressIntervalSamples;
+        }
+
         buffer.clear();
         reader->read (&buffer, 0, valid, sourceStartSample + pos, true, true);
+        if (logReadProgress)
+            writeDiagLog ("[dad_l3] reader_read_end track_id=" + request.trackId
+                          + " sample=" + juce::String ((int64) (sourceStartSample + pos)));
         const auto* left = buffer.getReadPointer (0);
         const auto* right = buffer.getReadPointer (juce::jmin (1, buffer.getNumChannels() - 1));
 
@@ -548,21 +585,39 @@ void publishSummaries (const AudioFeatureBakeRequest& request,
         publishLoudnessSummary (request, analysis, publish);
 }
 
+juce::ThreadPool& l3AnalysisPool()
+{
+    // Full-source FFT analysis is intentionally serialized. The import queue
+    // may enqueue a large stems project faster than individual files finish;
+    // spawning one detached reader per track made completion non-deterministic
+    // on repeated 4 GB project smokes.
+    static juce::ThreadPool pool (juce::ThreadPool::Options()
+                                      .withThreadName ("Vit L3 Acoustic")
+                                      .withNumberOfThreads (1));
+    return pool;
+}
+
 } // namespace
 
 void L3AcousticAnalyzer::startAnalyze (AudioFeatureBakeRequest request,
                                        PublishCallback publishCallback)
 {
-    writeDiagLog ("[dad_l3] start track_id=" + request.trackId
+    writeDiagLog ("[dad_l3] queued track_id=" + request.trackId
                   + " clip_id=" + request.clipId
                   + " feature_type=" + audioFeatureTypeToString (request.featureType)
                   + " source_revision=" + request.sourceRevision
                   + " clip_revision=" + request.clipRevision
                   + " file=" + request.filePath);
 
-    std::thread ([request = std::move (request),
-                  publish = std::move (publishCallback)]() mutable
+    l3AnalysisPool().addJob ([request = std::move (request),
+                              publish = std::move (publishCallback)]() mutable
     {
+        writeDiagLog ("[dad_l3] start track_id=" + request.trackId
+                      + " clip_id=" + request.clipId
+                      + " feature_type=" + audioFeatureTypeToString (request.featureType)
+                      + " source_revision=" + request.sourceRevision
+                      + " clip_revision=" + request.clipRevision
+                      + " file=" + request.filePath);
         const auto analysis = analyzeFile (request);
         writeDiagLog ("[dad_l3] finish track_id=" + request.trackId
                       + " clip_id=" + request.clipId
@@ -570,7 +625,7 @@ void L3AcousticAnalyzer::startAnalyze (AudioFeatureBakeRequest request,
                       + " analyzed_sample_count=" + juce::String ((int64) analysis.evidence.analyzedSampleCount)
                       + " coverage=" + juce::String (analysis.evidence.coverageRatio, 4));
         publishSummaries (request, analysis, publish);
-    }).detach();
+    });
 }
 
 } // namespace vit

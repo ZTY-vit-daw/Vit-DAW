@@ -198,7 +198,7 @@ func TestAgentLoopToolContextRoutesB2WithoutB1MutationTools(t *testing.T) {
 			t.Fatalf("%s missing from B2 context: %+v", want, ctx.AllowedTools)
 		}
 	}
-	for _, unwanted := range []string{"clip.gain.read", "clip.gain.set", "clip.gain.set_batch", "track.group.apply_control", "track.volume", "track.pan", "plugin.set_parameter"} {
+	for _, unwanted := range []string{"project.audio_analysis_status", "clip.gain.read", "clip.gain.set", "clip.gain.set_batch", "track.group.apply_control", "track.volume", "track.pan", "plugin.set_parameter"} {
 		if containsToolName(ctx.AllowedTools, unwanted) {
 			t.Fatalf("B2 leaked %s: %+v", unwanted, ctx.AllowedTools)
 		}

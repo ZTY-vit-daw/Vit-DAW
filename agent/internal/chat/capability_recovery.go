@@ -6,6 +6,8 @@ import (
 
 	"vit-daw-agent/internal/executionports"
 	"vit-daw-agent/internal/executionverifiers"
+	"vit-daw-agent/internal/frequencycleanup"
+	"vit-daw-agent/internal/lowendrelation"
 	"vit-daw-agent/internal/orchestration"
 	agentruntime "vit-daw-agent/internal/runtime"
 )
@@ -17,7 +19,7 @@ func (s *Server) recoverCapabilityExecution(ctx context.Context, conversationID 
 	frozen := *session.FrozenPlan
 	envelope, err := s.orchestrationRuntime.BuildCapabilityContextEnvelope(
 		session.ID,
-		orchestration.ContextBundle{ID: frozen.ContextBundleID, CapabilityID: frozen.ActionSet.CapabilityID, ProjectCutHash: frozen.ProjectCut.Hash, ArtifactRefs: []string{"capability-pack:" + frozen.ContextBundleID}},
+		orchestration.ContextBundle{ID: frozen.ContextBundleID, CapabilityID: frozen.ActionSet.CapabilityID, ProjectCutHash: frozen.ProjectCut.Hash, ArtifactRefs: appendUniqueStrings([]string{"capability-pack:" + frozen.ContextBundleID}, frozen.ProjectCut.ArtifactRefs...)},
 		capabilityCanaryToolSchemas(s), nil, orchestration.DefaultContextWindowBudget(),
 	)
 	if err != nil {
@@ -41,6 +43,34 @@ func (s *Server) recoverCapabilityExecution(ctx context.Context, conversationID 
 				Invoker: s.harness, PreviousObservationID: frozen.PreviousObservationID, MixSessionID: session.ID, GoalText: session.Goal,
 			}},
 		)
+	case agentSemanticEQCapabilityID:
+		recovered, err = s.orchestrationRuntime.ReconcileActionSet(
+			ctx, session.ID, frozen.ActionSet,
+			&semanticEQMutationPort{server: s},
+			semanticEQVerifier{server: s, previousObservationID: frozen.PreviousObservationID, sessionID: session.ID, goalText: session.Goal},
+		)
+	case lowEndRelationCapabilityID:
+		var treatment lowendrelation.TreatmentPlan
+		var before lowendrelation.Model
+		if len(frozen.ActionSet.Actions) == 1 {
+			_ = decodeAnyJSON(frozen.ActionSet.Actions[0].Args["treatment_plan"], &treatment)
+			_ = decodeAnyJSON(frozen.ActionSet.Actions[0].Args["diagnosis_model"], &before)
+		}
+		recovered, err = s.orchestrationRuntime.ReconcileActionSet(
+			ctx, session.ID, frozen.ActionSet,
+			&b4BatchMutationPort{server: s},
+			b4BatchVerifier{server: s, treatment: treatment, before: before, sessionID: session.ID, goalText: session.Goal},
+		)
+	case frequencyCleanupCapabilityID:
+		var before frequencycleanup.TargetPostFXBaseline
+		if len(frozen.ActionSet.Actions) == 1 {
+			_ = decodeAnyJSON(frozen.ActionSet.Actions[0].Args["verification_context"], &before)
+		}
+		recovered, err = s.orchestrationRuntime.ReconcileActionSet(
+			ctx, session.ID, frozen.ActionSet,
+			&projectEQBatchMutationPort{server: s, spec: c1BatchSpec},
+			c1BatchVerifier{server: s, before: before, sessionID: session.ID, goalText: session.Goal},
+		)
 	default:
 		err = fmt.Errorf("unsupported recovery capability %s", frozen.ActionSet.CapabilityID)
 	}
@@ -48,13 +78,20 @@ func (s *Server) recoverCapabilityExecution(ctx context.Context, conversationID 
 		recovered = session
 	}
 	var response ChatResponse
-	if frozen.ActionSet.CapabilityID == panLayoutCapabilityID {
+	if frozen.ActionSet.CapabilityID == agentSemanticEQCapabilityID {
+		response = semanticEQExecutionResponse(conversationID, goal, recovered, err)
+	} else if frozen.ActionSet.CapabilityID == lowEndRelationCapabilityID {
+		response = b4ExecutionResponse(conversationID, goal, recovered, err)
+	} else if frozen.ActionSet.CapabilityID == frequencyCleanupCapabilityID {
+		response = c1ExecutionResponse(conversationID, goal, recovered, err)
+	} else if frozen.ActionSet.CapabilityID == panLayoutCapabilityID {
 		response = panLayoutCanaryExecutionResponse(conversationID, goal, recovered, envelope, err)
 	} else {
 		response = capabilityCanaryExecutionResponse(conversationID, goal, recovered, envelope, err)
 	}
 	response.WorkflowData["recovery"] = true
 	response.ProjectHistory = s.harness.ProjectHistorySummary(ctx, firstNonEmpty(goal.GoalID, session.ID))
+	attachMixboardDecisionProjection(&response, recovered)
 	return response
 }
 

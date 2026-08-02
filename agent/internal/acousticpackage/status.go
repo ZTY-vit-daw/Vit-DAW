@@ -10,6 +10,8 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+
+	"vit-daw-agent/internal/projectstore"
 )
 
 const SchemaVersion = "acoustic_package_status.v0"
@@ -121,6 +123,9 @@ func DefaultStorePath(args map[string]any) string {
 	if path := strings.TrimSpace(os.Getenv("VIT_ACOUSTIC_PACKAGE_STATUS_PATH")); path != "" {
 		return filepath.Clean(path)
 	}
+	if roots, ok := projectstore.Current(); ok {
+		return filepath.Join(roots.Derived, "acoustic_package_status.json")
+	}
 	if root := strings.TrimSpace(os.Getenv("VIT_MIXBOARD_ROOT")); root != "" {
 		return filepath.Join(filepath.Dir(filepath.Clean(root)), "acoustic_package_status.json")
 	}
@@ -130,25 +135,7 @@ func DefaultStorePath(args map[string]any) string {
 			return filepath.Join(root, "VitApp", "Workspace", "Artifacts", "acoustic_package_status.json")
 		}
 	}
-	wd, err := os.Getwd()
-	if err != nil {
-		return filepath.Join("VitApp", "Workspace", "Artifacts", "acoustic_package_status.json")
-	}
-	for dir := wd; dir != ""; dir = filepath.Dir(dir) {
-		if filepath.Base(dir) == "agent" {
-			if _, err := os.Stat(filepath.Join(dir, "go.mod")); err == nil {
-				return filepath.Join(filepath.Dir(dir), "VitApp", "Workspace", "Artifacts", "acoustic_package_status.json")
-			}
-		}
-		if _, err := os.Stat(filepath.Join(dir, "VitApp", "Workspace")); err == nil {
-			return filepath.Join(dir, "VitApp", "Workspace", "Artifacts", "acoustic_package_status.json")
-		}
-		parent := filepath.Dir(dir)
-		if parent == dir {
-			break
-		}
-	}
-	return filepath.Join(wd, "VitApp", "Workspace", "Artifacts", "acoustic_package_status.json")
+	return filepath.Join(os.TempDir(), "vit-daw-unbound", fmt.Sprint(os.Getpid()), "acoustic_package_status.json")
 }
 
 func (s Store) Read() (Snapshot, error) {
@@ -958,6 +945,15 @@ func normalizeFeatureStatus(row map[string]any, identity Identity) string {
 	reason := strings.ToLower(strings.TrimSpace(cleanString(row["reason"])))
 	mismatchReason := rowIdentityMismatchReason(row, identity)
 	if mismatchReason != "" {
+		// A generic "current" row can outlive the project that issued it while
+		// numeric track/clip IDs are reused by the next project. Treating that
+		// incomplete legacy request as still building suppresses the new
+		// project's background fill forever. Current requests are stamped with
+		// the live project ID before they reach this point; a project mismatch
+		// is therefore stale even when the old row has no source path yet.
+		if mismatchReason == "project_mismatch" || (mismatchReason == "incomplete_source_identity" && !genericProjectIdentity(identity.ProjectID)) {
+			return StatusStale
+		}
 		if status == StatusBuilding && !rowHasSourceIdentity(row) {
 			return StatusBuilding
 		}
@@ -994,7 +990,7 @@ func rowIdentityMismatchReason(row map[string]any, identity Identity) string {
 	if len(row) == 0 {
 		return ""
 	}
-	if rowProject := cleanString(row["project_id"]); rowProject != "" && identity.ProjectID != "" && rowProject != identity.ProjectID {
+	if rowProject := cleanString(row["project_id"]); rowProject != "" && identity.ProjectID != "" && rowProject != identity.ProjectID && !sourceFileL3RowMatchesExactMaterial(row, identity) {
 		return "project_mismatch"
 	}
 	if rowTrack := cleanString(row["track_id"]); rowTrack != "" && identity.TrackID != "" && rowTrack != identity.TrackID {
@@ -1040,6 +1036,38 @@ func rowIdentityMismatchReason(row map[string]any, identity Identity) string {
 	return ""
 }
 
+// Source-file L3 facts describe the decoded source material before the current
+// plug-in/fader render. They may therefore be reused across a session/project
+// identity change, but only when the strong source revision/fingerprint and the
+// exact current track/clip material agree. Render-dependent L2 rows never take
+// this exception.
+func sourceFileL3RowMatchesExactMaterial(row map[string]any, identity Identity) bool {
+	if rowUsesRenderRevision(row) {
+		return false
+	}
+	if rowTrack := cleanString(row["track_id"]); rowTrack != "" && identity.TrackID != "" && rowTrack != identity.TrackID {
+		return false
+	}
+	if rowClip := cleanString(row["clip_id"]); rowClip != "" && identity.ClipID != "" && rowClip != identity.ClipID {
+		return false
+	}
+	rowRevision := firstNonEmpty(cleanString(row["source_revision"]), cleanString(row["source_fingerprint"]))
+	identityRevision := firstNonEmpty(identity.SourceRevision, identity.SourceFingerprint)
+	if rowRevision == "" || identityRevision == "" {
+		return false
+	}
+	if rowRevision != identityRevision && !sourceRevisionAliasesMatch(rowRevision, identityRevision, rowSourcePath(row), rowDurationSeconds(row), identity) {
+		return false
+	}
+	if rowHash := cleanString(row["source_hash"]); rowHash != "" && identity.SourceHash != "" && rowHash != identity.SourceHash {
+		return false
+	}
+	if rowPath := rowSourcePath(row); rowPath != "" && identity.SourcePath != "" && normalizePathForIdentity(rowPath) != normalizePathForIdentity(identity.SourcePath) {
+		return false
+	}
+	return true
+}
+
 func rowUsesRenderRevision(row map[string]any) bool {
 	featureType := strings.ToLower(strings.TrimSpace(cleanString(row["feature_type"])))
 	switch featureType {
@@ -1057,6 +1085,12 @@ func rowHasCurrentTargetAnchor(row map[string]any, identity Identity) bool {
 	if len(row) == 0 || cleanString(row["request_id"]) == "" {
 		return false
 	}
+	if !genericProjectIdentity(identity.ProjectID) {
+		rowProject := cleanString(row["project_id"])
+		if rowProject == "" || rowProject != identity.ProjectID {
+			return false
+		}
+	}
 	rowClip := cleanString(row["clip_id"])
 	if identity.ClipID == "" || rowClip == "" || rowClip != identity.ClipID {
 		return false
@@ -1066,6 +1100,15 @@ func rowHasCurrentTargetAnchor(row map[string]any, identity Identity) bool {
 		return false
 	}
 	return true
+}
+
+func genericProjectIdentity(value string) bool {
+	switch strings.ToLower(strings.TrimSpace(value)) {
+	case "", "current", "project_current", "current_project":
+		return true
+	default:
+		return false
+	}
 }
 
 type sourceRevisionDescriptor struct {
@@ -1172,6 +1215,26 @@ func sourceRevisionDescriptorMatchesIdentity(descriptor sourceRevisionDescriptor
 		}
 	}
 	return evidence
+}
+
+// SourceRevisionMatchesIdentity validates a stored source revision against a
+// current material identity without requiring callers to duplicate descriptor
+// parsing or file-stat semantics. It is intentionally strict: an opaque
+// revision needs an exact current revision alias, while a descriptor may be
+// proven by its path plus current file metadata.
+func SourceRevisionMatchesIdentity(revision string, identity Identity) bool {
+	revision = strings.TrimSpace(revision)
+	if revision == "" {
+		return false
+	}
+	currentRevision := firstNonEmpty(identity.SourceRevision, identity.SourceFingerprint)
+	if currentRevision != "" {
+		return revision == currentRevision || sourceRevisionAliasesMatch(revision, currentRevision, identity.SourcePath, identity.DurationSec, identity)
+	}
+	if descriptor, ok := parseSourceRevisionDescriptor(revision); ok {
+		return sourceRevisionDescriptorMatchesIdentity(descriptor, identity.SourcePath, identity.DurationSec, identity)
+	}
+	return isLegacySourceRevision(revision) && revision == ComputeSourceRevision(identity)
 }
 
 func identityHasSourceIdentity(identity Identity) bool {
@@ -1387,7 +1450,11 @@ func samePackageIdentity(a, b Status) bool {
 	if strings.TrimSpace(a.SourceRevision) == "" || strings.TrimSpace(b.SourceRevision) == "" {
 		return false
 	}
-	if rowIdentityMismatchReason(statusIdentityRow(a), identityFromStatus(b)) != "" {
+	row := statusIdentityRow(a)
+	delete(row, "render_revision")
+	identity := identityFromStatus(b)
+	identity.RenderRevision = ""
+	if rowIdentityMismatchReason(row, identity) != "" {
 		return false
 	}
 	return true
@@ -1571,7 +1638,7 @@ func compactRef(row map[string]any) map[string]any {
 	}
 	return selectKeys(row,
 		"schema_version", "status", "feature_type", "layer", "project_id", "session_id", "track_id", "clip_id", "target", "file_path", "source_path", "source_identity", "source_fingerprint", "source_revision", "source_hash",
-		"clip_revision", "render_revision", "plugin_chain_revision", "fader_revision", "analyzer_revision", "analyzer_version", "clip_start_seconds",
+		"clip_revision", "render_revision", "plugin_chain_revision", "fader_revision", "track_state_fingerprint", "analyzer_revision", "analyzer_version", "clip_start_seconds",
 		"request_id", "source", "source_kind", "reason", "capture_mode", "tap_point", "render_mode", "capture_time", "time_basis", "quality_status", "quality_reason", "quality_reasons", "quality_evidence", "tile_count_seen", "tile_count_expected", "tile_count_parsed",
 		"coverage_seconds", "coverage_ratio", "total_duration", "duration_seconds", "sample_rate", "channel_count", "channels", "expected_sample_count", "analyzed_sample_count", "nonzero_count", "sum_abs", "max_abs", "nan_count", "inf_count", "analyzed_range", "evidence_ref", "updated_at", "rms", "peak", "peak_abs", "rms_dbfs",
 		"peak_dbfs", "headroom_db", "crest_factor", "crest_db", "integrated_lufs", "approximate_lufs", "approximate", "algorithm", "bands", "balance_db", "balance_state",

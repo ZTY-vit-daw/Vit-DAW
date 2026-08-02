@@ -2,6 +2,7 @@ package mixboard
 
 import (
 	"fmt"
+	"math"
 	"sort"
 	"strings"
 )
@@ -35,32 +36,42 @@ func buildProjectPackage(state map[string]any, target TargetRef, scope ListenSco
 	stereoSpread := projectStereoSpread(tracks)
 	levelDistribution := projectLevelDistribution(tracks)
 	conflictCandidates := projectConflictCandidates(tracks)
+	frequencyInputs := projectFrequencyRelationshipInputs(tracks)
+	projectIdentity := mapValue(state["project"])
+	projectCutRef := firstNonEmpty(cleanAnyString(state["snapshot_hash"]), cleanAnyString(state["project_state_hash"]), cleanAnyString(state["project_revision"]), cleanAnyString(state["revision"]), cleanAnyString(projectIdentity["snapshot_hash"]), cleanAnyString(projectIdentity["revision"]))
+	staticLevelInputs := projectStaticLevelRelationshipInputs(tracks, projectCutRef)
 	return map[string]any{
-		"schema_version":                "mixboard_project_packet.v1",
-		"status":                        status,
-		"role":                          "project_context",
-		"summary":                       projectPackageSummary(tracks, activeCount, acousticTrackCount, activeAcousticTrackCount),
-		"duration_seconds":              projectDuration(state),
-		"track_count":                   len(tracks),
-		"active_track_count":            activeCount,
-		"acoustic_track_count":          acousticTrackCount,
-		"active_acoustic_track_count":   activeAcousticTrackCount,
-		"focus_ids":                     scope.Source.FocusIDs,
-		"context_ids":                   scope.Source.ContextIDs,
-		"tracks":                        tracks,
-		"loudness_ranking":              loudnessRanking,
-		"level_ranking":                 rankTrackSummaries(tracks, "level_db"),
-		"peak_ranking":                  peakRanking,
-		"peak_risk_ranking":             peakRiskRanking,
-		"headroom_risk":                 headroomRisk,
-		"project_band_occupancy":        bandOccupancy,
-		"project_stereo_spread":         stereoSpread,
-		"level_distribution":            levelDistribution,
-		"conflict_candidates":           conflictCandidates,
-		"likely_first_attention_target": projectFirstAttentionTarget(tracks, loudnessRanking, peakRanking, headroomRisk),
-		"relationship_inputs":           relationshipInputStatus(tracks),
+		"schema_version":                   "mixboard_project_packet.v1",
+		"status":                           status,
+		"role":                             "project_context",
+		"project_uuid":                     firstNonEmpty(cleanAnyString(state["project_uuid"]), cleanAnyString(projectIdentity["project_uuid"]), cleanAnyString(projectIdentity["uuid"])),
+		"project_epoch":                    firstNonEmpty(cleanAnyString(state["project_epoch"]), cleanAnyString(projectIdentity["project_epoch"])),
+		"project_revision":                 firstNonEmpty(cleanAnyString(state["project_revision"]), cleanAnyString(state["revision"]), cleanAnyString(projectIdentity["revision"])),
+		"project_state_hash":               firstNonEmpty(cleanAnyString(state["snapshot_hash"]), cleanAnyString(state["project_state_hash"]), cleanAnyString(projectIdentity["snapshot_hash"])),
+		"summary":                          projectPackageSummary(tracks, activeCount, acousticTrackCount, activeAcousticTrackCount),
+		"duration_seconds":                 projectDuration(state),
+		"track_count":                      len(tracks),
+		"active_track_count":               activeCount,
+		"acoustic_track_count":             acousticTrackCount,
+		"active_acoustic_track_count":      activeAcousticTrackCount,
+		"focus_ids":                        scope.Source.FocusIDs,
+		"context_ids":                      scope.Source.ContextIDs,
+		"tracks":                           tracks,
+		"loudness_ranking":                 loudnessRanking,
+		"level_ranking":                    rankTrackSummaries(tracks, "level_db"),
+		"peak_ranking":                     peakRanking,
+		"peak_risk_ranking":                peakRiskRanking,
+		"headroom_risk":                    headroomRisk,
+		"project_band_occupancy":           bandOccupancy,
+		"project_stereo_spread":            stereoSpread,
+		"level_distribution":               levelDistribution,
+		"conflict_candidates":              conflictCandidates,
+		"frequency_relationship_inputs":    frequencyInputs,
+		"static_level_relationship_inputs": staticLevelInputs,
+		"likely_first_attention_target":    projectFirstAttentionTarget(tracks, loudnessRanking, peakRanking, headroomRisk),
+		"relationship_inputs":              relationshipInputStatus(tracks),
 		"analysis_boundary": map[string]any{
-			"agent_side_lightweight": []string{"loudness_ranking", "level_ranking", "peak_ranking", "headroom_risk", "project_band_occupancy", "project_stereo_spread", "level_distribution", "conflict_candidates", "likely_first_attention_target"},
+			"agent_side_lightweight": []string{"loudness_ranking", "level_ranking", "peak_ranking", "headroom_risk", "project_band_occupancy", "project_stereo_spread", "level_distribution", "conflict_candidates", "frequency_relationship_inputs", "static_level_relationship_inputs", "likely_first_attention_target"},
 			"kernel_deferred":        []string{"project_contrast_analyzer", "lufs_analysis", "masking_analysis", "reference_match", "post_fx_shadow_render"},
 		},
 		"limitations": projectPackageLimitations(tracks),
@@ -75,8 +86,10 @@ func buildTrackSummaries(state map[string]any, target TargetRef, scope ListenSco
 		focus[target.ID] = true
 	}
 	bandRows := bandEnergyRowsByTrack(snap)
+	renderProbeRows := renderProbeRowsByTrack(snap)
 	stereoRows := stereoRelationRowsByTrack(snap)
 	loudnessRows := loudnessRowsByTrack(snap)
+	staticLevelRows := trackWaveformRowsByTrack(snap)
 	for _, raw := range rows {
 		row, _ := raw.(map[string]any)
 		if len(row) == 0 {
@@ -92,23 +105,40 @@ func buildTrackSummaries(state map[string]any, target TargetRef, scope ListenSco
 		primaryClip := primaryTrackClip(clips)
 		plugins := anySlice(firstPresent(row, "plugins", "rack_nodes", "plugin_chain"))
 		summary := map[string]any{
-			"track_id":             id,
-			"name":                 name,
-			"track_name":           name,
-			"user_label":           name,
-			"track_type":           trackType,
-			"user_track_index":     firstNonNil(row["user_track_index"], row["index"]),
-			"role_guess":           guessTrackRole(name, trackType),
-			"active_state":         trackActiveState(row, clips),
-			"clip_count":           len(clips),
-			"plugin_count":         len(plugins),
-			"plugin_chain_summary": pluginChainSummary(plugins),
-			"selected":             boolFromAny(row["selected"]),
-			"focused":              focus[id],
-			"mute":                 boolFromAny(firstPresent(row, "mute", "muted", "is_muted")),
-			"solo":                 boolFromAny(firstPresent(row, "solo", "is_solo")),
-			"is_armed":             boolFromAny(firstPresent(row, "is_armed", "armed")),
-			"stereo_position":      stereoPositionSummary(row),
+			"track_id":               id,
+			"name":                   name,
+			"track_name":             name,
+			"user_label":             name,
+			"track_type":             trackType,
+			"user_track_index":       firstNonNil(row["user_track_index"], row["index"]),
+			"role_guess":             guessTrackRole(name, trackType),
+			"active_state":           trackActiveState(row, clips),
+			"clip_count":             len(clips),
+			"plugin_count":           len(plugins),
+			"plugin_chain_summary":   pluginChainSummary(plugins),
+			"selected":               boolFromAny(row["selected"]),
+			"focused":                focus[id],
+			"mute":                   boolFromAny(firstPresent(row, "mute", "muted", "is_muted")),
+			"solo":                   boolFromAny(firstPresent(row, "solo", "is_solo")),
+			"is_armed":               boolFromAny(firstPresent(row, "is_armed", "armed")),
+			"stereo_position":        stereoPositionSummary(row),
+			"is_audio":               boolFromAny(row["is_audio"]),
+			"is_audio_track":         boolFromAny(row["is_audio_track"]),
+			"is_folder_track":        boolFromAny(row["is_folder_track"]),
+			"is_folder_container":    boolFromAny(row["is_folder_container"]),
+			"is_submix_folder":       boolFromAny(row["is_submix_folder"]),
+			"has_child_tracks":       boolFromAny(row["has_child_tracks"]),
+			"child_track_count":      firstNonNil(row["child_track_count"], len(anySlice(row["child_track_ids"]))),
+			"descendant_track_count": firstNonNil(row["descendant_track_count"], len(anySlice(row["descendant_track_ids"]))),
+		}
+		// Keep an unknown audio classification distinct from an explicit false.
+		// Older project snapshots do not expose these flags; materializing both as
+		// false would make a normal legacy audio track look like an internal track.
+		if _, exists := row["is_audio"]; !exists {
+			delete(summary, "is_audio")
+		}
+		if _, exists := row["is_audio_track"]; !exists {
+			delete(summary, "is_audio_track")
 		}
 		if compactClip := compactPrimaryClip(primaryClip); len(compactClip) > 0 {
 			summary["primary_clip"] = compactClip
@@ -125,7 +155,12 @@ func buildTrackSummaries(state map[string]any, target TargetRef, scope ListenSco
 			summary["acoustic"] = acoustic
 			applyAcousticMetricsToTrack(summary, acoustic)
 		}
+		if staticLevel := projectTrackStaticLevel(id, row, clips, staticLevelRows[id]); len(staticLevel) > 0 {
+			summary["static_level"] = staticLevel
+			copyStaticLevelMetricsToTrack(summary, staticLevel)
+		}
 		summary["band_energy"] = projectTrackBandEnergy(id, bandRows[id])
+		summary["frequency_evidence"] = projectTrackFrequencyEvidence(id, renderProbeRows[id], bandRows[id])
 		summary["stereo_relation"] = projectTrackStereoRelation(id, stereoRows[id])
 		summary["loudness"] = projectTrackLoudness(id, loudnessRows[id])
 		applyLoudnessMetricsToTrack(summary, mapValue(summary["loudness"]))
@@ -140,6 +175,29 @@ func bandEnergyRowsByTrack(snap featureSnapshot) map[string]map[string]any {
 		addBestFeatureRowByTrack(out, row)
 	}
 	addBestFeatureRowByTrack(out, snap.BandEnergySummary)
+	return out
+}
+
+func renderProbeRowsByTrack(snap featureSnapshot) map[string]map[string]any {
+	out := map[string]map[string]any{}
+	for _, row := range snap.L2RenderProbes {
+		addBestFeatureRowByTrack(out, row)
+	}
+	addBestFeatureRowByTrack(out, snap.L2RenderProbe)
+	return out
+}
+
+func trackWaveformRowsByTrack(snap featureSnapshot) map[string][]map[string]any {
+	out := map[string][]map[string]any{}
+	for _, row := range snap.TrackWaveformEnvelopes {
+		trackID := cleanAnyString(firstPresent(row, "track_id", "source_track_id", "id"))
+		if trackID != "" {
+			out[trackID] = append(out[trackID], row)
+		}
+	}
+	if trackID := cleanAnyString(firstPresent(snap.WaveformEnvelope, "track_id", "source_track_id", "id")); trackID != "" {
+		out[trackID] = append(out[trackID], snap.WaveformEnvelope)
+	}
 	return out
 }
 
@@ -181,6 +239,113 @@ func projectTrackBandEnergy(trackID string, row map[string]any) map[string]any {
 		out["track_id"] = trackID
 	}
 	return out
+}
+
+func projectTrackFrequencyEvidence(trackID string, renderProbe, l3Band map[string]any) map[string]any {
+	if len(renderProbe) > 0 {
+		probe := buildL2RenderProbeSummary(renderProbe)
+		status := featureStatus(probe)
+		if (status == "ready" || status == "partial") && len(mapValue(probe["bands"])) > 0 {
+			probe["evidence_layer"] = "l2_realtime.render_probe"
+			if cleanAnyString(probe["track_id"]) == "" {
+				probe["track_id"] = trackID
+			}
+			return probe
+		}
+	}
+	band := projectTrackBandEnergy(trackID, l3Band)
+	band["evidence_layer"] = "l3_deep.band_energy_summary"
+	if cleanAnyString(band["tap_point"]) == "" && (featureStatus(band) == "ready" || featureStatus(band) == "partial") {
+		band["tap_point"] = "source_file_pre_fx"
+	}
+	return band
+}
+
+func projectFrequencyRelationshipInputs(tracks []map[string]any) map[string]any {
+	decisionTracks := frequencyDecisionTracks(tracks)
+	rows := make([]map[string]any, 0, len(decisionTracks))
+	taps := map[string]bool{}
+	usable := 0
+	for _, track := range decisionTracks {
+		evidence := mapValue(track["frequency_evidence"])
+		status := featureStatus(evidence)
+		if status == "ready" || status == "partial" {
+			usable++
+		}
+		tap := cleanAnyString(evidence["tap_point"])
+		if tap != "" {
+			taps[tap] = true
+		}
+		rows = append(rows, map[string]any{
+			"track_id":       track["track_id"],
+			"status":         status,
+			"tap_point":      firstNonEmpty(tap, "unknown"),
+			"evidence_layer": evidence["evidence_layer"],
+			"evidence_ref":   projectFrequencyEvidenceRef(evidence),
+		})
+	}
+	status := "ready"
+	if usable == len(decisionTracks) && usable > 0 && len(taps) == 1 {
+		status = "ready"
+	} else if usable > 0 {
+		status = "partial"
+	}
+	tapPoints := make([]string, 0, len(taps))
+	for tap := range taps {
+		tapPoints = append(tapPoints, tap)
+	}
+	sort.Strings(tapPoints)
+	return map[string]any{
+		"schema_version":            "dad.project_frequency_relationship_inputs.v1",
+		"status":                    status,
+		"track_count":               len(decisionTracks),
+		"usable_track_count":        usable,
+		"tap_points":                tapPoints,
+		"tracks":                    rows,
+		"decision_tracks_truncated": false,
+	}
+}
+
+func frequencyDecisionTracks(tracks []map[string]any) []map[string]any {
+	out := make([]map[string]any, 0, len(tracks))
+	for _, track := range tracks {
+		if !trackRequiresFrequencyEvidence(track) {
+			continue
+		}
+		out = append(out, track)
+	}
+	return out
+}
+
+func trackRequiresFrequencyEvidence(track map[string]any) bool {
+	if len(track) == 0 {
+		return false
+	}
+	for _, key := range []string{"is_folder_track", "is_folder_container", "is_submix_folder"} {
+		if boolFromAny(track[key]) {
+			return false
+		}
+	}
+	trackType := strings.ToLower(strings.TrimSpace(cleanAnyString(track["track_type"])))
+	if strings.Contains(trackType, "folder") || strings.Contains(trackType, "container") {
+		return false
+	}
+	if boolFromAny(track["has_child_tracks"]) && int(numberFromMap(track, "clip_count")) == 0 && !boolFromAny(track["is_audio_track"]) && !boolFromAny(track["is_audio"]) {
+		return false
+	}
+	return true
+}
+
+func projectFrequencyEvidenceRef(row map[string]any) string {
+	if ref := cleanAnyString(row["evidence_ref"]); ref != "" {
+		return ref
+	}
+	trackID := cleanAnyString(row["track_id"])
+	requestID := cleanAnyString(row["request_id"])
+	if requestID != "" {
+		return "dad.frequency_evidence:" + trackID + ":" + requestID
+	}
+	return "project_package.frequency_relationship_inputs:" + trackID
 }
 
 func projectTrackStereoRelation(trackID string, row map[string]any) map[string]any {
@@ -499,10 +664,295 @@ func compactPrimaryClip(clip map[string]any) map[string]any {
 			out[key] = round3(value)
 		}
 	}
+	if value, ok := firstNumberField(clip, "clip_gain_db", "gain_db", "volume_db", "db"); ok {
+		out["clip_gain_db"] = round3(value)
+	}
 	if value, ok := clip["playback_source_valid"].(bool); ok {
 		out["playback_source_valid"] = value
 	}
 	return out
+}
+
+func projectTrackStaticLevel(trackID string, projectTrack map[string]any, clips []any, rows []map[string]any) map[string]any {
+	if len(rows) == 0 {
+		if _, ok := firstNumberField(projectTrack, "rms_dbfs", "rms_db", "level_db"); ok {
+			fallback := copyAnyMap(projectTrack)
+			fallback["status"] = "partial"
+			fallback["evidence_ref"] = "project.state:track_level:" + trackID
+			fallback["allow_track_level_fallback"] = true
+			rows = []map[string]any{fallback}
+		}
+	}
+	activeClips := make([]map[string]any, 0, len(clips))
+	for _, raw := range clips {
+		clip, _ := raw.(map[string]any)
+		if len(clip) == 0 || boolFromAny(firstPresent(clip, "clip_mute", "mute", "muted")) {
+			continue
+		}
+		activeClips = append(activeClips, clip)
+	}
+	fader, _ := firstNumberField(projectTrack, "volume_db", "fader_db", "track_gain_db", "gain_db", "db")
+	sourceEnergy, effectiveEnergy, totalWeight := 0.0, 0.0, 0.0
+	effectivePeak := math.Inf(-1)
+	included, missing := []string{}, []string{}
+	refs, limitations := []string{}, []string{}
+	reusedSourceMetric := false
+	worstStatus := "ready"
+
+	accumulate := func(clip map[string]any, row map[string]any, reused bool) {
+		clipID := cleanAnyString(firstPresent(clip, "clip_id", "id", "item_id"))
+		if clipID == "" {
+			clipID = cleanAnyString(firstPresent(row, "clip_id", "bake_key"))
+		}
+		rms, rmsOK := firstNumberField(row, "rms_dbfs", "rms_db")
+		peak, peakOK := firstNumberField(row, "peak_dbfs", "peak_db")
+		if !rmsOK {
+			if clipID != "" {
+				missing = append(missing, clipID)
+			}
+			return
+		}
+		clipGain, _ := firstNumberField(clip, "clip_gain_db", "gain_db", "volume_db", "db")
+		weight, ok := firstNumberField(clip, "length_seconds", "duration_seconds", "duration")
+		if !ok || weight <= 0 {
+			weight, ok = firstNumberField(row, "duration_seconds", "total_duration", "coverage_seconds")
+		}
+		if !ok || weight <= 0 {
+			weight = 1
+			limitations = append(limitations, "duration_missing_unit_weight_used")
+		}
+		sourceEnergy += math.Pow(10, rms/10) * weight
+		effectiveEnergy += math.Pow(10, (rms+clipGain+fader)/10) * weight
+		totalWeight += weight
+		if peakOK {
+			adjusted := peak + clipGain + fader
+			if adjusted > effectivePeak {
+				effectivePeak = adjusted
+			}
+		} else {
+			limitations = append(limitations, "effective_peak_missing")
+		}
+		if clipID != "" {
+			included = append(included, clipID)
+		}
+		if reused {
+			reusedSourceMetric = true
+		}
+		worstStatus = worseStaticLevelStatus(worstStatus, featureStatus(row))
+		if ref := staticLevelEvidenceRef(row, trackID, clipID); ref != "" {
+			refs = append(refs, ref)
+		}
+	}
+
+	if len(activeClips) == 0 {
+		if row := bestStaticLevelRow(rows); len(row) > 0 {
+			accumulate(nil, row, false)
+		}
+	} else {
+		homogeneousSource := homogeneousClipSource(activeClips)
+		for _, clip := range activeClips {
+			row, reused := staticLevelRowForClip(clip, rows, homogeneousSource)
+			if len(row) == 0 {
+				if clipID := cleanAnyString(firstPresent(clip, "clip_id", "id", "item_id")); clipID != "" {
+					missing = append(missing, clipID)
+				}
+				continue
+			}
+			accumulate(clip, row, reused)
+		}
+	}
+	if totalWeight <= 0 || sourceEnergy <= 0 || effectiveEnergy <= 0 {
+		return map[string]any{
+			"schema_version": "mixboard.static_level_track.v1", "track_id": trackID,
+			"status": "missing", "metric": "effective_static_rms_dbfs", "tap_point": "derived_static_control_model",
+			"included_clip_ids": uniqueSortedStrings(included), "missing_clip_ids": uniqueSortedStrings(missing),
+			"aggregation_method": "duration_weighted_linear_energy", "limitations": []string{"no_usable_static_level_evidence"},
+		}
+	}
+	status := worstStatus
+	if len(missing) > 0 && status == "ready" {
+		status = "partial"
+	}
+	if reusedSourceMetric && status == "ready" {
+		status = "approximate"
+		limitations = append(limitations, "source_metric_reused_for_split_clip")
+	}
+	out := map[string]any{
+		"schema_version": "mixboard.static_level_track.v1",
+		"track_id":       trackID, "status": status,
+		"metric": "effective_static_rms_dbfs", "tap_point": "derived_static_control_model",
+		"source_rms_dbfs":           round3(10 * math.Log10(sourceEnergy/totalWeight)),
+		"effective_static_rms_dbfs": round3(10 * math.Log10(effectiveEnergy/totalWeight)),
+		"fader_db":                  round3(fader),
+		"included_clip_ids":         uniqueSortedStrings(included), "missing_clip_ids": uniqueSortedStrings(missing),
+		"aggregation_method": "duration_weighted_linear_energy_source_plus_clip_gain_plus_fader",
+		"evidence_refs":      uniqueSortedStrings(refs), "limitations": uniqueSortedStrings(limitations),
+	}
+	if !math.IsInf(effectivePeak, -1) {
+		out["effective_static_peak_dbfs"] = round3(effectivePeak)
+	}
+	return out
+}
+
+func copyStaticLevelMetricsToTrack(track, level map[string]any) {
+	if status := featureStatus(level); status == "missing" || status == "stale" || status == "suspect" {
+		return
+	}
+	for _, key := range []string{"effective_static_rms_dbfs", "effective_static_peak_dbfs"} {
+		if value, ok := numberField(level, key); ok {
+			track[key] = value
+		}
+	}
+}
+
+func projectStaticLevelRelationshipInputs(tracks []map[string]any, projectCutRef string) map[string]any {
+	rows := make([]map[string]any, 0, len(tracks))
+	usable, ready := 0, 0
+	status := "ready"
+	limitations := []string{}
+	for _, track := range tracks {
+		row := mapValue(track["static_level"])
+		if len(row) == 0 {
+			continue
+		}
+		rows = append(rows, row)
+		rowStatus := featureStatus(row)
+		status = worseStaticLevelStatus(status, rowStatus)
+		if _, ok := numberField(row, "effective_static_rms_dbfs"); ok && rowStatus != "stale" && rowStatus != "suspect" && rowStatus != "missing" {
+			usable++
+		}
+		if rowStatus == "ready" {
+			ready++
+		}
+		limitations = append(limitations, removeStringFromAnySlice(row["limitations"], "")...)
+	}
+	if len(rows) == 0 {
+		status = "missing"
+	} else if usable > 0 && status == "missing" {
+		status = "partial"
+	}
+	return map[string]any{
+		"schema_version": "mom.static_level_relationship.v1", "status": status,
+		"project_cut_ref": projectCutRef, "track_count": len(rows), "usable_track_count": usable,
+		"ready_track_count": ready, "tracks": rows,
+		"evidence_refs": []string{"project_package.static_level_relationship_inputs"},
+		"limitations":   uniqueSortedStrings(limitations),
+	}
+}
+
+func staticLevelRowForClip(clip map[string]any, rows []map[string]any, homogeneousSource bool) (map[string]any, bool) {
+	clipID := cleanAnyString(firstPresent(clip, "clip_id", "id", "item_id"))
+	var exact map[string]any
+	for _, row := range rows {
+		if clipID != "" && cleanAnyString(firstPresent(row, "clip_id", "bake_key")) == clipID && (len(exact) == 0 || acousticRowPriority(row) > acousticRowPriority(exact)) {
+			exact = row
+		}
+	}
+	if len(exact) > 0 {
+		return exact, false
+	}
+	source := staticLevelSourceKey(clip)
+	var sourceMatch map[string]any
+	for _, row := range rows {
+		if source != "" && strings.EqualFold(source, staticLevelSourceKey(row)) && (len(sourceMatch) == 0 || acousticRowPriority(row) > acousticRowPriority(sourceMatch)) {
+			sourceMatch = row
+		}
+	}
+	if len(sourceMatch) > 0 {
+		return sourceMatch, true
+	}
+	if homogeneousSource {
+		if best := bestStaticLevelRow(rows); len(best) > 0 {
+			return best, true
+		}
+	}
+	if len(rows) == 1 && boolFromAny(rows[0]["allow_track_level_fallback"]) {
+		return rows[0], true
+	}
+	return nil, false
+}
+
+func bestStaticLevelRow(rows []map[string]any) map[string]any {
+	var best map[string]any
+	for _, row := range rows {
+		if _, ok := firstNumberField(row, "rms_dbfs", "rms_db"); !ok {
+			continue
+		}
+		if len(best) == 0 || acousticRowPriority(row) > acousticRowPriority(best) {
+			best = row
+		}
+	}
+	return best
+}
+
+func homogeneousClipSource(clips []map[string]any) bool {
+	base := ""
+	for _, clip := range clips {
+		source := staticLevelSourceKey(clip)
+		if source == "" {
+			return false
+		}
+		if base == "" {
+			base = source
+		} else if !strings.EqualFold(base, source) {
+			return false
+		}
+	}
+	return base != ""
+}
+
+func staticLevelSourceKey(row map[string]any) string {
+	return strings.TrimSpace(cleanAnyString(firstPresent(row, "current_source_path", "source_path", "file_path", "asset_ref")))
+}
+
+func staticLevelEvidenceRef(row map[string]any, trackID, clipID string) string {
+	if ref := cleanAnyString(row["evidence_ref"]); ref != "" {
+		return ref
+	}
+	if requestID := cleanAnyString(row["request_id"]); requestID != "" {
+		return "dad.track_waveform_envelope:" + trackID + ":" + requestID
+	}
+	return "dad.track_waveform_envelope:" + trackID + ":" + firstNonEmpty(clipID, "track")
+}
+
+func worseStaticLevelStatus(current, candidate string) string {
+	rank := map[string]int{"ready": 0, "approximate": 1, "partial": 2, "suspect": 3, "stale": 4, "missing": 5}
+	current = strings.ToLower(strings.TrimSpace(current))
+	candidate = strings.ToLower(strings.TrimSpace(candidate))
+	if _, ok := rank[current]; !ok {
+		current = "missing"
+	}
+	if _, ok := rank[candidate]; !ok {
+		candidate = "partial"
+	}
+	if rank[candidate] > rank[current] {
+		return candidate
+	}
+	return current
+}
+
+func uniqueSortedStrings(values []string) []string {
+	seen := map[string]bool{}
+	out := []string{}
+	for _, value := range values {
+		value = strings.TrimSpace(value)
+		if value == "" || seen[value] {
+			continue
+		}
+		seen[value] = true
+		out = append(out, value)
+	}
+	sort.Strings(out)
+	return out
+}
+
+func firstNumberField(row map[string]any, keys ...string) (float64, bool) {
+	for _, key := range keys {
+		if value, ok := numberField(row, key); ok {
+			return value, true
+		}
+	}
+	return 0, false
 }
 
 func applyAcousticMetricsToTrack(track, acoustic map[string]any) {
@@ -610,6 +1060,10 @@ func projectBandOccupancy(tracks []map[string]any) map[string]any {
 		if weight > 0 {
 			row["status"] = "ready"
 			row["average_unit_energy"] = round3(sum / weight)
+			// decision_tracks is the complete compact identity/energy set used by
+			// project-level specialist decisions. dominant_tracks remains a UI and
+			// general-context excerpt and must never become an execution target cap.
+			row["decision_tracks"] = trackRows
 			row["dominant_tracks"] = capMapRows(trackRows, 3)
 		}
 		bandsOut[bandID] = row

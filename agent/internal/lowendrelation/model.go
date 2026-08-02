@@ -98,7 +98,10 @@ func extractLowEndTracks(relation map[string]any) ([]LowEndTrack, map[string]*Lo
 		if band != "sub" && band != "bass" {
 			continue
 		}
-		leaders := rowsValue(row["leaders"])
+		leaders := rowsValue(row["decision_tracks"])
+		if len(leaders) == 0 {
+			leaders = rowsValue(row["leaders"])
+		}
 		for rank, leader := range leaders {
 			id := text(leader, "track_id")
 			if id == "" {
@@ -168,10 +171,24 @@ func extractLowEndConflicts(relation map[string]any) []LowEndConflict {
 		if band != "sub" && band != "bass" {
 			continue
 		}
+		// Conflict membership is deliberately narrower than the complete
+		// decision-track roster. Every evidence-qualified low-end track remains
+		// available to the LLM through Model.Tracks, but observing a track must
+		// not automatically assert that it belongs to this concrete conflict.
+		tracks := rowsValue(c["tracks"])
+		trackIDs := make([]string, 0, len(tracks))
+		for _, track := range tracks {
+			if id := text(track, "track_id"); id != "" {
+				trackIDs = append(trackIDs, id)
+			}
+		}
+		sort.Strings(trackIDs)
 		out = append(out, LowEndConflict{
+			ID:         stableID("low_end_conflict", map[string]any{"band": band, "track_ids": trackIDs}),
 			Band:       band,
-			Tracks:     rowsValue(c["tracks"]),
+			Tracks:     tracks,
 			Confidence: text(c, "confidence"),
+			Reason:     text(c, "reason"),
 		})
 	}
 	return out
@@ -370,14 +387,14 @@ func buildObservations(tracks []LowEndTrack, conflicts []LowEndConflict, summary
 	for _, conflict := range conflicts {
 		refs := trackRefs(conflict.Tracks)
 		out = append(out, Observation{
-			ID:      nextID("conflict"),
-			Kind:    conflict.Band + "_masking_conflict",
-			Summary: fmt.Sprintf("%s band: %d tracks have close relative energy — masking conflict candidate", conflict.Band, len(conflict.Tracks)),
+			ID:         nextID("conflict"),
+			Kind:       conflict.Band + "_masking_conflict",
+			Summary:    fmt.Sprintf("%s band: %d tracks have close relative energy — masking conflict candidate", conflict.Band, len(conflict.Tracks)),
 			TrackRefs:  refs,
 			Risk:       "medium",
 			Confidence: conflict.Confidence,
 			Evidence: map[string]any{
-				"band":                  conflict.Band,
+				"band":                    conflict.Band,
 				"conflicting_track_count": len(conflict.Tracks),
 			},
 		})
@@ -474,7 +491,7 @@ func numericField(row map[string]any, keys ...string) (float64, bool) {
 	return 0, false
 }
 
-func ptr(v float64) *float64 { return &v }
+func ptr(v float64) *float64   { return &v }
 func round3(v float64) float64 { return math.Round(v*1000) / 1000 }
 
 func mapValue(v any) map[string]any {

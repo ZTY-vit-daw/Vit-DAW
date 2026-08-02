@@ -58,6 +58,34 @@ func TestEnsureProjectAudioAnalysisUsesPersistedManifestWithoutKernelCall(t *tes
 	}
 }
 
+func TestEnsureAppBoundVitSaveCommand(t *testing.T) {
+	cmd := map[string]any{}
+	projectPath := filepath.Join(t.TempDir(), "mix.vit")
+	ensureAppBoundVitSaveCommand(cmd, projectPath)
+	if got := firstString(cmd, "file_path"); got != projectPath {
+		t.Fatalf("file_path=%q want %q", got, projectPath)
+	}
+	encryption := mapFromAny(cmd["encryption"])
+	if firstString(encryption, "mode") != "app_bound_aes" {
+		t.Fatalf("encryption=%+v", encryption)
+	}
+
+	explicit := map[string]any{
+		"file_path":  filepath.Join(t.TempDir(), "explicit.vit"),
+		"encryption": map[string]any{"mode": "custom"},
+	}
+	ensureAppBoundVitSaveCommand(explicit, projectPath)
+	if firstString(mapFromAny(explicit["encryption"]), "mode") != "custom" {
+		t.Fatalf("explicit encryption should be preserved: %+v", explicit)
+	}
+
+	plain := map[string]any{}
+	ensureAppBoundVitSaveCommand(plain, filepath.Join(t.TempDir(), "legacy.xml"))
+	if _, exists := plain["encryption"]; exists {
+		t.Fatalf("non-.vit save should not force encryption: %+v", plain)
+	}
+}
+
 func TestEnsureProjectAudioAnalysisRebuildsMissingRuntimeJob(t *testing.T) {
 	projectPath := filepath.Join(t.TempDir(), "rebuild.vit")
 	projectUUID := "vitproj_manifest_rebuild"
@@ -103,6 +131,45 @@ func TestEnsureProjectAudioAnalysisHonorsCancellation(t *testing.T) {
 	cancel()
 	if _, err := h.ensureProjectAudioAnalysis(ctx, map[string]any{"timeout_ms": 5000, "poll_interval_ms": 50}); err == nil {
 		t.Fatal("cancelled ensure unexpectedly succeeded")
+	}
+}
+
+func TestInvokeLatestAudioAnalysisStatusTreatsMissingRuntimeJobAsRecoverable(t *testing.T) {
+	projectPath := filepath.Join(t.TempDir(), "missing-runtime-job.vit")
+	project := shadow.New(nil)
+	project.Initialize(map[string]any{"project_path": projectPath, "project_uuid": "vitproj_missing_runtime_job"})
+	kernel := &fakeKernelClient{replies: []map[string]any{{
+		"status": "error", "message": "project.audio_analysis_status could not find an analysis job",
+	}}}
+	h := NewWithSender(kernel, project, nil)
+
+	resp, err := h.Invoke(context.Background(), InvokeRequest{
+		Tool: "project.audio_analysis_status", Args: map[string]any{"latest": true}, Source: "test",
+	})
+	if err != nil || resp.Status != "ok" {
+		t.Fatalf("latest missing status should be recoverable: resp=%+v err=%v", resp, err)
+	}
+	if firstString(resp.Result, "analysis_queue_status") != "missing" ||
+		!boolValueDefault(resp.Result["analysis_job_missing"], false) ||
+		!boolValueDefault(resp.Result["analysis_recovery_required"], false) {
+		t.Fatalf("recoverable missing status omitted recovery contract: %+v", resp.Result)
+	}
+}
+
+func TestInvokeExplicitMissingAudioAnalysisJobRemainsError(t *testing.T) {
+	projectPath := filepath.Join(t.TempDir(), "explicit-missing-job.vit")
+	project := shadow.New(nil)
+	project.Initialize(map[string]any{"project_path": projectPath, "project_uuid": "vitproj_explicit_missing_job"})
+	kernel := &fakeKernelClient{replies: []map[string]any{{
+		"status": "error", "message": "project.audio_analysis_status could not find an analysis job",
+	}}}
+	h := NewWithSender(kernel, project, nil)
+
+	resp, err := h.Invoke(context.Background(), InvokeRequest{
+		Tool: "project.audio_analysis_status", Args: map[string]any{"analysis_job_id": "stale_job"}, Source: "test",
+	})
+	if err == nil || resp.Status != "kernel_error" {
+		t.Fatalf("explicit missing job should remain an error: resp=%+v err=%v", resp, err)
 	}
 }
 
@@ -965,6 +1032,46 @@ func TestInvokeProjectStateUsesVSPObserve(t *testing.T) {
 	}
 }
 
+func TestInvokeAudioAnalysisStatusViaVSPPersistsReadyDerivedManifest(t *testing.T) {
+	projectPath := filepath.Join(t.TempDir(), "vsp-analysis.vit")
+	projectUUID := "vitproj_vsp_analysis"
+	project := shadow.New(nil)
+	project.Initialize(map[string]any{"project_path": projectPath, "project_uuid": projectUUID})
+	reply := map[string]any{
+		"status": "ok", "command": "project.audio_analysis_status",
+		"analysis_job_id": "job_vsp_ready", "analysis_queue_status": "submitted",
+		"analysis_job": map[string]any{
+			"analysis_job_id": "job_vsp_ready", "job_id": "job_vsp_ready",
+			"dad_fact_status": "ready", "dad_fact_ready_count": 1, "dad_fact_total_count": 1,
+			"track_waveform_envelopes": []any{map[string]any{
+				"status": "ready", "track_id": "track_1", "clip_id": "clip_1",
+				"source_path": "D:/audio/lead.wav", "rms_dbfs": -18.0, "peak_dbfs": -6.0,
+			}},
+		},
+	}
+	kernel := &fakeVSPKernelClient{commandReplies: []*kernel.VSPCommandResult{
+		fakeVSPCommandReply("legacy.command", "project.audio_analysis_status", reply),
+	}}
+	h := NewWithSender(kernel, project, nil)
+
+	resp, err := h.Invoke(context.Background(), InvokeRequest{
+		Tool: "project.audio_analysis_status", Args: map[string]any{"latest": true}, Source: "test",
+	})
+	if err != nil || resp.Status != "ok" {
+		t.Fatalf("VSP audio status failed: resp=%+v err=%v", resp, err)
+	}
+	manifest, path, err := projectworkspace.LoadAnalysisManifest(projectPath, projectUUID)
+	if err != nil {
+		t.Fatalf("VSP ready status did not persist derived manifest: %v", err)
+	}
+	if manifest.Status != "ready" || len(manifest.Rows) != 1 || manifest.Rows[0]["track_id"] != "track_1" {
+		t.Fatalf("persisted manifest=%+v path=%s", manifest, path)
+	}
+	if firstString(resp.Result, "analysis_manifest_path") != path {
+		t.Fatalf("response omitted persisted manifest path: result=%+v want=%s", resp.Result, path)
+	}
+}
+
 func TestInvokeMutatingCommandUsesVSPCommandDeltaAndResync(t *testing.T) {
 	beforeTracks := []any{
 		map[string]any{"track_id": "track_1", "track_name": "Lead", "track_type": "hybrid", "is_audio_track": true},
@@ -1420,6 +1527,86 @@ func TestBroadMixRequestCannotLoadPluginThroughHarness(t *testing.T) {
 	}
 	if len(kernel.commands) != 0 {
 		t.Fatalf("blocked command reached kernel: %+v", kernel.commands)
+	}
+}
+
+func TestQualifiedSemanticPluginSelectionCanLoadOnlyExactCandidateThroughHarness(t *testing.T) {
+	t.Setenv("VIT_PLUGIN_SEMANTICS_PATH", filepath.Join(t.TempDir(), "missing_plugin_semantics.json"))
+	const (
+		trackID    = "1007"
+		pluginPath = `C:\Program Files\Common Files\VST3\FabFilter\FabFilter Pro-Q 3.vst3`
+		identifier = "VST3-Pro-Q-3"
+	)
+	baseContext := map[string]any{
+		"user_message": "减少一些浑浊",
+		// These client-shaped fields alone must not bypass the guard.
+		"semantic_plugin_recommendation_selection": true,
+		"semantic_plugin_recommendation_candidate": map[string]any{
+			"plugin_path": pluginPath, "identifier": identifier,
+		},
+	}
+
+	unauthorizedKernel := &fakeKernelClient{}
+	unauthorizedHarness := New(nil, nil, nil)
+	unauthorizedHarness.kernel = unauthorizedKernel
+	if _, err := unauthorizedHarness.Invoke(context.Background(), InvokeRequest{
+		Tool: "plugin.load_to_rack", Args: map[string]any{
+			"path": pluginPath, "track_id": trackID, "plugin_identifier": identifier,
+		}, Context: baseContext, Confirmed: true,
+	}); err == nil {
+		t.Fatal("client-shaped semantic selection bypassed the harness guard")
+	}
+	if len(unauthorizedKernel.commands) != 0 {
+		t.Fatalf("unauthorized command reached kernel: %+v", unauthorizedKernel.commands)
+	}
+
+	authorizedKernel := &fakeKernelClient{replies: []map[string]any{{"status": "ok", "plugin_id": "1015"}}}
+	authorizedHarness := New(nil, nil, nil)
+	authorizedHarness.kernel = authorizedKernel
+	authorizedContext := AuthorizeSemanticPluginSelectionLoad(baseContext, trackID, pluginPath, identifier)
+	resp, err := authorizedHarness.Invoke(context.Background(), InvokeRequest{
+		Tool: "plugin.load_to_rack", Args: map[string]any{
+			"path": pluginPath, "track_id": trackID, "plugin_identifier": identifier,
+		}, Context: authorizedContext, Confirmed: true,
+	})
+	if err != nil || resp.Status != "ok" {
+		t.Fatalf("qualified semantic selection should load exact candidate, resp=%+v err=%v", resp, err)
+	}
+	foundRackAdd := false
+	for _, command := range authorizedKernel.commands {
+		if command["cmd"] == "rack_add_node" {
+			foundRackAdd = true
+		}
+	}
+	if !foundRackAdd {
+		t.Fatalf("authorized load did not reach kernel: %+v", authorizedKernel.commands)
+	}
+}
+
+func TestQualifiedSemanticPluginSelectionAuthorizationRejectsTamperingAndOtherWrites(t *testing.T) {
+	const (
+		trackID    = "1007"
+		pluginPath = `C:\Program Files\Common Files\VST3\FabFilter\FabFilter Pro-Q 3.vst3`
+		identifier = "VST3-Pro-Q-3"
+	)
+	ctx := AuthorizeSemanticPluginSelectionLoad(map[string]any{"user_message": "减少一些浑浊"}, trackID, pluginPath, identifier)
+	tests := []struct {
+		name string
+		spec tools.CommandSpec
+		cmd  map[string]any
+	}{
+		{name: "other path", spec: tools.CommandSpec{CommandName: "rack_add_node"}, cmd: map[string]any{"cmd": "rack_add_node", "track_id": trackID, "plugin_path": `C:\VST3\Other.vst3`, "plugin_identifier": identifier}},
+		{name: "other track", spec: tools.CommandSpec{CommandName: "rack_add_node"}, cmd: map[string]any{"cmd": "rack_add_node", "track_id": "9999", "plugin_path": pluginPath, "plugin_identifier": identifier}},
+		{name: "other identifier", spec: tools.CommandSpec{CommandName: "rack_add_node"}, cmd: map[string]any{"cmd": "rack_add_node", "track_id": trackID, "plugin_path": pluginPath, "plugin_identifier": "other-id"}},
+		{name: "parameter write", spec: tools.CommandSpec{CommandName: "set_plugin_param"}, cmd: map[string]any{"cmd": "set_plugin_param", "track_id": trackID, "plugin_id": "1015", "param_id": "1", "value": 0.5}},
+		{name: "profile learn", spec: tools.CommandSpec{CommandName: "plugin_grabber_learn_project_profile"}, cmd: map[string]any{"cmd": "plugin_grabber_learn_project_profile", "track_id": trackID, "plugin_id": "1015"}},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			if err := broadMixObserveFirstWriteGuard(ctx, test.spec, test.cmd); err == nil {
+				t.Fatalf("authorization escaped exact rack load boundary: spec=%+v cmd=%+v", test.spec, test.cmd)
+			}
+		})
 	}
 }
 
@@ -6066,6 +6253,84 @@ func TestWriteMixboardReadySpectralSnapshotRelabelsMissingButPreservesReadyL3Lin
 	}
 }
 
+func TestMixObservationCommandWithLiveProjectIdentityReplacesOnlyGenericAlias(t *testing.T) {
+	state := map[string]any{"project_id": "vitproj_goal5_live"}
+	for _, requested := range []string{"", "current", "project_current", "current_project"} {
+		cmd := map[string]any{"project_id": requested}
+		got := mixObservationCommandWithLiveProjectIdentity(cmd, state)
+		if firstString(got, "project_id") != "vitproj_goal5_live" {
+			t.Fatalf("requested=%q project_id=%q, want live identity", requested, firstString(got, "project_id"))
+		}
+	}
+
+	cmd := map[string]any{"project_id": "vitproj_explicit_other"}
+	got := mixObservationCommandWithLiveProjectIdentity(cmd, state)
+	if firstString(got, "project_id") != "vitproj_explicit_other" {
+		t.Fatalf("specific requested identity must not be overwritten: %+v", got)
+	}
+}
+
+func TestStampMixboardFeatureRowIdentityUsesSpecificPacketProjectForCurrentKernelAlias(t *testing.T) {
+	packet := map[string]any{
+		"project_id": "vitproj_goal5_live",
+		"session_id": "goal5_blind",
+	}
+	target := map[string]any{"track_id": "1032", "clip_id": "1036"}
+	row := map[string]any{"project_id": "current", "status": "ready", "feature_type": "band_energy_summary"}
+	stamped := stampMixboardFeatureRowIdentity(row, packet, target)
+	if firstString(stamped, "project_id") != "vitproj_goal5_live" {
+		t.Fatalf("generic kernel project alias was not stamped with live identity: %+v", stamped)
+	}
+	if firstString(stamped, "track_id") != "1032" || firstString(stamped, "clip_id") != "1036" {
+		t.Fatalf("target identity missing from stamped row: %+v", stamped)
+	}
+
+	foreign := map[string]any{"project_id": "vitproj_specific_foreign", "status": "ready"}
+	stampedForeign := stampMixboardFeatureRowIdentity(foreign, packet, target)
+	if firstString(stampedForeign, "project_id") != "vitproj_specific_foreign" {
+		t.Fatalf("specific row identity must remain available for mismatch rejection: %+v", stampedForeign)
+	}
+}
+
+func TestKernelFeatureMaterializerLiveProjectIDRequiresExactCurrentSource(t *testing.T) {
+	state := map[string]any{
+		"project_id": "vitproj_goal5_live",
+		"tracks": []any{
+			map[string]any{
+				"track_id":       "1032",
+				"is_audio_track": true,
+				"clips": []any{
+					map[string]any{
+						"clip_id":             "1036",
+						"current_source_path": `C:\fixtures\g5_02\stems\Vocals.wav`,
+						"length_seconds":      20.0,
+					},
+				},
+			},
+		},
+	}
+	current := map[string]any{
+		"track_id":  "1032",
+		"clip_id":   "1036",
+		"file_path": `c:\FIXTURES\g5_02\stems\Vocals.wav`,
+	}
+	if got := kernelFeatureMaterializerLiveProjectID(state, current); got != "vitproj_goal5_live" {
+		t.Fatalf("current source project_id=%q", got)
+	}
+	lateForeign := map[string]any{
+		"track_id":  "1032",
+		"clip_id":   "1036",
+		"file_path": `C:\fixtures\g5_01\stems\Vocals.wav`,
+	}
+	if got := kernelFeatureMaterializerLiveProjectID(state, lateForeign); got != "" {
+		t.Fatalf("late foreign event was attributed to live project: %q", got)
+	}
+	missingSource := map[string]any{"track_id": "1032", "clip_id": "1036"}
+	if got := kernelFeatureMaterializerLiveProjectID(state, missingSource); got != "" {
+		t.Fatalf("unanchored event was attributed to live project: %q", got)
+	}
+}
+
 func TestWriteMixboardReadySpectralSnapshotPromotesReadyL3HistoryRows(t *testing.T) {
 	root := t.TempDir()
 	snapshotPath := filepath.Join(root, "mixboard_feature_snapshot.json")
@@ -6167,6 +6432,65 @@ func TestWriteMixboardFeatureRequestSnapshotPreservesCurrentL3HistoryRows(t *tes
 	stereo := testMap(t, snapshot["stereo_relation_summary"])
 	if firstString(stereo, "status") != "ready" || firstString(stereo, "track_id") != "1010" || firstString(stereo, "source_revision") != "rev_current" {
 		t.Fatalf("current L3 stereo row was not preserved/promoted: %+v\n%s", stereo, string(data))
+	}
+}
+
+func TestWriteMixboardFeatureRequestSnapshotPreservesFullProjectL3ContextRows(t *testing.T) {
+	root := t.TempDir()
+	snapshotPath := filepath.Join(root, "mixboard_feature_snapshot.json")
+	if err := os.WriteFile(snapshotPath, []byte(`{
+		"schema_version":"mixboard_feature_snapshot.v1",
+		"band_energy_summaries":[
+			{"status":"ready","source":"kernel_l3_offline_analyzer","project_id":"vitproj_current","track_id":"1007","clip_id":"1014","source_path":"C:/fixtures/current/Bass.wav","source_revision":"rev_bass","duration_seconds":20,"bands":{"bass":{"energy_db":-12}}},
+			{"status":"ready","source":"kernel_l3_offline_analyzer","project_id":"vitproj_current","track_id":"1010","clip_id":"1016","source_path":"C:/fixtures/current/Drums.wav","source_revision":"rev_drums","duration_seconds":20,"bands":{"bass":{"energy_db":-15}}},
+			{"status":"ready","source":"kernel_l3_offline_analyzer","project_id":"vitproj_old","track_id":"1010","clip_id":"1016","source_path":"C:/fixtures/old/Drums.wav","source_revision":"rev_old_drums","duration_seconds":20,"bands":{"bass":{"energy_db":-2}}}
+		],
+		"stereo_relation_summaries":[
+			{"status":"ready","source":"kernel_l3_offline_analyzer","project_id":"vitproj_current","track_id":"1007","clip_id":"1014","source_path":"C:/fixtures/current/Bass.wav","source_revision":"rev_bass","duration_seconds":20,"correlation_state":"stable"},
+			{"status":"ready","source":"kernel_l3_offline_analyzer","project_id":"vitproj_current","track_id":"1010","clip_id":"1016","source_path":"C:/fixtures/current/Drums.wav","source_revision":"rev_drums","duration_seconds":20,"correlation_state":"wide"}
+		],
+		"loudness_summaries":[
+			{"status":"ready","source":"kernel_l3_offline_analyzer","project_id":"vitproj_current","track_id":"1007","clip_id":"1014","source_path":"C:/fixtures/current/Bass.wav","source_revision":"rev_bass","duration_seconds":20,"approximate_lufs":-18},
+			{"status":"ready","source":"kernel_l3_offline_analyzer","project_id":"vitproj_current","track_id":"1010","clip_id":"1016","source_path":"C:/fixtures/current/Drums.wav","source_revision":"rev_drums","duration_seconds":20,"approximate_lufs":-16}
+		]
+	}`), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	cmd := map[string]any{"feature_snapshot_path": snapshotPath}
+	packet := map[string]any{
+		"request_id": "kernel_prepared_full_project",
+		"project_id": "vitproj_current",
+		"scope":      "full_project_with_focus_track",
+		"resolved_target": map[string]any{
+			"track_id": "1007", "clip_id": "1014", "source_path": "C:/fixtures/current/Bass.wav", "source_revision": "rev_bass", "duration_seconds": 20,
+		},
+		"track_feature_targets": []any{
+			map[string]any{"track_id": "1007", "clip_id": "1014", "source_path": "C:/fixtures/current/Bass.wav", "source_revision": "rev_bass", "duration_seconds": 20},
+			map[string]any{"track_id": "1010", "clip_id": "1016", "source_path": "C:/fixtures/current/Drums.wav", "source_revision": "rev_drums", "duration_seconds": 20},
+		},
+	}
+	writeMixboardFeatureRequestSnapshot(cmd, packet)
+
+	data, err := os.ReadFile(snapshotPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var snapshot map[string]any
+	if err := json.Unmarshal(data, &snapshot); err != nil {
+		t.Fatalf("parse snapshot: %v\n%s", err, string(data))
+	}
+	for _, key := range []string{"band_energy_summaries", "stereo_relation_summaries", "loudness_summaries"} {
+		rows := mapRowsFromAny(snapshot[key])
+		if len(rows) != 2 {
+			t.Fatalf("%s should retain both requested project tracks and reject stale rows: %+v\n%s", key, rows, string(data))
+		}
+		if firstString(rows[0], "source_revision") != "rev_bass" || firstString(rows[1], "source_revision") != "rev_drums" {
+			t.Fatalf("%s retained wrong project context rows: %+v\n%s", key, rows, string(data))
+		}
+	}
+	primary := testMap(t, snapshot["band_energy_summary"])
+	if firstString(primary, "track_id") != "1007" || firstString(primary, "source_revision") != "rev_bass" {
+		t.Fatalf("primary band summary must remain the resolved focus target: %+v\n%s", primary, string(data))
 	}
 }
 

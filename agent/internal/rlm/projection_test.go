@@ -44,6 +44,37 @@ func TestBuildReferenceLevelModelUsesActiveRMSAsStrictMetric(t *testing.T) {
 	}
 }
 
+func TestMergeSourceRowsKeepsTrackAggregateWhenDADUsesAnotherClip(t *testing.T) {
+	merged := mergeSourceRows(
+		sourceRows([]map[string]any{{
+			"track_id": "track_a",
+			"clips":    []map[string]any{{"clip_id": "clip_primary", "clip_gain_db": 2.0, "duration_seconds": 10.0}, {"clip_id": "clip_other", "clip_gain_db": -3.0, "duration_seconds": 4.0}},
+		}}, "project.state:tracks"),
+		sourceRows([]map[string]any{{
+			"track_id":                  "track_a",
+			"primary_clip":              map[string]any{"clip_id": "clip_primary"},
+			"rms_dbfs":                  -20.0,
+			"effective_static_rms_dbfs": -18.0,
+		}}, "mix.observe:project_package.tracks"),
+		sourceRows([]map[string]any{{
+			"track_id":  "track_a",
+			"clip_id":   "clip_other",
+			"rms_dbfs":  -40.0,
+			"peak_dbfs": -10.0,
+		}}, "project.audio_analysis_status:track_waveform_envelopes"),
+	)
+	if len(merged) != 1 {
+		t.Fatalf("merged rows = %+v", merged)
+	}
+	row := referenceRowFromMap(merged[0].Data, merged[0].EvidenceRefs)
+	if row.PrimaryClipID != "clip_primary" {
+		t.Fatalf("primary clip identity = %q, want clip_primary; data=%+v", row.PrimaryClipID, merged[0].Data)
+	}
+	if row.RMSDBFS == nil || math.Abs(*row.RMSDBFS-(-20.0)) > 0.001 {
+		t.Fatalf("different DAD clip overwrote track aggregate: row=%+v data=%+v", row, merged[0].Data)
+	}
+}
+
 func TestBuildReferenceLevelModelUsesFullRMSAsCoarseWhenActiveMissing(t *testing.T) {
 	proj := Build(Input{
 		GeneratedAt: "2026-07-10T00:00:00Z",

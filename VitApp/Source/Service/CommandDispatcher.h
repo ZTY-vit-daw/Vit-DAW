@@ -53,6 +53,7 @@ public:
                        OpenProjectReply openProjectReply,
                        SaveProjectReply saveProjectReply,
                        SaveAsProjectReply saveAsProjectReply,
+                       SaveAsProjectReply saveProjectCopyReply,
                        CurrentProjectPathGetter currentProjectPathGetter,
                        RealtimeDataProvider realtimeDataProvider = {},
                        VitProductionCoordinator* productionCoordinator = nullptr);

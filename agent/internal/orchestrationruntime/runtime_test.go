@@ -35,11 +35,17 @@ func TestB2RuntimeShadowToProposalDoesNotMutateProject(t *testing.T) {
 		}}},
 		MixObservation: map[string]any{"observation_id": "obs-1", "mom_projection": map[string]any{
 			"trust_quality": map[string]any{"can_support_action_preflight": true},
-			"multitrack_relation": map[string]any{"compared_tracks": []any{
+			"multitrack_relation": map[string]any{"status": "ready", "compared_tracks": []any{
 				map[string]any{"track_id": "v", "rms_dbfs": -18.0, "headroom_db": 8.0},
 				map[string]any{"track_id": "d", "rms_dbfs": -20.0, "headroom_db": 6.0},
 				map[string]any{"track_id": "b", "rms_dbfs": -22.0, "headroom_db": 7.0},
 			}},
+			"static_level_relationship": map[string]any{
+				"schema_version": "mom.static_level_relationship.v1", "status": "ready", "freshness": "fresh", "project_cut_ref": "cut-1",
+				"tracks": []any{
+					runtimeStaticLevel("v", -18, -8), runtimeStaticLevel("d", -20, -6), runtimeStaticLevel("b", -22, -7),
+				},
+			},
 		}},
 	})
 	if err != nil {
@@ -101,6 +107,14 @@ func TestB2RuntimeShadowToProposalDoesNotMutateProject(t *testing.T) {
 	}
 }
 
+func runtimeStaticLevel(trackID string, rms, peak float64) map[string]any {
+	return map[string]any{
+		"track_id": trackID, "status": "ready", "freshness": "fresh", "metric": "effective_static_rms_dbfs",
+		"tap_point": "derived_static_control_model", "effective_static_rms_dbfs": rms, "effective_static_peak_dbfs": peak,
+		"aggregation_method": "duration_weighted_linear_energy_source_plus_clip_gain_plus_fader",
+	}
+}
+
 func mustStyle(t *testing.T) mixstyle.MixStyle {
 	t.Helper()
 	style, err := mixstyle.Builtin("modern_pop")
@@ -108,6 +122,33 @@ func mustStyle(t *testing.T) mixstyle.MixStyle {
 		t.Fatal(err)
 	}
 	return style
+}
+
+func TestC1RuntimeRegistersSessionAndSeparatesDiagnosisFromMutationReadiness(t *testing.T) {
+	runtime := New()
+	session, err := runtime.StartC1ChatSession("cap_v1_c1_test_1", "chat-c1", "project-c1", "inspect C1", orchestration.InteractionInspect)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if session.Invocation.CapabilityID != FrequencyCleanupCapabilityID || session.Invocation.CapabilityVer != "v1" {
+		t.Fatalf("unexpected C1 invocation: %+v", session.Invocation)
+	}
+	cut := orchestration.ProjectCut{ProjectUUID: "project-c1", ProjectEpoch: "epoch", BaseProjectRevision: "1", Consistency: "strong"}
+	cut.Hash = cut.ComputeHash()
+	projection := map[string]any{"observation_id": "obs-c1", "frequency_relationship": map[string]any{
+		"schema_version": "mom.frequency_relationship.v1", "status": "ready", "freshness": "fresh", "project_cut_ref": "cut", "tap_point": "source_file_pre_fx",
+		"scope":               map[string]any{"project_id": "project-c1", "track_ids": []string{"t1"}},
+		"coverage":            map[string]any{"project_track_count": 1, "eligible_track_count": 1, "missing_track_count": 0, "eligible_track_ratio": 1.0, "supports_static_diagnosis": true, "supports_post_fx_compare": false},
+		"track_profiles":      []map[string]any{{"track_id": "t1", "name": "Track", "status": "ready", "freshness": "fresh", "tap_point": "source_file_pre_fx", "bands": map[string]any{"mid": map[string]any{"unit_energy": .5}}}},
+		"persistence_summary": map[string]any{"status": "missing"},
+	}}
+	planned, err := runtime.ShadowC1(session.ID, cut, capabilitycontext.FrequencyCleanupInput{UserIntent: "inspect C1", MOMProjection: projection, MixObservation: map[string]any{"observation_id": "obs-c1"}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if planned.Outcome.Kind != orchestration.OutcomeAnalysis || !planned.Pack.Readiness.Diagnosis.CanProceed || planned.Pack.Readiness.Mutation.CanProceed {
+		t.Fatalf("unexpected C1 readiness/outcome: %+v %+v", planned.Outcome, planned.Pack.Readiness)
+	}
 }
 
 func TestRuntimeBuildsBoundedB2ContextEnvelope(t *testing.T) {

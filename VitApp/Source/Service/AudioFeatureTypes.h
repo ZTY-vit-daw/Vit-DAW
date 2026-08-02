@@ -42,6 +42,8 @@ struct AudioFeatureResolution
 
 struct AudioFeatureBakeRequest
 {
+	juce::String projectId;
+	juce::String projectPath;
     juce::String filePath;
     juce::String trackId;
     juce::String clipId;

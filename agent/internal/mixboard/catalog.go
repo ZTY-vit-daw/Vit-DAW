@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"vit-daw-agent/internal/projectstore"
 	"vit-daw-agent/internal/tim"
 )
 
@@ -263,12 +264,16 @@ func (s Store) Read(req ReadRequest) (map[string]any, error) {
 		req.Keys = []string{"observation.digest", "observation.catalog"}
 	}
 	items := map[string]any{}
+	var evidenceSnapshot map[string]any
 	for _, key := range req.Keys {
 		key = strings.TrimSpace(key)
 		if key == "" {
 			continue
 		}
-		value, ok := readObservationKey(obs, key, req)
+		if strings.Contains(key, ".raw.") && evidenceSnapshot == nil {
+			evidenceSnapshot = lazyFeatureSnapshot(obs)
+		}
+		value, ok := readObservationKey(obs, key, req, evidenceSnapshot)
 		if !ok {
 			items[key] = map[string]any{"status": "missing", "reason": "catalog_key_not_found"}
 			continue
@@ -335,8 +340,20 @@ func (s Store) findObservation(sessionID, observationID string) (ObservationPack
 		if obs, err := readObservationFile(path); err == nil {
 			return obs, path, nil
 		}
+		if root := canonicalObservationRoot(s.Root); root != "" {
+			path = filepath.Join(root, safePathName(observationID)+".json")
+			if obs, err := readObservationFile(path); err == nil && obs.MixSessionID == sessionID {
+				return obs, path, nil
+			}
+		}
 	}
 	if observationID != "" {
+		if root := canonicalObservationRoot(s.Root); root != "" {
+			path := filepath.Join(root, safePathName(observationID)+".json")
+			if obs, err := readObservationFile(path); err == nil {
+				return obs, path, nil
+			}
+		}
 		var foundObs ObservationPacket
 		var foundPath string
 		err := filepath.WalkDir(s.Root, func(path string, d os.DirEntry, err error) error {
@@ -363,6 +380,18 @@ func (s Store) findObservation(sessionID, observationID string) (ObservationPack
 	return ObservationPacket{}, "", fmt.Errorf("mix observation not found")
 }
 
+func canonicalObservationRoot(storeRoot string) string {
+	root := filepath.Clean(strings.TrimSpace(storeRoot))
+	if root == "." || !strings.EqualFold(filepath.Base(root), "sessions") {
+		return ""
+	}
+	mixboardRoot := filepath.Dir(root)
+	if !strings.EqualFold(filepath.Base(mixboardRoot), "mixboard") {
+		return ""
+	}
+	return filepath.Join(filepath.Dir(mixboardRoot), "observations")
+}
+
 func readObservationFile(path string) (ObservationPacket, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
@@ -387,7 +416,11 @@ func latestObservationPath(sessionDir string) string {
 	return board.LatestObservationPath
 }
 
-func readObservationKey(obs ObservationPacket, key string, req ReadRequest) (any, bool) {
+func readObservationKey(obs ObservationPacket, key string, req ReadRequest, evidenceSnapshots ...map[string]any) (any, bool) {
+	var evidenceSnapshot map[string]any
+	if len(evidenceSnapshots) > 0 {
+		evidenceSnapshot = evidenceSnapshots[0]
+	}
 	targetID := firstNonEmpty(obs.TargetRef.ID, "target")
 	metrics, _ := obs.MixPackage["current_metrics"].(map[string]any)
 	realtimeMetrics, _ := obs.MixPackage["realtime_metrics"].(map[string]any)
@@ -459,7 +492,11 @@ func readObservationKey(obs ObservationPacket, key string, req ReadRequest) (any
 	case "track." + targetID + ".slow.time_energy.summary":
 		return map[string]any{"status": sourceStatus(obs, "time_energy"), "rows": capRows(mapRowsAny(metrics["time_energy"]), req.MaxItems)}, true
 	case "track." + targetID + ".raw.time_energy.range":
-		return readTimeEnergyRange(mapRowsAny(metrics["time_energy"]), req), true
+		rows := mapRowsAny(metrics["time_energy"])
+		if evidenceRows := evidenceTimeEnergyRows(evidenceSnapshot); len(evidenceRows) > 0 {
+			rows = evidenceRows
+		}
+		return readTimeEnergyRange(rows, req), true
 	case "track." + targetID + ".slow.band_energy.summary":
 		return metrics["band_energy"], true
 	case "track." + targetID + ".slow.stereo.summary":
@@ -477,6 +514,42 @@ func readObservationKey(obs ObservationPacket, key string, req ReadRequest) (any
 	default:
 		return nil, false
 	}
+}
+
+func lazyFeatureSnapshot(obs ObservationPacket) map[string]any {
+	roots, ok := projectstore.Current()
+	if !ok || obs.ProjectUUID == "" || !strings.EqualFold(projectstore.SafeName(obs.ProjectUUID), roots.ProjectUUID) {
+		return nil
+	}
+	for _, ref := range obs.EvidenceRefs {
+		if !strings.HasPrefix(strings.TrimSpace(ref), "evidence://") {
+			continue
+		}
+		blob, err := projectstore.GetEvidence(roots, ref)
+		if err != nil || blob.Kind != "feature_snapshot" {
+			continue
+		}
+		if snapshot, ok := blob.Content.(map[string]any); ok {
+			return snapshot
+		}
+		data, _ := json.Marshal(blob.Content)
+		var snapshot map[string]any
+		if json.Unmarshal(data, &snapshot) == nil {
+			return snapshot
+		}
+	}
+	return nil
+}
+
+func evidenceTimeEnergyRows(snapshot map[string]any) []map[string]any {
+	for _, container := range []map[string]any{snapshot, mapValue(snapshot["waveform_envelope"])} {
+		for _, key := range []string{"time_segments", "time_energy", "time_energy_rows"} {
+			if rows := mapRowsAny(container[key]); len(rows) > 0 {
+				return rows
+			}
+		}
+	}
+	return nil
 }
 
 func fxmProjectionFreshness(obs ObservationPacket) string {

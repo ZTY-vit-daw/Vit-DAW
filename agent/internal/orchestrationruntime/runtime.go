@@ -19,10 +19,12 @@ import (
 const StaticBalanceCapabilityID = "static_mix.static_balance.v0"
 const PanLayoutCapabilityID = "static_mix.pan_layout.v0"
 const LowEndRelationCapabilityID = "static_mix.low_end_relation.v0"
+const FrequencyCleanupCapabilityID = "fine_mix.frequency_cleanup.v1"
 const SPALReferenceEQProviderRegistrationCapabilityID = "spal.reference_eq_provider_registration.v0"
 const SPALReferenceEQTestCapabilityID = "spal.reference_eq_test.v0"
 const SPALEQV2CapabilityID = "spal.eq.v2"
 const PluginEffectControlCapabilityID = "plugin.effect_control.v0"
+const AgentSemanticEQCapabilityID = "agent.effect.eq_control.v0"
 
 const capabilityRuntimeSystemContext = "Vit Project-aware Capability Runtime v1. Use the fixed PlanningSession engine owner, typed ContextBundle, ProjectCut, Proposal, Authorization, ActionSet, Execution and Verification contracts. Readiness is not authorization. Full derived models remain behind evidence or artifact references unless explicitly requested and admitted by budget."
 
@@ -56,17 +58,34 @@ func (r *Runtime) StartB3ChatSession(sessionID, conversationID, projectUUID, goa
 	return r.startCapabilitySession(sessionID, conversationID, projectUUID, goal, mode, PanLayoutCapabilityID, "v0", nil)
 }
 
-// StartB4ChatSession starts a B4 low-end relation analysis session.
-// B4 v0 is analysis-only and never advances beyond OutcomeAnalysis.
+// StartB4ChatSession starts the full-project B4 relationship workflow. Its
+// mutation phases reuse the ordinary generic-EQ contract and executor.
 func (r *Runtime) StartB4ChatSession(sessionID, conversationID, projectUUID, goal string, mode orchestration.InteractionMode) (orchestration.PlanningSession, error) {
 	return r.startCapabilitySession(sessionID, conversationID, projectUUID, goal, mode, LowEndRelationCapabilityID, "v0", []string{
-		"analysis_only_no_pending_action",
+		"full_project_observation_and_treatment",
+		"plugin_load_and_eq_parameters_separately_confirmed",
+		"exact_track_and_plugin_identity_at_execution_leaves",
+		"project_wide_all_or_rollback",
+		"reuse_ordinary_generic_eq_runtime",
+		"no_profile_learn_spal_network_or_b5",
+	})
+}
+
+func (r *Runtime) StartC1ChatSession(sessionID, conversationID, projectUUID, goal string, mode orchestration.InteractionMode) (orchestration.PlanningSession, error) {
+	return r.startCapabilitySession(sessionID, conversationID, projectUUID, goal, mode, FrequencyCleanupCapabilityID, "v1", []string{
+		"full_project_frequency_relationship_diagnosis",
+		"explicit_classification_for_every_project_track",
+		"static_eq_only_dynamic_space_automation_deferred",
+		"full_project_same_tap_post_fx_baseline_required_for_mutation",
+		"plugin_load_and_eq_parameters_separately_confirmed",
+		"project_wide_all_or_rollback",
+		"reuse_ordinary_generic_eq_runtime",
+		"no_new_observer_recognizer_topology_or_executor",
 	})
 }
 
 // StartSPALReferenceEQTestChatSession starts the narrow product-path fixture.
-// B4 deliberately does not call this yet: B4 Diagnosis must later produce a
-// semantic instruction rather than make a chat-level plug-in request.
+// B4 does not call this fixture; it reuses the ordinary generic-EQ path.
 func (r *Runtime) StartSPALReferenceEQTestChatSession(sessionID, conversationID, projectUUID, goal string, mode orchestration.InteractionMode) (orchestration.PlanningSession, error) {
 	return r.startCapabilitySession(sessionID, conversationID, projectUUID, goal, mode, SPALReferenceEQTestCapabilityID, "v0", []string{
 		"reference_eq_test_only",
@@ -81,6 +100,21 @@ func (r *Runtime) StartPluginEffectControlChatSession(sessionID, conversationID,
 		"frozen_parameter_preimage_required",
 		"fresh_readback_and_full_compensation_required",
 		"directional_and_quantitative_evidence_required",
+	})
+}
+
+// StartAgentSemanticEQChatSession starts the horizontal ordinary-Agent EQ
+// governance path. It is intentionally separate from B4 and every A-F
+// specialist capability even though those layers may later reuse its frozen
+// semantic-action contract.
+func (r *Runtime) StartAgentSemanticEQChatSession(sessionID, conversationID, projectUUID, goal string, mode orchestration.InteractionMode) (orchestration.PlanningSession, error) {
+	return r.startCapabilitySession(sessionID, conversationID, projectUUID, goal, mode, AgentSemanticEQCapabilityID, "v0", []string{
+		"generic_static_eq_only",
+		"llm_acoustic_judgement_must_be_frozen",
+		"no_profile_learn_spal_or_plugin_loading",
+		"frozen_topology_and_parameter_preimage_required",
+		"structural_readback_required",
+		"acoustic_verification_requires_fresh_same_tap_post_fx_evidence",
 	})
 }
 
@@ -209,6 +243,29 @@ func (r *Runtime) ShadowB4FromVSP(sessionID string, state *kernel.VSPStateResult
 	planned, err := r.ShadowB4(sessionID, cut, input)
 	if err != nil {
 		return capabilityadapters.LowEndRelationPlanResult{}, orchestration.ProjectCut{}, err
+	}
+	return planned, cut, nil
+}
+
+func (r *Runtime) ShadowC1(sessionID string, cut orchestration.ProjectCut, input capabilitycontext.FrequencyCleanupInput) (capabilityadapters.FrequencyCleanupPlanResult, error) {
+	if r == nil || r.Store == nil {
+		return capabilityadapters.FrequencyCleanupPlanResult{}, fmt.Errorf("runtime is not initialized")
+	}
+	if _, ok := r.Store.Load(sessionID); !ok {
+		return capabilityadapters.FrequencyCleanupPlanResult{}, fmt.Errorf("session %s not found", sessionID)
+	}
+	return capabilityadapters.PlanFrequencyCleanup(capabilityadapters.FrequencyCleanupPlanRequest{SessionID: sessionID, Goal: input.UserIntent, Mode: orchestration.InteractionInspect, ProjectCut: cut, Input: input})
+}
+
+func (r *Runtime) ShadowC1FromVSP(sessionID string, state *kernel.VSPStateResult, request projectcut.BuildRequest, input capabilitycontext.FrequencyCleanupInput) (capabilityadapters.FrequencyCleanupPlanResult, orchestration.ProjectCut, error) {
+	request.State = state
+	cut, err := projectcut.Build(request)
+	if err != nil {
+		return capabilityadapters.FrequencyCleanupPlanResult{}, orchestration.ProjectCut{}, err
+	}
+	planned, err := r.ShadowC1(sessionID, cut, input)
+	if err != nil {
+		return capabilityadapters.FrequencyCleanupPlanResult{}, orchestration.ProjectCut{}, err
 	}
 	return planned, cut, nil
 }

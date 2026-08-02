@@ -25,11 +25,20 @@ func DefaultRegistry() *Registry {
 		CapabilityDefinition{
 			ID:              "static_mix.low_end_relation.v0",
 			Version:         "v0",
-			Family:          "semantic_parameter_application",
-			Description:     "Apply a bounded low-end semantic parameter instruction through SPAL and a verified Provider instance.",
+			Family:          "project_specialist_generic_eq_orchestration",
+			Description:     "Diagnose full-project low-end relationships and orchestrate separately confirmed generic-EQ loading and atomic parameter treatment through the ordinary Agent EQ runtime.",
 			Effects:         []string{"project_mutation", "plugin_parameter_mutation"},
 			RiskCeiling:     "bounded_reversible",
-			VerificationRef: "spal.spectral.static_bell.verification.v0",
+			VerificationRef: "static_mix.low_end_relation.eq_batch.verification.v1",
+		},
+		CapabilityDefinition{
+			ID:              "fine_mix.frequency_cleanup.v1",
+			Version:         "v1",
+			Family:          "project_specialist_generic_eq_orchestration",
+			Description:     "Diagnose whole-project frequency relationships, classify every track, and apply only confirmed static-EQ treatments through the shared ordinary-Agent EQ runtime.",
+			Effects:         []string{"project_mutation", "plugin_parameter_mutation"},
+			RiskCeiling:     "bounded_reversible",
+			VerificationRef: "frequency_cleanup.verification.v1",
 		},
 		CapabilityDefinition{
 			// Registration is a separate confirmed control-plane action. It
@@ -54,6 +63,15 @@ func DefaultRegistry() *Registry {
 			Effects:         []string{"project_mutation", "plugin_parameter_mutation"},
 			RiskCeiling:     "bounded_reversible",
 			VerificationRef: "spal.spectral.static_bell.verification.v0",
+		},
+		CapabilityDefinition{
+			ID:              "agent.effect.eq_control.v0",
+			Version:         "v0",
+			Family:          "ordinary_agent_semantic_effect",
+			Description:     "Apply an ordinary-Agent concrete generic static-EQ plan through frozen topology, preimage, confirmation, readback, rollback, and verification.",
+			Effects:         []string{"project_mutation", "plugin_parameter_mutation"},
+			RiskCeiling:     "bounded_reversible",
+			VerificationRef: "agent.effect.eq_control.verification.v0",
 		},
 		CapabilityDefinition{
 			ID:              "plugin.effect_control.v0",

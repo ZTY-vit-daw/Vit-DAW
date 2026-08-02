@@ -13,6 +13,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -105,6 +106,246 @@ func TestProjectPathFromChatContext(t *testing.T) {
 	}
 	if got := projectPathFromChatContext(map[string]any{"project_path": "   ", "current_project_path": nil}); got != "" {
 		t.Fatalf("empty project path = %q", got)
+	}
+}
+
+func TestCompactAgentStateProjectHistoryOmitsLargeConversationPayloads(t *testing.T) {
+	history := map[string]any{
+		"available":             true,
+		"project_path":          `D:\\songs\\mix.vit`,
+		"project_uuid":          "vitproj_test",
+		"active_branch":         "main",
+		"active_node_id":        "node_42",
+		"head":                  "commit_42",
+		"commit_count":          42,
+		"branches":              map[string]any{"main": "commit_42"},
+		"recent_checkpoints":    []map[string]any{{"id": "commit_42"}},
+		"conversation_graph":    map[string]any{"nodes": []map[string]any{{"message_data": strings.Repeat("x", 17<<20)}}},
+		"conversation_messages": []map[string]any{{"content": strings.Repeat("y", 17<<20)}},
+	}
+
+	got := compactAgentStateProjectHistory(history)
+	for _, key := range []string{"available", "project_path", "project_uuid", "active_branch", "active_node_id", "head", "commit_count", "branches", "recent_checkpoints"} {
+		if _, ok := got[key]; !ok {
+			t.Fatalf("compact history omitted status field %q: %+v", key, got)
+		}
+	}
+	for _, key := range []string{"conversation_graph", "conversation_messages"} {
+		if _, ok := got[key]; ok {
+			t.Fatalf("compact history retained large field %q", key)
+		}
+	}
+	encoded, err := json.Marshal(got)
+	if err != nil {
+		t.Fatalf("marshal compact history: %v", err)
+	}
+	if len(encoded) >= 1<<20 {
+		t.Fatalf("compact history is unexpectedly large: %d bytes", len(encoded))
+	}
+}
+
+func TestCompactHostLifecycleInvokeResponseOmitsLargeHistoryGraphs(t *testing.T) {
+	largeGraph := map[string]any{"nodes": []map[string]any{{"message_data": strings.Repeat("x", 17<<20)}}}
+	resp := compactHostLifecycleInvokeResponseForTransport(harness.InvokeResponse{
+		Status: "ok",
+		Tool:   "version.project_opened",
+		Result: map[string]any{
+			"status":                    "ok",
+			"project_path":              `D:\\songs\\mix.vit`,
+			"project_uuid":              "vitproj_test",
+			"project_package_committed": true,
+			"project_package_path":      `D:\\songs\\mix.vit_project`,
+			"conversation_graph":        largeGraph,
+			"conversation_messages":     []map[string]any{{"content": strings.Repeat("y", 17<<20)}},
+			"refresh":                   map[string]any{"shadow_refreshed": true},
+		},
+		ProjectHistory: map[string]any{
+			"available":          true,
+			"project_path":       `D:\\songs\\mix.vit`,
+			"active_branch":      "main",
+			"conversation_graph": largeGraph,
+		},
+	})
+	if _, ok := resp.Result["conversation_graph"]; ok {
+		t.Fatal("lifecycle result retained conversation graph")
+	}
+	if _, ok := resp.Result["conversation_messages"]; ok {
+		t.Fatal("lifecycle result retained conversation messages")
+	}
+	if _, ok := resp.ProjectHistory["conversation_graph"]; ok {
+		t.Fatal("lifecycle project history retained conversation graph")
+	}
+	if !boolValue(resp.Result["project_package_committed"]) || firstStringFromMap(resp.Result, "project_package_path") == "" {
+		t.Fatalf("lifecycle response omitted committed package identity: %+v", resp.Result)
+	}
+	encoded, err := json.Marshal(resp)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(encoded) >= 1<<20 {
+		t.Fatalf("lifecycle response is unexpectedly large: %d bytes", len(encoded))
+	}
+}
+
+func TestCompactProjectSavePrepareInvokeResponsePreservesIdentityAndOmitsLargeHistory(t *testing.T) {
+	largeGraph := map[string]any{"nodes": []map[string]any{{"message_data": strings.Repeat("x", 17<<20)}}}
+	resp := compactProjectSavePrepareInvokeResponseForTransport(harness.InvokeResponse{
+		Status: "ok",
+		Tool:   "version.project_save_prepare",
+		Result: map[string]any{
+			"status":                       "ok",
+			"prepared":                     true,
+			"prepare_id":                   "prepare_test",
+			"generation_id":                "save_test",
+			"agent_history_generation":     "save_test",
+			"project_path":                 `D:\\songs\\mix.vit`,
+			"project_uuid":                 "vitproj_test",
+			"save_kind":                    "save_as",
+			"project_package_prepared":     true,
+			"project_package_prepare_path": strings.Repeat("p", 17<<20),
+			"conversation_graph":           largeGraph,
+			"conversation_messages":        []map[string]any{{"content": strings.Repeat("y", 17<<20)}},
+		},
+		ProjectHistory: map[string]any{
+			"available":          true,
+			"conversation_graph": largeGraph,
+		},
+	})
+	for _, key := range []string{
+		"status", "prepared", "prepare_id", "generation_id", "agent_history_generation",
+		"project_path", "project_uuid", "save_kind", "project_package_prepared",
+	} {
+		if _, ok := resp.Result[key]; !ok {
+			t.Fatalf("save prepare response omitted required field %q: %+v", key, resp.Result)
+		}
+	}
+	for _, key := range []string{"project_package_prepare_path", "conversation_graph", "conversation_messages"} {
+		if _, ok := resp.Result[key]; ok {
+			t.Fatalf("save prepare response retained transport-only large field %q", key)
+		}
+	}
+	if len(resp.ProjectHistory) != 0 {
+		t.Fatalf("save prepare response retained project history: %+v", resp.ProjectHistory)
+	}
+	encoded, err := json.Marshal(resp)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(encoded) >= 1<<20 {
+		t.Fatalf("save prepare response is unexpectedly large: %d bytes", len(encoded))
+	}
+}
+
+func TestCompactSaveAsFolderInvokeResponsePreservesMediaPreflight(t *testing.T) {
+	largeGraph := map[string]any{"nodes": []map[string]any{{"message_data": strings.Repeat("x", 17<<20)}}}
+	resp := compactSaveAsFolderInvokeResponseForTransport(harness.InvokeResponse{
+		Status: "ok",
+		Tool:   "project.save_as_folder",
+		Result: map[string]any{
+			"status":                 "require_media_policy",
+			"directory_path":         `D:\\songs\\Portable`,
+			"project_path":           `D:\\songs\\Portable\\mix.vit`,
+			"referenced_audio_count": 12,
+			"external_audio_count":   10,
+			"missing_audio_count":    2,
+			"estimated_copy_bytes":   987654321,
+			"conversation_graph":     largeGraph,
+		},
+		ProjectHistory: map[string]any{"available": true, "conversation_graph": largeGraph},
+	})
+	for _, key := range []string{
+		"status", "directory_path", "project_path", "referenced_audio_count",
+		"external_audio_count", "missing_audio_count", "estimated_copy_bytes",
+	} {
+		if _, ok := resp.Result[key]; !ok {
+			t.Fatalf("folder preflight response omitted required field %q: %+v", key, resp.Result)
+		}
+	}
+	if _, ok := resp.Result["conversation_graph"]; ok {
+		t.Fatal("folder preflight retained conversation graph")
+	}
+	if resp.ProjectHistory != nil {
+		t.Fatal("folder preflight retained project history")
+	}
+	encoded, err := json.Marshal(resp)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(encoded) >= 1<<20 {
+		t.Fatalf("folder preflight response is unexpectedly large: %d bytes", len(encoded))
+	}
+}
+
+func TestCompactSaveAsFolderInvokeResponsePreservesPublishedSnapshotIdentity(t *testing.T) {
+	resp := compactSaveAsFolderInvokeResponseForTransport(harness.InvokeResponse{
+		Status: "ok",
+		Tool:   "project.save_as_folder",
+		Result: map[string]any{
+			"status":                   "ok",
+			"project_lifecycle":        "save_as_folder",
+			"project_path":             `D:\\songs\\Portable\\mix.vit`,
+			"project_uuid":             "vitproj_target",
+			"source_project_path":      `D:\\songs\\mix.vit`,
+			"source_project_uuid":      "vitproj_source",
+			"directory_path":           `D:\\songs\\Portable`,
+			"media_policy":             "copy_referenced_audio",
+			"audio_self_contained":     true,
+			"package_status":           "complete",
+			"package_manifest_path":    `D:\\songs\\Portable\\package_manifest.v2.json`,
+			"active_project_unchanged": true,
+			"project_workspace":        map[string]any{"conversation_graph": strings.Repeat("x", 17<<20)},
+		},
+	})
+	for _, key := range []string{
+		"status", "project_lifecycle", "project_path", "project_uuid", "source_project_path",
+		"source_project_uuid", "directory_path", "media_policy", "audio_self_contained",
+		"package_status", "package_manifest_path", "active_project_unchanged",
+	} {
+		if _, ok := resp.Result[key]; !ok {
+			t.Fatalf("folder snapshot response omitted required field %q: %+v", key, resp.Result)
+		}
+	}
+	if _, ok := resp.Result["project_workspace"]; ok {
+		t.Fatal("folder snapshot retained large internal workspace")
+	}
+}
+
+func TestWriteJSONSetsContentLengthForBodyLargerThanGodotChunkLimit(t *testing.T) {
+	payload := map[string]any{"status": "ok", "data": strings.Repeat("x", (16<<20)+1)}
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		writeJSON(w, http.StatusOK, payload)
+	}))
+	defer server.Close()
+
+	resp, err := http.Get(server.URL)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer resp.Body.Close()
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if resp.ContentLength != int64(len(body)) || resp.Header.Get("Content-Length") != strconv.Itoa(len(body)) {
+		t.Fatalf("content length header=%q parsed=%d body=%d", resp.Header.Get("Content-Length"), resp.ContentLength, len(body))
+	}
+	if len(resp.TransferEncoding) != 0 {
+		t.Fatalf("unexpected chunked transfer encoding: %+v", resp.TransferEncoding)
+	}
+}
+
+func TestIsVersionProjectSavePrepareInvokeAcceptsToolAndCommandAliases(t *testing.T) {
+	for _, req := range []harness.InvokeRequest{
+		{Tool: "version.project_save_prepare"},
+		{Command: map[string]any{"cmd": "version_project_save_prepare"}},
+		{Args: map[string]any{"tool": "version.project_save_prepare"}},
+	} {
+		if !isVersionProjectSavePrepareInvoke(req) {
+			t.Fatalf("save prepare request was not recognized: %+v", req)
+		}
+	}
+	if isVersionProjectSavePrepareInvoke(harness.InvokeRequest{Tool: "version.project_saved"}) {
+		t.Fatal("project saved notification was misclassified as save prepare")
 	}
 }
 
@@ -3199,6 +3440,38 @@ func TestMixTreatmentPreparationPluginLoadConfirmationBypassesBroadMixGuard(t *t
 	}
 	if response, blocked := server.legacyPendingPlanBroadMixBlockedConfirmResponse(context.Background(), plan.ID, plan, "goal_mix", "run_mix", agentModeDefault, ""); blocked {
 		t.Fatalf("mix treatment preparation should not be blocked as legacy broad mix, response=%+v", response)
+	}
+}
+
+func TestQualifiedSemanticPluginSelectionBypassesBroadMixGuardOnlyForExactCandidate(t *testing.T) {
+	path := `C:\Program Files\Common Files\VST3\FabFilter\FabFilter Pro-Q 3.vst3`
+	identifier := "VST3-Pro-Q-3"
+	plan := PendingPlan{
+		ID: "plan_semantic_selection", Workflow: pluginGrabberLoadCommand,
+		Context: map[string]any{
+			"user_message": "减少一些浑浊", "selected_track_id": "1007",
+			"semantic_plugin_recommendation_selection": true,
+			"semantic_plugin_recommendation_candidate": map[string]any{
+				"plugin_path": path, "identifier": identifier, "name": "Pro-Q 3",
+			},
+		},
+		Decisions: policy.Analyze([]map[string]any{{
+			"cmd": "rack_add_node", "track_id": "1007", "plugin_path": path, "plugin_identifier": identifier,
+		}}),
+	}
+	if !pendingPlanHasQualifiedSemanticPluginSelection(plan) {
+		t.Fatalf("exact semantic selection was not qualified: %#v", plan)
+	}
+	server := New(nil, shadow.New(nil), nil)
+	if response, blocked := server.legacyPendingPlanBroadMixBlockedConfirmResponse(context.Background(), plan.ID, plan, "goal", "run", agentModeDefault, ""); blocked {
+		t.Fatalf("qualified target-3 selection was blocked: %#v", response)
+	}
+	tampered := plan
+	tampered.Decisions = policy.Analyze([]map[string]any{{
+		"cmd": "rack_add_node", "track_id": "1007", "plugin_path": `C:\VST3\Other.vst3`, "plugin_identifier": identifier,
+	}})
+	if pendingPlanHasQualifiedSemanticPluginSelection(tampered) {
+		t.Fatal("mismatched client/load candidate bypassed broad-mix guard")
 	}
 }
 
@@ -6343,6 +6616,28 @@ func TestTakePendingPlanClearsPluginGrabberLearningAliases(t *testing.T) {
 	}
 	if pending, ok := server.pendingPlanForChat("chat_test", map[string]any{"goal_id": "goal_1"}); ok {
 		t.Fatalf("stale pending still blocks chat: %+v", pending)
+	}
+}
+
+func TestTakePendingPlanConsumesAgentLoopConfirmationOnlyOnce(t *testing.T) {
+	server := New(nil, shadow.New(nil), nil)
+	plan := PendingPlan{
+		ID:           "plan_b1_clip_gain",
+		Workflow:     agentLoopConfirmationWorkflow,
+		WorkflowData: map[string]any{"conversation_id": "chat_b1"},
+		Context:      map[string]any{"goal_id": "goal_b1", "run_id": "run_b1"},
+	}
+	server.pending[plan.ID] = plan
+
+	got, ok, stale := server.takePendingPlan(plan.ID)
+	if !ok || stale || got.ID != plan.ID {
+		t.Fatalf("first takePendingPlan = plan=%+v ok=%v stale=%v", got, ok, stale)
+	}
+	if _, ok, _ := server.takePendingPlan(plan.ID); ok {
+		t.Fatal("consumed B1 confirmation was returned a second time")
+	}
+	if pending, ok := server.pendingPlanForChat("chat_b1", map[string]any{"goal_id": "goal_b1"}); ok {
+		t.Fatalf("consumed B1 confirmation still blocks chat: %+v", pending)
 	}
 }
 

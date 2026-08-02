@@ -73,3 +73,18 @@ func LowEndRelationOrchestrationBundle(pack LowEndRelationPack, projectCutHash s
 		Omissions:       omissionState,
 	}
 }
+
+func FrequencyCleanupOrchestrationBundle(pack FrequencyCleanupPack, projectCutHash string) orchestration.ContextBundle {
+	disclosureBytes, _ := json.Marshal(pack.AnalysisDisclosure)
+	omissions := []string{}
+	omissionState := map[string]orchestration.OmissionStatus{}
+	if !pack.Readiness.Diagnosis.CanProceed {
+		omissions = append(omissions, "blocked_diagnosis_readiness")
+		omissionState["diagnosis_readiness"] = orchestration.OmissionUnavailable
+	}
+	if !pack.Readiness.Mutation.CanProceed {
+		omissions = append(omissions, "blocked_mutation_readiness")
+		omissionState["post_fx_baseline"] = orchestration.OmissionUnavailable
+	}
+	return orchestration.ContextBundle{ID: pack.PackID, CapabilityID: pack.CapabilityID, ProjectCutHash: projectCutHash, ArtifactRefs: []string{fmt.Sprintf("capability-pack:%s", pack.PackID)}, EvidenceRefs: append([]string(nil), pack.EvidenceRefs...), Disclosure: string(disclosureBytes), OmissionReasons: omissions, Omissions: omissionState}
+}

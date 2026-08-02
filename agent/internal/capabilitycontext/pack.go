@@ -16,6 +16,7 @@ const (
 	StaticBalanceCapabilityID    = "static_mix.static_balance.v0"
 	PanLayoutCapabilityID        = "static_mix.pan_layout.v0"
 	LowEndRelationCapabilityID   = "static_mix.low_end_relation.v0"
+	FrequencyCleanupCapabilityID = "fine_mix.frequency_cleanup.v1"
 )
 
 type Budget struct {

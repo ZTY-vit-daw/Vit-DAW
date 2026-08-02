@@ -26,7 +26,7 @@ func BuildModel(in Input) Model {
 	}
 	base := staticbalance.BuildModel(staticbalance.Input{
 		UserIntent: in.UserIntent, ProjectState: in.ProjectState, MixObservation: in.MixObservation,
-		MOMProjection: in.MOMProjection, AudioAnalysisStatus: in.AudioAnalysisStatus,
+		MOMProjection: in.MOMProjection,
 		TOMProjection: in.TOMProjection, ContextSnapshot: in.ContextSnapshot,
 		RequestContext: in.RequestContext, ExecutionMemory: in.ExecutionMemory,
 		Style: style, StyleExplicit: in.StyleExplicit, GeneratedAt: generatedAt,

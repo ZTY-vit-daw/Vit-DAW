@@ -8,13 +8,15 @@ ProjectService::ProjectService (BoolAction reloadProjectAction,
                                 NewBlankProjectReply newBlankProjectReplyAction,
                                 OpenProjectReply openProjectReplyAction,
                                 SaveProjectReply saveProjectReplyAction,
-                                SaveAsProjectReply saveAsProjectReplyAction)
+                                SaveAsProjectReply saveAsProjectReplyAction,
+                                SaveProjectCopyReply saveProjectCopyReplyAction)
     : reloadProject (std::move (reloadProjectAction)),
       recentProjectsReply (std::move (recentProjectsReplyAction)),
       newBlankProjectReply (std::move (newBlankProjectReplyAction)),
       openProjectReply (std::move (openProjectReplyAction)),
       saveProjectReply (std::move (saveProjectReplyAction)),
-      saveAsProjectReply (std::move (saveAsProjectReplyAction))
+      saveAsProjectReply (std::move (saveAsProjectReplyAction)),
+      saveProjectCopyReply (std::move (saveProjectCopyReplyAction))
 {
 }
 
@@ -87,6 +89,24 @@ juce::String ProjectService::handleSaveAsProject (const juce::DynamicObject& obj
         return makeErrorReply ("save_as_project: file_path must be a file path, not a directory");
 
     return saveAsProjectReply (object, target);
+}
+
+juce::String ProjectService::handleSaveProjectCopy (const juce::DynamicObject& object, const juce::String&) const
+{
+    if (! saveProjectCopyReply)
+        return makeErrorReply ("save_project_copy is not available in this build");
+
+    const juce::String pathStr = object.getProperty ("file_path").toString().trim();
+
+    if (pathStr.isEmpty())
+        return makeErrorReply ("save_project_copy requires a non-empty file_path");
+
+    const juce::File target (pathStr);
+
+    if (target.isDirectory())
+        return makeErrorReply ("save_project_copy: file_path must be a file path, not a directory");
+
+    return saveProjectCopyReply (object, target);
 }
 
 juce::String ProjectService::makeStatusReply (const juce::String& status, const juce::String& message)

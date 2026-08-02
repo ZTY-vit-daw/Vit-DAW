@@ -28,16 +28,30 @@ func (s *Server) handleLowEndRelationRuntimeCanary(ctx context.Context, conversa
 	if sessionID == "" {
 		sessionID = s.nextCapabilitySessionID(conversationID, lowEndRelationCapabilityID)
 	}
-	_, exists := s.orchestrationRuntime.Store.Load(sessionID)
+	session, exists := s.orchestrationRuntime.Store.Load(sessionID)
+	if exists && session.ActiveProposal != nil && session.FrozenPlan != nil {
+		if !expectedProposalMatches(req.Context, session.ActiveProposal) {
+			return capabilityCanaryBlockedResponse(conversationID, goal, "B4 confirmation is bound to an expired Proposal; no project mutation was authorized.")
+		}
+		if session.Status == orchestration.StatusExecuting || session.Status == orchestration.StatusVerifying {
+			return s.recoverCapabilityExecution(ctx, conversationID, goal, session)
+		}
+		if decision, ok := capabilityApprovalDecisionFromContext(req.Context); ok && decision.Kind == orchestration.ApprovalApprove {
+			return s.authorizeB4Batch(ctx, conversationID, req, goal, session, state)
+		}
+		return b4ProposalResponse(conversationID, goal, session)
+	}
 
 	input, dependencies, err := s.acquireLowEndRelationCanaryContext(ctx, sessionID, req, state)
 	if err != nil {
 		return capabilityCanaryBlockedResponse(conversationID, goal, "B4 CCB 只读上下文获取失败："+err.Error())
 	}
+	decisionRefs, decisionRefsErr := mixboardDecisionContextForState(state.LegacyState, lowEndRelationCapabilityID)
 	buildCut := projectcut.BuildRequest{
 		State:                  state,
 		Guarantee:              capabilityCanaryCutGuarantee(ctx, s.kernel),
 		DependencyFingerprints: dependencies,
+		ArtifactRefs:           mixboardDecisionArtifactRefs(decisionRefs),
 		ContractVersions: []string{
 			"capability:static_mix.low_end_relation.v0",
 			"context:static_mix.low_end_relation.context_pack.v0",
@@ -56,6 +70,7 @@ func (s *Server) handleLowEndRelationRuntimeCanary(ctx context.Context, conversa
 	if err != nil {
 		return capabilityCanaryBlockedResponse(conversationID, goal, "B4 分析失败："+err.Error())
 	}
+	attachMixboardDecisionContext(&planned.Bundle, decisionRefs, decisionRefsErr)
 	envelope, err := s.orchestrationRuntime.BuildCapabilityContextEnvelope(
 		sessionID, planned.Bundle, capabilityCanaryToolSchemas(s),
 		[]orchestration.ContextEntry{{ID: firstNonEmpty(goal.RunID, "current_turn"), Content: req.Message, Reference: "chat-history:" + conversationID, Priority: 100}},
@@ -77,7 +92,15 @@ func (s *Server) handleLowEndRelationRuntimeCanary(ctx context.Context, conversa
 		}
 		return response
 	}
-	return lowEndRelationCanaryAnalysisResponse(conversationID, goal, sessionID, planned, envelope)
+	if b4MutationRequested(req.Message, req.Context) {
+		return s.buildB4ActionableResponse(ctx, conversationID, req, goal, sessionID, planned.Pack.Model())
+	}
+	// Read-only B4 analysis is terminal. Keeping it active would make B4 the
+	// sticky owner of unrelated future ordinary-Agent EQ requests.
+	cancelled, _ := s.orchestrationRuntime.CancelPlanningSession(sessionID)
+	response := lowEndRelationCanaryAnalysisResponse(conversationID, goal, sessionID, planned, envelope)
+	attachMixboardDecisionProjection(&response, cancelled)
+	return response
 }
 
 func (s *Server) acquireLowEndRelationCanaryContext(ctx context.Context, sessionID string, req ChatRequest, state *kernel.VSPStateResult) (capabilitycontext.LowEndRelationInput, []string, error) {

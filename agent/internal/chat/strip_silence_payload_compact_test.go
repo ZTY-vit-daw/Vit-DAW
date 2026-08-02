@@ -152,6 +152,49 @@ func TestStripSilenceChatResponseTransportCompactsExistingInteractionPayload(t *
 	}
 }
 
+func TestChatResponseTransportOmitsRepeatedLargeProjectHistory(t *testing.T) {
+	largeGraph := map[string]any{"nodes": []any{map[string]any{"message_data": strings.Repeat("x", 17<<20)}}}
+	resp := ChatResponse{
+		ProjectHistory: map[string]any{
+			"available":          true,
+			"project_path":       `D:\\songs\\mix.vit`,
+			"active_branch":      "main",
+			"conversation_graph": largeGraph,
+		},
+		AgentPlan: &AgentPlan{ProjectHistory: map[string]any{
+			"available":          true,
+			"project_path":       `D:\\songs\\mix.vit`,
+			"conversation_graph": largeGraph,
+		}},
+		ExecutedKernelReply: []map[string]any{{
+			"status": "ok",
+			"tool":   "project.audio_analysis_status",
+			"result": map[string]any{"status": "ok"},
+			"project_history": map[string]any{
+				"conversation_graph": largeGraph,
+			},
+		}},
+	}
+
+	compactStripSilenceChatResponseForTransport(&resp)
+	data, err := json.Marshal(resp)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(string(data), "conversation_graph") {
+		t.Fatal("transport response retained a conversation graph")
+	}
+	if len(data) >= 1<<20 {
+		t.Fatalf("chat transport response is unexpectedly large: %d bytes", len(data))
+	}
+	if len(resp.ExecutedKernelReply) != 1 || firstStringFromMap(resp.ExecutedKernelReply[0], "tool") != "project.audio_analysis_status" {
+		t.Fatalf("tool receipt was not preserved: %+v", resp.ExecutedKernelReply)
+	}
+	if firstStringFromMap(mapValue(resp.ExecutedKernelReply[0]["result"]), "status") != "ok" {
+		t.Fatalf("tool result was not preserved: %+v", resp.ExecutedKernelReply[0])
+	}
+}
+
 func TestStripSilenceInvokeResponseTransportCompactsResult(t *testing.T) {
 	region := map[string]any{
 		"clip_id":       "clip_a",

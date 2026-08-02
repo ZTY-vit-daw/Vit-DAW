@@ -194,6 +194,35 @@ func TestCompleteRequestPreferJSONDisablesResponsesStream(t *testing.T) {
 	}
 }
 
+func TestCompleteRequestPreferJSONEnablesChatJSONMode(t *testing.T) {
+	var body map[string]any
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+			t.Fatal(err)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{"choices":[{"message":{"content":"{\"status\":\"ok\"}"}}]}`))
+	}))
+	defer server.Close()
+
+	client := &Client{HTTPClient: server.Client()}
+	resp, err := client.CompleteRequest(context.Background(), config.EngineConfig{
+		BaseURL:      server.URL + "/v1/chat/completions",
+		APIKey:       "test",
+		DefaultModel: "gpt-test",
+	}, Request{
+		Messages:   []Message{{Role: "user", Content: "return json"}},
+		PreferJSON: true,
+	})
+	if err != nil {
+		t.Fatalf("CompleteRequest error: %v", err)
+	}
+	format, ok := body["response_format"].(map[string]any)
+	if !ok || format["type"] != "json_object" || resp.Text != `{"status":"ok"}` {
+		t.Fatalf("resp=%+v body=%+v", resp, body)
+	}
+}
+
 func TestCompleteImageUnderstandingDefaultsToResponsesEndpoint(t *testing.T) {
 	var body map[string]any
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

@@ -1,6 +1,7 @@
 #include "WaveformEnvelopeBaker.h"
 
 #include "AudioFeatureTypes.h"
+#include "OfflineAudioReadCoordinator.h"
 #include "../Core/VitPaths.h"
 
 #include <algorithm>
@@ -678,6 +679,11 @@ void WaveformEnvelopeBaker::startBake (juce::String filePath,
                           + " gen=" + juce::String ((int64) gen)
                           + (details.isNotEmpty() ? " " + details : juce::String()));
         };
+        const auto leaseWaitStartMs = juce::Time::getMillisecondCounterHiRes();
+        auto sourceReadLease = OfflineAudioReadCoordinator::acquire (filePath);
+        logPerf ("source_read_lease",
+                 juce::String ("wait_ms=")
+                     + juce::String (juce::Time::getMillisecondCounterHiRes() - leaseWaitStartMs, 2));
         juce::AudioFormatManager fm;
         fm.registerBasicFormats();
         const auto readerStartMs = juce::Time::getMillisecondCounterHiRes();
@@ -798,12 +804,23 @@ void WaveformEnvelopeBaker::startBake (juce::String filePath,
             const double tileContentStartSeconds = sourceOffsetSeconds + ((double) tileStartSample / sr);
             juce::AudioBuffer<float> buffer (2, tileValidSamples);
             buffer.clear();
+            const bool logTileRead = tileIndex == 0 || tileIndex + 1 == totalTiles || ((tileIndex + 1) % 25) == 0;
+            if (logTileRead)
+                logPerf ("tile_read_begin",
+                         juce::String ("tile=") + juce::String (tileIndex + 1)
+                         + "/" + juce::String (totalTiles)
+                         + " source_sample=" + juce::String ((int64) (sourceStartSample + tileStartSample))
+                         + " valid_samples=" + juce::String (tileValidSamples));
             reader->read (&buffer,
                           0,
                           tileValidSamples,
                           sourceStartSample + tileStartSample,
                           true,
                           true);
+            if (logTileRead)
+                logPerf ("tile_read_end",
+                         juce::String ("tile=") + juce::String (tileIndex + 1)
+                         + "/" + juce::String (totalTiles));
 
             const float* left = buffer.getReadPointer (0);
             const float* right = buffer.getReadPointer (juce::jmin (1, buffer.getNumChannels() - 1));

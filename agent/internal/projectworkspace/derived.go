@@ -104,6 +104,9 @@ func ForkDerived(sourcePath, sourceUUID, targetPath, targetUUID string) (string,
 	if err := copyDir(sourceDir, targetDir); err != nil {
 		return "", err
 	}
+	if err := RebindL3FeatureLogFile(filepath.Join(targetDir, L3FeatureLogFile), sourcePath, sourceUUID, targetPath, targetUUID); err != nil {
+		return "", err
+	}
 	manifest, _, err := LoadAnalysisManifest(sourcePath, sourceUUID)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -145,6 +148,9 @@ func BuildAnalysisManifest(projectPath, projectUUID string, status map[string]an
 		}
 	}
 	statusText := text(status["dad_fact_status"])
+	if statusText == "" {
+		statusText = text(mapValue(status["analysis_job"])["dad_fact_status"])
+	}
 	if statusText == "" {
 		statusText = text(status["status"])
 	}

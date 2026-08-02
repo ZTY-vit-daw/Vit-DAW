@@ -61,6 +61,7 @@ Phase 2 开始，观测上下文统一分成两层：
 - DAD = Evidence Layer。负责采集、派生和标注事实，包括 project state、feature snapshot、lightweight acoustic package、source capability、evidence refs 和缺失/可疑状态。
 - Observation Model Layer 位于 DAD 之上。每个 model 面向一个工作职责，把事实层压缩为 compact projection，供 agent/LLM 读取。
 - MOM = Mixing Observation Model。服务混音观察、action preflight、AB result 和混音关系判断。
+- MOM v1.5 新增可复用的 `mom.frequency_relationship.v1` typed 子投影；它只承载全工程频段关系、tap/coverage/freshness、冲突候选、持续性可用性与验证维度，不承载 EQ 参数、插件选择或执行授权。详见 `MOM_FREQUENCY_RELATIONSHIP_V1.md`。
 - TIM = Technical Integrity Model。服务 A2 技术完整性检查，输出 `tim.projection.v0`，覆盖 source/path/playback 有效性、格式归类、采样率/bit depth/声道覆盖率、DAD acoustic readiness、静音/削波/异常 clip 风险。
 - TOM = Track Organization Model。服务 A3 智能轨道整理提案，优先按 ID/命名关联、长度、mono/stereo、格式、声像、轻量波形特征聚类，再谨慎给出角色假设。
 - DOM = Delivery Observation Model。服务导出、交付、响度、格式与版本审查。
@@ -237,18 +238,20 @@ A 不再只表示线性工作阶段，而是 `project_prep` capability family。
 
 #### B. 粗混 / Static Mix 能力族
 
-B 不再只表示线性粗混阶段，而是 `static_mix` capability family。B1-B5 是并列能力单元，不互相阻塞；用户可以直接请求任一 B 能力。详细契约见 `docs/static_mix_capability_contract_v0.md`。
+B 不再只表示线性粗混阶段，而是 `static_mix` capability family。B1-B4 是并列能力单元，不互相阻塞；用户可以直接请求任一 B 能力。详细契约见 `docs/static_mix_capability_contract_v0.md`。
 
 - B1. Gain Staging / `static_mix.gain_staging.v0`  
   建立安全电平和 headroom。
-- B2. 静态音量平衡 / `static_mix.static_balance.v0`  
-  不依赖插件，先建立主次关系。
+- B2. 静态主次与音量平衡 / `static_mix.static_balance.v0`
+  不依赖插件，用静态 track fader 建立 foreground、anchor、support 与 effects 的主次关系。
 - B3. 声像布局 / `static_mix.pan_layout.v0`  
   中心元素、左右展开、宽度、mono 风险。
 - B4. 低频关系 / `static_mix.low_end_relation.v0`  
   kick、bass、low synth、低频堆积和遮蔽。
-- B5. 核心元素定位 / `static_mix.focus_position.v0`  
-  lead vocal / lead instrument / snare / bass 的前后关系。
+
+旧 B5 / `static_mix.focus_position.v0` 已退役；兼容 ID 和核心元素定位、建立主次、`focus_position` 等意图统一路由 B2。频谱、动态、空间和自动化职责不并入 B2。
+
+A-F 继续按目标非线性调用。每个终态能力 Session 向 Mixboard 写入只含 authority 引用的 `mix_decision_record.v1`；后续能力根据影响维度触发相关旧结论的 `needs_review`。`mix.report` 将该账本投影为 `mix_report.v1`，但不成为新的执行或事实 authority。
 
 #### C. 细混处理阶段
 

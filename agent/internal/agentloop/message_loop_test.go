@@ -1154,6 +1154,14 @@ func (f *fakeMessageExecutor) RunToolCall(_ context.Context, in executorpkg.Inpu
 				},
 			},
 		}, nil
+	case "plugin_grabber.explain_controls":
+		return executorpkg.Result{
+			ToolCallID: in.ToolCall.ID, Tool: in.ToolCall.Tool, CommandName: "plugin_grabber.explain_controls", Status: "ok",
+			Result: map[string]any{"status": "ok", "eq_band_summary": map[string]any{
+				"control_topology": map[string]any{"generation": "eqt1_test"},
+				"sections":         []map[string]any{{"section": "1", "reachable_kinds": []string{"bell"}}},
+			}},
+		}, nil
 	default:
 		return executorpkg.Result{ToolCallID: in.ToolCall.ID, Tool: in.ToolCall.Tool, Status: "error", Error: "unexpected tool"}, nil
 	}
@@ -1994,14 +2002,12 @@ func TestMessageLoopStemsImportConfirmationCompletesWithA1A2Report(t *testing.T)
 		"B 粗混 / Static Mix",
 		"B1 Gain Staging",
 		"static_mix.gain_staging.v0",
-		"B2 静态音量平衡",
+		"B2 静态主次与音量平衡",
 		"static_mix.static_balance.v0",
 		"B3 声像布局",
 		"static_mix.pan_layout.v0",
 		"B4 低频关系",
 		"static_mix.low_end_relation.v0",
-		"B5 核心元素定位",
-		"static_mix.focus_position.v0",
 		"not_started",
 		"A-F 不作为线性门禁",
 	} {
@@ -2066,14 +2072,12 @@ func TestMessageLoopProjectBlackboardStatusReadsProjectStateWithoutLLM(t *testin
 		"B 粗混 / Static Mix",
 		"B1 Gain Staging",
 		"static_mix.gain_staging.v0",
-		"B2 静态音量平衡",
+		"B2 静态主次与音量平衡",
 		"static_mix.static_balance.v0",
 		"B3 声像布局",
 		"static_mix.pan_layout.v0",
 		"B4 低频关系",
 		"static_mix.low_end_relation.v0",
-		"B5 核心元素定位",
-		"static_mix.focus_position.v0",
 		"not_started",
 		"A-F 不作为线性门禁",
 		"数据来源",
@@ -2125,7 +2129,8 @@ func TestMessageLoopStaticMixCapabilityContractAnswersWithoutLLM(t *testing.T) {
 		"static_mix.pan_layout.v0",
 		"B4 Low-End Relation",
 		"static_mix.low_end_relation.v0",
-		"B5 Focus Position",
+		"B5 / static_mix.focus_position.v0 已退役",
+		"静态焦点、主次和支撑关系属于 B2",
 		"static_mix.focus_position.v0",
 		"not_started",
 		"pending_confirmation",
@@ -2135,7 +2140,7 @@ func TestMessageLoopStaticMixCapabilityContractAnswersWithoutLLM(t *testing.T) {
 		"track.volume",
 		"track.pan",
 		"clip.gain.set",
-		"A-F and B1-B5 are capability layers",
+		"A-F and B1-B4 are capability layers",
 	} {
 		if !strings.Contains(res.Reply, want) {
 			t.Fatalf("reply missing %q:\n%s", want, res.Reply)
@@ -4414,7 +4419,7 @@ func TestMessageLoopB12StrictReferenceCalibrationCreatesSingleBatchForManyTracks
 	if confirmed.Status != agentruntime.StatusCompleted || confirmed.StopReason != StopReasonDone {
 		t.Fatalf("confirmed result = status=%q stop=%q reply=%q error=%q", confirmed.Status, confirmed.StopReason, confirmed.Reply, confirmed.Error)
 	}
-	if len(exec.calls) != 7 || exec.calls[4].Tool != "clip.gain.set_batch" || !exec.confirmed[4] || exec.calls[5].Tool != "project.state" || exec.calls[6].Tool != "mix.observe" {
+	if len(exec.calls) != 8 || exec.calls[4].Tool != "clip.gain.set_batch" || !exec.confirmed[4] || exec.calls[5].Tool != "project.state" || exec.calls[6].Tool != "project.audio_analysis_status" || exec.calls[7].Tool != "mix.observe" {
 		t.Fatalf("confirm route = calls=%+v confirmed=%+v", exec.calls, exec.confirmed)
 	}
 	if db, ok := messageLoopB12ClipGainFromProjectState(&runState{input: Input{State: exec.projectState}}, "clip_00"); !ok || db != 1 {
@@ -6543,7 +6548,7 @@ mix_treatment_pending: {\"schema_version\":\"mix_treatment_pending.v0\",\"status
 	}
 }
 
-func TestMessageLoopChineseActionPreflightObservesThenWaitsForConfirmation(t *testing.T) {
+func TestMessageLoopChineseEQActionWithoutPluginStopsAtSelectionBoundary(t *testing.T) {
 	client := &fakeMessageCompleter{responses: []string{
 		`{"final":false,"reply":"先观察低频和声像依据。","tool_calls":[{"id":"observe_mix","tool":"mix.observe","args":{"scope":"track","target_ref":{"kind":"track","id":"1007"},"mom_intent":"action_preflight_observation"},"reason":"先读取 MOM observation 作为低频处理依据"}]}`,
 		`{"final":true,"reply":"依据这次 MOM 观察，低频处理只能先作为保守 EQ 方向，确认前不会写插件或参数。\nmix_treatment_pending: {\"schema_version\":\"mix_treatment_pending.v0\",\"status\":\"pending_confirmation\",\"intent\":\"reduce low end slightly\",\"target_ref\":\"track:1007\",\"action_kind\":\"plugin_treatment\",\"processor_type\":\"eq\",\"reasoning_summary\":\"low-end reduction is proposed from MOM observation evidence; uncertainty remains until plugin/profile/control resolution\",\"confidence\":\"medium\",\"evidence_refs\":[\"observation:obs_action_preflight\",\"mix.read:track.1007.slow.band_energy.summary\"],\"needs_resolution\":[\"plugin_instance\",\"plugin_profile\",\"exact_control\"],\"expires_after_context_change\":true}","tool_calls":[]}`,
@@ -6603,12 +6608,11 @@ func TestMessageLoopChineseActionPreflightObservesThenWaitsForConfirmation(t *te
 	if !strings.Contains(res.Reply, "依据") && !strings.Contains(res.Reply, "MOM") {
 		t.Fatalf("reply should explain evidence basis before confirmation: %q", res.Reply)
 	}
-	treatment := res.ExecutionMemory.PendingMixTreatment
-	if treatment == nil || treatment.Status != "pending_confirmation" || treatment.ActionKind != "plugin_treatment" || treatment.ProcessorType != "eq" {
-		t.Fatalf("pending treatment = %+v", treatment)
+	if treatment := res.ExecutionMemory.PendingMixTreatment; treatment != nil {
+		t.Fatalf("no-plugin EQ handoff created legacy profile/learn treatment: %+v", treatment)
 	}
-	if treatment.ObservationID != "obs_action_preflight" || len(treatment.EvidenceRefs) == 0 {
-		t.Fatalf("pending treatment should reference MOM observation evidence: %+v", treatment)
+	if messageLoopMixReplyAsksForExecution(res.Reply) {
+		t.Fatalf("no executable EQ exists yet, but reply asks for execution: %q", res.Reply)
 	}
 }
 
@@ -7227,7 +7231,7 @@ func TestMessageLoopTreatmentPendingInfersGainDeltaFromSuggestedMove(t *testing.
 	}
 }
 
-func TestMessageLoopLowMudPluginPrepSynthesizesPendingWhenReplyOmitsMarker(t *testing.T) {
+func TestMessageLoopLowMudWithoutPluginDoesNotSynthesizeLegacyPending(t *testing.T) {
 	client := &fakeMessageCompleter{responses: []string{
 		`{"final":true,"reply":"I observed Track 1, but band_energy_summary is missing, so I cannot claim a measured low-frequency buildup. I will not load EQ or change volume yet.","tool_calls":[]}`,
 	}}
@@ -7280,28 +7284,11 @@ func TestMessageLoopLowMudPluginPrepSynthesizesPendingWhenReplyOmitsMarker(t *te
 	if strings.Contains(res.Reply, "mix_treatment_pending") {
 		t.Fatalf("reply leaked internal marker: %q", res.Reply)
 	}
-	treatment := res.ExecutionMemory.PendingMixTreatment
-	if treatment == nil {
-		t.Fatalf("pending treatment missing; memory=%+v", res.ExecutionMemory)
+	if treatment := res.ExecutionMemory.PendingMixTreatment; treatment != nil {
+		t.Fatalf("no-plugin EQ request synthesized legacy profile/learn pending: %+v", treatment)
 	}
-	if treatment.ActionKind != "plugin_treatment" || treatment.ProcessorType != "eq" {
-		t.Fatalf("pending treatment = %+v", treatment)
-	}
-	if treatment.TargetRef != "track:1007" || treatment.ObservationID != "obs_low" {
-		t.Fatalf("pending treatment = %+v", treatment)
-	}
-	if len(treatment.NeedsResolution) == 0 || !messageLoopDiagnosisRefsContain(treatment.EvidenceRefs, treatment.DiagnosisContextID) {
-		t.Fatalf("pending evidence/needs = refs=%+v needs=%+v diag=%q", treatment.EvidenceRefs, treatment.NeedsResolution, treatment.DiagnosisContextID)
-	}
-	if treatment.DiagnosisContext["problem_kind"] != "low_mud" {
-		t.Fatalf("diagnosis context = %+v", treatment.DiagnosisContext)
-	}
-	recommendation := messageLoopMapValue(treatment.DiagnosisContext["recommendation"])
-	if recommendation["strategy"] != "conservative_probe" {
-		t.Fatalf("recommendation = %+v", recommendation)
-	}
-	if !messageLoopDiagnosisHasMissing(treatment.DiagnosisContext, "band_energy_summary") {
-		t.Fatalf("missing evidence = %+v", treatment.DiagnosisContext["missing_evidence"])
+	if res.RecentObservation == nil || firstMapText(res.RecentObservation.Summary, "observation_id") != "obs_low" {
+		t.Fatalf("observation evidence was not preserved for plugin selection: %#v", res.RecentObservation)
 	}
 }
 
@@ -7534,22 +7521,23 @@ func TestMessageLoopExplicitPluginLoadDoesNotRequireMixObservation(t *testing.T)
 	}
 }
 
-func TestMessageLoopNamedPluginAcousticActionReachesGrabberApplyWithoutObservation(t *testing.T) {
+func TestMessageLoopNamedPluginAcousticActionUsesSemanticProposalNotRawApply(t *testing.T) {
 	client := &fakeMessageCompleter{responses: []string{
 		`{"final":false,"reply":"正在处理。","tool_calls":[{"id":"apply_nova","tool":"plugin_grabber.apply_control","args":{"track_id":"1007","plugin_id":"1013","control":"eq.cut_region","target":{"freq_hz":200,"gain_db":-2.5}}}]}`,
-		`{"final":true,"reply":"已通过 TDR Nova 完成处理。","tool_calls":[]}`,
+		`{"final":false,"reply":"先读取通用 EQ topology。","tool_calls":[{"id":"read_eq","tool":"plugin_grabber.explain_controls","args":{"track_id":"1007","plugin_id":"1013"}}]}`,
+		`{"final":true,"reply":"建议做一个保守的低中频 Bell 衰减。","semantic_action":{"schema_version":"semantic_effect_action.v1","action_type":"eq_edit","payload_schema":"semantic_effect.eq_plan.v1","target":{"track_id":"1007","plugin_id":"1013"},"user_goal":"切掉 200Hz 附近的浑浊","evidence_decision":{"choice":"not_needed","basis":"user_report","reason":"用户明确报告目标"},"eq_plan":{"schema_version":"semantic_effect.eq_plan.v1","atomic":true,"atoms":[{"atom_id":"mud-cut","action":"upsert","shape":"bell","frequency_hz":200,"gain_db":-2.5,"purpose":"减少浑浊","field_origins":{"frequency_hz":"user_fixed","gain_db":"user_fixed"},"confidence":"medium"}]}},"tool_calls":[]}`,
 	}}
 	exec := &fakeMessageExecutor{}
 	loop := &MessageLoop{
 		Client:   client,
 		Config:   config.EngineConfig{BaseURL: "http://example.invalid", APIKey: "test", DefaultModel: "test"},
 		Executor: exec,
-		Budget:   Budget{MaxTurns: 4, MaxToolCalls: 2, MaxConsecutiveErrors: 2},
+		Budget:   Budget{MaxTurns: 5, MaxToolCalls: 2, MaxConsecutiveErrors: 2},
 	}
 
 	res := loop.Start(context.Background(), Input{
 		UserText:     "用 TDR Nova 切掉 200Hz 附近的浑浊",
-		AllowedTools: []string{"plugin_grabber.apply_control", "mix.observe", "mix.request_observation"},
+		AllowedTools: []string{"plugin_grabber.apply_control", "plugin_grabber.explain_controls", "mix.observe", "mix.request_observation"},
 		Context: map[string]any{
 			"selected_track_id":  "1007",
 			"selected_plugin_id": "1013",
@@ -7564,15 +7552,13 @@ func TestMessageLoopNamedPluginAcousticActionReachesGrabberApplyWithoutObservati
 		t.Fatalf("result = status=%q reply=%q error=%q trace=%+v", res.Status, res.Reply, res.Error, res.Trace)
 	}
 	if len(exec.calls) != 1 {
-		t.Fatalf("executor calls = %+v, want exactly one grabber apply", exec.calls)
+		t.Fatalf("executor calls = %+v, want exactly one read-only topology call", exec.calls)
 	}
-	if exec.calls[0].Tool != "plugin_grabber.apply_control" {
-		t.Fatalf("executor call = %+v, want plugin_grabber.apply_control", exec.calls[0])
+	if exec.calls[0].Tool != "plugin_grabber.explain_controls" {
+		t.Fatalf("executor call = %+v, want plugin_grabber.explain_controls", exec.calls[0])
 	}
-	for _, call := range exec.calls {
-		if isTestMixObservationTool(call.Tool) {
-			t.Fatalf("named plug-in action was diverted into observation: %+v", exec.calls)
-		}
+	if res.SemanticAction == nil || res.SemanticAction.EQPlan == nil || len(res.SemanticAction.EQPlan.Atoms) != 1 {
+		t.Fatalf("typed semantic EQ proposal missing: %#v", res.SemanticAction)
 	}
 }
 

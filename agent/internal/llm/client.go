@@ -362,6 +362,12 @@ func requestBody(kind, model string, req Request) map[string]any {
 		return body
 	}
 	body["messages"] = req.Messages
+	if req.PreferJSON {
+		// Prompts alone are not a reliable structured-output contract on
+		// OpenAI-compatible chat endpoints. C1/B4 planners validate exact JSON
+		// schemas, so request the provider's JSON mode when callers opt in.
+		body["response_format"] = map[string]any{"type": "json_object"}
+	}
 	return body
 }
 

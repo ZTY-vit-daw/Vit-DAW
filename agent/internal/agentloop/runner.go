@@ -2,6 +2,7 @@ package agentloop
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
@@ -12,6 +13,7 @@ import (
 	"vit-daw-agent/internal/llm"
 	"vit-daw-agent/internal/planner"
 	agentruntime "vit-daw-agent/internal/runtime"
+	"vit-daw-agent/internal/semanticeffect"
 	"vit-daw-agent/internal/tools"
 )
 
@@ -104,6 +106,7 @@ type Result struct {
 	ProjectHistory        map[string]any              `json:"project_history,omitempty"`
 	ExecutionMemory       ExecutionMemory             `json:"execution_memory,omitempty"`
 	RecentObservation     *RecentObservation          `json:"recent_observation,omitempty"`
+	SemanticAction        *semanticeffect.Action      `json:"semantic_action,omitempty"`
 	Continuation          *Continuation               `json:"continuation,omitempty"`
 }
 
@@ -262,6 +265,7 @@ type runState struct {
 	projectHistory    map[string]any
 	executionMemory   ExecutionMemory
 	recentObservation *RecentObservation
+	semanticAction    *semanticeffect.Action
 	replanAfterTool   bool
 	completedSteps    int
 	turnsUsed         int
@@ -670,8 +674,24 @@ func (r *Runner) result(state *runState, status agentruntime.GoalStatus, stopRea
 		ProjectHistory:    cloneMap(projectHistoryFromState(state)),
 		ExecutionMemory:   cloneExecutionMemory(state.executionMemory),
 		RecentObservation: cloneRecentObservation(state.recentObservation),
+		SemanticAction:    cloneSemanticEffectAction(state.semanticAction),
 		Continuation:      cont,
 	}
+}
+
+func cloneSemanticEffectAction(in *semanticeffect.Action) *semanticeffect.Action {
+	if in == nil {
+		return nil
+	}
+	data, err := json.Marshal(in)
+	if err != nil {
+		return nil
+	}
+	var out semanticeffect.Action
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil
+	}
+	return &out
 }
 
 func projectHistoryFromState(state *runState) map[string]any {

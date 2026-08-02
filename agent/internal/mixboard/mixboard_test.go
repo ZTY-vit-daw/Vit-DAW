@@ -1615,6 +1615,83 @@ func TestProjectPackageUsesPerTrackWaveformAcoustics(t *testing.T) {
 	}
 }
 
+func TestProjectPackageRejectsReusedTrackClipIDsFromDifferentSourceMaterial(t *testing.T) {
+	root := t.TempDir()
+	snapshotPath := filepath.Join(root, "feature_snapshot.json")
+	if err := os.WriteFile(snapshotPath, []byte(`{
+		"schema_version":"mixboard_feature_snapshot.v1",
+		"latest_request":{"request_id":"req_current","resolved_target":{"kind":"project","id":"current"}},
+		"waveform_envelope":{"status":"ready","track_id":"track_1","clip_id":"clip_1","source_path":"D:/old/song.wav","rms":0.8,"peak_abs":0.99},
+		"track_waveform_envelopes":[
+			{"status":"ready","track_id":"track_1","clip_id":"clip_1","source_path":"D:/old/song.wav","rms":0.8,"peak_abs":0.99},
+			{"status":"ready","track_id":"track_1","clip_id":"clip_1","source_path":"D:/current/song.wav","rms":0.1,"peak_abs":0.4}
+		],
+		"band_energy_summary":{"status":"ready","track_id":"track_1","clip_id":"clip_1","source_path":"D:/old/song.wav","bands":{"bass":{"energy_db":80}}},
+		"band_energy_summaries":[
+			{"status":"ready","track_id":"track_1","clip_id":"clip_1","source_path":"D:/old/song.wav","bands":{"bass":{"energy_db":80}}},
+			{"status":"ready","track_id":"track_1","clip_id":"clip_1","source_path":"D:/current/song.wav","bands":{"bass":{"energy_db":-12}}}
+		],
+		"stereo_relation_summaries":[
+			{"status":"ready","track_id":"track_1","clip_id":"clip_1","source_path":"D:/old/song.wav","correlation_estimate":-1},
+			{"status":"ready","track_id":"track_1","clip_id":"clip_1","source_path":"D:/current/song.wav","correlation_estimate":0.9}
+		],
+		"loudness_summaries":[
+			{"status":"ready","track_id":"track_1","clip_id":"clip_1","source_path":"D:/old/song.wav","integrated_lufs":-2},
+			{"status":"ready","track_id":"track_1","clip_id":"clip_1","source_path":"D:/current/song.wav","integrated_lufs":-18}
+		],
+		"spectrogram_tiles":{"status":"missing"}
+	}`), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	store := NewStore(root)
+	result, err := store.RequestObservation(Request{
+		MixSessionID: "mix_reused_ids_new_material",
+		TargetRef:    TargetRef{Kind: "project", ID: "current"},
+		ListenScope:  ListenScope{Source: ListenSourceScope{Mode: "full_project"}},
+		ProjectState: map[string]any{
+			"project_id": "vitproj_current",
+			"tracks": []any{map[string]any{
+				"track_id": "track_1", "track_name": "Current",
+				"clips": []any{map[string]any{"clip_id": "clip_1", "current_source_path": "D:/current/song.wav", "length_seconds": 8.0}},
+			}},
+		},
+		Args: map[string]any{"feature_snapshot_path": snapshotPath},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	tracks := mapRowsAny(result.Observation.ProjectPackage["tracks"])
+	if len(tracks) != 1 {
+		t.Fatalf("project tracks = %#v", tracks)
+	}
+	track := tracks[0]
+	acoustic := mapValue(track["acoustic"])
+	if got := cleanAnyString(acoustic["source_path"]); !strings.EqualFold(filepath.ToSlash(got), "D:/current/song.wav") {
+		t.Fatalf("stale waveform source survived reused IDs: %#v", acoustic)
+	}
+	if got, _ := numberField(acoustic, "rms"); got != 0.1 {
+		t.Fatalf("wrong waveform row survived: %#v", acoustic)
+	}
+	band := mapValue(track["band_energy"])
+	bass := mapValue(mapValue(band["bands"])["bass"])
+	if got, _ := numberField(bass, "energy_db"); got != -12 {
+		t.Fatalf("stale band row survived reused IDs: %#v", band)
+	}
+	stereo := mapValue(track["stereo_relation"])
+	if got, _ := numberField(stereo, "correlation_estimate"); got != 0.9 {
+		t.Fatalf("stale stereo row survived reused IDs: %#v", stereo)
+	}
+	loudness := mapValue(track["loudness"])
+	if got, _ := numberField(loudness, "integrated_lufs"); got != -18 {
+		t.Fatalf("stale loudness row survived reused IDs: %#v", loudness)
+	}
+	snapshot := mapValue(result.Observation.GlobalSummary["feature_snapshot"])
+	encoded, _ := json.Marshal(snapshot)
+	if strings.Contains(strings.ToLower(string(encoded)), "d:/old/song.wav") {
+		t.Fatalf("stale material identity remained in compact snapshot: %s", encoded)
+	}
+}
+
 func TestFullProjectIgnoresNonAuthoritativeBlockedWaveformRequest(t *testing.T) {
 	root := t.TempDir()
 	snapshotPath := filepath.Join(root, "feature_snapshot.json")

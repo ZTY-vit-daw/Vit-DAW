@@ -36,6 +36,22 @@ func TestProjectAwareCapabilityInferenceSupportsChineseProductIntent(t *testing.
 	if got := inferProjectAwareCapability("重新安排所有轨道的声像布局"); got != panLayoutCapabilityID {
 		t.Fatalf("Chinese B3 intent routed to %q", got)
 	}
+	for _, intent := range []string{"B5 核心元素定位", "建立整首混音的主次关系", "focus position", "突出主唱并安排支撑层"} {
+		if got := inferProjectAwareCapability(intent); got != staticBalanceCapabilityID {
+			t.Fatalf("retired focus-position intent %q routed to %q", intent, got)
+		}
+	}
+}
+
+func TestCapabilityOwnerMapsExplicitRetiredB5IDToB2(t *testing.T) {
+	server := &Server{orchestrationRuntime: orchestrationruntime.New()}
+	resolution := server.resolveCapabilityOwner("chat-b5-alias", ChatRequest{
+		Message: "核心元素定位",
+		Context: map[string]any{"capability_id": retiredFocusPositionCapabilityID},
+	})
+	if resolution.CapabilityID != staticBalanceCapabilityID || resolution.Decision.Owner != orchestration.EngineV1 {
+		t.Fatalf("retired B5 alias did not resolve to B2: %#v", resolution)
+	}
 }
 
 func TestProjectAwareCapabilityLeavesOrdinaryEQForAgentLoop(t *testing.T) {
@@ -51,6 +67,21 @@ func TestProjectAwareCapabilityLeavesOrdinaryEQForAgentLoop(t *testing.T) {
 	}
 	if got := inferProjectAwareCapability("我想通过当前加载的均衡器调节3400Hz频段增益3dB"); got != "" {
 		t.Fatalf("concrete EQ request bypassed AgentLoop: %q", got)
+	}
+}
+
+func TestC1OwnerRequiresProjectSpecialistScopeAndKeepsSelectedTrackEQHorizontal(t *testing.T) {
+	if got := inferProjectAwareCapability("run C1 frequency cleanup for the full project"); got != frequencyCleanupCapabilityID {
+		t.Fatalf("explicit C1 intent routed to %q", got)
+	}
+	server := &Server{orchestrationRuntime: orchestrationruntime.New()}
+	selected := server.resolveCapabilityOwner("chat-c1-boundary", ChatRequest{Message: "frequency cleanup on the selected track", Context: map[string]any{"track_id": "t1", "selected_track_id": "t1"}})
+	if selected.CapabilityID != "" {
+		t.Fatalf("selected-track ordinary EQ was captured by C1: %#v", selected)
+	}
+	explicit := server.resolveCapabilityOwner("chat-c1-explicit", ChatRequest{Message: "run C1", Context: map[string]any{"capability_id": frequencyCleanupCapabilityID}})
+	if explicit.CapabilityID != frequencyCleanupCapabilityID || explicit.SessionID != "cap_v1_c1_chat-c1-explicit_1" {
+		t.Fatalf("explicit C1 owner/session = %#v", explicit)
 	}
 }
 
