@@ -859,6 +859,112 @@ func compactChatResponseProjectHistory(history map[string]any) map[string]any {
 	return out
 }
 
+func compactHistoryListProjectHistory(historyMap map[string]any) map[string]any {
+	out := compactAgentStateProjectHistory(historyMap)
+	for _, key := range []string{"history_dir", "state_dir"} {
+		if value, ok := historyMap[key]; ok {
+			out[key] = value
+		}
+	}
+	rows := dictionaryRowsFromAny(historyMap["conversation_messages"])
+	const messageLimit = 200
+	if len(rows) > messageLimit {
+		rows = rows[len(rows)-messageLimit:]
+	}
+	messages := make([]map[string]any, 0, len(rows))
+	for _, row := range rows {
+		message := map[string]any{}
+		for _, key := range []string{
+			"role", "content", "node_id", "commit_id", "branch", "message_kind",
+			"logical_message_id", "created_at",
+		} {
+			if value, ok := row[key]; ok && !stripSilenceCompactEmpty(value) {
+				message[key] = value
+			}
+		}
+		if len(message) > 0 {
+			messages = append(messages, message)
+		}
+	}
+	if len(messages) > 0 {
+		out["conversation_messages"] = messages
+	}
+	if graph := compactHistoryConversationGraph(historyMap["conversation_graph"], 500); len(graph) > 0 {
+		out["conversation_graph"] = graph
+	}
+	return out
+}
+
+func compactHistoryConversationGraph(value any, limit int) map[string]any {
+	graph := map[string]any{}
+	nodes := make([]map[string]any, 0)
+	switch typed := value.(type) {
+	case history.ConversationGraph:
+		graph["project_path"] = typed.ProjectPath
+		graph["project_uuid"] = typed.ProjectUUID
+		graph["active_node_id"] = typed.ActiveNodeID
+		graph["active_branch"] = typed.ActiveBranch
+		graph["active_worktree"] = typed.ActiveWorktree
+		start := 0
+		if limit > 0 && len(typed.Nodes) > limit {
+			start = len(typed.Nodes) - limit
+		}
+		for _, node := range typed.Nodes[start:] {
+			preview := strings.TrimSpace(node.TextPreview)
+			if preview == "" {
+				preview = compactHistoryTextPreview(node.Text, 240)
+			}
+			nodes = append(nodes, map[string]any{
+				"id": node.ID, "kind": node.Kind, "commit_id": node.CommitID,
+				"parent_node_id": node.ParentNodeID, "branch": node.Branch,
+				"text_preview": preview, "message_kind": node.MessageKind,
+				"logical_message_id": node.LogicalMessageID, "created_at": node.CreatedAt,
+			})
+		}
+	case map[string]any:
+		for _, key := range []string{"project_path", "project_uuid", "active_node_id", "active_branch", "active_worktree"} {
+			if item, ok := typed[key]; ok {
+				graph[key] = item
+			}
+		}
+		rows := mapRowsFromAny(typed["nodes"])
+		if limit > 0 && len(rows) > limit {
+			rows = rows[len(rows)-limit:]
+		}
+		for _, row := range rows {
+			node := map[string]any{}
+			for _, key := range []string{
+				"id", "node_id", "kind", "commit_id", "parent_node_id", "branch",
+				"text_preview", "message_kind", "logical_message_id", "created_at",
+			} {
+				if item, ok := row[key]; ok && !stripSilenceCompactEmpty(item) {
+					node[key] = item
+				}
+			}
+			if _, ok := node["text_preview"]; !ok {
+				node["text_preview"] = compactHistoryTextPreview(cleanContextText(row["text"]), 240)
+			}
+			nodes = append(nodes, node)
+		}
+	}
+	if len(nodes) > 0 {
+		graph["nodes"] = nodes
+	}
+	return graph
+}
+
+func compactHistoryTextPreview(value string, limit int) string {
+	value = strings.TrimSpace(value)
+	if limit <= 0 {
+		return ""
+	}
+	runes := []rune(value)
+	if len(runes) <= limit {
+		return value
+	}
+	return strings.TrimSpace(string(runes[:limit])) + "…"
+}
+
 func (s *Server) handleUIState(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		writeJSON(w, http.StatusMethodNotAllowed, map[string]any{"status": "error", "error": "GET required"})
@@ -1340,7 +1446,12 @@ func (s *Server) handleInvoke(w http.ResponseWriter, r *http.Request) {
 	// history APIs. Returning the full conversation graph after every tool call
 	// makes large action sets (for example B1) exceed Godot's 16 MiB chunk
 	// parser limit and turns successful executions into transport failures.
-	resp.ProjectHistory = compactAgentStateProjectHistory(resp.ProjectHistory)
+	if isVersionListInvoke(req) {
+		resp.Result = compactHistoryListProjectHistory(resp.Result)
+		resp.ProjectHistory = nil
+	} else {
+		resp.ProjectHistory = compactAgentStateProjectHistory(resp.ProjectHistory)
+	}
 	writeJSON(w, status, compactStripSilenceInvokeResponseForTransport(resp))
 }
 
@@ -1432,6 +1543,23 @@ func isVersionProjectSavePrepareInvoke(req harness.InvokeRequest) bool {
 		normalized := strings.ToLower(strings.TrimSpace(candidate))
 		normalized = strings.ReplaceAll(normalized, ".", "_")
 		if normalized == "version_project_save_prepare" {
+			return true
+		}
+	}
+	return false
+}
+
+func isVersionListInvoke(req harness.InvokeRequest) bool {
+	for _, candidate := range []string{
+		req.Tool,
+		tools.CommandName(req.Command),
+		tools.CommandName(req.Args),
+		firstStringFromMap(req.Command, "tool"),
+		firstStringFromMap(req.Args, "tool"),
+	} {
+		normalized := strings.ToLower(strings.TrimSpace(candidate))
+		normalized = strings.ReplaceAll(normalized, ".", "_")
+		if normalized == "version_list" {
 			return true
 		}
 	}

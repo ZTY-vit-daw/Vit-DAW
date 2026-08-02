@@ -343,6 +343,58 @@ func TestProjectOpenLifecycleRecoversParentWorkspaceUsingCommandPath(t *testing.
 	}
 }
 
+func TestProjectOpenLifecycleFindsParentWorkspaceInAncestorDirectory(t *testing.T) {
+	root := t.TempDir()
+	sourcePath := filepath.Join(root, "A5-parent.vit")
+	targetDir := filepath.Join(root, "A5-child")
+	targetPath := filepath.Join(targetDir, "A5-child.vit")
+	if err := os.WriteFile(sourcePath, []byte("parent"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.MkdirAll(targetDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(targetPath, []byte("child"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	const sourceUUID = "vitproj_ancestor_parent"
+	const targetUUID = "vitproj_ancestor_child"
+	history.BindProjectIdentity(sourcePath, sourceUUID)
+	if _, err := history.EnsureWorkingSession(sourcePath, sourceUUID); err != nil {
+		t.Fatal(err)
+	}
+	checkpoint, err := history.Checkpoint(map[string]any{
+		"project_path": sourcePath, "message": "A5 parent baseline", "source": "test",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := history.AppendConversationNode(map[string]any{
+		"project_path": sourcePath, "kind": "vit", "commit_id": checkpoint["commit_id"], "text": "A5 parent history",
+	}); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := history.CommitWorkingSession(sourcePath, sourceUUID); err != nil {
+		t.Fatal(err)
+	}
+
+	h := New(nil, nil, nil)
+	result, err := h.applyProjectLifecycle(context.Background(), tools.CommandSpec{CommandName: "open_project"},
+		map[string]any{"file_path": targetPath},
+		map[string]any{
+			"status": "ok", "project_lifecycle": "open", "project_path": targetPath,
+			"project_uuid": targetUUID, "parent_project_uuid": sourceUUID,
+		})
+	if err != nil {
+		t.Fatal(err)
+	}
+	graph := testMap(t, result["conversation_graph"])
+	nodes := mapRowsFromAny(graph["nodes"])
+	if len(nodes) != 1 || firstString(nodes[0], "text") != "A5 parent history" {
+		t.Fatalf("nested child did not inherit ancestor parent history: %+v", result)
+	}
+}
+
 type fakeVSPKernelClient struct {
 	fakeKernelClient
 	snapshots      []*kernel.VSPStateResult

@@ -232,12 +232,20 @@ func ProjectPathForUUID(referenceProjectPath, projectUUID string) string {
 	if err != nil {
 		return ""
 	}
-	metadata := map[string]any{}
-	path := filepath.Join(filepath.Dir(abs), DirName, projectUUID, "workspace.json")
-	if err := readJSON(path, &metadata); err != nil {
-		return ""
+	for dir := filepath.Dir(abs); ; dir = filepath.Dir(dir) {
+		metadata := map[string]any{}
+		path := filepath.Join(dir, DirName, projectUUID, "workspace.json")
+		if err := readJSON(path, &metadata); err == nil {
+			if projectPath := strings.TrimSpace(fmt.Sprint(metadata["project_path"])); projectPath != "" {
+				return projectPath
+			}
+		}
+		parent := filepath.Dir(dir)
+		if parent == dir {
+			break
+		}
 	}
-	return strings.TrimSpace(fmt.Sprint(metadata["project_path"]))
+	return ""
 }
 
 func recoverLegacySharedWorkspace(source, target Repo, cutoff time.Time) (map[string]any, error) {

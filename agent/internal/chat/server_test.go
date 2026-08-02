@@ -144,6 +144,50 @@ func TestCompactAgentStateProjectHistoryOmitsLargeConversationPayloads(t *testin
 	}
 }
 
+func TestCompactHistoryListProjectHistoryPreservesLightweightTranscript(t *testing.T) {
+	largePayload := strings.Repeat("x", 2<<20)
+	historyMap := map[string]any{
+		"available":    true,
+		"project_path": `D:\\songs\\mix.vit`,
+		"project_uuid": "vitproj_test",
+		"conversation_messages": []history.ConversationMessage{
+			{Role: "user", Content: "进行 B1", NodeID: "node-1", CommitID: "commit-1"},
+			{Role: "assistant", Content: "B1 已完成", NodeID: "node-2", CommitID: "commit-2", MessageData: map[string]any{"payload": largePayload}},
+		},
+		"conversation_graph": history.ConversationGraph{
+			ProjectPath: `D:\\songs\\mix.vit`, ProjectUUID: "vitproj_test", ActiveNodeID: "node-2", ActiveBranch: "main",
+			Nodes: []history.ConversationNode{
+				{ID: "node-1", Kind: "ask", Text: "进行 B1", CommitID: "commit-1"},
+				{ID: "node-2", Kind: "vit", Text: "B1 已完成", CommitID: "commit-2", MessageData: map[string]any{"payload": largePayload}},
+			},
+		},
+	}
+
+	got := compactHistoryListProjectHistory(historyMap)
+	messages := dictionaryRowsFromAny(got["conversation_messages"])
+	if len(messages) != 2 || firstStringFromMap(messages[0], "content") != "进行 B1" || firstStringFromMap(messages[1], "content") != "B1 已完成" {
+		t.Fatalf("lightweight transcript = %+v", messages)
+	}
+	if _, ok := messages[1]["message_data"]; ok {
+		t.Fatal("history transcript retained large message_data")
+	}
+	graph := mapValue(got["conversation_graph"])
+	nodes := mapRowsFromAny(graph["nodes"])
+	if len(nodes) != 2 || firstStringFromMap(nodes[1], "text_preview") != "B1 已完成" {
+		t.Fatalf("compact graph = %+v", graph)
+	}
+	encoded, err := json.Marshal(got)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(encoded) >= 1<<20 || strings.Contains(string(encoded), largePayload[:1024]) {
+		t.Fatalf("history list transport remained too large: %d bytes", len(encoded))
+	}
+	if !isVersionListInvoke(harness.InvokeRequest{Tool: "version.list"}) {
+		t.Fatal("version.list request was not recognized")
+	}
+}
+
 func TestCompactHostLifecycleInvokeResponseOmitsLargeHistoryGraphs(t *testing.T) {
 	largeGraph := map[string]any{"nodes": []map[string]any{{"message_data": strings.Repeat("x", 17<<20)}}}
 	resp := compactHostLifecycleInvokeResponseForTransport(harness.InvokeResponse{
