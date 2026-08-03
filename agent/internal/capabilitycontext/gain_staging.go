@@ -539,6 +539,9 @@ func gainStagingSafetyPeakDBFS(row TrackGainRow) *float64 {
 	if row.PrimaryClip != nil && row.PrimaryClip.GainDB != nil {
 		peak += *row.PrimaryClip.GainDB
 	}
+	if row.VolumeDB != nil {
+		peak += *row.VolumeDB
+	}
 	return ptrRound(&peak)
 }
 
@@ -648,6 +651,9 @@ func gainStagingRLMCalibrationRows(projection rlm.Projection) []RankRow {
 		if candidate.SourcePeakDBFS != nil {
 			row.Metadata["observed_source_peak_dbfs"] = round3(*candidate.SourcePeakDBFS)
 		}
+		if candidate.TrackFaderDB != nil {
+			row.Metadata["track_fader_db"] = round3(*candidate.TrackFaderDB)
+		}
 		if candidate.ProjectedPeakDBFS != nil {
 			row.Metadata["projected_static_peak_dbfs"] = round3(*candidate.ProjectedPeakDBFS)
 		}
@@ -720,7 +726,11 @@ func gainStagingSourceLevelOutlierRows(admission sourceLevelAdmission, limit int
 		if math.Abs(delta) < 3.0 {
 			continue
 		}
-		constraint := levelsafety.ConstrainSourceClipGain(candidate.ClipGainDB, delta, 24, candidate.Track.PeakDBFS)
+		trackFaderDB := 0.0
+		if candidate.Track.VolumeDB != nil {
+			trackFaderDB = *candidate.Track.VolumeDB
+		}
+		constraint := levelsafety.ConstrainSourceClipGainWithDownstreamGain(candidate.ClipGainDB, delta, 24, candidate.Track.PeakDBFS, trackFaderDB)
 		targetClipGain := round3(constraint.TargetClipGainDB)
 		appliedDelta := round3(constraint.AppliedDeltaDB)
 		risk := "medium"
@@ -756,6 +766,9 @@ func gainStagingSourceLevelOutlierRows(admission sourceLevelAdmission, limit int
 		}
 		if candidate.Track.PeakDBFS != nil {
 			row.Metadata["observed_source_peak_dbfs"] = round3(*candidate.Track.PeakDBFS)
+		}
+		if candidate.Track.VolumeDB != nil {
+			row.Metadata["track_fader_db"] = round3(*candidate.Track.VolumeDB)
 		}
 		if constraint.ProjectedPeakDBFS != nil {
 			row.Metadata["projected_static_peak_dbfs"] = round3(*constraint.ProjectedPeakDBFS)

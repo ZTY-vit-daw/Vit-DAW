@@ -868,6 +868,36 @@ func TestBuildGainStagingPackClampsA5QuietTrackToPeakSafeClipGain(t *testing.T) 
 	}
 }
 
+func TestBuildGainStagingPackIncludesExistingFaderInClipGainSafety(t *testing.T) {
+	quiet := b1TestTrackWithClip("1062", "Quiet metal", "1066", 0)
+	quiet["volume_db"] = 1.5
+	pack := BuildGainStagingPack(GainStagingInput{
+		UserIntent: "B1.2 source calibration after B2",
+		ProjectState: map[string]any{"tracks": []map[string]any{
+			quiet,
+			b1TestTrackWithClip("ref_a", "Reference A", "ref_clip_a", 0),
+			b1TestTrackWithClip("ref_b", "Reference B", "ref_clip_b", 0),
+		}},
+		AudioAnalysisStatus: map[string]any{"track_waveform_envelopes": []map[string]any{
+			{"track_id": "1062", "clip_id": "1066", "rms_dbfs": -72.905, "peak_dbfs": -23.718},
+			{"track_id": "ref_a", "clip_id": "ref_clip_a", "rms_dbfs": -48.905, "peak_dbfs": -10.0},
+			{"track_id": "ref_b", "clip_id": "ref_clip_b", "rms_dbfs": -48.905, "peak_dbfs": -10.0},
+		}},
+		GeneratedAt: time.Date(2026, 8, 3, 0, 0, 0, 0, time.UTC),
+	})
+
+	rows := pack.Rankings["source_level_reference_calibration"]
+	if len(rows) != 1 {
+		t.Fatalf("calibration rows = %+v", rows)
+	}
+	target, _ := numberValue(rows[0].Metadata["target_clip_gain_db"])
+	fader, _ := numberValue(rows[0].Metadata["track_fader_db"])
+	projectedPeak, _ := numberValue(rows[0].Metadata["projected_static_peak_dbfs"])
+	if math.Abs(target-21.218) > 0.001 || math.Abs(fader-1.5) > 0.001 || math.Abs(projectedPeak-(-1.0)) > 0.001 {
+		t.Fatalf("non-linear peak-safe metadata = %+v", rows[0].Metadata)
+	}
+}
+
 func TestGainStagingRisksUseEffectiveStaticPeakAfterClipGain(t *testing.T) {
 	peak := -23.718
 	effectivePeak := 0.282

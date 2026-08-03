@@ -120,6 +120,7 @@ type CalibrationRow struct {
 	TargetClipped      bool     `json:"target_clipped_to_bound,omitempty"`
 	PeakSafetyClipped  bool     `json:"target_clipped_to_peak_safety,omitempty"`
 	SourcePeakDBFS     *float64 `json:"observed_source_peak_dbfs,omitempty"`
+	TrackFaderDB       *float64 `json:"track_fader_db,omitempty"`
 	ProjectedPeakDBFS  *float64 `json:"projected_static_peak_dbfs,omitempty"`
 	PeakSafetyAchieved *bool    `json:"peak_safety_achieved,omitempty"`
 	Risk               string   `json:"risk,omitempty"`

@@ -739,7 +739,8 @@ func messageLoopGainStagingExpandTrackCalibration(action capabilitycontext.GainS
 			if value, ok := firstNumericMapValue(action.Metadata, "observed_source_peak_dbfs"); ok {
 				sourcePeak = &value
 			}
-			constraint := levelsafety.ConstrainSourceClipGain(current, delta, 24, sourcePeak)
+			trackFaderDB, _ := firstNumericMapValue(action.Metadata, "track_fader_db")
+			constraint := levelsafety.ConstrainSourceClipGainWithDownstreamGain(current, delta, 24, sourcePeak, trackFaderDB)
 			target := math.Round(constraint.TargetClipGainDB*1000) / 1000
 			currentRounded := math.Round(current*1000) / 1000
 			deltaRounded := math.Round((target-currentRounded)*1000) / 1000
@@ -1511,6 +1512,9 @@ func messageLoopB12EffectiveStaticPeak(track capabilitycontext.TrackGainRow) (fl
 	peak := *track.PeakDBFS
 	if track.PrimaryClip != nil && track.PrimaryClip.GainDB != nil {
 		peak += *track.PrimaryClip.GainDB
+	}
+	if track.VolumeDB != nil {
+		peak += *track.VolumeDB
 	}
 	return peak, true
 }

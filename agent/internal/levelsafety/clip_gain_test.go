@@ -32,3 +32,17 @@ func TestConstrainSourceClipGainRepairsUnsafeExistingAbsoluteTarget(t *testing.T
 		t.Fatalf("constraint = %+v", got)
 	}
 }
+
+func TestConstrainSourceClipGainAccountsForExistingDownstreamFader(t *testing.T) {
+	peak := -23.718
+	got := ConstrainSourceClipGainWithDownstreamGain(0, 24, 24, &peak, 1.5)
+	if math.Abs(got.TargetClipGainDB-21.218) > 0.0001 {
+		t.Fatalf("target clip gain = %.6f, want 21.218", got.TargetClipGainDB)
+	}
+	if got.ProjectedPeakDBFS == nil || math.Abs(*got.ProjectedPeakDBFS-StaticPeakCeilingDBFS) > 0.0001 {
+		t.Fatalf("projected peak = %+v", got.ProjectedPeakDBFS)
+	}
+	if !got.PeakSafetyClamped || got.PeakSafetyAchieved == nil || !*got.PeakSafetyAchieved {
+		t.Fatalf("constraint = %+v", got)
+	}
+}

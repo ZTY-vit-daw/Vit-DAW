@@ -596,7 +596,11 @@ func buildCalibrationRows(rows []ReferenceLevelRow, profile MetricProfile, refer
 		if math.Abs(requestedDelta) < minActionDeltaDB {
 			continue
 		}
-		constraint := levelsafety.ConstrainSourceClipGain(*row.ClipGainDB, requestedDelta, clipGainBoundDB, row.PeakDBFS)
+		trackFaderDB := 0.0
+		if row.TrackFaderDB != nil {
+			trackFaderDB = *row.TrackFaderDB
+		}
+		constraint := levelsafety.ConstrainSourceClipGainWithDownstreamGain(*row.ClipGainDB, requestedDelta, clipGainBoundDB, row.PeakDBFS, trackFaderDB)
 		target := round3(constraint.TargetClipGainDB)
 		appliedDelta := round3(constraint.AppliedDeltaDB)
 		out = append(out, CalibrationRow{
@@ -616,6 +620,7 @@ func buildCalibrationRows(rows []ReferenceLevelRow, profile MetricProfile, refer
 			TargetClipped:      constraint.ClipGainBoundClamped,
 			PeakSafetyClipped:  constraint.PeakSafetyClamped,
 			SourcePeakDBFS:     ptrRoundOptional(row.PeakDBFS),
+			TrackFaderDB:       ptrRoundOptional(row.TrackFaderDB),
 			ProjectedPeakDBFS:  ptrRoundOptional(constraint.ProjectedPeakDBFS),
 			PeakSafetyAchieved: cloneBoolPointer(constraint.PeakSafetyAchieved),
 			Risk:               calibrationRisk(requestedDelta),

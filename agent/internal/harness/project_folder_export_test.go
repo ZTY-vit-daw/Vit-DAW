@@ -2,6 +2,7 @@ package harness
 
 import (
 	"context"
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"strings"
@@ -97,7 +98,11 @@ func TestSaveAsFolderPublishesIndependentProjectAndKeepsSourceActive(t *testing.
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, err := history.EnsureWorkingSession(sourcePath, "vitproj_source"); err != nil {
+	sourceSession, err := history.EnsureWorkingSession(sourcePath, "vitproj_source")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := history.WriteAgentRuntimeState(sourcePath, "vitproj_source", []byte(`{"turn":"B1"}`)); err != nil {
 		t.Fatal(err)
 	}
 	if err := os.MkdirAll(filepath.Join(sourceRoots.Agent, "observations"), 0o755); err != nil {
@@ -150,7 +155,36 @@ func TestSaveAsFolderPublishesIndependentProjectAndKeepsSourceActive(t *testing.
 	if !ok || current.ProjectUUID != "vitproj_source" || !samePath(current.ProjectPath, sourcePath) {
 		t.Fatalf("active store changed: %+v ok=%v", current, ok)
 	}
-	if len(kernel.calls) != 2 {
+	continuedSession, err := history.EnsureWorkingSession(sourcePath, "vitproj_source")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if continuedSession.SessionID != sourceSession.SessionID || continuedSession.Status != "active" {
+		t.Fatalf("folder export severed the active source history session: before=%+v after=%+v", sourceSession, continuedSession)
+	}
+	if err := history.WriteAgentRuntimeState(sourcePath, "vitproj_source", []byte(`{"turn":"B2"}`)); err != nil {
+		t.Fatal(err)
+	}
+	kernel.targetUUID = "vitproj_target_2"
+	secondTargetDir := filepath.Join(root, "Portable2")
+	if _, err := h.saveAsFolder(context.Background(), map[string]any{
+		"directory_path": secondTargetDir, "media_policy": "copy_referenced_audio",
+	}); err != nil {
+		t.Fatal(err)
+	}
+	secondRuntime, err := history.ReadAgentRuntimeState(filepath.Join(secondTargetDir, filepath.Base(sourcePath)), "vitproj_target_2")
+	if err != nil {
+		t.Fatal(err)
+	}
+	secondState := map[string]any{}
+	if err := json.Unmarshal(secondRuntime, &secondState); err != nil {
+		t.Fatal(err)
+	}
+	if firstString(secondState, "turn") != "B2" || firstString(secondState, "project_uuid") != "vitproj_target_2" || !samePath(firstString(secondState, "project_path"), filepath.Join(secondTargetDir, filepath.Base(sourcePath))) {
+		t.Fatalf("second folder export lost the latest source Agent runtime or target identity: %s", secondRuntime)
+	}
+	// Two folder exports each perform preflight plus snapshot.
+	if len(kernel.calls) != 4 {
 		t.Fatalf("kernel calls=%#v", kernel.calls)
 	}
 }

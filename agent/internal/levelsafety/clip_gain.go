@@ -13,11 +13,19 @@ type ClipGainConstraint struct {
 	PeakSafetyAchieved   *bool
 }
 
-// ConstrainSourceClipGain keeps an absolute clip-gain target within both the
-// writable clip-gain range and the static source peak ceiling. sourcePeakDBFS
-// is the pre-clip-gain source peak, so projected static peak is source peak
-// plus the absolute target clip gain.
+// ConstrainSourceClipGain keeps the legacy zero-downstream-gain behavior for
+// callers that do not model the rest of the static gain path.
 func ConstrainSourceClipGain(currentClipGainDB, requestedDeltaDB, clipGainBoundDB float64, sourcePeakDBFS *float64) ClipGainConstraint {
+	return ConstrainSourceClipGainWithDownstreamGain(currentClipGainDB, requestedDeltaDB, clipGainBoundDB, sourcePeakDBFS, 0)
+}
+
+// ConstrainSourceClipGainWithDownstreamGain keeps an absolute clip-gain target
+// within both the writable clip-gain range and the static source peak ceiling.
+// sourcePeakDBFS is the pre-clip-gain source peak. downstreamStaticGainDB is
+// the already-established gain after the clip (currently the track fader), so
+// projected static peak is source peak + target clip gain + downstream gain.
+// This allows B1 to run after B2 without resetting B2's musical fader choice.
+func ConstrainSourceClipGainWithDownstreamGain(currentClipGainDB, requestedDeltaDB, clipGainBoundDB float64, sourcePeakDBFS *float64, downstreamStaticGainDB float64) ClipGainConstraint {
 	target := currentClipGainDB + requestedDeltaDB
 	boundClamped := false
 	if clipGainBoundDB > 0 {
@@ -34,7 +42,7 @@ func ConstrainSourceClipGain(currentClipGainDB, requestedDeltaDB, clipGainBoundD
 	var projectedPeak *float64
 	var peakSafetyAchieved *bool
 	if sourcePeakDBFS != nil && !math.IsNaN(*sourcePeakDBFS) && !math.IsInf(*sourcePeakDBFS, 0) {
-		maxSafeTarget := StaticPeakCeilingDBFS - *sourcePeakDBFS
+		maxSafeTarget := StaticPeakCeilingDBFS - *sourcePeakDBFS - downstreamStaticGainDB
 		if target > maxSafeTarget {
 			target = maxSafeTarget
 			peakClamped = true
@@ -43,7 +51,7 @@ func ConstrainSourceClipGain(currentClipGainDB, requestedDeltaDB, clipGainBoundD
 				boundClamped = true
 			}
 		}
-		projected := *sourcePeakDBFS + target
+		projected := *sourcePeakDBFS + target + downstreamStaticGainDB
 		achieved := projected <= StaticPeakCeilingDBFS+1e-9
 		projectedPeak = &projected
 		peakSafetyAchieved = &achieved

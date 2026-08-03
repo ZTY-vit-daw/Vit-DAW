@@ -124,6 +124,22 @@ func TestGainStagingBatchExpansionKeepsEverySplitClipPeakSafe(t *testing.T) {
 	}
 }
 
+func TestGainStagingBatchExpansionAccountsForExistingTrackFader(t *testing.T) {
+	delta := 24.0
+	target := 24.0
+	action := capabilitycontext.GainStagingSuggestion{
+		ActionKind: "source_clip_gain_calibration", Tool: "clip.gain.set", TrackID: "1062", ClipID: "1066",
+		DeltaDB: &delta, TargetDB: &target, Metadata: map[string]any{"observed_source_peak_dbfs": -23.718, "track_fader_db": 1.5},
+	}
+	projectState := map[string]any{"tracks": []any{map[string]any{
+		"track_id": "1062", "clips": []any{map[string]any{"clip_id": "1066", "clip_type": "wave", "clip_gain_db": 0.0}},
+	}}}
+	expanded := messageLoopGainStagingExpandTrackCalibration(action, projectState)
+	if len(expanded) != 1 || expanded[0].TargetDB == nil || mathAbs(*expanded[0].TargetDB-21.218) > 0.001 {
+		t.Fatalf("expanded action = %+v", expanded)
+	}
+}
+
 func TestB12CompletionAcceptsPeakAtSafetyCeiling(t *testing.T) {
 	peak := -23.718
 	gain := 22.718

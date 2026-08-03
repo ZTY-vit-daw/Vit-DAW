@@ -316,6 +316,7 @@ def run_scenario(base_url: str, source_dir: Path, scenario_root: Path, name: str
     initial = project_signature(base_url, timeout)
     require(len(initial) >= 50, f"{name} opened only {len(initial)} tracks")
     turns = []
+    folder_exports: list[dict[str, Any]] = []
     for index, capability in enumerate(sequence):
         before_capability = project_signature(base_url, timeout)
         conversation_id = f"nonlinear_a5_{name}_{capability.lower()}_{int(time.time() * 1000)}"
@@ -325,17 +326,36 @@ def run_scenario(base_url: str, source_dir: Path, scenario_root: Path, name: str
         turns.append(turn)
         if capability == "B1":
             turn["peak_safety"] = assert_b1_peak_safe(base_url, timeout, scenario_dir / "turns")
-    saved = invoke(base_url, "project.save", {}, timeout)
-    write_json(scenario_dir / "save_response.json", saved)
+        if name == "folder_save_b1_b2":
+            export_dir = scenario_dir / "folder_exports" / capability.lower()
+            exported = invoke(base_url, "project.save_as_folder", {
+                "directory_path": str(export_dir),
+                "project_file_name": f"{capability.lower()}_snapshot.vit",
+                "media_policy": "reference_only",
+            }, timeout)
+            write_json(scenario_dir / f"folder_export_{capability.lower()}.json", exported)
+            export_result = result_map(exported)
+            require(str(export_result.get("status") or "").lower() == "ok", f"{capability} folder export failed: {export_result}")
+            require(export_result.get("active_project_unchanged") is True, f"{capability} folder export switched the active source project")
+            exported_path = Path(str(export_result.get("project_path") or ""))
+            require(exported_path.is_file(), f"{capability} folder export omitted the project file: {exported_path}")
+            folder_exports.append({"capability": capability, "project_path": str(exported_path), "response": export_result})
+    if name != "folder_save_b1_b2":
+        saved = invoke(base_url, "project.save", {}, timeout)
+        write_json(scenario_dir / "save_response.json", saved)
     final_signature = project_signature(base_url, timeout)
     reopen_verification: dict[str, Any] = {}
-    if name == "cumulative":
+    if name in {"cumulative", "folder_save_b1_b2"}:
+        reopen_path = project_path
+        if name == "folder_save_b1_b2":
+            require(len(folder_exports) == 2, f"folder-save scenario produced {len(folder_exports)} snapshots")
+            reopen_path = Path(folder_exports[-1]["project_path"])
         invoke(base_url, "project.new", {}, timeout)
-        reopened = invoke(base_url, "project.open", {"file_path": str(project_path), "project_path": str(project_path)}, timeout)
+        reopened = invoke(base_url, "project.open", {"file_path": str(reopen_path), "project_path": str(reopen_path)}, timeout)
         write_json(scenario_dir / "reopen_response.json", reopened)
-        assert_project_history_open_clean(reopened, project_path, "cumulative reopen")
+        assert_project_history_open_clean(reopened, reopen_path, name + " reopen")
         reopened_signature = project_signature(base_url, timeout)
-        require(reopened_signature == final_signature, "cumulative project state changed across save/reopen")
+        require(reopened_signature == final_signature, f"{name} project state changed across save/reopen")
         # The default state endpoint is intentionally compact for frequent GUI
         # polling and omits conversation_messages. Reopen verification needs
         # the explicit full durable-history projection.
@@ -350,7 +370,7 @@ def run_scenario(base_url: str, source_dir: Path, scenario_root: Path, name: str
             for content in expected:
                 if content and content not in history_contents:
                     missing_history.append(turn["capability"] + ":" + content[:120])
-        require(not missing_history, f"cumulative Agent conversation history was not restored: {missing_history}")
+        require(not missing_history, f"{name} Agent conversation history was not restored: {missing_history}")
         reopen_verification = {"state_equal": True, "history_message_count": len(history_messages), "verified_turn_count": len(turns)}
     return {
         "name": name,
@@ -359,6 +379,7 @@ def run_scenario(base_url: str, source_dir: Path, scenario_root: Path, name: str
         "initial_track_count": len(initial),
         "final_track_count": len(final_signature),
         "turns": turns,
+        "folder_exports": folder_exports,
         "reopen_verification": reopen_verification,
     }
 
@@ -376,6 +397,12 @@ def completed_checks(scenarios: list[tuple[str, list[str]]]) -> list[str]:
         checks.extend([
             "same_project_cumulative_non_linear_sequence",
             "same_project_save_reopen_state_and_agent_history",
+        ])
+    if "folder_save_b1_b2" in selected:
+        checks.extend([
+            "repeated_folder_export_preserves_active_source_session",
+            "B1_B2_conversation_history_survives_second_folder_export",
+            "self_contained_v2_folder_snapshot_opens_without_parent_path",
         ])
     checks.append("copied_project_history_path_rebound_without_warning")
     if any("B1" in sequence for _, sequence in scenarios):
@@ -413,6 +440,7 @@ def main() -> int:
         ("cumulative", ["B1", "B3", "C1", "B2", "B4"]),
     ]
     if args.scenarios.strip():
+        scenarios.append(("folder_save_b1_b2", ["B1", "B2"]))
         requested = {name.strip() for name in args.scenarios.split(",") if name.strip()}
         known = {name for name, _ in scenarios}
         require(requested.issubset(known), f"unknown scenarios: {sorted(requested - known)}")

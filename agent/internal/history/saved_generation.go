@@ -142,9 +142,11 @@ func CommitPreparedWorkingSession(sourcePath, sourceUUID, targetPath, targetUUID
 	if saveKind == "" {
 		saveKind = prepared.SaveKind
 	}
-	if saveKind == "save_as" {
+	forkTarget := saveKind == "save_as" || saveKind == "save_as_folder"
+	sourceRemainsActive := saveKind == "save_as_folder"
+	if forkTarget {
 		if targetPath == "" || targetUUID == "" || targetUUID == sourceUUID {
-			return nil, errors.New("Save As history commit requires a new target identity")
+			return nil, errors.New("forked history commit requires a new target identity")
 		}
 	} else {
 		targetPath, targetUUID = sourcePath, sourceUUID
@@ -159,7 +161,7 @@ func CommitPreparedWorkingSession(sourcePath, sourceUUID, targetPath, targetUUID
 	preparedRepo := sourceRepo
 	preparedRepo.HistoryDir = prepared.WorkspaceDir
 	preparedRepo.StateDir = filepath.Join(prepared.WorkspaceDir, "state")
-	if saveKind == "save_as" {
+	if forkTarget {
 		if err := adoptVisibleWorktrees(targetRepo, preparedRepo); err != nil {
 			return nil, err
 		}
@@ -177,11 +179,20 @@ func CommitPreparedWorkingSession(sourcePath, sourceUUID, targetPath, targetUUID
 	prepared.CommittedAt = head.SavedAt
 	_ = writeJSON(filepath.Join(prepareRoot, "prepare.json"), prepared)
 	if session, readErr := readWorkingSession(filepath.Dir(boundProjectWorkspace(sourcePath).WorkspaceDir)); readErr == nil {
-		if saveKind == "save_as" {
+		switch {
+		case saveKind == "save_as":
 			session.Status = "forked"
 			session.ForkedToPath = targetRepo.ProjectPath
 			session.ForkedToUUID = targetRepo.ProjectUUID
-		} else {
+		case sourceRemainsActive:
+			// Folder export is a snapshot, not a project switch. Keep the exact
+			// source draft active so subsequent Agent turns and another folder
+			// export continue from the same conversation/runtime workspace.
+			session.Status = "active"
+			session.ForkedToPath = ""
+			session.ForkedToUUID = ""
+		default:
+			session.Status = "active"
 			session.CommittedAt = head.SavedAt
 		}
 		session.UpdatedAt = head.SavedAt
@@ -200,10 +211,14 @@ func CommitPreparedWorkingSession(sourcePath, sourceUUID, targetPath, targetUUID
 	out["generation_id"] = generationID
 	out["agent_history_generation"] = generationID
 	out["working_session_id"] = targetSession.SessionID
-	if saveKind == "save_as" {
+	if forkTarget {
 		out["working_session_forked"] = true
 		out["source_project_path"] = sourceRepo.ProjectPath
 		out["source_project_uuid"] = sourceRepo.ProjectUUID
+	}
+	if sourceRemainsActive {
+		out["active_project_unchanged"] = true
+		out["source_working_session_id"] = WorkingSessionID(sourceRepo.ProjectPath)
 	}
 	return out, nil
 }

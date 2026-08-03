@@ -962,7 +962,7 @@ func (h *Harness) applyProjectLifecycle(ctx context.Context, spec tools.CommandS
 		if err != nil {
 			return nil, err
 		}
-		if parentUUID != "" && parentUUID != projectUUID && !boolValueDefault(recovered["recovered"], false) {
+		if shouldRecoverParentProjectHistory(parentUUID, projectUUID, recovered, packageRestore) {
 			if _, err := history.RecoverMissingProjectFork("", parentUUID, projectPath, projectUUID); err != nil {
 				return nil, err
 			}
@@ -2013,7 +2013,7 @@ func (h *Harness) applyExternalProjectOpened(ctx context.Context, cmd map[string
 	if err != nil {
 		return nil, err
 	}
-	if parentUUID != "" && parentUUID != projectUUID && !boolValueDefault(recovered["recovered"], false) {
+	if shouldRecoverParentProjectHistory(parentUUID, projectUUID, recovered, packageRestore) {
 		if _, err := history.RecoverMissingProjectFork("", parentUUID, projectPath, projectUUID); err != nil {
 			return nil, err
 		}
@@ -2050,6 +2050,16 @@ func recoverMatchingHistoryOnOpen(projectPath, projectUUID string, restored proj
 		return map[string]any{"status": "ok", "recovered": false, "reason": "project_package_available"}, nil
 	}
 	return history.RecoverMatchingProjectHistory(projectPath, projectUUID)
+}
+
+func shouldRecoverParentProjectHistory(parentUUID, projectUUID string, preparedRecovery map[string]any, restored projectpackage.RestoreResult) bool {
+	if parentUUID == "" || parentUUID == projectUUID || boolValueDefault(preparedRecovery["recovered"], false) {
+		return false
+	}
+	// A v2 folder snapshot carries its own rebound Agent store and history
+	// workspace. It must remain independently openable even when the source
+	// project was an unsaved draft or no longer exists on this machine.
+	return !(restored.Status == "v2" && restored.ManifestVerified)
 }
 
 // restoreProjectPersistence keeps the v2 store authoritative once its

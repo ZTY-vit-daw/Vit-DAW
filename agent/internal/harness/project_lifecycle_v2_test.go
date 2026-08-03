@@ -211,6 +211,36 @@ func TestRestoreProjectPersistenceRebindsCopiedV2StorePath(t *testing.T) {
 	}
 }
 
+func TestExternalProjectOpenAcceptsSelfContainedV2SnapshotWithoutParentPath(t *testing.T) {
+	projectstore.Deactivate()
+	t.Cleanup(projectstore.Deactivate)
+	root := t.TempDir()
+	projectPath := filepath.Join(root, "snapshot", "song.vit")
+	if err := os.MkdirAll(filepath.Dir(projectPath), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(projectPath, []byte("project"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	const projectUUID = "vitproj_self_contained_snapshot"
+	if _, _, err := projectstore.Ensure(projectPath, projectUUID); err != nil {
+		t.Fatal(err)
+	}
+
+	h := New(nil, nil, nil)
+	result, err := h.applyExternalProjectOpened(context.Background(), map[string]any{
+		"project_path":        projectPath,
+		"project_uuid":        projectUUID,
+		"parent_project_uuid": "vitproj_missing_unsaved_parent",
+	})
+	if err != nil {
+		t.Fatalf("self-contained v2 snapshot required its missing parent: %v", err)
+	}
+	if firstString(result, "status") != "ok" || !samePath(firstString(result, "project_path"), projectPath) {
+		t.Fatalf("external open result=%+v", result)
+	}
+}
+
 func TestActiveV2WorkflowDoesNotWriteLegacyWorkspaceStores(t *testing.T) {
 	projectstore.Deactivate()
 	t.Cleanup(projectstore.Deactivate)

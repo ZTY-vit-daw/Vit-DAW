@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"math"
 	"testing"
+
+	"vit-daw-agent/internal/levelsafety"
 )
 
 func TestBuildReferenceLevelModelUsesActiveRMSAsStrictMetric(t *testing.T) {
@@ -299,6 +301,35 @@ func TestBuildReferenceLevelModelClampsCalibrationToSourcePeakSafety(t *testing.
 	}
 	if !row.PeakSafetyClipped || row.ProjectedPeakDBFS == nil || math.Abs(*row.ProjectedPeakDBFS-(-1.0)) > 0.001 || row.PeakSafetyAchieved == nil || !*row.PeakSafetyAchieved {
 		t.Fatalf("peak safety = %+v", row)
+	}
+}
+
+func TestBuildReferenceLevelModelPreservesExistingFaderWhenClampingClipGain(t *testing.T) {
+	quiet := testTrack("1062", "1066", 0)
+	quiet["volume_db"] = 1.5
+	proj := Build(Input{
+		GeneratedAt: "2026-08-03T00:00:00Z",
+		ProjectState: map[string]any{"tracks": []map[string]any{
+			quiet,
+			testTrack("ref_a", "ref_clip_a", 0),
+			testTrack("ref_b", "ref_clip_b", 0),
+		}},
+		AudioAnalysisStatus: map[string]any{"track_waveform_envelopes": []map[string]any{
+			{"track_id": "1062", "clip_id": "1066", "rms_dbfs": -72.905, "peak_dbfs": -23.718},
+			{"track_id": "ref_a", "clip_id": "ref_clip_a", "rms_dbfs": -48.905, "peak_dbfs": -10.0},
+			{"track_id": "ref_b", "clip_id": "ref_clip_b", "rms_dbfs": -48.905, "peak_dbfs": -10.0},
+		}},
+	})
+
+	if len(proj.Calibration) != 1 {
+		t.Fatalf("calibration = %+v", proj.Calibration)
+	}
+	row := proj.Calibration[0]
+	if math.Abs(row.TargetClipGainDB-21.218) > 0.001 || row.TrackFaderDB == nil || math.Abs(*row.TrackFaderDB-1.5) > 0.001 {
+		t.Fatalf("calibration row = %+v", row)
+	}
+	if row.ProjectedPeakDBFS == nil || math.Abs(*row.ProjectedPeakDBFS-levelsafety.StaticPeakCeilingDBFS) > 0.001 {
+		t.Fatalf("projected peak = %+v", row.ProjectedPeakDBFS)
 	}
 }
 

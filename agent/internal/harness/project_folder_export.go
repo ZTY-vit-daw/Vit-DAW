@@ -127,7 +127,7 @@ func (h *Harness) saveAsFolder(ctx context.Context, cmd map[string]any) (map[str
 	}
 	workspace, err := history.CommitPreparedWorkingSession(
 		sourcePath, sourceUUID, stagingProjectPath, targetUUID,
-		prepareID, generationID, "save_as",
+		prepareID, generationID, "save_as_folder",
 	)
 	if err != nil {
 		return workspace, err
