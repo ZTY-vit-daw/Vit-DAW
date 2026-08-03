@@ -253,6 +253,61 @@ describe("Vit message lifecycle v1", () => {
     expect(resolved[2].actions?.[0]).toMatchObject({ status: "waiting_for_user", actions: [{ id: "approve" }] });
   });
 
+  it("closes a restored B4 plug-in selector when the same turn later completed", () => {
+    const selector: ChatMessage = {
+      id: "b4-plugin-selection",
+      role: "assistant",
+      content: "Choose the exact EQ plug-in for B4",
+      actions: [{
+        id: "interaction-b4-plugin",
+        kind: "b4_plugin_selection",
+        status: "waiting_for_user",
+        actions: [{ id: "select_plugin_candidate_39" }, { id: "cancel" }]
+      }],
+      createdAt: 1,
+      turn_id: "run-b4",
+      message_kind: "assistant"
+    };
+    const verification: ChatMessage = {
+      id: "b4-verification",
+      role: "assistant",
+      content: "B4 project batch completed and verified",
+      createdAt: 2,
+      turn_id: "run-b4",
+      message_kind: "verification"
+    };
+
+    const resolved = resolveCompletedTurnProposals([selector, verification]);
+    expect(resolved[0].actions?.[0]).toMatchObject({
+      status: "completed",
+      stage: "completed",
+      resolved_action_id: "turn_terminal_receipt",
+      actions: []
+    });
+  });
+
+  it("does not close a persistent result card just because the turn completed", () => {
+    const result: ChatMessage = {
+      id: "result-card",
+      role: "assistant",
+      content: "Project result",
+      actions: [{ id: "result", kind: "project_result", actions: [{ id: "open_report" }] }],
+      createdAt: 1,
+      turn_id: "run-result",
+      message_kind: "assistant"
+    };
+    const verification: ChatMessage = {
+      id: "result-verification",
+      role: "assistant",
+      content: "Verified",
+      createdAt: 2,
+      turn_id: "run-result",
+      message_kind: "verification"
+    };
+
+    expect(resolveCompletedTurnProposals([result, verification])[0]).toEqual(result);
+  });
+
   it("gives live and history-restored actions the same Proposal identity", () => {
     const live = {
       id: "interaction-live",

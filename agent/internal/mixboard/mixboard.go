@@ -198,6 +198,7 @@ func AssembleFrequencyContext(projectState map[string]any, mixSessionID, goalTex
 	normalizeProjectFeatureMaterialFreshness(&featureSnapshot, projectState)
 	promoteBestL3FeatureRows(&featureSnapshot)
 	promoteBestRealtimeFeatureRows(&featureSnapshot)
+	preferUniformProjectL3FrequencyEvidence(&featureSnapshot, projectState)
 	assembly["normalized_l2_row_count"] = usableFrequencyL2TrackCount(featureSnapshot.L2RenderProbes)
 	for key, value := range recovery {
 		assembly["prior_observation_"+key] = value
@@ -236,6 +237,46 @@ func AssembleFrequencyContext(projectState map[string]any, mixSessionID, goalTex
 	}
 }
 
+// C1's project-frequency diagnosis is a source-file relationship analysis.
+// B4 may have left a small set of target post-fader probes in the shared
+// feature snapshot; allowing those rows to win per-track would produce a
+// mixed tap point and make otherwise complete C1 evidence incomparable. Once
+// every frequency-relevant project track has a valid L3 row, keep diagnosis on
+// that uniform source-file tap. Target post-fader baselines are collected
+// separately after C1 selects exact mutation targets.
+func preferUniformProjectL3FrequencyEvidence(snap *featureSnapshot, projectState map[string]any) {
+	if snap == nil || len(snap.L2RenderProbes) == 0 {
+		return
+	}
+	required := 0
+	for _, track := range mapRowsAny(projectState["tracks"]) {
+		if trackRequiresFrequencyEvidence(track) {
+			required++
+		}
+	}
+	if required == 0 {
+		return
+	}
+	ready := map[string]bool{}
+	for _, row := range snap.BandEnergySummaries {
+		status := featureStatus(row)
+		if (status == "ready" || status == "partial") && len(mapValue(row["bands"])) > 0 {
+			if trackID := cleanAnyString(row["track_id"]); trackID != "" {
+				ready[trackID] = true
+			}
+		}
+	}
+	if len(ready) < required {
+		return
+	}
+	snap.L2RenderProbe = nil
+	snap.L2RenderProbes = nil
+	snap.RealtimeBandEnergySummary = nil
+	snap.RealtimeBandEnergySummaries = nil
+	snap.RealtimeStereoRelationSummary = nil
+	snap.RealtimeStereoRelationSummaries = nil
+}
+
 func usableFrequencyL2TrackCount(rows []map[string]any) int {
 	tracks := map[string]bool{}
 	for _, row := range rows {
@@ -255,7 +296,10 @@ func usableFrequencyL2TrackCount(rows []map[string]any) int {
 
 var frequencyAcousticSnapshotCache struct {
 	sync.Mutex
-	path    string
+	entries map[string]frequencyAcousticSnapshotCacheEntry
+}
+
+type frequencyAcousticSnapshotCacheEntry struct {
 	size    int64
 	modTime time.Time
 	snap    acousticpackage.Snapshot
@@ -446,28 +490,81 @@ func sortedRecoveredFrequencyRows(rows map[string]map[string]any) []map[string]a
 }
 
 func readFrequencyAcousticSnapshot(args map[string]any) (acousticpackage.Snapshot, string, error) {
-	path := acousticpackage.DefaultStorePath(args)
+	primaryPath := acousticpackage.DefaultStorePath(args)
+	merged, err := readFrequencyAcousticSnapshotPath(primaryPath)
+	if err != nil {
+		return acousticpackage.Snapshot{}, primaryPath, err
+	}
+	for _, fallbackPath := range frequencyAcousticFallbackPaths(args, primaryPath) {
+		fallback, fallbackErr := readFrequencyAcousticSnapshotPath(fallbackPath)
+		if fallbackErr != nil {
+			continue
+		}
+		merged.Packages = append(merged.Packages, fallback.Packages...)
+	}
+	return merged, primaryPath, nil
+}
+
+func readFrequencyAcousticSnapshotPath(path string) (acousticpackage.Snapshot, error) {
+	path = filepath.Clean(strings.TrimSpace(path))
+	if path == "." || path == "" {
+		return acousticpackage.Snapshot{SchemaVersion: acousticpackage.SchemaVersion}, nil
+	}
 	info, err := os.Stat(path)
 	if err != nil {
 		if os.IsNotExist(err) {
-			return acousticpackage.Snapshot{SchemaVersion: acousticpackage.SchemaVersion}, path, nil
+			return acousticpackage.Snapshot{SchemaVersion: acousticpackage.SchemaVersion}, nil
 		}
-		return acousticpackage.Snapshot{}, path, err
+		return acousticpackage.Snapshot{}, err
 	}
 	frequencyAcousticSnapshotCache.Lock()
 	defer frequencyAcousticSnapshotCache.Unlock()
-	if frequencyAcousticSnapshotCache.path == path && frequencyAcousticSnapshotCache.size == info.Size() && frequencyAcousticSnapshotCache.modTime.Equal(info.ModTime()) {
-		return frequencyAcousticSnapshotCache.snap, path, nil
+	key := strings.ToLower(path)
+	if cached, ok := frequencyAcousticSnapshotCache.entries[key]; ok && cached.size == info.Size() && cached.modTime.Equal(info.ModTime()) {
+		return cached.snap, nil
 	}
 	snap, err := acousticpackage.NewStore(path).Read()
 	if err != nil {
-		return acousticpackage.Snapshot{}, path, err
+		return acousticpackage.Snapshot{}, err
 	}
-	frequencyAcousticSnapshotCache.path = path
-	frequencyAcousticSnapshotCache.size = info.Size()
-	frequencyAcousticSnapshotCache.modTime = info.ModTime()
-	frequencyAcousticSnapshotCache.snap = snap
-	return snap, path, nil
+	if frequencyAcousticSnapshotCache.entries == nil {
+		frequencyAcousticSnapshotCache.entries = map[string]frequencyAcousticSnapshotCacheEntry{}
+	}
+	frequencyAcousticSnapshotCache.entries[key] = frequencyAcousticSnapshotCacheEntry{size: info.Size(), modTime: info.ModTime(), snap: snap}
+	return snap, nil
+}
+
+// Source-file L3 facts are portable across project identities when their file
+// descriptor still matches the current material. Project Package v2 uses a
+// project-local acoustic store, while older installations kept the same facts
+// in the workspace store. Read that legacy store as a fallback so opening a
+// folder snapshot does not strand C1 merely because the local store contains
+// only rows materialized after Save As. The hydration path below still applies
+// exact source/path validation before any fallback row can enter the model.
+func frequencyAcousticFallbackPaths(args map[string]any, primaryPath string) []string {
+	paths := []string{}
+	for _, raw := range anySlice(args["acoustic_package_fallback_paths"]) {
+		if path := strings.TrimSpace(fmt.Sprint(raw)); path != "" && path != "<nil>" {
+			paths = append(paths, path)
+		}
+	}
+	if path := strings.TrimSpace(os.Getenv("VIT_ACOUSTIC_PACKAGE_FALLBACK_PATH")); path != "" {
+		paths = append(paths, path)
+	}
+	if devRoot := strings.TrimSpace(os.Getenv("VIT_DAW_DEV_ROOT")); devRoot != "" {
+		legacyPath := filepath.Join(filepath.Clean(devRoot), "VitApp", "Workspace", "Artifacts", "acoustic_package_status.json")
+		if _, err := os.Stat(legacyPath); err == nil {
+			paths = append(paths, legacyPath)
+		}
+	}
+	primaryKey := strings.ToLower(filepath.Clean(strings.TrimSpace(primaryPath)))
+	out := []string{}
+	for _, path := range uniquePaths(paths) {
+		if strings.ToLower(filepath.Clean(path)) != primaryKey {
+			out = append(out, path)
+		}
+	}
+	return out
 }
 
 func hydrateFrequencySnapshotFromAcousticPackages(snap *featureSnapshot, projectState map[string]any, args map[string]any) map[string]any {

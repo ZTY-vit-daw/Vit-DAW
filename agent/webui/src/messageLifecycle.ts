@@ -227,11 +227,11 @@ export function resolveSupersededMessages(messages: ChatMessage[]): ChatMessage[
 }
 
 // Project History v1 appends the execution receipt but does not rewrite the
-// earlier Proposal node. When a UI state refresh restores both rows, the old
-// waiting_for_user interaction must be treated as consumed. Otherwise the
-// composer can surface the already-approved action again even though the
-// Agent goal is complete. The receipt must be later in the same turn so a
-// genuinely new Proposal in a multi-stage turn remains actionable.
+// earlier interactive node. When a UI state refresh restores both rows, an old
+// waiting_for_user interaction must be treated as consumed. This includes
+// staged selectors such as B4 plug-in selection, not only Proposal approval.
+// The receipt must be later in the same turn so a genuinely new interaction in
+// a multi-stage turn remains actionable.
 export function resolveCompletedTurnProposals(messages: ChatMessage[]): ChatMessage[] {
   const lastTerminalIndexByTurn = new Map<string, number>();
   messages.forEach((message, index) => {
@@ -247,7 +247,7 @@ export function resolveCompletedTurnProposals(messages: ChatMessage[]): ChatMess
   return messages.map((message, index) => {
     const turnID = text(message.turn_id);
     const terminalIndex = turnID ? lastTerminalIndexByTurn.get(turnID) : undefined;
-    if (terminalIndex === undefined || terminalIndex <= index || !message.actions?.some(isProposalAction)) {
+    if (terminalIndex === undefined || terminalIndex <= index || !message.actions?.some(isTurnBoundInteractionAction)) {
       return message;
     }
     const terminalKind = inferMessageKind(messages[terminalIndex]);
@@ -256,7 +256,7 @@ export function resolveCompletedTurnProposals(messages: ChatMessage[]): ChatMess
       ...message,
       actions: message.actions.map((actionValue) => {
         const action = record(actionValue);
-        if (!isProposalAction(action)) {
+        if (!isTurnBoundInteractionAction(action)) {
           return action;
         }
         return {
@@ -269,6 +269,23 @@ export function resolveCompletedTurnProposals(messages: ChatMessage[]): ChatMess
       })
     };
   });
+}
+
+function isTurnBoundInteractionAction(value: unknown): boolean {
+  if (isProposalAction(value)) {
+    return true;
+  }
+  const action = record(value);
+  const kind = text(action.kind ?? action.type).toLowerCase();
+  if (["project_result", "mixboard", "mix_board", "plugin_learning_completion"].includes(kind)) {
+    return false;
+  }
+  const status = text(action.status ?? action.stage).toLowerCase();
+  const childActions = Array.isArray(action.actions) ? action.actions : [];
+  return childActions.length > 0 && (
+    status === "" ||
+    ["waiting_for_user", "waiting_confirmation", "waiting_clarification", "pending", "requested"].includes(status)
+  );
 }
 
 export function eventTurnID(event: AgentEvent): string {

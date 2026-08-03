@@ -171,6 +171,65 @@ func TestAssembleFrequencyContextReusesExactSourceL3AcrossProjectWithoutObservat
 	}
 }
 
+func TestAssembleFrequencyContextUsesPortableLegacyAcousticFallback(t *testing.T) {
+	root := t.TempDir()
+	featurePath := filepath.Join(root, "frequency_features.json")
+	primaryPath := filepath.Join(root, "project", "acoustic_package_status.json")
+	fallbackPath := filepath.Join(root, "workspace", "acoustic_package_status.json")
+	if err := writeJSON(featurePath, featureSnapshot{L2RenderProbes: []map[string]any{{
+		"status": "ready", "track_id": "t1", "clip_id": "c1", "tap_point": "track_post_fader",
+		"source_path": "D:/audio/portable.wav", "bands": map[string]any{"bass": map[string]any{"unit_energy": .9}},
+	}}}); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.MkdirAll(filepath.Dir(primaryPath), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.MkdirAll(filepath.Dir(fallbackPath), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := writeJSON(primaryPath, acousticpackage.Snapshot{SchemaVersion: acousticpackage.SchemaVersion}); err != nil {
+		t.Fatal(err)
+	}
+	const sourceRevision = "D:/audio/portable.wav|size=100|mtime=1|length=8.0000"
+	fallback := acousticpackage.Snapshot{SchemaVersion: acousticpackage.SchemaVersion, Packages: []acousticpackage.Status{{
+		SchemaVersion: acousticpackage.SchemaVersion, ProjectID: "older-project", TrackID: "old-track", ClipID: "old-clip",
+		SourceRevision: sourceRevision, SourceFingerprint: sourceRevision, SourcePath: "D:/audio/portable.wav", UpdatedAt: "2026-07-30T01:00:00Z",
+		PackageLayers: map[string]acousticpackage.LayerStatus{"l3_deep": {Status: acousticpackage.StatusReady, Features: map[string]acousticpackage.FeatureStatus{
+			"band_energy_summary": {Status: acousticpackage.StatusReady, Source: "kernel_l3_offline_analyzer", Ref: map[string]any{
+				"status": "ready", "source": "kernel_l3_offline_analyzer", "source_revision": sourceRevision,
+				"bands": map[string]any{"bass": map[string]any{"unit_energy": .42}},
+			}},
+		}}},
+	}}}
+	if err := writeJSON(fallbackPath, fallback); err != nil {
+		t.Fatal(err)
+	}
+	state := map[string]any{"project_uuid": "current-project", "tracks": []any{map[string]any{
+		"track_id": "t1", "clips": []any{map[string]any{
+			"clip_id": "c1", "source_path": "D:/audio/portable.wav", "source_revision": sourceRevision, "duration_seconds": 8.0,
+		}},
+	}}}
+	assembled := loadFeatureSnapshot(map[string]any{"feature_snapshot_path": featurePath})
+	assembly := hydrateFrequencySnapshotFromAcousticPackages(&assembled, state, map[string]any{
+		"acoustic_package_status_path":    primaryPath,
+		"acoustic_package_fallback_paths": []any{fallbackPath},
+	})
+	if int(numberFromMap(assembly, "matched_l3_track_count")) != 1 || len(assembled.BandEnergySummaries) != 1 {
+		t.Fatalf("portable fallback was not hydrated: assembly=%#v rows=%#v", assembly, assembled.BandEnergySummaries)
+	}
+	if cleanAnyString(assembled.BandEnergySummaries[0]["project_id"]) != "current-project" || cleanAnyString(assembled.BandEnergySummaries[0]["track_id"]) != "t1" {
+		t.Fatalf("portable fallback was not rebound to the current project target: %#v", assembled.BandEnergySummaries[0])
+	}
+	t.Setenv("VIT_ACOUSTIC_PACKAGE_STATUS_PATH", primaryPath)
+	t.Setenv("VIT_ACOUSTIC_PACKAGE_FALLBACK_PATH", fallbackPath)
+	context := AssembleFrequencyContext(state, "c1-portable-fallback", "run C1", featurePath)
+	frequency := mapValue(context.MOMProjection["frequency_relationship"])
+	if cleanAnyString(frequency["tap_point"]) != "source_file_pre_fx" {
+		t.Fatalf("C1 frequency diagnosis mixed L2 and portable L3 taps: assembly=%#v frequency=%#v", context.Assembly, frequency)
+	}
+}
+
 func TestAssembleFrequencyContextMatchesDescriptorL3AcrossProjectWhenStateHasOnlySourcePath(t *testing.T) {
 	root := t.TempDir()
 	featurePath := filepath.Join(root, "frequency_features.json")
