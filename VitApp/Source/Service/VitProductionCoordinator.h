@@ -6,6 +6,8 @@
 #include <memory>
 #include <tracktion_engine/tracktion_engine.h>
 
+#include "CompressorDualTapEvidence.h"
+
 namespace vit
 {
 
@@ -42,6 +44,17 @@ public:
         bool tailCaptured = true;
     };
 
+    struct CompressorDualTapProbeRequest
+    {
+        CompressorDualTapEvidenceRequest evidence;
+        juce::File inputRenderFile;
+        juce::File outputRenderFile;
+        juce::File outputVerificationRenderFile;
+        juce::File artifactDirectory;
+        juce::BigInteger tracksToDo;
+        std::function<juce::String()> readCurrentScopeRevision;
+    };
+
     explicit VitProductionCoordinator (PublishFn publish);
 
     bool isRendering() const noexcept { return rendering.load(); }
@@ -54,6 +67,9 @@ public:
                                      bool useMasterPlugins,
                                      const juce::BigInteger& tracksToDo = {},
                                      L2RenderProbeRequest probeRequest = {});
+
+    juce::String startCompressorDualTapProbe (te::Edit& edit,
+                                              CompressorDualTapProbeRequest request);
 
     void cancelOfflineRender();
 

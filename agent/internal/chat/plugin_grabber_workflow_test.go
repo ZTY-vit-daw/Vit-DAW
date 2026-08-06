@@ -38,59 +38,6 @@ func TestSemanticPluginLoadFallbackFindsValhallaForReverb(t *testing.T) {
 	}
 }
 
-func TestPluginGrabberMappingNeedsDisplayReviewWhenUserReviewIsMissing(t *testing.T) {
-	mapping := map[string]any{
-		"confirmed":        false,
-		"missing_evidence": []string{"user_review"},
-		"display_domain": map[string]any{
-			"status":     "inferred",
-			"confidence": 0.95,
-		},
-	}
-	if !pluginGrabberMappingNeedsDisplayReview(mapping) {
-		t.Fatalf("unconfirmed mapping with missing user review was hidden: %+v", mapping)
-	}
-	mapping["confirmed"] = true
-	if pluginGrabberMappingNeedsDisplayReview(mapping) {
-		t.Fatalf("confirmed mapping should not be reviewed again: %+v", mapping)
-	}
-}
-
-func TestPluginGrabberDisplayDomainFormKeepsSubmittedSlotsStable(t *testing.T) {
-	payload := map[string]any{
-		"profile_patch": map[string]any{
-			"groups": []any{map[string]any{
-				"id": "b1", "label": "B1",
-				"params": map[string]any{
-					"gain": map[string]any{
-						"param_id": "2", "confirmed": false, "missing_evidence": []string{"user_review"},
-						"display_domain_text": "-18~18 dB", "display_domain": map[string]any{"status": "inferred", "confidence": 0.95},
-					},
-					"frequency": map[string]any{
-						"param_id": "4", "confirmed": false, "missing_evidence": []string{"user_review"},
-						"display_domain_text": "10~40000 Hz", "display_domain": map[string]any{"status": "inferred", "confidence": 0.95},
-					},
-				},
-			}},
-		},
-	}
-	fields := pluginGrabberDisplayDomainFields(payload)
-	if len(fields) != 2 {
-		t.Fatalf("fields = %+v", fields)
-	}
-	if fields[0].Payload["slot"] != "frequency" || fields[1].Payload["slot"] != "gain" {
-		t.Fatalf("field order must be deterministic: %+v", fields)
-	}
-	submitted := map[string]any{
-		fields[0].ID: "10~40000 Hz",
-		fields[1].ID: "-18~18 dB",
-	}
-	reviews := pluginGrabberDisplayDomainReviews(payload, submitted)
-	if len(reviews) != 2 || reviews[0]["slot"] != "frequency" || reviews[0]["display_domain_text"] != "10~40000 Hz" || reviews[1]["slot"] != "gain" || reviews[1]["display_domain_text"] != "-18~18 dB" {
-		t.Fatalf("submitted field bindings changed: %+v", reviews)
-	}
-}
-
 func TestRankPluginLoadCandidatesPrefersInstrumentForInstrumentIntent(t *testing.T) {
 	candidates := rankPluginLoadCandidates("Surge XT", "load an instrument", []pluginLoadCandidate{
 		{

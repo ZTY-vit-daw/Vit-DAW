@@ -294,13 +294,6 @@ func TestPluginGrabberAliasIsCataloged(t *testing.T) {
 	if renameMacro.CommandName != "control_rename_macro" || renameMacro.RequiresConfirmation || renameMacro.RiskLevel != RiskUndoable {
 		t.Fatalf("macro rename metadata = %+v", renameMacro)
 	}
-	profiles, ok := catalog.LookupTool("plugin_grabber.get_project_profiles")
-	if !ok {
-		t.Fatal("plugin_grabber.get_project_profiles missing")
-	}
-	if profiles.CommandName != "plugin_grabber_get_project_profiles" || profiles.RequiresConfirmation || profiles.RiskLevel != RiskDirect {
-		t.Fatalf("profile read metadata = %+v", profiles)
-	}
 	explain, ok := catalog.LookupTool("plugin_grabber.explain_controls")
 	if !ok {
 		t.Fatal("plugin_grabber.explain_controls missing")
@@ -308,19 +301,19 @@ func TestPluginGrabberAliasIsCataloged(t *testing.T) {
 	if explain.CommandName != "plugin_grabber_explain_controls" || explain.RequiresConfirmation || explain.RiskLevel != RiskDirect {
 		t.Fatalf("explain controls metadata = %+v", explain)
 	}
-	upsert, ok := catalog.LookupTool("plugin_grabber.upsert_project_profile")
-	if !ok {
-		t.Fatal("plugin_grabber.upsert_project_profile missing")
-	}
-	if upsert.CommandName != "plugin_grabber_upsert_project_profile" || !upsert.RequiresConfirmation || upsert.RiskLevel != RiskConfirm {
-		t.Fatalf("profile upsert metadata = %+v", upsert)
-	}
-	applyControl, ok := catalog.LookupTool("plugin_grabber.apply_control")
-	if !ok {
-		t.Fatal("plugin_grabber.apply_control missing")
-	}
-	if applyControl.CommandName != "plugin_grabber_apply_control" || applyControl.RequiresConfirmation || applyControl.RiskLevel != RiskUndoable || !applyControl.SupportsUndo {
-		t.Fatalf("apply control metadata = %+v", applyControl)
+	for _, retired := range []string{
+		"plugin_grabber.get_project_profiles",
+		"plugin_grabber.learn_project_profile",
+		"plugin_grabber.upsert_project_profile",
+		"plugin_grabber.remove_project_profile",
+		"plugin_grabber.apply_control",
+		"spal.reference_eq_provider.register",
+		"vps.verify",
+		"vpsforge.generate",
+	} {
+		if _, ok := catalog.LookupTool(retired); ok {
+			t.Fatalf("retired profile tool %q remains cataloged", retired)
+		}
 	}
 	applyEQEdits, ok := catalog.LookupTool("plugin_grabber.apply_eq_edits")
 	if !ok {
@@ -431,6 +424,27 @@ func TestMixTickToolsAreAgentLayerCataloged(t *testing.T) {
 	}
 	if rollback.CommandName != "mix_rollback_tick" || !rollback.MutatesProject || !rollback.SupportsUndo || rollback.RiskLevel != RiskUndoable {
 		t.Fatalf("rollback metadata = %+v", rollback)
+	}
+}
+
+func TestFreeStateCCBObservationToolsAreReadOnlyAndTyped(t *testing.T) {
+	catalog := DefaultCatalog()
+	for _, name := range []string{"ccb.observation_catalog", "ccb.observation_request", "ccb_observation_catalog", "ccb_observation_request"} {
+		spec, ok := catalog.LookupTool(name)
+		if !ok {
+			t.Fatalf("%s missing", name)
+		}
+		if spec.RiskLevel != RiskDirect || spec.MutatesProject || spec.RequiresConfirmation || spec.SupportsUndo || spec.RefreshAfter {
+			t.Fatalf("%s metadata = %+v", name, spec)
+		}
+		if spec.InputSchema == nil || spec.OutputSchema == nil {
+			t.Fatalf("%s lacks explicit schemas", name)
+		}
+	}
+	request, _ := catalog.LookupTool("ccb.observation_request")
+	properties, _ := request.InputSchema["properties"].(map[string]any)
+	if properties["view_ids"] == nil || properties["max_disclosure_bytes"] == nil {
+		t.Fatalf("request schema = %+v", request.InputSchema)
 	}
 }
 

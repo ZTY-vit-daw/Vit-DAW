@@ -65,7 +65,7 @@ func Build(in Input) Projection {
 		CanSupportObservation: canObserve, CanSupportSuggestion: canSuggest, CanSupportActionPreflight: canPreflight,
 		BlockedReasons: uniqueSorted(blocked), Limitations: uniqueSorted(limitations),
 	}
-	evidence := uniqueSorted(append(append(append([]string{}, in.Baseline.EvidenceRefs...), in.Processed.EvidenceRefs...), in.VPSRefs...))
+	evidence := uniqueSorted(append(append(append([]string{}, in.Baseline.EvidenceRefs...), in.Processed.EvidenceRefs...), in.ProbeRefs...))
 	generatedAt := strings.TrimSpace(in.CreatedAt)
 	if generatedAt == "" {
 		generatedAt = time.Now().UTC().Format(time.RFC3339Nano)

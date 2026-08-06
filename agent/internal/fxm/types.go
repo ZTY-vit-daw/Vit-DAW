@@ -25,7 +25,7 @@ type Input struct {
 	Conditions    MeasurementWindow `json:"conditions"`
 	Baseline      Measurement       `json:"baseline"`
 	Processed     Measurement       `json:"processed"`
-	VPSRefs       []string          `json:"vps_refs,omitempty"`
+	ProbeRefs     []string          `json:"probe_refs,omitempty"`
 }
 
 type ChainIdentity struct {
@@ -40,7 +40,7 @@ type PluginIdentity struct {
 	PluginID     string `json:"plugin_id,omitempty"`
 	Name         string `json:"name,omitempty"`
 	Format       string `json:"format,omitempty"`
-	VPSID        string `json:"vps_id,omitempty"`
+	ProbeID      string `json:"probe_id,omitempty"`
 	CredentialID string `json:"credential_id,omitempty"`
 	StateHash    string `json:"state_hash,omitempty"`
 }

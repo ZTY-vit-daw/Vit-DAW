@@ -16,6 +16,9 @@ import (
 func (s *Server) handlePendingMixTickChat(ctx context.Context, conversationID string, req ChatRequest, mode string) (ChatResponse, bool) {
 	candidate, ok := s.pendingMixTickForConversation(conversationID)
 	if !ok {
+		if isContinueMessage(req.Message) && s.hasActiveFreeStateReasoningLoop(conversationID) {
+			return ChatResponse{}, false
+		}
 		if messageExplicitMixTickApply(req.Message) {
 			if s != nil && s.logger != nil {
 				s.logger.Info("[mix.tick.pending] explicit confirmation had no candidate conversation=%s message=%q", conversationID, req.Message)

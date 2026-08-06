@@ -30,8 +30,6 @@ func ListCommand(store Store, args map[string]any) (map[string]any, error) {
 	}{
 		{"kind", ""},
 		{"source", ""},
-		{"plugin_learning_session_id", "plugin_learning_session_id"},
-		{"plugin_learning_stage", "plugin_learning_stage"},
 		{"artifact_schema", "artifact_schema"},
 	} {
 		value := stringValue(args[filter.argKey])
@@ -85,9 +83,6 @@ func FilterUserVisible(items []Artifact) []Artifact {
 }
 
 func IsInternal(a Artifact) bool {
-	if strings.EqualFold(strings.TrimSpace(a.Kind), "plugin_learning_stage") {
-		return true
-	}
 	if a.Metadata == nil {
 		return false
 	}
@@ -95,9 +90,6 @@ func IsInternal(a Artifact) bool {
 		if boolValue(a.Metadata[key], false) {
 			return true
 		}
-	}
-	if strings.EqualFold(stringValue(a.Metadata["artifact_schema"]), "vit.plugin_learning_session.v1") {
-		return true
 	}
 	return false
 }

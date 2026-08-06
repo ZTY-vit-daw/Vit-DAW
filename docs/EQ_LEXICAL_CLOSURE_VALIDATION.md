@@ -13,7 +13,7 @@
 - 离散物理枚举即使精确命中也不进入连续二分校正；normalized 与物理读回仍严格校验；
 - topology discovery 与执行 readback 共用同一 localized-number parser。
 
-没有加入插件名称分支、外部注解层、SPAL、profile、learn、B4 或音频主动探测。
+没有加入插件名称分支、外部注解层、已退役映射链路、B4 或音频主动探测。
 
 ## 自动化验证
 
@@ -38,6 +38,6 @@ Bell 请求：3400 Hz / -3 dB / Q 0.5。
 
 Low Cut 80 Hz 继续安全拒绝，因为真实枚举只有 Off / 25 / 33 / 50 Hz。
 
-审计为 0 audio probe / learn / profile / SPAL / B4；受保护运行时文件 byte-identical；5555、5556、7878、8787 端口全部释放。
+审计为 0 audio probe / B4；已退役映射链路不在运行时能力面中；受保护运行时文件 byte-identical；5555、5556、7878、8787 端口全部释放。
 
 本次完成后冻结 EQ 通用核心，不继续实现 B authoring 或更多特殊 topology。

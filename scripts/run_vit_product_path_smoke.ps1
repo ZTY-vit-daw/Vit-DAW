@@ -24,6 +24,12 @@ param(
     [string]$B3StemsFolder = "",
     [switch]$B4LowEndRelationAgentOnly,
     [switch]$C1FrequencyCleanupAgentOnly,
+    [switch]$CompressorControlAgentOnly,
+    [switch]$CompressorSemanticPlanningAgentOnly,
+    [switch]$CompressorSemanticExecutionAgentOnly,
+    [switch]$CompressorOpenSemanticRoutingAgentOnly,
+    [switch]$SemanticProcessorOpenExperimentAgentOnly,
+    [string]$SemanticProcessorExperimentCases = "",
     [string]$C1StemsFolder = "",
     [switch]$NonlinearMixMatrixAgentOnly,
     [string]$NonlinearA5SourceProject = "",
@@ -808,11 +814,15 @@ function Wait-GodotLifecycleEvidence {
         $hubReadyLog = Test-LogContains -LogPaths $logPaths -Pattern "start_page: VSP Hub ready."
         $agentReadyLog = Test-LogContains -LogPaths $logPaths -Pattern "start_page: Agent v0.5 tools ready."
         $portsReady = ($null -ne $agentListener -and $null -ne $hubListener -and $null -ne $kernelReqListener -and $null -ne $kernelSubListener)
-        if ($hasKernel -and $hasHub -and $hasAgent -and $portsReady -and $hubReadyLog -and $agentReadyLog) {
+        # Registered Godot child identities plus all four live ports are the
+        # lifecycle proof. Exact PID/path/hash and HTTP health are verified by
+        # the immediately following gates; start_page text is optional UI log
+        # evidence and is not emitted by every current frontend build.
+        if ($hasKernel -and $hasHub -and $hasAgent -and $portsReady) {
             return @{
                 mode = "godot_autostart_log"
                 autostart = $evidence
-                agent_tools_ready_log = $true
+                agent_tools_ready_log = $agentReadyLog
                 vsp_hub_ready_log = $hubReadyLog
             }
         }
@@ -978,8 +988,9 @@ function Start-Or-Reuse-GodotProject {
     foreach ($proc in @(Find-GodotProjectProcesses -ProjectRoot $ProjectRoot -RuntimeOnly $true)) {
         $beforePids[[int]$proc.pid] = $true
     }
-    $args = @("--path", $ProjectRoot, "--log-file", $StdoutLog)
-    $proc = Start-Process -FilePath $GodotLaunchExe -ArgumentList $args -WorkingDirectory $ProjectRoot -RedirectStandardError $StderrLog -PassThru
+    $args = @("--path", $ProjectRoot)
+    $proc = Start-Process -FilePath $GodotLaunchExe -ArgumentList $args -WorkingDirectory $ProjectRoot `
+        -RedirectStandardOutput $StdoutLog -RedirectStandardError $StderrLog -PassThru
     $deadline = (Get-Date).AddSeconds($TimeoutSeconds)
     do {
         $current = @(Find-GodotProjectProcesses -ProjectRoot $ProjectRoot -RuntimeOnly $true | Where-Object {
@@ -994,7 +1005,7 @@ function Start-Or-Reuse-GodotProject {
                 launch_exe = $GodotLaunchExe
                 project_root = $ProjectRoot
                 command_line = [string]$current[0].command_line
-                log_capture = "godot_log_file"
+                log_capture = "redirected_standard_output"
                 stdout_log = $StdoutLog
                 stderr_log = $StderrLog
             }
@@ -1012,7 +1023,7 @@ function Start-Or-Reuse-GodotProject {
                     launch_exe = $GodotLaunchExe
                     project_root = $ProjectRoot
                     command_line = [string]$late[0].command_line
-                    log_capture = "godot_log_file"
+                    log_capture = "redirected_standard_output"
                     stdout_log = $StdoutLog
                     stderr_log = $StderrLog
                 }
@@ -1916,6 +1927,236 @@ try {
         Fail "GET /agent/state did not return ok"
     }
     Assert-StatusOk -Response (Invoke-AgentTool -Tool "project.state" -ToolArgs @{} -Confirmed $false) -Label "project.state"
+
+    if ($SemanticProcessorOpenExperimentAgentOnly) {
+        Write-Step "opaque EQ/compressor open-semantic experiments through Godot-owned lifecycle"
+        $fixtureScript = Join-Path $RepoRoot "scripts\semantic_processor_open_fixtures.py"
+        $experimentScript = Join-Path $RepoRoot "scripts\semantic_processor_open_experiment.py"
+        $evaluationScript = Join-Path $RepoRoot "scripts\semantic_processor_open_evaluate.py"
+        foreach ($requiredPath in @($fixtureScript, $experimentScript, $evaluationScript)) {
+            if (-not (Test-Path -LiteralPath $requiredPath -PathType Leaf)) {
+                Fail ("Missing semantic processor experiment input: " + $requiredPath)
+            }
+        }
+        $previousErrorActionPreference = $ErrorActionPreference
+        $ErrorActionPreference = "Continue"
+        & python $fixtureScript 2>&1 | Tee-Object -FilePath (Join-Path $ArtifactDir "semantic_processor_fixture_stdout.log")
+        $fixtureExitCode = $LASTEXITCODE
+        $pointerPath = Join-Path $env:LOCALAPPDATA "Vit\SemanticProcessorFixtures\current.json"
+        if ($fixtureExitCode -ne 0 -or -not (Test-Path -LiteralPath $pointerPath -PathType Leaf)) {
+            $ErrorActionPreference = $previousErrorActionPreference
+            Fail ("semantic processor fixture generation failed with exit code " + $fixtureExitCode)
+        }
+        $pointer = Get-Content -LiteralPath $pointerPath -Raw -Encoding UTF8 | ConvertFrom-Json
+        $runReport = Join-Path $ArtifactDir "semantic_processor_open_experiment_report.json"
+        $evaluationReport = Join-Path $ArtifactDir "semantic_processor_open_evaluation_report.json"
+        $experimentArgs = @(
+            $experimentScript,
+            "--agent-http", $AgentHttp,
+            "--fixture-manifest", ([string]$pointer.fixture_manifest),
+            "--output", $runReport,
+            "--timeout-sec", ([string][Math]::Max(420, $TimeoutSeconds)),
+            "--analysis-timeout-sec", ([string][Math]::Max(300, $TimeoutSeconds))
+        )
+        if (-not [string]::IsNullOrWhiteSpace($SemanticProcessorExperimentCases)) {
+            foreach ($caseID in @($SemanticProcessorExperimentCases -split "," | ForEach-Object { $_.Trim() } | Where-Object { $_ })) {
+                $experimentArgs += @("--case", $caseID)
+            }
+        }
+        & python @experimentArgs 2>&1 | Tee-Object -FilePath (Join-Path $ArtifactDir "semantic_processor_open_experiment_stdout.log")
+        $experimentExitCode = $LASTEXITCODE
+        if ($experimentExitCode -eq 0) {
+            & python $evaluationScript --run-report $runReport --sealed-truth ([string]$pointer.sealed_truth) --output $evaluationReport 2>&1 |
+                Tee-Object -FilePath (Join-Path $ArtifactDir "semantic_processor_open_evaluation_stdout.log")
+        }
+        $evaluationExitCode = if ($experimentExitCode -eq 0) { $LASTEXITCODE } else { -1 }
+        $ErrorActionPreference = $previousErrorActionPreference
+        if ($experimentExitCode -ne 0 -or -not (Test-Path -LiteralPath $runReport -PathType Leaf)) {
+            Fail ("semantic processor blind experiment failed with exit code " + $experimentExitCode)
+        }
+        if ($evaluationExitCode -ne 0 -or -not (Test-Path -LiteralPath $evaluationReport -PathType Leaf)) {
+            Fail ("semantic processor sealed evaluation failed with exit code " + $evaluationExitCode)
+        }
+        $experimentSummary = Get-Content -LiteralPath $runReport -Raw -Encoding UTF8 | ConvertFrom-Json
+        $evaluationSummary = Get-Content -LiteralPath $evaluationReport -Raw -Encoding UTF8 | ConvertFrom-Json
+        if ([string]$experimentSummary.status -ne "completed" -or [string]$evaluationSummary.status -ne "completed") {
+            Fail "semantic processor experiment reports are incomplete"
+        }
+        $summary["semantic_processor_open_experiment"] = $experimentSummary
+        $summary["semantic_processor_open_evaluation"] = $evaluationSummary
+        $summary["status"] = "ok"
+        ConvertTo-JsonFile -Value $summary -Path (Join-Path $ArtifactDir "summary.json")
+        Write-Ok ("semantic processor experiment completed: " + [string]$evaluationSummary.pass_count + "/" + [string]$evaluationSummary.case_count + " cases passed sealed evaluation")
+        return
+    }
+
+    if ($CompressorOpenSemanticRoutingAgentOnly) {
+        Write-Step "open semantic treatment routing into compressor workflow through Godot-owned lifecycle"
+        $routingScript = Join-Path $RepoRoot "scripts\compressor_open_semantic_routing_smoke.py"
+        $routingReport = Join-Path $ArtifactDir "compressor_open_semantic_routing_report.json"
+        if (-not (Test-Path -LiteralPath $routingScript -PathType Leaf)) {
+            Fail ("Missing compressor open semantic routing smoke script: " + $routingScript)
+        }
+        $previousErrorActionPreference = $ErrorActionPreference
+        $ErrorActionPreference = "Continue"
+        & python $routingScript --agent-http $AgentHttp --output $routingReport --timeout-sec ([Math]::Max(360, $TimeoutSeconds)) 2>&1 |
+            Tee-Object -FilePath (Join-Path $ArtifactDir "compressor_open_semantic_routing_stdout.log")
+        $routingExitCode = $LASTEXITCODE
+        $ErrorActionPreference = $previousErrorActionPreference
+        if ($routingExitCode -ne 0 -or -not (Test-Path -LiteralPath $routingReport -PathType Leaf)) {
+            Fail ("compressor open semantic routing smoke failed with exit code " + $routingExitCode)
+        }
+        $routingSummary = Get-Content -LiteralPath $routingReport -Raw -Encoding UTF8 | ConvertFrom-Json
+        if ([string]$routingSummary.status -ne "ok") {
+            Fail "compressor open semantic routing product-path summary is not ok"
+        }
+        $summary["compressor_open_semantic_routing_agent"] = $routingSummary
+        $summary["status"] = "ok"
+        ConvertTo-JsonFile -Value $summary -Path (Join-Path $ArtifactDir "summary.json")
+        Write-Ok "open semantic routing passed for existing and post-load compressor paths"
+        return
+    }
+
+    if ($CompressorSemanticExecutionAgentOnly) {
+        Write-Step "COM-7 compressor semantic confirmation and execution smoke through Godot-owned lifecycle"
+        $executionScript = Join-Path $RepoRoot "scripts\compressor_semantic_execution_smoke.py"
+        $executionReport = Join-Path $ArtifactDir "compressor_semantic_execution_report.json"
+        $sourceRejectionReport = Join-Path $ArtifactDir "compressor_semantic_source_rejection_report.json"
+        if (-not (Test-Path -LiteralPath $executionScript -PathType Leaf)) {
+            Fail ("Missing COM-7 smoke script: " + $executionScript)
+        }
+        $previousErrorActionPreference = $ErrorActionPreference
+        $ErrorActionPreference = "Continue"
+        & python $executionScript --agent-http $AgentHttp --output $executionReport --timeout-sec ([Math]::Max(300, $TimeoutSeconds)) 2>&1 |
+            Tee-Object -FilePath (Join-Path $ArtifactDir "compressor_semantic_execution_stdout.log")
+        $executionExitCode = $LASTEXITCODE
+        if ($executionExitCode -eq 0) {
+            & python $executionScript --agent-http $AgentHttp --output $sourceRejectionReport --timeout-sec ([Math]::Max(300, $TimeoutSeconds)) --force-source-only-fallback 2>&1 |
+                Tee-Object -FilePath (Join-Path $ArtifactDir "compressor_semantic_source_rejection_stdout.log")
+        }
+        $sourceRejectionExitCode = if ($executionExitCode -eq 0) { $LASTEXITCODE } else { -1 }
+        $ErrorActionPreference = $previousErrorActionPreference
+        if ($executionExitCode -ne 0 -or -not (Test-Path -LiteralPath $executionReport -PathType Leaf)) {
+            Fail ("COM-7 compressor semantic execution smoke failed with exit code " + $executionExitCode)
+        }
+        if ($sourceRejectionExitCode -ne 0 -or -not (Test-Path -LiteralPath $sourceRejectionReport -PathType Leaf)) {
+            Fail ("COM-7 source-only execution rejection smoke failed with exit code " + $sourceRejectionExitCode)
+        }
+        $executionSummary = Get-Content -LiteralPath $executionReport -Raw -Encoding UTF8 | ConvertFrom-Json
+        $sourceRejectionSummary = Get-Content -LiteralPath $sourceRejectionReport -Raw -Encoding UTF8 | ConvertFrom-Json
+        if ([string]$executionSummary.status -ne "ok" -or [string]$sourceRejectionSummary.status -ne "ok") {
+            Fail "COM-7 compressor semantic execution product-path summary is not ok"
+        }
+        $summary["compressor_semantic_execution_agent"] = $executionSummary
+        $summary["compressor_semantic_source_rejection_agent"] = $sourceRejectionSummary
+        $summary["status"] = "ok"
+        ConvertTo-JsonFile -Value $summary -Path (Join-Path $ArtifactDir "summary.json")
+        Write-Ok "COM-7 confirmation, atomic execution, readback, COM change_delta, and source-only rejection passed"
+        return
+    }
+
+    if ($CompressorSemanticPlanningAgentOnly) {
+        Write-Step "COM-6 compressor semantic planning smoke through Godot-owned lifecycle"
+        $semanticScript = Join-Path $RepoRoot "scripts\compressor_semantic_planning_smoke.py"
+        $semanticReport = Join-Path $ArtifactDir "compressor_semantic_planning_report.json"
+        $semanticFallbackReport = Join-Path $ArtifactDir "compressor_semantic_source_fallback_report.json"
+        if (-not (Test-Path -LiteralPath $semanticScript -PathType Leaf)) {
+            Fail ("Missing COM-6 smoke script: " + $semanticScript)
+        }
+        $previousErrorActionPreference = $ErrorActionPreference
+        $ErrorActionPreference = "Continue"
+        & python $semanticScript --agent-http $AgentHttp --output $semanticReport --timeout-sec ([Math]::Max(300, $TimeoutSeconds)) 2>&1 |
+            Tee-Object -FilePath (Join-Path $ArtifactDir "compressor_semantic_planning_stdout.log")
+        $semanticExitCode = $LASTEXITCODE
+        if ($semanticExitCode -eq 0) {
+            & python $semanticScript --agent-http $AgentHttp --output $semanticFallbackReport --timeout-sec ([Math]::Max(300, $TimeoutSeconds)) --force-source-only-fallback 2>&1 |
+                Tee-Object -FilePath (Join-Path $ArtifactDir "compressor_semantic_source_fallback_stdout.log")
+        }
+        $semanticFallbackExitCode = if ($semanticExitCode -eq 0) { $LASTEXITCODE } else { -1 }
+        $ErrorActionPreference = $previousErrorActionPreference
+        if ($semanticExitCode -ne 0 -or -not (Test-Path -LiteralPath $semanticReport -PathType Leaf)) {
+            Fail ("COM-6 compressor semantic product-path smoke failed with exit code " + $semanticExitCode)
+        }
+        if ($semanticFallbackExitCode -ne 0 -or -not (Test-Path -LiteralPath $semanticFallbackReport -PathType Leaf)) {
+            Fail ("COM-6 source-only fallback product-path smoke failed with exit code " + $semanticFallbackExitCode)
+        }
+        $semanticSummary = Get-Content -LiteralPath $semanticReport -Raw -Encoding UTF8 | ConvertFrom-Json
+        $semanticFallbackSummary = Get-Content -LiteralPath $semanticFallbackReport -Raw -Encoding UTF8 | ConvertFrom-Json
+        if ([string]$semanticSummary.status -ne "ok" -or [string]$semanticFallbackSummary.status -ne "ok") {
+            Fail "COM-6 compressor semantic product-path summary is not ok"
+        }
+        $summary["compressor_semantic_planning_agent"] = $semanticSummary
+        $summary["compressor_semantic_source_fallback_agent"] = $semanticFallbackSummary
+        $summary["status"] = "ok"
+        ConvertTo-JsonFile -Value $summary -Path (Join-Path $ArtifactDir "summary.json")
+        Write-Ok "COM-6 planning-only product path passed with unchanged live parameters"
+        return
+    }
+
+    if ($CompressorControlAgentOnly) {
+        Write-Step "generic compressor control smoke through Godot-owned lifecycle"
+        $toolsResponse = Invoke-Json -Method GET -Uri ($AgentHttp.TrimEnd("/") + "/agent/tools") -TimeoutSec 10
+        ConvertTo-JsonFile -Value $toolsResponse -Path (Join-Path $ArtifactDir "agent_tools.json")
+        if ($null -eq $toolsResponse -or [string](Get-OptionalProperty -Object $toolsResponse -Name "status") -ne "ok") {
+            Fail "GET /agent/tools did not return ok"
+        }
+        $toolsJson = $toolsResponse | ConvertTo-Json -Depth 24 -Compress
+        foreach ($toolName in @("plugin_grabber.inspect_compressor", "plugin_grabber.apply_compressor_controls")) {
+            if ($toolsJson -notlike ("*" + $toolName + "*")) {
+                Fail ("compressor control tool catalog is missing " + $toolName)
+            }
+        }
+
+        $configPath = Join-Path $RepoRoot "scripts\compressor_compat_matrix.json"
+        $compatScript = Join-Path $RepoRoot "scripts\compressor_compat_matrix_smoke.py"
+        $applyScript = Join-Path $RepoRoot "scripts\compressor_apply_smoke.py"
+        foreach ($requiredPath in @($configPath, $compatScript, $applyScript)) {
+            if (-not (Test-Path -LiteralPath $requiredPath -PathType Leaf)) {
+                Fail ("Missing compressor control smoke input: " + $requiredPath)
+            }
+        }
+
+        $compressorArtifactDir = Join-Path $ArtifactDir "compressor_control"
+        $compatArtifactDir = Join-Path $compressorArtifactDir "inspect"
+        $applySummaryPath = Join-Path $compressorArtifactDir "apply_summary.json"
+        New-Item -ItemType Directory -Path $compatArtifactDir -Force | Out-Null
+        $previousErrorActionPreference = $ErrorActionPreference
+        $ErrorActionPreference = "Continue"
+        & python $compatScript --config $configPath --output-dir $compatArtifactDir --agent-http $AgentHttp --timeout-sec ([Math]::Max(180, $TimeoutSeconds)) --only "api_2500,l2_limiter_negative" 2>&1 |
+            Tee-Object -FilePath (Join-Path $compressorArtifactDir "inspect_stdout.log")
+        $compatExitCode = $LASTEXITCODE
+        if ($compatExitCode -eq 0) {
+            & python $applyScript --config $configPath --output $applySummaryPath --agent-http $AgentHttp --timeout-sec ([Math]::Max(180, $TimeoutSeconds)) --only "api_2500" 2>&1 |
+                Tee-Object -FilePath (Join-Path $compressorArtifactDir "apply_stdout.log")
+        }
+        $applyExitCode = if ($compatExitCode -eq 0) { $LASTEXITCODE } else { -1 }
+        $ErrorActionPreference = $previousErrorActionPreference
+        if ($compatExitCode -ne 0) {
+            Fail ("compressor inspect/limiter product-path smoke failed with exit code " + $compatExitCode)
+        }
+        if ($applyExitCode -ne 0) {
+            Fail ("compressor apply/restore product-path smoke failed with exit code " + $applyExitCode)
+        }
+
+        $compatSummaryPath = Join-Path $compatArtifactDir "summary.json"
+        if (-not (Test-Path -LiteralPath $compatSummaryPath -PathType Leaf) -or -not (Test-Path -LiteralPath $applySummaryPath -PathType Leaf)) {
+            Fail "compressor product-path smoke did not produce both summaries"
+        }
+        $compatSummary = Get-Content -LiteralPath $compatSummaryPath -Raw -Encoding UTF8 | ConvertFrom-Json
+        $applySummary = Get-Content -LiteralPath $applySummaryPath -Raw -Encoding UTF8 | ConvertFrom-Json
+        if ([string]$compatSummary.status -ne "ok" -or [string]$applySummary.status -ne "ok") {
+            Fail "compressor product-path summary is not ok"
+        }
+        $summary["compressor_control_agent"] = [ordered]@{
+            catalog_tools = @("plugin_grabber.inspect_compressor", "plugin_grabber.apply_compressor_controls")
+            inspect = $compatSummary
+            apply = $applySummary
+        }
+        $summary["tool_route"] = @("plugin_grabber.inspect_compressor", "plugin_grabber.apply_compressor_controls", "plugin_grabber.apply_compressor_controls")
+        $summary["status"] = "passed"
+        Write-Ok "focused generic compressor Godot product-path smoke passed"
+        return
+    }
 
     if (-not [string]::IsNullOrWhiteSpace($ProjectPackagePhase)) {
         Write-Step ("Project-package " + $ProjectPackagePhase + " phase through Godot-owned lifecycle")

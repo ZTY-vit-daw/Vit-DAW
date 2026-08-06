@@ -78,6 +78,24 @@ func TestDisplayProbeScalesBareKOnlyInFrequencyContext(t *testing.T) {
 	assertDomain(t, byID["gain"].DisplayDomainCandidate, "dB", 0, 4)
 }
 
+func TestDisplayProbeCanonicalizesMixedMillisecondsAndSeconds(t *testing.T) {
+	reply := map[string]any{"parameters": []any{
+		probedParam("release", "Release", "", []string{"2.5 ms", "100 ms", "0.5 s", "750 ms", "1 s"}),
+	}}
+	digest := BuildParameterDigest(reply)
+	if len(digest.Parameters) != 1 {
+		t.Fatalf("parameters = %#v", digest.Parameters)
+	}
+	assertDomain(t, digest.Parameters[0].DisplayDomainCandidate, "ms", 2.5, 1000)
+}
+
+func TestDisplayDomainDoesNotReadRMSAsMilliseconds(t *testing.T) {
+	domain := ParseDisplayDomainText("0~100 RMS Mix", "test", false)
+	if domain == nil || domain.Unit == "ms" {
+		t.Fatalf("RMS Mix domain = %+v", domain)
+	}
+}
+
 func probedParam(id, name, label string, texts []string) map[string]any {
 	samples := make([]any, 0, len(texts))
 	for i, text := range texts {

@@ -390,6 +390,130 @@ void publishL2ProbeAnalysis (const VitProductionCoordinator::PublishFn& publish,
 
     publish (juce::JSON::toString (juce::var (obj.release())));
 }
+
+void stampCompressorDualTapIdentity (juce::DynamicObject& object,
+                                     const CompressorDualTapEvidenceRequest& request)
+{
+    object.setProperty ("feature_family", "audio_feature");
+    object.setProperty ("feature_type", "compressor_dual_tap_probe");
+    object.setProperty ("schema_version", "dad.compressor_dual_tap_receipt.v1");
+    object.setProperty ("pair_id", request.pairId);
+    object.setProperty ("request_id", request.requestId);
+    object.setProperty ("track_id", request.trackId);
+    object.setProperty ("clip_id", request.clipId);
+    object.setProperty ("plugin_instance_id", request.pluginInstanceId);
+    object.setProperty ("plugin_position", request.pluginPosition);
+    object.setProperty ("topology_class", request.topologyClass);
+    object.setProperty ("topology_generation", request.topologyGeneration);
+    object.setProperty ("support_class", request.supportClass);
+    object.setProperty ("chain_hash", request.chainHash);
+    object.setProperty ("processor_state_hash", request.processorStateHash);
+    object.setProperty ("scope_revision", request.scopeRevision);
+    object.setProperty ("source_revision", request.sourceRevision);
+    object.setProperty ("clip_revision", request.clipRevision);
+    object.setProperty ("render_revision", request.renderRevision);
+    object.setProperty ("start_sample", request.startSample);
+    object.setProperty ("end_sample", request.endSample);
+    object.setProperty ("sample_rate", request.sampleRate);
+    object.setProperty ("channel_layout", request.channelLayout);
+    object.setProperty ("render_mode", "offline_probe");
+    object.setProperty ("deterministic", request.deterministic);
+    object.setProperty ("input_tap", "compressor_input");
+    object.setProperty ("output_tap", "compressor_output");
+    object.setProperty ("tail_policy", "exact_window_no_tail");
+    object.setProperty ("analyzer_version", request.analyzerVersion);
+    object.setProperty ("evidence_ref", "dad.compressor_dual_tap:" + request.pairId);
+}
+
+void publishCompressorDualTapBuilding (const VitProductionCoordinator::PublishFn& publish,
+                                       const CompressorDualTapEvidenceRequest& request,
+                                       const juce::String& jobId,
+                                       const juce::String& phase)
+{
+    if (! publish)
+        return;
+    auto object = std::make_unique<juce::DynamicObject>();
+    stampCompressorDualTapIdentity (*object, request);
+    object->setProperty ("command", "compressor_dual_tap_probe_status");
+    object->setProperty ("status", "building");
+    object->setProperty ("quality_status", "building");
+    object->setProperty ("job_id", jobId);
+    object->setProperty ("phase", phase);
+    publish (juce::JSON::toString (juce::var (object.release())));
+}
+
+void publishCompressorDualTapFailure (const VitProductionCoordinator::PublishFn& publish,
+                                      const CompressorDualTapEvidenceRequest& request,
+                                      const juce::String& jobId,
+                                      const juce::String& reason)
+{
+    if (! publish)
+        return;
+    auto object = std::make_unique<juce::DynamicObject>();
+    stampCompressorDualTapIdentity (*object, request);
+    object->setProperty ("command", "compressor_dual_tap_probe_ready");
+    object->setProperty ("status", "suspect");
+    object->setProperty ("quality_status", "suspect");
+    object->setProperty ("job_id", jobId);
+    object->setProperty ("reason", reason);
+    publish (juce::JSON::toString (juce::var (object.release())));
+}
+
+juce::var compressorTapQualityVar (const CompressorTapQuality& quality)
+{
+    auto object = std::make_unique<juce::DynamicObject>();
+    object->setProperty ("sample_frames", quality.sampleFrames);
+    object->setProperty ("nonzero_samples", quality.nonzeroSamples);
+    object->setProperty ("nan_inf_samples", quality.nanInfSamples);
+    object->setProperty ("coverage", quality.coverage);
+    object->setProperty ("peak_dbfs", quality.peakDbfs);
+    object->setProperty ("rms_dbfs", quality.rmsDbfs);
+    return juce::var (object.release());
+}
+
+void publishCompressorDualTapResult (const VitProductionCoordinator::PublishFn& publish,
+                                     const CompressorDualTapEvidenceRequest& request,
+                                     const juce::String& jobId,
+                                     const CompressorDualTapEvidenceResult& result)
+{
+    if (! publish)
+        return;
+    auto object = std::make_unique<juce::DynamicObject>();
+    stampCompressorDualTapIdentity (*object, request);
+    object->setProperty ("command", "compressor_dual_tap_probe_ready");
+    object->setProperty ("status", result.status);
+    object->setProperty ("quality_status", result.status);
+    object->setProperty ("job_id", jobId);
+    object->setProperty ("reason", result.reason);
+    object->setProperty ("channel_count", result.channelCount);
+    object->setProperty ("aligned_sample_frames", result.alignedSampleFrames);
+    object->setProperty ("envelope_frame_count", result.envelopeFrameCount);
+    object->setProperty ("event_candidate_count", result.eventCandidateCount);
+    object->setProperty ("artifact_sha256", result.artifactSha256);
+    object->setProperty ("artifact_bytes", result.artifactBytes);
+    object->setProperty ("determinism_proof_status", result.determinismVerified ? "ready" : "suspect");
+    object->setProperty ("determinism_max_abs_delta", result.determinismMaxAbsDelta);
+    object->setProperty ("determinism_rms_delta", result.determinismRMSDelta);
+    object->setProperty ("determinism_correlation", result.determinismCorrelation);
+    object->setProperty ("determinism_peak_db_delta", result.determinismPeakDBDelta);
+    object->setProperty ("determinism_rms_db_delta", result.determinismRMSDBDelta);
+
+    auto alignment = std::make_unique<juce::DynamicObject>();
+    alignment->setProperty ("status", result.alignmentReady ? "ready" : "suspect");
+    alignment->setProperty ("method", "offline_pdc_plus_integer_cross_correlation_v1");
+    alignment->setProperty ("plugin_reported_latency_samples", request.reportedLatencySamples);
+    alignment->setProperty ("measured_offset_samples", result.measuredOffsetSamples);
+    alignment->setProperty ("applied_offset_samples", result.appliedOffsetSamples);
+    alignment->setProperty ("residual_error_samples", result.residualErrorSamples);
+    alignment->setProperty ("correlation", result.alignmentCorrelation);
+    object->setProperty ("latency_alignment", juce::var (alignment.release()));
+
+    auto quality = std::make_unique<juce::DynamicObject>();
+    quality->setProperty ("input", compressorTapQualityVar (result.inputQuality));
+    quality->setProperty ("output", compressorTapQualityVar (result.outputQuality));
+    object->setProperty ("quality_evidence", juce::var (quality.release()));
+    publish (juce::JSON::toString (juce::var (object.release())));
+}
 }
 
 VitProductionCoordinator::VitProductionCoordinator (PublishFn publish)
@@ -524,6 +648,197 @@ juce::String VitProductionCoordinator::startOfflineRender (te::Edit& edit,
         }
         reply->setProperty ("probe_status", "building");
     }
+    return juce::JSON::toString (juce::var (reply.release()));
+}
+
+juce::String VitProductionCoordinator::startCompressorDualTapProbe (
+    te::Edit& edit,
+    CompressorDualTapProbeRequest request)
+{
+    if (rendering.load())
+        return makeCoordinatorError ("A render job is already in progress");
+
+    const auto& evidence = request.evidence;
+    if (evidence.sampleRate <= 0.0 || evidence.endSample <= evidence.startSample
+        || request.tracksToDo.countNumberOfSetBits() != 1)
+        return makeCoordinatorError ("Invalid compressor dual-tap render request");
+
+    request.inputRenderFile.getParentDirectory().createDirectory();
+    request.outputRenderFile.getParentDirectory().createDirectory();
+    request.artifactDirectory.createDirectory();
+    for (const auto& file : { request.inputRenderFile, request.outputRenderFile, request.outputVerificationRenderFile })
+        if (file.existsAsFile() && ! file.deleteFile())
+            return makeCoordinatorError ("Cannot overwrite compressor dual-tap temporary render");
+
+    jobId = juce::Uuid().toString();
+    const auto activeJobId = jobId;
+    rendering.store (true);
+    lastPublishedProgress = -1.0f;
+
+    auto makeParameters = [&edit, &request] (const juce::File& destination, bool usePlugins)
+    {
+        te::Renderer::Parameters params (edit);
+        params.destFile = destination;
+        params.time = te::TimeRange (
+            te::TimePosition::fromSeconds ((double) request.evidence.startSample / request.evidence.sampleRate),
+            te::TimePosition::fromSeconds ((double) request.evidence.endSample / request.evidence.sampleRate));
+        params.audioFormat = edit.engine.getAudioFileFormatManager().getWavFormat();
+        params.bitDepth = 32;
+        params.sampleRateForAudio = request.evidence.sampleRate;
+        params.blockSizeForAudio = 512;
+        params.tracksToDo = request.tracksToDo;
+        params.usePlugins = usePlugins;
+        params.useMasterPlugins = false;
+        params.canRenderInMono = false;
+        params.mustRenderInMono = false;
+        params.trimSilenceAtEnds = false;
+        params.shouldNormalise = false;
+        params.shouldNormaliseByRMS = false;
+        params.ditheringEnabled = false;
+        return params;
+    };
+
+    publishCompressorDualTapBuilding (publishMessage, evidence, activeJobId, "render_input");
+    renderHandle = te::EditRenderer::render (
+        makeParameters (request.inputRenderFile, false),
+        [this, &edit, request, activeJobId] (tl::expected<juce::File, std::string> inputResult)
+        {
+            juce::MessageManager::callAsync (
+                [this, &edit, request, activeJobId, inputResult]
+                {
+                    if (! inputResult.has_value())
+                    {
+                        rendering.store (false);
+                        renderHandle.reset();
+                        lastPublishedProgress = -1.0f;
+                        publishCompressorDualTapFailure (publishMessage, request.evidence, activeJobId,
+                                                         "input_render_failed:" + juce::String (inputResult.error()));
+                        request.inputRenderFile.deleteFile();
+                        request.outputRenderFile.deleteFile();
+                        request.outputVerificationRenderFile.deleteFile();
+                        return;
+                    }
+
+                    publishCompressorDualTapBuilding (publishMessage, request.evidence, activeJobId, "render_output");
+                    te::Renderer::Parameters params (edit);
+                    params.destFile = request.outputRenderFile;
+                    params.time = te::TimeRange (
+                        te::TimePosition::fromSeconds ((double) request.evidence.startSample / request.evidence.sampleRate),
+                        te::TimePosition::fromSeconds ((double) request.evidence.endSample / request.evidence.sampleRate));
+                    params.audioFormat = edit.engine.getAudioFileFormatManager().getWavFormat();
+                    params.bitDepth = 32;
+                    params.sampleRateForAudio = request.evidence.sampleRate;
+                    params.blockSizeForAudio = 512;
+                    params.tracksToDo = request.tracksToDo;
+                    params.usePlugins = true;
+                    params.useMasterPlugins = false;
+                    params.canRenderInMono = false;
+                    params.mustRenderInMono = false;
+                    params.trimSilenceAtEnds = false;
+                    params.shouldNormalise = false;
+                    params.shouldNormaliseByRMS = false;
+                    params.ditheringEnabled = false;
+
+                    renderHandle = te::EditRenderer::render (
+                        std::move (params),
+                        [this, &edit, request, activeJobId] (tl::expected<juce::File, std::string> outputResult)
+                        {
+                            juce::MessageManager::callAsync (
+                                [this, &edit, request, activeJobId, outputResult]
+                                {
+                                    if (! outputResult.has_value())
+                                    {
+                                        rendering.store (false);
+                                        renderHandle.reset();
+                                        lastPublishedProgress = -1.0f;
+                                        publishCompressorDualTapFailure (publishMessage, request.evidence, activeJobId,
+                                                                         "output_render_failed:" + juce::String (outputResult.error()));
+                                        request.inputRenderFile.deleteFile();
+                                        request.outputRenderFile.deleteFile();
+                                        request.outputVerificationRenderFile.deleteFile();
+                                        return;
+                                    }
+
+                                    publishCompressorDualTapBuilding (publishMessage, request.evidence, activeJobId, "render_verify");
+                                    te::Renderer::Parameters verifyParams (edit);
+                                    verifyParams.destFile = request.outputVerificationRenderFile;
+                                    verifyParams.time = te::TimeRange (
+                                        te::TimePosition::fromSeconds ((double) request.evidence.startSample / request.evidence.sampleRate),
+                                        te::TimePosition::fromSeconds ((double) request.evidence.endSample / request.evidence.sampleRate));
+                                    verifyParams.audioFormat = edit.engine.getAudioFileFormatManager().getWavFormat();
+                                    verifyParams.bitDepth = 32;
+                                    verifyParams.sampleRateForAudio = request.evidence.sampleRate;
+                                    verifyParams.blockSizeForAudio = 512;
+                                    verifyParams.tracksToDo = request.tracksToDo;
+                                    verifyParams.usePlugins = true;
+                                    verifyParams.useMasterPlugins = false;
+                                    verifyParams.canRenderInMono = false;
+                                    verifyParams.mustRenderInMono = false;
+                                    verifyParams.trimSilenceAtEnds = false;
+                                    verifyParams.shouldNormalise = false;
+                                    verifyParams.shouldNormaliseByRMS = false;
+                                    verifyParams.ditheringEnabled = false;
+
+                                    renderHandle = te::EditRenderer::render (
+                                        std::move (verifyParams),
+                                        [this, request, activeJobId] (tl::expected<juce::File, std::string> verificationResult)
+                                        {
+                                            juce::MessageManager::callAsync (
+                                                [this, request, activeJobId, verificationResult]
+                                                {
+                                                    rendering.store (false);
+                                                    renderHandle.reset();
+                                                    lastPublishedProgress = -1.0f;
+                                                    if (! verificationResult.has_value())
+                                                    {
+                                                        publishCompressorDualTapFailure (publishMessage, request.evidence, activeJobId,
+                                                                                         "verification_render_failed:" + juce::String (verificationResult.error()));
+                                                        request.inputRenderFile.deleteFile();
+                                                        request.outputRenderFile.deleteFile();
+                                                        request.outputVerificationRenderFile.deleteFile();
+                                                        return;
+                                                    }
+                                                    const auto currentRevision = request.readCurrentScopeRevision != nullptr
+                                                        ? request.readCurrentScopeRevision() : juce::String();
+                                                    if (currentRevision.isEmpty() || currentRevision != request.evidence.scopeRevision)
+                                                    {
+                                                        publishCompressorDualTapFailure (publishMessage, request.evidence, activeJobId,
+                                                                                         "scope_revision_changed_during_capture");
+                                                        request.inputRenderFile.deleteFile();
+                                                        request.outputRenderFile.deleteFile();
+                                                        request.outputVerificationRenderFile.deleteFile();
+                                                        return;
+                                                    }
+                                                    auto publish = publishMessage;
+                                                    std::thread ([publish, request, activeJobId]
+                                                    {
+                                                        const auto result = analyseAndWriteCompressorDualTapEvidence (
+                                                            request.inputRenderFile,
+                                                            request.outputRenderFile,
+                                                            request.outputVerificationRenderFile,
+                                                            request.artifactDirectory,
+                                                            request.evidence);
+                                                        publishCompressorDualTapResult (publish, request.evidence, activeJobId, result);
+                                                        request.inputRenderFile.deleteFile();
+                                                        request.outputRenderFile.deleteFile();
+                                                        request.outputVerificationRenderFile.deleteFile();
+                                                    }).detach();
+                                                });
+                                        });
+                                });
+                        });
+                });
+        });
+
+    auto reply = std::make_unique<juce::DynamicObject>();
+    reply->setProperty ("status", "ok");
+    reply->setProperty ("message", "Compressor dual-tap probe started");
+    reply->setProperty ("cmd", "compressor_dual_tap_probe");
+    reply->setProperty ("feature_type", "compressor_dual_tap_probe");
+    reply->setProperty ("job_id", activeJobId);
+    reply->setProperty ("pair_id", evidence.pairId);
+    reply->setProperty ("evidence_ref", "dad.compressor_dual_tap:" + evidence.pairId);
+    reply->setProperty ("probe_status", "building");
     return juce::JSON::toString (juce::var (reply.release()));
 }
 

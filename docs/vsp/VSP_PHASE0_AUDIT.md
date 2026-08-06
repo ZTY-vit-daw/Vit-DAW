@@ -182,7 +182,7 @@ Phase 1 之后仍必须保留旧 IPC 作为 legacy adapter，直到 GUI 与 Agen
 - `redo`
 - `get_midi_clip_notes`
 - `get_plugin_parameters`
-- `plugin_grabber_apply_control`
+- `plugin_grabber_apply_eq_edits`
 - render/import/project health 相关命令
 
 兼容原则：

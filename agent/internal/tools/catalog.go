@@ -73,27 +73,23 @@ func DefaultCatalog() *Catalog {
 	}
 	c.AddAlias("plugin_get_parameters", "get_plugin_parameters")
 	c.AddAlias("plugin_set_parameter", "set_plugin_param")
-	c.AddAlias("plugin_set_aliases", "set_plugin_param_aliases")
 	c.AddAlias("plugin_explain_controls", "plugin_grabber_explain_controls")
 	c.AddAlias("plugin.explain_controls", "plugin_grabber_explain_controls")
 	c.AddAlias("plugin_grabber_explain_controls", "plugin_grabber_explain_controls")
-	c.AddAlias("plugin_learn_project_profile", "plugin_grabber_learn_project_profile")
-	c.AddAlias("plugin.learn_project_profile", "plugin_grabber_learn_project_profile")
-	c.AddAlias("plugin_learn_common_roles", "set_plugin_param_aliases")
+	c.AddAlias("plugin_grabber_inspect_compressor", "plugin_grabber_inspect_compressor")
+	c.AddAlias("plugin_grabber_apply_compressor_controls", "plugin_grabber_apply_compressor_controls")
 	c.AddAlias("plugin.list", "plugin_list_available")
 	c.AddAlias("plugin.find", "plugin_search")
 	c.AddAlias("plugin.load_to_rack", "rack_add_node")
 	c.AddAlias("plugin.semantic.build_index", "plugin_semantic_build_index")
 	c.AddAlias("plugin.semantic.search", "plugin_semantic_search")
 	c.AddAlias("plugin.semantic.get", "plugin_semantic_get")
-	c.AddAlias("plugin_grabber.list_project_profiles", "plugin_grabber_get_project_profiles")
-	c.AddAlias("plugin_grabber.save_project_profile", "plugin_grabber_upsert_project_profile")
-	c.AddAlias("plugin_grabber.reset_project_profile", "plugin_grabber_remove_project_profile")
-	c.AddAlias("plugin_grabber.apply", "plugin_grabber_apply_control")
 	c.AddAlias("mix.observe", "mix_observe")
 	c.AddAlias("mix.read", "mix_read")
 	c.AddAlias("mix.derive", "mix_derive")
 	c.AddAlias("mix.report", "mix_report")
+	c.AddAlias("ccb_observation_catalog", "ccb_observation_catalog")
+	c.AddAlias("ccb_observation_request", "ccb_observation_request")
 	c.AddAlias("control.add_macro", "control_add_macro")
 	c.AddAlias("rack.add_macro", "control_add_macro")
 	c.AddAlias("macro.create", "control_add_macro")
@@ -486,18 +482,12 @@ func argHint(commandName string) string {
 		return "track_id:string plugin_path?:string plugin_identifier?:string (plugin_path or plugin_identifier required) optional x:number y:number zone_id:string"
 	case "set_plugin_param":
 		return "track_id:string plugin_id:string param_id:string value:number"
-	case "plugin_grabber_get_project_profiles":
-		return "optional profile_id:string plugin_id:string"
 	case "plugin_grabber_explain_controls":
 		return "track_id:string plugin_id:string optional intent:string"
-	case "plugin_grabber_learn_project_profile":
+	case "plugin_grabber_inspect_compressor":
 		return "track_id:string plugin_id:string optional intent:string"
-	case "plugin_grabber_upsert_project_profile":
-		return "track_id:string plugin_id:string quick_control_ids:string[] aliases?:object display_groups?:object normalized_roles?:object class?:string groups?:array virtual_controls?:array safety?:object plugin_skill?:object"
-	case "plugin_grabber_remove_project_profile":
-		return "profile_id:string OR track_id:string plugin_id:string"
-	case "plugin_grabber_apply_control":
-		return "track_id:string plugin_id:string control:string target:{freq_hz?:number gain_db?:number q?:number threshold_db?:number amount?:number|string component_id?:string}"
+	case "plugin_grabber_apply_compressor_controls":
+		return "track_id:string plugin_id:string atomic?:true exactly_one_of(controls:{control_ref:string exactly_one_of(value_db:number|ratio:number|value_ms:number|percent:number|display_value:number|enum_label:string)}[]|restore_ref:string)"
 	case "plugin_grabber_apply_eq_edits":
 		return "track_id:string plugin_id:string atomic?:true edits:{action:upsert|modify|disable|remove|undo shape?:bell|low_shelf|high_shelf|low_cut|high_cut frequency_hz?:number gain_db?:number q?:number slope_db_per_oct?:number control_ref?:string operation_ref?:string}[]"
 	case "plugin_grabber_set_eq_point":
@@ -600,6 +590,56 @@ func basicOutputSchema() map[string]any {
 	return map[string]any{
 		"type":        "object",
 		"description": "Kernel JSON reply wrapped with agent action metadata by VitAgent.",
+	}
+}
+
+func ccbObservationCatalogSpec() CommandSpec {
+	return CommandSpec{
+		CommandName: "ccb_observation_catalog",
+		ToolName:    "ccb.observation_catalog",
+		Category:    "mix",
+		Description: "List the compact semantic observation views available to ordinary-Agent free-state reasoning. The catalog describes questions, target scope, cost, quality ceiling, dependencies, and limitations without exposing DAD fields or mutation authority.",
+		InputSchema: map[string]any{
+			"type": "object",
+			"properties": map[string]any{
+				"cmd":         map[string]any{"type": "string", "const": "ccb_observation_catalog"},
+				"target_kind": map[string]any{"type": "string", "enum": []string{"project", "track", "clip", "selection", "track_group", "processor"}},
+				"target_id":   map[string]any{"type": "string"},
+			},
+			"additionalProperties": false,
+		},
+		OutputSchema: map[string]any{"type": "object", "description": "A read-only ccb_observation_catalog.v1 semantic-view catalog."},
+		RiskLevel:    RiskDirect,
+	}
+}
+
+func ccbObservationRequestSpec() CommandSpec {
+	return CommandSpec{
+		CommandName: "ccb_observation_request",
+		ToolName:    "ccb.observation_request",
+		Category:    "mix",
+		Description: "Request one or more cataloged semantic observation views from CCB. The bounded bundle is target- and project-revision-bound, may be requested repeatedly, reports omissions explicitly, and never exposes raw audio/DAD packages or mutation authority.",
+		InputSchema: map[string]any{
+			"type":     "object",
+			"required": []string{"view_ids"},
+			"properties": map[string]any{
+				"cmd":                  map[string]any{"type": "string", "const": "ccb_observation_request"},
+				"request_id":           map[string]any{"type": "string"},
+				"view_ids":             map[string]any{"type": "array", "minItems": 1, "maxItems": 12, "items": map[string]any{"type": "string"}},
+				"observation_id":       map[string]any{"type": "string"},
+				"mix_session_id":       map[string]any{"type": "string"},
+				"scope":                map[string]any{"type": "string"},
+				"target_kind":          map[string]any{"type": "string"},
+				"target_id":            map[string]any{"type": "string"},
+				"target_label":         map[string]any{"type": "string"},
+				"freshness_class":      map[string]any{"type": "string"},
+				"max_disclosure_bytes": map[string]any{"type": "integer", "minimum": 256, "maximum": 65536},
+				"max_items":            map[string]any{"type": "integer", "minimum": 1, "maximum": 24},
+			},
+			"additionalProperties": true,
+		},
+		OutputSchema: map[string]any{"type": "object", "description": "A bounded read-only ccb_observation_bundle.v1 with freshness, revision binding, evidence refs, limitations, and omission states."},
+		RiskLevel:    RiskDirect,
 	}
 }
 
@@ -713,10 +753,12 @@ func defaultSpecs() []CommandSpec {
 		spec("route_wave_input_to_track", "audio.route_wave_input_to_track", "audio", "Route a wave input to a track.", RiskUndoable, true, true, false, true, "track_id", "device_id"),
 		spec("arm_track", "track.arm", "track", "Arm or disarm a track for recording.", RiskUndoable, true, true, false, true, "track_id"),
 		spec("mix_request_observation", "mix.request_observation", "mix", "Read project/shadow facts and write a time-rulered MixBoard observation packet for a mix session.", RiskDirect, false, false, false, false),
-		spec("mix_observe", "mix.observe", "mix", "Observe the requested mix scope and return a compact acoustic digest plus a readable observation catalog; does not mutate the project.", RiskDirect, false, false, false, false),
+		spec("mix_observe", "mix.observe", "mix", "Observe the requested mix scope and return a compact acoustic digest plus a readable observation catalog; explicit com_mode=source_only|paired_io|change_delta adds a read-only COM projection from current source evidence or external COM-2 artifacts; does not mutate the project.", RiskDirect, false, false, false, false),
 		spec("mix_read", "mix.read", "mix", "Read selected catalog entries from a stored MixBoard observation, including bounded ranges for long acoustic rows.", RiskDirect, false, false, false, false),
 		spec("mix_derive", "mix.derive", "mix", "Derive an on-demand relationship package from stored MixBoard observations, such as before/after or focus/project comparisons.", RiskDirect, false, false, false, false),
 		spec("mix_report", "mix.report", "mix", "Build a read-only mix_report.v1 projection from the project Mixboard decision ledger and the current Project Cut; never mutates the project.", RiskDirect, false, false, false, false),
+		ccbObservationCatalogSpec(),
+		ccbObservationRequestSpec(),
 		spec("mix_propose_tick", "mix.propose_tick", "mix", "Agent-local proposal for one safe mix tick after observation; supports small track_gain_adjust and track_pan_adjust/track_pan_set without mutating the project.", RiskDirect, false, false, false, false, "track_id"),
 		spec("mix_apply_tick", "mix.apply_tick", "mix", "Agent-local confirmed execution of one proposed mix tick through primitive set_volume or set_pan kernel commands.", RiskUndoable, true, true, false, true),
 		spec("mix_apply_static_balance_batch", "mix.apply_static_balance_batch", "mix", "Apply one validated B2 static-balance plan as an atomic batch of absolute track fader targets.", RiskConfirm, true, true, true, true),
@@ -794,13 +836,9 @@ func defaultSpecs() []CommandSpec {
 		spec("show_plugin_editor", "plugin.show_editor", "plugin", "Open a plugin editor window.", RiskDirect, false, false, false, false, "track_id", "plugin_id"),
 		spec("get_plugin_parameters", "plugin.get_parameters", "plugin", "Read normalized plugin parameter values.", RiskDirect, false, false, false, false, "track_id", "plugin_id"),
 		spec("set_plugin_param", "plugin.set_parameter", "plugin", "Set one explicit plugin parameter by normalized value (0.0-1.0). Use display_domain_candidate from explain_controls all_parameters to convert human-unit targets to normalized before calling. Do NOT pass value_text — that path is unreliable and will silently write the wrong value.", RiskUndoable, true, true, false, true, "track_id", "plugin_id", "param_id"),
-		spec("set_plugin_param_aliases", "plugin.set_aliases", "plugin", "Store semantic aliases for plugin parameters.", RiskUndoable, true, true, false, true, "plugin_id"),
-		spec("plugin_grabber_get_project_profiles", "plugin_grabber.get_project_profiles", "plugin_grabber", "Read project-scoped plugin grabber profiles.", RiskDirect, false, false, false, false),
 		spec("plugin_grabber_explain_controls", "plugin_grabber.explain_controls", "plugin_grabber", "Build a compact AI-friendly context pack for one loaded plugin without filtering full parameters.", RiskDirect, false, false, false, false, "track_id", "plugin_id"),
-		spec("plugin_grabber_learn_project_profile", "plugin_grabber.learn_project_profile", "plugin_grabber", "Learn and propose a project/global plugin grabber profile for one loaded plugin, then ask the user to confirm before saving.", RiskDirect, false, false, false, false, "track_id", "plugin_id"),
-		spec("plugin_grabber_upsert_project_profile", "plugin_grabber.upsert_project_profile", "plugin_grabber", "Save project-scoped plugin grabber profile annotations for one plugin.", RiskConfirm, true, false, true, true, "track_id", "plugin_id"),
-		spec("plugin_grabber_remove_project_profile", "plugin_grabber.remove_project_profile", "plugin_grabber", "Remove a project-scoped plugin grabber profile.", RiskConfirm, true, false, true, true),
-		spec("plugin_grabber_apply_control", "plugin_grabber.apply_control", "plugin_grabber", "Apply a learned plugin grabber runtime control from an acoustic target using the current validated parameter profile; result.applied_parameters[].new_value_text is the actual applied display value.", RiskUndoable, true, true, false, true, "track_id", "plugin_id"),
+		spec("plugin_grabber_inspect_compressor", "plugin_grabber.inspect_compressor", "plugin_grabber", "Read one loaded plugin and recover an identity-free broadband compressor stage/control-path topology. Returns generation-scoped control_ref values for every provable binding. Pure limiters and multiband compressors are rejected.", RiskDirect, false, false, false, false, "track_id", "plugin_id"),
+		spec("plugin_grabber_apply_compressor_controls", "plugin_grabber.apply_compressor_controls", "plugin_grabber", "Atomically write explicit compressor controls addressed by generation-scoped control_ref, or restore a successful apply with its exact normalized restore_ref. Accepts physical dB, ratio, ms, percent, measured display values, or exact enum labels only. Every field is a hard requirement; stale refs, unavailable domains, unit mismatches, side effects, and readback failures reject and restore the full preimage. Returns exact, quantized, or rejected.", RiskUndoable, true, true, false, true, "track_id", "plugin_id"),
 		spec("plugin_grabber_apply_eq_edits", "plugin_grabber.apply_eq_edits", "plugin_grabber", "Atomically apply one or more generic static EQ edits from acoustic fields. Supports Bell, Low/High Shelf, Low/High Cut and upsert/modify/disable/remove/undo. All edits are planned from one live topology snapshot, explicit fields are hard requirements, activation writes run last, every touched parameter is freshly read back, and any failure restores the full preimage. Returns exact/quantized/rejected plus control_ref and operation_ref.", RiskUndoable, true, true, false, true, "track_id", "plugin_id"),
 		spec("plugin_grabber_set_eq_point", "plugin_grabber.set_eq_point", "plugin_grabber", "Compatibility adapter for one atomic EQ upsert. Set one Bell/Shelf/Cut section by freq_hz and optional gain_db, q, shape, and slope_db_per_oct. Explicit fields are hard requirements; unsupported fields reject before writing. Prefer plugin_grabber.apply_eq_edits for new callers.", RiskUndoable, true, true, false, true, "track_id", "plugin_id"),
 		spec("delete_plugin", "plugin.delete", "plugin", "Delete a plugin instance.", RiskConfirm, true, true, true, true, "track_id", "plugin_id"),
@@ -822,9 +860,6 @@ func defaultSpecs() []CommandSpec {
 		spec("control_remove_binding", "control.remove_binding", "control", "Remove a control binding.", RiskConfirm, true, true, true, true),
 		spec("control_set_node_value", "control.set_node_value", "control", "Set a control node value.", RiskUndoable, true, true, false, true),
 		spec("control_set_macro_values", "control.set_macro_values", "control", "Set macro values.", RiskUndoable, true, true, false, true),
-		spec("connector_upsert_profile", "plugin_make_grabber_profile", "plugin_grabber", "Create or update a connector/grabber profile.", RiskConfirm, true, true, true, true),
-		spec("connector_remove_profile", "plugin.remove_grabber_profile", "plugin_grabber", "Remove a connector/grabber profile.", RiskConfirm, true, true, true, true),
-
 		spec("aigc_register_job", "assets.register_job", "assets", "Register an AIGC job with the project.", RiskUndoable, true, true, false, true),
 		spec("bridge_ingest_generated_asset", "assets.ingest_generated_asset", "assets", "Ingest a generated asset into the project.", RiskConfirm, true, true, true, true),
 		spec("switch_asset_take", "assets.switch_take", "assets", "Switch the active generated asset take.", RiskConfirm, true, true, true, true),

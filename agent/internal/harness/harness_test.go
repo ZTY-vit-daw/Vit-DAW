@@ -1509,8 +1509,7 @@ func TestResolvePluginTargetFromContext(t *testing.T) {
 	h := New(nil, nil, nil)
 	cmd, spec, err := h.resolveCommand(InvokeRequest{
 		Command: map[string]any{
-			"cmd":               "plugin_grabber_upsert_project_profile",
-			"quick_control_ids": []any{"dry", "wet"},
+			"cmd": "get_plugin_parameters",
 		},
 	})
 	if err != nil {
@@ -1527,7 +1526,7 @@ func TestResolvePluginTargetFromContext(t *testing.T) {
 	}
 }
 
-func TestPublicPluginParametersResultIncludesRuntimeProfile(t *testing.T) {
+func TestPublicPluginParametersResultStripsRetiredRuntimeProfile(t *testing.T) {
 	out := publicPluginParametersResult(nil, map[string]any{
 		"status":                 "ok",
 		"track_id":               "1007",
@@ -1565,19 +1564,10 @@ func TestPublicPluginParametersResultIncludesRuntimeProfile(t *testing.T) {
 			map[string]any{"id": "threshold"},
 		},
 	})
-	if out["plugin_class"] != "compressor" || out["global_profile_applied"] != true {
-		t.Fatalf("runtime profile flags missing: %+v", out)
-	}
-	if out["plugin_group_count"] != 1 || out["virtual_control_count"] != 1 {
-		t.Fatalf("runtime profile counts missing: %+v", out)
-	}
-	skill, ok := out["plugin_skill"].(map[string]any)
-	if !ok || skill["component_count"] != 1 || skill["operation_count"] != 1 {
-		t.Fatalf("plugin_skill summary missing: %+v", out["plugin_skill"])
-	}
-	components := mapRowsFromAny(skill["components"])
-	if len(components) != 1 || len(mapRowsFromAny(components[0]["params"])) != 1 {
-		t.Fatalf("plugin_skill params missing: %+v", skill["components"])
+	for _, key := range []string{"plugin_class", "global_profile_applied", "plugin_groups", "virtual_controls", "safety_limits", "plugin_skill"} {
+		if _, ok := out[key]; ok {
+			t.Fatalf("retired profile field %q leaked into public result: %+v", key, out)
+		}
 	}
 }
 
@@ -1702,7 +1692,6 @@ func TestQualifiedSemanticPluginSelectionAuthorizationRejectsTamperingAndOtherWr
 		{name: "other track", spec: tools.CommandSpec{CommandName: "rack_add_node"}, cmd: map[string]any{"cmd": "rack_add_node", "track_id": "9999", "plugin_path": pluginPath, "plugin_identifier": identifier}},
 		{name: "other identifier", spec: tools.CommandSpec{CommandName: "rack_add_node"}, cmd: map[string]any{"cmd": "rack_add_node", "track_id": trackID, "plugin_path": pluginPath, "plugin_identifier": "other-id"}},
 		{name: "parameter write", spec: tools.CommandSpec{CommandName: "set_plugin_param"}, cmd: map[string]any{"cmd": "set_plugin_param", "track_id": trackID, "plugin_id": "1015", "param_id": "1", "value": 0.5}},
-		{name: "profile learn", spec: tools.CommandSpec{CommandName: "plugin_grabber_learn_project_profile"}, cmd: map[string]any{"cmd": "plugin_grabber_learn_project_profile", "track_id": trackID, "plugin_id": "1015"}},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -1713,7 +1702,7 @@ func TestQualifiedSemanticPluginSelectionAuthorizationRejectsTamperingAndOtherWr
 	}
 }
 
-func TestNamedPluginAcousticApplyBypassesHarnessObserveFirstGuard(t *testing.T) {
+func TestNamedPluginProfileApplyIsRejectedByHarness(t *testing.T) {
 	spec := tools.CommandSpec{ToolName: "plugin_grabber.apply_control", CommandName: "plugin_grabber_apply_control"}
 	cmd := map[string]any{
 		"cmd":       "plugin_grabber_apply_control",
@@ -1731,8 +1720,8 @@ func TestNamedPluginAcousticApplyBypassesHarnessObserveFirstGuard(t *testing.T) 
 			}}},
 		}},
 	}
-	if err := broadMixObserveFirstWriteGuard(ctx, spec, cmd); err != nil {
-		t.Fatalf("named plug-in apply was blocked by duplicate harness observe-first guard: %v", err)
+	if err := broadMixObserveFirstWriteGuard(ctx, spec, cmd); err == nil {
+		t.Fatal("retired profile apply reached the harness")
 	}
 }
 

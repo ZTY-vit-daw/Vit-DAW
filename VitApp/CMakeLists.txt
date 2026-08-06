@@ -180,12 +180,6 @@ set(VITAPP_SOURCE_FILES
     Source/Core/VitParamSurface.h
     Source/Core/VitPluginGrabber.cpp
     Source/Core/VitPluginGrabber.h
-    Source/Core/VitPluginGrabberProjectProfile.cpp
-    Source/Core/VitPluginGrabberProjectProfile.h
-
-    Source/Core/VitPluginGrabberGlobalProfile.cpp
-    Source/Core/VitPluginGrabberGlobalProfile.h
-    Source/Core/VitPluginGrabberProfileFormat.h
     Source/Core/VitPluginTemplateRegistry.cpp
     Source/Core/VitPluginTemplateRegistry.h
     Source/Core/VitZoneBufferAdapter.cpp
@@ -230,6 +224,8 @@ set(VITAPP_SOURCE_FILES
     Source/Service/TrackService.h
     Source/Service/TransportAudioService.cpp
     Source/Service/TransportAudioService.h
+    Source/Service/CompressorDualTapEvidence.cpp
+    Source/Service/CompressorDualTapEvidence.h
     Source/Service/VitProductionCoordinator.cpp
     Source/Service/VitProductionCoordinator.h
     Source/Service/SharedMemoryTester.cpp

@@ -148,7 +148,7 @@ func interactionIsUserInput(req AgentInteractionRequest) bool {
 		return false
 	}
 	context := strings.ToLower(strings.TrimSpace(req.Source + " " + req.Workflow + " " + req.Stage + " " + req.Type))
-	if strings.Contains(context, "plugin_learning") || strings.Contains(context, "plugin_grabber") {
+	if strings.Contains(context, "plugin_grabber") {
 		return true
 	}
 	return len(req.Fields) > 0 || len(req.Questions) > 0 || len(req.ReviewItems) > 0 || kind == "form" || strings.Contains(kind, "question")
@@ -157,7 +157,7 @@ func interactionIsUserInput(req AgentInteractionRequest) bool {
 func typedQuestionTypeFromInteraction(req AgentInteractionRequest) string {
 	text := strings.ToLower(strings.TrimSpace(req.Workflow + " " + req.Stage + " " + req.Kind + " " + req.Type))
 	switch {
-	case strings.Contains(text, "display_domain"), strings.Contains(text, "experiment"), strings.Contains(text, "plugin_learning"):
+	case strings.Contains(text, "display_domain"), strings.Contains(text, "experiment"):
 		return "workflow_detail"
 	case strings.Contains(text, "mix"):
 		return "aesthetic_choice"
@@ -183,7 +183,7 @@ func typedOptionsFromInteraction(req AgentInteractionRequest) []string {
 func typedResourceDomainForCommand(name string, cmd map[string]any) (string, string) {
 	text := strings.ToLower(strings.TrimSpace(name + " " + commandNameForEvent(cmd) + " " + cleanContextText(cmd["tool"])))
 	switch {
-	case strings.Contains(text, "plugin_grabber_apply_control"), strings.Contains(text, "plugin.set_parameter"), strings.Contains(text, "set_plugin_param"):
+	case strings.Contains(text, "plugin.set_parameter"), strings.Contains(text, "set_plugin_param"):
 		return "plugin.param_write", "commit"
 	case strings.Contains(text, "plugin.load"), strings.Contains(text, "load_to_rack"), strings.Contains(text, "instantiate"), strings.Contains(text, "rack.add_node"):
 		return "plugin.load", "commit"

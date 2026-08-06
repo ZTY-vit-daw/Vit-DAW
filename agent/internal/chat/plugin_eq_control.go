@@ -135,6 +135,7 @@ type eqWriteStep struct {
 	ActivationLast     bool
 	PhysicalMultiplier float64
 	DiscretePhysical   bool
+	TransactionalProbe bool
 }
 
 type eqTypedPointRequest struct {
@@ -465,7 +466,14 @@ func eqEffectivePhysicalReadback(write eqWriteStep, displayPhysical float64) flo
 }
 
 func isEQPhysicalRole(role string) bool {
-	return role == "freq" || role == "gain" || role == "q" || role == "slope"
+	switch role {
+	case "freq", "gain", "q", "slope", "threshold", "input_drive", "reduction_amount", "low_level_amount",
+		"high_level_amount", "ratio", "direction_curve", "knee", "attack", "release", "recovery", "hold",
+		"time_constant", "pdr_time", "lookahead", "reduction_range", "makeup_gain", "output_gain", "wet_gain", "dry_gain", "mix":
+		return true
+	default:
+		return false
+	}
 }
 
 func eqPhysicalTolerance(role string, target float64) float64 {
@@ -478,6 +486,16 @@ func eqPhysicalTolerance(role string, target float64) float64 {
 		return math.Max(0.05, math.Abs(target)*0.02)
 	case "slope":
 		return 0.25
+	case "threshold", "input_drive", "reduction_amount", "low_level_amount", "high_level_amount", "knee", "reduction_range", "makeup_gain", "output_gain", "wet_gain", "dry_gain":
+		return 0.15
+	case "ratio":
+		return math.Max(0.005, math.Abs(target)*0.001)
+	case "direction_curve":
+		return math.Max(0.02, math.Abs(target)*0.01)
+	case "attack", "release", "recovery", "time_constant", "pdr_time", "lookahead", "hold":
+		return math.Max(0.05, math.Abs(target)*0.01)
+	case "mix":
+		return 0.2
 	}
 	return 0
 }
@@ -604,6 +622,10 @@ func physicalReadbackForRole(role string, row map[string]any) (float64, bool) {
 		return parseEQFrequencyReadback(text)
 	case "gain", "q", "slope":
 		return plugingrabber.ParseEQLocalizedNumber(text)
+	case "threshold", "input_drive", "reduction_amount", "low_level_amount", "high_level_amount", "ratio", "direction_curve",
+		"knee", "attack", "release", "recovery", "time_constant", "pdr_time", "lookahead", "hold", "reduction_range",
+		"makeup_gain", "output_gain", "wet_gain", "dry_gain", "mix":
+		return plugingrabber.ParseCompressorPhysical(role, text)
 	}
 	return 0, false
 }

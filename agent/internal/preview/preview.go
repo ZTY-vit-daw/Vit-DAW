@@ -33,10 +33,6 @@ func Command(spec tools.CommandSpec, cmd map[string]any) string {
 		return MacroControl(spec, cmd)
 	case "control_rename_macro":
 		return MacroRename(spec, cmd)
-	case "plugin_grabber_upsert_project_profile":
-		return PluginGrabberProfileUpsert(spec, cmd)
-	case "plugin_grabber_remove_project_profile":
-		return PluginGrabberProfileRemove(spec, cmd)
 	}
 	raw, _ := json.Marshal(cmd)
 	return fmt.Sprintf("%s [%s]: %s\n%s", spec.CommandName, spec.RiskLevel, spec.Description, string(raw))
@@ -210,52 +206,6 @@ func MacroRename(spec tools.CommandSpec, cmd map[string]any) string {
 	fmt.Fprintf(&b, "Macro %s\n", macro)
 	fmt.Fprintf(&b, "New name %s", name)
 	return strings.TrimSpace(b.String())
-}
-
-func PluginGrabberProfileUpsert(spec tools.CommandSpec, cmd map[string]any) string {
-	quickIDs := stringSliceFromAny(cmd["quick_control_ids"])
-	aliases := mapStringStringFromAny(cmd["aliases"])
-	groups := mapStringStringFromAny(cmd["display_groups"])
-	roles := mapStringStringFromAny(cmd["normalized_roles"])
-	semanticGroups := operationRowsFromAny(cmd["groups"])
-	virtualControls := operationRowsFromAny(cmd["virtual_controls"])
-	var b strings.Builder
-	fmt.Fprintf(&b, "%s [%s]: %s\n", spec.CommandName, spec.RiskLevel, spec.Description)
-	fmt.Fprintf(&b, "Track %s, plugin %s\n", firstString(cmd, "track_id"), firstString(cmd, "plugin_id"))
-	fmt.Fprintf(&b, "Quick controls (%d): %s\n", len(quickIDs), strings.Join(firstNStrings(quickIDs, 16), ", "))
-	if pluginClass := firstString(cmd, "class"); pluginClass != "" {
-		fmt.Fprintf(&b, "Class: %s\n", pluginClass)
-	}
-	if len(aliases) > 0 {
-		fmt.Fprintf(&b, "Aliases: %d\n", len(aliases))
-	}
-	if len(groups) > 0 {
-		fmt.Fprintf(&b, "Display groups: %d\n", len(groups))
-	}
-	if len(roles) > 0 {
-		fmt.Fprintf(&b, "Normalized roles: %d\n", len(roles))
-	}
-	if len(semanticGroups) > 0 {
-		fmt.Fprintf(&b, "Semantic groups: %d\n", len(semanticGroups))
-	}
-	if len(virtualControls) > 0 {
-		fmt.Fprintf(&b, "Virtual controls: %d\n", len(virtualControls))
-	}
-	if cmd["plugin_skill"] != nil {
-		fmt.Fprintf(&b, "Plugin skill: yes\n")
-	}
-	return strings.TrimSpace(b.String())
-}
-
-func PluginGrabberProfileRemove(spec tools.CommandSpec, cmd map[string]any) string {
-	var b strings.Builder
-	fmt.Fprintf(&b, "%s [%s]: %s\n", spec.CommandName, spec.RiskLevel, spec.Description)
-	if profileID := firstString(cmd, "profile_id"); profileID != "" {
-		fmt.Fprintf(&b, "Profile %s", profileID)
-	} else {
-		fmt.Fprintf(&b, "Track %s, plugin %s", firstString(cmd, "track_id"), firstString(cmd, "plugin_id"))
-	}
-	return b.String()
 }
 
 func LegacyMidiNotes(spec tools.CommandSpec, cmd map[string]any) string {

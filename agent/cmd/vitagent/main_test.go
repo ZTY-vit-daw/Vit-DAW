@@ -1,9 +1,7 @@
 package main
 
 import (
-	"encoding/json"
 	"os"
-	"path/filepath"
 	"testing"
 )
 
@@ -32,46 +30,6 @@ func TestCapabilityRuntimeDefaultsPreserveExplicitTelemetryOverrides(t *testing.
 	configureCapabilityRuntimeV1Defaults()
 	if os.Getenv("VIT_CAPABILITY_RUNTIME_V1_ROLLOUT") != "off" || os.Getenv("VIT_CAPABILITY_RUNTIME_V1_LIVE_VERIFIED") != "false" || os.Getenv("VIT_CAPABILITY_RUNTIME_V1_DISABLE_LEGACY_CREATION") != "false" {
 		t.Fatal("release defaults overwrote explicit telemetry compatibility values")
-	}
-}
-
-func TestConfigureVPSForgeStagingActivationDiscoversExplicitPointer(t *testing.T) {
-	t.Setenv(vpsForgeStagingVPSPathEnv, "")
-	root := t.TempDir()
-	artifactPath := filepath.Join(root, "preflight", "pro_q_3_static_eq_staging_vps.json")
-	if err := os.MkdirAll(filepath.Dir(artifactPath), 0o755); err != nil {
-		t.Fatal(err)
-	}
-	if err := os.WriteFile(artifactPath, []byte(`{"schema_version":"test"}`), 0o600); err != nil {
-		t.Fatal(err)
-	}
-	activationPath := filepath.Join(root, "active_vpsforge_staging_runtime.json")
-	payload, err := json.Marshal(vpsForgeStagingActivation{
-		SchemaVersion:  vpsForgeStagingActivationSchema,
-		Enabled:        true,
-		StagingVPSPath: filepath.ToSlash(filepath.Join("preflight", "pro_q_3_static_eq_staging_vps.json")),
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-	if err := os.WriteFile(activationPath, payload, 0o600); err != nil {
-		t.Fatal(err)
-	}
-	t.Setenv(vpsForgeStagingActivationPathEnv, activationPath)
-
-	source, err := configureVPSForgeStagingActivation()
-	if err != nil {
-		t.Fatalf("configure staging activation: %v", err)
-	}
-	if source != activationPath {
-		t.Fatalf("activation source = %q, want %q", source, activationPath)
-	}
-	wantArtifact, err := filepath.Abs(artifactPath)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if got := os.Getenv(vpsForgeStagingVPSPathEnv); got != wantArtifact {
-		t.Fatalf("staging artifact = %q, want %q", got, wantArtifact)
 	}
 }
 

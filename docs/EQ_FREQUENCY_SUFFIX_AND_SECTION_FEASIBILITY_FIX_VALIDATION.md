@@ -10,7 +10,7 @@
 1. Frequency/Hz 物理域支持显示值中的裸 `k/K` SI 后缀，并统一用于 probe、topology 和执行 readback；Gain、Q 等其他物理域不会应用该倍率。
 2. typed section planner 在按频率和当前状态排序前，先对每个结构候选无写入地检查 Shape、Frequency、Gain、Q、Slope 与 Activation；只有能满足整个原子请求的 section 才参与最终选择。
 
-没有加入插件名称分支、音频主动探测、learn、profile、SPAL、B4 或 `1/2` 通道猜测。
+没有加入插件名称分支、音频主动探测、已退役映射链路、B4 或 `1/2` 通道猜测。
 
 ## 自动化验证
 
@@ -39,7 +39,7 @@
 | SPL PQ | 安全拒绝 | 安全拒绝 | Q 下限与 Shape 边界均保持正确拒绝 |
 | Lindell 80 Channel | quantized 3200 Hz / -3 dB | Low Cut quantized 70 Hz | 原有双层能力未回退 |
 
-所有成功事务均通过正式 `operation_ref` undo 恢复；所有拒绝和最终分页均为零漂移。受保护运行时文件 byte-identical，端口 5555、5556、7878、8787 已释放。审计计数为 0 audio probe、0 learn、0 profile、0 SPAL、0 B4。
+所有成功事务均通过正式 `operation_ref` undo 恢复；所有拒绝和最终分页均为零漂移。受保护运行时文件 byte-identical，端口 5555、5556、7878、8787 已释放。审计计数为 0 audio probe、0 B4；已退役映射链路不在运行时能力面中。
 
 ## 后续结构状态
 

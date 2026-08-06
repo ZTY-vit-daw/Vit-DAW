@@ -2,31 +2,29 @@ package artifacts
 
 import "testing"
 
-func TestListCommandCanFilterInternalPluginLearningStages(t *testing.T) {
+func TestListCommandCanFilterGenericInternalArtifacts(t *testing.T) {
 	store := NewStore(t.TempDir())
 	_, err := store.Upsert(Artifact{
-		ID:     "pl_stage_session_a_ui_reference",
-		Kind:   "plugin_learning_stage",
-		Source: "plugin_grabber",
+		ID:     "internal_observation_a",
+		Kind:   "observation_evidence",
+		Source: "pluginprobe",
 		Status: "ready",
 		Metadata: map[string]any{
-			"artifact_schema":            "vit.plugin_learning_session.v1",
-			"plugin_learning_session_id": "session_a",
-			"plugin_learning_stage":      "ui_reference",
+			"artifact_schema": "vit.observation_evidence.v1",
+			"internal":        true,
 		},
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
 	_, err = store.Upsert(Artifact{
-		ID:     "pl_stage_session_b_ui_reference",
-		Kind:   "plugin_learning_stage",
-		Source: "plugin_grabber",
+		ID:     "internal_observation_b",
+		Kind:   "observation_evidence",
+		Source: "pluginprobe",
 		Status: "ready",
 		Metadata: map[string]any{
-			"artifact_schema":            "vit.plugin_learning_session.v1",
-			"plugin_learning_session_id": "session_b",
-			"plugin_learning_stage":      "ui_reference",
+			"artifact_schema": "vit.observation_evidence.v1",
+			"internal":        true,
 		},
 	})
 	if err != nil {
@@ -42,15 +40,15 @@ func TestListCommandCanFilterInternalPluginLearningStages(t *testing.T) {
 	}
 
 	filtered, err := ListCommand(store, map[string]any{
-		"include_internal":           true,
-		"kind":                       "plugin_learning_stage",
-		"plugin_learning_session_id": "session_a",
+		"include_internal": true,
+		"kind":             "observation_evidence",
+		"source":           "pluginprobe",
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
 	items := filtered["artifacts"].([]Summary)
-	if len(items) != 1 || items[0].ID != "pl_stage_session_a_ui_reference" {
-		t.Fatalf("filtered stage artifacts = %+v", items)
+	if len(items) != 2 {
+		t.Fatalf("filtered internal artifacts = %+v", items)
 	}
 }

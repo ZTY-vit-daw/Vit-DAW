@@ -19,7 +19,7 @@
 - Remove：resident section 继续拒绝；
 - Undo：恢复 Frequency 与复合 Slope/Activation 参数的完整 preimage。
 
-没有使用插件名称分支、音频探测、learn、profile、SPAL、B4 或 `1/2` 通道猜测。
+没有使用插件名称分支、音频探测、已退役映射链路、B4 或 `1/2` 通道猜测。
 
 ## 自动化验证
 
@@ -51,4 +51,4 @@ Godot → Kernel → Agent 产物：
 
 模型将 `low cut 1/2` 均推导为 complete、dedicated `low_cut`、activation `property_sentinel(binding_role=slope)`；Upsert、Modify、Disable、Undo 可执行，resident Remove 保持拒绝。
 
-审计：0 audio probe、0 learn、0 profile、0 SPAL、0 B4；受保护运行时文件 byte-identical；5555、5556、7878、8787 端口全部释放。
+审计：0 audio probe、0 B4；已退役映射链路不在运行时能力面中；受保护运行时文件 byte-identical；5555、5556、7878、8787 端口全部释放。

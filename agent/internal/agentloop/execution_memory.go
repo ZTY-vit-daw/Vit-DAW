@@ -743,13 +743,19 @@ func addExecutionBindings(memory *ExecutionMemory, bindings ...ExecutionBinding)
 }
 
 func recentObservationForTool(call planner.ToolCall, result executorpkg.Result, ver planner.VerificationResult, mutationBarrier bool, bindings []ExecutionBinding) *RecentObservation {
+	summary := mixObservationPromptSummary(result.Result)
+	if messageLoopIsCCBObservationRequestName(firstNonEmpty(result.Tool, call.Tool, result.CommandName)) {
+		if bundle := messageLoopMapValue(result.Result["bundle"]); len(bundle) > 0 {
+			summary = cloneMap(bundle)
+		}
+	}
 	return &RecentObservation{
 		ToolCallID:       firstNonEmpty(result.ToolCallID, call.ID),
 		Tool:             firstNonEmpty(result.Tool, call.Tool),
 		CommandName:      strings.TrimSpace(result.CommandName),
 		Status:           strings.TrimSpace(result.Status),
 		Error:            strings.TrimSpace(firstNonEmpty(result.Error, "")),
-		Summary:          mixObservationPromptSummary(result.Result),
+		Summary:          summary,
 		MutationBarrier:  mutationBarrier,
 		ProducedBindings: cloneExecutionBindings(bindings),
 		Verification:     cloneVerificationResult(&ver),

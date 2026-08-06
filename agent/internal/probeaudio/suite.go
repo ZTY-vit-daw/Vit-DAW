@@ -1,4 +1,4 @@
-// Package probeaudio generates deterministic audio assets for VPS transport,
+// Package probeaudio generates deterministic audio assets for plugin probing,
 // behavior and FXM counterfactual measurements.
 package probeaudio
 
@@ -16,8 +16,8 @@ import (
 )
 
 const (
-	SuiteID       = "vit.vps_probe_audio.v1@48000"
-	SchemaVersion = "vit.vps_probe_audio_manifest.v1"
+	SuiteID       = "vit.pluginprobe.audio.v1@48000"
+	SchemaVersion = "vit.pluginprobe.audio_manifest.v1"
 	SampleRate    = 48000
 	Channels      = 2
 	BitsPerSample = 24

@@ -820,7 +820,7 @@ def report_markdown(run_dir: Path, output_dir: Path, corpus: dict[str, Any],
     intent_statuses = Counter(row["status"] for row in intent_rows)
     lines = [
         "# 通用静态 EQ 控制需求重聚类与识别器详细设计（第二阶段）", "",
-        "> 本阶段只重放第一阶段的真实只读参数证据并进行符号规划；没有加载新插件、写参数、主动音频探测、learn/profile、SPAL、B4 或 Plugin Alliance 参数读取。", "",
+        "> 本阶段只重放第一阶段的真实只读参数证据并进行符号规划；没有加载新插件、写参数、主动音频探测、已退役映射链路、B4 或 Plugin Alliance 参数读取。", "",
         "## 1. 结论", "",
         f"- Waves 型号：{len(models)}。", f"- 通用 shape：{', '.join(SHAPES)}。",
         f"- 通用 action：{', '.join(ACTIONS)}。",
@@ -984,8 +984,7 @@ def main() -> int:
         "phase1_acceptance_status": phase1_acceptance.get("status"),
         "runtime_calls": {
             "plugin_load": 0, "plugin_parameter_read": 0,
-            "plugin_parameter_write": 0, "audio_probe": 0,
-            "learn": 0, "profile": 0, "spal": 0, "b4": 0,
+            "plugin_parameter_write": 0, "audio_probe": 0, "b4": 0,
             "plugin_alliance_parameter_read": 0,
         },
     })

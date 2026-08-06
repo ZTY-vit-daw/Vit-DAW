@@ -38,10 +38,6 @@ public:
     juce::String handleControlSetMacroValues (const juce::DynamicObject&, const juce::String&) const;
     juce::String handleConnectorUpsertProfile (const juce::DynamicObject&, const juce::String&) const;
     juce::String handleConnectorRemoveProfile (const juce::DynamicObject&, const juce::String&) const;
-    juce::String handlePluginGrabberGetProjectProfiles (const juce::DynamicObject&, const juce::String&) const;
-    juce::String handlePluginGrabberUpsertProjectProfile (const juce::DynamicObject&, const juce::String&) const;
-    juce::String handlePluginGrabberRemoveProjectProfile (const juce::DynamicObject&, const juce::String&) const;
-    juce::String handlePluginGrabberApplyControl (const juce::DynamicObject&, const juce::String&) const;
     juce::String handleListPlugins (const juce::DynamicObject&, const juce::String&) const;
     juce::String handleSearchPlugins (const juce::DynamicObject&, const juce::String&) const;
     juce::String handleScanPlugins (const juce::DynamicObject&, const juce::String&) const;

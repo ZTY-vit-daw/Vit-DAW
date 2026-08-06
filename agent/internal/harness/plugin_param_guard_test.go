@@ -53,39 +53,6 @@ func TestPluginSnapshotCacheUpdateMissingFields(t *testing.T) {
 	}
 }
 
-func TestPluginSnapshotCacheStaleParams(t *testing.T) {
-	c := NewPluginSnapshotCache()
-
-	reply := map[string]any{
-		"track_id":                "t1",
-		"plugin_id":               "p1",
-		"profile_stale_param_ids": []any{"param_2", "param_3"},
-		"parameters": []map[string]any{
-			{"id": "param_1"},
-			{"id": "param_2"},
-			{"id": "param_3"},
-			{"id": "param_4"},
-		},
-	}
-
-	if !c.Update(reply) {
-		t.Fatal("Update should succeed")
-	}
-
-	if c.IsStaleParam("t1", "p1", "param_1") {
-		t.Error("param_1 should not be stale")
-	}
-	if !c.IsStaleParam("t1", "p1", "param_2") {
-		t.Error("param_2 should be stale")
-	}
-	if !c.IsStaleParam("t1", "p1", "param_3") {
-		t.Error("param_3 should be stale")
-	}
-	if c.IsStaleParam("t1", "p1", "param_99") {
-		t.Error("non-existent param should not be stale")
-	}
-}
-
 func TestValidateSetPluginParamNoCache(t *testing.T) {
 	h := New(nil, nil, nil)
 
@@ -149,33 +116,6 @@ func TestValidateSetPluginParamInvalidParamID(t *testing.T) {
 	}
 	if err != nil && !containsText(err.Error(), "not in the current plugin parameter set") {
 		t.Errorf("Error should mention invalid param, got: %v", err)
-	}
-}
-
-func TestValidateSetPluginParamStaleParam(t *testing.T) {
-	h := New(nil, nil, nil)
-
-	h.snapshotCache.Update(map[string]any{
-		"track_id":                "t1",
-		"plugin_id":               "p1",
-		"profile_stale_param_ids": []any{"param_2"},
-		"parameters": []map[string]any{
-			{"id": "param_1"},
-			{"id": "param_2"},
-		},
-	})
-
-	err := h.validateSetPluginParam(map[string]any{
-		"track_id":  "t1",
-		"plugin_id": "p1",
-		"param_id":  "param_2",
-		"value":     0.5,
-	})
-	if err == nil {
-		t.Error("Should reject stale param")
-	}
-	if err != nil && !containsText(err.Error(), "marked as stale") {
-		t.Errorf("Error should mention stale, got: %v", err)
 	}
 }
 

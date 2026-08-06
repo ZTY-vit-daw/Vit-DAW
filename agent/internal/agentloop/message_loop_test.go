@@ -1053,19 +1053,6 @@ func (f *fakeMessageExecutor) RunToolCall(_ context.Context, in executorpkg.Inpu
 				"actions":       resultRows,
 			},
 		}, nil
-	case "plugin_grabber.apply_control", "plugin_grabber_apply_control":
-		return executorpkg.Result{
-			ToolCallID:  in.ToolCall.ID,
-			Tool:        in.ToolCall.Tool,
-			CommandName: "plugin_grabber_apply_control",
-			Status:      "ok",
-			Result: map[string]any{
-				"status":    "ok",
-				"track_id":  firstMapText(in.ToolCall.Args, "track_id"),
-				"plugin_id": firstMapText(in.ToolCall.Args, "plugin_id"),
-				"control":   firstMapText(in.ToolCall.Args, "control"),
-			},
-		}, nil
 	case "track.group.apply_control":
 		groupID := firstMapText(in.ToolCall.Args, "group_id", "id")
 		trackIDs := messageLoopStringSlice(in.ToolCall.Args["track_ids"])
@@ -3073,6 +3060,48 @@ func TestMessageLoopMediaArtifactToolResultUsesCompactSummary(t *testing.T) {
 	}
 	if _, ok := compact["result_summary"]; ok {
 		t.Fatalf("media artifact execution should not include generic result_summary: %+v", compact)
+	}
+}
+
+func TestCompactMessageLoopExecutionBoundsProjectHistory(t *testing.T) {
+	record := map[string]any{
+		"status":       "ok",
+		"tool":         "ccb.observation_request",
+		"command_name": "ccb_observation_request",
+		"result": map[string]any{
+			"status": "ok",
+			"bundle": map[string]any{
+				"schema_version":   "ccb_observation_bundle.v1",
+				"bundle_id":        "bundle_1",
+				"status":           "ready",
+				"disclosure_bytes": 128,
+			},
+		},
+		"project_history": map[string]any{
+			"available":     true,
+			"active_branch": "main",
+			"head":          "commit_7",
+			"commit_count":  7,
+			"conversation_messages": []any{
+				map[string]any{"role": "assistant", "content": "large_receipt_" + strings.Repeat("x", 700000)},
+			},
+		},
+	}
+
+	compact := compactMessageLoopExecution(record)
+	data, err := json.Marshal(compact)
+	if err != nil {
+		t.Fatalf("marshal compact execution: %v", err)
+	}
+	if len(data) > 20*1024 {
+		t.Fatalf("project history leaked into prompt projection: %d bytes", len(data))
+	}
+	if strings.Contains(string(data), "large_receipt_") || compact["project_history"] != nil {
+		t.Fatalf("full project history leaked into prompt projection: %s", data)
+	}
+	summary := messageLoopMapValue(compact["project_history_summary"])
+	if summary["active_branch"] != "main" || summary["head"] != "commit_7" || summary["commit_count"] != 7 {
+		t.Fatalf("project history summary lost stable state: %#v", compact)
 	}
 }
 
@@ -6546,7 +6575,7 @@ func TestMessageLoopFinalReplyStoresTreatmentPendingAndStripsMarker(t *testing.T
 		`{"final":false,"reply":"observe","tool_calls":[{"id":"observe_mix","tool":"mix.observe","args":{"scope":"full_project"},"reason":"observe"}]}`,
 		`{"final":true,"reply":"整体听感偏低频堆积，建议先用保守的低频 EQ 处理来清理这部分能量，具体目标轨道等信息还需要 resolver 进一步确认。
 
-mix_treatment_pending: {\"schema_version\":\"mix_treatment_pending.v0\",\"status\":\"pending_confirmation\",\"intent\":\"reduce low-end mud\",\"target_ref\":\"project\",\"action_kind\":\"plugin_treatment\",\"processor_type\":\"eq\",\"reasoning_summary\":\"low end sounds muddy from available observation\",\"confidence\":\"medium\",\"evidence_refs\":[\"observation.digest\"],\"needs_resolution\":[\"target_track\",\"plugin_instance\",\"plugin_profile\",\"exact_control\"],\"expires_after_context_change\":true}","tool_calls":[]}`,
+mix_treatment_pending: {\"schema_version\":\"mix_treatment_pending.v0\",\"status\":\"pending_confirmation\",\"intent\":\"reduce low-end mud\",\"target_ref\":\"project\",\"action_kind\":\"plugin_treatment\",\"processor_type\":\"eq\",\"reasoning_summary\":\"low end sounds muddy from available observation\",\"confidence\":\"medium\",\"evidence_refs\":[\"observation.digest\"],\"needs_resolution\":[\"target_track\",\"plugin_instance\",\"live_parameter_surface\",\"exact_control\"],\"expires_after_context_change\":true}","tool_calls":[]}`,
 	}}
 	exec := &fakeMessageExecutor{mixObservationResult: map[string]any{
 		"status":         "ok",
@@ -6600,7 +6629,7 @@ mix_treatment_pending: {\"schema_version\":\"mix_treatment_pending.v0\",\"status
 func TestMessageLoopChineseEQActionWithoutPluginStopsAtSelectionBoundary(t *testing.T) {
 	client := &fakeMessageCompleter{responses: []string{
 		`{"final":false,"reply":"先观察低频和声像依据。","tool_calls":[{"id":"observe_mix","tool":"mix.observe","args":{"scope":"track","target_ref":{"kind":"track","id":"1007"},"mom_intent":"action_preflight_observation"},"reason":"先读取 MOM observation 作为低频处理依据"}]}`,
-		`{"final":true,"reply":"依据这次 MOM 观察，低频处理只能先作为保守 EQ 方向，确认前不会写插件或参数。\nmix_treatment_pending: {\"schema_version\":\"mix_treatment_pending.v0\",\"status\":\"pending_confirmation\",\"intent\":\"reduce low end slightly\",\"target_ref\":\"track:1007\",\"action_kind\":\"plugin_treatment\",\"processor_type\":\"eq\",\"reasoning_summary\":\"low-end reduction is proposed from MOM observation evidence; uncertainty remains until plugin/profile/control resolution\",\"confidence\":\"medium\",\"evidence_refs\":[\"observation:obs_action_preflight\",\"mix.read:track.1007.slow.band_energy.summary\"],\"needs_resolution\":[\"plugin_instance\",\"plugin_profile\",\"exact_control\"],\"expires_after_context_change\":true}","tool_calls":[]}`,
+		`{"final":true,"reply":"依据这次 MOM 观察，低频处理只能先作为保守 EQ 方向，确认前不会写插件或参数。\nmix_treatment_pending: {\"schema_version\":\"mix_treatment_pending.v0\",\"status\":\"pending_confirmation\",\"intent\":\"reduce low end slightly\",\"target_ref\":\"track:1007\",\"action_kind\":\"plugin_treatment\",\"processor_type\":\"eq\",\"reasoning_summary\":\"low-end reduction is proposed from MOM observation evidence; uncertainty remains until live-parameter/control resolution\",\"confidence\":\"medium\",\"evidence_refs\":[\"observation:obs_action_preflight\",\"mix.read:track.1007.slow.band_energy.summary\"],\"needs_resolution\":[\"plugin_instance\",\"live_parameter_surface\",\"exact_control\"],\"expires_after_context_change\":true}","tool_calls":[]}`,
 	}}
 	exec := &fakeMessageExecutor{mixObservationResult: map[string]any{
 		"status":         "ok",
@@ -6634,7 +6663,7 @@ func TestMessageLoopChineseEQActionWithoutPluginStopsAtSelectionBoundary(t *test
 
 	res := loop.Start(context.Background(), Input{
 		UserText:     "帮我把低频稍微收一点，但先告诉我依据。",
-		AllowedTools: []string{"mix.observe", "mix.read", "plugin_grabber_apply_control", "rack.load_plugin", "plugin.set_parameter"},
+		AllowedTools: []string{"mix.observe", "mix.read", "rack.load_plugin", "plugin.set_parameter"},
 		Context:      map[string]any{"selected_track_id": "1007"},
 		State:        map[string]any{"selected_track_id": "1007", "tracks": []map[string]any{{"track_id": "1007", "track_name": "Track 1"}}},
 	})
@@ -6647,7 +6676,7 @@ func TestMessageLoopChineseEQActionWithoutPluginStopsAtSelectionBoundary(t *test
 	}
 	for _, call := range exec.calls {
 		switch call.Tool {
-		case "plugin_grabber_apply_control", "rack.load_plugin", "plugin.set_parameter":
+		case "rack.load_plugin", "plugin.set_parameter":
 			t.Fatalf("action tool executed before confirmation: %+v", exec.calls)
 		}
 	}
@@ -6668,7 +6697,7 @@ func TestMessageLoopChineseEQActionWithoutPluginStopsAtSelectionBoundary(t *test
 func TestMessageLoopTreatmentMarkerWinsOverEQDBSuggestion(t *testing.T) {
 	client := &fakeMessageCompleter{responses: []string{
 		`{"final":false,"reply":"observe","tool_calls":[{"id":"observe_mix","tool":"mix.observe","args":{"scope":"track","target_ref":{"kind":"track","id":"1007"}},"reason":"observe"}]}`,
-		`{"final":true,"reply":"I observed first. Track 1 low-mid cut -2 dB is only an EQ treatment idea.\nmix_treatment_pending: {\"schema_version\":\"mix_treatment_pending.v0\",\"status\":\"pending_confirmation\",\"intent\":\"reduce low-end mud\",\"target_ref\":\"track:1007\",\"action_kind\":\"plugin_treatment\",\"processor_type\":\"eq\",\"reasoning_summary\":\"low end sounds muddy from available observation\",\"confidence\":\"medium\",\"evidence_refs\":[\"observation.digest\"],\"needs_resolution\":[\"plugin_instance\",\"plugin_profile\",\"exact_control\"],\"expires_after_context_change\":true}\n\nIf you approve, should I continue?","tool_calls":[]}`,
+		`{"final":true,"reply":"I observed first. Track 1 low-mid cut -2 dB is only an EQ treatment idea.\nmix_treatment_pending: {\"schema_version\":\"mix_treatment_pending.v0\",\"status\":\"pending_confirmation\",\"intent\":\"reduce low-end mud\",\"target_ref\":\"track:1007\",\"action_kind\":\"plugin_treatment\",\"processor_type\":\"eq\",\"reasoning_summary\":\"low end sounds muddy from available observation\",\"confidence\":\"medium\",\"evidence_refs\":[\"observation.digest\"],\"needs_resolution\":[\"plugin_instance\",\"live_parameter_surface\",\"exact_control\"],\"expires_after_context_change\":true}\n\nIf you approve, should I continue?","tool_calls":[]}`,
 	}}
 	exec := &fakeMessageExecutor{mixObservationResult: map[string]any{
 		"status":         "ok",
@@ -6714,7 +6743,7 @@ func TestMessageLoopTreatmentMarkerWinsOverEQDBSuggestion(t *testing.T) {
 
 func TestMessageLoopTreatmentPendingParsesNestedTarget(t *testing.T) {
 	client := &fakeMessageCompleter{responses: []string{
-		`{"final":true,"reply":"可以准备一个明确插件控制，确认后由 resolver 检查执行。\nmix_treatment_pending: {\"schema_version\":\"mix_treatment_pending.v0\",\"status\":\"pending_confirmation\",\"intent\":\"reduce low mids\",\"target_ref\":\"track:1007\",\"action_kind\":\"plugin_treatment\",\"processor_type\":\"eq\",\"plugin_id\":\"nova_1\",\"control\":\"control low mids with band 2\",\"target\":{\"freq_hz\":300,\"gain_db\":-1.5,\"q\":1.1},\"reasoning_summary\":\"explicit control from profile\",\"confidence\":\"high\",\"evidence_refs\":[\"profile.virtual_controls\"],\"needs_resolution\":[],\"expires_after_context_change\":true}","tool_calls":[]}`,
+		`{"final":true,"reply":"可以准备一个明确插件控制，确认后由 resolver 检查执行。\nmix_treatment_pending: {\"schema_version\":\"mix_treatment_pending.v0\",\"status\":\"pending_confirmation\",\"intent\":\"reduce low mids\",\"target_ref\":\"track:1007\",\"action_kind\":\"plugin_treatment\",\"processor_type\":\"eq\",\"plugin_id\":\"nova_1\",\"control\":\"control low mids with band 2\",\"target\":{\"freq_hz\":300,\"gain_db\":-1.5,\"q\":1.1},\"reasoning_summary\":\"explicit control from live parameter observation\",\"confidence\":\"high\",\"evidence_refs\":[\"parameter.surface\"],\"needs_resolution\":[],\"expires_after_context_change\":true}","tool_calls":[]}`,
 	}}
 	loop := &MessageLoop{
 		Client:   client,

@@ -67,7 +67,7 @@ Millennia 的 High Frequency 枚举还以无单位的 `4.8...21.0` 表示 kHz，
 ## 安全审计
 
 - 5 个外部对象、10 个阶段；
-- 0 audio probe / learn / profile / SPAL / B4；
+- 0 audio probe / B4；已退役映射链路不在运行时能力面中；
 - Channel Strip 未写入 dynamics、compressor、gate、sidechain 或 detector 参数；
 - 受保护运行时文件 byte-identical；
 - 5555、5556、7878、8787 端口全部释放。
@@ -99,4 +99,4 @@ Millennia 的 High Frequency 枚举还以无单位的 `4.8...21.0` 表示 kHz，
 - Waves 50 capture：44 recognized / 38 executable，较修复前 0 回退。
 - 第三轮 22 snapshot：18 recognized / 18 executable，顶层 capability 0 回退；结构变化体现在歧义 binding 合并和 transform-aware planner。
 - 离线对照产物：`artifacts/eq_third_holdout_repair/20260728`。
-- 最终实机审计：0 audio probe / learn / profile / SPAL / B4；受保护运行时文件 byte-identical；5555、5556、7878、8787 端口全部释放。
+- 最终实机审计：0 audio probe / B4；已退役映射链路不在运行时能力面中；受保护运行时文件 byte-identical；5555、5556、7878、8787 端口全部释放。

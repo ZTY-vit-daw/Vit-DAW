@@ -36,7 +36,7 @@ Rules:
 - Energy overlap is a candidate, not proof of masking. Use role and relative tonal evidence as context, not instrument-name dogma.
 - static_eq means a time-invariant spectral correction justified by current evidence.
 - Time-varying level/tone belongs to defer_dynamic_processing (C2); depth/width/reverb/delay to defer_space_processing (C3); section or movement changes to defer_automation (C4); musical/source problems to arrangement_or_source.
-- Do not name or select plug-ins. Do not output frequencies, gain, Q, slopes, EQ shapes, compressor settings, space settings, automation values, profiles, learning, SPAL, web research, or tool calls.
+- Do not name or select plug-ins. Do not output frequencies, gain, Q, slopes, EQ shapes, compressor settings, space settings, automation values, stored mappings, web research, or tool calls.
 - Deterministic code owns exact instance qualification, static-EQ topology/materialization, confirmation, execution, all-or-rollback, fresh same-tap post-FX verification, and Mixboard propagation.`
 	req := llm.Request{Messages: []llm.Message{{Role: "system", Content: system}, {Role: "user", Content: string(payload)}}, Metadata: llm.RequestMetadata{Source: "c1_project_treatment_planner", ConversationID: conversationID}, PreferJSON: true, Timeout: c1PlannerTimeout}
 	response, err := s.llm.CompleteRequest(ctx, cfg, req)
@@ -100,7 +100,7 @@ Rules:
 - Copy each exact track_id/plugin_id pair once; never invent, omit, duplicate, or reorder.
 - Use only 1-3 static upsert atoms and only bell, low_shelf, high_shelf, low_cut, or high_cut.
 - Derive conservative acoustic values from listening_goal and evidence. Every numeric field needs field_origins.
-- Do not output dynamic EQ, compression, spatial processing, automation, plug-in loading, profiles, learning, SPAL, web research, or vendor-specific rules.
+- Do not output dynamic EQ, compression, spatial processing, automation, plug-in loading, stored mappings, web research, or vendor-specific rules.
 - Deterministic shared code owns materialization, preimage, confirmation, execution, readback, rollback, and verification.`
 	if strings.TrimSpace(rejection) != "" {
 		system += "\nA prior candidate failed deterministic materialization. Treat the rejection as hard and choose reachable alternatives without changing targets."

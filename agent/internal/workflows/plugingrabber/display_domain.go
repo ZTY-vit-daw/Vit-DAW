@@ -15,8 +15,10 @@ const (
 )
 
 var (
-	displayDomainRangePattern = regexp.MustCompile(`(?i)([-+]?\d+(?:\.\d+)?)\s*(?:db|hz|khz|%|ms|sec|s|q)?\s*(?:~|〜|～|至|到|to|\.{2,}|[-–—]+)\s*([-+]?\d+(?:\.\d+)?)`)
-	displayDomainQUnitPattern = regexp.MustCompile(`(?i)(?:^|[^[:alnum:]_])q(?:$|[^[:alnum:]_])`)
+	displayDomainRangePattern  = regexp.MustCompile(`(?i)([-+]?\d+(?:\.\d+)?)\s*(?:db|hz|khz|%|ms|sec|s|q)?\s*(?:~|〜|～|至|到|to|\.{2,}|[-–—]+)\s*([-+]?\d+(?:\.\d+)?)`)
+	displayDomainQUnitPattern  = regexp.MustCompile(`(?i)(?:^|[^[:alnum:]_])q(?:$|[^[:alnum:]_])`)
+	displayDomainMSUnitPattern = regexp.MustCompile(`(?i)(?:^|[^[:alpha:]])ms(?:$|[^[:alpha:]])`)
+	displayDomainSUnitPattern  = regexp.MustCompile(`(?i)(?:^|[^[:alpha:]])s(?:$|[^[:alpha:]])`)
 )
 
 func parseDisplayDomainText(text, source string, confirmed bool) *PluginDisplayDomain {
@@ -92,9 +94,9 @@ func inferDisplayDomainUnit(text string) string {
 		return "Hz"
 	case strings.Contains(lower, "%") || strings.Contains(text, "百分比"):
 		return "%"
-	case strings.Contains(lower, "ms") || strings.Contains(text, "毫秒"):
+	case displayDomainMSUnitPattern.MatchString(lower) || strings.Contains(text, "毫秒"):
 		return "ms"
-	case strings.Contains(lower, "sec") || strings.Contains(lower, "second") || strings.Contains(text, "秒"):
+	case displayDomainSUnitPattern.MatchString(lower) || strings.Contains(lower, "sec") || strings.Contains(lower, "second") || strings.Contains(text, "秒"):
 		return "s"
 	case displayDomainQUnitPattern.MatchString(lower) || strings.Contains(lower, "quality") || strings.Contains(lower, "bandwidth"):
 		return "Q"
@@ -198,7 +200,7 @@ func inferredDisplayDomainForSlot(slot string, param ParameterInfo) *PluginDispl
 	if param.DisplayDomainCandidate != nil && param.DisplayDomainCandidate.Confidence >= 0.80 {
 		return param.DisplayDomainCandidate
 	}
-	cleanSlot := pluginSkillParamSlot(slot)
+	cleanSlot := normaliseParameterSlot(slot)
 	text := strings.ToLower(strings.Join([]string{
 		cleanSlot,
 		param.ID,
@@ -210,7 +212,7 @@ func inferredDisplayDomainForSlot(slot string, param ParameterInfo) *PluginDispl
 	}, " "))
 	switch {
 	case param.IsBoolean || cleanSlot == "enable" || cleanSlot == "dyn_enable" || strings.Contains(text, "enable") || strings.Contains(text, "bypass"):
-		return displayDomain("0~1 toggle", "toggle", 0, 1, "enum", displayDomainStatusInferred, "auto_learn_parameter_shape", 0.85)
+		return displayDomain("0~1 toggle", "toggle", 0, 1, "enum", displayDomainStatusInferred, "parameter_shape", 0.85)
 	case isSteppedDisplayDomainParameter(cleanSlot, text, param):
 		label := firstNonEmptyString(strings.TrimSpace(param.ValueText), param.Name, param.RawName, param.Alias, cleanSlot, "stepped values")
 		return &PluginDisplayDomain{
@@ -218,19 +220,19 @@ func inferredDisplayDomainForSlot(slot string, param ParameterInfo) *PluginDispl
 			Unit:       "enum",
 			Scale:      "enum",
 			Status:     displayDomainStatusInferred,
-			Source:     "auto_learn_parameter_shape",
+			Source:     "parameter_shape",
 			Confidence: 0.78,
 		}
 	case strings.Contains(text, "low cut") || strings.Contains(text, "lowcut") || strings.Contains(text, "high pass") || strings.Contains(text, "hipass"):
-		return displayDomain("10~2000 Hz 对数", "Hz", 10, 2000, "log", displayDomainStatusInferred, "auto_learn_name_pattern", 0.74)
+		return displayDomain("10~2000 Hz 对数", "Hz", 10, 2000, "log", displayDomainStatusInferred, "name_pattern", 0.74)
 	case strings.Contains(text, "high cut") || strings.Contains(text, "highcut") || strings.Contains(text, "low pass") || strings.Contains(text, "lopass"):
-		return displayDomain("200~20000 Hz 对数", "Hz", 200, 20000, "log", displayDomainStatusInferred, "auto_learn_name_pattern", 0.74)
+		return displayDomain("200~20000 Hz 对数", "Hz", 200, 20000, "log", displayDomainStatusInferred, "name_pattern", 0.74)
 	case cleanSlot == "frequency" || cleanSlot == "freq" || strings.Contains(text, "frequency") || strings.Contains(text, "freq"):
-		return displayDomain("20~20000 Hz 对数", "Hz", 20, 20000, "log", displayDomainStatusInferred, "auto_learn_eq_slot", 0.78)
+		return displayDomain("20~20000 Hz 对数", "Hz", 20, 20000, "log", displayDomainStatusInferred, "eq_slot", 0.78)
 	case cleanSlot == "q" || strings.Contains(text, "quality") || strings.Contains(text, "bandwidth"):
 		// A display probe can recover the real Q curve even when it cannot
 		// infer a literal unit label.  Prefer that observed range to the
-		// generic EQ fallback; SPAL conformance must not silently widen it.
+		// Generic EQ fallback must not silently widen the observed domain.
 		if candidate := param.DisplayDomainCandidate; candidate != nil && candidate.Min != nil && candidate.Max != nil && candidate.Confidence >= 0.70 {
 			out := *candidate
 			out.Unit = "Q"
@@ -240,24 +242,24 @@ func inferredDisplayDomainForSlot(slot string, param ParameterInfo) *PluginDispl
 			out.Text = fmt.Sprintf("%g~%g Q", *out.Min, *out.Max)
 			return &out
 		}
-		return displayDomain("0.1~10 Q", "Q", 0.1, 10, "log", displayDomainStatusInferred, "auto_learn_eq_slot", 0.70)
+		return displayDomain("0.1~10 Q", "Q", 0.1, 10, "log", displayDomainStatusInferred, "eq_slot", 0.70)
 	case strings.Contains(text, "feedback") || strings.Contains(text, "depth") || strings.Contains(text, "width") || strings.Contains(text, "density") || strings.Contains(text, "warp") || strings.Contains(text, "amount") || strings.Contains(strings.ToLower(param.ValueText), "%"):
-		return displayDomain("0~100 %", "%", 0, 100, "linear", displayDomainStatusInferred, "auto_learn_name_pattern", 0.70)
+		return displayDomain("0~100 %", "%", 0, 100, "linear", displayDomainStatusInferred, "name_pattern", 0.70)
 	case cleanSlot == "time" || cleanSlot == "delay" || strings.Contains(text, "delay") || strings.Contains(text, "time_delay") || strings.Contains(strings.ToLower(param.ValueText), "ms"):
-		return displayDomain("0~2000 ms", "ms", 0, 2000, "linear", displayDomainStatusInferred, "auto_learn_name_pattern", 0.72)
+		return displayDomain("0~2000 ms", "ms", 0, 2000, "linear", displayDomainStatusInferred, "name_pattern", 0.72)
 	case strings.Contains(text, "mod rate") || strings.Contains(text, "rate") || strings.Contains(text, "lfo") || strings.Contains(strings.ToLower(param.ValueText), "hz"):
-		return displayDomain("0.01~10 Hz 对数", "Hz", 0.01, 10, "log", displayDomainStatusInferred, "auto_learn_name_pattern", 0.68)
+		return displayDomain("0.01~10 Hz 对数", "Hz", 0.01, 10, "log", displayDomainStatusInferred, "name_pattern", 0.68)
 	case strings.Contains(text, "mix") || strings.Contains(text, "wet") || strings.Contains(text, "dry"):
-		return displayDomain("0~100 %", "%", 0, 100, "linear", displayDomainStatusInferred, "auto_learn_name_pattern", 0.72)
+		return displayDomain("0~100 %", "%", 0, 100, "linear", displayDomainStatusInferred, "name_pattern", 0.72)
 	case cleanSlot == "gain" || strings.Contains(text, "gain") || strings.Contains(text, "level") || strings.Contains(text, "output"):
-		return displayDomain("-18~18 dB", "dB", -18, 18, "linear", displayDomainStatusInferred, "auto_learn_name_pattern", 0.66)
+		return displayDomain("-18~18 dB", "dB", -18, 18, "linear", displayDomainStatusInferred, "name_pattern", 0.66)
 	}
 	if param.DisplayDomainCandidate != nil {
 		return param.DisplayDomainCandidate
 	}
 	return &PluginDisplayDomain{
 		Status:     displayDomainStatusUnknown,
-		Source:     "auto_learn_unknown",
+		Source:     "parameter_observation_unknown",
 		Confidence: 0.0,
 	}
 }
@@ -294,27 +296,6 @@ func displayDomain(text, unit string, minValue, maxValue float64, scale, status,
 		Source:     source,
 		Confidence: confidence,
 	}
-}
-
-func displayDomainSummary(groups []map[string]any) map[string]int {
-	out := map[string]int{
-		displayDomainStatusConfirmed:         0,
-		displayDomainStatusInferred:          0,
-		displayDomainStatusNeedsConfirmation: 0,
-		displayDomainStatusUnknown:           0,
-	}
-	for _, mapping := range profileMappingsFromGroups(groups) {
-		domain := displayDomainFromAny(mapping["display_domain"])
-		status := displayDomainStatusUnknown
-		if domain != nil && strings.TrimSpace(domain.Status) != "" {
-			status = strings.TrimSpace(domain.Status)
-		}
-		if _, ok := out[status]; !ok {
-			out[status] = 0
-		}
-		out[status]++
-	}
-	return out
 }
 
 func displayDomainTextForSummary(domain *PluginDisplayDomain) string {

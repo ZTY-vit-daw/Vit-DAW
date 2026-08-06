@@ -1138,7 +1138,7 @@ type sidecar struct {
 func collectSidecars(repo Repo) ([]sidecar, []string) {
 	out := []sidecar{}
 	warnings := []string{}
-	for _, name := range []string{"plugin_grabber_profiles.json", "rack_control_macros.json"} {
+	for _, name := range []string{"rack_control_macros.json"} {
 		path := filepath.Join(repo.MediaDir, name)
 		if fileExists(path) {
 			out = append(out, sidecar{path: path, kind: strings.TrimSuffix(name, ".json")})

@@ -1,6 +1,6 @@
 // Package vst3host supervises the crash-isolated native VST3 worker used by
-// VPS Forge. The worker speaks newline-delimited JSON over stdio; this package
-// deliberately contains no VPS Library, Credential, Catalog, or SPAL logic.
+// pluginprobe. The worker speaks newline-delimited JSON over stdio and exposes
+// observation operations only.
 package vst3host
 
 import (
@@ -19,14 +19,14 @@ import (
 )
 
 const (
-	WorkerProtocol          = "vit.vpsforge.vst3_worker.v1"
+	WorkerProtocol          = "vit.pluginprobe.vst3_worker.v1"
 	MaxWorkerResponseBytes  = 32 << 20
 	MaxWorkerDiagnosticByte = 64 << 10
 )
 
 // WorkerError is returned when the isolated worker fails, exits, or returns a
-// structured operation error. Its bounded diagnostic data is safe to write to
-// the staging evidence ledger; raw plugin state is never included.
+// structured operation error. Its bounded diagnostic data excludes raw plugin
+// state.
 type WorkerError struct {
 	Code       string
 	Message    string
@@ -61,7 +61,7 @@ type Response struct {
 }
 
 // Worker represents exactly one native process. Calls are serialized because
-// each loaded plugin has mutable state and each write must own its preimage.
+// each loaded plugin has process-local state.
 type Worker struct {
 	mu       sync.Mutex
 	cmd      *exec.Cmd
@@ -74,7 +74,7 @@ type Worker struct {
 
 // Start launches a native worker without a visible window on Windows. The
 // caller must call Close. A separate worker is used for each loaded plugin so
-// a VST3 crash cannot take down the Go Forge process.
+// a VST3 crash cannot take down pluginprobe.
 func Start(path string) (*Worker, error) {
 	path = strings.TrimSpace(path)
 	if path == "" {
@@ -134,7 +134,7 @@ func (w *Worker) PID() int {
 
 // Call sends one command and waits for one fresh worker response. If the
 // context expires, the worker is terminated rather than reused with uncertain
-// plugin state; the parent Forge process remains healthy.
+// plugin state; the parent pluginprobe process remains healthy.
 func (w *Worker) Call(ctx context.Context, operation string, request map[string]any) (Response, error) {
 	if w == nil {
 		return Response{}, &WorkerError{Code: "worker_unavailable", Message: "native VST3 worker is nil"}
@@ -143,6 +143,9 @@ func (w *Worker) Call(ctx context.Context, operation string, request map[string]
 	defer w.mu.Unlock()
 	if w.closed {
 		return Response{}, &WorkerError{Code: "worker_closed", Message: "native VST3 worker is closed"}
+	}
+	if !observationOperation(operation) {
+		return Response{}, &WorkerError{Code: "operation_not_observational", Message: "pluginprobe does not permit operation " + strings.TrimSpace(operation)}
 	}
 	if request == nil {
 		request = map[string]any{}
@@ -188,9 +191,16 @@ func (w *Worker) Call(ctx context.Context, operation string, request map[string]
 	}
 }
 
-// Close ends the native child. It intentionally does not attempt to restore a
-// plugin after a caller has abandoned the session; tests must use rollback
-// before close when a controlled state restoration result is required.
+func observationOperation(operation string) bool {
+	switch strings.ToLower(strings.TrimSpace(operation)) {
+	case "load", "snapshot", "render", "unload":
+		return true
+	default:
+		return false
+	}
+}
+
+// Close ends the native child and discards the isolated plugin instance.
 func (w *Worker) Close() error {
 	if w == nil {
 		return nil

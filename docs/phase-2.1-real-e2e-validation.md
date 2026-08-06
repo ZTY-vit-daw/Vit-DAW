@@ -53,7 +53,7 @@ Phase 2.1 assertions include:
 
 - One plugin-preparation confirmation may load/prepare at most once.
 - `get_plugin_parameters` count is at most one per confirmation turn.
-- `plugin.set_parameter` and `plugin_grabber.apply_control` are zero during preparation.
+- Direct parameter writes and retired mapping routes are zero during preparation.
 - Plugin prep continuation is at most one and must expose `TerminalResult` and/or `UserInputRequest`.
 
 Artifacts: `D:\Vit_DAW\VitApp\Workspace\Artifacts\smoke\blind_mix_conversation_*`.

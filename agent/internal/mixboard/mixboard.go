@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"vit-daw-agent/internal/acousticpackage"
+	"vit-daw-agent/internal/com"
 	"vit-daw-agent/internal/fxm"
 	"vit-daw-agent/internal/mom"
 	"vit-daw-agent/internal/projectstore"
@@ -92,6 +93,7 @@ type ObservationPacket struct {
 	ProjectPackage        map[string]any    `json:"project_package"`
 	MixPackage            map[string]any    `json:"mix_package"`
 	DeepPackage           map[string]any    `json:"deep_package"`
+	COMProjection         *com.Projection   `json:"com_projection,omitempty"`
 	FXMProjection         *fxm.Projection   `json:"fxm_projection,omitempty"`
 	MOMProjection         *mom.Projection   `json:"mom_projection,omitempty"`
 	TIMProjection         *tim.Projection   `json:"tim_projection,omitempty"`
@@ -1111,6 +1113,7 @@ func buildObservation(req Request, createdAt string, featureSnapshot featureSnap
 	}
 	applyAcousticPackageStatusToFeatureSnapshot(&featureSnapshot, acousticPackageStatus)
 	normalizeProjectFeatureMaterialFreshness(&featureSnapshot, req.ProjectState)
+	preserveTargetWaveformTimeSegments(&featureSnapshot, req)
 	promoteBestL3FeatureRows(&featureSnapshot)
 	promoteBestRealtimeFeatureRows(&featureSnapshot)
 	waveformStatus := featureStatus(featureSnapshot.WaveformEnvelope)
@@ -1481,6 +1484,7 @@ func applyAcousticPackageStatusToFeatureSnapshot(snap *featureSnapshot, status m
 	}
 	latestRequestID := cleanAnyString(snap.LatestRequest["request_id"])
 	if row := featureRowFromAcousticPackage(status, "l1_static", "waveform_envelope", "waveform_envelope", latestRequestID); len(row) > 0 {
+		row = waveformRowWithPreservedTimeSegments(row, snap.WaveformEnvelope)
 		snap.WaveformEnvelope = row
 		if cleanAnyString(row["track_id"]) != "" {
 			snap.TrackWaveformEnvelopes = mergeAcousticPackageTrackWaveformRows(snap.TrackWaveformEnvelopes, row)
@@ -1513,6 +1517,21 @@ func applyAcousticPackageStatusToFeatureSnapshot(snap *featureSnapshot, status m
 		snap.L2RenderProbes = mergeFeatureRowsByIdentity(snap.L2RenderProbes, row)
 	}
 	promoteBestRealtimeFeatureRows(snap)
+}
+
+func waveformRowWithPreservedTimeSegments(summary, evidence map[string]any) map[string]any {
+	if len(summary) == 0 || len(waveformTimeSegments(summary)) > 0 || len(waveformTimeSegments(evidence)) == 0 ||
+		!waveformRowsDescribeSameMaterial(summary, evidence) {
+		return summary
+	}
+	out := copyAnyMap(summary)
+	out["time_segments"] = evidence["time_segments"]
+	for _, key := range []string{"total_duration", "duration_seconds", "coverage_seconds", "coverage_ratio"} {
+		if _, present := out[key]; !present && evidence[key] != nil {
+			out[key] = evidence[key]
+		}
+	}
+	return out
 }
 
 func promoteBestRealtimeFeatureRows(snap *featureSnapshot) {
@@ -1871,6 +1890,64 @@ func mergeAcousticPackageTrackWaveformRows(rows []map[string]any, row map[string
 		out = append(out, row)
 	}
 	return out
+}
+
+func preserveTargetWaveformTimeSegments(snap *featureSnapshot, req Request) {
+	if snap == nil || len(waveformTimeSegments(snap.WaveformEnvelope)) > 0 {
+		return
+	}
+	trackID := cleanAnyString(req.Args["track_id"])
+	clipID := cleanAnyString(req.Args["clip_id"])
+	switch strings.ToLower(strings.TrimSpace(req.TargetRef.Kind)) {
+	case "track":
+		trackID = firstNonEmpty(req.TargetRef.ID, trackID)
+	case "clip":
+		clipID = firstNonEmpty(req.TargetRef.ID, clipID)
+	}
+	for _, row := range snap.TrackWaveformEnvelopes {
+		if !waveformRowMatchesRequestedTarget(row, trackID, clipID) ||
+			!waveformRowsDescribeSameMaterial(snap.WaveformEnvelope, row) ||
+			len(waveformTimeSegments(row)) == 0 {
+			continue
+		}
+		merged := copyAnyMap(snap.WaveformEnvelope)
+		merged["time_segments"] = row["time_segments"]
+		for _, key := range []string{"total_duration", "duration_seconds", "coverage_seconds", "coverage_ratio"} {
+			if _, present := merged[key]; !present && row[key] != nil {
+				merged[key] = row[key]
+			}
+		}
+		snap.WaveformEnvelope = merged
+		return
+	}
+}
+
+func waveformRowMatchesRequestedTarget(row map[string]any, trackID, clipID string) bool {
+	if trackID != "" && cleanAnyString(row["track_id"]) != trackID {
+		return false
+	}
+	if clipID != "" && cleanAnyString(row["clip_id"]) != clipID {
+		return false
+	}
+	return trackID != "" || clipID != ""
+}
+
+func waveformRowsDescribeSameMaterial(a, b map[string]any) bool {
+	if len(a) == 0 || len(b) == 0 {
+		return false
+	}
+	matchedIdentity := false
+	for _, key := range []string{"track_id", "clip_id", "source_revision", "source_fingerprint", "clip_revision"} {
+		left, right := cleanAnyString(a[key]), cleanAnyString(b[key])
+		if left == "" || right == "" {
+			continue
+		}
+		matchedIdentity = true
+		if !strings.EqualFold(left, right) {
+			return false
+		}
+	}
+	return matchedIdentity
 }
 
 func mergeFeatureRowsByIdentity(rows []map[string]any, row map[string]any) []map[string]any {
@@ -4124,12 +4201,16 @@ func stringSetFromAny(value any) map[string]bool {
 }
 
 func packageStatus(obs ObservationPacket) map[string]string {
-	return map[string]string{
+	out := map[string]string{
 		"environment": cleanAnyString(obs.EnvironmentPackage["status"]),
 		"project":     cleanAnyString(obs.ProjectPackage["status"]),
 		"mix":         cleanAnyString(obs.MixPackage["status"]),
 		"deep":        cleanAnyString(obs.DeepPackage["status"]),
 	}
+	if obs.COMProjection != nil {
+		out["com"] = obs.COMProjection.Status
+	}
+	return out
 }
 
 func buildFeatureHotspots(snap featureSnapshot, waveformStatus, spectrogramStatus string) []map[string]any {
@@ -4287,12 +4368,17 @@ func buildContextPack(req Request, board Board, obs ObservationPacket, now strin
 		},
 		"source_capabilities": projectedSourceCapabilities(obs.SourceCapabilities),
 		"read_hints": []string{
+			"mix_read key=observation.com_projection",
 			"mix_read key=observation.mom_projection",
 			"mix_read key=observation.tim_projection",
 			"mix_read key=observation.fxm_projection",
 			"mix_read key=observation.digest",
 			"mix_read key=observation.catalog",
 		},
+	}
+	if obs.COMProjection != nil {
+		latest["com_projection"] = com.ContextProjection(*obs.COMProjection)
+		latest["compression_observation_context"] = obs.COMProjection.LLMContext
 	}
 	if obs.MOMProjection != nil {
 		latest["mom_projection"] = mom.ContextProjection(*obs.MOMProjection)

@@ -7,9 +7,9 @@ func TestAgentLoopInteractionRequestsPromotesWorkflowCard(t *testing.T) {
 		{
 			"result": map[string]any{
 				"interaction_requests": []AgentInteractionRequest{{
-					ID:     "interaction_plugin_learning",
+					ID:     "interaction_observation_scope",
 					Kind:   "form",
-					Type:   "plugin_learning_ui_reference_request",
+					Type:   "observation_scope_request",
 					Status: "waiting_for_user",
 				}},
 			},
@@ -18,7 +18,7 @@ func TestAgentLoopInteractionRequestsPromotesWorkflowCard(t *testing.T) {
 	if len(requests) != 1 {
 		t.Fatalf("requests = %#v", requests)
 	}
-	if requests[0].ID != "interaction_plugin_learning" || requests[0].Type != "plugin_learning_ui_reference_request" {
+	if requests[0].ID != "interaction_observation_scope" || requests[0].Type != "observation_scope_request" {
 		t.Fatalf("request = %#v", requests[0])
 	}
 }

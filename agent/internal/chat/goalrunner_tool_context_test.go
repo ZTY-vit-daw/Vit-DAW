@@ -44,16 +44,63 @@ func TestAgentLoopToolContextIncludesMidiPack(t *testing.T) {
 	}
 }
 
-func TestAgentLoopToolContextRoutesEqualizerControlToGovernedB4(t *testing.T) {
+func TestAgentLoopToolContextRoutesEqualizerControlToDeterministicTools(t *testing.T) {
 	s := &Server{harness: harness.New(nil, nil, nil)}
 	ctx := s.agentLoopToolContext(agentModeDefault, "使用当前加载的均衡器调节 3400Hz 频段增益 3dB", map[string]any{"selected_track_id": "1007", "selected_plugin_id": "1013"})
-	if !containsToolName(ctx.AllowedTools, "plugin_grabber.apply_control") {
-		t.Fatalf("governed B4 tool missing from equalizer context: %+v", ctx.AllowedTools)
+	for _, want := range []string{"plugin_grabber.explain_controls", "plugin_grabber.apply_eq_edits"} {
+		if !containsToolName(ctx.AllowedTools, want) {
+			t.Fatalf("deterministic EQ tool %s missing from equalizer context: %+v", want, ctx.AllowedTools)
+		}
 	}
-	if !strings.Contains(ctx.CatalogSummary, "plugin_grabber_apply_control tool=plugin_grabber.apply_control") {
-		t.Fatalf("governed B4 contract missing from catalog:\n%s", ctx.CatalogSummary)
+	if containsToolName(ctx.AllowedTools, "plugin_grabber.apply_control") {
+		t.Fatalf("retired profile execution tool leaked into equalizer context: %+v", ctx.AllowedTools)
+	}
+	if !strings.Contains(ctx.CatalogSummary, "plugin_grabber_apply_eq_edits tool=plugin_grabber.apply_eq_edits") {
+		t.Fatalf("deterministic EQ contract missing from catalog:\n%s", ctx.CatalogSummary)
 	}
 }
+
+func TestAgentLoopToolContextRoutesCompressorControlToDeterministicTools(t *testing.T) {
+	s := &Server{harness: harness.New(nil, nil, nil)}
+	for _, userText := range []string{
+		"使用当前加载的压缩器设置阈值和释放时间",
+		"把 Threshold 设置为 -12 dB，Ratio 设置为 4:1",
+	} {
+		ctx := s.agentLoopToolContext(agentModeDefault, userText, map[string]any{"selected_track_id": "1007", "selected_plugin_id": "1013", "selected_plugin_name": "FabFilter Pro-C 2"})
+		for _, want := range []string{"plugin_grabber.inspect_compressor", "plugin_grabber.apply_compressor_controls"} {
+			if !containsToolName(ctx.AllowedTools, want) {
+				t.Fatalf("deterministic compressor tool %s missing for %q: %+v", want, userText, ctx.AllowedTools)
+			}
+		}
+		for _, forbidden := range []string{"daw.invoke", "goal.tick"} {
+			if containsToolName(ctx.AllowedTools, forbidden) {
+				t.Fatalf("compressor request leaked %s for %q: %+v", forbidden, userText, ctx.AllowedTools)
+			}
+		}
+		if !strings.Contains(ctx.CatalogSummary, "plugin_grabber_apply_compressor_controls tool=plugin_grabber.apply_compressor_controls") {
+			t.Fatalf("compressor contract missing for %q:\n%s", userText, ctx.CatalogSummary)
+		}
+	}
+}
+
+func TestAgentLoopToolContextKeepsCCBForFreeStateDrumDynamics(t *testing.T) {
+	s := &Server{harness: harness.New(nil, nil, nil)}
+	ctx := s.agentLoopToolContext(agentModeDefault,
+		"\u628a\u9f13\u7ec4\u5076\u5c14\u7a81\u51fa\u7684\u5cf0\u503c\u6536\u7a33\u4e00\u4e9b\uff0c\u4f46\u4e0d\u8981\u628a\u51fb\u6253\u611f\u538b\u6241\u3002",
+		map[string]any{"free_state_reasoning_loop": map[string]any{
+			"schema_version": "free_state_reasoning_loop.v1", "status": "reasoning",
+			"decision_phase": "processor_selection", "original_intent": "control drum peaks",
+		}})
+	for _, want := range []string{"ccb.observation_catalog", "ccb.observation_request"} {
+		if !containsToolName(ctx.AllowedTools, want) {
+			t.Fatalf("%s missing from free-state drum dynamics context: %+v", want, ctx.AllowedTools)
+		}
+	}
+	if !strings.Contains(ctx.CatalogSummary, "ccb_observation_request tool=ccb.observation_request") {
+		t.Fatalf("free-state CCB request contract missing from catalog:\n%s", ctx.CatalogSummary)
+	}
+}
+
 func TestAgentLoopToolContextRoutesRealChineseTrackRequestToPack(t *testing.T) {
 	s := &Server{harness: harness.New(nil, nil, nil)}
 

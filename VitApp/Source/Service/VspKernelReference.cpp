@@ -119,7 +119,6 @@ const std::unordered_map<std::string, LegacyCommandMapping>& canonicalCommandMap
         { "plugin.parameters.get", { "get_plugin_parameters", false } },
         { "plugin.describe_parameters", { "get_plugin_parameters", false } },
         { "plugin.readback", { "get_plugin_parameters", false } },
-        { "plugin.apply_control", { "plugin_grabber_apply_control", true } },
         { "macro.create", { "control_add_macro", true } },
         { "macro.bind", { "control_add_binding", true } },
         { "macro.set_values", { "control_set_macro_values", true } },
@@ -147,6 +146,7 @@ const std::unordered_set<std::string>& legacyReadOnlyCommands()
         "read_clip_gain",
         "get_plugin_parameters",
         "l2_render_probe",
+        "compressor_dual_tap_probe",
         "project_health_check",
         "project.audio_analysis_status",
         "track.group.list",
@@ -293,6 +293,7 @@ juce::StringArray capabilityList()
         "event.subscribe",
         "render.offline",
         "audio.l2_render_probe",
+        "audio.compressor_dual_tap_probe",
         "filesystem.import",
         "command.batch",
         "legacy.command",
@@ -1017,6 +1018,7 @@ juce::String makeSessionHelloAck (const juce::DynamicObject& request)
     flags->setProperty ("command.batch", true);
     flags->setProperty ("plugin.set_params_batch", true);
     flags->setProperty ("audio.l2_render_probe", true);
+    flags->setProperty ("audio.compressor_dual_tap_probe", true);
     flags->setProperty ("command.idempotency", true);
     flags->setProperty ("command.base_revision_cas", true);
     flags->setProperty ("state.snapshot.scoped", true);

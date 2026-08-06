@@ -15,7 +15,7 @@ func TestPendingCandidateSerializesStableKindAndStatus(t *testing.T) {
 		ActionKind:      "plugin_treatment",
 		ProcessorType:   "eq",
 		EvidenceRefs:    []string{"observation:obs_1"},
-		NeedsResolution: []string{"plugin_profile"},
+		NeedsResolution: []string{"live_parameter_surface"},
 		Confidence:      "medium",
 		Status:          PendingStatusWaitingUser,
 		Source:          Source{ConversationID: "chat_1", LegacySchema: "mix_treatment_pending.v0"},

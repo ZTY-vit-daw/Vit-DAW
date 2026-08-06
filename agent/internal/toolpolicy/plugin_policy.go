@@ -42,21 +42,21 @@ type rule struct {
 
 var pluginMutationRules = []rule{
 	{
+		name: "retired_plugin_control_surface",
+		match: func(_ TurnContext, call ToolCall) bool {
+			return IsRetiredPluginControlTool(call.Name)
+		},
+		apply: func(TurnContext, ToolCall) Decision {
+			return Decision{Verdict: Deny, Rule: "retired_plugin_control_surface", Reason: "retired plugin mappings and control surfaces are unavailable; inspect live parameters or use a deterministic typed tool"}
+		},
+	},
+	{
 		name: "mutation_barrier",
 		match: func(ctx TurnContext, call ToolCall) bool {
 			return ctx.MutationBarrier && IsPluginMutationTool(call.Name)
 		},
 		apply: func(TurnContext, ToolCall) Decision {
 			return Decision{Verdict: Deny, Rule: "mutation_barrier", Reason: "read-only observation mutation barrier is active"}
-		},
-	},
-	{
-		name: "grabber_apply_requires_live_target_and_control",
-		match: func(_ TurnContext, call ToolCall) bool {
-			return IsPluginGrabberApplyTool(call.Name) && !CompleteGrabberApply(call.Args)
-		},
-		apply: func(TurnContext, ToolCall) Decision {
-			return Decision{Verdict: Deny, Rule: "grabber_apply_requires_live_target_and_control", Reason: "plugin_grabber.apply_control requires track_id, plugin_id, and a learned control name"}
 		},
 	},
 	{
@@ -150,29 +150,31 @@ func LowMudNeedsObservation(userText string, knownPluginNames []string) bool {
 	return lowMudIntent(userText) && !MentionsNamedPlugin(userText, knownPluginNames)
 }
 
-func CompleteGrabberApply(args map[string]any) bool {
-	return argText(args, "track_id") != "" && argText(args, "plugin_id") != "" && firstArgText(args, "control", "operation", "name") != ""
-}
-
-func IsPluginGrabberApplyTool(name string) bool {
-	switch normalizeToolName(name) {
-	case "plugin_grabber.apply_control", "plugin_grabber_apply_control", "plugin_grabber.apply":
-		return true
-	default:
-		return false
-	}
-}
-
 func IsPluginMutationTool(name string) bool {
+	if IsRetiredPluginControlTool(name) {
+		return true
+	}
 	switch normalizeToolName(name) {
 	case "plugin.load_to_rack", "rack.add_node", "rack_add_node", "instantiate_plugin", "plugin.instantiate",
-		"plugin_grabber.learn_project_profile", "plugin_grabber_learn_project_profile",
-		"plugin_grabber.apply_control", "plugin_grabber_apply_control", "plugin_grabber.apply",
-		"plugin.set_parameter", "plugin_set_parameter", "set_plugin_param":
+		"plugin.set_parameter", "plugin_set_parameter", "set_plugin_param",
+		"plugin_grabber.apply_compressor_controls", "plugin_grabber_apply_compressor_controls":
 		return true
 	default:
 		return false
 	}
+}
+
+func IsRetiredPluginControlTool(name string) bool {
+	name = normalizeToolName(name)
+	for _, namespace := range []string{"spal", "vps", "vpsforge", "plugin_vps", "plugin.vps"} {
+		if name == namespace || strings.HasPrefix(name, namespace+".") || strings.HasPrefix(name, namespace+"_") {
+			return true
+		}
+	}
+	if !(strings.HasPrefix(name, "plugin_grabber") || strings.HasPrefix(name, "plugin.grabber")) {
+		return false
+	}
+	return strings.Contains(name, "profile") || strings.Contains(name, "apply_control") || strings.HasSuffix(name, ".apply")
 }
 
 func CollectPluginNames(values ...any) []string {

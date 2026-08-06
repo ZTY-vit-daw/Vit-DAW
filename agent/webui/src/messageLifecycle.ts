@@ -17,8 +17,7 @@ const noPersistence: MessagePersistence = "none";
 
 const legacyTransientPrefixes = [
   "agent_event_",
-  "interaction_processing_",
-  "plugin_learning_processing_"
+  "interaction_processing_"
 ];
 
 export function durableMessage(
@@ -277,7 +276,7 @@ function isTurnBoundInteractionAction(value: unknown): boolean {
   }
   const action = record(value);
   const kind = text(action.kind ?? action.type).toLowerCase();
-  if (["project_result", "mixboard", "mix_board", "plugin_learning_completion"].includes(kind)) {
+  if (["project_result", "mixboard", "mix_board"].includes(kind)) {
     return false;
   }
   const status = text(action.status ?? action.stage).toLowerCase();

@@ -165,9 +165,7 @@ export function uploadArtifacts(
     active_node_id?: string;
     history_scope_key?: string;
     media_scope_key?: string;
-    plugin_learning_session_id?: string;
-    plugin_learning_purpose?: string;
-    track_id?: string;
+	track_id?: string;
     plugin_id?: string;
     plugin_name?: string;
   } = {}
@@ -190,8 +188,6 @@ export function listArtifacts(options: {
   includeInternal?: boolean;
   kind?: string;
   source?: string;
-  pluginLearningSessionID?: string;
-  pluginLearningStage?: string;
 } = {}): Promise<ArtifactListResponse> {
   const query = new URLSearchParams();
   query.set("limit", String(options.limit ?? 80));
@@ -203,12 +199,6 @@ export function listArtifacts(options: {
   }
   if (options.source) {
     query.set("source", options.source);
-  }
-  if (options.pluginLearningSessionID) {
-    query.set("plugin_learning_session_id", options.pluginLearningSessionID);
-  }
-  if (options.pluginLearningStage) {
-    query.set("plugin_learning_stage", options.pluginLearningStage);
   }
   return requestJSON<ArtifactListResponse>(`/agent/artifacts?${query.toString()}`);
 }

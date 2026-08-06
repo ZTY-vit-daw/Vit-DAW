@@ -137,7 +137,7 @@ func (s *Server) applyPluginGrabberEQEdits(ctx context.Context, workflowCmd, req
 	if err != nil {
 		return nil, err
 	}
-	target, err := s.resolvePluginLearningTarget(ctx, workflowCmd, requestContext, "")
+	target, err := s.resolvePluginObservationTarget(ctx, workflowCmd, requestContext, "")
 	if err != nil {
 		return nil, rejectEQControl("target_unavailable", "%v", err)
 	}

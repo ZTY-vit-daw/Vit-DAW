@@ -434,6 +434,9 @@ Common command:
 ```powershell
 D:\Vit_DAW\scripts\run_vit_product_path_smoke.ps1 -RepoRoot D:\Vit_DAW
 D:\Vit_DAW\scripts\run_vit_product_path_smoke.ps1 -RepoRoot D:\Vit_DAW -GodotProjectRoot D:\Godot\project\vit-daw-frontend -GodotExe D:\Godot\Godot_v4.6.1-stable_win64.exe
+D:\Vit_DAW\scripts\run_vit_product_path_smoke.ps1 -RepoRoot D:\Vit_DAW -GodotProjectRoot D:\Godot\project\vit-daw-frontend -GodotExe D:\Godot\Godot_v4.6.1-stable_win64.exe -CompressorControlAgentOnly -KeepProcesses
+D:\Vit_DAW\scripts\run_vit_product_path_smoke.ps1 -RepoRoot D:\Vit_DAW -GodotProjectRoot D:\Godot\project\vit-daw-frontend -GodotExe D:\Godot\Godot_v4.6.1-stable_win64.exe -CompressorOpenSemanticRoutingAgentOnly
+D:\Vit_DAW\scripts\run_vit_product_path_smoke.ps1 -RepoRoot D:\Vit_DAW -GodotProjectRoot D:\Godot\project\vit-daw-frontend -GodotExe D:\Godot\Godot_v4.6.1-stable_win64.exe -SemanticProcessorOpenExperimentAgentOnly -TimeoutSeconds 180
 ```
 
 Notes:
@@ -454,6 +457,25 @@ Notes:
   checks; they are not the default product path.
 - By default, processes started by this script are stopped at the end. Use
   `-KeepProcesses` to leave them running for manual inspection.
+- `-CompressorControlAgentOnly` keeps the full Godot-owned lifecycle and binary
+  verification, then checks the compressor-control tool catalog, API-2500 topology and one
+  reversible apply/readback/restore cycle, plus L2 limiter rejection. Its
+  temporary tracks are deleted before the smoke returns.
+- `-CompressorOpenSemanticRoutingAgentOnly` keeps the same Godot-owned lifecycle
+  and verifies two open-language compressor paths. With an existing qualified
+  broadband compressor, the Agent must discover the instance without receiving
+  its plugin ID, propose with zero writes, require confirmation, and execute the
+  semantic compressor plan. With an empty rack, the Agent must choose the
+  compressor category, recommend and load a processor under a separate load
+  confirmation, qualify the new instance, then require a second confirmation
+  before parameter execution. Both temporary tracks are deleted.
+- `-SemanticProcessorOpenExperimentAgentOnly` rebuilds the current opaque
+  eight-case compressor/EQ fixture, runs the blind public manifest through the
+  Godot-owned production path, and then invokes the separate sealed evaluator.
+  Use `-SemanticProcessorExperimentCases "so_02,so_05"` for a labelled subset.
+  Agent/LLM route mismatches remain experiment results; infrastructure errors
+  fail the launcher. The report and raw stage responses are stored under the
+  product-path artifact directory.
 
 ## Go Regression Set
 

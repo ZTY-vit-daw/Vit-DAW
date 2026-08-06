@@ -1,6 +1,6 @@
 # Waves EQ 控制拓扑普查与分类重构设计（第一阶段）
 
-> 本报告来自真实 Godot → Kernel → Agent 只读参数链。没有插件参数写入、音频主动探测、learn/profile、SPAL、B4 或 Plugin Alliance 参数读取。
+> 本报告来自真实 Godot → Kernel → Agent 只读参数链。没有插件参数写入、音频主动探测、已退役映射链路、B4 或 Plugin Alliance 参数读取。
 
 ## 1. 普查结论摘要
 
@@ -1369,7 +1369,7 @@ EQControlTopology
 - 插件参数写入：0
 - 音频主动探测：0
 - learn/profile：0/0
-- SPAL/B4：0/0
+- B4：0；已退役映射链路不在运行时能力面中。
 - Plugin Alliance 参数读取：0
 
 生产文件哈希、受保护运行文件哈希和 Git 状态前后对比见同一产物目录下的 `run_manifest.json` 与最终 `acceptance.json`。

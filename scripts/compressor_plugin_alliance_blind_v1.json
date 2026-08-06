@@ -1,0 +1,183 @@
+{
+  "schema_version": "plugin_grabber.compressor_plugin_alliance_blind_manifest.v1",
+  "set_id": "plugin_alliance_compressor_blind_v1_round1",
+  "policy": {
+    "sample_count": 18,
+    "positive_count": 12,
+    "negative_count": 6,
+    "pilot_excluded": "bx_townhouse Buss Compressor",
+    "continue_after_case_failure": true,
+    "recognizer_changes_after_freeze": false,
+    "snapshot_tolerance": 0.0001,
+    "max_apply_controls_per_positive": 2,
+    "positive_gates": [
+      "recognized_as_broadband_compressor",
+      "generic_structural_mapping",
+      "complete_control_ref_coverage",
+      "stable_topology_generation",
+      "typed_apply_has_actual_readback",
+      "complete_parameter_snapshot_restored",
+      "temporary_track_deleted"
+    ],
+    "negative_gates": [
+      "inspect_rejected_not_compressor",
+      "complete_parameter_snapshot_unchanged",
+      "temporary_track_deleted"
+    ],
+    "apply_role_priority": [
+      "threshold",
+      "input_drive",
+      "reduction_amount",
+      "low_level_amount",
+      "high_level_amount",
+      "ratio",
+      "direction_curve",
+      "attack",
+      "release",
+      "makeup_gain",
+      "mix"
+    ]
+  },
+  "cases": [
+    {
+      "id": "acme_opticom_xla_3",
+      "plugin_name": "Acme Opticom XLA-3",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\Acme Opticom XLA-3.vst3",
+      "expectation": "compressor",
+      "stratum": "minimal_opto_amount"
+    },
+    {
+      "id": "amek_mastering_compressor",
+      "plugin_name": "AMEK Mastering Compressor",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\AMEK Mastering Compressor.vst3",
+      "expectation": "compressor",
+      "stratum": "complex_mastering"
+    },
+    {
+      "id": "elysia_alpha_compressor_v2",
+      "plugin_name": "elysia alpha compressor V2",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\elysia alpha compressor V2.vst3",
+      "expectation": "compressor",
+      "stratum": "dual_channel_ms"
+    },
+    {
+      "id": "elysia_mpressor",
+      "plugin_name": "elysia mpressor",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\elysia mpressor.vst3",
+      "expectation": "compressor",
+      "stratum": "bidirectional_curve"
+    },
+    {
+      "id": "lindell_254e",
+      "plugin_name": "Lindell 254E",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\Lindell 254E.vst3",
+      "expectation": "compressor",
+      "stratum": "diode_bridge"
+    },
+    {
+      "id": "maag_magnum_k",
+      "plugin_name": "Maag MAGNUM-K",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\Maag MAGNUM-K.vst3",
+      "expectation": "compressor",
+      "stratum": "compressor_with_auxiliary_limiter_eq"
+    },
+    {
+      "id": "purple_audio_mc_77",
+      "plugin_name": "Purple Audio MC 77",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\Purple Audio MC 77.vst3",
+      "expectation": "compressor",
+      "stratum": "input_driven_fet"
+    },
+    {
+      "id": "shadow_hills_mastering_compressor",
+      "plugin_name": "Shadow Hills Mastering Compressor",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\Shadow Hills Mastering Compressor.vst3",
+      "expectation": "compressor",
+      "stratum": "serial_dual_stage"
+    },
+    {
+      "id": "spl_iron",
+      "plugin_name": "SPL IRON",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\SPL IRON.vst3",
+      "expectation": "compressor",
+      "stratum": "complex_vari_mu"
+    },
+    {
+      "id": "tbtech_cenozoix_compressor",
+      "plugin_name": "TBTECH Cenozoix Compressor",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\TBTECH Cenozoix Compressor.vst3",
+      "expectation": "compressor",
+      "stratum": "model_rich_digital"
+    },
+    {
+      "id": "unfiltered_audio_zip",
+      "plugin_name": "Unfiltered Audio Zip",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\Unfiltered Audio Zip.vst3",
+      "expectation": "compressor",
+      "stratum": "unconventional_digital"
+    },
+    {
+      "id": "vertigo_vsc_2",
+      "plugin_name": "Vertigo VSC-2",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\Vertigo VSC-2.vst3",
+      "expectation": "compressor",
+      "stratum": "conventional_vca"
+    },
+    {
+      "id": "bx_limiter_true_peak_negative",
+      "plugin_name": "bx_limiter True Peak",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\bx_limiter True Peak.vst3",
+      "expectation": "not_compressor",
+      "negative_kind": "limiter"
+    },
+    {
+      "id": "lindell_mbc_negative",
+      "plugin_name": "Lindell MBC",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\Lindell MBC.vst3",
+      "expectation": "not_compressor",
+      "negative_kind": "multiband"
+    },
+    {
+      "id": "spl_de_esser_dual_band_negative",
+      "plugin_name": "SPL De-Esser Dual-Band",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\SPL De-Esser Dual-Band.vst3",
+      "expectation": "not_compressor",
+      "negative_kind": "de_esser"
+    },
+    {
+      "id": "spl_transient_designer_plus_negative",
+      "plugin_name": "SPL Transient Designer Plus",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\SPL Transient Designer Plus.vst3",
+      "expectation": "not_compressor",
+      "negative_kind": "transient_shaper"
+    },
+    {
+      "id": "unfiltered_audio_g8_negative",
+      "plugin_name": "Unfiltered Audio G8",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\Unfiltered Audio G8.vst3",
+      "expectation": "not_compressor",
+      "negative_kind": "gate"
+    },
+    {
+      "id": "pro_audio_dsp_dsm_v3_negative",
+      "plugin_name": "Pro Audio DSP DSM V3",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\Pro Audio DSP DSM V3.vst3",
+      "expectation": "not_compressor",
+      "negative_kind": "spectral_dynamics"
+    }
+  ],
+  "sealed_reserve_cases": [
+    {"id": "bx_opto", "plugin_name": "bx_opto", "expectation": "compressor"},
+    {"id": "neold_u2a", "plugin_name": "NEOLD U2A", "expectation": "compressor"},
+    {"id": "millennia_tcl_2", "plugin_name": "Millennia TCL-2", "expectation": "compressor"},
+    {"id": "kiive_xtcomp", "plugin_name": "Kiive XTComp", "expectation": "compressor"},
+    {"id": "lindell_mu_66", "plugin_name": "Lindell MU-66", "expectation": "compressor"},
+    {"id": "hum_audio_devices_laal", "plugin_name": "HUM Audio Devices LAAL", "expectation": "compressor"},
+    {"id": "shadow_hills_optomax", "plugin_name": "Shadow Hills OptoMax", "expectation": "compressor"},
+    {"id": "adptr_sculpt_negative", "plugin_name": "ADPTR Sculpt", "expectation": "not_compressor"},
+    {"id": "bx_masterdesk_pro_negative", "plugin_name": "bx_masterdesk Pro", "expectation": "not_compressor"},
+    {"id": "bx_clipper_negative", "plugin_name": "bx_clipper", "expectation": "not_compressor"},
+    {"id": "elysia_nvelope_negative", "plugin_name": "elysia nvelope", "expectation": "not_compressor"},
+    {"id": "lindell_354e_negative", "plugin_name": "Lindell 354E", "expectation": "not_compressor"}
+  ]
+}

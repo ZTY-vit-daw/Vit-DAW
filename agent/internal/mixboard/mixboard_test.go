@@ -1049,6 +1049,72 @@ func TestAcousticPackageStatusDoesNotOverrideDifferentLatestTarget(t *testing.T)
 	}
 }
 
+func TestPreserveTargetWaveformTimeSegmentsAcrossAcousticStatusProjection(t *testing.T) {
+	snap := featureSnapshot{
+		WaveformEnvelope: map[string]any{
+			"status": "ready", "track_id": "track_vocal", "clip_id": "clip_vocal",
+			"source_revision": "source_rev_1", "clip_revision": "clip_rev_1", "rms_dbfs": -22.2,
+		},
+		TrackWaveformEnvelopes: []map[string]any{{
+			"status": "ready", "track_id": "track_vocal", "clip_id": "clip_vocal",
+			"source_revision": "source_rev_1", "clip_revision": "clip_rev_1",
+			"time_segments": []any{
+				map[string]any{"start_seconds": 0.0, "end_seconds": 5.0, "rms_dbfs": -23.0, "peak_dbfs": -8.0},
+				map[string]any{"start_seconds": 5.0, "end_seconds": 10.0, "rms_dbfs": -21.0, "peak_dbfs": -6.0},
+			},
+		}},
+	}
+	preserveTargetWaveformTimeSegments(&snap, Request{
+		TargetRef: TargetRef{Kind: "track", ID: "track_vocal"},
+		Args:      map[string]any{"track_id": "track_vocal", "clip_id": "clip_vocal"},
+	})
+	if got := len(waveformTimeSegments(snap.WaveformEnvelope)); got != 2 {
+		t.Fatalf("preserved time segment count = %d, waveform=%+v", got, snap.WaveformEnvelope)
+	}
+	if got := numberFromMap(snap.WaveformEnvelope, "rms_dbfs"); got != -22.2 {
+		t.Fatalf("acoustic summary fields were replaced: rms_dbfs=%v waveform=%+v", got, snap.WaveformEnvelope)
+	}
+}
+
+func TestAcousticPackageWaveformSummaryPreservesSameMaterialTimeSegments(t *testing.T) {
+	evidence := map[string]any{
+		"status": "ready", "track_id": "track_vocal", "clip_id": "clip_vocal",
+		"source_revision": "source_rev_1", "clip_revision": "clip_rev_1",
+		"time_segments": []any{
+			map[string]any{"start_seconds": 0.0, "end_seconds": 5.0, "rms_dbfs": -23.0, "peak_dbfs": -8.0},
+			map[string]any{"start_seconds": 5.0, "end_seconds": 10.0, "rms_dbfs": -21.0, "peak_dbfs": -6.0},
+		},
+	}
+	summary := map[string]any{
+		"status": "ready", "track_id": "track_vocal", "clip_id": "clip_vocal",
+		"source_revision": "source_rev_1", "clip_revision": "clip_rev_1", "rms_dbfs": -22.2,
+	}
+	merged := waveformRowWithPreservedTimeSegments(summary, evidence)
+	if got := len(waveformTimeSegments(merged)); got != 2 || numberFromMap(merged, "rms_dbfs") != -22.2 {
+		t.Fatalf("same-material waveform merge = %+v", merged)
+	}
+	summary["source_revision"] = "source_rev_2"
+	if got := len(waveformTimeSegments(waveformRowWithPreservedTimeSegments(summary, evidence))); got != 0 {
+		t.Fatalf("different-material time segments were preserved")
+	}
+}
+
+func TestPreserveTargetWaveformTimeSegmentsRejectsDifferentMaterial(t *testing.T) {
+	snap := featureSnapshot{
+		WaveformEnvelope: map[string]any{
+			"status": "ready", "track_id": "track_vocal", "clip_id": "clip_vocal", "source_revision": "source_rev_new",
+		},
+		TrackWaveformEnvelopes: []map[string]any{{
+			"status": "ready", "track_id": "track_vocal", "clip_id": "clip_vocal", "source_revision": "source_rev_old",
+			"time_segments": []any{map[string]any{"start_seconds": 0.0, "end_seconds": 5.0, "rms_dbfs": -23.0}},
+		}},
+	}
+	preserveTargetWaveformTimeSegments(&snap, Request{TargetRef: TargetRef{Kind: "track", ID: "track_vocal"}})
+	if got := len(waveformTimeSegments(snap.WaveformEnvelope)); got != 0 {
+		t.Fatalf("stale material segments were preserved: %+v", snap.WaveformEnvelope)
+	}
+}
+
 func TestStoreReadCatalogEntriesAndTimeRange(t *testing.T) {
 	root := t.TempDir()
 	snapshotPath := filepath.Join(root, "feature_snapshot.json")

@@ -1,0 +1,31 @@
+{
+  "schema_version": "plugin_grabber.compressor_compat_matrix.v1",
+  "cases": [
+    {"id": "abbey_road_rs124", "plugin_name": "Abbey Road RS124 Stereo", "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3"},
+    {"id": "api_2500", "plugin_name": "API-2500 Stereo", "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3"},
+    {"id": "c1_comp", "plugin_name": "C1 comp Stereo", "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3"},
+    {"id": "cla_2a", "plugin_name": "CLA-2A Stereo", "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3"},
+    {"id": "cla_3a", "plugin_name": "CLA-3A Stereo", "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3"},
+    {"id": "cla_76", "plugin_name": "CLA-76 Stereo", "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3"},
+    {"id": "dbx_160", "plugin_name": "dbx-160 Stereo", "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3"},
+    {"id": "dpr_402", "plugin_name": "DPR-402 Stereo", "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3"},
+    {"id": "h_comp", "plugin_name": "H-Comp Stereo", "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3"},
+    {"id": "kramer_pie", "plugin_name": "Kramer PIE Stereo", "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3"},
+    {"id": "magma_stressbox", "plugin_name": "Magma StressBox Stereo", "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3"},
+    {"id": "maxxvolume", "plugin_name": "MaxxVolume Stereo", "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3"},
+    {"id": "mv2", "plugin_name": "MV2 Stereo", "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3"},
+    {"id": "oneknob_pressure", "plugin_name": "OneKnob Pressure Stereo", "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3"},
+    {"id": "puigchild_670", "plugin_name": "PuigChild 670 Stereo", "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3"},
+    {"id": "rcompressor", "plugin_name": "RCompressor Stereo", "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3"},
+    {"id": "renaissance_axx", "plugin_name": "Renaissance Axx Stereo", "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3"},
+    {"id": "rvox", "plugin_name": "RVox Stereo", "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3"},
+    {"id": "sslcomp", "plugin_name": "SSLComp Stereo", "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3"},
+    {"id": "vcomp", "plugin_name": "VComp Stereo", "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3"},
+    {"id": "pro_c_2", "plugin_name": "Pro-C 2", "plugin_path": "C:\\Program Files\\Common Files\\VST3\\FabFilter\\FabFilter Pro-C 2.vst3"},
+    {"id": "zl_compressor", "plugin_name": "ZL Compressor", "plugin_path": "C:\\Program Files\\Common Files\\VST3\\ZL Compressor.vst3"}
+  ],
+  "negative_cases": [
+    {"id": "l2_limiter_negative", "plugin_name": "L2 Stereo", "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3", "expected_compressor": false, "expected_rejection": "unsupported_limiter", "negative_kind": "limiter"},
+    {"id": "c6_multiband_negative", "plugin_name": "C6 Stereo", "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3", "expected_compressor": false, "expected_rejection": "unsupported_multiband_compressor", "negative_kind": "multiband"}
+  ]
+}

@@ -304,7 +304,7 @@ func StaticMixLowEndRelationContextManifest() ContextManifest {
 			"B4 v0 produces analysis and observations only; no pending action or execution is created.",
 			"Low-end identification is based on MOM band energy occupancy, not assumed role names.",
 			"Masking conflicts are detected by MOM band_conflict_candidates narrowed to sub/bass bands.",
-			"Suggested remediation directions (EQ, fader, pan) belong to B2/B3/SPAL; B4 does not execute them.",
+			"Suggested remediation directions (EQ, fader, pan) belong to their responsible execution capabilities; B4 does not execute them.",
 		},
 	})
 }

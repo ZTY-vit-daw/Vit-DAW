@@ -1,0 +1,77 @@
+{
+  "schema_version": "plugin_grabber.compressor_plugin_alliance_blind_manifest.v3",
+  "set_id": "plugin_alliance_compressor_blind_v3_final",
+  "source_reserve_manifest": "scripts/compressor_plugin_alliance_blind_v2.json",
+  "policy": {
+    "sample_count": 4,
+    "positive_count": 1,
+    "negative_count": 3,
+    "strict_pass_count": 4,
+    "continue_after_case_failure": true,
+    "recognizer_changes_after_freeze": false,
+    "expectation_changes_after_freeze": false,
+    "snapshot_tolerance": 0.0001,
+    "max_apply_controls_per_positive": 2,
+    "allowed_rejection_codes": [
+      "not_compressor",
+      "unsupported_limiter",
+      "unsupported_multiband_compressor"
+    ],
+    "apply_role_priority": [
+      "threshold",
+      "input_drive",
+      "reduction_amount",
+      "low_level_amount",
+      "high_level_amount",
+      "ratio",
+      "direction_curve",
+      "attack",
+      "release",
+      "makeup_gain",
+      "mix"
+    ]
+  },
+  "oracle_policy": {
+    "basis": "public product category and previously sealed identity only; no parameter surface",
+    "legacy_correction": {
+      "case_id": "hum_audio_devices_laal",
+      "previous_expectation": "compressor",
+      "final_expectation": "not_compressor",
+      "expected_rejection": "unsupported_limiter",
+      "reason": "LAAL is a limiter product; broadband compressor control must not be required"
+    }
+  },
+  "cases": [
+    {
+      "id": "shadow_hills_optomax",
+      "plugin_name": "Shadow Hills OptoMax",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\Shadow Hills OptoMax.vst3",
+      "expectation": "compressor",
+      "stratum": "unseen_broadband_optical_compressor"
+    },
+    {
+      "id": "hum_audio_devices_laal",
+      "plugin_name": "HUM Audio Devices LAAL",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\HUM Audio Devices LAAL.vst3",
+      "expectation": "not_compressor",
+      "expected_rejection": "unsupported_limiter",
+      "stratum": "strict_limiter_boundary"
+    },
+    {
+      "id": "elysia_nvelope_negative",
+      "plugin_name": "elysia nvelope",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\elysia nvelope.vst3",
+      "expectation": "not_compressor",
+      "expected_rejection": "not_compressor",
+      "stratum": "strict_transient_shaper_boundary"
+    },
+    {
+      "id": "lindell_354e_negative",
+      "plugin_name": "Lindell 354E",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\Lindell 354E.vst3",
+      "expectation": "not_compressor",
+      "expected_rejection": "unsupported_multiband_compressor",
+      "stratum": "strict_multiband_compressor_boundary"
+    }
+  ]
+}

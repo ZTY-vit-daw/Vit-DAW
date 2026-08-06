@@ -277,7 +277,7 @@ Rules:
 - The first choice must be role=recommended; all others role=alternative. Candidate keys must be unique.
 - LLM pretrained knowledge may inform soft suitability, workflow, era/model/style, and likely character. Clearly keep that reasoning probabilistic; do not present it as a measured property or a local catalog fact.
 - Catalog match scores, type confidence, alphabetical order, and the first candidate are not recommendation reasons.
-- Do not use offline measurement, profiles, learned plugin rules, SPAL, B4, or parameter/topology claims.
+- Do not use offline measurement, stored plugin mappings, B4, or parameter/topology claims.
 - This phase recommends and selects only. It must not load a plugin or propose parameter writes.
 - If product-specific knowledge is weak, prefer a versatile, well-known candidate and disclose the limitation rather than fabricating detail.`
 	request := llm.Request{
@@ -392,6 +392,7 @@ func (s *Server) ordinaryAgentPluginRecommendationResponse(ctx context.Context, 
 }
 
 func (s *Server) ordinaryAgentPluginRecommendationResponseForProcessor(ctx context.Context, conversationID, mode, userText string, requestContext map[string]any, res agentloop.Result, processorType string, cfg config.EngineConfig) ChatResponse {
+	requestContext = s.bindFreeStateAuthoritativeTrack(conversationID, requestContext)
 	processorType = canonicalPluginRecommendationProcessorType(processorType)
 	if processorType == "" {
 		return pluginRecommendationErrorResponse(conversationID, res, "processor_choice_invalid", fmt.Errorf("processor type is unavailable"))
@@ -424,6 +425,7 @@ func pluginRecommendationErrorResponse(conversationID string, res agentloop.Resu
 }
 
 func (s *Server) pluginRecommendationNoCandidatesResponse(conversationID, mode, userText string, requestContext map[string]any, res agentloop.Result, processorType string) ChatResponse {
+	requestContext = s.bindFreeStateAuthoritativeTrack(conversationID, requestContext)
 	res.ExecutionMemory.PendingMixTreatment = nil
 	res.Status = agentruntime.StatusCompleted
 	res.StopReason = ""
@@ -445,6 +447,7 @@ func (s *Server) pluginRecommendationNoCandidatesResponse(conversationID, mode, 
 }
 
 func (s *Server) pluginRecommendationSelectionResponse(conversationID, mode string, requestContext map[string]any, res agentloop.Result, plan pluginRecommendationPlan, candidates []pluginRecommendationCandidate) ChatResponse {
+	requestContext = s.bindFreeStateAuthoritativeTrack(conversationID, requestContext)
 	candidateByKey := map[string]pluginRecommendationCandidate{}
 	for _, candidate := range candidates {
 		candidateByKey[candidate.Key] = candidate
@@ -499,6 +502,10 @@ func (s *Server) pluginRecommendationSelectionResponse(conversationID, mode stri
 	if boolValue(requestContext["semantic_eq_post_load_handoff"]) && plan.ProcessorType == "eq" {
 		payload["post_load_planner"] = "semantic_eq"
 		payload["post_load_goal"] = firstNonEmpty(firstStringFromMap(requestContext, "semantic_eq_post_load_goal"), plan.UserGoal)
+		payload["post_load_observation_context"] = semanticTreatmentObservationPayload(res.RecentObservation)
+	} else if boolValue(requestContext["semantic_compressor_post_load_handoff"]) && plan.ProcessorType == "compressor" {
+		payload["post_load_planner"] = "semantic_compressor"
+		payload["post_load_goal"] = firstNonEmpty(firstStringFromMap(requestContext, "semantic_compressor_post_load_goal"), plan.UserGoal)
 		payload["post_load_observation_context"] = semanticTreatmentObservationPayload(res.RecentObservation)
 	}
 	if res.RecentObservation != nil {
@@ -672,6 +679,11 @@ func (s *Server) continuePluginRecommendationInteraction(ctx context.Context, in
 		requestContext["semantic_eq_post_load_handoff"] = true
 		requestContext["semantic_eq_post_load_goal"] = firstNonEmpty(firstStringFromMap(interaction.Payload, "post_load_goal"), firstStringFromMap(interaction.Payload, "listening_goal"))
 		requestContext["semantic_eq_post_load_observation_context"] = cloneContext(firstMapFromAny(interaction.Payload["post_load_observation_context"]))
+	} else if firstStringFromMap(interaction.Payload, "post_load_planner") == "semantic_compressor" &&
+		canonicalPluginRecommendationProcessorType(firstStringFromMap(interaction.Payload, "processor_type")) == "compressor" {
+		requestContext["semantic_compressor_post_load_handoff"] = true
+		requestContext["semantic_compressor_post_load_goal"] = firstNonEmpty(firstStringFromMap(interaction.Payload, "post_load_goal"), firstStringFromMap(interaction.Payload, "listening_goal"))
+		requestContext["semantic_compressor_post_load_observation_context"] = cloneContext(firstMapFromAny(interaction.Payload["post_load_observation_context"]))
 	}
 	workflowCmd := map[string]any{
 		"cmd":               "plugin_grabber_load",
@@ -693,7 +705,7 @@ func (s *Server) continuePluginRecommendationInteraction(ctx context.Context, in
 	resp.WorkflowData["selected_candidate"] = selected
 	resp.WorkflowData["selection_performed"] = true
 	resp.WorkflowData["mutation_performed"] = false
-	return resp
+	return s.bindFreeStateContextToResponse(resp, requestContext)
 }
 
 func recoverPluginRecommendationInteractionFromPayload(interactionID string, payload map[string]any) (PendingInteraction, bool) {

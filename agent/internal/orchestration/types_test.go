@@ -146,9 +146,9 @@ func TestActionSetHashSurvivesTypedArgsPersistenceBoundary(t *testing.T) {
 		Alpha map[string]float64 `json:"alpha"`
 	}
 	actionSet := ActionSet{
-		ID: "typed-args", CapabilityID: "spal.reference_eq_provider_registration.v0", ProjectCutHash: "cut-1",
+		ID: "typed-args", CapabilityID: "deterministic.eq.transaction.v1", ProjectCutHash: "cut-1",
 		Actions: []Action{{
-			ID: "register", Command: "spal.reference_eq_provider.register", TargetRef: "track:1",
+			ID: "apply", Command: "plugin_grabber.apply_eq_edits", TargetRef: "track:1",
 			Args: map[string]any{"provider_record": typedPayload{Zeta: "record", Alpha: map[string]float64{"q": 1.2}}},
 		}},
 	}

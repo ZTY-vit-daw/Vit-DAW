@@ -27,6 +27,7 @@ import (
 	"vit-daw-agent/internal/agentprotocol"
 	"vit-daw-agent/internal/artifacts"
 	"vit-daw-agent/internal/browsercapture"
+	"vit-daw-agent/internal/com"
 	"vit-daw-agent/internal/history"
 	"vit-daw-agent/internal/journal"
 	"vit-daw-agent/internal/kernel"
@@ -70,6 +71,7 @@ type Harness struct {
 	waveforms       map[string]*waveformFeatureCollector
 	spectrals       map[string]*spectralFeatureCollector
 	l2ProbeCollect  func(context.Context, map[string]any, string, string, string) (map[string]any, map[string]any, error)
+	comProbeCollect func(context.Context, map[string]any, string, string, string) (map[string]any, map[string]any, error)
 }
 
 type KernelSender interface {
@@ -1153,14 +1155,6 @@ func translateCommandForKernel(spec tools.CommandSpec, cmd map[string]any) {
 	switch spec.CommandName {
 	case "plugin_grabber_explain_controls":
 		cmd["cmd"] = "get_plugin_parameters"
-	case "plugin_grabber_get_project_profiles":
-		cmd["cmd"] = "n_get_project_profiles"
-	case "plugin_grabber_upsert_project_profile":
-		cmd["cmd"] = "n_project_profile"
-	case "plugin_grabber_remove_project_profile":
-		cmd["cmd"] = "n_remove_project_profile"
-	case "plugin_grabber_apply_control":
-		cmd["cmd"] = "n_apply_control"
 	case "apply_midi_note_patch":
 		translateInsertNotePatchToLegacyCommand(cmd)
 	}
@@ -1479,7 +1473,7 @@ type semanticPluginSelectionAuthorization struct {
 
 // AuthorizeSemanticPluginSelectionLoad returns an execution-only context for
 // one exact plug-in load selected through the governed recommendation flow.
-// It grants no authority to learn profiles, write parameters, or run another
+// It grants no authority to write parameters or run another
 // mutation command.
 func AuthorizeSemanticPluginSelectionLoad(requestContext map[string]any, trackID, pluginPath, pluginIdentifier string) map[string]any {
 	out := cloneAnyMap(requestContext)
@@ -1492,6 +1486,10 @@ func AuthorizeSemanticPluginSelectionLoad(requestContext map[string]any, trackID
 }
 
 func broadMixObserveFirstWriteGuard(requestContext map[string]any, spec tools.CommandSpec, cmd map[string]any) error {
+	name := firstNonEmpty(spec.CommandName, tools.CommandName(cmd), fmt.Sprint(cmd["tool"]))
+	if toolpolicy.IsRetiredPluginControlTool(name) {
+		return fmt.Errorf("retired plugin mappings and control surfaces are unavailable; inspect live parameters or use a deterministic typed tool")
+	}
 	if !broadMixWriteCommand(spec, cmd) {
 		return nil
 	}
@@ -1503,7 +1501,7 @@ func broadMixObserveFirstWriteGuard(requestContext map[string]any, spec tools.Co
 	if !broadMixNaturalRequest(userText) || toolpolicy.ExplicitPluginRequest(userText, knownPluginNames) {
 		return nil
 	}
-	return fmt.Errorf("ordinary acoustic mixing requests must run mix.request_observation and receive a concrete observation before loading plugins, learning plugin profiles, changing volume, applying controls, or writing parameters")
+	return fmt.Errorf("ordinary acoustic mixing requests must run mix.request_observation and receive a concrete observation before loading plugins, changing volume, applying controls, or writing parameters")
 }
 
 func qualifiedSemanticPluginSelectionLoad(requestContext map[string]any, spec tools.CommandSpec, cmd map[string]any) bool {
@@ -1531,8 +1529,6 @@ func broadMixWriteCommand(spec tools.CommandSpec, cmd map[string]any) bool {
 	switch name {
 	case "rack_add_node", "rack.add_node", "plugin.load_to_rack", "instantiate_plugin", "plugin.instantiate",
 		"plugin_grabber_load_and_get_params", "plugin_grabber.load_and_get_params",
-		"plugin_grabber_learn_project_profile", "plugin_grabber.learn_project_profile", "plugin.learn_project_profile",
-		"plugin_grabber_apply_control", "plugin_grabber.apply_control", "plugin_grabber.apply",
 		"set_plugin_param", "plugin.set_parameter", "plugin_set_parameter",
 		"set_volume", "track.volume",
 		"track.group.apply_control", "track_group.apply_control", "track_group_apply_control",
@@ -1731,6 +1727,11 @@ func (h *Harness) invokeLocal(ctx context.Context, spec tools.CommandSpec, cmd m
 		return resultWithErr(result, err), true
 	case "mix_report":
 		result, err := h.requestMixReport(ctx, cmd)
+		return resultWithErr(result, err), true
+	case "ccb_observation_catalog":
+		return h.ccbObservationCatalog(cmd), true
+	case "ccb_observation_request":
+		result, err := h.ccbObservationRequest(ctx, cmd)
 		return resultWithErr(result, err), true
 	case "mix_propose_tick":
 		result, err := h.proposeMixTick(ctx, cmd)
@@ -2657,6 +2658,10 @@ func (h *Harness) requestMixObservation(ctx context.Context, cmd map[string]any)
 	}
 	cmd = canonicalizeMixObservationCommand(cmd, target, resolvedContext)
 	target = mixTargetFromCommand(cmd)
+	cmd, comEvidenceCapture, err := h.prepareMixObservationCOMEvidence(ctx, cmd, target, resolvedContext)
+	if err != nil {
+		return nil, err
+	}
 	l2ProbeRequest := h.requestMixObservationL2RenderProbe(ctx, cmd, state, target, resolvedContext)
 	acousticStatus, acousticStorePath, featureRequest := h.prepareMixObservationAcousticPackage(ctx, cmd, state, target, resolvedContext)
 	intent := mom.ResolveIntent(cmd, firstString(cmd, "mom_intent", "intent", "workflow_intent"))
@@ -2664,7 +2669,21 @@ func (h *Harness) requestMixObservation(ctx context.Context, cmd map[string]any)
 		if len(l2ProbeRequest) > 0 {
 			blocked["l2_render_probe_request"] = l2ProbeRequest
 		}
-		return blocked, nil
+		if !mixObservationHasReadyPairedCOMCapture(cmd, comEvidenceCapture) {
+			return blocked, nil
+		}
+		// Paired COM capture is already a validated, deterministic processor
+		// observation. Preserve it when the general DAD package finishes just
+		// after the ready gate; the projection will still disclose DAD gaps.
+		if len(gateStatus) > 0 {
+			acousticStatus = gateStatus
+		}
+		if gateStorePath != "" {
+			acousticStorePath = gateStorePath
+		}
+		if len(gateRequest) > 0 {
+			featureRequest = gateRequest
+		}
 	} else {
 		if len(gateStatus) > 0 {
 			acousticStatus = gateStatus
@@ -2677,6 +2696,15 @@ func (h *Harness) requestMixObservation(ctx context.Context, cmd map[string]any)
 		}
 	}
 	observationArgs := cloneAnyMap(cmd)
+	if explicitCOMSourceSnapshot(cmd) {
+		// A caller-supplied source snapshot is the direct evidence for COM source_only.
+		// Do not let a weaker read-first acoustic-package cache row replace it; Mixboard
+		// still applies its normal target and project-material freshness checks below.
+		delete(observationArgs, "acoustic_package_status")
+		delete(observationArgs, "acoustic_package_status_path")
+		acousticStatus = nil
+		acousticStorePath = ""
+	}
 	if firstString(observationArgs, "feature_snapshot_path") == "" {
 		observationArgs["feature_snapshot_path"] = mixboard.FeatureSnapshotPath(cmd)
 	}
@@ -2705,6 +2733,7 @@ func (h *Harness) requestMixObservation(ctx context.Context, cmd map[string]any)
 		"observation_path":  result.ObservationPath,
 		"context_pack_path": result.ContextPackPath,
 		"observation":       result.Observation,
+		"com_projection":    result.Observation.COMProjection,
 		"mom_projection":    result.Observation.MOMProjection,
 		"digest":            result.Observation.Digest,
 		"catalog":           result.Observation.Catalog,
@@ -2730,7 +2759,25 @@ func (h *Harness) requestMixObservation(ctx context.Context, cmd map[string]any)
 	if len(l2ProbeRequest) > 0 {
 		out["l2_render_probe_request"] = l2ProbeRequest
 	}
+	if len(comEvidenceCapture) > 0 {
+		out["com_evidence_capture"] = comEvidenceCapture
+	}
 	return out, nil
+}
+
+func mixObservationHasReadyPairedCOMCapture(cmd, capture map[string]any) bool {
+	return strings.EqualFold(firstString(cmd, "com_mode"), com.ModePairedIO) &&
+		strings.EqualFold(firstString(capture, "status"), com.StatusReady) &&
+		firstString(capture, "pair_id") != "" && firstString(capture, "artifact_sha256") != ""
+}
+
+func explicitCOMSourceSnapshot(cmd map[string]any) bool {
+	if !strings.EqualFold(firstString(cmd, "com_mode"), com.ModeSourceOnly) {
+		return false
+	}
+	snapshot := mapFromAny(cmd["feature_snapshot"])
+	waveform := mapFromAny(snapshot["waveform_envelope"])
+	return len(waveform) > 0
 }
 
 func projectStateWithPersistedAnalysisManifest(state map[string]any) map[string]any {
@@ -2831,6 +2878,9 @@ func (h *Harness) requestMixObservationL2RenderProbe(ctx context.Context, cmd ma
 }
 
 func mixObservationShouldRequestL2RenderProbe(cmd map[string]any) bool {
+	if firstString(cmd, "com_mode") != "" {
+		return false
+	}
 	if firstString(cmd, "previous_observation", "previous_observation_id") != "" {
 		return true
 	}
@@ -5563,6 +5613,7 @@ func resolveMixObservationTargetContext(cmd map[string]any, state map[string]any
 						if length := firstPositiveNumber(clip, "length_seconds", "duration_seconds", "duration"); length > 0 {
 							resolved["duration_seconds"] = length
 						}
+						copyMixObservationClipStart(resolved, clip)
 						resolved["source"] = "selected_track_first_clip"
 						return resolved
 					}
@@ -5582,6 +5633,7 @@ func resolveMixObservationTargetContext(cmd map[string]any, state map[string]any
 				if length := firstPositiveNumber(clip, "length_seconds", "duration_seconds", "duration"); length > 0 {
 					resolved["duration_seconds"] = length
 				}
+				copyMixObservationClipStart(resolved, clip)
 				resolved["source"] = "selected_track_only_clip"
 				return resolved
 			}
@@ -5610,6 +5662,7 @@ func resolveMixObservationTargetContext(cmd map[string]any, state map[string]any
 				if length := firstPositiveNumber(clip, "length_seconds", "duration_seconds", "duration"); length > 0 {
 					resolved["duration_seconds"] = length
 				}
+				copyMixObservationClipStart(resolved, clip)
 				resolved["source"] = "clip_lookup"
 				return resolved
 			}
@@ -5634,11 +5687,18 @@ func resolveMixObservationTargetContext(cmd map[string]any, state map[string]any
 			if length := firstPositiveNumber(clip, "length_seconds", "duration_seconds", "duration"); length > 0 {
 				resolved["duration_seconds"] = length
 			}
+			copyMixObservationClipStart(resolved, clip)
 			resolved["source"] = "single_visible_track_single_clip"
 			return resolved
 		}
 	}
 	return resolved
+}
+
+func copyMixObservationClipStart(resolved, clip map[string]any) {
+	if start, ok := firstNumber(clip, "start_seconds", "start_time", "position_seconds", "clip_start_seconds"); ok {
+		resolved["clip_start_seconds"] = start
+	}
 }
 
 func looksSyntheticTrackAlias(ref string) bool {
@@ -10108,7 +10168,7 @@ func (h *Harness) resolvePluginID(ctx context.Context, spec tools.CommandSpec, c
 	case 1:
 		return refs[0].ID, nil
 	default:
-		if spec.CommandName == "plugin_grabber_upsert_project_profile" || spec.CommandName == "plugin_grabber_remove_project_profile" || spec.CommandName == "plugin_grabber_apply_control" || spec.CommandName == "get_plugin_parameters" {
+		if spec.CommandName == "get_plugin_parameters" {
 			return "", fmt.Errorf("multiple visible plugins match; select one plugin or specify plugin_id")
 		}
 	}
@@ -11163,42 +11223,22 @@ func publicPluginParametersResult(cmd map[string]any, reply map[string]any) map[
 	params := mapRowsFromAny(reply["parameters"])
 	quick := mapRowsFromAny(reply["quick_controls"])
 	groups := mapRowsFromAny(reply["recommended_groups"])
-	pluginGroups := mapRowsFromAny(reply["plugin_groups"])
-	virtualControls := mapRowsFromAny(reply["virtual_controls"])
-	globalProfile := mapAnyFromAny(reply["global_profile"])
-	pluginSkill := mapAnyFromAny(reply["plugin_skill"])
-	if pluginSkill == nil && globalProfile != nil {
-		pluginSkill = mapAnyFromAny(globalProfile["plugin_skill"])
-	}
 	digest := plugingrabber.BuildParameterDigest(reply)
 	out := map[string]any{
 		"status":                  firstNonEmpty(firstString(reply, "status"), "ok"),
 		"track_id":                reply["track_id"],
 		"plugin_id":               reply["plugin_id"],
 		"plugin_item_id":          reply["plugin_item_id"],
-		"plugin_identity":         reply["plugin_identity"],
 		"template_role":           reply["template_role"],
 		"supports_param_grabber":  reply["supports_param_grabber"],
-		"profile_applied":         reply["profile_applied"],
-		"profile_source":          reply["profile_source"],
-		"profile_stale_param_ids": reply["profile_stale_param_ids"],
-		"global_profile_applied":  reply["global_profile_applied"],
-		"global_profile_source":   reply["global_profile_source"],
-		"plugin_class":            reply["plugin_class"],
 		"parameter_count":         len(params),
 		"quick_control_count":     len(quick),
 		"quick_controls":          compactQuickControls(quick, 16),
 		"recommended_group_count": len(groups),
 		"recommended_groups":      compactRecommendedGroups(groups, 16),
-		"plugin_group_count":      len(pluginGroups),
-		"plugin_groups":           compactRuntimeProfileRows(pluginGroups, 12, []string{"id", "role", "label", "name"}),
-		"virtual_control_count":   len(virtualControls),
-		"virtual_controls":        compactRuntimeProfileRows(virtualControls, 12, []string{"name", "component_id", "component", "resolver"}),
-		"safety_limits":           reply["safety_limits"],
 		"capability_manifest":     reply["capability_manifest"],
 		"display_probe_summary":   plugingrabber.DisplayProbeSummary(digest),
 	}
-	includeVPSV3Surface, _ := boolValue(cmd["include_vps_v3_surface"])
 	includeParameters, _ := boolValue(cmd["include_parameters"])
 	if !includeParameters {
 		includeParameters, _ = boolValue(cmd["include_full_parameters"])
@@ -11206,18 +11246,7 @@ func publicPluginParametersResult(cmd map[string]any, reply map[string]any) map[
 	if !includeParameters {
 		includeParameters, _ = boolValue(cmd["include_parameter_snapshot"])
 	}
-	if includeVPSV3Surface {
-		// This is an internal, user-authorized conformance read. VPS v3 needs
-		// the complete host surface (type/range/enum/display probe), rather
-		// than the normal UI-sized snapshot, to construct a fail-closed
-		// fingerprint. It is never enabled for ordinary chat responses.
-		fullParameters := make([]map[string]any, 0, len(params))
-		for _, parameter := range params {
-			fullParameters = append(fullParameters, cloneAnyMap(parameter))
-		}
-		out["parameters"] = fullParameters
-		out["vps_v3_parameter_surface"] = true
-	} else if includeParameters {
+	if includeParameters {
 		offset := int(numberFromAny(cmd["offset"]))
 		limit := int(numberFromAny(cmd["limit"]))
 		if limit <= 0 {
@@ -11229,9 +11258,6 @@ func publicPluginParametersResult(cmd map[string]any, reply map[string]any) map[
 			"limit":  limit,
 			"total":  len(params),
 		}
-	}
-	if skill := compactPublicPluginSkill(pluginSkill); len(skill) > 0 {
-		out["plugin_skill"] = skill
 	}
 	return out
 }
@@ -11701,14 +11727,6 @@ func PreviewCommand(spec tools.CommandSpec, cmd map[string]any) string {
 
 func PreviewRackAddNode(spec tools.CommandSpec, cmd map[string]any) string {
 	return preview.RackAddNode(spec, cmd)
-}
-
-func PreviewPluginGrabberProfileUpsert(spec tools.CommandSpec, cmd map[string]any) string {
-	return preview.PluginGrabberProfileUpsert(spec, cmd)
-}
-
-func PreviewPluginGrabberProfileRemove(spec tools.CommandSpec, cmd map[string]any) string {
-	return preview.PluginGrabberProfileRemove(spec, cmd)
 }
 
 func PreviewLegacyMidiNotes(spec tools.CommandSpec, cmd map[string]any) string {

@@ -448,20 +448,22 @@ func defaultCapabilityPacks() []CapabilityPack {
 			Name:        "mix",
 			Title:       "Observation-first mixing",
 			Domain:      "Natural Ask Vit mixing conversations over selected clips/tracks, named tracks, focus tracks, track groups, or the full project.",
-			Description: "Build a Mix Observation Context before proposing or executing mix moves. The mix tool family is read-only in this phase.",
+			Description: "Let ordinary-Agent reasoning discover and request bounded semantic observation views through CCB before proposing a move. Existing mix.observe/read/derive tools remain available as the authoritative observation substrate.",
 			StateSlices: []string{
 				"current_selection.selected_track_id / selected_clip_id for current or selected scope",
 				"daw_state_summary.tracks[] for project context, role guesses, plugin chains, levels, peaks, and focus candidates",
 				"mix.observe returns digest + catalog; mix.read fetches catalog entries; mix.derive computes local relationship packages",
+				"ccb.observation_catalog describes semantic observation views; ccb.observation_request assembles target- and revision-bound bundles with explicit omissions",
 			},
 			Preconditions: []string{
-				"For broad acoustic requests, call mix.observe before plugin search/load, volume changes, plugin profile learning, or parameter writes.",
+				"For broad acoustic requests, call mix.observe before plugin search/load, volume changes, or parameter writes.",
 				"Choose scope from intent: selected_track, selected_clip, named_track, track_group, full_project, or full_project_with_focus_track.",
 				"Use project_context for current-track mixing; use full_project for overall mix questions; use full_project_with_focus_track when the user asks for vocal/lead/focus relationships.",
 				"After observing, read only the catalog entries needed for the answer and derive relationships locally when comparing tracks or focus vs project.",
 				"After the user confirms a concrete small mix move, use mix.propose_tick then mix.apply_tick rather than calling primitive track/plugin writes directly.",
 			},
 			Effects: []string{
+				"ccb.observation_catalog and ccb.observation_request are read-only, expose no mutation authority, and omit raw PCM, waveform arrays, full DAD packages, and unsupported views.",
 				"mix.observe, mix.read, and mix.derive do not mutate the project.",
 				"mix.propose_tick does not mutate the project; mix.apply_tick can run one small track_gain_adjust through set_volume or one track_pan_adjust/track_pan_set through set_pan, and mix.rollback_tick restores the previous value.",
 				"Observation may request fast audio features and may return partial/pending/missing slow packages; missing data must be stated as uncertainty.",
@@ -479,6 +481,7 @@ func defaultCapabilityPacks() []CapabilityPack {
 			},
 			Tools: []string{
 				"project.state", "track.list",
+				"ccb.observation_catalog", "ccb.observation_request",
 				"mix.observe", "mix.read", "mix.derive", "mix.request_observation",
 				"mix.propose_tick", "mix.apply_tick", "mix.rollback_tick",
 				"project.undo", "project.redo",

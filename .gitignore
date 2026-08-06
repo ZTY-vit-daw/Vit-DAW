@@ -33,6 +33,9 @@ tmp_sodium_cmake/
 *.log
 diagnosis_*.png
 baker_diag.log
+/scripts/_eq_probe_diag_out/
+/*diag_apply*_out.txt
+/VitApp/Workspace/Settings/plugin_scan_dead_mans_pedal.txt
 
 # -----------------------------
 # Large generated test/media files
@@ -82,7 +85,3 @@ yarn-error.log*
 /agent/*.txt
 /agent/*.exe
 /agent/*.bak
-
-/VPSForge/staging/
-/VPSForge/lib/
-/VPSForge/*.exe

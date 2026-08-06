@@ -141,6 +141,78 @@ func TestTraceSummaryIncludesPlanItemsAndVerification(t *testing.T) {
 	}
 }
 
+func TestRecentGoalContextInheritanceStaysSingleLevelAndBounded(t *testing.T) {
+	opts := fixedOptions()
+	pending := planner.ToolCall{
+		ID:         "call_load",
+		Tool:       "plugin.load_to_rack",
+		PlanItemID: "load_compressor",
+		Args:       map[string]any{"track_id": "track_1", "plugin_path": `C:\Pro-C 2.vst3`},
+	}
+	first := Build(Input{
+		PlanItems:       []planner.PlanItem{{ID: "load_compressor", Description: "Load compressor", Status: "pending"}},
+		PendingToolCall: &pending,
+		ExecutionMemory: map[string]any{"active_work_target_track_id": "track_1"},
+		RecentObservation: map[string]any{
+			"observation_id": "obs_1",
+			"target_ref":     map[string]any{"kind": "track", "id": "track_1"},
+		},
+	}, opts)
+
+	previous := first.Map()
+	var baselineSize int
+	for generation := 0; generation < 6; generation++ {
+		next := Build(Input{PreviousSnapshot: previous}, opts)
+		data, err := json.Marshal(next)
+		if err != nil {
+			t.Fatalf("marshal generation %d: %v", generation, err)
+		}
+		if count := strings.Count(string(data), `"inherited_recent_goal_context"`); count != 1 {
+			t.Fatalf("generation %d nested inherited context count = %d: %s", generation, count, data)
+		}
+		if generation == 0 {
+			baselineSize = len(data)
+		} else if len(data) > baselineSize+128 {
+			t.Fatalf("generation %d snapshot grew from %d to %d bytes", generation, baselineSize, len(data))
+		}
+
+		inherited, ok := next.RecentGoalContext["inherited_recent_goal_context"].(map[string]any)
+		if !ok {
+			t.Fatalf("generation %d inherited context = %#v", generation, next.RecentGoalContext)
+		}
+		for _, key := range []string{"plan_steps", "pending_confirmation", "execution_memory", "recent_observation"} {
+			if inherited[key] == nil {
+				t.Fatalf("generation %d lost %s: %#v", generation, key, inherited)
+			}
+		}
+		if inherited["inherited_recent_goal_context"] != nil {
+			t.Fatalf("generation %d retained recursive context: %#v", generation, inherited)
+		}
+		previous = next.Map()
+	}
+}
+
+func TestRecentGoalContextInheritanceDropsUnknownFields(t *testing.T) {
+	snap := Build(Input{PreviousSnapshot: map[string]any{
+		"recent_goal_context": map[string]any{
+			"execution_memory":           map[string]any{"active_work_target_track_id": "track_1"},
+			"unbounded_internal_payload": strings.Repeat("x", 10000),
+			"inherited_recent_goal_context": map[string]any{
+				"recent_observation": map[string]any{"observation_id": "obs_1"},
+				"unknown_nested":     strings.Repeat("y", 10000),
+			},
+		},
+	}}, fixedOptions())
+
+	inherited := snap.RecentGoalContext["inherited_recent_goal_context"].(map[string]any)
+	if inherited["execution_memory"] == nil || inherited["recent_observation"] == nil {
+		t.Fatalf("allowed inherited fields missing: %#v", inherited)
+	}
+	if inherited["unbounded_internal_payload"] != nil || inherited["unknown_nested"] != nil {
+		t.Fatalf("unknown inherited fields leaked: %#v", inherited)
+	}
+}
+
 func TestToolImportantFieldsAreDeterministic(t *testing.T) {
 	opts := fixedOptions()
 	opts.MaxListItems = 2

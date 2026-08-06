@@ -13,6 +13,7 @@ import json
 import os
 import sys
 import time
+import urllib.error
 import urllib.request
 from pathlib import Path
 from typing import Any
@@ -33,8 +34,12 @@ def request_json(method: str, url: str, payload: dict[str, Any] | None, timeout:
         headers={"Content-Type": "application/json; charset=utf-8"},
         method=method,
     )
-    with urllib.request.urlopen(request, timeout=timeout) as response:
-        value = json.loads(response.read().decode("utf-8", errors="replace"))
+    try:
+        with urllib.request.urlopen(request, timeout=timeout) as response:
+            value = json.loads(response.read().decode("utf-8", errors="replace"))
+    except urllib.error.HTTPError as exc:
+        body = exc.read().decode("utf-8", errors="replace")
+        raise RuntimeError(f"{method} {url} returned HTTP {exc.code}: {body[:3200]}") from exc
     if not isinstance(value, dict):
         raise RuntimeError(f"{url} returned non-object JSON")
     return value
@@ -101,6 +106,7 @@ def wait_analysis(
     job_id: str,
     request_timeout: float,
     analysis_timeout: float,
+    expected_track_count: int,
 ) -> dict[str, Any]:
     invoke(
         base_url,
@@ -124,7 +130,7 @@ def wait_analysis(
         state = str(job.get("dad_fact_status", "")).lower()
         waveform_rows = job.get("track_waveform_envelopes")
         waveforms = len(waveform_rows) if isinstance(waveform_rows, list) else 0
-        if state == "ready" and total > 0 and ready >= total and waveforms >= total:
+        if state == "ready" and total >= expected_track_count and ready >= total and waveforms >= total:
             return {
                 "analysis_job_id": job_id,
                 "dad_fact_status": state,
@@ -201,7 +207,7 @@ def build_case(
     job_id = str(imported_result.get("analysis_job_id") or job.get("analysis_job_id") or job.get("job_id") or "")
     if not job_id:
         raise RuntimeError(f"{case_id} import omitted analysis_job_id")
-    analysis = wait_analysis(base_url, job_id, request_timeout, analysis_timeout)
+    analysis = wait_analysis(base_url, job_id, request_timeout, analysis_timeout, len(expected_tracks))
     invoke(base_url, "project.save", {}, request_timeout, confirmed=True)
 
     state_response = invoke(base_url, "project.state", {}, request_timeout)

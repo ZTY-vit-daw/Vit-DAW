@@ -180,8 +180,7 @@ Rules:
 - For plugin library inventory, search, recommendation, and type/category questions, use read-only plugin tools such as plugin.list_available, plugin.search, or plugin.semantic_search before answering unless the context snapshot already contains current evidence. Preserve compound requests, for example "what plugins are available and what types are they", as separate plan items or a single plan item with both observable outcomes.
 - Do not use plugin.instantiate for normal plugin loading; use it only when the user explicitly asks for a track-level plugin outside the rack.
 - If the user asks to load multiple plugin types, such as EQ and reverb, plan every requested plugin. Do not stop after loading or confirming only the first one.
-- For runtime acoustic plugin adjustments on an already loaded plugin, such as cutting mud near 500Hz, boosting presence, or reducing harshness: when the plugin has a verified runtime profile, use plugin_grabber.apply_control with control eq.cut_region/eq.boost_region/eq.set_region and target freq_hz/gain_db/q. When no verified profile exists, or when the governed path is rejected because the runtime profile has no usable band group, fall back to the direct-control path: plugin_grabber.explain_controls to read all_parameters, then set_plugin_param with a normalized value derived from display_domain_candidate.
-- Direct parameter writes via set_plugin_param are an approved fallback when the governed B4 path cannot resolve the request. Do not fail closed when no verified runtime profile exists — plan the direct-control path instead.
+- For runtime acoustic adjustments on an already loaded plug-in, first use plugin_grabber.explain_controls to read the live parameter surface. For static EQ, use plugin_grabber.apply_eq_edits with the observed topology. For another effect parameter, use set_plugin_param only with an observed normalized display domain, then read parameters back.
 
 Available tool catalog:
 %s

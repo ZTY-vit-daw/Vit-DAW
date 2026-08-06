@@ -118,8 +118,6 @@ type ConnectionStatus = "loading" | "ready" | "offline";
 type FocusMode = "dialogue" | "tracks" | "rack" | "midi" | "mixer";
 type WorkbenchTab = "history" | "media" | "macro";
 type SettingsTab = "agent" | "llm" | "multimodal" | "browser" | "diagnostics";
-type PluginLearningMode = "auto_learn" | "teach";
-type PluginLearningTarget = { track_id: string; plugin_id: string; plugin_name: string };
 type MediaContextMenuState = { artifact: ArtifactSummary; x: number; y: number };
 type AppSurface = "full" | "main" | "workbench";
 type MacroValueOverride = { value: number; macro: MacroControl; expiresAt: number };
@@ -217,8 +215,6 @@ function App() {
   const [selectedArtifactID, setSelectedArtifactID] = useState<string>("");
   const [isSending, setIsSending] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
-  const [pluginLearningBusy, setPluginLearningBusy] = useState(false);
-  const [pendingPluginLearningMode, setPendingPluginLearningMode] = useState<PluginLearningMode | null>(null);
   const [respondingActionID, setRespondingActionID] = useState("");
   const [dismissedInteractionIDs, setDismissedInteractionIDs] = useState<string[]>([]);
   const [messageBottomInset, setMessageBottomInset] = useState(156);
@@ -353,7 +349,6 @@ function App() {
               next_seq: response.next_seq,
               is_sending: isSending,
               responding_action_id: respondingActionID,
-              plugin_learning_busy: pluginLearningBusy,
               events: events.map(summarizeAgentEventForConfirmation)
             });
           }
@@ -362,14 +357,14 @@ function App() {
             events,
             (agentEvent) => chatMessageFromAgentEvent(agentEvent, mode)
           ));
-        } else if (!isSending && !respondingActionID && !pluginLearningBusy) {
+        } else if (!isSending && !respondingActionID) {
           idleTicks += 1;
           if (idleTicks >= 4) {
             setAgentEventPolling(false);
           }
         }
       } catch {
-        if (!cancelled && !isSending && !respondingActionID && !pluginLearningBusy) {
+        if (!cancelled && !isSending && !respondingActionID) {
           idleTicks += 1;
           if (idleTicks >= 3) {
             setAgentEventPolling(false);
@@ -383,7 +378,7 @@ function App() {
       cancelled = true;
       window.clearInterval(timer);
     };
-  }, [agentEventPolling, conversationID, isSending, mode, pluginLearningBusy, respondingActionID]);
+  }, [agentEventPolling, conversationID, isSending, mode, respondingActionID]);
 
   useEffect(() => {
     const nextScope = historyScopeKeyFromUIState(uiState);
@@ -480,7 +475,7 @@ function App() {
       window.removeEventListener("resize", measureBottomInset);
       observer?.disconnect();
     };
-  }, [composerInteractionID, error, pendingArtifacts.length, pendingMacroRefs.length, isSending, isUploading, pluginLearningBusy]);
+  }, [composerInteractionID, error, pendingArtifacts.length, pendingMacroRefs.length, isSending, isUploading]);
 
   useEffect(() => {
     debugConfirmation("composer-selection", {
@@ -554,11 +549,7 @@ function App() {
   const handleSend = async (event?: FormEvent) => {
     event?.preventDefault();
     const messageText = input.trim();
-    if (isSending || pluginLearningBusy) {
-      return;
-    }
-    if (pendingPluginLearningMode) {
-      await submitPluginLearningTarget(pendingPluginLearningMode, messageText);
+    if (isSending) {
       return;
     }
     if (!messageText && pendingArtifacts.length === 0 && pendingMacroRefs.length === 0) {
@@ -778,7 +769,6 @@ function App() {
     setActivities([]);
     setPendingArtifacts([]);
     setPendingMacroRefs([]);
-    setPendingPluginLearningMode(null);
     setDismissedInteractionIDs([]);
     setActiveFocus("dialogue");
     setInput("");
@@ -844,197 +834,9 @@ function App() {
       return next;
     });
   }, []);
-
-  const submitPluginLearningTarget = async (learningMode: PluginLearningMode, rawTarget: string) => {
-    const targetText = rawTarget.trim();
-    if (!targetText) {
-      setError("请输入要学习的插件名，或输入取消退出 Plugin Grabber 学习模式。");
-      return;
-    }
-    const userMessage: ChatMessage = {
-      id: uniqueID("plugin_learning_user"),
-      role: "user",
-      content: targetText,
-      mode,
-      createdAt: Date.now(),
-      status: "sent",
-      lifecycle: "durable",
-      persistence: "project_history",
-      message_kind: "user"
-    };
-    setMessages((current) => [...current, userMessage]);
-    setInput("");
-    setError("");
-    if (isPluginLearningCancelText(targetText)) {
-      cancelPluginLearningMode();
-      return;
-    }
-    const latestUIState = await fetchLatestUIState();
-    const selectedTarget = pluginLearningTargetFromUIState(latestUIState);
-    const target = pluginLearningTargetFromText(targetText, selectedTarget);
-    if (!hasPluginLearningTarget(target)) {
-      setMessages((current) => [
-        ...current,
-        pluginLearningPromptMessage(learningMode, selectedTarget, mode, "我还没有拿到插件目标。请直接输入插件名，或先在机架里选中插件。")
-      ]);
-      return;
-    }
-    setPendingPluginLearningMode(null);
-    await invokePluginLearning(learningMode, target, `用户指定插件：${pluginLearningTargetLabel(target)}`, latestUIState);
-  };
-
-  const cancelPluginLearningMode = () => {
-    setPendingPluginLearningMode(null);
-    setError("");
-    setMessages((current) => [
-      ...current,
-      durableMessage({
-        id: uniqueID("plugin_learning_cancel"),
-        role: "assistant",
-        content: "已退出 Plugin Grabber 学习模式。",
-        mode,
-        createdAt: Date.now(),
-        status: "sent"
-      }, { kind: "assistant", persistence: "local" })
-    ]);
-  };
-
-  const invokePluginLearning = async (
-    learningMode: PluginLearningMode,
-    target: PluginLearningTarget,
-    intent: string,
-    sourceUIState: AgentUIState | null = uiState,
-    processingMessageID = ""
-  ) => {
-    setPluginLearningBusy(true);
-    setAgentEventPolling(true);
-    setError("");
-    try {
-      const baseContext = buildChatContext(mode, activeFocus, sourceUIState, []);
-      const invokeContext = {
-        ...baseContext,
-        selected_track_id: target.track_id || textValue(baseContext.selected_track_id, ""),
-        selected_plugin_track_id: target.track_id,
-        selected_plugin_id: target.plugin_id,
-        selected_plugin_name: target.plugin_name
-      };
-      const response = await invokeAgent({
-        tool: "plugin_grabber.learn_project_profile",
-        args: {
-          mode: learningMode,
-          track_id: target.track_id,
-          plugin_id: target.plugin_id,
-          plugin_name: target.plugin_name,
-          intent
-        },
-        source: `ask_vit_webui_plugin_${learningMode}`,
-        context: invokeContext
-      });
-      postAgentMutationsFromInvokeResponse(response, "invoke");
-      const nextMessage = invokeMessageFromResponse(response, mode, learningMode);
-      setActivities((current) => processingMessageID ? dismissActivityByID(current, processingMessageID) : []);
-      setMessages((current) => mergeAssistantMessageIntoChat(current, nextMessage));
-      const result = asRecord(response.result);
-      const sidePanel = asRecord(result.side_panel_request ?? asRecord(response).side_panel_request);
-      const artifactID = textValue(sidePanel.artifact_id, "");
-      if (artifactID) {
-        setSelectedArtifactID(artifactID);
-        setActiveTab("media");
-      }
-      await refreshState();
-    } catch (learnError) {
-      const message = learnError instanceof Error ? learnError.message : `Plugin Grabber ${pluginLearningModeLabel(learningMode)}失败`;
-      setError(message);
-      const errorMessage: ChatMessage = {
-        id: uniqueID("plugin_learning_error"),
-        role: "system",
-        content: message,
-        createdAt: Date.now(),
-        status: "error",
-        lifecycle: "durable",
-        persistence: "local",
-        message_kind: "error"
-      };
-      setActivities((current) => processingMessageID ? dismissActivityByID(current, processingMessageID) : []);
-      setMessages((current) => [...current, errorMessage]);
-    } finally {
-      setPluginLearningBusy(false);
-    }
-  };
-
-  const handlePluginLearningMode = async (learningMode: PluginLearningMode) => {
-    const latestUIState = await fetchLatestUIState();
-    const target = pluginLearningTargetFromUIState(latestUIState);
-    setPendingPluginLearningMode(learningMode);
-    setError("");
-    setMessages((current) => [
-      ...current,
-      pluginLearningPromptMessage(learningMode, target, mode)
-    ]);
-  };
-
-
-  const handlePluginLearningTargetAction = async (interaction: JsonRecord, actionID: string, payload: JsonRecord = {}) => {
-    const learningMode = pluginLearningModeFromValue(interaction.learning_mode) ?? pendingPluginLearningMode ?? "auto_learn";
-    const interactionID = textValue(interaction.id ?? interaction.interaction_id, "");
-    const renderID = actionRenderID(interaction);
-    if (actionID === "cancel_plugin_learning") {
-      dismissInteractionCard(interactionID, renderID, interaction);
-      cancelPluginLearningMode();
-      return;
-    }
-    if (actionID !== "use_current_plugin" && actionID !== "start_plugin_learning") {
-      return;
-    }
-    dismissInteractionCard(interactionID, renderID, interaction);
-    const latestUIState = await fetchLatestUIState();
-    const selectedTarget = pluginLearningTargetFromUIState(latestUIState);
-    const fields = asRecord(payload.fields);
-    const typedPluginName = textValue(fields.plugin_name ?? payload.plugin_name, "");
-    const target =
-      actionID === "start_plugin_learning" && typedPluginName
-        ? pluginLearningTargetFromText(typedPluginName, selectedTarget)
-        : pluginLearningTargetFromInteraction(interaction, selectedTarget);
-    if (!hasPluginLearningTarget(target)) {
-      setMessages((current) => [
-        ...current,
-        pluginLearningPromptMessage(learningMode, target, mode, "当前没有可用的选中插件。请在卡片里输入插件名。")
-      ]);
-      return;
-    }
-    setPendingPluginLearningMode(null);
-    setInput("");
-    const intent = actionID === "use_current_plugin" ? `使用当前插件：${pluginLearningTargetLabel(target)}` : `学习插件：${pluginLearningTargetLabel(target)}`;
-    const processingMessageID = uniqueID("plugin_learning_processing");
-    setMessages((current) => [
-      ...current,
-      {
-        id: uniqueID("plugin_learning_user"),
-        role: "user",
-        content: intent,
-        mode,
-        createdAt: Date.now(),
-        status: "sent",
-        lifecycle: "durable",
-        persistence: "project_history",
-        message_kind: "user"
-      }
-    ]);
-    setActivities((current) => upsertActivity(current, processingChatMessage(processingMessageID, "正在启动插件学习", mode)));
-    await invokePluginLearning(learningMode, target, intent, latestUIState, processingMessageID);
-  };
-
   const handleInteractionAction = async (interaction: JsonRecord, action: JsonRecord, payload?: JsonRecord) => {
     const interactionID = textValue(interaction.id ?? interaction.interaction_id, "");
     const actionID = textValue(action.id ?? action.action_id ?? action.decision, "submit");
-    if (textValue(interaction.kind, "") === "plugin_learning_target") {
-      await handlePluginLearningTargetAction(interaction, actionID, payload);
-      return;
-    }
-    if (isPluginLearningCompletion(interaction)) {
-      await handlePluginLearningCompletionAction(interaction, action);
-      return;
-    }
     if (!interactionID || !actionID || respondingActionID) {
       return;
     }
@@ -1060,13 +862,7 @@ function App() {
     if (!persistentMixBoard) {
       dismissInteractionCard(interactionID, renderID, interaction);
     }
-    const progressMessage = pluginLearningProcessingMessageForInteraction(
-      processingMessageID,
-      interactionProcessingText(interaction, actionID, actionLabel),
-      mode,
-      interaction,
-      payload
-    );
+    const progressMessage = processingChatMessage(processingMessageID, interactionProcessingText(interaction, actionID, actionLabel), mode);
     if (!persistentMixBoard) {
       setMessages((current) => [
         ...current,
@@ -1153,78 +949,6 @@ function App() {
     }
   };
 
-  const handlePluginLearningCompletionAction = async (completion: JsonRecord, action: JsonRecord) => {
-    const actionID = textValue(action.id ?? action.action_id, "done");
-    if (actionID === "done" || respondingActionID) {
-      return;
-    }
-    const pendingID = interactionActionID(actionRenderID(completion) || "plugin_learning_completion", actionID);
-    const actionLabel = textValue(action.label ?? action.title ?? actionID, actionID);
-    setRespondingActionID(pendingID);
-    setError("");
-    try {
-      if (actionID === "continue_learning") {
-        const completionTarget = pluginLearningTargetFromCompletion(completion, pluginLearningTargetFromUIState(await fetchLatestUIState()));
-        const learningMode = pluginLearningModeFromValue(action.learning_mode) ?? pluginLearningModeFromValue(asRecord(completion.payload).mode) ?? "auto_learn";
-        setMessages((current) => [
-          ...current,
-          durableMessage({
-            id: uniqueID("plugin_learning_user"),
-            role: "user",
-            content: actionLabel,
-            mode,
-            createdAt: Date.now(),
-            status: "sent"
-          }, { kind: "user", persistence: "project_history" })
-        ]);
-        await invokePluginLearning(learningMode, completionTarget, actionLabel);
-        return;
-      }
-      const prompt = textValue(action.prompt, actionLabel);
-      const userMessage: ChatMessage = {
-        id: uniqueID("completion_followup"),
-        role: "user",
-        content: actionLabel,
-        mode,
-        createdAt: Date.now(),
-        status: "sent",
-        lifecycle: "durable",
-        persistence: "project_history",
-        message_kind: "user"
-      };
-      setMessages((current) => [...current, userMessage]);
-      const response = await sendChat({
-        conversation_id: conversationID,
-        message: prompt,
-        context: {
-          ...buildChatContext(mode, activeFocus, uiState, []),
-          plugin_learning_completion: asRecord(completion.payload ?? completion)
-        }
-      });
-      debugConfirmation("chat-response", summarizeChatResponseForConfirmation(response));
-      postAgentMutationsFromChatResponse(response, "completion_followup");
-      const assistantMessage = assistantMessageFromResponse(response);
-      debugConfirmation("assistant-message", summarizeMessageForConfirmation(assistantMessage));
-      setMessages((current) => mergeAssistantMessageIntoChat(current, assistantMessage));
-      await refreshState();
-    } catch (completionError) {
-      const message = completionError instanceof Error ? completionError.message : "后续操作失败";
-      setError(message);
-      setMessages((current) => [
-        ...current,
-        durableMessage({
-          id: uniqueID("completion_action_err"),
-          role: "system",
-          content: message,
-          createdAt: Date.now(),
-          status: "error"
-        }, { kind: "error", persistence: "local" })
-      ]);
-    } finally {
-      setRespondingActionID("");
-    }
-  };
-
   const hiddenFileInput = (
     <input
       ref={fileInputRef}
@@ -1297,7 +1021,6 @@ function App() {
         onDeleteArtifact={handleDeleteArtifact}
         onUploadClick={() => fileInputRef.current?.click()}
         onModeChange={setMode}
-        onPluginLearning={handlePluginLearningMode}
         onAttachMacroControl={attachMacroControl}
         onInsertMacroControlCard={insertMacroControlCard}
         onMacroValuePreview={previewMacroControlValue}
@@ -1347,13 +1070,11 @@ function App() {
         mode={mode}
         isSending={isSending}
         isUploading={isUploading}
-        pluginLearningBusy={pluginLearningBusy}
         interactionAction={composerInteraction}
         respondingActionID={respondingActionID}
         onSubmit={handleSend}
         onUploadClick={() => fileInputRef.current?.click()}
         onModeChange={setMode}
-        onPluginLearning={handlePluginLearningMode}
         onInteractionAction={handleInteractionAction}
         onInvoke={invokeDawAction}
         onSelectArtifact={(id) => {
@@ -4148,14 +3869,6 @@ function MessageStream({
               </div>
               {actionsBeforeContent && actionCardsBlock}
               {contentBlock}
-              {message.pluginLearningProgress?.sessionID && (
-                <PluginLearningProgressBlock
-                  sessionID={message.pluginLearningProgress.sessionID}
-                  title={message.pluginLearningProgress.title}
-                  targetName={message.pluginLearningProgress.targetName}
-                  live={message.pluginLearningProgress.live}
-                />
-              )}
               {message.artifacts && message.artifacts.length > 0 && (
                 <div className="artifact-context-list message-context-list">
                   {message.artifacts.map((artifact) => (
@@ -4315,9 +4028,6 @@ function ActionCard(props: ActionCardProps) {
         onMacroValueCommit={props.onMacroValueCommit}
       />
     );
-  }
-  if (isPluginUIReferenceRequest(props.action)) {
-    return <PluginUIReferenceRequestCard {...props} />;
   }
   return <StandardActionCard {...props} />;
 }
@@ -4569,12 +4279,6 @@ function MixBoardActionCard({ action, respondingActionID, onInteractionAction }:
   const contextPack = asRecord(observationEnvelope.context_pack);
   const sessionHeader = asRecord(contextPack.session_header);
   const latestObservation = asRecord(contextPack.latest_observation);
-  const goalControlSurface = firstNonEmptyRecord(
-    asRecord(observationEnvelope.goal_control_surface),
-    asRecord(mixboard.goal_control_surface),
-    asRecord(contextPack.goal_control_surface),
-    asRecord(sessionHeader.goal_control_surface)
-  );
   const target = asRecord(session.target_ref ?? observation.target_ref ?? mixboard.target_ref ?? sessionHeader.target_ref);
   const mixObjects = firstArray(session.mix_objects, observation.mix_objects, mixboard.mix_objects, sessionHeader.mix_objects).map(asRecord);
   const listenScope = asRecord(session.listen_scope ?? observation.listen_scope ?? mixboard.listen_scope ?? sessionHeader.listen_scope);
@@ -4628,10 +4332,6 @@ function MixBoardActionCard({ action, respondingActionID, onInteractionAction }:
   const userNoteInputRef = useRef<HTMLTextAreaElement | null>(null);
   const latestTurn = mixBoardLatestTuneTurn(mixboard, observation, payload);
   const tuneRows = mixBoardTuneRows(latestTurn, mixboard);
-  const controlSurfaceRows = mixBoardGoalControlSurfaceRows(goalControlSurface);
-  const controlSurfaceChain = mixBoardGoalControlSurfaceChain(goalControlSurface);
-  const controlSurfaceCandidates = mixBoardGoalControlSurfaceCandidates(goalControlSurface);
-  const controlSurfaceBlockers = firstArray(goalControlSurface.blockers).map((item) => textValue(item, "")).filter(Boolean);
   const payloadForMixAction = (): JsonRecord => {
     const note = (userNoteInputRef.current?.value ?? mixBoardUserNoteDrafts.get(draftKey) ?? userNoteDraft).trim();
     const outgoing: JsonRecord = {
@@ -4761,47 +4461,6 @@ function MixBoardActionCard({ action, respondingActionID, onInteractionAction }:
             </div>
           </div>
         )}
-        {Object.keys(goalControlSurface).length > 0 && (
-          <div className={`mix-board-control-surface ${mixBoardGoalControlSurfaceTone(goalControlSurface)}`}>
-            <div className="mix-board-panel-title">
-              <SlidersHorizontal size={14} />
-              <strong>目标控制面</strong>
-            </div>
-            <div className="action-detail-grid project-result-grid">
-              {controlSurfaceRows.map(([label, value]) => (
-                <div className="action-detail" key={label}>
-                  <span>{label}</span>
-                  <strong>{value}</strong>
-                </div>
-              ))}
-            </div>
-            {controlSurfaceChain.length > 0 && (
-              <div className="mix-board-control-list">
-                {controlSurfaceChain.map((item, index) => (
-                  <div className="mix-board-control-row" key={`${textValue(item.role, "role")}-${index}`}>
-                    <span>{textValue(item.slot, `${index + 1}`)}. {mixBoardGoalRoleLabel(item)}</span>
-                    <strong>{mixBoardGoalPluginLabel(item)}</strong>
-                    <small>{mixBoardGoalStatusLabel(item)}</small>
-                  </div>
-                ))}
-              </div>
-            )}
-            {controlSurfaceCandidates.length > 0 && (
-              <div className="mix-board-control-candidates">
-                {controlSurfaceCandidates.map((item, index) => (
-                  <span key={`${textValue(item.name, "candidate")}-${index}`}>{mixBoardGoalCandidateLabel(item)}</span>
-                ))}
-              </div>
-            )}
-            {controlSurfaceBlockers.length > 0 && (
-              <div className="mix-board-control-blockers">
-                {controlSurfaceBlockers.slice(0, 3).map((item, index) => (
-                  <span key={`${item}-${index}`}>{item}</span>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
         {childActions.length > 0 && (
           <div className="action-buttons mix-board-actions">
             {childActions.map((child, index) => {
@@ -4895,143 +4554,6 @@ function mixBoardTuneRows(turn: JsonRecord, mixboard: JsonRecord): Array<[string
     }
   }
   return rows;
-}
-
-function mixBoardGoalControlSurfaceRows(surface: JsonRecord): Array<[string, string]> {
-  if (Object.keys(surface).length === 0) {
-    return [];
-  }
-  const rows: Array<[string, string]> = [];
-  rows.push(["状态", mixBoardGoalReadinessLabel(textValue(surface.readiness, ""))]);
-  const next = textValue(surface.next_required_action, "");
-  if (next) {
-    rows.push(["下一步", mixBoardGoalNextActionLabel(next)]);
-  }
-  const instance = textValue(surface.instance_status, "");
-  if (instance) {
-    rows.push(["实例", mixBoardGoalInstanceLabel(instance)]);
-  }
-  const profile = textValue(surface.profile_status, "");
-  if (profile) {
-    rows.push(["profile", mixBoardGoalProfileLabel(profile)]);
-  }
-  const controls = firstArray(surface.proposed_controls);
-  if (controls.length > 0) {
-    rows.push(["控制数", `${controls.length} 项规划`]);
-  }
-  return rows;
-}
-
-function mixBoardGoalControlSurfaceChain(surface: JsonRecord): JsonRecord[] {
-  return firstArray(surface.selected_chain, surface.effect_chain_plan).map(asRecord).filter((item) => Object.keys(item).length > 0).slice(0, 6);
-}
-
-function mixBoardGoalControlSurfaceCandidates(surface: JsonRecord): JsonRecord[] {
-  return firstArray(surface.plugin_candidates).map(asRecord).filter((item) => Object.keys(item).length > 0).slice(0, 6);
-}
-
-function mixBoardGoalControlSurfaceTone(surface: JsonRecord): string {
-  const readiness = textValue(surface.readiness, "").toLowerCase();
-  if (readiness === "blocked") {
-    return "blocked";
-  }
-  if (readiness === "plan_ready") {
-    return "ready";
-  }
-  if (readiness === "needs_confirmation") {
-    return "confirm";
-  }
-  return "pending";
-}
-
-function mixBoardGoalRoleLabel(item: JsonRecord): string {
-  const role = textValue(item.role, "");
-  const type = textValue(item.type, "");
-  return [role, type].filter(Boolean).join(" / ") || "planned role";
-}
-
-function mixBoardGoalPluginLabel(item: JsonRecord): string {
-  const plugin = asRecord(item.selected_plugin);
-  return textValue(plugin.name ?? item.plugin ?? item.selected_plugin, "No plugin selected");
-}
-
-function mixBoardGoalStatusLabel(item: JsonRecord): string {
-  return [
-    mixBoardGoalInstanceLabel(textValue(item.instance_status, "")),
-    mixBoardGoalProfileLabel(textValue(item.profile_status, ""))
-  ].filter(Boolean).join(" 路 ");
-}
-
-function mixBoardGoalCandidateLabel(item: JsonRecord): string {
-  const name = textValue(item.name ?? item.plugin_name, "Plugin");
-  const type = textValue(item.primary_type ?? item.type ?? item.class, "");
-  const maker = textValue(item.manufacturer, "");
-  return [name, type, maker].filter(Boolean).join(" 路 ");
-}
-
-function mixBoardGoalReadinessLabel(value: string): string {
-  const status = value.toLowerCase();
-  if (status === "plan_ready") {
-    return "可审计规划就绪";
-  }
-  if (status === "needs_confirmation") {
-    return "需确认";
-  }
-  if (status === "blocked") {
-    return "已阻塞";
-  }
-  return localizeDisplayText(value) || value || "待确认";
-}
-
-function mixBoardGoalNextActionLabel(value: string): string {
-  const action = value.toLowerCase();
-  if (action === "confirm_control_surface") {
-    return "确认控制面";
-  }
-  if (action === "learn_plugin_profile") {
-    return "进入 Plugin Grabber 学习";
-  }
-  if (action === "select_plugin") {
-    return "选择插件";
-  }
-  if (action === "observe_again") {
-    return "重新观察";
-  }
-  return localizeDisplayText(value) || value;
-}
-
-function mixBoardGoalInstanceLabel(value: string): string {
-  const status = value.toLowerCase();
-  if (status === "existing") {
-    return "已加载";
-  }
-  if (status === "needs_load") {
-    return "待加载";
-  }
-  if (status === "unavailable") {
-    return "不可用";
-  }
-  if (status === "unknown") {
-    return "未知";
-  }
-  return localizeDisplayText(value) || value;
-}
-
-function mixBoardGoalProfileLabel(value: string): string {
-  const status = value.toLowerCase();
-  if (status === "ready") {
-    return "Profile 就绪";
-  }
-  if (status === "missing") {
-    return "Profile 缺失";
-  }
-  if (status === "stale") {
-    return "Profile 过期";
-  }
-  if (status === "not_required") {
-    return "无需 profile";
-  }
-  return localizeDisplayText(value) || value;
 }
 
 function mixBoardControlLabel(value: string): string {
@@ -5487,158 +5009,6 @@ function mixBoardBlockerLabel(value: string): string {
   return localizeDisplayText(value) || value;
 }
 
-function PluginUIReferenceRequestCard({
-  action,
-  respondingActionID,
-  onInteractionAction,
-  onSelectArtifact,
-  uiState
-}: ActionCardProps) {
-  const payload = interactionPayload(action);
-  const childActions = firstArray(action.actions).map(asRecord).filter((item) => Object.keys(item).length > 0);
-  const target = asRecord(payload.target);
-  const sessionID = textValue(payload.plugin_learning_session_id, "");
-  const sessionStartedAt = textValue(payload.plugin_learning_session_started_at, "");
-  const conversationID = textValue(action.conversation_id ?? payload.conversation_id, "");
-  const trackID = textValue(target.track_id ?? payload.track_id, "");
-  const pluginID = textValue(target.plugin_id ?? payload.plugin_id, "");
-  const pluginName = textValue(target.plugin_name ?? payload.plugin_name, "Plugin Grabber");
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const [uploaded, setUploaded] = useState<ArtifactSummary[]>([]);
-  const [uploading, setUploading] = useState(false);
-  const [uploadError, setUploadError] = useState("");
-  const [webReferenceEnabled, setWebReferenceEnabled] = useState(false);
-  const canContinue = uploaded.length > 0 && !uploading && respondingActionID === "";
-  const interactionID = textValue(action.id ?? action.interaction_id, "");
-  const renderID = actionRenderID(action);
-  const webReferenceDecision = webReferenceEnabled ? "enabled" : "skipped";
-
-  const uploadPattern = async (files: FileList | null) => {
-    if (!files || files.length === 0 || uploading) {
-      return;
-    }
-    setUploading(true);
-    setUploadError("");
-    try {
-      const result = await uploadArtifacts(files, {
-        ...uploadMetadata(conversationID, uiState),
-        plugin_learning_session_id: sessionID,
-        plugin_learning_purpose: "plugin_ui_reference",
-        track_id: trackID,
-        plugin_id: pluginID,
-        plugin_name: pluginName
-      });
-      const artifacts = result.artifacts ?? [];
-      setUploaded((current) => mergeArtifacts(current, artifacts));
-      if (artifacts[0]) {
-        onSelectArtifact(artifacts[0].id);
-      }
-    } catch (error) {
-      setUploadError(error instanceof Error ? error.message : "插件界面图样上传失败");
-    } finally {
-      setUploading(false);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
-    }
-  };
-
-  const payloadForAction = (actionID: string): JsonRecord => {
-    if (actionID === "skip_ui_reference") {
-      return {
-        plugin_learning_session_id: sessionID,
-        plugin_learning_session_started_at: sessionStartedAt,
-        ui_reference_decision: "skipped",
-        web_reference_decision: webReferenceDecision
-      };
-    }
-    if (actionID === "continue_with_ui_reference") {
-      return {
-        plugin_learning_session_id: sessionID,
-        plugin_learning_session_started_at: sessionStartedAt,
-        ui_reference_decision: "provided",
-        ui_reference_artifact_ids: uploaded.map((artifact) => artifact.id),
-        web_reference_decision: webReferenceDecision
-      };
-    }
-    return { plugin_learning_session_id: sessionID, web_reference_decision: webReferenceDecision };
-  };
-
-  return (
-    <div className="action-card info interactive plugin-ui-reference-card">
-      <FileImage size={16} />
-      <div className="action-content">
-        <div className="action-title-line">
-          <strong>提供插件界面图样</strong>
-          <span>可选</span>
-        </div>
-        <p className="action-body">
-          {pluginName} 可以先提供本次学习专用图样；也可以跳过。之前发送过的图片不会参与这次自动学习。        </p>
-        <label className="plugin-ui-reference-option">
-          <input
-            type="checkbox"
-            checked={webReferenceEnabled}
-            disabled={respondingActionID !== ""}
-            onChange={(event) => setWebReferenceEnabled(event.currentTarget.checked)}
-          />
-          <span>使用网络文档辅助学习</span>
-        </label>
-        <div className="plugin-ui-reference-upload">
-          <button className="action-button secondary" type="button" disabled={uploading || respondingActionID !== ""} onClick={() => fileInputRef.current?.click()}>
-            {uploading ? <Loader2 className="spin" size={14} /> : <Upload size={14} />}
-            <span>{uploaded.length > 0 ? "更换图样" : "上传图样"}</span>
-          </button>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            className="plugin-ui-reference-input"
-            onChange={(event) => void uploadPattern(event.currentTarget.files)}
-          />
-          {uploaded.length > 0 && (
-            <div className="plugin-ui-reference-files">
-              {uploaded.map((artifact) => (
-                <ArtifactContextCard
-                  key={artifact.id}
-                  artifact={artifact}
-                  variant="compact"
-                  onSelect={() => onSelectArtifact(artifact.id)}
-                  onRemove={() => setUploaded((current) => current.filter((item) => item.id !== artifact.id))}
-                />
-              ))}
-            </div>
-          )}
-          {uploadError && <div className="notice warning"><AlertTriangle size={16} />{uploadError}</div>}
-        </div>
-        <div className="action-buttons">
-          {childActions.map((child, index) => {
-            const actionID = textValue(child.id ?? child.action_id ?? child.decision, `action_${index + 1}`);
-            const label = textValue(child.label ?? child.title ?? actionID, actionID);
-            const style = textValue(child.style, "secondary");
-            const pendingID = interactionActionID(interactionID || renderID || "plugin_ui_reference", actionID);
-            const isBusy = respondingActionID === pendingID;
-            const disabled =
-              respondingActionID !== "" ||
-              uploading ||
-              (actionID === "continue_with_ui_reference" && !canContinue);
-            return (
-              <button
-                key={`${actionID}-${index}`}
-                className={`action-button ${style}`}
-                type="button"
-                disabled={disabled}
-                onClick={() => onInteractionAction(action, child, payloadForAction(actionID))}
-              >
-                {isBusy && <Loader2 className="spin" size={14} />}
-                <span>{label}</span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-    </div>
-  );
-}
 
 function ProjectResultCard({ action, respondingActionID, onInvoke, uiState }: ActionCardProps) {
   const result = projectResultSummary(action, uiState);
@@ -6097,24 +5467,21 @@ function StandardActionCard({
   const status = textValue(action.status ?? action.risk ?? action.risk_level ?? action.kind, "pending");
   const title = actionTitle(action, index);
   const body = actionBody(action);
-  const isCompletion = isPluginLearningCompletion(action);
-  const childActions = firstArray(action.actions)
-    .map(asRecord)
-    .filter((item) => Object.keys(item).length > 0)
-    .filter((item) => !isCompletion || textValue(item.id ?? item.action_id, "").toLowerCase() !== "done");
+	const childActions = firstArray(action.actions)
+		.map(asRecord)
+		.filter((item) => Object.keys(item).length > 0);
   const interactionID = textValue(action.id ?? action.interaction_id, "");
   const renderID = actionRenderID(action);
-  const isInteractive = (interactionID !== "" || isCompletion) && childActions.length > 0;
+	const isInteractive = interactionID !== "" && childActions.length > 0;
   const isConfirmation = isConfirmationAction(action);
   const fields = interactionFields(action);
   const reviewItems = isConfirmation
     ? mergeReviewItems(confirmationReviewItems(action), interactionReviewItems(action))
     : interactionReviewItems(action);
   const command = isConfirmation ? {} : asRecord(action.command);
-  const completion = pluginLearningCompletionSummary(action);
-  const pages = useMemo(
-    () => buildInteractionPages({ reviewItems, fields, command, completion }),
-    [action, fields, reviewItems, command, completion]
+	const pages = useMemo(
+		() => buildInteractionPages({ reviewItems, fields, command }),
+		[action, fields, reviewItems, command]
   );
   const [pageIndex, setPageIndex] = useState(0);
   const fieldSignature = fields.map((field) => `${textValue(field.id, "")}:${textValue(field.value, "")}`).join("|");
@@ -6130,10 +5497,10 @@ function StandardActionCard({
   const requiredMissing = hasMissingRequiredFields(fields, fieldValues);
   const currentPage = pages[Math.min(pageIndex, Math.max(0, pages.length - 1))] ?? emptyInteractionPage();
   const isLastPage = pageIndex >= pages.length - 1;
-  const compact = isCompactActionCard(action, tone, isInteractive, isCompletion);
+	const compact = isCompactActionCard(action, tone, isInteractive, false);
 
   return (
-    <div className={`action-card ${tone} ${isInteractive ? "interactive" : ""} ${isCompletion ? "completion" : ""} ${compact ? "compact" : ""}`}>
+		<div className={`action-card ${tone} ${isInteractive ? "interactive" : ""} ${compact ? "compact" : ""}`}>
       <Icon size={16} />
       <div className="action-content">
         <div className="action-title-line">
@@ -6153,8 +5520,7 @@ function StandardActionCard({
             reviewItems={currentPage.reviewItems}
             fields={currentPage.fields}
             command={currentPage.showCommand ? command : {}}
-            completion={currentPage.showCompletion ? completion : null}
-            fieldValues={fieldValues}
+				fieldValues={fieldValues}
             onFieldChange={(fieldID, value) => setFieldValues((current) => ({ ...current, [fieldID]: value }))}
             onSelectArtifact={onSelectArtifact}
           />
@@ -6189,12 +5555,6 @@ function StandardActionCard({
 }
 
 function actionRenderID(action: JsonRecord): string {
-  if (isPluginLearningCompletion(action)) {
-    const completionID = pluginLearningCompletionRenderID(action);
-    if (completionID) {
-      return completionID;
-    }
-  }
   return textValue(action.id ?? action.interaction_id ?? action.plan_id ?? action.title ?? action.type ?? action.kind, "");
 }
 
@@ -6419,40 +5779,6 @@ function processingChatMessage(id: string, content: string, mode?: AgentMode | s
   });
 }
 
-function pluginLearningProcessingMessageForInteraction(
-  id: string,
-  content: string,
-  mode: AgentMode | string,
-  interaction: JsonRecord,
-  submittedPayload: JsonRecord = {}
-): ChatMessage {
-  const message = processingChatMessage(id, content, mode);
-  const interactionData = interactionPayload(interaction);
-  const sessionID =
-    textValue(submittedPayload.plugin_learning_session_id, "") ||
-    textValue(interactionData.plugin_learning_session_id, "") ||
-    textValue(interaction.plugin_learning_session_id, "");
-  if (!sessionID) {
-    return message;
-  }
-  if (!isPluginUIReferenceRequest(interaction) && textValue(submittedPayload.ui_reference_decision, "") === "") {
-    return message;
-  }
-  const target = asRecord(interactionData.target);
-  const submittedTarget = asRecord(submittedPayload.target);
-  message.pluginLearningProgress = {
-    sessionID,
-    title: "Plugin learning",
-    targetName: pluginLearningTargetLabel({
-      track_id: textValue(submittedTarget.track_id, "") || textValue(target.track_id ?? interactionData.track_id, ""),
-      plugin_id: textValue(submittedTarget.plugin_id, "") || textValue(target.plugin_id ?? interactionData.plugin_id, ""),
-      plugin_name: textValue(submittedTarget.plugin_name, "") || textValue(target.plugin_name ?? interactionData.plugin_name, "")
-    }),
-    live: true
-  };
-  return message;
-}
-
 function interactionProcessingText(interaction: JsonRecord, actionID: string, actionLabel: string): string {
   const normalizedAction = actionID.trim().toLowerCase();
   if (normalizedAction === "cancel") {
@@ -6515,7 +5841,7 @@ function latestComposerInteraction(messages: ChatMessage[], dismissedIDs: string
 }
 
 function isComposerInteraction(action: JsonRecord): boolean {
-  if (textValue(action._ui_source, "") !== "interaction" || isPluginLearningCompletion(action)) {
+	if (textValue(action._ui_source, "") !== "interaction") {
     return false;
   }
   if (isCapabilityProposalInteraction(action)) {
@@ -6725,41 +6051,36 @@ type InteractionPage = {
   reviewItems: JsonRecord[];
   fields: JsonRecord[];
   showCommand: boolean;
-  showCompletion: boolean;
 };
 
 function emptyInteractionPage(): InteractionPage {
-  return { reviewItems: [], fields: [], showCommand: false, showCompletion: false };
+  return { reviewItems: [], fields: [], showCommand: false };
 }
 
 function buildInteractionPages({
   reviewItems,
   fields,
-  command,
-  completion
+  command
 }: {
   reviewItems: JsonRecord[];
   fields: JsonRecord[];
   command: JsonRecord;
-  completion: PluginLearningCompletionSummary | null;
 }): InteractionPage[] {
   const hasCommand = Object.keys(command).length > 0;
   const commandWeight = hasCommand ? 2 : 0;
-  const completionWeight = completion ? 2 : 0;
   const totalWeight =
-    completionWeight +
     reviewItems.length +
     commandWeight +
     fields.reduce((sum, field) => sum + interactionFieldWeight(field), 0);
   if (totalWeight <= 6) {
-    return [{ reviewItems, fields, showCommand: hasCommand, showCompletion: Boolean(completion) }];
+    return [{ reviewItems, fields, showCommand: hasCommand }];
   }
 
   const pages: InteractionPage[] = [];
   let current = emptyInteractionPage();
   let weight = 0;
   const flush = () => {
-    if (current.reviewItems.length > 0 || current.fields.length > 0 || current.showCommand || current.showCompletion) {
+    if (current.reviewItems.length > 0 || current.fields.length > 0 || current.showCommand) {
       pages.push(current);
       current = emptyInteractionPage();
       weight = 0;
@@ -6772,10 +6093,6 @@ function buildInteractionPages({
     weight += nextWeight;
   };
 
-  if (completion) {
-    reserve(completionWeight);
-    current.showCompletion = true;
-  }
   reviewItems.forEach((item) => {
     reserve(1);
     current.reviewItems.push(item);
@@ -7307,7 +6624,7 @@ function actionTone(action: JsonRecord, isInteractive: boolean): "info" | "atten
   if (error || status.includes("error") || status.includes("fail") || stopReason === "failed") {
     return "error";
   }
-  if (isPluginLearningCompletion(action) || status === "completed" || status === "complete" || status === "done") {
+  if (status === "completed" || status === "complete" || status === "done") {
     return "success";
   }
   if (isInteractive || risk === "confirm" || status.includes("waiting") || status.includes("confirm")) {
@@ -7707,26 +7024,23 @@ function ActionDetails({
   reviewItems,
   fields,
   command,
-  completion,
-  fieldValues,
+	fieldValues,
   onFieldChange,
   onSelectArtifact
 }: {
   reviewItems: JsonRecord[];
   fields: JsonRecord[];
   command: JsonRecord;
-  completion: PluginLearningCompletionSummary | null;
-  fieldValues: JsonRecord;
+	fieldValues: JsonRecord;
   onFieldChange: (fieldID: string, value: string) => void;
   onSelectArtifact: (id: string) => void;
 }) {
   const hasCommand = Object.keys(command).length > 0;
-  if (reviewItems.length === 0 && fields.length === 0 && !hasCommand && !completion) {
+	if (reviewItems.length === 0 && fields.length === 0 && !hasCommand) {
     return null;
   }
   return (
     <div className="action-detail-grid">
-      {completion && <PluginLearningCompletionBlock summary={completion} onSelectArtifact={onSelectArtifact} />}
       {reviewItems.map((item, index) => (
         <div className="action-detail" key={textValue(item.id, `review-${index}`)}>
           <span>{localizeDisplayText(textValue(item.title ?? item.status, `项目 ${index + 1}`))}</span>
@@ -7796,371 +7110,14 @@ function InteractionFieldControl({ field, value, onChange }: { field: JsonRecord
   return <input value={value} placeholder={placeholder} onChange={(event) => onChange(event.currentTarget.value)} />;
 }
 
-type PluginLearningCompletionSummary = {
-  pluginName: string;
-  sessionID: string;
-  modeLabel: string;
-  stateLabel: string;
-  classLabel: string;
-  parameterCount: string;
-  componentCount: string;
-  quickControlCount: string;
-  operationCount: string;
-  artifactSummaries: ArtifactSummary[];
-};
 
-type PluginLearningStageProgress = {
-  id: string;
-  stage: string;
-  status: string;
-  updatedAt: string;
-  summary: string;
-  payload: JsonRecord;
-};
 
-const pluginLearningStageOrder = [
-  "parameters_extracted",
-  "web_reference",
-  "plugin_type_hypothesis",
-  "ui_reference",
-  "draft_skill",
-  "final_confirmation"
-];
 
-const pluginLearningStageLabels: Record<string, string> = {
-  parameters_extracted: "Parameters",
-  web_reference: "Web digest",
-  plugin_type_hypothesis: "Type hint",
-  ui_reference: "UI reference",
-  draft_skill: "Draft skill",
-  final_confirmation: "Final review"
-};
-
-function PluginLearningCompletionBlock({
-  summary,
-  onSelectArtifact
-}: {
-  summary: PluginLearningCompletionSummary;
-  onSelectArtifact: (id: string) => void;
-}) {
-  return (
-    <section className="plugin-completion-block">
-      <div>
-        <span>学习内容</span>
-        <strong>{summary.pluginName}</strong>
-      </div>
-      <div className="completion-stats">
-        <span>{summary.modeLabel}</span>
-        <span>{summary.stateLabel}</span>
-        {summary.classLabel && <span>{summary.classLabel}</span>}
-        {summary.parameterCount !== "0" && <span>{summary.parameterCount} 参数</span>}
-        {summary.componentCount !== "0" && <span>{summary.componentCount} 组件</span>}
-        {summary.quickControlCount !== "0" && <span>{summary.quickControlCount} 快捷控制</span>}
-        {summary.operationCount !== "0" && <span>{summary.operationCount} 操作</span>}
-      </div>
-      {summary.artifactSummaries.length > 0 && (
-        <div className="completion-artifacts">
-          {summary.artifactSummaries.map((artifact) => (
-            <button className="completion-artifact" key={artifact.id} type="button" onClick={() => onSelectArtifact(artifact.id)}>
-              <FileText size={15} />
-              <span>Plugin Skill</span>
-              <strong>{textValue(artifact.path ?? artifact.title ?? artifact.id, artifact.id)}</strong>
-            </button>
-          ))}
-        </div>
-      )}
-      {summary.sessionID && (
-        <PluginLearningProgressBlock
-          sessionID={summary.sessionID}
-          title="Learning ledger"
-          targetName={summary.pluginName}
-        />
-      )}
-    </section>
-  );
-}
-
-function PluginLearningProgressBlock({
-  sessionID,
-  title = "Plugin learning progress",
-  targetName = "",
-  live = false
-}: {
-  sessionID: string;
-  title?: string;
-  targetName?: string;
-  live?: boolean;
-}) {
-  const [stages, setStages] = useState<PluginLearningStageProgress[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-
-  useEffect(() => {
-    if (!sessionID) {
-      return;
-    }
-    let cancelled = false;
-    setLoading(true);
-    setError("");
-    const load = async () => {
-      try {
-        const result = await listArtifacts({
-          includeInternal: true,
-          kind: "plugin_learning_stage",
-          source: "plugin_grabber",
-          pluginLearningSessionID: sessionID,
-          limit: 32
-        });
-        const loaded = await Promise.all(
-          (result.artifacts ?? []).map(async (summary) => {
-            try {
-              const read = await readArtifact(summary.id);
-              const artifact = read.artifact;
-              const data = parseJSONRecord(artifact?.text);
-              const metadata = asRecord(artifact?.metadata ?? summary.metadata);
-              return pluginLearningStageProgressFromArtifact(summary, data, metadata);
-            } catch {
-              return pluginLearningStageProgressFromArtifact(summary, {}, asRecord(summary.metadata));
-            }
-          })
-        );
-        if (!cancelled) {
-          setStages(
-            loaded
-              .filter((stage): stage is PluginLearningStageProgress => stage !== null)
-              .sort(comparePluginLearningStages)
-          );
-          setError("");
-        }
-      } catch (stageError) {
-        if (!cancelled) {
-          setError(stageError instanceof Error ? stageError.message : "Unable to load learning progress");
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
-    };
-    void load();
-    const timer = live ? window.setInterval(() => void load(), 1400) : 0;
-    return () => {
-      cancelled = true;
-      if (timer) {
-        window.clearInterval(timer);
-      }
-    };
-  }, [live, sessionID]);
-
-  const byStage = new Map(stages.map((stage) => [stage.stage, stage]));
-  const rows = pluginLearningStageOrder.map((stage) => byStage.get(stage) ?? {
-    id: stage,
-    stage,
-    status: "pending",
-    updatedAt: "",
-    summary: "",
-    payload: {}
-  });
-  stages.forEach((stage) => {
-    if (!pluginLearningStageOrder.includes(stage.stage)) {
-      rows.push(stage);
-    }
-  });
-  const progress = pluginLearningProgressPercent(rows);
-  const activeStage = rows.find((stage) => pluginLearningStageIsActive(stage.status));
-
-  return (
-    <div className="plugin-learning-progress">
-      <div className="plugin-learning-progress-head">
-        <span>{title}</span>
-        <strong>{loading && stages.length === 0 ? "Loading" : `${progress}%`}</strong>
-      </div>
-      {targetName && <div className="plugin-learning-progress-target">{targetName}</div>}
-      <div className="plugin-learning-progress-bar" aria-hidden="true">
-        <span style={{ width: `${progress}%` }} />
-      </div>
-      {activeStage && (
-        <div className="plugin-learning-progress-active">
-          <Loader2 className="spin" size={13} />
-          <span>{pluginLearningStageLabels[activeStage.stage] ?? activeStage.stage.replaceAll("_", " ")}</span>
-        </div>
-      )}
-      <div className="plugin-learning-progress-steps">
-        {rows.map((stage) => (
-          <div className={`plugin-learning-step ${pluginLearningStageTone(stage.status)}`} key={stage.stage}>
-            <span>{pluginLearningStageLabels[stage.stage] ?? stage.stage.replaceAll("_", " ")}</span>
-            <strong>{pluginLearningStageStatusLabel(stage)}</strong>
-          </div>
-        ))}
-      </div>
-      {error && <small className="plugin-learning-progress-error">{error}</small>}
-    </div>
-  );
-}
-
-function pluginLearningStageProgressFromArtifact(summary: ArtifactSummary, data: JsonRecord, metadata: JsonRecord): PluginLearningStageProgress | null {
-  const stage = textValue(data.stage ?? metadata.plugin_learning_stage, "");
-  if (!stage) {
-    return null;
-  }
-  return {
-    id: summary.id,
-    stage,
-    status: textValue(data.status ?? metadata.plugin_learning_status, "recorded"),
-    updatedAt: textValue(data.updated_at ?? summary.created_at, ""),
-    summary: textValue(summary.summary, ""),
-    payload: asRecord(data.payload)
-  };
-}
-
-function comparePluginLearningStages(left: PluginLearningStageProgress, right: PluginLearningStageProgress): number {
-  const leftIndex = pluginLearningStageOrder.indexOf(left.stage);
-  const rightIndex = pluginLearningStageOrder.indexOf(right.stage);
-  const normalizedLeft = leftIndex === -1 ? Number.MAX_SAFE_INTEGER : leftIndex;
-  const normalizedRight = rightIndex === -1 ? Number.MAX_SAFE_INTEGER : rightIndex;
-  if (normalizedLeft !== normalizedRight) {
-    return normalizedLeft - normalizedRight;
-  }
-  return left.stage.localeCompare(right.stage);
-}
-
-function pluginLearningStageTone(status: string): string {
-  const normalized = status.toLowerCase();
-  if (pluginLearningStageIsActive(normalized)) {
-    return "active";
-  }
-  if (normalized.includes("fail") || normalized.includes("error")) {
-    return "error";
-  }
-  if (normalized.includes("skip") || normalized.includes("pending")) {
-    return "pending";
-  }
-  return "ready";
-}
-
-function pluginLearningStageIsActive(status: string): boolean {
-  const normalized = status.toLowerCase();
-  return ["running", "processing", "in_progress", "started", "busy"].some((value) => normalized.includes(value));
-}
-
-function pluginLearningStageIsComplete(status: string): boolean {
-  const normalized = status.toLowerCase();
-  if (!normalized || normalized === "pending") {
-    return false;
-  }
-  if (pluginLearningStageIsActive(normalized)) {
-    return false;
-  }
-  return true;
-}
-
-function pluginLearningProgressPercent(rows: PluginLearningStageProgress[]): number {
-  if (rows.length === 0) {
-    return 8;
-  }
-  const unit = 100 / rows.length;
-  const value = rows.reduce((sum, stage) => {
-    if (pluginLearningStageIsComplete(stage.status)) {
-      return sum + unit;
-    }
-    if (pluginLearningStageIsActive(stage.status)) {
-      return sum + unit * 0.45;
-    }
-    return sum;
-  }, 0);
-  const complete = rows.every((stage) => pluginLearningStageIsComplete(stage.status));
-  return complete ? 100 : Math.max(8, Math.min(99, Math.round(value)));
-}
-
-function pluginLearningStageStatusLabel(stage: PluginLearningStageProgress): string {
-  if (stage.status === "pending") {
-    return "待确认";
-  }
-  if (pluginLearningStageIsActive(stage.status)) {
-    return "Running";
-  }
-  const pieces = [stage.status.replaceAll("_", " ")];
-  const warnings = firstArray(stage.payload.warnings, asRecord(stage.payload.ui_reference).warnings);
-  if (warnings.length > 0) {
-    pieces.push(`${warnings.length} warnings`);
-  }
-  return pieces.join(" 路 ");
-}
-
-function pluginLearningCompletionSummary(action: JsonRecord): PluginLearningCompletionSummary | null {
-  if (!isPluginLearningCompletion(action)) {
-    return null;
-  }
-  const payload = interactionPayload(action);
-  const data = Object.keys(payload).length > 0 ? payload : action;
-  const target = asRecord(data.target);
-  const patch = asRecord(data.profile_patch ?? data.reviewed_profile_patch);
-  const artifacts = artifactSummariesFrom(action.artifacts, data.artifacts);
-  const mode = textValue(data.mode, "");
-  const state = textValue(data.state, "");
-  const groups = firstArray(patch.groups, patch.components);
-  const controls = firstArray(patch.virtual_controls, patch.operations);
-  const quickControls = firstArray(data.quick_control_ids, data.quick_controls);
-  return {
-    pluginName: pluginLearningDisplayName(data, target, artifacts),
-    sessionID: textValue(data.plugin_learning_session_id, ""),
-    modeLabel: mode === "teach" ? "教学模式" : "自动学习",
-    stateLabel: state === "saved" ? "Saved" : state === "cancelled" ? "Cancelled" : "Done",
-    classLabel: textValue(data.class ?? patch.class, ""),
-    parameterCount: textValue(data.parameter_count, "0"),
-    componentCount: textValue(data.component_count, textValue(groups.length, "0")),
-    quickControlCount: textValue(data.quick_control_count, textValue(quickControls.length, "0")),
-    operationCount: textValue(data.operation_count, textValue(controls.length, "0")),
-    artifactSummaries: artifacts
-  };
-}
-
-function pluginLearningDisplayName(data: JsonRecord, target: JsonRecord, artifacts: ArtifactSummary[]): string {
-  const direct = textValue(data.plugin_name ?? target.plugin_name, "");
-  if (direct) {
-    return direct;
-  }
-  for (const artifact of artifacts) {
-    const fromArtifact = pluginNameFromPluginSkillArtifact(artifact);
-    if (fromArtifact) {
-      return fromArtifact;
-    }
-  }
-  return "Plugin Skill";
-}
-
-function pluginNameFromPluginSkillArtifact(artifact: ArtifactSummary): string {
-  const metadata = asRecord(artifact.metadata);
-  const metadataName = textValue(metadata.plugin_name, "");
-  if (metadataName) {
-    return metadataName;
-  }
-  const displayName = textValue(metadata.display_name, "").replace(/\s+Plugin Skill$/i, "").trim();
-  if (displayName) {
-    return displayName;
-  }
-  const title = textValue(artifact.title ?? artifact.path, "");
-  const name = lastPathPart(title).replace(/\.vps$/i, "").replace(/\s+profile patch$/i, "").trim();
-  return name && name !== title ? name : "";
-}
-
-function isPluginLearningCompletion(action: JsonRecord): boolean {
-  const payload = interactionPayload(action);
-  const type = textValue(action.type, "").toLowerCase();
-  const stage = textValue(action.stage ?? payload.stage, "").toLowerCase();
-  return (
-    truthy(action.learning_completed) ||
-    truthy(payload.learning_completed) ||
-    type === "plugin_learning_completion" ||
-    (textValue(action.source, "").toLowerCase() === "plugin_grabber" && stage.includes("completion"))
-  );
-}
 
 function interactionFields(action: JsonRecord): JsonRecord[] {
-  const declared = [...firstArray(action.questions), ...firstArray(action.fields)]
+  return [...firstArray(action.questions), ...firstArray(action.fields)]
     .map(asRecord)
     .filter((field) => Object.keys(field).length > 0);
-  return [...declared, ...pluginMappingReviewFields(action)];
 }
 
 function interactionReviewItems(action: JsonRecord): JsonRecord[] {
@@ -8187,7 +7144,7 @@ function hasMissingRequiredFields(fields: JsonRecord[], values: JsonRecord): boo
 }
 
 function isCancelAction(actionID: string): boolean {
-  return ["cancel", "done", "close", "cancel_plugin_learning"].includes(actionID.trim().toLowerCase());
+  return ["cancel", "done", "close"].includes(actionID.trim().toLowerCase());
 }
 
 function interactionPayloadForAction(interaction: JsonRecord, action: JsonRecord, fieldValues: JsonRecord): JsonRecord {
@@ -8224,90 +7181,13 @@ function interactionPayloadForAction(interaction: JsonRecord, action: JsonRecord
   return payload;
 }
 
-function pluginMappingReviewFields(action: JsonRecord): JsonRecord[] {
-  if (!isPluginCandidateReview(action)) {
-    return [];
-  }
-  const payload = interactionPayload(action);
-  const patch = asRecord(payload.profile_patch ?? payload.reviewed_profile_patch);
-  const groups = firstArray(patch.groups, patch.components).map(asRecord).filter((group) => Object.keys(group).length > 0);
-  const fields: JsonRecord[] = [];
-  groups.forEach((group) => {
-    const componentID = textValue(group.id ?? group.component_id, "");
-    const componentLabel = textValue(group.label ?? group.name ?? componentID, "Component");
-    const paramEntries = Array.isArray(group.params)
-      ? firstArray(group.params).map((raw, index) => {
-          const param = asRecord(raw);
-          return [textValue(param.slot ?? param.name ?? param.label, `param_${index + 1}`), raw] as [string, unknown];
-        })
-      : Object.entries(asRecord(group.params));
-    paramEntries.forEach(([slot, raw]) => {
-      if (fields.length >= 32) {
-        return;
-      }
-      const mapping = typeof raw === "string" ? { param_id: raw } : asRecord(raw);
-      const paramID = textValue(mapping.param_id ?? mapping.id ?? raw, "");
-      if (!paramID) {
-        return;
-      }
-      const fieldID = ["display_domain", componentID || "component", slot, paramID].join("::");
-      fields.push({
-        id: fieldID,
-        label: `${componentLabel} / ${slot}`,
-        kind: "text",
-        value: pluginMappingDomainText(mapping),
-        placeholder: "e.g. -20~+20 dB, 0~100 %, 20 Hz~20 kHz",
-        _plugin_display_domain_review: true,
-        payload: {
-          component_id: componentID,
-          slot,
-          param_id: paramID,
-          display_label: textValue(mapping.label ?? mapping.name ?? slot, slot)
-        }
-      });
-    });
-  });
-  return fields;
-}
 
-function isPluginCandidateReview(action: JsonRecord): boolean {
-  const payload = interactionPayload(action);
-  const source = textValue(action.source, "").toLowerCase();
-  const kind = textValue(action.kind, "").toLowerCase();
-  const type = textValue(action.type, "").toLowerCase();
-  const stage = textValue(action.stage ?? payload.stage, "").toLowerCase();
-  return source === "plugin_grabber" && kind === "review" && (type.includes("candidate_review") || stage === "candidate_review" || truthy(payload.needs_user_review));
-}
 
-function isPluginUIReferenceRequest(action: JsonRecord): boolean {
-  const payload = interactionPayload(action);
-  const type = textValue(action.type ?? payload.type, "").toLowerCase();
-  const stage = textValue(action.stage ?? payload.stage, "").toLowerCase();
-  return textValue(action.source, "").toLowerCase() === "plugin_grabber" && (type === "plugin_learning_ui_reference_request" || stage === "ui_reference_request");
-}
 
 function interactionPayload(action: JsonRecord): JsonRecord {
   return asRecord(action.payload ?? action.data);
 }
 
-function pluginMappingDomainText(mapping: JsonRecord): string {
-  const direct = textValue(mapping.display_domain_text ?? mapping.display_range ?? mapping.display_unit ?? mapping.unit ?? mapping.range, "");
-  if (direct) {
-    return direct;
-  }
-  const domain = asRecord(mapping.display_domain);
-  const text = textValue(domain.text, "");
-  if (text) {
-    return text;
-  }
-  const unit = textValue(domain.unit, "");
-  const min = textValue(domain.min, "");
-  const max = textValue(domain.max, "");
-  if (min && max) {
-    return `${min}~${max}${unit ? ` ${unit}` : ""}`;
-  }
-  return unit;
-}
 
 function Composer({
   composerRef,
@@ -8315,17 +7195,15 @@ function Composer({
   setInput,
   pendingArtifacts,
   pendingMacroControls,
-  mode,
-  isSending,
-  isUploading,
-  pluginLearningBusy,
-  interactionAction,
+	mode,
+	isSending,
+	isUploading,
+	interactionAction,
   respondingActionID,
   onSubmit,
   onUploadClick,
   onModeChange,
-  onPluginLearning,
-  onInteractionAction,
+	onInteractionAction,
   onInvoke,
   onSelectArtifact,
   onRemoveArtifact,
@@ -8339,14 +7217,12 @@ function Composer({
   mode: AgentMode;
   isSending: boolean;
   isUploading: boolean;
-  pluginLearningBusy: boolean;
-  interactionAction: JsonRecord | null;
+	interactionAction: JsonRecord | null;
   respondingActionID: string;
   onSubmit: (event?: FormEvent) => void;
   onUploadClick: () => void;
   onModeChange: (mode: AgentMode) => void;
-  onPluginLearning: (mode: PluginLearningMode) => void | Promise<void>;
-  onInteractionAction: (interaction: JsonRecord, action: JsonRecord, payload?: JsonRecord) => void;
+	onInteractionAction: (interaction: JsonRecord, action: JsonRecord, payload?: JsonRecord) => void;
   onInvoke: DawInvoke;
   onSelectArtifact: (id: string) => void;
   onRemoveArtifact: (id: string) => void;
@@ -8381,11 +7257,6 @@ function Composer({
 
   const chooseMode = (nextMode: AgentMode) => {
     onModeChange(mode === nextMode ? "default" : nextMode);
-    setMenuOpen(false);
-  };
-
-  const choosePluginLearning = (learningMode: PluginLearningMode) => {
-    void onPluginLearning(learningMode);
     setMenuOpen(false);
   };
 
@@ -8475,16 +7346,6 @@ function Composer({
                 <Wand2 size={17} />
                 <span>追求目标</span>
                 <i className={mode === "goal" ? "on" : ""} />
-              </button>
-              <div className="composer-menu-separator" />
-              <small>插件抓手学习</small>
-              <button type="button" role="menuitem" disabled={pluginLearningBusy} onClick={() => choosePluginLearning("auto_learn")}>
-                {pluginLearningBusy ? <Loader2 className="spin" size={17} /> : <Plug size={17} />}
-                <span>自动学习</span>
-              </button>
-              <button type="button" role="menuitem" disabled={pluginLearningBusy} onClick={() => choosePluginLearning("teach")}>
-                <Settings size={17} />
-                <span>教学模式</span>
               </button>
             </div>
           )}
@@ -8596,11 +7457,10 @@ function Workbench({
   onSelectArtifact,
   onAttachArtifact,
   onRenameArtifact,
-  onDeleteArtifact,
-  onUploadClick,
-  onModeChange,
-  onPluginLearning,
-  onAttachMacroControl,
+	onDeleteArtifact,
+	onUploadClick,
+	onModeChange,
+	onAttachMacroControl,
   onInsertMacroControlCard,
   onMacroValuePreview,
   onMacroValueCommit,
@@ -8618,8 +7478,7 @@ function Workbench({
   onDeleteArtifact: (id: string) => Promise<void>;
   onUploadClick: () => void;
   onModeChange: (mode: AgentMode) => void;
-  onPluginLearning: (mode: PluginLearningMode) => void | Promise<void>;
-  onAttachMacroControl: (macro: MacroControl) => void;
+	onAttachMacroControl: (macro: MacroControl) => void;
   onInsertMacroControlCard: (macro: MacroControl) => void;
   onMacroValuePreview: (macro: MacroControl, value: number) => void;
   onMacroValueCommit: (macro: MacroControl, value: number) => Promise<void>;
@@ -8635,8 +7494,7 @@ function Workbench({
         uiState={uiState}
         onUploadClick={onUploadClick}
         onModeChange={onModeChange}
-        onPluginLearning={onPluginLearning}
-        onAttachMacroControl={onAttachMacroControl}
+		onAttachMacroControl={onAttachMacroControl}
         onInsertMacroControlCard={onInsertMacroControlCard}
         onMacroValuePreview={onMacroValuePreview}
         onMacroValueCommit={onMacroValueCommit}
@@ -8730,7 +7588,7 @@ function PluginsPane({ uiState }: { uiState: AgentUIState | null }) {
     <div className="pane-body">
       <section className="work-section">
         <h2>Plugin Rack</h2>
-        {plugins.length === 0 && <EmptyState label="No plugin profile" />}
+        {plugins.length === 0 && <EmptyState label="No plugins loaded" />}
         {plugins.map((raw, index) => {
           const plugin = asRecord(raw);
           return (
@@ -9964,11 +8822,10 @@ function normalizeBrowserURL(rawURL: string): string {
 }
 
 function MacroPane({
-  uiState,
-  onUploadClick,
-  onModeChange,
-  onPluginLearning,
-  onAttachMacroControl,
+	uiState,
+	onUploadClick,
+	onModeChange,
+	onAttachMacroControl,
   onInsertMacroControlCard,
   onMacroValuePreview,
   onMacroValueCommit,
@@ -9978,8 +8835,7 @@ function MacroPane({
   uiState: AgentUIState | null;
   onUploadClick: () => void;
   onModeChange: (mode: AgentMode) => void;
-  onPluginLearning: (mode: PluginLearningMode) => void | Promise<void>;
-  onAttachMacroControl: (macro: MacroControl) => void;
+	onAttachMacroControl: (macro: MacroControl) => void;
   onInsertMacroControlCard: (macro: MacroControl) => void;
   onMacroValuePreview: (macro: MacroControl, value: number) => void;
   onMacroValueCommit: (macro: MacroControl, value: number) => Promise<void>;
@@ -10002,7 +8858,7 @@ function MacroPane({
             <RefreshCw size={15} />
           </button>
         </div>
-        <MacroModeStrip activeMode={activeMode} onUploadClick={onUploadClick} onModeChange={onModeChange} onPluginLearning={onPluginLearning} />
+		<MacroModeStrip activeMode={activeMode} onUploadClick={onUploadClick} onModeChange={onModeChange} />
         {macros.length === 0 && <EmptyState label="暂无宏控制" />}
         <div className="macro-list">
           {macros.map((macro) => (
@@ -10023,22 +8879,18 @@ function MacroPane({
 }
 
 function MacroModeStrip({
-  activeMode,
-  onUploadClick,
-  onModeChange,
-  onPluginLearning
+	activeMode,
+	onUploadClick,
+	onModeChange
 }: {
-  activeMode: string;
-  onUploadClick: () => void;
-  onModeChange: (mode: AgentMode) => void;
-  onPluginLearning: (mode: PluginLearningMode) => void | Promise<void>;
+	activeMode: string;
+	onUploadClick: () => void;
+	onModeChange: (mode: AgentMode) => void;
 }) {
   const items: Array<{ key: string; label: string; enabled: boolean; title: string; Icon: LucideIcon; action: () => void }> = [
     { key: "add_file", label: "添加文件", enabled: true, title: "从输入区添加文件资料", Icon: Upload, action: onUploadClick },
     { key: "plan", label: "计划模式", enabled: true, title: "切换到计划模式", Icon: Brain, action: () => onModeChange("plan") },
     { key: "goal", label: "目标模式", enabled: true, title: "切换到目标模式", Icon: Wand2, action: () => onModeChange("goal") },
-    { key: "auto_learn", label: "自动学习", enabled: true, title: "Plugin Grabber 自动学习", Icon: Plug, action: () => void onPluginLearning("auto_learn") },
-    { key: "teach", label: "教学模式", enabled: true, title: "Plugin Grabber 教学模式", Icon: Settings, action: () => void onPluginLearning("teach") }
   ];
   return (
     <div className="macro-mode-strip">
@@ -11610,15 +10462,11 @@ function assistantMessageFromResponse(response: ChatResponse): ChatMessage {
   const visibleInteractionActions = mixBoardAction ? interactionActions.filter((action) => !isMixBoardAction(action)) : interactionActions;
   const hasPendingInteractionAction = visibleInteractionActions.some(isPendingInteractionAction);
   const confirmationFallbackActions = hasPendingInteractionAction ? [] : confirmationFallbackActionsFromResponse(response);
-  const completionActions = interactionActions.some(isPluginLearningCompletion)
-    ? []
-    : pluginLearningCompletionActions(response.plugin_learning, response.artifacts, response);
   const projectResultActions = projectResultActionsFromResponse(response);
   const actions = [
     ...(mixBoardAction ? [mixBoardAction] : []),
     ...visibleInteractionActions,
     ...confirmationFallbackActions,
-    ...completionActions,
     ...projectResultActions,
     ...(response.commands ?? []).map((action) => ({ ...action, _ui_source: "command" })),
     ...(response.executed_kernel_reply ?? []).map((action) => ({ ...action, _ui_source: "executed" }))
@@ -11696,31 +10544,6 @@ function isSyntheticConfirmationInteraction(interaction: JsonRecord): boolean {
   return truthy(interaction._synthetic_confirmation);
 }
 
-function pluginLearningModeLabel(learningMode: PluginLearningMode): string {
-  return learningMode === "teach" ? "教学模式" : "自动学习";
-}
-
-function pluginLearningModeFromValue(value: unknown): PluginLearningMode | null {
-  const modeText = textValue(value, "");
-  if (modeText === "auto_learn" || modeText === "teach") {
-    return modeText;
-  }
-  return null;
-}
-
-function hasPluginLearningTarget(target: PluginLearningTarget): boolean {
-  return target.plugin_id !== "" || target.plugin_name !== "";
-}
-
-function pluginLearningTargetLabel(target: PluginLearningTarget): string {
-  return target.plugin_name || target.plugin_id || "当前插件";
-}
-
-function isPluginLearningCancelText(value: string): boolean {
-  const normalized = value.trim().toLowerCase();
-  return ["取消", "退出", "停止", "cancel", "stop", "exit"].includes(normalized);
-}
-
 function isCurrentPluginTargetText(value: string): boolean {
   const normalized = value.trim().toLowerCase();
   return (
@@ -11733,110 +10556,17 @@ function isCurrentPluginTargetText(value: string): boolean {
   );
 }
 
-function pluginLearningTargetFromText(value: string, selectedTarget: PluginLearningTarget): PluginLearningTarget {
-  if (isCurrentPluginTargetText(value)) {
-    return selectedTarget;
-  }
-  return {
-    track_id: selectedTarget.track_id,
-    plugin_id: "",
-    plugin_name: value.trim()
-  };
-}
-
-function pluginLearningTargetFromInteraction(interaction: JsonRecord, fallback: PluginLearningTarget): PluginLearningTarget {
-  const target = {
-    track_id: textValue(interaction.track_id, fallback.track_id),
-    plugin_id: textValue(interaction.plugin_id, fallback.plugin_id),
-    plugin_name: textValue(interaction.plugin_name, fallback.plugin_name)
-  };
-  return hasPluginLearningTarget(target) ? target : fallback;
-}
-
-function pluginLearningTargetFromCompletion(completion: JsonRecord, fallback: PluginLearningTarget): PluginLearningTarget {
-  const payload = asRecord(completion.payload ?? completion);
-  const target = asRecord(payload.target);
-  const nextTarget = {
-    track_id: textValue(target.track_id ?? payload.track_id, fallback.track_id),
-    plugin_id: textValue(target.plugin_id ?? payload.plugin_id, fallback.plugin_id),
-    plugin_name: textValue(target.plugin_name ?? payload.plugin_name, fallback.plugin_name)
-  };
-  return hasPluginLearningTarget(nextTarget) ? nextTarget : fallback;
-}
-
-function pluginLearningPromptMessage(
-  learningMode: PluginLearningMode,
-  target: PluginLearningTarget,
-  mode: AgentMode,
-  bodyOverride = ""
-): ChatMessage {
-  const modeLabel = pluginLearningModeLabel(learningMode);
-  const hasTarget = hasPluginLearningTarget(target);
-  const body =
-    bodyOverride ||
-    (hasTarget
-      ? `检测到当前插件：${pluginLearningTargetLabel(target)}。可以直接使用当前插件，也可以输入另一个插件名。`
-      : "请直接输入要学习的插件名；也可以先在机架里选中插件后再打开这个模式。");
-  return durableMessage({
-    id: uniqueID("plugin_learning_prompt"),
-    role: "assistant",
-    content: `进入 Plugin Grabber ${modeLabel}。要学习哪个插件？`,
-    mode,
-    actions: [
-      {
-        _ui_source: "interaction",
-        id: uniqueID("plugin_learning_target"),
-        kind: "plugin_learning_target",
-        title: `Plugin Grabber ${modeLabel}`,
-        body,
-        status: "waiting_for_user",
-        learning_mode: learningMode,
-        track_id: target.track_id,
-        plugin_id: target.plugin_id,
-        plugin_name: target.plugin_name,
-        fields: [
-          {
-            id: "plugin_name",
-            label: "插件名",
-            kind: "text",
-            required: !hasTarget,
-            placeholder: hasTarget ? "输入另一个插件名，或直接使用当前插件" : "例如：TDR Nova / SPAN",
-            description: hasTarget ? "留空可直接点使用当前插件；输入名称可改学另一个可见插件。" : "没有选中插件时，请先输入要学习的插件名。"
-          }
-        ],
-        actions: hasTarget
-          ? [
-              { id: "use_current_plugin", label: "使用当前插件", style: "primary" },
-              { id: "start_plugin_learning", label: "学习输入插件", style: "secondary" },
-              { id: "cancel_plugin_learning", label: "取消", style: "secondary" }
-            ]
-          : [
-              { id: "start_plugin_learning", label: "开始学习", style: "primary" },
-              { id: "cancel_plugin_learning", label: "取消", style: "secondary" }
-            ]
-      }
-    ],
-    createdAt: Date.now(),
-    status: "sent"
-  }, { kind: "assistant", persistence: "local" });
-}
-
-function invokeMessageFromResponse(response: AgentInvokeResponse, mode: AgentMode, learningMode: PluginLearningMode = "auto_learn"): ChatMessage {
-  const result = asRecord(response.result);
-  const responseRecord = asRecord(response);
-  const pluginLearning = asRecord(result.plugin_learning);
-  const mixSession = asRecord(result.mix_session);
-  const hasMixSession = Object.keys(mixSession).length > 0;
-  const hasError = textValue(response.error, "") !== "" || textValue(response.status, "").toLowerCase() === "error";
-  const modeLabel = pluginLearningModeLabel(learningMode);
-  const content = hasError
-    ? textValue(response.error, `${response.command_name || response.tool || "Agent"} failed.`)
-    : hasMixSession
-      ? textValue(result.message ?? result.reply ?? mixSession.message ?? mixSession.summary ?? response.preview, "Mix task design is ready.")
-      : textValue(
-          result.message ?? result.reply ?? pluginLearning.message ?? pluginLearning.reply ?? pluginLearning.summary ?? response.preview,
-          `Plugin Grabber ${modeLabel} returned.`
-        );
+function invokeMessageFromResponse(response: AgentInvokeResponse, mode: AgentMode): ChatMessage {
+	const result = asRecord(response.result);
+	const responseRecord = asRecord(response);
+	const mixSession = asRecord(result.mix_session);
+	const hasMixSession = Object.keys(mixSession).length > 0;
+	const hasError = textValue(response.error, "") !== "" || textValue(response.status, "").toLowerCase() === "error";
+	const content = hasError
+		? textValue(response.error, `${response.command_name || response.tool || "Agent"} failed.`)
+		: hasMixSession
+			? textValue(result.message ?? result.reply ?? mixSession.message ?? mixSession.summary ?? response.preview, "Mix task design is ready.")
+			: textValue(result.message ?? result.reply ?? response.preview, "Agent command completed.");
   const resultInteractions = interactionActionsFrom(result.interaction_requests, responseRecord.interaction_requests);
   const resultArtifacts = artifactSummariesFrom(result.artifacts, responseRecord.artifacts);
   const mixBoardAction = mixBoardActionWithInteractions(mixBoardActionFromPayload(result, responseRecord), resultInteractions);
@@ -11853,15 +10583,6 @@ function invokeMessageFromResponse(response: AgentInvokeResponse, mode: AgentMod
       error: response.error
     }
   ];
-  if (visibleResultInteractions.length === 0 && Object.keys(pluginLearning).length > 0) {
-    actions.push({
-      ...pluginLearning,
-      _ui_source: "interaction",
-      title: textValue(pluginLearning.title ?? pluginLearning.stage, `Plugin Grabber ${modeLabel}结果`),
-      body: textValue(pluginLearning.summary ?? pluginLearning.message ?? pluginLearning.reply, ""),
-      status: textValue(pluginLearning.status ?? pluginLearning.stage, response.status ?? "")
-    });
-  }
   return durableMessage({
     id: uniqueID("invoke"),
     role: hasError ? "system" : "assistant",
@@ -11943,97 +10664,6 @@ function firstNonEmptyRecord(...records: JsonRecord[]): JsonRecord {
 }
 
 
-function pluginLearningCompletionActions(pluginLearning: unknown, artifacts: unknown, response?: ChatResponse, identityHint = ""): JsonRecord[] {
-  const data = asRecord(pluginLearning);
-  const responseMessage = textValue(response?.message ?? response?.reply, "");
-  const looksLikeCompletion =
-    (responseMessage.includes("Plugin Grabber") || responseMessage.includes("Plugin Skill")) &&
-    (responseMessage.includes("已保存") || responseMessage.includes("已取消"));
-  if (!truthy(data.learning_completed) && !looksLikeCompletion) {
-    return [];
-  }
-  const quickControlMatch = responseMessage.match(/包含\s*(\d+)\s*个快捷控制/);
-  const basePayload: JsonRecord = {
-    learning_completed: true,
-    state: responseMessage.includes("已取消") ? "cancelled" : "saved",
-    quick_control_count: quickControlMatch?.[1] ?? "",
-    ...data
-  };
-  const artifactSummaries = artifactSummariesFrom(basePayload.artifacts, artifacts);
-  const payload: JsonRecord = {
-    ...basePayload,
-    plugin_name: pluginLearningDisplayName(basePayload, asRecord(basePayload.target), artifactSummaries)
-  };
-  const completionID = pluginLearningCompletionID(payload, artifactSummaries, responseMessage, identityHint);
-  return [
-    {
-      ...payload,
-      _ui_source: "interaction",
-      kind: "mode_boundary",
-      type: "plugin_learning_completion",
-      title: "Plugin Skill 生成学习已完成",
-      body: "此对话流已完成一次 Plugin Skill 生成学习。",
-      status: "completed",
-      id: completionID,
-      payload,
-      artifacts: artifactSummaries,
-      actions: firstArray(payload.next_actions).filter((item) => textValue(asRecord(item).id, "").toLowerCase() !== "done")
-    }
-  ];
-}
-
-function pluginLearningCompletionRenderID(action: JsonRecord): string {
-  const payload = interactionPayload(action);
-  const data = Object.keys(payload).length > 0 ? payload : action;
-  const artifactSummaries = artifactSummariesFrom(action.artifacts, data.artifacts);
-  const responseMessage = textValue(action.message ?? action.reply ?? action.body ?? data.message ?? data.reply ?? data.summary, "");
-  return pluginLearningCompletionID(data, artifactSummaries, responseMessage);
-}
-
-function pluginLearningCompletionID(payload: JsonRecord, artifacts: ArtifactSummary[], responseMessage = "", identityHint = ""): string {
-  const identityArtifacts = pluginLearningCompletionIdentityArtifacts(artifacts);
-  const artifactIDs = identityArtifacts
-    .map((artifact) => artifact.id)
-    .filter(Boolean)
-    .sort()
-    .join("|");
-  if (artifactIDs) {
-    return `plugin_learning_completion_artifacts_${stableTextHash(artifactIDs)}`;
-  }
-  const directID = textValue(payload.plan_id ?? payload.completion_id, "");
-  if (directID) {
-    return `plugin_learning_completion_${stableIDPart(directID)}`;
-  }
-  const target = asRecord(payload.target);
-  const pluginName = textValue(payload.plugin_name ?? target.plugin_name, "");
-  const pluginID = textValue(payload.plugin_id ?? target.plugin_id, "");
-  const trackID = textValue(payload.track_id ?? target.track_id, "");
-  const state = textValue(payload.state, "");
-  const seed = [identityHint, trackID, pluginID, pluginName, state, responseMessage.slice(0, 500)].filter(Boolean).join("|");
-  return `plugin_learning_completion_${stableTextHash(seed || "plugin_learning_completion")}`;
-}
-
-function pluginLearningCompletionIdentityArtifacts(artifacts: ArtifactSummary[]): ArtifactSummary[] {
-  const profileArtifacts = artifacts.filter((artifact) => {
-    const text = [
-      artifact.kind,
-      artifact.source,
-      artifact.title,
-      artifact.summary,
-      artifact.path,
-      textValue(artifact.metadata?.kind, ""),
-      textValue(artifact.metadata?.source, ""),
-      textValue(artifact.metadata?.artifact_schema, ""),
-      textValue(artifact.metadata?.legacy_schema, ""),
-      textValue(artifact.metadata?.legacy_kind, ""),
-      textValue(artifact.metadata?.file_extension, ""),
-      textValue(artifact.metadata?.display_name, "")
-    ].join(" ").toLowerCase();
-    return text.includes("plugin_skill") || text.includes("plugin skill") || text.includes(".vps") || text.includes("plugin_profile_patch") || text.includes("profile patch");
-  });
-  return profileArtifacts.length > 0 ? profileArtifacts : artifacts;
-}
-
 function interactionActionsFrom(...values: unknown[]): JsonRecord[] {
   const seen = new Set<string>();
   const out: JsonRecord[] = [];
@@ -12070,36 +10700,6 @@ function artifactSummariesFrom(...values: unknown[]): ArtifactSummary[] {
     });
   });
   return out;
-}
-
-function pluginLearningTargetFromUIState(uiState: AgentUIState | null): PluginLearningTarget {
-  const selectedPlugin = asRecord(uiState?.selected_plugin);
-  const uiContext = asRecord(uiState?.ui_context);
-  const contextTarget = {
-    track_id: textValue(
-      selectedPlugin.track_id ?? uiContext.selected_plugin_track_id ?? uiContext.selected_track_id,
-      ""
-    ),
-    plugin_id: textValue(selectedPlugin.plugin_id ?? uiContext.selected_plugin_id, ""),
-    plugin_name: textValue(selectedPlugin.plugin_name ?? uiContext.selected_plugin_name, "")
-  };
-  if (hasPluginLearningTarget(contextTarget)) {
-    return contextTarget;
-  }
-  const rack = asRecord(uiState?.plugin_rack);
-  const rackTrack = asRecord(rack.track);
-  const selectedTrack = asRecord(uiState?.selected_track);
-  const plugins = firstArray(rack.plugins, rack.items, rack.chain, rack.rack)
-    .map(asRecord)
-    .filter((item) => Object.keys(item).length > 0 && !isSystemRackPluginRecord(item));
-  const rackSelectedPlugin =
-    plugins.find((plugin) => truthy(plugin.selected) || truthy(plugin.current) || truthy(plugin.active) || truthy(plugin.focused)) ??
-    (plugins.length === 1 ? plugins[0] : {});
-  return {
-    track_id: textValue(rackTrack.track_id ?? rackTrack.id ?? selectedTrack.track_id ?? selectedTrack.id, ""),
-    plugin_id: textValue(rackSelectedPlugin.plugin_id ?? rackSelectedPlugin.id ?? rackSelectedPlugin.plugin_item_id ?? rackSelectedPlugin.item_id, ""),
-    plugin_name: textValue(rackSelectedPlugin.plugin_name ?? rackSelectedPlugin.name ?? rackSelectedPlugin.title, "")
-  };
 }
 
 function historyScopeKeyFromUIState(uiState: AgentUIState | null): string {
@@ -12330,10 +10930,6 @@ function historyMessagesFromUIState(uiState: AgentUIState | null): ChatMessage[]
         ? [
             ...messageInteractions,
             ...historyFallbackActions,
-            ...pluginLearningCompletionActions(row.plugin_learning, row.artifacts ?? artifacts, {
-              message: content,
-              artifacts
-            } as ChatResponse, sourceID),
             ...firstArray(row.project_result_cards)
               .map(asRecord)
               .filter((card) => Object.keys(card).length > 0)
@@ -12585,7 +11181,7 @@ function isMessageMergeKeyAction(action: JsonRecord): boolean {
     return false;
   }
   const source = textValue(action._ui_source, "");
-  return source === "interaction" || isComposerInteraction(action) || isConfirmationAction(action) || isPluginLearningCompletion(action);
+  return source === "interaction" || isComposerInteraction(action) || isConfirmationAction(action);
 }
 
 function defaultSettingsConfig(): EngineConfig {
@@ -12633,6 +11229,24 @@ function mergeSettingsConfig(config?: EngineConfig): EngineConfig {
   };
 }
 
+function selectedPluginContextFromUIState(uiState: AgentUIState | null): { track_id: string; plugin_id: string; plugin_name: string } {
+  const selectedPlugin = asRecord(uiState?.selected_plugin);
+  const uiContext = asRecord(uiState?.ui_context);
+  const rack = asRecord(uiState?.plugin_rack);
+  const rackTrack = asRecord(rack.track);
+  const selectedTrack = asRecord(uiState?.selected_track);
+  const plugins = firstArray(rack.plugins, rack.items, rack.chain, rack.rack)
+    .map(asRecord)
+    .filter((item) => Object.keys(item).length > 0 && !isSystemRackPluginRecord(item));
+  const rackSelection = plugins.find((plugin) => truthy(plugin.selected) || truthy(plugin.current) || truthy(plugin.active) || truthy(plugin.focused)) ??
+    (plugins.length === 1 ? plugins[0] : {});
+  return {
+    track_id: textValue(selectedPlugin.track_id ?? uiContext.selected_plugin_track_id ?? uiContext.selected_track_id ?? rackTrack.track_id ?? rackTrack.id ?? selectedTrack.track_id ?? selectedTrack.id, ""),
+    plugin_id: textValue(selectedPlugin.plugin_id ?? uiContext.selected_plugin_id ?? rackSelection.plugin_id ?? rackSelection.id ?? rackSelection.plugin_item_id ?? rackSelection.item_id, ""),
+    plugin_name: textValue(selectedPlugin.plugin_name ?? uiContext.selected_plugin_name ?? rackSelection.plugin_name ?? rackSelection.name ?? rackSelection.title, "")
+  };
+}
+
 function buildChatContext(mode: AgentMode, activeFocus: FocusMode, uiState: AgentUIState | null, artifacts: ArtifactSummary[], macroRefs: MacroControl[] = []): JsonRecord {
   const selectedTrack = asRecord(uiState?.selected_track);
   const uiContext = asRecord(uiState?.ui_context);
@@ -12660,7 +11274,7 @@ function buildChatContext(mode: AgentMode, activeFocus: FocusMode, uiState: Agen
     ...uiContext,
     ...currentSelection
   });
-  const pluginTarget = pluginLearningTargetFromUIState(uiState);
+  const pluginTarget = selectedPluginContextFromUIState(uiState);
   const project = asRecord(uiState?.project);
   const projectHistory = asRecord(uiState?.project_history);
   const scope = artifactScopeMetadata(uiState);
@@ -12878,9 +11492,6 @@ function artifactPresentation(artifact: ArtifactSummary): { kind: string; label:
   }
   if (kind === "midi" || extension === ".mid" || extension === ".midi") {
     return { kind: "midi", label: "MIDI", detail, Icon: Activity };
-  }
-  if (kind === "plugin_skill" || extension === ".vps" || mime.includes("plugin-skill")) {
-    return { kind: "plugin_skill", label: "Plugin Skill", detail, Icon: FileText };
   }
   if (artifactLooksLikeAdapter(artifact)) {
     return { kind: "adapter", label: "Adapter", detail, Icon: Plug };

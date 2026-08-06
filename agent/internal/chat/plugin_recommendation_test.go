@@ -4,6 +4,7 @@ import (
 	"context"
 	"strings"
 	"testing"
+	"time"
 
 	"vit-daw-agent/internal/agentloop"
 	"vit-daw-agent/internal/shadow"
@@ -173,6 +174,70 @@ func TestPluginRecommendationSelectionCreatesGovernedLoadConfirmationWithoutMuta
 	}
 }
 
+func TestPluginRecommendationSelectionRetainsFreeStateIntentIntoLoadConfirmation(t *testing.T) {
+	server := New(nil, shadow.New(nil), nil)
+	now := time.Now().UTC()
+	loop := freeStateReasoningLoop{
+		SchemaVersion: freeStateReasoningLoopSchema, LoopID: "free-state-1", ConversationID: "conversation-1",
+		GoalID: "goal-1", RunID: "run-1", Status: "awaiting_action", DecisionPhase: freeStatePhaseProcessorMaterialization,
+		OriginalIntent: "make the vocal steadier and more forward", ActiveIntent: "stabilize the vocal",
+		MaxCycles: 6, CreatedAt: now, UpdatedAt: now,
+	}
+	server.storeFreeStateLoop(loop)
+	interaction := PendingInteraction{
+		ConversationID: "conversation-1", GoalID: "goal-1", RunID: "run-1",
+		RequestContext: map[string]any{
+			"selected_track_id": "1007", "free_state_reasoning_loop": freeStateLoopMap(loop),
+		},
+		Payload: map[string]any{
+			"schema_version": pluginRecommendationSchema, "processor_type": "compressor",
+			"listening_goal": "stabilize the vocal", "post_load_planner": "semantic_compressor",
+			"post_load_goal": "stabilize the vocal",
+			"target_ref":     map[string]any{"kind": "track", "id": "1007", "label": "Vocal"},
+			"recommendations": []map[string]any{{
+				"candidate_key": "plugin_candidate_1", "name": "Pro-C 2", "plugin_path": `C:\VST3\Pro-C 2.vst3`,
+				"identifier": "VST3-Pro-C-2", "role": "recommended",
+			}},
+		},
+	}
+	resp := server.continuePluginRecommendationInteraction(context.Background(), interaction, "select_plugin_candidate_1")
+	if resp.Error != "" || !resp.NeedsConfirmation || resp.PlanID == "" {
+		t.Fatalf("load response=%#v", resp)
+	}
+	responseLoop := firstMapFromAny(resp.WorkflowData["free_state_reasoning_loop"])
+	requestLoop := firstMapFromAny(firstMapFromAny(resp.WorkflowData["request_context"])["free_state_reasoning_loop"])
+	if firstStringFromMap(responseLoop, "original_intent") != loop.OriginalIntent ||
+		firstStringFromMap(requestLoop, "original_intent") != loop.OriginalIntent {
+		t.Fatalf("selection response lost free-state intent: %#v", resp.WorkflowData)
+	}
+	pending, ok := server.pending[resp.PlanID]
+	if !ok || firstStringFromMap(firstMapFromAny(pending.Context["free_state_reasoning_loop"]), "original_intent") != loop.OriginalIntent {
+		t.Fatalf("load confirmation plan lost free-state intent: %#v", pending.Context)
+	}
+}
+
+func TestPluginRecommendationUsesCCBAuthoritativeTrackOverUISelection(t *testing.T) {
+	server := New(nil, shadow.New(nil), nil)
+	now := time.Now().UTC()
+	server.storeFreeStateLoop(freeStateReasoningLoop{
+		SchemaVersion: freeStateReasoningLoopSchema, LoopID: "free-state-1", ConversationID: "conversation-1",
+		Status: "awaiting_action", OriginalIntent: "stabilize the vocal", ActiveIntent: "stabilize the vocal",
+		TargetRef: map[string]any{"kind": "track", "id": "1032", "track_id": "1032", "track_name": "Vocals"},
+		MaxCycles: 6, CreatedAt: now, UpdatedAt: now,
+	})
+	candidates := pluginRecommendationTestCandidates()
+	plan := pluginRecommendationPlan{SchemaVersion: "plugin_recommendation.v1", ProcessorType: "compressor",
+		UserGoal: "stabilize the vocal", Summary: "use a compressor",
+		Choices: []pluginRecommendationChoice{{CandidateKey: candidates[0].Key, Role: "recommended", Reason: "control peaks", Confidence: "high"}}}
+	resp := server.pluginRecommendationSelectionResponse("conversation-1", agentModeDefault, map[string]any{
+		"selected_track_id": "1007", "selected_track_name": "Bass",
+	}, agentloop.Result{GoalID: "goal-1", RunID: "run-1"}, plan, candidates)
+	target := firstMapFromAny(resp.WorkflowData["target_ref"])
+	if firstStringFromMap(target, "id") != "1032" || firstStringFromMap(target, "label") != "Vocals" {
+		t.Fatalf("plugin selection retained stale UI target: %#v", target)
+	}
+}
+
 func TestPluginRecommendationEQHandoffMarkerSurvivesSelectionIntoLoadPlan(t *testing.T) {
 	server := New(nil, shadow.New(nil), nil)
 	plan, err := decodeAndValidatePluginRecommendationPlan(pluginRecommendationTestJSON(), "eq", "减少一些浑浊", pluginRecommendationTestCandidates())
@@ -198,6 +263,36 @@ func TestPluginRecommendationEQHandoffMarkerSurvivesSelectionIntoLoadPlan(t *tes
 		t.Fatalf("load plan lost EQ handoff: %#v", pending.WorkflowData)
 	}
 	if firstStringFromMap(firstMapFromAny(pending.WorkflowData["semantic_eq_post_load_observation_context"]), "tool") != "mix.observe" {
+		t.Fatalf("load plan lost bounded observation evidence: %#v", pending.WorkflowData)
+	}
+}
+
+func TestPluginRecommendationCompressorHandoffMarkerSurvivesSelectionIntoLoadPlan(t *testing.T) {
+	server := New(nil, shadow.New(nil), nil)
+	candidates := pluginRecommendationTestCandidates()
+	plan := pluginRecommendationPlan{SchemaVersion: "plugin_recommendation.v1", ProcessorType: "compressor",
+		UserGoal: "make the vocal more stable", Summary: "use a broadband compressor",
+		Choices: []pluginRecommendationChoice{{CandidateKey: candidates[0].Key, Role: "recommended", Reason: "control vocal peaks", Confidence: "high"}}}
+	selection := server.pluginRecommendationSelectionResponse("conversation-1", agentModeDefault, map[string]any{
+		"selected_track_id": "1007", "selected_track_name": "Vocal",
+		"semantic_compressor_post_load_handoff": true, "semantic_compressor_post_load_goal": "make the vocal more stable",
+	}, agentloop.Result{GoalID: "goal-1", RunID: "run-1", RecentObservation: &agentloop.RecentObservation{
+		Tool: "mix.observe", Status: "ok", Summary: map[string]any{"observation_id": "obs-comp-1"},
+	}}, plan, candidates)
+	if firstStringFromMap(selection.WorkflowData, "post_load_planner") != "semantic_compressor" {
+		t.Fatalf("selection omitted compressor handoff: %#v", selection.WorkflowData)
+	}
+	interaction := server.interactions[selection.InteractionRequests[0].ID]
+	load := server.continuePluginRecommendationInteraction(context.Background(), interaction, "select_"+candidates[0].Key)
+	if load.Error != "" || !load.NeedsConfirmation {
+		t.Fatalf("load response=%#v", load)
+	}
+	pending := server.pending[load.PlanID]
+	if !boolValue(pending.WorkflowData["semantic_compressor_post_load_handoff"]) ||
+		firstStringFromMap(pending.WorkflowData, "semantic_compressor_post_load_goal") != "make the vocal more stable" {
+		t.Fatalf("load plan lost compressor handoff: %#v", pending.WorkflowData)
+	}
+	if firstStringFromMap(firstMapFromAny(pending.WorkflowData["semantic_compressor_post_load_observation_context"]), "tool") != "mix.observe" {
 		t.Fatalf("load plan lost bounded observation evidence: %#v", pending.WorkflowData)
 	}
 }

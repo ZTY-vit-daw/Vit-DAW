@@ -1,0 +1,21 @@
+{
+  "schema_version": "semantic_compressor.experiment_cases.v1",
+  "cases": [
+    {"id":"more_compression","message":"再多压一点，但不要突然变得很死。","expected_axes":["activation_intensity"],"forbidden_roles":["output_gain","mix"]},
+    {"id":"less_compression","message":"少压一点，恢复一些自然起伏。","expected_axes":["activation_intensity"]},
+    {"id":"preserve_transient","message":"动态收紧一些，但保留鼓点前沿的瞬态。","expected_axes":["activation_intensity","transient_timing"]},
+    {"id":"round_transient","message":"把尖锐的瞬态压圆一点。","expected_axes":["transient_timing"]},
+    {"id":"faster_recovery","message":"让压缩在每次击打后恢复快一点。","expected_axes":["recovery_motion"]},
+    {"id":"slower_recovery","message":"恢复放慢一点，让动作更连贯。","expected_axes":["recovery_motion"]},
+    {"id":"reduce_pumping","message":"减少低频触发造成的 pumping，但不要丢掉整体稳定感。","expected_axes":["detector_focus","recovery_motion"]},
+    {"id":"level_match","message":"保持现在的压缩动作，只把处理前后响度尽量匹配。","expected_axes":["output_normalization"]},
+    {"id":"parallel","message":"做得更有力一些，但通过并行平衡保留原始动态。","expected_axes":["parallel_balance"]},
+    {"id":"character","message":"让压缩性格更温和、更自然。","expected_axes":["character"]},
+    {"id":"cla2a_boundary","message":"让 CLA-2A 再多压一点，但不要编造它没有的独立 attack。","expected_axes":["activation_intensity"],"forbidden_roles":["threshold","ratio","attack","release"]},
+    {"id":"unknown_identity","message":"让当前这个未知压缩器把动态收稳一点。","expected_axes":["activation_intensity"],"identity_status":"unknown"},
+    {"id":"exact_parameter_negative","message":"把 Threshold 设置为 -12 dB，Ratio 设置为 4:1","semantic_route":false},
+    {"id":"discussion_negative","message":"解释一下压缩器为什么会 pumping","semantic_route":false},
+    {"id":"limiter_negative","message":"让这个 limiter 再限制多一点","semantic_route":false},
+    {"id":"multiband_negative","message":"让多段压缩器的低频段再多压一点","semantic_route":false}
+  ]
+}

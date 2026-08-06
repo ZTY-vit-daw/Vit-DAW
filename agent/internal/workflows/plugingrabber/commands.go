@@ -6,10 +6,8 @@ import (
 )
 
 const (
-	pluginGrabberLearnCommand = "plugin_grabber_learn_project_profile"
-	pluginGrabberLearnTool    = "plugin_grabber.learn_project_profile"
-	pluginGrabberLoadCommand  = "plugin_grabber_load_and_get_params"
-	pluginGrabberLoadTool     = "plugin_grabber.load_and_get_params"
+	pluginGrabberLoadCommand = "plugin_grabber_load_and_get_params"
+	pluginGrabberLoadTool    = "plugin_grabber.load_and_get_params"
 )
 
 func PluginIntentKind(userText string) string {
@@ -86,41 +84,6 @@ func hasEffectPluginSubject(userText, lower string) bool {
 		strings.Contains(userText, "\u538b\u7f29") ||
 		strings.Contains(userText, "\u5ef6\u8fdf") ||
 		strings.Contains(userText, "\u9650\u5236")
-}
-
-func synthesizePluginGrabberLearningCommands(userText string, requestContext map[string]any) []map[string]any {
-	lower := strings.ToLower(strings.TrimSpace(userText))
-	if lower == "" {
-		return nil
-	}
-	hasLearnIntent := strings.Contains(lower, "learn") ||
-		strings.Contains(lower, "profile") ||
-		strings.Contains(lower, "quick control") ||
-		strings.Contains(lower, "quick") ||
-		strings.Contains(userText, "学习") ||
-		strings.Contains(userText, "保存常用") ||
-		strings.Contains(userText, "常用控制") ||
-		strings.Contains(userText, "参数分类") ||
-		strings.Contains(userText, "插件抓手")
-	hasPluginSubject := strings.Contains(lower, "plugin") ||
-		strings.Contains(lower, "param") ||
-		strings.Contains(lower, "control") ||
-		strings.Contains(userText, "插件") ||
-		strings.Contains(userText, "参数") ||
-		strings.Contains(userText, "控制")
-	if !hasLearnIntent || !hasPluginSubject {
-		return nil
-	}
-	cmd := map[string]any{
-		"cmd":    pluginGrabberLearnCommand,
-		"intent": userText,
-	}
-	for _, key := range []string{"selected_plugin_id", "selected_plugin_name", "selected_plugin_track_id", "selected_track_id"} {
-		if value := strings.TrimSpace(fmt.Sprint(requestContext[key])); value != "" && value != "<nil>" {
-			cmd[key] = value
-		}
-	}
-	return []map[string]any{cmd}
 }
 
 func synthesizePluginGrabberLoadCommands(userText string, requestContext map[string]any) []map[string]any {
@@ -498,20 +461,6 @@ func extractSmallPositiveNumber(text string) int {
 	return 0
 }
 
-func firstPluginGrabberLearningCommand(commands []map[string]any) (map[string]any, bool) {
-	for _, cmd := range commands {
-		name := strings.TrimSpace(fmt.Sprint(cmd["cmd"]))
-		if name == "" || name == "<nil>" {
-			name = strings.TrimSpace(fmt.Sprint(cmd["command"]))
-		}
-		toolName := strings.TrimSpace(fmt.Sprint(cmd["tool"]))
-		if name == pluginGrabberLearnCommand || toolName == pluginGrabberLearnTool {
-			return cmd, true
-		}
-	}
-	return nil, false
-}
-
 func firstPluginGrabberLoadCommand(commands []map[string]any) (map[string]any, bool) {
 	for _, cmd := range commands {
 		name := strings.TrimSpace(fmt.Sprint(cmd["cmd"]))
@@ -682,10 +631,6 @@ func copyWorkflowField(dst map[string]any, src map[string]any, target string, ke
 	}
 }
 
-func SynthesizeLearningCommands(userText string, requestContext map[string]any) []map[string]any {
-	return synthesizePluginGrabberLearningCommands(userText, requestContext)
-}
-
 func SynthesizeLoadCommands(userText string, requestContext map[string]any) []map[string]any {
 	return synthesizePluginGrabberLoadCommands(userText, requestContext)
 }
@@ -696,10 +641,6 @@ func ExtractLoadQuery(text string) string {
 
 func SynthesizeLibraryCommands(userText string) []map[string]any {
 	return synthesizePluginLibraryCommands(userText)
-}
-
-func FirstLearningCommand(commands []map[string]any) (map[string]any, bool) {
-	return firstPluginGrabberLearningCommand(commands)
 }
 
 func FirstLoadCommand(commands []map[string]any) (map[string]any, bool) {

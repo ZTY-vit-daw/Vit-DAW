@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"vit-daw-agent/internal/com"
 	"vit-daw-agent/internal/projectstore"
 	"vit-daw-agent/internal/tim"
 )
@@ -67,6 +68,7 @@ func FinalizeObservationContext(obs *ObservationPacket, req Request, now string)
 	finalizeMOMProjection(obs, req)
 	finalizeTIMProjection(obs, req)
 	finalizeFXMProjection(obs, req)
+	finalizeCOMProjection(obs, req)
 	obs.Digest = BuildDigest(*obs, req)
 	obs.Catalog = BuildCatalog(*obs, req, now)
 	if observationWantsBandStereoProjection(req.Args) {
@@ -141,6 +143,17 @@ func BuildDigest(obs ObservationPacket, req Request) map[string]any {
 			"risk_summary":      obs.TIMProjection.RiskSummary,
 		}
 	}
+	if obs.COMProjection != nil {
+		out["com_projection"] = map[string]any{
+			"schema_version": obs.COMProjection.SchemaVersion,
+			"com_version":    obs.COMProjection.COMVersion,
+			"projection_id":  obs.COMProjection.ProjectionID,
+			"mode":           obs.COMProjection.Mode,
+			"status":         obs.COMProjection.Status,
+			"trust_quality":  obs.COMProjection.TrustQuality,
+			"llm_context":    obs.COMProjection.LLMContext,
+		}
+	}
 	if sourceIdentity := observationSourceIdentity(obs); len(sourceIdentity) > 0 {
 		out["source_identity"] = sourceIdentity
 	}
@@ -208,6 +221,8 @@ func BuildCatalog(obs ObservationPacket, req Request, now string) Catalog {
 	targetKind := firstNonEmpty(obs.TargetRef.Kind, "selection")
 	entries := []CatalogEntry{
 		catalogEntry("observation.digest", "derived", "fresh", "cheap", "Default acoustic digest for LLM context.", "mix_read key=observation.digest", targetKind, targetID, now),
+		catalogEntry("observation.binding", "derived", "fresh", "cheap", "Observation target, project revision, scope, and evidence lineage. No raw audio payload is included.", "mix_read key=observation.binding", targetKind, targetID, now),
+		catalogEntry("observation.com_projection", "com_projection", comProjectionFreshness(obs), "medium", "COM v1 compact compression observation. Raw envelope and event evidence remains external.", "mix_read key=observation.com_projection", targetKind, targetID, now),
 		catalogEntry("observation.mom_projection", "mom_projection", "fresh", "cheap", "MOM v1 compact projection with trust quality, task layers, and evidence refs for LLM context.", "mix_read key=observation.mom_projection", targetKind, targetID, now),
 		catalogEntry("observation.tim_projection", "tim_projection", "fresh", "cheap", "TIM v0 technical integrity projection with source, format, metadata coverage, and import risk checks.", "mix_read key=observation.tim_projection", targetKind, targetID, now),
 		catalogEntry("observation.fxm_projection", "fxm_projection", fxmProjectionFreshness(obs), "medium", "FXM v0 counterfactual plug-in-chain transformation projection. Raw renders remain external evidence.", "mix_read key=observation.fxm_projection", targetKind, targetID, now),
@@ -215,6 +230,7 @@ func BuildCatalog(obs ObservationPacket, req Request, now string) Catalog {
 		catalogEntry("project.tracks.summary", "static", sourceFreshness(obs, "project_context"), "cheap", trackSummaryText(req.ProjectState), "mix_read key=project.tracks.summary", "project", "current", now),
 		catalogEntry("project.acoustic.tracks", "fast_acoustic", sourceFreshness(obs, "track_waveform_envelopes"), "cheap", "Per-track lightweight waveform packages for visible audio tracks.", "mix_read key=project.acoustic.tracks", "project", "current", now),
 		catalogEntry("project.relationship_inputs", "derived", sourceFreshness(obs, "project_context"), "cheap", "Readiness summary for project-level relationship derivation.", "mix_read key=project.relationship_inputs", "project", "current", now),
+		catalogEntry("project.frequency_relationship_inputs", "derived", sourceFreshness(obs, "band_energy"), "medium", "Compact project band-occupancy inputs for MOM frequency-relationship observation.", "mix_read key=project.frequency_relationship_inputs", "project", "current", now),
 		catalogEntry("project.rankings.loudness", "derived", sourceFreshness(obs, "project_context"), "cheap", "Track ranking by acoustic RMS/loudness when available.", "mix_read key=project.rankings.loudness", "project", "current", now),
 		catalogEntry("project.rankings.level", "derived", sourceFreshness(obs, "project_context"), "cheap", "Track ranking by live/shadow level_db when available.", "mix_read key=project.rankings.level", "project", "current", now),
 		catalogEntry("project.rankings.peak", "derived", sourceFreshness(obs, "project_context"), "cheap", "Track ranking by peak_dbfs when available.", "mix_read key=project.rankings.peak", "project", "current", now),
@@ -427,6 +443,13 @@ func readObservationKey(obs ObservationPacket, key string, req ReadRequest, evid
 	switch key {
 	case "observation.digest":
 		return obs.Digest, true
+	case "observation.binding":
+		return observationBinding(obs), true
+	case "observation.com_projection":
+		if obs.COMProjection == nil {
+			return map[string]any{"status": "missing", "reason": "com_projection_unavailable"}, true
+		}
+		return obs.COMProjection, true
 	case "observation.mom_projection":
 		if obs.MOMProjection == nil {
 			return map[string]any{"status": "missing", "reason": "mom_projection_unavailable"}, true
@@ -452,6 +475,8 @@ func readObservationKey(obs ObservationPacket, key string, req ReadRequest, evid
 		return compactProjectAcousticTracks(obs.ProjectPackage, req.MaxItems), true
 	case "project.relationship_inputs":
 		return obs.ProjectPackage["relationship_inputs"], true
+	case "project.frequency_relationship_inputs":
+		return obs.ProjectPackage["frequency_relationship_inputs"], true
 	case "project.rankings.loudness":
 		return map[string]any{"status": projectRankingStatus(obs.ProjectPackage, "loudness_ranking"), "rows": capRows(mapRowsAny(obs.ProjectPackage["loudness_ranking"]), req.MaxItems)}, true
 	case "project.rankings.level":
@@ -490,7 +515,14 @@ func readObservationKey(obs ObservationPacket, key string, req ReadRequest, evid
 	case "track." + targetID + ".fast.levels":
 		return metrics["waveform"], true
 	case "track." + targetID + ".slow.time_energy.summary":
-		return map[string]any{"status": sourceStatus(obs, "time_energy"), "rows": capRows(mapRowsAny(metrics["time_energy"]), req.MaxItems)}, true
+		rows := mapRowsAny(metrics["time_energy"])
+		status := sourceStatus(obs, "time_energy")
+		if len(rows) == 0 {
+			if evidenceRows := evidenceTimeEnergyRows(evidenceSnapshot); len(evidenceRows) > 0 {
+				rows, status = evidenceRows, "ready"
+			}
+		}
+		return map[string]any{"status": status, "rows": capRows(rows, req.MaxItems)}, true
 	case "track." + targetID + ".raw.time_energy.range":
 		rows := mapRowsAny(metrics["time_energy"])
 		if evidenceRows := evidenceTimeEnergyRows(evidenceSnapshot); len(evidenceRows) > 0 {
@@ -563,6 +595,24 @@ func fxmProjectionFreshness(obs ObservationPacket) string {
 		return "partial"
 	case "stale":
 		return "stale"
+	default:
+		return "missing"
+	}
+}
+
+func comProjectionFreshness(obs ObservationPacket) string {
+	if obs.COMProjection == nil {
+		return "missing"
+	}
+	switch strings.ToLower(strings.TrimSpace(obs.COMProjection.Status)) {
+	case com.StatusReady:
+		return "fresh"
+	case com.StatusPartial, com.StatusApproximate:
+		return "partial"
+	case com.StatusStale:
+		return "stale"
+	case com.StatusSuspect:
+		return "suspect"
 	default:
 		return "missing"
 	}
@@ -916,6 +966,26 @@ func targetTrackIdentity(obs ObservationPacket) map[string]any {
 		break
 	}
 	return out
+}
+
+func observationBinding(obs ObservationPacket) map[string]any {
+	project := mapValue(obs.ProjectPackage)
+	return map[string]any{
+		"schema_version": "mix_observation_binding.v1",
+		"observation_id": obs.ObservationID,
+		"mix_session_id": obs.MixSessionID,
+		"status":         obs.Status,
+		"created_at":     obs.CreatedAt,
+		"target_ref":     obs.TargetRef,
+		"listen_scope":   obs.ListenScope,
+		"project_binding": map[string]any{
+			"project_uuid":       firstNonEmpty(cleanAnyString(project["project_uuid"]), obs.ProjectUUID),
+			"project_epoch":      cleanAnyString(project["project_epoch"]),
+			"project_revision":   cleanAnyString(project["project_revision"]),
+			"project_state_hash": cleanAnyString(project["project_state_hash"]),
+		},
+		"evidence_refs": append([]string(nil), obs.EvidenceRefs...),
+	}
 }
 
 func projectRankingStatus(project map[string]any, key string) string {

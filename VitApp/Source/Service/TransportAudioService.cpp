@@ -1,14 +1,233 @@
 #include "TransportAudioService.h"
 
+#include "Core/VitPaths.h"
 #include "VitProductionCoordinator.h"
 
 #include <cmath>
+#include <sodium.h>
 
 namespace vit
 {
 
 namespace
 {
+
+struct CompressorProbeScope
+{
+    te::Plugin* plugin = nullptr;
+    te::RackInstance* rackInstance = nullptr;
+    juce::String pluginPosition;
+    juce::String chainHash;
+    juce::String processorStateHash;
+    juce::String scopeRevision;
+    int reportedLatencySamples = 0;
+    juce::String error;
+};
+
+juce::String sha256Text (const juce::String& text)
+{
+    unsigned char digest[crypto_hash_sha256_BYTES] {};
+    crypto_hash_sha256 (digest,
+                        reinterpret_cast<const unsigned char*> (text.toRawUTF8()),
+                        (unsigned long long) text.getNumBytesAsUTF8());
+    return juce::String::toHexString (digest, crypto_hash_sha256_BYTES, 0);
+}
+
+te::Plugin* findPluginForCompressorProbe (te::Edit& edit, const juce::String& pluginId)
+{
+    const auto parsed = te::EditItemID::fromString (pluginId.trim());
+    if (! parsed.isValid())
+        return nullptr;
+    if (auto cached = edit.getPluginCache().getPluginFor (parsed))
+        return cached.get();
+    for (auto* track : te::getAllTracks (edit))
+        if (track != nullptr)
+            for (auto* slot : track->pluginList.getPlugins())
+            {
+                if (slot != nullptr && slot->itemID == parsed)
+                    return slot;
+                if (auto* rack = dynamic_cast<te::RackInstance*> (slot))
+                    if (rack->type != nullptr)
+                        if (auto* plugin = rack->type->getPluginForID (parsed))
+                            return plugin;
+            }
+    return nullptr;
+}
+
+bool hasAutomationState (const juce::ValueTree& state)
+{
+    const auto xml = state.toXmlString().toLowerCase();
+    return xml.contains ("automationcurve") || xml.contains ("automationpoints");
+}
+
+bool isTransparentTrackUtility (te::Plugin& plugin, juce::String& reason)
+{
+    if (dynamic_cast<te::LevelMeterPlugin*> (&plugin) != nullptr)
+        return true;
+    if (auto* volume = dynamic_cast<te::VolumeAndPanPlugin*> (&plugin))
+    {
+        if (std::abs (volume->getVolumeDb()) > 0.0001f || std::abs (volume->getPan()) > 0.0001f
+            || static_cast<bool> (volume->polarity.get()) || hasAutomationState (volume->state))
+        {
+            reason = "track_volume_pan_not_transparent";
+            return false;
+        }
+        return true;
+    }
+    reason = "additional_active_track_processor";
+    return false;
+}
+
+juce::String compressorProbeChainHash (te::AudioTrack& track, te::RackInstance* selectedRack)
+{
+    juce::String identity ("compressor_probe_chain.v2|");
+    for (auto* slot : track.pluginList.getPlugins())
+        if (slot != nullptr)
+            identity += "slot=" + slot->itemID.toString() + ":" + slot->getPluginType() + ":"
+                + (slot->isEnabled() ? "1" : "0") + ";";
+    if (selectedRack != nullptr && selectedRack->type != nullptr)
+    {
+        auto& rackType = *selectedRack->type;
+        identity += "rack=" + selectedRack->itemID.toString() + ";";
+        for (auto* plugin : rackType.getPlugins())
+            if (plugin != nullptr)
+            {
+                const auto position = rackType.getPluginPosition (te::Plugin::Ptr (plugin));
+                identity += "node=" + plugin->itemID.toString() + ":" + plugin->getPluginType() + ":"
+                    + (plugin->isEnabled() ? "1" : "0") + ":"
+                    + juce::String (position.x, 4) + "," + juce::String (position.y, 4) + ";";
+            }
+        juce::StringArray connections;
+        for (const auto* connection : rackType.getConnections())
+            if (connection != nullptr)
+            {
+                const auto source = connection->sourceID.get();
+                const auto dest = connection->destID.get();
+                connections.add ((source.isValid() ? source.toString() : juce::String ("RACK_INPUT"))
+                                 + ":" + juce::String (connection->sourcePin.get()) + "->"
+                                 + (dest.isValid() ? dest.toString() : juce::String ("RACK_OUTPUT"))
+                                 + ":" + juce::String (connection->destPin.get()));
+            }
+        connections.sort (true);
+        identity += "connections=" + connections.joinIntoString (",") + ";";
+    }
+    return sha256Text (identity);
+}
+
+juce::String compressorProbeScopeRevision (te::AudioTrack& track,
+                                            te::Plugin& plugin,
+                                            te::RackInstance* rackInstance)
+{
+    plugin.flushPluginStateToValueTree();
+    if (rackInstance != nullptr && rackInstance->type != nullptr)
+        rackInstance->type->flushStateToValueTree();
+    track.flushStateToValueTree();
+    const auto chainHash = compressorProbeChainHash (track, rackInstance);
+    const auto processorHash = TransportAudioService::stateRevisionForValueTree (plugin.state);
+    const auto trackHash = TransportAudioService::stateRevisionForValueTree (track.state);
+    return sha256Text ("track=" + trackHash + "|chain=" + chainHash + "|processor=" + processorHash);
+}
+
+CompressorProbeScope validateCompressorProbeScope (te::AudioTrack& track,
+                                                   te::Plugin& selected,
+                                                   double sampleRate)
+{
+    CompressorProbeScope scope;
+    scope.plugin = &selected;
+    if (! selected.isEnabled() || ! selected.isProcessingEnabled() || selected.isMissing() || selected.isDisabled())
+    {
+        scope.error = "selected_compressor_not_processing";
+        return scope;
+    }
+
+    int selectedContainers = 0;
+    int selectedTrackIndex = -1;
+    const auto slots = track.pluginList.getPlugins();
+    for (int i = 0; i < slots.size(); ++i)
+    {
+        const auto slotReference = slots[i];
+        auto* slot = slotReference.get();
+        if (slot == nullptr || ! slot->isEnabled())
+            continue;
+        if (slot == &selected)
+        {
+            ++selectedContainers;
+            selectedTrackIndex = i;
+            continue;
+        }
+        if (auto* rack = dynamic_cast<te::RackInstance*> (slot))
+        {
+            if (rack->type == nullptr || rack->type->getPluginForID (selected.itemID) != &selected)
+            {
+                scope.error = "additional_active_track_processor";
+                return scope;
+            }
+            ++selectedContainers;
+            scope.rackInstance = rack;
+            selectedTrackIndex = i;
+            continue;
+        }
+        juce::String utilityError;
+        if (! isTransparentTrackUtility (*slot, utilityError))
+        {
+            scope.error = utilityError;
+            return scope;
+        }
+    }
+    if (selectedContainers != 1 || selectedTrackIndex < 0)
+    {
+        scope.error = "selected_compressor_not_in_target_track_graph";
+        return scope;
+    }
+
+    if (scope.rackInstance != nullptr)
+    {
+        auto& rack = *scope.rackInstance;
+        const auto rackPlugins = rack.type->getPlugins();
+        if (rackPlugins.size() != 1 || rackPlugins.getFirst() != &selected)
+        {
+            scope.error = "rack_scope_not_single_processor";
+            return scope;
+        }
+        if (std::abs ((float) rack.dryValue.get()) > 0.0001f
+            || std::abs ((float) rack.wetValue.get() - 1.0f) > 0.0001f
+            || std::abs ((float) rack.leftInValue.get()) > 0.0001f
+            || std::abs ((float) rack.rightInValue.get()) > 0.0001f
+            || std::abs ((float) rack.leftOutValue.get()) > 0.0001f
+            || std::abs ((float) rack.rightOutValue.get()) > 0.0001f
+            || hasAutomationState (rack.state))
+        {
+            scope.error = "rack_container_not_transparent";
+            return scope;
+        }
+        for (const auto* connection : rack.type->getConnections())
+            if (connection != nullptr
+                && connection->sourceID.get() != selected.itemID
+                && connection->destID.get() != selected.itemID)
+            {
+                scope.error = "rack_scope_has_bypass_or_parallel_path";
+                return scope;
+            }
+        const auto position = rack.type->getPluginPosition (te::Plugin::Ptr (&selected));
+        scope.pluginPosition = "track_slot:" + juce::String (selectedTrackIndex)
+            + "/rack:" + rack.itemID.toString()
+            + "/node:" + juce::String (position.x, 4) + "," + juce::String (position.y, 4);
+    }
+    else
+    {
+        scope.pluginPosition = "track_slot:" + juce::String (selectedTrackIndex);
+    }
+
+    selected.flushPluginStateToValueTree();
+    if (scope.rackInstance != nullptr && scope.rackInstance->type != nullptr)
+        scope.rackInstance->type->flushStateToValueTree();
+    track.flushStateToValueTree();
+    scope.chainHash = compressorProbeChainHash (track, scope.rackInstance);
+    scope.processorStateHash = TransportAudioService::stateRevisionForValueTree (selected.state);
+    scope.scopeRevision = compressorProbeScopeRevision (track, selected, scope.rackInstance);
+    scope.reportedLatencySamples = juce::jmax (0, (int) std::llround (selected.getLatencySeconds() * sampleRate));
+    return scope;
+}
 
 juce::String buildTransportReply (te::Edit& edit, const juce::String& message)
 {
@@ -1180,7 +1399,151 @@ juce::String TransportAudioService::handleL2RenderProbe (const juce::DynamicObje
                                            32,
                                            useMasterPlugins,
                                            tracksToDo,
-                                           probe);
+                                            probe);
+}
+
+juce::String TransportAudioService::handleCompressorDualTapProbe (const juce::DynamicObject& object,
+                                                                  const juce::String&) const
+{
+    if (production == nullptr)
+        return makeErrorReply ("Offline render coordinator unavailable");
+    auto* edit = getEdit != nullptr ? getEdit() : nullptr;
+    if (edit == nullptr)
+        return makeErrorReply ("No active edit loaded");
+
+    const auto trackId = object.getProperty ("track_id").toString().trim();
+    const auto pluginId = object.getProperty ("plugin_id").toString().trim();
+    const auto topologyGeneration = object.getProperty ("topology_generation").toString().trim();
+    const auto topologyClass = object.getProperty ("topology_class").toString().trim();
+    const auto supportClass = object.getProperty ("support_class").toString().trim().toLowerCase();
+    if (trackId.isEmpty() || pluginId.isEmpty())
+        return makeErrorReply ("compressor_dual_tap_probe requires track_id and plugin_id");
+    if (topologyGeneration.isEmpty() || topologyClass.isEmpty())
+        return makeErrorReply ("compressor_dual_tap_probe requires recognizer topology_generation and topology_class");
+    if (supportClass != "single_band_broadband")
+        return makeErrorReply ("compressor_dual_tap_probe supports only support_class=single_band_broadband");
+    if (object.hasProperty ("deterministic") && ! static_cast<bool> (object.getProperty ("deterministic")))
+        return makeErrorReply ("compressor_dual_tap_probe requires deterministic=true");
+
+    auto* track = findAudioTrackByID (*edit, trackId);
+    if (track == nullptr)
+        return makeErrorReply ("compressor_dual_tap_probe requires an audio track");
+    auto* plugin = findPluginForCompressorProbe (*edit, pluginId);
+    if (plugin == nullptr)
+        return makeErrorReply ("compressor_dual_tap_probe plugin_id was not found");
+
+    double sampleRate = 48000.0;
+    if (auto* device = edit->engine.getDeviceManager().deviceManager.getCurrentAudioDevice())
+        if (device->getCurrentSampleRate() > 0.0)
+            sampleRate = device->getCurrentSampleRate();
+
+    auto scope = validateCompressorProbeScope (*track, *plugin, sampleRate);
+    if (scope.error.isNotEmpty())
+        return makeErrorReply ("compressor_dual_tap_probe scope rejected: " + scope.error);
+
+    auto clipId = object.getProperty ("clip_id").toString().trim();
+    te::Clip* clip = clipId.isNotEmpty() ? findClipByID (*edit, clipId) : findFirstAudioClipOnTrack (*track);
+    auto* audioClip = dynamic_cast<te::AudioClipBase*> (clip);
+    if (audioClip == nullptr || clip->getTrack() != track)
+        return makeErrorReply ("compressor_dual_tap_probe requires an audio clip on the target track");
+    clipId = clip->itemID.toString();
+    if (auto* clipPlugins = audioClip->getPluginList())
+        for (auto* clipPlugin : clipPlugins->getPlugins())
+            if (clipPlugin != nullptr && clipPlugin->isEnabled())
+                return makeErrorReply ("compressor_dual_tap_probe rejects active clip processors");
+
+    int64 startSample = 0;
+    int64 endSample = 0;
+    if (object.hasProperty ("start_sample") || object.hasProperty ("end_sample"))
+    {
+        if (! object.hasProperty ("start_sample") || ! object.hasProperty ("end_sample"))
+            return makeErrorReply ("compressor_dual_tap_probe requires both start_sample and end_sample");
+        startSample = (int64) object.getProperty ("start_sample");
+        endSample = (int64) object.getProperty ("end_sample");
+    }
+    else
+    {
+        double startSeconds = clip->getEditTimeRange().getStart().inSeconds();
+        double endSeconds = clip->getEditTimeRange().getEnd().inSeconds();
+        readCommandRange (object, startSeconds, endSeconds);
+        startSample = (int64) std::llround (juce::jmax (0.0, startSeconds) * sampleRate);
+        endSample = (int64) std::llround (juce::jmax (startSeconds, endSeconds) * sampleRate);
+    }
+    if (startSample < 0 || endSample <= startSample)
+        return makeErrorReply ("compressor_dual_tap_probe requires a non-empty sample window");
+    if ((double) (endSample - startSample) / sampleRate > 120.0)
+        return makeErrorReply ("compressor_dual_tap_probe window exceeds 120 seconds");
+
+    auto sourceFile = audioClip->getCurrentSourceFile();
+    if (! sourceFile.existsAsFile())
+        sourceFile = audioClip->getOriginalFile();
+    if (! sourceFile.existsAsFile())
+        return makeErrorReply ("compressor_dual_tap_probe source audio is unavailable");
+    const auto sourceLengthSeconds = juce::jmax (0.0, clip->getPosition().getLength().inSeconds());
+    const auto sourceRevision = sha256Text ("source.v1|size=" + juce::String ((int64) sourceFile.getSize())
+                                            + "|mtime=" + juce::String ((int64) sourceFile.getLastModificationTime().toMilliseconds())
+                                            + "|length=" + juce::String (sourceLengthSeconds, 4));
+    const auto clipRevision = sha256Text ("clip.v1|clip=" + clipId
+                                          + "|track=" + trackId
+                                          + "|source=" + sourceRevision
+                                          + "|offset=" + juce::String (clip->getPosition().getOffset().inSeconds(), 4)
+                                          + "|length=" + juce::String (sourceLengthSeconds, 4));
+    const auto renderIdentity = juce::String ("com2rp.v1")
+        + "|track=" + trackId
+        + "|clip=" + clipId
+        + "|plugin=" + pluginId
+        + "|position=" + scope.pluginPosition
+        + "|topology=" + topologyClass
+        + "|generation=" + topologyGeneration
+        + "|chain=" + scope.chainHash
+        + "|processor_state=" + scope.processorStateHash
+        + "|source=" + sourceRevision
+        + "|clip_revision=" + clipRevision
+        + "|window=" + juce::String (startSample) + "-" + juce::String (endSample)
+        + "|sample_rate=" + juce::String (sampleRate, 3);
+    const auto renderRevision = sha256Text (renderIdentity);
+    const auto pairId = "com2_" + juce::Uuid().toString().removeCharacters ("-").substring (0, 24);
+
+    CompressorDualTapEvidenceRequest evidence;
+    evidence.requestId = object.getProperty ("request_id").toString().trim();
+    evidence.pairId = pairId;
+    evidence.trackId = trackId;
+    evidence.clipId = clipId;
+    evidence.pluginInstanceId = pluginId;
+    evidence.pluginPosition = scope.pluginPosition;
+    evidence.topologyClass = topologyClass;
+    evidence.topologyGeneration = topologyGeneration;
+    evidence.supportClass = supportClass;
+    evidence.chainHash = scope.chainHash;
+    evidence.processorStateHash = scope.processorStateHash;
+    evidence.scopeRevision = scope.scopeRevision;
+    evidence.sourceRevision = sourceRevision;
+    evidence.clipRevision = clipRevision;
+    evidence.renderRevision = renderRevision;
+    evidence.startSample = startSample;
+    evidence.endSample = endSample;
+    evidence.sampleRate = sampleRate;
+    evidence.channelLayout = "stereo";
+    evidence.reportedLatencySamples = scope.reportedLatencySamples;
+
+    const auto tempRoot = juce::File::getSpecialLocation (juce::File::tempDirectory)
+        .getChildFile ("Vit_DAW_CompressorDualTap");
+    tempRoot.createDirectory();
+    VitProductionCoordinator::CompressorDualTapProbeRequest request;
+    request.evidence = evidence;
+    request.inputRenderFile = tempRoot.getNonexistentChildFile (pairId + "_input", ".wav", false);
+    request.outputRenderFile = tempRoot.getNonexistentChildFile (pairId + "_output", ".wav", false);
+    request.outputVerificationRenderFile = tempRoot.getNonexistentChildFile (pairId + "_verify", ".wav", false);
+    request.artifactDirectory = paths::getWorkspaceDirectory()
+        .getChildFile ("Artifacts")
+        .getChildFile ("com_evidence")
+        .getChildFile (pairId);
+    request.tracksToDo.setBit (track->getIndexInEditTrackList());
+    request.readCurrentScopeRevision = [track, plugin, rack = scope.rackInstance]
+    {
+        return compressorProbeScopeRevision (*track, *plugin, rack);
+    };
+    return production->startCompressorDualTapProbe (*edit, std::move (request));
 }
 
 juce::String TransportAudioService::handleCancelRender (const juce::DynamicObject&, const juce::String&) const

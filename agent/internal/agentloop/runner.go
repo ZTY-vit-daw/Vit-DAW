@@ -22,6 +22,7 @@ const (
 	StopReasonNeedsConfirmation  = "needs_confirmation"
 	StopReasonNeedsClarification = "needs_clarification"
 	StopReasonLimitReached       = "limit_reached"
+	StopReasonTransientLLMError  = "transient_llm_error"
 	StopReasonCancelled          = "cancelled"
 	StopReasonInterjection       = "interjection"
 	StopReasonFailed             = "failed"
@@ -55,6 +56,7 @@ type Input struct {
 	Budget            Budget               `json:"budget,omitempty"`
 	ExecutionMemory   ExecutionMemory      `json:"execution_memory,omitempty"`
 	RecentObservation *RecentObservation   `json:"recent_observation,omitempty"`
+	FreeStateDecision *FreeStateDecision   `json:"free_state_decision,omitempty"`
 }
 
 type Continuation struct {
@@ -79,6 +81,7 @@ type Continuation struct {
 	ToolCallsUsed     int                  `json:"tool_calls_used,omitempty"`
 	ExecutionMemory   ExecutionMemory      `json:"execution_memory,omitempty"`
 	RecentObservation *RecentObservation   `json:"recent_observation,omitempty"`
+	FreeStateDecision *FreeStateDecision   `json:"free_state_decision,omitempty"`
 }
 
 type Result struct {
@@ -107,6 +110,7 @@ type Result struct {
 	ExecutionMemory       ExecutionMemory             `json:"execution_memory,omitempty"`
 	RecentObservation     *RecentObservation          `json:"recent_observation,omitempty"`
 	SemanticAction        *semanticeffect.Action      `json:"semantic_action,omitempty"`
+	FreeStateDecision     *FreeStateDecision          `json:"free_state_decision,omitempty"`
 	Continuation          *Continuation               `json:"continuation,omitempty"`
 }
 
@@ -137,6 +141,7 @@ func (r *Runner) Start(ctx context.Context, in Input) Result {
 		projectHistory:    cloneMap(in.ProjectHistory),
 		executionMemory:   cloneExecutionMemory(in.ExecutionMemory),
 		recentObservation: cloneRecentObservation(in.RecentObservation),
+		freeStateDecision: cloneFreeStateDecision(in.FreeStateDecision),
 		budget:            normalizeBudget(firstNonZeroBudget(in.Budget, r.Budget)),
 		startedAt:         r.now(),
 	}
@@ -173,6 +178,7 @@ func (r *Runner) Continue(ctx context.Context, cont Continuation) Result {
 		Budget:            cont.Budget,
 		ExecutionMemory:   cloneExecutionMemory(cont.ExecutionMemory),
 		RecentObservation: cloneRecentObservation(cont.RecentObservation),
+		FreeStateDecision: cloneFreeStateDecision(cont.FreeStateDecision),
 	}
 	state := runState{
 		input:             in,
@@ -185,6 +191,7 @@ func (r *Runner) Continue(ctx context.Context, cont Continuation) Result {
 		projectHistory:    cloneMap(cont.ProjectHistory),
 		executionMemory:   cloneExecutionMemory(cont.ExecutionMemory),
 		recentObservation: cloneRecentObservation(cont.RecentObservation),
+		freeStateDecision: cloneFreeStateDecision(cont.FreeStateDecision),
 		budget:            normalizeBudget(firstNonZeroBudget(cont.Budget, r.Budget)),
 		startedAt:         r.now(),
 	}
@@ -211,6 +218,7 @@ func (r *Runner) ResumeAfterConfirmation(ctx context.Context, cont Continuation)
 			Budget:            cont.Budget,
 			ExecutionMemory:   cloneExecutionMemory(cont.ExecutionMemory),
 			RecentObservation: cloneRecentObservation(cont.RecentObservation),
+			FreeStateDecision: cloneFreeStateDecision(cont.FreeStateDecision),
 		},
 		goal:              goal,
 		trace:             append([]planner.TraceEvent(nil), cont.Trace...),
@@ -220,6 +228,7 @@ func (r *Runner) ResumeAfterConfirmation(ctx context.Context, cont Continuation)
 		projectHistory:    cloneMap(cont.ProjectHistory),
 		executionMemory:   cloneExecutionMemory(cont.ExecutionMemory),
 		recentObservation: cloneRecentObservation(cont.RecentObservation),
+		freeStateDecision: cloneFreeStateDecision(cont.FreeStateDecision),
 		completedSteps:    cont.CompletedSteps,
 		turnsUsed:         cont.TurnsUsed,
 		toolCallsUsed:     cont.ToolCallsUsed,
@@ -266,6 +275,7 @@ type runState struct {
 	executionMemory   ExecutionMemory
 	recentObservation *RecentObservation
 	semanticAction    *semanticeffect.Action
+	freeStateDecision *FreeStateDecision
 	replanAfterTool   bool
 	completedSteps    int
 	turnsUsed         int
@@ -356,8 +366,6 @@ func (r *Runner) loop(ctx context.Context, state *runState) Result {
 			if limit, result := r.checkToolBudget(state); limit {
 				return result
 			}
-			call = coercePluginGrabberLearningToolCall(state.input.UserText, call)
-			call = coercePluginGrabberRuntimeToolCall(state.input.UserText, call)
 			call = coerceWaveformBakeToMixObservation(state, call)
 			call = coerceMixObservationCall(state, call)
 			call = coerceMixTickPrimitiveCall(state, call)
@@ -445,9 +453,7 @@ func (r *Runner) executeTool(ctx context.Context, state *runState, call planner.
 		execRecord["observed_state"] = true
 	}
 	if interactionPause, waitingForUser := pendingInteractionPauseForResult(execResult.Result); waitingForUser {
-		// A workflow card is a real control-flow boundary, not merely a piece
-		// of display text. In particular, plugin learning must never continue
-		// into a profile write until its preceding learning card is answered.
+		// A workflow card is a real control-flow boundary, not merely display text.
 		state.pendingToolQueue = nil
 		ver := verifyToolExecution(call, execResult)
 		state.trace = append(state.trace, planner.TraceEvent{Kind: "verification", Verification: &ver})
@@ -642,6 +648,7 @@ func (r *Runner) result(state *runState, status agentruntime.GoalStatus, stopRea
 		ToolCallsUsed:     state.toolCallsUsed,
 		ExecutionMemory:   cloneExecutionMemory(state.executionMemory),
 		RecentObservation: cloneRecentObservation(state.recentObservation),
+		FreeStateDecision: cloneFreeStateDecision(state.freeStateDecision),
 	}
 	if status == agentruntime.StatusCompleted || status == agentruntime.StatusCancelled || status == agentruntime.StatusFailed {
 		cont = nil
@@ -675,6 +682,7 @@ func (r *Runner) result(state *runState, status agentruntime.GoalStatus, stopRea
 		ExecutionMemory:   cloneExecutionMemory(state.executionMemory),
 		RecentObservation: cloneRecentObservation(state.recentObservation),
 		SemanticAction:    cloneSemanticEffectAction(state.semanticAction),
+		FreeStateDecision: cloneFreeStateDecision(state.freeStateDecision),
 		Continuation:      cont,
 	}
 }

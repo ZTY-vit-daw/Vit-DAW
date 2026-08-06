@@ -14,7 +14,6 @@ import (
 	"vit-daw-agent/internal/config"
 	"vit-daw-agent/internal/harness"
 	"vit-daw-agent/internal/llm"
-	"vit-daw-agent/internal/mixcontrolsurface"
 	agentruntime "vit-daw-agent/internal/runtime"
 )
 
@@ -67,7 +66,6 @@ const (
 	mixInteractionReadyForTick            = "ready_for_tick"
 	mixInteractionFastTickRunning         = "fast_tick_running"
 	mixInteractionWaitingPlannerReview    = "waiting_planner_review"
-	mixInteractionLearningRequired        = "learning_required"
 
 	mixBoardVisibilityHidden    = "hidden"
 	mixBoardVisibilityCollapsed = "collapsed"
@@ -551,9 +549,7 @@ func (s *Server) reviseMixBoardInteraction(ctx context.Context, interaction Pend
 			board["next_step"] = "根据修订后的 MixBoard 继续调控。"
 			observationResult["mixboard"] = board
 		}
-		s.attachGoalControlSurface(ctx, nextInteraction, session, observationResult)
 		updateMixBoardRuntimeState(observationResult, session, nil)
-		data["goal_control_surface"] = mixGoalControlSurfaceFromObservation(observationResult)
 		data["mix_observation"] = observationResult
 	}
 	reply := "MixBoard 已更新。"
@@ -591,9 +587,6 @@ func (s *Server) publishMixBoardInteraction(ctx context.Context, interaction Pen
 			data["mix_observation"] = observation
 		}
 		reply := firstNonEmpty(session.BlockingPoint, "规划准备还没有完成，暂时不能发布 MixBoard。")
-		if cleanContextText(prep["stage"]) == mixInteractionLearningRequired {
-			return s.mixSessionStatusResponse(interaction, data, session, observation, reply)
-		}
 		return ChatResponse{
 			ConversationID:      interaction.ConversationID,
 			GoalID:              interaction.GoalID,
@@ -616,9 +609,8 @@ func (s *Server) publishMixBoardInteraction(ctx context.Context, interaction Pen
 			return s.mixSessionStatusResponse(interaction, data, session, observation, err.Error())
 		}
 	}
-	s.attachGoalControlSurface(ctx, interaction, session, observation)
 	applyMixPlannerPrep(observation, prep)
-	session = mixSessionAfterControlSurface(session, observation, false)
+	session = mixSessionAfterMixBoard(session, observation, false)
 	session.PlannerPrep = prep
 	packet := buildMixTickPacket(session, observation, mixTuningUserNote(payload, interaction.RequestContext, data, session))
 	applyMixTickPacket(observation, packet)
@@ -626,7 +618,6 @@ func (s *Server) publishMixBoardInteraction(ctx context.Context, interaction Pen
 	s.storeMixSession(session)
 	data["mix_session"] = mixSessionMap(session)
 	applyMixPlannerPrepToWorkflowData(data, prep)
-	data["goal_control_surface"] = mixGoalControlSurfaceFromObservation(observation)
 	data["mix_tick_packet"] = packet
 	data["mix_observation"] = observation
 	return s.mixSessionStatusResponse(interaction, data, session, observation, "MixBoard 已发布，请确认控制面后再执行。")
@@ -647,16 +638,13 @@ func (s *Server) advanceMixPlannerInteraction(ctx context.Context, interaction P
 	data["mix_session"] = mixSessionMap(session)
 	applyMixPlannerPrepToWorkflowData(data, prep)
 	if len(observation) > 0 {
-		if boolValue(prep["ready_to_publish_mixboard"]) || cleanContextText(prep["stage"]) == mixInteractionLearningRequired {
+		if boolValue(prep["ready_to_publish_mixboard"]) {
 			data["mix_observation"] = observation
 		} else {
 			delete(data, "mix_observation")
 		}
 	}
 	reply := mixPlannerPrepReply(prep, prepErr)
-	if cleanContextText(prep["stage"]) == mixInteractionLearningRequired {
-		return s.mixSessionStatusResponse(interaction, data, session, observation, reply)
-	}
 	return ChatResponse{
 		ConversationID:      interaction.ConversationID,
 		GoalID:              interaction.GoalID,
@@ -749,7 +737,6 @@ func (s *Server) mixPlannerLLMPatch(ctx context.Context, conversationID, goalID,
 			"plugin_types",
 			"local_plugin_candidates",
 			"plugin_chain_order",
-			"skill_profile_status",
 			"macro_panel",
 			"fast_tick_packet",
 		},
@@ -800,7 +787,7 @@ func (s *Server) mixPlannerLLMPatch(ctx context.Context, conversationID, goalID,
 	if err != nil {
 		return nil, err
 	}
-	patch, err := parseFirstPluginUIReferenceJSONObject(resp.Text)
+	patch, err := parseFirstJSONObject(resp.Text)
 	if err != nil {
 		return nil, err
 	}
@@ -872,28 +859,20 @@ func chatVisibleTrackRows(state map[string]any) []map[string]any {
 
 func (s *Server) confirmControlSurfaceInteraction(ctx context.Context, interaction PendingInteraction, data map[string]any, session MixSession, payload map[string]any) ChatResponse {
 	observation := mapValue(data["mix_observation"])
-	if len(mixGoalControlSurfaceFromObservation(observation)) == 0 {
-		s.attachGoalControlSurface(ctx, interaction, session, observation)
-	}
 	userNote := mixTuningUserNote(payload, interaction.RequestContext, data, session)
 	if userNote != "" {
 		session.UserNote = userNote
 	}
 	packet := buildMixTickPacket(session, observation, userNote)
 	applyMixTickPacket(observation, packet)
-	status := cleanContextText(packet["status"])
-	if status == mixInteractionLearningRequired {
-		session.InteractionPhase = mixInteractionLearningRequired
-		session.MixBoardVisibility = mixBoardVisibilityPublished
-		session.BlockingPoint = "执行前需要先完成 Plugin Grabber 学习。"
-	} else if status == "ready" {
+	if cleanContextText(packet["status"]) == "ready" {
 		session.InteractionPhase = mixInteractionReadyForTick
 		session.MixBoardVisibility = mixBoardVisibilityPublished
 		session.BlockingPoint = ""
 	} else {
 		session.InteractionPhase = mixInteractionControlSurfacePublished
 		session.MixBoardVisibility = mixBoardVisibilityPublished
-		session.BlockingPoint = "Control surface is not executable yet: " + status
+		session.BlockingPoint = "MixBoard has no executable macro control: " + cleanContextText(packet["status"])
 	}
 	session.State = mixStateObservationReady
 	session.UpdatedAt = time.Now().Format(time.RFC3339Nano)
@@ -902,13 +881,12 @@ func (s *Server) confirmControlSurfaceInteraction(ctx context.Context, interacti
 	data["mix_session"] = mixSessionMap(session)
 	data["mix_tick_packet"] = packet
 	data["mix_observation"] = observation
-	reply := "Control surface checked; no plugin was loaded from this legacy control-surface action."
+	reply := "MixBoard controls checked."
 	if session.BlockingPoint != "" {
 		reply = session.BlockingPoint
 	}
 	return s.mixSessionStatusResponse(interaction, data, session, observation, reply)
 }
-
 func (s *Server) enterMixDiscussionInteraction(interaction PendingInteraction, data map[string]any, session MixSession) ChatResponse {
 	session.InteractionPhase = mixInteractionPlanningChat
 	session.MixBoardVisibility = mixBoardVisibilityCollapsed
@@ -940,7 +918,7 @@ func (s *Server) submitMixBoardIntervention(ctx context.Context, interaction Pen
 	observation := mapValue(data["mix_observation"])
 	packet := buildMixTickPacket(session, observation, userNote)
 	applyMixTickPacket(observation, packet)
-	session = mixSessionAfterControlSurface(session, observation, cleanContextText(packet["status"]) == "ready")
+	session = mixSessionAfterMixBoard(session, observation, cleanContextText(packet["status"]) == "ready")
 	session.UpdatedAt = time.Now().Format(time.RFC3339Nano)
 	s.storeMixSession(session)
 	updateMixBoardRuntimeState(observation, session, nil)
@@ -948,81 +926,6 @@ func (s *Server) submitMixBoardIntervention(ctx context.Context, interaction Pen
 	data["mix_tick_packet"] = packet
 	data["mix_observation"] = observation
 	return s.mixSessionStatusResponse(interaction, data, session, observation, "MixBoard intervention captured for the next single tick.")
-}
-
-func (s *Server) loadConfirmedControlSurfacePlugins(ctx context.Context, interaction PendingInteraction, session MixSession, observation map[string]any) ([]map[string]any, error) {
-	if s == nil || s.harness == nil {
-		return nil, nil
-	}
-	surface := mixGoalControlSurfaceFromObservation(observation)
-	if len(surface) == 0 {
-		return nil, nil
-	}
-	results := []map[string]any{}
-	attemptedLoadKeys := map[string]bool{}
-	for _, row := range mapRowsValue(surface["selected_chain"]) {
-		if cleanContextText(row["instance_status"]) != mixcontrolsurface.InstanceNeedsLoad {
-			continue
-		}
-		profileStatus := cleanContextText(row["profile_status"])
-		if profileStatus != mixcontrolsurface.ProfileReady && profileStatus != mixcontrolsurface.ProfileNotRequired {
-			continue
-		}
-		plugin := mapValue(row["selected_plugin"])
-		pluginPath := firstNonEmpty(cleanContextText(plugin["plugin_path"]), cleanContextText(plugin["path"]), cleanContextText(plugin["file_path"]))
-		trackID := firstNonEmpty(session.TargetRef.ID, cleanContextText(mapValue(row["target"])["id"]))
-		loadKey := confirmedControlSurfacePluginLoadKey(trackID, plugin)
-		result := map[string]any{
-			"role":        cleanContextText(row["role"]),
-			"type":        cleanContextText(row["type"]),
-			"plugin_name": firstNonEmpty(cleanContextText(plugin["name"]), cleanContextText(plugin["descriptive_name"]), pluginPath),
-			"plugin_path": pluginPath,
-			"track_id":    trackID,
-		}
-		if attemptedLoadKeys[loadKey] {
-			result["status"] = "skipped_duplicate_plugin"
-			result["reason"] = "同一个插件已在本次控制面确认中加载，复用该实例承载多个处理角色。"
-			results = append(results, result)
-			continue
-		}
-		attemptedLoadKeys[loadKey] = true
-		if pluginPath == "" || trackID == "" {
-			result["status"] = "blocked"
-			result["error"] = "selected plugin has no loadable plugin_path or track_id"
-			results = append(results, result)
-			return results, fmt.Errorf("%s", result["error"])
-		}
-		resp, err := s.harness.Invoke(ctx, harness.InvokeRequest{
-			Tool: "rack.add_node",
-			Args: map[string]any{
-				"track_id":    trackID,
-				"plugin_path": pluginPath,
-			},
-			Context:   interaction.RequestContext,
-			Source:    "mixboard_control_surface_confirm",
-			Confirmed: true,
-			RunID:     interaction.RunID,
-			GoalID:    interaction.GoalID,
-		})
-		result["status"] = resp.Status
-		result["agent_action_id"] = resp.AgentActionID
-		if resp.Error != "" || err != nil {
-			result["error"] = firstNonEmpty(resp.Error, fmt.Sprint(err))
-			results = append(results, result)
-			return results, fmt.Errorf("%s", result["error"])
-		}
-		if len(resp.Result) > 0 {
-			result["result"] = resp.Result
-		}
-		results = append(results, result)
-	}
-	return results, nil
-}
-
-func confirmedControlSurfacePluginLoadKey(trackID string, plugin map[string]any) string {
-	pluginPath := firstNonEmpty(cleanContextText(plugin["plugin_path"]), cleanContextText(plugin["path"]), cleanContextText(plugin["file_path"]))
-	pluginID := firstNonEmpty(cleanContextText(plugin["profile_id"]), cleanContextText(plugin["id"]), cleanContextText(plugin["identifier"]), pluginPath, cleanContextText(plugin["name"]))
-	return strings.ToLower(strings.Join([]string{strings.TrimSpace(trackID), strings.TrimSpace(pluginID)}, "|"))
 }
 
 func (s *Server) runSingleMixTickInteraction(ctx context.Context, interaction PendingInteraction, data map[string]any, session MixSession, payload map[string]any) ChatResponse {
@@ -1061,13 +964,10 @@ func (s *Server) runSingleMixTickInteraction(ctx context.Context, interaction Pe
 		applyMixTickPacket(observationSeed, packet)
 	}
 	status := cleanContextText(packet["status"])
-	if status == mixInteractionLearningRequired || status == "blocked" || status == "no_allowed_controls" {
-		session.InteractionPhase = mixInteractionLearningRequired
+	if status == "blocked" || status == "no_allowed_controls" {
+		session.InteractionPhase = mixInteractionControlSurfacePublished
 		session.MixBoardVisibility = mixBoardVisibilityPublished
 		session.BlockingPoint = firstNonEmpty(cleanContextText(packet["status"]), "single tick is blocked")
-		if request := mapValue(packet["plugin_learning_request"]); len(request) > 0 {
-			session.BlockingPoint = "需要先完成 Plugin Grabber 学习：" + firstNonEmpty(cleanContextText(request["plugin_name"]), cleanContextText(request["type"]))
-		}
 		return s.mixSessionStatusResponse(interaction, data, session, observationSeed, session.BlockingPoint)
 	}
 	if status == "needs_confirmation" && mixInteractionPhase(session) != mixInteractionReadyForTick {
@@ -1344,7 +1244,7 @@ func mixPlannerSetGoalDetail(prep map[string]any, session *MixSession, goal stri
 		return
 	}
 	if cleanContextText(prep["goal_detail"]) != goal {
-		mixPlannerClearAcceptedSlots(prep, "plugin_types", "local_plugin_candidates", "plugin_chain_order", "skill_profile_status", "macro_panel", "fast_tick_packet")
+		mixPlannerClearAcceptedSlots(prep, "plugin_types", "local_plugin_candidates", "plugin_chain_order", "macro_panel", "fast_tick_packet")
 		prep["publish_mixboard_prompted"] = false
 		prep["publish_mixboard_confirmed"] = false
 	}
@@ -1473,6 +1373,18 @@ func mixTextContainsAny(text string, needles ...string) bool {
 	return false
 }
 
+func mixRequiredPluginRoleTypes(goalText string) []string {
+	text := strings.ToLower(strings.TrimSpace(goalText))
+	roles := []string{"eq"}
+	if strings.Contains(text, "compress") || strings.Contains(text, "dynamics") {
+		roles = append(roles, "dynamics")
+	}
+	if strings.Contains(text, "reverb") || strings.Contains(text, "space") {
+		roles = append(roles, "space")
+	}
+	return roles
+}
+
 func updateMixPlannerPrepDerived(prep map[string]any, session MixSession) {
 	goalParts := []string{}
 	for _, part := range []string{
@@ -1488,7 +1400,7 @@ func updateMixPlannerPrepDerived(prep map[string]any, session MixSession) {
 	if goalText == "" {
 		goalText = session.GoalText
 	}
-	roleTypes := mixcontrolsurface.RequiredRoleTypes(goalText)
+	roleTypes := mixRequiredPluginRoleTypes(goalText)
 	if len(roleTypes) == 0 {
 		roleTypes = []string{"eq", "dynamics"}
 	}
@@ -1522,7 +1434,7 @@ func updateMixPlannerPrepDerived(prep map[string]any, session MixSession) {
 		prep["ready_to_publish_mixboard"] = false
 		return
 	}
-	if cleanContextText(prep["blocking_point"]) != "" || cleanContextText(prep["stage"]) == mixInteractionLearningRequired {
+	if cleanContextText(prep["blocking_point"]) != "" {
 		prep["missing_inputs"] = []string{"system_preflight_blocked"}
 		prep["open_questions"] = []map[string]any{}
 		prep["next_question"] = firstNonEmpty(cleanContextText(prep["blocking_point"]), "系统预检仍有阻断，不能生成 MixBoard。")
@@ -1590,12 +1502,6 @@ func mixPlanningWorkspaceFromPrep(prep map[string]any, session MixSession) map[s
 	if blocker := cleanContextText(prep["blocking_point"]); blocker != "" {
 		systemBlockers = append(systemBlockers, blocker)
 	}
-	if cleanContextText(prep["stage"]) == mixInteractionLearningRequired {
-		systemReady = false
-		if len(systemBlockers) == 0 {
-			systemBlockers = append(systemBlockers, "plugin learning required")
-		}
-	}
 	workspace := map[string]any{
 		"schema_version":      mixPlanningWorkspaceSchemaVersion,
 		"mix_session_id":      session.MixSessionID,
@@ -1618,7 +1524,6 @@ func mixPlanningWorkspaceFromPrep(prep map[string]any, session MixSession) map[s
 			mixWorkspaceSlot("plugin_types", "所需插件类型", mixPlannerWorkspaceSlotComplete(prep, "plugin_types"), strings.Join(mixPluginTypeNames(mapRowsValue(prep["plugin_type_plan"])), " / ")),
 			mixWorkspaceSlot("local_plugin_candidates", "本地插件候选", mixPlannerWorkspaceSlotComplete(prep, "local_plugin_candidates"), mixCandidateSummary(mapRowsValue(prep["plugin_candidates"]))),
 			mixWorkspaceSlot("plugin_chain_order", "插件链顺序", mixPlannerWorkspaceSlotComplete(prep, "plugin_chain_order"), mixChainSummary(mapRowsValue(prep["plugin_chain_order"]))),
-			mixWorkspaceSlot("skill_profile_status", "Skill/Profile 检查", mixPlannerWorkspaceSlotComplete(prep, "skill_profile_status"), mixSkillProfileSummary(prep)),
 			mixWorkspaceSlot("macro_panel", "宏面板草案", mixPlannerWorkspaceSlotComplete(prep, "macro_panel"), mixMacroPanelSummary(mapValue(prep["macro_panel_draft"]))),
 			mixWorkspaceSlot("fast_tick_packet", "快速模式上下文包", mixPlannerWorkspaceSlotComplete(prep, "fast_tick_packet"), mixFastPacketSummary(prep)),
 		},
@@ -1626,7 +1531,6 @@ func mixPlanningWorkspaceFromPrep(prep map[string]any, session MixSession) map[s
 		"plugin_chain_order":      mapRowsValue(prep["plugin_chain_order"]),
 		"local_plugin_candidates": mapRowsValue(prep["plugin_candidates"]),
 		"selected_chain_draft":    mapRowsValue(prep["selected_chain_draft"]),
-		"skill_profile_status":    mapValue(prep["skill_profile_status"]),
 		"macro_panel_draft":       mapValue(prep["macro_panel_draft"]),
 		"fast_tick_context": map[string]any{
 			"status":            mixFastPacketSummary(prep),
@@ -1686,8 +1590,6 @@ func mixPlannerWorkspaceSlotHasDraftValue(prep map[string]any, slotID string) bo
 		return len(mapRowsValue(prep["plugin_candidates"])) > 0
 	case "plugin_chain_order":
 		return len(mapRowsValue(prep["plugin_chain_order"])) > 0
-	case "skill_profile_status":
-		return len(mapValue(prep["skill_profile_status"])) > 0
 	case "macro_panel":
 		return len(mapRowsValue(mapValue(prep["macro_panel_draft"])["controls"])) > 0
 	case "fast_tick_packet":
@@ -1698,7 +1600,7 @@ func mixPlannerWorkspaceSlotHasDraftValue(prep map[string]any, slotID string) bo
 }
 
 func mixPlannerWorkspaceSlotIDs() []string {
-	return []string{"mix_goal", "plugin_types", "local_plugin_candidates", "plugin_chain_order", "skill_profile_status", "macro_panel", "fast_tick_packet"}
+	return []string{"mix_goal", "plugin_types", "local_plugin_candidates", "plugin_chain_order", "macro_panel", "fast_tick_packet"}
 }
 
 func mixPlannerSlotAccepted(prep map[string]any, slotID string) bool {
@@ -1804,22 +1706,6 @@ func mixChainSummary(rows []map[string]any) string {
 		}
 	}
 	return strings.Join(compactNonEmptyStrings(parts), " -> ")
-}
-
-func mixSkillProfileSummary(prep map[string]any) string {
-	status := mapValue(prep["skill_profile_status"])
-	profileStatus := cleanContextText(status["profile_status"])
-	if profileStatus == "" {
-		profileStatus = cleanContextText(prep["profile_status"])
-	}
-	if profileStatus == "" {
-		return ""
-	}
-	next := cleanContextText(status["next_action"])
-	if next != "" {
-		return profileStatus + " / " + next
-	}
-	return profileStatus
 }
 
 func mixMacroPanelSummary(panel map[string]any) string {
@@ -1936,17 +1822,11 @@ func mixPlannerQuestions(missing []string) []map[string]any {
 				"question": "我已经草拟了插件链顺序，需要先确认处理先后关系。",
 				"examples": []string{"可以，按这个顺序", "先混响再压缩不合适，换一版"},
 			})
-		case "workspace_skill_profile_status":
-			out = append(out, map[string]any{
-				"id":       id,
-				"question": "我需要先检查候选插件是否具备 Plugin Grabber skill/profile。",
-				"examples": []string{"如果缺 skill 就先停下", "优先使用 skill ready 的插件"},
-			})
 		case "workspace_macro_panel":
 			out = append(out, map[string]any{
 				"id":       id,
 				"question": "我需要先生成可执行的宏面板草案。",
-				"examples": []string{"先给出宏控制草案", "只允许 virtual controls"},
+				"examples": []string{"先给出宏控制草案", "只允许 retired control mappings"},
 			})
 		case "workspace_fast_tick_packet":
 			out = append(out, map[string]any{
@@ -1988,10 +1868,8 @@ func mixPlannerNextQuestion(missing []string) string {
 		return "我需要先列出本地候选插件并说明推荐理由。"
 	case "workspace_plugin_chain_order":
 		return "我已经草拟了插件链顺序。请确认这个处理先后关系，或告诉我想调整哪里。"
-	case "workspace_skill_profile_status":
-		return "我需要先检查候选插件的 skill/profile 状态，缺 skill 时必须停下学习。"
 	case "workspace_macro_panel":
-		return "我需要先生成宏面板草案，只包含 macro、virtual controls 或确认过的 binding。"
+		return "我需要先生成宏面板草案，只包含 macro、retired control mappings 或确认过的 binding。"
 	case "workspace_fast_tick_packet":
 		return "我需要先打包快速模式上下文，执行阶段只能消费确认后的控件。"
 	case "planner_revision_note":
@@ -2042,7 +1920,7 @@ func mixPlannerModelStrategy() map[string]any {
 		"phase":            mixInteractionPlanningChat,
 		"reasoning_effort": "normal",
 		"chain_of_thought": "planner_private",
-		"must_collect":     []string{"goal_detail", "plugin_type_plan", "plugin_candidates", "plugin_chain_order", "skill_profile_status", "macro_panel_draft"},
+		"must_collect":     []string{"goal_detail", "plugin_type_plan", "plugin_candidates", "plugin_chain_order", "macro_panel_draft"},
 		"publish_gate":     "ready_to_publish_mixboard",
 	}
 }
@@ -2069,14 +1947,9 @@ func (s *Server) ensureMixPlannerPrepReady(ctx context.Context, interaction Pend
 			prep["ready_to_publish_mixboard"] = false
 			return prep, observation, err
 		}
-		s.attachGoalControlSurface(ctx, interaction, session, observation)
 		fillMixPlannerPrepFromObservation(prep, observation, session)
 		updateMixPlannerPrepDerived(prep, session)
 		applyMixPlannerPrep(observation, prep)
-		if cleanContextText(prep["stage"]) == mixInteractionLearningRequired {
-			packet := buildMixTickPacket(session, observation, "")
-			applyMixTickPacket(observation, packet)
-		}
 	}
 	if !boolValue(prep["ready_to_publish_mixboard"]) {
 		prep["updated_at"] = time.Now().Format(time.RFC3339Nano)
@@ -2087,35 +1960,11 @@ func (s *Server) ensureMixPlannerPrepReady(ctx context.Context, interaction Pend
 }
 
 func fillMixPlannerPrepFromObservation(prep map[string]any, observation map[string]any, session MixSession) {
-	surface := mixGoalControlSurfaceFromObservation(observation)
-	if len(surface) > 0 {
-		prep["goal_control_surface_draft"] = surface
-		prep["plugin_candidates"] = mapRowsValue(surface["plugin_candidates"])
-		prep["selected_chain_draft"] = mapRowsValue(surface["selected_chain"])
-		prep["proposed_controls"] = mapRowsValue(surface["proposed_controls"])
-		prep["instance_status"] = cleanContextText(surface["instance_status"])
-		prep["profile_status"] = cleanContextText(surface["profile_status"])
-		prep["skill_profile_status"] = map[string]any{
-			"profile_status": cleanContextText(surface["profile_status"]),
-			"blockers":       contextStringSlice(surface["blockers"]),
-			"next_action":    cleanContextText(surface["next_required_action"]),
-		}
-		if learningRequest := mixPluginLearningRequestFromSurface(surface); len(learningRequest) > 0 {
-			prep["stage"] = mixInteractionLearningRequired
-			prep["ready_to_publish_mixboard"] = false
-			prep["plugin_learning_request"] = learningRequest
-			prep["blocking_point"] = "需要先完成 Plugin Grabber 学习：" + firstNonEmpty(cleanContextText(learningRequest["plugin_name"]), cleanContextText(learningRequest["type"]))
-		} else if cleanContextText(surface["readiness"]) == mixcontrolsurface.ReadinessBlocked {
-			prep["blocking_point"] = strings.Join(contextStringSlice(surface["blockers"]), "; ")
-		} else {
-			delete(prep, "blocking_point")
-		}
-	}
 	if plan := ensureMixControlPlan(observation, session); len(plan) > 0 {
 		prep["macro_panel_draft"] = mapValue(plan["macro_control_panel"])
+		prep["proposed_controls"] = mixMacroControlsFromPanel(mapValue(plan["macro_control_panel"]))
 	}
 }
-
 func applyMixPlannerPrep(observation map[string]any, prep map[string]any) {
 	if len(observation) == 0 || len(prep) == 0 {
 		return
@@ -2154,11 +2003,6 @@ func applyMixPlannerPrepToWorkflowData(data map[string]any, prep map[string]any)
 }
 
 func applyMixPlannerPrepSessionState(session *MixSession, prep map[string]any) {
-	if cleanContextText(prep["stage"]) == mixInteractionLearningRequired {
-		session.InteractionPhase = mixInteractionLearningRequired
-		session.MixBoardVisibility = mixBoardVisibilityPublished
-		return
-	}
 	session.InteractionPhase = mixInteractionPlanningChat
 	session.MixBoardVisibility = mixBoardVisibilityCollapsed
 }
@@ -2168,11 +2012,8 @@ func mixPlannerPrepReply(prep map[string]any, err error) string {
 	if err != nil {
 		return "规划预检被阻断：" + err.Error()
 	}
-	if cleanContextText(prep["stage"]) == mixInteractionLearningRequired {
-		return firstNonEmpty(cleanContextText(prep["blocking_point"]), "发布可执行 MixBoard 前需要先完成 Plugin Grabber 学习。")
-	}
 	if boolValue(prep["ready_to_publish_mixboard"]) {
-		return mixPlanningConversationalReply(workspace, "规划信息已经足够。我已经整理好混音目标、插件角色、本地候选、链路顺序、skill/profile 状态和宏面板草案；确认后可以发布 MixBoard。")
+		return mixPlanningConversationalReply(workspace, "规划信息已经足够。我已经整理好混音目标、插件角色、本地候选、链路顺序、parameter-surface 状态和宏面板草案；确认后可以发布 MixBoard。")
 	}
 	if question := cleanContextText(prep["next_question"]); question != "" {
 		return mixPlanningConversationalReply(workspace, question)
@@ -2299,8 +2140,6 @@ func mixPlannerStageLabel(stage string) string {
 		return "规划预检完成"
 	case "planner_observation_blocked":
 		return "观察预检受阻"
-	case mixInteractionLearningRequired:
-		return "需要插件学习"
 	default:
 		return firstNonEmpty(stage, "规划中")
 	}
@@ -2369,7 +2208,7 @@ func mixPlanningDiscussionReply(session MixSession) string {
 	if len(workspace) > 0 {
 		return mixPlanningConversationalReply(workspace, cleanContextText(workspace["next_question"]))
 	}
-	return fmt.Sprintf("%s 已进入思考讨论模式。我会在后台建立混音规划工作区，先和你确认目标、插件类型、候选插件、链路顺序、skill/profile、宏面板和快速模式上下文；MixBoard 会先保持收起。", mixModeLabel(session.Mode))
+	return fmt.Sprintf("%s 已进入思考讨论模式。我会在后台建立混音规划工作区，先和你确认目标、插件类型、候选插件、链路顺序、parameter-surface、宏面板和快速模式上下文；MixBoard 会先保持收起。", mixModeLabel(session.Mode))
 }
 
 func (s *Server) mixPlanningDiscussionInteraction(interaction PendingInteraction, session MixSession, data map[string]any) AgentInteractionRequest {
@@ -2433,37 +2272,24 @@ func mixPlanningWorkspaceReviewItems(workspace map[string]any) []AgentInteractio
 	return items
 }
 
-func mixSessionAfterControlSurface(session MixSession, observation map[string]any, confirmed bool) MixSession {
-	surface := mixGoalControlSurfaceFromObservation(observation)
-	packet := mixTickPacketFromObservation(observation)
-	status := cleanContextText(packet["status"])
-	if status == "" {
-		status = cleanContextText(surface["readiness"])
-	}
+func mixSessionAfterMixBoard(session MixSession, observation map[string]any, confirmed bool) MixSession {
+	status := cleanContextText(mixTickPacketFromObservation(observation)["status"])
 	switch {
-	case len(mixPluginLearningRequestFromObservation(observation)) > 0 || status == mixInteractionLearningRequired:
-		session.InteractionPhase = mixInteractionLearningRequired
-		session.MixBoardVisibility = mixBoardVisibilityPublished
-		session.BlockingPoint = "执行前需要先完成 Plugin Grabber 学习。"
 	case confirmed && status == "ready":
 		session.InteractionPhase = mixInteractionReadyForTick
 		session.MixBoardVisibility = mixBoardVisibilityPublished
 		session.BlockingPoint = ""
-	case status == mixcontrolsurface.ReadinessPlanReady || status == "ready":
+	case status == "ready" || status == "needs_confirmation":
 		session.InteractionPhase = mixInteractionControlSurfacePublished
 		session.MixBoardVisibility = mixBoardVisibilityPublished
 		session.BlockingPoint = ""
-	case status == mixcontrolsurface.ReadinessNeedsConfirmation || status == "needs_confirmation":
-		session.InteractionPhase = mixInteractionControlSurfacePublished
-		session.MixBoardVisibility = mixBoardVisibilityPublished
-		session.BlockingPoint = "Control surface needs confirmation before execution."
 	default:
 		session.InteractionPhase = mixInteractionControlSurfacePublished
 		session.MixBoardVisibility = mixBoardVisibilityPublished
+		session.BlockingPoint = "MixBoard has no executable macro control: " + firstNonEmpty(status, "unknown")
 	}
 	return session
 }
-
 func selectMixTickControl(packet map[string]any, payload map[string]any) (map[string]any, error) {
 	fields := mapValue(payload["fields"])
 	if strings.EqualFold(cleanContextText(payload["tool"]), "set_plugin_param") ||
@@ -2487,11 +2313,6 @@ func selectMixTickControl(packet map[string]any, payload map[string]any) (map[st
 	}
 	if requestedID != "" || requestedName != "" {
 		return nil, fmt.Errorf("requested control is outside MixTickPacket.allowed_controls")
-	}
-	for _, control := range allowed {
-		if cleanContextText(control["control_kind"]) == "plugin_virtual_control" {
-			return control, nil
-		}
 	}
 	return allowed[0], nil
 }
@@ -2561,45 +2382,6 @@ func (s *Server) applySelectedMixTickControl(ctx context.Context, interaction Pe
 			return turn, mixMacroValueExecution(macro, nextDB, resp), fmt.Errorf("%s", firstNonEmpty(resp.Error, fmt.Sprint(err), "macro single tick failed"))
 		}
 		return turn, mixMacroValueExecution(macro, nextDB, resp), nil
-	case "plugin_virtual_control":
-		if cleanContextText(control["plugin_id"]) == "" || cleanContextText(control["track_id"]) == "" {
-			return turn, nil, fmt.Errorf("plugin virtual control requires ready track_id and plugin_id")
-		}
-		target := map[string]any{
-			"intent":     firstNonEmpty(userNote, session.GoalText),
-			"amount":     "small",
-			"small_step": true,
-		}
-		if componentID := cleanContextText(control["component_id"]); componentID != "" {
-			target["component_id"] = componentID
-		}
-		resp, err := s.harness.Invoke(ctx, harness.InvokeRequest{
-			Tool: "plugin_grabber.apply_control",
-			Args: map[string]any{
-				"track_id":  cleanContextText(control["track_id"]),
-				"plugin_id": cleanContextText(control["plugin_id"]),
-				"control":   cleanContextText(control["control_name"]),
-				"target":    target,
-			},
-			Context:   requestContext,
-			Source:    "mixboard_single_tick",
-			Confirmed: true,
-			RunID:     interaction.RunID,
-			GoalID:    interaction.GoalID,
-		})
-		turn["plugin_id"] = cleanContextText(control["plugin_id"])
-		turn["plugin_name"] = cleanContextText(control["plugin_name"])
-		turn["component_id"] = cleanContextText(control["component_id"])
-		turn["target"] = target
-		turn["agent_action_id"] = resp.AgentActionID
-		turn["status"] = resp.Status
-		if applied := mapRowsValue(resp.Result["applied_parameters"]); len(applied) > 0 {
-			turn["applied_parameters"] = applied
-		}
-		if err != nil || resp.Status != "ok" {
-			return turn, nil, fmt.Errorf("%s", firstNonEmpty(resp.Error, fmt.Sprint(err), "plugin virtual control single tick failed"))
-		}
-		return turn, nil, nil
 	default:
 		return turn, nil, fmt.Errorf("unsupported single tick control kind %q", cleanContextText(control["control_kind"]))
 	}
@@ -2607,8 +2389,6 @@ func (s *Server) applySelectedMixTickControl(ctx context.Context, interaction Pe
 
 func mixTickCurrentAction(turn map[string]any) string {
 	switch cleanContextText(turn["control_kind"]) {
-	case "plugin_virtual_control":
-		return fmt.Sprintf("Single tick: %s via %s.", cleanContextText(turn["control_name"]), cleanContextText(turn["plugin_name"]))
 	case "macro":
 		return fmt.Sprintf("Single tick: %s %.2f dB -> %.2f dB.", cleanContextText(turn["control_name"]), mixFloatNumber(turn["before_db"]), mixFloatNumber(turn["target_db"]))
 	default:
@@ -3325,269 +3105,14 @@ func mixObservationBlockingPoint(result map[string]any, err error) string {
 	return ""
 }
 
-func (s *Server) attachGoalControlSurface(ctx context.Context, interaction PendingInteraction, session MixSession, observation map[string]any) map[string]any {
-	if len(observation) == 0 || session.MixSessionID == "" {
-		return nil
-	}
-	roles := mixcontrolsurface.RequiredRoleTypes(session.GoalText)
-	candidates, warnings := s.mixControlSurfacePluginCandidates(ctx, interaction, roles)
-	profiles, profileWarnings := s.mixControlSurfaceProjectProfiles(ctx, interaction)
-	warnings = append(warnings, profileWarnings...)
-	rackPlugins := []map[string]any{}
-	if s != nil && s.harness != nil {
-		rackPlugins = mixControlSurfaceRackPlugins(s.harness.UserStateSummary(ctx))
-	}
-	rackPlugins = append(rackPlugins, mixControlSurfaceRackPlugins(interaction.RequestContext)...)
-	rackPlugins = append(rackPlugins, mixControlSurfaceRackPlugins(observation)...)
-	surface := mixcontrolsurface.Build(mixcontrolsurface.Request{
-		MixSessionID:     session.MixSessionID,
-		Mode:             session.Mode,
-		Goal:             session.GoalText,
-		Target:           mixSurfaceTarget(session.TargetRef),
-		Observation:      observation,
-		PluginCandidates: candidates,
-		ProjectProfiles:  profiles,
-		RackPlugins:      rackPlugins,
-		Warnings:         warnings,
-	})
-	applyGoalControlSurface(observation, surface)
-	return surface
-}
-
-func (s *Server) mixControlSurfacePluginCandidates(ctx context.Context, interaction PendingInteraction, roles []string) ([]map[string]any, []string) {
-	if s == nil || s.harness == nil {
-		return nil, []string{"harness unavailable for plugin semantic search"}
-	}
-	out := []map[string]any{}
-	warnings := []string{}
-	if len(roles) == 0 {
-		roles = []string{"eq", "dynamics"}
-	}
-	for _, role := range roles {
-		resp, err := s.harness.Invoke(ctx, harness.InvokeRequest{
-			Tool: "plugin.semantic_search",
-			Args: map[string]any{
-				"query": role,
-				"type":  role,
-				"limit": 6,
-			},
-			Context: mergeContext(interaction.RequestContext, map[string]any{
-				"conversation_id": interaction.ConversationID,
-				"goal_id":         interaction.GoalID,
-				"run_id":          interaction.RunID,
-			}),
-			Source:    "mix_goal_control_surface",
-			Confirmed: true,
-			RunID:     interaction.RunID,
-			GoalID:    interaction.GoalID,
-		})
-		if err != nil || resp.Status != "ok" {
-			warnings = append(warnings, fmt.Sprintf("plugin semantic search for %s unavailable: %s", role, firstNonEmpty(resp.Error, fmt.Sprint(err))))
-			continue
-		}
-		out = append(out, mapRowsValue(resp.Result["plugins"])...)
-		out = append(out, mapRowsValue(resp.Result["entries"])...)
-	}
-	return out, warnings
-}
-
-func (s *Server) mixControlSurfaceProjectProfiles(ctx context.Context, interaction PendingInteraction) ([]map[string]any, []string) {
-	warnings := []string{}
-	if s != nil && s.harness != nil {
-		resp, err := s.harness.Invoke(ctx, harness.InvokeRequest{
-			Tool:      "plugin_grabber.get_project_profiles",
-			Args:      map[string]any{},
-			Context:   interaction.RequestContext,
-			Source:    "mix_goal_control_surface",
-			Confirmed: true,
-			RunID:     interaction.RunID,
-			GoalID:    interaction.GoalID,
-		})
-		if err == nil && resp.Status == "ok" {
-			profiles := mapRowsValue(resp.Result["plugin_grabber_profiles"])
-			if len(profiles) == 0 {
-				profiles = mapRowsValue(resp.Result["profiles"])
-			}
-			if len(profiles) > 0 {
-				return profiles, nil
-			}
-		} else {
-			warnings = append(warnings, "project plugin profiles unavailable from runtime: "+firstNonEmpty(resp.Error, fmt.Sprint(err)))
-		}
-	}
-	localProfiles, localWarnings := mixControlSurfaceLocalProfiles()
-	warnings = append(warnings, localWarnings...)
-	return localProfiles, warnings
-}
-
-func mixControlSurfaceLocalProfiles() ([]map[string]any, []string) {
-	root := mixControlSurfaceProfileRoot()
-	if root == "" {
-		return nil, nil
-	}
-	entries, err := os.ReadDir(root)
-	if err != nil {
-		return nil, []string{"local plugin profile directory unavailable: " + err.Error()}
-	}
-	out := []map[string]any{}
-	for _, entry := range entries {
-		if entry.IsDir() || !strings.HasSuffix(strings.ToLower(entry.Name()), ".json") {
-			continue
-		}
-		data, err := os.ReadFile(filepath.Join(root, entry.Name()))
-		if err != nil {
-			continue
-		}
-		var row map[string]any
-		if json.Unmarshal(data, &row) == nil && len(row) > 0 {
-			out = append(out, row)
-		}
-	}
-	return out, nil
-}
-
-func mixControlSurfaceProfileRoot() string {
-	wd, err := os.Getwd()
-	if err != nil {
-		return ""
-	}
-	for dir := wd; dir != ""; dir = filepath.Dir(dir) {
-		candidate := filepath.Join(dir, "VitApp", "Workspace", "plugin_grabber_profiles")
-		if info, err := os.Stat(candidate); err == nil && info.IsDir() {
-			return candidate
-		}
-		parent := filepath.Dir(dir)
-		if parent == dir {
-			break
-		}
-	}
-	return ""
-}
-
-func mixControlSurfaceRackPlugins(sources ...map[string]any) []map[string]any {
-	out := []map[string]any{}
-	for _, source := range sources {
-		collectRackPlugins(&out, source)
-	}
-	return dedupeRackPlugins(out)
-}
-
-func collectRackPlugins(out *[]map[string]any, source map[string]any) {
-	if len(source) == 0 {
-		return
-	}
-	for _, row := range mapRowsValue(source["plugins"]) {
-		*out = append(*out, row)
-	}
-	for _, key := range []string{"plugin_rack", "rack", "selected_plugin"} {
-		rack := mapValue(source[key])
-		if len(rack) == 0 {
-			continue
-		}
-		for _, nested := range []string{"plugins", "items", "chain", "rack"} {
-			for _, row := range mapRowsValue(rack[nested]) {
-				*out = append(*out, row)
-			}
-		}
-		if cleanContextText(rack["plugin_id"]) != "" || cleanContextText(rack["plugin_name"]) != "" || cleanContextText(rack["name"]) != "" {
-			*out = append(*out, rack)
-		}
-	}
-	for _, track := range mapRowsValue(source["tracks"]) {
-		trackID := firstNonEmpty(cleanContextText(track["track_id"]), cleanContextText(track["id"]))
-		for _, row := range mapRowsValue(track["plugins"]) {
-			if cleanContextText(row["track_id"]) == "" && trackID != "" {
-				row["track_id"] = trackID
-			}
-			*out = append(*out, row)
-		}
-	}
-}
-
-func dedupeRackPlugins(rows []map[string]any) []map[string]any {
-	out := []map[string]any{}
-	seen := map[string]bool{}
-	for _, row := range rows {
-		key := strings.ToLower(strings.Join([]string{
-			cleanContextText(row["track_id"]),
-			firstNonEmpty(cleanContextText(row["plugin_id"]), cleanContextText(row["plugin_item_id"]), cleanContextText(row["id"])),
-			firstNonEmpty(cleanContextText(row["plugin_path"]), cleanContextText(row["path"])),
-			firstNonEmpty(cleanContextText(row["plugin_name"]), cleanContextText(row["name"])),
-		}, "|"))
-		if key == "|||" || seen[key] {
-			continue
-		}
-		seen[key] = true
-		out = append(out, row)
-	}
-	return out
-}
-
-func mixSurfaceTarget(target MixTargetRef) mixcontrolsurface.Target {
-	return mixcontrolsurface.Target{
-		Kind:       target.Kind,
-		ID:         target.ID,
-		Label:      target.Label,
-		Source:     target.Source,
-		Confidence: target.Confidence,
-	}
-}
-
-func applyGoalControlSurface(observation map[string]any, surface map[string]any) {
-	if len(observation) == 0 || len(surface) == 0 {
-		return
-	}
-	observation["goal_control_surface"] = surface
-	board := mapValue(observation["mixboard"])
-	board["goal_control_surface"] = surface
-	board["control_surface_status"] = cleanContextText(surface["readiness"])
-	board["control_surface_next_required_action"] = cleanContextText(surface["next_required_action"])
-	if cleanContextText(surface["readiness"]) == mixcontrolsurface.ReadinessBlocked {
-		blockers := contextStringSlice(surface["blockers"])
-		if len(blockers) > 0 {
-			board["current_action"] = "Goal Control Surface planning is blocked."
-			board["next_step"] = blockers[0]
-			board["open_blockers"] = blockers
-		}
-	}
-	observation["mixboard"] = board
-	contextPack := mapValue(observation["context_pack"])
-	if len(contextPack) > 0 {
-		contextPack["goal_control_surface"] = surface
-		header := mapValue(contextPack["session_header"])
-		header["goal_control_surface"] = surface
-		contextPack["session_header"] = header
-		observation["context_pack"] = contextPack
-	}
-}
-
-func mixGoalControlSurfaceFromObservation(observation map[string]any) map[string]any {
-	if len(observation) == 0 {
-		return nil
-	}
-	if surface := mapValue(observation["goal_control_surface"]); len(surface) > 0 {
-		return surface
-	}
-	if surface := mapValue(mapValue(observation["mixboard"])["goal_control_surface"]); len(surface) > 0 {
-		return surface
-	}
-	if surface := mapValue(mapValue(observation["context_pack"])["goal_control_surface"]); len(surface) > 0 {
-		return surface
-	}
+// Historical control-surface payloads are ignored after Profile retirement.
+func (s *Server) attachGoalControlSurface(context.Context, PendingInteraction, MixSession, map[string]any) map[string]any {
 	return nil
 }
 
-func mixGoalControlSurfaceTuningBlocker(observation map[string]any) string {
-	surface := mixGoalControlSurfaceFromObservation(observation)
-	if len(surface) == 0 || cleanContextText(surface["readiness"]) != mixcontrolsurface.ReadinessBlocked {
-		return ""
-	}
-	blockers := contextStringSlice(surface["blockers"])
-	if len(blockers) == 0 {
-		return "Goal Control Surface is blocked; resolve plugin/profile readiness before tuning."
-	}
-	return "Goal Control Surface is blocked: " + strings.Join(blockers, "; ")
-}
+func mixGoalControlSurfaceFromObservation(map[string]any) map[string]any { return nil }
+
+func mixGoalControlSurfaceTuningBlocker(map[string]any) string { return "" }
 
 func buildMixTickPacket(session MixSession, observation map[string]any, userIntervention string) map[string]any {
 	now := time.Now().Format(time.RFC3339Nano)
@@ -3616,83 +3141,8 @@ func buildMixTickPacket(session MixSession, observation map[string]any, userInte
 			"raw_param_write": false,
 		})
 	}
-	surface := mixGoalControlSurfaceFromObservation(observation)
-	learningRequest := mixPluginLearningRequestFromSurface(surface)
-	for _, row := range mapRowsValue(surface["selected_chain"]) {
-		role := cleanContextText(row["role"])
-		roleType := cleanContextText(row["type"])
-		profileStatus := cleanContextText(row["profile_status"])
-		instanceStatus := cleanContextText(row["instance_status"])
-		instance := mapValue(row["instance"])
-		trackID := firstNonEmpty(cleanContextText(instance["track_id"]), session.TargetRef.ID)
-		pluginID := firstNonEmpty(cleanContextText(instance["plugin_id"]), cleanContextText(instance["plugin_item_id"]), cleanContextText(instance["id"]))
-		pluginName := firstNonEmpty(cleanContextText(mapValue(row["selected_plugin"])["name"]), cleanContextText(instance["plugin_name"]), cleanContextText(instance["name"]))
-		if profileStatus == mixcontrolsurface.ProfileMissing || profileStatus == mixcontrolsurface.ProfileStale {
-			blocked = append(blocked, map[string]any{
-				"role":           role,
-				"type":           roleType,
-				"plugin_name":    pluginName,
-				"profile_status": profileStatus,
-				"reason":         "plugin_grabber_profile_" + profileStatus,
-				"next_action":    "learn_plugin_profile",
-			})
-			continue
-		}
-		if profileStatus != mixcontrolsurface.ProfileReady && profileStatus != mixcontrolsurface.ProfileNotRequired {
-			blocked = append(blocked, map[string]any{
-				"role":           role,
-				"type":           roleType,
-				"plugin_name":    pluginName,
-				"profile_status": firstNonEmpty(profileStatus, "unknown"),
-				"reason":         "profile_not_ready",
-			})
-			continue
-		}
-		if instanceStatus != mixcontrolsurface.InstanceExisting || trackID == "" || pluginID == "" {
-			blocked = append(blocked, map[string]any{
-				"role":            role,
-				"type":            roleType,
-				"plugin_name":     pluginName,
-				"instance_status": firstNonEmpty(instanceStatus, mixcontrolsurface.InstanceUnknown),
-				"reason":          "plugin_instance_not_ready",
-				"next_action":     "confirm_control_surface",
-			})
-			continue
-		}
-		for _, control := range mapRowsValue(row["proposed_controls"]) {
-			controlName := firstNonEmpty(cleanContextText(control["name"]), cleanContextText(control["control"]), cleanContextText(control["id"]))
-			if controlName == "" {
-				continue
-			}
-			controlID := "virtual:" + sanitizeMixID(pluginID) + ":" + sanitizeMixID(controlName)
-			allowed = append(allowed, map[string]any{
-				"control_id":      controlID,
-				"control_name":    controlName,
-				"control_kind":    "plugin_virtual_control",
-				"tool":            "plugin_grabber.apply_control",
-				"role":            role,
-				"type":            roleType,
-				"track_id":        trackID,
-				"plugin_id":       pluginID,
-				"plugin_name":     pluginName,
-				"component_id":    cleanContextText(control["component_id"]),
-				"inputs":          control["inputs"],
-				"confirmed":       true,
-				"source":          "goal_control_surface",
-				"raw_param_write": false,
-			})
-		}
-	}
-	readiness := cleanContextText(surface["readiness"])
 	status := "ready"
-	switch {
-	case len(learningRequest) > 0:
-		status = mixInteractionLearningRequired
-	case readiness == mixcontrolsurface.ReadinessBlocked:
-		status = "blocked"
-	case readiness == mixcontrolsurface.ReadinessNeedsConfirmation:
-		status = "needs_confirmation"
-	case len(allowed) == 0:
+	if len(allowed) == 0 {
 		status = "no_allowed_controls"
 	}
 	packet := map[string]any{
@@ -3717,13 +3167,6 @@ func buildMixTickPacket(session MixSession, observation map[string]any, userInte
 		"created_at":            now,
 		"updated_at":            now,
 	}
-	if len(surface) > 0 {
-		packet["control_surface_id"] = firstNonEmpty(cleanContextText(surface["control_surface_id"]), cleanContextText(surface["mix_session_id"]), session.ControlSurfaceID)
-		packet["control_surface_status"] = readiness
-	}
-	if len(learningRequest) > 0 {
-		packet["plugin_learning_request"] = learningRequest
-	}
 	return packet
 }
 
@@ -3735,10 +3178,6 @@ func applyMixTickPacket(observation map[string]any, packet map[string]any) {
 	board := mapValue(observation["mixboard"])
 	board["mix_tick_packet"] = packet
 	board["mix_tick_packet_status"] = cleanContextText(packet["status"])
-	if request := mapValue(packet["plugin_learning_request"]); len(request) > 0 {
-		board["learning_required"] = true
-		board["plugin_learning_request"] = request
-	}
 	observation["mixboard"] = board
 	contextPack := mapValue(observation["context_pack"])
 	if len(contextPack) > 0 {
@@ -3788,13 +3227,10 @@ func mixTickSafetyPolicy(session MixSession) map[string]any {
 		maxStep = 0.5
 	}
 	return map[string]any{
-		"max_macro_step_db":        maxStep,
-		"max_plugin_control_step":  "small",
-		"require_allowed_control":  true,
-		"require_ready_profile":    true,
-		"forbid_raw_param_write":   true,
-		"forbid_plugin_chain_edit": true,
-		"single_tick_only":         true,
+		"max_macro_step_db":       maxStep,
+		"require_allowed_control": true,
+		"forbid_raw_param_write":  true,
+		"single_tick_only":        true,
 	}
 }
 
@@ -3802,7 +3238,6 @@ func mixTickStopConditions(session MixSession) []map[string]any {
 	return []map[string]any{
 		{"id": "goal_met", "description": "pause when the observation and review satisfy the goal"},
 		{"id": "needs_planner_review", "description": "return to planner after each tick"},
-		{"id": "missing_skill_or_profile", "description": "enter learning_required before execution"},
 		{"id": "max_rounds", "limit": session.MaxRounds},
 	}
 }
@@ -3820,7 +3255,7 @@ func mixFastExecutionPrompt(session MixSession, userIntervention string) string 
 	parts := []string{
 		"Use MixTickPacket only.",
 		"Choose exactly one allowed control and make one small reversible change.",
-		"Do not choose plugins, edit chains, learn profiles, or write raw plugin params.",
+		"Do not choose plugins, edit chains, or write raw plugin params.",
 		"Return MixTickDecision with schema_version " + mixTickDecisionSchemaVersion + ".",
 		"Goal: " + session.GoalText,
 	}
@@ -3828,47 +3263,6 @@ func mixFastExecutionPrompt(session MixSession, userIntervention string) string 
 		parts = append(parts, "User intervention: "+userIntervention)
 	}
 	return strings.Join(parts, "\n")
-}
-
-func mixPluginLearningRequestFromObservation(observation map[string]any) map[string]any {
-	if packet := mixTickPacketFromObservation(observation); len(packet) > 0 {
-		if request := mapValue(packet["plugin_learning_request"]); len(request) > 0 {
-			return request
-		}
-	}
-	return mixPluginLearningRequestFromSurface(mixGoalControlSurfaceFromObservation(observation))
-}
-
-func mixPluginLearningRequestFromSurface(surface map[string]any) map[string]any {
-	if len(surface) == 0 {
-		return nil
-	}
-	for _, row := range mapRowsValue(surface["selected_chain"]) {
-		profileStatus := cleanContextText(row["profile_status"])
-		if profileStatus != mixcontrolsurface.ProfileMissing && profileStatus != mixcontrolsurface.ProfileStale {
-			continue
-		}
-		plugin := mapValue(row["selected_plugin"])
-		controls := []map[string]any{}
-		for _, control := range mapRowsValue(row["proposed_controls"]) {
-			controls = append(controls, map[string]any{
-				"name":         firstNonEmpty(cleanContextText(control["name"]), cleanContextText(control["id"])),
-				"component_id": cleanContextText(control["component_id"]),
-				"role":         cleanContextText(row["role"]),
-			})
-		}
-		return map[string]any{
-			"plugin_name":          firstNonEmpty(cleanContextText(plugin["name"]), cleanContextText(row["plugin_name"]), "selected plugin"),
-			"plugin_id":            firstNonEmpty(cleanContextText(plugin["id"]), cleanContextText(plugin["profile_id"])),
-			"role":                 cleanContextText(row["role"]),
-			"type":                 cleanContextText(row["type"]),
-			"profile_status":       profileStatus,
-			"reason":               "语义化混音执行前必须先完成 Plugin Grabber 学习。",
-			"needed_controls":      controls,
-			"next_required_action": "learn_plugin_profile",
-		}
-	}
-	return nil
 }
 
 func mixTrackVolumeDB(state map[string]any, trackID string) float64 {
@@ -4375,21 +3769,12 @@ func updateMixBoardRuntimeState(observation map[string]any, session MixSession, 
 			runtime["macro_controls"] = mixMacroControlsFromPanel(panel)
 		}
 	}
-	if surface := mixGoalControlSurfaceFromObservation(observation); len(surface) > 0 {
-		runtime["goal_control_surface"] = surface
-		runtime["control_surface_status"] = cleanContextText(surface["readiness"])
-		runtime["control_surface_next_required_action"] = cleanContextText(surface["next_required_action"])
-	}
 	if packet := mixTickPacketFromObservation(observation); len(packet) > 0 {
 		runtime["mix_tick_packet"] = packet
 		runtime["mix_tick_packet_status"] = cleanContextText(packet["status"])
 		if latest := mapValue(packet["latest_tick"]); len(latest) > 0 {
 			runtime["latest_mix_tick"] = latest
 		}
-	}
-	if request := mixPluginLearningRequestFromObservation(observation); len(request) > 0 {
-		runtime["learning_required"] = true
-		runtime["plugin_learning_request"] = request
 	}
 	if board := mapValue(observation["mixboard"]); len(board) > 0 {
 		mergeMixRuntimeFields(board, runtime)
@@ -4409,9 +3794,6 @@ func updateMixBoardRuntimeState(observation map[string]any, session MixSession, 
 			autoTune := mapValue(row["auto_tune"])
 			mergeMixRuntimeFields(autoTune, runtime)
 			row["auto_tune"] = autoTune
-			if surface := mapValue(runtime["goal_control_surface"]); len(surface) > 0 {
-				row["goal_control_surface"] = surface
-			}
 			row["generated_at"] = now
 		})
 	}
@@ -5212,7 +4594,6 @@ func mixPreparationRows(target MixTargetRef) []map[string]any {
 	return []map[string]any{
 		{"id": "target", "label": "混音目标", "status": targetStatus},
 		{"id": "observation", "label": "音频观察", "status": "blocked", "reason": "mix.request_observation not available yet"},
-		{"id": "plugin_profiles", "label": "Plugin Grabber profile", "status": "unknown"},
 		{"id": "transport", "label": "Transport 控制", "status": "disabled"},
 		{"id": "automation", "label": "Automation 写入", "status": "disabled"},
 	}
@@ -5404,7 +4785,7 @@ func mixBoardVisibility(session MixSession) string {
 	switch mixInteractionPhase(session) {
 	case mixInteractionFastTickRunning:
 		return mixBoardVisibilityExecution
-	case mixInteractionControlSurfacePublished, mixInteractionReadyForTick, mixInteractionWaitingPlannerReview, mixInteractionLearningRequired:
+	case mixInteractionControlSurfacePublished, mixInteractionReadyForTick, mixInteractionWaitingPlannerReview:
 		return mixBoardVisibilityPublished
 	case mixInteractionPlanningChat:
 		return mixBoardVisibilityCollapsed

@@ -20,7 +20,7 @@
 - 新增离线 replay before/after 比较工具 `scripts/compare_eq_replay_reports.py`。
 - 更新 `scripts/eq_compat_matrix_smoke.py`，兼容 atomic EQ 响应把 `actual_readback` 放在 `edits[].actual_readback` 的现行 schema，并确保所有写后校验均处于参数恢复的 `try/finally` 内。
 
-未做 LinEQ shape 变体 tie-break、Marvel ISO 推断、schema 重构、SPAL、B4、profile、完整 learn、插件名称生产分支或 Plugin Alliance 参数读取。
+未做 LinEQ shape 变体 tie-break、Marvel ISO 推断、schema 重构、已退役映射链路、B4、插件名称生产分支或 Plugin Alliance 参数读取。
 
 ## 根因与修复
 

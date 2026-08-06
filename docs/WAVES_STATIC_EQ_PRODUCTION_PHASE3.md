@@ -13,7 +13,7 @@
 - 13 个扩展全部来自真实枚举中已观测的 `Off`/`Out` sentinel，因此生产识别器能够证明 `disable`，不是名称猜测或放宽安全门。
 - 真实 Godot → Kernel → Agent 链只使用 5 个正向实例和 3 个只读拒绝实例；所有正向写入均 fresh readback、撤销并验证 touched 参数恢复。
 - Q10 的中文自然语言请求“控制当前效果器将3400Hz降低3dB，Q值为0.5”实际路由为 `explain_controls → apply_eq_edits`，读回 3396 Hz、-3.0 dB、Q=0.5；随后完成 modify、disable 和逐事务 undo。
-- 未执行音频主动探测、完整 learn、profile、SPAL、B4 或 Plugin Alliance 参数读取。
+- 未执行音频主动探测、已退役映射链路、B4 或 Plugin Alliance 参数读取。
 
 权威产物：
 
@@ -156,7 +156,7 @@ LLM 只提交声学字段，不提交 band、parameter ID、normalized value 或
 | PuigTec EQP1A Stereo | 只读 | `eq_band_summary=null` / not_static_eq | 写入 0 |
 | Q-Clone Stereo | 只读 | `eq_band_summary=null` / not_static_eq | 写入 0 |
 
-烟测审计计数：自然语言 1 次、正向实例 5、只读拒绝实例 3、音频探测 0、learn 0、profile 0、SPAL 0、B4 0、Plugin Alliance 参数读取 0。隔离运行前后三个受保护 Workspace 文件 SHA-256 完全一致。
+烟测审计计数：自然语言 1 次、正向实例 5、只读拒绝实例 3、音频探测 0、B4 0、Plugin Alliance 参数读取 0。已退役映射链路不在运行时能力面中。隔离运行前后三个受保护 Workspace 文件 SHA-256 完全一致。
 
 ## 8. 测试与构建
 

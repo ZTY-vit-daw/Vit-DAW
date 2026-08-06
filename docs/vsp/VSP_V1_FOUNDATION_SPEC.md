@@ -233,7 +233,7 @@ VSP 只传资产引用，不直接传大块资产内容。
 - plugin.scan
 - plugin.instantiate
 - plugin.describe_parameters
-- plugin.apply_control
+- plugin.apply_eq_edits
 - plugin.set_params_batch
 - plugin.begin_gesture
 - plugin.update_gesture
@@ -328,4 +328,3 @@ VSP v1 Foundation 的最低性能目标：
 4. GUI 迁移时优先解决 timeline、track virtualization、meters、spectrum、playhead。
 5. Agent 迁移时优先解决 observe/execute/reobserve、plugin apply、import、project state。
 6. 每迁一个通道必须有 conformance test 和 smoke test。
-

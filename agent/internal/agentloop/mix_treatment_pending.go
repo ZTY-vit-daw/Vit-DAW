@@ -270,7 +270,7 @@ func messageLoopConservativeLowMudTreatmentPendingFromReply(state *runState, rep
 	}
 	trackID = messageLoopCanonicalMixTrackID(state, trackID)
 	targetRef := "project"
-	needsResolution := []string{"plugin_instance", "plugin_profile", "exact_control"}
+	needsResolution := []string{"plugin_instance", "live_parameter_surface", "exact_control"}
 	fingerprint := map[string]any{
 		"conversation_id":   messageLoopConversationID(state),
 		"goal_id":           state.goal.GoalID,

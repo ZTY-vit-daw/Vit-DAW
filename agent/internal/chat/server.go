@@ -15,7 +15,6 @@ import (
 	"os/exec"
 	"path/filepath"
 	goruntime "runtime"
-	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -38,7 +37,6 @@ import (
 	"vit-daw-agent/internal/orchestrationruntime"
 	"vit-daw-agent/internal/pendingmanager"
 	"vit-daw-agent/internal/planner"
-	"vit-daw-agent/internal/pluginvps"
 	"vit-daw-agent/internal/policy"
 	"vit-daw-agent/internal/projectworkspace"
 	"vit-daw-agent/internal/promptruntime"
@@ -46,7 +44,6 @@ import (
 	agentruntime "vit-daw-agent/internal/runtime"
 	"vit-daw-agent/internal/shadow"
 	"vit-daw-agent/internal/tools"
-	"vit-daw-agent/internal/workflows/plugingrabber"
 )
 
 type Server struct {
@@ -56,7 +53,6 @@ type Server struct {
 	llm              *llm.Client
 	logger           *logx.Logger
 	harness          *harness.Harness
-	pluginVPS        *pluginvps.Registry
 	artifactRoot     string
 	webUIRoot        string
 	startedAt        time.Time
@@ -71,6 +67,7 @@ type Server struct {
 	conversationMemory                 map[string]agentloop.ExecutionMemory
 	pendingMixTicks                    map[string]agentloop.PendingMixTickCandidate
 	pendingTreatments                  map[string]agentloop.MixTreatmentPending
+	freeStateLoops                     map[string]freeStateReasoningLoop
 	pendingManager                     *pendingmanager.MemoryManager
 	orchestrationRuntime               *orchestrationruntime.Runtime
 	pluginEffectControlRuntimeOverride func(context.Context, string, ChatRequest, agentruntime.Goal) ChatResponse
@@ -114,6 +111,7 @@ type projectAgentRuntimeState struct {
 	PendingStaticBalancePlans map[string]agentloop.PendingStaticBalancePlan `json:"pending_static_balance_plans,omitempty"`
 	PendingPanLayoutPlans     map[string]agentloop.PendingPanLayoutPlan     `json:"pending_pan_layout_plans,omitempty"`
 	PendingTreatments         map[string]agentloop.MixTreatmentPending      `json:"pending_treatments,omitempty"`
+	FreeStateLoops            map[string]freeStateReasoningLoop             `json:"free_state_reasoning_loops,omitempty"`
 	PendingCandidates         []agentprotocol.PendingCandidate              `json:"pending_candidates,omitempty"`
 	GoalRuntime               agentruntime.Snapshot                         `json:"goal_runtime,omitempty"`
 }
@@ -149,7 +147,6 @@ type ChatResponse struct {
 	ProposalPresentation      *orchestration.ProposalPresentation `json:"proposal_presentation,omitempty"`
 	Workflow                  string                              `json:"workflow,omitempty"`
 	WorkflowData              map[string]any                      `json:"workflow_data,omitempty"`
-	PluginLearning            map[string]any                      `json:"plugin_learning,omitempty"`
 	MixSession                map[string]any                      `json:"mix_session,omitempty"`
 	InteractionRequests       []AgentInteractionRequest           `json:"interaction_requests,omitempty"`
 	TypedEvents               []map[string]any                    `json:"typed_events,omitempty"`
@@ -412,12 +409,6 @@ var devToolSmokeNames = []string{
 }
 
 func New(kernelClient *kernel.Client, shadowProject *shadow.Project, logger *logx.Logger) *Server {
-	pluginVPS, pluginVPSWarnings := pluginvps.LoadDirectory(pluginvps.DefaultDirectory())
-	if logger != nil {
-		for _, warning := range pluginVPSWarnings {
-			logger.Warn("[pluginvps] ignored VPS: %v", warning)
-		}
-	}
 	orchestrationRuntime := orchestrationruntime.New()
 	if storePath := orchestration.DefaultFileStorePath(); storePath != "" {
 		if store, err := orchestration.NewFileStore(storePath); err == nil {
@@ -432,7 +423,6 @@ func New(kernelClient *kernel.Client, shadowProject *shadow.Project, logger *log
 		llm:                  &llm.Client{},
 		logger:               logger,
 		harness:              harness.New(kernelClient, shadowProject, logger),
-		pluginVPS:            pluginVPS,
 		startedAt:            time.Now(),
 		conversations:        map[string][]llm.Message{},
 		pending:              map[string]PendingPlan{},
@@ -443,6 +433,7 @@ func New(kernelClient *kernel.Client, shadowProject *shadow.Project, logger *log
 		conversationMemory:   map[string]agentloop.ExecutionMemory{},
 		pendingMixTicks:      map[string]agentloop.PendingMixTickCandidate{},
 		pendingTreatments:    map[string]agentloop.MixTreatmentPending{},
+		freeStateLoops:       map[string]freeStateReasoningLoop{},
 		pendingManager:       pendingmanager.NewMemoryManager(),
 		orchestrationRuntime: orchestrationRuntime,
 		uiContext:            map[string]any{},
@@ -1105,7 +1096,7 @@ func (s *Server) handleArtifacts(w http.ResponseWriter, r *http.Request) {
 	if conversationID := strings.TrimSpace(r.URL.Query().Get("conversation_id")); conversationID != "" {
 		args["conversation_id"] = conversationID
 	}
-	for _, key := range []string{"kind", "source", "plugin_learning_session_id", "plugin_learning_stage", "artifact_schema"} {
+	for _, key := range []string{"kind", "source", "artifact_schema"} {
 		if value := strings.TrimSpace(r.URL.Query().Get(key)); value != "" {
 			args[key] = value
 		}
@@ -1268,7 +1259,7 @@ func (s *Server) handleArtifactUpload(w http.ResponseWriter, r *http.Request) {
 	goalID := strings.TrimSpace(r.FormValue("goal_id"))
 	runID := strings.TrimSpace(r.FormValue("run_id"))
 	uploadMetadata := map[string]any{}
-	for _, key := range []string{"plugin_learning_session_id", "plugin_learning_purpose", "track_id", "plugin_id", "plugin_name"} {
+	for _, key := range []string{"track_id", "plugin_id", "plugin_name"} {
 		if value := strings.TrimSpace(r.FormValue(key)); value != "" {
 			uploadMetadata[key] = value
 		}
@@ -1372,29 +1363,17 @@ func (s *Server) handleInvoke(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusOK, compactStripSilenceInvokeResponseForTransport(resp))
 		return
 	}
-	if pluginGrabberApplyInvokeRequest(req) {
-		resp, err := s.invokePluginEffectControlHTTP(r.Context(), req)
+	if workflowCmd, ok := pluginGrabberInspectCompressorInvokeCommand(req); ok {
+		resp, err := s.invokePluginGrabberInspectCompressorWorkflow(r.Context(), req, workflowCmd)
 		status := http.StatusOK
 		if err != nil && resp.Status == "error" {
 			status = http.StatusBadRequest
 		}
-		writeJSON(w, status, compactStripSilenceInvokeResponseForTransport(resp))
+		writeJSON(w, status, resp)
 		return
 	}
-	if workflowCmd, ok := pluginGrabberLearningInvokeCommand(req); ok {
-		cfg, _, err := config.Load()
-		if err != nil {
-			resp := harness.InvokeResponse{
-				Status:      "error",
-				Tool:        pluginGrabberLearnTool,
-				CommandName: pluginGrabberLearnCommand,
-				RiskLevel:   tools.RiskConfirm,
-				Error:       "reading AI config failed: " + err.Error(),
-			}
-			writeJSON(w, http.StatusBadRequest, resp)
-			return
-		}
-		resp, err := s.invokePluginGrabberLearningWorkflow(r.Context(), req, workflowCmd, cfg)
+	if workflowCmd, ok := pluginGrabberApplyCompressorInvokeCommand(req); ok {
+		resp, err := s.invokePluginGrabberApplyCompressorWorkflow(r.Context(), req, workflowCmd)
 		status := http.StatusOK
 		if err != nil && resp.Status == "error" {
 			status = http.StatusBadRequest
@@ -1427,6 +1406,10 @@ func (s *Server) handleInvoke(w http.ResponseWriter, r *http.Request) {
 			status = http.StatusBadRequest
 		}
 		writeJSON(w, status, resp)
+		return
+	}
+	if resp, blocked := s.guardCompressorOwnedGenericParameterWrite(r.Context(), req); blocked {
+		writeJSON(w, http.StatusBadRequest, resp)
 		return
 	}
 	resp, err := s.harness.Invoke(r.Context(), req)
@@ -2104,9 +2087,6 @@ func (s *Server) handleChat(w http.ResponseWriter, r *http.Request) {
 					GoalStatus:        string(agentruntime.StatusWaitingConfirmation),
 					ProjectHistory:    projectHistory,
 				}
-				if isPluginGrabberLearningPlan(plan) {
-					resp.PluginLearning = plan.WorkflowData
-				}
 				s.attachInteractionRequests(&resp)
 				s.remember(conversationID, req.Message, resp.Reply)
 				writeChat(http.StatusOK, resp)
@@ -2129,9 +2109,6 @@ func (s *Server) handleChat(w http.ResponseWriter, r *http.Request) {
 				Workflow:          plan.Workflow,
 				WorkflowData:      plan.WorkflowData,
 				Commands:          compactAgentLoopDecisionsForResponse(plan.Decisions),
-			}
-			if isPluginGrabberLearningPlan(plan) {
-				resp.PluginLearning = plan.WorkflowData
 			}
 			s.attachInteractionRequests(&resp)
 			s.remember(conversationID, req.Message, resp.Reply)
@@ -2182,7 +2159,8 @@ func (s *Server) handleChat(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if messagePlainMixApproval(req.Message) && !s.hasPendingConfirmationForChat(conversationID, chatContext) {
+	if messagePlainMixApproval(req.Message) && !s.hasPendingConfirmationForChat(conversationID, chatContext) &&
+		!s.hasActiveFreeStateReasoningLoop(conversationID) {
 		resp := ChatResponse{
 			ConversationID: conversationID,
 			AgentMode:      agentMode,
@@ -2264,16 +2242,6 @@ func (s *Server) handleChat(w http.ResponseWriter, r *http.Request) {
 	}
 	if workflowCmd, ok := coercePluginGrabberLoadCommand(env.Commands, req.Message, chatContext); ok {
 		resp := s.runPluginGrabberLoadWorkflow(r.Context(), conversationID, req.Message, chatContext, workflowCmd)
-		s.remember(conversationID, req.Message, resp.Reply)
-		writeChat(http.StatusOK, resp)
-		return
-	}
-	// HARDCODED: Generate Learn command if user text contains learning keyword
-	if strings.Contains(req.Message, "\u5b66\u4e60") {
-		env.Commands = append(env.Commands, map[string]any{"cmd": "plugin_grabber_learn_project_profile", "intent": req.Message})
-	}
-	if workflowCmd, ok := firstPluginGrabberLearningCommand(env.Commands); ok {
-		resp := s.runPluginGrabberLearningWorkflow(r.Context(), conversationID, req.Message, chatContext, cfg, workflowCmd)
 		s.remember(conversationID, req.Message, resp.Reply)
 		writeChat(http.StatusOK, resp)
 		return
@@ -2388,9 +2356,8 @@ func legacyChatBroadMixDecisionBlocked(decision policy.Decision) bool {
 	switch name {
 	case "rack_add_node", "rack.add_node", "plugin.load_to_rack", "instantiate_plugin", "plugin.instantiate",
 		"plugin_grabber_load_and_get_params", "plugin_grabber.load_and_get_params",
-		"plugin_grabber_learn_project_profile", "plugin_grabber.learn_project_profile", "plugin.learn_project_profile",
-		"plugin_grabber_apply_control", "plugin_grabber.apply_control", "plugin_grabber.apply",
 		"plugin_grabber_apply_eq_edits", "plugin_grabber.apply_eq_edits",
+		"plugin_grabber_apply_compressor_controls", "plugin_grabber.apply_compressor_controls",
 		"set_plugin_param", "plugin.set_parameter", "plugin_set_parameter",
 		"set_volume", "track.volume",
 		"control_add_macro", "control.add_macro", "rack.add_macro", "control_add_binding", "control.add_binding":
@@ -2501,7 +2468,6 @@ func chatResponseFromPendingPlanDecision(conversationID string, response map[str
 		Preview:                   cleanContextText(response["preview"]),
 		Workflow:                  cleanContextText(response["workflow"]),
 		WorkflowData:              mapValue(response["workflow_data"]),
-		PluginLearning:            mapValue(response["plugin_learning"]),
 		ExecutedKernelReply:       compactAgentLoopExecutedForResponse(mapRowsFromAny(response["executed_kernel_reply"])),
 		ProjectResultCards:        mapRowsFromAny(response["project_result_cards"]),
 		GoalStatus:                cleanContextText(response["goal_status"]),
@@ -2918,16 +2884,6 @@ func (s *Server) attachInteractionRequests(resp *ChatResponse) {
 		attachTypedInteractionRequests(resp)
 		return
 	}
-	if len(resp.PluginLearning) > 0 {
-		req := s.pluginLearningInteractionRequest(*resp)
-		if req.ID != "" {
-			resp.InteractionRequests = append(resp.InteractionRequests, req)
-			if len(req.Actions) > 0 || !responseNeedsConfirmationInteraction(*resp) {
-				attachTypedInteractionRequests(resp)
-				return
-			}
-		}
-	}
 	if responseNeedsConfirmationInteraction(*resp) {
 		s.hydrateConfirmationResponse(resp)
 	}
@@ -2957,7 +2913,6 @@ func (s *Server) hydrateConfirmationResponse(resp *ChatResponse) {
 	if planID := firstNonEmpty(
 		strings.TrimSpace(resp.PlanID),
 		mapPlanID(resp.WorkflowData),
-		mapPlanID(resp.PluginLearning),
 	); planID != "" {
 		resp.PlanID = planID
 	}
@@ -3162,6 +3117,9 @@ func (s *Server) confirmationInteractionRequest(resp ChatResponse) AgentInteract
 		"preview":  resp.Preview,
 		"commands": commands,
 	}
+	if requestContext := firstMapFromAny(resp.WorkflowData["request_context"]); len(requestContext) > 0 {
+		payload["request_context"] = cloneContext(requestContext)
+	}
 	presentationMap := mapValue(resp.WorkflowData["proposal_presentation"])
 	isCapabilityProposal := strings.EqualFold(resp.Workflow, "capability_runtime_v1") &&
 		(resp.ProposalPresentation != nil || cleanContextText(presentationMap["proposal_id"]) != "")
@@ -3225,165 +3183,6 @@ func (s *Server) confirmationInteractionRequest(resp ChatResponse) AgentInteract
 	}
 	s.storePendingInteraction(req, resp.WorkflowData)
 	return req
-}
-
-func (s *Server) pluginLearningInteractionRequest(resp ChatResponse) AgentInteractionRequest {
-	data := map[string]any{}
-	for key, value := range resp.PluginLearning {
-		data[key] = value
-	}
-	if len(data) == 0 {
-		return AgentInteractionRequest{}
-	}
-	planID := firstNonEmpty(strings.TrimSpace(resp.PlanID), strings.TrimSpace(fmt.Sprint(data["plan_id"])))
-	stage := strings.TrimSpace(fmt.Sprint(data["stage"]))
-	mode := strings.TrimSpace(fmt.Sprint(data["mode"]))
-	kind := "review"
-	typ := "plugin_learning_review"
-	title := "复核 Plugin Grabber 学习结果"
-	body := strings.TrimSpace(resp.Reply)
-	if body == "" {
-		body = "请复核本次 Plugin Grabber 学习结果。"
-	}
-	actions := []AgentInteractionAction{}
-	reviewItems := pluginLearningReviewItems(data)
-	fields := []AgentInteractionField{}
-	questions := []AgentInteractionField{}
-	switch {
-	case stage == pluginLearningUIReferenceStage || strings.EqualFold(strings.TrimSpace(fmt.Sprint(data["type"])), pluginLearningUIReferenceType):
-		kind = "form"
-		typ = pluginLearningUIReferenceType
-		title = "提供插件界面图样"
-		body = firstNonEmpty(body, "可以提供一份本次学习专用的插件界面图样，也可以跳过直接学习。只有当前卡片上传并绑定到本次学习会话的图样会进入学习。")
-		actions = []AgentInteractionAction{
-			{ID: "continue_with_ui_reference", Label: "使用图样继续", Style: "primary", Recommended: true},
-			{ID: "skip_ui_reference", Label: "跳过图样，直接学习", Style: "secondary"},
-			{ID: "cancel_plugin_learning", Label: "取消学习", Style: "secondary"},
-		}
-	case boolValue(data["learning_completed"]):
-		kind = "mode_boundary"
-		typ = "plugin_learning_completion"
-		title = "Plugin Grabber 已完成"
-		actions = []AgentInteractionAction{{ID: "done", Label: "完成", Style: "primary", Recommended: true}}
-	case stage == "candidate_review" || boolValue(data["needs_user_review"]):
-		kind = "review"
-		typ = "plugin_learning_candidate_review"
-		title = "复核自动学习候选"
-		body = firstNonEmpty(body, "我已生成插件控制候选，请复核后继续生成保存草图。")
-		primaryLabel := "确认候选草图"
-		if len(mapRowsValue(data["experiments"])) == 0 {
-			primaryLabel = "生成保存草图"
-		}
-		actions = []AgentInteractionAction{
-			{ID: "submit", Label: primaryLabel, Style: "primary", Recommended: true},
-			{ID: "skip_experiments", Label: "跳过抽样，生成保存草图", Style: "secondary"},
-			{ID: "rerun", Label: "重新扫描", Style: "secondary"},
-			{ID: "cancel", Label: "取消", Style: "secondary"},
-		}
-	case mode == string(plugingrabber.LearningModeTeach):
-		kind = "review"
-		typ = "plugin_learning_teach_review"
-		title = "复核教学模式结果"
-		actions = []AgentInteractionAction{
-			{ID: "approve", Label: "保存", Style: "primary", Recommended: true},
-			{ID: "cancel", Label: "取消", Style: "secondary"},
-		}
-	case planID != "":
-		kind = "review"
-		typ = "plugin_learning_final_review"
-		title = "确认保存 Plugin Skill"
-		actions = []AgentInteractionAction{
-			{ID: "approve", Label: "保存", Style: "primary", Recommended: true},
-			{ID: "cancel", Label: "取消", Style: "secondary"},
-			{ID: "revise", Label: "继续修改", Style: "secondary"},
-		}
-	}
-	req := AgentInteractionRequest{
-		ID:             "interaction_" + randomID(),
-		Kind:           kind,
-		Type:           typ,
-		Title:          title,
-		Body:           body,
-		Status:         "waiting_for_user",
-		Source:         "plugin_grabber",
-		Workflow:       firstNonEmpty(resp.Workflow, strings.TrimSpace(fmt.Sprint(data["workflow"]))),
-		Stage:          firstNonEmpty(stage, typ),
-		PlanID:         planID,
-		ConversationID: resp.ConversationID,
-		GoalID:         resp.GoalID,
-		RunID:          resp.RunID,
-		Questions:      questions,
-		Fields:         fields,
-		ReviewItems:    reviewItems,
-		Payload:        data,
-		Data:           data,
-		Actions:        actions,
-	}
-	data["interaction_id"] = req.ID
-	if planID != "" {
-		data["plan_id"] = planID
-	}
-	s.storePendingInteraction(req, data)
-	return req
-}
-
-func pluginLearningReviewItems(data map[string]any) []AgentInteractionReview {
-	if len(data) == 0 {
-		return nil
-	}
-	items := []AgentInteractionReview{}
-	if pluginName := strings.TrimSpace(fmt.Sprint(data["plugin_name"])); pluginName != "" && pluginName != "<nil>" {
-		items = append(items, AgentInteractionReview{
-			ID:     "plugin",
-			Title:  "插件",
-			Body:   pluginName,
-			Status: "info",
-		})
-	}
-	if count := intNumber(data["parameter_count"]); count > 0 {
-		items = append(items, AgentInteractionReview{
-			ID:     "parameter_count",
-			Title:  "扫描统计",
-			Body:   fmt.Sprintf("共抓到 %d 个参数。", count),
-			Status: "info",
-		})
-	}
-	if count := intNumber(data["component_count"]); count > 0 {
-		items = append(items, AgentInteractionReview{
-			ID:     "component_count",
-			Title:  "候选组件",
-			Body:   fmt.Sprintf("生成 %d 个候选组件。", count),
-			Status: "info",
-		})
-	}
-	if count := intNumber(data["operation_count"]); count > 0 {
-		items = append(items, AgentInteractionReview{
-			ID:     "operation_count",
-			Title:  "候选控制",
-			Body:   fmt.Sprintf("生成 %d 个自然语言控制。", count),
-			Status: "info",
-		})
-	}
-	if summary, ok := data["display_domain_summary"].(map[string]int); ok && len(summary) > 0 {
-		items = append(items, AgentInteractionReview{
-			ID:     "display_domain_summary",
-			Title:  "显示域",
-			Body:   fmt.Sprintf("已确认 %d，推断 %d，待确认 %d，未知 %d。", summary["confirmed"], summary["inferred"], summary["needs_confirmation"], summary["unknown"]),
-			Status: "info",
-			Payload: map[string]any{
-				"summary": summary,
-			},
-		})
-	}
-	if warnings := stringListValue(data["validation_warnings"]); len(warnings) > 0 {
-		items = append(items, AgentInteractionReview{
-			ID:     "validation_warnings",
-			Title:  "提醒",
-			Body:   strings.Join(firstStringLimit(warnings, 3), "\n"),
-			Status: "warning",
-		})
-	}
-	return items
 }
 
 func (s *Server) storePendingInteraction(req AgentInteractionRequest, data map[string]any) {
@@ -3619,94 +3418,6 @@ func (s *Server) deletePendingAliasesForPlanIDLocked(planID string) int {
 	return removed
 }
 
-func isPluginGrabberLearningPlan(plan PendingPlan) bool {
-	return pluginGrabberLearningMode(plan) != ""
-}
-
-func pluginGrabberLearningMode(plan PendingPlan) string {
-	mode := strings.TrimSpace(strings.ToLower(fmt.Sprint(plan.WorkflowData["mode"])))
-	if mode == string(plugingrabber.LearningModeAutoLearn) || mode == string(plugingrabber.LearningModeTeach) {
-		return mode
-	}
-	workflow := strings.ToLower(strings.TrimSpace(plan.Workflow))
-	if strings.Contains(workflow, "auto_learn") {
-		return string(plugingrabber.LearningModeAutoLearn)
-	}
-	if strings.Contains(workflow, "teach") {
-		return string(plugingrabber.LearningModeTeach)
-	}
-	return ""
-}
-
-func pluginGrabberLearningCompletionData(plan PendingPlan, saved bool) map[string]any {
-	mode := pluginGrabberLearningMode(plan)
-	if mode == "" {
-		return nil
-	}
-	data := map[string]any{}
-	for key, value := range plan.WorkflowData {
-		data[key] = value
-	}
-	data["mode"] = mode
-	data["state"] = "cancelled"
-	if saved {
-		data["state"] = "saved"
-	}
-	data["plan_id"] = plan.ID
-	data["needs_confirmation"] = false
-	data["learning_completed"] = true
-	data["next_actions"] = pluginGrabberLearningNextActions(mode, saved)
-	return data
-}
-
-func attachPluginGrabberCompletionAssets(response map[string]any, data map[string]any) {
-	if response == nil || len(data) == 0 {
-		return
-	}
-	if artifacts := firstPresentAny(data, "artifacts"); artifacts != nil {
-		response["artifacts"] = artifacts
-	}
-	if sidePanelRequest := firstPresentAny(data, "side_panel_request"); sidePanelRequest != nil {
-		response["side_panel_request"] = sidePanelRequest
-	}
-}
-
-func pluginGrabberLearningNextActions(mode string, saved bool) []map[string]any {
-	if !saved {
-		return []map[string]any{{
-			"id":    "done",
-			"label": "完成",
-		}}
-	}
-	continueLabel := "继续自动学习"
-	continueMode := string(plugingrabber.LearningModeAutoLearn)
-	if mode == string(plugingrabber.LearningModeTeach) {
-		continueLabel = "继续教学"
-		continueMode = string(plugingrabber.LearningModeTeach)
-	}
-	return []map[string]any{
-		{
-			"id":     "explain_controls",
-			"label":  "解释控制",
-			"prompt": "解释这个插件刚保存的 Plugin Skill 控制。",
-		},
-		{
-			"id":     "try_controls",
-			"label":  "试用控制",
-			"prompt": "试用刚保存的 Plugin Skill 控制。",
-		},
-		{
-			"id":            "continue_learning",
-			"label":         continueLabel,
-			"learning_mode": continueMode,
-		},
-		{
-			"id":    "done",
-			"label": "完成",
-		},
-	}
-}
-
 func isPendingConfirmationStatusQuestion(message string) bool {
 	text := strings.ToLower(strings.TrimSpace(message))
 	if text == "" {
@@ -3841,8 +3552,16 @@ func (s *Server) handleInteractionRespond(w http.ResponseWriter, r *http.Request
 		if !handled {
 			resp = capabilityCanaryBlockedResponse(interaction.ConversationID, agentruntime.Goal{GoalID: interaction.GoalID, RunID: interaction.RunID}, "v1 capability confirmation 已过期或 owner 不匹配。")
 		}
+		resp = s.maybeContinueFreeStateAfterInteraction(r.Context(), interaction, resp, decision)
 		s.attachInteractionRequests(&resp)
 		s.finalizeInteractionChatResponse(r.Context(), &resp, interaction, message)
+		writeJSON(w, http.StatusOK, resp)
+		return
+	}
+	if strings.EqualFold(interaction.Workflow, semanticCompressorExecutionWorkflow) {
+		resp := s.continueSemanticCompressorExecutionInteraction(r.Context(), interaction, decision)
+		resp = s.maybeContinueFreeStateAfterInteraction(r.Context(), interaction, resp, decision)
+		s.finalizeInteractionChatResponse(r.Context(), &resp, interaction, decision)
 		writeJSON(w, http.StatusOK, resp)
 		return
 	}
@@ -3867,6 +3586,7 @@ func (s *Server) handleInteractionRespond(w http.ResponseWriter, r *http.Request
 	}
 	if strings.EqualFold(interaction.Source, "semantic_treatment") || strings.EqualFold(interaction.Workflow, semanticTreatmentWorkflow) || strings.EqualFold(interaction.Type, "semantic_treatment_selection") {
 		resp := s.continueSemanticTreatmentInteraction(r.Context(), interaction, decision)
+		resp = s.maybeContinueFreeStateAfterInteraction(r.Context(), interaction, resp, decision)
 		s.attachInteractionRequests(&resp)
 		s.finalizeInteractionChatResponse(r.Context(), &resp, interaction, decision)
 		writeJSON(w, http.StatusOK, resp)
@@ -3922,7 +3642,7 @@ func (s *Server) handleInteractionRespond(w http.ResponseWriter, r *http.Request
 		writeJSON(w, http.StatusOK, resp)
 		return
 	}
-	if (strings.EqualFold(decision, "cancel") || strings.EqualFold(decision, "cancel_plugin_learning")) && !isMixTreatmentInteraction {
+	if strings.EqualFold(decision, "cancel") && !isMixTreatmentInteraction {
 		resp := ChatResponse{
 			ConversationID: interaction.ConversationID,
 			GoalID:         interaction.GoalID,
@@ -3988,59 +3708,8 @@ func (s *Server) handleInteractionRespond(w http.ResponseWriter, r *http.Request
 		writeJSON(w, http.StatusOK, resp)
 		return
 	}
-	if strings.EqualFold(interaction.Source, "plugin_grabber") && strings.Contains(interaction.Type, "ui_reference_request") {
-		resp, err := s.continuePluginGrabberUIReferenceInteraction(r.Context(), interaction, req.Payload, decision)
-		if err != nil {
-			writeJSON(w, http.StatusOK, pluginGrabberInteractionErrorResponse(interaction, err))
-			return
-		}
-		s.attachInteractionRequests(&resp)
-		writeJSON(w, http.StatusOK, resp)
-		return
-	}
 	if strings.EqualFold(interaction.Source, "plugin_grabber") && strings.EqualFold(interaction.Type, "plugin_prep_continuation") {
 		resp := s.continuePluginPrepContinuationInteraction(r.Context(), interaction, decision)
-		writeJSON(w, http.StatusOK, resp)
-		return
-	}
-	if strings.EqualFold(interaction.Source, "plugin_grabber") && strings.Contains(interaction.Type, "candidate_review") && strings.EqualFold(decision, "start_experiments") {
-		next := interaction
-		next.Payload = pluginGrabberPayloadWithSubmittedReviews(interaction.Payload, req.Payload)
-		next.Data = next.Payload
-		resp, err := s.beginPluginGrabberExperimentInteraction(r.Context(), next, 0)
-		if err != nil {
-			writeJSON(w, http.StatusOK, pluginGrabberInteractionErrorResponse(interaction, err))
-			return
-		}
-		writeJSON(w, http.StatusOK, resp)
-		return
-	}
-	if strings.EqualFold(interaction.Source, "plugin_grabber") && strings.Contains(interaction.Type, "experiment") {
-		resp, err := s.completePluginGrabberExperimentInteraction(r.Context(), interaction, req.Payload)
-		if err != nil {
-			writeJSON(w, http.StatusOK, pluginGrabberInteractionErrorResponse(interaction, err))
-			return
-		}
-		writeJSON(w, http.StatusOK, resp)
-		return
-	}
-	if strings.EqualFold(interaction.Source, "plugin_grabber") && strings.Contains(interaction.Type, "display_domain_form") {
-		resp, err := s.finalizePluginGrabberDisplayDomainInteraction(r.Context(), interaction, req.Payload)
-		if err != nil {
-			writeJSON(w, http.StatusOK, pluginGrabberInteractionErrorResponse(interaction, err))
-			return
-		}
-		s.attachInteractionRequests(&resp)
-		writeJSON(w, http.StatusOK, resp)
-		return
-	}
-	if strings.EqualFold(interaction.Source, "plugin_grabber") && strings.Contains(interaction.Type, "candidate_review") {
-		resp, err := s.continuePluginGrabberCandidateInteraction(r.Context(), interaction, req.Payload, decision)
-		if err != nil {
-			writeJSON(w, http.StatusOK, pluginGrabberInteractionErrorResponse(interaction, err))
-			return
-		}
-		s.attachInteractionRequests(&resp)
 		writeJSON(w, http.StatusOK, resp)
 		return
 	}
@@ -4152,10 +3821,7 @@ func (s *Server) attachInteractionsToResponseMap(response *map[string]any, inter
 	if response == nil || *response == nil {
 		return
 	}
-	data := mapValue((*response)["plugin_learning"])
-	if len(data) == 0 {
-		data = mapValue((*response)["workflow_data"])
-	}
+	data := mapValue((*response)["workflow_data"])
 	goalStatus := strings.TrimSpace(fmt.Sprint((*response)["goal_status"]))
 	needsConfirmation := boolValue((*response)["needs_confirmation"]) || strings.EqualFold(goalStatus, string(agentruntime.StatusWaitingConfirmation))
 	resp := ChatResponse{
@@ -4165,7 +3831,6 @@ func (s *Server) attachInteractionsToResponseMap(response *map[string]any, inter
 		Reply:               firstNonEmpty(strings.TrimSpace(fmt.Sprint((*response)["message"])), strings.TrimSpace(fmt.Sprint((*response)["reply"]))),
 		Workflow:            firstNonEmpty(strings.TrimSpace(fmt.Sprint((*response)["workflow"])), interaction.Workflow),
 		WorkflowData:        data,
-		PluginLearning:      data,
 		NeedsConfirmation:   needsConfirmation,
 		PlanID:              firstNonEmpty(strings.TrimSpace(fmt.Sprint((*response)["plan_id"])), strings.TrimSpace(fmt.Sprint((*response)["next_plan_id"]))),
 		Preview:             strings.TrimSpace(fmt.Sprint((*response)["preview"])),
@@ -4226,658 +3891,6 @@ func agentInteractionRequestFromAny(value any) (AgentInteractionRequest, bool) {
 	}
 }
 
-func (s *Server) continuePluginGrabberUIReferenceInteraction(ctx context.Context, interaction PendingInteraction, payload map[string]any, decision string) (ChatResponse, error) {
-	base := copyStringAnyMap(interaction.Payload)
-	submitted := copyStringAnyMap(payload)
-	target := mapValue(base["target"])
-	if len(target) == 0 {
-		target = map[string]any{
-			"track_id":    base["track_id"],
-			"plugin_id":   base["plugin_id"],
-			"plugin_name": base["plugin_name"],
-		}
-	}
-	sessionID := firstNonEmpty(firstNonEmptyText(submitted, "plugin_learning_session_id"), firstNonEmptyText(base, "plugin_learning_session_id"))
-	startedAt := firstNonEmpty(firstNonEmptyText(submitted, "plugin_learning_session_started_at"), firstNonEmptyText(base, "plugin_learning_session_started_at"))
-	webReferenceDecision := strings.TrimSpace(strings.ToLower(firstNonEmpty(
-		firstNonEmptyText(submitted, "web_reference_decision"),
-		firstNonEmptyText(base, "web_reference_decision"),
-	)))
-	if webReferenceDecision == "" {
-		if boolValue(firstPresentAny(submitted, "web_reference_enabled")) || boolValue(firstPresentAny(base, "web_reference_enabled")) {
-			webReferenceDecision = "enabled"
-		} else {
-			webReferenceDecision = "skipped"
-		}
-	}
-	args := map[string]any{
-		"mode":                               string(plugingrabber.LearningModeAutoLearn),
-		"track_id":                           firstNonEmptyText(target, "track_id"),
-		"plugin_id":                          firstNonEmptyText(target, "plugin_id"),
-		"plugin_name":                        firstNonEmptyText(target, "plugin_name"),
-		"plugin_learning_session_id":         sessionID,
-		"plugin_learning_session_started_at": startedAt,
-		"web_reference_decision":             webReferenceDecision,
-	}
-	if args["track_id"] == "" {
-		args["track_id"] = firstNonEmptyText(base, "track_id")
-	}
-	if args["plugin_id"] == "" {
-		args["plugin_id"] = firstNonEmptyText(base, "plugin_id")
-	}
-	if args["plugin_name"] == "" {
-		args["plugin_name"] = firstNonEmptyText(base, "plugin_name")
-	}
-	switch strings.ToLower(strings.TrimSpace(decision)) {
-	case "skip_ui_reference", "skip", "skipped":
-		args["ui_reference_decision"] = "skipped"
-	default:
-		args["ui_reference_decision"] = "provided"
-		ids := stringListValue(firstPresentAny(submitted, "ui_reference_artifact_ids", "artifact_ids"))
-		args["ui_reference_artifact_ids"] = ids
-	}
-	cfg, _, err := config.Load()
-	if err != nil {
-		return ChatResponse{}, err
-	}
-	resp := s.runPluginGrabberLearningWorkflow(ctx, interaction.ConversationID, "", interaction.RequestContext, cfg, args)
-	resp.GoalID = firstNonEmpty(resp.GoalID, interaction.GoalID)
-	resp.RunID = firstNonEmpty(resp.RunID, interaction.RunID)
-	if resp.Error != "" && strings.Contains(resp.Error, errPluginUIReferenceNoValidImage.Error()) {
-		return pluginGrabberUIReferenceRecoverableResponse(interaction, base), nil
-	}
-	return resp, nil
-}
-
-func pluginGrabberUIReferenceRecoverableResponse(interaction PendingInteraction, base map[string]any) ChatResponse {
-	target := pluginLearningTarget{
-		TrackID:    firstNonEmptyText(mapValue(base["target"]), "track_id"),
-		PluginID:   firstNonEmptyText(mapValue(base["target"]), "plugin_id"),
-		PluginName: firstNonEmptyText(mapValue(base["target"]), "plugin_name"),
-	}
-	if target.TrackID == "" {
-		target.TrackID = firstNonEmptyText(base, "track_id")
-	}
-	if target.PluginID == "" {
-		target.PluginID = firstNonEmptyText(base, "plugin_id")
-	}
-	if target.PluginName == "" {
-		target.PluginName = firstNonEmptyText(base, "plugin_name")
-	}
-	resp := pluginGrabberUIReferenceRequestResponse(
-		interaction.ConversationID,
-		firstNonEmptyText(base, "intent"),
-		interaction.RequestContext,
-		target,
-		firstNonEmptyText(base, "plugin_learning_session_id"),
-		firstNonEmptyText(base, "plugin_learning_session_started_at"),
-	)
-	resp.GoalID = interaction.GoalID
-	resp.RunID = interaction.RunID
-	resp.Reply = "还没有收到绑定到本次学习会话的有效插件界面图样。请在这张卡片里上传图样后继续，或选择跳过图样直接学习。之前发送过的图片不会被使用。"
-	return resp
-}
-
-func (s *Server) continuePluginGrabberCandidateInteraction(ctx context.Context, interaction PendingInteraction, payload map[string]any, decision string) (ChatResponse, error) {
-	if strings.EqualFold(decision, "rerun") {
-		return s.runPluginGrabberInteractionWorkflow(ctx, interaction, payload, string(plugingrabber.LearningModeAutoLearn))
-	}
-	nextPayload := pluginGrabberPayloadWithSubmittedReviews(interaction.Payload, payload)
-	if len(mapRowsValue(nextPayload["experiments"])) > 0 && !strings.EqualFold(decision, "skip_experiments") {
-		next := interaction
-		next.Payload = nextPayload
-		next.Data = nextPayload
-		return s.beginPluginGrabberExperimentInteraction(ctx, next, 0)
-	}
-	if len(pluginGrabberDisplayDomainFields(nextPayload)) > 0 {
-		return s.showPluginGrabberDisplayDomainInteraction(ctx, interaction, nextPayload), nil
-	}
-	return s.runPluginGrabberInteractionWorkflow(ctx, interaction, nextPayload, "auto_learn_reviewed")
-}
-
-func (s *Server) beginPluginGrabberExperimentInteraction(ctx context.Context, interaction PendingInteraction, index int) (ChatResponse, error) {
-	payload := copyStringAnyMap(interaction.Payload)
-	experiments := mapRowsValue(payload["experiments"])
-	if index < 0 || index >= len(experiments) {
-		return s.showPluginGrabberDisplayDomainInteraction(ctx, interaction, payload), nil
-	}
-	experiment := experiments[index]
-	target := mapValue(payload["target"])
-	paramID := firstNonEmptyText(experiment, "param_id")
-	after := floatNumber(experiment["after_normalized"])
-	if err := s.setPluginParamNormalized(ctx, target, paramID, after); err != nil {
-		return ChatResponse{}, err
-	}
-	payload["experiment_index"] = index
-	payload["active_experiment"] = experiment
-	title := fmt.Sprintf("实验 %d/%d", index+1, len(experiments))
-	label := firstNonEmptyText(experiment, "label", "param_id")
-	body := fmt.Sprintf("我临时调整了 %s。请观察插件界面或声音变化，告诉我它对应什么显示范围或单位。提交后我会先恢复原值。", label)
-	req := AgentInteractionRequest{
-		ID:             "interaction_" + randomID(),
-		Kind:           "form",
-		Type:           "plugin_learning_experiment",
-		Source:         "plugin_grabber",
-		Workflow:       interaction.Workflow,
-		Stage:          "experiment_question",
-		Title:          title,
-		Body:           body,
-		Status:         "waiting_for_user",
-		ConversationID: interaction.ConversationID,
-		GoalID:         interaction.GoalID,
-		RunID:          interaction.RunID,
-		Fields:         pluginGrabberExperimentFields(experiment),
-		Payload:        payload,
-		Data:           payload,
-		Actions: []AgentInteractionAction{
-			{ID: "submit", Label: "提交并恢复", Style: "primary", Recommended: true},
-			{ID: "cancel", Label: "取消", Style: "secondary"},
-		},
-	}
-	s.storePendingInteraction(req, payload)
-	return ChatResponse{
-		ConversationID:      interaction.ConversationID,
-		GoalID:              interaction.GoalID,
-		RunID:               interaction.RunID,
-		Reply:               body,
-		Workflow:            interaction.Workflow,
-		WorkflowData:        payload,
-		PluginLearning:      payload,
-		InteractionRequests: []AgentInteractionRequest{req},
-	}, nil
-}
-
-func (s *Server) completePluginGrabberExperimentInteraction(ctx context.Context, interaction PendingInteraction, submitPayload map[string]any) (ChatResponse, error) {
-	payload := copyStringAnyMap(interaction.Payload)
-	active := mapValue(payload["active_experiment"])
-	target := mapValue(payload["target"])
-	paramID := firstNonEmptyText(active, "param_id")
-	before := floatNumber(active["before_normalized"])
-	if err := s.setPluginParamNormalized(ctx, target, paramID, before); err != nil {
-		return ChatResponse{}, fmt.Errorf("恢复实验参数失败：%w", err)
-	}
-	fields := mapValue(submitPayload["fields"])
-	observationNotes := strings.TrimSpace(fmt.Sprint(fields["observation"]))
-	displayDomainText := strings.TrimSpace(fmt.Sprint(fields["display_domain_text"]))
-	customDisplayDomainText := strings.TrimSpace(fmt.Sprint(fields["custom_display_domain_text"]))
-	if strings.EqualFold(displayDomainText, "custom") {
-		displayDomainText = customDisplayDomainText
-	}
-	if strings.EqualFold(displayDomainText, "not_sure") {
-		displayDomainText = ""
-	}
-	answer := map[string]any{
-		"experiment":          active,
-		"observation_kind":    "",
-		"observation":         observationNotes,
-		"observation_notes":   observationNotes,
-		"display_domain_text": displayDomainText,
-	}
-	answers := mapRowsValue(payload["experiment_answers"])
-	answers = append(answers, answer)
-	payload["experiment_answers"] = answers
-	delete(payload, "active_experiment")
-	index := intNumber(payload["experiment_index"]) + 1
-	next := interaction
-	next.Payload = payload
-	next.Data = payload
-	return s.beginPluginGrabberExperimentInteraction(ctx, next, index)
-}
-
-func pluginGrabberExperimentFields(experiment map[string]any) []AgentInteractionField {
-	return []AgentInteractionField{
-		{
-			ID:          "display_domain_text",
-			Label:       "这个参数的显示域更像哪一个？",
-			Kind:        "choice",
-			Required:    true,
-			Value:       pluginGrabberDefaultDisplayDomainChoice(experiment),
-			Options:     pluginGrabberDisplayDomainOptions(experiment),
-			Description: "优先选择插件界面显示的单位和范围；如果都不对，选择手动填写。",
-		},
-		{
-			ID:          "observation",
-			Label:       "补充说明",
-			Kind:        "text",
-			Required:    false,
-			Placeholder: "例如：Feedback 显示为 68%，单位是百分比",
-		},
-		{
-			ID:          "custom_display_domain_text",
-			Label:       "手动填写显示域",
-			Kind:        "text",
-			Placeholder: "如果上面的选项都不对，填写：20~20000 Hz / -18~18 dB / 0~100 %",
-		},
-	}
-}
-
-func pluginGrabberDefaultDisplayDomainChoice(experiment map[string]any) string {
-	if text := firstNonEmptyText(experiment, "inferred_display_domain_text", "display_domain_text"); text != "" {
-		return text
-	}
-	return "not_sure"
-}
-
-func pluginGrabberDisplayDomainOptions(experiment map[string]any) []map[string]any {
-	inferred := firstNonEmptyText(experiment, "inferred_display_domain_text", "display_domain_text")
-	candidates := []string{}
-	add := func(text string) {
-		text = strings.TrimSpace(text)
-		if text == "" {
-			return
-		}
-		for _, existing := range candidates {
-			if strings.EqualFold(existing, text) {
-				return
-			}
-		}
-		candidates = append(candidates, text)
-	}
-	add(inferred)
-	combined := strings.ToLower(strings.Join([]string{
-		firstNonEmptyText(experiment, "slot"),
-		firstNonEmptyText(experiment, "label"),
-		firstNonEmptyText(experiment, "param_id"),
-		firstNonEmptyText(experiment, "normalized_role"),
-		firstNonEmptyText(experiment, "value_text"),
-	}, " "))
-	switch {
-	case strings.Contains(combined, "delay") || strings.Contains(combined, "time") || strings.Contains(combined, "ms"):
-		add("0~2000 ms")
-		add("0.01~10 Hz 对数")
-		add("0~100 %")
-	case strings.Contains(combined, "freq") || strings.Contains(combined, "hz"):
-		add("20~20000 Hz 对数")
-		add("10~2000 Hz 对数")
-		add("200~20000 Hz 对数")
-	case strings.Contains(combined, "gain") || strings.Contains(combined, "level") || strings.Contains(combined, "db"):
-		add("-18~18 dB")
-		add("-12~0 dB")
-		add("0~100 %")
-	case strings.Contains(combined, "mix") || strings.Contains(combined, "wet") || strings.Contains(combined, "dry") || strings.Contains(combined, "feedback") || strings.Contains(combined, "depth") || strings.Contains(combined, "%"):
-		add("0~100 %")
-		add("-12~0 dB")
-		add("0~2000 ms")
-	default:
-		add("0~100 %")
-		add("-18~18 dB")
-		add("20~20000 Hz 对数")
-	}
-	options := make([]map[string]any, 0, len(candidates)+2)
-	for i, candidate := range candidates {
-		label := candidate
-		if inferred != "" && strings.EqualFold(candidate, inferred) && i == 0 {
-			label = "推测：" + candidate
-		}
-		options = append(options, map[string]any{"value": candidate, "label": label})
-	}
-	options = append(options,
-		map[string]any{"value": "custom", "label": "手动填写"},
-		map[string]any{"value": "not_sure", "label": "不确定"},
-	)
-	return options
-}
-
-func pluginGrabberExperimentObservationSummary(kind, notes string) string {
-	kind = strings.TrimSpace(kind)
-	notes = strings.TrimSpace(notes)
-	labels := map[string]string{
-		"display_value_increased": "显示值变大",
-		"display_value_decreased": "显示值变小",
-		"sound_changed":           "声音变化",
-		"no_visible_change":       "没有明显变化",
-		"not_sure":                "不确定",
-	}
-	label := labels[kind]
-	if label == "" {
-		label = kind
-	}
-	if label == "" {
-		return notes
-	}
-	if notes == "" {
-		return label
-	}
-	return label + "；" + notes
-}
-
-func (s *Server) showPluginGrabberDisplayDomainInteraction(ctx context.Context, interaction PendingInteraction, payload map[string]any) ChatResponse {
-	fields := pluginGrabberDisplayDomainFields(payload)
-	if len(fields) == 0 {
-		nextPayload := map[string]any{
-			"reviewed_profile_patch": payload["profile_patch"],
-		}
-		if reviews := firstPresentAny(payload, "display_domain_reviews", "display_domains"); reviews != nil {
-			nextPayload["display_domain_reviews"] = reviews
-		}
-		resp, err := s.runPluginGrabberInteractionWorkflow(ctx, interaction, nextPayload, "auto_learn_reviewed")
-		if err == nil {
-			s.attachInteractionRequests(&resp)
-			return resp
-		}
-		return pluginGrabberInteractionErrorResponse(interaction, err)
-	}
-	req := AgentInteractionRequest{
-		ID:             "interaction_" + randomID(),
-		Kind:           "form",
-		Type:           "plugin_learning_display_domain_form",
-		Source:         "plugin_grabber",
-		Workflow:       interaction.Workflow,
-		Stage:          "display_domain_form",
-		Title:          "补充显示域",
-		Body:           "请补充或确认这些参数在插件界面上的显示范围与单位。",
-		Status:         "waiting_for_user",
-		ConversationID: interaction.ConversationID,
-		GoalID:         interaction.GoalID,
-		RunID:          interaction.RunID,
-		Fields:         fields,
-		Payload:        payload,
-		Data:           payload,
-		Actions: []AgentInteractionAction{
-			{ID: "submit", Label: "生成保存草图", Style: "primary", Recommended: true},
-			{ID: "cancel", Label: "取消", Style: "secondary"},
-		},
-	}
-	s.storePendingInteraction(req, payload)
-	return ChatResponse{
-		ConversationID:      interaction.ConversationID,
-		GoalID:              interaction.GoalID,
-		RunID:               interaction.RunID,
-		Reply:               "请补充显示域后继续。",
-		Workflow:            interaction.Workflow,
-		WorkflowData:        payload,
-		PluginLearning:      payload,
-		InteractionRequests: []AgentInteractionRequest{req},
-	}
-}
-
-func (s *Server) finalizePluginGrabberDisplayDomainInteraction(ctx context.Context, interaction PendingInteraction, submitPayload map[string]any) (ChatResponse, error) {
-	payload := copyStringAnyMap(interaction.Payload)
-	fields := mapValue(submitPayload["fields"])
-	reviews := mapRowsValue(firstPresentAny(payload, "display_domain_reviews", "display_domains"))
-	reviews = append(reviews, pluginGrabberDisplayDomainReviews(payload, fields)...)
-	nextPayload := map[string]any{
-		"reviewed_profile_patch": payload["profile_patch"],
-		"display_domain_reviews": reviews,
-	}
-	return s.runPluginGrabberInteractionWorkflow(ctx, interaction, nextPayload, "auto_learn_reviewed")
-}
-
-func (s *Server) runPluginGrabberInteractionWorkflow(ctx context.Context, interaction PendingInteraction, payload map[string]any, mode string) (ChatResponse, error) {
-	cfg, _, err := config.Load()
-	if err != nil {
-		return ChatResponse{}, err
-	}
-	base := mapValue(interaction.Payload)
-	target := mapValue(base["target"])
-	args := map[string]any{
-		"mode":        mode,
-		"track_id":    firstNonEmptyText(target, "track_id"),
-		"plugin_id":   firstNonEmptyText(target, "plugin_id"),
-		"plugin_name": firstNonEmptyText(target, "plugin_name"),
-	}
-	if args["track_id"] == "" {
-		args["track_id"] = firstNonEmptyText(base, "track_id")
-	}
-	if args["plugin_id"] == "" {
-		args["plugin_id"] = firstNonEmptyText(base, "plugin_id")
-	}
-	if args["plugin_name"] == "" {
-		args["plugin_name"] = firstNonEmptyText(base, "plugin_name")
-	}
-	if uiReference := firstPresentAny(base, "ui_reference"); uiReference != nil {
-		args["ui_reference"] = uiReference
-	}
-	if uiReferenceArtifacts := firstPresentAny(base, "ui_reference_artifacts"); uiReferenceArtifacts != nil {
-		args["ui_reference_artifacts"] = uiReferenceArtifacts
-	}
-	if mode == "auto_learn_reviewed" {
-		if patch := firstPresentAny(payload, "reviewed_profile_patch", "profile_patch"); patch != nil {
-			args["reviewed_profile_patch"] = patch
-		} else if patch := base["profile_patch"]; patch != nil {
-			args["reviewed_profile_patch"] = patch
-		}
-		if reviews := firstPresentAny(payload, "display_domain_reviews", "display_domains"); reviews != nil {
-			args["display_domain_reviews"] = reviews
-		}
-	}
-	resp := s.runPluginGrabberLearningWorkflow(ctx, interaction.ConversationID, "", interaction.RequestContext, cfg, args)
-	resp.GoalID = firstNonEmpty(resp.GoalID, interaction.GoalID)
-	resp.RunID = firstNonEmpty(resp.RunID, interaction.RunID)
-	return resp, nil
-}
-
-func (s *Server) setPluginParamNormalized(ctx context.Context, target map[string]any, paramID string, value float64) error {
-	if s.kernel == nil {
-		return fmt.Errorf("kernel client is nil")
-	}
-	trackID := firstNonEmptyText(target, "track_id")
-	pluginID := firstNonEmptyText(target, "plugin_id")
-	paramID = strings.TrimSpace(paramID)
-	if trackID == "" || pluginID == "" || paramID == "" {
-		return fmt.Errorf("实验参数目标不完整")
-	}
-	reply, _, err := s.kernel.SendCommand(ctx, map[string]any{
-		"cmd":       "set_plugin_param",
-		"track_id":  trackID,
-		"plugin_id": pluginID,
-		"param_id":  paramID,
-		"value":     value,
-	})
-	if err != nil {
-		return err
-	}
-	if !kernelReplyOK(reply) {
-		message := firstNonEmptyText(reply, "message", "error")
-		if message == "" {
-			message = "set_plugin_param failed"
-		}
-		return fmt.Errorf("%s", message)
-	}
-	return nil
-}
-
-func pluginGrabberDisplayDomainFields(payload map[string]any) []AgentInteractionField {
-	fields := []AgentInteractionField{}
-	seen := map[string]bool{}
-	for i, answer := range mapRowsValue(payload["experiment_answers"]) {
-		experiment := mapValue(answer["experiment"])
-		paramID := firstNonEmptyText(experiment, "param_id")
-		if paramID == "" {
-			continue
-		}
-		key := pluginGrabberDisplayReviewKey(firstNonEmptyText(experiment, "component_id"), firstNonEmptyText(experiment, "slot"), paramID)
-		seen[key] = true
-		value := firstNonEmptyText(answer, "display_domain_text")
-		if value == "" {
-			value = firstNonEmptyText(experiment, "inferred_display_domain_text", "display_domain_text")
-		}
-		fields = append(fields, AgentInteractionField{
-			ID:          fmt.Sprintf("display_domain_%d", i),
-			Label:       firstNonEmptyText(experiment, "label", "param_id"),
-			Kind:        "text",
-			Required:    false,
-			Value:       value,
-			Placeholder: "例如：20~20000 Hz / -18~18 dB / 0~100 %",
-			Payload: map[string]any{
-				"component_id":    experiment["component_id"],
-				"operation_name":  experiment["operation_name"],
-				"slot":            experiment["slot"],
-				"param_id":        paramID,
-				"value_text":      experiment["value_text"],
-				"observation":     answer["observation"],
-				"provenance_kind": "active_roundtrip_probe",
-			},
-		})
-	}
-	fields = appendPluginGrabberUnresolvedDisplayDomainFields(fields, payload, seen)
-	return fields
-}
-
-func appendPluginGrabberUnresolvedDisplayDomainFields(fields []AgentInteractionField, payload map[string]any, seen map[string]bool) []AgentInteractionField {
-	patch := mapValue(payload["profile_patch"])
-	if len(patch) == 0 && payload["profile_patch"] != nil {
-		patch = mapFromJSONStruct(payload["profile_patch"])
-	}
-	for _, group := range mapRowsValue(patch["groups"]) {
-		componentID := firstNonEmptyText(group, "id", "component_id")
-		componentLabel := firstNonEmptyText(group, "label", "name", "id")
-		params := mapValue(group["params"])
-		// The form is built once for display and built again on submit to map
-		// submitted field IDs back to their parameter slots.  Map iteration is
-		// deliberately random in Go, so this order must be stable or a user's
-		// confirmed range can be written to a neighbouring parameter.
-		slots := make([]string, 0, len(params))
-		for rawSlot := range params {
-			slots = append(slots, fmt.Sprint(rawSlot))
-		}
-		sort.Strings(slots)
-		for _, rawSlot := range slots {
-			rawMapping := params[rawSlot]
-			slot := strings.TrimSpace(fmt.Sprint(rawSlot))
-			mapping := mapValue(rawMapping)
-			paramID := firstNonEmptyText(mapping, "param_id", "id")
-			if paramID == "" {
-				paramID = strings.TrimSpace(fmt.Sprint(rawMapping))
-			}
-			if paramID == "" || paramID == "<nil>" || !pluginGrabberMappingNeedsDisplayReview(mapping) {
-				continue
-			}
-			key := pluginGrabberDisplayReviewKey(componentID, slot, paramID)
-			if seen[key] {
-				continue
-			}
-			seen[key] = true
-			label := strings.TrimSpace(strings.Join([]string{componentLabel, slot, firstNonEmptyText(mapping, "label", "name", "param_id")}, " / "))
-			fields = append(fields, AgentInteractionField{
-				ID:          fmt.Sprintf("display_domain_unresolved_%d", len(fields)),
-				Label:       label,
-				Kind:        "text",
-				Required:    false,
-				Value:       pluginGrabberMappingDomainText(mapping),
-				Placeholder: "例如：20~20000 Hz / -18~18 dB / 0~100 %",
-				Payload: map[string]any{
-					"component_id":    componentID,
-					"slot":            slot,
-					"param_id":        paramID,
-					"provenance_kind": "user_review",
-				},
-			})
-		}
-	}
-	return fields
-}
-
-func pluginGrabberPayloadWithSubmittedReviews(base, submitted map[string]any) map[string]any {
-	payload := copyStringAnyMap(base)
-	for key, value := range submitted {
-		payload[key] = value
-	}
-	reviews := firstPresentAny(payload, "display_domain_reviews", "display_domains")
-	if reviews == nil {
-		return payload
-	}
-	patch, err := reviewedProfilePatchFromArgs(map[string]any{"reviewed_profile_patch": payload["profile_patch"]})
-	if err == nil {
-		applyReviewedDisplayDomains(&patch, reviews)
-		payload["profile_patch"] = patch
-	}
-	return payload
-}
-
-func pluginGrabberMappingNeedsDisplayReview(mapping map[string]any) bool {
-	if len(mapping) == 0 || boolValue(mapping["confirmed"]) {
-		return false
-	}
-	// A deterministic mapping may be high-confidence enough to be useful in a
-	// draft, but it is still not a confirmed control.  If the draft explicitly
-	// says that user review is missing, surface it in the review form instead of
-	// silently saving an unconfirmed mapping.  This is especially important for
-	// processor conformance paths that require bounded, confirmed parameters.
-	for _, missing := range stringListValue(mapping["missing_evidence"]) {
-		if strings.EqualFold(strings.TrimSpace(missing), "user_review") {
-			return true
-		}
-	}
-	domain := mapValue(mapping["display_domain"])
-	if len(domain) == 0 {
-		return true
-	}
-	status := strings.ToLower(strings.TrimSpace(firstNonEmptyText(domain, "status")))
-	if status == "unknown" || status == "needs_confirmation" {
-		return true
-	}
-	confidence := floatNumber(domain["confidence"])
-	return confidence > 0 && confidence < 0.80
-}
-
-func pluginGrabberMappingDomainText(mapping map[string]any) string {
-	if text := firstNonEmptyText(mapping, "display_domain_text", "display_range", "display_unit", "unit", "range"); text != "" {
-		return text
-	}
-	domain := mapValue(mapping["display_domain"])
-	if text := firstNonEmptyText(domain, "text"); text != "" {
-		return text
-	}
-	unit := firstNonEmptyText(domain, "unit")
-	minText := strings.TrimSpace(fmt.Sprint(domain["min"]))
-	maxText := strings.TrimSpace(fmt.Sprint(domain["max"]))
-	if minText != "" && minText != "<nil>" && maxText != "" && maxText != "<nil>" {
-		return strings.TrimSpace(minText + "~" + maxText + " " + unit)
-	}
-	return unit
-}
-
-func pluginGrabberDisplayReviewKey(componentID, slot, paramID string) string {
-	return strings.TrimSpace(componentID) + "|" + strings.TrimSpace(slot) + "|" + strings.TrimSpace(paramID)
-}
-
-func pluginGrabberDisplayDomainReviews(payload map[string]any, fields map[string]any) []map[string]any {
-	reviews := []map[string]any{}
-	formFields := pluginGrabberDisplayDomainFields(payload)
-	for _, field := range formFields {
-		text := strings.TrimSpace(fmt.Sprint(fields[field.ID]))
-		if text == "" || text == "<nil>" {
-			continue
-		}
-		review := copyStringAnyMap(field.Payload)
-		review["display_domain_text"] = text
-		reviews = append(reviews, review)
-	}
-	return reviews
-}
-
-func pluginGrabberInteractionErrorResponse(interaction PendingInteraction, err error) ChatResponse {
-	message := friendlyExecutionError(err)
-	if err != nil && strings.Contains(err.Error(), "恢复实验参数失败") {
-		message = "实验参数恢复失败，已停止学习流程。请手动检查插件参数。"
-	}
-	return ChatResponse{
-		ConversationID: interaction.ConversationID,
-		GoalID:         interaction.GoalID,
-		RunID:          interaction.RunID,
-		Reply:          message,
-		Workflow:       interaction.Workflow,
-		WorkflowData:   interaction.Payload,
-		Error:          errorString(err),
-		InteractionRequests: []AgentInteractionRequest{{
-			ID:             "interaction_" + randomID(),
-			Kind:           "mode_boundary",
-			Source:         interaction.Source,
-			Workflow:       interaction.Workflow,
-			Stage:          "error",
-			Title:          "学习已停止",
-			Body:           message,
-			Status:         "error",
-			ConversationID: interaction.ConversationID,
-			GoalID:         interaction.GoalID,
-			RunID:          interaction.RunID,
-			Payload:        interaction.Payload,
-			Actions:        []AgentInteractionAction{{ID: "done", Label: "完成", Style: "primary", Recommended: true}},
-		}},
-	}
-}
-
 func (s *Server) handleConfirm(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		writeJSON(w, http.StatusMethodNotAllowed, map[string]any{"error": "POST required"})
@@ -4927,13 +3940,6 @@ func (s *Server) handleConfirm(w http.ResponseWriter, r *http.Request) {
 		}
 		response := map[string]any{"status": "ok", "message": "cancelled", "plan_id": planID, "goal_id": goalID, "run_id": runID, "agent_mode": agentMode, "goal_status": string(agentruntime.StatusCancelled), "project_history": projectHistory}
 		response["typed_events"] = typedApprovalDecisionEvents(planID, plan, cleanContextText(plan.WorkflowData["conversation_id"]), goalID, runID, "denied", "user cancelled confirmation")
-		if data := pluginGrabberLearningCompletionData(plan, false); data != nil {
-			response["workflow"] = plan.Workflow
-			response["workflow_data"] = data
-			response["plugin_learning"] = data
-			response["message"] = "已取消 Plugin Grabber 学习保存。"
-			attachPluginGrabberCompletionAssets(response, data)
-		}
 		if plan := agentPlanForMode(agentMode, simpleAgentPlan(goalID, runID, agentruntime.StatusCancelled, "", "", "", projectHistory)); plan != nil {
 			response["agent_plan"] = plan
 		}
@@ -4971,13 +3977,13 @@ func (s *Server) handleConfirm(w http.ResponseWriter, r *http.Request) {
 	}
 	message := executedReply(beforeState, s.harness.UserStateSummary(r.Context()), plan.Decisions, replies)
 	var pluginPrep pluginPrepContinuation
-	var semanticEQHandoff *ChatResponse
+	var semanticProcessorHandoff *ChatResponse
 	if plan.Workflow == pluginGrabberLoadCommand {
 		message, replies = s.finishPluginGrabberLoadWorkflow(r.Context(), plan, replies, message)
 		pluginPrep = s.pluginPrepContinuationFromReplies(plan, replies, message)
-		if handoff, ok := s.semanticEQPostLoadHandoff(r.Context(), plan, replies); ok {
+		if handoff, ok := s.semanticProcessorPostLoadHandoff(r.Context(), plan, replies); ok {
 			s.attachInteractionRequests(&handoff)
-			semanticEQHandoff = &handoff
+			semanticProcessorHandoff = &handoff
 			message = handoff.Reply
 		}
 	}
@@ -4987,8 +3993,10 @@ func (s *Server) handleConfirm(w http.ResponseWriter, r *http.Request) {
 	if strings.TrimSpace(message) == "" {
 		message = "done"
 	}
-	if semanticEQHandoff != nil && semanticEQHandoff.NeedsConfirmation {
+	if semanticProcessorHandoff != nil && semanticProcessorHandoff.NeedsConfirmation {
 		s.harness.SetGoalStatus(goalID, agentruntime.StatusWaitingConfirmation, nil)
+	} else if semanticProcessorHandoff != nil && strings.EqualFold(semanticProcessorHandoff.GoalStatus, string(agentruntime.StatusWaitingContinue)) {
+		s.harness.SetGoalStatus(goalID, agentruntime.StatusWaitingContinue, nil)
 	} else if strings.EqualFold(pluginPrep.GoalStatus, string(agentruntime.StatusWaitingConfirmation)) {
 		s.harness.SetGoalStatus(goalID, agentruntime.StatusWaitingConfirmation, nil)
 	} else if strings.EqualFold(pluginPrep.GoalStatus, string(agentruntime.StatusWaitingContinue)) {
@@ -5002,11 +4010,11 @@ func (s *Server) handleConfirm(w http.ResponseWriter, r *http.Request) {
 	if len(projectResultCards) > 0 {
 		historyData["project_result_cards"] = projectResultCards
 	}
-	if semanticEQHandoff != nil {
-		if messageData := chatResponseMessageData(*semanticEQHandoff); len(messageData) > 0 {
+	if semanticProcessorHandoff != nil {
+		if messageData := chatResponseMessageData(*semanticProcessorHandoff); len(messageData) > 0 {
 			historyData["message_data"] = messageData
 		}
-		historyData["message_kind"] = chatResponseMessageKind(*semanticEQHandoff)
+		historyData["message_kind"] = chatResponseMessageKind(*semanticProcessorHandoff)
 	}
 	projectHistory := s.harness.RecordConversationNodeForProjectWithData(r.Context(), projectPath, "vit", message, goalID, runID, historyData)
 	if len(projectHistory) == 0 {
@@ -5026,23 +4034,14 @@ func (s *Server) handleConfirm(w http.ResponseWriter, r *http.Request) {
 		"goal_status":           string(agentruntime.StatusCompleted),
 		"typed_events":          typedApprovalDecisionEvents(planID, plan, cleanContextText(plan.WorkflowData["conversation_id"]), goalID, runID, "consumed", message),
 	}
-	if data := pluginGrabberLearningCompletionData(plan, true); data != nil {
-		response["workflow"] = plan.Workflow
-		response["workflow_data"] = data
-		response["plugin_learning"] = data
-		if vpsData := mapValue(data["vps_v3"]); len(vpsData) > 0 {
-			response["vps_v3"] = vpsData
-		}
-		attachPluginGrabberCompletionAssets(response, data)
-	}
 	if plan := agentPlanForMode(agentMode, simpleAgentPlan(goalID, runID, agentruntime.StatusCompleted, "", "", "", projectHistory)); plan != nil {
 		response["agent_plan"] = plan
 	}
 	response = applyPluginPrepContinuationResponse(response, pluginPrep)
-	if semanticEQHandoff != nil {
-		response = applySemanticEQPostLoadHandoffResponse(response, *semanticEQHandoff)
-		if semanticEQHandoff.NeedsConfirmation {
-			if agentPlan := agentPlanForMode(agentMode, simpleAgentPlan(goalID, runID, agentruntime.StatusWaitingConfirmation, semanticEQHandoff.GoalSummary, "", "", projectHistory)); agentPlan != nil {
+	if semanticProcessorHandoff != nil {
+		response = applySemanticPostLoadHandoffResponse(response, *semanticProcessorHandoff)
+		if semanticProcessorHandoff.NeedsConfirmation {
+			if agentPlan := agentPlanForMode(agentMode, simpleAgentPlan(goalID, runID, agentruntime.StatusWaitingConfirmation, semanticProcessorHandoff.GoalSummary, "", "", projectHistory)); agentPlan != nil {
 				response["agent_plan"] = agentPlan
 			}
 		}
@@ -5093,13 +4092,6 @@ func (s *Server) resolvePendingPlanDecision(ctx context.Context, planID, decisio
 		}
 		response := map[string]any{"status": "ok", "message": "cancelled", "plan_id": planID, "goal_id": goalID, "run_id": runID, "agent_mode": agentMode, "goal_status": string(agentruntime.StatusCancelled), "project_history": projectHistory}
 		response["typed_events"] = typedApprovalDecisionEvents(planID, plan, cleanContextText(plan.WorkflowData["conversation_id"]), goalID, runID, "denied", "user cancelled confirmation")
-		if data := pluginGrabberLearningCompletionData(plan, false); data != nil {
-			response["workflow"] = plan.Workflow
-			response["workflow_data"] = data
-			response["plugin_learning"] = data
-			response["message"] = "已取消 Plugin Grabber 学习保存。"
-			attachPluginGrabberCompletionAssets(response, data)
-		}
 		if plan := agentPlanForMode(agentMode, simpleAgentPlan(goalID, runID, agentruntime.StatusCancelled, "", "", "", projectHistory)); plan != nil {
 			response["agent_plan"] = plan
 		}
@@ -5134,20 +4126,20 @@ func (s *Server) resolvePendingPlanDecision(ctx context.Context, planID, decisio
 	}
 	message := executedReply(beforeState, s.harness.UserStateSummary(ctx), plan.Decisions, replies)
 	var pluginPrep pluginPrepContinuation
-	var semanticEQHandoff *ChatResponse
+	var semanticProcessorHandoff *ChatResponse
 	if plan.Workflow == pluginGrabberLoadCommand {
 		message, replies = s.finishPluginGrabberLoadWorkflow(ctx, plan, replies, message)
 		pluginPrep = s.pluginPrepContinuationFromReplies(plan, replies, message)
-		if handoff, ok := s.semanticEQPostLoadHandoff(ctx, plan, replies); ok {
+		if handoff, ok := s.semanticProcessorPostLoadHandoff(ctx, plan, replies); ok {
 			s.attachInteractionRequests(&handoff)
-			semanticEQHandoff = &handoff
+			semanticProcessorHandoff = &handoff
 			message = handoff.Reply
 		}
 	}
 	if strings.TrimSpace(message) == "" {
 		message = "done"
 	}
-	if semanticEQHandoff != nil && semanticEQHandoff.NeedsConfirmation {
+	if semanticProcessorHandoff != nil && semanticProcessorHandoff.NeedsConfirmation {
 		s.harness.SetGoalStatus(goalID, agentruntime.StatusWaitingConfirmation, nil)
 	} else if strings.EqualFold(pluginPrep.GoalStatus, string(agentruntime.StatusWaitingConfirmation)) {
 		s.harness.SetGoalStatus(goalID, agentruntime.StatusWaitingConfirmation, nil)
@@ -5162,11 +4154,11 @@ func (s *Server) resolvePendingPlanDecision(ctx context.Context, planID, decisio
 	if len(projectResultCards) > 0 {
 		historyData["project_result_cards"] = projectResultCards
 	}
-	if semanticEQHandoff != nil {
-		if messageData := chatResponseMessageData(*semanticEQHandoff); len(messageData) > 0 {
+	if semanticProcessorHandoff != nil {
+		if messageData := chatResponseMessageData(*semanticProcessorHandoff); len(messageData) > 0 {
 			historyData["message_data"] = messageData
 		}
-		historyData["message_kind"] = chatResponseMessageKind(*semanticEQHandoff)
+		historyData["message_kind"] = chatResponseMessageKind(*semanticProcessorHandoff)
 	}
 	projectHistory := s.harness.RecordConversationNodeForProjectWithData(ctx, projectPath, "vit", message, goalID, runID, historyData)
 	if len(projectHistory) == 0 {
@@ -5186,23 +4178,14 @@ func (s *Server) resolvePendingPlanDecision(ctx context.Context, planID, decisio
 		"goal_status":           string(agentruntime.StatusCompleted),
 		"typed_events":          typedApprovalDecisionEvents(planID, plan, cleanContextText(plan.WorkflowData["conversation_id"]), goalID, runID, "consumed", message),
 	}
-	if data := pluginGrabberLearningCompletionData(plan, true); data != nil {
-		response["workflow"] = plan.Workflow
-		response["workflow_data"] = data
-		response["plugin_learning"] = data
-		if vpsData := mapValue(data["vps_v3"]); len(vpsData) > 0 {
-			response["vps_v3"] = vpsData
-		}
-		attachPluginGrabberCompletionAssets(response, data)
-	}
 	if plan := agentPlanForMode(agentMode, simpleAgentPlan(goalID, runID, agentruntime.StatusCompleted, "", "", "", projectHistory)); plan != nil {
 		response["agent_plan"] = plan
 	}
 	response = applyPluginPrepContinuationResponse(response, pluginPrep)
-	if semanticEQHandoff != nil {
-		response = applySemanticEQPostLoadHandoffResponse(response, *semanticEQHandoff)
-		if semanticEQHandoff.NeedsConfirmation {
-			if agentPlan := agentPlanForMode(agentMode, simpleAgentPlan(goalID, runID, agentruntime.StatusWaitingConfirmation, semanticEQHandoff.GoalSummary, "", "", projectHistory)); agentPlan != nil {
+	if semanticProcessorHandoff != nil {
+		response = applySemanticPostLoadHandoffResponse(response, *semanticProcessorHandoff)
+		if semanticProcessorHandoff.NeedsConfirmation {
+			if agentPlan := agentPlanForMode(agentMode, simpleAgentPlan(goalID, runID, agentruntime.StatusWaitingConfirmation, semanticProcessorHandoff.GoalSummary, "", "", projectHistory)); agentPlan != nil {
 				response["agent_plan"] = agentPlan
 			}
 		}
@@ -6053,25 +5036,19 @@ When importing audio and no target track is named, use selected_track_id as the 
 If commands is non-empty, keep reply as a short internal intent summary. VitAgent will replace it with the final user-facing result after execution, so do not rely on "about to" wording as the final answer.
 
 For plugin loading/grabber setup requests such as loading TDR Nova, finding an EQ/compressor, or loading a plugin and grabbing useful controls, use the special chat workflow command {"cmd":"plugin_grabber_load_and_get_params","track_id":"...","plugin_query":"TDR Nova","intent":"short user intent"}. This workflow searches indexed plugins, asks for confirmation before loading a rack node, then reads parameters after the load succeeds. Do not use instantiate_plugin for these requests; instantiate_plugin requires an exact plugin_path and bypasses the rack grabber workflow.
-For project-scoped plugin grabber learning requests such as learning a plugin, saving quick controls, grouping plugin parameters, or improving plugin control names on an already loaded/selected plugin, use the special chat workflow command {"cmd":"plugin_grabber_learn_project_profile","track_id":"...","plugin_id":"...","intent":"short user intent"}. This workflow is agent-side: it first reads full parameters, asks AI for a profile patch, validates parameter IDs, then asks the user to confirm before saving. Do not use it for ordinary parameter value changes.
-For explicit plugin effect control (EQ, compression, or any other effect), use this two-tier approach:
-  TIER 1 — verified profile only: use plugin_grabber_apply_control ONLY when runtime_profile.virtual_controls is non-empty AND eq_band_summary is absent from the explain_controls result.
-  TIER 2 — when eq_band_summary is present OR no virtual_controls: call plugin_grabber_explain_controls first. The result contains an identity-free multi-axis EQ topology with per-shape/action capabilities. For static EQ, call plugin_grabber.apply_eq_edits(track_id, plugin_id, edits, atomic:true). Supported shapes are bell, low_shelf, high_shelf, low_cut, and high_cut; supported actions are upsert, modify, disable, remove, and undo. Use only acoustic fields explicitly requested by the user. gain_db is required for Bell/Shelf upsert and forbidden for Cut. modify/disable/remove use a returned control_ref; undo uses operation_ref. Every explicit Q or slope is a hard requirement: rejected means no parameter was touched. Report exact/quantized/rejected and actual readback exactly. plugin_grabber.set_eq_point is only the legacy single-upsert adapter. Never call set_plugin_param or apply_control for a recognised generic static EQ. For non-EQ effects with no virtual_controls, pick the relevant param from all_parameters and call set_plugin_param with a normalized value.
+For explicit plugin effect control, use the deterministic typed tool for that effect. For static EQ, call plugin_grabber.explain_controls and then plugin_grabber.apply_eq_edits(track_id, plugin_id, edits, atomic:true). For a broadband compressor, call plugin_grabber.inspect_compressor first and then plugin_grabber.apply_compressor_controls with only returned control_ref values and explicit physical or enum targets. Compressor controls accept value_db, ratio, value_ms, percent, display_value, or enum_label; exactly one target field is allowed per control. The compressor tool does not interpret acoustic intent such as "more punch" or "compress more": decide the explicit control request before calling it. Pure limiters and multiband compressors are outside this tool. Every explicit field is a hard requirement: rejected means no parameter was touched. Report exact/quantized/rejected and actual readback exactly. Never use stored mappings or retired control mappings. For effects without a typed tool, pick the relevant parameter from all_parameters and call set_plugin_param with a normalized value.
   For non-EQ effects, pick the relevant param from all_parameters using domain for normalization.
   After writing, call get_plugin_parameters (include_parameters:true) to confirm. Never pass value_text.
-Do not fail closed simply because no virtual_controls exist.
 For plugin grabber explanation, summary, context pack, or "explain controls" requests on an already loaded/selected plugin, use the special read-only workflow command {"cmd":"plugin_grabber_explain_controls","track_id":"...","plugin_id":"...","intent":"short user intent"}. This workflow reads full parameters, then returns a compact context pack with quick controls, groups, roles, and full-parameter access hints. It does not filter or save parameters.
 For basic macro-control creation requests such as creating a generic macro knob/slider, use {"cmd":"control_add_macro","track_id":"...","name":"Macro","control_type":"slider","value":0.5,"bindings":[]}. Do not use rack.add_macro. Semantic macro generation from plugin skills should be proposed for confirmation before writing bindings.
 For macro-control rename requests, use {"cmd":"control_rename_macro","macro_id":"...","name":"New Macro Name"}. If the user names the macro by visible label, resolve it from macro_refs or available_macro_controls; do not create a new macro to rename one.
 When the user asks to bind/map a plugin parameter to an existing macro control, such as "bind B1 Gain to Macro 1", "bind it to this macro", or "绑定到已有宏控件", do not call control_add_macro first. Use the existing macro_id from macro_refs or available_macro_controls and call {"cmd":"control_add_binding","macro_id":"...","track_id":"...","plugin_id":"...","param_id":"...","param_name":"...","target_min":...,"target_max":...}. If the named macro is ambiguous or absent, ask which macro to use instead of creating a new one.
-For an already learned plug-in's user-requested control, prefer plugin_grabber_apply_control ONLY when virtual_controls is non-empty AND eq_band_summary is absent. Otherwise use the Tier 2 set_plugin_param path described above.
-For plugin parameter writes: when a verified runtime profile is available use plugin_grabber_apply_control so B4 can freeze identities, preimage, rollback, and evidence. When no verified profile is available, use set_plugin_param with a normalized value computed from display_domain_candidate — this is the approved Tier 2 direct-control path, not a raw mutation.
-For plugin_grabber_apply_control results, treat applied_parameters[].new_value_text, applied_value, and confirmed display_domain data as the evidence. Do not infer a control's min/max from the current value_text snapshot or advisory safety notes.
+For plugin parameter writes, use the deterministic tool for that effect type. Where no typed tool exists, use set_plugin_param with a normalized value computed from the live display_domain_candidate and verify with get_plugin_parameters.
 For selected/current clip fade/gain read/write requests, use clip.fade.read/set and clip.gain.read/set. Clip gain is static clip-level gain before track processing; do not route it to mixing, track.volume, mix.propose_tick, or mix.apply_tick.
 Mixing is a native Ask Vit conversation capability, not a separate Auto Mix/Co-Mix mode. Do not create a planning card or ask the user to fill one for mixing.
 For natural mixing goals such as making a vocal more forward, increasing loudness, reducing mud/harshness, tightening dynamics, or adding space, resolve the target from the user's wording and selected DAW context, then prefer mix_request_observation / mix.request_observation before choosing a write.
 For B1 gain-staging fader unity reset, use track.group.apply_control with mode:absolute and db:0 after confirmation; this is an engineering state reset, not a small subjective mix move.
-For B2 whole-project static balance, use the dedicated TOM/MOM/project.state CCB plus Mix Style/VMS path and one multi-track pending fader plan; do not reduce B2 to a local single-track move and never use clip gain. For local B3 or explicit small track moves, use mix.propose_tick then mix.apply_tick after confirmation; do not call track.volume directly. For learned non-EQ plugin changes use plugin_grabber_apply_control / plugin_grabber.apply_control. If a learned profile is missing or stale, report the blocker; invoke Plugin Grabber learning only when the user explicitly asks to learn, teach, profile, or save plug-in controls.
+For B2 whole-project static balance, use the dedicated TOM/MOM/project.state CCB plus Mix Style/VMS path and one multi-track pending fader plan; do not reduce B2 to a local single-track move and never use clip gain. For local B3 or explicit small track moves, use mix.propose_tick then mix.apply_tick after confirmation; do not call track.volume directly.
 If the user says to undo or roll back the last mix move, use the available undo/rollback path directly instead of returning to a mixing workflow.
 
 Mode instruction:
@@ -7228,6 +6205,7 @@ func (s *Server) projectAgentRuntimeStateLocked() projectAgentRuntimeState {
 		ConversationMemory: s.conversationMemory,
 		PendingMixTicks:    s.pendingMixTicks,
 		PendingTreatments:  s.pendingTreatments,
+		FreeStateLoops:     s.freeStateLoops,
 	}
 	if s.pendingManager != nil {
 		state.PendingCandidates = s.pendingManager.Snapshot()
@@ -7251,6 +6229,7 @@ func (s *Server) restoreProjectAgentRuntimeStateLocked(state projectAgentRuntime
 	s.conversationMemory = retireLegacyCapabilityExecutionMemory(nonNilMap(state.ConversationMemory))
 	s.pendingMixTicks = nonNilMap(state.PendingMixTicks)
 	s.pendingTreatments = nonNilMap(state.PendingTreatments)
+	s.freeStateLoops = nonNilMap(state.FreeStateLoops)
 	if s.pendingManager == nil {
 		s.pendingManager = pendingmanager.NewMemoryManager()
 	}

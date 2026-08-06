@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """End-to-end smoke test for direct NL plugin control via set_plugin_param.
 
-Tests the NEW path (no VPS profile, no virtual_controls required):
+Tests the deterministic typed EQ path against live parameter observations:
   user NL message → LLM reads all_parameters + display_domain_candidate
   → LLM picks param_id and computes normalized value
   → set_plugin_param executes
@@ -116,8 +116,6 @@ def step_verify_read_channel(base: str, track_id: str, plugin_id: str, timeout: 
         "parameter_count": len(all_params),
         "with_domain_candidate": with_domain,
         "domain_coverage_pct": round(coverage * 100, 1),
-        "profile_source": result.get("profile_source", "heuristic"),
-        "global_profile_applied": result.get("global_profile_applied", False),
     }
 
 
@@ -342,8 +340,7 @@ def run(args: argparse.Namespace) -> int:
         rc = step_verify_read_channel(base, track_id, plugin_id, timeout)
         print(f"  ok: {rc['parameter_count']} parameters, "
               f"{rc['with_domain_candidate']} with display_domain_candidate "
-              f"({rc['domain_coverage_pct']}%), "
-              f"profile_source={rc['profile_source']!r}")
+              f"({rc['domain_coverage_pct']}%)")
     except RuntimeError as exc:
         msg = f"Read channel check FAILED: {exc}"
         print(f"  FAIL: {msg}")

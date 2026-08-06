@@ -116,20 +116,47 @@ func displayDomainFromProbeSamples(param ParameterInfo) *PluginDisplayDomain {
 	if probe == nil {
 		return nil
 	}
-	values := make([]float64, 0, len(probe.Samples))
+	type measuredValue struct {
+		value float64
+		unit  string
+	}
+	measured := make([]measuredValue, 0, len(probe.Samples))
 	units := map[string]bool{}
 	for _, sample := range probe.Samples {
 		value, unit, ok := parseProbeDisplayNumber(sample.Text, probe.Label)
 		if !ok {
 			continue
 		}
-		values = append(values, value)
+		measured = append(measured, measuredValue{value: value, unit: unit})
 		if unit != "" {
 			units[unit] = true
 		}
 	}
-	if len(values) < 2 {
+	if len(measured) < 2 {
 		return nil
+	}
+	unit := ""
+	if len(units) == 1 {
+		for candidate := range units {
+			unit = candidate
+		}
+	} else if len(units) > 1 {
+		if units["ms"] && units["s"] && len(units) == 2 {
+			unit = "ms"
+			for index := range measured {
+				if measured[index].unit == "s" {
+					measured[index].value *= 1000
+					measured[index].unit = "ms"
+				}
+			}
+		} else {
+			// Incompatible units cannot define one physical control domain.
+			return nil
+		}
+	}
+	values := make([]float64, 0, len(measured))
+	for _, sample := range measured {
+		values = append(values, sample.value)
 	}
 	minValue, maxValue := values[0], values[0]
 	for _, value := range values[1:] {
@@ -139,17 +166,9 @@ func displayDomainFromProbeSamples(param ParameterInfo) *PluginDisplayDomain {
 	if nearlyEqual(minValue, maxValue) {
 		return nil
 	}
-	unit := ""
-	for candidate := range units {
-		unit = candidate
-		break
-	}
 	confidence := 0.84
 	if unit != "" {
 		confidence = 0.90
-	}
-	if len(units) > 1 {
-		confidence = 0.66
 	}
 	if len(probe.Issues) > 0 && unit == "" {
 		confidence -= 0.08

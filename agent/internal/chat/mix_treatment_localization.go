@@ -113,8 +113,8 @@ func localizedMixTreatmentNeeds(needs []string) []string {
 			out = append(out, "目标轨道")
 		case "plugin_instance":
 			out = append(out, "插件实例")
-		case "plugin_profile":
-			out = append(out, "插件控制映射")
+		case "live_parameter_surface":
+			out = append(out, "live parameter surface")
 		case "exact_control":
 			out = append(out, "精确控制参数")
 		case "request_more_observation":

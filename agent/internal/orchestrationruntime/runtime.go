@@ -20,10 +20,6 @@ const StaticBalanceCapabilityID = "static_mix.static_balance.v0"
 const PanLayoutCapabilityID = "static_mix.pan_layout.v0"
 const LowEndRelationCapabilityID = "static_mix.low_end_relation.v0"
 const FrequencyCleanupCapabilityID = "fine_mix.frequency_cleanup.v1"
-const SPALReferenceEQProviderRegistrationCapabilityID = "spal.reference_eq_provider_registration.v0"
-const SPALReferenceEQTestCapabilityID = "spal.reference_eq_test.v0"
-const SPALEQV2CapabilityID = "spal.eq.v2"
-const PluginEffectControlCapabilityID = "plugin.effect_control.v0"
 const AgentSemanticEQCapabilityID = "agent.effect.eq_control.v0"
 
 const capabilityRuntimeSystemContext = "Vit Project-aware Capability Runtime v1. Use the fixed PlanningSession engine owner, typed ContextBundle, ProjectCut, Proposal, Authorization, ActionSet, Execution and Verification contracts. Readiness is not authorization. Full derived models remain behind evidence or artifact references unless explicitly requested and admitted by budget."
@@ -84,25 +80,6 @@ func (r *Runtime) StartC1ChatSession(sessionID, conversationID, projectUUID, goa
 	})
 }
 
-// StartSPALReferenceEQTestChatSession starts the narrow product-path fixture.
-// B4 does not call this fixture; it reuses the ordinary generic-EQ path.
-func (r *Runtime) StartSPALReferenceEQTestChatSession(sessionID, conversationID, projectUUID, goal string, mode orchestration.InteractionMode) (orchestration.PlanningSession, error) {
-	return r.startCapabilitySession(sessionID, conversationID, projectUUID, goal, mode, SPALReferenceEQTestCapabilityID, "v0", []string{
-		"reference_eq_test_only",
-		"no_provider_auto_provisioning",
-		"structural_signal_musical_verification_separated",
-	})
-}
-
-func (r *Runtime) StartPluginEffectControlChatSession(sessionID, conversationID, projectUUID, goal string, mode orchestration.InteractionMode) (orchestration.PlanningSession, error) {
-	return r.startCapabilitySession(sessionID, conversationID, projectUUID, goal, mode, PluginEffectControlCapabilityID, "v0", []string{
-		"verified_runtime_profile_resolution_required",
-		"frozen_parameter_preimage_required",
-		"fresh_readback_and_full_compensation_required",
-		"directional_and_quantitative_evidence_required",
-	})
-}
-
 // StartAgentSemanticEQChatSession starts the horizontal ordinary-Agent EQ
 // governance path. It is intentionally separate from B4 and every A-F
 // specialist capability even though those layers may later reuse its frozen
@@ -111,33 +88,10 @@ func (r *Runtime) StartAgentSemanticEQChatSession(sessionID, conversationID, pro
 	return r.startCapabilitySession(sessionID, conversationID, projectUUID, goal, mode, AgentSemanticEQCapabilityID, "v0", []string{
 		"generic_static_eq_only",
 		"llm_acoustic_judgement_must_be_frozen",
-		"no_profile_learn_spal_or_plugin_loading",
+		"no_stored_mapping_or_plugin_loading",
 		"frozen_topology_and_parameter_preimage_required",
 		"structural_readback_required",
 		"acoustic_verification_requires_fresh_same_tap_post_fx_evidence",
-	})
-}
-
-func (r *Runtime) StartSPALEQV2ChatSession(sessionID, conversationID, projectUUID, goal string, mode orchestration.InteractionMode) (orchestration.PlanningSession, error) {
-	return r.startCapabilitySession(sessionID, conversationID, projectUUID, goal, mode, SPALEQV2CapabilityID, "v2", []string{
-		"verified_vps_eq_v2_credential_required",
-		"dispatch_conformed_schema_matrix_only",
-		"no_vendor_special_mode_fallback",
-		"frozen_preimage_and_structural_readback_required",
-		"separately_confirmable_rollback_to_frozen_preimage",
-	})
-}
-
-// StartSPALReferenceEQProviderRegistrationChatSession owns the separate,
-// confirmed Provider-registration step. It is deliberately distinct from the
-// Reference EQ execution session so an EQ request can never provision a
-// plug-in instance as a hidden resolver fallback.
-func (r *Runtime) StartSPALReferenceEQProviderRegistrationChatSession(sessionID, conversationID, projectUUID, goal string, mode orchestration.InteractionMode) (orchestration.PlanningSession, error) {
-	return r.startCapabilitySession(sessionID, conversationID, projectUUID, goal, mode, SPALReferenceEQProviderRegistrationCapabilityID, "v0", []string{
-		"reference_eq_provider_registration_only",
-		"requires_explicit_observed_instance",
-		"requires_static_bell_attestation",
-		"no_plugin_loading_or_provider_fallback",
 	})
 }
 

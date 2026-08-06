@@ -179,7 +179,7 @@ func projectResultExecutionCandidate(entry map[string]any) bool {
 // projectResultCatalogMutates reports the tool catalog's authoritative
 // MutatesProject flag for commandName, and whether the catalog knows this
 // command at all. Read-only commands (e.g. plugin_grabber.explain_controls,
-// plugin_grabber.get_project_profiles) contain "plugin"/"control" substrings
+// Read-only commands can contain "plugin"/"control" substrings.
 // that would otherwise trip the keyword-based mutation heuristic below.
 func projectResultCatalogMutates(commandName string) (mutates bool, known bool) {
 	catalog := tools.DefaultCatalog()

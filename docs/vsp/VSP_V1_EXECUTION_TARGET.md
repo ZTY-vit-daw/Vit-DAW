@@ -54,7 +54,7 @@ VSP v1 必须解决当前已经暴露的问题：
 
 完成标准：
 
-- schema 能表达现有 `play`、`stop`、`get_project_state`、`import_audio`、`add_track`、`move_clip`、`plugin_grabber.apply_control` 等关键动作。
+- schema 能表达现有 `play`、`stop`、`get_project_state`、`import_audio`、`add_track`、`move_clip`、`plugin_grabber.apply_eq_edits` 等关键动作。
 - schema 不暴露 TE 私有结构。
 - 有最小 SDK 类型定义或代码生成计划。
 
@@ -167,4 +167,3 @@ VSP v1 Foundation 完成时必须同时满足：
 可以直接使用以下目标：
 
 > 请在 `D:\Vit_DAW` 和 `D:\Godot\project\vit-daw-frontend` 中执行 VSP v1 Foundation 开发。先阅读 `D:\Vit_DAW\docs\vsp\README.md`、`VSP_V1_FOUNDATION_SPEC.md`、`VSP_V1_EXECUTION_TARGET.md`、`VSP_V1_CONFORMANCE_AND_SMOKE.md`，再审计当前 IPC/bridge/Godot/Agent 链路，制定分阶段实现计划。目标是把 Vit Kernel、GUI、Agent 的通信重铸为 VSP v1：分离 Command、State、Realtime、Asset、Event、Session 通道，保留旧 IPC 兼容层，完成核心 reference implementation、GUI/Agent 迁移和烟测验收。全程中文，不能回滚无关改动，真实 GUI 测试优先使用 Godot F5 路径。
-

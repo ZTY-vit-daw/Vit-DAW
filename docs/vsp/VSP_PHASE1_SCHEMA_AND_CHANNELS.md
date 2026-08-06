@@ -311,7 +311,7 @@ VSP 对外使用稳定对象地址，不使用 UI index 或 Tracktion Engine 私
 | `project.undo` | `undo` | 撤销 |
 | `project.redo` | `redo` | 重做 |
 | `plugin.parameters.get` | `get_plugin_parameters` | 插件参数读取 |
-| `plugin.apply_control` | `plugin_grabber_apply_control` | 插件抓手执行写入 |
+| `plugin.apply_eq_edits` | `plugin_grabber_apply_eq_edits` | 确定性 EQ 编辑事务 |
 | `plugin.set_params_batch` | 新 VSP 优先 | 多参数批量写入 |
 
 `transport.play` 示例：
@@ -735,7 +735,7 @@ Adapter response rules：
 | `redo` | `project.redo` | 写命令 | state revision 或 resync hint |
 | `get_midi_clip_notes` | `clip.midi_notes.get` | 读命令 | scoped state payload |
 | `get_plugin_parameters` | `plugin.parameters.get` | 读命令 | plugin payload |
-| `plugin_grabber_apply_control` | `plugin.apply_control` | Agent 能力要求 `plugin.control` | plugin readback + state/realtime hint |
+| `plugin_grabber_apply_eq_edits` | `plugin.apply_eq_edits` | Agent 能力要求 `plugin.control` | transaction readback + rollback evidence |
 | render commands | `render.start` / `render.cancel` | job command | event progress + asset reference |
 
 ### 7.4 Adapter 禁止事项
@@ -816,4 +816,4 @@ Phase 1 的 schema source 放在：
 
 Phase 1 的设计边界是：先冻结 VSP 应用语义，不急着替换底层传输。Command/Session 走可靠通道，State 走 snapshot + delta，Realtime 走 latest-only 订阅，Asset 只传引用，Event 负责 job/progress，旧 IPC 通过 legacy adapter 进入新 envelope。
 
-这套定义已经覆盖现有 `play`、`stop`、`get_project_state`、`import_audio`、`project.import_audio_files`、`add_track`、`move_clip`、`plugin_grabber_apply_control` 等关键动作，并为后续 Kernel reference implementation、Godot/Agent SDK 和 conformance test 留出明确落点。
+这套定义已经覆盖现有 `play`、`stop`、`get_project_state`、`import_audio`、`project.import_audio_files`、`add_track`、`move_clip`、`plugin_grabber_apply_eq_edits` 等关键动作，并为后续 Kernel reference implementation、Godot/Agent SDK 和 conformance test 留出明确落点。

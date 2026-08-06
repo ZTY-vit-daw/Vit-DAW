@@ -2,7 +2,7 @@
 <#
 .SYNOPSIS
     Full end-to-end smoke test for direct NL plugin control (new path).
-    No VPS profile required. Tests:
+    Uses live parameter observations and deterministic typed EQ edits. Tests:
       A3 - all_parameters with display_domain_candidate reaches LLM
       A1 - get_plugin_parameters with include_parameters works
       D3 - failed turns do not emit project_result_cards

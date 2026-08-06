@@ -10,14 +10,11 @@ import (
 
 // ParamSnapshot holds the cached parameter snapshot for one plugin instance.
 type ParamSnapshot struct {
-	TrackID        string          `json:"track_id"`
-	PluginID       string          `json:"plugin_id"`
-	ParamIDs       map[string]bool `json:"param_ids"`
-	ParamIDList    []string        `json:"param_id_list"`
-	StaleParamIDs  map[string]bool `json:"stale_param_ids,omitempty"`
-	ProfileApplied bool            `json:"profile_applied"`
-	ProfileSource  string          `json:"profile_source,omitempty"`
-	LoadedAt       time.Time       `json:"loaded_at"`
+	TrackID     string          `json:"track_id"`
+	PluginID    string          `json:"plugin_id"`
+	ParamIDs    map[string]bool `json:"param_ids"`
+	ParamIDList []string        `json:"param_id_list"`
+	LoadedAt    time.Time       `json:"loaded_at"`
 }
 
 func cacheKey(trackID, pluginID string) string {
@@ -63,24 +60,14 @@ func (c *PluginSnapshotCache) Update(reply map[string]any) bool {
 		return false
 	}
 
-	staleIDs := make(map[string]bool)
-	for _, id := range stringSliceFromAny(reply["profile_stale_param_ids"]) {
-		if id != "" {
-			staleIDs[id] = true
-		}
-	}
-
 	sort.Strings(idList)
 
 	snap := &ParamSnapshot{
-		TrackID:        trackID,
-		PluginID:       pluginID,
-		ParamIDs:       ids,
-		ParamIDList:    idList,
-		StaleParamIDs:  staleIDs,
-		ProfileApplied: boolFromAny(reply["profile_applied"]),
-		ProfileSource:  firstNonEmpty(firstString(reply, "profile_source"), ""),
-		LoadedAt:       time.Now(),
+		TrackID:     trackID,
+		PluginID:    pluginID,
+		ParamIDs:    ids,
+		ParamIDList: idList,
+		LoadedAt:    time.Now(),
 	}
 	c.mu.Lock()
 	c.store[key] = snap
@@ -104,14 +91,6 @@ func (c *PluginSnapshotCache) HasParamID(trackID, pluginID, paramID string) bool
 		return false
 	}
 	return snap.ParamIDs[paramID]
-}
-
-func (c *PluginSnapshotCache) IsStaleParam(trackID, pluginID, paramID string) bool {
-	snap := c.GetSnapshot(trackID, pluginID)
-	if snap == nil {
-		return false
-	}
-	return snap.StaleParamIDs[paramID]
 }
 
 func (h *Harness) ObservePluginParametersReply(reply map[string]any) bool {
@@ -160,14 +139,6 @@ func (h *Harness) validateSetPluginParam(cmd map[string]any) error {
 		)
 	}
 
-	if snap.StaleParamIDs[paramID] {
-		return fmt.Errorf(
-			"Parameter %q on track=%s plugin=%s is marked as stale. "+
-				"The plugin parameter layout may have changed. "+
-				"Re-run get_plugin_parameters to refresh before writing this parameter.",
-			paramID, trackID, pluginID,
-		)
-	}
 	return nil
 }
 

@@ -39,7 +39,7 @@ func (s *Server) planB4InstanceSelections(ctx context.Context, conversationID st
 	payload, _ := json.Marshal(input)
 	system := `You select exact already-loaded generic EQ instances for one full-project B4 treatment plan.
 Return ONLY JSON: {"schema_version":"b4.eq_instance_selection.v1","selections":[{"track_id":"exact supplied track","plugin_id":"exact qualified plugin on that track"}]}.
-Return exactly one selection for every ambiguous target. Use only supplied identities. Consider the target listening goal and plugin identity/topology, but do not output EQ parameters, load a plugin, invoke tools, use profiles/learning/SPAL/web/the retired focus-position capability, or add prose.`
+Return exactly one selection for every ambiguous target. Use only supplied identities. Consider the target listening goal and plugin identity/topology, but do not output EQ parameters, load a plugin, invoke tools, use stored mappings/web/the retired focus-position capability, or add prose.`
 	req := llm.Request{Messages: []llm.Message{{Role: "system", Content: system}, {Role: "user", Content: string(payload)}}, Metadata: llm.RequestMetadata{Source: "b4_project_eq_instance_selection", ConversationID: conversationID}, PreferJSON: true}
 	response, err := s.llm.CompleteRequest(ctx, cfg, req)
 	if err != nil {
@@ -119,7 +119,7 @@ Rules:
 - The observation scope is the full project. Include all and only tracks that need treatment; zero targets is valid when no change is justified.
 - Copy only supplied track_id and relationship identifiers. Never invent an identity.
 - Express specialist relationship judgement, ordered treatment goals, and constraints only.
-- Do not name or select plug-ins. Do not output plugin_id, topology, EQ shapes, frequencies, gains, Q, slopes, profiles, learning, SPAL, the retired focus-position capability, web research, or tool calls.
+- Do not name or select plug-ins. Do not output plugin_id, topology, EQ shapes, frequencies, gains, Q, slopes, stored mappings, the retired focus-position capability, web research, or tool calls.
 - Deterministic code will resolve exact EQ instances, materialize topology, confirm, execute, read back, roll back the whole batch, and verify with a fresh full-project observation.`
 	req := llm.Request{Messages: []llm.Message{{Role: "system", Content: system}, {Role: "user", Content: string(payload)}}, Metadata: llm.RequestMetadata{Source: "b4_project_treatment_planner", ConversationID: conversationID}, PreferJSON: true}
 	response, err := s.llm.CompleteRequest(ctx, cfg, req)
@@ -169,7 +169,7 @@ Rules:
 - Copy every exact track_id/plugin_id pair once; never invent, omit, duplicate, or reorder a target.
 - Each leaf uses 1-3 static upsert atoms and the same generic EQ semantics as the ordinary Agent: bell, low_shelf, high_shelf, low_cut, high_cut.
 - Choose acoustic values from the B4 listening goal and relationship evidence, constrained by that target's supplied topology. Every numeric field needs field_origins with user_fixed, llm_selected, or context_inherited.
-- Preserve project and target constraints. Do not output plugin loading, profiles, learning, SPAL, dynamic EQ, the retired focus-position capability, web research, or vendor-specific parameter rules.
+- Preserve project and target constraints. Do not output plugin loading, stored mappings, dynamic EQ, the retired focus-position capability, web research, or vendor-specific parameter rules.
 - The batch is atomic: deterministic code owns materialization, requested/exact/quantized/rejected reporting, confirmation, execution, actual readback, project-wide rollback, and verification.`
 	if strings.TrimSpace(rejection) != "" {
 		system += "\nA prior candidate was rejected by deterministic topology materialization. Treat every listed rejection as hard and choose reachable alternatives without changing exact targets."

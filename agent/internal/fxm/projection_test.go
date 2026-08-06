@@ -11,10 +11,10 @@ func TestBuildProducesDeterministicChainEffectProjection(t *testing.T) {
 	projection := Build(Input{
 		ObservationID: "obs-1", MixSessionID: "mix-1", CreatedAt: "2026-07-17T00:00:00Z",
 		TargetRef: map[string]any{"kind": "track", "id": "1007"},
-		Chain:     ChainIdentity{ChainHash: "chain-1", Plugins: []PluginIdentity{{Order: 1, Name: "TDR Nova", VPSID: "vps-nova"}}}, Conditions: window,
+		Chain:     ChainIdentity{ChainHash: "chain-1", Plugins: []PluginIdentity{{Order: 1, Name: "TDR Nova", ProbeID: "probe-nova"}}}, Conditions: window,
 		Baseline:  Measurement{ID: "baseline-1", Stage: "bypass_chain", Status: "ready", SourceRevision: "source-1", Window: window, RMSDBFS: number(-18), PeakDBFS: number(-6), LatencySamples: integer(0), Bands: []BandMetric{{ID: "presence", MinHz: 2000, MaxHz: 6000, EnergyDB: -22}}, Quality: quality, EvidenceRefs: []string{"render:baseline"}},
 		Processed: Measurement{ID: "processed-1", Stage: "processed_chain", Status: "ready", SourceRevision: "source-1", Window: window, RMSDBFS: number(-16.5), PeakDBFS: number(-4), LatencySamples: integer(0), Bands: []BandMetric{{ID: "presence", MinHz: 2000, MaxHz: 6000, EnergyDB: -19.4}}, Quality: quality, EvidenceRefs: []string{"render:processed"}},
-		VPSRefs:   []string{"vps:vps-nova"},
+		ProbeRefs: []string{"probe:probe-nova"},
 	})
 	if projection.Status != StatusReady || !projection.TrustQuality.CanSupportActionPreflight {
 		t.Fatalf("projection not ready: %+v", projection)

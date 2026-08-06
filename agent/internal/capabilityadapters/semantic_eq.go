@@ -249,3 +249,35 @@ func cloneSemanticEQRows(in []map[string]any) []map[string]any {
 	}
 	return out
 }
+
+func clonePluginMap(in map[string]any) map[string]any {
+	if len(in) == 0 {
+		return nil
+	}
+	out := make(map[string]any, len(in))
+	for key, value := range in {
+		out[key] = clonePluginValue(value)
+	}
+	return out
+}
+
+func clonePluginValue(value any) any {
+	switch typed := value.(type) {
+	case map[string]any:
+		return clonePluginMap(typed)
+	case []any:
+		out := make([]any, len(typed))
+		for i, item := range typed {
+			out[i] = clonePluginValue(item)
+		}
+		return out
+	case []map[string]any:
+		out := make([]map[string]any, len(typed))
+		for i, item := range typed {
+			out[i] = clonePluginMap(item)
+		}
+		return out
+	default:
+		return value
+	}
+}

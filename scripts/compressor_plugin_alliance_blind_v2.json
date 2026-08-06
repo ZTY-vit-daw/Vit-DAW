@@ -1,0 +1,121 @@
+{
+  "schema_version": "plugin_grabber.compressor_plugin_alliance_blind_manifest.v2",
+  "set_id": "plugin_alliance_compressor_blind_v2_round2",
+  "source_reserve_manifest": "scripts/compressor_plugin_alliance_blind_v1.json",
+  "policy": {
+    "sample_count": 8,
+    "positive_count": 5,
+    "negative_count": 1,
+    "hybrid_boundary_count": 2,
+    "continue_after_case_failure": true,
+    "recognizer_changes_after_freeze": false,
+    "snapshot_tolerance": 0.0001,
+    "max_apply_controls_per_positive": 2,
+    "max_apply_controls_per_hybrid": 2,
+    "allowed_rejection_codes": [
+      "not_compressor",
+      "unsupported_limiter",
+      "unsupported_multiband_compressor",
+      "unsupported_gate_expander",
+      "unsupported_de_esser",
+      "unsupported_spectral_dynamics"
+    ],
+    "apply_role_priority": [
+      "threshold",
+      "input_drive",
+      "reduction_amount",
+      "low_level_amount",
+      "high_level_amount",
+      "ratio",
+      "direction_curve",
+      "attack",
+      "release",
+      "makeup_gain",
+      "mix"
+    ]
+  },
+  "cases": [
+    {
+      "id": "bx_opto",
+      "plugin_name": "bx_opto",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\bx_opto.vst3",
+      "expectation": "compressor",
+      "stratum": "minimal_opto_amount"
+    },
+    {
+      "id": "neold_u2a",
+      "plugin_name": "NEOLD U2A",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\NEOLD U2A.vst3",
+      "expectation": "compressor",
+      "stratum": "fixed_transfer_leveler"
+    },
+    {
+      "id": "millennia_tcl_2",
+      "plugin_name": "Millennia TCL-2",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\Millennia TCL-2.vst3",
+      "expectation": "compressor",
+      "stratum": "vari_mu_dual_mode"
+    },
+    {
+      "id": "kiive_xtcomp",
+      "plugin_name": "Kiive XTComp",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\Kiive XTComp.vst3",
+      "expectation": "compressor",
+      "stratum": "unknown_parameter_naming"
+    },
+    {
+      "id": "lindell_mu_66",
+      "plugin_name": "Lindell MU-66",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\Lindell MU-66.vst3",
+      "expectation": "compressor",
+      "stratum": "vari_mu_dual_path"
+    },
+    {
+      "id": "bx_clipper_negative",
+      "plugin_name": "bx_clipper",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\bx_clipper.vst3",
+      "expectation": "not_compressor",
+      "stratum": "strict_clipper_boundary"
+    },
+    {
+      "id": "adptr_sculpt_negative",
+      "plugin_name": "ADPTR Sculpt",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\ADPTR Sculpt.vst3",
+      "expectation": "hybrid_boundary",
+      "stratum": "mastering_hybrid_compressor"
+    },
+    {
+      "id": "bx_masterdesk_pro_negative",
+      "plugin_name": "bx_masterdesk Pro",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\bx_masterdesk Pro.vst3",
+      "expectation": "hybrid_boundary",
+      "stratum": "mastering_chain_compressor"
+    }
+  ],
+  "sealed_reserve_cases": [
+    {
+      "id": "hum_audio_devices_laal",
+      "plugin_name": "HUM Audio Devices LAAL",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\HUM Audio Devices LAAL.vst3",
+      "expectation": "compressor"
+    },
+    {
+      "id": "shadow_hills_optomax",
+      "plugin_name": "Shadow Hills OptoMax",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\Shadow Hills OptoMax.vst3",
+      "expectation": "compressor"
+    },
+    {
+      "id": "elysia_nvelope_negative",
+      "plugin_name": "elysia nvelope",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\elysia nvelope.vst3",
+      "expectation": "not_compressor"
+    },
+    {
+      "id": "lindell_354e_negative",
+      "plugin_name": "Lindell 354E",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\Lindell 354E.vst3",
+      "expectation": "not_compressor"
+    }
+  ]
+}

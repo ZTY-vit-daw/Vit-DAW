@@ -40,7 +40,7 @@ var directCommands = map[string]bool{
 	"get_midi_clip_data":                    true,
 	"get_plugin_parameters":                 true,
 	"plugin_grabber_explain_controls":       true,
-	"plugin_grabber_get_project_profiles":   true,
+	"plugin_grabber_inspect_compressor":     true,
 	"plugin_list_available":                 true,
 	"plugin_search":                         true,
 	"artifact_list":                         true,

@@ -128,10 +128,6 @@ func executedReadReply(decisions []policy.Decision, replies []map[string]any) st
 			if text := plugingrabber.FormatContextPackReply(replyResult(reply)); text != "" {
 				parts = append(parts, text)
 			}
-		case "plugin_grabber_get_project_profiles":
-			if text := formatPluginGrabberProfilesResult(replyResult(reply)); text != "" {
-				parts = append(parts, text)
-			}
 		case "get_midi_clip_notes", "get_midi_clip_data":
 			if text := formatMidiNotesResult(replyResult(reply)); text != "" {
 				parts = append(parts, text)
@@ -282,17 +278,6 @@ func executedCommandReply(before, after map[string]any, d policy.Decision, reply
 			return fmt.Sprintf("Imported MIDI %s to %s.", clipName, name)
 		}
 		return fmt.Sprintf("Imported MIDI to %s.", name)
-	case "plugin_grabber_upsert_project_profile":
-		count := len(stringSliceValue(cmd["quick_control_ids"]))
-		if count > 0 {
-			return fmt.Sprintf("已保存 Plugin Skill，包含 %d 个快捷控制。", count)
-		}
-		return "已保存 Plugin Skill。"
-	case "plugin_grabber_remove_project_profile":
-		if firstText(result, "removed") == "false" {
-			return "Plugin Skill 原本就不存在。"
-		}
-		return "已移除 Plugin Skill。"
 	case "scan_plugins":
 		return formatPluginScanResult(result)
 	case "undo":
@@ -358,7 +343,7 @@ func addUndoHint(reply string) string {
 }
 
 func isStateRead(name string) bool {
-	return name == "get_project_state" || name == "list_tracks" || name == "project_health_check" || name == "get_midi_clip_notes" || name == "get_midi_clip_data" || name == "get_plugin_parameters" || name == "plugin_grabber_explain_controls" || name == "plugin_grabber_get_project_profiles" || name == "plugin_search" || name == "plugin_semantic_search" || name == "plugin_semantic_get" || name == "plugin_list_available" || name == "web_search" || name == "web_fetch"
+	return name == "get_project_state" || name == "list_tracks" || name == "project_health_check" || name == "get_midi_clip_notes" || name == "get_midi_clip_data" || name == "get_plugin_parameters" || name == "plugin_grabber_explain_controls" || name == "plugin_search" || name == "plugin_semantic_search" || name == "plugin_semantic_get" || name == "plugin_list_available" || name == "web_search" || name == "web_fetch"
 }
 
 func wantsTechnicalIDs(text string) bool {
@@ -966,11 +951,7 @@ func formatPluginParametersResult(result map[string]any) string {
 			break
 		}
 	}
-	source := firstText(result, "profile_source")
-	if source == "" {
-		source = "heuristic"
-	}
-	parts := []string{fmt.Sprintf("Plugin parameters for %s: %s parameters, profile=%s.", pluginName, paramCount, source)}
+	parts := []string{fmt.Sprintf("Plugin parameters for %s: %s live parameters.", pluginName, paramCount)}
 	if len(quickLabels) > 0 {
 		parts = append(parts, "Quick controls: "+strings.Join(quickLabels, ", ")+".")
 	}
@@ -978,29 +959,6 @@ func formatPluginParametersResult(result map[string]any) string {
 		parts = append(parts, "Groups: "+strings.Join(groupNames, ", ")+".")
 	}
 	return strings.Join(parts, "\n")
-}
-
-func formatPluginGrabberProfilesResult(result map[string]any) string {
-	profiles := mapRowsValue(result["plugin_grabber_profiles"])
-	if len(profiles) == 0 {
-		return "No project plugin grabber profiles saved."
-	}
-	names := make([]string, 0, len(profiles))
-	for _, profile := range profiles {
-		name := firstText(profile, "profile_id")
-		if identity, ok := profile["plugin_identity"].(map[string]any); ok {
-			if pluginName := firstText(identity, "plugin_name"); pluginName != "" {
-				name = pluginName
-			}
-		}
-		if name != "" {
-			names = append(names, name)
-		}
-		if len(names) >= 8 {
-			break
-		}
-	}
-	return fmt.Sprintf("Project plugin grabber profiles: %d saved. %s", len(profiles), strings.Join(names, ", "))
 }
 
 func formatMidiNotesResult(result map[string]any) string {

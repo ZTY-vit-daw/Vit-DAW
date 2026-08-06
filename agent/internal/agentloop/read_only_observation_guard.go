@@ -79,7 +79,8 @@ func messageLoopReadOnlyAllowedTool(call planner.ToolCall) bool {
 	switch name {
 	case "project.state", "get_project_state", "track.list",
 		"project.get_audio_settings", "project.validate_audio_settings_change", "project.import_preflight", "media.inspect_files",
-		"mix.observe", "mix_observe", "mix.request_observation", "mix_request_observation", "mix.read", "mix_read", "mix.derive", "mix_derive", "mix.report", "mix_report":
+		"mix.observe", "mix_observe", "mix.request_observation", "mix_request_observation", "mix.read", "mix_read", "mix.derive", "mix_derive", "mix.report", "mix_report",
+		"ccb.observation_catalog", "ccb_observation_catalog", "ccb.observation_request", "ccb_observation_request":
 		return true
 	default:
 		return false
@@ -90,7 +91,7 @@ func messageLoopReadOnlyGuardIssue(call planner.ToolCall) string {
 	if messageLoopReadOnlyAllowedTool(call) {
 		return ""
 	}
-	return "read-only acoustic observation allows only mix.observe, mix.read, mix.derive, mix.report, and read/list/project-state tools; it must not propose/apply mix ticks, write track gain/pan, prepare plugins, or mutate the project"
+	return "read-only acoustic observation allows only CCB/mix observation and read/list/project-state tools; it must not propose/apply mix ticks, write track gain/pan, prepare plugins, or mutate the project"
 }
 
 func messageLoopReadOnlyFinalReply(state *runState, reply string) string {

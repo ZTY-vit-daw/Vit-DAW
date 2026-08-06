@@ -135,7 +135,7 @@ func TestProjectResultCardsWithABSkipWhenMutationFailed(t *testing.T) {
 			"command_name": "plugin.effect_control.v0",
 			"result": map[string]any{
 				"status":    "error",
-				"message":   "verified VPS parameter surface fingerprint does not match the live plugin",
+				"message":   "live parameter surface does not match the current plugin",
 				"track_id":  "1007",
 				"plugin_id": "1015",
 			},
@@ -165,13 +165,6 @@ func TestProjectResultCardsSkipReadOnlyPluginGrabberQueries(t *testing.T) {
 				"status":    "ok",
 				"track_id":  "1007",
 				"plugin_id": "1013",
-			},
-		},
-		{
-			"status":       "ok",
-			"command_name": "plugin_grabber.get_project_profiles",
-			"result": map[string]any{
-				"status": "ok",
 			},
 		},
 	}

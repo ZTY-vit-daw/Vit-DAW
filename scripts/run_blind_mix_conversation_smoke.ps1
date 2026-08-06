@@ -809,101 +809,6 @@ function Assert-TurnAcousticBridgeReadiness {
 	Fail ($Label + " did not expose a mix observation result")
 }
 
-function Assert-PluginPreparationPlan {
-	param([object]$Decision)
-    $plan = Get-OptionalProperty -Object $Decision -Name "preparation_plan"
-    if ($null -eq $plan) {
-        Fail "plugin resolver decision did not include preparation_plan"
-    }
-    $schema = [string](Get-OptionalProperty -Object $plan -Name "schema_version")
-    if ($schema -ne "mix_treatment_preparation.v0") {
-        Fail ("unexpected preparation_plan schema=" + $schema)
-    }
-    $safeRoute = @((Get-OptionalProperty -Object $plan -Name "safe_route"))
-    if ($safeRoute -notcontains "plugin_grabber.apply_control") {
-        Fail ("preparation_plan safe_route missing plugin_grabber.apply_control. route=" + ($safeRoute -join " -> "))
-    }
-    $blockedRoutes = @((Get-OptionalProperty -Object $plan -Name "blocked_routes"))
-    foreach ($blocked in @("daw.invoke", "plugin.set_parameter")) {
-        if ($blockedRoutes -notcontains $blocked) {
-            Fail ("preparation_plan blocked_routes missing " + $blocked + ". blocked=" + ($blockedRoutes -join " -> "))
-        }
-    }
-    $steps = @((Get-OptionalProperty -Object $plan -Name "steps"))
-    if ($steps.Count -lt 1) {
-        Fail "preparation_plan did not include steps"
-    }
-    [void](Assert-DiagnosisContextPayload -Payload $plan -Label "plugin preparation plan")
-}
-
-function Assert-PluginResponsePreparationPlan {
-    param([object]$Response)
-    $workflowData = Get-OptionalProperty -Object $Response -Name "workflow_data"
-    $plan = Get-OptionalProperty -Object $workflowData -Name "mix_treatment_preparation_plan"
-    if ($null -eq $plan) {
-        $pluginLearning = Get-OptionalProperty -Object $Response -Name "plugin_learning"
-        $plan = Get-OptionalProperty -Object $pluginLearning -Name "mix_treatment_preparation_plan"
-    }
-    if ($null -eq $plan) {
-        Fail "plugin preparation response did not include mix_treatment_preparation_plan"
-    }
-    $schema = [string](Get-OptionalProperty -Object $plan -Name "schema_version")
-    if ($schema -ne "mix_treatment_preparation.v0") {
-        Fail ("unexpected plugin response preparation plan schema=" + $schema)
-    }
-    [void](Assert-DiagnosisContextPayload -Payload $plan -Label "plugin response preparation plan")
-    $interactions = @((Get-OptionalProperty -Object $Response -Name "interaction_requests"))
-    if ($interactions.Count -lt 1) {
-        Fail "plugin preparation response did not include interaction_requests"
-    }
-    foreach ($interaction in $interactions) {
-        if ([string](Get-OptionalProperty -Object $interaction -Name "workflow") -eq "plugin_grabber_load_and_get_params") {
-            return
-        }
-        $payload = Get-OptionalProperty -Object $interaction -Name "payload"
-        $interactionPlan = Get-OptionalProperty -Object $payload -Name "mix_treatment_preparation_plan"
-        if ($null -ne $interactionPlan) {
-            return
-        }
-        $data = Get-OptionalProperty -Object $interaction -Name "data"
-        $interactionPlan = Get-OptionalProperty -Object $data -Name "mix_treatment_preparation_plan"
-        if ($null -ne $interactionPlan) {
-            return
-        }
-    }
-    Fail "plugin preparation interaction did not expose workflow or mix_treatment_preparation_plan"
-}
-
-function Get-PluginPreparationInteractionID {
-    param([object]$Response)
-    foreach ($interaction in @((Get-OptionalProperty -Object $Response -Name "interaction_requests"))) {
-        if ([string](Get-OptionalProperty -Object $interaction -Name "workflow") -ne "plugin_grabber_load_and_get_params") {
-            continue
-        }
-        $id = [string](Get-OptionalProperty -Object $interaction -Name "id")
-        if (-not [string]::IsNullOrWhiteSpace($id)) {
-            return $id
-        }
-    }
-    Fail "plugin preparation response did not include a plugin_grabber_load_and_get_params interaction id"
-}
-
-function Get-PluginParameterTreatmentInteractionID {
-    param([object]$Response)
-    foreach ($interaction in @((Get-OptionalProperty -Object $Response -Name "interaction_requests"))) {
-        $type = [string](Get-OptionalProperty -Object $interaction -Name "type")
-        $workflow = [string](Get-OptionalProperty -Object $interaction -Name "workflow")
-        if ($type -ne "plugin_parameter_treatment" -and $workflow -ne "plugin_prep_worker") {
-            continue
-        }
-        $id = [string](Get-OptionalProperty -Object $interaction -Name "id")
-        if (-not [string]::IsNullOrWhiteSpace($id)) {
-            return $id
-        }
-    }
-    Fail "plugin prep worker response did not include a plugin_parameter_treatment interaction id"
-}
-
 function Extract-GainTreatmentCandidates {
     param([object]$Events)
     $out = @()
@@ -1639,10 +1544,9 @@ try {
     }
     $latestDecision = $lowDecisions[-1]
     $decisionStatus = [string](Get-OptionalProperty -Object $latestDecision -Name "status")
-    if ($decisionStatus -notin @("needs_preparation", "needs_clarification", "observation_only", "ready_gain_tick", "ready_pan_tick", "ready_plugin_control")) {
+    if ($decisionStatus -notin @("needs_preparation", "needs_clarification", "observation_only", "ready_gain_tick", "ready_pan_tick")) {
         Fail ("unexpected low mud resolver status=" + $decisionStatus)
     }
-    $decisionRoute = @((Get-OptionalProperty -Object $latestDecision -Name "tool_route"))
     if ($decisionStatus -in @("needs_preparation", "needs_clarification", "observation_only")) {
         Assert-NoMutationRoute -Rows $lowConfirm.rows -Label "low mud treatment resolver"
         if ([string]$lowConfirm.turn.stop_reason -notmatch "^mix_treatment_resolved_" -and [string]$lowConfirm.turn.stop_reason -ne "mix_treatment_preparation_started") {
@@ -1651,31 +1555,6 @@ try {
     }
     if ($decisionStatus -in @("ready_gain_tick", "ready_pan_tick")) {
         Assert-ConfirmationRoute -Turn $lowConfirm.turn
-    }
-    if ($decisionStatus -eq "needs_preparation" -and ($decisionRoute -notcontains "plugin_grabber.apply_control")) {
-        Fail ("low mud resolver did not preserve plugin_grabber.apply_control route. route=" + ($decisionRoute -join " -> "))
-    }
-    if ($decisionStatus -eq "needs_preparation") {
-        Assert-PluginPreparationPlan -Decision $latestDecision
-    }
-    if ([string]$lowConfirm.turn.stop_reason -eq "mix_treatment_preparation_started") {
-        Assert-PluginResponsePreparationPlan -Response $lowConfirm.response
-        Assert-PluginPrepConfirmationGate -TurnResult $lowConfirm -Label "low mud preparation card"
-        $lowPrepInteractionID = Get-PluginPreparationInteractionID -Response $lowConfirm.response
-        $lowPrepConfirm = Invoke-BlindInteraction -ConversationID $lowConversationID -InteractionID $lowPrepInteractionID -Label "low_mud_plugin_prep_confirm" -Decision "approve" -ActionID "approve"
-        Record-Turn -Turn $lowPrepConfirm.turn
-        Assert-PluginPrepConfirmationGate -TurnResult $lowPrepConfirm -Label "low mud plugin prep confirm" -RequirePreparationExecution
-        $lowParameterCandidateInteractionID = Get-PluginParameterTreatmentInteractionID -Response $lowPrepConfirm.response
-        $lowParameterConfirm = Invoke-BlindInteraction -ConversationID $lowConversationID -InteractionID $lowParameterCandidateInteractionID -Label "low_mud_parameter_candidate_confirm" -Decision "approve" -ActionID "approve"
-        Record-Turn -Turn $lowParameterConfirm.turn
-        Assert-PluginPrepWorkerAppliedRoute -TurnResult $lowParameterConfirm -Label "low mud parameter candidate confirm"
-    }
-    if ($decisionStatus -eq "ready_plugin_control") {
-        if ([string]$lowConfirm.turn.stop_reason -ne "mix_treatment_applied_plugin_control_reobserved") {
-            Fail ("ready plugin control did not reobserve after apply. stop_reason=" + [string]$lowConfirm.turn.stop_reason)
-        }
-        Assert-ToolPresent -Tools $lowConfirm.turn.tool_route -Aliases @("plugin_grabber.apply_control", "plugin_grabber_apply_control") -Label "plugin treatment apply_control"
-        Assert-ToolPresent -Tools $lowConfirm.turn.tool_route -Aliases @("mix.observe", "mix_observe", "mix.request_observation", "mix_request_observation") -Label "plugin treatment reobserve"
     }
 
     $summary["status"] = "passed"

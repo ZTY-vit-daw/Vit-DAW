@@ -13,6 +13,8 @@ import (
 	"vit-daw-agent/internal/config"
 	"vit-daw-agent/internal/llm"
 	agentruntime "vit-daw-agent/internal/runtime"
+	"vit-daw-agent/internal/semanticeffect"
+	plugingrabber "vit-daw-agent/internal/workflows/plugingrabber"
 )
 
 const (
@@ -21,15 +23,16 @@ const (
 )
 
 type semanticTreatmentInstance struct {
-	Key                 string         `json:"instance_key"`
-	TrackID             string         `json:"track_id"`
-	PluginID            string         `json:"plugin_id"`
-	PluginName          string         `json:"plugin_name,omitempty"`
-	ProcessorType       string         `json:"processor_type"`
-	QualificationStatus string         `json:"qualification_status"`
-	NextPlanner         string         `json:"next_planner"`
-	Topology            map[string]any `json:"generic_eq_topology,omitempty"`
-	Limitation          string         `json:"limitation,omitempty"`
+	Key                 string                                     `json:"instance_key"`
+	TrackID             string                                     `json:"track_id"`
+	PluginID            string                                     `json:"plugin_id"`
+	PluginName          string                                     `json:"plugin_name,omitempty"`
+	ProcessorType       string                                     `json:"processor_type"`
+	QualificationStatus string                                     `json:"qualification_status"`
+	NextPlanner         string                                     `json:"next_planner"`
+	Topology            map[string]any                             `json:"generic_eq_topology,omitempty"`
+	IdentityCard        *semanticeffect.AudioProcessorIdentityCard `json:"processor_identity_card,omitempty"`
+	Limitation          string                                     `json:"limitation,omitempty"`
 }
 
 type semanticTreatmentChoice struct {
@@ -80,9 +83,12 @@ func ordinaryAgentTreatmentStrategyIntent(userText string, requestContext map[st
 	goal := agentLoopTextHasAny(text,
 		"靠前", "靠后", "靠後", "有力量", "更有力", "温暖", "溫暖", "更厚", "更薄", "更贴", "更貼",
 		"更稳", "更穩", "更松", "更紧", "更緊", "更清晰", "更通透", "更自然", "更有空间", "更有空間",
+		"站到前面", "站出来", "站出來", "清楚", "稳定", "穩定", "不稳", "不穩", "时大时小", "時大時小",
+		"均匀", "均勻", "收稳", "收穩", "突出", "盖住", "蓋住", "发闷", "發悶", "糊", "存在感",
 		"forward", "up front", "powerful", "stronger", "warmer", "thicker", "thinner", "closer", "stable", "tighter", "clearer", "open", "natural", "depth")
 	action := agentLoopTextHasAny(text,
 		"让", "讓", "使", "变", "變", "更", "弄得", "处理", "處理", "调整", "調整", "改善", "增加", "减少", "減少",
+		"把", "帮", "幫", "整理", "收稳", "收穩",
 		"make", "bring", "move", "sound", "increase", "reduce", "improve", "adjust")
 	return goal && action
 }
@@ -92,6 +98,12 @@ func (s *Server) semanticTreatmentInstances(ctx context.Context, trackID string)
 		return nil, ""
 	}
 	state := s.harness.UserStateSummary(ctx)
+	client := s.eqKernelClient()
+	if client != nil {
+		if liveState, _, err := client.SendCommand(ctx, map[string]any{"cmd": "get_project_state"}); err == nil && kernelReplyOK(liveState) {
+			state = liveState
+		}
+	}
 	refs := chatVisiblePluginRefs(state, trackID)
 	if len(refs) > 16 {
 		refs = refs[:16]
@@ -108,14 +120,54 @@ func (s *Server) semanticTreatmentInstances(ctx context.Context, trackID string)
 			NextPlanner:         "capability_boundary",
 			Limitation:          "The loaded identity is real, but no ordinary-Agent abstract parameter planner has qualified it.",
 		}
-		if _, summary, err := s.readLiveEQControlSurface(ctx, ref.TrackID, ref.ID); err == nil && len(summary) > 0 {
+		if client == nil {
+			instance.Limitation = "kernel client is unavailable"
+			out = append(out, instance)
+			continue
+		}
+		reply, _, err := client.SendCommand(ctx, map[string]any{"cmd": "get_plugin_parameters", "track_id": ref.TrackID,
+			"plugin_id": ref.ID, "include_parameters": true})
+		if err != nil || !kernelReplyOK(reply) {
+			instance.Limitation = firstNonEmpty(errorText(err), firstNonEmptyText(reply, "message", "error"), "parameter read failed")
+			out = append(out, instance)
+			continue
+		}
+		s.observePluginParametersReply(reply)
+		digest := plugingrabber.BuildParameterDigest(reply)
+		if digest.TrackID == "" {
+			digest.TrackID = ref.TrackID
+		}
+		if digest.PluginID == "" {
+			digest.PluginID = ref.ID
+		}
+		if digest.PluginName == "" {
+			digest.PluginName = ref.Name
+		}
+		compressorSummary, compressorBoundary := plugingrabber.BuildCompressorSummaryWithBoundary(digest)
+		var card *semanticeffect.AudioProcessorIdentityCard
+		cardBoundary := ""
+		if len(compressorSummary) > 0 {
+			card, cardBoundary = plugingrabber.BuildAudioProcessorIdentityCard(digest)
+		}
+		eqSummary := plugingrabber.BuildEQBandSummary(digest)
+		switch {
+		case card != nil:
+			// A qualified broadband compressor may expose an adjustable detector
+			// EQ. The complete processor topology is more specific than that
+			// embedded peripheral and therefore owns the instance identity.
+			instance.ProcessorType = "compressor"
+			instance.QualificationStatus = "broadband_compressor_qualified"
+			instance.NextPlanner = "semantic_compressor"
+			instance.IdentityCard = card
+			instance.Limitation = ""
+		case len(eqSummary) > 0:
 			instance.ProcessorType = "eq"
 			instance.QualificationStatus = "generic_static_eq_qualified"
 			instance.NextPlanner = "semantic_eq"
-			instance.Topology = semanticEQTopologyPromptSummary(ref.TrackID, ref.ID, summary)
+			instance.Topology = semanticEQTopologyPromptSummary(ref.TrackID, ref.ID, eqSummary)
 			instance.Limitation = ""
-		} else if err != nil {
-			instance.Limitation = err.Error()
+		case compressorBoundary != "" || cardBoundary != "":
+			instance.Limitation = firstNonEmpty(cardBoundary, compressorBoundary, "compressor identity card is unavailable")
 		}
 		out = append(out, instance)
 	}
@@ -173,12 +225,17 @@ func semanticTreatmentFindPlugin(instances []semanticTreatmentInstance, pluginID
 }
 
 func (s *Server) planSemanticTreatment(ctx context.Context, conversationID, userText, trackID, trackName string,
-	observation *agentloop.RecentObservation, instances []semanticTreatmentInstance, forceInstanceChoice, nativeHandoffAvailable bool, cfg config.EngineConfig) (semanticTreatmentPlan, error) {
+	observation *agentloop.RecentObservation, instances []semanticTreatmentInstance, forceInstanceChoice, nativeHandoffAvailable bool,
+	cfg config.EngineConfig, requiredProcessorTypes ...string) (semanticTreatmentPlan, error) {
 	if s == nil || s.llm == nil {
 		return semanticTreatmentPlan{}, fmt.Errorf("semantic treatment LLM is unavailable")
 	}
 	if forceInstanceChoice && len(instances) == 0 {
 		return semanticTreatmentPlan{}, fmt.Errorf("no qualified loaded EQ instance is available")
+	}
+	requiredProcessorType := ""
+	if len(requiredProcessorTypes) > 0 {
+		requiredProcessorType = canonicalPluginRecommendationProcessorType(requiredProcessorTypes[0])
 	}
 	input := map[string]any{
 		"user_request":                          userText,
@@ -190,16 +247,19 @@ func (s *Server) planSemanticTreatment(ctx context.Context, conversationID, user
 		"native_agent_result_handoff_available": nativeHandoffAvailable,
 		"planning_mode":                         map[bool]string{true: "loaded_eq_instance_arbitration", false: "treatment_method_arbitration"}[forceInstanceChoice],
 	}
+	if requiredProcessorType != "" {
+		input["required_processor_type"] = requiredProcessorType
+	}
 	inputJSON, _ := json.Marshal(input)
 	system := `You are the treatment-strategy phase of an ordinary DAW Agent. This is a horizontal capability, not B4 or any A-F specialist workflow.
 The user request, exact target scope, optional observation evidence, and real loaded instances are supplied as JSON. You own the acoustic and musical method judgement. Deterministic code owns identity binding, qualification, capability boundaries, confirmation, execution, readback, rollback, and verification.
 
 Return ONLY one semantic_treatment_strategy.v1 JSON object:
-{"schema_version":"semantic_treatment_strategy.v1","decision_mode":"direct|choice_required","user_goal":"copy user goal","summary":"short summary in the user's language","choices":[{"choice_key":"stable unique key","role":"recommended|alternative","title":"short method label","processor_type":"eq|compressor|reverb|delay|distortion|limiter|native","target_mode":"existing_plugin|load_required|native","instance_key":"exact supplied key when existing_plugin","reason":"task-specific reason","expected_effect":"audible intent","tradeoff":"meaningful difference or limitation","confidence":"low|medium|high","next_planner":"semantic_eq|plugin_recommendation|existing_agent_result|capability_boundary","material_difference":"why this is not a duplicate"}],"global_constraints":[],"evidence_refs":[],"limitations":[]}
+{"schema_version":"semantic_treatment_strategy.v1","decision_mode":"direct|choice_required","user_goal":"copy user goal","summary":"short summary in the user's language","choices":[{"choice_key":"stable unique key","role":"recommended|alternative","title":"short method label","processor_type":"eq|compressor|reverb|delay|distortion|limiter|native","target_mode":"existing_plugin|load_required|native","instance_key":"exact supplied key when existing_plugin","reason":"task-specific reason","expected_effect":"audible intent","tradeoff":"meaningful difference or limitation","confidence":"low|medium|high","next_planner":"semantic_eq|semantic_compressor|plugin_recommendation|existing_agent_result|capability_boundary","material_difference":"why this is not a duplicate"}],"global_constraints":[],"evidence_refs":[],"limitations":[]}
 
 Rules:
 - Do not invent a track, plugin, instance_key, observation, or executable capability.
-- An existing_plugin choice must use an exact supplied instance_key. Only generic_static_eq_qualified instances may use next_planner=semantic_eq. An identity_only instance must use capability_boundary.
+- An existing_plugin choice must use an exact supplied instance_key. A generic_static_eq_qualified EQ may use next_planner=semantic_eq. A broadband_compressor_qualified compressor may use next_planner=semantic_compressor. An identity_only instance must use capability_boundary.
 - A load_required choice omits instance_key and uses next_planner=plugin_recommendation. It means recommend/select/load first, not that parameters are already controllable.
 - A native choice is allowed only when native_agent_result_handoff_available=true. It must be the sole direct recommendation and use next_planner=existing_agent_result; never place native in a three-way selection because that result cannot be frozen across this choice interaction.
 - Use decision_mode=direct with exactly one recommended choice when one method is clearly appropriate and no meaningful user decision remains.
@@ -208,10 +268,14 @@ Rules:
 - Respect an explicitly requested processor family as a hard method constraint.
 - Preserve shared negative constraints in global_constraints.
 - Do not output parameter values. A downstream planner owns concrete parameters after strategy selection.
-- Do not use profile, learn, SPAL, B4, plugin-specific control rules, or network search.`
+- Do not use stored mappings, B4, plugin-specific control rules, or network search.`
 	if forceInstanceChoice {
 		system += `
 - This request is loaded-EQ instance arbitration. Use only existing_plugin choices from supplied generic_static_eq_qualified instances, processor_type=eq, next_planner=semantic_eq, and decision_mode=choice_required. Offer up to three real instances (one recommended, remaining alternatives); when only one is supplied, return that one recommended choice without inventing alternatives.`
+	}
+	if requiredProcessorType != "" {
+		system += `
+- required_processor_type is the upstream free-state reasoning decision. Treat it as a hard family constraint, use decision_mode=direct with exactly one recommended choice of that processor_type, and decide only whether a qualified existing instance or load_required can materialize it. Do not offer or recommend another processor family.`
 	}
 	request := llm.Request{
 		Messages:   []llm.Message{{Role: "system", Content: system}, {Role: "user", Content: string(inputJSON)}},
@@ -224,6 +288,9 @@ Rules:
 	}
 	plan, decodeErr := decodeAndValidateSemanticTreatmentPlan(response.Text, userText, instances, forceInstanceChoice, nativeHandoffAvailable)
 	if decodeErr == nil {
+		decodeErr = semanticTreatmentRequiredProcessorIssue(plan, requiredProcessorType)
+	}
+	if decodeErr == nil {
 		return plan, nil
 	}
 	repair := fmt.Sprintf("Your previous semantic treatment JSON was invalid: %s\nReturn ONLY a corrected semantic_treatment_strategy.v1 object using the same supplied identities and capabilities.", decodeErr)
@@ -233,10 +300,27 @@ Rules:
 		return semanticTreatmentPlan{}, err
 	}
 	plan, err = decodeAndValidateSemanticTreatmentPlan(response.Text, userText, instances, forceInstanceChoice, nativeHandoffAvailable)
+	if err == nil {
+		err = semanticTreatmentRequiredProcessorIssue(plan, requiredProcessorType)
+	}
 	if err != nil {
 		return semanticTreatmentPlan{}, fmt.Errorf("semantic treatment strategy remained invalid after repair: %w", err)
 	}
 	return plan, nil
+}
+
+func semanticTreatmentRequiredProcessorIssue(plan semanticTreatmentPlan, requiredProcessorType string) error {
+	requiredProcessorType = canonicalPluginRecommendationProcessorType(requiredProcessorType)
+	if requiredProcessorType == "" {
+		return nil
+	}
+	if plan.DecisionMode != "direct" || len(plan.Choices) != 1 {
+		return fmt.Errorf("required processor type %s requires one direct materialization choice", requiredProcessorType)
+	}
+	if canonicalPluginRecommendationProcessorType(plan.Choices[0].ProcessorType) != requiredProcessorType {
+		return fmt.Errorf("strategy processor type %s does not match required processor type %s", plan.Choices[0].ProcessorType, requiredProcessorType)
+	}
+	return nil
 }
 
 func decodeAndValidateSemanticTreatmentPlan(text, userText string, instances []semanticTreatmentInstance, forceInstanceChoice bool, nativeHandoffAvailable ...bool) (semanticTreatmentPlan, error) {
@@ -316,9 +400,14 @@ func decodeAndValidateSemanticTreatmentPlan(text, userText string, instances []s
 				return plan, fmt.Errorf("choice %d uses an unknown or duplicate instance_key", index+1)
 			}
 			seenInstance[choice.InstanceKey] = true
+			if instance.ProcessorType != "unknown" && choice.ProcessorType != instance.ProcessorType {
+				return plan, fmt.Errorf("choice %d processor_type does not match the bound instance", index+1)
+			}
 			expectedPlanner := "capability_boundary"
 			if instance.QualificationStatus == "generic_static_eq_qualified" && choice.ProcessorType == "eq" {
 				expectedPlanner = "semantic_eq"
+			} else if instance.QualificationStatus == "broadband_compressor_qualified" && choice.ProcessorType == "compressor" {
+				expectedPlanner = "semantic_compressor"
 			}
 			if choice.NextPlanner != expectedPlanner {
 				return plan, fmt.Errorf("choice %d next_planner exceeds qualified instance capability", index+1)
@@ -522,20 +611,29 @@ func (s *Server) continueSemanticTreatmentInteraction(ctx context.Context, inter
 		bound := firstMapFromAny(selected["bound_instance"])
 		pluginID := firstStringFromMap(bound, "plugin_id")
 		instance, ok := semanticTreatmentFindPlugin(instances, pluginID)
-		if !ok || instance.Key == "" || instance.QualificationStatus != "generic_static_eq_qualified" || processorType != "eq" || firstStringFromMap(selected, "next_planner") != "semantic_eq" {
-			return semanticTreatmentCapabilityBoundaryResponse(interaction, selected, "所选已加载实例没有通过普通 Agent 的通用静态 EQ 资格确认，因此没有生成参数动作。")
+		if !ok || instance.Key == "" || !semanticTreatmentInstanceExecutable(instance, processorType, firstStringFromMap(selected, "next_planner")) {
+			return semanticTreatmentCapabilityBoundaryResponse(interaction, selected, "所选已加载实例没有通过对应普通 Agent 参数规划器的实时资格确认，因此没有生成参数动作。")
 		}
 		requestContext["selected_plugin_track_id"] = instance.TrackID
 		requestContext["selected_plugin_id"] = instance.PluginID
 		requestContext["selected_plugin_name"] = instance.PluginName
-		requestContext["generic_eq_topology"] = instance.Topology
-		return s.semanticTreatmentPlanEQResponse(ctx, interaction.ConversationID, goal, requestContext,
-			semanticTreatmentObservationFromPayload(interaction.Payload), interaction.GoalID, interaction.RunID)
+		observation := semanticTreatmentObservationFromPayload(interaction.Payload)
+		requestContext["semantic_treatment_observation_context"] = semanticTreatmentObservationPayload(observation)
+		if processorType == "eq" {
+			requestContext["generic_eq_topology"] = instance.Topology
+			return s.semanticTreatmentPlanEQResponse(ctx, interaction.ConversationID, goal, requestContext,
+				observation, interaction.GoalID, interaction.RunID)
+		}
+		return s.semanticTreatmentPlanCompressorResponse(ctx, interaction.ConversationID, goal, requestContext,
+			interaction.GoalID, interaction.RunID)
 	case "load_required":
 		requestContext["semantic_treatment_selection"] = true
 		if processorType == "eq" {
 			requestContext["semantic_eq_post_load_handoff"] = true
 			requestContext["semantic_eq_post_load_goal"] = goal
+		} else if processorType == "compressor" {
+			requestContext["semantic_compressor_post_load_handoff"] = true
+			requestContext["semantic_compressor_post_load_goal"] = goal
 		}
 		cfg, _, err := config.Load()
 		if err != nil || !cfg.Complete() {
@@ -581,9 +679,34 @@ func (s *Server) semanticTreatmentPlanEQResponse(ctx context.Context, conversati
 	return s.materializeAgentSemanticEQAction(ctx, conversationID, ChatRequest{ConversationID: conversationID, Message: userText, Context: requestContext}, agentModeFromContext(requestContext), res)
 }
 
+func semanticTreatmentInstanceExecutable(instance semanticTreatmentInstance, processorType, nextPlanner string) bool {
+	switch processorType {
+	case "eq":
+		return instance.ProcessorType == "eq" && instance.QualificationStatus == "generic_static_eq_qualified" && nextPlanner == "semantic_eq"
+	case "compressor":
+		return instance.ProcessorType == "compressor" && instance.QualificationStatus == "broadband_compressor_qualified" && nextPlanner == "semantic_compressor"
+	default:
+		return false
+	}
+}
+
+func (s *Server) semanticTreatmentPlanCompressorResponse(ctx context.Context, conversationID, userText string,
+	requestContext map[string]any, goalID, runID string) ChatResponse {
+	cfg, _, err := config.Load()
+	if err != nil || !cfg.Complete() {
+		if err == nil {
+			err = fmt.Errorf("AI configuration is incomplete")
+		}
+		return semanticCompressorPlanningFailure(conversationID,
+			mergeContext(requestContext, map[string]any{"goal_id": goalID, "run_id": runID}), "config_unavailable", err)
+	}
+	bound := mergeContext(requestContext, map[string]any{"goal_id": goalID, "run_id": runID})
+	return s.planBoundSemanticCompressor(ctx, conversationID, userText, bound, cfg)
+}
+
 func (s *Server) routeOrdinaryAgentSemanticEQ(ctx context.Context, conversationID, mode, userText string,
 	requestContext map[string]any, res agentloop.Result, cfg config.EngineConfig) (ChatResponse, bool) {
-	if !ordinaryAgentSemanticEQMutationRequest(userText, requestContext) {
+	if freeStateRouteAuthorized(requestContext) || !ordinaryAgentSemanticEQMutationRequest(userText, requestContext) {
 		return ChatResponse{}, false
 	}
 	trackID := firstStringFromMap(requestContext, "selected_track_id", "selected_plugin_track_id")
@@ -663,14 +786,18 @@ func (s *Server) routeOrdinaryAgentSemanticEQ(ctx context.Context, conversationI
 
 func (s *Server) routeOrdinaryAgentTreatmentStrategy(ctx context.Context, conversationID, mode, userText string,
 	requestContext map[string]any, res agentloop.Result, cfg config.EngineConfig) (ChatResponse, bool) {
-	if !ordinaryAgentTreatmentStrategyIntent(userText, requestContext) {
+	if !freeStateRouteAuthorized(requestContext) && !ordinaryAgentTreatmentStrategyIntent(userText, requestContext) {
 		return ChatResponse{}, false
 	}
 	trackID := firstStringFromMap(requestContext, "selected_track_id", "selected_plugin_track_id")
 	trackName := firstStringFromMap(requestContext, "selected_track_name")
 	instances, stateToken := s.semanticTreatmentInstances(ctx, trackID)
 	nativeHandoff := semanticTreatmentNativeHandoffAvailable(res)
-	plan, err := s.planSemanticTreatment(ctx, conversationID, userText, trackID, trackName, res.RecentObservation, instances, false, nativeHandoff, cfg)
+	requiredProcessorType := ""
+	if freeStateRouteAuthorized(requestContext) {
+		requiredProcessorType = firstStringFromMap(requestContext, "free_state_processor_type")
+	}
+	plan, err := s.planSemanticTreatment(ctx, conversationID, userText, trackID, trackName, res.RecentObservation, instances, false, nativeHandoff, cfg, requiredProcessorType)
 	if err != nil {
 		return semanticTreatmentPlannerErrorResponse(conversationID, res, err), true
 	}
@@ -688,14 +815,19 @@ func (s *Server) routeOrdinaryAgentTreatmentStrategy(ctx context.Context, conver
 	switch choice.TargetMode {
 	case "existing_plugin":
 		instance, ok := semanticTreatmentFindInstance(instances, choice.InstanceKey)
-		if !ok || instance.QualificationStatus != "generic_static_eq_qualified" || choice.ProcessorType != "eq" || choice.NextPlanner != "semantic_eq" {
+		if !ok || !semanticTreatmentInstanceExecutable(instance, choice.ProcessorType, choice.NextPlanner) {
 			return semanticTreatmentDirectBoundaryResponse(conversationID, res, plan, choice,
-				"主推荐实例目前没有可治理的普通 Agent 参数 planner；没有修改工程。"), true
+				"主推荐实例目前没有通过对应普通 Agent 参数规划器的实时资格确认；没有修改工程。"), true
 		}
 		bound := mergeContext(requestContext, map[string]any{
 			"selected_plugin_track_id": instance.TrackID, "selected_plugin_id": instance.PluginID,
-			"selected_plugin_name": instance.PluginName, "generic_eq_topology": instance.Topology,
+			"selected_plugin_name": instance.PluginName, "goal_id": res.GoalID, "run_id": res.RunID,
+			"semantic_treatment_observation_context": semanticTreatmentObservationPayload(res.RecentObservation),
 		})
+		if choice.ProcessorType == "compressor" {
+			return s.planBoundSemanticCompressor(ctx, conversationID, userText, bound, cfg), true
+		}
+		bound["generic_eq_topology"] = instance.Topology
 		planned, err := s.ensureOrdinaryAgentSemanticEQExecutable(ctx, conversationID, userText, bound, res.RecentObservation, cfg, nil)
 		if err != nil {
 			goal := agentruntime.Goal{GoalID: res.GoalID, RunID: res.RunID, Summary: userText, Status: agentruntime.StatusFailed}
@@ -708,6 +840,9 @@ func (s *Server) routeOrdinaryAgentTreatmentStrategy(ctx context.Context, conver
 		if choice.ProcessorType == "eq" {
 			requestContext["semantic_eq_post_load_handoff"] = true
 			requestContext["semantic_eq_post_load_goal"] = strings.TrimSpace(userText)
+		} else if choice.ProcessorType == "compressor" {
+			requestContext["semantic_compressor_post_load_handoff"] = true
+			requestContext["semantic_compressor_post_load_goal"] = strings.TrimSpace(userText)
 		}
 		return s.ordinaryAgentPluginRecommendationResponseForProcessor(ctx, conversationID, mode, userText, requestContext, res, choice.ProcessorType, cfg), true
 	case "native":
@@ -803,7 +938,89 @@ func (s *Server) semanticEQPostLoadHandoff(ctx context.Context, plan PendingPlan
 	return resp, true
 }
 
-func applySemanticEQPostLoadHandoffResponse(base map[string]any, handoff ChatResponse) map[string]any {
+// semanticCompressorPostLoadHandoff treats the completed rack load as identity
+// evidence only. It re-qualifies the returned instance and creates a separate
+// compressor proposal; the preceding load confirmation grants no parameter
+// mutation authority.
+func (s *Server) semanticCompressorPostLoadHandoff(ctx context.Context, plan PendingPlan, replies []map[string]any) (ChatResponse, bool) {
+	if !boolValue(plan.WorkflowData["semantic_compressor_post_load_handoff"]) {
+		return ChatResponse{}, false
+	}
+	trackID, pluginID, pluginName := pluginLoadResultIDs(replies)
+	if trackID == "" {
+		trackID = firstStringFromMap(plan.WorkflowData, "track_id")
+	}
+	goalID, runID := goalIDsFromContext(plan.Context)
+	conversationID := firstStringFromMap(plan.Context, "conversation_id")
+	userGoal := firstNonEmpty(firstStringFromMap(plan.WorkflowData, "semantic_compressor_post_load_goal"), firstStringFromMap(plan.WorkflowData, "intent"))
+	if pluginID == "" {
+		return ChatResponse{ConversationID: conversationID, GoalID: goalID, RunID: runID,
+			Reply:    "压缩器已加载，但加载结果没有返回精确 plugin_id，无法进行资格确认或生成参数方案；没有写入任何压缩器参数。",
+			Workflow: semanticTreatmentWorkflow, WorkflowData: map[string]any{"schema_version": semanticTreatmentSchema,
+				"status": "qualification_failed", "processor_type": "compressor", "track_id": trackID, "mutation_performed": false},
+			GoalStatus: string(agentruntime.StatusCompleted), StopReason: "semantic_compressor_post_load_identity_missing"}, true
+	}
+	digest, _, err := s.readLiveCompressorControlSurface(ctx, trackID, pluginID)
+	if digest.PluginName == "" {
+		digest.PluginName = pluginName
+	}
+	card, boundary := plugingrabber.BuildAudioProcessorIdentityCard(digest)
+	if err != nil || card == nil {
+		return ChatResponse{ConversationID: conversationID, GoalID: goalID, RunID: runID,
+			Reply: fmt.Sprintf("已加载 %s，但该真实实例没有通过普通 Agent 的单段宽带压缩器资格确认，因此没有生成或写入参数方案。限制：%s",
+				firstNonEmpty(pluginName, pluginID), firstNonEmpty(errorText(err), boundary, "没有可证明的单段宽带压缩器 topology")),
+			Workflow: semanticTreatmentWorkflow, WorkflowData: map[string]any{"schema_version": semanticTreatmentSchema,
+				"status": "qualification_failed", "processor_type": "compressor", "track_id": trackID, "plugin_id": pluginID,
+				"plugin_name": pluginName, "mutation_performed": false, "limitation": firstNonEmpty(errorText(err), boundary)},
+			GoalStatus: string(agentruntime.StatusCompleted), StopReason: "semantic_compressor_post_load_not_qualified"}, true
+	}
+	requestContext := cloneContext(firstMapFromAny(plan.WorkflowData["semantic_compressor_post_load_request_context"]))
+	if requestContext == nil {
+		requestContext = cloneContext(plan.Context)
+	}
+	requestContext = mergeContext(requestContext, map[string]any{
+		"selected_track_id": trackID, "selected_plugin_track_id": trackID, "selected_plugin_id": pluginID,
+		"selected_plugin_name":    firstNonEmpty(pluginName, firstStringFromMap(plan.WorkflowData, "plugin_name")),
+		"processor_identity_card": card, "conversation_id": conversationID, "goal_id": goalID, "run_id": runID,
+		"semantic_treatment_observation_context": cloneContext(firstMapFromAny(plan.WorkflowData["semantic_compressor_post_load_observation_context"])),
+	})
+	resp := s.semanticTreatmentPlanCompressorResponse(ctx, conversationID, userGoal, requestContext, goalID, runID)
+	if resp.WorkflowData == nil {
+		resp.WorkflowData = map[string]any{}
+	}
+	resp.WorkflowData["post_load_qualification"] = map[string]any{
+		"status": "qualified", "processor_type": "compressor", "track_id": trackID, "plugin_id": pluginID,
+		"plugin_name":         firstNonEmpty(pluginName, firstStringFromMap(plan.WorkflowData, "plugin_name")),
+		"topology_generation": card.TopologyEvidence.Generation, "topology_classification": card.TopologyEvidence.Classification,
+	}
+	resp.Reply = fmt.Sprintf("已加载并确认 %s 具备可执行的单段宽带压缩器 topology。加载授权已经结束，尚未写入压缩器参数。\n\n%s",
+		firstNonEmpty(pluginName, pluginID), resp.Reply)
+	return resp, true
+}
+
+func (s *Server) semanticProcessorPostLoadHandoff(ctx context.Context, plan PendingPlan, replies []map[string]any) (ChatResponse, bool) {
+	if handoff, ok := s.semanticEQPostLoadHandoff(ctx, plan, replies); ok {
+		return s.finalizeSemanticProcessorPostLoadHandoff(plan, handoff), true
+	}
+	handoff, ok := s.semanticCompressorPostLoadHandoff(ctx, plan, replies)
+	if !ok {
+		return ChatResponse{}, false
+	}
+	return s.finalizeSemanticProcessorPostLoadHandoff(plan, handoff), true
+}
+
+func (s *Server) finalizeSemanticProcessorPostLoadHandoff(plan PendingPlan, handoff ChatResponse) ChatResponse {
+	requestContext := plan.Context
+	if freeStateLoopActiveContext(requestContext) {
+		requestContext = mergeContext(requestContext, map[string]any{"free_state_route_authorized": true})
+		goalID, runID := goalIDsFromContext(requestContext)
+		handoff = s.makeFreeStateMaterializationResumable(handoff.ConversationID, requestContext,
+			agentloop.Result{GoalID: goalID, RunID: runID}, handoff)
+	}
+	return s.bindFreeStateContextToResponse(handoff, requestContext)
+}
+
+func applySemanticPostLoadHandoffResponse(base map[string]any, handoff ChatResponse) map[string]any {
 	if base == nil {
 		base = map[string]any{}
 	}

@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	"vit-daw-agent/internal/com"
 	"vit-daw-agent/internal/projectstore"
 )
 
@@ -92,5 +93,56 @@ func TestProjectObservationPersistsCompactPacketAndEvidence(t *testing.T) {
 	item := mapValue(mapValue(raw["items"])["track.track_1.raw.time_energy.range"])
 	if got := int(numberFromMap(item, "returned_rows")); got != len(timeSegments) {
 		t.Fatalf("lazy evidence rows=%d want=%d item=%#v", got, len(timeSegments), item)
+	}
+}
+
+func TestProjectObservationPersistsCompactCOMProjectionAndCatalog(t *testing.T) {
+	t.Setenv("VIT_MIXBOARD_ROOT", "")
+	projectstore.Deactivate()
+	t.Cleanup(projectstore.Deactivate)
+	root := t.TempDir()
+	projectPath := filepath.Join(root, "song.vit")
+	roots, _, err := projectstore.Activate(projectPath, "vitproj_com_v2")
+	if err != nil {
+		t.Fatal(err)
+	}
+	store := NewStore("")
+	result, err := store.RequestObservation(Request{
+		MixSessionID: "mix_com_v2", TargetRef: TargetRef{Kind: "track", ID: "1007"},
+		ProjectState: map[string]any{"project_uuid": roots.ProjectUUID, "project_path": projectPath, "duration_seconds": 4.0},
+		Args:         map[string]any{"com_mode": com.ModeSourceOnly, "feature_snapshot": comSourceFeatureSnapshot("ready")},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if result.Observation.COMProjection == nil || result.Observation.COMProjection.Status != com.StatusReady {
+		t.Fatalf("persisted COM projection = %+v", result.Observation.COMProjection)
+	}
+	data, err := os.ReadFile(result.ObservationPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	text := strings.ToLower(string(data))
+	if !strings.Contains(text, `"com_projection"`) || !strings.Contains(text, result.Observation.COMProjection.ProjectionID) {
+		t.Fatalf("canonical observation omitted COM projection: %s", text[:minInt(len(text), 1000)])
+	}
+	for _, forbidden := range []string{"aligned_envelope_frames", "input_event_candidates", "raw_samples", "render_file_path"} {
+		if strings.Contains(text, forbidden) {
+			t.Fatalf("canonical COM observation leaked %s", forbidden)
+		}
+	}
+	read, err := store.Read(ReadRequest{MixSessionID: "mix_com_v2", ObservationID: result.Observation.ObservationID,
+		Keys: []string{"observation.com_projection", "observation.catalog"}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	items := mapValue(read["items"])
+	projection := mapValue(items["observation.com_projection"])
+	if cleanAnyString(projection["projection_id"]) != result.Observation.COMProjection.ProjectionID {
+		t.Fatalf("project-store COM read mismatch: %+v", projection)
+	}
+	catalog := mapValue(items["observation.catalog"])
+	if !strings.Contains(strings.ToLower(cleanAnyString(catalog["schema_version"])), "catalog") {
+		t.Fatalf("project-store catalog missing: %+v", catalog)
 	}
 }

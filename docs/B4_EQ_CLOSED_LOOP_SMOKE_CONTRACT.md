@@ -1,7 +1,7 @@
 # B4 full-project abstract EQ smoke contract
 
 This contract covers only B4's handoff to the existing ordinary-Agent generic
-static-EQ runtime. It excludes profile/learn, SPAL, network search, the retired
+static-EQ runtime. It excludes retired learning/mapping paths, network search, the
 `static_mix.focus_position.v0` capability and unrelated stress fixtures.
 
 ## Routing

@@ -66,7 +66,6 @@ func applyPluginPrepContinuationResponse(response map[string]any, prep pluginPre
 	if len(prep.WorkflowData) > 0 {
 		response["workflow"] = pluginGrabberLoadCommand
 		response["workflow_data"] = prep.WorkflowData
-		response["plugin_learning"] = prep.WorkflowData
 	}
 	if len(prep.InteractionRequests) > 0 {
 		response["interaction_requests"] = prep.InteractionRequests
@@ -124,7 +123,6 @@ func (s *Server) continuePluginPrepContinuationInteraction(ctx context.Context, 
 			Reply:          "插件准备缺少参数摘要。没有写入任何插件参数。",
 			Workflow:       pluginPrepWorkerWorkflow,
 			WorkflowData:   payload,
-			PluginLearning: payload,
 			GoalStatus:     string(agentruntime.StatusCompleted),
 			StopReason:     "plugin_prep_terminal_no_parameter_digest",
 			TypedEvents:    []map[string]any{event},
@@ -146,7 +144,6 @@ func (s *Server) continuePluginPrepContinuationInteraction(ctx context.Context, 
 		Reply:               "已根据插件参数生成一个保守的处理候选。确认前不会写入任何插件参数。",
 		Workflow:            pluginPrepWorkerWorkflow,
 		WorkflowData:        prep.WorkflowData,
-		PluginLearning:      prep.WorkflowData,
 		InteractionRequests: prep.InteractionRequests,
 		TypedEvents:         prep.TypedEvents,
 		GoalStatus:          prep.GoalStatus,

@@ -134,10 +134,21 @@ func (s *Server) runAgentLoopChat(ctx context.Context, conversationID string, re
 	}
 	userText := agentLoopUserText(req.Message)
 	chatContext := contextWithUserMessage(req.Context, userText)
+	chatContext, freeStateActive := s.prepareFreeStateReasoningContext(conversationID, userText, chatContext)
+	if !freeStateActive {
+		if response, routed := s.routeOrdinaryAgentSemanticCompressorPlanning(ctx, conversationID, userText, chatContext, cfg); routed {
+			return response, true
+		}
+	}
 	chatContext = s.agentLoopContextWithGenericEQTopology(ctx, userText, chatContext)
 	mode := agentModeFromContext(chatContext)
 	messageLoop := s.newAgentMessageLoop(cfg, mode)
 	legacyRunner := s.newAgentLoopRunner(cfg, mode)
+	if freeStateActive && isContinueMessage(req.Message) {
+		if response, resumed := s.resumeFreeStateMaterialization(ctx, conversationID, mode, chatContext, cfg); resumed {
+			return s.bindFreeStateContextToResponse(response, chatContext), true
+		}
+	}
 
 	var res agentloop.Result
 	if isContinueMessage(req.Message) {
@@ -241,20 +252,40 @@ func (s *Server) runAgentLoopChat(ctx context.Context, conversationID string, re
 			})
 		}
 	}
+	if freeStateActive {
+		if observation := freeStateCCBObservation(res); observation != nil {
+			res.RecentObservation = observation
+		}
+		loop, _ := s.recordFreeStateDecision(conversationID, res)
+		chatContext = mergeContext(chatContext, map[string]any{"free_state_reasoning_loop": freeStateLoopMap(loop)})
+		chatContext = s.bindFreeStateAuthoritativeTrack(conversationID, chatContext)
+		if res.FreeStateDecision == nil || !strings.EqualFold(res.FreeStateDecision.Status, agentloop.FreeStateNeedsAction) {
+			return s.bindFreeStateContextToResponse(s.chatResponseFromAgentLoopResult(conversationID, mode, res), chatContext), true
+		}
+		userText = strings.TrimSpace(res.FreeStateDecision.RemainingIntent)
+		chatContext = mergeContext(chatContext, map[string]any{
+			"free_state_route_authorized": true,
+			"free_state_processor_type":   strings.ToLower(strings.TrimSpace(res.FreeStateDecision.ProcessorType)),
+			"goal_id":                     res.GoalID,
+			"run_id":                      res.RunID,
+		})
+	}
 	if response, routed := s.routeOrdinaryAgentSemanticEQ(ctx, conversationID, mode, userText, chatContext, res, cfg); routed {
-		return response, true
+		response = s.makeFreeStateMaterializationResumable(conversationID, chatContext, res, response)
+		return s.bindFreeStateContextToResponse(response, chatContext), true
 	}
 	if response, routed := s.routeOrdinaryAgentTreatmentStrategy(ctx, conversationID, mode, userText, chatContext, res, cfg); routed {
-		return response, true
+		response = s.makeFreeStateMaterializationResumable(conversationID, chatContext, res, response)
+		return s.bindFreeStateContextToResponse(response, chatContext), true
 	}
 	if res.SemanticAction == nil && ordinaryAgentPluginRecommendationIntent(userText, chatContext) {
-		return s.ordinaryAgentPluginRecommendationResponse(ctx, conversationID, mode, userText, chatContext, res, cfg), true
+		return s.bindFreeStateContextToResponse(s.ordinaryAgentPluginRecommendationResponse(ctx, conversationID, mode, userText, chatContext, res, cfg), chatContext), true
 	}
 	if res.SemanticAction != nil {
 		req.Context = chatContext
-		return s.materializeAgentSemanticEQAction(ctx, conversationID, req, mode, res), true
+		return s.bindFreeStateContextToResponse(s.materializeAgentSemanticEQAction(ctx, conversationID, req, mode, res), chatContext), true
 	}
-	return s.chatResponseFromAgentLoopResult(conversationID, mode, res), true
+	return s.bindFreeStateContextToResponse(s.chatResponseFromAgentLoopResult(conversationID, mode, res), chatContext), true
 }
 
 func (s *Server) semanticEQPluginSelectionRequiredResponse(conversationID, mode, userText string, requestContext map[string]any, res agentloop.Result) ChatResponse {
@@ -403,11 +434,6 @@ func (e pluginGrabberWorkflowExecutor) RunToolCall(ctx context.Context, in execu
 	if e.server != nil {
 		e.server.emitToolItemStarted(in, toolCallID)
 	}
-	if e.server != nil && isPluginGrabberApplyToolCall(in.ToolCall) {
-		out, err := e.invokeGovernedPluginEffectControl(ctx, in, toolCallID)
-		e.server.emitToolItemCompleted(in, out, err)
-		return out, err
-	}
 	if e.server != nil && isPluginGrabberApplyEQEditsToolCall(in.ToolCall) {
 		out, err := e.invokePluginGrabberApplyEQEdits(ctx, in, toolCallID)
 		e.server.emitToolItemCompleted(in, out, err)
@@ -417,6 +443,29 @@ func (e pluginGrabberWorkflowExecutor) RunToolCall(ctx context.Context, in execu
 		out, err := e.invokePluginGrabberSetEQPoint(ctx, in, toolCallID)
 		e.server.emitToolItemCompleted(in, out, err)
 		return out, err
+	}
+	if e.server != nil && isPluginGrabberInspectCompressorToolCall(in.ToolCall) {
+		out, err := e.invokePluginGrabberInspectCompressor(ctx, in, toolCallID)
+		e.server.emitToolItemCompleted(in, out, err)
+		return out, err
+	}
+	if e.server != nil && isPluginGrabberApplyCompressorToolCall(in.ToolCall) {
+		out, err := e.invokePluginGrabberApplyCompressor(ctx, in, toolCallID)
+		e.server.emitToolItemCompleted(in, out, err)
+		return out, err
+	}
+	if toolpolicy.IsRetiredPluginControlTool(firstNonEmpty(strings.TrimSpace(in.ToolCall.Tool), cleanContextText(in.ToolCall.Command["cmd"]), cleanContextText(in.ToolCall.Command["command"]), cleanContextText(in.ToolCall.Command["tool"]))) {
+		out := executorpkg.Result{
+			ToolCallID:  toolCallID,
+			Tool:        strings.TrimSpace(in.ToolCall.Tool),
+			CommandName: "plugin_control_retired",
+			Status:      "error",
+			Error:       "retired plugin control surfaces are unavailable; inspect live parameters or use a deterministic typed tool",
+		}
+		if e.server != nil {
+			e.server.emitToolItemCompleted(in, out, nil)
+		}
+		return out, nil
 	}
 	if e.server != nil && agentLoopSelectedPluginEQProviderFallbackLoadBlocked(in) {
 		out := executorpkg.Result{
@@ -428,88 +477,158 @@ func (e pluginGrabberWorkflowExecutor) RunToolCall(ctx context.Context, in execu
 				"status":                "blocked",
 				"blocker":               "selected_plugin_provider_fallback_forbidden",
 				"message":               "当前已选择一个插件实例；普通 EQ 控制不能因为该实例没有 verified Provider 而自动加载或替换为另一款插件。请使用当前实例的 staging/verified 路径，或明确要求加载指定插件。",
-				"required_control_tool": "plugin_grabber.apply_control",
+				"required_control_tool": "plugin_grabber.apply_eq_edits",
 				"plugin_loading":        "requires_explicit_user_request",
 			},
 		}
 		e.server.emitToolItemCompleted(in, out, nil)
 		return out, nil
 	}
-	if isPluginGrabberLearnToolCall(in.ToolCall) && !agentLoopExplicitPluginLearningRequest(in) {
-		out := executorpkg.Result{
-			ToolCallID:  toolCallID,
-			Tool:        pluginGrabberLearnTool,
-			CommandName: pluginGrabberLearnCommand,
-			Status:      "ok",
-			Result: map[string]any{
-				"status":                "blocked",
-				"blocker":               "plugin_learning_requires_explicit_user_intent",
-				"message":               "Plugin Learning 是用户明确发起的建档流程，不能作为普通插件控制失败后的自动回退。普通 EQ 控制只走受治理的 plugin_grabber.apply_control。",
-				"required_control_tool": "plugin_grabber.apply_control",
-			},
-		}
-		if e.server != nil {
+	if e.server != nil && isPluginSetParameterToolCall(in.ToolCall) {
+		if out, blocked := e.blockCompressorOwnedGenericParameterWrite(ctx, in, toolCallID); blocked {
 			e.server.emitToolItemCompleted(in, out, nil)
+			return out, nil
 		}
-		return out, nil
 	}
-	if e.server == nil || !isPluginGrabberLearnToolCall(in.ToolCall) {
-		out, err := e.base.RunToolCall(ctx, in)
-		if e.server != nil {
-			if strings.TrimSpace(out.ToolCallID) == "" {
-				out.ToolCallID = toolCallID
-			}
-			e.server.emitToolItemCompleted(in, out, err)
-		}
-		return out, err
-	}
-	req := harness.InvokeRequest{
-		Tool:       strings.TrimSpace(in.ToolCall.Tool),
-		Args:       cloneStringAnyMap(in.ToolCall.Args),
-		Command:    cloneStringAnyMap(in.ToolCall.Command),
-		Context:    contextWithAgentLoopIDs(in.Context, in.GoalID, in.RunID, toolCallID),
-		Source:     firstNonEmpty(strings.TrimSpace(in.Source), "agentloop"),
-		Confirmed:  in.Confirmed,
-		GoalID:     in.GoalID,
-		RunID:      in.RunID,
-		ToolCallID: toolCallID,
-	}
-	workflowCmd, _ := pluginGrabberLearningInvokeCommand(req)
-	resp, err := e.server.invokePluginGrabberLearningWorkflow(ctx, req, workflowCmd, e.cfg)
-	out := executorpkg.Result{
-		ToolCallID:           toolCallID,
-		Tool:                 firstNonEmpty(resp.Tool, in.ToolCall.Tool),
-		CommandName:          resp.CommandName,
-		AgentActionID:        resp.AgentActionID,
-		Status:               resp.Status,
-		RequiresConfirmation: resp.RequiresConfirmation || resp.Status == "needs_confirmation",
-		Preview:              resp.Preview,
-		UndoLabel:            resp.UndoLabel,
-		Result:               resp.Result,
-		ProjectHistory:       resp.ProjectHistory,
-		Error:                resp.Error,
-		Response:             resp,
-	}
-	if err != nil && out.Error == "" {
-		out.Error = err.Error()
-	}
-	if !out.RequiresConfirmation && err == nil && out.Status != "error" && e.server.harness != nil {
-		out.ObservedState = e.server.harness.UserStateSummary(ctx)
-	}
+	out, err := e.base.RunToolCall(ctx, in)
 	if e.server != nil {
+		if strings.TrimSpace(out.ToolCallID) == "" {
+			out.ToolCallID = toolCallID
+		}
 		e.server.emitToolItemCompleted(in, out, err)
 	}
 	return out, err
 }
 
-func isPluginGrabberApplyToolCall(call planner.ToolCall) bool {
+func isPluginGrabberInspectCompressorToolCall(call planner.ToolCall) bool {
+	name := agentLoopPluginToolCallName(call)
+	return name == pluginGrabberInspectCompressorTool || name == pluginGrabberInspectCompressorCommand
+}
+
+func isPluginGrabberApplyCompressorToolCall(call planner.ToolCall) bool {
+	name := agentLoopPluginToolCallName(call)
+	return name == pluginGrabberApplyCompressorTool || name == pluginGrabberApplyCompressorCommand
+}
+
+func isPluginSetParameterToolCall(call planner.ToolCall) bool {
+	switch agentLoopPluginToolCallName(call) {
+	case "plugin.set_parameter", "plugin_set_parameter", "set_plugin_param":
+		return true
+	default:
+		return false
+	}
+}
+
+func agentLoopPluginToolCallName(call planner.ToolCall) string {
 	name := strings.ToLower(strings.TrimSpace(call.Tool))
-	if name == "plugin_grabber.apply_control" || name == "plugin_grabber.apply" || name == "plugin_grabber_apply_control" {
+	if name != "" && name != "daw.invoke" && name != "daw_invoke" {
+		return name
+	}
+	for _, row := range []map[string]any{workflowCommandArgs(call.Command), workflowCommandArgs(call.Args)} {
+		if name = strings.ToLower(firstNonEmpty(cleanContextText(row["cmd"]), cleanContextText(row["command"]), cleanContextText(row["tool"]))); name != "" {
+			return name
+		}
+	}
+	return strings.ToLower(strings.TrimSpace(call.Tool))
+}
+
+func pluginToolCallArgs(call planner.ToolCall) map[string]any {
+	out := workflowCommandArgs(call.Command)
+	for key, value := range workflowCommandArgs(call.Args) {
+		out[key] = value
+	}
+	return out
+}
+
+func (e pluginGrabberWorkflowExecutor) blockCompressorOwnedGenericParameterWrite(ctx context.Context, in executorpkg.Input,
+	toolCallID string) (executorpkg.Result, bool) {
+	req := harness.InvokeRequest{Tool: in.ToolCall.Tool, Args: cloneStringAnyMap(in.ToolCall.Args), Command: cloneStringAnyMap(in.ToolCall.Command), Context: cloneStringAnyMap(in.Context)}
+	resp, blocked := e.server.guardCompressorOwnedGenericParameterWrite(ctx, req)
+	if !blocked {
+		return executorpkg.Result{}, false
+	}
+	return executorpkg.Result{ToolCallID: toolCallID, Tool: resp.Tool, CommandName: resp.CommandName,
+		Status: resp.Status, Error: resp.Error, Result: resp.Result, Response: resp}, true
+}
+
+func (s *Server) guardCompressorOwnedGenericParameterWrite(ctx context.Context, req harness.InvokeRequest) (harness.InvokeResponse, bool) {
+	if !pluginSetParameterInvokeRequest(req) {
+		return harness.InvokeResponse{}, false
+	}
+	args := workflowCommandArgs(req.Command)
+	for key, value := range workflowCommandArgs(req.Args) {
+		args[key] = value
+	}
+	trackID := firstNonEmptyText(args, "track_id", "selected_plugin_track_id", "selected_track_id")
+	pluginID := firstNonEmptyText(args, "plugin_id", "selected_plugin_id", "plugin_item_id")
+	paramID := firstNonEmptyText(args, "param_id", "parameter_id")
+	if trackID == "" {
+		trackID = firstNonEmptyText(req.Context, "selected_plugin_track_id", "selected_track_id", "track_id")
+	}
+	if pluginID == "" {
+		pluginID = firstNonEmptyText(req.Context, "selected_plugin_id", "plugin_id")
+	}
+	if trackID == "" || pluginID == "" || paramID == "" {
+		return harness.InvokeResponse{}, false
+	}
+	_, summary, err := s.readLiveCompressorControlSurface(ctx, trackID, pluginID)
+	if err != nil {
+		if compressorControlFailureCode(err) == "not_compressor" {
+			return harness.InvokeResponse{}, false
+		}
+		return compressorGenericWriteBlockedResponse(trackID, pluginID, paramID,
+			"typed_compressor_surface_unavailable", "cannot prove this parameter is outside the typed compressor surface: "+err.Error()), true
+	}
+	if !compressorSummaryOwnsParameter(summary, paramID) {
+		return harness.InvokeResponse{}, false
+	}
+	return compressorGenericWriteBlockedResponse(trackID, pluginID, paramID,
+		"typed_compressor_control_required", "parameter is owned by the live broadband-compressor topology; use inspect_compressor and apply_compressor_controls"), true
+}
+
+func pluginSetParameterInvokeRequest(req harness.InvokeRequest) bool {
+	name := strings.ToLower(strings.TrimSpace(req.Tool))
+	if name == "plugin.set_parameter" || name == "plugin_set_parameter" || name == "set_plugin_param" {
 		return true
 	}
-	cmd := workflowCommandArgs(call.Command)
-	name = strings.ToLower(firstNonEmpty(cleanContextText(cmd["cmd"]), cleanContextText(cmd["command"]), cleanContextText(cmd["tool"])))
-	return name == "plugin_grabber.apply_control" || name == "plugin_grabber.apply" || name == "plugin_grabber_apply_control" || name == "n_apply_control"
+	for _, row := range []map[string]any{workflowCommandArgs(req.Command), workflowCommandArgs(req.Args)} {
+		name = strings.ToLower(firstNonEmptyText(row, "cmd", "command", "tool"))
+		if name == "plugin.set_parameter" || name == "plugin_set_parameter" || name == "set_plugin_param" {
+			return true
+		}
+	}
+	return false
+}
+
+func compressorGenericWriteBlockedResponse(trackID, pluginID, paramID, code, message string) harness.InvokeResponse {
+	full := code + ": " + message
+	result := map[string]any{
+		"status": "rejected", "rejection_code": code, "message": full,
+		"track_id": trackID, "plugin_id": pluginID, "param_id": paramID,
+		"required_tools":     []string{pluginGrabberInspectCompressorTool, pluginGrabberApplyCompressorTool},
+		"parameters_changed": false,
+	}
+	return harness.InvokeResponse{Status: "error", Tool: "plugin.set_parameter", CommandName: "set_plugin_param",
+		RiskLevel: tools.RiskUndoable, Error: full, Result: result}
+}
+
+func compressorSummaryOwnsParameter(summary map[string]any, paramID string) bool {
+	stage := mapValue(summary["compressor_stage"])
+	for _, path := range mapRowsValue(stage["control_paths"]) {
+		for _, section := range []string{"detector", "operating_point", "transfer", "timing", "gain_action"} {
+			for _, binding := range mapRowsValue(path[section]) {
+				if firstNonEmptyText(binding, "param_id") == paramID {
+					return true
+				}
+			}
+		}
+	}
+	for _, binding := range mapRowsValue(stage["output"]) {
+		if firstNonEmptyText(binding, "param_id") == paramID {
+			return true
+		}
+	}
+	return false
 }
 
 func isPluginGrabberSetEQPointToolCall(call planner.ToolCall) bool {
@@ -604,31 +723,52 @@ func (e pluginGrabberWorkflowExecutor) invokePluginGrabberSetEQPoint(ctx context
 	return out, err
 }
 
-func (e pluginGrabberWorkflowExecutor) invokeGovernedPluginEffectControl(ctx context.Context, in executorpkg.Input, toolCallID string) (executorpkg.Result, error) {
-	conversationID := firstNonEmpty(cleanContextText(in.Context["conversation_id"]), cleanContextText(in.Context["chat_conversation_id"]), "agentloop_"+sanitizeCanaryID(in.GoalID))
-	message := firstNonEmpty(cleanContextText(in.Context["user_message"]), cleanContextText(in.Context["goal_summary"]), "执行已请求的插件语义控制")
-	requestContext := pluginEffectControlInvocationContext(in.Context, in.ToolCall.Args, toolCallID)
-	goal := agentruntime.Goal{GoalID: in.GoalID, RunID: in.RunID, Summary: message, Status: agentruntime.StatusRunning}
-	response := e.server.runPluginEffectControlRuntime(ctx, conversationID, ChatRequest{ConversationID: conversationID, Message: message, Context: requestContext}, goal)
-	status := "needs_confirmation"
-	if response.Error != "" {
-		status = "error"
+func (e pluginGrabberWorkflowExecutor) invokePluginGrabberInspectCompressor(ctx context.Context, in executorpkg.Input,
+	toolCallID string) (executorpkg.Result, error) {
+	req := harness.InvokeRequest{
+		Tool: strings.TrimSpace(in.ToolCall.Tool), Args: cloneStringAnyMap(in.ToolCall.Args), Command: cloneStringAnyMap(in.ToolCall.Command),
+		Context: contextWithAgentLoopIDs(in.Context, in.GoalID, in.RunID, toolCallID), Source: firstNonEmpty(strings.TrimSpace(in.Source), "agentloop"),
+		Confirmed: in.Confirmed, GoalID: in.GoalID, RunID: in.RunID, ToolCallID: toolCallID,
 	}
-	result := pluginEffectControlResult(response, status)
-	out := executorpkg.Result{
-		ToolCallID: toolCallID, Tool: "plugin_grabber.apply_control", CommandName: "plugin.effect_control.v0",
-		Status: status, RequiresConfirmation: response.NeedsConfirmation, Preview: response.Preview,
-		UndoLabel: "Apply governed plugin control", Result: result, ProjectHistory: response.ProjectHistory, Error: response.Error,
+	workflowCmd, ok := pluginGrabberInspectCompressorInvokeCommand(req)
+	if !ok {
+		workflowCmd = cloneStringAnyMap(in.ToolCall.Args)
+		workflowCmd["cmd"] = pluginGrabberInspectCompressorCommand
 	}
-	if response.Error != "" {
-		return out, fmt.Errorf("%s", response.Error)
-	}
-	return out, nil
+	resp, err := e.server.invokePluginGrabberInspectCompressorWorkflow(ctx, req, workflowCmd)
+	return e.compressorWorkflowResult(ctx, in, toolCallID, resp, err)
 }
 
-func agentLoopExplicitPluginLearningRequest(in executorpkg.Input) bool {
-	userText := cleanContextText(in.Context["user_message"])
-	return len(synthesizePluginGrabberLearningCommands(userText, in.Context)) > 0
+func (e pluginGrabberWorkflowExecutor) invokePluginGrabberApplyCompressor(ctx context.Context, in executorpkg.Input,
+	toolCallID string) (executorpkg.Result, error) {
+	req := harness.InvokeRequest{
+		Tool: strings.TrimSpace(in.ToolCall.Tool), Args: cloneStringAnyMap(in.ToolCall.Args), Command: cloneStringAnyMap(in.ToolCall.Command),
+		Context: contextWithAgentLoopIDs(in.Context, in.GoalID, in.RunID, toolCallID), Source: firstNonEmpty(strings.TrimSpace(in.Source), "agentloop"),
+		Confirmed: in.Confirmed, GoalID: in.GoalID, RunID: in.RunID, ToolCallID: toolCallID,
+	}
+	workflowCmd, ok := pluginGrabberApplyCompressorInvokeCommand(req)
+	if !ok {
+		workflowCmd = cloneStringAnyMap(in.ToolCall.Args)
+		workflowCmd["cmd"] = pluginGrabberApplyCompressorCommand
+	}
+	resp, err := e.server.invokePluginGrabberApplyCompressorWorkflow(ctx, req, workflowCmd)
+	return e.compressorWorkflowResult(ctx, in, toolCallID, resp, err)
+}
+
+func (e pluginGrabberWorkflowExecutor) compressorWorkflowResult(ctx context.Context, in executorpkg.Input, toolCallID string,
+	resp harness.InvokeResponse, err error) (executorpkg.Result, error) {
+	out := executorpkg.Result{
+		ToolCallID: toolCallID, Tool: firstNonEmpty(resp.Tool, in.ToolCall.Tool), CommandName: resp.CommandName,
+		AgentActionID: resp.AgentActionID, Status: resp.Status, RequiresConfirmation: resp.RequiresConfirmation || resp.Status == "needs_confirmation",
+		Preview: resp.Preview, UndoLabel: resp.UndoLabel, Result: resp.Result, ProjectHistory: resp.ProjectHistory, Error: resp.Error, Response: resp,
+	}
+	if err != nil && out.Error == "" {
+		out.Error = err.Error()
+	}
+	if !out.RequiresConfirmation && err == nil && out.Status != "error" && e.server.harness != nil {
+		out.ObservedState = e.server.harness.UserStateSummary(ctx)
+	}
+	return out, err
 }
 
 func agentLoopSelectedPluginEQProviderFallbackLoadBlocked(in executorpkg.Input) bool {
@@ -666,19 +806,6 @@ func agentLoopExplicitPluginLoadRequest(text string) bool {
 		"加载一个", "加载插件", "添加插件", "插入插件", "挂载插件", "新建插件", "加载 tdr", "加载 nova", "加载 pro-q",
 		"load a plugin", "load plugin", "add plugin", "insert plugin", "instantiate plugin", "load tdr", "load nova", "load pro-q",
 	)
-}
-
-func isPluginGrabberLearnToolCall(call planner.ToolCall) bool {
-	tool := strings.TrimSpace(call.Tool)
-	if tool == pluginGrabberLearnTool || tool == "plugin_grabber.learn_project_profile" || tool == "plugin.learn_project_profile" || tool == "plugin_learn_project_profile" {
-		return true
-	}
-	cmd := workflowCommandArgs(call.Command)
-	name := strings.TrimSpace(fmt.Sprint(cmd["cmd"]))
-	if name == "" || name == "<nil>" {
-		name = strings.TrimSpace(fmt.Sprint(cmd["command"]))
-	}
-	return name == pluginGrabberLearnCommand
 }
 
 func contextWithAgentLoopIDs(ctx map[string]any, goalID, runID, toolCallID string) map[string]any {
@@ -848,7 +975,7 @@ func (s *Server) chatResponseFromAgentLoopResult(conversationID, mode string, re
 // Agent-loop tools keep their original response under executed[].result. A
 // formal interaction there is still the card the UI must render; promoting it
 // prevents a generic confirmation card from replacing a workflow-specific
-// choice such as Plugin Learning's optional UI-reference step.
+// choice supplied by a read-only observation workflow.
 func agentLoopInteractionRequests(executed []map[string]any) []AgentInteractionRequest {
 	requests := make([]AgentInteractionRequest, 0)
 	seen := map[string]bool{}
@@ -1476,7 +1603,7 @@ func toolNamesForAgentLoop(h *harness.Harness, mode string) []string {
 	for _, tool := range h.Tools() {
 		name := strings.TrimSpace(tool.Name)
 		// plugin.set_parameter (set_plugin_param) is the Tier 2 direct-control
-		// write path: when a plugin has no verified runtime profile, the model
+		// Write path: after a live parameter surface is observed, the model
 		// reads all_parameters + display_domain_candidate from explain_controls
 		// and writes a normalized value directly. Excluding it here left the
 		// model with prompt instructions for a tool it could not call.
@@ -1580,6 +1707,13 @@ func agentLoopCapabilityNames(userText string, requestContext map[string]any) []
 		if strings.TrimSpace(name) != "" {
 			seen[name] = true
 		}
+	}
+	// Once the open semantic processor loop is active, CCB observation is part
+	// of the runtime protocol regardless of which lexical capability pack the
+	// original request happens to match (for example, Chinese "drums" can also
+	// look like a MIDI request).
+	if freeStateLoopActiveContext(requestContext) {
+		add("mix")
 	}
 	if route.clipFadeGain {
 		add("clip")
@@ -1708,7 +1842,9 @@ func agentLoopCapabilityNames(userText string, requestContext map[string]any) []
 	}
 	if contextHasAnyValue(requestContext, "selected_plugin_id", "selected_plugin_name") && agentLoopTextHasAny(text,
 		"调", "调整", "大一点", "小一点", "亮", "暗", "浑浊", "刺耳", "高频", "低频", "中频", "低中频", "空气感", "清晰", "均衡",
+		"阈值", "压缩比", "启动", "释放", "拐点", "补偿增益", "干湿比",
 		"mud", "muddy", "harsh", "presence", "boost", "cut", "bright", "dark", "high", "treble", "air", "clear", "clarity", "eq",
+		"threshold", "ratio", "attack", "release", "knee", "makeup", "mix", "input", "output",
 	) {
 		add("plugin")
 	}
@@ -2033,8 +2169,10 @@ func agentLoopPluginTools() []string {
 		"plugin.list_available", "plugin.search", "plugin.semantic_search", "plugin.semantic_get", "plugin.semantic_build_index", "plugin.scan",
 		"plugin.load_to_rack", "rack.add_node",
 		"plugin.get_parameters", "plugin.open", "plugin.show_editor",
-		"plugin.set_parameter", // Tier 2 direct-control path: write normalized value when no verified profile exists
-		"plugin_grabber.get_project_profiles", "plugin_grabber.explain_controls", "plugin_grabber.learn_project_profile", "plugin_grabber.upsert_project_profile", "plugin_grabber.remove_project_profile", "plugin_grabber.apply_control",
+		"plugin.set_parameter", // Tier 2 direct-control path for an observed normalized value
+		"plugin_grabber.explain_controls",
+		"plugin_grabber.inspect_compressor", // identity-free compressor stage/control-path inspection
+		"plugin_grabber.apply_compressor_controls",
 		"plugin_grabber.apply_eq_edits", // generic static EQ atomic planner/executor
 		"plugin_grabber.set_eq_point",   // deterministic Go-side band selection; preferred over set_plugin_param for EQ
 		"control.add_macro", "control.rename_macro", "control.add_binding", "control.set_macro_values",
@@ -2043,6 +2181,7 @@ func agentLoopPluginTools() []string {
 
 func agentLoopMixTools() []string {
 	return []string{
+		"ccb.observation_catalog", "ccb.observation_request",
 		"mix.observe", "mix.read", "mix.derive", "mix.request_observation",
 		"mix.propose_tick", "mix.apply_tick", "mix.rollback_tick",
 		"project.undo", "project.redo",

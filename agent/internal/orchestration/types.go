@@ -276,7 +276,7 @@ type ActionReceipt struct {
 	EffectivelyOnce bool   `json:"effectively_once"`
 	Error           string `json:"error,omitempty"`
 	// EvidenceRefs and Details preserve adapter-level facts that are required
-	// for an auditable Receipt (for example, a SPAL parameter readback and its
+	// for an auditable Receipt (for example, a parameter readback and its
 	// compensating rollback outcome). Existing ports may leave them empty.
 	EvidenceRefs []string       `json:"evidence_refs,omitempty"`
 	Details      map[string]any `json:"details,omitempty"`

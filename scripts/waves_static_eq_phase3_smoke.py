@@ -4,7 +4,7 @@
 The stack must have been launched by Godot. Five positive Waves instances are
 mutated through the Agent and then transactionally undone. Three exceptional
 instances are read only. The allowlist deliberately excludes audio probes,
-learning/profile routes, SPAL/B4, and every non-Waves external-test plug-in.
+retired mapping routes, B4, and every non-Waves external-test plug-in.
 """
 from __future__ import annotations
 
@@ -93,9 +93,6 @@ class Audit:
             "positive_instance_count": len(POSITIVE_CASES),
             "read_only_rejection_instance_count": len(READ_ONLY_CASES),
             "audio_probe_count": 0,
-            "learning_call_count": 0,
-            "profile_call_count": 0,
-            "spal_call_count": 0,
             "b4_call_count": 0,
             "plugin_alliance_parameter_read_count": 0,
             "event_count": len(self.events),

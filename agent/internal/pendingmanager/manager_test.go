@@ -14,7 +14,7 @@ func TestMemoryManagerUpsertQueryTransition(t *testing.T) {
 		TargetRef:       "track:vocal",
 		CandidateType:   "mix_treatment",
 		EvidenceRefs:    []string{"observation:obs_1"},
-		NeedsResolution: []string{"plugin_profile"},
+		NeedsResolution: []string{"live_parameter_surface"},
 		Status:          agentprotocol.PendingStatusWaitingUser,
 		Source: agentprotocol.Source{
 			ConversationID: "chat_1",
@@ -28,7 +28,7 @@ func TestMemoryManagerUpsertQueryTransition(t *testing.T) {
 	pending.EvidenceRefs[0] = "mutated"
 	pending.NeedsResolution[0] = "mutated"
 	got, ok := manager.Get("pending_1")
-	if !ok || got.EvidenceRefs[0] != "observation:obs_1" || got.NeedsResolution[0] != "plugin_profile" {
+	if !ok || got.EvidenceRefs[0] != "observation:obs_1" || got.NeedsResolution[0] != "live_parameter_surface" {
 		t.Fatalf("manager did not clone pending refs/needs: %+v ok=%v", got, ok)
 	}
 	if rows := manager.ActiveForConversation("chat_1"); len(rows) != 1 || rows[0].ID != "pending_1" {

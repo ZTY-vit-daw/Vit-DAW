@@ -24,7 +24,6 @@ const staticBalanceCapabilityID = "static_mix.static_balance.v0"
 const panLayoutCapabilityID = "static_mix.pan_layout.v0"
 const lowEndRelationCapabilityID = "static_mix.low_end_relation.v0"
 const frequencyCleanupCapabilityID = "fine_mix.frequency_cleanup.v1"
-const pluginEffectControlCapabilityID = "plugin.effect_control.v0"
 const retiredFocusPositionCapabilityID = "static_mix.focus_position.v0"
 
 // handleCapabilityRuntimeCanary is the permanent B2/B3 abstraction seam.
@@ -52,7 +51,7 @@ func (s *Server) handleCapabilityRuntimeCanary(ctx context.Context, conversation
 	req.Context["engine_owner_source"] = string(resolution.Decision.Source)
 	capabilityID := resolution.CapabilityID
 	if resolution.SessionID != "" && actionworkflow.ClassifyConfirmation(req.Message, true).Kind == actionworkflow.DecisionReject {
-		// A phrase such as "rollback SPAL Reference EQ" can be a request to
+		// A phrase about rolling back a retired effect path can be a request to
 		// construct a new rollback Proposal, not an instruction to cancel a
 		// Session that has not been created yet.  Only cancel an existing v1
 		// Session; the capability-specific handler owns fresh rollback routing.
@@ -114,9 +113,6 @@ func (s *Server) handleCapabilityRuntimeCanary(ctx context.Context, conversation
 	}
 	if capabilityID == frequencyCleanupCapabilityID {
 		return s.handleFrequencyCleanupRuntime(ctx, conversationID, req, goal), true
-	}
-	if capabilityID == pluginEffectControlCapabilityID {
-		return s.handlePluginEffectControlRuntime(ctx, conversationID, req, goal), true
 	}
 	if capabilityID == agentSemanticEQCapabilityID {
 		return s.handleSemanticEQRuntime(ctx, conversationID, req, goal), true

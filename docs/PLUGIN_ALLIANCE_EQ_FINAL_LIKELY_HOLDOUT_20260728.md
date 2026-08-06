@@ -74,7 +74,7 @@ elysia museq 使用：
 
 - 五插件、十阶段均完成真实 Godot → Kernel → Agent 链和完整参数分页；
 - 唯一成功事务通过正式 `operation_ref` undo；所有拒绝和回滚后最终分页均为零漂移；
-- 0 audio probe / learn / profile / SPAL / B4；
+- 0 audio probe / B4；已退役映射链路不在运行时能力面中；
 - 受保护运行时文件 byte-identical；
 - 5555、5556、7878、8787 端口全部释放。
 

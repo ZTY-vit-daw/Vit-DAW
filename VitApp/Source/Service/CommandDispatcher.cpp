@@ -2687,11 +2687,6 @@ void CommandDispatcher::registerBuiltinCommands()
         return pluginRackControlService != nullptr ? pluginRackControlService->handleSetPluginParam (object, raw)
                                              : makeErrorReply ("Plugin/rack/control service unavailable");
     });
-    handlers.emplace ("set_plugin_param_aliases", [this] (const juce::DynamicObject& object, const juce::String& raw)
-    {
-        return pluginRackControlService != nullptr ? pluginRackControlService->handleSetPluginParamAliases (object, raw)
-                                             : makeErrorReply ("Plugin/rack/control service unavailable");
-    });
     handlers.emplace ("control_add_node", [this] (const juce::DynamicObject& object, const juce::String& raw)
     {
         return pluginRackControlService != nullptr ? pluginRackControlService->handleControlAddNode (object, raw)
@@ -3025,59 +3020,18 @@ void CommandDispatcher::registerBuiltinCommands()
                                              : makeErrorReply ("Transport/audio service unavailable");
     });
 
+    handlers.emplace ("compressor_dual_tap_probe", [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return transportAudioService != nullptr ? transportAudioService->handleCompressorDualTapProbe (object, raw)
+                                             : makeErrorReply ("Transport/audio service unavailable");
+    });
+
     handlers.emplace ("cancel_render", [this] (const juce::DynamicObject& object, const juce::String& raw)
     {
         return transportAudioService != nullptr ? transportAudioService->handleCancelRender (object, raw)
                                              : makeErrorReply ("Transport/audio service unavailable");
     });
 
-    handlers.emplace ("n_project_profile", [this] (const juce::DynamicObject& object, const juce::String& raw)
-    {
-        return pluginRackControlService != nullptr ? pluginRackControlService->handlePluginGrabberUpsertProjectProfile (object, raw)
-                                             : makeErrorReply ("Plugin/rack/control service unavailable");
-    });
-
-    handlers.emplace ("plugin_grabber_upsert_project_profile", [this] (const juce::DynamicObject& object, const juce::String& raw)
-    {
-        return pluginRackControlService != nullptr ? pluginRackControlService->handlePluginGrabberUpsertProjectProfile (object, raw)
-                                             : makeErrorReply ("Plugin/rack/control service unavailable");
-    });
-
-    handlers.emplace ("n_get_project_profiles", [this] (const juce::DynamicObject& object, const juce::String& raw)
-    {
-        return pluginRackControlService != nullptr ? pluginRackControlService->handlePluginGrabberGetProjectProfiles (object, raw)
-                                             : makeErrorReply ("Plugin/rack/control service unavailable");
-    });
-
-    handlers.emplace ("plugin_grabber_get_project_profiles", [this] (const juce::DynamicObject& object, const juce::String& raw)
-    {
-        return pluginRackControlService != nullptr ? pluginRackControlService->handlePluginGrabberGetProjectProfiles (object, raw)
-                                             : makeErrorReply ("Plugin/rack/control service unavailable");
-    });
-
-    handlers.emplace ("n_remove_project_profile", [this] (const juce::DynamicObject& object, const juce::String& raw)
-    {
-        return pluginRackControlService != nullptr ? pluginRackControlService->handlePluginGrabberRemoveProjectProfile (object, raw)
-                                             : makeErrorReply ("Plugin/rack/control service unavailable");
-    });
-
-    handlers.emplace ("plugin_grabber_remove_project_profile", [this] (const juce::DynamicObject& object, const juce::String& raw)
-    {
-        return pluginRackControlService != nullptr ? pluginRackControlService->handlePluginGrabberRemoveProjectProfile (object, raw)
-                                             : makeErrorReply ("Plugin/rack/control service unavailable");
-    });
-
-    handlers.emplace ("plugin_grabber_apply_control", [this] (const juce::DynamicObject& object, const juce::String& raw)
-    {
-        return pluginRackControlService != nullptr ? pluginRackControlService->handlePluginGrabberApplyControl (object, raw)
-                                             : makeErrorReply ("Plugin/rack/control service unavailable");
-    });
-
-    handlers.emplace ("n_apply_control", [this] (const juce::DynamicObject& object, const juce::String& raw)
-    {
-        return pluginRackControlService != nullptr ? pluginRackControlService->handlePluginGrabberApplyControl (object, raw)
-                                             : makeErrorReply ("Plugin/rack/control service unavailable");
-    });
 }
 
 juce::String CommandDispatcher::handlePing (const juce::DynamicObject&, const juce::String&) const

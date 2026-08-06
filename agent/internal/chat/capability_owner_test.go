@@ -85,27 +85,6 @@ func TestC1OwnerRequiresProjectSpecialistScopeAndKeepsSelectedTrackEQHorizontal(
 	}
 }
 
-func TestCapabilityOwnerHonorsExactRecoveredInteractionSession(t *testing.T) {
-	runtime := orchestrationruntime.New()
-	if _, err := runtime.StartPluginEffectControlChatSession("cap_v1_plugin_effect_replay_1", "chat-replay", "p1", "first", orchestration.InteractionPropose); err != nil {
-		t.Fatal(err)
-	}
-	wanted, err := runtime.StartPluginEffectControlChatSession("cap_v1_plugin_effect_replay_2", "chat-replay", "p1", "second", orchestration.InteractionPropose)
-	if err != nil {
-		t.Fatal(err)
-	}
-	server := &Server{orchestrationRuntime: runtime}
-	resolution := server.resolveCapabilityOwner("chat-replay", ChatRequest{
-		Message: "可以执行",
-		Context: map[string]any{
-			"capability_id":         pluginEffectControlCapabilityID,
-			"capability_session_id": wanted.ID,
-		},
-	})
-	if resolution.CapabilityID != pluginEffectControlCapabilityID || resolution.SessionID != wanted.ID || resolution.Decision.Owner != orchestration.EngineV1 {
-		t.Fatalf("recovered interaction did not retain its exact session: %#v", resolution)
-	}
-}
 func TestCapabilitySessionSequenceAdvancesAfterTerminalInvocation(t *testing.T) {
 	runtime := orchestrationruntime.New()
 	session, err := runtime.StartB2ChatSession("cap_v1_b2_chat-sequence_1", "chat-sequence", "p1", "B2", orchestration.InteractionPropose)

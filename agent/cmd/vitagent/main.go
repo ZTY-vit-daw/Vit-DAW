@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"flag"
 	"fmt"
 	"net/http"
@@ -22,20 +21,7 @@ import (
 	"vit-daw-agent/internal/vspclient"
 )
 
-const (
-	vpsForgeStagingVPSPathEnv        = "VIT_VPS_FORGE_STAGING_VPS_PATH"
-	vpsForgeStagingActivationPathEnv = "VIT_VPS_FORGE_STAGING_ACTIVATION_PATH"
-	vpsForgeStagingActivationSchema  = "vit.vpsforge.staging_activation.v1"
-)
-
-type vpsForgeStagingActivation struct {
-	SchemaVersion  string `json:"schema_version"`
-	Enabled        bool   `json:"enabled"`
-	StagingVPSPath string `json:"staging_vps_path"`
-}
-
 func main() {
-	stagingActivationSource, stagingActivationErr := configureVPSForgeStagingActivation()
 	configureCapabilityRuntimeV1Defaults()
 	var (
 		zmqReqURL    = flag.String("zmq-req-url", envString("VIT_AGENT_ZMQ_REQ_URL", envString("VIT_BRIDGE_ZMQ_REQ_URL", "tcp://127.0.0.1:5555")), "kernel ZMQ REQ endpoint")
@@ -59,11 +45,6 @@ func main() {
 	}
 
 	logger := logx.New(*verbose, *lastLogPath, *keepLogLines)
-	if stagingActivationErr != nil {
-		logger.Warn("[vpsforge.staging] activation ignored: %v", stagingActivationErr)
-	} else if stagingActivationSource != "" {
-		logger.Info("[vpsforge.staging] activated isolated staging VPS from %s", stagingActivationSource)
-	}
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
@@ -112,89 +93,6 @@ func main() {
 	defer cancel()
 	_ = httpServer.Shutdown(shutdownCtx)
 	logger.Info("VitAgent shutdown complete")
-}
-
-// configureVPSForgeStagingActivation is intentionally opt-in.  A normal
-// Agent keeps its canonical VPS Library and Catalog; this function merely
-// points the process at an explicitly activated staging artifact, which the
-// chat bridge opens through its own disposable library.
-func configureVPSForgeStagingActivation() (string, error) {
-	if strings.TrimSpace(os.Getenv(vpsForgeStagingVPSPathEnv)) != "" {
-		return "environment", nil
-	}
-	for _, candidate := range vpsForgeStagingActivationCandidates() {
-		data, err := os.ReadFile(candidate)
-		if os.IsNotExist(err) {
-			continue
-		}
-		if err != nil {
-			return "", fmt.Errorf("read staging activation %s: %w", candidate, err)
-		}
-		var activation vpsForgeStagingActivation
-		if err := json.Unmarshal(data, &activation); err != nil {
-			return "", fmt.Errorf("decode staging activation %s: %w", candidate, err)
-		}
-		if activation.SchemaVersion != vpsForgeStagingActivationSchema {
-			return "", fmt.Errorf("staging activation %s has unsupported schema %q", candidate, activation.SchemaVersion)
-		}
-		if !activation.Enabled {
-			return candidate, nil
-		}
-		stagingPath := strings.TrimSpace(activation.StagingVPSPath)
-		if stagingPath == "" {
-			return "", fmt.Errorf("staging activation %s has no staging_vps_path", candidate)
-		}
-		if !filepath.IsAbs(stagingPath) {
-			stagingPath = filepath.Join(filepath.Dir(candidate), stagingPath)
-		}
-		stagingPath, err = filepath.Abs(stagingPath)
-		if err != nil {
-			return "", fmt.Errorf("resolve staging artifact from %s: %w", candidate, err)
-		}
-		if info, statErr := os.Stat(stagingPath); statErr != nil || info.IsDir() {
-			if statErr != nil {
-				return "", fmt.Errorf("staging artifact from %s is unavailable: %w", candidate, statErr)
-			}
-			return "", fmt.Errorf("staging artifact from %s is not a file", candidate)
-		}
-		if err := os.Setenv(vpsForgeStagingVPSPathEnv, stagingPath); err != nil {
-			return "", fmt.Errorf("activate staging artifact from %s: %w", candidate, err)
-		}
-		return candidate, nil
-	}
-	return "", nil
-}
-
-func vpsForgeStagingActivationCandidates() []string {
-	values := []string{}
-	appendPath := func(path string) {
-		path = strings.TrimSpace(path)
-		if path == "" {
-			return
-		}
-		for _, existing := range values {
-			if strings.EqualFold(existing, path) {
-				return
-			}
-		}
-		values = append(values, path)
-	}
-	appendPath(os.Getenv(vpsForgeStagingActivationPathEnv))
-	for _, root := range []string{os.Getenv("VIT_DAW_DEV_ROOT"), os.Getenv("VIT_DAW_ROOT")} {
-		if strings.TrimSpace(root) != "" {
-			appendPath(filepath.Join(root, "VPSForge", "staging", "active_vpsforge_staging_runtime.json"))
-		}
-	}
-	if executable, err := os.Executable(); err == nil {
-		binRoot := filepath.Dir(executable)
-		if strings.EqualFold(filepath.Base(binRoot), "bin") && strings.EqualFold(filepath.Base(filepath.Dir(binRoot)), "agent") {
-			appendPath(filepath.Join(filepath.Dir(filepath.Dir(binRoot)), "VPSForge", "staging", "active_vpsforge_staging_runtime.json"))
-		}
-	}
-	if configRoot, err := os.UserConfigDir(); err == nil && strings.TrimSpace(configRoot) != "" {
-		appendPath(filepath.Join(configRoot, "Vit", "Agent", "vpsforge_staging_runtime.json"))
-	}
-	return values
 }
 
 // This release passed isolated Release-kernel CAS/idempotency and full B2/B3

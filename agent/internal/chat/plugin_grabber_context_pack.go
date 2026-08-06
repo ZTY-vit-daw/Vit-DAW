@@ -22,9 +22,6 @@ func synthesizePluginGrabberExplainCommands(userText string, requestContext map[
 }
 
 func coercePluginGrabberExplainCommand(commands []map[string]any, userText string, requestContext map[string]any) (map[string]any, bool) {
-	if _, hasLearn := firstPluginGrabberLearningCommand(commands); hasLearn {
-		return nil, false
-	}
 	return plugingrabber.CoerceExplainCommand(commands, userText, requestContext)
 }
 
@@ -55,7 +52,7 @@ func looksLikePluginGrabberExplainIntent(userText string) bool {
 	return plugingrabber.LooksLikeExplainIntent(userText)
 }
 func (s *Server) runPluginGrabberExplainWorkflow(ctx context.Context, conversationID, userText string, requestContext map[string]any, workflowCmd map[string]any) ChatResponse {
-	target, err := s.resolvePluginLearningTarget(ctx, workflowCmd, requestContext, userText)
+	target, err := s.resolvePluginObservationTarget(ctx, workflowCmd, requestContext, userText)
 	if err != nil {
 		return ChatResponse{ConversationID: conversationID, Reply: friendlyExecutionError(err), Error: err.Error()}
 	}

@@ -19,7 +19,7 @@ func TestMixTreatmentPendingToPendingCandidate(t *testing.T) {
 		ProcessorType:    "eq",
 		ReasoningSummary: "low-mid buildup",
 		Confidence:       "medium",
-		NeedsResolution:  []string{"plugin_profile"},
+		NeedsResolution:  []string{"live_parameter_surface"},
 	}
 	pending := treatment.ToPendingCandidate("chat_1", "goal_1", "run_1", "now")
 	if pending.Kind != agentprotocol.KindPendingCandidate || pending.Status != agentprotocol.PendingStatusWaitingUser {
@@ -31,7 +31,7 @@ func TestMixTreatmentPendingToPendingCandidate(t *testing.T) {
 	if pending.ActionKind != "plugin_treatment" || pending.ProcessorType != "eq" || pending.Confidence != "medium" {
 		t.Fatalf("top-level pending workflow fields = %+v", pending)
 	}
-	if len(pending.NeedsResolution) != 1 || pending.NeedsResolution[0] != "plugin_profile" {
+	if len(pending.NeedsResolution) != 1 || pending.NeedsResolution[0] != "live_parameter_surface" {
 		t.Fatalf("needs resolution = %+v", pending.NeedsResolution)
 	}
 	if len(pending.RequiredPermissionDomains) == 0 || pending.RequiredPermissionDomains[0] != "plugin.load" {

@@ -12,7 +12,7 @@
 1. 参数级：Bell 的 Frequency/Gain/Q；
 2. Shape 级：Low Cut、High Shelf 或 Low Shelf。
 
-每个成功事务均通过正式 `operation_ref` undo，并在完整参数分页上验证零漂移。拒绝事务必须零写入、零漂移。未使用音频探测、learn、profile、SPAL 或 B4。
+每个成功事务均通过正式 `operation_ref` undo，并在完整参数分页上验证零漂移。拒绝事务必须零写入、零漂移。未使用音频探测、已退役映射链路或 B4。
 
 ## 结果
 
@@ -77,7 +77,7 @@ Lindell 80 Channel：
 
 - 4 个插件、8 个阶段；
 - 4 次完整 Plugin Alliance 参数分页；
-- 0 audio probe / learn / profile / SPAL / B4；
+- 0 audio probe / B4；已退役映射链路不在运行时能力面中；
 - 成功事务全部正式 undo；
 - 拒绝事务全部零漂移；
 - 受保护运行时文件 byte-identical；

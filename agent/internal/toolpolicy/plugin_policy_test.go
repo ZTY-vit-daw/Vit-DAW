@@ -5,58 +5,25 @@ import "testing"
 func TestPluginPolicyRules(t *testing.T) {
 	tests := []struct {
 		name string
-		ctx  TurnContext
 		call ToolCall
-		want Verdict
-		rule string
 	}{
-		{
-			name: "named plugin acoustic apply bypasses observe gate",
-			ctx:  TurnContext{UserText: "用 TDR Nova 切掉 200Hz 附近的浑浊"},
-			call: ToolCall{Name: "plugin_grabber.apply_control", Args: map[string]any{"track_id": "1007", "plugin_id": "1013", "control": "eq.cut_region"}},
-			want: Allow, rule: "explicit_named_plugin_action",
-		},
-		{
-			name: "learned plugin name from context is recognized",
-			ctx:  TurnContext{UserText: "use Pro-Q 3 to cut 200Hz mud", KnownPluginNames: []string{"FabFilter Pro-Q 3"}},
-			call: ToolCall{Name: "plugin_grabber.apply_control", Args: map[string]any{"track_id": "1007", "plugin_id": "1018", "control": "eq.cut_region"}},
-			want: Allow, rule: "explicit_named_plugin_action",
-		},
-		{
-			name: "observed explicit followup reports the narrower rule",
-			ctx:  TurnContext{UserText: "use Pro-Q 3 to cut 200Hz mud", KnownPluginNames: []string{"FabFilter Pro-Q 3"}, HasUsableObservation: true},
-			call: ToolCall{Name: "plugin_grabber.apply_control", Args: map[string]any{"track_id": "1007", "plugin_id": "1018", "control": "eq.cut_region"}},
-			want: Allow, rule: "observed_explicit_plugin_followup",
-		},
-		{
-			name: "incomplete grabber target is denied",
-			ctx:  TurnContext{UserText: "用 TDR Nova 切掉浑浊"},
-			call: ToolCall{Name: "plugin_grabber.apply_control", Args: map[string]any{"plugin_id": "1013", "control": "eq.cut_region"}},
-			want: Deny, rule: "grabber_apply_requires_live_target_and_control",
-		},
-		{
-			name: "read only barrier wins",
-			ctx:  TurnContext{UserText: "用 TDR Nova 切掉浑浊", MutationBarrier: true},
-			call: ToolCall{Name: "plugin_grabber.apply_control", Args: map[string]any{"track_id": "1007", "plugin_id": "1013", "control": "eq.cut_region"}},
-			want: Deny, rule: "mutation_barrier",
-		},
-		{
-			name: "broad mud request remains under old observation policy",
-			ctx:  TurnContext{UserText: "帮我处理一下低频浑浊"},
-			call: ToolCall{Name: "plugin_grabber.apply_control", Args: map[string]any{"track_id": "1007", "plugin_id": "1013", "control": "eq.cut_region"}},
-			want: Abstain, rule: "no_plugin_policy_match",
-		},
+		{name: "retired virtual control", call: ToolCall{Name: "plugin_grabber.apply_control"}},
+		{name: "retired profile route", call: ToolCall{Name: "plugin_grabber.get_project_profiles"}},
+		{name: "retired alternate spelling", call: ToolCall{Name: "plugin.grabber.apply"}},
+		{name: "retired SPAL route", call: ToolCall{Name: "spal.reference_eq_provider.register"}},
+		{name: "retired VPS route", call: ToolCall{Name: "vps.verify"}},
+		{name: "retired VPSForge route", call: ToolCall{Name: "vpsforge.generate"}},
+		{name: "retired plugin VPS route", call: ToolCall{Name: "plugin_vps.apply"}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := Decide(tt.ctx, tt.call)
-			if got.Verdict != tt.want || got.Rule != tt.rule {
-				t.Fatalf("Decide() = %#v, want verdict=%s rule=%s", got, tt.want, tt.rule)
+			got := Decide(TurnContext{MutationBarrier: true}, tt.call)
+			if got.Verdict != Deny || got.Rule != "retired_plugin_control_surface" {
+				t.Fatalf("Decide() = %#v", got)
 			}
 		})
 	}
 }
-
 func TestLowMudNeedsObservationOnlyWithoutNamedPlugin(t *testing.T) {
 	if !LowMudNeedsObservation("帮我处理一下低频浑浊", nil) {
 		t.Fatal("broad low-mud request should still require observation")
@@ -68,8 +35,8 @@ func TestLowMudNeedsObservationOnlyWithoutNamedPlugin(t *testing.T) {
 
 func TestCollectPluginNames(t *testing.T) {
 	got := CollectPluginNames(map[string]any{
-		"tracks":                  []any{map[string]any{"plugins": []any{map[string]any{"plugin_name": "FabFilter Pro-Q 3"}}}},
-		"plugin_grabber_profiles": []any{map[string]any{"plugin_identity": map[string]any{"plugin_name": "TDR Nova"}}},
+		"tracks":               []any{map[string]any{"plugins": []any{map[string]any{"plugin_name": "FabFilter Pro-Q 3"}}}},
+		"selected_plugin_name": "TDR Nova",
 	})
 	if len(got) != 2 || !MentionsPlugin("use Pro-Q 3", got) || !MentionsPlugin("通过 TDR Nova", got) {
 		t.Fatalf("unexpected collected names: %#v", got)

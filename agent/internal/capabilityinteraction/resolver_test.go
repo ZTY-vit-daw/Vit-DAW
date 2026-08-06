@@ -15,7 +15,7 @@ func TestResolveConversationalProposalDecisions(t *testing.T) {
 		adjustment string
 	}{
 		{name: "explicit approval", message: "执行这个方案", want: orchestration.ApprovalApprove},
-		{name: "explicit proposal approval", message: "确认执行这份 SPAL EQ v2 Proposal", want: orchestration.ApprovalApprove},
+		{name: "explicit proposal approval", message: "确认执行这份 EQ 调整方案", want: orchestration.ApprovalApprove},
 		{name: "question is read only", message: "为什么这样调整？", want: orchestration.ApprovalQuestion},
 		{name: "qualified approval becomes revision", message: "可以，但不要动 bus", want: orchestration.ApprovalRevise, adjustment: "exclude_targets"},
 		{name: "scope narrowing", message: "只处理背景和声", want: orchestration.ApprovalNarrow, adjustment: "include_only"},

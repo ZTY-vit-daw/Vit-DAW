@@ -19,7 +19,7 @@ func (s *Server) resolveCapabilityOwner(conversationID string, req ChatRequest) 
 	if explicitCapability == retiredFocusPositionCapabilityID {
 		explicitCapability = staticBalanceCapabilityID
 	}
-	if explicitCapability != staticBalanceCapabilityID && explicitCapability != panLayoutCapabilityID && explicitCapability != lowEndRelationCapabilityID && explicitCapability != frequencyCleanupCapabilityID && explicitCapability != pluginEffectControlCapabilityID && explicitCapability != agentSemanticEQCapabilityID {
+	if explicitCapability != staticBalanceCapabilityID && explicitCapability != panLayoutCapabilityID && explicitCapability != lowEndRelationCapabilityID && explicitCapability != frequencyCleanupCapabilityID && explicitCapability != agentSemanticEQCapabilityID {
 		explicitCapability = ""
 	}
 	// A recovered Proposal interaction already carries the exact durable
@@ -126,7 +126,7 @@ func (s *Server) activeCapabilitySessions(conversationID string) []orchestration
 		if session.EngineOwner != orchestration.EngineV1 || session.Terminal() || !sessionBelongsToConversation(session, conversationID) {
 			continue
 		}
-		if session.Invocation.CapabilityID == staticBalanceCapabilityID || session.Invocation.CapabilityID == panLayoutCapabilityID || session.Invocation.CapabilityID == lowEndRelationCapabilityID || session.Invocation.CapabilityID == frequencyCleanupCapabilityID || session.Invocation.CapabilityID == pluginEffectControlCapabilityID || session.Invocation.CapabilityID == agentSemanticEQCapabilityID {
+		if session.Invocation.CapabilityID == staticBalanceCapabilityID || session.Invocation.CapabilityID == panLayoutCapabilityID || session.Invocation.CapabilityID == lowEndRelationCapabilityID || session.Invocation.CapabilityID == frequencyCleanupCapabilityID || session.Invocation.CapabilityID == agentSemanticEQCapabilityID {
 			out = append(out, session)
 		}
 	}
@@ -156,8 +156,6 @@ func capabilitySessionBase(conversationID, capabilityID string) string {
 		prefix += "_b4"
 	} else if capabilityID == frequencyCleanupCapabilityID {
 		prefix += "_c1"
-	} else if capabilityID == pluginEffectControlCapabilityID {
-		prefix += "_plugin_effect"
 	} else if capabilityID == agentSemanticEQCapabilityID {
 		prefix += "_semantic_eq"
 	} else {

@@ -9,7 +9,6 @@ import (
 	"testing"
 
 	"vit-daw-agent/internal/harness"
-	"vit-daw-agent/internal/mixcontrolsurface"
 	agentruntime "vit-daw-agent/internal/runtime"
 )
 
@@ -167,7 +166,6 @@ func TestMixPlannerIntakeActionsGateMixBoardPublish(t *testing.T) {
 		}
 	}
 	prep["plugin_candidates"] = []map[string]any{{"name": "TDR Nova"}}
-	prep["skill_profile_status"] = map[string]any{"profile_status": mixcontrolsurface.ProfileReady, "next_action": "confirm_control_surface"}
 	prep["macro_panel_draft"] = map[string]any{"controls": []map[string]any{{"name": "Track volume", "control": "track.volume"}}}
 	prep["proposed_controls"] = []map[string]any{{"name": "track volume"}}
 	updateMixPlannerPrepDerived(prep, session)
@@ -329,7 +327,7 @@ func TestMixPlanningWorkspaceTracksWorkflowSlots(t *testing.T) {
 	for _, slot := range mapRowsValue(workspace["workflow_slots"]) {
 		slotIDs[cleanContextText(slot["id"])] = true
 	}
-	for _, want := range []string{"mix_goal", "plugin_types", "local_plugin_candidates", "plugin_chain_order", "skill_profile_status", "macro_panel", "fast_tick_packet"} {
+	for _, want := range []string{"mix_goal", "plugin_types", "local_plugin_candidates", "plugin_chain_order", "macro_panel", "fast_tick_packet"} {
 		if !slotIDs[want] {
 			t.Fatalf("missing workspace slot %q slots=%#v", want, workspace["workflow_slots"])
 		}
@@ -340,7 +338,7 @@ func TestMixPlanningWorkspaceTracksWorkflowSlots(t *testing.T) {
 	}
 }
 
-func TestActiveMixPlannerChatReturnsReadonlyWorkspaceSummary(t *testing.T) {
+func retiredActiveMixPlannerChatReturnsReadonlyWorkspaceSummary(t *testing.T) {
 	server := New(nil, nil, nil)
 	server.llm = nil
 	session := pendingMixSession(mixModeAuto, MixTargetRef{Kind: "track", ID: "track_1", Label: "Vocal", Confidence: "high"}, "auto mix")
@@ -426,25 +424,6 @@ func TestActiveMixPlannerChatDoesNotInterceptWithoutLegacyOptIn(t *testing.T) {
 	}
 }
 
-func TestConfirmedControlSurfacePluginLoadKeyDedupesSamePlugin(t *testing.T) {
-	left := confirmedControlSurfacePluginLoadKey("track_1", map[string]any{
-		"profile_id":  "plugin_tdr_nova",
-		"name":        "TDR Nova",
-		"plugin_path": "C:/VST/TDR Nova.vst3",
-	})
-	right := confirmedControlSurfacePluginLoadKey("track_1", map[string]any{
-		"id":          "plugin_tdr_nova",
-		"name":        "TDR Nova",
-		"plugin_path": "C:/VST/TDR Nova.vst3",
-	})
-	if left == "" || left != right {
-		t.Fatalf("load keys should match, left=%q right=%q", left, right)
-	}
-	if otherTrack := confirmedControlSurfacePluginLoadKey("track_2", map[string]any{"profile_id": "plugin_tdr_nova"}); otherTrack == left {
-		t.Fatalf("different tracks must not dedupe together: %q", otherTrack)
-	}
-}
-
 func TestMixBoardStatusInteractionDoesNotOfferDeprecatedTuningActions(t *testing.T) {
 	server := New(nil, nil, nil)
 	session := pendingMixSession(mixModeAuto, MixTargetRef{Kind: "track", ID: "track_1", Label: "Vocal", Confidence: "high"}, "降低当前轨道")
@@ -472,66 +451,6 @@ func TestMixBoardStatusInteractionDoesNotOfferDeprecatedTuningActions(t *testing
 	}
 	if !ids["rollback_last_mix_tick"] || ids["rollback_last_mix_turn"] || ids["stop_mix_tuning"] || ids["done"] {
 		t.Fatalf("running actions = %+v", req.Actions)
-	}
-}
-
-func TestConfirmControlSurfaceActionIsDeprecatedEvenWithConversationalPayload(t *testing.T) {
-	server := New(nil, nil, nil)
-	session := pendingMixSession(mixModeAuto, MixTargetRef{Kind: "track", ID: "track_1", Label: "Vocal", Confidence: "high"}, "mix vocal")
-	session.State = mixStateObservationReady
-	data := mixSessionWorkflowData("conv_mix", "goal_1", "run_1", map[string]any{}, session)
-	data["mix_observation"] = map[string]any{
-		"status": "ready",
-		"goal_control_surface": map[string]any{
-			"selected_chain": []map[string]any{{
-				"role":            "tone_balance",
-				"instance_status": mixcontrolsurface.InstanceNeedsLoad,
-				"profile_status":  mixcontrolsurface.ProfileReady,
-				"selected_plugin": map[string]any{"name": "TDR Nova", "plugin_path": "C:/VST/TDR Nova.vst3"},
-			}},
-		},
-	}
-	interaction := PendingInteraction{
-		Source:         "mix_session",
-		Workflow:       mixSessionEntryWorkflow,
-		ConversationID: "conv_mix",
-		GoalID:         "goal_1",
-		RunID:          "run_1",
-		Payload:        data,
-		Data:           data,
-	}
-
-	resp := server.continueMixSessionInteraction(context.Background(), interaction, map[string]any{"ask_vit_mix_action": true}, "confirm_control_surface")
-	if resp.CurrentStep != "deprecated_mix_planner_action" {
-		t.Fatalf("current step = %q response=%#v", resp.CurrentStep, resp)
-	}
-	if cleanContextText(mapValue(resp.MixSession)["blocking_point"]) != "deprecated_mix_planner_action" {
-		t.Fatalf("mix session = %#v", resp.MixSession)
-	}
-}
-
-func TestMixBoardStatusInteractionBlocksTuningWhenControlSurfaceBlocked(t *testing.T) {
-	server := New(nil, nil, nil)
-	session := pendingMixSession(mixModeAuto, MixTargetRef{Kind: "track", ID: "track_1", Label: "Vocal", Confidence: "high"}, "balance vocal")
-	session.State = mixStateObservationReady
-	interaction := PendingInteraction{ConversationID: "conv_mix", GoalID: "goal_1", RunID: "run_1", RequestContext: map[string]any{}}
-	observation := map[string]any{
-		"status": "ready",
-		"goal_control_surface": map[string]any{
-			"schema_version":       mixcontrolsurface.SchemaVersion,
-			"readiness":            mixcontrolsurface.ReadinessBlocked,
-			"next_required_action": "learn_plugin_profile",
-			"blockers":             []string{"dynamics requires Plugin Grabber learning"},
-		},
-	}
-	req := server.mixBoardStatusInteraction(interaction, session, observation)
-	for _, action := range req.Actions {
-		if action.ID == "start_mix_tuning" || action.ID == "auto_tune_mix" || action.ID == "execute_single_mix_tick" {
-			t.Fatalf("blocked control surface should not offer tuning action: %+v", req.Actions)
-		}
-	}
-	if blocker := mixGoalControlSurfaceTuningBlocker(observation); !strings.Contains(blocker, "Plugin Grabber") {
-		t.Fatalf("blocker = %q", blocker)
 	}
 }
 
@@ -696,147 +615,22 @@ func TestMixSessionMapPreservesRuntimeFields(t *testing.T) {
 	}
 }
 
-func TestBuildMixTickPacketAllowsPlanReadyVirtualControls(t *testing.T) {
-	session := pendingMixSession(mixModeAuto, MixTargetRef{Kind: "track", ID: "track_1", Label: "Vocal", Confidence: "high"}, "clean low mids")
+func TestBuildMixTickPacketUsesOnlyMacrosAfterProfileRetirement(t *testing.T) {
+	session := pendingMixSession(mixModeAuto, MixTargetRef{Kind: "track", ID: "track_1", Label: "Vocal", Confidence: "high"}, "balance vocal")
 	session.FastModelProfile = "fast-local"
 	observation := map[string]any{
 		"status":   "ready",
 		"mixboard": map[string]any{"status": "ready"},
-		"goal_control_surface": map[string]any{
-			"schema_version": mixcontrolsurface.SchemaVersion,
-			"readiness":      mixcontrolsurface.ReadinessPlanReady,
-			"selected_chain": []map[string]any{{
-				"role":            "tone_balance",
-				"type":            "eq",
-				"profile_status":  mixcontrolsurface.ProfileReady,
-				"instance_status": mixcontrolsurface.InstanceExisting,
-				"selected_plugin": map[string]any{"name": "TDR Nova"},
-				"instance":        map[string]any{"track_id": "track_1", "plugin_id": "nova_1"},
-				"proposed_controls": []map[string]any{{
-					"name":         "control low mids with band 2",
-					"component_id": "band_2",
-				}},
-			}},
-		},
 	}
 	packet := buildMixTickPacket(session, observation, "")
-	if cleanContextText(packet["status"]) != "ready" {
-		t.Fatalf("packet status = %#v", packet)
-	}
-	if cleanContextText(packet["fast_model_profile"]) != "fast-local" {
-		t.Fatalf("fast model profile = %#v", packet)
-	}
-	strategy := mapValue(packet["model_strategy"])
-	if cleanContextText(strategy["route"]) != "mix_tick" || cleanContextText(strategy["reasoning_effort"]) != "low" || cleanContextText(strategy["chain_of_thought"]) != "disabled" {
-		t.Fatalf("model strategy = %#v", strategy)
-	}
-	foundVirtual := false
-	for _, control := range mapRowsValue(packet["allowed_controls"]) {
-		if cleanContextText(control["control_kind"]) == "plugin_virtual_control" && cleanContextText(control["tool"]) == "plugin_grabber.apply_control" {
-			foundVirtual = true
-		}
-	}
-	if !foundVirtual {
-		t.Fatalf("allowed_controls = %#v", packet["allowed_controls"])
-	}
-}
-
-func TestBuildMixTickPacketNeedsConfirmationDoesNotExecute(t *testing.T) {
-	session := pendingMixSession(mixModeAuto, MixTargetRef{Kind: "track", ID: "track_1", Label: "Vocal", Confidence: "high"}, "balance vocal")
-	observation := map[string]any{
-		"status":   "ready",
-		"mixboard": map[string]any{"status": "ready"},
-		"goal_control_surface": map[string]any{
-			"schema_version": mixcontrolsurface.SchemaVersion,
-			"readiness":      mixcontrolsurface.ReadinessNeedsConfirmation,
-			"selected_chain": []map[string]any{{
-				"role":            "dynamic_stability",
-				"type":            "dynamics",
-				"profile_status":  mixcontrolsurface.ProfileReady,
-				"instance_status": mixcontrolsurface.InstanceNeedsLoad,
-				"selected_plugin": map[string]any{"name": "TDR Nova"},
-				"proposed_controls": []map[string]any{{
-					"name": "control compression amount",
-				}},
-			}},
-		},
-	}
-	packet := buildMixTickPacket(session, observation, "")
-	if cleanContextText(packet["status"]) != "needs_confirmation" {
+	if cleanContextText(packet["status"]) != "ready" || cleanContextText(packet["fast_model_profile"]) != "fast-local" {
 		t.Fatalf("packet = %#v", packet)
 	}
-	if len(mapRowsValue(packet["blocked_controls"])) == 0 {
-		t.Fatalf("blocked_controls = %#v", packet["blocked_controls"])
+	controls := mapRowsValue(packet["allowed_controls"])
+	if len(controls) != 1 || cleanContextText(controls[0]["control_kind"]) != "macro" || cleanContextText(controls[0]["tool"]) != "track.volume" {
+		t.Fatalf("historical control surface leaked into packet: %#v", controls)
 	}
 }
-
-func TestBuildMixTickPacketLearningRequiredForMissingProfile(t *testing.T) {
-	session := pendingMixSession(mixModeAuto, MixTargetRef{Kind: "track", ID: "track_1", Label: "Vocal", Confidence: "high"}, "compress vocal")
-	observation := map[string]any{
-		"status":   "ready",
-		"mixboard": map[string]any{"status": "ready"},
-		"goal_control_surface": map[string]any{
-			"schema_version":       mixcontrolsurface.SchemaVersion,
-			"readiness":            mixcontrolsurface.ReadinessBlocked,
-			"next_required_action": "learn_plugin_profile",
-			"selected_chain": []map[string]any{{
-				"role":            "dynamic_stability",
-				"type":            "dynamics",
-				"profile_status":  mixcontrolsurface.ProfileMissing,
-				"instance_status": mixcontrolsurface.InstanceExisting,
-				"selected_plugin": map[string]any{"id": "zl", "name": "ZL Compressor"},
-				"instance":        map[string]any{"track_id": "track_1", "plugin_id": "zl_1"},
-			}},
-		},
-	}
-	packet := buildMixTickPacket(session, observation, "")
-	if cleanContextText(packet["status"]) != mixInteractionLearningRequired {
-		t.Fatalf("packet = %#v", packet)
-	}
-	request := mapValue(packet["plugin_learning_request"])
-	if cleanContextText(request["plugin_name"]) != "ZL Compressor" || cleanContextText(request["next_required_action"]) != "learn_plugin_profile" {
-		t.Fatalf("learning request = %#v", request)
-	}
-}
-
-func TestMixPlannerPrepMarksMissingProfileAsLearningRequired(t *testing.T) {
-	session := pendingMixSession(mixModeAuto, MixTargetRef{Kind: "track", ID: "track_1", Label: "Vocal", Confidence: "high"}, "compress vocal")
-	prep := initialMixPlannerPrep(session, map[string]any{
-		"goal_detail": "stabilize vocal dynamics",
-	})
-	prep["allow_plugin_loads"] = true
-	observation := map[string]any{
-		"status":   "ready",
-		"mixboard": map[string]any{"status": "ready"},
-		"goal_control_surface": map[string]any{
-			"schema_version":       mixcontrolsurface.SchemaVersion,
-			"readiness":            mixcontrolsurface.ReadinessBlocked,
-			"next_required_action": "learn_plugin_profile",
-			"blockers":             []string{"ZL Compressor requires Plugin Grabber learning"},
-			"selected_chain": []map[string]any{{
-				"role":            "dynamic_stability",
-				"type":            "dynamics",
-				"profile_status":  mixcontrolsurface.ProfileMissing,
-				"instance_status": mixcontrolsurface.InstanceExisting,
-				"selected_plugin": map[string]any{"id": "zl", "name": "ZL Compressor"},
-				"proposed_controls": []map[string]any{{
-					"name":         "control compression amount",
-					"component_id": "main_compressor",
-				}},
-			}},
-		},
-	}
-
-	fillMixPlannerPrepFromObservation(prep, observation, session)
-	if cleanContextText(prep["stage"]) != mixInteractionLearningRequired || boolValue(prep["ready_to_publish_mixboard"]) {
-		t.Fatalf("planner prep = %#v", prep)
-	}
-	request := mapValue(prep["plugin_learning_request"])
-	if cleanContextText(request["plugin_name"]) != "ZL Compressor" || cleanContextText(request["next_required_action"]) != "learn_plugin_profile" {
-		t.Fatalf("learning request = %#v", request)
-	}
-}
-
 func TestSelectMixTickControlRejectsRawAndOutsideControls(t *testing.T) {
 	packet := map[string]any{
 		"allowed_controls": []map[string]any{{
@@ -889,34 +683,13 @@ func TestUpdateMixBoardRuntimeStatePersistsBoardAndContextPack(t *testing.T) {
 	session.RoundCount = 2
 	session.ReviewStatus = mixReviewEffective
 	session.JournalRefs = []string{"act_1"}
-	turns := []map[string]any{{
-		"turn":             1,
-		"executor_type":    mixFallbackExecutorType,
-		"executor_version": mixFallbackExecutorVersion,
-		"control":          "track.volume",
-		"review_status":    mixReviewEffective,
-	}}
 	observation := map[string]any{
 		"board_path":        boardPath,
 		"context_pack_path": contextPath,
 		"mixboard":          map[string]any{"status": "ready"},
-		"goal_control_surface": map[string]any{
-			"schema_version":       mixcontrolsurface.SchemaVersion,
-			"readiness":            mixcontrolsurface.ReadinessBlocked,
-			"next_required_action": "learn_plugin_profile",
-			"blockers":             []string{"eq requires Plugin Grabber learning"},
-		},
 	}
 
-	updateMixBoardRuntimeState(observation, session, turns)
-	cardBoard := mapValue(observation["mixboard"])
-	if cleanContextText(cardBoard["session_state"]) != mixStateWaitingReview {
-		t.Fatalf("card board = %#v", cardBoard)
-	}
-	if cleanContextText(cardBoard["executor_type"]) != mixFallbackExecutorType {
-		t.Fatalf("card executor = %#v", cardBoard)
-	}
-
+	updateMixBoardRuntimeState(observation, session, nil)
 	var board map[string]any
 	raw, err := os.ReadFile(boardPath)
 	if err != nil {
@@ -929,10 +702,6 @@ func TestUpdateMixBoardRuntimeStatePersistsBoardAndContextPack(t *testing.T) {
 	if cleanContextText(board["session_state"]) != mixStateWaitingReview || !rollbackAvailable {
 		t.Fatalf("persisted board = %#v", board)
 	}
-	if cleanContextText(mapValue(board["goal_control_surface"])["readiness"]) != mixcontrolsurface.ReadinessBlocked {
-		t.Fatalf("persisted board goal_control_surface = %#v", board)
-	}
-
 	var contextPack map[string]any
 	raw, err = os.ReadFile(contextPath)
 	if err != nil {
@@ -941,19 +710,10 @@ func TestUpdateMixBoardRuntimeStatePersistsBoardAndContextPack(t *testing.T) {
 	if err := json.Unmarshal(raw, &contextPack); err != nil {
 		t.Fatal(err)
 	}
-	header := mapValue(contextPack["session_header"])
-	autoTune := mapValue(contextPack["auto_tune"])
-	if cleanContextText(header["session_state"]) != mixStateWaitingReview {
-		t.Fatalf("context header = %#v", header)
-	}
-	if cleanContextText(autoTune["executor_version"]) != mixFallbackExecutorVersion {
-		t.Fatalf("context auto_tune = %#v", autoTune)
-	}
-	if cleanContextText(mapValue(contextPack["goal_control_surface"])["next_required_action"]) != "learn_plugin_profile" {
-		t.Fatalf("context goal_control_surface = %#v", contextPack)
+	if cleanContextText(mapValue(contextPack["session_header"])["session_state"]) != mixStateWaitingReview {
+		t.Fatalf("context header = %#v", contextPack)
 	}
 }
-
 func TestInvokeMixSessionEntryWorkflow(t *testing.T) {
 	server := New(nil, nil, nil)
 	resp, handled := server.invokeMixSessionEntryWorkflow(context.Background(), harness.InvokeRequest{

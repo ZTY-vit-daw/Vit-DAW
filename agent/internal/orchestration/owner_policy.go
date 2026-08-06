@@ -42,14 +42,6 @@ func ParseOwnerPolicy(value string) OwnerPolicy {
 			policy.V1Capabilities["static_mix.static_balance.v0"] = true
 		case "b3", "pan_layout", "static_mix.pan_layout.v0":
 			policy.V1Capabilities["static_mix.pan_layout.v0"] = true
-		case "spal", "reference_eq", "reference_eq_test", "spal.reference_eq_test.v0":
-			policy.V1Capabilities["spal.reference_eq_test.v0"] = true
-			policy.V1Capabilities["spal.reference_eq_provider_registration.v0"] = true
-			policy.V1Capabilities["spal.eq.v2"] = true
-		case "eq", "eq_v2", "spal_eq_v2", "spal.eq.v2":
-			policy.V1Capabilities["spal.eq.v2"] = true
-		case "reference_eq_provider", "reference_eq_provider_registration", "spal.reference_eq_provider_registration.v0":
-			policy.V1Capabilities["spal.reference_eq_provider_registration.v0"] = true
 		}
 	}
 	return policy

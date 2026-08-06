@@ -198,7 +198,6 @@ export interface ChatResponse {
   proposal_presentation?: JsonRecord;
   workflow?: string;
   workflow_data?: JsonRecord;
-  plugin_learning?: JsonRecord;
   mix_session?: JsonRecord;
   interaction_requests?: JsonRecord[];
   typed_events?: JsonRecord[];
@@ -273,12 +272,6 @@ export interface ChatMessage {
   role: "user" | "assistant" | "system";
   content: string;
   mode?: AgentMode | string;
-  pluginLearningProgress?: {
-    sessionID: string;
-    title?: string;
-    targetName?: string;
-    live?: boolean;
-  };
   artifacts?: ArtifactSummary[];
   actions?: JsonRecord[];
   createdAt: number;

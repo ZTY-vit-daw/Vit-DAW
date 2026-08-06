@@ -826,8 +826,45 @@ func summarizeRecentGoalContext(trace []planner.TraceEvent, planItems []planner.
 	if result := latestToolResultFromTrace(trace, opts); len(result) > 0 {
 		out["recent_tool_result"] = result
 	}
-	if inherited, ok := previous["recent_goal_context"].(map[string]any); ok && len(inherited) > 0 {
-		out["inherited_recent_goal_context"] = compactValue(inherited, opts, 0)
+	if inherited := summarizeInheritedRecentGoalContext(previous, opts); len(inherited) > 0 {
+		out["inherited_recent_goal_context"] = inherited
+	}
+	if len(out) == 0 {
+		return nil
+	}
+	return out
+}
+
+func summarizeInheritedRecentGoalContext(previous map[string]any, opts Options) map[string]any {
+	previousContext, ok := previous["recent_goal_context"].(map[string]any)
+	if !ok || len(previousContext) == 0 {
+		return nil
+	}
+
+	// A prior snapshot can itself be inherited after a pause/resume. Unwrap that
+	// projection before rebuilding it so snapshots never recursively contain
+	// inherited_recent_goal_context.
+	sources := []map[string]any{}
+	if inherited, ok := previousContext["inherited_recent_goal_context"].(map[string]any); ok {
+		sources = append(sources, inherited)
+	}
+	sources = append(sources, previousContext)
+
+	out := map[string]any{}
+	for _, source := range sources {
+		for _, key := range []string{
+			"plan_steps",
+			"recent_verification",
+			"pending_confirmation",
+			"pending_tool_queue",
+			"execution_memory",
+			"recent_observation",
+			"recent_tool_result",
+		} {
+			if value, ok := source[key]; ok && !isEmptyValue(value) {
+				out[key] = compactValue(value, opts, 0)
+			}
+		}
 	}
 	if len(out) == 0 {
 		return nil
@@ -1066,9 +1103,9 @@ func summarizePluginContextPack(pack map[string]any, opts Options) (map[string]a
 	out := map[string]any{}
 	for _, key := range []string{
 		"schema_version", "context_strategy", "track_id", "plugin_id", "plugin_name",
-		"plugin_identity", "template_role", "profile_source", "profile_applied",
+		"plugin_identity", "template_role",
 		"parameters_retained", "parameter_count", "quick_control_count",
-		"recommended_group_count", "profile_stale_param_ids",
+		"recommended_group_count",
 		"display_probe_summary", "all_parameter_count", "all_parameters_note",
 		"current_param_signature_hash", "profile_param_signature_hash",
 	} {
@@ -1157,7 +1194,7 @@ func compactResultPreview(original map[string]any, preview any, opts Options) an
 		"status", "track_id", "track_name", "clip_id", "clip_name",
 		"plugin_id", "plugin_item_id", "plugin_name", "plugin_class",
 		"parameter_count", "quick_control_count", "recommended_group_count",
-		"schema_version", "context_strategy", "profile_source", "profile_applied",
+		"schema_version", "context_strategy",
 		"command_name", "agent_action_id", "goal_id", "run_id",
 	} {
 		if value, ok := original[key]; ok && !isEmptyValue(value) {
