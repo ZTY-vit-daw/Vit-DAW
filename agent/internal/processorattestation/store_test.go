@@ -96,6 +96,28 @@ func TestQueryRequiresValidCurrentActionCoverage(t *testing.T) {
 	}
 }
 
+func TestQueryLibraryMatchesStoreQuery(t *testing.T) {
+	store, _ := NewStore(filepath.Join(t.TempDir(), FileName))
+	issued, err := store.PromoteCurrent(fixtureSpec(), "evidence_passed")
+	if err != nil {
+		t.Fatal(err)
+	}
+	library, _, err := store.Read()
+	if err != nil {
+		t.Fatal(err)
+	}
+	query := Query{SubjectKey: issued.Subject.SubjectKey, BinaryFingerprint: issued.BinaryFingerprint,
+		ProcessorFamily: FamilyStaticEQ, RequiredCoverage: []Coverage{{Action: "upsert", Shape: "bell"}}}
+	direct, err := QueryLibrary(library, query)
+	if err != nil || !direct.Eligible {
+		t.Fatalf("direct query=%+v err=%v", direct, err)
+	}
+	stored, err := store.Query(query)
+	if err != nil || direct.Eligible != stored.Eligible || direct.Attestation.AttestationID != stored.Attestation.AttestationID {
+		t.Fatalf("direct=%+v stored=%+v err=%v", direct, stored, err)
+	}
+}
+
 func TestQueryPrefersCurrentFingerprintAcrossVersions(t *testing.T) {
 	store, _ := NewStore(filepath.Join(t.TempDir(), FileName))
 	oldSpec := fixtureSpec()
@@ -138,6 +160,32 @@ func TestStoreRecoversFromLastGoodBackup(t *testing.T) {
 	library, report, err := store.Read()
 	if err != nil || !report.RecoveredFromBackup || len(library.Attestations) != 1 {
 		t.Fatalf("backup recovery library=%+v report=%+v err=%v", library, report, err)
+	}
+}
+
+func TestPromoteCurrentStalesPriorBadgeAtomically(t *testing.T) {
+	store, _ := NewStore(filepath.Join(t.TempDir(), FileName))
+	clock := time.Date(2026, 8, 6, 6, 0, 0, 0, time.UTC)
+	store.now = func() time.Time { clock = clock.Add(time.Second); return clock }
+	old, err := store.PromoteCurrent(fixtureSpec(), "strong_receipt_passed")
+	if err != nil || old.Status != StatusPromoted {
+		t.Fatalf("first promotion=%+v err=%v", old, err)
+	}
+	currentSpec := fixtureSpec()
+	currentSpec.BinaryFingerprint = "sha256:" + strings.Repeat("c", 64)
+	current, err := store.PromoteCurrent(currentSpec, "strong_receipt_passed")
+	if err != nil || current.Status != StatusPromoted {
+		t.Fatalf("current promotion=%+v err=%v", current, err)
+	}
+	library, _, err := store.Read()
+	if err != nil || len(library.Attestations) != 2 {
+		t.Fatalf("library=%+v err=%v", library, err)
+	}
+	for _, attestation := range library.Attestations {
+		if attestation.AttestationID == old.AttestationID &&
+			(attestation.Status != StatusStale || attestation.StatusReason != "binary_fingerprint_superseded") {
+			t.Fatalf("old badge was not retired: %+v", attestation)
+		}
 	}
 }
 

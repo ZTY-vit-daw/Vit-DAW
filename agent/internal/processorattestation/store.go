@@ -86,6 +86,79 @@ func (s *Store) Promote(attestationID, reason string) (Attestation, error) {
 	return s.transition(attestationID, StatusPromoted, reason)
 }
 
+// PromoteCurrent atomically promotes one deterministic issue and retires any
+// older promoted badge for the same stable processor subject and family.
+func (s *Store) PromoteCurrent(spec IssueSpec, reason string) (Attestation, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	reason = strings.TrimSpace(reason)
+	if reason == "" {
+		return Attestation{}, fmt.Errorf("processor attestation: promotion reason is required")
+	}
+	library, _, err := s.readUnlocked()
+	if err != nil {
+		return Attestation{}, err
+	}
+	candidate, err := NewAttestation(spec, s.now())
+	if err != nil {
+		return Attestation{}, err
+	}
+	candidateIndex := -1
+	changed := false
+	for index := range library.Attestations {
+		if library.Attestations[index].AttestationID == candidate.AttestationID {
+			candidateIndex = index
+			break
+		}
+	}
+	if candidateIndex < 0 {
+		library.Attestations = append(library.Attestations, candidate)
+		candidateIndex = len(library.Attestations) - 1
+		changed = true
+	}
+	current := &library.Attestations[candidateIndex]
+	if current.Status != StatusIssued && current.Status != StatusPromoted {
+		return Attestation{}, fmt.Errorf("processor attestation: cannot promote %s attestation", current.Status)
+	}
+	now := s.now().UTC()
+	for index := range library.Attestations {
+		other := &library.Attestations[index]
+		if index == candidateIndex || other.Status != StatusPromoted ||
+			other.Subject.SubjectKey != current.Subject.SubjectKey || other.ProcessorFamily != current.ProcessorFamily {
+			continue
+		}
+		other.Status = StatusStale
+		if other.BinaryFingerprint == current.BinaryFingerprint {
+			other.StatusReason = "superseded_evidence"
+		} else {
+			other.StatusReason = "binary_fingerprint_superseded"
+		}
+		other.StaleAt = &now
+		changed = true
+	}
+	if current.Status == StatusIssued {
+		current.Status = StatusPromoted
+		current.StatusReason = reason
+		current.PromotedAt = &now
+		changed = true
+	}
+	if !changed {
+		return *current, nil
+	}
+	sort.Slice(library.Attestations, func(i, j int) bool {
+		return library.Attestations[i].AttestationID < library.Attestations[j].AttestationID
+	})
+	if err := s.writeUnlocked(&library); err != nil {
+		return Attestation{}, err
+	}
+	for _, attestation := range library.Attestations {
+		if attestation.AttestationID == candidate.AttestationID {
+			return attestation, nil
+		}
+	}
+	return Attestation{}, fmt.Errorf("processor attestation: promoted record disappeared")
+}
+
 func (s *Store) MarkStale(attestationID, reason string) (Attestation, error) {
 	return s.transition(attestationID, StatusStale, reason)
 }
@@ -99,6 +172,16 @@ func (s *Store) Query(query Query) (QueryResult, error) {
 	defer s.mu.Unlock()
 	library, _, err := s.readUnlocked()
 	if err != nil {
+		return QueryResult{}, err
+	}
+	return QueryLibrary(library, query)
+}
+
+// QueryLibrary evaluates one current action against an already loaded library.
+// Callers filtering a catalog can reuse one validated snapshot without
+// repeatedly reading the global file.
+func QueryLibrary(library Library, query Query) (QueryResult, error) {
+	if err := library.Validate(); err != nil {
 		return QueryResult{}, err
 	}
 	query.SubjectKey = strings.ToLower(strings.TrimSpace(query.SubjectKey))

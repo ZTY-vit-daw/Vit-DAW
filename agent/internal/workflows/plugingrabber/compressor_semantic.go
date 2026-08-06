@@ -228,16 +228,7 @@ func compressorSemanticHardBoundaries(model *CompressorModel, controls []string)
 }
 
 func compressorRoleServesSelectedAxis(role string, axes map[string]bool) bool {
-	for axis, roles := range map[string][]string{
-		"activation_intensity": {"threshold", "input_drive", "reduction_amount", "low_level_amount", "high_level_amount"},
-		"transfer_severity":    {"ratio", "knee", "transfer_mode", "direction_curve", "reduction_range"},
-		"transient_timing":     {"attack", "lookahead", "transient_emphasis", "hold"},
-		"recovery_motion":      {"release", "recovery", "time_constant", "response", "pdr_time", "auto_release", "timing_sync"},
-		"detector_focus":       {"sidechain_filter", "detector_mode", "channel_link"},
-		"output_normalization": {"output_gain", "makeup_gain", "auto_makeup"},
-		"parallel_balance":     {"mix", "wet_gain", "dry_gain"},
-		"character":            {"transfer_mode", "direction_curve", "detector_mode", "transient_emphasis"},
-	} {
+	for axis, roles := range compressorAxisRoles() {
 		if !axes[axis] {
 			continue
 		}
@@ -248,6 +239,39 @@ func compressorRoleServesSelectedAxis(role string, axes map[string]bool) bool {
 		}
 	}
 	return false
+}
+
+// CompressorAxesForRoles projects already verified semantic control roles to
+// the public action axes. It carries no parameter IDs or writable values.
+func CompressorAxesForRoles(roles []string) []string {
+	available := map[string]bool{}
+	for _, role := range roles {
+		available[strings.ToLower(strings.TrimSpace(role))] = true
+	}
+	ordered := []string{"activation_intensity", "transfer_severity", "transient_timing", "recovery_motion", "detector_focus", "output_normalization", "parallel_balance", "character"}
+	out := []string{}
+	for _, axis := range ordered {
+		for _, role := range compressorAxisRoles()[axis] {
+			if available[role] {
+				out = append(out, axis)
+				break
+			}
+		}
+	}
+	return out
+}
+
+func compressorAxisRoles() map[string][]string {
+	return map[string][]string{
+		"activation_intensity": {"threshold", "input_drive", "reduction_amount", "low_level_amount", "high_level_amount"},
+		"transfer_severity":    {"ratio", "knee", "transfer_mode", "direction_curve", "reduction_range"},
+		"transient_timing":     {"attack", "lookahead", "transient_emphasis", "hold"},
+		"recovery_motion":      {"release", "recovery", "time_constant", "response", "pdr_time", "auto_release", "timing_sync"},
+		"detector_focus":       {"sidechain_filter", "detector_mode", "channel_link"},
+		"output_normalization": {"output_gain", "makeup_gain", "auto_makeup"},
+		"parallel_balance":     {"mix", "wet_gain", "dry_gain"},
+		"character":            {"transfer_mode", "direction_curve", "detector_mode", "transient_emphasis"},
+	}
 }
 
 func compressorReachableSummary(binding CompressorBinding) CompressorReachableSummary {

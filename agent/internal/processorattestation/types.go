@@ -274,6 +274,15 @@ func validateCoverage(family string, coverage Coverage) error {
 	return fmt.Errorf("processor attestation: unsupported compressor axis %q", coverage.Axis)
 }
 
+// ValidateCoverage validates the public action-only coverage vocabulary.
+func ValidateCoverage(family string, coverage Coverage) error {
+	return validateCoverage(strings.ToLower(strings.TrimSpace(family)), Coverage{
+		Action: strings.ToLower(strings.TrimSpace(coverage.Action)),
+		Shape:  strings.ToLower(strings.TrimSpace(coverage.Shape)),
+		Axis:   strings.ToLower(strings.TrimSpace(coverage.Axis)),
+	})
+}
+
 func normalizeSubject(subject Subject) Subject {
 	subject.SubjectKey = strings.ToLower(strings.TrimSpace(subject.SubjectKey))
 	subject.Name = strings.TrimSpace(subject.Name)

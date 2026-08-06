@@ -404,6 +404,20 @@ func (s *Server) ordinaryAgentPluginRecommendationResponseForProcessor(ctx conte
 	if len(candidates) == 0 {
 		return s.pluginRecommendationNoCandidatesResponse(conversationID, mode, userText, requestContext, res, processorType)
 	}
+	if processorAttestationFamily(processorType) != "" {
+		requirement, requirementErr := s.inferPluginControlRequirement(ctx, conversationID, userText, processorType, requestContext, res.RecentObservation, cfg)
+		if requirementErr != nil {
+			return pluginRecommendationErrorResponse(conversationID, res, "control_requirement_failed", requirementErr)
+		}
+		candidates, err = attestedPluginRecommendationCandidates(candidates, requirement)
+		if err != nil {
+			return pluginRecommendationErrorResponse(conversationID, res, "attestation_query_failed", err)
+		}
+		requestContext = mergeContext(requestContext, map[string]any{"processor_control_requirement": requirement})
+		if len(candidates) == 0 {
+			return s.pluginRecommendationNoCandidatesResponse(conversationID, mode, userText, requestContext, res, processorType)
+		}
+	}
 	plan, err := s.planPluginRecommendation(ctx, conversationID, userText, processorType, requestContext, res.RecentObservation, candidates, cfg)
 	if err != nil {
 		return pluginRecommendationErrorResponse(conversationID, res, "recommendation_failed", err)
@@ -498,6 +512,9 @@ func (s *Server) pluginRecommendationSelectionResponse(conversationID, mode stri
 		"load_proposed":       false,
 		"mutation_performed":  false,
 		"request_context":     cloneContext(requestContext),
+	}
+	if requirement, ok := pluginControlRequirementFromAny(requestContext["processor_control_requirement"]); ok {
+		payload["processor_control_requirement"] = requirement
 	}
 	if boolValue(requestContext["semantic_eq_post_load_handoff"]) && plan.ProcessorType == "eq" {
 		payload["post_load_planner"] = "semantic_eq"
@@ -653,6 +670,25 @@ func (s *Server) continuePluginRecommendationInteraction(ctx context.Context, in
 			}
 		}
 		selected = verified
+	}
+	if requirement, ok := pluginControlRequirementFromAny(interaction.Payload["processor_control_requirement"]); ok {
+		if err := verifyPluginRecommendationAttestation(selected, requirement); err != nil {
+			return ChatResponse{
+				ConversationID: interaction.ConversationID, GoalID: interaction.GoalID, RunID: interaction.RunID,
+				Reply:        "The selected processor control attestation is no longer current; no load action was created.",
+				Workflow:     pluginRecommendationWorkflow,
+				WorkflowData: mergeContext(interaction.Payload, map[string]any{"status": "stale_selection", "mutation_performed": false}),
+				GoalStatus:   string(agentruntime.StatusWaitingClarification), Error: err.Error(),
+			}
+		}
+	} else if boolValue(interaction.RequestContext["plugin_recommendation_recovered"]) && processorAttestationFamily(firstStringFromMap(interaction.Payload, "processor_type")) != "" {
+		return ChatResponse{
+			ConversationID: interaction.ConversationID, GoalID: interaction.GoalID, RunID: interaction.RunID,
+			Reply:        "The recovered recommendation predates processor attestation and must be requested again; no load action was created.",
+			Workflow:     pluginRecommendationWorkflow,
+			WorkflowData: mergeContext(interaction.Payload, map[string]any{"status": "stale_selection", "mutation_performed": false}),
+			GoalStatus:   string(agentruntime.StatusWaitingClarification), Error: "processor_control_requirement_missing",
+		}
 	}
 	target := firstMapFromAny(interaction.Payload["target_ref"])
 	trackID := firstStringFromMap(target, "id")
