@@ -67,6 +67,7 @@ type rawReceiptResult struct {
 	Resolution               rawIdentity        `json:"resolution"`
 	Mode                     string             `json:"mode"`
 	Expectation              string             `json:"expectation"`
+	ProcessorFamily          string             `json:"processor_family"`
 	Status                   string             `json:"status"`
 	Restored                 bool               `json:"restored"`
 	TemporaryTrackDeleted    bool               `json:"temporary_track_deleted"`

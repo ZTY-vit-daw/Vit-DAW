@@ -19,21 +19,26 @@ const (
 )
 
 type pluginRecommendationCandidate struct {
-	Key             string `json:"candidate_key"`
-	ID              string `json:"id,omitempty"`
-	Name            string `json:"name"`
-	DescriptiveName string `json:"descriptive_name,omitempty"`
-	Manufacturer    string `json:"manufacturer,omitempty"`
-	Format          string `json:"format,omitempty"`
-	Category        string `json:"category,omitempty"`
-	Identifier      string `json:"identifier,omitempty"`
-	PluginPath      string `json:"plugin_path"`
-	PrimaryType     string `json:"primary_type,omitempty"`
-	IsInstrument    bool   `json:"is_instrument,omitempty"`
+	Key               string `json:"candidate_key"`
+	ID                string `json:"id,omitempty"`
+	Name              string `json:"name"`
+	DescriptiveName   string `json:"descriptive_name,omitempty"`
+	Manufacturer      string `json:"manufacturer,omitempty"`
+	Format            string `json:"format,omitempty"`
+	Category          string `json:"category,omitempty"`
+	Identifier        string `json:"identifier,omitempty"`
+	PluginPath        string `json:"plugin_path"`
+	PrimaryType       string `json:"primary_type,omitempty"`
+	IsInstrument      bool   `json:"is_instrument,omitempty"`
+	SubjectKey        string `json:"-"`
+	BinaryFingerprint string `json:"-"`
+	ProcessorFamily   string `json:"-"`
+	AttestationID     string `json:"-"`
 }
 
 type pluginRecommendationChoice struct {
 	CandidateKey   string   `json:"candidate_key"`
+	Identifier     string   `json:"identifier,omitempty"`
 	Role           string   `json:"role"`
 	Reason         string   `json:"reason"`
 	Tradeoff       string   `json:"tradeoff,omitempty"`
@@ -64,7 +69,7 @@ func ordinaryAgentPluginRecommendationIntent(userText string, requestContext map
 	)
 	hasPluginSubject := agentLoopTextHasAny(text,
 		"插件", "效果器", "均衡", "压缩", "混响", "延迟", "限制器", "激励器", "饱和", "失真",
-		"plugin", "effect", "eq", "equalizer", "compressor", "reverb", "delay", "limiter", "exciter", "saturation", "distortion",
+		"plugin", "effect", "eq", "equalizer", "compressor", "reverb", "delay", "limiter", "de-esser", "deesser", "gate", "expander", "transient", "multiband", "exciter", "saturation", "distortion",
 	)
 	return hasRecommendation && hasPluginSubject
 }
@@ -72,6 +77,10 @@ func ordinaryAgentPluginRecommendationIntent(userText string, requestContext map
 func explicitPluginRecommendationProcessorType(userText string) string {
 	text := strings.ToLower(strings.TrimSpace(userText))
 	switch {
+	case strings.Contains(text, "spectral dynamics") || strings.Contains(text, "spectral-dynamics"):
+		return "spectral_dynamics"
+	case strings.Contains(text, "clipper"):
+		return "clipper"
 	case agentLoopTextHasAny(text, "均衡", "eq", "equalizer"):
 		return "eq"
 	case agentLoopTextHasAny(text, "压缩", "compressor", "compression"):
@@ -82,6 +91,14 @@ func explicitPluginRecommendationProcessorType(userText string) string {
 		return "delay"
 	case agentLoopTextHasAny(text, "限制器", "limiter", "maximizer"):
 		return "limiter"
+	case agentLoopTextHasAny(text, "de-esser", "deesser", "sibilance", "齿音", "齒音"):
+		return "de_esser"
+	case agentLoopTextHasAny(text, "gate", "expander", "noise gate", "噪声门", "噪音门", "扩展器", "擴展器"):
+		return "gate_expander"
+	case agentLoopTextHasAny(text, "transient shaper", "transient", "瞬态", "瞬變"):
+		return "transient_shaper"
+	case agentLoopTextHasAny(text, "multiband", "multi-band", "多段", "多频段", "多頻段"):
+		return "multiband_dynamics"
 	case agentLoopTextHasAny(text, "激励器", "饱和", "失真", "exciter", "saturation", "distortion", "overdrive"):
 		return "distortion"
 	case agentLoopTextHasAny(text, "调制", "合唱", "chorus", "flanger", "phaser", "modulation"):
@@ -113,7 +130,7 @@ func (s *Server) inferPluginRecommendationProcessorType(ctx context.Context, con
 	inputJSON, _ := json.Marshal(input)
 	system := `You choose one processor family for a horizontal ordinary-DAW-Agent plugin recommendation request.
 This is not an A-F specialist capability. Infer the user's primary requested processing method from their words and supplied context.
-Return ONLY JSON: {"schema_version":"plugin_processor_choice.v1","processor_type":"eq|compressor|reverb|delay|limiter|distortion|modulation|filter|pitch|analyzer","reason":"brief reason"}.
+Return ONLY JSON: {"schema_version":"plugin_processor_choice.v1","processor_type":"eq|compressor|limiter|gate_expander|de_esser|transient_shaper|multiband_dynamics|reverb|delay|distortion|modulation|filter|pitch|analyzer","reason":"brief reason"}.
 Choose exactly one family. Do not name or rank a plugin, do not propose a chain, do not invent observations, and do not return prose.`
 	request := llm.Request{
 		Messages:   []llm.Message{{Role: "system", Content: system}, {Role: "user", Content: string(inputJSON)}},
@@ -141,12 +158,20 @@ Choose exactly one family. Do not name or rank a plugin, do not propose a chain,
 func canonicalPluginRecommendationProcessorType(value string) string {
 	value = strings.ToLower(strings.TrimSpace(value))
 	switch value {
-	case "eq", "compressor", "reverb", "delay", "limiter", "distortion", "modulation", "filter", "pitch", "analyzer":
+	case "eq", "compressor", "limiter", "gate_expander", "de_esser", "transient_shaper", "multiband_dynamics", "spectral_dynamics", "clipper", "reverb", "delay", "distortion", "modulation", "filter", "pitch", "analyzer":
 		return value
 	case "equalizer":
 		return "eq"
 	case "compression", "dynamics":
 		return "compressor"
+	case "gate", "expander":
+		return "gate_expander"
+	case "deesser":
+		return "de_esser"
+	case "transient":
+		return "transient_shaper"
+	case "multiband":
+		return "multiband_dynamics"
 	case "saturation", "exciter", "overdrive":
 		return "distortion"
 	default:
@@ -179,7 +204,7 @@ func (s *Server) localPluginRecommendationCandidates(ctx context.Context, proces
 
 func pluginRecommendationCatalogSearchType(processorType string) string {
 	switch canonicalPluginRecommendationProcessorType(processorType) {
-	case "compressor", "limiter":
+	case "compressor", "limiter", "gate_expander", "de_esser", "transient_shaper", "multiband_dynamics":
 		// Catalog categories often expose compressor, limiter, gate and expander
 		// products under the hard host category "Dynamics". The LLM performs the
 		// task-specific selection within that complete local family.
@@ -262,14 +287,14 @@ func (s *Server) planPluginRecommendation(ctx context.Context, conversationID, u
 			"track_name": firstStringFromMap(requestContext, "selected_track_name"),
 		},
 		"observation_context":       semanticEQPlannerObservation(observation),
-		"loadable_local_candidates": candidates,
+		"loadable_local_candidates": pluginRecommendationCandidatesForLLM(candidates),
 	}
 	inputJSON, _ := json.Marshal(input)
 	system := `You are the plugin recommendation phase of an ordinary DAW Agent.
 The local catalog supplies hard facts and exact loadable candidates. You own the musical and product judgement: use the user's goal, evidence, and your pretrained knowledge of named products to decide which available plugin is the best fit.
 
 Return ONLY one JSON object:
-{"schema_version":"plugin_recommendation.v1","processor_type":"copy required type","user_goal":"copy user goal","summary":"short recommendation summary in the user's language","choices":[{"candidate_key":"exact supplied key","role":"recommended|alternative","reason":"task-specific reason in the user's language","tradeoff":"meaningful difference or limitation","confidence":"low|medium|high","knowledge_basis":["catalog_metadata","model_knowledge","user_request","observation"]}],"limitations":[]}
+{"schema_version":"plugin_recommendation.v1","processor_type":"copy required type","user_goal":"copy user goal","summary":"short recommendation summary in the user's language","choices":[{"candidate_key":"exact supplied key","identifier":"exact supplied identifier","role":"recommended|alternative","reason":"task-specific reason in the user's language","tradeoff":"meaningful difference or limitation","confidence":"low|medium|high","knowledge_basis":["catalog_metadata","model_knowledge","user_request","observation"]}],"limitations":[]}
 
 Rules:
 - Select only exact candidate_key values from loadable_local_candidates; never invent a plugin, path, manufacturer, capability, or availability.
@@ -304,6 +329,21 @@ Rules:
 		return pluginRecommendationPlan{}, fmt.Errorf("plugin recommendation remained invalid after repair: %w", err)
 	}
 	return plan, nil
+}
+
+// pluginRecommendationCandidatesForLLM deliberately excludes executable paths
+// and PCA internals. The model can choose only a supplied opaque key plus the
+// exact installed identifier; the server resolves the executable path later.
+func pluginRecommendationCandidatesForLLM(candidates []pluginRecommendationCandidate) []map[string]any {
+	out := make([]map[string]any, 0, len(candidates))
+	for _, candidate := range candidates {
+		out = append(out, map[string]any{
+			"candidate_key": candidate.Key, "identifier": candidate.Identifier, "name": candidate.Name,
+			"descriptive_name": candidate.DescriptiveName, "manufacturer": candidate.Manufacturer,
+			"format": candidate.Format, "category": candidate.Category, "primary_type": candidate.PrimaryType,
+		})
+	}
+	return out
 }
 
 func decodePluginRecommendationJSON(text string, target any) error {
@@ -344,10 +384,22 @@ func decodeAndValidatePluginRecommendationPlan(text, processorType, userText str
 	for i := range plan.Choices {
 		choice := &plan.Choices[i]
 		choice.CandidateKey = strings.TrimSpace(choice.CandidateKey)
+		choice.Identifier = strings.TrimSpace(choice.Identifier)
 		choice.Role = strings.ToLower(strings.TrimSpace(choice.Role))
 		choice.Confidence = strings.ToLower(strings.TrimSpace(choice.Confidence))
 		if !known[choice.CandidateKey] {
 			return plan, fmt.Errorf("choice %d invented candidate_key %q", i+1, choice.CandidateKey)
+		}
+		for _, candidate := range candidates {
+			if candidate.Key != choice.CandidateKey {
+				continue
+			}
+			if choice.Identifier == "" {
+				choice.Identifier = candidate.Identifier
+			}
+			if !strings.EqualFold(choice.Identifier, candidate.Identifier) {
+				return plan, fmt.Errorf("choice %d identifier does not match supplied candidate", i+1)
+			}
 		}
 		if seen[choice.CandidateKey] {
 			return plan, fmt.Errorf("candidate_key %q was selected more than once", choice.CandidateKey)
@@ -396,6 +448,12 @@ func (s *Server) ordinaryAgentPluginRecommendationResponseForProcessor(ctx conte
 	processorType = canonicalPluginRecommendationProcessorType(processorType)
 	if processorType == "" {
 		return pluginRecommendationErrorResponse(conversationID, res, "processor_choice_invalid", fmt.Errorf("processor type is unavailable"))
+	}
+	if processorType == "spectral_dynamics" || processorType == "clipper" {
+		return s.pluginRecommendationNoCandidatesResponse(conversationID, mode, userText, requestContext, res, processorType)
+	}
+	if processorAttestationFamily(processorType) == "" {
+		return s.pluginRecommendationNoCandidatesResponse(conversationID, mode, userText, requestContext, res, processorType)
 	}
 	candidates, err := s.localPluginRecommendationCandidates(ctx, processorType)
 	if err != nil {
@@ -585,22 +643,26 @@ func (s *Server) pluginRecommendationConversationContext(conversationID string) 
 
 func pluginRecommendationChoiceRow(choice pluginRecommendationChoice, candidate pluginRecommendationCandidate) map[string]any {
 	return map[string]any{
-		"candidate_key":    candidate.Key,
-		"id":               candidate.ID,
-		"name":             candidate.Name,
-		"descriptive_name": candidate.DescriptiveName,
-		"manufacturer":     candidate.Manufacturer,
-		"format":           candidate.Format,
-		"category":         candidate.Category,
-		"identifier":       candidate.Identifier,
-		"plugin_path":      candidate.PluginPath,
-		"primary_type":     candidate.PrimaryType,
-		"is_instrument":    candidate.IsInstrument,
-		"role":             choice.Role,
-		"reason":           strings.TrimSpace(choice.Reason),
-		"tradeoff":         strings.TrimSpace(choice.Tradeoff),
-		"confidence":       choice.Confidence,
-		"knowledge_basis":  append([]string(nil), choice.KnowledgeBasis...),
+		"candidate_key":      candidate.Key,
+		"id":                 candidate.ID,
+		"name":               candidate.Name,
+		"descriptive_name":   candidate.DescriptiveName,
+		"manufacturer":       candidate.Manufacturer,
+		"format":             candidate.Format,
+		"category":           candidate.Category,
+		"identifier":         candidate.Identifier,
+		"plugin_path":        candidate.PluginPath,
+		"primary_type":       candidate.PrimaryType,
+		"is_instrument":      candidate.IsInstrument,
+		"subject_key":        candidate.SubjectKey,
+		"binary_fingerprint": candidate.BinaryFingerprint,
+		"processor_family":   candidate.ProcessorFamily,
+		"attestation_id":     candidate.AttestationID,
+		"role":               choice.Role,
+		"reason":             strings.TrimSpace(choice.Reason),
+		"tradeoff":           strings.TrimSpace(choice.Tradeoff),
+		"confidence":         choice.Confidence,
+		"knowledge_basis":    append([]string(nil), choice.KnowledgeBasis...),
 	}
 }
 
@@ -616,6 +678,14 @@ func pluginRecommendationProcessorLabel(processorType string) string {
 		return "延迟"
 	case "limiter":
 		return "限制器"
+	case "gate_expander":
+		return "Gate/Expander"
+	case "de_esser":
+		return "De-esser"
+	case "transient_shaper":
+		return "Transient Shaper"
+	case "multiband_dynamics":
+		return "Multiband Dynamics"
 	case "distortion":
 		return "饱和/失真"
 	case "modulation":
@@ -672,7 +742,8 @@ func (s *Server) continuePluginRecommendationInteraction(ctx context.Context, in
 		selected = verified
 	}
 	if requirement, ok := pluginControlRequirementFromAny(interaction.Payload["processor_control_requirement"]); ok {
-		if err := verifyPluginRecommendationAttestation(selected, requirement); err != nil {
+		currentCandidate, err := currentAttestedPluginRecommendationCandidate(selected, requirement)
+		if err != nil {
 			return ChatResponse{
 				ConversationID: interaction.ConversationID, GoalID: interaction.GoalID, RunID: interaction.RunID,
 				Reply:        "The selected processor control attestation is no longer current; no load action was created.",
@@ -681,6 +752,10 @@ func (s *Server) continuePluginRecommendationInteraction(ctx context.Context, in
 				GoalStatus:   string(agentruntime.StatusWaitingClarification), Error: err.Error(),
 			}
 		}
+		choice := pluginRecommendationChoice{CandidateKey: firstStringFromMap(selected, "candidate_key"), Role: firstStringFromMap(selected, "role"), Reason: firstStringFromMap(selected, "reason"), Tradeoff: firstStringFromMap(selected, "tradeoff"), Confidence: firstStringFromMap(selected, "confidence")}
+		choice.Identifier = firstStringFromMap(selected, "identifier")
+		currentCandidate.Key = choice.CandidateKey
+		selected = pluginRecommendationChoiceRow(choice, currentCandidate)
 	} else if boolValue(interaction.RequestContext["plugin_recommendation_recovered"]) && processorAttestationFamily(firstStringFromMap(interaction.Payload, "processor_type")) != "" {
 		return ChatResponse{
 			ConversationID: interaction.ConversationID, GoalID: interaction.GoalID, RunID: interaction.RunID,
@@ -710,6 +785,9 @@ func (s *Server) continuePluginRecommendationInteraction(ctx context.Context, in
 		"goal_id":                                  interaction.GoalID,
 		"run_id":                                   interaction.RunID,
 	})
+	if requirement, ok := pluginControlRequirementFromAny(interaction.Payload["processor_control_requirement"]); ok {
+		requestContext["processor_control_requirement"] = requirement
+	}
 	if firstStringFromMap(interaction.Payload, "post_load_planner") == "semantic_eq" &&
 		canonicalPluginRecommendationProcessorType(firstStringFromMap(interaction.Payload, "processor_type")) == "eq" {
 		requestContext["semantic_eq_post_load_handoff"] = true

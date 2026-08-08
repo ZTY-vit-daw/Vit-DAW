@@ -157,7 +157,12 @@ func IsPluginMutationTool(name string) bool {
 	switch normalizeToolName(name) {
 	case "plugin.load_to_rack", "rack.add_node", "rack_add_node", "instantiate_plugin", "plugin.instantiate",
 		"plugin.set_parameter", "plugin_set_parameter", "set_plugin_param",
-		"plugin_grabber.apply_compressor_controls", "plugin_grabber_apply_compressor_controls":
+		"plugin_grabber.apply_compressor_controls", "plugin_grabber_apply_compressor_controls",
+		"plugin_grabber.apply_limiter_controls", "plugin_grabber_apply_limiter_controls",
+		"plugin_grabber.apply_de_esser_controls", "plugin_grabber_apply_de_esser_controls",
+		"plugin_grabber.apply_gate_expander_controls", "plugin_grabber_apply_gate_expander_controls",
+		"plugin_grabber.apply_transient_shaper_controls", "plugin_grabber_apply_transient_shaper_controls",
+		"plugin_grabber.apply_multiband_controls", "plugin_grabber_apply_multiband_controls":
 		return true
 	default:
 		return false

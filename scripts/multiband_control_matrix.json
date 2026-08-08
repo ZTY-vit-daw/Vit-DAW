@@ -1,0 +1,52 @@
+{
+  "schema_version": "plugin_grabber.multiband_dynamics_matrix.v1",
+  "evidence_policy": {
+    "parameter_writes": false,
+    "disposable_tracks_only": true,
+    "identity_is_inventory_metadata_only": true,
+    "positive_rule": "shared filterbank boundary vector plus strictly ordered physical crossovers plus at least two repeated complete dynamics cells plus one shared modifier"
+  },
+  "training": [
+    {"id":"fabfilter_pro_mb_training","plugin_name":"Pro-MB","plugin_path":"C:\\Program Files\\Common Files\\VST3\\FabFilter\\FabFilter Pro-MB.vst3","expected":"unresolved_band_local_crossovers"},
+    {"id":"waves_c4_mono_training","plugin_name":"C4 Mono","plugin_uid":"-1079323056","num_inputs":1,"num_outputs":1,"plugin_path":"C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3","expected":"multiband_dynamics"},
+    {"id":"waves_c4_stereo_training","plugin_name":"C4 Stereo","plugin_uid":"-1228571558","num_inputs":2,"num_outputs":2,"plugin_path":"C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3","expected":"multiband_dynamics"},
+    {"id":"waves_c6_mono_training","plugin_name":"C6 Mono","plugin_uid":"-1364565519","num_inputs":1,"num_outputs":1,"plugin_path":"C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3","expected":"multiband_dynamics"},
+    {"id":"waves_c6_stereo_regression","plugin_name":"C6 Stereo","plugin_uid":"-1513814021","num_inputs":2,"num_outputs":2,"plugin_path":"C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3","expected":"multiband_dynamics","evidence":"temp/c2-matrix-negatives-final2/c6_multiband_negative.parameters.json"},
+    {"id":"waves_c6_sidechain_mono_training","plugin_name":"C6-SideChain Mono","plugin_uid":"-1380548961","num_inputs":1,"num_outputs":1,"plugin_path":"C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3","expected":"multiband_dynamics"},
+    {"id":"waves_c6_sidechain_stereo_training","plugin_name":"C6-SideChain Stereo","plugin_uid":"-1379072865","num_inputs":2,"num_outputs":2,"plugin_path":"C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3","expected":"multiband_dynamics"},
+    {"id":"waves_linmb_mono_training","plugin_name":"LinMB Mono","plugin_uid":"-83687188","num_inputs":1,"num_outputs":1,"plugin_path":"C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3","expected":"multiband_dynamics"},
+    {"id":"waves_linmb_stereo_training","plugin_name":"LinMB Stereo","plugin_uid":"-81816605","num_inputs":2,"num_outputs":2,"plugin_path":"C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3","expected":"multiband_dynamics"},
+    {"id":"waves_mannym_tone_shaper_mono_training","plugin_name":"MannyM Tone Shaper Mono","plugin_uid":"239380438","num_inputs":1,"num_outputs":1,"plugin_path":"C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3","expected":"unresolved_until_structure"},
+    {"id":"waves_mannym_tone_shaper_stereo_training","plugin_name":"MannyM Tone Shaper Stereo","plugin_uid":"240856534","num_inputs":2,"num_outputs":2,"plugin_path":"C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3","expected":"unresolved_until_structure"},
+    {"id":"waves_mannym_tripled_mono_training","plugin_name":"MannyM TripleD Mono","plugin_uid":"1247061977","num_inputs":1,"num_outputs":1,"plugin_path":"C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3","expected":"unresolved_until_structure"},
+    {"id":"waves_mannym_tripled_stereo_training","plugin_name":"MannyM TripleD Stereo","plugin_uid":"1248538073","num_inputs":2,"num_outputs":2,"plugin_path":"C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3","expected":"unresolved_until_structure"},
+    {"id":"waves_vitamin_mono_training","plugin_name":"Vitamin Mono","plugin_uid":"1876490368","num_inputs":1,"num_outputs":1,"plugin_path":"C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3","expected":"unresolved_until_structure"},
+    {"id":"waves_vitamin_stereo_training","plugin_name":"Vitamin Stereo","plugin_uid":"1877966470","num_inputs":2,"num_outputs":2,"plugin_path":"C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3","expected":"unresolved_until_structure"}
+  ],
+  "regression": [
+    {"id":"lindell_mbc_regression","plugin_name":"Lindell MBC","plugin_path":"C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\Lindell MBC.vst3","expected":"multiband_dynamics"},
+    {"id":"lindell_354e_regression","plugin_name":"Lindell 354E","plugin_path":"C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\Lindell 354E.vst3","expected":"multiband_dynamics"}
+  ],
+  "sealed_blind": [
+    {"id":"waves_idx_mono_sealed","plugin_name":"IDX Mono","plugin_path":"C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3","expected":"unresolved_until_census"},
+    {"id":"waves_idx_stereo_sealed","plugin_name":"IDX Stereo","plugin_path":"C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3","expected":"unresolved_until_census"},
+    {"id":"waves_idx_live_mono_sealed","plugin_name":"IDX Live Mono","plugin_path":"C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3","expected":"unresolved_until_census"},
+    {"id":"waves_idx_live_stereo_sealed","plugin_name":"IDX Live Stereo","plugin_path":"C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3","expected":"unresolved_until_census"}
+  ],
+  "negative_regression": [
+    {"id":"waves_l3_maximizer_negative","plugin_name":"L3 MultiMaximizer Stereo","plugin_uid":"151620408","num_inputs":2,"num_outputs":2,"plugin_path":"C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3","expected":"unsupported_multiband_maximizer"},
+    {"id":"waves_l3_maximizer_mono_negative","plugin_name":"L3 MultiMaximizer Mono","plugin_uid":"150144312","num_inputs":1,"num_outputs":1,"plugin_path":"C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3","expected":"unsupported_multiband_maximizer"},
+    {"id":"waves_l3_ultramaximizer_mono_negative","plugin_name":"L3 UltraMaximizer Mono","plugin_uid":"-282528735","num_inputs":1,"num_outputs":1,"plugin_path":"C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3","expected":"unsupported_multiband_maximizer"},
+    {"id":"waves_l3_ultramaximizer_stereo_negative","plugin_name":"L3 UltraMaximizer Stereo","plugin_uid":"-281052639","num_inputs":2,"num_outputs":2,"plugin_path":"C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3","expected":"unsupported_multiband_maximizer"},
+    {"id":"waves_l316_maximizer_negative","plugin_name":"L316 Stereo","plugin_uid":"366138354","num_inputs":2,"num_outputs":2,"plugin_path":"C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3","expected":"unsupported_multiband_maximizer"},
+    {"id":"waves_l316_maximizer_mono_negative","plugin_name":"L316 Mono","plugin_uid":"263673583","num_inputs":1,"num_outputs":1,"plugin_path":"C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3","expected":"unsupported_multiband_maximizer"},
+    {"id":"waves_l3ll_multi_mono_negative","plugin_name":"L3-LL Multi Mono","plugin_uid":"-1098798246","num_inputs":1,"num_outputs":1,"plugin_path":"C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3","expected":"unsupported_multiband_maximizer"},
+    {"id":"waves_l3ll_multi_stereo_negative","plugin_name":"L3-LL Multi Stereo","plugin_uid":"-1097322150","num_inputs":2,"num_outputs":2,"plugin_path":"C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3","expected":"unsupported_multiband_maximizer"},
+    {"id":"waves_l3ll_ultra_mono_negative","plugin_name":"L3-LL Ultra Mono","plugin_uid":"-1665097118","num_inputs":1,"num_outputs":1,"plugin_path":"C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3","expected":"unsupported_multiband_maximizer"},
+    {"id":"waves_l3ll_ultra_stereo_negative","plugin_name":"L3-LL Ultra Stereo","plugin_uid":"-1663621022","num_inputs":2,"num_outputs":2,"plugin_path":"C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3","expected":"unsupported_multiband_maximizer"},
+    {"id":"waves_transx_multi_negative","plugin_name":"TransX Multi Stereo","plugin_uid":"964456194","num_inputs":2,"num_outputs":2,"plugin_path":"C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3","expected":"unresolved_multiband_cells"},
+    {"id":"waves_transx_multi_mono_negative","plugin_name":"TransX Multi Mono","plugin_uid":"962980098","num_inputs":1,"num_outputs":1,"plugin_path":"C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3","expected":"unresolved_multiband_cells"},
+    {"id":"fabfilter_pro_q_dynamic_eq_negative","plugin_name":"Pro-Q 3","plugin_path":"C:\\Program Files\\Common Files\\VST3\\FabFilter\\FabFilter Pro-Q 3.vst3","expected":"not_multiband_dynamics"},
+    {"id":"fabfilter_pro_ds_negative","plugin_name":"Pro-DS","plugin_path":"C:\\Program Files\\Common Files\\VST3\\FabFilter\\FabFilter Pro-DS.vst3","expected":"not_multiband_dynamics"}
+  ]
+}

@@ -109,6 +109,44 @@ func TestSelectionAttestationRecheckUsesGlobalStore(t *testing.T) {
 	}
 }
 
+func TestV2AttestationFilterRequiresExactActionAxisAndFingerprint(t *testing.T) {
+	root := t.TempDir()
+	path := filepath.Join(root, "DeEsser.vst3")
+	if err := os.WriteFile(path, []byte("deesser-v1"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	candidate := attestationTestCandidate("De-esser", "deesser-v1", path)
+	store, _ := processorattestation.NewStoreV2(filepath.Join(root, "attestations.v2.json"))
+	fingerprint, _ := processorattestation.FingerprintPath(path)
+	_, err := store.PromoteCurrent(processorattestation.IssueSpecV2{
+		Subject:           processorattestation.Subject{Name: candidate.Name, Manufacturer: candidate.Manufacturer, Format: candidate.Format, Identifier: candidate.Identifier, InstalledPath: candidate.PluginPath},
+		BinaryFingerprint: fingerprint, ProcessorFamily: processorattestation.FamilyDeEsser,
+		Coverage: []processorattestation.Coverage{{Action: "adjust", Axis: "sibilance_reduction"}}, Evidence: []processorattestation.EvidenceRef{attestationTestEvidence()},
+	}, "strong_receipt")
+	if err != nil {
+		t.Fatal(err)
+	}
+	library, _, err := store.Read()
+	if err != nil {
+		t.Fatal(err)
+	}
+	requirement := pluginControlRequirement{SchemaVersion: pluginControlRequirementSchema, ProcessorFamily: processorattestation.FamilyDeEsser, Coverage: []processorattestation.Coverage{{Action: "adjust", Axis: "sibilance_reduction"}}}
+	filtered, err := filterAttestedPluginRecommendationCandidatesV2(library, []pluginRecommendationCandidate{candidate}, requirement)
+	if err != nil || len(filtered) != 1 {
+		t.Fatalf("filtered=%+v err=%v", filtered, err)
+	}
+	if err := os.WriteFile(path, []byte("deesser-v2"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	filtered, err = filterAttestedPluginRecommendationCandidatesV2(library, []pluginRecommendationCandidate{candidate}, requirement)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(filtered) != 0 {
+		t.Fatalf("changed binary remained eligible: %+v", filtered)
+	}
+}
+
 func attestationTestCandidate(name, identifier, path string) pluginRecommendationCandidate {
 	return pluginRecommendationCandidate{Name: name, Manufacturer: "Vendor", Format: "VST3", Identifier: identifier,
 		PluginPath: path, PrimaryType: "eq"}

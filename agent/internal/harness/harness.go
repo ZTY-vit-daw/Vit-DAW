@@ -38,6 +38,7 @@ import (
 	"vit-daw-agent/internal/orchestration"
 	"vit-daw-agent/internal/pluginsemantics"
 	"vit-daw-agent/internal/preview"
+	"vit-daw-agent/internal/processorattestation"
 	"vit-daw-agent/internal/projectcut"
 	"vit-daw-agent/internal/projectpackage"
 	"vit-daw-agent/internal/projectstore"
@@ -104,15 +105,16 @@ var mixboardObservationFeatureTypes = []string{"waveform_envelope", "spectral_fi
 var mixboardFeatureSnapshotWriteMu sync.Mutex
 
 type InvokeRequest struct {
-	Tool       string         `json:"tool"`
-	Args       map[string]any `json:"args"`
-	Command    map[string]any `json:"command"`
-	Context    map[string]any `json:"context,omitempty"`
-	Source     string         `json:"source"`
-	Confirmed  bool           `json:"confirmed"`
-	RunID      string         `json:"run_id,omitempty"`
-	GoalID     string         `json:"goal_id,omitempty"`
-	ToolCallID string         `json:"tool_call_id,omitempty"`
+	Tool               string         `json:"tool"`
+	Args               map[string]any `json:"args"`
+	Command            map[string]any `json:"command"`
+	Context            map[string]any `json:"context,omitempty"`
+	Source             string         `json:"source"`
+	Confirmed          bool           `json:"confirmed"`
+	RunID              string         `json:"run_id,omitempty"`
+	GoalID             string         `json:"goal_id,omitempty"`
+	ToolCallID         string         `json:"tool_call_id,omitempty"`
+	AuthorizationToken string         `json:"authorization_token,omitempty"`
 }
 
 type InvokeResponse struct {
@@ -555,6 +557,11 @@ func (h *Harness) Invoke(ctx context.Context, req InvokeRequest) (resp InvokeRes
 			Error:       err.Error(),
 		}
 		h.logPreJournalInvokeFailure("resolve_implicit_targets", req, spec, cmd, err)
+		return resp, err
+	}
+	if err := h.enforceAgentProcessorLoadGate(req, spec, cmd); err != nil {
+		resp := InvokeResponse{Status: "error", Tool: spec.ToolName, CommandName: spec.CommandName, RiskLevel: spec.RiskLevel, Error: err.Error()}
+		h.logPreJournalInvokeFailure("pca_processor_load_gate", req, spec, cmd, err)
 		return resp, err
 	}
 	if err := validateRequiredTargetIDs(spec, cmd); err != nil {
@@ -1466,9 +1473,15 @@ const semanticPluginSelectionAuthorizationContextKey = "__vit_internal_semantic_
 // server can attach one after it has verified a pending target-3 selection
 // against the single rack_add_node command that is about to execute.
 type semanticPluginSelectionAuthorization struct {
-	TrackID          string
-	PluginPath       string
-	PluginIdentifier string
+	TrackID           string
+	PluginPath        string
+	PluginIdentifier  string
+	ProcessorFamily   string
+	RequiredCoverage  []processorattestation.Coverage
+	SubjectKey        string
+	BinaryFingerprint string
+	AttestationID     string
+	Certification     bool
 }
 
 // AuthorizeSemanticPluginSelectionLoad returns an execution-only context for
@@ -1483,6 +1496,87 @@ func AuthorizeSemanticPluginSelectionLoad(requestContext map[string]any, trackID
 		PluginIdentifier: strings.TrimSpace(pluginIdentifier),
 	}
 	return out
+}
+
+// AuthorizeProcessorSelectionLoad creates an in-process authorization object
+// for one exact PCA-selected load. The concrete value cannot be manufactured
+// by JSON or an LLM.
+func AuthorizeProcessorSelectionLoad(requestContext map[string]any, trackID, pluginPath, pluginIdentifier string, requirement processorattestation.EligibilityRequirement, subjectKey, fingerprint, attestationID string) map[string]any {
+	out := cloneAnyMap(requestContext)
+	out[semanticPluginSelectionAuthorizationContextKey] = semanticPluginSelectionAuthorization{
+		TrackID: strings.TrimSpace(trackID), PluginPath: strings.TrimSpace(pluginPath), PluginIdentifier: strings.TrimSpace(pluginIdentifier),
+		ProcessorFamily: strings.TrimSpace(requirement.ProcessorFamily), RequiredCoverage: append([]processorattestation.Coverage(nil), requirement.RequiredCoverage...),
+		SubjectKey: strings.TrimSpace(subjectKey), BinaryFingerprint: strings.TrimSpace(fingerprint), AttestationID: strings.TrimSpace(attestationID),
+	}
+	return out
+}
+
+// AuthorizeProcessorCertificationLoad creates the narrow exception used by
+// the consented disposable-track certification runner.
+func AuthorizeProcessorCertificationLoad(requestContext map[string]any, trackID, pluginPath, pluginIdentifier, family, subjectKey, fingerprint string) map[string]any {
+	out := cloneAnyMap(requestContext)
+	out[semanticPluginSelectionAuthorizationContextKey] = semanticPluginSelectionAuthorization{
+		TrackID: strings.TrimSpace(trackID), PluginPath: strings.TrimSpace(pluginPath), PluginIdentifier: strings.TrimSpace(pluginIdentifier),
+		ProcessorFamily: strings.TrimSpace(family), SubjectKey: strings.TrimSpace(subjectKey), BinaryFingerprint: strings.TrimSpace(fingerprint), Certification: true,
+	}
+	return out
+}
+
+func agentPluginLoadCommand(name string) bool {
+	switch strings.ToLower(strings.TrimSpace(name)) {
+	case "rack_add_node", "rack.add_node", "plugin.load_to_rack", "instantiate_plugin", "plugin.instantiate":
+		return true
+	default:
+		return false
+	}
+}
+
+// enforceAgentProcessorLoadGate is the final Agent-side admission boundary.
+// It runs after command normalization and immediately before journaling and
+// Kernel dispatch, so selection results are never trusted across a TOCTOU
+// window. UI/C++ calls do not enter Harness and remain unaffected.
+func (h *Harness) enforceAgentProcessorLoadGate(req InvokeRequest, spec tools.CommandSpec, cmd map[string]any) error {
+	name := firstNonEmpty(spec.CommandName, tools.CommandName(cmd), req.Tool)
+	if !agentPluginLoadCommand(name) || strings.TrimSpace(req.Source) == "" {
+		return nil
+	}
+	auth, ok := req.Context[semanticPluginSelectionAuthorizationContextKey].(semanticPluginSelectionAuthorization)
+	if !ok || auth.TrackID == "" || auth.PluginPath == "" || auth.PluginIdentifier == "" {
+		return fmt.Errorf("pca_load_gate: missing non-forgeable exact selection authorization")
+	}
+	trackID := strings.TrimSpace(firstString(cmd, "track_id", "target_track_id", "selected_track_id"))
+	pluginPath := strings.TrimSpace(firstString(cmd, "plugin_path", "path", "file_path", "plugin_file", "source_path"))
+	identifier := strings.TrimSpace(firstString(cmd, "plugin_identifier", "identifier", "file_or_identifier"))
+	if trackID != auth.TrackID || !strings.EqualFold(pluginPath, auth.PluginPath) || !strings.EqualFold(identifier, auth.PluginIdentifier) {
+		return fmt.Errorf("pca_load_gate: exact identifier, path, or track changed after authorization")
+	}
+	currentFingerprint, err := processorattestation.FingerprintPath(pluginPath)
+	if err != nil {
+		return fmt.Errorf("pca_load_gate: current binary fingerprint unavailable: %w", err)
+	}
+	if auth.BinaryFingerprint == "" || !strings.EqualFold(currentFingerprint, auth.BinaryFingerprint) {
+		return fmt.Errorf("pca_load_gate: binary fingerprint changed before load")
+	}
+	if auth.Certification {
+		if !processorattestation.IsV2Family(auth.ProcessorFamily) && auth.ProcessorFamily != processorattestation.FamilyBroadbandCompressor && auth.ProcessorFamily != processorattestation.FamilyStaticEQ {
+			return fmt.Errorf("pca_load_gate: certification family is unsupported")
+		}
+		return nil
+	}
+	if auth.SubjectKey == "" || auth.ProcessorFamily == "" || len(auth.RequiredCoverage) == 0 {
+		return fmt.Errorf("pca_load_gate: incomplete PCA authorization")
+	}
+	result, err := processorattestation.QueryCurrent(auth.SubjectKey, currentFingerprint, processorattestation.EligibilityRequirement{ProcessorFamily: auth.ProcessorFamily, RequiredCoverage: auth.RequiredCoverage})
+	if err != nil {
+		return fmt.Errorf("pca_load_gate: authoritative PCA query failed: %w", err)
+	}
+	if !result.Eligible {
+		return fmt.Errorf("pca_load_gate: rejected: %s", result.Reason)
+	}
+	if auth.AttestationID != "" && result.AttestationID != auth.AttestationID {
+		return fmt.Errorf("pca_load_gate: attestation changed before load")
+	}
+	return nil
 }
 
 func broadMixObserveFirstWriteGuard(requestContext map[string]any, spec tools.CommandSpec, cmd map[string]any) error {

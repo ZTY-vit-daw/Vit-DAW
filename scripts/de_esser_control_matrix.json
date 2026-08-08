@@ -1,0 +1,123 @@
+{
+  "schema_version": "plugin_grabber.de_esser_control_matrix.v1",
+  "set_id": "de-esser-control-v1-20260807",
+  "training_cases": [
+    {
+      "id": "fabfilter_pro_ds",
+      "plugin_name": "Pro-DS",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\FabFilter\\FabFilter Pro-DS.vst3",
+      "expectation": "de_esser"
+    },
+    {
+      "id": "waves_deesser_stereo",
+      "plugin_name": "DeEsser Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "expectation": "de_esser"
+    },
+    {
+      "id": "waves_rdeesser_stereo",
+      "plugin_name": "RDeEsser Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "expectation": "de_esser"
+    },
+    {
+      "id": "waves_sibilance_stereo",
+      "plugin_name": "Sibilance Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "expectation": "de_esser"
+    },
+    {
+      "id": "waves_sibilance_live_stereo",
+      "plugin_name": "Sibilance-Live Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "expectation": "de_esser"
+    }
+  ],
+  "regression_cases": [
+    {
+      "id": "waves_deesser_mono",
+      "plugin_name": "DeEsser Mono",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "expectation": "de_esser"
+    },
+    {
+      "id": "waves_rdeesser_mono",
+      "plugin_name": "RDeEsser Mono",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "expectation": "de_esser"
+    },
+    {
+      "id": "waves_sibilance_mono",
+      "plugin_name": "Sibilance Mono",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "expectation": "de_esser"
+    },
+    {
+      "id": "waves_sibilance_live_mono",
+      "plugin_name": "Sibilance-Live Mono",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "expectation": "de_esser"
+    },
+    {
+      "id": "synthetic_sidechain_eq_negative",
+      "fixture": "unit:TestDetectDeEsserModelNegativeBoundaries/broadband_compressor_with_sidechain_EQ",
+      "expectation": "not_de_esser",
+      "expected_rejection": "unsupported_broadband_compressor"
+    },
+    {
+      "id": "synthetic_multiband_negative",
+      "fixture": "unit:TestDetectDeEsserModelNegativeBoundaries/multiband_dynamics",
+      "expectation": "not_de_esser",
+      "expected_rejection": "unsupported_multiband_dynamics"
+    },
+    {
+      "id": "synthetic_spectral_negative",
+      "fixture": "unit:TestDetectDeEsserModelNegativeBoundaries/dynamic_EQ",
+      "expectation": "not_de_esser",
+      "expected_rejection": "unsupported_spectral_dynamics"
+    },
+    {
+      "id": "synthetic_gate_negative",
+      "fixture": "unit:TestDetectDeEsserModelNegativeBoundaries/gate",
+      "expectation": "not_de_esser",
+      "expected_rejection": "unsupported_gate_expander"
+    },
+    {
+      "id": "synthetic_limiter_negative",
+      "fixture": "unit:TestDetectDeEsserModelNegativeBoundaries/limiter",
+      "expectation": "not_de_esser",
+      "expected_rejection": "unsupported_limiter"
+    },
+    {
+      "id": "synthetic_clipper_negative",
+      "fixture": "unit:TestDetectDeEsserModelNegativeBoundaries/clipper",
+      "expectation": "not_de_esser",
+      "expected_rejection": "unsupported_clipper"
+    }
+  ],
+  "compound_candidates": [
+    "MannyM TripleD Mono",
+    "MannyM TripleD Stereo",
+    "Silk Vocal Mono",
+    "Silk Vocal Stereo",
+    "Silk Vocal Live Mono",
+    "Silk Vocal Live Stereo"
+  ],
+  "sealed_blind_cases": [
+    {
+      "id": "lindell_902_de_esser_sealed",
+      "plugin_name": "Lindell 902 De-esser",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\Lindell 902 De-esser.vst3",
+      "expectation": "unknown_until_execute"
+    }
+  ],
+  "policy": {
+    "identity_independent": true,
+    "dedicated_training_instance_count": 5,
+    "mono_holdout_instance_count": 4,
+    "compound_products_require_stage_proof": true,
+    "sealed_parameter_surfaces_before_freeze": 0,
+    "disposable_project_required": true,
+    "parameter_writes_forbidden": true
+  }
+}

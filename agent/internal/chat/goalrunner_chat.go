@@ -444,6 +444,61 @@ func (e pluginGrabberWorkflowExecutor) RunToolCall(ctx context.Context, in execu
 		e.server.emitToolItemCompleted(in, out, err)
 		return out, err
 	}
+	if e.server != nil && isPluginGrabberInspectGateExpanderToolCall(in.ToolCall) {
+		out, err := e.invokePluginGrabberInspectGateExpander(ctx, in, toolCallID)
+		e.server.emitToolItemCompleted(in, out, err)
+		return out, err
+	}
+	if e.server != nil && isPluginGrabberApplyGateExpanderToolCall(in.ToolCall) {
+		out, err := e.invokePluginGrabberApplyGateExpander(ctx, in, toolCallID)
+		e.server.emitToolItemCompleted(in, out, err)
+		return out, err
+	}
+	if e.server != nil && isPluginGrabberInspectTransientShaperToolCall(in.ToolCall) {
+		out, err := e.invokePluginGrabberInspectTransientShaper(ctx, in, toolCallID)
+		e.server.emitToolItemCompleted(in, out, err)
+		return out, err
+	}
+	if e.server != nil && isPluginGrabberApplyTransientShaperToolCall(in.ToolCall) {
+		out, err := e.invokePluginGrabberApplyTransientShaper(ctx, in, toolCallID)
+		e.server.emitToolItemCompleted(in, out, err)
+		return out, err
+	}
+	if e.server != nil && isPluginGrabberInspectMultibandToolCall(in.ToolCall) {
+		out, err := e.invokePluginGrabberInspectMultiband(ctx, in, toolCallID)
+		e.server.emitToolItemCompleted(in, out, err)
+		return out, err
+	}
+	if e.server != nil && isPluginGrabberApplyMultibandToolCall(in.ToolCall) {
+		out, err := e.invokePluginGrabberApplyMultiband(ctx, in, toolCallID)
+		e.server.emitToolItemCompleted(in, out, err)
+		return out, err
+	}
+	if e.server != nil && isPluginGrabberInspectLimiterToolCall(in.ToolCall) {
+		out, err := e.invokePluginGrabberInspectLimiter(ctx, in, toolCallID)
+		e.server.emitToolItemCompleted(in, out, err)
+		return out, err
+	}
+	if e.server != nil && isPluginGrabberInspectDeEsserToolCall(in.ToolCall) {
+		out, err := e.invokePluginGrabberInspectDeEsser(ctx, in, toolCallID)
+		e.server.emitToolItemCompleted(in, out, err)
+		return out, err
+	}
+	if e.server != nil && isPluginGrabberApplyDeEsserToolCall(in.ToolCall) {
+		out, err := e.invokePluginGrabberApplyDeEsser(ctx, in, toolCallID)
+		e.server.emitToolItemCompleted(in, out, err)
+		return out, err
+	}
+	if e.server != nil && isPluginGrabberInspectSpectralDynamicsToolCall(in.ToolCall) {
+		out, err := e.invokePluginGrabberInspectSpectralDynamics(ctx, in, toolCallID)
+		e.server.emitToolItemCompleted(in, out, err)
+		return out, err
+	}
+	if e.server != nil && isPluginGrabberApplyLimiterToolCall(in.ToolCall) {
+		out, err := e.invokePluginGrabberApplyLimiter(ctx, in, toolCallID)
+		e.server.emitToolItemCompleted(in, out, err)
+		return out, err
+	}
 	if e.server != nil && isPluginGrabberInspectCompressorToolCall(in.ToolCall) {
 		out, err := e.invokePluginGrabberInspectCompressor(ctx, in, toolCallID)
 		e.server.emitToolItemCompleted(in, out, err)
@@ -485,6 +540,26 @@ func (e pluginGrabberWorkflowExecutor) RunToolCall(ctx context.Context, in execu
 		return out, nil
 	}
 	if e.server != nil && isPluginSetParameterToolCall(in.ToolCall) {
+		if out, blocked := e.blockMultibandOwnedGenericParameterWrite(ctx, in, toolCallID); blocked {
+			e.server.emitToolItemCompleted(in, out, nil)
+			return out, nil
+		}
+		if out, blocked := e.blockTransientShaperOwnedGenericParameterWrite(ctx, in, toolCallID); blocked {
+			e.server.emitToolItemCompleted(in, out, nil)
+			return out, nil
+		}
+		if out, blocked := e.blockGateExpanderOwnedGenericParameterWrite(ctx, in, toolCallID); blocked {
+			e.server.emitToolItemCompleted(in, out, nil)
+			return out, nil
+		}
+		if out, blocked := e.blockLimiterOwnedGenericParameterWrite(ctx, in, toolCallID); blocked {
+			e.server.emitToolItemCompleted(in, out, nil)
+			return out, nil
+		}
+		if out, blocked := e.blockDeEsserOwnedGenericParameterWrite(ctx, in, toolCallID); blocked {
+			e.server.emitToolItemCompleted(in, out, nil)
+			return out, nil
+		}
 		if out, blocked := e.blockCompressorOwnedGenericParameterWrite(ctx, in, toolCallID); blocked {
 			e.server.emitToolItemCompleted(in, out, nil)
 			return out, nil
@@ -498,6 +573,70 @@ func (e pluginGrabberWorkflowExecutor) RunToolCall(ctx context.Context, in execu
 		e.server.emitToolItemCompleted(in, out, err)
 	}
 	return out, err
+}
+
+func (e pluginGrabberWorkflowExecutor) blockMultibandOwnedGenericParameterWrite(ctx context.Context, in executorpkg.Input, toolCallID string) (executorpkg.Result, bool) {
+	req := harness.InvokeRequest{Tool: in.ToolCall.Tool, Args: cloneStringAnyMap(in.ToolCall.Args), Command: cloneStringAnyMap(in.ToolCall.Command), Context: cloneStringAnyMap(in.Context)}
+	resp, blocked := e.server.guardMultibandOwnedGenericParameterWrite(ctx, req)
+	if !blocked {
+		return executorpkg.Result{}, false
+	}
+	return executorpkg.Result{ToolCallID: toolCallID, Tool: resp.Tool, CommandName: resp.CommandName, Status: resp.Status, Error: resp.Error, Result: resp.Result, Response: resp}, true
+}
+
+func isPluginGrabberInspectGateExpanderToolCall(call planner.ToolCall) bool {
+	name := agentLoopPluginToolCallName(call)
+	return name == pluginGrabberInspectGateExpanderTool || name == pluginGrabberInspectGateExpanderCommand
+}
+
+func isPluginGrabberApplyGateExpanderToolCall(call planner.ToolCall) bool {
+	name := agentLoopPluginToolCallName(call)
+	return name == pluginGrabberApplyGateExpanderTool || name == pluginGrabberApplyGateExpanderCommand
+}
+
+func isPluginGrabberInspectTransientShaperToolCall(call planner.ToolCall) bool {
+	name := agentLoopPluginToolCallName(call)
+	return name == pluginGrabberInspectTransientShaperTool || name == pluginGrabberInspectTransientShaperCommand
+}
+
+func isPluginGrabberApplyTransientShaperToolCall(call planner.ToolCall) bool {
+	name := agentLoopPluginToolCallName(call)
+	return name == pluginGrabberApplyTransientShaperTool || name == pluginGrabberApplyTransientShaperCommand
+}
+
+func isPluginGrabberInspectMultibandToolCall(call planner.ToolCall) bool {
+	name := agentLoopPluginToolCallName(call)
+	return name == pluginGrabberInspectMultibandTool || name == pluginGrabberInspectMultibandCommand
+}
+
+func isPluginGrabberApplyMultibandToolCall(call planner.ToolCall) bool {
+	name := agentLoopPluginToolCallName(call)
+	return name == pluginGrabberApplyMultibandTool || name == pluginGrabberApplyMultibandCommand
+}
+
+func isPluginGrabberInspectLimiterToolCall(call planner.ToolCall) bool {
+	name := agentLoopPluginToolCallName(call)
+	return name == pluginGrabberInspectLimiterTool || name == pluginGrabberInspectLimiterCommand
+}
+
+func isPluginGrabberInspectDeEsserToolCall(call planner.ToolCall) bool {
+	name := agentLoopPluginToolCallName(call)
+	return name == pluginGrabberInspectDeEsserTool || name == pluginGrabberInspectDeEsserCommand
+}
+
+func isPluginGrabberApplyDeEsserToolCall(call planner.ToolCall) bool {
+	name := agentLoopPluginToolCallName(call)
+	return name == pluginGrabberApplyDeEsserTool || name == pluginGrabberApplyDeEsserCommand
+}
+
+func isPluginGrabberInspectSpectralDynamicsToolCall(call planner.ToolCall) bool {
+	name := agentLoopPluginToolCallName(call)
+	return name == pluginGrabberInspectSpectralDynamicsTool || name == pluginGrabberInspectSpectralDynamicsCommand
+}
+
+func isPluginGrabberApplyLimiterToolCall(call planner.ToolCall) bool {
+	name := agentLoopPluginToolCallName(call)
+	return name == pluginGrabberApplyLimiterTool || name == pluginGrabberApplyLimiterCommand
 }
 
 func isPluginGrabberInspectCompressorToolCall(call planner.ToolCall) bool {
@@ -551,6 +690,269 @@ func (e pluginGrabberWorkflowExecutor) blockCompressorOwnedGenericParameterWrite
 		Status: resp.Status, Error: resp.Error, Result: resp.Result, Response: resp}, true
 }
 
+func (e pluginGrabberWorkflowExecutor) blockLimiterOwnedGenericParameterWrite(ctx context.Context, in executorpkg.Input,
+	toolCallID string) (executorpkg.Result, bool) {
+	req := harness.InvokeRequest{Tool: in.ToolCall.Tool, Args: cloneStringAnyMap(in.ToolCall.Args), Command: cloneStringAnyMap(in.ToolCall.Command), Context: cloneStringAnyMap(in.Context)}
+	resp, blocked := e.server.guardLimiterOwnedGenericParameterWrite(ctx, req)
+	if !blocked {
+		return executorpkg.Result{}, false
+	}
+	return executorpkg.Result{ToolCallID: toolCallID, Tool: resp.Tool, CommandName: resp.CommandName,
+		Status: resp.Status, Error: resp.Error, Result: resp.Result, Response: resp}, true
+}
+
+func (e pluginGrabberWorkflowExecutor) blockGateExpanderOwnedGenericParameterWrite(ctx context.Context, in executorpkg.Input,
+	toolCallID string) (executorpkg.Result, bool) {
+	req := harness.InvokeRequest{Tool: in.ToolCall.Tool, Args: cloneStringAnyMap(in.ToolCall.Args), Command: cloneStringAnyMap(in.ToolCall.Command), Context: cloneStringAnyMap(in.Context)}
+	resp, blocked := e.server.guardGateExpanderOwnedGenericParameterWrite(ctx, req)
+	if !blocked {
+		return executorpkg.Result{}, false
+	}
+	return executorpkg.Result{ToolCallID: toolCallID, Tool: resp.Tool, CommandName: resp.CommandName,
+		Status: resp.Status, Error: resp.Error, Result: resp.Result, Response: resp}, true
+}
+
+func (e pluginGrabberWorkflowExecutor) blockTransientShaperOwnedGenericParameterWrite(ctx context.Context, in executorpkg.Input,
+	toolCallID string) (executorpkg.Result, bool) {
+	req := harness.InvokeRequest{Tool: in.ToolCall.Tool, Args: cloneStringAnyMap(in.ToolCall.Args), Command: cloneStringAnyMap(in.ToolCall.Command), Context: cloneStringAnyMap(in.Context)}
+	resp, blocked := e.server.guardTransientShaperOwnedGenericParameterWrite(ctx, req)
+	if !blocked {
+		return executorpkg.Result{}, false
+	}
+	return executorpkg.Result{ToolCallID: toolCallID, Tool: resp.Tool, CommandName: resp.CommandName, Status: resp.Status, Error: resp.Error, Result: resp.Result, Response: resp}, true
+}
+
+func (s *Server) guardTransientShaperOwnedGenericParameterWrite(ctx context.Context, req harness.InvokeRequest) (harness.InvokeResponse, bool) {
+	if !pluginSetParameterInvokeRequest(req) {
+		return harness.InvokeResponse{}, false
+	}
+	args := workflowCommandArgs(req.Command)
+	for key, value := range workflowCommandArgs(req.Args) {
+		args[key] = value
+	}
+	trackID := firstNonEmptyText(args, "track_id", "selected_plugin_track_id", "selected_track_id")
+	pluginID := firstNonEmptyText(args, "plugin_id", "selected_plugin_id", "plugin_item_id")
+	paramID := firstNonEmptyText(args, "param_id", "parameter_id")
+	if trackID == "" {
+		trackID = firstNonEmptyText(req.Context, "selected_plugin_track_id", "selected_track_id", "track_id")
+	}
+	if pluginID == "" {
+		pluginID = firstNonEmptyText(req.Context, "selected_plugin_id", "plugin_id")
+	}
+	if trackID == "" || pluginID == "" || paramID == "" {
+		return harness.InvokeResponse{}, false
+	}
+	_, summary, err := s.readLiveTransientShaperControlSurface(ctx, trackID, pluginID)
+	if err != nil {
+		switch transientShaperControlFailureCode(err) {
+		case "not_transient_shaper", "unsupported_broadband_compressor", "unsupported_limiter", "unsupported_multiband_dynamics", "unsupported_gate_expander", "unsupported_de_esser", "unsupported_spectral_dynamics", "unsupported_clipper":
+			return harness.InvokeResponse{}, false
+		default:
+			return transientShaperGenericWriteBlockedResponse(trackID, pluginID, paramID, "typed_transient_shaper_surface_unavailable", "cannot prove this parameter is outside the typed transient-shaper surface: "+err.Error()), true
+		}
+	}
+	if !transientShaperSummaryOwnsParameter(summary, paramID) {
+		return harness.InvokeResponse{}, false
+	}
+	return transientShaperGenericWriteBlockedResponse(trackID, pluginID, paramID, "typed_transient_shaper_control_required", "parameter is owned by the live transient-shaper topology; use inspect_transient_shaper and apply_transient_shaper_controls"), true
+}
+
+func transientShaperGenericWriteBlockedResponse(trackID, pluginID, paramID, code, message string) harness.InvokeResponse {
+	full := code + ": " + message
+	result := map[string]any{"status": "rejected", "rejection_code": code, "message": full, "track_id": trackID, "plugin_id": pluginID, "param_id": paramID, "required_tools": []string{pluginGrabberInspectTransientShaperTool, pluginGrabberApplyTransientShaperTool}, "parameters_changed": false}
+	return harness.InvokeResponse{Status: "error", Tool: "plugin.set_parameter", CommandName: "set_plugin_param", RiskLevel: tools.RiskUndoable, Error: full, Result: result}
+}
+
+func transientShaperSummaryOwnsParameter(summary map[string]any, paramID string) bool {
+	stage := mapValue(summary["transient_shaper_stage"])
+	for _, section := range []string{"envelope_action", "detector", "timing", "shape", "mode", "output"} {
+		for _, binding := range mapRowsValue(stage[section]) {
+			if firstNonEmptyText(binding, "param_id") == paramID {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func (s *Server) guardGateExpanderOwnedGenericParameterWrite(ctx context.Context, req harness.InvokeRequest) (harness.InvokeResponse, bool) {
+	if !pluginSetParameterInvokeRequest(req) {
+		return harness.InvokeResponse{}, false
+	}
+	args := workflowCommandArgs(req.Command)
+	for key, value := range workflowCommandArgs(req.Args) {
+		args[key] = value
+	}
+	trackID := firstNonEmptyText(args, "track_id", "selected_plugin_track_id", "selected_track_id")
+	pluginID := firstNonEmptyText(args, "plugin_id", "selected_plugin_id", "plugin_item_id")
+	paramID := firstNonEmptyText(args, "param_id", "parameter_id")
+	if trackID == "" {
+		trackID = firstNonEmptyText(req.Context, "selected_plugin_track_id", "selected_track_id", "track_id")
+	}
+	if pluginID == "" {
+		pluginID = firstNonEmptyText(req.Context, "selected_plugin_id", "plugin_id")
+	}
+	if trackID == "" || pluginID == "" || paramID == "" {
+		return harness.InvokeResponse{}, false
+	}
+	_, summary, err := s.readLiveGateExpanderControlSurface(ctx, trackID, pluginID)
+	if err != nil {
+		switch gateExpanderControlFailureCode(err) {
+		case "not_gate_expander", "unsupported_broadband_compressor", "unsupported_limiter", "unsupported_multiband_dynamics", "unsupported_spectral_dynamics", "unsupported_de_esser", "unsupported_transient_shaper", "unsupported_clipper":
+			return harness.InvokeResponse{}, false
+		default:
+			return gateExpanderGenericWriteBlockedResponse(trackID, pluginID, paramID, "typed_gate_expander_surface_unavailable", "cannot prove this parameter is outside the typed gate/expander surface: "+err.Error()), true
+		}
+	}
+	if !gateExpanderSummaryOwnsParameter(summary, paramID) {
+		return harness.InvokeResponse{}, false
+	}
+	return gateExpanderGenericWriteBlockedResponse(trackID, pluginID, paramID, "typed_gate_expander_control_required", "parameter is owned by the live gate/expander topology; use inspect_gate_expander and apply_gate_expander_controls"), true
+}
+
+func gateExpanderGenericWriteBlockedResponse(trackID, pluginID, paramID, code, message string) harness.InvokeResponse {
+	full := code + ": " + message
+	result := map[string]any{"status": "rejected", "rejection_code": code, "message": full, "track_id": trackID, "plugin_id": pluginID, "param_id": paramID,
+		"required_tools": []string{pluginGrabberInspectGateExpanderTool, pluginGrabberApplyGateExpanderTool}, "parameters_changed": false}
+	return harness.InvokeResponse{Status: "error", Tool: "plugin.set_parameter", CommandName: "set_plugin_param", RiskLevel: tools.RiskUndoable, Error: full, Result: result}
+}
+
+func gateExpanderSummaryOwnsParameter(summary map[string]any, paramID string) bool {
+	stage := mapValue(summary["gate_expander_stage"])
+	for _, section := range []string{"detector", "operating_point", "gain_action", "direction_control", "timing", "mode", "output"} {
+		for _, binding := range mapRowsValue(stage[section]) {
+			if firstNonEmptyText(binding, "param_id") == paramID {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func (s *Server) guardLimiterOwnedGenericParameterWrite(ctx context.Context, req harness.InvokeRequest) (harness.InvokeResponse, bool) {
+	if !pluginSetParameterInvokeRequest(req) {
+		return harness.InvokeResponse{}, false
+	}
+	args := workflowCommandArgs(req.Command)
+	for key, value := range workflowCommandArgs(req.Args) {
+		args[key] = value
+	}
+	trackID := firstNonEmptyText(args, "track_id", "selected_plugin_track_id", "selected_track_id")
+	pluginID := firstNonEmptyText(args, "plugin_id", "selected_plugin_id", "plugin_item_id")
+	paramID := firstNonEmptyText(args, "param_id", "parameter_id")
+	if trackID == "" {
+		trackID = firstNonEmptyText(req.Context, "selected_plugin_track_id", "selected_track_id", "track_id")
+	}
+	if pluginID == "" {
+		pluginID = firstNonEmptyText(req.Context, "selected_plugin_id", "plugin_id")
+	}
+	if trackID == "" || pluginID == "" || paramID == "" {
+		return harness.InvokeResponse{}, false
+	}
+	_, summary, err := s.readLiveLimiterControlSurface(ctx, trackID, pluginID)
+	if err != nil {
+		switch limiterControlFailureCode(err) {
+		case "not_limiter", "unsupported_broadband_compressor", "unsupported_clipper", "unsupported_multiband_dynamics", "unsupported_gate_expander":
+			return harness.InvokeResponse{}, false
+		default:
+			return limiterGenericWriteBlockedResponse(trackID, pluginID, paramID, "typed_limiter_surface_unavailable", "cannot prove this parameter is outside the typed limiter surface: "+err.Error()), true
+		}
+	}
+	if !limiterSummaryOwnsParameter(summary, paramID) {
+		return harness.InvokeResponse{}, false
+	}
+	return limiterGenericWriteBlockedResponse(trackID, pluginID, paramID, "typed_limiter_control_required", "parameter is owned by the live limiter topology; use inspect_limiter and apply_limiter_controls"), true
+}
+
+func limiterGenericWriteBlockedResponse(trackID, pluginID, paramID, code, message string) harness.InvokeResponse {
+	full := code + ": " + message
+	result := map[string]any{"status": "rejected", "rejection_code": code, "message": full, "track_id": trackID, "plugin_id": pluginID, "param_id": paramID,
+		"required_tools": []string{pluginGrabberInspectLimiterTool, pluginGrabberApplyLimiterTool}, "parameters_changed": false}
+	return harness.InvokeResponse{Status: "error", Tool: "plugin.set_parameter", CommandName: "set_plugin_param", RiskLevel: tools.RiskUndoable, Error: full, Result: result}
+}
+
+func limiterSummaryOwnsParameter(summary map[string]any, paramID string) bool {
+	for _, stage := range mapRowsValue(summary["limiter_stages"]) {
+		for _, section := range []string{"operating_point", "safety", "timing", "detector", "mode", "output"} {
+			for _, binding := range mapRowsValue(stage[section]) {
+				if firstNonEmptyText(binding, "param_id") == paramID {
+					return true
+				}
+			}
+		}
+	}
+	for _, binding := range mapRowsValue(summary["shared_controls"]) {
+		if firstNonEmptyText(binding, "param_id") == paramID {
+			return true
+		}
+	}
+	return false
+}
+
+func (e pluginGrabberWorkflowExecutor) blockDeEsserOwnedGenericParameterWrite(ctx context.Context, in executorpkg.Input,
+	toolCallID string) (executorpkg.Result, bool) {
+	req := harness.InvokeRequest{Tool: in.ToolCall.Tool, Args: cloneStringAnyMap(in.ToolCall.Args), Command: cloneStringAnyMap(in.ToolCall.Command), Context: cloneStringAnyMap(in.Context)}
+	resp, blocked := e.server.guardDeEsserOwnedGenericParameterWrite(ctx, req)
+	if !blocked {
+		return executorpkg.Result{}, false
+	}
+	return executorpkg.Result{ToolCallID: toolCallID, Tool: resp.Tool, CommandName: resp.CommandName, Status: resp.Status, Error: resp.Error, Result: resp.Result, Response: resp}, true
+}
+
+func (s *Server) guardDeEsserOwnedGenericParameterWrite(ctx context.Context, req harness.InvokeRequest) (harness.InvokeResponse, bool) {
+	if !pluginSetParameterInvokeRequest(req) {
+		return harness.InvokeResponse{}, false
+	}
+	args := workflowCommandArgs(req.Command)
+	for key, value := range workflowCommandArgs(req.Args) {
+		args[key] = value
+	}
+	trackID := firstNonEmptyText(args, "track_id", "selected_plugin_track_id", "selected_track_id")
+	pluginID := firstNonEmptyText(args, "plugin_id", "selected_plugin_id", "plugin_item_id")
+	paramID := firstNonEmptyText(args, "param_id", "parameter_id")
+	if trackID == "" {
+		trackID = firstNonEmptyText(req.Context, "selected_plugin_track_id", "selected_track_id", "track_id")
+	}
+	if pluginID == "" {
+		pluginID = firstNonEmptyText(req.Context, "selected_plugin_id", "plugin_id")
+	}
+	if trackID == "" || pluginID == "" || paramID == "" {
+		return harness.InvokeResponse{}, false
+	}
+	_, summary, err := s.readLiveDeEsserControlSurface(ctx, trackID, pluginID)
+	if err != nil {
+		switch deEsserControlFailureCode(err) {
+		case "not_de_esser", "unsupported_broadband_compressor", "unsupported_limiter", "unsupported_multiband_dynamics", "unsupported_gate_expander", "unsupported_spectral_dynamics", "unsupported_clipper":
+			return harness.InvokeResponse{}, false
+		default:
+			return deEsserGenericWriteBlockedResponse(trackID, pluginID, paramID, "typed_de_esser_surface_unavailable", "cannot prove this parameter is outside the typed De-esser surface: "+err.Error()), true
+		}
+	}
+	if !deEsserSummaryOwnsParameter(summary, paramID) {
+		return harness.InvokeResponse{}, false
+	}
+	return deEsserGenericWriteBlockedResponse(trackID, pluginID, paramID, "typed_de_esser_control_required", "parameter is owned by the live De-esser topology; use inspect_de_esser and apply_de_esser_controls"), true
+}
+
+func deEsserGenericWriteBlockedResponse(trackID, pluginID, paramID, code, message string) harness.InvokeResponse {
+	full := code + ": " + message
+	result := map[string]any{"status": "rejected", "rejection_code": code, "message": full, "track_id": trackID, "plugin_id": pluginID, "param_id": paramID, "required_tools": []string{pluginGrabberInspectDeEsserTool, pluginGrabberApplyDeEsserTool}, "parameters_changed": false}
+	return harness.InvokeResponse{Status: "error", Tool: "plugin.set_parameter", CommandName: "set_plugin_param", RiskLevel: tools.RiskUndoable, Error: full, Result: result}
+}
+
+func deEsserSummaryOwnsParameter(summary map[string]any, paramID string) bool {
+	for _, stage := range mapRowsValue(summary["de_esser_stages"]) {
+		for _, section := range []string{"operating_point", "frequency_selectivity", "timing", "mode", "output"} {
+			for _, binding := range mapRowsValue(stage[section]) {
+				if firstNonEmptyText(binding, "param_id") == paramID {
+					return true
+				}
+			}
+		}
+	}
+	return false
+}
+
 func (s *Server) guardCompressorOwnedGenericParameterWrite(ctx context.Context, req harness.InvokeRequest) (harness.InvokeResponse, bool) {
 	if !pluginSetParameterInvokeRequest(req) {
 		return harness.InvokeResponse{}, false
@@ -573,7 +975,8 @@ func (s *Server) guardCompressorOwnedGenericParameterWrite(ctx context.Context, 
 	}
 	_, summary, err := s.readLiveCompressorControlSurface(ctx, trackID, pluginID)
 	if err != nil {
-		if compressorControlFailureCode(err) == "not_compressor" {
+		switch compressorControlFailureCode(err) {
+		case "not_compressor", "unsupported_limiter", "unsupported_multiband_compressor", "unsupported_gate_expander":
 			return harness.InvokeResponse{}, false
 		}
 		return compressorGenericWriteBlockedResponse(trackID, pluginID, paramID,
@@ -584,6 +987,168 @@ func (s *Server) guardCompressorOwnedGenericParameterWrite(ctx context.Context, 
 	}
 	return compressorGenericWriteBlockedResponse(trackID, pluginID, paramID,
 		"typed_compressor_control_required", "parameter is owned by the live broadband-compressor topology; use inspect_compressor and apply_compressor_controls"), true
+}
+
+func (e pluginGrabberWorkflowExecutor) invokePluginGrabberInspectLimiter(ctx context.Context, in executorpkg.Input,
+	toolCallID string) (executorpkg.Result, error) {
+	req := harness.InvokeRequest{
+		Tool: strings.TrimSpace(in.ToolCall.Tool), Args: cloneStringAnyMap(in.ToolCall.Args), Command: cloneStringAnyMap(in.ToolCall.Command),
+		Context: contextWithAgentLoopIDs(in.Context, in.GoalID, in.RunID, toolCallID), Source: firstNonEmpty(strings.TrimSpace(in.Source), "agentloop"),
+		Confirmed: in.Confirmed, GoalID: in.GoalID, RunID: in.RunID, ToolCallID: toolCallID,
+	}
+	workflowCmd, ok := pluginGrabberInspectLimiterInvokeCommand(req)
+	if !ok {
+		workflowCmd = cloneStringAnyMap(in.ToolCall.Args)
+		workflowCmd["cmd"] = pluginGrabberInspectLimiterCommand
+	}
+	resp, err := e.server.invokePluginGrabberInspectLimiterWorkflow(ctx, req, workflowCmd)
+	return e.compressorWorkflowResult(ctx, in, toolCallID, resp, err)
+}
+
+func (e pluginGrabberWorkflowExecutor) invokePluginGrabberInspectDeEsser(ctx context.Context, in executorpkg.Input,
+	toolCallID string) (executorpkg.Result, error) {
+	req := harness.InvokeRequest{
+		Tool: strings.TrimSpace(in.ToolCall.Tool), Args: cloneStringAnyMap(in.ToolCall.Args), Command: cloneStringAnyMap(in.ToolCall.Command),
+		Context: contextWithAgentLoopIDs(in.Context, in.GoalID, in.RunID, toolCallID), Source: firstNonEmpty(strings.TrimSpace(in.Source), "agentloop"),
+		Confirmed: in.Confirmed, GoalID: in.GoalID, RunID: in.RunID, ToolCallID: toolCallID,
+	}
+	workflowCmd, ok := pluginGrabberInspectDeEsserInvokeCommand(req)
+	if !ok {
+		workflowCmd = cloneStringAnyMap(in.ToolCall.Args)
+		workflowCmd["cmd"] = pluginGrabberInspectDeEsserCommand
+	}
+	resp, err := e.server.invokePluginGrabberInspectDeEsserWorkflow(ctx, req, workflowCmd)
+	return e.compressorWorkflowResult(ctx, in, toolCallID, resp, err)
+}
+
+func (e pluginGrabberWorkflowExecutor) invokePluginGrabberApplyDeEsser(ctx context.Context, in executorpkg.Input,
+	toolCallID string) (executorpkg.Result, error) {
+	req := harness.InvokeRequest{
+		Tool: strings.TrimSpace(in.ToolCall.Tool), Args: cloneStringAnyMap(in.ToolCall.Args), Command: cloneStringAnyMap(in.ToolCall.Command),
+		Context: contextWithAgentLoopIDs(in.Context, in.GoalID, in.RunID, toolCallID), Source: firstNonEmpty(strings.TrimSpace(in.Source), "agentloop"),
+		Confirmed: in.Confirmed, GoalID: in.GoalID, RunID: in.RunID, ToolCallID: toolCallID,
+	}
+	workflowCmd, ok := pluginGrabberApplyDeEsserInvokeCommand(req)
+	if !ok {
+		workflowCmd = cloneStringAnyMap(in.ToolCall.Args)
+		workflowCmd["cmd"] = pluginGrabberApplyDeEsserCommand
+	}
+	resp, err := e.server.invokePluginGrabberApplyDeEsserWorkflow(ctx, req, workflowCmd)
+	return e.compressorWorkflowResult(ctx, in, toolCallID, resp, err)
+}
+
+func (e pluginGrabberWorkflowExecutor) invokePluginGrabberInspectSpectralDynamics(ctx context.Context, in executorpkg.Input,
+	toolCallID string) (executorpkg.Result, error) {
+	req := harness.InvokeRequest{Tool: strings.TrimSpace(in.ToolCall.Tool), Args: cloneStringAnyMap(in.ToolCall.Args), Command: cloneStringAnyMap(in.ToolCall.Command),
+		Context: contextWithAgentLoopIDs(in.Context, in.GoalID, in.RunID, toolCallID), Source: firstNonEmpty(strings.TrimSpace(in.Source), "agentloop"),
+		Confirmed: in.Confirmed, GoalID: in.GoalID, RunID: in.RunID, ToolCallID: toolCallID}
+	workflowCmd, ok := pluginGrabberInspectSpectralDynamicsInvokeCommand(req)
+	if !ok {
+		workflowCmd = cloneStringAnyMap(in.ToolCall.Args)
+		workflowCmd["cmd"] = pluginGrabberInspectSpectralDynamicsCommand
+	}
+	resp, err := e.server.invokePluginGrabberInspectSpectralDynamicsWorkflow(ctx, req, workflowCmd)
+	return e.compressorWorkflowResult(ctx, in, toolCallID, resp, err)
+}
+
+func (e pluginGrabberWorkflowExecutor) invokePluginGrabberInspectGateExpander(ctx context.Context, in executorpkg.Input,
+	toolCallID string) (executorpkg.Result, error) {
+	req := harness.InvokeRequest{Tool: strings.TrimSpace(in.ToolCall.Tool), Args: cloneStringAnyMap(in.ToolCall.Args), Command: cloneStringAnyMap(in.ToolCall.Command),
+		Context: contextWithAgentLoopIDs(in.Context, in.GoalID, in.RunID, toolCallID), Source: firstNonEmpty(strings.TrimSpace(in.Source), "agentloop"),
+		Confirmed: in.Confirmed, GoalID: in.GoalID, RunID: in.RunID, ToolCallID: toolCallID}
+	workflowCmd, ok := pluginGrabberInspectGateExpanderInvokeCommand(req)
+	if !ok {
+		workflowCmd = cloneStringAnyMap(in.ToolCall.Args)
+		workflowCmd["cmd"] = pluginGrabberInspectGateExpanderCommand
+	}
+	resp, err := e.server.invokePluginGrabberInspectGateExpanderWorkflow(ctx, req, workflowCmd)
+	return e.compressorWorkflowResult(ctx, in, toolCallID, resp, err)
+}
+
+func (e pluginGrabberWorkflowExecutor) invokePluginGrabberApplyGateExpander(ctx context.Context, in executorpkg.Input,
+	toolCallID string) (executorpkg.Result, error) {
+	req := harness.InvokeRequest{Tool: strings.TrimSpace(in.ToolCall.Tool), Args: cloneStringAnyMap(in.ToolCall.Args), Command: cloneStringAnyMap(in.ToolCall.Command),
+		Context: contextWithAgentLoopIDs(in.Context, in.GoalID, in.RunID, toolCallID), Source: firstNonEmpty(strings.TrimSpace(in.Source), "agentloop"),
+		Confirmed: in.Confirmed, GoalID: in.GoalID, RunID: in.RunID, ToolCallID: toolCallID}
+	workflowCmd, ok := pluginGrabberApplyGateExpanderInvokeCommand(req)
+	if !ok {
+		workflowCmd = cloneStringAnyMap(in.ToolCall.Args)
+		workflowCmd["cmd"] = pluginGrabberApplyGateExpanderCommand
+	}
+	resp, err := e.server.invokePluginGrabberApplyGateExpanderWorkflow(ctx, req, workflowCmd)
+	return e.compressorWorkflowResult(ctx, in, toolCallID, resp, err)
+}
+
+func (e pluginGrabberWorkflowExecutor) invokePluginGrabberInspectTransientShaper(ctx context.Context, in executorpkg.Input,
+	toolCallID string) (executorpkg.Result, error) {
+	req := harness.InvokeRequest{Tool: strings.TrimSpace(in.ToolCall.Tool), Args: cloneStringAnyMap(in.ToolCall.Args), Command: cloneStringAnyMap(in.ToolCall.Command),
+		Context: contextWithAgentLoopIDs(in.Context, in.GoalID, in.RunID, toolCallID), Source: firstNonEmpty(strings.TrimSpace(in.Source), "agentloop"),
+		Confirmed: in.Confirmed, GoalID: in.GoalID, RunID: in.RunID, ToolCallID: toolCallID}
+	workflowCmd, ok := pluginGrabberInspectTransientShaperInvokeCommand(req)
+	if !ok {
+		workflowCmd = cloneStringAnyMap(in.ToolCall.Args)
+		workflowCmd["cmd"] = pluginGrabberInspectTransientShaperCommand
+	}
+	resp, err := e.server.invokePluginGrabberInspectTransientShaperWorkflow(ctx, req, workflowCmd)
+	return e.compressorWorkflowResult(ctx, in, toolCallID, resp, err)
+}
+
+func (e pluginGrabberWorkflowExecutor) invokePluginGrabberApplyTransientShaper(ctx context.Context, in executorpkg.Input,
+	toolCallID string) (executorpkg.Result, error) {
+	req := harness.InvokeRequest{Tool: strings.TrimSpace(in.ToolCall.Tool), Args: cloneStringAnyMap(in.ToolCall.Args), Command: cloneStringAnyMap(in.ToolCall.Command),
+		Context: contextWithAgentLoopIDs(in.Context, in.GoalID, in.RunID, toolCallID), Source: firstNonEmpty(strings.TrimSpace(in.Source), "agentloop"),
+		Confirmed: in.Confirmed, GoalID: in.GoalID, RunID: in.RunID, ToolCallID: toolCallID}
+	workflowCmd, ok := pluginGrabberApplyTransientShaperInvokeCommand(req)
+	if !ok {
+		workflowCmd = cloneStringAnyMap(in.ToolCall.Args)
+		workflowCmd["cmd"] = pluginGrabberApplyTransientShaperCommand
+	}
+	resp, err := e.server.invokePluginGrabberApplyTransientShaperWorkflow(ctx, req, workflowCmd)
+	return e.compressorWorkflowResult(ctx, in, toolCallID, resp, err)
+}
+
+func (e pluginGrabberWorkflowExecutor) invokePluginGrabberInspectMultiband(ctx context.Context, in executorpkg.Input,
+	toolCallID string) (executorpkg.Result, error) {
+	req := harness.InvokeRequest{Tool: strings.TrimSpace(in.ToolCall.Tool), Args: cloneStringAnyMap(in.ToolCall.Args), Command: cloneStringAnyMap(in.ToolCall.Command),
+		Context: contextWithAgentLoopIDs(in.Context, in.GoalID, in.RunID, toolCallID), Source: firstNonEmpty(strings.TrimSpace(in.Source), "agentloop"),
+		Confirmed: in.Confirmed, GoalID: in.GoalID, RunID: in.RunID, ToolCallID: toolCallID}
+	workflowCmd, ok := pluginGrabberInspectMultibandInvokeCommand(req)
+	if !ok {
+		workflowCmd = cloneStringAnyMap(in.ToolCall.Args)
+		workflowCmd["cmd"] = pluginGrabberInspectMultibandCommand
+	}
+	resp, err := e.server.invokePluginGrabberInspectMultibandWorkflow(ctx, req, workflowCmd)
+	return e.compressorWorkflowResult(ctx, in, toolCallID, resp, err)
+}
+
+func (e pluginGrabberWorkflowExecutor) invokePluginGrabberApplyMultiband(ctx context.Context, in executorpkg.Input,
+	toolCallID string) (executorpkg.Result, error) {
+	req := harness.InvokeRequest{Tool: strings.TrimSpace(in.ToolCall.Tool), Args: cloneStringAnyMap(in.ToolCall.Args), Command: cloneStringAnyMap(in.ToolCall.Command),
+		Context: contextWithAgentLoopIDs(in.Context, in.GoalID, in.RunID, toolCallID), Source: firstNonEmpty(strings.TrimSpace(in.Source), "agentloop"),
+		Confirmed: in.Confirmed, GoalID: in.GoalID, RunID: in.RunID, ToolCallID: toolCallID}
+	workflowCmd, ok := pluginGrabberApplyMultibandInvokeCommand(req)
+	if !ok {
+		workflowCmd = cloneStringAnyMap(in.ToolCall.Args)
+		workflowCmd["cmd"] = pluginGrabberApplyMultibandCommand
+	}
+	resp, err := e.server.invokePluginGrabberApplyMultibandWorkflow(ctx, req, workflowCmd)
+	return e.compressorWorkflowResult(ctx, in, toolCallID, resp, err)
+}
+
+func (e pluginGrabberWorkflowExecutor) invokePluginGrabberApplyLimiter(ctx context.Context, in executorpkg.Input,
+	toolCallID string) (executorpkg.Result, error) {
+	req := harness.InvokeRequest{
+		Tool: strings.TrimSpace(in.ToolCall.Tool), Args: cloneStringAnyMap(in.ToolCall.Args), Command: cloneStringAnyMap(in.ToolCall.Command),
+		Context: contextWithAgentLoopIDs(in.Context, in.GoalID, in.RunID, toolCallID), Source: firstNonEmpty(strings.TrimSpace(in.Source), "agentloop"),
+		Confirmed: in.Confirmed, GoalID: in.GoalID, RunID: in.RunID, ToolCallID: toolCallID,
+	}
+	workflowCmd, ok := pluginGrabberApplyLimiterInvokeCommand(req)
+	if !ok {
+		workflowCmd = cloneStringAnyMap(in.ToolCall.Args)
+		workflowCmd["cmd"] = pluginGrabberApplyLimiterCommand
+	}
+	resp, err := e.server.invokePluginGrabberApplyLimiterWorkflow(ctx, req, workflowCmd)
+	return e.compressorWorkflowResult(ctx, in, toolCallID, resp, err)
 }
 
 func pluginSetParameterInvokeRequest(req harness.InvokeRequest) bool {
@@ -2171,6 +2736,17 @@ func agentLoopPluginTools() []string {
 		"plugin.get_parameters", "plugin.open", "plugin.show_editor",
 		"plugin.set_parameter", // Tier 2 direct-control path for an observed normalized value
 		"plugin_grabber.explain_controls",
+		"plugin_grabber.inspect_gate_expander", // identity-free gate/expander stage inspection
+		"plugin_grabber.apply_gate_expander_controls",
+		"plugin_grabber.inspect_transient_shaper", // identity-free signed envelope stage inspection
+		"plugin_grabber.apply_transient_shaper_controls",
+		"plugin_grabber.inspect_multiband",
+		"plugin_grabber.apply_multiband_controls",
+		"plugin_grabber.inspect_limiter",           // identity-free limiter stage inspection
+		"plugin_grabber.inspect_de_esser",          // identity-free frequency-selective sibilance stage inspection
+		"plugin_grabber.apply_de_esser_controls",   // typed atomic De-esser control surface
+		"plugin_grabber.inspect_spectral_dynamics", // identity-free spectral field/global-law inspection
+		"plugin_grabber.apply_limiter_controls",
 		"plugin_grabber.inspect_compressor", // identity-free compressor stage/control-path inspection
 		"plugin_grabber.apply_compressor_controls",
 		"plugin_grabber.apply_eq_edits", // generic static EQ atomic planner/executor

@@ -21,12 +21,13 @@ const SchemaLocalCompressorCertification = "processor_authority.local_compressor
 // LocalCertificationOptions defines one deterministic, zero-LLM compressor
 // certification against the live Agent HTTP tool surface.
 type LocalCertificationOptions struct {
-	AgentHTTP         string
-	Entry             pluginsemantics.Entry
-	OutputDir         string
-	Timeout           time.Duration
-	SnapshotTolerance float64
-	HTTPClient        *http.Client
+	AgentHTTP              string
+	Entry                  pluginsemantics.Entry
+	OutputDir              string
+	Timeout                time.Duration
+	SnapshotTolerance      float64
+	HTTPClient             *http.Client
+	LoadAuthorizationToken string
 }
 
 type LocalCertificationReport struct {
@@ -108,7 +109,7 @@ func CertifyCompressor(opts LocalCertificationOptions) (LocalCertificationReport
 		if trackID == "" {
 			return fmt.Errorf("track.add_audio omitted track_id")
 		}
-		loaded, err := invoke(opts.HTTPClient, base, "plugin.load_to_rack", map[string]any{"track_id": trackID, "plugin_path": opts.Entry.PluginPath, "plugin_name": opts.Entry.Name, "plugin_identifier": opts.Entry.Identifier}, true, opts.Timeout)
+		loaded, err := invokeAuthorized(opts.HTTPClient, base, "plugin.load_to_rack", map[string]any{"track_id": trackID, "plugin_path": opts.Entry.PluginPath, "plugin_name": opts.Entry.Name, "plugin_identifier": opts.Entry.Identifier}, true, opts.Timeout, "pcactl.certify_compressor", opts.LoadAuthorizationToken)
 		if err != nil {
 			return err
 		}
@@ -244,7 +245,23 @@ func health(client *http.Client, base string, timeout time.Duration) (map[string
 }
 
 func invoke(client *http.Client, base, tool string, args map[string]any, confirmed bool, timeout time.Duration) (invokeResponse, error) {
-	payload, _ := json.Marshal(map[string]any{"tool": tool, "args": args, "confirmed": confirmed, "source": "pcactl.certify_compressor"})
+	return invokeWithSource(client, base, tool, args, confirmed, timeout, "pcactl.certify_compressor")
+}
+
+func invokeProcessor(client *http.Client, base, tool string, args map[string]any, confirmed bool, timeout time.Duration) (invokeResponse, error) {
+	return invokeWithSource(client, base, tool, args, confirmed, timeout, "pcactl.certify_processor")
+}
+
+func invokeAuthorized(client *http.Client, base, tool string, args map[string]any, confirmed bool, timeout time.Duration, source, token string) (invokeResponse, error) {
+	return invokeWithAuthorization(client, base, tool, args, confirmed, timeout, source, token)
+}
+
+func invokeWithSource(client *http.Client, base, tool string, args map[string]any, confirmed bool, timeout time.Duration, source string) (invokeResponse, error) {
+	return invokeWithAuthorization(client, base, tool, args, confirmed, timeout, source, "")
+}
+
+func invokeWithAuthorization(client *http.Client, base, tool string, args map[string]any, confirmed bool, timeout time.Duration, source, token string) (invokeResponse, error) {
+	payload, _ := json.Marshal(map[string]any{"tool": tool, "args": args, "confirmed": confirmed, "source": source, "authorization_token": token})
 	request, err := http.NewRequest(http.MethodPost, base+"/agent/invoke", bytes.NewReader(payload))
 	if err != nil {
 		return invokeResponse{}, err
@@ -306,6 +323,12 @@ func allReadback(rows []map[string]any) bool {
 			return false
 		}
 		if text, ok := value.(string); ok && strings.TrimSpace(text) == "" {
+			return false
+		}
+		if typed, ok := value.([]any); ok && len(typed) == 0 {
+			return false
+		}
+		if typed, ok := value.([]map[string]any); ok && len(typed) == 0 {
 			return false
 		}
 	}

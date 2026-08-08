@@ -1,0 +1,97 @@
+{
+  "schema_version": "plugin_grabber.transient_shaper_control_matrix.v1",
+  "set_id": "transient-shaper-control-v1-20260807",
+  "training_cases": [
+    {
+      "id": "waves_smack_attack_stereo",
+      "plugin_name": "Smack Attack Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "expectation": "transient_shaper",
+      "expected_min_binding_count": 10,
+      "expected_roles": [
+        "attack_amount",
+        "sustain_amount",
+        "attack_sensitivity",
+        "sustain_sensitivity",
+        "attack_duration",
+        "sustain_duration",
+        "attack_shape",
+        "sustain_shape",
+        "mix",
+        "output_gain"
+      ]
+    },
+    {
+      "id": "waves_transx_wide_stereo",
+      "plugin_name": "TransX Wide Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "expectation": "transient_shaper",
+      "expected_min_binding_count": 5,
+      "expected_roles": ["transient_range", "detector_sensitivity", "duration", "release", "output_gain"]
+    }
+  ],
+  "regression_cases": [
+    {
+      "id": "spl_transient_designer_plus_fixture",
+      "fixture": "unit:TestDetectTransientShaperModelSPLTransientDesignerPlus",
+      "expectation": "transient_shaper"
+    },
+    {
+      "id": "elysia_nvelope_fixture",
+      "fixture": "unit:TestDetectTransientShaperModelElysiaNvelope",
+      "expectation": "transient_shaper"
+    },
+    {
+      "id": "spl_transient_designer_plus_live",
+      "plugin_name": "SPL Transient Designer Plus",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\SPL Transient Designer Plus.vst3",
+      "expectation": "transient_shaper",
+      "expected_min_binding_count": 6,
+      "expected_roles": ["attack_amount", "sustain_amount", "focus_enable", "focus_frequency", "mix", "output_gain"]
+    },
+    {
+      "id": "elysia_nvelope_live",
+      "plugin_name": "elysia nvelope",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\elysia nvelope.vst3",
+      "expectation": "not_transient_shaper",
+      "expected_rejection": "unsupported_dual_band_mode"
+    },
+    {
+      "id": "fabfilter_pro_c_2_negative",
+      "plugin_name": "Pro-C 2",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\FabFilter\\FabFilter Pro-C 2.vst3",
+      "expectation": "not_transient_shaper",
+      "expected_rejection": "unsupported_broadband_compressor"
+    },
+    {
+      "id": "fabfilter_pro_mb_negative",
+      "plugin_name": "Pro-MB",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\FabFilter\\FabFilter Pro-MB.vst3",
+      "expectation": "not_transient_shaper",
+      "expected_rejection": "unsupported_multiband_dynamics"
+    },
+    {
+      "id": "fabfilter_saturn_2_boundary",
+      "plugin_name": "Saturn 2",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\FabFilter\\FabFilter Saturn 2.vst3",
+      "expectation": "not_transient_shaper",
+      "expected_rejection": "unsupported_multiband_dynamics"
+    },
+    {
+      "id": "waves_transx_multi_boundary",
+      "plugin_name": "TransX Multi Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "expectation": "not_transient_shaper",
+      "expected_rejection": "unsupported_multiband_dynamics"
+    }
+  ],
+  "sealed_blind_cases": [],
+  "policy": {
+    "identity_independent": true,
+    "mode_remap_must_change_generation_or_reject": true,
+    "auxiliary_limiter_writes_forbidden": true,
+    "sealed_parameter_surfaces_before_freeze": 0,
+    "disposable_project_required": true,
+    "census_parameter_writes_forbidden": true
+  }
+}

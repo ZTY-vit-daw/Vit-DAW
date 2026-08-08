@@ -28,17 +28,25 @@ func (values *stringList) Set(value string) error {
 
 func main() {
 	if len(os.Args) < 2 {
-		fail("usage: pcactl <import|certify-compressor|list|query|fingerprint|promote|stale|revoke>")
+		fail("usage: pcactl <import|import-v2|certify-compressor|certify-processor|list|list-v2|query|query-v2|fingerprint|promote|stale|revoke>")
 	}
 	switch os.Args[1] {
 	case "import":
 		runImport(os.Args[2:])
+	case "import-v2":
+		runImportV2(os.Args[2:])
 	case "certify-compressor":
 		runCertifyCompressor(os.Args[2:])
+	case "certify-processor":
+		runCertifyProcessor(os.Args[2:])
 	case "list":
 		runList(os.Args[2:])
+	case "list-v2":
+		runListV2(os.Args[2:])
 	case "query":
 		runQuery(os.Args[2:])
+	case "query-v2":
+		runQueryV2(os.Args[2:])
 	case "fingerprint":
 		runFingerprint(os.Args[2:])
 	case "promote", "stale", "revoke":
@@ -81,6 +89,43 @@ func runCertifyCompressor(args []string) {
 	}{report, importReport})
 }
 
+func runCertifyProcessor(args []string) {
+	set := flag.NewFlagSet("certify-processor", flag.ExitOnError)
+	semanticsPath := set.String("semantics", "", "plugin semantics index; default is ~/.vit/plugin_semantics.json")
+	storePath := set.String("store", "", "PCA v2 store; default is ~/.vit/processor_control_attestations.v2.json")
+	identifier := set.String("identifier", "", "exact installed plug-in identifier from the semantic index")
+	outputDir := set.String("output-dir", "", "directory for the local certification receipt")
+	family := set.String("family", "", "limiter|gate_expander|de_esser|transient_shaper|multiband_dynamics")
+	inspectTool := set.String("inspect-tool", "", "typed inspect tool, for example plugin_grabber.inspect_limiter")
+	applyTool := set.String("apply-tool", "", "typed apply tool, for example plugin_grabber.apply_limiter_controls")
+	agentHTTP := set.String("agent-http", "http://127.0.0.1:7878", "Agent HTTP base URL")
+	timeout := set.Duration("timeout", 180*time.Second, "per-call certification timeout")
+	_ = set.Parse(args)
+	if strings.TrimSpace(*identifier) == "" || strings.TrimSpace(*outputDir) == "" || strings.TrimSpace(*family) == "" || strings.TrimSpace(*inspectTool) == "" || strings.TrimSpace(*applyTool) == "" {
+		fail("certify-processor requires -identifier, -output-dir, -family, -inspect-tool, and -apply-tool")
+	}
+	index, err := pluginsemantics.Load(*semanticsPath)
+	check(err)
+	entry, err := exactEntry(index, *identifier)
+	check(err)
+	report, err := processorauthority.CertifyProcessor(processorauthority.LocalProcessorCertificationOptions{
+		AgentHTTP: *agentHTTP, Entry: entry, OutputDir: *outputDir, ProcessorFamily: *family,
+		InspectTool: *inspectTool, ApplyTool: *applyTool, Timeout: *timeout,
+	})
+	if err != nil {
+		writeJSON(report)
+		fail(err.Error())
+	}
+	store, err := processorattestation.NewStoreV2(*storePath)
+	check(err)
+	importReport, err := processorauthority.ImportReceiptsV2(store, index, []string{report.SummaryPath})
+	check(err)
+	writeJSON(struct {
+		Certification processorauthority.LocalCertificationReport `json:"certification"`
+		Import        processorauthority.ImportReportV2           `json:"import"`
+	}{report, importReport})
+}
+
 func runImport(args []string) {
 	set := flag.NewFlagSet("import", flag.ExitOnError)
 	var receipts stringList
@@ -100,6 +145,25 @@ func runImport(args []string) {
 	writeJSON(report)
 }
 
+func runImportV2(args []string) {
+	set := flag.NewFlagSet("import-v2", flag.ExitOnError)
+	var receipts stringList
+	set.Var(&receipts, "receipt", "PCA v2 strong receipt summary path; repeat for multiple receipts")
+	semanticsPath := set.String("semantics", "", "plugin semantics index; default is ~/.vit/plugin_semantics.json")
+	storePath := set.String("store", "", "PCA v2 store; default is ~/.vit/processor_control_attestations.v2.json")
+	_ = set.Parse(args)
+	if len(receipts) == 0 {
+		fail("import-v2 requires at least one -receipt")
+	}
+	index, err := pluginsemantics.Load(*semanticsPath)
+	check(err)
+	store, err := processorattestation.NewStoreV2(*storePath)
+	check(err)
+	report, err := processorauthority.ImportReceiptsV2(store, index, receipts)
+	check(err)
+	writeJSON(report)
+}
+
 func runList(args []string) {
 	set := flag.NewFlagSet("list", flag.ExitOnError)
 	storePath := set.String("store", "", "attestation store")
@@ -110,6 +174,20 @@ func runList(args []string) {
 	check(err)
 	writeJSON(struct {
 		Library processorattestation.Library    `json:"library"`
+		Read    processorattestation.ReadReport `json:"read"`
+	}{library, readReport})
+}
+
+func runListV2(args []string) {
+	set := flag.NewFlagSet("list-v2", flag.ExitOnError)
+	storePath := set.String("store", "", "PCA v2 store")
+	_ = set.Parse(args)
+	store, err := processorattestation.NewStoreV2(*storePath)
+	check(err)
+	library, readReport, err := store.Read()
+	check(err)
+	writeJSON(struct {
+		Library processorattestation.LibraryV2  `json:"library"`
 		Read    processorattestation.ReadReport `json:"read"`
 	}{library, readReport})
 }
@@ -156,6 +234,49 @@ func runQuery(args []string) {
 	check(err)
 	result, err := store.Query(processorattestation.Query{SubjectKey: key, BinaryFingerprint: currentFingerprint,
 		ProcessorFamily: *family, RequiredCoverage: []processorattestation.Coverage{{Action: *action, Shape: *shape, Axis: *axis}}})
+	check(err)
+	writeJSON(result)
+}
+
+func runQueryV2(args []string) {
+	set := flag.NewFlagSet("query-v2", flag.ExitOnError)
+	storePath := set.String("store", "", "PCA v2 store")
+	semanticsPath := set.String("semantics", "", "plugin semantics index")
+	identifier := set.String("identifier", "", "exact installed plug-in identifier")
+	subjectKey := set.String("subject-key", "", "stable PCA subject key")
+	pluginPath := set.String("plugin-path", "", "current binary path when subject-key is used")
+	fingerprint := set.String("fingerprint", "", "current sha256 fingerprint override")
+	family := set.String("family", "", "limiter|gate_expander|de_esser|transient_shaper|multiband_dynamics")
+	action := set.String("action", "adjust", "current action; v2 uses adjust")
+	axis := set.String("axis", "", "v2 semantic action axis")
+	_ = set.Parse(args)
+	key := strings.TrimSpace(*subjectKey)
+	path := strings.TrimSpace(*pluginPath)
+	if key == "" {
+		if strings.TrimSpace(*identifier) == "" {
+			fail("query-v2 requires -subject-key or exact -identifier")
+		}
+		index, err := pluginsemantics.Load(*semanticsPath)
+		check(err)
+		entry, err := exactEntry(index, *identifier)
+		check(err)
+		subject := processorattestation.Subject{Name: entry.Name, Manufacturer: entry.Manufacturer, Format: entry.Format, Identifier: entry.Identifier, InstalledPath: entry.PluginPath}
+		key, err = processorattestation.BuildSubjectKey(subject)
+		check(err)
+		path = entry.PluginPath
+	}
+	currentFingerprint := strings.TrimSpace(*fingerprint)
+	if currentFingerprint == "" {
+		if path == "" {
+			fail("query-v2 requires -plugin-path or -fingerprint with -subject-key")
+		}
+		var err error
+		currentFingerprint, err = processorattestation.FingerprintPath(path)
+		check(err)
+	}
+	store, err := processorattestation.NewStoreV2(*storePath)
+	check(err)
+	result, err := store.Query(processorattestation.QueryV2{SubjectKey: key, BinaryFingerprint: currentFingerprint, ProcessorFamily: *family, RequiredCoverage: []processorattestation.Coverage{{Action: *action, Axis: *axis}}})
 	check(err)
 	writeJSON(result)
 }

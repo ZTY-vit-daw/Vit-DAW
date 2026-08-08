@@ -78,6 +78,17 @@ func DefaultCatalog() *Catalog {
 	c.AddAlias("plugin_grabber_explain_controls", "plugin_grabber_explain_controls")
 	c.AddAlias("plugin_grabber_inspect_compressor", "plugin_grabber_inspect_compressor")
 	c.AddAlias("plugin_grabber_apply_compressor_controls", "plugin_grabber_apply_compressor_controls")
+	c.AddAlias("plugin_grabber_inspect_limiter", "plugin_grabber_inspect_limiter")
+	c.AddAlias("plugin_grabber_inspect_de_esser", "plugin_grabber_inspect_de_esser")
+	c.AddAlias("plugin_grabber_apply_de_esser_controls", "plugin_grabber_apply_de_esser_controls")
+	c.AddAlias("plugin_grabber_inspect_spectral_dynamics", "plugin_grabber_inspect_spectral_dynamics")
+	c.AddAlias("plugin_grabber_apply_limiter_controls", "plugin_grabber_apply_limiter_controls")
+	c.AddAlias("plugin_grabber_inspect_gate_expander", "plugin_grabber_inspect_gate_expander")
+	c.AddAlias("plugin_grabber_apply_gate_expander_controls", "plugin_grabber_apply_gate_expander_controls")
+	c.AddAlias("plugin_grabber_inspect_transient_shaper", "plugin_grabber_inspect_transient_shaper")
+	c.AddAlias("plugin_grabber_apply_transient_shaper_controls", "plugin_grabber_apply_transient_shaper_controls")
+	c.AddAlias("plugin_grabber_inspect_multiband", "plugin_grabber_inspect_multiband")
+	c.AddAlias("plugin_grabber_apply_multiband_controls", "plugin_grabber_apply_multiband_controls")
 	c.AddAlias("plugin.list", "plugin_list_available")
 	c.AddAlias("plugin.find", "plugin_search")
 	c.AddAlias("plugin.load_to_rack", "rack_add_node")
@@ -488,6 +499,28 @@ func argHint(commandName string) string {
 		return "track_id:string plugin_id:string optional intent:string"
 	case "plugin_grabber_apply_compressor_controls":
 		return "track_id:string plugin_id:string atomic?:true exactly_one_of(controls:{control_ref:string exactly_one_of(value_db:number|ratio:number|value_ms:number|percent:number|display_value:number|enum_label:string)}[]|restore_ref:string)"
+	case "plugin_grabber_inspect_limiter":
+		return "track_id:string plugin_id:string optional intent:string"
+	case "plugin_grabber_inspect_de_esser":
+		return "track_id:string plugin_id:string optional intent:string"
+	case "plugin_grabber_apply_de_esser_controls":
+		return "track_id:string plugin_id:string atomic?:true exactly_one_of(controls:{control_ref:string exactly_one_of(value_db:number|value_ms:number|frequency_hz:number|percent:number|display_value:number|enum_label:string)}[]|restore_ref:string)"
+	case "plugin_grabber_inspect_spectral_dynamics":
+		return "track_id:string plugin_id:string optional intent:string"
+	case "plugin_grabber_apply_limiter_controls":
+		return "track_id:string plugin_id:string atomic?:true exactly_one_of(controls:{control_ref:string exactly_one_of(value_db:number|value_ms:number|percent:number|display_value:number|enum_label:string)}[]|restore_ref:string)"
+	case "plugin_grabber_inspect_gate_expander":
+		return "track_id:string plugin_id:string optional intent:string"
+	case "plugin_grabber_apply_gate_expander_controls":
+		return "track_id:string plugin_id:string atomic?:true exactly_one_of(controls:{control_ref:string exactly_one_of(value_db:number|ratio:number|value_ms:number|frequency_hz:number|percent:number|display_value:number|enum_label:string)}[]|restore_ref:string)"
+	case "plugin_grabber_inspect_transient_shaper":
+		return "track_id:string plugin_id:string optional intent:string"
+	case "plugin_grabber_apply_transient_shaper_controls":
+		return "track_id:string plugin_id:string atomic?:true exactly_one_of(controls:{control_ref:string exactly_one_of(value_db:number|value_ms:number|frequency_hz:number|percent:number|display_value:number|enum_label:string)}[]|restore_ref:string)"
+	case "plugin_grabber_inspect_multiband":
+		return "track_id:string plugin_id:string optional intent:string"
+	case "plugin_grabber_apply_multiband_controls":
+		return "track_id:string plugin_id:string atomic?:true exactly_one_of(controls:{control_ref:string exactly_one_of(value_hz:number|value_db:number|ratio:number|value_ms:number|percent:number|display_value:number|enum_label:string)}[]|restore_ref:string)"
 	case "plugin_grabber_apply_eq_edits":
 		return "track_id:string plugin_id:string atomic?:true edits:{action:upsert|modify|disable|remove|undo shape?:bell|low_shelf|high_shelf|low_cut|high_cut frequency_hz?:number gain_db?:number q?:number slope_db_per_oct?:number control_ref?:string operation_ref?:string}[]"
 	case "plugin_grabber_set_eq_point":
@@ -839,6 +872,17 @@ func defaultSpecs() []CommandSpec {
 		spec("plugin_grabber_explain_controls", "plugin_grabber.explain_controls", "plugin_grabber", "Build a compact AI-friendly context pack for one loaded plugin without filtering full parameters.", RiskDirect, false, false, false, false, "track_id", "plugin_id"),
 		spec("plugin_grabber_inspect_compressor", "plugin_grabber.inspect_compressor", "plugin_grabber", "Read one loaded plugin and recover an identity-free broadband compressor stage/control-path topology. Returns generation-scoped control_ref values for every provable binding. Pure limiters and multiband compressors are rejected.", RiskDirect, false, false, false, false, "track_id", "plugin_id"),
 		spec("plugin_grabber_apply_compressor_controls", "plugin_grabber.apply_compressor_controls", "plugin_grabber", "Atomically write explicit compressor controls addressed by generation-scoped control_ref, or restore a successful apply with its exact normalized restore_ref. Accepts physical dB, ratio, ms, percent, measured display values, or exact enum labels only. Every field is a hard requirement; stale refs, unavailable domains, unit mismatches, side effects, and readback failures reject and restore the full preimage. Returns exact, quantized, or rejected.", RiskUndoable, true, true, false, true, "track_id", "plugin_id"),
+		spec("plugin_grabber_inspect_limiter", "plugin_grabber.inspect_limiter", "plugin_grabber", "Read one loaded plugin and recover identity-free, independently provable limiter stages. Maximizers are accepted only through a proved limiter stage; clippers, broadband compressors, and multiband dynamics remain separate boundaries. Returns generation-scoped control_ref values.", RiskDirect, false, false, false, false, "track_id", "plugin_id"),
+		spec("plugin_grabber_inspect_de_esser", "plugin_grabber.inspect_de_esser", "plugin_grabber", "Read one loaded plugin and recover an identity-free frequency-selective sibilance reduction stage from threshold/reduction and detector-frequency structure. Broadband compressors, gates/expanders, limiters, clippers, multiband, and spectral dynamics are rejected unless an independently separable De-esser stage is proven. Returns generation-scoped control_ref values; this v1 tool is read-only.", RiskDirect, false, false, false, false, "track_id", "plugin_id"),
+		spec("plugin_grabber_apply_de_esser_controls", "plugin_grabber.apply_de_esser_controls", "plugin_grabber", "Atomically write explicit De-esser controls addressed by generation-scoped control_ref, or restore a successful apply with its exact normalized restore_ref. Accepts threshold/reduction dB, detector frequency Hz, timing ms, percent mix, measured display values, or exact reachable enum labels. Detection semantics, auxiliary stages, stale refs, unavailable domains, unit mismatches, side effects, and readback failures reject and restore the full preimage.", RiskUndoable, true, true, false, true, "track_id", "plugin_id"),
+		spec("plugin_grabber_inspect_spectral_dynamics", "plugin_grabber.inspect_spectral_dynamics", "plugin_grabber", "Read one loaded plugin and recover an identity-free spectral field plus shared global dynamics law. Dynamic EQ, multiband, de-esser, limiter, clipper, and broadband-compressor surfaces remain fail-closed; unresolved spectral surfaces return an inspect boundary. This v1 tool is read-only and does not expose controller refs.", RiskDirect, false, false, false, false, "track_id", "plugin_id"),
+		spec("plugin_grabber_apply_limiter_controls", "plugin_grabber.apply_limiter_controls", "plugin_grabber", "Atomically write explicit limiter controls addressed by generation-scoped control_ref, or restore a successful apply with its exact normalized restore_ref. Accepts dB, ms, percent, measured display values, or exact enum labels. Stale refs, unavailable domains, unit mismatches, side effects, and readback failures reject and restore the full preimage.", RiskUndoable, true, true, false, true, "track_id", "plugin_id"),
+		spec("plugin_grabber_inspect_gate_expander", "plugin_grabber.inspect_gate_expander", "plugin_grabber", "Read one loaded plugin and recover an identity-free single shared hard-gate or provably downward-expanding stage. Requires threshold, attenuation range, state timing, and gate or direction evidence. MIDI trigger and multichannel detector capabilities remain fail-closed. Returns generation-scoped control_ref values only for supported bindings.", RiskDirect, false, false, false, false, "track_id", "plugin_id"),
+		spec("plugin_grabber_apply_gate_expander_controls", "plugin_grabber.apply_gate_expander_controls", "plugin_grabber", "Atomically write explicit gate/expander controls addressed by generation-scoped control_ref, or restore a successful apply with its exact normalized restore_ref. Accepts dB, expansion ratio, ms, detector frequency, percent, measured display values, or exact reachable enum labels. Direction changes are restricted to proved Gate or downward Expander labels.", RiskUndoable, true, true, false, true, "track_id", "plugin_id"),
+		spec("plugin_grabber_inspect_transient_shaper", "plugin_grabber.inspect_transient_shaper", "plugin_grabber", "Read one loaded plugin and recover an identity-free signed transient-envelope stage. Requires paired signed attack/sustain amounts or a signed transient range with detector/timing structure; compressor, gate, limiter, multiband, spectral, and clipper boundaries remain fail-closed. Auxiliary limiter stages are never owned by this tool.", RiskDirect, false, false, false, false, "track_id", "plugin_id"),
+		spec("plugin_grabber_apply_transient_shaper_controls", "plugin_grabber.apply_transient_shaper_controls", "plugin_grabber", "Atomically write explicit transient-shaper controls addressed by generation-scoped control_ref, or restore a successful apply with its exact normalized restore_ref. Accepts signed dB/percent amounts, ms timing, detector frequency, percent mix, measured display values, or exact reachable enum labels. Mode remaps are rejected until re-inspection; auxiliary limiter and clipper controls are never writable through this tool.", RiskUndoable, true, true, false, true, "track_id", "plugin_id"),
+		spec("plugin_grabber_inspect_multiband", "plugin_grabber.inspect_multiband", "plugin_grabber", "Read one loaded plugin and recover an identity-free filterbank with strictly ordered crossovers and repeated multiband dynamics cells. Requires at least two complete cells with operating-point, gain/transfer, and timing evidence; sidechain EQ, dynamic EQ, de-essers, spectral dynamics, and multiband maximizer stages remain fail-closed. Returns generation-scoped control_ref values.", RiskDirect, false, false, false, false, "track_id", "plugin_id"),
+		spec("plugin_grabber_apply_multiband_controls", "plugin_grabber.apply_multiband_controls", "plugin_grabber", "Atomically write explicit multiband controls addressed by generation-scoped control_ref, or restore a successful apply with its exact normalized restore_ref. Accepts crossover Hz, dB, ratio, ms, percent, measured display values, or exact reachable enum labels. All crossover targets are validated as one strictly ordered set before any write; invalid ordering produces zero writes.", RiskUndoable, true, true, false, true, "track_id", "plugin_id"),
 		spec("plugin_grabber_apply_eq_edits", "plugin_grabber.apply_eq_edits", "plugin_grabber", "Atomically apply one or more generic static EQ edits from acoustic fields. Supports Bell, Low/High Shelf, Low/High Cut and upsert/modify/disable/remove/undo. All edits are planned from one live topology snapshot, explicit fields are hard requirements, activation writes run last, every touched parameter is freshly read back, and any failure restores the full preimage. Returns exact/quantized/rejected plus control_ref and operation_ref.", RiskUndoable, true, true, false, true, "track_id", "plugin_id"),
 		spec("plugin_grabber_set_eq_point", "plugin_grabber.set_eq_point", "plugin_grabber", "Compatibility adapter for one atomic EQ upsert. Set one Bell/Shelf/Cut section by freq_hz and optional gain_db, q, shape, and slope_db_per_oct. Explicit fields are hard requirements; unsupported fields reject before writing. Prefer plugin_grabber.apply_eq_edits for new callers.", RiskUndoable, true, true, false, true, "track_id", "plugin_id"),
 		spec("delete_plugin", "plugin.delete", "plugin", "Delete a plugin instance.", RiskConfirm, true, true, true, true, "track_id", "plugin_id"),

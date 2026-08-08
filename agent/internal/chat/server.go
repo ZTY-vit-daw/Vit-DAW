@@ -38,6 +38,7 @@ import (
 	"vit-daw-agent/internal/pendingmanager"
 	"vit-daw-agent/internal/planner"
 	"vit-daw-agent/internal/policy"
+	"vit-daw-agent/internal/processorattestation"
 	"vit-daw-agent/internal/projectworkspace"
 	"vit-daw-agent/internal/promptruntime"
 	"vit-daw-agent/internal/resourceintake"
@@ -75,6 +76,9 @@ type Server struct {
 	events                             map[string][]AgentEvent
 	eventSeq                           map[string]int64
 	eqOperations                       map[string]eqOperationRecord
+	processorCertificationMu           sync.Mutex
+	processorCertificationJobs         map[string]processorCertificationJob
+	processorCertificationLoadTokens   map[string]processorCertificationLoadAuthorization
 	webUILogged                        bool
 	workspaceMu                        sync.Mutex
 	activeWorkspacePath                string
@@ -418,28 +422,30 @@ func New(kernelClient *kernel.Client, shadowProject *shadow.Project, logger *log
 		}
 	}
 	return &Server{
-		kernel:               kernelClient,
-		shadow:               shadowProject,
-		llm:                  &llm.Client{},
-		logger:               logger,
-		harness:              harness.New(kernelClient, shadowProject, logger),
-		startedAt:            time.Now(),
-		conversations:        map[string][]llm.Message{},
-		pending:              map[string]PendingPlan{},
-		interactions:         map[string]PendingInteraction{},
-		mixSessions:          map[string]MixSession{},
-		goalContinuations:    map[string]agentloop.Continuation{},
-		conversationGoals:    map[string]string{},
-		conversationMemory:   map[string]agentloop.ExecutionMemory{},
-		pendingMixTicks:      map[string]agentloop.PendingMixTickCandidate{},
-		pendingTreatments:    map[string]agentloop.MixTreatmentPending{},
-		freeStateLoops:       map[string]freeStateReasoningLoop{},
-		pendingManager:       pendingmanager.NewMemoryManager(),
-		orchestrationRuntime: orchestrationRuntime,
-		uiContext:            map[string]any{},
-		events:               map[string][]AgentEvent{},
-		eventSeq:             map[string]int64{},
-		eqOperations:         map[string]eqOperationRecord{},
+		kernel:                           kernelClient,
+		shadow:                           shadowProject,
+		llm:                              &llm.Client{},
+		logger:                           logger,
+		harness:                          harness.New(kernelClient, shadowProject, logger),
+		startedAt:                        time.Now(),
+		conversations:                    map[string][]llm.Message{},
+		pending:                          map[string]PendingPlan{},
+		interactions:                     map[string]PendingInteraction{},
+		mixSessions:                      map[string]MixSession{},
+		goalContinuations:                map[string]agentloop.Continuation{},
+		conversationGoals:                map[string]string{},
+		conversationMemory:               map[string]agentloop.ExecutionMemory{},
+		pendingMixTicks:                  map[string]agentloop.PendingMixTickCandidate{},
+		pendingTreatments:                map[string]agentloop.MixTreatmentPending{},
+		freeStateLoops:                   map[string]freeStateReasoningLoop{},
+		pendingManager:                   pendingmanager.NewMemoryManager(),
+		orchestrationRuntime:             orchestrationRuntime,
+		uiContext:                        map[string]any{},
+		events:                           map[string][]AgentEvent{},
+		eventSeq:                         map[string]int64{},
+		eqOperations:                     map[string]eqOperationRecord{},
+		processorCertificationJobs:       map[string]processorCertificationJob{},
+		processorCertificationLoadTokens: map[string]processorCertificationLoadAuthorization{},
 	}
 }
 
@@ -467,6 +473,9 @@ func (s *Server) Routes() http.Handler {
 	mux.HandleFunc("/agent/tools", s.handleTools)
 	mux.HandleFunc("/agent/actions", s.handleActions)
 	mux.HandleFunc("/agent/invoke", s.handleInvoke)
+	mux.HandleFunc("/agent/processor-certification/candidates", s.handleProcessorCertificationCandidates)
+	mux.HandleFunc("/agent/processor-certification/start", s.handleProcessorCertificationStart)
+	mux.HandleFunc("/agent/processor-certification/status", s.handleProcessorCertificationStatus)
 	mux.HandleFunc("/agent/debug/confirmation", s.handleConfirmationDebug)
 	mux.HandleFunc("/agent/artifacts/upload", s.handleArtifactUpload)
 	mux.HandleFunc("/agent/artifacts", s.handleArtifacts)
@@ -1339,6 +1348,14 @@ func (s *Server) handleInvoke(w http.ResponseWriter, r *http.Request) {
 	if strings.TrimSpace(req.Source) == "" {
 		req.Source = "http"
 	}
+	if strings.TrimSpace(req.AuthorizationToken) != "" {
+		var authErr error
+		req, authErr = s.consumeProcessorCertificationLoadAuthorization(req)
+		if authErr != nil {
+			writeJSON(w, http.StatusForbidden, harness.InvokeResponse{Status: "error", Tool: req.Tool, Error: authErr.Error()})
+			return
+		}
+	}
 	if isVersionProjectNewInvoke(req) {
 		actionID := "act_" + randomID()
 		bgReq := req
@@ -1361,6 +1378,105 @@ func (s *Server) handleInvoke(w http.ResponseWriter, r *http.Request) {
 	}
 	if resp, ok := s.invokeMixSessionEntryWorkflow(r.Context(), req); ok {
 		writeJSON(w, http.StatusOK, compactStripSilenceInvokeResponseForTransport(resp))
+		return
+	}
+	if workflowCmd, ok := pluginGrabberInspectGateExpanderInvokeCommand(req); ok {
+		resp, err := s.invokePluginGrabberInspectGateExpanderWorkflow(r.Context(), req, workflowCmd)
+		status := http.StatusOK
+		if err != nil && resp.Status == "error" {
+			status = http.StatusBadRequest
+		}
+		writeJSON(w, status, resp)
+		return
+	}
+	if workflowCmd, ok := pluginGrabberApplyGateExpanderInvokeCommand(req); ok {
+		resp, err := s.invokePluginGrabberApplyGateExpanderWorkflow(r.Context(), req, workflowCmd)
+		status := http.StatusOK
+		if err != nil && resp.Status == "error" {
+			status = http.StatusBadRequest
+		}
+		writeJSON(w, status, resp)
+		return
+	}
+	if workflowCmd, ok := pluginGrabberInspectTransientShaperInvokeCommand(req); ok {
+		resp, err := s.invokePluginGrabberInspectTransientShaperWorkflow(r.Context(), req, workflowCmd)
+		status := http.StatusOK
+		if err != nil && resp.Status == "error" {
+			status = http.StatusBadRequest
+		}
+		writeJSON(w, status, resp)
+		return
+	}
+	if workflowCmd, ok := pluginGrabberApplyTransientShaperInvokeCommand(req); ok {
+		resp, err := s.invokePluginGrabberApplyTransientShaperWorkflow(r.Context(), req, workflowCmd)
+		status := http.StatusOK
+		if err != nil && resp.Status == "error" {
+			status = http.StatusBadRequest
+		}
+		writeJSON(w, status, resp)
+		return
+	}
+	if workflowCmd, ok := pluginGrabberInspectMultibandInvokeCommand(req); ok {
+		resp, err := s.invokePluginGrabberInspectMultibandWorkflow(r.Context(), req, workflowCmd)
+		status := http.StatusOK
+		if err != nil && resp.Status == "error" {
+			status = http.StatusBadRequest
+		}
+		writeJSON(w, status, resp)
+		return
+	}
+	if workflowCmd, ok := pluginGrabberApplyMultibandInvokeCommand(req); ok {
+		resp, err := s.invokePluginGrabberApplyMultibandWorkflow(r.Context(), req, workflowCmd)
+		status := http.StatusOK
+		if err != nil && resp.Status == "error" {
+			status = http.StatusBadRequest
+		}
+		writeJSON(w, status, resp)
+		return
+	}
+	if workflowCmd, ok := pluginGrabberInspectLimiterInvokeCommand(req); ok {
+		resp, err := s.invokePluginGrabberInspectLimiterWorkflow(r.Context(), req, workflowCmd)
+		status := http.StatusOK
+		if err != nil && resp.Status == "error" {
+			status = http.StatusBadRequest
+		}
+		writeJSON(w, status, resp)
+		return
+	}
+	if workflowCmd, ok := pluginGrabberInspectDeEsserInvokeCommand(req); ok {
+		resp, err := s.invokePluginGrabberInspectDeEsserWorkflow(r.Context(), req, workflowCmd)
+		status := http.StatusOK
+		if err != nil && resp.Status == "error" {
+			status = http.StatusBadRequest
+		}
+		writeJSON(w, status, resp)
+		return
+	}
+	if workflowCmd, ok := pluginGrabberApplyDeEsserInvokeCommand(req); ok {
+		resp, err := s.invokePluginGrabberApplyDeEsserWorkflow(r.Context(), req, workflowCmd)
+		status := http.StatusOK
+		if err != nil && resp.Status == "error" {
+			status = http.StatusBadRequest
+		}
+		writeJSON(w, status, resp)
+		return
+	}
+	if workflowCmd, ok := pluginGrabberInspectSpectralDynamicsInvokeCommand(req); ok {
+		resp, err := s.invokePluginGrabberInspectSpectralDynamicsWorkflow(r.Context(), req, workflowCmd)
+		status := http.StatusOK
+		if err != nil && resp.Status == "error" {
+			status = http.StatusBadRequest
+		}
+		writeJSON(w, status, resp)
+		return
+	}
+	if workflowCmd, ok := pluginGrabberApplyLimiterInvokeCommand(req); ok {
+		resp, err := s.invokePluginGrabberApplyLimiterWorkflow(r.Context(), req, workflowCmd)
+		status := http.StatusOK
+		if err != nil && resp.Status == "error" {
+			status = http.StatusBadRequest
+		}
+		writeJSON(w, status, resp)
 		return
 	}
 	if workflowCmd, ok := pluginGrabberInspectCompressorInvokeCommand(req); ok {
@@ -1406,6 +1522,14 @@ func (s *Server) handleInvoke(w http.ResponseWriter, r *http.Request) {
 			status = http.StatusBadRequest
 		}
 		writeJSON(w, status, resp)
+		return
+	}
+	if resp, blocked := s.guardTransientShaperOwnedGenericParameterWrite(r.Context(), req); blocked {
+		writeJSON(w, http.StatusBadRequest, resp)
+		return
+	}
+	if resp, blocked := s.guardMultibandOwnedGenericParameterWrite(r.Context(), req); blocked {
+		writeJSON(w, http.StatusBadRequest, resp)
 		return
 	}
 	if resp, blocked := s.guardCompressorOwnedGenericParameterWrite(r.Context(), req); blocked {
@@ -2358,6 +2482,11 @@ func legacyChatBroadMixDecisionBlocked(decision policy.Decision) bool {
 		"plugin_grabber_load_and_get_params", "plugin_grabber.load_and_get_params",
 		"plugin_grabber_apply_eq_edits", "plugin_grabber.apply_eq_edits",
 		"plugin_grabber_apply_compressor_controls", "plugin_grabber.apply_compressor_controls",
+		"plugin_grabber_apply_limiter_controls", "plugin_grabber.apply_limiter_controls",
+		"plugin_grabber_apply_gate_expander_controls", "plugin_grabber.apply_gate_expander_controls",
+		"plugin_grabber_apply_transient_shaper_controls", "plugin_grabber.apply_transient_shaper_controls",
+		"plugin_grabber_apply_multiband_controls", "plugin_grabber.apply_multiband_controls",
+		"plugin_grabber_apply_de_esser_controls", "plugin_grabber.apply_de_esser_controls",
 		"set_plugin_param", "plugin.set_parameter", "plugin_set_parameter",
 		"set_volume", "track.volume",
 		"control_add_macro", "control.add_macro", "rack.add_macro", "control_add_binding", "control.add_binding":
@@ -2629,11 +2758,20 @@ func pendingPlanExecutionContext(plan PendingPlan) map[string]any {
 	}
 	candidate := firstMapFromAny(plan.Context["semantic_plugin_recommendation_candidate"])
 	command := workflowCommandArgs(plan.Decisions[0].Command)
-	return harness.AuthorizeSemanticPluginSelectionLoad(
+	requirement, ok := pluginControlRequirementFromAny(plan.Context["processor_control_requirement"])
+	if !ok {
+		requirement, ok = pluginControlRequirementFromAny(firstMapFromAny(plan.Context["plugin_recommendation"])["processor_control_requirement"])
+	}
+	if !ok {
+		return plan.Context
+	}
+	return harness.AuthorizeProcessorSelectionLoad(
 		plan.Context,
 		firstStringFromMap(command, "track_id"),
 		firstStringFromMap(command, "plugin_path"),
 		firstStringFromMap(candidate, "identifier"),
+		processorattestation.EligibilityRequirement{ProcessorFamily: requirement.ProcessorFamily, RequiredCoverage: requirement.Coverage},
+		firstStringFromMap(candidate, "subject_key"), firstStringFromMap(candidate, "binary_fingerprint"), firstStringFromMap(candidate, "attestation_id"),
 	)
 }
 
@@ -5036,7 +5174,7 @@ When importing audio and no target track is named, use selected_track_id as the 
 If commands is non-empty, keep reply as a short internal intent summary. VitAgent will replace it with the final user-facing result after execution, so do not rely on "about to" wording as the final answer.
 
 For plugin loading/grabber setup requests such as loading TDR Nova, finding an EQ/compressor, or loading a plugin and grabbing useful controls, use the special chat workflow command {"cmd":"plugin_grabber_load_and_get_params","track_id":"...","plugin_query":"TDR Nova","intent":"short user intent"}. This workflow searches indexed plugins, asks for confirmation before loading a rack node, then reads parameters after the load succeeds. Do not use instantiate_plugin for these requests; instantiate_plugin requires an exact plugin_path and bypasses the rack grabber workflow.
-For explicit plugin effect control, use the deterministic typed tool for that effect. For static EQ, call plugin_grabber.explain_controls and then plugin_grabber.apply_eq_edits(track_id, plugin_id, edits, atomic:true). For a broadband compressor, call plugin_grabber.inspect_compressor first and then plugin_grabber.apply_compressor_controls with only returned control_ref values and explicit physical or enum targets. Compressor controls accept value_db, ratio, value_ms, percent, display_value, or enum_label; exactly one target field is allowed per control. The compressor tool does not interpret acoustic intent such as "more punch" or "compress more": decide the explicit control request before calling it. Pure limiters and multiband compressors are outside this tool. Every explicit field is a hard requirement: rejected means no parameter was touched. Report exact/quantized/rejected and actual readback exactly. Never use stored mappings or retired control mappings. For effects without a typed tool, pick the relevant parameter from all_parameters and call set_plugin_param with a normalized value.
+For explicit plugin effect control, use the deterministic typed tool for that effect. For static EQ, call plugin_grabber.explain_controls and then plugin_grabber.apply_eq_edits(track_id, plugin_id, edits, atomic:true). For a broadband compressor, call plugin_grabber.inspect_compressor first and then plugin_grabber.apply_compressor_controls with only returned control_ref values and explicit physical or enum targets. For an independently provable limiter stage, call plugin_grabber.inspect_limiter first and then plugin_grabber.apply_limiter_controls with only returned control_ref values. For a provable De-esser stage, call plugin_grabber.inspect_de_esser first and then plugin_grabber.apply_de_esser_controls with only returned control_ref values. For a provable hard gate or downward expander, call plugin_grabber.inspect_gate_expander first and then plugin_grabber.apply_gate_expander_controls with only returned control_ref values. For a provable multiband dynamics filterbank, call plugin_grabber.inspect_multiband first and then plugin_grabber.apply_multiband_controls with only returned control_ref values; crossover targets are validated as one strictly ordered set before any write. For Spectral Dynamics, call plugin_grabber.inspect_spectral_dynamics; this v1 surface is inspect-only and returns either a proven spectral field plus global law or an explicit unresolved/adjacent boundary. Do not infer a controller from Capture, Freeze, product identity, or a scalar analyzer. De-esser controls accept value_db, value_ms, frequency_hz, percent, display_value, or enum_label only when the observed role and physical domain prove compatibility. Gate/expander controls accept value_db, ratio, value_ms, frequency_hz, percent, display_value, or enum_label; direction labels must be proved Gate or downward Expander labels. Limiter controls accept value_db, value_ms, percent, display_value, or enum_label; maximizers are supported only through a proved limiter stage, while clippers and multiband dynamics remain separate. Multiband controls accept value_hz, value_db, ratio, value_ms, percent, display_value, or enum_label. Compressor controls accept value_db, ratio, value_ms, percent, display_value, or enum_label; exactly one target field is allowed per control. Typed dynamics tools do not interpret acoustic intent such as "more punch" or "louder": decide the explicit control request before calling them. Every explicit field is a hard requirement: rejected means no parameter was touched. Report exact/quantized/rejected and actual readback exactly. Never use stored mappings or retired control mappings. For effects without a typed tool, pick the relevant parameter from all_parameters and call set_plugin_param with a normalized value.
   For non-EQ effects, pick the relevant param from all_parameters using domain for normalization.
   After writing, call get_plugin_parameters (include_parameters:true) to confirm. Never pass value_text.
 For plugin grabber explanation, summary, context pack, or "explain controls" requests on an already loaded/selected plugin, use the special read-only workflow command {"cmd":"plugin_grabber_explain_controls","track_id":"...","plugin_id":"...","intent":"short user intent"}. This workflow reads full parameters, then returns a compact context pack with quick controls, groups, roles, and full-parameter access hints. It does not filter or save parameters.

@@ -1,0 +1,91 @@
+{
+  "schema_version": "plugin_grabber.limiter_control_matrix.v1",
+  "set_id": "limiter-control-v1-20260806",
+  "training_cases": [
+    {
+      "id": "waves_l1_stereo",
+      "plugin_name": "L1 limiter Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "expectation": "limiter"
+    },
+    {
+      "id": "zamaximx2",
+      "plugin_name": "ZaMaximX2",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\zam-plugins-4.5-win64\\zam-plugins-4.5\\ZaMaximX2.vst3",
+      "expectation": "not_limiter",
+      "expected_rejection": "unsupported_broadband_compressor",
+      "boundary_note": "Maximizer identity does not compensate for the missing independent ceiling relation"
+    }
+  ],
+  "regression_cases": [
+    {
+      "id": "waves_l2_stereo",
+      "plugin_name": "L2 Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "expectation": "limiter"
+    },
+    {
+      "id": "bx_limiter_true_peak",
+      "plugin_name": "bx_limiter True Peak",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\bx_limiter True Peak.vst3",
+      "expectation": "limiter"
+    },
+    {
+      "id": "hum_audio_devices_laal",
+      "plugin_name": "HUM Audio Devices LAAL",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\HUM Audio Devices LAAL.vst3",
+      "expectation": "indexed_multi_stage_limiter"
+    },
+    {
+      "id": "bx_clipper_negative",
+      "plugin_name": "bx_clipper",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\bx_clipper.vst3",
+      "expectation": "not_limiter",
+      "expected_rejection": "unsupported_clipper"
+    },
+    {
+      "id": "fabfilter_pro_l_2_regression_after_blind",
+      "plugin_name": "Pro-L 2",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\FabFilter\\FabFilter Pro-L 2.vst3",
+      "expectation": "drive_ceiling_time",
+      "opened_by_sealed_run": true,
+      "evidence_source": "limiter_control/20260806_162804/agent_journal.json"
+    },
+    {
+      "id": "synthetic_broadband_compressor_negative",
+      "fixture": "unit:TestDetectLimiterModelRejectsCompressorAndKeepsExplicitHybrid",
+      "expectation": "not_limiter",
+      "expected_rejection": "unsupported_broadband_compressor"
+    },
+    {
+      "id": "synthetic_multiband_negative",
+      "fixture": "unit:limiter_multiband_boundary",
+      "expectation": "not_limiter",
+      "expected_rejection": "unsupported_multiband_dynamics"
+    }
+  ],
+  "sealed_blind_cases": [
+    {
+      "id": "fabfilter_pro_l_2_sealed",
+      "plugin_name": "Pro-L 2",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\FabFilter\\FabFilter Pro-L 2.vst3",
+      "expectation": "unknown_until_execute"
+    },
+    {
+      "id": "waves_l4_ultramaximizer_sealed",
+      "plugin_name": "L4 Ultramaximizer Stereo",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+      "expectation": "unknown_until_execute"
+    }
+  ],
+  "policy": {
+    "identity_independent": true,
+    "maximizer_is_not_a_primitive": true,
+    "required_stage_relation": ["threshold_or_input_drive", "ceiling", "release_or_lookahead"],
+    "negative_boundaries": ["broadband_compressor", "clipper", "multiband_dynamics"],
+    "sealed_parameter_surfaces_before_freeze": 0,
+    "sealed_execution_limit_per_case": 1,
+    "disposable_project_required": true,
+    "full_preimage_restore_required": true
+  }
+}

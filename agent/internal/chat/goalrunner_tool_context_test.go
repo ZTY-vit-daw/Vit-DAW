@@ -80,6 +80,9 @@ func TestAgentLoopToolContextRoutesCompressorControlToDeterministicTools(t *test
 		if !strings.Contains(ctx.CatalogSummary, "plugin_grabber_apply_compressor_controls tool=plugin_grabber.apply_compressor_controls") {
 			t.Fatalf("compressor contract missing for %q:\n%s", userText, ctx.CatalogSummary)
 		}
+		if !strings.Contains(ctx.CatalogSummary, "plugin_grabber_apply_limiter_controls tool=plugin_grabber.apply_limiter_controls") {
+			t.Fatalf("limiter contract missing for %q:\n%s", userText, ctx.CatalogSummary)
+		}
 	}
 }
 

@@ -622,7 +622,7 @@ func physicalReadbackForRole(role string, row map[string]any) (float64, bool) {
 		return parseEQFrequencyReadback(text)
 	case "gain", "q", "slope":
 		return plugingrabber.ParseEQLocalizedNumber(text)
-	case "threshold", "input_drive", "reduction_amount", "low_level_amount", "high_level_amount", "ratio", "direction_curve",
+	case "threshold", "input_drive", "ceiling", "reduction_amount", "low_level_amount", "high_level_amount", "ratio", "direction_curve",
 		"knee", "attack", "release", "recovery", "time_constant", "pdr_time", "lookahead", "hold", "reduction_range",
 		"makeup_gain", "output_gain", "wet_gain", "dry_gain", "mix":
 		return plugingrabber.ParseCompressorPhysical(role, text)
