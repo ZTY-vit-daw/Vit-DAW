@@ -366,7 +366,7 @@ func (l *MessageLoop) loop(ctx context.Context, r *Runner, state *runState) Resu
 		}
 		snapshot := r.buildContextSnapshot(state)
 		state.contextSnapshot = snapshot.Map()
-		assembly := l.assembly(state, snapshot.JSON())
+		assembly := l.assembly(state, r.buildModelContextSnapshot(state, snapshot))
 		assemblyChars := 0
 		messageCharParts := make([]string, 0, len(assembly.Messages))
 		for index, message := range assembly.Messages {
@@ -3512,6 +3512,9 @@ func (l *MessageLoop) messages(state *runState, snapshotJSON string) []llm.Messa
 }
 
 func (l *MessageLoop) assembly(state *runState, snapshotJSON string) promptruntime.Assembly {
+	if messageLoopNeedsNeutralFamilyProjection(state) {
+		return l.assemblyNeutralFamilySelection(state, snapshotJSON)
+	}
 	system := messageLoopSystemPrompt(state)
 	user := fmt.Sprintf("Current Goal: %s\nGoalID: %s\nRunID: %s\nRemaining tool calls this run: %d\nCurrent context snapshot JSON:\n%s", strings.TrimSpace(state.input.UserText), state.goal.GoalID, state.goal.RunID, state.budget.MaxToolCalls-state.toolCallsUsed, snapshotJSON)
 	if freeState := messageLoopFreeStatePromptContext(state); len(freeState) > 0 {
@@ -3525,6 +3528,28 @@ func (l *MessageLoop) assembly(state *runState, snapshotJSON string) promptrunti
 		History: state.input.Conversation,
 		UserSections: []promptruntime.Section{
 			promptruntime.TextSection(promptruntime.SectionRuntime, "message_loop_runtime", "", user, false),
+		},
+	})
+}
+
+func (l *MessageLoop) assemblyNeutralFamilySelection(state *runState, snapshotJSON string) promptruntime.Assembly {
+	system := messageLoopNeutralFamilySystemPrompt(state)
+	user := fmt.Sprintf("Current acoustic goal: %s\nGoalID: %s\nRunID: %s\nRemaining tool calls this run: %d\nNeutral context snapshot JSON:\n%s",
+		strings.TrimSpace(state.input.UserText), state.goal.GoalID, state.goal.RunID,
+		state.budget.MaxToolCalls-state.toolCallsUsed, snapshotJSON)
+	if freeState := messageLoopFreeStatePromptContext(state); len(freeState) > 0 {
+		data, _ := json.Marshal(freeState)
+		user += "\nFree-state reasoning ledger JSON:\n" + string(data)
+	}
+	return promptruntime.Build(promptruntime.AssemblyInput{
+		SystemSections: []promptruntime.Section{
+			promptruntime.TextSection(promptruntime.SectionStatic, "message_loop_neutral_family_selection", "", system, true),
+		},
+		// Prior assistant turns can contain materialization identity. The
+		// current neutral snapshot and the compact ledger are authoritative.
+		History: nil,
+		UserSections: []promptruntime.Section{
+			promptruntime.TextSection(promptruntime.SectionRuntime, "message_loop_neutral_family_runtime", "", user, false),
 		},
 	})
 }
