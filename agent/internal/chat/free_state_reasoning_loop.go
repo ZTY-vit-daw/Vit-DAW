@@ -2,8 +2,11 @@ package chat
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"sort"
 	"strings"
 	"time"
 
@@ -14,7 +17,11 @@ import (
 
 const (
 	freeStateReasoningLoopSchema           = "free_state_reasoning_loop.v1"
+	freeStateObservationLedgerSchema       = "free_state_observation_ledger.v1"
+	freeStateObservationLedgerLimit        = 24
 	freeStateDefaultMaxCycles              = 6
+	freeStateMaxActionCount                = 6
+	freeStateMaxFamilyActionCount          = 2
 	freeStatePhaseProcessorSelection       = "processor_selection"
 	freeStatePhaseProcessorMaterialization = "processor_materialization"
 	freeStatePhasePostActionEvaluation     = "post_action_evaluation"
@@ -47,6 +54,9 @@ type freeStateReasoningLoop struct {
 	Cycle                         int                          `json:"cycle"`
 	MaxCycles                     int                          `json:"max_cycles"`
 	ObservationIDs                []string                     `json:"observation_ids,omitempty"`
+	ObservationReceipts           []map[string]any             `json:"observation_receipts,omitempty"`
+	RejectedObservationRequests   []map[string]any             `json:"rejected_observation_requests,omitempty"`
+	ObservationLedger             map[string]any               `json:"observation_ledger,omitempty"`
 	LatestObservation             *agentloop.RecentObservation `json:"latest_observation,omitempty"`
 	Actions                       []freeStateActionRecord      `json:"actions,omitempty"`
 	LatestDecision                *agentloop.FreeStateDecision `json:"latest_decision,omitempty"`
@@ -69,16 +79,14 @@ func freeStateLoopActive(loop freeStateReasoningLoop) bool {
 }
 
 func shouldStartFreeStateReasoningLoop(userText string, requestContext map[string]any) bool {
-	if useLegacyPlannerLoop() || agentModeFromContext(requestContext) == agentModePlan ||
+	if agentModeFromContext(requestContext) == agentModePlan ||
 		contextBool(requestContext, "disable_free_state_reasoning") || strings.HasPrefix(strings.TrimSpace(userText), "/") {
 		return false
 	}
-	if ordinaryAgentPluginRecommendationIntent(userText, requestContext) || compressorExactParameterRequest.MatchString(userText) {
-		return false
-	}
-	return ordinaryAgentSemanticEQMutationRequest(userText, requestContext) ||
-		ordinaryAgentTreatmentStrategyIntent(userText, requestContext) ||
-		ordinaryAgentSemanticCompressorPlanningRequest(userText, requestContext)
+	decision, ok := semanticEntryDecisionFromContext(requestContext)
+	return ok && decision.Route == semanticEntryRouteOpenSemantic &&
+		decision.ControlMode == semanticEntryControlSemanticLoop &&
+		decision.UserAuthorization == semanticEntryAuthorizationAction
 }
 
 func (s *Server) prepareFreeStateReasoningContext(conversationID, userText string, requestContext map[string]any) (map[string]any, bool) {
@@ -128,18 +136,15 @@ func (s *Server) prepareFreeStateReasoningContext(conversationID, userText strin
 
 func freeStateTargetRef(ctx map[string]any) map[string]any {
 	trackID := firstStringFromMap(ctx, "selected_track_id", "selected_plugin_track_id")
-	pluginID := firstStringFromMap(ctx, "selected_plugin_id")
-	if trackID == "" && pluginID == "" {
+	if trackID == "" {
 		return nil
 	}
 	return map[string]any{
-		"kind":        map[bool]string{true: "plugin", false: "track"}[pluginID != ""],
-		"id":          firstNonEmpty(pluginID, trackID),
-		"label":       firstNonEmpty(firstStringFromMap(ctx, "selected_plugin_name"), firstStringFromMap(ctx, "selected_track_name")),
-		"track_id":    trackID,
-		"track_name":  firstStringFromMap(ctx, "selected_track_name"),
-		"plugin_id":   pluginID,
-		"plugin_name": firstStringFromMap(ctx, "selected_plugin_name"),
+		"kind":       "track",
+		"id":         trackID,
+		"label":      firstStringFromMap(ctx, "selected_track_name"),
+		"track_id":   trackID,
+		"track_name": firstStringFromMap(ctx, "selected_track_name"),
 	}
 }
 
@@ -174,8 +179,40 @@ func (s *Server) hasActiveFreeStateReasoningLoop(conversationID string) bool {
 
 func (s *Server) recordFreeStateDecision(conversationID string, res agentloop.Result) (freeStateReasoningLoop, bool) {
 	loop, ok := s.freeStateLoop(conversationID)
-	if !ok || !freeStateLoopActive(loop) || res.FreeStateDecision == nil {
+	if !ok || !freeStateLoopActive(loop) {
 		return loop, ok
+	}
+	observations := freeStateCCBObservations(res)
+	var observation *agentloop.RecentObservation
+	for _, current := range observations {
+		if current == nil {
+			continue
+		}
+		if freeStateUsableObservation(current) {
+			observation = current
+			loop.LatestObservation = current
+		}
+		loop.ObservationLedger = mergeFreeStateObservationLedger(loop.ObservationLedger, current)
+		if rejected := freeStateRejectedObservation(current); len(rejected) > 0 && !freeStateRejectedObservationRecorded(loop.RejectedObservationRequests, rejected) {
+			loop.RejectedObservationRequests = append(loop.RejectedObservationRequests, rejected)
+		}
+		if receipt := firstMapFromAny(current.Summary["audit_receipt"]); len(receipt) > 0 {
+			if receiptID := firstStringFromMap(receipt, "receipt_id"); receiptID == "" || !freeStateObservationReceiptRecorded(loop.ObservationReceipts, receiptID) {
+				loop.ObservationReceipts = append(loop.ObservationReceipts, cloneContext(receipt))
+			}
+		}
+		if target := freeStateObservationTrackTarget(current); len(target) > 0 {
+			loop.TargetRef = target
+		}
+		if observationID := firstStringFromMap(current.Summary, "observation_id"); observationID != "" &&
+			!freeStateContainsString(loop.ObservationIDs, observationID) {
+			loop.ObservationIDs = append(loop.ObservationIDs, observationID)
+		}
+	}
+	if res.FreeStateDecision == nil {
+		loop.UpdatedAt = time.Now().UTC()
+		s.storeFreeStateLoop(loop)
+		return loop, true
 	}
 	decision := *res.FreeStateDecision
 	decision.RequestedViewIDs = append([]string(nil), res.FreeStateDecision.RequestedViewIDs...)
@@ -189,17 +226,6 @@ func (s *Server) recordFreeStateDecision(conversationID string, res agentloop.Re
 	}
 	if decision.ObservationID != "" && !freeStateContainsString(loop.ObservationIDs, decision.ObservationID) {
 		loop.ObservationIDs = append(loop.ObservationIDs, decision.ObservationID)
-	}
-	observation := freeStateCCBObservation(res)
-	if observation != nil {
-		loop.LatestObservation = observation
-		if target := freeStateObservationTrackTarget(observation); len(target) > 0 {
-			loop.TargetRef = target
-		}
-		if observationID := firstStringFromMap(observation.Summary, "observation_id"); observationID != "" &&
-			!freeStateContainsString(loop.ObservationIDs, observationID) {
-			loop.ObservationIDs = append(loop.ObservationIDs, observationID)
-		}
 	}
 	switch strings.ToLower(strings.TrimSpace(decision.Status)) {
 	case agentloop.FreeStateNeedsAction:
@@ -223,6 +249,232 @@ func (s *Server) recordFreeStateDecision(conversationID string, res agentloop.Re
 	loop.UpdatedAt = time.Now().UTC()
 	s.storeFreeStateLoop(loop)
 	return loop, true
+}
+
+func freeStateRejectedObservation(observation *agentloop.RecentObservation) map[string]any {
+	if observation == nil {
+		return nil
+	}
+	tool := strings.ToLower(strings.TrimSpace(firstNonEmpty(observation.Tool, observation.CommandName)))
+	if tool != "ccb.observation_request" && tool != "ccb_observation_request" {
+		return nil
+	}
+	status := strings.ToLower(firstStringFromMap(observation.Summary, "status", "bundle_status"))
+	if status != "rejected" {
+		return nil
+	}
+	audit := firstMapFromAny(observation.Summary["audit_receipt"])
+	requested := freeStateNormalizedViewIDs(freeStateStringSlice(observation.Summary["requested_views"]))
+	return map[string]any{
+		"fingerprint":     freeStateNormalizedViewFingerprint(requested),
+		"observation_id":  firstStringFromMap(observation.Summary, "observation_id"),
+		"request_id":      firstStringFromMap(observation.Summary, "request_id"),
+		"requested_views": requested,
+		"reasons":         append([]string(nil), freeStateStringSlice(firstNonNil(observation.Summary["omission_reasons"], audit["rejection_reasons"]))...),
+		"receipt_id":      firstStringFromMap(audit, "receipt_id"),
+		"tool_call_id":    observation.ToolCallID,
+		"status":          "rejected",
+		"retry_policy":    "do_not_retry",
+		"rejection_scope": firstNonEmpty(firstStringFromMap(observation.Summary, "rejection_scope"), firstStringFromMap(audit, "rejection_scope")),
+		"blocking_view_ids": firstNonNil(observation.Summary["blocking_view_ids"], audit["blocking_view_ids"]),
+		"non_blocking_view_ids": firstNonNil(observation.Summary["non_blocking_view_ids"], audit["non_blocking_view_ids"]),
+	}
+}
+
+func freeStateRejectedObservationRecorded(rows []map[string]any, candidate map[string]any) bool {
+	want := freeStateNormalizedViewFingerprint(freeStateStringSlice(candidate["requested_views"]))
+	if want == "" {
+		return false
+	}
+	for _, row := range rows {
+		if freeStateNormalizedViewFingerprint(freeStateStringSlice(row["requested_views"])) == want {
+			return true
+		}
+	}
+	return false
+}
+
+func freeStateStringSlice(value any) []string {
+	rows := []string{}
+	switch typed := value.(type) {
+	case []string:
+		return append(rows, typed...)
+	case []any:
+		for _, item := range typed {
+			if text := strings.TrimSpace(fmt.Sprint(item)); text != "" && text != "<nil>" {
+				rows = append(rows, text)
+			}
+		}
+	default:
+		if text := strings.TrimSpace(fmt.Sprint(value)); text != "" && text != "<nil>" {
+			rows = append(rows, text)
+		}
+	}
+	return rows
+}
+
+func freeStateNormalizedViewFingerprint(values []string) string {
+	values = freeStateNormalizedViewIDs(values)
+	if len(values) == 0 {
+		return ""
+	}
+	digest := sha256.Sum256([]byte(strings.Join(values, "\x1f")))
+	return "ccb_views:" + hex.EncodeToString(digest[:8])
+}
+
+func freeStateNormalizedViewIDs(values []string) []string {
+	seen := map[string]bool{}
+	out := make([]string, 0, len(values))
+	for _, value := range values {
+		value = strings.TrimSpace(value)
+		if value == "" || seen[value] {
+			continue
+		}
+		seen[value] = true
+		out = append(out, value)
+	}
+	sort.Strings(out)
+	return out
+}
+
+func mergeFreeStateObservationLedger(ledger map[string]any, observation *agentloop.RecentObservation) map[string]any {
+	ledger = cloneContext(ledger)
+	if len(ledger) == 0 {
+		ledger = map[string]any{}
+	}
+	ledger["schema_version"] = freeStateObservationLedgerSchema
+	if rejected := freeStateRejectedObservation(observation); len(rejected) > 0 {
+		rows := freeStateMapRows(ledger["rejected_view_sets"])
+		if !freeStateRejectedObservationRecorded(rows, rejected) {
+			rows = append(rows, rejected)
+			ledger["rejected_view_sets"] = freeStateBoundedRows(rows)
+			ledger["rejected_view_set_count"] = freeStateLedgerCount(ledger["rejected_view_set_count"], len(rows)-1) + 1
+		}
+	}
+	if receipt := freeStateObservationCompactReceipt(observation); len(receipt) > 0 {
+		rows := freeStateMapRows(ledger["receipts"])
+		key := firstNonEmpty(firstStringFromMap(receipt, "receipt_id"), firstStringFromMap(receipt, "tool_call_id"))
+		if !freeStateCompactReceiptRecorded(rows, key) {
+			rows = append(rows, receipt)
+			ledger["receipts"] = freeStateBoundedRows(rows)
+			ledger["receipt_count"] = freeStateLedgerCount(ledger["receipt_count"], len(rows)-1) + 1
+		}
+	}
+	if !freeStateUsableObservation(observation) {
+		return ledger
+	}
+	available := firstMapFromAny(ledger["available_views"])
+	if available == nil {
+		available = map[string]any{}
+	}
+	views := firstMapFromAny(observation.Summary["views"])
+	for _, viewID := range freeStateNormalizedViewIDs(freeStateStringSlice(observation.Summary["requested_views"])) {
+		view := firstMapFromAny(views[viewID])
+		viewStatus := firstNonEmpty(firstStringFromMap(view, "status"), firstStringFromMap(observation.Summary, "status"))
+		if !strings.EqualFold(viewStatus, "ready") && !strings.EqualFold(viewStatus, "partial") {
+			continue
+		}
+		available[viewID] = nonEmptyFreeStateMap(map[string]any{
+			"view_id":        viewID,
+			"status":         viewStatus,
+			"observation_id": firstStringFromMap(observation.Summary, "observation_id"),
+			"tool_call_id":   observation.ToolCallID,
+			"freshness":      cloneContext(firstMapFromAny(observation.Summary["freshness"])),
+			"limitations":    firstNonNil(view["limitations"], observation.Summary["limitations"]),
+			"evidence_refs":  observation.Summary["evidence_refs"],
+			"audit_ref":      freeStateObservationAuditRef(observation.Summary),
+		})
+	}
+	if len(available) > 0 {
+		ledger["available_views"] = available
+	}
+	return ledger
+}
+
+func freeStateUsableObservation(observation *agentloop.RecentObservation) bool {
+	if observation == nil {
+		return false
+	}
+	status := strings.ToLower(firstStringFromMap(observation.Summary, "status", "bundle_status"))
+	return status == "ready" || status == "partial"
+}
+
+func freeStateObservationCompactReceipt(observation *agentloop.RecentObservation) map[string]any {
+	if observation == nil {
+		return nil
+	}
+	audit := firstMapFromAny(observation.Summary["audit_receipt"])
+	return nonEmptyFreeStateMap(map[string]any{
+		"receipt_id":      firstStringFromMap(audit, "receipt_id"),
+		"receipt_schema":  firstStringFromMap(audit, "schema_version"),
+		"tool_call_id":    observation.ToolCallID,
+		"observation_id":  firstStringFromMap(observation.Summary, "observation_id"),
+		"request_id":      firstStringFromMap(observation.Summary, "request_id"),
+		"status":          firstStringFromMap(observation.Summary, "status", "bundle_status"),
+		"requested_views": freeStateNormalizedViewIDs(freeStateStringSlice(observation.Summary["requested_views"])),
+		"freshness":       cloneContext(firstMapFromAny(observation.Summary["freshness"])),
+		"limitations":     observation.Summary["limitations"],
+		"evidence_refs":   observation.Summary["evidence_refs"],
+	})
+}
+
+func freeStateObservationAuditRef(summary map[string]any) map[string]any {
+	audit := firstMapFromAny(summary["audit_receipt"])
+	return nonEmptyFreeStateMap(map[string]any{
+		"receipt_id":     firstStringFromMap(audit, "receipt_id"),
+		"receipt_schema": firstStringFromMap(audit, "schema_version"),
+		"bundle_id":      firstStringFromMap(summary, "bundle_id"),
+	})
+}
+
+func freeStateCompactReceiptRecorded(rows []map[string]any, key string) bool {
+	if strings.TrimSpace(key) == "" {
+		return false
+	}
+	for _, row := range rows {
+		if firstNonEmpty(firstStringFromMap(row, "receipt_id"), firstStringFromMap(row, "tool_call_id")) == key {
+			return true
+		}
+	}
+	return false
+}
+
+func freeStateBoundedRows(rows []map[string]any) []map[string]any {
+	if len(rows) > freeStateObservationLedgerLimit {
+		return rows[len(rows)-freeStateObservationLedgerLimit:]
+	}
+	return rows
+}
+
+func freeStateLedgerCount(value any, fallback int) int {
+	switch typed := value.(type) {
+	case int:
+		return typed
+	case int64:
+		return int(typed)
+	case float64:
+		return int(typed)
+	default:
+		return fallback
+	}
+}
+
+func nonEmptyFreeStateMap(row map[string]any) map[string]any {
+	for key, value := range row {
+		if value == nil || strings.TrimSpace(fmt.Sprint(value)) == "" || fmt.Sprint(value) == "[]" || fmt.Sprint(value) == "map[]" {
+			delete(row, key)
+		}
+	}
+	return row
+}
+
+func firstNonNil(values ...any) any {
+	for _, value := range values {
+		if value != nil {
+			return value
+		}
+	}
+	return nil
 }
 
 func freeStateObservationTrackTarget(observation *agentloop.RecentObservation) map[string]any {
@@ -360,6 +612,9 @@ func (s *Server) resumeFreeStateMaterialization(ctx context.Context, conversatio
 		"goal_id":                     loop.GoalID,
 		"run_id":                      loop.RunID,
 	})
+	if intent := freeStateProcessorIntentMap(loop.LatestDecision); len(intent) > 0 {
+		bound["free_state_semantic_processor_intent"] = intent
+	}
 	response, routed := s.routeOrdinaryAgentTreatmentStrategy(ctx, conversationID, mode, userText, bound, res, cfg)
 	if !routed {
 		return ChatResponse{}, false
@@ -377,7 +632,26 @@ func freeStateContainsString(values []string, want string) bool {
 }
 
 func freeStateRouteAuthorized(ctx map[string]any) bool {
-	return contextBool(ctx, "free_state_route_authorized") && freeStateLoopActiveContext(ctx)
+	if !contextBool(ctx, "free_state_route_authorized") || !freeStateLoopActiveContext(ctx) {
+		return false
+	}
+	if decision, verified := semanticEntryDecisionFromContext(ctx); verified {
+		if decision.Route != semanticEntryRouteOpenSemantic || decision.ControlMode != semanticEntryControlSemanticLoop || decision.UserAuthorization != semanticEntryAuthorizationAction {
+			return false
+		}
+		switch decision.TargetScope {
+		case semanticEntryScopeCurrentSelection:
+			return contextHasAnyValue(ctx, "selected_track_id", "selected_scene_track_id", "selected_plugin_track_id", "selected_clip_id", "piano_roll_focus_clip_id") || len(contextStringSlice(ctx["selected_clip_ids"])) > 0
+		case semanticEntryScopeProjectContext:
+			return true
+		default:
+			return false
+		}
+	}
+	// Persisted loops created before semantic_entry_decision.v1 may continue
+	// under their existing governed authorization, but they cannot create a new
+	// free-state entry without the model-owned decision above.
+	return true
 }
 
 func freeStateLoopActiveContext(ctx map[string]any) bool {
@@ -443,6 +717,8 @@ func freeStateMaterializationBlockReason(resp ChatResponse) (string, bool) {
 	switch workflow {
 	case semanticTreatmentWorkflow:
 		blocked = status == "capability_boundary" || status == "qualification_failed"
+	case semanticDynamicWorkflow:
+		blocked = status == "rejected" || status == "failed"
 	case semanticCompressorExecutionWorkflow:
 		if _, recoverable := freeStateEvidenceRefreshReason(resp); recoverable {
 			return "", false
@@ -516,7 +792,7 @@ func (s *Server) maybeContinueFreeStateAfterInteraction(ctx context.Context, int
 	if actionStatus != "applied" {
 		loop.LastError = firstNonEmpty(resp.Error, resp.StopReason, "processor action failed")
 	}
-	if loop.MaxCycles <= 0 {
+	if loop.MaxCycles <= 0 || loop.MaxCycles > freeStateMaxActionCount {
 		loop.MaxCycles = freeStateDefaultMaxCycles
 	}
 	if loop.Cycle >= loop.MaxCycles {
@@ -552,6 +828,11 @@ func (s *Server) maybeContinueFreeStateAfterInteraction(ctx context.Context, int
 		"free_state_latest_action_evidence": freeStateActionMap(loop.Actions[len(loop.Actions)-1]),
 		"requires_post_action_observation":  loop.RequiresPostActionObservation,
 	})
+	if loop.LatestDecision != nil {
+		if intent := freeStateProcessorIntentMap(loop.LatestDecision); len(intent) > 0 {
+			resumeContext["free_state_semantic_processor_intent"] = intent
+		}
+	}
 	resumed, handled := s.runAgentLoopChat(ctx, interaction.ConversationID, ChatRequest{
 		ConversationID: interaction.ConversationID,
 		Message:        loop.OriginalIntent,
@@ -573,29 +854,55 @@ func resolvedFreeStateDecisionPhase(loop freeStateReasoningLoop) string {
 	return freeStatePhaseProcessorSelection
 }
 
-func freeStateCCBObservation(res agentloop.Result) *agentloop.RecentObservation {
-	for index := len(res.Executed) - 1; index >= 0; index-- {
-		record := res.Executed[index]
+func freeStateCCBObservations(res agentloop.Result) []*agentloop.RecentObservation {
+	out := make([]*agentloop.RecentObservation, 0)
+	for _, record := range res.Executed {
 		name := strings.ToLower(firstNonEmpty(firstStringFromMap(record, "tool"), firstStringFromMap(record, "command_name")))
 		if name != "ccb.observation_request" && name != "ccb_observation_request" {
 			continue
 		}
 		result := firstMapFromAny(record["result"])
 		bundle := firstMapFromAny(result["bundle"])
-		if len(bundle) == 0 {
+		if len(bundle) == 0 && len(firstMapFromAny(result["audit_receipt"])) == 0 {
 			continue
 		}
-		status := firstNonEmpty(firstStringFromMap(record, "status"), firstStringFromMap(result, "status"), firstStringFromMap(bundle, "status"))
-		return &agentloop.RecentObservation{
+		status := firstNonEmpty(firstStringFromMap(record, "status"), firstStringFromMap(result, "status"), firstStringFromMap(bundle, "status"), firstStringFromMap(firstMapFromAny(result["audit_receipt"]), "status"))
+		summary := bundle
+		if len(summary) == 0 {
+			summary = result
+		}
+		out = append(out, &agentloop.RecentObservation{
 			ToolCallID:  firstStringFromMap(record, "tool_call_id"),
 			Tool:        firstNonEmpty(firstStringFromMap(record, "tool"), "ccb.observation_request"),
 			CommandName: firstStringFromMap(record, "command_name"),
 			Status:      status,
 			Error:       firstStringFromMap(record, "error"),
-			Summary:     cloneContext(bundle),
+			Summary:     cloneContext(summary),
+		})
+	}
+	return out
+}
+
+func freeStateCCBObservation(res agentloop.Result) *agentloop.RecentObservation {
+	observations := freeStateCCBObservations(res)
+	if len(observations) == 0 {
+		return nil
+	}
+	for index := len(observations) - 1; index >= 0; index-- {
+		if freeStateUsableObservation(observations[index]) {
+			return observations[index]
 		}
 	}
-	return nil
+	return observations[len(observations)-1]
+}
+
+func freeStateObservationReceiptRecorded(receipts []map[string]any, receiptID string) bool {
+	for _, receipt := range receipts {
+		if firstStringFromMap(receipt, "receipt_id") == receiptID {
+			return true
+		}
+	}
+	return false
 }
 
 func isFreeStateCancellation(decision string, resp ChatResponse) bool {
@@ -614,6 +921,18 @@ func freeStateAcousticActionOutcome(interaction PendingInteraction, resp ChatRes
 		}
 		if status == "failed" || strings.TrimSpace(resp.Error) != "" {
 			return "compressor", "failed", cloneContext(firstMapFromAny(resp.WorkflowData["execution_receipt"])), true
+		}
+	case strings.EqualFold(workflow, semanticDynamicWorkflow):
+		status := firstStringFromMap(resp.WorkflowData, "status")
+		processor := firstStringFromMap(resp.WorkflowData, "processor_type")
+		if processor == "" {
+			processor = firstStringFromMap(firstMapFromAny(resp.WorkflowData["execution_receipt"]), "processor_type")
+		}
+		if status == "executed" {
+			return firstNonEmpty(processor, "dynamic"), "applied", cloneContext(firstMapFromAny(resp.WorkflowData["execution_receipt"])), true
+		}
+		if status == "failed" || status == "rejected" || strings.TrimSpace(resp.Error) != "" {
+			return firstNonEmpty(processor, "dynamic"), "failed", cloneContext(firstMapFromAny(resp.WorkflowData["execution_receipt"])), true
 		}
 	case strings.EqualFold(workflow, "capability_runtime_v1") &&
 		firstStringFromMap(resp.WorkflowData, "capability_id") == agentSemanticEQCapabilityID:
@@ -652,6 +971,28 @@ func freeStateLoopMap(loop freeStateReasoningLoop) map[string]any {
 	data, _ := json.Marshal(loop)
 	out := map[string]any{}
 	_ = json.Unmarshal(data, &out)
+	return out
+}
+
+func freeStateProcessorIntentMap(decision *agentloop.FreeStateDecision) map[string]any {
+	if decision == nil || decision.SemanticProcessorIntent == nil {
+		return nil
+	}
+	intent := decision.SemanticProcessorIntent
+	out := map[string]any{
+		"schema_version":    intent.SchemaVersion,
+		"status":            intent.Status,
+		"family":            intent.Family,
+		"intent":            intent.Intent,
+		"required_coverage": append([]string(nil), intent.RequiredCoverage...),
+		"scope":             intent.Scope,
+		"control_mode":      intent.ControlMode,
+		"confidence":        intent.Confidence,
+		"evidence_refs":     append([]string(nil), intent.EvidenceRefs...),
+	}
+	if intent.Rejection != nil {
+		out["rejection"] = map[string]any{"code": intent.Rejection.Code, "reason": intent.Rejection.Reason, "details": cloneContext(intent.Rejection.Details)}
+	}
 	return out
 }
 

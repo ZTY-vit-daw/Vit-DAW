@@ -27,6 +27,7 @@ const (
 
 func Build(input Input) Projection {
 	tracks := rowsFromAny(input.ProjectPackage["tracks"])
+	tracks = reconcileAuthoritativeSourceState(tracks, input.ProjectPackage, input.AuthoritativeState)
 	declaredTrackCount := intFromAny(input.ProjectPackage["track_count"])
 	if declaredTrackCount < len(tracks) {
 		declaredTrackCount = len(tracks)
@@ -64,6 +65,9 @@ func Build(input Input) Projection {
 	coverage := buildCoverage(summary)
 	risk := buildRiskSummary(issues)
 	limitations := buildLimitations(summary, coverage, len(tracks), issuesCapped, len(trackFacts) < len(tracks))
+	for _, limitation := range authoritativeDADLimitations(summary, input.AuthoritativeState) {
+		limitations = appendUniqueString(limitations, limitation)
+	}
 	status := projectionStatus(summary, coverage, risk)
 	proj := Projection{
 		SchemaVersion:    SchemaVersion,
@@ -82,6 +86,173 @@ func Build(input Input) Projection {
 	}
 	proj.LLMContext = BuildLLMContext(proj)
 	return proj
+}
+
+// reconcileAuthoritativeSourceState keeps compact project packets honest. A
+// missing source_path in a compact row is not evidence of missing media; only
+// a matching authoritative binding/topology with explicit missing/invalid
+// source evidence may upgrade that row to missing. A stale authoritative
+// summary is ignored rather than borrowed across project revisions.
+func reconcileAuthoritativeSourceState(tracks []map[string]any, project, authoritative map[string]any) []map[string]any {
+	if len(tracks) == 0 || len(authoritative) == 0 || !authoritativeMatchesProject(project, authoritative) {
+		return tracks
+	}
+	authRows := rowsFromAny(authoritative["tracks"])
+	byKey := map[string]map[string]any{}
+	byTrack := map[string][]map[string]any{}
+	for _, row := range authRows {
+		key := sourceStateRowKey(row)
+		if key != "" {
+			byKey[key] = row
+		}
+		if trackID := firstNonEmptyText(row, "track_id", "id"); trackID != "" {
+			byTrack[trackID] = append(byTrack[trackID], row)
+		}
+	}
+	out := make([]map[string]any, 0, len(tracks))
+	for _, track := range tracks {
+		copyTrack := cloneAnyMap(track)
+		key := sourceStateRowKey(track)
+		auth := byKey[key]
+		if len(auth) == 0 && sourceStateClipID(track) == "" {
+			trackID := firstNonEmptyText(track, "track_id", "id")
+			if rows := byTrack[trackID]; len(rows) == 1 {
+				auth = rows[0]
+			}
+		}
+		if len(auth) > 0 {
+			primary := mapValue(copyTrack["primary_clip"])
+			if len(primary) == 0 {
+				primary = map[string]any{}
+				copyTrack["primary_clip"] = primary
+			}
+			// Only explicit authoritative source states are propagated. DAD
+			// readiness alone is intentionally insufficient to invent identity.
+			if status := firstNonEmptyText(auth, "source_status", "source_state", "source_availability"); status != "" {
+				primary["source_status"] = status
+			} else if valid, ok := boolValue(auth["playback_source_valid"]); ok {
+				primary["playback_source_valid"] = valid
+			}
+			for _, keyName := range []string{"source_path", "current_source_path", "file_path"} {
+				if value := cleanText(auth[keyName]); value != "" {
+					primary["current_source_path"] = value
+					break
+				}
+			}
+		}
+		out = append(out, copyTrack)
+	}
+	return out
+}
+
+func authoritativeMatchesProject(project, authoritative map[string]any) bool {
+	for _, key := range []string{"project_uuid", "project_epoch", "project_revision", "project_state_hash"} {
+		want := cleanText(project[key])
+		got := cleanText(authoritative[key])
+		if want != "" && got != "" && want != got {
+			return false
+		}
+		if want != "" && got == "" {
+			return false
+		}
+		if got != "" && want == "" {
+			return false
+		}
+	}
+	for _, key := range []string{"track_count", "clip_count"} {
+		want := cleanText(project[key])
+		got := cleanText(authoritative[key])
+		if want != "" && got != "" && want != got {
+			return false
+		}
+	}
+	return true
+}
+
+func sourceStateRowKey(row map[string]any) string {
+	if len(row) == 0 {
+		return ""
+	}
+	trackID := firstNonEmptyText(row, "track_id", "id")
+	clipID := firstNonEmptyText(row, "clip_id")
+	if primary := mapValue(row["primary_clip"]); len(primary) > 0 {
+		clipID = firstNonEmpty(clipID, firstNonEmptyText(primary, "clip_id", "id"))
+	}
+	if trackID == "" && clipID == "" {
+		return ""
+	}
+	return trackID + "::" + clipID
+}
+
+func sourceStateClipID(row map[string]any) string {
+	clipID := firstNonEmptyText(row, "clip_id")
+	if primary := mapValue(row["primary_clip"]); len(primary) > 0 {
+		clipID = firstNonEmpty(clipID, firstNonEmptyText(primary, "clip_id", "id"))
+	}
+	return clipID
+}
+
+func authoritativeDADLimitations(summary TechnicalSummary, authoritative map[string]any) []string {
+	if len(authoritative) == 0 {
+		return nil
+	}
+	status := strings.ToLower(cleanText(authoritative["dad_fact_status"]))
+	ready := intFromAny(authoritative["dad_fact_ready_count"])
+	total := intFromAny(authoritative["dad_fact_total_count"])
+	if status == "" && ready == 0 && total == 0 {
+		return nil
+	}
+	limits := []string{}
+	if total > 0 && total != summary.TrackCount {
+		limits = append(limits, "authoritative_dad_topology_count_mismatch")
+	}
+	if status == "ready" && total > 0 && ready != total {
+		limits = append(limits, "authoritative_dad_ready_count_inconsistent")
+	}
+	if status == "failed" || status == "missing" || status == "partial" {
+		limits = append(limits, "authoritative_dad_status_not_complete")
+	}
+	return limits
+}
+
+func cloneAnyMap(in map[string]any) map[string]any {
+	out := make(map[string]any, len(in))
+	for key, value := range in {
+		out[key] = value
+	}
+	return out
+}
+
+func cleanText(value any) string {
+	text := strings.TrimSpace(fmt.Sprint(value))
+	if text == "<nil>" {
+		return ""
+	}
+	return text
+}
+
+func firstNonEmptyText(row map[string]any, keys ...string) string {
+	for _, key := range keys {
+		if value := cleanText(row[key]); value != "" {
+			return value
+		}
+	}
+	return ""
+}
+
+func boolValue(value any) (bool, bool) {
+	switch typed := value.(type) {
+	case bool:
+		return typed, true
+	case string:
+		switch strings.ToLower(strings.TrimSpace(typed)) {
+		case "true", "1", "yes":
+			return true, true
+		case "false", "0", "no":
+			return false, true
+		}
+	}
+	return false, false
 }
 
 func buildTrackFact(track map[string]any) (TrackFact, []Issue) {
@@ -147,6 +318,7 @@ func buildTrackFact(track map[string]any) (TrackFact, []Issue) {
 		ClipCount:            clipCount,
 		LengthSeconds:        round3(length),
 		SourcePresent:        strings.TrimSpace(sourcePath) != "",
+		SourceStatus:         sourceFactStatus(sourcePath, primary, acoustic, track),
 		PlaybackSourceStatus: playbackStatus,
 		SourceExtension:      ext,
 		FormatFamily:         formatFamily,
@@ -155,6 +327,7 @@ func buildTrackFact(track map[string]any) (TrackFact, []Issue) {
 		ChannelCount:         channelCount,
 		AcousticStatus:       acousticStatus,
 	}
+	fact.SourcePresent = fact.SourceStatus == "present"
 	if hasRMS {
 		value := round3(rmsDBFS)
 		fact.RMSDBFS = &value
@@ -192,7 +365,7 @@ func issuesForTrack(fact TrackFact, hasPeak bool, peakDBFS float64, hasRMS bool,
 		add("empty_track", SeverityWarning, "Track has no clips in the project summary.")
 		return issues
 	}
-	if !fact.SourcePresent {
+	if fact.SourceStatus == "missing" {
 		add("source_path_missing", SeverityError, "Primary clip has no readable source path in the project summary.")
 	}
 	if fact.PlaybackSourceStatus == "invalid" {
@@ -230,8 +403,10 @@ func applyTrackFactToSummary(summary *TechnicalSummary, fact TrackFact) {
 	}
 	if fact.SourcePresent {
 		summary.SourcePresentCount++
-	} else if fact.ClipCount > 0 {
+	} else if fact.SourceStatus == "missing" && fact.ClipCount > 0 {
 		summary.SourceMissingCount++
+	} else if fact.ClipCount > 0 {
+		summary.SourceUnknownCount++
 	}
 	switch fact.PlaybackSourceStatus {
 	case "valid":
@@ -280,7 +455,7 @@ func buildCoverage(summary TechnicalSummary) TechnicalCoverage {
 	bitKnown := minInt(sumCounts(summary.BitDepthCounts), summary.PCMSourceCount)
 	channelKnown := sumCounts(summary.ChannelCountCounts)
 	return TechnicalCoverage{
-		SourcePath:       coverageItem(summary.SourcePresentCount, sourceTotal, summary.SourceMissingCount, 0, 0),
+		SourcePath:       coverageItemWithUnknown(summary.SourcePresentCount, sourceTotal, summary.SourceMissingCount, summary.SourceUnknownCount, 0, 0),
 		PlaybackValidity: coverageItem(summary.PlaybackValidCount, sourceTotal, summary.PlaybackUnknownCount, summary.PlaybackInvalidCount, 0),
 		FormatFamily:     coverageItem(summary.PCMSourceCount+summary.CompressedSourceCount, sourceTotal, summary.UnknownFormatCount, 0, 0),
 		SampleRate:       coverageItem(sampleKnown, sourceTotal, sourceTotal-sampleKnown, 0, 0),
@@ -315,6 +490,50 @@ func coverageItem(known, total, missing, invalid, notApplicable int) CoverageIte
 		InvalidCount:  invalid,
 		NotApplicable: notApplicable,
 	}
+}
+
+func coverageItemWithUnknown(known, total, missing, unknown, invalid, notApplicable int) CoverageItem {
+	if missing < 0 {
+		missing = 0
+	}
+	if unknown < 0 {
+		unknown = 0
+	}
+	status := StatusReady
+	switch {
+	case total <= 0 && notApplicable > 0:
+		status = StatusNotApplicable
+	case total <= 0:
+		status = StatusMissing
+	case invalid > 0:
+		status = StatusSuspect
+	case known == 0 && unknown == 0:
+		status = StatusMissing
+	case known < total || missing > 0 || unknown > 0:
+		status = StatusPartial
+	}
+	return CoverageItem{Status: status, KnownCount: known, TotalCount: total, MissingCount: missing, UnknownCount: unknown, InvalidCount: invalid, NotApplicable: notApplicable}
+}
+
+func sourceFactStatus(sourcePath string, primary, acoustic, track map[string]any) string {
+	if strings.TrimSpace(sourcePath) != "" {
+		return "present"
+	}
+	for _, row := range []map[string]any{primary, acoustic, track} {
+		for _, key := range []string{"source_status", "source_state", "source_availability"} {
+			status := strings.ToLower(strings.TrimSpace(text(row[key])))
+			switch status {
+			case "missing", "absent", "unavailable", "invalid":
+				return "missing"
+			case "present", "available", "valid":
+				return "present"
+			}
+		}
+		if valid, ok := firstBool(row, "playback_source_valid", "source_valid"); ok && !valid {
+			return "missing"
+		}
+	}
+	return "unknown"
 }
 
 func buildRiskSummary(issues []Issue) RiskSummary {
@@ -393,6 +612,9 @@ func buildLimitations(summary TechnicalSummary, coverage TechnicalCoverage, obse
 	if coverage.AcousticPackage.Status == StatusMissing || coverage.AcousticPackage.Status == StatusPartial {
 		limits = append(limits, "dad_acoustic_package_not_ready_for_all_tracks")
 	}
+	if coverage.SourcePath.UnknownCount > 0 {
+		limits = append(limits, "source_path_not_exposed_by_compact_project_state")
+	}
 	if summary.CompressedSourceCount > 0 {
 		limits = append(limits, "compressed_audio_formats_do_not_provide_pcm_bit_depth")
 	}
@@ -413,6 +635,7 @@ func BuildLLMContext(proj Projection) LLMContext {
 			"track_count":        proj.TechnicalSummary.TrackCount,
 			"clip_count":         proj.TechnicalSummary.ClipCount,
 			"source_missing":     proj.TechnicalSummary.SourceMissingCount,
+			"source_unknown":     proj.TechnicalSummary.SourceUnknownCount,
 			"playback_invalid":   proj.TechnicalSummary.PlaybackInvalidCount,
 			"compressed_sources": proj.TechnicalSummary.CompressedSourceCount,
 			"format_families":    proj.TechnicalSummary.FormatFamilyCounts,
@@ -473,6 +696,9 @@ func suggestedNextStep(proj Projection) string {
 	if proj.RiskSummary.BySeverity[SeverityError] > 0 {
 		return "Resolve missing or invalid imported source clips before using the project for mix actions."
 	}
+	if proj.TechnicalSummary.SourceUnknownCount > 0 {
+		return "Confirm source identity through the authoritative project binding before treating compact metadata gaps as missing media."
+	}
 	if proj.Status == StatusPartial {
 		return "Report missing technical facts explicitly, then proceed with conservative organization or listening tasks."
 	}
@@ -524,6 +750,7 @@ func compactTrackFacts(facts []TrackFact, maxItems int) []map[string]any {
 			"clip_id":                fact.ClipID,
 			"clip_count":             fact.ClipCount,
 			"source_present":         fact.SourcePresent,
+			"source_status":          fact.SourceStatus,
 			"playback_source_status": fact.PlaybackSourceStatus,
 			"format_family":          fact.FormatFamily,
 			"source_extension":       fact.SourceExtension,

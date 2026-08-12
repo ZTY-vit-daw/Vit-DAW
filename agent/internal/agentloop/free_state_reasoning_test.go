@@ -9,11 +9,34 @@ import (
 	"vit-daw-agent/internal/config"
 	executorpkg "vit-daw-agent/internal/executor"
 	"vit-daw-agent/internal/planner"
+	"vit-daw-agent/internal/processorintent"
 	agentruntime "vit-daw-agent/internal/runtime"
 )
 
 type freeStateTestExecutor struct {
 	calls []planner.ToolCall
+}
+
+type rejectedFreeStateTestExecutor struct {
+	calls []planner.ToolCall
+}
+
+func (e *rejectedFreeStateTestExecutor) RunToolCall(_ context.Context, in executorpkg.Input) (executorpkg.Result, error) {
+	e.calls = append(e.calls, in.ToolCall)
+	views := messageLoopStringList(in.ToolCall.Args["view_ids"])
+	return executorpkg.Result{
+		ToolCallID: in.ToolCall.ID, Tool: in.ToolCall.Tool, CommandName: "ccb_observation_request", Status: "rejected",
+		Result: map[string]any{"status": "rejected", "bundle": map[string]any{
+			"schema_version": "ccb_observation_bundle.v1", "bundle_id": "bundle-rejected", "request_id": "request-rejected",
+			"status": "rejected", "read_only": true, "mutation_authority": false, "observation_id": "obs-rejected",
+			"requested_views": views, "views": map[string]any{}, "freshness": map[string]any{"status": "rejected"},
+			"omission_reasons": []any{"requested view set is deferred"},
+			"audit_receipt": map[string]any{
+				"schema_version": "ccb_observation_receipt.v1", "receipt_id": "ccbr-rejected", "status": "rejected",
+				"rejection_reasons": []any{"requested view set is deferred"},
+			},
+		}},
+	}, nil
 }
 
 func (e *freeStateTestExecutor) RunToolCall(_ context.Context, in executorpkg.Input) (executorpkg.Result, error) {
@@ -34,6 +57,35 @@ func (e *freeStateTestExecutor) RunToolCall(_ context.Context, in executorpkg.In
 			},
 		},
 	}, nil
+}
+
+func TestFreeStateShortChainObservationThenAction(t *testing.T) {
+	client := &fakeMessageCompleter{responses: []string{
+		`{"final":false,"reply":"Inspect bounded dynamics.","free_state":{"schema_version":"free_state_decision.v1","status":"needs_observation","evidence_status":"insufficient","summary":"Need current dynamics evidence.","requested_view_ids":["track.time_dynamics"]},"tool_calls":[{"id":"ccb-selection","tool":"ccb.observation_request","args":{"view_ids":["track.time_dynamics"]}}]}`,
+		`{"final":true,"reply":"Use compression next.","free_state":{"schema_version":"free_state_decision.v1","status":"needs_action","evidence_status":"sufficient","summary":"Current bounded dynamics evidence supports stabilization.","remaining_intent":"stabilize the selected vocal","processor_type":"compressor"},"tool_calls":[]}`,
+	}}
+	executor := &freeStateTestExecutor{}
+	loop := MessageLoop{
+		Client: client, Config: config.EngineConfig{BaseURL: "http://example.invalid", DefaultModel: "test", APIKey: "test"},
+		Executor: executor, Budget: Budget{MaxTurns: 3, MaxToolCalls: 1, MaxConsecutiveErrors: 1},
+	}
+	result := loop.Start(context.Background(), Input{
+		UserText: "stabilize the selected vocal",
+		Context: map[string]any{"free_state_reasoning_loop": map[string]any{
+			"schema_version": "free_state_reasoning_loop.v1", "status": "reasoning",
+			"decision_phase": "processor_selection", "original_intent": "stabilize the selected vocal",
+		}},
+		AllowedTools: []string{"ccb.observation_request"},
+	})
+	if result.FreeStateDecision == nil || result.FreeStateDecision.Status != FreeStateNeedsAction || result.FreeStateDecision.ProcessorType != "compressor" {
+		t.Fatalf("short chain did not reach needs_action: %+v", result)
+	}
+	if len(executor.calls) != 1 || executor.calls[0].Tool != "ccb.observation_request" {
+		t.Fatalf("short chain observation calls = %+v", executor.calls)
+	}
+	if len(client.calls) != 2 {
+		t.Fatalf("short chain model calls = %d, want 2", len(client.calls))
+	}
 }
 
 func TestFreeStateLoopRequiresCCBObservationBeforePostActionSatisfaction(t *testing.T) {
@@ -139,6 +191,20 @@ func TestFreeStateTransientLLMFailurePausesAndResumesPostActionEvaluation(t *tes
 	if result.Continuation.RecentObservation == nil || !messageLoopCCBObservationBundleUsable(result.Continuation.RecentObservation.Summary) {
 		t.Fatalf("fresh CCB evidence was not retained in continuation: %+v", result.Continuation.RecentObservation)
 	}
+	continuationState := &runState{
+		goal: agentruntime.Goal{GoalID: result.Continuation.GoalID, RunID: result.Continuation.RunID},
+		input: Input{
+			UserText: result.Continuation.UserText, Summary: result.Continuation.Summary,
+			Context: result.Continuation.Context, ContextSnapshot: result.Continuation.ContextSnapshot,
+		},
+		trace:             append([]planner.TraceEvent(nil), result.Continuation.Trace...),
+		contextSnapshot:   cloneMap(result.Continuation.ContextSnapshot),
+		recentObservation: cloneRecentObservation(result.Continuation.RecentObservation),
+	}
+	continuationModel := (&Runner{}).buildModelContextSnapshot(continuationState, (&Runner{}).buildContextSnapshot(continuationState))
+	if strings.Count(continuationModel, `"schema_version":"ccb_model_projection.v1"`) != 1 {
+		t.Fatalf("continuation rehydrated duplicate CCB projection: %s", continuationModel)
+	}
 	if runtime.Status(result.GoalID).Status != agentruntime.StatusWaitingContinue {
 		t.Fatalf("runtime status = %q, want waiting_continue", runtime.Status(result.GoalID).Status)
 	}
@@ -149,6 +215,46 @@ func TestFreeStateTransientLLMFailurePausesAndResumesPostActionEvaluation(t *tes
 	}
 	if len(executor.calls) != 1 {
 		t.Fatalf("resume repeated an already completed observation: %+v", executor.calls)
+	}
+}
+
+func TestFreeStateRejectedViewSetIsNotRetriedAcrossContinuation(t *testing.T) {
+	viewJSON := `["mix.masking_relationship","track.basic_energy"]`
+	request := func(callID string) string {
+		return `{"final":false,"reply":"Inspect masking.","free_state":{"schema_version":"free_state_decision.v1","status":"needs_observation","evidence_status":"insufficient","summary":"Need masking evidence.","requested_view_ids":` + viewJSON + `},"tool_calls":[{"id":"` + callID + `","tool":"ccb.observation_request","args":{"view_ids":` + viewJSON + `}}]}`
+	}
+	client := &fakeMessageCompleter{
+		responses: []string{
+			request("ccb-first"), request("ccb-retry-after-continue"),
+			`{"final":true,"reply":"The rejected view set cannot be retried.","free_state":{"schema_version":"free_state_decision.v1","status":"blocked","evidence_status":"insufficient","summary":"The rejected view set cannot be retried.","stop_reason":"ccb_view_set_rejected","limitations":["No equivalent view is available."]},"tool_calls":[]}`,
+		},
+		errors: []error{nil, fmt.Errorf("LLM HTTP error 502: error code: 502")},
+	}
+	executor := &rejectedFreeStateTestExecutor{}
+	runtime := agentruntime.New()
+	loop := MessageLoop{
+		Runtime: runtime, Client: client,
+		Config:   config.EngineConfig{BaseURL: "http://example.invalid", DefaultModel: "test", APIKey: "test"},
+		Executor: executor, Budget: Budget{MaxTurns: 5, MaxToolCalls: 3, MaxConsecutiveErrors: 2},
+	}
+	paused := loop.Start(context.Background(), Input{
+		UserText: "inspect masking", AllowedTools: []string{"ccb.observation_request"},
+		Context: map[string]any{"free_state_reasoning_loop": map[string]any{
+			"schema_version": "free_state_reasoning_loop.v1", "status": "observing", "decision_phase": "processor_selection",
+			"original_intent": "inspect masking",
+		}},
+	})
+	if paused.Status != agentruntime.StatusWaitingContinue || paused.Continuation == nil || len(executor.calls) != 1 {
+		t.Fatalf("rejected sequence did not pause with one execution: status=%q continuation=%v calls=%d", paused.Status, paused.Continuation != nil, len(executor.calls))
+	}
+	loopContext := messageLoopMapValue(paused.Continuation.Context["free_state_reasoning_loop"])
+	ledger := messageLoopMapValue(loopContext["observation_ledger"])
+	if len(messageLoopMapRows(ledger["rejected_view_sets"])) != 1 {
+		t.Fatalf("continuation lost rejection ledger: %#v", loopContext)
+	}
+	resumed := loop.Continue(context.Background(), *paused.Continuation)
+	if resumed.FreeStateDecision == nil || resumed.FreeStateDecision.Status != FreeStateBlocked || len(executor.calls) != 1 {
+		t.Fatalf("continuation retried rejected CCB set: decision=%+v calls=%d result=%+v", resumed.FreeStateDecision, len(executor.calls), resumed)
 	}
 }
 
@@ -164,6 +270,7 @@ func TestFreeStateNeedsActionCarriesRemainderWithoutToolAuthority(t *testing.T) 
 		Context: map[string]any{"free_state_reasoning_loop": map[string]any{
 			"schema_version": "free_state_reasoning_loop.v1", "status": "reasoning", "original_intent": "让人声更稳定、更靠前",
 		}},
+		RecentObservation: semanticGuidanceUsableCCBObservation("ready"),
 	})
 	if result.FreeStateDecision == nil || result.FreeStateDecision.Status != FreeStateNeedsAction || result.FreeStateDecision.RemainingIntent == "" {
 		t.Fatalf("free-state handoff = %+v", result.FreeStateDecision)
@@ -179,7 +286,7 @@ func TestFreeStateHandoffStatusesAcceptFinalFalseWithoutToolCalls(t *testing.T) 
 			"schema_version": "free_state_reasoning_loop.v1", "status": "reasoning",
 			"original_intent": "make the vocal steadier and more forward",
 		},
-	}}}
+	}}, recentObservation: semanticGuidanceUsableCCBObservation("ready")}
 	tests := []struct {
 		name     string
 		decision FreeStateDecision
@@ -221,25 +328,100 @@ func TestFreeStateNeedsActionRequiresStructuredProcessorType(t *testing.T) {
 	}
 }
 
-func TestFreeStateRejectsAutomaticRepeatOfAppliedProcessorFamily(t *testing.T) {
+func TestFreeStateAllowsOneFreshEvidenceRepeatButBoundsSameFamily(t *testing.T) {
 	state := &runState{input: Input{Context: map[string]any{
 		"free_state_reasoning_loop": map[string]any{
-			"schema_version": "free_state_reasoning_loop.v1", "status": "re_evaluating",
+			"schema_version": "free_state_reasoning_loop.v1", "status": "re_evaluating", "decision_phase": "post_action_evaluation",
 			"original_intent": "make the vocal steadier and clearer",
 			"actions":         []map[string]any{{"cycle": 1, "processor_type": "compressor", "status": "applied"}},
 		},
-	}}}
+	}}, recentObservation: semanticGuidanceUsableCCBObservation("ready")}
 	out := messageLoopOutput{Final: true, FreeStateDecision: &FreeStateDecision{
 		SchemaVersion: FreeStateDecisionSchema, Status: FreeStateNeedsAction, EvidenceStatus: "sufficient",
 		Summary: "try compression again", RemainingIntent: "make the vocal steadier", ProcessorType: "compressor",
 	}}
-	if issue := messageLoopFreeStateOutputIssue(state, out); !strings.Contains(issue, "same processor_type") {
-		t.Fatalf("automatic repeated compressor action was accepted: %q", issue)
+	if issue := messageLoopFreeStateOutputIssue(state, out); issue != "" {
+		t.Fatalf("one evidence-grounded compressor repeat was rejected: %q", issue)
 	}
 	out.FreeStateDecision.ProcessorType = "eq"
 	out.FreeStateDecision.Summary = "address the independent tonal remainder"
 	if issue := messageLoopFreeStateOutputIssue(state, out); issue != "" {
 		t.Fatalf("independent EQ remainder was rejected: %q", issue)
+	}
+	state.input.Context["free_state_reasoning_loop"].(map[string]any)["actions"] = []map[string]any{
+		{"cycle": 1, "processor_type": "compressor", "status": "applied"},
+		{"cycle": 2, "processor_type": "compressor", "status": "applied"},
+	}
+	out.FreeStateDecision.ProcessorType = "compressor"
+	if issue := messageLoopFreeStateOutputIssue(state, out); !strings.Contains(issue, "bounded 2-action limit") {
+		t.Fatalf("third compressor action escaped the same-family bound: %q", issue)
+	}
+}
+
+func TestFreeStatePostActionInconclusiveEvidenceBlocksFurtherWrites(t *testing.T) {
+	state := &runState{input: Input{Context: map[string]any{
+		"free_state_reasoning_loop": map[string]any{
+			"schema_version": "free_state_reasoning_loop.v1", "status": "re_evaluating", "decision_phase": "post_action_evaluation",
+			"original_intent": "reduce vocal sibilance",
+			"actions":         []map[string]any{{"cycle": 1, "processor_type": "de_esser", "status": "applied"}},
+		},
+	}}, recentObservation: semanticGuidanceUsableCCBObservation("ready")}
+	out := messageLoopOutput{Final: true, FreeStateDecision: &FreeStateDecision{
+		SchemaVersion: FreeStateDecisionSchema, Status: FreeStateNeedsAction, EvidenceStatus: "inconclusive",
+		Summary: "the fresh result is not decisive", RemainingIntent: "reduce sibilance", ProcessorType: "de_esser",
+	}}
+	if issue := messageLoopFreeStateOutputIssue(state, out); !strings.Contains(issue, "inconclusive") {
+		t.Fatalf("inconclusive post-action evidence authorized another write: %q", issue)
+	}
+}
+
+func TestFreeStatePostActionRequiresObservationExecutedInCurrentTurn(t *testing.T) {
+	state := &runState{input: Input{Context: map[string]any{
+		"free_state_reasoning_loop": map[string]any{
+			"schema_version": "free_state_reasoning_loop.v1", "status": "re_evaluating", "decision_phase": "post_action_evaluation",
+			"original_intent": "reduce vocal sibilance", "requires_post_action_observation": true,
+		},
+	}}, recentObservation: semanticGuidanceUsableCCBObservation("ready")}
+	out := messageLoopOutput{Final: true, FreeStateDecision: &FreeStateDecision{
+		SchemaVersion: FreeStateDecisionSchema, Status: FreeStateNeedsAction, EvidenceStatus: "sufficient",
+		Summary: "reduce the remaining sibilance", RemainingIntent: "reduce sibilance", ProcessorType: "de_esser",
+	}}
+	if issue := messageLoopFreeStateOutputIssue(state, out); !strings.Contains(issue, "fresh model-requested CCB observation_request") {
+		t.Fatalf("stale prior-turn observation authorized an action: %q", issue)
+	}
+	state.executed = []map[string]any{{
+		"tool": "ccb.observation_request", "status": "ok",
+		"result": map[string]any{"bundle": map[string]any{
+			"status": "ready", "read_only": true, "mutation_authority": false,
+			"views": map[string]any{"track.frequency_time_events": map[string]any{"status": "ready"}},
+		}},
+	}}
+	if issue := messageLoopFreeStateOutputIssue(state, out); issue != "" {
+		t.Fatalf("current-turn successful CCB observation was rejected: %q", issue)
+	}
+}
+
+func TestFreeStateTotalActionBoundBlocksSeventhAction(t *testing.T) {
+	actions := []map[string]any{
+		{"cycle": 1, "processor_type": "eq", "status": "applied"},
+		{"cycle": 2, "processor_type": "compressor", "status": "applied"},
+		{"cycle": 3, "processor_type": "limiter", "status": "applied"},
+		{"cycle": 4, "processor_type": "gate_expander", "status": "applied"},
+		{"cycle": 5, "processor_type": "de_esser", "status": "applied"},
+		{"cycle": 6, "processor_type": "transient_shaper", "status": "applied"},
+	}
+	state := &runState{input: Input{Context: map[string]any{
+		"free_state_reasoning_loop": map[string]any{
+			"schema_version": "free_state_reasoning_loop.v1", "status": "re_evaluating", "decision_phase": "post_action_evaluation",
+			"original_intent": "finish the bounded treatment", "actions": actions,
+		},
+	}}, recentObservation: semanticGuidanceUsableCCBObservation("ready")}
+	out := messageLoopOutput{Final: true, FreeStateDecision: &FreeStateDecision{
+		SchemaVersion: FreeStateDecisionSchema, Status: FreeStateNeedsAction, EvidenceStatus: "sufficient",
+		Summary: "apply the final correction", RemainingIntent: "apply the final correction", ProcessorType: "multiband_dynamics",
+	}}
+	if issue := messageLoopFreeStateOutputIssue(state, out); !strings.Contains(issue, "bounded 6-action limit") {
+		t.Fatalf("seventh action escaped total bound: %q", issue)
 	}
 }
 
@@ -249,15 +431,15 @@ func TestFreeStateRejectsProcessorWithoutGovernedOpenSemanticPath(t *testing.T) 
 			"schema_version": "free_state_reasoning_loop.v1", "status": "reasoning",
 			"original_intent": "avoid over-compressing the vocal",
 		},
-	}}}
+	}}, recentObservation: semanticGuidanceUsableCCBObservation("ready")}
 	out := messageLoopOutput{Final: true, FreeStateDecision: &FreeStateDecision{
 		SchemaVersion: FreeStateDecisionSchema, Status: FreeStateNeedsAction, EvidenceStatus: "sufficient",
-		Summary: "add a limiter", RemainingIntent: "avoid over-compression", ProcessorType: "limiter",
+		Summary: "add a reverb", RemainingIntent: "avoid over-compression", ProcessorType: "reverb",
 	}}
-	if issue := messageLoopFreeStateOutputIssue(state, out); !strings.Contains(issue, "only eq and compressor") {
-		t.Fatalf("unsupported limiter action was accepted: %q", issue)
+	if issue := messageLoopFreeStateOutputIssue(state, out); !strings.Contains(issue, "only eq, compressor, limiter") {
+		t.Fatalf("unsupported reverb action was accepted: %q", issue)
 	}
-	for _, processorType := range []string{"eq", "compressor"} {
+	for _, processorType := range []string{"eq", "compressor", "limiter", "gate_expander", "de_esser", "transient_shaper", "multiband_dynamics"} {
 		out.FreeStateDecision.ProcessorType = processorType
 		if issue := messageLoopFreeStateOutputIssue(state, out); issue != "" {
 			t.Fatalf("governed processor %s was rejected: %q", processorType, issue)
@@ -347,6 +529,366 @@ func TestFreeStateObservationProtocolCoercesLegacyOrMissingToolCallToCCB(t *test
 		if issue := messageLoopFreeStateOutputIssue(state, coerced); issue != "" {
 			t.Fatalf("coerced CCB request was rejected: %s", issue)
 		}
+	}
+}
+
+func TestFreeStateObservationRequestViewSetMustExactlyMatchModelDecision(t *testing.T) {
+	state := &runState{input: Input{Context: map[string]any{"free_state_reasoning_loop": map[string]any{
+		"schema_version": "free_state_reasoning_loop.v1", "status": "reasoning", "original_intent": "inspect the track",
+	}}}}
+	base := []string{"track.time_dynamics", "mix.multitrack_relationship"}
+	tests := []struct {
+		name      string
+		decision  []string
+		callViews any
+		wantIssue bool
+	}{
+		{name: "exact", decision: base, callViews: []any{"track.time_dynamics", "mix.multitrack_relationship"}},
+		{name: "reordered set", decision: base, callViews: []string{"mix.multitrack_relationship", "track.time_dynamics"}},
+		{name: "added", decision: base, callViews: []string{"track.time_dynamics", "mix.multitrack_relationship", "track.timbre_frequency"}, wantIssue: true},
+		{name: "removed", decision: base, callViews: []string{"track.time_dynamics"}, wantIssue: true},
+		{name: "replaced", decision: base, callViews: []string{"track.time_dynamics", "track.timbre_frequency"}, wantIssue: true},
+		{name: "duplicate call", decision: base, callViews: []string{"track.time_dynamics", "track.time_dynamics"}, wantIssue: true},
+		{name: "duplicate decision", decision: []string{"track.time_dynamics", "track.time_dynamics"}, callViews: []string{"track.time_dynamics"}, wantIssue: true},
+		{name: "non-array call", decision: base, callViews: "track.time_dynamics,mix.multitrack_relationship", wantIssue: true},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			out := messageLoopOutput{FreeStateDecision: &FreeStateDecision{
+				SchemaVersion: FreeStateDecisionSchema, Status: FreeStateNeedsObservation,
+				EvidenceStatus: "insufficient", Summary: "model-selected evidence", RequestedViewIDs: test.decision,
+			}, ToolCalls: []planner.ToolCall{{Tool: "ccb.observation_request", Args: map[string]any{"view_ids": test.callViews}}}}
+			issue := messageLoopFreeStateOutputIssue(state, out)
+			if test.wantIssue && issue == "" {
+				t.Fatal("mismatched or ambiguous view set was accepted")
+			}
+			if !test.wantIssue && issue != "" {
+				t.Fatalf("exact model-owned view set was rejected: %s", issue)
+			}
+		})
+	}
+}
+
+func TestFreeStateInitialActionRequiresUsableCCBBundle(t *testing.T) {
+	decision := messageLoopOutput{Final: true, FreeStateDecision: &FreeStateDecision{
+		SchemaVersion: FreeStateDecisionSchema, Status: FreeStateNeedsAction, EvidenceStatus: "sufficient",
+		Summary: "evidence supports EQ", RemainingIntent: "reduce harshness", ProcessorType: "eq",
+	}}
+	tests := []struct {
+		name        string
+		observation *RecentObservation
+		wantIssue   bool
+	}{
+		{name: "missing", wantIssue: true},
+		{name: "ready", observation: semanticGuidanceUsableCCBObservation("ready")},
+		{name: "partial", observation: semanticGuidanceUsableCCBObservation("partial")},
+		{name: "failed execution", observation: func() *RecentObservation {
+			row := semanticGuidanceUsableCCBObservation("ready")
+			row.Status = "failed"
+			return row
+		}(), wantIssue: true},
+		{name: "empty views", observation: func() *RecentObservation {
+			row := semanticGuidanceUsableCCBObservation("ready")
+			row.Summary["views"] = map[string]any{}
+			return row
+		}(), wantIssue: true},
+		{name: "not read only", observation: func() *RecentObservation {
+			row := semanticGuidanceUsableCCBObservation("ready")
+			row.Summary["read_only"] = false
+			return row
+		}(), wantIssue: true},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			state := &runState{input: Input{Context: map[string]any{"free_state_reasoning_loop": map[string]any{
+				"schema_version": "free_state_reasoning_loop.v1", "status": "reasoning", "original_intent": "reduce harshness",
+			}}}, recentObservation: test.observation}
+			issue := messageLoopFreeStateOutputIssue(state, decision)
+			if test.wantIssue && issue == "" {
+				t.Fatal("unusable CCB bundle authorized the first action")
+			}
+			if !test.wantIssue && issue != "" {
+				t.Fatalf("usable CCB bundle was rejected: %s", issue)
+			}
+		})
+	}
+}
+
+func TestFreeStateRejectsRetryOfRejectedCCBViewSet(t *testing.T) {
+	state := &runState{input: Input{Context: map[string]any{
+		"free_state_reasoning_loop": map[string]any{
+			"schema_version": "free_state_reasoning_loop.v1", "status": "observing", "original_intent": "inspect the project",
+			"rejected_observation_requests": []any{map[string]any{"requested_views": []any{"mix.masking_relationship", "track.peak_structure"}}},
+		},
+	}}}
+	decision := messageLoopOutput{FreeStateDecision: &FreeStateDecision{
+		SchemaVersion: FreeStateDecisionSchema, Status: FreeStateNeedsObservation, EvidenceStatus: "insufficient",
+		Summary: "retry rejected evidence", RequestedViewIDs: []string{"track.peak_structure", "mix.masking_relationship"},
+	}, ToolCalls: []planner.ToolCall{{Tool: "ccb.observation_request", Args: map[string]any{
+		"view_ids": []any{"track.peak_structure", "mix.masking_relationship"},
+	}}}}
+	if issue := messageLoopFreeStateOutputIssue(state, decision); !strings.Contains(issue, "already rejected") {
+		t.Fatalf("rejected view retry was accepted: %q", issue)
+	}
+}
+
+func TestFreeStateRejectedViewCanChooseDifferentViewOrBlock(t *testing.T) {
+	state := &runState{input: Input{
+		AllowedTools: []string{"ccb.observation_request"},
+		Context: map[string]any{"free_state_reasoning_loop": map[string]any{
+			"schema_version": "free_state_reasoning_loop.v1", "status": "observing",
+			"decision_phase": "processor_selection", "original_intent": "inspect the project",
+			"rejected_observation_requests": []any{map[string]any{"requested_views": []any{"mix.masking_relationship"}}},
+		}},
+	}}
+	different := messageLoopOutput{FreeStateDecision: &FreeStateDecision{
+		SchemaVersion: FreeStateDecisionSchema, Status: FreeStateNeedsObservation, EvidenceStatus: "insufficient",
+		Summary: "use an available relationship view", RequestedViewIDs: []string{"mix.frequency_relationship"},
+	}, ToolCalls: []planner.ToolCall{{Tool: "ccb.observation_request", Args: map[string]any{
+		"view_ids": []any{"mix.frequency_relationship"},
+	}}}}
+	if issue := messageLoopFreeStateOutputIssue(state, different); issue != "" {
+		t.Fatalf("different catalog view was rejected: %q", issue)
+	}
+	blocked := messageLoopOutput{Final: true, FreeStateDecision: &FreeStateDecision{
+		SchemaVersion: FreeStateDecisionSchema, Status: FreeStateBlocked, EvidenceStatus: "insufficient",
+		Summary:    "The requested masking view is deferred in the current CCB catalog.",
+		StopReason: "ccb_view_deferred", Limitations: []string{"No safe equivalent view answers the masking question."},
+	}}
+	if issue := messageLoopFreeStateOutputIssue(state, blocked); issue != "" {
+		t.Fatalf("explicit deferred-view block was rejected: %q", issue)
+	}
+}
+
+func TestFreeStateExecutionLedgerBlocksSameRejectedSetWithinRun(t *testing.T) {
+	state := &runState{input: Input{Context: map[string]any{
+		"free_state_reasoning_loop": map[string]any{
+			"schema_version": "free_state_reasoning_loop.v1", "status": "observing", "original_intent": "inspect masking",
+		},
+	}}}
+	rejected := &RecentObservation{
+		ToolCallID: "ccb-rejected", Tool: "ccb.observation_request", Status: "rejected",
+		Summary: map[string]any{
+			"schema_version": "ccb_observation_bundle.v1", "status": "rejected", "observation_id": "obs-rejected",
+			"requested_views":  []any{"processor.identity_and_controls", "mix.masking_relationship"},
+			"omission_reasons": []any{"deferred"},
+			"audit_receipt":    map[string]any{"schema_version": "ccb_observation_receipt.v1", "receipt_id": "ccbr-rejected"},
+		},
+	}
+	recordFreeStateCCBObservation(state, rejected)
+
+	// A later usable observation replaces recentObservation but must not erase
+	// the rejection that the guard needs for the next model decision.
+	state.recentObservation = &RecentObservation{Tool: "ccb.observation_request", Status: "ok", Summary: map[string]any{
+		"schema_version": "ccb_observation_bundle.v1", "status": "ready", "observation_id": "obs-ready",
+		"requested_views": []any{"track.time_dynamics"}, "views": map[string]any{"track.time_dynamics": map[string]any{"status": "ready"}},
+	}}
+	decision := messageLoopOutput{FreeStateDecision: &FreeStateDecision{
+		SchemaVersion: FreeStateDecisionSchema, Status: FreeStateNeedsObservation, EvidenceStatus: "insufficient",
+		Summary: "retry", RequestedViewIDs: []string{"mix.masking_relationship", "processor.identity_and_controls"},
+	}, ToolCalls: []planner.ToolCall{{Tool: "ccb.observation_request", Args: map[string]any{
+		"view_ids": []any{"mix.masking_relationship", "processor.identity_and_controls"},
+	}}}}
+	if issue := messageLoopFreeStateOutputIssue(state, decision); !strings.Contains(issue, "already rejected") {
+		t.Fatalf("same-run rejected set reached execution guard: %q context=%#v", issue, state.input.Context)
+	}
+	loop := messageLoopMapValue(state.input.Context["free_state_reasoning_loop"])
+	ledger := messageLoopMapValue(loop["observation_ledger"])
+	if len(messageLoopMapRows(ledger["rejected_view_sets"])) != 1 || len(messageLoopMapRows(loop["rejected_observation_requests"])) != 1 {
+		t.Fatalf("same-run ledger was not updated deterministically: %#v", loop)
+	}
+
+	different := decision
+	different.FreeStateDecision = cloneFreeStateDecision(decision.FreeStateDecision)
+	different.FreeStateDecision.RequestedViewIDs = []string{"mix.frequency_relationship"}
+	different.ToolCalls = []planner.ToolCall{{Tool: "ccb.observation_request", Args: map[string]any{"view_ids": []any{"mix.frequency_relationship"}}}}
+	if issue := messageLoopFreeStateOutputIssue(state, different); issue != "" {
+		t.Fatalf("different view set was blocked: %q", issue)
+	}
+}
+
+func TestFreeStateLedgerRetainsExactSetRejectionScope(t *testing.T) {
+	state := &runState{input: Input{Context: map[string]any{
+		"free_state_reasoning_loop": map[string]any{"schema_version": "free_state_reasoning_loop.v1", "status": "observing", "original_intent": "inspect"},
+	}}}
+	rejected := &RecentObservation{ToolCallID: "ccb-scoped", Tool: "ccb.observation_request", Status: "rejected", Summary: map[string]any{
+		"schema_version": "ccb_observation_bundle.v1", "status": "rejected", "requested_views": []any{"mix.masking_relationship", "mix.frequency_relationship"},
+		"rejection_scope": "exact_view_set", "blocking_view_ids": []any{"mix.masking_relationship"}, "non_blocking_view_ids": []any{"mix.frequency_relationship"},
+		"audit_receipt": map[string]any{"receipt_id": "receipt-scoped", "rejection_scope": "exact_view_set", "blocking_view_ids": []any{"mix.masking_relationship"}, "non_blocking_view_ids": []any{"mix.frequency_relationship"}},
+	}}
+	recordFreeStateCCBObservation(state, rejected)
+	loop := messageLoopMapValue(state.input.Context["free_state_reasoning_loop"])
+	ledger := messageLoopMapValue(loop["observation_ledger"])
+	rows := messageLoopMapRows(ledger["rejected_view_sets"])
+	if len(rows) != 1 || firstMapText(rows[0], "rejection_scope") != "exact_view_set" {
+		t.Fatalf("scoped rejection was not retained: %#v", ledger)
+	}
+	if len(messageLoopStringList(rows[0]["blocking_view_ids"])) != 1 || len(messageLoopStringList(rows[0]["non_blocking_view_ids"])) != 1 {
+		t.Fatalf("scoped rejection view metadata was not retained: %#v", rows[0])
+	}
+}
+
+func TestFreeStateExecutionLedgerIndexesFirstReadyObservation(t *testing.T) {
+	state := &runState{input: Input{Context: map[string]any{
+		"free_state_reasoning_loop": map[string]any{
+			"schema_version": "free_state_reasoning_loop.v1", "status": "observing", "original_intent": "inspect dynamics",
+		},
+	}}}
+	ready := &RecentObservation{
+		ToolCallID: "ccb-ready", Tool: "ccb.observation_request", Status: "ok",
+		Summary: map[string]any{
+			"schema_version": "ccb_observation_bundle.v1", "bundle_id": "bundle-ready", "status": "ready", "observation_id": "obs-ready",
+			"requested_views": []any{"track.time_dynamics"}, "freshness": map[string]any{"status": "fresh"},
+			"views":         map[string]any{"track.time_dynamics": map[string]any{"status": "ready"}},
+			"audit_receipt": map[string]any{"schema_version": "ccb_observation_receipt.v1", "receipt_id": "ccbr-ready"},
+		},
+	}
+	recordFreeStateCCBObservation(state, ready)
+	loop := messageLoopMapValue(state.input.Context["free_state_reasoning_loop"])
+	ledger := messageLoopMapValue(loop["observation_ledger"])
+	available := messageLoopMapValue(ledger["available_views"])
+	if firstMapText(messageLoopMapValue(available["track.time_dynamics"]), "observation_id") != "obs-ready" || len(messageLoopMapRows(ledger["receipts"])) != 1 {
+		t.Fatalf("first ready observation was not indexed: %#v", ledger)
+	}
+}
+
+func TestFreeStateExecutionLedgerIndexesOnlyUsableViewsFromPartialBundle(t *testing.T) {
+	state := &runState{input: Input{Context: map[string]any{"free_state_reasoning_loop": map[string]any{
+		"schema_version": "free_state_reasoning_loop.v1", "status": "observing", "original_intent": "inspect dynamics",
+	}}}}
+	partial := &RecentObservation{ToolCallID: "ccb-partial", Tool: "ccb.observation_request", Status: "ok", Summary: map[string]any{
+		"schema_version": "ccb_observation_bundle.v1", "status": "partial", "observation_id": "obs-partial",
+		"requested_views": []any{"track.time_dynamics", "mix.masking_relationship"},
+		"views": map[string]any{
+			"track.time_dynamics":      map[string]any{"status": "ready"},
+			"mix.masking_relationship": map[string]any{"status": "deferred"},
+		},
+	}}
+	recordFreeStateCCBObservation(state, partial)
+	ledger := messageLoopMapValue(messageLoopMapValue(state.input.Context["free_state_reasoning_loop"])["observation_ledger"])
+	available := messageLoopMapValue(ledger["available_views"])
+	if available["track.time_dynamics"] == nil || available["mix.masking_relationship"] != nil {
+		t.Fatalf("partial bundle indexed unusable views: %#v", available)
+	}
+}
+
+func TestFreeStateMessageLoopDoesNotInvokeExecutorForRepeatedRejectedSet(t *testing.T) {
+	for _, tc := range []struct {
+		name             string
+		viewJSON         string
+		attemptedRepeats int
+	}{
+		{name: "smoke_sequence_six_to_one", viewJSON: `["mix.masking_relationship","processor.identity_and_controls"]`, attemptedRepeats: 6},
+		{name: "smoke_sequence_two_to_one", viewJSON: `["mix.masking_relationship","track.basic_energy"]`, attemptedRepeats: 2},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			request := func(callID string) string {
+				return `{"final":false,"reply":"Inspect masking.","free_state":{"schema_version":"free_state_decision.v1","status":"needs_observation","evidence_status":"insufficient","summary":"Need masking evidence.","requested_view_ids":` + tc.viewJSON + `},"tool_calls":[{"id":"` + callID + `","tool":"ccb.observation_request","args":{"view_ids":` + tc.viewJSON + `}}]}`
+			}
+			responses := []string{request("ccb-first")}
+			for i := 1; i < tc.attemptedRepeats; i++ {
+				responses = append(responses, request(fmt.Sprintf("ccb-retry-%d", i)))
+			}
+			responses = append(responses, `{"final":true,"reply":"The requested view set was rejected, so no retry was made.","free_state":{"schema_version":"free_state_decision.v1","status":"blocked","evidence_status":"insufficient","summary":"The rejected view set cannot be retried safely.","stop_reason":"ccb_view_set_rejected","limitations":["No different catalog view answers the question."]},"tool_calls":[]}`)
+			client := &fakeMessageCompleter{responses: responses}
+			executor := &rejectedFreeStateTestExecutor{}
+			loop := MessageLoop{
+				Client: client, Config: config.EngineConfig{BaseURL: "http://example.invalid", DefaultModel: "test", APIKey: "test"},
+				Executor: executor, Budget: Budget{MaxTurns: tc.attemptedRepeats + 2, MaxToolCalls: tc.attemptedRepeats + 1, MaxConsecutiveErrors: 2},
+			}
+			result := loop.Start(context.Background(), Input{
+				UserText: "inspect masking", AllowedTools: []string{"ccb.observation_request"},
+				Context: map[string]any{"free_state_reasoning_loop": map[string]any{
+					"schema_version": "free_state_reasoning_loop.v1", "status": "observing", "decision_phase": "processor_selection",
+					"original_intent": "inspect masking",
+				}},
+			})
+			if len(executor.calls) != 1 {
+				t.Fatalf("%d attempted requests invoked executor %d times, want 1: %+v", tc.attemptedRepeats, len(executor.calls), executor.calls)
+			}
+			if result.FreeStateDecision == nil || result.FreeStateDecision.Status != FreeStateBlocked {
+				t.Fatalf("rejected sequence did not terminate explicitly: %+v", result)
+			}
+			if len(client.calls) != tc.attemptedRepeats+1 {
+				t.Fatalf("guard model calls=%d, want %d", len(client.calls), tc.attemptedRepeats+1)
+			}
+		})
+	}
+}
+
+func TestFreeStateContinuationLedgerBlocksRejectedSetAfterRecentObservationChanges(t *testing.T) {
+	fingerprint := messageLoopFreeStateViewFingerprint([]string{"mix.masking_relationship", "track.basic_energy"})
+	state := &runState{input: Input{Context: map[string]any{"free_state_reasoning_loop": map[string]any{
+		"schema_version": "free_state_reasoning_loop.v1", "status": "observing", "original_intent": "inspect masking",
+		"observation_ledger": map[string]any{
+			"schema_version": freeStateObservationLedgerSchema,
+			"rejected_view_sets": []any{map[string]any{
+				"fingerprint": fingerprint, "requested_views": []any{"mix.masking_relationship", "track.basic_energy"},
+				"status": "rejected", "retry_policy": "do_not_retry",
+			}},
+		},
+	}}}, recentObservation: semanticGuidanceUsableCCBObservation("ready")}
+	decision := messageLoopOutput{FreeStateDecision: &FreeStateDecision{
+		SchemaVersion: FreeStateDecisionSchema, Status: FreeStateNeedsObservation, EvidenceStatus: "insufficient",
+		Summary: "retry", RequestedViewIDs: []string{"track.basic_energy", "mix.masking_relationship"},
+	}, ToolCalls: []planner.ToolCall{{Tool: "ccb.observation_request", Args: map[string]any{
+		"view_ids": []any{"track.basic_energy", "mix.masking_relationship"},
+	}}}}
+	if issue := messageLoopFreeStateOutputIssue(state, decision); !strings.Contains(issue, "already rejected") {
+		t.Fatalf("continuation ledger did not block rejected set: %q", issue)
+	}
+	call := planner.ToolCall{Tool: "ccb.observation_request", Args: map[string]any{
+		"view_ids": []any{"mix.masking_relationship", "track.basic_energy"},
+	}}
+	if issue := messageLoopToolGuardIssue(state, call, false); !strings.Contains(issue, "already rejected") {
+		t.Fatalf("checkpoint/pending tool entry was not blocked before executor: %q", issue)
+	}
+}
+
+func TestOpenSemanticNeedsActionRequiresValidatedProcessorIntent(t *testing.T) {
+	state := &runState{input: Input{Context: map[string]any{
+		"semantic_entry_verified":   true,
+		"semantic_entry_decision":   map[string]any{"schema_version": "semantic_entry_decision.v1", "route": "open_semantic"},
+		"free_state_reasoning_loop": map[string]any{"schema_version": "free_state_reasoning_loop.v1", "status": "reasoning", "original_intent": "reduce sibilance"},
+	}}, recentObservation: semanticGuidanceUsableCCBObservation("ready")}
+	decision := messageLoopOutput{Final: true, FreeStateDecision: &FreeStateDecision{
+		SchemaVersion: FreeStateDecisionSchema, Status: FreeStateNeedsAction, EvidenceStatus: "sufficient",
+		Summary: "evidence supports a de-esser", RemainingIntent: "reduce sibilance", ProcessorType: "de_esser",
+	}}
+	if issue := messageLoopFreeStateOutputIssue(state, decision); !strings.Contains(issue, "semantic_processor_intent") {
+		t.Fatalf("missing semantic intent was accepted: %q", issue)
+	}
+	decision.FreeStateDecision.SemanticProcessorIntent = &processorintent.Intent{
+		SchemaVersion: processorintent.SchemaVersion, Status: processorintent.StatusResolved,
+		Family: processorintent.FamilyDeEsser, Intent: "reduce sibilance",
+		RequiredCoverage: []string{"sibilance_reduction"}, Scope: processorintent.ScopeCurrentTrack,
+		ControlMode: processorintent.ControlModeSemantic, Confidence: 0.94, EvidenceRefs: []string{"obs-1"},
+	}
+	if issue := messageLoopFreeStateOutputIssue(state, decision); issue != "" {
+		t.Fatalf("validated De-esser intent was rejected: %q", issue)
+	}
+	if err := validateFreeStateProcessorIntent(*decision.FreeStateDecision.SemanticProcessorIntent, "limiter"); err == nil || !strings.Contains(err.Error(), "does not match") {
+		t.Fatalf("De-esser intent escaped processor-type family binding: %v", err)
+	}
+}
+
+func TestActiveFreeStateRejectsMutationTools(t *testing.T) {
+	state := &runState{input: Input{Context: map[string]any{
+		"free_state_reasoning_loop": map[string]any{"schema_version": "free_state_reasoning_loop.v1", "status": "reasoning", "original_intent": "make it steadier"},
+	}}}
+	for _, name := range []string{
+		"plugin_grabber.apply_compressor_controls", "plugin.set_parameter", "set_plugin_param",
+		"plugin.load_to_rack", "rack.add_node", "rack.load_plugin",
+	} {
+		if issue := messageLoopToolGuardIssue(state, planner.ToolCall{Tool: name}, false); !strings.Contains(issue, "active free-state") {
+			t.Fatalf("mutation %s was not blocked: %q", name, issue)
+		}
+	}
+	if issue := messageLoopToolGuardIssue(state, planner.ToolCall{Tool: "daw.invoke", Command: map[string]any{"cmd": "plugin.set_parameter"}}, false); !strings.Contains(issue, "active free-state") {
+		t.Fatalf("wrapped generic mutation was not blocked: %q", issue)
+	}
+	if issue := messageLoopToolGuardIssue(state, planner.ToolCall{Tool: "ccb.observation_request"}, false); issue != "" {
+		t.Fatalf("CCB observation was blocked: %q", issue)
 	}
 }
 

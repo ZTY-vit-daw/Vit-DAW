@@ -2,6 +2,7 @@ package contextruntime
 
 import (
 	"encoding/json"
+	"fmt"
 	"strings"
 	"testing"
 
@@ -64,6 +65,30 @@ func TestCCBProjectionUsesLLMContextAndNeverFallsBackToRawView(t *testing.T) {
 	unknown := views["unknown.future_view"].(map[string]any)
 	if unknown["projection_status"] != "unsupported_projection" || unknown["view_projection"] != nil || unknown["llm_context"] != nil {
 		t.Fatalf("unknown view used an unsafe fallback: %#v", unknown)
+	}
+}
+
+func TestCCBProjectionPreservesExactSetRejectionScope(t *testing.T) {
+	result := planner.ToolResult{
+		ToolCallID: "ccb-reject", Tool: "ccb.observation_request", Status: "rejected",
+		Result: map[string]any{"bundle": map[string]any{
+			"schema_version": ccbBundleSchema, "status": "rejected", "requested_views": []any{"mix.masking_relationship", "mix.frequency_relationship"},
+			"rejection_scope": "exact_view_set", "blocking_view_ids": []any{"mix.masking_relationship"},
+			"non_blocking_view_ids": []any{"mix.frequency_relationship"}, "views": map[string]any{},
+			"audit_receipt": map[string]any{"schema_version": "ccb_observation_receipt.v1", "receipt_id": "receipt-reject", "view_set_matches": false,
+				"rejection_scope": "exact_view_set", "blocking_view_ids": []any{"mix.masking_relationship"}, "non_blocking_view_ids": []any{"mix.frequency_relationship"}},
+		}},
+	}
+	projection, ok := ProjectCCBToolResult(result, fixedOptions())
+	if !ok || projection["rejection_scope"] != "exact_view_set" {
+		t.Fatalf("rejection projection = %#v", projection)
+	}
+	if len(modelStrings(projection["blocking_view_ids"])) != 1 || len(modelStrings(projection["non_blocking_view_ids"])) != 1 {
+		t.Fatalf("rejection view metadata lost: %#v", projection)
+	}
+	audit := modelMap(projection["audit_ref"])
+	if audit["rejection_scope"] != "exact_view_set" {
+		t.Fatalf("audit rejection scope lost: %#v", audit)
 	}
 }
 
@@ -203,6 +228,231 @@ func TestModelProjectionSectionsStayBounded(t *testing.T) {
 				t.Fatalf("invalid active observation size %d/%d; sections=%v", activeBytes, len(body), ModelSectionBytes(model))
 			}
 		})
+	}
+}
+
+func TestModelProjectionProfilesRetainHotAndReportColdDegradation(t *testing.T) {
+	ccb := testCCBBundleResult("profile-call", "profile-fact", "profile-raw")
+	trace := []planner.TraceEvent{{Kind: "tool_result", ToolResult: &ccb}}
+	full := Build(Input{GoalTrace: trace, RecentObservation: map[string]any{
+		"tool_call_id": ccb.ToolCallID, "tool": ccb.Tool, "status": ccb.Status,
+		"summary": map[string]any{"schema_version": CCBModelProjectionSchema},
+	}}, fixedOptions())
+	model := ProjectModelSnapshot(ModelProjectionInput{Snapshot: full, GoalTrace: trace, Profile: ModelContextProfileSelection}, fixedOptions())
+	if model["active_observation"] == nil || model["context_profile"] != string(ModelContextProfileSelection) {
+		t.Fatalf("selection profile lost hot context: %#v", model)
+	}
+	degradation := modelMap(model["context_degradation"])
+	if degradation["cold_data"] != "audit_snapshot_only" {
+		t.Fatalf("missing cold-data boundary: %#v", degradation)
+	}
+	if strings.Contains(ModelJSON(model), "profile-raw") {
+		t.Fatal("cold raw bundle entered the model profile")
+	}
+}
+
+func TestModelProjectionReportsHotBudgetOverageWithoutTruncation(t *testing.T) {
+	modelFact := strings.Repeat("effective bounded fact ", 80)
+	ccb := testCCBBundleResult("profile-overage", modelFact, "overage-raw")
+	bundle := modelMap(ccb.Result["bundle"])
+	view := modelMap(modelMap(bundle["views"])["track.time_dynamics"])
+	llmContext := modelMap(modelMap(modelMap(view["facts"])["observation.com_projection"])["llm_context"])
+	facts := make([]any, 0, 80)
+	for i := 0; i < 80; i++ {
+		facts = append(facts, map[string]any{
+			"fact": fmt.Sprintf("effective fact %02d %s", i, strings.Repeat("bounded evidence ", 12)),
+		})
+	}
+	llmContext["compact_facts"] = facts
+	trace := []planner.TraceEvent{{Kind: "tool_result", ToolResult: &ccb}}
+	full := Build(Input{GoalTrace: trace}, fixedOptions())
+	opts := fixedOptions()
+	opts.MaxTextRunes = 512
+	opts.MaxListItems = 100
+	model := ProjectModelSnapshot(ModelProjectionInput{
+		Snapshot: full, GoalTrace: trace, Profile: ModelContextProfileSelection,
+	}, opts)
+	active := modelMap(model["active_observation"])
+	degradation := modelMap(active["degradation"])
+	if degradation["status"] != "over_hot_budget" || modelText(degradation["target_bytes"]) != "10240" {
+		t.Fatalf("hot overage was not reported: active=%#v", active)
+	}
+	profileDegradation := modelMap(model["context_degradation"])
+	if !strings.Contains(modelText(profileDegradation["budget_status"]), "over_hot") || modelText(profileDegradation["budget_action"]) == "" {
+		t.Fatalf("profile hot overage was not reported: %#v", profileDegradation)
+	}
+	body := ModelJSON(model)
+	if !strings.Contains(body, "effective fact 79") || strings.Contains(body, "overage-raw") {
+		t.Fatalf("hot overage was truncated or leaked raw data: %s", body)
+	}
+	size := modelMap(model["context_size"])
+	if size["total_bytes"] == nil || modelMap(size["section_bytes"])["active_observation"] == nil {
+		t.Fatalf("section size report missing: %#v", size)
+	}
+	if modelText(size["hot_bytes"]) != modelText(profileDegradation["hot_bytes"]) || size["warm_bytes"] == nil {
+		t.Fatalf("layer byte report mismatch: size=%#v degradation=%#v", size, profileDegradation)
+	}
+}
+
+func TestModelProjectionProfilesUseDeterministicStageSections(t *testing.T) {
+	ccb := testCCBBundleResult("profile-stage-call", "stage-fact", "stage-raw")
+	trace := []planner.TraceEvent{{Kind: "tool_result", ToolResult: &ccb}}
+	full := Build(Input{
+		GoalSummary: "stage profile",
+		GoalTrace:   trace,
+		Context:     map[string]any{"stage": "selection"},
+	}, fixedOptions())
+
+	selection := ProjectModelSnapshot(ModelProjectionInput{
+		Snapshot: full, GoalTrace: trace, Profile: ModelContextProfileSelection,
+	}, fixedOptions())
+	if selection["active_observation"] == nil || selection["daw_semantic_summary"] != nil {
+		t.Fatalf("selection profile carried non-selection semantic section: %#v", selection)
+	}
+	if modelMap(selection["context_layers"])["cold"] == nil {
+		t.Fatalf("selection profile lost cold boundary: %#v", selection["context_layers"])
+	}
+	selectionLayers := modelMap(selection["context_layers"])
+	selectionLayersJSON := string(mustJSON(t, selectionLayers))
+	if strings.Contains(selectionLayersJSON, "daw_semantic_summary") {
+		t.Fatalf("selection layers advertised omitted semantic section: %#v", selectionLayers)
+	}
+
+	materialize := ProjectModelSnapshot(ModelProjectionInput{
+		Snapshot: full, GoalTrace: trace, Profile: ModelContextProfileMaterialize,
+	}, fixedOptions())
+	if materialize["active_observation"] == nil || materialize["daw_semantic_summary"] == nil {
+		t.Fatalf("materialization profile lost execution semantic section: %#v", materialize)
+	}
+	materializeLayers := modelMap(materialize["context_layers"])
+	if !strings.Contains(string(mustJSON(t, modelMap(materializeLayers["hot"])["sections"])), "daw_semantic_summary") {
+		t.Fatalf("materialization hot layer did not advertise execution semantics: %#v", materializeLayers)
+	}
+
+	postAction := ProjectModelSnapshot(ModelProjectionInput{
+		Snapshot: full, GoalTrace: trace, Profile: ModelContextProfilePostAction,
+	}, fixedOptions())
+	if postAction["active_observation"] == nil || postAction["recent_goal_context"] == nil {
+		t.Fatalf("post-action profile lost fresh evidence/verification context: %#v", postAction)
+	}
+	postActionLayers := modelMap(postAction["context_layers"])
+	if !strings.Contains(string(mustJSON(t, modelMap(postActionLayers["hot"])["sections"])), "recent_goal_context") {
+		t.Fatalf("post-action hot layer did not advertise verification context: %#v", postActionLayers)
+	}
+	if strings.Contains(string(mustJSON(t, modelMap(postActionLayers["warm"])["sections"])), "recent_goal_context") {
+		t.Fatalf("post-action section was assigned to both hot and warm: %#v", postActionLayers)
+	}
+	for _, profile := range []map[string]any{selection, materialize, postAction} {
+		body := ModelJSON(profile)
+		if strings.Contains(body, "stage-raw") || strings.Count(body, "stage-fact") != 1 {
+			t.Fatalf("profile duplicated or leaked CCB payload: %s", body)
+		}
+	}
+}
+
+func TestObservationLedgerProjectionIsCompactSafeAndSeparateFromActiveObservation(t *testing.T) {
+	ccb := testCCBBundleResult("ledger-active-call", "ledger-active-fact", "ledger-raw-audit")
+	trace := []planner.TraceEvent{{Kind: "tool_result", ToolResult: &ccb}}
+	full := Build(Input{GoalTrace: trace}, fixedOptions())
+	ledger := map[string]any{
+		"schema_version": "free_state_observation_ledger.v1",
+		"available_views": map[string]any{
+			"track.time_dynamics": map[string]any{
+				"view_id": "track.time_dynamics", "status": "ready", "observation_id": "obs-1", "tool_call_id": "ledger-active-call",
+				"freshness": map[string]any{"status": "fresh"}, "limitations": []any{"macro only"}, "evidence_refs": []any{"evidence://one"},
+				"audit_ref": map[string]any{"receipt_id": "receipt-1"},
+				"views":     map[string]any{"raw": "must-not-enter"}, "plugin_id": "plugin-secret", "target_family": "compressor-family",
+			},
+		},
+		"rejected_view_sets": []any{map[string]any{
+			"fingerprint": "ccb_views:1234", "requested_views": []any{"mix.masking_relationship"}, "status": "rejected",
+			"reasons": []any{"deferred"}, "retry_policy": "do_not_retry", "sealed_truth": "must-not-enter",
+		}},
+		"receipts": []any{map[string]any{
+			"receipt_id": "receipt-1", "tool_call_id": "ledger-active-call", "observation_id": "obs-1", "status": "ready",
+			"requested_views": []any{"track.time_dynamics"}, "raw_bundle": "must-not-enter", "expected_coverage": "must-not-enter",
+		}},
+	}
+	model := ProjectModelSnapshot(ModelProjectionInput{
+		Snapshot: full, GoalTrace: trace, ObservationLedger: ledger, Profile: ModelContextProfileSelection,
+	}, fixedOptions())
+	body := ModelJSON(model)
+	if strings.Count(body, `"schema_version":"`+CCBModelProjectionSchema+`"`) != 1 || strings.Count(body, "ledger-active-fact") != 1 {
+		t.Fatalf("canonical active projection was duplicated: %s", body)
+	}
+	for _, forbidden := range []string{"must-not-enter", "plugin-secret", "compressor-family", "ledger-raw-audit"} {
+		if strings.Contains(body, forbidden) {
+			t.Fatalf("ledger projection leaked %q: %s", forbidden, body)
+		}
+	}
+	projected := modelMap(model["observation_ledger"])
+	if projectedJSON := string(mustJSON(t, projected)); strings.Contains(projectedJSON, `"views"`) {
+		t.Fatalf("ledger retained raw views: %s", projectedJSON)
+	}
+	if len(modelRows(projected["rejected_view_sets"])) != 1 || len(modelRows(projected["receipts"])) != 1 {
+		t.Fatalf("ledger references missing: %#v", projected)
+	}
+	if modelRows(projected["rejected_view_sets"])[0]["reasons"] != nil {
+		t.Fatalf("free-text rejection reasons entered model ledger: %#v", projected)
+	}
+	sections := ModelSectionBytes(model)
+	if sections["observation_ledger"] == 0 || sections["active_observation"] == 0 {
+		t.Fatalf("ledger/active section sizes missing: %#v", sections)
+	}
+	layers := modelMap(model["context_layers"])
+	if !strings.Contains(string(mustJSON(t, modelMap(layers["warm"])["sections"])), "observation_ledger") {
+		t.Fatalf("ledger was not assigned to warm context: %#v", layers)
+	}
+}
+
+func TestObservationLedgerKeepsReadyEvidenceAlongsideScopedRejection(t *testing.T) {
+	projected := ProjectObservationLedger(map[string]any{
+		"schema_version": "free_state_observation_ledger.v1",
+		"available_views": map[string]any{
+			"mix.multitrack_relationship": map[string]any{
+				"view_id": "mix.multitrack_relationship", "status": "ready", "observation_id": "obs-ready", "tool_call_id": "call-ready",
+				"freshness": map[string]any{"status": "fresh"}, "evidence_refs": []any{"evidence://ready"},
+			},
+			"mix.frequency_relationship": map[string]any{
+				"view_id": "mix.frequency_relationship", "status": "ready", "observation_id": "obs-ready", "tool_call_id": "call-ready",
+			},
+		},
+		"rejected_view_sets": []any{map[string]any{
+			"fingerprint": "ccb_views:mix", "requested_views": []any{"mix.frequency_relationship", "mix.masking_relationship"}, "status": "rejected", "retry_policy": "do_not_retry",
+			"rejection_scope": "exact_view_set", "blocking_view_ids": []any{"mix.masking_relationship"}, "non_blocking_view_ids": []any{"mix.frequency_relationship"},
+		}},
+	}, fixedOptions())
+	available := modelMap(projected["available_views"])
+	if modelMap(available["mix.multitrack_relationship"])["observation_id"] != "obs-ready" || modelMap(available["mix.frequency_relationship"])["status"] != "ready" {
+		t.Fatalf("ready evidence was lost: %#v", projected)
+	}
+	rejected := modelRows(projected["rejected_view_sets"])
+	if len(rejected) != 1 || modelText(rejected[0]["rejection_scope"]) != "exact_view_set" {
+		t.Fatalf("scoped rejection was not projected: %#v", projected)
+	}
+	if len(modelStrings(rejected[0]["blocking_view_ids"])) != 1 || len(modelStrings(rejected[0]["non_blocking_view_ids"])) != 1 {
+		t.Fatalf("rejection view classes were not projected: %#v", rejected[0])
+	}
+}
+
+func TestObservationLedgerHistoryIsBoundedWithoutSilentProjectionTruncation(t *testing.T) {
+	rows := make([]any, 0, 40)
+	for i := 0; i < 40; i++ {
+		rows = append(rows, map[string]any{
+			"receipt_id": fmt.Sprintf("receipt-%02d", i), "tool_call_id": fmt.Sprintf("call-%02d", i),
+			"observation_id": fmt.Sprintf("obs-%02d", i), "status": "ready", "requested_views": []any{"track.time_dynamics"},
+		})
+	}
+	projected := ProjectObservationLedger(map[string]any{
+		"schema_version": "free_state_observation_ledger.v1", "receipts": rows,
+	}, fixedOptions())
+	receipts := modelRows(projected["receipts"])
+	if len(receipts) != 24 || modelText(receipts[0]["receipt_id"]) != "receipt-16" || modelText(receipts[23]["receipt_id"]) != "receipt-39" {
+		t.Fatalf("bounded receipt history = %#v", receipts)
+	}
+	window := modelMap(modelMap(projected["history_window"])["receipts"])
+	if modelText(window["total"]) != "40" || modelText(window["retained"]) != "24" || modelText(window["omitted"]) != "16" {
+		t.Fatalf("bounded receipt history was silently truncated: %#v", window)
 	}
 }
 

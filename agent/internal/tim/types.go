@@ -13,6 +13,10 @@ type Input struct {
 	ProjectPackage        map[string]any
 	AcousticPackageStatus map[string]any
 	SourceCapabilities    map[string]any
+	// AuthoritativeState is an internal, read-only summary of the current
+	// project binding/topology and DAD completion state. It is never copied to
+	// the model projection; TIM may use it only after the binding is proven.
+	AuthoritativeState map[string]any
 }
 
 type Projection struct {
@@ -38,6 +42,7 @@ type TechnicalSummary struct {
 	EmptyTrackCount         int            `json:"empty_track_count,omitempty"`
 	SourcePresentCount      int            `json:"source_present_count"`
 	SourceMissingCount      int            `json:"source_missing_count,omitempty"`
+	SourceUnknownCount      int            `json:"source_unknown_count,omitempty"`
 	PlaybackValidCount      int            `json:"playback_valid_count,omitempty"`
 	PlaybackInvalidCount    int            `json:"playback_invalid_count,omitempty"`
 	PlaybackUnknownCount    int            `json:"playback_unknown_count,omitempty"`
@@ -67,6 +72,7 @@ type CoverageItem struct {
 	KnownCount    int    `json:"known_count"`
 	TotalCount    int    `json:"total_count"`
 	MissingCount  int    `json:"missing_count,omitempty"`
+	UnknownCount  int    `json:"unknown_count,omitempty"`
 	InvalidCount  int    `json:"invalid_count,omitempty"`
 	NotApplicable int    `json:"not_applicable_count,omitempty"`
 }
@@ -97,6 +103,7 @@ type TrackFact struct {
 	ClipCount            int      `json:"clip_count"`
 	LengthSeconds        float64  `json:"length_seconds,omitempty"`
 	SourcePresent        bool     `json:"source_present"`
+	SourceStatus         string   `json:"source_status"`
 	PlaybackSourceStatus string   `json:"playback_source_status"`
 	SourceExtension      string   `json:"source_extension,omitempty"`
 	FormatFamily         string   `json:"format_family,omitempty"`

@@ -14,6 +14,7 @@ const (
 	FreeStateObservationCatalogSchema = "ccb_observation_catalog.v1"
 	FreeStateObservationRequestSchema = "ccb_observation_request.v1"
 	FreeStateObservationBundleSchema  = "ccb_observation_bundle.v1"
+	FreeStateObservationReceiptSchema = "ccb_observation_receipt.v1"
 )
 
 type FreeStateObservationView struct {
@@ -42,10 +43,33 @@ type FreeStateObservationRequest struct {
 	ObservationID      string             `json:"observation_id,omitempty"`
 	MixSessionID       string             `json:"mix_session_id,omitempty"`
 	ViewIDs            []string           `json:"view_ids"`
+	OriginalViewIDs    []string           `json:"-"`
 	TargetRef          mixboard.TargetRef `json:"target_ref,omitempty"`
 	FreshnessClass     string             `json:"freshness_class,omitempty"`
+	RequestedBy        string             `json:"-"`
+	Scope              string             `json:"-"`
 	MaxDisclosureBytes int                `json:"max_disclosure_bytes,omitempty"`
 	MaxItems           int                `json:"max_items,omitempty"`
+}
+
+// FreeStateObservationAuditReceipt is the immutable audit projection for one
+// CCB observation request. It records what the model asked for separately from
+// what the server actually attempted, so a later consumer can prove that no
+// acoustic view was added, removed, or inferred.
+type FreeStateObservationAuditReceipt struct {
+	SchemaVersion         string         `json:"schema_version"`
+	ReceiptID             string         `json:"receipt_id"`
+	RequestedBy           string         `json:"requested_by"`
+	ModelRequestedViewIDs []string       `json:"model_requested_view_ids"`
+	ActualExecutedViewIDs []string       `json:"actual_executed_view_ids"`
+	ViewSetMatches        bool           `json:"view_set_matches"`
+	Scope                 string         `json:"scope"`
+	Freshness             map[string]any `json:"freshness"`
+	Status                string         `json:"status"`
+	RejectionReasons      []string       `json:"rejection_reasons,omitempty"`
+	RejectionScope        string         `json:"rejection_scope,omitempty"`
+	BlockingViewIDs       []string       `json:"blocking_view_ids,omitempty"`
+	NonBlockingViewIDs    []string       `json:"non_blocking_view_ids,omitempty"`
 }
 
 type FreeStateObservationBundle struct {
@@ -68,6 +92,10 @@ type FreeStateObservationBundle struct {
 	Omissions          map[string]orchestration.OmissionStatus `json:"omissions,omitempty"`
 	DisclosureBytes    int                                     `json:"disclosure_bytes"`
 	MaxDisclosureBytes int                                     `json:"max_disclosure_bytes"`
+	AuditReceipt       FreeStateObservationAuditReceipt        `json:"audit_receipt"`
+	RejectionScope     string                                  `json:"rejection_scope,omitempty"`
+	BlockingViewIDs    []string                                `json:"blocking_view_ids,omitempty"`
+	NonBlockingViewIDs []string                                `json:"non_blocking_view_ids,omitempty"`
 }
 
 type freeStateViewDefinition struct {
@@ -97,11 +125,16 @@ func FreeStateObservationCatalogFor(target mixboard.TargetRef) FreeStateObservat
 
 func NormalizeFreeStateObservationRequest(req FreeStateObservationRequest) FreeStateObservationRequest {
 	req.SchemaVersion = FreeStateObservationRequestSchema
+	if len(req.OriginalViewIDs) == 0 {
+		req.OriginalViewIDs = append([]string(nil), req.ViewIDs...)
+	}
 	if strings.TrimSpace(req.FreshnessClass) == "" {
 		req.FreshnessClass = "current_observation"
 	}
 	if req.MaxDisclosureBytes <= 0 {
-		req.MaxDisclosureBytes = 16 * 1024
+		// Keep the default within the existing bounded ceiling so a model-owned
+		// multi-view request is not silently reduced to a partial observation.
+		req.MaxDisclosureBytes = 64 * 1024
 	}
 	if req.MaxDisclosureBytes < 256 {
 		req.MaxDisclosureBytes = 256
@@ -116,10 +149,89 @@ func NormalizeFreeStateObservationRequest(req FreeStateObservationRequest) FreeS
 		req.MaxItems = 24
 	}
 	req.ViewIDs = uniqueNonEmpty(req.ViewIDs)
-	if len(req.ViewIDs) == 0 {
-		req.ViewIDs = []string{"project.structure"}
-	}
 	return req
+}
+
+func ValidateFreeStateObservationViewIDs(viewIDs []string) []string {
+	reasons := []string{}
+	seen := map[string]bool{}
+	if len(viewIDs) == 0 {
+		return []string{"view_ids must contain at least one identifier"}
+	}
+	for _, value := range viewIDs {
+		viewID := strings.TrimSpace(value)
+		if viewID == "" {
+			reasons = append(reasons, "view_ids must contain only non-empty identifiers")
+			continue
+		}
+		if seen[viewID] {
+			reasons = append(reasons, viewID+": duplicate view identifier")
+			continue
+		}
+		seen[viewID] = true
+	}
+	return uniqueNonEmpty(reasons)
+}
+
+func RejectedFreeStateObservation(req FreeStateObservationRequest, reasons ...string) FreeStateObservationBundle {
+	return RejectedFreeStateObservationScoped(req, nil, reasons...)
+}
+
+func RejectedFreeStateObservationScoped(req FreeStateObservationRequest, blockingViews []string, reasons ...string) FreeStateObservationBundle {
+	req = NormalizeFreeStateObservationRequest(req)
+	modelViewIDs := append([]string(nil), req.OriginalViewIDs...)
+	if len(modelViewIDs) == 0 {
+		modelViewIDs = append([]string(nil), req.ViewIDs...)
+	}
+	rejectionReasons := uniqueNonEmpty(append(ValidateFreeStateObservationViewIDs(modelViewIDs), reasons...))
+	blocking := uniqueNonEmpty(blockingViews)
+	nonBlocking := subtractStrings(modelViewIDs, blocking)
+	return FreeStateObservationBundle{
+		SchemaVersion:     FreeStateObservationBundleSchema,
+		BundleID:          "ccbobs_rejected_" + compactID(req.ObservationID, req.RequestID),
+		RequestID:         req.RequestID,
+		Status:            "rejected",
+		ReadOnly:          true,
+		MutationAuthority: false,
+		ObservationID:     req.ObservationID,
+		MixSessionID:      req.MixSessionID,
+		RequestedViews:    append([]string(nil), req.ViewIDs...),
+		Views:             map[string]any{},
+		Freshness:         map[string]any{"class": req.FreshnessClass, "status": "rejected"},
+		OmissionReasons:   append([]string(nil), rejectionReasons...),
+		RejectionScope:    "exact_view_set",
+		BlockingViewIDs:   blocking,
+		NonBlockingViewIDs: nonBlocking,
+		AuditReceipt: FreeStateObservationAuditReceipt{
+			SchemaVersion:         FreeStateObservationReceiptSchema,
+			ReceiptID:             "ccbr_rejected_" + compactID(req.ObservationID, req.RequestID),
+			RequestedBy:           firstNonEmptyString(req.RequestedBy, "caller"),
+			ModelRequestedViewIDs: modelViewIDs,
+			ActualExecutedViewIDs: nil,
+			ViewSetMatches:        false,
+			Scope:                 firstNonEmptyString(req.Scope, observationScopeForRequest(req)),
+			Freshness:             map[string]any{"class": req.FreshnessClass, "status": "rejected"},
+			Status:                "rejected",
+			RejectionReasons:      rejectionReasons,
+			RejectionScope:        "exact_view_set",
+			BlockingViewIDs:       blocking,
+			NonBlockingViewIDs:    nonBlocking,
+		},
+	}
+}
+
+func subtractStrings(values, remove []string) []string {
+	blocked := map[string]bool{}
+	for _, value := range remove {
+		blocked[strings.TrimSpace(value)] = true
+	}
+	out := make([]string, 0, len(values))
+	for _, value := range uniqueNonEmpty(values) {
+		if !blocked[value] {
+			out = append(out, value)
+		}
+	}
+	return out
 }
 
 func FreeStateObservationReadKeys(req FreeStateObservationRequest, targetID string) []string {
@@ -169,6 +281,40 @@ func AssembleFreeStateObservation(req FreeStateObservationRequest, readResult ma
 		Omissions:          map[string]orchestration.OmissionStatus{},
 		MaxDisclosureBytes: req.MaxDisclosureBytes,
 	}
+	knownViewIDs := map[string]bool{}
+	for _, def := range defs {
+		knownViewIDs[def.view.ViewID] = true
+	}
+	actualViewIDs := make([]string, 0, len(req.ViewIDs))
+	for _, viewID := range req.ViewIDs {
+		if knownViewIDs[viewID] && len(byID[viewID].keys) > 0 {
+			actualViewIDs = append(actualViewIDs, viewID)
+		}
+	}
+	modelViewIDs := append([]string(nil), req.OriginalViewIDs...)
+	if len(modelViewIDs) == 0 {
+		modelViewIDs = append([]string(nil), req.ViewIDs...)
+	}
+	receiptReasons := ValidateFreeStateObservationViewIDs(modelViewIDs)
+	if len(receiptReasons) == 0 && !sameStringSet(modelViewIDs, actualViewIDs) {
+		receiptReasons = append(receiptReasons, "actual acoustic view set did not exactly match the model request")
+	}
+	receiptStatus := "executed"
+	if len(receiptReasons) > 0 {
+		receiptStatus = "rejected"
+	}
+	bundle.AuditReceipt = FreeStateObservationAuditReceipt{
+		SchemaVersion:         FreeStateObservationReceiptSchema,
+		ReceiptID:             "ccbr_" + compactID(observationID, req.RequestID),
+		RequestedBy:           firstNonEmptyString(req.RequestedBy, "caller"),
+		ModelRequestedViewIDs: modelViewIDs,
+		ActualExecutedViewIDs: actualViewIDs,
+		ViewSetMatches:        len(receiptReasons) == 0,
+		Scope:                 firstNonEmptyString(req.Scope, observationScopeForRequest(req)),
+		Freshness:             nil,
+		Status:                receiptStatus,
+		RejectionReasons:      receiptReasons,
+	}
 	for _, viewID := range req.ViewIDs {
 		def, known := byID[viewID]
 		if !known {
@@ -213,6 +359,16 @@ func AssembleFreeStateObservation(req FreeStateObservationRequest, readResult ma
 	bundle.EvidenceRefs = uniqueNonEmpty(bundle.EvidenceRefs)
 	bundle.Limitations = uniqueNonEmpty(bundle.Limitations)
 	bundle.OmissionReasons = uniqueNonEmpty(bundle.OmissionReasons)
+	bundle.AuditReceipt.Freshness = cloneAnyMap(bundle.Freshness)
+	if len(bundle.OmissionReasons) > 0 {
+		bundle.AuditReceipt.RejectionReasons = uniqueNonEmpty(append(bundle.AuditReceipt.RejectionReasons, bundle.OmissionReasons...))
+		if bundle.AuditReceipt.Status == "executed" {
+			bundle.AuditReceipt.Status = "partial"
+		}
+	}
+	if len(bundle.AuditReceipt.RejectionReasons) > 0 {
+		bundle.AuditReceipt.ViewSetMatches = len(receiptReasons) == 0
+	}
 	if len(bundle.Omissions) == 0 {
 		bundle.Omissions = nil
 	}
@@ -229,6 +385,11 @@ func freeStateViewDefinitions(targetID string) []freeStateViewDefinition {
 		{view: semanticView("track.basic_energy", []string{"How loud and peaky is the target?", "Is headroom or crest factor unusual?"}, []string{"track", "clip", "selection"}, "whole window", "ready_on_observation", "cheap", "bounded level summary", nil, []string{"waveform envelope summary"}), keys: []string{track + ".static.identity", track + ".fast.levels"}},
 		{view: semanticView("track.time_dynamics", []string{"How does energy evolve over time?", "What transient and macro-dynamic structure is observable?"}, []string{"track", "clip", "selection"}, "macro and short-window summary", "conditional", "medium", "COM plus bounded time-energy summaries", []string{"Fine envelopes and event lists stay in evidence storage."}, []string{"time-energy summary", "COM projection"}), keys: []string{track + ".slow.time_energy.summary", "observation.com_projection"}},
 		{view: semanticView("track.timbre_frequency", []string{"Where is energy concentrated by band?", "Which broad tonal regions need inspection?"}, []string{"track", "clip", "selection"}, "whole-window band summary", "conditional", "medium", "broad-band energy only", []string{"Not a raw spectrum or a static-EQ decision."}, []string{"band-energy summary"}), keys: []string{track + ".slow.band_energy.summary"}},
+		{view: semanticView("track.peak_structure", []string{"How are sample peaks, headroom, and crest distributed?", "Are peak events concentrated or broadly elevated?"}, []string{"track", "clip", "selection"}, "whole-window and bounded segment summary", "conditional", "medium", "sample-peak structure with explicit true-peak limitation", []string{"Sample peaks do not establish true peak or clipping by themselves."}, []string{"DOM source-only projection"}), keys: []string{"observation.dom_projection"}},
+		{view: semanticView("track.activity_structure", []string{"How are active, low-energy, and silent intervals distributed?", "How long are observed low-energy runs?"}, []string{"track", "clip", "selection"}, "bounded segment summary", "conditional", "medium", "declared activity states and interval coverage", []string{"Noise floor and a control threshold are not inferred from coarse states."}, []string{"DOM source-only projection"}), keys: []string{"observation.dom_projection"}},
+		{view: semanticView("track.frequency_time_events", []string{"Is frequency energy localized to events over time?", "Which time-localized frequency facts are actually available?"}, []string{"track", "clip", "selection"}, "frequency-time event summary", "conditional", "medium", "bounded time-frequency evidence with explicit omissions", []string{"Whole-window bands never become time-localized events."}, []string{"DOM source-only projection"}), keys: []string{"observation.dom_projection"}},
+		{view: semanticView("track.transient_structure", []string{"What onset, body, and sustain structure is observable?", "How consistent are transient contrasts across events?"}, []string{"track", "clip", "selection"}, "event and envelope summary", "conditional", "medium", "bounded transient evidence with macro-only fallback", []string{"Macro crest does not establish onset or sustain behavior."}, []string{"DOM source-only projection"}), keys: []string{"observation.dom_projection"}},
+		{view: semanticView("track.band_dynamics", []string{"How does dynamic behavior differ by frequency band?", "Are per-band crest and time variation actually available?"}, []string{"track", "clip", "selection"}, "per-band time summary", "conditional", "medium", "bounded band-dynamics evidence with whole-window fallback", []string{"Whole-window band energy does not establish per-band dynamics."}, []string{"DOM source-only projection"}), keys: []string{"observation.dom_projection"}},
 		{view: semanticView("track.stereo_space", []string{"How wide or correlated is the target?", "Is left-right balance unusual?"}, []string{"track", "clip", "selection"}, "whole-window stereo summary", "conditional", "medium", "balance/correlation summary", nil, []string{"stereo-relation summary"}), keys: []string{track + ".slow.stereo.summary"}},
 		{view: semanticView("mix.multitrack_relationship", []string{"How do track levels and risks relate?", "Which track deserves attention first?"}, []string{"project", "track_group"}, "project snapshot", "conditional", "medium", "bounded MOM and project relationship summaries", []string{"This is observation, not a B2/B3 solver result."}, []string{"MOM multitrack projection", "project acoustic summaries"}), keys: []string{"project.relationship_inputs", "project.rankings.level", "project.rankings.peak", "project.risks.headroom", "project.attention.first", "observation.mom_projection"}},
 		{view: semanticView("mix.frequency_relationship", []string{"How do track band occupancies relate?", "Where are broad frequency conflicts plausible?"}, []string{"project", "track_group"}, "project snapshot", "conditional", "medium", "compact MOM frequency relationship projection", []string{"Does not claim psychoacoustic masking certainty."}, []string{"MOM frequency relationship", "project band-energy coverage"}), keys: []string{"project.frequency_relationship_inputs", "observation.mom_projection"}},
@@ -244,18 +405,75 @@ func semanticView(id string, questions, targets []string, temporal, availability
 	return FreeStateObservationView{ViewID: id, Questions: questions, SupportedTargetKinds: targets, TemporalResolution: temporal, Availability: availability, CostLatencyClass: cost, QualityCeiling: ceiling, Limitations: limitations, RequiredDependencies: dependencies}
 }
 
+func sameStringSet(left, right []string) bool {
+	leftSet := map[string]bool{}
+	rightSet := map[string]bool{}
+	for _, value := range left {
+		leftSet[strings.TrimSpace(value)] = true
+	}
+	for _, value := range right {
+		rightSet[strings.TrimSpace(value)] = true
+	}
+	if len(leftSet) != len(rightSet) {
+		return false
+	}
+	for value := range leftSet {
+		if !rightSet[value] {
+			return false
+		}
+	}
+	return true
+}
+
+func observationScopeForRequest(req FreeStateObservationRequest) string {
+	hasTrackView := false
+	hasMixView := false
+	for _, viewID := range req.ViewIDs {
+		viewID = strings.ToLower(strings.TrimSpace(viewID))
+		hasTrackView = hasTrackView || strings.HasPrefix(viewID, "track.") || strings.HasPrefix(viewID, "processor.") || viewID == "comparison.before_after"
+		hasMixView = hasMixView || strings.HasPrefix(viewID, "mix.") || viewID == "project.structure"
+	}
+	if hasMixView && hasTrackView {
+		return "full_project_with_focus_track"
+	}
+	if hasMixView {
+		return "full_project"
+	}
+	switch strings.ToLower(strings.TrimSpace(req.TargetRef.Kind)) {
+	case "clip":
+		return "selected_clip"
+	case "track", "processor":
+		return "selected_track"
+	case "track_group":
+		return "track_group"
+	case "project":
+		return "full_project"
+	default:
+		return "selected_track"
+	}
+}
+
 func assembleFreeStateView(viewID string, def freeStateViewDefinition, items map[string]any) (map[string]any, string) {
 	facts := map[string]any{}
 	useful := 0
 	degraded := false
 	stale := false
 	for _, key := range def.keys {
+		optionalSupplemental := optionalSupplementalProjection(viewID, key)
 		value, ok := items[key]
 		if !ok || value == nil {
-			degraded = true
+			// Supplemental projections remain visible as missing nested facts, but
+			// must not make the authoritative view unobservable on their own.
+			if !optionalSupplemental {
+				degraded = true
+			}
 			continue
 		}
 		itemStatus := semanticItemStatus(viewID, key, value)
+		facts[key] = compactProjectionForView(viewID, key, value)
+		if optionalSupplemental {
+			continue
+		}
 		switch itemStatus {
 		case "missing", "deferred", "unavailable", "blocked", "requested", "pending":
 			degraded = true
@@ -267,7 +485,6 @@ func assembleFreeStateView(viewID string, def freeStateViewDefinition, items map
 		default:
 			useful++
 		}
-		facts[key] = compactProjectionForView(viewID, key, value)
 	}
 	status := "ready"
 	if len(facts) == 0 {
@@ -285,6 +502,19 @@ func assembleFreeStateView(viewID string, def freeStateViewDefinition, items map
 		"facts":       facts,
 		"limitations": def.view.Limitations,
 	}, status
+}
+
+func optionalSupplementalProjection(viewID, key string) bool {
+	if viewID == "project.structure" && key == "observation.tim_projection" {
+		return true
+	}
+	if viewID != "mix.multitrack_relationship" {
+		return false
+	}
+	// MOM's multitrack relation is the authoritative project-wide comparison.
+	// Rankings, headroom rows, and first-attention hints are useful supplements;
+	// a missing one must not downgrade an otherwise ready relation to partial.
+	return strings.HasPrefix(key, "project.rankings.") || key == "project.risks.headroom" || key == "project.attention.first"
 }
 
 func semanticItemStatus(viewID, key string, value any) string {
@@ -319,6 +549,24 @@ func semanticItemStatus(viewID, key string, value any) string {
 			}
 		}
 	}
+	if key == "observation.dom_projection" {
+		field := map[string]string{
+			"track.peak_structure":        "peak_structure",
+			"track.activity_structure":    "activity_structure",
+			"track.frequency_time_events": "frequency_time_events",
+			"track.transient_structure":   "transient_structure",
+			"track.band_dynamics":         "band_dynamics",
+		}[viewID]
+		if field != "" {
+			rootStatus := strings.ToLower(strings.TrimSpace(status))
+			switch rootStatus {
+			case "missing", "stale", "suspect", "unsupported", "blocked":
+				return rootStatus
+			default:
+				status = stringValue(anyMap(row[field])["status"])
+			}
+		}
+	}
 	if strings.TrimSpace(status) == "" {
 		return "ready"
 	}
@@ -339,6 +587,9 @@ func compactProjectionForView(viewID, key string, value any) any {
 	if len(row) == 0 {
 		return value
 	}
+	if key == "project.tracks.summary" && viewID == "project.structure" {
+		return compactProjectTracksSummaryForStructure(row)
+	}
 	if key == "observation.com_projection" {
 		switch viewID {
 		case "processor.identity_and_controls":
@@ -351,13 +602,30 @@ func compactProjectionForView(viewID, key string, value any) any {
 			return compactCOMSourceDynamicsForSelection(row)
 		}
 	}
+	if key == "observation.dom_projection" {
+		field := map[string]string{
+			"track.peak_structure":        "peak_structure",
+			"track.activity_structure":    "activity_structure",
+			"track.frequency_time_events": "frequency_time_events",
+			"track.transient_structure":   "transient_structure",
+			"track.band_dynamics":         "band_dynamics",
+		}[viewID]
+		if field != "" {
+			return compactDOMDimension(row, field)
+		}
+	}
 	if key == "observation.tim_projection" {
 		return selectFields(row, "schema_version", "tim_version", "status", "technical_summary", "coverage", "risk_summary", "evidence_refs", "limitations")
 	}
 	if key == "observation.mom_projection" {
 		switch viewID {
 		case "project.structure":
-			return selectFields(row, "mom_version", "intent", "project_structure", "trust_quality", "llm_context")
+			return map[string]any{
+				"mom_version":       row["mom_version"],
+				"intent":            row["intent"],
+				"project_structure": compactMOMProjectStructureForView(anyMap(row["project_structure"])),
+				"trust_quality":     compactMOMTrustQualityForView(anyMap(row["trust_quality"])),
+			}
 		case "mix.multitrack_relationship":
 			return map[string]any{
 				"mom_version":         row["mom_version"],
@@ -368,7 +636,98 @@ func compactProjectionForView(viewID, key string, value any) any {
 			return selectFields(row, "mom_version", "intent", "frequency_relationship")
 		}
 	}
+	if key == "project.frequency_relationship_inputs" {
+		return compactFrequencyRelationshipInputsForView(row)
+	}
 	return value
+}
+
+func compactProjectTracksSummaryForStructure(row map[string]any) map[string]any {
+	out := selectFields(row, "status", "track_count", "active_track_count")
+	tracks, ok := row["tracks"].([]any)
+	if !ok {
+		return out
+	}
+	compactTracks := make([]any, 0, len(tracks))
+	for _, item := range tracks {
+		track := anyMap(item)
+		if len(track) == 0 {
+			continue
+		}
+		compactTracks = append(compactTracks, selectFields(track, "track_id", "name", "status", "kind", "role", "source_status"))
+	}
+	if len(compactTracks) > 0 {
+		out["tracks"] = compactTracks
+	}
+	return out
+}
+
+func compactMOMProjectStructureForView(row map[string]any) map[string]any {
+	if len(row) == 0 {
+		return nil
+	}
+	return selectFields(row,
+		"status", "freshness", "project_id", "session_id", "track_id", "clip_id", "gui_id",
+		"source_revision_status", "clip_revision_status", "render_revision_status", "duration_seconds",
+		"sample_rate", "channel_count", "target_ref", "listen_scope", "evidence_refs", "limitations",
+	)
+}
+
+func compactMOMTrustQualityForView(row map[string]any) map[string]any {
+	if len(row) == 0 {
+		return nil
+	}
+	return selectFields(row, "schema_version", "overall_status", "source_revision_status", "clip_revision_status", "render_revision_status", "limitations", "evidence_refs")
+}
+
+// compactFrequencyRelationshipInputsForView keeps the project-level facts
+// needed to interpret a frequency relationship without leaking the source
+// project package or allowing a large track payload to consume the CCB budget.
+func compactFrequencyRelationshipInputsForView(row map[string]any) map[string]any {
+	if len(row) == 0 {
+		return nil
+	}
+	out := selectFields(row, "schema_version", "status", "track_count", "usable_track_count", "tap_points", "decision_tracks_truncated")
+	tracks := []map[string]any{}
+	for _, track := range rowsValue(row["tracks"]) {
+		compact := selectFields(track, "track_id", "name", "status", "tap_point")
+		if len(compact) > 0 {
+			tracks = append(tracks, compact)
+		}
+	}
+	if len(tracks) > 0 {
+		out["tracks"] = tracks
+	}
+	return out
+}
+
+func compactDOMDimension(row map[string]any, dimension string) map[string]any {
+	out := selectFields(row, "schema_version", "dom_version", "projection_id", "mode", "status", dimension, "evidence_refs")
+	readiness := []any{}
+	switch values := row["dimension_readiness"].(type) {
+	case []any:
+		for _, value := range values {
+			if stringValue(anyMap(value)["dimension"]) == dimension {
+				readiness = append(readiness, value)
+			}
+		}
+	case []map[string]any:
+		for _, value := range values {
+			if stringValue(value["dimension"]) == dimension {
+				readiness = append(readiness, value)
+			}
+		}
+	}
+	if len(readiness) > 0 {
+		out["dimension_readiness"] = readiness
+	}
+	if trust := anyMap(row["trust_quality"]); len(trust) > 0 {
+		out["trust_quality"] = selectFields(trust,
+			"overall_status", "can_support_source_description", "can_support_family_selection",
+			"can_support_behavior_observation", "can_support_post_action_evaluation",
+		)
+	}
+	return out
 }
 
 func compactCOMSourceDynamicsForSelection(row map[string]any) map[string]any {
@@ -434,6 +793,31 @@ func compactMOMMultitrackRelation(relation map[string]any) map[string]any {
 		"band_occupancy_count": anyListLength(relation["band_occupancy"]),
 		"band_conflict_count":  anyListLength(relation["band_conflict_candidates"]),
 		"phase_risk_count":     anyListLength(relation["phase_risk_tracks"]),
+	}
+	// Counts alone are not actionable. Keep a bounded, family-neutral view of
+	// the actual candidate rows so the model can choose a focused follow-up
+	// observation without receiving a processor or treatment recommendation.
+	if candidates := rowsValue(relation["band_conflict_candidates"]); len(candidates) > 0 {
+		rows := make([]any, 0, len(candidates))
+		for _, candidate := range candidates {
+			row := selectFields(candidate, "type", "status", "band", "evidence_ref", "tracks")
+			tracks := rowsValue(row["tracks"])
+			if len(tracks) > 0 {
+				compactTracks := make([]any, 0, len(tracks))
+				for i, track := range tracks {
+					if i >= 4 {
+						break
+					}
+					compactTracks = append(compactTracks, selectFields(track, "track_id", "name", "role_guess", "unit_energy", "energy_db"))
+				}
+				row["tracks"] = compactTracks
+			}
+			rows = append(rows, row)
+			if len(rows) >= 12 {
+				break
+			}
+		}
+		out["band_conflict_candidates"] = rows
 	}
 	return out
 }

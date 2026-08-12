@@ -16,6 +16,7 @@ import (
 
 	"vit-daw-agent/internal/acousticpackage"
 	"vit-daw-agent/internal/com"
+	"vit-daw-agent/internal/dom"
 	"vit-daw-agent/internal/fxm"
 	"vit-daw-agent/internal/mom"
 	"vit-daw-agent/internal/projectstore"
@@ -94,6 +95,7 @@ type ObservationPacket struct {
 	MixPackage            map[string]any    `json:"mix_package"`
 	DeepPackage           map[string]any    `json:"deep_package"`
 	COMProjection         *com.Projection   `json:"com_projection,omitempty"`
+	DOMProjection         *dom.Projection   `json:"dom_projection,omitempty"`
 	FXMProjection         *fxm.Projection   `json:"fxm_projection,omitempty"`
 	MOMProjection         *mom.Projection   `json:"mom_projection,omitempty"`
 	TIMProjection         *tim.Projection   `json:"tim_projection,omitempty"`
@@ -2703,7 +2705,7 @@ func inferredRequestedFeature(featureType, requestID string, row map[string]any)
 
 func compactFeatureRow(row map[string]any) map[string]any {
 	out := map[string]any{}
-	for _, key := range []string{"schema_version", "status", "feature_type", "layer", "source_kind", "track_id", "clip_id", "target", "file_path", "source_path", "source_identity", "source_revision", "source_fingerprint", "source_hash", "clip_revision", "render_revision", "plugin_chain_revision", "fader_revision", "analyzer_revision", "analyzer_version", "clip_start_seconds", "request_id", "reason", "scope", "capture_mode", "tap_point", "render_mode", "capture_time", "time_basis", "quality_status", "quality_reason", "quality_reasons", "quality_evidence", "target_count", "track_ids", "float_count", "shm_bytes", "stride", "producer_format", "channels_semantics", "frequency_mapping", "derivation_status", "parse_failure_count", "parse_failures", "tile_count_seen", "tile_count_expected", "tile_count_parsed", "coverage_seconds", "coverage_ratio", "last_tile_index", "tile_duration", "tile_content_start_seconds", "frame_duration_seconds", "total_duration", "duration_seconds", "sample_rate", "channel_count", "channels", "expected_sample_count", "analyzed_sample_count", "nonzero_count", "sum_abs", "max_abs", "nan_count", "inf_count", "analyzed_range", "evidence_ref", "resolution_frame_width", "resolution_frequency_bins", "first_received_at", "last_received_at", "rms", "peak", "peak_abs", "rms_dbfs", "peak_dbfs", "headroom_db", "crest_factor", "crest_db", "integrated_lufs", "approximate_lufs", "approximate", "algorithm", "updated_at", "time_segments", "source", "bands", "band_count", "left_unit_energy", "right_unit_energy", "left_level_db", "right_level_db", "balance_db", "balance_unit", "balance_state", "phase_deviation", "phase_negative_ratio", "correlation_estimate", "correlation_state", "bin_count", "sample_count", "phase_sample_count"} {
+	for _, key := range []string{"schema_version", "status", "feature_type", "layer", "source_kind", "track_id", "clip_id", "target", "file_path", "source_path", "source_identity", "source_revision", "source_fingerprint", "source_hash", "clip_revision", "render_revision", "plugin_chain_revision", "fader_revision", "analyzer_revision", "analyzer_version", "clip_start_seconds", "request_id", "reason", "scope", "capture_mode", "tap_point", "render_mode", "capture_time", "time_basis", "quality_status", "quality_reason", "quality_reasons", "quality_evidence", "target_count", "track_ids", "float_count", "shm_bytes", "stride", "producer_format", "channels_semantics", "frequency_mapping", "derivation_status", "parse_failure_count", "parse_failures", "tile_count_seen", "tile_count_expected", "tile_count_parsed", "coverage_seconds", "coverage_ratio", "last_tile_index", "tile_duration", "tile_content_start_seconds", "frame_duration_seconds", "total_duration", "duration_seconds", "sample_rate", "channel_count", "channels", "expected_sample_count", "analyzed_sample_count", "nonzero_count", "sum_abs", "max_abs", "nan_count", "inf_count", "analyzed_range", "evidence_ref", "resolution_frame_width", "resolution_frequency_bins", "first_received_at", "last_received_at", "rms", "peak", "peak_abs", "rms_dbfs", "peak_dbfs", "headroom_db", "crest_factor", "crest_db", "integrated_lufs", "approximate_lufs", "approximate", "algorithm", "updated_at", "time_segments", "source", "bands", "band_count", "band_dynamics", "noise_floor_evidence", "frequency_time_events", "transient_events", "left_unit_energy", "right_unit_energy", "left_level_db", "right_level_db", "balance_db", "balance_unit", "balance_state", "phase_deviation", "phase_negative_ratio", "correlation_estimate", "correlation_state", "bin_count", "sample_count", "phase_sample_count"} {
 		if value, ok := row[key]; ok {
 			out[key] = value
 		}
@@ -2806,7 +2808,7 @@ func buildBandEnergySummary(row map[string]any) map[string]any {
 	out := map[string]any{
 		"status": status,
 	}
-	copyOptionalFeatureFields(out, row, "schema_version", "feature_type", "layer", "source_kind", "reason", "source", "updated_at", "track_id", "clip_id", "target", "request_id", "capture_mode", "tap_point", "capture_time", "time_basis", "quality_status", "quality_reason", "quality_evidence", "source_identity", "source_revision", "clip_revision", "render_revision", "plugin_chain_revision", "fader_revision", "tile_count_seen", "tile_count_expected", "tile_count_parsed", "coverage_seconds", "coverage_ratio", "total_duration", "derivation_status", "silence_confirmed", "silence_reason", "original_quality_status")
+	copyOptionalFeatureFields(out, row, "schema_version", "feature_type", "layer", "source_kind", "reason", "source", "updated_at", "track_id", "clip_id", "target", "request_id", "capture_mode", "tap_point", "capture_time", "time_basis", "quality_status", "quality_reason", "quality_evidence", "source_identity", "source_revision", "clip_revision", "render_revision", "plugin_chain_revision", "fader_revision", "tile_count_seen", "tile_count_expected", "tile_count_parsed", "coverage_seconds", "coverage_ratio", "total_duration", "derivation_status", "silence_confirmed", "silence_reason", "original_quality_status", "noise_floor_evidence", "frequency_time_events", "transient_events", "band_dynamics")
 	if silenceConfirmed {
 		out["silence_confirmed"] = true
 		out["silence_reason"] = "source_file_all_zero"
@@ -3832,7 +3834,75 @@ func timInputFromObservation(obs ObservationPacket, req Request) tim.Input {
 		ProjectPackage:        obs.ProjectPackage,
 		AcousticPackageStatus: obs.AcousticPackageStatus,
 		SourceCapabilities:    stringMapToAnyMap(obs.SourceCapabilities),
+		AuthoritativeState:    authoritativeTIMState(obs, req),
 	}
+}
+
+// authoritativeTIMState is deliberately a small internal summary. The full
+// project state and DAD package remain in their owning/audit stores; TIM only
+// receives binding, topology, and explicit source-state facts for consistency
+// checks.
+func authoritativeTIMState(obs ObservationPacket, req Request) map[string]any {
+	state := copyAnyMap(req.ProjectState)
+	project := mapValue(state["project"])
+	out := map[string]any{
+		"project_uuid":       firstNonEmpty(cleanAnyString(state["project_uuid"]), cleanAnyString(project["project_uuid"]), cleanAnyString(project["uuid"]), obs.ProjectUUID),
+		"project_epoch":      firstNonEmpty(cleanAnyString(state["project_epoch"]), cleanAnyString(project["project_epoch"]), cleanAnyString(obs.ProjectPackage["project_epoch"])),
+		"project_revision":   firstNonEmpty(cleanAnyString(state["project_revision"]), cleanAnyString(state["revision"]), cleanAnyString(project["revision"]), cleanAnyString(obs.ProjectPackage["project_revision"])),
+		"project_state_hash": firstNonEmpty(cleanAnyString(state["snapshot_hash"]), cleanAnyString(state["project_state_hash"]), cleanAnyString(project["snapshot_hash"]), cleanAnyString(obs.ProjectPackage["project_state_hash"])),
+		"track_count":        len(anySlice(state["tracks"])),
+	}
+	rows := []map[string]any{}
+	for _, raw := range anySlice(state["tracks"]) {
+		row := mapValue(raw)
+		if len(row) == 0 {
+			continue
+		}
+		primary := primaryTrackClip(anySlice(firstPresent(row, "clips", "clip_summaries")))
+		item := map[string]any{
+			"track_id": firstNonEmpty(cleanAnyString(row["track_id"]), cleanAnyString(row["id"])),
+			"clip_id":  firstNonEmpty(cleanAnyString(primary["clip_id"]), cleanAnyString(primary["id"])),
+		}
+		for _, key := range []string{"source_status", "source_state", "source_availability", "playback_source_valid", "source_path", "current_source_path", "file_path"} {
+			if value, ok := row[key]; ok && !isEmptyFeatureValue(value) {
+				item[key] = value
+			}
+		}
+		for _, key := range []string{"source_status", "source_state", "source_availability", "playback_source_valid", "source_path", "current_source_path", "file_path"} {
+			if value, ok := primary[key]; ok && !isEmptyFeatureValue(value) {
+				item[key] = value
+			}
+		}
+		rows = append(rows, item)
+	}
+	if len(rows) > 0 {
+		out["tracks"] = rows
+		clipCount := 0
+		for _, row := range rows {
+			if cleanAnyString(row["clip_id"]) != "" {
+				clipCount++
+			}
+		}
+		out["clip_count"] = clipCount
+	}
+	if status := mapValue(obs.AcousticPackageStatus); len(status) > 0 {
+		if value := firstNonEmpty(cleanAnyString(status["dad_fact_status"]), cleanAnyString(status["analysis_status"])); value != "" {
+			out["dad_fact_status"] = value
+		}
+		if value := firstNonNil(status["dad_fact_ready_count"], status["ready_count"]); value != nil {
+			out["dad_fact_ready_count"] = value
+		}
+		if value := firstNonNil(status["dad_fact_total_count"], status["total_count"]); value != nil {
+			out["dad_fact_total_count"] = value
+		}
+		out["dad_source_state"] = compactKeys(status, []string{"status", "source_identity", "source_path", "source_revision", "track_id", "clip_id"})
+	}
+	for _, key := range []string{"dad_fact_status", "dad_fact_ready_count", "dad_fact_total_count"} {
+		if value, ok := state[key]; ok && !isEmptyFeatureValue(value) {
+			out[key] = value
+		}
+	}
+	return out
 }
 
 func copyAnyMap(in map[string]any) map[string]any {
@@ -4210,6 +4280,9 @@ func packageStatus(obs ObservationPacket) map[string]string {
 	if obs.COMProjection != nil {
 		out["com"] = obs.COMProjection.Status
 	}
+	if obs.DOMProjection != nil {
+		out["dom"] = obs.DOMProjection.Status
+	}
 	return out
 }
 
@@ -4369,6 +4442,7 @@ func buildContextPack(req Request, board Board, obs ObservationPacket, now strin
 		"source_capabilities": projectedSourceCapabilities(obs.SourceCapabilities),
 		"read_hints": []string{
 			"mix_read key=observation.com_projection",
+			"mix_read key=observation.dom_projection",
 			"mix_read key=observation.mom_projection",
 			"mix_read key=observation.tim_projection",
 			"mix_read key=observation.fxm_projection",
@@ -4379,6 +4453,10 @@ func buildContextPack(req Request, board Board, obs ObservationPacket, now strin
 	if obs.COMProjection != nil {
 		latest["com_projection"] = com.ContextProjection(*obs.COMProjection)
 		latest["compression_observation_context"] = obs.COMProjection.LLMContext
+	}
+	if obs.DOMProjection != nil {
+		latest["dom_projection"] = dom.ContextProjection(*obs.DOMProjection)
+		latest["dynamics_observation_context"] = obs.DOMProjection.LLMContext
 	}
 	if obs.MOMProjection != nil {
 		latest["mom_projection"] = mom.ContextProjection(*obs.MOMProjection)

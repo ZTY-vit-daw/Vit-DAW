@@ -1049,6 +1049,25 @@ func TestAcousticPackageStatusDoesNotOverrideDifferentLatestTarget(t *testing.T)
 	}
 }
 
+func TestTIMInputCarriesMatchingAuthoritativeTopologyAndDADSummary(t *testing.T) {
+	obs := ObservationPacket{
+		ProjectUUID: "p1", ProjectPackage: map[string]any{
+			"project_uuid": "p1", "project_epoch": "e1", "project_revision": "7", "project_state_hash": "h7",
+		},
+		AcousticPackageStatus: map[string]any{"schema_version": "acoustic_package_status.v0", "status": "ready", "dad_fact_ready_count": 1, "dad_fact_total_count": 1},
+	}
+	input := timInputFromObservation(obs, Request{ProjectState: map[string]any{
+		"project_uuid": "p1", "project_epoch": "e1", "project_revision": "7", "snapshot_hash": "h7",
+		"tracks": []any{map[string]any{"track_id": "t1", "clips": []any{map[string]any{"clip_id": "c1", "source_status": "available"}}}},
+	}})
+	if input.AuthoritativeState["project_revision"] != "7" || len(mapRowsAny(input.AuthoritativeState["tracks"])) != 1 {
+		t.Fatalf("authoritative TIM state missing topology: %#v", input.AuthoritativeState)
+	}
+	if input.AuthoritativeState["dad_fact_ready_count"] != 1 {
+		t.Fatalf("authoritative TIM state missing DAD summary: %#v", input.AuthoritativeState)
+	}
+}
+
 func TestPreserveTargetWaveformTimeSegmentsAcrossAcousticStatusProjection(t *testing.T) {
 	snap := featureSnapshot{
 		WaveformEnvelope: map[string]any{

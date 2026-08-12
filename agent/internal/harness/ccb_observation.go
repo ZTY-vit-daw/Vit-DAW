@@ -17,33 +17,45 @@ func (h *Harness) ccbObservationCatalog(cmd map[string]any) map[string]any {
 	}
 }
 
-func (h *Harness) ccbObservationRequest(ctx context.Context, cmd map[string]any) (map[string]any, error) {
-	req := capabilitycontext.NormalizeFreeStateObservationRequest(capabilitycontext.FreeStateObservationRequest{
+func (h *Harness) ccbObservationRequest(ctx context.Context, cmd map[string]any, requestContext map[string]any, source string) (map[string]any, error) {
+	rawViewIDs := ccbObservationViewIDs(cmd)
+	req := capabilitycontext.FreeStateObservationRequest{
 		RequestID:          firstString(cmd, "request_id"),
 		ObservationID:      firstString(cmd, "observation_id"),
 		MixSessionID:       firstString(cmd, "mix_session_id", "session_id"),
-		ViewIDs:            ccbObservationViewIDs(cmd),
+		ViewIDs:            rawViewIDs,
+		OriginalViewIDs:    append([]string(nil), rawViewIDs...),
 		TargetRef:          ccbObservationTarget(cmd),
 		FreshnessClass:     firstString(cmd, "freshness_class", "freshness"),
 		MaxDisclosureBytes: int(numberFromAny(cmd["max_disclosure_bytes"])),
 		MaxItems:           int(numberFromAny(cmd["max_items"])),
-	})
+		RequestedBy:        ccbObservationRequestedBy(requestContext, source),
+	}
+	req = capabilitycontext.NormalizeFreeStateObservationRequest(req)
+	req.Scope = ccbObservationScope(req)
+	if reasons := capabilitycontext.ValidateFreeStateObservationViewIDs(rawViewIDs); len(reasons) > 0 {
+		return map[string]any{"status": "rejected", "bundle": capabilitycontext.RejectedFreeStateObservationScoped(req, ccbObservationBlockingViewsFromReasons(req, reasons), reasons...)}, nil
+	}
+	if reasons := ccbObservationUnknownViewReasons(req); len(reasons) > 0 {
+		return map[string]any{"status": "rejected", "bundle": capabilitycontext.RejectedFreeStateObservationScoped(req, ccbObservationBlockingViewsFromReasons(req, reasons), reasons...)}, nil
+	}
+	// Catalog entries marked deferred/unavailable are explicit capability
+	// boundaries. Reject before materializing an observation so the model gets
+	// a durable receipt and can deterministically choose another view or block.
+	if blocking, reasons := ccbObservationUnavailableViewDetails(req); len(reasons) > 0 {
+		return map[string]any{"status": "rejected", "bundle": capabilitycontext.RejectedFreeStateObservationScoped(req, blocking, reasons...)}, nil
+	}
 	if req.ObservationID == "" {
 		observeCmd := ccbObservationCommand(cmd, req)
 		observed, err := h.requestMixObservation(ctx, observeCmd)
 		if err != nil {
-			return nil, err
+			return map[string]any{"status": "rejected", "bundle": capabilitycontext.RejectedFreeStateObservationScoped(req, req.ViewIDs, err.Error())}, nil
 		}
 		req.ObservationID = firstString(observed, "observation_id")
 		req.MixSessionID = firstString(observed, "mix_session_id")
 		if req.ObservationID == "" {
-			return map[string]any{
-				"status":             firstNonEmpty(firstString(observed, "status"), "insufficient"),
-				"schema_version":     capabilitycontext.FreeStateObservationBundleSchema,
-				"read_only":          true,
-				"mutation_authority": false,
-				"reason":             firstNonEmpty(firstString(observed, "reason", "error", "message"), "authoritative observation was not materialized"),
-			}, nil
+			reason := firstNonEmpty(firstString(observed, "reason", "error", "message"), "authoritative observation was not materialized")
+			return map[string]any{"status": "rejected", "bundle": capabilitycontext.RejectedFreeStateObservationScoped(req, req.ViewIDs, reason)}, nil
 		}
 	}
 	store := mixboard.NewStore("")
@@ -54,7 +66,7 @@ func (h *Harness) ccbObservationRequest(ctx context.Context, cmd map[string]any)
 		MaxItems:      1,
 	})
 	if err != nil {
-		return nil, err
+		return map[string]any{"status": "rejected", "bundle": capabilitycontext.RejectedFreeStateObservationScoped(req, req.ViewIDs, err.Error())}, nil
 	}
 	binding := mapAnyFromAny(mapAnyFromAny(bindingRead["items"])["observation.binding"])
 	targetID := ccbObservationBindingTargetID(binding["target_ref"])
@@ -65,13 +77,116 @@ func (h *Harness) ccbObservationRequest(ctx context.Context, cmd map[string]any)
 		MaxItems:      req.MaxItems,
 	})
 	if err != nil {
-		return nil, err
+		return map[string]any{"status": "rejected", "bundle": capabilitycontext.RejectedFreeStateObservationScoped(req, req.ViewIDs, err.Error())}, nil
 	}
 	bundle := capabilitycontext.AssembleFreeStateObservation(req, readResult)
 	return map[string]any{
 		"status": bundle.Status,
 		"bundle": bundle,
 	}, nil
+}
+
+// ccbObservationBlockingViewsFromReasons extracts only view-specific causes
+// from a rejection. A mixed request can therefore retain individually usable
+// views as non-blocking instead of turning exact-set do_not_retry into a ban
+// on every member of the set.
+func ccbObservationBlockingViewsFromReasons(req capabilitycontext.FreeStateObservationRequest, reasons []string) []string {
+	requested := map[string]bool{}
+	for _, viewID := range req.OriginalViewIDs {
+		viewID = strings.TrimSpace(viewID)
+		if viewID != "" {
+			requested[viewID] = true
+		}
+	}
+	if len(requested) == 0 {
+		for _, viewID := range req.ViewIDs {
+			viewID = strings.TrimSpace(viewID)
+			if viewID != "" {
+				requested[viewID] = true
+			}
+		}
+	}
+	blocking := []string{}
+	for _, reason := range reasons {
+		reason = strings.TrimSpace(reason)
+		for viewID := range requested {
+			if strings.HasPrefix(reason, viewID+":") {
+				blocking = append(blocking, viewID)
+			}
+		}
+	}
+	return uniqueStrings(blocking)
+}
+
+func uniqueStrings(values []string) []string {
+	seen := map[string]bool{}
+	out := make([]string, 0, len(values))
+	for _, value := range values {
+		value = strings.TrimSpace(value)
+		if value == "" || seen[value] {
+			continue
+		}
+		seen[value] = true
+		out = append(out, value)
+	}
+	return out
+}
+
+func ccbObservationRequestedBy(requestContext map[string]any, source string) string {
+	if strings.EqualFold(strings.TrimSpace(source), "agentloop") || strings.EqualFold(strings.TrimSpace(source), "agent") {
+		return "model"
+	}
+	if requestContext != nil {
+		if _, ok := requestContext["free_state_reasoning_loop"]; ok {
+			return "model"
+		}
+		if value, ok := boolValue(requestContext["free_state_route_authorized"]); ok && value {
+			return "model"
+		}
+	}
+	return "caller"
+}
+
+func ccbObservationUnknownViewReasons(req capabilitycontext.FreeStateObservationRequest) []string {
+	catalog := capabilitycontext.FreeStateObservationCatalogFor(req.TargetRef)
+	known := map[string]bool{}
+	for _, view := range catalog.Views {
+		known[view.ViewID] = true
+	}
+	reasons := []string{}
+	for _, viewID := range req.ViewIDs {
+		if !known[viewID] {
+			reasons = append(reasons, viewID+": semantic view is not in the CCB catalog")
+		}
+	}
+	return reasons
+}
+
+func ccbObservationUnavailableViewReasons(req capabilitycontext.FreeStateObservationRequest) []string {
+	_, reasons := ccbObservationUnavailableViewDetails(req)
+	return reasons
+}
+
+func ccbObservationUnavailableViewDetails(req capabilitycontext.FreeStateObservationRequest) ([]string, []string) {
+	catalog := capabilitycontext.FreeStateObservationCatalogFor(req.TargetRef)
+	byID := map[string]capabilitycontext.FreeStateObservationView{}
+	for _, view := range catalog.Views {
+		byID[view.ViewID] = view
+	}
+	blocking := []string{}
+	reasons := []string{}
+	for _, viewID := range req.ViewIDs {
+		view, ok := byID[viewID]
+		if !ok {
+			continue
+		}
+		switch strings.ToLower(strings.TrimSpace(view.Availability)) {
+		case "deferred", "unavailable":
+			blocking = append(blocking, viewID)
+			reasons = append(reasons, viewID+": availability="+view.Availability)
+		}
+	}
+	return blocking, reasons
 }
 
 func ccbObservationBindingTargetID(value any) string {

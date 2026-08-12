@@ -15,6 +15,8 @@ const (
 	CCBModelProjectionSchema = "ccb_model_projection.v1"
 	ccbCatalogSchema         = "ccb_observation_catalog.v1"
 	ccbBundleSchema          = "ccb_observation_bundle.v1"
+	ModelHotBudgetBytes      = 10 * 1024
+	ModelWarmBudgetBytes     = 5 * 1024
 )
 
 // ModelProjectionInput separates the complete runtime snapshot from the
@@ -24,7 +26,21 @@ type ModelProjectionInput struct {
 	Snapshot          Snapshot
 	GoalTrace         []planner.TraceEvent
 	RecentObservation map[string]any
+	ObservationLedger map[string]any
+	Profile           ModelContextProfile
 }
+
+// ModelContextProfile selects the amount of non-authoritative context that is
+// visible to the model. Cold data remains in the audit snapshot and is never
+// implicitly rehydrated into a model request.
+type ModelContextProfile string
+
+const (
+	ModelContextProfileFull        ModelContextProfile = "full"
+	ModelContextProfileSelection   ModelContextProfile = "processor_selection"
+	ModelContextProfileMaterialize ModelContextProfile = "processor_materialization"
+	ModelContextProfilePostAction  ModelContextProfile = "post_action_evaluation"
+)
 
 // ProjectModelSnapshot removes repeated CCB summaries from the known snapshot
 // sections and installs exactly one canonical active_observation.
@@ -41,10 +57,280 @@ func ProjectModelSnapshot(in ModelProjectionInput, opts Options) map[string]any 
 	if len(active) > 0 {
 		out["active_observation"] = active
 	}
+	if ledger := ProjectObservationLedger(in.ObservationLedger, opts); len(ledger) > 1 {
+		out["observation_ledger"] = ledger
+	}
 	if catalogRef := latestCatalogReference(projections); len(catalogRef) > 0 && modelText(active["kind"]) != "catalog" {
 		out["observation_catalog_ref"] = catalogRef
 	}
+	return applyModelContextProfile(out, in.Profile, opts)
+}
+
+func applyModelContextProfile(snapshot map[string]any, profile ModelContextProfile, opts Options) map[string]any {
+	if len(snapshot) == 0 || profile == "" || profile == ModelContextProfileFull {
+		return snapshot
+	}
+	keep := modelProfileKeepSections(profile)
+	degraded := []string{}
+	for key := range snapshot {
+		if !keep[key] {
+			delete(snapshot, key)
+			degraded = append(degraded, key)
+		}
+	}
+	sort.Strings(degraded)
+	snapshot["context_profile"] = string(profile)
+	hotSections, warmSections := modelProfileLayerSections(profile, snapshot)
+	snapshot["context_layers"] = map[string]any{
+		"hot": map[string]any{
+			"sections":     hotSections,
+			"budget_bytes": ModelHotBudgetBytes,
+			"policy":       "current-decision-and-fresh-evidence",
+		},
+		"warm": map[string]any{
+			"sections":     warmSections,
+			"budget_bytes": ModelWarmBudgetBytes,
+			"mode":         "digest_and_reference_only",
+		},
+		"cold": map[string]any{
+			"mode":   "audit_snapshot_only",
+			"access": "deterministic_projection_required",
+			"policy": "never-rehydrate-automatically",
+		},
+	}
+	if len(degraded) > 0 {
+		snapshot["context_degradation"] = map[string]any{
+			"status":           "degraded",
+			"omitted_sections": degraded,
+			"cold_data":        "audit_snapshot_only",
+		}
+	} else {
+		snapshot["context_degradation"] = map[string]any{"status": "none", "cold_data": "audit_snapshot_only"}
+	}
+	hotBytes := modelLayerBytes(snapshot, hotSections)
+	warmBytes := modelLayerBytes(snapshot, warmSections)
+	budgetStatus := "within_budget"
+	switch {
+	case hotBytes > ModelHotBudgetBytes && warmBytes > ModelWarmBudgetBytes:
+		budgetStatus = "over_hot_and_warm_budget"
+	case hotBytes > ModelHotBudgetBytes:
+		budgetStatus = "over_hot_budget"
+	case warmBytes > ModelWarmBudgetBytes:
+		budgetStatus = "over_warm_budget"
+	}
+	contextDegradation := modelMap(snapshot["context_degradation"])
+	contextDegradation["budget_status"] = budgetStatus
+	contextDegradation["hot_bytes"] = hotBytes
+	contextDegradation["hot_target_bytes"] = ModelHotBudgetBytes
+	contextDegradation["warm_bytes"] = warmBytes
+	contextDegradation["warm_target_bytes"] = ModelWarmBudgetBytes
+	if budgetStatus != "within_budget" {
+		contextDegradation["budget_action"] = "retain_effective_projection_and_report_size"
+	}
+	snapshot["context_degradation"] = contextDegradation
+	// Keep the projection deterministic and explicit if its active section is
+	// larger than the Hot target. We do not silently truncate facts.
+	if active := modelMap(snapshot["active_observation"]); len(active) > 0 {
+		if bytes := modelJSONSize(active); bytes > ModelHotBudgetBytes {
+			active["degradation"] = map[string]any{
+				"status":       "over_hot_budget",
+				"bytes":        bytes,
+				"target_bytes": ModelHotBudgetBytes,
+				"action":       "retain_current_projection_and_report_size",
+			}
+			snapshot["active_observation"] = active
+		}
+	}
+	// The active projection can gain its explicit over-budget marker above.
+	// Recompute layer sizes so the emitted report describes the final payload.
+	hotBytes = modelLayerBytes(snapshot, hotSections)
+	warmBytes = modelLayerBytes(snapshot, warmSections)
+	contextDegradation["hot_bytes"] = hotBytes
+	contextDegradation["warm_bytes"] = warmBytes
+	snapshot["context_degradation"] = contextDegradation
+	// The size report is part of the model view, so compute it to a small fixed
+	// point: adding the report changes the serialized size (and its own section
+	// size) by a few digits. This keeps the telemetry honest without truncating
+	// any effective projection.
+	snapshot["context_size"] = map[string]any{}
+	for i := 0; i < 4; i++ {
+		snapshot["context_size"] = map[string]any{
+			"total_bytes":   modelJSONSize(snapshot),
+			"section_bytes": ModelSectionBytes(snapshot),
+			"hot_bytes":     hotBytes,
+			"warm_bytes":    warmBytes,
+			"hot_budget":    ModelHotBudgetBytes,
+			"warm_budget":   ModelWarmBudgetBytes,
+		}
+	}
+	return snapshot
+}
+
+func modelProfileKeepSections(profile ModelContextProfile) map[string]bool {
+	keep := map[string]bool{
+		"schema_version":          true,
+		"goal_id":                 true,
+		"run_id":                  true,
+		"goal_summary":            true,
+		"user_text":               true,
+		"current_selection":       true,
+		"daw_state_summary":       true,
+		"active_observation":      true,
+		"observation_ledger":      true,
+		"observation_catalog_ref": true,
+		// The trace/context sections contain only references after
+		// stripRepeatedCCBResults; they are the warm receipt surface needed to
+		// explain a prior observation or a rejected view set.
+		"recent_goal_context": true,
+		"goal_trace_summary":  true,
+	}
+	switch profile {
+	case ModelContextProfileMaterialize, ModelContextProfilePostAction:
+		keep["daw_semantic_summary"] = true
+	}
+	return keep
+}
+
+func modelProfileLayerSections(profile ModelContextProfile, snapshot map[string]any) ([]string, []string) {
+	hot := []string{"active_observation", "current_selection", "daw_state_summary"}
+	warm := []string{"recent_goal_context", "goal_trace_summary", "observation_catalog_ref", "observation_ledger"}
+	switch profile {
+	case ModelContextProfileMaterialize:
+		hot = append(hot, "daw_semantic_summary")
+	case ModelContextProfilePostAction:
+		hot = append(hot, "recent_goal_context")
+		warm = append(warm, "daw_semantic_summary")
+	}
+	hot = existingModelSections(snapshot, uniqueSortedStrings(hot))
+	hotSet := map[string]bool{}
+	for _, section := range hot {
+		hotSet[section] = true
+	}
+	warm = existingModelSections(snapshot, uniqueSortedStrings(warm))
+	filteredWarm := make([]string, 0, len(warm))
+	for _, section := range warm {
+		if !hotSet[section] {
+			filteredWarm = append(filteredWarm, section)
+		}
+	}
+	return hot, filteredWarm
+}
+
+// ProjectObservationLedger emits only bounded receipt, conclusion, and
+// reference metadata. Raw CCB views and processor identity can never enter the
+// model through this historical surface.
+func ProjectObservationLedger(ledger map[string]any, opts Options) map[string]any {
+	opts = normalizeOptions(opts)
+	if len(ledger) == 0 {
+		return nil
+	}
+	out := map[string]any{"schema_version": "free_state_observation_ledger.v1"}
+	windows := map[string]any{}
+	if available := modelMap(ledger["available_views"]); len(available) > 0 {
+		projected := map[string]any{}
+		for _, viewID := range sortedModelKeys(available) {
+			row := selectModelFields(modelMap(available[viewID]),
+				"view_id", "status", "observation_id", "tool_call_id", "freshness", "limitations", "evidence_refs", "audit_ref")
+			if row["view_id"] == nil {
+				row["view_id"] = viewID
+			}
+			if clean := modelMap(sanitizeModelProjection(row, opts)); len(clean) > 0 {
+				projected[viewID] = clean
+			}
+		}
+		if len(projected) > 0 {
+			out["available_views"] = projected
+		}
+	}
+	rejectedSource := modelRows(ledger["rejected_view_sets"])
+	if rows := projectObservationLedgerRows(rejectedSource, opts,
+		"fingerprint", "requested_views", "status", "receipt_id", "tool_call_id", "request_id", "observation_id", "retry_policy", "rejection_scope", "blocking_view_ids", "non_blocking_view_ids"); len(rows) > 0 {
+		out["rejected_view_sets"] = rows
+		windows["rejected_view_sets"] = observationLedgerWindow(modelInteger(ledger["rejected_view_set_count"]), len(rejectedSource), len(rows))
+	}
+	receiptSource := modelRows(ledger["receipts"])
+	if rows := projectObservationLedgerRows(receiptSource, opts,
+		"receipt_id", "receipt_schema", "tool_call_id", "observation_id", "request_id", "status", "requested_views"); len(rows) > 0 {
+		out["receipts"] = rows
+		windows["receipts"] = observationLedgerWindow(modelInteger(ledger["receipt_count"]), len(receiptSource), len(rows))
+	}
+	if len(windows) > 0 {
+		out["history_window"] = windows
+	}
 	return out
+}
+
+func observationLedgerWindow(total, sourceCount, retained int) map[string]any {
+	if total < sourceCount {
+		total = sourceCount
+	}
+	return map[string]any{
+		"total": total, "retained": retained, "omitted": total - retained, "limit": 24,
+	}
+}
+
+func modelInteger(value any) int {
+	switch typed := value.(type) {
+	case int:
+		return typed
+	case int64:
+		return int(typed)
+	case float64:
+		return int(typed)
+	default:
+		return 0
+	}
+}
+
+func projectObservationLedgerRows(value any, opts Options, keys ...string) []map[string]any {
+	rows := modelRows(value)
+	if len(rows) > 24 {
+		rows = rows[len(rows)-24:]
+	}
+	out := make([]map[string]any, 0, len(rows))
+	for _, row := range rows {
+		if clean := modelMap(sanitizeModelProjection(selectModelFields(row, keys...), opts)); len(clean) > 0 {
+			out = append(out, clean)
+		}
+	}
+	return out
+}
+
+func existingModelSections(snapshot map[string]any, sections []string) []string {
+	out := make([]string, 0, len(sections))
+	for _, section := range sections {
+		if value, ok := snapshot[section]; ok && !isEmptyValue(value) {
+			out = append(out, section)
+		}
+	}
+	return out
+}
+
+func modelLayerBytes(snapshot map[string]any, sections []string) int {
+	total := 0
+	for _, section := range sections {
+		total += modelJSONSize(snapshot[section])
+	}
+	return total
+}
+
+func uniqueSortedStrings(values []string) []string {
+	seen := map[string]bool{}
+	out := make([]string, 0, len(values))
+	for _, value := range values {
+		if value == "" || seen[value] {
+			continue
+		}
+		seen[value] = true
+		out = append(out, value)
+	}
+	sort.Strings(out)
+	return out
+}
+
+func modelJSONSize(value any) int {
+	data, _ := json.Marshal(value)
+	return len(data)
 }
 
 // ModelJSON uses compact JSON for the model-only view. The audit snapshot
@@ -138,33 +424,39 @@ func projectCCBBundle(result planner.ToolResult, bundle map[string]any, opts Opt
 	}
 	audit := modelMap(bundle["audit_receipt"])
 	auditRef := removeEmptyModelFields(map[string]any{
-		"receipt_id":       modelText(audit["receipt_id"]),
-		"receipt_schema":   modelText(audit["schema_version"]),
-		"bundle_id":        modelText(bundle["bundle_id"]),
-		"view_set_matches": audit["view_set_matches"],
+		"receipt_id":            modelText(audit["receipt_id"]),
+		"receipt_schema":        modelText(audit["schema_version"]),
+		"bundle_id":             modelText(bundle["bundle_id"]),
+		"view_set_matches":      audit["view_set_matches"],
+		"rejection_scope":       audit["rejection_scope"],
+		"blocking_view_ids":     audit["blocking_view_ids"],
+		"non_blocking_view_ids": audit["non_blocking_view_ids"],
 	})
 	return removeEmptyModelFields(map[string]any{
-		"schema_version":     CCBModelProjectionSchema,
-		"kind":               "observation",
-		"projection_status":  bundleProjectionStatus,
-		"tool_call_id":       strings.TrimSpace(result.ToolCallID),
-		"tool":               strings.TrimSpace(result.Tool),
-		"status":             firstModelText(result.Status, modelText(bundle["status"])),
-		"bundle_status":      modelText(bundle["status"]),
-		"observation_id":     modelText(bundle["observation_id"]),
-		"bundle_id":          modelText(bundle["bundle_id"]),
-		"request_id":         modelText(bundle["request_id"]),
-		"read_only":          bundle["read_only"],
-		"mutation_authority": bundle["mutation_authority"],
-		"target_ref":         sanitizeModelProjection(bundle["target_ref"], opts),
-		"freshness":          sanitizeModelProjection(bundle["freshness"], opts),
-		"requested_views":    requested,
-		"views":              projectedViews,
-		"limitations":        sanitizeModelProjection(bundle["limitations"], opts),
-		"omission_reasons":   sanitizeModelProjection(bundle["omission_reasons"], opts),
-		"omissions":          sanitizeModelProjection(bundle["omissions"], opts),
-		"evidence_refs":      sanitizeModelProjection(bundle["evidence_refs"], opts),
-		"audit_ref":          auditRef,
+		"schema_version":        CCBModelProjectionSchema,
+		"kind":                  "observation",
+		"projection_status":     bundleProjectionStatus,
+		"tool_call_id":          strings.TrimSpace(result.ToolCallID),
+		"tool":                  strings.TrimSpace(result.Tool),
+		"status":                firstModelText(result.Status, modelText(bundle["status"])),
+		"bundle_status":         modelText(bundle["status"]),
+		"observation_id":        modelText(bundle["observation_id"]),
+		"bundle_id":             modelText(bundle["bundle_id"]),
+		"request_id":            modelText(bundle["request_id"]),
+		"read_only":             bundle["read_only"],
+		"mutation_authority":    bundle["mutation_authority"],
+		"target_ref":            sanitizeModelProjection(bundle["target_ref"], opts),
+		"freshness":             sanitizeModelProjection(bundle["freshness"], opts),
+		"requested_views":       requested,
+		"views":                 projectedViews,
+		"limitations":           sanitizeModelProjection(bundle["limitations"], opts),
+		"omission_reasons":      sanitizeModelProjection(bundle["omission_reasons"], opts),
+		"omissions":             sanitizeModelProjection(bundle["omissions"], opts),
+		"evidence_refs":         sanitizeModelProjection(bundle["evidence_refs"], opts),
+		"audit_ref":             auditRef,
+		"rejection_scope":       modelText(bundle["rejection_scope"]),
+		"blocking_view_ids":     sanitizeModelProjection(bundle["blocking_view_ids"], opts),
+		"non_blocking_view_ids": sanitizeModelProjection(bundle["non_blocking_view_ids"], opts),
 	})
 }
 
