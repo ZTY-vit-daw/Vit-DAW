@@ -7,6 +7,7 @@ import (
 	"sort"
 	"strings"
 
+	"vit-daw-agent/internal/contextruntime"
 	executorpkg "vit-daw-agent/internal/executor"
 	"vit-daw-agent/internal/planner"
 	"vit-daw-agent/internal/processorintent"
@@ -14,10 +15,12 @@ import (
 )
 
 const FreeStateDecisionSchema = "free_state_decision.v1"
+const FreeStateDiagnosticSchema = "free_state_diagnostic.v1"
 
 const (
 	freeStateObservationLedgerSchema = "free_state_observation_ledger.v1"
 	freeStateObservationLedgerLimit  = 24
+	freeStateMaxObservationRequests  = 3
 )
 
 const (
@@ -45,6 +48,54 @@ type FreeStateDecision struct {
 	ObservationID           string                  `json:"observation_id,omitempty"`
 	Limitations             []string                `json:"limitations,omitempty"`
 	StopReason              string                  `json:"stop_reason,omitempty"`
+	Diagnostic              *FreeStateDiagnostic    `json:"diagnostic,omitempty"`
+}
+
+// FreeStateDiagnostic is a model-owned, read-only diagnosis result. The
+// runtime verifies only evidence references and never supplies evaluator
+// truth or interprets the finding statement.
+type FreeStateDiagnostic struct {
+	SchemaVersion string                       `json:"schema_version"`
+	Status        string                       `json:"status"`
+	Findings      []FreeStateDiagnosticFinding `json:"findings,omitempty"`
+	Limitations   []string                     `json:"limitations,omitempty"`
+}
+
+type FreeStateDiagnosticFinding struct {
+	Statement    string         `json:"statement"`
+	Scope        map[string]any `json:"scope,omitempty"`
+	EvidenceRefs []string       `json:"evidence_refs"`
+	Confidence   float64        `json:"confidence,omitempty"`
+	Limitation   string         `json:"limitation,omitempty"`
+}
+
+func (d *FreeStateDiagnostic) Validate() error {
+	if d == nil {
+		return nil
+	}
+	if strings.TrimSpace(d.SchemaVersion) != FreeStateDiagnosticSchema {
+		return fmt.Errorf("diagnostic schema_version must be %s", FreeStateDiagnosticSchema)
+	}
+	switch strings.ToLower(strings.TrimSpace(d.Status)) {
+	case "confirmed", "ruled_out", "unresolved":
+	default:
+		return fmt.Errorf("diagnostic status must be confirmed, ruled_out, or unresolved")
+	}
+	if len(d.Findings) == 0 && strings.ToLower(strings.TrimSpace(d.Status)) != "unresolved" {
+		return fmt.Errorf("diagnostic requires at least one finding unless status=unresolved")
+	}
+	for i, finding := range d.Findings {
+		if strings.TrimSpace(finding.Statement) == "" {
+			return fmt.Errorf("diagnostic finding %d requires statement", i)
+		}
+		if len(finding.EvidenceRefs) == 0 {
+			return fmt.Errorf("diagnostic finding %d requires evidence_refs", i)
+		}
+		if finding.Confidence < 0 || finding.Confidence > 1 {
+			return fmt.Errorf("diagnostic finding %d confidence must be between 0 and 1", i)
+		}
+	}
+	return nil
 }
 
 func (d FreeStateDecision) Validate() error {
@@ -57,11 +108,18 @@ func (d FreeStateDecision) Validate() error {
 			return fmt.Errorf("semantic_processor_intent: %w", err)
 		}
 	}
+	if d.Diagnostic != nil {
+		if err := d.Diagnostic.Validate(); err != nil {
+			return err
+		}
+	}
 	switch status {
 	case FreeStateNeedsObservation:
-		if len(nonEmptyFreeStateStrings(d.RequestedViewIDs)) == 0 {
-			return fmt.Errorf("needs_observation requires requested_view_ids")
-		}
+		// Catalog discovery is a model-visible observation step but does not
+		// request a view set.  An empty requested_view_ids is therefore valid
+		// only when the turn calls ccb.observation_catalog; a concrete
+		// ccb.observation_request is still required to carry a non-empty set and
+		// is checked by the message-loop output gate.
 	case FreeStateNeedsAction:
 		if strings.TrimSpace(d.RemainingIntent) == "" {
 			return fmt.Errorf("needs_action requires remaining_intent")
@@ -111,6 +169,17 @@ func cloneFreeStateDecision(in *FreeStateDecision) *FreeStateDecision {
 			intent.Rejection = &rejection
 		}
 		out.SemanticProcessorIntent = &intent
+	}
+	if in.Diagnostic != nil {
+		diagnostic := *in.Diagnostic
+		diagnostic.Limitations = append([]string(nil), in.Diagnostic.Limitations...)
+		diagnostic.Findings = make([]FreeStateDiagnosticFinding, len(in.Diagnostic.Findings))
+		for i, finding := range in.Diagnostic.Findings {
+			diagnostic.Findings[i] = finding
+			diagnostic.Findings[i].EvidenceRefs = append([]string(nil), finding.EvidenceRefs...)
+			diagnostic.Findings[i].Scope = cloneMap(finding.Scope)
+		}
+		out.Diagnostic = &diagnostic
 	}
 	return &out
 }
@@ -201,7 +270,7 @@ func messageLoopFreeStatePromptContext(state *runState) map[string]any {
 	if decision := messageLoopMapValue(source["latest_decision"]); len(decision) > 0 {
 		out["latest_decision"] = compactSelectedKeys(decision, []string{
 			"schema_version", "status", "evidence_status", "summary", "remaining_intent",
-			"processor_type", "semantic_processor_intent", "requested_view_ids", "observation_id", "limitations", "stop_reason",
+			"processor_type", "semantic_processor_intent", "diagnostic", "requested_view_ids", "observation_id", "limitations", "stop_reason",
 		})
 	}
 	actions := messageLoopMapRows(source["actions"])
@@ -294,13 +363,18 @@ func messageLoopFreeStateOutputIssue(state *runState, out messageLoopOutput) str
 	if err := out.FreeStateDecision.Validate(); err != nil {
 		return "invalid free_state decision: " + err.Error()
 	}
+	diagnosticOnly := messageLoopFreeStateDiagnosticOnly(state)
 	status := strings.ToLower(strings.TrimSpace(out.FreeStateDecision.Status))
 	switch status {
 	case FreeStateNeedsObservation:
+		if diagnosticOnly && messageLoopFreeStateDiagnosticEvidenceWindowClosed(state) {
+			return "diagnostic-only observation window is closed after a usable non-structural CCB observation; do not call another tool and return your own terminal free_state_diagnostic.v1 conclusion now (use unresolved with limitations when the available evidence is insufficient)"
+		}
 		if out.Final || len(out.ToolCalls) == 0 {
 			return "needs_observation must be non-final and call ccb.observation_catalog or ccb.observation_request"
 		}
-		requestCalls := 0
+		requestCalls := make([]planner.ToolCall, 0, len(out.ToolCalls))
+		requestFingerprints := map[string]bool{}
 		for _, call := range out.ToolCalls {
 			if !messageLoopIsCCBObservationTool(call) {
 				return "needs_observation may call only CCB observation catalog/request tools in the free-state loop"
@@ -308,18 +382,36 @@ func messageLoopFreeStateOutputIssue(state *runState, out messageLoopOutput) str
 			if !messageLoopIsCCBObservationRequestName(normalizedActionName(call, executorpkg.Result{})) {
 				continue
 			}
-			requestCalls++
-			if issue := messageLoopFreeStateRequestedViewsIssue(out.FreeStateDecision.RequestedViewIDs, call.Args["view_ids"]); issue != "" {
+			requestCalls = append(requestCalls, call)
+			if issue := messageLoopFreeStateTrackTargetIssue(state, call); issue != "" {
+				return issue
+			}
+			callViews := messageLoopStringList(call.Args["view_ids"])
+			if _, issue := messageLoopFreeStateNormalizedCallViewSet(call.Args["view_ids"]); issue != "" {
+				return "ccb.observation_request view_ids " + issue
+			}
+			fingerprint := messageLoopFreeStateRequestFingerprint(callViews, messageLoopCCBTargetFromCall(call))
+			if fingerprint == "" {
+				return "ccb.observation_request must have a deterministic view-set and target fingerprint"
+			}
+			if requestFingerprints[fingerprint] {
+				return "needs_observation must not repeat the same CCB view set and target in one turn"
+			}
+			requestFingerprints[fingerprint] = true
+			if issue := messageLoopFreeStateRejectedViewSetIssue(state, callViews, messageLoopCCBTargetFromCall(call)); issue != "" {
 				return issue
 			}
 		}
-		if requestCalls > 1 {
-			return "needs_observation may contain at most one ccb.observation_request so the executed view set remains exactly auditable"
+		if len(requestCalls) > freeStateMaxObservationRequests {
+			return fmt.Sprintf("needs_observation may contain at most %d distinct ccb.observation_request calls in one turn", freeStateMaxObservationRequests)
 		}
-		if issue := messageLoopFreeStateRejectedViewSetIssue(state, out.FreeStateDecision.RequestedViewIDs); issue != "" {
+		if issue := messageLoopFreeStateRequestedCallsIssue(out.FreeStateDecision.RequestedViewIDs, requestCalls); issue != "" {
 			return issue
 		}
 	case FreeStateNeedsAction:
+		if diagnosticOnly {
+			return "diagnostic-only free-state turns must end with a diagnostic conclusion and may not enter a processor action"
+		}
 		if len(out.ToolCalls) != 0 {
 			return "needs_action must contain no direct mutation tool calls; the local governed processor router owns materialization and confirmation"
 		}
@@ -354,6 +446,11 @@ func messageLoopFreeStateOutputIssue(state *runState, out messageLoopOutput) str
 		if freeStateBool(ctx["requires_post_action_observation"]) && !messageLoopHasSuccessfulCCBObservationRequest(state) {
 			return "cannot mark the original intent satisfied after an action until a fresh CCB observation_request has returned in this reasoning cycle"
 		}
+		if diagnosticOnly {
+			if issue := messageLoopFreeStateDiagnosticIssue(state, out.FreeStateDecision); issue != "" {
+				return issue
+			}
+		}
 	case FreeStateBlocked:
 		if len(out.ToolCalls) != 0 {
 			return "blocked must contain no tool calls"
@@ -361,34 +458,253 @@ func messageLoopFreeStateOutputIssue(state *runState, out messageLoopOutput) str
 		if messageLoopFreeStateClaimsUnavailableObservation(state, *out.FreeStateDecision) {
 			return "cannot claim that observation is unavailable: ccb.observation_catalog and ccb.observation_request are available in this free-state turn; use the CCB catalog/request protocol, then decide the treatment family from the returned bounded evidence and limitations"
 		}
+		if diagnosticOnly {
+			if issue := messageLoopFreeStateDiagnosticIssue(state, out.FreeStateDecision); issue != "" {
+				return issue
+			}
+		}
 	}
 	return ""
 }
 
-func messageLoopFreeStateRejectedViewSetIssue(state *runState, requested []string) string {
-	want := messageLoopFreeStateViewFingerprint(requested)
+// messageLoopFreeStateDiagnosticEvidenceWindowClosed bounds only the
+// diagnostic-only experiment. A structure-only observation may be needed to
+// discover visible track identities, but the first usable acoustic/project
+// relationship view closes the observation window. The model still owns the
+// finding and may conclude unresolved; the runtime supplies no diagnosis.
+func messageLoopFreeStateDiagnosticEvidenceWindowClosed(state *runState) bool {
+	if !messageLoopFreeStateDiagnosticOnly(state) || state == nil {
+		return false
+	}
+	for _, record := range state.executed {
+		name := firstNonEmpty(messageLoopText(record["tool"]), messageLoopText(record["command_name"]))
+		if !messageLoopIsCCBObservationRequestName(name) || !messageLoopExecutionSucceeded(record) {
+			continue
+		}
+		if messageLoopFreeStateBundleHasDiagnosticEvidence(messageLoopMapValue(messageLoopMapValue(record["result"])["bundle"])) {
+			return true
+		}
+	}
+	if observation := state.recentObservation; observation != nil && observation.Error == "" && !toolStatusFailed(observation.Status) &&
+		messageLoopIsCCBObservationRequestName(firstNonEmpty(observation.Tool, observation.CommandName)) &&
+		messageLoopFreeStateBundleHasDiagnosticEvidence(observation.Summary) {
+		return true
+	}
+	ledger := messageLoopMapValue(messageLoopFreeStateContext(state)["observation_ledger"])
+	for viewID, raw := range messageLoopMapValue(ledger["available_views"]) {
+		if messageLoopFreeStateDiagnosticViewUsable(viewID, messageLoopMapValue(raw)) {
+			return true
+		}
+	}
+	return false
+}
+
+func messageLoopFreeStateBundleHasDiagnosticEvidence(bundle map[string]any) bool {
+	if !messageLoopCCBObservationBundleUsable(bundle) {
+		return false
+	}
+	for viewID, raw := range messageLoopMapValue(bundle["views"]) {
+		if messageLoopFreeStateDiagnosticViewUsable(viewID, messageLoopMapValue(raw)) {
+			return true
+		}
+	}
+	return false
+}
+
+func messageLoopFreeStateDiagnosticViewUsable(viewID string, view map[string]any) bool {
+	if strings.EqualFold(strings.TrimSpace(viewID), "project.structure") {
+		return false
+	}
+	projectionStatus := strings.ToLower(strings.TrimSpace(firstMapText(view, "projection_status")))
+	if projectionStatus == "unsupported_projection" || projectionStatus == "omitted" || projectionStatus == "deferred" {
+		return false
+	}
+	switch strings.ToLower(firstMapText(view, "status")) {
+	case "ready", "partial":
+		return true
+	default:
+		return false
+	}
+}
+
+func messageLoopFreeStateDiagnosticOnly(state *runState) bool {
+	if state == nil {
+		return false
+	}
+	ctx := messageLoopFreeStateContext(state)
+	for _, key := range []string{"diagnostic_only", "free_state_diagnostic_only"} {
+		if freeStateBool(ctx[key]) || freeStateBool(state.input.Context[key]) {
+			return true
+		}
+	}
+	return false
+}
+
+func messageLoopFreeStateDiagnosticIssue(state *runState, decision *FreeStateDecision) string {
+	if decision == nil || decision.Diagnostic == nil {
+		return "diagnostic-only free-state terminal decisions require free_state_diagnostic.v1"
+	}
+	if err := decision.Diagnostic.Validate(); err != nil {
+		return "invalid free_state diagnostic: " + err.Error()
+	}
+	known := messageLoopFreeStateKnownDiagnosticRefs(state)
+	for _, finding := range decision.Diagnostic.Findings {
+		for _, ref := range finding.EvidenceRefs {
+			ref = strings.TrimSpace(ref)
+			if ref == "" || !known[ref] {
+				return "diagnostic evidence_refs must reference an observation or evidence returned in the current free-state loop"
+			}
+		}
+	}
+	return ""
+}
+
+func messageLoopFreeStateKnownDiagnosticRefs(state *runState) map[string]bool {
+	known := map[string]bool{}
+	if state == nil {
+		return known
+	}
+	add := func(value any) {
+		if text := strings.TrimSpace(fmt.Sprint(value)); text != "" && text != "<nil>" {
+			known[text] = true
+		}
+	}
+	addObservation := func(summary map[string]any) {
+		if len(summary) == 0 {
+			return
+		}
+		add(summary["observation_id"])
+		for _, ref := range messageLoopStringList(summary["evidence_refs"]) {
+			add(ref)
+		}
+	}
+	if state.recentObservation != nil && !toolStatusFailed(state.recentObservation.Status) {
+		if messageLoopFreeStateObservationStatusUsable(state.recentObservation.Summary) {
+			addObservation(state.recentObservation.Summary)
+		}
+	}
+	ctx := messageLoopFreeStateContext(state)
+	ledger := messageLoopMapValue(ctx["observation_ledger"])
+	for _, row := range messageLoopMapValue(ledger["available_views"]) {
+		view := messageLoopMapValue(row)
+		if messageLoopFreeStateObservationStatusUsable(view) {
+			addObservation(view)
+		}
+	}
+	for _, row := range messageLoopMapRows(ledger["receipts"]) {
+		if messageLoopFreeStateObservationStatusUsable(row) {
+			addObservation(row)
+		}
+	}
+	return known
+}
+
+func messageLoopFreeStateObservationStatusUsable(value map[string]any) bool {
+	if len(value) == 0 {
+		return false
+	}
+	for _, key := range []string{"status", "bundle_status"} {
+		switch strings.ToLower(strings.TrimSpace(fmt.Sprint(value[key]))) {
+		case "ready", "partial":
+			return true
+		}
+	}
+	return false
+}
+
+func messageLoopFreeStateRejectedViewSetIssue(state *runState, requested []string, target map[string]any) string {
+	want := messageLoopFreeStateRequestFingerprint(requested, target)
 	if want == "" {
 		return ""
 	}
 	if state != nil && state.recentObservation != nil &&
 		messageLoopIsCCBObservationRequestName(firstNonEmpty(state.recentObservation.Tool, state.recentObservation.CommandName)) &&
 		strings.EqualFold(firstMapText(state.recentObservation.Summary, "status", "bundle_status"), "rejected") &&
-		messageLoopFreeStateViewFingerprint(messageLoopStringList(state.recentObservation.Summary["requested_views"])) == want {
+		messageLoopFreeStateRequestFingerprint(messageLoopStringList(state.recentObservation.Summary["requested_views"]), messageLoopMapValue(state.recentObservation.Summary["target_ref"])) == want {
 		return "the requested CCB view set was rejected; choose a different catalog view set or return blocked instead of retrying the same rejected/deferred views"
 	}
 	ctx := messageLoopFreeStateContext(state)
 	for _, row := range messageLoopMapRows(ctx["rejected_observation_requests"]) {
-		if messageLoopFreeStateViewFingerprint(messageLoopStringList(row["requested_views"])) == want {
+		if messageLoopFreeStateRequestFingerprint(messageLoopStringList(row["requested_views"]), messageLoopMapValue(row["target_ref"])) == want {
 			return "the requested CCB view set was already rejected; choose a different catalog view set or return blocked instead of retrying the same rejected/deferred views"
 		}
 	}
 	ledger := messageLoopMapValue(ctx["observation_ledger"])
 	for _, row := range messageLoopMapRows(ledger["rejected_view_sets"]) {
-		if messageLoopFreeStateViewFingerprint(messageLoopStringList(row["requested_views"])) == want {
+		if messageLoopFreeStateRequestFingerprint(messageLoopStringList(row["requested_views"]), messageLoopMapValue(row["target_ref"])) == want {
 			return "the requested CCB view set was already rejected; choose a different catalog view set or return blocked instead of retrying the same rejected/deferred views"
 		}
 	}
 	return ""
+}
+
+func messageLoopFreeStateRequestFingerprint(values []string, target map[string]any) string {
+	viewFingerprint := messageLoopFreeStateViewFingerprint(values)
+	if viewFingerprint == "" {
+		return ""
+	}
+	kind, id := messageLoopCCBTargetIdentity(target)
+	if kind == "" && id == "" {
+		return viewFingerprint
+	}
+	digest := sha256.Sum256([]byte(viewFingerprint + "\x1f" + kind + "\x1f" + id))
+	return "ccb_request:" + hex.EncodeToString(digest[:8])
+}
+
+func messageLoopCCBTargetIdentity(target map[string]any) (string, string) {
+	kind := strings.ToLower(strings.TrimSpace(firstMapText(target, "kind", "target_kind")))
+	id := strings.TrimSpace(firstMapText(target, "id", "target_id", "track_id", "clip_id"))
+	return kind, id
+}
+
+func messageLoopCCBTargetFromCall(call planner.ToolCall) map[string]any {
+	if target := messageLoopMapValue(call.Args["target_ref"]); len(target) > 0 {
+		return compactSelectedKeys(target, []string{"kind", "id", "label", "track_id"})
+	}
+	kind := firstMapText(call.Args, "target_kind")
+	id := firstMapText(call.Args, "target_id", "track_id", "clip_id")
+	if kind == "" && id == "" {
+		return nil
+	}
+	return compactSelectedKeys(map[string]any{
+		"kind": kind, "id": id, "label": firstMapText(call.Args, "target_label"),
+	}, []string{"kind", "id", "label"})
+}
+
+func messageLoopFreeStateTrackTargetIssue(state *runState, call planner.ToolCall) string {
+	// Legacy/unit free-state callers may intentionally exercise an unbound
+	// observation request. The stricter target contract applies to the real
+	// open-semantic entry, where project-wide track evidence must be auditable.
+	route, verified := messageLoopSemanticEntryRoute(state)
+	if !verified || route != "open_semantic" {
+		return ""
+	}
+	hasTrackView := false
+	for _, viewID := range messageLoopStringList(call.Args["view_ids"]) {
+		if strings.HasPrefix(strings.ToLower(strings.TrimSpace(viewID)), "track.") {
+			hasTrackView = true
+			break
+		}
+	}
+	if !hasTrackView {
+		return ""
+	}
+	kind, id := messageLoopCCBTargetIdentity(messageLoopCCBTargetFromCall(call))
+	if kind == "track" && id != "" {
+		return ""
+	}
+	// A pre-bound single-track task remains compatible with the existing
+	// deterministic binding path. Project-wide free-state inspection has no
+	// such authority and must receive a model-selected visible track target.
+	loopTarget := messageLoopMapValue(messageLoopFreeStateContext(state)["target_ref"])
+	boundKind, boundID := messageLoopCCBTargetIdentity(loopTarget)
+	if state != nil && firstMapText(state.input.Context, "selected_track_id", "selected_plugin_track_id") != "" {
+		return ""
+	}
+	if boundKind == "track" && boundID != "" {
+		return ""
+	}
+	return "track.* observation views require args.target_ref with kind=track and an exact model-visible track id; request project structure first if track identities are not yet visible"
 }
 
 func messageLoopFreeStateViewFingerprint(values []string) string {
@@ -485,7 +801,13 @@ func mergeFreeStateObservationLedger(ledger map[string]any, observation *RecentO
 			"limitations":    firstNonNilValue(view["limitations"], observation.Summary["limitations"]),
 			"evidence_refs":  observation.Summary["evidence_refs"],
 			"audit_ref":      freeStateObservationAuditRef(observation.Summary),
-		}, []string{"view_id", "status", "observation_id", "tool_call_id", "freshness", "limitations", "evidence_refs", "audit_ref"})
+			"target_ref":     compactFreeStateObservationTarget(observation.Summary),
+			"conclusion":     contextruntime.ProjectCCBViewConclusion(observation.Summary, viewID, messageLoopCompactOptions()),
+		}, []string{"view_id", "status", "observation_id", "tool_call_id", "freshness", "limitations", "evidence_refs", "audit_ref", "target_ref", "conclusion"})
+		if key := freeStateObservationLedgerViewKey(viewID, observation.Summary); key != viewID {
+			available[key] = available[viewID]
+			delete(available, viewID)
+		}
 	}
 	if len(available) > 0 {
 		ledger["available_views"] = available
@@ -497,25 +819,27 @@ func freeStateRejectedLedgerEntry(observation *RecentObservation) map[string]any
 		return nil
 	}
 	requested := messageLoopNormalizedViewIDs(messageLoopStringList(observation.Summary["requested_views"]))
-	fingerprint := messageLoopFreeStateViewFingerprint(requested)
+	target := compactFreeStateObservationTarget(observation.Summary)
+	fingerprint := messageLoopFreeStateRequestFingerprint(requested, target)
 	if fingerprint == "" {
 		return nil
 	}
 	audit := messageLoopMapValue(observation.Summary["audit_receipt"])
 	return compactSelectedKeys(map[string]any{
-		"fingerprint":     fingerprint,
-		"requested_views": requested,
-		"status":          "rejected",
-		"reasons":         firstNonNilValue(observation.Summary["omission_reasons"], audit["rejection_reasons"]),
-		"receipt_id":      firstMapText(audit, "receipt_id"),
-		"tool_call_id":    observation.ToolCallID,
-		"request_id":      firstMapText(observation.Summary, "request_id"),
-		"observation_id":  firstMapText(observation.Summary, "observation_id"),
-		"retry_policy":    "do_not_retry",
-		"rejection_scope": firstNonEmpty(firstMapText(observation.Summary, "rejection_scope"), firstMapText(audit, "rejection_scope")),
-		"blocking_view_ids": firstNonNilValue(observation.Summary["blocking_view_ids"], audit["blocking_view_ids"]),
+		"fingerprint":           fingerprint,
+		"requested_views":       requested,
+		"status":                "rejected",
+		"reasons":               firstNonNilValue(observation.Summary["omission_reasons"], audit["rejection_reasons"]),
+		"receipt_id":            firstMapText(audit, "receipt_id"),
+		"tool_call_id":          observation.ToolCallID,
+		"request_id":            firstMapText(observation.Summary, "request_id"),
+		"observation_id":        firstMapText(observation.Summary, "observation_id"),
+		"retry_policy":          "do_not_retry",
+		"rejection_scope":       firstNonEmpty(firstMapText(observation.Summary, "rejection_scope"), firstMapText(audit, "rejection_scope")),
+		"blocking_view_ids":     firstNonNilValue(observation.Summary["blocking_view_ids"], audit["blocking_view_ids"]),
 		"non_blocking_view_ids": firstNonNilValue(observation.Summary["non_blocking_view_ids"], audit["non_blocking_view_ids"]),
-	}, []string{"fingerprint", "requested_views", "status", "reasons", "receipt_id", "tool_call_id", "request_id", "observation_id", "retry_policy", "rejection_scope", "blocking_view_ids", "non_blocking_view_ids"})
+		"target_ref":            target,
+	}, []string{"fingerprint", "requested_views", "status", "reasons", "receipt_id", "tool_call_id", "request_id", "observation_id", "retry_policy", "rejection_scope", "blocking_view_ids", "non_blocking_view_ids", "target_ref"})
 }
 
 func freeStateObservationLedgerReceipt(observation *RecentObservation) map[string]any {
@@ -534,7 +858,21 @@ func freeStateObservationLedgerReceipt(observation *RecentObservation) map[strin
 		"freshness":       observation.Summary["freshness"],
 		"limitations":     observation.Summary["limitations"],
 		"evidence_refs":   observation.Summary["evidence_refs"],
-	}, []string{"receipt_id", "receipt_schema", "tool_call_id", "observation_id", "request_id", "status", "requested_views", "freshness", "limitations", "evidence_refs"})
+		"target_ref":      compactFreeStateObservationTarget(observation.Summary),
+	}, []string{"receipt_id", "receipt_schema", "tool_call_id", "observation_id", "request_id", "status", "requested_views", "freshness", "limitations", "evidence_refs", "target_ref"})
+}
+
+func compactFreeStateObservationTarget(summary map[string]any) map[string]any {
+	target := messageLoopMapValue(summary["target_ref"])
+	return compactSelectedKeys(target, []string{"kind", "id", "label", "track_id", "track_name"})
+}
+
+func freeStateObservationLedgerViewKey(viewID string, summary map[string]any) string {
+	kind, id := messageLoopCCBTargetIdentity(compactFreeStateObservationTarget(summary))
+	if kind == "track" && id != "" {
+		return "track:" + id + "::" + viewID
+	}
+	return viewID
 }
 
 func freeStateObservationAuditRef(summary map[string]any) map[string]any {
@@ -743,6 +1081,48 @@ func messageLoopFreeStateRequestedViewsIssue(decisionViews []string, callValue a
 	for viewID := range decision {
 		if !callViews[viewID] {
 			return "ccb.observation_request view_ids must exactly match the model's free_state requested_view_ids; the server may not add, remove, replace, or infer views"
+		}
+	}
+	return ""
+}
+
+func messageLoopFreeStateRequestedCallsIssue(decisionViews []string, calls []planner.ToolCall) string {
+	if len(calls) == 0 {
+		return ""
+	}
+	if len(calls) == 1 {
+		return messageLoopFreeStateRequestedViewsIssue(decisionViews, calls[0].Args["view_ids"])
+	}
+	decision := map[string]bool{}
+	for _, value := range decisionViews {
+		viewID := strings.TrimSpace(value)
+		if viewID == "" {
+			return "free_state requested_view_ids must contain only non-empty identifiers"
+		}
+		decision[viewID] = true
+	}
+	if len(decision) == 0 {
+		return "free_state requested_view_ids must contain at least one identifier"
+	}
+	covered := map[string]bool{}
+	for _, call := range calls {
+		callViews, issue := messageLoopFreeStateNormalizedCallViewSet(call.Args["view_ids"])
+		if issue != "" {
+			return "ccb.observation_request view_ids " + issue
+		}
+		for viewID := range callViews {
+			if !decision[viewID] {
+				return "each ccb.observation_request view_ids must be a subset of the model's free_state requested_view_ids"
+			}
+			covered[viewID] = true
+		}
+	}
+	if len(covered) != len(decision) {
+		return "the combined ccb.observation_request view_ids must exactly cover the model's free_state requested_view_ids"
+	}
+	for viewID := range decision {
+		if !covered[viewID] {
+			return "the combined ccb.observation_request view_ids must exactly cover the model's free_state requested_view_ids"
 		}
 	}
 	return ""

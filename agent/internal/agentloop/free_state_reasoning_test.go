@@ -17,6 +17,21 @@ type freeStateTestExecutor struct {
 	calls []planner.ToolCall
 }
 
+type freeStateCatalogTestExecutor struct {
+	calls []planner.ToolCall
+}
+
+func (e *freeStateCatalogTestExecutor) RunToolCall(_ context.Context, in executorpkg.Input) (executorpkg.Result, error) {
+	e.calls = append(e.calls, in.ToolCall)
+	return executorpkg.Result{
+		ToolCallID: in.ToolCall.ID, Tool: in.ToolCall.Tool, CommandName: "ccb_observation_catalog", Status: "ok",
+		Result: map[string]any{"status": "ready", "catalog": map[string]any{
+			"schema_version": "ccb_observation_catalog.v1", "catalog_version": "v1", "status": "ready",
+			"views": []any{map[string]any{"view_id": "project.structure", "availability": "ready"}},
+		}},
+	}, nil
+}
+
 type rejectedFreeStateTestExecutor struct {
 	calls []planner.ToolCall
 }
@@ -85,6 +100,43 @@ func TestFreeStateShortChainObservationThenAction(t *testing.T) {
 	}
 	if len(client.calls) != 2 {
 		t.Fatalf("short chain model calls = %d, want 2", len(client.calls))
+	}
+}
+
+func TestFreeStateCatalogDiscoveryAllowsEmptyRequestedViewIDs(t *testing.T) {
+	client := &fakeMessageCompleter{responses: []string{
+		`{"final":false,"reply":"Discover the catalog.","free_state":{"schema_version":"free_state_decision.v1","status":"needs_observation","evidence_status":"insufficient","summary":"Need the available neutral view IDs.","requested_view_ids":[]},"tool_calls":[{"id":"ccb-catalog","tool":"ccb.observation_catalog","args":{},"reason":"Discover available views."}]}`,
+		`{"final":false,"reply":"Inspect the project.","free_state":{"schema_version":"free_state_decision.v1","status":"needs_observation","evidence_status":"insufficient","summary":"Need project structure.","requested_view_ids":["project.structure"]},"tool_calls":[{"id":"ccb-project","tool":"ccb.observation_request","args":{"view_ids":["project.structure"]}}]}`,
+		`{"final":true,"reply":"No further test action.","free_state":{"schema_version":"free_state_decision.v1","status":"blocked","evidence_status":"insufficient","summary":"The test observation path is complete.","limitations":["test boundary"]},"tool_calls":[]}`,
+	}}
+	executor := &freeStateCatalogTestExecutor{}
+	loop := MessageLoop{
+		Client: client, Config: config.EngineConfig{BaseURL: "http://example.invalid", DefaultModel: "test", APIKey: "test"},
+		Executor: executor, Budget: Budget{MaxTurns: 3, MaxToolCalls: 2, MaxConsecutiveErrors: 1},
+	}
+	result := loop.Start(context.Background(), Input{
+		UserText: "inspect the project", AllowedTools: []string{"ccb.observation_catalog", "ccb.observation_request"},
+		Context: map[string]any{"free_state_reasoning_loop": map[string]any{
+			"schema_version": "free_state_reasoning_loop.v1", "status": "reasoning", "original_intent": "inspect the project",
+		}},
+	})
+	if len(executor.calls) == 0 || executor.calls[0].Tool != "ccb.observation_catalog" {
+		t.Fatalf("catalog-only turn was not executed: %+v", executor.calls)
+	}
+	if result.StopReason == StopReasonFailed || strings.Contains(result.Error, "requires requested_view_ids") {
+		t.Fatalf("catalog-only turn was rejected by view-set validation: %+v", result)
+	}
+}
+
+func TestFreeStateObservationRequestStillRequiresNonEmptyRequestedViewIDs(t *testing.T) {
+	state := &runState{input: Input{Context: map[string]any{"free_state_reasoning_loop": map[string]any{
+		"schema_version": "free_state_reasoning_loop.v1", "status": "reasoning", "original_intent": "inspect the project",
+	}}}}
+	out := messageLoopOutput{Final: false, FreeStateDecision: &FreeStateDecision{
+		SchemaVersion: FreeStateDecisionSchema, Status: FreeStateNeedsObservation, EvidenceStatus: "insufficient", Summary: "inspect",
+	}, ToolCalls: []planner.ToolCall{{Tool: "ccb.observation_request", Args: map[string]any{"view_ids": []any{}}}}}
+	if issue := messageLoopFreeStateOutputIssue(state, out); !strings.Contains(issue, "at least one identifier") {
+		t.Fatalf("empty concrete observation request was accepted: %q", issue)
 	}
 }
 
@@ -325,6 +377,192 @@ func TestFreeStateNeedsActionRequiresStructuredProcessorType(t *testing.T) {
 	decision.ProcessorType = "eq"
 	if err := decision.Validate(); err != nil {
 		t.Fatalf("structured EQ handoff was rejected: %v", err)
+	}
+}
+
+func TestFreeStateDiagnosticOnlyRequiresEvidenceBackedTerminalConclusion(t *testing.T) {
+	state := &runState{input: Input{Context: map[string]any{
+		"free_state_reasoning_loop": map[string]any{
+			"schema_version": "free_state_reasoning_loop.v1", "status": "reasoning",
+			"diagnostic_only": true, "original_intent": "inspect the whole project",
+		},
+	}}, recentObservation: &RecentObservation{Tool: "ccb.observation_request", Summary: map[string]any{
+		"status": "ready", "observation_id": "obs-diagnostic", "evidence_refs": []any{"evidence://mix"},
+	}}}
+	confirmed := &FreeStateDecision{
+		SchemaVersion: FreeStateDecisionSchema, Status: FreeStateSatisfied, EvidenceStatus: "sufficient", Summary: "one bounded diagnosis",
+		Diagnostic: &FreeStateDiagnostic{SchemaVersion: FreeStateDiagnosticSchema, Status: "confirmed", Findings: []FreeStateDiagnosticFinding{{
+			Statement: "the returned evidence supports a measurable project-level difference", Scope: map[string]any{"kind": "project", "ids": []any{"current"}}, EvidenceRefs: []string{"obs-diagnostic", "evidence://mix"}, Confidence: 0.8,
+		}}},
+	}
+	if issue := messageLoopFreeStateOutputIssue(state, messageLoopOutput{Final: true, FreeStateDecision: confirmed}); issue != "" {
+		t.Fatalf("valid diagnostic-only conclusion rejected: %s", issue)
+	}
+	confirmed.Diagnostic.Findings[0].EvidenceRefs = []string{"sealed-expected-issue"}
+	if issue := messageLoopFreeStateOutputIssue(state, messageLoopOutput{Final: true, FreeStateDecision: confirmed}); !strings.Contains(issue, "evidence_refs") {
+		t.Fatalf("unknown diagnostic evidence ref accepted: %q", issue)
+	}
+	noConclusion := &FreeStateDecision{SchemaVersion: FreeStateDecisionSchema, Status: FreeStateSatisfied, EvidenceStatus: "sufficient", Summary: "done"}
+	if issue := messageLoopFreeStateOutputIssue(state, messageLoopOutput{Final: true, FreeStateDecision: noConclusion}); !strings.Contains(issue, "diagnostic") {
+		t.Fatalf("missing diagnostic conclusion accepted: %q", issue)
+	}
+	needsAction := &FreeStateDecision{SchemaVersion: FreeStateDecisionSchema, Status: FreeStateNeedsAction, EvidenceStatus: "sufficient", Summary: "apply", RemainingIntent: "apply", ProcessorType: "compressor"}
+	if issue := messageLoopFreeStateOutputIssue(state, messageLoopOutput{Final: true, FreeStateDecision: needsAction}); !strings.Contains(issue, "diagnostic-only") {
+		t.Fatalf("diagnostic-only action accepted: %q", issue)
+	}
+}
+
+func TestFreeStateDiagnosticOnlyRejectsTransportAndAuditIDsAsFindingEvidence(t *testing.T) {
+	state := &runState{input: Input{Context: map[string]any{
+		"free_state_reasoning_loop": map[string]any{
+			"schema_version": "free_state_reasoning_loop.v1", "status": "reasoning", "diagnostic_only": true,
+			"observation_ids": []any{"obs-ledger"},
+			"observation_ledger": map[string]any{
+				"schema_version": freeStateObservationLedgerSchema,
+				"receipts": []any{map[string]any{
+					"status": "ready", "observation_id": "obs-ledger", "evidence_refs": []any{"evidence://mix"},
+					"tool_call_id": "call-hidden", "request_id": "request-hidden", "receipt_id": "receipt-hidden",
+				}},
+			},
+		},
+	}}}
+	decision := &FreeStateDecision{
+		SchemaVersion: FreeStateDecisionSchema, Status: FreeStateSatisfied, EvidenceStatus: "sufficient", Summary: "bounded finding",
+		Diagnostic: &FreeStateDiagnostic{SchemaVersion: FreeStateDiagnosticSchema, Status: "confirmed", Findings: []FreeStateDiagnosticFinding{{
+			Statement: "the visible evidence supports a bounded finding", EvidenceRefs: []string{"obs-ledger", "evidence://mix"}, Confidence: 0.7,
+		}}},
+	}
+	if issue := messageLoopFreeStateOutputIssue(state, messageLoopOutput{Final: true, FreeStateDecision: decision}); issue != "" {
+		t.Fatalf("visible observation/evidence refs rejected: %q", issue)
+	}
+	for _, hidden := range []string{"call-hidden", "request-hidden", "receipt-hidden"} {
+		decision.Diagnostic.Findings[0].EvidenceRefs = []string{hidden}
+		if issue := messageLoopFreeStateOutputIssue(state, messageLoopOutput{Final: true, FreeStateDecision: decision}); !strings.Contains(issue, "evidence_refs") {
+			t.Fatalf("transport/audit ref %q was accepted: %q", hidden, issue)
+		}
+	}
+}
+
+func TestFreeStateDiagnosticOnlyShortReplayStopsBeforeAction(t *testing.T) {
+	client := &fakeMessageCompleter{responses: []string{
+		`{"final":false,"reply":"Inspect the measurable project evidence.","free_state":{"schema_version":"free_state_decision.v1","status":"needs_observation","evidence_status":"insufficient","summary":"Need one current project observation.","requested_view_ids":["project.structure"]},"tool_calls":[{"id":"diag-observe","tool":"ccb.observation_request","args":{"view_ids":["project.structure"]}}]}`,
+		`{"final":true,"reply":"The evidence supports one bounded finding.","free_state":{"schema_version":"free_state_decision.v1","status":"satisfied","evidence_status":"sufficient","summary":"Diagnostic conclusion complete.","diagnostic":{"schema_version":"free_state_diagnostic.v1","status":"confirmed","findings":[{"statement":"The returned project evidence contains a measurable structural state.","scope":{"kind":"project","ids":["current"]},"evidence_refs":["obs-after"],"confidence":0.8}]}},"tool_calls":[]}`,
+	}}
+	executor := &freeStateTestExecutor{}
+	loop := MessageLoop{Client: client, Config: config.EngineConfig{BaseURL: "http://example.invalid", DefaultModel: "test", APIKey: "test"}, Executor: executor, Budget: Budget{MaxTurns: 3, MaxToolCalls: 1, MaxConsecutiveErrors: 1}}
+	result := loop.Start(context.Background(), Input{
+		UserText: "inspect the whole project", AllowedTools: []string{"ccb.observation_request"},
+		Context: map[string]any{"free_state_reasoning_loop": map[string]any{
+			"schema_version": "free_state_reasoning_loop.v1", "status": "reasoning", "diagnostic_only": true, "original_intent": "inspect the whole project",
+		}},
+	})
+	if result.Status != agentruntime.StatusCompleted || result.FreeStateDecision == nil || result.FreeStateDecision.Diagnostic == nil {
+		t.Fatalf("diagnostic-only replay did not complete: status=%q decision=%+v error=%q", result.Status, result.FreeStateDecision, result.Error)
+	}
+	if result.FreeStateDecision.Diagnostic.Status != "confirmed" || len(executor.calls) != 1 || result.FreeStateDecision.ProcessorType != "" {
+		t.Fatalf("diagnostic-only replay crossed action boundary: decision=%+v calls=%+v", result.FreeStateDecision, executor.calls)
+	}
+}
+
+func TestFreeStateDiagnosticOnlyClosesObservationWindowAfterUsableNonStructuralBundle(t *testing.T) {
+	state := &runState{input: Input{Context: map[string]any{
+		"free_state_reasoning_loop": map[string]any{
+			"schema_version": "free_state_reasoning_loop.v1", "status": "reasoning", "diagnostic_only": true,
+		},
+	}}, recentObservation: &RecentObservation{
+		Tool: "ccb.observation_request", Status: "ok", Summary: map[string]any{
+			"schema_version": "ccb_observation_bundle.v1", "status": "ready", "read_only": true, "mutation_authority": false,
+			"observation_id": "obs-mix", "views": map[string]any{
+				"mix.multitrack_relationship": map[string]any{"status": "ready"},
+			},
+		},
+	}}
+	decision := messageLoopOutput{Final: false, FreeStateDecision: &FreeStateDecision{
+		SchemaVersion: FreeStateDecisionSchema, Status: FreeStateNeedsObservation, EvidenceStatus: "insufficient",
+		Summary: "request another view", RequestedViewIDs: []string{"mix.frequency_relationship"},
+	}, ToolCalls: []planner.ToolCall{{Tool: "ccb.observation_request", Args: map[string]any{
+		"view_ids": []any{"mix.frequency_relationship"},
+	}}}}
+	issue := messageLoopFreeStateOutputIssue(state, decision)
+	if !strings.Contains(issue, "observation window is closed") {
+		t.Fatalf("diagnostic observation window stayed open: %q", issue)
+	}
+}
+
+func TestFreeStateDiagnosticOnlyAllowsStructureDiscoveryBeforeDiagnosticBundle(t *testing.T) {
+	state := &runState{input: Input{Context: map[string]any{
+		"free_state_reasoning_loop": map[string]any{
+			"schema_version": "free_state_reasoning_loop.v1", "status": "reasoning", "diagnostic_only": true,
+		},
+	}}, recentObservation: &RecentObservation{
+		Tool: "ccb.observation_request", Status: "ok", Summary: map[string]any{
+			"schema_version": "ccb_observation_bundle.v1", "status": "ready", "read_only": true, "mutation_authority": false,
+			"observation_id": "obs-structure", "views": map[string]any{
+				"project.structure": map[string]any{"status": "ready"},
+			},
+		},
+	}}
+	decision := messageLoopOutput{Final: false, FreeStateDecision: &FreeStateDecision{
+		SchemaVersion: FreeStateDecisionSchema, Status: FreeStateNeedsObservation, EvidenceStatus: "insufficient",
+		Summary: "request project relationship evidence", RequestedViewIDs: []string{"mix.multitrack_relationship"},
+	}, ToolCalls: []planner.ToolCall{{Tool: "ccb.observation_request", Args: map[string]any{
+		"view_ids": []any{"mix.multitrack_relationship"},
+	}}}}
+	if issue := messageLoopFreeStateOutputIssue(state, decision); issue != "" {
+		t.Fatalf("structure discovery prematurely closed diagnostic observation window: %q", issue)
+	}
+}
+
+func TestFreeStateDiagnosticOnlyRestoresClosedWindowFromObservationLedger(t *testing.T) {
+	state := &runState{input: Input{Context: map[string]any{
+		"free_state_reasoning_loop": map[string]any{
+			"schema_version": "free_state_reasoning_loop.v1", "status": "reasoning", "diagnostic_only": true,
+			"observation_ledger": map[string]any{
+				"schema_version": freeStateObservationLedgerSchema,
+				"available_views": map[string]any{
+					"mix.frequency_relationship": map[string]any{"status": "partial", "observation_id": "obs-restored"},
+				},
+			},
+		},
+	}}}
+	if !messageLoopFreeStateDiagnosticEvidenceWindowClosed(state) {
+		t.Fatal("continuation ledger did not restore the closed diagnostic observation window")
+	}
+}
+
+func TestFreeStateDiagnosticOnlyFinalGatePreventsSecondObservationAndAcceptsUnresolved(t *testing.T) {
+	client := &fakeMessageCompleter{responses: []string{
+		`{"final":false,"reply":"Inspect one relationship view.","free_state":{"schema_version":"free_state_decision.v1","status":"needs_observation","evidence_status":"insufficient","summary":"Need one bounded relationship observation.","requested_view_ids":["comparison.before_after"]},"tool_calls":[{"id":"diag-first","tool":"ccb.observation_request","args":{"view_ids":["comparison.before_after"]}}]}`,
+		`{"final":false,"reply":"Inspect another view.","free_state":{"schema_version":"free_state_decision.v1","status":"needs_observation","evidence_status":"insufficient","summary":"Want more evidence.","requested_view_ids":["mix.frequency_relationship"]},"tool_calls":[{"id":"diag-second","tool":"ccb.observation_request","args":{"view_ids":["mix.frequency_relationship"]}}]}`,
+		`{"final":true,"reply":"The available evidence cannot establish a project-wide issue.","free_state":{"schema_version":"free_state_decision.v1","status":"blocked","evidence_status":"insufficient","summary":"The bounded evidence is not sufficient for a project-wide diagnosis.","limitations":["Only one relationship view was observed."],"diagnostic":{"schema_version":"free_state_diagnostic.v1","status":"unresolved","limitations":["Only one relationship view was observed."]}},"tool_calls":[]}`,
+	}}
+	executor := &freeStateTestExecutor{}
+	loop := MessageLoop{
+		Client: client, Config: config.EngineConfig{BaseURL: "http://example.invalid", DefaultModel: "test", APIKey: "test"},
+		Executor: executor, Budget: Budget{MaxTurns: 4, MaxToolCalls: 2, MaxConsecutiveErrors: 1},
+	}
+	result := loop.Start(context.Background(), Input{
+		UserText: "inspect the whole project", AllowedTools: []string{"ccb.observation_request"},
+		Context: map[string]any{"free_state_reasoning_loop": map[string]any{
+			"schema_version": "free_state_reasoning_loop.v1", "status": "reasoning", "diagnostic_only": true,
+		}},
+	})
+	if len(executor.calls) != 1 {
+		t.Fatalf("diagnostic final gate executed %d observations, want exactly one: %+v", len(executor.calls), executor.calls)
+	}
+	if result.Status != agentruntime.StatusCompleted || result.FreeStateDecision == nil || result.FreeStateDecision.Diagnostic == nil || result.FreeStateDecision.Diagnostic.Status != "unresolved" {
+		t.Fatalf("diagnostic unresolved conclusion was not accepted: %+v", result)
+	}
+	gateSeen := false
+	for _, messages := range client.calls {
+		for _, message := range messages {
+			if strings.Contains(message.Content, "observation window is closed") {
+				gateSeen = true
+			}
+		}
+	}
+	if len(client.calls) != 3 || !gateSeen {
+		t.Fatalf("model did not receive the structured final gate: calls=%d last=%+v", len(client.calls), client.calls)
 	}
 }
 
@@ -752,6 +990,34 @@ func TestFreeStateExecutionLedgerIndexesFirstReadyObservation(t *testing.T) {
 	}
 }
 
+func TestFreeStateExecutionLedgerKeepsSafeViewConclusion(t *testing.T) {
+	state := &runState{input: Input{Context: map[string]any{
+		"free_state_reasoning_loop": map[string]any{"schema_version": "free_state_reasoning_loop.v1", "status": "observing", "original_intent": "inspect"},
+	}}}
+	ready := &RecentObservation{ToolCallID: "ccb-conclusion", Tool: "ccb.observation_request", Status: "ok", Summary: map[string]any{
+		"schema_version": "ccb_observation_bundle.v1", "status": "ready", "observation_id": "obs-conclusion",
+		"target_ref":      map[string]any{"kind": "track", "id": "1007", "label": "Bass"},
+		"requested_views": []any{"track.timbre_frequency"},
+		"views": map[string]any{"track.timbre_frequency": map[string]any{
+			"status": "ready", "facts": map[string]any{"track.1007.slow.band_energy.summary": map[string]any{
+				"status": "ready", "bands": map[string]any{"bass": map[string]any{"energy_db": -14.0}},
+				"raw_samples": "must-not-enter", "plugin_id": "must-not-enter",
+			}},
+		}},
+	}}
+	recordFreeStateCCBObservation(state, ready)
+	ledger := messageLoopMapValue(messageLoopMapValue(state.input.Context["free_state_reasoning_loop"])["observation_ledger"])
+	entry := messageLoopMapValue(messageLoopMapValue(ledger["available_views"])["track:1007::track.timbre_frequency"])
+	conclusion := messageLoopMapValue(entry["conclusion"])
+	data := fmt.Sprint(conclusion)
+	if len(conclusion) == 0 || !strings.Contains(data, "energy_db") {
+		t.Fatalf("safe view conclusion missing: %#v", entry)
+	}
+	if strings.Contains(data, "must-not-enter") || strings.Contains(data, "plugin_id") || strings.Contains(data, "raw_samples") {
+		t.Fatalf("unsafe view data entered ledger conclusion: %#v", conclusion)
+	}
+}
+
 func TestFreeStateExecutionLedgerIndexesOnlyUsableViewsFromPartialBundle(t *testing.T) {
 	state := &runState{input: Input{Context: map[string]any{"free_state_reasoning_loop": map[string]any{
 		"schema_version": "free_state_reasoning_loop.v1", "status": "observing", "original_intent": "inspect dynamics",
@@ -869,6 +1135,72 @@ func TestOpenSemanticNeedsActionRequiresValidatedProcessorIntent(t *testing.T) {
 	}
 	if err := validateFreeStateProcessorIntent(*decision.FreeStateDecision.SemanticProcessorIntent, "limiter"); err == nil || !strings.Contains(err.Error(), "does not match") {
 		t.Fatalf("De-esser intent escaped processor-type family binding: %v", err)
+	}
+}
+
+func TestOpenSemanticNeedsObservationAllowsBoundedDistinctTrackTargets(t *testing.T) {
+	state := &runState{input: Input{Context: map[string]any{
+		"semantic_entry_verified": true,
+		"semantic_entry_decision": map[string]any{"schema_version": "semantic_entry_decision.v1", "route": "open_semantic"},
+		"free_state_reasoning_loop": map[string]any{
+			"schema_version": "free_state_reasoning_loop.v1", "status": "observing", "original_intent": "inspect the project",
+		},
+	}}}
+	views := []string{"track.frequency_time_events", "track.band_dynamics"}
+	decision := messageLoopOutput{FreeStateDecision: &FreeStateDecision{
+		SchemaVersion: FreeStateDecisionSchema, Status: FreeStateNeedsObservation, EvidenceStatus: "insufficient",
+		Summary: "compare the two candidate tracks", RequestedViewIDs: views,
+	}, ToolCalls: []planner.ToolCall{
+		{ID: "observe-vocals", Tool: "ccb.observation_request", Args: map[string]any{
+			"view_ids": views, "target_ref": map[string]any{"kind": "track", "id": "1032", "label": "vocals"},
+		}},
+		{ID: "observe-other", Tool: "ccb.observation_request", Args: map[string]any{
+			"view_ids": views, "target_ref": map[string]any{"kind": "track", "id": "1022", "label": "other"},
+		}},
+	}}
+	if issue := messageLoopFreeStateOutputIssue(state, decision); issue != "" {
+		t.Fatalf("distinct auditable track observations were rejected: %q", issue)
+	}
+	decision.FreeStateDecision.RequestedViewIDs = []string{"track.frequency_time_events", "track.frequency_time_events", "track.band_dynamics"}
+	if issue := messageLoopFreeStateOutputIssue(state, decision); issue != "" {
+		t.Fatalf("per-target repeated decision view was not treated as a multi-request union: %q", issue)
+	}
+
+	duplicate := decision
+	duplicate.FreeStateDecision = &FreeStateDecision{
+		SchemaVersion: FreeStateDecisionSchema, Status: FreeStateNeedsObservation, EvidenceStatus: "insufficient",
+		Summary: "compare the two candidate tracks", RequestedViewIDs: views,
+	}
+	duplicate.ToolCalls = append([]planner.ToolCall(nil), decision.ToolCalls...)
+	duplicate.ToolCalls[1].Args = map[string]any{
+		"view_ids": views, "target_ref": map[string]any{"kind": "track", "id": "1032", "label": "vocals duplicate"},
+	}
+	if issue := messageLoopFreeStateOutputIssue(state, duplicate); !strings.Contains(issue, "must not repeat") {
+		t.Fatalf("duplicate per-target observation was accepted: %q", issue)
+	}
+
+	uncovered := decision
+	uncovered.FreeStateDecision = &FreeStateDecision{
+		SchemaVersion: FreeStateDecisionSchema, Status: FreeStateNeedsObservation, EvidenceStatus: "insufficient",
+		Summary: "request an uncovered view", RequestedViewIDs: []string{"track.frequency_time_events", "track.band_dynamics", "track.peak_structure"},
+	}
+	if issue := messageLoopFreeStateOutputIssue(state, uncovered); !strings.Contains(issue, "exactly cover") {
+		t.Fatalf("multi-target calls did not have to cover the decision view union: %q", issue)
+	}
+
+	tooMany := decision
+	tooMany.FreeStateDecision = &FreeStateDecision{
+		SchemaVersion: FreeStateDecisionSchema, Status: FreeStateNeedsObservation, EvidenceStatus: "insufficient",
+		Summary: "too many targets", RequestedViewIDs: views,
+	}
+	tooMany.ToolCalls = append([]planner.ToolCall(nil), decision.ToolCalls...)
+	for i, id := range []string{"1017", "1012"} {
+		tooMany.ToolCalls = append(tooMany.ToolCalls, planner.ToolCall{ID: fmt.Sprintf("extra-%d", i), Tool: "ccb.observation_request", Args: map[string]any{
+			"view_ids": views, "target_ref": map[string]any{"kind": "track", "id": id},
+		}})
+	}
+	if issue := messageLoopFreeStateOutputIssue(state, tooMany); !strings.Contains(issue, "at most 3") {
+		t.Fatalf("unbounded multi-target observation was accepted: %q", issue)
 	}
 }
 

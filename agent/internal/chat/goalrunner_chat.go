@@ -133,17 +133,41 @@ func (s *Server) runAgentLoopChat(ctx context.Context, conversationID string, re
 		return ChatResponse{ConversationID: conversationID, Reply: "Agent 运行器暂时不可用。", Error: "agentloop_unavailable"}, true
 	}
 	userText := agentLoopUserText(req.Message)
-	chatContext := contextWithUserMessage(req.Context, userText)
-	chatContext, freeStateActive := s.prepareFreeStateReasoningContext(conversationID, userText, chatContext)
-	if !freeStateActive {
-		if response, routed := s.routeOrdinaryAgentSemanticCompressorPlanning(ctx, conversationID, userText, chatContext, cfg); routed {
-			return response, true
+	chatContext := contextWithUserMessage(contextWithoutUntrustedSemanticEntry(req.Context), userText)
+	mode := agentModeFromContext(chatContext)
+	classificationRequired := mode != agentModePlan && !isContinueMessage(req.Message) &&
+		!contextBool(chatContext, "free_state_diagnostic_only") &&
+		!s.hasActiveFreeStateReasoningLoop(conversationID)
+	if classificationRequired {
+		if _, continuing := s.resumeContinuationForChat(conversationID, chatContext); continuing {
+			classificationRequired = false
 		}
 	}
-	chatContext = s.agentLoopContextWithGenericEQTopology(ctx, userText, chatContext)
-	mode := agentModeFromContext(chatContext)
+	if classificationRequired {
+		decision, err := s.planSemanticEntry(ctx, conversationID, userText, chatContext, cfg)
+		if err != nil {
+			// The frozen blind smoke must not silently fall back to legacy
+			// mix.observe after the model-owned semantic entry failed. That
+			// fallback cannot produce the required CCB observation receipt.
+			if blindProjectSmokeContext(chatContext) {
+				return semanticEntryServiceFailureResponse(conversationID, mode, err), true
+			}
+			chatContext = mergeContext(chatContext, map[string]any{"semantic_entry_unavailable": true})
+		}
+		if err == nil && decision.Route == semanticEntryRouteUnresolved {
+			return semanticEntryUnresolvedResponse(conversationID, mode, &decision, nil), true
+		}
+		if err == nil {
+			chatContext = contextWithSemanticEntryDecision(chatContext, decision)
+		}
+	}
+	chatContext, freeStateActive := s.prepareFreeStateReasoningContext(conversationID, userText, chatContext)
+	mode = agentModeFromContext(chatContext)
 	messageLoop := s.newAgentMessageLoop(cfg, mode)
 	legacyRunner := s.newAgentLoopRunner(cfg, mode)
+	loopBudget := func(context map[string]any) agentloop.Budget {
+		return agentLoopBudgetForContext(mode, context)
+	}
 	if freeStateActive && isContinueMessage(req.Message) {
 		if response, resumed := s.resumeFreeStateMaterialization(ctx, conversationID, mode, chatContext, cfg); resumed {
 			return s.bindFreeStateContextToResponse(response, chatContext), true
@@ -180,8 +204,8 @@ func (s *Server) runAgentLoopChat(ctx context.Context, conversationID string, re
 		toolContext := s.agentLoopToolContext(mode, cont.UserText, cont.Context)
 		cont.CatalogSummary = toolContext.CatalogSummary
 		cont.AllowedTools = toolContext.AllowedTools
-		cont.Budget = agentLoopBudgetForMode(mode)
-		if useLegacyPlannerLoop() {
+		cont.Budget = loopBudget(cont.Context)
+		if useLegacyPlannerLoop() && !freeStateActive {
 			res = legacyRunner.Continue(ctx, cont)
 		} else {
 			res = messageLoop.Continue(ctx, cont)
@@ -203,8 +227,8 @@ func (s *Server) runAgentLoopChat(ctx context.Context, conversationID string, re
 		toolContext := s.agentLoopToolContext(mode, cont.UserText, cont.Context)
 		cont.CatalogSummary = toolContext.CatalogSummary
 		cont.AllowedTools = toolContext.AllowedTools
-		cont.Budget = agentLoopBudgetForMode(mode)
-		if useLegacyPlannerLoop() {
+		cont.Budget = loopBudget(cont.Context)
+		if useLegacyPlannerLoop() && !freeStateActive {
 			res = legacyRunner.Continue(ctx, cont)
 		} else {
 			res = messageLoop.Continue(ctx, cont)
@@ -220,7 +244,7 @@ func (s *Server) runAgentLoopChat(ctx context.Context, conversationID string, re
 		}
 		toolContext := s.agentLoopToolContext(mode, userText, chatContext)
 		executionMemory := s.agentLoopExecutionMemoryForConversation(conversationID)
-		if useLegacyPlannerLoop() {
+		if useLegacyPlannerLoop() && !freeStateActive {
 			res = legacyRunner.Start(ctx, agentloop.Input{
 				GoalID:          goalID,
 				RunID:           runID,
@@ -232,7 +256,7 @@ func (s *Server) runAgentLoopChat(ctx context.Context, conversationID string, re
 				State:           state,
 				CatalogSummary:  toolContext.CatalogSummary,
 				AllowedTools:    toolContext.AllowedTools,
-				Budget:          agentLoopBudgetForMode(mode),
+				Budget:          loopBudget(chatContext),
 				ExecutionMemory: executionMemory,
 			})
 		} else {
@@ -247,7 +271,7 @@ func (s *Server) runAgentLoopChat(ctx context.Context, conversationID string, re
 				State:           state,
 				CatalogSummary:  toolContext.CatalogSummary,
 				AllowedTools:    toolContext.AllowedTools,
-				Budget:          agentLoopBudgetForMode(mode),
+				Budget:          loopBudget(chatContext),
 				ExecutionMemory: executionMemory,
 			})
 		}
@@ -257,9 +281,14 @@ func (s *Server) runAgentLoopChat(ctx context.Context, conversationID string, re
 			res.RecentObservation = observation
 		}
 		loop, _ := s.recordFreeStateDecision(conversationID, res)
+		if loop.LatestDecision != nil {
+			res.FreeStateDecision = loop.LatestDecision
+		}
+		res.RecentObservation = loop.LatestObservation
 		chatContext = mergeContext(chatContext, map[string]any{"free_state_reasoning_loop": freeStateLoopMap(loop)})
 		chatContext = s.bindFreeStateAuthoritativeTrack(conversationID, chatContext)
-		if res.FreeStateDecision == nil || !strings.EqualFold(res.FreeStateDecision.Status, agentloop.FreeStateNeedsAction) {
+		if !strings.EqualFold(loop.Status, "awaiting_action") || res.FreeStateDecision == nil ||
+			!strings.EqualFold(res.FreeStateDecision.Status, agentloop.FreeStateNeedsAction) {
 			return s.bindFreeStateContextToResponse(s.chatResponseFromAgentLoopResult(conversationID, mode, res), chatContext), true
 		}
 		userText = strings.TrimSpace(res.FreeStateDecision.RemainingIntent)
@@ -269,23 +298,60 @@ func (s *Server) runAgentLoopChat(ctx context.Context, conversationID string, re
 			"goal_id":                     res.GoalID,
 			"run_id":                      res.RunID,
 		})
+		if intent := freeStateProcessorIntentMap(res.FreeStateDecision); len(intent) > 0 {
+			chatContext["free_state_semantic_processor_intent"] = intent
+		}
 	}
-	if response, routed := s.routeOrdinaryAgentSemanticEQ(ctx, conversationID, mode, userText, chatContext, res, cfg); routed {
+	if freeStateRouteAuthorized(chatContext) {
+		response, routed := s.routeOrdinaryAgentTreatmentStrategy(ctx, conversationID, mode, userText, chatContext, res, cfg)
+		if !routed {
+			return s.bindFreeStateContextToResponse(s.chatResponseFromAgentLoopResult(conversationID, mode, res), chatContext), true
+		}
 		response = s.makeFreeStateMaterializationResumable(conversationID, chatContext, res, response)
 		return s.bindFreeStateContextToResponse(response, chatContext), true
 	}
-	if response, routed := s.routeOrdinaryAgentTreatmentStrategy(ctx, conversationID, mode, userText, chatContext, res, cfg); routed {
-		response = s.makeFreeStateMaterializationResumable(conversationID, chatContext, res, response)
-		return s.bindFreeStateContextToResponse(response, chatContext), true
-	}
-	if res.SemanticAction == nil && ordinaryAgentPluginRecommendationIntent(userText, chatContext) {
+	entryDecision, entryVerified := semanticEntryDecisionFromContext(chatContext)
+	entryUnavailable := contextBool(chatContext, "semantic_entry_unavailable")
+	if res.SemanticAction == nil && !entryUnavailable && (!entryVerified || entryDecision.Route == semanticEntryRouteOther) && ordinaryAgentPluginRecommendationIntent(userText, chatContext) {
 		return s.bindFreeStateContextToResponse(s.ordinaryAgentPluginRecommendationResponse(ctx, conversationID, mode, userText, chatContext, res, cfg), chatContext), true
 	}
 	if res.SemanticAction != nil {
+		if entryVerified || entryUnavailable {
+			res.SemanticAction = nil
+			res.Error = "semantic_entry forbids direct semantic_action materialization outside the governed free-state handoff"
+			res.StopReason = "semantic_entry_direct_family_materialization_denied"
+			res.Status = agentruntime.StatusFailed
+			return s.chatResponseFromAgentLoopResult(conversationID, mode, res), true
+		}
 		req.Context = chatContext
 		return s.bindFreeStateContextToResponse(s.materializeAgentSemanticEQAction(ctx, conversationID, req, mode, res), chatContext), true
 	}
 	return s.bindFreeStateContextToResponse(s.chatResponseFromAgentLoopResult(conversationID, mode, res), chatContext), true
+}
+
+func blindProjectSmokeContext(requestContext map[string]any) bool {
+	return contextBool(requestContext, "blind_experiment") &&
+		strings.EqualFold(firstStringFromMap(requestContext, "interaction_path"), "blind_project_smoke")
+}
+
+func semanticEntryServiceFailureResponse(conversationID, mode string, err error) ChatResponse {
+	message := "semantic entry model request failed"
+	if err != nil {
+		message += ": " + err.Error()
+	}
+	return ChatResponse{
+		ConversationID: conversationID,
+		AgentMode:      mode,
+		Reply:          "开放语义处理因模型服务暂时不可用而暂停；未执行观察或工程修改。",
+		Error:          message,
+		GoalStatus:     string(agentruntime.StatusWaitingContinue),
+		StopReason:     "transient_llm_error",
+		Workflow:       "semantic_entry",
+		WorkflowData: map[string]any{
+			"status":             "transient_llm_error",
+			"mutation_performed": false,
+		},
+	}
 }
 
 func (s *Server) semanticEQPluginSelectionRequiredResponse(conversationID, mode, userText string, requestContext map[string]any, res agentloop.Result) ChatResponse {
@@ -321,10 +387,13 @@ func (s *Server) semanticEQPluginSelectionRequiredResponse(conversationID, mode,
 }
 
 // agentLoopContextWithGenericEQTopology supplies deterministic structural
-// constraints before LLM acoustic planning. This is not an observation or a
-// semantic mapping: the model still chooses Shape/Frequency/Gain/Q, while the
-// existing recognizer states which controls are actually reachable.
+// constraints only after an upstream family-owned caller has authorized the
+// exact EQ topology read. It is intentionally inert for ordinary entry turns;
+// the semantic entry arbiter must not receive a pre-family EQ hint.
 func (s *Server) agentLoopContextWithGenericEQTopology(ctx context.Context, userText string, requestContext map[string]any) map[string]any {
+	if !contextBool(requestContext, "semantic_eq_topology_authorized") {
+		return requestContext
+	}
 	if s == nil || !agentLoopNeedsGenericEQTopology(userText, requestContext) {
 		return requestContext
 	}
@@ -412,6 +481,17 @@ func (s *Server) newAgentMessageLoop(cfg config.EngineConfig, mode string) *agen
 	}
 }
 
+func agentLoopBudgetForContext(mode string, requestContext map[string]any) agentloop.Budget {
+	if contextBool(requestContext, "free_state_diagnostic_only") {
+		// Catalog discovery, optional structure discovery, one rejected exact
+		// view set, one usable diagnostic bundle, and the terminal conclusion
+		// can require five model turns. The observation window gate prevents
+		// this extra turn from becoming another observation cycle.
+		return agentloop.Budget{MaxTurns: 5, MaxToolCalls: 6, Timeout: 210 * time.Second}
+	}
+	return agentLoopBudgetForMode(mode)
+}
+
 func (s *Server) newAgentLoopExecutor(cfg config.EngineConfig) agentloop.ToolExecutor {
 	return pluginGrabberWorkflowExecutor{
 		server: s,
@@ -430,6 +510,34 @@ func (e pluginGrabberWorkflowExecutor) RunToolCall(ctx context.Context, in execu
 	toolCallID := strings.TrimSpace(in.ToolCall.ID)
 	if toolCallID == "" {
 		toolCallID = "tool_goal_step"
+	}
+	if reason := freeStateInvokeMutationReason(harness.InvokeRequest{
+		Tool: in.ToolCall.Tool, Args: cloneStringAnyMap(in.ToolCall.Args), Command: cloneStringAnyMap(in.ToolCall.Command), Context: cloneStringAnyMap(in.Context), Confirmed: in.Confirmed,
+	}); reason != "" {
+		out := executorpkg.Result{ToolCallID: toolCallID, Tool: in.ToolCall.Tool, CommandName: "free_state_mutation_forbidden", Status: "error", Error: reason,
+			Result: map[string]any{"status": "rejected", "rejection_code": "free_state_mutation_forbidden", "mutation_performed": false}}
+		if e.server != nil {
+			e.server.emitToolItemCompleted(in, out, nil)
+		}
+		return out, nil
+	}
+	if response, needsConfirmation := typedPluginApplyConfirmationResponse(harness.InvokeRequest{
+		Tool: in.ToolCall.Tool, Args: cloneStringAnyMap(in.ToolCall.Args), Command: cloneStringAnyMap(in.ToolCall.Command), Context: cloneStringAnyMap(in.Context), Confirmed: in.Confirmed,
+	}); needsConfirmation {
+		out := executorpkg.Result{
+			ToolCallID:           toolCallID,
+			Tool:                 response.Tool,
+			CommandName:          response.CommandName,
+			Status:               response.Status,
+			RequiresConfirmation: true,
+			Preview:              response.Preview,
+			Result:               response.Result,
+			Response:             response,
+		}
+		if e.server != nil {
+			e.server.emitToolItemCompleted(in, out, nil)
+		}
+		return out, nil
 	}
 	if e.server != nil {
 		e.server.emitToolItemStarted(in, toolCallID)
@@ -540,6 +648,10 @@ func (e pluginGrabberWorkflowExecutor) RunToolCall(ctx context.Context, in execu
 		return out, nil
 	}
 	if e.server != nil && isPluginSetParameterToolCall(in.ToolCall) {
+		if out, blocked := e.blockEQOwnedGenericParameterWrite(ctx, in, toolCallID); blocked {
+			e.server.emitToolItemCompleted(in, out, nil)
+			return out, nil
+		}
 		if out, blocked := e.blockMultibandOwnedGenericParameterWrite(ctx, in, toolCallID); blocked {
 			e.server.emitToolItemCompleted(in, out, nil)
 			return out, nil
@@ -573,6 +685,15 @@ func (e pluginGrabberWorkflowExecutor) RunToolCall(ctx context.Context, in execu
 		e.server.emitToolItemCompleted(in, out, err)
 	}
 	return out, err
+}
+
+func (e pluginGrabberWorkflowExecutor) blockEQOwnedGenericParameterWrite(ctx context.Context, in executorpkg.Input, toolCallID string) (executorpkg.Result, bool) {
+	req := harness.InvokeRequest{Tool: in.ToolCall.Tool, Args: cloneStringAnyMap(in.ToolCall.Args), Command: cloneStringAnyMap(in.ToolCall.Command), Context: cloneStringAnyMap(in.Context)}
+	resp, blocked := e.server.guardEQOwnedGenericParameterWrite(ctx, req)
+	if !blocked {
+		return executorpkg.Result{}, false
+	}
+	return executorpkg.Result{ToolCallID: toolCallID, Tool: resp.Tool, CommandName: resp.CommandName, Status: resp.Status, Error: resp.Error, Result: resp.Result, Response: resp}, true
 }
 
 func (e pluginGrabberWorkflowExecutor) blockMultibandOwnedGenericParameterWrite(ctx context.Context, in executorpkg.Input, toolCallID string) (executorpkg.Result, bool) {
@@ -987,6 +1108,58 @@ func (s *Server) guardCompressorOwnedGenericParameterWrite(ctx context.Context, 
 	}
 	return compressorGenericWriteBlockedResponse(trackID, pluginID, paramID,
 		"typed_compressor_control_required", "parameter is owned by the live broadband-compressor topology; use inspect_compressor and apply_compressor_controls"), true
+}
+
+func (s *Server) guardEQOwnedGenericParameterWrite(ctx context.Context, req harness.InvokeRequest) (harness.InvokeResponse, bool) {
+	if !pluginSetParameterInvokeRequest(req) {
+		return harness.InvokeResponse{}, false
+	}
+	args := workflowCommandArgs(req.Command)
+	for key, value := range workflowCommandArgs(req.Args) {
+		args[key] = value
+	}
+	trackID := firstNonEmptyText(args, "track_id", "selected_plugin_track_id", "selected_track_id")
+	pluginID := firstNonEmptyText(args, "plugin_id", "selected_plugin_id", "plugin_item_id")
+	paramID := firstNonEmptyText(args, "param_id", "parameter_id")
+	if trackID == "" {
+		trackID = firstNonEmptyText(req.Context, "selected_plugin_track_id", "selected_track_id", "track_id")
+	}
+	if pluginID == "" {
+		pluginID = firstNonEmptyText(req.Context, "selected_plugin_id", "plugin_id")
+	}
+	if trackID == "" || pluginID == "" || paramID == "" {
+		return harness.InvokeResponse{}, false
+	}
+	_, summary, err := s.readLiveEQControlSurface(ctx, trackID, pluginID)
+	if err != nil {
+		if eqControlFailureCode(err) == "not_static_eq" {
+			return harness.InvokeResponse{}, false
+		}
+		return eqGenericWriteBlockedResponse(trackID, pluginID, paramID, "typed_eq_surface_unavailable", "cannot prove this parameter is outside the live static-EQ topology: "+err.Error()), true
+	}
+	owned := semanticSurfaceOwnedParameterSet(summary)
+	if len(owned) == 0 {
+		return eqGenericWriteBlockedResponse(trackID, pluginID, paramID, "typed_eq_surface_unavailable", "the live static-EQ topology exposes no proven parameter ownership"), true
+	}
+	if !owned[paramID] {
+		return harness.InvokeResponse{}, false
+	}
+	return eqGenericWriteBlockedResponse(trackID, pluginID, paramID, "typed_eq_control_required", "parameter is owned by the live static-EQ topology; use plugin_grabber.explain_controls and plugin_grabber.apply_eq_edits"), true
+}
+
+func eqGenericWriteBlockedResponse(trackID, pluginID, paramID, code, message string) harness.InvokeResponse {
+	full := code + ": " + message
+	result := map[string]any{"status": "rejected", "rejection_code": code, "message": full, "track_id": trackID, "plugin_id": pluginID, "param_id": paramID,
+		"required_tools": []string{"plugin_grabber.explain_controls", "plugin_grabber.apply_eq_edits"}, "parameters_changed": false}
+	return harness.InvokeResponse{Status: "error", Tool: "plugin.set_parameter", CommandName: "set_plugin_param", RiskLevel: tools.RiskUndoable, Error: full, Result: result}
+}
+
+func semanticSurfaceOwnedParameterSet(topology map[string]any) map[string]bool {
+	set := map[string]bool{}
+	for _, parameterID := range semanticSurfaceOwnedParameterIDs(topology) {
+		set[parameterID] = true
+	}
+	return set
 }
 
 func (e pluginGrabberWorkflowExecutor) invokePluginGrabberInspectLimiter(ctx context.Context, in executorpkg.Input,
@@ -1406,15 +1579,32 @@ func useLegacyPlannerLoop() bool {
 	return value == "1" || value == "true" || value == "yes" || value == "on"
 }
 
+// Keep one /agent/chat invocation inside the frozen 420-second transport
+// boundary even if the next LLM request consumes all three 60-second retries.
+// Longer goals resume from the continuation checkpoint.
+const agentMessageLoopInvocationTimeout = 3 * time.Minute
+
 func agentLoopBudgetForMode(mode string) agentloop.Budget {
 	switch agentModeFromString(mode) {
 	case agentModeGoal:
-		return agentloop.Budget{MaxTurns: 10, MaxToolCalls: 16}
+		return agentloop.Budget{MaxTurns: 10, MaxToolCalls: 16, Timeout: agentMessageLoopInvocationTimeout}
 	case agentModePlan:
-		return agentloop.Budget{MaxTurns: 8, MaxToolCalls: 12}
+		return agentloop.Budget{MaxTurns: 8, MaxToolCalls: 12, Timeout: agentMessageLoopInvocationTimeout}
 	default:
-		return agentloop.Budget{MaxTurns: 8, MaxToolCalls: 12}
+		return agentloop.Budget{MaxTurns: 8, MaxToolCalls: 12, Timeout: agentMessageLoopInvocationTimeout}
 	}
+}
+
+func agentLoopBudgetForModeAfter(mode string, elapsed time.Duration) agentloop.Budget {
+	budget := agentLoopBudgetForMode(mode)
+	if budget.Timeout <= 0 || elapsed <= 0 {
+		return budget
+	}
+	budget.Timeout -= elapsed
+	if budget.Timeout <= 0 {
+		budget.Timeout = time.Nanosecond
+	}
+	return budget
 }
 func (s *Server) chatResponseFromAgentLoopResult(conversationID, mode string, res agentloop.Result) ChatResponse {
 	res = s.applyLegacyCapabilityCreationGate(res)
@@ -2138,6 +2328,16 @@ type agentLoopToolContext struct {
 func (s *Server) agentLoopToolContext(mode, userText string, requestContext map[string]any) agentLoopToolContext {
 	if s == nil || s.harness == nil {
 		return agentLoopToolContext{AllowedTools: toolNamesForAgentLoop(nil, mode)}
+	}
+	if freeStateLoopActiveContext(requestContext) {
+		// The model-owned reasoning loop chooses observation views and family;
+		// typed plug-in tools are disclosed only by the governed post-family
+		// materializer after an exact family/instance binding exists.
+		observationTools := []string{"ccb.observation_catalog", "ccb.observation_request"}
+		return agentLoopToolContext{
+			CatalogSummary: s.harness.ModelCatalogSummaryForTools(observationTools),
+			AllowedTools:   observationTools,
+		}
 	}
 	capabilities := agentLoopCapabilityNames(userText, requestContext)
 	if len(capabilities) == 0 {
