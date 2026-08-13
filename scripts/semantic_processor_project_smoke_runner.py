@@ -751,7 +751,7 @@ FAMILY_ALIASES = {
 }
 
 
-def model_decision_family(response: dict[str, Any]) -> str:
+def model_decision_roots(response: dict[str, Any]) -> list[dict[str, Any]]:
     roots = [response]
     for key in ("free_state", "decision", "latest_decision"):
         value = response.get(key)
@@ -766,6 +766,13 @@ def model_decision_family(response: dict[str, Any]) -> str:
         loop = container.get("free_state_reasoning_loop")
         if isinstance(loop, dict) and isinstance(loop.get("latest_decision"), dict):
             roots.append(loop["latest_decision"])
+            if isinstance(loop["latest_decision"].get("semantic_processor_intent"), dict):
+                roots.append(loop["latest_decision"]["semantic_processor_intent"])
+    return roots
+
+
+def model_decision_family(response: dict[str, Any]) -> str:
+    roots = model_decision_roots(response)
     for root in roots:
         for key in ("family", "processor_family", "selected_family", "processor_type"):
             value = root.get(key)
@@ -773,6 +780,16 @@ def model_decision_family(response: dict[str, Any]) -> str:
             if normalized:
                 return normalized
     return ""
+
+
+def model_declares_processor(response: dict[str, Any]) -> bool:
+    for root in model_decision_roots(response):
+        for key in ("family", "processor_family", "selected_family", "processor_type"):
+            if str(root.get(key) or "").strip():
+                return True
+        if isinstance(root.get("semantic_processor_intent"), dict):
+            return True
+    return False
 
 
 def diagnostic_from_response(response: dict[str, Any]) -> dict[str, Any] | None:
@@ -817,7 +834,7 @@ def diagnostic_response_issue(response: dict[str, Any], known_evidence_refs: set
             return "diagnostic-only findings require evidence_refs"
         if known_evidence_refs is not None and any(str(ref).strip() not in known_evidence_refs for ref in refs):
             return "diagnostic-only findings reference evidence not returned by a successful CCB observation"
-    if model_decision_family(response):
+    if model_declares_processor(response):
         return "diagnostic-only response must not select a processor family"
     return ""
 
@@ -864,7 +881,7 @@ def diagnostic_forbidden_activity(response_rows: list[dict[str, Any]]) -> str:
     if present:
         return "diagnostic-only run crossed the read-only boundary: " + ", ".join(present)
     for response in response_rows:
-        if model_decision_family(response):
+        if model_declares_processor(response):
             return "diagnostic-only run selected a processor family"
         if response.get("requires_confirmation") or response.get("pending_interaction_id") or response.get("pending_action"):
             return "diagnostic-only run created a pending action or confirmation"

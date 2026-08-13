@@ -73,6 +73,13 @@ class SmokeRunnerStatusTest(unittest.TestCase):
         }}}}
         self.assertIn("processor family", runner.diagnostic_response_issue(response))
 
+    def test_diagnostic_rejects_unknown_processor_declaration(self):
+        response = {"workflow_data": {"free_state_reasoning_loop": {"latest_decision": {
+            "processor_type": "future_unregistered_processor",
+            "diagnostic": {"schema_version": "free_state_diagnostic.v1", "status": "unresolved"},
+        }}}}
+        self.assertIn("processor family", runner.diagnostic_response_issue(response))
+
     def test_godot_lifecycle_receipt_requires_all_owned_children_and_ports(self):
         receipt = {
             "schema_version": "semantic_processor_agent_project_smoke_godot_lifecycle_receipt.v1",
