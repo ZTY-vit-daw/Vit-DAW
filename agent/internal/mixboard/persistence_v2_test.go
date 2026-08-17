@@ -2,6 +2,7 @@ package mixboard
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -144,5 +145,103 @@ func TestProjectObservationPersistsCompactCOMProjectionAndCatalog(t *testing.T) 
 	catalog := mapValue(items["observation.catalog"])
 	if !strings.Contains(strings.ToLower(cleanAnyString(catalog["schema_version"])), "catalog") {
 		t.Fatalf("project-store catalog missing: %+v", catalog)
+	}
+}
+
+func TestProjectObservationHardProjectionCompactsRichFullProjectL3Tracks(t *testing.T) {
+	t.Setenv("VIT_MIXBOARD_ROOT", "")
+	projectstore.Deactivate()
+	t.Cleanup(projectstore.Deactivate)
+	root := t.TempDir()
+	projectPath := filepath.Join(root, "large-song.vit")
+	roots, manifest, err := projectstore.Activate(projectPath, "vitproj_large_l3")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	const marker = "dense-l3-event-must-live-only-in-evidence"
+	tracks := make([]any, 0, 71)
+	bandRows := make([]map[string]any, 0, 71)
+	for trackIndex := 0; trackIndex < 71; trackIndex++ {
+		trackID := fmt.Sprintf("%d", 1000+trackIndex)
+		events := make([]any, 0, 220)
+		for eventIndex := 0; eventIndex < 220; eventIndex++ {
+			events = append(events, map[string]any{
+				"time_seconds": float64(eventIndex) / 10,
+				"band_id":      "presence",
+				"description":  marker + strings.Repeat("x", 96),
+			})
+		}
+		dense := map[string]any{
+			"schema_version": "dad_l3_band_energy_summary.v1",
+			"status":         "ready",
+			"track_id":       trackID,
+			"bands": map[string]any{
+				"sub":      map[string]any{"status": "ready", "energy_db": -30.0},
+				"presence": map[string]any{"status": "ready", "energy_db": -18.0},
+			},
+			"frequency_time_events": map[string]any{"status": "ready", "coverage": 1.0, "event_count": len(events), "events": events},
+			"transient_events":      map[string]any{"status": "ready", "coverage": 1.0, "event_count": len(events), "events": events},
+			"band_dynamics":         map[string]any{"status": "ready", "coverage": 1.0, "bands": events},
+		}
+		tracks = append(tracks, map[string]any{
+			"track_id": trackID, "name": "Track " + trackID, "is_audio_track": true,
+			"peak_dbfs": -3.0, "crest_db": 12.0, "headroom_db": 3.0,
+			"band_energy": dense, "frequency_evidence": dense,
+		})
+		bandRows = append(bandRows, dense)
+	}
+
+	observation := ObservationPacket{
+		SchemaVersion: ObservationSchemaVersion, ProjectUUID: roots.ProjectUUID,
+		ObservationID: "obs_large_l3", MixSessionID: "mix_large_l3", Status: "ready",
+		TargetRef:     TargetRef{Kind: "project", ID: roots.ProjectUUID},
+		ListenScope:   ListenScope{Source: ListenSourceScope{Mode: "full_project"}},
+		GlobalSummary: map[string]any{}, ProjectPackage: map[string]any{"status": "ready", "tracks": tracks},
+		EnvironmentPackage: map[string]any{}, MixPackage: map[string]any{}, DeepPackage: map[string]any{},
+	}
+	rawSnapshot := featureSnapshot{BandEnergySummaries: bandRows}
+	persisted, path, err := projectObservationForPersistence(Request{
+		ProjectState: map[string]any{"project_uuid": roots.ProjectUUID, "project_path": projectPath},
+	}, observation, rawSnapshot)
+	if err != nil {
+		t.Fatal(err)
+	}
+	info, err := os.Stat(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if info.Size() > manifest.Budgets.ObservationMaxBytes {
+		t.Fatalf("hard-projected observation size=%d budget=%d", info.Size(), manifest.Budgets.ObservationMaxBytes)
+	}
+	encoded, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(string(encoded), marker) {
+		t.Fatal("dense L3 event payload remained inline after hard projection")
+	}
+	persistedTracks := mapRowsAny(persisted.ProjectPackage["tracks"])
+	if len(persistedTracks) != 71 {
+		t.Fatalf("persisted track count=%d want=71", len(persistedTracks))
+	}
+	first := persistedTracks[0]
+	if cleanAnyString(first["track_id"]) == "" || numberFromMap(first, "peak_dbfs") != -3 || numberFromMap(first, "crest_db") != 12 {
+		t.Fatalf("C2 ranking surface was not retained: %#v", first)
+	}
+	band := mapValue(first["band_energy"])
+	if cleanAnyString(mapValue(band["frequency_time_events"])["status"]) != "ready" || cleanAnyString(mapValue(band["band_dynamics"])["status"]) != "ready" {
+		t.Fatalf("compact dynamics readiness was not retained: %#v", band)
+	}
+	if len(persisted.EvidenceRefs) != 1 {
+		t.Fatalf("evidence refs=%#v", persisted.EvidenceRefs)
+	}
+	blob, err := projectstore.GetEvidence(roots, persisted.EvidenceRefs[0])
+	if err != nil {
+		t.Fatal(err)
+	}
+	rawEncoded, _ := json.Marshal(blob.Content)
+	if !strings.Contains(string(rawEncoded), marker) {
+		t.Fatal("dense L3 event payload was not retained in Evidence")
 	}
 }

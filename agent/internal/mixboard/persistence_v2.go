@@ -177,6 +177,17 @@ func applyObservationHardProjection(observation *ObservationPacket, evidenceRef 
 		featureStatus["evidence_ref"] = evidenceRef
 	}
 	observation.GlobalSummary["feature_snapshot"] = featureStatus
+	// A full-project packet can carry the same rich L3 event material once in
+	// every project track (frequency_time_events, transient_events and band
+	// dynamics). The authoritative already lives in the evidence blob
+	// above. Keep only the stable per-track decision surface in the canonical
+	// v2 Observation so large projects remain bounded as their analysis becomes
+	// more complete. projectedProjectTracks preserves track
+	// identity, level/headroom, band aggregates, stereo/loudness summaries and
+	// compact dynamics readiness used by project capability preselection.
+	if observation.ProjectPackage != nil {
+		observation.ProjectPackage["tracks"] = projectedProjectTracks(observation.ProjectPackage, true)
+	}
 	for _, container := range []map[string]any{observation.EnvironmentPackage, observation.ProjectPackage, observation.MixPackage, observation.DeepPackage} {
 		stripObservationContainer(container)
 	}
