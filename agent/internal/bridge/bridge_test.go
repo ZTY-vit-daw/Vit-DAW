@@ -144,12 +144,12 @@ func TestTelemetryPayloadSpillsLargePacketToFile(t *testing.T) {
 func TestNormalizeTelemetryEnqueuesVSPRealtimeTransportPublishAndSuppressesLegacyUDP(t *testing.T) {
 	b := New(Config{FileReplyDir: t.TempDir(), VSPHubURL: "http://127.0.0.1:8787/vsp"}, nil, nil, nil)
 	var lastSeq int64
-	out := b.normalizeTelemetry(`{"topic":"transport","is_playing":true,"is_recording":false,"position_seconds":12.5}`, nil, &lastSeq)
+	out := b.normalizeTelemetry(`{"topic":"transport","is_playing":true,"is_recording":false,"position_seconds":12.5,"timestamp_ms":1786953387840,"sequence":42}`, nil, &lastSeq)
 	if len(out) != 0 {
 		t.Fatalf("legacy transport UDP should be suppressed when VSP realtime is enabled: %s", string(out))
 	}
 	select {
-	case payload := <-b.realtimePublishCh:
+	case payload := <-b.transportPublishCh:
 		frames, ok := payload["frames"].([]map[string]any)
 		if !ok || len(frames) != 1 {
 			t.Fatalf("frames = %#v", payload["frames"])
@@ -163,6 +163,9 @@ func TestNormalizeTelemetryEnqueuesVSPRealtimeTransportPublishAndSuppressesLegac
 		}
 		if data["is_playing"] != true || data["position_seconds"] != 12.5 || data["source"] != "engine_telemetry" {
 			t.Fatalf("transport data = %#v", data)
+		}
+		if data["timestamp_ms"] != int64(1786953387840) || data["sequence"] != int64(42) {
+			t.Fatalf("transport source ordering metadata was not preserved: %#v", data)
 		}
 	default:
 		t.Fatalf("expected realtime publish payload")
@@ -206,6 +209,34 @@ func TestNormalizeTelemetryEnqueuesVSPRealtimeLevelsPublish(t *testing.T) {
 	}
 }
 
+func TestVSPRealtimeTransportUsesIndependentLatestOnlyQueue(t *testing.T) {
+	b := New(Config{FileReplyDir: t.TempDir(), VSPHubURL: "http://127.0.0.1:8787/vsp"}, nil, nil, nil)
+	var lastSeq int64
+	b.normalizeTelemetry(`{"topic":"levels","tracks":[{"id":"1007","level_db":-6.5}]}`, nil, &lastSeq)
+	b.normalizeTelemetry(`{"topic":"transport","is_playing":true,"position_seconds":1.0,"timestamp_ms":1000,"sequence":1}`, nil, &lastSeq)
+	b.normalizeTelemetry(`{"topic":"transport","is_playing":true,"position_seconds":2.0,"timestamp_ms":2000,"sequence":2}`, nil, &lastSeq)
+
+	select {
+	case payload := <-b.transportPublishCh:
+		frames := payload["frames"].([]map[string]any)
+		data := frames[0]["data"].(map[string]any)
+		if data["position_seconds"] != 2.0 || data["sequence"] != int64(2) {
+			t.Fatalf("transport queue did not retain the newest frame: %#v", data)
+		}
+	default:
+		t.Fatal("expected an independently queued transport frame")
+	}
+	select {
+	case payload := <-b.realtimePublishCh:
+		frames := payload["frames"].([]map[string]any)
+		if fmt.Sprint(frames[0]["stream"]) != "meters.visible_tracks" {
+			t.Fatalf("meter queue was overwritten by transport: %#v", payload)
+		}
+	default:
+		t.Fatal("expected meter frame to remain in its own queue")
+	}
+}
+
 func TestNormalizeTelemetrySuppressesLegacyLevelsUDPWhenVSPRealtimeEnabled(t *testing.T) {
 	t.Setenv("VIT_BRIDGE_KEEP_LEGACY_REALTIME_UDP", "0")
 	b := New(Config{FileReplyDir: t.TempDir(), VSPHubURL: "http://127.0.0.1:8787/vsp"}, nil, nil, nil)
@@ -234,7 +265,7 @@ func TestNormalizeTelemetrySuppressesLegacyTransportUDPWhenVSPRealtimeEnabled(t 
 		t.Fatalf("legacy transport UDP should be suppressed when VSP realtime is enabled: %s", string(out))
 	}
 	select {
-	case payload := <-b.realtimePublishCh:
+	case payload := <-b.transportPublishCh:
 		frames, ok := payload["frames"].([]map[string]any)
 		if !ok || len(frames) != 1 {
 			t.Fatalf("expected one VSP transport frame, got %#v", payload["frames"])
@@ -264,6 +295,11 @@ func TestNormalizeTelemetrySuppressesLegacyDeltaUDPWhenVSPHubEnabled(t *testing.
 		t.Fatalf("delta_update should be delivered by hub event relay, not realtime publisher: %#v", payload)
 	default:
 	}
+	select {
+	case payload := <-b.transportPublishCh:
+		t.Fatalf("delta_update should not enter the transport publisher: %#v", payload)
+	default:
+	}
 }
 
 func TestNormalizeTelemetryKeepsLegacyDeltaUDPWithoutVSPHub(t *testing.T) {
@@ -290,6 +326,9 @@ func TestVSPRealtimePublisherDisabledWithoutHubURL(t *testing.T) {
 	b.normalizeTelemetry(`{"topic":"transport","is_playing":true}`, nil, &lastSeq)
 	if b.realtimePublishCh != nil {
 		t.Fatalf("realtime publisher unexpectedly enabled")
+	}
+	if b.transportPublishCh != nil {
+		t.Fatalf("transport publisher unexpectedly enabled")
 	}
 }
 

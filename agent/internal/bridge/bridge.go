@@ -33,12 +33,13 @@ type Config struct {
 }
 
 type Bridge struct {
-	cfg               Config
-	kernel            *kernel.Client
-	shadow            *shadow.Project
-	logger            *logx.Logger
-	realtimePublishCh chan map[string]any
-	legacyDiag        legacyTelemetryDiag
+	cfg                Config
+	kernel             *kernel.Client
+	shadow             *shadow.Project
+	logger             *logx.Logger
+	transportPublishCh chan map[string]any
+	realtimePublishCh  chan map[string]any
+	legacyDiag         legacyTelemetryDiag
 }
 
 type legacyTelemetryDiag struct {
@@ -73,7 +74,10 @@ func New(cfg Config, kernelClient *kernel.Client, shadowProject *shadow.Project,
 	}
 	b := &Bridge{cfg: cfg, kernel: kernelClient, shadow: shadowProject, logger: logger}
 	if strings.TrimSpace(cfg.VSPHubURL) != "" {
-		b.realtimePublishCh = make(chan map[string]any, 64)
+		// Realtime streams are latest-only. Keep transport independent from the
+		// heavier meter payloads so multi-track load cannot queue stale playheads.
+		b.transportPublishCh = make(chan map[string]any, 1)
+		b.realtimePublishCh = make(chan map[string]any, 1)
 	}
 	b.legacyDiag.enabled = envBool("VIT_BRIDGE_LEGACY_TELEMETRY_DIAG", false)
 	return b
@@ -87,6 +91,7 @@ func (b *Bridge) Run(ctx context.Context) error {
 	errCh := make(chan error, 3)
 	if b.realtimePublishCh != nil {
 		go b.runVSPRealtimePublisher(ctx)
+		go b.runVSPTransportPublisher(ctx)
 	}
 	go func() { errCh <- b.runTelemetry(ctx, refreshCh) }()
 	go func() { errCh <- b.runShadowRefresh(ctx, refreshCh) }()

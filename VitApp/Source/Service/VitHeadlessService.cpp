@@ -332,7 +332,9 @@ static juce::Array<juce::var> collectLiveRecordingWaveformEntries (te::Edit& edi
     return items;
 }
 
-static juce::String buildTransportTelemetryPayload (te::Edit& edit, bool includeRecordingWaveformDetail)
+static juce::String buildTransportTelemetryPayload (te::Edit& edit,
+                                                    bool includeRecordingWaveformDetail,
+                                                    juce::int64 sequence)
 {
     auto response = std::make_unique<juce::DynamicObject>();
     auto& transport = edit.getTransport();
@@ -341,6 +343,8 @@ static juce::String buildTransportTelemetryPayload (te::Edit& edit, bool include
     response->setProperty ("is_playing", transport.isPlaying());
     response->setProperty ("is_recording", transport.isRecording());
     response->setProperty ("position_seconds", transport.getPosition().inSeconds());
+    response->setProperty ("timestamp_ms", static_cast<juce::int64> (juce::Time::currentTimeMillis()));
+    response->setProperty ("sequence", sequence);
 
     if (transport.isRecording() && includeRecordingWaveformDetail)
         response->setProperty ("recording_waveforms", juce::var (collectLiveRecordingWaveformEntries (edit)));
@@ -814,7 +818,9 @@ void VitHeadlessService::broadcastTransportTelemetry()
     ++transportTelemetryTick;
     const bool includeLiveWaveform = ! nowRecording
                                     || (transportTelemetryTick % recordingWaveformTelemetryStride == 0);
-    zmqGateway->publishMessage (buildTransportTelemetryPayload (*edit, includeLiveWaveform));
+    zmqGateway->publishMessage (buildTransportTelemetryPayload (*edit,
+                                                               includeLiveWaveform,
+                                                               static_cast<juce::int64> (transportTelemetryTick)));
 }
 
 void VitHeadlessService::broadcastLevelsTelemetry()

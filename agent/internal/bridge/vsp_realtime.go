@@ -14,6 +14,8 @@ const (
 	vspRealtimeClientID      = "vit.agent.realtime_publisher"
 	vspRealtimeClientName    = "VitAgent Realtime Publisher"
 	vspRealtimeClientVersion = "vsp-realtime-publisher-v1"
+	vspTransportClientID     = "vit.agent.transport_publisher"
+	vspTransportClientName   = "VitAgent Transport Publisher"
 )
 
 var vspRealtimeFrameSeq atomic.Int64
@@ -26,29 +28,48 @@ func (b *Bridge) enqueueVSPRealtimeTelemetry(packet map[string]any) {
 	if !ok {
 		return
 	}
+	if strings.EqualFold(strings.TrimSpace(stringField(packet, "topic")), "transport") {
+		enqueueLatestRealtimePayload(b.transportPublishCh, payload)
+		return
+	}
+	enqueueLatestRealtimePayload(b.realtimePublishCh, payload)
+}
+
+func enqueueLatestRealtimePayload(channel chan map[string]any, payload map[string]any) {
+	if channel == nil {
+		return
+	}
 	select {
-	case b.realtimePublishCh <- payload:
+	case channel <- payload:
 		return
 	default:
 	}
 	select {
-	case <-b.realtimePublishCh:
+	case <-channel:
 	default:
 	}
 	select {
-	case b.realtimePublishCh <- payload:
+	case channel <- payload:
 	default:
 	}
 }
 
 func (b *Bridge) runVSPRealtimePublisher(ctx context.Context) {
+	b.runVSPRealtimeChannelPublisher(ctx, b.realtimePublishCh, vspRealtimeClientID, vspRealtimeClientName)
+}
+
+func (b *Bridge) runVSPTransportPublisher(ctx context.Context) {
+	b.runVSPRealtimeChannelPublisher(ctx, b.transportPublishCh, vspTransportClientID, vspTransportClientName)
+}
+
+func (b *Bridge) runVSPRealtimeChannelPublisher(ctx context.Context, channel <-chan map[string]any, clientID, clientName string) {
 	hubURL := strings.TrimSpace(b.cfg.VSPHubURL)
-	if hubURL == "" {
+	if hubURL == "" || channel == nil {
 		return
 	}
-	client := vspclient.New(hubURL, vspRealtimeClientID, "agent", vspRealtimeClientName, vspRealtimeClientVersion, 2*time.Second)
+	client := vspclient.New(hubURL, clientID, "agent", clientName, vspRealtimeClientVersion, 2*time.Second)
 	if b.logger != nil {
-		b.logger.Info("VSP realtime publisher enabled hub=%s", hubURL)
+		b.logger.Info("VSP realtime publisher enabled client=%s hub=%s", clientID, hubURL)
 	}
 	nextWarnAt := time.Time{}
 	failures := 0
@@ -56,7 +77,7 @@ func (b *Bridge) runVSPRealtimePublisher(ctx context.Context) {
 		select {
 		case <-ctx.Done():
 			return
-		case payload := <-b.realtimePublishCh:
+		case payload := <-channel:
 			if len(payload) == 0 {
 				continue
 			}
@@ -125,12 +146,19 @@ func (b *Bridge) vspRealtimePublishPayload(packet map[string]any) (map[string]an
 }
 
 func (b *Bridge) vspTransportFrame(packet map[string]any) map[string]any {
+	sourceTimestampMS := int64From(packet["timestamp_ms"])
+	if sourceTimestampMS <= 0 {
+		sourceTimestampMS = time.Now().UnixMilli()
+	}
 	data := map[string]any{
 		"source":           "engine_telemetry",
-		"timestamp_ms":     time.Now().UnixMilli(),
+		"timestamp_ms":     sourceTimestampMS,
 		"position_seconds": float64FromAny(packet["position_seconds"]),
 		"is_playing":       boolFromAny(packet["is_playing"]),
 		"is_recording":     boolFromAny(packet["is_recording"]),
+	}
+	if sequence := int64From(packet["sequence"]); sequence > 0 {
+		data["sequence"] = sequence
 	}
 	if value, ok := packet["position_beats"]; ok {
 		data["position_beats"] = float64FromAny(value)
