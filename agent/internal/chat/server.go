@@ -51,6 +51,7 @@ import (
 
 type Server struct {
 	kernel           *kernel.Client
+	auditionKernel   auditionCommandClient
 	eqKernelOverride eqKernelTransport
 	shadow           *shadow.Project
 	llm              *llm.Client
@@ -429,6 +430,7 @@ func New(kernelClient *kernel.Client, shadowProject *shadow.Project, logger *log
 	}
 	return &Server{
 		kernel:                           kernelClient,
+		auditionKernel:                   kernelClient,
 		shadow:                           shadowProject,
 		llm:                              &llm.Client{},
 		logger:                           logger,
@@ -458,10 +460,13 @@ func New(kernelClient *kernel.Client, shadowProject *shadow.Project, logger *log
 }
 
 func (s *Server) HandleKernelTelemetry(event map[string]any) {
-	if s == nil || s.harness == nil {
+	if s == nil {
 		return
 	}
-	s.harness.IngestKernelTelemetry(event)
+	if s.harness != nil {
+		s.harness.IngestKernelTelemetry(event)
+	}
+	s.ingestAuditionTelemetry(event)
 }
 
 func (s *Server) Routes() http.Handler {
@@ -471,6 +476,9 @@ func (s *Server) Routes() http.Handler {
 	mux.HandleFunc("/health", s.handleHealth)
 	mux.HandleFunc("/agent/runtime/status", s.handleRuntimeStatus)
 	mux.HandleFunc("/agent/events", s.handleAgentEvents)
+	mux.HandleFunc("/agent/audition/status", s.handleAuditionStatus)
+	mux.HandleFunc("/agent/audition/select", s.handleAuditionSelect)
+	mux.HandleFunc("/agent/audition/stop", s.handleAuditionStop)
 	mux.HandleFunc("/agent/state", s.handleState)
 	mux.HandleFunc("/agent/ui/state", s.handleUIState)
 	mux.HandleFunc("/agent/ui/context", s.handleUIContext)

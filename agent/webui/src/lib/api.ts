@@ -12,6 +12,7 @@ import type {
   EngineConfig,
   HealthResponse,
   InteractionRespondRequest,
+  JsonRecord,
   MacroControl,
   MacroControlSetResponse,
   ResourceIntakeResponse,
@@ -67,6 +68,14 @@ export function fetchAgentEvents(conversationID: string, since = 0, limit = 120)
     limit: String(Math.max(1, limit))
   });
   return requestJSON<AgentEventsResponse>(`/agent/events?${query.toString()}`);
+}
+
+export function selectAudition(conversationID: string, sessionID: string, candidateID: string): Promise<{ status?: string; session?: JsonRecord; error?: string }> {
+  return requestJSON("/agent/audition/select", { method: "POST", body: JSON.stringify({ conversation_id: conversationID, session_id: sessionID, candidate_id: candidateID }) });
+}
+
+export function stopAudition(conversationID: string, sessionID: string): Promise<{ status?: string; session?: JsonRecord; error?: string }> {
+  return requestJSON("/agent/audition/stop", { method: "POST", body: JSON.stringify({ conversation_id: conversationID, session_id: sessionID }) });
 }
 
 export function fetchUIState(): Promise<AgentUIState> {

@@ -89,7 +89,10 @@ func TestFreeStateExperimentMaterialityAndTargetResponseAreRecordedFromDecision(
 	if round == "" || loop.Experiment.Rounds[0].Materiality == nil || loop.Experiment.Rounds[0].Materiality.Evaluation != trajectory.EvaluationInsufficientDose {
 		t.Fatalf("materiality missing=%+v", loop.Experiment)
 	}
-	if loop.Experiment.Rounds[0].Status != experiment.RoundDoseCalibrating {
+	if loop.Experiment.Rounds[0].Status != experiment.RoundCompleted || loop.Experiment.Rounds[0].Decision != experiment.DecisionNextRound {
 		t.Fatalf("wrong dose status=%+v", loop.Experiment.Rounds[0])
+	}
+	if len(loop.Experiment.Rounds) != 2 || loop.Experiment.CurrentRoundID != loop.Experiment.Rounds[1].ID {
+		t.Fatalf("insufficient dose did not advance to next round: %+v", loop.Experiment.Rounds)
 	}
 }

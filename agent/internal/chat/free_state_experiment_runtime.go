@@ -229,6 +229,18 @@ func (s *Server) recordFreeStateExperimentDecision(ctx context.Context, loop *fr
 	if decision.ExperimentMateriality != nil {
 		if events, err := loop.Experiment.EvaluateMateriality(*decision.ExperimentMateriality, time.Now().UTC()); err == nil {
 			s.emitFreeStateExperimentEvents(events)
+			if decision.ExperimentMateriality.Evaluation == trajectory.EvaluationInsufficientDose {
+				if decisionEvents, decisionErr := loop.Experiment.DecideRound(experiment.DecisionNextRound, "insufficient dose; calibrate in next round", time.Now().UTC()); decisionErr == nil {
+					s.emitFreeStateExperimentEvents(decisionEvents)
+					views := freeStateExperimentViews(*loop, decision, decision.ImprovementProposal)
+					if len(views) == 0 {
+						views = append([]string(nil), loop.Experiment.Rounds[len(loop.Experiment.Rounds)-1].RequestedViewIDs...)
+					}
+					if roundEvents, roundErr := loop.Experiment.StartRound(views, loop.Experiment.Admission.CheckpointRef, firstStringFromMap(loop.LatestProjectChange, "project_revision", "revision"), time.Now().UTC()); roundErr == nil {
+						s.emitFreeStateExperimentEvents(roundEvents)
+					}
+				}
+			}
 		} else if s.logger != nil {
 			s.logger.Warn("[free-state-experiment] materiality rejected: %v", err)
 		}
@@ -236,6 +248,11 @@ func (s *Server) recordFreeStateExperimentDecision(ctx context.Context, loop *fr
 	if decision.ExperimentTargetResponse != nil {
 		if events, err := loop.Experiment.RecordTargetResponse(*decision.ExperimentTargetResponse, time.Now().UTC()); err == nil {
 			s.emitFreeStateExperimentEvents(events)
+			if decision.ExperimentTargetResponse.Outcome == trajectory.EvaluationHumanAuditionReady {
+				if auditionErr := s.prepareFreeStateAudition(ctx, loop); auditionErr != nil && s.logger != nil {
+					s.logger.Warn("[free-state-experiment] audition prepare failed: %v", auditionErr)
+				}
+			}
 		} else if s.logger != nil {
 			s.logger.Warn("[free-state-experiment] target response rejected: %v", err)
 		}
