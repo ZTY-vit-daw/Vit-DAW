@@ -336,21 +336,24 @@ func (t TargetEvaluation) Validate() error {
 // Round is a bounded cycle. Multiple Intervention records may occur in one
 // Round while dose is calibrated.
 type Round struct {
-	ID               string                 `json:"round_id"`
-	Number           int                    `json:"number"`
-	Status           RoundStatus            `json:"status"`
-	Phase            string                 `json:"phase"`
-	CheckpointRef    string                 `json:"checkpoint_ref"`
-	ProjectRevision  string                 `json:"project_revision,omitempty"`
-	RequestedViewIDs []string               `json:"requested_view_ids,omitempty"`
-	Observations     []Observation          `json:"observations,omitempty"`
-	Interventions    []Intervention         `json:"interventions,omitempty"`
-	Materiality      *MaterialityEvaluation `json:"materiality,omitempty"`
-	TargetResponse   *TargetEvaluation      `json:"target_response,omitempty"`
-	Decision         RoundDecision          `json:"decision,omitempty"`
-	DecisionSummary  string                 `json:"decision_summary,omitempty"`
-	StartedAt        time.Time              `json:"started_at"`
-	UpdatedAt        time.Time              `json:"updated_at"`
+	ID                    string                 `json:"round_id"`
+	Number                int                    `json:"number"`
+	Status                RoundStatus            `json:"status"`
+	Phase                 string                 `json:"phase"`
+	CheckpointRef         string                 `json:"checkpoint_ref"`
+	ProjectRevision       string                 `json:"project_revision,omitempty"`
+	RequestedViewIDs      []string               `json:"requested_view_ids,omitempty"`
+	Observations          []Observation          `json:"observations,omitempty"`
+	Interventions         []Intervention         `json:"interventions,omitempty"`
+	Materiality           *MaterialityEvaluation `json:"materiality,omitempty"`
+	TargetResponse        *TargetEvaluation      `json:"target_response,omitempty"`
+	AuditionSessionID     string                 `json:"audition_session_id,omitempty"`
+	UserJudgmentRequested bool                   `json:"user_judgment_requested,omitempty"`
+	UserJudgmentEvidence  []UserJudgmentEvidence `json:"user_judgment_evidence,omitempty"`
+	Decision              RoundDecision          `json:"decision,omitempty"`
+	DecisionSummary       string                 `json:"decision_summary,omitempty"`
+	StartedAt             time.Time              `json:"started_at"`
+	UpdatedAt             time.Time              `json:"updated_at"`
 }
 
 // Turn is the persisted free-state experiment controller state.
@@ -584,57 +587,6 @@ func (t *Turn) RecordTargetResponse(evaluation TargetEvaluation, now time.Time) 
 	events := t.events(now, trajectory.EventTargetResponse, round.ID, trajectory.NodeVerification, "target response evaluated", evaluation.EvidenceRefs, nil, map[string]any{"target_response": evaluation.Response, "outcome": evaluation.Outcome, "protected_dimension_status": evaluation.ProtectedDimensionStatus})
 	events[0].Payload.TargetResponse = string(evaluation.Response)
 	events[0].Payload.Outcome = evaluation.Outcome
-	return events, nil
-}
-
-func (t *Turn) RequestUserJudgment(summary string, now time.Time) ([]trajectory.Event, error) {
-	if err := t.ensureLive(); err != nil {
-		return nil, err
-	}
-	round, err := t.currentRound()
-	if err != nil {
-		return nil, err
-	}
-	if round.TargetResponse == nil || round.TargetResponse.Outcome != trajectory.EvaluationHumanAuditionReady {
-		return nil, fmt.Errorf("user judgment requires human_audition_ready target response")
-	}
-	if now.IsZero() {
-		now = time.Now().UTC()
-	}
-	t.Status = StatusWaitingForUser
-	t.UpdatedAt = now.UTC()
-	return t.events(now, trajectory.EventUserJudgmentRequested, round.ID, trajectory.NodeJudgment, "user A/B judgment requested", round.TargetResponse.EvidenceRefs, nil, map[string]any{"summary": summary}), nil
-}
-
-func (t *Turn) RecordUserJudgment(candidateID string, preferTreatment bool, summary string, now time.Time) ([]trajectory.Event, error) {
-	if err := t.ensureLive(); err != nil {
-		return nil, err
-	}
-	round, err := t.currentRound()
-	if err != nil {
-		return nil, err
-	}
-	if round.TargetResponse == nil || round.TargetResponse.Outcome != trajectory.EvaluationHumanAuditionReady {
-		return nil, fmt.Errorf("user judgment requires human_audition_ready target response")
-	}
-	if candidateID != "candidate-a" && candidateID != "candidate-b" {
-		return nil, fmt.Errorf("unsupported audition candidate %q", candidateID)
-	}
-	if now.IsZero() {
-		now = time.Now().UTC()
-	}
-	if preferTreatment {
-		round.TargetResponse.Response = TargetSufficient
-		round.TargetResponse.Outcome = trajectory.EvaluationHumanConfirmed
-	}
-	round.Status = RoundDeciding
-	round.Phase = "user_judgment"
-	round.UpdatedAt = now.UTC()
-	t.replaceRound(*round)
-	t.Status = StatusRunning
-	t.UpdatedAt = now.UTC()
-	events := t.events(now, trajectory.EventUserJudgmentRecorded, round.ID, trajectory.NodeJudgment, "user A/B judgment recorded", round.TargetResponse.EvidenceRefs, nil, map[string]any{"candidate_id": candidateID, "prefer_treatment": preferTreatment, "summary": summary})
-	events[0].Payload.Outcome = trajectory.EvaluationHumanConfirmed
 	return events, nil
 }
 

@@ -67,6 +67,7 @@ type freeStateReasoningLoop struct {
 	LatestDecision                *agentloop.FreeStateDecision `json:"latest_decision,omitempty"`
 	Experiment                    *experiment.Turn             `json:"experiment,omitempty"`
 	AuditionSessionID             string                       `json:"audition_session_id,omitempty"`
+	AuditionSessionSnapshot       map[string]any               `json:"audition_session_snapshot,omitempty"`
 	RequiresPostActionObservation bool                         `json:"requires_post_action_observation"`
 	LastError                     string                       `json:"last_error,omitempty"`
 	CreatedAt                     time.Time                    `json:"created_at"`
@@ -186,6 +187,9 @@ func mergeFreeStateLoops(base, overlay freeStateReasoningLoop, overlayOK bool) f
 	}
 	if len(overlay.LatestProjectChange) > 0 {
 		out.LatestProjectChange = cloneContext(overlay.LatestProjectChange)
+	}
+	if len(overlay.AuditionSessionSnapshot) > 0 {
+		out.AuditionSessionSnapshot = cloneContext(overlay.AuditionSessionSnapshot)
 	}
 	if overlay.MaxCycles > 0 {
 		out.MaxCycles = overlay.MaxCycles

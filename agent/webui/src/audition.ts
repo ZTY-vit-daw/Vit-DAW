@@ -10,15 +10,25 @@ export interface AuditionCandidate {
   previewRef: string;
 }
 
+export type HeardDifference = "yes" | "no" | "unsure";
+export type JudgmentPreference = "a" | "b" | "neither" | "equal" | "unsure";
+
 export interface AuditionSession {
   id: string;
   status: string;
   activeCandidateId: string;
   candidates: AuditionCandidate[];
   activeProjectRevision: string;
+  projectRevision: string;
   stateRevision: number;
   lastEventType: string;
   error: string;
+  conversationID: string;
+  turnID: string;
+  roundID: string;
+  judgmentRequested: boolean;
+  judgmentRecorded: boolean;
+  judgmentEvidence: JsonRecord | null;
 }
 
 export interface AuditionState {
@@ -37,10 +47,11 @@ export function isAuditionEvent(event: AgentEvent): boolean {
 export function reduceAuditionEvents(current: AuditionState, incoming: AgentEvent[]): AuditionState {
   const next: AuditionState = { sessions: { ...current.sessions }, eventKeys: [...current.eventKeys] };
   const seen = new Set(next.eventKeys);
-  incoming.filter(isAuditionEvent).sort((a, b) => (a.seq || 0) - (b.seq || 0)).forEach((event) => {
+  incoming.filter((event) => isAuditionEvent(event) || event.type === "trajectory.user_judgment.requested" || event.type === "trajectory.user_judgment.recorded").sort((a, b) => (a.seq || 0) - (b.seq || 0)).forEach((event) => {
     const payload = record(event.payload);
     const rawSession = record(payload.session);
-    const id = text(rawSession.session_id) || text(event.item_id);
+    const requestedSession = text(record(payload.details).audition_session_id) || text(payload.audition_session_id);
+    const id = text(rawSession.session_id) || requestedSession || text(event.item_id);
     if (!id) return;
     const key = `${id}:${text(event.type)}:${event.seq || 0}`;
     if (seen.has(key)) return;
@@ -49,15 +60,23 @@ export function reduceAuditionEvents(current: AuditionState, incoming: AgentEven
     const candidates = Array.isArray(rawSession.candidates)
       ? rawSession.candidates.map(candidateFromAny).filter((candidate) => candidate.id)
       : previous?.candidates ?? [];
+    const trajectoryJudgmentEvent = event.type === "trajectory.user_judgment.requested" || event.type === "trajectory.user_judgment.recorded";
     next.sessions[id] = {
       id,
-      status: text(rawSession.status) || text(event.status) || previous?.status || "preparing",
+      status: text(rawSession.status) || (trajectoryJudgmentEvent ? previous?.status : text(event.status)) || previous?.status || "preparing",
       activeCandidateId: text(rawSession.active_candidate_id) || previous?.activeCandidateId || "",
       candidates,
-      activeProjectRevision: text(activeProject.project_revision) || previous?.activeProjectRevision || "",
+      activeProjectRevision: text(activeProject.project_revision) || text(rawSession.project_revision) || previous?.activeProjectRevision || "",
+      projectRevision: text(rawSession.project_revision) || previous?.projectRevision || "",
       stateRevision: Number(rawSession.state_revision) || previous?.stateRevision || 0,
       lastEventType: text(event.type),
-      error: text(payload.message) || text(payload.error) || (text(event.type) === "audition.failed" ? text(event.body) : "")
+      error: text(payload.message) || text(payload.error) || (text(event.type) === "audition.failed" ? text(event.body) : ""),
+      conversationID: text(rawSession.conversation_id) || text(event.conversation_id) || previous?.conversationID || "",
+      turnID: text(rawSession.turn_id) || text(payload.turn_id) || previous?.turnID || "",
+      roundID: text(rawSession.round_id) || text(payload.round_id) || previous?.roundID || "",
+      judgmentRequested: event.type === "trajectory.user_judgment.recorded" ? false : previous?.judgmentRequested || event.type === "trajectory.user_judgment.requested",
+      judgmentRecorded: previous?.judgmentRecorded || event.type === "trajectory.user_judgment.recorded",
+      judgmentEvidence: previous?.judgmentEvidence || (event.type === "trajectory.user_judgment.recorded" ? record(record(payload.details).evidence) : null)
     };
     seen.add(key);
     next.eventKeys.push(key);

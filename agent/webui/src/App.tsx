@@ -66,6 +66,8 @@ import {
   saveAgentConfig,
   selectAudition,
   stopAudition,
+  submitAuditionJudgment,
+  type AuditionJudgmentPayload,
   scanDownloads,
   sendChat,
   setMacroControlValue,
@@ -283,6 +285,7 @@ function App() {
     agentEventSeqRef.current = 0;
     setTrajectoryState(emptyTrajectoryState());
     setAuditionState(emptyAuditionState());
+    setAgentEventPolling(true);
   }, [conversationID]);
 
   useEffect(() => {
@@ -986,6 +989,11 @@ function App() {
     }
   };
 
+  const handleAuditionJudgment = async (payload: AuditionJudgmentPayload) => {
+    await submitAuditionJudgment(payload);
+    setAgentEventPolling(true);
+  };
+
   const hiddenFileInput = (
     <input
       ref={fileInputRef}
@@ -1080,6 +1088,7 @@ function App() {
         busySessionID={auditionBusySessionID}
         onSelect={handleAuditionSelect}
         onStop={handleAuditionStop}
+        onSubmitJudgment={handleAuditionJudgment}
       />
 
       <MessageStream
