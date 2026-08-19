@@ -1,0 +1,344 @@
+package chat
+
+import (
+	"context"
+	"fmt"
+	"strings"
+	"time"
+
+	"vit-daw-agent/internal/agentloop"
+	"vit-daw-agent/internal/agentprotocol"
+	"vit-daw-agent/internal/experiment"
+	"vit-daw-agent/internal/harness"
+	"vit-daw-agent/internal/trajectory"
+)
+
+// freeStateExperimentAdmission converts the existing model-owned proposal to
+// the runtime admission without granting mutation authority. Optional legacy
+// proposal bounds are kept compatible while the runtime records that they are
+// proposal-derived until a governed action supplies the real checkpoint.
+func freeStateExperimentAdmission(loop freeStateReasoningLoop, proposal *agentprotocol.ImprovementProposal) (experiment.Admission, error) {
+	if proposal == nil {
+		return experiment.Admission{}, fmt.Errorf("improvement proposal is required")
+	}
+	bounds := cloneContext(proposal.ParameterBounds)
+	if len(bounds) == 0 {
+		bounds = map[string]any{"source": "proposal", "mode": "bounded"}
+	}
+	verification := cloneContext(proposal.VerificationPlan)
+	if len(verification) == 0 {
+		verification = map[string]any{"evidence_refs": append([]string(nil), proposal.EvidenceRefs...)}
+	}
+	checkpoint := firstStringFromMap(loop.LatestProjectChange, "checkpoint_ref", "commit_id", "project_revision")
+	if checkpoint == "" {
+		checkpoint = "pending:" + firstNonEmpty(loop.LoopID, "free-state-experiment")
+	}
+	budget := intNumber(verification["experiment_budget"])
+	if budget <= 0 || budget > 6 {
+		budget = 3
+	}
+	admission := experiment.Admission{
+		SchemaVersion:        experiment.SchemaVersion,
+		TargetRef:            cloneContext(proposal.Target),
+		EvidenceRefs:         append([]string(nil), proposal.EvidenceRefs...),
+		Hypothesis:           proposal.Hypothesis,
+		TypedAction:          map[string]any{"action_domain": proposal.ActionDomain, "action_kind": proposal.ActionKind, "processor_type": proposal.ProcessorType, "parameter_bounds": cloneContext(proposal.ParameterBounds)},
+		DiagnosticDoseBounds: map[string]any{"source": "proposal", "bounds": cloneContext(bounds)},
+		RetainedDoseBounds:   map[string]any{"source": "proposal", "bounds": cloneContext(bounds)},
+		ExperimentBudget:     budget,
+		ExpectedEffect:       proposal.ExpectedEffect,
+		ProtectedDimensions:  freeStateStringSlice(verification["protected_dimensions"]),
+		VerificationPlan:     verification,
+		CheckpointRef:        checkpoint,
+		RollbackPlan:         map[string]any{"kind": "agent_rollback_action", "source": "existing_governed_rollback"},
+		AuthorityMode:        experiment.AuthorityOrdinary,
+	}
+	return admission, admission.Validate()
+}
+
+func freeStateExperimentViews(loop freeStateReasoningLoop, decision agentloop.FreeStateDecision, proposal *agentprotocol.ImprovementProposal) []string {
+	views := append([]string(nil), decision.RequestedViewIDs...)
+	if len(views) == 0 && loop.LatestObservation != nil {
+		views = freeStateStringSlice(loop.LatestObservation.Summary["requested_views"])
+		if len(views) == 0 {
+			views = freeStateStringSlice(loop.LatestObservation.Summary["actual_executed_view_ids"])
+		}
+	}
+	if len(views) == 0 && proposal != nil {
+		plan := firstMapFromAny(proposal.VerificationPlan)
+		views = freeStateStringSlice(plan["view_ids"])
+	}
+	return freeStateNormalizedViewIDs(views)
+}
+
+func freeStateExperimentObservation(observation *agentloop.RecentObservation, postAction bool) (experiment.Observation, bool) {
+	if !freeStateIsCCBObservation(observation) || !freeStateUsableObservation(observation) {
+		return experiment.Observation{}, false
+	}
+	summary := cloneContext(observation.Summary)
+	bundle := firstMapFromAny(summary["bundle"])
+	if len(bundle) > 0 {
+		for key, value := range bundle {
+			if _, exists := summary[key]; !exists {
+				summary[key] = value
+			}
+		}
+	}
+	receipt := firstMapFromAny(summary["audit_receipt"])
+	requested := freeStateStringSlice(summary["requested_views"])
+	if len(requested) == 0 {
+		requested = freeStateStringSlice(bundle["requested_views"])
+	}
+	executed := freeStateStringSlice(summary["actual_executed_view_ids"])
+	if len(executed) == 0 {
+		executed = freeStateStringSlice(receipt["actual_executed_view_ids"])
+	}
+	if len(executed) == 0 {
+		executed = freeStateStringSlice(bundle["actual_executed_view_ids"])
+	}
+	freshness := firstMapFromAny(receipt["freshness"])
+	fresh := !strings.EqualFold(firstStringFromMap(freshness, "status"), "stale") &&
+		!strings.EqualFold(firstStringFromMap(summary, "freshness"), "stale")
+	evidence := freeStateStringSlice(summary["evidence_refs"])
+	if len(evidence) == 0 {
+		evidence = freeStateStringSlice(bundle["evidence_refs"])
+	}
+	if len(evidence) == 0 {
+		evidence = []string{firstNonEmpty(firstStringFromMap(summary, "observation_id"), observation.ToolCallID)}
+	}
+	row := experiment.Observation{
+		ID:        firstNonEmpty(firstStringFromMap(summary, "observation_id", "receipt_id"), observation.ToolCallID),
+		ReceiptID: firstStringFromMap(receipt, "receipt_id"), RequestedViewIDs: requested, ExecutedViewIDs: executed,
+		ViewSetMatches: boolValue(receipt["view_set_matches"]) || (receipt["view_set_matches"] == nil && len(requested) > 0 && sameStringSet(requested, executed)),
+		Fresh:          fresh, PostAction: postAction, ProjectRevision: firstStringFromMap(receipt, "project_revision"),
+		EvidenceRefs: evidence, Limitations: freeStateStringSlice(summary["limitations"]), Summary: summary, RecordedAt: time.Now().UTC(),
+	}
+	return row, row.ID != ""
+}
+
+func sameStringSet(a, b []string) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for _, value := range a {
+		found := false
+		for _, candidate := range b {
+			if value == candidate {
+				found = true
+				break
+			}
+		}
+		if !found {
+			return false
+		}
+	}
+	return true
+}
+
+func freeStateExperimentHasObservation(turn *experiment.Turn, observationID string) bool {
+	if turn == nil || strings.TrimSpace(observationID) == "" {
+		return false
+	}
+	for _, round := range turn.Rounds {
+		for _, observation := range round.Observations {
+			if observation.ID == observationID {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func (s *Server) emitFreeStateExperimentEvents(events []trajectory.Event) {
+	for _, event := range events {
+		if _, err := s.emitTrajectoryEvent(event.ConversationID, event); err != nil && s.logger != nil {
+			s.logger.Warn("[free-state-experiment] trajectory event rejected type=%s error=%v", event.Type, err)
+		}
+	}
+}
+
+func (s *Server) ensureFreeStateExperimentCheckpoint(ctx context.Context, loop *freeStateReasoningLoop, goalID, runID string) string {
+	if loop == nil {
+		return ""
+	}
+	if checkpoint := firstStringFromMap(loop.LatestProjectChange, "checkpoint_ref", "commit_id"); checkpoint != "" {
+		return checkpoint
+	}
+	if s == nil || s.harness == nil {
+		return ""
+	}
+	response, err := s.harness.Invoke(ctx, harness.InvokeRequest{
+		Command: map[string]any{"cmd": "version_checkpoint", "message": "free-state experiment baseline", "source": "free_state_experiment", "checkpoint_kind": "manual"},
+		Source:  "free_state_experiment", Confirmed: true, GoalID: goalID, RunID: runID,
+	})
+	if err != nil || strings.EqualFold(response.Status, "error") {
+		return ""
+	}
+	return firstStringFromMap(response.ProjectHistory, "commit_id", "checkpoint_ref")
+}
+
+func (s *Server) startFreeStateExperiment(loop *freeStateReasoningLoop, decision agentloop.FreeStateDecision, goalID, runID string) error {
+	if loop == nil || decision.ImprovementProposal == nil {
+		return fmt.Errorf("experiment proposal is missing")
+	}
+	var admission experiment.Admission
+	var err error
+	if decision.ExperimentAdmission != nil {
+		admission = *decision.ExperimentAdmission
+		err = admission.Validate()
+	} else {
+		admission, err = freeStateExperimentAdmission(*loop, decision.ImprovementProposal)
+	}
+	if err != nil {
+		return err
+	}
+	if checkpoint := s.ensureFreeStateExperimentCheckpoint(context.Background(), loop, goalID, runID); checkpoint != "" {
+		admission.CheckpointRef = checkpoint
+	}
+	if err := admission.Validate(); err != nil {
+		return err
+	}
+	turn, err := experiment.NewTurn(experiment.Identity{ConversationID: loop.ConversationID, GoalID: goalID, RunID: runID, TurnID: "turn:" + loop.LoopID}, loop.OriginalIntent, admission, time.Now().UTC())
+	if err != nil {
+		return err
+	}
+	events := turn.StartEvents(time.Now().UTC())
+	views := freeStateExperimentViews(*loop, decision, decision.ImprovementProposal)
+	if len(views) > 0 {
+		roundEvents, roundErr := turn.StartRound(views, admission.CheckpointRef, firstStringFromMap(loop.LatestProjectChange, "project_revision", "revision"), time.Now().UTC())
+		if roundErr != nil {
+			return roundErr
+		}
+		events = append(events, roundEvents...)
+	}
+	loop.Experiment = &turn
+	s.emitFreeStateExperimentEvents(events)
+	if observation, ok := freeStateExperimentObservation(loop.LatestObservation, false); ok && len(turn.Rounds) > 0 {
+		observationEvents, observationErr := loop.Experiment.RecordObservation(observation, false, time.Now().UTC())
+		if observationErr == nil {
+			s.emitFreeStateExperimentEvents(observationEvents)
+		}
+	}
+	return nil
+}
+
+func (s *Server) recordFreeStateExperimentDecision(ctx context.Context, loop *freeStateReasoningLoop, decision agentloop.FreeStateDecision) {
+	if loop == nil || loop.Experiment == nil {
+		return
+	}
+	if decision.ExperimentMateriality != nil {
+		if events, err := loop.Experiment.EvaluateMateriality(*decision.ExperimentMateriality, time.Now().UTC()); err == nil {
+			s.emitFreeStateExperimentEvents(events)
+		} else if s.logger != nil {
+			s.logger.Warn("[free-state-experiment] materiality rejected: %v", err)
+		}
+	}
+	if decision.ExperimentTargetResponse != nil {
+		if events, err := loop.Experiment.RecordTargetResponse(*decision.ExperimentTargetResponse, time.Now().UTC()); err == nil {
+			s.emitFreeStateExperimentEvents(events)
+		} else if s.logger != nil {
+			s.logger.Warn("[free-state-experiment] target response rejected: %v", err)
+		}
+	}
+	if decision.ExperimentRoundDecision != "" {
+		roundDecision := experiment.RoundDecision(decision.ExperimentRoundDecision)
+		if events, err := loop.Experiment.DecideRound(roundDecision, decision.Summary, time.Now().UTC()); err == nil {
+			s.emitFreeStateExperimentEvents(events)
+			if roundDecision == experiment.DecisionRollback {
+				if events, rollbackErr := s.rollbackFreeStateExperiment(ctx, loop); rollbackErr == nil {
+					s.emitFreeStateExperimentEvents(events)
+				} else if s.logger != nil {
+					s.logger.Warn("[free-state-experiment] rollback failed: %v", rollbackErr)
+				}
+			}
+		} else if s.logger != nil {
+			s.logger.Warn("[free-state-experiment] round decision rejected: %v", err)
+		}
+	}
+}
+
+func (s *Server) recordFreeStateExperimentAction(loop *freeStateReasoningLoop, processorType, status string, receipt map[string]any) {
+	if loop == nil || loop.Experiment == nil || len(loop.Experiment.Rounds) == 0 {
+		return
+	}
+	attempt := len(loop.Experiment.Rounds[len(loop.Experiment.Rounds)-1].Interventions) + 1
+	actionID := firstStringFromMap(receipt, "agent_action_id", "action_id", "receipt_id")
+	if actionID == "" {
+		actionID = fmt.Sprintf("free-state-action-%d", loop.Cycle)
+	}
+	technical := experiment.TechnicalApplied
+	if status != "applied" {
+		technical = experiment.TechnicalFailed
+	}
+	intervention := experiment.Intervention{ID: actionID, Attempt: attempt, TechnicalApplication: technical,
+		UserConfirmed:    loop.Experiment.Admission.AuthorityMode == experiment.AuthorityOrdinary,
+		PolicyAuthorized: loop.Experiment.Admission.AuthorityMode == experiment.AuthorityFull,
+		Receipt:          cloneContext(receipt), ProcessorResponse: map[string]any{"processor_type": processorType}, AppliedAt: time.Now().UTC()}
+	if events, err := loop.Experiment.ApplyIntervention(intervention, time.Now().UTC()); err == nil {
+		s.emitFreeStateExperimentEvents(events)
+	} else if s.logger != nil {
+		s.logger.Warn("[free-state-experiment] intervention rejected: %v", err)
+	}
+}
+
+// settleFreeStateExperiment writes the runtime settlement projection through
+// the transient trajectory transport; Project History remains owned by the
+// existing conversation/history layer.
+func (s *Server) settleFreeStateExperiment(loop *freeStateReasoningLoop, outcome experiment.SettlementOutcome, summary string) {
+	if loop == nil || loop.Experiment == nil || loop.Experiment.Status == experiment.StatusSettled || loop.Experiment.Status == experiment.StatusStopped {
+		return
+	}
+	events, err := loop.Experiment.Settle(outcome, summary, time.Now().UTC())
+	if err != nil {
+		if s != nil && s.logger != nil {
+			s.logger.Warn("[free-state-experiment] settlement rejected: %v", err)
+		}
+		return
+	}
+	s.emitFreeStateExperimentEvents(events)
+}
+
+func (s *Server) stopFreeStateExperiment(loop *freeStateReasoningLoop, summary string) {
+	if loop == nil || loop.Experiment == nil || loop.Experiment.Status == experiment.StatusSettled || loop.Experiment.Status == experiment.StatusStopped {
+		return
+	}
+	events, err := loop.Experiment.Stop(summary, time.Now().UTC())
+	if err != nil {
+		if s != nil && s.logger != nil {
+			s.logger.Warn("[free-state-experiment] stop rejected: %v", err)
+		}
+		return
+	}
+	s.emitFreeStateExperimentEvents(events)
+}
+
+// rollbackFreeStateExperiment delegates actual restoration to the existing
+// governed rollback command. The runtime only records its receipt and emits
+// the trajectory projection; it does not implement a second undo mechanism.
+func (s *Server) rollbackFreeStateExperiment(ctx context.Context, loop *freeStateReasoningLoop) ([]trajectory.Event, error) {
+	if s == nil || s.harness == nil || loop == nil || loop.Experiment == nil {
+		return nil, fmt.Errorf("rollback dependencies are unavailable")
+	}
+	round, err := loop.Experiment.CurrentRound()
+	if err != nil {
+		return nil, err
+	}
+	if len(round.Interventions) == 0 {
+		return nil, fmt.Errorf("rollback requires an intervention")
+	}
+	targetID := round.Interventions[len(round.Interventions)-1].ID
+	response, invokeErr := s.harness.Invoke(ctx, harness.InvokeRequest{Command: map[string]any{"cmd": "agent_rollback_action", "target_action_id": targetID}, Context: map[string]any{"free_state_experiment": true}, Source: "free_state_experiment", Confirmed: true, GoalID: loop.GoalID, RunID: loop.RunID})
+	if invokeErr != nil || strings.EqualFold(response.Status, "error") || strings.TrimSpace(response.Error) != "" {
+		if invokeErr != nil {
+			return nil, invokeErr
+		}
+		return nil, fmt.Errorf("rollback action failed: %s", firstNonEmpty(response.Error, response.Status))
+	}
+	receipt := cloneContext(response.Result)
+	if receipt == nil {
+		receipt = map[string]any{}
+	}
+	receipt["agent_action_id"] = response.AgentActionID
+	receipt["status"] = firstNonEmpty(response.Status, "succeeded")
+	return loop.Experiment.MarkRollback(time.Now().UTC(), receipt, []string{targetID})
+}
