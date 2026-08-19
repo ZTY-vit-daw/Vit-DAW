@@ -66,6 +66,7 @@ type freeStateReasoningLoop struct {
 	Actions                       []freeStateActionRecord      `json:"actions,omitempty"`
 	LatestDecision                *agentloop.FreeStateDecision `json:"latest_decision,omitempty"`
 	Experiment                    *experiment.Turn             `json:"experiment,omitempty"`
+	AuditionSessionID             string                       `json:"audition_session_id,omitempty"`
 	RequiresPostActionObservation bool                         `json:"requires_post_action_observation"`
 	LastError                     string                       `json:"last_error,omitempty"`
 	CreatedAt                     time.Time                    `json:"created_at"`

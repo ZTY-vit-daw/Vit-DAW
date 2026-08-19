@@ -20,6 +20,9 @@ public:
 
     juce::String handlePrepare (const juce::DynamicObject& object, const juce::String& rawPayload);
     juce::String handleStatus (const juce::DynamicObject& object, const juce::String& rawPayload);
+    juce::String handleReady (const juce::DynamicObject& object, const juce::String& rawPayload);
+    juce::String handleStale (const juce::DynamicObject& object, const juce::String& rawPayload);
+    juce::String handleFailed (const juce::DynamicObject& object, const juce::String& rawPayload);
 
     juce::String handleSelect (const juce::DynamicObject& object, const juce::String& rawPayload);
     juce::String handlePosition (const juce::DynamicObject& object, const juce::String& rawPayload);
@@ -34,7 +37,7 @@ private:
     static juce::String resultToReply (const char* command, const audition::Result& result);
     static juce::String errorReply (const char* command, const juce::String& code, const juce::String& message);
 
-    void publishReadyEvent (const audition::Result& result) const;
+    void publishStateEvent (const audition::Result& result, const char* fallbackType) const;
 
     audition::StateMachine state;
     PublishAction publish;

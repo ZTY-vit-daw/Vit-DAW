@@ -17,6 +17,7 @@ type AuditionCandidate struct {
 // AuditionSessionRequest creates a session spanning the Active Project Plane
 // and a separate Audition Preview Plane.
 type AuditionSessionRequest struct {
+	ConversationID        string              `json:"conversation_id,omitempty"`
 	SessionID             string              `json:"session_id"`
 	Scope                 string              `json:"scope"`
 	ActiveProjectRef      string              `json:"active_project_ref"`
@@ -30,6 +31,7 @@ func auditionPrepareArgs(request AuditionSessionRequest) (map[string]any, error)
 		return nil, fmt.Errorf("audition.prepare requires exactly two candidates")
 	}
 	return map[string]any{
+		"conversation_id":         request.ConversationID,
 		"session_id":              request.SessionID,
 		"scope":                   request.Scope,
 		"active_project_ref":      request.ActiveProjectRef,
@@ -49,6 +51,12 @@ func (c *Client) AuditionPrepare(ctx context.Context, request AuditionSessionReq
 }
 func (c *Client) AuditionStatus(ctx context.Context, sessionID string) (*VSPCommandResult, error) {
 	return c.SendVSPCommand(ctx, "audition.status", map[string]any{"session_id": sessionID})
+}
+
+func (c *Client) AuditionReady(ctx context.Context, sessionID, candidateID, previewRef string) (*VSPCommandResult, error) {
+	return c.SendVSPCommand(ctx, "audition.ready", map[string]any{
+		"session_id": sessionID, "candidate_id": candidateID, "preview_ref": previewRef,
+	})
 }
 
 func (c *Client) AuditionSelect(ctx context.Context, sessionID, candidateID string) (*VSPCommandResult, error) {

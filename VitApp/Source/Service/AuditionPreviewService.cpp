@@ -69,6 +69,8 @@ juce::String AuditionPreviewService::handlePrepare (const juce::DynamicObject& o
     if (error.isNotEmpty())
         return errorReply ("audition.prepare", "validation_error", error);
 
+    session.conversationId = object.getProperty ("conversation_id").toString().trim().toStdString();
+
     session.scope = requiredString (object, "scope", "audition.prepare", error).toStdString();
     if (error.isNotEmpty())
         return errorReply ("audition.prepare", "validation_error", error);
@@ -109,7 +111,7 @@ juce::String AuditionPreviewService::handlePrepare (const juce::DynamicObject& o
     }
 
     const auto result = state.prepare (std::move (session));
-    publishReadyEvent (result);
+    publishStateEvent (result, "audition.prepare.started");
     return resultToReply ("audition.prepare", result);
 }
 
@@ -125,6 +127,52 @@ juce::String AuditionPreviewService::handleStatus (const juce::DynamicObject& ob
     return resultToReply ("audition.status", state.status (sessionId.toStdString()));
 }
 
+juce::String AuditionPreviewService::handleReady (const juce::DynamicObject& object,
+                                                  const juce::String& rawPayload)
+{
+    juce::ignoreUnused (rawPayload);
+    juce::String error;
+    const auto sessionId = requiredString (object, "session_id", "audition.ready", error);
+    if (error.isNotEmpty())
+        return errorReply ("audition.ready", "validation_error", error);
+    const auto candidateId = requiredString (object, "candidate_id", "audition.ready", error);
+    if (error.isNotEmpty())
+        return errorReply ("audition.ready", "validation_error", error);
+    const auto previewRef = requiredString (object, "preview_ref", "audition.ready", error);
+    if (error.isNotEmpty())
+        return errorReply ("audition.ready", "validation_error", error);
+
+    const auto result = state.markCandidateReady (sessionId.toStdString(), candidateId.toStdString(), previewRef.toStdString());
+    publishStateEvent (result, "audition.ready");
+    return resultToReply ("audition.ready", result);
+}
+
+juce::String AuditionPreviewService::handleStale (const juce::DynamicObject& object,
+                                                  const juce::String& rawPayload)
+{
+    juce::ignoreUnused (rawPayload);
+    juce::String error;
+    const auto sessionId = requiredString (object, "session_id", "audition.stale", error);
+    if (error.isNotEmpty())
+        return errorReply ("audition.stale", "validation_error", error);
+    const auto result = state.markStale (sessionId.toStdString());
+    publishStateEvent (result, "audition.stale");
+    return resultToReply ("audition.stale", result);
+}
+
+juce::String AuditionPreviewService::handleFailed (const juce::DynamicObject& object,
+                                                   const juce::String& rawPayload)
+{
+    juce::ignoreUnused (rawPayload);
+    juce::String error;
+    const auto sessionId = requiredString (object, "session_id", "audition.failed", error);
+    if (error.isNotEmpty())
+        return errorReply ("audition.failed", "validation_error", error);
+    const auto result = state.markFailed (sessionId.toStdString());
+    publishStateEvent (result, "audition.failed");
+    return resultToReply ("audition.failed", result);
+}
+
 juce::String AuditionPreviewService::handleSelect (const juce::DynamicObject& object,
                                                    const juce::String& rawPayload)
 {
@@ -138,7 +186,9 @@ juce::String AuditionPreviewService::handleSelect (const juce::DynamicObject& ob
     if (error.isNotEmpty())
         return errorReply ("audition.select", "validation_error", error);
 
-    return resultToReply ("audition.select", state.select (sessionId.toStdString(), candidateId.toStdString()));
+    const auto result = state.select (sessionId.toStdString(), candidateId.toStdString());
+    publishStateEvent (result, "audition.select.changed");
+    return resultToReply ("audition.select", result);
 }
 
 juce::String AuditionPreviewService::handlePosition (const juce::DynamicObject& object,
@@ -183,7 +233,9 @@ juce::String AuditionPreviewService::handleStop (const juce::DynamicObject& obje
     if (error.isNotEmpty())
         return errorReply ("audition.stop", "validation_error", error);
 
-    return resultToReply ("audition.stop", state.stop (sessionId.toStdString()));
+    const auto result = state.stop (sessionId.toStdString());
+    publishStateEvent (result, "audition.stopped");
+    return resultToReply ("audition.stop", result);
 }
 
 juce::String AuditionPreviewService::requiredString (const juce::DynamicObject& object,
@@ -203,6 +255,7 @@ juce::var AuditionPreviewService::sessionToVar (const audition::Session& session
 {
     auto output = std::make_unique<juce::DynamicObject>();
     output->setProperty ("session_id", juce::String (session.id.c_str()));
+    output->setProperty ("conversation_id", juce::String (session.conversationId.c_str()));
     output->setProperty ("scope", juce::String (session.scope.c_str()));
     output->setProperty ("status", audition::toString (session.status));
     output->setProperty ("state_revision", static_cast<juce::int64> (session.stateRevision));
@@ -268,16 +321,29 @@ juce::String AuditionPreviewService::errorReply (const char* command,
     return resultToReply (command, result);
 }
 
-void AuditionPreviewService::publishReadyEvent (const audition::Result& result) const
+void AuditionPreviewService::publishStateEvent (const audition::Result& result, const char* fallbackType) const
 {
-    if (! publish || ! result.ok || (result.message != "audition.ready" && result.message != "audition.candidate.ready") || ! result.session.has_value())
+    if (! publish || ! result.session.has_value())
         return;
+
+    const auto& session = *result.session;
+    auto type = result.ok ? juce::String (fallbackType) : juce::String ("audition.failed");
+    if (result.ok && result.message == "audition.ready")
+        type = "audition.ready";
+    else if (result.ok && result.message == "audition.candidate.ready")
+        type = "audition.candidate.ready";
 
     auto event = std::make_unique<juce::DynamicObject>();
     event->setProperty ("topic", "audition");
-    event->setProperty ("subtopic", "audition.ready");
-    event->setProperty ("type", "audition.ready");
-    event->setProperty ("session", sessionToVar (*result.session));
+    event->setProperty ("subtopic", type);
+    event->setProperty ("type", type);
+    event->setProperty ("conversation_id", juce::String (session.conversationId.c_str()));
+    event->setProperty ("session", sessionToVar (session));
+    if (! result.ok)
+    {
+        event->setProperty ("code", juce::String (result.code.c_str()));
+        event->setProperty ("message", juce::String (result.message.c_str()));
+    }
     publish (juce::JSON::toString (juce::var (event.release())));
 }
 

@@ -121,3 +121,12 @@ func TestAuditionCommandNamesStayInAuditionPlane(t *testing.T) {
 		}
 	}
 }
+
+func TestAuditionReadyUsesDedicatedCommand(t *testing.T) {
+	commands := []string{"audition.prepare", "audition.status", "audition.ready", "audition.stale", "audition.failed", "audition.select", "audition.position", "audition.stop"}
+	for _, command := range commands {
+		if command == "render" || command == "reload_project" || command == "project.checkout" {
+			t.Fatalf("unsafe alias %s", command)
+		}
+	}
+}

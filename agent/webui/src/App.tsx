@@ -64,6 +64,8 @@ import {
   renameMacroControl,
   respondInteraction,
   saveAgentConfig,
+  selectAudition,
+  stopAudition,
   scanDownloads,
   sendChat,
   setMacroControlValue,
@@ -90,6 +92,9 @@ import {
   transientMessage,
   upsertActivity
 } from "./messageLifecycle";
+import { emptyTrajectoryState, reduceTrajectoryEvents } from "./trajectory";
+import { emptyAuditionState, reduceAuditionEvents } from "./audition";
+import { TrajectoryAuditionPanel } from "./trajectory/TrajectoryAuditionPanel";
 import type {
   AgentConfigResponse,
   AgentEvent,
@@ -202,6 +207,10 @@ function App() {
   const [uiState, setUIState] = useState<AgentUIState | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([initialMessage]);
   const [activities, setActivities] = useState<ChatMessage[]>([]);
+  const [trajectoryState, setTrajectoryState] = useState(emptyTrajectoryState);
+  const [auditionState, setAuditionState] = useState(emptyAuditionState);
+  const [auditionBusySessionID, setAuditionBusySessionID] = useState("");
+  const auditionWaiting = useMemo(() => Object.values(auditionState.sessions).some((session) => session.status === "preparing"), [auditionState]);
   const [conversationID, setConversationID] = useState(initialConversationID);
   const [mode, setMode] = useState<AgentMode>("default");
   const [activeFocus, setActiveFocus] = useState<FocusMode>("dialogue");
@@ -272,6 +281,8 @@ function App() {
 
   useEffect(() => {
     agentEventSeqRef.current = 0;
+    setTrajectoryState(emptyTrajectoryState());
+    setAuditionState(emptyAuditionState());
   }, [conversationID]);
 
   useEffect(() => {
@@ -357,14 +368,16 @@ function App() {
             events,
             (agentEvent) => chatMessageFromAgentEvent(agentEvent, mode)
           ));
-        } else if (!isSending && !respondingActionID) {
+          setTrajectoryState((current) => reduceTrajectoryEvents(current, events));
+          setAuditionState((current) => reduceAuditionEvents(current, events));
+        } else if (!isSending && !respondingActionID && !auditionWaiting) {
           idleTicks += 1;
           if (idleTicks >= 4) {
             setAgentEventPolling(false);
           }
         }
       } catch {
-        if (!cancelled && !isSending && !respondingActionID) {
+        if (!cancelled && !isSending && !respondingActionID && !auditionWaiting) {
           idleTicks += 1;
           if (idleTicks >= 3) {
             setAgentEventPolling(false);
@@ -378,7 +391,7 @@ function App() {
       cancelled = true;
       window.clearInterval(timer);
     };
-  }, [agentEventPolling, conversationID, isSending, mode, respondingActionID]);
+  }, [agentEventPolling, auditionWaiting, conversationID, isSending, mode, respondingActionID]);
 
   useEffect(() => {
     const nextScope = historyScopeKeyFromUIState(uiState);
@@ -949,6 +962,30 @@ function App() {
     }
   };
 
+  const handleAuditionSelect = async (sessionID: string, candidateID: string) => {
+    setAuditionBusySessionID(sessionID);
+    try {
+      await selectAudition(conversationID, sessionID, candidateID);
+      setAgentEventPolling(true);
+    } catch (auditionError) {
+      setError(auditionError instanceof Error ? auditionError.message : "A/B 选择失败");
+    } finally {
+      setAuditionBusySessionID("");
+    }
+  };
+
+  const handleAuditionStop = async (sessionID: string) => {
+    setAuditionBusySessionID(sessionID);
+    try {
+      await stopAudition(conversationID, sessionID);
+      setAgentEventPolling(true);
+    } catch (auditionError) {
+      setError(auditionError instanceof Error ? auditionError.message : "停止试听失败");
+    } finally {
+      setAuditionBusySessionID("");
+    }
+  };
+
   const hiddenFileInput = (
     <input
       ref={fileInputRef}
@@ -1036,6 +1073,14 @@ function App() {
       <div className="conversation-toolbar" aria-label="对话模式">
         <ModeSwitch value={mode} onChange={setMode} />
       </div>
+
+      <TrajectoryAuditionPanel
+        trajectory={trajectoryState}
+        audition={auditionState}
+        busySessionID={auditionBusySessionID}
+        onSelect={handleAuditionSelect}
+        onStop={handleAuditionStop}
+      />
 
       <MessageStream
         messages={messages}

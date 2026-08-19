@@ -48,6 +48,8 @@ struct TransportAnchor
 struct Session
 {
     std::string id;
+    // Optional AgentEvent routing context; it does not alter preview identity.
+    std::string conversationId;
     std::string scope;
 
     // Active Project Plane identity. This is observational context only: the
@@ -87,6 +89,8 @@ public:
     Result markCandidateReady (const std::string& sessionId,
                                const std::string& candidateId,
                                const std::string& previewRef);
+    Result markStale (const std::string& sessionId);
+    Result markFailed (const std::string& sessionId);
     Result select (const std::string& sessionId, const std::string& candidateId);
     Result position (const std::string& sessionId,
                      std::optional<double> positionSeconds,

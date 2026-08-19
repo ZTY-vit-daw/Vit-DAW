@@ -143,6 +143,39 @@ Result StateMachine::markCandidateReady (const std::string& sessionId,
                                : "audition.candidate.ready");
 }
 
+Result StateMachine::markStale (const std::string& sessionId)
+{
+    std::lock_guard lock (mutex);
+    const auto found = sessions.find (sessionId);
+    if (found == sessions.end())
+        return error ("session_not_found", "Unknown audition session");
+
+    auto& session = found->second;
+    session.transport.isPlaying = false;
+    session.status = SessionStatus::stale;
+    for (auto& candidate : session.candidates)
+        candidate.status = CandidateStatus::stale;
+    ++session.stateRevision;
+    return success (session, "audition.stale");
+}
+
+Result StateMachine::markFailed (const std::string& sessionId)
+{
+    std::lock_guard lock (mutex);
+    const auto found = sessions.find (sessionId);
+    if (found == sessions.end())
+        return error ("session_not_found", "Unknown audition session");
+
+    auto& session = found->second;
+    session.transport.isPlaying = false;
+    session.status = SessionStatus::failed;
+    for (auto& candidate : session.candidates)
+        if (candidate.status != CandidateStatus::ready)
+            candidate.status = CandidateStatus::failed;
+    ++session.stateRevision;
+    return success (session, "audition.failed");
+}
+
 Result StateMachine::select (const std::string& sessionId, const std::string& candidateId)
 {
     std::lock_guard lock (mutex);

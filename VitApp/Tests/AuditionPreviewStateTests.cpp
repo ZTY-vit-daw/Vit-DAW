@@ -77,5 +77,24 @@ int main()
     assert (! positionAfterStop.ok);
     assert (positionAfterStop.code == "audition_not_ready");
 
+    auto staleRequest = makeSession();
+    staleRequest.id = "audition-stale";
+    requireOk (machine.prepare (staleRequest));
+    const auto stale = machine.markStale ("audition-stale");
+    requireOk (stale);
+    assert (stale.message == "audition.stale");
+    assert (stale.session->status == vit::audition::SessionStatus::stale);
+    assert (stale.session->activeProjectRef == "project:active");
+    assert (! machine.select ("audition-stale", "candidate-a").ok);
+
+    auto failedRequest = makeSession();
+    failedRequest.id = "audition-failed";
+    requireOk (machine.prepare (failedRequest));
+    const auto failed = machine.markFailed ("audition-failed");
+    requireOk (failed);
+    assert (failed.message == "audition.failed");
+    assert (failed.session->status == vit::audition::SessionStatus::failed);
+    assert (! machine.select ("audition-failed", "candidate-a").ok);
+
     return 0;
 }

@@ -2216,6 +2216,24 @@ void CommandDispatcher::registerBuiltinCommands()
                                                    : makeErrorReply ("Audition preview service unavailable");
     });
 
+    handlers.emplace ("audition.ready", [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return auditionPreviewService != nullptr ? auditionPreviewService->handleReady (object, raw)
+                                                   : makeErrorReply ("Audition preview service unavailable");
+    });
+
+    handlers.emplace ("audition.stale", [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return auditionPreviewService != nullptr ? auditionPreviewService->handleStale (object, raw)
+                                                   : makeErrorReply ("Audition preview service unavailable");
+    });
+
+    handlers.emplace ("audition.failed", [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return auditionPreviewService != nullptr ? auditionPreviewService->handleFailed (object, raw)
+                                                   : makeErrorReply ("Audition preview service unavailable");
+    });
+
     handlers.emplace ("audition.select", [this] (const juce::DynamicObject& object, const juce::String& raw)
     {
         return auditionPreviewService != nullptr ? auditionPreviewService->handleSelect (object, raw)

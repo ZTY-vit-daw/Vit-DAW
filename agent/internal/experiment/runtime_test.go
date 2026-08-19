@@ -112,8 +112,12 @@ func TestInsufficientDoseDoesNotDisproveHypothesis(t *testing.T) {
 	if round.Status != RoundDoseCalibrating || round.Decision == DecisionRollback {
 		t.Fatalf("insufficient dose ended hypothesis=%+v", round)
 	}
-	if _, err := turn.DecideRound(DecisionNextRound, "not enough dose", time.Now().UTC()); err == nil {
-		t.Fatal("next round should require further dose calibration")
+	decisionEvents, err := turn.DecideRound(DecisionNextRound, "not enough dose", time.Now().UTC())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(decisionEvents) != 1 || decisionEvents[0].Type != trajectory.EventRoundDecision || decisionEvents[0].Payload.NextDecision != string(DecisionNextRound) {
+		t.Fatalf("next round decision=%+v", decisionEvents)
 	}
 }
 
@@ -260,5 +264,41 @@ func TestOrdinaryAuthorityRequiresConfirmedIntervention(t *testing.T) {
 	intervention.UserConfirmed = true
 	if _, err := turn.ApplyIntervention(intervention, time.Now().UTC()); err != nil {
 		t.Fatal(err)
+	}
+}
+
+func TestSettlementBindsCurrentCheckpointAndProjectRevision(t *testing.T) {
+	turn, err := NewTurn(Identity{ConversationID: "conversation-settle"}, "settle with revision", testAdmission(AuthorityFull), time.Now().UTC())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err = turn.StartRound([]string{"track.timbre_frequency"}, "checkpoint-final", "revision-final", time.Now().UTC()); err != nil {
+		t.Fatal(err)
+	}
+	events, err := turn.Settle(OutcomeStable, "stable", time.Now().UTC())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(events) != 1 || events[0].Payload.CheckpointRef != "checkpoint-final" || events[0].Payload.ProjectRevision != "revision-final" {
+		t.Fatalf("settlement=%+v", events)
+	}
+}
+
+func TestStoppedTurnRejectsSubsequentActivity(t *testing.T) {
+	turn, err := NewTurn(Identity{ConversationID: "conversation-stopped"}, "stop safely", testAdmission(AuthorityFull), time.Now().UTC())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err = turn.StartRound([]string{"track.timbre_frequency"}, "checkpoint-stop", "revision-stop", time.Now().UTC()); err != nil {
+		t.Fatal(err)
+	}
+	if _, err = turn.Stop("user stopped", time.Now().UTC()); err != nil {
+		t.Fatal(err)
+	}
+	if _, err = turn.StartRound([]string{"track.timbre_frequency"}, "checkpoint-late", "revision-late", time.Now().UTC()); err == nil {
+		t.Fatal("stopped turn accepted a later round")
+	}
+	if _, err = turn.Settle(OutcomeStable, "late settlement", time.Now().UTC()); err == nil {
+		t.Fatal("stopped turn accepted a later settlement")
 	}
 }

@@ -112,3 +112,25 @@
 .trajectory-node-details dd { min-width: 0; margin: 0; color: #4f4f49; overflow-wrap: anywhere; }
 .trajectory-round-evaluation.evaluation-agent_evaluable { border-color: #849d19; background: #ecf4b2; }
 .trajectory-round-status.status-stopped { border-color: #707069; background: #ecece8; }
+
+.trajectory-live-panel {
+  margin: 10px 14px 0;
+  max-height: min(48vh, 560px);
+  overflow: auto;
+  border: 1px solid rgba(113, 133, 166, 0.28);
+  border-radius: 14px;
+  background: rgba(12, 17, 27, 0.94);
+}
+.trajectory-live-panel .trajectory-view { border: 0; border-radius: 0; }
+.audition-session { padding: 12px 14px 14px; border-top: 1px solid rgba(113, 133, 166, 0.22); }
+.audition-session-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.audition-session-head div { display: flex; gap: 10px; align-items: baseline; }
+.audition-session-head span { color: #7f8da8; font-size: 11px; letter-spacing: .12em; }
+.audition-session-head strong { color: #dce7ff; text-transform: uppercase; }
+.audition-session-head button, .audition-candidates button { border: 1px solid #34415a; background: #182033; color: #dce7ff; border-radius: 9px; padding: 8px 12px; }
+.audition-session-head button:disabled, .audition-candidates button:disabled { opacity: .45; cursor: not-allowed; }
+.audition-candidates { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 10px; }
+.audition-candidates button { display: flex; justify-content: space-between; text-align: left; }
+.audition-candidates button.active { border-color: #6ea8ff; box-shadow: 0 0 0 1px #6ea8ff inset; }
+.audition-candidates span { color: #91a0bb; }
+.audition-error { color: #ff9d9d; margin: 10px 0 0; font-size: 12px; }
