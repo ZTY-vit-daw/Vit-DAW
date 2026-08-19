@@ -10,6 +10,8 @@ import (
 	"vit-daw-agent/internal/config"
 	"vit-daw-agent/internal/llm"
 	"vit-daw-agent/internal/processorattestation"
+	"vit-daw-agent/internal/processorintent"
+	"vit-daw-agent/internal/processorregistry"
 )
 
 const pluginControlRequirementSchema = "processor_control_requirement.v1"
@@ -57,7 +59,7 @@ func (s *Server) inferPluginControlRequirement(ctx context.Context, conversation
 	inputJSON, _ := json.Marshal(input)
 	system := `Determine the abstract processor control action needed before local plugin recommendation. You cannot see plugin candidates and must not name a product.
 Return ONLY JSON: {"schema_version":"processor_control_requirement.v1","processor_family":"static_eq|broadband_compressor|limiter|gate_expander|de_esser|transient_shaper|multiband_dynamics","coverage":[{"action":"...","shape":"...","axis":"..."}],"reason":"brief reason"}.
-For static_eq, every item must use action=upsert and exactly one shape from bell, low_shelf, high_shelf, low_cut, high_cut. Include every distinct shape required by the current request, at most three.
+For static_eq, every item must use action=upsert and exactly one shape from bell, low_shelf, high_shelf, low_cut, high_cut. Include every distinct shape required by the current request, at most three. Static EQ items MUST omit the axis key entirely; never put a frequency band or semantic axis in a static_eq coverage item.
 For broadband_compressor, every item must use action=adjust and exactly one axis from activation_intensity, transfer_severity, transient_timing, recovery_motion, detector_focus, output_normalization, parallel_balance, character. Include only axes required by the current request, at most four.
 For limiter, use action=adjust and axes from detector_latency, input_drive, output_ceiling, output_normalization, peak_mode, protection_intensity, recovery_motion.
 For gate_expander, use action=adjust and axes from activation_threshold, attenuation_floor, detector_focus, direction_mode, output_normalization, parallel_balance, state_timing.
@@ -111,6 +113,43 @@ func validatePluginControlRequirement(processorType string, requirement pluginCo
 	return nil
 }
 
+// pluginControlRequirementFromSemanticIntent is the deterministic bridge from
+// model-owned semantic axes to PCA action coverage. It never invents a family
+// or a default axis and is used whenever the free-state intent is available.
+func pluginControlRequirementFromSemanticIntent(value map[string]any, processorType string) (pluginControlRequirement, error) {
+	raw, err := json.Marshal(value)
+	if err != nil {
+		return pluginControlRequirement{}, err
+	}
+	intent, err := processorintent.Decode(string(raw))
+	if err != nil {
+		return pluginControlRequirement{}, err
+	}
+	if intent.Status != processorintent.StatusResolved {
+		return pluginControlRequirement{}, fmt.Errorf("semantic processor intent is not resolved")
+	}
+	wantFamily := processorAttestationFamily(processorType)
+	if wantFamily == "" || intent.Family != wantFamily {
+		return pluginControlRequirement{}, fmt.Errorf("semantic processor intent family does not match %s", processorType)
+	}
+	registry, err := processorregistry.Default()
+	if err != nil {
+		return pluginControlRequirement{}, err
+	}
+	coverage, err := registry.PCARequiredCoverage(intent.Family, intent.RequiredCoverage)
+	if err != nil {
+		return pluginControlRequirement{}, err
+	}
+	requirement := pluginControlRequirement{
+		SchemaVersion: pluginControlRequirementSchema, ProcessorFamily: intent.Family,
+		Coverage: coverage, Reason: "model-owned semantic_processor_intent.v1",
+	}
+	if err := validatePluginControlRequirement(processorType, requirement); err != nil {
+		return pluginControlRequirement{}, err
+	}
+	return requirement, nil
+}
+
 func normalizePluginControlRequirement(requirement pluginControlRequirement) pluginControlRequirement {
 	requirement.ProcessorFamily = strings.ToLower(strings.TrimSpace(requirement.ProcessorFamily))
 	requirement.Reason = strings.TrimSpace(requirement.Reason)
@@ -151,6 +190,113 @@ func attestedPluginRecommendationCandidates(candidates []pluginRecommendationCan
 		return nil, err
 	}
 	return filterAttestedPluginRecommendationCandidates(library, candidates, requirement)
+}
+
+// admittedPluginRecommendationCandidates is the PCA admission boundary for a
+// load candidate. PCA proves the exact promoted binary belongs to the chosen
+// processor family; live inspection and the Typed Executor own every concrete
+// control/action decision after the plug-in is loaded.
+func admittedPluginRecommendationCandidates(candidates []pluginRecommendationCandidate, processorType string) ([]pluginRecommendationCandidate, error) {
+	family := processorAttestationFamily(processorType)
+	if family == "" {
+		return nil, fmt.Errorf("processor family is unavailable")
+	}
+	if processorattestation.IsV2Family(family) {
+		store, err := processorattestation.NewStoreV2("")
+		if err != nil {
+			return nil, err
+		}
+		library, _, err := store.Read()
+		if err != nil {
+			return nil, err
+		}
+		return filterPCAAdmittedPluginRecommendationCandidatesV2(library, candidates, family)
+	}
+	store, err := processorattestation.NewStore("")
+	if err != nil {
+		return nil, err
+	}
+	library, _, err := store.Read()
+	if err != nil {
+		return nil, err
+	}
+	return filterPCAAdmittedPluginRecommendationCandidates(library, candidates, family)
+}
+
+func filterPCAAdmittedPluginRecommendationCandidates(library processorattestation.Library, candidates []pluginRecommendationCandidate, family string) ([]pluginRecommendationCandidate, error) {
+	if family != processorattestation.FamilyStaticEQ && family != processorattestation.FamilyBroadbandCompressor {
+		return nil, fmt.Errorf("unsupported PCA v1 family %q", family)
+	}
+	out := make([]pluginRecommendationCandidate, 0, len(candidates))
+	fingerprints := map[string]string{}
+	for _, candidate := range candidates {
+		if strings.TrimSpace(candidate.Identifier) == "" || strings.TrimSpace(candidate.PluginPath) == "" {
+			continue
+		}
+		subject := processorattestation.Subject{Name: candidate.Name, Manufacturer: candidate.Manufacturer, Format: candidate.Format, Identifier: candidate.Identifier, InstalledPath: candidate.PluginPath}
+		subjectKey, err := processorattestation.BuildSubjectKey(subject)
+		if err != nil {
+			continue
+		}
+		pathKey := strings.ToLower(strings.TrimSpace(candidate.PluginPath))
+		fingerprint := fingerprints[pathKey]
+		if fingerprint == "" {
+			fingerprint, err = processorattestation.FingerprintPath(candidate.PluginPath)
+			if err != nil {
+				continue
+			}
+			fingerprints[pathKey] = fingerprint
+		}
+		result, err := processorattestation.QueryLibraryAdmission(library, subjectKey, fingerprint, family)
+		if err != nil {
+			return nil, err
+		}
+		if result.Eligible {
+			candidate.Key = fmt.Sprintf("plugin_candidate_%d", len(out)+1)
+			candidate.SubjectKey, candidate.BinaryFingerprint = subjectKey, fingerprint
+			candidate.ProcessorFamily, candidate.AttestationID = family, result.Attestation.AttestationID
+			out = append(out, candidate)
+		}
+	}
+	return out, nil
+}
+
+func filterPCAAdmittedPluginRecommendationCandidatesV2(library processorattestation.LibraryV2, candidates []pluginRecommendationCandidate, family string) ([]pluginRecommendationCandidate, error) {
+	if !processorattestation.IsV2Family(family) {
+		return nil, fmt.Errorf("unsupported PCA v2 family %q", family)
+	}
+	out := make([]pluginRecommendationCandidate, 0, len(candidates))
+	fingerprints := map[string]string{}
+	for _, candidate := range candidates {
+		if strings.TrimSpace(candidate.Identifier) == "" || strings.TrimSpace(candidate.PluginPath) == "" {
+			continue
+		}
+		subject := processorattestation.Subject{Name: candidate.Name, Manufacturer: candidate.Manufacturer, Format: candidate.Format, Identifier: candidate.Identifier, InstalledPath: candidate.PluginPath}
+		subjectKey, err := processorattestation.BuildSubjectKey(subject)
+		if err != nil {
+			continue
+		}
+		pathKey := strings.ToLower(strings.TrimSpace(candidate.PluginPath))
+		fingerprint := fingerprints[pathKey]
+		if fingerprint == "" {
+			fingerprint, err = processorattestation.FingerprintPath(candidate.PluginPath)
+			if err != nil {
+				continue
+			}
+			fingerprints[pathKey] = fingerprint
+		}
+		result, err := processorattestation.QueryLibraryAdmissionV2(library, subjectKey, fingerprint, family)
+		if err != nil {
+			return nil, err
+		}
+		if result.Eligible {
+			candidate.Key = fmt.Sprintf("plugin_candidate_%d", len(out)+1)
+			candidate.SubjectKey, candidate.BinaryFingerprint = subjectKey, fingerprint
+			candidate.ProcessorFamily, candidate.AttestationID = family, result.Attestation.AttestationID
+			out = append(out, candidate)
+		}
+	}
+	return out, nil
 }
 
 func filterAttestedPluginRecommendationCandidatesV2(library processorattestation.LibraryV2, candidates []pluginRecommendationCandidate, requirement pluginControlRequirement) ([]pluginRecommendationCandidate, error) {
@@ -272,6 +418,46 @@ func currentAttestedPluginRecommendationCandidate(selected map[string]any, requi
 	}
 	if len(filtered) != 1 {
 		return pluginRecommendationCandidate{}, fmt.Errorf("selected plugin no longer has promoted coverage for the current action")
+	}
+	return filtered[0], nil
+}
+
+func currentPCAAdmittedPluginRecommendationCandidate(selected map[string]any, family string) (pluginRecommendationCandidate, error) {
+	family = strings.ToLower(strings.TrimSpace(family))
+	candidate := pluginRecommendationCandidate{Name: firstStringFromMap(selected, "name"),
+		Manufacturer: firstStringFromMap(selected, "manufacturer"), Format: firstStringFromMap(selected, "format"),
+		Identifier: firstStringFromMap(selected, "identifier"), PluginPath: firstStringFromMap(selected, "plugin_path")}
+	if candidate.Identifier == "" || candidate.PluginPath == "" {
+		return pluginRecommendationCandidate{}, fmt.Errorf("selected plugin exact identity is required")
+	}
+	var filtered []pluginRecommendationCandidate
+	var err error
+	if processorattestation.IsV2Family(family) {
+		store, storeErr := processorattestation.NewStoreV2("")
+		if storeErr != nil {
+			return pluginRecommendationCandidate{}, storeErr
+		}
+		library, _, readErr := store.Read()
+		if readErr != nil {
+			return pluginRecommendationCandidate{}, readErr
+		}
+		filtered, err = filterPCAAdmittedPluginRecommendationCandidatesV2(library, []pluginRecommendationCandidate{candidate}, family)
+	} else {
+		store, storeErr := processorattestation.NewStore("")
+		if storeErr != nil {
+			return pluginRecommendationCandidate{}, storeErr
+		}
+		library, _, readErr := store.Read()
+		if readErr != nil {
+			return pluginRecommendationCandidate{}, readErr
+		}
+		filtered, err = filterPCAAdmittedPluginRecommendationCandidates(library, []pluginRecommendationCandidate{candidate}, family)
+	}
+	if err != nil {
+		return pluginRecommendationCandidate{}, err
+	}
+	if len(filtered) != 1 {
+		return pluginRecommendationCandidate{}, fmt.Errorf("selected plugin no longer has a promoted current-binary PCA admission")
 	}
 	return filtered[0], nil
 }

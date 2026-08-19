@@ -12,6 +12,16 @@ func messageLoopProjectBlackboardStatusRequest(text string) bool {
 	if text == "" {
 		return false
 	}
+	if messageLoopContinuationInstruction(text) {
+		return false
+	}
+	// Open acoustic/mixing requests must reach the model-owned observation
+	// loop.  Phrases such as "overall mix status" contain the same status
+	// vocabulary as a blackboard report, but they describe the subject of the
+	// requested mix observation rather than asking for a project progress dump.
+	if messageLoopNaturalMixRequest(text) && !messageLoopExplicitProjectBlackboardReport(text) {
+		return false
+	}
 	if messageLoopClipFadeGainRequest(text) || messageLoopStripSilenceSuggestRequest(text) {
 		return false
 	}
@@ -38,6 +48,22 @@ func messageLoopProjectBlackboardStatusRequest(text string) bool {
 		"status", "progress", "summary", "report", "ready", "done", "next", "risk",
 	)
 	return hasScope && hasStatus
+}
+
+func messageLoopContinuationInstruction(text string) bool {
+	lower := strings.ToLower(strings.TrimSpace(text))
+	return messageLoopTextHasAny(lower,
+		"继续基于", "继续工作", "继续处理", "续跑", "恢复未完成", "基于最初目标",
+		"continue based", "continue working", "resume", "unfinished continuation",
+	)
+}
+
+func messageLoopExplicitProjectBlackboardReport(text string) bool {
+	lower := strings.ToLower(strings.TrimSpace(text))
+	return messageLoopTextHasAny(lower,
+		"project status", "blackboard status", "status report", "progress report", "stage report",
+		"工程状态汇报", "项目状态汇报", "进展到哪个阶段", "进展到哪一阶段", "当前工程总结", "总结一下当前工程",
+	)
 }
 
 func messageLoopProjectBlackboardAcousticObservationStatus(text string) bool {

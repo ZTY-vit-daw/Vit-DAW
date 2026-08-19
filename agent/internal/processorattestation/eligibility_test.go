@@ -115,6 +115,82 @@ func TestQueryInstalledRevokedRejected(t *testing.T) {
 	}
 }
 
+func TestFamilyAdmissionDoesNotRequireHistoricalActionCoverage(t *testing.T) {
+	root := t.TempDir()
+	t.Setenv("VIT_PROCESSOR_ATTESTATIONS_PATH", filepath.Join(root, "v1.json"))
+	t.Setenv("VIT_PROCESSOR_ATTESTATIONS_V2_PATH", filepath.Join(root, "v2.json"))
+
+	compressorPath := filepath.Join(root, "Compressor.vst3")
+	if err := os.WriteFile(compressorPath, []byte("compressor"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	compressor := Subject{Name: "Compressor", Manufacturer: "Vendor", Format: "VST3", Identifier: "compressor-id", InstalledPath: compressorPath}
+	compressorFingerprint, err := FingerprintPath(compressorPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	v1, err := NewStore("")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := v1.PromoteCurrent(IssueSpec{
+		Subject: compressor, BinaryFingerprint: compressorFingerprint, ProcessorFamily: FamilyBroadbandCompressor,
+		Coverage: []Coverage{{Action: "adjust", Axis: "activation_intensity"}}, Evidence: []EvidenceRef{eligibilityEvidence(30)},
+	}, "test"); err != nil {
+		t.Fatal(err)
+	}
+	key, err := BuildSubjectKey(compressor)
+	if err != nil {
+		t.Fatal(err)
+	}
+	admission, err := QueryCurrentAdmission(key, compressorFingerprint, FamilyBroadbandCompressor)
+	if err != nil || !admission.Eligible || admission.Reason != "promoted_binary_admitted" {
+		t.Fatalf("family admission=%+v err=%v", admission, err)
+	}
+	legacy, err := QueryCurrent(key, compressorFingerprint, EligibilityRequirement{
+		ProcessorFamily:  FamilyBroadbandCompressor,
+		RequiredCoverage: []Coverage{{Action: "adjust", Axis: "transfer_severity"}},
+	})
+	if err != nil || legacy.Eligible || legacy.Reason != "required_action_not_covered" {
+		t.Fatalf("legacy action query=%+v err=%v", legacy, err)
+	}
+
+	limiterPath := filepath.Join(root, "Limiter.vst3")
+	if err := os.WriteFile(limiterPath, []byte("limiter"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	limiter := Subject{Name: "Limiter", Manufacturer: "Vendor", Format: "VST3", Identifier: "limiter-id", InstalledPath: limiterPath}
+	limiterFingerprint, err := FingerprintPath(limiterPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	v2, err := NewStoreV2("")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := v2.PromoteCurrent(IssueSpecV2{
+		Subject: limiter, BinaryFingerprint: limiterFingerprint, ProcessorFamily: FamilyLimiter,
+		Coverage: []Coverage{{Action: "adjust", Axis: "output_ceiling"}}, Evidence: []EvidenceRef{eligibilityEvidence(31)},
+	}, "test"); err != nil {
+		t.Fatal(err)
+	}
+	limiterKey, err := BuildSubjectKey(limiter)
+	if err != nil {
+		t.Fatal(err)
+	}
+	v2Admission, err := QueryCurrentAdmission(limiterKey, limiterFingerprint, FamilyLimiter)
+	if err != nil || !v2Admission.Eligible || v2Admission.Reason != "promoted_binary_admitted" {
+		t.Fatalf("v2 family admission=%+v err=%v", v2Admission, err)
+	}
+	v2Legacy, err := QueryCurrent(limiterKey, limiterFingerprint, EligibilityRequirement{
+		ProcessorFamily:  FamilyLimiter,
+		RequiredCoverage: []Coverage{{Action: "adjust", Axis: "peak_mode"}},
+	})
+	if err != nil || v2Legacy.Eligible || v2Legacy.Reason != "required_action_not_covered" {
+		t.Fatalf("v2 legacy action query=%+v err=%v", v2Legacy, err)
+	}
+}
+
 func eligibilityEvidence(index int) EvidenceRef {
 	return EvidenceRef{ReceiptID: "receipt-" + string(rune('a'+index)), Kind: "test", SHA256: "sha256:" + strings.Repeat("a", 64), ObservedAt: time.Date(2026, 8, 8, 0, 0, 0, 0, time.UTC)}
 }

@@ -11,6 +11,7 @@ import (
 	"vit-daw-agent/internal/capabilityadapters"
 	"vit-daw-agent/internal/capabilitycontext"
 	"vit-daw-agent/internal/config"
+	"vit-daw-agent/internal/dynamiccontrol"
 	"vit-daw-agent/internal/executionports"
 	"vit-daw-agent/internal/frequencycleanup"
 	"vit-daw-agent/internal/harness"
@@ -121,7 +122,7 @@ func (s *Server) handleFrequencyCleanupRuntime(ctx context.Context, conversation
 		return c1ReadinessBlockedResponse(conversationID, goal, sessionID, planned.Pack, reason)
 	}
 	if c1MutationRequested(req.Message, req.Context) {
-		return s.buildC1ActionableResponse(ctx, conversationID, req, goal, sessionID, planned.Pack.Model(), timing)
+		return s.buildC1ActionableResponse(ctx, conversationID, req, goal, sessionID, planned.Pack.Model(), state.Revision, timing)
 	}
 	cancelled, _ := s.orchestrationRuntime.CancelPlanningSession(sessionID)
 	response = ChatResponse{ConversationID: conversationID, GoalID: goal.GoalID, RunID: goal.RunID, Reply: fmt.Sprintf("C1 analyzed all %d project tracks. This was read-only; no Proposal or mutation was created.", planned.Pack.AnalyzedTrackCount), Workflow: "capability_runtime_v1", GoalStatus: string(agentruntime.StatusCompleted), WorkflowData: map[string]any{"session_id": sessionID, "capability_id": frequencyCleanupCapabilityID, "canary_stage": "analysis", "coverage": planned.Pack.Model().Coverage, "diagnosis_candidates": planned.Pack.Candidates, "readiness": planned.Pack.Readiness, "context_budget": capabilityCanaryContextBudget(envelope), "mutation_performed": false}}
@@ -189,7 +190,7 @@ func c1ReadinessBlockedResponse(conversationID string, goal agentruntime.Goal, s
 	return ChatResponse{ConversationID: conversationID, GoalID: goal.GoalID, RunID: goal.RunID, Reply: "C1 readiness is blocked; no plug-in was loaded and no parameter was changed: " + reason, Workflow: "capability_runtime_v1", GoalStatus: string(agentruntime.StatusWaitingContinue), WorkflowData: map[string]any{"session_id": sessionID, "capability_id": frequencyCleanupCapabilityID, "canary_stage": "readiness_blocked", "diagnosis_readiness": pack.Readiness.Diagnosis, "mutation_readiness": pack.Readiness.Mutation, "coverage": pack.Model().Coverage, "mutation_performed": false}}
 }
 
-func (s *Server) buildC1ActionableResponse(ctx context.Context, conversationID string, req ChatRequest, goal agentruntime.Goal, sessionID string, model frequencycleanup.Model, timing map[string]any) (response ChatResponse) {
+func (s *Server) buildC1ActionableResponse(ctx context.Context, conversationID string, req ChatRequest, goal agentruntime.Goal, sessionID string, model frequencycleanup.Model, projectRevision int64, timing map[string]any) (response ChatResponse) {
 	if timing == nil {
 		timing = map[string]any{}
 	}
@@ -208,6 +209,7 @@ func (s *Server) buildC1ActionableResponse(ctx context.Context, conversationID s
 	if len(staticItems) == 0 {
 		cancelled, _ := s.orchestrationRuntime.CancelPlanningSession(sessionID)
 		response := ChatResponse{ConversationID: conversationID, GoalID: goal.GoalID, RunID: goal.RunID, Reply: "C1 classified every project track and found no justified static-EQ action. Deferred and no-change items were reported without mutation.", Workflow: "capability_runtime_v1", GoalStatus: string(agentruntime.StatusCompleted), WorkflowData: map[string]any{"session_id": sessionID, "capability_id": frequencyCleanupCapabilityID, "canary_stage": "no_static_eq_required", "coverage": model.Coverage, "treatment_plan": treatment, "mutation_performed": false}}
+		attachC1DynamicReferral(&response, treatment, projectRevision)
 		attachMixboardDecisionProjection(&response, cancelled)
 		return response
 	}
@@ -215,10 +217,14 @@ func (s *Server) buildC1ActionableResponse(ctx context.Context, conversationID s
 	resolution := s.resolveC1EQTargets(ctx, staticItems, req.Context, nil)
 	timing["target_resolution_ms"] = time.Since(resolutionStarted).Milliseconds()
 	if len(resolution.Ambiguous) > 0 {
-		return c1PluginSelectionRequiredResponse(conversationID, goal, sessionID, treatment, resolution)
+		response = c1PluginSelectionRequiredResponse(conversationID, goal, sessionID, treatment, resolution)
+		attachC1DynamicReferral(&response, treatment, projectRevision)
+		return response
 	}
 	if len(resolution.Missing) > 0 {
-		return s.createC1LoadProposal(ctx, conversationID, goal, sessionID, treatment, model, resolution.Missing, cfg)
+		response = s.createC1LoadProposal(ctx, conversationID, goal, sessionID, treatment, model, resolution.Missing, cfg)
+		attachC1DynamicReferral(&response, treatment, projectRevision)
+		return response
 	}
 	state, stateErr := s.kernel.VSPStateSnapshot(ctx, "project.timeline")
 	if stateErr != nil || state == nil || !state.OK() {
@@ -234,8 +240,44 @@ func (s *Server) buildC1ActionableResponse(ctx context.Context, conversationID s
 	}
 	proposalStarted := time.Now()
 	response = s.createC1EQProposal(ctx, conversationID, goal, sessionID, treatment, model, baseline, resolution.Resolved, cfg)
+	attachC1DynamicReferral(&response, treatment, projectRevision)
 	timing["proposal_ms"] = time.Since(proposalStarted).Milliseconds()
 	return response
+}
+
+func c1DynamicControlReferral(plan frequencycleanup.TreatmentPlan, projectRevision int64) *dynamiccontrol.Referral {
+	if projectRevision <= 0 {
+		return nil
+	}
+	referral := &dynamiccontrol.Referral{SchemaVersion: dynamiccontrol.ReferralSchema, SourceCapabilityID: frequencyCleanupCapabilityID, SourcePlanID: plan.PlanID, ProjectRevision: strconv.FormatInt(projectRevision, 10)}
+	for _, item := range plan.Items {
+		if item.Classification != frequencycleanup.TreatmentDeferredDynamic {
+			continue
+		}
+		referral.Targets = append(referral.Targets, dynamiccontrol.ReferralTarget{TrackID: item.TrackID, Rationale: item.Rationale, Constraints: item.Constraints, EvidenceRefs: item.EvidenceRefs})
+	}
+	if len(referral.Targets) == 0 {
+		return nil
+	}
+	referral.EvidenceRefs = append(referral.EvidenceRefs, plan.EvidenceRefs...)
+	if err := referral.Validate(); err != nil {
+		return nil
+	}
+	return referral
+}
+
+func attachC1DynamicReferral(response *ChatResponse, plan frequencycleanup.TreatmentPlan, projectRevision int64) {
+	if response == nil {
+		return
+	}
+	referral := c1DynamicControlReferral(plan, projectRevision)
+	if referral == nil {
+		return
+	}
+	if response.WorkflowData == nil {
+		response.WorkflowData = map[string]any{}
+	}
+	response.WorkflowData["c2_referral"] = referral
 }
 
 func (s *Server) resolveC1EQTargets(ctx context.Context, items []frequencycleanup.TreatmentItem, requestContext map[string]any, preferred map[string]string) c1TargetResolution {

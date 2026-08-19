@@ -15,7 +15,13 @@ func TestProjectFrequencyRelationshipProjectionContract(t *testing.T) {
 	for _, track := range rowsFromAny(input.ProjectPackage["tracks"]) {
 		band := mapValue(track["band_energy"])
 		band["source"] = "kernel_l3_offline_analyzer"
-		band["coverage_ratio"] = 1.0
+		band["tap_point"] = "source_file_pre_fx"
+		band["source_revision"] = "source-rev"
+		band["clip_revision"] = "clip-rev"
+		band["sample_rate"] = 44100.0
+		band["channel_count"] = 2
+		band["coverage_seconds"] = 12.0
+		band["analyzer_version"] = "fixture-v1"
 	}
 
 	proj := Build(input)
@@ -61,9 +67,11 @@ func TestFrequencyRelationshipDecisionTracksAreNeverUITopNTruncated(t *testing.T
 	for i := 1; i <= 7; i++ {
 		tracks = append(tracks, map[string]any{
 			"track_id": "track_" + text(i), "name": "Track " + text(i), "active_state": "active",
-			"band_energy": map[string]any{"status": "ready", "source": "kernel_l3_offline_analyzer", "bands": map[string]any{
-				"bass": map[string]any{"unit_energy": 0.40 - float64(i)*0.01, "energy_db": -8.0 - float64(i)},
-			}},
+			"band_energy": map[string]any{"status": "ready", "source": "kernel_l3_offline_analyzer", "tap_point": "source_file_pre_fx",
+				"source_revision": "source-rev", "clip_revision": "clip-rev", "sample_rate": 48000.0, "channel_count": 2,
+				"coverage_seconds": 12.0, "analyzer_version": "fixture-v1", "bands": map[string]any{
+					"bass": map[string]any{"unit_energy": 0.40 - float64(i)*0.01, "energy_db": -8.0 - float64(i)},
+				}},
 		})
 	}
 	input.ProjectPackage["tracks"] = tracks
@@ -71,6 +79,7 @@ func TestFrequencyRelationshipDecisionTracksAreNeverUITopNTruncated(t *testing.T
 	if relation == nil {
 		t.Fatal("frequency relationship missing")
 	}
+
 	var bass map[string]any
 	for _, region := range relation.FrequencyRegions {
 		if text(region["region"]) == "bass" {
@@ -89,18 +98,18 @@ func TestFrequencyRelationshipDecisionTracksAreNeverUITopNTruncated(t *testing.T
 func TestFrequencyRelationshipFreshnessAndTapMismatchAreNotPromoted(t *testing.T) {
 	input := testInput(map[string]any{"mom_intent": IntentProjectFrequencyObservation})
 	tracks := rowsFromAny(input.ProjectPackage["tracks"])
-	tracks[0]["frequency_evidence"] = map[string]any{"status": "ready", "tap_point": "track_post_fader", "bands": map[string]any{"bass": map[string]any{"unit_energy": .3}}}
-	tracks[1]["frequency_evidence"] = map[string]any{"status": "ready", "tap_point": "source_file_pre_fx", "bands": map[string]any{"bass": map[string]any{"unit_energy": .29}}}
+	tracks[0]["frequency_evidence"] = frequencyTestEvidence("ready", "track_post_fader", "source-rev", 12.0, map[string]any{"bass": map[string]any{"unit_energy": .3}})
+	tracks[1]["frequency_evidence"] = frequencyTestEvidence("ready", "source_file_pre_fx", "source-rev", 12.0, map[string]any{"bass": map[string]any{"unit_energy": .29}})
 	input.ProjectPackage["tracks"] = []any{tracks[0], tracks[1]}
 	relation := Build(input).FrequencyRelationship
 	if relation == nil || relation.Status != StatusSuspect || relation.TapPoint != "mixed" {
 		t.Fatalf("mixed tap was promoted: %#v", relation)
 	}
-	if boolValue(relation.Coverage["supports_same_tap_compare"]) {
-		t.Fatalf("mixed tap must not support compare: %#v", relation.Coverage)
+	if boolValue(relation.Coverage["supports_same_tap_compare"]) || int(number(relation.Coverage["conflict_candidate_count"])) != 0 || len(relation.FrequencyRegions) != 0 {
+		t.Fatalf("mixed tap must not support cross-track relations: %#v", relation.Coverage)
 	}
 
-	tracks[1]["frequency_evidence"] = map[string]any{"status": "stale", "tap_point": "track_post_fader"}
+	tracks[1]["frequency_evidence"] = frequencyTestEvidence("stale", "track_post_fader", "source-rev", 12.0, map[string]any{"bass": map[string]any{"unit_energy": .29}})
 	input.ProjectPackage["tracks"] = []any{tracks[0], tracks[1]}
 	relation = Build(input).FrequencyRelationship
 	if relation == nil || relation.Status != StatusPartial || int(number(relation.Coverage["missing_track_count"])) != 1 {
@@ -132,5 +141,68 @@ func TestLegacyMOMIntentDoesNotMaterializeFrequencyRelationship(t *testing.T) {
 	data, _ := json.Marshal(ContextProjection(proj))
 	if strings.Contains(string(data), `"frequency_relationship"`) {
 		t.Fatalf("legacy context changed shape: %s", data)
+	}
+}
+
+func frequencyTestEvidence(status, tapPoint, sourceRevision string, coverageSeconds float64, bands map[string]any) map[string]any {
+	return map[string]any{
+		"status": status, "tap_point": tapPoint, "source_revision": sourceRevision, "clip_revision": "clip-rev",
+		"sample_rate": 44100.0, "channel_count": 2, "coverage_seconds": coverageSeconds,
+		"analyzer_version": "fixture-v1", "bands": bands,
+	}
+}
+
+func TestFrequencyRelationshipAllowsDifferentMaterialRevisionAcrossTracks(t *testing.T) {
+	// Material identity revisions (source/clip/render) are per-track facts
+	// that differ between tracks by design. Cross-track frequency comparison
+	// must not require them to be uniform; only the measurement conditions
+	// (tap, time window, sample format, analyzer) must match. Without this,
+	// every real multi-track project would be permanently incomparable.
+	input := testInput(map[string]any{"mom_intent": IntentProjectFrequencyObservation})
+	tracks := rowsFromAny(input.ProjectPackage["tracks"])
+	tracks[0]["band_energy"] = frequencyTestEvidence("ready", "source_file_pre_fx", "source-rev-1", 12.0, map[string]any{"bass": map[string]any{"unit_energy": .3}})
+	tracks[1]["band_energy"] = frequencyTestEvidence("ready", "source_file_pre_fx", "source-rev-2", 12.0, map[string]any{"bass": map[string]any{"unit_energy": .29}})
+	input.ProjectPackage["tracks"] = []any{tracks[0], tracks[1]}
+	relation := Build(input).FrequencyRelationship
+	if relation == nil || relation.Status != StatusReady || len(relation.ConflictCandidates) == 0 || len(relation.FrequencyRegions) == 0 {
+		t.Fatalf("different material revision blocked cross-track comparison: %#v", relation)
+	}
+	if containsString(relation.Limitations, "measurement_condition_mismatch_fields=source_revision") ||
+		containsString(relation.Limitations, "measurement_conditions_not_comparable_cross_track_relations_withheld") {
+		t.Fatalf("material revision leaked into comparability disclosure: %#v", relation.Limitations)
+	}
+}
+
+func TestFrequencyRelationshipStillRequiresMaterialRevisionPresent(t *testing.T) {
+	// The material revision must exist per track (evidence completeness), even
+	// though it no longer has to be uniform across tracks.
+	input := testInput(map[string]any{"mom_intent": IntentProjectFrequencyObservation})
+	tracks := rowsFromAny(input.ProjectPackage["tracks"])
+	evidence := frequencyTestEvidence("ready", "source_file_pre_fx", "source-rev", 12.0, map[string]any{"bass": map[string]any{"unit_energy": .3}})
+	delete(evidence, "source_revision")
+	tracks[0]["band_energy"] = evidence
+	tracks[1]["band_energy"] = frequencyTestEvidence("ready", "source_file_pre_fx", "source-rev", 12.0, map[string]any{"bass": map[string]any{"unit_energy": .29}})
+	input.ProjectPackage["tracks"] = []any{tracks[0], tracks[1]}
+	relation := Build(input).FrequencyRelationship
+	if relation == nil || relation.Status != StatusSuspect {
+		t.Fatalf("missing source revision was treated as comparable: %#v", relation)
+	}
+	if !containsString(relation.Limitations, "measurement_condition_fields_incomplete") {
+		t.Fatalf("missing revision was not disclosed as incomplete: %#v", relation.Limitations)
+	}
+}
+
+func TestFrequencyRelationshipRejectsDifferentTimeRange(t *testing.T) {
+	input := testInput(map[string]any{"mom_intent": IntentProjectFrequencyObservation})
+	tracks := rowsFromAny(input.ProjectPackage["tracks"])
+	tracks[0]["band_energy"] = frequencyTestEvidence("ready", "source_file_pre_fx", "source-rev", 20.0, map[string]any{"bass": map[string]any{"unit_energy": .3}})
+	tracks[1]["band_energy"] = frequencyTestEvidence("ready", "source_file_pre_fx", "source-rev", 10.0, map[string]any{"bass": map[string]any{"unit_energy": .29}})
+	input.ProjectPackage["tracks"] = []any{tracks[0], tracks[1]}
+	relation := Build(input).FrequencyRelationship
+	if relation == nil || relation.Status != StatusSuspect || len(relation.ConflictCandidates) != 0 {
+		t.Fatalf("different time range was treated as comparable: %#v", relation)
+	}
+	if !containsString(relation.Limitations, "measurement_condition_mismatch_fields=end_seconds") {
+		t.Fatalf("time range mismatch was not disclosed: %#v", relation.Limitations)
 	}
 }

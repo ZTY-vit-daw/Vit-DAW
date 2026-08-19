@@ -196,7 +196,7 @@ func TestPluginGrabberWorkflowExecutorBridgesLimiterInspectAndApply(t *testing.T
 		ID: "apply", Tool: pluginGrabberApplyLimiterTool,
 		Args: map[string]any{"track_id": "track-1", "plugin_id": "limit-1", "atomic": true,
 			"controls": []map[string]any{{"control_ref": ref, "value_db": -15.0}}},
-	}})
+	}, Confirmed: true})
 	if err != nil || apply.Status != "ok" || firstNonEmptyText(apply.Result, "status") != "exact" {
 		t.Fatalf("apply=%#v err=%v", apply, err)
 	}

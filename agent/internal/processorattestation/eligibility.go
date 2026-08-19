@@ -62,6 +62,28 @@ func QueryInstalled(subject InstalledSubject, requirement EligibilityRequirement
 	return result, nil
 }
 
+// QueryInstalledAdmission checks whether one exact installed binary is
+// promoted for a processor family. It is intentionally independent of the
+// action coverage retained in the attestation evidence.
+func QueryInstalledAdmission(subject InstalledSubject, processorFamily string) (EligibilityResult, error) {
+	subject.Subject = normalizeSubject(subject.Subject)
+	if subject.Identifier == "" {
+		return EligibilityResult{EffectiveStatus: "missing", Reason: "exact_identifier_required"}, nil
+	}
+	if subject.InstalledPath == "" {
+		return EligibilityResult{EffectiveStatus: "missing", Reason: "installed_binary_path_required"}, nil
+	}
+	key, err := BuildSubjectKey(subject.Subject)
+	if err != nil {
+		return EligibilityResult{EffectiveStatus: "missing", Reason: "stable_identity_unavailable"}, nil
+	}
+	fingerprint, err := FingerprintPath(subject.InstalledPath)
+	if err != nil {
+		return EligibilityResult{SubjectKey: key, EffectiveStatus: "stale", Reason: "binary_fingerprint_unavailable"}, nil
+	}
+	return QueryCurrentAdmission(key, fingerprint, processorFamily)
+}
+
 // QueryCurrent dispatches to the PCA v1 or v2 store using one normalized
 // requirement. Unsupported families fail closed.
 func QueryCurrent(subjectKey, fingerprint string, requirement EligibilityRequirement) (EligibilityResult, error) {
@@ -99,6 +121,46 @@ func QueryCurrent(subjectKey, fingerprint string, requirement EligibilityRequire
 			return EligibilityResult{}, err
 		}
 		return EligibilityResult{Eligible: result.Eligible, EffectiveStatus: result.EffectiveStatus, Reason: result.Reason, SubjectKey: subjectKey, BinaryFingerprint: fingerprint, FingerprintMatch: result.FingerprintMatch, AttestationID: result.Attestation.AttestationID, MissingCoverage: result.MissingCoverage}, nil
+	}
+	return EligibilityResult{EffectiveStatus: "unsupported", Reason: fmt.Sprintf("unsupported_processor_family:%s", family)}, nil
+}
+
+// QueryCurrentAdmission is the authoritative family-level admission query
+// used before loading and after live controller discovery.
+func QueryCurrentAdmission(subjectKey, fingerprint, processorFamily string) (EligibilityResult, error) {
+	family := strings.ToLower(strings.TrimSpace(processorFamily))
+	if subjectKey == "" || !validSHA256(strings.ToLower(strings.TrimSpace(fingerprint))) {
+		return EligibilityResult{EffectiveStatus: "missing", Reason: "invalid_current_binary_identity"}, nil
+	}
+	if family == FamilyStaticEQ || family == FamilyBroadbandCompressor {
+		store, err := NewStore("")
+		if err != nil {
+			return EligibilityResult{}, err
+		}
+		library, _, err := store.Read()
+		if err != nil {
+			return EligibilityResult{}, err
+		}
+		result, err := QueryLibraryAdmission(library, subjectKey, fingerprint, family)
+		if err != nil {
+			return EligibilityResult{}, err
+		}
+		return EligibilityResult{Eligible: result.Eligible, EffectiveStatus: result.EffectiveStatus, Reason: result.Reason, SubjectKey: subjectKey, BinaryFingerprint: fingerprint, FingerprintMatch: result.FingerprintMatch, AttestationID: result.Attestation.AttestationID}, nil
+	}
+	if IsV2Family(family) {
+		store, err := NewStoreV2("")
+		if err != nil {
+			return EligibilityResult{}, err
+		}
+		library, _, err := store.Read()
+		if err != nil {
+			return EligibilityResult{}, err
+		}
+		result, err := QueryLibraryAdmissionV2(library, subjectKey, fingerprint, family)
+		if err != nil {
+			return EligibilityResult{}, err
+		}
+		return EligibilityResult{Eligible: result.Eligible, EffectiveStatus: result.EffectiveStatus, Reason: result.Reason, SubjectKey: subjectKey, BinaryFingerprint: fingerprint, FingerprintMatch: result.FingerprintMatch, AttestationID: result.Attestation.AttestationID}, nil
 	}
 	return EligibilityResult{EffectiveStatus: "unsupported", Reason: fmt.Sprintf("unsupported_processor_family:%s", family)}, nil
 }

@@ -52,6 +52,14 @@ func TestCompressorIntentPlannerSeesIdentityCardBeforeCOM(t *testing.T) {
 	if !strings.Contains(body, "processor_identity_card") || !strings.Contains(body, "CLA-2A Stereo") || strings.Contains(body, "com_observation") {
 		t.Fatalf("phase-1 disclosure order is wrong: %s", body)
 	}
+	for _, forbidden := range []string{"product-name knowledge", "product-name memory", "product name prior", "product-name prior"} {
+		if strings.Contains(strings.ToLower(body), forbidden) {
+			t.Fatalf("compressor intent prompt retained product identity prior %q: %s", forbidden, body)
+		}
+	}
+	if !strings.Contains(body, "preferred_mode") || !strings.Contains(body, "fallback_mode") || !strings.Contains(body, "dimensions") {
+		t.Fatalf("model-owned compressor evidence selection protocol was removed: %s", body)
+	}
 }
 
 func TestCompressorControlPlannerUsesProgressiveBriefAndNoExecutionIdentity(t *testing.T) {
@@ -68,6 +76,11 @@ func TestCompressorControlPlannerUsesProgressiveBriefAndNoExecutionIdentity(t *t
 		t.Fatalf("plan=%+v err=%v", plan, err)
 	}
 	body := (*bodies)[0]
+	for _, forbidden := range []string{"product-name knowledge", "product-name memory", "product name prior", "product-name prior"} {
+		if strings.Contains(strings.ToLower(body), forbidden) {
+			t.Fatalf("compressor control prompt retained product identity prior %q: %s", forbidden, body)
+		}
+	}
 	for _, forbidden := range []string{"\\\"control_ref\\\"", "\\\"param_id\\\"", "\\\"current_normalized\\\""} {
 		if strings.Contains(body, forbidden) {
 			t.Fatalf("planner disclosure leaked %q: %s", forbidden, body)

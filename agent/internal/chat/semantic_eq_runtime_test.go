@@ -31,6 +31,14 @@ func semanticEQTestAction(shape string, frequency, gain float64) semanticeffect.
 	}
 }
 
+func TestSemanticEQPCAInputDoesNotInventMissingAction(t *testing.T) {
+	action := semanticEQTestAction("bell", 3400, -3)
+	action.EQPlan.Atoms[0].Action = ""
+	if _, err := semanticEQPCAInputFromAction(action); err == nil || !strings.Contains(err.Error(), "missing its action") {
+		t.Fatalf("missing action was converted into PCA coverage: %v", err)
+	}
+}
+
 func TestSemanticEQReadOnlyMaterializationUsesExistingPlannerWithoutWriting(t *testing.T) {
 	fake := newFakeEQKernel()
 	server := New(nil, shadow.New(nil), nil)
@@ -63,6 +71,7 @@ func TestSemanticEQSelectedTargetChecksTrackAndPluginTrackIndependently(t *testi
 
 func TestEnsureOrdinaryAgentSemanticEQRepairsUnexecutableShape(t *testing.T) {
 	repairedAction := semanticEQTestAction("bell", 8000, 1.0)
+	repairedAction.Evidence = semanticeffect.EvidenceDecision{Choice: "observe", Basis: "observation", Reason: "CCB 观察支持该计划", ObservationID: "obs-eq-test"}
 	repairedJSON, err := json.Marshal(repairedAction)
 	if err != nil {
 		t.Fatal(err)
@@ -71,9 +80,11 @@ func TestEnsureOrdinaryAgentSemanticEQRepairsUnexecutableShape(t *testing.T) {
 	server.eqKernelOverride = newFakeEQKernel()
 	requestContext := server.agentLoopContextWithGenericEQTopology(context.Background(), "提高一些高频", map[string]any{
 		"selected_track_id": "track-1", "selected_plugin_track_id": "track-1", "selected_plugin_id": "eq-1",
+		"semantic_eq_topology_authorized": true,
 	})
 	candidate := semanticEQTestAction("high_shelf", 8000, 1.0)
-	planned, err := server.ensureOrdinaryAgentSemanticEQExecutable(context.Background(), "conversation-1", "提高一些高频", requestContext, nil, cfg, &candidate)
+	candidate.Evidence = repairedAction.Evidence
+	planned, err := server.ensureOrdinaryAgentSemanticEQExecutable(context.Background(), "conversation-1", "提高一些高频", requestContext, semanticEQPlannerTestObservation(), cfg, &candidate)
 	if err != nil {
 		t.Fatalf("repair failed: %v", err)
 	}
@@ -91,6 +102,7 @@ func TestAgentLoopPrefetchesCompactGenericEQTopologyWithoutWriting(t *testing.T)
 	server.eqKernelOverride = fake
 	contextWithTopology := server.agentLoopContextWithGenericEQTopology(context.Background(), "提高一些高频", map[string]any{
 		"selected_track_id": "track-1", "selected_plugin_track_id": "track-1", "selected_plugin_id": "eq-1",
+		"semantic_eq_topology_authorized": true,
 	})
 	topology := firstMapFromAny(contextWithTopology["generic_eq_topology"])
 	if firstStringFromMap(topology, "topology_generation") == "" || len(mapRowsValue(topology["sections"])) == 0 {

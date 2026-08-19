@@ -20,7 +20,8 @@ inspect-only and does not produce controller references.
 ## Coverage Contract
 
 Coverage is action-only. Every v2 item uses `action=adjust`, has no `shape`,
-and contains one semantic `axis`. Axes are evidence-backed capabilities, not
+and contains one semantic `axis`. These axes describe the reversible tests
+recorded as certification evidence, not request-time load permissions,
 parameter names, mappings, profiles, or execution plans.
 
 | Family | v2 axes |
@@ -51,8 +52,9 @@ certification runner:
 8. zero natural-language or LLM calls.
 
 Failed, unresolved, adjacent, or read-only surfaces are not admitted. A badge
-proves only the listed family and action axes for the exact current binary;
-live topology inspection remains the execution authority after load.
+admits one exact current binary to the processor family after strong evidence;
+its recorded axes remain audit and regression evidence. Live topology inspection
+and the Typed Executor remain the authority for a concrete action after load.
 
 ## Storage and CLI
 
@@ -67,6 +69,7 @@ The deterministic CLI surface is:
 - `pcactl list-v2`
 - `pcactl query-v2`
 
-No recommendation or semantic planner may treat a v2 candidate as eligible
-unless the current binary fingerprint and every required action axis query as
-promoted and covered.
+No recommendation or semantic planner may treat a v2 candidate as loadable
+unless its exact identity, current binary fingerprint, processor family, and
+promoted status pass PCA admission. The later live typed surface determines
+whether the requested action exists and can be applied reversibly.

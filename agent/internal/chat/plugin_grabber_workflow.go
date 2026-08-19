@@ -147,6 +147,25 @@ func (s *Server) runPluginGrabberLoadWorkflow(ctx context.Context, conversationI
 			"intent":            target.Intent,
 		},
 	}
+	// Preserve the PCA admission proof as an explicit plan artifact.  The
+	// loaded rack instance gets a numeric ID, but that ID is not a PCA subject
+	// identity and must never replace the pre-admission receipt.
+	if selected := firstMapFromAny(requestContext["semantic_plugin_recommendation_candidate"]); len(selected) > 0 {
+		plan.WorkflowData["selected_candidate"] = cloneContext(selected)
+		if firstStringFromMap(selected, "processor_family") != "" {
+			plan.WorkflowData["pca_admission_receipt"] = map[string]any{
+				"processor_family":   firstStringFromMap(selected, "processor_family"),
+				"name":               firstStringFromMap(selected, "name", "plugin_name"),
+				"manufacturer":       firstStringFromMap(selected, "manufacturer", "vendor"),
+				"format":             firstStringFromMap(selected, "format"),
+				"identifier":         firstStringFromMap(selected, "identifier", "plugin_identifier"),
+				"plugin_path":        firstStringFromMap(selected, "plugin_path", "path"),
+				"subject_key":        firstStringFromMap(selected, "subject_key"),
+				"binary_fingerprint": firstStringFromMap(selected, "binary_fingerprint"),
+				"attestation_id":     firstStringFromMap(selected, "attestation_id"),
+			}
+		}
+	}
 	if boolValue(requestContext["mix_treatment_preparation"]) {
 		plan.WorkflowData["mix_treatment_preparation"] = true
 		if preparationPlan := cloneContext(mapValue(requestContext["mix_treatment_preparation_plan"])); len(preparationPlan) > 0 {
@@ -170,6 +189,15 @@ func (s *Server) runPluginGrabberLoadWorkflow(ctx context.Context, conversationI
 		)
 		plan.WorkflowData["semantic_compressor_post_load_request_context"] = cloneContext(requestContext)
 		plan.WorkflowData["semantic_compressor_post_load_observation_context"] = cloneContext(firstMapFromAny(requestContext["semantic_compressor_post_load_observation_context"]))
+	}
+	if boolValue(requestContext["semantic_post_load_handoff"]) {
+		plan.WorkflowData["semantic_post_load_handoff"] = true
+		plan.WorkflowData["semantic_post_load_family"] = firstStringFromMap(requestContext, "semantic_post_load_family")
+		plan.WorkflowData["semantic_post_load_planner"] = firstStringFromMap(requestContext, "semantic_post_load_planner")
+		plan.WorkflowData["semantic_post_load_goal"] = firstNonEmpty(firstStringFromMap(requestContext, "semantic_post_load_goal"), strings.TrimSpace(userText))
+		plan.WorkflowData["semantic_post_load_request_context"] = cloneContext(requestContext)
+		plan.WorkflowData["semantic_post_load_observation_context"] = cloneContext(firstMapFromAny(requestContext["semantic_post_load_observation_context"]))
+		plan.WorkflowData["semantic_post_load_semantic_processor_intent"] = cloneContext(firstMapFromAny(requestContext["semantic_post_load_semantic_processor_intent"]))
 	}
 	s.mu.Lock()
 	s.pending[plan.ID] = plan
@@ -820,6 +848,23 @@ func pluginLoadResultIDs(replies []map[string]any) (string, string, string) {
 		return firstNonEmptyText(result, "track_id"), pluginID, firstNonEmptyText(result, "plugin_name", "name")
 	}
 	return "", "", ""
+}
+
+func pluginLoadResultIdentifier(replies []map[string]any) string {
+	for i := len(replies) - 1; i >= 0; i-- {
+		row := replies[i]
+		if name := firstNonEmptyText(row, "command_name"); name != "" && name != "rack_add_node" {
+			continue
+		}
+		result, _ := row["result"].(map[string]any)
+		if result == nil {
+			continue
+		}
+		if identifier := firstNonEmptyText(result, "plugin_identifier", "identifier"); identifier != "" {
+			return identifier
+		}
+	}
+	return ""
 }
 
 func compactPluginParameterDigestResult(digest pluginParameterDigest) map[string]any {

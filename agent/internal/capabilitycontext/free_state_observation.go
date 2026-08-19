@@ -187,20 +187,20 @@ func RejectedFreeStateObservationScoped(req FreeStateObservationRequest, blockin
 	blocking := uniqueNonEmpty(blockingViews)
 	nonBlocking := subtractStrings(modelViewIDs, blocking)
 	return FreeStateObservationBundle{
-		SchemaVersion:     FreeStateObservationBundleSchema,
-		BundleID:          "ccbobs_rejected_" + compactID(req.ObservationID, req.RequestID),
-		RequestID:         req.RequestID,
-		Status:            "rejected",
-		ReadOnly:          true,
-		MutationAuthority: false,
-		ObservationID:     req.ObservationID,
-		MixSessionID:      req.MixSessionID,
-		RequestedViews:    append([]string(nil), req.ViewIDs...),
-		Views:             map[string]any{},
-		Freshness:         map[string]any{"class": req.FreshnessClass, "status": "rejected"},
-		OmissionReasons:   append([]string(nil), rejectionReasons...),
-		RejectionScope:    "exact_view_set",
-		BlockingViewIDs:   blocking,
+		SchemaVersion:      FreeStateObservationBundleSchema,
+		BundleID:           "ccbobs_rejected_" + compactID(req.ObservationID, req.RequestID),
+		RequestID:          req.RequestID,
+		Status:             "rejected",
+		ReadOnly:           true,
+		MutationAuthority:  false,
+		ObservationID:      req.ObservationID,
+		MixSessionID:       req.MixSessionID,
+		RequestedViews:     append([]string(nil), req.ViewIDs...),
+		Views:              map[string]any{},
+		Freshness:          map[string]any{"class": req.FreshnessClass, "status": "rejected"},
+		OmissionReasons:    append([]string(nil), rejectionReasons...),
+		RejectionScope:     "exact_view_set",
+		BlockingViewIDs:    blocking,
 		NonBlockingViewIDs: nonBlocking,
 		AuditReceipt: FreeStateObservationAuditReceipt{
 			SchemaVersion:         FreeStateObservationReceiptSchema,
@@ -382,6 +382,7 @@ func freeStateViewDefinitions(targetID string) []freeStateViewDefinition {
 	track := "track." + targetID
 	return []freeStateViewDefinition{
 		{view: semanticView("project.structure", []string{"What tracks and sources are present?", "What is the current project/selection structure?"}, []string{"project", "track", "selection"}, "state snapshot", "ready_on_observation", "cheap", "compact project and TOM-adjacent identity summary", []string{"Does not disclose a full TOM tree."}, []string{"project state", "MixBoard observation"}), keys: []string{"project.static.summary", "project.tracks.summary", "observation.tim_projection", "observation.mom_projection"}},
+		{view: semanticView("project.change_delta", []string{"What deterministic engineering changes occurred since the prior state?", "Which current observations must be refreshed after the latest project change?"}, []string{"project", "track", "clip", "processor"}, "latest state transition", "conditional", "cheap", "bounded Shadow Project change receipt", []string{"A project change receipt does not establish an acoustic result or an improvement."}, []string{"Shadow Project change monitor", "MixBoard observation binding"}), keys: []string{"project.change_delta"}},
 		{view: semanticView("track.basic_energy", []string{"How loud and peaky is the target?", "Is headroom or crest factor unusual?"}, []string{"track", "clip", "selection"}, "whole window", "ready_on_observation", "cheap", "bounded level summary", nil, []string{"waveform envelope summary"}), keys: []string{track + ".static.identity", track + ".fast.levels"}},
 		{view: semanticView("track.time_dynamics", []string{"How does energy evolve over time?", "What transient and macro-dynamic structure is observable?"}, []string{"track", "clip", "selection"}, "macro and short-window summary", "conditional", "medium", "COM plus bounded time-energy summaries", []string{"Fine envelopes and event lists stay in evidence storage."}, []string{"time-energy summary", "COM projection"}), keys: []string{track + ".slow.time_energy.summary", "observation.com_projection"}},
 		{view: semanticView("track.timbre_frequency", []string{"Where is energy concentrated by band?", "Which broad tonal regions need inspection?"}, []string{"track", "clip", "selection"}, "whole-window band summary", "conditional", "medium", "broad-band energy only", []string{"Not a raw spectrum or a static-EQ decision."}, []string{"band-energy summary"}), keys: []string{track + ".slow.band_energy.summary"}},
@@ -393,7 +394,7 @@ func freeStateViewDefinitions(targetID string) []freeStateViewDefinition {
 		{view: semanticView("track.stereo_space", []string{"How wide or correlated is the target?", "Is left-right balance unusual?"}, []string{"track", "clip", "selection"}, "whole-window stereo summary", "conditional", "medium", "balance/correlation summary", nil, []string{"stereo-relation summary"}), keys: []string{track + ".slow.stereo.summary"}},
 		{view: semanticView("mix.multitrack_relationship", []string{"How do track levels and risks relate?", "Which track deserves attention first?"}, []string{"project", "track_group"}, "project snapshot", "conditional", "medium", "bounded MOM and project relationship summaries", []string{"This is observation, not a B2/B3 solver result."}, []string{"MOM multitrack projection", "project acoustic summaries"}), keys: []string{"project.relationship_inputs", "project.rankings.level", "project.rankings.peak", "project.risks.headroom", "project.attention.first", "observation.mom_projection"}},
 		{view: semanticView("mix.frequency_relationship", []string{"How do track band occupancies relate?", "Where are broad frequency conflicts plausible?"}, []string{"project", "track_group"}, "project snapshot", "conditional", "medium", "compact MOM frequency relationship projection", []string{"Does not claim psychoacoustic masking certainty."}, []string{"MOM frequency relationship", "project band-energy coverage"}), keys: []string{"project.frequency_relationship_inputs", "observation.mom_projection"}},
-		{view: semanticView("mix.masking_relationship", []string{"Which sources measurably mask each other?"}, []string{"project", "track_group"}, "not available", "deferred", "expensive", "unavailable in v1", []string{"A dedicated masking observation unit is not implemented."}, []string{"future masking projection"})},
+		{view: semanticView("mix.masking_relationship", []string{"Which directional source pairs and frequency bands are plausible masking-risk improvement candidates?"}, []string{"project", "track_group"}, "synchronized project range", "ready_on_request", "expensive", "compact MOM directional masking-risk projection", []string{"Candidates are relative energetic-risk evidence, not deterministic perceptual facts or proof that the mix is wrong."}, []string{"same-window track_post_fader probes", "DAD masking measurement", "MOM masking projection"}), keys: []string{"observation.mom_projection"}},
 		{view: semanticView("processor.identity_and_controls", []string{"Which processor is bound to this observation?", "Which semantic controls are available?"}, []string{"processor"}, "processor state snapshot", "conditional", "cheap", "processor scope only", []string{"COM does not disclose a live control surface; use the processor inspector separately."}, []string{"COM processor scope", "read-only processor inspector"}), keys: []string{"observation.com_projection"}},
 		{view: semanticView("processor.behavior", []string{"What gain action and transient/recovery behavior is observed?"}, []string{"processor", "track"}, "paired input/output summary", "conditional", "medium", "compact COM behavior projection", []string{"Requires paired evidence for processor-caused behavior."}, []string{"COM paired_io projection"}), keys: []string{"observation.com_projection"}},
 		{view: semanticView("processor.change_delta", []string{"How did processor behavior change between observations?"}, []string{"processor", "track"}, "change delta", "conditional", "medium", "compact COM change projection", []string{"Requires compatible before/after COM evidence."}, []string{"COM change_delta projection"}), keys: []string{"observation.com_projection"}},
@@ -431,7 +432,7 @@ func observationScopeForRequest(req FreeStateObservationRequest) string {
 	for _, viewID := range req.ViewIDs {
 		viewID = strings.ToLower(strings.TrimSpace(viewID))
 		hasTrackView = hasTrackView || strings.HasPrefix(viewID, "track.") || strings.HasPrefix(viewID, "processor.") || viewID == "comparison.before_after"
-		hasMixView = hasMixView || strings.HasPrefix(viewID, "mix.") || viewID == "project.structure"
+		hasMixView = hasMixView || strings.HasPrefix(viewID, "mix.") || strings.HasPrefix(viewID, "project.")
 	}
 	if hasMixView && hasTrackView {
 		return "full_project_with_focus_track"
@@ -528,6 +529,8 @@ func semanticItemStatus(viewID, key string, value any) string {
 			status = stringValue(anyMap(row["multitrack_relation"])["status"])
 		case "mix.frequency_relationship":
 			status = stringValue(anyMap(row["frequency_relationship"])["status"])
+		case "mix.masking_relationship":
+			status = stringValue(anyMap(row["masking_relationship"])["status"])
 		}
 	}
 	if key == "observation.com_projection" {
@@ -625,15 +628,28 @@ func compactProjectionForView(viewID, key string, value any) any {
 				"intent":            row["intent"],
 				"project_structure": compactMOMProjectStructureForView(anyMap(row["project_structure"])),
 				"trust_quality":     compactMOMTrustQualityForView(anyMap(row["trust_quality"])),
+				"llm_context":       row["llm_context"],
 			}
 		case "mix.multitrack_relationship":
 			return map[string]any{
 				"mom_version":         row["mom_version"],
 				"intent":              row["intent"],
 				"multitrack_relation": compactMOMMultitrackRelation(anyMap(row["multitrack_relation"])),
+				"llm_context":         row["llm_context"],
 			}
 		case "mix.frequency_relationship":
-			return selectFields(row, "mom_version", "intent", "frequency_relationship")
+			return selectFields(row, "mom_version", "intent", "frequency_relationship", "llm_context")
+		case "mix.masking_relationship":
+			// Masking is an already-compact MOM projection. Do not carry the
+			// full generic LLMContext beside it: that duplicates policy text and
+			// can push a valid masking view out of a mixed-request disclosure
+			// budget. The bounded directional candidates and their conditions are
+			// the authoritative model-facing payload here.
+			return map[string]any{
+				"mom_version":          row["mom_version"],
+				"intent":               row["intent"],
+				"masking_relationship": compactMOMMaskingRelationshipForView(anyMap(row["masking_relationship"])),
+			}
 		}
 	}
 	if key == "project.frequency_relationship_inputs" {
@@ -644,17 +660,13 @@ func compactProjectionForView(viewID, key string, value any) any {
 
 func compactProjectTracksSummaryForStructure(row map[string]any) map[string]any {
 	out := selectFields(row, "status", "track_count", "active_track_count")
-	tracks, ok := row["tracks"].([]any)
-	if !ok {
-		return out
-	}
+	tracks := rowsValue(row["tracks"])
 	compactTracks := make([]any, 0, len(tracks))
-	for _, item := range tracks {
-		track := anyMap(item)
+	for _, track := range tracks {
 		if len(track) == 0 {
 			continue
 		}
-		compactTracks = append(compactTracks, selectFields(track, "track_id", "name", "status", "kind", "role", "source_status"))
+		compactTracks = append(compactTracks, selectFields(track, "track_id", "name", "track_name", "role_guess", "active_state", "source_status"))
 	}
 	if len(compactTracks) > 0 {
 		out["tracks"] = compactTracks
@@ -702,7 +714,10 @@ func compactFrequencyRelationshipInputsForView(row map[string]any) map[string]an
 }
 
 func compactDOMDimension(row map[string]any, dimension string) map[string]any {
-	out := selectFields(row, "schema_version", "dom_version", "projection_id", "mode", "status", dimension, "evidence_refs")
+	out := selectFields(row, "schema_version", "dom_version", "projection_id", "mode", "status", "freshness", dimension, "evidence_refs", "limitations")
+	if conditions := anyMap(row["conditions"]); len(conditions) > 0 {
+		out["conditions"] = conditions
+	}
 	readiness := []any{}
 	switch values := row["dimension_readiness"].(type) {
 	case []any:
@@ -725,6 +740,7 @@ func compactDOMDimension(row map[string]any, dimension string) map[string]any {
 		out["trust_quality"] = selectFields(trust,
 			"overall_status", "can_support_source_description", "can_support_family_selection",
 			"can_support_behavior_observation", "can_support_post_action_evaluation",
+			"coverage", "blocked_reasons", "limitations",
 		)
 	}
 	return out
@@ -818,6 +834,41 @@ func compactMOMMultitrackRelation(relation map[string]any) map[string]any {
 			}
 		}
 		out["band_conflict_candidates"] = rows
+	}
+	return out
+}
+
+func compactMOMMaskingRelationshipForView(relation map[string]any) map[string]any {
+	if len(relation) == 0 {
+		return nil
+	}
+	out := selectFields(relation,
+		"schema_version", "status", "freshness", "measurement_id", "model_version", "candidate_only", "evidence_refs", "limitations")
+	out["conditions"] = selectFields(anyMap(relation["conditions"]),
+		"tap_point", "range_start_seconds", "range_end_seconds", "tail_seconds", "sample_rate", "analyzer_revision", "synchronized", "frame_count_per_track")
+	coverage := selectFields(anyMap(relation["coverage"]),
+		"track_count", "eligible_track_count", "candidate_count", "projected_candidate_count", "candidates_truncated", "complete_coverage")
+	if len(coverage) > 0 {
+		out["coverage"] = coverage
+	}
+	candidates := rowsValue(relation["candidates"])
+	if len(candidates) > 12 {
+		candidates = candidates[:12]
+		coverage["candidates_truncated"] = true
+		out["coverage"] = coverage
+	}
+	compactCandidates := make([]any, 0, len(candidates))
+	for _, candidate := range candidates {
+		compact := selectFields(candidate,
+			"masker_track_id", "masker_track_name", "target_track_id", "target_track_name", "band_id",
+			"min_hz", "max_hz", "active_frame_count", "risk_frame_count", "risk_coverage_ratio",
+			"median_margin_db", "p90_margin_db", "max_margin_db")
+		if len(compact) > 0 {
+			compactCandidates = append(compactCandidates, compact)
+		}
+	}
+	if len(compactCandidates) > 0 {
+		out["candidates"] = compactCandidates
 	}
 	return out
 }

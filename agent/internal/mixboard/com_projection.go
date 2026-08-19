@@ -146,6 +146,7 @@ func comSourceInput(obs ObservationPacket, req Request) (com.SourceEvidence, com
 		Status: status, Freshness: comSourceFreshness(waveform), DurationSeconds: duration,
 		RMSDBFS: comNumberPointer(waveform, "rms_dbfs"), PeakDBFS: comNumberPointer(waveform, "peak_dbfs"),
 		CrestDB: comNumberPointer(waveform, "crest_db"), TimeSegments: sourceSegments,
+		TransientEvents: comTransientEvidence(snapshot),
 		Quality: com.QualityEvidence{QualityStatus: firstNonEmpty(cleanAnyString(waveform["quality_status"]), status),
 			Nonzero: nonzero, Coverage: coverage, NaNInfCount: int(numberFromMap(waveform, "nan_count") + numberFromMap(waveform, "inf_count"))},
 		EvidenceRefs: refs,
@@ -170,6 +171,61 @@ func comNumberPointer(row map[string]any, key string) *float64 {
 		return nil
 	}
 	return &number
+}
+
+// comTransientEvidence maps the DAD L3 frame-level transient_events block
+// (status/events/coverage/window_ms/hop_ms/evidence_refs) into the compact COM
+// source input. Missing evidence yields nil so source-only macro dynamics stay
+// unchanged; the frame window/hop travel with the evidence so micro-transient
+// readiness can declare its real analyzer resolution.
+func comTransientEvidence(snapshot map[string]any) *com.TransientEventEvidence {
+	if len(snapshot) == 0 {
+		return nil
+	}
+	transient := mapValue(snapshot["transient_events"])
+	if len(transient) == 0 {
+		return nil
+	}
+	events := make([]com.TransientEvent, 0)
+	for _, row := range mapRowsAny(transient["events"]) {
+		events = append(events, com.TransientEvent{
+			OnsetSeconds:         numberFromMap(row, "onset_seconds"),
+			BodyEndSeconds:       numberFromMap(row, "body_end_seconds"),
+			SustainEndSeconds:    numberFromMap(row, "sustain_end_seconds"),
+			OnsetDBFS:            comNumberPointer(row, "onset_dbfs"),
+			BodyDBFS:             comNumberPointer(row, "body_dbfs"),
+			SustainDBFS:          comNumberPointer(row, "sustain_dbfs"),
+			AttackBodyContrastDB: comNumberPointer(row, "attack_body_contrast_db"),
+			SustainDecayDB:       comNumberPointer(row, "sustain_decay_db"),
+		})
+	}
+	return &com.TransientEventEvidence{
+		Status:       cleanAnyString(transient["status"]),
+		Events:       events,
+		Coverage:     numberFromMap(transient, "coverage"),
+		WindowMS:     numberFromMap(transient, "window_ms"),
+		HopMS:        numberFromMap(transient, "hop_ms"),
+		EvidenceRefs: comEvidenceRefs(transient["evidence_refs"]),
+	}
+}
+
+func comEvidenceRefs(value any) []string {
+	refs := []string{}
+	switch typed := value.(type) {
+	case []string:
+		for _, ref := range typed {
+			if ref = strings.TrimSpace(ref); ref != "" {
+				refs = append(refs, ref)
+			}
+		}
+	case []any:
+		for _, raw := range typed {
+			if ref := strings.TrimSpace(cleanAnyString(raw)); ref != "" {
+				refs = append(refs, ref)
+			}
+		}
+	}
+	return refs
 }
 
 func comSourceFreshness(row map[string]any) string {

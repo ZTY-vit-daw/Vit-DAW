@@ -24,6 +24,7 @@ const staticBalanceCapabilityID = "static_mix.static_balance.v0"
 const panLayoutCapabilityID = "static_mix.pan_layout.v0"
 const lowEndRelationCapabilityID = "static_mix.low_end_relation.v0"
 const frequencyCleanupCapabilityID = "fine_mix.frequency_cleanup.v1"
+const dynamicControlCapabilityID = "fine_mix.dynamic_control.v1"
 const retiredFocusPositionCapabilityID = "static_mix.focus_position.v0"
 
 // handleCapabilityRuntimeCanary is the permanent B2/B3 abstraction seam.
@@ -113,6 +114,9 @@ func (s *Server) handleCapabilityRuntimeCanary(ctx context.Context, conversation
 	}
 	if capabilityID == frequencyCleanupCapabilityID {
 		return s.handleFrequencyCleanupRuntime(ctx, conversationID, req, goal), true
+	}
+	if capabilityID == dynamicControlCapabilityID {
+		return s.handleDynamicControlRuntime(ctx, conversationID, req, goal), true
 	}
 	if capabilityID == agentSemanticEQCapabilityID {
 		return s.handleSemanticEQRuntime(ctx, conversationID, req, goal), true

@@ -25,6 +25,10 @@ type ParameterDigest struct {
 	TrackID                   string                 `json:"track_id"`
 	PluginID                  string                 `json:"plugin_id"`
 	PluginName                string                 `json:"plugin_name,omitempty"`
+	PluginIdentifier          string                 `json:"plugin_identifier,omitempty"`
+	PluginPath                string                 `json:"plugin_path,omitempty"`
+	PluginFormat              string                 `json:"plugin_format,omitempty"`
+	PluginManufacturer        string                 `json:"plugin_manufacturer,omitempty"`
 	PluginIdentity            map[string]any         `json:"plugin_identity,omitempty"`
 	TemplateRole              string                 `json:"template_role,omitempty"`
 	PluginClass               string                 `json:"plugin_class,omitempty"`

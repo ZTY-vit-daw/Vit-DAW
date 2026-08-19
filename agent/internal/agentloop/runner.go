@@ -18,14 +18,15 @@ import (
 )
 
 const (
-	StopReasonDone               = "done"
-	StopReasonNeedsConfirmation  = "needs_confirmation"
-	StopReasonNeedsClarification = "needs_clarification"
-	StopReasonLimitReached       = "limit_reached"
-	StopReasonTransientLLMError  = "transient_llm_error"
-	StopReasonCancelled          = "cancelled"
-	StopReasonInterjection       = "interjection"
-	StopReasonFailed             = "failed"
+	StopReasonDone                 = "done"
+	StopReasonNeedsConfirmation    = "needs_confirmation"
+	StopReasonNeedsClarification   = "needs_clarification"
+	StopReasonLimitReached         = "limit_reached"
+	StopReasonTransientLLMError    = "transient_llm_error"
+	StopReasonModelProtocolFailure = "model_protocol_failure"
+	StopReasonCancelled            = "cancelled"
+	StopReasonInterjection         = "interjection"
+	StopReasonFailed               = "failed"
 
 	LimitTypeTurns     = "max_turns"
 	LimitTypeToolCalls = "max_tool_calls"
@@ -112,6 +113,8 @@ type Result struct {
 	SemanticAction        *semanticeffect.Action      `json:"semantic_action,omitempty"`
 	FreeStateDecision     *FreeStateDecision          `json:"free_state_decision,omitempty"`
 	Continuation          *Continuation               `json:"continuation,omitempty"`
+	ModelProtocolRepairs  int                         `json:"model_protocol_repairs,omitempty"`
+	ModelProtocolFailure  bool                        `json:"model_protocol_failure,omitempty"`
 }
 
 type Planner interface {
@@ -132,18 +135,20 @@ type Runner struct {
 
 func (r *Runner) Start(ctx context.Context, in Input) Result {
 	goal := r.ensureGoal(in.GoalID, in.RunID, firstNonEmpty(in.Summary, in.UserText))
+	baseBudget := normalizeBudget(firstNonZeroBudget(in.Budget, r.Budget))
 	state := runState{
-		input:             in,
-		goal:              goal,
-		trace:             append([]planner.TraceEvent(nil), in.Trace...),
-		planItems:         mergePlanItems(nil, in.PlanItems),
-		contextSnapshot:   cloneMap(in.ContextSnapshot),
-		projectHistory:    cloneMap(in.ProjectHistory),
-		executionMemory:   cloneExecutionMemory(in.ExecutionMemory),
-		recentObservation: cloneRecentObservation(in.RecentObservation),
-		freeStateDecision: cloneFreeStateDecision(in.FreeStateDecision),
-		budget:            normalizeBudget(firstNonZeroBudget(in.Budget, r.Budget)),
-		startedAt:         r.now(),
+		input:              in,
+		goal:               goal,
+		trace:              append([]planner.TraceEvent(nil), in.Trace...),
+		planItems:          mergePlanItems(nil, in.PlanItems),
+		contextSnapshot:    cloneMap(in.ContextSnapshot),
+		projectHistory:     cloneMap(in.ProjectHistory),
+		executionMemory:    cloneExecutionMemory(in.ExecutionMemory),
+		recentObservation:  cloneRecentObservation(in.RecentObservation),
+		freeStateDecision:  cloneFreeStateDecision(in.FreeStateDecision),
+		budget:             baseBudget,
+		continuationBudget: baseBudget,
+		startedAt:          r.now(),
 	}
 	state.input.GoalID = goal.GoalID
 	state.input.RunID = goal.RunID
@@ -161,6 +166,7 @@ func (r *Runner) Continue(ctx context.Context, cont Continuation) Result {
 	if r.Runtime != nil {
 		goal = r.Runtime.ClearInterjections(goal.GoalID)
 	}
+	baseBudget := normalizeBudget(firstNonZeroBudget(cont.Budget, r.Budget))
 	in := Input{
 		GoalID:            goal.GoalID,
 		RunID:             goal.RunID,
@@ -175,31 +181,33 @@ func (r *Runner) Continue(ctx context.Context, cont Continuation) Result {
 		AllowedTools:      append([]string(nil), cont.AllowedTools...),
 		Trace:             append([]planner.TraceEvent(nil), cont.Trace...),
 		PlanItems:         append([]planner.PlanItem(nil), cont.PlanItems...),
-		Budget:            cont.Budget,
+		Budget:            baseBudget,
 		ExecutionMemory:   cloneExecutionMemory(cont.ExecutionMemory),
 		RecentObservation: cloneRecentObservation(cont.RecentObservation),
 		FreeStateDecision: cloneFreeStateDecision(cont.FreeStateDecision),
 	}
 	state := runState{
-		input:             in,
-		goal:              goal,
-		trace:             append([]planner.TraceEvent(nil), cont.Trace...),
-		planItems:         mergePlanItems(nil, cont.PlanItems),
-		pendingToolQueue:  append([]planner.ToolCall(nil), cont.PendingToolQueue...),
-		completedSteps:    cont.CompletedSteps,
-		contextSnapshot:   cloneMap(cont.ContextSnapshot),
-		projectHistory:    cloneMap(cont.ProjectHistory),
-		executionMemory:   cloneExecutionMemory(cont.ExecutionMemory),
-		recentObservation: cloneRecentObservation(cont.RecentObservation),
-		freeStateDecision: cloneFreeStateDecision(cont.FreeStateDecision),
-		budget:            normalizeBudget(firstNonZeroBudget(cont.Budget, r.Budget)),
-		startedAt:         r.now(),
+		input:              in,
+		goal:               goal,
+		trace:              append([]planner.TraceEvent(nil), cont.Trace...),
+		planItems:          mergePlanItems(nil, cont.PlanItems),
+		pendingToolQueue:   append([]planner.ToolCall(nil), cont.PendingToolQueue...),
+		completedSteps:     cont.CompletedSteps,
+		contextSnapshot:    cloneMap(cont.ContextSnapshot),
+		projectHistory:     cloneMap(cont.ProjectHistory),
+		executionMemory:    cloneExecutionMemory(cont.ExecutionMemory),
+		recentObservation:  cloneRecentObservation(cont.RecentObservation),
+		freeStateDecision:  cloneFreeStateDecision(cont.FreeStateDecision),
+		budget:             extendContinuationBudget(baseBudget, cont.TurnsUsed, cont.ToolCallsUsed),
+		continuationBudget: baseBudget,
+		startedAt:          r.now(),
 	}
 	return r.loop(ctx, &state)
 }
 
 func (r *Runner) ResumeAfterConfirmation(ctx context.Context, cont Continuation) Result {
 	goal := r.ensureGoal(cont.GoalID, cont.RunID, cont.Summary)
+	baseBudget := normalizeBudget(firstNonZeroBudget(cont.Budget, r.Budget))
 	state := runState{
 		input: Input{
 			GoalID:            goal.GoalID,
@@ -215,25 +223,26 @@ func (r *Runner) ResumeAfterConfirmation(ctx context.Context, cont Continuation)
 			AllowedTools:      append([]string(nil), cont.AllowedTools...),
 			Trace:             append([]planner.TraceEvent(nil), cont.Trace...),
 			PlanItems:         append([]planner.PlanItem(nil), cont.PlanItems...),
-			Budget:            cont.Budget,
+			Budget:            baseBudget,
 			ExecutionMemory:   cloneExecutionMemory(cont.ExecutionMemory),
 			RecentObservation: cloneRecentObservation(cont.RecentObservation),
 			FreeStateDecision: cloneFreeStateDecision(cont.FreeStateDecision),
 		},
-		goal:              goal,
-		trace:             append([]planner.TraceEvent(nil), cont.Trace...),
-		planItems:         mergePlanItems(nil, cont.PlanItems),
-		pendingToolQueue:  append([]planner.ToolCall(nil), cont.PendingToolQueue...),
-		contextSnapshot:   cloneMap(cont.ContextSnapshot),
-		projectHistory:    cloneMap(cont.ProjectHistory),
-		executionMemory:   cloneExecutionMemory(cont.ExecutionMemory),
-		recentObservation: cloneRecentObservation(cont.RecentObservation),
-		freeStateDecision: cloneFreeStateDecision(cont.FreeStateDecision),
-		completedSteps:    cont.CompletedSteps,
-		turnsUsed:         cont.TurnsUsed,
-		toolCallsUsed:     cont.ToolCallsUsed,
-		budget:            normalizeBudget(firstNonZeroBudget(cont.Budget, r.Budget)),
-		startedAt:         r.now(),
+		goal:               goal,
+		trace:              append([]planner.TraceEvent(nil), cont.Trace...),
+		planItems:          mergePlanItems(nil, cont.PlanItems),
+		pendingToolQueue:   append([]planner.ToolCall(nil), cont.PendingToolQueue...),
+		contextSnapshot:    cloneMap(cont.ContextSnapshot),
+		projectHistory:     cloneMap(cont.ProjectHistory),
+		executionMemory:    cloneExecutionMemory(cont.ExecutionMemory),
+		recentObservation:  cloneRecentObservation(cont.RecentObservation),
+		freeStateDecision:  cloneFreeStateDecision(cont.FreeStateDecision),
+		completedSteps:     cont.CompletedSteps,
+		turnsUsed:          cont.TurnsUsed,
+		toolCallsUsed:      cont.ToolCallsUsed,
+		budget:             extendContinuationBudget(baseBudget, cont.TurnsUsed, cont.ToolCallsUsed),
+		continuationBudget: baseBudget,
+		startedAt:          r.now(),
 	}
 	if cont.PendingToolCall == nil {
 		return r.fail(&state, fmt.Errorf("confirmation continuation is missing pending tool call"))
@@ -263,26 +272,29 @@ func (r *Runner) ResumeAfterConfirmation(ctx context.Context, cont Continuation)
 }
 
 type runState struct {
-	input             Input
-	goal              agentruntime.Goal
-	trace             []planner.TraceEvent
-	executed          []map[string]any
-	planItems         []planner.PlanItem
-	pendingToolCall   *planner.ToolCall
-	pendingToolQueue  []planner.ToolCall
-	contextSnapshot   map[string]any
-	projectHistory    map[string]any
-	executionMemory   ExecutionMemory
-	recentObservation *RecentObservation
-	semanticAction    *semanticeffect.Action
-	freeStateDecision *FreeStateDecision
-	replanAfterTool   bool
-	completedSteps    int
-	turnsUsed         int
-	toolCallsUsed     int
-	consecutiveErrors int
-	budget            Budget
-	startedAt         time.Time
+	input                Input
+	goal                 agentruntime.Goal
+	trace                []planner.TraceEvent
+	executed             []map[string]any
+	planItems            []planner.PlanItem
+	pendingToolCall      *planner.ToolCall
+	pendingToolQueue     []planner.ToolCall
+	contextSnapshot      map[string]any
+	projectHistory       map[string]any
+	executionMemory      ExecutionMemory
+	recentObservation    *RecentObservation
+	semanticAction       *semanticeffect.Action
+	freeStateDecision    *FreeStateDecision
+	replanAfterTool      bool
+	completedSteps       int
+	turnsUsed            int
+	toolCallsUsed        int
+	consecutiveErrors    int
+	modelProtocolRepairs int
+	modelProtocolFailure bool
+	budget               Budget
+	continuationBudget   Budget
+	startedAt            time.Time
 }
 
 func (r *Runner) loop(ctx context.Context, state *runState) Result {
@@ -459,6 +471,7 @@ func (r *Runner) executeTool(ctx context.Context, state *runState, call planner.
 		state.trace = append(state.trace, planner.TraceEvent{Kind: "verification", Verification: &ver})
 		execRecord["verification"] = ver
 		state.recentObservation = recentObservationForTool(call, execResult, ver, false, nil)
+		recordFreeStateCCBObservation(state, state.recentObservation)
 		if strings.TrimSpace(call.PlanItemID) != "" {
 			state.planItems = markPlanItemStatus(state.planItems, call.PlanItemID, "pending", "waiting for formal user interaction")
 			state.trace = append(state.trace, planUpdateEvent(state.planItems, "plan item is waiting for formal user interaction"))
@@ -477,6 +490,7 @@ func (r *Runner) executeTool(ctx context.Context, state *runState, call planner.
 		state.trace = append(state.trace, planner.TraceEvent{Kind: "verification", Verification: &ver})
 		execRecord["verification"] = ver
 		state.recentObservation = recentObservationForTool(call, execResult, ver, false, nil)
+		recordFreeStateCCBObservation(state, state.recentObservation)
 		if strings.TrimSpace(call.PlanItemID) != "" {
 			state.planItems = markPlanItemStatus(state.planItems, call.PlanItemID, "waiting_confirmation", planEvidenceText(ver))
 			state.trace = append(state.trace, planUpdateEvent(state.planItems, "plan item is waiting for confirmation"))
@@ -502,6 +516,7 @@ func (r *Runner) executeTool(ctx context.Context, state *runState, call planner.
 	producedBindings := updateExecutionMemoryForTool(state, call, execResult, ver)
 	mutationBarrier := toolNeedsMutationBarrier(call, execResult)
 	state.recentObservation = recentObservationForTool(call, execResult, ver, mutationBarrier, producedBindings)
+	recordFreeStateCCBObservation(state, state.recentObservation)
 	if mutationBarrier && len(queued) > 0 {
 		state.pendingToolQueue = nil
 	}
@@ -600,7 +615,11 @@ func (r *Runner) fail(state *runState, err error) Result {
 	if r.Runtime != nil && state != nil && state.goal.GoalID != "" {
 		state.goal = r.Runtime.Complete(state.goal.GoalID, err)
 	}
-	res := r.result(state, agentruntime.StatusFailed, StopReasonFailed, "", "执行失败："+friendlyAgentLoopError(err), "", "", nil)
+	stopReason := StopReasonFailed
+	if state != nil && state.modelProtocolFailure {
+		stopReason = StopReasonModelProtocolFailure
+	}
+	res := r.result(state, agentruntime.StatusFailed, stopReason, "", "执行失败："+friendlyAgentLoopError(err), "", "", nil)
 	res.Error = err.Error()
 	res.FailureReason = err.Error()
 	return res
@@ -640,7 +659,7 @@ func (r *Runner) result(state *runState, status agentruntime.GoalStatus, stopRea
 		AllowedTools:      append([]string(nil), state.input.AllowedTools...),
 		Trace:             append([]planner.TraceEvent(nil), state.trace...),
 		PlanItems:         append([]planner.PlanItem(nil), state.planItems...),
-		Budget:            state.budget,
+		Budget:            firstNonZeroBudget(state.continuationBudget, state.budget),
 		PendingToolCall:   pending,
 		PendingToolQueue:  append([]planner.ToolCall(nil), state.pendingToolQueue...),
 		CompletedSteps:    state.completedSteps,
@@ -661,29 +680,31 @@ func (r *Runner) result(state *runState, status agentruntime.GoalStatus, stopRea
 		currentStep = currentStepFromPlanItems(state.planItems)
 	}
 	return Result{
-		Goal:              state.goal,
-		GoalID:            state.goal.GoalID,
-		RunID:             state.goal.RunID,
-		Status:            status,
-		Reply:             strings.TrimSpace(reply),
-		GoalSummary:       firstNonEmpty(state.goal.Summary, state.input.Summary, state.input.UserText),
-		CurrentStep:       currentStep,
-		CompletedSteps:    state.completedSteps,
-		StopReason:        stopReason,
-		LimitType:         limitType,
-		Preview:           preview,
-		UndoLabel:         undoLabel,
-		Verification:      lastVerification(state.trace),
-		Trace:             append([]planner.TraceEvent(nil), state.trace...),
-		PlanItems:         append([]planner.PlanItem(nil), state.planItems...),
-		Executed:          append([]map[string]any(nil), state.executed...),
-		ContextSnapshot:   cloneMap(state.contextSnapshot),
-		ProjectHistory:    cloneMap(projectHistoryFromState(state)),
-		ExecutionMemory:   cloneExecutionMemory(state.executionMemory),
-		RecentObservation: cloneRecentObservation(state.recentObservation),
-		SemanticAction:    cloneSemanticEffectAction(state.semanticAction),
-		FreeStateDecision: cloneFreeStateDecision(state.freeStateDecision),
-		Continuation:      cont,
+		Goal:                 state.goal,
+		GoalID:               state.goal.GoalID,
+		RunID:                state.goal.RunID,
+		Status:               status,
+		Reply:                strings.TrimSpace(reply),
+		GoalSummary:          firstNonEmpty(state.goal.Summary, state.input.Summary, state.input.UserText),
+		CurrentStep:          currentStep,
+		CompletedSteps:       state.completedSteps,
+		StopReason:           stopReason,
+		LimitType:            limitType,
+		Preview:              preview,
+		UndoLabel:            undoLabel,
+		Verification:         lastVerification(state.trace),
+		Trace:                append([]planner.TraceEvent(nil), state.trace...),
+		PlanItems:            append([]planner.PlanItem(nil), state.planItems...),
+		Executed:             append([]map[string]any(nil), state.executed...),
+		ContextSnapshot:      cloneMap(state.contextSnapshot),
+		ProjectHistory:       cloneMap(projectHistoryFromState(state)),
+		ExecutionMemory:      cloneExecutionMemory(state.executionMemory),
+		RecentObservation:    cloneRecentObservation(state.recentObservation),
+		SemanticAction:       cloneSemanticEffectAction(state.semanticAction),
+		FreeStateDecision:    cloneFreeStateDecision(state.freeStateDecision),
+		Continuation:         cont,
+		ModelProtocolRepairs: state.modelProtocolRepairs,
+		ModelProtocolFailure: state.modelProtocolFailure,
 	}
 }
 
@@ -787,6 +808,19 @@ func firstNonZeroBudget(values ...Budget) Budget {
 		}
 	}
 	return Budget{}
+}
+
+// extendContinuationBudget grants a fresh per-invocation slice while keeping
+// cumulative usage counters in the continuation for reporting and guards.
+func extendContinuationBudget(base Budget, turnsUsed, toolCallsUsed int) Budget {
+	base = normalizeBudget(base)
+	if turnsUsed > 0 && base.MaxTurns > 0 {
+		base.MaxTurns += turnsUsed
+	}
+	if toolCallsUsed > 0 && base.MaxToolCalls > 0 {
+		base.MaxToolCalls += toolCallsUsed
+	}
+	return base
 }
 
 func stableToolCallID(call planner.ToolCall, step int) string {

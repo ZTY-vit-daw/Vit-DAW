@@ -1,0 +1,633 @@
+{
+  "schema_version": "semantic_processor_agent_project_smoke_contract.v1",
+  "contract_id": "semantic_processor_agent_project_smoke_v1_20260809",
+  "status": "frozen_design",
+  "formal_run_readiness": "preflight_required",
+  "purpose": "Blind, full-project validation of model-owned observation, processor selection, governed loading, typed control, transactional execution, and model-owned post-action evaluation for seven processor families.",
+  "scope": {
+    "executable_families": [
+      "static_eq",
+      "broadband_compressor",
+      "limiter",
+      "gate_expander",
+      "de_esser",
+      "transient_shaper",
+      "multiband_dynamics"
+    ],
+    "inspect_only_families": [
+      "spectral_dynamics"
+    ],
+    "forbidden_substitutes": [
+      "clipper_as_limiter"
+    ],
+    "primary_pass_subject": "agent_conformance_to_model_decisions",
+    "non_primary_subjects": [
+      "subjective_audio_quality",
+      "parameter_optimality"
+    ]
+  },
+  "blindness_contract": {
+    "runner_reads_public_manifest_only": true,
+    "sealed_truth_not_in_agent_context": true,
+    "case_ids_are_semantically_opaque": true,
+    "same_neutral_prompt_for_all_projects": true,
+    "server_must_not_add_or_replace_model_view_ids": true,
+    "agent_context_forbidden_fields": [
+      "expected_family",
+      "expected_families",
+      "expected_target_track",
+      "fault_label",
+      "fault_recipe",
+      "required_coverage",
+      "view_id",
+      "view_ids",
+      "plugin_name",
+      "vendor_name",
+      "candidate_identifier",
+      "parameter_id",
+      "source_song_name"
+    ],
+    "public_case_forbidden_fields": [
+      "source_material",
+      "issue_assignments",
+      "expected_family",
+      "expected_target_track",
+      "fault_recipe",
+      "sealed_metrics",
+      "clean_reference",
+      "fixed_reference"
+    ],
+    "allowed_confirmation_behavior": "Approve only the exact pending action selected by the model and exposed by the governed workflow. Confirmation text must not add a family, target, view, coverage axis, identifier, or control value."
+  },
+  "agent_input": {
+    "initial_prompt": "请检查这个完整工程的整体混音状态。自主申请你需要的观察，只处理你有足够证据确认的问题。你可以按需要加载或使用合格效果器并调控；每次处理后自行决定还需要观察什么，并继续到没有明确问题或无法安全继续为止。",
+    "continuation_prompt": "继续基于最初的完整工程目标工作；如果没有足够证据、无需继续或无法安全继续，请停止并说明原因。",
+    "confirmation_prompt": "确认当前待执行方案；如果状态已变化或证据不足，请停止，不要猜测。",
+    "context_allowlist": [
+      "agent_mode",
+      "interaction_path",
+      "product_lifecycle",
+      "blind_experiment",
+      "fixture_set_id",
+      "public_case_id",
+      "project_id"
+    ],
+    "preselected_track_forbidden": true,
+    "preselected_plugin_forbidden": true
+  },
+  "material_plan": {
+    "copyrighted_audio_in_repository": false,
+    "source_root": "C:\\Users\\timoz\\Documents\\RipX\\Stems",
+    "project_count": 2,
+    "track_order": [
+      "bass",
+      "drums",
+      "guitar",
+      "other",
+      "piano",
+      "vocals"
+    ],
+    "format": {
+      "sample_rate_hz": 44100,
+      "channels": 2,
+      "subtype": "PCM_16",
+      "duration_seconds": 20.0
+    },
+    "context_validity_gate": {
+      "all_six_tracks_required": true,
+      "per_track_rms_dbfs_greater_than": -45.0,
+      "per_track_active_ratio_100ms_at_least": 0.15,
+      "selected_projects_passed_offline_gate": true
+    },
+    "projects": [
+      {
+        "public_case_id": "spv1_p01",
+        "source_project": "緑黄色社会 - 風に乗る_548046706",
+        "start_seconds": 140.0,
+        "end_seconds": 160.0,
+        "source_files": [
+          {"track": "bass", "sha256": "88f97ce7c9dd5eaa0e81be94bbb459d00178c03beb18dfc0eda98e41f29c5e0a"},
+          {"track": "drums", "sha256": "58f1ffb4d3a9839d1e30ca1430b4255af47e3a934e4ec9d904282805c02a494d"},
+          {"track": "guitar", "sha256": "7a5fda1a66ff68eed9069fc21289c4dd88a72682716c3aba4e509af9d204a594"},
+          {"track": "other", "sha256": "2170e7728b688e6aaef93350b9da4f95b7d1367bb1a277a942ab6261a00ac276"},
+          {"track": "piano", "sha256": "f18a2f4b658e51cc25e0510fea2df32eb71382fe7c1563ff1bfc23a4d399a9e0"},
+          {"track": "vocals", "sha256": "328aa6a14b78c70b962afc62cd842bfc7a6c98e524c74464db5d260c4431733e"}
+        ],
+        "sealed_issue_assignments": [
+          {
+            "issue_id": "spv1_i01",
+            "target_track": "other",
+            "expected_family": "static_eq",
+            "fault_recipe": {"kind": "broad_bell_gain", "frequency_hz": 780.0, "gain_db": 6.0, "q": 0.7, "rms_match_tolerance_db": 0.1},
+            "qualification_gate": {"primary_metric": "target_vs_flank_band_gain_db", "minimum_delta_db": 3.0, "maximum_macro_range_delta_db": 1.0},
+            "detectability_assertion": "target broad-band energy delta is measurable while target RMS and all non-target stems remain matched"
+          },
+          {
+            "issue_id": "spv1_i02",
+            "target_track": "piano",
+            "expected_family": "broadband_compressor",
+            "fault_recipe": {"kind": "macro_level_steps", "depth_db": 6.0, "period_seconds": 1.25, "seed": 7102, "smoothing_ms": 120.0, "rms_match_tolerance_db": 0.1},
+            "qualification_gate": {"primary_metric": "active_macro_range_500ms_db", "minimum_delta_db": 4.0, "sample_wide_gain_required": true},
+            "detectability_assertion": "active-window macro range increases without a deliberate spectral edit"
+          },
+          {
+            "issue_id": "spv1_i03",
+            "target_track": "vocals",
+            "expected_family": "de_esser",
+            "fault_recipe": {"kind": "event_localized_high_band_gain", "band_low_hz": 4800.0, "band_high_hz": 10500.0, "event_gain_db": 12.0, "event_limit": 24, "event_width_ms": 120.0, "rms_match_tolerance_db": 0.1},
+            "qualification_gate": {"primary_metric": "aligned_event_high_ratio_db", "minimum_delta_db": 4.0, "maximum_event_mask_coverage": 0.25},
+            "detectability_assertion": "time-localized high-frequency event contrast increases on vocals without a whole-track shelf"
+          },
+          {
+            "issue_id": "spv1_i04",
+            "target_track": "drums",
+            "expected_family": "transient_shaper",
+            "fault_recipe": {"kind": "attack_attenuation", "attack_gain_db": -12.0, "attack_ms": 30.0, "event_limit": 48, "minimum_event_spacing_ms": 90.0, "rms_match_tolerance_db": 0.1},
+            "qualification_gate": {"primary_metric": "aligned_attack_body_db", "maximum_delta_db": -4.0, "maximum_absolute_body_level_delta_db": 1.5},
+            "detectability_assertion": "onset-to-body contrast decreases while sustain energy remains materially present"
+          }
+        ]
+      },
+      {
+        "public_case_id": "spv1_p02",
+        "source_project": "Da-iCE - I wonder_361760586",
+        "start_seconds": 130.0,
+        "end_seconds": 150.0,
+        "source_files": [
+          {"track": "bass", "sha256": "7119b677f87182ebda6c9cc66a1d60459d6cc60d647e1589ae7745f8a7215c4c"},
+          {"track": "drums", "sha256": "cef25cb3a4cae59ebd4ad2b3dd0cdf08293d07cd4bdf498fe817ec7547d4aeb9"},
+          {"track": "guitar", "sha256": "10592be55a700ad3ab693b861d8b5b105b95d8068206882a383bd180804bd8b4"},
+          {"track": "other", "sha256": "a7cf03cfd37773a6fd872db55c1c1d141e729dfdf96ecaf608caf840b3367b4d"},
+          {"track": "piano", "sha256": "01c8a8e68b8388b29273a3d19a1ebb2fa5e3d6955378b1f3289a2720bff5db3d"},
+          {"track": "vocals", "sha256": "840c28937d1f09d8c062111fbeffbb3855e0a4a3cdf1522f158588aeef6020e9"}
+        ],
+        "sealed_issue_assignments": [
+          {
+            "issue_id": "spv1_i05",
+            "target_track": "other",
+            "expected_family": "limiter",
+            "fault_recipe": {"kind": "sparse_peak_overshoot", "peak_gain_db": 6.0, "event_limit": 10, "attack_ms": 4.0, "release_ms": 80.0, "rms_match_tolerance_db": 0.1},
+            "qualification_gate": {"primary_metric": "sample_peak_dbfs", "minimum_delta_db": 3.0, "minimum_crest_delta_db": 3.0, "maximum_macro_range_delta_db": 2.0, "maximum_affected_fraction": 0.08},
+            "detectability_assertion": "sparse sample-peak and crest outliers increase while the macro envelope remains level matched"
+          },
+          {
+            "issue_id": "spv1_i06",
+            "target_track": "drums",
+            "expected_family": "gate_expander",
+            "fault_recipe": {"kind": "low_interval_noise_bed", "noise_color": "pink", "noise_rms_dbfs": -55.0, "active_guard_db": 18.0, "fade_ms": 35.0, "seed": 7306, "rms_match_tolerance_db": 0.1},
+            "qualification_gate": {"primary_metric": "quiet_interval_median_dbfs", "minimum_delta_db": 8.0, "maximum_absolute_active_interval_delta_db": 0.1},
+            "detectability_assertion": "low-energy intervals gain a repeatable noise floor while active drum events remain unchanged within tolerance"
+          },
+          {
+            "issue_id": "spv1_i07",
+            "target_track": "bass",
+            "expected_family": "multiband_dynamics",
+            "fault_recipe": {"kind": "band_limited_level_steps", "band_low_hz": 55.0, "band_high_hz": 180.0, "depth_db": 16.0, "period_seconds": 0.8, "seed": 7407, "rms_match_tolerance_db": 0.1},
+            "qualification_gate": {"primary_metric": "target_band_p90_p10_range_db", "minimum_delta_db": 4.0, "reference_band_low_hz": 500.0, "reference_band_high_hz": 2000.0, "maximum_absolute_reference_band_delta_db": 1.0},
+            "detectability_assertion": "low-band time variation increases relative to higher-band motion and cannot be established from a whole-window band total alone"
+          }
+        ]
+      }
+    ],
+    "interference_gates": {
+      "one_sealed_issue_per_target_track": true,
+      "non_target_stem_sample_identity_required": true,
+      "per_target_rms_match_tolerance_db": 0.1,
+      "clean_and_problem_mix_peak_ceiling_dbfs": -3.0,
+      "each_issue_metric_must_move_in_declared_direction": true,
+      "recipe_specific_protection_gates_required": true,
+      "non_target_identity_scope": "Each recipe mutates only its assigned target before the independently qualified recipes are combined into one project."
+    },
+    "offline_recipe_qualification": {
+      "status": "qualified_in_memory",
+      "qualification_authority": "evaluator_side_only",
+      "qualification_tool": "scripts/semantic_processor_project_smoke_qualify.py",
+      "qualification_artifact": "scripts/semantic_processor_project_smoke_qualification.json",
+      "qualification_artifact_schema": "semantic_processor_project_smoke_recipe_qualification.v1",
+      "no_audio_written_by_contract_freeze": true,
+      "required_before_fixture_manifest_publish": [
+        "apply each recipe in memory to the exact source excerpt",
+        "verify RMS match within the declared tolerance",
+        "verify the declared primary metric moves in the declared direction",
+        "verify the clean/problem mix peak ceiling",
+        "verify all non-target stems are byte-identical",
+        "verify no unrelated primary metric exceeds the interference threshold",
+        "record measured_delta_vs_clean and interference_checks in sealed truth"
+      ],
+      "known_readiness_findings": [
+        "Source-only DOM activity is ready but does not identify a noise floor; Gate issue publication requires an explicit noise-floor evidence preflight.",
+        "Source-only DOM frequency_time_events is partial and whole-window bands cannot be called sibilance events.",
+        "Source-only DOM transient_structure is partial and macro crest cannot be called onset/body/sustain evidence.",
+        "Source-only DOM band_dynamics is partial and whole-window band energy cannot be called per-band dynamics."
+      ]
+    }
+  },
+  "observation_readiness": {
+    "evidence_date": "2026-08-09",
+    "verified_with_current_dom_build": true,
+    "dom_readiness_tool": "scripts/semantic_processor_project_smoke_dom_readiness.py",
+    "dom_readiness_artifact": "scripts/semantic_processor_project_smoke_dom_readiness.json",
+    "dom_readiness_artifact_schema": "semantic_processor_project_dom_readiness.v1",
+    "final_material_dom_result": {
+      "root_status": "partial",
+      "can_support_family_selection": true,
+      "can_support_post_action_evaluation": false,
+      "dimensions": {
+        "track.peak_structure": "ready",
+        "track.activity_structure": "ready",
+        "track.frequency_time_events": "partial",
+        "track.transient_structure": "partial",
+        "track.band_dynamics": "partial"
+      },
+      "verified_targets": [
+        "spv1_p01:other",
+        "spv1_p01:piano",
+        "spv1_p01:vocals",
+        "spv1_p01:drums",
+        "spv1_p02:other",
+        "spv1_p02:drums",
+        "spv1_p02:bass"
+      ]
+    },
+    "view_matrix": [
+      {"view_id": "project.structure", "status": "runtime_conditional", "authority": "CCB catalog and MixBoard project observation", "formal_run_gate": "ready or partial with six imported tracks"},
+      {"view_id": "track.basic_energy", "status": "runtime_conditional", "authority": "waveform envelope summary", "formal_run_gate": "ready or partial for every targetable stem"},
+      {"view_id": "track.time_dynamics", "status": "runtime_conditional", "authority": "COM source-only plus bounded time energy", "formal_run_gate": "ready or partial and fresh"},
+      {"view_id": "track.timbre_frequency", "status": "runtime_conditional", "authority": "whole-window band energy", "formal_run_gate": "ready or partial and fresh"},
+      {"view_id": "track.peak_structure", "status": "ready", "authority": "DOM source-only verified against final material", "formal_run_gate": "ready and fresh"},
+      {"view_id": "track.activity_structure", "status": "ready", "authority": "DOM source-only verified against final material", "formal_run_gate": "ready and fresh"},
+      {"view_id": "track.frequency_time_events", "status": "partial", "authority": "DOM source-only verified against final material", "missing_fact": "time-localized frequency events and event count", "formal_run_gate": "must become ready before seven-family signoff"},
+      {"view_id": "track.transient_structure", "status": "partial", "authority": "DOM source-only verified against final material", "missing_fact": "typed onset, attack/body, sustain/decay evidence", "formal_run_gate": "must become ready before seven-family signoff"},
+      {"view_id": "track.band_dynamics", "status": "partial", "authority": "DOM source-only verified against final material", "missing_fact": "per-band time distribution, crest, and cross-band motion", "formal_run_gate": "must become ready before seven-family signoff"},
+      {"view_id": "mix.multitrack_relationship", "status": "runtime_conditional", "authority": "MOM multitrack projection", "formal_run_gate": "usable project-wide observation"},
+      {"view_id": "mix.frequency_relationship", "status": "runtime_conditional", "authority": "MOM frequency relationship", "formal_run_gate": "fresh coverage for all imported tracks requested by the model"},
+      {"view_id": "mix.masking_relationship", "status": "deferred", "authority": "CCB v1 catalog", "formal_run_gate": "never required and never represented as ready"},
+      {"view_id": "processor.identity_and_controls", "status": "runtime_conditional", "authority": "post-family read-only typed inspector", "formal_run_gate": "exact loaded instance and topology are current"},
+      {"view_id": "processor.behavior", "status": "compressor_only_conditional", "authority": "COM paired_io", "formal_run_gate": "never substitute COM evidence for another family"},
+      {"view_id": "processor.change_delta", "status": "compressor_only_conditional", "authority": "COM change_delta", "formal_run_gate": "never substitute COM evidence for another family"},
+      {"view_id": "comparison.before_after", "status": "runtime_conditional", "authority": "MixBoard observation history and MOM AB result", "formal_run_gate": "fresh before and after, same tap point, same render mode, changed render revision"}
+    ],
+    "formal_run_launch_blockers_at_freeze": [
+      "track.activity_structure has noise_floor_status=missing for the Gate target",
+      "track.frequency_time_events is partial",
+      "track.transient_structure is partial",
+      "track.band_dynamics is partial"
+    ],
+    "post_action_limitations_at_freeze": [
+      "DOM paired_io and change_delta are not implemented for the five v2 dynamic families.",
+      "A generic fresh same-tap before/after comparison can establish an observed change but cannot be relabelled as family-specific processor behavior.",
+      "Typed receipts, parameter readback, snapshot verification, and rollback evidence remain required independently of the acoustic comparison."
+    ],
+    "launch_policy": "The fixture builder and runner may be implemented, but the official all-seven run must not start until runtime preflight proves a usable Gate noise-floor fact and the three fine-grained source views ready. Missing family-specific post-action DOM behavior remains an explicit limitation; generic fresh acoustic comparison plus typed execution evidence is required instead."
+  },
+  "runtime_preflight": {
+    "hard_fail_checks": [
+      "exact source hashes match",
+      "fixture audio passes format, duration, headroom, RMS-match, issue detectability, and non-target identity gates",
+      "each rebuilt project contains exactly six expected tracks and six clips",
+      "all six DAD analyses are terminal and usable",
+      "CCB catalog contains every contract view without family routing labels",
+      "model-requested and actual executed view sets are audited for exact equality",
+      "track.frequency_time_events is ready on the de-esser target",
+      "track.transient_structure is ready on the transient target",
+      "track.band_dynamics is ready on the multiband target",
+      "track.activity_structure exposes a usable noise-floor fact on the Gate target",
+      "at least one PCA-eligible candidate exists for every executable family under test",
+      "a no-op parameter round trip and rollback probe passes for every typed controller without modifying the smoke fixture",
+      "L2 before/after probe produces a ready same-tap same-mode changed-revision AB result"
+    ],
+    "failure_result": "preflight_blocked",
+    "must_not_consume_official_run_budget_on_failure": true
+  },
+  "state_machine": {
+    "states": [
+      "fixture_ready",
+      "project_importing",
+      "dad_waiting",
+      "agent_started",
+      "model_observing",
+      "model_deciding",
+      "candidate_query",
+      "model_identifier_selection",
+      "load_confirmation",
+      "preload_pca_recheck",
+      "postload_qualification",
+      "control_planning",
+      "parameter_confirmation",
+      "typed_execution",
+      "readback_and_snapshot_verification",
+      "model_post_action_observation",
+      "model_outcome",
+      "project_terminal"
+    ],
+    "required_order": [
+      "at least one successful model-requested CCB observation before the first abstract needs_action",
+      "family and a bounded reversible improvement hypothesis originate from model output; concrete controls derive only after live typed inspection",
+      "eligible candidate query precedes exact identifier selection",
+      "selected identifier is a byte-exact member of the disclosed candidate set",
+      "PCA is rechecked before load and after load",
+      "typed planning and materialization follow live topology qualification",
+      "load and parameter mutation use separate confirmations when a load is required",
+      "transaction, readback, snapshot verification, and rollback evidence follow every mutation attempt",
+      "a fresh model-requested observation follows every applied action before satisfied or continue"
+    ],
+    "terminal_model_outcomes": [
+      "satisfied",
+      "model_no_op",
+      "model_blocked",
+      "not_exercised_by_model",
+      "inconclusive"
+    ],
+    "resume_policy": {
+      "checkpoint_after_every_state_transition": true,
+      "resume_uses_same_conversation_and_original_intent": true,
+      "maximum_transport_resumes_per_project": 2,
+      "mutation_replay_forbidden_unless_prior_receipt_proves_not_applied": true,
+      "partial_report_required_on_timeout_or_failure": true
+    }
+  },
+  "limits": {
+    "project_import_and_dad_timeout_seconds": 600,
+    "model_turn_timeout_seconds": 420,
+    "governed_action_timeout_seconds": 600,
+    "project_timeout_seconds": 3000,
+    "global_timeout_seconds": 7200,
+    "maximum_model_turns_per_project": 18,
+    "maximum_total_actions_per_project": 6,
+    "maximum_actions_per_family_per_project": 2,
+    "maximum_transport_resumes_per_project": 2
+  },
+  "artifact_schemas": {
+    "public_manifest": {
+      "schema_version": "semantic_processor_agent_project_smoke_public_manifest.v1",
+      "required_top_level_fields": [
+        "schema_version",
+        "contract_id",
+        "fixture_set_id",
+        "created_at",
+        "blindness_contract",
+        "format",
+        "cases"
+      ],
+      "required_case_fields": [
+        "public_case_id",
+        "stems_directory",
+        "project_path",
+        "track_order",
+        "sample_rate_hz",
+        "channels",
+        "frames",
+        "duration_seconds",
+        "stem_files"
+      ],
+      "required_stem_fields": [
+        "track",
+        "file",
+        "sha256",
+        "size_bytes"
+      ],
+      "forbidden_anywhere": [
+        "source_material",
+        "source_project",
+        "source_song_name",
+        "issue_assignments",
+        "issue_id",
+        "expected_family",
+        "expected_target_track",
+        "target_track",
+        "fault_recipe",
+        "detectability_assertion",
+        "clean_reference",
+        "fixed_reference",
+        "sealed_metrics"
+      ]
+    },
+    "sealed_truth": {
+      "schema_version": "semantic_processor_agent_project_smoke_sealed_truth.v1",
+      "required_top_level_fields": [
+        "schema_version",
+        "contract_id",
+        "fixture_set_id",
+        "warning",
+        "source_inventory",
+        "cases"
+      ],
+      "required_case_fields": [
+        "public_case_id",
+        "source_material",
+        "issue_assignments",
+        "clean_reference",
+        "problem_reference",
+        "fixed_reference",
+        "sealed_metrics",
+        "fixture_validation"
+      ],
+      "required_issue_fields": [
+        "issue_id",
+        "expected_family",
+        "expected_target_track",
+        "fault_recipe",
+        "detectability_assertion",
+        "measured_delta_vs_clean",
+        "interference_checks"
+      ],
+      "access_rule": "The runner process must not open this artifact or receive its path. Only the offline evaluator may open it after a run report or labelled partial report is closed."
+    },
+    "run_checkpoint": {
+      "schema_version": "semantic_processor_agent_project_smoke_checkpoint.v1",
+      "required_fields": [
+        "run_id",
+        "public_case_id",
+        "conversation_id",
+        "original_intent_hash",
+        "state",
+        "state_index",
+        "last_response_artifact",
+        "pending_interaction_id",
+        "applied_action_receipt_ids",
+        "project_revision",
+        "updated_at"
+      ]
+    },
+    "run_report": {
+      "schema_version": "semantic_processor_agent_project_smoke_run_report.v1",
+      "required_top_level_fields": [
+        "schema_version",
+        "contract_id",
+        "fixture_set_id",
+        "run_id",
+        "status",
+        "started_at",
+        "ended_at",
+        "elapsed_seconds",
+        "sealed_truth_opened_by_runner",
+        "projects",
+        "family_coverage",
+        "partial_report",
+        "resume_continuation"
+      ],
+      "required_project_fields": [
+        "public_case_id",
+        "conversation_id",
+        "original_intent_hash",
+        "project_lifecycle",
+        "model_turns",
+        "model_outcomes",
+        "agent_conformance",
+        "execution_evidence",
+        "timeouts",
+        "checkpoint_history",
+        "terminal_state"
+      ],
+      "partial_report_fields": [
+        "is_partial",
+        "closed_at",
+        "last_completed_state",
+        "failure_or_timeout",
+        "evidence_complete_through_state",
+        "missing_evidence",
+        "resume_eligible"
+      ],
+      "resume_continuation_fields": [
+        "resumed",
+        "resume_count",
+        "checkpoint_id",
+        "same_conversation",
+        "original_intent_hash_matches",
+        "mutation_replay_guard",
+        "continuation_results"
+      ],
+      "sealed_truth_opened_by_runner_must_equal": false
+    },
+    "evaluation_report": {
+      "schema_version": "semantic_processor_agent_project_smoke_evaluation.v1",
+      "required_top_level_fields": [
+        "schema_version",
+        "contract_id",
+        "fixture_set_id",
+        "run_id",
+        "status",
+        "agent_conformance_summary",
+        "model_outcome_summary",
+        "family_coverage",
+        "case_classification_counts",
+        "projects",
+        "mixing_layer_readiness"
+      ],
+      "required_issue_fields": [
+        "issue_id",
+        "expected_family",
+        "expected_target_track",
+        "model_selected_families",
+        "model_selected_targets",
+        "model_outcome",
+        "agent_conformance",
+        "classification",
+        "execution_evidence_summary",
+        "failure_taxonomy"
+      ],
+      "evaluation_access_rule": "The evaluator opens sealed truth only after the run report or labelled partial report is atomically closed."
+    }
+  },
+  "result_contract": {
+    "required_top_level_fields": [
+      "schema_version",
+      "contract_id",
+      "fixture_set_id",
+      "run_id",
+      "status",
+      "started_at",
+      "ended_at",
+      "elapsed_seconds",
+      "sealed_truth_opened_by_runner",
+      "projects",
+      "family_coverage",
+      "partial_report",
+      "resume_continuation"
+    ],
+    "model_outcome_enum": [
+      "satisfied",
+      "model_no_op",
+      "model_blocked",
+      "not_exercised_by_model",
+      "inconclusive"
+    ],
+    "agent_conformance_enum": [
+      "pass",
+      "fail",
+      "not_applicable",
+      "unobservable"
+    ],
+    "execution_evidence_required_fields": [
+      "model_observation_receipts",
+      "semantic_intent_artifacts",
+      "candidate_sets",
+      "model_selected_identifiers",
+      "pca_preload_receipts",
+      "pca_postload_receipts",
+      "typed_controller_receipts",
+      "confirmation_receipts",
+      "transaction_receipts",
+      "parameter_readbacks",
+      "snapshot_verifications",
+      "rollback_receipts",
+      "post_action_observation_receipts",
+      "ab_results"
+    ],
+    "case_classifications": [
+      "matched_expected_family",
+      "evaluator_disagreement",
+      "model_no_op",
+      "model_blocked",
+      "not_exercised_by_model",
+      "agent_conformance_failure",
+      "infrastructure_failure"
+    ],
+    "evaluator_disagreement_rule": "A model-selected alternative family is evaluator_disagreement when it is evidence-backed and fully governed. It is not automatically an Agent conformance failure and does not credit the sealed expected family.",
+    "not_exercised_rule": "A sealed family that the model never selects is recorded as not_exercised_by_model. The runner must not reveal or prompt that family to obtain coverage.",
+    "model_no_op_rule": "No mutation after adequate autonomous observation is a valid model outcome, but it does not exercise a typed family.",
+    "model_blocked_rule": "A fail-closed stop caused by insufficient evidence, PCA, identity, coverage, confirmation, topology, transaction, or fresh verification is recorded with the exact auditable blocker."
+  },
+  "family_coverage_policy": {
+    "family_exercised_definition": "The model selected the family, the exact identifier stayed within the PCA-eligible set, load/qualification passed, the typed controller reached an applied or bounded fail-closed terminal receipt, and all required evidence is present.",
+    "family_full_path_definition": "family_exercised plus an applied transaction, readback, snapshot verification, and fresh model-requested post-action evaluation",
+    "all_seven_signoff_requires_full_path_for_every_family": true,
+    "not_exercised_does_not_fail_agent_conformance": true,
+    "not_exercised_prevents_all_seven_signoff": true,
+    "evaluator_disagreement_does_not_credit_expected_family": true,
+    "official_run_repetition_policy": "No prompt-steered replay. A project may be replayed once only for an independently established transport or infrastructure failure, using the same public manifest and neutral prompt; the replay is labelled and never silently substituted."
+  },
+  "suite_acceptance": {
+    "agent_conformance_pass": [
+      "no server-injected family, target, view, coverage, identifier, plugin path, vendor mapping, or parameter ID",
+      "every mutation is attributable to a model decision and a governed typed path",
+      "PCA remains the final loading-admission authority; live typed inspection and execution remain the concrete-control authority",
+      "candidate-set membership, confirmation, transaction, readback, snapshot, rollback, and fresh-observation gates are honored",
+      "Spectral Dynamics never executes and Clipper never enters the Limiter path"
+    ],
+    "mixing_layer_readiness_pass": [
+      "agent_conformance_pass is true",
+      "all seven families satisfy family_full_path_definition",
+      "no unresolved high-severity safety or bypass finding remains",
+      "global runtime stays within 7200 seconds or the overrun has an accepted infrastructure-only explanation"
+    ],
+    "subjective_audio_quality_gate": false
+  },
+  "out_of_scope": [
+    "formal long-running Agent smoke execution",
+    "fixture builder implementation",
+    "runner implementation",
+    "evaluator implementation",
+    "production Prompt changes",
+    "PCA issuance or bulk certification",
+    "processor family routing changes",
+    "typed controller changes",
+    "full plugin-library inspection",
+    "Profile",
+    "VPS",
+    "SPAL",
+    "C2",
+    "reverb",
+    "delay"
+  ]
+}

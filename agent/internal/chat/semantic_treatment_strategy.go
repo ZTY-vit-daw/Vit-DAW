@@ -12,6 +12,10 @@ import (
 	"vit-daw-agent/internal/agentloop"
 	"vit-daw-agent/internal/config"
 	"vit-daw-agent/internal/llm"
+	"vit-daw-agent/internal/pluginsemantics"
+	"vit-daw-agent/internal/processorattestation"
+	"vit-daw-agent/internal/processorintent"
+	"vit-daw-agent/internal/processorregistry"
 	agentruntime "vit-daw-agent/internal/runtime"
 	"vit-daw-agent/internal/semanticeffect"
 	plugingrabber "vit-daw-agent/internal/workflows/plugingrabber"
@@ -23,16 +27,51 @@ const (
 )
 
 type semanticTreatmentInstance struct {
-	Key                 string                                     `json:"instance_key"`
-	TrackID             string                                     `json:"track_id"`
-	PluginID            string                                     `json:"plugin_id"`
-	PluginName          string                                     `json:"plugin_name,omitempty"`
-	ProcessorType       string                                     `json:"processor_type"`
-	QualificationStatus string                                     `json:"qualification_status"`
-	NextPlanner         string                                     `json:"next_planner"`
-	Topology            map[string]any                             `json:"generic_eq_topology,omitempty"`
-	IdentityCard        *semanticeffect.AudioProcessorIdentityCard `json:"processor_identity_card,omitempty"`
-	Limitation          string                                     `json:"limitation,omitempty"`
+	Key                  string                                     `json:"instance_key"`
+	TrackID              string                                     `json:"track_id"`
+	PluginID             string                                     `json:"plugin_id"`
+	PluginName           string                                     `json:"plugin_name,omitempty"`
+	ProcessorType        string                                     `json:"processor_type"`
+	QualificationStatus  string                                     `json:"qualification_status"`
+	NextPlanner          string                                     `json:"next_planner"`
+	Topology             map[string]any                             `json:"generic_eq_topology,omitempty"`
+	IdentityCard         *semanticeffect.AudioProcessorIdentityCard `json:"processor_identity_card,omitempty"`
+	QualifiedSurfaces    []semanticProcessorSurface                 `json:"qualified_surfaces,omitempty"`
+	Limitation           string                                     `json:"limitation,omitempty"`
+	PCAReviewed          bool                                       `json:"-"`
+	PCAEligible          bool                                       `json:"-"`
+	PCAStatus            string                                     `json:"-"`
+	PCAReason            string                                     `json:"-"`
+	PCASubjectKey        string                                     `json:"-"`
+	PCABinaryFingerprint string                                     `json:"-"`
+	PCAAttestationID     string                                     `json:"-"`
+	PCARequiredCoverage  []processorattestation.Coverage            `json:"-"`
+}
+
+// semanticProcessorSurface is an independent qualified capability exposed by
+// one loaded plugin instance. A mixed plugin is represented by multiple rows;
+// no deterministic family priority is allowed to collapse them into one.
+type semanticProcessorSurface struct {
+	SurfaceKey           string                                     `json:"surface_key"`
+	Family               string                                     `json:"family"`
+	PCAFamily            string                                     `json:"pca_family"`
+	QualificationStatus  string                                     `json:"qualification_status"`
+	NextPlanner          string                                     `json:"next_planner"`
+	CoverageVocabulary   []string                                   `json:"coverage_vocabulary,omitempty"`
+	ObservationViews     []string                                   `json:"observation_views,omitempty"`
+	OwnedParameterIDs    []string                                   `json:"owned_parameter_ids,omitempty"`
+	Topology             map[string]any                             `json:"topology,omitempty"`
+	IdentityCard         *semanticeffect.AudioProcessorIdentityCard `json:"processor_identity_card,omitempty"`
+	Limitation           string                                     `json:"limitation,omitempty"`
+	InspectOnly          bool                                       `json:"inspect_only,omitempty"`
+	PCAReviewed          bool                                       `json:"-"`
+	PCAEligible          bool                                       `json:"-"`
+	PCAStatus            string                                     `json:"-"`
+	PCAReason            string                                     `json:"-"`
+	PCASubjectKey        string                                     `json:"-"`
+	PCABinaryFingerprint string                                     `json:"-"`
+	PCAAttestationID     string                                     `json:"-"`
+	PCARequiredCoverage  []processorattestation.Coverage            `json:"-"`
 }
 
 type semanticTreatmentChoice struct {
@@ -93,7 +132,7 @@ func ordinaryAgentTreatmentStrategyIntent(userText string, requestContext map[st
 	return goal && action
 }
 
-func (s *Server) semanticTreatmentInstances(ctx context.Context, trackID string) ([]semanticTreatmentInstance, string) {
+func (s *Server) semanticTreatmentInstances(ctx context.Context, trackID string, pcaInputs ...any) ([]semanticTreatmentInstance, string) {
 	if s == nil || s.harness == nil || strings.TrimSpace(trackID) == "" {
 		return nil, ""
 	}
@@ -109,6 +148,18 @@ func (s *Server) semanticTreatmentInstances(ctx context.Context, trackID string)
 		refs = refs[:16]
 	}
 	out := make([]semanticTreatmentInstance, 0, len(refs))
+	var pcaInput semanticTreatmentPCAInput
+	var pcaInputErr error
+	if len(pcaInputs) > 0 && pcaInputs[0] != nil {
+		switch value := pcaInputs[0].(type) {
+		case map[string]any:
+			pcaInput, pcaInputErr = semanticTreatmentPCAInputFromIntent(value)
+		case semanticTreatmentPCAInput:
+			pcaInput = value
+		default:
+			pcaInput, pcaInputErr = semanticTreatmentPCAInputFromRequirement(value)
+		}
+	}
 	for index, ref := range refs {
 		instance := semanticTreatmentInstance{
 			Key:                 fmt.Sprintf("loaded_instance_%d", index+1),
@@ -119,6 +170,13 @@ func (s *Server) semanticTreatmentInstances(ctx context.Context, trackID string)
 			QualificationStatus: "identity_only",
 			NextPlanner:         "capability_boundary",
 			Limitation:          "The loaded identity is real, but no ordinary-Agent abstract parameter planner has qualified it.",
+		}
+		refIdentity := semanticTreatmentSubjectFromRef(ref)
+		if pcaInputErr != nil {
+			instance.PCAReviewed = true
+			instance.PCAStatus = "rejected"
+			instance.PCAReason = pcaInputErr.Error()
+			instance.Limitation = appendSemanticTreatmentLimitation(instance.Limitation, "PCA admission: "+pcaInputErr.Error())
 		}
 		if client == nil {
 			instance.Limitation = "kernel client is unavailable"
@@ -143,35 +201,302 @@ func (s *Server) semanticTreatmentInstances(ctx context.Context, trackID string)
 		if digest.PluginName == "" {
 			digest.PluginName = ref.Name
 		}
-		compressorSummary, compressorBoundary := plugingrabber.BuildCompressorSummaryWithBoundary(digest)
-		var card *semanticeffect.AudioProcessorIdentityCard
-		cardBoundary := ""
-		if len(compressorSummary) > 0 {
-			card, cardBoundary = plugingrabber.BuildAudioProcessorIdentityCard(digest)
+		if digest.PluginIdentifier == "" {
+			digest.PluginIdentifier = ref.Identifier
 		}
-		eqSummary := plugingrabber.BuildEQBandSummary(digest)
-		switch {
-		case card != nil:
-			// A qualified broadband compressor may expose an adjustable detector
-			// EQ. The complete processor topology is more specific than that
-			// embedded peripheral and therefore owns the instance identity.
-			instance.ProcessorType = "compressor"
-			instance.QualificationStatus = "broadband_compressor_qualified"
-			instance.NextPlanner = "semantic_compressor"
-			instance.IdentityCard = card
+		if digest.PluginPath == "" {
+			digest.PluginPath = ref.Path
+		}
+		if digest.PluginFormat == "" {
+			digest.PluginFormat = ref.Format
+		}
+		if digest.PluginManufacturer == "" {
+			digest.PluginManufacturer = ref.Manufacturer
+		}
+		instance.QualifiedSurfaces, instance.Limitation = semanticTreatmentBuildSurfaces(ref.TrackID, ref.ID, digest)
+		if pcaInputErr != nil {
+			for index := range instance.QualifiedSurfaces {
+				instance.QualifiedSurfaces[index].PCAReviewed = true
+				instance.QualifiedSurfaces[index].PCAEligible = false
+				instance.QualifiedSurfaces[index].PCAStatus = "rejected"
+				instance.QualifiedSurfaces[index].PCAReason = pcaInputErr.Error()
+				instance.QualifiedSurfaces[index].Limitation = appendSemanticTreatmentLimitation(instance.QualifiedSurfaces[index].Limitation, "PCA admission: "+pcaInputErr.Error())
+			}
+		}
+		if pcaInputErr == nil && len(pcaInputs) > 0 && pcaInputs[0] != nil {
+			instance.QualifiedSurfaces = qualifySemanticTreatmentSurfaces(instance.QualifiedSurfaces, digest, refIdentity, pcaInput)
+			instance.PCAReviewed = true
+			instance.PCARequiredCoverage = append([]processorattestation.Coverage(nil), pcaInput.RequiredCoverage...)
+			for _, surface := range instance.QualifiedSurfaces {
+				if surface.PCAReviewed {
+					instance.PCAEligible = instance.PCAEligible || surface.PCAEligible
+					instance.PCAStatus = firstNonEmpty(instance.PCAStatus, surface.PCAStatus)
+					instance.PCAReason = firstNonEmpty(instance.PCAReason, surface.PCAReason)
+					instance.PCASubjectKey = firstNonEmpty(instance.PCASubjectKey, surface.PCASubjectKey)
+					instance.PCABinaryFingerprint = firstNonEmpty(instance.PCABinaryFingerprint, surface.PCABinaryFingerprint)
+					instance.PCAAttestationID = firstNonEmpty(instance.PCAAttestationID, surface.PCAAttestationID)
+				}
+			}
+		}
+		if len(instance.QualifiedSurfaces) == 1 {
+			surface := instance.QualifiedSurfaces[0]
+			instance.ProcessorType = legacyProcessorTypeForFamily(surface.Family)
+			instance.QualificationStatus = surface.QualificationStatus
+			instance.NextPlanner = surface.NextPlanner
+			instance.Topology = surface.Topology
+			instance.IdentityCard = surface.IdentityCard
+		} else if len(instance.QualifiedSurfaces) > 1 {
+			instance.ProcessorType = "mixed"
+			instance.QualificationStatus = "multiple_surfaces"
+			instance.NextPlanner = "semantic_family_selection"
+			instance.Topology = nil
+			instance.IdentityCard = nil
 			instance.Limitation = ""
-		case len(eqSummary) > 0:
-			instance.ProcessorType = "eq"
-			instance.QualificationStatus = "generic_static_eq_qualified"
-			instance.NextPlanner = "semantic_eq"
-			instance.Topology = semanticEQTopologyPromptSummary(ref.TrackID, ref.ID, eqSummary)
-			instance.Limitation = ""
-		case compressorBoundary != "" || cardBoundary != "":
-			instance.Limitation = firstNonEmpty(cardBoundary, compressorBoundary, "compressor identity card is unavailable")
 		}
 		out = append(out, instance)
 	}
 	return out, semanticTreatmentStateToken(state, trackID)
+}
+
+// semanticTreatmentSubjectFromRef recovers missing PCA subject fields from
+// the deterministic local semantic index. Kernel rack snapshots commonly
+// expose only the live node name/path/format; this lookup keeps identity
+// binding server-owned and exact without leaking plugin identity to the LLM
+// or weakening PCA admission.
+func semanticTreatmentSubjectFromRef(ref chatPluginRef) processorattestation.Subject {
+	subject := processorattestation.Subject{
+		Name: ref.Name, Identifier: ref.Identifier, InstalledPath: ref.Path,
+		Format: ref.Format, Manufacturer: ref.Manufacturer,
+	}
+	if subject.Identifier != "" && subject.Manufacturer != "" {
+		return subject
+	}
+	index, err := pluginsemantics.Load("")
+	if err != nil {
+		return subject
+	}
+	matches := make([]pluginsemantics.Entry, 0, 2)
+	for _, entry := range index.Entries {
+		if subject.Name != "" && !strings.EqualFold(strings.TrimSpace(entry.Name), strings.TrimSpace(subject.Name)) {
+			continue
+		}
+		if subject.InstalledPath != "" && !strings.EqualFold(strings.TrimSpace(entry.PluginPath), strings.TrimSpace(subject.InstalledPath)) {
+			continue
+		}
+		matches = append(matches, entry)
+	}
+	if len(matches) != 1 {
+		return subject
+	}
+	entry := matches[0]
+	if subject.Identifier == "" {
+		subject.Identifier = entry.Identifier
+	}
+	if subject.Manufacturer == "" {
+		subject.Manufacturer = entry.Manufacturer
+	}
+	if subject.Format == "" {
+		subject.Format = entry.Format
+	}
+	if subject.InstalledPath == "" {
+		subject.InstalledPath = entry.PluginPath
+	}
+	return subject
+}
+
+func semanticTreatmentBuildSurfaces(trackID, pluginID string, digest plugingrabber.ParameterDigest) ([]semanticProcessorSurface, string) {
+	registry, registryErr := processorregistry.Default()
+	if registryErr != nil || registry == nil {
+		return nil, "processor registry unavailable: " + firstNonEmpty(errorText(registryErr), "unknown registry error")
+	}
+	surfaces := make([]semanticProcessorSurface, 0, 7)
+	limitations := make([]string, 0, 7)
+	add := func(family, status, summaryBoundary string, topology map[string]any, card *semanticeffect.AudioProcessorIdentityCard) {
+		if len(topology) == 0 && card == nil {
+			if strings.TrimSpace(summaryBoundary) != "" {
+				limitations = append(limitations, family+": "+summaryBoundary)
+			}
+			return
+		}
+		definition, ok := registry.Resolve(family)
+		if !ok {
+			limitations = append(limitations, family+": processor family is not registered")
+			return
+		}
+		row := semanticProcessorSurface{
+			SurfaceKey:          fmt.Sprintf("%s:%s:%s", trackID, pluginID, family),
+			Family:              family,
+			PCAFamily:           definition.PCAFamily,
+			QualificationStatus: status,
+			NextPlanner:         definition.Planner,
+			CoverageVocabulary:  append([]string(nil), definition.CoverageVocabulary...),
+			ObservationViews:    append([]string(nil), definition.ObservationViews...),
+			OwnedParameterIDs:   semanticSurfaceOwnedParameterIDs(topology),
+			Topology:            topology,
+			IdentityCard:        card,
+			Limitation:          summaryBoundary,
+			InspectOnly:         definition.InspectOnly,
+		}
+		surfaces = append(surfaces, row)
+	}
+
+	compressorSummary, compressorBoundary := plugingrabber.BuildCompressorSummaryWithBoundary(digest)
+	var compressorCard *semanticeffect.AudioProcessorIdentityCard
+	cardBoundary := ""
+	if len(compressorSummary) > 0 {
+		compressorCard, cardBoundary = plugingrabber.BuildAudioProcessorIdentityCard(digest)
+	}
+	add(processorintent.FamilyBroadbandCompressor, "broadband_compressor_qualified", firstNonEmpty(cardBoundary, compressorBoundary), compressorSummary, compressorCard)
+
+	eqSummary := plugingrabber.BuildEQBandSummary(digest)
+	if len(eqSummary) > 0 && semanticTreatmentEQSurfaceIsIndependent(eqSummary, len(compressorSummary) > 0) {
+		add(processorintent.FamilyStaticEQ, "generic_static_eq_qualified", "", semanticEQTopologyPromptSummary(trackID, pluginID, eqSummary), nil)
+		// The model-facing EQ projection intentionally omits parameter IDs, but
+		// the server still needs the private ownership set to detect cross-family
+		// conflicts and fail closed before any typed write.
+		for index := range surfaces {
+			if surfaces[index].Family == processorintent.FamilyStaticEQ {
+				surfaces[index].OwnedParameterIDs = semanticSurfaceOwnedParameterIDs(eqSummary)
+			}
+		}
+	}
+
+	limiterSummary, limiterBoundary := plugingrabber.BuildLimiterSummaryWithBoundary(digest)
+	add(processorintent.FamilyLimiter, "limiter_topology_qualified", limiterBoundary, limiterSummary, nil)
+
+	gateSummary, gateBoundary := plugingrabber.BuildGateExpanderSummaryWithBoundary(digest)
+	add(processorintent.FamilyGateExpander, "gate_expander_topology_qualified", gateBoundary, gateSummary, nil)
+
+	deEsserSummary, deEsserBoundary := plugingrabber.BuildDeEsserSummaryWithBoundary(digest)
+	add(processorintent.FamilyDeEsser, "de_esser_topology_qualified", deEsserBoundary, deEsserSummary, nil)
+
+	transientSummary, transientBoundary := plugingrabber.BuildTransientShaperSummaryWithBoundary(digest)
+	add(processorintent.FamilyTransientShaper, "transient_shaper_topology_qualified", transientBoundary, transientSummary, nil)
+
+	multibandSummary, multibandBoundary := plugingrabber.BuildMultibandSummaryWithBoundary(digest)
+	add(processorintent.FamilyMultibandDynamics, "multiband_dynamics_topology_qualified", multibandBoundary, multibandSummary, nil)
+
+	owners := map[string][]int{}
+	for index, surface := range surfaces {
+		for _, parameterID := range surface.OwnedParameterIDs {
+			owners[parameterID] = append(owners[parameterID], index)
+		}
+	}
+	for parameterID, indexes := range owners {
+		if len(indexes) < 2 {
+			continue
+		}
+		families := make([]string, 0, len(indexes))
+		for _, index := range indexes {
+			families = append(families, surfaces[index].Family)
+		}
+		for _, index := range indexes {
+			surfaces[index].QualificationStatus = "ownership_conflict"
+			surfaces[index].Limitation = fmt.Sprintf("parameter %s is claimed by multiple processor surfaces (%s)", parameterID, strings.Join(uniqueStrings(families), ", "))
+		}
+		limitations = append(limitations, surfaces[indexes[0]].Limitation)
+	}
+
+	return surfaces, strings.Join(uniqueStrings(limitations), "; ")
+}
+
+func semanticTreatmentEQSurfaceIsIndependent(summary map[string]any, compressorPresent bool) bool {
+	if !compressorPresent {
+		return true
+	}
+	sections := mapRowsValue(summary["sections"])
+	if len(sections) == 0 {
+		return false
+	}
+	for _, section := range sections {
+		label := strings.ToLower(firstNonEmptyText(section, "section", "name", "role"))
+		if label == "" || (!strings.Contains(label, "sidechain") && !strings.Contains(label, "side chain") && !strings.Contains(label, "detector")) {
+			return true
+		}
+	}
+	return false
+}
+
+func semanticSurfaceOwnedParameterIDs(topology map[string]any) []string {
+	owned := map[string]bool{}
+	var visit func(any)
+	visit = func(value any) {
+		switch typed := value.(type) {
+		case map[string]any:
+			for key, child := range typed {
+				key = strings.ToLower(strings.TrimSpace(key))
+				if key == "param_id" || key == "parameter_id" || strings.HasSuffix(key, "_param_id") {
+					if id := strings.TrimSpace(fmt.Sprint(child)); id != "" && id != "<nil>" {
+						owned[id] = true
+					}
+				}
+				visit(child)
+			}
+		case []any:
+			for _, child := range typed {
+				visit(child)
+			}
+		case []map[string]any:
+			for _, child := range typed {
+				visit(child)
+			}
+		case map[string]string:
+			for key, child := range typed {
+				key = strings.ToLower(strings.TrimSpace(key))
+				if key == "param_id" || key == "parameter_id" || strings.HasSuffix(key, "_param_id") {
+					if id := strings.TrimSpace(child); id != "" {
+						owned[id] = true
+					}
+				}
+			}
+		}
+	}
+	visit(topology)
+	out := make([]string, 0, len(owned))
+	for id := range owned {
+		out = append(out, id)
+	}
+	sort.Strings(out)
+	return out
+}
+
+func legacyProcessorTypeForFamily(family string) string {
+	switch family {
+	case processorintent.FamilyStaticEQ:
+		return "eq"
+	case processorintent.FamilyBroadbandCompressor:
+		return "compressor"
+	default:
+		return family
+	}
+}
+
+func processorFamilyForTreatmentProcessorType(processorType string) string {
+	raw := strings.ToLower(strings.TrimSpace(processorType))
+	if raw == processorintent.FamilyStaticEQ {
+		return processorintent.FamilyStaticEQ
+	}
+	if raw == processorintent.FamilyBroadbandCompressor {
+		return processorintent.FamilyBroadbandCompressor
+	}
+	switch canonicalPluginRecommendationProcessorType(processorType) {
+	case "eq":
+		return processorintent.FamilyStaticEQ
+	case "compressor":
+		return processorintent.FamilyBroadbandCompressor
+	case "limiter":
+		return processorintent.FamilyLimiter
+	case "gate_expander", "gate", "expander":
+		return processorintent.FamilyGateExpander
+	case "de_esser", "deesser", "de-esser":
+		return processorintent.FamilyDeEsser
+	case "transient_shaper", "transient":
+		return processorintent.FamilyTransientShaper
+	case "multiband_dynamics", "multiband":
+		return processorintent.FamilyMultibandDynamics
+	default:
+		return ""
+	}
 }
 
 func semanticTreatmentStateToken(state map[string]any, trackID string) string {
@@ -199,10 +524,38 @@ func semanticTreatmentStateToken(state map[string]any, trackID string) string {
 func semanticTreatmentQualifiedEQ(instances []semanticTreatmentInstance) []semanticTreatmentInstance {
 	out := make([]semanticTreatmentInstance, 0, len(instances))
 	for _, instance := range instances {
-		if instance.ProcessorType == "eq" && instance.QualificationStatus == "generic_static_eq_qualified" && instance.NextPlanner == "semantic_eq" {
+		if semanticTreatmentInstanceHasFamilySurface(instance, processorintent.FamilyStaticEQ) ||
+			(!instance.PCAReviewed && instance.ProcessorType == "eq" && instance.QualificationStatus == "generic_static_eq_qualified" && instance.NextPlanner == "semantic_eq") {
 			out = append(out, instance)
 		}
 	}
+	return out
+}
+
+func semanticTreatmentInstanceHasFamilySurface(instance semanticTreatmentInstance, family string) bool {
+	for _, surface := range instance.QualifiedSurfaces {
+		if surface.Family == family && semanticTreatmentSurfacePCAEligible(surface) {
+			return true
+		}
+	}
+	return false
+}
+
+func semanticTreatmentInstanceSurface(instance semanticTreatmentInstance, family string) (semanticProcessorSurface, bool) {
+	for _, surface := range instance.QualifiedSurfaces {
+		if surface.Family == family {
+			return surface, true
+		}
+	}
+	return semanticProcessorSurface{}, false
+}
+
+func semanticTreatmentSurfaceModelEnvelope(surface semanticProcessorSurface) semanticProcessorSurface {
+	out := surface
+	out.SurfaceKey = ""
+	out.OwnedParameterIDs = nil
+	out.Topology = nil
+	out.IdentityCard = nil
 	return out
 }
 
@@ -224,9 +577,55 @@ func semanticTreatmentFindPlugin(instances []semanticTreatmentInstance, pluginID
 	return semanticTreatmentInstance{}, false
 }
 
+// semanticTreatmentModelInstances is the progressive-disclosure boundary.
+// Family selection never receives loaded-instance identity or topology. Once
+// the free-state model has selected a family, only candidates in that family
+// are disclosed; topology/identity cards remain server-side until the exact
+// instance key has been selected.
+func semanticTreatmentModelInstances(instances []semanticTreatmentInstance, requiredProcessorType string) []semanticTreatmentInstance {
+	requiredProcessorType = canonicalPluginRecommendationProcessorType(requiredProcessorType)
+	if requiredProcessorType == "" {
+		return nil
+	}
+	out := make([]semanticTreatmentInstance, 0, len(instances))
+	for _, instance := range instances {
+		family := processorFamilyForTreatmentProcessorType(requiredProcessorType)
+		if family != "" {
+			if !semanticTreatmentInstanceHasFamilySurface(instance, family) && canonicalPluginRecommendationProcessorType(instance.ProcessorType) != requiredProcessorType {
+				continue
+			}
+		} else if canonicalPluginRecommendationProcessorType(instance.ProcessorType) != requiredProcessorType {
+			continue
+		}
+		row := instance
+		if family != "" {
+			if surface, ok := semanticTreatmentInstanceSurface(instance, family); ok {
+				row.ProcessorType = legacyProcessorTypeForFamily(surface.Family)
+				row.QualificationStatus = surface.QualificationStatus
+				row.NextPlanner = surface.NextPlanner
+			}
+		}
+		row.PluginID = ""
+		row.Topology = nil
+		row.IdentityCard = nil
+		if family != "" {
+			if surface, ok := semanticTreatmentInstanceSurface(instance, family); ok {
+				// The family has already been selected, so expose only the
+				// matching capability envelope. Keep topology and identity for
+				// the later exact-instance handoff, never for another family.
+				row.QualifiedSurfaces = []semanticProcessorSurface{semanticTreatmentSurfaceModelEnvelope(surface)}
+			} else {
+				row.QualifiedSurfaces = nil
+			}
+		}
+		out = append(out, row)
+	}
+	return out
+}
+
 func (s *Server) planSemanticTreatment(ctx context.Context, conversationID, userText, trackID, trackName string,
 	observation *agentloop.RecentObservation, instances []semanticTreatmentInstance, forceInstanceChoice, nativeHandoffAvailable bool,
-	cfg config.EngineConfig, requiredProcessorTypes ...string) (semanticTreatmentPlan, error) {
+	cfg config.EngineConfig, requiredProcessorTypes ...any) (semanticTreatmentPlan, error) {
 	if s == nil || s.llm == nil {
 		return semanticTreatmentPlan{}, fmt.Errorf("semantic treatment LLM is unavailable")
 	}
@@ -234,32 +633,51 @@ func (s *Server) planSemanticTreatment(ctx context.Context, conversationID, user
 		return semanticTreatmentPlan{}, fmt.Errorf("no qualified loaded EQ instance is available")
 	}
 	requiredProcessorType := ""
-	if len(requiredProcessorTypes) > 0 {
-		requiredProcessorType = canonicalPluginRecommendationProcessorType(requiredProcessorTypes[0])
+	var semanticIntent map[string]any
+	for _, value := range requiredProcessorTypes {
+		switch typed := value.(type) {
+		case string:
+			if requiredProcessorType == "" {
+				requiredProcessorType = canonicalPluginRecommendationProcessorType(typed)
+			}
+		case map[string]any:
+			if semanticIntent == nil {
+				semanticIntent = typed
+			}
+		}
 	}
+	disclosureFamily := requiredProcessorType
+	if forceInstanceChoice && disclosureFamily == "" {
+		disclosureFamily = "eq"
+	}
+	modelInstances := semanticTreatmentModelInstances(instances, disclosureFamily)
 	input := map[string]any{
 		"user_request":                          userText,
 		"target_scope":                          map[string]any{"kind": "track", "track_refs": []string{trackID}, "label": trackName},
 		"relationship_refs":                     []string{},
 		"observation_context":                   semanticEQPlannerObservation(observation),
-		"loaded_plugin_instances":               instances,
-		"allowed_load_required_processor_types": []string{"eq", "compressor", "reverb", "delay", "distortion", "limiter"},
+		"loaded_plugin_instances":               modelInstances,
+		"allowed_load_required_processor_types": []string{"eq", "compressor", "limiter", "gate_expander", "de_esser", "transient_shaper", "multiband_dynamics"},
 		"native_agent_result_handoff_available": nativeHandoffAvailable,
 		"planning_mode":                         map[bool]string{true: "loaded_eq_instance_arbitration", false: "treatment_method_arbitration"}[forceInstanceChoice],
 	}
 	if requiredProcessorType != "" {
 		input["required_processor_type"] = requiredProcessorType
+		input["allowed_load_required_processor_types"] = []string{requiredProcessorType}
+	}
+	if len(semanticIntent) > 0 {
+		input["semantic_processor_intent"] = cloneContext(semanticIntent)
 	}
 	inputJSON, _ := json.Marshal(input)
 	system := `You are the treatment-strategy phase of an ordinary DAW Agent. This is a horizontal capability, not B4 or any A-F specialist workflow.
 The user request, exact target scope, optional observation evidence, and real loaded instances are supplied as JSON. You own the acoustic and musical method judgement. Deterministic code owns identity binding, qualification, capability boundaries, confirmation, execution, readback, rollback, and verification.
 
 Return ONLY one semantic_treatment_strategy.v1 JSON object:
-{"schema_version":"semantic_treatment_strategy.v1","decision_mode":"direct|choice_required","user_goal":"copy user goal","summary":"short summary in the user's language","choices":[{"choice_key":"stable unique key","role":"recommended|alternative","title":"short method label","processor_type":"eq|compressor|reverb|delay|distortion|limiter|native","target_mode":"existing_plugin|load_required|native","instance_key":"exact supplied key when existing_plugin","reason":"task-specific reason","expected_effect":"audible intent","tradeoff":"meaningful difference or limitation","confidence":"low|medium|high","next_planner":"semantic_eq|semantic_compressor|plugin_recommendation|existing_agent_result|capability_boundary","material_difference":"why this is not a duplicate"}],"global_constraints":[],"evidence_refs":[],"limitations":[]}
+	{"schema_version":"semantic_treatment_strategy.v1","decision_mode":"direct|choice_required","user_goal":"copy user goal","summary":"short summary in the user's language","choices":[{"choice_key":"stable unique key","role":"recommended|alternative","title":"short method label","processor_type":"eq|compressor|limiter|gate_expander|de_esser|transient_shaper|multiband_dynamics|native","target_mode":"existing_plugin|load_required|native","instance_key":"exact supplied key when existing_plugin","reason":"task-specific reason","expected_effect":"audible intent","tradeoff":"meaningful difference or limitation","confidence":"low|medium|high","next_planner":"semantic_eq|semantic_compressor|semantic_limiter|semantic_gate_expander|semantic_de_esser|semantic_transient_shaper|semantic_multiband|plugin_recommendation|existing_agent_result|capability_boundary","material_difference":"why this is not a duplicate"}],"global_constraints":[],"evidence_refs":[],"limitations":[]}
 
 Rules:
 - Do not invent a track, plugin, instance_key, observation, or executable capability.
-- An existing_plugin choice must use an exact supplied instance_key. A generic_static_eq_qualified EQ may use next_planner=semantic_eq. A broadband_compressor_qualified compressor may use next_planner=semantic_compressor. An identity_only instance must use capability_boundary.
+- An existing_plugin choice must use an exact supplied instance_key. Use the supplied qualified surface's registry planner (for example semantic_eq, semantic_compressor, semantic_limiter, semantic_gate_expander, semantic_de_esser, semantic_transient_shaper, or semantic_multiband) only when that surface is PCA-eligible. An identity-only or inspect-only instance must use capability_boundary.
 - A load_required choice omits instance_key and uses next_planner=plugin_recommendation. It means recommend/select/load first, not that parameters are already controllable.
 - A native choice is allowed only when native_agent_result_handoff_available=true. It must be the sole direct recommendation and use next_planner=existing_agent_result; never place native in a three-way selection because that result cannot be frozen across this choice interaction.
 - Use decision_mode=direct with exactly one recommended choice when one method is clearly appropriate and no meaningful user decision remains.
@@ -277,6 +695,10 @@ Rules:
 		system += `
 - required_processor_type is the upstream free-state reasoning decision. Treat it as a hard family constraint, use decision_mode=direct with exactly one recommended choice of that processor_type, and decide only whether a qualified existing instance or load_required can materialize it. Do not offer or recommend another processor family.`
 	}
+	if len(semanticIntent) > 0 {
+		system += `
+- semantic_processor_intent.v1 is the upstream model-owned semantic handoff. Preserve its family, open intent, scope, evidence references, and required coverage exactly; deterministic code will validate them again. This strategy stage may choose only an exact qualified instance or a governed load-required handoff for that family.`
+	}
 	request := llm.Request{
 		Messages:   []llm.Message{{Role: "system", Content: system}, {Role: "user", Content: string(inputJSON)}},
 		Metadata:   llm.RequestMetadata{Source: "ordinary_agent_semantic_treatment_strategy", ConversationID: conversationID},
@@ -286,7 +708,7 @@ Rules:
 	if err != nil {
 		return semanticTreatmentPlan{}, err
 	}
-	plan, decodeErr := decodeAndValidateSemanticTreatmentPlan(response.Text, userText, instances, forceInstanceChoice, nativeHandoffAvailable)
+	plan, decodeErr := decodeAndValidateSemanticTreatmentPlan(response.Text, userText, modelInstances, forceInstanceChoice, nativeHandoffAvailable)
 	if decodeErr == nil {
 		decodeErr = semanticTreatmentRequiredProcessorIssue(plan, requiredProcessorType)
 	}
@@ -299,7 +721,7 @@ Rules:
 	if err != nil {
 		return semanticTreatmentPlan{}, err
 	}
-	plan, err = decodeAndValidateSemanticTreatmentPlan(response.Text, userText, instances, forceInstanceChoice, nativeHandoffAvailable)
+	plan, err = decodeAndValidateSemanticTreatmentPlan(response.Text, userText, modelInstances, forceInstanceChoice, nativeHandoffAvailable)
 	if err == nil {
 		err = semanticTreatmentRequiredProcessorIssue(plan, requiredProcessorType)
 	}
@@ -404,10 +826,17 @@ func decodeAndValidateSemanticTreatmentPlan(text, userText string, instances []s
 				return plan, fmt.Errorf("choice %d processor_type does not match the bound instance", index+1)
 			}
 			expectedPlanner := "capability_boundary"
-			if instance.QualificationStatus == "generic_static_eq_qualified" && choice.ProcessorType == "eq" {
-				expectedPlanner = "semantic_eq"
-			} else if instance.QualificationStatus == "broadband_compressor_qualified" && choice.ProcessorType == "compressor" {
-				expectedPlanner = "semantic_compressor"
+			if family := processorFamilyForTreatmentProcessorType(choice.ProcessorType); family != "" {
+				if surface, surfaceOK := semanticTreatmentInstanceSurface(instance, family); surfaceOK && semanticTreatmentSurfacePCAEligible(surface) {
+					expectedPlanner = surface.NextPlanner
+				}
+			}
+			if expectedPlanner == "capability_boundary" && !instance.PCAReviewed {
+				if instance.QualificationStatus == "generic_static_eq_qualified" && choice.ProcessorType == "eq" {
+					expectedPlanner = "semantic_eq"
+				} else if instance.QualificationStatus == "broadband_compressor_qualified" && choice.ProcessorType == "compressor" {
+					expectedPlanner = "semantic_compressor"
+				}
 			}
 			if choice.NextPlanner != expectedPlanner {
 				return plan, fmt.Errorf("choice %d next_planner exceeds qualified instance capability", index+1)
@@ -592,7 +1021,13 @@ func (s *Server) continueSemanticTreatmentInteraction(ctx context.Context, inter
 	if trackID == "" || s == nil || s.harness == nil {
 		return semanticTreatmentInvalidSelectionResponse(interaction, "处理策略缺少当前精确目标轨道；工程没有被修改。", "treatment_target_unavailable")
 	}
-	instances, currentToken := s.semanticTreatmentInstances(ctx, trackID)
+	// A stored interaction is not PCA authority. Re-read every selected surface
+	// against the same model-owned family and coverage before materialization.
+	var pcaInput any
+	if intent := firstMapFromAny(interaction.RequestContext["free_state_semantic_processor_intent"]); len(intent) > 0 {
+		pcaInput = intent
+	}
+	instances, currentToken := s.semanticTreatmentInstances(ctx, trackID, pcaInput)
 	if expected := firstStringFromMap(interaction.Payload, "state_token"); expected == "" || currentToken == "" || expected != currentToken {
 		return semanticTreatmentInvalidSelectionResponse(interaction, "选择期间工程或插件实例状态已经改变，旧策略已失效；请重新发起处理请求。", "stale_treatment_strategy")
 	}
@@ -624,8 +1059,26 @@ func (s *Server) continueSemanticTreatmentInteraction(ctx context.Context, inter
 			return s.semanticTreatmentPlanEQResponse(ctx, interaction.ConversationID, goal, requestContext,
 				observation, interaction.GoalID, interaction.RunID)
 		}
-		return s.semanticTreatmentPlanCompressorResponse(ctx, interaction.ConversationID, goal, requestContext,
-			interaction.GoalID, interaction.RunID)
+		if processorType == "compressor" {
+			return s.semanticTreatmentPlanCompressorResponse(ctx, interaction.ConversationID, goal, requestContext,
+				interaction.GoalID, interaction.RunID)
+		}
+		family, planner, adapterOK := semanticPostLoadAdapterForProcessorType(processorType)
+		if !adapterOK {
+			return semanticTreatmentCapabilityBoundaryResponse(interaction, selected,
+				"所选 family 没有可用的受治理 adapter；没有修改工程。")
+		}
+		cfg, _, cfgErr := config.Load()
+		if cfgErr != nil || !cfg.Complete() {
+			if cfgErr == nil {
+				cfgErr = fmt.Errorf("AI configuration is incomplete")
+			}
+			return semanticTreatmentCapabilityBoundaryResponse(interaction, selected, cfgErr.Error())
+		}
+		return s.planBoundSemanticDynamic(ctx, interaction.ConversationID, goal, requestContext, family,
+			semanticDynamicObservationFromRecent(observation), cfg)
+		return semanticTreatmentCapabilityBoundaryResponse(interaction, selected,
+			fmt.Sprintf("已确认 %s 的现有实例具备 PCA 资格，但 %s adapter（%s）尚未提供具体语义 planner；没有写入参数。", family, family, planner))
 	case "load_required":
 		requestContext["semantic_treatment_selection"] = true
 		if processorType == "eq" {
@@ -634,6 +1087,13 @@ func (s *Server) continueSemanticTreatmentInteraction(ctx context.Context, inter
 		} else if processorType == "compressor" {
 			requestContext["semantic_compressor_post_load_handoff"] = true
 			requestContext["semantic_compressor_post_load_goal"] = goal
+		}
+		if family, planner, ok := semanticPostLoadAdapterForProcessorType(processorType); ok {
+			requestContext["semantic_post_load_handoff"] = true
+			requestContext["semantic_post_load_family"] = family
+			requestContext["semantic_post_load_planner"] = planner
+			requestContext["semantic_post_load_goal"] = goal
+			requestContext["semantic_post_load_semantic_processor_intent"] = cloneContext(firstMapFromAny(interaction.RequestContext["free_state_semantic_processor_intent"]))
 		}
 		cfg, _, err := config.Load()
 		if err != nil || !cfg.Complete() {
@@ -680,6 +1140,17 @@ func (s *Server) semanticTreatmentPlanEQResponse(ctx context.Context, conversati
 }
 
 func semanticTreatmentInstanceExecutable(instance semanticTreatmentInstance, processorType, nextPlanner string) bool {
+	if canonical := canonicalPluginRecommendationProcessorType(processorType); canonical != "" {
+		processorType = canonical
+	}
+	if family := processorFamilyForTreatmentProcessorType(processorType); family != "" && len(instance.QualifiedSurfaces) > 0 {
+		for _, surface := range instance.QualifiedSurfaces {
+			if surface.Family == family && semanticTreatmentSurfacePCAEligible(surface) && surface.NextPlanner == nextPlanner {
+				return true
+			}
+		}
+		return false
+	}
 	switch processorType {
 	case "eq":
 		return instance.ProcessorType == "eq" && instance.QualificationStatus == "generic_static_eq_qualified" && nextPlanner == "semantic_eq"
@@ -706,6 +1177,9 @@ func (s *Server) semanticTreatmentPlanCompressorResponse(ctx context.Context, co
 
 func (s *Server) routeOrdinaryAgentSemanticEQ(ctx context.Context, conversationID, mode, userText string,
 	requestContext map[string]any, res agentloop.Result, cfg config.EngineConfig) (ChatResponse, bool) {
+	if contextBool(requestContext, "semantic_entry_unavailable") {
+		return ChatResponse{}, false
+	}
 	if freeStateRouteAuthorized(requestContext) || !ordinaryAgentSemanticEQMutationRequest(userText, requestContext) {
 		return ChatResponse{}, false
 	}
@@ -786,18 +1260,57 @@ func (s *Server) routeOrdinaryAgentSemanticEQ(ctx context.Context, conversationI
 
 func (s *Server) routeOrdinaryAgentTreatmentStrategy(ctx context.Context, conversationID, mode, userText string,
 	requestContext map[string]any, res agentloop.Result, cfg config.EngineConfig) (ChatResponse, bool) {
-	if !freeStateRouteAuthorized(requestContext) && !ordinaryAgentTreatmentStrategyIntent(userText, requestContext) {
+	if contextBool(requestContext, "semantic_entry_unavailable") {
+		return ChatResponse{}, false
+	}
+	if !freeStateRouteAuthorized(requestContext) {
 		return ChatResponse{}, false
 	}
 	trackID := firstStringFromMap(requestContext, "selected_track_id", "selected_plugin_track_id")
 	trackName := firstStringFromMap(requestContext, "selected_track_name")
-	instances, stateToken := s.semanticTreatmentInstances(ctx, trackID)
 	nativeHandoff := semanticTreatmentNativeHandoffAvailable(res)
 	requiredProcessorType := ""
 	if freeStateRouteAuthorized(requestContext) {
 		requiredProcessorType = firstStringFromMap(requestContext, "free_state_processor_type")
 	}
-	plan, err := s.planSemanticTreatment(ctx, conversationID, userText, trackID, trackName, res.RecentObservation, instances, false, nativeHandoff, cfg, requiredProcessorType)
+	semanticIntent := firstMapFromAny(requestContext["free_state_semantic_processor_intent"])
+	if freeStateRouteAuthorized(requestContext) && res.FreeStateDecision != nil &&
+		strings.EqualFold(strings.TrimSpace(res.FreeStateDecision.Status), agentloop.FreeStateNeedsAction) &&
+		strings.ToLower(strings.TrimSpace(requiredProcessorType)) != "native" &&
+		processorFamilyForTreatmentProcessorType(requiredProcessorType) != "" && len(semanticIntent) == 0 {
+		return semanticTreatmentDirectBoundaryResponse(conversationID, res, semanticTreatmentPlan{}, semanticTreatmentChoice{},
+			"free-state needs_action requires the model-owned semantic_processor_intent; no family, coverage, or parameter action was materialized"), true
+	}
+	if len(semanticIntent) > 0 {
+		rawIntent, _ := json.Marshal(semanticIntent)
+		decodedIntent, intentErr := processorintent.Decode(string(rawIntent))
+		if intentErr != nil || decodedIntent.Status != processorintent.StatusResolved ||
+			(processorFamilyForTreatmentProcessorType(requiredProcessorType) != "" && decodedIntent.Family != processorFamilyForTreatmentProcessorType(requiredProcessorType)) {
+			return semanticTreatmentDirectBoundaryResponse(conversationID, res, semanticTreatmentPlan{}, semanticTreatmentChoice{},
+				"free-state semantic_processor_intent failed deterministic validation; no processor family or parameter action was materialized"), true
+		}
+		_, registryErr := processorregistry.Default()
+		if registryErr != nil {
+			return semanticTreatmentPlannerErrorResponse(conversationID, res, registryErr), true
+		}
+		if orchestratorErr := semanticProgressiveDisclosureAccept(requestContext, decodedIntent, res, res.RecentObservation); orchestratorErr != nil {
+			return semanticTreatmentDirectBoundaryResponse(conversationID, res, semanticTreatmentPlan{}, semanticTreatmentChoice{},
+				"free-state semantic intent cannot enter the progressive-disclosure orchestrator: "+orchestratorErr.Error()), true
+		}
+	}
+	var instancePCAInput any
+	if len(semanticIntent) > 0 {
+		instancePCAInput = semanticIntent
+	}
+	instances, stateToken := s.semanticTreatmentInstances(ctx, trackID, instancePCAInput)
+	planArgs := []any{}
+	if requiredProcessorType != "" {
+		planArgs = append(planArgs, requiredProcessorType)
+	}
+	if len(semanticIntent) > 0 {
+		planArgs = append(planArgs, semanticIntent)
+	}
+	plan, err := s.planSemanticTreatment(ctx, conversationID, userText, trackID, trackName, res.RecentObservation, instances, false, nativeHandoff, cfg, planArgs...)
 	if err != nil {
 		return semanticTreatmentPlannerErrorResponse(conversationID, res, err), true
 	}
@@ -827,6 +1340,17 @@ func (s *Server) routeOrdinaryAgentTreatmentStrategy(ctx context.Context, conver
 		if choice.ProcessorType == "compressor" {
 			return s.planBoundSemanticCompressor(ctx, conversationID, userText, bound, cfg), true
 		}
+		if choice.ProcessorType != "eq" {
+			family, planner, ok := semanticPostLoadAdapterForProcessorType(choice.ProcessorType)
+			if !ok {
+				return semanticTreatmentDirectBoundaryResponse(conversationID, res, plan, choice,
+					"所选 family 没有可用的受治理 adapter；没有修改工程。"), true
+			}
+			return s.planBoundSemanticDynamic(ctx, conversationID, userText, bound, family,
+				semanticDynamicObservationFromRecent(res.RecentObservation), cfg), true
+			return semanticTreatmentDirectBoundaryResponse(conversationID, res, plan, choice,
+				fmt.Sprintf("已确认 %s 的 PCA 资格，但 %s adapter（%s）尚未提供具体语义 planner；没有写入参数。", family, planner, choice.NextPlanner)), true
+		}
 		bound["generic_eq_topology"] = instance.Topology
 		planned, err := s.ensureOrdinaryAgentSemanticEQExecutable(ctx, conversationID, userText, bound, res.RecentObservation, cfg, nil)
 		if err != nil {
@@ -843,6 +1367,13 @@ func (s *Server) routeOrdinaryAgentTreatmentStrategy(ctx context.Context, conver
 		} else if choice.ProcessorType == "compressor" {
 			requestContext["semantic_compressor_post_load_handoff"] = true
 			requestContext["semantic_compressor_post_load_goal"] = strings.TrimSpace(userText)
+		}
+		if family, planner, ok := semanticPostLoadAdapterForProcessorType(choice.ProcessorType); ok {
+			requestContext["semantic_post_load_handoff"] = true
+			requestContext["semantic_post_load_family"] = family
+			requestContext["semantic_post_load_planner"] = planner
+			requestContext["semantic_post_load_goal"] = strings.TrimSpace(userText)
+			requestContext["semantic_post_load_semantic_processor_intent"] = cloneContext(semanticIntent)
 		}
 		return s.ordinaryAgentPluginRecommendationResponseForProcessor(ctx, conversationID, mode, userText, requestContext, res, choice.ProcessorType, cfg), true
 	case "native":
@@ -901,7 +1432,7 @@ func (s *Server) semanticEQPostLoadHandoff(ctx context.Context, plan PendingPlan
 				"status": "qualification_failed", "processor_type": "eq", "track_id": trackID, "mutation_performed": false},
 			GoalStatus: string(agentruntime.StatusCompleted), StopReason: "semantic_eq_post_load_identity_missing"}, true
 	}
-	_, summary, err := s.readLiveEQControlSurface(ctx, trackID, pluginID)
+	digest, summary, err := s.readLiveEQControlSurface(ctx, trackID, pluginID)
 	if err != nil || len(summary) == 0 {
 		return ChatResponse{ConversationID: conversationID, GoalID: goalID, RunID: runID,
 			Reply: fmt.Sprintf("已加载 %s，但该实际实例没有通过普通 Agent 通用静态 EQ 资格确认，因此没有生成或写入参数方案。限制：%s",
@@ -911,15 +1442,33 @@ func (s *Server) semanticEQPostLoadHandoff(ctx context.Context, plan PendingPlan
 				"plugin_name": pluginName, "mutation_performed": false, "limitation": errorText(err)},
 			GoalStatus: string(agentruntime.StatusCompleted), StopReason: "semantic_eq_post_load_not_qualified"}, true
 	}
+	if _, pcaErr := semanticPostLoadPCAQualification(plan, digest, processorattestation.FamilyStaticEQ, trackID, pluginID, pluginName); pcaErr != nil {
+		return ChatResponse{ConversationID: conversationID, GoalID: goalID, RunID: runID,
+			Reply:    fmt.Sprintf("已加载 %s，但当前 exact identity 未通过 PCA 复核，因此没有生成或写入 EQ 参数方案。限制：%s", firstNonEmpty(pluginName, pluginID), pcaErr),
+			Workflow: semanticTreatmentWorkflow, WorkflowData: map[string]any{"schema_version": semanticTreatmentSchema,
+				"status": "qualification_failed", "processor_type": "eq", "track_id": trackID, "plugin_id": pluginID,
+				"mutation_performed": false, "pca_rejection": pcaErr.Error()},
+			GoalStatus: string(agentruntime.StatusCompleted), StopReason: "semantic_eq_post_load_pca_rejected"}, true
+	}
+	pcaReceipt, hasPCAReceipt, receiptErr := semanticPCAAdmissionReceiptFromPlan(plan)
+	if receiptErr != nil || !hasPCAReceipt {
+		return ChatResponse{ConversationID: conversationID, GoalID: goalID, RunID: runID,
+			Reply:    fmt.Sprintf("已加载 %s，但 PCA admission receipt 无法交接到 EQ 执行边界，因此没有生成或写入 EQ 参数方案。", firstNonEmpty(pluginName, pluginID)),
+			Workflow: semanticTreatmentWorkflow, WorkflowData: map[string]any{"schema_version": semanticTreatmentSchema,
+				"status": "qualification_failed", "processor_type": "eq", "track_id": trackID, "plugin_id": pluginID,
+				"mutation_performed": false, "pca_rejection": firstNonEmpty(errorText(receiptErr), "pca admission receipt is missing")},
+			GoalStatus: string(agentruntime.StatusCompleted), StopReason: "semantic_eq_post_load_receipt_missing"}, true
+	}
 	requestContext := cloneContext(firstMapFromAny(plan.WorkflowData["semantic_eq_post_load_request_context"]))
 	if requestContext == nil {
 		requestContext = cloneContext(plan.Context)
 	}
 	requestContext = mergeContext(requestContext, map[string]any{
 		"selected_track_id": trackID, "selected_plugin_track_id": trackID, "selected_plugin_id": pluginID,
-		"selected_plugin_name": firstNonEmpty(pluginName, firstStringFromMap(plan.WorkflowData, "plugin_name")),
-		"generic_eq_topology":  semanticEQTopologyPromptSummary(trackID, pluginID, summary),
-		"conversation_id":      conversationID, "goal_id": goalID, "run_id": runID,
+		"selected_plugin_name":  firstNonEmpty(pluginName, firstStringFromMap(plan.WorkflowData, "plugin_name")),
+		"generic_eq_topology":   semanticEQTopologyPromptSummary(trackID, pluginID, summary),
+		"pca_admission_receipt": semanticPCAAdmissionReceiptMap(pcaReceipt),
+		"conversation_id":       conversationID, "goal_id": goalID, "run_id": runID,
 	})
 	observation := semanticTreatmentObservationFromPayload(map[string]any{
 		"observation_context": firstMapFromAny(plan.WorkflowData["semantic_eq_post_load_observation_context"]),
@@ -974,6 +1523,14 @@ func (s *Server) semanticCompressorPostLoadHandoff(ctx context.Context, plan Pen
 				"plugin_name": pluginName, "mutation_performed": false, "limitation": firstNonEmpty(errorText(err), boundary)},
 			GoalStatus: string(agentruntime.StatusCompleted), StopReason: "semantic_compressor_post_load_not_qualified"}, true
 	}
+	if _, pcaErr := semanticPostLoadPCAQualification(plan, digest, processorattestation.FamilyBroadbandCompressor, trackID, pluginID, pluginName); pcaErr != nil {
+		return ChatResponse{ConversationID: conversationID, GoalID: goalID, RunID: runID,
+			Reply:    fmt.Sprintf("已加载 %s，但当前 exact identity 未通过 PCA 复核，因此没有生成或写入压缩器参数方案。限制：%s", firstNonEmpty(pluginName, pluginID), pcaErr),
+			Workflow: semanticTreatmentWorkflow, WorkflowData: map[string]any{"schema_version": semanticTreatmentSchema,
+				"status": "qualification_failed", "processor_type": "compressor", "track_id": trackID, "plugin_id": pluginID,
+				"mutation_performed": false, "pca_rejection": pcaErr.Error()},
+			GoalStatus: string(agentruntime.StatusCompleted), StopReason: "semantic_compressor_post_load_pca_rejected"}, true
+	}
 	requestContext := cloneContext(firstMapFromAny(plan.WorkflowData["semantic_compressor_post_load_request_context"]))
 	if requestContext == nil {
 		requestContext = cloneContext(plan.Context)
@@ -998,19 +1555,116 @@ func (s *Server) semanticCompressorPostLoadHandoff(ctx context.Context, plan Pen
 	return resp, true
 }
 
+// semanticGenericPostLoadHandoff is the common post-load admission boundary
+// for registered dynamic families. It performs the complete exact-identity,
+// fingerprint, PCA coverage, and live-topology recheck; it never falls back
+// to a generic parameter writer.
+func (s *Server) semanticGenericPostLoadHandoff(ctx context.Context, plan PendingPlan, replies []map[string]any) (ChatResponse, bool) {
+	if !boolValue(plan.WorkflowData["semantic_post_load_handoff"]) {
+		return ChatResponse{}, false
+	}
+	trackID, pluginID, pluginName := pluginLoadResultIDs(replies)
+	if trackID == "" {
+		trackID = firstStringFromMap(plan.WorkflowData, "track_id")
+	}
+	goalID, runID := goalIDsFromContext(plan.Context)
+	conversationID := firstStringFromMap(plan.Context, "conversation_id")
+	family := firstStringFromMap(plan.WorkflowData, "semantic_post_load_family")
+	if family == "" {
+		family = firstStringFromMap(plan.Context, "semantic_post_load_family")
+	}
+	if pluginID == "" || trackID == "" || family == "" {
+		return ChatResponse{ConversationID: conversationID, GoalID: goalID, RunID: runID,
+			Reply:    "插件已加载，但 post-load PCA 复核缺少精确实例或 family 身份；没有生成或写入参数。",
+			Workflow: semanticTreatmentWorkflow, WorkflowData: map[string]any{"schema_version": semanticTreatmentSchema,
+				"status": "qualification_failed", "processor_type": legacyProcessorTypeForFamily(family), "mutation_performed": false},
+			GoalStatus: string(agentruntime.StatusCompleted), StopReason: "semantic_post_load_identity_missing"}, true
+	}
+	client := s.eqKernelClient()
+	if client == nil {
+		return ChatResponse{ConversationID: conversationID, GoalID: goalID, RunID: runID,
+			Reply:    "插件已加载，但无法读取 live topology；没有生成或写入参数。",
+			Workflow: semanticTreatmentWorkflow, WorkflowData: map[string]any{"schema_version": semanticTreatmentSchema,
+				"status": "qualification_failed", "processor_type": legacyProcessorTypeForFamily(family), "mutation_performed": false},
+			GoalStatus: string(agentruntime.StatusCompleted), StopReason: "semantic_post_load_topology_unavailable"}, true
+	}
+	reply, _, err := client.SendCommand(ctx, map[string]any{"cmd": "get_plugin_parameters", "track_id": trackID, "plugin_id": pluginID, "include_parameters": true})
+	if err != nil || !kernelReplyOK(reply) {
+		reason := firstNonEmpty(errorText(err), firstNonEmptyText(reply, "message", "error"), "live parameter read failed")
+		return ChatResponse{ConversationID: conversationID, GoalID: goalID, RunID: runID,
+			Reply:    fmt.Sprintf("插件已加载，但 live topology 读取失败：%s；没有生成或写入参数。", reason),
+			Workflow: semanticTreatmentWorkflow, WorkflowData: map[string]any{"schema_version": semanticTreatmentSchema,
+				"status": "qualification_failed", "processor_type": legacyProcessorTypeForFamily(family), "mutation_performed": false, "limitation": reason},
+			GoalStatus: string(agentruntime.StatusCompleted), StopReason: "semantic_post_load_topology_unavailable"}, true
+	}
+	s.observePluginParametersReply(reply)
+	digest := plugingrabber.BuildParameterDigest(reply)
+	if digest.PluginName == "" {
+		digest.PluginName = pluginName
+	}
+	surface, pcaErr := semanticPostLoadPCAQualification(plan, digest, family, trackID, pluginID, pluginName)
+	if pcaErr != nil {
+		return ChatResponse{ConversationID: conversationID, GoalID: goalID, RunID: runID,
+			Reply:    fmt.Sprintf("已加载 %s，但没有通过 %s 的 post-load PCA/topology 复核：%s；没有写入参数。", firstNonEmpty(pluginName, pluginID), family, pcaErr),
+			Workflow: semanticTreatmentWorkflow, WorkflowData: map[string]any{"schema_version": semanticTreatmentSchema,
+				"status": "qualification_failed", "processor_type": legacyProcessorTypeForFamily(family), "track_id": trackID, "plugin_id": pluginID,
+				"mutation_performed": false, "pca_rejection": pcaErr.Error()},
+			GoalStatus: string(agentruntime.StatusCompleted), StopReason: "semantic_post_load_pca_rejected"}, true
+	}
+	requestContext := mergeContext(plan.Context, map[string]any{
+		"selected_plugin_track_id":               trackID,
+		"selected_plugin_id":                     pluginID,
+		"selected_plugin_name":                   firstNonEmpty(pluginName, digest.PluginName),
+		"semantic_treatment_observation_context": firstMapFromAny(plan.WorkflowData["semantic_post_load_observation_context"]),
+	})
+	cfg, _, cfgErr := config.Load()
+	if cfgErr == nil && cfg.Complete() {
+		goal := firstNonEmpty(firstStringFromMap(plan.WorkflowData, "semantic_post_load_goal"), firstStringFromMap(requestContext, "user_goal"), "apply the selected semantic processor intent")
+		observation := firstMapFromAny(plan.WorkflowData["semantic_post_load_observation_context"])
+		return s.planBoundSemanticDynamic(ctx, conversationID, goal, requestContext, family, observation, cfg), true
+	}
+	return ChatResponse{ConversationID: conversationID, GoalID: goalID, RunID: runID,
+		Reply:    fmt.Sprintf("已加载 %s，并通过 %s 的 exact identity、指纹、coverage 与 live topology 复核；该 family 的语义 planner 尚未接入，因此没有写入参数。", firstNonEmpty(pluginName, pluginID), family),
+		Workflow: semanticTreatmentWorkflow, WorkflowData: map[string]any{"schema_version": semanticTreatmentSchema,
+			"status": "qualified_planner_pending", "processor_type": legacyProcessorTypeForFamily(family), "family": family,
+			"track_id": trackID, "plugin_id": pluginID, "pca_status": surface.PCAStatus, "pca_reason": surface.PCAReason,
+			"mutation_performed": false, "post_load_qualification": map[string]any{"status": "qualified", "family": family}},
+		GoalStatus: string(agentruntime.StatusCompleted), StopReason: "semantic_post_load_planner_pending"}, true
+}
+
 func (s *Server) semanticProcessorPostLoadHandoff(ctx context.Context, plan PendingPlan, replies []map[string]any) (ChatResponse, bool) {
+	if _, _, err := semanticValidatePCAAdmissionReceipt(plan, "", pluginLoadResultIdentifier(replies)); err != nil {
+		conversationID := firstStringFromMap(plan.Context, "conversation_id")
+		goalID, runID := goalIDsFromContext(plan.Context)
+		return ChatResponse{ConversationID: conversationID, GoalID: goalID, RunID: runID,
+			Reply:    "加载结果与确认时的 PCA 精确身份不一致；没有生成或写入参数。",
+			Workflow: semanticTreatmentWorkflow, WorkflowData: map[string]any{"schema_version": semanticTreatmentSchema,
+				"status": "qualification_failed", "mutation_performed": false, "pca_rejection": err.Error()},
+			GoalStatus: string(agentruntime.StatusCompleted), StopReason: "semantic_post_load_identity_mismatch"}, true
+	}
 	if handoff, ok := s.semanticEQPostLoadHandoff(ctx, plan, replies); ok {
 		return s.finalizeSemanticProcessorPostLoadHandoff(plan, handoff), true
 	}
 	handoff, ok := s.semanticCompressorPostLoadHandoff(ctx, plan, replies)
 	if !ok {
-		return ChatResponse{}, false
+		handoff, ok = s.semanticGenericPostLoadHandoff(ctx, plan, replies)
+		if !ok {
+			return ChatResponse{}, false
+		}
+		return s.finalizeSemanticProcessorPostLoadHandoff(plan, handoff), true
 	}
 	return s.finalizeSemanticProcessorPostLoadHandoff(plan, handoff), true
 }
 
 func (s *Server) finalizeSemanticProcessorPostLoadHandoff(plan PendingPlan, handoff ChatResponse) ChatResponse {
 	requestContext := plan.Context
+	if state, ok := semanticProgressiveDisclosureState(requestContext["semantic_progressive_disclosure"]); ok {
+		if handoff.WorkflowData == nil {
+			handoff.WorkflowData = map[string]any{}
+		}
+		handoff.WorkflowData["semantic_progressive_disclosure"] = state
+		handoff.WorkflowData["request_context"] = cloneContext(requestContext)
+	}
 	if freeStateLoopActiveContext(requestContext) {
 		requestContext = mergeContext(requestContext, map[string]any{"free_state_route_authorized": true})
 		goalID, runID := goalIDsFromContext(requestContext)

@@ -47,6 +47,7 @@ type Input struct {
 	PendingToolQueue      []planner.ToolCall
 	ExecutionMemory       map[string]any
 	RecentObservation     map[string]any
+	ProjectChange         map[string]any
 	PreviousSnapshot      map[string]any
 }
 
@@ -65,6 +66,7 @@ type Snapshot struct {
 	DAWStateSummary       map[string]any   `json:"daw_state_summary"`
 	DAWSemanticSummary    map[string]any   `json:"daw_semantic_summary,omitempty"`
 	RecentGoalContext     map[string]any   `json:"recent_goal_context,omitempty"`
+	ProjectChange         map[string]any   `json:"project_change,omitempty"`
 	ProjectHistorySummary map[string]any   `json:"project_history_summary,omitempty"`
 	PluginContextSummary  map[string]any   `json:"plugin_context_summary,omitempty"`
 	ToolResultSummary     []map[string]any `json:"tool_result_summary,omitempty"`
@@ -124,6 +126,7 @@ func Build(in Input, opts Options) Snapshot {
 	}
 	dawSemanticSummary := summarizeDAWSemantic(selection, dawStateSummary, projectHistorySummary, in.ProjectHistorySummary, pluginContextSummary, toolResultSummary, in.Context, opts)
 	recentGoalContext := summarizeRecentGoalContext(in.GoalTrace, in.PlanItems, in.PendingToolCall, in.PendingToolQueue, in.ExecutionMemory, in.RecentObservation, in.PreviousSnapshot, opts)
+	projectChange := compactProjectChange(in.ProjectChange, opts)
 
 	return Snapshot{
 		SchemaVersion:         SchemaVersion,
@@ -140,6 +143,7 @@ func Build(in Input, opts Options) Snapshot {
 		DAWStateSummary:       dawStateSummary,
 		DAWSemanticSummary:    dawSemanticSummary,
 		RecentGoalContext:     recentGoalContext,
+		ProjectChange:         projectChange,
 		ProjectHistorySummary: projectHistorySummary,
 		PluginContextSummary:  pluginContextSummary,
 		ToolResultSummary:     toolResultSummary,
@@ -584,6 +588,117 @@ func summarizeSelection(ctx map[string]any, opts Options) map[string]any {
 	return out
 }
 
+func compactProjectChange(change map[string]any, opts Options) map[string]any {
+	if len(change) == 0 {
+		return nil
+	}
+	out := map[string]any{}
+	for _, key := range []string{"schema_version", "change_id", "source", "observed_at", "authoritative", "freshness", "from_state_epoch", "to_state_epoch"} {
+		if value, ok := change[key]; ok && !isEmptyValue(value) {
+			out[key] = compactValue(value, opts, 0)
+		}
+	}
+	for _, key := range []string{"from_project", "to_project"} {
+		project := map[string]any{}
+		if source, ok := change[key].(map[string]any); ok {
+			for _, field := range []string{"project_uuid", "project_epoch", "project_revision", "snapshot_hash", "graph_revision"} {
+				if value, exists := source[field]; exists && !isEmptyValue(value) {
+					project[field] = compactValue(value, opts, 0)
+				}
+			}
+		}
+		if len(project) > 0 {
+			out[key] = project
+		}
+	}
+	if scopes := stringSlice(change["affected_scopes"]); len(scopes) > 0 {
+		out["affected_scopes"] = firstStrings(scopes, 16)
+	}
+	if scopes := stringSlice(change["unresolved_refresh_scopes"]); len(scopes) > 0 {
+		out["unresolved_refresh_scopes"] = firstStrings(scopes, 16)
+	}
+	entities := mapRows(change["changed_entities"])
+	if len(entities) > 0 {
+		if len(entities) > 8 {
+			entities = entities[len(entities)-8:]
+		}
+		rows := make([]map[string]any, 0, len(entities))
+		for _, entity := range entities {
+			row := map[string]any{"kind": entity["kind"], "id": entity["id"]}
+			fields := mapRows(entity["fields"])
+			if len(fields) > 8 {
+				fields = fields[:8]
+			}
+			compactFields := make([]map[string]any, 0, len(fields))
+			for _, field := range fields {
+				compact := map[string]any{"path": field["path"]}
+				if value, ok := field["before"]; ok && !isEmptyValue(value) {
+					compact["before"] = compactProjectChangeFieldValue(value, opts)
+				}
+				if value, ok := field["after"]; ok && !isEmptyValue(value) {
+					compact["after"] = compactProjectChangeFieldValue(value, opts)
+				}
+				compactFields = append(compactFields, compact)
+			}
+			if len(compactFields) > 0 {
+				row["fields"] = compactFields
+			}
+			rows = append(rows, row)
+		}
+		out["changed_entities"] = rows
+	}
+	return out
+}
+
+// compactProjectChangeFieldValue keeps a change receipt useful as a hot
+// decision surface without replaying the raw entity value that produced it.
+// In particular, clip and plugin collection fingerprints may contain complete
+// source manifests. The fact that the field changed is enough for the model;
+// the authoritative Shadow receipt remains the audit source for its content.
+func compactProjectChangeFieldValue(value any, opts Options) any {
+	switch v := value.(type) {
+	case nil, bool, float64, float32, int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64:
+		return v
+	case string:
+		limit := opts.MaxTextRunes
+		if limit <= 0 || limit > 96 {
+			limit = 96
+		}
+		if len([]rune(v)) <= limit {
+			return v
+		}
+		return map[string]any{
+			"kind":      "text",
+			"length":    len([]rune(v)),
+			"truncated": true,
+		}
+	case map[string]any:
+		if _, hasFingerprint := v["fingerprint"]; hasFingerprint {
+			out := map[string]any{
+				"kind":                "collection_digest",
+				"fingerprint_changed": true,
+			}
+			if count, ok := v["count"]; ok && !isEmptyValue(count) {
+				out["count"] = compactProjectChangeFieldValue(count, opts)
+			}
+			return out
+		}
+		return map[string]any{
+			"kind":      "object",
+			"key_count": len(v),
+			"changed":   true,
+		}
+	case []any:
+		return map[string]any{"kind": "list", "count": len(v), "changed": true}
+	case []map[string]any:
+		return map[string]any{"kind": "list", "count": len(v), "changed": true}
+	case []string:
+		return map[string]any{"kind": "list", "count": len(v), "changed": true}
+	default:
+		return map[string]any{"kind": fmt.Sprintf("%T", value), "changed": true}
+	}
+}
+
 func summarizeDAWState(state map[string]any, opts Options) map[string]any {
 	out := map[string]any{}
 	for _, key := range []string{"initialized", "project_path", "track_count", "user_track_count", "engine_track_count", "internal_track_count", "graph_revision"} {
@@ -862,7 +977,7 @@ func summarizeInheritedRecentGoalContext(previous map[string]any, opts Options) 
 			"recent_tool_result",
 		} {
 			if value, ok := source[key]; ok && !isEmptyValue(value) {
-				out[key] = compactValue(value, opts, 0)
+				out[key] = compactInheritedRecentGoalValue(key, value, opts)
 			}
 		}
 	}
@@ -870,6 +985,41 @@ func summarizeInheritedRecentGoalContext(previous map[string]any, opts Options) 
 		return nil
 	}
 	return out
+}
+
+// compactInheritedRecentGoalValue keeps the continuation state that the model
+// can legitimately use while refusing unknown fields from an older snapshot to
+// re-enter a later hot/warm request. Current execution memory is typed at the
+// agent-loop boundary; this allow-list is the corresponding context boundary.
+func compactInheritedRecentGoalValue(key string, value any, opts Options) any {
+	if key != "execution_memory" {
+		return compactValue(value, opts, 0)
+	}
+	memory, ok := value.(map[string]any)
+	if !ok {
+		return compactValue(value, opts, 0)
+	}
+	allowed := map[string]bool{
+		"last_created_track_id": true, "last_created_track_name": true,
+		"last_created_folder_track_id": true, "last_created_folder_track_name": true,
+		"last_created_clip_id": true, "last_created_clip_name": true,
+		"last_loaded_plugin_id": true, "last_loaded_plugin_name": true,
+		"last_mix_tick_id":            true,
+		"active_work_target_track_id": true, "active_work_target_folder_track_id": true,
+		"active_work_target_clip_id": true, "active_work_target_plugin_id": true,
+		"pending_mix_tick_candidate": true, "pending_static_balance_plan": true,
+		"pending_pan_layout_plan": true, "pending_mix_treatment": true,
+		"pending_track_organization": true, "pending_section_markers": true,
+		"mix_diagnosis_context_id": true, "mix_diagnosis_context": true,
+		"bindings": true,
+	}
+	filtered := map[string]any{}
+	for field, child := range memory {
+		if allowed[field] && !isEmptyValue(child) {
+			filtered[field] = compactValue(child, opts, 0)
+		}
+	}
+	return filtered
 }
 
 func summarizePlanSteps(items []planner.PlanItem, opts Options) []map[string]any {

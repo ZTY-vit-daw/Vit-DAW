@@ -14,7 +14,7 @@ func BuildLLMContext(proj Projection) LLMContext {
 		EvidenceRefs:           sanitizeEvidenceRefsForLLM(allEvidenceRefs(proj)),
 		QualitySummary:         llmQualitySummary(proj.TrustQuality),
 		TaskPolicy:             taskPolicyContext(proj),
-		LimitationNotes:        evidenceRefs(append(append(append([]string{}, proj.TrustQuality.Limitations...), proj.MultitrackRelation.Limitations...), frequencyRelationshipValue(proj).Limitations...)...),
+		LimitationNotes:        evidenceRefs(append(append(append(append([]string{}, proj.TrustQuality.Limitations...), proj.MultitrackRelation.Limitations...), frequencyRelationshipValue(proj).Limitations...), maskingRelationshipValue(proj).Limitations...)...),
 		SafetyGates:            proj.TrustQuality.QualityGates,
 		SuggestedNextStep:      suggestedNextStep(proj),
 	}
@@ -36,6 +36,11 @@ func llmFactsForIntent(proj Projection) []map[string]any {
 		facts = append(facts,
 			frequencyRelationshipFact(frequencyRelationshipValue(proj)),
 			compactFact("trust_quality.frequency_relationship", proj.TrustQuality.OverallStatus, "Frequency relationship readiness is bounded by tap point, whole-project coverage, freshness, and persistence limitations.", proj.TrustQuality.EvidenceRefs),
+		)
+	case IntentProjectMaskingObservation:
+		facts = append(facts,
+			maskingRelationshipFact(maskingRelationshipValue(proj)),
+			compactFact("trust_quality.masking_relationship", proj.TrustQuality.OverallStatus, "Masking-risk readiness is bounded by synchronized same-window post-fader evidence and remains candidate-only.", proj.TrustQuality.EvidenceRefs),
 		)
 	case IntentRealtimeBandStereoObservation:
 		facts = append(facts,
@@ -126,6 +131,20 @@ func frequencyRelationshipFact(relation FrequencyRelationship) map[string]any {
 	return fact
 }
 
+func maskingRelationshipFact(relation MaskingRelationship) map[string]any {
+	fact := compactFact("masking_relationship", relation.Status, "Directional masking-risk candidates from synchronized current-mix measurements; never deterministic mix defects.", relation.EvidenceRefs)
+	fact["schema_version"] = relation.SchemaVersion
+	fact["measurement_id"] = relation.MeasurementID
+	fact["model_version"] = relation.ModelVersion
+	fact["candidate_only"] = relation.CandidateOnly
+	fact["project_binding"] = relation.ProjectBinding
+	fact["conditions"] = relation.Conditions
+	fact["coverage"] = relation.Coverage
+	fact["candidates"] = relation.Candidates
+	fact["limitations"] = relation.Limitations
+	return fact
+}
+
 func layerFact(name string, layer Layer) map[string]any {
 	out := compactFact(name, layer.Status, layer.Summary, layer.EvidenceRefs)
 	if primary := strings.TrimSpace(fmt.Sprint(layer.Facts["primary_layer"])); primary != "" && primary != "<nil>" {
@@ -174,6 +193,9 @@ func summaryMD(proj Projection) string {
 	case IntentProjectFrequencyObservation:
 		frequency := frequencyRelationshipValue(proj)
 		lines = append(lines, fmt.Sprintf("MOM frequency_relationship is primary; tap_point=%s; eligible_tracks=%v; overlap rows are candidates rather than masking facts; limitations=%s.", frequency.TapPoint, frequency.Coverage["eligible_track_count"], strings.Join(frequency.Limitations, ",")))
+	case IntentProjectMaskingObservation:
+		masking := maskingRelationshipValue(proj)
+		lines = append(lines, fmt.Sprintf("MOM masking_relationship is primary; tap_point=%s; candidate_count=%d; rows are directional improvement-risk candidates, never deterministic mix defects; limitations=%s.", text(masking.Conditions["tap_point"]), len(masking.Candidates), strings.Join(masking.Limitations, ",")))
 	case IntentRealtimeBandStereoObservation:
 		lines = append(lines, fmt.Sprintf("L2 render/live post-chain observation is primary; tap_point=%s; limitations=%s.", proj.TrustQuality.L2TapPoint, strings.Join(proj.TrustQuality.L2Limitations, ",")))
 	case IntentActionPreflightObservation:
@@ -224,6 +246,9 @@ func ContextProjection(proj Projection) map[string]any {
 	if proj.FrequencyRelationship != nil {
 		out["frequency_relationship"] = proj.FrequencyRelationship
 	}
+	if proj.MaskingRelationship != nil {
+		out["masking_relationship"] = proj.MaskingRelationship
+	}
 	return out
 }
 
@@ -232,6 +257,13 @@ func frequencyRelationshipValue(proj Projection) FrequencyRelationship {
 		return FrequencyRelationship{}
 	}
 	return *proj.FrequencyRelationship
+}
+
+func maskingRelationshipValue(proj Projection) MaskingRelationship {
+	if proj.MaskingRelationship == nil {
+		return MaskingRelationship{}
+	}
+	return *proj.MaskingRelationship
 }
 
 func trustQualityContext(trust TrustQuality) map[string]any {
@@ -311,6 +343,8 @@ func suggestedNextStep(proj Projection) string {
 		return "Explain the local project relation projection without recalculating raw packages."
 	case IntentProjectFrequencyObservation:
 		return "Use the bounded frequency relationship facts for readiness/diagnosis only; do not infer masking, EQ parameters, or execution authority."
+	case IntentProjectMaskingObservation:
+		return "Use directional masking-risk candidates to form reasonable improvement suggestions; do not claim a deterministic defect or infer processor parameters without a separate execution decision."
 	default:
 		return "Summarize conclusion, evidence, limitations, and a non-mutating suggestion."
 	}

@@ -19,7 +19,7 @@ func (s *Server) resolveCapabilityOwner(conversationID string, req ChatRequest) 
 	if explicitCapability == retiredFocusPositionCapabilityID {
 		explicitCapability = staticBalanceCapabilityID
 	}
-	if explicitCapability != staticBalanceCapabilityID && explicitCapability != panLayoutCapabilityID && explicitCapability != lowEndRelationCapabilityID && explicitCapability != frequencyCleanupCapabilityID && explicitCapability != agentSemanticEQCapabilityID {
+	if explicitCapability != staticBalanceCapabilityID && explicitCapability != panLayoutCapabilityID && explicitCapability != lowEndRelationCapabilityID && explicitCapability != frequencyCleanupCapabilityID && explicitCapability != dynamicControlCapabilityID && explicitCapability != agentSemanticEQCapabilityID {
 		explicitCapability = ""
 	}
 	// A recovered Proposal interaction already carries the exact durable
@@ -66,10 +66,10 @@ func (s *Server) resolveCapabilityOwner(conversationID string, req ChatRequest) 
 	if capabilityID == "" && len(active) == 1 {
 		activeCapability := active[0].Invocation.CapabilityID
 		stickyProposalTurn := semanticEQPendingProposalTurn(req.Message)
-		if activeCapability == lowEndRelationCapabilityID || activeCapability == frequencyCleanupCapabilityID {
+		if activeCapability == lowEndRelationCapabilityID || activeCapability == frequencyCleanupCapabilityID || activeCapability == dynamicControlCapabilityID {
 			stickyProposalTurn = active[0].ActiveProposal != nil && stickyProposalTurn
 		}
-		if (activeCapability != agentSemanticEQCapabilityID && activeCapability != lowEndRelationCapabilityID && activeCapability != frequencyCleanupCapabilityID) || stickyProposalTurn {
+		if (activeCapability != agentSemanticEQCapabilityID && activeCapability != lowEndRelationCapabilityID && activeCapability != frequencyCleanupCapabilityID && activeCapability != dynamicControlCapabilityID) || stickyProposalTurn {
 			capabilityID = active[0].Invocation.CapabilityID
 		}
 	}
@@ -126,7 +126,7 @@ func (s *Server) activeCapabilitySessions(conversationID string) []orchestration
 		if session.EngineOwner != orchestration.EngineV1 || session.Terminal() || !sessionBelongsToConversation(session, conversationID) {
 			continue
 		}
-		if session.Invocation.CapabilityID == staticBalanceCapabilityID || session.Invocation.CapabilityID == panLayoutCapabilityID || session.Invocation.CapabilityID == lowEndRelationCapabilityID || session.Invocation.CapabilityID == frequencyCleanupCapabilityID || session.Invocation.CapabilityID == agentSemanticEQCapabilityID {
+		if session.Invocation.CapabilityID == staticBalanceCapabilityID || session.Invocation.CapabilityID == panLayoutCapabilityID || session.Invocation.CapabilityID == lowEndRelationCapabilityID || session.Invocation.CapabilityID == frequencyCleanupCapabilityID || session.Invocation.CapabilityID == dynamicControlCapabilityID || session.Invocation.CapabilityID == agentSemanticEQCapabilityID {
 			out = append(out, session)
 		}
 	}
@@ -156,6 +156,8 @@ func capabilitySessionBase(conversationID, capabilityID string) string {
 		prefix += "_b4"
 	} else if capabilityID == frequencyCleanupCapabilityID {
 		prefix += "_c1"
+	} else if capabilityID == dynamicControlCapabilityID {
+		prefix += "_c2"
 	} else if capabilityID == agentSemanticEQCapabilityID {
 		prefix += "_semantic_eq"
 	} else {
@@ -225,6 +227,14 @@ func inferProjectAwareCapability(message string) string {
 	for _, marker := range []string{"fine_mix.frequency_cleanup", "c1", "frequency cleanup", "frequency clean-up", "频段清理", "频率清理", "频谱清理", "全工程eq清理"} {
 		if strings.Contains(text, marker) {
 			return frequencyCleanupCapabilityID
+		}
+	}
+	// C2 is a project capability entry, not a lexical successor for ordinary
+	// selected-track dynamic requests. Only an explicit C2 capability marker
+	// may claim ownership here.
+	for _, marker := range []string{"fine_mix.dynamic_control", "c2"} {
+		if strings.Contains(text, marker) {
+			return dynamicControlCapabilityID
 		}
 	}
 	return ""

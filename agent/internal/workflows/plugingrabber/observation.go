@@ -15,12 +15,28 @@ func BuildParameterDigest(reply map[string]any) ParameterDigest {
 		TrackID:                   firstNonEmptyText(reply, "track_id"),
 		PluginID:                  firstNonEmptyText(reply, "plugin_id"),
 		PluginName:                firstNonEmptyText(reply, "plugin_name"),
+		PluginIdentifier:          firstNonEmptyText(reply, "plugin_identifier", "identifier", "file_or_identifier"),
+		PluginPath:                firstNonEmptyText(reply, "plugin_path", "path", "file_path", "filename"),
+		PluginFormat:              firstNonEmptyText(reply, "format", "plugin_format"),
+		PluginManufacturer:        firstNonEmptyText(reply, "manufacturer", "vendor", "maker"),
 		PluginIdentity:            mapValue(reply["plugin_identity"]),
 		TemplateRole:              firstNonEmptyText(reply, "template_role"),
 		PluginClass:               firstNonEmptyText(reply, "plugin_class"),
 		CurrentParamSignatureHash: firstNonEmptyText(reply, "current_param_signature_hash"),
 		ParameterCount:            len(params),
 		Parameters:                make([]ParameterInfo, 0, len(params)),
+	}
+	if digest.PluginIdentifier == "" {
+		digest.PluginIdentifier = firstNonEmptyText(digest.PluginIdentity, "plugin_identifier", "identifier", "file_or_identifier")
+	}
+	if digest.PluginPath == "" {
+		digest.PluginPath = firstNonEmptyText(digest.PluginIdentity, "plugin_path", "path", "file_path", "filename", "installed_path")
+	}
+	if digest.PluginFormat == "" {
+		digest.PluginFormat = firstNonEmptyText(digest.PluginIdentity, "format", "plugin_format")
+	}
+	if digest.PluginManufacturer == "" {
+		digest.PluginManufacturer = firstNonEmptyText(digest.PluginIdentity, "manufacturer", "vendor", "maker")
 	}
 	for _, row := range mapRowsValue(reply["quick_controls"]) {
 		digest.QuickControls = append(digest.QuickControls, QuickControlDigest{

@@ -25,6 +25,11 @@ func b4PlannerTestModel() lowendrelation.Model {
 	}
 }
 
+func b4EQPlannerTestAction(trackID, pluginID string) string {
+	return strings.Replace(semanticEQPlannerTestAction(trackID, pluginID),
+		`"observation_id":"obs-eq-test"`, `"observation_id":"obs-1"`, 1)
+}
+
 func TestDecodeB4TreatmentPlanBindsFullProjectIdentities(t *testing.T) {
 	text := `{"schema_version":"low_end_relation.treatment_plan.v1","summary":"separate kick and bass","targets":[{"order":2,"track_id":"bass","relationship_refs":["conflict-1"],"listening_goal":"retain weight below kick"},{"order":1,"track_id":"kick","relationship_refs":["conflict-1"],"listening_goal":"define the transient foundation"}]}`
 	plan, err := decodeB4TreatmentPlan(text, b4PlannerTestModel())
@@ -65,7 +70,7 @@ func TestDecodeB4EQBatchRequiresEveryExactTargetInOrder(t *testing.T) {
 }
 
 func TestPlanB4EQBatchRepairsMissingPurposeUsingSharedOrdinaryEQContract(t *testing.T) {
-	validAction := semanticEQPlannerTestAction("kick", "eq-a")
+	validAction := b4EQPlannerTestAction("kick", "eq-a")
 	validBatch := `{"schema_version":"semantic_effect_batch.v1","project_goal":"separate low end","atomic":true,"actions":[` + validAction + `]}`
 	invalidBatch := strings.Replace(validBatch, `"purpose":`, `"omitted_purpose":`, 1)
 	server, cfg, calls, bodies := semanticEQPlannerTestServer(t, []string{invalidBatch, validBatch + "}"})
@@ -123,9 +128,9 @@ func TestPlanB4EQBatchStopsAfterBoundedRepairAttempts(t *testing.T) {
 }
 
 func TestPlanB4EQBatchCompletesOnlyMissingOrderedSuffixAfterTruncatedPrefix(t *testing.T) {
-	action1 := semanticEQPlannerTestAction("kick", "eq-a")
-	action2 := semanticEQPlannerTestAction("bass", "eq-b")
-	action3 := semanticEQPlannerTestAction("toms", "eq-c")
+	action1 := b4EQPlannerTestAction("kick", "eq-a")
+	action2 := b4EQPlannerTestAction("bass", "eq-b")
+	action3 := b4EQPlannerTestAction("toms", "eq-c")
 	prefixWithoutActionsClose := `{"schema_version":"semantic_effect_batch.v1","project_goal":"separate low end","atomic":true,"actions":[` + action1 + `,` + action2 + `}`
 	remainingBatch := `{"schema_version":"semantic_effect_batch.v1","project_goal":"separate low end","atomic":true,"actions":[` + action3 + `]}`
 	server, cfg, calls, bodies := semanticEQPlannerTestServer(t, []string{prefixWithoutActionsClose, remainingBatch})
@@ -163,7 +168,7 @@ func TestPlanB4EQBatchCompletesOnlyMissingOrderedSuffixAfterTruncatedPrefix(t *t
 }
 
 func TestDecodeB4EQBatchTailRecoveryPreservesExactTargetValidation(t *testing.T) {
-	validAction := semanticEQPlannerTestAction("kick", "eq-a")
+	validAction := b4EQPlannerTestAction("kick", "eq-a")
 	validBatch := `{"schema_version":"semantic_effect_batch.v1","project_goal":"separate low end","atomic":true,"actions":[` + validAction + `]}`
 	treatment := lowendrelation.TreatmentPlan{
 		SchemaVersion: lowendrelation.TreatmentPlanSchema,

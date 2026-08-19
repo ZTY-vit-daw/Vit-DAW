@@ -12,11 +12,16 @@ import (
 )
 
 const (
-	CCBModelProjectionSchema = "ccb_model_projection.v1"
-	ccbCatalogSchema         = "ccb_observation_catalog.v1"
-	ccbBundleSchema          = "ccb_observation_bundle.v1"
-	ModelHotBudgetBytes      = 10 * 1024
-	ModelWarmBudgetBytes     = 5 * 1024
+	CCBModelProjectionSchema    = "ccb_model_projection.v1"
+	ccbCatalogSchema            = "ccb_observation_catalog.v1"
+	ccbBundleSchema             = "ccb_observation_bundle.v1"
+	ModelHotBudgetBytes         = 10 * 1024
+	ModelWarmBudgetBytes        = 5 * 1024
+	ModelFullRequestBudgetBytes = 24 * 1024
+	// modelDigestFallbackMaxBytes bounds a per-view hot digest fallback
+	// (views without an LLMContext). Oversized fallbacks degrade to a cold
+	// reference instead of inlining a full projection into the hot layer.
+	modelDigestFallbackMaxBytes = 2 * 1024
 )
 
 // ModelProjectionInput separates the complete runtime snapshot from the
@@ -67,19 +72,32 @@ func ProjectModelSnapshot(in ModelProjectionInput, opts Options) map[string]any 
 }
 
 func applyModelContextProfile(snapshot map[string]any, profile ModelContextProfile, opts Options) map[string]any {
-	if len(snapshot) == 0 || profile == "" || profile == ModelContextProfileFull {
+	if len(snapshot) == 0 {
 		return snapshot
 	}
-	keep := modelProfileKeepSections(profile)
-	degraded := []string{}
-	for key := range snapshot {
-		if !keep[key] {
-			delete(snapshot, key)
-			degraded = append(degraded, key)
+	if profile != "" && profile != ModelContextProfileFull {
+		keep := modelProfileKeepSections(profile)
+		degraded := []string{}
+		for key := range snapshot {
+			if !keep[key] {
+				delete(snapshot, key)
+				degraded = append(degraded, key)
+			}
 		}
+		sort.Strings(degraded)
+		snapshot["context_profile"] = string(profile)
+		contextDegradation := map[string]any{
+			"status":           "degraded",
+			"omitted_sections": degraded,
+			"cold_data":        "audit_snapshot_only",
+		}
+		if len(degraded) == 0 {
+			contextDegradation["status"] = "none"
+		}
+		snapshot["context_degradation"] = contextDegradation
+	} else {
+		snapshot["context_degradation"] = map[string]any{"status": "none", "cold_data": "audit_snapshot_only"}
 	}
-	sort.Strings(degraded)
-	snapshot["context_profile"] = string(profile)
 	hotSections, warmSections := modelProfileLayerSections(profile, snapshot)
 	snapshot["context_layers"] = map[string]any{
 		"hot": map[string]any{
@@ -98,72 +116,127 @@ func applyModelContextProfile(snapshot map[string]any, profile ModelContextProfi
 			"policy": "never-rehydrate-automatically",
 		},
 	}
-	if len(degraded) > 0 {
-		snapshot["context_degradation"] = map[string]any{
-			"status":           "degraded",
-			"omitted_sections": degraded,
-			"cold_data":        "audit_snapshot_only",
-		}
-	} else {
-		snapshot["context_degradation"] = map[string]any{"status": "none", "cold_data": "audit_snapshot_only"}
-	}
+	// Budget hard enforcement: degrade non-blocking sections to cold refs with
+	// a CompactionMarker each, then fail closed with an explicit
+	// context_overflow when the request still exceeds the layered budgets.
+	// Facts are never silently truncated; degradation replaces content with a
+	// reference, never drops it.
+	markers, overflowed := enforceModelLayerBudgets(snapshot, hotSections, warmSections)
 	hotBytes := modelLayerBytes(snapshot, hotSections)
 	warmBytes := modelLayerBytes(snapshot, warmSections)
-	budgetStatus := "within_budget"
-	switch {
-	case hotBytes > ModelHotBudgetBytes && warmBytes > ModelWarmBudgetBytes:
-		budgetStatus = "over_hot_and_warm_budget"
-	case hotBytes > ModelHotBudgetBytes:
-		budgetStatus = "over_hot_budget"
-	case warmBytes > ModelWarmBudgetBytes:
-		budgetStatus = "over_warm_budget"
-	}
 	contextDegradation := modelMap(snapshot["context_degradation"])
-	contextDegradation["budget_status"] = budgetStatus
+	switch {
+	case overflowed:
+		contextDegradation["budget_status"] = "context_overflow"
+		contextDegradation["budget_action"] = "fail_closed_context_overflow"
+	case len(markers) > 0:
+		contextDegradation["budget_status"] = "degraded_within_budget"
+		contextDegradation["budget_action"] = "degraded_non_blocking_sections_to_refs"
+	default:
+		contextDegradation["budget_status"] = "within_budget"
+		contextDegradation["budget_action"] = "within_budget"
+	}
 	contextDegradation["hot_bytes"] = hotBytes
 	contextDegradation["hot_target_bytes"] = ModelHotBudgetBytes
 	contextDegradation["warm_bytes"] = warmBytes
 	contextDegradation["warm_target_bytes"] = ModelWarmBudgetBytes
-	if budgetStatus != "within_budget" {
-		contextDegradation["budget_action"] = "retain_effective_projection_and_report_size"
-	}
 	snapshot["context_degradation"] = contextDegradation
-	// Keep the projection deterministic and explicit if its active section is
-	// larger than the Hot target. We do not silently truncate facts.
-	if active := modelMap(snapshot["active_observation"]); len(active) > 0 {
-		if bytes := modelJSONSize(active); bytes > ModelHotBudgetBytes {
-			active["degradation"] = map[string]any{
-				"status":       "over_hot_budget",
-				"bytes":        bytes,
-				"target_bytes": ModelHotBudgetBytes,
-				"action":       "retain_current_projection_and_report_size",
-			}
-			snapshot["active_observation"] = active
-		}
+	if len(markers) > 0 {
+		snapshot["compaction_markers"] = markers
 	}
-	// The active projection can gain its explicit over-budget marker above.
-	// Recompute layer sizes so the emitted report describes the final payload.
-	hotBytes = modelLayerBytes(snapshot, hotSections)
-	warmBytes = modelLayerBytes(snapshot, warmSections)
-	contextDegradation["hot_bytes"] = hotBytes
-	contextDegradation["warm_bytes"] = warmBytes
-	snapshot["context_degradation"] = contextDegradation
 	// The size report is part of the model view, so compute it to a small fixed
 	// point: adding the report changes the serialized size (and its own section
 	// size) by a few digits. This keeps the telemetry honest without truncating
-	// any effective projection.
+	// any effective projection. Per-section bytes are recomputed by telemetry
+	// from the emitted JSON and are not embedded in the model view.
 	snapshot["context_size"] = map[string]any{}
 	for i := 0; i < 4; i++ {
 		snapshot["context_size"] = map[string]any{
-			"total_bytes":   modelJSONSize(snapshot),
-			"section_bytes": ModelSectionBytes(snapshot),
-			"hot_bytes":     hotBytes,
-			"warm_bytes":    warmBytes,
-			"hot_budget":    ModelHotBudgetBytes,
-			"warm_budget":   ModelWarmBudgetBytes,
+			"total_bytes": modelJSONSize(snapshot),
+			"hot_bytes":   hotBytes,
+			"warm_bytes":  warmBytes,
+			"hot_budget":  ModelHotBudgetBytes,
+			"warm_budget": ModelWarmBudgetBytes,
+			"full_budget": ModelFullRequestBudgetBytes,
 		}
 	}
 	return snapshot
+}
+
+// enforceModelLayerBudgets deterministically degrades non-blocking sections to
+// cold references while a layer exceeds its budget, records a CompactionMarker
+// per degradation, and reports whether the request still overflows after every
+// degradable section has been replaced. Degradation order is deterministic:
+// warm sections largest-first, then supporting hot state (daw_state_summary,
+// daw_semantic_summary). Current-decision sections (active_observation,
+// current_selection, recent_goal_context) are blocking and never ref-ified;
+// an over-budget hot layer after degradation fails closed.
+func enforceModelLayerBudgets(snapshot map[string]any, hotSections, warmSections []string) ([]map[string]any, bool) {
+	degradable := append([]string(nil), warmSections...)
+	for _, section := range hotSections {
+		if section == "daw_state_summary" || section == "daw_semantic_summary" {
+			degradable = append(degradable, section)
+		}
+	}
+	sort.SliceStable(degradable, func(i, j int) bool {
+		return modelJSONSize(snapshot[degradable[i]]) > modelJSONSize(snapshot[degradable[j]])
+	})
+	markers := []map[string]any{}
+	hotBytes := modelLayerBytes(snapshot, hotSections)
+	warmBytes := modelLayerBytes(snapshot, warmSections)
+	for _, section := range degradable {
+		if hotBytes <= ModelHotBudgetBytes && warmBytes <= ModelWarmBudgetBytes {
+			break
+		}
+		value, ok := snapshot[section]
+		if !ok || isEmptyValue(value) {
+			continue
+		}
+		before := modelJSONSize(value)
+		snapshot[section] = map[string]any{
+			"ref":       "audit_snapshot://" + section,
+			"degraded":  true,
+			"reason":    "over_budget_non_blocking_section",
+			"cold_data": "audit_snapshot_only",
+		}
+		after := modelJSONSize(snapshot[section])
+		markers = append(markers, map[string]any{
+			"section":      section,
+			"action":       "degraded_to_ref",
+			"reason":       "over_budget_non_blocking_section",
+			"bytes_before": before,
+			"bytes_after":  after,
+			"cold_ref":     "audit_snapshot://" + section,
+		})
+		hotBytes = modelLayerBytes(snapshot, hotSections)
+		warmBytes = modelLayerBytes(snapshot, warmSections)
+	}
+	if hotBytes > ModelHotBudgetBytes || warmBytes > ModelWarmBudgetBytes {
+		snapshot["context_overflow"] = map[string]any{
+			"status":            "overflow",
+			"hot_bytes":         hotBytes,
+			"hot_budget_bytes":  ModelHotBudgetBytes,
+			"warm_bytes":        warmBytes,
+			"warm_budget_bytes": ModelWarmBudgetBytes,
+			"overflowing": map[string]any{
+				"hot":  modelLayerSectionBytes(snapshot, hotSections),
+				"warm": modelLayerSectionBytes(snapshot, warmSections),
+			},
+			"cold_ref": "audit_snapshot://context_snapshot",
+		}
+		return markers, true
+	}
+	return markers, false
+}
+
+func modelLayerSectionBytes(snapshot map[string]any, sections []string) map[string]int {
+	out := map[string]int{}
+	for _, section := range sections {
+		if value, ok := snapshot[section]; ok && !isEmptyValue(value) {
+			out[section] = modelJSONSize(value)
+		}
+	}
+	return out
 }
 
 func modelProfileKeepSections(profile ModelContextProfile) map[string]bool {
@@ -176,8 +249,12 @@ func modelProfileKeepSections(profile ModelContextProfile) map[string]bool {
 		"current_selection":       true,
 		"daw_state_summary":       true,
 		"active_observation":      true,
+		"project_change":          true,
 		"observation_ledger":      true,
 		"observation_catalog_ref": true,
+		// tool_result_summary is the single canonical copy of every non-CCB
+		// tool result in the model view; all other sections reference it.
+		"tool_result_summary": true,
 		// The trace/context sections contain only references after
 		// stripRepeatedCCBResults; they are the warm receipt surface needed to
 		// explain a prior observation or a rejected view set.
@@ -192,7 +269,7 @@ func modelProfileKeepSections(profile ModelContextProfile) map[string]bool {
 }
 
 func modelProfileLayerSections(profile ModelContextProfile, snapshot map[string]any) ([]string, []string) {
-	hot := []string{"active_observation", "current_selection", "daw_state_summary"}
+	hot := []string{"active_observation", "project_change", "current_selection", "daw_state_summary"}
 	warm := []string{"recent_goal_context", "goal_trace_summary", "observation_catalog_ref", "observation_ledger"}
 	switch profile {
 	case ModelContextProfileMaterialize:
@@ -216,9 +293,16 @@ func modelProfileLayerSections(profile ModelContextProfile, snapshot map[string]
 	return hot, filteredWarm
 }
 
-// ProjectObservationLedger emits only bounded receipt, conclusion, and
-// reference metadata. Raw CCB views and processor identity can never enter the
-// model through this historical surface.
+// ProjectObservationLedger emits the durable observation memory the model
+// needs to converge on a decision across turns: every observed view's latest
+// row (available_views) and every recorded rejection (rejected_view_sets)
+// survive across rounds, so the model never re-requests an already-observed
+// view or a view set it was told not to retry. Only receipts stay delta-only
+// (they mirror the most recent observation result already surfaced in the
+// message). All sections are hard-capped so the projection stays bounded;
+// older rows beyond the cap are folded into counts with earliest/latest round
+// and a deterministic cold ref. Rows without a round marker (legacy fixtures)
+// are treated as current so the bounded projection stays deterministic.
 func ProjectObservationLedger(ledger map[string]any, opts Options) map[string]any {
 	opts = normalizeOptions(opts)
 	if len(ledger) == 0 {
@@ -226,33 +310,39 @@ func ProjectObservationLedger(ledger map[string]any, opts Options) map[string]an
 	}
 	out := map[string]any{"schema_version": "free_state_observation_ledger.v1"}
 	windows := map[string]any{}
+	windowRound := ledgerWindowRound(ledger)
 	if available := modelMap(ledger["available_views"]); len(available) > 0 {
 		projected := map[string]any{}
-		for _, viewID := range sortedModelKeys(available) {
-			row := selectModelFields(modelMap(available[viewID]),
-				"view_id", "status", "observation_id", "tool_call_id", "freshness", "limitations", "evidence_refs", "audit_ref")
-			if row["view_id"] == nil {
-				row["view_id"] = viewID
+		pairs := ledgerAvailableViewPairs(available)
+		if len(pairs) > 24 {
+			pairs = pairs[:24]
+		}
+		for _, pair := range pairs {
+			row := selectModelFields(pair.row, "status", "observation_id", "target_ref", "conclusion")
+			if receiptID := modelText(modelMap(pair.row["audit_ref"])["receipt_id"]); receiptID != "" {
+				row["receipt_ref"] = receiptID
 			}
 			if clean := modelMap(sanitizeModelProjection(row, opts)); len(clean) > 0 {
-				projected[viewID] = clean
+				projected[pair.key] = clean
 			}
 		}
 		if len(projected) > 0 {
 			out["available_views"] = projected
 		}
+		total := modelInteger(ledger["view_observation_count"])
+		windows["available_views"] = observationLedgerWindow(total, len(available), len(projected), ledgerRoundRange(ledgerAvailableViewRows(available)), ledgerColdRef("available_views"))
 	}
 	rejectedSource := modelRows(ledger["rejected_view_sets"])
 	if rows := projectObservationLedgerRows(rejectedSource, opts,
 		"fingerprint", "requested_views", "status", "receipt_id", "tool_call_id", "request_id", "observation_id", "retry_policy", "rejection_scope", "blocking_view_ids", "non_blocking_view_ids"); len(rows) > 0 {
 		out["rejected_view_sets"] = rows
-		windows["rejected_view_sets"] = observationLedgerWindow(modelInteger(ledger["rejected_view_set_count"]), len(rejectedSource), len(rows))
+		windows["rejected_view_sets"] = observationLedgerWindow(modelInteger(ledger["rejected_view_set_count"]), len(rejectedSource), len(rows), ledgerRoundRange(rejectedSource), ledgerColdRef("rejected_view_sets"))
 	}
 	receiptSource := modelRows(ledger["receipts"])
-	if rows := projectObservationLedgerRows(receiptSource, opts,
-		"receipt_id", "receipt_schema", "tool_call_id", "observation_id", "request_id", "status", "requested_views"); len(rows) > 0 {
+	if rows := projectObservationLedgerRowsInWindow(receiptSource, opts, windowRound,
+		"receipt_id", "tool_call_id", "observation_id", "status"); len(rows) > 0 {
 		out["receipts"] = rows
-		windows["receipts"] = observationLedgerWindow(modelInteger(ledger["receipt_count"]), len(receiptSource), len(rows))
+		windows["receipts"] = observationLedgerWindow(modelInteger(ledger["receipt_count"]), len(receiptSource), len(rows), ledgerRoundRange(receiptSource), ledgerColdRef("receipts"))
 	}
 	if len(windows) > 0 {
 		out["history_window"] = windows
@@ -260,12 +350,138 @@ func ProjectObservationLedger(ledger map[string]any, opts Options) map[string]an
 	return out
 }
 
-func observationLedgerWindow(total, sourceCount, retained int) map[string]any {
+// ledgerAvailableViewPair pairs a ledger map key with its row so the
+// projection can keep the exact key the writer assigned (track-scoped keys
+// like "track:2::track.time_dynamics" differ from view_id).
+type ledgerAvailableViewPair struct {
+	key string
+	row map[string]any
+}
+
+// ledgerAvailableViewPairs returns all available_views rows newest-first
+// (rows without a round marker count as newest) so a bounded cap keeps the
+// most recent per-view memory across rounds.
+func ledgerAvailableViewPairs(available map[string]any) []ledgerAvailableViewPair {
+	pairs := make([]ledgerAvailableViewPair, 0, len(available))
+	for _, key := range sortedModelKeys(available) {
+		pairs = append(pairs, ledgerAvailableViewPair{key: key, row: modelMap(available[key])})
+	}
+	sort.SliceStable(pairs, func(i, j int) bool {
+		return ledgerRowRecencyRank(pairs[i].row) > ledgerRowRecencyRank(pairs[j].row)
+	})
+	return pairs
+}
+
+// ledgerRowRecencyRank orders rows by recency; rows without a round marker are
+// treated as the newest so legacy/current rows always survive the cap.
+func ledgerRowRecencyRank(row map[string]any) int {
+	if row == nil {
+		return 1 << 30
+	}
+	round, ok := row["round"]
+	if !ok || round == nil {
+		return 1 << 30
+	}
+	return modelInteger(round)
+}
+
+// ledgerWindowRound derives the current delta window from the explicit
+// window_round field or, when absent, from the latest round marker found on
+// any row. The runtime writer always sets window_round; the row scan keeps
+// projection deterministic for hand-built fixtures.
+func ledgerWindowRound(ledger map[string]any) int {
+	window := modelInteger(ledger["window_round"])
+	for _, row := range modelRows(ledger["receipts"]) {
+		if r := modelInteger(row["round"]); r > window {
+			window = r
+		}
+	}
+	for _, row := range modelRows(ledger["rejected_view_sets"]) {
+		if r := modelInteger(row["round"]); r > window {
+			window = r
+		}
+	}
+	for _, raw := range modelMap(ledger["available_views"]) {
+		if r := modelInteger(modelMap(raw)["round"]); r > window {
+			window = r
+		}
+	}
+	return window
+}
+
+// ledgerRowInWindow reports whether a row belongs to the current delta window.
+// Legacy rows without a round marker stay visible; a row belongs to the
+// current window only when its round equals the window round.
+func ledgerRowInWindow(source map[string]any, windowRound int) bool {
+	if source == nil {
+		return true
+	}
+	round, ok := source["round"]
+	if !ok || round == nil {
+		return true
+	}
+	return modelInteger(round) == windowRound
+}
+
+func ledgerRoundRange(rows []map[string]any) [2]int {
+	earliest, latest := 0, 0
+	seen := false
+	for _, row := range rows {
+		if _, ok := row["round"]; !ok {
+			continue
+		}
+		round := modelInteger(row["round"])
+		if !seen {
+			earliest, latest, seen = round, round, true
+			continue
+		}
+		if round < earliest {
+			earliest = round
+		}
+		if round > latest {
+			latest = round
+		}
+	}
+	return [2]int{earliest, latest}
+}
+
+func ledgerAvailableViewRows(available map[string]any) []map[string]any {
+	rows := make([]map[string]any, 0, len(available))
+	for _, raw := range available {
+		if row := modelMap(raw); len(row) > 0 {
+			rows = append(rows, row)
+		}
+	}
+	return rows
+}
+
+func ledgerColdRef(section string) string {
+	return "ledger://free_state_observation_ledger.v1/" + section + "/history"
+}
+
+func stripActiveObservationConclusion(ledger map[string]any, activeObservationID string) {
+	if strings.TrimSpace(activeObservationID) == "" {
+		return
+	}
+	for _, row := range modelMap(ledger["available_views"]) {
+		entry := modelMap(row)
+		if modelText(entry["observation_id"]) == activeObservationID {
+			delete(entry, "conclusion")
+		}
+	}
+}
+
+func observationLedgerWindow(total, sourceCount, retained int, rounds [2]int, coldRef string) map[string]any {
 	if total < sourceCount {
 		total = sourceCount
 	}
+	if total < retained {
+		total = retained
+	}
 	return map[string]any{
 		"total": total, "retained": retained, "omitted": total - retained, "limit": 24,
+		"earliest_round": rounds[0], "latest_round": rounds[1],
+		"cold_ref": coldRef,
 	}
 }
 
@@ -282,6 +498,27 @@ func modelInteger(value any) int {
 	}
 }
 
+func projectObservationLedgerRowsInWindow(value any, opts Options, windowRound int, keys ...string) []map[string]any {
+	rows := modelRows(value)
+	if len(rows) > 24 {
+		rows = rows[len(rows)-24:]
+	}
+	out := make([]map[string]any, 0, len(rows))
+	for _, row := range rows {
+		if !ledgerRowInWindow(row, windowRound) {
+			continue
+		}
+		if clean := modelMap(sanitizeModelProjection(selectModelFields(row, keys...), opts)); len(clean) > 0 {
+			out = append(out, clean)
+		}
+	}
+	return out
+}
+
+// projectObservationLedgerRows projects rows without a round-window filter:
+// durable facts such as do_not_retry rejections stay visible across rounds so
+// the model does not re-request what it was told not to retry. The row cap
+// keeps the projection bounded.
 func projectObservationLedgerRows(value any, opts Options, keys ...string) []map[string]any {
 	rows := modelRows(value)
 	if len(rows) > 24 {
@@ -343,6 +580,27 @@ func ModelJSON(snapshot map[string]any) string {
 	return string(data)
 }
 
+// ModelContextOverflow reports the explicit fail-closed overflow marker when
+// the projected model snapshot still exceeds its layered budgets after
+// deterministic degradation. The empty string means the snapshot is within
+// budget; otherwise a deterministic one-line summary is returned. The runtime
+// refuses to send an overflowing model request (fail closed).
+func ModelContextOverflow(snapshotJSON string) string {
+	var snapshot map[string]any
+	if err := json.Unmarshal([]byte(snapshotJSON), &snapshot); err != nil {
+		return ""
+	}
+	overflow := modelMap(snapshot["context_overflow"])
+	if len(overflow) == 0 {
+		return ""
+	}
+	return fmt.Sprintf("status=%s hot=%d/%d warm=%d/%d cold_ref=%s",
+		modelText(overflow["status"]),
+		modelInteger(overflow["hot_bytes"]), modelInteger(overflow["hot_budget_bytes"]),
+		modelInteger(overflow["warm_bytes"]), modelInteger(overflow["warm_budget_bytes"]),
+		modelText(overflow["cold_ref"]))
+}
+
 func ModelSectionBytes(snapshot map[string]any) map[string]int {
 	out := make(map[string]int, len(snapshot))
 	for key, value := range snapshot {
@@ -364,6 +622,376 @@ func ProjectCCBToolResult(result planner.ToolResult, opts Options) (map[string]a
 		return projectCCBBundle(result, bundle, opts), true
 	}
 	return nil, false
+}
+
+// ProjectCCBViewConclusion emits a deterministic decision digest for a warm
+// historical ledger. The canonical active observation keeps the complete safe
+// model projection; this function deliberately does not copy it a second time.
+// Decision facts are extracted from the flattened view facts first: the
+// structured fields the model decides on (conflict candidates, coverage,
+// rankings) live in the facts, not in the llm_context summary. llm_context is
+// only a fallback for views without structured facts. The digest opts bound
+// candidate/ranking lists so the ledger stays inside the warm budget.
+func ProjectCCBViewConclusion(bundle map[string]any, viewID string, opts Options) map[string]any {
+	view := modelMap(modelMap(bundle["views"])[viewID])
+	if len(view) == 0 {
+		return nil
+	}
+	opts = normalizeOptions(opts)
+	projected := projectCCBView(viewID, view, opts)
+	out := selectModelFields(projected, "projection_status")
+	out["digest_kind"] = "decision_digest"
+	digestOpts := opts
+	digestOpts.MaxListItems = minModelInt(opts.MaxListItems, 4)
+	source := equivalentCCBViewProjection(viewID, modelMap(view["facts"]), opts)
+	if len(source) == 0 {
+		if llmContext := modelMap(projected["llm_context"]); len(llmContext) > 0 {
+			source = llmContext
+		} else {
+			source = modelMap(projected["view_projection"])
+		}
+	}
+	if facts := projectCCBDecisionDigest(viewID, source, digestOpts); len(facts) > 0 {
+		if viewID == "track.band_dynamics" && bundleHasUsableCCBView(bundle, "track.timbre_frequency") {
+			delete(facts, "band_profile")
+		}
+		out["facts"] = facts
+	} else {
+		out["digest_status"] = "reference_only"
+	}
+	return modelMap(sanitizeModelProjection(out, opts))
+}
+
+func bundleHasUsableCCBView(bundle map[string]any, viewID string) bool {
+	status := strings.ToLower(strings.TrimSpace(modelText(modelMap(modelMap(bundle["views"])[viewID])["status"])))
+	return status == "ready" || status == "partial" || status == "stale" || status == "suspect" || status == "approximate"
+}
+
+func projectCCBDecisionDigest(viewID string, source map[string]any, opts Options) map[string]any {
+	if len(source) == 0 {
+		return nil
+	}
+	var out map[string]any
+	switch viewID {
+	case "project.structure":
+		project := modelMap(source["project_summary"])
+		tracks := modelMap(source["track_summary"])
+		out = map[string]any{
+			"status":             firstNonEmptyModelValue(project["status"], tracks["status"]),
+			"track_count":        firstNonEmptyModelValue(tracks["track_count"], project["track_count"]),
+			"active_track_count": firstNonEmptyModelValue(tracks["active_track_count"], project["active_track_count"]),
+			"tracks":             projectDecisionTrackIndex(tracks["tracks"], opts),
+		}
+	case "track.basic_energy":
+		out = map[string]any{"levels": projectDecisionMap(source["levels"], opts,
+			"status", "rms_dbfs", "peak_dbfs", "headroom_db", "crest_db", "lufs")}
+	case "track.time_dynamics":
+		out = map[string]any{
+			"time_energy": projectDecisionMap(source["time_energy"], opts, "status", "summary", "macro_dynamics", "rows"),
+			"source_dynamics": projectDecisionMap(source["source_dynamics"], opts,
+				"status", "summary", "macro_dynamics", "dynamic_range", "crest"),
+		}
+	case "track.timbre_frequency":
+		bandEnergy := modelMap(source["band_energy"])
+		out = map[string]any{"status": bandEnergy["status"], "band_profile": projectDecisionBandProfile(firstNonEmptyModelValue(bandEnergy["bands"], bandEnergy["band_energy"]), opts)}
+	case "track.band_dynamics":
+		dynamics := modelMap(source["band_dynamics"])
+		out = map[string]any{
+			"status": dynamics["status"], "band_profile": projectDecisionBandProfile(dynamics["bands"], opts),
+			"time_varying_ready": dynamics["time_varying_ready"], "per_band_crest_ready": dynamics["per_band_crest_ready"],
+			"cross_band_relation_ready": dynamics["cross_band_relation_ready"],
+			"trust_quality": projectDecisionMap(modelMap(source["readiness"])["trust_quality"], opts,
+				"overall_status", "can_support_source_description", "can_support_family_selection", "can_support_behavior_observation", "can_support_post_action_evaluation"),
+		}
+	case "track.frequency_time_events":
+		events := modelMap(source["frequency_time_events"])
+		out = map[string]any{
+			"status": events["status"], "time_localized": events["time_localized"],
+			"event_count_available":     events["event_count_available"],
+			"whole_window_band_profile": projectDecisionBandProfile(events["whole_window_bands"], opts),
+		}
+	case "track.peak_structure":
+		out = map[string]any{"peak_structure": projectDecisionMap(source["peak_structure"], opts,
+			"status", "peak_dbfs", "headroom_db", "crest_db", "segment_peak_dbfs_distribution",
+			"segment_crest_db_distribution", "at_or_above_full_scale_segment_count", "true_peak_status")}
+	case "track.activity_structure":
+		out = map[string]any{"activity_structure": projectDecisionMap(source["activity_structure"], opts,
+			"status", "segment_count", "valid_segment_count", "active_segment_count", "low_energy_segment_count",
+			"silent_segment_count", "unknown_segment_count", "coverage_ratio", "active_ratio", "low_or_silent_ratio",
+			"low_or_silent_run_seconds_distribution", "noise_floor_status")}
+	case "track.transient_structure":
+		out = map[string]any{"transient_structure": projectDecisionMap(source["transient_structure"], opts,
+			"status", "segment_crest_db_distribution", "onset_events_ready", "attack_body_contrast_ready", "sustain_decay_ready")}
+	case "track.stereo_space":
+		out = map[string]any{"stereo": projectDecisionMap(source["stereo"], opts,
+			"status", "correlation_estimate", "width", "balance", "summary")}
+	case "mix.multitrack_relationship":
+		relation := modelMap(source["relationship"])
+		rankingOpts := opts
+		rankingOpts.MaxListItems = minModelInt(opts.MaxListItems, 3)
+		out = map[string]any{
+			"status":                   relation["status"],
+			"track_count":              modelMap(source["relationship_inputs"])["track_count"],
+			"loudness_order":           projectDecisionRows(relation["loudness_order"], rankingOpts, "track_id", "name", "rank", "value"),
+			"peak_order":               projectDecisionRows(relation["peak_order"], rankingOpts, "track_id", "name", "rank", "value"),
+			"headroom_risk_tracks":     projectDecisionRows(relation["headroom_risk_tracks"], rankingOpts, "track_id", "name", "headroom_db", "risk"),
+			"band_conflict_candidates": projectDecisionCandidates(relation["band_conflict_candidates"], opts),
+			"phase_risk_tracks":        projectDecisionRows(relation["phase_risk_tracks"], rankingOpts, "track_id", "name"),
+		}
+	case "mix.frequency_relationship":
+		relation := modelMap(source["frequency_relationship"])
+		inputs := modelMap(source["relationship_inputs"])
+		out = map[string]any{
+			"status": relation["status"], "tap_point": relation["tap_point"],
+			"coverage": projectDecisionMap(relation["coverage"], opts,
+				"conflict_candidate_count", "eligible_track_ratio", "frequency_region_count"),
+			"conflict_candidates":   projectDecisionCandidates(relation["conflict_candidates"], opts),
+			"interpretation_limits": projectDecisionInterpretationLimits(relation, opts),
+			"relationship_inputs": projectDecisionMap(inputs, opts,
+				"status", "track_count", "usable_track_count", "tap_points"),
+		}
+	case "mix.masking_relationship":
+		relation := modelMap(source["masking_relationship"])
+		out = map[string]any{
+			"status":         relation["status"],
+			"freshness":      relation["freshness"],
+			"measurement_id": relation["measurement_id"],
+			"model_version":  relation["model_version"],
+			"candidate_only": relation["candidate_only"],
+			"conditions":     projectDecisionMap(relation["conditions"], opts, "tap_point", "range_start_seconds", "range_end_seconds", "tail_seconds", "sample_rate", "analyzer_revision", "synchronized", "frame_count_per_track"),
+			"coverage":       projectDecisionMap(relation["coverage"], opts, "track_count", "eligible_track_count", "candidate_count", "projected_candidate_count", "candidates_truncated", "complete_coverage"),
+			"candidates":     projectMaskingCandidates(relation["candidates"], opts),
+		}
+	case "processor.behavior":
+		out = map[string]any{"behavior": projectDecisionMap(source["behavior"], opts,
+			"status", "mode", "gain_action", "transient_response", "recovery_motion", "level_effect", "stereo_behavior", "trigger_relation", "trust_quality")}
+	case "processor.change_delta":
+		out = map[string]any{"change": projectDecisionMap(source["change"], opts, "status", "mode", "behavior_change", "trust_quality")}
+	case "comparison.before_after":
+		out = map[string]any{"comparison": projectDecisionMap(source["comparison"], opts, "status", "summary", "changes")}
+	default:
+		out = projectDecisionMap(source, opts, "status", "summary", "readiness", "candidate_summary", "compact_facts")
+	}
+	out = modelMap(sanitizeModelProjection(projectDecisionValue(out, opts, 0), opts))
+	removeEmptyModelFields(out)
+	if !hasMeaningfulModelProjection(out) {
+		return nil
+	}
+	return out
+}
+
+func projectDecisionMap(value any, opts Options, keys ...string) map[string]any {
+	return modelMap(projectDecisionValue(selectModelFields(modelMap(value), keys...), opts, 0))
+}
+
+func projectDecisionRows(value any, opts Options, keys ...string) []any {
+	rows := modelRows(value)
+	limit := len(rows)
+	if limit > opts.MaxListItems {
+		limit = opts.MaxListItems
+	}
+	out := make([]any, 0, limit+1)
+	for _, row := range rows[:limit] {
+		if projected := projectDecisionMap(row, opts, keys...); len(projected) > 0 {
+			out = append(out, projected)
+		}
+	}
+	if len(rows) > limit {
+		out = append(out, map[string]any{"omitted_items": len(rows) - limit})
+	}
+	return out
+}
+
+func projectDecisionTrackIndex(value any, opts Options) []any {
+	return projectDecisionRows(value, opts, "track_id", "id", "name", "label", "role_guess", "kind", "status", "active", "muted", "solo")
+}
+
+func projectDecisionBands(value any, opts Options) []any {
+	if bands := modelMap(value); len(bands) > 0 {
+		out := make([]any, 0, len(bands))
+		for _, band := range sortedModelKeys(bands) {
+			row := projectDecisionMap(bands[band], opts, "id", "status", "energy_db", "unit_energy")
+			if row["id"] == nil {
+				row["id"] = band
+			}
+			out = append(out, row)
+		}
+		return out
+	}
+	return projectDecisionRows(value, opts, "id", "status", "energy_db", "unit_energy")
+}
+
+func projectDecisionBandProfile(value any, opts Options) map[string]any {
+	bands := projectDecisionBands(value, opts)
+	type rankedBand struct {
+		index  int
+		id     string
+		energy float64
+	}
+	ranked := make([]rankedBand, 0, len(bands))
+	for i, value := range bands {
+		row := modelMap(value)
+		energy, ok := modelFloat(row["energy_db"])
+		if !ok {
+			continue
+		}
+		ranked = append(ranked, rankedBand{index: i, id: modelText(row["id"]), energy: energy})
+	}
+	if len(ranked) == 0 {
+		return nil
+	}
+	sort.SliceStable(ranked, func(i, j int) bool {
+		if ranked[i].energy == ranked[j].energy {
+			return ranked[i].id < ranked[j].id
+		}
+		return ranked[i].energy > ranked[j].energy
+	})
+	out := map[string]any{
+		"strongest": bands[ranked[0].index],
+		"weakest":   bands[ranked[len(ranked)-1].index],
+		"spread_db": ranked[0].energy - ranked[len(ranked)-1].energy,
+	}
+	if len(ranked) > 2 {
+		out["second_strongest"] = bands[ranked[1].index]
+	}
+	return out
+}
+
+func projectDecisionCandidates(value any, opts Options) []any {
+	rows := modelRows(value)
+	if len(rows) > opts.MaxListItems {
+		rows = rows[:opts.MaxListItems]
+	}
+	out := make([]any, 0, len(rows))
+	for _, row := range rows {
+		candidate := projectDecisionMap(row, opts, "type", "status", "region", "band", "confidence")
+		if tracks := projectDecisionRows(row["tracks"], opts, "track_id"); len(tracks) > 0 {
+			candidate["tracks"] = tracks
+		}
+		if limit := modelText(row["interpretation_limit"]); limit != "" {
+			candidate["interpretation_limit"] = compactText(limit, minModelInt(opts.MaxTextRunes, 240))
+		}
+		out = append(out, candidate)
+	}
+	return out
+}
+
+// projectMaskingCandidates keeps the directional pair/band evidence needed
+// for an improvement hypothesis while excluding raw frames and any execution
+// authority. The hot and warm projections share this bounded shape.
+func projectMaskingCandidates(value any, opts Options) []any {
+	rows := modelRows(value)
+	// Four ranked rows are enough to give the model a concrete directional
+	// pair/band hypothesis while keeping the active CCB projection below the
+	// strict 10 KiB hot-layer budget when mixed with structure/relationship
+	// views. The MOM coverage still reports the full candidate count.
+	limit := minModelInt(opts.MaxListItems, 4)
+	if len(rows) > limit {
+		rows = rows[:limit]
+	}
+	out := make([]any, 0, len(rows)+1)
+	for _, row := range rows {
+		candidate := projectDecisionMap(row, opts,
+			"masker_track_id", "masker_track_name", "target_track_id", "target_track_name", "band_id",
+			"min_hz", "max_hz", "active_frame_count", "risk_frame_count", "risk_coverage_ratio",
+			"median_margin_db", "p90_margin_db", "max_margin_db")
+		if len(candidate) > 0 {
+			out = append(out, candidate)
+		}
+	}
+	if len(modelRows(value)) > limit {
+		out = append(out, map[string]any{"omitted_items": len(modelRows(value)) - limit})
+	}
+	return out
+}
+
+func projectDecisionInterpretationLimits(relation map[string]any, opts Options) []string {
+	seen := map[string]bool{}
+	out := []string{}
+	for _, key := range []string{"conflict_candidates", "tonal_tendencies"} {
+		for _, row := range modelRows(relation[key]) {
+			limit := compactText(modelText(row["interpretation_limit"]), minModelInt(opts.MaxTextRunes, 240))
+			if limit != "" && !seen[limit] {
+				seen[limit] = true
+				out = append(out, limit)
+			}
+		}
+	}
+	return out
+}
+
+func projectDecisionValue(value any, opts Options, depth int) any {
+	if depth > 5 {
+		return map[string]any{"omitted_depth": true}
+	}
+	switch typed := value.(type) {
+	case map[string]any:
+		out := map[string]any{}
+		for _, key := range sortedModelKeys(typed) {
+			if forbiddenModelProjectionKey(key) || key == "evidence_refs" || key == "limitations" || key == "scope" || strings.Contains(key, "source_path") {
+				continue
+			}
+			out[key] = projectDecisionValue(typed[key], opts, depth+1)
+		}
+		return removeEmptyModelFields(out)
+	case []any:
+		limit := len(typed)
+		if limit > opts.MaxListItems {
+			limit = opts.MaxListItems
+		}
+		out := make([]any, 0, limit+1)
+		for _, item := range typed[:limit] {
+			out = append(out, projectDecisionValue(item, opts, depth+1))
+		}
+		if len(typed) > limit {
+			out = append(out, map[string]any{"omitted_items": len(typed) - limit})
+		}
+		return out
+	case []map[string]any:
+		rows := make([]any, len(typed))
+		for i := range typed {
+			rows[i] = typed[i]
+		}
+		return projectDecisionValue(rows, opts, depth)
+	case string:
+		return compactText(typed, minModelInt(opts.MaxTextRunes, 240))
+	default:
+		return typed
+	}
+}
+
+func firstNonEmptyModelValue(values ...any) any {
+	for _, value := range values {
+		if !isEmptyValue(value) {
+			return value
+		}
+	}
+	return nil
+}
+
+func modelFloat(value any) (float64, bool) {
+	switch typed := value.(type) {
+	case float64:
+		return typed, true
+	case float32:
+		return float64(typed), true
+	case int:
+		return float64(typed), true
+	case int64:
+		return float64(typed), true
+	case json.Number:
+		parsed, err := typed.Float64()
+		return parsed, err == nil
+	default:
+		return 0, false
+	}
+}
+
+func minModelInt(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
 }
 
 func projectCCBCatalog(result planner.ToolResult, catalog map[string]any, opts Options) map[string]any {
@@ -406,8 +1034,15 @@ func projectCCBBundle(result planner.ToolResult, bundle map[string]any, opts Opt
 	projectedViews := make(map[string]any, len(requested))
 	readyViews := 0
 	unsupportedViews := 0
+	bundleEvidenceRefs := compactModelEvidenceRefs(bundle["evidence_refs"], opts)
 	for _, viewID := range requested {
-		projected := projectCCBView(viewID, modelMap(views[viewID]), opts)
+		// The canonical active observation is the Hot layer. Each view is
+		// materialized as a short digest (summary + evidence refs), never the
+		// full LLMContext compact facts or raw conditions/revisions.
+		projected := projectCCBViewDigest(viewID, modelMap(views[viewID]), opts)
+		if projected["evidence_refs"] == nil && !isEmptyValue(bundleEvidenceRefs) {
+			projected["evidence_refs"] = bundleEvidenceRefs
+		}
 		projectedViews[viewID] = projected
 		switch modelText(projected["projection_status"]) {
 		case "ready", "partial":
@@ -452,7 +1087,7 @@ func projectCCBBundle(result planner.ToolResult, bundle map[string]any, opts Opt
 		"limitations":           sanitizeModelProjection(bundle["limitations"], opts),
 		"omission_reasons":      sanitizeModelProjection(bundle["omission_reasons"], opts),
 		"omissions":             sanitizeModelProjection(bundle["omissions"], opts),
-		"evidence_refs":         sanitizeModelProjection(bundle["evidence_refs"], opts),
+		"evidence_refs":         compactModelEvidenceRefs(bundle["evidence_refs"], opts),
 		"audit_ref":             auditRef,
 		"rejection_scope":       modelText(bundle["rejection_scope"]),
 		"blocking_view_ids":     sanitizeModelProjection(bundle["blocking_view_ids"], opts),
@@ -483,6 +1118,124 @@ func projectCCBView(viewID string, view map[string]any, opts Options) map[string
 		out["projection_status"] = "unsupported_projection"
 	}
 	return out
+}
+
+// projectCCBViewDigest emits the Hot-layer digest for one view of the
+// canonical active observation: one-line summary + evidence refs only. Full
+// decision facts stay in the Warm ledger conclusion and the Cold audit
+// snapshot; measurement_key, source/clip revisions, and compact fact arrays
+// are never inlined here. Views without an LLMContext keep their bounded
+// field-selected fallback (DAD-derived views are already compact).
+func projectCCBViewDigest(viewID string, view map[string]any, opts Options) map[string]any {
+	status := modelText(view["status"])
+	out := removeEmptyModelFields(map[string]any{
+		"view_id":     firstModelText(modelText(view["view_id"]), viewID),
+		"status":      status,
+		"limitations": sanitizeModelProjection(view["limitations"], opts),
+	})
+	// Masking is already a compact MOM candidate projection. Keep its bounded
+	// directional rows in the hot layer so the model can form an improvement
+	// hypothesis without rehydrating the cold audit package.
+	if viewID == "mix.masking_relationship" {
+		if equivalent := equivalentCCBViewProjection(viewID, modelMap(view["facts"]), opts); len(equivalent) > 0 {
+			out["projection_status"] = projectionStatus(status)
+			out["view_projection"] = equivalent
+			return out
+		}
+	}
+	if llmContext := findViewLLMContext(view); len(llmContext) > 0 {
+		out["projection_status"] = projectionStatus(status)
+		summary := firstNonEmptyModelText(modelText(llmContext["summary_md"]), modelText(llmContext["summary"]))
+		if summary != "" {
+			// One-line digest: keep it short so a multi-view observation stays
+			// inside the hot budget (full facts live in the warm conclusion and
+			// cold audit snapshot).
+			out["digest"] = compactText(summary, minModelInt(opts.MaxTextRunes, 120))
+		}
+		if refs := firstNonNilModelValue(llmContext["evidence_refs"], view["evidence_refs"]); !isEmptyValue(refs) {
+			out["evidence_refs"] = compactModelEvidenceRefs(refs, opts)
+		}
+		// A structure digest must expose the minimal track identity set the
+		// model needs to request track-targeted observations; without it the
+		// model cannot proceed past project-level views (observed no-op loop).
+		if viewID == "project.structure" {
+			if tracks := digestProjectTrackIdentities(view, opts); len(tracks) > 0 {
+				out["tracks"] = tracks
+			}
+		}
+		return out
+	}
+	if equivalent := equivalentCCBViewProjection(viewID, modelMap(view["facts"]), opts); len(equivalent) > 0 {
+		out["projection_status"] = projectionStatus(status)
+		// Defensive bound for views without an LLMContext: a field-selected
+		// fallback can still be large (e.g. a ready multi-track relationship
+		// with per-track band profiles). The hot digest must never inline it;
+		// oversized fallbacks become a resolvable cold reference instead.
+		if modelJSONSize(equivalent) > modelDigestFallbackMaxBytes {
+			out["view_ref"] = "audit_snapshot://ccb_view/" + viewID
+		} else {
+			out["view_projection"] = equivalent
+		}
+		return out
+	}
+	if status == "missing" || status == "unavailable" || status == "deferred" {
+		out["projection_status"] = "omitted"
+	} else {
+		out["projection_status"] = "unsupported_projection"
+	}
+	return out
+}
+
+func firstNonNilModelValue(values ...any) any {
+	for _, value := range values {
+		if !isEmptyValue(value) {
+			return value
+		}
+	}
+	return nil
+}
+
+// digestProjectTrackIdentities extracts a compact track identity table
+// (track_id + track_name) from the structure view facts so the model can
+// request track-targeted observations. It reads the same project.tracks.summary
+// facts the audit view exposes, projected through the same sanitizer.
+func digestProjectTrackIdentities(view map[string]any, opts Options) []map[string]any {
+	facts := modelMap(view["facts"])
+	tracks := modelRows(modelMap(facts["project.tracks.summary"])["tracks"])
+	if len(tracks) == 0 {
+		return nil
+	}
+	out := make([]map[string]any, 0, len(tracks))
+	seen := map[string]bool{}
+	for _, row := range tracks {
+		trackID := modelText(row["track_id"])
+		if trackID == "" {
+			trackID = modelText(row["id"])
+		}
+		if trackID == "" || seen[trackID] {
+			continue
+		}
+		seen[trackID] = true
+		item := removeEmptyModelFields(map[string]any{
+			"track_id":   trackID,
+			"track_name": firstNonEmptyModelText(modelText(row["track_name"]), modelText(row["name"]), trackID),
+			"role_guess": modelText(row["role_guess"]),
+		})
+		out = append(out, item)
+	}
+	if len(out) == 0 {
+		return nil
+	}
+	return out
+}
+
+func firstNonEmptyModelText(values ...string) string {
+	for _, value := range values {
+		if value = strings.TrimSpace(value); value != "" {
+			return value
+		}
+	}
+	return ""
 }
 
 func findViewLLMContext(view map[string]any) map[string]any {
@@ -532,9 +1285,31 @@ func equivalentCCBViewProjection(viewID string, facts map[string]any, opts Optio
 			"track.transient_structure":   "transient_structure",
 			"track.band_dynamics":         "band_dynamics",
 		}[viewID]
+		dimensionFields := map[string][]string{
+			"peak_structure": {
+				"status", "peak_dbfs", "headroom_db", "crest_db", "segment_peak_dbfs_distribution",
+				"segment_crest_db_distribution", "at_or_above_full_scale_segment_count", "true_peak_status",
+				"limitations", "evidence_refs",
+			},
+			"activity_structure": {
+				"status", "segment_count", "valid_segment_count", "active_segment_count", "low_energy_segment_count",
+				"silent_segment_count", "unknown_segment_count", "coverage_ratio", "active_ratio", "low_or_silent_ratio",
+				"low_or_silent_run_seconds_distribution", "noise_floor_status", "limitations", "evidence_refs",
+			},
+			"frequency_time_events": {
+				"status", "whole_window_bands", "time_localized", "event_count_available", "limitations", "evidence_refs",
+			},
+			"transient_structure": {
+				"status", "segment_crest_db_distribution", "onset_events_ready", "attack_body_contrast_ready",
+				"sustain_decay_ready", "limitations", "evidence_refs",
+			},
+			"band_dynamics": {
+				"status", "bands", "time_varying_ready", "per_band_crest_ready", "cross_band_relation_ready",
+				"limitations", "evidence_refs",
+			},
+		}[dimension]
 		out = map[string]any{
-			dimension: modelNestedFactFields(facts, "observation.dom_projection", dimension, opts,
-				"status", "summary", "facts", "events", "segments", "bands", "limitations", "evidence_refs"),
+			dimension:   modelNestedFactFields(facts, "observation.dom_projection", dimension, opts, dimensionFields...),
 			"readiness": modelFactFields(facts, "observation.dom_projection", opts, "status", "dimension_readiness", "trust_quality", "evidence_refs", "limitations"),
 		}
 	case "track.stereo_space":
@@ -555,6 +1330,11 @@ func equivalentCCBViewProjection(viewID string, facts map[string]any, opts Optio
 			"relationship_inputs": modelFactFields(facts, "project.frequency_relationship_inputs", opts,
 				"status", "track_count", "usable_track_count", "tap_points", "decision_tracks_truncated", "tracks"),
 		}
+	case "mix.masking_relationship":
+		out = map[string]any{
+			"masking_relationship": compactMaskingRelationshipForModel(
+				modelNestedFactValue(facts, "observation.mom_projection", "masking_relationship"), opts),
+		}
 	case "processor.behavior":
 		out = map[string]any{"behavior": modelFactFields(facts, "observation.com_projection", opts, "status", "mode", "gain_action", "transient_response", "recovery_motion", "level_effect", "stereo_behavior", "trigger_relation", "trust_quality", "limitations", "evidence_refs")}
 	case "processor.change_delta":
@@ -568,6 +1348,60 @@ func equivalentCCBViewProjection(viewID string, facts map[string]any, opts Optio
 	removeEmptyModelFields(out)
 	if !hasMeaningfulModelProjection(out) {
 		return nil
+	}
+	return out
+}
+
+func modelNestedFactValue(facts map[string]any, factKey, nested string) any {
+	return modelMap(modelMap(facts[factKey])[nested])
+}
+
+// compactMaskingRelationshipForModel is intentionally narrower than the MOM
+// object. It is the model-facing contract for the real observation: concrete
+// directional candidates, bounded conditions/coverage, and traceable refs;
+// no raw frames, levels, or mutation fields cross this boundary.
+func compactMaskingRelationshipForModel(value any, opts Options) map[string]any {
+	relation := modelMap(value)
+	if len(relation) == 0 {
+		return nil
+	}
+	out := selectModelFields(relation, "schema_version", "status", "freshness", "measurement_id", "model_version", "candidate_only", "limitations")
+	out["evidence_refs"] = compactModelEvidenceRefs(relation["evidence_refs"], opts)
+	out["conditions"] = selectModelFields(modelMap(relation["conditions"]),
+		"tap_point", "range_start_seconds", "range_end_seconds", "tail_seconds", "sample_rate", "analyzer_revision", "synchronized", "frame_count_per_track")
+	out["coverage"] = selectModelFields(modelMap(relation["coverage"]),
+		"track_count", "eligible_track_count", "candidate_count", "projected_candidate_count", "candidates_truncated", "complete_coverage")
+	out["candidates"] = projectMaskingCandidates(relation["candidates"], opts)
+	return modelMap(sanitizeModelProjection(out, opts))
+}
+
+// compactModelEvidenceRefs retains short, directly useful references but turns
+// long transport identities into stable opaque handles. L2 probe references
+// can include source paths and full clip manifests, which belong to the cold
+// audit receipt rather than the model's hot decision context.
+func compactModelEvidenceRefs(value any, opts Options) []any {
+	refs := modelStrings(value)
+	if len(refs) == 0 {
+		return nil
+	}
+	limit := minModelInt(opts.MaxListItems, 5)
+	if limit <= 0 {
+		limit = 5
+	}
+	if len(refs) < limit {
+		limit = len(refs)
+	}
+	out := make([]any, 0, limit+1)
+	for _, ref := range refs[:limit] {
+		if len([]rune(ref)) <= 160 {
+			out = append(out, ref)
+			continue
+		}
+		digest := sha256.Sum256([]byte(ref))
+		out = append(out, "evidence_ref_hash:"+hex.EncodeToString(digest[:6]))
+	}
+	if len(refs) > limit {
+		out = append(out, map[string]any{"omitted_refs": len(refs) - limit})
 	}
 	return out
 }
@@ -677,6 +1511,10 @@ func projectRecentCCBObservation(recent map[string]any, opts Options) map[string
 }
 
 func stripRepeatedCCBResults(snapshot map[string]any, refsByCallID, refsByTool map[string]map[string]any) {
+	// The canonical copy of every non-CCB tool result lives once in
+	// tool_result_summary (CCB rows are removed because their canonical
+	// projection is the active observation). Every other model section keeps
+	// only a reference so the same data never appears twice in one request.
 	if snapshot["tool_result_summary"] != nil {
 		rows := modelRows(snapshot["tool_result_summary"])
 		kept := make([]any, 0, len(rows))
@@ -696,17 +1534,19 @@ func stripRepeatedCCBResults(snapshot map[string]any, refsByCallID, refsByTool m
 	if trace["recent_events"] != nil {
 		events := modelRows(trace["recent_events"])
 		for _, event := range events {
-			result := modelMap(event["tool_result"])
-			if !isCCBSummary(result) {
-				continue
+			if result := modelMap(event["tool_result"]); len(result) > 0 {
+				delete(event, "tool_result")
+				event["tool_result_ref"] = referenceForSummary(result, refsByCallID, refsByTool)
+			} else if ref := modelMap(event["tool_result_ref"]); len(ref) > 0 {
+				// A ref-only trace event is enriched with the canonical CCB
+				// reference when the projection knows the observation.
+				event["tool_result_ref"] = referenceForSummary(ref, refsByCallID, refsByTool)
 			}
-			delete(event, "tool_result")
-			event["tool_result_ref"] = referenceForSummary(result, refsByCallID, refsByTool)
 		}
 		trace["recent_events"] = events
 	}
 	semantic := modelMap(snapshot["daw_semantic_summary"])
-	if result := modelMap(semantic["recent_execution_result"]); isCCBSummary(result) {
+	if result := modelMap(semantic["recent_execution_result"]); len(result) > 0 {
 		delete(semantic, "recent_execution_result")
 		semantic["recent_execution_result_ref"] = referenceForSummary(result, refsByCallID, refsByTool)
 	}
@@ -720,7 +1560,7 @@ func stripRecentGoalCCB(context map[string]any, refsByCallID, refsByTool map[str
 	if len(context) == 0 {
 		return
 	}
-	if result := modelMap(context["recent_tool_result"]); isCCBSummary(result) {
+	if result := modelMap(context["recent_tool_result"]); len(result) > 0 {
 		delete(context, "recent_tool_result")
 		context["recent_tool_result_ref"] = referenceForSummary(result, refsByCallID, refsByTool)
 	}

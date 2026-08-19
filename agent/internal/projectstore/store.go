@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -84,6 +85,11 @@ var active struct {
 	set   bool
 }
 
+// Manifest updates originate from lifecycle refreshes, evidence writes, and
+// mixboard persistence. Keep each project manifest transaction local to its
+// store so those refreshes cannot race through the same on-disk document.
+var manifestLocks sync.Map
+
 func DefaultBudgets() Budgets {
 	return Budgets{
 		ObservationMaxBytes:    2 * 1024 * 1024,
@@ -124,6 +130,9 @@ func Ensure(projectPath, projectUUID string) (Roots, Manifest, error) {
 	if err != nil {
 		return Roots{}, Manifest{}, err
 	}
+	lock := manifestLock(roots)
+	lock.Lock()
+	defer lock.Unlock()
 	if err := os.MkdirAll(roots.Agent, 0o755); err != nil {
 		return Roots{}, Manifest{}, err
 	}
@@ -135,6 +144,15 @@ func Ensure(projectPath, projectUUID string) (Roots, Manifest, error) {
 			}
 			manifest = rebound
 			err = nil
+		}
+		if err != nil {
+			if recovered, ok, recoverErr := recoverMalformedManifest(roots); ok {
+				if recoverErr != nil {
+					return Roots{}, Manifest{}, recoverErr
+				}
+				manifest = recovered
+				err = nil
+			}
 		}
 	}
 	if os.IsNotExist(err) {
@@ -151,7 +169,7 @@ func Ensure(projectPath, projectUUID string) (Roots, Manifest, error) {
 				"renewable":     {"evidence", "context_packs"},
 			},
 		}
-		if err := Write(roots, manifest); err != nil {
+		if err := writeManifest(roots, manifest); err != nil {
 			return Roots{}, Manifest{}, err
 		}
 		return roots, manifest, nil
@@ -160,6 +178,42 @@ func Ensure(projectPath, projectUUID string) (Roots, Manifest, error) {
 		return Roots{}, Manifest{}, err
 	}
 	return roots, manifest, nil
+}
+
+// recoverMalformedManifest accepts only a manifest whose first JSON document
+// is complete and still identifies this exact project. This handles an
+// interrupted or concurrent append without treating an unrelated store as
+// recoverable. The original bytes are retained beside the repaired manifest.
+func recoverMalformedManifest(roots Roots) (Manifest, bool, error) {
+	path := filepath.Join(roots.Agent, ManifestFile)
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return Manifest{}, false, nil
+	}
+	decoder := json.NewDecoder(strings.NewReader(string(data)))
+	manifest := Manifest{}
+	if err := decoder.Decode(&manifest); err != nil {
+		return Manifest{}, false, nil
+	}
+	var extra any
+	if err := decoder.Decode(&extra); !errors.Is(err, io.EOF) {
+		if err == nil {
+			return Manifest{}, false, nil
+		}
+	} else {
+		return Manifest{}, false, nil
+	}
+	if manifest.SchemaVersion != ManifestSchemaVersion || SafeName(manifest.ProjectUUID) != roots.ProjectUUID || !samePath(manifest.ProjectPath, roots.ProjectPath) {
+		return Manifest{}, false, nil
+	}
+	backup := path + ".corrupt-" + fmt.Sprint(time.Now().UTC().UnixNano())
+	if err := os.WriteFile(backup, data, 0o600); err != nil {
+		return Manifest{}, true, err
+	}
+	if err := writeManifest(roots, manifest); err != nil {
+		return Manifest{}, true, err
+	}
+	return manifest, true, nil
 }
 
 // rebindRelocatedStore accepts a project folder that was copied or moved as a
@@ -243,6 +297,13 @@ func Load(roots Roots) (Manifest, error) {
 }
 
 func Write(roots Roots, manifest Manifest) error {
+	lock := manifestLock(roots)
+	lock.Lock()
+	defer lock.Unlock()
+	return writeManifest(roots, manifest)
+}
+
+func writeManifest(roots Roots, manifest Manifest) error {
 	if roots.ProjectUUID == "" || roots.Agent == "" {
 		return errors.New("agent store roots are incomplete")
 	}
@@ -270,6 +331,9 @@ func Write(roots Roots, manifest Manifest) error {
 }
 
 func Recalibrate(roots Roots) (Manifest, error) {
+	lock := manifestLock(roots)
+	lock.Lock()
+	defer lock.Unlock()
 	manifest, err := Load(roots)
 	if err != nil {
 		return Manifest{}, err
@@ -279,13 +343,16 @@ func Recalibrate(roots Roots) (Manifest, error) {
 		return Manifest{}, err
 	}
 	manifest.Counters = counters
-	if err := Write(roots, manifest); err != nil {
+	if err := writeManifest(roots, manifest); err != nil {
 		return Manifest{}, err
 	}
 	return manifest, nil
 }
 
 func RecordGateAudit(roots Roots, entry GateAuditEntry) error {
+	lock := manifestLock(roots)
+	lock.Lock()
+	defer lock.Unlock()
 	manifest, err := Load(roots)
 	if err != nil {
 		return err
@@ -294,7 +361,7 @@ func RecordGateAudit(roots Roots, entry GateAuditEntry) error {
 		entry.At = time.Now().UTC()
 	}
 	manifest.GateAudit = append(manifest.GateAudit, entry)
-	return Write(roots, manifest)
+	return writeManifest(roots, manifest)
 }
 
 func ForkAgentStore(sourcePath, sourceUUID, targetPath, targetUUID string) (string, error) {
@@ -401,15 +468,33 @@ func writeFileAtomic(path string, data []byte, mode os.FileMode) error {
 	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
 		return err
 	}
-	temp := path + ".tmp"
-	if err := os.WriteFile(temp, data, mode); err != nil {
+	tempFile, err := os.CreateTemp(filepath.Dir(path), "."+filepath.Base(path)+".tmp-")
+	if err != nil {
+		return err
+	}
+	temp := tempFile.Name()
+	defer os.Remove(temp)
+	if err := tempFile.Chmod(mode); err != nil {
+		_ = tempFile.Close()
+		return err
+	}
+	if _, err := tempFile.Write(data); err != nil {
+		_ = tempFile.Close()
+		return err
+	}
+	if err := tempFile.Close(); err != nil {
 		return err
 	}
 	if err := os.Rename(temp, path); err != nil {
-		_ = os.Remove(temp)
 		return err
 	}
 	return nil
+}
+
+func manifestLock(roots Roots) *sync.Mutex {
+	key := filepath.Clean(roots.Agent)
+	value, _ := manifestLocks.LoadOrStore(key, &sync.Mutex{})
+	return value.(*sync.Mutex)
 }
 
 func scanCounters(root string) (Counters, error) {

@@ -109,18 +109,19 @@ type AnalysisResolution struct {
 }
 
 type SourceEvidence struct {
-	ID              string          `json:"id,omitempty"`
-	SchemaVersion   string          `json:"schema_version,omitempty"`
-	Status          string          `json:"status,omitempty"`
-	Freshness       string          `json:"freshness,omitempty"`
-	DurationSeconds float64         `json:"duration_seconds,omitempty"`
-	RMSDBFS         *float64        `json:"rms_dbfs,omitempty"`
-	ActiveRMSDBFS   *float64        `json:"active_rms_dbfs,omitempty"`
-	PeakDBFS        *float64        `json:"peak_dbfs,omitempty"`
-	CrestDB         *float64        `json:"crest_db,omitempty"`
-	TimeSegments    []TimeSegment   `json:"time_segments,omitempty"`
-	Quality         QualityEvidence `json:"quality"`
-	EvidenceRefs    []string        `json:"evidence_refs,omitempty"`
+	ID              string                  `json:"id,omitempty"`
+	SchemaVersion   string                  `json:"schema_version,omitempty"`
+	Status          string                  `json:"status,omitempty"`
+	Freshness       string                  `json:"freshness,omitempty"`
+	DurationSeconds float64                 `json:"duration_seconds,omitempty"`
+	RMSDBFS         *float64                `json:"rms_dbfs,omitempty"`
+	ActiveRMSDBFS   *float64                `json:"active_rms_dbfs,omitempty"`
+	PeakDBFS        *float64                `json:"peak_dbfs,omitempty"`
+	CrestDB         *float64                `json:"crest_db,omitempty"`
+	TimeSegments    []TimeSegment           `json:"time_segments,omitempty"`
+	TransientEvents *TransientEventEvidence `json:"transient_events,omitempty"`
+	Quality         QualityEvidence         `json:"quality"`
+	EvidenceRefs    []string                `json:"evidence_refs,omitempty"`
 }
 
 type TimeSegment struct {
@@ -130,6 +131,30 @@ type TimeSegment struct {
 	PeakDBFS     *float64 `json:"peak_dbfs,omitempty"`
 	CrestDB      *float64 `json:"crest_db,omitempty"`
 	EnergyState  string   `json:"energy_state,omitempty"`
+}
+
+// TransientEventEvidence carries bounded frame-level onset/body/sustain facts
+// from DAD. WindowMS/HopMS declare the real analyzer resolution (L3 FFT frames,
+// non-overlapping) so micro-transient readiness never over-promises
+// sample-accurate resolution.
+type TransientEventEvidence struct {
+	Status       string           `json:"status"`
+	Events       []TransientEvent `json:"events,omitempty"`
+	Coverage     float64          `json:"coverage,omitempty"`
+	WindowMS     float64          `json:"window_ms,omitempty"`
+	HopMS        float64          `json:"hop_ms,omitempty"`
+	EvidenceRefs []string         `json:"evidence_refs,omitempty"`
+}
+
+type TransientEvent struct {
+	OnsetSeconds         float64  `json:"onset_seconds"`
+	BodyEndSeconds       float64  `json:"body_end_seconds,omitempty"`
+	SustainEndSeconds    float64  `json:"sustain_end_seconds,omitempty"`
+	OnsetDBFS            *float64 `json:"onset_dbfs,omitempty"`
+	BodyDBFS             *float64 `json:"body_dbfs,omitempty"`
+	SustainDBFS          *float64 `json:"sustain_dbfs,omitempty"`
+	AttackBodyContrastDB *float64 `json:"attack_body_contrast_db,omitempty"`
+	SustainDecayDB       *float64 `json:"sustain_decay_db,omitempty"`
 }
 
 type QualityEvidence struct {

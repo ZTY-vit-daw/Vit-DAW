@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"testing"
 )
 
@@ -198,5 +199,67 @@ func TestLoadRejectsIdentityMismatch(t *testing.T) {
 	}
 	if _, err := Load(roots); err == nil {
 		t.Fatal("identity mismatch was accepted")
+	}
+}
+
+func TestEnsureRepairsTrailingManifestDocumentWithoutDiscardingStore(t *testing.T) {
+	roots, manifest, err := Ensure(filepath.Join(t.TempDir(), "song.vit"), "vitproj_repair")
+	if err != nil {
+		t.Fatal(err)
+	}
+	manifest.GateAudit = append(manifest.GateAudit, GateAuditEntry{Action: "preserve"})
+	data, err := json.MarshalIndent(manifest, "", "  ")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(roots.Agent, ManifestFile), append(data, '\n', '}'), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	repairedRoots, repaired, err := Ensure(roots.ProjectPath, roots.ProjectUUID)
+	if err != nil {
+		t.Fatalf("Ensure did not repair trailing document: %v", err)
+	}
+	if repairedRoots != roots || len(repaired.GateAudit) != 1 || repaired.GateAudit[0].Action != "preserve" {
+		t.Fatalf("repaired manifest = %+v", repaired)
+	}
+	if _, err := Load(roots); err != nil {
+		t.Fatalf("repaired manifest is not strict JSON: %v", err)
+	}
+	backups, err := filepath.Glob(filepath.Join(roots.Agent, ManifestFile+".corrupt-*"))
+	if err != nil || len(backups) != 1 {
+		t.Fatalf("backups=%v err=%v", backups, err)
+	}
+}
+
+func TestConcurrentManifestWritesRemainStrictJSON(t *testing.T) {
+	roots, manifest, err := Ensure(filepath.Join(t.TempDir(), "song.vit"), "vitproj_concurrent")
+	if err != nil {
+		t.Fatal(err)
+	}
+	const writers = 64
+	var wait sync.WaitGroup
+	errs := make(chan error, writers)
+	for i := 0; i < writers; i++ {
+		wait.Add(1)
+		go func(index int) {
+			defer wait.Done()
+			copy := manifest
+			copy.GateAudit = []GateAuditEntry{{Action: "writer", Detail: string(rune('a' + index%26))}}
+			errs <- Write(roots, copy)
+		}(i)
+	}
+	wait.Wait()
+	close(errs)
+	for err := range errs {
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+	if _, err := Load(roots); err != nil {
+		t.Fatalf("concurrent writes produced an invalid manifest: %v", err)
+	}
+	leftovers, err := filepath.Glob(filepath.Join(roots.Agent, "."+ManifestFile+".tmp-*"))
+	if err != nil || len(leftovers) != 0 {
+		t.Fatalf("temporary manifest files=%v err=%v", leftovers, err)
 	}
 }

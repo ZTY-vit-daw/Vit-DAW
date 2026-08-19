@@ -95,6 +95,38 @@ func TestCompressorControlBriefKeepsSingleReleaseBinding(t *testing.T) {
 	}
 }
 
+func TestCompressorControlBriefKeepsStableEquivalentContinuousBinding(t *testing.T) {
+	minimum, maximum := 0.0, 20.0
+	first := compressorParam("threshold-1", "Threshold 1", "0.0")
+	second := compressorParam("threshold-2", "Threshold 2", "0.0")
+	first.DisplayDomainCandidate = &PluginDisplayDomain{Min: &minimum, Max: &maximum, Unit: "dB"}
+	second.DisplayDomainCandidate = &PluginDisplayDomain{Min: &minimum, Max: &maximum, Unit: "dB"}
+	brief, boundary := BuildCompressorControlBrief(ParameterDigest{Parameters: []ParameterInfo{
+		first, second, compressorParam("ratio", "Ratio", "2:1"),
+	}}, []string{"activation_intensity"})
+	if brief == nil || boundary != "" || len(brief.Controls) != 1 || brief.Controls[0].Role != "threshold" {
+		t.Fatalf("equivalent continuous controls were not deterministically reduced: brief=%+v boundary=%q", brief, boundary)
+	}
+}
+
+func TestCompressorControlBriefPrefersUniqueContinuousInputDrive(t *testing.T) {
+	minimum, maximum := 0.0, 10.0
+	inputGain := compressorParam("input-gain", "Input Gain", "4.0")
+	inputGain.DisplayDomainCandidate = &PluginDisplayDomain{Min: &minimum, Max: &maximum, Unit: "dB"}
+	inputPad := compressorParam("input-pad", "Input Pad", "Off")
+	inputPad.DisplayProbe = &ParameterDisplayProbe{DiscreteLabels: []ParameterDisplayProbeLabel{
+		{Index: 0, Label: "Off"}, {Index: 1, Label: "On"},
+	}}
+	brief, boundary := BuildCompressorControlBrief(ParameterDigest{Parameters: []ParameterInfo{
+		inputGain, inputPad, compressorParam("response", "Response", "Normal"),
+		compressorParam("output", "Output Gain", "4.0"), compressorParam("mix", "Dry/Wet Mix", "100 %"),
+		compressorParam("link", "Stereo Link", "On"),
+	}}, []string{"activation_intensity"})
+	if brief == nil || boundary != "" || len(brief.Controls) != 1 || brief.Controls[0].Role != "input_drive" || brief.Controls[0].CurrentText != "4.0" {
+		t.Fatalf("continuous input drive was not selected: brief=%+v boundary=%q", brief, boundary)
+	}
+}
+
 func TestCompressorSemanticSurfacesPreserveLimiterBoundary(t *testing.T) {
 	digest := ParameterDigest{PluginName: "L2", Parameters: []ParameterInfo{
 		compressorParam("threshold", "Limiter Threshold", "-6 dB"), compressorParam("ceiling", "Ceiling", "-0.1 dB"),

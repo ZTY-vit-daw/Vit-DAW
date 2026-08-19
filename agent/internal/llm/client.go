@@ -21,13 +21,14 @@ type Message struct {
 }
 
 type Request struct {
-	Messages   []Message
-	Metadata   RequestMetadata
-	NoTimeout  bool
-	Timeout    time.Duration
-	Tools      []map[string]any
-	ToolChoice any
-	PreferJSON bool
+	Messages        []Message
+	Metadata        RequestMetadata
+	NoTimeout       bool
+	Timeout         time.Duration
+	MaxOutputTokens int
+	Tools           []map[string]any
+	ToolChoice      any
+	PreferJSON      bool
 }
 
 type ImageInput struct {
@@ -151,16 +152,6 @@ func (c *Client) CompleteRequest(ctx context.Context, cfg config.EngineConfig, l
 	if err != nil {
 		return response, err
 	}
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, endpoint.URL, bytes.NewReader(payload))
-	if err != nil {
-		return response, err
-	}
-	req.Header.Set("Authorization", "Bearer "+strings.TrimSpace(cfg.APIKey))
-	req.Header.Set("Content-Type", "application/json")
-	if endpoint.Kind == "responses" && llmReq.PreferJSON {
-		req.Header.Set("Accept", "application/json")
-	}
-
 	client := c.HTTPClient
 	if client == nil {
 		timeout := llmReq.Timeout
@@ -169,26 +160,85 @@ func (c *Client) CompleteRequest(ctx context.Context, cfg config.EngineConfig, l
 		}
 		client = &http.Client{Timeout: timeout}
 	}
-	httpStart := time.Now()
-	resp, err := client.Do(req)
-	if err != nil {
-		response.Timings.HTTPMs = elapsedMs(httpStart)
-		return response, err
+	// Some compatible gateways transiently return 502/503/504 while their
+	// smaller requests succeed. Retry bounded transient failures, but never
+	// retry oversized payloads where the failure is deterministic at the
+	// gateway boundary.
+	attempts := 1
+	if len(payload) <= 48*1024 {
+		attempts = 3
 	}
-	defer resp.Body.Close()
+	var lastErr error
+	for attempt := 0; attempt < attempts; attempt++ {
+		if attempt > 0 {
+			delay := time.Duration(attempt*250) * time.Millisecond
+			select {
+			case <-ctx.Done():
+				return response, ctx.Err()
+			case <-time.After(delay):
+			}
+		}
+		req, requestErr := http.NewRequestWithContext(ctx, http.MethodPost, endpoint.URL, bytes.NewReader(payload))
+		if requestErr != nil {
+			return response, requestErr
+		}
+		req.Header.Set("Authorization", "Bearer "+strings.TrimSpace(cfg.APIKey))
+		req.Header.Set("Content-Type", "application/json")
+		if endpoint.Kind == "responses" && llmReq.PreferJSON {
+			req.Header.Set("Accept", "application/json")
+		}
 
-	data, err := io.ReadAll(resp.Body)
-	response.Timings.HTTPMs = elapsedMs(httpStart)
-	if err != nil {
-		return response, err
+		httpStart := time.Now()
+		resp, requestErr := client.Do(req)
+		if requestErr != nil {
+			response.Timings.HTTPMs = elapsedMs(httpStart)
+			lastErr = requestErr
+			if !retryableLLMTransportError(requestErr) || attempt+1 >= attempts {
+				return response, requestErr
+			}
+			continue
+		}
+		data, readErr := io.ReadAll(resp.Body)
+		resp.Body.Close()
+		response.Timings.HTTPMs = elapsedMs(httpStart)
+		if readErr != nil {
+			lastErr = readErr
+			if attempt+1 >= attempts {
+				return response, readErr
+			}
+			continue
+		}
+		text, usage, parseErr := parseLLMResponseData(data, resp.StatusCode, endpoint.Kind)
+		response.Usage = usage
+		if parseErr == nil {
+			response.Text = text
+			return response, nil
+		}
+		lastErr = parseErr
+		if !retryableLLMHTTPError(resp.StatusCode, parseErr) || attempt+1 >= attempts {
+			return response, parseErr
+		}
 	}
-	text, usage, err := parseLLMResponseData(data, resp.StatusCode, endpoint.Kind)
-	response.Usage = usage
-	if err != nil {
-		return response, err
+	return response, lastErr
+}
+
+func retryableLLMTransportError(err error) bool {
+	if err == nil {
+		return false
 	}
-	response.Text = text
-	return response, nil
+	text := strings.ToLower(err.Error())
+	return strings.Contains(text, "connection reset") || strings.Contains(text, "unexpected eof") || strings.Contains(text, "timeout")
+}
+
+func retryableLLMHTTPError(status int, err error) bool {
+	if status == http.StatusBadGateway || status == http.StatusServiceUnavailable || status == http.StatusGatewayTimeout {
+		return true
+	}
+	if err == nil {
+		return false
+	}
+	text := strings.ToLower(err.Error())
+	return strings.Contains(text, "overloaded") || strings.Contains(text, "temporarily unavailable")
 }
 
 func (c *Client) CompleteImageUnderstanding(ctx context.Context, cfg config.EngineConfig, visionReq VisionRequest) (response Response, err error) {
@@ -342,6 +392,9 @@ func requestBody(kind, model string, req Request) map[string]any {
 		"temperature": 0.2,
 	}
 	if kind == "responses" {
+		if req.MaxOutputTokens > 0 {
+			body["max_output_tokens"] = req.MaxOutputTokens
+		}
 		if req.PreferJSON {
 			body["stream"] = false
 		}
@@ -362,6 +415,9 @@ func requestBody(kind, model string, req Request) map[string]any {
 		return body
 	}
 	body["messages"] = req.Messages
+	if req.MaxOutputTokens > 0 {
+		body["max_tokens"] = req.MaxOutputTokens
+	}
 	if req.PreferJSON {
 		// Prompts alone are not a reliable structured-output contract on
 		// OpenAI-compatible chat endpoints. C1/B4 planners validate exact JSON

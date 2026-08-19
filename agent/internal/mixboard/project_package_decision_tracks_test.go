@@ -42,6 +42,24 @@ func TestProjectLowEndDecisionTracksAreNotLimitedByPresentationExcerpt(t *testin
 	}
 }
 
+func TestProjectConflictCandidatesCoverMidBandEvidence(t *testing.T) {
+	tracks := []map[string]any{
+		{"track_id": "a", "name": "A", "band_energy": map[string]any{"status": "ready", "bands": map[string]any{"mid": map[string]any{"unit_energy": 0.60}}}},
+		{"track_id": "b", "name": "B", "band_energy": map[string]any{"status": "ready", "bands": map[string]any{"mid": map[string]any{"unit_energy": 0.55}}}},
+	}
+	rows := mapRowsAny(projectConflictCandidates(tracks)["candidates"])
+	found := false
+	for _, row := range rows {
+		if cleanAnyString(row["band"]) == "mid" {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Fatalf("mid-band conflict candidate missing: %#v", rows)
+	}
+}
+
 func TestProjectPackageExposesB2EffectiveStaticLevel(t *testing.T) {
 	packet := buildProjectPackage(map[string]any{"tracks": []any{map[string]any{
 		"track_id": "vocal", "track_name": "Lead Vocal", "volume_db": -2.0,

@@ -3099,6 +3099,7 @@ juce::String PluginRackControlService::handleRackAddNode (const juce::DynamicObj
 
     if (auto pluginInstanceState = findRackPluginInstanceState (*rack->type, plugin->itemID); pluginInstanceState.isValid())
     {
+        pluginInstanceState.setProperty ("plugin_identifier", chosenDesc.createIdentifierString(), &undo);
         pluginInstanceState.setProperty ("vit_zone_id", zoneId, &undo);
         pluginInstanceState.setProperty ("vit_clip_scope", clipScope, &undo);
         pluginInstanceState.setProperty ("vit_template_role", templateRole, &undo);

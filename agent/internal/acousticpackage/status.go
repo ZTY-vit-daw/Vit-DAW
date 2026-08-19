@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	"vit-daw-agent/internal/projectstore"
@@ -107,6 +108,24 @@ type Store struct {
 	Now  func() time.Time
 }
 
+// Status stores are shared by concurrent CCB requests for one project. Keep
+// the read-modify-write cycle path-locked in-process; the atomic rename below
+// also prevents unrelated readers from observing a partially written JSON file.
+var statusStorePathLocks sync.Map // map[string]*sync.RWMutex
+
+func statusStorePathLock(path string) *sync.RWMutex {
+	key := filepath.Clean(path)
+	lock, _ := statusStorePathLocks.LoadOrStore(key, &sync.RWMutex{})
+	return lock.(*sync.RWMutex)
+}
+
+func (s Store) resolvedPath() string {
+	if path := strings.TrimSpace(s.Path); path != "" {
+		return filepath.Clean(path)
+	}
+	return DefaultStorePath(nil)
+}
+
 func NewStore(path string) Store {
 	if strings.TrimSpace(path) == "" {
 		path = DefaultStorePath(nil)
@@ -139,10 +158,14 @@ func DefaultStorePath(args map[string]any) string {
 }
 
 func (s Store) Read() (Snapshot, error) {
-	path := strings.TrimSpace(s.Path)
-	if path == "" {
-		path = DefaultStorePath(nil)
-	}
+	path := s.resolvedPath()
+	lock := statusStorePathLock(path)
+	lock.RLock()
+	defer lock.RUnlock()
+	return readStatusSnapshot(path)
+}
+
+func readStatusSnapshot(path string) (Snapshot, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -161,6 +184,10 @@ func (s Store) Read() (Snapshot, error) {
 }
 
 func (s Store) Upsert(status Status) (Snapshot, error) {
+	path := s.resolvedPath()
+	lock := statusStorePathLock(path)
+	lock.Lock()
+	defer lock.Unlock()
 	now := s.nowString()
 	if status.SchemaVersion == "" {
 		status.SchemaVersion = SchemaVersion
@@ -171,7 +198,7 @@ func (s Store) Upsert(status Status) (Snapshot, error) {
 	status.Status = rollupStatus(status.PackageLayers)
 	status.Audit = append(status.Audit, AuditEntry{Source: "acoustic_package_store", Reason: "upsert", UpdatedAt: now})
 
-	snap, err := s.Read()
+	snap, err := readStatusSnapshot(path)
 	if err != nil {
 		return Snapshot{}, err
 	}
@@ -197,14 +224,31 @@ func (s Store) Upsert(status Status) (Snapshot, error) {
 	if !replaced {
 		snap.Packages = append(snap.Packages, status)
 	}
-	if err := os.MkdirAll(filepath.Dir(s.Path), 0o755); err != nil {
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
 		return Snapshot{}, err
 	}
 	data, err := json.MarshalIndent(snap, "", "\t")
 	if err != nil {
 		return Snapshot{}, err
 	}
-	if err := os.WriteFile(s.Path, append(data, '\n'), 0o644); err != nil {
+	temp, err := os.CreateTemp(filepath.Dir(path), ".acoustic_package_status-*.tmp")
+	if err != nil {
+		return Snapshot{}, err
+	}
+	tempPath := temp.Name()
+	defer os.Remove(tempPath)
+	if _, err := temp.Write(append(data, '\n')); err != nil {
+		_ = temp.Close()
+		return Snapshot{}, err
+	}
+	if err := temp.Chmod(0o644); err != nil {
+		_ = temp.Close()
+		return Snapshot{}, err
+	}
+	if err := temp.Close(); err != nil {
+		return Snapshot{}, err
+	}
+	if err := os.Rename(tempPath, path); err != nil {
 		return Snapshot{}, err
 	}
 	return snap, nil

@@ -9,7 +9,7 @@ import (
 var mixBands = []string{"sub", "bass", "low_mid", "mid", "presence", "air"}
 
 func buildIntentPolicy(intent string) IntentPolicy {
-	return IntentPolicy{
+	out := IntentPolicy{
 		Name:           intent,
 		RequiredLayers: IntentRequiredLayers(intent),
 		OptionalLayers: IntentOptionalLayers(intent),
@@ -22,6 +22,13 @@ func buildIntentPolicy(intent string) IntentPolicy {
 			"do_not_use_suspect_stale_missing_as_action_evidence",
 		},
 	}
+	if intent == IntentProjectMaskingObservation {
+		out.OutputContract = append(out.OutputContract,
+			"directional_improvement_risk_candidates_only",
+			"no_deterministic_masking_or_mix_defect_claims",
+		)
+	}
+	return out
 }
 
 func buildProjectMixProfile(input Input) ProjectMixProfile {

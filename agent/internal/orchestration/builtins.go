@@ -41,6 +41,15 @@ func DefaultRegistry() *Registry {
 			VerificationRef: "frequency_cleanup.verification.v1",
 		},
 		CapabilityDefinition{
+			ID:              "fine_mix.dynamic_control.v1",
+			Version:         "v1",
+			Family:          "project_specialist_dynamic_control_orchestration",
+			Description:     "Independently orchestrate dynamic-control treatment through existing PCA-governed semantic processor workflows and typed executors.",
+			Effects:         []string{"project_mutation", "plugin_parameter_mutation"},
+			RiskCeiling:     "bounded_reversible",
+			VerificationRef: "fine_mix.dynamic_control.verification.v1",
+		},
+		CapabilityDefinition{
 			ID:              "agent.effect.eq_control.v0",
 			Version:         "v0",
 			Family:          "ordinary_agent_semantic_effect",

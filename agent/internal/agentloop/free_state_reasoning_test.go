@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	"vit-daw-agent/internal/agentprotocol"
 	"vit-daw-agent/internal/config"
 	executorpkg "vit-daw-agent/internal/executor"
 	"vit-daw-agent/internal/planner"
@@ -377,6 +378,32 @@ func TestFreeStateNeedsActionRequiresStructuredProcessorType(t *testing.T) {
 	decision.ProcessorType = "eq"
 	if err := decision.Validate(); err != nil {
 		t.Fatalf("structured EQ handoff was rejected: %v", err)
+	}
+}
+
+func TestFreeStateNeedsExperimentCarriesImprovementProposalWithoutProcessorRequirement(t *testing.T) {
+	decision := FreeStateDecision{
+		SchemaVersion:  FreeStateDecisionSchema,
+		Status:         FreeStateNeedsExperiment,
+		EvidenceStatus: "plausible",
+		Summary:        "Evidence supports a bounded improvement hypothesis.",
+		ImprovementProposal: &agentprotocol.ImprovementProposal{
+			SchemaVersion:     agentprotocol.ImprovementProposalSchema,
+			Target:            map[string]any{"kind": "clip", "id": "clip_1"},
+			EvidenceRefs:      []string{"obs_1"},
+			ImprovementIntent: "让片段电平更自然",
+			Hypothesis:        "小幅 clip gain 调整可能改善段落衔接",
+			ExpectedEffect:    "段落间响度过渡更平滑",
+			ActionDomain:      agentprotocol.ImprovementActionDomainClipGain,
+			ActionKind:        "bounded_gain_adjustment",
+			Confidence:        0.55,
+		},
+	}
+	if err := decision.Validate(); err != nil {
+		t.Fatalf("needs_experiment should validate without processor_type: %v", err)
+	}
+	if decision.ProcessorType != "" {
+		t.Fatalf("generic improvement proposal should not require processor_type: %+v", decision)
 	}
 }
 
@@ -1201,6 +1228,89 @@ func TestOpenSemanticNeedsObservationAllowsBoundedDistinctTrackTargets(t *testin
 	}
 	if issue := messageLoopFreeStateOutputIssue(state, tooMany); !strings.Contains(issue, "at most 3") {
 		t.Fatalf("unbounded multi-target observation was accepted: %q", issue)
+	}
+}
+
+func TestOpenSemanticCandidateFrontierRequiresTargetLevelSelection(t *testing.T) {
+	state := &runState{
+		input: Input{Context: map[string]any{
+			"free_state_reasoning_loop": map[string]any{
+				"schema_version": "free_state_reasoning_loop.v1", "status": "observing", "original_intent": "repair the mix",
+			},
+			"minimal_audio_closure": map[string]any{"hypothesis_frontier": map[string]any{
+				"candidates": []any{map[string]any{"id": "candidate-1", "track_ids": []any{"1007", "1012"}}},
+			}},
+		}},
+		recentObservation: &RecentObservation{Tool: "ccb.observation_request", Status: "ready", Summary: map[string]any{
+			"status": "ready", "read_only": true, "mutation_authority": false, "views": map[string]any{"track.timbre_frequency": map[string]any{"status": "ready"}},
+		}},
+	}
+	projectRetry := messageLoopOutput{FreeStateDecision: &FreeStateDecision{
+		SchemaVersion: FreeStateDecisionSchema, Status: FreeStateNeedsObservation, EvidenceStatus: "insufficient", Summary: "inspect the project again", RequestedViewIDs: []string{"mix.frequency_relationship"},
+	}, ToolCalls: []planner.ToolCall{{Tool: "ccb.observation_request", Args: map[string]any{"view_ids": []string{"mix.frequency_relationship"}}}}}
+	if issue := messageLoopFreeStateOutputIssue(state, projectRetry); !strings.Contains(issue, "target-level track") {
+		t.Fatalf("candidate frontier allowed broad retry: %q", issue)
+	}
+	selection := messageLoopOutput{FreeStateDecision: &FreeStateDecision{
+		SchemaVersion: FreeStateDecisionSchema, Status: FreeStateNeedsObservation, EvidenceStatus: "insufficient", Summary: "inspect bass", RequestedViewIDs: []string{"track.timbre_frequency"},
+	}, ToolCalls: []planner.ToolCall{{Tool: "ccb.observation_request", Args: map[string]any{
+		"view_ids": []string{"track.timbre_frequency"}, "target_ref": map[string]any{"kind": "track", "id": "1007"},
+	}}}}
+	if issue := messageLoopFreeStateOutputIssue(state, selection); issue != "" {
+		t.Fatalf("candidate target selection rejected: %q", issue)
+	}
+	action := messageLoopOutput{FreeStateDecision: &FreeStateDecision{
+		SchemaVersion: FreeStateDecisionSchema, Status: FreeStateNeedsAction, EvidenceStatus: "sufficient", Summary: "treat", RemainingIntent: "reduce overlap", ProcessorType: "eq",
+	}}
+	if issue := messageLoopFreeStateOutputIssue(state, action); !strings.Contains(issue, "explicit target-level observation") {
+		t.Fatalf("candidate frontier allowed action before target evidence: %q", issue)
+	}
+	frontier := state.input.Context["minimal_audio_closure"].(map[string]any)["hypothesis_frontier"].(map[string]any)
+	frontier["candidate_id"] = "candidate-1"
+	if issue := messageLoopFreeStateOutputIssue(state, selection); !strings.Contains(issue, "already has target-level evidence") {
+		t.Fatalf("selected candidate allowed another observation: %q", issue)
+	}
+	boundary := messageLoopOutput{Final: true, FreeStateDecision: &FreeStateDecision{
+		SchemaVersion: FreeStateDecisionSchema, Status: FreeStateBlocked, EvidenceStatus: "insufficient",
+		Summary: "The selected track evidence remains inconclusive for a safe action.", Limitations: []string{"target observation is insufficient for treatment"},
+	}}
+	if issue := messageLoopFreeStateOutputIssue(state, boundary); issue != "" {
+		t.Fatalf("selected candidate rejected explicit evidence boundary: %q", issue)
+	}
+}
+
+func TestOpenSemanticCandidateTargetEvidenceAllowsSameTurnFinalDecision(t *testing.T) {
+	state := &runState{input: Input{Context: map[string]any{
+		"free_state_reasoning_loop": map[string]any{"schema_version": "free_state_reasoning_loop.v1", "status": "observing", "original_intent": "repair the mix"},
+		"minimal_audio_closure": map[string]any{"hypothesis_frontier": map[string]any{
+			"candidates": []any{map[string]any{"id": "candidate-1", "track_ids": []any{"1007", "1012"}}},
+		}},
+	}}, recentObservation: &RecentObservation{Tool: "ccb.observation_request", Status: "ready", Summary: map[string]any{
+		"status": "ready", "read_only": true, "mutation_authority": false,
+		"observation_id": "obs-target", "target_ref": map[string]any{"kind": "track", "id": "1007"}, "views": map[string]any{"track.timbre_frequency": map[string]any{"status": "ready"}},
+	}}}
+	if issue := messageLoopFreeStateCandidateProgressionIssue(state, FreeStateNeedsAction, nil); issue != "" {
+		t.Fatalf("same-turn target evidence did not permit action decision: %q", issue)
+	}
+	observation := messageLoopOutput{FreeStateDecision: &FreeStateDecision{
+		SchemaVersion: FreeStateDecisionSchema, Status: FreeStateNeedsObservation, EvidenceStatus: "insufficient", Summary: "inspect again", RequestedViewIDs: []string{"track.time_dynamics"},
+	}, ToolCalls: []planner.ToolCall{{Tool: "ccb.observation_request", Args: map[string]any{"view_ids": []string{"track.time_dynamics"}, "target_ref": map[string]any{"kind": "track", "id": "1007"}}}}}
+	if issue := messageLoopFreeStateOutputIssue(state, observation); !strings.Contains(issue, "already has target-level evidence") {
+		t.Fatalf("same-turn target evidence allowed another observation: %q", issue)
+	}
+	proposal := messageLoopOutput{Final: true, FreeStateDecision: &FreeStateDecision{
+		SchemaVersion: FreeStateDecisionSchema, Status: FreeStateNeedsExperiment, EvidenceStatus: "plausible",
+		Summary: "target evidence supports a bounded improvement hypothesis",
+		ImprovementProposal: &agentprotocol.ImprovementProposal{
+			SchemaVersion: agentprotocol.ImprovementProposalSchema,
+			Target:        map[string]any{"kind": "track", "id": "1007"}, EvidenceRefs: []string{"obs-target"},
+			ImprovementIntent: "make the bass relationship feel clearer", Hypothesis: "a small bounded change may improve separation",
+			ExpectedEffect: "the relationship should be easier to compare", ActionDomain: agentprotocol.ImprovementActionDomainTrackGain,
+			ActionKind: "bounded_gain_adjustment", ParameterBounds: map[string]any{"delta_db": -0.5}, Confidence: 0.55,
+		},
+	}}
+	if issue := messageLoopFreeStateOutputIssue(state, proposal); issue != "" {
+		t.Fatalf("candidate target evidence rejected a valid improvement proposal: %q", issue)
 	}
 }
 

@@ -519,7 +519,7 @@ juce::Array<juce::var> normaliseRackNodeArray (const juce::var& nodesVar)
                  "type", "enabled", "x", "y", "zone_id", "clip_scope", "template_role",
                  "audio_reachable_from_rack_input", "vit_effective_in_output_path",
                  "vit_orphan_bypass_candidate", "supports_param_grabber", "manufacturer",
-                 "vendor", "category", "is_instrument", "isInstrument"
+                 "vendor", "category", "is_instrument", "isInstrument", "plugin_identifier", "identifier"
              })
             copyPropertyIfPresent (*node, *row, juce::Identifier (property));
 

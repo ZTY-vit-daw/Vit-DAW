@@ -14,6 +14,8 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <io.h>
+#include <fcntl.h>
 
 namespace
 {
@@ -49,10 +51,63 @@ juce::String stringProperty (const Object& object, const char* name)
     return object.getProperty (name).toString().trim();
 }
 
+// WaveShell members and a few third-party wrappers may print diagnostics to
+// the inherited stdout stream while JUCE scans or instantiates them. Keep the
+// worker's NDJSON protocol isolated from that observation-only plugin output.
+class ScopedPluginStdoutSilencer final
+{
+public:
+    ScopedPluginStdoutSilencer()
+    {
+        std::cout.flush();
+        saved = _dup (_fileno (stdout));
+        if (saved < 0)
+            return;
+        const auto nullFile = _open ("NUL", _O_WRONLY);
+        if (nullFile < 0)
+        {
+            _close (saved);
+            saved = -1;
+            return;
+        }
+        _dup2 (nullFile, _fileno (stdout));
+        _close (nullFile);
+        active = true;
+    }
+
+    ~ScopedPluginStdoutSilencer()
+    {
+        if (active)
+        {
+            std::cout.flush();
+            _dup2 (saved, _fileno (stdout));
+            _close (saved);
+        }
+    }
+
+    ScopedPluginStdoutSilencer (const ScopedPluginStdoutSilencer&) = delete;
+    ScopedPluginStdoutSilencer& operator= (const ScopedPluginStdoutSilencer&) = delete;
+
+private:
+    int saved = -1;
+    bool active = false;
+};
+
 double numberProperty (const Object& object, const char* name, double fallback = 0.0)
 {
     const auto value = object.getProperty (name);
     return value.isDouble() || value.isInt() || value.isInt64() ? static_cast<double> (value) : fallback;
+}
+
+int intProperty (const Object& object, const char* name, int fallback = 0)
+{
+    const auto value = object.getProperty (name);
+    if (value.isInt() || value.isInt64() || value.isDouble())
+        return static_cast<int> (value);
+    const auto text = value.toString().trim();
+    if (text.isEmpty())
+        return fallback;
+    return text.getIntValue();
 }
 
 bool boolProperty (const Object& object, const char* name, bool fallback = false)
@@ -232,15 +287,64 @@ private:
         if (format == nullptr)
             return error ("vst3_host_unavailable", "JUCE VST3 host support was not compiled into this worker");
 
+        const auto requestedName = stringProperty (request, "plugin_name");
+        const auto requestedUID = stringProperty (request, "plugin_uid");
         juce::OwnedArray<juce::PluginDescription> descriptions;
-        format->findAllTypesForFile (descriptions, pluginFile.getFullPathName());
-        if (descriptions.isEmpty())
-            return error ("scan_failed", "no VST3 audio processor class was found in " + pluginFile.getFullPathName());
+        if (requestedUID.isNotEmpty())
+        {
+            description.name = requestedName;
+            description.descriptiveName = requestedName;
+            description.pluginFormatName = "VST3";
+            description.fileOrIdentifier = pluginFile.getFullPathName();
+            description.uniqueId = intProperty (request, "plugin_uid");
+            description.deprecatedUid = description.uniqueId;
+            description.numInputChannels = intProperty (request, "num_inputs", 2);
+            description.numOutputChannels = intProperty (request, "num_outputs", 2);
+            description.manufacturerName = stringProperty (request, "manufacturer");
+            description.version = stringProperty (request, "version");
+        }
+        else
+        {
+            {
+                ScopedPluginStdoutSilencer silencePluginOutput;
+                format->findAllTypesForFile (descriptions, pluginFile.getFullPathName());
+            }
+            if (descriptions.isEmpty())
+                return error ("scan_failed", "no VST3 audio processor class was found in " + pluginFile.getFullPathName());
 
-        description = *descriptions.getFirst();
+            if (requestedName.isNotEmpty())
+            {
+                for (const auto* candidate : descriptions)
+                {
+                    if (candidate != nullptr
+                        && (candidate->name.equalsIgnoreCase (requestedName)
+                            || candidate->descriptiveName.equalsIgnoreCase (requestedName)))
+                    {
+                        description = *candidate;
+                        break;
+                    }
+                }
+                if (description.name.isEmpty())
+                {
+                    juce::StringArray available;
+                    for (const auto* candidate : descriptions)
+                        if (candidate != nullptr)
+                            available.add (candidate->name);
+                    return error ("plugin_member_not_found", "no VST3 member named " + requestedName
+                        + "; available members: " + available.joinIntoString (", "));
+                }
+            }
+            else
+            {
+                description = *descriptions.getFirst();
+            }
+        }
         juce::String loadFailure;
-        if (! instantiate (loadFailure))
-            return error ("load_failed", loadFailure.isNotEmpty() ? loadFailure : "VST3 instance creation failed");
+        {
+            ScopedPluginStdoutSilencer silencePluginOutput;
+            if (! instantiate (loadFailure))
+                return error ("load_failed", loadFailure.isNotEmpty() ? loadFailure : "VST3 instance creation failed");
+        }
 
         addLog ("loaded " + description.name + " from " + pluginFile.getFullPathName());
         return snapshotResponse();

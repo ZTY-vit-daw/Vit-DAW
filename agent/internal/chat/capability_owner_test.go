@@ -85,6 +85,32 @@ func TestC1OwnerRequiresProjectSpecialistScopeAndKeepsSelectedTrackEQHorizontal(
 	}
 }
 
+func TestC2OwnerIsIndependentFromC1AndGetsItsOwnSession(t *testing.T) {
+	server := &Server{orchestrationRuntime: orchestrationruntime.New()}
+	resolution := server.resolveCapabilityOwner("chat-c2-independent", ChatRequest{
+		Message: "run C2 dynamic control",
+		Context: map[string]any{"capability_id": dynamicControlCapabilityID},
+	})
+	if resolution.CapabilityID != dynamicControlCapabilityID || resolution.Decision.Owner != orchestration.EngineV1 {
+		t.Fatalf("explicit C2 owner = %#v", resolution)
+	}
+	if resolution.SessionID != "cap_v1_c2_chat-c2-independent_1" {
+		t.Fatalf("unexpected C2 session id %q", resolution.SessionID)
+	}
+	if active := server.activeCapabilitySessions("chat-c2-independent"); len(active) != 0 {
+		t.Fatalf("owner resolution must not create a C1 or C2 session: %#v", active)
+	}
+}
+
+func TestProjectAwareCapabilityInferenceRecognizesExplicitC2Only(t *testing.T) {
+	if got := inferProjectAwareCapability("run C2 dynamic control"); got != dynamicControlCapabilityID {
+		t.Fatalf("C2 intent routed to %q", got)
+	}
+	if got := inferProjectAwareCapability("make the vocal more stable"); got != "" {
+		t.Fatalf("ordinary dynamic intent was captured by C2: %q", got)
+	}
+}
+
 func TestCapabilitySessionSequenceAdvancesAfterTerminalInvocation(t *testing.T) {
 	runtime := orchestrationruntime.New()
 	session, err := runtime.StartB2ChatSession("cap_v1_b2_chat-sequence_1", "chat-sequence", "p1", "B2", orchestration.InteractionPropose)

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"vit-daw-agent/internal/agentloop"
+	"vit-daw-agent/internal/harness"
 	"vit-daw-agent/internal/shadow"
 )
 
@@ -309,6 +310,70 @@ func TestPluginRecommendationCatalogUsesCompleteDynamicsFamily(t *testing.T) {
 	}
 }
 
+func TestPluginRecommendationDynamicLoadHandoffMatrixCoversAllFiveFamilies(t *testing.T) {
+	// The recommendation interaction is the model-owned boundary before a
+	// load. Each governed dynamic family must retain its exact post-load
+	// adapter through the confirmation plan without performing mutation.
+	cases := []string{"limiter", "gate_expander", "de_esser", "transient_shaper", "multiband_dynamics"}
+	for _, family := range cases {
+		t.Run(family, func(t *testing.T) {
+			server := New(nil, shadow.New(nil), nil)
+			server.harness = harness.New(nil, shadow.New(nil), nil)
+			candidate := pluginRecommendationCandidate{
+				Key:          "candidate_" + family,
+				ID:           "id_" + family,
+				Identifier:   "identifier_" + family,
+				Name:         "Test " + family,
+				Manufacturer: "Test",
+				Format:       "VST3",
+				Category:     "Fx|Dynamics",
+				PluginPath:   `C:\VST3\` + family + `.vst3`,
+				PrimaryType:  family,
+			}
+			plan := pluginRecommendationPlan{
+				SchemaVersion: pluginRecommendationSchema,
+				ProcessorType: family,
+				UserGoal:      "apply the selected dynamic treatment",
+				Summary:       "use the selected family",
+				Choices: []pluginRecommendationChoice{{
+					CandidateKey: candidate.Key,
+					Role:         "recommended",
+					Reason:       "family-specific governed load",
+					Confidence:   "high",
+				}},
+			}
+			requestContext := map[string]any{"selected_track_id": "track-1", "selected_track_name": "Vocal"}
+			selection := server.pluginRecommendationSelectionResponse("conversation-"+family, agentModeDefault, requestContext,
+				agentloop.Result{GoalID: "goal-1", RunID: "run-1"}, plan, []pluginRecommendationCandidate{candidate})
+			if len(selection.InteractionRequests) != 1 {
+				t.Fatalf("selection interaction = %+v", selection.InteractionRequests)
+			}
+			payload := selection.InteractionRequests[0].Payload
+			if firstStringFromMap(payload, "post_load_family") != family || firstStringFromMap(payload, "post_load_planner") == "" {
+				t.Fatalf("post-load adapter handoff = %+v", payload)
+			}
+			interaction, ok := server.interactions[selection.InteractionRequests[0].ID]
+			if !ok {
+				t.Fatal("dynamic recommendation interaction was not stored")
+			}
+			loaded := server.continuePluginRecommendationInteraction(context.Background(), interaction, "select_"+candidate.Key)
+			if loaded.Error != "" || !loaded.NeedsConfirmation || loaded.Workflow != pluginGrabberLoadCommand {
+				t.Fatalf("load confirmation = %+v", loaded)
+			}
+			pending, ok := server.pending[loaded.PlanID]
+			if !ok {
+				t.Fatalf("load plan %q was not persisted", loaded.PlanID)
+			}
+			if !boolValue(pending.WorkflowData["semantic_post_load_handoff"]) ||
+				firstStringFromMap(pending.WorkflowData, "semantic_post_load_family") != family ||
+				firstStringFromMap(pending.WorkflowData, "semantic_post_load_planner") == "" ||
+				boolValue(pending.WorkflowData["mutation_performed"]) {
+				t.Fatalf("dynamic load handoff plan = %+v", pending.WorkflowData)
+			}
+		})
+	}
+}
+
 func TestRecoverPluginRecommendationInteractionRequiresTypedSelectionPayload(t *testing.T) {
 	payload := map[string]any{
 		"schema_version": pluginRecommendationSchema, "status": "awaiting_selection", "processor_type": "eq",
@@ -341,5 +406,10 @@ func TestRecoveredPluginRecommendationCandidateIsReboundToCurrentCatalogFacts(t 
 	tampered["plugin_path"] = `C:\VST3\Tampered.vst3`
 	if _, err := verifyRecoveredPluginRecommendationCandidateAgainst("eq", tampered, candidates); err == nil {
 		t.Fatal("tampered client plugin path was accepted")
+	}
+	tamperedKey := cloneContext(selected)
+	tamperedKey["candidate_key"] = "candidate_outside_current_set"
+	if _, err := verifyRecoveredPluginRecommendationCandidateAgainst("eq", tamperedKey, candidates); err == nil || !strings.Contains(err.Error(), "no longer present") {
+		t.Fatalf("candidate outside current set was accepted: %v", err)
 	}
 }

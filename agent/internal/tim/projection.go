@@ -139,6 +139,21 @@ func reconcileAuthoritativeSourceState(tracks []map[string]any, project, authori
 					break
 				}
 			}
+			// Persisted L1 waveform rows are authoritative acoustic evidence for
+			// the matching project binding. Keep the readiness fact internal to
+			// TIM; the model receives only the compact projection derived below.
+			if authAcoustic := mapValue(auth["acoustic"]); len(authAcoustic) > 0 {
+				acoustic := mapValue(copyTrack["acoustic"])
+				if len(acoustic) == 0 {
+					acoustic = map[string]any{}
+					copyTrack["acoustic"] = acoustic
+				}
+				for _, keyName := range []string{"status", "rms_dbfs", "peak_dbfs", "headroom_db", "crest_db", "sample_rate", "sample_rate_hz", "channel_count", "channels", "bit_depth", "bits_per_sample", "duration_seconds", "length_seconds"} {
+					if value, ok := authAcoustic[keyName]; ok && value != nil {
+						acoustic[keyName] = value
+					}
+				}
+			}
 		}
 		out = append(out, copyTrack)
 	}

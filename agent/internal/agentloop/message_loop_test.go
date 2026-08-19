@@ -2079,6 +2079,46 @@ func TestMessageLoopProjectBlackboardStatusReadsProjectStateWithoutLLM(t *testin
 	}
 }
 
+func TestMessageLoopOpenOverallMixRequestDoesNotUseProjectBlackboardShortcut(t *testing.T) {
+	client := &fakeMessageCompleter{responses: []string{
+		`{"final":true,"reply":"evidence boundary","free_state":{"schema_version":"free_state_decision.v1","status":"blocked","evidence_status":"insufficient","summary":"the model must request neutral acoustic evidence first"},"tool_calls":[]}`,
+	}}
+	exec := &fakeMessageExecutor{}
+	loop := &MessageLoop{
+		Client:   client,
+		Config:   config.EngineConfig{BaseURL: "http://example.invalid", APIKey: "test", DefaultModel: "test"},
+		Executor: exec,
+		Budget:   Budget{MaxTurns: 2, MaxToolCalls: 2, MaxConsecutiveErrors: 1},
+	}
+
+	res := loop.Start(context.Background(), Input{
+		UserText:     "请检查这个完整工程的整体混音状态。自主申请你需要的观察，只处理你有足够证据确认的问题。",
+		Context:      map[string]any{"free_state_reasoning_loop": map[string]any{"schema_version": "free_state_reasoning_loop.v1", "status": "reasoning", "original_intent": "inspect the overall mix"}},
+		AllowedTools: []string{"ccb.observation_catalog", "ccb.observation_request", "project.state"},
+	})
+
+	if res.Status != "completed" || res.StopReason != StopReasonDone {
+		t.Fatalf("result = status=%q stop=%q reply=%q error=%q", res.Status, res.StopReason, res.Reply, res.Error)
+	}
+	if len(client.calls) != 1 {
+		t.Fatalf("open mix request should reach the model, got %d calls", len(client.calls))
+	}
+	if len(exec.calls) != 0 {
+		t.Fatalf("project blackboard shortcut should not execute, calls=%+v", exec.calls)
+	}
+}
+
+func TestMessageLoopContinuationDoesNotUseProjectBlackboardShortcut(t *testing.T) {
+	for _, text := range []string{
+		"继续基于最初的完整工程目标工作；如果没有足够证据，请停止并说明原因。",
+		"Continue based on the original project goal and resume the unfinished work.",
+	} {
+		if messageLoopProjectBlackboardStatusRequest(text) {
+			t.Fatalf("continuation instruction was misclassified as a blackboard status request: %q", text)
+		}
+	}
+}
+
 func TestMessageLoopStaticMixCapabilityContractAnswersWithoutLLM(t *testing.T) {
 	client := &fakeMessageCompleter{responses: []string{
 		`{"final":true,"reply":"model should not be needed"}`,

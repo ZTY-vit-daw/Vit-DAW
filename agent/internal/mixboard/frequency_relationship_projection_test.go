@@ -668,6 +668,94 @@ func TestL3PackageSilenceRequiresCompleteCoverage(t *testing.T) {
 	}
 }
 
+func TestAssembleFrequencyContextMeasurementConditionsSurviveBandProjection(t *testing.T) {
+	// The band-energy projection must carry the measurement conditions MOM
+	// needs for cross-track comparability (sample format, analyzer, time
+	// window). Without them every multi-track frequency relationship reports
+	// incomplete measurement conditions and fails closed as suspect.
+	root := t.TempDir()
+	featurePath := filepath.Join(root, "frequency_features.json")
+	snap := featureSnapshot{
+		BandEnergySummaries: []map[string]any{
+			{"status": "ready", "source": "kernel_l3_offline_analyzer", "track_id": "t1", "clip_id": "c1", "source_revision": "source-1", "clip_revision": "clip-1",
+				"sample_rate": 44100.0, "channel_count": 2, "analyzer_version": "dad_l3_offline_analyzer.v1", "coverage_seconds": 20.0,
+				"bands": map[string]any{"bass": map[string]any{"unit_energy": .3}, "mid": map[string]any{"unit_energy": .2}}},
+			{"status": "ready", "source": "kernel_l3_offline_analyzer", "track_id": "t2", "clip_id": "c2", "source_revision": "source-2", "clip_revision": "clip-2",
+				"sample_rate": 44100.0, "channel_count": 2, "analyzer_version": "dad_l3_offline_analyzer.v1", "coverage_seconds": 20.0,
+				"bands": map[string]any{"bass": map[string]any{"unit_energy": .29}, "mid": map[string]any{"unit_energy": .21}}},
+		},
+	}
+	if err := writeJSON(featurePath, snap); err != nil {
+		t.Fatal(err)
+	}
+	state := map[string]any{"project_uuid": "project-current", "tracks": []any{
+		map[string]any{"track_id": "t1", "track_name": "One", "clips": []any{map[string]any{"clip_id": "c1", "source_revision": "source-1"}}},
+		map[string]any{"track_id": "t2", "track_name": "Two", "clips": []any{map[string]any{"clip_id": "c2", "source_revision": "source-2"}}},
+	}}
+	context := AssembleFrequencyContext(state, "c1-conditions", "run C1", featurePath)
+	frequency := mapValue(context.MOMProjection["frequency_relationship"])
+	if cleanAnyString(frequency["tap_point"]) != "source_file_pre_fx" {
+		t.Fatalf("tap = %q", cleanAnyString(frequency["tap_point"]))
+	}
+	if cleanAnyString(frequency["status"]) != "ready" {
+		t.Fatalf("frequency relationship = %q, want ready; limitations=%v", cleanAnyString(frequency["status"]), frequency["limitations"])
+	}
+	coverage := mapValue(frequency["coverage"])
+	if int(numberFromMap(coverage, "conflict_candidate_count")) == 0 {
+		t.Fatalf("no conflict candidates generated: %#v", coverage)
+	}
+	if !boolFromAny(coverage["measurement_condition_fields_complete"]) {
+		t.Fatalf("measurement conditions lost in band projection: %#v", coverage)
+	}
+}
+
+func TestAssembleFrequencyContextDoesNotMixPartialL2IntoL3Observation(t *testing.T) {
+	// One track has L3 source-file evidence, another only has a post-fader L2
+	// render probe. The general frequency observation must stay on the uniform
+	// L3 tap: the L2 row never mixes in, and the L3-less track remains an
+	// explicit missing profile instead of degrading the comparison to a mixed
+	// tap (the observed mix.frequency_relationship partial/suspect gap).
+	root := t.TempDir()
+	featurePath := filepath.Join(root, "frequency_features.json")
+	snap := featureSnapshot{
+		BandEnergySummaries: []map[string]any{
+			{"status": "ready", "source": "kernel_l3_offline_analyzer", "track_id": "t1", "clip_id": "c1", "source_revision": "source-1", "bands": map[string]any{"bass": map[string]any{"unit_energy": .3}}},
+		},
+		L2RenderProbes: []map[string]any{
+			{"status": "ready", "source": "l2_render_probe", "track_id": "t2", "clip_id": "c2", "tap_point": "track_post_fader", "render_revision": "render-2", "source_revision": "source-2", "bands": map[string]any{"bass": map[string]any{"unit_energy": .4}}, "evidence_ref": "dad.l2:t2"},
+		},
+	}
+	if err := writeJSON(featurePath, snap); err != nil {
+		t.Fatal(err)
+	}
+	state := map[string]any{"project_uuid": "project-current", "tracks": []any{
+		map[string]any{"track_id": "t1", "track_name": "One", "clips": []any{map[string]any{"clip_id": "c1", "source_revision": "source-1"}}},
+		map[string]any{"track_id": "t2", "track_name": "Two", "clips": []any{map[string]any{"clip_id": "c2", "source_revision": "source-2"}}},
+	}}
+	context := AssembleFrequencyContext(state, "c1-mixed-tap", "run C1", featurePath)
+	frequency := mapValue(context.MOMProjection["frequency_relationship"])
+	if cleanAnyString(frequency["tap_point"]) != "source_file_pre_fx" {
+		t.Fatalf("mixed tap was not unified to the L3 source-file tap: frequency=%#v", frequency)
+	}
+	if int(numberFromMap(context.Assembly, "normalized_l2_row_count")) != 0 {
+		t.Fatalf("L2 rows survived the L3 unification: %#v", context.Assembly)
+	}
+	for _, profile := range mapRowsAny(frequency["track_profiles"]) {
+		trackID := cleanAnyString(profile["track_id"])
+		if trackID == "t1" && cleanAnyString(profile["status"]) != "ready" {
+			t.Fatalf("t1 L3 profile lost: %#v", profile)
+		}
+		if trackID == "t2" {
+			if cleanAnyString(profile["tap_point"]) == "track_post_fader" {
+				t.Fatalf("t2 L2 render probe mixed into the L3 observation: %#v", profile)
+			}
+			if cleanAnyString(profile["status"]) != "missing" {
+				t.Fatalf("t2 without L3 must stay explicit missing, got %#v", profile)
+			}
+		}
+	}
+}
+
 func TestDedicatedFrequencyIntentGetsCompactProjectionAndLegacyProjectionDoesNot(t *testing.T) {
 	project := map[string]any{"tracks": []any{map[string]any{
 		"track_id": "t1", "name": "One", "frequency_evidence": map[string]any{

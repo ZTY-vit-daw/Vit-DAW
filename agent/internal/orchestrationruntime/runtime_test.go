@@ -151,6 +151,43 @@ func TestC1RuntimeRegistersSessionAndSeparatesDiagnosisFromMutationReadiness(t *
 	}
 }
 
+func TestC2RuntimeStartsAsIndependentCapability(t *testing.T) {
+	runtime := New()
+	session, err := runtime.StartC2ChatSession("cap_v1_c2_test_1", "chat-c2", "project-c2", "dynamic control", orchestration.InteractionPropose)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if session.Invocation.CapabilityID != DynamicControlCapabilityID || session.Invocation.CapabilityVer != "v1" || session.Invocation.ProcessingPath != orchestration.PathCapability {
+		t.Fatalf("unexpected C2 invocation: %#v", session.Invocation)
+	}
+	if len(session.Constraints) == 0 || session.Constraints[0] != "independent_capability_no_c1_prerequisite" {
+		t.Fatalf("C2 independence constraint missing: %#v", session.Constraints)
+	}
+}
+
+func TestC2ExternalLeafFinalizesAsNeedsReviewWithReceipt(t *testing.T) {
+	runtime := New()
+	session, err := runtime.StartC2ChatSession("cap_v1_c2_finalize", "chat-c2", "project-c2", "dynamic control", orchestration.InteractionPropose)
+	if err != nil {
+		t.Fatal(err)
+	}
+	cut := orchestration.ProjectCut{ProjectUUID: "project-c2", ProjectEpoch: "epoch", BaseProjectRevision: "1", Consistency: "strong"}
+	cut.Hash = cut.ComputeHash()
+	actionSet := orchestration.ActionSet{ID: "c2-action", CapabilityID: DynamicControlCapabilityID, ProjectCutHash: cut.Hash, Actions: []orchestration.Action{{ID: "leaf", Command: "semantic_dynamic_control.pending", TargetRef: "plugin:t:p", Compensatable: true}}}
+	actionSet.Hash = actionSet.ComputeHash()
+	proposal := orchestration.Proposal{ID: "c2-proposal", Revision: 1, CapabilityID: DynamicControlCapabilityID, CapabilityVer: "v1", ProjectCutHash: cut.Hash, ActionSetHash: actionSet.Hash, TargetScope: []string{"track:t"}}
+	if _, err := runtime.AttachFrozenPlan(session.ID, orchestration.FrozenPlan{Proposal: proposal, ActionSet: actionSet, ProjectCut: cut}); err != nil {
+		t.Fatal(err)
+	}
+	final, err := runtime.FinalizeExternalLeaf(session.ID, []orchestration.ActionReceipt{{ActionID: "leaf", Status: "applied", EffectivelyOnce: true}}, orchestration.VerificationResult{Status: "inconclusive", Structural: "pass", Acoustic: "inconclusive"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if final.Status != orchestration.StatusNeedsReview || final.Execution == nil || final.Execution.ReceiptRef == "" || len(final.Execution.Receipts) != 1 {
+		t.Fatalf("unexpected C2 terminal record: %#v", final)
+	}
+}
+
 func TestRuntimeBuildsBoundedB2ContextEnvelope(t *testing.T) {
 	runtime := New()
 	session, err := runtime.StartB2Session("s-context", "p-context", "balance", orchestration.InteractionPropose)

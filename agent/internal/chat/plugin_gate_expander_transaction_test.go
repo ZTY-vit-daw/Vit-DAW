@@ -225,7 +225,7 @@ func TestPluginGrabberWorkflowExecutorBridgesGateExpanderInspectAndApply(t *test
 	ref := gateTestControlRef(inspect.Result, "threshold")
 	apply, err := executor.RunToolCall(context.Background(), executorpkg.Input{ToolCall: planner.ToolCall{ID: "apply", Tool: pluginGrabberApplyGateExpanderTool,
 		Args: map[string]any{"track_id": "track-1", "plugin_id": "gate-1", "atomic": true,
-			"controls": []map[string]any{{"control_ref": ref, "value_db": -15.0}}}}})
+			"controls": []map[string]any{{"control_ref": ref, "value_db": -15.0}}}}, Confirmed: true})
 	if err != nil || apply.Status != "ok" || firstNonEmptyText(apply.Result, "status") != "exact" {
 		t.Fatalf("apply=%#v err=%v", apply, err)
 	}

@@ -7,6 +7,7 @@ import (
 	"sort"
 	"strings"
 
+	"vit-daw-agent/internal/agentprotocol"
 	"vit-daw-agent/internal/contextruntime"
 	executorpkg "vit-daw-agent/internal/executor"
 	"vit-daw-agent/internal/planner"
@@ -26,6 +27,7 @@ const (
 const (
 	FreeStateNeedsObservation     = "needs_observation"
 	FreeStateNeedsAction          = "needs_action"
+	FreeStateNeedsExperiment      = "needs_experiment"
 	FreeStateSatisfied            = "satisfied"
 	FreeStateBlocked              = "blocked"
 	freeStateMaxSameFamilyActions = 2
@@ -35,12 +37,13 @@ const (
 // FreeStateDecision is the model-owned control state for an ordinary-Agent
 // observation/action loop. It carries no execution authority.
 type FreeStateDecision struct {
-	SchemaVersion   string `json:"schema_version"`
-	Status          string `json:"status"`
-	EvidenceStatus  string `json:"evidence_status"`
-	Summary         string `json:"summary"`
-	RemainingIntent string `json:"remaining_intent,omitempty"`
-	ProcessorType   string `json:"processor_type,omitempty"`
+	SchemaVersion       string                             `json:"schema_version"`
+	Status              string                             `json:"status"`
+	EvidenceStatus      string                             `json:"evidence_status"`
+	Summary             string                             `json:"summary"`
+	RemainingIntent     string                             `json:"remaining_intent,omitempty"`
+	ProcessorType       string                             `json:"processor_type,omitempty"`
+	ImprovementProposal *agentprotocol.ImprovementProposal `json:"improvement_proposal,omitempty"`
 	// SemanticProcessorIntent is the model-owned family/coverage handoff. It
 	// contains no plugin identity, path, parameter ID, or vendor mapping.
 	SemanticProcessorIntent *processorintent.Intent `json:"semantic_processor_intent,omitempty"`
@@ -108,6 +111,14 @@ func (d FreeStateDecision) Validate() error {
 			return fmt.Errorf("semantic_processor_intent: %w", err)
 		}
 	}
+	if d.ImprovementProposal != nil {
+		if err := d.ImprovementProposal.Validate(); err != nil {
+			return fmt.Errorf("improvement_proposal: %w", err)
+		}
+		if status != FreeStateNeedsExperiment {
+			return fmt.Errorf("improvement_proposal requires status=%s", FreeStateNeedsExperiment)
+		}
+	}
 	if d.Diagnostic != nil {
 		if err := d.Diagnostic.Validate(); err != nil {
 			return err
@@ -134,6 +145,13 @@ func (d FreeStateDecision) Validate() error {
 				return err
 			}
 		}
+	case FreeStateNeedsExperiment:
+		if d.ImprovementProposal == nil {
+			return fmt.Errorf("needs_experiment requires improvement_proposal")
+		}
+		if strings.TrimSpace(d.EvidenceStatus) == "" {
+			return fmt.Errorf("needs_experiment requires evidence_status")
+		}
 	case FreeStateSatisfied:
 		if strings.ToLower(strings.TrimSpace(d.EvidenceStatus)) != "sufficient" {
 			return fmt.Errorf("satisfied requires evidence_status=sufficient")
@@ -142,7 +160,7 @@ func (d FreeStateDecision) Validate() error {
 		// Summary is the canonical human-readable boundary. stop_reason and
 		// limitations add structure when available but are not redundant gates.
 	default:
-		return fmt.Errorf("status must be needs_observation, needs_action, satisfied, or blocked")
+		return fmt.Errorf("status must be needs_observation, needs_action, needs_experiment, satisfied, or blocked")
 	}
 	if strings.TrimSpace(d.Summary) == "" {
 		return fmt.Errorf("summary is required")
@@ -157,6 +175,16 @@ func cloneFreeStateDecision(in *FreeStateDecision) *FreeStateDecision {
 	out := *in
 	out.RequestedViewIDs = append([]string(nil), in.RequestedViewIDs...)
 	out.Limitations = append([]string(nil), in.Limitations...)
+	if in.ImprovementProposal != nil {
+		proposal := *in.ImprovementProposal
+		proposal.EvidenceRefs = append([]string(nil), in.ImprovementProposal.EvidenceRefs...)
+		proposal.Limitations = append([]string(nil), in.ImprovementProposal.Limitations...)
+		proposal.NeedsResolution = append([]string(nil), in.ImprovementProposal.NeedsResolution...)
+		proposal.Target = cloneMap(in.ImprovementProposal.Target)
+		proposal.ParameterBounds = cloneMap(in.ImprovementProposal.ParameterBounds)
+		proposal.VerificationPlan = cloneMap(in.ImprovementProposal.VerificationPlan)
+		out.ImprovementProposal = &proposal
+	}
 	if in.SemanticProcessorIntent != nil {
 		intent := *in.SemanticProcessorIntent
 		intent.RequiredCoverage = append([]string(nil), in.SemanticProcessorIntent.RequiredCoverage...)
@@ -270,7 +298,7 @@ func messageLoopFreeStatePromptContext(state *runState) map[string]any {
 	if decision := messageLoopMapValue(source["latest_decision"]); len(decision) > 0 {
 		out["latest_decision"] = compactSelectedKeys(decision, []string{
 			"schema_version", "status", "evidence_status", "summary", "remaining_intent",
-			"processor_type", "semantic_processor_intent", "diagnostic", "requested_view_ids", "observation_id", "limitations", "stop_reason",
+			"processor_type", "improvement_proposal", "semantic_processor_intent", "diagnostic", "requested_view_ids", "observation_id", "limitations", "stop_reason",
 		})
 	}
 	actions := messageLoopMapRows(source["actions"])
@@ -408,6 +436,9 @@ func messageLoopFreeStateOutputIssue(state *runState, out messageLoopOutput) str
 		if issue := messageLoopFreeStateRequestedCallsIssue(out.FreeStateDecision.RequestedViewIDs, requestCalls); issue != "" {
 			return issue
 		}
+		if issue := messageLoopFreeStateCandidateProgressionIssue(state, status, requestCalls); issue != "" {
+			return issue
+		}
 	case FreeStateNeedsAction:
 		if diagnosticOnly {
 			return "diagnostic-only free-state turns must end with a diagnostic conclusion and may not enter a processor action"
@@ -432,11 +463,24 @@ func messageLoopFreeStateOutputIssue(state *runState, out messageLoopOutput) str
 			}
 			return "cannot select the first processor action until at least one model-requested CCB observation_request has returned a usable read-only evidence bundle"
 		}
+		if issue := messageLoopFreeStateCandidateProgressionIssue(state, status, nil); issue != "" {
+			return issue
+		}
 		if count := messageLoopFreeStateActionCount(ctx); count >= freeStateMaxActions {
 			return fmt.Sprintf("the free-state loop reached its bounded %d-action limit; return blocked instead of writing another processor action", freeStateMaxActions)
 		}
 		if count := messageLoopFreeStateProcessorApplyCount(ctx, out.FreeStateDecision.ProcessorType); count >= freeStateMaxSameFamilyActions {
 			return fmt.Sprintf("the same processor family reached its bounded %d-action limit; return blocked or address a different unresolved clause", freeStateMaxSameFamilyActions)
+		}
+	case FreeStateNeedsExperiment:
+		if diagnosticOnly {
+			return "diagnostic-only free-state turns must end with a diagnostic conclusion and may not enter an improvement experiment"
+		}
+		if len(out.ToolCalls) != 0 {
+			return "needs_experiment must contain no direct mutation tool calls; the existing governed execution layer owns materialization and confirmation"
+		}
+		if !messageLoopHasSuccessfulCCBObservationRequest(state) {
+			return "cannot propose an improvement experiment until at least one model-requested ccb.observation_request has returned a usable evidence bundle"
 		}
 	case FreeStateSatisfied:
 		if len(out.ToolCalls) != 0 {
@@ -465,6 +509,85 @@ func messageLoopFreeStateOutputIssue(state *runState, out messageLoopOutput) str
 		}
 	}
 	return ""
+}
+
+func messageLoopFreeStateCandidateProgressionIssue(state *runState, status string, calls []planner.ToolCall) string {
+	if state == nil {
+		return ""
+	}
+	closure := messageLoopMapValue(state.input.Context["minimal_audio_closure"])
+	frontier := messageLoopMapValue(closure["hypothesis_frontier"])
+	candidates := messageLoopMapRows(frontier["candidates"])
+	if len(candidates) == 0 {
+		return ""
+	}
+	selected := messageLoopText(frontier["candidate_id"])
+	allowedTracks := map[string]bool{}
+	for _, candidate := range candidates {
+		if selected != "" && messageLoopText(candidate["id"]) != selected {
+			continue
+		}
+		for _, trackID := range messageLoopStringList(candidate["track_ids"]) {
+			allowedTracks[trackID] = true
+		}
+	}
+	if len(allowedTracks) == 0 {
+		return "closure candidate frontier is malformed; return blocked with the evidence boundary"
+	}
+	targetObservedNow := messageLoopFreeStateCandidateTargetObserved(state, allowedTracks)
+	if status == FreeStateNeedsAction {
+		if selected == "" && !targetObservedNow {
+			return "closure candidates require an explicit target-level observation before needs_action; select one listed candidate track first"
+		}
+		return ""
+	}
+	if status != FreeStateNeedsObservation {
+		return ""
+	}
+	// CandidateID is written only after an admitted track-level observation
+	// lands on one of the candidate tracks. At that point the minimal closure
+	// has completed its one narrowing step: another observation would turn the
+	// bounded closure back into an open-ended inspection loop. The model must
+	// either hand off an evidence-supported action, propose a bounded
+	// improvement experiment, or state the concrete evidence/capability
+	// boundary.
+	if selected != "" || targetObservedNow {
+		return "the selected closure candidate already has target-level evidence; return needs_action when sufficient or blocked with the concrete action-preflight boundary now"
+	}
+	if len(calls) == 0 {
+		return "closure candidate frontier requires a target-level ccb.observation_request"
+	}
+	for _, call := range calls {
+		if !messageLoopIsCCBObservationRequestName(normalizedActionName(call, executorpkg.Result{})) {
+			return "closure candidate frontier forbids catalog discovery until the candidate is resolved"
+		}
+		for _, viewID := range messageLoopStringList(call.Args["view_ids"]) {
+			if !strings.HasPrefix(strings.ToLower(strings.TrimSpace(viewID)), "track.") {
+				return "closure candidate frontier requires only target-level track.* observations; project.* and mix.* cannot be retried now"
+			}
+		}
+		target := messageLoopCCBTargetFromCall(call)
+		if !strings.EqualFold(messageLoopText(target["kind"]), "track") || !allowedTracks[messageLoopText(target["id"])] {
+			return "closure candidate frontier requires target_ref.kind=track and an id from the candidate track set"
+		}
+	}
+	return ""
+}
+
+func messageLoopFreeStateCandidateTargetObserved(state *runState, allowedTracks map[string]bool) bool {
+	if state == nil || state.recentObservation == nil {
+		return false
+	}
+	observation := state.recentObservation
+	if !messageLoopIsCCBObservationRequestName(firstNonEmpty(observation.Tool, observation.CommandName)) {
+		return false
+	}
+	status := strings.ToLower(strings.TrimSpace(messageLoopText(observation.Summary["status"])))
+	if status != "ready" && status != "partial" {
+		return false
+	}
+	target := messageLoopMapValue(observation.Summary["target_ref"])
+	return strings.EqualFold(messageLoopText(target["kind"]), "track") && allowedTracks[messageLoopText(target["id"])]
 }
 
 // messageLoopFreeStateDiagnosticEvidenceWindowClosed bounds only the
@@ -746,7 +869,7 @@ func recordFreeStateCCBObservation(state *runState, observation *RecentObservati
 	if len(ledger) == 0 {
 		ledger = map[string]any{"schema_version": freeStateObservationLedgerSchema}
 	}
-	mergeFreeStateObservationLedger(ledger, observation)
+	mergeFreeStateObservationLedger(ledger, observation, state.turnsUsed)
 	loop["observation_ledger"] = ledger
 	if rejected := freeStateRejectedLedgerEntry(observation); len(rejected) > 0 {
 		rows := messageLoopMapRows(loop["rejected_observation_requests"])
@@ -758,12 +881,20 @@ func recordFreeStateCCBObservation(state *runState, observation *RecentObservati
 	state.input.Context["free_state_reasoning_loop"] = loop
 }
 
-func mergeFreeStateObservationLedger(ledger map[string]any, observation *RecentObservation) {
+// mergeFreeStateObservationLedger appends the current model round to every
+// row so the model projection can fold older rounds into history instead of
+// replaying them. round is the model turn (state.turnsUsed) that recorded the
+// observation; the chat orchestration path uses its loop cycle.
+func mergeFreeStateObservationLedger(ledger map[string]any, observation *RecentObservation, round int) {
 	if len(ledger) == 0 || observation == nil {
 		return
 	}
 	ledger["schema_version"] = freeStateObservationLedgerSchema
+	if window := freeStateLedgerCount(ledger["window_round"], 0); round > window {
+		ledger["window_round"] = round
+	}
 	if rejected := freeStateRejectedLedgerEntry(observation); len(rejected) > 0 {
+		rejected["round"] = round
 		rows := messageLoopMapRows(ledger["rejected_view_sets"])
 		if !freeStateLedgerRowRecorded(rows, firstMapText(rejected, "fingerprint"), "fingerprint") {
 			ledger["rejected_view_sets"] = appendBoundedFreeStateRows(rows, rejected)
@@ -771,6 +902,7 @@ func mergeFreeStateObservationLedger(ledger map[string]any, observation *RecentO
 		}
 	}
 	if receipt := freeStateObservationLedgerReceipt(observation); len(receipt) > 0 {
+		receipt["round"] = round
 		rows := messageLoopMapRows(ledger["receipts"])
 		key := firstNonEmpty(firstMapText(receipt, "receipt_id"), firstMapText(receipt, "tool_call_id"))
 		if !freeStateLedgerRowRecorded(rows, key, firstNonEmpty(mapKeyForReceipt(receipt), "tool_call_id")) {
@@ -786,6 +918,7 @@ func mergeFreeStateObservationLedger(ledger map[string]any, observation *RecentO
 	if available == nil {
 		available = map[string]any{}
 	}
+	recorded := 0
 	for _, viewID := range messageLoopNormalizedViewIDs(messageLoopStringList(observation.Summary["requested_views"])) {
 		view := messageLoopMapValue(messageLoopMapValue(observation.Summary["views"])[viewID])
 		viewStatus := firstNonEmpty(firstMapText(view, "status"), status)
@@ -802,15 +935,18 @@ func mergeFreeStateObservationLedger(ledger map[string]any, observation *RecentO
 			"evidence_refs":  observation.Summary["evidence_refs"],
 			"audit_ref":      freeStateObservationAuditRef(observation.Summary),
 			"target_ref":     compactFreeStateObservationTarget(observation.Summary),
+			"round":          round,
 			"conclusion":     contextruntime.ProjectCCBViewConclusion(observation.Summary, viewID, messageLoopCompactOptions()),
-		}, []string{"view_id", "status", "observation_id", "tool_call_id", "freshness", "limitations", "evidence_refs", "audit_ref", "target_ref", "conclusion"})
+		}, []string{"view_id", "status", "observation_id", "tool_call_id", "freshness", "limitations", "evidence_refs", "audit_ref", "target_ref", "round", "conclusion"})
 		if key := freeStateObservationLedgerViewKey(viewID, observation.Summary); key != viewID {
 			available[key] = available[viewID]
 			delete(available, viewID)
 		}
+		recorded++
 	}
 	if len(available) > 0 {
 		ledger["available_views"] = available
+		ledger["view_observation_count"] = freeStateLedgerCount(ledger["view_observation_count"], 0) + recorded
 	}
 }
 

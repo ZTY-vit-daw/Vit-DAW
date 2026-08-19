@@ -12,6 +12,7 @@ import (
 
 	"vit-daw-agent/internal/agentloop"
 	"vit-daw-agent/internal/agentprotocol"
+	"vit-daw-agent/internal/audioclosure"
 	"vit-daw-agent/internal/config"
 	executorpkg "vit-daw-agent/internal/executor"
 	"vit-daw-agent/internal/harness"
@@ -134,10 +135,11 @@ func (s *Server) runAgentLoopChat(ctx context.Context, conversationID string, re
 	}
 	userText := agentLoopUserText(req.Message)
 	chatContext := contextWithUserMessage(contextWithoutUntrustedSemanticEntry(req.Context), userText)
+	chatContext = s.bindActiveOrchestrationController(conversationID, chatContext)
 	mode := agentModeFromContext(chatContext)
 	classificationRequired := mode != agentModePlan && !isContinueMessage(req.Message) &&
 		!contextBool(chatContext, "free_state_diagnostic_only") &&
-		!s.hasActiveFreeStateReasoningLoop(conversationID)
+		!s.hasActiveFreeStateReasoningLoop(conversationID) && !s.hasActiveOrchestrationController(conversationID)
 	if classificationRequired {
 		if _, continuing := s.resumeContinuationForChat(conversationID, chatContext); continuing {
 			classificationRequired = false
@@ -161,16 +163,77 @@ func (s *Server) runAgentLoopChat(ctx context.Context, conversationID string, re
 			chatContext = contextWithSemanticEntryDecision(chatContext, decision)
 		}
 	}
+	chatContext, projectMixOwner, projectMixActive, projectMixErr := s.prepareProjectMixController(conversationID, chatContext)
+	if projectMixErr != nil {
+		return audioClosureControllerErrorResponse(conversationID, mode, projectMixErr), true
+	}
+	if projectMixActive && !projectMixWorkflowV1Available(chatContext) {
+		return s.projectMixUnavailableResponse(conversationID, mode, projectMixOwner), true
+	}
+	chatContext, audioClosure, audioClosureActive, closureErr := s.prepareAudioClosureContext(conversationID, userText, chatContext)
+	if closureErr != nil {
+		return audioClosureControllerErrorResponse(conversationID, mode, closureErr), true
+	}
 	chatContext, freeStateActive := s.prepareFreeStateReasoningContext(conversationID, userText, chatContext)
 	mode = agentModeFromContext(chatContext)
+	// An internal free-state continuation must never resurrect a completed or
+	// blocked reasoning loop. In particular, native-tool confirmations used to
+	// settle the parent closure early; the next continuation then re-entered
+	// semantic entry and started a fresh closure indefinitely. Return the
+	// durable terminal decision directly so the caller can start a new task
+	// explicitly if desired.
+	if contextBool(chatContext, "free_state_internal_resume") {
+		if loop, ok := freeStateLoopFromAny(chatContext["free_state_reasoning_loop"]); ok && !freeStateLoopActive(loop) {
+			if audioClosureActive && s.audioClosures != nil {
+				if current, tracked := s.audioClosures.ActiveForConversation(conversationID); tracked && !current.Terminal() {
+					reason := audioclosure.StopRoundLimit
+					if strings.EqualFold(strings.TrimSpace(loop.Status), "cancelled") {
+						reason = audioclosure.StopCancelled
+					}
+					if settled, settleErr := (audioclosure.Driver{}).Settle(current, current.Revision, reason,
+						firstNonEmpty(loop.LastError, "free-state reasoning loop is no longer active"), false, time.Now().UTC()); settleErr == nil {
+						if s.audioClosures.Save(settled, current.Revision) == nil {
+							s.settleAudioClosureOwner(settled)
+							s.persistCurrentProjectWorkspace()
+							return s.audioClosureResponse(conversationID, mode, settled, agentloop.Result{GoalID: settled.GoalID, RunID: settled.RunID}), true
+						}
+					}
+				}
+			}
+			return ChatResponse{ConversationID: conversationID, GoalID: loop.GoalID, RunID: loop.RunID,
+				Reply:      firstNonEmpty(loop.LastError, "free-state reasoning loop has ended; no further automatic action was started."),
+				GoalStatus: string(agentruntime.StatusCompleted), Workflow: "free_state_reasoning_loop",
+				StopReason:   firstNonEmpty(loop.LastError, "free_state_loop_inactive"),
+				WorkflowData: map[string]any{"status": loop.Status, "free_state_reasoning_loop": freeStateLoopMap(loop), "mutation_performed": false},
+			}, true
+		}
+	}
 	messageLoop := s.newAgentMessageLoop(cfg, mode)
 	legacyRunner := s.newAgentLoopRunner(cfg, mode)
 	loopBudget := func(context map[string]any) agentloop.Budget {
-		return agentLoopBudgetForContext(mode, context)
+		budget := agentLoopBudgetForContext(mode, context)
+		if audioClosureActive {
+			budget = audioClosureMessageLoopBudget(budget, context)
+		}
+		return budget
 	}
 	if freeStateActive && isContinueMessage(req.Message) {
 		if response, resumed := s.resumeFreeStateMaterialization(ctx, conversationID, mode, chatContext, cfg); resumed {
 			return s.bindFreeStateContextToResponse(response, chatContext), true
+		}
+	}
+	if audioClosureActive {
+		if audioClosure.Terminal() {
+			return s.audioClosureResponse(conversationID, mode, audioClosure, agentloop.Result{GoalID: audioClosure.GoalID, RunID: audioClosure.RunID}), true
+		}
+		var admitted bool
+		audioClosure, admitted, closureErr = s.admitAudioClosureRound(audioClosure)
+		chatContext = bindAudioClosureContext(chatContext, audioClosure)
+		if closureErr != nil {
+			return audioClosureControllerErrorResponse(conversationID, mode, closureErr), true
+		}
+		if !admitted || audioClosure.Terminal() {
+			return s.audioClosureResponse(conversationID, mode, audioClosure, agentloop.Result{GoalID: audioClosure.GoalID, RunID: audioClosure.RunID}), true
 		}
 	}
 
@@ -287,9 +350,34 @@ func (s *Server) runAgentLoopChat(ctx context.Context, conversationID string, re
 		res.RecentObservation = loop.LatestObservation
 		chatContext = mergeContext(chatContext, map[string]any{"free_state_reasoning_loop": freeStateLoopMap(loop)})
 		chatContext = s.bindFreeStateAuthoritativeTrack(conversationID, chatContext)
-		if !strings.EqualFold(loop.Status, "awaiting_action") || res.FreeStateDecision == nil ||
-			!strings.EqualFold(res.FreeStateDecision.Status, agentloop.FreeStateNeedsAction) {
+		awaitingAction := strings.EqualFold(loop.Status, "awaiting_action") && res.FreeStateDecision != nil &&
+			strings.EqualFold(res.FreeStateDecision.Status, agentloop.FreeStateNeedsAction)
+		awaitingExperiment := strings.EqualFold(loop.Status, "awaiting_experiment") && res.FreeStateDecision != nil &&
+			strings.EqualFold(res.FreeStateDecision.Status, agentloop.FreeStateNeedsExperiment)
+		if !awaitingAction && !awaitingExperiment {
+			if audioClosureActive {
+				audioClosure, closureErr = s.recordAudioClosureRound(audioClosure, res, chatContext)
+				if closureErr != nil {
+					return audioClosureControllerErrorResponse(conversationID, mode, closureErr), true
+				}
+				chatContext = bindAudioClosureContext(chatContext, audioClosure)
+				return s.bindFreeStateContextToResponse(s.audioClosureResponse(conversationID, mode, audioClosure, res), chatContext), true
+			}
 			return s.bindFreeStateContextToResponse(s.chatResponseFromAgentLoopResult(conversationID, mode, res), chatContext), true
+		}
+		if awaitingExperiment {
+			if audioClosureActive {
+				audioClosure, closureErr = s.recordAudioClosureRound(audioClosure, res, chatContext)
+				if closureErr != nil {
+					return audioClosureControllerErrorResponse(conversationID, mode, closureErr), true
+				}
+				chatContext = bindAudioClosureContext(chatContext, audioClosure)
+			}
+			response := s.improvementProposalResponse(conversationID, mode, res, chatContext)
+			if audioClosureActive {
+				response, audioClosure = s.bindAudioClosureCapabilityHandoff(response, audioClosure)
+			}
+			return s.bindFreeStateContextToResponse(response, chatContext), true
 		}
 		userText = strings.TrimSpace(res.FreeStateDecision.RemainingIntent)
 		chatContext = mergeContext(chatContext, map[string]any{
@@ -302,12 +390,33 @@ func (s *Server) runAgentLoopChat(ctx context.Context, conversationID string, re
 			chatContext["free_state_semantic_processor_intent"] = intent
 		}
 	}
+	if audioClosureActive {
+		audioClosure, closureErr = s.recordAudioClosureRound(audioClosure, res, chatContext)
+		if closureErr != nil {
+			return audioClosureControllerErrorResponse(conversationID, mode, closureErr), true
+		}
+		chatContext = bindAudioClosureContext(chatContext, audioClosure)
+		if audioClosure.Terminal() {
+			return s.bindFreeStateContextToResponse(s.audioClosureResponse(conversationID, mode, audioClosure, res), chatContext), true
+		}
+	}
+	if projectMixActive {
+		response := s.chatResponseFromAgentLoopResult(conversationID, mode, res)
+		return s.projectMixControllerResponse(response, projectMixOwner, res), true
+	}
 	if freeStateRouteAuthorized(chatContext) {
 		response, routed := s.routeOrdinaryAgentTreatmentStrategy(ctx, conversationID, mode, userText, chatContext, res, cfg)
 		if !routed {
-			return s.bindFreeStateContextToResponse(s.chatResponseFromAgentLoopResult(conversationID, mode, res), chatContext), true
+			base := s.chatResponseFromAgentLoopResult(conversationID, mode, res)
+			if audioClosureActive {
+				base = bindAudioClosureToResponse(base, audioClosure)
+			}
+			return s.bindFreeStateContextToResponse(base, chatContext), true
 		}
 		response = s.makeFreeStateMaterializationResumable(conversationID, chatContext, res, response)
+		if audioClosureActive {
+			response, audioClosure = s.bindAudioClosureCapabilityHandoff(response, audioClosure)
+		}
 		return s.bindFreeStateContextToResponse(response, chatContext), true
 	}
 	entryDecision, entryVerified := semanticEntryDecisionFromContext(chatContext)
@@ -326,7 +435,11 @@ func (s *Server) runAgentLoopChat(ctx context.Context, conversationID string, re
 		req.Context = chatContext
 		return s.bindFreeStateContextToResponse(s.materializeAgentSemanticEQAction(ctx, conversationID, req, mode, res), chatContext), true
 	}
-	return s.bindFreeStateContextToResponse(s.chatResponseFromAgentLoopResult(conversationID, mode, res), chatContext), true
+	response := s.chatResponseFromAgentLoopResult(conversationID, mode, res)
+	if audioClosureActive {
+		response = bindAudioClosureToResponse(response, audioClosure)
+	}
+	return s.bindFreeStateContextToResponse(response, chatContext), true
 }
 
 func blindProjectSmokeContext(requestContext map[string]any) bool {

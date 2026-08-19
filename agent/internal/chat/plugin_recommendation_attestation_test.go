@@ -12,6 +12,28 @@ import (
 	"vit-daw-agent/internal/processorattestation"
 )
 
+func TestPluginRecommendationLLMEnvelopeExcludesExecutableAndPCAInternals(t *testing.T) {
+	candidates := []pluginRecommendationCandidate{{
+		Key: "plugin_candidate_1", Name: "Example Limiter", Identifier: "com.example.limiter",
+		Manufacturer: "Example Vendor", Format: "VST3", PluginPath: `C:\\Plugins\\example.vst3`,
+		SubjectKey: "pcs1_secret", BinaryFingerprint: "sha256:secret", AttestationID: "pca2_secret",
+	}}
+	envelope := pluginRecommendationCandidatesForLLM(candidates)
+	raw, err := json.Marshal(envelope)
+	if err != nil {
+		t.Fatal(err)
+	}
+	text := string(raw)
+	for _, forbidden := range []string{"plugin_path", "manufacturer", "format", "subject_key", "binary_fingerprint", "attestation_id", "pca2_secret"} {
+		if strings.Contains(text, forbidden) {
+			t.Fatalf("LLM candidate envelope leaked %q: %s", forbidden, text)
+		}
+	}
+	if !strings.Contains(text, "candidate_key") || !strings.Contains(text, "identifier") {
+		t.Fatalf("LLM candidate envelope omitted exact selection fields: %s", text)
+	}
+}
+
 func TestPluginControlRequirementIsChosenWithoutCandidateDisclosure(t *testing.T) {
 	response := `{"schema_version":"processor_control_requirement.v1","processor_family":"static_eq","coverage":[{"action":"upsert","shape":"low_cut"}],"reason":"remove rumble"}`
 	server, cfg, calls, bodies := semanticEQPlannerTestServer(t, []string{response})
@@ -144,6 +166,40 @@ func TestV2AttestationFilterRequiresExactActionAxisAndFingerprint(t *testing.T) 
 	}
 	if len(filtered) != 0 {
 		t.Fatalf("changed binary remained eligible: %+v", filtered)
+	}
+}
+
+func TestPCAAdmissionFilterKeepsPromotedFamilyCandidatesAcrossActions(t *testing.T) {
+	root := t.TempDir()
+	bellPath := filepath.Join(root, "Bell EQ.vst3")
+	cutPath := filepath.Join(root, "Cut EQ.vst3")
+	if err := os.WriteFile(bellPath, []byte("bell"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(cutPath, []byte("cut"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	store, err := processorattestation.NewStore(filepath.Join(root, "attestations.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	bell := attestationTestCandidate("Bell EQ", "bell-eq", bellPath)
+	cut := attestationTestCandidate("Cut EQ", "cut-eq", cutPath)
+	promoteRecommendationFixture(t, store, bell, "bell")
+	promoteRecommendationFixture(t, store, cut, "low_cut")
+	library, _, err := store.Read()
+	if err != nil {
+		t.Fatal(err)
+	}
+	filtered, err := filterPCAAdmittedPluginRecommendationCandidates(library, []pluginRecommendationCandidate{cut, bell}, processorattestation.FamilyStaticEQ)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(filtered) != 2 {
+		t.Fatalf("family-level admission unexpectedly removed candidates: %+v", filtered)
+	}
+	if filtered[0].ProcessorFamily != processorattestation.FamilyStaticEQ || filtered[0].AttestationID == "" || filtered[1].AttestationID == "" {
+		t.Fatalf("admission metadata missing: %+v", filtered)
 	}
 }
 

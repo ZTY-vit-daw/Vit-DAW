@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"math"
 	"sort"
 	"strings"
 	"time"
@@ -14,12 +15,16 @@ import (
 )
 
 type L2RenderProbeBatchRequest struct {
-	SessionID           string
-	GoalText            string
-	TrackIDs            []string
-	TapPoint            string
-	FeatureSnapshotPath string
-	ForceFresh          bool
+	SessionID            string
+	GoalText             string
+	TrackIDs             []string
+	TapPoint             string
+	FeatureSnapshotPath  string
+	ForceFresh           bool
+	StartSeconds         float64
+	EndSeconds           float64
+	TailSeconds          float64
+	RequireMaskingFrames bool
 }
 
 type L2RenderProbeBatchResult struct {
@@ -60,6 +65,10 @@ func (h *Harness) CollectL2RenderProbeBatch(ctx context.Context, req L2RenderPro
 			"scope": "track", "track_id": trackID, "project_context": true, "observation_only": true,
 			"tap_point": result.TapPoint, "mix_session_id": strings.TrimSpace(req.SessionID), "goal_text": strings.TrimSpace(req.GoalText),
 		}
+		if req.EndSeconds > req.StartSeconds {
+			cmd["range"] = []any{req.StartSeconds, req.EndSeconds}
+			cmd["tail_seconds"] = req.TailSeconds
+		}
 		if strings.TrimSpace(req.FeatureSnapshotPath) != "" {
 			cmd["feature_snapshot_path"] = strings.TrimSpace(req.FeatureSnapshotPath)
 		}
@@ -68,7 +77,7 @@ func (h *Harness) CollectL2RenderProbeBatch(ctx context.Context, req L2RenderPro
 		resolved := resolveMixObservationTargetContext(cmd, state, target)
 		cmd = canonicalizeMixObservationCommand(cmd, target, resolved)
 		if !req.ForceFresh {
-			if row := cachedL2RenderProbeForState(cmd, trackID, result.TapPoint, fingerprint); len(row) > 0 {
+			if row := cachedL2RenderProbeForStateRange(cmd, trackID, result.TapPoint, fingerprint, req.StartSeconds, req.EndSeconds, req.TailSeconds, req.RequireMaskingFrames); len(row) > 0 {
 				result.Rows = append(result.Rows, compactL2RenderProbeBatchRow(row))
 				result.CacheHitTrackIDs = append(result.CacheHitTrackIDs, trackID)
 				result.EvidenceRefs = append(result.EvidenceRefs, firstString(row, "evidence_ref"))
@@ -78,7 +87,7 @@ func (h *Harness) CollectL2RenderProbeBatch(ctx context.Context, req L2RenderPro
 		packet := h.requestMixObservationL2RenderProbe(ctx, cmd, state, target, resolved)
 		requestID := firstString(packet, "request_id")
 		row := l2RenderProbeRowByRequest(cmd, requestID)
-		if len(row) == 0 || !strings.EqualFold(firstString(row, "status"), "ready") {
+		if len(row) == 0 || !strings.EqualFold(firstString(row, "status"), "ready") || (req.RequireMaskingFrames && len(mapAnyFromAny(row["masking_frames"])) == 0) {
 			return result, fmt.Errorf("track %s L2 probe did not produce ready evidence: %s", trackID, firstNonEmpty(firstString(packet, "reason"), firstString(packet, "status"), "missing"))
 		}
 		result.Rows = append(result.Rows, compactL2RenderProbeBatchRow(row))
@@ -92,6 +101,10 @@ func (h *Harness) CollectL2RenderProbeBatch(ctx context.Context, req L2RenderPro
 }
 
 func cachedL2RenderProbeForState(cmd map[string]any, trackID, tapPoint, fingerprint string) map[string]any {
+	return cachedL2RenderProbeForStateRange(cmd, trackID, tapPoint, fingerprint, 0, 0, 0, false)
+}
+
+func cachedL2RenderProbeForStateRange(cmd map[string]any, trackID, tapPoint, fingerprint string, startSeconds, endSeconds, tailSeconds float64, requireMaskingFrames bool) map[string]any {
 	path := mixboard.FeatureSnapshotPath(cmd)
 	mixboardFeatureSnapshotWriteMu.Lock()
 	snapshot := readMixboardFeatureSnapshotFile(path)
@@ -111,9 +124,38 @@ func cachedL2RenderProbeForState(cmd map[string]any, trackID, tapPoint, fingerpr
 		if firstString(row, "track_state_fingerprint") != fingerprint || len(mapAnyFromAny(row["bands"])) == 0 {
 			continue
 		}
+		if endSeconds > startSeconds {
+			analyzed := mapAnyFromAny(row["analyzed_range"])
+			if math.Abs(numberFromAny(analyzed["start_seconds"])-startSeconds) > 0.001 || math.Abs(numberFromAny(analyzed["end_seconds"])-endSeconds) > 0.001 {
+				continue
+			}
+			if value, ok := row["tail_seconds"]; ok {
+				if math.Abs(numberFromAny(value)-tailSeconds) > 0.001 {
+					continue
+				}
+			} else if captured, ok := mapAnyFromAny(row["quality_evidence"])["tail_captured"]; ok && boolValueDefault(captured, false) != (tailSeconds > 0) {
+				continue
+			}
+		}
+		if requireMaskingFrames && !maskingFrameRangeMatches(mapAnyFromAny(row["masking_frames"]), startSeconds, endSeconds) {
+			continue
+		}
 		return row
 	}
 	return nil
+}
+
+func maskingFrameRangeMatches(block map[string]any, startSeconds, endSeconds float64) bool {
+	if len(block) == 0 || !strings.EqualFold(firstString(block, "status"), "ready") {
+		return false
+	}
+	frames := mapRowsFromAny(block["frames"])
+	if len(frames) == 0 {
+		return false
+	}
+	first, last := frames[0], frames[len(frames)-1]
+	return math.Abs(numberFromAny(first["start_seconds"])-startSeconds) <= 0.001 &&
+		math.Abs(numberFromAny(last["end_seconds"])-endSeconds) <= 0.001
 }
 
 func l2RenderProbeRowByRequest(cmd map[string]any, requestID string) map[string]any {
@@ -157,8 +199,8 @@ func compactL2RenderProbeBatchRow(row map[string]any) map[string]any {
 	out := map[string]any{}
 	for _, key := range []string{
 		"schema_version", "status", "quality_status", "project_id", "session_id", "track_id", "clip_id", "tap_point", "render_mode",
-		"request_id", "render_revision", "track_state_fingerprint", "source_revision", "clip_revision", "analyzer_revision", "bands",
-		"rms_dbfs", "peak_dbfs", "headroom_db", "crest_db", "balance_db", "correlation_estimate", "evidence_ref", "updated_at",
+		"request_id", "render_revision", "track_state_fingerprint", "source_revision", "clip_revision", "analyzer_revision", "tail_seconds", "bands",
+		"rms_dbfs", "peak_dbfs", "headroom_db", "crest_db", "balance_db", "correlation_estimate", "analyzed_range", "masking_frames", "evidence_ref", "updated_at",
 	} {
 		if value, ok := row[key]; ok {
 			out[key] = value

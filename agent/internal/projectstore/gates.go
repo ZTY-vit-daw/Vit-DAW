@@ -14,6 +14,13 @@ import (
 // decision records are never removed automatically. The operation is best
 // effort and may enter evidence_off when no safe renewable data remains.
 func EnforceBudgets(roots Roots) (Manifest, error) {
+	lock := manifestLock(roots)
+	lock.Lock()
+	defer lock.Unlock()
+	return enforceBudgets(roots)
+}
+
+func enforceBudgets(roots Roots) (Manifest, error) {
 	manifest, err := Load(roots)
 	if err != nil {
 		return Manifest{}, err
@@ -43,7 +50,7 @@ func EnforceBudgets(roots Roots) (Manifest, error) {
 			Detail: "store total budget remains above limit after renewable eviction",
 		})
 	}
-	if err := Write(roots, manifest); err != nil {
+	if err := writeManifest(roots, manifest); err != nil {
 		return Manifest{}, err
 	}
 	return manifest, nil

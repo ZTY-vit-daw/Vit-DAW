@@ -130,6 +130,29 @@ func TestDetectEQModelUnifiesAbbreviatedSectionsAndLocalizedEnumValues(t *testin
 	}
 }
 
+func TestDetectEQModelExcludesCompressorHighpassFromStaticEQSurface(t *testing.T) {
+	params := []ParameterInfo{
+		typedContinuousParam("comp-hpf", "Comp Highpass", "80 Hz", 20, 2000),
+		typedContinuousParam("eq-low-f", "EQ Low Frequency", "120 Hz", 20, 2000),
+		typedContinuousParam("eq-low-g", "EQ Low Gain", "0 dB", -18, 18),
+		typedEnumParam("eq-low-shape", "EQ Low Bell", "Shelf", "Bell", "Shelf"),
+	}
+	model := DetectEQModel(ParameterDigest{Parameters: params})
+	if model == nil {
+		t.Fatal("expected main EQ surface")
+	}
+	compFilter := findEQSection(t, model, "comp low cut")
+	if capability := findEQShapeCapability(t, compFilter.ShapeCapabilities, EQFilterLowCut); capability.Upsert ||
+		!slices.Contains(compFilter.ExclusionCodes, "sidechain_or_detector_section_excluded") {
+		t.Fatalf("compressor detector filter remained a static EQ control: %+v", compFilter)
+	}
+	mainEQ := findEQSection(t, model, "low")
+	if capability := findEQShapeCapability(t, mainEQ.ShapeCapabilities, EQFilterBell); !capability.Upsert ||
+		slices.Contains(mainEQ.ExclusionCodes, "sidechain_or_detector_section_excluded") {
+		t.Fatalf("main EQ was incorrectly excluded with compressor filter: %+v", mainEQ)
+	}
+}
+
 func TestEQCurveFromProbeDoesNotInventCurveFromTooFewActiveSamples(t *testing.T) {
 	param := ParameterInfo{DisplayProbe: &ParameterDisplayProbe{Samples: []ParameterDisplayProbeSample{
 		{NormalizedValue: 0, Text: "Out Hz"},

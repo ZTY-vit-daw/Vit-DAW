@@ -8,7 +8,39 @@ import (
 )
 
 func messageLoopMutationBarrierActive(state *runState) bool {
-	return state != nil && messageLoopReadOnlyObservationRequest(state.input.UserText)
+	if state == nil {
+		return false
+	}
+	if decision, ok := messageLoopSemanticEntryDecision(state); ok {
+		route := strings.ToLower(firstMapText(decision, "route"))
+		authorization := strings.ToLower(firstMapText(decision, "user_authorization"))
+		return route == "discussion" || route == "observation" || route == "unresolved" || authorization != "action_requested"
+	}
+	return messageLoopReadOnlyObservationRequest(state.input.UserText)
+}
+
+func messageLoopSemanticEntryDecision(state *runState) (map[string]any, bool) {
+	if state == nil || !messageLoopBool(state.input.Context["semantic_entry_verified"]) {
+		return nil, false
+	}
+	decision := messageLoopMapValue(state.input.Context["semantic_entry_decision"])
+	if firstMapText(decision, "schema_version") != "semantic_entry_decision.v1" {
+		return nil, false
+	}
+	return decision, true
+}
+
+func messageLoopSemanticEntryRoute(state *runState) (string, bool) {
+	decision, ok := messageLoopSemanticEntryDecision(state)
+	if !ok {
+		return "", false
+	}
+	return strings.ToLower(firstMapText(decision, "route")), true
+}
+
+func messageLoopSemanticEntryReadOnly(state *runState) bool {
+	route, ok := messageLoopSemanticEntryRoute(state)
+	return ok && (route == "discussion" || route == "observation" || route == "unresolved")
 }
 
 func messageLoopApplyReadOnlyMutationBarrier(state *runState) {

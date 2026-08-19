@@ -212,6 +212,52 @@ func TestProjectWorkspaceSwitchAndRestartRestoresGenericPendingState(t *testing.
 	assertProjectAGenericRuntimeRestored(t, restarted)
 }
 
+func TestProjectWorkspaceRestartRestoresFreeStateObservationLedger(t *testing.T) {
+	root := t.TempDir()
+	projectPath := filepath.Join(root, "free-state-ledger.vit")
+	const projectUUID = "vitproj_free_state_ledger_restart"
+	if err := os.WriteFile(projectPath, []byte("ledger"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	project := shadow.New(nil)
+	project.Initialize(map[string]any{"status": "ok", "project_path": projectPath, "project_uuid": projectUUID})
+	server := New(nil, project, nil)
+	server.activateCurrentProjectWorkspace(context.Background())
+	loop := freeStateReasoningLoop{
+		SchemaVersion: freeStateReasoningLoopSchema, LoopID: "free-state-ledger", ConversationID: "chat-ledger",
+		Status: "observing", DecisionPhase: freeStatePhaseProcessorSelection,
+		OriginalIntent: "inspect masking", ActiveIntent: "inspect masking", MaxCycles: 6,
+		ObservationLedger: map[string]any{
+			"schema_version": freeStateObservationLedgerSchema,
+			"rejected_view_sets": []map[string]any{{
+				"fingerprint":     freeStateNormalizedViewFingerprint([]string{"mix.masking_relationship", "track.basic_energy"}),
+				"requested_views": []string{"mix.masking_relationship", "track.basic_energy"},
+				"status":          "rejected", "retry_policy": "do_not_retry", "receipt_id": "ccbr-workspace",
+			}},
+			"receipts": []map[string]any{{
+				"receipt_id": "ccbr-workspace", "tool_call_id": "ccb-workspace", "status": "rejected",
+				"requested_views": []string{"mix.masking_relationship", "track.basic_energy"},
+			}},
+		},
+	}
+	server.storeFreeStateLoop(loop)
+	server.persistCurrentProjectWorkspace()
+
+	restarted := New(nil, project, nil)
+	restarted.activateCurrentProjectWorkspace(context.Background())
+	restored, ok := restarted.freeStateLoop("chat-ledger")
+	if !ok || len(freeStateMapRows(restored.ObservationLedger["rejected_view_sets"])) != 1 {
+		t.Fatalf("workspace restart lost rejection ledger: %#v", restored)
+	}
+	bound, active := restarted.prepareFreeStateReasoningContext("chat-ledger", "continue", map[string]any{})
+	boundLoop := firstMapFromAny(bound["free_state_reasoning_loop"])
+	boundLedger := firstMapFromAny(boundLoop["observation_ledger"])
+	if !active || len(freeStateMapRows(boundLedger["rejected_view_sets"])) != 1 ||
+		firstStringFromMap(freeStateMapRows(boundLedger["receipts"])[0], "receipt_id") != "ccbr-workspace" {
+		t.Fatalf("workspace-restored ledger was not rebound: %#v", bound)
+	}
+}
+
 func readCanonicalRuntimeState(t *testing.T, projectDir, projectUUID string) projectAgentRuntimeState {
 	t.Helper()
 	data, err := os.ReadFile(filepath.Join(projectDir, history.DirName, projectUUID, "state", "agent_runtime_state.json"))

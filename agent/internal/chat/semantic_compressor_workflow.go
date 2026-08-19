@@ -2,6 +2,7 @@ package chat
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"math"
 	"regexp"
@@ -11,6 +12,8 @@ import (
 	"vit-daw-agent/internal/com"
 	"vit-daw-agent/internal/config"
 	"vit-daw-agent/internal/harness"
+	"vit-daw-agent/internal/processorintent"
+	"vit-daw-agent/internal/processorregistry"
 	agentruntime "vit-daw-agent/internal/runtime"
 	"vit-daw-agent/internal/semanticeffect"
 	plugingrabber "vit-daw-agent/internal/workflows/plugingrabber"
@@ -23,6 +26,9 @@ var compressorExactParameterRequest = regexp.MustCompile(`(?i)(threshold|ratio|a
 // qualified broadband compressor; otherwise open method arbitration continues.
 func (s *Server) routeOrdinaryAgentSemanticCompressorPlanning(ctx context.Context, conversationID, userText string,
 	requestContext map[string]any, cfg config.EngineConfig) (ChatResponse, bool) {
+	if contextBool(requestContext, "semantic_entry_unavailable") {
+		return ChatResponse{}, false
+	}
 	if !ordinaryAgentSemanticCompressorPlanningRequest(userText, requestContext) {
 		return ChatResponse{}, false
 	}
@@ -71,14 +77,40 @@ func (s *Server) planBoundSemanticCompressorFromLive(ctx context.Context, conver
 	if card == nil {
 		return semanticCompressorPlanningFailure(conversationID, requestContext, firstNonEmpty(boundary, "processor_identity_unavailable"), fmt.Errorf("%s", boundary))
 	}
-	intent, err := s.planOrdinaryAgentCompressorIntent(ctx, conversationID, userText, *card, cfg)
+	intent, err := s.c2FrozenCompressorIntent(requestContext)
 	if err != nil {
-		return semanticCompressorPlanningFailure(conversationID, requestContext, "intent_planning_failed", err)
+		return semanticCompressorPlanningFailure(conversationID, requestContext, "c2_intent_rejected", err)
+	}
+	if intent == nil {
+		intent, err = s.planOrdinaryAgentCompressorIntent(ctx, conversationID, userText, *card, cfg)
+		if err != nil {
+			return semanticCompressorPlanningFailure(conversationID, requestContext, "intent_planning_failed", err)
+		}
+	}
+	registry, registryErr := processorregistry.Default()
+	if registryErr != nil {
+		return semanticCompressorPlanningFailure(conversationID, requestContext, "pca_registry_unavailable", registryErr)
+	}
+	pcaCoverage, pcaErr := registry.PCARequiredCoverage(processorintent.FamilyBroadbandCompressor, intent.SelectedAxes)
+	if pcaErr != nil {
+		return semanticCompressorPlanningFailure(conversationID, requestContext, "pca_coverage_unproven", pcaErr)
+	}
+	if _, pcaErr = s.semanticLoadedInstancePCAAdmissionForContext(ctx, requestContext, trackID, pluginID, semanticTreatmentPCAInput{
+		Family: processorintent.FamilyBroadbandCompressor, RequiredCoverage: pcaCoverage,
+	}); pcaErr != nil {
+		return semanticCompressorPlanningFailure(conversationID, requestContext, "pca_admission_rejected", pcaErr)
 	}
 	comContext := s.observeSemanticCompressorContext(ctx, conversationID, trackID, pluginID, requestContext, *card, *intent)
 	brief, briefBoundary := plugingrabber.BuildCompressorControlBrief(digest, intent.SelectedAxes)
 	if brief == nil {
-		return semanticCompressorPlanningFailure(conversationID, requestContext, firstNonEmpty(briefBoundary, "selected_axes_unreachable"), fmt.Errorf("%s", briefBoundary))
+		// A PCA-covered semantic axis must have a corresponding live Typed
+		// Executor role. Preserve both sides of that contract when it does not:
+		// C2 can then distinguish a stale certification from a topology adapter
+		// regression instead of reporting an opaque unreachable-axis failure.
+		diagnostic := fmt.Sprintf("%s; selected_axes=%s; live_signature_roles=%s; topology=%s; parameter_count=%d",
+			firstNonEmpty(briefBoundary, "selected_axes_unreachable"), strings.Join(intent.SelectedAxes, ","),
+			strings.Join(card.SignatureControls, ","), card.TopologyEvidence.Classification, digest.ParameterCount)
+		return semanticCompressorPlanningFailure(conversationID, requestContext, firstNonEmpty(briefBoundary, "selected_axes_unreachable"), fmt.Errorf("%s", diagnostic))
 	}
 	plan, err := s.planOrdinaryAgentCompressorControls(ctx, conversationID, userText, trackID, pluginID, trackName, pluginName,
 		*card, *intent, comContext, *brief, nil, cfg)
@@ -114,6 +146,52 @@ func (s *Server) planBoundSemanticCompressorFromLive(ctx context.Context, conver
 	}
 	return s.semanticCompressorWaitingResponse(conversationID, requestContext, *card, *intent, comContext, *brief, *plan,
 		ticket, preview)
+}
+
+// c2FrozenCompressorIntent translates the already evidence-bound C2 target
+// into the compressor leaf's representation. It fixes scope and PCA coverage
+// while leaving only concrete controller values to the semantic leaf planner.
+// A nil result means this is not a C2-owned request and preserves ordinary
+// open-agent behavior.
+func (s *Server) c2FrozenCompressorIntent(requestContext map[string]any) (*semanticeffect.CompressorIntentPlan, error) {
+	raw := firstMapFromAny(requestContext["c2_semantic_processor_intent"])
+	if len(raw) == 0 {
+		return nil, nil
+	}
+	encoded, _ := json.Marshal(raw)
+	frozen, err := processorintent.Decode(string(encoded))
+	if err != nil {
+		return nil, err
+	}
+	if frozen.Status != processorintent.StatusResolved || frozen.Family != processorintent.FamilyBroadbandCompressor {
+		return nil, fmt.Errorf("C2 compressor intent is not a resolved broadband compressor intent")
+	}
+	dimensions := []string{}
+	for _, axis := range frozen.RequiredCoverage {
+		switch axis {
+		case "activation_intensity", "transfer_severity":
+			dimensions = appendUniqueStrings(dimensions, "gain_action")
+		case "transient_timing":
+			dimensions = appendUniqueStrings(dimensions, "transient_response")
+		case "recovery_motion":
+			dimensions = appendUniqueStrings(dimensions, "recovery_motion")
+		case "detector_focus":
+			dimensions = appendUniqueStrings(dimensions, "trigger_relation")
+		case "output_normalization":
+			dimensions = appendUniqueStrings(dimensions, "level_effect")
+		case "parallel_balance":
+			dimensions = appendUniqueStrings(dimensions, "gain_action")
+		case "character":
+			dimensions = appendUniqueStrings(dimensions, "source_dynamics")
+		default:
+			return nil, fmt.Errorf("C2 compressor coverage contains unsupported axis %q", axis)
+		}
+	}
+	intent := &semanticeffect.CompressorIntentPlan{SchemaVersion: semanticeffect.CompressorIntentPlanSchema, UserGoal: frozen.Intent, SelectedAxes: append([]string(nil), frozen.RequiredCoverage...), EvidenceRequest: semanticeffect.CompressorEvidenceRequest{PreferredMode: "paired_io", FallbackMode: "source_only", Dimensions: dimensions, Reason: "C2 fixed project observation selected these evidence-backed compressor axes."}, Reason: "Frozen from the C2 full-project target decision.", NeedsControlBrief: true}
+	if err := intent.Validate(); err != nil {
+		return nil, fmt.Errorf("translated C2 compressor intent: %w", err)
+	}
+	return intent, nil
 }
 
 func ordinaryAgentSemanticCompressorPlanningRequest(userText string, requestContext map[string]any) bool {
@@ -186,6 +264,25 @@ func (s *Server) observeSemanticCompressorContext(ctx context.Context, conversat
 	}
 	observed, err := call(mode, baseContext)
 	if err == nil {
+		// C2 parameter leaves are source-only reversible by contract. A paired
+		// observation may return a usable partial projection without an error,
+		// but that projection cannot authorize a C2 materialization. Explicitly
+		// fall back to the source-only projection in that case instead of
+		// passing the non-ready paired result into the execution ticket guard.
+		if mode == com.ModePairedIO && contextBool(requestContext, "c2_source_only_reversible") &&
+			!strings.EqualFold(firstNonEmptyText(observed.projection, "status"), com.StatusReady) {
+			if fallback := intent.EvidenceRequest.FallbackMode; fallback != "" && fallback != "not_needed" && fallback != mode {
+				if fallbackObservation, fallbackErr := call(fallback, baseContext); fallbackErr == nil {
+					fallbackMode := firstNonEmptyText(fallbackObservation.projection, "mode")
+					fallbackStatus := firstNonEmptyText(fallbackObservation.projection, "status")
+					if c2ReversibleCompressorEvidence(requestContext, fallbackMode, fallbackStatus) {
+						fallbackObservation.projection["requested_mode"] = mode
+						fallbackObservation.projection["fallback_reason"] = "C2 source-only reversible leaf requires a non-paired execution projection"
+						return fallbackObservation.projection
+					}
+				}
+			}
+		}
 		if mode == com.ModePairedIO {
 			initial := semanticCompressorObservationCandidate{Projection: observed.projection, Result: observed.result}
 			selected, audit := selectSemanticCompressorEventCoverageWindow(baseContext, initial, func(retryContext map[string]any) (semanticCompressorObservationCandidate, error) {
@@ -466,7 +563,7 @@ func semanticCompressorPlanningFailure(conversationID string, requestContext map
 	return ChatResponse{ConversationID: conversationID, GoalID: goalID, RunID: runID,
 		Reply:    "压缩器语义规划无法在当前证据和控制边界内安全完成；已停止在只读阶段，没有修改任何参数。",
 		Workflow: "semantic_compressor_planning", WorkflowData: semanticCompressorWorkflowData(requestContext, map[string]any{"schema_version": "semantic_compressor.workflow.v1", "status": "rejected", "code": code,
-			"planning_only": true, "mutation_performed": false, "error": errorText(err)}), GoalStatus: "completed", StopReason: code}
+			"planning_only": true, "mutation_performed": false, "error": errorText(err)}), GoalStatus: "completed", StopReason: code, Error: errorText(err)}
 }
 
 func semanticCompressorWorkflowData(requestContext, data map[string]any) map[string]any {

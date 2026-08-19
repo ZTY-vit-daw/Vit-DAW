@@ -33,6 +33,10 @@ func (s *Server) planOrdinaryAgentSemanticEQWithFeedback(ctx context.Context, co
 	if len(topology) == 0 {
 		return nil, fmt.Errorf("semantic EQ acoustic planning requires generic_eq_topology")
 	}
+	observationID, observationIssue := semanticEQAbstractObservationIssue(observation)
+	if observationIssue != "" {
+		return nil, fmt.Errorf("semantic EQ acoustic planning requires successful model-requested CCB evidence: %s", observationIssue)
+	}
 	input := map[string]any{
 		"user_request": userText,
 		"exact_target": map[string]any{
@@ -62,7 +66,7 @@ Return ONLY one JSON object matching semantic_effect_action.v1. Do not return pr
 
 The exact outer object and one complete atom are:
 ` + semanticeffect.StaticEQActionPromptExample + `
-Use the exact key evidence_decision, not evidence. Populate its choice, basis, and reason even when the basis is only user_report.
+Use the exact key evidence_decision, not evidence. Its basis must be observation or both and it must cite the exact supplied observation_id.
 
 Shared generic static-EQ atom contract:
 ` + semanticeffect.StaticEQAtomPromptRules + `
@@ -78,7 +82,7 @@ Required rules:
 - Every atom needs a stable atom_id, distinct acoustic purpose, and low/medium/high confidence.
 - Preserve negative listening constraints in negative_constraints. If the request combines a positive goal with a negative constraint and one atom cannot express both, use 2-3 coordinated static-EQ atoms with distinct purposes.
 - When selected_treatment_strategy is supplied, treat its global_constraints and selected choice as binding context for the concrete EQ plan; do not replace it with another treatment method.
-- If observation evidence is trustworthy and relevant, use evidence_decision basis observation/both and cite its identity. Otherwise the user's listening report is sufficient for a conservative plan: choice not_needed, basis user_report, with the limitation disclosed.
+- The supplied CCB observation is mandatory evidence for this abstract acoustic plan. Use evidence_decision basis observation or both, copy its exact observation_id, and cite supplied evidence_refs when useful. choice=not_needed and basis=user_report are forbidden here.
 - Do not ask the user to choose shelf vs bell or approve a dynamic band. You are responsible for that acoustic decision; confirmation happens after the typed plan is frozen.`
 	if strings.TrimSpace(deterministicRejection) != "" {
 		system += `
@@ -95,6 +99,9 @@ Required rules:
 	}
 	action, decodeErr := decodeSemanticEQLLMActionForTarget(response.Text, trackID, pluginID, userText)
 	if decodeErr == nil {
+		decodeErr = validateSemanticEQAbstractEvidence(action, observationID)
+	}
+	if decodeErr == nil {
 		return &action, nil
 	}
 	repair := fmt.Sprintf(`Your previous semantic EQ JSON was invalid: %s
@@ -109,16 +116,26 @@ The corrected atoms must obey this shared contract: %s`, decodeErr, semanticeffe
 	if err != nil {
 		return nil, fmt.Errorf("semantic EQ planner returned invalid action after repair: %w", err)
 	}
+	if err := validateSemanticEQAbstractEvidence(action, observationID); err != nil {
+		return nil, fmt.Errorf("semantic EQ planner returned invalid action after repair: %w", err)
+	}
 	return &action, nil
 }
 
 func (s *Server) ensureOrdinaryAgentSemanticEQExecutable(ctx context.Context, conversationID, userText string, requestContext map[string]any, observation *agentloop.RecentObservation, cfg config.EngineConfig, candidate *semanticeffect.Action) (*semanticeffect.Action, error) {
+	observationID, observationIssue := semanticEQAbstractObservationIssue(observation)
+	if observationIssue != "" {
+		return nil, fmt.Errorf("semantic EQ acoustic planning requires successful model-requested CCB evidence: %s", observationIssue)
+	}
 	if candidate == nil {
 		planned, err := s.planOrdinaryAgentSemanticEQ(ctx, conversationID, userText, requestContext, observation, cfg)
 		if err != nil {
 			return nil, err
 		}
 		candidate = planned
+	}
+	if err := validateSemanticEQAbstractEvidence(*candidate, observationID); err != nil {
+		return nil, err
 	}
 	if _, err := s.planSemanticEQReadOnly(ctx, *candidate); err == nil {
 		return candidate, nil
@@ -142,9 +159,9 @@ func semanticEQPlannerObservation(observation *agentloop.RecentObservation) map[
 		"tool": observation.Tool, "status": observation.Status,
 		"tool_call_id": observation.ToolCallID, "summary": cloneContext(observation.Summary),
 	}
-	// Keep the dedicated planning prompt bounded even when an older observer
-	// returns an unexpectedly broad digest. The user report remains a valid
-	// conservative basis when detailed evidence cannot be admitted.
+	// Keep the dedicated planning prompt bounded even when an observer returns
+	// an unexpectedly broad digest. The retained identity and references remain
+	// mandatory; oversized evidence never falls back to the user report alone.
 	if data, _ := json.Marshal(out); len(data) > 32000 {
 		texts := semanticEQRecursiveText(observation.Summary)
 		out = map[string]any{
@@ -152,10 +169,60 @@ func semanticEQPlannerObservation(observation *agentloop.RecentObservation) map[
 			"observation_id": semanticEQFirstRecursive(texts, "observation_id"),
 			"scope":          semanticEQFirstRecursive(texts, "scope"),
 			"limitations":    texts["limitations"], "evidence_refs": texts["evidence_refs"],
-			"admission_note": "observation digest exceeded semantic planner budget; use user_report basis conservatively",
+			"admission_note": "observation digest exceeded semantic planner budget; retain the exact observation binding and plan only within admitted evidence",
 		}
 	}
 	return out
+}
+
+func semanticEQAbstractObservationIssue(observation *agentloop.RecentObservation) (string, string) {
+	if observation == nil {
+		return "", "observation is missing"
+	}
+	tool := strings.ToLower(strings.TrimSpace(firstNonEmpty(observation.Tool, observation.CommandName)))
+	if tool != "ccb.observation_request" && tool != "ccb_observation_request" {
+		return "", "observation was not produced by ccb.observation_request"
+	}
+	if strings.TrimSpace(observation.Error) != "" {
+		return "", "observation execution reported an error"
+	}
+	switch strings.ToLower(strings.TrimSpace(observation.Status)) {
+	case "ok", "ready", "partial":
+	default:
+		return "", "observation execution did not succeed"
+	}
+	bundle := observation.Summary
+	if len(bundle) == 0 || bundle["read_only"] != true || bundle["mutation_authority"] != false {
+		return "", "observation bundle does not prove its read-only boundary"
+	}
+	switch strings.ToLower(firstStringFromMap(bundle, "status")) {
+	case "ready", "partial":
+	default:
+		return "", "observation bundle is not ready or partial"
+	}
+	if len(firstMapFromAny(bundle["views"])) == 0 {
+		return "", "observation bundle contains no usable views"
+	}
+	texts := semanticEQRecursiveText(bundle)
+	observationID := strings.TrimSpace(semanticEQFirstRecursive(texts, "observation_id"))
+	if observationID == "" {
+		return "", "observation bundle has no observation_id"
+	}
+	return observationID, ""
+}
+
+func validateSemanticEQAbstractEvidence(action semanticeffect.Action, observationID string) error {
+	basis := strings.ToLower(strings.TrimSpace(action.Evidence.Basis))
+	if basis != "observation" && basis != "both" {
+		return fmt.Errorf("abstract semantic EQ evidence_decision.basis must be observation or both")
+	}
+	if strings.EqualFold(strings.TrimSpace(action.Evidence.Choice), "not_needed") {
+		return fmt.Errorf("abstract semantic EQ evidence_decision.choice cannot be not_needed")
+	}
+	if strings.TrimSpace(action.Evidence.ObservationID) != strings.TrimSpace(observationID) {
+		return fmt.Errorf("abstract semantic EQ evidence_decision must cite the exact CCB observation_id")
+	}
+	return nil
 }
 
 func decodeSemanticEQLLMAction(text string) (semanticeffect.Action, error) {

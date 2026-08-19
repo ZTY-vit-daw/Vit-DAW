@@ -6,7 +6,7 @@
 
 Observation v1 的封口目标是稳定这条观测链路：
 
-`Godot -> kernel -> feature snapshot -> DAD evidence layer -> Observation Model Layer (MOM/TIM/TOM/DOM projections) -> LLM context`
+`Godot -> kernel -> feature snapshot -> DAD evidence layer -> Observation Model Layer (MOM/TIM/TOM/DOM/DelOM 等 peer projections, 各自从 DAD 独立派生, 互不为链) -> CCB 装配披露 -> LLM context`
 
 本次不扩展新能力，只固定观测基础、smoke 入口和防回归契约，避免后续 agent/action workflow 重构破坏 DAD / Observation Model Layer / Godot 的观测面。
 
@@ -19,7 +19,8 @@ Observation v1 的封口目标是稳定这条观测链路：
 - MOM = Mixing Observation Model，继续负责混音关系观察、action preflight 和 AB result 相关 compact context。
 - TIM = Technical Integrity Model，负责工程技术完整性检查，例如 source/path/playback 有效性、格式归类、采样率/bit depth/声道覆盖率、DAD acoustic readiness、静音/削波等导入风险。
 - TOM = Track Organization Model，后续负责智能轨道整理提案；它应优先基于 ID/命名关联、长度、mono/stereo、格式、声像和轻量波形特征聚类，再谨慎提出角色假设。
-- DOM = Delivery Observation Model，后续负责导出/交付/响度/格式审查。
+- DOM = Dynamics Observation Model，负责中性的动态声学观察；v1 只实现 `source_only`，不选择处理器、不映射参数、不授予执行权限。
+- DelOM = Delivery Observation Model，后续负责导出/交付/响度/格式审查。
 - 每个 model 输出自己的 projection artifact，例如 `mom.projection.v1.x`、`tim.projection.v0`、`tom.projection.v0`；LLM 默认消费 projection/context，不消费 raw waveform、spectrogram payload 或完整工程 dump。
 
 - DAD 负责采集、派生和标注证据。输入来自 kernel/Godot 的 feature snapshot，输出 lightweight acoustic package 与 per-feature 状态。

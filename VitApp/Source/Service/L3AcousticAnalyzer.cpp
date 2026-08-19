@@ -3,6 +3,7 @@
 #include "../Core/VitPaths.h"
 #include "OfflineAudioReadCoordinator.h"
 
+#include <algorithm>
 #include <array>
 #include <cmath>
 #include <fstream>
@@ -33,10 +34,44 @@ struct BandAccumulator
     int64 frameCount = 0;
 };
 
+struct FrameObservation
+{
+    double startSeconds = 0.0;
+    double endSeconds = 0.0;
+    double rmsDbfs = -160.0;
+    double peakDbfs = -160.0;
+    std::array<double, 6> bandDbfs {{ -160.0, -160.0, -160.0, -160.0, -160.0, -160.0 }};
+};
+
+struct FineFrequencyEvent
+{
+    int bandIndex = -1;
+    int frameIndex = 0;
+    double contrastDb = 0.0;
+};
+
+struct FineTransientEvent
+{
+    int frameIndex = 0;
+    double onsetDbfs = -160.0;
+    double bodyDbfs = -160.0;
+    double sustainDbfs = -160.0;
+};
+
+struct BoundedDistribution
+{
+    int count = 0;
+    double min = 0.0;
+    double p50 = 0.0;
+    double p90 = 0.0;
+    double max = 0.0;
+};
+
 struct L3Evidence
 {
     double sampleRate = 0.0;
     int channels = 0;
+    int bitDepth = 0;
     double durationSeconds = 0.0;
     int64 expectedSampleCount = 0;
     int64 analyzedSampleCount = 0;
@@ -84,6 +119,8 @@ struct L3Analysis
     }};
     double totalBandEnergy = 0.0;
     int64 fftFrameCount = 0;
+    double frameWindowMs = 0.0;
+    double frameHopMs = 0.0;
     int64 audioFrameCount = 0;
     double leftEnergy = 0.0;
     double rightEnergy = 0.0;
@@ -95,6 +132,14 @@ struct L3Analysis
     double rightRms = 0.0;
     double balanceDb = 0.0;
     double correlation = 1.0;
+    std::vector<FrameObservation> frames;
+    double noiseFloorEstimateDbfs = -160.0;
+    double noiseFloorP10Dbfs = -160.0;
+    double noiseFloorP50Dbfs = -160.0;
+    std::vector<FineFrequencyEvent> frequencyEvents;
+    std::vector<FineTransientEvent> transientEvents;
+    std::array<BoundedDistribution, 6> bandTimeDistributions {};
+    std::array<BoundedDistribution, 6> bandCrestDistributions {};
 };
 
 double dbFromLinear (double value)
@@ -109,6 +154,144 @@ double dbFromEnergy (double value)
     if (! std::isfinite (value) || value <= 0.0)
         return kSilenceDb;
     return juce::jmax (kSilenceDb, 10.0 * std::log10 (value));
+}
+
+double percentile (std::vector<double> values, double q)
+{
+    values.erase (std::remove_if (values.begin(), values.end(), [] (double value) { return ! std::isfinite (value); }), values.end());
+    if (values.empty())
+        return kSilenceDb;
+    std::sort (values.begin(), values.end());
+    const auto position = juce::jlimit (0.0, 1.0, q) * (double) (values.size() - 1);
+    const auto lower = (size_t) std::floor (position);
+    const auto upper = (size_t) std::ceil (position);
+    if (lower == upper)
+        return values[lower];
+    const auto weight = position - (double) lower;
+    return values[lower] * (1.0 - weight) + values[upper] * weight;
+}
+
+BoundedDistribution summarize (const std::vector<double>& values)
+{
+    BoundedDistribution out;
+    std::vector<double> clean;
+    for (const auto value : values)
+        if (std::isfinite (value))
+            clean.push_back (value);
+    if (clean.empty())
+        return out;
+    std::sort (clean.begin(), clean.end());
+    out.count = (int) clean.size();
+    out.min = clean.front();
+    out.p50 = percentile (clean, 0.50);
+    out.p90 = percentile (clean, 0.90);
+    out.max = clean.back();
+    return out;
+}
+
+// bandPersistenceRatio returns the fraction of FFT frames whose band energy
+// is meaningfully above the local noise floor (active frames / total frames).
+// The threshold is the higher of the global rms noise floor and the band's own
+// p10 energy, plus a fixed +3dB contrast; when no floor is estimable the
+// ratio stays 0 so an absent value is never fabricated.
+double bandPersistenceRatio (const L3Analysis& analysis, int bandIndex)
+{
+    if (bandIndex < 0 || bandIndex >= 6 || analysis.fftFrameCount <= 0 || analysis.frames.size() < 2)
+        return 0.0;
+    std::vector<double> levels;
+    levels.reserve (analysis.frames.size());
+    for (const auto& frame : analysis.frames)
+        levels.push_back (frame.bandDbfs[(size_t) bandIndex]);
+    const double bandFloor = percentile (levels, 0.10);
+    const double globalFloor = analysis.noiseFloorEstimateDbfs > kSilenceDb + 1.0
+        ? analysis.noiseFloorEstimateDbfs : bandFloor;
+    const double threshold = juce::jmax (globalFloor, bandFloor) + 3.0;
+    int activeFrames = 0;
+    for (const auto& frame : analysis.frames)
+        if (frame.bandDbfs[(size_t) bandIndex] > threshold)
+            ++activeFrames;
+    return (double) activeFrames / (double) analysis.fftFrameCount;
+}
+
+void deriveFineEvidence (L3Analysis& analysis)
+{
+    std::vector<double> rms;
+    rms.reserve (analysis.frames.size());
+    for (const auto& frame : analysis.frames)
+        rms.push_back (frame.rmsDbfs);
+    if (rms.size() >= 8)
+    {
+        analysis.noiseFloorP10Dbfs = percentile (rms, 0.10);
+        analysis.noiseFloorP50Dbfs = percentile (rms, 0.50);
+        analysis.noiseFloorEstimateDbfs = analysis.noiseFloorP10Dbfs;
+    }
+
+    for (int band = 0; band < 6; ++band)
+    {
+        std::vector<double> levels;
+        levels.reserve (analysis.frames.size());
+        std::vector<double> crest;
+        crest.reserve (analysis.frames.size());
+        for (const auto& frame : analysis.frames)
+        {
+            levels.push_back (frame.bandDbfs[(size_t) band]);
+            // This is a bounded frame-peak vs band-envelope contrast, not a
+            // claim about sample-accurate band true-peak behavior.
+            crest.push_back (frame.peakDbfs - frame.bandDbfs[(size_t) band]);
+        }
+        analysis.bandTimeDistributions[(size_t) band] = summarize (levels);
+        analysis.bandCrestDistributions[(size_t) band] = summarize (crest);
+    }
+
+    if (analysis.frames.size() >= 3)
+    {
+        for (int band = 0; band < 6 && analysis.frequencyEvents.size() < 128; ++band)
+        {
+            std::vector<double> levels;
+            for (const auto& frame : analysis.frames)
+                levels.push_back (frame.bandDbfs[(size_t) band]);
+            const auto threshold = percentile (levels, 0.75) + 4.0;
+            for (int i = 1; i + 1 < (int) analysis.frames.size() && analysis.frequencyEvents.size() < 128; ++i)
+            {
+                const auto current = analysis.frames[(size_t) i].bandDbfs[(size_t) band];
+                if (current < threshold || current < analysis.frames[(size_t) i - 1].bandDbfs[(size_t) band] || current <= analysis.frames[(size_t) i + 1].bandDbfs[(size_t) band])
+                    continue;
+                analysis.frequencyEvents.push_back ({ band, i, current - percentile (levels, 0.50) });
+            }
+        }
+
+        for (int i = 1; i + 1 < (int) analysis.frames.size() && analysis.transientEvents.size() < 128; ++i)
+        {
+            const auto& previous = analysis.frames[(size_t) i - 1];
+            const auto& current = analysis.frames[(size_t) i];
+            const auto& next = analysis.frames[(size_t) i + 1];
+            if (current.rmsDbfs < previous.rmsDbfs + 3.0 || current.rmsDbfs < next.rmsDbfs)
+                continue;
+            double body = 0.0;
+            int bodyCount = 0;
+            double sustain = 0.0;
+            int sustainCount = 0;
+            for (int j = i + 1; j < std::min ((int) analysis.frames.size(), i + 4); ++j)
+            {
+                body += analysis.frames[(size_t) j].rmsDbfs;
+                ++bodyCount;
+            }
+            for (int j = i + 4; j < std::min ((int) analysis.frames.size(), i + 12); ++j)
+            {
+                sustain += analysis.frames[(size_t) j].rmsDbfs;
+                ++sustainCount;
+            }
+            if (bodyCount > 0)
+                body /= (double) bodyCount;
+            else
+                body = current.rmsDbfs;
+            if (sustainCount > 0)
+                sustain /= (double) sustainCount;
+            else
+                sustain = body;
+            analysis.transientEvents.push_back ({ i, current.rmsDbfs, body, sustain });
+        }
+    }
 }
 
 int bandIndexForHz (double hz, const std::array<BandAccumulator, 6>& bands)
@@ -208,6 +391,8 @@ void finishEvidence (L3Analysis& analysis, const juce::String& extraReason = {})
         const auto corrDenom = std::sqrt (analysis.leftEnergy * analysis.rightEnergy);
         analysis.correlation = corrDenom > 0.0 ? juce::jlimit (-1.0, 1.0, analysis.sumLR / corrDenom) : 1.0;
     }
+
+    deriveFineEvidence (analysis);
 }
 
 std::unique_ptr<juce::DynamicObject> makeSourceIdentity (const AudioFeatureBakeRequest& request,
@@ -324,6 +509,14 @@ void stampCommon (juce::DynamicObject& obj,
     obj.setProperty ("sample_rate", analysis.evidence.sampleRate);
     obj.setProperty ("channels", analysis.evidence.channels);
     obj.setProperty ("channel_count", analysis.evidence.channels);
+    if (analysis.evidence.bitDepth > 0)
+    {
+        // PCM bit depth is a file-level fact exposed by the reader; it is not
+        // inferred from analysis and stays absent when the format is
+        // compressed (no PCM depth to report).
+        obj.setProperty ("bit_depth", analysis.evidence.bitDepth);
+        obj.setProperty ("bits_per_sample", analysis.evidence.bitDepth);
+    }
     obj.setProperty ("duration_seconds", analysis.evidence.durationSeconds);
     obj.setProperty ("expected_sample_count", (int64) analysis.evidence.expectedSampleCount);
     obj.setProperty ("analyzed_sample_count", (int64) analysis.evidence.analyzedSampleCount);
@@ -361,6 +554,8 @@ void publishBandSummary (const AudioFeatureBakeRequest& request,
         const double relative = analysis.totalBandEnergy > 0.0
             ? juce::jlimit (0.0, 1.0, band.energy / analysis.totalBandEnergy)
             : 0.0;
+        const int bandIndex = (int) (&band - analysis.bands.data());
+        const double persistence = bandPersistenceRatio (analysis, bandIndex);
         bandObject->setProperty ("status", band.frameCount > 0 ? analysis.evidence.status : "missing");
         bandObject->setProperty ("energy", band.energy);
         bandObject->setProperty ("energy_db", dbFromEnergy (band.energy));
@@ -370,6 +565,8 @@ void publishBandSummary (const AudioFeatureBakeRequest& request,
         bandObject->setProperty ("coverage_ratio", analysis.evidence.coverageRatio);
         bandObject->setProperty ("frame_count", (int64) band.frameCount);
         bandObject->setProperty ("sample_count", (int64) analysis.evidence.analyzedSampleCount);
+        bandObject->setProperty ("persistence_ratio", persistence);
+        bandObject->setProperty ("active_frame_ratio", persistence);
         bandObject->setProperty ("min_hz", band.definition.minHz);
         bandObject->setProperty ("max_hz", band.definition.maxHz);
         bandObject->setProperty ("quality_status", analysis.evidence.status);
@@ -378,6 +575,95 @@ void publishBandSummary (const AudioFeatureBakeRequest& request,
     }
     obj->setProperty ("bands", juce::var (bandsObject.release()));
     obj->setProperty ("band_count", (int) analysis.bands.size());
+
+    auto noiseFloor = std::make_unique<juce::DynamicObject>();
+    noiseFloor->setProperty ("status", analysis.frames.size() >= 8 && analysis.evidence.status == "ready" ? "ready" : "missing");
+    noiseFloor->setProperty ("estimate_dbfs", analysis.noiseFloorEstimateDbfs);
+    noiseFloor->setProperty ("p10_dbfs", analysis.noiseFloorP10Dbfs);
+    noiseFloor->setProperty ("p50_dbfs", analysis.noiseFloorP50Dbfs);
+    noiseFloor->setProperty ("method", "bounded_fft_frame_rms_percentile");
+    noiseFloor->setProperty ("confidence", analysis.frames.size() >= 32 ? "medium" : "low");
+    noiseFloor->setProperty ("window_count", (int) analysis.frames.size());
+    noiseFloor->setProperty ("evidence_refs", juce::Array<juce::var> { "dad.l3.noise_floor" });
+    obj->setProperty ("noise_floor_evidence", juce::var (noiseFloor.release()));
+
+    juce::Array<juce::var> frequencyEvents;
+    for (const auto& event : analysis.frequencyEvents)
+    {
+        auto row = std::make_unique<juce::DynamicObject>();
+        const auto& definition = analysis.bands[(size_t) event.bandIndex].definition;
+        const auto& frame = analysis.frames[(size_t) event.frameIndex];
+        row->setProperty ("start_seconds", frame.startSeconds);
+        row->setProperty ("end_seconds", frame.endSeconds);
+        row->setProperty ("band_id", definition.name);
+        row->setProperty ("min_hz", definition.minHz);
+        row->setProperty ("max_hz", definition.maxHz);
+        row->setProperty ("level_dbfs", frame.bandDbfs[(size_t) event.bandIndex]);
+        row->setProperty ("contrast_db", event.contrastDb);
+        frequencyEvents.add (juce::var (row.release()));
+    }
+    auto frequency = std::make_unique<juce::DynamicObject>();
+    frequency->setProperty ("status", analysis.evidence.status == "ready" && ! analysis.frames.empty() ? "ready" : "missing");
+    frequency->setProperty ("events", frequencyEvents);
+    frequency->setProperty ("event_count_available", ! analysis.frames.empty());
+    frequency->setProperty ("coverage", analysis.evidence.coverageRatio);
+    frequency->setProperty ("evidence_refs", juce::Array<juce::var> { "dad.l3.frequency_time_events" });
+    obj->setProperty ("frequency_time_events", juce::var (frequency.release()));
+
+    juce::Array<juce::var> transientEvents;
+    for (const auto& event : analysis.transientEvents)
+    {
+        auto row = std::make_unique<juce::DynamicObject>();
+        const auto& frame = analysis.frames[(size_t) event.frameIndex];
+        row->setProperty ("onset_seconds", frame.startSeconds);
+        row->setProperty ("body_end_seconds", frame.endSeconds + 3.0 * (frame.endSeconds - frame.startSeconds));
+        row->setProperty ("sustain_end_seconds", frame.endSeconds + 11.0 * (frame.endSeconds - frame.startSeconds));
+        row->setProperty ("onset_dbfs", event.onsetDbfs);
+        row->setProperty ("body_dbfs", event.bodyDbfs);
+        row->setProperty ("sustain_dbfs", event.sustainDbfs);
+        row->setProperty ("attack_body_contrast_db", event.onsetDbfs - event.bodyDbfs);
+        row->setProperty ("sustain_decay_db", event.bodyDbfs - event.sustainDbfs);
+        transientEvents.add (juce::var (row.release()));
+    }
+    auto transient = std::make_unique<juce::DynamicObject>();
+    transient->setProperty ("status", analysis.evidence.status == "ready" && ! analysis.transientEvents.empty() ? "ready" : "partial");
+    transient->setProperty ("events", transientEvents);
+    transient->setProperty ("coverage", analysis.evidence.coverageRatio);
+    transient->setProperty ("window_ms", analysis.frameWindowMs);
+    transient->setProperty ("hop_ms", analysis.frameHopMs);
+    transient->setProperty ("evidence_refs", juce::Array<juce::var> { "dad.l3.transient_events" });
+    obj->setProperty ("transient_events", juce::var (transient.release()));
+
+    auto bandDynamics = std::make_unique<juce::DynamicObject>();
+    juce::Array<juce::var> dynamicBands;
+    for (size_t i = 0; i < analysis.bands.size(); ++i)
+    {
+        const auto& time = analysis.bandTimeDistributions[i];
+        const auto& crest = analysis.bandCrestDistributions[i];
+        auto row = std::make_unique<juce::DynamicObject>();
+        row->setProperty ("id", analysis.bands[i].definition.name);
+        row->setProperty ("status", time.count > 0 && crest.count > 0 ? "ready" : "missing");
+        auto timeDistribution = std::make_unique<juce::DynamicObject>();
+        timeDistribution->setProperty ("count", time.count);
+        timeDistribution->setProperty ("min", time.min);
+        timeDistribution->setProperty ("p50", time.p50);
+        timeDistribution->setProperty ("p90", time.p90);
+        timeDistribution->setProperty ("max", time.max);
+        row->setProperty ("time_distribution", juce::var (timeDistribution.release()));
+        auto crestDistribution = std::make_unique<juce::DynamicObject>();
+        crestDistribution->setProperty ("count", crest.count);
+        crestDistribution->setProperty ("min", crest.min);
+        crestDistribution->setProperty ("p50", crest.p50);
+        crestDistribution->setProperty ("p90", crest.p90);
+        crestDistribution->setProperty ("max", crest.max);
+        row->setProperty ("crest_distribution", juce::var (crestDistribution.release()));
+        row->setProperty ("evidence_refs", juce::Array<juce::var> { "dad.l3.band_dynamics" });
+        dynamicBands.add (juce::var (row.release()));
+    }
+    bandDynamics->setProperty ("status", analysis.evidence.status == "ready" ? "ready" : "partial");
+    bandDynamics->setProperty ("bands", dynamicBands);
+    bandDynamics->setProperty ("method", "bounded_fft_frame_band_envelope_v1");
+    obj->setProperty ("band_dynamics", juce::var (bandDynamics.release()));
 
 	const auto payload = juce::JSON::toString (juce::var (obj.release()), true);
 	publish (payload);
@@ -473,6 +759,7 @@ L3Analysis analyzeFile (const AudioFeatureBakeRequest& request)
 
     analysis.evidence.sampleRate = sr;
     analysis.evidence.channels = channelCount;
+    analysis.evidence.bitDepth = reader->bitsPerSample;
     analysis.evidence.durationSeconds = totalSamples > 0 ? (double) totalSamples / sr : 0.0;
     analysis.evidence.expectedSampleCount = totalSamples * (int64) channelsForEvidence;
 
@@ -485,6 +772,8 @@ L3Analysis analyzeFile (const AudioFeatureBakeRequest& request)
     constexpr int fftOrder = 12;
     constexpr int fftSize = 1 << fftOrder;
     constexpr int fftBins = fftSize / 2;
+    analysis.frameWindowMs = sr > 0.0 ? (double) fftSize / sr * 1000.0 : 0.0;
+    analysis.frameHopMs = analysis.frameWindowMs; // non-overlapping FFT frames
     juce::dsp::FFT fft (fftOrder);
     juce::dsp::WindowingFunction<float> window (fftSize,
                                                 juce::dsp::WindowingFunction<float>::hann,
@@ -519,6 +808,8 @@ L3Analysis analyzeFile (const AudioFeatureBakeRequest& request)
         const auto* right = buffer.getReadPointer (juce::jmin (1, buffer.getNumChannels() - 1));
 
         std::fill (fftData.begin(), fftData.end(), 0.0f);
+        double frameSumSquares = 0.0;
+        double framePeakAbs = 0.0;
         for (int i = 0; i < valid; ++i)
         {
             const float lv = left[i];
@@ -538,7 +829,11 @@ L3Analysis analyzeFile (const AudioFeatureBakeRequest& request)
                 analysis.sumSquares += dl * dl;
                 if (channelsForEvidence > 1)
                     analysis.sumSquares += dr * dr;
+                frameSumSquares += dl * dl;
+                if (channelsForEvidence > 1)
+                    frameSumSquares += dr * dr;
                 analysis.peakAbs = juce::jmax (analysis.peakAbs, juce::jmax (std::abs (dl), std::abs (dr)));
+                framePeakAbs = juce::jmax (framePeakAbs, juce::jmax (std::abs (dl), std::abs (dr)));
                 ++analysis.audioFrameCount;
             }
 
@@ -547,6 +842,7 @@ L3Analysis analyzeFile (const AudioFeatureBakeRequest& request)
 
         window.multiplyWithWindowingTable (fftData.data(), fftSize);
         fft.performRealOnlyForwardTransform (fftData.data());
+        std::array<double, 6> frameBandEnergy {{ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 }};
         for (int bin = 1; bin < fftBins; ++bin)
         {
             const auto re = fftData[(size_t) bin * 2];
@@ -564,7 +860,16 @@ L3Analysis analyzeFile (const AudioFeatureBakeRequest& request)
             band.energy += mag2;
             ++band.frameCount;
             analysis.totalBandEnergy += mag2;
+            frameBandEnergy[(size_t) bandIndex] += mag2;
         }
+        FrameObservation frame;
+        frame.startSeconds = (double) pos / sr;
+        frame.endSeconds = (double) (pos + valid) / sr;
+        frame.rmsDbfs = dbFromLinear (frameSumSquares > 0.0 ? std::sqrt (frameSumSquares / (double) juce::jmax (1, valid * channelsForEvidence)) : 0.0);
+        frame.peakDbfs = dbFromLinear (framePeakAbs);
+        for (size_t band = 0; band < frameBandEnergy.size(); ++band)
+            frame.bandDbfs[band] = dbFromEnergy (frameBandEnergy[band]);
+        analysis.frames.push_back (frame);
         ++analysis.fftFrameCount;
     }
 

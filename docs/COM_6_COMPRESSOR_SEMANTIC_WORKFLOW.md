@@ -128,8 +128,8 @@ Normative invariants:
 - mix/wet/dry can serve only `parallel_balance`;
 - a role absent from the selected-axis brief is unreachable;
 - source-only evidence cannot prove current gain action, transient response or recovery behavior;
-- local hard boundaries override product-name memory;
-- CLA-2A-like amount-driven surfaces cannot acquire invented threshold, ratio, attack or release.
+- disclosed live identity-card and control-brief boundaries are the only processor-specific authority;
+- amount-driven surfaces cannot acquire invented threshold, ratio, attack or release from product or vendor identity.
 
 ## Evaluation Contract
 

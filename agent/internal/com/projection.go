@@ -63,6 +63,7 @@ func normalizeInput(input Input) Input {
 	input.TargetRef = cloneMap(input.TargetRef)
 	input.Source.EvidenceRefs = uniqueSorted(input.Source.EvidenceRefs)
 	input.Source.TimeSegments = normalizeSegments(input.Source.TimeSegments)
+	input.Source.TransientEvents = normalizeTransientEvidence(input.Source.TransientEvents)
 	input.Conditions.AnalysisResolutions = normalizeResolutions(input.Conditions.AnalysisResolutions)
 	if input.Paired != nil {
 		paired := *input.Paired
@@ -71,6 +72,23 @@ func normalizeInput(input Input) Input {
 		input.Paired = &paired
 	}
 	return input
+}
+
+func normalizeTransientEvidence(evidence *TransientEventEvidence) *TransientEventEvidence {
+	if evidence == nil {
+		return nil
+	}
+	normalized := *evidence
+	normalized.Events = normalizeTransientEvents(normalized.Events)
+	return &normalized
+}
+
+func normalizeTransientEvents(in []TransientEvent) []TransientEvent {
+	out := append([]TransientEvent(nil), in...)
+	sort.SliceStable(out, func(i, j int) bool {
+		return out[i].OnsetSeconds < out[j].OnsetSeconds
+	})
+	return out
 }
 
 func normalizeSegments(in []TimeSegment) []TimeSegment {
@@ -119,9 +137,10 @@ func buildSourceDynamics(input Input) SourceDynamics {
 		macro.RMSStdDevDB = &rmsStdDev
 	}
 	windowMS, hopMS := segmentResolution(source.TimeSegments, durations)
+	transientEvents := sourceTransientEvents(source.TransientEvents)
 	timeScales := []TimeScaleCoverage{
 		{Scale: ScaleMacroProgram, Status: timeScaleStatus(activity.ValidSegmentCount > 0), WindowMS: windowMS, HopMS: hopMS, SegmentCount: activity.ValidSegmentCount, Reason: missingReason(activity.ValidSegmentCount > 0, "macro_time_segments_missing")},
-		{Scale: ScaleMicroTransient, Status: StatusMissing, Reason: "source_only_macro_evidence_cannot_resolve_transients"},
+		{Scale: ScaleMicroTransient, Status: transientScaleStatus(transientEvents, source.TransientEvents), WindowMS: microTransientWindowMS(source.TransientEvents), HopMS: microTransientHopMS(source.TransientEvents), SegmentCount: len(transientEvents), Reason: microTransientReason(transientEvents, source.TransientEvents)},
 		{Scale: ScaleShortGainMotion, Status: StatusMissing, Reason: "paired_fine_envelope_required"},
 		{Scale: ScaleEventRecovery, Status: StatusMissing, Reason: "paired_event_evidence_required"},
 	}
@@ -158,10 +177,93 @@ func buildSourceDynamics(input Input) SourceDynamics {
 		Levels:            levels,
 		Activity:          activity,
 		MacroDynamics:     macro,
+		Events:            sourceTransientSummary(transientEvents, duration),
 		TimeScaleCoverage: timeScales,
-		EvidenceRefs:      append([]string(nil), source.EvidenceRefs...),
+		EvidenceRefs:      sourceDynamicsEvidenceRefs(source.EvidenceRefs, source.TransientEvents),
 		Limitations:       uniqueSorted(limitations),
 	}
+}
+
+// sourceTransientEvents returns the bounded frame-level transient events that
+// are safe to summarize; missing evidence yields nil.
+func sourceTransientEvents(evidence *TransientEventEvidence) []TransientEvent {
+	if evidence == nil || len(evidence.Events) == 0 {
+		return nil
+	}
+	return append([]TransientEvent(nil), evidence.Events...)
+}
+
+// sourceTransientSummary derives compact micro-transient statistics (count,
+// density, inter-event interval and contrast distributions) from DAD
+// frame-level transient events. It never claims sample-accurate resolution;
+// the TimeScaleCoverage entry carries the honest FFT-frame window/hop.
+func sourceTransientSummary(events []TransientEvent, duration float64) SourceEventSummary {
+	out := SourceEventSummary{}
+	if len(events) == 0 {
+		return out
+	}
+	out.EventCount = len(events)
+	if duration > 0 {
+		density := float64(len(events)) / duration
+		out.EventDensityPerSecond = &density
+	}
+	intervals := []float64{}
+	contrasts := []float64{}
+	prevOnset := 0.0
+	for index, event := range events {
+		if index > 0 && finite(event.OnsetSeconds) && event.OnsetSeconds > prevOnset {
+			intervals = append(intervals, (event.OnsetSeconds-prevOnset)*1000.0)
+		}
+		prevOnset = event.OnsetSeconds
+		if contrast := finiteCopy(event.AttackBodyContrastDB); contrast != nil {
+			contrasts = append(contrasts, *contrast)
+		}
+	}
+	if len(intervals) > 0 {
+		out.InterEventIntervalMS = distribution(intervals)
+	}
+	if len(contrasts) > 0 {
+		out.TransientContrastDB = distribution(contrasts)
+	}
+	return out
+}
+
+func sourceDynamicsEvidenceRefs(base []string, evidence *TransientEventEvidence) []string {
+	refs := append([]string(nil), base...)
+	if evidence != nil {
+		refs = append(refs, evidence.EvidenceRefs...)
+	}
+	return uniqueSorted(refs)
+}
+
+func transientScaleStatus(events []TransientEvent, evidence *TransientEventEvidence) string {
+	if len(events) == 0 {
+		return StatusMissing
+	}
+	// Frame-level FFT resolution is honest evidence of micro-transient
+	// structure but not sample-accurate resolution; keep the scale partial.
+	return StatusPartial
+}
+
+func microTransientWindowMS(evidence *TransientEventEvidence) float64 {
+	if evidence != nil && finite(evidence.WindowMS) && evidence.WindowMS > 0 {
+		return round3(evidence.WindowMS)
+	}
+	return 0
+}
+
+func microTransientHopMS(evidence *TransientEventEvidence) float64 {
+	if evidence != nil && finite(evidence.HopMS) && evidence.HopMS > 0 {
+		return round3(evidence.HopMS)
+	}
+	return 0
+}
+
+func microTransientReason(events []TransientEvent, evidence *TransientEventEvidence) string {
+	if len(events) == 0 {
+		return "source_only_macro_evidence_cannot_resolve_transients"
+	}
+	return "frame_level_fft_transient_resolution"
 }
 
 func analyzeSegments(segments []TimeSegment, sourceDuration float64) (ActivityCoverage, []float64, []float64, []float64, []float64) {

@@ -84,6 +84,53 @@ func TestProcessorLoadGateLeavesManualPathAndPreservesCertificationException(t *
 	}
 }
 
+func TestAgentProcessorLoadGateRechecksV2PCA(t *testing.T) {
+	root := t.TempDir()
+	storePath := filepath.Join(root, "pca-v2.json")
+	t.Setenv("VIT_PROCESSOR_ATTESTATIONS_V2_PATH", storePath)
+	path := filepath.Join(root, "Limiter.vst3")
+	if err := os.WriteFile(path, []byte("limiter-v1"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	subject := processorattestation.Subject{Name: "Limiter", Manufacturer: "Vendor", Format: "VST3", Identifier: "limiter-id", InstalledPath: path}
+	fingerprint, err := processorattestation.FingerprintPath(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	store, err := processorattestation.NewStoreV2(storePath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	att, err := store.PromoteCurrent(processorattestation.IssueSpecV2{
+		Subject: subject, BinaryFingerprint: fingerprint, ProcessorFamily: processorattestation.FamilyLimiter,
+		Coverage: []processorattestation.Coverage{{Action: "adjust", Axis: "output_ceiling"}}, Evidence: []processorattestation.EvidenceRef{loadGateEvidence()},
+	}, "test")
+	if err != nil {
+		t.Fatal(err)
+	}
+	key, err := processorattestation.BuildSubjectKey(subject)
+	if err != nil {
+		t.Fatal(err)
+	}
+	args := map[string]any{"track_id": "track-1", "plugin_path": path, "plugin_identifier": subject.Identifier, "plugin_name": subject.Name}
+	h := New(nil, nil, nil)
+	h.kernel = &fakeKernelClient{replies: []map[string]any{{"status": "ok", "plugin_id": "limiter-1"}}}
+	auth := AuthorizeProcessorSelectionLoad(nil, "track-1", path, subject.Identifier,
+		processorattestation.EligibilityRequirement{ProcessorFamily: processorattestation.FamilyLimiter, RequiredCoverage: []processorattestation.Coverage{{Action: "adjust", Axis: "output_ceiling"}}},
+		key, fingerprint, att.AttestationID)
+	resp, err := h.Invoke(context.Background(), InvokeRequest{Tool: "plugin.load_to_rack", Args: args, Context: auth, Source: "agentloop", Confirmed: true})
+	if err != nil || resp.Status != "ok" {
+		t.Fatalf("eligible v2 load resp=%+v err=%v", resp, err)
+	}
+	if err := os.WriteFile(path, []byte("limiter-v2"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	resp, err = h.Invoke(context.Background(), InvokeRequest{Tool: "plugin.load_to_rack", Args: args, Context: auth, Source: "agentloop", Confirmed: true})
+	if err == nil || !strings.Contains(resp.Error, "fingerprint changed before load") {
+		t.Fatalf("changed v2 binary was accepted: resp=%+v err=%v", resp, err)
+	}
+}
+
 func loadGateEvidence() processorattestation.EvidenceRef {
 	return processorattestation.EvidenceRef{ReceiptID: "load-gate", Kind: "test", SHA256: "sha256:" + strings.Repeat("a", 64), ObservedAt: time.Date(2026, 8, 8, 0, 0, 0, 0, time.UTC)}
 }

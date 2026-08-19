@@ -70,6 +70,8 @@ func normalizeIntent(intent string) string {
 		return IntentProjectMultitrackObservation
 	case "project_frequency_relationship", "frequency_relationship", "frequency_relation", "c1_frequency_readiness", "project_frequency_relationship_observation":
 		return IntentProjectFrequencyObservation
+	case "project_masking_relationship", "masking_relationship", "masking_risk", "project_masking_relationship_observation":
+		return IntentProjectMaskingObservation
 	case "ab", "a_b", "a/b", "ab_result", "before_after", "before_after_result", "ab_result_observation":
 		return IntentABResultObservation
 	case "action_preflight", "action_preflight_observation", "propose_pending":
@@ -85,6 +87,9 @@ func normalizeIntent(intent string) string {
 			return IntentActionPreflightObservation
 		}
 		if strings.Contains(intent, "multitrack") || strings.Contains(intent, "relationship") || strings.Contains(intent, "project_mix") {
+			if strings.Contains(intent, "masking") {
+				return IntentProjectMaskingObservation
+			}
 			if strings.Contains(intent, "frequency") {
 				return IntentProjectFrequencyObservation
 			}
@@ -142,6 +147,8 @@ func IntentRequiredLayers(intent string) []string {
 		return []string{"project_structure", "project_mix_profile", "multitrack_relation", "trust_quality"}
 	case IntentProjectFrequencyObservation:
 		return []string{"project_structure", "frequency_relationship", "frequency_relationship.coverage", "frequency_relationship.tap_point", "trust_quality"}
+	case IntentProjectMaskingObservation:
+		return []string{"project_structure", "masking_relationship", "masking_relationship.coverage", "masking_relationship.conditions", "trust_quality"}
 	case IntentActionPreflightObservation:
 		return []string{"project_structure", "action_relevant_mom_layer", "trust_quality", "evidence_refs"}
 	case IntentABResultObservation:
@@ -159,6 +166,8 @@ func IntentOptionalLayers(intent string) []string {
 		return []string{"basic_energy", "l3_band_stereo_target_detail", "l2_realtime_status_only", "time_dynamics_structure", "ab_result_comparison"}
 	case IntentProjectFrequencyObservation:
 		return []string{"project_mix_profile", "multitrack_relation", "basic_energy", "time_dynamics_structure", "ab_result_comparison"}
+	case IntentProjectMaskingObservation:
+		return []string{"project_mix_profile", "multitrack_relation", "frequency_relationship", "basic_energy", "ab_result_comparison"}
 	case IntentActionPreflightObservation:
 		return []string{"basic_energy", "l2_realtime_status", "time_dynamics_structure", "multitrack_relationship", "ab_result_comparison"}
 	case IntentABResultObservation:

@@ -59,9 +59,23 @@ func buildFrequencyRelationship(input Input) FrequencyRelationship {
 			evidenceRefsOut = append(evidenceRefsOut, ref)
 		}
 	}
+	uniformMeasurement, conditionMismatches, conditionsIncomplete := frequencyMeasurementComparability(profiles)
+	comparabilityBlocked := !uniformMeasurement || conditionsIncomplete
+	if comparabilityBlocked {
+		limitations = append(limitations, "measurement_conditions_not_comparable_cross_track_relations_withheld")
+		if conditionsIncomplete {
+			limitations = append(limitations, "measurement_condition_fields_incomplete")
+		}
+		if len(conditionMismatches) > 0 {
+			limitations = append(limitations, "measurement_condition_mismatch_fields="+strings.Join(conditionMismatches, ","))
+		}
+	}
 
 	tapPoint := uniformFrequencyTapPoint(tapSet)
 	status := frequencyRelationshipStatus(len(tracks), eligible, partial, stale, suspect, tapPoint)
+	if comparabilityBlocked && (status == StatusReady || status == StatusPartial) {
+		status = StatusSuspect
+	}
 	if len(tapSet) == 0 {
 		limitations = append(limitations, "tap_point_unknown")
 	} else if tapPoint == "mixed" {
@@ -74,12 +88,20 @@ func buildFrequencyRelationship(input Input) FrequencyRelationship {
 		limitations = append(limitations, "one_or_more_tracks_missing_fresh_frequency_evidence")
 	}
 
-	regions := buildFrequencyRegions(profiles)
-	conflicts := buildFrequencyConflictCandidates(regions)
-	tendencies := buildFrequencyTonalTendencies(profiles)
-	persistence := buildFrequencyPersistenceSummary(profiles)
-	if StatusFromSource(text(persistence["status"])) != StatusReady {
-		limitations = append(limitations, "time_frequency_persistence_unavailable")
+	var regions, conflicts, tendencies []map[string]any
+	persistence := map[string]any{"status": StatusMissing, "reason": "cross_track_measurement_conditions_not_comparable"}
+	measurementKey := ""
+	if !comparabilityBlocked && tapPoint != "mixed" {
+		regions = buildFrequencyRegions(profiles)
+		conflicts = buildFrequencyConflictCandidates(regions)
+		tendencies = buildFrequencyTonalTendencies(profiles)
+		persistence = buildFrequencyPersistenceSummary(profiles)
+		if len(profiles) > 0 {
+			measurementKey = text(profiles[0]["measurement_key"])
+		}
+		if StatusFromSource(text(persistence["status"])) != StatusReady {
+			limitations = append(limitations, "time_frequency_persistence_unavailable")
+		}
 	}
 	projectCutRef, weakCutRef := frequencyProjectCutRef(input)
 	if weakCutRef {
@@ -90,18 +112,21 @@ func buildFrequencyRelationship(input Input) FrequencyRelationship {
 		coverageRatio = float64(eligible) / float64(len(tracks))
 	}
 	coverage := map[string]any{
-		"project_track_count":       len(tracks),
-		"profile_count":             len(profiles),
-		"eligible_track_count":      eligible,
-		"missing_track_count":       len(missingTrackIDs),
-		"missing_track_ids":         missingTrackIDs,
-		"eligible_track_ratio":      round3mom(coverageRatio),
-		"frequency_region_count":    len(regions),
-		"conflict_candidate_count":  len(conflicts),
-		"decision_tracks_truncated": false,
-		"supports_static_diagnosis": eligible > 0 && tapPoint != "mixed",
-		"supports_same_tap_compare": tapPoint != "" && tapPoint != "unknown" && tapPoint != "mixed",
-		"supports_post_fx_compare":  tapPoint != "source_file_pre_fx" && tapPoint != "" && tapPoint != "unknown" && tapPoint != "mixed",
+		"project_track_count":                   len(tracks),
+		"profile_count":                         len(profiles),
+		"eligible_track_count":                  eligible,
+		"missing_track_count":                   len(missingTrackIDs),
+		"missing_track_ids":                     missingTrackIDs,
+		"eligible_track_ratio":                  round3mom(coverageRatio),
+		"frequency_region_count":                len(regions),
+		"conflict_candidate_count":              len(conflicts),
+		"decision_tracks_truncated":             false,
+		"uniform_measurement_conditions":        uniformMeasurement && !conditionsIncomplete && tapPoint != "mixed",
+		"measurement_condition_fields_complete": !conditionsIncomplete,
+		"measurement_condition_mismatches":      conditionMismatches,
+		"supports_static_diagnosis":             eligible > 0 && tapPoint != "mixed" && !comparabilityBlocked,
+		"supports_same_tap_compare":             tapPoint != "" && tapPoint != "unknown" && tapPoint != "mixed" && !comparabilityBlocked,
+		"supports_post_fx_compare":              tapPoint != "source_file_pre_fx" && tapPoint != "" && tapPoint != "unknown" && tapPoint != "mixed" && !comparabilityBlocked,
 	}
 	return FrequencyRelationship{
 		SchemaVersion:      FrequencyRelationshipSchema,
@@ -110,6 +135,7 @@ func buildFrequencyRelationship(input Input) FrequencyRelationship {
 		ProjectCutRef:      projectCutRef,
 		Scope:              frequencyRelationshipScope(input, profiles),
 		TapPoint:           firstNonEmpty(tapPoint, "unknown"),
+		MeasurementKey:     measurementKey,
 		Coverage:           coverage,
 		TrackProfiles:      profiles,
 		FrequencyRegions:   regions,
@@ -191,6 +217,8 @@ func frequencyTrackProfile(track map[string]any) map[string]any {
 	}
 	name := firstNonEmpty(text(track["name"]), text(track["track_name"]), text(track["user_label"]), trackID)
 	tapPoint := frequencyEvidenceTapPoint(bandSummary)
+	measurement := frequencyMeasurementConditions(bandSummary, tapPoint)
+	measurementKey := frequencyMeasurementKey(bandSummary, tapPoint, measurement)
 	return map[string]any{
 		"track_id":     trackID,
 		"name":         name,
@@ -200,14 +228,16 @@ func frequencyTrackProfile(track map[string]any) map[string]any {
 			"source":     "tom_or_project_track_hypothesis",
 			"confidence": "unspecified",
 		},
-		"status":            status,
-		"freshness":         FreshnessForStatus(status),
-		"tap_point":         firstNonEmpty(tapPoint, "unknown"),
-		"coverage":          compactMap(bandSummary, "coverage_seconds", "coverage_ratio", "total_duration"),
-		"bands":             bands,
-		"evidence_ref":      frequencyTrackEvidenceRef(trackID, bandSummary),
-		"silence_confirmed": boolValue(bandSummary["silence_confirmed"]),
-		"silence_reason":    text(bandSummary["silence_reason"]),
+		"status":                 status,
+		"freshness":              FreshnessForStatus(status),
+		"tap_point":              firstNonEmpty(tapPoint, "unknown"),
+		"coverage":               compactMap(bandSummary, "coverage_seconds", "coverage_ratio", "total_duration"),
+		"bands":                  bands,
+		"measurement_conditions": measurement,
+		"measurement_key":        measurementKey,
+		"evidence_ref":           frequencyTrackEvidenceRef(trackID, bandSummary),
+		"silence_confirmed":      boolValue(bandSummary["silence_confirmed"]),
+		"silence_reason":         text(bandSummary["silence_reason"]),
 	}
 }
 
@@ -223,6 +253,136 @@ func frequencyEvidenceTapPoint(row map[string]any) string {
 		return "source_file_pre_fx"
 	}
 	return ""
+}
+
+func frequencyMeasurementConditions(row map[string]any, tapPoint string) map[string]any {
+	start, end, known := frequencyMeasurementTimeRange(row)
+	out := map[string]any{"tap_point": firstNonEmpty(tapPoint, "unknown")}
+	if value := text(row["source_revision"]); value != "" {
+		out["source_revision"] = value
+	}
+	if value := text(row["clip_revision"]); value != "" {
+		out["clip_revision"] = value
+	}
+	if value := text(row["render_revision"]); value != "" {
+		out["render_revision"] = value
+	}
+	if value := number(row["sample_rate"]); value > 0 {
+		out["sample_rate"] = value
+	}
+	if value := int(number(row["channel_count"])); value > 0 {
+		out["channel_count"] = value
+	}
+	if known {
+		out["start_seconds"] = round3mom(start)
+		out["end_seconds"] = round3mom(end)
+	}
+	if value := number(row["window_ms"]); value > 0 {
+		out["window_ms"] = value
+	}
+	if value := number(row["hop_ms"]); value > 0 {
+		out["hop_ms"] = value
+	}
+	if value := firstNonEmpty(text(row["analyzer_version"]), text(row["analyzer_revision"])); value != "" {
+		out["analyzer_version"] = value
+	}
+	if value := text(row["render_mode"]); value != "" {
+		out["render_mode"] = value
+	}
+	return out
+}
+
+func frequencyMeasurementKey(row map[string]any, tapPoint string, conditions map[string]any) string {
+	start, end, _ := frequencyMeasurementTimeRange(row)
+	parts := []string{
+		"tap=" + firstNonEmpty(tapPoint, "unknown"),
+		"source=" + text(row["source_revision"]),
+		"clip=" + text(row["clip_revision"]),
+		"render=" + text(row["render_revision"]),
+		fmt.Sprintf("sample_rate=%.6g", number(row["sample_rate"])),
+		fmt.Sprintf("channel_count=%d", int(number(row["channel_count"]))),
+		fmt.Sprintf("range=%.6g:%.6g", round3mom(start), round3mom(end)),
+		fmt.Sprintf("window_ms=%.6g", number(row["window_ms"])),
+		fmt.Sprintf("hop_ms=%.6g", number(row["hop_ms"])),
+		"analyzer=" + firstNonEmpty(text(row["analyzer_version"]), text(row["analyzer_revision"])),
+		"render_mode=" + text(row["render_mode"]),
+	}
+	_ = conditions
+	return strings.Join(parts, "|")
+}
+
+func frequencyMeasurementTimeRange(row map[string]any) (float64, float64, bool) {
+	if analyzed := mapValue(row["analyzed_range"]); len(analyzed) > 0 {
+		start := number(analyzed["start_seconds"])
+		end := number(analyzed["end_seconds"])
+		if end > start {
+			return round3mom(start), round3mom(end), true
+		}
+	}
+	if coverage := number(row["coverage_seconds"]); coverage > 0 {
+		return 0, round3mom(coverage), true
+	}
+	if duration := number(row["duration_seconds"]); duration > 0 {
+		return 0, round3mom(duration), true
+	}
+	return 0, 0, false
+}
+
+func frequencyMeasurementComparability(profiles []map[string]any) (bool, []string, bool) {
+	if len(profiles) == 0 {
+		return false, nil, true
+	}
+	// Cross-track comparability requires the same measurement conditions:
+	// tap, time window, sample format, analyzer, and render mode. Material
+	// identity revisions (source/clip/render) are per-track facts that differ
+	// between tracks by design; they must each be present for completeness but
+	// are never required to be uniform across tracks.
+	fields := []string{"tap_point", "sample_rate", "channel_count", "start_seconds", "end_seconds", "window_ms", "hop_ms", "analyzer_version", "render_mode"}
+	required := []string{"tap_point", "source_revision", "clip_revision", "sample_rate", "channel_count", "start_seconds", "end_seconds", "analyzer_version"}
+	missingFields := []string{}
+	seen := map[string]map[string]bool{}
+	for _, field := range fields {
+		seen[field] = map[string]bool{}
+	}
+	for _, profile := range profiles {
+		conditions := mapValue(profile["measurement_conditions"])
+		for _, field := range required {
+			if !measurementConditionPresent(field, conditions[field]) {
+				missingFields = append(missingFields, field)
+			}
+		}
+		for _, field := range fields {
+			seen[field][fmt.Sprint(conditions[field])] = true
+		}
+	}
+	sort.Strings(missingFields)
+	mismatches := []string{}
+	for _, field := range fields {
+		if len(seen[field]) > 1 {
+			mismatches = append(mismatches, field)
+		}
+	}
+	sort.Strings(mismatches)
+	return len(missingFields) == 0 && len(mismatches) == 0, mismatches, len(missingFields) > 0
+}
+
+func measurementConditionPresent(field string, value any) bool {
+	switch typed := value.(type) {
+	case string:
+		return strings.TrimSpace(typed) != ""
+	case float64:
+		if field == "start_seconds" || field == "end_seconds" {
+			return !math.IsNaN(typed) && !math.IsInf(typed, 0)
+		}
+		return typed != 0
+	case int:
+		if field == "start_seconds" || field == "end_seconds" {
+			return true
+		}
+		return typed != 0
+	default:
+		return value != nil
+	}
 }
 
 func uniformFrequencyTapPoint(taps map[string]bool) string {

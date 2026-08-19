@@ -40,7 +40,7 @@ func (s *Server) planOrdinaryAgentCompressorIntent(ctx context.Context, conversa
 	}
 	input, _ := json.Marshal(map[string]any{"user_request": userText, "processor_identity_card": card})
 	system := `You are phase 1 of an ordinary DAW Agent's compressor semantic workflow.
-The processor identity card is disclosed before acoustic observation so the device identity can inform what evidence and semantic axes matter. Product-name knowledge is only a prior. The card's live topology boundaries are authoritative.
+The processor identity card is disclosed before acoustic observation so its live topology and capability evidence can inform what evidence and semantic axes matter. That disclosed evidence is the only processor-specific authority at this phase.
 
 Return ONLY semantic_effect.compressor_intent_plan.v1 JSON. Do not choose parameter values and do not call tools.
 Shape:
@@ -102,7 +102,7 @@ Match the target field to physical_unit. For enum/toggle controls or discrete ch
 Use only exact path_key/role pairs in candidate_control_brief. A visible role is not a reason to adjust it. Every control must serve one selected semantic axis, the user goal, cited evidence, reachable topology, and a future evaluation condition.
 Return 1 to 6 controls. Include exactly one concise evaluation_axes row for every axis used by a control, and no unserved axes.
 Output/makeup gain may only serve output_normalization. Mix/wet/dry may only serve parallel_balance. They never mean more compression.
-The local card and control brief override product-name memory. Do not invent missing controls. A source_only COM result cannot prove existing gain action, transient response, recovery, or audible improvement; disclose that limitation and use it only to make a conservative plan.
+Use only the disclosed live identity card and control brief for processor-specific decisions. Do not infer capabilities from product or vendor identity, and do not invent missing controls. A source_only COM result cannot prove existing gain action, transient response, recovery, or audible improvement; disclose that limitation and use it only to make a conservative plan.
 Future evaluation is change_delta plus user acceptance; do not request or promise automatic second writes. Keep purpose, desired_direction, acceptance_condition, and limitations concise.`
 	if rejection != nil {
 		system += `

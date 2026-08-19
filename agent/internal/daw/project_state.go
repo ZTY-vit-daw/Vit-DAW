@@ -6,9 +6,13 @@ import (
 )
 
 type PluginRef struct {
-	ID      string
-	Name    string
-	TrackID string
+	ID           string
+	Name         string
+	TrackID      string
+	Identifier   string
+	Path         string
+	Format       string
+	Manufacturer string
 }
 
 func ResolveTrackIDForPluginLoad(state map[string]any, requestContext map[string]any) (string, error) {
@@ -71,9 +75,13 @@ func VisiblePluginRefs(state map[string]any, trackScope string) []PluginRef {
 					name = id
 				}
 				out = append(out, PluginRef{
-					ID:      id,
-					Name:    name,
-					TrackID: trackID,
+					ID:           id,
+					Name:         name,
+					TrackID:      trackID,
+					Identifier:   firstNonEmptyText(plugin, "plugin_identifier", "identifier", "file_or_identifier"),
+					Path:         firstNonEmptyText(plugin, "plugin_path", "path", "file_path", "filename"),
+					Format:       firstNonEmptyText(plugin, "format", "plugin_format"),
+					Manufacturer: firstNonEmptyText(plugin, "manufacturer", "vendor", "maker"),
 				})
 			}
 		}

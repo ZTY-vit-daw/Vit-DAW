@@ -25,21 +25,27 @@ Each badge records only:
 - current installed-binary SHA-256 fingerprint;
 - processor family;
 - action-only coverage (`upsert`/shape for static EQ, or `adjust`/semantic axis
-  for compressors);
+  for compressors) retained as historical test evidence;
 - evidence references, issuer, immutable digest, and lifecycle timestamps.
 
 Badges never store `param_id`, parameter mappings, Profile, VPS, SPAL logic, or
-`topology_generation`. A badge is a capability admission, not an execution
-plan.
+`topology_generation`. A badge admits a verified binary into the governed load
+lifecycle; it is not an execution plan or a declaration that every possible
+control is available.
 
 ## Lifecycle
 
 The deterministic authority issues a badge from a strong receipt, promotes the
 current fingerprint, and marks superseded promoted badges `stale`. Operators
-can mark a badge `stale` or `revoked` with an explicit reason. Runtime queries
-require the exact subject, current binary fingerprint, family, and complete
-current action coverage. A fingerprint mismatch is effectively stale even when
-the stored status is promoted.
+can mark a badge `stale` or `revoked` with an explicit reason. The load-admission
+query requires the exact subject, current binary fingerprint, family, and
+promoted status. A fingerprint mismatch is effectively stale even when the
+stored status is promoted.
+
+Coverage is retained as evidence of the concrete reversible tests performed at
+certification time. It can be queried for audit, regression analysis, and
+backward-compatible reports, but it is not a request-time permission check for
+a new shape or semantic axis.
 
 `pcactl` provides `import`, `certify-compressor`, `query`, `list`,
 `fingerprint`, `promote`, `stale`, and `revoke`. Import is idempotent for an
@@ -64,16 +70,16 @@ No chat endpoint, prompt, or LLM client is involved.
 
 ## Runtime and Recommendation Boundary
 
-Recommendation first asks the LLM for an abstract current action without
-candidate data. PCA then filters the local catalog to promoted badges whose
-fingerprint and exact coverage match that action. Only those candidates are
-sent to the recommendation LLM. Selection confirmation repeats the PCA query
-against the global store.
+PCA filters the local catalog to exact identities with a promoted attestation,
+matching current binary fingerprint, and the requested processor family. Only
+those candidates are sent to the recommendation LLM. Selection confirmation
+repeats that family-level admission query against the global store.
 
 After load, the live EQ/compressor topology and its current
-`topology_generation` remain the execution authority. PCA does not replace
-typed inspection, generation-scoped control references, readback, or restore
-guards.
+`topology_generation` remain the execution authority. The Typed Inspector
+identifies controls available on the loaded instance; the Typed Executor decides
+whether a concrete action can be applied and performs write, readback, and
+restore. PCA does not replace those guards.
 
 ## Experiment Reuse
 

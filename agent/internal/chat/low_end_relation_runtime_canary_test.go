@@ -133,7 +133,7 @@ func TestLowEndRelationCanaryAnalysisResponseSurfacesConcreteEvidence(t *testing
 			t.Fatalf("reply missing %q:\n%s", want, resp.Reply)
 		}
 	}
-	if strings.Count(resp.Reply, "Sub Bass Tone vs Secondary A") + strings.Count(resp.Reply, "Secondary A vs Sub Bass Tone") != 1 {
+	if strings.Count(resp.Reply, "Sub Bass Tone vs Secondary A")+strings.Count(resp.Reply, "Secondary A vs Sub Bass Tone") != 1 {
 		t.Fatalf("expected the conflict pair to be named exactly once, got:\n%s", resp.Reply)
 	}
 	if strings.Contains(resp.Reply, "masking conflict candidate") {

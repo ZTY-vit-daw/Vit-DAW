@@ -1,0 +1,125 @@
+{
+  "schema_version": "semantic_processor_project_smoke_recipe_qualification.v1",
+  "contract_id": "semantic_processor_agent_project_smoke_v1_20260809",
+  "status": "qualified",
+  "audio_written": false,
+  "project_count": 2,
+  "issue_count": 7,
+  "projects": [
+    {
+      "public_case_id": "spv1_p01",
+      "status": "qualified",
+      "issue_count": 4,
+      "sample_rate_hz": 44100,
+      "shared_safety_gain_db": -4.2701,
+      "clean_mix_peak_dbfs_after_safety": -4.1109,
+      "problem_mix_peak_dbfs_after_safety": -3.0,
+      "issues": [
+        {
+          "issue_id": "spv1_i01",
+          "expected_family": "static_eq",
+          "target_track": "other",
+          "recipe_kind": "broad_bell_gain",
+          "status": "qualified",
+          "measurements": {
+            "target_vs_flank_band_gain_db": 4.0584,
+            "rms_match_delta_db": -0.0,
+            "active_macro_range_500ms_db_delta": 0.273
+          }
+        },
+        {
+          "issue_id": "spv1_i02",
+          "expected_family": "broadband_compressor",
+          "target_track": "piano",
+          "recipe_kind": "macro_level_steps",
+          "status": "qualified",
+          "measurements": {
+            "active_macro_range_500ms_db_delta": 6.5667,
+            "rms_match_delta_db": 0.0
+          }
+        },
+        {
+          "issue_id": "spv1_i03",
+          "expected_family": "de_esser",
+          "target_track": "vocals",
+          "recipe_kind": "event_localized_high_band_gain",
+          "status": "qualified",
+          "measurements": {
+            "event_count": 24,
+            "event_mask_coverage": 0.1325,
+            "aligned_event_high_ratio_db_delta": 6.3106,
+            "rms_match_delta_db": 0.0,
+            "active_macro_range_500ms_db_delta": -2.6955
+          }
+        },
+        {
+          "issue_id": "spv1_i04",
+          "expected_family": "transient_shaper",
+          "target_track": "drums",
+          "recipe_kind": "attack_attenuation",
+          "status": "qualified",
+          "measurements": {
+            "event_count": 48,
+            "aligned_attack_body_db_delta": -6.5046,
+            "body_level_db_delta": 0.3637,
+            "rms_match_delta_db": -0.0,
+            "active_macro_range_500ms_db_delta": -0.4652
+          }
+        }
+      ]
+    },
+    {
+      "public_case_id": "spv1_p02",
+      "status": "qualified",
+      "issue_count": 3,
+      "sample_rate_hz": 44100,
+      "shared_safety_gain_db": -6.2622,
+      "clean_mix_peak_dbfs_after_safety": -5.6107,
+      "problem_mix_peak_dbfs_after_safety": -3.0,
+      "issues": [
+        {
+          "issue_id": "spv1_i05",
+          "expected_family": "limiter",
+          "target_track": "other",
+          "recipe_kind": "sparse_peak_overshoot",
+          "status": "qualified",
+          "measurements": {
+            "event_count": 10,
+            "affected_fraction": 0.042,
+            "sample_peak_dbfs_delta": 4.4187,
+            "crest_db_delta": 4.4187,
+            "active_macro_range_500ms_db_delta": 0.6262,
+            "rms_match_delta_db": 0.0
+          }
+        },
+        {
+          "issue_id": "spv1_i06",
+          "expected_family": "gate_expander",
+          "target_track": "drums",
+          "recipe_kind": "low_interval_noise_bed",
+          "status": "qualified",
+          "measurements": {
+            "quiet_block_fraction": 0.605,
+            "quiet_interval_median_dbfs_delta": 13.6665,
+            "active_interval_median_dbfs_delta": -0.0005,
+            "rms_match_delta_db": 0.0,
+            "active_macro_range_500ms_db_delta": -0.0157
+          }
+        },
+        {
+          "issue_id": "spv1_i07",
+          "expected_family": "multiband_dynamics",
+          "target_track": "bass",
+          "recipe_kind": "band_limited_level_steps",
+          "status": "qualified",
+          "measurements": {
+            "target_band_p90_p10_range_db_delta": 5.8833,
+            "reference_band_p90_p10_range_db_delta": -0.0101,
+            "rms_match_delta_db": 0.0,
+            "active_macro_range_500ms_db_delta": 4.6612
+          }
+        }
+      ]
+    }
+  ]
+}

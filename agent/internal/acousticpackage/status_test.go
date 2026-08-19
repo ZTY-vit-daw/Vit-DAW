@@ -5,9 +5,42 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 )
+
+func TestStoreConcurrentUpsertsKeepStatusJSONReadable(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "acoustic_package_status.json")
+	store := NewStore(path)
+	const count = 24
+	var group sync.WaitGroup
+	errs := make(chan error, count)
+	for index := 0; index < count; index++ {
+		group.Add(1)
+		go func(index int) {
+			defer group.Done()
+			status := BuildStatus(Identity{ProjectID: "p", TrackID: fmt.Sprintf("track_%d", index), SourceRevision: "source_1"}, map[string]any{
+				"waveform_envelope": map[string]any{"status": "ready", "track_id": fmt.Sprintf("track_%d", index), "source_revision": "source_1"},
+			}, "2026-08-16T00:00:00Z", "test")
+			if _, err := store.Upsert(status); err != nil {
+				errs <- err
+			}
+		}(index)
+	}
+	group.Wait()
+	close(errs)
+	for err := range errs {
+		t.Fatal(err)
+	}
+	snapshot, err := store.Read()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(snapshot.Packages) != count {
+		t.Fatalf("concurrent upserts kept %d packages, want %d", len(snapshot.Packages), count)
+	}
+}
 
 func TestBuildStatusMapsPartialSpectralCoverageAndDeferredFutureFeatures(t *testing.T) {
 	identity := Identity{ProjectID: "current", TrackID: "track_1", ClipID: "clip_1", SourceRevision: "rev_1", DurationSec: 20}

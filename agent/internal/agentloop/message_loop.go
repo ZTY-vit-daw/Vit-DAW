@@ -75,18 +75,20 @@ type messageLoopOutput struct {
 func (l *MessageLoop) Start(ctx context.Context, in Input) Result {
 	r := l.runner()
 	goal := r.ensureGoal(in.GoalID, in.RunID, firstNonEmpty(in.Summary, in.UserText))
+	baseBudget := normalizeBudget(firstNonZeroBudget(in.Budget, l.Budget))
 	state := runState{
-		input:             in,
-		goal:              goal,
-		trace:             append([]planner.TraceEvent(nil), in.Trace...),
-		planItems:         mergePlanItems(nil, in.PlanItems),
-		contextSnapshot:   cloneMap(in.ContextSnapshot),
-		projectHistory:    cloneMap(in.ProjectHistory),
-		executionMemory:   cloneExecutionMemory(in.ExecutionMemory),
-		recentObservation: cloneRecentObservation(in.RecentObservation),
-		freeStateDecision: cloneFreeStateDecision(in.FreeStateDecision),
-		budget:            normalizeBudget(firstNonZeroBudget(in.Budget, l.Budget)),
-		startedAt:         r.now(),
+		input:              in,
+		goal:               goal,
+		trace:              append([]planner.TraceEvent(nil), in.Trace...),
+		planItems:          mergePlanItems(nil, in.PlanItems),
+		contextSnapshot:    cloneMap(in.ContextSnapshot),
+		projectHistory:     cloneMap(in.ProjectHistory),
+		executionMemory:    cloneExecutionMemory(in.ExecutionMemory),
+		recentObservation:  cloneRecentObservation(in.RecentObservation),
+		freeStateDecision:  cloneFreeStateDecision(in.FreeStateDecision),
+		budget:             baseBudget,
+		continuationBudget: baseBudget,
+		startedAt:          r.now(),
 	}
 	state.input.GoalID = goal.GoalID
 	state.input.RunID = goal.RunID
@@ -104,6 +106,7 @@ func (l *MessageLoop) Continue(ctx context.Context, cont Continuation) Result {
 		goal.Summary = strings.TrimSpace(cont.Summary)
 	}
 	goal = r.Runtime.ClearInterjections(goal.GoalID)
+	baseBudget := normalizeBudget(firstNonZeroBudget(cont.Budget, l.Budget))
 	state := runState{
 		input: Input{
 			GoalID:            goal.GoalID,
@@ -124,26 +127,28 @@ func (l *MessageLoop) Continue(ctx context.Context, cont Continuation) Result {
 			RecentObservation: cloneRecentObservation(cont.RecentObservation),
 			FreeStateDecision: cloneFreeStateDecision(cont.FreeStateDecision),
 		},
-		goal:              goal,
-		trace:             append([]planner.TraceEvent(nil), cont.Trace...),
-		planItems:         mergePlanItems(nil, cont.PlanItems),
-		pendingToolQueue:  append([]planner.ToolCall(nil), cont.PendingToolQueue...),
-		completedSteps:    cont.CompletedSteps,
-		turnsUsed:         cont.TurnsUsed,
-		toolCallsUsed:     cont.ToolCallsUsed,
-		contextSnapshot:   cloneMap(cont.ContextSnapshot),
-		projectHistory:    cloneMap(cont.ProjectHistory),
-		executionMemory:   cloneExecutionMemory(cont.ExecutionMemory),
-		recentObservation: cloneRecentObservation(cont.RecentObservation),
-		freeStateDecision: cloneFreeStateDecision(cont.FreeStateDecision),
-		budget:            normalizeBudget(firstNonZeroBudget(cont.Budget, l.Budget)),
-		startedAt:         r.now(),
+		goal:               goal,
+		trace:              append([]planner.TraceEvent(nil), cont.Trace...),
+		planItems:          mergePlanItems(nil, cont.PlanItems),
+		pendingToolQueue:   append([]planner.ToolCall(nil), cont.PendingToolQueue...),
+		completedSteps:     cont.CompletedSteps,
+		turnsUsed:          cont.TurnsUsed,
+		toolCallsUsed:      cont.ToolCallsUsed,
+		contextSnapshot:    cloneMap(cont.ContextSnapshot),
+		projectHistory:     cloneMap(cont.ProjectHistory),
+		executionMemory:    cloneExecutionMemory(cont.ExecutionMemory),
+		recentObservation:  cloneRecentObservation(cont.RecentObservation),
+		freeStateDecision:  cloneFreeStateDecision(cont.FreeStateDecision),
+		budget:             extendContinuationBudget(baseBudget, cont.TurnsUsed, cont.ToolCallsUsed),
+		continuationBudget: baseBudget,
+		startedAt:          r.now(),
 	}
 	return l.loop(ctx, r, &state)
 }
 
 func (l *MessageLoop) ResumeAfterConfirmation(ctx context.Context, cont Continuation) Result {
 	r := l.runner()
+	baseBudget := normalizeBudget(firstNonZeroBudget(cont.Budget, l.Budget))
 	goal := r.ensureGoal(cont.GoalID, cont.RunID, cont.Summary)
 	state := runState{
 		input: Input{
@@ -165,20 +170,21 @@ func (l *MessageLoop) ResumeAfterConfirmation(ctx context.Context, cont Continua
 			RecentObservation: cloneRecentObservation(cont.RecentObservation),
 			FreeStateDecision: cloneFreeStateDecision(cont.FreeStateDecision),
 		},
-		goal:              goal,
-		trace:             append([]planner.TraceEvent(nil), cont.Trace...),
-		planItems:         mergePlanItems(nil, cont.PlanItems),
-		pendingToolQueue:  append([]planner.ToolCall(nil), cont.PendingToolQueue...),
-		contextSnapshot:   cloneMap(cont.ContextSnapshot),
-		projectHistory:    cloneMap(cont.ProjectHistory),
-		executionMemory:   cloneExecutionMemory(cont.ExecutionMemory),
-		recentObservation: cloneRecentObservation(cont.RecentObservation),
-		freeStateDecision: cloneFreeStateDecision(cont.FreeStateDecision),
-		completedSteps:    cont.CompletedSteps,
-		turnsUsed:         cont.TurnsUsed,
-		toolCallsUsed:     cont.ToolCallsUsed,
-		budget:            normalizeBudget(firstNonZeroBudget(cont.Budget, l.Budget)),
-		startedAt:         r.now(),
+		goal:               goal,
+		trace:              append([]planner.TraceEvent(nil), cont.Trace...),
+		planItems:          mergePlanItems(nil, cont.PlanItems),
+		pendingToolQueue:   append([]planner.ToolCall(nil), cont.PendingToolQueue...),
+		contextSnapshot:    cloneMap(cont.ContextSnapshot),
+		projectHistory:     cloneMap(cont.ProjectHistory),
+		executionMemory:    cloneExecutionMemory(cont.ExecutionMemory),
+		recentObservation:  cloneRecentObservation(cont.RecentObservation),
+		freeStateDecision:  cloneFreeStateDecision(cont.FreeStateDecision),
+		completedSteps:     cont.CompletedSteps,
+		turnsUsed:          cont.TurnsUsed,
+		toolCallsUsed:      cont.ToolCallsUsed,
+		budget:             extendContinuationBudget(baseBudget, cont.TurnsUsed, cont.ToolCallsUsed),
+		continuationBudget: baseBudget,
+		startedAt:          r.now(),
 	}
 	if cont.PendingToolCall == nil {
 		return r.fail(&state, fmt.Errorf("confirmation continuation is missing pending tool call"))
@@ -331,32 +337,43 @@ func (l *MessageLoop) loop(ctx context.Context, r *Runner, state *runState) Resu
 	}
 	messageLoopApplyReadOnlyMutationBarrier(state)
 	for {
-		if stopped, result := l.preflightStaticMixCapabilityContract(ctx, r, state); stopped {
-			return result
+		if len(state.pendingToolQueue) > 0 {
+			queued := append([]planner.ToolCall(nil), state.pendingToolQueue...)
+			if stopped, result := l.executeMessageLoopToolCalls(ctx, r, state, queued, messageLoopOutput{}, messageLoopHasUsableMixObservation(state)); stopped {
+				return result
+			}
 		}
-		if stopped, result := l.preflightProjectBlackboardStatus(ctx, r, state); stopped {
-			return result
-		}
-		if stopped, result := l.preflightClipFadeGainSet(ctx, r, state); stopped {
-			return result
-		}
-		if stopped, result := l.preflightClipFadeGainRead(ctx, r, state); stopped {
-			return result
-		}
-		if stopped, result := l.preflightStripSilenceSuggest(ctx, r, state); stopped {
-			return result
-		}
-		if stopped, result := l.preflightStemsFolderImport(ctx, r, state); stopped {
-			return result
-		}
-		if stopped, result := l.preflightPendingSectionMarkersApply(ctx, r, state); stopped {
-			return result
-		}
-		if stopped, result := l.preflightNaturalMixObservation(ctx, r, state); stopped {
-			return result
-		}
-		if stopped, result := l.preflightStaticMixGainStagingContextPack(ctx, r, state); stopped {
-			return result
+		// Diagnostic-only turns are a CCB-only experiment boundary. Ordinary
+		// deterministic preflights (especially project.state) would bypass that
+		// boundary and manufacture a terminal result before the model observes.
+		if !messageLoopFreeStateDiagnosticOnly(state) {
+			if stopped, result := l.preflightStaticMixCapabilityContract(ctx, r, state); stopped {
+				return result
+			}
+			if stopped, result := l.preflightProjectBlackboardStatus(ctx, r, state); stopped {
+				return result
+			}
+			if stopped, result := l.preflightClipFadeGainSet(ctx, r, state); stopped {
+				return result
+			}
+			if stopped, result := l.preflightClipFadeGainRead(ctx, r, state); stopped {
+				return result
+			}
+			if stopped, result := l.preflightStripSilenceSuggest(ctx, r, state); stopped {
+				return result
+			}
+			if stopped, result := l.preflightStemsFolderImport(ctx, r, state); stopped {
+				return result
+			}
+			if stopped, result := l.preflightPendingSectionMarkersApply(ctx, r, state); stopped {
+				return result
+			}
+			if stopped, result := l.preflightNaturalMixObservation(ctx, r, state); stopped {
+				return result
+			}
+			if stopped, result := l.preflightStaticMixGainStagingContextPack(ctx, r, state); stopped {
+				return result
+			}
 		}
 		if stopped, result := r.checkpoint("before_message_loop_model", state); stopped {
 			return result
@@ -366,7 +383,16 @@ func (l *MessageLoop) loop(ctx context.Context, r *Runner, state *runState) Resu
 		}
 		snapshot := r.buildContextSnapshot(state)
 		state.contextSnapshot = snapshot.Map()
-		assembly := l.assembly(state, r.buildModelContextSnapshot(state, snapshot))
+		modelSnapshotJSON := r.buildModelContextSnapshot(state, snapshot)
+		if overflow := contextruntime.ModelContextOverflow(modelSnapshotJSON); overflow != "" {
+			// Fail closed: an over-budget model request is never sent. The
+			// snapshot already carries the explicit context_overflow marker
+			// with per-section bytes and a cold ref; facts are never silently
+			// truncated into a request.
+			state.trace = append(state.trace, planner.TraceEvent{Kind: "final_gate", Message: "context_overflow: " + overflow})
+			return r.fail(state, fmt.Errorf("context_overflow: %s", overflow))
+		}
+		assembly := l.assembly(state, modelSnapshotJSON)
 		assemblyChars := 0
 		messageCharParts := make([]string, 0, len(assembly.Messages))
 		for index, message := range assembly.Messages {
@@ -375,6 +401,10 @@ func (l *MessageLoop) loop(ctx context.Context, r *Runner, state *runState) Resu
 			messageCharParts = append(messageCharParts, fmt.Sprintf("%d:%s:%d", index, message.Role, messageChars))
 		}
 		llmStarted := time.Now()
+		promptStats := assembly.Stats.Map()
+		for key, value := range messageLoopModelContextPromptStats(modelSnapshotJSON, assembly.Messages) {
+			promptStats[key] = value
+		}
 		raw, err := llm.CompleteText(ctx, l.Client, l.Config, llm.Request{
 			Messages: assembly.Messages,
 			Metadata: llm.RequestMetadata{
@@ -382,7 +412,7 @@ func (l *MessageLoop) loop(ctx context.Context, r *Runner, state *runState) Resu
 				ConversationID:    messageLoopConversationID(state),
 				GoalID:            state.goal.GoalID,
 				PromptFingerprint: assembly.Fingerprint,
-				PromptStats:       assembly.Stats.Map(),
+				PromptStats:       promptStats,
 			},
 		})
 		l.logTiming("message_loop.llm", llmStarted, "goal=%s conversation=%s turn=%d messages=%d chars=%d message_chars=%s err=%t", state.goal.GoalID, messageLoopConversationID(state), state.turnsUsed+1, len(assembly.Messages), assemblyChars, strings.Join(messageCharParts, ","), err != nil)
@@ -435,6 +465,7 @@ func (l *MessageLoop) loop(ctx context.Context, r *Runner, state *runState) Resu
 			repairedRaw, repairErr := l.repairOutput(ctx, state, raw, err, assembly.Fingerprint)
 			state.turnsUsed++
 			if repairErr != nil {
+				state.modelProtocolFailure = true
 				appendMessageLoopDiagnostic(messageLoopDiagnostic{
 					Stage:             "repair_failed",
 					Error:             repairErr.Error(),
@@ -449,6 +480,7 @@ func (l *MessageLoop) loop(ctx context.Context, r *Runner, state *runState) Resu
 			}
 			repairedOut, parseRepairErr := parseMessageLoopOutput(repairedRaw)
 			if parseRepairErr != nil {
+				state.modelProtocolFailure = true
 				appendMessageLoopDiagnostic(messageLoopDiagnostic{
 					Stage:             "repair_parse_failed",
 					Error:             parseRepairErr.Error(),
@@ -463,6 +495,7 @@ func (l *MessageLoop) loop(ctx context.Context, r *Runner, state *runState) Resu
 			}
 			raw = repairedRaw
 			out = repairedOut
+			state.modelProtocolRepairs++
 			state.trace = append(state.trace, planner.TraceEvent{Kind: "planner_repair", Message: "message loop JSON repaired"})
 		}
 		out = coerceMessageLoopFreeStateObservationOutput(state, out)
@@ -471,6 +504,9 @@ func (l *MessageLoop) loop(ctx context.Context, r *Runner, state *runState) Resu
 			state.trace = append(state.trace, planner.TraceEvent{Kind: "assistant", Reply: strings.TrimSpace(out.Reply)})
 		}
 		if strings.TrimSpace(out.FailureReason) != "" {
+			if strings.EqualFold(strings.TrimSpace(out.FailureReason), StopReasonModelProtocolFailure) {
+				state.modelProtocolFailure = true
+			}
 			state.trace = append(state.trace, planner.TraceEvent{Kind: "planner_failure", Message: out.FailureReason})
 			return r.fail(state, errors.New(out.FailureReason))
 		}
@@ -588,62 +624,8 @@ func (l *MessageLoop) loop(ctx context.Context, r *Runner, state *runState) Resu
 			return r.complete(state, messageLoopMixObservationFinalReply(state, reply))
 		}
 		hadMixObservationBeforeTurn := messageLoopHasUsableMixObservation(state)
-		for i := range out.ToolCalls {
-			call := normalizeMessageLoopToolCall(out.ToolCalls[i], state.completedSteps+1)
-			call = resolveMessageLoopBindings(state, call)
-			call = coerceWaveformBakeToMixObservation(state, call)
-			call = coerceMixObservationCall(state, call)
-			call = coerceObservationPackageReadCall(state, call)
-			call = coerceMixTickPrimitiveCall(state, call)
-			if reply, ok := messageLoopMixTickProposalAsPendingTreatment(state, call, out); ok {
-				state.trace = append(state.trace, planner.TraceEvent{
-					Kind:     "final_gate",
-					Message:  "natural-language mix tick proposal normalized to pending treatment",
-					ToolCall: cloneToolCallPtr(call),
-				})
-				return r.complete(state, reply)
-			}
-			if messageLoopIsMixObservationTool(call) && messageLoopHasMixObservationExecution(state) {
-				issue := "mix.observe already ran for this turn; summarize the existing observation result instead of requesting it again"
-				state.trace = append(state.trace,
-					planner.TraceEvent{Kind: "tool_call_blocked", ToolCall: cloneToolCallPtr(call), Message: issue},
-					planner.TraceEvent{Kind: "final_gate", Message: issue},
-				)
-				state.input.Conversation = append(state.input.Conversation, llm.Message{Role: "user", Content: "<final_gate>" + issue + "</final_gate>"})
-				continue
-			}
-			if stopped, result := r.checkpoint("before_message_loop_tool", state); stopped {
-				return result
-			}
-			if limit, result := r.checkToolBudget(state); limit {
-				return result
-			}
-			if !allowedTool(call.Tool, state.input.AllowedTools) {
-				result := planner.ToolResult{ToolCallID: stableToolCallID(call, state.completedSteps+1), Tool: call.Tool, Status: "error", Error: "未知或不允许的工具：" + strings.TrimSpace(call.Tool)}
-				state.trace = append(state.trace, planner.TraceEvent{Kind: "tool_call", ToolCall: &call}, planner.TraceEvent{Kind: "tool_result", ToolResult: &result})
-				state.consecutiveErrors++
-				appendMessageLoopToolResult(state)
-				if state.consecutiveErrors >= state.budget.MaxConsecutiveErrors {
-					return r.fail(state, errors.New(result.Error))
-				}
-				continue
-			}
-			if issue := messageLoopToolGuardIssue(state, call, hadMixObservationBeforeTurn); issue != "" {
-				messageLoopAppendGuardGate(state, call, issue)
-				continue
-			}
-			toolStarted := time.Now()
-			stopped, result := r.executeTool(ctx, state, call, false, nil)
-			l.logTiming("message_loop.tool", toolStarted, "goal=%s tool=%s confirmed=false stopped=%t status=%s", state.goal.GoalID, call.Tool, stopped, result.Status)
-			if stopped {
-				return result
-			}
-			appendMessageLoopToolResult(state)
-			if reply, failed := messageLoopCompressorFailureFinalReply(state); failed {
-				state.pendingToolQueue = nil
-				state.trace = append(state.trace, planner.TraceEvent{Kind: "final_gate", Message: "typed compressor apply failed; stopped before retry or fallback"})
-				return r.complete(state, reply)
-			}
+		if stopped, result := l.executeMessageLoopToolCalls(ctx, r, state, out.ToolCalls, out, hadMixObservationBeforeTurn); stopped {
+			return result
 		}
 		if reply, ok := messageLoopFastCompleteReply(state, out); ok {
 			state.trace = append(state.trace, planner.TraceEvent{Kind: "final_gate", Message: "deterministic tool result completed the turn"})
@@ -656,6 +638,134 @@ func (l *MessageLoop) loop(ctx context.Context, r *Runner, state *runState) Resu
 			}
 			return r.complete(state, messageLoopMixObservationFinalReply(state, reply))
 		}
+	}
+}
+
+func (l *MessageLoop) executeMessageLoopToolCalls(ctx context.Context, r *Runner, state *runState, calls []planner.ToolCall, out messageLoopOutput, hadMixObservationBeforeTurn bool) (bool, Result) {
+	for i := range calls {
+		call := normalizeMessageLoopToolCall(calls[i], state.completedSteps+1)
+		call = resolveMessageLoopBindings(state, call)
+		call = coerceWaveformBakeToMixObservation(state, call)
+		call = coerceMixObservationCall(state, call)
+		call = coerceObservationPackageReadCall(state, call)
+		call = coerceMixTickPrimitiveCall(state, call)
+
+		remaining := append([]planner.ToolCall(nil), calls[i+1:]...)
+		state.pendingToolQueue = append([]planner.ToolCall{call}, remaining...)
+		if reply, ok := messageLoopMixTickProposalAsPendingTreatment(state, call, out); ok {
+			state.pendingToolQueue = nil
+			state.trace = append(state.trace, planner.TraceEvent{
+				Kind:     "final_gate",
+				Message:  "natural-language mix tick proposal normalized to pending treatment",
+				ToolCall: cloneToolCallPtr(call),
+			})
+			return true, r.complete(state, reply)
+		}
+		if messageLoopIsMixObservationTool(call) && messageLoopHasMixObservationExecution(state) {
+			issue := "mix.observe already ran for this turn; summarize the existing observation result instead of requesting it again"
+			state.trace = append(state.trace,
+				planner.TraceEvent{Kind: "tool_call_blocked", ToolCall: cloneToolCallPtr(call), Message: issue},
+				planner.TraceEvent{Kind: "final_gate", Message: issue},
+			)
+			state.input.Conversation = append(state.input.Conversation, llm.Message{Role: "user", Content: "<final_gate>" + issue + "</final_gate>"})
+			continue
+		}
+		if stopped, result := r.checkpoint("before_message_loop_tool", state); stopped {
+			return true, result
+		}
+		if limit, result := r.checkToolBudget(state); limit {
+			return true, result
+		}
+		if !allowedTool(call.Tool, state.input.AllowedTools) {
+			result := planner.ToolResult{ToolCallID: stableToolCallID(call, state.completedSteps+1), Tool: call.Tool, Status: "error", Error: "未知或不允许的工具：" + strings.TrimSpace(call.Tool)}
+			state.trace = append(state.trace, planner.TraceEvent{Kind: "tool_call", ToolCall: &call}, planner.TraceEvent{Kind: "tool_result", ToolResult: &result})
+			state.consecutiveErrors++
+			appendMessageLoopToolResult(state)
+			if state.consecutiveErrors >= state.budget.MaxConsecutiveErrors {
+				return true, r.fail(state, errors.New(result.Error))
+			}
+			continue
+		}
+		if issue := messageLoopToolGuardIssue(state, call, hadMixObservationBeforeTurn); issue != "" {
+			messageLoopAppendGuardGate(state, call, issue)
+			continue
+		}
+		state.pendingToolQueue = remaining
+		toolStarted := time.Now()
+		stopped, result := r.executeTool(ctx, state, call, false, remaining)
+		l.logTiming("message_loop.tool", toolStarted, "goal=%s tool=%s confirmed=false stopped=%t status=%s", state.goal.GoalID, call.Tool, stopped, result.Status)
+		if stopped {
+			return true, result
+		}
+		appendMessageLoopToolResult(state)
+		if reply, failed := messageLoopCompressorFailureFinalReply(state); failed {
+			state.pendingToolQueue = nil
+			state.trace = append(state.trace, planner.TraceEvent{Kind: "final_gate", Message: "typed compressor apply failed; stopped before retry or fallback"})
+			return true, r.complete(state, reply)
+		}
+	}
+	state.pendingToolQueue = nil
+	return false, Result{}
+}
+
+func messageLoopModelContextPromptStats(snapshotJSON string, messages []llm.Message) map[string]any {
+	out := map[string]any{"model_snapshot_bytes": len([]byte(snapshotJSON))}
+	snapshot := map[string]any{}
+	if err := json.Unmarshal([]byte(snapshotJSON), &snapshot); err == nil {
+		sections := contextruntime.ModelSectionBytes(snapshot)
+		out["model_section_bytes"] = sections
+		out["active_observation_bytes"] = sections["active_observation"]
+		out["observation_ledger_bytes"] = sections["observation_ledger"]
+		if size := messageLoopMapValue(snapshot["context_size"]); len(size) > 0 {
+			out["hot_bytes"] = size["hot_bytes"]
+			out["warm_bytes"] = size["warm_bytes"]
+		}
+		out["canonical_ccb_projection_count"] = messageLoopCountSchema(snapshot, contextruntime.CCBModelProjectionSchema)
+		if active := messageLoopMapValue(snapshot["active_observation"]); len(active) > 0 {
+			out["active_observation_id"] = firstMapText(active, "observation_id")
+			out["active_tool_call_id"] = firstMapText(active, "tool_call_id")
+		}
+	}
+	staticBytes := 0
+	runtimeBytes := 0
+	historyBytes := 0
+	for index, message := range messages {
+		bytes := len([]byte(message.Content))
+		switch {
+		case message.Role == "system":
+			staticBytes += bytes
+		case message.Role == "user" && index == len(messages)-1:
+			runtimeBytes += bytes
+		default:
+			historyBytes += bytes
+		}
+	}
+	out["static_prompt_bytes"] = staticBytes
+	out["runtime_prompt_bytes"] = runtimeBytes
+	out["history_prompt_bytes"] = historyBytes
+	out["full_request_content_bytes"] = staticBytes + runtimeBytes + historyBytes
+	return out
+}
+
+func messageLoopCountSchema(value any, schema string) int {
+	switch typed := value.(type) {
+	case map[string]any:
+		count := 0
+		if firstMapText(typed, "schema_version") == schema {
+			count++
+		}
+		for _, child := range typed {
+			count += messageLoopCountSchema(child, schema)
+		}
+		return count
+	case []any:
+		count := 0
+		for _, child := range typed {
+			count += messageLoopCountSchema(child, schema)
+		}
+		return count
+	default:
+		return 0
 	}
 }
 
@@ -3900,6 +4010,11 @@ func messageLoopClarificationAsksForFocusTrack(question string) bool {
 }
 
 func messageLoopSystemPrompt(state *runState) string {
+	// An active free-state turn is always model-owned observation/family
+	// reasoning. Keep the general Agent and typed-control examples outside it.
+	if messageLoopFreeStateActive(state) {
+		return messageLoopNeutralFamilySystemPrompt(state)
+	}
 	catalog := ""
 	allowed := ""
 	modeRules := ""
@@ -3913,53 +4028,27 @@ Plan mode:
 - If the user asks you to directly execute a change, return final:true with a concise refusal that says Plan mode is read-only and the change was not executed. Do not say the DAW lacks that capability or that the tool does not exist.
 - You may provide an execution plan, prerequisites, risks, and the exact tools/commands that Default or Goal mode would use.`
 		}
-		if messageLoopReadOnlyObservationRequest(state.input.UserText) {
+		if messageLoopSemanticEntryReadOnly(state) || (!messageLoopHasVerifiedSemanticEntry(state) && messageLoopReadOnlyObservationRequest(state.input.UserText)) {
 			modeRules += `
 Read-only acoustic observation:
 - The current user turn explicitly asks for read-only/observe-only analysis. You may use ccb.observation_catalog, ccb.observation_request, mix.observe, mix.read, mix.derive, and read/list/project-state tools only.
 - Do not call mix.propose_tick, mix.apply_tick, track.volume, track.pan, plugin preparation/load/learn/apply/write tools, or any DAW mutation tool.
 - Do not append mix_treatment_pending and do not ask whether to continue executing. Summarize observed facts, missing or partial evidence, and state that no pending action was created.`
 		}
-		if messageLoopFreeStateActive(state) {
-			modeRules += `
-Free-state semantic reasoning loop:
-- The context block free_state_reasoning_loop is a persistent task ledger. Its original_intent is authoritative across observation, processor selection, loading, confirmation, execution, and re-evaluation. Never replace it with the last confirmation text or the last processor action.
-- Treat free_state_reasoning_loop.decision_phase as authoritative. processor_selection asks only which treatment family should act next; processor_materialization belongs to the local governed router; post_action_evaluation asks whether the original intent is now satisfied or another treatment remains.
-- On every reasoning turn include exactly one free_state_decision.v1 under free_state. Valid status values are needs_observation, needs_action, satisfied, and blocked.
-- The top-level final flag closes only the current model reasoning turn; it does not mean the complete multi-processor user intent is satisfied. The runtime accepts either final value for needs_action, satisfied, and blocked, provided there are no tool calls. Use free_state.status as the authoritative task-loop state.
-- Use ccb.observation_catalog when you need to discover available semantic views. Use ccb.observation_request for only the views needed for the current question. Do not request raw DAD fields, PCM, waveform arrays, or persistence paths.
-- While this loop is active, CCB is the observation-request interface. ccb.observation_request materializes any required mix observation internally; never require, call, or block solely because the legacy mix.observe tool is not directly exposed.
-- Evidence sufficiency is relative to the current decision phase, not to the entire future workflow. Return needs_observation only when another available CCB view can materially change the current decision, and actually call that view. A partial view remains usable within its stated limits.
-- Evidence status and problem status are different. evidence_status=sufficient means there is enough evidence to decide; it does not mean an audible problem exists and does not authorize treatment by itself.
-- Preserve conditional authorization exactly. When the user asks whether a problem exists and authorizes treatment only if it does, first decide that predicate from the evidence. Return needs_action only for a materially supported problem. Small, natural, within-control, or explicitly "not obviously out of control" variation is not enough; return satisfied with no processor action when the condition is false. Negative constraints cannot turn weak evidence into positive mutation authority.
-- During processor_selection, source-only macro dynamics may support choosing compression and broad tonal evidence may support choosing EQ. This phase does not require a loaded processor, paired processor input/output, identified compressor behavior, exact parameter values, or post-action evidence; those are obtained by the governed processor workflow after selection. COM can_support_semantic_planning refers to downstream compressor behavior/parameter planning, not to global treatment-family selection.
-- Missing micro-transient detail is a conservative control constraint, not by itself a reason to block treatment-family selection. Preserve the user's attack/naturalness constraint in remaining_intent so the downstream planner chooses a conservative reachable move. Likewise, mix.multitrack_relationship is optional for a target-local dynamics decision when the target is explicit and the available source evidence answers that question.
-- Once evidence supports one concrete next treatment, return needs_action with the unresolved acoustic intent and exactly one processor_type: eq, compressor, reverb, delay, distortion, limiter, or native. This is the model-owned treatment-family choice and the local governed router must not replace it with another family. Do not call plugin loading or parameter mutation tools directly; the local governed router will bind, freeze, confirm, and execute one processor action.
-- In the current production release, only eq and compressor have governed open-semantic execution paths. The broader processor_type schema is reserved for future integrations. If the evidence calls for limiter, reverb, delay, distortion, or native processing, return blocked and name that capability boundary; never substitute or load a different family. A negative constraint such as "do not over-compress", "do not flatten", or "do not thin" constrains the selected action and never creates a new processor requirement by itself.
-- During post_action_evaluation, request fresh comparison/processor evidence as available and re-evaluate the whole original_intent. A fresh post-action CCB observation_request is mandatory before either satisfied or needs_action. If another independent problem remains, return needs_action again with only that remainder while retaining the original intent in the ledger.
-- Treat the original intent as independently testable acoustic clauses. An applied compressor action can address dynamic consistency but cannot by itself settle tonal masking, muddiness, or clarity; an applied EQ action cannot by itself settle time-varying dynamics. Evaluate every clause before satisfied or blocked.
-- The compact actions[].receipt_summary is authoritative execution evidence. When a compressor receipt already contains ready COM behavior_change dimensions, use those classifications to evaluate that applied action; do not demand a duplicate processor CCB view before considering a different unresolved clause. Missing verification of one applied action may limit or block a satisfaction claim, but it must not erase another independently supported unresolved clause.
-- Do not select a processor_type already recorded as status=applied in this loop. The free-state loop does not authorize automatic second writes to the same family; if that family needs refinement, stop for user review after considering any other independent unresolved clause.
-- Presence/forwardness can involve dynamic consistency, level relationship, spectral balance, or more than one at once. Use evidence rather than wording alone. If masking, muddiness, clarity, or accompaniment coverage remains plausible after a dynamics action, request mix.frequency_relationship and/or track.timbre_frequency as appropriate; multitrack level rank alone does not answer a frequency-relationship question.
-- Return satisfied only when fresh evidence covers every part of the original intent, including the valid choice that no treatment is needed. Return blocked only for an explicit evidence/capability boundary and state the reason.`
-		}
 	}
-	return fmt.Sprintf(`You are Ask Vit's DAW ReAct runtime inside Vit-DAW.
+	prompt := fmt.Sprintf(`You are Ask Vit's DAW ReAct runtime inside Vit-DAW.
 Return ONLY strict JSON in one of these shapes:
 {"final":true,"reply":"short final user-facing reply","tool_calls":[]}
 {"final":false,"needs_clarification":true,"clarification_question":"ask exactly what target/choice is missing","reply":"same question","tool_calls":[]}
 {"final":false,"reply":"short progress note","tool_calls":[{"tool":"track.add","args":{},"reason":"why"}]}
-{"final":false,"reply":"short observation progress note","free_state":{"schema_version":"free_state_decision.v1","status":"needs_observation","evidence_status":"insufficient","summary":"what is missing","requested_view_ids":["track.time_dynamics"]},"tool_calls":[{"tool":"ccb.observation_request","args":{"view_ids":["track.time_dynamics"]},"reason":"answer the missing evidence question"}]}
-{"final":true,"reply":"short treatment handoff","free_state":{"schema_version":"free_state_decision.v1","status":"needs_action","evidence_status":"sufficient","summary":"what the evidence supports","remaining_intent":"the unresolved audible outcome","processor_type":"eq|compressor|reverb|delay|distortion|limiter|native"},"tool_calls":[]}
-{"final":true,"reply":"short evidence-grounded completion","free_state":{"schema_version":"free_state_decision.v1","status":"satisfied","evidence_status":"sufficient","summary":"why the whole original intent is satisfied","observation_id":"real id"},"tool_calls":[]}
-{"final":true,"reply":"concrete EQ proposal for confirmation","semantic_action":{"schema_version":"semantic_effect_action.v1","action_type":"eq_edit","payload_schema":"semantic_effect.eq_plan.v1","target":{"track_id":"real id","plugin_id":"real id"},"user_goal":"the user's acoustic goal","negative_constraints":[],"evidence_decision":{"choice":"reuse|read|derive|observe|not_needed","basis":"user_report|observation|both","reason":"why this evidence is sufficient","observation_id":"real id when used","evidence_refs":[]},"limitations":[],"eq_plan":{"schema_version":"semantic_effect.eq_plan.v1","atomic":true,"atoms":[{"atom_id":"stable semantic id","action":"upsert","shape":"bell|low_shelf|high_shelf|low_cut|high_cut","frequency_hz":3500,"gain_db":-1.0,"q":1.2,"purpose":"acoustic purpose","field_origins":{"frequency_hz":"user_fixed|llm_selected|context_inherited","gain_db":"user_fixed|llm_selected|context_inherited","q":"user_fixed|llm_selected|context_inherited"},"evidence_refs":[],"confidence":"low|medium|high"}]}},"tool_calls":[]}
+{"final":true,"reply":"concrete EQ proposal for confirmation","semantic_action":{"schema_version":"semantic_effect_action.v1","action_type":"eq_edit","payload_schema":"semantic_effect.eq_plan.v1","target":{"track_id":"real id","plugin_id":"real id"},"user_goal":"the user's acoustic goal","negative_constraints":[],"evidence_decision":{"choice":"reuse|read|derive|observe","basis":"observation|both","reason":"why this evidence is sufficient","observation_id":"exact observed id","evidence_refs":[]},"limitations":[],"eq_plan":{"schema_version":"semantic_effect.eq_plan.v1","atomic":true,"atoms":[{"atom_id":"stable semantic id","action":"upsert","shape":"bell|low_shelf|high_shelf|low_cut|high_cut","frequency_hz":3500,"gain_db":-1.0,"q":1.2,"purpose":"acoustic purpose","field_origins":{"frequency_hz":"user_fixed|llm_selected|context_inherited","gain_db":"user_fixed|llm_selected|context_inherited","q":"user_fixed|llm_selected|context_inherited"},"evidence_refs":[],"confidence":"low|medium|high"}]}},"tool_calls":[]}
 
 Rules:
 - Use only tools from Allowed tools. For low-level DAW commands, use tool:"daw.invoke" only when it is explicitly allowed, with args containing cmd.
 - Tool results appear in <tool_result> JSON messages. Treat those results as the source of truth for executed actions, refreshed DAW state, bindings, and verification.
 - Capability context packs appear in <capability_context_pack> JSON messages. Treat them as deterministic default starting context for a named capability, not as a restriction; call additional allowed tools when the pack says evidence is missing, partial, stale, or too narrow.
 - Ordinary semantic effect discussion is always available and is not B4 or any A-F stage. If the user is asking why, comparing options, requesting analysis, or explicitly asking for read-only observation, reply normally and do not emit semantic_action.
-- For an actionable generic static-EQ listening goal, decide whether current context is sufficient. Reuse a fresh matching observation when possible; call mix.read or mix.derive for an existing artifact/projection; call mix.observe only when scope, freshness, or evidence is insufficient. A conservative plan may use basis:user_report with choice:not_needed when the user's report itself is sufficient, but disclose that limitation.
+- An actionable abstract static-EQ listening goal requires successful current observation evidence. Reuse a fresh matching observation when possible; call mix.read or mix.derive for an existing artifact/projection; call mix.observe when scope, freshness, or evidence is insufficient. user_report/not_needed alone cannot authorize an abstract EQ plan.
 - Once enough evidence and an exact selected track/plugin target exist, emit one semantic_effect_action.v1 with semantic_effect.eq_plan.v1. The LLM owns the acoustic Frequency/Gain/Q/Shape judgement and may infer fields the user did not state. Preserve negative constraints and use 1-3 jointly authorized atoms. Do not use a phrase-to-parameter lookup table.
 - Treat a simultaneous positive goal and negative listening constraint as one coupled authorization. When one EQ atom cannot independently express both (for example, adding brightness while controlling harshness), use 2-3 coordinated atoms with distinct acoustic purposes and preserve the shared negative constraint; do not collapse the constraint into prose while proposing only the positive move.
 - Before freezing an actionable generic EQ semantic_action, obtain the selected instance's live generic EQ eq_band_summary/control_topology through plugin_grabber.explain_controls unless matching topology evidence is already present in this run. Use only that generic topology evidence to choose reachable shapes/fields. A shape is usable only when a concrete section reports shape_capabilities.actions.upsert=true with every explicitly requested field writable; supported_filter_kinds alone is informational and is not execution authority. A topology rejection must lead to another LLM acoustic choice, not a vendor rule or phrase table.
@@ -3969,9 +4058,9 @@ Rules:
 - For an explicit broadband-compressor parameter request, call plugin_grabber.inspect_compressor(track_id, plugin_id) first. Then call plugin_grabber.apply_compressor_controls(track_id, plugin_id, controls, atomic:true) using only the generation-scoped control_ref values returned by that inspect result. Never use a bare parameter ID as control_ref. Use exactly one explicit target per control: value_db, ratio, value_ms, percent, display_value, or enum_label. Pure limiters and multiband compressors are outside this tool.
 - One successful inspect_compressor result is sufficient: read its compressor_control_summary controls and reuse those exact control_ref values. Do not inspect repeatedly, call goal.tick, or wrap either compressor tool in daw.invoke.
 - A compressor apply result is successful only when its status is exact or quantized and every requested control has typed actual_readback. Report those readback values. If inspect or apply rejects or fails, report that failure and do not call plugin.set_parameter/set_plugin_param, plugin_grabber.explain_controls, or any other write as a fallback.
-- For an effect that has no deterministic typed control tool, use plugin_grabber.explain_controls, then plugin.set_parameter with a normalized value derived from the observed display domain, then plugin.get_parameters. This generic path is forbidden for any parameter owned by a live typed effect topology. Never use stored mappings, retired control mappings, or value_text writes.
+- Generic parameter writes are an explicit-control fallback only: they are never permitted in an abstract/free-state semantic turn, and they are forbidden for every parameter proven to belong to a live typed effect topology. Use the effect's typed inspect/apply tool whenever that surface exists; only a concrete user-authorized control request with no typed surface may use plugin_grabber.explain_controls, plugin.set_parameter, and plugin.get_parameters. Never use stored mappings, retired control mappings, or value_text writes.
 - Mixing is a native Ask Vit conversation task, not a separate Auto Mix/Co-Mix mode. Do not create or ask the user to fill a planning card for mixing.
-- For natural/broad mixing goals with no explicitly named plug-in action, prefer mix.observe first so treatment choices are grounded. When free_state_reasoning_loop is active, use its CCB observation protocol instead; CCB owns any internal mix observation. When the user explicitly names a loaded/learned plug-in and asks for a concrete action, you may proceed through the governed plug-in control path without an extra observe-only turn.
+- Select observation tools and scopes from the current question, available catalog, target, and evidence gaps. Do not request a default view or prefer a particular observation solely because of wording. When free_state_reasoning_loop is active, use its CCB observation protocol; CCB owns any internal mix observation. A concrete explicit control request may use the typed control path when its live target and authorization are present.
 - Clip fade/gain is an edit-domain operation, not a mixing-domain operation. For selected/current clip fade/gain status, use clip.fade.read and clip.gain.read. For static clip gain edits, use clip.gain.set. Do not route clip fade/gain wording to mix.observe, mix.propose_tick, mix.apply_tick, track.volume, or track.pan.
 - Strip Silence / clip cleanup is an edit-domain operation. For parameter recommendation, noise-floor estimation, selected-range cleanup advice, selected-track cleanup advice, or all-project cleanup advice, use clip.strip_silence.suggest first. Choose scope from intent: all_project for whole-project/all-track cleanup, selected_track for current/selected track cleanup, selected_ranges for selected range cleanup, and selected_clip for current/selected clip cleanup. It does not mutate the project and returns pending clip.strip_silence.apply actions built from real analyze strip_regions. After explicit confirmation, run a single clip.strip_silence.apply for one action or clip.strip_silence.apply_batch for multiple actions; do not invent strip_regions.
 - Choose mix.observe scope from intent, not trigger phrases: selected_clip, selected_track, named_track, track_group, full_project, or full_project_with_focus_track. Use project_context for current-track mixing, full_project for overall mix questions, and full_project_with_focus_track for vocal/lead/focus relationships.
@@ -4014,6 +4103,19 @@ Available tool catalog:
 
 Allowed tools:
 %s`, modeRules, catalog, allowed)
+	if state != nil && messageLoopHasVerifiedSemanticEntry(state) {
+		if start := strings.Index(prompt, `{"final":true,"reply":"concrete EQ proposal`); start >= 0 {
+			if end := strings.Index(prompt[start:], "\n\nRules:"); end >= 0 {
+				prompt = prompt[:start] + prompt[start+end:]
+			}
+		}
+		if start := strings.Index(prompt, "- For an actionable generic static-EQ listening goal"); start >= 0 {
+			if end := strings.Index(prompt[start:], "- For an explicit generic static-EQ parameter request"); end >= 0 {
+				prompt = prompt[:start] + "- For a verified semantic-entry turn, keep acoustic family and observation selection model-owned; use the free-state decision or the typed control protocol selected by the entry route.\n" + prompt[start+end:]
+			}
+		}
+	}
+	return prompt
 }
 
 func messageLoopPlanMode(ctx map[string]any) bool {
@@ -4041,15 +4143,24 @@ func (l *MessageLoop) repairOutput(ctx context.Context, state *runState, raw str
 		return "", fmt.Errorf("agent message loop LLM client is nil")
 	}
 	rawJSON, _ := json.Marshal(strings.TrimSpace(raw))
-	messages := []llm.Message{
-		{
-			Role: "system",
-			Content: `You repair Ask Vit MessageLoop outputs.
+	repairSystem := `You repair Ask Vit MessageLoop outputs.
 Return ONLY one strict JSON object in one of these shapes:
 {"final":true,"reply":"short final user-facing reply","tool_calls":[]}
 {"final":false,"needs_clarification":true,"clarification_question":"ask exactly what target/choice is missing","reply":"same question","tool_calls":[]}
 {"final":false,"reply":"short progress note","tool_calls":[{"tool":"track.add","args":{},"reason":"why"}]}
-Do not add markdown fences, comments, prose, or multiple JSON objects. Preserve the original intent and tool arguments whenever possible.`,
+Do not add markdown fences, comments, prose, or multiple JSON objects. Preserve the original intent and tool arguments whenever possible.`
+	if messageLoopAudioClosureActive(state) {
+		repairSystem = `You repair one MinimalAudioClosure MessageLoop output.
+The original user intent and target are already durably owned by the closure. Repair JSON syntax only; never ask the user to restate the task and never invent a clarification.
+Return ONLY one strict JSON object. Preserve a recoverable final, tool_calls, semantic_action, or free_state decision exactly.
+If the semantic content cannot be recovered from the raw output, return exactly:
+{"final":false,"failure_reason":"model_protocol_failure","reply":"","tool_calls":[]}
+Do not add markdown fences, comments, prose, multiple objects, or a needs_clarification field.`
+	}
+	messages := []llm.Message{
+		{
+			Role:    "system",
+			Content: repairSystem,
 		},
 		{
 			Role:    "user",
@@ -4065,6 +4176,14 @@ Do not add markdown fences, comments, prose, or multiple JSON objects. Preserve 
 			PromptFingerprint: fingerprint,
 		},
 	})
+}
+
+func messageLoopAudioClosureActive(state *runState) bool {
+	if state == nil {
+		return false
+	}
+	closure := messageLoopMapValue(state.input.Context["minimal_audio_closure"])
+	return messageLoopText(closure["schema_version"]) == "minimal_audio_closure.v1" && messageLoopText(closure["phase"]) != "settled"
 }
 
 func parseMessageLoopOutput(raw string) (messageLoopOutput, error) {
@@ -4331,7 +4450,19 @@ func normalizeMessageLoopOutput(out messageLoopOutput) messageLoopOutput {
 }
 
 func messageLoopSemanticEffectProposalAllowed(state *runState) bool {
-	if state == nil || messageLoopPlanMode(state.input.Context) || messageLoopReadOnlyObservationRequest(state.input.UserText) {
+	if state == nil || messageLoopPlanMode(state.input.Context) {
+		return false
+	}
+	if messageLoopBool(state.input.Context["semantic_entry_unavailable"]) {
+		return false
+	}
+	if _, verified := messageLoopSemanticEntryRoute(state); verified {
+		// Classified ordinary-Agent turns never materialize a family-specific
+		// semantic_action directly. Open semantics hand off through free-state;
+		// explicit controls use typed tools and their confirmation policy.
+		return false
+	}
+	if messageLoopReadOnlyObservationRequest(state.input.UserText) {
 		return false
 	}
 	text := strings.ToLower(strings.TrimSpace(state.input.UserText))
@@ -4368,15 +4499,26 @@ func messageLoopSemanticEQIntent(userText string) bool {
 }
 
 func messageLoopOrdinarySemanticEQRequest(state *runState) bool {
+	if _, verified := messageLoopSemanticEntryRoute(state); verified {
+		return false
+	}
 	return messageLoopSemanticEQTopic(state) && messageLoopSemanticEffectProposalAllowed(state)
 }
 
 func messageLoopSemanticEQNeedsPluginSelection(state *runState) bool {
+	if _, verified := messageLoopSemanticEntryRoute(state); verified {
+		return false
+	}
 	if state == nil || !messageLoopSemanticEQIntent(state.input.UserText) || !messageLoopSemanticEffectProposalAllowed(state) || !messageLoopSemanticEffectActionRequested(state.input.UserText) {
 		return false
 	}
 	pluginID := firstNonEmpty(firstMapText(state.input.Context, "selected_plugin_id", "plugin_id"), firstMapText(state.input.State, "selected_plugin_id", "plugin_id"))
 	return pluginID == "" && firstNonEmpty(messageLoopExactSelectedTrackID(state), state.executionMemory.ActiveWorkTargetTrackID) != ""
+}
+
+func messageLoopHasVerifiedSemanticEntry(state *runState) bool {
+	_, ok := messageLoopSemanticEntryDecision(state)
+	return ok
 }
 
 func messageLoopHasGenericEQTopologyEvidence(state *runState) bool {
@@ -4509,7 +4651,7 @@ func resolveMessageLoopCCBTarget(state *runState, call planner.ToolCall) planner
 	for _, view := range views {
 		view = strings.ToLower(strings.TrimSpace(view))
 		hasTrackView = hasTrackView || strings.HasPrefix(view, "track.") || strings.HasPrefix(view, "processor.") || view == "comparison.before_after"
-		hasProjectView = hasProjectView || strings.HasPrefix(view, "mix.") || view == "project.structure"
+		hasProjectView = hasProjectView || strings.HasPrefix(view, "mix.") || strings.HasPrefix(view, "project.")
 	}
 	loop := messageLoopFreeStateContext(state)
 	target := messageLoopMapValue(loop["target_ref"])
@@ -4862,6 +5004,14 @@ func messageLoopToolGuardIssue(state *runState, call planner.ToolCall, hadMixObs
 	if state == nil {
 		return ""
 	}
+	if messageLoopFreeStateActive(state) && messageLoopFreeStateMutationTool(call) {
+		return "active free-state reasoning may request only read-only CCB observations; typed apply, generic parameter writes, plugin loading, and other mutation tools are forbidden"
+	}
+	if messageLoopFreeStateActive(state) && messageLoopIsCCBObservationRequestName(normalizedActionName(call, executorpkg.Result{})) {
+		if issue := messageLoopFreeStateRejectedViewSetIssue(state, messageLoopStringList(call.Args["view_ids"]), messageLoopCCBTargetFromCall(call)); issue != "" {
+			return issue
+		}
+	}
 	if messageLoopIsGenericPluginParameterWrite(call) && messageLoopLatestCompressorApplyFailed(state) {
 		return "typed compressor apply failed; generic plugin parameter writes are forbidden as a fallback and no further parameter may be changed"
 	}
@@ -4885,6 +5035,9 @@ func messageLoopToolGuardIssue(state *runState, call planner.ToolCall, hadMixObs
 	}
 	if messageLoopMutationBarrierActive(state) {
 		return messageLoopReadOnlyGuardIssue(call)
+	}
+	if messageLoopBool(state.input.Context["semantic_entry_unavailable"]) && toolNeedsMutationBarrier(call, executorpkg.Result{}) {
+		return "semantic entry classification was unavailable; project mutation is denied until target scope and user authorization are classified"
 	}
 	pluginDecision := toolpolicy.Decide(toolpolicy.TurnContext{
 		UserText:             state.input.UserText,
@@ -4930,6 +5083,31 @@ func messageLoopToolGuardIssue(state *runState, call planner.ToolCall, hadMixObs
 		return "mix.observe is complete; broad mixing requests must stop here, summarize the observation, propose one concrete next move, and wait for explicit user confirmation before loading plugins, changing volume, applying controls, or writing parameters"
 	}
 	return "ordinary acoustic mixing requests must run mix.observe and wait for its result before loading plugins, changing volume, applying controls, or writing parameters"
+}
+
+func messageLoopFreeStateMutationTool(call planner.ToolCall) bool {
+	if toolNeedsMutationBarrier(call, executorpkg.Result{}) {
+		return true
+	}
+	name := strings.ToLower(strings.TrimSpace(normalizedActionName(call, executorpkg.Result{})))
+	if name == "" {
+		name = strings.ToLower(strings.TrimSpace(call.Tool))
+	}
+	switch name {
+	case "plugin.set_parameter", "plugin_set_parameter", "set_plugin_param",
+		"plugin.load_to_rack", "rack.add_node", "rack_add_node", "rack.load_plugin", "rack_load_plugin", "instantiate_plugin", "plugin.instantiate",
+		"plugin_grabber.apply_eq_edits", "plugin_grabber_apply_eq_edits",
+		"plugin_grabber.set_eq_point", "plugin_grabber_set_eq_point", "plugin_grabber.apply_control", "plugin_grabber_apply_control",
+		"plugin_grabber.apply_compressor_controls", "plugin_grabber_apply_compressor_controls",
+		"plugin_grabber.apply_limiter_controls", "plugin_grabber_apply_limiter_controls",
+		"plugin_grabber.apply_gate_expander_controls", "plugin_grabber_apply_gate_expander_controls",
+		"plugin_grabber.apply_de_esser_controls", "plugin_grabber_apply_de_esser_controls",
+		"plugin_grabber.apply_transient_shaper_controls", "plugin_grabber_apply_transient_shaper_controls",
+		"plugin_grabber.apply_multiband_controls", "plugin_grabber_apply_multiband_controls":
+		return true
+	default:
+		return false
+	}
 }
 
 func messageLoopIsGenericPluginParameterWrite(call planner.ToolCall) bool {

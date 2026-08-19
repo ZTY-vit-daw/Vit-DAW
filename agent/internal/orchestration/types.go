@@ -102,6 +102,20 @@ type CapabilityInvocation struct {
 	TargetRefs      []string        `json:"target_refs,omitempty"`
 }
 
+const ParentControllerLinkSchema = "orchestration_parent_controller_link.v1"
+
+// ParentControllerLink is correlation and exactly-once handoff metadata. It
+// grants no authorization and cannot change the capability state machine.
+type ParentControllerLink struct {
+	SchemaVersion           string `json:"schema_version"`
+	ControllerID            string `json:"controller_id"`
+	ControllerType          string `json:"controller_type"`
+	ClosureID               string `json:"closure_id,omitempty"`
+	ClosureRevision         uint64 `json:"closure_revision,omitempty"`
+	ActionID                string `json:"action_id"`
+	ExpectedProjectRevision string `json:"expected_project_revision,omitempty"`
+}
+
 type ContextRequest struct {
 	CapabilityID       string   `json:"capability_id"`
 	ManifestID         string   `json:"manifest_id"`
@@ -308,21 +322,22 @@ type FrozenPlan struct {
 }
 
 type PlanningSession struct {
-	SchemaVersion  string               `json:"schema_version"`
-	ID             string               `json:"id"`
-	ProjectUUID    string               `json:"project_uuid"`
-	EngineOwner    EngineOwner          `json:"engine_owner"`
-	Revision       uint64               `json:"revision"`
-	Status         SessionStatus        `json:"status"`
-	Goal           string               `json:"goal"`
-	Constraints    []string             `json:"constraints,omitempty"`
-	Invocation     CapabilityInvocation `json:"invocation"`
-	ActiveProposal *Proposal            `json:"active_proposal,omitempty"`
-	FrozenPlan     *FrozenPlan          `json:"frozen_plan,omitempty"`
-	Authorization  *Authorization       `json:"authorization,omitempty"`
-	Execution      *ExecutionRecord     `json:"execution,omitempty"`
-	CreatedAt      time.Time            `json:"created_at"`
-	UpdatedAt      time.Time            `json:"updated_at"`
+	SchemaVersion    string                `json:"schema_version"`
+	ID               string                `json:"id"`
+	ProjectUUID      string                `json:"project_uuid"`
+	EngineOwner      EngineOwner           `json:"engine_owner"`
+	Revision         uint64                `json:"revision"`
+	Status           SessionStatus         `json:"status"`
+	Goal             string                `json:"goal"`
+	Constraints      []string              `json:"constraints,omitempty"`
+	Invocation       CapabilityInvocation  `json:"invocation"`
+	ParentController *ParentControllerLink `json:"parent_controller,omitempty"`
+	ActiveProposal   *Proposal             `json:"active_proposal,omitempty"`
+	FrozenPlan       *FrozenPlan           `json:"frozen_plan,omitempty"`
+	Authorization    *Authorization        `json:"authorization,omitempty"`
+	Execution        *ExecutionRecord      `json:"execution,omitempty"`
+	CreatedAt        time.Time             `json:"created_at"`
+	UpdatedAt        time.Time             `json:"updated_at"`
 }
 
 func (s PlanningSession) Terminal() bool { return terminalStatuses[s.Status] }
@@ -359,6 +374,34 @@ func (s PlanningSession) Transition(next SessionStatus) (PlanningSession, error)
 		return s, fmt.Errorf("invalid session transition %s -> %s", s.Status, next)
 	}
 	s.Status = next
+	s.Revision++
+	s.UpdatedAt = time.Now().UTC()
+	return s, nil
+}
+
+func (s PlanningSession) SetParentController(link ParentControllerLink) (PlanningSession, error) {
+	link.SchemaVersion = strings.TrimSpace(link.SchemaVersion)
+	link.ControllerID = strings.TrimSpace(link.ControllerID)
+	link.ControllerType = strings.TrimSpace(link.ControllerType)
+	link.ClosureID = strings.TrimSpace(link.ClosureID)
+	link.ActionID = strings.TrimSpace(link.ActionID)
+	link.ExpectedProjectRevision = strings.TrimSpace(link.ExpectedProjectRevision)
+	if link.SchemaVersion != ParentControllerLinkSchema || link.ControllerID == "" || link.ControllerType == "" || link.ActionID == "" {
+		return s, fmt.Errorf("parent controller link is invalid")
+	}
+	if link.ControllerType == "minimal_audio_closure" && (link.ClosureID == "" || link.ClosureRevision == 0) {
+		return s, fmt.Errorf("minimal audio closure parent requires closure id and revision")
+	}
+	if s.ParentController != nil {
+		if *s.ParentController == link {
+			return s, nil
+		}
+		return s, fmt.Errorf("session %s already belongs to controller %s", s.ID, s.ParentController.ControllerID)
+	}
+	if s.Terminal() {
+		return s, fmt.Errorf("cannot attach parent controller to terminal session %s", s.ID)
+	}
+	s.ParentController = &link
 	s.Revision++
 	s.UpdatedAt = time.Now().UTC()
 	return s, nil
@@ -577,6 +620,10 @@ func cloneSession(s PlanningSession) PlanningSession {
 	s.Constraints = append([]string(nil), s.Constraints...)
 	s.Invocation.Constraints = append([]string(nil), s.Invocation.Constraints...)
 	s.Invocation.TargetRefs = append([]string(nil), s.Invocation.TargetRefs...)
+	if s.ParentController != nil {
+		link := *s.ParentController
+		s.ParentController = &link
+	}
 	if s.ActiveProposal != nil {
 		p := *s.ActiveProposal
 		p.TargetScope = append([]string(nil), p.TargetScope...)

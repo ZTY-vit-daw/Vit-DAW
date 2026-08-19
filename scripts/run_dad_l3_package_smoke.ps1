@@ -83,4 +83,18 @@ foreach ($required in @("band_energy_summary", "stereo_relation_summary", "loudn
     }
 }
 
+# The product-path band payload is the upstream source for the bounded DOM
+# evidence. Keep these fields in the probe contract so a summary projection
+# cannot silently hide a producer regression.
+$bandEvents = @($l3[0].events | ForEach-Object { $_.event } | Where-Object { $_.feature_type -eq "band_energy_summary" })
+if ($bandEvents.Count -eq 0) {
+    throw "no band_energy_summary event payload was retained in $($summary.FullName)"
+}
+$bandEvent = $bandEvents[0]
+foreach ($requiredBoundedFact in @("noise_floor_evidence", "frequency_time_events", "transient_events", "band_dynamics")) {
+    if (-not ($bandEvent.PSObject.Properties.Name -contains $requiredBoundedFact)) {
+        throw "missing bounded producer fact $requiredBoundedFact in $($summary.FullName)"
+    }
+}
+
 Write-Host ("ok: DAD L3 package smoke passed; summary=" + $summary.FullName) -ForegroundColor Green

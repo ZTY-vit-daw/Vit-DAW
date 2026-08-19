@@ -143,7 +143,7 @@ func TestBuildObservationHydratesStaticLevelsFromProjectAnalysisManifest(t *test
 		MixSessionID: "manifest-b2", GoalText: "B2", ProjectState: state,
 		TargetRef:   TargetRef{Kind: "project", ID: "current"},
 		ListenScope: ListenScope{Source: ListenSourceScope{Mode: "full_project"}},
-	}, "2026-08-02T00:00:00Z", featureSnapshot{})
+	}, "2026-08-02T00:00:00Z", &featureSnapshot{})
 	relation := obs.MOMProjection.StaticLevelRelationship
 	if relation == nil {
 		t.Fatal("analysis manifest did not produce a static-level relationship")

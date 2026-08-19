@@ -9,6 +9,7 @@ import (
 	"strings"
 	"testing"
 
+	"vit-daw-agent/internal/agentloop"
 	"vit-daw-agent/internal/config"
 	"vit-daw-agent/internal/llm"
 )
@@ -20,12 +21,20 @@ func semanticEQPlannerTestAction(trackID, pluginID string) string {
 		"payload_schema":"semantic_effect.eq_plan.v1",
 		"target":{"track_id":"` + trackID + `","plugin_id":"` + pluginID + `"},
 		"user_goal":"减少一些浑浊",
-		"evidence_decision":{"choice":"not_needed","basis":"user_report","reason":"用户报告足以支持保守静态 EQ 方案"},
+		"evidence_decision":{"choice":"observe","basis":"observation","reason":"CCB 观察支持保守静态 EQ 方案","observation_id":"obs-eq-test"},
 		"eq_plan":{"schema_version":"semantic_effect.eq_plan.v1","atomic":true,"atoms":[{
 			"atom_id":"mud_control","action":"upsert","shape":"bell","frequency_hz":280,"gain_db":-1.5,"q":1.1,
 			"purpose":"减少低中频浑浊","field_origins":{"frequency_hz":"llm_selected","gain_db":"llm_selected","q":"llm_selected"},"confidence":"medium"
 		}]}
 	}`
+}
+
+func semanticEQPlannerTestObservation() *agentloop.RecentObservation {
+	return &agentloop.RecentObservation{Tool: "ccb.observation_request", Status: "ok", Summary: map[string]any{
+		"schema_version": "ccb_observation_bundle.v1", "status": "ready", "read_only": true,
+		"mutation_authority": false, "observation_id": "obs-eq-test",
+		"views": map[string]any{"track.timbre_frequency": map[string]any{"status": "ready"}},
+	}}
 }
 
 func semanticEQPlannerTestServer(t *testing.T, responses []string) (*Server, config.EngineConfig, *int, *[]string) {
@@ -70,7 +79,7 @@ func semanticEQPlannerTestContext() map[string]any {
 
 func TestPlanOrdinaryAgentSemanticEQReturnsTypedAction(t *testing.T) {
 	server, cfg, calls, _ := semanticEQPlannerTestServer(t, []string{semanticEQPlannerTestAction("1007", "1015")})
-	action, err := server.planOrdinaryAgentSemanticEQ(context.Background(), "conversation-1", "减少一些浑浊", semanticEQPlannerTestContext(), nil, cfg)
+	action, err := server.planOrdinaryAgentSemanticEQ(context.Background(), "conversation-1", "减少一些浑浊", semanticEQPlannerTestContext(), semanticEQPlannerTestObservation(), cfg)
 	if err != nil {
 		t.Fatalf("planOrdinaryAgentSemanticEQ: %v", err)
 	}
@@ -84,7 +93,7 @@ func TestPlanOrdinaryAgentSemanticEQReturnsTypedAction(t *testing.T) {
 
 func TestPlanOrdinaryAgentSemanticEQRepairsInvalidJSONOnce(t *testing.T) {
 	server, cfg, calls, bodies := semanticEQPlannerTestServer(t, []string{"not JSON", semanticEQPlannerTestAction("1007", "1015")})
-	action, err := server.planOrdinaryAgentSemanticEQ(context.Background(), "conversation-1", "减少一些浑浊", semanticEQPlannerTestContext(), nil, cfg)
+	action, err := server.planOrdinaryAgentSemanticEQ(context.Background(), "conversation-1", "减少一些浑浊", semanticEQPlannerTestContext(), semanticEQPlannerTestObservation(), cfg)
 	if err != nil {
 		t.Fatalf("planOrdinaryAgentSemanticEQ: %v", err)
 	}
@@ -104,7 +113,7 @@ func TestPlanOrdinaryAgentSemanticEQBindsOmittedDeterministicTarget(t *testing.T
 		1,
 	)
 	server, cfg, calls, _ := semanticEQPlannerTestServer(t, []string{withoutTarget})
-	action, err := server.planOrdinaryAgentSemanticEQ(context.Background(), "conversation-1", "提高一些高频", semanticEQPlannerTestContext(), nil, cfg)
+	action, err := server.planOrdinaryAgentSemanticEQ(context.Background(), "conversation-1", "提高一些高频", semanticEQPlannerTestContext(), semanticEQPlannerTestObservation(), cfg)
 	if err != nil {
 		t.Fatalf("planOrdinaryAgentSemanticEQ: %v", err)
 	}
@@ -121,7 +130,7 @@ func TestDecodeSemanticEQLLMActionAcceptsAgentWrapperAndBindsUserGoal(t *testing
 	if err != nil {
 		t.Fatalf("decode wrapped action: %v", err)
 	}
-	if action.UserGoal != "提高一些高频" || action.Evidence.Choice != "not_needed" || action.Target.TrackID != "1007" || action.Target.PluginID != "1015" || action.EQPlan == nil {
+	if action.UserGoal != "提高一些高频" || action.Evidence.Choice != "observe" || action.Target.TrackID != "1007" || action.Target.PluginID != "1015" || action.EQPlan == nil {
 		t.Fatalf("action=%#v", action)
 	}
 }
@@ -129,7 +138,7 @@ func TestDecodeSemanticEQLLMActionAcceptsAgentWrapperAndBindsUserGoal(t *testing
 func TestPlanOrdinaryAgentSemanticEQBindsOmittedUpsertVerb(t *testing.T) {
 	withoutAction := strings.Replace(semanticEQPlannerTestAction("1007", "1015"), `"action":"upsert",`, "", 1)
 	server, cfg, calls, _ := semanticEQPlannerTestServer(t, []string{withoutAction})
-	action, err := server.planOrdinaryAgentSemanticEQ(context.Background(), "conversation-1", "减少一些浑浊", semanticEQPlannerTestContext(), nil, cfg)
+	action, err := server.planOrdinaryAgentSemanticEQ(context.Background(), "conversation-1", "减少一些浑浊", semanticEQPlannerTestContext(), semanticEQPlannerTestObservation(), cfg)
 	if err != nil {
 		t.Fatalf("planOrdinaryAgentSemanticEQ: %v", err)
 	}
@@ -151,12 +160,31 @@ func TestPlanOrdinaryAgentSemanticEQRejectsChangedExactTarget(t *testing.T) {
 		semanticEQPlannerTestAction("invented-track", "1015"),
 		semanticEQPlannerTestAction("1007", "invented-plugin"),
 	})
-	action, err := server.planOrdinaryAgentSemanticEQ(context.Background(), "conversation-1", "减少一些浑浊", semanticEQPlannerTestContext(), nil, cfg)
+	action, err := server.planOrdinaryAgentSemanticEQ(context.Background(), "conversation-1", "减少一些浑浊", semanticEQPlannerTestContext(), semanticEQPlannerTestObservation(), cfg)
 	if err == nil || action != nil {
 		t.Fatalf("changed exact target accepted: action=%#v err=%v", action, err)
 	}
 	if *calls != 2 || !strings.Contains(err.Error(), "changed exact target") {
 		t.Fatalf("calls=%d err=%v", *calls, err)
+	}
+}
+
+func TestPlanOrdinaryAgentSemanticEQRejectsMissingObservationBeforeLLM(t *testing.T) {
+	server, cfg, calls, _ := semanticEQPlannerTestServer(t, []string{semanticEQPlannerTestAction("1007", "1015")})
+	action, err := server.planOrdinaryAgentSemanticEQ(context.Background(), "conversation-1", "减少一些浑浊", semanticEQPlannerTestContext(), nil, cfg)
+	if err == nil || action != nil || *calls != 0 || !strings.Contains(err.Error(), "CCB evidence") {
+		t.Fatalf("missing observation crossed EQ planner boundary: action=%#v calls=%d err=%v", action, *calls, err)
+	}
+}
+
+func TestPlanOrdinaryAgentSemanticEQRejectsUserReportNotNeeded(t *testing.T) {
+	invalid := strings.Replace(semanticEQPlannerTestAction("1007", "1015"),
+		`"evidence_decision":{"choice":"observe","basis":"observation","reason":"CCB 观察支持保守静态 EQ 方案","observation_id":"obs-eq-test"}`,
+		`"evidence_decision":{"choice":"not_needed","basis":"user_report","reason":"user report only"}`, 1)
+	server, cfg, calls, _ := semanticEQPlannerTestServer(t, []string{invalid, invalid})
+	action, err := server.planOrdinaryAgentSemanticEQ(context.Background(), "conversation-1", "减少一些浑浊", semanticEQPlannerTestContext(), semanticEQPlannerTestObservation(), cfg)
+	if err == nil || action != nil || *calls != 2 || !strings.Contains(err.Error(), "basis must be observation or both") {
+		t.Fatalf("user_report/not_needed crossed EQ planner boundary: action=%#v calls=%d err=%v", action, *calls, err)
 	}
 }
 

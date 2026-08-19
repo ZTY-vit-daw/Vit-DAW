@@ -3,6 +3,7 @@ package mom
 const Version = "v1.5"
 
 const FrequencyRelationshipSchema = "mom.frequency_relationship.v1"
+const MaskingRelationshipSchema = "mom.masking_relationship.v1"
 
 const (
 	IntentGeneralBandStereoObservation  = "general_band_stereo_observation"
@@ -10,6 +11,7 @@ const (
 	IntentActionPreflightObservation    = "action_preflight_observation"
 	IntentProjectMultitrackObservation  = "project_multitrack_relation_observation"
 	IntentProjectFrequencyObservation   = "project_frequency_relationship_observation"
+	IntentProjectMaskingObservation     = "project_masking_relationship_observation"
 	IntentABResultObservation           = "ab_result_observation"
 )
 
@@ -52,6 +54,7 @@ type Projection struct {
 	MultitrackRelation      MultitrackRelation       `json:"multitrack_relation"`
 	StaticLevelRelationship *StaticLevelRelationship `json:"static_level_relationship,omitempty"`
 	FrequencyRelationship   *FrequencyRelationship   `json:"frequency_relationship,omitempty"`
+	MaskingRelationship     *MaskingRelationship     `json:"masking_relationship,omitempty"`
 	Layers                  Layers                   `json:"layers"`
 	TrustQuality            TrustQuality             `json:"trust_quality"`
 	LLMContext              LLMContext               `json:"llm_context"`
@@ -101,6 +104,7 @@ type FrequencyRelationship struct {
 	ProjectCutRef          string           `json:"project_cut_ref"`
 	Scope                  map[string]any   `json:"scope"`
 	TapPoint               string           `json:"tap_point"`
+	MeasurementKey         string           `json:"measurement_key,omitempty"`
 	Coverage               map[string]any   `json:"coverage"`
 	TrackProfiles          []map[string]any `json:"track_profiles,omitempty"`
 	FrequencyRegions       []map[string]any `json:"frequency_regions,omitempty"`
@@ -110,6 +114,41 @@ type FrequencyRelationship struct {
 	VerificationDimensions []string         `json:"verification_dimensions"`
 	EvidenceRefs           []string         `json:"evidence_refs,omitempty"`
 	Limitations            []string         `json:"limitations,omitempty"`
+}
+
+// MaskingRelationship is a compact MOM projection of a synchronized DAD
+// measurement. Candidates are directional improvement-risk evidence only;
+// they are not deterministic claims that a mix is wrong or that masking is
+// perceptually audible in every listening condition.
+type MaskingRelationship struct {
+	SchemaVersion  string             `json:"schema_version"`
+	Status         string             `json:"status"`
+	Freshness      string             `json:"freshness"`
+	MeasurementID  string             `json:"measurement_id,omitempty"`
+	ModelVersion   string             `json:"model_version,omitempty"`
+	CandidateOnly  bool               `json:"candidate_only"`
+	ProjectBinding map[string]any     `json:"project_binding,omitempty"`
+	Conditions     map[string]any     `json:"conditions,omitempty"`
+	Coverage       map[string]any     `json:"coverage"`
+	Candidates     []MaskingCandidate `json:"candidates,omitempty"`
+	EvidenceRefs   []string           `json:"evidence_refs,omitempty"`
+	Limitations    []string           `json:"limitations,omitempty"`
+}
+
+type MaskingCandidate struct {
+	MaskerTrackID   string  `json:"masker_track_id"`
+	MaskerTrackName string  `json:"masker_track_name,omitempty"`
+	TargetTrackID   string  `json:"target_track_id"`
+	TargetTrackName string  `json:"target_track_name,omitempty"`
+	BandID          string  `json:"band_id"`
+	MinHz           float64 `json:"min_hz,omitempty"`
+	MaxHz           float64 `json:"max_hz,omitempty"`
+	ActiveFrames    int     `json:"active_frame_count"`
+	RiskFrames      int     `json:"risk_frame_count"`
+	CoverageRatio   float64 `json:"risk_coverage_ratio"`
+	MedianMarginDB  float64 `json:"median_margin_db"`
+	P90MarginDB     float64 `json:"p90_margin_db"`
+	MaxMarginDB     float64 `json:"max_margin_db"`
 }
 
 type IntentPolicy struct {

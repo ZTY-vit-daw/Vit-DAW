@@ -15,7 +15,7 @@ func TestFreeStateObservationCatalogIsSemanticAndBounded(t *testing.T) {
 	if catalog.SchemaVersion != FreeStateObservationCatalogSchema || catalog.Boundary != "semantic_views_only" {
 		t.Fatalf("catalog header = %+v", catalog)
 	}
-	if len(catalog.Views) != 17 {
+	if len(catalog.Views) != 18 {
 		t.Fatalf("catalog view count = %d", len(catalog.Views))
 	}
 	for _, view := range catalog.Views {
@@ -25,6 +25,43 @@ func TestFreeStateObservationCatalogIsSemanticAndBounded(t *testing.T) {
 		if strings.Contains(view.ViewID, ".raw.") {
 			t.Fatalf("raw key leaked as semantic view: %+v", view)
 		}
+	}
+}
+
+func TestProjectChangeDeltaIsProjectScopedAndReadable(t *testing.T) {
+	catalog := FreeStateObservationCatalogFor(mixboard.TargetRef{Kind: "track", ID: "1007"})
+	var view *FreeStateObservationView
+	for i := range catalog.Views {
+		if catalog.Views[i].ViewID == "project.change_delta" {
+			view = &catalog.Views[i]
+			break
+		}
+	}
+	if view == nil || view.Availability != "conditional" || view.CostLatencyClass != "cheap" {
+		t.Fatalf("project change view missing or misclassified: %+v", view)
+	}
+	if len(view.RequiredDependencies) == 0 {
+		t.Fatalf("project change view has no declared dependency: %+v", view)
+	}
+	req := FreeStateObservationRequest{ViewIDs: []string{"project.change_delta"}, TargetRef: mixboard.TargetRef{Kind: "track", ID: "1007"}}
+	if got := observationScopeForRequest(req); got != "full_project" {
+		t.Fatalf("project change scope = %q, want full_project", got)
+	}
+	keys := FreeStateObservationReadKeys(req, "1007")
+	if len(keys) != 2 || keys[0] != "observation.binding" || keys[1] != "project.change_delta" {
+		t.Fatalf("project change read keys = %#v", keys)
+	}
+	read := map[string]any{
+		"observation_id": "obs-change",
+		"mix_session_id": "mix-change",
+		"items": map[string]any{
+			"observation.binding":  map[string]any{"observation_id": "obs-change", "mix_session_id": "mix-change", "project_revision": "5"},
+			"project.change_delta": map[string]any{"status": "partial", "change_id": "shadow_change_000021", "freshness": "pending_authoritative_refresh"},
+		},
+	}
+	bundle := AssembleFreeStateObservation(req, read)
+	if bundle.Status != "partial" || bundle.Views["project.change_delta"] == nil {
+		t.Fatalf("project change bundle = %+v", bundle)
 	}
 }
 
@@ -103,6 +140,29 @@ func TestProjectStructureViewCompactsExpandedMOMProjection(t *testing.T) {
 	}
 }
 
+func TestProjectStructureViewKeepsTrackIdentityFromTypedRows(t *testing.T) {
+	read := testFreeStateReadResult()
+	items := read["items"].(map[string]any)
+	items["project.tracks.summary"] = map[string]any{
+		"status": "ready", "track_count": 2, "active_track_count": 2,
+		"tracks": []map[string]any{
+			{"track_id": "1007", "name": "Bass", "role_guess": "bass", "active_state": "active", "plugin_id": "secret"},
+			{"track_id": "1012", "track_name": "Drums", "role_guess": "drums", "active_state": "active", "source_path": "C:/secret.wav"},
+		},
+	}
+	bundle := AssembleFreeStateObservation(FreeStateObservationRequest{ViewIDs: []string{"project.structure"}}, read)
+	view := anyMap(bundle.Views["project.structure"])
+	facts := anyMap(view["facts"])
+	tracks := rowsValue(anyMap(facts["project.tracks.summary"])["tracks"])
+	if len(tracks) != 2 || stringValue(tracks[0]["track_id"]) != "1007" || stringValue(tracks[1]["track_name"]) != "Drums" {
+		t.Fatalf("typed track identities were dropped: %#v", facts)
+	}
+	data, _ := json.Marshal(tracks)
+	if strings.Contains(string(data), "plugin_id") || strings.Contains(string(data), "secret") {
+		t.Fatalf("track identity index leaked internal data: %s", data)
+	}
+}
+
 func TestProjectStructureViewKeepsTopologyReadyWhenTechnicalProjectionIsPartial(t *testing.T) {
 	read := testFreeStateReadResult()
 	items := read["items"].(map[string]any)
@@ -145,13 +205,59 @@ func TestAssembleFreeStateObservationReportsBudgetDeferredAndForbidden(t *testin
 		t.Fatalf("budget omission = %+v", bundle.Omissions)
 	}
 	if bundle.Omissions["mix.masking_relationship"] != orchestration.OmissionUnavailable {
-		t.Fatalf("deferred omission = %+v", bundle.Omissions)
+		t.Fatalf("unprepared masking omission = %+v", bundle.Omissions)
 	}
 	if bundle.Omissions["track.raw.waveform"] != orchestration.OmissionForbidden {
 		t.Fatalf("forbidden omission = %+v", bundle.Omissions)
 	}
 	if bundle.DisclosureBytes > bundle.MaxDisclosureBytes {
 		t.Fatalf("disclosure exceeded budget: %+v", bundle)
+	}
+}
+
+func TestMaskingRelationshipCatalogIsExecutableOnRequestAndCCBOnlyExposesMOM(t *testing.T) {
+	catalog := FreeStateObservationCatalogFor(mixboard.TargetRef{Kind: "project", ID: "current"})
+	found := false
+	for _, view := range catalog.Views {
+		if view.ViewID == "mix.masking_relationship" {
+			found = true
+			if view.Availability != "ready_on_request" || view.TemporalResolution != "synchronized project range" {
+				t.Fatalf("masking catalog contract = %#v", view)
+			}
+		}
+	}
+	if !found {
+		t.Fatal("masking view missing from catalog")
+	}
+	read := testFreeStateReadResult()
+	items := read["items"].(map[string]any)
+	items["project.masking_relationship_inputs"] = map[string]any{"status": "ready", "frames": []any{map[string]any{"levels_dbfs": map[string]any{"bass": -8.0}}}}
+	items["observation.mom_projection"] = map[string]any{
+		"mom_version": "v1.5", "intent": "project_masking_relationship_observation",
+		"masking_relationship": map[string]any{
+			"schema_version": "mom.masking_relationship.v1", "status": "ready", "candidate_only": true,
+			"conditions": map[string]any{"tap_point": "track_post_fader", "synchronized": true},
+			"coverage":   map[string]any{"track_count": 2, "candidate_count": 1},
+			"candidates": []any{map[string]any{"masker_track_id": "bass", "target_track_id": "vocal", "band_id": "low_mid", "risk_coverage_ratio": 0.6}},
+		},
+		"llm_context": map[string]any{"summary_md": "directional candidates only"},
+	}
+	bundle := AssembleFreeStateObservation(FreeStateObservationRequest{ViewIDs: []string{"mix.masking_relationship"}}, read)
+	if bundle.Status != "ready" || bundle.Views["mix.masking_relationship"] == nil {
+		t.Fatalf("masking view not ready: %#v", bundle)
+	}
+	maskingFacts := anyMap(anyMap(anyMap(bundle.Views["mix.masking_relationship"])["facts"])["observation.mom_projection"])
+	if maskingFacts["llm_context"] != nil {
+		t.Fatalf("masking CCB view duplicated generic llm_context: %#v", maskingFacts)
+	}
+	if len(rowsValue(anyMap(maskingFacts["masking_relationship"])["candidates"])) > 12 {
+		t.Fatalf("masking CCB candidate disclosure exceeded bound: %#v", maskingFacts)
+	}
+	data, _ := json.Marshal(bundle.Views)
+	for _, forbidden := range []string{"project.masking_relationship_inputs", `"frames"`, `"levels_dbfs"`} {
+		if strings.Contains(string(data), forbidden) {
+			t.Fatalf("DAD payload leaked through CCB (%s): %s", forbidden, data)
+		}
 	}
 }
 
@@ -480,4 +586,34 @@ func testContainsString(values []string, want string) bool {
 		}
 	}
 	return false
+}
+
+func TestDOMCCBCompactRetainsConditionsFreshnessLimitationsAndEvidenceRefs(t *testing.T) {
+	read := testFreeStateReadResult()
+	items := read["items"].(map[string]any)
+	domProjection := anyMap(items["observation.dom_projection"])
+	domProjection["conditions"] = map[string]any{
+		"tap_point": "source_file_pre_fx", "source_revision": "source-rev", "clip_revision": "clip-rev",
+		"sample_rate": 44100.0, "channel_count": 2, "start_seconds": 0.0, "end_seconds": 20.0,
+		"window_ms": 10.0, "hop_ms": 5.0, "measurement_key": "measurement-key-1",
+	}
+	domProjection["freshness"] = "partial"
+	domProjection["evidence_refs"] = []any{"dad.l3.frequency_time_events"}
+	domProjection["limitations"] = []any{"time_localized_frequency_events_partial"}
+	trust := anyMap(domProjection["trust_quality"])
+	trust["coverage"] = map[string]any{"source_coverage_ratio": 1.0}
+	bundle := AssembleFreeStateObservation(FreeStateObservationRequest{ViewIDs: []string{"track.frequency_time_events"}}, read)
+	data, _ := json.Marshal(bundle.Views["track.frequency_time_events"])
+	text := string(data)
+	lower := strings.ToLower(text)
+	for _, want := range []string{`"conditions"`, `"measurement_key":"measurement-key-1"`, `"freshness":"partial"`, `"evidence_refs"`, `"limitations"`, `"source_coverage_ratio"`} {
+		if !strings.Contains(text, want) {
+			t.Fatalf("DOM compact omitted %s: %s", want, text)
+		}
+	}
+	for _, forbidden := range []string{"raw_pcm", "waveform_array", "plugin_instance_id", "parameter_id", "sealed_truth", "processor_family"} {
+		if strings.Contains(lower, forbidden) {
+			t.Fatalf("DOM compact leaked %s: %s", forbidden, text)
+		}
+	}
 }

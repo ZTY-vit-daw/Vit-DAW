@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math"
 	"os"
 	"path/filepath"
 	"strings"
@@ -28,6 +29,29 @@ import (
 type fakeKernelClient struct {
 	replies  []map[string]any
 	commands []map[string]any
+}
+
+func TestLatestAuthoritativeProjectChangeSurvivesNewerPendingTelemetry(t *testing.T) {
+	project := shadow.New(nil)
+	project.Initialize(map[string]any{
+		"status": "ok", "project_uuid": "p1", "project_epoch": "e1", "project_revision": 1,
+		"tracks": []any{map[string]any{"track_id": "1007", "is_audio_track": true}},
+	})
+	project.ApplyDelta(map[string]any{
+		"type": "delta_update", "target_uid": "1040", "action": "property_changed:state", "value": "after_write",
+	})
+	project.Initialize(map[string]any{
+		"status": "ok", "project_uuid": "p1", "project_epoch": "e1", "project_revision": 1,
+		"tracks": []any{map[string]any{"track_id": "1007", "is_audio_track": true}},
+	})
+	project.ApplyDelta(map[string]any{
+		"type": "delta_update", "target_uid": "0/0", "action": "property_changed:lastSignificantChange", "value": "later_telemetry",
+	})
+
+	change := NewWithSender(nil, project, nil).LatestAuthoritativeProjectChange(4)
+	if change == nil || change["freshness"] != "current_snapshot" || change["authoritative"] != true {
+		t.Fatalf("authoritative change = %#v", change)
+	}
 }
 
 func TestEnsureProjectAudioAnalysisUsesPersistedManifestWithoutKernelCall(t *testing.T) {
@@ -6631,6 +6655,69 @@ func TestReadMixboardFeatureSnapshotForAcousticPackageRelabelsAuthoritativeBridg
 	persistedBand := testMap(t, persisted["band_energy_summary"])
 	if firstString(persistedBand, "request_id") != "kernel_prepared_spectral_field_1016" {
 		t.Fatalf("band row was not relabelled on disk: %+v\n%s", persistedBand, string(data))
+	}
+}
+
+func TestReadMixboardFeatureSnapshotForAcousticPackageBindsCurrentTargetInsteadOfOldLatestRequest(t *testing.T) {
+	root := t.TempDir()
+	snapshotPath := filepath.Join(root, "mixboard_feature_snapshot.json")
+	if err := os.WriteFile(snapshotPath, []byte(`{
+		"schema_version":"mixboard_feature_snapshot.v1",
+		"latest_request":{"request_id":"old_vocals_request","resolved_target":{"track_id":"1032","clip_id":"1036","source_path":"D:/stems/vocals.wav","source_revision":"rev_vocals","duration_seconds":30}},
+		"waveform_envelope":{"status":"ready","track_id":"1032","clip_id":"1036","source_path":"D:/stems/vocals.wav","source_revision":"rev_vocals","duration_seconds":30,"rms":0.08,"peak_abs":0.46},
+		"track_waveform_envelopes":[
+			{"status":"ready","track_id":"1007","clip_id":"1011","source_path":"D:/stems/bass.wav","source_revision":"rev_bass","duration_seconds":30,"rms":0.21,"peak_abs":0.71},
+			{"status":"ready","track_id":"1032","clip_id":"1036","source_path":"D:/stems/vocals.wav","source_revision":"rev_vocals","duration_seconds":30,"rms":0.08,"peak_abs":0.46}
+		],
+		"band_energy_summary":{"status":"ready","feature_type":"band_energy_summary","track_id":"1032","clip_id":"1036","source_path":"D:/stems/vocals.wav","source_revision":"rev_vocals","duration_seconds":30,"bands":{"bass":{"energy_db":-41}}},
+		"band_energy_summaries":[
+			{"status":"ready","feature_type":"band_energy_summary","track_id":"1007","clip_id":"1011","source_path":"D:/stems/bass.wav","source_revision":"rev_bass","duration_seconds":30,"bands":{"bass":{"energy_db":-12}}},
+			{"status":"ready","feature_type":"band_energy_summary","track_id":"1032","clip_id":"1036","source_path":"D:/stems/vocals.wav","source_revision":"rev_vocals","duration_seconds":30,"bands":{"bass":{"energy_db":-41}}}
+		],
+		"stereo_relation_summary":{"status":"ready","feature_type":"stereo_relation_summary","track_id":"1032","clip_id":"1036","source_path":"D:/stems/vocals.wav","source_revision":"rev_vocals","duration_seconds":30,"correlation_estimate":0.62},
+		"stereo_relation_summaries":[
+			{"status":"ready","feature_type":"stereo_relation_summary","track_id":"1007","clip_id":"1011","source_path":"D:/stems/bass.wav","source_revision":"rev_bass","duration_seconds":30,"correlation_estimate":0.98},
+			{"status":"ready","feature_type":"stereo_relation_summary","track_id":"1032","clip_id":"1036","source_path":"D:/stems/vocals.wav","source_revision":"rev_vocals","duration_seconds":30,"correlation_estimate":0.62}
+		],
+		"loudness_summary":{"status":"ready","feature_type":"loudness_summary","track_id":"1032","clip_id":"1036","source_path":"D:/stems/vocals.wav","source_revision":"rev_vocals","duration_seconds":30,"approximate_lufs":-22},
+		"loudness_summaries":[
+			{"status":"ready","feature_type":"loudness_summary","track_id":"1007","clip_id":"1011","source_path":"D:/stems/bass.wav","source_revision":"rev_bass","duration_seconds":30,"approximate_lufs":-14},
+			{"status":"ready","feature_type":"loudness_summary","track_id":"1032","clip_id":"1036","source_path":"D:/stems/vocals.wav","source_revision":"rev_vocals","duration_seconds":30,"approximate_lufs":-22}
+		]
+	}`), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	assertTarget := func(target map[string]any, wantTrack, wantClip, wantPath, wantRevision string, wantRMS float64) {
+		t.Helper()
+		snapshot := readMixboardFeatureSnapshotForAcousticPackage(snapshotPath, target)
+		status := acousticpackage.BuildStatus(acousticpackage.Identity{
+			ProjectID: "current", TrackID: wantTrack, ClipID: wantClip,
+			SourcePath: wantPath, SourceRevision: wantRevision, SourceFingerprint: wantRevision, DurationSec: 30,
+		}, snapshot, "2026-08-12T00:00:00Z", "test")
+		if status.TrackID != wantTrack || status.ClipID != wantClip || status.SourcePath != wantPath || status.SourceRevision != wantRevision {
+			t.Fatalf("status identity = track=%q clip=%q path=%q revision=%q, want %q/%q/%q/%q", status.TrackID, status.ClipID, status.SourcePath, status.SourceRevision, wantTrack, wantClip, wantPath, wantRevision)
+		}
+		waveform := status.PackageLayers["l1_static"].Features["waveform_envelope"]
+		if got := numberFromAny(waveform.Ref["rms"]); math.Abs(got-wantRMS) > 0.0001 {
+			t.Fatalf("waveform RMS = %v, want %v; ref=%+v", got, wantRMS, waveform.Ref)
+		}
+	}
+
+	assertTarget(map[string]any{"track_id": "1007", "clip_id": "1011", "source_path": "D:/stems/bass.wav", "source_revision": "rev_bass", "duration_seconds": 30}, "1007", "1011", "D:/stems/bass.wav", "rev_bass", 0.21)
+	assertTarget(map[string]any{"track_id": "1032", "clip_id": "1036", "source_path": "D:/stems/vocals.wav", "source_revision": "rev_vocals", "duration_seconds": 30}, "1032", "1036", "D:/stems/vocals.wav", "rev_vocals", 0.08)
+
+	data, err := os.ReadFile(snapshotPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var persisted map[string]any
+	if err := json.Unmarshal(data, &persisted); err != nil {
+		t.Fatal(err)
+	}
+	latest := testMap(t, persisted["latest_request"])
+	if got := firstString(testMap(t, latest["resolved_target"]), "track_id"); got != "1032" {
+		t.Fatalf("read binding rewrote persisted latest_request to %q", got)
 	}
 }
 

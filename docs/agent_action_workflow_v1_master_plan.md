@@ -64,7 +64,8 @@ Phase 2 开始，观测上下文统一分成两层：
 - MOM v1.5 新增可复用的 `mom.frequency_relationship.v1` typed 子投影；它只承载全工程频段关系、tap/coverage/freshness、冲突候选、持续性可用性与验证维度，不承载 EQ 参数、插件选择或执行授权。详见 `MOM_FREQUENCY_RELATIONSHIP_V1.md`。
 - TIM = Technical Integrity Model。服务 A2 技术完整性检查，输出 `tim.projection.v0`，覆盖 source/path/playback 有效性、格式归类、采样率/bit depth/声道覆盖率、DAD acoustic readiness、静音/削波/异常 clip 风险。
 - TOM = Track Organization Model。服务 A3 智能轨道整理提案，优先按 ID/命名关联、长度、mono/stereo、格式、声像、轻量波形特征聚类，再谨慎给出角色假设。
-- DOM = Delivery Observation Model。服务导出、交付、响度、格式与版本审查。
+- DOM = Dynamics Observation Model。服务中性的动态声学观察；`source_only` 不选择处理器、不映射参数、不授予执行权限。
+- DelOM = Delivery Observation Model。服务导出、交付、响度、格式与版本审查。
 - LLM 默认消费 model projection/context，不直接消费 raw waveform arrays、spectrogram tile payload、完整工程 dump 或超长路径列表。
 
 ## 3. Benchmark 策略
@@ -228,7 +229,7 @@ A 不再只表示线性工作阶段，而是 `project_prep` capability family。
 - A2. 技术完整性检查 / `project_prep.technical_integrity.v0`  
   由 TIM 输出 `tim.projection.v0`：采样率、bit depth、声道、文件格式、文件长度、source/path/playback 有效性、DAD acoustic readiness、静音、削波、缺失素材、异常 clip。未知事实必须标记为 missing/limited，不得伪造。
 - A3. TOM 智能轨道整理 / `project_prep.track_organization.v0`  
-  由 TOM 基于 TIM/DAD/project facts 聚类：先看 ID/命名关联，再看长短、mono/stereo、格式、声像、轻量波形特征；角色识别只是谨慎假设，不作为唯一入口。输出文件夹轨道/路由/分组建议，等待用户确认。
+  由 TOM 基于 DAD/project facts 聚类（可显式引用 TIM 完整性事实作为补充上下文，属 peer 显式引用，不构成投影间依赖链）：先看 ID/命名关联，再看长短、mono/stereo、格式、声像、轻量波形特征；角色识别只是谨慎假设，不作为唯一入口。输出文件夹轨道/路由/分组建议，等待用户确认。
 - A4. Clip 编辑与片段清理 / `project_prep.clip_edit_cleanup.v0`  
   覆盖 cut、clip fade/gain、范围选择、Strip Silence、片段清理建议与确认执行。旧 A4 中的 TOM 整理确认归入 A3 的 confirmation/apply 子流程。
 - A5. Marker / 段落地图 / `project_prep.section_marker_map.v0`  

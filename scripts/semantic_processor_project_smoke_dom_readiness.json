@@ -1,0 +1,2658 @@
+{
+  "schema_version": "semantic_processor_project_dom_readiness.v1",
+  "cases": [
+    {
+      "case_id": "spv1_i01",
+      "project": "spv1_p01",
+      "target": "other",
+      "start_seconds": 140,
+      "end_seconds": 160,
+      "projection": {
+        "schema_version": "dom.projection.v1",
+        "dom_version": "v1",
+        "projection_id": "dom_0c73f0cda5c6ce9d9dff",
+        "mode": "source_only",
+        "status": "partial",
+        "observation_id": "offline_readiness_spv1_i01",
+        "target_ref": {
+          "id": "other",
+          "kind": "track"
+        },
+        "conditions": {
+          "start_seconds": 140,
+          "end_seconds": 160,
+          "measurement_key": "tap=|project=|source=|clip=|sample_rate=0|channel_count=0|range=140:160|window_ms=0|hop_ms=0|analyzer=|render="
+        },
+        "peak_structure": {
+          "status": "ready",
+          "peak_dbfs": -3.7804,
+          "headroom_db": 3.7804,
+          "crest_db": 16.6336,
+          "segment_peak_dbfs_distribution": {
+            "count": 4,
+            "min": -4.985,
+            "p50": -4.378,
+            "p90": -3.948,
+            "max": -3.78
+          },
+          "segment_crest_db_distribution": {
+            "count": 4,
+            "min": 15.391,
+            "p50": 15.821,
+            "p90": 17.094,
+            "max": 17.573
+          },
+          "at_or_above_full_scale_segment_count": 0,
+          "true_peak_status": "missing",
+          "evidence_refs": [
+            "offline_contract_material:spv1_p01:other"
+          ],
+          "limitations": [
+            "sample_peak_does_not_establish_true_peak",
+            "clip_events_are_not_inferred_from_peak_alone"
+          ]
+        },
+        "activity_structure": {
+          "status": "ready",
+          "segment_count": 4,
+          "valid_segment_count": 4,
+          "active_segment_count": 4,
+          "low_energy_segment_count": 0,
+          "silent_segment_count": 0,
+          "unknown_segment_count": 0,
+          "coverage_ratio": 1,
+          "active_ratio": 1,
+          "noise_floor_status": "ready",
+          "evidence_refs": [
+            "offline_contract_material:spv1_p01:other",
+            "offline_material_analysis:noise_floor"
+          ],
+          "limitations": [
+            "control_threshold_or_range_cannot_be_inferred"
+          ]
+        },
+        "frequency_time_events": {
+          "status": "partial",
+          "whole_window_bands": [
+            {
+              "id": "low",
+              "status": "ready",
+              "min_hz": 40,
+              "max_hz": 160,
+              "energy_db": -27.4626
+            },
+            {
+              "id": "low_mid",
+              "status": "ready",
+              "min_hz": 160,
+              "max_hz": 500,
+              "energy_db": -26.3795
+            },
+            {
+              "id": "mid",
+              "status": "ready",
+              "min_hz": 500,
+              "max_hz": 2000,
+              "energy_db": -24.0506
+            },
+            {
+              "id": "presence",
+              "status": "ready",
+              "min_hz": 2000,
+              "max_hz": 5000,
+              "energy_db": -29.4853
+            },
+            {
+              "id": "high",
+              "status": "ready",
+              "min_hz": 5000,
+              "max_hz": 10000,
+              "energy_db": -47.1909
+            }
+          ],
+          "time_localized": true,
+          "event_count_available": true,
+          "evidence_refs": [
+            "offline_contract_material:spv1_p01:other",
+            "offline_material_analysis:frequency_events"
+          ],
+          "limitations": [
+            "time_localized_frequency_events_partial"
+          ]
+        },
+        "transient_structure": {
+          "status": "partial",
+          "segment_crest_db_distribution": {
+            "count": 4,
+            "min": 15.391,
+            "p50": 15.821,
+            "p90": 17.094,
+            "max": 17.573
+          },
+          "onset_events_ready": false,
+          "attack_body_contrast_ready": false,
+          "sustain_decay_ready": false,
+          "evidence_refs": [
+            "offline_contract_material:spv1_p01:other",
+            "offline_material_analysis:transient_events"
+          ],
+          "limitations": [
+            "macro_crest_does_not_identify_onset_events",
+            "attack_body_and_sustain_decay_evidence_missing"
+          ]
+        },
+        "band_dynamics": {
+          "status": "ready",
+          "bands": [
+            {
+              "id": "low",
+              "status": "ready",
+              "min_hz": 40,
+              "max_hz": 160,
+              "energy_db": -27.4626
+            },
+            {
+              "id": "low_mid",
+              "status": "ready",
+              "min_hz": 160,
+              "max_hz": 500,
+              "energy_db": -26.3795
+            },
+            {
+              "id": "mid",
+              "status": "ready",
+              "min_hz": 500,
+              "max_hz": 2000,
+              "energy_db": -24.0506
+            },
+            {
+              "id": "presence",
+              "status": "ready",
+              "min_hz": 2000,
+              "max_hz": 5000,
+              "energy_db": -29.4853
+            },
+            {
+              "id": "high",
+              "status": "ready",
+              "min_hz": 5000,
+              "max_hz": 10000,
+              "energy_db": -47.1909
+            }
+          ],
+          "time_varying_ready": true,
+          "per_band_crest_ready": true,
+          "cross_band_relation_ready": true,
+          "evidence_refs": [
+            "offline_contract_material:spv1_p01:other",
+            "offline_material_analysis:band:high",
+            "offline_material_analysis:band:low",
+            "offline_material_analysis:band:low_mid",
+            "offline_material_analysis:band:mid",
+            "offline_material_analysis:band:presence"
+          ]
+        },
+        "dimension_readiness": [
+          {
+            "dimension": "peak_structure",
+            "status": "ready",
+            "supports": [
+              "sample_peak_context",
+              "crest_context",
+              "headroom_context"
+            ],
+            "limitations": [
+              "sample_peak_does_not_establish_true_peak",
+              "clip_events_are_not_inferred_from_peak_alone"
+            ]
+          },
+          {
+            "dimension": "activity_structure",
+            "status": "ready",
+            "supports": [
+              "declared_activity_context",
+              "low_energy_interval_context"
+            ],
+            "limitations": [
+              "control_threshold_or_range_cannot_be_inferred"
+            ]
+          },
+          {
+            "dimension": "frequency_time_events",
+            "status": "partial",
+            "supports": [
+              "whole_window_frequency_context"
+            ],
+            "limitations": [
+              "time_localized_frequency_events_partial"
+            ]
+          },
+          {
+            "dimension": "transient_structure",
+            "status": "partial",
+            "supports": [
+              "macro_crest_context"
+            ],
+            "limitations": [
+              "macro_crest_does_not_identify_onset_events",
+              "attack_body_and_sustain_decay_evidence_missing"
+            ]
+          },
+          {
+            "dimension": "band_dynamics",
+            "status": "ready",
+            "supports": [
+              "whole_window_band_context"
+            ]
+          }
+        ],
+        "trust_quality": {
+          "overall_status": "partial",
+          "can_support_source_description": true,
+          "can_support_family_selection": true,
+          "can_support_behavior_observation": false,
+          "can_support_post_action_evaluation": false,
+          "coverage": {
+            "declared_dimension_count": 5,
+            "source_coverage_ratio": 1,
+            "time_segment_count": 4,
+            "usable_dimension_count": 5,
+            "whole_window_band_count": 5
+          },
+          "limitations": [
+            "attack_body_and_sustain_decay_evidence_missing",
+            "clip_events_are_not_inferred_from_peak_alone",
+            "control_threshold_or_range_cannot_be_inferred",
+            "macro_crest_does_not_identify_onset_events",
+            "numeric_parameter_inference_forbidden",
+            "sample_peak_does_not_establish_true_peak",
+            "source_only_does_not_identify_or_recommend_a_processing_category",
+            "source_only_does_not_observe_processor_behavior",
+            "time_localized_frequency_events_partial"
+          ]
+        },
+        "evidence_refs": [
+          "offline_contract_material:spv1_p01:other"
+        ],
+        "limitations": [
+          "attack_body_and_sustain_decay_evidence_missing",
+          "clip_events_are_not_inferred_from_peak_alone",
+          "control_threshold_or_range_cannot_be_inferred",
+          "macro_crest_does_not_identify_onset_events",
+          "numeric_parameter_inference_forbidden",
+          "sample_peak_does_not_establish_true_peak",
+          "source_only_does_not_identify_or_recommend_a_processing_category",
+          "source_only_does_not_observe_processor_behavior",
+          "time_localized_frequency_events_partial"
+        ],
+        "llm_context": {
+          "summary_md": "DOM partial source_only projection exposes bounded, family-neutral source evidence; it does not recommend a processor or infer controls.",
+          "compact_facts": [
+            {
+              "can_support_behavior_observation": false,
+              "can_support_family_selection": true,
+              "can_support_source_description": true,
+              "layer": "trust_quality",
+              "status": "partial"
+            },
+            {
+              "dimension": "peak_structure",
+              "layer": "dimension_readiness",
+              "status": "ready"
+            },
+            {
+              "dimension": "activity_structure",
+              "layer": "dimension_readiness",
+              "status": "ready"
+            },
+            {
+              "dimension": "frequency_time_events",
+              "layer": "dimension_readiness",
+              "status": "partial"
+            },
+            {
+              "dimension": "transient_structure",
+              "layer": "dimension_readiness",
+              "status": "partial"
+            },
+            {
+              "dimension": "band_dynamics",
+              "layer": "dimension_readiness",
+              "status": "ready"
+            },
+            {
+              "at_or_above_full_scale_segment_count": 0,
+              "crest_db": 16.6336,
+              "headroom_db": 3.7804,
+              "layer": "peak_structure",
+              "peak_dbfs": -3.7804,
+              "status": "ready",
+              "true_peak_status": "missing"
+            },
+            {
+              "active_ratio": 1,
+              "layer": "activity_structure",
+              "low_or_silent_ratio": 0,
+              "noise_floor_status": "ready",
+              "status": "ready",
+              "valid_segment_count": 4
+            },
+            {
+              "event_count_available": true,
+              "layer": "frequency_time_events",
+              "status": "partial",
+              "time_localized": true,
+              "whole_window_band_count": 5
+            },
+            {
+              "attack_body_contrast_ready": false,
+              "layer": "transient_structure",
+              "onset_events_ready": false,
+              "status": "partial",
+              "sustain_decay_ready": false
+            },
+            {
+              "band_count": 5,
+              "cross_band_relation_ready": true,
+              "layer": "band_dynamics",
+              "per_band_crest_ready": true,
+              "status": "ready",
+              "time_varying_ready": true
+            }
+          ],
+          "do_not_include_raw_package": true,
+          "evidence_refs": [
+            "offline_contract_material:spv1_p01:other"
+          ],
+          "limitation_notes": [
+            "attack_body_and_sustain_decay_evidence_missing",
+            "clip_events_are_not_inferred_from_peak_alone",
+            "control_threshold_or_range_cannot_be_inferred",
+            "macro_crest_does_not_identify_onset_events",
+            "numeric_parameter_inference_forbidden",
+            "sample_peak_does_not_establish_true_peak",
+            "source_only_does_not_identify_or_recommend_a_processing_category",
+            "source_only_does_not_observe_processor_behavior",
+            "time_localized_frequency_events_partial"
+          ],
+          "suggested_next_step": "Use only the dimensions relevant to the current acoustic question and retain every missing or partial limitation."
+        },
+        "generated_at": "2026-08-13T11:20:15.9041417Z"
+      }
+    },
+    {
+      "case_id": "spv1_i02",
+      "project": "spv1_p01",
+      "target": "piano",
+      "start_seconds": 140,
+      "end_seconds": 160,
+      "projection": {
+        "schema_version": "dom.projection.v1",
+        "dom_version": "v1",
+        "projection_id": "dom_050684c4b7521ca47752",
+        "mode": "source_only",
+        "status": "partial",
+        "observation_id": "offline_readiness_spv1_i02",
+        "target_ref": {
+          "id": "piano",
+          "kind": "track"
+        },
+        "conditions": {
+          "start_seconds": 140,
+          "end_seconds": 160,
+          "measurement_key": "tap=|project=|source=|clip=|sample_rate=0|channel_count=0|range=140:160|window_ms=0|hop_ms=0|analyzer=|render="
+        },
+        "peak_structure": {
+          "status": "ready",
+          "peak_dbfs": -9.8588,
+          "headroom_db": 9.8588,
+          "crest_db": 16.134,
+          "segment_peak_dbfs_distribution": {
+            "count": 4,
+            "min": -11.514,
+            "p50": -10.466,
+            "p90": -10.018,
+            "max": -9.859
+          },
+          "segment_crest_db_distribution": {
+            "count": 4,
+            "min": 14.425,
+            "p50": 15.705,
+            "p90": 16.569,
+            "max": 16.783
+          },
+          "at_or_above_full_scale_segment_count": 0,
+          "true_peak_status": "missing",
+          "evidence_refs": [
+            "offline_contract_material:spv1_p01:piano"
+          ],
+          "limitations": [
+            "sample_peak_does_not_establish_true_peak",
+            "clip_events_are_not_inferred_from_peak_alone"
+          ]
+        },
+        "activity_structure": {
+          "status": "ready",
+          "segment_count": 4,
+          "valid_segment_count": 4,
+          "active_segment_count": 4,
+          "low_energy_segment_count": 0,
+          "silent_segment_count": 0,
+          "unknown_segment_count": 0,
+          "coverage_ratio": 1,
+          "active_ratio": 1,
+          "noise_floor_status": "ready",
+          "evidence_refs": [
+            "offline_contract_material:spv1_p01:piano",
+            "offline_material_analysis:noise_floor"
+          ],
+          "limitations": [
+            "control_threshold_or_range_cannot_be_inferred"
+          ]
+        },
+        "frequency_time_events": {
+          "status": "partial",
+          "whole_window_bands": [
+            {
+              "id": "low",
+              "status": "ready",
+              "min_hz": 40,
+              "max_hz": 160,
+              "energy_db": -34.5323
+            },
+            {
+              "id": "low_mid",
+              "status": "ready",
+              "min_hz": 160,
+              "max_hz": 500,
+              "energy_db": -29.5278
+            },
+            {
+              "id": "mid",
+              "status": "ready",
+              "min_hz": 500,
+              "max_hz": 2000,
+              "energy_db": -29.7936
+            },
+            {
+              "id": "presence",
+              "status": "ready",
+              "min_hz": 2000,
+              "max_hz": 5000,
+              "energy_db": -45.6409
+            },
+            {
+              "id": "high",
+              "status": "ready",
+              "min_hz": 5000,
+              "max_hz": 10000,
+              "energy_db": -67.1676
+            }
+          ],
+          "time_localized": true,
+          "event_count_available": true,
+          "evidence_refs": [
+            "offline_contract_material:spv1_p01:piano",
+            "offline_material_analysis:frequency_events"
+          ],
+          "limitations": [
+            "time_localized_frequency_events_partial"
+          ]
+        },
+        "transient_structure": {
+          "status": "partial",
+          "segment_crest_db_distribution": {
+            "count": 4,
+            "min": 14.425,
+            "p50": 15.705,
+            "p90": 16.569,
+            "max": 16.783
+          },
+          "onset_events_ready": false,
+          "attack_body_contrast_ready": false,
+          "sustain_decay_ready": false,
+          "evidence_refs": [
+            "offline_contract_material:spv1_p01:piano",
+            "offline_material_analysis:transient_events"
+          ],
+          "limitations": [
+            "macro_crest_does_not_identify_onset_events",
+            "attack_body_and_sustain_decay_evidence_missing"
+          ]
+        },
+        "band_dynamics": {
+          "status": "ready",
+          "bands": [
+            {
+              "id": "low",
+              "status": "ready",
+              "min_hz": 40,
+              "max_hz": 160,
+              "energy_db": -34.5323
+            },
+            {
+              "id": "low_mid",
+              "status": "ready",
+              "min_hz": 160,
+              "max_hz": 500,
+              "energy_db": -29.5278
+            },
+            {
+              "id": "mid",
+              "status": "ready",
+              "min_hz": 500,
+              "max_hz": 2000,
+              "energy_db": -29.7936
+            },
+            {
+              "id": "presence",
+              "status": "ready",
+              "min_hz": 2000,
+              "max_hz": 5000,
+              "energy_db": -45.6409
+            },
+            {
+              "id": "high",
+              "status": "ready",
+              "min_hz": 5000,
+              "max_hz": 10000,
+              "energy_db": -67.1676
+            }
+          ],
+          "time_varying_ready": true,
+          "per_band_crest_ready": true,
+          "cross_band_relation_ready": true,
+          "evidence_refs": [
+            "offline_contract_material:spv1_p01:piano",
+            "offline_material_analysis:band:high",
+            "offline_material_analysis:band:low",
+            "offline_material_analysis:band:low_mid",
+            "offline_material_analysis:band:mid",
+            "offline_material_analysis:band:presence"
+          ]
+        },
+        "dimension_readiness": [
+          {
+            "dimension": "peak_structure",
+            "status": "ready",
+            "supports": [
+              "sample_peak_context",
+              "crest_context",
+              "headroom_context"
+            ],
+            "limitations": [
+              "sample_peak_does_not_establish_true_peak",
+              "clip_events_are_not_inferred_from_peak_alone"
+            ]
+          },
+          {
+            "dimension": "activity_structure",
+            "status": "ready",
+            "supports": [
+              "declared_activity_context",
+              "low_energy_interval_context"
+            ],
+            "limitations": [
+              "control_threshold_or_range_cannot_be_inferred"
+            ]
+          },
+          {
+            "dimension": "frequency_time_events",
+            "status": "partial",
+            "supports": [
+              "whole_window_frequency_context"
+            ],
+            "limitations": [
+              "time_localized_frequency_events_partial"
+            ]
+          },
+          {
+            "dimension": "transient_structure",
+            "status": "partial",
+            "supports": [
+              "macro_crest_context"
+            ],
+            "limitations": [
+              "macro_crest_does_not_identify_onset_events",
+              "attack_body_and_sustain_decay_evidence_missing"
+            ]
+          },
+          {
+            "dimension": "band_dynamics",
+            "status": "ready",
+            "supports": [
+              "whole_window_band_context"
+            ]
+          }
+        ],
+        "trust_quality": {
+          "overall_status": "partial",
+          "can_support_source_description": true,
+          "can_support_family_selection": true,
+          "can_support_behavior_observation": false,
+          "can_support_post_action_evaluation": false,
+          "coverage": {
+            "declared_dimension_count": 5,
+            "source_coverage_ratio": 1,
+            "time_segment_count": 4,
+            "usable_dimension_count": 5,
+            "whole_window_band_count": 5
+          },
+          "limitations": [
+            "attack_body_and_sustain_decay_evidence_missing",
+            "clip_events_are_not_inferred_from_peak_alone",
+            "control_threshold_or_range_cannot_be_inferred",
+            "macro_crest_does_not_identify_onset_events",
+            "numeric_parameter_inference_forbidden",
+            "sample_peak_does_not_establish_true_peak",
+            "source_only_does_not_identify_or_recommend_a_processing_category",
+            "source_only_does_not_observe_processor_behavior",
+            "time_localized_frequency_events_partial"
+          ]
+        },
+        "evidence_refs": [
+          "offline_contract_material:spv1_p01:piano"
+        ],
+        "limitations": [
+          "attack_body_and_sustain_decay_evidence_missing",
+          "clip_events_are_not_inferred_from_peak_alone",
+          "control_threshold_or_range_cannot_be_inferred",
+          "macro_crest_does_not_identify_onset_events",
+          "numeric_parameter_inference_forbidden",
+          "sample_peak_does_not_establish_true_peak",
+          "source_only_does_not_identify_or_recommend_a_processing_category",
+          "source_only_does_not_observe_processor_behavior",
+          "time_localized_frequency_events_partial"
+        ],
+        "llm_context": {
+          "summary_md": "DOM partial source_only projection exposes bounded, family-neutral source evidence; it does not recommend a processor or infer controls.",
+          "compact_facts": [
+            {
+              "can_support_behavior_observation": false,
+              "can_support_family_selection": true,
+              "can_support_source_description": true,
+              "layer": "trust_quality",
+              "status": "partial"
+            },
+            {
+              "dimension": "peak_structure",
+              "layer": "dimension_readiness",
+              "status": "ready"
+            },
+            {
+              "dimension": "activity_structure",
+              "layer": "dimension_readiness",
+              "status": "ready"
+            },
+            {
+              "dimension": "frequency_time_events",
+              "layer": "dimension_readiness",
+              "status": "partial"
+            },
+            {
+              "dimension": "transient_structure",
+              "layer": "dimension_readiness",
+              "status": "partial"
+            },
+            {
+              "dimension": "band_dynamics",
+              "layer": "dimension_readiness",
+              "status": "ready"
+            },
+            {
+              "at_or_above_full_scale_segment_count": 0,
+              "crest_db": 16.134,
+              "headroom_db": 9.8588,
+              "layer": "peak_structure",
+              "peak_dbfs": -9.8588,
+              "status": "ready",
+              "true_peak_status": "missing"
+            },
+            {
+              "active_ratio": 1,
+              "layer": "activity_structure",
+              "low_or_silent_ratio": 0,
+              "noise_floor_status": "ready",
+              "status": "ready",
+              "valid_segment_count": 4
+            },
+            {
+              "event_count_available": true,
+              "layer": "frequency_time_events",
+              "status": "partial",
+              "time_localized": true,
+              "whole_window_band_count": 5
+            },
+            {
+              "attack_body_contrast_ready": false,
+              "layer": "transient_structure",
+              "onset_events_ready": false,
+              "status": "partial",
+              "sustain_decay_ready": false
+            },
+            {
+              "band_count": 5,
+              "cross_band_relation_ready": true,
+              "layer": "band_dynamics",
+              "per_band_crest_ready": true,
+              "status": "ready",
+              "time_varying_ready": true
+            }
+          ],
+          "do_not_include_raw_package": true,
+          "evidence_refs": [
+            "offline_contract_material:spv1_p01:piano"
+          ],
+          "limitation_notes": [
+            "attack_body_and_sustain_decay_evidence_missing",
+            "clip_events_are_not_inferred_from_peak_alone",
+            "control_threshold_or_range_cannot_be_inferred",
+            "macro_crest_does_not_identify_onset_events",
+            "numeric_parameter_inference_forbidden",
+            "sample_peak_does_not_establish_true_peak",
+            "source_only_does_not_identify_or_recommend_a_processing_category",
+            "source_only_does_not_observe_processor_behavior",
+            "time_localized_frequency_events_partial"
+          ],
+          "suggested_next_step": "Use only the dimensions relevant to the current acoustic question and retain every missing or partial limitation."
+        },
+        "generated_at": "2026-08-13T11:20:15.9046416Z"
+      }
+    },
+    {
+      "case_id": "spv1_i03",
+      "project": "spv1_p01",
+      "target": "vocals",
+      "start_seconds": 140,
+      "end_seconds": 160,
+      "projection": {
+        "schema_version": "dom.projection.v1",
+        "dom_version": "v1",
+        "projection_id": "dom_f19209aacebc53e7e5f3",
+        "mode": "source_only",
+        "status": "partial",
+        "observation_id": "offline_readiness_spv1_i03",
+        "target_ref": {
+          "id": "vocals",
+          "kind": "track"
+        },
+        "conditions": {
+          "start_seconds": 140,
+          "end_seconds": 160,
+          "measurement_key": "tap=|project=|source=|clip=|sample_rate=0|channel_count=0|range=140:160|window_ms=0|hop_ms=0|analyzer=|render="
+        },
+        "peak_structure": {
+          "status": "ready",
+          "peak_dbfs": -1.4365,
+          "headroom_db": 1.4365,
+          "crest_db": 14.1822,
+          "segment_peak_dbfs_distribution": {
+            "count": 4,
+            "min": -1.973,
+            "p50": -1.677,
+            "p90": -1.5,
+            "max": -1.437
+          },
+          "segment_crest_db_distribution": {
+            "count": 4,
+            "min": 12.846,
+            "p50": 14.234,
+            "p90": 14.726,
+            "max": 14.792
+          },
+          "at_or_above_full_scale_segment_count": 0,
+          "true_peak_status": "missing",
+          "evidence_refs": [
+            "offline_contract_material:spv1_p01:vocals"
+          ],
+          "limitations": [
+            "sample_peak_does_not_establish_true_peak",
+            "clip_events_are_not_inferred_from_peak_alone"
+          ]
+        },
+        "activity_structure": {
+          "status": "ready",
+          "segment_count": 4,
+          "valid_segment_count": 4,
+          "active_segment_count": 4,
+          "low_energy_segment_count": 0,
+          "silent_segment_count": 0,
+          "unknown_segment_count": 0,
+          "coverage_ratio": 1,
+          "active_ratio": 1,
+          "noise_floor_status": "ready",
+          "evidence_refs": [
+            "offline_contract_material:spv1_p01:vocals",
+            "offline_material_analysis:noise_floor"
+          ],
+          "limitations": [
+            "control_threshold_or_range_cannot_be_inferred"
+          ]
+        },
+        "frequency_time_events": {
+          "status": "partial",
+          "whole_window_bands": [
+            {
+              "id": "low",
+              "status": "ready",
+              "min_hz": 40,
+              "max_hz": 160,
+              "energy_db": -45.5424
+            },
+            {
+              "id": "low_mid",
+              "status": "ready",
+              "min_hz": 160,
+              "max_hz": 500,
+              "energy_db": -20.6432
+            },
+            {
+              "id": "mid",
+              "status": "ready",
+              "min_hz": 500,
+              "max_hz": 2000,
+              "energy_db": -18.0613
+            },
+            {
+              "id": "presence",
+              "status": "ready",
+              "min_hz": 2000,
+              "max_hz": 5000,
+              "energy_db": -24.6192
+            },
+            {
+              "id": "high",
+              "status": "ready",
+              "min_hz": 5000,
+              "max_hz": 10000,
+              "energy_db": -46.8912
+            }
+          ],
+          "time_localized": true,
+          "event_count_available": true,
+          "evidence_refs": [
+            "offline_contract_material:spv1_p01:vocals",
+            "offline_material_analysis:frequency_events"
+          ],
+          "limitations": [
+            "time_localized_frequency_events_partial"
+          ]
+        },
+        "transient_structure": {
+          "status": "partial",
+          "segment_crest_db_distribution": {
+            "count": 4,
+            "min": 12.846,
+            "p50": 14.234,
+            "p90": 14.726,
+            "max": 14.792
+          },
+          "onset_events_ready": false,
+          "attack_body_contrast_ready": false,
+          "sustain_decay_ready": false,
+          "evidence_refs": [
+            "offline_contract_material:spv1_p01:vocals",
+            "offline_material_analysis:transient_events"
+          ],
+          "limitations": [
+            "macro_crest_does_not_identify_onset_events",
+            "attack_body_and_sustain_decay_evidence_missing"
+          ]
+        },
+        "band_dynamics": {
+          "status": "ready",
+          "bands": [
+            {
+              "id": "low",
+              "status": "ready",
+              "min_hz": 40,
+              "max_hz": 160,
+              "energy_db": -45.5424
+            },
+            {
+              "id": "low_mid",
+              "status": "ready",
+              "min_hz": 160,
+              "max_hz": 500,
+              "energy_db": -20.6432
+            },
+            {
+              "id": "mid",
+              "status": "ready",
+              "min_hz": 500,
+              "max_hz": 2000,
+              "energy_db": -18.0613
+            },
+            {
+              "id": "presence",
+              "status": "ready",
+              "min_hz": 2000,
+              "max_hz": 5000,
+              "energy_db": -24.6192
+            },
+            {
+              "id": "high",
+              "status": "ready",
+              "min_hz": 5000,
+              "max_hz": 10000,
+              "energy_db": -46.8912
+            }
+          ],
+          "time_varying_ready": true,
+          "per_band_crest_ready": true,
+          "cross_band_relation_ready": true,
+          "evidence_refs": [
+            "offline_contract_material:spv1_p01:vocals",
+            "offline_material_analysis:band:high",
+            "offline_material_analysis:band:low",
+            "offline_material_analysis:band:low_mid",
+            "offline_material_analysis:band:mid",
+            "offline_material_analysis:band:presence"
+          ]
+        },
+        "dimension_readiness": [
+          {
+            "dimension": "peak_structure",
+            "status": "ready",
+            "supports": [
+              "sample_peak_context",
+              "crest_context",
+              "headroom_context"
+            ],
+            "limitations": [
+              "sample_peak_does_not_establish_true_peak",
+              "clip_events_are_not_inferred_from_peak_alone"
+            ]
+          },
+          {
+            "dimension": "activity_structure",
+            "status": "ready",
+            "supports": [
+              "declared_activity_context",
+              "low_energy_interval_context"
+            ],
+            "limitations": [
+              "control_threshold_or_range_cannot_be_inferred"
+            ]
+          },
+          {
+            "dimension": "frequency_time_events",
+            "status": "partial",
+            "supports": [
+              "whole_window_frequency_context"
+            ],
+            "limitations": [
+              "time_localized_frequency_events_partial"
+            ]
+          },
+          {
+            "dimension": "transient_structure",
+            "status": "partial",
+            "supports": [
+              "macro_crest_context"
+            ],
+            "limitations": [
+              "macro_crest_does_not_identify_onset_events",
+              "attack_body_and_sustain_decay_evidence_missing"
+            ]
+          },
+          {
+            "dimension": "band_dynamics",
+            "status": "ready",
+            "supports": [
+              "whole_window_band_context"
+            ]
+          }
+        ],
+        "trust_quality": {
+          "overall_status": "partial",
+          "can_support_source_description": true,
+          "can_support_family_selection": true,
+          "can_support_behavior_observation": false,
+          "can_support_post_action_evaluation": false,
+          "coverage": {
+            "declared_dimension_count": 5,
+            "source_coverage_ratio": 1,
+            "time_segment_count": 4,
+            "usable_dimension_count": 5,
+            "whole_window_band_count": 5
+          },
+          "limitations": [
+            "attack_body_and_sustain_decay_evidence_missing",
+            "clip_events_are_not_inferred_from_peak_alone",
+            "control_threshold_or_range_cannot_be_inferred",
+            "macro_crest_does_not_identify_onset_events",
+            "numeric_parameter_inference_forbidden",
+            "sample_peak_does_not_establish_true_peak",
+            "source_only_does_not_identify_or_recommend_a_processing_category",
+            "source_only_does_not_observe_processor_behavior",
+            "time_localized_frequency_events_partial"
+          ]
+        },
+        "evidence_refs": [
+          "offline_contract_material:spv1_p01:vocals"
+        ],
+        "limitations": [
+          "attack_body_and_sustain_decay_evidence_missing",
+          "clip_events_are_not_inferred_from_peak_alone",
+          "control_threshold_or_range_cannot_be_inferred",
+          "macro_crest_does_not_identify_onset_events",
+          "numeric_parameter_inference_forbidden",
+          "sample_peak_does_not_establish_true_peak",
+          "source_only_does_not_identify_or_recommend_a_processing_category",
+          "source_only_does_not_observe_processor_behavior",
+          "time_localized_frequency_events_partial"
+        ],
+        "llm_context": {
+          "summary_md": "DOM partial source_only projection exposes bounded, family-neutral source evidence; it does not recommend a processor or infer controls.",
+          "compact_facts": [
+            {
+              "can_support_behavior_observation": false,
+              "can_support_family_selection": true,
+              "can_support_source_description": true,
+              "layer": "trust_quality",
+              "status": "partial"
+            },
+            {
+              "dimension": "peak_structure",
+              "layer": "dimension_readiness",
+              "status": "ready"
+            },
+            {
+              "dimension": "activity_structure",
+              "layer": "dimension_readiness",
+              "status": "ready"
+            },
+            {
+              "dimension": "frequency_time_events",
+              "layer": "dimension_readiness",
+              "status": "partial"
+            },
+            {
+              "dimension": "transient_structure",
+              "layer": "dimension_readiness",
+              "status": "partial"
+            },
+            {
+              "dimension": "band_dynamics",
+              "layer": "dimension_readiness",
+              "status": "ready"
+            },
+            {
+              "at_or_above_full_scale_segment_count": 0,
+              "crest_db": 14.1822,
+              "headroom_db": 1.4365,
+              "layer": "peak_structure",
+              "peak_dbfs": -1.4365,
+              "status": "ready",
+              "true_peak_status": "missing"
+            },
+            {
+              "active_ratio": 1,
+              "layer": "activity_structure",
+              "low_or_silent_ratio": 0,
+              "noise_floor_status": "ready",
+              "status": "ready",
+              "valid_segment_count": 4
+            },
+            {
+              "event_count_available": true,
+              "layer": "frequency_time_events",
+              "status": "partial",
+              "time_localized": true,
+              "whole_window_band_count": 5
+            },
+            {
+              "attack_body_contrast_ready": false,
+              "layer": "transient_structure",
+              "onset_events_ready": false,
+              "status": "partial",
+              "sustain_decay_ready": false
+            },
+            {
+              "band_count": 5,
+              "cross_band_relation_ready": true,
+              "layer": "band_dynamics",
+              "per_band_crest_ready": true,
+              "status": "ready",
+              "time_varying_ready": true
+            }
+          ],
+          "do_not_include_raw_package": true,
+          "evidence_refs": [
+            "offline_contract_material:spv1_p01:vocals"
+          ],
+          "limitation_notes": [
+            "attack_body_and_sustain_decay_evidence_missing",
+            "clip_events_are_not_inferred_from_peak_alone",
+            "control_threshold_or_range_cannot_be_inferred",
+            "macro_crest_does_not_identify_onset_events",
+            "numeric_parameter_inference_forbidden",
+            "sample_peak_does_not_establish_true_peak",
+            "source_only_does_not_identify_or_recommend_a_processing_category",
+            "source_only_does_not_observe_processor_behavior",
+            "time_localized_frequency_events_partial"
+          ],
+          "suggested_next_step": "Use only the dimensions relevant to the current acoustic question and retain every missing or partial limitation."
+        },
+        "generated_at": "2026-08-13T11:20:15.9046416Z"
+      }
+    },
+    {
+      "case_id": "spv1_i04",
+      "project": "spv1_p01",
+      "target": "drums",
+      "start_seconds": 140,
+      "end_seconds": 160,
+      "projection": {
+        "schema_version": "dom.projection.v1",
+        "dom_version": "v1",
+        "projection_id": "dom_b50b18b227288918e81e",
+        "mode": "source_only",
+        "status": "partial",
+        "observation_id": "offline_readiness_spv1_i04",
+        "target_ref": {
+          "id": "drums",
+          "kind": "track"
+        },
+        "conditions": {
+          "start_seconds": 140,
+          "end_seconds": 160,
+          "measurement_key": "tap=|project=|source=|clip=|sample_rate=0|channel_count=0|range=140:160|window_ms=0|hop_ms=0|analyzer=|render="
+        },
+        "peak_structure": {
+          "status": "ready",
+          "peak_dbfs": -1.5033,
+          "headroom_db": 1.5033,
+          "crest_db": 15.2218,
+          "segment_peak_dbfs_distribution": {
+            "count": 4,
+            "min": -3.137,
+            "p50": -2.263,
+            "p90": -1.692,
+            "max": -1.503
+          },
+          "segment_crest_db_distribution": {
+            "count": 4,
+            "min": 13.509,
+            "p50": 13.727,
+            "p90": 17.336,
+            "max": 18.851
+          },
+          "at_or_above_full_scale_segment_count": 0,
+          "true_peak_status": "missing",
+          "evidence_refs": [
+            "offline_contract_material:spv1_p01:drums"
+          ],
+          "limitations": [
+            "sample_peak_does_not_establish_true_peak",
+            "clip_events_are_not_inferred_from_peak_alone"
+          ]
+        },
+        "activity_structure": {
+          "status": "ready",
+          "segment_count": 4,
+          "valid_segment_count": 4,
+          "active_segment_count": 4,
+          "low_energy_segment_count": 0,
+          "silent_segment_count": 0,
+          "unknown_segment_count": 0,
+          "coverage_ratio": 1,
+          "active_ratio": 1,
+          "noise_floor_status": "ready",
+          "evidence_refs": [
+            "offline_contract_material:spv1_p01:drums",
+            "offline_material_analysis:noise_floor"
+          ],
+          "limitations": [
+            "control_threshold_or_range_cannot_be_inferred"
+          ]
+        },
+        "frequency_time_events": {
+          "status": "partial",
+          "whole_window_bands": [
+            {
+              "id": "low",
+              "status": "ready",
+              "min_hz": 40,
+              "max_hz": 160,
+              "energy_db": -18.6665
+            },
+            {
+              "id": "low_mid",
+              "status": "ready",
+              "min_hz": 160,
+              "max_hz": 500,
+              "energy_db": -22.1669
+            },
+            {
+              "id": "mid",
+              "status": "ready",
+              "min_hz": 500,
+              "max_hz": 2000,
+              "energy_db": -36.5887
+            },
+            {
+              "id": "presence",
+              "status": "ready",
+              "min_hz": 2000,
+              "max_hz": 5000,
+              "energy_db": -31.9678
+            },
+            {
+              "id": "high",
+              "status": "ready",
+              "min_hz": 5000,
+              "max_hz": 10000,
+              "energy_db": -40.537
+            }
+          ],
+          "time_localized": true,
+          "event_count_available": true,
+          "evidence_refs": [
+            "offline_contract_material:spv1_p01:drums",
+            "offline_material_analysis:frequency_events"
+          ],
+          "limitations": [
+            "time_localized_frequency_events_partial"
+          ]
+        },
+        "transient_structure": {
+          "status": "partial",
+          "segment_crest_db_distribution": {
+            "count": 4,
+            "min": 13.509,
+            "p50": 13.727,
+            "p90": 17.336,
+            "max": 18.851
+          },
+          "onset_events_ready": false,
+          "attack_body_contrast_ready": false,
+          "sustain_decay_ready": false,
+          "evidence_refs": [
+            "offline_contract_material:spv1_p01:drums",
+            "offline_material_analysis:transient_events"
+          ],
+          "limitations": [
+            "macro_crest_does_not_identify_onset_events",
+            "attack_body_and_sustain_decay_evidence_missing"
+          ]
+        },
+        "band_dynamics": {
+          "status": "ready",
+          "bands": [
+            {
+              "id": "low",
+              "status": "ready",
+              "min_hz": 40,
+              "max_hz": 160,
+              "energy_db": -18.6665
+            },
+            {
+              "id": "low_mid",
+              "status": "ready",
+              "min_hz": 160,
+              "max_hz": 500,
+              "energy_db": -22.1669
+            },
+            {
+              "id": "mid",
+              "status": "ready",
+              "min_hz": 500,
+              "max_hz": 2000,
+              "energy_db": -36.5887
+            },
+            {
+              "id": "presence",
+              "status": "ready",
+              "min_hz": 2000,
+              "max_hz": 5000,
+              "energy_db": -31.9678
+            },
+            {
+              "id": "high",
+              "status": "ready",
+              "min_hz": 5000,
+              "max_hz": 10000,
+              "energy_db": -40.537
+            }
+          ],
+          "time_varying_ready": true,
+          "per_band_crest_ready": true,
+          "cross_band_relation_ready": true,
+          "evidence_refs": [
+            "offline_contract_material:spv1_p01:drums",
+            "offline_material_analysis:band:high",
+            "offline_material_analysis:band:low",
+            "offline_material_analysis:band:low_mid",
+            "offline_material_analysis:band:mid",
+            "offline_material_analysis:band:presence"
+          ]
+        },
+        "dimension_readiness": [
+          {
+            "dimension": "peak_structure",
+            "status": "ready",
+            "supports": [
+              "sample_peak_context",
+              "crest_context",
+              "headroom_context"
+            ],
+            "limitations": [
+              "sample_peak_does_not_establish_true_peak",
+              "clip_events_are_not_inferred_from_peak_alone"
+            ]
+          },
+          {
+            "dimension": "activity_structure",
+            "status": "ready",
+            "supports": [
+              "declared_activity_context",
+              "low_energy_interval_context"
+            ],
+            "limitations": [
+              "control_threshold_or_range_cannot_be_inferred"
+            ]
+          },
+          {
+            "dimension": "frequency_time_events",
+            "status": "partial",
+            "supports": [
+              "whole_window_frequency_context"
+            ],
+            "limitations": [
+              "time_localized_frequency_events_partial"
+            ]
+          },
+          {
+            "dimension": "transient_structure",
+            "status": "partial",
+            "supports": [
+              "macro_crest_context"
+            ],
+            "limitations": [
+              "macro_crest_does_not_identify_onset_events",
+              "attack_body_and_sustain_decay_evidence_missing"
+            ]
+          },
+          {
+            "dimension": "band_dynamics",
+            "status": "ready",
+            "supports": [
+              "whole_window_band_context"
+            ]
+          }
+        ],
+        "trust_quality": {
+          "overall_status": "partial",
+          "can_support_source_description": true,
+          "can_support_family_selection": true,
+          "can_support_behavior_observation": false,
+          "can_support_post_action_evaluation": false,
+          "coverage": {
+            "declared_dimension_count": 5,
+            "source_coverage_ratio": 1,
+            "time_segment_count": 4,
+            "usable_dimension_count": 5,
+            "whole_window_band_count": 5
+          },
+          "limitations": [
+            "attack_body_and_sustain_decay_evidence_missing",
+            "clip_events_are_not_inferred_from_peak_alone",
+            "control_threshold_or_range_cannot_be_inferred",
+            "macro_crest_does_not_identify_onset_events",
+            "numeric_parameter_inference_forbidden",
+            "sample_peak_does_not_establish_true_peak",
+            "source_only_does_not_identify_or_recommend_a_processing_category",
+            "source_only_does_not_observe_processor_behavior",
+            "time_localized_frequency_events_partial"
+          ]
+        },
+        "evidence_refs": [
+          "offline_contract_material:spv1_p01:drums"
+        ],
+        "limitations": [
+          "attack_body_and_sustain_decay_evidence_missing",
+          "clip_events_are_not_inferred_from_peak_alone",
+          "control_threshold_or_range_cannot_be_inferred",
+          "macro_crest_does_not_identify_onset_events",
+          "numeric_parameter_inference_forbidden",
+          "sample_peak_does_not_establish_true_peak",
+          "source_only_does_not_identify_or_recommend_a_processing_category",
+          "source_only_does_not_observe_processor_behavior",
+          "time_localized_frequency_events_partial"
+        ],
+        "llm_context": {
+          "summary_md": "DOM partial source_only projection exposes bounded, family-neutral source evidence; it does not recommend a processor or infer controls.",
+          "compact_facts": [
+            {
+              "can_support_behavior_observation": false,
+              "can_support_family_selection": true,
+              "can_support_source_description": true,
+              "layer": "trust_quality",
+              "status": "partial"
+            },
+            {
+              "dimension": "peak_structure",
+              "layer": "dimension_readiness",
+              "status": "ready"
+            },
+            {
+              "dimension": "activity_structure",
+              "layer": "dimension_readiness",
+              "status": "ready"
+            },
+            {
+              "dimension": "frequency_time_events",
+              "layer": "dimension_readiness",
+              "status": "partial"
+            },
+            {
+              "dimension": "transient_structure",
+              "layer": "dimension_readiness",
+              "status": "partial"
+            },
+            {
+              "dimension": "band_dynamics",
+              "layer": "dimension_readiness",
+              "status": "ready"
+            },
+            {
+              "at_or_above_full_scale_segment_count": 0,
+              "crest_db": 15.2218,
+              "headroom_db": 1.5033,
+              "layer": "peak_structure",
+              "peak_dbfs": -1.5033,
+              "status": "ready",
+              "true_peak_status": "missing"
+            },
+            {
+              "active_ratio": 1,
+              "layer": "activity_structure",
+              "low_or_silent_ratio": 0,
+              "noise_floor_status": "ready",
+              "status": "ready",
+              "valid_segment_count": 4
+            },
+            {
+              "event_count_available": true,
+              "layer": "frequency_time_events",
+              "status": "partial",
+              "time_localized": true,
+              "whole_window_band_count": 5
+            },
+            {
+              "attack_body_contrast_ready": false,
+              "layer": "transient_structure",
+              "onset_events_ready": false,
+              "status": "partial",
+              "sustain_decay_ready": false
+            },
+            {
+              "band_count": 5,
+              "cross_band_relation_ready": true,
+              "layer": "band_dynamics",
+              "per_band_crest_ready": true,
+              "status": "ready",
+              "time_varying_ready": true
+            }
+          ],
+          "do_not_include_raw_package": true,
+          "evidence_refs": [
+            "offline_contract_material:spv1_p01:drums"
+          ],
+          "limitation_notes": [
+            "attack_body_and_sustain_decay_evidence_missing",
+            "clip_events_are_not_inferred_from_peak_alone",
+            "control_threshold_or_range_cannot_be_inferred",
+            "macro_crest_does_not_identify_onset_events",
+            "numeric_parameter_inference_forbidden",
+            "sample_peak_does_not_establish_true_peak",
+            "source_only_does_not_identify_or_recommend_a_processing_category",
+            "source_only_does_not_observe_processor_behavior",
+            "time_localized_frequency_events_partial"
+          ],
+          "suggested_next_step": "Use only the dimensions relevant to the current acoustic question and retain every missing or partial limitation."
+        },
+        "generated_at": "2026-08-13T11:20:15.9046416Z"
+      }
+    },
+    {
+      "case_id": "spv1_i05",
+      "project": "spv1_p02",
+      "target": "other",
+      "start_seconds": 130,
+      "end_seconds": 150,
+      "projection": {
+        "schema_version": "dom.projection.v1",
+        "dom_version": "v1",
+        "projection_id": "dom_2ed7216b3c0592a04d92",
+        "mode": "source_only",
+        "status": "partial",
+        "observation_id": "offline_readiness_spv1_i05",
+        "target_ref": {
+          "id": "other",
+          "kind": "track"
+        },
+        "conditions": {
+          "start_seconds": 130,
+          "end_seconds": 150,
+          "measurement_key": "tap=|project=|source=|clip=|sample_rate=0|channel_count=0|range=130:150|window_ms=0|hop_ms=0|analyzer=|render="
+        },
+        "peak_structure": {
+          "status": "ready",
+          "peak_dbfs": -4.612,
+          "headroom_db": 4.612,
+          "crest_db": 18.7189,
+          "segment_peak_dbfs_distribution": {
+            "count": 4,
+            "min": -6.751,
+            "p50": -5.964,
+            "p90": -4.812,
+            "max": -4.612
+          },
+          "segment_crest_db_distribution": {
+            "count": 4,
+            "min": 15.835,
+            "p50": 17.421,
+            "p90": 19.194,
+            "max": 19.799
+          },
+          "at_or_above_full_scale_segment_count": 0,
+          "true_peak_status": "missing",
+          "evidence_refs": [
+            "offline_contract_material:spv1_p02:other"
+          ],
+          "limitations": [
+            "sample_peak_does_not_establish_true_peak",
+            "clip_events_are_not_inferred_from_peak_alone"
+          ]
+        },
+        "activity_structure": {
+          "status": "ready",
+          "segment_count": 4,
+          "valid_segment_count": 4,
+          "active_segment_count": 4,
+          "low_energy_segment_count": 0,
+          "silent_segment_count": 0,
+          "unknown_segment_count": 0,
+          "coverage_ratio": 1,
+          "active_ratio": 1,
+          "noise_floor_status": "ready",
+          "evidence_refs": [
+            "offline_contract_material:spv1_p02:other",
+            "offline_material_analysis:noise_floor"
+          ],
+          "limitations": [
+            "control_threshold_or_range_cannot_be_inferred"
+          ]
+        },
+        "frequency_time_events": {
+          "status": "partial",
+          "whole_window_bands": [
+            {
+              "id": "low",
+              "status": "ready",
+              "min_hz": 40,
+              "max_hz": 160,
+              "energy_db": -41.731
+            },
+            {
+              "id": "low_mid",
+              "status": "ready",
+              "min_hz": 160,
+              "max_hz": 500,
+              "energy_db": -28.9936
+            },
+            {
+              "id": "mid",
+              "status": "ready",
+              "min_hz": 500,
+              "max_hz": 2000,
+              "energy_db": -26.4008
+            },
+            {
+              "id": "presence",
+              "status": "ready",
+              "min_hz": 2000,
+              "max_hz": 5000,
+              "energy_db": -29.8682
+            },
+            {
+              "id": "high",
+              "status": "ready",
+              "min_hz": 5000,
+              "max_hz": 10000,
+              "energy_db": -45.0214
+            }
+          ],
+          "time_localized": true,
+          "event_count_available": true,
+          "evidence_refs": [
+            "offline_contract_material:spv1_p02:other",
+            "offline_material_analysis:frequency_events"
+          ],
+          "limitations": [
+            "time_localized_frequency_events_partial"
+          ]
+        },
+        "transient_structure": {
+          "status": "partial",
+          "segment_crest_db_distribution": {
+            "count": 4,
+            "min": 15.835,
+            "p50": 17.421,
+            "p90": 19.194,
+            "max": 19.799
+          },
+          "onset_events_ready": false,
+          "attack_body_contrast_ready": false,
+          "sustain_decay_ready": false,
+          "evidence_refs": [
+            "offline_contract_material:spv1_p02:other",
+            "offline_material_analysis:transient_events"
+          ],
+          "limitations": [
+            "macro_crest_does_not_identify_onset_events",
+            "attack_body_and_sustain_decay_evidence_missing"
+          ]
+        },
+        "band_dynamics": {
+          "status": "ready",
+          "bands": [
+            {
+              "id": "low",
+              "status": "ready",
+              "min_hz": 40,
+              "max_hz": 160,
+              "energy_db": -41.731
+            },
+            {
+              "id": "low_mid",
+              "status": "ready",
+              "min_hz": 160,
+              "max_hz": 500,
+              "energy_db": -28.9936
+            },
+            {
+              "id": "mid",
+              "status": "ready",
+              "min_hz": 500,
+              "max_hz": 2000,
+              "energy_db": -26.4008
+            },
+            {
+              "id": "presence",
+              "status": "ready",
+              "min_hz": 2000,
+              "max_hz": 5000,
+              "energy_db": -29.8682
+            },
+            {
+              "id": "high",
+              "status": "ready",
+              "min_hz": 5000,
+              "max_hz": 10000,
+              "energy_db": -45.0214
+            }
+          ],
+          "time_varying_ready": true,
+          "per_band_crest_ready": true,
+          "cross_band_relation_ready": true,
+          "evidence_refs": [
+            "offline_contract_material:spv1_p02:other",
+            "offline_material_analysis:band:high",
+            "offline_material_analysis:band:low",
+            "offline_material_analysis:band:low_mid",
+            "offline_material_analysis:band:mid",
+            "offline_material_analysis:band:presence"
+          ]
+        },
+        "dimension_readiness": [
+          {
+            "dimension": "peak_structure",
+            "status": "ready",
+            "supports": [
+              "sample_peak_context",
+              "crest_context",
+              "headroom_context"
+            ],
+            "limitations": [
+              "sample_peak_does_not_establish_true_peak",
+              "clip_events_are_not_inferred_from_peak_alone"
+            ]
+          },
+          {
+            "dimension": "activity_structure",
+            "status": "ready",
+            "supports": [
+              "declared_activity_context",
+              "low_energy_interval_context"
+            ],
+            "limitations": [
+              "control_threshold_or_range_cannot_be_inferred"
+            ]
+          },
+          {
+            "dimension": "frequency_time_events",
+            "status": "partial",
+            "supports": [
+              "whole_window_frequency_context"
+            ],
+            "limitations": [
+              "time_localized_frequency_events_partial"
+            ]
+          },
+          {
+            "dimension": "transient_structure",
+            "status": "partial",
+            "supports": [
+              "macro_crest_context"
+            ],
+            "limitations": [
+              "macro_crest_does_not_identify_onset_events",
+              "attack_body_and_sustain_decay_evidence_missing"
+            ]
+          },
+          {
+            "dimension": "band_dynamics",
+            "status": "ready",
+            "supports": [
+              "whole_window_band_context"
+            ]
+          }
+        ],
+        "trust_quality": {
+          "overall_status": "partial",
+          "can_support_source_description": true,
+          "can_support_family_selection": true,
+          "can_support_behavior_observation": false,
+          "can_support_post_action_evaluation": false,
+          "coverage": {
+            "declared_dimension_count": 5,
+            "source_coverage_ratio": 1,
+            "time_segment_count": 4,
+            "usable_dimension_count": 5,
+            "whole_window_band_count": 5
+          },
+          "limitations": [
+            "attack_body_and_sustain_decay_evidence_missing",
+            "clip_events_are_not_inferred_from_peak_alone",
+            "control_threshold_or_range_cannot_be_inferred",
+            "macro_crest_does_not_identify_onset_events",
+            "numeric_parameter_inference_forbidden",
+            "sample_peak_does_not_establish_true_peak",
+            "source_only_does_not_identify_or_recommend_a_processing_category",
+            "source_only_does_not_observe_processor_behavior",
+            "time_localized_frequency_events_partial"
+          ]
+        },
+        "evidence_refs": [
+          "offline_contract_material:spv1_p02:other"
+        ],
+        "limitations": [
+          "attack_body_and_sustain_decay_evidence_missing",
+          "clip_events_are_not_inferred_from_peak_alone",
+          "control_threshold_or_range_cannot_be_inferred",
+          "macro_crest_does_not_identify_onset_events",
+          "numeric_parameter_inference_forbidden",
+          "sample_peak_does_not_establish_true_peak",
+          "source_only_does_not_identify_or_recommend_a_processing_category",
+          "source_only_does_not_observe_processor_behavior",
+          "time_localized_frequency_events_partial"
+        ],
+        "llm_context": {
+          "summary_md": "DOM partial source_only projection exposes bounded, family-neutral source evidence; it does not recommend a processor or infer controls.",
+          "compact_facts": [
+            {
+              "can_support_behavior_observation": false,
+              "can_support_family_selection": true,
+              "can_support_source_description": true,
+              "layer": "trust_quality",
+              "status": "partial"
+            },
+            {
+              "dimension": "peak_structure",
+              "layer": "dimension_readiness",
+              "status": "ready"
+            },
+            {
+              "dimension": "activity_structure",
+              "layer": "dimension_readiness",
+              "status": "ready"
+            },
+            {
+              "dimension": "frequency_time_events",
+              "layer": "dimension_readiness",
+              "status": "partial"
+            },
+            {
+              "dimension": "transient_structure",
+              "layer": "dimension_readiness",
+              "status": "partial"
+            },
+            {
+              "dimension": "band_dynamics",
+              "layer": "dimension_readiness",
+              "status": "ready"
+            },
+            {
+              "at_or_above_full_scale_segment_count": 0,
+              "crest_db": 18.7189,
+              "headroom_db": 4.612,
+              "layer": "peak_structure",
+              "peak_dbfs": -4.612,
+              "status": "ready",
+              "true_peak_status": "missing"
+            },
+            {
+              "active_ratio": 1,
+              "layer": "activity_structure",
+              "low_or_silent_ratio": 0,
+              "noise_floor_status": "ready",
+              "status": "ready",
+              "valid_segment_count": 4
+            },
+            {
+              "event_count_available": true,
+              "layer": "frequency_time_events",
+              "status": "partial",
+              "time_localized": true,
+              "whole_window_band_count": 5
+            },
+            {
+              "attack_body_contrast_ready": false,
+              "layer": "transient_structure",
+              "onset_events_ready": false,
+              "status": "partial",
+              "sustain_decay_ready": false
+            },
+            {
+              "band_count": 5,
+              "cross_band_relation_ready": true,
+              "layer": "band_dynamics",
+              "per_band_crest_ready": true,
+              "status": "ready",
+              "time_varying_ready": true
+            }
+          ],
+          "do_not_include_raw_package": true,
+          "evidence_refs": [
+            "offline_contract_material:spv1_p02:other"
+          ],
+          "limitation_notes": [
+            "attack_body_and_sustain_decay_evidence_missing",
+            "clip_events_are_not_inferred_from_peak_alone",
+            "control_threshold_or_range_cannot_be_inferred",
+            "macro_crest_does_not_identify_onset_events",
+            "numeric_parameter_inference_forbidden",
+            "sample_peak_does_not_establish_true_peak",
+            "source_only_does_not_identify_or_recommend_a_processing_category",
+            "source_only_does_not_observe_processor_behavior",
+            "time_localized_frequency_events_partial"
+          ],
+          "suggested_next_step": "Use only the dimensions relevant to the current acoustic question and retain every missing or partial limitation."
+        },
+        "generated_at": "2026-08-13T11:20:15.9046416Z"
+      }
+    },
+    {
+      "case_id": "spv1_i06",
+      "project": "spv1_p02",
+      "target": "drums",
+      "start_seconds": 130,
+      "end_seconds": 150,
+      "projection": {
+        "schema_version": "dom.projection.v1",
+        "dom_version": "v1",
+        "projection_id": "dom_8fae47d4bb7874d75fe6",
+        "mode": "source_only",
+        "status": "partial",
+        "observation_id": "offline_readiness_spv1_i06",
+        "target_ref": {
+          "id": "drums",
+          "kind": "track"
+        },
+        "conditions": {
+          "start_seconds": 130,
+          "end_seconds": 150,
+          "measurement_key": "tap=|project=|source=|clip=|sample_rate=0|channel_count=0|range=130:150|window_ms=0|hop_ms=0|analyzer=|render="
+        },
+        "peak_structure": {
+          "status": "ready",
+          "peak_dbfs": -2.2755,
+          "headroom_db": 2.2755,
+          "crest_db": 15.5431,
+          "segment_peak_dbfs_distribution": {
+            "count": 4,
+            "min": -4.434,
+            "p50": -3.661,
+            "p90": -2.66,
+            "max": -2.276
+          },
+          "segment_crest_db_distribution": {
+            "count": 4,
+            "min": 12.839,
+            "p50": 14.538,
+            "p90": 16.734,
+            "max": 17.578
+          },
+          "at_or_above_full_scale_segment_count": 0,
+          "true_peak_status": "missing",
+          "evidence_refs": [
+            "offline_contract_material:spv1_p02:drums"
+          ],
+          "limitations": [
+            "sample_peak_does_not_establish_true_peak",
+            "clip_events_are_not_inferred_from_peak_alone"
+          ]
+        },
+        "activity_structure": {
+          "status": "ready",
+          "segment_count": 4,
+          "valid_segment_count": 4,
+          "active_segment_count": 4,
+          "low_energy_segment_count": 0,
+          "silent_segment_count": 0,
+          "unknown_segment_count": 0,
+          "coverage_ratio": 1,
+          "active_ratio": 1,
+          "noise_floor_status": "ready",
+          "evidence_refs": [
+            "offline_contract_material:spv1_p02:drums",
+            "offline_material_analysis:noise_floor"
+          ],
+          "limitations": [
+            "control_threshold_or_range_cannot_be_inferred"
+          ]
+        },
+        "frequency_time_events": {
+          "status": "partial",
+          "whole_window_bands": [
+            {
+              "id": "low",
+              "status": "ready",
+              "min_hz": 40,
+              "max_hz": 160,
+              "energy_db": -18.6083
+            },
+            {
+              "id": "low_mid",
+              "status": "ready",
+              "min_hz": 160,
+              "max_hz": 500,
+              "energy_db": -32.3684
+            },
+            {
+              "id": "mid",
+              "status": "ready",
+              "min_hz": 500,
+              "max_hz": 2000,
+              "energy_db": -37.6917
+            },
+            {
+              "id": "presence",
+              "status": "ready",
+              "min_hz": 2000,
+              "max_hz": 5000,
+              "energy_db": -39.0837
+            },
+            {
+              "id": "high",
+              "status": "ready",
+              "min_hz": 5000,
+              "max_hz": 10000,
+              "energy_db": -51.7113
+            }
+          ],
+          "time_localized": true,
+          "event_count_available": true,
+          "evidence_refs": [
+            "offline_contract_material:spv1_p02:drums",
+            "offline_material_analysis:frequency_events"
+          ],
+          "limitations": [
+            "time_localized_frequency_events_partial"
+          ]
+        },
+        "transient_structure": {
+          "status": "partial",
+          "segment_crest_db_distribution": {
+            "count": 4,
+            "min": 12.839,
+            "p50": 14.538,
+            "p90": 16.734,
+            "max": 17.578
+          },
+          "onset_events_ready": false,
+          "attack_body_contrast_ready": false,
+          "sustain_decay_ready": false,
+          "evidence_refs": [
+            "offline_contract_material:spv1_p02:drums",
+            "offline_material_analysis:transient_events"
+          ],
+          "limitations": [
+            "macro_crest_does_not_identify_onset_events",
+            "attack_body_and_sustain_decay_evidence_missing"
+          ]
+        },
+        "band_dynamics": {
+          "status": "ready",
+          "bands": [
+            {
+              "id": "low",
+              "status": "ready",
+              "min_hz": 40,
+              "max_hz": 160,
+              "energy_db": -18.6083
+            },
+            {
+              "id": "low_mid",
+              "status": "ready",
+              "min_hz": 160,
+              "max_hz": 500,
+              "energy_db": -32.3684
+            },
+            {
+              "id": "mid",
+              "status": "ready",
+              "min_hz": 500,
+              "max_hz": 2000,
+              "energy_db": -37.6917
+            },
+            {
+              "id": "presence",
+              "status": "ready",
+              "min_hz": 2000,
+              "max_hz": 5000,
+              "energy_db": -39.0837
+            },
+            {
+              "id": "high",
+              "status": "ready",
+              "min_hz": 5000,
+              "max_hz": 10000,
+              "energy_db": -51.7113
+            }
+          ],
+          "time_varying_ready": true,
+          "per_band_crest_ready": true,
+          "cross_band_relation_ready": true,
+          "evidence_refs": [
+            "offline_contract_material:spv1_p02:drums",
+            "offline_material_analysis:band:high",
+            "offline_material_analysis:band:low",
+            "offline_material_analysis:band:low_mid",
+            "offline_material_analysis:band:mid",
+            "offline_material_analysis:band:presence"
+          ]
+        },
+        "dimension_readiness": [
+          {
+            "dimension": "peak_structure",
+            "status": "ready",
+            "supports": [
+              "sample_peak_context",
+              "crest_context",
+              "headroom_context"
+            ],
+            "limitations": [
+              "sample_peak_does_not_establish_true_peak",
+              "clip_events_are_not_inferred_from_peak_alone"
+            ]
+          },
+          {
+            "dimension": "activity_structure",
+            "status": "ready",
+            "supports": [
+              "declared_activity_context",
+              "low_energy_interval_context"
+            ],
+            "limitations": [
+              "control_threshold_or_range_cannot_be_inferred"
+            ]
+          },
+          {
+            "dimension": "frequency_time_events",
+            "status": "partial",
+            "supports": [
+              "whole_window_frequency_context"
+            ],
+            "limitations": [
+              "time_localized_frequency_events_partial"
+            ]
+          },
+          {
+            "dimension": "transient_structure",
+            "status": "partial",
+            "supports": [
+              "macro_crest_context"
+            ],
+            "limitations": [
+              "macro_crest_does_not_identify_onset_events",
+              "attack_body_and_sustain_decay_evidence_missing"
+            ]
+          },
+          {
+            "dimension": "band_dynamics",
+            "status": "ready",
+            "supports": [
+              "whole_window_band_context"
+            ]
+          }
+        ],
+        "trust_quality": {
+          "overall_status": "partial",
+          "can_support_source_description": true,
+          "can_support_family_selection": true,
+          "can_support_behavior_observation": false,
+          "can_support_post_action_evaluation": false,
+          "coverage": {
+            "declared_dimension_count": 5,
+            "source_coverage_ratio": 1,
+            "time_segment_count": 4,
+            "usable_dimension_count": 5,
+            "whole_window_band_count": 5
+          },
+          "limitations": [
+            "attack_body_and_sustain_decay_evidence_missing",
+            "clip_events_are_not_inferred_from_peak_alone",
+            "control_threshold_or_range_cannot_be_inferred",
+            "macro_crest_does_not_identify_onset_events",
+            "numeric_parameter_inference_forbidden",
+            "sample_peak_does_not_establish_true_peak",
+            "source_only_does_not_identify_or_recommend_a_processing_category",
+            "source_only_does_not_observe_processor_behavior",
+            "time_localized_frequency_events_partial"
+          ]
+        },
+        "evidence_refs": [
+          "offline_contract_material:spv1_p02:drums"
+        ],
+        "limitations": [
+          "attack_body_and_sustain_decay_evidence_missing",
+          "clip_events_are_not_inferred_from_peak_alone",
+          "control_threshold_or_range_cannot_be_inferred",
+          "macro_crest_does_not_identify_onset_events",
+          "numeric_parameter_inference_forbidden",
+          "sample_peak_does_not_establish_true_peak",
+          "source_only_does_not_identify_or_recommend_a_processing_category",
+          "source_only_does_not_observe_processor_behavior",
+          "time_localized_frequency_events_partial"
+        ],
+        "llm_context": {
+          "summary_md": "DOM partial source_only projection exposes bounded, family-neutral source evidence; it does not recommend a processor or infer controls.",
+          "compact_facts": [
+            {
+              "can_support_behavior_observation": false,
+              "can_support_family_selection": true,
+              "can_support_source_description": true,
+              "layer": "trust_quality",
+              "status": "partial"
+            },
+            {
+              "dimension": "peak_structure",
+              "layer": "dimension_readiness",
+              "status": "ready"
+            },
+            {
+              "dimension": "activity_structure",
+              "layer": "dimension_readiness",
+              "status": "ready"
+            },
+            {
+              "dimension": "frequency_time_events",
+              "layer": "dimension_readiness",
+              "status": "partial"
+            },
+            {
+              "dimension": "transient_structure",
+              "layer": "dimension_readiness",
+              "status": "partial"
+            },
+            {
+              "dimension": "band_dynamics",
+              "layer": "dimension_readiness",
+              "status": "ready"
+            },
+            {
+              "at_or_above_full_scale_segment_count": 0,
+              "crest_db": 15.5431,
+              "headroom_db": 2.2755,
+              "layer": "peak_structure",
+              "peak_dbfs": -2.2755,
+              "status": "ready",
+              "true_peak_status": "missing"
+            },
+            {
+              "active_ratio": 1,
+              "layer": "activity_structure",
+              "low_or_silent_ratio": 0,
+              "noise_floor_status": "ready",
+              "status": "ready",
+              "valid_segment_count": 4
+            },
+            {
+              "event_count_available": true,
+              "layer": "frequency_time_events",
+              "status": "partial",
+              "time_localized": true,
+              "whole_window_band_count": 5
+            },
+            {
+              "attack_body_contrast_ready": false,
+              "layer": "transient_structure",
+              "onset_events_ready": false,
+              "status": "partial",
+              "sustain_decay_ready": false
+            },
+            {
+              "band_count": 5,
+              "cross_band_relation_ready": true,
+              "layer": "band_dynamics",
+              "per_band_crest_ready": true,
+              "status": "ready",
+              "time_varying_ready": true
+            }
+          ],
+          "do_not_include_raw_package": true,
+          "evidence_refs": [
+            "offline_contract_material:spv1_p02:drums"
+          ],
+          "limitation_notes": [
+            "attack_body_and_sustain_decay_evidence_missing",
+            "clip_events_are_not_inferred_from_peak_alone",
+            "control_threshold_or_range_cannot_be_inferred",
+            "macro_crest_does_not_identify_onset_events",
+            "numeric_parameter_inference_forbidden",
+            "sample_peak_does_not_establish_true_peak",
+            "source_only_does_not_identify_or_recommend_a_processing_category",
+            "source_only_does_not_observe_processor_behavior",
+            "time_localized_frequency_events_partial"
+          ],
+          "suggested_next_step": "Use only the dimensions relevant to the current acoustic question and retain every missing or partial limitation."
+        },
+        "generated_at": "2026-08-13T11:20:15.9046416Z"
+      }
+    },
+    {
+      "case_id": "spv1_i07",
+      "project": "spv1_p02",
+      "target": "bass",
+      "start_seconds": 130,
+      "end_seconds": 150,
+      "projection": {
+        "schema_version": "dom.projection.v1",
+        "dom_version": "v1",
+        "projection_id": "dom_5fa6cd9a4d5d37cb17f3",
+        "mode": "source_only",
+        "status": "partial",
+        "observation_id": "offline_readiness_spv1_i07",
+        "target_ref": {
+          "id": "bass",
+          "kind": "track"
+        },
+        "conditions": {
+          "start_seconds": 130,
+          "end_seconds": 150,
+          "measurement_key": "tap=|project=|source=|clip=|sample_rate=0|channel_count=0|range=130:150|window_ms=0|hop_ms=0|analyzer=|render="
+        },
+        "peak_structure": {
+          "status": "ready",
+          "peak_dbfs": -6.3298,
+          "headroom_db": 6.3298,
+          "crest_db": 12.6673,
+          "segment_peak_dbfs_distribution": {
+            "count": 4,
+            "min": -7.26,
+            "p50": -6.938,
+            "p90": -6.501,
+            "max": -6.33
+          },
+          "segment_crest_db_distribution": {
+            "count": 4,
+            "min": 11.224,
+            "p50": 11.493,
+            "p90": 14.676,
+            "max": 15.945
+          },
+          "at_or_above_full_scale_segment_count": 0,
+          "true_peak_status": "missing",
+          "evidence_refs": [
+            "offline_contract_material:spv1_p02:bass"
+          ],
+          "limitations": [
+            "sample_peak_does_not_establish_true_peak",
+            "clip_events_are_not_inferred_from_peak_alone"
+          ]
+        },
+        "activity_structure": {
+          "status": "ready",
+          "segment_count": 4,
+          "valid_segment_count": 4,
+          "active_segment_count": 4,
+          "low_energy_segment_count": 0,
+          "silent_segment_count": 0,
+          "unknown_segment_count": 0,
+          "coverage_ratio": 1,
+          "active_ratio": 1,
+          "noise_floor_status": "ready",
+          "evidence_refs": [
+            "offline_contract_material:spv1_p02:bass",
+            "offline_material_analysis:noise_floor"
+          ],
+          "limitations": [
+            "control_threshold_or_range_cannot_be_inferred"
+          ]
+        },
+        "frequency_time_events": {
+          "status": "partial",
+          "whole_window_bands": [
+            {
+              "id": "low",
+              "status": "ready",
+              "min_hz": 40,
+              "max_hz": 160,
+              "energy_db": -20.2631
+            },
+            {
+              "id": "low_mid",
+              "status": "ready",
+              "min_hz": 160,
+              "max_hz": 500,
+              "energy_db": -27.3313
+            },
+            {
+              "id": "mid",
+              "status": "ready",
+              "min_hz": 500,
+              "max_hz": 2000,
+              "energy_db": -46.7093
+            },
+            {
+              "id": "presence",
+              "status": "ready",
+              "min_hz": 2000,
+              "max_hz": 5000,
+              "energy_db": -63.0773
+            },
+            {
+              "id": "high",
+              "status": "ready",
+              "min_hz": 5000,
+              "max_hz": 10000,
+              "energy_db": -85.1592
+            }
+          ],
+          "time_localized": true,
+          "event_count_available": true,
+          "evidence_refs": [
+            "offline_contract_material:spv1_p02:bass",
+            "offline_material_analysis:frequency_events"
+          ],
+          "limitations": [
+            "time_localized_frequency_events_partial"
+          ]
+        },
+        "transient_structure": {
+          "status": "partial",
+          "segment_crest_db_distribution": {
+            "count": 4,
+            "min": 11.224,
+            "p50": 11.493,
+            "p90": 14.676,
+            "max": 15.945
+          },
+          "onset_events_ready": false,
+          "attack_body_contrast_ready": false,
+          "sustain_decay_ready": false,
+          "evidence_refs": [
+            "offline_contract_material:spv1_p02:bass",
+            "offline_material_analysis:transient_events"
+          ],
+          "limitations": [
+            "macro_crest_does_not_identify_onset_events",
+            "attack_body_and_sustain_decay_evidence_missing"
+          ]
+        },
+        "band_dynamics": {
+          "status": "ready",
+          "bands": [
+            {
+              "id": "low",
+              "status": "ready",
+              "min_hz": 40,
+              "max_hz": 160,
+              "energy_db": -20.2631
+            },
+            {
+              "id": "low_mid",
+              "status": "ready",
+              "min_hz": 160,
+              "max_hz": 500,
+              "energy_db": -27.3313
+            },
+            {
+              "id": "mid",
+              "status": "ready",
+              "min_hz": 500,
+              "max_hz": 2000,
+              "energy_db": -46.7093
+            },
+            {
+              "id": "presence",
+              "status": "ready",
+              "min_hz": 2000,
+              "max_hz": 5000,
+              "energy_db": -63.0773
+            },
+            {
+              "id": "high",
+              "status": "ready",
+              "min_hz": 5000,
+              "max_hz": 10000,
+              "energy_db": -85.1592
+            }
+          ],
+          "time_varying_ready": true,
+          "per_band_crest_ready": true,
+          "cross_band_relation_ready": true,
+          "evidence_refs": [
+            "offline_contract_material:spv1_p02:bass",
+            "offline_material_analysis:band:high",
+            "offline_material_analysis:band:low",
+            "offline_material_analysis:band:low_mid",
+            "offline_material_analysis:band:mid",
+            "offline_material_analysis:band:presence"
+          ]
+        },
+        "dimension_readiness": [
+          {
+            "dimension": "peak_structure",
+            "status": "ready",
+            "supports": [
+              "sample_peak_context",
+              "crest_context",
+              "headroom_context"
+            ],
+            "limitations": [
+              "sample_peak_does_not_establish_true_peak",
+              "clip_events_are_not_inferred_from_peak_alone"
+            ]
+          },
+          {
+            "dimension": "activity_structure",
+            "status": "ready",
+            "supports": [
+              "declared_activity_context",
+              "low_energy_interval_context"
+            ],
+            "limitations": [
+              "control_threshold_or_range_cannot_be_inferred"
+            ]
+          },
+          {
+            "dimension": "frequency_time_events",
+            "status": "partial",
+            "supports": [
+              "whole_window_frequency_context"
+            ],
+            "limitations": [
+              "time_localized_frequency_events_partial"
+            ]
+          },
+          {
+            "dimension": "transient_structure",
+            "status": "partial",
+            "supports": [
+              "macro_crest_context"
+            ],
+            "limitations": [
+              "macro_crest_does_not_identify_onset_events",
+              "attack_body_and_sustain_decay_evidence_missing"
+            ]
+          },
+          {
+            "dimension": "band_dynamics",
+            "status": "ready",
+            "supports": [
+              "whole_window_band_context"
+            ]
+          }
+        ],
+        "trust_quality": {
+          "overall_status": "partial",
+          "can_support_source_description": true,
+          "can_support_family_selection": true,
+          "can_support_behavior_observation": false,
+          "can_support_post_action_evaluation": false,
+          "coverage": {
+            "declared_dimension_count": 5,
+            "source_coverage_ratio": 1,
+            "time_segment_count": 4,
+            "usable_dimension_count": 5,
+            "whole_window_band_count": 5
+          },
+          "limitations": [
+            "attack_body_and_sustain_decay_evidence_missing",
+            "clip_events_are_not_inferred_from_peak_alone",
+            "control_threshold_or_range_cannot_be_inferred",
+            "macro_crest_does_not_identify_onset_events",
+            "numeric_parameter_inference_forbidden",
+            "sample_peak_does_not_establish_true_peak",
+            "source_only_does_not_identify_or_recommend_a_processing_category",
+            "source_only_does_not_observe_processor_behavior",
+            "time_localized_frequency_events_partial"
+          ]
+        },
+        "evidence_refs": [
+          "offline_contract_material:spv1_p02:bass"
+        ],
+        "limitations": [
+          "attack_body_and_sustain_decay_evidence_missing",
+          "clip_events_are_not_inferred_from_peak_alone",
+          "control_threshold_or_range_cannot_be_inferred",
+          "macro_crest_does_not_identify_onset_events",
+          "numeric_parameter_inference_forbidden",
+          "sample_peak_does_not_establish_true_peak",
+          "source_only_does_not_identify_or_recommend_a_processing_category",
+          "source_only_does_not_observe_processor_behavior",
+          "time_localized_frequency_events_partial"
+        ],
+        "llm_context": {
+          "summary_md": "DOM partial source_only projection exposes bounded, family-neutral source evidence; it does not recommend a processor or infer controls.",
+          "compact_facts": [
+            {
+              "can_support_behavior_observation": false,
+              "can_support_family_selection": true,
+              "can_support_source_description": true,
+              "layer": "trust_quality",
+              "status": "partial"
+            },
+            {
+              "dimension": "peak_structure",
+              "layer": "dimension_readiness",
+              "status": "ready"
+            },
+            {
+              "dimension": "activity_structure",
+              "layer": "dimension_readiness",
+              "status": "ready"
+            },
+            {
+              "dimension": "frequency_time_events",
+              "layer": "dimension_readiness",
+              "status": "partial"
+            },
+            {
+              "dimension": "transient_structure",
+              "layer": "dimension_readiness",
+              "status": "partial"
+            },
+            {
+              "dimension": "band_dynamics",
+              "layer": "dimension_readiness",
+              "status": "ready"
+            },
+            {
+              "at_or_above_full_scale_segment_count": 0,
+              "crest_db": 12.6673,
+              "headroom_db": 6.3298,
+              "layer": "peak_structure",
+              "peak_dbfs": -6.3298,
+              "status": "ready",
+              "true_peak_status": "missing"
+            },
+            {
+              "active_ratio": 1,
+              "layer": "activity_structure",
+              "low_or_silent_ratio": 0,
+              "noise_floor_status": "ready",
+              "status": "ready",
+              "valid_segment_count": 4
+            },
+            {
+              "event_count_available": true,
+              "layer": "frequency_time_events",
+              "status": "partial",
+              "time_localized": true,
+              "whole_window_band_count": 5
+            },
+            {
+              "attack_body_contrast_ready": false,
+              "layer": "transient_structure",
+              "onset_events_ready": false,
+              "status": "partial",
+              "sustain_decay_ready": false
+            },
+            {
+              "band_count": 5,
+              "cross_band_relation_ready": true,
+              "layer": "band_dynamics",
+              "per_band_crest_ready": true,
+              "status": "ready",
+              "time_varying_ready": true
+            }
+          ],
+          "do_not_include_raw_package": true,
+          "evidence_refs": [
+            "offline_contract_material:spv1_p02:bass"
+          ],
+          "limitation_notes": [
+            "attack_body_and_sustain_decay_evidence_missing",
+            "clip_events_are_not_inferred_from_peak_alone",
+            "control_threshold_or_range_cannot_be_inferred",
+            "macro_crest_does_not_identify_onset_events",
+            "numeric_parameter_inference_forbidden",
+            "sample_peak_does_not_establish_true_peak",
+            "source_only_does_not_identify_or_recommend_a_processing_category",
+            "source_only_does_not_observe_processor_behavior",
+            "time_localized_frequency_events_partial"
+          ],
+          "suggested_next_step": "Use only the dimensions relevant to the current acoustic question and retain every missing or partial limitation."
+        },
+        "generated_at": "2026-08-13T11:20:15.9046416Z"
+      }
+    }
+  ]
+}

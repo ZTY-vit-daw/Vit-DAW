@@ -34,7 +34,7 @@ func TestPluginGrabberWorkflowExecutorBridgesCompressorInspectAndApply(t *testin
 	inspect, err := executor.RunToolCall(context.Background(), executorpkg.Input{ToolCall: planner.ToolCall{
 		ID: "inspect", Tool: pluginGrabberInspectCompressorTool,
 		Args: map[string]any{"track_id": "track-1", "plugin_id": "comp-1"},
-	}})
+	}, Confirmed: true})
 	if err != nil || inspect.Status != "ok" || inspect.CommandName != pluginGrabberInspectCompressorCommand {
 		t.Fatalf("inspect result=%#v err=%v", inspect, err)
 	}
@@ -50,7 +50,7 @@ func TestPluginGrabberWorkflowExecutorBridgesCompressorInspectAndApply(t *testin
 			{"control_ref": thresholdRef, "value_db": -15.0},
 			{"control_ref": ratioRef, "ratio": 4.0},
 		}},
-	}})
+	}, Confirmed: true})
 	if err != nil || apply.Status != "ok" || apply.CommandName != pluginGrabberApplyCompressorCommand {
 		t.Fatalf("apply result=%#v err=%v", apply, err)
 	}
@@ -100,7 +100,7 @@ func TestPluginGrabberWorkflowExecutorRejectsBareCompressorRefsWithoutMutation(t
 		ID: "apply", Tool: pluginGrabberApplyCompressorTool,
 		Args: map[string]any{"track_id": "track-1", "plugin_id": "comp-1", "atomic": true,
 			"controls": []map[string]any{{"control_ref": "1", "value_db": -12.0}}},
-	}})
+	}, Confirmed: true})
 	if err == nil || out.Status != "error" || firstNonEmptyText(out.Result, "rejection_code") != "invalid_control_ref" {
 		t.Fatalf("bare ref result=%#v err=%v", out, err)
 	}

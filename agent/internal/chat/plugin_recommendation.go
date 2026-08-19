@@ -166,7 +166,7 @@ func canonicalPluginRecommendationProcessorType(value string) string {
 		return "compressor"
 	case "gate", "expander":
 		return "gate_expander"
-	case "deesser":
+	case "deesser", "de-esser":
 		return "de_esser"
 	case "transient":
 		return "transient_shaper"
@@ -331,16 +331,17 @@ Rules:
 	return plan, nil
 }
 
-// pluginRecommendationCandidatesForLLM deliberately excludes executable paths
-// and PCA internals. The model can choose only a supplied opaque key plus the
-// exact installed identifier; the server resolves the executable path later.
+// pluginRecommendationCandidatesForLLM deliberately exposes only the opaque
+// candidate key, exact PCA-admitted identifier, and a display-only name.
+// Executable paths, vendor metadata, and PCA internals stay server-side and
+// are resolved after the model has selected one of these exact candidates.
 func pluginRecommendationCandidatesForLLM(candidates []pluginRecommendationCandidate) []map[string]any {
 	out := make([]map[string]any, 0, len(candidates))
 	for _, candidate := range candidates {
 		out = append(out, map[string]any{
-			"candidate_key": candidate.Key, "identifier": candidate.Identifier, "name": candidate.Name,
-			"descriptive_name": candidate.DescriptiveName, "manufacturer": candidate.Manufacturer,
-			"format": candidate.Format, "category": candidate.Category, "primary_type": candidate.PrimaryType,
+			"candidate_key": candidate.Key,
+			"identifier":    candidate.Identifier,
+			"name":          candidate.Name,
 		})
 	}
 	return out
@@ -463,15 +464,10 @@ func (s *Server) ordinaryAgentPluginRecommendationResponseForProcessor(ctx conte
 		return s.pluginRecommendationNoCandidatesResponse(conversationID, mode, userText, requestContext, res, processorType)
 	}
 	if processorAttestationFamily(processorType) != "" {
-		requirement, requirementErr := s.inferPluginControlRequirement(ctx, conversationID, userText, processorType, requestContext, res.RecentObservation, cfg)
-		if requirementErr != nil {
-			return pluginRecommendationErrorResponse(conversationID, res, "control_requirement_failed", requirementErr)
-		}
-		candidates, err = attestedPluginRecommendationCandidates(candidates, requirement)
+		candidates, err = admittedPluginRecommendationCandidates(candidates, processorType)
 		if err != nil {
 			return pluginRecommendationErrorResponse(conversationID, res, "attestation_query_failed", err)
 		}
-		requestContext = mergeContext(requestContext, map[string]any{"processor_control_requirement": requirement})
 		if len(candidates) == 0 {
 			return s.pluginRecommendationNoCandidatesResponse(conversationID, mode, userText, requestContext, res, processorType)
 		}
@@ -503,12 +499,13 @@ func (s *Server) pluginRecommendationNoCandidatesResponse(conversationID, mode, 
 	res.StopReason = ""
 	res.Error = ""
 	res.Continuation = nil
-	res.Reply = fmt.Sprintf("当前本机插件目录中没有找到可加载的 %s 候选，因此没有选择、加载或修改工程。可以先检查插件扫描结果。", pluginRecommendationProcessorLabel(processorType))
+	res.Reply = fmt.Sprintf("当前本机没有找到已通过 PCA 准入、且二进制指纹仍匹配的 %s 候选；这不是插件目录为空，也没有选择、加载或修改工程。", pluginRecommendationProcessorLabel(processorType))
 	resp := s.chatResponseFromAgentLoopResult(conversationID, mode, res)
 	resp.Workflow = pluginRecommendationWorkflow
 	resp.WorkflowData = map[string]any{
 		"schema_version":      pluginRecommendationSchema,
 		"status":              "no_candidates",
+		"admission":           "pca_promoted_current_binary",
 		"processor_type":      processorType,
 		"listening_goal":      strings.TrimSpace(userText),
 		"target_ref":          map[string]any{"kind": "track", "id": firstStringFromMap(requestContext, "selected_track_id", "selected_plugin_track_id"), "label": firstStringFromMap(requestContext, "selected_track_name")},
@@ -582,6 +579,15 @@ func (s *Server) pluginRecommendationSelectionResponse(conversationID, mode stri
 		payload["post_load_planner"] = "semantic_compressor"
 		payload["post_load_goal"] = firstNonEmpty(firstStringFromMap(requestContext, "semantic_compressor_post_load_goal"), plan.UserGoal)
 		payload["post_load_observation_context"] = semanticTreatmentObservationPayload(res.RecentObservation)
+	}
+	if family, planner, ok := semanticPostLoadAdapterForProcessorType(plan.ProcessorType); ok {
+		payload["post_load_family"] = family
+		payload["post_load_planner"] = planner
+		payload["post_load_goal"] = firstNonEmpty(firstStringFromMap(requestContext, "semantic_post_load_goal", "semantic_eq_post_load_goal", "semantic_compressor_post_load_goal"), plan.UserGoal)
+		payload["post_load_observation_context"] = semanticTreatmentObservationPayload(res.RecentObservation)
+		if semanticIntent := firstMapFromAny(requestContext["free_state_semantic_processor_intent"]); len(semanticIntent) > 0 {
+			payload["post_load_semantic_processor_intent"] = cloneContext(semanticIntent)
+		}
 	}
 	if res.RecentObservation != nil {
 		texts := semanticEQRecursiveText(res.RecentObservation.Summary)
@@ -741,8 +747,11 @@ func (s *Server) continuePluginRecommendationInteraction(ctx context.Context, in
 		}
 		selected = verified
 	}
-	if requirement, ok := pluginControlRequirementFromAny(interaction.Payload["processor_control_requirement"]); ok {
-		currentCandidate, err := currentAttestedPluginRecommendationCandidate(selected, requirement)
+	processorFamily := firstStringFromMap(selected, "processor_family")
+	hasPCAAdmission := processorFamily != "" && firstStringFromMap(selected, "subject_key") != "" &&
+		firstStringFromMap(selected, "binary_fingerprint") != "" && firstStringFromMap(selected, "attestation_id") != ""
+	if hasPCAAdmission {
+		currentCandidate, err := currentPCAAdmittedPluginRecommendationCandidate(selected, processorFamily)
 		if err != nil {
 			return ChatResponse{
 				ConversationID: interaction.ConversationID, GoalID: interaction.GoalID, RunID: interaction.RunID,
@@ -785,9 +794,6 @@ func (s *Server) continuePluginRecommendationInteraction(ctx context.Context, in
 		"goal_id":                                  interaction.GoalID,
 		"run_id":                                   interaction.RunID,
 	})
-	if requirement, ok := pluginControlRequirementFromAny(interaction.Payload["processor_control_requirement"]); ok {
-		requestContext["processor_control_requirement"] = requirement
-	}
 	if firstStringFromMap(interaction.Payload, "post_load_planner") == "semantic_eq" &&
 		canonicalPluginRecommendationProcessorType(firstStringFromMap(interaction.Payload, "processor_type")) == "eq" {
 		requestContext["semantic_eq_post_load_handoff"] = true
@@ -798,6 +804,14 @@ func (s *Server) continuePluginRecommendationInteraction(ctx context.Context, in
 		requestContext["semantic_compressor_post_load_handoff"] = true
 		requestContext["semantic_compressor_post_load_goal"] = firstNonEmpty(firstStringFromMap(interaction.Payload, "post_load_goal"), firstStringFromMap(interaction.Payload, "listening_goal"))
 		requestContext["semantic_compressor_post_load_observation_context"] = cloneContext(firstMapFromAny(interaction.Payload["post_load_observation_context"]))
+	}
+	if family := firstStringFromMap(interaction.Payload, "post_load_family"); family != "" {
+		requestContext["semantic_post_load_handoff"] = true
+		requestContext["semantic_post_load_family"] = family
+		requestContext["semantic_post_load_planner"] = firstStringFromMap(interaction.Payload, "post_load_planner")
+		requestContext["semantic_post_load_goal"] = firstStringFromMap(interaction.Payload, "post_load_goal")
+		requestContext["semantic_post_load_observation_context"] = cloneContext(firstMapFromAny(interaction.Payload["post_load_observation_context"]))
+		requestContext["semantic_post_load_semantic_processor_intent"] = cloneContext(firstMapFromAny(interaction.Payload["post_load_semantic_processor_intent"]))
 	}
 	workflowCmd := map[string]any{
 		"cmd":               "plugin_grabber_load",
@@ -851,10 +865,17 @@ func (s *Server) verifyRecoveredPluginRecommendationCandidate(ctx context.Contex
 }
 
 func verifyRecoveredPluginRecommendationCandidateAgainst(processorType string, selected map[string]any, candidates []pluginRecommendationCandidate) (map[string]any, error) {
+	wantKey := strings.TrimSpace(firstStringFromMap(selected, "candidate_key"))
+	if wantKey == "" {
+		return nil, fmt.Errorf("recovered plugin candidate_key is required")
+	}
 	wantIdentifier := firstStringFromMap(selected, "identifier")
 	wantPath := firstStringFromMap(selected, "plugin_path")
 	wantName := firstStringFromMap(selected, "name")
 	for _, candidate := range candidates {
+		if candidate.Key != wantKey {
+			continue
+		}
 		identifierMatch := wantIdentifier != "" && strings.EqualFold(candidate.Identifier, wantIdentifier)
 		pathNameMatch := wantIdentifier == "" && strings.EqualFold(candidate.PluginPath, wantPath) && strings.EqualFold(candidate.Name, wantName)
 		if !identifierMatch && !pathNameMatch {

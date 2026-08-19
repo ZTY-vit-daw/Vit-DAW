@@ -66,8 +66,10 @@ func materializeSemanticCompressorPlan(plan semanticeffect.CompressorPlan, diges
 	actualMode := firstNonEmptyText(comContext, "mode")
 	actualStatus := firstNonEmptyText(comContext, "status")
 	actualProjectionID := firstNonEmptyText(comContext, "projection_id")
-	if actualMode != com.ModePairedIO || actualStatus != com.StatusReady {
-		return compressorExecutionTicket{}, "", fmt.Errorf("semantic execution requires paired_io / ready COM evidence")
+	if (actualMode != com.ModePairedIO || actualStatus != com.StatusReady) &&
+		!c2ReversibleCompressorEvidence(requestContext, actualMode, actualStatus) {
+		return compressorExecutionTicket{}, "", fmt.Errorf("semantic execution requires paired_io / ready COM evidence or C2 reversible partial evidence (actual mode=%s status=%s reason=%s)",
+			firstNonEmpty(actualMode, "missing"), firstNonEmpty(actualStatus, "missing"), firstNonEmptyText(comContext, "reason"))
 	}
 	if plan.Evidence.COMMode != actualMode || plan.Evidence.COMStatus != actualStatus ||
 		(plan.Evidence.COMProjectionID != "" && plan.Evidence.COMProjectionID != actualProjectionID) {
@@ -118,6 +120,19 @@ func materializeSemanticCompressorPlan(plan semanticeffect.CompressorPlan, diges
 	return ticket, compressorExecutionPreview(ticket), nil
 }
 
+func c2ReversibleCompressorEvidence(requestContext map[string]any, mode, status string) bool {
+	if !contextBool(requestContext, "c2_source_only_reversible") {
+		return false
+	}
+	if mode == com.ModeSourceOnly {
+		return status == com.StatusReady || status == com.StatusPartial
+	}
+	// A paired partial projection contains at least the evidence available to
+	// source-only planning. C2 may use it only under its bounded reversible
+	// contract; post-action CCB remains mandatory and terminal status is review.
+	return mode == com.ModePairedIO && status == com.StatusPartial
+}
+
 func semanticCompressorBinding(summary map[string]any, pathKey, role string) (map[string]any, error) {
 	stage := mapValue(summary["compressor_stage"])
 	matches := []map[string]any{}
@@ -145,9 +160,64 @@ func semanticCompressorBinding(summary map[string]any, pathKey, role string) (ma
 		return nil, fmt.Errorf("role %s is absent from path %s in the live topology", role, pathKey)
 	}
 	if len(matches) != 1 {
+		// Keep planning and execution bound to the same deterministic semantic
+		// choice. A compressor may expose a binary input pad and a continuous
+		// input gain under the structural input_drive role; activation intensity
+		// can safely use the unique continuous binding. Other duplicate roles
+		// remain an execution boundary.
+		if role == "input_drive" {
+			continuous := make([]map[string]any, 0, len(matches))
+			for _, match := range matches {
+				if compressorSummaryBindingIsContinuous(match) {
+					continuous = append(continuous, match)
+				}
+			}
+			if len(continuous) == 1 {
+				return continuous[0], nil
+			}
+		}
+		if preferred := preferredEquivalentCompressorSummaryBinding(matches); preferred != nil {
+			return preferred, nil
+		}
 		return nil, fmt.Errorf("role %s on path %s has %d live bindings; exactly one is required", role, pathKey, len(matches))
 	}
 	return matches[0], nil
+}
+
+func preferredEquivalentCompressorSummaryBinding(matches []map[string]any) map[string]any {
+	var preferred map[string]any
+	signature := ""
+	for _, match := range matches {
+		if !compressorSummaryBindingIsContinuous(match) {
+			return nil
+		}
+		surface := map[string]any{
+			"physical_unit":    match["physical_unit"],
+			"domain":           match["domain"],
+			"curve":            match["curve"],
+			"reachable_values": match["reachable_values"],
+		}
+		encoded, _ := json.Marshal(surface)
+		if preferred == nil {
+			preferred, signature = match, string(encoded)
+			continue
+		}
+		if signature != string(encoded) {
+			return nil
+		}
+	}
+	return preferred
+}
+
+func compressorSummaryBindingIsContinuous(binding map[string]any) bool {
+	if len(mapRowsValue(binding["reachable_values"])) > 0 {
+		return false
+	}
+	domain := mapValue(binding["domain"])
+	if domain["min"] != nil && domain["max"] != nil {
+		return true
+	}
+	return binding["curve"] != nil
 }
 
 func compressorRequestForSemanticTarget(controlRef string, target semanticeffect.CompressorControlTarget) (compressorControlRequest, map[string]any) {
@@ -399,6 +469,16 @@ func compressorExecutionVisibleControls(ticket compressorExecutionTicket) []map[
 func (s *Server) semanticCompressorWaitingResponse(conversationID string, requestContext map[string]any,
 	card semanticeffect.AudioProcessorIdentityCard, intent semanticeffect.CompressorIntentPlan, comContext map[string]any,
 	brief plugingrabber.CompressorControlBrief, plan semanticeffect.CompressorPlan, ticket compressorExecutionTicket, preview string) ChatResponse {
+	if _, hasProgressiveState := semanticProgressiveDisclosureState(requestContext["semantic_progressive_disclosure"]); hasProgressiveState {
+		refs := make([]string, 0, len(ticket.Controls))
+		for _, control := range ticket.Controls {
+			refs = append(refs, control.ControlRef)
+		}
+		if err := semanticProgressiveDisclosureAdvanceToConfirmation(requestContext, refs); err != nil {
+			return semanticCompressorExecutionMaterializationFailure(conversationID, requestContext, card, intent,
+				comContext, brief, plan, fmt.Errorf("progressive disclosure boundary: %w", err))
+		}
+	}
 	workflowData := map[string]any{"schema_version": "semantic_compressor.workflow.v2", "status": "waiting_confirmation",
 		"planning_only": true, "mutation_authorized": false, "mutation_performed": false,
 		"processor_identity_card": card, "intent_plan": intent, "com_observation": comContext, "control_brief": brief,
@@ -462,7 +542,26 @@ func (s *Server) continueSemanticCompressorExecutionInteraction(ctx context.Cont
 	if err := validateSemanticCompressorExecutionTicket(ticket, interaction, time.Now().UTC()); err != nil {
 		return compressorExecutionFailureResponse(interaction, ticket, "expired_or_mismatched_compressor_execution_ticket", err, nil, nil)
 	}
-	return s.executeSemanticCompressorTicket(ctx, interaction, ticket)
+	requestContext := interaction.RequestContext
+	if _, hasProgressiveState := semanticProgressiveDisclosureState(requestContext["semantic_progressive_disclosure"]); hasProgressiveState {
+		if err := semanticProgressiveDisclosureConfirm(requestContext); err != nil {
+			return compressorExecutionFailureResponse(interaction, ticket, "progressive_disclosure_confirmation_invalid", err, nil, nil)
+		}
+	}
+	response := s.executeSemanticCompressorTicket(ctx, interaction, ticket)
+	if _, hasProgressiveState := semanticProgressiveDisclosureState(requestContext["semantic_progressive_disclosure"]); hasProgressiveState {
+		if receipt := firstMapFromAny(response.WorkflowData["execution_receipt"]); len(receipt) > 0 {
+			if err := semanticProgressiveDisclosureReceipt(requestContext, receipt); err != nil {
+				return compressorExecutionFailureResponse(interaction, ticket, "progressive_disclosure_receipt_invalid", err, nil, receipt)
+			}
+			if response.WorkflowData == nil {
+				response.WorkflowData = map[string]any{}
+			}
+			response.WorkflowData["semantic_progressive_disclosure"] = requestContext["semantic_progressive_disclosure"]
+			response.WorkflowData["request_context"] = cloneContext(requestContext)
+		}
+	}
+	return response
 }
 
 func (s *Server) executeSemanticCompressorTicket(ctx context.Context, interaction PendingInteraction, ticket compressorExecutionTicket) ChatResponse {
@@ -489,9 +588,13 @@ func (s *Server) executeSemanticCompressorTicket(ctx context.Context, interactio
 			return compressorExecutionFailureResponse(interaction, ticket, "materialization_invalidated", planErr, nil, nil)
 		}
 	}
-	beforeProjection, err := captureSemanticCompressorPairedProjection(ctx, s, ticket)
-	if err != nil {
-		return compressorExecutionFailureResponse(interaction, ticket, "before_com_observation_failed", err, nil, nil)
+	sourceOnlyReversible := contextBool(interaction.RequestContext, "c2_source_only_reversible")
+	var beforeProjection *com.Projection
+	if !sourceOnlyReversible {
+		beforeProjection, err = captureSemanticCompressorPairedProjection(ctx, s, ticket)
+		if err != nil {
+			return compressorExecutionFailureResponse(interaction, ticket, "before_com_observation_failed", err, nil, nil)
+		}
 	}
 	applyResult, err := s.applyPluginGrabberCompressorControls(ctx, semanticCompressorExecutionRequest(ticket), interaction.RequestContext)
 	if err != nil {
@@ -508,7 +611,13 @@ func (s *Server) executeSemanticCompressorTicket(ctx context.Context, interactio
 	if auditErr != nil {
 		return s.rollbackSemanticCompressorFailure(ctx, interaction, ticket, digest, applyResult, "parameter_audit_failed", auditErr)
 	}
-	afterProjection, afterCOMErr := captureSemanticCompressorPairedProjection(ctx, s, ticket)
+	var afterProjection *com.Projection
+	var afterCOMErr error
+	if !sourceOnlyReversible {
+		afterProjection, afterCOMErr = captureSemanticCompressorPairedProjection(ctx, s, ticket)
+	} else {
+		afterCOMErr = fmt.Errorf("source_only reversible C2 execution; paired COM change_delta deferred to post-action observation")
+	}
 	receipt := map[string]any{"schema_version": semanticCompressorReceiptSchema, "status": "executed", "ticket_id": ticket.TicketID,
 		"track_id": ticket.TrackID, "plugin_id": ticket.PluginID, "topology_generation": ticket.TopologyGeneration,
 		"parameter_audit": parameterAudit, "controller_result": compressorExecutionResultSummary(applyResult),
@@ -530,7 +639,7 @@ func compressorExecutionResultSummary(result map[string]any) map[string]any {
 		return map[string]any{"status": "missing"}
 	}
 	return map[string]any{"status": result["status"], "atomic": result["atomic"],
-		"control_count": len(mapRowsValue(result["controls"])), "rollback": result["rollback"]}
+		"control_count": len(mapRowsValue(result["controls"])), "restore_ref": firstNonEmptyText(result, "restore_ref"), "rollback": result["rollback"]}
 }
 
 func validateCompressorExecutionResult(result map[string]any, ticket compressorExecutionTicket) error {

@@ -182,3 +182,51 @@ func TestCollectL2RenderProbeBatchUsesExactCacheWithoutRender(t *testing.T) {
 		t.Fatalf("cache-only batch = %#v", result)
 	}
 }
+
+func TestMaskingCacheRejectsTailBearingFramesForExactWindow(t *testing.T) {
+	featurePath := filepath.Join(t.TempDir(), "mixboard_feature_snapshot.json")
+	h := NewWithSender(nil, shadowProjectWithClips(), nil)
+	state := h.UserStateSummary(context.Background())
+	fingerprint := mixObservationTrackStateFingerprint(state, "1007")
+	row := map[string]any{
+		"status": "ready", "track_id": "1007", "clip_id": "clip_a", "tap_point": "track_post_fader", "request_id": "cached-tail",
+		"render_revision": "render-tail", "track_state_fingerprint": fingerprint, "evidence_ref": "dad.l2_render_probe:render-tail",
+		"bands":          map[string]any{"bass": map[string]any{"unit_energy": .3}},
+		"analyzed_range": map[string]any{"start_seconds": 0.0, "end_seconds": 20.0},
+		"quality_evidence": map[string]any{
+			"tail_captured": true,
+		},
+		"masking_frames": map[string]any{
+			"status": "ready",
+			"frames": []any{
+				map[string]any{"start_seconds": 0.0, "end_seconds": 0.085333},
+				map[string]any{"start_seconds": 19.968, "end_seconds": 20.021333},
+			},
+		},
+	}
+	data, err := json.Marshal(map[string]any{"schema_version": "mixboard_feature_snapshot.v1", "l2_render_probes": []any{row}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(featurePath, data, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	cmd := map[string]any{"feature_snapshot_path": featurePath}
+	if cached := cachedL2RenderProbeForStateRange(cmd, "1007", "track_post_fader", fingerprint, 0, 20, 0, true); len(cached) != 0 {
+		t.Fatalf("tail-bearing masking evidence was reused for an exact window: %#v", cached)
+	}
+
+	row["tail_seconds"] = 0.0
+	row["quality_evidence"] = map[string]any{"tail_captured": false}
+	row["masking_frames"].(map[string]any)["frames"].([]any)[1].(map[string]any)["end_seconds"] = 20.0
+	data, err = json.Marshal(map[string]any{"schema_version": "mixboard_feature_snapshot.v1", "l2_render_probes": []any{row}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(featurePath, data, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if cached := cachedL2RenderProbeForStateRange(cmd, "1007", "track_post_fader", fingerprint, 0, 20, 0, true); len(cached) == 0 {
+		t.Fatal("exact zero-tail masking evidence was not reused")
+	}
+}

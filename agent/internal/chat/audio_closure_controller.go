@@ -1,0 +1,755 @@
+package chat
+
+import (
+	"crypto/sha256"
+	"encoding/hex"
+	"encoding/json"
+	"fmt"
+	"strings"
+	"time"
+
+	"vit-daw-agent/internal/agentloop"
+	"vit-daw-agent/internal/audioclosure"
+	"vit-daw-agent/internal/contextruntime"
+	"vit-daw-agent/internal/orchestration"
+	"vit-daw-agent/internal/orchestrationcontroller"
+	agentruntime "vit-daw-agent/internal/runtime"
+)
+
+const audioClosureContextKey = "minimal_audio_closure"
+
+func orchestrationControllerDecisionMap(decision orchestrationcontroller.Decision) map[string]any {
+	return map[string]any{
+		"schema_version": decision.SchemaVersion, "controller": string(decision.Controller),
+		"target_scope": decision.TargetScope, "authorization": decision.Authorization,
+		"source_route": decision.SourceRoute, "reason": decision.Reason,
+	}
+}
+
+func orchestrationControllerDecisionFromContext(requestContext map[string]any) (orchestrationcontroller.Decision, bool) {
+	row := firstMapFromAny(requestContext[orchestrationDecisionContextKey])
+	if len(row) == 0 {
+		return orchestrationcontroller.Decision{}, false
+	}
+	decision := orchestrationcontroller.Decision{
+		SchemaVersion: firstStringFromMap(row, "schema_version"),
+		Controller:    orchestrationcontroller.Kind(firstStringFromMap(row, "controller")),
+		TargetScope:   firstStringFromMap(row, "target_scope"), Authorization: firstStringFromMap(row, "authorization"),
+		SourceRoute: firstStringFromMap(row, "source_route"), Reason: firstStringFromMap(row, "reason"),
+	}
+	return decision, decision.SchemaVersion == orchestrationcontroller.DecisionSchema
+}
+
+func (s *Server) hasActiveAudioClosure(conversationID string) bool {
+	if s == nil || s.audioClosures == nil {
+		return false
+	}
+	_, ok := s.audioClosures.ActiveForConversation(conversationID)
+	return ok
+}
+
+func (s *Server) prepareAudioClosureContext(conversationID, userText string, requestContext map[string]any) (map[string]any, audioclosure.State, bool, error) {
+	if s == nil {
+		return requestContext, audioclosure.State{}, false, nil
+	}
+	if s.audioClosures == nil {
+		s.audioClosures = audioclosure.NewMemoryStore()
+	}
+	if state, ok := s.audioClosures.ActiveForConversation(conversationID); ok {
+		requestRevision := audioClosureRequestProjectRevision(s, requestContext)
+		if requestRevision != "" && state.ProjectRevision != "" && requestRevision != state.ProjectRevision {
+			driver := audioclosure.Driver{}
+			previous := state
+			var err error
+			if state.ActiveCapability != nil {
+				state, _, err = driver.SettleCapability(state, state.Revision, audioclosure.CapabilitySettlement{
+					SessionID: state.ActiveCapability.SessionID, ActionID: state.ActiveCapability.ActionID,
+					Status: "stale", Reason: "project revision changed before the next closure round",
+				}, time.Now().UTC())
+			} else {
+				state, err = driver.Settle(state, state.Revision, audioclosure.StopProjectRevisionStale,
+					"project revision changed before the next closure round", false, time.Now().UTC())
+			}
+			if err != nil {
+				return requestContext, previous, true, err
+			}
+			if err := s.audioClosures.Save(state, previous.Revision); err != nil {
+				return requestContext, previous, true, err
+			}
+			s.settleAudioClosureOwner(state)
+			s.persistCurrentProjectWorkspace()
+			return bindAudioClosureContext(requestContext, state), state, true, nil
+		}
+		if err := s.ensureAudioClosureOwner(state); err != nil {
+			return requestContext, state, true, err
+		}
+		return bindAudioClosureContext(requestContext, state), state, true, nil
+	}
+	decision, ok := orchestrationControllerDecisionFromContext(requestContext)
+	if !ok || decision.Controller != orchestrationcontroller.MinimalAudioClosure {
+		return requestContext, audioclosure.State{}, false, nil
+	}
+	entry, verified := semanticEntryDecisionFromContext(requestContext)
+	if !verified {
+		return requestContext, audioclosure.State{}, false, fmt.Errorf("minimal audio closure requires a verified semantic entry")
+	}
+	mode := audioclosure.ModeTreatment
+	if entry.Route == semanticEntryRouteObservation {
+		mode = audioclosure.ModeDiagnostic
+	}
+	projectUUID := firstNonEmpty(firstStringFromMap(requestContext, "project_uuid", "project_id"), s.activeWorkspaceUUID)
+	if projectUUID == "" {
+		// Conversation-scoped fallback is explicit and stable. It allows tests
+		// and an unsaved new project to use the controller without pretending
+		// that observations from a later saved project share its identity.
+		projectUUID = "unsaved:" + conversationID
+	}
+	projectRevision := audioClosureRequestProjectRevision(s, requestContext)
+	state, err := audioclosure.Start(audioclosure.StartRequest{
+		ClosureID: "audio_closure_" + randomID(), ConversationID: conversationID,
+		GoalID: firstStringFromMap(requestContext, "goal_id"), RunID: firstStringFromMap(requestContext, "run_id"),
+		ProjectUUID: projectUUID, ProjectRevision: projectRevision, OriginalIntent: strings.TrimSpace(userText),
+		Mode: mode, Scope: audioClosureScope(entry.TargetScope, requestContext, projectUUID), Now: time.Now().UTC(),
+	})
+	if err != nil {
+		return requestContext, audioclosure.State{}, false, err
+	}
+	if err := s.audioClosures.Create(state); err != nil {
+		return requestContext, audioclosure.State{}, false, err
+	}
+	if err := s.ensureAudioClosureOwner(state); err != nil {
+		settled, settleErr := (audioclosure.Driver{}).Settle(state, state.Revision, audioclosure.StopCancelled, err.Error(), false, time.Now().UTC())
+		if settleErr == nil {
+			_ = s.audioClosures.Save(settled, state.Revision)
+		}
+		return requestContext, state, false, err
+	}
+	s.persistCurrentProjectWorkspace()
+	return bindAudioClosureContext(requestContext, state), state, true, nil
+}
+
+func audioClosureRequestProjectRevision(s *Server, requestContext map[string]any) string {
+	revision := firstStringFromMap(requestContext,
+		"project_revision", "project_state_revision", "project_cut_hash", "state_token", "vsp_state_token")
+	if revision == "" && s != nil {
+		revision = s.activeWorkspaceSessionID
+	}
+	return revision
+}
+
+func audioClosureScope(targetScope string, requestContext map[string]any, projectUUID string) audioclosure.Scope {
+	if targetScope == semanticEntryScopeCurrentSelection {
+		id := firstStringFromMap(requestContext, "selected_track_id", "selected_scene_track_id", "selected_plugin_track_id", "selected_clip_id", "piano_roll_focus_clip_id")
+		kind := "selection"
+		if contextHasAnyValue(requestContext, "selected_track_id", "selected_scene_track_id", "selected_plugin_track_id") {
+			kind = "track"
+		} else if contextHasAnyValue(requestContext, "selected_clip_id", "piano_roll_focus_clip_id") {
+			kind = "clip"
+		}
+		return audioclosure.Scope{Kind: kind, ID: id, Label: firstStringFromMap(requestContext, "selected_track_name", "selected_clip_name")}
+	}
+	return audioclosure.Scope{Kind: "project", ID: projectUUID}
+}
+
+func (s *Server) ensureAudioClosureOwner(state audioclosure.State) error {
+	if s.controllerOwners == nil {
+		s.controllerOwners = orchestrationcontroller.NewRegistry()
+	}
+	if owner, ok := s.controllerOwners.Active(state.ConversationID); ok {
+		if owner.Controller == orchestrationcontroller.MinimalAudioClosure && owner.ControllerID == state.ClosureID {
+			return nil
+		}
+		return fmt.Errorf("conversation is already owned by %s controller %s", owner.Controller, owner.ControllerID)
+	}
+	_, _, err := s.controllerOwners.Acquire(state.ConversationID, state.ClosureID, orchestrationcontroller.Decision{
+		SchemaVersion: orchestrationcontroller.DecisionSchema, Controller: orchestrationcontroller.MinimalAudioClosure,
+		TargetScope: audioClosureSemanticScope(state.Scope), Authorization: audioClosureAuthorization(state.Mode),
+		SourceRoute: audioClosureSourceRoute(state.Mode), Reason: "persistent minimal audio closure",
+	}, time.Now().UTC())
+	return err
+}
+
+func audioClosureSemanticScope(scope audioclosure.Scope) string {
+	if scope.Kind == "project" {
+		return semanticEntryScopeProjectContext
+	}
+	return semanticEntryScopeCurrentSelection
+}
+func audioClosureAuthorization(mode audioclosure.Mode) string {
+	if mode == audioclosure.ModeDiagnostic {
+		return semanticEntryAuthorizationObserve
+	}
+	return semanticEntryAuthorizationAction
+}
+func audioClosureSourceRoute(mode audioclosure.Mode) string {
+	if mode == audioclosure.ModeDiagnostic {
+		return semanticEntryRouteObservation
+	}
+	return semanticEntryRouteOpenSemantic
+}
+
+func bindAudioClosureContext(requestContext map[string]any, state audioclosure.State) map[string]any {
+	out := mergeContext(requestContext, map[string]any{audioClosureContextKey: audioClosureStateMap(state)})
+	if _, ok := orchestrationControllerDecisionFromContext(out); !ok {
+		decision := orchestrationcontroller.Decision{
+			SchemaVersion: orchestrationcontroller.DecisionSchema, Controller: orchestrationcontroller.MinimalAudioClosure,
+			TargetScope: audioClosureSemanticScope(state.Scope), Authorization: audioClosureAuthorization(state.Mode),
+			SourceRoute: audioClosureSourceRoute(state.Mode), Reason: "restored minimal audio closure",
+		}
+		out[orchestrationDecisionContextKey] = orchestrationControllerDecisionMap(decision)
+	}
+	return out
+}
+
+func audioClosureStateMap(state audioclosure.State) map[string]any {
+	raw, _ := json.Marshal(state)
+	var out map[string]any
+	_ = json.Unmarshal(raw, &out)
+	return out
+}
+
+func audioClosureMessageLoopBudget(base agentloop.Budget, context map[string]any) agentloop.Budget {
+	// Candidate selection is the one closure phase that needs two adjacent
+	// model turns: request the bounded target observation, then decide from
+	// the returned target evidence. Keeping both turns in the same request
+	// prevents the outer continuation/round budget from consuming the final
+	// action-or-boundary decision slot.
+	base.MaxTurns = 1
+	frontier := firstMapFromAny(firstMapFromAny(context[audioClosureContextKey])["hypothesis_frontier"])
+	if len(freeStateMapRows(frontier["candidates"])) > 0 && firstStringFromMap(frontier, "candidate_id") == "" {
+		base.MaxTurns = 2
+	}
+	if base.MaxToolCalls <= 0 || base.MaxToolCalls > 6 {
+		base.MaxToolCalls = 6
+	}
+	return base
+}
+
+func (s *Server) admitAudioClosureRound(state audioclosure.State) (audioclosure.State, bool, error) {
+	if state.ClosureID == "" || s == nil || s.audioClosures == nil {
+		return state, false, nil
+	}
+	current, ok := s.audioClosures.Load(state.ClosureID)
+	if !ok {
+		return state, false, fmt.Errorf("minimal audio closure %s is missing", state.ClosureID)
+	}
+	next, admitted, err := (audioclosure.Driver{}).AdmitRound(current, current.Revision, time.Now().UTC())
+	if err != nil {
+		return current, false, err
+	}
+	if next.Revision != current.Revision {
+		if err := s.audioClosures.Save(next, current.Revision); err != nil {
+			return current, false, err
+		}
+		s.persistCurrentProjectWorkspace()
+	}
+	if next.Terminal() {
+		s.settleAudioClosureOwner(next)
+	}
+	return next, admitted, nil
+}
+
+func (s *Server) recordAudioClosureRound(state audioclosure.State, res agentloop.Result, requestContext map[string]any) (audioclosure.State, error) {
+	if s == nil || s.audioClosures == nil || state.ClosureID == "" {
+		return state, nil
+	}
+	current, ok := s.audioClosures.Load(state.ClosureID)
+	if !ok {
+		return state, fmt.Errorf("minimal audio closure %s is missing", state.ClosureID)
+	}
+	if current.Terminal() {
+		return current, nil
+	}
+	driver := audioclosure.Driver{}
+	if changeID := audioClosureAuthoritativeProjectChangeID(requestContext); changeID != "" && changeID != current.LastProjectChangeID {
+		next, _, err := driver.RecordProjectChange(current, current.Revision, changeID, time.Now().UTC())
+		if err != nil {
+			return current, err
+		}
+		current = next
+	}
+	for _, observation := range freeStateCCBObservations(res) {
+		if observation == nil || current.Terminal() {
+			continue
+		}
+		key := audioClosureObservationKey(current, observation, requestContext)
+		outcome, err := driver.RecordObservation(current, current.Revision, key, firstStringFromMap(observation.Summary, "observation_id"), time.Now().UTC())
+		if err != nil {
+			return current, err
+		}
+		current = outcome.State
+	}
+	if !current.Terminal() && res.FreeStateDecision != nil {
+		frontier, actionability := audioClosureFrontier(current.Frontier, *res.FreeStateDecision, freeStateCCBObservations(res))
+		next, _, err := driver.UpdateFrontier(current, current.Revision, frontier, actionability, time.Now().UTC())
+		if err != nil {
+			return current, err
+		}
+		current = next
+	}
+	if res.StopReason == agentloop.StopReasonTransientLLMError {
+		// A provider/transport retry must not settle or consume the active
+		// closure round. Keep the project-change progress and post-action gate
+		// durable; the bounded outer continuation will retry this same round.
+		stored, _ := s.audioClosures.Load(state.ClosureID)
+		if current.Revision != stored.Revision {
+			if err := s.audioClosures.Save(current, stored.Revision); err != nil {
+				return stored, err
+			}
+			s.persistCurrentProjectWorkspace()
+		}
+		return current, nil
+	}
+	repairCount, plannerError := audioClosureProtocolTrace(res)
+	for repair := 0; !current.Terminal() && repair < repairCount; repair++ {
+		next, _, err := driver.RecordProtocolRepair(current, current.Revision, time.Now().UTC())
+		if err != nil {
+			return current, err
+		}
+		current = next
+	}
+	if !current.Terminal() && (plannerError || (repairCount > 0 && res.NeedsClarification)) {
+		next, err := driver.Settle(current, current.Revision, audioclosure.StopModelProtocolFailure,
+			"MessageLoop did not produce a valid closure move after its protocol repair", false, time.Now().UTC())
+		if err != nil {
+			return current, err
+		}
+		current = next
+	}
+	if !current.Terminal() {
+		current = audioClosureSettleFromResult(driver, current, res)
+	}
+	if !current.Terminal() && current.RoundInProgress {
+		next, err := driver.CompleteRound(current, current.Revision, time.Now().UTC())
+		if err != nil {
+			return current, err
+		}
+		current = next
+	}
+	stored, _ := s.audioClosures.Load(state.ClosureID)
+	if current.Revision != stored.Revision {
+		if err := s.audioClosures.Save(current, stored.Revision); err != nil {
+			return stored, err
+		}
+		s.persistCurrentProjectWorkspace()
+	}
+	if current.Terminal() {
+		s.settleAudioClosureOwner(current)
+	}
+	return current, nil
+}
+
+func audioClosureAuthoritativeProjectChangeID(requestContext map[string]any) string {
+	if len(requestContext) == 0 {
+		return ""
+	}
+	changes := []map[string]any{
+		firstMapFromAny(requestContext["free_state_project_change"]),
+		firstMapFromAny(requestContext["latest_project_change"]),
+	}
+	if loop := firstMapFromAny(requestContext["free_state_reasoning_loop"]); len(loop) > 0 {
+		changes = append(changes, firstMapFromAny(loop["latest_project_change"]))
+	}
+	for _, change := range changes {
+		if !strings.EqualFold(firstStringFromMap(change, "freshness"), "current_snapshot") {
+			continue
+		}
+		if changeID := firstStringFromMap(change, "change_id"); changeID != "" {
+			return changeID
+		}
+	}
+	return ""
+}
+
+func audioClosureObservationKey(state audioclosure.State, observation *agentloop.RecentObservation, requestContext map[string]any) audioclosure.ObservationKey {
+	summary := observation.Summary
+	viewIDs := freeStateStringSlice(firstNonNil(summary["view_ids"], summary["admitted_views"], summary["included_views"], summary["requested_views"]))
+	if len(viewIDs) == 0 {
+		viewIDs = []string{firstNonEmpty(observation.Tool, observation.CommandName, "ccb_observation")}
+	}
+	targetRef := firstNonEmpty(firstStringFromMap(firstMapFromAny(summary["target_ref"]), "id", "target_id", "track_id"), state.Scope.ID)
+	return audioclosure.ObservationKey{
+		ProjectUUID:     state.ProjectUUID,
+		ProjectRevision: firstNonEmpty(firstStringFromMap(summary, "project_revision", "project_state_revision", "state_token"), state.ProjectRevision),
+		Scope:           state.Scope, TargetRef: targetRef, ViewIDs: viewIDs,
+		ObservationMode: firstNonEmpty(firstStringFromMap(summary, "observation_mode", "mode"), observation.Tool, observation.CommandName),
+		Tap:             firstNonEmpty(firstStringFromMap(summary, "tap", "tap_point", "measurement_tap"), firstStringFromMap(requestContext, "tap", "observation_tap")),
+		TimeWindow:      firstNonEmpty(firstStringFromMap(summary, "time_window", "window_ref", "range_ref"), firstStringFromMap(requestContext, "time_window", "observation_window")),
+	}
+}
+
+func audioClosureFrontier(existing audioclosure.HypothesisFrontier, decision agentloop.FreeStateDecision, observations []*agentloop.RecentObservation) (audioclosure.HypothesisFrontier, audioclosure.Actionability) {
+	status := strings.ToLower(strings.TrimSpace(decision.Status))
+	frontier := existing
+	frontier.Candidates = audioClosureCandidates(existing.Candidates, observations)
+	if selected := audioClosureSelectedCandidate(frontier.Candidates, observations); selected != "" {
+		frontier.CandidateID = selected
+	}
+	hypotheses := append([]string(nil), frontier.HypothesisIDs...)
+	for _, candidate := range frontier.Candidates {
+		hypotheses = append(hypotheses, "candidate:"+candidate.ID)
+	}
+	if processor := strings.ToLower(strings.TrimSpace(decision.ProcessorType)); processor != "" {
+		hypotheses = append(hypotheses, "processor:"+processor)
+	}
+	frontier.HypothesisIDs = hypotheses
+	frontier.Blockers = append([]string(nil), decision.Limitations...)
+	actionability := audioclosure.ActionabilityUnknown
+	if status == agentloop.FreeStateNeedsAction || status == agentloop.FreeStateNeedsExperiment {
+		actionability = audioclosure.ActionabilityActionable
+		if frontier.CandidateID == "" {
+			frontier.CandidateID = firstNonEmpty(decision.ObservationID, "actionable:"+strings.ToLower(strings.TrimSpace(decision.ProcessorType)))
+		}
+	} else if status == agentloop.FreeStateSatisfied || status == agentloop.FreeStateBlocked {
+		actionability = audioclosure.ActionabilityNonActionable
+	}
+	return frontier, actionability
+}
+
+func audioClosureCandidates(existing []audioclosure.Candidate, observations []*agentloop.RecentObservation) []audioclosure.Candidate {
+	byID := make(map[string]audioclosure.Candidate, len(existing))
+	for _, candidate := range existing {
+		if strings.TrimSpace(candidate.ID) != "" {
+			byID[candidate.ID] = candidate
+		}
+	}
+	for _, observation := range observations {
+		if !freeStateUsableObservation(observation) {
+			continue
+		}
+		observationID := firstStringFromMap(observation.Summary, "observation_id")
+		for _, viewID := range freeStateNormalizedViewIDs(freeStateStringSlice(observation.Summary["requested_views"])) {
+			conclusion := contextruntime.ProjectCCBViewConclusion(observation.Summary, viewID, contextruntime.Options{
+				MaxTextRunes: 900, MaxListItems: 8, MaxPreviewBytes: 6 * 1024, SkipPluginSemanticLoad: true,
+			})
+			facts := firstMapFromAny(conclusion["facts"])
+			rows := append(freeStateMapRows(facts["conflict_candidates"]), freeStateMapRows(facts["band_conflict_candidates"])...)
+			for _, row := range rows {
+				trackIDs, trackNames := audioClosureCandidateTracks(row)
+				if len(trackIDs) == 0 {
+					continue
+				}
+				issueType := firstStringFromMap(row, "type", "issue_type", "status")
+				region := firstStringFromMap(row, "region", "band")
+				candidateID := audioClosureCandidateID(observationID, viewID, issueType, region, trackIDs)
+				byID[candidateID] = audioclosure.Candidate{
+					ID: candidateID, SourceObservationID: observationID, ViewID: viewID,
+					IssueType: issueType, Region: region, TrackIDs: trackIDs, TrackNames: trackNames,
+					EvidenceRefs: freeStateStringSlice(firstNonNil(row["evidence_refs"], observation.Summary["evidence_refs"])),
+				}
+			}
+		}
+	}
+	out := make([]audioclosure.Candidate, 0, len(byID))
+	for _, candidate := range byID {
+		out = append(out, candidate)
+	}
+	return out
+}
+
+func audioClosureCandidateTracks(row map[string]any) ([]string, []string) {
+	ids := freeStateNormalizedViewIDs(freeStateStringSlice(row["track_ids"]))
+	names := []string{}
+	if id := firstStringFromMap(row, "track_id", "id"); id != "" {
+		ids = freeStateNormalizedViewIDs(append(ids, id))
+	}
+	for _, track := range freeStateMapRows(row["tracks"]) {
+		if id := firstStringFromMap(track, "track_id", "id"); id != "" {
+			ids = freeStateNormalizedViewIDs(append(ids, id))
+		}
+		if name := firstStringFromMap(track, "track_name", "name", "label"); name != "" {
+			names = append(names, name)
+		}
+	}
+	return ids, freeStateNormalizedViewIDs(names)
+}
+
+func audioClosureCandidateID(observationID, viewID, issueType, region string, trackIDs []string) string {
+	digest := sha256.Sum256([]byte(strings.Join(append([]string{observationID, viewID, issueType, region}, freeStateNormalizedViewIDs(trackIDs)...), "\x1f")))
+	return "candidate:" + hex.EncodeToString(digest[:8])
+}
+
+func audioClosureSelectedCandidate(candidates []audioclosure.Candidate, observations []*agentloop.RecentObservation) string {
+	for _, observation := range observations {
+		if !freeStateUsableObservation(observation) {
+			continue
+		}
+		target := firstMapFromAny(observation.Summary["target_ref"])
+		if !strings.EqualFold(firstStringFromMap(target, "kind", "target_kind"), "track") {
+			continue
+		}
+		trackID := firstStringFromMap(target, "id", "track_id", "target_id")
+		for _, candidate := range candidates {
+			if freeStateContainsString(candidate.TrackIDs, trackID) {
+				return candidate.ID
+			}
+		}
+	}
+	return ""
+}
+
+func audioClosureProtocolTrace(res agentloop.Result) (repairs int, plannerError bool) {
+	if res.ModelProtocolRepairs > 0 || res.ModelProtocolFailure || res.StopReason == agentloop.StopReasonModelProtocolFailure {
+		return res.ModelProtocolRepairs, res.ModelProtocolFailure || res.StopReason == agentloop.StopReasonModelProtocolFailure
+	}
+	// Compatibility for continuations created before typed protocol metadata.
+	pendingError := false
+	for _, event := range res.Trace {
+		switch strings.ToLower(strings.TrimSpace(event.Kind)) {
+		case "planner_repair":
+			repairs++
+			pendingError = false
+		case "planner_error":
+			pendingError = true
+		}
+	}
+	return repairs, pendingError
+}
+
+func audioClosureSettleFromResult(driver audioclosure.Driver, state audioclosure.State, res agentloop.Result) audioclosure.State {
+	reason := audioclosure.StopReason("")
+	summary := firstNonEmpty(res.FailureReason, res.Error, res.Reply, res.StopReason)
+	needsClarification := false
+	if res.NeedsClarification {
+		reason, needsClarification = audioclosure.StopUserChoiceRequired, true
+	} else if state.Mode == audioclosure.ModeDiagnostic && res.Status == agentruntime.StatusCompleted && res.FreeStateDecision == nil {
+		reason = audioclosure.StopDiagnosticComplete
+	} else if res.FreeStateDecision != nil {
+		switch strings.ToLower(strings.TrimSpace(res.FreeStateDecision.Status)) {
+		case agentloop.FreeStateSatisfied:
+			if state.Mode == audioclosure.ModeDiagnostic {
+				reason = audioclosure.StopDiagnosticComplete
+			} else {
+				reason = audioclosure.StopSatisfied
+			}
+		case agentloop.FreeStateBlocked:
+			reason = audioClosureBlockedReason(*res.FreeStateDecision)
+			summary = firstNonEmpty(res.FreeStateDecision.Summary, res.FreeStateDecision.StopReason, summary)
+		}
+	}
+	if reason == "" {
+		return state
+	}
+	settled, err := driver.Settle(state, state.Revision, reason, summary, needsClarification, time.Now().UTC())
+	if err != nil {
+		return state
+	}
+	return settled
+}
+
+func audioClosureBlockedReason(decision agentloop.FreeStateDecision) audioclosure.StopReason {
+	text := strings.ToLower(strings.Join(append(append([]string{}, decision.StopReason, decision.Summary), decision.Limitations...), " "))
+	switch {
+	case strings.Contains(text, "pca"):
+		return audioclosure.StopPCAUnavailable
+	case strings.Contains(text, "capability") || strings.Contains(text, "adapter"):
+		return audioclosure.StopCapabilityUnavailable
+	case strings.Contains(text, "revision") || strings.Contains(text, "stale"):
+		return audioclosure.StopProjectRevisionStale
+	default:
+		return audioclosure.StopInsufficientEvidence
+	}
+}
+
+func (s *Server) settleAudioClosureOwner(state audioclosure.State) {
+	if s == nil || s.controllerOwners == nil || !state.Terminal() {
+		return
+	}
+	owner, ok := s.controllerOwners.Active(state.ConversationID)
+	if !ok || owner.ControllerID != state.ClosureID {
+		return
+	}
+	_, _ = s.controllerOwners.Settle(state.ConversationID, state.ClosureID, owner.Revision, string(state.Settlement.Reason), time.Now().UTC())
+}
+
+func (s *Server) audioClosureResponse(conversationID, mode string, state audioclosure.State, base agentloop.Result) ChatResponse {
+	if !state.Terminal() {
+		resp := s.chatResponseFromAgentLoopResult(conversationID, mode, base)
+		return bindAudioClosureToResponse(resp, state)
+	}
+	if state.GoalID != "" {
+		s.clearGoalContinuation(state.GoalID)
+	} else if base.GoalID != "" {
+		s.clearGoalContinuation(base.GoalID)
+	}
+	reply := audioClosureSettlementReply(state.Settlement)
+	status := agentruntime.StatusCompleted
+	if state.Settlement.NeedsUserClarification {
+		status = agentruntime.StatusWaitingClarification
+	}
+	if state.Settlement.Reason == audioclosure.StopTransportFailure || state.Settlement.Reason == audioclosure.StopModelProtocolFailure || state.Settlement.Reason == audioclosure.StopActionFailed {
+		status = agentruntime.StatusFailed
+	}
+	resp := ChatResponse{
+		ConversationID: conversationID, GoalID: firstNonEmpty(base.GoalID, state.GoalID), RunID: firstNonEmpty(base.RunID, state.RunID),
+		AgentMode: mode, Reply: reply, GoalStatus: string(status), StopReason: string(state.Settlement.Reason), Workflow: "minimal_audio_closure",
+		WorkflowData: map[string]any{"schema_version": audioclosure.SchemaVersion, "status": "settled", "settlement": state.Settlement, "minimal_audio_closure": audioClosureStateMap(state), "mutation_performed": false},
+	}
+	return resp
+}
+
+func bindAudioClosureToResponse(resp ChatResponse, state audioclosure.State) ChatResponse {
+	if resp.WorkflowData == nil {
+		resp.WorkflowData = map[string]any{}
+	}
+	resp.WorkflowData[audioClosureContextKey] = audioClosureStateMap(state)
+	requestContext := firstMapFromAny(resp.WorkflowData["request_context"])
+	requestContext = bindAudioClosureContext(requestContext, state)
+	resp.WorkflowData["request_context"] = requestContext
+	return resp
+}
+
+func (s *Server) bindAudioClosureCapabilityHandoff(resp ChatResponse, state audioclosure.State) (ChatResponse, audioclosure.State) {
+	if s == nil || s.audioClosures == nil || state.Terminal() {
+		return bindAudioClosureToResponse(resp, state), state
+	}
+	current, ok := s.audioClosures.Load(state.ClosureID)
+	if !ok || current.Terminal() {
+		return bindAudioClosureToResponse(resp, state), state
+	}
+	driver := audioclosure.Driver{}
+	sessionID := firstStringFromMap(resp.WorkflowData, "session_id", "capability_session_id")
+	capabilityID := firstStringFromMap(resp.WorkflowData, "capability_id")
+	if sessionID != "" && capabilityID != "" {
+		actionID := firstNonEmpty(firstStringFromMap(resp.WorkflowData, "action_id", "proposal_id", "candidate_id"), resp.PlanID, sessionID+":action:1")
+		next, _, err := driver.BeginCapability(current, current.Revision, audioclosure.CapabilityLink{
+			SessionID: sessionID, CapabilityID: capabilityID, ActionID: actionID,
+			ExpectedProjectRevision: current.ProjectRevision,
+		}, time.Now().UTC())
+		if err == nil && next.Revision != current.Revision {
+			if saveErr := s.audioClosures.Save(next, current.Revision); saveErr == nil {
+				current = next
+				s.persistCurrentProjectWorkspace()
+				if s.orchestrationRuntime != nil && current.ActiveCapability != nil {
+					_, linkErr := s.orchestrationRuntime.AttachParentController(sessionID, orchestration.ParentControllerLink{
+						SchemaVersion: orchestration.ParentControllerLinkSchema,
+						ControllerID:  current.ClosureID, ControllerType: string(orchestrationcontroller.MinimalAudioClosure),
+						ClosureID: current.ClosureID, ClosureRevision: current.ActiveCapability.ClosureRevision,
+						ActionID: current.ActiveCapability.ActionID, ExpectedProjectRevision: current.ProjectRevision,
+					})
+					if linkErr != nil {
+						failed, _, settleErr := driver.SettleCapability(current, current.Revision, audioclosure.CapabilitySettlement{
+							SessionID: sessionID, ActionID: current.ActiveCapability.ActionID, Status: "failed", Reason: "parent link failed: " + linkErr.Error(),
+						}, time.Now().UTC())
+						if settleErr == nil && s.audioClosures.Save(failed, current.Revision) == nil {
+							current = failed
+							s.settleAudioClosureOwner(current)
+							s.persistCurrentProjectWorkspace()
+						}
+						resp.Error = "capability parent link failed: " + linkErr.Error()
+						resp.StopReason = string(audioclosure.StopCapabilityUnavailable)
+						resp.GoalStatus = string(agentruntime.StatusFailed)
+					}
+				}
+			}
+		}
+	} else if resp.NeedsConfirmation || strings.Contains(strings.ToLower(resp.GoalStatus), "waiting") {
+		// Native typed-tool confirmations remain under this closure. Settling
+		// before their receipt returns would restart the next model turn with a
+		// new closure, losing the accumulated revision/delta and observation
+		// ledger needed for post-action evaluation.
+	} else if resp.Error != "" || strings.EqualFold(firstStringFromMap(resp.WorkflowData, "status"), "unavailable") || strings.EqualFold(firstStringFromMap(resp.WorkflowData, "status"), "rejected") {
+		reason := audioclosure.StopCapabilityUnavailable
+		if strings.Contains(strings.ToLower(firstNonEmpty(resp.Error, resp.StopReason, resp.Reply)), "pca") {
+			reason = audioclosure.StopPCAUnavailable
+		}
+		next, err := driver.Settle(current, current.Revision, reason, firstNonEmpty(resp.Error, resp.Reply), false, time.Now().UTC())
+		if err == nil {
+			if saveErr := s.audioClosures.Save(next, current.Revision); saveErr == nil {
+				current = next
+				s.settleAudioClosureOwner(current)
+				s.persistCurrentProjectWorkspace()
+			}
+		}
+	}
+	if current.Terminal() && resp.StopReason == "" {
+		resp.StopReason = string(current.Settlement.Reason)
+	}
+	return bindAudioClosureToResponse(resp, current), current
+}
+
+// recordAudioClosureCapabilityResponse converts the governed child transaction
+// result into one exactly-once parent receipt. A completed child moves the
+// closure to verification; it does not itself claim acoustic satisfaction.
+func (s *Server) recordAudioClosureCapabilityResponse(conversationID string, resp ChatResponse) (ChatResponse, audioclosure.State, bool) {
+	if s == nil || s.audioClosures == nil {
+		return resp, audioclosure.State{}, false
+	}
+	state, ok := s.audioClosures.ActiveForConversation(conversationID)
+	if !ok || state.ActiveCapability == nil {
+		return resp, state, ok
+	}
+	if resp.NeedsConfirmation || resp.GoalStatus == string(agentruntime.StatusWaitingConfirmation) || resp.GoalStatus == string(agentruntime.StatusWaitingContinue) {
+		return bindAudioClosureToResponse(resp, state), state, true
+	}
+	status := "failed"
+	switch resp.GoalStatus {
+	case string(agentruntime.StatusCompleted):
+		status = "completed"
+	case string(agentruntime.StatusCancelled):
+		status = "cancelled"
+	}
+	if strings.EqualFold(firstStringFromMap(resp.WorkflowData, "status"), "stale") {
+		status = "stale"
+	}
+	link := state.ActiveCapability
+	next, _, err := (audioclosure.Driver{}).SettleCapability(state, state.Revision, audioclosure.CapabilitySettlement{
+		SessionID: link.SessionID, ActionID: link.ActionID, Status: status,
+		Reason: firstNonEmpty(resp.Error, resp.StopReason),
+	}, time.Now().UTC())
+	if err != nil {
+		return bindAudioClosureToResponse(resp, state), state, true
+	}
+	if saveErr := s.audioClosures.Save(next, state.Revision); saveErr != nil {
+		return bindAudioClosureToResponse(resp, state), state, true
+	}
+	state = next
+	if state.Terminal() {
+		s.settleAudioClosureOwner(state)
+	}
+	s.persistCurrentProjectWorkspace()
+	return bindAudioClosureToResponse(resp, state), state, true
+}
+
+func audioClosureControllerErrorResponse(conversationID, mode string, err error) ChatResponse {
+	message := "minimal audio closure controller failed"
+	if err != nil {
+		message += ": " + err.Error()
+	}
+	return ChatResponse{
+		ConversationID: conversationID, AgentMode: mode,
+		Reply:      "声学闭环控制器无法建立一致的持久状态，因此没有继续观察或修改工程。",
+		GoalStatus: string(agentruntime.StatusFailed), StopReason: "audio_closure_controller_failure", Error: message,
+		Workflow: "minimal_audio_closure", WorkflowData: map[string]any{"schema_version": audioclosure.SchemaVersion, "status": "controller_failure", "mutation_performed": false},
+	}
+}
+
+func audioClosureSettlementReply(settlement *audioclosure.Settlement) string {
+	if settlement == nil {
+		return "本次声学闭环已结束。"
+	}
+	if settlement.NeedsUserClarification && strings.TrimSpace(settlement.Summary) != "" {
+		return settlement.Summary
+	}
+	switch settlement.Reason {
+	case audioclosure.StopSatisfied:
+		return "本次声学问题已经完成闭环并通过结论检查。"
+	case audioclosure.StopDiagnosticComplete:
+		return "本次只读声学诊断已经完成；没有修改工程。"
+	case audioclosure.StopEvidenceCeilingReached:
+		return "已达到本次闭环的唯一观察上限，现有证据仍不足以支持可靠动作；没有修改工程。"
+	case audioclosure.StopNoProgress:
+		return "连续两轮没有获得新的有效证据或缩小判断范围，本次闭环已停止；没有修改工程。"
+	case audioclosure.StopRoundLimit:
+		return "本次声学闭环已达到六轮上限，未继续重复观察或自动执行。"
+	case audioclosure.StopModelProtocolFailure:
+		return "模型在一次格式修复后仍未给出合法的闭环决策，本次任务已按协议失败结算；无需重述原任务。"
+	case audioclosure.StopTransportFailure:
+		return "模型传输链路失败，本次闭环已按基础设施故障结算；没有修改工程。"
+	default:
+		if strings.TrimSpace(settlement.Summary) != "" {
+			return settlement.Summary
+		}
+		return "本次声学闭环已结束；没有启动额外观察或工程修改。"
+	}
+}

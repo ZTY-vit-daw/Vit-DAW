@@ -7,6 +7,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
+	"time"
 
 	"vit-daw-agent/internal/capabilityadapters"
 	"vit-daw-agent/internal/capabilitycontext"
@@ -20,6 +22,7 @@ const StaticBalanceCapabilityID = "static_mix.static_balance.v0"
 const PanLayoutCapabilityID = "static_mix.pan_layout.v0"
 const LowEndRelationCapabilityID = "static_mix.low_end_relation.v0"
 const FrequencyCleanupCapabilityID = "fine_mix.frequency_cleanup.v1"
+const DynamicControlCapabilityID = "fine_mix.dynamic_control.v1"
 const AgentSemanticEQCapabilityID = "agent.effect.eq_control.v0"
 
 const capabilityRuntimeSystemContext = "Vit Project-aware Capability Runtime v1. Use the fixed PlanningSession engine owner, typed ContextBundle, ProjectCut, Proposal, Authorization, ActionSet, Execution and Verification contracts. Readiness is not authorization. Full derived models remain behind evidence or artifact references unless explicitly requested and admitted by budget."
@@ -77,6 +80,21 @@ func (r *Runtime) StartC1ChatSession(sessionID, conversationID, projectUUID, goa
 		"project_wide_all_or_rollback",
 		"reuse_ordinary_generic_eq_runtime",
 		"no_new_observer_recognizer_topology_or_executor",
+	})
+}
+
+// StartC2ChatSession creates an independent C2 session. A C1 referral may be
+// attached as evidence later, but C1 history is never a C2 prerequisite.
+func (r *Runtime) StartC2ChatSession(sessionID, conversationID, projectUUID, goal string, mode orchestration.InteractionMode) (orchestration.PlanningSession, error) {
+	return r.startCapabilitySession(sessionID, conversationID, projectUUID, goal, mode, DynamicControlCapabilityID, "v1", []string{
+		"independent_capability_no_c1_prerequisite",
+		"optional_peer_referral_is_non_authoritative",
+		"fixed_full_project_dynamic_observation_before_processor_inventory",
+		"pca_candidate_resolution_after_treatment_before_exact_processor_binding",
+		"pca_admitted_dynamic_plugin_load_and_parameter_writes_separately_confirmed",
+		"reuse_existing_com_and_dynamic_semantic_workflows",
+		"typed_executor_readback_and_rollback_required",
+		"post_action_shadow_refresh_ccb_and_project_delta_required",
 	})
 }
 
@@ -262,6 +280,28 @@ func (r *Runtime) AttachFrozenPlan(sessionID string, plan orchestration.FrozenPl
 	return updated, nil
 }
 
+func (r *Runtime) AttachParentController(sessionID string, link orchestration.ParentControllerLink) (orchestration.PlanningSession, error) {
+	if r == nil || r.Store == nil {
+		return orchestration.PlanningSession{}, fmt.Errorf("runtime is not initialized")
+	}
+	session, ok := r.Store.Load(sessionID)
+	if !ok {
+		return orchestration.PlanningSession{}, fmt.Errorf("session %s not found", sessionID)
+	}
+	expected := session.Revision
+	updated, err := session.SetParentController(link)
+	if err != nil {
+		return orchestration.PlanningSession{}, err
+	}
+	if updated.Revision == expected {
+		return updated, nil
+	}
+	if err := r.Store.Save(updated, expected); err != nil {
+		return orchestration.PlanningSession{}, err
+	}
+	return updated, nil
+}
+
 // AuthorizeProposal persists a semantic, version-bound authorization. It does
 // not execute the ActionSet; Execution Coordinator will consume it later.
 func (r *Runtime) AuthorizeProposal(sessionID string, authorization orchestration.Authorization) (orchestration.PlanningSession, error) {
@@ -320,6 +360,64 @@ func (r *Runtime) ExecuteActionSetWithPersistence(ctx context.Context, sessionID
 		return orchestration.PlanningSession{}, fmt.Errorf("runtime executor is not initialized")
 	}
 	return r.Executor.ExecuteWithPersistence(ctx, sessionID, actionSet, currentCut, port, verifier, persistence)
+}
+
+// FinalizeExternalLeaf records a leaf that owns its own confirmation and
+// typed transaction (for example C2's semantic compressor/dynamic workflows).
+// The capability session remains the project-level audit owner, while the
+// leaf remains the mutation authority. Missing acoustic proof is represented
+// as needs_review, never as completed success.
+func (r *Runtime) FinalizeExternalLeaf(sessionID string, receipts []orchestration.ActionReceipt, verification orchestration.VerificationResult) (orchestration.PlanningSession, error) {
+	if r == nil || r.Store == nil {
+		return orchestration.PlanningSession{}, fmt.Errorf("runtime is not initialized")
+	}
+	session, ok := r.Store.Load(sessionID)
+	if !ok {
+		return orchestration.PlanningSession{}, fmt.Errorf("session %s not found", sessionID)
+	}
+	if session.Invocation.CapabilityID != DynamicControlCapabilityID {
+		return orchestration.PlanningSession{}, fmt.Errorf("session %s is not a C2 session", sessionID)
+	}
+	if session.Terminal() {
+		return session, nil
+	}
+	if session.FrozenPlan == nil || len(receipts) == 0 {
+		return orchestration.PlanningSession{}, fmt.Errorf("C2 external leaf requires a frozen plan and receipt")
+	}
+	for index := range receipts {
+		if strings.TrimSpace(receipts[index].ActionID) == "" {
+			receipts[index].ActionID = session.FrozenPlan.ActionSet.Actions[0].ID
+		}
+		if strings.TrimSpace(receipts[index].Status) == "" {
+			receipts[index].Status = "applied"
+		}
+	}
+	now := time.Now().UTC()
+	verification.Status = strings.TrimSpace(verification.Status)
+	if verification.Status == "" {
+		verification.Status = "inconclusive"
+	}
+	session.Execution = &orchestration.ExecutionRecord{
+		ID:                 "execution_" + session.ID + "_external",
+		SessionID:          session.ID,
+		ActionSetHash:      session.FrozenPlan.ActionSet.Hash,
+		ProjectCut:         session.FrozenPlan.ProjectCut,
+		IdempotencyKey:     "external:" + session.ID,
+		Status:             "verification_inconclusive",
+		Receipts:           append([]orchestration.ActionReceipt(nil), receipts...),
+		ReceiptRef:         "c2-execution:" + session.ID,
+		Verification:       verification.Status,
+		VerificationResult: &verification,
+		CreatedAt:          now, UpdatedAt: now,
+	}
+	expected := session.Revision
+	session.Status = orchestration.StatusNeedsReview
+	session.Revision++
+	session.UpdatedAt = now
+	if err := r.Store.Save(session, expected); err != nil {
+		return orchestration.PlanningSession{}, err
+	}
+	return session, nil
 }
 
 func (r *Runtime) ReconcileActionSet(ctx context.Context, sessionID string, actionSet orchestration.ActionSet, port executionruntime.ReconcilePort, verifier executionruntime.Verifier) (orchestration.PlanningSession, error) {

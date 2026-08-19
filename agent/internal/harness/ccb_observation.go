@@ -47,6 +47,12 @@ func (h *Harness) ccbObservationRequest(ctx context.Context, cmd map[string]any,
 	}
 	if req.ObservationID == "" {
 		observeCmd := ccbObservationCommand(cmd, req)
+		if containsCCBView(req.ViewIDs, "mix.masking_relationship") {
+			if _, err := h.prepareCCBMaskingObservation(ctx, observeCmd, req.MixSessionID); err != nil {
+				reason := "mix.masking_relationship: " + err.Error()
+				return map[string]any{"status": "rejected", "bundle": capabilitycontext.RejectedFreeStateObservationScoped(req, []string{"mix.masking_relationship"}, reason)}, nil
+			}
+		}
 		observed, err := h.requestMixObservation(ctx, observeCmd)
 		if err != nil {
 			return map[string]any{"status": "rejected", "bundle": capabilitycontext.RejectedFreeStateObservationScoped(req, req.ViewIDs, err.Error())}, nil
@@ -247,7 +253,9 @@ func ccbObservationCommand(cmd map[string]any, req capabilitycontext.FreeStateOb
 	if req.TargetRef.Label != "" {
 		out["target_label"] = req.TargetRef.Label
 	}
-	if containsCCBView(req.ViewIDs, "mix.frequency_relationship") {
+	if containsCCBView(req.ViewIDs, "mix.masking_relationship") {
+		out["mom_intent"] = "project_masking_relationship_observation"
+	} else if containsCCBView(req.ViewIDs, "mix.frequency_relationship") {
 		out["mom_intent"] = "project_frequency_relationship_observation"
 	} else if containsCCBView(req.ViewIDs, "mix.multitrack_relationship") {
 		out["mom_intent"] = "project_multitrack_relation_observation"
@@ -255,6 +263,14 @@ func ccbObservationCommand(cmd map[string]any, req capabilitycontext.FreeStateOb
 	if containsCCBView(req.ViewIDs, "track.time_dynamics") || containsCCBView(req.ViewIDs, "processor.behavior") || containsCCBView(req.ViewIDs, "processor.identity_and_controls") {
 		if firstString(out, "com_mode") == "" {
 			out["com_mode"] = "source_only"
+		}
+	}
+	for _, viewID := range []string{"track.peak_structure", "track.activity_structure", "track.frequency_time_events", "track.transient_structure", "track.band_dynamics"} {
+		if containsCCBView(req.ViewIDs, viewID) {
+			if firstString(out, "dom_mode") == "" {
+				out["dom_mode"] = "source_only"
+			}
+			break
 		}
 	}
 	return out
@@ -266,7 +282,7 @@ func ccbObservationScope(req capabilitycontext.FreeStateObservationRequest) stri
 	for _, viewID := range req.ViewIDs {
 		viewID = strings.ToLower(strings.TrimSpace(viewID))
 		hasTrackView = hasTrackView || strings.HasPrefix(viewID, "track.") || strings.HasPrefix(viewID, "processor.") || viewID == "comparison.before_after"
-		hasMixView = hasMixView || strings.HasPrefix(viewID, "mix.") || viewID == "project.structure"
+		hasMixView = hasMixView || strings.HasPrefix(viewID, "mix.") || strings.HasPrefix(viewID, "project.")
 	}
 	if hasMixView && hasTrackView {
 		return "full_project_with_focus_track"

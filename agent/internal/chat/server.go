@@ -24,6 +24,7 @@ import (
 	"vit-daw-agent/internal/agentloop"
 	"vit-daw-agent/internal/agentprotocol"
 	"vit-daw-agent/internal/artifacts"
+	"vit-daw-agent/internal/audioclosure"
 	"vit-daw-agent/internal/browsercapture"
 	"vit-daw-agent/internal/config"
 	"vit-daw-agent/internal/contextruntime"
@@ -34,6 +35,7 @@ import (
 	"vit-daw-agent/internal/logx"
 	"vit-daw-agent/internal/macrocontrols"
 	"vit-daw-agent/internal/orchestration"
+	"vit-daw-agent/internal/orchestrationcontroller"
 	"vit-daw-agent/internal/orchestrationruntime"
 	"vit-daw-agent/internal/pendingmanager"
 	"vit-daw-agent/internal/planner"
@@ -69,6 +71,8 @@ type Server struct {
 	pendingMixTicks                    map[string]agentloop.PendingMixTickCandidate
 	pendingTreatments                  map[string]agentloop.MixTreatmentPending
 	freeStateLoops                     map[string]freeStateReasoningLoop
+	audioClosures                      *audioclosure.MemoryStore
+	controllerOwners                   *orchestrationcontroller.Registry
 	pendingManager                     *pendingmanager.MemoryManager
 	orchestrationRuntime               *orchestrationruntime.Runtime
 	pluginEffectControlRuntimeOverride func(context.Context, string, ChatRequest, agentruntime.Goal) ChatResponse
@@ -116,6 +120,8 @@ type projectAgentRuntimeState struct {
 	PendingPanLayoutPlans     map[string]agentloop.PendingPanLayoutPlan     `json:"pending_pan_layout_plans,omitempty"`
 	PendingTreatments         map[string]agentloop.MixTreatmentPending      `json:"pending_treatments,omitempty"`
 	FreeStateLoops            map[string]freeStateReasoningLoop             `json:"free_state_reasoning_loops,omitempty"`
+	AudioClosures             map[string]audioclosure.State                 `json:"minimal_audio_closures,omitempty"`
+	ControllerOwners          map[string]orchestrationcontroller.Owner      `json:"orchestration_controller_owners,omitempty"`
 	PendingCandidates         []agentprotocol.PendingCandidate              `json:"pending_candidates,omitempty"`
 	GoalRuntime               agentruntime.Snapshot                         `json:"goal_runtime,omitempty"`
 }
@@ -438,6 +444,8 @@ func New(kernelClient *kernel.Client, shadowProject *shadow.Project, logger *log
 		pendingMixTicks:                  map[string]agentloop.PendingMixTickCandidate{},
 		pendingTreatments:                map[string]agentloop.MixTreatmentPending{},
 		freeStateLoops:                   map[string]freeStateReasoningLoop{},
+		audioClosures:                    audioclosure.NewMemoryStore(),
+		controllerOwners:                 orchestrationcontroller.NewRegistry(),
 		pendingManager:                   pendingmanager.NewMemoryManager(),
 		orchestrationRuntime:             orchestrationRuntime,
 		uiContext:                        map[string]any{},
@@ -1348,6 +1356,17 @@ func (s *Server) handleInvoke(w http.ResponseWriter, r *http.Request) {
 	if strings.TrimSpace(req.Source) == "" {
 		req.Source = "http"
 	}
+	if reason := freeStateInvokeMutationReason(req); reason != "" {
+		writeJSON(w, http.StatusBadRequest, harness.InvokeResponse{
+			Status: "error", Tool: req.Tool, Error: reason,
+			Result: map[string]any{"status": "rejected", "rejection_code": "free_state_mutation_forbidden", "mutation_performed": false},
+		})
+		return
+	}
+	if response, needsConfirmation := typedPluginApplyConfirmationResponse(req); needsConfirmation {
+		writeJSON(w, http.StatusOK, response)
+		return
+	}
 	if strings.TrimSpace(req.AuthorizationToken) != "" {
 		var authErr error
 		req, authErr = s.consumeProcessorCertificationLoadAuthorization(req)
@@ -1524,15 +1543,31 @@ func (s *Server) handleInvoke(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, status, resp)
 		return
 	}
+	if resp, blocked := s.guardEQOwnedGenericParameterWrite(r.Context(), req); blocked {
+		writeJSON(w, http.StatusBadRequest, resp)
+		return
+	}
+	if resp, blocked := s.guardCompressorOwnedGenericParameterWrite(r.Context(), req); blocked {
+		writeJSON(w, http.StatusBadRequest, resp)
+		return
+	}
+	if resp, blocked := s.guardLimiterOwnedGenericParameterWrite(r.Context(), req); blocked {
+		writeJSON(w, http.StatusBadRequest, resp)
+		return
+	}
+	if resp, blocked := s.guardGateExpanderOwnedGenericParameterWrite(r.Context(), req); blocked {
+		writeJSON(w, http.StatusBadRequest, resp)
+		return
+	}
+	if resp, blocked := s.guardDeEsserOwnedGenericParameterWrite(r.Context(), req); blocked {
+		writeJSON(w, http.StatusBadRequest, resp)
+		return
+	}
 	if resp, blocked := s.guardTransientShaperOwnedGenericParameterWrite(r.Context(), req); blocked {
 		writeJSON(w, http.StatusBadRequest, resp)
 		return
 	}
 	if resp, blocked := s.guardMultibandOwnedGenericParameterWrite(r.Context(), req); blocked {
-		writeJSON(w, http.StatusBadRequest, resp)
-		return
-	}
-	if resp, blocked := s.guardCompressorOwnedGenericParameterWrite(r.Context(), req); blocked {
 		writeJSON(w, http.StatusBadRequest, resp)
 		return
 	}
@@ -2752,27 +2787,26 @@ func pendingPlanHasQualifiedSemanticPluginSelection(plan PendingPlan) bool {
 // the narrow, in-process harness authorization needed for exactly one plug-in
 // load. Keeping this token out of the persisted/client payload prevents a
 // caller from asserting that an arbitrary broad-mix load was selected.
-func pendingPlanExecutionContext(plan PendingPlan) map[string]any {
+func pendingPlanExecutionContext(plan PendingPlan) (map[string]any, error) {
 	if !pendingPlanHasQualifiedSemanticPluginSelection(plan) {
-		return plan.Context
+		return plan.Context, nil
 	}
-	candidate := firstMapFromAny(plan.Context["semantic_plugin_recommendation_candidate"])
+	receipt, found, err := semanticValidatePCAAdmissionReceipt(plan, "", "")
+	if err != nil {
+		return nil, err
+	}
+	if !found {
+		return plan.Context, nil
+	}
 	command := workflowCommandArgs(plan.Decisions[0].Command)
-	requirement, ok := pluginControlRequirementFromAny(plan.Context["processor_control_requirement"])
-	if !ok {
-		requirement, ok = pluginControlRequirementFromAny(firstMapFromAny(plan.Context["plugin_recommendation"])["processor_control_requirement"])
-	}
-	if !ok {
-		return plan.Context
-	}
 	return harness.AuthorizeProcessorSelectionLoad(
 		plan.Context,
 		firstStringFromMap(command, "track_id"),
 		firstStringFromMap(command, "plugin_path"),
-		firstStringFromMap(candidate, "identifier"),
-		processorattestation.EligibilityRequirement{ProcessorFamily: requirement.ProcessorFamily, RequiredCoverage: requirement.Coverage},
-		firstStringFromMap(candidate, "subject_key"), firstStringFromMap(candidate, "binary_fingerprint"), firstStringFromMap(candidate, "attestation_id"),
-	)
+		receipt.Identifier,
+		processorattestation.EligibilityRequirement{ProcessorFamily: receipt.ProcessorFamily},
+		receipt.SubjectKey, receipt.BinaryFingerprint, receipt.AttestationID,
+	), nil
 }
 
 func pendingPlanIsMixTreatmentPreparation(plan PendingPlan) bool {
@@ -3658,6 +3692,7 @@ func (s *Server) handleInteractionRespond(w http.ResponseWriter, r *http.Request
 	kind := firstNonEmpty(interaction.Kind, interaction.Type)
 	isMixTickInteraction := strings.EqualFold(interaction.Kind, "mix_tick_confirmation") || strings.EqualFold(interaction.Type, "mix_tick_confirmation") || strings.EqualFold(interaction.Workflow, "mix_tick")
 	isMixTreatmentInteraction := strings.EqualFold(interaction.Kind, "mix_treatment_confirmation") || strings.EqualFold(interaction.Type, "mix_treatment_confirmation") || strings.EqualFold(interaction.Workflow, "mix_treatment")
+	isImprovementProposalInteraction := strings.EqualFold(interaction.Kind, "improvement_proposal_confirmation") || strings.EqualFold(interaction.Type, "improvement_proposal_confirmation") || strings.EqualFold(interaction.Workflow, improvementProposalWorkflow)
 	isCapabilityRuntimeInteraction := strings.EqualFold(interaction.Workflow, "capability_runtime_v1") && firstNonEmpty(cleanContextText(interaction.Data["session_id"]), cleanContextText(interaction.Payload["session_id"])) != ""
 	if isCapabilityRuntimeInteraction {
 		capabilityID := firstNonEmpty(cleanContextText(interaction.Data["capability_id"]), cleanContextText(interaction.Payload["capability_id"]))
@@ -3690,7 +3725,9 @@ func (s *Server) handleInteractionRespond(w http.ResponseWriter, r *http.Request
 		if !handled {
 			resp = capabilityCanaryBlockedResponse(interaction.ConversationID, agentruntime.Goal{GoalID: interaction.GoalID, RunID: interaction.RunID}, "v1 capability confirmation 已过期或 owner 不匹配。")
 		}
-		resp = s.maybeContinueFreeStateAfterInteraction(r.Context(), interaction, resp, decision)
+		if firstStringFromMap(interaction.RequestContext, "capability_id") != dynamicControlCapabilityID {
+			resp = s.maybeContinueFreeStateAfterInteraction(r.Context(), interaction, resp, decision)
+		}
 		s.attachInteractionRequests(&resp)
 		s.finalizeInteractionChatResponse(r.Context(), &resp, interaction, message)
 		writeJSON(w, http.StatusOK, resp)
@@ -3698,7 +3735,37 @@ func (s *Server) handleInteractionRespond(w http.ResponseWriter, r *http.Request
 	}
 	if strings.EqualFold(interaction.Workflow, semanticCompressorExecutionWorkflow) {
 		resp := s.continueSemanticCompressorExecutionInteraction(r.Context(), interaction, decision)
+		resp = s.completeC2PostAction(r.Context(), interaction, resp)
+		if firstStringFromMap(interaction.RequestContext, "capability_id") != dynamicControlCapabilityID {
+			resp = s.maybeContinueFreeStateAfterInteraction(r.Context(), interaction, resp, decision)
+		}
+		s.finalizeInteractionChatResponse(r.Context(), &resp, interaction, decision)
+		writeJSON(w, http.StatusOK, resp)
+		return
+	}
+	if strings.EqualFold(interaction.Workflow, semanticDynamicWorkflow) {
+		resp := s.continueSemanticDynamicExecutionInteraction(r.Context(), interaction, decision)
+		resp = s.completeC2PostAction(r.Context(), interaction, resp)
+		if firstStringFromMap(interaction.RequestContext, "capability_id") != dynamicControlCapabilityID {
+			resp = s.maybeContinueFreeStateAfterInteraction(r.Context(), interaction, resp, decision)
+		}
+		s.finalizeInteractionChatResponse(r.Context(), &resp, interaction, decision)
+		writeJSON(w, http.StatusOK, resp)
+		return
+	}
+	if isImprovementProposalInteraction {
+		resp := s.continueImprovementProposalInteraction(r.Context(), interaction, decision)
 		resp = s.maybeContinueFreeStateAfterInteraction(r.Context(), interaction, resp, decision)
+		s.finalizeInteractionChatResponse(r.Context(), &resp, interaction, decision)
+		writeJSON(w, http.StatusOK, resp)
+		return
+	}
+	// C2 carries a PlanID for presentation/history, but its parameter batch is
+	// executed by the C2 all-or-rollback handler rather than the legacy pending
+	// plan registry. Route it before the generic confirmation fallback.
+	if strings.EqualFold(interaction.Source, c2DynamicParameterBatchWorkflow) || strings.EqualFold(interaction.Type, c2DynamicParameterBatchWorkflow) {
+		resp := s.continueC2DynamicParameterBatchInteraction(r.Context(), interaction, decision)
+		s.attachInteractionRequests(&resp)
 		s.finalizeInteractionChatResponse(r.Context(), &resp, interaction, decision)
 		writeJSON(w, http.StatusOK, resp)
 		return
@@ -3732,6 +3799,20 @@ func (s *Server) handleInteractionRespond(w http.ResponseWriter, r *http.Request
 	}
 	if strings.EqualFold(interaction.Source, "b4_plugin_selection") || strings.EqualFold(interaction.Type, "b4_plugin_selection") {
 		resp := s.continueB4PluginSelectionInteraction(r.Context(), interaction, decision)
+		s.attachInteractionRequests(&resp)
+		s.finalizeInteractionChatResponse(r.Context(), &resp, interaction, decision)
+		writeJSON(w, http.StatusOK, resp)
+		return
+	}
+	if strings.EqualFold(interaction.Source, "c2_dynamic_plugin_selection") || strings.EqualFold(interaction.Type, "c2_dynamic_plugin_selection") {
+		resp := s.continueC2DynamicPluginSelectionInteraction(r.Context(), interaction, decision)
+		s.attachInteractionRequests(&resp)
+		s.finalizeInteractionChatResponse(r.Context(), &resp, interaction, decision)
+		writeJSON(w, http.StatusOK, resp)
+		return
+	}
+	if strings.EqualFold(interaction.Source, "c2_loaded_plugin_selection") || strings.EqualFold(interaction.Type, "c2_loaded_plugin_selection") {
+		resp := s.continueC2LoadedPluginSelectionInteraction(r.Context(), interaction, decision)
 		s.attachInteractionRequests(&resp)
 		s.finalizeInteractionChatResponse(r.Context(), &resp, interaction, decision)
 		writeJSON(w, http.StatusOK, resp)
@@ -3775,6 +3856,11 @@ func (s *Server) handleInteractionRespond(w http.ResponseWriter, r *http.Request
 				GoalStatus:     string(agentruntime.StatusCompleted),
 			}
 		}
+		// A confirmed native mix tick is still part of the active free-state
+		// treatment loop. Feed its governed execution result through the same
+		// post-action bridge as processor/capability workflows so the loop can
+		// request fresh CCB evidence before any terminal conclusion.
+		resp = s.maybeContinueFreeStateAfterInteraction(r.Context(), interaction, resp, decision)
 		s.attachInteractionRequests(&resp)
 		s.finalizeInteractionChatResponse(r.Context(), &resp, interaction, approvalText)
 		writeJSON(w, http.StatusOK, resp)
@@ -4088,8 +4174,13 @@ func (s *Server) handleConfirm(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusOK, response)
 		return
 	}
-	beforeState := s.harness.UserStateSummary(r.Context())
-	replies, err := s.executeDecisions(r.Context(), plan.Decisions, true, pendingPlanExecutionContext(plan))
+	executionContext, err := pendingPlanExecutionContext(plan)
+	beforeState := map[string]any{}
+	var replies []map[string]any
+	if err == nil {
+		beforeState = s.harness.UserStateSummary(r.Context())
+		replies, err = s.executeDecisions(r.Context(), plan.Decisions, true, executionContext)
+	}
 	if err != nil {
 		s.harness.CompleteGoal(goalID, err)
 		projectHistory := s.harness.RecordConversationNodeForProject(r.Context(), projectPath, "vit", err.Error(), goalID, runID)
@@ -4238,8 +4329,13 @@ func (s *Server) resolvePendingPlanDecision(ctx context.Context, planID, decisio
 	if response, blocked := s.legacyPendingPlanBroadMixBlockedConfirmResponse(ctx, planID, plan, goalID, runID, agentMode, projectPath); blocked {
 		return http.StatusOK, response
 	}
-	beforeState := s.harness.UserStateSummary(ctx)
-	replies, err := s.executeDecisions(ctx, plan.Decisions, true, pendingPlanExecutionContext(plan))
+	executionContext, err := pendingPlanExecutionContext(plan)
+	beforeState := map[string]any{}
+	var replies []map[string]any
+	if err == nil {
+		beforeState = s.harness.UserStateSummary(ctx)
+		replies, err = s.executeDecisions(ctx, plan.Decisions, true, executionContext)
+	}
 	if err != nil {
 		s.harness.CompleteGoal(goalID, err)
 		projectHistory := s.harness.RecordConversationNodeForProject(ctx, projectPath, "vit", err.Error(), goalID, runID)
@@ -5174,14 +5270,13 @@ When importing audio and no target track is named, use selected_track_id as the 
 If commands is non-empty, keep reply as a short internal intent summary. VitAgent will replace it with the final user-facing result after execution, so do not rely on "about to" wording as the final answer.
 
 For plugin loading/grabber setup requests such as loading TDR Nova, finding an EQ/compressor, or loading a plugin and grabbing useful controls, use the special chat workflow command {"cmd":"plugin_grabber_load_and_get_params","track_id":"...","plugin_query":"TDR Nova","intent":"short user intent"}. This workflow searches indexed plugins, asks for confirmation before loading a rack node, then reads parameters after the load succeeds. Do not use instantiate_plugin for these requests; instantiate_plugin requires an exact plugin_path and bypasses the rack grabber workflow.
-For explicit plugin effect control, use the deterministic typed tool for that effect. For static EQ, call plugin_grabber.explain_controls and then plugin_grabber.apply_eq_edits(track_id, plugin_id, edits, atomic:true). For a broadband compressor, call plugin_grabber.inspect_compressor first and then plugin_grabber.apply_compressor_controls with only returned control_ref values and explicit physical or enum targets. For an independently provable limiter stage, call plugin_grabber.inspect_limiter first and then plugin_grabber.apply_limiter_controls with only returned control_ref values. For a provable De-esser stage, call plugin_grabber.inspect_de_esser first and then plugin_grabber.apply_de_esser_controls with only returned control_ref values. For a provable hard gate or downward expander, call plugin_grabber.inspect_gate_expander first and then plugin_grabber.apply_gate_expander_controls with only returned control_ref values. For a provable multiband dynamics filterbank, call plugin_grabber.inspect_multiband first and then plugin_grabber.apply_multiband_controls with only returned control_ref values; crossover targets are validated as one strictly ordered set before any write. For Spectral Dynamics, call plugin_grabber.inspect_spectral_dynamics; this v1 surface is inspect-only and returns either a proven spectral field plus global law or an explicit unresolved/adjacent boundary. Do not infer a controller from Capture, Freeze, product identity, or a scalar analyzer. De-esser controls accept value_db, value_ms, frequency_hz, percent, display_value, or enum_label only when the observed role and physical domain prove compatibility. Gate/expander controls accept value_db, ratio, value_ms, frequency_hz, percent, display_value, or enum_label; direction labels must be proved Gate or downward Expander labels. Limiter controls accept value_db, value_ms, percent, display_value, or enum_label; maximizers are supported only through a proved limiter stage, while clippers and multiband dynamics remain separate. Multiband controls accept value_hz, value_db, ratio, value_ms, percent, display_value, or enum_label. Compressor controls accept value_db, ratio, value_ms, percent, display_value, or enum_label; exactly one target field is allowed per control. Typed dynamics tools do not interpret acoustic intent such as "more punch" or "louder": decide the explicit control request before calling them. Every explicit field is a hard requirement: rejected means no parameter was touched. Report exact/quantized/rejected and actual readback exactly. Never use stored mappings or retired control mappings. For effects without a typed tool, pick the relevant parameter from all_parameters and call set_plugin_param with a normalized value.
-  For non-EQ effects, pick the relevant param from all_parameters using domain for normalization.
+For explicit plugin effect control, use the deterministic typed tool for that effect. For static EQ, call plugin_grabber.explain_controls and then plugin_grabber.apply_eq_edits(track_id, plugin_id, edits, atomic:true). For a broadband compressor, call plugin_grabber.inspect_compressor first and then plugin_grabber.apply_compressor_controls with only returned control_ref values and explicit physical or enum targets. For an independently provable limiter stage, call plugin_grabber.inspect_limiter first and then plugin_grabber.apply_limiter_controls with only returned control_ref values. For a provable De-esser stage, call plugin_grabber.inspect_de_esser first and then plugin_grabber.apply_de_esser_controls with only returned control_ref values. For a provable hard gate or downward expander, call plugin_grabber.inspect_gate_expander first and then plugin_grabber.apply_gate_expander_controls with only returned control_ref values. For a provable multiband dynamics filterbank, call plugin_grabber.inspect_multiband first and then plugin_grabber.apply_multiband_controls with only returned control_ref values; crossover targets are validated as one strictly ordered set before any write. For Spectral Dynamics, call plugin_grabber.inspect_spectral_dynamics; this v1 surface is inspect-only and returns either a proven spectral field plus global law or an explicit unresolved/adjacent boundary. Do not infer a controller from Capture, Freeze, product identity, or a scalar analyzer. De-esser controls accept value_db, value_ms, frequency_hz, percent, display_value, or enum_label only when the observed role and physical domain prove compatibility. Gate/expander controls accept value_db, ratio, value_ms, frequency_hz, percent, display_value, or enum_label; direction labels must be proved Gate or downward Expander labels. Limiter controls accept value_db, value_ms, percent, display_value, or enum_label; maximizers are supported only through a proved limiter stage, while clippers and multiband dynamics remain separate. Multiband controls accept value_hz, value_db, ratio, value_ms, percent, display_value, or enum_label. Compressor controls accept value_db, ratio, value_ms, percent, display_value, or enum_label; exactly one target field is allowed per control. Typed dynamics tools do not interpret acoustic intent such as "more punch" or "louder": decide the explicit control request before calling them. Every explicit field is a hard requirement: rejected means no parameter was touched. Report exact/quantized/rejected and actual readback exactly. Never use stored mappings or retired control mappings. Generic parameter writes are allowed only for an explicit, user-authorized control request when no typed, recognized effect surface exists; abstract semantic/free-state turns never use this fallback, and no parameter ID or mapping may be invented.
   After writing, call get_plugin_parameters (include_parameters:true) to confirm. Never pass value_text.
 For plugin grabber explanation, summary, context pack, or "explain controls" requests on an already loaded/selected plugin, use the special read-only workflow command {"cmd":"plugin_grabber_explain_controls","track_id":"...","plugin_id":"...","intent":"short user intent"}. This workflow reads full parameters, then returns a compact context pack with quick controls, groups, roles, and full-parameter access hints. It does not filter or save parameters.
 For basic macro-control creation requests such as creating a generic macro knob/slider, use {"cmd":"control_add_macro","track_id":"...","name":"Macro","control_type":"slider","value":0.5,"bindings":[]}. Do not use rack.add_macro. Semantic macro generation from plugin skills should be proposed for confirmation before writing bindings.
 For macro-control rename requests, use {"cmd":"control_rename_macro","macro_id":"...","name":"New Macro Name"}. If the user names the macro by visible label, resolve it from macro_refs or available_macro_controls; do not create a new macro to rename one.
 When the user asks to bind/map a plugin parameter to an existing macro control, such as "bind B1 Gain to Macro 1", "bind it to this macro", or "绑定到已有宏控件", do not call control_add_macro first. Use the existing macro_id from macro_refs or available_macro_controls and call {"cmd":"control_add_binding","macro_id":"...","track_id":"...","plugin_id":"...","param_id":"...","param_name":"...","target_min":...,"target_max":...}. If the named macro is ambiguous or absent, ask which macro to use instead of creating a new one.
-For plugin parameter writes, use the deterministic tool for that effect type. Where no typed tool exists, use set_plugin_param with a normalized value computed from the live display_domain_candidate and verify with get_plugin_parameters.
+For plugin parameter writes, use the deterministic typed tool for the recognized effect type. Where no typed tool exists, use set_plugin_param with a normalized value computed from the live display_domain_candidate and verify with get_plugin_parameters only for an explicit, user-authorized control request; abstract semantic/free-state turns never use this fallback, and a live typed topology always wins.
 For selected/current clip fade/gain read/write requests, use clip.fade.read/set and clip.gain.read/set. Clip gain is static clip-level gain before track processing; do not route it to mixing, track.volume, mix.propose_tick, or mix.apply_tick.
 Mixing is a native Ask Vit conversation capability, not a separate Auto Mix/Co-Mix mode. Do not create a planning card or ask the user to fill one for mixing.
 For natural mixing goals such as making a vocal more forward, increasing loudness, reducing mud/harshness, tightening dynamics, or adding space, resolve the target from the user's wording and selected DAW context, then prefer mix_request_observation / mix.request_observation before choosing a write.
@@ -6345,6 +6440,12 @@ func (s *Server) projectAgentRuntimeStateLocked() projectAgentRuntimeState {
 		PendingTreatments:  s.pendingTreatments,
 		FreeStateLoops:     s.freeStateLoops,
 	}
+	if s.audioClosures != nil {
+		state.AudioClosures = s.audioClosures.Snapshot()
+	}
+	if s.controllerOwners != nil {
+		state.ControllerOwners = s.controllerOwners.Snapshot()
+	}
 	if s.pendingManager != nil {
 		state.PendingCandidates = s.pendingManager.Snapshot()
 	}
@@ -6368,6 +6469,26 @@ func (s *Server) restoreProjectAgentRuntimeStateLocked(state projectAgentRuntime
 	s.pendingMixTicks = nonNilMap(state.PendingMixTicks)
 	s.pendingTreatments = nonNilMap(state.PendingTreatments)
 	s.freeStateLoops = nonNilMap(state.FreeStateLoops)
+	if s.audioClosures == nil {
+		s.audioClosures = audioclosure.NewMemoryStore()
+	}
+	if err := s.audioClosures.Restore(state.AudioClosures); err != nil {
+		// A corrupt closure projection must fail closed. Keep the store empty;
+		// the legacy free-state snapshot remains available for migration/audit.
+		s.audioClosures = audioclosure.NewMemoryStore()
+		if s.logger != nil {
+			s.logger.Warn("[workspace] minimal audio closure restore rejected: %v", err)
+		}
+	}
+	if s.controllerOwners == nil {
+		s.controllerOwners = orchestrationcontroller.NewRegistry()
+	}
+	if err := s.controllerOwners.Restore(state.ControllerOwners); err != nil {
+		s.controllerOwners = orchestrationcontroller.NewRegistry()
+		if s.logger != nil {
+			s.logger.Warn("[workspace] orchestration controller owner restore rejected: %v", err)
+		}
+	}
 	if s.pendingManager == nil {
 		s.pendingManager = pendingmanager.NewMemoryManager()
 	}

@@ -1,6 +1,7 @@
 package agentloop
 
 import (
+	"fmt"
 	"strings"
 
 	"vit-daw-agent/internal/contextruntime"
@@ -47,6 +48,7 @@ func (r *Runner) buildContextSnapshot(state *runState) contextruntime.Snapshot {
 		PendingToolQueue:      append([]planner.ToolCall(nil), state.pendingToolQueue...),
 		ExecutionMemory:       executionMemoryMap(state.executionMemory),
 		RecentObservation:     recentObservationMap(state.recentObservation),
+		ProjectChange:         messageLoopProjectChangeContext(state),
 		PreviousSnapshot:      cloneMap(state.contextSnapshot),
 	}, contextruntime.Options{Now: r.now})
 }
@@ -77,14 +79,53 @@ func (r *Runner) buildModelContextSnapshot(state *runState, full contextruntime.
 			Context:           neutralContext,
 			State:             neutralState,
 			RecentObservation: neutralObservation,
+			ProjectChange:     messageLoopProjectChangeContext(state),
 		}, contextruntime.Options{Now: r.now, SkipPluginSemanticLoad: true})
 	}
 	projected := contextruntime.ProjectModelSnapshot(contextruntime.ModelProjectionInput{
 		Snapshot:          modelSnapshot,
 		GoalTrace:         state.trace,
 		RecentObservation: recentObservationMap(state.recentObservation),
+		ObservationLedger: messageLoopFreeStateObservationLedger(state),
+		Profile:           messageLoopModelContextProfile(state),
 	}, contextruntime.Options{Now: r.now, SkipPluginSemanticLoad: true})
 	return contextruntime.ModelJSON(projected)
+}
+
+func messageLoopFreeStateObservationLedger(state *runState) map[string]any {
+	loop := messageLoopFreeStateContext(state)
+	return cloneMap(messageLoopMapValue(loop["observation_ledger"]))
+}
+
+func messageLoopProjectChangeContext(state *runState) map[string]any {
+	if state == nil {
+		return nil
+	}
+	if change := messageLoopMapValue(state.input.Context["free_state_project_change"]); len(change) > 0 {
+		return cloneMap(change)
+	}
+	if change := messageLoopMapValue(state.input.Context["latest_project_change"]); len(change) > 0 {
+		return cloneMap(change)
+	}
+	if change := messageLoopMapValue(state.input.State["latest_change"]); len(change) > 0 {
+		return cloneMap(change)
+	}
+	return nil
+}
+
+func messageLoopModelContextProfile(state *runState) contextruntime.ModelContextProfile {
+	if state == nil || !messageLoopFreeStateActive(state) {
+		return contextruntime.ModelContextProfileFull
+	}
+	ctx := messageLoopFreeStateContext(state)
+	switch strings.ToLower(strings.TrimSpace(firstMapText(ctx, "decision_phase"))) {
+	case "processor_materialization":
+		return contextruntime.ModelContextProfileMaterialize
+	case "post_action_evaluation":
+		return contextruntime.ModelContextProfilePostAction
+	default:
+		return contextruntime.ModelContextProfileSelection
+	}
 }
 
 func messageLoopNeedsNeutralFamilyProjection(state *runState) bool {
@@ -103,11 +144,44 @@ func messageLoopPreFamilyContextProjection(source map[string]any) map[string]any
 		"selected_clip_track_id", "piano_roll_focus_clip_id", "piano_roll_focus_track_id",
 		"selected_clip_ids", "selected_clip_ranges", "playhead_seconds",
 		"current_playhead_seconds", "transport_position_seconds",
-		"semantic_entry_verified", "semantic_entry_decision",
+		"semantic_entry_verified", "semantic_entry_decision", "orchestration_controller_decision",
 	} {
 		if value, ok := source[key]; ok && value != nil {
 			out[key] = messageLoopPreFamilyValue(value)
 		}
+	}
+	if change := messageLoopProjectChangeContextFromMap(source); len(change) > 0 {
+		out["free_state_project_change"] = change
+	}
+	if refresh := strings.TrimSpace(fmt.Sprint(source["state_refresh"])); refresh != "" && refresh != "<nil>" {
+		out["state_refresh"] = refresh
+	}
+	if closure := messageLoopMapValue(source["minimal_audio_closure"]); len(closure) > 0 {
+		budget := messageLoopMapValue(closure["policy"])
+		closureProjection := map[string]any{
+			"schema_version":       messageLoopText(closure["schema_version"]),
+			"closure_id":           messageLoopText(closure["closure_id"]),
+			"revision":             closure["revision"],
+			"mode":                 messageLoopText(closure["mode"]),
+			"phase":                messageLoopText(closure["phase"]),
+			"rounds_started":       closure["rounds_started"],
+			"no_progress_streak":   closure["no_progress_streak"],
+			"unique_observations":  len(messageLoopMapValue(closure["observations"])),
+			"max_closure_rounds":   budget["max_closure_rounds"],
+			"max_observation_sets": budget["max_unique_observation_sets"],
+		}
+		frontier := messageLoopMapValue(closure["hypothesis_frontier"])
+		if candidates := messageLoopMapRows(frontier["candidates"]); len(candidates) > 0 {
+			rows := make([]map[string]any, 0, len(candidates))
+			for _, candidate := range candidates {
+				rows = append(rows, compactSelectedKeys(candidate, []string{
+					"id", "source_observation_id", "view_id", "issue_type", "region", "track_ids", "track_names", "evidence_refs",
+				}))
+			}
+			closureProjection["candidate_frontier"] = rows
+			closureProjection["selected_candidate_id"] = messageLoopText(frontier["candidate_id"])
+		}
+		out["minimal_audio_closure"] = closureProjection
 	}
 	if out["selected_track_id"] == nil {
 		if trackID := firstMapText(source, "selected_plugin_track_id"); trackID != "" {
@@ -115,6 +189,16 @@ func messageLoopPreFamilyContextProjection(source map[string]any) map[string]any
 		}
 	}
 	return out
+}
+
+func messageLoopProjectChangeContextFromMap(source map[string]any) map[string]any {
+	if change := messageLoopMapValue(source["free_state_project_change"]); len(change) > 0 {
+		return messageLoopPreFamilyValue(change).(map[string]any)
+	}
+	if change := messageLoopMapValue(source["latest_project_change"]); len(change) > 0 {
+		return messageLoopPreFamilyValue(change).(map[string]any)
+	}
+	return nil
 }
 
 func messageLoopPreFamilyStateProjection(source map[string]any) map[string]any {

@@ -318,6 +318,22 @@ func (h *Harness) StateSummary(ctx context.Context) map[string]any {
 	return h.shadow.Summary()
 }
 
+// LatestAuthoritativeProjectChange returns the newest snapshot-confirmed
+// project change in Shadow's bounded history. A newer telemetry delta may
+// legitimately be pending its own refresh and must not hide the receipt that
+// just crossed an authoritative refresh barrier.
+func (h *Harness) LatestAuthoritativeProjectChange(limit int) map[string]any {
+	if h == nil || h.shadow == nil {
+		return nil
+	}
+	for _, change := range h.shadow.ChangeWindow(limit) {
+		if strings.EqualFold(strings.TrimSpace(fmt.Sprint(change["freshness"])), "current_snapshot") {
+			return change
+		}
+	}
+	return nil
+}
+
 func (h *Harness) UserStateSummary(ctx context.Context) map[string]any {
 	return userVisibleState(h.StateSummary(ctx))
 }
@@ -677,7 +693,7 @@ func (h *Harness) Invoke(ctx context.Context, req InvokeRequest) (resp InvokeRes
 	if !deferForkJournal {
 		h.journal.Record(action)
 	}
-	if result, ok := h.invokeLocal(ctx, spec, cmd, req.Context); ok {
+	if result, ok := h.invokeLocal(ctx, spec, cmd, req.Context, req.Source); ok {
 		if strings.EqualFold(strings.TrimSpace(fmt.Sprint(result["status"])), "error") {
 			err := fmt.Errorf("%s", firstNonEmpty(fmt.Sprint(result["error"]), "local tool failed"))
 			if !deferForkJournal {
@@ -1563,10 +1579,10 @@ func (h *Harness) enforceAgentProcessorLoadGate(req InvokeRequest, spec tools.Co
 		}
 		return nil
 	}
-	if auth.SubjectKey == "" || auth.ProcessorFamily == "" || len(auth.RequiredCoverage) == 0 {
+	if auth.SubjectKey == "" || auth.ProcessorFamily == "" {
 		return fmt.Errorf("pca_load_gate: incomplete PCA authorization")
 	}
-	result, err := processorattestation.QueryCurrent(auth.SubjectKey, currentFingerprint, processorattestation.EligibilityRequirement{ProcessorFamily: auth.ProcessorFamily, RequiredCoverage: auth.RequiredCoverage})
+	result, err := processorattestation.QueryCurrentAdmission(auth.SubjectKey, currentFingerprint, auth.ProcessorFamily)
 	if err != nil {
 		return fmt.Errorf("pca_load_gate: authoritative PCA query failed: %w", err)
 	}
@@ -1764,7 +1780,7 @@ func commandArgs(cmd map[string]any) map[string]any {
 	return out
 }
 
-func (h *Harness) invokeLocal(ctx context.Context, spec tools.CommandSpec, cmd map[string]any, requestContext map[string]any) (map[string]any, bool) {
+func (h *Harness) invokeLocal(ctx context.Context, spec tools.CommandSpec, cmd map[string]any, requestContext map[string]any, source string) (map[string]any, bool) {
 	if spec.CommandName == "project.audio_analysis_status" && boolValueDefault(cmd["ensure_ready"], false) {
 		result, err := h.ensureProjectAudioAnalysis(ctx, cmd)
 		return resultWithErr(result, err), true
@@ -1825,7 +1841,7 @@ func (h *Harness) invokeLocal(ctx context.Context, spec tools.CommandSpec, cmd m
 	case "ccb_observation_catalog":
 		return h.ccbObservationCatalog(cmd), true
 	case "ccb_observation_request":
-		result, err := h.ccbObservationRequest(ctx, cmd)
+		result, err := h.ccbObservationRequest(ctx, cmd, requestContext, source)
 		return resultWithErr(result, err), true
 	case "mix_propose_tick":
 		result, err := h.proposeMixTick(ctx, cmd)
@@ -2814,7 +2830,19 @@ func (h *Harness) requestMixObservation(ctx context.Context, cmd map[string]any)
 		MixObjects:   mixObjectsFromCommand(cmd),
 		ListenScope:  mixListenScopeFromCommand(cmd),
 		ProjectState: state,
-		Args:         observationArgs,
+		ProjectChange: func() map[string]any {
+			if h == nil || h.shadow == nil {
+				return nil
+			}
+			return h.shadow.LatestChangeReceipt()
+		}(),
+		ChangeWindow: func() []map[string]any {
+			if h == nil || h.shadow == nil {
+				return nil
+			}
+			return h.shadow.ChangeWindow(4)
+		}(),
+		Args: observationArgs,
 	})
 	if err != nil {
 		return nil, err
@@ -2937,6 +2965,12 @@ func (h *Harness) requestMixObservationL2RenderProbe(ctx context.Context, cmd ma
 		"tap_point":   firstNonEmpty(firstString(cmd, "tap_point"), "track_post_fader"),
 		"render_mode": "offline_probe",
 	}
+	if rangeValue, ok := cmd["range"]; ok {
+		kernelCmd["range"] = rangeValue
+	}
+	if _, ok := cmd["tail_seconds"]; ok {
+		kernelCmd["tail_seconds"] = numberFromAny(cmd["tail_seconds"])
+	}
 	if clipID != "" {
 		kernelCmd["clip_id"] = clipID
 	}
@@ -3013,9 +3047,15 @@ func (h *Harness) collectMixObservationL2RenderProbe(ctx context.Context, kernel
 func (h *Harness) prepareMixObservationAcousticPackage(ctx context.Context, cmd map[string]any, state map[string]any, target mixboard.TargetRef, resolvedContext map[string]any) (map[string]any, string, map[string]any) {
 	storePath := acousticpackage.DefaultStorePath(cmd)
 	store := acousticpackage.NewStore(storePath)
+	// Rehydrate project-local L3 telemetry before composing the read-first
+	// package. Opening a persisted .vit restores the L1 analysis manifest, but
+	// the current acoustic store may be new for this runtime. Without this
+	// recovery, MOM sees declared frequency inputs while receiving no usable
+	// per-track profiles and correctly reports zero eligible tracks.
+	hydratePersistedProjectL3Packages(store, state)
 	now := time.Now().UTC().Format(time.RFC3339Nano)
 	identity := acousticpackage.IdentityFromMaps(state, resolvedContext, cmd)
-	featureSnapshot := readMixboardFeatureSnapshotForAcousticPackage(mixboard.FeatureSnapshotPath(cmd))
+	featureSnapshot := readMixboardFeatureSnapshotForAcousticPackage(mixboard.FeatureSnapshotPath(cmd), resolvedContext)
 	status := acousticpackage.BuildStatus(identity, featureSnapshot, now, "mix.observe_read_first")
 	if stored, ok, err := store.Find(identity); err == nil && ok {
 		status = acousticpackage.MergeStatus(stored, status)
@@ -3030,15 +3070,48 @@ func (h *Harness) prepareMixObservationAcousticPackage(ctx context.Context, cmd 
 	return acousticpackage.ToMap(status), storePath, featureRequest
 }
 
-func readMixboardFeatureSnapshotForAcousticPackage(path string) map[string]any {
+func hydratePersistedProjectL3Packages(store acousticpackage.Store, state map[string]any) {
+	if store.Path == "" {
+		return
+	}
+	roots, ok := projectstore.Current()
+	if !ok || strings.TrimSpace(roots.ProjectPath) == "" || strings.TrimSpace(roots.ProjectUUID) == "" {
+		return
+	}
+	statuses, _, err := projectworkspace.BuildL3AcousticStatuses(roots.ProjectPath, roots.ProjectUUID)
+	if err != nil {
+		return
+	}
+	for _, persisted := range statuses {
+		if _, err := store.Upsert(persisted); err != nil {
+			return
+		}
+	}
+}
+
+func readMixboardFeatureSnapshotForAcousticPackage(path string, currentTargets ...map[string]any) map[string]any {
 	mixboardFeatureSnapshotWriteMu.Lock()
 	defer mixboardFeatureSnapshotWriteMu.Unlock()
 	featureSnapshot := readMixboardFeatureSnapshotFile(path)
 	featureSnapshot = sanitizeMixboardSnapshotForAcousticPackageReadFirst(featureSnapshot)
 	latest, _ := featureSnapshot["latest_request"].(map[string]any)
 	if len(featureSnapshot) > 0 && len(latest) > 0 {
-		normalizeMixboardFeatureSnapshotToLatestRequest(featureSnapshot)
-		writeMixboardFeatureSnapshotFile(path, featureSnapshot, latest)
+		packet := latest
+		persistNormalization := true
+		if len(currentTargets) > 0 && len(currentTargets[0]) > 0 {
+			// latest_request records the last feature collection operation, not
+			// the target of this read. Bind row selection to the current resolved
+			// target in memory so a previous observation cannot redirect a later
+			// read-first package. The synthetic binding is deliberately not
+			// persisted as a feature request that never occurred.
+			packet = cloneAnyMap(latest)
+			packet["resolved_target"] = cloneAnyMap(currentTargets[0])
+			persistNormalization = false
+		}
+		normalizeMixboardFeatureSnapshotToRequest(featureSnapshot, packet)
+		if persistNormalization {
+			writeMixboardFeatureSnapshotFile(path, featureSnapshot, latest)
+		}
 	}
 	return featureSnapshot
 }
@@ -3051,8 +3124,15 @@ func normalizeMixboardFeatureSnapshotToLatestRequest(snapshot map[string]any) {
 	if len(latest) == 0 {
 		return
 	}
-	promoteMixboardBridgeRowsForPacket(snapshot, latest)
-	normalizeMixboardBridgeRowsForPacket(snapshot, latest)
+	normalizeMixboardFeatureSnapshotToRequest(snapshot, latest)
+}
+
+func normalizeMixboardFeatureSnapshotToRequest(snapshot, request map[string]any) {
+	if len(snapshot) == 0 || len(request) == 0 {
+		return
+	}
+	promoteMixboardBridgeRowsForPacket(snapshot, request)
+	normalizeMixboardBridgeRowsForPacket(snapshot, request)
 }
 
 func (h *Harness) ensureMixObservationReadyGate(ctx context.Context, cmd map[string]any, state map[string]any, target mixboard.TargetRef, resolvedContext map[string]any, intent string, acousticStatus map[string]any, acousticStorePath string) (map[string]any, string, map[string]any, map[string]any) {
@@ -10730,24 +10810,24 @@ func (h *Harness) applyKernelReplyShadowDelta(spec tools.CommandSpec, reply map[
 		if trackID == "" || !ok {
 			return
 		}
-		h.shadow.ApplyDelta(map[string]any{
+		h.shadow.ApplyDeltaWithSource(map[string]any{
 			"type":       "delta_update",
 			"target_uid": trackID,
 			"action":     "property_changed:pan",
 			"value":      pan,
-		})
+		}, shadow.ChangeSourceExecutorDelta)
 	case "set_volume":
 		trackID := firstString(reply, "track_id")
 		db, ok := numberValueFromMap(reply, "volume_db", "fader_db", "gain_db", "db")
 		if trackID == "" || !ok {
 			return
 		}
-		h.shadow.ApplyDelta(map[string]any{
+		h.shadow.ApplyDeltaWithSource(map[string]any{
 			"type":       "delta_update",
 			"target_uid": trackID,
 			"action":     "property_changed:volume_db",
 			"value":      db,
-		})
+		}, shadow.ChangeSourceExecutorDelta)
 	case "track.group.apply_control":
 		for _, member := range mapRowsFromAny(reply["members"]) {
 			trackID := firstString(member, "track_id", "id")
@@ -10755,12 +10835,12 @@ func (h *Harness) applyKernelReplyShadowDelta(spec tools.CommandSpec, reply map[
 			if trackID == "" || !ok {
 				continue
 			}
-			h.shadow.ApplyDelta(map[string]any{
+			h.shadow.ApplyDeltaWithSource(map[string]any{
 				"type":       "delta_update",
 				"target_uid": trackID,
 				"action":     "property_changed:volume_db",
 				"value":      db,
-			})
+			}, shadow.ChangeSourceExecutorDelta)
 		}
 	}
 }

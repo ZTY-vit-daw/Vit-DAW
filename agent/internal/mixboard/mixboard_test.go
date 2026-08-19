@@ -593,7 +593,7 @@ func TestFrequencyStereoProjectionOmitsRawWaveformTimeSegments(t *testing.T) {
 	if mapValue(items["observation.mom_projection"])["mom_version"] != mom.Version {
 		t.Fatalf("mix.read missing MOM projection: %#v", items)
 	}
-	if len(data) > 48000 {
+	if len(data) > 50000 {
 		t.Fatalf("projection payload too large: %d bytes", len(data))
 	}
 }
@@ -1068,6 +1068,58 @@ func TestTIMInputCarriesMatchingAuthoritativeTopologyAndDADSummary(t *testing.T)
 	}
 }
 
+func TestTIMInputHydratesPersistedL1SourceIdentityForAllBoundTracks(t *testing.T) {
+	tracks := []any{
+		map[string]any{"track_id": "t1", "clips": []any{map[string]any{"clip_id": "c1"}}},
+		map[string]any{"track_id": "t2", "clips": []any{map[string]any{"clip_id": "c2"}}},
+	}
+	obs := ObservationPacket{
+		ProjectUUID: "project-1",
+		ProjectPackage: map[string]any{
+			"project_uuid": "project-1", "project_epoch": "epoch-1", "project_revision": "7",
+			"project_state_hash": "hash-7", "track_count": 2, "tracks": []any{
+				map[string]any{"track_id": "t1", "clip_count": 1, "primary_clip": map[string]any{"clip_id": "c1"}},
+				map[string]any{"track_id": "t2", "clip_count": 1, "primary_clip": map[string]any{"clip_id": "c2"}},
+			},
+		},
+		AcousticPackageStatus: map[string]any{"schema_version": "acoustic_package_status.v0", "status": "ready", "dad_fact_ready_count": 2, "dad_fact_total_count": 2},
+	}
+	input := timInputFromObservation(obs, Request{ProjectState: map[string]any{
+		"project_uuid": "project-1", "project_epoch": "epoch-1", "project_revision": "7", "snapshot_hash": "hash-7",
+		"tracks": tracks,
+		"analysis_manifest": map[string]any{
+			"schema_version": "vit_analysis_manifest.v1", "project_uuid": "project-1", "status": "ready",
+			"l1_waveform_rows": []any{
+				map[string]any{"track_id": "t1", "clip_id": "c1", "source_path": "D:/stems/one.wav", "sample_rate": 44100, "channel_count": 2, "status": "ready", "feature_type": "waveform_envelope"},
+				map[string]any{"track_id": "t2", "clip_id": "c2", "file_path": "D:/stems/two.wav", "sample_rate": 44100, "channel_count": 2, "status": "ready", "feature_type": "waveform_envelope"},
+			},
+		},
+	}})
+	if len(input.AuthoritativeState) == 0 {
+		t.Fatal("authoritative TIM state was empty")
+	}
+	rows := mapRowsAny(input.AuthoritativeState["tracks"])
+	if len(rows) != 2 {
+		t.Fatalf("authoritative track rows = %#v", input.AuthoritativeState)
+	}
+	for _, row := range rows {
+		if cleanAnyString(row["source_path"]) == "" || row["source_status"] != "present" || row["playback_source_valid"] != true {
+			t.Fatalf("manifest source identity was not hydrated: %#v", row)
+		}
+	}
+	proj := tim.Build(input)
+	if proj.TechnicalSummary.SourcePresentCount != 2 || proj.TechnicalSummary.SourceMissingCount != 0 {
+		t.Fatalf("TIM source counts = %#v", proj.TechnicalSummary)
+	}
+	if proj.TechnicalSummary.AcousticReadyTrackCount != 2 {
+		t.Fatalf("TIM acoustic counts = %#v", proj.TechnicalSummary)
+	}
+	encoded, _ := json.Marshal(tim.ContextProjection(proj))
+	if strings.Contains(string(encoded), "D:/stems/") {
+		t.Fatalf("model TIM projection leaked source path: %s", encoded)
+	}
+}
+
 func TestPreserveTargetWaveformTimeSegmentsAcrossAcousticStatusProjection(t *testing.T) {
 	snap := featureSnapshot{
 		WaveformEnvelope: map[string]any{
@@ -1220,11 +1272,11 @@ func TestObservationPreservesMissingAcousticReasons(t *testing.T) {
 		t.Fatalf("stereo metrics = %#v", stereo)
 	}
 	caps, _ := result.Observation.DeepPackage["source_capabilities"].(map[string]string)
-	if caps["masking_analysis"] != "deferred" || caps["reference_match"] != "deferred" || caps["lufs_analysis"] != "deferred" || caps["post_fx_probe"] != "unavailable" {
+	if caps["masking_analysis"] != "missing" || caps["reference_match"] != "deferred" || caps["lufs_analysis"] != "deferred" || caps["post_fx_probe"] != "unavailable" {
 		t.Fatalf("deep caps = %#v", caps)
 	}
 	limits := result.Observation.ProjectPackage["limitations"].([]string)
-	for _, want := range []string{"lufs_analysis_deferred_phase_5", "masking_analysis_deferred_phase_5", "reference_match_deferred_phase_5", "post_fx_probe_unavailable_phase_4_1"} {
+	for _, want := range []string{"lufs_analysis_deferred_phase_5", "masking_analysis_not_ready_on_current_project_cut", "reference_match_deferred_phase_5", "post_fx_probe_unavailable_phase_4_1"} {
 		found := false
 		for _, got := range limits {
 			if got == want {
@@ -2393,4 +2445,49 @@ func testL2RenderProbeSnapshot(renderRevision string, rmsDB, peakDB, balanceDB, 
 			"render_file_path":"D:/tmp/probe.wav"
 		}
 	}`, renderRevision, rmsDB, peakDB, -peakDB, balanceDB, correlation, bassDB, renderRevision)
+}
+
+func TestPreserveTargetWaveformTimeSegmentsReplacesWrongTopLevelTrack(t *testing.T) {
+	snap := featureSnapshot{
+		WaveformEnvelope: map[string]any{
+			"status": "ready", "track_id": "track_vocal", "clip_id": "clip_vocal",
+			"source_revision": "source_rev_vocal", "clip_revision": "clip_rev_vocal",
+		},
+		TrackWaveformEnvelopes: []map[string]any{{
+			"status": "ready", "track_id": "track_bass", "clip_id": "clip_bass",
+			"source_revision": "source_rev_bass", "clip_revision": "clip_rev_bass",
+			"time_segments": []any{
+				map[string]any{"start_seconds": 0.0, "end_seconds": 5.0, "rms_dbfs": -23.0},
+				map[string]any{"start_seconds": 5.0, "end_seconds": 10.0, "rms_dbfs": -21.0},
+			},
+		}},
+	}
+	preserveTargetWaveformTimeSegments(&snap, Request{TargetRef: TargetRef{Kind: "track", ID: "track_bass"}})
+	if cleanAnyString(snap.WaveformEnvelope["track_id"]) != "track_bass" || len(waveformTimeSegments(snap.WaveformEnvelope)) != 2 {
+		t.Fatalf("wrong top-level waveform was not replaced with target row: %+v", snap.WaveformEnvelope)
+	}
+}
+
+func TestMergeWaveformRowsPreservingTimeSegments(t *testing.T) {
+	rows := []map[string]any{{
+		"track_id": "1007", "clip_id": "clip_1", "source_revision": "source-bass", "clip_revision": "clip-bass",
+		"time_segments": []any{map[string]any{"start_seconds": 0.0, "end_seconds": 2.0, "rms_dbfs": -20.0}},
+	}}
+	update := map[string]any{"track_id": "1007", "clip_id": "clip_1", "source_revision": "source-bass", "clip_revision": "clip-bass", "status": "ready"}
+	merged := mergeWaveformRowsPreservingTimeSegments(rows, update)
+	if len(merged) != 1 || len(waveformTimeSegments(merged[0])) != 1 {
+		t.Fatalf("manifest hydration dropped time segments: %+v", merged)
+	}
+}
+
+func TestMergeWaveformRowsPreservingTimeSegmentsPrefersCurrentRevision(t *testing.T) {
+	rows := []map[string]any{
+		{"track_id": "1007", "clip_id": "clip_1", "source_revision": "file|mtime=1000|length=20", "time_segments": []any{map[string]any{"start_seconds": 0.0, "end_seconds": 2.0}}},
+		{"track_id": "1007", "clip_id": "clip_1", "source_revision": "file|mtime=2000|length=20", "time_segments": []any{map[string]any{"start_seconds": 2.0, "end_seconds": 4.0}}},
+	}
+	update := map[string]any{"track_id": "1007", "clip_id": "clip_1", "source_revision": "file|mtime=2000|length=20", "status": "ready"}
+	merged := mergeWaveformRowsPreservingTimeSegments(rows, update)
+	if len(merged) != 1 || cleanAnyString(merged[0]["source_revision"]) != "file|mtime=2000|length=20" || len(waveformTimeSegments(merged[0])) != 1 {
+		t.Fatalf("current revision time segments were not preserved: %+v", merged)
+	}
 }

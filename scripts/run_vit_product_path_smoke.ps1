@@ -30,6 +30,16 @@ param(
     [switch]$CompressorOpenSemanticRoutingAgentOnly,
     [switch]$SemanticProcessorOpenExperimentAgentOnly,
     [string]$SemanticProcessorExperimentCases = "",
+    [switch]$SemanticProcessorProjectSmokePreflightOnly,
+    [switch]$SemanticProcessorProjectSmokeAgentOnly,
+    [switch]$SemanticProcessorProjectSmokeDiagnosticOnly,
+    [string]$SemanticProcessorProjectSmokeFixtureManifest = "",
+    [string]$SemanticProcessorProjectSmokeProjectReport = "",
+    [string]$SemanticProcessorProjectSmokeRuntimeReceipts = "",
+    [string]$SemanticProcessorProjectSmokeReplayOfRunId = "",
+    [string]$SemanticProcessorProjectSmokeCase = "",
+    [switch]$C2DynamicControlAgentOnly,
+    [string]$C2DynamicControlProjectPath = "D:\Godot\project\vit-daw-frontend\B4完成后\B4完成后.vit",
     [string]$C1StemsFolder = "",
     [switch]$NonlinearMixMatrixAgentOnly,
     [string]$NonlinearA5SourceProject = "",
@@ -1786,6 +1796,10 @@ $oldAgentVspHubUrl = $env:VIT_AGENT_VSP_HUB_URL
 $oldAgentLastLogPath = $env:VIT_AGENT_LAST_LOG_PATH
 $oldAgentKeepLogLines = $env:VIT_AGENT_KEEP_LAST_LOG_LINES
 $oldSkipDevAutostart = $env:VIT_SKIP_DEV_AUTOSTART
+$oldMixboardRoot = $env:VIT_MIXBOARD_ROOT
+$oldOrchestrationStorePath = $env:VIT_ORCHESTRATION_STORE_PATH
+$oldProcessorAttestationsPath = $env:VIT_PROCESSOR_ATTESTATIONS_PATH
+$oldProcessorAttestationsV2Path = $env:VIT_PROCESSOR_ATTESTATIONS_V2_PATH
 $observeEventSeq = 0
 
 try {
@@ -1840,6 +1854,27 @@ try {
     $env:VIT_AGENT_LAST_LOG_PATH = $AgentLog
     $env:VIT_AGENT_KEEP_LAST_LOG_LINES = "1200"
     $env:VIT_SKIP_DEV_AUTOSTART = "0"
+    if ($C2DynamicControlAgentOnly) {
+        $env:VIT_MIXBOARD_ROOT = Join-Path $ArtifactDir "mixboard"
+        $env:VIT_ORCHESTRATION_STORE_PATH = Join-Path $ArtifactDir "orchestration.json"
+        # PCA is read-only fixture input for this smoke. Copy the user's
+        # promoted libraries into the artifact so the product process sees the
+        # same certified candidates without mutating the global store.
+        $pcaSource = Join-Path $env:USERPROFILE ".vit\processor_control_attestations.v1.json"
+        $pcaTarget = Join-Path $ArtifactDir "processor_control_attestations.v1.json"
+        if (-not (Test-Path -LiteralPath $pcaSource -PathType Leaf)) {
+            Fail "C2 dynamic-control smoke PCA v1 store is missing: $pcaSource"
+        }
+        Copy-Item -LiteralPath $pcaSource -Destination $pcaTarget -Force
+        $env:VIT_PROCESSOR_ATTESTATIONS_PATH = $pcaTarget
+        $pcaV2Source = Join-Path $env:USERPROFILE ".vit\processor_control_attestations.v2.json"
+        if (Test-Path -LiteralPath $pcaV2Source -PathType Leaf) {
+            $pcaV2Target = Join-Path $ArtifactDir "processor_control_attestations.v2.json"
+            Copy-Item -LiteralPath $pcaV2Source -Destination $pcaV2Target -Force
+            $env:VIT_PROCESSOR_ATTESTATIONS_V2_PATH = $pcaV2Target
+        }
+        New-Item -ItemType Directory -Path $env:VIT_MIXBOARD_ROOT -Force | Out-Null
+    }
     if (Test-Path -LiteralPath (Join-Path $GodotProjectRoot "godot_runtime.log")) {
         Copy-Item -LiteralPath (Join-Path $GodotProjectRoot "godot_runtime.log") -Destination (Join-Path $ArtifactDir "godot_runtime_previous.log") -Force
         Remove-Item -LiteralPath (Join-Path $GodotProjectRoot "godot_runtime.log") -Force
@@ -1927,6 +1962,111 @@ try {
         Fail "GET /agent/state did not return ok"
     }
     Assert-StatusOk -Response (Invoke-AgentTool -Tool "project.state" -ToolArgs @{} -Confirmed $false) -Label "project.state"
+
+    $agentRuntimeStatus = Invoke-Json -Method GET -Uri ($AgentHttp.TrimEnd("/") + "/agent/runtime/status") -TimeoutSec 10
+    $lifecycleReceiptPath = Join-Path $ArtifactDir "godot_lifecycle_receipt.json"
+    $lifecycleReceipt = [ordered]@{
+        schema_version = "semantic_processor_agent_project_smoke_godot_lifecycle_receipt.v1"
+        status = "passed"
+        product_lifecycle = "godot_project"
+        checked_at = (Get-Date).ToString("o")
+        godot_exe = $GodotExe
+        godot_project_root = $GodotProjectRoot
+        godot_autostart = @($godotAutostartEvidence)
+        processes = $summary["processes"]
+        ports = $summary["ports"]
+        agent_health = $state
+        agent_runtime_status = $agentRuntimeStatus
+        vsp_hub_health = $hubHealth
+        vsp_hub_status = $hubStatus
+    }
+    ConvertTo-JsonFile -Value $lifecycleReceipt -Path $lifecycleReceiptPath
+
+    if ($SemanticProcessorProjectSmokePreflightOnly -or $SemanticProcessorProjectSmokeAgentOnly) {
+        Write-Step "Semantic Processor Project Smoke v1 preflight through Godot-owned lifecycle"
+        if ([string]::IsNullOrWhiteSpace($SemanticProcessorProjectSmokeFixtureManifest) -or -not (Test-Path -LiteralPath $SemanticProcessorProjectSmokeFixtureManifest -PathType Leaf)) {
+            Fail "Semantic smoke fixture manifest is missing: $SemanticProcessorProjectSmokeFixtureManifest"
+        }
+        if ([string]::IsNullOrWhiteSpace($SemanticProcessorProjectSmokeProjectReport) -or -not (Test-Path -LiteralPath $SemanticProcessorProjectSmokeProjectReport -PathType Leaf)) {
+            Fail "Semantic smoke project report is missing: $SemanticProcessorProjectSmokeProjectReport"
+        }
+        if ([string]::IsNullOrWhiteSpace($SemanticProcessorProjectSmokeRuntimeReceipts) -or -not (Test-Path -LiteralPath $SemanticProcessorProjectSmokeRuntimeReceipts -PathType Leaf)) {
+            Fail "Semantic smoke runtime receipts are missing: $SemanticProcessorProjectSmokeRuntimeReceipts"
+        }
+        $runnerScript = Join-Path $RepoRoot "scripts\semantic_processor_project_smoke_runner.py"
+        $runnerArtifactDir = Join-Path $ArtifactDir "semantic_processor_project_smoke"
+        $runnerArgs = @(
+            $runnerScript,
+            "--repo-root", $RepoRoot,
+            "--contract", (Join-Path $RepoRoot "scripts\semantic_processor_project_smoke_contract.json"),
+            "--fixture-manifest", $SemanticProcessorProjectSmokeFixtureManifest,
+            "--project-report", $SemanticProcessorProjectSmokeProjectReport,
+            "--runtime-receipts", $SemanticProcessorProjectSmokeRuntimeReceipts,
+            "--godot-lifecycle-receipt", $lifecycleReceiptPath,
+            "--artifact-dir", $runnerArtifactDir,
+            "--run-id", ("godot_owned_preflight_" + $Stamp)
+        )
+        if ($SemanticProcessorProjectSmokeAgentOnly) {
+            $runnerArgs += "--execute"
+        }
+        if ($SemanticProcessorProjectSmokeDiagnosticOnly) {
+            $runnerArgs += "--diagnostic-only"
+            $runnerArgs += "--execute"
+        }
+        if (-not [string]::IsNullOrWhiteSpace($SemanticProcessorProjectSmokeReplayOfRunId)) {
+            $runnerArgs += @("--replay-of-run-id", $SemanticProcessorProjectSmokeReplayOfRunId)
+        }
+        if (-not [string]::IsNullOrWhiteSpace($SemanticProcessorProjectSmokeCase)) {
+            $runnerArgs += @("--case", $SemanticProcessorProjectSmokeCase)
+        }
+        & python @runnerArgs 2>&1 | Tee-Object -FilePath (Join-Path $ArtifactDir "semantic_processor_project_smoke_stdout.log")
+        if ($LASTEXITCODE -ne 0) {
+            Fail "Semantic Processor Project Smoke preflight failed with exit code $LASTEXITCODE"
+        }
+        $summary["semantic_processor_project_smoke_preflight"] = [ordered]@{
+            lifecycle_receipt = $lifecycleReceiptPath
+            artifact_dir = $runnerArtifactDir
+            status = "passed"
+            official_run_budget_consumed = $false
+            executed = [bool]$SemanticProcessorProjectSmokeAgentOnly
+        }
+        $summary["status"] = "passed"
+        Write-Ok "Godot-owned semantic processor project preflight passed without formal Agent execution"
+        return
+    }
+
+    if ($C2DynamicControlAgentOnly) {
+        Write-Step "C2 dynamic-control v1 product smoke through Godot-owned lifecycle"
+        if ([string]::IsNullOrWhiteSpace($C2DynamicControlProjectPath) -or -not (Test-Path -LiteralPath $C2DynamicControlProjectPath -PathType Leaf)) {
+            Fail "C2 dynamic-control smoke project is missing: $C2DynamicControlProjectPath"
+        }
+        $runnerScript = Join-Path $RepoRoot "scripts\c2_dynamic_control_product_smoke.py"
+        if (-not (Test-Path -LiteralPath $runnerScript -PathType Leaf)) {
+            Fail "C2 dynamic-control smoke runner is missing: $runnerScript"
+        }
+        $runnerArtifactDir = Join-Path $ArtifactDir "c2_dynamic_control"
+        $runnerArgs = @(
+            $runnerScript,
+            "--agent-http", $AgentHttp,
+            "--project-path", $C2DynamicControlProjectPath,
+            "--artifact-dir", $runnerArtifactDir,
+            "--timeout-sec", "360"
+        )
+        & python @runnerArgs 2>&1 | Tee-Object -FilePath (Join-Path $ArtifactDir "c2_dynamic_control_stdout.log")
+        if ($LASTEXITCODE -ne 0) {
+            Fail "C2 dynamic-control product smoke failed with exit code $LASTEXITCODE"
+        }
+        $summary["c2_dynamic_control_product_smoke"] = [ordered]@{
+            status = "passed"
+            artifact_dir = $runnerArtifactDir
+            project_path = $C2DynamicControlProjectPath
+            capability_id = "fine_mix.dynamic_control.v1"
+            godot_owned_lifecycle = $true
+        }
+        $summary["status"] = "passed"
+        Write-Ok "Godot-owned C2 dynamic-control product smoke passed"
+        return
+    }
 
     if ($SemanticProcessorOpenExperimentAgentOnly) {
         Write-Step "opaque EQ/compressor open-semantic experiments through Godot-owned lifecycle"
@@ -2934,6 +3074,10 @@ finally {
     $env:VIT_AGENT_LAST_LOG_PATH = $oldAgentLastLogPath
     $env:VIT_AGENT_KEEP_LAST_LOG_LINES = $oldAgentKeepLogLines
     $env:VIT_SKIP_DEV_AUTOSTART = $oldSkipDevAutostart
+    $env:VIT_MIXBOARD_ROOT = $oldMixboardRoot
+    $env:VIT_ORCHESTRATION_STORE_PATH = $oldOrchestrationStorePath
+    $env:VIT_PROCESSOR_ATTESTATIONS_PATH = $oldProcessorAttestationsPath
+    $env:VIT_PROCESSOR_ATTESTATIONS_V2_PATH = $oldProcessorAttestationsV2Path
 }
 
 Write-Step "Summary"

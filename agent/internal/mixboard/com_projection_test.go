@@ -137,6 +137,80 @@ func comSourceFeatureSnapshot(status string) map[string]any {
 	}}
 }
 
+func comSourceFeatureSnapshotWithTransients(status string) map[string]any {
+	snapshot := comSourceFeatureSnapshot(status)
+	snapshot["transient_events"] = map[string]any{
+		"status": "ready", "coverage": 1.0, "window_ms": 85.33, "hop_ms": 85.33,
+		"evidence_refs": []any{"dad.l3.transient_events"},
+		"events": []any{
+			map[string]any{"onset_seconds": 0.5, "body_end_seconds": 0.58, "sustain_end_seconds": 0.85, "onset_dbfs": -8.0, "body_dbfs": -15.0, "sustain_dbfs": -20.0, "attack_body_contrast_db": 7.0, "sustain_decay_db": 5.0},
+			map[string]any{"onset_seconds": 1.5, "body_end_seconds": 1.58, "sustain_end_seconds": 1.85, "onset_dbfs": -10.0, "body_dbfs": -17.0, "sustain_dbfs": -22.0, "attack_body_contrast_db": 7.0, "sustain_decay_db": 5.0},
+			map[string]any{"onset_seconds": 2.5, "body_end_seconds": 2.58, "sustain_end_seconds": 2.85, "onset_dbfs": -6.0, "body_dbfs": -14.0, "sustain_dbfs": -19.0, "attack_body_contrast_db": 8.0, "sustain_decay_db": 5.0},
+		},
+	}
+	return snapshot
+}
+
+func TestCOMSourceOnlyConsumesDADTransientEvents(t *testing.T) {
+	root := t.TempDir()
+	t.Setenv("VIT_MIXBOARD_ROOT", root)
+	store := NewStore("")
+	result, err := store.RequestObservation(Request{
+		MixSessionID: "mix-com-transient", TargetRef: TargetRef{Kind: "track", ID: "1007"},
+		Args: map[string]any{"com_mode": com.ModeSourceOnly, "feature_snapshot": comSourceFeatureSnapshotWithTransients("ready")},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	projection := result.Observation.COMProjection
+	if projection == nil || projection.SourceDynamics == nil {
+		t.Fatalf("COM projection = %+v", projection)
+	}
+	events := projection.SourceDynamics.Events
+	if events.EventCount != 3 {
+		t.Fatalf("micro transient event count = %d, want 3", events.EventCount)
+	}
+	scaleFound := false
+	for _, scale := range projection.SourceDynamics.TimeScaleCoverage {
+		if scale.Scale != com.ScaleMicroTransient {
+			continue
+		}
+		scaleFound = true
+		if scale.Status != com.StatusPartial || scale.WindowMS != 85.33 || scale.HopMS != 85.33 || scale.SegmentCount != 3 {
+			t.Fatalf("micro transient scale = %+v", scale)
+		}
+	}
+	if !scaleFound {
+		t.Fatal("micro transient scale missing from coverage")
+	}
+	assertNoCOMRawLeak(t, result.ObservationPath)
+}
+
+func TestCOMSourceOnlyWithoutTransientEvidenceKeepsMacroOnly(t *testing.T) {
+	root := t.TempDir()
+	t.Setenv("VIT_MIXBOARD_ROOT", root)
+	store := NewStore("")
+	result, err := store.RequestObservation(Request{
+		MixSessionID: "mix-com-no-transient", TargetRef: TargetRef{Kind: "track", ID: "1007"},
+		Args: map[string]any{"com_mode": com.ModeSourceOnly, "feature_snapshot": comSourceFeatureSnapshot("ready")},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	projection := result.Observation.COMProjection
+	if projection == nil || projection.SourceDynamics == nil {
+		t.Fatalf("COM projection = %+v", projection)
+	}
+	if projection.SourceDynamics.Events.EventCount != 0 {
+		t.Fatalf("transient events fabricated without evidence: %+v", projection.SourceDynamics.Events)
+	}
+	for _, scale := range projection.SourceDynamics.TimeScaleCoverage {
+		if scale.Scale == com.ScaleMicroTransient && scale.Status != com.StatusMissing {
+			t.Fatalf("micro transient promoted without evidence: %+v", scale)
+		}
+	}
+}
+
 func comProductArtifact(pairID, stateHash, renderRevision string, outputOffset float64) com.PairedEvidenceArtifact {
 	frames := make([]com.PairedEnvelopeFrame, 80)
 	for i := range frames {

@@ -331,7 +331,7 @@ func applyEQSectionExclusions(sections []EQSection, params []ParameterInfo) {
 		section := &sections[i]
 		codes := append([]string(nil), section.ExclusionCodes...)
 		compactKey := strings.ReplaceAll(strings.ToLower(section.Key), " ", "")
-		if containsAnyEQToken(section.Key, "sc", "sidechain", "detector", "gate") ||
+		if containsAnyEQToken(section.Key, "sc", "sidechain", "detector", "gate", "comp", "compressor", "dyn", "dynamics") ||
 			strings.Contains(compactKey, "scbell") || strings.Contains(compactKey, "scshelf") {
 			codes = append(codes, "sidechain_or_detector_section_excluded")
 		}

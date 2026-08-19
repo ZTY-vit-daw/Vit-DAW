@@ -182,7 +182,7 @@ func TestPluginGrabberWorkflowExecutorBridgesMultibandInspectAndApply(t *testing
 	if ref == "" {
 		t.Fatal("missing band gain control ref")
 	}
-	apply, err := executor.RunToolCall(context.Background(), executorpkg.Input{ToolCall: planner.ToolCall{ID: "apply", Tool: pluginGrabberApplyMultibandTool, Args: map[string]any{"track_id": "track-mb", "plugin_id": "mb-1", "atomic": true, "controls": []map[string]any{{"control_ref": ref, "value_db": -6.0}}}}})
+	apply, err := executor.RunToolCall(context.Background(), executorpkg.Input{ToolCall: planner.ToolCall{ID: "apply", Tool: pluginGrabberApplyMultibandTool, Args: map[string]any{"track_id": "track-mb", "plugin_id": "mb-1", "atomic": true, "controls": []map[string]any{{"control_ref": ref, "value_db": -6.0}}}}, Confirmed: true})
 	if err != nil || apply.Status != "ok" || firstNonEmptyText(apply.Result, "status") == "rejected" {
 		t.Fatalf("apply=%#v err=%v", apply, err)
 	}

@@ -242,6 +242,52 @@ func QueryLibrary(library Library, query Query) (QueryResult, error) {
 	return result, nil
 }
 
+// QueryLibraryAdmission verifies family-level PCA admission for an exact
+// installed binary. It deliberately does not interpret evidence coverage as
+// a request-time action gate; live inspection owns concrete controls.
+func QueryLibraryAdmission(library Library, subjectKey, binaryFingerprint, processorFamily string) (QueryResult, error) {
+	if err := library.Validate(); err != nil {
+		return QueryResult{}, err
+	}
+	subjectKey = strings.ToLower(strings.TrimSpace(subjectKey))
+	binaryFingerprint = strings.ToLower(strings.TrimSpace(binaryFingerprint))
+	processorFamily = strings.ToLower(strings.TrimSpace(processorFamily))
+	if subjectKey == "" || !validSHA256(binaryFingerprint) {
+		return QueryResult{}, fmt.Errorf("processor attestation: admission requires subject_key and sha256 binary fingerprint")
+	}
+	if processorFamily != FamilyStaticEQ && processorFamily != FamilyBroadbandCompressor {
+		return QueryResult{}, fmt.Errorf("processor attestation: admission has unsupported processor family")
+	}
+	var best *Attestation
+	for index := range library.Attestations {
+		candidate := &library.Attestations[index]
+		if candidate.Subject.SubjectKey != subjectKey || candidate.ProcessorFamily != processorFamily {
+			continue
+		}
+		candidateFingerprintMatch := candidate.BinaryFingerprint == binaryFingerprint
+		bestFingerprintMatch := best != nil && best.BinaryFingerprint == binaryFingerprint
+		if best == nil || (candidateFingerprintMatch && !bestFingerprintMatch) ||
+			(candidateFingerprintMatch == bestFingerprintMatch && statusRank(candidate.Status) > statusRank(best.Status)) ||
+			(candidateFingerprintMatch == bestFingerprintMatch && statusRank(candidate.Status) == statusRank(best.Status) && candidate.AttestationID < best.AttestationID) {
+			best = candidate
+		}
+	}
+	if best == nil {
+		return QueryResult{EffectiveStatus: "missing", Reason: "no_attestation"}, nil
+	}
+	result := QueryResult{Attestation: *best, EffectiveStatus: best.Status, Reason: "attestation_not_promoted", FingerprintMatch: best.BinaryFingerprint == binaryFingerprint}
+	if !result.FingerprintMatch {
+		result.EffectiveStatus, result.Reason = StatusStale, "binary_fingerprint_changed"
+		return result, nil
+	}
+	if best.Status != StatusPromoted {
+		result.Reason = "attestation_" + best.Status
+		return result, nil
+	}
+	result.Eligible, result.Reason = true, "promoted_binary_admitted"
+	return result, nil
+}
+
 func (s *Store) transition(attestationID, nextStatus, reason string) (Attestation, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()

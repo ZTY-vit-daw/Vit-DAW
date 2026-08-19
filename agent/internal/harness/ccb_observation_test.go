@@ -160,12 +160,12 @@ func sameStringSetTest(left, right []string) bool {
 	return true
 }
 
-func TestCCBObservationRejectsDeferredViewBeforeMaterialization(t *testing.T) {
+func TestCCBObservationMaskingViewReachesOnRequestPreparation(t *testing.T) {
 	h := New(nil, shadowProjectWithClips(), nil)
 	response, err := h.Invoke(context.Background(), InvokeRequest{
 		Tool: "ccb.observation_request",
 		Args: map[string]any{
-			"request_id":  "ccb-deferred",
+			"request_id":  "ccb-masking-on-request",
 			"view_ids":    []any{"mix.masking_relationship"},
 			"target_kind": "project",
 			"target_id":   "current",
@@ -177,26 +177,26 @@ func TestCCBObservationRejectsDeferredViewBeforeMaterialization(t *testing.T) {
 	}
 	result := testMap(t, response.Result)
 	if result["status"] != "rejected" {
-		t.Fatalf("deferred view status = %#v", result)
+		t.Fatalf("unprepared masking view status = %#v", result)
 	}
 	bundle := testMap(t, result["bundle"])
 	if got := stringSliceFromAny(bundle["requested_views"]); len(got) != 1 || got[0] != "mix.masking_relationship" {
-		t.Fatalf("deferred requested views = %#v", bundle["requested_views"])
+		t.Fatalf("masking requested views = %#v", bundle["requested_views"])
 	}
 	receipt := testMap(t, bundle["audit_receipt"])
 	if receipt["view_set_matches"] == true || len(stringSliceFromAny(receipt["actual_executed_view_ids"])) != 0 {
-		t.Fatalf("deferred receipt indicates execution = %#v", receipt)
+		t.Fatalf("failed preparation receipt indicates execution = %#v", receipt)
 	}
 	reasons := stringSliceFromAny(receipt["rejection_reasons"])
 	found := false
 	for _, reason := range reasons {
-		if strings.Contains(reason, "availability=deferred") {
+		if strings.Contains(reason, "masking_analysis_kernel_unavailable") {
 			found = true
 			break
 		}
 	}
 	if !found {
-		t.Fatalf("deferred reason missing: %#v", receipt)
+		t.Fatalf("structured masking readiness reason missing: %#v", receipt)
 	}
 }
 
@@ -233,5 +233,16 @@ func TestCCBObservationCommandCannotNarrowMixViewToSelectedTrack(t *testing.T) {
 	cmd := ccbObservationCommand(map[string]any{"scope": "selected_track"}, req)
 	if got := firstString(cmd, "scope"); got != "full_project" {
 		t.Fatalf("scope = %q, want full_project: %#v", got, cmd)
+	}
+}
+
+func TestCCBObservationCommandRequestsDOMForDOMViews(t *testing.T) {
+	req := capabilitycontext.FreeStateObservationRequest{
+		ViewIDs:   []string{"track.frequency_time_events", "mix.frequency_relationship"},
+		TargetRef: mixboard.TargetRef{Kind: "project", ID: "current"},
+	}
+	cmd := ccbObservationCommand(map[string]any{}, req)
+	if got := firstString(cmd, "dom_mode"); got != "source_only" {
+		t.Fatalf("dom_mode = %q, want source_only: %#v", got, cmd)
 	}
 }

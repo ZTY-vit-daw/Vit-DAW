@@ -86,6 +86,28 @@ func TestAgentLoopToolContextRoutesCompressorControlToDeterministicTools(t *test
 	}
 }
 
+func TestAgentLoopToolContextFreeStateDisclosesOnlyCCBObservationTools(t *testing.T) {
+	s := &Server{harness: harness.New(nil, nil, nil)}
+	ctx := s.agentLoopToolContext(agentModeDefault, "make the vocal steadier and clearer", map[string]any{
+		"selected_track_id": "track-vocal",
+		"free_state_reasoning_loop": map[string]any{
+			"schema_version": "free_state_reasoning_loop.v1", "status": "reasoning",
+			"decision_phase": "processor_selection", "original_intent": "make it steadier",
+		},
+	})
+	if len(ctx.AllowedTools) != 2 || !containsToolName(ctx.AllowedTools, "ccb.observation_catalog") || !containsToolName(ctx.AllowedTools, "ccb.observation_request") {
+		t.Fatalf("free-state model received non-neutral tools: %+v", ctx.AllowedTools)
+	}
+	for _, forbidden := range []string{"plugin_grabber.inspect_compressor", "plugin_grabber.inspect_limiter", "plugin.load_to_rack", "mix.propose_tick", "mix.observe"} {
+		if containsToolName(ctx.AllowedTools, forbidden) || strings.Contains(ctx.CatalogSummary, forbidden) {
+			t.Fatalf("pre-family tool catalog leaked %q: tools=%v catalog=%s", forbidden, ctx.AllowedTools, ctx.CatalogSummary)
+		}
+	}
+	if !strings.Contains(ctx.CatalogSummary, "ccb_observation_request") {
+		t.Fatalf("CCB observation request contract missing: %s", ctx.CatalogSummary)
+	}
+}
+
 func TestAgentLoopToolContextKeepsCCBForFreeStateDrumDynamics(t *testing.T) {
 	s := &Server{harness: harness.New(nil, nil, nil)}
 	ctx := s.agentLoopToolContext(agentModeDefault,

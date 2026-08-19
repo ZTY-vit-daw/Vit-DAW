@@ -3,10 +3,26 @@ package agentprotocol
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"strings"
 )
 
 const SchemaVersion = "vit_agent_protocol.v0"
+const ImprovementProposalSchema = "improvement_proposal.v1"
+
+const (
+	ImprovementActionDomainTrackGain         = "track_gain"
+	ImprovementActionDomainClipGain          = "clip_gain"
+	ImprovementActionDomainPan               = "pan"
+	ImprovementActionDomainEQ                = "eq"
+	ImprovementActionDomainCompressor        = "compressor"
+	ImprovementActionDomainLimiter           = "limiter"
+	ImprovementActionDomainGateExpander      = "gate_expander"
+	ImprovementActionDomainDeEsser           = "de_esser"
+	ImprovementActionDomainTransientShaper   = "transient_shaper"
+	ImprovementActionDomainMultibandDynamics = "multiband_dynamics"
+	ImprovementActionDomainPlugin            = "plugin"
+)
 
 const (
 	KindPendingCandidate      = "PendingCandidate"
@@ -59,6 +75,111 @@ type Source struct {
 	LegacySchema   string         `json:"legacy_schema,omitempty"`
 	LegacyKind     string         `json:"legacy_kind,omitempty"`
 	Metadata       map[string]any `json:"metadata,omitempty"`
+}
+
+// ImprovementProposal is the model-owned L3 handoff. It describes a bounded
+// mixing hypothesis without asserting that the current mix is objectively
+// wrong and without carrying mutation authority.
+type ImprovementProposal struct {
+	SchemaVersion     string         `json:"schema_version"`
+	Target            map[string]any `json:"target"`
+	EvidenceRefs      []string       `json:"evidence_refs"`
+	ImprovementIntent string         `json:"improvement_intent"`
+	Hypothesis        string         `json:"hypothesis"`
+	ExpectedEffect    string         `json:"expected_effect"`
+	ActionDomain      string         `json:"action_domain"`
+	ActionKind        string         `json:"action_kind"`
+	ProcessorType     string         `json:"processor_type,omitempty"`
+	ParameterBounds   map[string]any `json:"parameter_bounds,omitempty"`
+	VerificationPlan  map[string]any `json:"verification_plan,omitempty"`
+	Confidence        float64        `json:"confidence"`
+	Limitations       []string       `json:"limitations,omitempty"`
+	NeedsResolution   []string       `json:"needs_resolution,omitempty"`
+	RiskClass         string         `json:"risk_class,omitempty"`
+}
+
+func (p ImprovementProposal) Validate() error {
+	if strings.TrimSpace(p.SchemaVersion) != ImprovementProposalSchema {
+		return fmt.Errorf("schema_version must be %s", ImprovementProposalSchema)
+	}
+	if len(p.Target) == 0 {
+		return fmt.Errorf("target is required")
+	}
+	if len(p.EvidenceRefs) == 0 {
+		return fmt.Errorf("evidence_refs are required")
+	}
+	for name, value := range map[string]string{
+		"improvement_intent": p.ImprovementIntent,
+		"hypothesis":         p.Hypothesis,
+		"expected_effect":    p.ExpectedEffect,
+		"action_domain":      p.ActionDomain,
+		"action_kind":        p.ActionKind,
+	} {
+		if strings.TrimSpace(value) == "" {
+			return fmt.Errorf("%s is required", name)
+		}
+	}
+	if p.Confidence < 0 || p.Confidence > 1 {
+		return fmt.Errorf("confidence must be between 0 and 1")
+	}
+	switch strings.ToLower(strings.TrimSpace(p.ActionDomain)) {
+	case ImprovementActionDomainTrackGain, ImprovementActionDomainClipGain,
+		ImprovementActionDomainPan, ImprovementActionDomainEQ,
+		ImprovementActionDomainCompressor, ImprovementActionDomainLimiter,
+		ImprovementActionDomainGateExpander, ImprovementActionDomainDeEsser,
+		ImprovementActionDomainTransientShaper, ImprovementActionDomainMultibandDynamics,
+		ImprovementActionDomainPlugin:
+	default:
+		return fmt.Errorf("unsupported action_domain %q", p.ActionDomain)
+	}
+	return nil
+}
+
+func (p ImprovementProposal) ToPendingCandidate(conversationID, goalID, runID, createdAt string) PendingCandidate {
+	confidence := strconv.FormatFloat(p.Confidence, 'f', -1, 64)
+	action := map[string]any{
+		"schema_version":     ImprovementProposalSchema,
+		"target":             ToMap(p.Target),
+		"evidence_refs":      append([]string(nil), p.EvidenceRefs...),
+		"improvement_intent": strings.TrimSpace(p.ImprovementIntent),
+		"hypothesis":         strings.TrimSpace(p.Hypothesis),
+		"expected_effect":    strings.TrimSpace(p.ExpectedEffect),
+		"action_domain":      strings.TrimSpace(p.ActionDomain),
+		"action_kind":        strings.TrimSpace(p.ActionKind),
+		"processor_type":     strings.TrimSpace(p.ProcessorType),
+		"parameter_bounds":   ToMap(p.ParameterBounds),
+		"verification_plan":  ToMap(p.VerificationPlan),
+		"limitations":        append([]string(nil), p.Limitations...),
+		"needs_resolution":   append([]string(nil), p.NeedsResolution...),
+		"risk_class":         strings.TrimSpace(p.RiskClass),
+	}
+	removeEmptyProtocolMap(action)
+	return PendingCandidate{
+		ID:              NormalizeID("pending", "improvement", conversationID, goalID, p.ActionDomain, p.ActionKind),
+		Kind:            KindPendingCandidate,
+		Domain:          strings.TrimSpace(p.ActionDomain),
+		CandidateType:   "improvement_proposal",
+		TargetRef:       protocolTargetRef(p.Target),
+		ActionKind:      strings.TrimSpace(p.ActionKind),
+		ProcessorType:   strings.TrimSpace(p.ProcessorType),
+		EvidenceRefs:    append([]string(nil), p.EvidenceRefs...),
+		NeedsResolution: append([]string(nil), p.NeedsResolution...),
+		Confidence:      confidence,
+		Summary:         strings.TrimSpace(p.ImprovementIntent),
+		Rationale:       strings.TrimSpace(p.Hypothesis),
+		CandidateAction: action,
+		Risk:            firstNonEmptyProtocolString(p.RiskClass, "reversible_bounded_experiment"),
+		// The concrete permission domain is selected by the governed action
+		// adapter; the L3 handoff must not invent one.
+		RequiredPermissionDomains: nil,
+		Status:                    PendingStatusWaitingUser,
+		CreatedAt:                 strings.TrimSpace(createdAt),
+		Source: Source{
+			ConversationID: strings.TrimSpace(conversationID), GoalID: strings.TrimSpace(goalID),
+			RunID: strings.TrimSpace(runID), LegacySchema: ImprovementProposalSchema,
+			LegacyKind: "ImprovementProposal",
+		},
+	}
 }
 
 type PendingCandidate struct {
@@ -277,6 +398,52 @@ func ToMap(value any) map[string]any {
 		return nil
 	}
 	return out
+}
+
+func cloneProtocolMap(value map[string]any) map[string]any {
+	return ToMap(value)
+}
+
+func removeEmptyProtocolMap(values map[string]any) {
+	for key, value := range values {
+		switch typed := value.(type) {
+		case nil:
+			delete(values, key)
+		case string:
+			if strings.TrimSpace(typed) == "" {
+				delete(values, key)
+			}
+		case []string:
+			if len(typed) == 0 {
+				delete(values, key)
+			}
+		case map[string]any:
+			if len(typed) == 0 {
+				delete(values, key)
+			}
+		}
+	}
+}
+
+func protocolTargetRef(target map[string]any) string {
+	if len(target) == 0 {
+		return ""
+	}
+	kind := FirstNonEmpty(fmt.Sprint(target["kind"]), fmt.Sprint(target["target_kind"]))
+	id := FirstNonEmpty(fmt.Sprint(target["id"]), fmt.Sprint(target["target_id"]), fmt.Sprint(target["track_id"]), fmt.Sprint(target["clip_id"]), fmt.Sprint(target["bus_id"]))
+	if kind == "" || id == "" || kind == "<nil>" || id == "<nil>" {
+		return ""
+	}
+	return strings.TrimSpace(kind) + ":" + strings.TrimSpace(id)
+}
+
+func firstNonEmptyProtocolString(values ...string) string {
+	for _, value := range values {
+		if strings.TrimSpace(value) != "" {
+			return strings.TrimSpace(value)
+		}
+	}
+	return ""
 }
 
 func NormalizeID(parts ...string) string {

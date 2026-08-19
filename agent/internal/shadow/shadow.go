@@ -24,6 +24,10 @@ type Project struct {
 	bootstrapUIDs  map[string]bool
 	lastDeltaSeqID int64
 	seqGapCount    int64
+	stateEpoch     int64
+	changeSequence int64
+	lastChange     ChangeReceipt
+	changeHistory  []ChangeReceipt
 }
 
 func New(logger *logx.Logger) *Project {
@@ -38,6 +42,13 @@ func New(logger *logx.Logger) *Project {
 func (p *Project) Initialize(full map[string]any) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
+	p.initializeLocked(full, ChangeSourceAuthoritativeSnapshot)
+}
+
+func (p *Project) initializeLocked(full map[string]any, source string) {
+	before := comparableProjectStateFromShadow(p.state)
+	beforeEpoch := p.stateEpoch
+	wasInitialized := p.initialized
 
 	var retainedNodes map[string]any
 	if p.initialized {
@@ -54,11 +65,24 @@ func (p *Project) Initialize(full map[string]any) {
 	}
 	p.bootstrapUIDs = collectTrackUIDs(full)
 	p.initialized = true
+	p.stateEpoch++
+	after := comparableProjectStateFromShadow(p.state)
+	if wasInitialized {
+		changes, scopes := diffProjectChange(before, after)
+		p.recordChangeLocked(source, true, beforeEpoch, p.stateEpoch, before, after, changes, scopes)
+		if len(changes) == 0 {
+			// A live executor/telemetry delta can arrive before the next
+			// authoritative snapshot. The snapshot may retain that delta while
+			// exposing no additional comparable field difference, so reconcile
+			// the pending receipt instead of leaving the refresh barrier open.
+			p.confirmPendingChangeLocked(after.project)
+		}
+	}
 	pending := append([]map[string]any(nil), p.preInitDeltas...)
 	p.preInitDeltas = nil
 
 	for _, d := range pending {
-		p.applyDeltaLocked(d, true)
+		p.applyDeltaLocked(d, true, ChangeSourceTelemetryDelta)
 	}
 
 	if p.logger != nil {
@@ -70,10 +94,43 @@ func (p *Project) Initialize(full map[string]any) {
 	}
 }
 
+// confirmPendingChangeLocked closes the authoritative-refresh barrier for the
+// latest low-latency change when a new project snapshot has arrived and did
+// not introduce a conflicting comparable change. The original change entity
+// and source are retained; only freshness/authority are upgraded.
+func (p *Project) confirmPendingChangeLocked(project map[string]any) {
+	if p == nil || p.lastChange.ChangeID == "" || p.lastChange.Authoritative {
+		return
+	}
+	if len(project) > 0 && len(p.lastChange.ToProject) > 0 {
+		for _, key := range []string{"project_uuid", "project_epoch"} {
+			want := strings.TrimSpace(fmt.Sprint(project[key]))
+			have := strings.TrimSpace(fmt.Sprint(p.lastChange.ToProject[key]))
+			if want != "" && have != "" && want != have {
+				return
+			}
+		}
+	}
+	p.lastChange.Authoritative = true
+	p.lastChange.Freshness = "current_snapshot"
+	p.lastChange.UnresolvedRefreshScope = nil
+	p.lastChange.ToProject = clone(project)
+	if n := len(p.changeHistory); n > 0 && p.changeHistory[n-1].ChangeID == p.lastChange.ChangeID {
+		p.changeHistory[n-1] = p.lastChange
+	}
+}
+
 func (p *Project) ApplyDelta(delta map[string]any) {
+	p.ApplyDeltaWithSource(delta, ChangeSourceTelemetryDelta)
+}
+
+// ApplyDeltaWithSource records a low-latency state hint. Unlike an
+// authoritative snapshot, its receipt remains pending until a later project
+// snapshot confirms the DAW state.
+func (p *Project) ApplyDeltaWithSource(delta map[string]any, source string) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
-	p.applyDeltaLocked(delta, false)
+	p.applyDeltaLocked(delta, false, source)
 }
 
 func (p *Project) Initialized() bool {
@@ -119,6 +176,7 @@ func (p *Project) Summary() map[string]any {
 		"orphan_uid_keys":      len(p.orphanDeltas),
 		"last_delta_seq":       p.lastDeltaSeqID,
 		"delta_seq_gaps":       p.seqGapCount,
+		"state_epoch":          p.stateEpoch,
 		"tracks":               userTracks,
 		"track_groups":         trackGroups,
 		"groups":               trackGroups,
@@ -127,6 +185,9 @@ func (p *Project) Summary() map[string]any {
 		"project_health":       cloneMap(engine["project_health"]),
 		"graph_revision":       engine["graph_revision"],
 		"pending_job_data":     cloneMap(engine["jobs"]),
+	}
+	if p.lastChange.ChangeID != "" {
+		out["latest_change"] = cloneAny(p.lastChange)
 	}
 	return out
 }
@@ -147,7 +208,7 @@ func cleanSummaryText(value any) string {
 	return strings.TrimSpace(fmt.Sprint(value))
 }
 
-func (p *Project) applyDeltaLocked(delta map[string]any, fromReplay bool) {
+func (p *Project) applyDeltaLocked(delta map[string]any, fromReplay bool, source string) {
 	if strings.TrimSpace(fmt.Sprint(delta["type"])) != "delta_update" {
 		return
 	}
@@ -155,6 +216,8 @@ func (p *Project) applyDeltaLocked(delta map[string]any, fromReplay bool) {
 		p.preInitDeltas = append(p.preInitDeltas, clone(delta))
 		return
 	}
+	before := comparableProjectStateFromShadow(p.state)
+	beforeEpoch := p.stateEpoch
 
 	uid := strings.TrimSpace(fmt.Sprint(delta["target_uid"]))
 	if uid == "" {
@@ -195,6 +258,19 @@ func (p *Project) applyDeltaLocked(delta map[string]any, fromReplay bool) {
 	entry["last_seq_id"] = delta["seq_id"]
 	entry["last_timestamp"] = delta["timestamp"]
 	entry["last_action"] = action
+	isNoise := isTransportPositionNoise(uid, action)
+	if !isNoise {
+		p.stateEpoch++
+	}
+	after := comparableProjectStateFromShadow(p.state)
+	changes, scopes := diffProjectChange(before, after)
+	if len(changes) == 0 && !isNoise {
+		changes = []ChangeEntity{{Kind: "node", ID: uid, Fields: []ChangeField{{Path: firstNonEmptyChangeField(propertyKey(action), "state"), Before: nil, After: cloneAny(delta["value"])}}}}
+		scopes = []string{"project.state"}
+	}
+	if !isNoise {
+		p.recordChangeLocked(source, false, beforeEpoch, p.stateEpoch, before, after, changes, scopes)
+	}
 
 	if !p.bootstrapUIDs[uid] {
 		h := append(p.orphanDeltas[uid], clone(delta))
@@ -211,6 +287,15 @@ func (p *Project) applyDeltaLocked(delta map[string]any, fromReplay bool) {
 		}
 		p.logger.Debug("[shadow] %s delta uid=%q action=%q", tag, uid, action)
 	}
+}
+
+func firstNonEmptyChangeField(values ...string) string {
+	for _, value := range values {
+		if value = strings.TrimSpace(value); value != "" {
+			return value
+		}
+	}
+	return "state"
 }
 
 func collectTrackUIDs(full map[string]any) map[string]bool {

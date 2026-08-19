@@ -1,5 +1,6 @@
 #include "VitProductionCoordinator.h"
 
+#include <array>
 #include <cmath>
 #include <limits>
 #include <thread>
@@ -69,6 +70,13 @@ struct L2BandSummary
     int binHits = 0;
 };
 
+struct L2MaskingFrame
+{
+    double startSeconds = 0.0;
+    double endSeconds = 0.0;
+    std::array<double, 6> bandLevelsDbfs {{ kSilenceDb, kSilenceDb, kSilenceDb, kSilenceDb, kSilenceDb, kSilenceDb }};
+};
+
 struct L2ProbeAnalysis
 {
     bool readerOk = false;
@@ -88,6 +96,9 @@ struct L2ProbeAnalysis
     double correlation = 1.0;
     double spectralEnergy = 0.0;
     double coverage = 0.0;
+    int64 maskingFrameCountTotal = 0;
+    int maskingFrameAggregationStride = 1;
+    std::vector<L2MaskingFrame> maskingFrames;
     juce::String status = "suspect";
     juce::String reason;
     std::vector<L2BandSummary> bands {
@@ -112,6 +123,7 @@ void stampL2ProbeIdentity (juce::DynamicObject& obj,
     obj.setProperty ("project_id", "current");
     obj.setProperty ("render_mode", request.renderMode);
     obj.setProperty ("tap_point", request.tapPoint);
+    obj.setProperty ("tail_seconds", request.tailSeconds);
     obj.setProperty ("track_id", request.trackId);
     obj.setProperty ("clip_id", request.clipId);
     obj.setProperty ("source_path", request.sourcePath);
@@ -210,6 +222,7 @@ L2ProbeAnalysis analyseL2ProbeFile (const juce::File& renderFile,
     constexpr int fftOrder = 12;
     constexpr int fftSize = 1 << fftOrder;
     constexpr int fftBins = fftSize / 2;
+    constexpr int maxMaskingFrames = 256;
     juce::dsp::FFT fft (fftOrder);
     juce::dsp::WindowingFunction<float> window (fftSize,
                                                 juce::dsp::WindowingFunction<float>::hann,
@@ -222,6 +235,27 @@ L2ProbeAnalysis analyseL2ProbeFile (const juce::File& renderFile,
     double sumSquaresR = 0.0;
     double sumLR = 0.0;
     int64 frameCount = 0;
+    const auto totalFFTFrames = juce::jmax<int64> (1, (reader->lengthInSamples + fftSize - 1) / fftSize);
+    out.maskingFrameAggregationStride = juce::jmax (1, (int) ((totalFFTFrames + maxMaskingFrames - 1) / maxMaskingFrames));
+    std::array<double, 6> maskingGroupEnergy {{ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 }};
+    int maskingGroupFrames = 0;
+    double maskingGroupStartSeconds = 0.0;
+    double maskingGroupEndSeconds = 0.0;
+
+    const auto flushMaskingGroup = [&]
+    {
+        if (maskingGroupFrames <= 0)
+            return;
+        L2MaskingFrame frame;
+        frame.startSeconds = maskingGroupStartSeconds;
+        frame.endSeconds = maskingGroupEndSeconds;
+        for (int bandIndex = 0; bandIndex < 6; ++bandIndex)
+            frame.bandLevelsDbfs[(size_t) bandIndex] = dbFromEnergy (
+                maskingGroupEnergy[(size_t) bandIndex] / (double) maskingGroupFrames);
+        out.maskingFrames.push_back (frame);
+        maskingGroupEnergy.fill (0.0);
+        maskingGroupFrames = 0;
+    };
 
     for (int64 pos = 0; pos < reader->lengthInSamples; pos += fftSize)
     {
@@ -275,6 +309,8 @@ L2ProbeAnalysis analyseL2ProbeFile (const juce::File& renderFile,
         window.multiplyWithWindowingTable (fftData.data(), fftSize);
         fft.performRealOnlyForwardTransform (fftData.data());
 
+        std::array<double, 6> maskingFrameEnergy {{ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 }};
+
         for (int bin = 1; bin < fftBins; ++bin)
         {
             const auto re = fftData[(size_t) bin * 2];
@@ -285,19 +321,33 @@ L2ProbeAnalysis analyseL2ProbeFile (const juce::File& renderFile,
 
             const double hz = ((double) bin * out.sampleRate) / (double) fftSize;
             bool covered = false;
-            for (auto& band : out.bands)
+            for (int bandIndex = 0; bandIndex < (int) out.bands.size(); ++bandIndex)
             {
+                auto& band = out.bands[(size_t) bandIndex];
                 if (hz >= band.minHz && hz < band.maxHz)
                 {
                     band.energy += mag2;
                     ++band.binHits;
+                    if (bandIndex < 6)
+                        maskingFrameEnergy[(size_t) bandIndex] += mag2;
                     covered = true;
                 }
             }
             if (covered)
                 out.spectralEnergy += mag2;
         }
+
+        if (maskingGroupFrames == 0)
+            maskingGroupStartSeconds = (double) pos / out.sampleRate;
+        maskingGroupEndSeconds = (double) (pos + valid) / out.sampleRate;
+        for (int bandIndex = 0; bandIndex < 6; ++bandIndex)
+            maskingGroupEnergy[(size_t) bandIndex] += maskingFrameEnergy[(size_t) bandIndex];
+        ++maskingGroupFrames;
+        ++out.maskingFrameCountTotal;
+        if (maskingGroupFrames >= out.maskingFrameAggregationStride)
+            flushMaskingGroup();
     }
+    flushMaskingGroup();
 
     if (out.sampleCount > 0)
         out.rms = std::sqrt (sumSquares / (double) out.sampleCount);
@@ -376,6 +426,44 @@ void publishL2ProbeAnalysis (const VitProductionCoordinator::PublishFn& publish,
         bandsObject->setProperty (juce::Identifier (band.name), juce::var (bandObject.release()));
     }
     obj->setProperty ("bands", juce::var (bandsObject.release()));
+
+    auto masking = std::make_unique<juce::DynamicObject>();
+    masking->setProperty ("schema_version", "dad.l2_masking_frames.v1");
+    masking->setProperty ("status", analysis.status);
+    masking->setProperty ("analyzer_revision", "dad_l2_render_probe.masking_frames.v1");
+    masking->setProperty ("band_model", "vit_broad_frequency_bands.v1");
+    masking->setProperty ("frame_count_total", analysis.maskingFrameCountTotal);
+    masking->setProperty ("frame_count_disclosed", (int) analysis.maskingFrames.size());
+    masking->setProperty ("aggregation_stride", analysis.maskingFrameAggregationStride);
+    masking->setProperty ("sample_rate", analysis.sampleRate);
+
+    juce::Array<juce::var> maskingBands;
+    for (int bandIndex = 0; bandIndex < 6; ++bandIndex)
+    {
+        const auto& band = analysis.bands[(size_t) bandIndex];
+        auto row = std::make_unique<juce::DynamicObject>();
+        row->setProperty ("id", band.name);
+        row->setProperty ("min_hz", band.minHz);
+        row->setProperty ("max_hz", band.maxHz);
+        maskingBands.add (juce::var (row.release()));
+    }
+    masking->setProperty ("bands", juce::var (maskingBands));
+
+    juce::Array<juce::var> maskingFrames;
+    for (const auto& frame : analysis.maskingFrames)
+    {
+        auto row = std::make_unique<juce::DynamicObject>();
+        row->setProperty ("start_seconds", frame.startSeconds + request.analyzedStartSeconds);
+        row->setProperty ("end_seconds", frame.endSeconds + request.analyzedStartSeconds);
+        auto levels = std::make_unique<juce::DynamicObject>();
+        for (int bandIndex = 0; bandIndex < 6; ++bandIndex)
+            levels->setProperty (juce::Identifier (analysis.bands[(size_t) bandIndex].name),
+                                 frame.bandLevelsDbfs[(size_t) bandIndex]);
+        row->setProperty ("levels_dbfs", juce::var (levels.release()));
+        maskingFrames.add (juce::var (row.release()));
+    }
+    masking->setProperty ("frames", juce::var (maskingFrames));
+    obj->setProperty ("masking_frames", juce::var (masking.release()));
 
     auto evidence = std::make_unique<juce::DynamicObject>();
     evidence->setProperty ("nonzero", analysis.nonzeroCount > 0);

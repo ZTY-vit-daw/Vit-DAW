@@ -19,6 +19,8 @@ import (
 	"vit-daw-agent/internal/kernel"
 	"vit-daw-agent/internal/mom"
 	"vit-daw-agent/internal/orchestration"
+	"vit-daw-agent/internal/processorattestation"
+	"vit-daw-agent/internal/processorintent"
 	"vit-daw-agent/internal/projectcut"
 	agentruntime "vit-daw-agent/internal/runtime"
 	"vit-daw-agent/internal/semanticeffect"
@@ -97,6 +99,23 @@ func (s *Server) materializeAgentSemanticEQAction(ctx context.Context, conversat
 	if mismatch := semanticEQSelectedTargetMismatch(req.Context, action.Target); mismatch != "" {
 		return semanticEQRejectedResponse(conversationID, goal, "selected_target_mismatch", mismatch, nil)
 	}
+	pcaInput, pcaErr := semanticEQPCAInputFromAction(action)
+	if pcaErr != nil {
+		return semanticEQRejectedResponse(conversationID, goal, "pca_coverage_unresolved", pcaErr.Error(), nil)
+	}
+	var pcaReceipt *semanticPCAAdmissionReceipt
+	if receipt, found, receiptErr := semanticPCAAdmissionReceiptFromContext(req.Context); receiptErr != nil {
+		return semanticEQRejectedResponse(conversationID, goal, "pca_admission_rejected", receiptErr.Error(), map[string]any{
+			"track_id": action.Target.TrackID, "plugin_id": action.Target.PluginID,
+		})
+	} else if found {
+		pcaReceipt = &receipt
+	}
+	if _, pcaErr = s.semanticLoadedInstancePCAAdmissionWithReceipt(ctx, action.Target.TrackID, action.Target.PluginID, pcaInput, pcaReceipt); pcaErr != nil {
+		return semanticEQRejectedResponse(conversationID, goal, "pca_admission_rejected", pcaErr.Error(), map[string]any{
+			"track_id": action.Target.TrackID, "plugin_id": action.Target.PluginID,
+		})
+	}
 	state, err := s.kernel.VSPStateSnapshot(ctx, "project.timeline")
 	if err != nil || state == nil || !state.OK() {
 		return semanticEQRejectedResponse(conversationID, goal, "project_snapshot_unavailable", firstNonEmpty(errorText(err), "无法取得强工程快照"), nil)
@@ -106,6 +125,17 @@ func (s *Server) materializeAgentSemanticEQAction(ctx context.Context, conversat
 		return semanticEQRejectedResponse(conversationID, goal, eqControlFailureCode(err), err.Error(), map[string]any{
 			"track_id": action.Target.TrackID, "plugin_id": action.Target.PluginID,
 		})
+	}
+	if _, hasProgressiveState := semanticProgressiveDisclosureState(req.Context["semantic_progressive_disclosure"]); hasProgressiveState {
+		refs := make([]string, 0, len(materialized.PlannedEdits))
+		for _, row := range materialized.PlannedEdits {
+			if ref := firstStringFromMap(row, "control_ref"); ref != "" {
+				refs = append(refs, ref)
+			}
+		}
+		if err := semanticProgressiveDisclosureAdvanceToConfirmation(req.Context, refs); err != nil {
+			return semanticEQRejectedResponse(conversationID, goal, "progressive_disclosure_boundary", err.Error(), nil)
+		}
 	}
 	evidenceSummary := semanticEQRecentObservationSummary(res.RecentObservation)
 	evidenceRefs := semanticEQEvidenceRefs(action)
@@ -149,7 +179,12 @@ func (s *Server) materializeAgentSemanticEQAction(ctx context.Context, conversat
 		return semanticEQRejectedResponse(conversationID, goal, "session_create_failed", err.Error(), nil)
 	}
 	proposal, actionSet, err := capabilityadapters.FreezeSemanticEQ(capabilityadapters.SemanticEQPlan{
-		Action: action, TopologyGeneration: materialized.DigestGeneration,
+		Action: action, PCAAdmissionReceipt: func() map[string]any {
+			if pcaReceipt == nil {
+				return nil
+			}
+			return semanticPCAAdmissionReceiptMap(*pcaReceipt)
+		}(), TopologyGeneration: materialized.DigestGeneration,
 		Edits: materialized.Edits, PlannedEdits: materialized.PlannedEdits,
 		PlannedWrites: materialized.PlannedWrites, ParameterPreimage: materialized.Preimage,
 		ParameterSnapshot: materialized.Snapshot, PreviewResults: materialized.PreviewResults,
@@ -175,7 +210,41 @@ func (s *Server) materializeAgentSemanticEQAction(ctx context.Context, conversat
 	response.AgentMode = mode
 	response.GoalSummary = action.UserGoal
 	response.CompletedSteps = res.CompletedSteps
+	if state, ok := semanticProgressiveDisclosureState(req.Context["semantic_progressive_disclosure"]); ok {
+		response.WorkflowData["semantic_progressive_disclosure"] = state
+		response.WorkflowData["request_context"] = cloneContext(req.Context)
+	}
 	return response
+}
+
+func semanticEQPCAInputFromAction(action semanticeffect.Action) (semanticTreatmentPCAInput, error) {
+	if action.EQPlan == nil || len(action.EQPlan.Atoms) == 0 {
+		return semanticTreatmentPCAInput{}, fmt.Errorf("static EQ action contains no PCA-addressable atoms")
+	}
+	seen := map[string]bool{}
+	coverage := make([]processorattestation.Coverage, 0, len(action.EQPlan.Atoms))
+	for _, atom := range action.EQPlan.Atoms {
+		shape := strings.ToLower(strings.TrimSpace(atom.Shape))
+		if shape == "" {
+			return semanticTreatmentPCAInput{}, fmt.Errorf("static EQ atom is missing its shape")
+		}
+		actionName := strings.ToLower(strings.TrimSpace(atom.Action))
+		if actionName == "" {
+			return semanticTreatmentPCAInput{}, fmt.Errorf("static EQ atom is missing its action")
+		}
+		proof := processorattestation.Coverage{Action: actionName, Shape: shape}
+		key := proof.Action + "\x00" + proof.Shape
+		if !seen[key] {
+			seen[key] = true
+			coverage = append(coverage, proof)
+		}
+	}
+	for _, proof := range coverage {
+		if err := processorattestation.ValidateCoverage(processorattestation.FamilyStaticEQ, proof); err != nil {
+			return semanticTreatmentPCAInput{}, err
+		}
+	}
+	return semanticTreatmentPCAInput{Family: processorintent.FamilyStaticEQ, RequiredCoverage: coverage}, nil
 }
 
 func (s *Server) planSemanticEQReadOnly(ctx context.Context, action semanticeffect.Action) (semanticEQMaterialization, error) {
@@ -550,6 +619,17 @@ func (p *semanticEQMutationPort) Preflight(ctx context.Context, actionSet orches
 	if err != nil {
 		return err
 	}
+	pcaInput, err := semanticEQPCAInputFromAction(action)
+	if err != nil {
+		return err
+	}
+	if receipt, found, receiptErr := semanticPCAAdmissionReceiptFromValue(firstMapFromAny(actionSet.Actions[0].Args["pca_admission_receipt"]), nil); receiptErr != nil {
+		return fmt.Errorf("pca admission receipt: %w", receiptErr)
+	} else if found {
+		if _, err := p.server.semanticLoadedInstancePCAAdmissionWithReceipt(ctx, action.Target.TrackID, action.Target.PluginID, pcaInput, &receipt); err != nil {
+			return err
+		}
+	}
 	current, err := p.server.planSemanticEQReadOnly(ctx, action)
 	if err != nil {
 		return err
@@ -775,6 +855,11 @@ func (s *Server) authorizeSemanticEQ(ctx context.Context, conversationID string,
 	if !ok || !decision.ExactApprovalFor(frozen.Proposal) {
 		return capabilityCanaryBlockedResponse(conversationID, goal, "当前消息没有形成绑定此 EQ Proposal revision 的明确授权。")
 	}
+	if _, hasProgressiveState := semanticProgressiveDisclosureState(req.Context["semantic_progressive_disclosure"]); hasProgressiveState {
+		if err := semanticProgressiveDisclosureConfirm(req.Context); err != nil {
+			return semanticEQRejectedResponse(conversationID, goal, "progressive_disclosure_confirmation_invalid", err.Error(), nil)
+		}
+	}
 	authorized, err := s.orchestrationRuntime.AuthorizeProposal(session.ID, orchestration.Authorization{
 		ProposalID: frozen.Proposal.ID, ProposalRevision: frozen.Proposal.Revision,
 		ActionSetHash: frozen.Proposal.ActionSetHash, ProjectCutHash: frozen.Proposal.ProjectCutHash,
@@ -799,6 +884,19 @@ func (s *Server) authorizeSemanticEQ(ctx context.Context, conversationID string,
 		}
 	}
 	response := semanticEQExecutionResponse(conversationID, goal, executed, executeErr)
+	if _, hasProgressiveState := semanticProgressiveDisclosureState(req.Context["semantic_progressive_disclosure"]); hasProgressiveState && executed.Execution != nil && len(executed.Execution.Receipts) > 0 {
+		receipt := map[string]any{}
+		encoded, _ := json.Marshal(executed.Execution.Receipts[0])
+		_ = json.Unmarshal(encoded, &receipt)
+		if err := semanticProgressiveDisclosureReceipt(req.Context, receipt); err != nil {
+			return semanticEQRejectedResponse(conversationID, goal, "progressive_disclosure_receipt_invalid", err.Error(), nil)
+		}
+		if response.WorkflowData == nil {
+			response.WorkflowData = map[string]any{}
+		}
+		response.WorkflowData["semantic_progressive_disclosure"] = req.Context["semantic_progressive_disclosure"]
+		response.WorkflowData["request_context"] = cloneContext(req.Context)
+	}
 	response.ProjectHistory = s.harness.ProjectHistorySummary(ctx, firstNonEmpty(goal.GoalID, session.ID))
 	return response
 }

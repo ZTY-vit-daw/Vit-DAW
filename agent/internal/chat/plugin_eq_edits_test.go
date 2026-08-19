@@ -13,6 +13,7 @@ import (
 	"testing"
 	"time"
 
+	"vit-daw-agent/internal/harness"
 	"vit-daw-agent/internal/kernel"
 	"vit-daw-agent/internal/shadow"
 )
@@ -31,6 +32,17 @@ func TestEQControlRefRoundTripAndTamperDetection(t *testing.T) {
 	tampered := encoded[:len(encoded)-1] + map[bool]string{true: "0", false: "1"}[encoded[len(encoded)-1] != '0']
 	if _, err := decodeEQControlRef(tampered); err == nil {
 		t.Fatal("tampered control_ref must be rejected")
+	}
+}
+
+func TestGenericWriteGuardProtectsStaticEQTopology(t *testing.T) {
+	server := New(nil, shadow.New(nil), nil)
+	server.eqKernelOverride = newFakeEQKernel()
+	resp, blocked := server.guardEQOwnedGenericParameterWrite(context.Background(), harness.InvokeRequest{
+		Tool: "plugin.set_parameter", Args: map[string]any{"track_id": "track-1", "plugin_id": "eq-1", "param_id": "b1g", "value": .2},
+	})
+	if !blocked || firstNonEmptyText(resp.Result, "rejection_code") != "typed_eq_control_required" {
+		t.Fatalf("resp=%+v blocked=%v", resp, blocked)
 	}
 }
 
@@ -185,7 +197,7 @@ func TestApplyEQEditsHTTPRouteExecutesAtomicTransactionAndUndo(t *testing.T) {
 	transport := newFakeEQKernel()
 	server := New(nil, shadow.New(nil), nil)
 	server.eqKernelOverride = transport
-	body, _ := json.Marshal(map[string]any{"tool": pluginGrabberApplyEQEditsTool, "args": map[string]any{
+	body, _ := json.Marshal(map[string]any{"tool": pluginGrabberApplyEQEditsTool, "confirmed": true, "args": map[string]any{
 		"track_id": "track-1", "plugin_id": "eq-1", "atomic": true,
 		"edits": []map[string]any{{"action": "upsert", "shape": "bell", "frequency_hz": 3400.0, "gain_db": -3.0}},
 	}})

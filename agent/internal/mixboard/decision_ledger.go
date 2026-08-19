@@ -634,6 +634,13 @@ func capabilityImpactContract(capabilityID string) CapabilityImpact {
 			RecheckOn:   []string{"track_roles", "track_content", "track_fader", "clip_gain", "static_eq", "dynamics", "spatial_depth", "automation", "routing", "plugin_chain"},
 			ProjectWide: true,
 		}
+	case "fine_mix.dynamic_control.v1":
+		return CapabilityImpact{
+			Reads:       []string{"track_roles", "time_dynamics", "peak_structure", "activity_structure", "frequency_time_events", "transient_structure", "band_dynamics", "plugin_chain"},
+			Writes:      []string{"dynamics", "plugin_chain"},
+			RecheckOn:   []string{"track_roles", "track_content", "track_fader", "clip_gain", "static_eq", "dynamics", "spatial_depth", "automation", "routing", "plugin_chain"},
+			ProjectWide: true,
+		}
 	default:
 		return CapabilityImpact{}
 	}

@@ -2,14 +2,20 @@ package chat
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"strings"
 	"testing"
 
 	"vit-daw-agent/internal/agentloop"
 	"vit-daw-agent/internal/config"
 	"vit-daw-agent/internal/kernel"
+	"vit-daw-agent/internal/llm"
+	"vit-daw-agent/internal/processorintent"
+	"vit-daw-agent/internal/semanticeffect"
 	"vit-daw-agent/internal/shadow"
 	plugingrabber "vit-daw-agent/internal/workflows/plugingrabber"
 )
@@ -36,6 +42,188 @@ func semanticTreatmentChoiceJSON() string {
 		],
 		"global_constraints":["不要更刺耳"]
 	}`
+}
+
+func TestSemanticTreatmentModelInstancesDiscloseOnlySelectedFamilyAndNoTopology(t *testing.T) {
+	instances := semanticTreatmentTestInstances()
+	instances[3].IdentityCard = &semanticeffect.AudioProcessorIdentityCard{}
+	model := semanticTreatmentModelInstances(instances, "compressor")
+	if len(model) != 1 || model[0].Key != "loaded_instance_4" {
+		t.Fatalf("model candidates=%#v, want only the qualified compressor", model)
+	}
+	if model[0].PluginID != "" || model[0].Topology != nil || model[0].IdentityCard != nil {
+		t.Fatalf("family candidate leaked execution identity/topology: %#v", model[0])
+	}
+	if len(model[0].QualifiedSurfaces) > 0 && (model[0].QualifiedSurfaces[0].SurfaceKey != "" || model[0].QualifiedSurfaces[0].Topology != nil ||
+		model[0].QualifiedSurfaces[0].IdentityCard != nil || len(model[0].QualifiedSurfaces[0].OwnedParameterIDs) != 0) {
+		t.Fatalf("family candidate leaked nested execution identity/topology: %#v", model[0])
+	}
+	if model[0].PluginName != "Pro-C 2" || model[0].ProcessorType != "compressor" {
+		t.Fatalf("progressive family candidate lost its post-family display identity: %#v", model[0])
+	}
+	if got := semanticTreatmentModelInstances(instances, "eq"); len(got) != 2 || got[0].ProcessorType != "eq" || got[1].ProcessorType != "eq" {
+		t.Fatalf("EQ family filter=%#v", got)
+	}
+	if got := semanticTreatmentModelInstances(instances, ""); len(got) != 0 {
+		t.Fatalf("pre-family strategy received loaded instances: %#v", got)
+	}
+}
+
+func TestSemanticTreatmentMixedInstanceKeepsIndependentSurfacesAndFailsOwnershipConflict(t *testing.T) {
+	instance := semanticTreatmentInstance{
+		Key: "mixed-1", ProcessorType: "mixed", QualificationStatus: "multiple_surfaces", NextPlanner: "semantic_family_selection",
+		QualifiedSurfaces: []semanticProcessorSurface{
+			{Family: processorintent.FamilyStaticEQ, QualificationStatus: "ownership_conflict", NextPlanner: "semantic_eq", OwnedParameterIDs: []string{"shared"}},
+			{Family: processorintent.FamilyBroadbandCompressor, QualificationStatus: "ownership_conflict", NextPlanner: "semantic_compressor", OwnedParameterIDs: []string{"shared"}},
+		},
+	}
+	if len(instance.QualifiedSurfaces) != 2 || instance.ProcessorType == "compressor" {
+		t.Fatalf("mixed instance was collapsed: %+v", instance)
+	}
+	if semanticTreatmentInstanceExecutable(instance, "eq", "semantic_eq") {
+		t.Fatal("EQ surface with cross-family ownership conflict remained executable")
+	}
+	if semanticTreatmentInstanceExecutable(instance, "compressor", "semantic_compressor") {
+		t.Fatal("compressor surface with cross-family ownership conflict remained executable")
+	}
+}
+
+func TestSemanticTreatmentBuildSurfacesKeepsRealEQAndCompressorSurfaces(t *testing.T) {
+	eq := newFakeEQKernel()
+	eqReply, _, err := eq.SendCommand(context.Background(), map[string]any{"cmd": "get_plugin_parameters"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	compressor := newFakeCompressorKernel()
+	compressorReply, _, err := compressor.SendCommand(context.Background(), map[string]any{"cmd": "get_plugin_parameters"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	rows := append(mapRowsValue(eqReply["parameters"]), mapRowsValue(compressorReply["parameters"])...)
+	digest := plugingrabber.BuildParameterDigest(map[string]any{
+		"status": "ok", "track_id": "track-mixed", "plugin_id": "plugin-mixed", "plugin_name": "Mixed Surface",
+		"parameters": rows,
+	})
+	surfaces, _ := semanticTreatmentBuildSurfaces("track-mixed", "plugin-mixed", digest)
+	families := map[string]bool{}
+	for _, surface := range surfaces {
+		families[surface.Family] = true
+	}
+	if !families[processorintent.FamilyStaticEQ] || !families[processorintent.FamilyBroadbandCompressor] {
+		t.Fatalf("mixed digest surfaces=%+v", surfaces)
+	}
+	if len(surfaces) != 2 {
+		t.Fatalf("mixed digest exposed unexpected surfaces=%+v", surfaces)
+	}
+	model := semanticTreatmentModelInstances([]semanticTreatmentInstance{{
+		Key: "mixed-instance", ProcessorType: "mixed", QualificationStatus: "multiple_surfaces", QualifiedSurfaces: surfaces,
+	}}, "compressor")
+	if len(model) != 1 || len(model[0].QualifiedSurfaces) != 1 || model[0].QualifiedSurfaces[0].Family != processorintent.FamilyBroadbandCompressor ||
+		model[0].QualifiedSurfaces[0].SurfaceKey != "" || model[0].QualifiedSurfaces[0].Topology != nil ||
+		model[0].QualifiedSurfaces[0].IdentityCard != nil || len(model[0].QualifiedSurfaces[0].OwnedParameterIDs) != 0 {
+		t.Fatalf("real surface projection leaked execution state: %+v", model)
+	}
+}
+
+func TestSemanticTreatmentBuildSurfacesFailsClosedOnRecognizerOwnershipConflict(t *testing.T) {
+	eq := newFakeEQKernel()
+	eqReply, _, err := eq.SendCommand(context.Background(), map[string]any{"cmd": "get_plugin_parameters"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	compressor := newFakeCompressorKernel()
+	compressorReply, _, err := compressor.SendCommand(context.Background(), map[string]any{"cmd": "get_plugin_parameters"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	rows := append([]map[string]any{}, mapRowsValue(eqReply["parameters"])...)
+	compressorRows := mapRowsValue(compressorReply["parameters"])
+	for index, row := range compressorRows {
+		copyRow := cloneStringAnyMap(row)
+		copyRow["id"] = []string{"b1f", "b1g", "b1q", "b2f"}[index]
+		rows = append(rows, copyRow)
+	}
+	digest := plugingrabber.BuildParameterDigest(map[string]any{
+		"status": "ok", "track_id": "track-conflict", "plugin_id": "plugin-conflict", "parameters": rows,
+	})
+	surfaces, _ := semanticTreatmentBuildSurfaces("track-conflict", "plugin-conflict", digest)
+	if len(surfaces) != 2 {
+		t.Fatalf("surfaces=%+v", surfaces)
+	}
+	for _, surface := range surfaces {
+		if surface.QualificationStatus != "ownership_conflict" ||
+			semanticTreatmentInstanceExecutable(semanticTreatmentInstance{QualifiedSurfaces: []semanticProcessorSurface{surface}}, legacyProcessorTypeForFamily(surface.Family), surface.NextPlanner) {
+			t.Fatalf("conflicting surface remained executable: %+v", surface)
+		}
+	}
+}
+
+func TestSemanticTreatmentPlannerRequestUsesProgressiveFamilyCandidateProjection(t *testing.T) {
+	var requestBody map[string]any
+	httpServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_ = json.NewDecoder(r.Body).Decode(&requestBody)
+		w.Header().Set("Content-Type", "application/json")
+		responseText := `{"schema_version":"semantic_treatment_strategy.v1","decision_mode":"direct","user_goal":"make it stable","summary":"use compressor","choices":[{"choice_key":"comp","role":"recommended","title":"compression","processor_type":"compressor","target_mode":"existing_plugin","instance_key":"loaded_instance_4","reason":"control peaks","expected_effect":"stable","confidence":"high","next_planner":"semantic_compressor"}]}`
+		_ = json.NewEncoder(w).Encode(map[string]any{"choices": []any{map[string]any{"message": map[string]any{"content": responseText}}}})
+	}))
+	defer httpServer.Close()
+	server := &Server{llm: &llm.Client{HTTPClient: httpServer.Client()}}
+	_, err := server.planSemanticTreatment(context.Background(), "chat-1", "make it stable", "track-1", "Vocal", nil, semanticTreatmentTestInstances(), false, false,
+		config.EngineConfig{BaseURL: httpServer.URL, APIKey: "test", DefaultModel: "test"}, "compressor")
+	if err != nil {
+		t.Fatal(err)
+	}
+	raw, _ := json.Marshal(requestBody)
+	body := string(raw)
+	for _, want := range []string{"loaded_instance_4", "Pro-C 2", "required_processor_type"} {
+		if !strings.Contains(body, want) {
+			t.Fatalf("post-family compressor candidate disclosure omitted %q: %s", want, body)
+		}
+	}
+	for _, forbidden := range []string{"loaded_instance_1", "Pro-Q 3", "TDR Nova", "generic_eq_topology", "processor_identity_card", `"plugin_id"`} {
+		if strings.Contains(body, forbidden) {
+			t.Fatalf("family candidate request leaked %q: %s", forbidden, body)
+		}
+	}
+	for _, required := range []string{"gate_expander", "de_esser", "transient_shaper", "multiband_dynamics", "semantic_gate_expander", "semantic_de_esser", "semantic_transient_shaper", "semantic_multiband"} {
+		if !strings.Contains(body, required) {
+			t.Fatalf("treatment strategy protocol omitted current family %q: %s", required, body)
+		}
+	}
+}
+
+func TestSemanticTreatmentPlanAcceptsAllCurrentDynamicFamilyAdapters(t *testing.T) {
+	text := `{"schema_version":"semantic_treatment_strategy.v1","decision_mode":"direct","user_goal":"reduce room noise","summary":"tighten the gate","choices":[{"choice_key":"gate","role":"recommended","title":"gate","processor_type":"gate_expander","target_mode":"existing_plugin","instance_key":"gate-instance","reason":"reduce inactive noise","expected_effect":"tighter tails","confidence":"high","next_planner":"semantic_gate_expander"}]}`
+	instance := semanticTreatmentInstance{Key: "gate-instance", ProcessorType: "gate_expander", QualificationStatus: "gate_expander_topology_qualified", NextPlanner: "semantic_gate_expander", QualifiedSurfaces: []semanticProcessorSurface{{Family: processorintent.FamilyGateExpander, NextPlanner: "semantic_gate_expander"}}}
+	plan, err := decodeAndValidateSemanticTreatmentPlan(text, "reduce room noise", []semanticTreatmentInstance{instance}, false)
+	if err != nil || len(plan.Choices) != 1 || plan.Choices[0].ProcessorType != "gate_expander" {
+		t.Fatalf("gate adapter choice was not accepted: plan=%+v err=%v", plan, err)
+	}
+}
+
+func TestSemanticTreatmentPostLoadAdapterMatrixCoversAllCurrentDynamicFamilies(t *testing.T) {
+	cases := map[string]string{
+		"limiter":            processorintent.FamilyLimiter,
+		"gate_expander":      processorintent.FamilyGateExpander,
+		"de_esser":           processorintent.FamilyDeEsser,
+		"transient_shaper":   processorintent.FamilyTransientShaper,
+		"multiband_dynamics": processorintent.FamilyMultibandDynamics,
+	}
+	for processorType, wantFamily := range cases {
+		family, planner, ok := semanticPostLoadAdapterForProcessorType(processorType)
+		if !ok || family != wantFamily || planner == "" {
+			t.Fatalf("processor %s adapter=(%q,%q,%v)", processorType, family, planner, ok)
+		}
+		spec, specOK := semanticDynamicSpecForFamily(family)
+		if !specOK || spec.Planner != planner {
+			t.Fatalf("processor %s planner drift: adapter=%q spec=%+v", processorType, planner, spec)
+		}
+	}
+	for _, boundary := range []string{"spectral_dynamics", "clipper", "reverb", "delay"} {
+		if _, _, ok := semanticPostLoadAdapterForProcessorType(boundary); ok {
+			t.Fatalf("boundary/future processor %s unexpectedly entered dynamic adapter", boundary)
+		}
+	}
 }
 
 func TestSemanticTreatmentPlanRequiresOnePrimaryTwoMaterialAlternatives(t *testing.T) {
@@ -143,6 +331,21 @@ func TestSemanticTreatmentRoutingSeparatesDiscussionEQAndOpenMethodGoal(t *testi
 		if !ordinaryAgentTreatmentStrategyIntent(prompt, ctx) {
 			t.Fatalf("open semantic experiment prompt missed method arbitration: %q", prompt)
 		}
+	}
+}
+
+func TestFreeStateNeedsActionWithoutSemanticIntentFailsClosed(t *testing.T) {
+	server := New(nil, shadow.New(nil), nil)
+	loop := freeStateReasoningLoop{
+		SchemaVersion: freeStateReasoningLoopSchema, LoopID: "free-state-missing-intent", ConversationID: "chat-missing-intent",
+		Status: "awaiting_action", OriginalIntent: "protect peaks", ActiveIntent: "protect peaks", MaxCycles: 6,
+	}
+	response, routed := server.routeOrdinaryAgentTreatmentStrategy(context.Background(), "chat-missing-intent", agentModeDefault, "protect peaks",
+		map[string]any{"selected_track_id": "track-1", "free_state_route_authorized": true, "free_state_processor_type": "limiter",
+			"free_state_reasoning_loop": freeStateLoopMap(loop)},
+		agentloop.Result{FreeStateDecision: &agentloop.FreeStateDecision{Status: agentloop.FreeStateNeedsAction, ProcessorType: "limiter"}}, config.EngineConfig{})
+	if !routed || response.Workflow != semanticTreatmentWorkflow || !strings.Contains(response.Reply, "semantic_processor_intent") {
+		t.Fatalf("missing semantic intent was not rejected: routed=%t response=%+v", routed, response)
 	}
 }
 
@@ -325,5 +528,24 @@ func TestSemanticCompressorPostLoadQualificationFailureStopsBeforeParameterPlan(
 	}}})
 	if !handled || resp.NeedsConfirmation || resp.StopReason != "semantic_compressor_post_load_not_qualified" || !strings.Contains(resp.Reply, "没有生成或写入参数方案") {
 		t.Fatalf("response=%#v handled=%t", resp, handled)
+	}
+}
+
+func TestSemanticGenericPostLoadRejectsUnprovenLiveTopology(t *testing.T) {
+	plan := PendingPlan{Context: map[string]any{
+		"free_state_semantic_processor_intent": map[string]any{
+			"schema_version": processorintent.SchemaVersion, "status": processorintent.StatusResolved,
+			"family": processorintent.FamilyLimiter, "intent": "protect peaks", "required_coverage": []string{"output_ceiling"},
+			"scope": processorintent.ScopeCurrentTrack, "control_mode": processorintent.ControlModeSemantic, "confidence": 0.9,
+		},
+		"semantic_plugin_recommendation_candidate": map[string]any{
+			"name": "Limiter", "manufacturer": "Vendor", "format": "VST3", "identifier": "limiter-id", "plugin_path": `C:\\Limiter.vst3`,
+		},
+	}, WorkflowData: map[string]any{"semantic_post_load_family": processorintent.FamilyLimiter}}
+	_, err := semanticPostLoadPCAQualification(plan, plugingrabber.ParameterDigest{
+		PluginName: "Limiter", PluginIdentifier: "limiter-id", PluginPath: `C:\\Limiter.vst3`, PluginFormat: "VST3", PluginManufacturer: "Vendor",
+	}, processorintent.FamilyLimiter, "track-1", "limiter-1", "Limiter")
+	if err == nil || !strings.Contains(err.Error(), "topology did not expose") {
+		t.Fatalf("unproven live topology was accepted: %v", err)
 	}
 }

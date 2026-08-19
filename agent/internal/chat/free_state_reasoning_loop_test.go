@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"vit-daw-agent/internal/agentloop"
+	"vit-daw-agent/internal/processorintent"
 	agentruntime "vit-daw-agent/internal/runtime"
 )
 
@@ -70,6 +71,131 @@ func TestFreeStateLoopPreservesOriginalCompositeIntentAcrossActionHandoff(t *tes
 	}
 }
 
+func TestRecordFreeStateDecisionPersistsExecutedCCBReceiptsAndAvailableViews(t *testing.T) {
+	server := New(nil, nil, nil)
+	now := time.Now().UTC()
+	server.storeFreeStateLoop(freeStateReasoningLoop{
+		SchemaVersion: freeStateReasoningLoopSchema, LoopID: "free-state-ledger", ConversationID: "conversation-ledger",
+		Status: "reasoning", OriginalIntent: "inspect the full project", ActiveIntent: "inspect the full project",
+		MaxCycles: 6, CreatedAt: now, UpdatedAt: now,
+	})
+	result := agentloop.Result{
+		Executed: []map[string]any{
+			{"tool": "ccb.observation_request", "tool_call_id": "call-ready", "status": "ok", "result": map[string]any{
+				"status": "ready", "bundle": map[string]any{
+					"schema_version": "ccb_observation_bundle.v1", "status": "ready", "observation_id": "obs-ready",
+					"requested_views": []any{"mix.frequency_relationship"},
+					"views":           map[string]any{"mix.frequency_relationship": map[string]any{"status": "ready"}},
+					"audit_receipt":   map[string]any{"schema_version": "ccb_observation_receipt.v1", "receipt_id": "receipt-ready"},
+				},
+			}},
+			{"tool": "ccb.observation_request", "tool_call_id": "call-rejected", "status": "ok", "result": map[string]any{
+				"status": "rejected", "bundle": map[string]any{
+					"schema_version": "ccb_observation_bundle.v1", "status": "rejected", "requested_views": []any{"mix.masking_relationship"},
+					"rejection_scope": "exact_view_set", "blocking_view_ids": []any{"mix.masking_relationship"},
+					"audit_receipt": map[string]any{"schema_version": "ccb_observation_receipt.v1", "receipt_id": "receipt-rejected", "rejection_scope": "exact_view_set"},
+				},
+			}},
+		},
+		FreeStateDecision: &agentloop.FreeStateDecision{
+			SchemaVersion: agentloop.FreeStateDecisionSchema, Status: agentloop.FreeStateNeedsObservation,
+			EvidenceStatus: "insufficient", Summary: "request more evidence", RequestedViewIDs: []string{"track.time_dynamics"},
+		},
+	}
+	loop, ok := server.recordFreeStateDecision("conversation-ledger", result)
+	if !ok {
+		t.Fatal("recordFreeStateDecision did not find active loop")
+	}
+	available := firstMapFromAny(loop.ObservationLedger["available_views"])
+	if firstStringFromMap(firstMapFromAny(available["mix.frequency_relationship"]), "observation_id") != "obs-ready" {
+		t.Fatalf("ready CCB view was not persisted in loop ledger: %#v", loop.ObservationLedger)
+	}
+	if conclusion := firstMapFromAny(firstMapFromAny(available["mix.frequency_relationship"])["conclusion"]); firstStringFromMap(conclusion, "digest_kind") != "decision_digest" {
+		t.Fatalf("ready CCB decision conclusion was not persisted in loop ledger: %#v", available)
+	}
+	rejected := freeStateMapRows(loop.ObservationLedger["rejected_view_sets"])
+	if len(rejected) != 1 || firstStringFromMap(rejected[0], "rejection_scope") != "exact_view_set" {
+		t.Fatalf("exact rejection scope was not persisted in loop ledger: %#v", loop.ObservationLedger)
+	}
+	encoded := freeStateLoopMap(loop)
+	if len(firstMapFromAny(encoded["observation_ledger"])) == 0 {
+		t.Fatalf("serialized free-state loop omitted observation ledger: %#v", encoded)
+	}
+}
+
+func TestFreeStateContinuationLedgerCannotBeErasedByStaleRequestContext(t *testing.T) {
+	server := New(nil, nil, nil)
+	server.storeFreeStateLoop(freeStateReasoningLoop{
+		SchemaVersion: freeStateReasoningLoopSchema, LoopID: "ledger-merge", ConversationID: "ledger-merge-chat",
+		Status: "observing", OriginalIntent: "inspect the project", ActiveIntent: "inspect the project", MaxCycles: 6,
+		ObservationLedger: map[string]any{
+			"schema_version": freeStateObservationLedgerSchema,
+			"available_views": map[string]any{"track.peak_structure": map[string]any{
+				"view_id": "track.peak_structure", "status": "ready", "observation_id": "obs-ready",
+			}},
+			"rejected_view_sets": []map[string]any{{
+				"fingerprint":     freeStateNormalizedViewFingerprint([]string{"mix.masking_relationship"}),
+				"requested_views": []string{"mix.masking_relationship"}, "status": "rejected",
+				"rejection_scope": "exact_view_set", "blocking_view_ids": []string{"mix.masking_relationship"},
+			}},
+		},
+	})
+	ctx, active := server.prepareFreeStateReasoningContext("ledger-merge-chat", "continue", map[string]any{
+		"free_state_reasoning_loop": map[string]any{
+			"schema_version": freeStateReasoningLoopSchema, "status": "observing", "original_intent": "inspect the project",
+		},
+	})
+	if !active {
+		t.Fatal("free-state loop was not active")
+	}
+	loop, ok := freeStateLoopFromAny(ctx["free_state_reasoning_loop"])
+	if !ok {
+		t.Fatal("merged loop was not serializable")
+	}
+	ledger := loop.ObservationLedger
+	if firstMapFromAny(ledger["available_views"])["track.peak_structure"] == nil || len(freeStateMapRows(ledger["rejected_view_sets"])) != 1 {
+		t.Fatalf("stale request context erased durable CCB ledger: %#v", ledger)
+	}
+}
+
+func TestRecordFreeStateDecisionImportsContinuationObservationLedger(t *testing.T) {
+	server := New(nil, nil, nil)
+	server.storeFreeStateLoop(freeStateReasoningLoop{
+		SchemaVersion: freeStateReasoningLoopSchema, LoopID: "continuation-ledger", ConversationID: "continuation-ledger-chat",
+		Status: "observing", OriginalIntent: "inspect the project", ActiveIntent: "inspect the project", MaxCycles: 6,
+	})
+	continuedLoop := freeStateReasoningLoop{
+		SchemaVersion: freeStateReasoningLoopSchema, LoopID: "continuation-ledger", ConversationID: "continuation-ledger-chat",
+		Status: "observing", OriginalIntent: "inspect the project", ActiveIntent: "inspect the project", MaxCycles: 6,
+		ObservationLedger: map[string]any{
+			"schema_version": freeStateObservationLedgerSchema,
+			"available_views": map[string]any{"mix.frequency_relationship": map[string]any{
+				"view_id": "mix.frequency_relationship", "status": "partial", "observation_id": "obs-frequency",
+			}},
+			"rejected_view_sets": []map[string]any{{
+				"fingerprint":     freeStateNormalizedViewFingerprint([]string{"mix.masking_relationship", "track.time_dynamics"}),
+				"requested_views": []string{"mix.masking_relationship", "track.time_dynamics"}, "status": "rejected",
+				"rejection_scope": "exact_view_set", "blocking_view_ids": []string{"mix.masking_relationship"},
+				"non_blocking_view_ids": []string{"track.time_dynamics"},
+			}},
+		},
+	}
+	loop, ok := server.recordFreeStateDecision("continuation-ledger-chat", agentloop.Result{
+		Continuation: &agentloop.Continuation{Context: map[string]any{"free_state_reasoning_loop": freeStateLoopMap(continuedLoop)}},
+	})
+	if !ok {
+		t.Fatal("recordFreeStateDecision did not find active loop")
+	}
+	ledger := loop.ObservationLedger
+	if firstMapFromAny(ledger["available_views"])["mix.frequency_relationship"] == nil || len(freeStateMapRows(ledger["rejected_view_sets"])) != 1 {
+		t.Fatalf("continuation ledger was not imported: %#v", ledger)
+	}
+	persisted, persistedOK := server.freeStateLoop("continuation-ledger-chat")
+	if !persistedOK || len(persisted.ObservationLedger) == 0 {
+		t.Fatalf("continuation ledger was not stored durably: %#v", persisted)
+	}
+}
+
 func TestFreeStateFreshObservationClosesPostActionGateBeforeMaterialization(t *testing.T) {
 	server := New(nil, nil, nil)
 	now := time.Now().UTC()
@@ -83,11 +209,13 @@ func TestFreeStateFreshObservationClosesPostActionGateBeforeMaterialization(t *t
 		Executed: []map[string]any{{
 			"tool": "ccb.observation_request", "status": "ok", "result": map[string]any{"bundle": map[string]any{
 				"schema_version": "ccb_observation_bundle.v1", "status": "ready", "observation_id": "obs-after",
+				"target_ref": map[string]any{"kind": "track", "id": "1032", "label": "Vocals"},
 			}},
 		}},
 		FreeStateDecision: &agentloop.FreeStateDecision{
 			SchemaVersion: agentloop.FreeStateDecisionSchema, Status: agentloop.FreeStateNeedsAction,
 			EvidenceStatus: "sufficient", Summary: "tonal issue remains", RemainingIntent: "make the vocal clearer", ProcessorType: "eq",
+			ObservationID: "obs-after",
 		},
 	})
 	if !ok || loop.RequiresPostActionObservation || loop.Status != "awaiting_action" || loop.DecisionPhase != freeStatePhaseProcessorMaterialization {
@@ -113,7 +241,7 @@ func TestFreeStateCCBTrackBindingReplacesStaleUITarget(t *testing.T) {
 		}},
 		FreeStateDecision: &agentloop.FreeStateDecision{
 			SchemaVersion: agentloop.FreeStateDecisionSchema, Status: agentloop.FreeStateNeedsAction,
-			EvidenceStatus: "sufficient", RemainingIntent: "stabilize the vocal", ProcessorType: "compressor",
+			EvidenceStatus: "sufficient", RemainingIntent: "stabilize the vocal", ProcessorType: "compressor", ObservationID: "obs-vocal",
 		},
 	})
 	if !ok || firstStringFromMap(loop.TargetRef, "track_id") != "1032" || firstStringFromMap(loop.TargetRef, "track_name") != "Vocals" {
@@ -124,6 +252,107 @@ func TestFreeStateCCBTrackBindingReplacesStaleUITarget(t *testing.T) {
 	})
 	if firstStringFromMap(bound, "selected_track_id") != "1032" || firstStringFromMap(bound, "selected_track_name") != "Vocals" {
 		t.Fatalf("authoritative target was not bound downstream: %#v", bound)
+	}
+}
+
+func TestFreeStateNeedsActionBindsReferencedObservationInsteadOfLatest(t *testing.T) {
+	server := New(nil, nil, nil)
+	server.storeFreeStateLoop(freeStateReasoningLoop{
+		SchemaVersion: freeStateReasoningLoopSchema, LoopID: "target-by-evidence", ConversationID: "target-by-evidence-chat",
+		Status: "observing", OriginalIntent: "repair the project", ActiveIntent: "repair the project", MaxCycles: 6,
+	})
+	result := agentloop.Result{Executed: []map[string]any{
+		freeStateTestTargetedObservationRecord("call-bass", "obs-bass", "1007", "Bass", "track.time_dynamics"),
+		freeStateTestTargetedObservationRecord("call-vocals", "obs-vocals", "1032", "Vocals", "track.time_dynamics"),
+	}, FreeStateDecision: &agentloop.FreeStateDecision{
+		SchemaVersion: agentloop.FreeStateDecisionSchema, Status: agentloop.FreeStateNeedsAction,
+		EvidenceStatus: "sufficient", Summary: "bass needs control", RemainingIntent: "control bass dynamics",
+		ProcessorType: "compressor", ObservationID: "obs-bass",
+		SemanticProcessorIntent: &processorintent.Intent{
+			SchemaVersion: processorintent.SchemaVersion, Status: processorintent.StatusResolved,
+			Family: processorintent.FamilyBroadbandCompressor, Intent: "control bass dynamics",
+			RequiredCoverage: []string{"threshold", "ratio"}, Scope: processorintent.ScopeCurrentTrack,
+			ControlMode: processorintent.ControlModeSemantic, Confidence: 0.9, EvidenceRefs: []string{"obs-bass"},
+		},
+	}}
+	loop, ok := server.recordFreeStateDecision("target-by-evidence-chat", result)
+	if !ok || loop.Status != "awaiting_action" || firstStringFromMap(loop.TargetRef, "track_id") != "1007" {
+		t.Fatalf("referenced observation did not bind bass target: %#v", loop)
+	}
+	if loop.LatestObservation == nil || firstStringFromMap(loop.LatestObservation.Summary, "observation_id") != "obs-bass" {
+		t.Fatalf("latest observation was not replaced by referenced evidence: %#v", loop.LatestObservation)
+	}
+	available := firstMapFromAny(loop.ObservationLedger["available_views"])
+	if available["track:1007::track.time_dynamics"] == nil || available["track:1032::track.time_dynamics"] == nil {
+		t.Fatalf("target-aware ledger collapsed same view across tracks: %#v", available)
+	}
+}
+
+func TestFreeStateNeedsActionWithoutUnambiguousObservationFailsClosed(t *testing.T) {
+	server := New(nil, nil, nil)
+	server.storeFreeStateLoop(freeStateReasoningLoop{
+		SchemaVersion: freeStateReasoningLoopSchema, LoopID: "ambiguous-target", ConversationID: "ambiguous-target-chat",
+		Status: "observing", OriginalIntent: "repair the project", ActiveIntent: "repair the project", MaxCycles: 6,
+	})
+	loop, ok := server.recordFreeStateDecision("ambiguous-target-chat", agentloop.Result{Executed: []map[string]any{
+		freeStateTestTargetedObservationRecord("call-bass", "obs-bass", "1007", "Bass", "track.time_dynamics"),
+		freeStateTestTargetedObservationRecord("call-vocals", "obs-vocals", "1032", "Vocals", "track.time_dynamics"),
+	}, FreeStateDecision: &agentloop.FreeStateDecision{
+		SchemaVersion: agentloop.FreeStateDecisionSchema, Status: agentloop.FreeStateNeedsAction,
+		EvidenceStatus: "sufficient", Summary: "act", RemainingIntent: "control dynamics", ProcessorType: "compressor",
+	}})
+	if !ok || loop.Status != "blocked" || loop.LatestDecision == nil || loop.LatestDecision.Status != agentloop.FreeStateBlocked ||
+		loop.LatestDecision.StopReason != "free_state_observation_target_unresolved" {
+		t.Fatalf("ambiguous target did not fail closed: %#v", loop)
+	}
+}
+
+func TestFreeStateReferencedTargetSurvivesProjectRuntimeRestart(t *testing.T) {
+	server := New(nil, nil, nil)
+	loop := freeStateReasoningLoop{
+		SchemaVersion: freeStateReasoningLoopSchema, LoopID: "bound-restart", ConversationID: "bound-restart-chat",
+		Status: "awaiting_action", DecisionPhase: freeStatePhaseProcessorMaterialization,
+		OriginalIntent: "control bass dynamics", ActiveIntent: "control bass dynamics", MaxCycles: 6,
+		TargetRef: map[string]any{"kind": "track", "id": "1007", "track_id": "1007", "label": "Bass"},
+		LatestObservation: &agentloop.RecentObservation{Tool: "ccb.observation_request", ToolCallID: "call-bass", Status: "ok",
+			Summary: map[string]any{"status": "ready", "observation_id": "obs-bass", "target_ref": map[string]any{"kind": "track", "id": "1007", "label": "Bass"}}},
+		LatestDecision: &agentloop.FreeStateDecision{SchemaVersion: agentloop.FreeStateDecisionSchema, Status: agentloop.FreeStateNeedsAction,
+			EvidenceStatus: "sufficient", Summary: "bass needs control", RemainingIntent: "control bass dynamics",
+			ProcessorType: "compressor", ObservationID: "obs-bass"},
+	}
+	server.storeFreeStateLoop(loop)
+	server.mu.Lock()
+	state := server.projectAgentRuntimeStateLocked()
+	server.mu.Unlock()
+	restarted := New(nil, nil, nil)
+	restarted.mu.Lock()
+	restarted.restoreProjectAgentRuntimeStateLocked(state)
+	restarted.mu.Unlock()
+	restored, ok := restarted.freeStateLoop("bound-restart-chat")
+	if !ok || firstStringFromMap(restored.TargetRef, "track_id") != "1007" || restored.LatestObservation == nil ||
+		firstStringFromMap(restored.LatestObservation.Summary, "observation_id") != "obs-bass" || restored.LatestDecision == nil ||
+		restored.LatestDecision.ObservationID != "obs-bass" {
+		t.Fatalf("restart lost referenced target binding: %#v", restored)
+	}
+	_, retry, resumable := freeStateMaterializationRetry(restored)
+	if !resumable || retry.RecentObservation == nil || firstStringFromMap(retry.RecentObservation.Summary, "observation_id") != "obs-bass" {
+		t.Fatalf("materialization retry lost referenced observation: %#v", retry)
+	}
+}
+
+func TestFreeStateTargetScopedRejectionDoesNotBlockSameViewsOnOtherTrack(t *testing.T) {
+	bass := &agentloop.RecentObservation{Tool: "ccb.observation_request", Summary: map[string]any{
+		"status": "rejected", "requested_views": []any{"track.time_dynamics"},
+		"target_ref": map[string]any{"kind": "track", "id": "1007", "label": "Bass"},
+	}}
+	vocals := &agentloop.RecentObservation{Tool: "ccb.observation_request", Summary: map[string]any{
+		"status": "rejected", "requested_views": []any{"track.time_dynamics"},
+		"target_ref": map[string]any{"kind": "track", "id": "1032", "label": "Vocals"},
+	}}
+	bassRow := freeStateRejectedObservation(bass)
+	vocalRow := freeStateRejectedObservation(vocals)
+	if freeStateRejectedObservationRecorded([]map[string]any{bassRow}, vocalRow) {
+		t.Fatalf("target-scoped rejection collapsed across tracks: bass=%#v vocals=%#v", bassRow, vocalRow)
 	}
 }
 
@@ -277,6 +506,14 @@ func TestFreeStateAcousticActionOutcomeRecognizesGovernedReceipts(t *testing.T) 
 	if !attempted || processor != "de_esser" || status != "applied" || firstStringFromMap(receipt, "processor_type") != "de_esser" {
 		t.Fatalf("dynamic receipt processor=%q status=%q attempted=%v receipt=%#v", processor, status, attempted, receipt)
 	}
+	processor, status, receipt, attempted = freeStateAcousticActionOutcome(PendingInteraction{}, ChatResponse{
+		Workflow: "mix_tick", GoalStatus: string(agentruntime.StatusCompleted), StopReason: "mix_tick_applied_reobserved",
+		WorkflowData:        map[string]any{"track_id": "1007", "operation": "track_gain_adjust", "observation_id": "obs-after-tick"},
+		ExecutedKernelReply: []map[string]any{{"tool": "mix.observe", "status": "ok"}},
+	})
+	if !attempted || processor != "mix_tick" || status != "applied" || firstStringFromMap(receipt, "stop_reason") != "mix_tick_applied_reobserved" {
+		t.Fatalf("mix tick receipt processor=%q status=%q attempted=%v receipt=%#v", processor, status, attempted, receipt)
+	}
 }
 
 func TestFreeStateDynamicReceiptsEnterLedgerForEveryCurrentFamily(t *testing.T) {
@@ -319,6 +556,33 @@ func TestFreeStateDynamicReceiptsEnterLedgerForEveryCurrentFamily(t *testing.T) 
 				t.Fatalf("bounded ledger response = %#v", resp)
 			}
 		})
+	}
+}
+
+func TestFreeStateMixTickReceiptEntersPostActionEvaluation(t *testing.T) {
+	server := New(nil, nil, nil)
+	now := time.Now().UTC()
+	server.storeFreeStateLoop(freeStateReasoningLoop{
+		SchemaVersion: freeStateReasoningLoopSchema, LoopID: "free-state-mix-tick", ConversationID: "conversation-mix-tick",
+		Status: "awaiting_experiment", DecisionPhase: freeStatePhaseProcessorMaterialization,
+		OriginalIntent: "improve the low-end relationship", ActiveIntent: "test a small bass gain reduction",
+		Cycle: 5, MaxCycles: 99, CreatedAt: now, UpdatedAt: now,
+	})
+	resp := server.maybeContinueFreeStateAfterInteraction(nil, PendingInteraction{ConversationID: "conversation-mix-tick"}, ChatResponse{
+		ConversationID: "conversation-mix-tick", Workflow: "mix_tick", GoalStatus: string(agentruntime.StatusCompleted),
+		StopReason:          "mix_tick_applied_reobserved",
+		WorkflowData:        map[string]any{"track_id": "1007", "operation": "track_gain_adjust", "observation_id": "obs-after-tick"},
+		ExecutedKernelReply: []map[string]any{{"tool": "mix.apply_tick", "status": "ok"}, {"tool": "mix.observe", "status": "ok"}},
+	}, "approve")
+	loop, ok := server.freeStateLoop("conversation-mix-tick")
+	if !ok || len(loop.Actions) != 1 || loop.Actions[0].ProcessorType != "mix_tick" || loop.Actions[0].Status != "applied" {
+		t.Fatalf("mix tick action was not recorded: %#v", loop)
+	}
+	if !loop.RequiresPostActionObservation || loop.DecisionPhase != freeStatePhasePostActionEvaluation {
+		t.Fatalf("mix tick did not enter post-action evaluation: %#v", loop)
+	}
+	if resp.StopReason != "free_state_cycle_limit" {
+		t.Fatalf("bounded mix tick handoff = %#v", resp)
 	}
 }
 
@@ -554,6 +818,18 @@ func freeStateTestObservationRecord(callID, status, observationID string, reques
 	}
 }
 
+func freeStateTestTargetedObservationRecord(callID, observationID, trackID, trackName, viewID string) map[string]any {
+	return map[string]any{
+		"tool": "ccb.observation_request", "tool_call_id": callID, "status": "ok",
+		"result": map[string]any{"status": "ready", "bundle": map[string]any{
+			"schema_version": "ccb_observation_bundle.v1", "status": "ready", "observation_id": observationID,
+			"requested_views": []any{viewID}, "views": map[string]any{viewID: map[string]any{"status": "ready"}},
+			"target_ref":    map[string]any{"kind": "track", "id": trackID, "label": trackName},
+			"audit_receipt": map[string]any{"schema_version": "ccb_observation_receipt.v1", "receipt_id": "receipt-" + callID},
+		}},
+	}
+}
+
 func TestFreeStateStartExcludesExactCompressorParameterControl(t *testing.T) {
 	ctx := map[string]any{"selected_track_id": "track-vocal", "selected_plugin_id": "compressor-1"}
 	if shouldStartFreeStateReasoningLoop("set threshold to -12 dB and ratio to 4:1", ctx) {
@@ -627,5 +903,32 @@ func TestPostLoadPlanningTransientFailureBecomesResumable(t *testing.T) {
 	if firstStringFromMap(resp.WorkflowData, "status") != "paused_transient" ||
 		firstStringFromMap(firstMapFromAny(resp.WorkflowData["free_state_reasoning_loop"]), "original_intent") != loop.OriginalIntent {
 		t.Fatalf("post-load transient response lost loop: %+v", resp.WorkflowData)
+	}
+}
+
+func TestProjectChangeInvalidatesOnlyAffectedFreeStateObservationViews(t *testing.T) {
+	ledger := map[string]any{
+		"schema_version": freeStateObservationLedgerSchema,
+		"available_views": map[string]any{
+			"track:1007::track.basic_energy": map[string]any{"view_id": "track.basic_energy", "status": "ready", "freshness": map[string]any{"status": "ready"}},
+			"mix.frequency_relationship":     map[string]any{"view_id": "mix.frequency_relationship", "status": "ready", "freshness": map[string]any{"status": "ready"}},
+			"track:1007::track.stereo_space": map[string]any{"view_id": "track.stereo_space", "status": "ready", "freshness": map[string]any{"status": "ready"}},
+			"project.structure":              map[string]any{"view_id": "project.structure", "status": "ready", "freshness": map[string]any{"status": "ready"}},
+		},
+	}
+	updated := invalidateFreeStateObservationLedger(ledger, map[string]any{
+		"change_id": "shadow_change_000001", "affected_scopes": []any{"track.level", "mix.frequency_relationship"},
+	})
+	available := firstMapFromAny(updated["available_views"])
+	for _, key := range []string{"track:1007::track.basic_energy", "mix.frequency_relationship"} {
+		row := firstMapFromAny(available[key])
+		if row["status"] != "stale" || row["invalidated_by_change_id"] != "shadow_change_000001" {
+			t.Fatalf("affected row %s was not stale: %#v", key, row)
+		}
+	}
+	for _, key := range []string{"track:1007::track.stereo_space", "project.structure"} {
+		if row := firstMapFromAny(available[key]); row["status"] != "ready" {
+			t.Fatalf("unaffected row %s should remain ready: %#v", key, row)
+		}
 	}
 }

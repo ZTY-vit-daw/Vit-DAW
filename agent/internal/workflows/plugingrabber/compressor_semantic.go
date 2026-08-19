@@ -109,10 +109,35 @@ func BuildCompressorControlBrief(digest ParameterDigest, selectedAxes []string) 
 	filtered := make([]CompressorControlBriefControl, 0, len(brief.Controls))
 	ambiguous := []string{}
 	seenAmbiguous := map[string]bool{}
-	for _, control := range brief.Controls {
+	for index, control := range brief.Controls {
 		key := control.PathKey + "\x00" + control.Role
 		if bindingCounts[key] == 1 {
 			filtered = append(filtered, control)
+			continue
+		}
+		// Some processors expose a binary input pad alongside the continuous
+		// input gain. Both can be structurally classified as input_drive, but
+		// activation_intensity needs the unique continuous control. Keep that
+		// control when it is provably unique; retain the conservative ambiguity
+		// boundary for all other duplicate semantic bindings.
+		if control.Role == "input_drive" {
+			preferred := preferredInputDriveControlIndex(brief.Controls, key)
+			if preferred >= 0 {
+				if index == preferred {
+					filtered = append(filtered, control)
+				}
+				continue
+			}
+		}
+		// Some certified processors expose numbered controls (for example
+		// Threshold 1/2 and Ratio 1/2) that collapse to one semantic path. If
+		// every duplicate has the same continuous reachable surface, the
+		// topology offers no semantic distinction; preserve the stable first
+		// binding, matching the deterministic controller used by PCA.
+		if preferred := preferredEquivalentCompressorControlIndex(brief.Controls, key); preferred >= 0 {
+			if index == preferred {
+				filtered = append(filtered, control)
+			}
 			continue
 		}
 		label := control.PathKey + "/" + control.Role
@@ -134,6 +159,48 @@ func BuildCompressorControlBrief(digest ParameterDigest, selectedAxes []string) 
 		return nil, "selected_axes_unreachable"
 	}
 	return brief, ""
+}
+
+func preferredEquivalentCompressorControlIndex(controls []CompressorControlBriefControl, key string) int {
+	preferred := -1
+	signature := ""
+	for index, control := range controls {
+		if control.PathKey+"\x00"+control.Role != key {
+			continue
+		}
+		if control.Reachable.Kind != "continuous" && control.Reachable.Kind != "sampled_continuous" {
+			return -1
+		}
+		encoded, _ := json.Marshal(struct {
+			Unit      string                     `json:"unit"`
+			Reachable CompressorReachableSummary `json:"reachable"`
+		}{Unit: control.PhysicalUnit, Reachable: control.Reachable})
+		if preferred < 0 {
+			preferred, signature = index, string(encoded)
+			continue
+		}
+		if signature != string(encoded) {
+			return -1
+		}
+	}
+	return preferred
+}
+
+func preferredInputDriveControlIndex(controls []CompressorControlBriefControl, key string) int {
+	preferred := -1
+	for index, control := range controls {
+		if control.PathKey+"\x00"+control.Role != key || control.Role != "input_drive" {
+			continue
+		}
+		if control.Reachable.Kind != "continuous" && control.Reachable.Kind != "sampled_continuous" {
+			continue
+		}
+		if preferred >= 0 {
+			return -1
+		}
+		preferred = index
+	}
+	return preferred
 }
 
 func compressorIdentityCardID(card semanticeffect.AudioProcessorIdentityCard) string {

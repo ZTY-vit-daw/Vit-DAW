@@ -19,18 +19,24 @@ const AgentSemanticEQCapabilityID = "agent.effect.eq_control.v0"
 // action. PlannedEdits/Writes and ParameterPreimage are produced by the
 // existing generic EQ planner; the adapter only freezes them.
 type SemanticEQPlan struct {
-	Action               semanticeffect.Action `json:"semantic_action"`
-	TopologyGeneration   string                `json:"topology_generation"`
-	Edits                []map[string]any      `json:"edits"`
-	PlannedEdits         []map[string]any      `json:"planned_edits"`
-	PlannedWrites        []map[string]any      `json:"planned_writes"`
-	ParameterPreimage    []map[string]any      `json:"parameter_preimage"`
-	ParameterSnapshot    []map[string]any      `json:"parameter_snapshot"`
-	PreviewResults       []map[string]any      `json:"preview_results"`
-	EvidenceSummary      map[string]any        `json:"evidence_summary,omitempty"`
-	EvidenceRefs         []string              `json:"evidence_refs,omitempty"`
-	PreviousObservation  string                `json:"previous_observation_id,omitempty"`
-	AcousticVerification string                `json:"acoustic_verification"`
+	Action semanticeffect.Action `json:"semantic_action"`
+	// PCAAdmissionReceipt is the server-issued proof for the exact installed
+	// processor selected before loading.  It is carried into the frozen action
+	// set as an opaque map so the final executor can revalidate the same
+	// installed binary even when the live rack parameter digest omits optional
+	// identity fields.
+	PCAAdmissionReceipt  map[string]any   `json:"pca_admission_receipt,omitempty"`
+	TopologyGeneration   string           `json:"topology_generation"`
+	Edits                []map[string]any `json:"edits"`
+	PlannedEdits         []map[string]any `json:"planned_edits"`
+	PlannedWrites        []map[string]any `json:"planned_writes"`
+	ParameterPreimage    []map[string]any `json:"parameter_preimage"`
+	ParameterSnapshot    []map[string]any `json:"parameter_snapshot"`
+	PreviewResults       []map[string]any `json:"preview_results"`
+	EvidenceSummary      map[string]any   `json:"evidence_summary,omitempty"`
+	EvidenceRefs         []string         `json:"evidence_refs,omitempty"`
+	PreviousObservation  string           `json:"previous_observation_id,omitempty"`
+	AcousticVerification string           `json:"acoustic_verification"`
 }
 
 // SemanticEQBatchPlan freezes B4's project-level relationship decision and
@@ -169,6 +175,7 @@ func FreezeSemanticEQ(plan SemanticEQPlan, cut orchestration.ProjectCut, revisio
 	}
 	args := map[string]any{
 		"semantic_action":         plan.Action,
+		"pca_admission_receipt":   clonePluginMap(plan.PCAAdmissionReceipt),
 		"track_id":                strings.TrimSpace(plan.Action.Target.TrackID),
 		"plugin_id":               strings.TrimSpace(plan.Action.Target.PluginID),
 		"topology_generation":     strings.TrimSpace(plan.TopologyGeneration),

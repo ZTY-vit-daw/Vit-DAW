@@ -40,6 +40,7 @@ func buildProjectPackage(state map[string]any, target TargetRef, scope ListenSco
 	projectIdentity := mapValue(state["project"])
 	projectCutRef := firstNonEmpty(cleanAnyString(state["snapshot_hash"]), cleanAnyString(state["project_state_hash"]), cleanAnyString(state["project_revision"]), cleanAnyString(state["revision"]), cleanAnyString(projectIdentity["snapshot_hash"]), cleanAnyString(projectIdentity["revision"]))
 	staticLevelInputs := projectStaticLevelRelationshipInputs(tracks, projectCutRef)
+	maskingInputs := compactMaskingMeasurement(snap.MaskingMeasurement)
 	return map[string]any{
 		"schema_version":                   "mixboard_project_packet.v1",
 		"status":                           status,
@@ -68,13 +69,14 @@ func buildProjectPackage(state map[string]any, target TargetRef, scope ListenSco
 		"conflict_candidates":              conflictCandidates,
 		"frequency_relationship_inputs":    frequencyInputs,
 		"static_level_relationship_inputs": staticLevelInputs,
+		"masking_relationship_inputs":      maskingInputs,
 		"likely_first_attention_target":    projectFirstAttentionTarget(tracks, loudnessRanking, peakRanking, headroomRisk),
 		"relationship_inputs":              relationshipInputStatus(tracks),
 		"analysis_boundary": map[string]any{
-			"agent_side_lightweight": []string{"loudness_ranking", "level_ranking", "peak_ranking", "headroom_risk", "project_band_occupancy", "project_stereo_spread", "level_distribution", "conflict_candidates", "frequency_relationship_inputs", "static_level_relationship_inputs", "likely_first_attention_target"},
-			"kernel_deferred":        []string{"project_contrast_analyzer", "lufs_analysis", "masking_analysis", "reference_match", "post_fx_shadow_render"},
+			"agent_side_lightweight": []string{"loudness_ranking", "level_ranking", "peak_ranking", "headroom_risk", "project_band_occupancy", "project_stereo_spread", "level_distribution", "conflict_candidates", "frequency_relationship_inputs", "static_level_relationship_inputs", "masking_relationship_inputs", "likely_first_attention_target"},
+			"kernel_deferred":        []string{"project_contrast_analyzer", "lufs_analysis", "reference_match", "post_fx_shadow_render"},
 		},
-		"limitations": projectPackageLimitations(tracks),
+		"limitations": projectPackageLimitations(tracks, maskingInputs),
 	}
 }
 
@@ -385,7 +387,7 @@ func projectPackageSummary(tracks []map[string]any, activeCount, acousticTrackCo
 	}
 }
 
-func projectPackageLimitations(tracks []map[string]any) []string {
+func projectPackageLimitations(tracks []map[string]any, maskingMeasurement map[string]any) []string {
 	hasLevel := false
 	hasPeak := false
 	hasReadyAcoustic := false
@@ -424,9 +426,11 @@ func projectPackageLimitations(tracks []map[string]any) []string {
 		"project_rankings_are_agent_side_lightweight_o1",
 		"kernel_project_contrast_analyzer_deferred_o3",
 		"lufs_analysis_deferred_phase_5",
-		"masking_analysis_deferred_phase_5",
 		"reference_match_deferred_phase_5",
 		"post_fx_probe_unavailable_phase_4_1",
+	}
+	if featureStatus(maskingMeasurement) != "ready" {
+		limits = append(limits, "masking_analysis_not_ready_on_current_project_cut")
 	}
 	if !hasReadyAcoustic {
 		limits = append(limits, "per_track_waveform_acoustic_missing")
@@ -1169,8 +1173,22 @@ func projectConflictCandidates(tracks []map[string]any) map[string]any {
 		return map[string]any{"status": "not_applicable_single_track", "track_count": len(tracks), "candidates": []map[string]any{}}
 	}
 	candidates := []map[string]any{}
-	candidates = append(candidates, bandConflictCandidates(tracks, "bass", "low_end_overlap")...)
-	candidates = append(candidates, bandConflictCandidates(tracks, "low_mid", "low_mid_masking_candidate")...)
+	// Keep the relationship projection family-neutral across the full declared
+	// band vocabulary. Restricting candidates to low-end bands hid legitimate
+	// mid/high overlap evidence before the model could request a focused view.
+	for _, band := range []struct {
+		id   string
+		kind string
+	}{
+		{id: "sub", kind: "sub_band_overlap_candidate"},
+		{id: "bass", kind: "low_end_overlap"},
+		{id: "low_mid", kind: "low_mid_masking_candidate"},
+		{id: "mid", kind: "mid_band_overlap_candidate"},
+		{id: "presence", kind: "presence_band_overlap_candidate"},
+		{id: "air", kind: "air_band_overlap_candidate"},
+	} {
+		candidates = append(candidates, bandConflictCandidates(tracks, band.id, band.kind)...)
+	}
 	if center := centerCongestionCandidates(tracks); len(center) > 0 {
 		candidates = append(candidates, center...)
 	}
