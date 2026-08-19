@@ -350,6 +350,9 @@ type Round struct {
 	AuditionSessionID     string                 `json:"audition_session_id,omitempty"`
 	UserJudgmentRequested bool                   `json:"user_judgment_requested,omitempty"`
 	UserJudgmentEvidence  []UserJudgmentEvidence `json:"user_judgment_evidence,omitempty"`
+	AdoptedCandidateID    string                 `json:"adopted_candidate_id,omitempty"`
+	AdoptionCheckpointRef string                 `json:"adoption_checkpoint_ref,omitempty"`
+	AdoptionReceipt       map[string]any         `json:"adoption_receipt,omitempty"`
 	Decision              RoundDecision          `json:"decision,omitempty"`
 	DecisionSummary       string                 `json:"decision_summary,omitempty"`
 	StartedAt             time.Time              `json:"started_at"`
@@ -643,6 +646,25 @@ func (t *Turn) MarkRollback(now time.Time, receipt map[string]any, evidenceRefs 
 	return events, nil
 }
 
+func (t *Turn) BindCandidateAdoption(candidateID, checkpointRef, projectRevision string, receipt map[string]any) {
+	round, err := t.currentRound()
+	if err != nil {
+		return
+	}
+	round.AdoptedCandidateID = strings.TrimSpace(candidateID)
+	round.AdoptionCheckpointRef = strings.TrimSpace(checkpointRef)
+	round.AdoptionReceipt = cloneMap(receipt)
+	if round.AdoptionCheckpointRef != "" {
+		round.CheckpointRef = round.AdoptionCheckpointRef
+	}
+	if strings.TrimSpace(projectRevision) != "" {
+		round.ProjectRevision = strings.TrimSpace(projectRevision)
+		t.ProjectRevision = round.ProjectRevision
+	}
+	round.UpdatedAt = time.Now().UTC()
+	t.replaceRound(*round)
+}
+
 func (t *Turn) Settle(outcome SettlementOutcome, summary string, now time.Time) ([]trajectory.Event, error) {
 	if err := t.ensureLive(); err != nil {
 		return nil, err
@@ -661,7 +683,19 @@ func (t *Turn) Settle(outcome SettlementOutcome, summary string, now time.Time) 
 	t.Status = StatusSettled
 	t.SettledAt = now.UTC()
 	t.UpdatedAt = now.UTC()
-	events := t.events(now, trajectory.EventSettled, "", trajectory.NodeSettlement, "experiment settled", nil, nil, map[string]any{"outcome": outcome, "summary": summary})
+	details := map[string]any{"outcome": outcome, "summary": summary}
+	if round, roundErr := t.currentRound(); roundErr == nil {
+		if round.AdoptedCandidateID != "" {
+			details["adopted_candidate_id"] = round.AdoptedCandidateID
+		}
+		if round.AdoptionCheckpointRef != "" {
+			details["adoption_checkpoint_ref"] = round.AdoptionCheckpointRef
+		}
+		if len(round.AdoptionReceipt) > 0 {
+			details["adoption_receipt"] = cloneMap(round.AdoptionReceipt)
+		}
+	}
+	events := t.events(now, trajectory.EventSettled, "", trajectory.NodeSettlement, "experiment settled", nil, nil, details)
 	if round, roundErr := t.currentRound(); roundErr == nil {
 		events[0].Payload.CheckpointRef = round.CheckpointRef
 		events[0].Payload.ProjectRevision = round.ProjectRevision

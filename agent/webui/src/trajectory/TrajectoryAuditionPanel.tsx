@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { auditionCanSelect, auditionSessions, type AuditionState, type HeardDifference, type JudgmentPreference } from "../audition";
+import { auditionCanInspect, auditionCanSelect, auditionJudgmentPrefers, auditionSessions, type AuditionState, type HeardDifference, type JudgmentPreference } from "../audition";
 import type { TrajectoryState } from "../trajectory";
 import { trajectoryTurns } from "../trajectory";
 import { TrajectoryView } from "./TrajectoryView";
@@ -13,13 +13,17 @@ export function TrajectoryAuditionPanel({
   busySessionID,
   onSelect,
   onStop,
-  onSubmitJudgment
+  onSubmitJudgment,
+  onInspect,
+  onApply
 }: {
   trajectory: TrajectoryState;
   audition: AuditionState;
   busySessionID: string;
   onSelect: (sessionID: string, candidateID: string) => Promise<void>;
   onStop: (sessionID: string) => Promise<void>;
+  onInspect?: (sessionID: string, candidateID: string) => Promise<void>;
+  onApply?: (sessionID: string, candidateID: string, evidenceID: string) => Promise<void>;
   onSubmitJudgment?: (payload: {
     conversation_id: string;
     turn_id: string;
@@ -48,9 +52,7 @@ export function TrajectoryAuditionPanel({
         const heardValue = heard[session.id] ?? "";
         const preferenceValue = preference[session.id] ?? (heardValue === "yes" ? "" : heardValue ? "unsure" : "");
         const canJudge = Boolean(onSubmitJudgment) && (session.status === "ready" || session.status === "playing" || session.status === "stopped") && session.candidates.length === 2 && session.candidates.every((candidate) => candidate.status === "ready" && Boolean(candidate.previewRef)) && session.judgmentRequested && !session.judgmentRecorded;
-        const submitLabel = heardValue !== "yes" || preferenceValue === "equal" || preferenceValue === "unsure"
-          ? "提交判断并继续下一轮"
-          : preferenceValue === "a" ? "提交判断并采用 A" : preferenceValue === "b" ? "提交判断并采用 B" : "提交判断并回退";
+        const submitLabel = "记录判断（不会自动采用）";
         const submit = async () => {
           if (!heardValue || !preferenceValue || !canJudge) return;
           setSubmitting(session.id);
@@ -80,9 +82,15 @@ export function TrajectoryAuditionPanel({
               {session.candidates.map((candidate) => {
                 const selectable = auditionCanSelect(session, candidate);
                 return (
-                  <button type="button" key={candidate.id} className={session.activeCandidateId === candidate.id ? "active" : ""} disabled={!selectable || busySessionID === session.id} aria-label={`试听 ${candidate.label}`} onClick={() => void onSelect(session.id, candidate.id)}>
-                    <strong>{candidate.label}</strong><span>{candidate.status || "preparing"}</span>
-                  </button>
+                  <div className={`audition-candidate-card ${session.inspectedCandidateId === candidate.id ? "inspected" : ""} ${session.adoptedCandidateId === candidate.id ? "adopted" : ""}`} key={candidate.id}>
+                    <button type="button" className={session.activeCandidateId === candidate.id ? "active" : ""} disabled={!selectable || busySessionID === session.id} aria-label={`试听 ${candidate.label}`} onClick={() => void onSelect(session.id, candidate.id)}>
+                      <strong>{candidate.label}</strong><span>{candidate.status || "preparing"}</span>
+                    </button>
+                    <div className="audition-candidate-actions">
+                      <button type="button" disabled={!auditionCanInspect(candidate) || busySessionID === session.id} onClick={() => void onInspect?.(session.id, candidate.id)}>查看</button>
+                      <button type="button" disabled={!auditionJudgmentPrefers(session, candidate.id) || busySessionID === session.id || session.adoptionStatus === "applied"} onClick={() => void onApply?.(session.id, candidate.id, String(session.judgmentEvidence?.id ?? ""))}>采用</button>
+                    </div>
+                  </div>
                 );
               })}
             </div>
@@ -114,7 +122,9 @@ export function TrajectoryAuditionPanel({
                 <button className="audition-submit" type="submit" disabled={!heardValue || !preferenceValue || submitting === session.id}>{submitting === session.id ? "记录中…" : submitLabel}</button>
               </form>
             )}
-            {session.judgmentRecorded && <div className="audition-recorded">已记录用户判断证据{session.judgmentEvidence ? ` · ${String(session.judgmentEvidence.preference ?? "")}` : ""}。系统已按判断继续处理。</div>}
+            {session.judgmentRecorded && <div className="audition-recorded">已记录用户判断证据{session.judgmentEvidence ? ` · ${String(session.judgmentEvidence.preference ?? "")}` : ""}。请使用“采用”明确改变工程。</div>}
+            {session.inspectedCandidateId && <div className="audition-inspected">当前查看：{session.inspectedCandidateId === "candidate-a" ? "A" : "B"}（已切换 Active Project Plane）</div>}
+            {session.adoptedCandidateId && <div className="audition-adopted">当前采用：{session.adoptedCandidateId === "candidate-a" ? "A" : "B"} · {session.adoptionStatus}</div>}
             {session.error && <p className="audition-error">{session.error}</p>}
           </section>
         );

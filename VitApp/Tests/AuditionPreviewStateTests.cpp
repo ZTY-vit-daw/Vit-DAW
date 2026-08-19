@@ -22,6 +22,16 @@ vit::audition::Session makeSession()
         { "candidate-a", "Candidate A", "edit", "edit:a", {}, {} },
         { "candidate-b", "Candidate B", "edit", "edit:b", {}, {} },
     };
+    session.candidates[0].checkpointRef = "checkpoint-a";
+    session.candidates[0].commitId = "commit-a";
+    session.candidates[0].projectPath = "project.vit";
+    session.candidates[0].projectUUID = "project-1";
+    session.candidates[0].projectRevision = "rev-a";
+    session.candidates[1].checkpointRef = "checkpoint-b";
+    session.candidates[1].commitId = "commit-b";
+    session.candidates[1].projectPath = "project.vit";
+    session.candidates[1].projectUUID = "project-1";
+    session.candidates[1].projectRevision = "rev-b";
     return session;
 }
 
@@ -65,6 +75,8 @@ int main()
     assert (selected.session->activeProjectRef == "project:active");
     assert (selected.session->activeProjectRevision == "project-r17");
     assert (selected.session->transport.timelineRevision == "timeline-r17");
+    assert (selected.session->candidates[0].commitId == "commit-a");
+    assert (selected.session->candidates[1].checkpointRef == "checkpoint-b");
 
     const auto playing = machine.position ("audition-test", 12.5, true);
     requireOk (playing);

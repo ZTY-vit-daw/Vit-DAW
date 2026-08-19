@@ -16,6 +16,7 @@ type AuditionCandidate struct {
 	CommitID        string  `json:"commit_id,omitempty"`
 	BranchRef       string  `json:"branch_ref,omitempty"`
 	WorktreeRef     string  `json:"worktree_ref,omitempty"`
+	ProjectPath     string  `json:"project_path,omitempty"`
 	ProjectUUID     string  `json:"project_uuid,omitempty"`
 	ProjectRevision string  `json:"project_revision,omitempty"`
 	RenderRevision  string  `json:"render_revision,omitempty"`

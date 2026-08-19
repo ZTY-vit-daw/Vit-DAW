@@ -55,6 +55,8 @@ import {
   fetchHealth,
   fetchRuntimeStatus,
   fetchUIState,
+  inspectAuditionCandidate,
+  applyAuditionCandidate,
   invokeAgent,
   listArtifacts,
   readArtifact,
@@ -1050,6 +1052,32 @@ function App() {
     setAgentEventPolling(true);
   };
 
+  const handleAuditionInspect = async (sessionID: string, candidateID: string) => {
+    setAuditionBusySessionID(sessionID);
+    try {
+      await inspectAuditionCandidate(conversationID, sessionID, candidateID);
+      setAgentEventPolling(true);
+      await refreshState();
+    } catch (inspectError) {
+      setError(inspectError instanceof Error ? inspectError.message : "查看候选失败");
+    } finally {
+      setAuditionBusySessionID("");
+    }
+  };
+
+  const handleAuditionApply = async (sessionID: string, candidateID: string, evidenceID: string) => {
+    setAuditionBusySessionID(sessionID);
+    try {
+      await applyAuditionCandidate(conversationID, sessionID, candidateID, evidenceID);
+      setAgentEventPolling(true);
+      await refreshState();
+    } catch (applyError) {
+      setError(applyError instanceof Error ? applyError.message : "采用候选失败");
+    } finally {
+      setAuditionBusySessionID("");
+    }
+  };
+
   const hiddenFileInput = (
     <input
       ref={fileInputRef}
@@ -1146,6 +1174,8 @@ function App() {
         onSelect={handleAuditionSelect}
         onStop={handleAuditionStop}
         onSubmitJudgment={handleAuditionJudgment}
+        onInspect={handleAuditionInspect}
+        onApply={handleAuditionApply}
       />
 
       <MessageStream

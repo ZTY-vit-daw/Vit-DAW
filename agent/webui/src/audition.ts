@@ -8,6 +8,12 @@ export interface AuditionCandidate {
   status: string;
   sourceRef: string;
   previewRef: string;
+  checkpointRef: string;
+  commitID: string;
+  branchRef: string;
+  worktreeRef: string;
+  projectPath: string;
+  projectRevision: string;
 }
 
 export type HeardDifference = "yes" | "no" | "unsure";
@@ -29,6 +35,11 @@ export interface AuditionSession {
   judgmentRequested: boolean;
   judgmentRecorded: boolean;
   judgmentEvidence: JsonRecord | null;
+  inspectedCandidateId: string;
+  adoptedCandidateId: string;
+  adoptionStatus: string;
+  inspectionReceipt: JsonRecord | null;
+  adoptionReceipt: JsonRecord | null;
 }
 
 export interface AuditionState {
@@ -76,7 +87,12 @@ export function reduceAuditionEvents(current: AuditionState, incoming: AgentEven
       roundID: text(rawSession.round_id) || text(payload.round_id) || previous?.roundID || "",
       judgmentRequested: event.type === "trajectory.user_judgment.recorded" ? false : previous?.judgmentRequested || event.type === "trajectory.user_judgment.requested",
       judgmentRecorded: previous?.judgmentRecorded || event.type === "trajectory.user_judgment.recorded",
-      judgmentEvidence: previous?.judgmentEvidence || (event.type === "trajectory.user_judgment.recorded" ? record(record(payload.details).evidence) : null)
+      judgmentEvidence: previous?.judgmentEvidence || (event.type === "trajectory.user_judgment.recorded" ? record(record(payload.details).evidence) : null),
+      inspectedCandidateId: text(rawSession.inspected_candidate_id) || previous?.inspectedCandidateId || "",
+      adoptedCandidateId: text(rawSession.adopted_candidate_id) || previous?.adoptedCandidateId || "",
+      adoptionStatus: text(rawSession.adoption_status) || previous?.adoptionStatus || "",
+      inspectionReceipt: Object.keys(record(rawSession.inspection_receipt)).length > 0 ? record(rawSession.inspection_receipt) : previous?.inspectionReceipt || null,
+      adoptionReceipt: Object.keys(record(rawSession.adoption_receipt)).length > 0 ? record(rawSession.adoption_receipt) : previous?.adoptionReceipt || null
     };
     seen.add(key);
     next.eventKeys.push(key);
@@ -94,7 +110,20 @@ export function auditionCanSelect(session: AuditionSession, candidate: AuditionC
 
 function candidateFromAny(value: unknown): AuditionCandidate {
   const row = record(value);
-  return { id: text(row.id), label: text(row.label) || text(row.id), status: text(row.status), sourceRef: text(row.source_ref), previewRef: text(row.preview_ref) };
+  return {
+    id: text(row.id), label: text(row.label) || text(row.id), status: text(row.status), sourceRef: text(row.source_ref), previewRef: text(row.preview_ref),
+    checkpointRef: text(row.checkpoint_ref), commitID: text(row.commit_id), branchRef: text(row.branch_ref), worktreeRef: text(row.worktree_ref),
+    projectPath: text(row.project_path), projectRevision: text(row.project_revision)
+  };
 }
 function record(value: unknown): JsonRecord { return value && typeof value === "object" && !Array.isArray(value) ? value as JsonRecord : {}; }
 function text(value: unknown): string { return typeof value === "string" ? value.trim() : value == null ? "" : String(value).trim(); }
+
+export function auditionCanInspect(candidate: AuditionCandidate): boolean {
+  return Boolean(candidate.projectPath && (candidate.commitID || candidate.checkpointRef || candidate.branchRef || candidate.worktreeRef));
+}
+
+export function auditionJudgmentPrefers(session: AuditionSession, candidateID: string): boolean {
+  const preference = text(session.judgmentEvidence?.preference);
+  return session.judgmentRecorded && ((candidateID === "candidate-a" && preference === "a") || (candidateID === "candidate-b" && preference === "b"));
+}

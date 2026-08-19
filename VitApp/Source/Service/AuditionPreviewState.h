@@ -39,7 +39,8 @@ struct Candidate
     std::string commitId;
     std::string branchRef;
     std::string worktreeRef;
-    std::string projectUuid;
+    std::string projectPath;
+    std::string projectUUID;
     std::string projectRevision;
     std::string renderRevision;
     std::string previewRevision;

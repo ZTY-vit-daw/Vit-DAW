@@ -21,7 +21,8 @@ juce::var candidateToVar (const audition::Candidate& candidate)
     object->setProperty ("commit_id", juce::String (candidate.commitId.c_str()));
     object->setProperty ("branch_ref", juce::String (candidate.branchRef.c_str()));
     object->setProperty ("worktree_ref", juce::String (candidate.worktreeRef.c_str()));
-    object->setProperty ("project_uuid", juce::String (candidate.projectUuid.c_str()));
+    object->setProperty ("project_path", juce::String (candidate.projectPath.c_str()));
+    object->setProperty ("project_uuid", juce::String (candidate.projectUUID.c_str()));
     object->setProperty ("project_revision", juce::String (candidate.projectRevision.c_str()));
     object->setProperty ("render_revision", juce::String (candidate.renderRevision.c_str()));
     object->setProperty ("preview_revision", juce::String (candidate.previewRevision.c_str()));
@@ -52,11 +53,13 @@ bool appendCandidate (const juce::var& value,
     candidate.label = candidateObject->getProperty ("label").toString().trim().toStdString();
     candidate.sourceKind = candidateObject->getProperty ("source_kind").toString().trim().toStdString();
     candidate.sourceRef = candidateObject->getProperty ("source_ref").toString().trim().toStdString();
+    candidate.previewRef = candidateObject->getProperty ("preview_ref").toString().trim().toStdString();
     candidate.checkpointRef = candidateObject->getProperty ("checkpoint_ref").toString().trim().toStdString();
     candidate.commitId = candidateObject->getProperty ("commit_id").toString().trim().toStdString();
     candidate.branchRef = candidateObject->getProperty ("branch_ref").toString().trim().toStdString();
     candidate.worktreeRef = candidateObject->getProperty ("worktree_ref").toString().trim().toStdString();
-    candidate.projectUuid = candidateObject->getProperty ("project_uuid").toString().trim().toStdString();
+    candidate.projectPath = candidateObject->getProperty ("project_path").toString().trim().toStdString();
+    candidate.projectUUID = candidateObject->getProperty ("project_uuid").toString().trim().toStdString();
     candidate.projectRevision = candidateObject->getProperty ("project_revision").toString().trim().toStdString();
     candidate.renderRevision = candidateObject->getProperty ("render_revision").toString().trim().toStdString();
     candidate.previewRevision = candidateObject->getProperty ("preview_revision").toString().trim().toStdString();

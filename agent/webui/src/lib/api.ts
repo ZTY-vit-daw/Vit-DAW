@@ -104,6 +104,14 @@ export function submitAuditionJudgment(payload: AuditionJudgmentPayload): Promis
   return requestJSON("/agent/audition/judgment", { method: "POST", body: JSON.stringify(payload) });
 }
 
+export function inspectAuditionCandidate(conversationID: string, sessionID: string, candidateID: string): Promise<{ status?: string; receipt?: JsonRecord; error?: string }> {
+  return requestJSON("/agent/audition/inspect_candidate", { method: "POST", body: JSON.stringify({ conversation_id: conversationID, audition_session_id: sessionID, candidate_id: candidateID }) });
+}
+
+export function applyAuditionCandidate(conversationID: string, sessionID: string, candidateID: string, judgmentEvidenceID: string): Promise<{ status?: string; receipt?: JsonRecord; error?: string }> {
+  return requestJSON("/agent/audition/apply_candidate", { method: "POST", body: JSON.stringify({ conversation_id: conversationID, audition_session_id: sessionID, candidate_id: candidateID, judgment_evidence_id: judgmentEvidenceID }) });
+}
+
 export function fetchUIState(): Promise<AgentUIState> {
   return requestJSON<AgentUIState>("/agent/ui/state");
 }
