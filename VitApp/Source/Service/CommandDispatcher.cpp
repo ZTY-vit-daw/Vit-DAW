@@ -1,5 +1,6 @@
 #include "CommandDispatcher.h"
 
+#include "AuditionPreviewService.h"
 #include "ClipService.h"
 #include "GeneratedAssetService.h"
 #include "ImportService.h"
@@ -2126,6 +2127,7 @@ CommandDispatcher::CommandDispatcher (EditGetter editGetter,
     midiService = std::make_unique<MidiService> (getEdit);
     transportAudioService = std::make_unique<TransportAudioService> (getEdit, saveProject, production);
     pluginRackControlService = std::make_unique<PluginRackControlService> (getEdit, saveProject, getCurrentProjectPath);
+    auditionPreviewService = std::make_unique<AuditionPreviewService> (publishMessage);
     registerBuiltinCommands();
 }
 
@@ -2202,6 +2204,36 @@ juce::String CommandDispatcher::dispatch (const juce::var& command, const juce::
 
 void CommandDispatcher::registerBuiltinCommands()
 {
+    handlers.emplace ("audition.prepare", [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return auditionPreviewService != nullptr ? auditionPreviewService->handlePrepare (object, raw)
+                                                   : makeErrorReply ("Audition preview service unavailable");
+    });
+
+    handlers.emplace ("audition.status", [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return auditionPreviewService != nullptr ? auditionPreviewService->handleStatus (object, raw)
+                                                   : makeErrorReply ("Audition preview service unavailable");
+    });
+
+    handlers.emplace ("audition.select", [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return auditionPreviewService != nullptr ? auditionPreviewService->handleSelect (object, raw)
+                                                   : makeErrorReply ("Audition preview service unavailable");
+    });
+
+    handlers.emplace ("audition.position", [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return auditionPreviewService != nullptr ? auditionPreviewService->handlePosition (object, raw)
+                                                   : makeErrorReply ("Audition preview service unavailable");
+    });
+
+    handlers.emplace ("audition.stop", [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return auditionPreviewService != nullptr ? auditionPreviewService->handleStop (object, raw)
+                                                   : makeErrorReply ("Audition preview service unavailable");
+    });
+
     handlers.emplace ("ping", [this] (const juce::DynamicObject& object, const juce::String& raw)
     {
         return handlePing (object, raw);

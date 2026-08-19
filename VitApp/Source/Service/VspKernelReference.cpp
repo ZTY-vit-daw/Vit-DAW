@@ -124,6 +124,11 @@ const std::unordered_map<std::string, LegacyCommandMapping>& canonicalCommandMap
         { "macro.set_values", { "control_set_macro_values", true } },
         { "render.start", { "start_render", true } },
         { "render.cancel", { "cancel_render", false } },
+        { "audition.prepare", { "audition.prepare", true } },
+        { "audition.status", { "audition.status", false } },
+        { "audition.select", { "audition.select", true } },
+        { "audition.position", { "audition.position", true } },
+        { "audition.stop", { "audition.stop", true } },
     };
 
     return mappings;
@@ -154,6 +159,7 @@ const std::unordered_set<std::string>& legacyReadOnlyCommands()
         "get_audio_device_types",
         "get_audio_devices",
         "get_wave_input_devices",
+        "audition.status",
     };
 
     return commands;
@@ -281,6 +287,7 @@ juce::StringArray capabilityList()
         "project.read",
         "project.write",
         "transport.control",
+        "audition.preview",
         "track.edit",
         "clip.edit",
         "plugin.read",
@@ -1019,6 +1026,7 @@ juce::String makeSessionHelloAck (const juce::DynamicObject& request)
     flags->setProperty ("plugin.set_params_batch", true);
     flags->setProperty ("audio.l2_render_probe", true);
     flags->setProperty ("audio.compressor_dual_tap_probe", true);
+    flags->setProperty ("audition.preview", true);
     flags->setProperty ("command.idempotency", true);
     flags->setProperty ("command.base_revision_cas", true);
     flags->setProperty ("state.snapshot.scoped", true);
