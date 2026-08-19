@@ -10,7 +10,12 @@ add_executable(VitAuditionPreviewStateTests
 target_compile_features(VitAuditionPreviewStateTests PRIVATE cxx_std_20)
 target_include_directories(VitAuditionPreviewStateTests PRIVATE ../Source/Service)
 
-set(VIT_TRACKTION_ENGINE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../tracktion_engine" CACHE PATH
+set(_g4_default_tracktion_engine "${CMAKE_CURRENT_SOURCE_DIR}/../../tracktion_engine")
+if(NOT EXISTS "${_g4_default_tracktion_engine}/CMakeLists.txt"
+   AND EXISTS "D:/Vit_DAW/tracktion_engine/CMakeLists.txt")
+    set(_g4_default_tracktion_engine "D:/Vit_DAW/tracktion_engine")
+endif()
+set(VIT_TRACKTION_ENGINE_DIR "${_g4_default_tracktion_engine}" CACHE PATH
     "Path to the Tracktion Engine source tree for real audio-plane tests")
 if(EXISTS "${VIT_TRACKTION_ENGINE_DIR}/CMakeLists.txt")
     set(TE_ADD_EXAMPLES OFF CACHE BOOL "" FORCE)
@@ -37,7 +42,8 @@ if(EXISTS "${VIT_TRACKTION_ENGINE_DIR}/CMakeLists.txt")
         juce::juce_recommended_config_flags)
     add_test(NAME VitAuditionPreviewAudioPlaneTests COMMAND VitAuditionPreviewAudioPlaneTests)
 else()
-    message(WARNING "Tracktion Engine not found; real audio-plane test target is unavailable")
+    message(FATAL_ERROR
+        "Tracktion Engine not found. Set -DVIT_TRACKTION_ENGINE_DIR=<path> to a populated Tracktion Engine checkout.")
 endif()
 
 if(MSVC)

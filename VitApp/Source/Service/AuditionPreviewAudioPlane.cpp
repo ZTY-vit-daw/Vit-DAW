@@ -144,9 +144,9 @@ private:
         const auto desired = std::clamp (session->desiredCandidate.load (std::memory_order_acquire), 0, 1);
         const auto requested = session->requestedPositionSamples.load (std::memory_order_acquire);
         const auto requestedRevision = session->positionRevision.load (std::memory_order_acquire);
-        if (sessionId != session->id)
+        if (lastRuntimeSession != session.get())
         {
-            sessionId = session->id;
+            lastRuntimeSession = session.get();
             currentCandidate = desired;
             fadeFrom = desired;
             fadeTo = desired;
@@ -210,7 +210,7 @@ private:
     double currentSampleRate = fallbackSampleRate;
     int currentBlockSize = fallbackBlockSize;
     std::shared_ptr<RuntimeSession> activeSessionOverride;
-    std::string sessionId;
+    RuntimeSession* lastRuntimeSession = nullptr;
     int currentCandidate = 0;
     int fadeFrom = 0;
     int fadeTo = 0;

@@ -15,6 +15,9 @@ vit::audition::Session makeSession()
     session.activeProjectRef = "project:active";
     session.activeProjectRevision = "project-r17";
     session.transport.timelineRevision = "timeline-r17";
+    session.transport.positionSeconds = 7.25;
+    session.transport.isPlaying = true;
+    session.transport.sampleRate = 48000.0;
     session.candidates = {
         { "candidate-a", "Candidate A", "edit", "edit:a", {}, {} },
         { "candidate-b", "Candidate B", "edit", "edit:b", {}, {} },
@@ -38,6 +41,9 @@ int main()
     requireOk (prepared);
     assert (prepared.session->status == vit::audition::SessionStatus::preparing);
     assert (prepared.message == "audition.prepare.started");
+    assert (std::abs (prepared.session->transport.positionSeconds - 7.25) < 1.0e-9);
+    assert (prepared.session->transport.isPlaying);
+    assert (std::abs (prepared.session->transport.sampleRate - 48000.0) < 1.0e-9);
 
     const auto beforeReadySelect = machine.select ("audition-test", "candidate-a");
     assert (! beforeReadySelect.ok);
@@ -94,6 +100,8 @@ int main()
     requireOk (failed);
     assert (failed.message == "audition.failed");
     assert (failed.session->status == vit::audition::SessionStatus::failed);
+    assert (failed.session->candidates[0].status == vit::audition::CandidateStatus::failed);
+    assert (failed.session->candidates[1].status == vit::audition::CandidateStatus::failed);
     assert (! machine.select ("audition-failed", "candidate-a").ok);
 
     return 0;

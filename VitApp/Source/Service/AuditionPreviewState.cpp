@@ -90,8 +90,8 @@ Result StateMachine::prepare (Session request)
 
     request.activeCandidateId.clear();
     request.status = SessionStatus::preparing;
-    request.transport.positionSeconds = 0.0;
-    request.transport.isPlaying = false;
+    // audition.prepare receives the Kernel's authoritative transport anchor.
+    // Preserve it; prepare must not reset the Active Project transport.
     request.stateRevision = 1;
     refreshReadiness (request);
 
@@ -197,8 +197,7 @@ Result StateMachine::markFailed (const std::string& sessionId)
     session.transport.isPlaying = false;
     session.status = SessionStatus::failed;
     for (auto& candidate : session.candidates)
-        if (candidate.status != CandidateStatus::ready)
-            candidate.status = CandidateStatus::failed;
+        candidate.status = CandidateStatus::failed;
     ++session.stateRevision;
     return success (session, "audition.failed");
 }
