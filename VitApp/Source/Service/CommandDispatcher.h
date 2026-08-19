@@ -27,6 +27,7 @@ class ClipService;
 class MidiService;
 class TransportAudioService;
 class PluginRackControlService;
+class AuditionPreviewService;
 
 class CommandDispatcher final
 {
@@ -95,6 +96,7 @@ private:
     std::unique_ptr<MidiService> midiService;
     std::unique_ptr<TransportAudioService> transportAudioService;
     std::unique_ptr<PluginRackControlService> pluginRackControlService;
+    std::unique_ptr<AuditionPreviewService> auditionPreviewService;
     std::unordered_map<std::string, Handler> handlers;
 };
 

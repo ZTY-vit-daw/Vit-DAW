@@ -234,6 +234,10 @@ set(VITAPP_SOURCE_FILES
     Source/Service/AudioFeatureService.h
     Source/Service/AudioFeatureTypes.cpp
     Source/Service/AudioFeatureTypes.h
+    Source/Service/AuditionPreviewState.cpp
+    Source/Service/AuditionPreviewState.h
+    Source/Service/AuditionPreviewService.cpp
+    Source/Service/AuditionPreviewService.h
     Source/Service/L3AcousticAnalyzer.cpp
     Source/Service/L3AcousticAnalyzer.h
     Source/Service/TiledSpectrogramBaker.cpp
