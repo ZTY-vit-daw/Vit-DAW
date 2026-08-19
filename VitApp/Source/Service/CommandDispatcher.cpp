@@ -2098,7 +2098,8 @@ CommandDispatcher::CommandDispatcher (EditGetter editGetter,
                                       SaveAsProjectReply saveProjectCopyReplyAction,
                                       CurrentProjectPathGetter currentProjectPathGetterAction,
                                       RealtimeDataProvider realtimeDataProvider,
-                                      VitProductionCoordinator* productionCoordinator)
+                                      VitProductionCoordinator* productionCoordinator,
+                                      te::Engine* engine)
     : getEdit (std::move (editGetter)),
       saveProject (std::move (saveProjectAction)),
       publishMessage (std::move (publishAction)),
@@ -2127,7 +2128,7 @@ CommandDispatcher::CommandDispatcher (EditGetter editGetter,
     midiService = std::make_unique<MidiService> (getEdit);
     transportAudioService = std::make_unique<TransportAudioService> (getEdit, saveProject, production);
     pluginRackControlService = std::make_unique<PluginRackControlService> (getEdit, saveProject, getCurrentProjectPath);
-    auditionPreviewService = std::make_unique<AuditionPreviewService> (publishMessage);
+    auditionPreviewService = std::make_unique<AuditionPreviewService> (engine, getEdit, publishMessage);
     registerBuiltinCommands();
 }
 
@@ -2186,6 +2187,16 @@ juce::String CommandDispatcher::dispatch (const juce::var& command, const juce::
             "get_audio_devices",
             "get_wave_input_devices",
             "cancel_render",
+            "audition.prepare",
+            "audition.status",
+            "audition.ready",
+            "audition.stale",
+            "audition.failed",
+            "audition.select",
+            "audition.position",
+            "audition.stop",
+            "audition.inspect_candidate",
+            "audition.apply_candidate",
         };
 
         if (renderAllowlist.find (cmd.toStdString()) == renderAllowlist.end())
@@ -2249,6 +2260,18 @@ void CommandDispatcher::registerBuiltinCommands()
     handlers.emplace ("audition.stop", [this] (const juce::DynamicObject& object, const juce::String& raw)
     {
         return auditionPreviewService != nullptr ? auditionPreviewService->handleStop (object, raw)
+                                                   : makeErrorReply ("Audition preview service unavailable");
+    });
+
+    handlers.emplace ("audition.inspect_candidate", [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return auditionPreviewService != nullptr ? auditionPreviewService->handleInspectCandidate (object, raw)
+                                                   : makeErrorReply ("Audition preview service unavailable");
+    });
+
+    handlers.emplace ("audition.apply_candidate", [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return auditionPreviewService != nullptr ? auditionPreviewService->handleApplyCandidate (object, raw)
                                                    : makeErrorReply ("Audition preview service unavailable");
     });
 

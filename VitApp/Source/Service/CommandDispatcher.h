@@ -57,7 +57,8 @@ public:
                        SaveAsProjectReply saveProjectCopyReply,
                        CurrentProjectPathGetter currentProjectPathGetter,
                        RealtimeDataProvider realtimeDataProvider = {},
-                       VitProductionCoordinator* productionCoordinator = nullptr);
+                       VitProductionCoordinator* productionCoordinator = nullptr,
+                       te::Engine* engine = nullptr);
     ~CommandDispatcher();
 
     juce::String dispatch (const juce::var& command, const juce::String& rawPayload) const;

@@ -90,8 +90,8 @@ Result StateMachine::prepare (Session request)
 
     request.activeCandidateId.clear();
     request.status = SessionStatus::preparing;
-    request.transport.positionSeconds = 0.0;
-    request.transport.isPlaying = false;
+    // audition.prepare receives the Kernel's authoritative transport anchor.
+    // Preserve it; prepare must not reset the Active Project transport.
     request.stateRevision = 1;
     refreshReadiness (request);
 
@@ -143,6 +143,33 @@ Result StateMachine::markCandidateReady (const std::string& sessionId,
                                : "audition.candidate.ready");
 }
 
+Result StateMachine::setCandidateAudioMetadata (const std::string& sessionId,
+                                                const std::string& candidateId,
+                                                const std::string& previewRevision,
+                                                double durationSeconds,
+                                                double sampleRate,
+                                                int channelCount)
+{
+    if (previewRevision.empty() || ! std::isfinite (durationSeconds) || durationSeconds <= 0.0
+        || ! std::isfinite (sampleRate) || sampleRate <= 0.0 || channelCount <= 0)
+        return error ("validation_error", "candidate audio metadata is invalid");
+
+    std::lock_guard lock (mutex);
+    const auto found = sessions.find (sessionId);
+    if (found == sessions.end())
+        return error ("session_not_found", "Unknown audition session");
+
+    auto* candidate = findCandidate (found->second, candidateId);
+    if (candidate == nullptr)
+        return error ("candidate_not_found", "Unknown audition candidate");
+
+    candidate->previewRevision = previewRevision;
+    candidate->durationSeconds = durationSeconds;
+    candidate->sampleRate = sampleRate;
+    candidate->channelCount = channelCount;
+    ++found->second.stateRevision;
+    return success (found->second, "audition.candidate.metadata");
+}
 Result StateMachine::markStale (const std::string& sessionId)
 {
     std::lock_guard lock (mutex);
@@ -170,8 +197,7 @@ Result StateMachine::markFailed (const std::string& sessionId)
     session.transport.isPlaying = false;
     session.status = SessionStatus::failed;
     for (auto& candidate : session.candidates)
-        if (candidate.status != CandidateStatus::ready)
-            candidate.status = CandidateStatus::failed;
+        candidate.status = CandidateStatus::failed;
     ++session.stateRevision;
     return success (session, "audition.failed");
 }
