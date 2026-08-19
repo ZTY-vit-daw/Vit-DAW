@@ -4,6 +4,7 @@ import type {
   AgentInvokeRequest,
   AgentInvokeResponse,
   AgentUIState,
+  AuthorityMode,
   Artifact,
   ArtifactListResponse,
   ArtifactReadResponse,
@@ -59,6 +60,15 @@ export function fetchHealth(): Promise<HealthResponse> {
 
 export function fetchRuntimeStatus(): Promise<RuntimeStatusResponse> {
   return requestJSON<RuntimeStatusResponse>("/agent/runtime/status");
+}
+
+
+export function setAuthorityMode(authorityMode: AuthorityMode): Promise<{ status?: string; authority_mode?: AuthorityMode; error?: string }> {
+  return requestJSON("/agent/authority", { method: "POST", body: JSON.stringify({ authority_mode: authorityMode }) });
+}
+
+export function stopTurn(payload: { conversation_id: string; goal_id?: string; run_id?: string; turn_id?: string; reason?: string }): Promise<{ status?: string; goal_status?: string; checkpoint_ref?: string; error?: string }> {
+  return requestJSON("/agent/turn/stop", { method: "POST", body: JSON.stringify(payload) });
 }
 
 export function fetchAgentEvents(conversationID: string, since = 0, limit = 120): Promise<AgentEventsResponse> {

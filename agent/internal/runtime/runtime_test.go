@@ -43,3 +43,49 @@ func TestSnapshotRestoreReplacesActiveGoalSet(t *testing.T) {
 		t.Fatalf("empty snapshot did not clear runtime: %+v", active)
 	}
 }
+
+func TestRequestStopFinishesAtCheckpointAndRestoresAcrossSnapshot(t *testing.T) {
+	rt := New()
+	goal := rt.Create("free-state experiment")
+	rt.SetStatus(goal.GoalID, StatusExecuting, nil)
+	requested := rt.RequestStop(goal.GoalID, "user_stop")
+	if requested.Status != StatusCancelling || !requested.StopRequested {
+		t.Fatalf("requested=%+v", requested)
+	}
+	if _, blocked := rt.CheckoutBlocked(); !blocked {
+		t.Fatal("checkout should remain blocked while cancelling")
+	}
+	stopped := rt.Tick(goal.GoalID, "checkpoint-stable-1")
+	if stopped.Status != StatusStopped || stopped.LastCheckpoint != "checkpoint-stable-1" {
+		t.Fatalf("stopped=%+v", stopped)
+	}
+	if _, blocked := rt.CheckoutBlocked(); blocked {
+		t.Fatal("checkout should be allowed after stop")
+	}
+	snapshot := rt.Snapshot()
+	restored := New()
+	restored.Restore(snapshot)
+	got := restored.Status(goal.GoalID)
+	if got.Status != StatusStopped || got.LastCheckpoint != "checkpoint-stable-1" || !got.StopRequested {
+		t.Fatalf("restored=%+v", got)
+	}
+}
+
+func TestCheckoutBlockedOnlyForActiveExecutionStates(t *testing.T) {
+	for _, status := range []GoalStatus{StatusRunning, StatusProcessing, StatusExecuting, StatusCancelling} {
+		rt := New()
+		goal := rt.Create("guard")
+		rt.SetStatus(goal.GoalID, status, nil)
+		if _, blocked := rt.CheckoutBlocked(); !blocked {
+			t.Fatalf("status=%s was not blocked", status)
+		}
+	}
+	for _, status := range []GoalStatus{StatusStopped, StatusStable, StatusCompleted, StatusFailed, StatusCancelled, StatusWaitingContinue, StatusWaitingConfirmation} {
+		rt := New()
+		goal := rt.Create("guard")
+		rt.SetStatus(goal.GoalID, status, nil)
+		if _, blocked := rt.CheckoutBlocked(); blocked {
+			t.Fatalf("status=%s was blocked", status)
+		}
+	}
+}

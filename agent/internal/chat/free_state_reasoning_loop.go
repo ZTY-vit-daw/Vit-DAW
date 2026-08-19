@@ -50,6 +50,7 @@ type freeStateReasoningLoop struct {
 	ConversationID                string                       `json:"conversation_id"`
 	GoalID                        string                       `json:"goal_id,omitempty"`
 	RunID                         string                       `json:"run_id,omitempty"`
+	AuthorityMode                 experiment.AuthorityMode     `json:"authority_mode"`
 	Status                        string                       `json:"status"`
 	DecisionPhase                 string                       `json:"decision_phase"`
 	OriginalIntent                string                       `json:"original_intent"`
@@ -79,7 +80,7 @@ func freeStateLoopActive(loop freeStateReasoningLoop) bool {
 		return false
 	}
 	switch strings.ToLower(strings.TrimSpace(loop.Status)) {
-	case "completed", "cancelled", "blocked":
+	case "completed", "cancelled", "blocked", "stopped":
 		return false
 	default:
 		return true
@@ -134,6 +135,7 @@ func (s *Server) prepareFreeStateReasoningContext(conversationID, userText strin
 			ConversationID: conversationID,
 			GoalID:         goalID,
 			RunID:          runID,
+			AuthorityMode:  authorityModeFromContext(requestContext),
 			Status:         "reasoning",
 			DecisionPhase:  freeStatePhaseProcessorSelection,
 			OriginalIntent: strings.TrimSpace(userText),
@@ -144,6 +146,9 @@ func (s *Server) prepareFreeStateReasoningContext(conversationID, userText strin
 			UpdatedAt:      now,
 		}
 		s.storeFreeStateLoop(loop)
+	}
+	if loop.AuthorityMode == "" {
+		loop.AuthorityMode = authorityModeFromContext(requestContext)
 	}
 	goalID, runID := goalIDsFromContext(requestContext)
 	if goalID != "" {
@@ -181,6 +186,12 @@ func mergeFreeStateLoops(base, overlay freeStateReasoningLoop, overlayOK bool) f
 		if strings.TrimSpace(field.src) != "" {
 			*field.dst = field.src
 		}
+	}
+	if out.AuthorityMode == "" {
+		out.AuthorityMode = overlay.AuthorityMode
+	}
+	if out.AuthorityMode == "" {
+		out.AuthorityMode = experiment.AuthorityOrdinary
 	}
 	if overlay.TargetRef != nil {
 		out.TargetRef = cloneContext(overlay.TargetRef)

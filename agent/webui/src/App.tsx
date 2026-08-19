@@ -65,6 +65,8 @@ import {
   respondInteraction,
   saveAgentConfig,
   selectAudition,
+  setAuthorityMode,
+  stopTurn,
   stopAudition,
   submitAuditionJudgment,
   type AuditionJudgmentPayload,
@@ -96,6 +98,7 @@ import {
 } from "./messageLifecycle";
 import { emptyTrajectoryState, reduceTrajectoryEvents } from "./trajectory";
 import { emptyAuditionState, reduceAuditionEvents } from "./audition";
+import { authorityContext, checkoutBlockedByState, isAgentTurnRunning } from "./turnControl";
 import { TrajectoryAuditionPanel } from "./trajectory/TrajectoryAuditionPanel";
 import type {
   AgentConfigResponse,
@@ -103,6 +106,7 @@ import type {
   AgentInvokeResponse,
   AgentMode,
   AgentUIState,
+  AuthorityMode,
   Artifact,
   ArtifactSummary,
   ChatMessage,
@@ -215,6 +219,9 @@ function App() {
   const auditionWaiting = useMemo(() => Object.values(auditionState.sessions).some((session) => session.status === "preparing"), [auditionState]);
   const [conversationID, setConversationID] = useState(initialConversationID);
   const [mode, setMode] = useState<AgentMode>("default");
+  const [authorityMode, setAuthorityModeState] = useState<AuthorityMode>("manual_confirmation");
+  const [authorityBusy, setAuthorityBusy] = useState(false);
+  const [stopTurnBusy, setStopTurnBusy] = useState(false);
   const [activeFocus, setActiveFocus] = useState<FocusMode>("dialogue");
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [input, setInput] = useState("");
@@ -280,6 +287,13 @@ function App() {
     const timer = window.setInterval(() => void refreshState(), 8000);
     return () => window.clearInterval(timer);
   }, [refreshState]);
+
+  useEffect(() => {
+    const restored = uiState?.authority_mode ?? runtimeStatus?.authority_mode;
+    if (restored === "manual_confirmation" || restored === "full_project_access") {
+      setAuthorityModeState(restored);
+    }
+  }, [runtimeStatus?.authority_mode, uiState?.authority_mode]);
 
   useEffect(() => {
     agentEventSeqRef.current = 0;
@@ -597,7 +611,8 @@ function App() {
         conversation_id: conversationID,
         message: messageText,
         artifact_refs: attached.map((artifact) => artifact.id),
-        context: buildChatContext(mode, activeFocus, uiState, attached, macroRefs)
+        authority_mode: authorityMode,
+        context: buildChatContext(mode, activeFocus, uiState, attached, macroRefs, authorityMode)
       });
       debugConfirmation("chat-response", summarizeChatResponseForConfirmation(response));
       postAgentMutationsFromChatResponse(response, "chat");
@@ -633,6 +648,47 @@ function App() {
       setInput(messageText);
     } finally {
       setIsSending(false);
+    }
+  };
+
+  const handleAuthorityModeChange = async (nextMode: AuthorityMode) => {
+    if (nextMode === authorityMode || authorityBusy) return;
+    setAuthorityBusy(true);
+    setError("");
+    try {
+      const response = await setAuthorityMode(nextMode);
+      setAuthorityModeState(response.authority_mode ?? nextMode);
+      await refreshState();
+    } catch (authorityError) {
+      setError(authorityError instanceof Error ? authorityError.message : "权限模式切换失败");
+    } finally {
+      setAuthorityBusy(false);
+    }
+  };
+
+  const currentGoal = asRecord(uiState?.goal ?? runtimeStatus?.goal);
+  const currentGoalStatus = textValue(currentGoal.status, "").toLowerCase();
+  const agentTurnRunning = isAgentTurnRunning(currentGoalStatus, isSending);
+
+  const handleStopTurn = async () => {
+    if (stopTurnBusy || !agentTurnRunning) return;
+    setStopTurnBusy(true);
+    setError("");
+    try {
+      const activeTurn = Object.values(trajectoryState.turns).find((turn) => !turn.stopped && turn.status !== "completed" && turn.status !== "failed") ?? Object.values(trajectoryState.turns)[0];
+      await stopTurn({
+        conversation_id: conversationID,
+        goal_id: textValue(currentGoal.goal_id, ""),
+        run_id: textValue(currentGoal.run_id, ""),
+        turn_id: activeTurn?.id ?? textValue(currentGoal.run_id, ""),
+        reason: "user_stop"
+      });
+      setAgentEventPolling(true);
+      await refreshState();
+    } catch (stopError) {
+      setError(stopError instanceof Error ? stopError.message : "停止 Turn 失败");
+    } finally {
+      setStopTurnBusy(false);
     }
   };
 
@@ -813,7 +869,7 @@ function App() {
       args,
       source,
       confirmed,
-      context: buildChatContext(mode, activeFocus, uiState, [], macroControlsFromUIState(uiState))
+      context: buildChatContext(mode, activeFocus, uiState, [], macroControlsFromUIState(uiState), authorityMode)
     });
     postAgentMutationsFromInvokeResponse(response, source);
     if (response.status === "error") {
@@ -1072,6 +1128,7 @@ function App() {
         onMacroValueCommit={commitMacroControlValue}
         onMacroRename={renameMacroControlLabel}
         onRefresh={refreshState}
+        checkoutBlocked={checkoutBlockedByState(uiState, runtimeStatus)}
       />
     </aside>
   );
@@ -1122,6 +1179,10 @@ function App() {
         pendingArtifacts={pendingArtifacts}
         pendingMacroControls={pendingMacroRefs}
         mode={mode}
+        authorityMode={authorityMode}
+        authorityBusy={authorityBusy}
+        agentTurnRunning={agentTurnRunning}
+        stopTurnBusy={stopTurnBusy}
         isSending={isSending}
         isUploading={isUploading}
         interactionAction={composerInteraction}
@@ -1129,6 +1190,8 @@ function App() {
         onSubmit={handleSend}
         onUploadClick={() => fileInputRef.current?.click()}
         onModeChange={setMode}
+        onAuthorityModeChange={handleAuthorityModeChange}
+        onStopTurn={handleStopTurn}
         onInteractionAction={handleInteractionAction}
         onInvoke={invokeDawAction}
         onSelectArtifact={(id) => {
@@ -7250,6 +7313,10 @@ function Composer({
   pendingArtifacts,
   pendingMacroControls,
 	mode,
+	authorityMode,
+	authorityBusy,
+	agentTurnRunning,
+	stopTurnBusy,
 	isSending,
 	isUploading,
 	interactionAction,
@@ -7257,6 +7324,8 @@ function Composer({
   onSubmit,
   onUploadClick,
   onModeChange,
+	onAuthorityModeChange,
+	onStopTurn,
 	onInteractionAction,
   onInvoke,
   onSelectArtifact,
@@ -7269,6 +7338,10 @@ function Composer({
   pendingArtifacts: ArtifactSummary[];
   pendingMacroControls: MacroControl[];
   mode: AgentMode;
+  authorityMode: AuthorityMode;
+  authorityBusy: boolean;
+  agentTurnRunning: boolean;
+  stopTurnBusy: boolean;
   isSending: boolean;
   isUploading: boolean;
 	interactionAction: JsonRecord | null;
@@ -7276,6 +7349,8 @@ function Composer({
   onSubmit: (event?: FormEvent) => void;
   onUploadClick: () => void;
   onModeChange: (mode: AgentMode) => void;
+  onAuthorityModeChange: (mode: AuthorityMode) => void;
+  onStopTurn: () => void;
 	onInteractionAction: (interaction: JsonRecord, action: JsonRecord, payload?: JsonRecord) => void;
   onInvoke: DawInvoke;
   onSelectArtifact: (id: string) => void;
@@ -7404,6 +7479,18 @@ function Composer({
             </div>
           )}
         </div>
+        <label className="authority-mode-control" title="控制可逆工程动作是否逐项请求确认">
+          <span className="sr-only">Agent 权限模式</span>
+          <select
+            aria-label="Agent 权限模式"
+            value={authorityMode}
+            disabled={authorityBusy || agentTurnRunning}
+            onChange={(event) => onAuthorityModeChange(event.currentTarget.value as AuthorityMode)}
+          >
+            <option value="manual_confirmation">Manual Confirmation</option>
+            <option value="full_project_access">Full Project Access</option>
+          </select>
+        </label>
         <textarea
           value={input}
           rows={1}
@@ -7416,10 +7503,17 @@ function Composer({
             }
           }}
         />
-        <button className="send-button" type="submit" title="Send" disabled={isSending}>
-          {isSending ? <Loader2 className="spin" size={18} /> : <Send size={18} />}
-          <span>发送</span>
-        </button>
+        {agentTurnRunning ? (
+          <button className="send-button stop-turn-button" type="button" title="Stop Turn" disabled={stopTurnBusy} onClick={onStopTurn}>
+            {stopTurnBusy ? <Loader2 className="spin" size={18} /> : <Square size={17} />}
+            <span>Stop Turn</span>
+          </button>
+        ) : (
+          <button className="send-button" type="submit" title="Send" disabled={isSending}>
+            {isSending ? <Loader2 className="spin" size={18} /> : <Send size={18} />}
+            <span>发送</span>
+          </button>
+        )}
       </div>
     </form>
   );
@@ -7519,7 +7613,8 @@ function Workbench({
   onMacroValuePreview,
   onMacroValueCommit,
   onMacroRename,
-  onRefresh
+  onRefresh,
+  checkoutBlocked
 }: {
   activeTab: WorkbenchTab;
   uiState: AgentUIState | null;
@@ -7538,9 +7633,10 @@ function Workbench({
   onMacroValueCommit: (macro: MacroControl, value: number) => Promise<void>;
   onMacroRename: (macro: MacroControl, name: string) => Promise<void>;
   onRefresh: () => Promise<void>;
+  checkoutBlocked: boolean;
 }) {
   if (activeTab === "history") {
-    return <HistoryPane uiState={uiState} onRefresh={onRefresh} />;
+    return <HistoryPane uiState={uiState} onRefresh={onRefresh} checkoutBlocked={checkoutBlocked} />;
   }
   if (activeTab === "macro") {
     return (
@@ -9691,7 +9787,7 @@ type HistoryTreeLayout = {
   height: number;
 };
 
-function HistoryPane({ uiState, onRefresh }: { uiState: AgentUIState | null; onRefresh: () => Promise<void> }) {
+function HistoryPane({ uiState, onRefresh, checkoutBlocked }: { uiState: AgentUIState | null; onRefresh: () => Promise<void>; checkoutBlocked: boolean }) {
   const activeHistory = asRecord(uiState?.project_history);
   const worktrees = useMemo(() => historyWorktreeRows(activeHistory), [activeHistory]);
   const activeWorktreeKey = worktrees.find((worktree) => worktree.active)?.key ?? worktrees[0]?.key ?? "";
@@ -9807,6 +9903,10 @@ function HistoryPane({ uiState, onRefresh }: { uiState: AgentUIState | null; onR
     options: { checkoutCreatedWorktree?: boolean } = {}
   ) => {
     if (busyAction) {
+      return null;
+    }
+    if (checkoutBlocked && ["version.checkout", "version.node_checkout", "version.worktree_checkout", "version.branch_create"].includes(tool)) {
+      setStatus("Agent Turn 正在运行；请先 Stop Turn 再切换工程历史。");
       return null;
     }
     setBusyAction(actionKey);
@@ -9972,7 +10072,7 @@ function HistoryPane({ uiState, onRefresh }: { uiState: AgentUIState | null; onR
               key={branch.name}
               type="button"
               onClick={() => void checkoutBranch(branch)}
-                disabled={Boolean(busyAction) || !branch.head}
+                disabled={Boolean(busyAction) || checkoutBlocked || !branch.head}
               title={branch.head}
             >
                 <span className="history-row-dot" />
@@ -10023,11 +10123,11 @@ function HistoryPane({ uiState, onRefresh }: { uiState: AgentUIState | null; onR
 
       {nodeMenu && (
         <div className="history-context-menu" style={{ left: nodeMenu.x, top: nodeMenu.y }} onClick={(event) => event.stopPropagation()}>
-          <button type="button" onClick={() => void createBranchFromNode(nodeMenu.node)} disabled={!historyNodeCanCreateFrom(nodeMenu.node) || Boolean(busyAction)}>
+          <button type="button" onClick={() => void createBranchFromNode(nodeMenu.node)} disabled={!historyNodeCanCreateFrom(nodeMenu.node) || checkoutBlocked || Boolean(busyAction)}>
             <GitBranch size={14} />
             <span>从此节点新建分支</span>
           </button>
-          <button type="button" onClick={() => void createWorktreeFromNode(nodeMenu.node)} disabled={!historyNodeCanCreateFrom(nodeMenu.node) || Boolean(busyAction)}>
+          <button type="button" onClick={() => void createWorktreeFromNode(nodeMenu.node)} disabled={!historyNodeCanCreateFrom(nodeMenu.node) || checkoutBlocked || Boolean(busyAction)}>
             <Plus size={14} />
             <span>新建工作树</span>
           </button>
@@ -11301,7 +11401,7 @@ function selectedPluginContextFromUIState(uiState: AgentUIState | null): { track
   };
 }
 
-function buildChatContext(mode: AgentMode, activeFocus: FocusMode, uiState: AgentUIState | null, artifacts: ArtifactSummary[], macroRefs: MacroControl[] = []): JsonRecord {
+function buildChatContext(mode: AgentMode, activeFocus: FocusMode, uiState: AgentUIState | null, artifacts: ArtifactSummary[], macroRefs: MacroControl[] = [], authorityMode: AuthorityMode = "manual_confirmation"): JsonRecord {
   const selectedTrack = asRecord(uiState?.selected_track);
   const uiContext = asRecord(uiState?.ui_context);
   const selectedTrackID = selectedTrackIDFromUIState(uiState);
@@ -11335,6 +11435,7 @@ function buildChatContext(mode: AgentMode, activeFocus: FocusMode, uiState: Agen
   const macroControls = macroControlsFromUIState(uiState);
   return compactChatContextRecord({
     agent_mode: mode,
+    ...authorityContext(authorityMode),
     active_focus: activeFocus,
     history_scope_key: scope.history_scope_key,
     media_scope_key: scope.media_scope_key,

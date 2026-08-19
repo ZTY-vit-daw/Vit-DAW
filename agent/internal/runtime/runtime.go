@@ -13,11 +13,15 @@ type GoalStatus string
 const (
 	StatusIdle                 GoalStatus = "idle"
 	StatusRunning              GoalStatus = "running"
+	StatusProcessing           GoalStatus = "processing"
+	StatusExecuting            GoalStatus = "executing"
 	StatusWaitingConfirmation  GoalStatus = "waiting_confirmation"
 	StatusWaitingClarification GoalStatus = "waiting_clarification"
 	StatusWaitingContinue      GoalStatus = "waiting_continue"
 	StatusCancelling           GoalStatus = "cancelling"
 	StatusCancelled            GoalStatus = "cancelled"
+	StatusStopped              GoalStatus = "stopped"
+	StatusStable               GoalStatus = "stable"
 	StatusCompleted            GoalStatus = "completed"
 	StatusFailed               GoalStatus = "failed"
 )
@@ -47,6 +51,8 @@ type Goal struct {
 	UpdatedAt           time.Time           `json:"updated_at"`
 	CancelRequested     bool                `json:"cancel_requested"`
 	CancelReason        string              `json:"cancel_reason,omitempty"`
+	StopRequested       bool                `json:"stop_requested,omitempty"`
+	StopReason          string              `json:"stop_reason,omitempty"`
 	LastCheckpoint      string              `json:"last_checkpoint,omitempty"`
 	ProjectHistory      *ProjectHistoryMeta `json:"project_history,omitempty"`
 	PendingInterjection []Interjection      `json:"pending_interjections,omitempty"`
@@ -194,6 +200,8 @@ func (r *Runtime) Continue(goalID, summary string) Goal {
 	goal.Summary = firstNonEmpty(summary, goal.Summary)
 	goal.CancelRequested = false
 	goal.CancelReason = ""
+	goal.StopRequested = false
+	goal.StopReason = ""
 	goal.Error = ""
 	goal.LastCheckpoint = ""
 	goal.UpdatedAt = now
@@ -262,6 +270,75 @@ func (r *Runtime) Cancel(goalID, reason string) Goal {
 	return cloneGoal(goal)
 }
 
+// RequestStop asks the active Turn to stop at the next runner checkpoint. It
+// is distinct from confirmation cancellation: the current atomic tool call may
+// finish, but no subsequent tool or Experiment Round may start.
+func (r *Runtime) RequestStop(goalID, reason string) Goal {
+	if r == nil {
+		return Goal{Status: StatusStopped}
+	}
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	goalID = strings.TrimSpace(goalID)
+	if goalID == "" {
+		goalID = r.lastGoal
+	}
+	goal, ok := r.goals[goalID]
+	if !ok {
+		return Goal{GoalID: goalID, Status: StatusIdle}
+	}
+	if !IsActiveStatus(goal.Status) && goal.Status != StatusWaitingConfirmation && goal.Status != StatusWaitingClarification && goal.Status != StatusWaitingContinue {
+		return cloneGoal(goal)
+	}
+	goal.StopRequested = true
+	goal.StopReason = firstNonEmpty(reason, "user_stop")
+	goal.Status = StatusCancelling
+	goal.UpdatedAt = time.Now()
+	r.goals[goalID] = goal
+	r.lastGoal = goalID
+	return cloneGoal(goal)
+}
+
+// MarkStopped completes a requested Stop Turn after the latest stable project
+// checkpoint is known.
+func (r *Runtime) MarkStopped(goalID, checkpoint string) Goal {
+	if r == nil {
+		return Goal{Status: StatusStopped}
+	}
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	goalID = strings.TrimSpace(goalID)
+	if goalID == "" {
+		goalID = r.lastGoal
+	}
+	goal, ok := r.goals[goalID]
+	if !ok {
+		return Goal{GoalID: goalID, Status: StatusIdle}
+	}
+	goal.Status = StatusStopped
+	goal.StopRequested = true
+	goal.LastCheckpoint = firstNonEmpty(checkpoint, goal.LastCheckpoint)
+	goal.UpdatedAt = time.Now()
+	r.goals[goalID] = goal
+	return cloneGoal(goal)
+}
+
+// IsActiveStatus identifies states that must guard Active Project Plane
+// checkout operations.
+func IsActiveStatus(status GoalStatus) bool {
+	switch status {
+	case StatusRunning, StatusProcessing, StatusExecuting, StatusCancelling:
+		return true
+	default:
+		return false
+	}
+}
+
+func (r *Runtime) CheckoutBlocked() (Goal, bool) {
+	goal := r.Status("")
+	return goal, IsActiveStatus(goal.Status)
+}
+
 func (r *Runtime) Tick(goalID, checkpoint string) Goal {
 	if r == nil {
 		return Goal{Status: StatusIdle}
@@ -278,7 +355,9 @@ func (r *Runtime) Tick(goalID, checkpoint string) Goal {
 	}
 	goal.LastCheckpoint = strings.TrimSpace(checkpoint)
 	goal.UpdatedAt = time.Now()
-	if goal.CancelRequested && goal.Status == StatusCancelling {
+	if goal.StopRequested && goal.Status == StatusCancelling {
+		goal.Status = StatusStopped
+	} else if goal.CancelRequested && goal.Status == StatusCancelling {
 		goal.Status = StatusCancelled
 	}
 	r.goals[goalID] = goal
@@ -334,6 +413,8 @@ func (r *Runtime) Complete(goalID string, failed error) Goal {
 	if failed != nil {
 		goal.Status = StatusFailed
 		goal.Error = failed.Error()
+	} else if goal.StopRequested {
+		goal.Status = StatusStopped
 	} else if goal.CancelRequested {
 		goal.Status = StatusCancelled
 	} else {

@@ -51,7 +51,7 @@ func freeStateExperimentAdmission(loop freeStateReasoningLoop, proposal *agentpr
 		VerificationPlan:     verification,
 		CheckpointRef:        checkpoint,
 		RollbackPlan:         map[string]any{"kind": "agent_rollback_action", "source": "existing_governed_rollback"},
-		AuthorityMode:        experiment.AuthorityOrdinary,
+		AuthorityMode:        map[bool]experiment.AuthorityMode{true: experiment.AuthorityFull, false: experiment.AuthorityOrdinary}[loop.AuthorityMode == experiment.AuthorityFull],
 	}
 	return admission, admission.Validate()
 }
@@ -192,6 +192,10 @@ func (s *Server) startFreeStateExperiment(loop *freeStateReasoningLoop, decision
 	if err != nil {
 		return err
 	}
+	if loop.AuthorityMode == "" {
+		loop.AuthorityMode = experiment.AuthorityOrdinary
+	}
+	admission.AuthorityMode = loop.AuthorityMode
 	if checkpoint := s.ensureFreeStateExperimentCheckpoint(context.Background(), loop, goalID, runID); checkpoint != "" {
 		admission.CheckpointRef = checkpoint
 	}

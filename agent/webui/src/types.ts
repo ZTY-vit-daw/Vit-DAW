@@ -1,4 +1,5 @@
 export type AgentMode = "default" | "plan" | "goal";
+export type AuthorityMode = "manual_confirmation" | "full_project_access";
 
 export type MessageLifecycle = "transient" | "durable";
 
@@ -29,6 +30,9 @@ export interface RuntimeStatusResponse {
   checked_at?: string;
   kernel?: JsonRecord;
   shadow?: JsonRecord;
+  goal?: JsonRecord;
+  authority_mode?: AuthorityMode;
+  checkout_blocked?: boolean;
 }
 
 export interface AgentEvent {
@@ -135,6 +139,8 @@ export interface AgentUIState {
   agent_plan?: JsonRecord | null;
   artifacts?: ArtifactSummary[];
   project_history?: JsonRecord | null;
+  authority_mode?: AuthorityMode;
+  checkout_blocked?: boolean;
   capabilities?: JsonRecord | null;
   macro_controls?: MacroControl[];
 }
@@ -181,6 +187,7 @@ export interface ChatRequest {
   message: string;
   context?: JsonRecord;
   artifact_refs?: string[];
+  authority_mode?: AuthorityMode;
 }
 
 export interface ChatResponse {
@@ -261,6 +268,7 @@ export interface AgentInvokeResponse {
   acoustic_package_status?: JsonRecord;
   acoustic_package_status_path?: string;
   project_history?: JsonRecord;
+  error_code?: string;
   error?: string;
 }
 

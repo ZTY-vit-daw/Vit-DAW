@@ -7031,3 +7031,63 @@ func TestVisiblePluginRefsIncludesRackNodes(t *testing.T) {
 		t.Fatalf("rack node ref = %+v", refs[1])
 	}
 }
+
+func TestInvokeManualConfirmationAndExplicitFullProjectAccess(t *testing.T) {
+	root := t.TempDir()
+	path := filepath.Join(root, "authority.txt")
+	if err := os.WriteFile(path, []byte("before"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	h := New(nil, nil, nil)
+	args := map[string]any{"path": path, "old_text": "before", "new_text": "after", "workspace_roots": []any{root}}
+	manual, err := h.Invoke(context.Background(), InvokeRequest{Tool: "workspace.apply_edit", Args: args, Source: "test", Context: map[string]any{"authority_mode": "manual_confirmation", "authority_mode_explicit": true}})
+	if err != nil || manual.Status != "needs_confirmation" || !manual.RequiresConfirmation {
+		t.Fatalf("manual=%+v err=%v", manual, err)
+	}
+	full, err := h.Invoke(context.Background(), InvokeRequest{Tool: "workspace.apply_edit", Args: args, Source: "test", Context: map[string]any{"authority_mode": "full_project_access", "authority_mode_explicit": true}})
+	if err != nil || full.Status != "ok" || full.RequiresConfirmation {
+		t.Fatalf("full=%+v err=%v", full, err)
+	}
+	if data, _ := os.ReadFile(path); string(data) != "after" {
+		t.Fatalf("full access did not execute reversible edit: %q", data)
+	}
+	if _, err := h.Invoke(context.Background(), InvokeRequest{Tool: "agent.rollback_action", Args: map[string]any{"target_action_id": full.AgentActionID}, Confirmed: true, Source: "test"}); err != nil {
+		t.Fatal(err)
+	}
+	if data, _ := os.ReadFile(path); string(data) != "before" {
+		t.Fatalf("rollback failed: %q", data)
+	}
+}
+
+func TestInvokeCheckoutGuardCoversAllActiveProjectPlaneCheckouts(t *testing.T) {
+	h := New(nil, nil, nil)
+	goal := h.BeginGoal("running experiment")
+	cases := []struct {
+		tool string
+		args map[string]any
+	}{
+		{"version.checkout", map[string]any{"commit_id": "commit-1"}},
+		{"version.node_checkout", map[string]any{"node_id": "node-1"}},
+		{"version.worktree_checkout", map[string]any{"name": "worktree-1"}},
+	}
+	for _, tc := range cases {
+		resp, err := h.Invoke(context.Background(), InvokeRequest{Tool: tc.tool, Args: tc.args, Confirmed: true, GoalID: goal.GoalID, RunID: goal.RunID, Source: "test"})
+		if err == nil || resp.Status != "error" || resp.Result["error_code"] != "checkout_blocked_while_agent_running" {
+			t.Fatalf("tool=%s resp=%+v err=%v", tc.tool, resp, err)
+		}
+	}
+}
+
+func TestInvokeCheckoutGuardRejectsRunningGoalAndAllowsStoppedGoal(t *testing.T) {
+	h := New(nil, nil, nil)
+	goal := h.BeginGoal("running experiment")
+	blocked, err := h.Invoke(context.Background(), InvokeRequest{Tool: "version.checkout", Args: map[string]any{"commit_id": "commit-1"}, Confirmed: true, GoalID: goal.GoalID, RunID: goal.RunID, Source: "test"})
+	if err == nil || blocked.Status != "error" || blocked.Result["error_code"] != "checkout_blocked_while_agent_running" {
+		t.Fatalf("blocked=%+v err=%v", blocked, err)
+	}
+	h.MarkGoalStopped(goal.GoalID, "checkpoint-stable")
+	allowed, err := h.Invoke(context.Background(), InvokeRequest{Tool: "version.checkout", Args: map[string]any{"commit_id": "commit-1"}, Confirmed: true, GoalID: goal.GoalID, RunID: goal.RunID, Source: "test"})
+	if err != nil && allowed.Error == "checkout_blocked_while_agent_running" {
+		t.Fatalf("stopped goal remained blocked: %+v err=%v", allowed, err)
+	}
+}
