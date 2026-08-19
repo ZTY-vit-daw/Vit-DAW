@@ -3,6 +3,7 @@ package agentloop
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"sort"
 	"strings"
@@ -10,6 +11,7 @@ import (
 	"vit-daw-agent/internal/agentprotocol"
 	"vit-daw-agent/internal/contextruntime"
 	executorpkg "vit-daw-agent/internal/executor"
+	"vit-daw-agent/internal/experiment"
 	"vit-daw-agent/internal/planner"
 	"vit-daw-agent/internal/processorintent"
 	"vit-daw-agent/internal/processorregistry"
@@ -37,13 +39,17 @@ const (
 // FreeStateDecision is the model-owned control state for an ordinary-Agent
 // observation/action loop. It carries no execution authority.
 type FreeStateDecision struct {
-	SchemaVersion       string                             `json:"schema_version"`
-	Status              string                             `json:"status"`
-	EvidenceStatus      string                             `json:"evidence_status"`
-	Summary             string                             `json:"summary"`
-	RemainingIntent     string                             `json:"remaining_intent,omitempty"`
-	ProcessorType       string                             `json:"processor_type,omitempty"`
-	ImprovementProposal *agentprotocol.ImprovementProposal `json:"improvement_proposal,omitempty"`
+	SchemaVersion            string                             `json:"schema_version"`
+	Status                   string                             `json:"status"`
+	EvidenceStatus           string                             `json:"evidence_status"`
+	Summary                  string                             `json:"summary"`
+	RemainingIntent          string                             `json:"remaining_intent,omitempty"`
+	ProcessorType            string                             `json:"processor_type,omitempty"`
+	ImprovementProposal      *agentprotocol.ImprovementProposal `json:"improvement_proposal,omitempty"`
+	ExperimentAdmission      *experiment.Admission              `json:"experiment_admission,omitempty"`
+	ExperimentMateriality    *experiment.MaterialityEvaluation  `json:"experiment_materiality,omitempty"`
+	ExperimentTargetResponse *experiment.TargetEvaluation       `json:"experiment_target_response,omitempty"`
+	ExperimentRoundDecision  string                             `json:"experiment_round_decision,omitempty"`
 	// SemanticProcessorIntent is the model-owned family/coverage handoff. It
 	// contains no plugin identity, path, parameter ID, or vendor mapping.
 	SemanticProcessorIntent *processorintent.Intent `json:"semantic_processor_intent,omitempty"`
@@ -119,6 +125,24 @@ func (d FreeStateDecision) Validate() error {
 			return fmt.Errorf("improvement_proposal requires status=%s", FreeStateNeedsExperiment)
 		}
 	}
+	if d.ExperimentAdmission != nil {
+		if err := d.ExperimentAdmission.Validate(); err != nil {
+			return fmt.Errorf("experiment_admission: %w", err)
+		}
+	}
+	if d.ExperimentMateriality != nil {
+		if err := d.ExperimentMateriality.Validate(); err != nil {
+			return fmt.Errorf("experiment_materiality: %w", err)
+		}
+	}
+	if d.ExperimentTargetResponse != nil {
+		if err := d.ExperimentTargetResponse.Validate(); err != nil {
+			return fmt.Errorf("experiment_target_response: %w", err)
+		}
+	}
+	if d.ExperimentRoundDecision != "" && status != FreeStateNeedsExperiment {
+		return fmt.Errorf("experiment_round_decision requires status=%s", FreeStateNeedsExperiment)
+	}
 	if d.Diagnostic != nil {
 		if err := d.Diagnostic.Validate(); err != nil {
 			return err
@@ -174,6 +198,15 @@ func cloneFreeStateDecision(in *FreeStateDecision) *FreeStateDecision {
 	}
 	out := *in
 	out.RequestedViewIDs = append([]string(nil), in.RequestedViewIDs...)
+	if in.ExperimentAdmission != nil {
+		out.ExperimentAdmission = cloneExperimentAdmission(in.ExperimentAdmission)
+	}
+	if in.ExperimentMateriality != nil {
+		out.ExperimentMateriality = cloneExperimentMateriality(in.ExperimentMateriality)
+	}
+	if in.ExperimentTargetResponse != nil {
+		out.ExperimentTargetResponse = cloneExperimentTargetResponse(in.ExperimentTargetResponse)
+	}
 	out.Limitations = append([]string(nil), in.Limitations...)
 	if in.ImprovementProposal != nil {
 		proposal := *in.ImprovementProposal
@@ -210,6 +243,51 @@ func cloneFreeStateDecision(in *FreeStateDecision) *FreeStateDecision {
 		out.Diagnostic = &diagnostic
 	}
 	return &out
+}
+
+func cloneExperimentAdmission(in *experiment.Admission) *experiment.Admission {
+	if in == nil {
+		return nil
+	}
+	data, err := json.Marshal(in)
+	if err != nil {
+		return nil
+	}
+	out := &experiment.Admission{}
+	if json.Unmarshal(data, out) != nil {
+		return nil
+	}
+	return out
+}
+
+func cloneExperimentMateriality(in *experiment.MaterialityEvaluation) *experiment.MaterialityEvaluation {
+	if in == nil {
+		return nil
+	}
+	data, err := json.Marshal(in)
+	if err != nil {
+		return nil
+	}
+	out := &experiment.MaterialityEvaluation{}
+	if json.Unmarshal(data, out) != nil {
+		return nil
+	}
+	return out
+}
+
+func cloneExperimentTargetResponse(in *experiment.TargetEvaluation) *experiment.TargetEvaluation {
+	if in == nil {
+		return nil
+	}
+	data, err := json.Marshal(in)
+	if err != nil {
+		return nil
+	}
+	out := &experiment.TargetEvaluation{}
+	if json.Unmarshal(data, out) != nil {
+		return nil
+	}
+	return out
 }
 
 func validateFreeStateProcessorIntent(intent processorintent.Intent, processorType string) error {
@@ -298,7 +376,7 @@ func messageLoopFreeStatePromptContext(state *runState) map[string]any {
 	if decision := messageLoopMapValue(source["latest_decision"]); len(decision) > 0 {
 		out["latest_decision"] = compactSelectedKeys(decision, []string{
 			"schema_version", "status", "evidence_status", "summary", "remaining_intent",
-			"processor_type", "improvement_proposal", "semantic_processor_intent", "diagnostic", "requested_view_ids", "observation_id", "limitations", "stop_reason",
+			"processor_type", "improvement_proposal", "experiment_admission", "experiment_materiality", "experiment_target_response", "experiment_round_decision", "semantic_processor_intent", "diagnostic", "requested_view_ids", "observation_id", "limitations", "stop_reason",
 		})
 	}
 	actions := messageLoopMapRows(source["actions"])

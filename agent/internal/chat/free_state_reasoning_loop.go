@@ -14,6 +14,7 @@ import (
 	"vit-daw-agent/internal/audioclosure"
 	"vit-daw-agent/internal/config"
 	"vit-daw-agent/internal/contextruntime"
+	"vit-daw-agent/internal/experiment"
 	"vit-daw-agent/internal/orchestrationcontroller"
 	agentruntime "vit-daw-agent/internal/runtime"
 )
@@ -64,6 +65,7 @@ type freeStateReasoningLoop struct {
 	LatestObservation             *agentloop.RecentObservation `json:"latest_observation,omitempty"`
 	Actions                       []freeStateActionRecord      `json:"actions,omitempty"`
 	LatestDecision                *agentloop.FreeStateDecision `json:"latest_decision,omitempty"`
+	Experiment                    *experiment.Turn             `json:"experiment,omitempty"`
 	RequiresPostActionObservation bool                         `json:"requires_post_action_observation"`
 	LastError                     string                       `json:"last_error,omitempty"`
 	CreatedAt                     time.Time                    `json:"created_at"`
@@ -399,7 +401,21 @@ func (s *Server) recordFreeStateDecision(conversationID string, res agentloop.Re
 	decision := *res.FreeStateDecision
 	decision.RequestedViewIDs = append([]string(nil), res.FreeStateDecision.RequestedViewIDs...)
 	decision.Limitations = append([]string(nil), res.FreeStateDecision.Limitations...)
+	experimentWasActive := loop.Experiment != nil
 	loop.LatestDecision = &decision
+	if experimentWasActive {
+		for _, current := range observations {
+			observation, observationOK := freeStateExperimentObservation(current, loop.RequiresPostActionObservation)
+			if !observationOK || freeStateExperimentHasObservation(loop.Experiment, observation.ID) {
+				continue
+			}
+			if events, observationErr := loop.Experiment.RecordObservation(observation, loop.RequiresPostActionObservation, time.Now().UTC()); observationErr == nil {
+				s.emitFreeStateExperimentEvents(events)
+			} else if s.logger != nil {
+				s.logger.Warn("[free-state-experiment] observation rejected: %v", observationErr)
+			}
+		}
+	}
 	if res.GoalID != "" {
 		loop.GoalID = res.GoalID
 	}
@@ -473,6 +489,40 @@ func (s *Server) recordFreeStateDecision(conversationID string, res agentloop.Re
 	case agentloop.FreeStateBlocked:
 		loop.Status = "blocked"
 		loop.LastError = firstNonEmpty(decision.StopReason, strings.Join(decision.Limitations, "; "), decision.Summary)
+	}
+	if strings.EqualFold(strings.TrimSpace(decision.Status), agentloop.FreeStateNeedsExperiment) {
+		if loop.Experiment == nil {
+			if err := s.startFreeStateExperiment(&loop, decision, res.GoalID, res.RunID); err != nil {
+				loop.Status = "blocked"
+				loop.LastError = "free-state experiment admission failed: " + err.Error()
+				blocked := decision
+				blocked.Status = agentloop.FreeStateBlocked
+				blocked.EvidenceStatus = "insufficient"
+				blocked.StopReason = "free_state_experiment_admission_invalid"
+				blocked.Limitations = append(blocked.Limitations, loop.LastError)
+				loop.LatestDecision = &blocked
+			} else {
+				s.recordFreeStateExperimentDecision(context.Background(), &loop, decision)
+			}
+		} else {
+			s.recordFreeStateExperimentDecision(context.Background(), &loop, decision)
+		}
+	}
+	if loop.Experiment != nil {
+		switch strings.ToLower(strings.TrimSpace(decision.Status)) {
+		case agentloop.FreeStateSatisfied:
+			outcome := experiment.OutcomeStable
+			if round, roundErr := loop.Experiment.CurrentRound(); roundErr == nil && round.TargetResponse != nil && round.TargetResponse.Response == experiment.TargetSufficient {
+				outcome = experiment.OutcomeImproved
+			}
+			s.settleFreeStateExperiment(&loop, outcome, decision.Summary)
+		case agentloop.FreeStateBlocked:
+			outcome := experiment.OutcomeBlockedObservation
+			if strings.Contains(strings.ToLower(firstNonEmpty(decision.StopReason, decision.Summary)), "capability") {
+				outcome = experiment.OutcomeBlockedCapability
+			}
+			s.settleFreeStateExperiment(&loop, outcome, firstNonEmpty(decision.StopReason, decision.Summary))
+		}
 	}
 	loop.UpdatedAt = time.Now().UTC()
 	s.storeFreeStateLoop(loop)
@@ -1178,6 +1228,7 @@ func (s *Server) maybeContinueFreeStateAfterInteraction(ctx context.Context, int
 		return resp
 	}
 	if isFreeStateCancellation(decision, resp) {
+		s.stopFreeStateExperiment(&loop, "user cancelled the pending processor action")
 		loop.Status = "cancelled"
 		loop.LastError = "user cancelled the pending processor action"
 		loop.UpdatedAt = time.Now().UTC()
@@ -1213,6 +1264,7 @@ func (s *Server) maybeContinueFreeStateAfterInteraction(ctx context.Context, int
 		Receipt:       receipt,
 		RecordedAt:    time.Now().UTC(),
 	})
+	s.recordFreeStateExperimentAction(&loop, processorType, actionStatus, receipt)
 	loop.RequiresPostActionObservation = actionStatus == "applied"
 	loop.Status = "re_evaluating"
 	loop.DecisionPhase = freeStatePhaseProcessorSelection
