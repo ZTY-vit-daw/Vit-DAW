@@ -35,6 +35,18 @@ struct Candidate
     std::string sourceKind;
     std::string sourceRef;
     std::string previewRef;
+    std::string checkpointRef;
+    std::string commitId;
+    std::string branchRef;
+    std::string worktreeRef;
+    std::string projectUuid;
+    std::string projectRevision;
+    std::string renderRevision;
+    std::string previewRevision;
+    std::string scope;
+    double durationSeconds = 0.0;
+    double sampleRate = 0.0;
+    int channelCount = 0;
     CandidateStatus status = CandidateStatus::preparing;
 };
 
@@ -42,6 +54,7 @@ struct TransportAnchor
 {
     double positionSeconds = 0.0;
     bool isPlaying = false;
+    double sampleRate = 0.0;
     std::string timelineRevision;
 };
 
@@ -74,12 +87,11 @@ struct Result
 };
 
 /**
-    G4 spike state machine for the Kernel-owned Audition Preview Plane.
+    State contract for the Kernel-owned Audition Preview Plane.
 
-    The state machine deliberately has no Edit, renderer, checkout, reload, or
-    audio callback dependency. Candidate selection only changes session-local
-    Audition Preview Plane state; Active Project Plane identity is copied into
-    the session and remains immutable after prepare().
+    Actual audio preparation and playback are owned by AuditionPreviewAudioPlane;
+    this class remains the serialisable session/state authority and contains no
+    audio-thread objects.
 */
 class StateMachine final
 {
@@ -89,6 +101,12 @@ public:
     Result markCandidateReady (const std::string& sessionId,
                                const std::string& candidateId,
                                const std::string& previewRef);
+    Result setCandidateAudioMetadata (const std::string& sessionId,
+                                       const std::string& candidateId,
+                                       const std::string& previewRevision,
+                                       double durationSeconds,
+                                       double sampleRate,
+                                       int channelCount);
     Result markStale (const std::string& sessionId);
     Result markFailed (const std::string& sessionId);
     Result select (const std::string& sessionId, const std::string& candidateId);

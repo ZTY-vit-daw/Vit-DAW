@@ -13,8 +13,8 @@ func TestAuditionPrepareArgsUsesContractCandidateAAndB(t *testing.T) {
 		ActiveProjectRevision: "project-r17",
 		TimelineRevision:      "timeline-r17",
 		Candidates: []AuditionCandidate{
-			{ID: "candidate-a", SourceRef: "edit:a"},
-			{ID: "candidate-b", SourceRef: "edit:b"},
+			{ID: "candidate-a", SourceKind: "audio_file", SourceRef: "D:/audio/a.wav", CheckpointRef: "checkpoint:a", CommitID: "commit-a", BranchRef: "branch:a", WorktreeRef: "worktree:a", ProjectRevision: "project-r17", RenderRevision: "render-a", Scope: "target"},
+			{ID: "candidate-b", SourceKind: "audio_file", SourceRef: "D:/audio/b.wav", CheckpointRef: "checkpoint:b", CommitID: "commit-b", BranchRef: "branch:b", WorktreeRef: "worktree:b", ProjectRevision: "project-r17", RenderRevision: "render-b", Scope: "target"},
 		},
 	}
 	args, err := auditionPrepareArgs(request)
@@ -26,6 +26,10 @@ func TestAuditionPrepareArgsUsesContractCandidateAAndB(t *testing.T) {
 	}
 	if _, ok := args["candidates"]; ok {
 		t.Fatalf("legacy candidates array leaked into contract payload: %#v", args)
+	}
+	candidateA := mapFromAny(args["candidate_a"])
+	if candidateA["source_kind"] != "audio_file" || candidateA["checkpoint_ref"] != "checkpoint:a" || candidateA["commit_id"] != "commit-a" || candidateA["branch_ref"] != "branch:a" || candidateA["worktree_ref"] != "worktree:a" || candidateA["project_revision"] != "project-r17" || candidateA["render_revision"] != "render-a" || candidateA["scope"] != "target" {
+		t.Fatalf("candidate identity binding missing: %#v", candidateA)
 	}
 }
 func TestAuditionSessionRequestCarriesBothPlanes(t *testing.T) {
@@ -114,6 +118,8 @@ func TestAuditionCommandNamesStayInAuditionPlane(t *testing.T) {
 		"audition.select",
 		"audition.position",
 		"audition.stop",
+		"audition.inspect_candidate",
+		"audition.apply_candidate",
 	}
 	for _, command := range commands {
 		if command == "render.start" || command == "reload_project" || command == "project.checkout" {
@@ -123,7 +129,7 @@ func TestAuditionCommandNamesStayInAuditionPlane(t *testing.T) {
 }
 
 func TestAuditionReadyUsesDedicatedCommand(t *testing.T) {
-	commands := []string{"audition.prepare", "audition.status", "audition.ready", "audition.stale", "audition.failed", "audition.select", "audition.position", "audition.stop"}
+	commands := []string{"audition.prepare", "audition.status", "audition.ready", "audition.stale", "audition.failed", "audition.select", "audition.position", "audition.stop", "audition.inspect_candidate", "audition.apply_candidate"}
 	for _, command := range commands {
 		if command == "render" || command == "reload_project" || command == "project.checkout" {
 			t.Fatalf("unsafe alias %s", command)

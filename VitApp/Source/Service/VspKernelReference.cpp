@@ -124,11 +124,16 @@ const std::unordered_map<std::string, LegacyCommandMapping>& canonicalCommandMap
         { "macro.set_values", { "control_set_macro_values", true } },
         { "render.start", { "start_render", true } },
         { "render.cancel", { "cancel_render", false } },
-        { "audition.prepare", { "audition.prepare", true } },
+        { "audition.prepare", { "audition.prepare", false } },
         { "audition.status", { "audition.status", false } },
-        { "audition.select", { "audition.select", true } },
-        { "audition.position", { "audition.position", true } },
-        { "audition.stop", { "audition.stop", true } },
+        { "audition.ready", { "audition.ready", false } },
+        { "audition.stale", { "audition.stale", false } },
+        { "audition.failed", { "audition.failed", false } },
+        { "audition.inspect_candidate", { "audition.inspect_candidate", false } },
+        { "audition.apply_candidate", { "audition.apply_candidate", false } },
+        { "audition.select", { "audition.select", false } },
+        { "audition.position", { "audition.position", false } },
+        { "audition.stop", { "audition.stop", false } },
     };
 
     return mappings;
@@ -159,7 +164,16 @@ const std::unordered_set<std::string>& legacyReadOnlyCommands()
         "get_audio_device_types",
         "get_audio_devices",
         "get_wave_input_devices",
+        "audition.prepare",
         "audition.status",
+        "audition.ready",
+        "audition.stale",
+        "audition.failed",
+        "audition.select",
+        "audition.position",
+        "audition.stop",
+        "audition.inspect_candidate",
+        "audition.apply_candidate",
     };
 
     return commands;
@@ -1027,6 +1041,10 @@ juce::String makeSessionHelloAck (const juce::DynamicObject& request)
     flags->setProperty ("audio.l2_render_probe", true);
     flags->setProperty ("audio.compressor_dual_tap_probe", true);
     flags->setProperty ("audition.preview", true);
+    flags->setProperty ("audition.preview.audio_file_target", true);
+    flags->setProperty ("audition.preview.block_boundary_switch", true);
+    flags->setProperty ("audition.preview.crossfade", true);
+    flags->setProperty ("audition.preview.full_project", false);
     flags->setProperty ("command.idempotency", true);
     flags->setProperty ("command.base_revision_cas", true);
     flags->setProperty ("state.snapshot.scoped", true);

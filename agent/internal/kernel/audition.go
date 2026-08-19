@@ -7,11 +7,23 @@ import (
 
 // AuditionCandidate is the protocol shape for one Kernel-owned preview.
 type AuditionCandidate struct {
-	ID         string `json:"id"`
-	Label      string `json:"label,omitempty"`
-	SourceKind string `json:"source_kind,omitempty"`
-	SourceRef  string `json:"source_ref"`
-	PreviewRef string `json:"preview_ref,omitempty"`
+	ID              string  `json:"id"`
+	Label           string  `json:"label,omitempty"`
+	SourceKind      string  `json:"source_kind,omitempty"`
+	SourceRef       string  `json:"source_ref"`
+	PreviewRef      string  `json:"preview_ref,omitempty"`
+	CheckpointRef   string  `json:"checkpoint_ref,omitempty"`
+	CommitID        string  `json:"commit_id,omitempty"`
+	BranchRef       string  `json:"branch_ref,omitempty"`
+	WorktreeRef     string  `json:"worktree_ref,omitempty"`
+	ProjectUUID     string  `json:"project_uuid,omitempty"`
+	ProjectRevision string  `json:"project_revision,omitempty"`
+	RenderRevision  string  `json:"render_revision,omitempty"`
+	PreviewRevision string  `json:"preview_revision,omitempty"`
+	Scope           string  `json:"scope,omitempty"`
+	DurationSeconds float64 `json:"duration_seconds,omitempty"`
+	SampleRate      float64 `json:"sample_rate,omitempty"`
+	ChannelCount    int     `json:"channel_count,omitempty"`
 }
 
 // AuditionSessionRequest creates a session spanning the Active Project Plane
@@ -79,4 +91,24 @@ func (c *Client) AuditionPosition(ctx context.Context, sessionID string, positio
 
 func (c *Client) AuditionStop(ctx context.Context, sessionID string) (*VSPCommandResult, error) {
 	return c.SendVSPCommand(ctx, "audition.stop", map[string]any{"session_id": sessionID})
+}
+
+func (c *Client) AuditionInspectCandidate(ctx context.Context, sessionID, candidateID string) (*VSPCommandResult, error) {
+	return c.SendVSPCommand(ctx, "audition.inspect_candidate", map[string]any{
+		"session_id": sessionID, "candidate_id": candidateID,
+	})
+}
+
+func (c *Client) AuditionApplyCandidate(ctx context.Context, sessionID, candidateID string) (*VSPCommandResult, error) {
+	return c.SendVSPCommand(ctx, "audition.apply_candidate", map[string]any{
+		"session_id": sessionID, "candidate_id": candidateID,
+	})
+}
+
+func (c *Client) AuditionStale(ctx context.Context, sessionID string) (*VSPCommandResult, error) {
+	return c.SendVSPCommand(ctx, "audition.stale", map[string]any{"session_id": sessionID})
+}
+
+func (c *Client) AuditionFailed(ctx context.Context, sessionID string) (*VSPCommandResult, error) {
+	return c.SendVSPCommand(ctx, "audition.failed", map[string]any{"session_id": sessionID})
 }

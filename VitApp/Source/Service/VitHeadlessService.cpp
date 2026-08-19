@@ -439,7 +439,8 @@ VitHeadlessService::VitHeadlessService (juce::String applicationName)
         {
             return buildVspRealtimeDataForStream (stream);
         },
-        productionCoordinator.get());
+        productionCoordinator.get(),
+        &engineDevice.getEngine());
 }
 
 bool VitHeadlessService::start()
