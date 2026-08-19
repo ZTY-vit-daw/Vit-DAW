@@ -309,6 +309,9 @@ func (r *Runner) loop(ctx context.Context, state *runState) Result {
 		if limit, result := r.checkTurnBudget(state); limit {
 			return result
 		}
+		if r.Runtime != nil {
+			state.goal = r.Runtime.SetStatus(state.goal.GoalID, agentruntime.StatusProcessing, nil)
+		}
 		snapshot := r.buildContextSnapshot(state)
 		state.contextSnapshot = snapshot.Map()
 		_ = contextruntime.AppendDefault(snapshot)
@@ -326,6 +329,9 @@ func (r *Runner) loop(ctx context.Context, state *runState) Result {
 			MaxToolCallsRemaining: state.budget.MaxToolCalls - state.toolCallsUsed,
 		})
 		state.turnsUsed++
+		if r.Runtime != nil {
+			state.goal = r.Runtime.SetStatus(state.goal.GoalID, agentruntime.StatusRunning, nil)
+		}
 		if err != nil {
 			if out.Raw != "" {
 				state.trace = append(state.trace, planner.TraceEvent{Kind: "planner_error", Message: err.Error(), Reply: out.Raw})
@@ -403,6 +409,9 @@ func (r *Runner) loop(ctx context.Context, state *runState) Result {
 				continue
 			}
 			remaining := append([]planner.ToolCall(nil), out.ToolCalls[i+1:]...)
+			if r.Runtime != nil {
+				state.goal = r.Runtime.SetStatus(state.goal.GoalID, agentruntime.StatusExecuting, nil)
+			}
 			if stopped, result := r.executeTool(ctx, state, call, false, remaining); stopped {
 				return result
 			}
@@ -551,6 +560,9 @@ func (r *Runner) executeTool(ctx context.Context, state *runState, call planner.
 		state.consecutiveErrors = 0
 		state.completedSteps++
 	}
+	if r.Runtime != nil {
+		state.goal = r.Runtime.SetStatus(state.goal.GoalID, agentruntime.StatusRunning, nil)
+	}
 	if stopped, result := r.checkpoint("after_tool", state); stopped {
 		return true, result
 	}
@@ -569,6 +581,14 @@ func (r *Runner) checkpoint(label string, state *runState) (bool, Result) {
 	}
 	if r.Runtime != nil {
 		state.goal = r.Runtime.Tick(state.goal.GoalID, label)
+	}
+	if state.goal.StopRequested || state.goal.Status == agentruntime.StatusStopped {
+		if r.Runtime != nil {
+			state.goal = r.Runtime.MarkStopped(state.goal.GoalID, state.goal.LastCheckpoint)
+		} else {
+			state.goal.Status = agentruntime.StatusStopped
+		}
+		return true, r.result(state, agentruntime.StatusStopped, StopReasonCancelled, "", "已停止。", "", "", nil)
 	}
 	if state.goal.CancelRequested || state.goal.Status == agentruntime.StatusCancelled || state.goal.Status == agentruntime.StatusCancelling {
 		if r.Runtime != nil {
@@ -669,7 +689,7 @@ func (r *Runner) result(state *runState, status agentruntime.GoalStatus, stopRea
 		RecentObservation: cloneRecentObservation(state.recentObservation),
 		FreeStateDecision: cloneFreeStateDecision(state.freeStateDecision),
 	}
-	if status == agentruntime.StatusCompleted || status == agentruntime.StatusCancelled || status == agentruntime.StatusFailed {
+	if status == agentruntime.StatusCompleted || status == agentruntime.StatusCancelled || status == agentruntime.StatusStopped || status == agentruntime.StatusFailed {
 		cont = nil
 	}
 	currentStep := ""

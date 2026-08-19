@@ -11,6 +11,7 @@ import (
 	"vit-daw-agent/internal/agentloop"
 	"vit-daw-agent/internal/agentprotocol"
 	"vit-daw-agent/internal/config"
+	"vit-daw-agent/internal/experiment"
 	agentruntime "vit-daw-agent/internal/runtime"
 )
 
@@ -24,6 +25,15 @@ func (s *Server) improvementProposalResponse(conversationID, mode string, res ag
 	}
 	candidate := proposal.ToPendingCandidate(conversationID, res.GoalID, res.RunID, "")
 	s.upsertPendingCandidate(candidate)
+	if authorityModeFromContext(requestContext) == experiment.AuthorityFull {
+		interactionRequest := improvementProposalInteractionRequest(conversationID, res.GoalID, res.RunID, resp.Reply, candidate, requestContext)
+		interaction := PendingInteraction{ID: interactionRequest.ID, Kind: interactionRequest.Kind, Type: interactionRequest.Type, Source: interactionRequest.Source, Workflow: interactionRequest.Workflow, ConversationID: conversationID, GoalID: res.GoalID, RunID: res.RunID, RequestContext: cloneContext(requestContext), Payload: cloneContext(interactionRequest.Payload), Data: cloneContext(interactionRequest.Data)}
+		s.transitionActivePendingCandidate(conversationID, "improvement_proposal", agentprotocol.PendingStatusAccepted, "full_project_access")
+		if response, routed := s.routeAcceptedImprovementProposal(context.Background(), interaction); routed {
+			response.WorkflowData = mergeContext(response.WorkflowData, map[string]any{"authority_mode": authorityModeFull, "full_access_auto_authorized": true})
+			return response
+		}
+	}
 	resp.Reply = firstNonEmpty(resp.Reply, "已形成一条基于证据的改善性提案，等待确认后进入对应执行域。")
 	resp.NeedsConfirmation = true
 	resp.GoalStatus = string(agentruntime.StatusWaitingConfirmation)
@@ -134,7 +144,7 @@ func (s *Server) routeAcceptedImprovementProposal(ctx context.Context, interacti
 	if !ok || !freeStateLoopActive(loop) || loop.LatestObservation == nil {
 		return improvementProposalBoundaryResponse(interaction, "已确认，但缺少可恢复的原始观察上下文；没有修改工程。", "improvement_proposal_observation_context_missing"), true
 	}
-	if response, routed := s.routeAcceptedImprovementProposalNativeDomain(interaction, proposal, requestContext); routed {
+	if response, routed := s.routeAcceptedImprovementProposalNativeDomain(ctx, interaction, proposal, requestContext); routed {
 		return response, true
 	}
 	processorType := improvementProposalProcessorType(proposal)
@@ -180,7 +190,7 @@ func (s *Server) routeAcceptedImprovementProposal(ctx context.Context, interacti
 // their existing typed tools. The proposal confirmation approves the bounded
 // experiment direction; a concrete mix tick remains separately confirmable
 // before it can write project state.
-func (s *Server) routeAcceptedImprovementProposalNativeDomain(interaction PendingInteraction, proposal agentprotocol.ImprovementProposal, requestContext map[string]any) (ChatResponse, bool) {
+func (s *Server) routeAcceptedImprovementProposalNativeDomain(ctx context.Context, interaction PendingInteraction, proposal agentprotocol.ImprovementProposal, requestContext map[string]any) (ChatResponse, bool) {
 	domain := strings.ToLower(strings.TrimSpace(proposal.ActionDomain))
 	if domain != agentprotocol.ImprovementActionDomainTrackGain && domain != agentprotocol.ImprovementActionDomainPan {
 		return ChatResponse{}, false
@@ -221,6 +231,12 @@ func (s *Server) routeAcceptedImprovementProposalNativeDomain(interaction Pendin
 	}
 
 	s.storePendingMixTickCandidate(interaction.ConversationID, interaction.GoalID, interaction.RunID, candidate)
+	if authorityModeFromContext(requestContext) == experiment.AuthorityFull {
+		response := s.executePendingMixTickCandidate(ctx, interaction.ConversationID, ChatRequest{ConversationID: interaction.ConversationID, Message: "full project access", Context: requestContext, AuthorityMode: authorityModeFull}, agentModeFromContext(requestContext), candidate)
+		response.NeedsConfirmation = false
+		response.WorkflowData = mergeContext(response.WorkflowData, map[string]any{"authority_mode": authorityModeFull, "full_access_auto_authorized": true, "proposal_confirmation": "policy_authorized"})
+		return response, true
+	}
 	typed := candidate.ToPendingCandidate(interaction.ConversationID, interaction.GoalID, interaction.RunID, "")
 	request := mixTickInteractionRequest(interaction.ConversationID, interaction.GoalID, interaction.RunID, candidate)
 	s.storePendingInteraction(request, request.Payload)

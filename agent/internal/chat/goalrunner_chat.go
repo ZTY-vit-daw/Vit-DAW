@@ -15,6 +15,7 @@ import (
 	"vit-daw-agent/internal/audioclosure"
 	"vit-daw-agent/internal/config"
 	executorpkg "vit-daw-agent/internal/executor"
+	"vit-daw-agent/internal/experiment"
 	"vit-daw-agent/internal/harness"
 	"vit-daw-agent/internal/llm"
 	"vit-daw-agent/internal/panlayout"
@@ -78,7 +79,7 @@ func shouldUseAgentLoop(message string, requestContext map[string]any) bool {
 }
 func isTerminalGoalStatus(status agentruntime.GoalStatus) bool {
 	switch status {
-	case agentruntime.StatusCompleted, agentruntime.StatusFailed, agentruntime.StatusCancelled:
+	case agentruntime.StatusCompleted, agentruntime.StatusFailed, agentruntime.StatusCancelled, agentruntime.StatusStopped, agentruntime.StatusStable:
 		return true
 	default:
 		return false
@@ -338,6 +339,15 @@ func (s *Server) runAgentLoopChat(ctx context.Context, conversationID string, re
 				ExecutionMemory: executionMemory,
 			})
 		}
+	}
+	if res.Status == agentruntime.StatusStopped {
+		goal, checkpoint := s.finalizeStoppedTurn(ctx, conversationID, res.GoalID, res.RunID, "user_stop")
+		resp := s.chatResponseFromAgentLoopResult(conversationID, mode, res)
+		resp.GoalStatus = string(agentruntime.StatusStopped)
+		resp.StopReason = "stop_turn_completed"
+		resp.Reply = "已停止当前 Turn；不会再启动新的实验动作。"
+		resp.WorkflowData = mergeContext(resp.WorkflowData, map[string]any{"stop_turn": true, "checkpoint_ref": checkpoint, "goal_status": goal.Status})
+		return s.bindFreeStateContextToResponse(resp, chatContext), true
 	}
 	if freeStateActive {
 		if observation := freeStateCCBObservation(res); observation != nil {
@@ -624,8 +634,9 @@ func (e pluginGrabberWorkflowExecutor) RunToolCall(ctx context.Context, in execu
 	if toolCallID == "" {
 		toolCallID = "tool_goal_step"
 	}
+	authorityConfirmed := in.Confirmed || authorityModeFromContext(in.Context) == experiment.AuthorityFull
 	if reason := freeStateInvokeMutationReason(harness.InvokeRequest{
-		Tool: in.ToolCall.Tool, Args: cloneStringAnyMap(in.ToolCall.Args), Command: cloneStringAnyMap(in.ToolCall.Command), Context: cloneStringAnyMap(in.Context), Confirmed: in.Confirmed,
+		Tool: in.ToolCall.Tool, Args: cloneStringAnyMap(in.ToolCall.Args), Command: cloneStringAnyMap(in.ToolCall.Command), Context: cloneStringAnyMap(in.Context), Confirmed: authorityConfirmed,
 	}); reason != "" {
 		out := executorpkg.Result{ToolCallID: toolCallID, Tool: in.ToolCall.Tool, CommandName: "free_state_mutation_forbidden", Status: "error", Error: reason,
 			Result: map[string]any{"status": "rejected", "rejection_code": "free_state_mutation_forbidden", "mutation_performed": false}}
@@ -635,7 +646,7 @@ func (e pluginGrabberWorkflowExecutor) RunToolCall(ctx context.Context, in execu
 		return out, nil
 	}
 	if response, needsConfirmation := typedPluginApplyConfirmationResponse(harness.InvokeRequest{
-		Tool: in.ToolCall.Tool, Args: cloneStringAnyMap(in.ToolCall.Args), Command: cloneStringAnyMap(in.ToolCall.Command), Context: cloneStringAnyMap(in.Context), Confirmed: in.Confirmed,
+		Tool: in.ToolCall.Tool, Args: cloneStringAnyMap(in.ToolCall.Args), Command: cloneStringAnyMap(in.ToolCall.Command), Context: cloneStringAnyMap(in.Context), Confirmed: in.Confirmed || authorityModeFromContext(in.Context) == experiment.AuthorityFull,
 	}); needsConfirmation {
 		out := executorpkg.Result{
 			ToolCallID:           toolCallID,
@@ -1280,7 +1291,7 @@ func (e pluginGrabberWorkflowExecutor) invokePluginGrabberInspectLimiter(ctx con
 	req := harness.InvokeRequest{
 		Tool: strings.TrimSpace(in.ToolCall.Tool), Args: cloneStringAnyMap(in.ToolCall.Args), Command: cloneStringAnyMap(in.ToolCall.Command),
 		Context: contextWithAgentLoopIDs(in.Context, in.GoalID, in.RunID, toolCallID), Source: firstNonEmpty(strings.TrimSpace(in.Source), "agentloop"),
-		Confirmed: in.Confirmed, GoalID: in.GoalID, RunID: in.RunID, ToolCallID: toolCallID,
+		Confirmed: in.Confirmed || authorityModeFromContext(in.Context) == experiment.AuthorityFull, GoalID: in.GoalID, RunID: in.RunID, ToolCallID: toolCallID,
 	}
 	workflowCmd, ok := pluginGrabberInspectLimiterInvokeCommand(req)
 	if !ok {
@@ -1296,7 +1307,7 @@ func (e pluginGrabberWorkflowExecutor) invokePluginGrabberInspectDeEsser(ctx con
 	req := harness.InvokeRequest{
 		Tool: strings.TrimSpace(in.ToolCall.Tool), Args: cloneStringAnyMap(in.ToolCall.Args), Command: cloneStringAnyMap(in.ToolCall.Command),
 		Context: contextWithAgentLoopIDs(in.Context, in.GoalID, in.RunID, toolCallID), Source: firstNonEmpty(strings.TrimSpace(in.Source), "agentloop"),
-		Confirmed: in.Confirmed, GoalID: in.GoalID, RunID: in.RunID, ToolCallID: toolCallID,
+		Confirmed: in.Confirmed || authorityModeFromContext(in.Context) == experiment.AuthorityFull, GoalID: in.GoalID, RunID: in.RunID, ToolCallID: toolCallID,
 	}
 	workflowCmd, ok := pluginGrabberInspectDeEsserInvokeCommand(req)
 	if !ok {
@@ -1312,7 +1323,7 @@ func (e pluginGrabberWorkflowExecutor) invokePluginGrabberApplyDeEsser(ctx conte
 	req := harness.InvokeRequest{
 		Tool: strings.TrimSpace(in.ToolCall.Tool), Args: cloneStringAnyMap(in.ToolCall.Args), Command: cloneStringAnyMap(in.ToolCall.Command),
 		Context: contextWithAgentLoopIDs(in.Context, in.GoalID, in.RunID, toolCallID), Source: firstNonEmpty(strings.TrimSpace(in.Source), "agentloop"),
-		Confirmed: in.Confirmed, GoalID: in.GoalID, RunID: in.RunID, ToolCallID: toolCallID,
+		Confirmed: in.Confirmed || authorityModeFromContext(in.Context) == experiment.AuthorityFull, GoalID: in.GoalID, RunID: in.RunID, ToolCallID: toolCallID,
 	}
 	workflowCmd, ok := pluginGrabberApplyDeEsserInvokeCommand(req)
 	if !ok {
@@ -1327,7 +1338,7 @@ func (e pluginGrabberWorkflowExecutor) invokePluginGrabberInspectSpectralDynamic
 	toolCallID string) (executorpkg.Result, error) {
 	req := harness.InvokeRequest{Tool: strings.TrimSpace(in.ToolCall.Tool), Args: cloneStringAnyMap(in.ToolCall.Args), Command: cloneStringAnyMap(in.ToolCall.Command),
 		Context: contextWithAgentLoopIDs(in.Context, in.GoalID, in.RunID, toolCallID), Source: firstNonEmpty(strings.TrimSpace(in.Source), "agentloop"),
-		Confirmed: in.Confirmed, GoalID: in.GoalID, RunID: in.RunID, ToolCallID: toolCallID}
+		Confirmed: in.Confirmed || authorityModeFromContext(in.Context) == experiment.AuthorityFull, GoalID: in.GoalID, RunID: in.RunID, ToolCallID: toolCallID}
 	workflowCmd, ok := pluginGrabberInspectSpectralDynamicsInvokeCommand(req)
 	if !ok {
 		workflowCmd = cloneStringAnyMap(in.ToolCall.Args)
@@ -1341,7 +1352,7 @@ func (e pluginGrabberWorkflowExecutor) invokePluginGrabberInspectGateExpander(ct
 	toolCallID string) (executorpkg.Result, error) {
 	req := harness.InvokeRequest{Tool: strings.TrimSpace(in.ToolCall.Tool), Args: cloneStringAnyMap(in.ToolCall.Args), Command: cloneStringAnyMap(in.ToolCall.Command),
 		Context: contextWithAgentLoopIDs(in.Context, in.GoalID, in.RunID, toolCallID), Source: firstNonEmpty(strings.TrimSpace(in.Source), "agentloop"),
-		Confirmed: in.Confirmed, GoalID: in.GoalID, RunID: in.RunID, ToolCallID: toolCallID}
+		Confirmed: in.Confirmed || authorityModeFromContext(in.Context) == experiment.AuthorityFull, GoalID: in.GoalID, RunID: in.RunID, ToolCallID: toolCallID}
 	workflowCmd, ok := pluginGrabberInspectGateExpanderInvokeCommand(req)
 	if !ok {
 		workflowCmd = cloneStringAnyMap(in.ToolCall.Args)
@@ -1355,7 +1366,7 @@ func (e pluginGrabberWorkflowExecutor) invokePluginGrabberApplyGateExpander(ctx 
 	toolCallID string) (executorpkg.Result, error) {
 	req := harness.InvokeRequest{Tool: strings.TrimSpace(in.ToolCall.Tool), Args: cloneStringAnyMap(in.ToolCall.Args), Command: cloneStringAnyMap(in.ToolCall.Command),
 		Context: contextWithAgentLoopIDs(in.Context, in.GoalID, in.RunID, toolCallID), Source: firstNonEmpty(strings.TrimSpace(in.Source), "agentloop"),
-		Confirmed: in.Confirmed, GoalID: in.GoalID, RunID: in.RunID, ToolCallID: toolCallID}
+		Confirmed: in.Confirmed || authorityModeFromContext(in.Context) == experiment.AuthorityFull, GoalID: in.GoalID, RunID: in.RunID, ToolCallID: toolCallID}
 	workflowCmd, ok := pluginGrabberApplyGateExpanderInvokeCommand(req)
 	if !ok {
 		workflowCmd = cloneStringAnyMap(in.ToolCall.Args)
@@ -1369,7 +1380,7 @@ func (e pluginGrabberWorkflowExecutor) invokePluginGrabberInspectTransientShaper
 	toolCallID string) (executorpkg.Result, error) {
 	req := harness.InvokeRequest{Tool: strings.TrimSpace(in.ToolCall.Tool), Args: cloneStringAnyMap(in.ToolCall.Args), Command: cloneStringAnyMap(in.ToolCall.Command),
 		Context: contextWithAgentLoopIDs(in.Context, in.GoalID, in.RunID, toolCallID), Source: firstNonEmpty(strings.TrimSpace(in.Source), "agentloop"),
-		Confirmed: in.Confirmed, GoalID: in.GoalID, RunID: in.RunID, ToolCallID: toolCallID}
+		Confirmed: in.Confirmed || authorityModeFromContext(in.Context) == experiment.AuthorityFull, GoalID: in.GoalID, RunID: in.RunID, ToolCallID: toolCallID}
 	workflowCmd, ok := pluginGrabberInspectTransientShaperInvokeCommand(req)
 	if !ok {
 		workflowCmd = cloneStringAnyMap(in.ToolCall.Args)
@@ -1383,7 +1394,7 @@ func (e pluginGrabberWorkflowExecutor) invokePluginGrabberApplyTransientShaper(c
 	toolCallID string) (executorpkg.Result, error) {
 	req := harness.InvokeRequest{Tool: strings.TrimSpace(in.ToolCall.Tool), Args: cloneStringAnyMap(in.ToolCall.Args), Command: cloneStringAnyMap(in.ToolCall.Command),
 		Context: contextWithAgentLoopIDs(in.Context, in.GoalID, in.RunID, toolCallID), Source: firstNonEmpty(strings.TrimSpace(in.Source), "agentloop"),
-		Confirmed: in.Confirmed, GoalID: in.GoalID, RunID: in.RunID, ToolCallID: toolCallID}
+		Confirmed: in.Confirmed || authorityModeFromContext(in.Context) == experiment.AuthorityFull, GoalID: in.GoalID, RunID: in.RunID, ToolCallID: toolCallID}
 	workflowCmd, ok := pluginGrabberApplyTransientShaperInvokeCommand(req)
 	if !ok {
 		workflowCmd = cloneStringAnyMap(in.ToolCall.Args)
@@ -1397,7 +1408,7 @@ func (e pluginGrabberWorkflowExecutor) invokePluginGrabberInspectMultiband(ctx c
 	toolCallID string) (executorpkg.Result, error) {
 	req := harness.InvokeRequest{Tool: strings.TrimSpace(in.ToolCall.Tool), Args: cloneStringAnyMap(in.ToolCall.Args), Command: cloneStringAnyMap(in.ToolCall.Command),
 		Context: contextWithAgentLoopIDs(in.Context, in.GoalID, in.RunID, toolCallID), Source: firstNonEmpty(strings.TrimSpace(in.Source), "agentloop"),
-		Confirmed: in.Confirmed, GoalID: in.GoalID, RunID: in.RunID, ToolCallID: toolCallID}
+		Confirmed: in.Confirmed || authorityModeFromContext(in.Context) == experiment.AuthorityFull, GoalID: in.GoalID, RunID: in.RunID, ToolCallID: toolCallID}
 	workflowCmd, ok := pluginGrabberInspectMultibandInvokeCommand(req)
 	if !ok {
 		workflowCmd = cloneStringAnyMap(in.ToolCall.Args)
@@ -1411,7 +1422,7 @@ func (e pluginGrabberWorkflowExecutor) invokePluginGrabberApplyMultiband(ctx con
 	toolCallID string) (executorpkg.Result, error) {
 	req := harness.InvokeRequest{Tool: strings.TrimSpace(in.ToolCall.Tool), Args: cloneStringAnyMap(in.ToolCall.Args), Command: cloneStringAnyMap(in.ToolCall.Command),
 		Context: contextWithAgentLoopIDs(in.Context, in.GoalID, in.RunID, toolCallID), Source: firstNonEmpty(strings.TrimSpace(in.Source), "agentloop"),
-		Confirmed: in.Confirmed, GoalID: in.GoalID, RunID: in.RunID, ToolCallID: toolCallID}
+		Confirmed: in.Confirmed || authorityModeFromContext(in.Context) == experiment.AuthorityFull, GoalID: in.GoalID, RunID: in.RunID, ToolCallID: toolCallID}
 	workflowCmd, ok := pluginGrabberApplyMultibandInvokeCommand(req)
 	if !ok {
 		workflowCmd = cloneStringAnyMap(in.ToolCall.Args)
@@ -1426,7 +1437,7 @@ func (e pluginGrabberWorkflowExecutor) invokePluginGrabberApplyLimiter(ctx conte
 	req := harness.InvokeRequest{
 		Tool: strings.TrimSpace(in.ToolCall.Tool), Args: cloneStringAnyMap(in.ToolCall.Args), Command: cloneStringAnyMap(in.ToolCall.Command),
 		Context: contextWithAgentLoopIDs(in.Context, in.GoalID, in.RunID, toolCallID), Source: firstNonEmpty(strings.TrimSpace(in.Source), "agentloop"),
-		Confirmed: in.Confirmed, GoalID: in.GoalID, RunID: in.RunID, ToolCallID: toolCallID,
+		Confirmed: in.Confirmed || authorityModeFromContext(in.Context) == experiment.AuthorityFull, GoalID: in.GoalID, RunID: in.RunID, ToolCallID: toolCallID,
 	}
 	workflowCmd, ok := pluginGrabberApplyLimiterInvokeCommand(req)
 	if !ok {
@@ -1508,7 +1519,7 @@ func (e pluginGrabberWorkflowExecutor) invokePluginGrabberApplyEQEdits(ctx conte
 		Tool: strings.TrimSpace(in.ToolCall.Tool), Args: cloneStringAnyMap(in.ToolCall.Args),
 		Command: cloneStringAnyMap(in.ToolCall.Command),
 		Context: contextWithAgentLoopIDs(in.Context, in.GoalID, in.RunID, toolCallID),
-		Source:  firstNonEmpty(strings.TrimSpace(in.Source), "agentloop"), Confirmed: in.Confirmed,
+		Source:  firstNonEmpty(strings.TrimSpace(in.Source), "agentloop"), Confirmed: in.Confirmed || authorityModeFromContext(in.Context) == experiment.AuthorityFull,
 		GoalID: in.GoalID, RunID: in.RunID, ToolCallID: toolCallID,
 	}
 	workflowCmd, ok := pluginGrabberApplyEQEditsInvokeCommand(req)
@@ -1579,7 +1590,7 @@ func (e pluginGrabberWorkflowExecutor) invokePluginGrabberInspectCompressor(ctx 
 	req := harness.InvokeRequest{
 		Tool: strings.TrimSpace(in.ToolCall.Tool), Args: cloneStringAnyMap(in.ToolCall.Args), Command: cloneStringAnyMap(in.ToolCall.Command),
 		Context: contextWithAgentLoopIDs(in.Context, in.GoalID, in.RunID, toolCallID), Source: firstNonEmpty(strings.TrimSpace(in.Source), "agentloop"),
-		Confirmed: in.Confirmed, GoalID: in.GoalID, RunID: in.RunID, ToolCallID: toolCallID,
+		Confirmed: in.Confirmed || authorityModeFromContext(in.Context) == experiment.AuthorityFull, GoalID: in.GoalID, RunID: in.RunID, ToolCallID: toolCallID,
 	}
 	workflowCmd, ok := pluginGrabberInspectCompressorInvokeCommand(req)
 	if !ok {
@@ -1595,7 +1606,7 @@ func (e pluginGrabberWorkflowExecutor) invokePluginGrabberApplyCompressor(ctx co
 	req := harness.InvokeRequest{
 		Tool: strings.TrimSpace(in.ToolCall.Tool), Args: cloneStringAnyMap(in.ToolCall.Args), Command: cloneStringAnyMap(in.ToolCall.Command),
 		Context: contextWithAgentLoopIDs(in.Context, in.GoalID, in.RunID, toolCallID), Source: firstNonEmpty(strings.TrimSpace(in.Source), "agentloop"),
-		Confirmed: in.Confirmed, GoalID: in.GoalID, RunID: in.RunID, ToolCallID: toolCallID,
+		Confirmed: in.Confirmed || authorityModeFromContext(in.Context) == experiment.AuthorityFull, GoalID: in.GoalID, RunID: in.RunID, ToolCallID: toolCallID,
 	}
 	workflowCmd, ok := pluginGrabberApplyCompressorInvokeCommand(req)
 	if !ok {

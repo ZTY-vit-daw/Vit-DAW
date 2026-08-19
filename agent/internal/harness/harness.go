@@ -264,6 +264,27 @@ func (h *Harness) CompleteGoal(goalID string, err error) agentruntime.Goal {
 	return h.runtime.Complete(goalID, err)
 }
 
+func (h *Harness) RequestGoalStop(goalID, reason string) agentruntime.Goal {
+	if h == nil || h.runtime == nil {
+		return agentruntime.Goal{Status: agentruntime.StatusIdle}
+	}
+	return h.runtime.RequestStop(goalID, reason)
+}
+
+func (h *Harness) MarkGoalStopped(goalID, checkpoint string) agentruntime.Goal {
+	if h == nil || h.runtime == nil {
+		return agentruntime.Goal{Status: agentruntime.StatusIdle}
+	}
+	return h.runtime.MarkStopped(goalID, checkpoint)
+}
+
+func (h *Harness) CheckoutBlocked() (agentruntime.Goal, bool) {
+	if h == nil || h.runtime == nil {
+		return agentruntime.Goal{Status: agentruntime.StatusIdle}, false
+	}
+	return h.runtime.CheckoutBlocked()
+}
+
 func (h *Harness) JournalGet(targetID string) (journal.Action, bool) {
 	if h == nil || h.journal == nil {
 		return journal.Action{}, false
@@ -553,6 +574,12 @@ func (h *Harness) Invoke(ctx context.Context, req InvokeRequest) (resp InvokeRes
 		h.logPreJournalInvokeFailure("resolve_command", req, tools.CommandSpec{}, nil, err)
 		return resp, err
 	}
+	if goal, blocked := h.CheckoutBlocked(); blocked && activeProjectPlaneCommand(spec.CommandName) {
+		err := fmt.Errorf("checkout_blocked_while_agent_running: stop_turn_before_checkout (goal=%s status=%s)", goal.GoalID, goal.Status)
+		resp := InvokeResponse{Status: "error", Tool: spec.ToolName, CommandName: spec.CommandName, RiskLevel: spec.RiskLevel, Error: err.Error(), Result: map[string]any{"error_code": "checkout_blocked_while_agent_running", "required_action": "stop_turn_before_checkout", "goal_id": goal.GoalID, "goal_status": goal.Status}}
+		h.logPreJournalInvokeFailure("active_project_plane_checkout_guard", req, spec, cmd, err)
+		return resp, err
+	}
 	if err := broadMixObserveFirstWriteGuard(req.Context, spec, cmd); err != nil {
 		resp := InvokeResponse{
 			Status:      "error",
@@ -621,12 +648,12 @@ func (h *Harness) Invoke(ctx context.Context, req InvokeRequest) (resp InvokeRes
 	if undoLabel != "" {
 		cmd["undo_label"] = undoLabel
 	}
-	if req.Confirmed {
+	authorityAuthorized := req.Confirmed || explicitFullProjectAccess(req.Context)
+	if authorityAuthorized {
 		cmd["confirmation"] = true
 		cmd["confirmed"] = true
 	}
-
-	needsConfirmation := spec.RequiresConfirmation && !req.Confirmed
+	needsConfirmation := spec.RequiresConfirmation && !authorityAuthorized
 	action := journal.Action{
 		AgentActionID:        actionID,
 		RunID:                runID,
@@ -7842,6 +7869,15 @@ func (h *Harness) EnsureCapabilityExecutionBaseline(ctx context.Context, goalID,
 	}, map[string]any{"capability_id": capabilityID}, goalID, runID)
 }
 
+func activeProjectPlaneCommand(commandName string) bool {
+	switch strings.ToLower(strings.TrimSpace(commandName)) {
+	case "version_checkout", "version_node_checkout", "version_worktree_checkout", "version_restore":
+		return true
+	default:
+		return false
+	}
+}
+
 func shouldAutoGoalBaseline(spec tools.CommandSpec) bool {
 	if !spec.MutatesProject {
 		return false
@@ -12183,6 +12219,15 @@ func buildUndoLabel(spec tools.CommandSpec, cmd map[string]any) string {
 	default:
 		return ""
 	}
+}
+
+func explicitFullProjectAccess(ctx map[string]any) bool {
+	if ctx == nil {
+		return false
+	}
+	mode, _ := ctx["authority_mode"].(string)
+	explicit, _ := ctx["authority_mode_explicit"].(bool)
+	return explicit && strings.EqualFold(strings.TrimSpace(mode), "full_project_access")
 }
 
 func confirmationStatus(needsConfirmation, confirmed bool) string {

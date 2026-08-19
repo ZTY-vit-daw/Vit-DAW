@@ -3092,6 +3092,37 @@ h3 {
   transform: translateX(10px);
 }
 
+.authority-mode-control {
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+}
+
+.authority-mode-control select {
+  max-width: 168px;
+  height: 34px;
+  border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.14));
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.055);
+  color: inherit;
+  padding: 0 9px;
+  font-size: 11px;
+}
+
+.authority-mode-control select:disabled {
+  opacity: 0.55;
+}
+
+.stop-turn-button {
+  background: rgba(185, 54, 54, 0.9) !important;
+  border-color: rgba(255, 120, 120, 0.65) !important;
+}
+
+.stop-turn-button:hover:not(:disabled) {
+  background: rgba(211, 64, 64, 0.96) !important;
+}
+
+
 .composer textarea {
   min-height: 38px;
   max-height: 140px;

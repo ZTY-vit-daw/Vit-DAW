@@ -89,6 +89,7 @@ type Server struct {
 	activeWorkspacePath                string
 	activeWorkspaceUUID                string
 	activeWorkspaceSessionID           string
+	authorityMode                      string
 }
 
 type PendingPlan struct {
@@ -125,6 +126,7 @@ type projectAgentRuntimeState struct {
 	ControllerOwners          map[string]orchestrationcontroller.Owner      `json:"orchestration_controller_owners,omitempty"`
 	PendingCandidates         []agentprotocol.PendingCandidate              `json:"pending_candidates,omitempty"`
 	GoalRuntime               agentruntime.Snapshot                         `json:"goal_runtime,omitempty"`
+	AuthorityMode             string                                        `json:"authority_mode,omitempty"`
 }
 
 type ChatRequest struct {
@@ -133,6 +135,7 @@ type ChatRequest struct {
 	Context        map[string]any `json:"context,omitempty"`
 	Attachments    []Attachment   `json:"attachments,omitempty"`
 	ArtifactRefs   []string       `json:"artifact_refs,omitempty"`
+	AuthorityMode  string         `json:"authority_mode,omitempty"`
 }
 
 type Attachment struct {
@@ -446,6 +449,7 @@ func New(kernelClient *kernel.Client, shadowProject *shadow.Project, logger *log
 		pendingMixTicks:                  map[string]agentloop.PendingMixTickCandidate{},
 		pendingTreatments:                map[string]agentloop.MixTreatmentPending{},
 		freeStateLoops:                   map[string]freeStateReasoningLoop{},
+		authorityMode:                    authorityModeManual,
 		audioClosures:                    audioclosure.NewMemoryStore(),
 		controllerOwners:                 orchestrationcontroller.NewRegistry(),
 		pendingManager:                   pendingmanager.NewMemoryManager(),
@@ -475,6 +479,8 @@ func (s *Server) Routes() http.Handler {
 	mux.HandleFunc("/app/", s.handleApp)
 	mux.HandleFunc("/health", s.handleHealth)
 	mux.HandleFunc("/agent/runtime/status", s.handleRuntimeStatus)
+	mux.HandleFunc("/agent/authority", s.handleAuthorityMode)
+	mux.HandleFunc("/agent/turn/stop", s.handleTurnStop)
 	mux.HandleFunc("/agent/events", s.handleAgentEvents)
 	mux.HandleFunc("/agent/audition/status", s.handleAuditionStatus)
 	mux.HandleFunc("/agent/audition/select", s.handleAuditionSelect)
@@ -627,13 +633,18 @@ func (s *Server) handleRuntimeStatus(w http.ResponseWriter, r *http.Request) {
 	kernelStatus := s.runtimeKernelStatus(statusCtx)
 	shadowCtx, shadowCancel := context.WithTimeout(r.Context(), 900*time.Millisecond)
 	defer shadowCancel()
+	goal := s.harness.RuntimeStatus("")
+	_, checkoutBlocked := s.harness.CheckoutBlocked()
 	writeJSON(w, http.StatusOK, map[string]any{
-		"status":     "ok",
-		"service":    "VitAgent",
-		"pid":        os.Getpid(),
-		"checked_at": time.Now().Format(time.RFC3339Nano),
-		"kernel":     kernelStatus,
-		"shadow":     runtimeShadowStatus(s.harness.StateSummary(shadowCtx)),
+		"status":           "ok",
+		"service":          "VitAgent",
+		"pid":              os.Getpid(),
+		"checked_at":       time.Now().Format(time.RFC3339Nano),
+		"kernel":           kernelStatus,
+		"shadow":           runtimeShadowStatus(s.harness.StateSummary(shadowCtx)),
+		"goal":             goal,
+		"authority_mode":   s.authorityModeSnapshot(),
+		"checkout_blocked": checkoutBlocked,
 	})
 }
 
@@ -1002,19 +1013,21 @@ func (s *Server) handleUIState(w http.ResponseWriter, r *http.Request) {
 	items = artifacts.FilterByScope(items, scope)
 	items = artifacts.FilterUserVisible(items)
 	writeJSON(w, http.StatusOK, map[string]any{
-		"status":          "ok",
-		"project":         uiProjectState(state),
-		"transport":       uiTransportState(state),
-		"tracks":          mapRowsFromAny(state["tracks"]),
-		"selected_track":  uiSelectedTrack(state),
-		"selected_plugin": uiSelectedPlugin(state),
-		"plugin_rack":     uiPluginRack(state),
-		"macro_controls":  macroControls,
-		"ui_context":      uiContext,
-		"goal":            goal,
-		"agent_plan":      s.activeGoalPlan(goal, projectHistory),
-		"artifacts":       artifacts.Summaries(items),
-		"project_history": projectHistory,
+		"status":           "ok",
+		"project":          uiProjectState(state),
+		"transport":        uiTransportState(state),
+		"tracks":           mapRowsFromAny(state["tracks"]),
+		"selected_track":   uiSelectedTrack(state),
+		"selected_plugin":  uiSelectedPlugin(state),
+		"plugin_rack":      uiPluginRack(state),
+		"macro_controls":   macroControls,
+		"ui_context":       uiContext,
+		"goal":             goal,
+		"authority_mode":   s.authorityModeSnapshot(),
+		"checkout_blocked": agentruntime.IsActiveStatus(goal.Status),
+		"agent_plan":       s.activeGoalPlan(goal, projectHistory),
+		"artifacts":        artifacts.Summaries(items),
+		"project_history":  projectHistory,
 		"capabilities": map[string]any{
 			"tools":            len(s.harness.Tools()),
 			"direct_commands":  s.harness.DirectCommandNames(),
@@ -1364,6 +1377,14 @@ func (s *Server) handleInvoke(w http.ResponseWriter, r *http.Request) {
 	defer s.syncCurrentProjectWorkspace(r.Context())
 	if strings.TrimSpace(req.Source) == "" {
 		req.Source = "http"
+	}
+	if err := s.validateInvokeAuthority(req.Context); err != nil {
+		writeJSON(w, http.StatusConflict, harness.InvokeResponse{Status: "error", Tool: req.Tool, Error: "authority_mode_not_active: " + err.Error(), Result: map[string]any{"error_code": "authority_mode_not_active"}})
+		return
+	}
+	if guard, blocked := s.checkoutGuard(req); blocked {
+		writeJSON(w, http.StatusConflict, harness.InvokeResponse{Status: "error", Tool: req.Tool, CommandName: firstNonEmpty(fmt.Sprint(req.Command["cmd"]), req.Tool), Error: "checkout_blocked_while_agent_running", Result: guard})
+		return
 	}
 	if reason := freeStateInvokeMutationReason(req); reason != "" {
 		writeJSON(w, http.StatusBadRequest, harness.InvokeResponse{
@@ -2103,9 +2124,21 @@ func (s *Server) handleChat(w http.ResponseWriter, r *http.Request) {
 	req.Context = s.contextWithCurrentProjectWorkspace(r.Context(), req.Context)
 	s.activateCurrentProjectWorkspace(r.Context())
 	defer s.syncCurrentProjectWorkspace(r.Context())
+	var authorityErr error
+	req.Context, authorityErr = s.bindChatAuthorityMode(req.AuthorityMode, req.Context)
+	if authorityErr != nil {
+		writeJSON(w, http.StatusConflict, map[string]any{"status": "error", "error_code": "authority_mode_change_blocked", "error": authorityErr.Error()})
+		return
+	}
 	projectPath := projectPathFromChatContext(req.Context)
 	agentMode := agentModeFromContext(req.Context)
 	goal := s.beginChatGoal(conversationID, req.Message, req.Context)
+	s.mu.Lock()
+	if s.conversationGoals == nil {
+		s.conversationGoals = map[string]string{}
+	}
+	s.conversationGoals[conversationID] = goal.GoalID
+	s.mu.Unlock()
 	req.Context = contextWithGoal(req.Context, goal.GoalID, goal.RunID)
 	s.emitTurnEvent(conversationID, "turn.started", ChatResponse{
 		ConversationID: conversationID,
@@ -2186,6 +2219,8 @@ func (s *Server) handleChat(w http.ResponseWriter, r *http.Request) {
 			s.harness.SetGoalStatus(goalID, agentruntime.StatusWaitingClarification, nil)
 		case resp.GoalStatus == string(agentruntime.StatusWaitingContinue):
 			s.harness.SetGoalStatus(goalID, agentruntime.StatusWaitingContinue, nil)
+		case resp.GoalStatus == string(agentruntime.StatusStopped):
+			s.harness.MarkGoalStopped(goalID, firstStringFromMap(resp.ProjectHistory, "head", "commit_id"))
 		case resp.GoalStatus == string(agentruntime.StatusCancelled):
 			s.harness.SetGoalStatus(goalID, agentruntime.StatusCancelled, nil)
 		case resp.GoalStatus == string(agentruntime.StatusRunning):
@@ -2196,7 +2231,9 @@ func (s *Server) handleChat(w http.ResponseWriter, r *http.Request) {
 			s.harness.CompleteGoal(goalID, nil)
 		}
 		eventType := "turn.completed"
-		if strings.TrimSpace(resp.Error) != "" || resp.GoalStatus == string(agentruntime.StatusFailed) {
+		if resp.GoalStatus == string(agentruntime.StatusStopped) {
+			eventType = "turn.stopped"
+		} else if strings.TrimSpace(resp.Error) != "" || resp.GoalStatus == string(agentruntime.StatusFailed) {
 			eventType = "turn.failed"
 		}
 		s.emitTurnEvent(conversationID, eventType, resp, goal.GoalID, goal.RunID)
@@ -3698,6 +3735,10 @@ func (s *Server) handleInteractionRespond(w http.ResponseWriter, r *http.Request
 		})
 		return
 	}
+	if goal := s.harness.RuntimeStatus(interaction.GoalID); goal.Status == agentruntime.StatusStopped || goal.StopRequested {
+		writeJSON(w, http.StatusConflict, ChatResponse{ConversationID: interaction.ConversationID, GoalID: goal.GoalID, RunID: goal.RunID, Reply: "当前 Turn 已停止，不能继续执行待处理动作。", GoalStatus: string(agentruntime.StatusStopped), StopReason: "stop_turn_prevents_new_action"})
+		return
+	}
 	kind := firstNonEmpty(interaction.Kind, interaction.Type)
 	isMixTickInteraction := strings.EqualFold(interaction.Kind, "mix_tick_confirmation") || strings.EqualFold(interaction.Type, "mix_tick_confirmation") || strings.EqualFold(interaction.Workflow, "mix_tick")
 	isMixTreatmentInteraction := strings.EqualFold(interaction.Kind, "mix_treatment_confirmation") || strings.EqualFold(interaction.Type, "mix_treatment_confirmation") || strings.EqualFold(interaction.Workflow, "mix_treatment")
@@ -4030,6 +4071,8 @@ func (s *Server) finalizeInteractionChatResponse(ctx context.Context, resp *Chat
 			s.harness.SetGoalStatus(goalID, agentruntime.StatusWaitingClarification, nil)
 		case resp.GoalStatus == string(agentruntime.StatusWaitingContinue):
 			s.harness.SetGoalStatus(goalID, agentruntime.StatusWaitingContinue, nil)
+		case resp.GoalStatus == string(agentruntime.StatusStopped):
+			s.harness.MarkGoalStopped(goalID, firstStringFromMap(resp.ProjectHistory, "head", "commit_id"))
 		case resp.GoalStatus == string(agentruntime.StatusCancelled):
 			s.harness.SetGoalStatus(goalID, agentruntime.StatusCancelled, nil)
 		case resp.GoalStatus == string(agentruntime.StatusRunning):
@@ -4152,6 +4195,10 @@ func (s *Server) handleConfirm(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	goalID, runID := goalIDsFromContext(plan.Context)
+	if goal := s.harness.RuntimeStatus(goalID); goal.Status == agentruntime.StatusStopped || goal.StopRequested {
+		writeJSON(w, http.StatusConflict, map[string]any{"status": "error", "error_code": "stop_turn_prevents_new_action", "message": "当前 Turn 已停止，不能继续执行待确认计划。", "goal_id": goal.GoalID, "goal_status": goal.Status})
+		return
+	}
 	projectPath := projectPathFromChatContext(plan.Context)
 	agentMode := agentModeFromContext(plan.Context)
 	decision := strings.ToLower(strings.TrimSpace(req.Decision))
@@ -4311,6 +4358,9 @@ func (s *Server) resolvePendingPlanDecision(ctx context.Context, planID, decisio
 		return http.StatusNotFound, map[string]any{"status": "error", "message": "plan not found"}
 	}
 	goalID, runID := goalIDsFromContext(plan.Context)
+	if goal := s.harness.RuntimeStatus(goalID); goal.Status == agentruntime.StatusStopped || goal.StopRequested {
+		return http.StatusConflict, map[string]any{"status": "error", "error_code": "stop_turn_prevents_new_action", "message": "当前 Turn 已停止，不能继续执行待确认计划。", "goal_id": goal.GoalID, "goal_status": goal.Status}
+	}
 	projectPath := projectPathFromChatContext(plan.Context)
 	agentMode := agentModeFromContext(plan.Context)
 	cleanDecision := strings.ToLower(strings.TrimSpace(decision))
@@ -6449,6 +6499,7 @@ func (s *Server) projectAgentRuntimeStateLocked() projectAgentRuntimeState {
 		PendingMixTicks:    s.pendingMixTicks,
 		PendingTreatments:  s.pendingTreatments,
 		FreeStateLoops:     s.freeStateLoops,
+		AuthorityMode:      normalizeAuthorityModeOrDefault(s.authorityMode),
 	}
 	if s.audioClosures != nil {
 		state.AudioClosures = s.audioClosures.Snapshot()
@@ -6479,6 +6530,7 @@ func (s *Server) restoreProjectAgentRuntimeStateLocked(state projectAgentRuntime
 	s.pendingMixTicks = nonNilMap(state.PendingMixTicks)
 	s.pendingTreatments = nonNilMap(state.PendingTreatments)
 	s.freeStateLoops = nonNilMap(state.FreeStateLoops)
+	s.authorityMode = normalizeAuthorityModeOrDefault(state.AuthorityMode)
 	if s.audioClosures == nil {
 		s.audioClosures = audioclosure.NewMemoryStore()
 	}
