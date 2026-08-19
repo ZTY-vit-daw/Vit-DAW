@@ -479,6 +479,7 @@ func (s *Server) Routes() http.Handler {
 	mux.HandleFunc("/agent/audition/status", s.handleAuditionStatus)
 	mux.HandleFunc("/agent/audition/select", s.handleAuditionSelect)
 	mux.HandleFunc("/agent/audition/stop", s.handleAuditionStop)
+	mux.HandleFunc("/agent/audition/judgment", s.handleAuditionJudgment)
 	mux.HandleFunc("/agent/state", s.handleState)
 	mux.HandleFunc("/agent/ui/state", s.handleUIState)
 	mux.HandleFunc("/agent/ui/context", s.handleUIContext)
@@ -6396,6 +6397,7 @@ func (s *Server) activateCurrentProjectWorkspace(ctx context.Context) {
 	s.activeWorkspaceUUID = projectUUID
 	s.activeWorkspaceSessionID = session.SessionID
 	s.mu.Unlock()
+	s.emitRestoredAuditionProjections()
 	if s.logger != nil {
 		s.logger.Info("[workspace] activated project=%q uuid=%s conversations=%d retired_legacy_b2=%d retired_legacy_b3=%d", projectPath, projectUUID, len(state.Conversations), len(state.PendingStaticBalancePlans), len(state.PendingPanLayoutPlans))
 	}

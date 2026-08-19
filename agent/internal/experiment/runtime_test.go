@@ -302,3 +302,98 @@ func TestStoppedTurnRejectsSubsequentActivity(t *testing.T) {
 		t.Fatal("stopped turn accepted a later settlement")
 	}
 }
+
+func auditionReadyTurn(t *testing.T) Turn {
+	t.Helper()
+	now := time.Now().UTC()
+	turn, err := NewTurn(Identity{ConversationID: "conversation-judgment", TurnID: "turn-judgment"}, "compare treatment", testAdmission(AuthorityFull), now)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err = turn.StartRound([]string{"track.timbre_frequency"}, "checkpoint-judgment", "rev-1", now); err != nil {
+		t.Fatal(err)
+	}
+	if _, err = turn.RecordObservation(testObservation("judgment-before", false), false, now); err != nil {
+		t.Fatal(err)
+	}
+	if _, err = turn.ApplyIntervention(testIntervention(1, "judgment-action"), now); err != nil {
+		t.Fatal(err)
+	}
+	if _, err = turn.EvaluateMateriality(MaterialityEvaluation{State: MaterialityMaterial, Evaluation: trajectory.EvaluationAgentEvaluable, Attempt: 1, EvidenceRefs: []string{"judgment-material"}}, now); err != nil {
+		t.Fatal(err)
+	}
+	if _, err = turn.RecordObservation(testObservation("judgment-after", true), true, now); err != nil {
+		t.Fatal(err)
+	}
+	if _, err = turn.RecordTargetResponse(TargetEvaluation{Response: TargetAmbiguous, Outcome: trajectory.EvaluationHumanAuditionReady, EvidenceRefs: []string{"judgment-after"}}, now); err != nil {
+		t.Fatal(err)
+	}
+	if _, err = turn.RequestUserJudgmentForSession("compare A/B", "audition:turn-judgment:round", now); err != nil {
+		t.Fatal(err)
+	}
+	return turn
+}
+
+func TestUserJudgmentEvidenceIsSessionBoundAndImmutable(t *testing.T) {
+	now := time.Now().UTC()
+	turn := auditionReadyTurn(t)
+	round, _ := turn.currentRound()
+	evidence := UserJudgmentEvidence{
+		SchemaVersion: UserJudgmentEvidenceSchemaVersion, ID: "judgment-1",
+		ConversationID: turn.ConversationID, TurnID: turn.ID, RoundID: round.ID, AuditionSessionID: round.AuditionSessionID,
+		CandidateARef: "checkpoint:before", CandidateBRef: "action:treatment",
+		HeardDifference: HeardDifferenceYes, Preference: PreferenceB, ReasonTags: []string{"更自然"}, CreatedAt: now,
+	}
+	events, err := turn.RecordUserJudgmentEvidence(evidence, now)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(events) != 1 || events[0].Type != trajectory.EventUserJudgmentRecorded || events[0].Payload.Outcome != trajectory.EvaluationHumanConfirmed {
+		t.Fatalf("events=%+v", events)
+	}
+	stored, _ := turn.currentRound()
+	if len(stored.UserJudgmentEvidence) != 1 || stored.UserJudgmentEvidence[0].ID != "judgment-1" || stored.TargetResponse.Outcome != trajectory.EvaluationHumanConfirmed {
+		t.Fatalf("round=%+v", stored)
+	}
+	if _, err := turn.RecordUserJudgmentEvidence(evidence, now.Add(time.Second)); err == nil || !strings.Contains(err.Error(), "corrections") {
+		t.Fatalf("duplicate evidence error=%v", err)
+	}
+	correction := evidence
+	correction.ID = "judgment-2"
+	correction.SupersedesID = evidence.ID
+	correction.Preference = PreferenceEqual
+	correction.HeardDifference = HeardDifferenceYes
+	// The correction path is intentionally allowed only as a new immutable row.
+	if _, err := turn.RecordUserJudgmentEvidence(correction, now.Add(2*time.Second)); err != nil {
+		t.Fatal(err)
+	}
+	stored, _ = turn.currentRound()
+	if len(stored.UserJudgmentEvidence) != 2 || stored.UserJudgmentEvidence[0].Preference != PreferenceB || stored.UserJudgmentEvidence[1].SupersedesID != "judgment-1" {
+		t.Fatalf("correction history=%+v", stored.UserJudgmentEvidence)
+	}
+}
+
+func TestUserJudgmentEvidenceRejectsCandidatePreferenceWithoutHeardDifference(t *testing.T) {
+	turn := auditionReadyTurn(t)
+	round, _ := turn.currentRound()
+	evidence := UserJudgmentEvidence{SchemaVersion: UserJudgmentEvidenceSchemaVersion, ID: "invalid-judgment", ConversationID: turn.ConversationID, TurnID: turn.ID, RoundID: round.ID, AuditionSessionID: round.AuditionSessionID, CandidateARef: "a", CandidateBRef: "b", HeardDifference: HeardDifferenceNo, Preference: PreferenceA, CreatedAt: time.Now().UTC()}
+	if _, err := turn.RecordUserJudgmentEvidence(evidence, time.Now().UTC()); err == nil || !strings.Contains(err.Error(), "requires heard_difference") {
+		t.Fatalf("error=%v", err)
+	}
+}
+
+func TestRequestUserJudgmentRequiresHumanAuditionReadyAndExactSession(t *testing.T) {
+	turn, err := NewTurn(Identity{ConversationID: "conversation-request", TurnID: "turn-request"}, "compare", testAdmission(AuthorityFull), time.Now().UTC())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err = turn.StartRound([]string{"track.timbre_frequency"}, "checkpoint-request", "rev-1", time.Now().UTC()); err != nil {
+		t.Fatal(err)
+	}
+	if _, err = turn.RequestUserJudgmentForSession("too early", "session-1", time.Now().UTC()); err == nil || !strings.Contains(err.Error(), "human_audition_ready") {
+		t.Fatalf("error=%v", err)
+	}
+	if _, err = turn.RequestUserJudgment("legacy unbound", time.Now().UTC()); err == nil || !strings.Contains(err.Error(), "audition_session_id") {
+		t.Fatalf("legacy error=%v", err)
+	}
+}

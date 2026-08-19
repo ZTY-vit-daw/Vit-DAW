@@ -6,14 +6,17 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"vit-daw-agent/internal/agentloop"
 	"vit-daw-agent/internal/agentprotocol"
+	"vit-daw-agent/internal/experiment"
 	"vit-daw-agent/internal/harness"
 	"vit-daw-agent/internal/history"
 	"vit-daw-agent/internal/llm"
 	agentruntime "vit-daw-agent/internal/runtime"
 	"vit-daw-agent/internal/shadow"
+	"vit-daw-agent/internal/trajectory"
 )
 
 func TestExternalSaveAsForksWorkingRuntimeAndKeepsSourceCanonicalFrozen(t *testing.T) {
@@ -301,5 +304,51 @@ func assertProjectAGenericRuntimeRestored(t *testing.T, server *Server) {
 	}
 	if active := server.pendingManager.ActiveForConversation("chat_a"); len(active) != 1 || active[0].CandidateType != "mix_tick" {
 		t.Fatalf("pending manager was not restored: %#v", active)
+	}
+}
+
+func TestProjectWorkspaceRestoresAuditionJudgmentEvidenceWithoutReRequest(t *testing.T) {
+	root := t.TempDir()
+	projectPath := filepath.Join(root, "Judgment.vit")
+	if err := os.WriteFile(projectPath, []byte("judgment"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	const projectUUID = "vitproj_judgment_restore"
+	project := shadow.New(nil)
+	project.Initialize(map[string]any{"status": "ok", "project_path": projectPath, "project_uuid": projectUUID})
+	server := New(nil, project, nil)
+	server.activateCurrentProjectWorkspace(context.Background())
+	loop := auditionReadyLoop(t)
+	if _, err := loop.Experiment.RecordTargetResponse(experiment.TargetEvaluation{Response: experiment.TargetAmbiguous, Outcome: trajectory.EvaluationHumanAuditionReady, EvidenceRefs: []string{"after"}}, time.Now().UTC()); err != nil {
+		t.Fatal(err)
+	}
+	loop.AuditionSessionID = "session-persisted"
+	loop.AuditionSessionSnapshot = map[string]any{"session_id": loop.AuditionSessionID, "status": "ready", "project_revision": "rev-7", "candidates": []any{map[string]any{"id": "candidate-a", "status": "ready", "source_ref": "a", "preview_ref": "preview:a"}, map[string]any{"id": "candidate-b", "status": "ready", "source_ref": "b", "preview_ref": "preview:b"}}}
+	if _, err := loop.Experiment.RequestUserJudgmentForSession("compare", loop.AuditionSessionID, time.Now().UTC()); err != nil {
+		t.Fatal(err)
+	}
+	round, _ := loop.Experiment.CurrentRound()
+	evidence := experiment.UserJudgmentEvidence{SchemaVersion: experiment.UserJudgmentEvidenceSchemaVersion, ID: "judgment-persisted", ConversationID: loop.ConversationID, TurnID: loop.Experiment.ID, RoundID: round.ID, AuditionSessionID: loop.AuditionSessionID, CandidateARef: "a", CandidateBRef: "b", ProjectUUID: projectUUID, ProjectRevision: "rev-7", HeardDifference: experiment.HeardDifferenceNo, Preference: experiment.PreferenceUnsure, CreatedAt: time.Now().UTC()}
+	if _, err := loop.Experiment.RecordUserJudgmentEvidence(evidence, time.Now().UTC()); err != nil {
+		t.Fatal(err)
+	}
+	server.storeFreeStateLoop(loop)
+	server.persistCurrentProjectWorkspace()
+
+	restarted := New(nil, project, nil)
+	restarted.activateCurrentProjectWorkspace(context.Background())
+	restored, ok := restarted.freeStateLoop(loop.ConversationID)
+	if !ok || restored.Experiment == nil {
+		t.Fatalf("restored loop missing: %+v", restored)
+	}
+	restoredRound, _ := restored.Experiment.CurrentRound()
+	if len(restoredRound.UserJudgmentEvidence) != 1 || restoredRound.UserJudgmentEvidence[0].ID != evidence.ID || restoredRound.UserJudgmentRequested {
+		t.Fatalf("judgment evidence was not restored or was re-requested: %+v", restoredRound)
+	}
+	restarted.requestAuditionJudgment(loop.ConversationID, loop.AuditionSessionID)
+	after, _ := restarted.freeStateLoop(loop.ConversationID)
+	afterRound, _ := after.Experiment.CurrentRound()
+	if afterRound.UserJudgmentRequested || len(afterRound.UserJudgmentEvidence) != 1 {
+		t.Fatalf("completed judgment was requested again: %+v", afterRound)
 	}
 }

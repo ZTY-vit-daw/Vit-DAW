@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -145,7 +146,7 @@ func TestAuditionSelectRejectsCandidateBeforeReady(t *testing.T) {
 	}
 }
 
-func TestReadyAuditionSelectSettlesExperimentWithoutProjectPlaneCommands(t *testing.T) {
+func TestReadyAuditionSelectOnlyChangesPreviewWithoutRecordingJudgment(t *testing.T) {
 	fake := &fakeAuditionKernel{}
 	server := New(nil, nil, nil)
 	server.auditionKernel = fake
@@ -162,13 +163,164 @@ func TestReadyAuditionSelectSettlesExperimentWithoutProjectPlaneCommands(t *test
 		t.Fatalf("status=%d calls=%v body=%s", recorder.Code, fake.selectCalls, recorder.Body.String())
 	}
 	events, _ := server.agentEventsSince(loop.ConversationID, 0, 100)
-	foundJudgment, foundDecision, foundSettlement := false, false, false
 	for _, event := range events {
-		foundJudgment = foundJudgment || event.Type == string(trajectory.EventUserJudgmentRecorded)
-		foundDecision = foundDecision || event.Type == string(trajectory.EventRoundDecision)
-		foundSettlement = foundSettlement || event.Type == string(trajectory.EventSettled)
+		if event.Type == string(trajectory.EventUserJudgmentRecorded) || event.Type == string(trajectory.EventRoundDecision) || event.Type == string(trajectory.EventSettled) {
+			t.Fatalf("preview selection unexpectedly completed judgment/round: events=%+v", events)
+		}
 	}
-	if !foundJudgment || !foundDecision || !foundSettlement {
-		t.Fatalf("events=%+v", events)
+	stored, ok := server.freeStateLoop(loop.ConversationID)
+	if !ok || stored.Experiment == nil || stored.Experiment.Status == experiment.StatusSettled {
+		t.Fatalf("preview selection changed experiment lifecycle: %+v", stored.Experiment)
+	}
+}
+
+func TestAuditionJudgmentRecordsEvidenceAndRetainsPreferredTreatment(t *testing.T) {
+	fake := &fakeAuditionKernel{}
+	server := New(nil, nil, nil)
+	server.auditionKernel = fake
+	loop := auditionReadyLoop(t)
+	if _, err := loop.Experiment.RecordTargetResponse(experiment.TargetEvaluation{Response: experiment.TargetAmbiguous, Outcome: trajectory.EvaluationHumanAuditionReady, EvidenceRefs: []string{"after"}}, time.Now().UTC()); err != nil {
+		t.Fatal(err)
+	}
+	loop.AuditionSessionID = "session-ready"
+	loop.AuditionSessionSnapshot = map[string]any{
+		"session_id": "session-ready", "conversation_id": loop.ConversationID, "turn_id": loop.Experiment.ID,
+		"round_id": loop.Experiment.Rounds[0].ID, "status": "ready", "scope": "target", "project_revision": "rev-7",
+		"candidates": []any{
+			map[string]any{"id": "candidate-a", "status": "ready", "source_ref": "checkpoint:7", "preview_ref": "preview:a"},
+			map[string]any{"id": "candidate-b", "status": "ready", "source_ref": "action:7", "preview_ref": "preview:b"},
+		},
+	}
+	server.storeFreeStateLoop(loop)
+	server.requestAuditionJudgment(loop.ConversationID, loop.AuditionSessionID)
+	round, _ := loop.Experiment.CurrentRound()
+	requestBody := fmt.Sprintf(`{"conversation_id":%q,"turn_id":%q,"round_id":%q,"audition_session_id":%q,"project_revision":"rev-7","heard_difference":"yes","preference":"b","reason_tags":["更自然"]}`, loop.ConversationID, loop.Experiment.ID, round.ID, loop.AuditionSessionID)
+	recorder := httptest.NewRecorder()
+	server.handleAuditionJudgment(recorder, httptest.NewRequest(http.MethodPost, "/agent/audition/judgment", bytes.NewBufferString(requestBody)))
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("status=%d body=%s", recorder.Code, recorder.Body.String())
+	}
+	stored, ok := server.freeStateLoop(loop.ConversationID)
+	if !ok || stored.Experiment == nil || stored.Experiment.Status != experiment.StatusSettled || stored.Experiment.Outcome != experiment.OutcomeImproved {
+		t.Fatalf("stored=%+v", stored)
+	}
+	finalRound, _ := stored.Experiment.CurrentRound()
+	if len(finalRound.UserJudgmentEvidence) != 1 || finalRound.UserJudgmentEvidence[0].Preference != experiment.PreferenceB {
+		t.Fatalf("evidence=%+v", finalRound.UserJudgmentEvidence)
+	}
+}
+
+func TestAuditionJudgmentWithoutDifferenceStartsNextRound(t *testing.T) {
+	server := New(nil, nil, nil)
+	loop := auditionReadyLoop(t)
+	if _, err := loop.Experiment.RecordTargetResponse(experiment.TargetEvaluation{Response: experiment.TargetAmbiguous, Outcome: trajectory.EvaluationHumanAuditionReady, EvidenceRefs: []string{"after"}}, time.Now().UTC()); err != nil {
+		t.Fatal(err)
+	}
+	loop.AuditionSessionID = "session-ambiguous"
+	loop.AuditionSessionSnapshot = map[string]any{"session_id": "session-ambiguous", "status": "ready", "scope": "target", "project_revision": "rev-7", "candidates": []any{map[string]any{"id": "candidate-a", "status": "ready", "source_ref": "a", "preview_ref": "a"}, map[string]any{"id": "candidate-b", "status": "ready", "source_ref": "b", "preview_ref": "b"}}}
+	server.storeFreeStateLoop(loop)
+	server.requestAuditionJudgment(loop.ConversationID, loop.AuditionSessionID)
+	round, _ := loop.Experiment.CurrentRound()
+	requestBody := fmt.Sprintf(`{"conversation_id":%q,"turn_id":%q,"round_id":%q,"audition_session_id":%q,"project_revision":"rev-7","heard_difference":"no","preference":"a"}`, loop.ConversationID, loop.Experiment.ID, round.ID, loop.AuditionSessionID)
+	recorder := httptest.NewRecorder()
+	server.handleAuditionJudgment(recorder, httptest.NewRequest(http.MethodPost, "/agent/audition/judgment", bytes.NewBufferString(requestBody)))
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("status=%d body=%s", recorder.Code, recorder.Body.String())
+	}
+	stored, _ := server.freeStateLoop(loop.ConversationID)
+	if stored.Experiment.Status == experiment.StatusSettled || len(stored.Experiment.Rounds) != 2 || stored.Experiment.Rounds[0].Decision != experiment.DecisionNextRound {
+		t.Fatalf("ambiguous outcome=%+v", stored.Experiment)
+	}
+}
+
+func TestUserJudgmentDispositionCoversPreferencePolicy(t *testing.T) {
+	tests := []struct {
+		name          string
+		heard         experiment.HeardDifference
+		preference    experiment.JudgmentPreference
+		decision      experiment.RoundDecision
+		outcome       experiment.SettlementOutcome
+		continueRound bool
+	}{
+		{"prefer A", experiment.HeardDifferenceYes, experiment.PreferenceA, experiment.DecisionRollback, experiment.OutcomeRolledBack, false},
+		{"prefer B", experiment.HeardDifferenceYes, experiment.PreferenceB, experiment.DecisionRetain, experiment.OutcomeImproved, false},
+		{"equal", experiment.HeardDifferenceYes, experiment.PreferenceEqual, experiment.DecisionNextRound, "", true},
+		{"neither", experiment.HeardDifferenceYes, experiment.PreferenceNeither, experiment.DecisionRollback, experiment.OutcomeRolledBack, false},
+		{"unsure", experiment.HeardDifferenceYes, experiment.PreferenceUnsure, experiment.DecisionNextRound, "", true},
+		{"no difference", experiment.HeardDifferenceNo, experiment.PreferenceB, experiment.DecisionNextRound, "", true},
+		{"difference unsure", experiment.HeardDifferenceUnsure, experiment.PreferenceA, experiment.DecisionNextRound, "", true},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			got := dispositionForUserJudgment(experiment.UserJudgmentEvidence{HeardDifference: test.heard, Preference: test.preference})
+			if got.Decision != test.decision || got.Outcome != test.outcome || got.Continue != test.continueRound {
+				t.Fatalf("disposition=%+v", got)
+			}
+		})
+	}
+}
+
+func TestAuditionJudgmentRejectsStaleSessionAndRevisionMismatch(t *testing.T) {
+	for _, test := range []struct{ name, status, revision string }{
+		{"stale", "stale", "rev-7"},
+		{"revision mismatch", "ready", "rev-old"},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			server := New(nil, nil, nil)
+			loop := auditionReadyLoop(t)
+			if _, err := loop.Experiment.RecordTargetResponse(experiment.TargetEvaluation{Response: experiment.TargetAmbiguous, Outcome: trajectory.EvaluationHumanAuditionReady, EvidenceRefs: []string{"after"}}, time.Now().UTC()); err != nil {
+				t.Fatal(err)
+			}
+			loop.AuditionSessionID = "session-guarded"
+			loop.AuditionSessionSnapshot = map[string]any{"session_id": loop.AuditionSessionID, "status": test.status, "project_revision": "rev-7", "candidates": []any{map[string]any{"id": "candidate-a", "status": "ready", "source_ref": "a", "preview_ref": "a"}, map[string]any{"id": "candidate-b", "status": "ready", "source_ref": "b", "preview_ref": "b"}}}
+			server.storeFreeStateLoop(loop)
+			if test.status == "ready" {
+				server.requestAuditionJudgment(loop.ConversationID, loop.AuditionSessionID)
+			} else {
+				// Bind the runtime request before the Kernel marks the session stale.
+				loop.AuditionSessionSnapshot["status"] = "ready"
+				server.storeFreeStateLoop(loop)
+				server.requestAuditionJudgment(loop.ConversationID, loop.AuditionSessionID)
+				stored, _ := server.freeStateLoop(loop.ConversationID)
+				stored.AuditionSessionSnapshot["status"] = "stale"
+				server.storeFreeStateLoop(stored)
+			}
+			stored, _ := server.freeStateLoop(loop.ConversationID)
+			round, _ := stored.Experiment.CurrentRound()
+			requestBody := fmt.Sprintf(`{"conversation_id":%q,"turn_id":%q,"round_id":%q,"audition_session_id":%q,"project_revision":%q,"heard_difference":"yes","preference":"b"}`, stored.ConversationID, stored.Experiment.ID, round.ID, stored.AuditionSessionID, test.revision)
+			recorder := httptest.NewRecorder()
+			server.handleAuditionJudgment(recorder, httptest.NewRequest(http.MethodPost, "/agent/audition/judgment", bytes.NewBufferString(requestBody)))
+			if recorder.Code != http.StatusConflict {
+				t.Fatalf("status=%d body=%s", recorder.Code, recorder.Body.String())
+			}
+		})
+	}
+}
+
+func TestAuditionJudgmentRejectsWrongTurnRoundAndSessionBindings(t *testing.T) {
+	server := New(nil, nil, nil)
+	loop := auditionReadyLoop(t)
+	if _, err := loop.Experiment.RecordTargetResponse(experiment.TargetEvaluation{Response: experiment.TargetAmbiguous, Outcome: trajectory.EvaluationHumanAuditionReady, EvidenceRefs: []string{"after"}}, time.Now().UTC()); err != nil {
+		t.Fatal(err)
+	}
+	loop.AuditionSessionID = "session-bound"
+	loop.AuditionSessionSnapshot = map[string]any{"session_id": loop.AuditionSessionID, "status": "ready", "project_revision": "rev-7", "candidates": []any{map[string]any{"id": "candidate-a", "status": "ready", "source_ref": "a", "preview_ref": "a"}, map[string]any{"id": "candidate-b", "status": "ready", "source_ref": "b", "preview_ref": "b"}}}
+	server.storeFreeStateLoop(loop)
+	server.requestAuditionJudgment(loop.ConversationID, loop.AuditionSessionID)
+	stored, _ := server.freeStateLoop(loop.ConversationID)
+	round, _ := stored.Experiment.CurrentRound()
+	for _, test := range []struct{ name, turnID, roundID, sessionID string }{
+		{"turn", "wrong-turn", round.ID, stored.AuditionSessionID},
+		{"round", stored.Experiment.ID, "wrong-round", stored.AuditionSessionID},
+		{"session", stored.Experiment.ID, round.ID, "wrong-session"},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			body := fmt.Sprintf(`{"conversation_id":%q,"turn_id":%q,"round_id":%q,"audition_session_id":%q,"project_revision":"rev-7","heard_difference":"yes","preference":"b"}`, stored.ConversationID, test.turnID, test.roundID, test.sessionID)
+			recorder := httptest.NewRecorder()
+			server.handleAuditionJudgment(recorder, httptest.NewRequest(http.MethodPost, "/agent/audition/judgment", bytes.NewBufferString(body)))
+			if recorder.Code != http.StatusConflict {
+				t.Fatalf("status=%d body=%s", recorder.Code, recorder.Body.String())
+			}
+		})
 	}
 }

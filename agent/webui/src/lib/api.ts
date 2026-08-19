@@ -78,6 +78,22 @@ export function stopAudition(conversationID: string, sessionID: string): Promise
   return requestJSON("/agent/audition/stop", { method: "POST", body: JSON.stringify({ conversation_id: conversationID, session_id: sessionID }) });
 }
 
+export interface AuditionJudgmentPayload {
+  conversation_id: string;
+  turn_id: string;
+  round_id: string;
+  audition_session_id: string;
+  project_revision: string;
+  heard_difference: "yes" | "no" | "unsure";
+  preference: "a" | "b" | "neither" | "equal" | "unsure";
+  reason_tags?: string[];
+  free_text?: string;
+}
+
+export function submitAuditionJudgment(payload: AuditionJudgmentPayload): Promise<{ status?: string; evidence?: JsonRecord; error?: string }> {
+  return requestJSON("/agent/audition/judgment", { method: "POST", body: JSON.stringify(payload) });
+}
+
 export function fetchUIState(): Promise<AgentUIState> {
   return requestJSON<AgentUIState>("/agent/ui/state");
 }

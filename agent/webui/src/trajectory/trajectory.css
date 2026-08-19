@@ -134,3 +134,15 @@
 .audition-candidates button.active { border-color: #6ea8ff; box-shadow: 0 0 0 1px #6ea8ff inset; }
 .audition-candidates span { color: #91a0bb; }
 .audition-error { color: #ff9d9d; margin: 10px 0 0; font-size: 12px; }
+
+.audition-judgment { margin-top: 14px; padding: 14px; border: 1px solid rgba(113, 133, 166, 0.3); border-radius: 10px; background: rgba(22, 29, 44, 0.72); }
+.audition-judgment fieldset { margin: 0 0 12px; padding: 0; border: 0; }
+.audition-judgment legend { margin-bottom: 8px; color: #dce7ff; font-size: 12px; font-weight: 700; }
+.audition-choice-row { display: flex; flex-wrap: wrap; gap: 7px; }
+.audition-choice-row label { display: inline-flex; align-items: center; gap: 5px; padding: 6px 9px; border: 1px solid #34415a; border-radius: 7px; color: #b9c7df; background: #182033; font-size: 12px; cursor: pointer; }
+.audition-choice-row label:has(input:checked) { border-color: #6ea8ff; color: #fff; background: #24395e; }
+.audition-choice-row input { accent-color: #6ea8ff; }
+.audition-judgment textarea { box-sizing: border-box; width: 100%; resize: vertical; border: 1px solid #34415a; border-radius: 7px; padding: 8px; color: #dce7ff; background: #111827; font: inherit; font-size: 12px; }
+.audition-submit { margin-top: 10px; border: 1px solid #91baff; border-radius: 8px; padding: 8px 12px; color: #101827; background: #91baff; font-weight: 700; cursor: pointer; }
+.audition-submit:disabled { opacity: .45; cursor: not-allowed; }
+.audition-recorded { margin-top: 12px; padding: 9px 10px; border-left: 3px solid #9dca55; color: #d6edb2; background: rgba(75, 102, 43, .22); font-size: 12px; line-height: 1.45; }
