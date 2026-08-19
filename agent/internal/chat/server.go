@@ -50,16 +50,17 @@ import (
 )
 
 type Server struct {
-	kernel           *kernel.Client
-	auditionKernel   auditionCommandClient
-	eqKernelOverride eqKernelTransport
-	shadow           *shadow.Project
-	llm              *llm.Client
-	logger           *logx.Logger
-	harness          *harness.Harness
-	artifactRoot     string
-	webUIRoot        string
-	startedAt        time.Time
+	kernel                  *kernel.Client
+	auditionKernel          auditionCommandClient
+	auditionCandidateDriver auditionCandidateProjectDriver
+	eqKernelOverride        eqKernelTransport
+	shadow                  *shadow.Project
+	llm                     *llm.Client
+	logger                  *logx.Logger
+	harness                 *harness.Harness
+	artifactRoot            string
+	webUIRoot               string
+	startedAt               time.Time
 
 	mu                                 sync.Mutex
 	conversations                      map[string][]llm.Message
@@ -428,7 +429,7 @@ func New(kernelClient *kernel.Client, shadowProject *shadow.Project, logger *log
 			logger.Warn("[orchestration] persistent store unavailable path=%s error=%v; using memory store", storePath, err)
 		}
 	}
-	return &Server{
+	server := &Server{
 		kernel:                           kernelClient,
 		auditionKernel:                   kernelClient,
 		shadow:                           shadowProject,
@@ -457,6 +458,8 @@ func New(kernelClient *kernel.Client, shadowProject *shadow.Project, logger *log
 		processorCertificationJobs:       map[string]processorCertificationJob{},
 		processorCertificationLoadTokens: map[string]processorCertificationLoadAuthorization{},
 	}
+	server.auditionCandidateDriver = &serverAuditionCandidateProjectDriver{server: server}
+	return server
 }
 
 func (s *Server) HandleKernelTelemetry(event map[string]any) {
@@ -480,6 +483,8 @@ func (s *Server) Routes() http.Handler {
 	mux.HandleFunc("/agent/audition/select", s.handleAuditionSelect)
 	mux.HandleFunc("/agent/audition/stop", s.handleAuditionStop)
 	mux.HandleFunc("/agent/audition/judgment", s.handleAuditionJudgment)
+	mux.HandleFunc("/agent/audition/inspect_candidate", s.handleAuditionInspectCandidate)
+	mux.HandleFunc("/agent/audition/apply_candidate", s.handleAuditionApplyCandidate)
 	mux.HandleFunc("/agent/state", s.handleState)
 	mux.HandleFunc("/agent/ui/state", s.handleUIState)
 	mux.HandleFunc("/agent/ui/context", s.handleUIContext)

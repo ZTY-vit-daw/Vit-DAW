@@ -130,6 +130,10 @@ func (s *Server) updateAuditionSessionSnapshot(conversationID string, session ma
 	if len(loop.AuditionSessionSnapshot) > 0 {
 		merged := cloneContext(loop.AuditionSessionSnapshot)
 		for key, value := range session {
+			if key == "candidates" {
+				merged[key] = mergeAuditionCandidateRows(firstMapRows(merged[key]), firstMapRows(value))
+				continue
+			}
 			merged[key] = value
 		}
 		session = merged
@@ -281,17 +285,41 @@ func (s *Server) prepareFreeStateAudition(ctx context.Context, loop *freeStateRe
 		return nil
 	}
 	projectRevision := firstNonEmpty(round.ProjectRevision, firstStringFromMap(loop.LatestProjectChange, "project_revision", "revision"), round.CheckpointRef)
-	projectRef := firstNonEmpty(firstStringFromMap(loop.LatestProjectChange, "project_path", "project_id", "project_uuid"), "project:active")
-	baselineRef := "checkpoint:" + round.CheckpointRef
+	projectRef := firstStringFromMap(loop.LatestProjectChange, "project_path")
+	projectUUIDFromChange := firstStringFromMap(loop.LatestProjectChange, "project_uuid", "project_id")
+	if s.auditionCandidateDriver != nil {
+		if plane, planeErr := s.auditionCandidateDriver.CurrentPlane(ctx); planeErr == nil {
+			projectRef = firstNonEmpty(projectRef, plane.ProjectPath)
+			projectUUIDFromChange = firstNonEmpty(projectUUIDFromChange, plane.ProjectUUID)
+			projectRevision = firstNonEmpty(projectRevision, plane.ProjectRevision)
+		}
+	}
+	projectRef = firstNonEmpty(projectRef, "project:active")
+	baselineCommit := strings.TrimSpace(round.CheckpointRef)
+	baselineRef := "checkpoint:" + baselineCommit
 	treatmentRef := baselineRef
 	if len(round.Interventions) > 0 {
 		treatmentRef = "action:" + round.Interventions[len(round.Interventions)-1].ID
 	}
+	projectUUID := projectUUIDFromChange
 	request := kernel.AuditionSessionRequest{
 		ConversationID: loop.ConversationID, SessionID: sessionID, Scope: "target",
 		ActiveProjectRef: projectRef, ActiveProjectRevision: projectRevision, TimelineRevision: projectRevision,
-		Candidates: []kernel.AuditionCandidate{{ID: "candidate-a", Label: "A", SourceKind: "checkpoint", SourceRef: baselineRef}, {ID: "candidate-b", Label: "B", SourceKind: "experiment", SourceRef: treatmentRef}},
+		Candidates: []kernel.AuditionCandidate{
+			{ID: "candidate-a", Label: "A", SourceKind: "checkpoint", SourceRef: baselineRef, CheckpointRef: baselineCommit, CommitID: baselineCommit, ProjectPath: projectRef, ProjectUUID: projectUUID, ProjectRevision: projectRevision},
+			{ID: "candidate-b", Label: "B", SourceKind: "experiment", SourceRef: treatmentRef, ProjectPath: projectRef, ProjectUUID: projectUUID, ProjectRevision: projectRevision},
+		},
 	}
+	if s.auditionCandidateDriver == nil {
+		return fmt.Errorf("candidate project driver unavailable")
+	}
+	treatmentCheckpoint, checkpointErr := s.auditionCandidateDriver.CreateCheckpoint(ctx, auditionCheckpointRequest{ProjectPath: projectRef, Message: "Audition candidate B treatment", Source: "audition.prepare", CheckpointKind: "audition_candidate_treatment", GoalID: loop.GoalID, RunID: loop.RunID})
+	if checkpointErr != nil {
+		return fmt.Errorf("create treatment candidate checkpoint: %w", checkpointErr)
+	}
+	treatmentCommit := firstStringFromMap(treatmentCheckpoint, "commit_id")
+	request.Candidates[1].CheckpointRef = treatmentCommit
+	request.Candidates[1].CommitID = treatmentCommit
 	if s.auditionKernel == nil {
 		session := map[string]any{"session_id": sessionID, "conversation_id": loop.ConversationID, "status": "failed", "candidates": request.Candidates}
 		s.emitAuditionEvent(loop.ConversationID, "audition.failed", session, map[string]any{"message": "kernel unavailable", "command": "audition.prepare"})
@@ -344,6 +372,31 @@ func (s *Server) enrichAuditionSession(session map[string]any, loop *freeStateRe
 	session["timeline_revision"] = request.TimelineRevision
 	session["candidate_a_ref"] = request.Candidates[0].SourceRef
 	session["candidate_b_ref"] = request.Candidates[1].SourceRef
+	rows := auditionCandidateRows(session)
+	if len(rows) == 0 {
+		rows = []map[string]any{{"id": "candidate-a"}, {"id": "candidate-b"}}
+	}
+	for index := range request.Candidates {
+		want := request.Candidates[index]
+		for rowIndex := range rows {
+			if firstStringFromMap(rows[rowIndex], "id") != want.ID {
+				continue
+			}
+			data, _ := json.Marshal(want)
+			projection := map[string]any{}
+			_ = json.Unmarshal(data, &projection)
+			for key, value := range projection {
+				if !isEmptyProjectResultValue(value) {
+					rows[rowIndex][key] = value
+				}
+			}
+		}
+	}
+	values := make([]any, 0, len(rows))
+	for _, row := range rows {
+		values = append(values, row)
+	}
+	session["candidates"] = values
 	if firstStringFromMap(session, "status") == "" {
 		session["status"] = "preparing"
 	}
@@ -424,6 +477,9 @@ func (s *Server) recordFreeStateAuditionJudgment(ctx context.Context, request au
 	if err != nil {
 		return experiment.UserJudgmentEvidence{}, err
 	}
+	if recordedRound, recordedErr := loop.Experiment.CurrentRound(); recordedErr == nil && len(recordedRound.UserJudgmentEvidence) > 0 {
+		evidence = recordedRound.UserJudgmentEvidence[len(recordedRound.UserJudgmentEvidence)-1]
+	}
 	s.emitFreeStateExperimentEvents(events)
 	// A correction is a new immutable evidence row. It does not silently
 	// replay adoption/rollback against an already-settled round.
@@ -433,16 +489,21 @@ func (s *Server) recordFreeStateAuditionJudgment(ctx context.Context, request au
 		s.persistCurrentProjectWorkspace()
 		return evidence, nil
 	}
-	// Persist the raw judgment before adoption/rollback. If the recoverable
-	// project action fails, the user's evidence must still remain auditable.
-	loop.UpdatedAt = time.Now().UTC()
-	s.storeFreeStateLoop(loop)
-	s.persistCurrentProjectWorkspace()
-	if err := s.applyFreeStateJudgmentOutcome(ctx, &loop, evidence); err != nil {
-		loop.UpdatedAt = time.Now().UTC()
-		s.storeFreeStateLoop(loop)
-		s.persistCurrentProjectWorkspace()
-		return experiment.UserJudgmentEvidence{}, err
+	// Recording human evidence never adopts or restores a Candidate. A/B
+	// preference becomes an explicit apply_candidate authorization boundary.
+	if evidence.HeardDifference == experiment.HeardDifferenceYes && (evidence.Preference == experiment.PreferenceA || evidence.Preference == experiment.PreferenceB) {
+		loop.Status = "awaiting_candidate_apply"
+		loop.AuditionSessionSnapshot["adoption_status"] = "pending"
+		loop.AuditionSessionSnapshot["judgment_evidence_id"] = evidence.ID
+	} else {
+		// Ambiguous/no-difference evidence does not authorize a project change.
+		// Keep the established G6 next-round policy, but without candidate adoption.
+		if err := s.applyFreeStateJudgmentOutcome(ctx, &loop, evidence); err != nil {
+			loop.UpdatedAt = time.Now().UTC()
+			s.storeFreeStateLoop(loop)
+			s.persistCurrentProjectWorkspace()
+			return experiment.UserJudgmentEvidence{}, err
+		}
 	}
 	loop.UpdatedAt = time.Now().UTC()
 	s.storeFreeStateLoop(loop)
@@ -480,6 +541,45 @@ func buildUserJudgmentEvidence(loop freeStateReasoningLoop, round experiment.Rou
 		AnalyticalEvidenceRefs: append([]string(nil), round.TargetResponse.EvidenceRefs...), HeardDifference: heard, Preference: preference,
 		ReasonTags: append([]string(nil), reasonTags...), FreeText: strings.TrimSpace(freeText), CreatedAt: time.Now().UTC(),
 	}
+}
+
+func firstMapRows(value any) []map[string]any {
+	rows := []map[string]any{}
+	items, ok := value.([]any)
+	if !ok {
+		return rows
+	}
+	for _, item := range items {
+		if row := firstMapFromAny(item); len(row) > 0 {
+			rows = append(rows, row)
+		}
+	}
+	return rows
+}
+
+func mergeAuditionCandidateRows(previous, incoming []map[string]any) []any {
+	byID := map[string]map[string]any{}
+	order := []string{}
+	for _, row := range append(previous, incoming...) {
+		id := firstStringFromMap(row, "id")
+		if id == "" {
+			continue
+		}
+		if _, exists := byID[id]; !exists {
+			order = append(order, id)
+			byID[id] = map[string]any{}
+		}
+		for key, value := range row {
+			if !isEmptyProjectResultValue(value) {
+				byID[id][key] = value
+			}
+		}
+	}
+	out := make([]any, 0, len(order))
+	for _, id := range order {
+		out = append(out, byID[id])
+	}
+	return out
 }
 
 func auditionCandidateRows(session map[string]any) []map[string]any {
@@ -531,8 +631,10 @@ func dispositionForUserJudgment(evidence experiment.UserJudgmentEvidence) auditi
 	switch evidence.Preference {
 	case experiment.PreferenceB:
 		return auditionJudgmentDisposition{Decision: experiment.DecisionRetain, Outcome: experiment.OutcomeImproved}
-	case experiment.PreferenceA, experiment.PreferenceNeither:
+	case experiment.PreferenceA:
 		return auditionJudgmentDisposition{Decision: experiment.DecisionRollback, Outcome: experiment.OutcomeRolledBack}
+	case experiment.PreferenceNeither:
+		return auditionJudgmentDisposition{Decision: experiment.DecisionNextRound, Continue: true}
 	default:
 		return auditionJudgmentDisposition{Decision: experiment.DecisionNextRound, Continue: true}
 	}

@@ -36,6 +36,14 @@ struct Candidate
     std::string sourceRef;
     std::string previewRef;
     CandidateStatus status = CandidateStatus::preparing;
+    std::string checkpointRef;
+    std::string commitId;
+    std::string branchRef;
+    std::string worktreeRef;
+    std::string projectPath;
+    std::string projectUUID;
+    std::string projectRevision;
+    std::string renderRevision;
 };
 
 struct TransportAnchor

@@ -51,6 +51,41 @@ func (f *fakeAuditionKernel) AuditionStop(_ context.Context, sessionID string) (
 	return nil, nil
 }
 
+type candidateDriverForTest struct {
+	plane         auditionProjectPlane
+	checkoutCalls []auditionCandidateReference
+	checkpoints   int
+	observations  int
+	checkoutErr   error
+}
+
+func (d *candidateDriverForTest) CurrentPlane(context.Context) (auditionProjectPlane, error) {
+	return d.plane, nil
+}
+func (d *candidateDriverForTest) CreateCheckpoint(_ context.Context, request auditionCheckpointRequest) (map[string]any, error) {
+	d.checkpoints++
+	return map[string]any{"status": "ok", "commit_id": fmt.Sprintf("candidate-commit-%d", d.checkpoints), "project_path": request.ProjectPath}, nil
+}
+func (d *candidateDriverForTest) CheckoutCandidate(_ context.Context, ref auditionCandidateReference) (map[string]any, error) {
+	d.checkoutCalls = append(d.checkoutCalls, ref)
+	if d.checkoutErr != nil && ref.CandidateID != "safety" {
+		return nil, d.checkoutErr
+	}
+	d.plane.HistoryHead = firstNonEmpty(ref.CommitID, ref.CheckpointRef)
+	return map[string]any{"status": "ok", "refresh": map[string]any{"kernel_reloaded": true, "shadow_refreshed": true}}, nil
+}
+func (d *candidateDriverForTest) RefreshPlane(context.Context, string) (auditionProjectPlane, map[string]any, error) {
+	return d.plane, map[string]any{"freshness": "current_snapshot", "change_id": "test-change"}, nil
+}
+func (d *candidateDriverForTest) RequestObservation(_ context.Context, _ freeStateReasoningLoop, _ experiment.Round) (map[string]any, *agentloop.RecentObservation, error) {
+	d.observations++
+	summary := map[string]any{"status": "ready", "observation_id": "obs-adoption", "requested_views": []any{"track.timbre_frequency"}, "actual_executed_view_ids": []any{"track.timbre_frequency"}, "evidence_refs": []any{"obs-adoption"}, "audit_receipt": map[string]any{"view_set_matches": true, "actual_executed_view_ids": []any{"track.timbre_frequency"}, "freshness": map[string]any{"status": "fresh"}}}
+	return summary, &agentloop.RecentObservation{Tool: "ccb.observation_request", Status: "ready", ToolCallID: "obs-adoption", Summary: summary}, nil
+}
+func newCandidateDriverForTest() *candidateDriverForTest {
+	return &candidateDriverForTest{plane: auditionProjectPlane{ProjectPath: "active.vit", ProjectUUID: "project-1", ProjectRevision: "rev-7", HistoryHead: "checkpoint-7", ActiveBranch: "main"}}
+}
+
 func auditionReadyLoop(t *testing.T) freeStateReasoningLoop {
 	t.Helper()
 	now := time.Now().UTC()
@@ -91,6 +126,7 @@ func TestFreeStateHumanAuditionCallsKernelPrepareAndEmitsEvents(t *testing.T) {
 	fake := &fakeAuditionKernel{}
 	server := New(nil, nil, nil)
 	server.auditionKernel = fake
+	server.auditionCandidateDriver = newCandidateDriverForTest()
 	loop := auditionReadyLoop(t)
 	server.recordFreeStateExperimentDecision(context.Background(), &loop, agentloop.FreeStateDecision{ExperimentTargetResponse: &experiment.TargetEvaluation{Response: experiment.TargetAmbiguous, Outcome: trajectory.EvaluationHumanAuditionReady, EvidenceRefs: []string{"after"}}})
 	if len(fake.prepareRequests) != 1 {
@@ -124,6 +160,7 @@ func TestFreeStateAuditionPrepareFailureIsObservable(t *testing.T) {
 	fake := &fakeAuditionKernel{prepareError: errors.New("preview unavailable")}
 	server := New(nil, nil, nil)
 	server.auditionKernel = fake
+	server.auditionCandidateDriver = newCandidateDriverForTest()
 	loop := auditionReadyLoop(t)
 	if err := server.prepareFreeStateAudition(context.Background(), &loop); err == nil {
 		t.Fatal("expected prepare failure")
@@ -150,6 +187,7 @@ func TestReadyAuditionSelectOnlyChangesPreviewWithoutRecordingJudgment(t *testin
 	fake := &fakeAuditionKernel{}
 	server := New(nil, nil, nil)
 	server.auditionKernel = fake
+	server.auditionCandidateDriver = newCandidateDriverForTest()
 	loop := auditionReadyLoop(t)
 	if _, err := loop.Experiment.RecordTargetResponse(experiment.TargetEvaluation{Response: experiment.TargetAmbiguous, Outcome: trajectory.EvaluationHumanAuditionReady, EvidenceRefs: []string{"after"}}, time.Now().UTC()); err != nil {
 		t.Fatal(err)
@@ -178,6 +216,7 @@ func TestAuditionJudgmentRecordsEvidenceAndRetainsPreferredTreatment(t *testing.
 	fake := &fakeAuditionKernel{}
 	server := New(nil, nil, nil)
 	server.auditionKernel = fake
+	server.auditionCandidateDriver = newCandidateDriverForTest()
 	loop := auditionReadyLoop(t)
 	if _, err := loop.Experiment.RecordTargetResponse(experiment.TargetEvaluation{Response: experiment.TargetAmbiguous, Outcome: trajectory.EvaluationHumanAuditionReady, EvidenceRefs: []string{"after"}}, time.Now().UTC()); err != nil {
 		t.Fatal(err)
@@ -201,7 +240,7 @@ func TestAuditionJudgmentRecordsEvidenceAndRetainsPreferredTreatment(t *testing.
 		t.Fatalf("status=%d body=%s", recorder.Code, recorder.Body.String())
 	}
 	stored, ok := server.freeStateLoop(loop.ConversationID)
-	if !ok || stored.Experiment == nil || stored.Experiment.Status != experiment.StatusSettled || stored.Experiment.Outcome != experiment.OutcomeImproved {
+	if !ok || stored.Experiment == nil || stored.Experiment.Status == experiment.StatusSettled || stored.Status != "awaiting_candidate_apply" {
 		t.Fatalf("stored=%+v", stored)
 	}
 	finalRound, _ := stored.Experiment.CurrentRound()
@@ -245,7 +284,7 @@ func TestUserJudgmentDispositionCoversPreferencePolicy(t *testing.T) {
 		{"prefer A", experiment.HeardDifferenceYes, experiment.PreferenceA, experiment.DecisionRollback, experiment.OutcomeRolledBack, false},
 		{"prefer B", experiment.HeardDifferenceYes, experiment.PreferenceB, experiment.DecisionRetain, experiment.OutcomeImproved, false},
 		{"equal", experiment.HeardDifferenceYes, experiment.PreferenceEqual, experiment.DecisionNextRound, "", true},
-		{"neither", experiment.HeardDifferenceYes, experiment.PreferenceNeither, experiment.DecisionRollback, experiment.OutcomeRolledBack, false},
+		{"neither", experiment.HeardDifferenceYes, experiment.PreferenceNeither, experiment.DecisionNextRound, "", true},
 		{"unsure", experiment.HeardDifferenceYes, experiment.PreferenceUnsure, experiment.DecisionNextRound, "", true},
 		{"no difference", experiment.HeardDifferenceNo, experiment.PreferenceB, experiment.DecisionNextRound, "", true},
 		{"difference unsure", experiment.HeardDifferenceUnsure, experiment.PreferenceA, experiment.DecisionNextRound, "", true},
@@ -322,5 +361,81 @@ func TestAuditionJudgmentRejectsWrongTurnRoundAndSessionBindings(t *testing.T) {
 				t.Fatalf("status=%d body=%s", recorder.Code, recorder.Body.String())
 			}
 		})
+	}
+}
+
+func boundAdoptionLoopForTest(t *testing.T) freeStateReasoningLoop {
+	t.Helper()
+	loop := auditionReadyLoop(t)
+	loop.AuditionSessionID = "session-adoption"
+	round := loop.Experiment.Rounds[0]
+	round.AuditionSessionID = loop.AuditionSessionID
+	loop.Experiment.Rounds[0] = round
+	loop.AuditionSessionSnapshot = map[string]any{"session_id": loop.AuditionSessionID, "conversation_id": loop.ConversationID, "turn_id": loop.Experiment.ID, "round_id": round.ID, "status": "ready", "scope": "target", "project_uuid": "project-1", "project_revision": "rev-7", "active_project_ref": "active.vit", "candidates": []any{map[string]any{"id": "candidate-a", "label": "A", "status": "ready", "source_kind": "checkpoint", "source_ref": "checkpoint:checkpoint-7", "checkpoint_ref": "checkpoint-7", "commit_id": "checkpoint-7", "project_path": "active.vit", "project_uuid": "project-1", "project_revision": "rev-7", "preview_ref": "preview:a"}, map[string]any{"id": "candidate-b", "label": "B", "status": "ready", "source_kind": "experiment", "source_ref": "checkpoint:treatment-7", "checkpoint_ref": "treatment-7", "commit_id": "treatment-7", "project_path": "active.vit", "project_uuid": "project-1", "project_revision": "rev-7", "preview_ref": "preview:b"}}}
+	if _, err := loop.Experiment.RecordTargetResponse(experiment.TargetEvaluation{Response: experiment.TargetAmbiguous, Outcome: trajectory.EvaluationHumanAuditionReady, EvidenceRefs: []string{"after"}}, time.Now().UTC()); err != nil {
+		t.Fatal(err)
+	}
+	return loop
+}
+func recordPreferredBForTest(t *testing.T, s *Server, loop *freeStateReasoningLoop) experiment.UserJudgmentEvidence {
+	t.Helper()
+	s.storeFreeStateLoop(*loop)
+	s.requestAuditionJudgment(loop.ConversationID, loop.AuditionSessionID)
+	stored, _ := s.freeStateLoop(loop.ConversationID)
+	round, _ := stored.Experiment.CurrentRound()
+	body := fmt.Sprintf(`{"conversation_id":%q,"turn_id":%q,"round_id":%q,"audition_session_id":%q,"project_revision":"rev-7","heard_difference":"yes","preference":"b"}`, stored.ConversationID, stored.Experiment.ID, round.ID, stored.AuditionSessionID)
+	rec := httptest.NewRecorder()
+	s.handleAuditionJudgment(rec, httptest.NewRequest(http.MethodPost, "/agent/audition/judgment", bytes.NewBufferString(body)))
+	if rec.Code != http.StatusOK {
+		t.Fatalf("judgment status=%d body=%s", rec.Code, rec.Body.String())
+	}
+	stored, _ = s.freeStateLoop(loop.ConversationID)
+	round, _ = stored.Experiment.CurrentRound()
+	return round.UserJudgmentEvidence[len(round.UserJudgmentEvidence)-1]
+}
+func TestCandidateInspectDoesNotAdopt(t *testing.T) {
+	s := New(nil, nil, nil)
+	d := newCandidateDriverForTest()
+	s.auditionCandidateDriver = d
+	loop := boundAdoptionLoopForTest(t)
+	s.storeFreeStateLoop(loop)
+	receipt, err := s.inspectAuditionCandidate(context.Background(), auditionCandidateOperationRequest{ConversationID: loop.ConversationID, SessionID: loop.AuditionSessionID, CandidateID: "candidate-b"})
+	if err != nil || receipt.Status != "inspected" {
+		t.Fatalf("receipt=%+v err=%v", receipt, err)
+	}
+	stored, _ := s.freeStateLoop(loop.ConversationID)
+	if stored.Experiment.Status == experiment.StatusSettled || firstStringFromMap(stored.AuditionSessionSnapshot, "adopted_candidate_id") != "" {
+		t.Fatalf("stored=%+v", stored)
+	}
+}
+func TestCandidateInspectFailureRollsBack(t *testing.T) {
+	s := New(nil, nil, nil)
+	d := newCandidateDriverForTest()
+	d.checkoutErr = errors.New("materialize failed")
+	s.auditionCandidateDriver = d
+	loop := boundAdoptionLoopForTest(t)
+	s.storeFreeStateLoop(loop)
+	receipt, err := s.inspectAuditionCandidate(context.Background(), auditionCandidateOperationRequest{ConversationID: loop.ConversationID, SessionID: loop.AuditionSessionID, CandidateID: "candidate-b"})
+	if err == nil || firstStringFromMap(receipt.Rollback, "status") != "rolled_back" {
+		t.Fatalf("receipt=%+v err=%v", receipt, err)
+	}
+}
+func TestCandidateJudgmentNeedsExplicitApply(t *testing.T) {
+	s := New(nil, nil, nil)
+	d := newCandidateDriverForTest()
+	s.auditionCandidateDriver = d
+	loop := boundAdoptionLoopForTest(t)
+	evidence := recordPreferredBForTest(t, s, &loop)
+	stored, _ := s.freeStateLoop(loop.ConversationID)
+	if stored.Experiment.Status == experiment.StatusSettled {
+		t.Fatal("judgment settled before apply")
+	}
+	receipt, err := s.applyAuditionCandidate(context.Background(), auditionCandidateOperationRequest{ConversationID: loop.ConversationID, SessionID: loop.AuditionSessionID, CandidateID: "candidate-b", JudgmentEvidenceID: evidence.ID})
+	if err != nil || receipt.Status != "applied" {
+		t.Fatalf("receipt=%+v err=%v", receipt, err)
+	}
+	stored, _ = s.freeStateLoop(loop.ConversationID)
+	if stored.Experiment.Status != experiment.StatusSettled || firstStringFromMap(stored.AuditionSessionSnapshot, "adopted_candidate_id") != "candidate-b" || d.observations != 1 {
+		t.Fatalf("stored=%+v observations=%d", stored, d.observations)
 	}
 }

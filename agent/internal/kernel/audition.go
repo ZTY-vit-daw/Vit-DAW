@@ -7,11 +7,19 @@ import (
 
 // AuditionCandidate is the protocol shape for one Kernel-owned preview.
 type AuditionCandidate struct {
-	ID         string `json:"id"`
-	Label      string `json:"label,omitempty"`
-	SourceKind string `json:"source_kind,omitempty"`
-	SourceRef  string `json:"source_ref"`
-	PreviewRef string `json:"preview_ref,omitempty"`
+	ID              string `json:"id"`
+	Label           string `json:"label,omitempty"`
+	SourceKind      string `json:"source_kind,omitempty"`
+	SourceRef       string `json:"source_ref"`
+	PreviewRef      string `json:"preview_ref,omitempty"`
+	CheckpointRef   string `json:"checkpoint_ref,omitempty"`
+	CommitID        string `json:"commit_id,omitempty"`
+	BranchRef       string `json:"branch_ref,omitempty"`
+	WorktreeRef     string `json:"worktree_ref,omitempty"`
+	ProjectPath     string `json:"project_path,omitempty"`
+	ProjectUUID     string `json:"project_uuid,omitempty"`
+	ProjectRevision string `json:"project_revision,omitempty"`
+	RenderRevision  string `json:"render_revision,omitempty"`
 }
 
 // AuditionSessionRequest creates a session spanning the Active Project Plane
