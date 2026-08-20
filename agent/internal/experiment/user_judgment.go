@@ -50,6 +50,12 @@ type UserJudgmentEvidence struct {
 	CandidateBBranchRef      string `json:"candidate_b_branch_ref,omitempty"`
 	CandidateAWorktreeRef    string `json:"candidate_a_worktree_ref,omitempty"`
 	CandidateBWorktreeRef    string `json:"candidate_b_worktree_ref,omitempty"`
+	CandidateAOwnerAgentID   string `json:"candidate_a_owner_agent_id,omitempty"`
+	CandidateBOwnerAgentID   string `json:"candidate_b_owner_agent_id,omitempty"`
+	CandidateAReservationID  string `json:"candidate_a_reservation_id,omitempty"`
+	CandidateBReservationID  string `json:"candidate_b_reservation_id,omitempty"`
+	CandidateAArtifactRef    string `json:"candidate_a_artifact_ref,omitempty"`
+	CandidateBArtifactRef    string `json:"candidate_b_artifact_ref,omitempty"`
 	CandidateAPreviewRef     string `json:"candidate_a_preview_ref,omitempty"`
 	CandidateBPreviewRef     string `json:"candidate_b_preview_ref,omitempty"`
 	CandidateARenderRevision string `json:"candidate_a_render_revision,omitempty"`

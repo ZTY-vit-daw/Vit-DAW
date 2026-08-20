@@ -9,11 +9,13 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
 	"vit-daw-agent/internal/acousticpackage"
 	"vit-daw-agent/internal/agentprotocol"
+	"vit-daw-agent/internal/collaboration"
 	"vit-daw-agent/internal/history"
 	"vit-daw-agent/internal/journal"
 	"vit-daw-agent/internal/kernel"
@@ -7089,5 +7091,285 @@ func TestInvokeCheckoutGuardRejectsRunningGoalAndAllowsStoppedGoal(t *testing.T)
 	allowed, err := h.Invoke(context.Background(), InvokeRequest{Tool: "version.checkout", Args: map[string]any{"commit_id": "commit-1"}, Confirmed: true, GoalID: goal.GoalID, RunID: goal.RunID, Source: "test"})
 	if err != nil && allowed.Error == "checkout_blocked_while_agent_running" {
 		t.Fatalf("stopped goal remained blocked: %+v err=%v", allowed, err)
+	}
+}
+
+func TestInvokeBranchCreateGuardAllowsOnlyInactiveCreationDuringRunningGoal(t *testing.T) {
+	root := t.TempDir()
+	project := filepath.Join(root, "Song.vit")
+	if err := os.WriteFile(project, []byte("root"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	checkpoint, err := history.Checkpoint(map[string]any{"project_path": project, "message": "root"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	commitID := checkpoint["commit_id"].(string)
+	h := New(nil, nil, nil)
+	goal := h.BeginGoal("parallel branch experiment")
+
+	blocked, err := h.Invoke(context.Background(), InvokeRequest{
+		Tool:      "version.branch_create",
+		Args:      map[string]any{"project_path": project, "name": "active-branch", "commit_id": commitID},
+		Confirmed: true, GoalID: goal.GoalID, RunID: goal.RunID, Source: "test",
+	})
+	if err == nil || blocked.Result["error_code"] != "checkout_blocked_while_agent_running" {
+		t.Fatalf("active branch creation was not guarded: response=%+v err=%v", blocked, err)
+	}
+
+	inactive, err := h.Invoke(context.Background(), InvokeRequest{
+		Tool:      "version.branch_create",
+		Args:      map[string]any{"project_path": project, "name": "inactive-branch", "commit_id": commitID, "activate": false},
+		Confirmed: true, GoalID: goal.GoalID, RunID: goal.RunID, Source: "test",
+	})
+	if err != nil || inactive.Status != "ok" || inactive.Result["activated"] != false {
+		t.Fatalf("inactive branch creation failed or activated: response=%+v err=%v", inactive, err)
+	}
+	status, err := history.Status(map[string]any{"project_path": project})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if status["active_branch"] != "main" {
+		t.Fatalf("inactive branch changed active history: %#v", status)
+	}
+}
+
+func TestWorktreeReservationCommandsAndWriterGuard(t *testing.T) {
+	root := t.TempDir()
+	project := filepath.Join(root, "Song.vit")
+	if err := os.WriteFile(project, []byte("root"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	projectUUID := "project-reservation"
+	history.BindProjectIdentity(project, projectUUID)
+	checkpoint, err := history.Checkpoint(map[string]any{"project_path": project})
+	if err != nil {
+		t.Fatal(err)
+	}
+	created, err := history.WorktreeCreate(map[string]any{"project_path": project, "commit_id": checkpoint["commit_id"], "name": "vocal-natural"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if fmt.Sprint(created["project_uuid"]) != projectUUID {
+		t.Fatalf("worktree project UUID=%q", created["project_uuid"])
+	}
+	h := New(nil, nil, nil)
+	reserveArgs := map[string]any{"project_path": project, "project_uuid": projectUUID, "worktree_ref": "vocal-natural", "owner_agent_id": "agent-child", "owner_goal_id": "goal-child", "owner_run_id": "run-child", "owner_conversation_id": "conversation-child", "purpose": "vocal natural direction"}
+	reserved, err := h.Invoke(context.Background(), InvokeRequest{Tool: "collaboration.worktree_reserve", Args: reserveArgs, Confirmed: true, Source: "test"})
+	if err != nil || reserved.Status != "ok" {
+		t.Fatalf("reserved=%+v err=%v", reserved, err)
+	}
+	reservation := mapFromAny(reserved.Result["reservation"])
+	if firstString(reservation, "id") == "" || firstString(reservation, "owner_agent_id") != "agent-child" {
+		t.Fatalf("reservation=%+v", reservation)
+	}
+
+	conflictArgs := tools.CloneCommand(reserveArgs)
+	conflictArgs["owner_agent_id"], conflictArgs["owner_goal_id"], conflictArgs["owner_run_id"] = "agent-other", "goal-other", "run-other"
+	conflict, err := h.Invoke(context.Background(), InvokeRequest{Tool: "collaboration.worktree_reserve", Args: conflictArgs, Confirmed: true, Source: "test"})
+	if err == nil || conflict.Status != "error" {
+		t.Fatalf("conflict=%+v err=%v", conflict, err)
+	}
+
+	blocked, err := h.Invoke(context.Background(), InvokeRequest{Tool: "track.rename", Args: map[string]any{"track_id": "1", "name": "blocked"}, Source: "test", GoalID: "goal-other", RunID: "run-other", Context: map[string]any{"project_uuid": projectUUID, "worktree_ref": "vocal-natural", "agent_id": "agent-other"}})
+	if err == nil || blocked.Result["error_code"] != "worktree_reservation_owner_mismatch" {
+		t.Fatalf("blocked=%+v err=%v", blocked, err)
+	}
+
+	allowed, err := h.Invoke(context.Background(), InvokeRequest{Tool: "track.rename", Args: map[string]any{"track_id": "1", "name": "allowed"}, Source: "test", GoalID: "goal-child", RunID: "run-child", Context: map[string]any{"project_uuid": projectUUID, "worktree_ref": "vocal-natural", "agent_id": "agent-child"}})
+	if err != nil && allowed.Result["error_code"] == "worktree_reservation_owner_mismatch" {
+		t.Fatalf("owner was rejected: %+v err=%v", allowed, err)
+	}
+
+	released, err := h.Invoke(context.Background(), InvokeRequest{Tool: "collaboration.worktree_release", Args: map[string]any{"reservation_id": firstString(reservation, "id"), "owner_agent_id": "agent-child", "owner_goal_id": "goal-child", "owner_run_id": "run-child"}, Confirmed: true, Source: "test"})
+	if err != nil || firstString(mapFromAny(released.Result["reservation"]), "status") != "released" || !boolValueDefault(released.Result["worktree_retained"], false) {
+		t.Fatalf("released=%+v err=%v", released, err)
+	}
+}
+
+func TestCollaborationCandidatePrepareRequiresRealTargetAudioAndPreservesWorktreeProvenance(t *testing.T) {
+	root := t.TempDir()
+	audioPath := filepath.Join(root, "candidate.wav")
+	if err := os.WriteFile(audioPath, []byte("RIFF-real-candidate-audio"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	h := New(nil, nil, nil)
+	if err := h.RestoreCollaboration(collaboration.Snapshot{SchemaVersion: collaboration.SchemaVersion, Reservations: []collaboration.WorktreeReservation{{SchemaVersion: collaboration.SchemaVersion, ID: "reservation-vocal", ProjectUUID: "project-1", WorktreeRef: "vocal-natural", WorktreePath: filepath.Join(root, "Vocal.vit"), OwnerAgentID: "agent-vocal", OwnerGoalID: "goal-vocal", OwnerRunID: "run-vocal", OwnerConversationID: "conversation-vocal", Status: collaboration.ReservationActive, CreatedAt: time.Now().UTC()}}}); err != nil {
+		t.Fatal(err)
+	}
+	prepared, err := h.Invoke(context.Background(), InvokeRequest{Tool: "collaboration.candidate_prepare", Args: map[string]any{
+		"candidate_id": "candidate-b", "source_kind": "worktree", "source_ref": "worktree:vocal-natural", "audio_file": audioPath,
+		"worktree_ref": "vocal-natural", "reservation_id": "reservation-vocal", "commit_id": "commit-worktree", "project_path": filepath.Join(root, "Vocal.vit"), "project_uuid": "project-1", "project_revision": "revision-7", "scope": "target",
+	}, Source: "test"})
+	if err != nil || prepared.Status != "ok" {
+		t.Fatalf("prepared=%+v err=%v", prepared, err)
+	}
+	candidate := mapFromAny(prepared.Result["candidate"])
+	if firstString(candidate, "source_kind") != "audio_file" || firstString(candidate, "engineering_source_kind") != "worktree" || firstString(candidate, "worktree_ref") != "vocal-natural" || firstString(candidate, "source_ref") != audioPath || firstString(candidate, "render_revision") == "" || firstString(candidate, "preview_revision") == "" {
+		t.Fatalf("candidate=%+v", candidate)
+	}
+	unsupported, err := h.Invoke(context.Background(), InvokeRequest{Tool: "collaboration.candidate_prepare", Args: map[string]any{
+		"source_kind": "worktree", "source_ref": "worktree:vocal-natural", "audio_file": audioPath, "project_path": filepath.Join(root, "Vocal.vit"), "project_uuid": "project-1", "scope": "full_project",
+	}, Source: "test"})
+	if err == nil || unsupported.Status != "error" || !strings.Contains(unsupported.Error, "full_project_preview_unsupported") {
+		t.Fatalf("unsupported=%+v err=%v", unsupported, err)
+	}
+}
+
+func TestCollaborationAuditionPrepareUsesKernelWithoutChangingActivePlane(t *testing.T) {
+	fake := &fakeVSPKernelClient{commandReplies: []*kernel.VSPCommandResult{fakeVSPCommandReply("audition.prepare", "", map[string]any{"status": "ok", "session": map[string]any{"session_id": "audition-1", "status": "ready"}})}}
+	h := NewWithSender(fake, nil, nil)
+	base := map[string]any{"source_kind": "audio_file", "source_ref": `D:\Preview\candidate.wav`, "project_uuid": "project-1", "project_revision": "rev-1", "project_path": `D:\Project\Song.vit`, "scope": "target", "preview_ref": "audio-buffer://candidate"}
+	candidateA := tools.CloneCommand(base)
+	candidateA["id"] = "candidate-a"
+	candidateA["source_ref"] = `D:\Preview\candidate-a.wav`
+	candidateB := tools.CloneCommand(base)
+	candidateB["id"] = "candidate-b"
+	candidateB["source_ref"] = `D:\Preview\candidate-b.wav`
+	response, err := h.Invoke(context.Background(), InvokeRequest{Tool: "collaboration.audition_prepare", Args: map[string]any{
+		"session_id": "audition-1", "conversation_id": "conversation-1", "active_project_ref": `D:\Project\Song.vit`, "active_project_revision": "rev-active", "timeline_revision": "timeline-1", "scope": "target", "candidate_a": candidateA, "candidate_b": candidateB,
+	}, Source: "test"})
+	if err != nil || response.Status != "ok" {
+		t.Fatalf("response=%+v err=%v", response, err)
+	}
+	if len(fake.vspCommands) != 1 || fake.vspCommands[0] != "audition.prepare" {
+		t.Fatalf("vsp commands=%v", fake.vspCommands)
+	}
+	if response.Result["active_project_plane_unchanged"] != true {
+		t.Fatalf("response=%+v", response)
+	}
+}
+
+func TestParentChildWorktreeIsolationAndFailureLifecycle(t *testing.T) {
+	root := t.TempDir()
+	project := filepath.Join(root, "Song.vit")
+	if err := os.WriteFile(project, []byte("parent"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	projectUUID := "project-parent-child"
+	history.BindProjectIdentity(project, projectUUID)
+	checkpoint, err := history.Checkpoint(map[string]any{"project_path": project})
+	if err != nil {
+		t.Fatal(err)
+	}
+	commitID := checkpoint["commit_id"].(string)
+	vocal, err := history.WorktreeCreate(map[string]any{"project_path": project, "commit_id": commitID, "name": "vocal"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	drums, err := history.WorktreeCreate(map[string]any{"project_path": project, "commit_id": commitID, "name": "drums"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	h := New(nil, nil, nil)
+	reserve := func(worktree map[string]any, agent, goal, run string) map[string]any {
+		resp, reserveErr := h.Invoke(context.Background(), InvokeRequest{Tool: "collaboration.worktree_reserve", Args: map[string]any{"project_path": project, "project_uuid": projectUUID, "worktree_ref": worktree["name"], "owner_agent_id": "agent-parent", "owner_goal_id": "goal-parent", "owner_run_id": "run-parent", "owner_conversation_id": "conversation-parent"}, Confirmed: true, Source: "test"})
+		if reserveErr != nil {
+			t.Fatal(reserveErr)
+		}
+		reservation := mapFromAny(resp.Result["reservation"])
+		child, childErr := h.Invoke(context.Background(), InvokeRequest{Tool: "collaboration.child_register", Args: map[string]any{"reservation_id": reservation["id"], "parent_agent_id": "agent-parent", "parent_goal_id": "goal-parent", "parent_run_id": "run-parent", "child_agent_id": agent, "child_goal_id": goal, "child_run_id": run, "child_conversation_id": "conversation-" + agent, "worktree_ref": worktree["name"], "allowed_scope": []any{"project"}}, Context: map[string]any{"agent_id": "agent-parent", "goal_id": "goal-parent", "run_id": "run-parent"}, Confirmed: true, Source: "test"})
+		if childErr != nil {
+			t.Fatal(childErr)
+		}
+		return mapFromAny(child.Result["child_task"])
+	}
+	vocalTask := reserve(vocal, "agent-vocal", "goal-vocal", "run-vocal")
+	drumTask := reserve(drums, "agent-drums", "goal-drums", "run-drums")
+	if child, ok := h.collaboration.ChildTaskForOwner("agent-vocal", "goal-vocal", "run-vocal"); !ok {
+		t.Fatalf("registered vocal task not owned by child: task=%+v snapshot=%+v", child, h.collaboration.Snapshot())
+	}
+	childCheckout, checkoutErr := h.Invoke(context.Background(), InvokeRequest{Tool: "version.checkout", Args: map[string]any{"project_path": project, "commit_id": commitID}, Confirmed: true, GoalID: "goal-vocal", RunID: "run-vocal", Context: map[string]any{"agent_id": "agent-vocal"}, Source: "test"})
+	if checkoutErr == nil || childCheckout.Result["error_code"] != "child_active_project_plane_forbidden" {
+		t.Fatalf("child checkout=%+v err=%v", childCheckout, checkoutErr)
+	}
+	parentWrite, parentWriteErr := h.Invoke(context.Background(), InvokeRequest{Tool: "track.rename", Args: map[string]any{"project_path": project, "track_id": "1", "name": "parent-pollution"}, GoalID: "goal-vocal", RunID: "run-vocal", Context: map[string]any{"agent_id": "agent-vocal", "project_uuid": projectUUID, "worktree_ref": "vocal"}, Source: "test"})
+	if parentWriteErr == nil || parentWrite.Result["error_code"] != "worktree_write_target_mismatch" {
+		t.Fatalf("child parent write=%+v err=%v", parentWrite, parentWriteErr)
+	}
+
+	vocalPath, drumsPath := fmt.Sprint(vocal["project_file_path"]), fmt.Sprint(drums["project_file_path"])
+	var wg sync.WaitGroup
+	wg.Add(2)
+	go func() {
+		defer wg.Done()
+		if writeErr := os.WriteFile(vocalPath, []byte("vocal-child"), 0o644); writeErr != nil {
+			t.Error(writeErr)
+		}
+	}()
+	go func() {
+		defer wg.Done()
+		if writeErr := os.WriteFile(drumsPath, []byte("drum-child"), 0o644); writeErr != nil {
+			t.Error(writeErr)
+		}
+	}()
+	wg.Wait()
+	parentBytes, _ := os.ReadFile(project)
+	vocalBytes, _ := os.ReadFile(vocalPath)
+	drumBytes, _ := os.ReadFile(drumsPath)
+	if string(parentBytes) != "parent" || string(vocalBytes) != "vocal-child" || string(drumBytes) != "drum-child" {
+		t.Fatalf("parent=%q vocal=%q drums=%q", parentBytes, vocalBytes, drumBytes)
+	}
+
+	failed, err := h.Invoke(context.Background(), InvokeRequest{Tool: "collaboration.child_update", Args: map[string]any{"child_task_id": vocalTask["id"], "status": "failed", "error": "child execution failed"}, Source: "test"})
+	if err != nil || firstString(mapFromAny(failed.Result["reservation"]), "status") != "failed" || failed.Result["parent_project_unchanged"] != true {
+		t.Fatalf("failed=%+v err=%v", failed, err)
+	}
+	completed, err := h.Invoke(context.Background(), InvokeRequest{Tool: "collaboration.child_update", Args: map[string]any{"child_task_id": drumTask["id"], "status": "completed", "result_candidate_ref": "candidate-drums", "artifact_ref": "audio-sha256:drums", "settlement_ref": "settlement-drums"}, Source: "test"})
+	if err != nil || firstString(mapFromAny(completed.Result["reservation"]), "status") != "released" {
+		t.Fatalf("completed=%+v err=%v", completed, err)
+	}
+}
+
+func TestFullAccessAutonomousInactiveBranchAndReservedWorktree(t *testing.T) {
+	root := t.TempDir()
+	project := filepath.Join(root, "Song.vit")
+	if err := os.WriteFile(project, []byte("root"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	projectUUID := "project-full-access-collaboration"
+	history.BindProjectIdentity(project, projectUUID)
+	checkpoint, err := history.Checkpoint(map[string]any{"project_path": project})
+	if err != nil {
+		t.Fatal(err)
+	}
+	commitID := checkpoint["commit_id"].(string)
+	h := New(nil, nil, nil)
+	goal := h.BeginGoal("autonomous alternatives")
+	fullContext := map[string]any{"authority_mode": "full_project_access", "authority_mode_explicit": true, "conversation_id": "conversation-full", "agent_id": "agent-primary"}
+	branch, err := h.Invoke(context.Background(), InvokeRequest{Tool: "version.branch_create", Args: map[string]any{"project_path": project, "name": "natural", "commit_id": commitID, "activate": false, "owner_agent_id": "agent-primary", "conversation_id": "conversation-full", "purpose": "natural direction"}, Context: fullContext, GoalID: goal.GoalID, RunID: goal.RunID, Source: "agent"})
+	if err != nil || branch.Status != "ok" || branch.RequiresConfirmation || branch.Result["activated"] != false {
+		t.Fatalf("branch=%+v err=%v", branch, err)
+	}
+	manual, err := h.Invoke(context.Background(), InvokeRequest{Tool: "version.worktree_create", Args: map[string]any{"project_path": project, "name": "manual-worktree", "commit_id": commitID}, Context: map[string]any{"authority_mode": "manual_confirmation", "authority_mode_explicit": true}, Source: "agent"})
+	if err != nil || manual.Status != "needs_confirmation" {
+		t.Fatalf("manual=%+v err=%v", manual, err)
+	}
+	worktree, err := h.Invoke(context.Background(), InvokeRequest{Tool: "version.worktree_create", Args: map[string]any{"project_path": project, "project_uuid": projectUUID, "name": "aggressive", "commit_id": commitID, "reserve": true, "owner_agent_id": "agent-primary", "owner_goal_id": goal.GoalID, "owner_run_id": goal.RunID, "owner_conversation_id": "conversation-full", "purpose": "aggressive direction", "hypothesis": "tighter low end"}, Context: fullContext, GoalID: goal.GoalID, RunID: goal.RunID, Source: "agent"})
+	if err != nil || worktree.Status != "ok" || worktree.RequiresConfirmation || worktree.Result["reservation_status"] != "reserved" {
+		t.Fatalf("worktree=%+v err=%v", worktree, err)
+	}
+	if content, _ := os.ReadFile(project); string(content) != "root" {
+		t.Fatalf("active parent project changed: %q", content)
+	}
+	status, _ := history.Status(map[string]any{"project_path": project})
+	if status["active_branch"] != "main" || status["active_worktree"] != "" {
+		t.Fatalf("active plane changed: %+v", status)
+	}
+}
+
+func TestExpiredReservationRecoveryIsAvailableInProductionCommands(t *testing.T) {
+	h := New(nil, nil, nil)
+	expired := collaboration.WorktreeReservation{SchemaVersion: collaboration.SchemaVersion, ID: "reservation-expired", ProjectUUID: "project-expired", WorktreeRef: "expired-worktree", WorktreePath: `D:\Worktrees\expired.vit`, OwnerAgentID: "agent-expired", OwnerGoalID: "goal-expired", OwnerRunID: "run-expired", OwnerConversationID: "conversation-expired", Status: collaboration.ReservationActive, CreatedAt: time.Now().Add(-time.Hour), ExpiresAt: time.Now().Add(-time.Minute)}
+	if err := h.RestoreCollaboration(collaboration.Snapshot{SchemaVersion: collaboration.SchemaVersion, Reservations: []collaboration.WorktreeReservation{expired}}); err != nil {
+		t.Fatal(err)
+	}
+	snapshot := h.CollaborationSnapshot()
+	if len(snapshot.Reservations) != 1 || snapshot.Reservations[0].Status != collaboration.ReservationStale {
+		t.Fatalf("restore did not recover expired lease: %+v", snapshot)
+	}
+	result, err := h.Invoke(context.Background(), InvokeRequest{Tool: "collaboration.worktree_recover_stale", Source: "test"})
+	if err != nil || result.Status != "ok" || result.Result["worktrees_retained"] != true {
+		t.Fatalf("result=%+v err=%v", result, err)
 	}
 }

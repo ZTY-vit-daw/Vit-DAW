@@ -10,6 +10,7 @@ import (
 
 	"vit-daw-agent/internal/agentloop"
 	"vit-daw-agent/internal/agentprotocol"
+	"vit-daw-agent/internal/collaboration"
 	"vit-daw-agent/internal/experiment"
 	"vit-daw-agent/internal/harness"
 	"vit-daw-agent/internal/history"
@@ -350,5 +351,46 @@ func TestProjectWorkspaceRestoresAuditionJudgmentEvidenceWithoutReRequest(t *tes
 	afterRound, _ := after.Experiment.CurrentRound()
 	if afterRound.UserJudgmentRequested || len(afterRound.UserJudgmentEvidence) != 1 {
 		t.Fatalf("completed judgment was requested again: %+v", afterRound)
+	}
+}
+
+func TestProjectWorkspaceRestoresCollaborationAndRecoversInactiveReservation(t *testing.T) {
+	root := t.TempDir()
+	projectPath := filepath.Join(root, "Collaboration.vit")
+	if err := os.WriteFile(projectPath, []byte("collaboration"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	projectUUID := "project-collaboration"
+	history.BindProjectIdentity(projectPath, projectUUID)
+	checkpoint, err := history.Checkpoint(map[string]any{"project_path": projectPath})
+	if err != nil {
+		t.Fatal(err)
+	}
+	worktree, err := history.WorktreeCreate(map[string]any{"project_path": projectPath, "commit_id": checkpoint["commit_id"], "name": "child-vocal"})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	project := shadow.New(nil)
+	project.Initialize(map[string]any{"status": "ok", "project_path": projectPath, "project_uuid": projectUUID})
+	server := New(nil, project, nil)
+	server.activateCurrentProjectWorkspace(context.Background())
+	reserved, err := server.harness.Invoke(context.Background(), harness.InvokeRequest{Tool: "collaboration.worktree_reserve", Args: map[string]any{
+		"project_path": projectPath, "project_uuid": projectUUID, "worktree_ref": worktree["name"],
+		"owner_agent_id": "agent-child", "owner_goal_id": "goal-child", "owner_run_id": "run-child", "owner_conversation_id": "conversation-child",
+	}, Confirmed: true, Source: "test"})
+	if err != nil || reserved.Status != "ok" {
+		t.Fatalf("reserve=%+v err=%v", reserved, err)
+	}
+	state := server.projectAgentRuntimeStateLocked()
+
+	restarted := New(nil, shadow.New(nil), nil)
+	restarted.restoreProjectAgentRuntimeStateLocked(state)
+	restored := restarted.harness.CollaborationSnapshot()
+	if len(restored.Reservations) != 1 || restored.Reservations[0].Status != collaboration.ReservationStale {
+		t.Fatalf("restored collaboration=%+v", restored)
+	}
+	if restored.Reservations[0].WorktreeRef != "child-vocal" {
+		t.Fatalf("restored reservation identity lost: %+v", restored.Reservations[0])
 	}
 }

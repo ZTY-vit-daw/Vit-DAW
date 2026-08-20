@@ -34,6 +34,8 @@ struct Candidate
     std::string label;
     std::string sourceKind;
     std::string sourceRef;
+    std::string engineeringSourceKind;
+    std::string engineeringSourceRef;
     std::string previewRef;
     std::string checkpointRef;
     std::string commitId;
@@ -42,6 +44,9 @@ struct Candidate
     std::string projectPath;
     std::string projectUUID;
     std::string projectRevision;
+    std::string ownerAgentId;
+    std::string reservationId;
+    std::string artifactRef;
     std::string renderRevision;
     std::string previewRevision;
     std::string scope;

@@ -1156,3 +1156,165 @@ func OpenForTest(t *testing.T, project string) Repo {
 	}
 	return repo
 }
+
+func TestBranchCreateCanStayInactiveAndRejectCollision(t *testing.T) {
+	root := t.TempDir()
+	project := filepath.Join(root, "Song.vit")
+	if err := os.WriteFile(project, []byte("root"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	checkpoint, err := Checkpoint(map[string]any{"project_path": project, "message": "root"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	commitID := checkpoint["commit_id"].(string)
+	if _, err := AppendConversationNode(map[string]any{
+		"project_path": project, "kind": "ask", "commit_id": commitID,
+		"node_id": "root-node", "text_preview": "root",
+	}); err != nil {
+		t.Fatal(err)
+	}
+
+	created, err := BranchCreate(map[string]any{
+		"project_path": project, "name": "natural:forward", "commit_id": commitID,
+		"from_node_id": "root-node", "activate": false,
+	})
+	if err != nil {
+		t.Fatalf("inactive branch create: %v", err)
+	}
+	if created["activated"] != false || created["branch"] != "natural_forward" {
+		t.Fatalf("inactive branch result = %#v", created)
+	}
+	if active := created["active_branch"]; active != "main" {
+		t.Fatalf("active branch changed during inactive create: %#v", created)
+	}
+	if content, err := os.ReadFile(project); err != nil || string(content) != "root" {
+		t.Fatalf("active project changed during inactive create: %q err=%v", string(content), err)
+	}
+	status, err := Status(map[string]any{"project_path": project})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if status["active_branch"] != "main" || status["active_node_id"] != "root-node" {
+		t.Fatalf("history active plane changed: %#v", status)
+	}
+	if _, err := BranchCreate(map[string]any{
+		"project_path": project, "name": "natural_forward", "commit_id": commitID,
+		"activate": false,
+	}); err == nil {
+		t.Fatal("duplicate branch was silently overwritten")
+	}
+}
+
+func TestWorktreeCreateCollisionAddsDeterministicShortID(t *testing.T) {
+	root := t.TempDir()
+	project := filepath.Join(root, "Song.vit")
+	if err := os.WriteFile(project, []byte("root"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	checkpoint, err := Checkpoint(map[string]any{"project_path": project})
+	if err != nil {
+		t.Fatal(err)
+	}
+	commitID := checkpoint["commit_id"].(string)
+	first, err := WorktreeCreate(map[string]any{"project_path": project, "commit_id": commitID, "name": "vocal:natural", "display_name": "主唱自然靠前"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	second, err := WorktreeCreate(map[string]any{"project_path": project, "commit_id": commitID, "name": "vocal:natural", "display_name": "主唱自然靠前"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if first["name"] != "vocal_natural" || second["name"] != "vocal_natural-"+deterministicShortID("vocal_natural|"+commitID) || second["display_name"] != "主唱自然靠前" {
+		t.Fatalf("first=%+v second=%+v", first, second)
+	}
+	if first["project_file_path"] == second["project_file_path"] {
+		t.Fatal("collision overwrote existing worktree")
+	}
+}
+
+func TestTwoInactiveBranchesSharePivotAndDivergeWithoutPollution(t *testing.T) {
+	root := t.TempDir()
+	project := filepath.Join(root, "Song.vit")
+	if err := os.WriteFile(project, []byte("pivot"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	pivotResult, err := Checkpoint(map[string]any{"project_path": project, "message": "pivot"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	pivot := pivotResult["commit_id"].(string)
+	if _, err := AppendConversationNode(map[string]any{"project_path": project, "node_id": "pivot-node", "kind": "vit", "commit_id": pivot, "text_preview": "pivot"}); err != nil {
+		t.Fatal(err)
+	}
+	for _, name := range []string{"natural", "aggressive"} {
+		if _, err := BranchCreate(map[string]any{"project_path": project, "name": name, "commit_id": pivot, "from_node_id": "pivot-node", "activate": false}); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if content, _ := os.ReadFile(project); string(content) != "pivot" {
+		t.Fatalf("inactive branches changed parent: %q", content)
+	}
+	if _, err := Checkout(map[string]any{"project_path": project, "branch": "natural", "commit_id": pivot}); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(project, []byte("natural-treatment"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	natural, err := Checkpoint(map[string]any{"project_path": project, "message": "natural"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := Checkout(map[string]any{"project_path": project, "branch": "aggressive", "commit_id": pivot}); err != nil {
+		t.Fatal(err)
+	}
+	if content, _ := os.ReadFile(project); string(content) != "pivot" {
+		t.Fatalf("aggressive branch inherited natural treatment: %q", content)
+	}
+	if err := os.WriteFile(project, []byte("aggressive-treatment"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	aggressive, err := Checkpoint(map[string]any{"project_path": project, "message": "aggressive"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	status, err := Status(map[string]any{"project_path": project})
+	if err != nil {
+		t.Fatal(err)
+	}
+	branches := status["branches"].(map[string]string)
+	if branches["natural"] != natural["commit_id"] || branches["aggressive"] != aggressive["commit_id"] || branches["natural"] == branches["aggressive"] {
+		t.Fatalf("branches=%+v natural=%+v aggressive=%+v", branches, natural, aggressive)
+	}
+}
+
+func TestManagedWorktreeCreateIsIdempotentAcrossRestartRequest(t *testing.T) {
+	root := t.TempDir()
+	project := filepath.Join(root, "Song.vit")
+	if err := os.WriteFile(project, []byte("root"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	checkpoint, err := Checkpoint(map[string]any{"project_path": project})
+	if err != nil {
+		t.Fatal(err)
+	}
+	args := map[string]any{"project_path": project, "commit_id": checkpoint["commit_id"], "name": "managed-vocal", "reservation_id": "reservation-stable", "owner_agent_id": "agent-vocal", "goal_id": "goal-vocal", "run_id": "run-vocal", "conversation_id": "conversation-vocal"}
+	first, err := WorktreeCreate(args)
+	if err != nil {
+		t.Fatal(err)
+	}
+	second, err := WorktreeCreate(args)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if second["reused"] != true || second["project_file_path"] != first["project_file_path"] || second["name"] != first["name"] {
+		t.Fatalf("first=%+v second=%+v", first, second)
+	}
+	listed, err := WorktreeList(map[string]any{"project_path": project})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(listed["worktrees"].([]map[string]any)) != 2 {
+		t.Fatalf("duplicate managed worktree created: %+v", listed["worktrees"])
+	}
+}

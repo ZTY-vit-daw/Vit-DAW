@@ -443,7 +443,7 @@ func BranchCreate(args map[string]any) (map[string]any, error) {
 	if err != nil {
 		return nil, err
 	}
-	name := safeName(firstNonEmpty(value(args, "name"), value(args, "branch")))
+	name := safeFileName(firstNonEmpty(value(args, "name"), value(args, "branch")))
 	if name == "" {
 		return nil, errors.New("branch name is required")
 	}
@@ -458,36 +458,70 @@ func BranchCreate(args map[string]any) (map[string]any, error) {
 	if !commitBelongsToProject(repo, commit) {
 		return nil, fmt.Errorf("checkpoint %s belongs to a different project", id)
 	}
-	if err := writeRef(repo, filepath.Join("refs", "heads", name), id); err != nil {
+	branchRef := filepath.Join("refs", "heads", name)
+	if existing := readRef(repo, branchRef); existing != "" {
+		return nil, fmt.Errorf("branch already exists: %s", name)
+	}
+	sourceBranch := publicActiveBranch(repo)
+	activate := !isFalseValue(firstNonEmpty(value(args, "activate"), value(args, "checkout")))
+	if err := writeRef(repo, branchRef, id); err != nil {
 		return nil, err
 	}
-	if err := materialize(repo, commit, repo.ProjectDir); err != nil {
-		return nil, err
+	if activate {
+		if err := materialize(repo, commit, repo.ProjectDir); err != nil {
+			return nil, err
+		}
+		if err := writeActiveBranch(repo, name, false); err != nil {
+			return nil, err
+		}
+		if err := writeRef(repo, "HEAD", id); err != nil {
+			return nil, err
+		}
 	}
-	if err := writeActiveBranch(repo, name, false); err != nil {
-		return nil, err
-	}
-	if err := writeRef(repo, "HEAD", id); err != nil {
-		return nil, err
-	}
-	if fromNodeID := value(args, "from_node_id"); fromNodeID != "" {
-		_, _ = AppendConversationNode(map[string]any{
-			"project_path":   repo.ProjectPath,
-			"kind":           "branch_marker",
-			"commit_id":      id,
-			"parent_node_id": fromNodeID,
-			"branch":         name,
-			"text_preview":   "branch " + name,
-			"goal_id":        value(args, "goal_id"),
-			"run_id":         value(args, "run_id"),
-		})
+	parentNodeID := value(args, "from_node_id")
+	if parentNodeID != "" {
+		nodeArgs := map[string]any{
+			"project_path":    repo.ProjectPath,
+			"kind":            "branch_marker",
+			"commit_id":       id,
+			"parent_node_id":  parentNodeID,
+			"branch":          name,
+			"text_preview":    "branch " + name,
+			"goal_id":         value(args, "goal_id"),
+			"run_id":          value(args, "run_id"),
+			"set_active_node": activate,
+			"message_data": map[string]any{
+				"schema_version": "vit.branch_creation.v1", "parent_node_id": parentNodeID,
+				"source_commit_id": id, "source_branch": sourceBranch,
+				"source_worktree": value(args, "source_worktree"), "project_uuid": repo.ProjectUUID,
+				"project_revision": value(args, "project_revision"), "goal_id": value(args, "goal_id"),
+				"run_id": value(args, "run_id"), "conversation_id": value(args, "conversation_id"),
+				"owner_agent_id": value(args, "owner_agent_id"), "purpose": value(args, "purpose"),
+				"hypothesis": value(args, "hypothesis"), "activated": activate,
+			},
+		}
+		if _, err := AppendConversationNode(nodeArgs); err != nil {
+			return nil, err
+		}
 	}
 	commits, _ := listCommits(repo)
 	out := historyState(repo, len(commits))
 	out["branch"] = name
 	out["commit_id"] = id
+	out["source_commit_id"] = id
+	out["source_branch"] = sourceBranch
+	out["source_worktree"] = value(args, "source_worktree")
+	out["parent_node_id"] = parentNodeID
+	out["project_uuid"] = repo.ProjectUUID
+	out["project_revision"] = value(args, "project_revision")
+	out["owner_agent_id"] = value(args, "owner_agent_id")
+	out["purpose"] = value(args, "purpose")
+	out["hypothesis"] = value(args, "hypothesis")
+	out["activated"] = activate
 	out["status"] = "ok"
-	out["checked_out_to"] = repo.ProjectDir
+	if activate {
+		out["checked_out_to"] = repo.ProjectDir
+	}
 	return out, nil
 }
 
@@ -498,10 +532,29 @@ func WorktreeCreate(args map[string]any) (map[string]any, error) {
 	}
 	repo := rootRepoForWorktrees(sourceRepo)
 	ensureRootWorktreeItem(repo)
-	name := safeName(firstNonEmpty(value(args, "name"), commit.ID))
+	displayName := firstNonEmpty(value(args, "display_name"), value(args, "name"), commit.ID)
+	name := safeFileName(firstNonEmpty(value(args, "name"), displayName, commit.ID))
+	if name == "" {
+		return nil, errors.New("worktree name is required")
+	}
 	target := filepath.Join(visibleWorktreeRoot(repo), name)
 	if dirExists(target) {
-		return nil, fmt.Errorf("worktree already exists: %s", name)
+		existing := map[string]any{}
+		_ = readJSON(filepath.Join(target, ".vit_worktree.json"), &existing)
+		if managedWorktreeRequestMatches(existing, args, commit.ID) {
+			projectFilePath := strings.TrimSpace(fmt.Sprint(existing["project_file_path"]))
+			if projectFilePath == "" || projectFilePath == "<nil>" || !fileExists(projectFilePath) {
+				return nil, fmt.Errorf("managed worktree exists but project file is missing: %s", name)
+			}
+			existing["status"] = "ok"
+			existing["reused"] = true
+			return existing, nil
+		}
+		name = name + "-" + deterministicShortID(name+"|"+commit.ID)
+		target = filepath.Join(visibleWorktreeRoot(repo), name)
+		if dirExists(target) {
+			return nil, fmt.Errorf("worktree already exists: %s", name)
+		}
 	}
 	if err := materialize(sourceRepo, commit, target); err != nil {
 		return nil, err
@@ -511,15 +564,31 @@ func WorktreeCreate(args map[string]any) (map[string]any, error) {
 		return nil, err
 	}
 	meta := map[string]any{
-		"name":                name,
-		"commit_id":           commit.ID,
-		"origin_commit_id":    commit.ID,
-		"path":                target,
-		"project_file_path":   projectFilePath,
-		"project_path":        repo.ProjectPath,
-		"root_project_path":   repo.ProjectPath,
-		"source_project_path": sourceRepo.ProjectPath,
-		"created_at":          time.Now().UTC(),
+		"name":                    name,
+		"display_name":            displayName,
+		"worktree_ref":            firstNonEmpty(value(args, "worktree_ref"), name),
+		"commit_id":               commit.ID,
+		"origin_commit_id":        commit.ID,
+		"parent_commit_id":        firstNonEmpty(value(args, "parent_commit_id"), commit.ID),
+		"parent_node_id":          value(args, "parent_node_id"),
+		"branch_ref":              firstNonEmpty(value(args, "source_branch"), commit.Branch),
+		"source_branch":           firstNonEmpty(value(args, "source_branch"), commit.Branch),
+		"source_worktree":         value(args, "source_worktree"),
+		"source_project_revision": value(args, "source_project_revision"),
+		"project_uuid":            repo.ProjectUUID,
+		"path":                    target,
+		"project_file_path":       projectFilePath,
+		"project_path":            repo.ProjectPath,
+		"root_project_path":       repo.ProjectPath,
+		"source_project_path":     sourceRepo.ProjectPath,
+		"goal_id":                 value(args, "goal_id"),
+		"run_id":                  value(args, "run_id"),
+		"conversation_id":         value(args, "conversation_id"),
+		"owner_agent_id":          value(args, "owner_agent_id"),
+		"purpose":                 value(args, "purpose"),
+		"hypothesis":              value(args, "hypothesis"),
+		"reservation_id":          value(args, "reservation_id"),
+		"created_at":              time.Now().UTC(),
 	}
 	if err := writeJSON(filepath.Join(target, ".vit_worktree.json"), meta); err != nil {
 		return nil, err
@@ -1954,6 +2023,25 @@ func visibleWorktreeRoot(repo Repo) string {
 	return filepath.Join(root, base+"_"+safeFileName(repo.ProjectUUID))
 }
 
+func managedWorktreeRequestMatches(existing, args map[string]any, commitID string) bool {
+	if len(existing) == 0 {
+		return false
+	}
+	existingReservation := strings.TrimSpace(fmt.Sprint(existing["reservation_id"]))
+	requestedReservation := value(args, "reservation_id")
+	if requestedReservation != "" && existingReservation == requestedReservation {
+		return true
+	}
+	ownerAgent, ownerGoal, ownerRun := value(args, "owner_agent_id"), value(args, "goal_id"), value(args, "run_id")
+	if ownerAgent == "" || ownerGoal == "" || ownerRun == "" {
+		return false
+	}
+	return strings.TrimSpace(fmt.Sprint(existing["owner_agent_id"])) == ownerAgent &&
+		strings.TrimSpace(fmt.Sprint(existing["goal_id"])) == ownerGoal &&
+		strings.TrimSpace(fmt.Sprint(existing["run_id"])) == ownerRun &&
+		firstNonEmpty(strings.TrimSpace(fmt.Sprint(existing["parent_commit_id"])), strings.TrimSpace(fmt.Sprint(existing["origin_commit_id"]))) == commitID
+}
+
 func worktreeProjectFileName(repo Repo, worktreeName string) string {
 	ext := filepath.Ext(repo.ProjectPath)
 	if ext == "" {
@@ -2866,6 +2954,11 @@ func safeName(name string) string {
 	name = strings.ReplaceAll(name, "/", "_")
 	name = strings.ReplaceAll(name, "..", "_")
 	return strings.Trim(name, " .")
+}
+
+func deterministicShortID(value string) string {
+	sum := sha256.Sum256([]byte(strings.TrimSpace(value)))
+	return hex.EncodeToString(sum[:])[:6]
 }
 
 func shortID() string {

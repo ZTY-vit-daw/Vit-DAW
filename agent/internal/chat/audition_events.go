@@ -19,6 +19,7 @@ type auditionCommandClient interface {
 	AuditionPrepare(context.Context, kernel.AuditionSessionRequest) (*kernel.VSPCommandResult, error)
 	AuditionStatus(context.Context, string) (*kernel.VSPCommandResult, error)
 	AuditionSelect(context.Context, string, string) (*kernel.VSPCommandResult, error)
+	AuditionStale(context.Context, string) (*kernel.VSPCommandResult, error)
 	AuditionStop(context.Context, string) (*kernel.VSPCommandResult, error)
 }
 
@@ -229,6 +230,20 @@ func (s *Server) handleAuditionCommand(w http.ResponseWriter, r *http.Request, a
 			writeJSON(w, http.StatusBadRequest, map[string]any{"status": "error", "error": "candidate_id is required"})
 			return
 		}
+		if staleSession, staleReason := s.auditionSessionRevisionStale(r.Context(), request.ConversationID, request.SessionID); staleReason != "" {
+			staleResult, staleErr := s.auditionKernel.AuditionStale(r.Context(), request.SessionID)
+			if staleErr == nil {
+				staleSession = auditionReplySession(staleResult)
+			}
+			if len(staleSession) == 0 {
+				staleSession = map[string]any{"session_id": request.SessionID, "status": "stale"}
+			}
+			s.updateAuditionSessionSnapshot(request.ConversationID, staleSession)
+			s.persistCurrentProjectWorkspace()
+			s.emitAuditionEvent(request.ConversationID, "audition.stale", staleSession, map[string]any{"message": staleReason})
+			writeJSON(w, http.StatusConflict, map[string]any{"status": "error", "error": staleReason, "session": staleSession})
+			return
+		}
 		// Selecting A/B is playback control only. It never records preference
 		// and never settles the Experiment Round.
 		result, err = s.auditionKernel.AuditionSelect(r.Context(), request.SessionID, request.CandidateID)
@@ -252,6 +267,33 @@ func (s *Server) handleAuditionCommand(w http.ResponseWriter, r *http.Request, a
 	s.persistCurrentProjectWorkspace()
 	s.emitAuditionEvent(request.ConversationID, eventType, session, nil)
 	writeJSON(w, http.StatusOK, map[string]any{"status": "ok", "session": session})
+}
+
+func (s *Server) auditionSessionRevisionStale(ctx context.Context, conversationID, sessionID string) (map[string]any, string) {
+	loop, ok := s.freeStateLoop(strings.TrimSpace(conversationID))
+	if !ok || loop.AuditionSessionID != strings.TrimSpace(sessionID) || len(loop.AuditionSessionSnapshot) == 0 || s.auditionCandidateDriver == nil {
+		return nil, ""
+	}
+	session := cloneContext(loop.AuditionSessionSnapshot)
+	status := strings.ToLower(firstStringFromMap(session, "status"))
+	if status == "stale" || status == "failed" {
+		return session, "audition_candidate_stale"
+	}
+	expected := firstStringFromMap(session, "active_project_revision", "project_revision")
+	if activePlane := firstMapFromAny(session["active_project_plane"]); expected == "" {
+		expected = firstStringFromMap(activePlane, "project_revision")
+	}
+	if expected == "" {
+		return session, ""
+	}
+	plane, err := s.auditionCandidateDriver.CurrentPlane(ctx)
+	if err != nil || plane.ProjectRevision == "" {
+		return session, ""
+	}
+	if plane.ProjectRevision != expected {
+		return session, fmt.Sprintf("audition_candidate_stale: active project revision changed from %s to %s", expected, plane.ProjectRevision)
+	}
+	return session, ""
 }
 
 func (s *Server) handleAuditionJudgment(w http.ResponseWriter, r *http.Request) {
@@ -534,6 +576,9 @@ func buildUserJudgmentEvidence(loop freeStateReasoningLoop, round experiment.Rou
 		CandidateACommitID: firstStringFromMap(candidateA, "commit_id"), CandidateBCommitID: firstStringFromMap(candidateB, "commit_id"),
 		CandidateABranchRef: firstStringFromMap(candidateA, "branch_ref"), CandidateBBranchRef: firstStringFromMap(candidateB, "branch_ref"),
 		CandidateAWorktreeRef: firstStringFromMap(candidateA, "worktree_ref"), CandidateBWorktreeRef: firstStringFromMap(candidateB, "worktree_ref"),
+		CandidateAOwnerAgentID: firstStringFromMap(candidateA, "owner_agent_id"), CandidateBOwnerAgentID: firstStringFromMap(candidateB, "owner_agent_id"),
+		CandidateAReservationID: firstStringFromMap(candidateA, "reservation_id"), CandidateBReservationID: firstStringFromMap(candidateB, "reservation_id"),
+		CandidateAArtifactRef: firstStringFromMap(candidateA, "artifact_ref"), CandidateBArtifactRef: firstStringFromMap(candidateB, "artifact_ref"),
 		CandidateAPreviewRef: firstStringFromMap(candidateA, "preview_ref"), CandidateBPreviewRef: firstStringFromMap(candidateB, "preview_ref"),
 		CandidateARenderRevision: firstStringFromMap(candidateA, "render_revision"), CandidateBRenderRevision: firstStringFromMap(candidateB, "render_revision"),
 		ProjectUUID: firstStringFromMap(session, "project_uuid"), ProjectRevision: projectRevision,

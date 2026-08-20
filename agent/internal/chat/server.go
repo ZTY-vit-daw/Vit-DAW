@@ -26,6 +26,7 @@ import (
 	"vit-daw-agent/internal/artifacts"
 	"vit-daw-agent/internal/audioclosure"
 	"vit-daw-agent/internal/browsercapture"
+	"vit-daw-agent/internal/collaboration"
 	"vit-daw-agent/internal/config"
 	"vit-daw-agent/internal/contextruntime"
 	"vit-daw-agent/internal/harness"
@@ -125,6 +126,7 @@ type projectAgentRuntimeState struct {
 	FreeStateLoops            map[string]freeStateReasoningLoop             `json:"free_state_reasoning_loops,omitempty"`
 	AudioClosures             map[string]audioclosure.State                 `json:"minimal_audio_closures,omitempty"`
 	ControllerOwners          map[string]orchestrationcontroller.Owner      `json:"orchestration_controller_owners,omitempty"`
+	Collaboration             collaboration.Snapshot                        `json:"worktree_collaboration,omitempty"`
 	PendingCandidates         []agentprotocol.PendingCandidate              `json:"pending_candidates,omitempty"`
 	GoalRuntime               agentruntime.Snapshot                         `json:"goal_runtime,omitempty"`
 	AuthorityMode             string                                        `json:"authority_mode,omitempty"`
@@ -808,6 +810,7 @@ func (s *Server) handleState(w http.ResponseWriter, r *http.Request) {
 			"project_history": stateHistory,
 		},
 		"project_history": stateHistory,
+		"collaboration":   s.harness.CollaborationSnapshot(),
 		"direct_commands": s.harness.DirectCommandNames(),
 		"tool_count":      len(s.harness.Tools()),
 	})
@@ -1033,6 +1036,7 @@ func (s *Server) handleUIState(w http.ResponseWriter, r *http.Request) {
 		"agent_plan":       s.activeGoalPlan(goal, projectHistory),
 		"artifacts":        artifacts.Summaries(items),
 		"project_history":  projectHistory,
+		"collaboration":    s.harness.CollaborationSnapshot(),
 		"capabilities": map[string]any{
 			"tools":            len(s.harness.Tools()),
 			"direct_commands":  s.harness.DirectCommandNames(),
@@ -1607,6 +1611,9 @@ func (s *Server) handleInvoke(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	resp, err := s.harness.Invoke(r.Context(), req)
+	if err == nil && resp.Status == "ok" {
+		s.emitInvokeCollaborationEvents(req, resp)
+	}
 	status := http.StatusOK
 	if err != nil && resp.Status == "error" {
 		status = http.StatusBadRequest
@@ -5319,6 +5326,7 @@ If the user asks to insert notes, a melody, a chord, or a drum pattern into the 
 If no MIDI clip is selected but the user asks to write notes into a MIDI clip on the current track, use selected_track_id and let the harness resolve the only clip on that track; if no clip exists, first create one with midi.create_clip.
 Commands marked confirm require user preview/confirmation. Commands marked undoable can run directly when the target is unambiguous.
 Do not proactively emit version.checkpoint for ordinary writes; VitAgent creates the automatic Project History safety checkpoint before the first mutating command in a goal. Use version.* commands only for explicit history, branch, worktree, restore, checkout, or checkpoint requests.
+In full_project_access, meaningful alternative directions may use version.branch_create with activate:false or version.worktree_create with reserve:true. Record parent_node_id, source commit, owner Agent/Goal/Run/Conversation, purpose, and hypothesis. Never activate a Branch or checkout a Worktree while a Turn is running. Use collaboration.worktree_* and collaboration.child_* for single-writer ownership and child tasks. collaboration.child_register uses parent_agent_id/parent_goal_id/parent_run_id and child_agent_id/child_goal_id/child_run_id/child_conversation_id so Harness identity injection cannot blur Parent and Child ownership. Prepare cross-Worktree listening with collaboration.candidate_prepare followed by collaboration.audition_prepare; only target-scope real audio_file previews are currently supported. A/B selection is preview-only, and adoption must remain an explicit audition.apply_candidate action. Never claim a generic DAW merge.
 Do not invent track_id or clip_id. Use IDs from the DAW state below.
 Use stable IDs only inside commands. User-facing replies should use track names, clip names, or plain musical descriptions; do not show track_id, clip_id, plugin_id, or agent_action_id unless the user explicitly asks for technical details.
 The DAW state below intentionally hides internal Tracktion tracks such as arranger/chord/marker/tempo/master. Treat tracks[] as the user-visible editable track list.
@@ -5514,17 +5522,20 @@ func (s *Server) executeDecisions(ctx context.Context, decisions []policy.Decisi
 	}()
 	replies = make([]map[string]any, 0, len(decisions))
 	for _, d := range decisions {
-		resp, err := s.harness.Invoke(ctx, harness.InvokeRequest{
-			Command:   d.Command,
-			Context:   requestContext,
-			Source:    "chat",
-			Confirmed: confirmed,
-		})
+		invokeRequest := harness.InvokeRequest{
+			Command: d.Command, Context: requestContext, Source: "chat", Confirmed: confirmed,
+			GoalID: firstStringFromMap(requestContext, "goal_id", "owner_goal_id"),
+			RunID:  firstStringFromMap(requestContext, "run_id", "owner_run_id"),
+		}
+		resp, err := s.harness.Invoke(ctx, invokeRequest)
 		if err != nil {
 			return replies, err
 		}
 		if resp.Status == "needs_confirmation" {
 			return replies, fmt.Errorf("命令需要确认：%s", resp.CommandName)
+		}
+		if resp.Status == "ok" {
+			s.emitInvokeCollaborationEvents(invokeRequest, resp)
 		}
 		replies = append(replies, map[string]any{
 			"status":          resp.Status,
@@ -6512,6 +6523,9 @@ func (s *Server) projectAgentRuntimeStateLocked() projectAgentRuntimeState {
 	if s.controllerOwners != nil {
 		state.ControllerOwners = s.controllerOwners.Snapshot()
 	}
+	if s.harness != nil {
+		state.Collaboration = s.harness.CollaborationSnapshot()
+	}
 	if s.pendingManager != nil {
 		state.PendingCandidates = s.pendingManager.Snapshot()
 	}
@@ -6556,12 +6570,27 @@ func (s *Server) restoreProjectAgentRuntimeStateLocked(state projectAgentRuntime
 			s.logger.Warn("[workspace] orchestration controller owner restore rejected: %v", err)
 		}
 	}
+	if s.harness != nil {
+		if err := s.harness.RestoreCollaboration(state.Collaboration); err != nil && s.logger != nil {
+			s.logger.Warn("[workspace] worktree collaboration restore rejected: %v", err)
+		}
+	}
 	if s.pendingManager == nil {
 		s.pendingManager = pendingmanager.NewMemoryManager()
 	}
 	s.pendingManager.Restore(retiredCandidates)
 	if s.harness != nil {
 		s.harness.RestoreRuntime(state.GoalRuntime)
+		activeGoals := map[string]bool{}
+		for _, goal := range state.GoalRuntime.Goals {
+			switch goal.Status {
+			case agentruntime.StatusRunning, agentruntime.StatusProcessing, agentruntime.StatusExecuting, agentruntime.StatusCancelling:
+				activeGoals[goal.GoalID] = true
+			}
+		}
+		if stale := s.harness.RecoverInactiveCollaborationOwners(activeGoals); len(stale) > 0 && s.logger != nil {
+			s.logger.Info("[workspace] recovered %d stale worktree reservations", len(stale))
+		}
 	}
 }
 

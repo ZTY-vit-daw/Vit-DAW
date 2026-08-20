@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"vit-daw-agent/internal/experiment"
+	"vit-daw-agent/internal/harness"
 	agentruntime "vit-daw-agent/internal/runtime"
 	"vit-daw-agent/internal/shadow"
 	"vit-daw-agent/internal/trajectory"
@@ -155,5 +156,17 @@ func TestAuthorityEndpointPersistsExplicitMode(t *testing.T) {
 	restarted.restoreProjectAgentRuntimeStateLocked(state)
 	if restarted.authorityMode != authorityModeFull {
 		t.Fatalf("restored authority mode=%q", restarted.authorityMode)
+	}
+}
+
+func TestCheckoutGuardAllowsInactiveBranchArgsDuringRunningTurn(t *testing.T) {
+	s := New(nil, shadow.New(nil), nil)
+	goal := s.harness.BeginGoal("branch guard")
+	if guard, blocked := s.checkoutGuard(harness.InvokeRequest{Tool: "version.branch_create", Args: map[string]any{"activate": false}, GoalID: goal.GoalID, RunID: goal.RunID}); blocked || guard != nil {
+		t.Fatalf("inactive branch create was blocked: guard=%+v", guard)
+	}
+	guard, blocked := s.checkoutGuard(harness.InvokeRequest{Tool: "version.branch_create", Args: map[string]any{"activate": true}, GoalID: goal.GoalID, RunID: goal.RunID})
+	if !blocked || guard["error_code"] != "checkout_blocked_while_agent_running" {
+		t.Fatalf("active branch create was not blocked: guard=%+v", guard)
 	}
 }

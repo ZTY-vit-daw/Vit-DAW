@@ -154,3 +154,8 @@
 .audition-candidate-actions button:disabled { opacity: .4; cursor: not-allowed; }
 .audition-inspected { color: #e3bd66; font-size: 12px; margin-top: 8px; }
 .audition-adopted { color: #78e6a1; font-size: 12px; margin-top: 6px; }
+
+.audition-candidate-source { display: grid; gap: 2px; padding: 0 4px; color: #93a4bf; font-size: 10px; }
+.audition-candidate-source span { text-transform: uppercase; letter-spacing: .08em; }
+.audition-candidate-source strong { color: #c7d5ec; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.audition-candidate-source small { color: #7f91af; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

@@ -27,6 +27,7 @@ import (
 	"vit-daw-agent/internal/agentprotocol"
 	"vit-daw-agent/internal/artifacts"
 	"vit-daw-agent/internal/browsercapture"
+	"vit-daw-agent/internal/collaboration"
 	"vit-daw-agent/internal/com"
 	"vit-daw-agent/internal/history"
 	"vit-daw-agent/internal/journal"
@@ -62,6 +63,7 @@ type Harness struct {
 	catalog         *tools.Catalog
 	journal         *journal.Journal
 	runtime         *agentruntime.Runtime
+	collaboration   *collaboration.Registry
 	mixTicks        *mixTickStore
 	logger          *logx.Logger
 	snapshotCache   *PluginSnapshotCache
@@ -156,6 +158,7 @@ func newWithSender(sender KernelSender, shadowProject *shadow.Project, logger *l
 		catalog:         tools.DefaultCatalog(),
 		journal:         j,
 		runtime:         agentruntime.New(),
+		collaboration:   collaboration.NewRegistry(),
 		mixTicks:        newMixTickStore(),
 		snapshotCache:   NewPluginSnapshotCache(),
 		logger:          logger,
@@ -241,6 +244,48 @@ func (h *Harness) RestoreRuntime(snapshot agentruntime.Snapshot) {
 		return
 	}
 	h.runtime.Restore(snapshot)
+}
+
+func (h *Harness) CollaborationSnapshot() collaboration.Snapshot {
+	if h == nil || h.collaboration == nil {
+		return collaboration.Snapshot{SchemaVersion: collaboration.SchemaVersion}
+	}
+	return h.collaboration.Snapshot()
+}
+
+func (h *Harness) RestoreCollaboration(snapshot collaboration.Snapshot) error {
+	if h == nil {
+		return fmt.Errorf("harness is nil")
+	}
+	if h.collaboration == nil {
+		h.collaboration = collaboration.NewRegistry()
+	}
+	if err := h.collaboration.Restore(snapshot); err != nil {
+		return err
+	}
+	h.collaboration.RecoverStale(time.Now().UTC())
+	return nil
+}
+
+func (h *Harness) RecoverInactiveCollaborationOwners(activeGoalIDs map[string]bool) []collaboration.WorktreeReservation {
+	if h == nil || h.collaboration == nil {
+		return nil
+	}
+	return h.collaboration.RecoverInactiveOwners(activeGoalIDs, time.Now().UTC())
+}
+
+func (h *Harness) RecordCandidateReservationDisposition(reservationID, candidateRef, artifactRef, settlementRef string, release bool) (collaboration.WorktreeReservation, error) {
+	if h == nil || h.collaboration == nil {
+		return collaboration.WorktreeReservation{}, fmt.Errorf("worktree collaboration registry unavailable")
+	}
+	if release {
+		reservation, err := h.collaboration.RecordCandidateAndRelease(reservationID, candidateRef, artifactRef, settlementRef, time.Now().UTC())
+		if err != nil {
+			return reservation, err
+		}
+		return h.collaboration.SetDisposition(reservationID, collaboration.DispositionPromote, time.Now().UTC())
+	}
+	return h.collaboration.RecordCandidate(reservationID, candidateRef, artifactRef, settlementRef)
 }
 
 func (h *Harness) BeginGoal(summary string) agentruntime.Goal {
@@ -574,7 +619,17 @@ func (h *Harness) Invoke(ctx context.Context, req InvokeRequest) (resp InvokeRes
 		h.logPreJournalInvokeFailure("resolve_command", req, tools.CommandSpec{}, nil, err)
 		return resp, err
 	}
-	if goal, blocked := h.CheckoutBlocked(); blocked && activeProjectPlaneCommand(spec.CommandName) {
+	if result, guardErr := h.collaborationChildPlaneGuard(spec, cmd, req); guardErr != nil {
+		resp := InvokeResponse{Status: "error", Tool: spec.ToolName, CommandName: spec.CommandName, RiskLevel: spec.RiskLevel, Error: guardErr.Error(), Result: result}
+		h.logPreJournalInvokeFailure("child_active_project_plane_guard", req, spec, cmd, guardErr)
+		return resp, guardErr
+	}
+	if result, guardErr := h.collaborationWriteGuard(spec, cmd, req); guardErr != nil {
+		resp := InvokeResponse{Status: "error", Tool: spec.ToolName, CommandName: spec.CommandName, RiskLevel: spec.RiskLevel, Error: guardErr.Error(), Result: result}
+		h.logPreJournalInvokeFailure("worktree_reservation_write_guard", req, spec, cmd, guardErr)
+		return resp, guardErr
+	}
+	if goal, blocked := h.CheckoutBlocked(); blocked && activeProjectPlaneCommand(spec.CommandName, cmd) {
 		err := fmt.Errorf("checkout_blocked_while_agent_running: stop_turn_before_checkout (goal=%s status=%s)", goal.GoalID, goal.Status)
 		resp := InvokeResponse{Status: "error", Tool: spec.ToolName, CommandName: spec.CommandName, RiskLevel: spec.RiskLevel, Error: err.Error(), Result: map[string]any{"error_code": "checkout_blocked_while_agent_running", "required_action": "stop_turn_before_checkout", "goal_id": goal.GoalID, "goal_status": goal.Status}}
 		h.logPreJournalInvokeFailure("active_project_plane_checkout_guard", req, spec, cmd, err)
@@ -2006,6 +2061,48 @@ func (h *Harness) invokeLocal(ctx context.Context, spec tools.CommandSpec, cmd m
 	case "agent_rollback_action":
 		result, err := rollback.Action(context.Background(), h, cmd)
 		return resultWithErr(result, err), true
+	case "collaboration_worktree_reserve":
+		result, err := h.reserveWorktree(ctx, cmd, requestContext)
+		return resultWithErr(result, err), true
+	case "collaboration_worktree_list":
+		result, err := h.listWorktreeCollaboration(ctx, cmd)
+		return resultWithErr(result, err), true
+	case "collaboration_worktree_renew":
+		result, err := h.renewWorktreeReservation(cmd, requestContext)
+		return resultWithErr(result, err), true
+	case "collaboration_worktree_recover_stale":
+		result, err := h.recoverStaleWorktreeReservations()
+		return resultWithErr(result, err), true
+	case "collaboration_worktree_release":
+		result, err := h.finishWorktreeReservation(cmd, requestContext, collaboration.ReservationReleased)
+		return resultWithErr(result, err), true
+	case "collaboration_worktree_takeover":
+		result, err := h.takeoverWorktreeReservation(cmd, requestContext)
+		return resultWithErr(result, err), true
+	case "collaboration_worktree_disposition":
+		result, err := h.setWorktreeDisposition(cmd)
+		return resultWithErr(result, err), true
+	case "collaboration_worktree_abandon":
+		result, err := h.finishWorktreeReservation(cmd, requestContext, collaboration.ReservationAbandoned)
+		return resultWithErr(result, err), true
+	case "collaboration_worktree_fail":
+		result, err := h.finishWorktreeReservation(cmd, requestContext, collaboration.ReservationFailed)
+		return resultWithErr(result, err), true
+	case "collaboration_child_register":
+		result, err := h.registerChildTask(cmd, requestContext)
+		return resultWithErr(result, err), true
+	case "collaboration_child_update":
+		result, err := h.updateChildTask(cmd)
+		return resultWithErr(result, err), true
+	case "collaboration_child_list":
+		result, err := h.listChildTasks(cmd, requestContext)
+		return resultWithErr(result, err), true
+	case "collaboration_candidate_prepare":
+		result, err := h.prepareCollaborationCandidate(cmd, requestContext)
+		return resultWithErr(result, err), true
+	case "collaboration_audition_prepare":
+		result, err := h.prepareCollaborationAudition(ctx, cmd)
+		return resultWithErr(result, err), true
 	case "version_status":
 		result, err := history.Status(h.historyArgs(cmd))
 		return resultWithErr(result, err), true
@@ -2031,7 +2128,9 @@ func (h *Harness) invokeLocal(ctx context.Context, spec tools.CommandSpec, cmd m
 		return resultWithErr(result, err), true
 	case "version_branch_create":
 		result, err := history.BranchCreate(h.historyArgs(cmd))
-		result = h.withProjectReload(ctx, "version_branch_create", result)
+		if result == nil || boolValueDefault(result["activated"], true) {
+			result = h.withProjectReload(ctx, "version_branch_create", result)
+		}
 		return resultWithErr(result, err), true
 	case "version_node_checkout":
 		result, err := history.NodeCheckout(h.historyArgs(cmd))
@@ -2043,6 +2142,17 @@ func (h *Harness) invokeLocal(ctx context.Context, spec tools.CommandSpec, cmd m
 		return resultWithErr(result, err), true
 	case "version_worktree_create":
 		args := h.worktreeCreateArgs(ctx, cmd)
+		if worktreeReservationRequested(args) {
+			if firstString(args, "reservation_id") == "" {
+				args["reservation_id"] = "reservation_" + randomID()
+			}
+			if firstString(args, "owner_agent_id", "agent_id") == "" {
+				args["owner_agent_id"] = ownerAgent(args, requestContext)
+			}
+			if firstString(args, "owner_conversation_id", "conversation_id") == "" {
+				args["owner_conversation_id"] = firstString(requestContext, "conversation_id")
+			}
+		}
 		result, err := history.WorktreeCreate(args)
 		if result != nil {
 			if id := firstString(args, "source_checkpoint_id"); id != "" {
@@ -2050,6 +2160,22 @@ func (h *Harness) invokeLocal(ctx context.Context, spec tools.CommandSpec, cmd m
 			}
 			if warning := firstString(args, "source_checkpoint_warning"); warning != "" {
 				result["warnings"] = appendStringAny(result["warnings"], warning)
+			}
+		}
+		if err == nil && result != nil && worktreeReservationRequested(args) {
+			reserveArgs := tools.CloneCommand(args)
+			reserveArgs["worktree_ref"] = firstNonEmpty(firstString(result, "worktree_ref", "name"), firstString(args, "worktree_ref", "name"))
+			reserveArgs["worktree_project_path"] = firstString(result, "project_file_path")
+			reserveArgs["project_uuid"] = firstNonEmpty(firstString(result, "project_uuid"), firstString(args, "project_uuid"))
+			reserveArgs["parent_commit_id"] = firstNonEmpty(firstString(args, "parent_commit_id", "source_commit_id", "commit_id"), firstString(result, "origin_commit_id"))
+			reservationResult, reservationErr := h.reserveWorktree(ctx, reserveArgs, requestContext)
+			if reservationErr != nil {
+				result["reservation_status"] = "failed"
+				result["reservation_error"] = reservationErr.Error()
+				err = reservationErr
+			} else {
+				result["reservation_status"] = "reserved"
+				result["reservation"] = reservationResult["reservation"]
 			}
 		}
 		return resultWithErr(result, err), true
@@ -7869,9 +7995,17 @@ func (h *Harness) EnsureCapabilityExecutionBaseline(ctx context.Context, goalID,
 	}, map[string]any{"capability_id": capabilityID}, goalID, runID)
 }
 
-func activeProjectPlaneCommand(commandName string) bool {
+func activeProjectPlaneCommand(commandName string, cmd map[string]any) bool {
 	switch strings.ToLower(strings.TrimSpace(commandName)) {
 	case "version_checkout", "version_node_checkout", "version_worktree_checkout", "version_restore":
+		return true
+	case "version_branch_create":
+		if _, ok := cmd["activate"]; ok {
+			return boolValueDefault(cmd["activate"], true)
+		}
+		if _, ok := cmd["checkout"]; ok {
+			return boolValueDefault(cmd["checkout"], true)
+		}
 		return true
 	default:
 		return false

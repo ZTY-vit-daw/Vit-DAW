@@ -139,6 +139,7 @@ export interface AgentUIState {
   agent_plan?: JsonRecord | null;
   artifacts?: ArtifactSummary[];
   project_history?: JsonRecord | null;
+  collaboration?: JsonRecord | null;
   authority_mode?: AuthorityMode;
   checkout_blocked?: boolean;
   capabilities?: JsonRecord | null;

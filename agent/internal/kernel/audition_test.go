@@ -13,7 +13,7 @@ func TestAuditionPrepareArgsUsesContractCandidateAAndB(t *testing.T) {
 		ActiveProjectRevision: "project-r17",
 		TimelineRevision:      "timeline-r17",
 		Candidates: []AuditionCandidate{
-			{ID: "candidate-a", SourceKind: "audio_file", SourceRef: "D:/audio/a.wav", CheckpointRef: "checkpoint:a", CommitID: "commit-a", BranchRef: "branch:a", WorktreeRef: "worktree:a", ProjectRevision: "project-r17", RenderRevision: "render-a", Scope: "target"},
+			{ID: "candidate-a", SourceKind: "audio_file", SourceRef: "D:/audio/a.wav", EngineeringSourceKind: "worktree", EngineeringSourceRef: "worktree:a", OwnerAgentID: "agent-a", ReservationID: "reservation-a", ArtifactRef: "artifact-a", CheckpointRef: "checkpoint:a", CommitID: "commit-a", BranchRef: "branch:a", WorktreeRef: "worktree:a", ProjectRevision: "project-r17", RenderRevision: "render-a", Scope: "target"},
 			{ID: "candidate-b", SourceKind: "audio_file", SourceRef: "D:/audio/b.wav", CheckpointRef: "checkpoint:b", CommitID: "commit-b", BranchRef: "branch:b", WorktreeRef: "worktree:b", ProjectRevision: "project-r17", RenderRevision: "render-b", Scope: "target"},
 		},
 	}
@@ -28,7 +28,7 @@ func TestAuditionPrepareArgsUsesContractCandidateAAndB(t *testing.T) {
 		t.Fatalf("legacy candidates array leaked into contract payload: %#v", args)
 	}
 	candidateA := mapFromAny(args["candidate_a"])
-	if candidateA["source_kind"] != "audio_file" || candidateA["checkpoint_ref"] != "checkpoint:a" || candidateA["commit_id"] != "commit-a" || candidateA["branch_ref"] != "branch:a" || candidateA["worktree_ref"] != "worktree:a" || candidateA["project_revision"] != "project-r17" || candidateA["render_revision"] != "render-a" || candidateA["scope"] != "target" {
+	if candidateA["source_kind"] != "audio_file" || candidateA["engineering_source_kind"] != "worktree" || candidateA["engineering_source_ref"] != "worktree:a" || candidateA["owner_agent_id"] != "agent-a" || candidateA["reservation_id"] != "reservation-a" || candidateA["artifact_ref"] != "artifact-a" || candidateA["checkpoint_ref"] != "checkpoint:a" || candidateA["commit_id"] != "commit-a" || candidateA["branch_ref"] != "branch:a" || candidateA["worktree_ref"] != "worktree:a" || candidateA["project_revision"] != "project-r17" || candidateA["render_revision"] != "render-a" || candidateA["scope"] != "target" {
 		t.Fatalf("candidate identity binding missing: %#v", candidateA)
 	}
 }

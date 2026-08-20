@@ -7,6 +7,8 @@ export interface AuditionCandidate {
   label: string;
   status: string;
   sourceRef: string;
+  engineeringSourceKind: string;
+  engineeringSourceRef: string;
   previewRef: string;
   checkpointRef: string;
   commitID: string;
@@ -14,6 +16,9 @@ export interface AuditionCandidate {
   worktreeRef: string;
   projectPath: string;
   projectRevision: string;
+  ownerAgentID: string;
+  reservationID: string;
+  artifactRef: string;
 }
 
 export type HeardDifference = "yes" | "no" | "unsure";
@@ -111,9 +116,9 @@ export function auditionCanSelect(session: AuditionSession, candidate: AuditionC
 function candidateFromAny(value: unknown): AuditionCandidate {
   const row = record(value);
   return {
-    id: text(row.id), label: text(row.label) || text(row.id), status: text(row.status), sourceRef: text(row.source_ref), previewRef: text(row.preview_ref),
+    id: text(row.id), label: text(row.label) || text(row.id), status: text(row.status), sourceRef: text(row.source_ref), engineeringSourceKind: text(row.engineering_source_kind), engineeringSourceRef: text(row.engineering_source_ref), previewRef: text(row.preview_ref),
     checkpointRef: text(row.checkpoint_ref), commitID: text(row.commit_id), branchRef: text(row.branch_ref), worktreeRef: text(row.worktree_ref),
-    projectPath: text(row.project_path), projectRevision: text(row.project_revision)
+    projectPath: text(row.project_path), projectRevision: text(row.project_revision), ownerAgentID: text(row.owner_agent_id), reservationID: text(row.reservation_id), artifactRef: text(row.artifact_ref)
   };
 }
 function record(value: unknown): JsonRecord { return value && typeof value === "object" && !Array.isArray(value) ? value as JsonRecord : {}; }

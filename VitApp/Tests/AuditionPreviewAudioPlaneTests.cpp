@@ -124,11 +124,16 @@ int main()
         candidate->setProperty ("label", id);
         candidate->setProperty ("source_kind", "audio_file");
         candidate->setProperty ("source_ref", file.getFullPathName());
+        candidate->setProperty ("engineering_source_kind", "worktree");
+        candidate->setProperty ("engineering_source_ref", juce::String ("worktree:") + worktree);
         candidate->setProperty ("checkpoint_ref", checkpoint);
         candidate->setProperty ("commit_id", juce::String (id) + "-commit");
         candidate->setProperty ("branch_ref", branch);
         candidate->setProperty ("worktree_ref", worktree);
         candidate->setProperty ("project_revision", "project-r17");
+        candidate->setProperty ("owner_agent_id", juce::String ("agent:") + id);
+        candidate->setProperty ("reservation_id", juce::String ("reservation:") + id);
+        candidate->setProperty ("artifact_ref", juce::String ("artifact:") + id);
         candidate->setProperty ("render_revision", "direct-audio-file");
         candidate->setProperty ("scope", "target");
         return juce::var (candidate.release());
@@ -143,6 +148,10 @@ int main()
     auto* preparedA = preparedSession->getProperty ("candidate_a").getDynamicObject();
     assert (preparedA != nullptr && preparedA->getProperty ("preview_ref").toString().startsWith ("audio-buffer://"));
     assert (preparedA->getProperty ("preview_revision").toString().isNotEmpty());
+    assert (preparedA->getProperty ("engineering_source_kind").toString() == "worktree");
+    assert (preparedA->getProperty ("engineering_source_ref").toString() == "worktree:worktree:a");
+    assert (preparedA->getProperty ("owner_agent_id").toString() == "agent:candidate-a");
+    assert (preparedA->getProperty ("reservation_id").toString() == "reservation:candidate-a");
     assert (! events.isEmpty());
     const auto lastEventValue = juce::JSON::parse (events.getLast());
     auto* lastEvent = lastEventValue.getDynamicObject();

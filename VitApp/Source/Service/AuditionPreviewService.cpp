@@ -16,6 +16,8 @@ juce::var candidateToVar (const audition::Candidate& candidate)
     object->setProperty ("label", juce::String (candidate.label.c_str()));
     object->setProperty ("source_kind", juce::String (candidate.sourceKind.c_str()));
     object->setProperty ("source_ref", juce::String (candidate.sourceRef.c_str()));
+    object->setProperty ("engineering_source_kind", juce::String (candidate.engineeringSourceKind.c_str()));
+    object->setProperty ("engineering_source_ref", juce::String (candidate.engineeringSourceRef.c_str()));
     object->setProperty ("preview_ref", juce::String (candidate.previewRef.c_str()));
     object->setProperty ("checkpoint_ref", juce::String (candidate.checkpointRef.c_str()));
     object->setProperty ("commit_id", juce::String (candidate.commitId.c_str()));
@@ -24,6 +26,9 @@ juce::var candidateToVar (const audition::Candidate& candidate)
     object->setProperty ("project_path", juce::String (candidate.projectPath.c_str()));
     object->setProperty ("project_uuid", juce::String (candidate.projectUUID.c_str()));
     object->setProperty ("project_revision", juce::String (candidate.projectRevision.c_str()));
+    object->setProperty ("owner_agent_id", juce::String (candidate.ownerAgentId.c_str()));
+    object->setProperty ("reservation_id", juce::String (candidate.reservationId.c_str()));
+    object->setProperty ("artifact_ref", juce::String (candidate.artifactRef.c_str()));
     object->setProperty ("render_revision", juce::String (candidate.renderRevision.c_str()));
     object->setProperty ("preview_revision", juce::String (candidate.previewRevision.c_str()));
     object->setProperty ("scope", juce::String (candidate.scope.c_str()));
@@ -53,6 +58,8 @@ bool appendCandidate (const juce::var& value,
     candidate.label = candidateObject->getProperty ("label").toString().trim().toStdString();
     candidate.sourceKind = candidateObject->getProperty ("source_kind").toString().trim().toStdString();
     candidate.sourceRef = candidateObject->getProperty ("source_ref").toString().trim().toStdString();
+    candidate.engineeringSourceKind = candidateObject->getProperty ("engineering_source_kind").toString().trim().toStdString();
+    candidate.engineeringSourceRef = candidateObject->getProperty ("engineering_source_ref").toString().trim().toStdString();
     candidate.previewRef = candidateObject->getProperty ("preview_ref").toString().trim().toStdString();
     candidate.checkpointRef = candidateObject->getProperty ("checkpoint_ref").toString().trim().toStdString();
     candidate.commitId = candidateObject->getProperty ("commit_id").toString().trim().toStdString();
@@ -61,6 +68,9 @@ bool appendCandidate (const juce::var& value,
     candidate.projectPath = candidateObject->getProperty ("project_path").toString().trim().toStdString();
     candidate.projectUUID = candidateObject->getProperty ("project_uuid").toString().trim().toStdString();
     candidate.projectRevision = candidateObject->getProperty ("project_revision").toString().trim().toStdString();
+    candidate.ownerAgentId = candidateObject->getProperty ("owner_agent_id").toString().trim().toStdString();
+    candidate.reservationId = candidateObject->getProperty ("reservation_id").toString().trim().toStdString();
+    candidate.artifactRef = candidateObject->getProperty ("artifact_ref").toString().trim().toStdString();
     candidate.renderRevision = candidateObject->getProperty ("render_revision").toString().trim().toStdString();
     candidate.previewRevision = candidateObject->getProperty ("preview_revision").toString().trim().toStdString();
     candidate.scope = candidateObject->getProperty ("scope").toString().trim().toStdString();

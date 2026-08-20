@@ -86,6 +86,11 @@ export function TrajectoryAuditionPanel({
                     <button type="button" className={session.activeCandidateId === candidate.id ? "active" : ""} disabled={!selectable || busySessionID === session.id} aria-label={`试听 ${candidate.label}`} onClick={() => void onSelect(session.id, candidate.id)}>
                       <strong>{candidate.label}</strong><span>{candidate.status || "preparing"}</span>
                     </button>
+                    <div className="audition-candidate-source">
+                      <span>{candidate.engineeringSourceKind || (candidate.worktreeRef ? "worktree" : candidate.branchRef ? "branch" : "checkpoint")}</span>
+                      <strong>{candidate.worktreeRef || candidate.branchRef || candidate.checkpointRef || candidate.engineeringSourceRef || "-"}</strong>
+                      {candidate.ownerAgentID && <small>{candidate.ownerAgentID}{candidate.reservationID ? ` · ${candidate.reservationID}` : ""}</small>}
+                    </div>
                     <div className="audition-candidate-actions">
                       <button type="button" disabled={!auditionCanInspect(candidate) || busySessionID === session.id} onClick={() => void onInspect?.(session.id, candidate.id)}>查看</button>
                       <button type="button" disabled={!auditionJudgmentPrefers(session, candidate.id) || busySessionID === session.id || session.adoptionStatus === "applied"} onClick={() => void onApply?.(session.id, candidate.id, String(session.judgmentEvidence?.id ?? ""))}>采用</button>

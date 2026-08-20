@@ -7,24 +7,29 @@ import (
 
 // AuditionCandidate is the protocol shape for one Kernel-owned preview.
 type AuditionCandidate struct {
-	ID              string  `json:"id"`
-	Label           string  `json:"label,omitempty"`
-	SourceKind      string  `json:"source_kind,omitempty"`
-	SourceRef       string  `json:"source_ref"`
-	PreviewRef      string  `json:"preview_ref,omitempty"`
-	CheckpointRef   string  `json:"checkpoint_ref,omitempty"`
-	CommitID        string  `json:"commit_id,omitempty"`
-	BranchRef       string  `json:"branch_ref,omitempty"`
-	WorktreeRef     string  `json:"worktree_ref,omitempty"`
-	ProjectPath     string  `json:"project_path,omitempty"`
-	ProjectUUID     string  `json:"project_uuid,omitempty"`
-	ProjectRevision string  `json:"project_revision,omitempty"`
-	RenderRevision  string  `json:"render_revision,omitempty"`
-	PreviewRevision string  `json:"preview_revision,omitempty"`
-	Scope           string  `json:"scope,omitempty"`
-	DurationSeconds float64 `json:"duration_seconds,omitempty"`
-	SampleRate      float64 `json:"sample_rate,omitempty"`
-	ChannelCount    int     `json:"channel_count,omitempty"`
+	ID                    string  `json:"id"`
+	Label                 string  `json:"label,omitempty"`
+	SourceKind            string  `json:"source_kind,omitempty"`
+	SourceRef             string  `json:"source_ref"`
+	EngineeringSourceKind string  `json:"engineering_source_kind,omitempty"`
+	EngineeringSourceRef  string  `json:"engineering_source_ref,omitempty"`
+	PreviewRef            string  `json:"preview_ref,omitempty"`
+	CheckpointRef         string  `json:"checkpoint_ref,omitempty"`
+	CommitID              string  `json:"commit_id,omitempty"`
+	BranchRef             string  `json:"branch_ref,omitempty"`
+	WorktreeRef           string  `json:"worktree_ref,omitempty"`
+	ProjectPath           string  `json:"project_path,omitempty"`
+	ProjectUUID           string  `json:"project_uuid,omitempty"`
+	ProjectRevision       string  `json:"project_revision,omitempty"`
+	OwnerAgentID          string  `json:"owner_agent_id,omitempty"`
+	ReservationID         string  `json:"reservation_id,omitempty"`
+	ArtifactRef           string  `json:"artifact_ref,omitempty"`
+	RenderRevision        string  `json:"render_revision,omitempty"`
+	PreviewRevision       string  `json:"preview_revision,omitempty"`
+	Scope                 string  `json:"scope,omitempty"`
+	DurationSeconds       float64 `json:"duration_seconds,omitempty"`
+	SampleRate            float64 `json:"sample_rate,omitempty"`
+	ChannelCount          int     `json:"channel_count,omitempty"`
 }
 
 // AuditionSessionRequest creates a session spanning the Active Project Plane

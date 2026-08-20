@@ -217,9 +217,17 @@ func (s *Server) finalizeStoppedTurn(ctx context.Context, conversationID, goalID
 	return goal, checkpoint
 }
 
-func activeProjectPlaneCommand(commandName string) bool {
+func activeProjectPlaneCommand(commandName string, cmd map[string]any) bool {
 	switch strings.ToLower(strings.TrimSpace(commandName)) {
 	case "version_checkout", "version.checkout", "version_node_checkout", "version.node_checkout", "version_worktree_checkout", "version.worktree_checkout", "version_restore", "version.restore":
+		return true
+	case "version_branch_create", "version.branch_create":
+		if _, ok := cmd["activate"]; ok {
+			return boolValue(cmd["activate"])
+		}
+		if _, ok := cmd["checkout"]; ok {
+			return boolValue(cmd["checkout"])
+		}
 		return true
 	default:
 		return false
@@ -231,10 +239,14 @@ func (s *Server) checkoutGuard(req harness.InvokeRequest) (map[string]any, bool)
 		return nil, false
 	}
 	commandName := req.Tool
-	if value, ok := req.Command["cmd"].(string); ok && strings.TrimSpace(value) != "" {
+	command := req.Command
+	if len(command) == 0 {
+		command = req.Args
+	}
+	if value, ok := command["cmd"].(string); ok && strings.TrimSpace(value) != "" {
 		commandName = value
 	}
-	if !activeProjectPlaneCommand(commandName) {
+	if !activeProjectPlaneCommand(commandName, command) {
 		return nil, false
 	}
 	goal, blocked := s.harness.CheckoutBlocked()

@@ -9819,6 +9819,9 @@ type HistoryTreeLayout = {
 
 function HistoryPane({ uiState, onRefresh, checkoutBlocked }: { uiState: AgentUIState | null; onRefresh: () => Promise<void>; checkoutBlocked: boolean }) {
   const activeHistory = asRecord(uiState?.project_history);
+  const collaboration = asRecord(uiState?.collaboration);
+  const reservations = useMemo(() => firstArray(collaboration.reservations).map(asRecord), [collaboration]);
+  const childTasks = useMemo(() => firstArray(collaboration.child_tasks).map(asRecord), [collaboration]);
   const worktrees = useMemo(() => historyWorktreeRows(activeHistory), [activeHistory]);
   const activeWorktreeKey = worktrees.find((worktree) => worktree.active)?.key ?? worktrees[0]?.key ?? "";
   const [selectedWorktreeKey, setSelectedWorktreeKey] = useState("");
@@ -9846,6 +9849,12 @@ function HistoryPane({ uiState, onRefresh, checkoutBlocked }: { uiState: AgentUI
     null;
   const activeBranch = historyActiveBranch(displayHistory);
   const projectPath = historyProjectPath(displayHistory) || selectedWorktree?.projectFilePath || historyProjectPath(activeHistory);
+  const selectedReservation = selectedWorktree
+    ? reservations.find((reservation) => textValue(reservation.worktree_ref, "") === selectedWorktree.name || textValue(reservation.worktree_project_path, "") === selectedWorktree.projectFilePath) ?? null
+    : null;
+  const selectedChildTask = selectedReservation
+    ? childTasks.find((task) => textValue(task.reservation_id, "") === textValue(selectedReservation.id, "")) ?? null
+    : null;
   const loadingSelectedWorktree = Boolean(selectedWorktree && !selectedWorktreeIsActive && busyAction === `inspect:${selectedWorktree.key}`);
 
   useEffect(() => {
@@ -9923,6 +9932,17 @@ function HistoryPane({ uiState, onRefresh, checkoutBlocked }: { uiState: AgentUI
       return;
     }
     await inspectWorktree(worktree);
+  };
+
+  const activateSelectedWorktree = async () => {
+    if (!selectedWorktree || selectedWorktree.active || checkoutBlocked) return;
+    if (!window.confirm(`打开工作树 ${selectedWorktree.label}？当前 Active Project Plane 将切换。`)) return;
+    const args = historyWorktreeCheckoutArgs(selectedWorktree);
+    if (Object.keys(args).length === 0) {
+      setStatus("这个工作树没有可打开的工程路径。");
+      return;
+    }
+    await runHistoryTool(`worktree-open:${selectedWorktree.key}`, "version.worktree_checkout", args, `已打开工作树 ${selectedWorktree.label}`);
   };
 
   const runHistoryTool = async (
@@ -10024,9 +10044,8 @@ function HistoryPane({ uiState, onRefresh, checkoutBlocked }: { uiState: AgentUI
     await runHistoryTool(
       `worktree-create:${node.id}`,
       "version.worktree_create",
-      { name: cleanName, commit_id: node.commitID },
-      `已从节点创建并打开工作树 ${cleanName}`,
-      { checkoutCreatedWorktree: true }
+      { name: cleanName, commit_id: node.commitID, parent_node_id: node.nodeID },
+      `已从节点创建非激活工作树 ${cleanName}`
     );
   };
 
@@ -10086,6 +10105,19 @@ function HistoryPane({ uiState, onRefresh, checkoutBlocked }: { uiState: AgentUI
             </button>
           ))}
           </div>
+          {selectedWorktree && !selectedWorktree.active && (
+            <button className="history-open-worktree" type="button" disabled={Boolean(busyAction) || checkoutBlocked} onClick={() => void activateSelectedWorktree()}>
+              {checkoutBlocked ? "运行中不可切换" : `打开 ${selectedWorktree.label}`}
+            </button>
+          )}
+          {selectedReservation && (
+            <div className={`history-reservation ${textValue(selectedReservation.status, "")}`}>
+              <strong>{textValue(selectedReservation.display_name, "Reservation")}</strong>
+              <span>{textValue(selectedReservation.status, "unknown")}{textValue(selectedReservation.disposition, "") ? ` / ${textValue(selectedReservation.disposition, "")}` : ""} · {textValue(selectedReservation.owner_agent_id, "-")}</span>
+              <small>{textValue(selectedReservation.purpose, "未记录目的")}</small>
+              {selectedChildTask && <small>子任务：{textValue(selectedChildTask.status, "-")} · {textValue(selectedChildTask.agent_id, "-")}</small>}
+            </div>
+          )}
         </div>
 
         <div className="history-rail-group">
@@ -10157,7 +10189,7 @@ function HistoryPane({ uiState, onRefresh, checkoutBlocked }: { uiState: AgentUI
             <GitBranch size={14} />
             <span>从此节点新建分支</span>
           </button>
-          <button type="button" onClick={() => void createWorktreeFromNode(nodeMenu.node)} disabled={!historyNodeCanCreateFrom(nodeMenu.node) || checkoutBlocked || Boolean(busyAction)}>
+          <button type="button" onClick={() => void createWorktreeFromNode(nodeMenu.node)} disabled={!historyNodeCanCreateFrom(nodeMenu.node) || Boolean(busyAction)}>
             <Plus size={14} />
             <span>新建工作树</span>
           </button>

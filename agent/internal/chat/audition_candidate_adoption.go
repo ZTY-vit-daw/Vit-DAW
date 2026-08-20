@@ -18,18 +18,23 @@ import (
 const candidateAdoptionReceiptSchema = "vit.audition_candidate_adoption_receipt.v1"
 
 type auditionCandidateReference struct {
-	CandidateID     string `json:"candidate_id"`
-	SourceKind      string `json:"source_kind,omitempty"`
-	SourceRef       string `json:"source_ref"`
-	CheckpointRef   string `json:"checkpoint_ref,omitempty"`
-	CommitID        string `json:"commit_id,omitempty"`
-	BranchRef       string `json:"branch_ref,omitempty"`
-	WorktreeRef     string `json:"worktree_ref,omitempty"`
-	ProjectPath     string `json:"project_path,omitempty"`
-	ProjectUUID     string `json:"project_uuid,omitempty"`
-	ProjectRevision string `json:"project_revision,omitempty"`
-	PreviewRef      string `json:"preview_ref,omitempty"`
-	RenderRevision  string `json:"render_revision,omitempty"`
+	CandidateID           string `json:"candidate_id"`
+	SourceKind            string `json:"source_kind,omitempty"`
+	SourceRef             string `json:"source_ref"`
+	EngineeringSourceKind string `json:"engineering_source_kind,omitempty"`
+	EngineeringSourceRef  string `json:"engineering_source_ref,omitempty"`
+	CheckpointRef         string `json:"checkpoint_ref,omitempty"`
+	CommitID              string `json:"commit_id,omitempty"`
+	BranchRef             string `json:"branch_ref,omitempty"`
+	WorktreeRef           string `json:"worktree_ref,omitempty"`
+	ProjectPath           string `json:"project_path,omitempty"`
+	ProjectUUID           string `json:"project_uuid,omitempty"`
+	ProjectRevision       string `json:"project_revision,omitempty"`
+	OwnerAgentID          string `json:"owner_agent_id,omitempty"`
+	ReservationID         string `json:"reservation_id,omitempty"`
+	ArtifactRef           string `json:"artifact_ref,omitempty"`
+	PreviewRef            string `json:"preview_ref,omitempty"`
+	RenderRevision        string `json:"render_revision,omitempty"`
 }
 
 type auditionProjectPlane struct {
@@ -246,6 +251,8 @@ type auditionCandidateAdoptionReceipt struct {
 	ProjectChange      map[string]any             `json:"project_change,omitempty"`
 	Checkpoint         map[string]any             `json:"adoption_checkpoint,omitempty"`
 	Observation        map[string]any             `json:"post_adoption_observation,omitempty"`
+	Reservation        map[string]any             `json:"reservation,omitempty"`
+	ApplyStrategy      string                     `json:"apply_strategy,omitempty"`
 	Rollback           map[string]any             `json:"rollback,omitempty"`
 	Error              string                     `json:"error,omitempty"`
 	StartedAt          time.Time                  `json:"started_at"`
@@ -253,7 +260,11 @@ type auditionCandidateAdoptionReceipt struct {
 }
 
 func newCandidateOperationReceipt(operation string, request auditionCandidateOperationRequest, before auditionProjectPlane, ref auditionCandidateReference) auditionCandidateAdoptionReceipt {
-	return auditionCandidateAdoptionReceipt{SchemaVersion: candidateAdoptionReceiptSchema, ID: "candidate-op-" + fmt.Sprint(time.Now().UTC().UnixNano()), Operation: operation, Status: "started", ConversationID: request.ConversationID, AuditionSessionID: request.SessionID, CandidateID: request.CandidateID, JudgmentEvidenceID: request.JudgmentEvidenceID, Before: before, Candidate: ref, StartedAt: time.Now().UTC()}
+	receipt := auditionCandidateAdoptionReceipt{SchemaVersion: candidateAdoptionReceiptSchema, ID: "candidate-op-" + fmt.Sprint(time.Now().UTC().UnixNano()), Operation: operation, Status: "started", ConversationID: request.ConversationID, AuditionSessionID: request.SessionID, CandidateID: request.CandidateID, JudgmentEvidenceID: request.JudgmentEvidenceID, Before: before, Candidate: ref, StartedAt: time.Now().UTC()}
+	if operation == "apply" {
+		receipt.ApplyStrategy = "explicit_checkout"
+	}
+	return receipt
 }
 
 func candidateReferenceFromSession(session map[string]any, candidateID string) (auditionCandidateReference, error) {
@@ -261,7 +272,7 @@ func candidateReferenceFromSession(session map[string]any, candidateID string) (
 	if firstStringFromMap(row, "id") != candidateID {
 		return auditionCandidateReference{}, fmt.Errorf("candidate %s not found", candidateID)
 	}
-	ref := auditionCandidateReference{CandidateID: candidateID, SourceKind: firstStringFromMap(row, "source_kind"), SourceRef: firstStringFromMap(row, "source_ref"), CheckpointRef: firstStringFromMap(row, "checkpoint_ref"), CommitID: firstStringFromMap(row, "commit_id"), BranchRef: firstStringFromMap(row, "branch_ref"), WorktreeRef: firstStringFromMap(row, "worktree_ref"), ProjectPath: firstNonEmpty(firstStringFromMap(row, "project_path"), firstStringFromMap(session, "active_project_ref")), ProjectUUID: firstNonEmpty(firstStringFromMap(row, "project_uuid"), firstStringFromMap(session, "project_uuid")), ProjectRevision: firstNonEmpty(firstStringFromMap(row, "project_revision"), firstStringFromMap(session, "project_revision")), PreviewRef: firstStringFromMap(row, "preview_ref"), RenderRevision: firstStringFromMap(row, "render_revision")}
+	ref := auditionCandidateReference{CandidateID: candidateID, SourceKind: firstStringFromMap(row, "source_kind"), SourceRef: firstStringFromMap(row, "source_ref"), EngineeringSourceKind: firstStringFromMap(row, "engineering_source_kind"), EngineeringSourceRef: firstStringFromMap(row, "engineering_source_ref"), CheckpointRef: firstStringFromMap(row, "checkpoint_ref"), CommitID: firstStringFromMap(row, "commit_id"), BranchRef: firstStringFromMap(row, "branch_ref"), WorktreeRef: firstStringFromMap(row, "worktree_ref"), ProjectPath: firstNonEmpty(firstStringFromMap(row, "project_path"), firstStringFromMap(session, "active_project_ref")), ProjectUUID: firstNonEmpty(firstStringFromMap(row, "project_uuid"), firstStringFromMap(session, "project_uuid")), ProjectRevision: firstNonEmpty(firstStringFromMap(row, "project_revision"), firstStringFromMap(session, "project_revision")), OwnerAgentID: firstStringFromMap(row, "owner_agent_id"), ReservationID: firstStringFromMap(row, "reservation_id"), ArtifactRef: firstStringFromMap(row, "artifact_ref"), PreviewRef: firstStringFromMap(row, "preview_ref"), RenderRevision: firstStringFromMap(row, "render_revision")}
 	if ref.CheckpointRef == "" && ref.SourceKind == "checkpoint" {
 		ref.CheckpointRef = strings.TrimPrefix(ref.SourceRef, "checkpoint:")
 	}
@@ -378,6 +389,9 @@ func planeMatchesCandidate(plane auditionProjectPlane, ref auditionCandidateRefe
 		return false
 	}
 	if ref.BranchRef != "" && plane.ActiveBranch != "" && ref.BranchRef != plane.ActiveBranch {
+		return false
+	}
+	if ref.WorktreeRef != "" && plane.ActiveWorktree != "" && !filepath.IsAbs(ref.WorktreeRef) && !strings.HasSuffix(strings.ToLower(ref.WorktreeRef), ".vit") && ref.WorktreeRef != plane.ActiveWorktree {
 		return false
 	}
 	return true
@@ -573,6 +587,20 @@ func (s *Server) applyAuditionCandidate(ctx context.Context, request auditionCan
 			s.emitFreeStateExperimentEvents(rollbackEvents)
 		}
 	}
+	if ref.ReservationID != "" && s.harness != nil {
+		reservation, reservationErr := s.harness.RecordCandidateReservationDisposition(ref.ReservationID, request.CandidateID, ref.ArtifactRef, checkpointID, true)
+		if reservationErr != nil {
+			receipt.Status, receipt.Error, receipt.CompletedAt = "verification_pending", reservationErr.Error(), time.Now().UTC()
+			loop.AuditionSessionSnapshot["adoption_status"] = "verification_pending"
+			loop.AuditionSessionSnapshot["adoption_receipt"] = receipt
+			s.storeFreeStateLoop(loop)
+			s.persistCurrentProjectWorkspace()
+			return receipt, nil
+		}
+		data, _ := json.Marshal(reservation)
+		_ = json.Unmarshal(data, &receipt.Reservation)
+	}
+	loop.Experiment.BindCandidateAdoption(request.CandidateID, checkpointID, adoptedPlane.ProjectRevision, map[string]any{"receipt_id": receipt.ID, "judgment_evidence_id": evidence.ID, "candidate_id": request.CandidateID, "status": receipt.Status, "checkpoint_ref": checkpointID, "apply_strategy": receipt.ApplyStrategy, "reservation": receipt.Reservation})
 	settlementEvents, err := loop.Experiment.Settle(outcome, "explicit candidate adoption completed", time.Now().UTC())
 	if err != nil {
 		return receipt, err

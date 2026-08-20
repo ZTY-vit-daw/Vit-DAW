@@ -7,10 +7,12 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
 	"vit-daw-agent/internal/agentloop"
+	"vit-daw-agent/internal/collaboration"
 	"vit-daw-agent/internal/experiment"
 	"vit-daw-agent/internal/kernel"
 	"vit-daw-agent/internal/trajectory"
@@ -46,6 +48,9 @@ func (f *fakeAuditionKernel) AuditionSelect(_ context.Context, sessionID, candid
 		"session_id": sessionID, "status": "ready", "active_candidate_id": candidateID,
 		"candidates": []any{map[string]any{"id": "candidate-a", "status": "ready", "preview_ref": "a"}, map[string]any{"id": "candidate-b", "status": "ready", "preview_ref": "b"}},
 	}}}, nil
+}
+func (f *fakeAuditionKernel) AuditionStale(_ context.Context, sessionID string) (*kernel.VSPCommandResult, error) {
+	return &kernel.VSPCommandResult{LegacyReply: map[string]any{"status": "ok", "session": map[string]any{"session_id": sessionID, "status": "stale"}}}, nil
 }
 func (f *fakeAuditionKernel) AuditionStop(_ context.Context, sessionID string) (*kernel.VSPCommandResult, error) {
 	return nil, nil
@@ -437,5 +442,65 @@ func TestCandidateJudgmentNeedsExplicitApply(t *testing.T) {
 	stored, _ = s.freeStateLoop(loop.ConversationID)
 	if stored.Experiment.Status != experiment.StatusSettled || firstStringFromMap(stored.AuditionSessionSnapshot, "adopted_candidate_id") != "candidate-b" || d.observations != 1 {
 		t.Fatalf("stored=%+v observations=%d", stored, d.observations)
+	}
+}
+
+func TestAuditionSelectMarksSessionStaleWhenActiveProjectRevisionChanges(t *testing.T) {
+	fake := &fakeAuditionKernel{}
+	server := New(nil, nil, nil)
+	server.auditionKernel = fake
+	driver := newCandidateDriverForTest()
+	driver.plane.ProjectRevision = "rev-8"
+	server.auditionCandidateDriver = driver
+	loop := boundAdoptionLoopForTest(t)
+	server.storeFreeStateLoop(loop)
+	request := httptest.NewRequest(http.MethodPost, "/agent/audition/select", bytes.NewBufferString(`{"conversation_id":"conversation-audition","session_id":"session-adoption","candidate_id":"candidate-b"}`))
+	recorder := httptest.NewRecorder()
+	server.handleAuditionSelect(recorder, request)
+	if recorder.Code != http.StatusConflict || len(fake.selectCalls) != 0 || !strings.Contains(recorder.Body.String(), "audition_candidate_stale") {
+		t.Fatalf("status=%d calls=%v body=%s", recorder.Code, fake.selectCalls, recorder.Body.String())
+	}
+	stored, _ := server.freeStateLoop(loop.ConversationID)
+	if firstStringFromMap(stored.AuditionSessionSnapshot, "status") != "stale" {
+		t.Fatalf("session was not made stale: %+v", stored.AuditionSessionSnapshot)
+	}
+}
+
+func TestCandidateApplyReleasesReservationAndKeepsCandidateAudit(t *testing.T) {
+	s := New(nil, nil, nil)
+	d := newCandidateDriverForTest()
+	s.auditionCandidateDriver = d
+	if err := s.harness.RestoreCollaboration(collaboration.Snapshot{SchemaVersion: collaboration.SchemaVersion, Reservations: []collaboration.WorktreeReservation{{
+		SchemaVersion: collaboration.SchemaVersion, ID: "reservation-adoption", ProjectUUID: "project-1", WorktreeRef: "worktree-b", WorktreePath: "candidate-b.vit",
+		OwnerAgentID: "agent-b", OwnerGoalID: "goal-b", OwnerRunID: "run-b", OwnerConversationID: "conversation-audition", Status: collaboration.ReservationActive, CreatedAt: time.Now().UTC(),
+	}}}); err != nil {
+		t.Fatal(err)
+	}
+	loop := boundAdoptionLoopForTest(t)
+	candidates := auditionCandidateRows(loop.AuditionSessionSnapshot)
+	for _, candidate := range candidates {
+		if firstStringFromMap(candidate, "id") == "candidate-b" {
+			candidate["reservation_id"] = "reservation-adoption"
+			candidate["owner_agent_id"] = "agent-b"
+			candidate["artifact_ref"] = "audio-sha256:candidate-b"
+			candidate["worktree_ref"] = "worktree-b"
+		}
+	}
+	rows := make([]any, 0, len(candidates))
+	for _, candidate := range candidates {
+		rows = append(rows, candidate)
+	}
+	loop.AuditionSessionSnapshot["candidates"] = rows
+	evidence := recordPreferredBForTest(t, s, &loop)
+	receipt, err := s.applyAuditionCandidate(context.Background(), auditionCandidateOperationRequest{ConversationID: loop.ConversationID, SessionID: loop.AuditionSessionID, CandidateID: "candidate-b", JudgmentEvidenceID: evidence.ID})
+	if err != nil || receipt.Status != "applied" || receipt.ApplyStrategy != "explicit_checkout" {
+		t.Fatalf("receipt=%+v err=%v", receipt, err)
+	}
+	if firstStringFromMap(receipt.Reservation, "status") != "released" {
+		t.Fatalf("reservation receipt=%+v", receipt.Reservation)
+	}
+	snapshot := s.harness.CollaborationSnapshot()
+	if len(snapshot.Reservations) != 1 || snapshot.Reservations[0].Status != collaboration.ReservationReleased || len(snapshot.Reservations[0].CandidateRefs) != 1 || snapshot.Reservations[0].ArtifactRefs[0] != "audio-sha256:candidate-b" {
+		t.Fatalf("collaboration snapshot=%+v", snapshot)
 	}
 }
