@@ -101,6 +101,7 @@ import {
 import { emptyTrajectoryState, reduceTrajectoryEvents } from "./trajectory";
 import { emptyAuditionState, reduceAuditionEvents } from "./audition";
 import { authorityContext, checkoutBlockedByState, isAgentTurnRunning } from "./turnControl";
+import { composerLayout } from "./composerLayout";
 import { TrajectoryAuditionPanel } from "./trajectory/TrajectoryAuditionPanel";
 import type {
   AgentConfigResponse,
@@ -7478,72 +7479,80 @@ function Composer({
           ))}
         </div>
       )}
-      <div className="composer-main">
-        <div className="composer-menu-host" ref={menuRef}>
-          <button
-            className={`icon-button upload ${menuOpen ? "active" : ""}`}
-            type="button"
-            title="添加上下文、文件或模式选项"
-            onClick={() => setMenuOpen((current) => !current)}
-            disabled={isUploading}
-          >
-            {isUploading ? <Loader2 className="spin" size={18} /> : <Plus size={18} />}
-          </button>
-          {menuOpen && (
-            <div className="composer-menu" role="menu">
-              <button type="button" role="menuitem" onClick={() => { onUploadClick(); setMenuOpen(false); }}>
-                <Upload size={17} />
-                <span>添加照片和文件</span>
-              </button>
-              <div className="composer-menu-separator" />
-              <button type="button" role="menuitemcheckbox" aria-checked={mode === "plan"} onClick={() => chooseMode("plan")}>
-                <Brain size={17} />
-                <span>计划模式</span>
-                <i className={mode === "plan" ? "on" : ""} />
-              </button>
-              <button type="button" role="menuitemcheckbox" aria-checked={mode === "goal"} onClick={() => chooseMode("goal")}>
-                <Wand2 size={17} />
-                <span>追求目标</span>
-                <i className={mode === "goal" ? "on" : ""} />
-              </button>
-            </div>
-          )}
+      <div className={composerLayout.main}>
+        <div className={composerLayout.inputRow}>
+          <textarea
+            value={input}
+            rows={1}
+            placeholder="和 Vit 说..."
+            onChange={(event) => setInput(event.currentTarget.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) {
+                event.preventDefault();
+                onSubmit();
+              }
+            }}
+          />
         </div>
-        <label className="authority-mode-control" title="控制可逆工程动作是否逐项请求确认">
-          <span className="sr-only">Agent 权限模式</span>
-          <select
-            aria-label="Agent 权限模式"
-            value={authorityMode}
-            disabled={authorityBusy || agentTurnRunning}
-            onChange={(event) => onAuthorityModeChange(event.currentTarget.value as AuthorityMode)}
-          >
-            <option value="manual_confirmation">Manual Confirmation</option>
-            <option value="full_project_access">Full Project Access</option>
-          </select>
-        </label>
-        <textarea
-          value={input}
-          rows={1}
-          placeholder="和 Vit 说..."
-          onChange={(event) => setInput(event.currentTarget.value)}
-          onKeyDown={(event) => {
-            if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) {
-              event.preventDefault();
-              onSubmit();
-            }
-          }}
-        />
-        {agentTurnRunning ? (
-          <button className="send-button stop-turn-button" type="button" title="Stop Turn" disabled={stopTurnBusy} onClick={onStopTurn}>
-            {stopTurnBusy ? <Loader2 className="spin" size={18} /> : <Square size={17} />}
-            <span>Stop Turn</span>
-          </button>
-        ) : (
-          <button className="send-button" type="submit" title="Send" disabled={isSending}>
-            {isSending ? <Loader2 className="spin" size={18} /> : <Send size={18} />}
-            <span>发送</span>
-          </button>
-        )}
+        <div className={composerLayout.controlsRow}>
+          <div className={composerLayout.controlsLeft}>
+            <div className="composer-menu-host" ref={menuRef}>
+              <button
+                className={`icon-button upload ${menuOpen ? "active" : ""}`}
+                type="button"
+                title="添加上下文、文件或模式选项"
+                onClick={() => setMenuOpen((current) => !current)}
+                disabled={isUploading}
+              >
+                {isUploading ? <Loader2 className="spin" size={18} /> : <Plus size={18} />}
+              </button>
+              {menuOpen && (
+                <div className="composer-menu" role="menu">
+                  <button type="button" role="menuitem" onClick={() => { onUploadClick(); setMenuOpen(false); }}>
+                    <Upload size={17} />
+                    <span>添加照片和文件</span>
+                  </button>
+                  <div className="composer-menu-separator" />
+                  <button type="button" role="menuitemcheckbox" aria-checked={mode === "plan"} onClick={() => chooseMode("plan")}>
+                    <Brain size={17} />
+                    <span>计划模式</span>
+                    <i className={mode === "plan" ? "on" : ""} />
+                  </button>
+                  <button type="button" role="menuitemcheckbox" aria-checked={mode === "goal"} onClick={() => chooseMode("goal")}>
+                    <Wand2 size={17} />
+                    <span>追求目标</span>
+                    <i className={mode === "goal" ? "on" : ""} />
+                  </button>
+                </div>
+              )}
+            </div>
+            <label className={composerLayout.authority} title="控制可逆工程动作是否逐项请求确认">
+              <span className={composerLayout.srOnly}>Agent 权限模式</span>
+              <select
+                aria-label="Agent 权限模式"
+                value={authorityMode}
+                disabled={authorityBusy || agentTurnRunning}
+                onChange={(event) => onAuthorityModeChange(event.currentTarget.value as AuthorityMode)}
+              >
+                <option value="manual_confirmation">Manual Confirmation</option>
+                <option value="full_project_access">Full Project Access</option>
+              </select>
+            </label>
+          </div>
+          <div className={composerLayout.controlsRight}>
+            {agentTurnRunning ? (
+              <button className="send-button stop-turn-button" type="button" title="Stop Turn" disabled={stopTurnBusy} onClick={onStopTurn}>
+                {stopTurnBusy ? <Loader2 className="spin" size={18} /> : <Square size={17} />}
+                <span>Stop Turn</span>
+              </button>
+            ) : (
+              <button className="send-button" type="submit" title="Send" disabled={isSending}>
+                {isSending ? <Loader2 className="spin" size={18} /> : <Send size={18} />}
+                <span>发送</span>
+              </button>
+            )}
+          </div>
+        </div>
       </div>
     </form>
   );
