@@ -14,6 +14,7 @@ import (
 	"vit-daw-agent/internal/agentloop"
 	"vit-daw-agent/internal/config"
 	agentruntime "vit-daw-agent/internal/runtime"
+	"vit-daw-agent/internal/taskstate"
 )
 
 // DurableContinuationStatus is the persisted lifecycle of a continuation
@@ -66,6 +67,8 @@ type DurableContinuation struct {
 	ProjectUUID         string                       `json:"project_uuid,omitempty"`
 	ProjectSessionID    string                       `json:"project_session_id,omitempty"`
 	OriginalIntent      string                       `json:"original_intent"`
+	TaskContract        *taskstate.Contract          `json:"task_contract,omitempty"`
+	TaskSemanticState   *taskstate.Snapshot          `json:"task_semantic_state,omitempty"`
 	Continuation        agentloop.Continuation       `json:"continuation"`
 	ProjectRevision     string                       `json:"project_revision,omitempty"`
 	ProjectHistory      map[string]any               `json:"project_history,omitempty"`
@@ -83,6 +86,10 @@ type DurableContinuation struct {
 
 func continuationRunnableStatus(status DurableContinuationStatus) bool {
 	return status == ContinuationPending || status == ContinuationClaimed || status == ContinuationRunning
+}
+
+func continuationRecoveryValidationRequired(item DurableContinuation) bool {
+	return strings.EqualFold(firstStringFromMap(item.PendingInteraction, "status"), "recovery_validation_required")
 }
 
 func continuationIDForResult(res agentloop.Result) string {
@@ -230,6 +237,65 @@ func cloneDurableContinuation(in DurableContinuation) DurableContinuation {
 	return out
 }
 
+func cloneTaskContract(in *taskstate.Contract) *taskstate.Contract {
+	if in == nil {
+		return nil
+	}
+	out := *in
+	out.CompletionCriteria = append([]string(nil), in.CompletionCriteria...)
+	out.EvidenceRequirements = append([]string(nil), in.EvidenceRequirements...)
+	return &out
+}
+
+func cloneTaskSemanticState(in *taskstate.Snapshot) *taskstate.Snapshot {
+	if in == nil {
+		return nil
+	}
+	out := *in
+	out.EvidenceRefs = append([]string(nil), in.EvidenceRefs...)
+	out.History = append([]taskstate.TransitionRecord(nil), in.History...)
+	if in.Proposal != nil {
+		proposal := *in.Proposal
+		proposal.EvidenceRefs = append([]string(nil), in.Proposal.EvidenceRefs...)
+		proposal.Bounds = append([]string(nil), in.Proposal.Bounds...)
+		out.Proposal = &proposal
+	}
+	if in.PendingInteraction != nil {
+		interaction := *in.PendingInteraction
+		out.PendingInteraction = &interaction
+	}
+	return &out
+}
+
+func (s *Server) bindDurableTaskSemanticState(item *DurableContinuation) {
+	if s == nil || item == nil || s.harness == nil || strings.TrimSpace(item.GoalID) == "" {
+		return
+	}
+	goal := s.harness.RuntimeStatus(item.GoalID)
+	if goal.Task == nil {
+		return
+	}
+	if item.TaskID == "" {
+		item.TaskID = goal.Task.TaskID
+	}
+	if goal.Task.Contract != nil {
+		item.TaskContract = cloneTaskContract(goal.Task.Contract)
+	}
+	if goal.Task.SemanticState != nil {
+		item.TaskSemanticState = cloneTaskSemanticState(goal.Task.SemanticState)
+	}
+}
+
+func markContinuationRecoveryValidation(item *DurableContinuation, reason string) {
+	if item == nil || !continuationRunnableStatus(item.Status) {
+		return
+	}
+	item.Status = ContinuationWaitingInteraction
+	item.LeaseOwner = ""
+	item.LeaseExpiresAt = time.Time{}
+	item.PendingInteraction = map[string]any{"status": "recovery_validation_required", "reason": reason}
+}
+
 func normalizeRestoredDurableContinuation(mapKey string, item DurableContinuation, state projectAgentRuntimeState, now time.Time) (string, DurableContinuation) {
 	item.SchemaVersion = continuationRuntimeSchema
 	item.GoalID = firstNonEmpty(item.GoalID, item.Continuation.GoalID)
@@ -246,6 +312,18 @@ func normalizeRestoredDurableContinuation(mapKey string, item DurableContinuatio
 		if goal.Task != nil {
 			item.TaskID = firstNonEmpty(goal.Task.TaskID, item.TaskID)
 			item.OriginalIntent = firstNonEmpty(goal.Task.OriginalIntent, item.OriginalIntent, item.Continuation.OriginalIntent)
+			if item.TaskContract == nil && goal.Task.Contract != nil {
+				item.TaskContract = cloneTaskContract(goal.Task.Contract)
+			}
+			if item.TaskSemanticState == nil && goal.Task.SemanticState != nil {
+				item.TaskSemanticState = cloneTaskSemanticState(goal.Task.SemanticState)
+			}
+			if item.TaskContract != nil && goal.Task.Contract != nil && item.TaskContract.ContractID != goal.Task.Contract.ContractID {
+				markContinuationRecoveryValidation(&item, "continuation contract does not match restored task contract")
+			}
+			if item.TaskSemanticState != nil && goal.Task.SemanticState != nil && item.TaskSemanticState.ContractID != goal.Task.SemanticState.ContractID {
+				markContinuationRecoveryValidation(&item, "continuation semantic state does not match restored task state")
+			}
 		}
 		switch goal.Status {
 		case agentruntime.StatusCompleted, agentruntime.StatusStable:
@@ -261,6 +339,15 @@ func normalizeRestoredDurableContinuation(mapKey string, item DurableContinuatio
 			item.LeaseExpiresAt = time.Time{}
 		}
 		break
+	}
+	if item.TaskContract != nil || item.TaskSemanticState != nil {
+		if item.TaskContract == nil || item.TaskSemanticState == nil {
+			markContinuationRecoveryValidation(&item, "task semantic contract/state is incomplete")
+		} else if item.TaskContract.TaskID != item.TaskID || item.TaskContract.GoalID != item.GoalID || item.TaskContract.RunID != item.RunID || item.TaskContract.OriginalIntent != item.OriginalIntent {
+			markContinuationRecoveryValidation(&item, "continuation semantic identity does not match task/run/intent")
+		} else if err := item.TaskSemanticState.Validate(*item.TaskContract); err != nil {
+			markContinuationRecoveryValidation(&item, "continuation semantic state validation failed: "+err.Error())
+		}
 	}
 	item.OriginalIntent = firstNonEmpty(item.OriginalIntent, item.Continuation.OriginalIntent, item.Continuation.Summary, item.Continuation.UserText)
 	item.Continuation.GoalID = item.GoalID
@@ -299,6 +386,9 @@ func normalizeRestoredDurableContinuation(mapKey string, item DurableContinuatio
 				break
 			}
 		}
+	}
+	if item.TaskContract != nil && item.ConversationID != "" && item.TaskContract.ConversationID != item.ConversationID {
+		markContinuationRecoveryValidation(&item, "continuation conversation does not match task contract")
 	}
 	if item.ConversationID == "" && continuationRunnableStatus(item.Status) {
 		item.Status = ContinuationWaitingInteraction
@@ -778,6 +868,14 @@ func (s *Server) continuationRuntimeProjection() []map[string]any {
 			"project_path": item.ProjectPath, "project_uuid": item.ProjectUUID,
 			"project_session_id": item.ProjectSessionID, "project_revision": item.ProjectRevision,
 			"updated_at": item.UpdatedAt,
+		}
+		if item.TaskContract != nil {
+			row["task_contract"] = *item.TaskContract
+		}
+		if item.TaskSemanticState != nil {
+			row["task_semantic_state"] = *item.TaskSemanticState
+			row["task_state"] = item.TaskSemanticState.State
+			row["task_state_revision"] = item.TaskSemanticState.Revision
 		}
 		if len(item.PendingInteraction) > 0 {
 			row["pending_interaction"] = cloneContext(item.PendingInteraction)

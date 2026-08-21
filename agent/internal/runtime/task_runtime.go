@@ -1,8 +1,11 @@
 package runtime
 
 import (
+	"fmt"
 	"strings"
 	"time"
+
+	"vit-daw-agent/internal/taskstate"
 )
 
 // TaskStatus describes the lifecycle of the durable product task. It is
@@ -24,14 +27,16 @@ const (
 // OriginalIntent is immutable after creation; continuation text is state for
 // the next slice and must never replace this field.
 type Task struct {
-	TaskID         string     `json:"task_id"`
-	GoalID         string     `json:"goal_id"`
-	ConversationID string     `json:"conversation_id,omitempty"`
-	OriginalIntent string     `json:"original_intent"`
-	Status         TaskStatus `json:"status"`
-	Run            Run        `json:"run"`
-	CreatedAt      time.Time  `json:"created_at"`
-	UpdatedAt      time.Time  `json:"updated_at"`
+	TaskID         string              `json:"task_id"`
+	GoalID         string              `json:"goal_id"`
+	ConversationID string              `json:"conversation_id,omitempty"`
+	OriginalIntent string              `json:"original_intent"`
+	Status         TaskStatus          `json:"status"`
+	Contract       *taskstate.Contract `json:"contract,omitempty"`
+	SemanticState  *taskstate.Snapshot `json:"semantic_state,omitempty"`
+	Run            Run                 `json:"run"`
+	CreatedAt      time.Time           `json:"created_at"`
+	UpdatedAt      time.Time           `json:"updated_at"`
 }
 
 // Run is stable for the lifetime of a Task. A max_turns limit belongs to an
@@ -175,6 +180,28 @@ func firstTime(values ...time.Time) time.Time {
 func cloneTask(in Task) Task {
 	in.Run.Slices = append([]InvocationSlice(nil), in.Run.Slices...)
 	in.Run.Turns = append([]Turn(nil), in.Run.Turns...)
+	if in.Contract != nil {
+		contract := *in.Contract
+		contract.CompletionCriteria = append([]string(nil), contract.CompletionCriteria...)
+		contract.EvidenceRequirements = append([]string(nil), contract.EvidenceRequirements...)
+		in.Contract = &contract
+	}
+	if in.SemanticState != nil {
+		semantic := *in.SemanticState
+		semantic.EvidenceRefs = append([]string(nil), semantic.EvidenceRefs...)
+		semantic.History = append([]taskstate.TransitionRecord(nil), semantic.History...)
+		if semantic.Proposal != nil {
+			proposal := *semantic.Proposal
+			proposal.EvidenceRefs = append([]string(nil), proposal.EvidenceRefs...)
+			proposal.Bounds = append([]string(nil), proposal.Bounds...)
+			semantic.Proposal = &proposal
+		}
+		if semantic.PendingInteraction != nil {
+			interaction := *semantic.PendingInteraction
+			semantic.PendingInteraction = &interaction
+		}
+		in.SemanticState = &semantic
+	}
 	return in
 }
 
@@ -190,7 +217,18 @@ func syncTaskStatus(task *Task, goalStatus GoalStatus, now time.Time) {
 	if task == nil {
 		return
 	}
-	task.Status = taskStatusFromGoal(goalStatus)
+	if task.SemanticState != nil && task.SemanticState.State.Terminal() {
+		task.Status = taskStatusFromSemantic(task.SemanticState.State)
+	} else if goalStatus == StatusWaitingContinue || goalStatus == StatusWaitingConfirmation || goalStatus == StatusWaitingClarification {
+		// Scheduling/interaction state is orthogonal to semantic progress. A
+		// needs_experiment task may wait for another invocation, and an active
+		// experiment may wait for a human, without becoming semantically terminal.
+		task.Status = taskStatusFromGoal(goalStatus)
+	} else if task.SemanticState != nil {
+		task.Status = taskStatusFromSemantic(task.SemanticState.State)
+	} else {
+		task.Status = taskStatusFromGoal(goalStatus)
+	}
 	task.UpdatedAt = now
 	for index := range task.Run.Slices {
 		slice := &task.Run.Slices[index]
@@ -209,6 +247,120 @@ func syncTaskStatus(task *Task, goalStatus GoalStatus, now time.Time) {
 		}
 		slice.EndedAt = now
 	}
+}
+
+func taskStatusFromSemantic(state taskstate.State) TaskStatus {
+	switch state {
+	case taskstate.StateHumanJudgmentRequired:
+		return TaskStatusWaitingInteraction
+	case taskstate.StateNoCandidateFound, taskstate.StateCapabilityBlocked, taskstate.StateSettled:
+		return TaskStatusSettled
+	case taskstate.StateCancelled:
+		return TaskStatusCancelled
+	case taskstate.StateFailed:
+		return TaskStatusFailed
+	default:
+		return TaskStatusActive
+	}
+}
+
+func validateRestoredTaskSemantic(task *Task) error {
+	if task == nil || (task.Contract == nil && task.SemanticState == nil) {
+		return nil
+	}
+	if task.Contract == nil || task.SemanticState == nil {
+		return fmt.Errorf("semantic contract and state must be restored together")
+	}
+	if task.Contract.TaskID != task.TaskID || task.Contract.GoalID != task.GoalID ||
+		task.Contract.RunID != task.Run.RunID || task.Contract.OriginalIntent != task.OriginalIntent ||
+		task.Contract.ConversationID != task.ConversationID {
+		return fmt.Errorf("semantic contract identity does not match durable task")
+	}
+	return task.SemanticState.Validate(*task.Contract)
+}
+
+// EnsureTaskContract creates the immutable semantic contract for a Task. A
+// restored contract must match task identity and original intent exactly.
+func (r *Runtime) EnsureTaskContract(goalID string, contract taskstate.Contract) (Goal, error) {
+	if r == nil {
+		return Goal{}, fmt.Errorf("runtime is nil")
+	}
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	goal, ok := r.goals[strings.TrimSpace(goalID)]
+	if !ok {
+		return Goal{GoalID: goalID, Status: StatusIdle}, fmt.Errorf("goal %s does not exist", goalID)
+	}
+	now := time.Now().UTC()
+	hydrateTask(&goal, now)
+	contract.TaskID = goal.Task.TaskID
+	contract.GoalID = goal.GoalID
+	contract.RunID = goal.RunID
+	contract.OriginalIntent = goal.Task.OriginalIntent
+	if contract.ContractID == "" {
+		contract.ContractID = "contract_" + goal.Task.TaskID
+	}
+	contract = taskstate.NormalizeContract(contract, now)
+	if goal.Task.Contract != nil {
+		existing := goal.Task.Contract
+		if existing.ContractID != contract.ContractID || existing.TaskID != contract.TaskID || existing.GoalID != contract.GoalID ||
+			existing.RunID != contract.RunID || existing.ConversationID != contract.ConversationID || existing.OriginalIntent != contract.OriginalIntent || existing.Kind != contract.Kind {
+			return cloneGoal(goal), fmt.Errorf("task semantic contract identity mismatch")
+		}
+		if goal.Task.SemanticState == nil {
+			return cloneGoal(goal), fmt.Errorf("task semantic contract is missing its state")
+		}
+		if err := goal.Task.SemanticState.Validate(*existing); err != nil {
+			return cloneGoal(goal), fmt.Errorf("task semantic state restore rejected: %w", err)
+		}
+		return cloneGoal(goal), nil
+	}
+	state, err := taskstate.New(contract, now)
+	if err != nil {
+		return cloneGoal(goal), err
+	}
+	goal.Task.Contract = &contract
+	goal.Task.SemanticState = &state
+	goal.Task.ConversationID = contract.ConversationID
+	goal.Task.Status = taskStatusFromSemantic(state.State)
+	goal.Task.UpdatedAt = now
+	goal.UpdatedAt = now
+	r.goals[goal.GoalID] = goal
+	return cloneGoal(goal), nil
+}
+
+// TransitionTask is the only authority for changing a Task's semantic state.
+func (r *Runtime) TransitionTask(goalID string, request taskstate.TransitionRequest) (Goal, error) {
+	if r == nil {
+		return Goal{}, fmt.Errorf("runtime is nil")
+	}
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	goal, ok := r.goals[strings.TrimSpace(goalID)]
+	if !ok || goal.Task == nil || goal.Task.Contract == nil || goal.Task.SemanticState == nil {
+		return cloneGoal(goal), fmt.Errorf("goal %s has no semantic task contract", goalID)
+	}
+	now := time.Now().UTC()
+	next, err := taskstate.Apply(*goal.Task.Contract, *goal.Task.SemanticState, request, now)
+	if err != nil {
+		return cloneGoal(goal), err
+	}
+	goal.Task.SemanticState = &next
+	goal.Task.Status = taskStatusFromSemantic(next.State)
+	goal.Task.UpdatedAt = now
+	goal.UpdatedAt = now
+	switch next.State {
+	case taskstate.StateHumanJudgmentRequired:
+		goal.Status = StatusWaitingConfirmation
+	case taskstate.StateNoCandidateFound, taskstate.StateCapabilityBlocked, taskstate.StateSettled:
+		goal.Status = StatusCompleted
+	case taskstate.StateCancelled:
+		goal.Status = StatusCancelled
+	case taskstate.StateFailed:
+		goal.Status = StatusFailed
+	}
+	r.goals[goal.GoalID] = goal
+	return cloneGoal(goal), nil
 }
 
 // BeginSlice opens (or reuses) the current invocation slice. Reuse makes the

@@ -30,6 +30,10 @@ const (
 	FreeStateNeedsObservation     = "needs_observation"
 	FreeStateNeedsAction          = "needs_action"
 	FreeStateNeedsExperiment      = "needs_experiment"
+	FreeStateDiagnosticComplete   = "diagnostic_complete"
+	FreeStateNoCandidateFound     = "no_candidate_found"
+	FreeStateImprovementProposal  = "improvement_proposal"
+	FreeStateCapabilityBlocked    = "capability_blocked"
 	FreeStateSatisfied            = "satisfied"
 	FreeStateBlocked              = "blocked"
 	freeStateMaxSameFamilyActions = 2
@@ -121,8 +125,8 @@ func (d FreeStateDecision) Validate() error {
 		if err := d.ImprovementProposal.Validate(); err != nil {
 			return fmt.Errorf("improvement_proposal: %w", err)
 		}
-		if status != FreeStateNeedsExperiment {
-			return fmt.Errorf("improvement_proposal requires status=%s", FreeStateNeedsExperiment)
+		if status != FreeStateNeedsExperiment && status != FreeStateImprovementProposal {
+			return fmt.Errorf("improvement_proposal requires status=%s or %s", FreeStateImprovementProposal, FreeStateNeedsExperiment)
 		}
 	}
 	if d.ExperimentAdmission != nil {
@@ -149,7 +153,7 @@ func (d FreeStateDecision) Validate() error {
 		}
 	}
 	switch status {
-	case FreeStateNeedsObservation:
+	case FreeStateNeedsObservation, "observation_in_progress":
 		// Catalog discovery is a model-visible observation step but does not
 		// request a view set.  An empty requested_view_ids is therefore valid
 		// only when the turn calls ccb.observation_catalog; a concrete
@@ -169,22 +173,29 @@ func (d FreeStateDecision) Validate() error {
 				return err
 			}
 		}
-	case FreeStateNeedsExperiment:
+	case FreeStateNeedsExperiment, FreeStateImprovementProposal:
 		if d.ImprovementProposal == nil {
-			return fmt.Errorf("needs_experiment requires improvement_proposal")
+			return fmt.Errorf("improvement proposal state requires improvement_proposal")
 		}
 		if strings.TrimSpace(d.EvidenceStatus) == "" {
-			return fmt.Errorf("needs_experiment requires evidence_status")
+			return fmt.Errorf("improvement proposal state requires evidence_status")
+		}
+	case FreeStateDiagnosticComplete, FreeStateNoCandidateFound:
+		if strings.ToLower(strings.TrimSpace(d.EvidenceStatus)) != "sufficient" {
+			return fmt.Errorf("%s requires evidence_status=sufficient", status)
+		}
+		if d.Diagnostic == nil {
+			return fmt.Errorf("%s requires an evidence-backed diagnostic", status)
 		}
 	case FreeStateSatisfied:
 		if strings.ToLower(strings.TrimSpace(d.EvidenceStatus)) != "sufficient" {
 			return fmt.Errorf("satisfied requires evidence_status=sufficient")
 		}
-	case FreeStateBlocked:
+	case FreeStateBlocked, FreeStateCapabilityBlocked:
 		// Summary is the canonical human-readable boundary. stop_reason and
 		// limitations add structure when available but are not redundant gates.
 	default:
-		return fmt.Errorf("status must be needs_observation, needs_action, needs_experiment, satisfied, or blocked")
+		return fmt.Errorf("status must be needs_observation, needs_action, improvement_proposal, needs_experiment, diagnostic_complete, no_candidate_found, capability_blocked, or a supported legacy state")
 	}
 	if strings.TrimSpace(d.Summary) == "" {
 		return fmt.Errorf("summary is required")
@@ -550,7 +561,7 @@ func messageLoopFreeStateOutputIssue(state *runState, out messageLoopOutput) str
 		if count := messageLoopFreeStateProcessorApplyCount(ctx, out.FreeStateDecision.ProcessorType); count >= freeStateMaxSameFamilyActions {
 			return fmt.Sprintf("the same processor family reached its bounded %d-action limit; return blocked or address a different unresolved clause", freeStateMaxSameFamilyActions)
 		}
-	case FreeStateNeedsExperiment:
+	case FreeStateNeedsExperiment, FreeStateImprovementProposal:
 		if diagnosticOnly {
 			return "diagnostic-only free-state turns must end with a diagnostic conclusion and may not enter an improvement experiment"
 		}
@@ -560,9 +571,12 @@ func messageLoopFreeStateOutputIssue(state *runState, out messageLoopOutput) str
 		if !messageLoopHasSuccessfulCCBObservationRequest(state) {
 			return "cannot propose an improvement experiment until at least one model-requested ccb.observation_request has returned a usable evidence bundle"
 		}
-	case FreeStateSatisfied:
+	case FreeStateSatisfied, FreeStateDiagnosticComplete, FreeStateNoCandidateFound:
 		if len(out.ToolCalls) != 0 {
-			return "satisfied must contain no tool calls"
+			return status + " must contain no tool calls"
+		}
+		if status == FreeStateSatisfied && strings.EqualFold(messageLoopTaskContractKind(state), "improvement") {
+			return "satisfied is a legacy local conclusion and cannot settle an open improvement contract; return needs_experiment with an evidence-backed improvement_proposal, no_candidate_found with a bounded diagnostic, or capability_blocked with the concrete boundary"
 		}
 		ctx := messageLoopFreeStateContext(state)
 		if freeStateBool(ctx["requires_post_action_observation"]) && !messageLoopHasSuccessfulCCBObservationRequest(state) {
@@ -573,7 +587,7 @@ func messageLoopFreeStateOutputIssue(state *runState, out messageLoopOutput) str
 				return issue
 			}
 		}
-	case FreeStateBlocked:
+	case FreeStateBlocked, FreeStateCapabilityBlocked:
 		if len(out.ToolCalls) != 0 {
 			return "blocked must contain no tool calls"
 		}
@@ -587,6 +601,14 @@ func messageLoopFreeStateOutputIssue(state *runState, out messageLoopOutput) str
 		}
 	}
 	return ""
+}
+
+func messageLoopTaskContractKind(state *runState) string {
+	if state == nil {
+		return ""
+	}
+	contract := messageLoopMapValue(state.input.Context["task_contract"])
+	return strings.ToLower(messageLoopText(contract["kind"]))
 }
 
 func messageLoopFreeStateCandidateProgressionIssue(state *runState, status string, calls []planner.ToolCall) string {
@@ -1235,7 +1257,7 @@ func messageLoopFreeStateTerminalReply(out messageLoopOutput) (string, string, b
 		return "", "", false
 	}
 	status := strings.ToLower(strings.TrimSpace(out.FreeStateDecision.Status))
-	if status != FreeStateSatisfied && status != FreeStateBlocked {
+	if status != FreeStateSatisfied && status != FreeStateBlocked && status != FreeStateDiagnosticComplete && status != FreeStateNoCandidateFound && status != FreeStateCapabilityBlocked {
 		return "", "", false
 	}
 	reply := strings.TrimSpace(out.Reply)

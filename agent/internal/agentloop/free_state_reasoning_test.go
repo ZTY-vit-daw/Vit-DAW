@@ -1413,7 +1413,7 @@ func TestFreeStatePromptPreservesConditionalTreatmentAuthorization(t *testing.T)
 	for _, required := range []string{
 		"Evidence status and problem status are different",
 		"Preserve conditional authorization exactly",
-		"return satisfied with no processor action when the condition is false",
+		"return no_candidate_found with the bounded evidence and limitations when the condition is false",
 	} {
 		if !strings.Contains(prompt, required) {
 			t.Fatalf("free-state conditional authorization rule missing %q", required)

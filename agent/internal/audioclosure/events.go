@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"strings"
 	"time"
+
+	"vit-daw-agent/internal/taskstate"
 )
 
 type EventType string
@@ -14,12 +16,14 @@ const (
 	EventRoundStarted           EventType = "round_started"
 	EventObservationRecorded    EventType = "observation_recorded"
 	EventProjectChangeRecorded  EventType = "project_change_recorded"
+	EventProjectRevisionChanged EventType = "project_revision_changed"
 	EventFrontierUpdated        EventType = "frontier_updated"
 	EventRoundCompleted         EventType = "round_completed"
 	EventProtocolRepairRecorded EventType = "model_protocol_repair_recorded"
 	EventCapabilityStarted      EventType = "capability_started"
 	EventCapabilitySettled      EventType = "capability_settled"
 	EventRollbackStarted        EventType = "rollback_started"
+	EventTaskStateProjected     EventType = "task_state_projected"
 	EventSettled                EventType = "closure_settled"
 )
 
@@ -33,10 +37,12 @@ type Event struct {
 }
 
 type startedData struct {
-	ConversationID, GoalID, RunID, ProjectUUID, ProjectRevision, OriginalIntent string
-	Mode                                                                        Mode
-	Scope                                                                       Scope
-	Policy                                                                      Policy
+	ConversationID, TaskID, GoalID, RunID, ContractID, ProjectUUID, ProjectRevision, OriginalIntent string
+	TaskState                                                                                       taskstate.State
+	TaskStateRevision                                                                               uint64
+	Mode                                                                                            Mode
+	Scope                                                                                           Scope
+	Policy                                                                                          Policy
 }
 type roundStartedData struct {
 	Round int `json:"round"`
@@ -47,6 +53,9 @@ type observationRecordedData struct {
 }
 type projectChangeRecordedData struct {
 	ChangeID string `json:"change_id"`
+}
+type projectRevisionChangedData struct {
+	ProjectRevision string `json:"project_revision"`
 }
 type frontierUpdatedData struct {
 	Frontier      HypothesisFrontier `json:"frontier"`
@@ -67,6 +76,11 @@ type capabilitySettledData struct {
 }
 type rollbackStartedData struct {
 	Count int `json:"count"`
+}
+type taskStateProjectedData struct {
+	ContractID string          `json:"contract_id"`
+	State      taskstate.State `json:"state"`
+	Revision   uint64          `json:"revision"`
 }
 type settledData struct {
 	Settlement Settlement `json:"settlement"`
@@ -108,7 +122,8 @@ func applyEvent(state *State, event Event) error {
 			return err
 		}
 		state.SchemaVersion, state.ClosureID = SchemaVersion, event.ClosureID
-		state.ConversationID, state.GoalID, state.RunID = data.ConversationID, data.GoalID, data.RunID
+		state.ConversationID, state.TaskID, state.GoalID, state.RunID = data.ConversationID, data.TaskID, data.GoalID, data.RunID
+		state.ContractID, state.TaskState, state.TaskStateRevision = data.ContractID, data.TaskState, data.TaskStateRevision
 		state.ProjectUUID, state.ProjectRevision = data.ProjectUUID, data.ProjectRevision
 		state.OriginalIntent, state.Mode, state.Scope, state.Policy = data.OriginalIntent, data.Mode, data.Scope, data.Policy
 		state.Phase, state.Actionability = PhaseObserving, ActionabilityUnknown
@@ -161,6 +176,24 @@ func applyEvent(state *State, event Event) error {
 		// Deterministic engineering progress only; acoustic evidence still
 		// requires the post-action CCB observation gate.
 		state.RoundHadProgress = true
+	case EventProjectRevisionChanged:
+		var data projectRevisionChangedData
+		if err := decodeEventData(event, &data); err != nil {
+			return err
+		}
+		if strings.TrimSpace(data.ProjectRevision) == "" || data.ProjectRevision == state.ProjectRevision {
+			return fmt.Errorf("project revision change requires a new revision")
+		}
+		if state.ActiveCapability != nil {
+			return fmt.Errorf("active capability must settle before project revision revalidation")
+		}
+		state.ProjectRevision = strings.TrimSpace(data.ProjectRevision)
+		state.ObservationOrder = nil
+		state.Observations = map[string]ObservationRecord{}
+		state.Frontier = HypothesisFrontier{}
+		state.Actionability = ActionabilityUnknown
+		state.RoundInProgress, state.RoundHadProgress = false, false
+		state.NoProgressStreak, state.Phase = 0, PhaseObserving
 	case EventFrontierUpdated:
 		if !state.RoundInProgress {
 			return fmt.Errorf("frontier update requires an admitted round")
@@ -229,6 +262,18 @@ func applyEvent(state *State, event Event) error {
 			return fmt.Errorf("rollback count is not monotonic")
 		}
 		state.RollbackAttempts = data.Count
+	case EventTaskStateProjected:
+		var data taskStateProjectedData
+		if err := decodeEventData(event, &data); err != nil {
+			return err
+		}
+		if data.ContractID == "" || data.ContractID != state.ContractID || !data.State.Valid() {
+			return fmt.Errorf("task state projection identity or state is invalid")
+		}
+		if data.Revision <= state.TaskStateRevision {
+			return fmt.Errorf("task state revision is not monotonic")
+		}
+		state.TaskState, state.TaskStateRevision = data.State, data.Revision
 	case EventSettled:
 		if state.ActiveCapability != nil {
 			return fmt.Errorf("cannot settle while a capability session is active")

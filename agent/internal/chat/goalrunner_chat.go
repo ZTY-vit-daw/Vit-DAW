@@ -2394,6 +2394,10 @@ func (s *Server) recordGoalResult(conversationID string, res agentloop.Result) e
 		durable.ProjectPath = s.activeWorkspacePath
 		durable.ProjectUUID = s.activeWorkspaceUUID
 		durable.ProjectSessionID = s.activeWorkspaceSessionID
+		// Persist the canonical semantic contract and snapshot alongside the
+		// continuation. This makes a request-boundary or restart recover the
+		// same Task interpretation instead of reconstructing it from prompt text.
+		s.bindDurableTaskSemanticState(&durable)
 		if continuationWaitingForInteraction(res) {
 			durable.PendingInteraction = firstNonEmptyMap(pendingInteractionFromResult(res), map[string]any{
 				"status":      string(res.Status),
@@ -2583,6 +2587,9 @@ func (s *Server) goalContinuationForConversation(conversationID string) (agentlo
 		if strings.TrimSpace(item.ConversationID) != strings.TrimSpace(conversationID) {
 			continue
 		}
+		if continuationRecoveryValidationRequired(item) {
+			continue
+		}
 		if item.Status != ContinuationPending && item.Status != ContinuationWaitingInteraction && item.Status != ContinuationClaimed && item.Status != ContinuationRunning {
 			continue
 		}
@@ -2656,6 +2663,9 @@ func (s *Server) goalContinuationForCurrentGoal(chatContext map[string]any) (age
 	found := false
 	for _, item := range s.durableContinuations {
 		if item.GoalID != goalID {
+			continue
+		}
+		if continuationRecoveryValidationRequired(item) {
 			continue
 		}
 		if item.Status != ContinuationPending && item.Status != ContinuationWaitingInteraction && item.Status != ContinuationClaimed && item.Status != ContinuationRunning {

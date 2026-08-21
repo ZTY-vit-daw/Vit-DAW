@@ -14,6 +14,7 @@ import (
 	"vit-daw-agent/internal/orchestration"
 	"vit-daw-agent/internal/orchestrationcontroller"
 	agentruntime "vit-daw-agent/internal/runtime"
+	"vit-daw-agent/internal/taskstate"
 )
 
 const audioClosureContextKey = "minimal_audio_closure"
@@ -56,19 +57,30 @@ func (s *Server) prepareAudioClosureContext(conversationID, userText string, req
 		s.audioClosures = audioclosure.NewMemoryStore()
 	}
 	if state, ok := s.audioClosures.ActiveForConversation(conversationID); ok {
+		requestContext = s.bindCurrentTaskSemantics(requestContext, state.GoalID)
 		requestRevision := audioClosureRequestProjectRevision(s, requestContext)
 		if requestRevision != "" && state.ProjectRevision != "" && requestRevision != state.ProjectRevision {
 			driver := audioclosure.Driver{}
 			previous := state
 			var err error
 			if state.ActiveCapability != nil {
+				_, _ = s.transitionTaskSemantic(state.GoalID, taskstate.TransitionRequest{Event: taskstate.EventCapabilityBlocked, Reason: "project revision changed during an active capability", Summary: "active capability evidence became stale", ProjectRevision: requestRevision})
 				state, _, err = driver.SettleCapability(state, state.Revision, audioclosure.CapabilitySettlement{
 					SessionID: state.ActiveCapability.SessionID, ActionID: state.ActiveCapability.ActionID,
 					Status: "stale", Reason: "project revision changed before the next closure round",
 				}, time.Now().UTC())
 			} else {
-				state, err = driver.Settle(state, state.Revision, audioclosure.StopProjectRevisionStale,
-					"project revision changed before the next closure round", false, time.Now().UTC())
+				if s.hasTaskSemanticContract(state.GoalID) {
+					if _, err = s.transitionTaskSemantic(state.GoalID, taskstate.TransitionRequest{Event: taskstate.EventProjectRevisionChanged, Reason: "authoritative project revision changed", Summary: "previous observation evidence was invalidated", ProjectRevision: requestRevision}); err == nil {
+						state, _, err = driver.RevalidateProjectRevision(state, state.Revision, requestRevision, time.Now().UTC())
+						if err == nil {
+							state, err = s.projectAudioClosureTaskState(state)
+						}
+					}
+				} else {
+					state, err = driver.Settle(state, state.Revision, audioclosure.StopProjectRevisionStale,
+						"project revision changed before the next closure round", false, time.Now().UTC())
+				}
 			}
 			if err != nil {
 				return requestContext, previous, true, err
@@ -76,7 +88,9 @@ func (s *Server) prepareAudioClosureContext(conversationID, userText string, req
 			if err := s.audioClosures.Save(state, previous.Revision); err != nil {
 				return requestContext, previous, true, err
 			}
-			s.settleAudioClosureOwner(state)
+			if state.Terminal() {
+				s.settleAudioClosureOwner(state)
+			}
 			s.persistCurrentProjectWorkspace()
 			return bindAudioClosureContext(requestContext, state), state, true, nil
 		}
@@ -105,11 +119,32 @@ func (s *Server) prepareAudioClosureContext(conversationID, userText string, req
 		projectUUID = "unsaved:" + conversationID
 	}
 	projectRevision := audioClosureRequestProjectRevision(s, requestContext)
+	scope := audioClosureScope(entry.TargetScope, requestContext, projectUUID)
+	requestContext, err := s.ensureAudioTaskContract(conversationID, mode, scope, projectUUID, projectRevision, requestContext)
+	if err != nil {
+		return requestContext, audioclosure.State{}, false, err
+	}
+	goal := agentruntime.Goal{}
+	if s.harness != nil {
+		goal = s.harness.RuntimeStatus(firstStringFromMap(requestContext, "goal_id"))
+	}
+	originalIntent := strings.TrimSpace(userText)
+	taskID, contractID := "", ""
+	var semanticState taskstate.State
+	var semanticRevision uint64
+	if goal.Task != nil {
+		originalIntent = firstNonEmpty(goal.Task.OriginalIntent, originalIntent)
+		taskID = goal.Task.TaskID
+		if goal.Task.Contract != nil && goal.Task.SemanticState != nil {
+			contractID, semanticState, semanticRevision = goal.Task.Contract.ContractID, goal.Task.SemanticState.State, goal.Task.SemanticState.Revision
+		}
+	}
 	state, err := audioclosure.Start(audioclosure.StartRequest{
 		ClosureID: "audio_closure_" + randomID(), ConversationID: conversationID,
-		GoalID: firstStringFromMap(requestContext, "goal_id"), RunID: firstStringFromMap(requestContext, "run_id"),
-		ProjectUUID: projectUUID, ProjectRevision: projectRevision, OriginalIntent: strings.TrimSpace(userText),
-		Mode: mode, Scope: audioClosureScope(entry.TargetScope, requestContext, projectUUID), Now: time.Now().UTC(),
+		TaskID: taskID, GoalID: firstStringFromMap(requestContext, "goal_id"), RunID: firstStringFromMap(requestContext, "run_id"),
+		ContractID: contractID, TaskState: semanticState, TaskStateRevision: semanticRevision,
+		ProjectUUID: projectUUID, ProjectRevision: projectRevision, OriginalIntent: originalIntent,
+		Mode: mode, Scope: scope, Now: time.Now().UTC(),
 	})
 	if err != nil {
 		return requestContext, audioclosure.State{}, false, err
@@ -126,6 +161,18 @@ func (s *Server) prepareAudioClosureContext(conversationID, userText string, req
 	}
 	s.persistCurrentProjectWorkspace()
 	return bindAudioClosureContext(requestContext, state), state, true, nil
+}
+
+func (s *Server) projectAudioClosureTaskState(state audioclosure.State) (audioclosure.State, error) {
+	if s == nil || s.harness == nil || state.ContractID == "" {
+		return state, nil
+	}
+	goal := s.harness.RuntimeStatus(state.GoalID)
+	if goal.Task == nil || goal.Task.TaskID != state.TaskID || goal.Task.Contract == nil || goal.Task.SemanticState == nil || goal.Task.Contract.ContractID != state.ContractID {
+		return state, fmt.Errorf("audio closure task identity does not match canonical runtime")
+	}
+	next, _, err := (audioclosure.Driver{}).ProjectTaskState(state, state.Revision, state.ContractID, goal.Task.SemanticState.State, goal.Task.SemanticState.Revision, time.Now().UTC())
+	return next, err
 }
 
 func audioClosureRequestProjectRevision(s *Server, requestContext map[string]any) string {
@@ -233,6 +280,22 @@ func (s *Server) admitAudioClosureRound(state audioclosure.State) (audioclosure.
 	if !ok {
 		return state, false, fmt.Errorf("minimal audio closure %s is missing", state.ClosureID)
 	}
+	if current.ContractID != "" && current.RoundsStarted >= current.Policy.MaxClosureRounds {
+		next, err := s.settleTaskAtAudioClosureBoundary(current, "closure observation round boundary reached")
+		if err != nil {
+			return current, false, err
+		}
+		if next.Revision != current.Revision {
+			if err := s.audioClosures.Save(next, current.Revision); err != nil {
+				return current, false, err
+			}
+			s.persistCurrentProjectWorkspace()
+		}
+		if next.Terminal() {
+			s.settleAudioClosureOwner(next)
+		}
+		return next, false, nil
+	}
 	next, admitted, err := (audioclosure.Driver{}).AdmitRound(current, current.Revision, time.Now().UTC())
 	if err != nil {
 		return current, false, err
@@ -272,6 +335,14 @@ func (s *Server) recordAudioClosureRound(state audioclosure.State, res agentloop
 		if observation == nil || current.Terminal() {
 			continue
 		}
+		if current.ContractID != "" && len(current.Observations) >= current.Policy.MaxUniqueObservations {
+			next, boundaryErr := s.settleTaskAtAudioClosureBoundary(current, "closure evidence ceiling reached")
+			if boundaryErr != nil {
+				return current, boundaryErr
+			}
+			current = next
+			break
+		}
 		key := audioClosureObservationKey(current, observation, requestContext)
 		outcome, err := driver.RecordObservation(current, current.Revision, key, firstStringFromMap(observation.Summary, "observation_id"), time.Now().UTC())
 		if err != nil {
@@ -282,6 +353,13 @@ func (s *Server) recordAudioClosureRound(state audioclosure.State, res agentloop
 	if !current.Terminal() && res.FreeStateDecision != nil {
 		frontier, actionability := audioClosureFrontier(current.Frontier, *res.FreeStateDecision, freeStateCCBObservations(res))
 		next, _, err := driver.UpdateFrontier(current, current.Revision, frontier, actionability, time.Now().UTC())
+		if err != nil {
+			return current, err
+		}
+		current = next
+	}
+	if !current.Terminal() && current.ContractID != "" {
+		next, err := s.projectAudioClosureTaskState(current)
 		if err != nil {
 			return current, err
 		}
@@ -309,8 +387,21 @@ func (s *Server) recordAudioClosureRound(state audioclosure.State, res agentloop
 		current = next
 	}
 	if !current.Terminal() && (plannerError || (repairCount > 0 && res.NeedsClarification)) {
-		next, err := driver.Settle(current, current.Revision, audioclosure.StopModelProtocolFailure,
-			"MessageLoop did not produce a valid closure move after its protocol repair", false, time.Now().UTC())
+		var next audioclosure.State
+		var err error
+		if current.ContractID != "" {
+			_, err = s.transitionTaskSemantic(current.GoalID, taskstate.TransitionRequest{Event: taskstate.EventTaskFailed,
+				Reason: "model protocol failure", Summary: "MessageLoop did not produce a valid closure move after its protocol repair", ProjectRevision: current.ProjectRevision})
+			if err == nil {
+				next, err = s.projectAudioClosureTaskState(current)
+			}
+			if err == nil {
+				next = audioClosureSettleFromResult(driver, next, res)
+			}
+		} else {
+			next, err = driver.Settle(current, current.Revision, audioclosure.StopModelProtocolFailure,
+				"MessageLoop did not produce a valid closure move after its protocol repair", false, time.Now().UTC())
+		}
 		if err != nil {
 			return current, err
 		}
@@ -321,6 +412,13 @@ func (s *Server) recordAudioClosureRound(state audioclosure.State, res agentloop
 	}
 	if !current.Terminal() && current.RoundInProgress {
 		next, err := driver.CompleteRound(current, current.Revision, time.Now().UTC())
+		if err != nil {
+			return current, err
+		}
+		current = next
+	}
+	if !current.Terminal() && current.ContractID != "" && current.NoProgressStreak >= current.Policy.MaxNoProgressRounds {
+		next, err := s.settleTaskAtAudioClosureBoundary(current, "closure made no material progress within its bounded observation window")
 		if err != nil {
 			return current, err
 		}
@@ -337,6 +435,40 @@ func (s *Server) recordAudioClosureRound(state audioclosure.State, res agentloop
 		s.settleAudioClosureOwner(current)
 	}
 	return current, nil
+}
+
+func (s *Server) settleTaskAtAudioClosureBoundary(state audioclosure.State, reason string) (audioclosure.State, error) {
+	if state.ContractID == "" {
+		return state, nil
+	}
+	goal := s.harness.RuntimeStatus(state.GoalID)
+	if goal.Task == nil || goal.Task.SemanticState == nil {
+		return state, fmt.Errorf("closure boundary has no canonical task state")
+	}
+	evidence := make([]string, 0, len(state.ObservationOrder))
+	for _, fingerprint := range state.ObservationOrder {
+		record := state.Observations[fingerprint]
+		evidence = append(evidence, firstNonEmpty(record.ObservationID, record.Fingerprint))
+	}
+	event := taskstate.EventCapabilityBlocked
+	if len(evidence) > 0 && len(state.Frontier.Candidates) == 0 &&
+		(goal.Task.SemanticState.State == taskstate.StateObservationInProgress || goal.Task.SemanticState.State == taskstate.StateDiagnosticComplete) {
+		event = taskstate.EventNoCandidateReported
+	}
+	if _, err := s.transitionTaskSemantic(state.GoalID, taskstate.TransitionRequest{
+		Event: event, Reason: reason, Summary: reason, EvidenceRefs: evidence, ProjectRevision: state.ProjectRevision,
+	}); err != nil {
+		return state, err
+	}
+	next, err := s.projectAudioClosureTaskState(state)
+	if err != nil {
+		return state, err
+	}
+	next = audioClosureSettleFromResult(audioclosure.Driver{}, next, agentloop.Result{Reply: reason})
+	if !next.Terminal() {
+		return state, fmt.Errorf("canonical closure boundary did not produce a terminal projection")
+	}
+	return next, nil
 }
 
 func audioClosureAuthoritativeProjectChangeID(requestContext map[string]any) string {
@@ -510,6 +642,27 @@ func audioClosureSettleFromResult(driver audioclosure.Driver, state audioclosure
 	reason := audioclosure.StopReason("")
 	summary := firstNonEmpty(res.FailureReason, res.Error, res.Reply, res.StopReason)
 	needsClarification := false
+	if state.ContractID != "" {
+		switch state.TaskState {
+		case taskstate.StateNoCandidateFound:
+			reason = audioclosure.StopNoCandidateFound
+		case taskstate.StateCapabilityBlocked:
+			reason = audioclosure.StopCapabilityBlocked
+		case taskstate.StateSettled:
+			reason = audioclosure.StopTaskSettled
+		case taskstate.StateCancelled:
+			reason = audioclosure.StopCancelled
+		case taskstate.StateFailed:
+			reason = audioclosure.StopTaskFailed
+		default:
+			return state
+		}
+		settled, err := driver.Settle(state, state.Revision, reason, summary, false, time.Now().UTC())
+		if err != nil {
+			return state
+		}
+		return settled
+	}
 	if res.NeedsClarification {
 		reason, needsClarification = audioclosure.StopUserChoiceRequired, true
 	} else if state.Mode == audioclosure.ModeDiagnostic && res.Status == agentruntime.StatusCompleted && res.FreeStateDecision == nil {
@@ -577,7 +730,7 @@ func (s *Server) audioClosureResponse(conversationID, mode string, state audiocl
 	if state.Settlement.NeedsUserClarification {
 		status = agentruntime.StatusWaitingClarification
 	}
-	if state.Settlement.Reason == audioclosure.StopTransportFailure || state.Settlement.Reason == audioclosure.StopModelProtocolFailure || state.Settlement.Reason == audioclosure.StopActionFailed {
+	if state.Settlement.Reason == audioclosure.StopTransportFailure || state.Settlement.Reason == audioclosure.StopModelProtocolFailure || state.Settlement.Reason == audioclosure.StopActionFailed || state.Settlement.Reason == audioclosure.StopTaskFailed {
 		status = agentruntime.StatusFailed
 	}
 	resp := ChatResponse{
@@ -654,7 +807,20 @@ func (s *Server) bindAudioClosureCapabilityHandoff(resp ChatResponse, state audi
 		if strings.Contains(strings.ToLower(firstNonEmpty(resp.Error, resp.StopReason, resp.Reply)), "pca") {
 			reason = audioclosure.StopPCAUnavailable
 		}
-		next, err := driver.Settle(current, current.Revision, reason, firstNonEmpty(resp.Error, resp.Reply), false, time.Now().UTC())
+		var next audioclosure.State
+		var err error
+		if current.ContractID != "" {
+			_, err = s.transitionTaskSemantic(current.GoalID, taskstate.TransitionRequest{Event: taskstate.EventCapabilityBlocked,
+				Reason: firstNonEmpty(resp.StopReason, "governed capability unavailable"), Summary: firstNonEmpty(resp.Error, resp.Reply), ProjectRevision: current.ProjectRevision})
+			if err == nil {
+				next, err = s.projectAudioClosureTaskState(current)
+			}
+			if err == nil {
+				next = audioClosureSettleFromResult(driver, next, agentloop.Result{Reply: firstNonEmpty(resp.Error, resp.Reply)})
+			}
+		} else {
+			next, err = driver.Settle(current, current.Revision, reason, firstNonEmpty(resp.Error, resp.Reply), false, time.Now().UTC())
+		}
 		if err == nil {
 			if saveErr := s.audioClosures.Save(next, current.Revision); saveErr == nil {
 				current = next
@@ -680,6 +846,7 @@ func (s *Server) recordAudioClosureCapabilityResponse(conversationID string, res
 	if !ok || state.ActiveCapability == nil {
 		return resp, state, ok
 	}
+	storedRevision := state.Revision
 	if resp.NeedsConfirmation || resp.GoalStatus == string(agentruntime.StatusWaitingConfirmation) || resp.GoalStatus == string(agentruntime.StatusWaitingContinue) {
 		return bindAudioClosureToResponse(resp, state), state, true
 	}
@@ -694,6 +861,23 @@ func (s *Server) recordAudioClosureCapabilityResponse(conversationID string, res
 		status = "stale"
 	}
 	link := state.ActiveCapability
+	if state.ContractID != "" && status != "completed" && status != "needs_review" {
+		event := taskstate.EventCapabilityBlocked
+		if status == "cancelled" {
+			event = taskstate.EventTaskCancelled
+		}
+		if _, transitionErr := s.transitionTaskSemantic(state.GoalID, taskstate.TransitionRequest{Event: event,
+			Reason: firstNonEmpty(resp.StopReason, "capability did not complete"), Summary: firstNonEmpty(resp.Error, resp.Reply), ProjectRevision: state.ProjectRevision}); transitionErr != nil {
+			resp.Error = firstNonEmpty(resp.Error, transitionErr.Error())
+			return bindAudioClosureToResponse(resp, state), state, true
+		}
+		projected, projectionErr := s.projectAudioClosureTaskState(state)
+		if projectionErr != nil {
+			resp.Error = firstNonEmpty(resp.Error, projectionErr.Error())
+			return bindAudioClosureToResponse(resp, state), state, true
+		}
+		state = projected
+	}
 	next, _, err := (audioclosure.Driver{}).SettleCapability(state, state.Revision, audioclosure.CapabilitySettlement{
 		SessionID: link.SessionID, ActionID: link.ActionID, Status: status,
 		Reason: firstNonEmpty(resp.Error, resp.StopReason),
@@ -701,7 +885,7 @@ func (s *Server) recordAudioClosureCapabilityResponse(conversationID string, res
 	if err != nil {
 		return bindAudioClosureToResponse(resp, state), state, true
 	}
-	if saveErr := s.audioClosures.Save(next, state.Revision); saveErr != nil {
+	if saveErr := s.audioClosures.Save(next, storedRevision); saveErr != nil {
 		return bindAudioClosureToResponse(resp, state), state, true
 	}
 	state = next
@@ -737,6 +921,14 @@ func audioClosureSettlementReply(settlement *audioclosure.Settlement) string {
 		return "本次声学问题已经完成闭环并通过结论检查。"
 	case audioclosure.StopDiagnosticComplete:
 		return "本次只读声学诊断已经完成；没有修改工程。"
+	case audioclosure.StopNoCandidateFound:
+		return "在已声明的观察范围内没有发现可信改善候选；结论保留证据引用和未覆盖边界。"
+	case audioclosure.StopCapabilityBlocked:
+		return "任务已到达明确的能力边界；没有把能力不足解释为改善完成。"
+	case audioclosure.StopTaskSettled:
+		return "任务已经满足其持久化契约中的证据与结算条件。"
+	case audioclosure.StopTaskFailed:
+		return "任务在形成有效结算前失败；失败原因与已有证据已保留。"
 	case audioclosure.StopEvidenceCeilingReached:
 		return "已达到本次闭环的唯一观察上限，现有证据仍不足以支持可靠动作；没有修改工程。"
 	case audioclosure.StopNoProgress:

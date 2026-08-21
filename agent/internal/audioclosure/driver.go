@@ -8,6 +8,8 @@ import (
 	"sort"
 	"strings"
 	"time"
+
+	"vit-daw-agent/internal/taskstate"
 )
 
 type Driver struct{ Policy Policy }
@@ -36,13 +38,52 @@ func Start(request StartRequest) (State, error) {
 		request.Now = time.Now().UTC()
 	}
 	data := startedData{
-		ConversationID: request.ConversationID, GoalID: normalizeText(request.GoalID), RunID: normalizeText(request.RunID),
+		ConversationID: request.ConversationID, TaskID: normalizeText(request.TaskID), GoalID: normalizeText(request.GoalID), RunID: normalizeText(request.RunID),
+		ContractID: normalizeText(request.ContractID), TaskState: request.TaskState, TaskStateRevision: request.TaskStateRevision,
 		ProjectUUID: request.ProjectUUID, ProjectRevision: normalizeText(request.ProjectRevision), OriginalIntent: request.OriginalIntent,
 		Mode: request.Mode, Scope: request.Scope, Policy: policy,
 	}
 	raw, _ := json.Marshal(data)
 	event := Event{EventID: request.ClosureID + ":1", ClosureID: request.ClosureID, Sequence: 1, Type: EventStarted, OccurredAt: request.Now.UTC(), Data: raw}
 	return Fold([]Event{event})
+}
+
+// ProjectTaskState records the canonical Task authority in the closure event
+// stream. Closure-local phases and stop reasons never override this state.
+func (d Driver) ProjectTaskState(state State, expectedRevision uint64, contractID string, semanticState taskstate.State, semanticRevision uint64, now time.Time) (State, bool, error) {
+	if err := validateExpectedRevision(state, expectedRevision); err != nil {
+		return State{}, false, err
+	}
+	contractID = normalizeText(contractID)
+	if contractID == "" || contractID != state.ContractID || !semanticState.Valid() {
+		return State{}, false, fmt.Errorf("canonical task projection does not match closure")
+	}
+	if semanticRevision == state.TaskStateRevision && semanticState == state.TaskState {
+		return state, false, nil
+	}
+	if semanticRevision <= state.TaskStateRevision {
+		return State{}, false, fmt.Errorf("canonical task revision is stale")
+	}
+	next, err := appendEvent(state, EventTaskStateProjected, taskStateProjectedData{ContractID: contractID, State: semanticState, Revision: semanticRevision}, now)
+	return next, err == nil, err
+}
+
+func (d Driver) RevalidateProjectRevision(state State, expectedRevision uint64, projectRevision string, now time.Time) (State, bool, error) {
+	if err := validateExpectedRevision(state, expectedRevision); err != nil {
+		return State{}, false, err
+	}
+	projectRevision = normalizeText(projectRevision)
+	if projectRevision == "" {
+		return State{}, false, fmt.Errorf("project_revision is required")
+	}
+	if projectRevision == state.ProjectRevision {
+		return state, false, nil
+	}
+	if state.ActiveCapability != nil {
+		return State{}, false, fmt.Errorf("active capability must settle before project revision revalidation")
+	}
+	next, err := appendEvent(state, EventProjectRevisionChanged, projectRevisionChangedData{ProjectRevision: projectRevision}, now)
+	return next, err == nil, err
 }
 
 func (d Driver) AdmitRound(state State, expectedRevision uint64, now time.Time) (State, bool, error) {
@@ -60,6 +101,9 @@ func (d Driver) AdmitRound(state State, expectedRevision uint64, now time.Time) 
 	}
 	policy := d.policyFor(state)
 	if state.RoundsStarted >= policy.MaxClosureRounds {
+		if state.ContractID != "" {
+			return state, false, nil
+		}
 		settled, err := d.settleUnchecked(state, StopRoundLimit, "closure round budget exhausted", false, "", now)
 		return settled, false, err
 	}
@@ -92,6 +136,9 @@ func (d Driver) RecordObservation(state State, expectedRevision uint64, key Obse
 	}
 	policy := d.policyFor(state)
 	if len(state.Observations) >= policy.MaxUniqueObservations {
+		if state.ContractID != "" {
+			return ObservationOutcome{State: state, Fingerprint: fingerprint}, nil
+		}
 		settled, settleErr := d.settleUnchecked(state, StopEvidenceCeilingReached, "unique observation budget exhausted", false, "", now)
 		return ObservationOutcome{State: settled, Fingerprint: fingerprint}, settleErr
 	}
@@ -160,12 +207,18 @@ func (d Driver) CompleteRound(state State, expectedRevision uint64, now time.Tim
 	// closure stalls and use the normal no-progress stop.
 	frontierEstablished := len(next.Frontier.Candidates) > 0
 	if next.NoProgressStreak >= policy.MaxNoProgressRounds && (next.Scope.Kind != "project" || frontierEstablished) {
+		if next.ContractID != "" {
+			return next, nil
+		}
 		return d.settleUnchecked(next, StopNoProgress, "closure made no material progress in consecutive rounds", false, "", now)
 	}
 	// An actionable final round may hand off to a governed capability. The
 	// round ceiling blocks more observation/reasoning, not the first bounded
 	// execution handoff that the admitted round just produced.
 	if next.RoundsStarted >= policy.MaxClosureRounds && next.Actionability != ActionabilityActionable {
+		if next.ContractID != "" {
+			return next, nil
+		}
 		return d.settleUnchecked(next, StopRoundLimit, "closure round budget exhausted", false, "", now)
 	}
 	return next, nil
@@ -177,6 +230,9 @@ func (d Driver) RecordProtocolRepair(state State, expectedRevision uint64, now t
 	}
 	policy := d.policyFor(state)
 	if state.ModelProtocolRepairs >= policy.MaxModelProtocolRepairs {
+		if state.ContractID != "" {
+			return state, false, nil
+		}
 		settled, err := d.settleUnchecked(state, StopModelProtocolFailure, "model output remained invalid after the repair budget", false, "", now)
 		return settled, false, err
 	}
@@ -233,12 +289,20 @@ func (d Driver) SettleCapability(state State, expectedRevision uint64, settlemen
 	case "completed", "needs_review":
 		return next, true, nil
 	case "stale":
+		if next.ContractID != "" {
+			settled, settleErr := d.settleUnchecked(next, StopCapabilityBlocked, firstNonEmpty(settlement.Reason, "capability project revision became stale"), false, "", now)
+			return settled, true, settleErr
+		}
 		settled, settleErr := d.settleUnchecked(next, StopProjectRevisionStale, firstNonEmpty(settlement.Reason, "capability project revision became stale"), false, "", now)
 		return settled, true, settleErr
 	case "cancelled":
 		settled, settleErr := d.settleUnchecked(next, StopCancelled, firstNonEmpty(settlement.Reason, "capability session was cancelled"), false, "", now)
 		return settled, true, settleErr
 	default:
+		if next.ContractID != "" {
+			settled, settleErr := d.settleUnchecked(next, StopCapabilityBlocked, firstNonEmpty(settlement.Reason, "capability action failed"), false, "", now)
+			return settled, true, settleErr
+		}
 		settled, settleErr := d.settleUnchecked(next, StopActionFailed, firstNonEmpty(settlement.Reason, "capability action failed"), false, "", now)
 		return settled, true, settleErr
 	}
@@ -431,7 +495,7 @@ func firstNonEmpty(values ...string) string {
 
 func validStopReason(reason StopReason) bool {
 	switch reason {
-	case StopSatisfied, StopDiagnosticComplete, StopActionablePendingConfirmation, StopInsufficientEvidence, StopEvidenceCeilingReached, StopNoProgress, StopCapabilityUnavailable, StopPCAUnavailable, StopModelProtocolFailure, StopTransportFailure, StopRoundLimit, StopActionFailed, StopVerificationFailedRolledBack, StopUserChoiceRequired, StopProjectRevisionStale, StopHandoffRequested, StopCancelled:
+	case StopSatisfied, StopDiagnosticComplete, StopNoCandidateFound, StopCapabilityBlocked, StopTaskSettled, StopTaskFailed, StopActionablePendingConfirmation, StopInsufficientEvidence, StopEvidenceCeilingReached, StopNoProgress, StopCapabilityUnavailable, StopPCAUnavailable, StopModelProtocolFailure, StopTransportFailure, StopRoundLimit, StopActionFailed, StopVerificationFailedRolledBack, StopUserChoiceRequired, StopProjectRevisionStale, StopHandoffRequested, StopCancelled:
 		return true
 	default:
 		return false

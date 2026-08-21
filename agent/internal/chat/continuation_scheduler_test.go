@@ -13,10 +13,12 @@ import (
 	"vit-daw-agent/internal/agentloop"
 	"vit-daw-agent/internal/audioclosure"
 	executorpkg "vit-daw-agent/internal/executor"
+	"vit-daw-agent/internal/harness"
 	"vit-daw-agent/internal/history"
 	"vit-daw-agent/internal/planner"
 	agentruntime "vit-daw-agent/internal/runtime"
 	"vit-daw-agent/internal/shadow"
+	"vit-daw-agent/internal/taskstate"
 )
 
 type continuationTestPlanner struct {
@@ -811,6 +813,74 @@ func TestContinuationRuntimeProjectionExposesDurableIdentity(t *testing.T) {
 	}
 }
 
+func TestRecordGoalResultPersistsCanonicalTaskSemantics(t *testing.T) {
+	s := testContinuationServer()
+	s.harness = harness.NewWithSender(nil, nil, nil)
+	goal := s.harness.EnsureGoal("goal-semantic", "run-semantic", "inspect and improve the project")
+	contract := taskstate.Contract{
+		ConversationID: "conversation-semantic", Kind: taskstate.ContractImprovement, Scope: taskstate.Scope{Kind: "project"},
+		Temporary: true, TargetDiscovery: "agent_observation", AuthorizationBoundary: "governed_experiment",
+		CompletionCriteria: []string{"governed outcome"}, EvidenceRequirements: []string{"observation reference"},
+		ProjectUUID: "project-semantic", ProjectRevision: "revision-semantic",
+	}
+	goal, err := s.harness.EnsureTaskContract(goal.GoalID, contract)
+	if err != nil {
+		t.Fatal(err)
+	}
+	res := waitingContinuationResult("slice-semantic", "turn-semantic", agentruntime.StatusWaitingContinue, agentloop.StopReasonLimitReached)
+	res.GoalID, res.RunID, res.TaskID, res.OriginalIntent = goal.GoalID, goal.RunID, goal.Task.TaskID, goal.Task.OriginalIntent
+	res.Continuation.GoalID, res.Continuation.RunID, res.Continuation.TaskID = goal.GoalID, goal.RunID, goal.Task.TaskID
+	res.Continuation.OriginalIntent = goal.Task.OriginalIntent
+	if err := s.recordGoalResult("conversation-semantic", res); err != nil {
+		t.Fatal(err)
+	}
+	for _, item := range s.durableContinuations {
+		if item.TaskContract == nil || item.TaskSemanticState == nil {
+			t.Fatalf("canonical task semantics were not persisted: %+v", item)
+		}
+		if item.TaskContract.ContractID != goal.Task.Contract.ContractID || item.TaskSemanticState.State != taskstate.StateObservationInProgress {
+			t.Fatalf("canonical task semantics changed in continuation: %+v", item)
+		}
+		rows := s.continuationRuntimeProjection()
+		if len(rows) != 1 || rows[0]["task_state"] != taskstate.StateObservationInProgress || rows[0]["task_state_revision"] != uint64(1) {
+			t.Fatalf("runtime projection omitted canonical task state: %+v", rows)
+		}
+	}
+}
+
+func TestRestoreRejectsContinuationWithDifferentCanonicalContract(t *testing.T) {
+	now := time.Now().UTC()
+	contract := taskstate.NormalizeContract(taskstate.Contract{
+		ContractID: "contract-authority", TaskID: "task-authority", GoalID: "goal-authority", RunID: "run-authority", ConversationID: "conversation-authority",
+		OriginalIntent: "inspect the project", Kind: taskstate.ContractImprovement, Scope: taskstate.Scope{Kind: "project"},
+		AuthorizationBoundary: "governed_experiment", CompletionCriteria: []string{"governed outcome"}, EvidenceRequirements: []string{"observation reference"},
+	}, now)
+	semantic, err := taskstate.New(contract, now)
+	if err != nil {
+		t.Fatal(err)
+	}
+	state := projectAgentRuntimeState{ConversationGoals: map[string]string{"conversation-authority": "goal-authority"}, GoalRuntime: agentruntime.Snapshot{Goals: []agentruntime.Goal{{
+		GoalID: "goal-authority", RunID: "run-authority", Status: agentruntime.StatusWaitingContinue,
+		Task: &agentruntime.Task{TaskID: "task-authority", GoalID: "goal-authority", OriginalIntent: "inspect the project", Contract: &contract, SemanticState: &semantic},
+	}}}}
+	different := contract
+	different.ContractID = "contract-different"
+	differentSemantic, err := taskstate.New(different, now)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, restored := normalizeRestoredDurableContinuation("continuation-authority", DurableContinuation{
+		ContinuationID: "continuation-authority", TaskID: "task-authority", GoalID: "goal-authority", RunID: "run-authority",
+		ConversationID: "conversation-authority", CurrentSliceID: "slice-authority", OriginalIntent: "inspect the project",
+		TaskContract: &different, TaskSemanticState: &differentSemantic,
+		Continuation: agentloop.Continuation{GoalID: "goal-authority", RunID: "run-authority", TaskID: "task-authority", SliceID: "slice-authority", OriginalIntent: "inspect the project"},
+		Status:       ContinuationPending,
+	}, state, now)
+	if restored.Status != ContinuationWaitingInteraction || firstStringFromMap(restored.PendingInteraction, "status") != "recovery_validation_required" {
+		t.Fatalf("canonical contract mismatch remained runnable: %+v", restored)
+	}
+}
+
 func TestRestoreUsesTaskSnapshotAsIdentityAndIntentAuthority(t *testing.T) {
 	now := time.Now().UTC()
 	state := projectAgentRuntimeState{
@@ -859,6 +929,20 @@ func TestRestoreFailsClosedOnProjectOrConversationIdentityMismatch(t *testing.T)
 	}, state, now)
 	if conversationMismatch.Status != ContinuationWaitingInteraction || conversationMismatch.LeaseOwner != "" || !conversationMismatch.LeaseExpiresAt.IsZero() {
 		t.Fatalf("conversation/goal mismatch retained a live scheduler lease: %+v", conversationMismatch)
+	}
+}
+
+func TestRecoveryValidationContinuationIsNotExecutableThroughChatLookup(t *testing.T) {
+	s := testContinuationServer()
+	cont := waitingContinuationResult("slice-recovery", "turn-recovery", agentruntime.StatusWaitingContinue, agentloop.StopReasonLimitReached).Continuation
+	s.goalContinuations["goal-c"] = *cont
+	item := durableContinuationFromResult("conversation-c", agentloop.Result{GoalID: "goal-c", RunID: "run-c", TaskID: "task-c", SliceID: "slice-recovery", TurnID: "turn-recovery", OriginalIntent: "inspect the project", Status: agentruntime.StatusWaitingContinue, Continuation: cont}, time.Now().UTC())
+	item.Status = ContinuationWaitingInteraction
+	item.PendingInteraction = map[string]any{"status": "recovery_validation_required", "reason": "identity mismatch"}
+	s.durableContinuations[item.ContinuationID] = item
+	delete(s.goalContinuations, "goal-c")
+	if _, ok := s.goalContinuationForConversation("conversation-c"); ok {
+		t.Fatal("recovery-validation continuation was returned as executable chat continuation")
 	}
 }
 

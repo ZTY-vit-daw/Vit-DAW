@@ -80,7 +80,7 @@ func freeStateLoopActive(loop freeStateReasoningLoop) bool {
 		return false
 	}
 	switch strings.ToLower(strings.TrimSpace(loop.Status)) {
-	case "completed", "cancelled", "blocked", "stopped":
+	case "completed", "cancelled", "blocked", "capability_blocked", "no_candidate_found", "failed", "stopped":
 		return false
 	default:
 		return true
@@ -417,6 +417,9 @@ func (s *Server) recordFreeStateDecision(conversationID string, res agentloop.Re
 	decision := *res.FreeStateDecision
 	decision.RequestedViewIDs = append([]string(nil), res.FreeStateDecision.RequestedViewIDs...)
 	decision.Limitations = append([]string(nil), res.FreeStateDecision.Limitations...)
+	if strings.EqualFold(strings.TrimSpace(decision.Status), agentloop.FreeStateNeedsAction) && decision.ImprovementProposal == nil {
+		decision.ImprovementProposal = freeStateActionImprovementProposal(loop, decision)
+	}
 	experimentWasActive := loop.Experiment != nil
 	loop.LatestDecision = &decision
 	if experimentWasActive {
@@ -437,6 +440,19 @@ func (s *Server) recordFreeStateDecision(conversationID string, res agentloop.Re
 	}
 	if res.RunID != "" {
 		loop.RunID = res.RunID
+	}
+	if err := s.applyFreeStateDecisionSemantic(&loop, decision); err != nil {
+		loop.Status = "blocked"
+		loop.LastError = "task semantic transition rejected: " + err.Error()
+		blocked := decision
+		blocked.Status = agentloop.FreeStateCapabilityBlocked
+		blocked.EvidenceStatus = "insufficient"
+		blocked.StopReason = "task_semantic_transition_rejected"
+		blocked.Limitations = append(blocked.Limitations, loop.LastError)
+		loop.LatestDecision = &blocked
+		loop.UpdatedAt = time.Now().UTC()
+		s.storeFreeStateLoop(loop)
+		return loop, true
 	}
 	if decision.ObservationID != "" && !freeStateContainsString(loop.ObservationIDs, decision.ObservationID) {
 		loop.ObservationIDs = append(loop.ObservationIDs, decision.ObservationID)
@@ -474,7 +490,7 @@ func (s *Server) recordFreeStateDecision(conversationID string, res agentloop.Re
 		if selected != nil {
 			loop.RequiresPostActionObservation = false
 		}
-	case agentloop.FreeStateNeedsExperiment:
+	case agentloop.FreeStateNeedsExperiment, agentloop.FreeStateImprovementProposal:
 		if decision.ImprovementProposal == nil {
 			loop.Status = "blocked"
 			loop.LastError = "needs_experiment requires improvement_proposal"
@@ -498,15 +514,22 @@ func (s *Server) recordFreeStateDecision(conversationID string, res agentloop.Re
 	case agentloop.FreeStateNeedsObservation:
 		loop.Status = "observing"
 		loop.DecisionPhase = resolvedFreeStateDecisionPhase(loop)
-	case agentloop.FreeStateSatisfied:
+	case agentloop.FreeStateDiagnosticComplete, agentloop.FreeStateSatisfied:
 		loop.Status = "completed"
 		loop.ActiveIntent = ""
 		loop.RequiresPostActionObservation = false
-	case agentloop.FreeStateBlocked:
+		s.settleDiagnosticTask(&loop, decision)
+	case agentloop.FreeStateNoCandidateFound:
+		loop.Status = "no_candidate_found"
+		loop.ActiveIntent = ""
+		loop.RequiresPostActionObservation = false
+	case agentloop.FreeStateBlocked, agentloop.FreeStateCapabilityBlocked:
 		loop.Status = "blocked"
 		loop.LastError = firstNonEmpty(decision.StopReason, strings.Join(decision.Limitations, "; "), decision.Summary)
 	}
-	if strings.EqualFold(strings.TrimSpace(decision.Status), agentloop.FreeStateNeedsExperiment) {
+	if strings.EqualFold(strings.TrimSpace(decision.Status), agentloop.FreeStateNeedsExperiment) ||
+		strings.EqualFold(strings.TrimSpace(decision.Status), agentloop.FreeStateImprovementProposal) ||
+		(strings.EqualFold(strings.TrimSpace(decision.Status), agentloop.FreeStateNeedsAction) && s.hasTaskSemanticContract(loop.GoalID)) {
 		if loop.Experiment == nil {
 			if err := s.startFreeStateExperiment(&loop, decision, res.GoalID, res.RunID); err != nil {
 				loop.Status = "blocked"

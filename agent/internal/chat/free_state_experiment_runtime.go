@@ -56,6 +56,47 @@ func freeStateExperimentAdmission(loop freeStateReasoningLoop, proposal *agentpr
 	return admission, admission.Validate()
 }
 
+func freeStateActionImprovementProposal(loop freeStateReasoningLoop, decision agentloop.FreeStateDecision) *agentprotocol.ImprovementProposal {
+	evidence := freeStateDecisionEvidence(decision)
+	if len(evidence) == 0 && loop.LatestObservation != nil {
+		evidence = []string{firstNonEmpty(firstStringFromMap(loop.LatestObservation.Summary, "observation_id"), loop.LatestObservation.ToolCallID)}
+	}
+	target := cloneContext(loop.TargetRef)
+	if len(target) == 0 && loop.LatestObservation != nil {
+		target = cloneContext(firstMapFromAny(loop.LatestObservation.Summary["target_ref"]))
+	}
+	if len(target) == 0 {
+		target = map[string]any{"kind": "project", "id": firstNonEmpty(firstStringFromMap(loop.LatestProjectChange, "project_uuid"), loop.ConversationID)}
+	}
+	domain := strings.ToLower(strings.TrimSpace(decision.ProcessorType))
+	switch domain {
+	case "gate", "expander":
+		domain = agentprotocol.ImprovementActionDomainGateExpander
+	case "deesser", "de-esser":
+		domain = agentprotocol.ImprovementActionDomainDeEsser
+	case "transient":
+		domain = agentprotocol.ImprovementActionDomainTransientShaper
+	case "multiband":
+		domain = agentprotocol.ImprovementActionDomainMultibandDynamics
+	}
+	confidence := 0.5
+	if decision.SemanticProcessorIntent != nil && decision.SemanticProcessorIntent.Confidence > 0 {
+		confidence = decision.SemanticProcessorIntent.Confidence
+	}
+	return &agentprotocol.ImprovementProposal{
+		SchemaVersion: agentprotocol.ImprovementProposalSchema,
+		Target:        target, EvidenceRefs: evidence,
+		ImprovementIntent: firstNonEmpty(decision.RemainingIntent, decision.Summary),
+		Hypothesis:        firstNonEmpty(decision.Summary, "a bounded governed processor experiment may improve the admitted intent"),
+		ExpectedEffect:    firstNonEmpty(decision.RemainingIntent, decision.Summary),
+		ActionDomain:      domain, ActionKind: "governed_" + domain + "_experiment",
+		ProcessorType:    decision.ProcessorType,
+		ParameterBounds:  map[string]any{"source": "governed_processor_router", "mode": "bounded"},
+		VerificationPlan: map[string]any{"evidence_refs": evidence, "experiment_budget": 3},
+		Confidence:       confidence, Limitations: append([]string(nil), decision.Limitations...),
+	}
+}
+
 func freeStateExperimentViews(loop freeStateReasoningLoop, decision agentloop.FreeStateDecision, proposal *agentprotocol.ImprovementProposal) []string {
 	views := append([]string(nil), decision.RequestedViewIDs...)
 	if len(views) == 0 && loop.LatestObservation != nil {
@@ -206,6 +247,11 @@ func (s *Server) startFreeStateExperiment(loop *freeStateReasoningLoop, decision
 	if err != nil {
 		return err
 	}
+	loop.Experiment = &turn
+	if err := s.bindExperimentSemantic(loop); err != nil {
+		loop.Experiment = nil
+		return err
+	}
 	events := turn.StartEvents(time.Now().UTC())
 	views := freeStateExperimentViews(*loop, decision, decision.ImprovementProposal)
 	if len(views) > 0 {
@@ -215,7 +261,6 @@ func (s *Server) startFreeStateExperiment(loop *freeStateReasoningLoop, decision
 		}
 		events = append(events, roundEvents...)
 	}
-	loop.Experiment = &turn
 	s.emitFreeStateExperimentEvents(events)
 	if observation, ok := freeStateExperimentObservation(loop.LatestObservation, false); ok && len(turn.Rounds) > 0 {
 		observationEvents, observationErr := loop.Experiment.RecordObservation(observation, false, time.Now().UTC())
@@ -309,6 +354,12 @@ func (s *Server) settleFreeStateExperiment(loop *freeStateReasoningLoop, outcome
 	if loop == nil || loop.Experiment == nil || loop.Experiment.Status == experiment.StatusSettled || loop.Experiment.Status == experiment.StatusStopped {
 		return
 	}
+	if err := s.completeTaskExperimentOutcome(loop, outcome, summary); err != nil {
+		if s != nil && s.logger != nil {
+			s.logger.Warn("[free-state-experiment] canonical settlement rejected: %v", err)
+		}
+		return
+	}
 	events, err := loop.Experiment.Settle(outcome, summary, time.Now().UTC())
 	if err != nil {
 		if s != nil && s.logger != nil {
@@ -321,6 +372,12 @@ func (s *Server) settleFreeStateExperiment(loop *freeStateReasoningLoop, outcome
 
 func (s *Server) stopFreeStateExperiment(loop *freeStateReasoningLoop, summary string) {
 	if loop == nil || loop.Experiment == nil || loop.Experiment.Status == experiment.StatusSettled || loop.Experiment.Status == experiment.StatusStopped {
+		return
+	}
+	if err := s.completeTaskExperimentOutcome(loop, experiment.OutcomeStopped, summary); err != nil {
+		if s != nil && s.logger != nil {
+			s.logger.Warn("[free-state-experiment] canonical stop rejected: %v", err)
+		}
 		return
 	}
 	events, err := loop.Experiment.Stop(summary, time.Now().UTC())

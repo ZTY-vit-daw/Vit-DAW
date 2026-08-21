@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 
+	"vit-daw-agent/internal/taskstate"
 	"vit-daw-agent/internal/trajectory"
 )
 
@@ -104,6 +105,9 @@ func (e UserJudgmentEvidence) Validate() error {
 func (t *Turn) RequestUserJudgmentForSession(summary, auditionSessionID string, now time.Time) ([]trajectory.Event, error) {
 	if err := t.ensureLive(); err != nil {
 		return nil, err
+	}
+	if t.ContractID != "" && t.TaskState != taskstate.StateHumanJudgmentRequired {
+		return nil, fmt.Errorf("user judgment request requires canonical task state human_judgment_required")
 	}
 	round, err := t.currentRound()
 	if err != nil {

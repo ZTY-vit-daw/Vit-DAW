@@ -3,7 +3,11 @@
 // it does not define either contract or perform DAW mutations itself.
 package audioclosure
 
-import "time"
+import (
+	"time"
+
+	"vit-daw-agent/internal/taskstate"
+)
 
 const SchemaVersion = "minimal_audio_closure.v1"
 
@@ -37,6 +41,10 @@ type StopReason string
 const (
 	StopSatisfied                     StopReason = "satisfied"
 	StopDiagnosticComplete            StopReason = "diagnostic_complete"
+	StopNoCandidateFound              StopReason = "no_candidate_found"
+	StopCapabilityBlocked             StopReason = "capability_blocked"
+	StopTaskSettled                   StopReason = "settled"
+	StopTaskFailed                    StopReason = "failed"
 	StopActionablePendingConfirmation StopReason = "actionable_pending_confirmation"
 	StopInsufficientEvidence          StopReason = "insufficient_evidence"
 	StopEvidenceCeilingReached        StopReason = "evidence_ceiling_reached"
@@ -149,8 +157,12 @@ type State struct {
 	ClosureID             string                          `json:"closure_id"`
 	Revision              uint64                          `json:"revision"`
 	ConversationID        string                          `json:"conversation_id"`
+	TaskID                string                          `json:"task_id,omitempty"`
 	GoalID                string                          `json:"goal_id,omitempty"`
 	RunID                 string                          `json:"run_id,omitempty"`
+	ContractID            string                          `json:"contract_id,omitempty"`
+	TaskState             taskstate.State                 `json:"task_state,omitempty"`
+	TaskStateRevision     uint64                          `json:"task_state_revision,omitempty"`
 	ProjectUUID           string                          `json:"project_uuid"`
 	ProjectRevision       string                          `json:"project_revision,omitempty"`
 	OriginalIntent        string                          `json:"original_intent"`
@@ -182,15 +194,19 @@ type State struct {
 func (s State) Terminal() bool { return s.Phase == PhaseSettled && s.Settlement != nil }
 
 type StartRequest struct {
-	ClosureID       string
-	ConversationID  string
-	GoalID          string
-	RunID           string
-	ProjectUUID     string
-	ProjectRevision string
-	OriginalIntent  string
-	Mode            Mode
-	Scope           Scope
-	Policy          Policy
-	Now             time.Time
+	ClosureID         string
+	ConversationID    string
+	TaskID            string
+	GoalID            string
+	RunID             string
+	ContractID        string
+	TaskState         taskstate.State
+	TaskStateRevision uint64
+	ProjectUUID       string
+	ProjectRevision   string
+	OriginalIntent    string
+	Mode              Mode
+	Scope             Scope
+	Policy            Policy
+	Now               time.Time
 }

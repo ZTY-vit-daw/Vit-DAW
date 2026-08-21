@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"testing"
 	"time"
+
+	"vit-daw-agent/internal/taskstate"
 )
 
 var testNow = time.Date(2026, 8, 15, 8, 0, 0, 0, time.UTC)
@@ -28,6 +30,55 @@ func admitTestRound(t *testing.T, driver Driver, state State, offset int) State 
 		t.Fatalf("admit round: admitted=%v err=%v", admitted, err)
 	}
 	return next
+}
+
+func TestCanonicalTaskStateOwnsClosureTerminalOutcome(t *testing.T) {
+	driver := Driver{}
+	state, err := Start(StartRequest{
+		ClosureID: "closure-canonical", ConversationID: "conversation-canonical", TaskID: "task-canonical", GoalID: "goal-canonical", RunID: "run-canonical",
+		ContractID: "contract-canonical", TaskState: taskstate.StateObservationInProgress, TaskStateRevision: 1,
+		ProjectUUID: "project-canonical", ProjectRevision: "revision-1", OriginalIntent: "inspect and improve the project",
+		Mode: ModeTreatment, Scope: Scope{Kind: "project", ID: "project-canonical"}, Policy: Policy{MaxClosureRounds: 1}, Now: testNow,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	state = admitTestRound(t, driver, state, 1)
+	state, err = driver.CompleteRound(state, state.Revision, testNow.Add(2*time.Minute))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if state.Terminal() {
+		t.Fatalf("closure budget incorrectly settled the canonical task: %+v", state.Settlement)
+	}
+	state, changed, err := driver.ProjectTaskState(state, state.Revision, "contract-canonical", taskstate.StateNoCandidateFound, 2, testNow.Add(3*time.Minute))
+	if err != nil || !changed {
+		t.Fatalf("canonical task projection failed: changed=%v err=%v", changed, err)
+	}
+	state, err = driver.Settle(state, state.Revision, StopNoCandidateFound, "bounded search found no candidate", false, testNow.Add(4*time.Minute))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !state.Terminal() || state.Settlement.Reason != StopNoCandidateFound || state.TaskState != taskstate.StateNoCandidateFound {
+		t.Fatalf("closure terminal projection diverged from canonical task: %+v", state)
+	}
+}
+
+func TestProjectRevisionRevalidationInvalidatesClosureEvidence(t *testing.T) {
+	driver := Driver{}
+	state := admitTestRound(t, driver, newTestClosure(t), 1)
+	key := ObservationKey{ProjectUUID: "project-1", ProjectRevision: "revision-1", Scope: Scope{Kind: "track", ID: "track-vocal"}, TargetRef: "track-vocal", ViewIDs: []string{"track.time_dynamics"}, ObservationMode: "ccb"}
+	result, err := driver.RecordObservation(state, state.Revision, key, "observation-revision-1", testNow.Add(2*time.Minute))
+	if err != nil {
+		t.Fatal(err)
+	}
+	state, changed, err := driver.RevalidateProjectRevision(result.State, result.State.Revision, "revision-2", testNow.Add(3*time.Minute))
+	if err != nil || !changed {
+		t.Fatalf("project revision revalidation failed: changed=%v err=%v", changed, err)
+	}
+	if state.ProjectRevision != "revision-2" || len(state.Observations) != 0 || len(state.ObservationOrder) != 0 || state.RoundInProgress {
+		t.Fatalf("stale closure evidence survived revision change: %+v", state)
+	}
 }
 
 func TestClosureRoundBudgetPersistsAcrossEventReplay(t *testing.T) {

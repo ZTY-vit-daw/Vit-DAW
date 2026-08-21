@@ -11,6 +11,16 @@ import (
 // the final durable settlement is written through Project History.
 func (s *Server) emitTrajectoryEvent(conversationID string, event trajectory.Event) (AgentEvent, error) {
 	event.ConversationID = firstNonEmpty(event.ConversationID, conversationID)
+	if s != nil && s.harness != nil && event.GoalID != "" {
+		goal := s.harness.RuntimeStatus(event.GoalID)
+		if goal.Task != nil && goal.Task.Contract != nil && goal.Task.SemanticState != nil {
+			projected, err := trajectory.BindTaskState(event, *goal.Task.Contract, *goal.Task.SemanticState)
+			if err != nil {
+				return AgentEvent{}, fmt.Errorf("trajectory canonical task state: %w", err)
+			}
+			event = projected
+		}
+	}
 	event = event.Normalize()
 	if err := event.Validate(); err != nil {
 		return AgentEvent{}, fmt.Errorf("trajectory event: %w", err)

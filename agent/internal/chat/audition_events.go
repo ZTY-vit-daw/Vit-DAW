@@ -415,6 +415,12 @@ func (s *Server) requestAuditionJudgment(conversationID, sessionID string) {
 	if !strings.EqualFold(firstStringFromMap(loop.AuditionSessionSnapshot, "status"), "ready") {
 		return
 	}
+	if err := s.requireTaskHumanJudgment(&loop, sessionID, "A/B audition judgment is required before experiment settlement"); err != nil {
+		if s.logger != nil {
+			s.logger.Warn("[audition] canonical human judgment transition rejected: %v", err)
+		}
+		return
+	}
 	events, err := loop.Experiment.RequestUserJudgmentForSession("A/B audition required", sessionID, time.Now().UTC())
 	if err != nil {
 		if s.logger != nil {
@@ -668,6 +674,9 @@ func (s *Server) applyFreeStateJudgmentOutcome(ctx context.Context, loop *freeSt
 		}
 		annotateJudgmentDecision(events, "audition.retain_candidate", "candidate-b")
 		s.emitFreeStateExperimentEvents(events)
+		if err = s.settleTaskFromExperiment(loop, "user preferred B; treatment candidate retained", []string{evidence.ID}); err != nil {
+			return err
+		}
 		events, err = loop.Experiment.Settle(experiment.OutcomeImproved, "user preferred B; treatment candidate retained", time.Now().UTC())
 		if err != nil {
 			return err
@@ -686,6 +695,9 @@ func (s *Server) applyFreeStateJudgmentOutcome(ctx context.Context, loop *freeSt
 			return err
 		}
 		s.emitFreeStateExperimentEvents(rollbackEvents)
+		if err = s.settleTaskFromExperiment(loop, "user selected baseline or rejected both candidates", []string{evidence.ID}); err != nil {
+			return err
+		}
 		events, err = loop.Experiment.Settle(experiment.OutcomeRolledBack, "user selected baseline or rejected both candidates", time.Now().UTC())
 		if err != nil {
 			return err
@@ -714,6 +726,9 @@ func (s *Server) applyFreeStateJudgmentOutcome(ctx context.Context, loop *freeSt
 		loop.AuditionSessionID = ""
 		loop.AuditionSessionSnapshot = nil
 		loop.Status = "active"
+		if err := s.resumeTaskExperimentAfterJudgment(loop, "human judgment recorded; experiment remains open"); err != nil {
+			return err
+		}
 	}
 	return nil
 }

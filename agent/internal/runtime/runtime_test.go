@@ -1,6 +1,10 @@
 package runtime
 
-import "testing"
+import (
+	"testing"
+
+	"vit-daw-agent/internal/taskstate"
+)
 
 func TestInterjectionOrderingAndCancelTick(t *testing.T) {
 	rt := New()
@@ -196,5 +200,68 @@ func TestEnsureDoesNotReplaceExistingRunIdentity(t *testing.T) {
 	}
 	if repeated.Task == nil || repeated.Task.OriginalIntent != created.Task.OriginalIntent {
 		t.Fatalf("Ensure replaced task intent: %+v", repeated.Task)
+	}
+}
+
+func TestTaskSemanticContractSurvivesSnapshotRestore(t *testing.T) {
+	source := New()
+	goal := source.Ensure("goal_semantic", "run_semantic", "inspect and improve the project")
+	goal, err := source.EnsureTaskContract(goal.GoalID, taskstate.Contract{
+		ConversationID: "conversation_semantic", Kind: taskstate.ContractImprovement, Scope: taskstate.Scope{Kind: "project"},
+		Temporary: true, TargetDiscovery: "agent_observation", AuthorizationBoundary: "governed_experiment",
+		CompletionCriteria: []string{"governed outcome"}, EvidenceRequirements: []string{"observation reference"},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if goal.Task.ConversationID != "conversation_semantic" {
+		t.Fatalf("task conversation identity was not bound: %+v", goal.Task)
+	}
+	target := New()
+	target.Restore(source.Snapshot())
+	restored := target.Status(goal.GoalID)
+	if restored.Task == nil || restored.Task.Contract == nil || restored.Task.SemanticState == nil || restored.Task.SemanticState.State != taskstate.StateObservationInProgress || restored.Status == StatusWaitingClarification {
+		t.Fatalf("valid semantic state did not restore: %+v", restored)
+	}
+}
+
+func TestTaskSemanticRestoreFailsClosedOnConversationMismatch(t *testing.T) {
+	source := New()
+	goal := source.Ensure("goal_semantic_mismatch", "run_semantic_mismatch", "inspect the project")
+	_, err := source.EnsureTaskContract(goal.GoalID, taskstate.Contract{
+		ConversationID: "conversation_authority", Kind: taskstate.ContractDiagnostic, Scope: taskstate.Scope{Kind: "project"},
+		AuthorizationBoundary: "observe_only", CompletionCriteria: []string{"bounded diagnosis"}, EvidenceRequirements: []string{"observation reference"},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	snapshot := source.Snapshot()
+	snapshot.Goals[0].Task.ConversationID = "different_conversation"
+	target := New()
+	target.Restore(snapshot)
+	restored := target.Status(goal.GoalID)
+	if restored.Status != StatusWaitingClarification || restored.Task == nil || restored.Task.Status != TaskStatusWaitingInteraction {
+		t.Fatalf("corrupt semantic identity remained executable: %+v", restored)
+	}
+}
+
+func TestTaskSchedulingStatusRemainsOrthogonalToSemanticProgress(t *testing.T) {
+	runtime := New()
+	goal := runtime.Ensure("goal_scheduling", "run_scheduling", "inspect and improve")
+	_, err := runtime.EnsureTaskContract(goal.GoalID, taskstate.Contract{
+		ConversationID: "conversation_scheduling", Kind: taskstate.ContractImprovement, Scope: taskstate.Scope{Kind: "project"},
+		Temporary: true, TargetDiscovery: "agent_observation", AuthorizationBoundary: "governed_experiment",
+		CompletionCriteria: []string{"governed outcome"}, EvidenceRequirements: []string{"observation reference"},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	waitingContinue := runtime.SetStatus(goal.GoalID, StatusWaitingContinue, nil)
+	if waitingContinue.Task == nil || waitingContinue.Task.Status != TaskStatusWaitingContinuation || waitingContinue.Task.SemanticState.State != taskstate.StateObservationInProgress {
+		t.Fatalf("continuation scheduling state overwrote semantic progress: %+v", waitingContinue.Task)
+	}
+	waitingUser := runtime.SetStatus(goal.GoalID, StatusWaitingClarification, nil)
+	if waitingUser.Task.Status != TaskStatusWaitingInteraction || waitingUser.Task.SemanticState.State != taskstate.StateObservationInProgress {
+		t.Fatalf("interaction scheduling state overwrote semantic progress: %+v", waitingUser.Task)
 	}
 }

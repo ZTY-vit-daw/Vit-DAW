@@ -1,6 +1,11 @@
 package trajectory
 
-import "testing"
+import (
+	"testing"
+	"time"
+
+	"vit-daw-agent/internal/taskstate"
+)
 
 func TestEventNormalizeAndValidate(t *testing.T) {
 	event := Event{
@@ -66,4 +71,72 @@ func TestPayloadMapKeepsVersionedProjection(t *testing.T) {
 	if row["schema_version"] != SchemaVersion || row["trace_node_id"] != "settlement-1" || row["checkpoint_ref"] != "commit-1" {
 		t.Fatalf("payload map = %#v", row)
 	}
+}
+
+func TestBindTaskStateProjectsCanonicalTerminalSemantics(t *testing.T) {
+	now := time.Now().UTC()
+	contract := trajectoryTaskContract(taskstate.ContractImprovement, now)
+	state, err := taskstate.New(contract, now)
+	if err != nil {
+		t.Fatal(err)
+	}
+	state, err = taskstate.Apply(contract, state, taskstate.TransitionRequest{
+		Event: taskstate.EventNoCandidateReported, Reason: "bounded search complete",
+		EvidenceRefs: []string{"observation://project"},
+	}, now.Add(time.Second))
+	if err != nil {
+		t.Fatal(err)
+	}
+	event, err := BindTaskState(Event{Type: EventSettled, ConversationID: contract.ConversationID, GoalID: contract.GoalID, RunID: contract.RunID}, contract, state)
+	if err != nil {
+		t.Fatal(err)
+	}
+	event = event.Normalize()
+	if err := event.Validate(); err != nil {
+		t.Fatal(err)
+	}
+	if event.Payload.TaskState != taskstate.StateNoCandidateFound || !event.Payload.Terminal || event.Payload.ContractID != contract.ContractID {
+		t.Fatalf("canonical terminal projection = %#v", event.Payload)
+	}
+}
+
+func TestBindTaskStateProjectsHumanJudgmentAsNonTerminal(t *testing.T) {
+	now := time.Now().UTC()
+	contract := trajectoryTaskContract(taskstate.ContractImprovement, now)
+	state, err := taskstate.New(contract, now)
+	if err != nil {
+		t.Fatal(err)
+	}
+	state, err = taskstate.Apply(contract, state, taskstate.TransitionRequest{Event: taskstate.EventImprovementProposed, Reason: "candidate found", EvidenceRefs: []string{"observation://track"}, CandidateID: "track-1", Proposal: &taskstate.BoundedProposal{ProposalID: "proposal-1", Summary: "bounded adjustment", EvidenceRefs: []string{"observation://track"}, RequiresExperiment: true}}, now.Add(time.Second))
+	if err != nil {
+		t.Fatal(err)
+	}
+	state, err = taskstate.Apply(contract, state, taskstate.TransitionRequest{Event: taskstate.EventExperimentRequired, Reason: "experiment admitted", ExperimentID: "experiment-1"}, now.Add(2*time.Second))
+	if err != nil {
+		t.Fatal(err)
+	}
+	state, err = taskstate.Apply(contract, state, taskstate.TransitionRequest{Event: taskstate.EventHumanJudgmentRequested, Reason: "audition required", ExperimentID: "experiment-1", PendingInteraction: &taskstate.PendingInteraction{InteractionID: "audition-1", Kind: "audition_judgment", Reason: "choose A or B"}}, now.Add(3*time.Second))
+	if err != nil {
+		t.Fatal(err)
+	}
+	event, err := BindTaskState(Event{Type: EventUserJudgmentRequested, ConversationID: contract.ConversationID, GoalID: contract.GoalID, RunID: contract.RunID}, contract, state)
+	if err != nil {
+		t.Fatal(err)
+	}
+	event = event.Normalize()
+	if err := event.Validate(); err != nil {
+		t.Fatal(err)
+	}
+	if event.Payload.TaskState != taskstate.StateHumanJudgmentRequired || event.Payload.Terminal || event.Payload.PendingInteraction == nil || event.Payload.ExperimentID != "experiment-1" {
+		t.Fatalf("canonical human judgment projection = %#v", event.Payload)
+	}
+}
+
+func trajectoryTaskContract(kind taskstate.ContractKind, now time.Time) taskstate.Contract {
+	return taskstate.NormalizeContract(taskstate.Contract{
+		ContractID: "contract-1", TaskID: "task-1", GoalID: "goal-1", RunID: "run-1", ConversationID: "conversation-1",
+		OriginalIntent: "inspect and improve the project", Kind: kind, Scope: taskstate.Scope{Kind: "project"}, Temporary: true,
+		TargetDiscovery: "agent_observation", AuthorizationBoundary: "governed_experiment",
+		CompletionCriteria: []string{"governed outcome"}, EvidenceRequirements: []string{"observation reference"}, ProjectUUID: "project-1", ProjectRevision: "revision-1",
+	}, now)
 }

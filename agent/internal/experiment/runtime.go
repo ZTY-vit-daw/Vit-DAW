@@ -14,6 +14,7 @@ import (
 	"strings"
 	"time"
 
+	"vit-daw-agent/internal/taskstate"
 	"vit-daw-agent/internal/trajectory"
 )
 
@@ -361,23 +362,26 @@ type Round struct {
 
 // Turn is the persisted free-state experiment controller state.
 type Turn struct {
-	SchemaVersion   string            `json:"schema_version"`
-	ID              string            `json:"turn_id"`
-	ConversationID  string            `json:"conversation_id"`
-	GoalID          string            `json:"goal_id,omitempty"`
-	RunID           string            `json:"run_id,omitempty"`
-	Status          Status            `json:"status"`
-	OriginalIntent  string            `json:"original_intent"`
-	Admission       Admission         `json:"admission"`
-	Rounds          []Round           `json:"rounds,omitempty"`
-	CurrentRoundID  string            `json:"current_round_id,omitempty"`
-	ProjectRevision string            `json:"project_revision,omitempty"`
-	Outcome         SettlementOutcome `json:"outcome,omitempty"`
-	Settlement      string            `json:"settlement,omitempty"`
-	LastTraceNodeID string            `json:"last_trace_node_id,omitempty"`
-	StartedAt       time.Time         `json:"started_at"`
-	UpdatedAt       time.Time         `json:"updated_at"`
-	SettledAt       time.Time         `json:"settled_at,omitempty"`
+	SchemaVersion     string            `json:"schema_version"`
+	ID                string            `json:"turn_id"`
+	ConversationID    string            `json:"conversation_id"`
+	GoalID            string            `json:"goal_id,omitempty"`
+	RunID             string            `json:"run_id,omitempty"`
+	ContractID        string            `json:"contract_id,omitempty"`
+	TaskState         taskstate.State   `json:"task_state,omitempty"`
+	TaskStateRevision uint64            `json:"task_state_revision,omitempty"`
+	Status            Status            `json:"status"`
+	OriginalIntent    string            `json:"original_intent"`
+	Admission         Admission         `json:"admission"`
+	Rounds            []Round           `json:"rounds,omitempty"`
+	CurrentRoundID    string            `json:"current_round_id,omitempty"`
+	ProjectRevision   string            `json:"project_revision,omitempty"`
+	Outcome           SettlementOutcome `json:"outcome,omitempty"`
+	Settlement        string            `json:"settlement,omitempty"`
+	LastTraceNodeID   string            `json:"last_trace_node_id,omitempty"`
+	StartedAt         time.Time         `json:"started_at"`
+	UpdatedAt         time.Time         `json:"updated_at"`
+	SettledAt         time.Time         `json:"settled_at,omitempty"`
 }
 
 func NewTurn(identity Identity, originalIntent string, admission Admission, now time.Time) (Turn, error) {
@@ -422,6 +426,27 @@ func (t Turn) Validate() error {
 	if t.Status == "" {
 		return fmt.Errorf("turn status is required")
 	}
+	if t.ContractID != "" && (!t.TaskState.Valid() || t.TaskStateRevision == 0) {
+		return fmt.Errorf("turn canonical task projection is invalid")
+	}
+	return nil
+}
+
+// BindTaskState projects the product Task authority into the experiment. The
+// experiment may refine rounds, but it cannot invent or override settlement.
+func (t *Turn) BindTaskState(contractID string, state taskstate.State, revision uint64) error {
+	contractID = strings.TrimSpace(contractID)
+	if contractID == "" || !state.Valid() || revision == 0 {
+		return fmt.Errorf("canonical task contract, state, and revision are required")
+	}
+	if t.ContractID != "" && t.ContractID != contractID {
+		return fmt.Errorf("experiment canonical contract identity mismatch")
+	}
+	if t.TaskStateRevision > revision || (t.TaskStateRevision == revision && t.TaskState != "" && t.TaskState != state) {
+		return fmt.Errorf("experiment canonical task projection is stale or conflicting")
+	}
+	t.ContractID, t.TaskState, t.TaskStateRevision = contractID, state, revision
+	t.UpdatedAt = time.Now().UTC()
 	return nil
 }
 
@@ -672,6 +697,22 @@ func (t *Turn) Settle(outcome SettlementOutcome, summary string, now time.Time) 
 	if err := validateOutcome(outcome); err != nil {
 		return nil, err
 	}
+	if t.ContractID != "" {
+		expected := taskstate.StateSettled
+		switch outcome {
+		case OutcomeNeedsJudgment:
+			return nil, fmt.Errorf("needs_user_judgment is a non-terminal task state; request durable user judgment instead")
+		case OutcomeBlockedCapability, OutcomeBlockedObservation, OutcomeBudgetExhausted:
+			expected = taskstate.StateCapabilityBlocked
+		case OutcomeUnsafe:
+			expected = taskstate.StateFailed
+		case OutcomeStopped:
+			expected = taskstate.StateCancelled
+		}
+		if t.TaskState != expected {
+			return nil, fmt.Errorf("experiment settlement %s requires canonical task state %s, got %s", outcome, expected, t.TaskState)
+		}
+	}
 	if len(t.Rounds) == 0 && outcome != OutcomeStopped {
 		return nil, fmt.Errorf("settlement requires at least one round")
 	}
@@ -718,6 +759,9 @@ func (t *Turn) Settle(outcome SettlementOutcome, summary string, now time.Time) 
 func (t *Turn) Stop(summary string, now time.Time) ([]trajectory.Event, error) {
 	if t.Status == StatusSettled || t.Status == StatusStopped {
 		return nil, fmt.Errorf("turn is already terminal")
+	}
+	if t.ContractID != "" && t.TaskState != taskstate.StateCancelled {
+		return nil, fmt.Errorf("experiment stop requires canonical task state cancelled")
 	}
 	if now.IsZero() {
 		now = time.Now().UTC()

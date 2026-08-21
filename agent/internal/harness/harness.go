@@ -48,6 +48,7 @@ import (
 	agentruntime "vit-daw-agent/internal/runtime"
 	"vit-daw-agent/internal/shadow"
 	"vit-daw-agent/internal/shelltools"
+	"vit-daw-agent/internal/taskstate"
 	"vit-daw-agent/internal/tim"
 	"vit-daw-agent/internal/toolpolicy"
 	"vit-daw-agent/internal/tools"
@@ -227,6 +228,20 @@ func (h *Harness) RuntimeStatus(goalID string) agentruntime.Goal {
 		return agentruntime.Goal{Status: agentruntime.StatusIdle}
 	}
 	return h.runtime.Status(goalID)
+}
+
+func (h *Harness) EnsureTaskContract(goalID string, contract taskstate.Contract) (agentruntime.Goal, error) {
+	if h == nil || h.runtime == nil {
+		return agentruntime.Goal{Status: agentruntime.StatusIdle}, fmt.Errorf("runtime is unavailable")
+	}
+	return h.runtime.EnsureTaskContract(goalID, contract)
+}
+
+func (h *Harness) TransitionTask(goalID string, request taskstate.TransitionRequest) (agentruntime.Goal, error) {
+	if h == nil || h.runtime == nil {
+		return agentruntime.Goal{Status: agentruntime.StatusIdle}, fmt.Errorf("runtime is unavailable")
+	}
+	return h.runtime.TransitionTask(goalID, request)
 }
 
 func (h *Harness) RuntimeSnapshot() agentruntime.Snapshot {

@@ -667,7 +667,7 @@ func (s *Server) handleRuntimeStatus(w http.ResponseWriter, r *http.Request) {
 	defer shadowCancel()
 	goal := s.harness.RuntimeStatus("")
 	_, checkoutBlocked := s.harness.CheckoutBlocked()
-	writeJSON(w, http.StatusOK, map[string]any{
+	response := map[string]any{
 		"status":            "ok",
 		"service":           "VitAgent",
 		"pid":               os.Getpid(),
@@ -679,7 +679,21 @@ func (s *Server) handleRuntimeStatus(w http.ResponseWriter, r *http.Request) {
 		"capability_routes": s.capabilityRouteProjection(),
 		"authority_mode":    s.authorityModeSnapshot(),
 		"checkout_blocked":  checkoutBlocked,
-	})
+	}
+	// Keep the legacy goal status for compatibility, but expose the canonical
+	// Task semantic projection as a first-class runtime status surface.
+	if goal.Task != nil {
+		response["task"] = goal.Task
+		if goal.Task.Contract != nil {
+			response["task_contract"] = goal.Task.Contract
+		}
+		if goal.Task.SemanticState != nil {
+			response["task_state"] = goal.Task.SemanticState.State
+			response["task_state_revision"] = goal.Task.SemanticState.Revision
+			response["task_semantic_state"] = goal.Task.SemanticState
+		}
+	}
+	writeJSON(w, http.StatusOK, response)
 }
 
 func (s *Server) runtimeKernelStatus(ctx context.Context) map[string]any {
@@ -6592,6 +6606,9 @@ func (s *Server) restoreProjectAgentRuntimeStateLocked(state projectAgentRuntime
 		if normalized.GoalID == "" || normalized.Status == ContinuationCompleted || normalized.Status == ContinuationCancelled || normalized.Status == ContinuationFailed {
 			continue
 		}
+		if continuationRecoveryValidationRequired(normalized) {
+			continue
+		}
 		current, exists := latestByGoal[normalized.GoalID]
 		if !exists || normalized.UpdatedAt.After(current.UpdatedAt) {
 			latestByGoal[normalized.GoalID] = normalized
@@ -6678,6 +6695,7 @@ func (s *Server) restoreProjectAgentRuntimeStateLocked(state projectAgentRuntime
 	s.pendingManager.Restore(retiredCandidates)
 	if s.harness != nil {
 		s.harness.RestoreRuntime(state.GoalRuntime)
+		s.reconcileRestoredTaskSemanticProjectionsLocked()
 	}
 }
 

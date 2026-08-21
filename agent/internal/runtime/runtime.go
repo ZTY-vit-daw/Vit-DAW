@@ -108,6 +108,11 @@ func (r *Runtime) Restore(snapshot Snapshot) {
 				goal.RunID = "run_" + randomID()
 			}
 			hydrateTask(&goal, time.Now())
+			if err := validateRestoredTaskSemantic(goal.Task); err != nil {
+				goal.Status = StatusWaitingClarification
+				goal.Error = "semantic recovery validation required: " + err.Error()
+				goal.Task.Status = TaskStatusWaitingInteraction
+			}
 			goals[goal.GoalID] = cloneGoal(goal)
 		}
 	}
