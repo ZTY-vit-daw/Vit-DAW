@@ -46,6 +46,7 @@ type Input struct {
 	TaskID            string               `json:"task_id,omitempty"`
 	SliceID           string               `json:"slice_id,omitempty"`
 	TurnID            string               `json:"turn_id,omitempty"`
+	ResumedFromID     string               `json:"resumed_from_continuation_id,omitempty"`
 	OriginalIntent    string               `json:"original_intent,omitempty"`
 	UserText          string               `json:"user_text"`
 	Summary           string               `json:"summary,omitempty"`
@@ -65,6 +66,7 @@ type Input struct {
 }
 
 type Continuation struct {
+	ContinuationID    string               `json:"continuation_id,omitempty"`
 	GoalID            string               `json:"goal_id"`
 	RunID             string               `json:"run_id,omitempty"`
 	TaskID            string               `json:"task_id,omitempty"`
@@ -100,6 +102,7 @@ type Result struct {
 	TaskID                string                      `json:"task_id,omitempty"`
 	SliceID               string                      `json:"slice_id,omitempty"`
 	TurnID                string                      `json:"turn_id,omitempty"`
+	ResumedFromID         string                      `json:"resumed_from_continuation_id,omitempty"`
 	OriginalIntent        string                      `json:"original_intent,omitempty"`
 	Status                agentruntime.GoalStatus     `json:"status"`
 	Reply                 string                      `json:"reply,omitempty"`
@@ -215,6 +218,7 @@ func (r *Runner) Continue(ctx context.Context, cont Continuation) Result {
 		TaskID:            cont.TaskID,
 		SliceID:           cont.SliceID,
 		TurnID:            cont.TurnID,
+		ResumedFromID:     cont.ContinuationID,
 		OriginalIntent:    cont.OriginalIntent,
 		UserText:          cont.UserText,
 		Summary:           cont.Summary,
@@ -233,20 +237,24 @@ func (r *Runner) Continue(ctx context.Context, cont Continuation) Result {
 		FreeStateDecision: cloneFreeStateDecision(cont.FreeStateDecision),
 	}
 	state := runState{
-		input:              in,
-		goal:               goal,
-		trace:              append([]planner.TraceEvent(nil), cont.Trace...),
-		planItems:          mergePlanItems(nil, cont.PlanItems),
-		pendingToolQueue:   append([]planner.ToolCall(nil), cont.PendingToolQueue...),
-		completedSteps:     cont.CompletedSteps,
-		contextSnapshot:    cloneMap(cont.ContextSnapshot),
-		projectHistory:     cloneMap(cont.ProjectHistory),
-		executionMemory:    cloneExecutionMemory(cont.ExecutionMemory),
-		recentObservation:  cloneRecentObservation(cont.RecentObservation),
-		freeStateDecision:  cloneFreeStateDecision(cont.FreeStateDecision),
-		budget:             extendContinuationBudget(baseBudget, cont.TurnsUsed, cont.ToolCallsUsed),
-		continuationBudget: baseBudget,
-		startedAt:          r.now(),
+		input:               in,
+		goal:                goal,
+		trace:               append([]planner.TraceEvent(nil), cont.Trace...),
+		planItems:           mergePlanItems(nil, cont.PlanItems),
+		pendingToolQueue:    append([]planner.ToolCall(nil), cont.PendingToolQueue...),
+		completedSteps:      cont.CompletedSteps,
+		turnsUsed:           cont.TurnsUsed,
+		toolCallsUsed:       cont.ToolCallsUsed,
+		sliceTurnsStart:     cont.TurnsUsed,
+		sliceToolCallsStart: cont.ToolCallsUsed,
+		contextSnapshot:     cloneMap(cont.ContextSnapshot),
+		projectHistory:      cloneMap(cont.ProjectHistory),
+		executionMemory:     cloneExecutionMemory(cont.ExecutionMemory),
+		recentObservation:   cloneRecentObservation(cont.RecentObservation),
+		freeStateDecision:   cloneFreeStateDecision(cont.FreeStateDecision),
+		budget:              extendContinuationBudget(baseBudget, cont.TurnsUsed, cont.ToolCallsUsed),
+		continuationBudget:  baseBudget,
+		startedAt:           r.now(),
 	}
 	return r.loop(ctx, &state)
 }
@@ -275,6 +283,7 @@ func (r *Runner) ResumeAfterConfirmation(ctx context.Context, cont Continuation)
 			TaskID:            cont.TaskID,
 			SliceID:           cont.SliceID,
 			TurnID:            cont.TurnID,
+			ResumedFromID:     cont.ContinuationID,
 			OriginalIntent:    cont.OriginalIntent,
 			UserText:          cont.UserText,
 			Summary:           cont.Summary,
@@ -292,21 +301,23 @@ func (r *Runner) ResumeAfterConfirmation(ctx context.Context, cont Continuation)
 			RecentObservation: cloneRecentObservation(cont.RecentObservation),
 			FreeStateDecision: cloneFreeStateDecision(cont.FreeStateDecision),
 		},
-		goal:               goal,
-		trace:              append([]planner.TraceEvent(nil), cont.Trace...),
-		planItems:          mergePlanItems(nil, cont.PlanItems),
-		pendingToolQueue:   append([]planner.ToolCall(nil), cont.PendingToolQueue...),
-		contextSnapshot:    cloneMap(cont.ContextSnapshot),
-		projectHistory:     cloneMap(cont.ProjectHistory),
-		executionMemory:    cloneExecutionMemory(cont.ExecutionMemory),
-		recentObservation:  cloneRecentObservation(cont.RecentObservation),
-		freeStateDecision:  cloneFreeStateDecision(cont.FreeStateDecision),
-		completedSteps:     cont.CompletedSteps,
-		turnsUsed:          cont.TurnsUsed,
-		toolCallsUsed:      cont.ToolCallsUsed,
-		budget:             extendContinuationBudget(baseBudget, cont.TurnsUsed, cont.ToolCallsUsed),
-		continuationBudget: baseBudget,
-		startedAt:          r.now(),
+		goal:                goal,
+		trace:               append([]planner.TraceEvent(nil), cont.Trace...),
+		planItems:           mergePlanItems(nil, cont.PlanItems),
+		pendingToolQueue:    append([]planner.ToolCall(nil), cont.PendingToolQueue...),
+		contextSnapshot:     cloneMap(cont.ContextSnapshot),
+		projectHistory:      cloneMap(cont.ProjectHistory),
+		executionMemory:     cloneExecutionMemory(cont.ExecutionMemory),
+		recentObservation:   cloneRecentObservation(cont.RecentObservation),
+		freeStateDecision:   cloneFreeStateDecision(cont.FreeStateDecision),
+		completedSteps:      cont.CompletedSteps,
+		turnsUsed:           cont.TurnsUsed,
+		toolCallsUsed:       cont.ToolCallsUsed,
+		sliceTurnsStart:     cont.TurnsUsed,
+		sliceToolCallsStart: cont.ToolCallsUsed,
+		budget:              extendContinuationBudget(baseBudget, cont.TurnsUsed, cont.ToolCallsUsed),
+		continuationBudget:  baseBudget,
+		startedAt:           r.now(),
 	}
 	if cont.PendingToolCall == nil {
 		return r.fail(&state, fmt.Errorf("confirmation continuation is missing pending tool call"))
@@ -353,6 +364,8 @@ type runState struct {
 	completedSteps       int
 	turnsUsed            int
 	toolCallsUsed        int
+	sliceTurnsStart      int
+	sliceToolCallsStart  int
 	consecutiveErrors    int
 	modelProtocolRepairs int
 	modelProtocolFailure bool
@@ -728,7 +741,8 @@ func (r *Runner) result(state *runState, status agentruntime.GoalStatus, stopRea
 		state.pendingToolCall = nil
 	}
 	if r.Runtime != nil && state.input.TurnID != "" {
-		state.goal = r.Runtime.EndTurn(state.goal.GoalID, state.input.TurnID, string(status), state.turnsUsed, state.toolCallsUsed)
+		state.goal = r.Runtime.EndTurn(state.goal.GoalID, state.input.TurnID, string(status),
+			maxInt(0, state.turnsUsed-state.sliceTurnsStart), maxInt(0, state.toolCallsUsed-state.sliceToolCallsStart))
 	}
 	snapshot := r.buildContextSnapshot(state)
 	state.contextSnapshot = snapshot.Map()
@@ -777,6 +791,7 @@ func (r *Runner) result(state *runState, status agentruntime.GoalStatus, stopRea
 		TaskID:               state.input.TaskID,
 		SliceID:              state.input.SliceID,
 		TurnID:               state.input.TurnID,
+		ResumedFromID:        state.input.ResumedFromID,
 		OriginalIntent:       firstNonEmpty(state.input.OriginalIntent, state.goal.TaskIntent()),
 		Status:               status,
 		Reply:                strings.TrimSpace(reply),
@@ -964,13 +979,13 @@ func allowedTool(tool string, allowed []string) bool {
 func limitReply(limitType string) string {
 	switch limitType {
 	case LimitTypeTurns:
-		return "本轮思考步数已到上限。你可以说“继续”接着跑。"
+		return "本轮思考步数已到上限；任务会从已保存的检查点自动继续。"
 	case LimitTypeToolCalls:
-		return "本轮工具调用次数已到上限。你可以说“继续”接着跑。"
+		return "本轮工具调用次数已到上限；任务会从已保存的检查点自动继续。"
 	case LimitTypeTimeout:
-		return "本轮运行时间已到上限。你可以说“继续”接着跑。"
+		return "本轮运行时间已到上限；任务会从已保存的检查点自动继续。"
 	default:
-		return "本轮运行预算已到上限。你可以说“继续”接着跑。"
+		return "本轮运行预算已到上限；任务会从已保存的检查点自动继续。"
 	}
 }
 

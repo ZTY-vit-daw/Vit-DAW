@@ -221,6 +221,24 @@ func (r *Runtime) Continue(goalID, summary string) Goal {
 		goal.Task.Status = TaskStatusActive
 		goal.Task.UpdatedAt = now
 		goal.Task.Run.RunID = goal.RunID
+		// A restored process can observe a slice that was running when its
+		// worker crashed. That invocation cannot still own execution; close its
+		// open slice/turn before creating the recovery slice.
+		for index := range goal.Task.Run.Slices {
+			slice := &goal.Task.Run.Slices[index]
+			if slice.SliceID == goal.Task.Run.CurrentSliceID && slice.Status == "running" {
+				slice.Status = "interrupted"
+				slice.EndedAt = now
+			}
+		}
+		for index := range goal.Task.Run.Turns {
+			turn := &goal.Task.Run.Turns[index]
+			if turn.TurnID == goal.Task.Run.CurrentTurnID && turn.Status == "running" {
+				turn.Status = "interrupted"
+				turn.EndedAt = now
+			}
+		}
+		goal.Task.Run.CurrentTurnID = ""
 		if goal.Task.Run.NextSlice <= 0 {
 			goal.Task.Run.NextSlice = len(goal.Task.Run.Slices) + 1
 		}

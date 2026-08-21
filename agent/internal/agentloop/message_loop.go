@@ -76,6 +76,20 @@ func (l *MessageLoop) Start(ctx context.Context, in Input) Result {
 	r := l.runner()
 	goal := r.ensureGoal(in.GoalID, in.RunID, firstNonEmpty(in.Summary, in.UserText))
 	baseBudget := normalizeBudget(firstNonZeroBudget(in.Budget, l.Budget))
+	if r.Runtime != nil {
+		if opened, slice, ok := r.Runtime.BeginSlice(goal.GoalID, baseBudget.MaxTurns, baseBudget.MaxToolCalls); ok {
+			goal = opened
+			in.SliceID = slice.SliceID
+			if goal.Task != nil {
+				in.TaskID = goal.Task.TaskID
+				in.OriginalIntent = goal.Task.OriginalIntent
+			}
+			if openedGoal, turn, turnOK := r.Runtime.BeginTurn(goal.GoalID, slice.SliceID, "user"); turnOK {
+				goal = openedGoal
+				in.TurnID = turn.TurnID
+			}
+		}
+	}
 	state := runState{
 		input:              in,
 		goal:               goal,
@@ -92,6 +106,10 @@ func (l *MessageLoop) Start(ctx context.Context, in Input) Result {
 	}
 	state.input.GoalID = goal.GoalID
 	state.input.RunID = goal.RunID
+	if goal.Task != nil {
+		state.input.TaskID = goal.Task.TaskID
+		state.input.OriginalIntent = goal.Task.OriginalIntent
+	}
 	state.input.Conversation = messageLoopInitialTranscript(in)
 	return l.loop(ctx, r, &state)
 }
@@ -107,10 +125,27 @@ func (l *MessageLoop) Continue(ctx context.Context, cont Continuation) Result {
 	}
 	goal = r.Runtime.ClearInterjections(goal.GoalID)
 	baseBudget := normalizeBudget(firstNonZeroBudget(cont.Budget, l.Budget))
+	if opened, slice, ok := r.Runtime.BeginSlice(goal.GoalID, baseBudget.MaxTurns, baseBudget.MaxToolCalls); ok {
+		goal = opened
+		cont.SliceID = slice.SliceID
+		if goal.Task != nil {
+			cont.TaskID = goal.Task.TaskID
+			cont.OriginalIntent = goal.Task.OriginalIntent
+		}
+		if openedGoal, turn, turnOK := r.Runtime.BeginTurn(goal.GoalID, slice.SliceID, "automatic_continuation"); turnOK {
+			goal = openedGoal
+			cont.TurnID = turn.TurnID
+		}
+	}
 	state := runState{
 		input: Input{
 			GoalID:            goal.GoalID,
 			RunID:             goal.RunID,
+			TaskID:            cont.TaskID,
+			SliceID:           cont.SliceID,
+			TurnID:            cont.TurnID,
+			ResumedFromID:     cont.ContinuationID,
+			OriginalIntent:    cont.OriginalIntent,
 			UserText:          cont.UserText,
 			Summary:           cont.Summary,
 			Context:           cloneMap(cont.Context),
@@ -127,21 +162,23 @@ func (l *MessageLoop) Continue(ctx context.Context, cont Continuation) Result {
 			RecentObservation: cloneRecentObservation(cont.RecentObservation),
 			FreeStateDecision: cloneFreeStateDecision(cont.FreeStateDecision),
 		},
-		goal:               goal,
-		trace:              append([]planner.TraceEvent(nil), cont.Trace...),
-		planItems:          mergePlanItems(nil, cont.PlanItems),
-		pendingToolQueue:   append([]planner.ToolCall(nil), cont.PendingToolQueue...),
-		completedSteps:     cont.CompletedSteps,
-		turnsUsed:          cont.TurnsUsed,
-		toolCallsUsed:      cont.ToolCallsUsed,
-		contextSnapshot:    cloneMap(cont.ContextSnapshot),
-		projectHistory:     cloneMap(cont.ProjectHistory),
-		executionMemory:    cloneExecutionMemory(cont.ExecutionMemory),
-		recentObservation:  cloneRecentObservation(cont.RecentObservation),
-		freeStateDecision:  cloneFreeStateDecision(cont.FreeStateDecision),
-		budget:             extendContinuationBudget(baseBudget, cont.TurnsUsed, cont.ToolCallsUsed),
-		continuationBudget: baseBudget,
-		startedAt:          r.now(),
+		goal:                goal,
+		trace:               append([]planner.TraceEvent(nil), cont.Trace...),
+		planItems:           mergePlanItems(nil, cont.PlanItems),
+		pendingToolQueue:    append([]planner.ToolCall(nil), cont.PendingToolQueue...),
+		completedSteps:      cont.CompletedSteps,
+		turnsUsed:           cont.TurnsUsed,
+		toolCallsUsed:       cont.ToolCallsUsed,
+		sliceTurnsStart:     cont.TurnsUsed,
+		sliceToolCallsStart: cont.ToolCallsUsed,
+		contextSnapshot:     cloneMap(cont.ContextSnapshot),
+		projectHistory:      cloneMap(cont.ProjectHistory),
+		executionMemory:     cloneExecutionMemory(cont.ExecutionMemory),
+		recentObservation:   cloneRecentObservation(cont.RecentObservation),
+		freeStateDecision:   cloneFreeStateDecision(cont.FreeStateDecision),
+		budget:              extendContinuationBudget(baseBudget, cont.TurnsUsed, cont.ToolCallsUsed),
+		continuationBudget:  baseBudget,
+		startedAt:           r.now(),
 	}
 	return l.loop(ctx, r, &state)
 }
@@ -150,10 +187,29 @@ func (l *MessageLoop) ResumeAfterConfirmation(ctx context.Context, cont Continua
 	r := l.runner()
 	baseBudget := normalizeBudget(firstNonZeroBudget(cont.Budget, l.Budget))
 	goal := r.ensureGoal(cont.GoalID, cont.RunID, cont.Summary)
+	if r.Runtime != nil {
+		if opened, slice, ok := r.Runtime.BeginSlice(goal.GoalID, baseBudget.MaxTurns, baseBudget.MaxToolCalls); ok {
+			goal = opened
+			cont.SliceID = slice.SliceID
+			if goal.Task != nil {
+				cont.TaskID = goal.Task.TaskID
+				cont.OriginalIntent = goal.Task.OriginalIntent
+			}
+			if openedGoal, turn, turnOK := r.Runtime.BeginTurn(goal.GoalID, slice.SliceID, "user_interaction"); turnOK {
+				goal = openedGoal
+				cont.TurnID = turn.TurnID
+			}
+		}
+	}
 	state := runState{
 		input: Input{
 			GoalID:            goal.GoalID,
 			RunID:             goal.RunID,
+			TaskID:            cont.TaskID,
+			SliceID:           cont.SliceID,
+			TurnID:            cont.TurnID,
+			ResumedFromID:     cont.ContinuationID,
+			OriginalIntent:    cont.OriginalIntent,
 			UserText:          cont.UserText,
 			Summary:           cont.Summary,
 			Context:           cloneMap(cont.Context),
@@ -170,21 +226,23 @@ func (l *MessageLoop) ResumeAfterConfirmation(ctx context.Context, cont Continua
 			RecentObservation: cloneRecentObservation(cont.RecentObservation),
 			FreeStateDecision: cloneFreeStateDecision(cont.FreeStateDecision),
 		},
-		goal:               goal,
-		trace:              append([]planner.TraceEvent(nil), cont.Trace...),
-		planItems:          mergePlanItems(nil, cont.PlanItems),
-		pendingToolQueue:   append([]planner.ToolCall(nil), cont.PendingToolQueue...),
-		contextSnapshot:    cloneMap(cont.ContextSnapshot),
-		projectHistory:     cloneMap(cont.ProjectHistory),
-		executionMemory:    cloneExecutionMemory(cont.ExecutionMemory),
-		recentObservation:  cloneRecentObservation(cont.RecentObservation),
-		freeStateDecision:  cloneFreeStateDecision(cont.FreeStateDecision),
-		completedSteps:     cont.CompletedSteps,
-		turnsUsed:          cont.TurnsUsed,
-		toolCallsUsed:      cont.ToolCallsUsed,
-		budget:             extendContinuationBudget(baseBudget, cont.TurnsUsed, cont.ToolCallsUsed),
-		continuationBudget: baseBudget,
-		startedAt:          r.now(),
+		goal:                goal,
+		trace:               append([]planner.TraceEvent(nil), cont.Trace...),
+		planItems:           mergePlanItems(nil, cont.PlanItems),
+		pendingToolQueue:    append([]planner.ToolCall(nil), cont.PendingToolQueue...),
+		contextSnapshot:     cloneMap(cont.ContextSnapshot),
+		projectHistory:      cloneMap(cont.ProjectHistory),
+		executionMemory:     cloneExecutionMemory(cont.ExecutionMemory),
+		recentObservation:   cloneRecentObservation(cont.RecentObservation),
+		freeStateDecision:   cloneFreeStateDecision(cont.FreeStateDecision),
+		completedSteps:      cont.CompletedSteps,
+		turnsUsed:           cont.TurnsUsed,
+		toolCallsUsed:       cont.ToolCallsUsed,
+		sliceTurnsStart:     cont.TurnsUsed,
+		sliceToolCallsStart: cont.ToolCallsUsed,
+		budget:              extendContinuationBudget(baseBudget, cont.TurnsUsed, cont.ToolCallsUsed),
+		continuationBudget:  baseBudget,
+		startedAt:           r.now(),
 	}
 	if cont.PendingToolCall == nil {
 		return r.fail(&state, fmt.Errorf("confirmation continuation is missing pending tool call"))

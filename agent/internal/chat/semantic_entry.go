@@ -347,6 +347,8 @@ func contextWithoutUntrustedSemanticEntry(requestContext map[string]any) map[str
 	delete(out, orchestrationDecisionContextKey)
 	delete(out, "semantic_entry_route")
 	delete(out, "semantic_entry_unavailable")
+	delete(out, "durable_continuation")
+	delete(out, "durable_continuation_id")
 	return out
 }
 

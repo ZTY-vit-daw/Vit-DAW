@@ -249,6 +249,7 @@ func (s *Server) handleTurnStop(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusMethodNotAllowed, map[string]any{"status": "error", "error": "POST required"})
 		return
 	}
+	defer s.beginContinuationSensitiveInvocation()()
 	s.activateCurrentProjectWorkspace(r.Context())
 	defer s.syncCurrentProjectWorkspace(r.Context())
 	var req struct {

@@ -146,6 +146,34 @@ func TestTaskRunSliceSnapshotRestoreKeepsStableIdentity(t *testing.T) {
 	}
 }
 
+func TestCrashRecoveryClosesInterruptedSliceBeforeOpeningNext(t *testing.T) {
+	source := New()
+	goal := source.Create("recover interrupted invocation")
+	_, firstSlice, ok := source.BeginSlice(goal.GoalID, 3, 5)
+	if !ok {
+		t.Fatal("failed to open initial slice")
+	}
+	_, firstTurn, ok := source.BeginTurn(goal.GoalID, firstSlice.SliceID, "automatic_continuation")
+	if !ok {
+		t.Fatal("failed to open initial turn")
+	}
+	restarted := New()
+	restarted.Restore(source.Snapshot())
+	continued := restarted.Continue(goal.GoalID, "resume after crash")
+	if continued.Task == nil || len(continued.Task.Run.Slices) != 2 {
+		t.Fatalf("recovery did not open a new slice: %+v", continued)
+	}
+	if continued.Task.Run.Slices[0].Status != "interrupted" || continued.Task.Run.Slices[0].EndedAt.IsZero() {
+		t.Fatalf("crashed slice remained running: %+v", continued.Task.Run.Slices[0])
+	}
+	if len(continued.Task.Run.Turns) != 1 || continued.Task.Run.Turns[0].TurnID != firstTurn.TurnID || continued.Task.Run.Turns[0].Status != "interrupted" || continued.Task.Run.Turns[0].EndedAt.IsZero() {
+		t.Fatalf("crashed turn remained running: %+v", continued.Task.Run.Turns)
+	}
+	if continued.Task.Run.CurrentSliceID == firstSlice.SliceID || continued.Task.Run.CurrentTurnID != "" {
+		t.Fatalf("recovery reused interrupted invocation identity: %+v", continued.Task.Run)
+	}
+}
+
 func TestLegacySnapshotHydratesTaskWithoutChangingRunIdentity(t *testing.T) {
 	rt := New()
 	rt.Restore(Snapshot{Goals: []Goal{{GoalID: "legacy_goal", RunID: "legacy_run", Summary: "legacy intent", Status: StatusWaitingContinue}}})

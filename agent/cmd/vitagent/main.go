@@ -52,6 +52,8 @@ func main() {
 	kernelClient := kernel.New(*zmqReqURL, reqTimeout)
 	shadowProject := shadow.New(logger)
 	chatServer := chat.New(kernelClient, shadowProject, logger)
+	chatServer.Start()
+	defer chatServer.Close()
 	bridgeService := bridge.New(bridge.Config{
 		ZMQSubURL:     *zmqSubURL,
 		GodotIP:       *godotIP,

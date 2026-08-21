@@ -259,6 +259,7 @@ func (s *Server) handleAuditionJudgment(w http.ResponseWriter, r *http.Request) 
 		writeJSON(w, http.StatusMethodNotAllowed, map[string]any{"status": "error", "error": "POST required"})
 		return
 	}
+	defer s.beginContinuationSensitiveInvocation()()
 	var request auditionJudgmentRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		writeJSON(w, http.StatusBadRequest, map[string]any{"status": "error", "error": err.Error()})

@@ -57,6 +57,13 @@ func TestMessageLoopContinueGrantsFreshBudgetSlice(t *testing.T) {
 	if len(client.calls) != 1 {
 		t.Fatalf("continuation LLM calls = %d, want 1", len(client.calls))
 	}
+	if result.TaskID == "" || result.SliceID == "" || result.TurnID == "" || result.OriginalIntent != "continue the work" {
+		t.Fatalf("default message loop did not bind task/run/slice/turn identity: %+v", result)
+	}
+	goal := loop.Runtime.Status(result.GoalID)
+	if goal.Task == nil || len(goal.Task.Run.Slices) != 1 || len(goal.Task.Run.Turns) != 1 || goal.Task.Run.Slices[0].SliceID != result.SliceID {
+		t.Fatalf("default message loop did not project its invocation into task runtime: %+v", goal)
+	}
 }
 
 func TestMessageLoopWallClockYieldPreservesQueuedToolAndResumesOnce(t *testing.T) {
@@ -106,6 +113,9 @@ func TestMessageLoopWallClockYieldPreservesQueuedToolAndResumesOnce(t *testing.T
 	if paused.Continuation == nil {
 		t.Fatal("wall-clock yield did not create a continuation")
 	}
+	if paused.TaskID == "" || paused.SliceID == "" || paused.TurnID == "" || paused.OriginalIntent != "run the queued continuation test" {
+		t.Fatalf("initial message-loop slice identity is incomplete: %+v", paused)
+	}
 	if len(executor.calls) != 0 {
 		t.Fatalf("tool executed after the time slice elapsed: %+v", executor.calls)
 	}
@@ -123,6 +133,8 @@ func TestMessageLoopWallClockYieldPreservesQueuedToolAndResumesOnce(t *testing.T
 		t.Fatalf("observation ledger was lost: %+v", paused.Continuation.Context)
 	}
 
+	paused.Continuation.ContinuationID = "cont_wall_clock_checkpoint"
+	paused.Continuation.Summary = "resume from the saved checkpoint"
 	resumed := loop.Continue(context.Background(), *paused.Continuation)
 	if resumed.Status != agentruntime.StatusCompleted || resumed.Reply != "continued after checkpoint" {
 		t.Fatalf("resumed result = status=%q stop=%q reply=%q error=%q trace=%+v", resumed.Status, resumed.StopReason, resumed.Reply, resumed.Error, resumed.Trace)
@@ -132,6 +144,16 @@ func TestMessageLoopWallClockYieldPreservesQueuedToolAndResumesOnce(t *testing.T
 	}
 	if len(client.calls) != 2 {
 		t.Fatalf("LLM calls = %d, want plan plus resumed completion", len(client.calls))
+	}
+	if resumed.TaskID != paused.TaskID || resumed.GoalID != paused.GoalID || resumed.RunID != paused.RunID || resumed.SliceID == paused.SliceID || resumed.ResumedFromID != "cont_wall_clock_checkpoint" || resumed.OriginalIntent != paused.OriginalIntent {
+		t.Fatalf("automatic message-loop continuation changed identity or reused its slice: paused=%+v resumed=%+v", paused, resumed)
+	}
+	goal := loop.Runtime.Status(paused.GoalID)
+	if goal.Task == nil || len(goal.Task.Run.Slices) != 2 || len(goal.Task.Run.Turns) != 2 {
+		t.Fatalf("message-loop continuation did not create a second durable slice/turn: %+v", goal)
+	}
+	if goal.Task.Run.Slices[1].TurnsUsed > paused.Continuation.Budget.MaxTurns || goal.Task.Run.Slices[1].ToolCallsUsed > paused.Continuation.Budget.MaxToolCalls {
+		t.Fatalf("new slice stored cumulative rather than slice-local usage: %+v", goal.Task.Run.Slices[1])
 	}
 	for _, event := range resumed.Trace {
 		if event.Kind == "tool_call" && event.ToolCall != nil && event.ToolCall.ID == "state-once" {

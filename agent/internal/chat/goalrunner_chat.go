@@ -135,10 +135,61 @@ func (s *Server) runAgentLoopChat(ctx context.Context, conversationID string, re
 		return ChatResponse{ConversationID: conversationID, Reply: "Agent 运行器暂时不可用。", Error: "agentloop_unavailable"}, true
 	}
 	userText := agentLoopUserText(req.Message)
-	chatContext := contextWithUserMessage(contextWithoutUntrustedSemanticEntry(req.Context), userText)
+	durableInvocationID := durableContinuationInvocationID(ctx)
+	requestContext := contextWithoutUntrustedSemanticEntry(req.Context)
+	if durableInvocationID != "" {
+		// This context was loaded from the durable project snapshot by the
+		// scheduler, not supplied by an HTTP caller. Preserve its authoritative
+		// semantic/controller bindings and address the exact checkpoint.
+		requestContext = cloneContext(req.Context)
+		requestContext["durable_continuation_id"] = durableInvocationID
+	}
+	chatContext := contextWithUserMessage(requestContext, userText)
 	chatContext = s.bindActiveOrchestrationController(conversationID, chatContext)
 	mode := agentModeFromContext(chatContext)
-	classificationRequired := mode != agentModePlan && !isContinueMessage(req.Message) &&
+	if durableInvocationID != "" {
+		if _, ok := s.resumeContinuationForChat(conversationID, chatContext); !ok {
+			return ChatResponse{
+				ConversationID: conversationID,
+				Reply:          "Durable continuation checkpoint is unavailable; no new task was started.",
+				GoalStatus:     string(agentruntime.StatusFailed),
+				StopReason:     "durable_continuation_checkpoint_unavailable",
+				Error:          "durable continuation checkpoint is unavailable or not claimed by this scheduler",
+			}, true
+		}
+	}
+	if durableInvocationID == "" && isContinueMessage(req.Message) {
+		if pending, ok := s.automaticContinuationForConversation(conversationID); ok {
+			return ChatResponse{
+				ConversationID: conversationID,
+				TaskID:         pending.TaskID, GoalID: pending.GoalID, RunID: pending.RunID,
+				SliceID: pending.CurrentSliceID, TurnID: pending.CurrentTurnID, OriginalIntent: pending.OriginalIntent,
+				Reply:      "任务已在自动续跑队列中；这条消息不会创建新任务或重复执行。",
+				GoalStatus: string(agentruntime.StatusWaitingContinue), StopReason: "automatic_continuation_already_scheduled",
+				Workflow: "durable_continuation", WorkflowData: map[string]any{
+					"continuation_id": pending.ContinuationID, "status": pending.Status, "attempt": pending.Attempt,
+				},
+			}, true
+		}
+		if pending, ok := s.interactionContinuationForConversation(conversationID); ok {
+			goalStatus := s.harness.RuntimeStatus(pending.GoalID).Status
+			if goalStatus == "" || goalStatus == agentruntime.StatusIdle {
+				goalStatus = agentruntime.StatusWaitingContinue
+			}
+			return ChatResponse{
+				ConversationID: conversationID,
+				TaskID:         pending.TaskID, GoalID: pending.GoalID, RunID: pending.RunID,
+				SliceID: pending.CurrentSliceID, TurnID: pending.CurrentTurnID, OriginalIntent: pending.OriginalIntent,
+				Reply:      "当前任务正在等待明确的确认、澄清或人工判断；单独说‘继续’不会越过这个交互边界。",
+				GoalStatus: string(goalStatus), StopReason: "pending_interaction_requires_response",
+				Workflow: "durable_continuation", WorkflowData: map[string]any{
+					"continuation_id": pending.ContinuationID, "status": pending.Status,
+					"pending_interaction": cloneContext(pending.PendingInteraction),
+				},
+			}, true
+		}
+	}
+	classificationRequired := mode != agentModePlan && durableInvocationID == "" && !isContinueMessage(req.Message) &&
 		!contextBool(chatContext, "free_state_diagnostic_only") &&
 		!s.hasActiveFreeStateReasoningLoop(conversationID) && !s.hasActiveOrchestrationController(conversationID)
 	if classificationRequired {
@@ -274,7 +325,7 @@ func (s *Server) runAgentLoopChat(ctx context.Context, conversationID string, re
 		} else {
 			res = messageLoop.Continue(ctx, cont)
 		}
-	} else if cont, ok := s.resumeContinuationForChat(conversationID, req.Context); ok && shouldResumeGoalFromStatus(s.harness.RuntimeStatus(cont.GoalID).Status) {
+	} else if cont, ok := s.resumeContinuationForChat(conversationID, chatContext); ok && shouldResumeGoalFromStatus(s.harness.RuntimeStatus(cont.GoalID).Status) {
 		cont.UserText = agentLoopContinuationUserText(cont, userText)
 		cont.Context = mergeContext(cont.Context, chatContext)
 		mode = agentModeFromContext(cont.Context)
@@ -1732,7 +1783,12 @@ func agentLoopBudgetForModeAfter(mode string, elapsed time.Duration) agentloop.B
 }
 func (s *Server) chatResponseFromAgentLoopResult(conversationID, mode string, res agentloop.Result) ChatResponse {
 	res = s.applyLegacyCapabilityCreationGate(res)
-	s.recordGoalResult(conversationID, res)
+	if err := s.recordGoalResult(conversationID, res); err != nil {
+		res.Status = agentruntime.StatusFailed
+		res.StopReason = "durable_checkpoint_persist_failed"
+		res.Error = err.Error()
+		res.Continuation = nil
+	}
 	reply := strings.TrimSpace(res.Reply)
 	if reply == "" {
 		switch res.Status {
@@ -1741,7 +1797,11 @@ func (s *Server) chatResponseFromAgentLoopResult(conversationID, mode string, re
 		case agentruntime.StatusWaitingClarification:
 			reply = firstNonEmpty(res.ClarificationQuestion, "\u9700\u8981\u4f60\u5148\u8865\u5145\u4e00\u4e2a\u7f16\u8f91\u76ee\u6807\u3002")
 		case agentruntime.StatusWaitingContinue:
-			reply = "\u672c\u8f6e\u5df2\u6682\u505c\u3002\u4f60\u53ef\u4ee5\u8bf4\u201c\u7ee7\u7eed\u201d\u63a5\u7740\u8dd1\u3002"
+			if res.StopReason == agentloop.StopReasonInterjection {
+				reply = "\u672c\u8f6e\u5df2\u6682\u505c\uff0c\u7b49\u5f85\u5904\u7406\u65b0\u7684\u7528\u6237\u8f93\u5165\u3002"
+			} else {
+				reply = "\u5f53\u524d\u6267\u884c\u5207\u7247\u5df2\u7ed3\u675f\uff0c\u4efb\u52a1\u4f1a\u81ea\u52a8\u7ee7\u7eed\u3002"
+			}
 		case agentruntime.StatusCompleted:
 			reply = "\u5df2\u5b8c\u6210\u3002"
 		case agentruntime.StatusCancelled:
@@ -1753,8 +1813,8 @@ func (s *Server) chatResponseFromAgentLoopResult(conversationID, mode string, re
 	if res.Status == agentruntime.StatusFailed && len(res.Executed) > 0 {
 		reply = "\u524d\u9762\u7684\u5de5\u5177\u64cd\u4f5c\u5df2\u5b8c\u6210\uff0c\u4f46\u6700\u7ec8\u56de\u590d\u751f\u6210\u5931\u8d25\uff1a" + firstNonEmpty(res.Error, reply)
 	}
-	if res.StopReason == agentloop.StopReasonLimitReached && !strings.Contains(reply, "\u7ee7\u7eed") {
-		reply += " \u4f60\u53ef\u4ee5\u8bf4\u201c\u7ee7\u7eed\u201d\u63a5\u7740\u8dd1\u3002"
+	if res.StopReason == agentloop.StopReasonLimitReached && !strings.Contains(reply, "\u81ea\u52a8\u7ee7\u7eed") {
+		reply += " \u4efb\u52a1\u4f1a\u4ece\u5df2\u4fdd\u5b58\u7684\u68c0\u67e5\u70b9\u81ea\u52a8\u7ee7\u7eed\u3002"
 	}
 	if chatResponseLooksMixRelated(res) {
 		reply = localizedDisplayTextFallback(reply)
@@ -2249,12 +2309,19 @@ func AgentLoopConfirmResponsePlanID(confirmedPlanID string, resp ChatResponse) s
 	return confirmedPlanID
 }
 
-func (s *Server) recordGoalResult(conversationID string, res agentloop.Result) {
+func (s *Server) recordGoalResult(conversationID string, res agentloop.Result) error {
 	if s == nil || res.GoalID == "" {
-		return
+		return nil
 	}
 	var pendingEvents []AgentEvent
+	autoContinuation := false
 	s.mu.Lock()
+	if s.goalContinuations == nil {
+		s.goalContinuations = map[string]agentloop.Continuation{}
+	}
+	if s.durableContinuations == nil {
+		s.durableContinuations = map[string]DurableContinuation{}
+	}
 	if strings.TrimSpace(conversationID) != "" {
 		s.conversationGoals[conversationID] = res.GoalID
 		if hasAgentLoopExecutionMemory(res.ExecutionMemory) {
@@ -2308,14 +2375,101 @@ func (s *Server) recordGoalResult(conversationID string, res agentloop.Result) {
 		}
 	}
 	if res.Continuation != nil {
-		s.goalContinuations[res.GoalID] = *res.Continuation
+		durable := durableContinuationFromResult(conversationID, res, time.Now().UTC())
+		res.Continuation.ContinuationID = durable.ContinuationID
+		durable.ProjectPath = s.activeWorkspacePath
+		durable.ProjectUUID = s.activeWorkspaceUUID
+		durable.ProjectSessionID = s.activeWorkspaceSessionID
+		if continuationWaitingForInteraction(res) {
+			durable.PendingInteraction = firstNonEmptyMap(pendingInteractionFromResult(res), map[string]any{
+				"status":      string(res.Status),
+				"stop_reason": res.StopReason,
+				"limit_type":  res.LimitType,
+			})
+		}
+		if previous, exists := s.durableContinuations[durable.ContinuationID]; exists {
+			// Re-recording the same checkpoint is idempotent. A checkpoint has
+			// one lifecycle; duplicate delivery must never reopen completed work.
+			durable.CreatedAt = previous.CreatedAt
+			durable.Status = previous.Status
+			durable.Attempt = previous.Attempt
+			durable.LeaseOwner = previous.LeaseOwner
+			durable.LeaseExpiresAt = previous.LeaseExpiresAt
+			durable.LastError = previous.LastError
+		}
+		if durable.Status == ContinuationCompleted || durable.Status == ContinuationCancelled || durable.Status == ContinuationFailed {
+			delete(s.goalContinuations, res.GoalID)
+		} else {
+			s.goalContinuations[res.GoalID] = durable.Continuation
+		}
+		s.durableContinuations[durable.ContinuationID] = cloneDurableContinuation(durable)
+		if parentID := strings.TrimSpace(res.ResumedFromID); parentID != "" && parentID != durable.ContinuationID {
+			if parent, exists := s.durableContinuations[parentID]; exists && parent.GoalID == durable.GoalID && parent.RunID == durable.RunID &&
+				(parent.Status == ContinuationPending || parent.Status == ContinuationClaimed || parent.Status == ContinuationRunning || parent.Status == ContinuationWaitingInteraction) {
+				parent.Status = ContinuationCompleted
+				parent.LeaseOwner = ""
+				parent.LeaseExpiresAt = time.Time{}
+				parent.UpdatedAt = durable.UpdatedAt
+				s.durableContinuations[parentID] = cloneDurableContinuation(parent)
+			}
+		}
+		autoContinuation = durable.Status == ContinuationPending
 	} else {
 		delete(s.goalContinuations, res.GoalID)
+		terminalStatus := ContinuationCompleted
+		switch res.Status {
+		case agentruntime.StatusCancelled, agentruntime.StatusStopped:
+			terminalStatus = ContinuationCancelled
+		case agentruntime.StatusFailed:
+			terminalStatus = ContinuationFailed
+		}
+		now := time.Now().UTC()
+		for continuationID, durable := range s.durableContinuations {
+			if durable.GoalID != res.GoalID || durable.Status == ContinuationCompleted || durable.Status == ContinuationCancelled || durable.Status == ContinuationFailed {
+				continue
+			}
+			durable.Status = terminalStatus
+			durable.LeaseOwner = ""
+			durable.LeaseExpiresAt = time.Time{}
+			durable.UpdatedAt = now
+			if terminalStatus == ContinuationFailed {
+				durable.LastError = firstNonEmpty(res.Error, res.FailureReason)
+			}
+			s.durableContinuations[continuationID] = cloneDurableContinuation(durable)
+		}
 	}
 	s.mu.Unlock()
+	// Persist before waking the worker. This is the ordering that makes a
+	// request boundary harmless: a crash after this point leaves recoverable
+	// pending work in the project runtime snapshot.
+	persistErr := s.persistContinuationState()
+	if persistErr != nil {
+		s.mu.Lock()
+		for continuationID, item := range s.durableContinuations {
+			if item.GoalID != res.GoalID || (item.Status != ContinuationPending && item.Status != ContinuationClaimed && item.Status != ContinuationRunning) {
+				continue
+			}
+			item.Status = ContinuationFailed
+			item.LeaseOwner = ""
+			item.LeaseExpiresAt = time.Time{}
+			item.LastError = persistErr.Error()
+			item.UpdatedAt = time.Now().UTC()
+			s.durableContinuations[continuationID] = cloneDurableContinuation(item)
+		}
+		delete(s.goalContinuations, res.GoalID)
+		s.mu.Unlock()
+		if s.harness != nil {
+			s.harness.SetGoalStatus(res.GoalID, agentruntime.StatusFailed, persistErr)
+		}
+		autoContinuation = false
+	}
+	if autoContinuation {
+		s.wakeContinuationScheduler()
+	}
 	for _, pendingEvent := range pendingEvents {
 		s.emitAgentEvent(conversationID, pendingEvent)
 	}
+	return persistErr
 }
 
 func (s *Server) agentLoopExecutionMemoryForConversation(conversationID string) agentloop.ExecutionMemory {
@@ -2383,19 +2537,94 @@ func (s *Server) clearGoalContinuation(goalID string) {
 		return
 	}
 	s.mu.Lock()
-	defer s.mu.Unlock()
-	delete(s.goalContinuations, strings.TrimSpace(goalID))
+	goalID = strings.TrimSpace(goalID)
+	delete(s.goalContinuations, goalID)
+	now := time.Now().UTC()
+	for continuationID, item := range s.durableContinuations {
+		if item.GoalID != goalID || item.Status == ContinuationCompleted || item.Status == ContinuationCancelled || item.Status == ContinuationFailed {
+			continue
+		}
+		item.Status = ContinuationCancelled
+		item.LeaseOwner = ""
+		item.LeaseExpiresAt = time.Time{}
+		item.UpdatedAt = now
+		s.durableContinuations[continuationID] = cloneDurableContinuation(item)
+	}
+	s.mu.Unlock()
+	s.persistCurrentProjectWorkspace()
 }
 
 func (s *Server) goalContinuationForConversation(conversationID string) (agentloop.Continuation, bool) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	goalID := strings.TrimSpace(s.conversationGoals[conversationID])
-	if goalID == "" {
-		return agentloop.Continuation{}, false
+	if goalID != "" {
+		if cont, ok := s.goalContinuations[goalID]; ok {
+			return cont, true
+		}
 	}
-	cont, ok := s.goalContinuations[goalID]
-	return cont, ok
+	var newest DurableContinuation
+	found := false
+	for _, item := range s.durableContinuations {
+		if strings.TrimSpace(item.ConversationID) != strings.TrimSpace(conversationID) {
+			continue
+		}
+		if item.Status != ContinuationPending && item.Status != ContinuationWaitingInteraction && item.Status != ContinuationClaimed && item.Status != ContinuationRunning {
+			continue
+		}
+		if !found || item.UpdatedAt.After(newest.UpdatedAt) {
+			newest, found = item, true
+		}
+	}
+	if found {
+		return cloneDurableContinuation(newest).Continuation, true
+	}
+	return agentloop.Continuation{}, false
+}
+
+func (s *Server) automaticContinuationForConversation(conversationID string) (DurableContinuation, bool) {
+	if s == nil || strings.TrimSpace(conversationID) == "" {
+		return DurableContinuation{}, false
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	var newest DurableContinuation
+	found := false
+	for _, item := range s.durableContinuations {
+		if item.ConversationID != conversationID ||
+			(item.Status != ContinuationPending && item.Status != ContinuationClaimed && item.Status != ContinuationRunning) {
+			continue
+		}
+		if !found || item.UpdatedAt.After(newest.UpdatedAt) {
+			newest, found = item, true
+		}
+	}
+	if !found {
+		return DurableContinuation{}, false
+	}
+	return cloneDurableContinuation(newest), true
+}
+
+func (s *Server) interactionContinuationForConversation(conversationID string) (DurableContinuation, bool) {
+	if s == nil || strings.TrimSpace(conversationID) == "" {
+		return DurableContinuation{}, false
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	var newest DurableContinuation
+	found := false
+	for _, item := range s.durableContinuations {
+		if item.ConversationID != conversationID || item.Status != ContinuationWaitingInteraction {
+			continue
+		}
+		if !found || item.UpdatedAt.After(newest.UpdatedAt) {
+			newest, found = item, true
+		}
+	}
+	if !found {
+		return DurableContinuation{}, false
+	}
+	return cloneDurableContinuation(newest), true
 }
 
 func (s *Server) goalContinuationForCurrentGoal(chatContext map[string]any) (agentloop.Continuation, bool) {
@@ -2406,11 +2635,39 @@ func (s *Server) goalContinuationForCurrentGoal(chatContext map[string]any) (age
 	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	cont, ok := s.goalContinuations[goalID]
-	return cont, ok
+	if cont, ok := s.goalContinuations[goalID]; ok {
+		return cont, true
+	}
+	var newest DurableContinuation
+	found := false
+	for _, item := range s.durableContinuations {
+		if item.GoalID != goalID {
+			continue
+		}
+		if item.Status != ContinuationPending && item.Status != ContinuationWaitingInteraction && item.Status != ContinuationClaimed && item.Status != ContinuationRunning {
+			continue
+		}
+		if !found || item.UpdatedAt.After(newest.UpdatedAt) {
+			newest, found = item, true
+		}
+	}
+	if found {
+		return cloneDurableContinuation(newest).Continuation, true
+	}
+	return agentloop.Continuation{}, false
 }
 
 func (s *Server) resumeContinuationForChat(conversationID string, chatContext map[string]any) (agentloop.Continuation, bool) {
+	if continuationID := firstStringFromMap(chatContext, "durable_continuation_id"); continuationID != "" {
+		s.mu.Lock()
+		item, ok := s.durableContinuations[continuationID]
+		s.mu.Unlock()
+		if ok && item.ConversationID == conversationID &&
+			(item.Status == ContinuationClaimed || item.Status == ContinuationRunning) {
+			return cloneDurableContinuation(item).Continuation, true
+		}
+		return agentloop.Continuation{}, false
+	}
 	if cont, ok := s.goalContinuationForCurrentGoal(chatContext); ok {
 		return cont, true
 	}

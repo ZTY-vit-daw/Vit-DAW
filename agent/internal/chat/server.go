@@ -68,6 +68,20 @@ type Server struct {
 	interactions                       map[string]PendingInteraction
 	mixSessions                        map[string]MixSession
 	goalContinuations                  map[string]agentloop.Continuation
+	durableContinuations               map[string]DurableContinuation
+	schedulerCtx                       context.Context
+	schedulerCancel                    context.CancelFunc
+	schedulerOnce                      sync.Once
+	schedulerWake                      chan struct{}
+	schedulerDone                      chan struct{}
+	schedulerStarted                   bool
+	schedulerOwner                     string
+	continuationLease                  time.Duration
+	continuationExecutor               func(context.Context, DurableContinuation) error
+	continuationPersist                func() error
+	schedulerExecutionMu               sync.Mutex
+	activeRuntimeInvocations           int
+	lastWorkspaceRecoveryAttempt       time.Time
 	conversationGoals                  map[string]string
 	conversationMemory                 map[string]agentloop.ExecutionMemory
 	pendingMixTicks                    map[string]agentloop.PendingMixTickCandidate
@@ -105,18 +119,19 @@ type PendingPlan struct {
 }
 
 type projectAgentRuntimeState struct {
-	SchemaVersion      string                                       `json:"schema_version"`
-	ProjectPath        string                                       `json:"project_path"`
-	ProjectUUID        string                                       `json:"project_uuid"`
-	SavedAt            time.Time                                    `json:"saved_at"`
-	Conversations      map[string][]llm.Message                     `json:"conversations,omitempty"`
-	Pending            map[string]PendingPlan                       `json:"pending,omitempty"`
-	Interactions       map[string]PendingInteraction                `json:"interactions,omitempty"`
-	MixSessions        map[string]MixSession                        `json:"mix_sessions,omitempty"`
-	GoalContinuations  map[string]agentloop.Continuation            `json:"goal_continuations,omitempty"`
-	ConversationGoals  map[string]string                            `json:"conversation_goals,omitempty"`
-	ConversationMemory map[string]agentloop.ExecutionMemory         `json:"conversation_memory,omitempty"`
-	PendingMixTicks    map[string]agentloop.PendingMixTickCandidate `json:"pending_mix_ticks,omitempty"`
+	SchemaVersion        string                                       `json:"schema_version"`
+	ProjectPath          string                                       `json:"project_path"`
+	ProjectUUID          string                                       `json:"project_uuid"`
+	SavedAt              time.Time                                    `json:"saved_at"`
+	Conversations        map[string][]llm.Message                     `json:"conversations,omitempty"`
+	Pending              map[string]PendingPlan                       `json:"pending,omitempty"`
+	Interactions         map[string]PendingInteraction                `json:"interactions,omitempty"`
+	MixSessions          map[string]MixSession                        `json:"mix_sessions,omitempty"`
+	GoalContinuations    map[string]agentloop.Continuation            `json:"goal_continuations,omitempty"`
+	DurableContinuations map[string]DurableContinuation               `json:"durable_continuations,omitempty"`
+	ConversationGoals    map[string]string                            `json:"conversation_goals,omitempty"`
+	ConversationMemory   map[string]agentloop.ExecutionMemory         `json:"conversation_memory,omitempty"`
+	PendingMixTicks      map[string]agentloop.PendingMixTickCandidate `json:"pending_mix_ticks,omitempty"`
 	// Decode-only migration fields. Runtime v1 never writes or executes these
 	// legacy B2/B3 pending records; restore retires them as rejected audit data.
 	PendingStaticBalancePlans map[string]agentloop.PendingStaticBalancePlan `json:"pending_static_balance_plans,omitempty"`
@@ -448,6 +463,11 @@ func New(kernelClient *kernel.Client, shadowProject *shadow.Project, logger *log
 		interactions:                     map[string]PendingInteraction{},
 		mixSessions:                      map[string]MixSession{},
 		goalContinuations:                map[string]agentloop.Continuation{},
+		durableContinuations:             map[string]DurableContinuation{},
+		schedulerWake:                    make(chan struct{}, 1),
+		schedulerDone:                    make(chan struct{}),
+		schedulerOwner:                   "scheduler_" + randomID(),
+		continuationLease:                continuationLeaseDuration,
 		conversationGoals:                map[string]string{},
 		conversationMemory:               map[string]agentloop.ExecutionMemory{},
 		pendingMixTicks:                  map[string]agentloop.PendingMixTickCandidate{},
@@ -465,6 +485,7 @@ func New(kernelClient *kernel.Client, shadowProject *shadow.Project, logger *log
 		processorCertificationJobs:       map[string]processorCertificationJob{},
 		processorCertificationLoadTokens: map[string]processorCertificationLoadAuthorization{},
 	}
+	server.schedulerCtx, server.schedulerCancel = context.WithCancel(context.Background())
 	server.auditionCandidateDriver = &serverAuditionCandidateProjectDriver{server: server}
 	return server
 }
@@ -651,6 +672,7 @@ func (s *Server) handleRuntimeStatus(w http.ResponseWriter, r *http.Request) {
 		"kernel":           kernelStatus,
 		"shadow":           runtimeShadowStatus(s.harness.StateSummary(shadowCtx)),
 		"goal":             goal,
+		"continuations":    s.continuationRuntimeProjection(),
 		"authority_mode":   s.authorityModeSnapshot(),
 		"checkout_blocked": checkoutBlocked,
 	})
@@ -2127,6 +2149,7 @@ func (s *Server) handleChat(w http.ResponseWriter, r *http.Request) {
 		conversationID = "chat_" + randomID()
 	}
 	logConversationID = conversationID
+	defer s.beginContinuationSensitiveInvocation()()
 	req.Context = contextWithConversationID(req.Context, conversationID)
 	req.Context = contextWithCachedUIContext(req.Context, s.uiContextSnapshot())
 	req.Context = s.contextWithCurrentProjectWorkspace(r.Context(), req.Context)
@@ -3673,6 +3696,7 @@ func (s *Server) handleInteractionRespond(w http.ResponseWriter, r *http.Request
 		writeJSON(w, http.StatusMethodNotAllowed, map[string]any{"error": "POST required"})
 		return
 	}
+	defer s.beginContinuationSensitiveInvocation()()
 	s.activateCurrentProjectWorkspace(r.Context())
 	defer s.syncCurrentProjectWorkspace(r.Context())
 	var req InteractionRespondRequest
@@ -4180,6 +4204,7 @@ func (s *Server) handleConfirm(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusMethodNotAllowed, map[string]any{"error": "POST required"})
 		return
 	}
+	defer s.beginContinuationSensitiveInvocation()()
 	s.activateCurrentProjectWorkspace(r.Context())
 	defer s.syncCurrentProjectWorkspace(r.Context())
 	var req ConfirmRequest
@@ -6394,6 +6419,8 @@ func (s *Server) activateCurrentProjectWorkspace(ctx context.Context) {
 	if s == nil || s.harness == nil {
 		return
 	}
+	s.schedulerExecutionMu.Lock()
+	defer s.schedulerExecutionMu.Unlock()
 	projectPath, projectUUID := s.harness.CurrentProjectIdentity(ctx)
 	parentProjectUUID := s.harness.CurrentProjectParentUUID()
 	if projectUUID == "" {
@@ -6415,7 +6442,7 @@ func (s *Server) activateCurrentProjectWorkspace(ctx context.Context) {
 	// Reopening the same project binds a new draft from Saved HEAD. Do not copy
 	// the previous unsaved in-memory runtime into that clean working session.
 	if s.activeWorkspaceUUID != "" && !(sameIdentity && boundSessionID != "" && boundSessionID != s.activeWorkspaceSessionID) {
-		s.persistActiveProjectWorkspaceLocked()
+		_ = s.persistActiveProjectWorkspaceLocked()
 	}
 	if parentProjectUUID != "" && parentProjectUUID != projectUUID {
 		sourcePath := ""
@@ -6455,6 +6482,7 @@ func (s *Server) activateCurrentProjectWorkspace(ctx context.Context) {
 	s.activeWorkspaceUUID = projectUUID
 	s.activeWorkspaceSessionID = session.SessionID
 	s.mu.Unlock()
+	s.wakeContinuationScheduler()
 	s.emitRestoredAuditionProjections()
 	if s.logger != nil {
 		s.logger.Info("[workspace] activated project=%q uuid=%s conversations=%d retired_legacy_b2=%d retired_legacy_b3=%d", projectPath, projectUUID, len(state.Conversations), len(state.PendingStaticBalancePlans), len(state.PendingPanLayoutPlans))
@@ -6462,12 +6490,16 @@ func (s *Server) activateCurrentProjectWorkspace(ctx context.Context) {
 }
 
 func (s *Server) persistCurrentProjectWorkspace() {
+	_ = s.persistCurrentProjectWorkspaceChecked()
+}
+
+func (s *Server) persistCurrentProjectWorkspaceChecked() error {
 	if s == nil {
-		return
+		return nil
 	}
 	s.workspaceMu.Lock()
 	defer s.workspaceMu.Unlock()
-	s.persistActiveProjectWorkspaceLocked()
+	return s.persistActiveProjectWorkspaceLocked()
 }
 
 func (s *Server) syncCurrentProjectWorkspace(ctx context.Context) {
@@ -6475,9 +6507,9 @@ func (s *Server) syncCurrentProjectWorkspace(ctx context.Context) {
 	s.persistCurrentProjectWorkspace()
 }
 
-func (s *Server) persistActiveProjectWorkspaceLocked() {
+func (s *Server) persistActiveProjectWorkspaceLocked() error {
 	if s.activeWorkspaceUUID == "" || s.activeWorkspacePath == "" {
-		return
+		return nil
 	}
 	s.mu.Lock()
 	state := s.projectAgentRuntimeStateLocked()
@@ -6489,25 +6521,27 @@ func (s *Server) persistActiveProjectWorkspaceLocked() {
 	if err != nil && s.logger != nil {
 		s.logger.Warn("[workspace] runtime state save failed project=%s uuid=%s error=%v", s.activeWorkspacePath, s.activeWorkspaceUUID, err)
 	}
+	return err
 }
 
 func (s *Server) projectAgentRuntimeStateLocked() projectAgentRuntimeState {
 	state := projectAgentRuntimeState{
-		SchemaVersion:      "vit_project_agent_runtime.v1",
-		ProjectPath:        s.activeWorkspacePath,
-		ProjectUUID:        s.activeWorkspaceUUID,
-		SavedAt:            time.Now().UTC(),
-		Conversations:      s.conversations,
-		Pending:            s.pending,
-		Interactions:       s.interactions,
-		MixSessions:        s.mixSessions,
-		GoalContinuations:  s.goalContinuations,
-		ConversationGoals:  s.conversationGoals,
-		ConversationMemory: s.conversationMemory,
-		PendingMixTicks:    s.pendingMixTicks,
-		PendingTreatments:  s.pendingTreatments,
-		FreeStateLoops:     s.freeStateLoops,
-		AuthorityMode:      normalizeAuthorityModeOrDefault(s.authorityMode),
+		SchemaVersion:        "vit_project_agent_runtime.v2",
+		ProjectPath:          s.activeWorkspacePath,
+		ProjectUUID:          s.activeWorkspaceUUID,
+		SavedAt:              time.Now().UTC(),
+		Conversations:        s.conversations,
+		Pending:              s.pending,
+		Interactions:         s.interactions,
+		MixSessions:          s.mixSessions,
+		GoalContinuations:    s.goalContinuations,
+		DurableContinuations: s.durableContinuations,
+		ConversationGoals:    s.conversationGoals,
+		ConversationMemory:   s.conversationMemory,
+		PendingMixTicks:      s.pendingMixTicks,
+		PendingTreatments:    s.pendingTreatments,
+		FreeStateLoops:       s.freeStateLoops,
+		AuthorityMode:        normalizeAuthorityModeOrDefault(s.authorityMode),
 	}
 	if s.audioClosures != nil {
 		state.AudioClosures = s.audioClosures.Snapshot()
@@ -6532,8 +6566,80 @@ func (s *Server) restoreProjectAgentRuntimeStateLocked(state projectAgentRuntime
 	s.pending = retireLegacyCapabilityPendingPlans(nonNilMap(state.Pending))
 	s.interactions = retireLegacyCapabilityInteractions(nonNilMap(state.Interactions))
 	s.mixSessions = nonNilMap(state.MixSessions)
-	s.goalContinuations = nonNilMap(state.GoalContinuations)
+	legacyGoalContinuations := nonNilMap(state.GoalContinuations)
+	s.goalContinuations = map[string]agentloop.Continuation{}
+	s.durableContinuations = nonNilMap(state.DurableContinuations)
 	s.conversationGoals = nonNilMap(state.ConversationGoals)
+	if s.durableContinuations == nil {
+		s.durableContinuations = map[string]DurableContinuation{}
+	}
+	now := time.Now().UTC()
+	normalizedContinuations := make(map[string]DurableContinuation, len(s.durableContinuations))
+	for continuationID, item := range s.durableContinuations {
+		id, normalized := normalizeRestoredDurableContinuation(continuationID, item, state, now)
+		normalizedContinuations[id] = normalized
+	}
+	s.durableContinuations = reconcileRestoredContinuations(normalizedContinuations)
+	latestByGoal := map[string]DurableContinuation{}
+	for _, normalized := range s.durableContinuations {
+		if normalized.GoalID == "" || normalized.Status == ContinuationCompleted || normalized.Status == ContinuationCancelled || normalized.Status == ContinuationFailed {
+			continue
+		}
+		current, exists := latestByGoal[normalized.GoalID]
+		if !exists || normalized.UpdatedAt.After(current.UpdatedAt) {
+			latestByGoal[normalized.GoalID] = normalized
+		}
+	}
+	for goalID, normalized := range latestByGoal {
+		s.goalContinuations[goalID] = normalized.Continuation
+	}
+	for planID, plan := range s.pending {
+		if plan.GoalContinuation == nil {
+			continue
+		}
+		goalID := firstNonEmpty(plan.GoalContinuation.GoalID, firstStringFromMap(plan.Context, "goal_id"))
+		if normalized, exists := latestByGoal[goalID]; exists {
+			continuation := normalized.Continuation
+			plan.GoalContinuation = &continuation
+			s.pending[planID] = plan
+		}
+	}
+	// Migrate the pre-C in-memory-shaped continuation snapshot into an
+	// explicit durable record. The legacy map remains as a compatibility read
+	// index, while all new scheduling decisions use durableContinuations.
+	for goalID, cont := range legacyGoalContinuations {
+		if strings.TrimSpace(goalID) == "" || strings.TrimSpace(cont.GoalID) == "" {
+			continue
+		}
+		conversationID := ""
+		for candidateConversation, candidateGoal := range s.conversationGoals {
+			if candidateGoal == goalID {
+				conversationID = candidateConversation
+				break
+			}
+		}
+		id := continuationIDForContinuation(cont)
+		if existing, exists := s.durableContinuations[id]; exists {
+			if existing.Status != ContinuationCompleted && existing.Status != ContinuationCancelled && existing.Status != ContinuationFailed {
+				s.goalContinuations[goalID] = existing.Continuation
+			}
+			continue
+		}
+		cont.ContinuationID = id
+		s.goalContinuations[goalID] = cont
+		s.durableContinuations[id] = DurableContinuation{
+			SchemaVersion: continuationRuntimeSchema, ContinuationID: id,
+			TaskID: cont.TaskID, GoalID: firstNonEmpty(cont.GoalID, goalID),
+			ConversationID: conversationID, RunID: cont.RunID, CurrentSliceID: cont.SliceID,
+			ProjectPath: state.ProjectPath, ProjectUUID: state.ProjectUUID,
+			CurrentTurnID: cont.TurnID, OriginalIntent: cont.OriginalIntent,
+			ProjectRevision: firstNonEmpty(firstStringFromMap(cont.ProjectHistory, "project_revision", "head", "baseline_commit"), firstStringFromMap(cont.ContextSnapshot, "project_revision")),
+			ProjectHistory:  cloneContext(cont.ProjectHistory),
+			Continuation:    cont, Status: ContinuationWaitingInteraction,
+			PendingInteraction: map[string]any{"status": "legacy_waiting_continue", "reason": "legacy checkpoint has no authoritative stop reason"},
+			CreatedAt:          now, UpdatedAt: now,
+		}
+	}
 	s.conversationMemory = retireLegacyCapabilityExecutionMemory(nonNilMap(state.ConversationMemory))
 	s.pendingMixTicks = nonNilMap(state.PendingMixTicks)
 	s.pendingTreatments = nonNilMap(state.PendingTreatments)
