@@ -308,7 +308,7 @@ func TestRunnerBudgetLimitWaitsForContinue(t *testing.T) {
 	}
 }
 
-func TestRunnerContinueKeepsGoalAndCreatesNewRun(t *testing.T) {
+func TestRunnerContinueKeepsTaskRunAndCreatesNewSlice(t *testing.T) {
 	rt := agentruntime.New()
 	fp := &fakePlanner{outputs: []planner.Output{{Done: true, Reply: "继续完成"}}}
 	runner := Runner{Runtime: rt, Planner: fp, Executor: &fakeExecutor{}, Budget: Budget{MaxTurns: 1, MaxToolCalls: 1}}
@@ -316,8 +316,11 @@ func TestRunnerContinueKeepsGoalAndCreatesNewRun(t *testing.T) {
 	cont := Continuation{GoalID: goal.GoalID, RunID: goal.RunID, UserText: "long task", Summary: "long task", ContextSnapshot: map[string]any{"schema_version": "vit_context_snapshot.v1", "created_at": "old"}, Budget: Budget{MaxTurns: 1, MaxToolCalls: 1}}
 
 	res := runner.Continue(context.Background(), cont)
-	if res.GoalID != goal.GoalID || res.RunID == goal.RunID || res.Status != agentruntime.StatusCompleted {
+	if res.GoalID != goal.GoalID || res.RunID != goal.RunID || res.TaskID == "" || res.SliceID == "" || res.TurnID == "" || res.Status != agentruntime.StatusCompleted {
 		t.Fatalf("result = %+v original run=%s", res, goal.RunID)
+	}
+	if res.OriginalIntent != "long task" {
+		t.Fatalf("continuation replaced original intent: %q", res.OriginalIntent)
 	}
 	if len(fp.inputs) == 0 || fp.inputs[0].ContextSnapshot["schema_version"] != "vit_context_snapshot.v1" {
 		t.Fatalf("planner missing context snapshot: %+v", fp.inputs)

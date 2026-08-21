@@ -151,8 +151,11 @@ type Attachment struct {
 
 type ChatResponse struct {
 	ConversationID            string                              `json:"conversation_id"`
+	TaskID                    string                              `json:"task_id,omitempty"`
 	GoalID                    string                              `json:"goal_id,omitempty"`
 	RunID                     string                              `json:"run_id,omitempty"`
+	SliceID                   string                              `json:"slice_id,omitempty"`
+	OriginalIntent            string                              `json:"original_intent,omitempty"`
 	Reply                     string                              `json:"reply"`
 	AgentMode                 string                              `json:"agent_mode,omitempty"`
 	AgentPlan                 *AgentPlan                          `json:"agent_plan,omitempty"`

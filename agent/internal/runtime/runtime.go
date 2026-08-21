@@ -45,6 +45,7 @@ type ProjectHistoryMeta struct {
 type Goal struct {
 	GoalID              string              `json:"goal_id"`
 	RunID               string              `json:"run_id"`
+	Task                *Task               `json:"task,omitempty"`
 	Status              GoalStatus          `json:"status"`
 	Summary             string              `json:"summary,omitempty"`
 	CreatedAt           time.Time           `json:"created_at"`
@@ -103,6 +104,10 @@ func (r *Runtime) Restore(snapshot Snapshot) {
 	for _, goal := range snapshot.Goals {
 		goal.GoalID = strings.TrimSpace(goal.GoalID)
 		if goal.GoalID != "" {
+			if goal.RunID == "" {
+				goal.RunID = "run_" + randomID()
+			}
+			hydrateTask(&goal, time.Now())
 			goals[goal.GoalID] = cloneGoal(goal)
 		}
 	}
@@ -130,6 +135,9 @@ func (r *Runtime) Create(summary string) Goal {
 		CreatedAt: now,
 		UpdatedAt: now,
 	}
+	task := newTask(goal.GoalID, goal.RunID, summary, now)
+	task.Run.TaskID = task.TaskID
+	goal.Task = &task
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	r.goals[goal.GoalID] = goal
@@ -150,15 +158,13 @@ func (r *Runtime) Ensure(goalID, runID, summary string) Goal {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	if goal, ok := r.goals[goalID]; ok {
-		if runID != "" {
-			goal.RunID = runID
-		}
 		if goal.RunID == "" {
-			goal.RunID = "run_" + randomID()
+			goal.RunID = firstNonEmpty(runID, "run_"+randomID())
 		}
 		if goal.Status == StatusIdle {
 			goal.Status = StatusRunning
 		}
+		hydrateTask(&goal, now)
 		goal.UpdatedAt = now
 		r.goals[goalID] = goal
 		r.lastGoal = goalID
@@ -175,6 +181,9 @@ func (r *Runtime) Ensure(goalID, runID, summary string) Goal {
 		CreatedAt: now,
 		UpdatedAt: now,
 	}
+	task := newTask(goal.GoalID, goal.RunID, summary, now)
+	task.Run.TaskID = task.TaskID
+	goal.Task = &task
 	r.goals[goalID] = goal
 	r.lastGoal = goalID
 	return cloneGoal(goal)
@@ -193,9 +202,8 @@ func (r *Runtime) Continue(goalID, summary string) Goal {
 	defer r.mu.Unlock()
 	goal, ok := r.goals[goalID]
 	if !ok {
-		goal = Goal{GoalID: goalID, CreatedAt: now}
+		goal = Goal{GoalID: goalID, RunID: "run_" + randomID(), CreatedAt: now}
 	}
-	goal.RunID = "run_" + randomID()
 	goal.Status = StatusRunning
 	goal.Summary = firstNonEmpty(summary, goal.Summary)
 	goal.CancelRequested = false
@@ -207,6 +215,23 @@ func (r *Runtime) Continue(goalID, summary string) Goal {
 	goal.UpdatedAt = now
 	if goal.CreatedAt.IsZero() {
 		goal.CreatedAt = now
+	}
+	hydrateTask(&goal, now)
+	if goal.Task != nil {
+		goal.Task.Status = TaskStatusActive
+		goal.Task.UpdatedAt = now
+		goal.Task.Run.RunID = goal.RunID
+		if goal.Task.Run.NextSlice <= 0 {
+			goal.Task.Run.NextSlice = len(goal.Task.Run.Slices) + 1
+		}
+		// A continuation is a new invocation slice in the same Run.
+		slice := InvocationSlice{
+			SliceID: "slice_" + randomID(), RunID: goal.RunID,
+			Sequence: goal.Task.Run.NextSlice, Status: "running", StartedAt: now,
+		}
+		goal.Task.Run.Slices = append(goal.Task.Run.Slices, slice)
+		goal.Task.Run.CurrentSliceID = slice.SliceID
+		goal.Task.Run.NextSlice++
 	}
 	r.goals[goalID] = goal
 	r.lastGoal = goalID
@@ -421,6 +446,7 @@ func (r *Runtime) Complete(goalID string, failed error) Goal {
 		goal.Status = StatusCompleted
 	}
 	goal.UpdatedAt = time.Now()
+	syncTaskStatus(goal.Task, goal.Status, goal.UpdatedAt)
 	r.goals[goalID] = goal
 	return cloneGoal(goal)
 }
@@ -444,6 +470,7 @@ func (r *Runtime) SetStatus(goalID string, status GoalStatus, err error) Goal {
 		goal.Error = err.Error()
 	}
 	goal.UpdatedAt = time.Now()
+	syncTaskStatus(goal.Task, goal.Status, goal.UpdatedAt)
 	r.goals[goalID] = goal
 	return cloneGoal(goal)
 }
@@ -475,6 +502,7 @@ func NewToolCallID() string {
 
 func cloneGoal(in Goal) Goal {
 	in.PendingInterjection = append([]Interjection(nil), in.PendingInterjection...)
+	in.Task = cloneTaskPointer(in.Task)
 	if in.ProjectHistory != nil {
 		meta := *in.ProjectHistory
 		meta.Warnings = append([]string(nil), in.ProjectHistory.Warnings...)

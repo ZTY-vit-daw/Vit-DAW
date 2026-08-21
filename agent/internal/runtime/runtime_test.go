@@ -89,3 +89,84 @@ func TestCheckoutBlockedOnlyForActiveExecutionStates(t *testing.T) {
 		}
 	}
 }
+
+func TestTaskRunSliceIdentitySurvivesContinuation(t *testing.T) {
+	rt := New()
+	created := rt.Create("inspect the current project")
+	if created.Task == nil || created.Task.TaskID == "" {
+		t.Fatalf("task identity missing: %+v", created)
+	}
+	if created.Task.OriginalIntent != "inspect the current project" {
+		t.Fatalf("original intent = %q", created.Task.OriginalIntent)
+	}
+	opened, firstSlice, ok := rt.BeginSlice(created.GoalID, 2, 4)
+	if !ok || opened.Task == nil || firstSlice.MaxTurns != 2 || firstSlice.MaxToolCalls != 4 {
+		t.Fatalf("slice open failed: goal=%+v slice=%+v ok=%v", opened, firstSlice, ok)
+	}
+	withTurn, firstTurn, ok := rt.BeginTurn(created.GoalID, firstSlice.SliceID, "user")
+	if !ok || firstTurn.RunID != created.RunID || firstTurn.SliceID != firstSlice.SliceID {
+		t.Fatalf("turn identity mismatch: goal=%+v turn=%+v ok=%v", withTurn, firstTurn, ok)
+	}
+	rt.SetStatus(created.GoalID, StatusWaitingContinue, nil)
+	continued := rt.Continue(created.GoalID, "continuation summary must not replace intent")
+	if continued.RunID != created.RunID {
+		t.Fatalf("run identity changed across continuation: before=%s after=%s", created.RunID, continued.RunID)
+	}
+	if continued.Task == nil || continued.Task.TaskID != created.Task.TaskID {
+		t.Fatalf("task identity changed: before=%s after=%+v", created.Task.TaskID, continued.Task)
+	}
+	if continued.Task.OriginalIntent != created.Task.OriginalIntent {
+		t.Fatalf("original intent changed: %q", continued.Task.OriginalIntent)
+	}
+	if len(continued.Task.Run.Slices) != 2 || continued.Task.Run.Slices[1].Sequence != 2 {
+		t.Fatalf("continuation did not create slice 2: %+v", continued.Task.Run.Slices)
+	}
+	if continued.Task.Run.Slices[0].Status != "waiting_continuation" {
+		t.Fatalf("slice 1 status = %q", continued.Task.Run.Slices[0].Status)
+	}
+}
+
+func TestTaskRunSliceSnapshotRestoreKeepsStableIdentity(t *testing.T) {
+	source := New()
+	goal := source.Create("preserve task identity")
+	_, slice, ok := source.BeginSlice(goal.GoalID, 3, 5)
+	if !ok {
+		t.Fatal("failed to open slice")
+	}
+	source.BeginTurn(goal.GoalID, slice.SliceID, "user")
+	snapshot := source.Snapshot()
+	target := New()
+	target.Restore(snapshot)
+	restored := target.Status(goal.GoalID)
+	if restored.Task == nil || restored.Task.TaskID != goal.Task.TaskID || restored.RunID != goal.RunID {
+		t.Fatalf("identity not restored: original=%+v restored=%+v", goal, restored)
+	}
+	if len(restored.Task.Run.Slices) != 1 || len(restored.Task.Run.Turns) != 1 {
+		t.Fatalf("slice/turn history not restored: %+v", restored.Task.Run)
+	}
+}
+
+func TestLegacySnapshotHydratesTaskWithoutChangingRunIdentity(t *testing.T) {
+	rt := New()
+	rt.Restore(Snapshot{Goals: []Goal{{GoalID: "legacy_goal", RunID: "legacy_run", Summary: "legacy intent", Status: StatusWaitingContinue}}})
+	legacy := rt.Status("legacy_goal")
+	if legacy.Task == nil || legacy.Task.TaskID == "" || legacy.Task.Run.RunID != "legacy_run" {
+		t.Fatalf("legacy goal was not hydrated: %+v", legacy)
+	}
+	continued := rt.Continue("legacy_goal", "resume")
+	if continued.RunID != "legacy_run" || continued.Task == nil || continued.Task.OriginalIntent != "legacy intent" {
+		t.Fatalf("legacy continuation changed identity or intent: %+v", continued)
+	}
+}
+
+func TestEnsureDoesNotReplaceExistingRunIdentity(t *testing.T) {
+	rt := New()
+	created := rt.Ensure("goal_stable", "run_first", "stable intent")
+	repeated := rt.Ensure("goal_stable", "run_other", "new summary")
+	if repeated.RunID != created.RunID {
+		t.Fatalf("Ensure replaced stable RunID: first=%s repeated=%s", created.RunID, repeated.RunID)
+	}
+	if repeated.Task == nil || repeated.Task.OriginalIntent != created.Task.OriginalIntent {
+		t.Fatalf("Ensure replaced task intent: %+v", repeated.Task)
+	}
+}

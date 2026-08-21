@@ -43,6 +43,10 @@ type Budget struct {
 type Input struct {
 	GoalID            string               `json:"goal_id,omitempty"`
 	RunID             string               `json:"run_id,omitempty"`
+	TaskID            string               `json:"task_id,omitempty"`
+	SliceID           string               `json:"slice_id,omitempty"`
+	TurnID            string               `json:"turn_id,omitempty"`
+	OriginalIntent    string               `json:"original_intent,omitempty"`
 	UserText          string               `json:"user_text"`
 	Summary           string               `json:"summary,omitempty"`
 	Context           map[string]any       `json:"context,omitempty"`
@@ -63,6 +67,10 @@ type Input struct {
 type Continuation struct {
 	GoalID            string               `json:"goal_id"`
 	RunID             string               `json:"run_id,omitempty"`
+	TaskID            string               `json:"task_id,omitempty"`
+	SliceID           string               `json:"slice_id,omitempty"`
+	TurnID            string               `json:"turn_id,omitempty"`
+	OriginalIntent    string               `json:"original_intent,omitempty"`
 	UserText          string               `json:"user_text"`
 	Summary           string               `json:"summary,omitempty"`
 	Context           map[string]any       `json:"context,omitempty"`
@@ -89,6 +97,10 @@ type Result struct {
 	Goal                  agentruntime.Goal           `json:"goal"`
 	GoalID                string                      `json:"goal_id,omitempty"`
 	RunID                 string                      `json:"run_id,omitempty"`
+	TaskID                string                      `json:"task_id,omitempty"`
+	SliceID               string                      `json:"slice_id,omitempty"`
+	TurnID                string                      `json:"turn_id,omitempty"`
+	OriginalIntent        string                      `json:"original_intent,omitempty"`
 	Status                agentruntime.GoalStatus     `json:"status"`
 	Reply                 string                      `json:"reply,omitempty"`
 	GoalSummary           string                      `json:"goal_summary,omitempty"`
@@ -136,6 +148,20 @@ type Runner struct {
 func (r *Runner) Start(ctx context.Context, in Input) Result {
 	goal := r.ensureGoal(in.GoalID, in.RunID, firstNonEmpty(in.Summary, in.UserText))
 	baseBudget := normalizeBudget(firstNonZeroBudget(in.Budget, r.Budget))
+	if r.Runtime != nil {
+		if opened, slice, ok := r.Runtime.BeginSlice(goal.GoalID, baseBudget.MaxTurns, baseBudget.MaxToolCalls); ok {
+			goal = opened
+			in.SliceID = slice.SliceID
+			if goal.Task != nil {
+				in.TaskID = goal.Task.TaskID
+				in.OriginalIntent = goal.Task.OriginalIntent
+			}
+			if openedGoal, turn, turnOK := r.Runtime.BeginTurn(goal.GoalID, slice.SliceID, "user"); turnOK {
+				goal = openedGoal
+				in.TurnID = turn.TurnID
+			}
+		}
+	}
 	state := runState{
 		input:              in,
 		goal:               goal,
@@ -152,6 +178,10 @@ func (r *Runner) Start(ctx context.Context, in Input) Result {
 	}
 	state.input.GoalID = goal.GoalID
 	state.input.RunID = goal.RunID
+	if goal.Task != nil {
+		state.input.TaskID = goal.Task.TaskID
+		state.input.OriginalIntent = goal.Task.OriginalIntent
+	}
 	return r.loop(ctx, &state)
 }
 
@@ -167,9 +197,25 @@ func (r *Runner) Continue(ctx context.Context, cont Continuation) Result {
 		goal = r.Runtime.ClearInterjections(goal.GoalID)
 	}
 	baseBudget := normalizeBudget(firstNonZeroBudget(cont.Budget, r.Budget))
+	if opened, slice, ok := r.Runtime.BeginSlice(goal.GoalID, baseBudget.MaxTurns, baseBudget.MaxToolCalls); ok {
+		goal = opened
+		cont.SliceID = slice.SliceID
+		if goal.Task != nil {
+			cont.TaskID = goal.Task.TaskID
+			cont.OriginalIntent = goal.Task.OriginalIntent
+		}
+		if openedGoal, turn, turnOK := r.Runtime.BeginTurn(goal.GoalID, slice.SliceID, "automatic_continuation"); turnOK {
+			goal = openedGoal
+			cont.TurnID = turn.TurnID
+		}
+	}
 	in := Input{
 		GoalID:            goal.GoalID,
 		RunID:             goal.RunID,
+		TaskID:            cont.TaskID,
+		SliceID:           cont.SliceID,
+		TurnID:            cont.TurnID,
+		OriginalIntent:    cont.OriginalIntent,
 		UserText:          cont.UserText,
 		Summary:           cont.Summary,
 		Context:           cloneMap(cont.Context),
@@ -208,10 +254,28 @@ func (r *Runner) Continue(ctx context.Context, cont Continuation) Result {
 func (r *Runner) ResumeAfterConfirmation(ctx context.Context, cont Continuation) Result {
 	goal := r.ensureGoal(cont.GoalID, cont.RunID, cont.Summary)
 	baseBudget := normalizeBudget(firstNonZeroBudget(cont.Budget, r.Budget))
+	if r.Runtime != nil {
+		if opened, slice, ok := r.Runtime.BeginSlice(goal.GoalID, baseBudget.MaxTurns, baseBudget.MaxToolCalls); ok {
+			goal = opened
+			cont.SliceID = slice.SliceID
+			if goal.Task != nil {
+				cont.TaskID = goal.Task.TaskID
+				cont.OriginalIntent = goal.Task.OriginalIntent
+			}
+			if openedGoal, turn, turnOK := r.Runtime.BeginTurn(goal.GoalID, slice.SliceID, "user_interaction"); turnOK {
+				goal = openedGoal
+				cont.TurnID = turn.TurnID
+			}
+		}
+	}
 	state := runState{
 		input: Input{
 			GoalID:            goal.GoalID,
 			RunID:             goal.RunID,
+			TaskID:            cont.TaskID,
+			SliceID:           cont.SliceID,
+			TurnID:            cont.TurnID,
+			OriginalIntent:    cont.OriginalIntent,
 			UserText:          cont.UserText,
 			Summary:           cont.Summary,
 			Context:           cloneMap(cont.Context),
@@ -663,11 +727,18 @@ func (r *Runner) result(state *runState, status agentruntime.GoalStatus, stopRea
 	} else {
 		state.pendingToolCall = nil
 	}
+	if r.Runtime != nil && state.input.TurnID != "" {
+		state.goal = r.Runtime.EndTurn(state.goal.GoalID, state.input.TurnID, string(status), state.turnsUsed, state.toolCallsUsed)
+	}
 	snapshot := r.buildContextSnapshot(state)
 	state.contextSnapshot = snapshot.Map()
 	cont := &Continuation{
 		GoalID:            state.goal.GoalID,
 		RunID:             state.goal.RunID,
+		TaskID:            state.input.TaskID,
+		SliceID:           state.input.SliceID,
+		TurnID:            state.input.TurnID,
+		OriginalIntent:    firstNonEmpty(state.input.OriginalIntent, state.goal.TaskIntent()),
 		UserText:          state.input.UserText,
 		Summary:           firstNonEmpty(state.input.Summary, state.goal.Summary, state.input.UserText),
 		Context:           cloneMap(state.input.Context),
@@ -703,6 +774,10 @@ func (r *Runner) result(state *runState, status agentruntime.GoalStatus, stopRea
 		Goal:                 state.goal,
 		GoalID:               state.goal.GoalID,
 		RunID:                state.goal.RunID,
+		TaskID:               state.input.TaskID,
+		SliceID:              state.input.SliceID,
+		TurnID:               state.input.TurnID,
+		OriginalIntent:       firstNonEmpty(state.input.OriginalIntent, state.goal.TaskIntent()),
 		Status:               status,
 		Reply:                strings.TrimSpace(reply),
 		GoalSummary:          firstNonEmpty(state.goal.Summary, state.input.Summary, state.input.UserText),

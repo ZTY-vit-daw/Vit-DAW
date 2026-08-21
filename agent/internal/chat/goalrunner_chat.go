@@ -1762,8 +1762,12 @@ func (s *Server) chatResponseFromAgentLoopResult(conversationID, mode string, re
 	visibleExecuted := compactAgentLoopExecutedForResponse(res.Executed)
 	resp := ChatResponse{
 		ConversationID:      conversationID,
+		TaskID:              res.TaskID,
 		GoalID:              res.GoalID,
 		RunID:               res.RunID,
+		SliceID:             res.SliceID,
+		TurnID:              res.TurnID,
+		OriginalIntent:      res.OriginalIntent,
 		Reply:               reply,
 		AgentMode:           mode,
 		NeedsConfirmation:   res.Status == agentruntime.StatusWaitingConfirmation,
