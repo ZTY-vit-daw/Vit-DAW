@@ -684,6 +684,7 @@ func (s *Server) handleRuntimeStatus(w http.ResponseWriter, r *http.Request) {
 	// Task semantic projection as a first-class runtime status surface.
 	if goal.Task != nil {
 		response["task"] = goal.Task
+		response["task_trajectory"] = s.taskRuntimeTrajectoryProjection(goal)
 		if goal.Task.Contract != nil {
 			response["task_contract"] = goal.Task.Contract
 		}

@@ -33,6 +33,17 @@ export interface RuntimeStatusResponse {
   goal?: JsonRecord;
   authority_mode?: AuthorityMode;
   checkout_blocked?: boolean;
+  task_trajectory?: TaskRuntimeTrajectory;
+}
+
+export interface TaskRuntimeTrajectory {
+  schema_version: "vit.task_runtime_trajectory.v1" | string;
+  task?: JsonRecord;
+  run?: JsonRecord;
+  semantic?: JsonRecord;
+  transitions?: JsonRecord[];
+  continuation?: JsonRecord;
+  capability_route?: JsonRecord;
 }
 
 export interface AgentEvent {

@@ -100,8 +100,10 @@ import {
 } from "./messageLifecycle";
 import { emptyTrajectoryState, reduceTrajectoryEvents } from "./trajectory";
 import { emptyAuditionState, reduceAuditionEvents } from "./audition";
+import { emptyTaskTrajectoryState, reduceTaskTrajectory } from "./taskTrajectory";
 import { authorityContext, checkoutBlockedByState, isAgentTurnRunning } from "./turnControl";
 import { TrajectoryAuditionPanel } from "./trajectory/TrajectoryAuditionPanel";
+import { TaskTrajectoryView } from "./taskTrajectory/TaskTrajectoryView";
 import type {
   AgentConfigResponse,
   AgentEvent,
@@ -216,6 +218,7 @@ function App() {
   const [messages, setMessages] = useState<ChatMessage[]>([initialMessage]);
   const [activities, setActivities] = useState<ChatMessage[]>([]);
   const [trajectoryState, setTrajectoryState] = useState(emptyTrajectoryState);
+  const [taskTrajectoryState, setTaskTrajectoryState] = useState(emptyTaskTrajectoryState);
   const [auditionState, setAuditionState] = useState(emptyAuditionState);
   const [auditionBusySessionID, setAuditionBusySessionID] = useState("");
   const auditionWaiting = useMemo(() => Object.values(auditionState.sessions).some((session) => session.status === "preparing"), [auditionState]);
@@ -271,6 +274,7 @@ function App() {
     if (runtimeResult.status === "fulfilled") {
       setConnection("ready");
       setRuntimeStatus(runtimeResult.value);
+      setTaskTrajectoryState((current) => reduceTaskTrajectory(current, "task_trajectory" in runtimeResult.value ? runtimeResult.value.task_trajectory : null));
       setHealthLabel(runtimeResult.value.service ?? "VitAgent");
       setError("");
     } else {
@@ -300,6 +304,7 @@ function App() {
   useEffect(() => {
     agentEventSeqRef.current = 0;
     setTrajectoryState(emptyTrajectoryState());
+    setTaskTrajectoryState(emptyTaskTrajectoryState());
     setAuditionState(emptyAuditionState());
     setAgentEventPolling(true);
   }, [conversationID]);
@@ -677,12 +682,12 @@ function App() {
     setStopTurnBusy(true);
     setError("");
     try {
-      const activeTurn = Object.values(trajectoryState.turns).find((turn) => !turn.stopped && turn.status !== "completed" && turn.status !== "failed") ?? Object.values(trajectoryState.turns)[0];
+      const activeTurnID = textValue(taskTrajectoryState.snapshot?.run.current_turn_id, "") || (Object.values(trajectoryState.turns).find((turn) => !turn.stopped && turn.status !== "completed" && turn.status !== "failed") ?? Object.values(trajectoryState.turns)[0])?.id;
       await stopTurn({
         conversation_id: conversationID,
         goal_id: textValue(currentGoal.goal_id, ""),
         run_id: textValue(currentGoal.run_id, ""),
-        turn_id: activeTurn?.id ?? textValue(currentGoal.run_id, ""),
+        turn_id: activeTurnID || textValue(currentGoal.run_id, ""),
         reason: "user_stop"
       });
       setAgentEventPolling(true);
@@ -1166,6 +1171,8 @@ function App() {
       <div className="conversation-toolbar" aria-label="对话模式">
         <ModeSwitch value={mode} onChange={setMode} />
       </div>
+
+      <TaskTrajectoryView snapshot={taskTrajectoryState.snapshot} />
 
       <TrajectoryAuditionPanel
         trajectory={trajectoryState}
