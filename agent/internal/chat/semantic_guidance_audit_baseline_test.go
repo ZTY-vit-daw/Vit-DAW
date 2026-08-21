@@ -19,6 +19,7 @@ func TestSemanticGuidanceAuditBaselineModelOwnedEntryRouting(t *testing.T) {
 	}
 	open := contextWithSemanticEntryDecision(trackContext, semanticEntryDecision{
 		SchemaVersion: semanticEntryDecisionSchema, Route: semanticEntryRouteOpenSemantic,
+		Controller:  "minimal_audio_closure",
 		TargetScope: semanticEntryScopeCurrentSelection, ControlMode: semanticEntryControlSemanticLoop,
 		UserAuthorization: semanticEntryAuthorizationAction, Confidence: 0.9, Reason: "open acoustic treatment",
 	})
@@ -42,6 +43,7 @@ func TestSemanticGuidanceAuditLegacyPlannerCannotBypassOpenSemanticLoop(t *testi
 	t.Setenv("VIT_AGENT_USE_LEGACY_PLANNER_LOOP", "1")
 	ctx := contextWithSemanticEntryDecision(map[string]any{"selected_track_id": "track-1"}, semanticEntryDecision{
 		SchemaVersion: semanticEntryDecisionSchema, Route: semanticEntryRouteOpenSemantic,
+		Controller:  "minimal_audio_closure",
 		TargetScope: semanticEntryScopeCurrentSelection, ControlMode: semanticEntryControlSemanticLoop,
 		UserAuthorization: semanticEntryAuthorizationAction, Confidence: 0.9, Reason: "open acoustic treatment",
 	})

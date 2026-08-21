@@ -38,6 +38,7 @@ func TestFreeStateLoopPreservesOriginalCompositeIntentAcrossActionHandoff(t *tes
 	}
 	ctx = contextWithSemanticEntryDecision(ctx, semanticEntryDecision{
 		SchemaVersion: semanticEntryDecisionSchema, Route: semanticEntryRouteOpenSemantic,
+		Controller:  "minimal_audio_closure",
 		TargetScope: semanticEntryScopeCurrentSelection, ControlMode: semanticEntryControlSemanticLoop,
 		UserAuthorization: semanticEntryAuthorizationAction, Confidence: 0.94, Reason: "open acoustic outcome",
 	})

@@ -56,8 +56,8 @@ func TestActiveProjectMixOwnerReconstructsTrustedSelectorContext(t *testing.T) {
 		t.Fatalf("selector context not restored: %+v ok=%v", decision, ok)
 	}
 	entry, ok := semanticEntryDecisionFromContext(ctx)
-	if !ok || entry.Controller != string(orchestrationcontroller.ProjectMixWorkflow) {
-		t.Fatalf("semantic context not restored: %+v ok=%v owner=%+v", entry, ok, owner)
+	if !ok || entry.Route != semanticEntryRouteOpenSemantic || entry.TargetScope != semanticEntryScopeProjectContext || entry.Controller != "" {
+		t.Fatalf("pure semantic context not restored separately from controller: %+v ok=%v owner=%+v", entry, ok, owner)
 	}
 }
 
@@ -67,7 +67,7 @@ func TestUnavailableProjectMixFailsClosedWithoutOrdinaryFallback(t *testing.T) {
 	if err != nil || !active || projectMixWorkflowV1Available(ctx) {
 		t.Fatalf("project mix availability setup: active=%v owner=%+v err=%v", active, owner, err)
 	}
-	response := server.projectMixUnavailableResponse("conversation-mix", agentModeDefault, owner)
+	response := server.projectMixUnavailableResponse("conversation-mix", agentModeDefault, owner, ctx)
 	if response.StopReason != "capability_unavailable" || response.GoalStatus != string(agentruntime.StatusFailed) || response.Workflow != "project_mix_workflow" {
 		t.Fatalf("project mix did not fail closed: %+v", response)
 	}

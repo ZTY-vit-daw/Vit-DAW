@@ -26,7 +26,7 @@ func TestSelectorMapsFourPeerControllers(t *testing.T) {
 	}
 }
 
-func TestProjectMixRequiresModelProposalAndFullProjectScope(t *testing.T) {
+func TestProjectMixRequiresRuntimeProposalAndFullProjectScope(t *testing.T) {
 	_, err := Select(SelectionInput{SemanticRoute: "open_semantic", TargetScope: "current_selection", ControlMode: "semantic_loop", Authorization: "action_requested", ProposedController: ProjectMixWorkflow, Reason: "bad route"})
 	if err == nil {
 		t.Fatal("project workflow admitted a selection-scoped request")
@@ -34,6 +34,10 @@ func TestProjectMixRequiresModelProposalAndFullProjectScope(t *testing.T) {
 	decision, err := Select(SelectionInput{SemanticRoute: "open_semantic", TargetScope: "project_context", ControlMode: "semantic_loop", Authorization: "action_requested", Reason: "ordinary project-context issue"})
 	if err != nil || decision.Controller != MinimalAudioClosure {
 		t.Fatalf("project context defaulted to fixed workflow: %+v err=%v", decision, err)
+	}
+	observation, err := Select(SelectionInput{SemanticRoute: "observation", TargetScope: "project_context", ControlMode: "observe_only", Authorization: "observe_only", ProposedController: ProjectMixWorkflow, Reason: "runtime capacity route"})
+	if err != nil || observation.Controller != ProjectMixWorkflow {
+		t.Fatalf("runtime-routed project observation was rejected: %+v err=%v", observation, err)
 	}
 }
 

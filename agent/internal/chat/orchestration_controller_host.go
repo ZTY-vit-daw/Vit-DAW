@@ -29,6 +29,9 @@ func (s *Server) bindActiveOrchestrationController(conversationID string, reques
 		return requestContext
 	}
 	decision := orchestrationDecisionForOwner(owner)
+	if routed, ok := orchestrationControllerDecisionFromContext(requestContext); ok {
+		decision = routed
+	}
 	out := mergeContext(requestContext, map[string]any{
 		orchestrationDecisionContextKey: orchestrationControllerDecisionMap(decision),
 		orchestrationOwnerContextKey:    orchestrationControllerOwnerMap(owner),
@@ -54,6 +57,17 @@ func (s *Server) bindActiveOrchestrationController(conversationID string, reques
 		entry.Route, entry.ControlMode, entry.UserAuthorization = semanticEntryRouteOpenSemantic, semanticEntryControlSemanticLoop, semanticEntryAuthorizationAction
 	default:
 		return out
+	}
+	if route := s.previousCapabilityRoute("", conversationID); route.SchemaVersion == capabilityRouteSchema {
+		semantic := route.SemanticEntry
+		entry.Route = firstNonEmpty(firstStringFromMap(semantic, "route"), entry.Route)
+		entry.TargetScope = firstNonEmpty(firstStringFromMap(semantic, "target_scope"), entry.TargetScope)
+		entry.ControlMode = firstNonEmpty(firstStringFromMap(semantic, "control_mode"), entry.ControlMode)
+		entry.UserAuthorization = firstNonEmpty(firstStringFromMap(semantic, "user_authorization"), entry.UserAuthorization)
+		entry.Reason = firstNonEmpty(firstStringFromMap(semantic, "reason"), entry.Reason)
+		decision.SourceRoute, decision.Authorization = entry.Route, entry.UserAuthorization
+		out[orchestrationDecisionContextKey] = orchestrationControllerDecisionMap(decision)
+		out = contextWithCapabilityRoute(out, route)
 	}
 	out[semanticEntryVerifiedContextKey] = true
 	out[semanticEntryDecisionContextKey] = semanticEntryDecisionMap(entry)
@@ -114,7 +128,7 @@ func projectMixWorkflowV1Available(_ map[string]any) bool {
 	return false
 }
 
-func (s *Server) projectMixUnavailableResponse(conversationID, mode string, owner orchestrationcontroller.Owner) ChatResponse {
+func (s *Server) projectMixUnavailableResponse(conversationID, mode string, owner orchestrationcontroller.Owner, requestContext map[string]any) ChatResponse {
 	if s != nil && s.controllerOwners != nil {
 		if current, ok := s.controllerOwners.Active(conversationID); ok && current.ControllerID == owner.ControllerID {
 			if settled, err := s.controllerOwners.Settle(conversationID, owner.ControllerID, current.Revision, "capability_unavailable", time.Now().UTC()); err == nil {
@@ -124,12 +138,27 @@ func (s *Server) projectMixUnavailableResponse(conversationID, mode string, owne
 		}
 	}
 	decision := orchestrationDecisionForOwner(owner)
+	if routed, ok := orchestrationControllerDecisionFromContext(requestContext); ok {
+		decision = routed
+	}
+	entryPlan := firstMapFromAny(requestContext[capabilityEntryPlanContextKey])
+	stage := firstNonEmpty(firstStringFromMap(entryPlan, "stage"), "A2")
+	capabilityID := firstNonEmpty(firstStringFromMap(entryPlan, "capability_id"), "project_prep.technical_integrity.v0")
+	goalID := firstStringFromMap(requestContext, "goal_id")
+	if s != nil && s.harness != nil && goalID != "" {
+		s.harness.SetGoalStatus(goalID, agentruntime.StatusFailed, fmt.Errorf("project mix capability runtime is unavailable"))
+		s.persistCurrentProjectWorkspace()
+	}
 	return ChatResponse{
 		ConversationID: conversationID, AgentMode: mode,
-		Reply:      "已选择全工程固定混音控制器，但当前运行时没有注册可取得执行权的 ProjectMixWorkflow v1；没有降级到普通 MessageLoop，也没有修改工程。",
-		GoalStatus: string(agentruntime.StatusFailed), StopReason: "capability_unavailable",
+		TaskID: firstStringFromMap(requestContext, "task_id"), GoalID: goalID, RunID: firstStringFromMap(requestContext, "run_id"),
+		OriginalIntent: firstStringFromMap(requestContext, "original_intent"),
+		Reply:          fmt.Sprintf("工程结构容量评估已选择全工程固定混音能力层，入口为 %s（%s）；当前运行时尚未注册可取得执行权的 ProjectMixWorkflow v1，因此停在能力边界，没有降级到自由态，也没有修改工程。", stage, capabilityID),
+		GoalStatus:     string(agentruntime.StatusFailed), StopReason: "capability_unavailable",
 		Workflow: "project_mix_workflow", WorkflowData: map[string]any{
 			"status": "capability_unavailable", "mutation_performed": false,
+			capacityAssessmentContextKey: requestContext[capacityAssessmentContextKey], capabilityEntryPlanContextKey: requestContext[capabilityEntryPlanContextKey],
+			capabilityRouteContextKey:    requestContext[capabilityRouteContextKey],
 			orchestrationOwnerContextKey: orchestrationControllerOwnerMap(owner), orchestrationDecisionContextKey: orchestrationControllerDecisionMap(decision),
 		},
 	}

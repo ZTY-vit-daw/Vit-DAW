@@ -1,6 +1,7 @@
 // Package orchestrationcontroller selects and leases exactly one top-level
-// controller for a conversation. Selection is model-proposed and host-validated;
-// controllers may share lower layers but cannot concurrently own continuation.
+// controller for a conversation. A trusted host supplies the controller after
+// semantic classification and any required capacity assessment; controllers
+// may share lower layers but cannot concurrently own continuation.
 package orchestrationcontroller
 
 import (
@@ -97,8 +98,13 @@ func Validate(decision Decision, controlMode string) error {
 			return fmt.Errorf("treatment closure requires semantic-loop authorization")
 		}
 	case ProjectMixWorkflow:
-		if decision.SourceRoute != "open_semantic" || decision.TargetScope != "project_context" || mode != "semantic_loop" || decision.Authorization != "action_requested" {
-			return fmt.Errorf("project_mix_workflow requires an explicit full-project semantic request")
+		if decision.TargetScope != "project_context" {
+			return fmt.Errorf("project_mix_workflow requires project_context scope")
+		}
+		validTreatment := decision.SourceRoute == "open_semantic" && mode == "semantic_loop" && decision.Authorization == "action_requested"
+		validObservation := decision.SourceRoute == "observation" && mode == "observe_only" && decision.Authorization == "observe_only"
+		if !validTreatment && !validObservation {
+			return fmt.Errorf("project_mix_workflow requires a runtime-routed full-project observation or semantic request")
 		}
 	default:
 		return fmt.Errorf("unknown controller %q", decision.Controller)

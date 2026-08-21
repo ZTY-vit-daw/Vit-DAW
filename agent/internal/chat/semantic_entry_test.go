@@ -68,10 +68,10 @@ func TestSemanticEntryPlannerDoesNotInjectFamilyOrObservationHints(t *testing.T)
 	}
 }
 
-func TestSemanticEntryProjectMixProposalRequiresExplicitFixedWorkflowInvocation(t *testing.T) {
+func TestSemanticEntryNeverSelectsControllerForNaturalOrExplicitWorkflow(t *testing.T) {
 	serverHTTP := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		_, _ = w.Write([]byte(`{"choices":[{"message":{"content":"{\"schema_version\":\"semantic_entry_decision.v1\",\"route\":\"open_semantic\",\"controller\":\"project_mix_workflow\",\"target_scope\":\"project_context\",\"control_mode\":\"semantic_loop\",\"user_authorization\":\"action_requested\",\"confidence\":0.94,\"reason\":\"overall project mix\"}"}}]}`))
+		_, _ = w.Write([]byte(`{"choices":[{"message":{"content":"{\"schema_version\":\"semantic_entry_decision.v1\",\"route\":\"open_semantic\",\"target_scope\":\"project_context\",\"control_mode\":\"semantic_loop\",\"user_authorization\":\"action_requested\",\"confidence\":0.94,\"reason\":\"overall project mix\"}"}}]}`))
 	}))
 	defer serverHTTP.Close()
 	server := &Server{llm: &llm.Client{HTTPClient: serverHTTP.Client()}}
@@ -79,13 +79,20 @@ func TestSemanticEntryProjectMixProposalRequiresExplicitFixedWorkflowInvocation(
 
 	natural, err := server.planSemanticEntry(context.Background(), "conversation-natural",
 		"检查完整工程的整体混音，并处理有足够证据的问题", nil, cfg)
-	if err != nil || natural.Controller != "minimal_audio_closure" {
-		t.Fatalf("natural project request was not admitted to minimal closure: decision=%+v err=%v", natural, err)
+	if err != nil || natural.Controller != "" {
+		t.Fatalf("semantic entry selected a controller before observation: decision=%+v err=%v", natural, err)
 	}
 	explicit, err := server.planSemanticEntry(context.Background(), "conversation-fixed",
 		"请运行 ProjectMix 固定工作流", nil, cfg)
-	if err != nil || explicit.Controller != "project_mix_workflow" {
-		t.Fatalf("explicit fixed workflow invocation was not preserved: decision=%+v err=%v", explicit, err)
+	if err != nil || explicit.Controller != "" {
+		t.Fatalf("semantic entry selected a controller for an explicit workflow request: decision=%+v err=%v", explicit, err)
+	}
+}
+
+func TestSemanticEntryRejectsModelSelectedController(t *testing.T) {
+	withController := `{"schema_version":"semantic_entry_decision.v1","route":"open_semantic","controller":"project_mix_workflow","target_scope":"project_context","control_mode":"semantic_loop","user_authorization":"action_requested","confidence":0.9,"reason":"model chose workflow"}`
+	if _, err := decodeSemanticEntryDecision(withController, []string{semanticEntryScopeNone, semanticEntryScopeProjectContext}); err == nil || !strings.Contains(err.Error(), "controller") {
+		t.Fatalf("model-selected controller was accepted: %v", err)
 	}
 }
 

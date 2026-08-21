@@ -581,7 +581,8 @@ func (s *Server) audioClosureResponse(conversationID, mode string, state audiocl
 		status = agentruntime.StatusFailed
 	}
 	resp := ChatResponse{
-		ConversationID: conversationID, GoalID: firstNonEmpty(base.GoalID, state.GoalID), RunID: firstNonEmpty(base.RunID, state.RunID),
+		ConversationID: conversationID, TaskID: base.TaskID, GoalID: firstNonEmpty(base.GoalID, state.GoalID), RunID: firstNonEmpty(base.RunID, state.RunID),
+		SliceID: base.SliceID, TurnID: base.TurnID, OriginalIntent: firstNonEmpty(base.OriginalIntent, state.OriginalIntent),
 		AgentMode: mode, Reply: reply, GoalStatus: string(status), StopReason: string(state.Settlement.Reason), Workflow: "minimal_audio_closure",
 		WorkflowData: map[string]any{"schema_version": audioclosure.SchemaVersion, "status": "settled", "settlement": state.Settlement, "minimal_audio_closure": audioClosureStateMap(state), "mutation_performed": false},
 	}

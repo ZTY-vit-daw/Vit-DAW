@@ -54,29 +54,31 @@ const (
 // The nested continuation remains the exact planner/executor checkpoint while
 // the envelope owns scheduling, lease and recovery semantics.
 type DurableContinuation struct {
-	SchemaVersion      string                    `json:"schema_version"`
-	ContinuationID     string                    `json:"continuation_id"`
-	TaskID             string                    `json:"task_id"`
-	GoalID             string                    `json:"goal_id"`
-	ConversationID     string                    `json:"conversation_id"`
-	RunID              string                    `json:"run_id"`
-	CurrentSliceID     string                    `json:"current_slice_id"`
-	CurrentTurnID      string                    `json:"current_turn_id,omitempty"`
-	ProjectPath        string                    `json:"project_path,omitempty"`
-	ProjectUUID        string                    `json:"project_uuid,omitempty"`
-	ProjectSessionID   string                    `json:"project_session_id,omitempty"`
-	OriginalIntent     string                    `json:"original_intent"`
-	Continuation       agentloop.Continuation    `json:"continuation"`
-	ProjectRevision    string                    `json:"project_revision,omitempty"`
-	ProjectHistory     map[string]any            `json:"project_history,omitempty"`
-	PendingInteraction map[string]any            `json:"pending_interaction,omitempty"`
-	Status             DurableContinuationStatus `json:"status"`
-	Attempt            int                       `json:"attempt"`
-	LeaseOwner         string                    `json:"lease_owner,omitempty"`
-	LeaseExpiresAt     time.Time                 `json:"lease_expires_at,omitempty"`
-	LastError          string                    `json:"last_error,omitempty"`
-	CreatedAt          time.Time                 `json:"created_at"`
-	UpdatedAt          time.Time                 `json:"updated_at"`
+	SchemaVersion       string                       `json:"schema_version"`
+	ContinuationID      string                       `json:"continuation_id"`
+	TaskID              string                       `json:"task_id"`
+	GoalID              string                       `json:"goal_id"`
+	ConversationID      string                       `json:"conversation_id"`
+	RunID               string                       `json:"run_id"`
+	CurrentSliceID      string                       `json:"current_slice_id"`
+	CurrentTurnID       string                       `json:"current_turn_id,omitempty"`
+	ProjectPath         string                       `json:"project_path,omitempty"`
+	ProjectUUID         string                       `json:"project_uuid,omitempty"`
+	ProjectSessionID    string                       `json:"project_session_id,omitempty"`
+	OriginalIntent      string                       `json:"original_intent"`
+	Continuation        agentloop.Continuation       `json:"continuation"`
+	ProjectRevision     string                       `json:"project_revision,omitempty"`
+	ProjectHistory      map[string]any               `json:"project_history,omitempty"`
+	CapacityAssessment  *FreeStateCapacityAssessment `json:"capacity_assessment,omitempty"`
+	CapabilityEntryPlan *CapabilityEntryPlan         `json:"capability_entry_plan,omitempty"`
+	PendingInteraction  map[string]any               `json:"pending_interaction,omitempty"`
+	Status              DurableContinuationStatus    `json:"status"`
+	Attempt             int                          `json:"attempt"`
+	LeaseOwner          string                       `json:"lease_owner,omitempty"`
+	LeaseExpiresAt      time.Time                    `json:"lease_expires_at,omitempty"`
+	LastError           string                       `json:"last_error,omitempty"`
+	CreatedAt           time.Time                    `json:"created_at"`
+	UpdatedAt           time.Time                    `json:"updated_at"`
 }
 
 func continuationRunnableStatus(status DurableContinuationStatus) bool {
@@ -189,6 +191,8 @@ func durableContinuationFromResult(conversationID string, res agentloop.Result, 
 	if originalIntent == "" {
 		originalIntent = strings.TrimSpace(cont.OriginalIntent)
 	}
+	assessment := capacityAssessmentFromAny(cont.Context[capacityAssessmentContextKey])
+	entryPlan := capabilityEntryPlanFromAny(cont.Context[capabilityEntryPlanContextKey])
 	return DurableContinuation{
 		SchemaVersion:  continuationRuntimeSchema,
 		ContinuationID: continuationID,
@@ -200,15 +204,17 @@ func durableContinuationFromResult(conversationID string, res agentloop.Result, 
 		CurrentTurnID:  firstNonEmpty(res.TurnID, cont.TurnID),
 		OriginalIntent: originalIntent,
 		Continuation:   cont,
-		ProjectRevision: firstNonEmpty(
+		ProjectRevision: firstNonEmpty(capacityAssessmentRevision(assessment),
 			firstStringFromMap(cont.ProjectHistory, "project_revision", "head", "baseline_commit"),
 			firstStringFromMap(cont.ContextSnapshot, "project_revision"),
 			firstStringFromMap(cont.State, "project_revision"),
 		),
-		ProjectHistory: cloneContext(cont.ProjectHistory),
-		Status:         status,
-		CreatedAt:      now,
-		UpdatedAt:      now,
+		ProjectHistory:      cloneContext(cont.ProjectHistory),
+		CapacityAssessment:  assessment,
+		CapabilityEntryPlan: entryPlan,
+		Status:              status,
+		CreatedAt:           now,
+		UpdatedAt:           now,
 	}
 }
 
@@ -267,6 +273,12 @@ func normalizeRestoredDurableContinuation(mapKey string, item DurableContinuatio
 	item.ProjectUUID = firstNonEmpty(item.ProjectUUID, state.ProjectUUID)
 	if item.ProjectRevision == "" {
 		item.ProjectRevision = firstNonEmpty(firstStringFromMap(item.ProjectHistory, "project_revision", "head", "baseline_commit"), firstStringFromMap(item.Continuation.ContextSnapshot, "project_revision"))
+	}
+	if item.CapacityAssessment == nil {
+		item.CapacityAssessment = capacityAssessmentFromAny(item.Continuation.Context[capacityAssessmentContextKey])
+	}
+	if item.CapabilityEntryPlan == nil {
+		item.CapabilityEntryPlan = capabilityEntryPlanFromAny(item.Continuation.Context[capabilityEntryPlanContextKey])
 	}
 	if item.CreatedAt.IsZero() {
 		item.CreatedAt = now
@@ -769,6 +781,12 @@ func (s *Server) continuationRuntimeProjection() []map[string]any {
 		}
 		if len(item.PendingInteraction) > 0 {
 			row["pending_interaction"] = cloneContext(item.PendingInteraction)
+		}
+		if item.CapacityAssessment != nil {
+			row["capacity_assessment"] = *item.CapacityAssessment
+		}
+		if item.CapabilityEntryPlan != nil {
+			row["capability_entry_plan"] = *item.CapabilityEntryPlan
 		}
 		if item.LeaseOwner != "" {
 			row["lease_owner"] = item.LeaseOwner

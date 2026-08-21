@@ -212,7 +212,21 @@ func (s *Server) runAgentLoopChat(ctx context.Context, conversationID string, re
 			return semanticEntryUnresolvedResponse(conversationID, mode, &decision, nil), true
 		}
 		if err == nil {
+			var routingIdentity CapabilityRouteRecord
+			chatContext, routingIdentity = s.ensureCapabilityRoutingTask(userText, chatContext)
+			decision, routingIdentity, err = s.planObservationFirstCapabilityRoute(ctx, conversationID, userText, chatContext, decision, routingIdentity)
+			if err != nil {
+				return semanticEntryUnresolvedResponse(conversationID, mode, &decision, err), true
+			}
 			chatContext = contextWithSemanticEntryDecision(chatContext, decision)
+			chatContext = contextWithCapabilityRoute(chatContext, routingIdentity)
+		}
+	}
+	if !classificationRequired {
+		var refreshErr error
+		chatContext, refreshErr = s.refreshCapabilityRouteForRevision(ctx, conversationID, chatContext)
+		if refreshErr != nil {
+			return audioClosureControllerErrorResponse(conversationID, mode, refreshErr), true
 		}
 	}
 	chatContext, projectMixOwner, projectMixActive, projectMixErr := s.prepareProjectMixController(conversationID, chatContext)
@@ -220,7 +234,7 @@ func (s *Server) runAgentLoopChat(ctx context.Context, conversationID string, re
 		return audioClosureControllerErrorResponse(conversationID, mode, projectMixErr), true
 	}
 	if projectMixActive && !projectMixWorkflowV1Available(chatContext) {
-		return s.projectMixUnavailableResponse(conversationID, mode, projectMixOwner), true
+		return s.projectMixUnavailableResponse(conversationID, mode, projectMixOwner, chatContext), true
 	}
 	chatContext, audioClosure, audioClosureActive, closureErr := s.prepareAudioClosureContext(conversationID, userText, chatContext)
 	if closureErr != nil {
@@ -349,7 +363,7 @@ func (s *Server) runAgentLoopChat(ctx context.Context, conversationID string, re
 			res = messageLoop.Continue(ctx, cont)
 		}
 	} else {
-		goalID, runID := s.freshAgentLoopGoalIDs(req.Context)
+		goalID, runID := s.freshAgentLoopGoalIDs(chatContext)
 		projectPath := projectPathFromChatContext(chatContext)
 		projectHistory := s.harness.ProjectHistorySummaryForProject(ctx, goalID, projectPath)
 		state := s.harness.UserStateSummary(ctx)

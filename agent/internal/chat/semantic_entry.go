@@ -48,9 +48,11 @@ const (
 // Deliberately absent are processor family, plug-in identity, observation view,
 // parameter, path, and vendor/product fields.
 type semanticEntryDecision struct {
-	SchemaVersion     string  `json:"schema_version"`
-	Route             string  `json:"route"`
-	Controller        string  `json:"controller,omitempty"`
+	SchemaVersion string `json:"schema_version"`
+	Route         string `json:"route"`
+	// Controller is assigned only by the product runtime after project
+	// observation and capacity assessment. It is not part of the model schema.
+	Controller        string  `json:"-"`
 	TargetScope       string  `json:"target_scope"`
 	ControlMode       string  `json:"control_mode"`
 	UserAuthorization string  `json:"user_authorization"`
@@ -70,7 +72,7 @@ func semanticEntrySystemPrompt() string {
 Classify only the interaction the user is requesting. Do not choose a treatment method or processor.
 
 Return ONLY one semantic_entry_decision.v1 JSON object with exactly these fields:
-{"schema_version":"semantic_entry_decision.v1","route":"discussion|observation|explicit_control|open_semantic|other|unresolved","controller":"ordinary_conversation|direct_typed_action|minimal_audio_closure|project_mix_workflow|none","target_scope":"none|current_selection|project_context","control_mode":"none|observe_only|typed_control|semantic_loop|ordinary_agent","user_authorization":"none|observe_only|action_requested","confidence":0.0,"reason":"short auditable reason","rejection_reason":"required only for unresolved"}
+{"schema_version":"semantic_entry_decision.v1","route":"discussion|observation|explicit_control|open_semantic|other|unresolved","target_scope":"none|current_selection|project_context","control_mode":"none|observe_only|typed_control|semantic_loop|ordinary_agent","user_authorization":"none|observe_only|action_requested","confidence":0.0,"reason":"short auditable reason","rejection_reason":"required only for unresolved"}
 
 Route meanings:
 - discussion: the user wants explanation, comparison, reasoning, or advice without requesting an observation or project change.
@@ -84,13 +86,6 @@ Route meanings:
 - other: an ordinary Agent request outside acoustic treatment arbitration.
 - unresolved: the request is too ambiguous to classify safely.
 
-Controller meanings:
-- ordinary_conversation: discussion or an ordinary request outside acoustic closure.
-- direct_typed_action: an explicit concrete control operation.
-- minimal_audio_closure: diagnose or close one bounded acoustic problem, including a project-context problem that is not a request to run the complete mix workflow.
-- project_mix_workflow: only when the user explicitly invokes the fixed overall ProjectMix/Auto-Mix/Co-Mix workflow as a single staged capability. Do not select it merely because target_scope is project_context, the user asks about overall mix state, or the request may contain multiple evidence-grounded issues.
-- none: unresolved only.
-
 Protocol rules:
 - discussion uses control_mode=none and user_authorization=none.
 - observation uses control_mode=observe_only and user_authorization=observe_only.
@@ -98,14 +93,10 @@ Protocol rules:
 - open_semantic uses control_mode=semantic_loop and user_authorization=action_requested.
 - other uses control_mode=ordinary_agent and user_authorization=none or action_requested according to the user's request.
 - unresolved uses control_mode=none, user_authorization=none, and a non-empty rejection_reason.
-- discussion and other use controller=ordinary_conversation.
-- observation uses controller=minimal_audio_closure.
-- explicit_control uses controller=direct_typed_action.
-- open_semantic normally uses controller=minimal_audio_closure, including project-context inspection followed by autonomous evidence-grounded issue handling. It may use controller=project_mix_workflow only when the request explicitly invokes the fixed staged whole-project workflow with target_scope=project_context.
-- unresolved uses controller=none.
 - Use only a target_scope supplied in available_target_scopes. Use none when no target is required.
 - confidence is a number from 0 to 1. Use unresolved when confidence would be below 0.50.
 - Do not output or recommend any processor family, plug-in, vendor, product, observation view, control axis, parameter identifier, plug-in path, or implementation workflow.
+- Do not select a controller or capability layer. The product runtime observes project structure and owns that decision after this turn.
 - Do not infer an acoustic treatment family from words in the request. Family selection, if later needed, belongs to a separate model turn after model-selected observation.`
 }
 
@@ -151,7 +142,7 @@ func (s *Server) planSemanticEntry(ctx context.Context, conversationID, userText
 	}
 	decision, decodeErr := decodeSemanticEntryDecision(response.Text, scopes)
 	if decodeErr == nil {
-		return admitSemanticEntryController(userText, decision), nil
+		return decision, nil
 	}
 	request.Messages = append(request.Messages,
 		llm.Message{Role: "assistant", Content: response.Text},
@@ -165,21 +156,7 @@ func (s *Server) planSemanticEntry(ctx context.Context, conversationID, userText
 	if err != nil {
 		return semanticEntryDecision{}, fmt.Errorf("semantic entry remained invalid after repair: %w", err)
 	}
-	return admitSemanticEntryController(userText, decision), nil
-}
-
-// ProjectMixWorkflow is a fixed, project-wide capability, not the large-scope
-// spelling of an ordinary semantic closure. The model may propose it, but the
-// host admits that proposal only when the user explicitly names the fixed
-// workflow. This keeps controller selection stable across model sampling while
-// leaving acoustic-family and observation choices model-owned.
-func admitSemanticEntryController(userText string, decision semanticEntryDecision) semanticEntryDecision {
-	if decision.Controller != string(orchestrationcontroller.ProjectMixWorkflow) || explicitProjectMixInvocation(userText) {
-		return decision
-	}
-	decision.Controller = string(orchestrationcontroller.MinimalAudioClosure)
-	decision.Reason = "project-scoped semantic treatment without an explicit fixed ProjectMix/Auto-Mix/Co-Mix invocation"
-	return decision
+	return decision, nil
 }
 
 func explicitProjectMixInvocation(userText string) bool {
@@ -213,15 +190,11 @@ func decodeSemanticEntryDecision(text string, availableScopes []string) (semanti
 	}
 	decision.SchemaVersion = strings.TrimSpace(decision.SchemaVersion)
 	decision.Route = strings.ToLower(strings.TrimSpace(decision.Route))
-	decision.Controller = strings.ToLower(strings.TrimSpace(decision.Controller))
 	decision.TargetScope = strings.ToLower(strings.TrimSpace(decision.TargetScope))
 	decision.ControlMode = strings.ToLower(strings.TrimSpace(decision.ControlMode))
 	decision.UserAuthorization = strings.ToLower(strings.TrimSpace(decision.UserAuthorization))
 	decision.Reason = strings.TrimSpace(decision.Reason)
 	decision.RejectionReason = strings.TrimSpace(decision.RejectionReason)
-	if decision.Controller == "" {
-		decision.Controller = defaultSemanticEntryController(decision.Route)
-	}
 	if err := validateSemanticEntryDecision(decision, availableScopes); err != nil {
 		return semanticEntryDecision{}, err
 	}
@@ -285,13 +258,7 @@ func validateSemanticEntryDecision(decision semanticEntryDecision, availableScop
 		return fmt.Errorf("route %s requires a target scope", decision.Route)
 	}
 	if decision.Route == semanticEntryRouteUnresolved {
-		if decision.Controller != "none" {
-			return fmt.Errorf("unresolved requires controller=none")
-		}
 		return nil
-	}
-	if _, err := orchestrationControllerDecision(decision); err != nil {
-		return err
 	}
 	return nil
 }
@@ -310,6 +277,9 @@ func defaultSemanticEntryController(route string) string {
 }
 
 func orchestrationControllerDecision(decision semanticEntryDecision) (orchestrationcontroller.Decision, error) {
+	if strings.TrimSpace(decision.Controller) == "" {
+		return orchestrationcontroller.Decision{}, fmt.Errorf("controller has not been assigned by capacity routing")
+	}
 	return orchestrationcontroller.Select(orchestrationcontroller.SelectionInput{
 		SemanticRoute: decision.Route, TargetScope: decision.TargetScope, ControlMode: decision.ControlMode,
 		Authorization: decision.UserAuthorization, ProposedController: orchestrationcontroller.Kind(decision.Controller), Reason: decision.Reason,
@@ -319,7 +289,7 @@ func orchestrationControllerDecision(decision semanticEntryDecision) (orchestrat
 func semanticEntryDecisionMap(decision semanticEntryDecision) map[string]any {
 	out := map[string]any{
 		"schema_version": decision.SchemaVersion,
-		"route":          decision.Route, "controller": decision.Controller, "target_scope": decision.TargetScope,
+		"route":          decision.Route, "target_scope": decision.TargetScope,
 		"control_mode": decision.ControlMode, "user_authorization": decision.UserAuthorization,
 		"confidence": decision.Confidence, "reason": decision.Reason,
 	}
@@ -347,6 +317,9 @@ func contextWithoutUntrustedSemanticEntry(requestContext map[string]any) map[str
 	delete(out, orchestrationDecisionContextKey)
 	delete(out, "semantic_entry_route")
 	delete(out, "semantic_entry_unavailable")
+	delete(out, capacityAssessmentContextKey)
+	delete(out, capabilityRouteContextKey)
+	delete(out, capabilityEntryPlanContextKey)
 	delete(out, "durable_continuation")
 	delete(out, "durable_continuation_id")
 	return out
@@ -366,9 +339,6 @@ func semanticEntryDecisionFromContext(requestContext map[string]any) (semanticEn
 		ControlMode: firstStringFromMap(row, "control_mode"), UserAuthorization: firstStringFromMap(row, "user_authorization"),
 		Confidence: semanticEntryFloatValue(row["confidence"]), Reason: firstStringFromMap(row, "reason"),
 		RejectionReason: firstStringFromMap(row, "rejection_reason"),
-	}
-	if decision.Controller == "" {
-		decision.Controller = defaultSemanticEntryController(decision.Route)
 	}
 	if decision.SchemaVersion != semanticEntryDecisionSchema {
 		return semanticEntryDecision{}, false

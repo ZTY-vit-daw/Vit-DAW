@@ -634,36 +634,59 @@ func annotateTrackGroups(row map[string]any, groups []map[string]any) {
 
 func compactTrack(row map[string]any, userIndex int) map[string]any {
 	return map[string]any{
-		"user_track_index":     userIndex,
-		"is_user_visible":      true,
-		"id":                   firstPresent(row, "id", "track_id"),
-		"track_id":             firstPresent(row, "track_id", "id"),
-		"name":                 firstPresent(row, "name", "track_name"),
-		"track_name":           firstPresent(row, "track_name", "name"),
-		"type":                 firstPresent(row, "type", "track_type"),
-		"track_type":           firstPresent(row, "track_type", "type"),
-		"track_state_revision": row["track_state_revision"],
-		"is_audio_track":       row["is_audio_track"],
-		"mute":                 firstPresent(row, "mute", "muted"),
-		"solo":                 firstPresent(row, "solo", "is_solo"),
-		"is_armed":             firstPresent(row, "is_armed", "armed"),
-		"armed":                firstPresent(row, "armed", "is_armed"),
-		"volume_db":            firstPresent(row, "volume_db", "volumeDb"),
-		"fader_db":             firstPresent(row, "fader_db", "faderDb"),
-		"gain_db":              firstPresent(row, "gain_db", "gainDb"),
-		"pan":                  firstPresent(row, "pan", "pan_value", "panValue"),
-		"pan_value":            firstPresent(row, "pan_value", "panValue", "pan"),
-		"level_db":             firstPresent(row, "level_db", "levelDb", "peak_db", "peakDb", "meter_peak_db", "meter_level_db"),
-		"left_level_db":        firstPresent(row, "left_level_db", "leftLevelDb", "left_peak_db", "leftPeakDb", "level_l_db", "peak_l_db"),
-		"right_level_db":       firstPresent(row, "right_level_db", "rightLevelDb", "right_peak_db", "rightPeakDb", "level_r_db", "peak_r_db"),
-		"track_group_ids":      firstPresent(row, "track_group_ids", "group_ids"),
-		"group_ids":            firstPresent(row, "group_ids", "track_group_ids"),
-		"track_group_names":    firstPresent(row, "track_group_names", "group_names"),
-		"group_names":          firstPresent(row, "group_names", "track_group_names"),
-		"track_groups":         row["track_groups"],
-		"plugins":              row["plugins"],
-		"clips":                row["clips"],
-		"rack":                 row["rack"],
+		"user_track_index":      userIndex,
+		"is_user_visible":       true,
+		"id":                    firstPresent(row, "id", "track_id"),
+		"track_id":              firstPresent(row, "track_id", "id"),
+		"name":                  firstPresent(row, "name", "track_name"),
+		"track_name":            firstPresent(row, "track_name", "name"),
+		"type":                  firstPresent(row, "type", "track_type"),
+		"track_type":            firstPresent(row, "track_type", "type"),
+		"track_state_revision":  row["track_state_revision"],
+		"is_audio_track":        row["is_audio_track"],
+		"mute":                  firstPresent(row, "mute", "muted"),
+		"solo":                  firstPresent(row, "solo", "is_solo"),
+		"is_armed":              firstPresent(row, "is_armed", "armed"),
+		"armed":                 firstPresent(row, "armed", "is_armed"),
+		"volume_db":             firstPresent(row, "volume_db", "volumeDb"),
+		"fader_db":              firstPresent(row, "fader_db", "faderDb"),
+		"gain_db":               firstPresent(row, "gain_db", "gainDb"),
+		"pan":                   firstPresent(row, "pan", "pan_value", "panValue"),
+		"pan_value":             firstPresent(row, "pan_value", "panValue", "pan"),
+		"level_db":              firstPresent(row, "level_db", "levelDb", "peak_db", "peakDb", "meter_peak_db", "meter_level_db"),
+		"left_level_db":         firstPresent(row, "left_level_db", "leftLevelDb", "left_peak_db", "leftPeakDb", "level_l_db", "peak_l_db"),
+		"right_level_db":        firstPresent(row, "right_level_db", "rightLevelDb", "right_peak_db", "rightPeakDb", "level_r_db", "peak_r_db"),
+		"track_group_ids":       firstPresent(row, "track_group_ids", "group_ids"),
+		"group_ids":             firstPresent(row, "group_ids", "track_group_ids"),
+		"track_group_names":     firstPresent(row, "track_group_names", "group_names"),
+		"group_names":           firstPresent(row, "group_names", "track_group_names"),
+		"track_groups":          row["track_groups"],
+		"plugins":               row["plugins"],
+		"plugin_count":          structuralCollectionCount(firstPresent(row, "plugins", "rack_nodes")),
+		"automation_lane_count": structuralCollectionCount(firstPresent(row, "automation_lanes", "automation", "envelopes")),
+		"routing_edge_count":    structuralCollectionCount(firstPresent(row, "sends", "outputs", "routes", "routing")),
+		"clips":                 row["clips"],
+		"rack":                  row["rack"],
+	}
+}
+
+func structuralCollectionCount(value any) int {
+	switch typed := value.(type) {
+	case []any:
+		return len(typed)
+	case []map[string]any:
+		return len(typed)
+	case []string:
+		return len(typed)
+	case map[string]any:
+		return len(typed)
+	case string:
+		if strings.TrimSpace(typed) != "" {
+			return 1
+		}
+		return 0
+	default:
+		return 0
 	}
 }
 

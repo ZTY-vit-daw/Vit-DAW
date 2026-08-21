@@ -284,16 +284,15 @@ func TestProjectRuntimeSnapshotRestoresClosureAndControllerOwner(t *testing.T) {
 	}
 }
 
-func TestSemanticEntryProjectContextDoesNotImplicitlySelectProjectMix(t *testing.T) {
+func TestRuntimeControllerAssignmentIsRequiredAfterSemanticEntry(t *testing.T) {
 	available := []string{semanticEntryScopeNone, semanticEntryScopeProjectContext}
-	closureJSON := `{"schema_version":"semantic_entry_decision.v1","route":"open_semantic","controller":"minimal_audio_closure","target_scope":"project_context","control_mode":"semantic_loop","user_authorization":"action_requested","confidence":0.9,"reason":"one project-context acoustic issue"}`
+	closureJSON := `{"schema_version":"semantic_entry_decision.v1","route":"open_semantic","target_scope":"project_context","control_mode":"semantic_loop","user_authorization":"action_requested","confidence":0.9,"reason":"one project-context acoustic issue"}`
 	decision, err := decodeSemanticEntryDecision(closureJSON, available)
-	if err != nil || decision.Controller != string(orchestrationcontroller.MinimalAudioClosure) {
-		t.Fatalf("project-context closure rejected: %+v err=%v", decision, err)
+	if err != nil || decision.Controller != "" {
+		t.Fatalf("semantic classification unexpectedly assigned controller: %+v err=%v", decision, err)
 	}
-	projectJSON := `{"schema_version":"semantic_entry_decision.v1","route":"open_semantic","controller":"project_mix_workflow","target_scope":"project_context","control_mode":"semantic_loop","user_authorization":"action_requested","confidence":0.9,"reason":"explicit complete project mix workflow"}`
-	decision, err = decodeSemanticEntryDecision(projectJSON, available)
-	if err != nil || decision.Controller != string(orchestrationcontroller.ProjectMixWorkflow) {
-		t.Fatalf("explicit project workflow rejected: %+v err=%v", decision, err)
+	decision.Controller = string(orchestrationcontroller.MinimalAudioClosure)
+	if _, err := orchestrationControllerDecision(decision); err != nil {
+		t.Fatalf("runtime-assigned controller was rejected: %v", err)
 	}
 }

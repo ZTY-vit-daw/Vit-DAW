@@ -69,6 +69,7 @@ type Server struct {
 	mixSessions                        map[string]MixSession
 	goalContinuations                  map[string]agentloop.Continuation
 	durableContinuations               map[string]DurableContinuation
+	capabilityRoutes                   map[string]CapabilityRouteRecord
 	schedulerCtx                       context.Context
 	schedulerCancel                    context.CancelFunc
 	schedulerOnce                      sync.Once
@@ -129,6 +130,7 @@ type projectAgentRuntimeState struct {
 	MixSessions          map[string]MixSession                        `json:"mix_sessions,omitempty"`
 	GoalContinuations    map[string]agentloop.Continuation            `json:"goal_continuations,omitempty"`
 	DurableContinuations map[string]DurableContinuation               `json:"durable_continuations,omitempty"`
+	CapabilityRoutes     map[string]CapabilityRouteRecord             `json:"capability_routes,omitempty"`
 	ConversationGoals    map[string]string                            `json:"conversation_goals,omitempty"`
 	ConversationMemory   map[string]agentloop.ExecutionMemory         `json:"conversation_memory,omitempty"`
 	PendingMixTicks      map[string]agentloop.PendingMixTickCandidate `json:"pending_mix_ticks,omitempty"`
@@ -464,6 +466,7 @@ func New(kernelClient *kernel.Client, shadowProject *shadow.Project, logger *log
 		mixSessions:                      map[string]MixSession{},
 		goalContinuations:                map[string]agentloop.Continuation{},
 		durableContinuations:             map[string]DurableContinuation{},
+		capabilityRoutes:                 map[string]CapabilityRouteRecord{},
 		schedulerWake:                    make(chan struct{}, 1),
 		schedulerDone:                    make(chan struct{}),
 		schedulerOwner:                   "scheduler_" + randomID(),
@@ -665,16 +668,17 @@ func (s *Server) handleRuntimeStatus(w http.ResponseWriter, r *http.Request) {
 	goal := s.harness.RuntimeStatus("")
 	_, checkoutBlocked := s.harness.CheckoutBlocked()
 	writeJSON(w, http.StatusOK, map[string]any{
-		"status":           "ok",
-		"service":          "VitAgent",
-		"pid":              os.Getpid(),
-		"checked_at":       time.Now().Format(time.RFC3339Nano),
-		"kernel":           kernelStatus,
-		"shadow":           runtimeShadowStatus(s.harness.StateSummary(shadowCtx)),
-		"goal":             goal,
-		"continuations":    s.continuationRuntimeProjection(),
-		"authority_mode":   s.authorityModeSnapshot(),
-		"checkout_blocked": checkoutBlocked,
+		"status":            "ok",
+		"service":           "VitAgent",
+		"pid":               os.Getpid(),
+		"checked_at":        time.Now().Format(time.RFC3339Nano),
+		"kernel":            kernelStatus,
+		"shadow":            runtimeShadowStatus(s.harness.StateSummary(shadowCtx)),
+		"goal":              goal,
+		"continuations":     s.continuationRuntimeProjection(),
+		"capability_routes": s.capabilityRouteProjection(),
+		"authority_mode":    s.authorityModeSnapshot(),
+		"checkout_blocked":  checkoutBlocked,
 	})
 }
 
@@ -6536,6 +6540,7 @@ func (s *Server) projectAgentRuntimeStateLocked() projectAgentRuntimeState {
 		MixSessions:          s.mixSessions,
 		GoalContinuations:    s.goalContinuations,
 		DurableContinuations: s.durableContinuations,
+		CapabilityRoutes:     s.capabilityRoutes,
 		ConversationGoals:    s.conversationGoals,
 		ConversationMemory:   s.conversationMemory,
 		PendingMixTicks:      s.pendingMixTicks,
@@ -6569,6 +6574,7 @@ func (s *Server) restoreProjectAgentRuntimeStateLocked(state projectAgentRuntime
 	legacyGoalContinuations := nonNilMap(state.GoalContinuations)
 	s.goalContinuations = map[string]agentloop.Continuation{}
 	s.durableContinuations = nonNilMap(state.DurableContinuations)
+	s.capabilityRoutes = restoreCapabilityRoutes(state.CapabilityRoutes)
 	s.conversationGoals = nonNilMap(state.ConversationGoals)
 	if s.durableContinuations == nil {
 		s.durableContinuations = map[string]DurableContinuation{}
@@ -6579,6 +6585,7 @@ func (s *Server) restoreProjectAgentRuntimeStateLocked(state projectAgentRuntime
 		id, normalized := normalizeRestoredDurableContinuation(continuationID, item, state, now)
 		normalizedContinuations[id] = normalized
 	}
+	normalizedContinuations = reconcileDurableCapabilityRoutes(normalizedContinuations, s.capabilityRoutes)
 	s.durableContinuations = reconcileRestoredContinuations(normalizedContinuations)
 	latestByGoal := map[string]DurableContinuation{}
 	for _, normalized := range s.durableContinuations {
