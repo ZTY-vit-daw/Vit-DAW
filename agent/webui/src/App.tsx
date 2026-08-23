@@ -124,6 +124,7 @@ import type {
 } from "./types";
 
 const WEBUI_BUILD_MARK = "vit-confirmation-consumption-v1-20260801";
+const readonlyAuditMode = import.meta.env.VITE_READONLY_AUDIT === "1";
 
 console.info(`[VitWebUI] loaded ${WEBUI_BUILD_MARK}`);
 
@@ -7895,6 +7896,9 @@ function MediaPane({
   }, [onRefresh, onSelectArtifact]);
 
   useEffect(() => {
+    if (readonlyAuditMode) {
+      return;
+    }
     let cancelled = false;
     const wait = (ms: number) => new Promise<void>((resolve) => window.setTimeout(resolve, ms));
     const watchLoop = async () => {

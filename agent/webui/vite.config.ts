@@ -8,8 +8,8 @@ export default defineConfig({
     port: 5178,
     strictPort: false,
     proxy: {
-      "/agent": "http://127.0.0.1:7878",
-      "/health": "http://127.0.0.1:7878"
+      "/agent": process.env.VITE_AGENT_PROXY ?? "http://127.0.0.1:7878",
+      "/health": process.env.VITE_AGENT_PROXY ?? "http://127.0.0.1:7878"
     }
   }
 });
