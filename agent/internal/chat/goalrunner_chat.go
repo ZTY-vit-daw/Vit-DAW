@@ -2388,6 +2388,7 @@ func (s *Server) recordGoalResult(conversationID string, res agentloop.Result) e
 			})
 		}
 	}
+	autoContinuationBudgetExhausted := false
 	if res.Continuation != nil {
 		durable := durableContinuationFromResult(conversationID, res, time.Now().UTC())
 		res.Continuation.ContinuationID = durable.ContinuationID
@@ -2429,6 +2430,57 @@ func (s *Server) recordGoalResult(conversationID string, res agentloop.Result) e
 				parent.LeaseExpiresAt = time.Time{}
 				parent.UpdatedAt = durable.UpdatedAt
 				s.durableContinuations[parentID] = cloneDurableContinuation(parent)
+			}
+		}
+		if durable.Status == ContinuationPending && strings.TrimSpace(conversationID) != "" {
+			if loop, exists := s.freeStateLoops[conversationID]; exists && freeStateLoopActive(loop) {
+				loop.ContinuationUsed++
+				if loop.ContinuationBudget <= 0 {
+					loop.ContinuationBudget = loop.MaxCycles
+					if loop.ContinuationBudget <= 0 {
+						loop.ContinuationBudget = freeStateDefaultMaxCycles
+					}
+				}
+				// Allow exactly continuation_budget resumes: the n-th enqueue
+				// with used == budget is still legal, the (n+1)-th is not.
+				if loop.ContinuationUsed > loop.ContinuationBudget {
+					// waiting_continue is an internally bounded state (ADR §10):
+					// once the cross-slice budget is spent the loop must stop
+					// rescheduling itself and settle with a queryable cause.
+					now := time.Now().UTC()
+					loop.Status = "blocked"
+					loop.LastError = fmt.Sprintf("free-state reasoning exhausted its %d-continuation budget", loop.ContinuationBudget)
+					loop.LatestDecision = &agentloop.FreeStateDecision{
+						SchemaVersion:  agentloop.FreeStateDecisionSchema,
+						Status:         agentloop.FreeStateBlocked,
+						EvidenceStatus: "insufficient",
+						Summary:        "The free-state reasoning loop exhausted its bounded continuation budget; the evidence gathered so far is preserved but no further automatic continuation was started.",
+						StopReason:     freeStateContinuationBudgetExhaustedReason,
+						Limitations:    []string{loop.LastError},
+					}
+					loop.UpdatedAt = now
+					s.freeStateLoops[conversationID] = loop
+					durable.Status = ContinuationCompleted
+					durable.LeaseOwner = ""
+					durable.LeaseExpiresAt = time.Time{}
+					durable.UpdatedAt = now
+					autoContinuationBudgetExhausted = true
+					// Includes the just-stored copy of this item: the map write
+					// above already captured its pending status.
+					for continuationID, other := range s.durableContinuations {
+						if other.GoalID != durable.GoalID ||
+							(other.Status != ContinuationPending && other.Status != ContinuationClaimed && other.Status != ContinuationRunning) {
+							continue
+						}
+						other.Status = ContinuationCompleted
+						other.LeaseOwner = ""
+						other.LeaseExpiresAt = time.Time{}
+						other.UpdatedAt = now
+						s.durableContinuations[continuationID] = cloneDurableContinuation(other)
+					}
+				} else {
+					s.freeStateLoops[conversationID] = loop
+				}
 			}
 		}
 		autoContinuation = durable.Status == ContinuationPending
@@ -2483,6 +2535,11 @@ func (s *Server) recordGoalResult(conversationID string, res agentloop.Result) e
 	}
 	if autoContinuation {
 		s.wakeContinuationScheduler()
+	}
+	if autoContinuationBudgetExhausted && s.harness != nil {
+		// The budget stop must be visible through the runtime interface: the
+		// goal settles instead of staying waiting_continue forever.
+		s.harness.SetGoalStatus(res.GoalID, agentruntime.StatusCompleted, nil)
 	}
 	for _, pendingEvent := range pendingEvents {
 		s.emitAgentEvent(conversationID, pendingEvent)

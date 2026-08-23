@@ -83,6 +83,7 @@ func (d *candidateDriverForTest) RequestObservation(_ context.Context, _ freeSta
 	summary := map[string]any{"status": "ready", "observation_id": "obs-adoption", "requested_views": []any{"track.timbre_frequency"}, "actual_executed_view_ids": []any{"track.timbre_frequency"}, "evidence_refs": []any{"obs-adoption"}, "audit_receipt": map[string]any{"view_set_matches": true, "actual_executed_view_ids": []any{"track.timbre_frequency"}, "freshness": map[string]any{"status": "fresh"}}}
 	return summary, &agentloop.RecentObservation{Tool: "ccb.observation_request", Status: "ready", ToolCallID: "obs-adoption", Summary: summary}, nil
 }
+
 // auditionProjectPathForTest keeps project references absolute so history
 // writes land inside the test's temp workspace instead of the package dir.
 func auditionProjectPathForTest(t *testing.T) string {

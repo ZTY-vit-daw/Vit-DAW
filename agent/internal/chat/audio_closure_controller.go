@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"sort"
 	"strings"
 	"time"
 
@@ -236,7 +237,14 @@ func audioClosureSourceRoute(mode audioclosure.Mode) string {
 }
 
 func bindAudioClosureContext(requestContext map[string]any, state audioclosure.State) map[string]any {
-	out := mergeContext(requestContext, map[string]any{audioClosureContextKey: audioClosureStateMap(state)})
+	bound := map[string]any{audioClosureContextKey: audioClosureStateMap(state)}
+	// The FS phase truth lives on the closure; expose it under the dedicated
+	// context key so agentloop's phase-aware decision check consumes the same
+	// source as minimal_audio_closure.phase.
+	if phase, ok := audioclosure.ParsePhase(string(state.Phase)); ok {
+		bound["free_state_phase"] = string(phase)
+	}
+	out := mergeContext(requestContext, bound)
 	if _, ok := orchestrationControllerDecisionFromContext(out); !ok {
 		decision := orchestrationcontroller.Decision{
 			SchemaVersion: orchestrationcontroller.DecisionSchema, Controller: orchestrationcontroller.MinimalAudioClosure,
@@ -330,6 +338,10 @@ func (s *Server) admitAudioClosureRound(state audioclosure.State) (audioclosure.
 		}
 		s.persistCurrentProjectWorkspace()
 	}
+	// Round boundary: enter/advance the FS phase machine from closure facts
+	// (binding at FS1; later phases advance on the record boundary where the
+	// capacity/observation evidence exists).
+	next = s.advanceAudioClosurePhase(next, audioclosure.PhaseGuardEvidence{})
 	if next.Terminal() {
 		s.settleAudioClosureOwner(next)
 	}
@@ -445,6 +457,22 @@ func (s *Server) recordAudioClosureRound(state audioclosure.State, res agentloop
 		current = audioClosureSettleFromResult(driver, current, res)
 	}
 	if !current.Terminal() && current.RoundInProgress {
+		// Round close boundary: advance the FS spine from the evidence this
+		// round produced, then persist the diagnostic round record (the G4
+		// data source) before closing the round.
+		evidence := audioclosure.PhaseGuardEvidence{
+			CapacityAssessed: s.audioClosureCapacityAssessedForConversation(requestContext, current.ConversationID),
+		}
+		advanced, advanceErr := advancePhaseState(current, evidence)
+		if advanceErr != nil && s.logger != nil {
+			s.logger.Warn("[audio-closure] phase advance failed for %s at %s: %v", current.ClosureID, current.Phase, advanceErr)
+		}
+		current = advanced
+		if record, ok := audioClosureRoundRecord(current); ok {
+			if recorded, err := driver.RecordDiagnosticRound(current, current.Revision, record, time.Now().UTC()); err == nil {
+				current = recorded
+			}
+		}
 		next, err := driver.CompleteRound(current, current.Revision, time.Now().UTC())
 		if err != nil {
 			return current, err
@@ -466,6 +494,9 @@ func (s *Server) recordAudioClosureRound(state audioclosure.State, res agentloop
 		}
 		s.persistCurrentProjectWorkspace()
 	}
+	// Mirror the (possibly advanced) spine into the loop snapshot so the
+	// scheduler-driven progression is observable at the runtime interface.
+	s.syncFreeStateSpine(current)
 	if current.Terminal() {
 		s.settleAudioClosureOwner(current)
 	}
@@ -489,6 +520,34 @@ func (s *Server) settleTaskAtAudioClosureBoundary(state audioclosure.State, reas
 	if state.ContractID == "" {
 		return state, nil
 	}
+	// A free-state capacity route with an open diagnostic queue is a bounded
+	// continuation point, not a capability terminal.  In particular, the
+	// legacy no-pending-mix-tick boundary must not collapse FS2/FS3 into
+	// capability_blocked while the runtime still owns free-state observation.
+	queueOpenWithinCapacity := s.freeStateQueueStillOpenWithinCapacity(state.ConversationID)
+	if queueOpenWithinCapacity {
+		// An open queue is normally a continuation point. Once the explicit
+		// continuation budget is exhausted, the open-intent contract requires a
+		// bounded no-candidate conclusion rather than an empty non-terminal
+		// response or a fabricated capability boundary.
+		loop, ok := s.freeStateLoop(state.ConversationID)
+		if !ok || !freeStateContinuationBudgetExhausted(loop) {
+			return state, nil
+		}
+	}
+	stopReason := audioclosure.StopCapabilityBlocked
+	if queueOpenWithinCapacity {
+		stopReason = audioclosure.StopNoCandidateFound
+	}
+	if audioclosure.IsFSPhase(state.Phase) && state.Phase != audioclosure.PhaseFS9Terminal {
+		terminal, err := (audioclosure.Driver{}).TransitionPhase(state, state.Revision, audioclosure.PhaseFS9Terminal,
+			audioclosure.PhaseGuardInput{TerminalStopReason: string(stopReason)},
+			"explicit capability boundary", time.Now().UTC())
+		if err != nil {
+			return state, err
+		}
+		state = terminal
+	}
 	goal := s.harness.RuntimeStatus(state.GoalID)
 	if goal.Task == nil || goal.Task.SemanticState == nil {
 		return state, fmt.Errorf("closure boundary has no canonical task state")
@@ -503,6 +562,9 @@ func (s *Server) settleTaskAtAudioClosureBoundary(state audioclosure.State, reas
 	// semantic decision applied by applyFreeStateDecisionSemantic; absence of a
 	// projected frontier is not evidence that no candidate exists.
 	event := taskstate.EventCapabilityBlocked
+	if queueOpenWithinCapacity {
+		event = taskstate.EventNoCandidateReported
+	}
 	if _, err := s.transitionTaskSemantic(state.GoalID, taskstate.TransitionRequest{
 		Event: event, Reason: reason, Summary: reason, EvidenceRefs: evidence, ProjectRevision: state.ProjectRevision,
 	}); err != nil {
@@ -512,11 +574,33 @@ func (s *Server) settleTaskAtAudioClosureBoundary(state audioclosure.State, reas
 	if err != nil {
 		return state, err
 	}
-	next = audioClosureSettleFromResult(audioclosure.Driver{}, next, agentloop.Result{Reply: reason})
+	next = audioClosureSettleFromResult(audioclosure.Driver{}, next, agentloop.Result{Reply: reason, StopReason: string(stopReason)})
 	if !next.Terminal() {
 		return state, fmt.Errorf("canonical closure boundary did not produce a terminal projection")
 	}
 	return next, nil
+}
+
+func (s *Server) freeStateQueueStillOpenWithinCapacity(conversationID string) bool {
+	if s == nil || strings.TrimSpace(conversationID) == "" {
+		return false
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	var route CapabilityRouteRecord
+	for _, candidate := range s.capabilityRoutes {
+		if candidate.ConversationID == conversationID &&
+			(candidate.UpdatedAt.After(route.UpdatedAt) || route.SchemaVersion == "") {
+			route = candidate
+		}
+	}
+	if route.Assessment == nil ||
+		!strings.EqualFold(strings.TrimSpace(route.Assessment.CapacityLevel), "within_free_state") ||
+		!strings.EqualFold(strings.TrimSpace(route.Assessment.SelectedCapability), "free_state") {
+		return false
+	}
+	loop, ok := s.freeStateLoops[conversationID]
+	return ok && loop.PriorityQueue != nil && loop.PriorityQueue.HasOpen()
 }
 
 func audioClosureAuthoritativeProjectChangeID(requestContext map[string]any) string {
@@ -549,9 +633,12 @@ func audioClosureObservationKey(state audioclosure.State, observation *agentloop
 	}
 	targetRef := firstNonEmpty(firstStringFromMap(firstMapFromAny(summary["target_ref"]), "id", "target_id", "track_id"), state.Scope.ID)
 	return audioclosure.ObservationKey{
-		ProjectUUID:     state.ProjectUUID,
-		ProjectRevision: firstNonEmpty(firstStringFromMap(summary, "project_revision", "project_state_revision", "state_token"), state.ProjectRevision),
-		Scope:           state.Scope, TargetRef: targetRef, ViewIDs: viewIDs,
+		ProjectUUID: state.ProjectUUID,
+		ProjectRevision: firstNonEmpty(
+			firstStringFromMap(summary, "project_revision", "project_state_revision", "state_token"),
+			firstStringFromMap(firstMapFromAny(summary["project_binding"]), "project_revision"),
+			state.ProjectRevision),
+		Scope: state.Scope, TargetRef: targetRef, ViewIDs: viewIDs,
 		ObservationMode: firstNonEmpty(firstStringFromMap(summary, "observation_mode", "mode"), observation.Tool, observation.CommandName),
 		Tap:             firstNonEmpty(firstStringFromMap(summary, "tap", "tap_point", "measurement_tap"), firstStringFromMap(requestContext, "tap", "observation_tap")),
 		TimeWindow:      firstNonEmpty(firstStringFromMap(summary, "time_window", "window_ref", "range_ref"), firstStringFromMap(requestContext, "time_window", "observation_window")),
@@ -824,6 +911,11 @@ func (s *Server) audioClosureResponse(conversationID, mode string, state audiocl
 	} else if base.GoalID != "" {
 		s.clearGoalContinuation(base.GoalID)
 	}
+	s.settleFreeStateLoopFromClosure(conversationID, *state.Settlement)
+	// The closure is the phase host. Mirror its terminal FS9 state before the
+	// response is projected so the durable loop and runtime row cannot retain
+	// the pre-settlement FS2/FS4 phase.
+	s.syncFreeStateSpine(state)
 	reply := audioClosureSettlementReply(state.Settlement)
 	status := agentruntime.StatusCompleted
 	if state.Settlement.NeedsUserClarification {
@@ -1044,4 +1136,155 @@ func audioClosureSettlementReply(settlement *audioclosure.Settlement) string {
 		}
 		return "本次声学闭环已结束；没有启动额外观察或工程修改。"
 	}
+}
+
+// audioClosureCapacityAssessed derives the FS2 guard from the capacity
+// routing assessment: the request context first, then the server's durable
+// capability route record (scheduler-driven turns do not carry the request
+// context of the original HTTP turn).
+func audioClosureCapacityAssessed(requestContext map[string]any) bool {
+	assessment := firstMapFromAny(requestContext["free_state_capacity_assessment"])
+	if len(assessment) == 0 {
+		return false
+	}
+	if strings.EqualFold(strings.TrimSpace(firstStringFromMap(assessment, "capacity_level")), "exceeds_free_state") {
+		return false
+	}
+	return strings.TrimSpace(firstStringFromMap(assessment, "selected_capability")) != ""
+}
+
+func (s *Server) audioClosureCapacityAssessedForConversation(requestContext map[string]any, conversationID string) bool {
+	if audioClosureCapacityAssessed(requestContext) {
+		return true
+	}
+	if s == nil {
+		return false
+	}
+	s.mu.Lock()
+	var record CapabilityRouteRecord
+	for _, candidate := range s.capabilityRoutes {
+		if candidate.ConversationID == conversationID &&
+			(candidate.UpdatedAt.After(record.UpdatedAt) || record.SchemaVersion == "") {
+			record = candidate
+		}
+	}
+	s.mu.Unlock()
+	if record.SchemaVersion == "" || record.Assessment == nil {
+		return false
+	}
+	assessment := record.Assessment
+	if strings.EqualFold(strings.TrimSpace(assessment.CapacityLevel), "exceeds_free_state") {
+		return false
+	}
+	return strings.TrimSpace(assessment.SelectedCapability) != ""
+}
+
+// advancePhaseState computes the FS spine advancement without persisting:
+// callers that accumulate further events before their own save must use this
+// variant to avoid a revision conflict against the store.
+func advancePhaseState(current audioclosure.State, evidence audioclosure.PhaseGuardEvidence) (audioclosure.State, error) {
+	next, err := (audioclosure.Driver{}).AdvancePhase(current, current.Revision, evidence, time.Now().UTC())
+	if err != nil {
+		return current, err
+	}
+	return next, nil
+}
+
+// advanceAudioClosurePhase drives the FS phase machine at closure round
+// boundaries and persists the result. Guard inputs are derived from the
+// closure State itself plus the non-State evidence struct; the caller never
+// self-asserts binding, scan, queue, frontier, or target evidence.
+func (s *Server) advanceAudioClosurePhase(current audioclosure.State, evidence audioclosure.PhaseGuardEvidence) audioclosure.State {
+	if s == nil || s.audioClosures == nil || current.Terminal() || current.ClosureID == "" {
+		return current
+	}
+	next, advanceErr := advancePhaseState(current, evidence)
+	if advanceErr != nil && s.logger != nil {
+		s.logger.Warn("[audio-closure] phase advance failed for %s at %s: %v", current.ClosureID, current.Phase, advanceErr)
+	}
+	if next.Revision == current.Revision {
+		return current
+	}
+	if err := s.audioClosures.Save(next, current.Revision); err != nil {
+		return current
+	}
+	s.syncFreeStateSpine(next)
+	s.persistCurrentProjectWorkspace()
+	return next
+}
+
+// audioClosureRoundRecord derives the diagnostic round record for the round
+// that is about to close, from the observations recorded in that round.
+func audioClosureRoundRecord(state audioclosure.State) (audioclosure.DiagnosticRoundRecord, bool) {
+	views := map[string]bool{}
+	usable := false
+	for _, record := range state.Observations {
+		if record.Round != state.RoundsStarted {
+			continue
+		}
+		for _, viewID := range record.ViewIDs {
+			views[viewID] = true
+		}
+		usable = true
+	}
+	if len(views) == 0 {
+		return audioclosure.DiagnosticRoundRecord{}, false
+	}
+	// Pick the primary dimension whose allowed views cover the observed set;
+	// primary-view hits win over supporting-view hits.
+	primary := audioclosure.DiagnosticDimension("")
+	for _, dim := range audioclosure.DefaultDimensionOrder {
+		allowed := audioclosure.ValidDimensionViews(dim)
+		hit := false
+		for viewID := range views {
+			for _, candidate := range allowed {
+				if candidate == viewID {
+					hit = true
+					break
+				}
+			}
+		}
+		if !hit {
+			continue
+		}
+		if primary == "" {
+			primary = dim
+		}
+		if len(views) == 1 {
+			for _, candidate := range audioclosure.DimensionPrimaryViews(dim) {
+				if views[candidate] {
+					primary = dim
+				}
+			}
+		}
+	}
+	if primary == "" {
+		// Cross-dimension supporting views (project.change_delta,
+		// comparison.before_after, ...) support no primary dimension alone.
+		return audioclosure.DiagnosticRoundRecord{}, false
+	}
+	digest := sha256.Sum256([]byte(fmt.Sprintf("%s|%d|%s", state.ClosureID, state.RoundsStarted, state.ProjectRevision)))
+	status := audioclosure.RoundEvidenceOpen
+	if usable {
+		status = audioclosure.RoundEvidenceReady
+	}
+	return audioclosure.DiagnosticRoundRecord{
+		SchemaVersion: audioclosure.DiagnosticRoundSchema,
+		RoundID:       "r_" + hex.EncodeToString(digest[:6]),
+		GoalID:        state.GoalID, RunID: state.RunID, ConversationID: state.ConversationID,
+		PrimaryDimension: primary,
+		PriorityReason:   audioclosure.PriorityDefaultOrder,
+		ViewsRequested:   sortedMapKeys(views),
+		EvidenceStatus:   status,
+		ProjectRevision:  state.ProjectRevision,
+	}, true
+}
+
+func sortedMapKeys(values map[string]bool) []string {
+	out := make([]string, 0, len(values))
+	for key := range values {
+		out = append(out, key)
+	}
+	sort.Strings(out)
+	return out
 }

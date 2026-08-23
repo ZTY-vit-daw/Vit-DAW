@@ -12,20 +12,22 @@ import (
 type EventType string
 
 const (
-	EventStarted                EventType = "closure_started"
-	EventRoundStarted           EventType = "round_started"
-	EventObservationRecorded    EventType = "observation_recorded"
-	EventProjectChangeRecorded  EventType = "project_change_recorded"
-	EventProjectRevisionChanged EventType = "project_revision_changed"
-	EventFrontierUpdated        EventType = "frontier_updated"
-	EventRoundCompleted         EventType = "round_completed"
-	EventProtocolRepairRecorded EventType = "model_protocol_repair_recorded"
-	EventCapabilityStarted      EventType = "capability_started"
-	EventCapabilitySettled      EventType = "capability_settled"
-	EventRollbackStarted        EventType = "rollback_started"
-	EventTaskStateProjected     EventType = "task_state_projected"
-	EventPolicyExtended         EventType = "closure_policy_extended"
-	EventSettled                EventType = "closure_settled"
+	EventStarted                 EventType = "closure_started"
+	EventRoundStarted            EventType = "round_started"
+	EventObservationRecorded     EventType = "observation_recorded"
+	EventProjectChangeRecorded   EventType = "project_change_recorded"
+	EventProjectRevisionChanged  EventType = "project_revision_changed"
+	EventFrontierUpdated         EventType = "frontier_updated"
+	EventRoundCompleted          EventType = "round_completed"
+	EventProtocolRepairRecorded  EventType = "model_protocol_repair_recorded"
+	EventCapabilityStarted       EventType = "capability_started"
+	EventCapabilitySettled       EventType = "capability_settled"
+	EventRollbackStarted         EventType = "rollback_started"
+	EventTaskStateProjected      EventType = "task_state_projected"
+	EventPolicyExtended          EventType = "closure_policy_extended"
+	EventPhaseTransition         EventType = "phase_transition"
+	EventDiagnosticRoundRecorded EventType = "diagnostic_round_recorded"
+	EventSettled                 EventType = "closure_settled"
 )
 
 type Event struct {
@@ -89,6 +91,16 @@ type policyExtendedData struct {
 type settledData struct {
 	Settlement Settlement `json:"settlement"`
 }
+type phaseTransitionData struct {
+	From        Phase           `json:"from"`
+	To          Phase           `json:"to"`
+	Guard       PhaseGuardInput `json:"guard"`
+	GuardPassed bool            `json:"guard_passed"`
+	Reason      string          `json:"reason,omitempty"`
+}
+type diagnosticRoundRecordedData struct {
+	Round DiagnosticRoundRecord `json:"round"`
+}
 
 func Fold(events []Event) (State, error) {
 	var state State
@@ -146,7 +158,7 @@ func applyEvent(state *State, event Event) error {
 			return fmt.Errorf("round %d is not the next round", data.Round)
 		}
 		state.RoundsStarted, state.RoundInProgress, state.RoundHadProgress = data.Round, true, false
-		state.Phase = PhaseReasoning
+		setLegacyPhase(state, PhaseReasoning)
 	case EventObservationRecorded:
 		if !state.RoundInProgress {
 			return fmt.Errorf("observation requires an admitted round")
@@ -197,7 +209,8 @@ func applyEvent(state *State, event Event) error {
 		state.Frontier = HypothesisFrontier{}
 		state.Actionability = ActionabilityUnknown
 		state.RoundInProgress, state.RoundHadProgress = false, false
-		state.NoProgressStreak, state.Phase = 0, PhaseObserving
+		state.NoProgressStreak = 0
+		setLegacyPhase(state, PhaseObserving)
 	case EventFrontierUpdated:
 		if !state.RoundInProgress {
 			return fmt.Errorf("frontier update requires an admitted round")
@@ -223,7 +236,7 @@ func applyEvent(state *State, event Event) error {
 			state.NoProgressStreak++
 		}
 		state.RoundInProgress, state.RoundHadProgress = false, false
-		state.Phase = PhaseObserving
+		setLegacyPhase(state, PhaseObserving)
 	case EventProtocolRepairRecorded:
 		var data protocolRepairData
 		if err := decodeEventData(event, &data); err != nil {
@@ -242,7 +255,8 @@ func applyEvent(state *State, event Event) error {
 			return err
 		}
 		link := data.Link
-		state.ActiveCapability, state.ActionAttempts, state.Phase = &link, state.ActionAttempts+1, PhaseAwaitingCapability
+		state.ActiveCapability, state.ActionAttempts = &link, state.ActionAttempts+1
+		setLegacyPhase(state, PhaseAwaitingCapability)
 		state.RoundInProgress = false
 	case EventCapabilitySettled:
 		if state.ActiveCapability == nil {
@@ -256,7 +270,8 @@ func applyEvent(state *State, event Event) error {
 			return fmt.Errorf("capability settlement does not match the active session")
 		}
 		state.CapabilitySettlements[data.Settlement.ActionID] = data.Settlement
-		state.ActiveCapability, state.Phase = nil, PhaseVerifying
+		state.ActiveCapability = nil
+		setLegacyPhase(state, PhaseVerifying)
 	case EventRollbackStarted:
 		var data rollbackStartedData
 		if err := decodeEventData(event, &data); err != nil {
@@ -287,6 +302,41 @@ func applyEvent(state *State, event Event) error {
 			return fmt.Errorf("closure policy extension must increase max rounds")
 		}
 		state.Policy.MaxClosureRounds = data.MaxClosureRounds
+	case EventPhaseTransition:
+		var data phaseTransitionData
+		if err := decodeEventData(event, &data); err != nil {
+			return err
+		}
+		if data.From != state.Phase {
+			return fmt.Errorf("phase transition source %q does not match current phase %q", data.From, state.Phase)
+		}
+		if data.To == PhaseFS0SemanticEntry {
+			// FS entry: the legacy closure phase becomes FS0. The only guard is
+			// the entry target itself; every later transition is guarded.
+			if IsFSPhase(state.Phase) {
+				return fmt.Errorf("the FS machine is already entered at %s", state.Phase)
+			}
+		} else {
+			if !IsFSPhase(state.Phase) {
+				return fmt.Errorf("phase transition requires an FS source phase, got %q", state.Phase)
+			}
+			if err := EvaluatePhaseGuard(data.From, data.To, data.Guard); err != nil {
+				return err
+			}
+			if !data.GuardPassed {
+				return fmt.Errorf("phase transition event must record a passed guard")
+			}
+		}
+		state.Phase = data.To
+	case EventDiagnosticRoundRecorded:
+		var data diagnosticRoundRecordedData
+		if err := decodeEventData(event, &data); err != nil {
+			return err
+		}
+		if err := data.Round.Validate(); err != nil {
+			return fmt.Errorf("diagnostic round record invalid: %w", err)
+		}
+		state.DiagnosticRounds = append(state.DiagnosticRounds, data.Round)
 	case EventSettled:
 		if state.ActiveCapability != nil {
 			return fmt.Errorf("cannot settle while a capability session is active")
@@ -296,7 +346,13 @@ func applyEvent(state *State, event Event) error {
 			return err
 		}
 		settlement := data.Settlement
-		state.Settlement, state.Phase = &settlement, PhaseSettled
+		state.Settlement = &settlement
+		// A settled closure is FS9 when the FS machine owns the phase.
+		if IsFSPhase(state.Phase) {
+			state.Phase = PhaseFS9Terminal
+		} else {
+			state.Phase = PhaseSettled
+		}
 		state.RoundInProgress, state.RoundHadProgress = false, false
 	default:
 		return fmt.Errorf("unknown event type %q", event.Type)
@@ -345,3 +401,13 @@ func cloneEvents(events []Event) []Event {
 }
 
 func normalizeText(value string) string { return strings.TrimSpace(value) }
+
+// setLegacyPhase assigns a legacy five-value phase only while the FS machine
+// has not been entered. Once an FS phase owns the closure, legacy lifecycle
+// events (round start/complete, capability begin/settle) are sub-states, not
+// phases (transition-table contract §4).
+func setLegacyPhase(state *State, phase Phase) {
+	if !IsFSPhase(state.Phase) {
+		state.Phase = phase
+	}
+}

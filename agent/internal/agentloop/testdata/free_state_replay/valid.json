@@ -1,0 +1,50 @@
+{
+  "family": "valid",
+  "matrix_ids": [
+    "M11"
+  ],
+  "source": {
+    "artifact": "artifacts/free_state_open_intent_acceptance/20260823_145032/transcript/00_response.json",
+    "sha256": "27e9006936881c726af13108505f03c6ff28fa31835c6b65362ec4335a2c7908",
+    "transform": "envelope_to_model_turn_script: HTTP envelope (original_intent + observing/needs_observation loop state) re-expressed as deterministic model-turn JSON; view ids and revisions taken from the CCB contract identifiers, no new facts"
+  },
+  "intent": "检查一下当前工程有什么问题？",
+  "context": {
+    "free_state_reasoning_loop": {
+      "schema_version": "free_state_reasoning_loop.v1",
+      "status": "reasoning",
+      "decision_phase": "processor_selection",
+      "original_intent": "检查一下当前工程有什么问题？"
+    }
+  },
+  "responses": [
+    "{\"final\": false, \"reply\": \"Need the project layout before any bounded acoustic view.\", \"free_state\": {\"schema_version\": \"free_state_decision.v1\", \"status\": \"needs_observation\", \"evidence_status\": \"insufficient\", \"summary\": \"Need the project layout before any bounded acoustic view.\", \"requested_view_ids\": [\"project.structure\"]}, \"tool_calls\": [{\"id\": \"ccb-valid-1\", \"tool\": \"ccb.observation_request\", \"args\": {\"view_ids\": [\"project.structure\"]}}]}",
+    "{\"final\": false, \"reply\": \"Need one bounded target-level energy view.\", \"free_state\": {\"schema_version\": \"free_state_decision.v1\", \"status\": \"needs_observation\", \"evidence_status\": \"insufficient\", \"summary\": \"Need one bounded target-level energy view.\", \"requested_view_ids\": [\"track.basic_energy\"]}, \"tool_calls\": [{\"id\": \"ccb-valid-2\", \"tool\": \"ccb.observation_request\", \"args\": {\"view_ids\": [\"track.basic_energy\"]}}]}",
+    "{\"final\": true, \"reply\": \"The bounded diagnostic window reached its evidence boundary; no processor action is justified on the available views.\", \"free_state\": {\"schema_version\": \"free_state_decision.v1\", \"status\": \"blocked\", \"evidence_status\": \"insufficient\", \"summary\": \"The bounded diagnostic window reached its evidence boundary; no processor action is justified on the available views.\", \"limitations\": [\"observation budget consumed\"]}, \"tool_calls\": []}"
+  ],
+  "tool_results": [
+    {
+      "views": [
+        "project.structure"
+      ],
+      "status": "ready",
+      "observation_id": "obs-replay-valid-1",
+      "project_revision": "rev-7",
+      "freshness": "current_snapshot"
+    },
+    {
+      "views": [
+        "track.basic_energy"
+      ],
+      "status": "ready",
+      "observation_id": "obs-replay-valid-2",
+      "project_revision": "rev-7",
+      "freshness": "current_snapshot"
+    }
+  ],
+  "expected": {
+    "terminal_status": "blocked",
+    "model_calls": 3,
+    "observation_calls": 2
+  }
+}

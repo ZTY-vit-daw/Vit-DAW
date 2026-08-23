@@ -1,0 +1,56 @@
+{
+  "family": "contradictory",
+  "matrix_ids": [
+    "M16"
+  ],
+  "source": {
+    "artifact": "artifacts/free_state_open_intent_acceptance/20260823_145032/transcript/00_response.json",
+    "sha256": "27e9006936881c726af13108505f03c6ff28fa31835c6b65362ec4335a2c7908",
+    "transform": "synthetic_contradiction_variant: two rounds disagree; the replay must revisit with a discriminating view or close the candidate, never pass silently"
+  },
+  "intent": "检查一下当前工程有什么问题？",
+  "context": {
+    "free_state_reasoning_loop": {
+      "schema_version": "free_state_reasoning_loop.v1",
+      "status": "reasoning",
+      "decision_phase": "processor_selection",
+      "original_intent": "检查一下当前工程有什么问题？"
+    }
+  },
+  "responses": [
+    "{\"final\": false, \"reply\": \"First round: energy view.\", \"free_state\": {\"schema_version\": \"free_state_decision.v1\", \"status\": \"needs_observation\", \"evidence_status\": \"insufficient\", \"summary\": \"First round: energy view.\", \"requested_view_ids\": [\"track.basic_energy\"]}, \"tool_calls\": [{\"id\": \"ccb-contra-1\", \"tool\": \"ccb.observation_request\", \"args\": {\"view_ids\": [\"track.basic_energy\"]}}]}",
+    "{\"final\": false, \"reply\": \"The two rounds conflict; revisit with a discriminating peak-structure view.\", \"free_state\": {\"schema_version\": \"free_state_decision.v1\", \"status\": \"needs_observation\", \"evidence_status\": \"insufficient\", \"summary\": \"The two rounds conflict; revisit with a discriminating peak-structure view.\", \"requested_view_ids\": [\"track.peak_structure\"]}, \"tool_calls\": [{\"id\": \"ccb-contra-2\", \"tool\": \"ccb.observation_request\", \"args\": {\"view_ids\": [\"track.peak_structure\"]}}]}",
+    "{\"final\": true, \"reply\": \"The contradiction stays recorded: the conflicting evidence is revisited, the candidate is not silently confirmed.\", \"free_state\": {\"schema_version\": \"free_state_decision.v1\", \"status\": \"blocked\", \"evidence_status\": \"insufficient\", \"summary\": \"The contradiction stays recorded: the conflicting evidence is revisited, the candidate is not silently confirmed.\", \"limitations\": [\"contradiction revisited\"]}, \"tool_calls\": []}"
+  ],
+  "tool_results": [
+    {
+      "views": [
+        "track.basic_energy"
+      ],
+      "status": "ready",
+      "observation_id": "obs-replay-contra-1",
+      "project_revision": "rev-7",
+      "freshness": "current_snapshot",
+      "limitations": [
+        "conflicting level reports between adjacent views"
+      ]
+    },
+    {
+      "views": [
+        "track.peak_structure"
+      ],
+      "status": "partial",
+      "observation_id": "obs-replay-contra-2",
+      "project_revision": "rev-7",
+      "freshness": "current_snapshot",
+      "limitations": [
+        "peak structure incomplete over the conflicting window"
+      ]
+    }
+  ],
+  "expected": {
+    "terminal_status": "blocked",
+    "observation_calls": 2,
+    "no_silent_pass": true
+  }
+}

@@ -1,6 +1,7 @@
 package chat
 
 import (
+	"strings"
 	"testing"
 	"time"
 
@@ -274,6 +275,58 @@ func TestAudioClosureRoundBoundaryDoesNotInventNoCandidateFound(t *testing.T) {
 	}
 }
 
+func TestAudioClosureExhaustedOpenQueueSettlesNoCandidateAtFS9(t *testing.T) {
+	server := &Server{harness: harness.NewWithSender(nil, nil, nil), audioClosures: audioclosure.NewMemoryStore(), controllerOwners: orchestrationcontroller.NewRegistry(), freeStateLoops: map[string]freeStateReasoningLoop{}, capabilityRoutes: map[string]CapabilityRouteRecord{}}
+	goal := server.harness.EnsureGoal("goal-open-exhausted", "run-open-exhausted", "inspect the project")
+	if _, err := server.ensureAudioTaskContract("conversation-open-exhausted", audioclosure.ModeTreatment,
+		audioclosure.Scope{Kind: "project", ID: "project-open-exhausted"}, "project-open-exhausted", "rev-1", map[string]any{"goal_id": goal.GoalID}); err != nil {
+		t.Fatal(err)
+	}
+	loop := continuationTestLoop("conversation-open-exhausted")
+	queue := audioclosure.DefaultPriorityQueue()
+	loop.PriorityQueue = &queue
+	loop.ContinuationBudget, loop.ContinuationUsed = 1, 1
+	server.storeFreeStateLoop(loop)
+	server.capabilityRoutes["route-open-exhausted"] = CapabilityRouteRecord{SchemaVersion: "capability_route.v1", ConversationID: loop.ConversationID,
+		Assessment: &FreeStateCapacityAssessment{CapacityLevel: "within_free_state", SelectedCapability: "free_state"}, UpdatedAt: time.Now().UTC()}
+	current := server.harness.RuntimeStatus(goal.GoalID)
+	state, err := audioclosure.Start(audioclosure.StartRequest{ClosureID: "closure-open-exhausted", ConversationID: loop.ConversationID,
+		TaskID: current.Task.TaskID, GoalID: goal.GoalID, RunID: current.RunID, ContractID: current.Task.Contract.ContractID,
+		TaskState: current.Task.SemanticState.State, TaskStateRevision: current.Task.SemanticState.Revision,
+		ProjectUUID: "project-open-exhausted", ProjectRevision: "rev-1", OriginalIntent: "inspect the project", Mode: audioclosure.ModeTreatment,
+		Scope: audioclosure.Scope{Kind: "project", ID: "project-open-exhausted"}, Now: time.Now().UTC()})
+	if err != nil {
+		t.Fatal(err)
+	}
+	driver := audioclosure.Driver{}
+	state, err = driver.TransitionPhase(state, state.Revision, audioclosure.PhaseFS0SemanticEntry, audioclosure.PhaseGuardInput{}, "test entry", time.Now().UTC())
+	if err != nil {
+		t.Fatal(err)
+	}
+	state, err = driver.TransitionPhase(state, state.Revision, audioclosure.PhaseFS1ProjectBound, audioclosure.PhaseGuardInput{ProjectBound: true}, "test project", time.Now().UTC())
+	if err != nil {
+		t.Fatal(err)
+	}
+	state, err = driver.TransitionPhase(state, state.Revision, audioclosure.PhaseFS2CapacityAssessed, audioclosure.PhaseGuardInput{CapacityAssessed: true}, "test capacity", time.Now().UTC())
+	if err != nil {
+		t.Fatal(err)
+	}
+	state.ObservationOrder = []string{"obs-open-exhausted"}
+	if _, err := server.transitionTaskSemantic(goal.GoalID, taskstate.TransitionRequest{Event: taskstate.EventDiagnosticCompleted, Reason: "test evidence", EvidenceRefs: []string{"obs-open-exhausted"}, ProjectRevision: "rev-1"}); err != nil {
+		t.Fatal(err)
+	}
+	if err := server.audioClosures.Create(state); err != nil {
+		t.Fatal(err)
+	}
+	next, err := server.settleTaskAtAudioClosureBoundary(state, "continuation budget exhausted")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !next.Terminal() || next.Settlement == nil || next.Settlement.Reason != audioclosure.StopNoCandidateFound || next.Phase != audioclosure.PhaseFS9Terminal {
+		t.Fatalf("exhausted open queue did not settle no_candidate_found at FS9: %+v", next)
+	}
+}
+
 func TestAudioClosureBuildsCandidatesFromCompactedViewFacts(t *testing.T) {
 	observation := &agentloop.RecentObservation{Tool: "ccb.observation_request", Status: "partial", Summary: map[string]any{
 		"status": "partial", "observation_id": "obs-compacted", "requested_views": []any{"mix.multitrack_relationship"},
@@ -526,8 +579,12 @@ func TestAudioClosureCapabilityHandoffAndSettlementAreExactlyOnce(t *testing.T) 
 	}
 	completed := ChatResponse{ConversationID: "conversation-1", GoalStatus: string(agentruntime.StatusCompleted), Workflow: "capability_runtime_v1", WorkflowData: map[string]any{"session_id": "capability-session-1", "capability_id": "agent.effect.eq_control.v0"}}
 	_, state, tracked := server.recordAudioClosureCapabilityResponse("conversation-1", completed)
-	if !tracked || state.ActiveCapability != nil || state.Phase != audioclosure.PhaseVerifying || state.ActionAttempts != 1 {
-		t.Fatalf("capability settlement did not enter verification: tracked=%v state=%+v", tracked, state)
+	// With the FS spine active, capability settle/verify is a sub-state, not a
+	// phase: the closure keeps its FS phase (here fs1) while the capability
+	// settlement enters the verification stage.
+	if !tracked || state.ActiveCapability != nil || state.ActionAttempts != 1 ||
+		state.Phase != audioclosure.PhaseFS1ProjectBound {
+		t.Fatalf("capability settlement did not settle cleanly under the FS phase: tracked=%v state=%+v", tracked, state)
 	}
 	revision := state.Revision
 	_, state, tracked = server.recordAudioClosureCapabilityResponse("conversation-1", completed)
@@ -565,5 +622,69 @@ func TestRuntimeControllerAssignmentIsRequiredAfterSemanticEntry(t *testing.T) {
 	decision.Controller = string(orchestrationcontroller.MinimalAudioClosure)
 	if _, err := orchestrationControllerDecision(decision); err != nil {
 		t.Fatalf("runtime-assigned controller was rejected: %v", err)
+	}
+}
+
+func TestAudioClosureRoundBoundariesDriveFSSpineAndDiagnosticRounds(t *testing.T) {
+	server := audioClosureTestServer()
+	ctx, state := prepareAudioClosureTestState(t, server)
+	requestContext := mergeContext(ctx, map[string]any{
+		"free_state_capacity_assessment": map[string]any{
+			"schema_version": "free_state_capacity_assessment.v1",
+			"capacity_level": "within_free_state", "selected_capability": "project_mix",
+		},
+	})
+	state, _, err := server.admitAudioClosureRound(state)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if state.Phase != audioclosure.PhaseFS1ProjectBound {
+		t.Fatalf("round admission did not enter/advance the FS spine: %s", state.Phase)
+	}
+	// A scan-level mix observation plus a frontier update drive the spine to
+	// the candidate frontier on the record boundary.
+	scan := &agentloop.RecentObservation{Tool: "ccb.observation_request", Status: "ready", Summary: map[string]any{
+		"status": "ready", "observation_id": "obs-scan",
+		"view_ids":        []any{"mix.frequency_relationship"},
+		"target_ref":      map[string]any{"kind": "project", "id": "current"},
+		"project_binding": map[string]any{"project_uuid": "project-1", "project_revision": "revision-1"},
+		"views":           map[string]any{"mix.frequency_relationship": map[string]any{"status": "ready"}},
+	}}
+	result := agentloop.Result{RecentObservation: scan, FreeStateDecision: &agentloop.FreeStateDecision{
+		SchemaVersion: agentloop.FreeStateDecisionSchema, Status: agentloop.FreeStateNeedsObservation,
+		EvidenceStatus: "insufficient", Summary: "scan complete",
+	}}
+	state, err = server.recordAudioClosureRound(state, result, requestContext)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if state.Phase != audioclosure.PhaseFS4DiagnosticRound && state.Phase != audioclosure.PhaseFS5CandidateFrontier {
+		t.Fatalf("record boundary did not advance the spine past the scan: %s", state.Phase)
+	}
+	if len(state.DiagnosticRounds) != 1 || state.DiagnosticRounds[0].PrimaryDimension != audioclosure.DimensionFrequencyOccupancy {
+		t.Fatalf("diagnostic round record missing or wrong dimension: %+v", state.DiagnosticRounds)
+	}
+	if state.DiagnosticRounds[0].EvidenceStatus != audioclosure.RoundEvidenceReady {
+		t.Fatalf("round evidence status = %s", state.DiagnosticRounds[0].EvidenceStatus)
+	}
+	// The bound context exposes the FS phase under the dedicated key.
+	bound := bindAudioClosureContext(map[string]any{}, state)
+	if phase, ok := bound["free_state_phase"].(string); !ok || !strings.HasPrefix(phase, "fs") {
+		t.Fatalf("free_state_phase context key missing or non-FS: %v", bound["free_state_phase"])
+	}
+}
+
+func TestAdvanceAudioClosurePhaseDerivesGuardsFromStateOnly(t *testing.T) {
+	server := audioClosureTestServer()
+	_, state := prepareAudioClosureTestState(t, server)
+	state, _, err := server.admitAudioClosureRound(state)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// A caller asserting capacity without scan evidence cannot force FS3: the
+	// guard derives scan usability from recorded observations.
+	advanced := server.advanceAudioClosurePhase(state, audioclosure.PhaseGuardEvidence{CapacityAssessed: true})
+	if advanced.Phase != audioclosure.PhaseFS2CapacityAssessed {
+		t.Fatalf("self-asserted scan evidence advanced past the derived guard: %s", advanced.Phase)
 	}
 }

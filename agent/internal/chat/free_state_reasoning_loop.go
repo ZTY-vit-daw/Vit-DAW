@@ -17,6 +17,7 @@ import (
 	"vit-daw-agent/internal/experiment"
 	"vit-daw-agent/internal/orchestrationcontroller"
 	agentruntime "vit-daw-agent/internal/runtime"
+	"vit-daw-agent/internal/taskstate"
 )
 
 const (
@@ -58,6 +59,11 @@ type freeStateReasoningLoop struct {
 	TargetRef                     map[string]any               `json:"target_ref,omitempty"`
 	Cycle                         int                          `json:"cycle"`
 	MaxCycles                     int                          `json:"max_cycles"`
+	CurrentRoundID                string                       `json:"current_round_id,omitempty"`
+	CurrentPhase                  string                       `json:"current_phase,omitempty"`
+	PriorityQueue                 *audioclosure.PriorityQueue  `json:"priority_queue,omitempty"`
+	ContinuationBudget            int                          `json:"continuation_budget,omitempty"`
+	ContinuationUsed              int                          `json:"continuation_used,omitempty"`
 	ObservationIDs                []string                     `json:"observation_ids,omitempty"`
 	ObservationReceipts           []map[string]any             `json:"observation_receipts,omitempty"`
 	RejectedObservationRequests   []map[string]any             `json:"rejected_observation_requests,omitempty"`
@@ -179,13 +185,20 @@ func mergeFreeStateLoops(base, overlay freeStateReasoningLoop, overlayOK bool) f
 		src string
 	}{
 		{&out.LoopID, overlay.LoopID}, {&out.ConversationID, overlay.ConversationID},
-		{&out.GoalID, overlay.GoalID}, {&out.RunID, overlay.RunID}, {&out.Status, overlay.Status},
+		{&out.GoalID, overlay.GoalID}, {&out.RunID, overlay.RunID},
 		{&out.DecisionPhase, overlay.DecisionPhase}, {&out.OriginalIntent, overlay.OriginalIntent},
 		{&out.ActiveIntent, overlay.ActiveIntent}, {&out.LastError, overlay.LastError},
 	} {
 		if strings.TrimSpace(field.src) != "" {
 			*field.dst = field.src
 		}
+	}
+	// A continuation carries the input snapshot that started its slice. That
+	// snapshot is commonly older than the durable loop updated after the prior
+	// observation. Do not let it regress an active/terminal status.
+	if strings.TrimSpace(overlay.Status) != "" &&
+		(strings.TrimSpace(out.Status) == "" || overlay.UpdatedAt.IsZero() || out.UpdatedAt.IsZero() || !overlay.UpdatedAt.Before(out.UpdatedAt)) {
+		out.Status = overlay.Status
 	}
 	if out.AuthorityMode == "" {
 		out.AuthorityMode = overlay.AuthorityMode
@@ -204,6 +217,21 @@ func mergeFreeStateLoops(base, overlay freeStateReasoningLoop, overlayOK bool) f
 	}
 	if overlay.MaxCycles > 0 {
 		out.MaxCycles = overlay.MaxCycles
+	}
+	if overlay.CurrentRoundID != "" {
+		out.CurrentRoundID = overlay.CurrentRoundID
+	}
+	if overlay.CurrentPhase != "" {
+		out.CurrentPhase = overlay.CurrentPhase
+	}
+	if overlay.PriorityQueue != nil {
+		out.PriorityQueue = overlay.PriorityQueue
+	}
+	if overlay.ContinuationBudget > 0 {
+		out.ContinuationBudget = overlay.ContinuationBudget
+	}
+	if overlay.ContinuationUsed > out.ContinuationUsed {
+		out.ContinuationUsed = overlay.ContinuationUsed
 	}
 	if overlay.Cycle > out.Cycle {
 		out.Cycle = overlay.Cycle
@@ -344,6 +372,12 @@ func (s *Server) storeFreeStateLoop(loop freeStateReasoningLoop) {
 		return
 	}
 	loop.DecisionPhase = resolvedFreeStateDecisionPhase(loop)
+	// The continuation budget is the explicit ADR §10 scheduling bound; it
+	// defaults to the loop's action ceiling so the scheduler Attempt semantics
+	// and the loop budget cannot diverge.
+	if loop.ContinuationBudget <= 0 && loop.MaxCycles > 0 {
+		loop.ContinuationBudget = loop.MaxCycles
+	}
 	loop = cloneFreeStateLoop(loop)
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -500,6 +534,22 @@ func (s *Server) recordFreeStateDecision(conversationID string, res agentloop.Re
 			loop.RequiresPostActionObservation = false
 		}
 	case agentloop.FreeStateNeedsExperiment, agentloop.FreeStateImprovementProposal:
+		// The agentloop G1-G7 gate has accepted this decision (it would have
+		// been rejected otherwise), which is the evidence that the FS7 guard
+		// (GatePassed) holds. Advance the closure spine to FS7/FS8 from the
+		// admitted decision.
+		if s != nil && s.audioClosures != nil {
+			if closure, tracked := s.audioClosures.ActiveForConversation(conversationID); tracked && !closure.Terminal() {
+				// The FS2 capacity guard is derived from the durable capability
+				// route record (scheduler-driven turns do not carry the HTTP
+				// request context), never self-asserted here.
+				s.advanceAudioClosurePhase(closure, audioclosure.PhaseGuardEvidence{
+					CapacityAssessed: s.audioClosureCapacityAssessedForConversation(nil, conversationID),
+					GatePassed:       strings.EqualFold(strings.TrimSpace(decision.Status), agentloop.FreeStateNeedsExperiment),
+					AdmissionValid:   decision.ExperimentAdmission == nil || decision.ExperimentAdmission.Validate() == nil,
+				})
+			}
+		}
 		if decision.ImprovementProposal == nil {
 			loop.Status = "blocked"
 			loop.LastError = "needs_experiment requires improvement_proposal"
@@ -841,16 +891,17 @@ func mergeFreeStateObservationLedger(ledger map[string]any, observation *agentlo
 		}
 		key := freeStateObservationLedgerViewKey(viewID, observation.Summary)
 		available[key] = nonEmptyFreeStateMap(map[string]any{
-			"view_id":        viewID,
-			"status":         viewStatus,
-			"observation_id": firstStringFromMap(observation.Summary, "observation_id"),
-			"tool_call_id":   observation.ToolCallID,
-			"freshness":      cloneContext(firstMapFromAny(observation.Summary["freshness"])),
-			"limitations":    firstNonNil(view["limitations"], observation.Summary["limitations"]),
-			"evidence_refs":  observation.Summary["evidence_refs"],
-			"audit_ref":      freeStateObservationAuditRef(observation.Summary),
-			"target_ref":     freeStateObservationTrackTarget(observation),
-			"round":          round,
+			"view_id":          viewID,
+			"status":           viewStatus,
+			"observation_id":   firstStringFromMap(observation.Summary, "observation_id"),
+			"tool_call_id":     observation.ToolCallID,
+			"freshness":        cloneContext(firstMapFromAny(observation.Summary["freshness"])),
+			"project_revision": freeStateObservationProjectRevision(observation.Summary),
+			"limitations":      firstNonNil(view["limitations"], observation.Summary["limitations"]),
+			"evidence_refs":    observation.Summary["evidence_refs"],
+			"audit_ref":        freeStateObservationAuditRef(observation.Summary),
+			"target_ref":       freeStateObservationTrackTarget(observation),
+			"round":            round,
 			"conclusion": contextruntime.ProjectCCBViewConclusion(observation.Summary, viewID, contextruntime.Options{
 				MaxTextRunes: 900, MaxListItems: 8, MaxPreviewBytes: 6 * 1024, SkipPluginSemanticLoad: true,
 			}),
@@ -948,22 +999,32 @@ func freeStateUsableObservation(observation *agentloop.RecentObservation) bool {
 	return status == "ready" || status == "partial"
 }
 
+// freeStateObservationProjectRevision extracts the CCB bundle's authoritative
+// project_binding revision so ledger rows stay revision-bound (gate G7).
+func freeStateObservationProjectRevision(summary map[string]any) string {
+	return firstNonEmpty(
+		firstStringFromMap(summary, "project_revision"),
+		firstStringFromMap(firstMapFromAny(summary["project_binding"]), "project_revision"),
+	)
+}
+
 func freeStateObservationCompactReceipt(observation *agentloop.RecentObservation) map[string]any {
 	if observation == nil {
 		return nil
 	}
 	audit := firstMapFromAny(observation.Summary["audit_receipt"])
 	return nonEmptyFreeStateMap(map[string]any{
-		"receipt_id":      firstStringFromMap(audit, "receipt_id"),
-		"receipt_schema":  firstStringFromMap(audit, "schema_version"),
-		"tool_call_id":    observation.ToolCallID,
-		"observation_id":  firstStringFromMap(observation.Summary, "observation_id"),
-		"request_id":      firstStringFromMap(observation.Summary, "request_id"),
-		"status":          firstStringFromMap(observation.Summary, "status", "bundle_status"),
-		"requested_views": freeStateNormalizedViewIDs(freeStateStringSlice(observation.Summary["requested_views"])),
-		"freshness":       cloneContext(firstMapFromAny(observation.Summary["freshness"])),
-		"limitations":     observation.Summary["limitations"],
-		"evidence_refs":   observation.Summary["evidence_refs"],
+		"receipt_id":       firstStringFromMap(audit, "receipt_id"),
+		"receipt_schema":   firstStringFromMap(audit, "schema_version"),
+		"tool_call_id":     observation.ToolCallID,
+		"observation_id":   firstStringFromMap(observation.Summary, "observation_id"),
+		"request_id":       firstStringFromMap(observation.Summary, "request_id"),
+		"status":           firstStringFromMap(observation.Summary, "status", "bundle_status"),
+		"requested_views":  freeStateNormalizedViewIDs(freeStateStringSlice(observation.Summary["requested_views"])),
+		"project_revision": freeStateObservationProjectRevision(observation.Summary),
+		"freshness":        cloneContext(firstMapFromAny(observation.Summary["freshness"])),
+		"limitations":      observation.Summary["limitations"],
+		"evidence_refs":    observation.Summary["evidence_refs"],
 	})
 }
 
@@ -1476,6 +1537,18 @@ func (s *Server) maybeContinueFreeStateAfterInteraction(ctx context.Context, int
 		resp.Reply = "The processor reasoning loop reached its bounded action limit. The original intent remains recorded, but no further automatic action was started."
 		return s.bindFreeStateContextToResponse(resp, interaction.RequestContext)
 	}
+	if freeStateContinuationBudgetExhausted(loop) {
+		loop.Status = "blocked"
+		loop.LastError = fmt.Sprintf("free-state reasoning exhausted its %d-continuation budget", loop.ContinuationBudget)
+		loop.UpdatedAt = time.Now().UTC()
+		s.storeFreeStateLoop(loop)
+		resp.GoalStatus = string(agentruntime.StatusWaitingContinue)
+		resp.StopReason = freeStateContinuationBudgetExhaustedReason
+		resp.Error = ""
+		resp.Reply = "The free-state reasoning loop exhausted its bounded continuation budget. The original intent and the evidence gathered so far remain recorded; no further automatic continuation was started."
+		return s.bindFreeStateContextToResponse(resp, interaction.RequestContext)
+	}
+	loop.ContinuationUsed++
 	loop.UpdatedAt = time.Now().UTC()
 	s.storeFreeStateLoop(loop)
 	cfg, _, err := config.Load()
@@ -1542,6 +1615,15 @@ func (s *Server) postActionProjectChange(ctx context.Context, refreshSource stri
 
 func (s *Server) freeStatePostActionProjectChange(ctx context.Context) (map[string]any, bool) {
 	return s.postActionProjectChange(ctx, "free_state_post_action_refresh")
+}
+
+const freeStateContinuationBudgetExhaustedReason = "free_state_continuation_budget_exhausted"
+
+// freeStateContinuationBudgetExhausted reports whether the loop's explicit
+// cross-slice continuation budget is spent (ADR §10 scheduling semantics;
+// waiting_continue is an internal bounded state, not an unlimited resume).
+func freeStateContinuationBudgetExhausted(loop freeStateReasoningLoop) bool {
+	return loop.ContinuationBudget > 0 && loop.ContinuationUsed >= loop.ContinuationBudget
 }
 
 func resolvedFreeStateDecisionPhase(loop freeStateReasoningLoop) string {
@@ -1785,4 +1867,140 @@ func cloneFreeStateLoop(loop freeStateReasoningLoop) freeStateReasoningLoop {
 	out := freeStateReasoningLoop{}
 	_ = json.Unmarshal(data, &out)
 	return out
+}
+
+// freeStateCapabilityBoundaryDetail records the concrete boundary behind a
+// capability_blocked settlement: the durable capacity routing level, the
+// governed capability that was (or was not) selected, and the continuation
+// budget numbers. It lets the acceptance report distinguish a real capability
+// boundary from missing data. Callers must hold s.mu.
+func (s *Server) freeStateCapabilityBoundaryDetailLocked(conversationID string, loop freeStateReasoningLoop) []string {
+	detail := []string{}
+	if s != nil {
+		var record CapabilityRouteRecord
+		for _, candidate := range s.capabilityRoutes {
+			if candidate.ConversationID == conversationID &&
+				(candidate.UpdatedAt.After(record.UpdatedAt) || record.SchemaVersion == "") {
+				record = candidate
+			}
+		}
+		if record.Assessment != nil {
+			if record.Assessment.CapacityLevel != "" {
+				detail = append(detail, "capacity_level="+record.Assessment.CapacityLevel)
+			}
+			if record.Assessment.SelectedCapability != "" {
+				detail = append(detail, "selected_capability="+record.Assessment.SelectedCapability)
+			} else {
+				detail = append(detail, "selected_capability=none")
+			}
+		}
+	}
+	if loop.ContinuationBudget > 0 {
+		detail = append(detail, fmt.Sprintf("continuation_budget=%d/%d", loop.ContinuationUsed, loop.ContinuationBudget))
+	}
+	return detail
+}
+
+// settleFreeStateLoopFromClosure propagates a terminal minimal-audio-closure
+// settlement into the free-state reasoning loop. The scheduler-driven
+// settling turn never returns over HTTP, so without this sync the loop stays
+// "observing" while the closure has already settled, and no runtime interface
+// exposes the terminal stop reason.
+func (s *Server) settleFreeStateLoopFromClosure(conversationID string, settlement audioclosure.Settlement) {
+	if s == nil || strings.TrimSpace(conversationID) == "" {
+		return
+	}
+	s.mu.Lock()
+	if s.freeStateLoops == nil {
+		s.mu.Unlock()
+		return
+	}
+	loop, ok := s.freeStateLoops[conversationID]
+	if !ok || !freeStateLoopActive(loop) {
+		s.mu.Unlock()
+		return
+	}
+	boundaryDetail := s.freeStateCapabilityBoundaryDetailLocked(conversationID, loop)
+	decisionStatus, loopStatus := agentloop.FreeStateBlocked, "blocked"
+	switch settlement.Reason {
+	case audioclosure.StopNoCandidateFound:
+		decisionStatus, loopStatus = agentloop.FreeStateNoCandidateFound, "no_candidate_found"
+	case audioclosure.StopCapabilityBlocked:
+		decisionStatus, loopStatus = agentloop.FreeStateCapabilityBlocked, "capability_blocked"
+	case audioclosure.StopDiagnosticComplete:
+		decisionStatus, loopStatus = agentloop.FreeStateDiagnosticComplete, "completed"
+	case audioclosure.StopSatisfied:
+		decisionStatus, loopStatus = agentloop.FreeStateSatisfied, "completed"
+	case audioclosure.StopCancelled:
+		decisionStatus, loopStatus = agentloop.FreeStateBlocked, "cancelled"
+	}
+	now := time.Now().UTC()
+	summary := firstNonEmpty(settlement.Summary, "the bounded audio closure settled: "+string(settlement.Reason))
+	loop.Status = loopStatus
+	loop.LastError = firstNonEmpty(settlement.Summary, string(settlement.Reason))
+	if settlement.Reason == audioclosure.StopNoCandidateFound && s.harness != nil && loop.GoalID != "" {
+		goal := s.harness.RuntimeStatus(loop.GoalID)
+		if goal.Task != nil && goal.Task.SemanticState != nil && goal.Task.SemanticState.State == taskstate.StateObservationInProgress {
+			evidence := append([]string(nil), loop.ObservationIDs...)
+			if len(evidence) == 0 {
+				evidence = []string{"free_state:" + loop.LoopID}
+			}
+			_, _ = s.transitionTaskSemantic(loop.GoalID, taskstate.TransitionRequest{
+				Event: taskstate.EventNoCandidateReported, Reason: "bounded free-state search budget exhausted", Summary: summary,
+				EvidenceRefs:    evidence,
+				ProjectRevision: goal.Task.SemanticState.ProjectRevision,
+			})
+		}
+	}
+	decision := agentloop.FreeStateDecision{
+		SchemaVersion:  agentloop.FreeStateDecisionSchema,
+		Status:         decisionStatus,
+		EvidenceStatus: "insufficient",
+		Summary:        summary,
+		StopReason:     string(settlement.Reason),
+	}
+	if decisionStatus == agentloop.FreeStateCapabilityBlocked {
+		decision.Limitations = append(decision.Limitations, boundaryDetail...)
+	}
+	loop.LatestDecision = &decision
+	loop.ActiveIntent = ""
+	loop.RequiresPostActionObservation = false
+	loop.UpdatedAt = now
+	s.freeStateLoops[conversationID] = cloneFreeStateLoop(loop)
+	s.mu.Unlock()
+	_ = s.persistContinuationState()
+}
+
+// syncFreeStateSpine mirrors the closure spine (FS phase + diagnostic round)
+// into the free-state loop so scheduler-driven turns are observable at the
+// runtime interface and the loop persists across restarts.
+func (s *Server) syncFreeStateSpine(state audioclosure.State) {
+	if s == nil || strings.TrimSpace(state.ConversationID) == "" {
+		return
+	}
+	s.mu.Lock()
+	if s.freeStateLoops == nil {
+		s.mu.Unlock()
+		return
+	}
+	loop, ok := s.freeStateLoops[state.ConversationID]
+	if !ok {
+		s.mu.Unlock()
+		return
+	}
+	if phase, valid := audioclosure.ParsePhase(string(state.Phase)); valid {
+		loop.CurrentPhase = string(phase)
+	}
+	if len(state.DiagnosticRounds) > 0 {
+		loop.CurrentRoundID = state.DiagnosticRounds[len(state.DiagnosticRounds)-1].RoundID
+	}
+	// The priority queue is a projection of the closure's diagnostic round
+	// records (audioclosure.QueueFromRounds); mirroring it into the loop keeps
+	// the no_candidate_found necessity check (messageLoopFreeStateQueueStillOpen)
+	// on production data while the event stream stays the single truth.
+	queue := audioclosure.QueueFromRounds(state.DiagnosticRounds)
+	loop.PriorityQueue = &queue
+	loop.UpdatedAt = time.Now().UTC()
+	s.freeStateLoops[state.ConversationID] = cloneFreeStateLoop(loop)
+	s.mu.Unlock()
 }
