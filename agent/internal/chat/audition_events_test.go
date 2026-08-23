@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -82,14 +83,26 @@ func (d *candidateDriverForTest) RequestObservation(_ context.Context, _ freeSta
 	summary := map[string]any{"status": "ready", "observation_id": "obs-adoption", "requested_views": []any{"track.timbre_frequency"}, "actual_executed_view_ids": []any{"track.timbre_frequency"}, "evidence_refs": []any{"obs-adoption"}, "audit_receipt": map[string]any{"view_set_matches": true, "actual_executed_view_ids": []any{"track.timbre_frequency"}, "freshness": map[string]any{"status": "fresh"}}}
 	return summary, &agentloop.RecentObservation{Tool: "ccb.observation_request", Status: "ready", ToolCallID: "obs-adoption", Summary: summary}, nil
 }
-func newCandidateDriverForTest() *candidateDriverForTest {
-	return &candidateDriverForTest{plane: auditionProjectPlane{ProjectPath: "active.vit", ProjectUUID: "project-1", ProjectRevision: "rev-7", HistoryHead: "checkpoint-7", ActiveBranch: "main"}}
+// auditionProjectPathForTest keeps project references absolute so history
+// writes land inside the test's temp workspace instead of the package dir.
+func auditionProjectPathForTest(t *testing.T) string {
+	t.Helper()
+	return filepath.Join(t.TempDir(), "active.vit")
+}
+
+func newCandidateDriverForTest(projectPath string) *candidateDriverForTest {
+	return &candidateDriverForTest{plane: auditionProjectPlane{ProjectPath: projectPath, ProjectUUID: "project-1", ProjectRevision: "rev-7", HistoryHead: "checkpoint-7", ActiveBranch: "main"}}
 }
 
 func auditionReadyLoop(t *testing.T) freeStateReasoningLoop {
 	t.Helper()
+	return auditionReadyLoopAt(t, auditionProjectPathForTest(t))
+}
+
+func auditionReadyLoopAt(t *testing.T, projectPath string) freeStateReasoningLoop {
+	t.Helper()
 	now := time.Now().UTC()
-	loop := freeStateReasoningLoop{SchemaVersion: freeStateReasoningLoopSchema, LoopID: "loop-audition", ConversationID: "conversation-audition", GoalID: "goal", RunID: "run", OriginalIntent: "compare before and after", LatestProjectChange: map[string]any{"project_path": "active.vit", "project_revision": "rev-7"}, CreatedAt: now, UpdatedAt: now}
+	loop := freeStateReasoningLoop{SchemaVersion: freeStateReasoningLoopSchema, LoopID: "loop-audition", ConversationID: "conversation-audition", GoalID: "goal", RunID: "run", OriginalIntent: "compare before and after", LatestProjectChange: map[string]any{"project_path": projectPath, "project_revision": "rev-7"}, CreatedAt: now, UpdatedAt: now}
 	admission, err := freeStateExperimentAdmission(loop, experimentTestProposal())
 	if err != nil {
 		t.Fatal(err)
@@ -126,7 +139,7 @@ func TestFreeStateHumanAuditionCallsKernelPrepareAndEmitsEvents(t *testing.T) {
 	fake := &fakeAuditionKernel{}
 	server := New(nil, nil, nil)
 	server.auditionKernel = fake
-	server.auditionCandidateDriver = newCandidateDriverForTest()
+	server.auditionCandidateDriver = newCandidateDriverForTest(auditionProjectPathForTest(t))
 	loop := auditionReadyLoop(t)
 	server.recordFreeStateExperimentDecision(context.Background(), &loop, agentloop.FreeStateDecision{ExperimentTargetResponse: &experiment.TargetEvaluation{Response: experiment.TargetAmbiguous, Outcome: trajectory.EvaluationHumanAuditionReady, EvidenceRefs: []string{"after"}}})
 	if len(fake.prepareRequests) != 1 {
@@ -160,7 +173,7 @@ func TestFreeStateAuditionPrepareFailureIsObservable(t *testing.T) {
 	fake := &fakeAuditionKernel{prepareError: errors.New("preview unavailable")}
 	server := New(nil, nil, nil)
 	server.auditionKernel = fake
-	server.auditionCandidateDriver = newCandidateDriverForTest()
+	server.auditionCandidateDriver = newCandidateDriverForTest(auditionProjectPathForTest(t))
 	loop := auditionReadyLoop(t)
 	if err := server.prepareFreeStateAudition(context.Background(), &loop); err == nil {
 		t.Fatal("expected prepare failure")
@@ -187,7 +200,7 @@ func TestReadyAuditionSelectOnlyChangesPreviewWithoutRecordingJudgment(t *testin
 	fake := &fakeAuditionKernel{}
 	server := New(nil, nil, nil)
 	server.auditionKernel = fake
-	server.auditionCandidateDriver = newCandidateDriverForTest()
+	server.auditionCandidateDriver = newCandidateDriverForTest(auditionProjectPathForTest(t))
 	loop := auditionReadyLoop(t)
 	if _, err := loop.Experiment.RecordTargetResponse(experiment.TargetEvaluation{Response: experiment.TargetAmbiguous, Outcome: trajectory.EvaluationHumanAuditionReady, EvidenceRefs: []string{"after"}}, time.Now().UTC()); err != nil {
 		t.Fatal(err)
@@ -216,7 +229,7 @@ func TestAuditionJudgmentRecordsEvidenceAndRetainsPreferredTreatment(t *testing.
 	fake := &fakeAuditionKernel{}
 	server := New(nil, nil, nil)
 	server.auditionKernel = fake
-	server.auditionCandidateDriver = newCandidateDriverForTest()
+	server.auditionCandidateDriver = newCandidateDriverForTest(auditionProjectPathForTest(t))
 	loop := auditionReadyLoop(t)
 	if _, err := loop.Experiment.RecordTargetResponse(experiment.TargetEvaluation{Response: experiment.TargetAmbiguous, Outcome: trajectory.EvaluationHumanAuditionReady, EvidenceRefs: []string{"after"}}, time.Now().UTC()); err != nil {
 		t.Fatal(err)
@@ -364,14 +377,14 @@ func TestAuditionJudgmentRejectsWrongTurnRoundAndSessionBindings(t *testing.T) {
 	}
 }
 
-func boundAdoptionLoopForTest(t *testing.T) freeStateReasoningLoop {
+func boundAdoptionLoopForTest(t *testing.T, projectPath string) freeStateReasoningLoop {
 	t.Helper()
-	loop := auditionReadyLoop(t)
+	loop := auditionReadyLoopAt(t, projectPath)
 	loop.AuditionSessionID = "session-adoption"
 	round := loop.Experiment.Rounds[0]
 	round.AuditionSessionID = loop.AuditionSessionID
 	loop.Experiment.Rounds[0] = round
-	loop.AuditionSessionSnapshot = map[string]any{"session_id": loop.AuditionSessionID, "conversation_id": loop.ConversationID, "turn_id": loop.Experiment.ID, "round_id": round.ID, "status": "ready", "scope": "target", "project_uuid": "project-1", "project_revision": "rev-7", "active_project_ref": "active.vit", "candidates": []any{map[string]any{"id": "candidate-a", "label": "A", "status": "ready", "source_kind": "checkpoint", "source_ref": "checkpoint:checkpoint-7", "checkpoint_ref": "checkpoint-7", "commit_id": "checkpoint-7", "project_path": "active.vit", "project_uuid": "project-1", "project_revision": "rev-7", "preview_ref": "preview:a"}, map[string]any{"id": "candidate-b", "label": "B", "status": "ready", "source_kind": "experiment", "source_ref": "checkpoint:treatment-7", "checkpoint_ref": "treatment-7", "commit_id": "treatment-7", "project_path": "active.vit", "project_uuid": "project-1", "project_revision": "rev-7", "preview_ref": "preview:b"}}}
+	loop.AuditionSessionSnapshot = map[string]any{"session_id": loop.AuditionSessionID, "conversation_id": loop.ConversationID, "turn_id": loop.Experiment.ID, "round_id": round.ID, "status": "ready", "scope": "target", "project_uuid": "project-1", "project_revision": "rev-7", "active_project_ref": projectPath, "candidates": []any{map[string]any{"id": "candidate-a", "label": "A", "status": "ready", "source_kind": "checkpoint", "source_ref": "checkpoint:checkpoint-7", "checkpoint_ref": "checkpoint-7", "commit_id": "checkpoint-7", "project_path": projectPath, "project_uuid": "project-1", "project_revision": "rev-7", "preview_ref": "preview:a"}, map[string]any{"id": "candidate-b", "label": "B", "status": "ready", "source_kind": "experiment", "source_ref": "checkpoint:treatment-7", "checkpoint_ref": "treatment-7", "commit_id": "treatment-7", "project_path": projectPath, "project_uuid": "project-1", "project_revision": "rev-7", "preview_ref": "preview:b"}}}
 	if _, err := loop.Experiment.RecordTargetResponse(experiment.TargetEvaluation{Response: experiment.TargetAmbiguous, Outcome: trajectory.EvaluationHumanAuditionReady, EvidenceRefs: []string{"after"}}, time.Now().UTC()); err != nil {
 		t.Fatal(err)
 	}
@@ -395,9 +408,10 @@ func recordPreferredBForTest(t *testing.T, s *Server, loop *freeStateReasoningLo
 }
 func TestCandidateInspectDoesNotAdopt(t *testing.T) {
 	s := New(nil, nil, nil)
-	d := newCandidateDriverForTest()
+	project := auditionProjectPathForTest(t)
+	d := newCandidateDriverForTest(project)
 	s.auditionCandidateDriver = d
-	loop := boundAdoptionLoopForTest(t)
+	loop := boundAdoptionLoopForTest(t, project)
 	s.storeFreeStateLoop(loop)
 	receipt, err := s.inspectAuditionCandidate(context.Background(), auditionCandidateOperationRequest{ConversationID: loop.ConversationID, SessionID: loop.AuditionSessionID, CandidateID: "candidate-b"})
 	if err != nil || receipt.Status != "inspected" {
@@ -410,10 +424,11 @@ func TestCandidateInspectDoesNotAdopt(t *testing.T) {
 }
 func TestCandidateInspectFailureRollsBack(t *testing.T) {
 	s := New(nil, nil, nil)
-	d := newCandidateDriverForTest()
+	project := auditionProjectPathForTest(t)
+	d := newCandidateDriverForTest(project)
 	d.checkoutErr = errors.New("materialize failed")
 	s.auditionCandidateDriver = d
-	loop := boundAdoptionLoopForTest(t)
+	loop := boundAdoptionLoopForTest(t, project)
 	s.storeFreeStateLoop(loop)
 	receipt, err := s.inspectAuditionCandidate(context.Background(), auditionCandidateOperationRequest{ConversationID: loop.ConversationID, SessionID: loop.AuditionSessionID, CandidateID: "candidate-b"})
 	if err == nil || firstStringFromMap(receipt.Rollback, "status") != "rolled_back" {
@@ -422,9 +437,10 @@ func TestCandidateInspectFailureRollsBack(t *testing.T) {
 }
 func TestCandidateJudgmentNeedsExplicitApply(t *testing.T) {
 	s := New(nil, nil, nil)
-	d := newCandidateDriverForTest()
+	project := auditionProjectPathForTest(t)
+	d := newCandidateDriverForTest(project)
 	s.auditionCandidateDriver = d
-	loop := boundAdoptionLoopForTest(t)
+	loop := boundAdoptionLoopForTest(t, project)
 	evidence := recordPreferredBForTest(t, s, &loop)
 	stored, _ := s.freeStateLoop(loop.ConversationID)
 	if stored.Experiment.Status == experiment.StatusSettled {
