@@ -79,6 +79,10 @@ yarn-error.log*
 /.vit_history/
 /*.vit
 
+/.gocache/
+/.playwright-cli/
+/agent/backups/
+**/.vit_history/
 /agent/.playwright-cli/
 /agent/output/
 /agent/*.json
