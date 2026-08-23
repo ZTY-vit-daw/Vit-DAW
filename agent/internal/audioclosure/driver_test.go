@@ -114,6 +114,31 @@ func TestClosureRoundBudgetPersistsAcrossEventReplay(t *testing.T) {
 	}
 }
 
+func TestClosureRoundBudgetExtensionPersistsAcrossEventReplay(t *testing.T) {
+	driver := Driver{}
+	state := newTestClosure(t)
+	state = admitTestRound(t, driver, state, 1)
+	state, err := driver.CompleteRound(state, state.Revision, testNow.Add(time.Minute))
+	if err != nil {
+		t.Fatal(err)
+	}
+	oldRevision := state.Revision
+	state, err = driver.ExtendClosureRounds(state, state.Revision, state.Policy.MaxClosureRounds+1, testNow.Add(2*time.Minute))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if state.Revision != oldRevision+1 || state.Policy.MaxClosureRounds != 7 {
+		t.Fatalf("extension did not advance durable revision/policy: %+v", state)
+	}
+	restored, err := Fold(state.Events)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if restored.Revision != state.Revision || restored.Policy.MaxClosureRounds != 7 {
+		t.Fatalf("event replay lost closure policy extension: %+v", restored)
+	}
+}
+
 func TestDuplicateObservationDoesNotConsumeUniqueBudgetOrCountAsProgress(t *testing.T) {
 	driver := Driver{}
 	state := admitTestRound(t, driver, newTestClosure(t), 1)

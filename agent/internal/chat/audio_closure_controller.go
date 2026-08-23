@@ -280,21 +280,45 @@ func (s *Server) admitAudioClosureRound(state audioclosure.State) (audioclosure.
 	if !ok {
 		return state, false, fmt.Errorf("minimal audio closure %s is missing", state.ClosureID)
 	}
+	// A transient provider failure leaves the admitted closure round active so
+	// the next invocation can retry the same semantic move. The round boundary
+	// applies only after that round has completed; checking it first would turn
+	// a provider retry at MaxClosureRounds into a fabricated terminal outcome.
+	if current.RoundInProgress {
+		return current, true, nil
+	}
 	if current.ContractID != "" && current.RoundsStarted >= current.Policy.MaxClosureRounds {
-		next, err := s.settleTaskAtAudioClosureBoundary(current, "closure observation round boundary reached")
-		if err != nil {
-			return current, false, err
-		}
-		if next.Revision != current.Revision {
-			if err := s.audioClosures.Save(next, current.Revision); err != nil {
+		// A governed action can complete on the final diagnostic round. The
+		// post-action CCB observation is part of that same experiment contract,
+		// so grant one durable verification round before applying the ordinary
+		// closure boundary. Without this extension the old round limit settles
+		// the task as capability_blocked immediately after a real mutation.
+		if loop, loopOK := s.freeStateLoop(current.ConversationID); loopOK && loop.Experiment != nil && loop.RequiresPostActionObservation {
+			next, err := (audioclosure.Driver{}).ExtendClosureRounds(current, current.Revision, current.RoundsStarted+1, time.Now().UTC())
+			if err != nil {
+				return current, false, err
+			}
+			current = next
+			if err := s.audioClosures.Save(current, state.Revision); err != nil {
 				return current, false, err
 			}
 			s.persistCurrentProjectWorkspace()
+		} else {
+			next, err := s.settleTaskAtAudioClosureBoundary(current, "closure observation round boundary reached")
+			if err != nil {
+				return current, false, err
+			}
+			if next.Revision != current.Revision {
+				if err := s.audioClosures.Save(next, current.Revision); err != nil {
+					return current, false, err
+				}
+				s.persistCurrentProjectWorkspace()
+			}
+			if next.Terminal() {
+				s.settleAudioClosureOwner(next)
+			}
+			return next, false, nil
 		}
-		if next.Terminal() {
-			s.settleAudioClosureOwner(next)
-		}
-		return next, false, nil
 	}
 	next, admitted, err := (audioclosure.Driver{}).AdmitRound(current, current.Revision, time.Now().UTC())
 	if err != nil {
@@ -331,8 +355,31 @@ func (s *Server) recordAudioClosureRound(state audioclosure.State, res agentloop
 		}
 		current = next
 	}
+	if res.StopReason == agentloop.StopReasonTransientLLMError {
+		// The result can still carry the previous durable free-state decision.
+		// Do not project that stale decision into the frontier or no-progress
+		// counters. Only an authoritative project change discovered above is
+		// allowed to advance closure state on a provider retry.
+		stored, _ := s.audioClosures.Load(state.ClosureID)
+		if current.Revision != stored.Revision {
+			if err := s.audioClosures.Save(current, stored.Revision); err != nil {
+				return stored, err
+			}
+			s.persistCurrentProjectWorkspace()
+		}
+		return current, nil
+	}
 	for _, observation := range freeStateCCBObservations(res) {
 		if observation == nil || current.Terminal() {
+			continue
+		}
+		observationID := firstStringFromMap(observation.Summary, "observation_id")
+		// One CCB bundle can be projected through several compact view sets as
+		// continuations merge their durable ledgers. The closure budget is for
+		// unique observation bundles, not repeated projections of the same
+		// observation_id. Replaying those projections must not consume the
+		// evidence ceiling before the next genuinely new observation arrives.
+		if audioClosureHasObservationID(current, observationID) {
 			continue
 		}
 		if current.ContractID != "" && len(current.Observations) >= current.Policy.MaxUniqueObservations {
@@ -344,7 +391,7 @@ func (s *Server) recordAudioClosureRound(state audioclosure.State, res agentloop
 			break
 		}
 		key := audioClosureObservationKey(current, observation, requestContext)
-		outcome, err := driver.RecordObservation(current, current.Revision, key, firstStringFromMap(observation.Summary, "observation_id"), time.Now().UTC())
+		outcome, err := driver.RecordObservation(current, current.Revision, key, observationID, time.Now().UTC())
 		if err != nil {
 			return current, err
 		}
@@ -364,19 +411,6 @@ func (s *Server) recordAudioClosureRound(state audioclosure.State, res agentloop
 			return current, err
 		}
 		current = next
-	}
-	if res.StopReason == agentloop.StopReasonTransientLLMError {
-		// A provider/transport retry must not settle or consume the active
-		// closure round. Keep the project-change progress and post-action gate
-		// durable; the bounded outer continuation will retry this same round.
-		stored, _ := s.audioClosures.Load(state.ClosureID)
-		if current.Revision != stored.Revision {
-			if err := s.audioClosures.Save(current, stored.Revision); err != nil {
-				return stored, err
-			}
-			s.persistCurrentProjectWorkspace()
-		}
-		return current, nil
 	}
 	repairCount, plannerError := audioClosureProtocolTrace(res)
 	for repair := 0; !current.Terminal() && repair < repairCount; repair++ {
@@ -417,7 +451,8 @@ func (s *Server) recordAudioClosureRound(state audioclosure.State, res agentloop
 		}
 		current = next
 	}
-	if !current.Terminal() && current.ContractID != "" && current.NoProgressStreak >= current.Policy.MaxNoProgressRounds {
+	if !current.Terminal() && current.ContractID != "" && current.NoProgressStreak >= current.Policy.MaxNoProgressRounds &&
+		(current.Scope.Kind != "project" || len(current.Frontier.Candidates) > 0) {
 		next, err := s.settleTaskAtAudioClosureBoundary(current, "closure made no material progress within its bounded observation window")
 		if err != nil {
 			return current, err
@@ -437,6 +472,19 @@ func (s *Server) recordAudioClosureRound(state audioclosure.State, res agentloop
 	return current, nil
 }
 
+func audioClosureHasObservationID(state audioclosure.State, observationID string) bool {
+	observationID = strings.TrimSpace(observationID)
+	if observationID == "" {
+		return false
+	}
+	for _, record := range state.Observations {
+		if strings.TrimSpace(record.ObservationID) == observationID {
+			return true
+		}
+	}
+	return false
+}
+
 func (s *Server) settleTaskAtAudioClosureBoundary(state audioclosure.State, reason string) (audioclosure.State, error) {
 	if state.ContractID == "" {
 		return state, nil
@@ -450,11 +498,11 @@ func (s *Server) settleTaskAtAudioClosureBoundary(state audioclosure.State, reas
 		record := state.Observations[fingerprint]
 		evidence = append(evidence, firstNonEmpty(record.ObservationID, record.Fingerprint))
 	}
+	// A round/evidence boundary proves only that the current capability window
+	// cannot continue. no_candidate_found is a model-authored, validator-backed
+	// semantic decision applied by applyFreeStateDecisionSemantic; absence of a
+	// projected frontier is not evidence that no candidate exists.
 	event := taskstate.EventCapabilityBlocked
-	if len(evidence) > 0 && len(state.Frontier.Candidates) == 0 &&
-		(goal.Task.SemanticState.State == taskstate.StateObservationInProgress || goal.Task.SemanticState.State == taskstate.StateDiagnosticComplete) {
-		event = taskstate.EventNoCandidateReported
-	}
 	if _, err := s.transitionTaskSemantic(state.GoalID, taskstate.TransitionRequest{
 		Event: event, Reason: reason, Summary: reason, EvidenceRefs: evidence, ProjectRevision: state.ProjectRevision,
 	}); err != nil {
@@ -550,12 +598,8 @@ func audioClosureCandidates(existing []audioclosure.Candidate, observations []*a
 			continue
 		}
 		observationID := firstStringFromMap(observation.Summary, "observation_id")
-		for _, viewID := range freeStateNormalizedViewIDs(freeStateStringSlice(observation.Summary["requested_views"])) {
-			conclusion := contextruntime.ProjectCCBViewConclusion(observation.Summary, viewID, contextruntime.Options{
-				MaxTextRunes: 900, MaxListItems: 8, MaxPreviewBytes: 6 * 1024, SkipPluginSemanticLoad: true,
-			})
-			facts := firstMapFromAny(conclusion["facts"])
-			rows := append(freeStateMapRows(facts["conflict_candidates"]), freeStateMapRows(facts["band_conflict_candidates"])...)
+		for _, viewID := range audioClosureCandidateViewIDs(observation.Summary) {
+			rows := audioClosureCandidateRows(observation.Summary, viewID)
 			for _, row := range rows {
 				trackIDs, trackNames := audioClosureCandidateTracks(row)
 				if len(trackIDs) == 0 {
@@ -564,10 +608,11 @@ func audioClosureCandidates(existing []audioclosure.Candidate, observations []*a
 				issueType := firstStringFromMap(row, "type", "issue_type", "status")
 				region := firstStringFromMap(row, "region", "band")
 				candidateID := audioClosureCandidateID(observationID, viewID, issueType, region, trackIDs)
+				evidenceRefs := freeStateStringSlice(firstNonNil(row["evidence_refs"], row["evidence_ref"], observation.Summary["evidence_refs"]))
 				byID[candidateID] = audioclosure.Candidate{
 					ID: candidateID, SourceObservationID: observationID, ViewID: viewID,
 					IssueType: issueType, Region: region, TrackIDs: trackIDs, TrackNames: trackNames,
-					EvidenceRefs: freeStateStringSlice(firstNonNil(row["evidence_refs"], observation.Summary["evidence_refs"])),
+					EvidenceRefs: evidenceRefs,
 				}
 			}
 		}
@@ -577,6 +622,60 @@ func audioClosureCandidates(existing []audioclosure.Candidate, observations []*a
 		out = append(out, candidate)
 	}
 	return out
+}
+
+// audioClosureCandidateViewIDs accepts both the compact CCB bundle emitted by
+// the live loop and the durable full observation package written by the
+// harness. The latter intentionally omits requested_views/views, so its MOM
+// and project-package candidate projections are the source of truth.
+func audioClosureCandidateViewIDs(summary map[string]any) []string {
+	ids := freeStateNormalizedViewIDs(freeStateStringSlice(summary["requested_views"]))
+	if len(ids) > 0 {
+		return ids
+	}
+	if relation := firstMapFromAny(firstMapFromAny(summary["mom_projection"])["multitrack_relation"]); len(freeStateMapRows(relation["band_conflict_candidates"])) > 0 {
+		return []string{"mix.multitrack_relationship"}
+	}
+	if len(firstMapFromAny(summary["project_package"])) > 0 {
+		return []string{"mix.frequency_relationship"}
+	}
+	return nil
+}
+
+func audioClosureCandidateRows(summary map[string]any, viewID string) []map[string]any {
+	conclusion := contextruntime.ProjectCCBViewConclusion(summary, viewID, contextruntime.Options{
+		MaxTextRunes: 900, MaxListItems: 8, MaxPreviewBytes: 6 * 1024, SkipPluginSemanticLoad: true,
+	})
+	facts := firstMapFromAny(conclusion["facts"])
+	rows := append(freeStateMapRows(facts["conflict_candidates"]), freeStateMapRows(facts["band_conflict_candidates"])...)
+	if len(rows) > 0 {
+		return rows
+	}
+	// Durable continuation compaction stores the authoritative conclusion
+	// directly under views[view_id].facts. Read that structured projection
+	// before falling back to full acoustic-package shapes.
+	view := firstMapFromAny(firstMapFromAny(summary["views"])[viewID])
+	directFacts := firstMapFromAny(view["facts"])
+	rows = append(freeStateMapRows(directFacts["conflict_candidates"]), freeStateMapRows(directFacts["band_conflict_candidates"])...)
+	if len(rows) > 0 {
+		return rows
+	}
+	// Persisted observations are full acoustic packages rather than CCB view
+	// envelopes. Read only the already-produced candidate rows; no target,
+	// processor, or parameter is introduced here.
+	switch viewID {
+	case "mix.multitrack_relationship":
+		relation := firstMapFromAny(firstMapFromAny(summary["mom_projection"])["multitrack_relation"])
+		return freeStateMapRows(relation["band_conflict_candidates"])
+	case "mix.frequency_relationship":
+		conflicts := firstMapFromAny(firstMapFromAny(summary["project_package"])["conflict_candidates"])
+		if rows := freeStateMapRows(conflicts["candidates"]); len(rows) > 0 {
+			return rows
+		}
+		return freeStateMapRows(firstMapFromAny(summary["project_package"])["conflict_candidates"])
+	default:
+		return nil
+	}
 }
 
 func audioClosureCandidateTracks(row map[string]any) ([]string, []string) {

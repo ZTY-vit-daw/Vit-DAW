@@ -84,9 +84,11 @@ func (h *Harness) CollectL2RenderProbeBatch(ctx context.Context, req L2RenderPro
 				continue
 			}
 		}
-		packet := h.requestMixObservationL2RenderProbe(ctx, cmd, state, target, resolved)
+		packet, row := h.requestMixObservationL2RenderProbe(ctx, cmd, state, target, resolved)
 		requestID := firstString(packet, "request_id")
-		row := l2RenderProbeRowByRequest(cmd, requestID)
+		if len(row) == 0 {
+			row = l2RenderProbeRowByRequest(cmd, requestID)
+		}
 		if len(row) == 0 || !strings.EqualFold(firstString(row, "status"), "ready") || (req.RequireMaskingFrames && len(mapAnyFromAny(row["masking_frames"])) == 0) {
 			return result, fmt.Errorf("track %s L2 probe did not produce ready evidence: %s", trackID, firstNonEmpty(firstString(packet, "reason"), firstString(packet, "status"), "missing"))
 		}

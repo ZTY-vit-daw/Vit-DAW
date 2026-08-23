@@ -171,7 +171,10 @@ func TestRecordFreeStateDecisionImportsContinuationObservationLedger(t *testing.
 		ObservationLedger: map[string]any{
 			"schema_version": freeStateObservationLedgerSchema,
 			"available_views": map[string]any{"mix.frequency_relationship": map[string]any{
-				"view_id": "mix.frequency_relationship", "status": "partial", "observation_id": "obs-frequency",
+				"view_id": "mix.frequency_relationship", "status": "partial", "observation_id": "obs-frequency", "round": 4,
+				"target_ref":    map[string]any{"kind": "track", "id": "1007", "label": "Bass"},
+				"freshness":     map[string]any{"status": "ready", "observed_at": "2026-08-22T04:40:45Z"},
+				"evidence_refs": []any{"evidence://frequency"},
 			}},
 			"rejected_view_sets": []map[string]any{{
 				"fingerprint":     freeStateNormalizedViewFingerprint([]string{"mix.masking_relationship", "track.time_dynamics"}),
@@ -190,6 +193,10 @@ func TestRecordFreeStateDecisionImportsContinuationObservationLedger(t *testing.
 	ledger := loop.ObservationLedger
 	if firstMapFromAny(ledger["available_views"])["mix.frequency_relationship"] == nil || len(freeStateMapRows(ledger["rejected_view_sets"])) != 1 {
 		t.Fatalf("continuation ledger was not imported: %#v", ledger)
+	}
+	if loop.LatestObservation == nil || firstStringFromMap(loop.LatestObservation.Summary, "observation_id") != "obs-frequency" ||
+		firstStringFromMap(firstMapFromAny(loop.LatestObservation.Summary["target_ref"]), "id") != "1007" {
+		t.Fatalf("continuation ledger did not restore the latest targeted observation: %#v", loop.LatestObservation)
 	}
 	persisted, persistedOK := server.freeStateLoop("continuation-ledger-chat")
 	if !persistedOK || len(persisted.ObservationLedger) == 0 {
@@ -453,6 +460,19 @@ func TestFreeStateMaterializationRuntimeConfigurationServiceErrorIsTransient(t *
 	}
 	if freeStateTransientServiceError("AI configuration is incomplete") {
 		t.Fatal("a persistent incomplete local configuration was classified as transient")
+	}
+}
+
+func TestFreeStateWindowsTransportServiceErrorIsTransient(t *testing.T) {
+	if !freeStateTransientServiceError("wsarecv: a connection attempt failed because the connected party did not properly respond") {
+		t.Fatal("Windows transport timeout was classified as permanent")
+	}
+}
+
+func TestFreeStateProviderInternalServerErrorIsTransient(t *testing.T) {
+	if !freeStateTransientServiceError("Internal server error") ||
+		!freeStateTransientServiceError("LLM HTTP error 500: internal server error") {
+		t.Fatal("provider 500 was classified as permanent")
 	}
 }
 

@@ -2,13 +2,16 @@ package chat
 
 import (
 	"testing"
+	"time"
 
 	"vit-daw-agent/internal/agentloop"
 	"vit-daw-agent/internal/audioclosure"
+	"vit-daw-agent/internal/harness"
 	"vit-daw-agent/internal/orchestration"
 	"vit-daw-agent/internal/orchestrationcontroller"
 	"vit-daw-agent/internal/orchestrationruntime"
 	agentruntime "vit-daw-agent/internal/runtime"
+	"vit-daw-agent/internal/taskstate"
 )
 
 func audioClosureTestServer() *Server {
@@ -62,6 +65,44 @@ func TestAudioClosureControllerPersistsRoundsAndSettlesNoProgress(t *testing.T) 
 	}
 }
 
+func TestProjectAudioClosureDoesNotSettleNoProgressBeforeCandidateFrontier(t *testing.T) {
+	server := &Server{harness: harness.NewWithSender(nil, nil, nil), audioClosures: audioclosure.NewMemoryStore(), controllerOwners: orchestrationcontroller.NewRegistry()}
+	goal := server.harness.EnsureGoal("goal-project-no-progress", "run-project-no-progress", "inspect the project")
+	ctx, err := server.ensureAudioTaskContract("conversation-project-no-progress", audioclosure.ModeTreatment,
+		audioclosure.Scope{Kind: "project", ID: "project-no-progress"}, "project-no-progress", "rev-1", map[string]any{"goal_id": goal.GoalID})
+	if err != nil {
+		t.Fatal(err)
+	}
+	current := server.harness.RuntimeStatus(goal.GoalID)
+	state, err := audioclosure.Start(audioclosure.StartRequest{
+		ClosureID: "closure-project-no-progress", ConversationID: "conversation-project-no-progress", TaskID: current.Task.TaskID,
+		GoalID: current.GoalID, RunID: current.RunID, ContractID: current.Task.Contract.ContractID,
+		TaskState: current.Task.SemanticState.State, TaskStateRevision: current.Task.SemanticState.Revision,
+		ProjectUUID: "project-no-progress", ProjectRevision: "rev-1", OriginalIntent: current.Task.OriginalIntent,
+		Mode: audioclosure.ModeTreatment, Scope: audioclosure.Scope{Kind: "project", ID: "project-no-progress"}, Now: time.Now().UTC(),
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := server.audioClosures.Create(state); err != nil {
+		t.Fatal(err)
+	}
+	for round := 0; round < 2; round++ {
+		var admitted bool
+		state, admitted, err = server.admitAudioClosureRound(state)
+		if err != nil || !admitted {
+			t.Fatalf("round %d admission: admitted=%v err=%v", round+1, admitted, err)
+		}
+		state, err = server.recordAudioClosureRound(state, agentloop.Result{}, ctx)
+		if err != nil {
+			t.Fatalf("round %d record: %v", round+1, err)
+		}
+	}
+	if state.Terminal() || state.NoProgressStreak < state.Policy.MaxNoProgressRounds {
+		t.Fatalf("project closure settled before candidate frontier: %+v", state)
+	}
+}
+
 func TestAudioClosureRecordsAuthoritativeRecentCCBObservationWithoutTreatingItAsProgress(t *testing.T) {
 	server := audioClosureTestServer()
 	ctx, state := prepareAudioClosureTestState(t, server)
@@ -93,6 +134,59 @@ func TestAudioClosureRecordsAuthoritativeRecentCCBObservationWithoutTreatingItAs
 	}
 }
 
+func TestAudioClosureRepeatedObservationProjectionDoesNotConsumeEvidenceCeiling(t *testing.T) {
+	server := audioClosureTestServer()
+	state, err := audioclosure.Start(audioclosure.StartRequest{
+		ClosureID: "closure-repeated-projection", ConversationID: "conversation-repeated-projection",
+		ProjectUUID: "project-1", ProjectRevision: "revision-1", OriginalIntent: "inspect the project",
+		Mode: audioclosure.ModeDiagnostic, Scope: audioclosure.Scope{Kind: "project", ID: "project-1"},
+		Policy: audioclosure.Policy{
+			MaxClosureRounds: 4, MaxUniqueObservations: 1, MaxNoProgressRounds: 4,
+			MaxModelProtocolRepairs: 1, MaxActionAttempts: 1, MaxRollbackAttempts: 1,
+		},
+		Now: time.Now().UTC(),
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := server.audioClosures.Create(state); err != nil {
+		t.Fatal(err)
+	}
+	ctx := map[string]any{"project_uuid": "project-1", "project_revision": "revision-1"}
+	for round, viewID := range []string{"project.structure", "mix.frequency_relationship"} {
+		var admitted bool
+		state, admitted, err = server.admitAudioClosureRound(state)
+		if err != nil || !admitted {
+			t.Fatalf("round %d admission: admitted=%v err=%v", round+1, admitted, err)
+		}
+		observation := &agentloop.RecentObservation{
+			Tool: "ccb.observation_request", Status: "ready",
+			Summary: map[string]any{
+				"status": "ready", "observation_id": "obs-shared-bundle",
+				"requested_views": []any{viewID}, "views": map[string]any{viewID: map[string]any{"status": "ready"}},
+			},
+		}
+		state, err = server.recordAudioClosureRound(state, agentloop.Result{
+			RecentObservation: observation,
+			FreeStateDecision: &agentloop.FreeStateDecision{
+				SchemaVersion: agentloop.FreeStateDecisionSchema, Status: agentloop.FreeStateNeedsObservation,
+				EvidenceStatus: "insufficient", Summary: "continue project observation",
+			},
+		}, ctx)
+		if err != nil {
+			t.Fatalf("round %d record: %v", round+1, err)
+		}
+	}
+	if state.Terminal() || len(state.Observations) != 1 {
+		t.Fatalf("repeated projection consumed the evidence ceiling: %+v", state)
+	}
+	for _, record := range state.Observations {
+		if record.ObservationID != "obs-shared-bundle" {
+			t.Fatalf("unexpected retained observation: %+v", record)
+		}
+	}
+}
+
 func TestAudioClosureTransientModelFailureKeepsRoundActive(t *testing.T) {
 	server := audioClosureTestServer()
 	ctx, state := prepareAudioClosureTestState(t, server)
@@ -109,6 +203,90 @@ func TestAudioClosureTransientModelFailureKeepsRoundActive(t *testing.T) {
 	}
 	if state.Terminal() || !state.RoundInProgress || state.NoProgressStreak != 0 {
 		t.Fatalf("transient model failure consumed or settled closure round: %+v", state)
+	}
+	state, admitted, err = server.admitAudioClosureRound(state)
+	if err != nil || !admitted || state.Terminal() || !state.RoundInProgress || state.RoundsStarted != 1 {
+		t.Fatalf("transient retry did not resume the same active round: admitted=%v state=%+v err=%v", admitted, state, err)
+	}
+}
+
+func TestAudioClosureTransientModelFailureDoesNotReplayPriorDecision(t *testing.T) {
+	server := audioClosureTestServer()
+	ctx, state := prepareAudioClosureTestState(t, server)
+	state, _, _ = server.admitAudioClosureRound(state)
+	revision := state.Revision
+	state, err := server.recordAudioClosureRound(state, agentloop.Result{
+		Status:     agentruntime.StatusWaitingContinue,
+		StopReason: agentloop.StopReasonTransientLLMError,
+		FreeStateDecision: &agentloop.FreeStateDecision{
+			SchemaVersion: agentloop.FreeStateDecisionSchema,
+			Status:        agentloop.FreeStateNeedsObservation, EvidenceStatus: "insufficient",
+			Summary: "stale prior decision",
+		},
+	}, ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if state.Revision != revision || state.NoProgressStreak != 0 || len(state.Events) != int(revision) {
+		t.Fatalf("transient failure replayed a prior decision into closure state: %+v", state)
+	}
+}
+
+func TestAudioClosureRoundBoundaryDoesNotInventNoCandidateFound(t *testing.T) {
+	server := &Server{harness: harness.NewWithSender(nil, nil, nil), audioClosures: audioclosure.NewMemoryStore(), controllerOwners: orchestrationcontroller.NewRegistry()}
+	goal := server.harness.EnsureGoal("goal-boundary", "run-boundary", "inspect the project")
+	_, err := server.ensureAudioTaskContract("conversation-boundary", audioclosure.ModeTreatment,
+		audioclosure.Scope{Kind: "project", ID: "project-boundary"}, "project-boundary", "rev-1", map[string]any{"goal_id": goal.GoalID})
+	if err != nil {
+		t.Fatal(err)
+	}
+	current := server.harness.RuntimeStatus(goal.GoalID)
+	state, err := audioclosure.Start(audioclosure.StartRequest{
+		ClosureID: "closure-boundary", ConversationID: "conversation-boundary", TaskID: current.Task.TaskID,
+		GoalID: current.GoalID, RunID: current.RunID, ContractID: current.Task.Contract.ContractID,
+		TaskState: current.Task.SemanticState.State, TaskStateRevision: current.Task.SemanticState.Revision,
+		ProjectUUID: "project-boundary", ProjectRevision: "rev-1", OriginalIntent: current.Task.OriginalIntent,
+		Mode: audioclosure.ModeTreatment, Scope: audioclosure.Scope{Kind: "project", ID: "project-boundary"},
+		Policy: audioclosure.Policy{MaxClosureRounds: 1, MaxUniqueObservations: 2, MaxNoProgressRounds: 2, MaxModelProtocolRepairs: 1, MaxActionAttempts: 1, MaxRollbackAttempts: 1},
+		Now:    time.Now().UTC(),
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := server.audioClosures.Create(state); err != nil {
+		t.Fatal(err)
+	}
+	state, _, err = server.admitAudioClosureRound(state)
+	if err != nil {
+		t.Fatal(err)
+	}
+	observation := &agentloop.RecentObservation{Tool: "ccb.observation_request", Status: "ready", Summary: map[string]any{
+		"status": "ready", "observation_id": "obs-boundary", "requested_views": []any{"project.structure"},
+		"views": map[string]any{"project.structure": map[string]any{"status": "ready"}},
+	}}
+	state, err = server.recordAudioClosureRound(state, agentloop.Result{RecentObservation: observation}, map[string]any{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	state, admitted, err := server.admitAudioClosureRound(state)
+	if err != nil || admitted || !state.Terminal() || state.TaskState != taskstate.StateCapabilityBlocked || state.Settlement.Reason != audioclosure.StopCapabilityBlocked {
+		t.Fatalf("closure boundary fabricated no_candidate_found: admitted=%v state=%+v err=%v", admitted, state, err)
+	}
+}
+
+func TestAudioClosureBuildsCandidatesFromCompactedViewFacts(t *testing.T) {
+	observation := &agentloop.RecentObservation{Tool: "ccb.observation_request", Status: "partial", Summary: map[string]any{
+		"status": "partial", "observation_id": "obs-compacted", "requested_views": []any{"mix.multitrack_relationship"},
+		"views": map[string]any{"mix.multitrack_relationship": map[string]any{
+			"status": "partial", "facts": map[string]any{"band_conflict_candidates": []any{
+				map[string]any{"band": "bass", "status": "candidate", "tracks": []any{map[string]any{"track_id": "1007"}, map[string]any{"track_id": "1012"}}},
+				map[string]any{"band": "mid", "status": "candidate", "tracks": []any{map[string]any{"track_id": "1022"}, map[string]any{"track_id": "1017"}}},
+			}},
+		}},
+	}}
+	candidates := audioClosureCandidates(nil, []*agentloop.RecentObservation{observation})
+	if len(candidates) != 2 {
+		t.Fatalf("compacted CCB facts produced %d candidates: %+v", len(candidates), candidates)
 	}
 }
 
@@ -172,6 +350,99 @@ func TestAudioClosureBuildsCandidateFrontierThenSelectsTarget(t *testing.T) {
 	}, ctx)
 	if err != nil || state.Terminal() || state.Actionability != audioclosure.ActionabilityActionable {
 		t.Fatalf("improvement proposal was not retained as an actionable closure handoff: state=%+v err=%v", state, err)
+	}
+}
+
+func TestAudioClosureSelectsCandidateFromContinuationLedgerObservation(t *testing.T) {
+	server := New(nil, nil, nil)
+	ctx, state := prepareAudioClosureTestState(t, server)
+	state, admitted, err := server.admitAudioClosureRound(state)
+	if err != nil || !admitted {
+		t.Fatalf("admit discovery round: admitted=%v err=%v", admitted, err)
+	}
+	relationship := &agentloop.RecentObservation{
+		Tool: "ccb.observation_request", Status: "ready",
+		Summary: map[string]any{
+			"status": "ready", "observation_id": "obs-relationship",
+			"project_package": map[string]any{
+				"conflict_candidates": map[string]any{"candidates": []any{map[string]any{
+					"type": "frequency_energy_overlap_candidate", "region": "bass",
+					"tracks": []any{map[string]any{"track_id": "1007"}, map[string]any{"track_id": "1012"}},
+				}}},
+			},
+		},
+	}
+	state, err = server.recordAudioClosureRound(state, agentloop.Result{
+		RecentObservation: relationship,
+		FreeStateDecision: &agentloop.FreeStateDecision{SchemaVersion: agentloop.FreeStateDecisionSchema,
+			Status: agentloop.FreeStateNeedsObservation, EvidenceStatus: "insufficient", Summary: "inspect the bass target"},
+	}, ctx)
+	if err != nil || len(state.Frontier.Candidates) != 1 {
+		t.Fatalf("candidate discovery failed: state=%+v err=%v", state, err)
+	}
+	candidateID := state.Frontier.Candidates[0].ID
+
+	server.storeFreeStateLoop(freeStateReasoningLoop{
+		SchemaVersion: freeStateReasoningLoopSchema, LoopID: "ledger-target-loop", ConversationID: "conversation-1",
+		Status: "observing", OriginalIntent: "inspect the project", ActiveIntent: "inspect the project", MaxCycles: 6,
+	})
+	continued := freeStateReasoningLoop{
+		SchemaVersion: freeStateReasoningLoopSchema, LoopID: "ledger-target-loop", ConversationID: "conversation-1",
+		Status: "observing", OriginalIntent: "inspect the project", ActiveIntent: "inspect the project", MaxCycles: 6,
+		ObservationLedger: map[string]any{
+			"schema_version": freeStateObservationLedgerSchema,
+			"available_views": map[string]any{"track.band_dynamics": map[string]any{
+				"view_id": "track.band_dynamics", "status": "partial", "observation_id": "obs-bass-target", "round": 5,
+				"target_ref":    map[string]any{"kind": "track", "id": "1007", "label": "Bass"},
+				"freshness":     map[string]any{"status": "ready", "observed_at": "2026-08-22T04:41:21Z"},
+				"evidence_refs": []any{"evidence://bass-target"},
+			}},
+		},
+	}
+	result := agentloop.Result{
+		Continuation: &agentloop.Continuation{Context: map[string]any{"free_state_reasoning_loop": freeStateLoopMap(continued)}},
+		FreeStateDecision: &agentloop.FreeStateDecision{SchemaVersion: agentloop.FreeStateDecisionSchema,
+			Status: agentloop.FreeStateNeedsObservation, EvidenceStatus: "insufficient", Summary: "evaluate the target evidence"},
+	}
+	loop, ok := server.recordFreeStateDecision("conversation-1", result)
+	if !ok || loop.LatestObservation == nil {
+		t.Fatalf("continuation ledger target was not restored: %#v", loop)
+	}
+	result.RecentObservation = loop.LatestObservation
+	state, admitted, err = server.admitAudioClosureRound(state)
+	if err != nil || !admitted {
+		t.Fatalf("admit target round: admitted=%v err=%v", admitted, err)
+	}
+	state, err = server.recordAudioClosureRound(state, result, ctx)
+	if err != nil || state.Frontier.CandidateID != candidateID || state.NoProgressStreak != 0 {
+		t.Fatalf("ledger-only target observation did not advance closure: state=%+v err=%v", state, err)
+	}
+}
+
+func TestAudioClosureBuildsCandidateFrontierFromDurableObservationPackage(t *testing.T) {
+	observation := &agentloop.RecentObservation{Tool: "ccb.observation_request", Status: "ready", Summary: map[string]any{
+		"status": "ready", "observation_id": "obs-durable-package",
+		"mom_projection": map[string]any{"multitrack_relation": map[string]any{
+			"status": "ready", "band_conflict_candidates": []any{map[string]any{
+				"band": "low_mid", "type": "low_mid_masking_candidate",
+				"evidence_ref": "project_package.project_band_occupancy.low_mid",
+				"tracks":       []any{map[string]any{"track_id": "track-a", "name": "Keys"}, map[string]any{"track_id": "track-b", "name": "Lead"}},
+			}},
+		}},
+		"project_package": map[string]any{"conflict_candidates": map[string]any{"candidates": []any{map[string]any{
+			"band": "low_mid", "type": "low_mid_masking_candidate", "evidence_ref": "project_package.project_band_occupancy.low_mid",
+			"tracks": []any{map[string]any{"track_id": "track-a", "name": "Keys"}, map[string]any{"track_id": "track-b", "name": "Lead"}},
+		}}}},
+	}}
+	frontier, actionability := audioClosureFrontier(audioclosure.HypothesisFrontier{}, agentloop.FreeStateDecision{
+		SchemaVersion: agentloop.FreeStateDecisionSchema, Status: agentloop.FreeStateNeedsObservation,
+	}, []*agentloop.RecentObservation{observation})
+	if actionability != audioclosure.ActionabilityUnknown || len(frontier.Candidates) != 1 {
+		t.Fatalf("durable observation package did not produce one candidate: actionability=%v frontier=%+v", actionability, frontier)
+	}
+	candidate := frontier.Candidates[0]
+	if candidate.ViewID != "mix.multitrack_relationship" || len(candidate.TrackIDs) != 2 || candidate.EvidenceRefs[0] != "project_package.project_band_occupancy.low_mid" {
+		t.Fatalf("durable candidate lost target/evidence binding: %+v", candidate)
 	}
 }
 

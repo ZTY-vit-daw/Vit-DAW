@@ -218,6 +218,41 @@ func (s *Server) bindExperimentSemantic(loop *freeStateReasoningLoop) error {
 	return err
 }
 
+// updateTaskExperimentPendingInteraction keeps confirmation ownership in the
+// canonical Task state while the experiment remains in needs_experiment.
+func (s *Server) updateTaskExperimentPendingInteraction(conversationID, goalID, interactionID, kind, reason string) error {
+	if !s.hasTaskSemanticContract(goalID) {
+		return nil
+	}
+	goal := s.harness.RuntimeStatus(goalID)
+	if goal.Task == nil || goal.Task.SemanticState == nil || goal.Task.SemanticState.State != taskstate.StateNeedsExperiment {
+		return nil
+	}
+	current := goal.Task.SemanticState
+	request := taskstate.TransitionRequest{
+		Event: taskstate.EventExperimentRequired, Reason: reason, Summary: reason,
+		ExperimentID: current.ExperimentID, ProjectRevision: current.ProjectRevision,
+	}
+	if strings.TrimSpace(interactionID) != "" {
+		request.PendingInteraction = &taskstate.PendingInteraction{InteractionID: interactionID, Kind: kind, Reason: reason}
+	}
+	next, err := s.transitionTaskSemantic(goalID, request)
+	if err != nil {
+		return err
+	}
+	if loop, ok := s.freeStateLoop(conversationID); ok && loop.Experiment != nil {
+		if goal.Task.Contract == nil {
+			return fmt.Errorf("task contract disappeared while binding pending interaction")
+		}
+		if err := loop.Experiment.BindTaskState(goal.Task.Contract.ContractID, next.State, next.Revision); err != nil {
+			return err
+		}
+		loop.UpdatedAt = time.Now().UTC()
+		s.storeFreeStateLoop(loop)
+	}
+	return nil
+}
+
 func (s *Server) requireTaskHumanJudgment(loop *freeStateReasoningLoop, interactionID, reason string) error {
 	if loop == nil || loop.Experiment == nil || !s.hasTaskSemanticContract(loop.GoalID) {
 		return nil
@@ -434,6 +469,14 @@ func (s *Server) reconcileRestoredTaskSemanticProjectionsLocked() {
 		if goal.Task == nil || goal.Task.Contract == nil || goal.Task.SemanticState == nil || closure.TaskID != goal.Task.TaskID || closure.RunID != goal.RunID ||
 			closure.OriginalIntent != goal.Task.OriginalIntent || closure.ContractID != goal.Task.Contract.ContractID || conversationID != goal.Task.Contract.ConversationID {
 			failClosed(conversationID, closure.GoalID, "audio closure identity does not match canonical Task/Run/contract")
+			continue
+		}
+		// A terminal closure is already the authoritative folded result for its
+		// bounded lifecycle. Re-projecting it during recovery would append an
+		// event to a settled event stream and incorrectly turn a valid restart
+		// into a recovery conflict. Only verify identity above; non-terminal
+		// closures still need projection to the canonical task revision.
+		if closure.Terminal() {
 			continue
 		}
 		originalRevision := closure.Revision

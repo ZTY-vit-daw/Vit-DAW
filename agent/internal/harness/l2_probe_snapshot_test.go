@@ -149,6 +149,40 @@ func TestCollectL2RenderProbeBatchRenderedPathDoesNotCreateObservation(t *testin
 	}
 }
 
+func TestCollectL2RenderProbeBatchUsesRenderedMaskingFramesBeforeCompactSnapshot(t *testing.T) {
+	root := t.TempDir()
+	t.Setenv("VIT_MIXBOARD_ROOT", filepath.Join(root, "mixboard"))
+	kernel := &fakeKernelClient{replies: []map[string]any{{"status": "ok", "project_uuid": "p1", "tracks": []any{map[string]any{"track_id": "1007", "track_name": "Bass", "track_type": "audio", "is_audio_track": true, "clips": []any{map[string]any{"id": "clip_a", "length_seconds": 2.0}}}}}}}
+	h := NewWithSender(kernel, shadowProjectWithClips(), nil)
+	h.l2ProbeCollect = func(_ context.Context, _ map[string]any, requestID, trackID, clipID string) (map[string]any, map[string]any, error) {
+		return map[string]any{
+			"schema_version": "dad_l2_render_probe.v1", "status": "ready", "quality_status": "ready",
+			"feature_type": "l2_render_probe", "request_id": requestID, "track_id": trackID, "clip_id": clipID,
+			"tap_point": "track_post_fader", "render_mode": "offline_probe", "render_revision": "render-mask",
+			"evidence_ref":   "dad.l2_render_probe:render-mask",
+			"bands":          map[string]any{"bass": map[string]any{"unit_energy": .3}},
+			"analyzed_range": map[string]any{"start_seconds": 0.0, "end_seconds": 2.0},
+			"masking_frames": map[string]any{"status": "ready", "frames": []any{
+				map[string]any{"start_seconds": 0.0, "end_seconds": 1.0},
+				map[string]any{"start_seconds": 1.0, "end_seconds": 2.0},
+			}},
+		}, map[string]any{"status": "ok"}, nil
+	}
+	result, err := h.CollectL2RenderProbeBatch(context.Background(), L2RenderProbeBatchRequest{
+		SessionID: "masking-direct-row", TrackIDs: []string{"1007"}, TapPoint: "track_post_fader",
+		StartSeconds: 0, EndSeconds: 2, RequireMaskingFrames: true,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if result.Status != "ready" || len(result.Rows) != 1 {
+		t.Fatalf("rendered masking batch = %#v", result)
+	}
+	if len(mapAnyFromAny(result.Rows[0]["masking_frames"])) == 0 {
+		t.Fatalf("rendered masking frames were lost: %#v", result.Rows[0])
+	}
+}
+
 func TestCollectL2RenderProbeBatchUsesExactCacheWithoutRender(t *testing.T) {
 	root := t.TempDir()
 	featurePath := filepath.Join(root, "mixboard_feature_snapshot.json")

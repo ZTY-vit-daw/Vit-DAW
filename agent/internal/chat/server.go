@@ -6,6 +6,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"mime"
@@ -2182,6 +2183,15 @@ func (s *Server) handleChat(w http.ResponseWriter, r *http.Request) {
 	}
 	projectPath := projectPathFromChatContext(req.Context)
 	agentMode := agentModeFromContext(req.Context)
+	// Bind a plain-language proposal confirmation to the persisted interaction
+	// before beginChatGoal can perform semantic entry. The confirmation is a
+	// continuation of the existing Task, never a new natural-language task.
+	if pending, ok := s.pendingImprovementProposalForConversation(conversationID); ok {
+		decision := actionworkflow.ClassifyConfirmation(req.Message, true)
+		if decision.Kind == actionworkflow.DecisionAccept || decision.Kind == actionworkflow.DecisionReject || isImprovementProposalConfirmationText(req.Message) {
+			req.Context = contextWithGoal(req.Context, pending.GoalID, pending.RunID)
+		}
+	}
 	goal := s.beginChatGoal(conversationID, req.Message, req.Context)
 	s.mu.Lock()
 	if s.conversationGoals == nil {
@@ -2215,6 +2225,7 @@ func (s *Server) handleChat(w http.ResponseWriter, r *http.Request) {
 		if resp.RunID == "" {
 			resp.RunID = goal.RunID
 		}
+		s.bindTaskIdentityToChatResponse(&resp)
 		compactStripSilenceChatResponseForTransport(&resp)
 		// Never synthesise a project-result card for a turn that failed. A
 		// failed capability turn (e.g. B4 blocked at resolve-only) still leaves
@@ -2292,6 +2303,17 @@ func (s *Server) handleChat(w http.ResponseWriter, r *http.Request) {
 
 	chatContext := contextWithUserMessage(req.Context, req.Message)
 	s.clearPendingMixForClipFadeGainRequest(conversationID, req.Message)
+
+	// A natural-language confirmation is a response to the durable interaction,
+	// not a new semantic request. Resolve it before any capability or semantic
+	// entry router can reinterpret the text and create a second Task/Goal/Run.
+	if interaction, ok := s.takePendingImprovementProposalForChat(conversationID, req.Message); ok {
+		resp := s.continueImprovementProposalInteraction(r.Context(), interaction, req.Message)
+		resp = s.maybeContinueFreeStateAfterInteraction(r.Context(), interaction, resp, req.Message)
+		s.remember(conversationID, req.Message, resp.Reply)
+		writeChat(http.StatusOK, resp)
+		return
+	}
 
 	// The v1 capability runtime is an opt-in canary. Its Session owner is fixed
 	// before any planning state is created, so legacy pending cannot consume the
@@ -3470,7 +3492,6 @@ func (s *Server) storePendingInteraction(req AgentInteractionRequest, data map[s
 		requestContext = ctx
 	}
 	s.mu.Lock()
-	defer s.mu.Unlock()
 	s.interactions[req.ID] = PendingInteraction{
 		ID:             req.ID,
 		CreatedAt:      time.Now(),
@@ -3487,6 +3508,118 @@ func (s *Server) storePendingInteraction(req AgentInteractionRequest, data map[s
 		Type:           req.Type,
 		Data:           data,
 	}
+	s.bindPendingInteractionContinuationLocked(req)
+	s.mu.Unlock()
+	if s.harness != nil && strings.TrimSpace(req.GoalID) != "" {
+		s.harness.SetGoalStatus(req.GoalID, agentruntime.StatusWaitingConfirmation, nil)
+	}
+	s.persistCurrentProjectWorkspace()
+}
+
+func (s *Server) pendingImprovementProposalForConversation(conversationID string) (PendingInteraction, bool) {
+	if s == nil || strings.TrimSpace(conversationID) == "" {
+		return PendingInteraction{}, false
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	var newest PendingInteraction
+	found := false
+	for _, interaction := range s.interactions {
+		if interaction.ConversationID != conversationID ||
+			(!strings.EqualFold(interaction.Kind, "improvement_proposal_confirmation") &&
+				!strings.EqualFold(interaction.Type, "improvement_proposal_confirmation") &&
+				!strings.EqualFold(interaction.Workflow, improvementProposalWorkflow)) {
+			continue
+		}
+		if !found || interaction.CreatedAt.After(newest.CreatedAt) {
+			newest, found = interaction, true
+		}
+	}
+	return newest, found
+}
+
+func (s *Server) takePendingImprovementProposalForChat(conversationID, message string) (PendingInteraction, bool) {
+	decision := actionworkflow.ClassifyConfirmation(message, true)
+	if decision.Kind != actionworkflow.DecisionAccept && decision.Kind != actionworkflow.DecisionReject && !isImprovementProposalConfirmationText(message) {
+		return PendingInteraction{}, false
+	}
+	interaction, ok := s.pendingImprovementProposalForConversation(conversationID)
+	if !ok {
+		return PendingInteraction{}, false
+	}
+	return s.takePendingInteraction(interaction.ID)
+}
+
+func isImprovementProposalConfirmationText(message string) bool {
+	text := strings.TrimSpace(strings.ToLower(message))
+	return strings.Contains(text, "确认") && (strings.Contains(text, "提案") || strings.Contains(text, "建议") || strings.Contains(text, "这个"))
+}
+
+func (s *Server) bindTaskIdentityToChatResponse(resp *ChatResponse) {
+	if s == nil || s.harness == nil || resp == nil || strings.TrimSpace(resp.GoalID) == "" {
+		return
+	}
+	goal := s.harness.RuntimeStatus(resp.GoalID)
+	if goal.Task == nil {
+		return
+	}
+	resp.TaskID = firstNonEmpty(resp.TaskID, goal.Task.TaskID)
+	resp.OriginalIntent = firstNonEmpty(resp.OriginalIntent, goal.Task.OriginalIntent)
+	resp.SliceID = firstNonEmpty(resp.SliceID, goal.Task.Run.CurrentSliceID)
+	resp.TurnID = firstNonEmpty(resp.TurnID, goal.Task.Run.CurrentTurnID)
+}
+
+func (s *Server) bindPendingInteractionContinuationLocked(req AgentInteractionRequest) {
+	var latestID string
+	var latest DurableContinuation
+	for id, item := range s.durableContinuations {
+		if item.ConversationID != req.ConversationID || item.GoalID != req.GoalID || item.RunID != req.RunID {
+			continue
+		}
+		if latestID == "" || item.UpdatedAt.After(latest.UpdatedAt) {
+			latestID, latest = id, item
+		}
+	}
+	if latestID == "" {
+		return
+	}
+	latest.Status = ContinuationWaitingInteraction
+	latest.LeaseOwner = ""
+	latest.LeaseExpiresAt = time.Time{}
+	latest.PendingInteraction = map[string]any{
+		"status": string(agentruntime.StatusWaitingConfirmation), "interaction_id": req.ID,
+		"kind": firstNonEmpty(req.Kind, req.Type), "goal_id": req.GoalID, "run_id": req.RunID,
+		"task_id": latest.TaskID, "continuation_id": latest.ContinuationID,
+		"requests": []any{structMap(req)},
+	}
+	latest.UpdatedAt = time.Now().UTC()
+	if s.harness != nil {
+		goal := s.harness.RuntimeStatus(req.GoalID)
+		if goal.Task != nil {
+			latest.TaskSemanticState = cloneTaskSemanticState(goal.Task.SemanticState)
+		}
+	}
+	s.durableContinuations[latestID] = cloneDurableContinuation(latest)
+}
+
+func (s *Server) completePendingInteractionContinuation(interaction PendingInteraction) {
+	if s == nil {
+		return
+	}
+	s.mu.Lock()
+	for id, item := range s.durableContinuations {
+		if item.ConversationID != interaction.ConversationID || item.GoalID != interaction.GoalID || item.RunID != interaction.RunID {
+			continue
+		}
+		if firstStringFromMap(item.PendingInteraction, "interaction_id") != interaction.ID {
+			continue
+		}
+		item.Status = ContinuationCompleted
+		item.PendingInteraction = nil
+		item.UpdatedAt = time.Now().UTC()
+		s.durableContinuations[id] = cloneDurableContinuation(item)
+	}
+	s.mu.Unlock()
 }
 
 func (s *Server) takePendingInteraction(interactionID string) (PendingInteraction, bool) {
@@ -6445,6 +6578,13 @@ func (s *Server) activateCurrentProjectWorkspace(ctx context.Context) {
 	if projectUUID == "" {
 		return
 	}
+	// A restarted Agent can receive a project UUID before it has a stable
+	// project path. Draft paths are process-local, so recover the durable
+	// working session created by the previous process before reading runtime
+	// state. The lookup is UUID-scoped and remains inside ProjectHistory.
+	if recoveredPath := history.RecoverableProjectPathForUUID(projectPath, projectUUID); recoveredPath != "" && !sameWorkspacePath(recoveredPath, projectPath) {
+		projectPath = recoveredPath
+	}
 	if _, err := s.harness.ActivateProjectStore(projectPath, projectUUID); err != nil {
 		if s.logger != nil {
 			s.logger.Warn("[workspace] v2 project store activation failed project=%s uuid=%s error=%v", projectPath, projectUUID, err)
@@ -6480,7 +6620,10 @@ func (s *Server) activateCurrentProjectWorkspace(ctx context.Context) {
 			}
 		}
 	}
-	session, err := history.EnsureWorkingSession(projectPath, projectUUID)
+	session, recovered, err := history.RecoverWorkingSession(projectPath, projectUUID)
+	if err == nil && !recovered {
+		session, err = history.EnsureWorkingSession(projectPath, projectUUID)
+	}
 	if err != nil {
 		if s.logger != nil {
 			s.logger.Warn("[workspace] working session activation failed project=%s uuid=%s error=%v", projectPath, projectUUID, err)
@@ -6504,7 +6647,7 @@ func (s *Server) activateCurrentProjectWorkspace(ctx context.Context) {
 	s.wakeContinuationScheduler()
 	s.emitRestoredAuditionProjections()
 	if s.logger != nil {
-		s.logger.Info("[workspace] activated project=%q uuid=%s conversations=%d retired_legacy_b2=%d retired_legacy_b3=%d", projectPath, projectUUID, len(state.Conversations), len(state.PendingStaticBalancePlans), len(state.PendingPanLayoutPlans))
+		s.logger.Info("[workspace] activated project=%q uuid=%s recovered=%t conversations=%d retired_legacy_b2=%d retired_legacy_b3=%d", projectPath, projectUUID, recovered, len(state.Conversations), len(state.PendingStaticBalancePlans), len(state.PendingPanLayoutPlans))
 	}
 }
 
@@ -6518,7 +6661,29 @@ func (s *Server) persistCurrentProjectWorkspaceChecked() error {
 	}
 	s.workspaceMu.Lock()
 	defer s.workspaceMu.Unlock()
-	return s.persistActiveProjectWorkspaceLocked()
+	s.mu.Lock()
+	projectPath, projectUUID, owner := s.activeWorkspacePath, s.activeWorkspaceUUID, s.schedulerOwner
+	s.mu.Unlock()
+	if strings.TrimSpace(projectPath) == "" || strings.TrimSpace(projectUUID) == "" {
+		return s.persistActiveProjectWorkspaceLocked()
+	}
+	if strings.TrimSpace(owner) == "" {
+		owner = "persist_" + strconv.FormatInt(int64(os.Getpid()), 10)
+	}
+	lease, err := history.AcquireAgentRuntimeStateLock(projectPath, projectUUID, owner, s.continuationLease)
+	if err != nil {
+		// The scheduler (or another process) owns the durable checkpoint. Its
+		// completion write is authoritative; this request must not race it.
+		if errors.Is(err, history.ErrAgentRuntimeStateLocked) {
+			return nil
+		}
+		return err
+	}
+	if err := s.persistActiveProjectWorkspaceLocked(); err != nil {
+		_ = lease.Release()
+		return err
+	}
+	return lease.Release()
 }
 
 func (s *Server) syncCurrentProjectWorkspace(ctx context.Context) {

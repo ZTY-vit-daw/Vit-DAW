@@ -8969,7 +8969,8 @@ func messageLoopTransientLLMError(err error) bool {
 	}
 	return messageLoopTextHasAny(text,
 		"context deadline exceeded", "timeout", "timed out", "awaiting headers",
-		"502", "503", "504", "temporary", "stream returned no output", "connection reset",
+		"500", "502", "503", "504", "internal server error", "temporary", "stream returned no output", "connection reset",
+		"wsarecv", "failed to respond", "connection attempt failed", "network is unreachable",
 	)
 }
 

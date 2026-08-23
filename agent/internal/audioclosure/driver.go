@@ -111,6 +111,18 @@ func (d Driver) AdmitRound(state State, expectedRevision uint64, now time.Time) 
 	return next, err == nil, err
 }
 
+// ExtendClosureRounds records a one-time durable verification allowance after
+// a governed mutation lands on the final diagnostic round.
+func (d Driver) ExtendClosureRounds(state State, expectedRevision uint64, maxRounds int, now time.Time) (State, error) {
+	if err := validateExpectedRevision(state, expectedRevision); err != nil {
+		return State{}, err
+	}
+	if maxRounds <= state.Policy.MaxClosureRounds || maxRounds < state.RoundsStarted {
+		return State{}, fmt.Errorf("closure policy extension must increase max rounds")
+	}
+	return appendEvent(state, EventPolicyExtended, policyExtendedData{MaxClosureRounds: maxRounds}, now)
+}
+
 func (d Driver) RecordObservation(state State, expectedRevision uint64, key ObservationKey, observationID string, now time.Time) (ObservationOutcome, error) {
 	if err := validateExpectedRevision(state, expectedRevision); err != nil {
 		return ObservationOutcome{}, err

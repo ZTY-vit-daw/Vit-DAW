@@ -518,6 +518,9 @@ func messageLoopFreeStateOutputIssue(state *runState, out messageLoopOutput) str
 			if issue := messageLoopFreeStateRejectedViewSetIssue(state, callViews, messageLoopCCBTargetFromCall(call)); issue != "" {
 				return issue
 			}
+			if issue := messageLoopFreeStateAlreadyObservedIssue(state, callViews, messageLoopCCBTargetFromCall(call)); issue != "" {
+				return issue
+			}
 		}
 		if len(requestCalls) > freeStateMaxObservationRequests {
 			return fmt.Sprintf("needs_observation may contain at most %d distinct ccb.observation_request calls in one turn", freeStateMaxObservationRequests)
@@ -574,6 +577,11 @@ func messageLoopFreeStateOutputIssue(state *runState, out messageLoopOutput) str
 	case FreeStateSatisfied, FreeStateDiagnosticComplete, FreeStateNoCandidateFound:
 		if len(out.ToolCalls) != 0 {
 			return status + " must contain no tool calls"
+		}
+		if status == FreeStateNoCandidateFound {
+			if issue := messageLoopFreeStateNoCandidateIssue(state); issue != "" {
+				return issue
+			}
 		}
 		if status == FreeStateSatisfied && strings.EqualFold(messageLoopTaskContractKind(state), "improvement") {
 			return "satisfied is a legacy local conclusion and cannot settle an open improvement contract; return needs_experiment with an evidence-backed improvement_proposal, no_candidate_found with a bounded diagnostic, or capability_blocked with the concrete boundary"
@@ -652,6 +660,12 @@ func messageLoopFreeStateCandidateProgressionIssue(state *runState, status strin
 	// improvement experiment, or state the concrete evidence/capability
 	// boundary.
 	if selected != "" || targetObservedNow {
+		if status == FreeStateNeedsObservation && messageLoopFreeStateCandidateTargetEvidencePartial(state, allowedTracks) {
+			// Partial target evidence is a continuation point, not a bounded
+			// closure. Keep the candidate frontier active so the model can
+			// inspect another candidate or request a more discriminating view.
+			return ""
+		}
 		return "the selected closure candidate already has target-level evidence; return needs_action when sufficient or blocked with the concrete action-preflight boundary now"
 	}
 	if len(calls) == 0 {
@@ -688,6 +702,59 @@ func messageLoopFreeStateCandidateTargetObserved(state *runState, allowedTracks 
 	}
 	target := messageLoopMapValue(observation.Summary["target_ref"])
 	return strings.EqualFold(messageLoopText(target["kind"]), "track") && allowedTracks[messageLoopText(target["id"])]
+}
+
+func messageLoopFreeStateCandidateTargetEvidencePartial(state *runState, allowedTracks map[string]bool) bool {
+	if !messageLoopFreeStateCandidateTargetObserved(state, allowedTracks) {
+		return false
+	}
+	observation := state.recentObservation
+	if strings.EqualFold(strings.TrimSpace(messageLoopText(observation.Summary["status"])), "partial") {
+		return true
+	}
+	for _, raw := range messageLoopMapValue(observation.Summary["views"]) {
+		view := messageLoopMapValue(raw)
+		if strings.EqualFold(strings.TrimSpace(messageLoopText(view["status"])), "partial") {
+			return true
+		}
+	}
+	return false
+}
+
+// A partial target observation is still a valid bounded hypothesis input. Once
+// it is present in the durable observation ledger, repeatedly seeking another
+// view can consume the closure discovery budget without increasing the
+// decision quality. The model should hand off to needs_experiment instead.
+func messageLoopFreeStatePartialTargetEvidenceAlreadyAvailable(state *runState, allowedTracks map[string]bool) bool {
+	if state == nil {
+		return false
+	}
+	ctx := messageLoopFreeStateContext(state)
+	ledger := messageLoopMapValue(ctx["observation_ledger"])
+	for _, raw := range messageLoopMapValue(ledger["available_views"]) {
+		view := messageLoopMapValue(raw)
+		target := messageLoopMapValue(view["target_ref"])
+		if !strings.EqualFold(messageLoopText(target["kind"]), "track") || !allowedTracks[messageLoopText(target["id"])] {
+			continue
+		}
+		status := strings.ToLower(strings.TrimSpace(messageLoopText(view["status"])))
+		if status == "partial" && (messageLoopText(view["observation_id"]) != "" || len(messageLoopStringList(view["evidence_refs"])) > 0) {
+			return true
+		}
+	}
+	return false
+}
+
+func messageLoopFreeStateNoCandidateIssue(state *runState) string {
+	if state == nil || !strings.EqualFold(messageLoopTaskContractKind(state), "improvement") {
+		return ""
+	}
+	closure := messageLoopMapValue(state.input.Context["minimal_audio_closure"])
+	frontier := messageLoopMapValue(closure["hypothesis_frontier"])
+	if len(messageLoopMapRows(frontier["candidates"])) == 0 {
+		return ""
+	}
+	return "no_candidate_found is not valid while the bounded candidate frontier still contains unresolved candidates; return needs_experiment with one bounded proposal or capability_blocked with the concrete evidence boundary"
 }
 
 // messageLoopFreeStateDiagnosticEvidenceWindowClosed bounds only the
@@ -856,6 +923,30 @@ func messageLoopFreeStateRejectedViewSetIssue(state *runState, requested []strin
 	for _, row := range messageLoopMapRows(ledger["rejected_view_sets"]) {
 		if messageLoopFreeStateRequestFingerprint(messageLoopStringList(row["requested_views"]), messageLoopMapValue(row["target_ref"])) == want {
 			return "the requested CCB view set was already rejected; choose a different catalog view set or return blocked instead of retrying the same rejected/deferred views"
+		}
+	}
+	return ""
+}
+
+func messageLoopFreeStateAlreadyObservedIssue(state *runState, requested []string, target map[string]any) string {
+	want := messageLoopFreeStateRequestFingerprint(requested, target)
+	if want == "" || state == nil {
+		return ""
+	}
+	if observation := state.recentObservation; observation != nil &&
+		messageLoopIsCCBObservationRequestName(firstNonEmpty(observation.Tool, observation.CommandName)) &&
+		messageLoopFreeStateObservationStatusUsable(observation.Summary) &&
+		messageLoopFreeStateRequestFingerprint(messageLoopStringList(observation.Summary["requested_views"]), messageLoopMapValue(observation.Summary["target_ref"])) == want {
+		return "the requested CCB view set and target already returned usable evidence; choose a different cataloged view or target instead of repeating it"
+	}
+	ctx := messageLoopFreeStateContext(state)
+	ledger := messageLoopMapValue(ctx["observation_ledger"])
+	for _, row := range messageLoopMapRows(ledger["receipts"]) {
+		if !messageLoopFreeStateObservationStatusUsable(row) {
+			continue
+		}
+		if messageLoopFreeStateRequestFingerprint(messageLoopStringList(row["requested_views"]), messageLoopMapValue(row["target_ref"])) == want {
+			return "the requested CCB view set and target already returned usable evidence; choose a different cataloged view or target instead of repeating it"
 		}
 	}
 	return ""

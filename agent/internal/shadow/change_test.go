@@ -100,6 +100,28 @@ func TestAuthoritativeSnapshotConfirmsPendingDeltaWithoutAdditionalComparableDif
 	}
 }
 
+func TestOpeningDifferentProjectResetsChangeBaseline(t *testing.T) {
+	p := New(nil)
+	p.Initialize(map[string]any{
+		"status": "ok", "project_uuid": "draft-project", "project_revision": 1,
+		"tracks": []any{map[string]any{"track_id": "draft-track", "track_name": "Draft", "gain_db": 0.0}},
+	})
+	p.Initialize(map[string]any{
+		"status": "ok", "project_uuid": "real-project", "project_revision": 7,
+		"tracks": []any{map[string]any{"track_id": "1007", "track_name": "Bass", "gain_db": -1.0}},
+	})
+	if receipt := p.LatestChangeReceipt(); receipt != nil {
+		t.Fatalf("project switch was reported as an in-project mutation: %#v", receipt)
+	}
+	p.Initialize(map[string]any{
+		"status": "ok", "project_uuid": "real-project", "project_revision": 8,
+		"tracks": []any{map[string]any{"track_id": "1007", "track_name": "Bass", "gain_db": -2.0}},
+	})
+	if receipt := p.LatestChangeReceipt(); receipt == nil || receipt["authoritative"] != true {
+		t.Fatalf("same-project change after baseline reset was not recorded: %#v", receipt)
+	}
+}
+
 func TestChangeWindowIsBoundedAndNewestFirst(t *testing.T) {
 	p := New(nil)
 	p.Initialize(map[string]any{"status": "ok", "project_uuid": "p1", "project_revision": 1, "tracks": []any{map[string]any{"track_id": "1007", "is_audio_track": true, "gain_db": 0.0}}})

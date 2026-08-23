@@ -2718,7 +2718,7 @@ func (s *Server) conversationGoalID(conversationID string) string {
 
 func shouldResumeGoalFromStatus(status agentruntime.GoalStatus) bool {
 	switch status {
-	case agentruntime.StatusWaitingClarification, agentruntime.StatusWaitingContinue:
+	case agentruntime.StatusWaitingConfirmation, agentruntime.StatusWaitingClarification, agentruntime.StatusWaitingContinue:
 		return true
 	default:
 		return false

@@ -7,12 +7,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
 	"sort"
 	"strings"
 	"time"
 
 	"vit-daw-agent/internal/agentloop"
 	"vit-daw-agent/internal/config"
+	"vit-daw-agent/internal/history"
 	agentruntime "vit-daw-agent/internal/runtime"
 	"vit-daw-agent/internal/taskstate"
 )
@@ -741,12 +743,31 @@ func (s *Server) runContinuationSchedulerOnce(ctx context.Context) error {
 	}
 	s.schedulerExecutionMu.Lock()
 	defer s.schedulerExecutionMu.Unlock()
+	stateLock, err := s.acquireRuntimeStateLease()
+	if err != nil {
+		if errors.Is(err, history.ErrAgentRuntimeStateLocked) {
+			return nil
+		}
+		return err
+	}
+	if err := s.reloadActiveRuntimeState(); err != nil {
+		if stateLock != nil {
+			_ = stateLock.Release()
+		}
+		return err
+	}
 	item, ok := s.claimNextContinuation(time.Now().UTC())
 	if !ok {
+		if stateLock != nil {
+			_ = stateLock.Release()
+		}
 		return nil
 	}
-	if err := s.persistContinuationState(); err != nil {
+	if err := s.persistContinuationStateUnlocked(); err != nil {
 		s.releaseContinuationClaim(item.ContinuationID, err)
+		if stateLock != nil {
+			_ = stateLock.Release()
+		}
 		return fmt.Errorf("persist continuation claim: %w", err)
 	}
 	s.mu.Lock()
@@ -756,30 +777,41 @@ func (s *Server) runContinuationSchedulerOnce(ctx context.Context) error {
 		s.durableContinuations[item.ContinuationID] = cloneDurableContinuation(current)
 	}
 	s.mu.Unlock()
-	if err := s.persistContinuationState(); err != nil {
+	if err := s.persistContinuationStateUnlocked(); err != nil {
 		s.releaseContinuationClaim(item.ContinuationID, err)
+		if stateLock != nil {
+			_ = stateLock.Release()
+		}
 		return fmt.Errorf("persist running continuation: %w", err)
 	}
+	// The claimed/running lease is now durable. Release the cross-process lock
+	// before invoking the planner; the completion checkpoint takes a fresh lock.
+	if stateLock != nil {
+		if err := stateLock.Release(); err != nil {
+			return err
+		}
+		stateLock = nil
+	}
 
-	var err error
+	var executionErr error
 	s.mu.Lock()
 	executor := s.continuationExecutor
 	s.mu.Unlock()
 	if executor != nil {
-		err = executor(ctx, item)
+		executionErr = executor(ctx, item)
 	} else {
-		err = s.executeDurableContinuation(ctx, item)
+		executionErr = s.executeDurableContinuation(ctx, item)
 	}
-	if err != nil {
-		if ctx != nil && ctx.Err() != nil && (errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded)) {
-			s.releaseContinuationClaim(item.ContinuationID, err)
+	if executionErr != nil {
+		if ctx != nil && ctx.Err() != nil && (errors.Is(executionErr, context.Canceled) || errors.Is(executionErr, context.DeadlineExceeded)) {
+			s.releaseContinuationClaim(item.ContinuationID, executionErr)
 			if persistErr := s.persistContinuationState(); persistErr != nil {
-				return fmt.Errorf("release cancelled continuation: execution=%v persistence=%w", err, persistErr)
+				return fmt.Errorf("release cancelled continuation: execution=%v persistence=%w", executionErr, persistErr)
 			}
-			return err
+			return executionErr
 		}
-		s.setContinuationStatus(item.ContinuationID, ContinuationFailed, err)
-		return err
+		s.setContinuationStatus(item.ContinuationID, ContinuationFailed, executionErr)
+		return executionErr
 	}
 	// recordGoalResult creates the next pending record, or a waiting interaction
 	// record, before this current lease is released.
@@ -799,6 +831,61 @@ func (s *Server) runContinuationSchedulerOnce(ctx context.Context) error {
 	if err := s.persistContinuationState(); err != nil {
 		return fmt.Errorf("persist completed continuation: %w", err)
 	}
+	return nil
+}
+
+func (s *Server) acquireRuntimeStateLease() (*history.AgentRuntimeStateLock, error) {
+	if s == nil {
+		return nil, nil
+	}
+	s.mu.Lock()
+	projectPath, projectUUID, owner := s.activeWorkspacePath, s.activeWorkspaceUUID, s.schedulerOwner
+	s.mu.Unlock()
+	if strings.TrimSpace(projectPath) == "" || strings.TrimSpace(projectUUID) == "" {
+		return nil, nil
+	}
+	return history.AcquireAgentRuntimeStateLock(projectPath, projectUUID, owner, s.continuationLease)
+}
+
+// persistContinuationStateUnlocked is used only while the scheduler owns the
+// project-scoped runtime lease. All other callers use persistContinuationState.
+func (s *Server) persistContinuationStateUnlocked() error {
+	if s == nil {
+		return nil
+	}
+	s.mu.Lock()
+	persist := s.continuationPersist
+	s.mu.Unlock()
+	if persist != nil {
+		return persist()
+	}
+	return s.persistCurrentProjectWorkspaceChecked()
+}
+
+func (s *Server) reloadActiveRuntimeState() error {
+	if s == nil {
+		return nil
+	}
+	s.mu.Lock()
+	projectPath, projectUUID := s.activeWorkspacePath, s.activeWorkspaceUUID
+	s.mu.Unlock()
+	if strings.TrimSpace(projectPath) == "" || strings.TrimSpace(projectUUID) == "" {
+		return nil
+	}
+	data, err := history.ReadAgentRuntimeState(projectPath, projectUUID)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil
+		}
+		return err
+	}
+	state := projectAgentRuntimeState{}
+	if err := json.Unmarshal(data, &state); err != nil {
+		return err
+	}
+	s.mu.Lock()
+	s.restoreProjectAgentRuntimeStateLocked(state)
+	s.mu.Unlock()
 	return nil
 }
 

@@ -15,6 +15,13 @@ func messageLoopProjectBlackboardStatusRequest(text string) bool {
 	if messageLoopContinuationInstruction(text) {
 		return false
 	}
+	// An open diagnostic request is a product task, not a request for the
+	// deterministic project-blackboard progress dump. It must reach semantic
+	// entry so the runtime can observe the project, assess capacity, and create
+	// the appropriate diagnostic/improvement contract.
+	if messageLoopOpenProjectDiagnosticRequest(text) {
+		return false
+	}
 	// Open acoustic/mixing requests must reach the model-owned observation
 	// loop.  Phrases such as "overall mix status" contain the same status
 	// vocabulary as a blackboard report, but they describe the subject of the
@@ -48,6 +55,16 @@ func messageLoopProjectBlackboardStatusRequest(text string) bool {
 		"status", "progress", "summary", "report", "ready", "done", "next", "risk",
 	)
 	return hasScope && hasStatus
+}
+
+func messageLoopOpenProjectDiagnosticRequest(text string) bool {
+	lower := strings.ToLower(strings.TrimSpace(text))
+	if lower == "" {
+		return false
+	}
+	return messageLoopTextHasAny(lower, "工程", "项目", "project") &&
+		messageLoopTextHasAny(lower, "检查", "查看", "看看", "分析", "问题", "风险", "inspect", "check", "analy") &&
+		!messageLoopTextHasAny(lower, "状态汇报", "状态报告", "progress report", "blackboard status", "工程状态汇报", "项目状态汇报")
 }
 
 func messageLoopContinuationInstruction(text string) bool {

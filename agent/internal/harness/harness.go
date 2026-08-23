@@ -2814,7 +2814,7 @@ func (h *Harness) requestMixObservation(ctx context.Context, cmd map[string]any)
 	if err != nil {
 		return nil, err
 	}
-	l2ProbeRequest := h.requestMixObservationL2RenderProbe(ctx, cmd, state, target, resolvedContext)
+	l2ProbeRequest, _ := h.requestMixObservationL2RenderProbe(ctx, cmd, state, target, resolvedContext)
 	acousticStatus, acousticStorePath, featureRequest := h.prepareMixObservationAcousticPackage(ctx, cmd, state, target, resolvedContext)
 	intent := mom.ResolveIntent(cmd, firstString(cmd, "mom_intent", "intent", "workflow_intent"))
 	if gateStatus, gateStorePath, gateRequest, blocked := h.ensureMixObservationReadyGate(ctx, cmd, state, target, resolvedContext, intent, acousticStatus, acousticStorePath); len(blocked) > 0 {
@@ -2967,9 +2967,9 @@ func projectStateWithPersistedAnalysisManifest(state map[string]any) map[string]
 	return out
 }
 
-func (h *Harness) requestMixObservationL2RenderProbe(ctx context.Context, cmd map[string]any, state map[string]any, target mixboard.TargetRef, resolvedContext map[string]any) map[string]any {
+func (h *Harness) requestMixObservationL2RenderProbe(ctx context.Context, cmd map[string]any, state map[string]any, target mixboard.TargetRef, resolvedContext map[string]any) (map[string]any, map[string]any) {
 	if h == nil || h.kernel == nil || !mixObservationShouldRequestL2RenderProbe(cmd) {
-		return nil
+		return nil, nil
 	}
 	resolved := cloneAnyMap(resolvedContext)
 	if len(resolved) == 0 {
@@ -2983,7 +2983,7 @@ func (h *Harness) requestMixObservationL2RenderProbe(ctx context.Context, cmd ma
 	}())
 	clipID := firstString(resolved, "clip_id", "id")
 	if trackID == "" {
-		return map[string]any{"status": "blocked", "reason": "track_id_required_for_l2_render_probe"}
+		return map[string]any{"status": "blocked", "reason": "track_id_required_for_l2_render_probe"}, nil
 	}
 	requestID := firstNonEmpty(firstString(cmd, "l2_render_probe_request_id"), "mixboard_l2_render_probe_"+safeRequestIDPart(trackID)+"_"+time.Now().UTC().Format("20060102T150405.000000000"))
 	packet := newMixboardFeatureRequestPacket(cmd, target)
@@ -3044,7 +3044,7 @@ func (h *Harness) requestMixObservationL2RenderProbe(ctx context.Context, cmd ma
 		packet["kernel_reply"] = compactSelectedAny(reply, []string{"status", "cmd", "feature_type", "tap_point", "render_mode", "track_id", "clip_id", "render_revision", "evidence_ref", "message", "error"})
 	}
 	packet["updated_at"] = time.Now().UTC().Format(time.RFC3339Nano)
-	return packet
+	return packet, row
 }
 
 func mixObservationShouldRequestL2RenderProbe(cmd map[string]any) bool {

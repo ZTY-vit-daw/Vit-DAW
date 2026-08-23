@@ -24,6 +24,7 @@ const (
 	EventCapabilitySettled      EventType = "capability_settled"
 	EventRollbackStarted        EventType = "rollback_started"
 	EventTaskStateProjected     EventType = "task_state_projected"
+	EventPolicyExtended         EventType = "closure_policy_extended"
 	EventSettled                EventType = "closure_settled"
 )
 
@@ -81,6 +82,9 @@ type taskStateProjectedData struct {
 	ContractID string          `json:"contract_id"`
 	State      taskstate.State `json:"state"`
 	Revision   uint64          `json:"revision"`
+}
+type policyExtendedData struct {
+	MaxClosureRounds int `json:"max_closure_rounds"`
 }
 type settledData struct {
 	Settlement Settlement `json:"settlement"`
@@ -274,6 +278,15 @@ func applyEvent(state *State, event Event) error {
 			return fmt.Errorf("task state revision is not monotonic")
 		}
 		state.TaskState, state.TaskStateRevision = data.State, data.Revision
+	case EventPolicyExtended:
+		var data policyExtendedData
+		if err := decodeEventData(event, &data); err != nil {
+			return err
+		}
+		if data.MaxClosureRounds <= state.Policy.MaxClosureRounds || data.MaxClosureRounds < state.RoundsStarted {
+			return fmt.Errorf("closure policy extension must increase max rounds")
+		}
+		state.Policy.MaxClosureRounds = data.MaxClosureRounds
 	case EventSettled:
 		if state.ActiveCapability != nil {
 			return fmt.Errorf("cannot settle while a capability session is active")

@@ -409,6 +409,15 @@ func (s *Server) recordFreeStateDecision(conversationID string, res agentloop.Re
 			loop.ObservationIDs = append(loop.ObservationIDs, observationID)
 		}
 	}
+	// A durable continuation can retain the just-executed CCB view only in the
+	// compact observation ledger while Result.Executed/RecentObservation still
+	// project the previous turn. Rebuild the latest usable observation from the
+	// merged ledger so closure candidate selection cannot regress to stale
+	// project.structure evidence after a targeted observation completed.
+	if durableLatest := freeStateLatestObservationFromLedger(loop.ObservationLedger); durableLatest != nil {
+		loop.LatestObservation = durableLatest
+		latestUsable = durableLatest
+	}
 	if res.FreeStateDecision == nil {
 		loop.UpdatedAt = time.Now().UTC()
 		s.storeFreeStateLoop(loop)
@@ -566,6 +575,123 @@ func (s *Server) recordFreeStateDecision(conversationID string, res agentloop.Re
 	loop.UpdatedAt = time.Now().UTC()
 	s.storeFreeStateLoop(loop)
 	return loop, true
+}
+
+func freeStateLatestObservationFromLedger(ledger map[string]any) *agentloop.RecentObservation {
+	available := firstMapFromAny(ledger["available_views"])
+	if len(available) == 0 {
+		return nil
+	}
+	type ledgerObservation struct {
+		id          string
+		round       int
+		observedAt  string
+		toolCallID  string
+		status      string
+		targetRef   map[string]any
+		freshness   map[string]any
+		auditRef    map[string]any
+		viewIDs     []string
+		evidence    []string
+		limitations []string
+		views       map[string]any
+	}
+	grouped := map[string]*ledgerObservation{}
+	for key, value := range available {
+		row := firstMapFromAny(value)
+		if len(row) == 0 {
+			continue
+		}
+		status := strings.ToLower(firstStringFromMap(row, "status"))
+		if status != "ready" && status != "partial" && status != "ok" {
+			continue
+		}
+		observationID := firstStringFromMap(row, "observation_id")
+		viewID := firstNonEmpty(firstStringFromMap(row, "view_id"), key)
+		if observationID == "" || viewID == "" {
+			continue
+		}
+		item := grouped[observationID]
+		if item == nil {
+			item = &ledgerObservation{id: observationID, status: status, views: map[string]any{}}
+			grouped[observationID] = item
+		}
+		item.round = max(item.round, chatIntValue(row["round"]))
+		freshness := firstMapFromAny(row["freshness"])
+		observedAt := firstStringFromMap(freshness, "observed_at")
+		if observedAt > item.observedAt {
+			item.observedAt = observedAt
+			item.freshness = cloneContext(freshness)
+		}
+		item.toolCallID = firstNonEmpty(firstStringFromMap(row, "tool_call_id"), item.toolCallID)
+		if status == "partial" {
+			item.status = status
+		}
+		if target := firstMapFromAny(row["target_ref"]); len(target) > 0 {
+			item.targetRef = cloneContext(target)
+		}
+		if audit := firstMapFromAny(row["audit_ref"]); len(audit) > 0 {
+			item.auditRef = cloneContext(audit)
+		}
+		item.viewIDs = freeStateNormalizedViewIDs(append(item.viewIDs, viewID))
+		item.evidence = freeStateNormalizedViewIDs(append(item.evidence, freeStateStringSlice(row["evidence_refs"])...))
+		item.limitations = freeStateNormalizedViewIDs(append(item.limitations, freeStateStringSlice(row["limitations"])...))
+		view := map[string]any{"status": status}
+		if conclusion := firstMapFromAny(row["conclusion"]); len(conclusion) > 0 {
+			if facts := firstMapFromAny(conclusion["facts"]); len(facts) > 0 {
+				view["facts"] = cloneContext(facts)
+			}
+			if projectionStatus := firstStringFromMap(conclusion, "projection_status"); projectionStatus != "" {
+				view["projection_status"] = projectionStatus
+			}
+		}
+		item.views[viewID] = view
+	}
+	var latest *ledgerObservation
+	for _, item := range grouped {
+		if latest == nil || item.round > latest.round ||
+			(item.round == latest.round && item.observedAt > latest.observedAt) ||
+			(item.round == latest.round && item.observedAt == latest.observedAt && item.id > latest.id) {
+			latest = item
+		}
+	}
+	if latest == nil {
+		return nil
+	}
+	summary := map[string]any{
+		"schema_version":           "ccb_observation_bundle.v1",
+		"status":                   latest.status,
+		"observation_id":           latest.id,
+		"requested_views":          append([]string(nil), latest.viewIDs...),
+		"actual_executed_view_ids": append([]string(nil), latest.viewIDs...),
+		"views":                    latest.views,
+	}
+	if latest.round > 0 {
+		summary["round"] = latest.round
+	}
+	if len(latest.targetRef) > 0 {
+		summary["target_ref"] = latest.targetRef
+	}
+	if len(latest.freshness) > 0 {
+		summary["freshness"] = latest.freshness
+	}
+	if len(latest.evidence) > 0 {
+		summary["evidence_refs"] = latest.evidence
+	}
+	if len(latest.limitations) > 0 {
+		summary["limitations"] = latest.limitations
+	}
+	if len(latest.auditRef) > 0 {
+		summary["audit_receipt"] = map[string]any{
+			"schema_version": firstStringFromMap(latest.auditRef, "receipt_schema"),
+			"receipt_id":     firstStringFromMap(latest.auditRef, "receipt_id"),
+			"status":         latest.status,
+		}
+	}
+	return &agentloop.RecentObservation{
+		ToolCallID: latest.toolCallID, Tool: "ccb.observation_request", CommandName: "ccb_observation_request",
+		Status: latest.status, Summary: summary,
+	}
 }
 
 func freeStateRejectedObservation(observation *agentloop.RecentObservation) map[string]any {
@@ -1071,7 +1197,8 @@ func freeStateTransientServiceError(value string) bool {
 	}
 	for _, marker := range []string{
 		"context deadline exceeded", "timeout", "timed out", "awaiting headers",
-		"502", "503", "504", "temporary", "stream returned no output", "connection reset",
+		"500", "502", "503", "504", "internal server error", "temporary", "stream returned no output", "connection reset",
+		"wsarecv", "failed to respond", "connection attempt failed", "network is unreachable",
 		"runtime configuration state unavailable", "\u8fd0\u884c\u65f6\u914d\u7f6e\u72b6\u6001\u4e0d\u53ef\u7528",
 	} {
 		if strings.Contains(text, marker) {

@@ -1,6 +1,7 @@
 package chat
 
 import (
+	"strings"
 	"testing"
 	"time"
 
@@ -124,5 +125,47 @@ func TestHumanJudgmentRestartRestoresSameTaskRunClosureAndExperiment(t *testing.
 	}
 	if len(continuations) != 1 || continuations[0]["task_id"] != current.Task.TaskID || continuations[0]["status"] != ContinuationWaitingInteraction || continuations[0]["task_state"] != taskstate.StateHumanJudgmentRequired {
 		t.Fatalf("pending interaction continuation was not restorable: %+v", continuations)
+	}
+}
+
+func TestRestoreTerminalAudioClosureDoesNotAppendProjectionEvent(t *testing.T) {
+	source := New(nil, nil, nil)
+	goal := source.harness.EnsureGoal("goal-terminal-closure", "run-terminal-closure", "inspect the project")
+	_, err := source.ensureAudioTaskContract("conversation-terminal-closure", audioclosure.ModeTreatment,
+		audioclosure.Scope{Kind: "project", ID: "project-terminal"}, "project-terminal", "rev-1", map[string]any{"goal_id": goal.GoalID})
+	if err != nil {
+		t.Fatal(err)
+	}
+	current := source.harness.RuntimeStatus(goal.GoalID)
+	closure, err := audioclosure.Start(audioclosure.StartRequest{
+		ClosureID: "closure-terminal", ConversationID: "conversation-terminal-closure", TaskID: current.Task.TaskID,
+		GoalID: current.GoalID, RunID: current.RunID, ContractID: current.Task.Contract.ContractID,
+		TaskState: current.Task.SemanticState.State, TaskStateRevision: current.Task.SemanticState.Revision,
+		ProjectUUID: "project-terminal", ProjectRevision: "rev-1", OriginalIntent: current.Task.OriginalIntent,
+		Mode: audioclosure.ModeTreatment, Scope: audioclosure.Scope{Kind: "project", ID: "project-terminal"}, Now: time.Now().UTC(),
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	closure, err = (audioclosure.Driver{}).Settle(closure, closure.Revision, audioclosure.StopCancelled, "test terminal closure", false, time.Now().UTC())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := source.audioClosures.Create(closure); err != nil {
+		t.Fatal(err)
+	}
+	snapshot := source.projectAgentRuntimeStateLocked()
+	restored := New(nil, nil, nil)
+	restored.restoreProjectAgentRuntimeStateLocked(snapshot)
+	got, ok := restored.audioClosures.Load(closure.ClosureID)
+	if !ok || !got.Terminal() {
+		t.Fatalf("terminal closure was not restored: ok=%v state=%+v", ok, got)
+	}
+	if got.Revision != closure.Revision {
+		t.Fatalf("terminal closure revision changed during recovery: got=%d want=%d", got.Revision, closure.Revision)
+	}
+	goalAfter := restored.harness.RuntimeStatus(goal.GoalID)
+	if goalAfter.Status == agentruntime.StatusWaitingClarification && strings.Contains(goalAfter.Error, "audio closure task projection") {
+		t.Fatalf("terminal closure recovery entered a projection conflict: %+v", goalAfter)
 	}
 }

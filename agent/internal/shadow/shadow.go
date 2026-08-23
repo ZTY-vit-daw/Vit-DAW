@@ -68,14 +68,23 @@ func (p *Project) initializeLocked(full map[string]any, source string) {
 	p.stateEpoch++
 	after := comparableProjectStateFromShadow(p.state)
 	if wasInitialized {
-		changes, scopes := diffProjectChange(before, after)
-		p.recordChangeLocked(source, true, beforeEpoch, p.stateEpoch, before, after, changes, scopes)
-		if len(changes) == 0 {
-			// A live executor/telemetry delta can arrive before the next
-			// authoritative snapshot. The snapshot may retain that delta while
-			// exposing no additional comparable field difference, so reconcile
-			// the pending receipt instead of leaving the refresh barrier open.
-			p.confirmPendingChangeLocked(after.project)
+		if comparableProjectIdentityChanged(before.project, after.project) {
+			// Opening another project establishes a new comparison baseline. A
+			// full snapshot from the previously active draft/project must not be
+			// reported as an in-project mutation or invalidate restored evidence.
+			p.lastChange = ChangeReceipt{}
+			p.changeHistory = nil
+			p.changeSequence = 0
+		} else {
+			changes, scopes := diffProjectChange(before, after)
+			p.recordChangeLocked(source, true, beforeEpoch, p.stateEpoch, before, after, changes, scopes)
+			if len(changes) == 0 {
+				// A live executor/telemetry delta can arrive before the next
+				// authoritative snapshot. The snapshot may retain that delta while
+				// exposing no additional comparable field difference, so reconcile
+				// the pending receipt instead of leaving the refresh barrier open.
+				p.confirmPendingChangeLocked(after.project)
+			}
 		}
 	}
 	pending := append([]map[string]any(nil), p.preInitDeltas...)

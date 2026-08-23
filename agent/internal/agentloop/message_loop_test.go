@@ -2079,6 +2079,28 @@ func TestMessageLoopProjectBlackboardStatusReadsProjectStateWithoutLLM(t *testin
 	}
 }
 
+func TestMessageLoopOpenProjectDiagnosticRequestDoesNotUseProjectBlackboardShortcut(t *testing.T) {
+	for _, text := range []string{
+		"检查一下当前工程有什么问题？",
+		"你能帮我对当前工程进行混音检查吗？",
+	} {
+		if messageLoopProjectBlackboardStatusRequest(text) {
+			t.Fatalf("open diagnostic request was misclassified as a project blackboard report: %q", text)
+		}
+	}
+}
+
+func TestMessageLoopProviderInternalServerErrorIsTransient(t *testing.T) {
+	for _, err := range []error{
+		fmt.Errorf("Internal server error"),
+		fmt.Errorf("LLM HTTP error 500: internal server error"),
+	} {
+		if !messageLoopTransientLLMError(err) {
+			t.Fatalf("provider 500 was classified as permanent: %v", err)
+		}
+	}
+}
+
 func TestMessageLoopOpenOverallMixRequestDoesNotUseProjectBlackboardShortcut(t *testing.T) {
 	client := &fakeMessageCompleter{responses: []string{
 		`{"final":true,"reply":"evidence boundary","free_state":{"schema_version":"free_state_decision.v1","status":"blocked","evidence_status":"insufficient","summary":"the model must request neutral acoustic evidence first"},"tool_calls":[]}`,

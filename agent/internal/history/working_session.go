@@ -1,6 +1,7 @@
 package history
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
@@ -29,6 +30,101 @@ type WorkingSession struct {
 
 func EnsureWorkingSession(projectPath, projectUUID string) (WorkingSession, error) {
 	return EnsureWorkingSessionAtGeneration(projectPath, projectUUID, "")
+}
+
+// RecoverWorkingSession resumes the newest working session whose durable
+// runtime state still contains an unfinished task. This is intentionally
+// explicit: ordinary EnsureWorkingSession calls retain their existing
+// behavior of starting from saved HEAD after an in-memory registry loss.
+func RecoverWorkingSession(projectPath, projectUUID string) (WorkingSession, bool, error) {
+	projectPath = BindProjectIdentity(projectPath, projectUUID)
+	projectUUID = safeName(strings.TrimSpace(projectUUID))
+	if projectPath == "" || projectUUID == "" {
+		return WorkingSession{}, false, errors.New("project path and UUID are required for working session recovery")
+	}
+	canonical, err := canonicalRepo(projectPath, projectUUID)
+	if err != nil {
+		return WorkingSession{}, false, err
+	}
+	entries, err := os.ReadDir(workingSessionsRoot(canonical))
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return WorkingSession{}, false, nil
+		}
+		return WorkingSession{}, false, err
+	}
+	type candidate struct {
+		session WorkingSession
+		when    time.Time
+	}
+	var candidates []candidate
+	for _, entry := range entries {
+		if !entry.IsDir() {
+			continue
+		}
+		session, readErr := readWorkingSession(filepath.Join(workingSessionsRoot(canonical), entry.Name()))
+		if readErr != nil || !sameProjectPath(session.ProjectPath, canonical.ProjectPath) || !dirExists(session.WorkspaceDir) {
+			continue
+		}
+		if session.Status != "active" && session.Status != "recovery_available" {
+			continue
+		}
+		runtimePath := filepath.Join(session.WorkspaceDir, "state", agentRuntimeStateFile)
+		data, readErr := os.ReadFile(runtimePath)
+		if readErr != nil || !runtimeStateHasPendingWork(data) {
+			continue
+		}
+		info, infoErr := os.Stat(runtimePath)
+		if infoErr != nil {
+			continue
+		}
+		candidates = append(candidates, candidate{session: session, when: info.ModTime()})
+	}
+	if len(candidates) == 0 {
+		return WorkingSession{}, false, nil
+	}
+	sort.Slice(candidates, func(i, j int) bool { return candidates[i].when.After(candidates[j].when) })
+	session := candidates[0].session
+	session.Status = "active"
+	session.UpdatedAt = time.Now().UTC()
+	if err := writeWorkingSession(session); err != nil {
+		return WorkingSession{}, false, err
+	}
+	bindProjectWorkingSession(projectPath, projectUUID, session)
+	return session, true, nil
+}
+
+func runtimeStateHasPendingWork(data []byte) bool {
+	var state struct {
+		DurableContinuations map[string]struct {
+			Status string `json:"status"`
+		} `json:"durable_continuations"`
+		GoalRuntime struct {
+			Goals []struct {
+				Status string `json:"status"`
+			} `json:"goals"`
+		} `json:"goal_runtime"`
+	}
+	if json.Unmarshal(data, &state) != nil {
+		return false
+	}
+	for _, continuation := range state.DurableContinuations {
+		switch strings.ToLower(strings.TrimSpace(continuation.Status)) {
+		case "", "completed", "cancelled", "failed":
+			continue
+		default:
+			return true
+		}
+	}
+	for _, goal := range state.GoalRuntime.Goals {
+		switch strings.ToLower(strings.TrimSpace(goal.Status)) {
+		case "", "completed", "settled", "cancelled", "failed":
+			continue
+		default:
+			return true
+		}
+	}
+	return false
 }
 
 func EnsureWorkingSessionAtGeneration(projectPath, projectUUID, generationID string) (WorkingSession, error) {
@@ -246,6 +342,75 @@ func ProjectPathForUUID(referenceProjectPath, projectUUID string) string {
 		}
 	}
 	return ""
+}
+
+// RecoverableProjectPathForUUID finds a previously persisted project draft
+// when the host has only restored the project UUID. This is intentionally
+// scoped to the ProjectHistory root containing the current draft; it does not
+// search arbitrary user directories or infer a project from media paths.
+// Working-session workspace.json is the identity authority, and the newest
+// durable agent runtime state wins when several sessions exist for the UUID.
+func RecoverableProjectPathForUUID(referenceProjectPath, projectUUID string) string {
+	referenceProjectPath = strings.TrimSpace(referenceProjectPath)
+	projectUUID = safeName(strings.TrimSpace(projectUUID))
+	if referenceProjectPath == "" || projectUUID == "" || !IsDraftProjectPath(referenceProjectPath) {
+		return ""
+	}
+	abs, err := filepath.Abs(referenceProjectPath)
+	if err != nil {
+		return ""
+	}
+	// .../ProjectHistory/drafts/draft_<id>/Unsaved.vit -> drafts.
+	draftDir := filepath.Dir(abs)
+	root := filepath.Dir(draftDir)
+	entries, err := os.ReadDir(root)
+	if err != nil {
+		return ""
+	}
+	type candidate struct {
+		path string
+		when time.Time
+	}
+	var candidates []candidate
+	for _, entry := range entries {
+		if !entry.IsDir() || !strings.HasPrefix(strings.ToLower(entry.Name()), "draft_") {
+			continue
+		}
+		base := filepath.Join(root, entry.Name(), DirName, workingSessionsDirName, projectUUID)
+		_ = filepath.WalkDir(base, func(path string, d os.DirEntry, walkErr error) error {
+			if walkErr != nil {
+				return nil
+			}
+			if d.IsDir() || !strings.EqualFold(d.Name(), agentRuntimeStateFile) {
+				return nil
+			}
+			data, readErr := os.ReadFile(path)
+			if readErr != nil {
+				return nil
+			}
+			var state struct {
+				ProjectPath string `json:"project_path"`
+				ProjectUUID string `json:"project_uuid"`
+			}
+			if json.Unmarshal(data, &state) != nil || safeName(state.ProjectUUID) != projectUUID || strings.TrimSpace(state.ProjectPath) == "" {
+				return nil
+			}
+			if !IsDraftProjectPath(state.ProjectPath) || !pathWithin(state.ProjectPath, root) {
+				return nil
+			}
+			info, infoErr := os.Stat(path)
+			if infoErr != nil {
+				return nil
+			}
+			candidates = append(candidates, candidate{path: state.ProjectPath, when: info.ModTime()})
+			return nil
+		})
+	}
+	if len(candidates) == 0 {
+		return ""
+	}
+	sort.Slice(candidates, func(i, j int) bool { return candidates[i].when.After(candidates[j].when) })
+	return filepath.Clean(strings.TrimSpace(candidates[0].path))
 }
 
 func recoverLegacySharedWorkspace(source, target Repo, cutoff time.Time) (map[string]any, error) {

@@ -136,10 +136,19 @@ func (s *Server) planObservationFirstCapabilityRoute(ctx context.Context, conver
 			entry.Controller = string(orchestrationcontroller.ProjectMixWorkflow)
 			record.EntryPlan = capabilityEntryPlan(userText, previous, assessment)
 		} else {
+			// An open problem-finding request is observation-first, but it is
+			// still an improvement task once product capacity confirms that the
+			// free-state controller owns it. Promote only this narrow intent;
+			// explicit read-only status requests remain diagnostic-only.
+			entry = promoteOpenImprovementEntry(userText, entry)
 			entry.Controller = string(orchestrationcontroller.MinimalAudioClosure)
 		}
 		record.Controller = entry.Controller
 		entry.Reason = firstNonEmpty(capabilityRouteReason(assessment), entry.Reason)
+		// Persist the post-capacity contract. Observation is only the
+		// semantic entry point; an untargeted improvement request becomes an
+		// open semantic loop after structural capacity admits free-state.
+		record.SemanticEntry = semanticEntryDecisionMap(entry)
 	} else {
 		entry.Controller = defaultSemanticEntryController(entry.Route)
 		record.Controller = entry.Controller
@@ -151,6 +160,62 @@ func (s *Server) planObservationFirstCapabilityRoute(ctx context.Context, conver
 		s.storeCapabilityRoute(record)
 	}
 	return entry, record, nil
+}
+
+// capabilityRouteSemanticEntry returns the host-authoritative semantic entry
+// for a persisted capability route. Older snapshots recorded the pre-promotion
+// observation entry even after an open improvement task was admitted. The
+// migration is deliberately narrow: it requires a validated free-state
+// assessment, the minimal audio closure, and the original task intent to be an
+// open improvement request. It never turns a read-only status task into an
+// action task and never calls the semantic-entry model again.
+func capabilityRouteSemanticEntry(record CapabilityRouteRecord) (semanticEntryDecision, bool) {
+	if record.SchemaVersion != capabilityRouteSchema || record.Assessment == nil ||
+		record.Assessment.SelectedCapability != capabilityFreeState ||
+		record.Controller != string(orchestrationcontroller.MinimalAudioClosure) ||
+		!openProjectImprovementIntent(record.OriginalIntent) {
+		return semanticEntryDecision{}, false
+	}
+	row := record.SemanticEntry
+	entry := semanticEntryDecision{
+		SchemaVersion: semanticEntryDecisionSchema,
+		Route:         firstStringFromMap(row, "route"), TargetScope: firstStringFromMap(row, "target_scope"),
+		ControlMode: firstStringFromMap(row, "control_mode"), UserAuthorization: firstStringFromMap(row, "user_authorization"),
+		Confidence: semanticEntryFloatValue(row["confidence"]), Reason: firstStringFromMap(row, "reason"),
+		Controller: record.Controller,
+	}
+	entry = promoteOpenImprovementEntry(record.OriginalIntent, entry)
+	entry.Controller = record.Controller
+	entry.Reason = firstNonEmpty(capabilityRouteReason(*record.Assessment), entry.Reason)
+	if entry.TargetScope == "" {
+		entry.TargetScope = semanticEntryScopeProjectContext
+	}
+	if _, err := orchestrationControllerDecision(entry); err != nil {
+		return semanticEntryDecision{}, false
+	}
+	return entry, true
+}
+
+func promoteOpenImprovementEntry(userText string, entry semanticEntryDecision) semanticEntryDecision {
+	if entry.Route != semanticEntryRouteObservation || !openProjectImprovementIntent(userText) {
+		return entry
+	}
+	entry.Route = semanticEntryRouteOpenSemantic
+	entry.ControlMode = semanticEntryControlSemanticLoop
+	entry.UserAuthorization = semanticEntryAuthorizationAction
+	return entry
+}
+
+func openProjectImprovementIntent(userText string) bool {
+	lower := strings.ToLower(strings.TrimSpace(userText))
+	if lower == "" || agentLoopTextHasAny(lower, "状态汇报", "状态报告", "progress report", "blackboard status") {
+		return false
+	}
+	hasProject := agentLoopTextHasAny(lower, "工程", "项目", "project")
+	hasOpenProblem := agentLoopTextHasAny(lower,
+		"有什么问题", "哪些问题", "哪里有问题", "问题", "风险", "混音检查", "检查并改善", "可以改善",
+		"what is wrong", "problems", "issues", "mix check", "improve", "improvement")
+	return hasProject && hasOpenProblem
 }
 
 func capabilityRouteWasExplicit(record CapabilityRouteRecord) bool {
@@ -687,11 +752,14 @@ func reconcileDurableCapabilityRoutes(items map[string]DurableContinuation, rout
 		item.CapacityAssessment = capacityAssessmentFromAny(*route.Assessment)
 		item.CapabilityEntryPlan = capabilityEntryPlanFromAny(route.EntryPlan)
 		item.ProjectRevision = route.ProjectRevision
-		semantic := semanticEntryDecision{
-			SchemaVersion: semanticEntryDecisionSchema, Route: firstStringFromMap(route.SemanticEntry, "route"),
-			Controller: route.Controller, TargetScope: firstStringFromMap(route.SemanticEntry, "target_scope"),
-			ControlMode: firstStringFromMap(route.SemanticEntry, "control_mode"), UserAuthorization: firstStringFromMap(route.SemanticEntry, "user_authorization"),
-			Confidence: semanticEntryFloatValue(route.SemanticEntry["confidence"]), Reason: capabilityRouteReason(*route.Assessment),
+		semantic, semanticOK := capabilityRouteSemanticEntry(route)
+		if !semanticOK {
+			semantic = semanticEntryDecision{
+				SchemaVersion: semanticEntryDecisionSchema, Route: firstStringFromMap(route.SemanticEntry, "route"),
+				Controller: route.Controller, TargetScope: firstStringFromMap(route.SemanticEntry, "target_scope"),
+				ControlMode: firstStringFromMap(route.SemanticEntry, "control_mode"), UserAuthorization: firstStringFromMap(route.SemanticEntry, "user_authorization"),
+				Confidence: semanticEntryFloatValue(route.SemanticEntry["confidence"]), Reason: capabilityRouteReason(*route.Assessment),
+			}
 		}
 		context := contextWithSemanticEntryDecision(cloneContext(item.Continuation.Context), semantic)
 		item.Continuation.Context = contextWithCapabilityRoute(context, route)

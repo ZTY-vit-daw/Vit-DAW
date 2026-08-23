@@ -15,6 +15,7 @@ import (
 	"vit-daw-agent/internal/config"
 	"vit-daw-agent/internal/llm"
 	"vit-daw-agent/internal/orchestrationcontroller"
+	agentruntime "vit-daw-agent/internal/runtime"
 	"vit-daw-agent/internal/shadow"
 )
 
@@ -163,6 +164,9 @@ func TestUntargetedNaturalLanguageEntriesObserveBeforeRuntimeRouting(t *testing.
 		if err != nil || entry.Controller != string(orchestrationcontroller.MinimalAudioClosure) || record.Assessment == nil || record.Assessment.SelectedCapability != capabilityFreeState {
 			t.Fatalf("observation-first route failed: entry=%+v record=%+v err=%v", entry, record, err)
 		}
+		if entry.Route != semanticEntryRouteOpenSemantic || entry.ControlMode != semanticEntryControlSemanticLoop || entry.UserAuthorization != semanticEntryAuthorizationAction {
+			t.Fatalf("open untargeted request did not become an improvement contract after free-state routing: %+v", entry)
+		}
 		encoded, _ := json.Marshal(record)
 		for _, forbidden := range []string{"vocals", "bass", "清晰", "稳定", "靠前", "processor_type", "plugin_id", "requested_view"} {
 			if strings.Contains(strings.ToLower(string(encoded)), strings.ToLower(forbidden)) {
@@ -172,6 +176,42 @@ func TestUntargetedNaturalLanguageEntriesObserveBeforeRuntimeRouting(t *testing.
 	}
 	if len(prompts) != 2 {
 		t.Fatalf("semantic entry was not called once per natural request: %d", len(prompts))
+	}
+}
+
+func TestPersistedFreeStateImprovementRouteRestoresPostCapacitySemanticEntry(t *testing.T) {
+	assessment := assessFreeStateCapacity(
+		capacityFactsFromProjectState(capacityTestProject(6, 20, 1, 0, "rev-route-migration"), semanticEntryScopeProjectContext),
+		false, time.Unix(10, 0),
+	)
+	record := CapabilityRouteRecord{
+		SchemaVersion: capabilityRouteSchema, TaskID: "task-migration", GoalID: "goal-migration", RunID: "run-migration",
+		ConversationID: "conversation-migration", OriginalIntent: "检查一下当前工程有什么问题？",
+		Controller: string(orchestrationcontroller.MinimalAudioClosure), ProjectRevision: assessment.ProjectRevision,
+		Assessment: &assessment, SemanticEntry: map[string]any{
+			"schema_version": semanticEntryDecisionSchema, "route": semanticEntryRouteObservation,
+			"target_scope": semanticEntryScopeProjectContext, "control_mode": semanticEntryControlObserveOnly,
+			"user_authorization": semanticEntryAuthorizationObserve, "confidence": 0.95,
+		},
+	}
+	entry, ok := capabilityRouteSemanticEntry(record)
+	if !ok || entry.Route != semanticEntryRouteOpenSemantic || entry.ControlMode != semanticEntryControlSemanticLoop || entry.UserAuthorization != semanticEntryAuthorizationAction {
+		t.Fatalf("stale persisted route was not promoted in-place: entry=%+v ok=%v", entry, ok)
+	}
+	readOnly := record
+	readOnly.OriginalIntent = "查看当前工程状态汇报"
+	if _, restored := capabilityRouteSemanticEntry(readOnly); restored {
+		t.Fatal("read-only status route was promoted to an action entry")
+	}
+}
+
+func TestReadOnlyProjectStatusDoesNotPromoteToOpenImprovement(t *testing.T) {
+	entry := semanticEntryDecision{SchemaVersion: semanticEntryDecisionSchema, Route: semanticEntryRouteObservation,
+		TargetScope: semanticEntryScopeProjectContext, ControlMode: semanticEntryControlObserveOnly,
+		UserAuthorization: semanticEntryAuthorizationObserve, Confidence: 0.9, Reason: "read current status"}
+	got := promoteOpenImprovementEntry("查看当前工程状态汇报", entry)
+	if got.Route != semanticEntryRouteObservation || got.ControlMode != semanticEntryControlObserveOnly || got.UserAuthorization != semanticEntryAuthorizationObserve {
+		t.Fatalf("read-only project status was promoted unexpectedly: %+v", got)
 	}
 }
 
@@ -228,6 +268,9 @@ func TestProductChatPathKeepsSmallUntargetedInspectionOnSameFreeStateTask(t *tes
 	}, config.EngineConfig{BaseURL: model.URL + "/v1", APIKey: "test", DefaultModel: "test"})
 	if !handled || response.TaskID == "" || response.GoalID == "" || response.RunID == "" {
 		t.Fatalf("small product route omitted runtime identity: %+v", response)
+	}
+	if response.GoalStatus == string(agentruntime.StatusCompleted) || strings.Contains(response.Reply, "工程黑板状态汇报") {
+		t.Fatalf("open untargeted request bypassed the free-state improvement contract: status=%s stop=%s reply=%q", response.GoalStatus, response.StopReason, response.Reply)
 	}
 	route := server.previousCapabilityRoute(response.TaskID, "conversation-small-product")
 	if route.TaskID != response.TaskID || route.GoalID != response.GoalID || route.RunID != response.RunID || route.Assessment == nil || route.Assessment.SelectedCapability != capabilityFreeState || route.Controller != string(orchestrationcontroller.MinimalAudioClosure) {

@@ -271,6 +271,13 @@ func TestFreeStateTransientLLMFailurePausesAndResumesPostActionEvaluation(t *tes
 	}
 }
 
+func TestWindowsTransportFailureIsTransient(t *testing.T) {
+	err := fmt.Errorf("read tcp 192.168.1.2:62781->172.65.90.20:443: wsarecv: a connection attempt failed because the connected party did not properly respond")
+	if !messageLoopTransientLLMError(err) {
+		t.Fatal("Windows transport timeout was classified as a permanent model failure")
+	}
+}
+
 func TestFreeStateRejectedViewSetIsNotRetriedAcrossContinuation(t *testing.T) {
 	viewJSON := `["mix.masking_relationship","track.basic_energy"]`
 	request := func(callID string) string {
@@ -1311,6 +1318,97 @@ func TestOpenSemanticCandidateTargetEvidenceAllowsSameTurnFinalDecision(t *testi
 	}}
 	if issue := messageLoopFreeStateOutputIssue(state, proposal); issue != "" {
 		t.Fatalf("candidate target evidence rejected a valid improvement proposal: %q", issue)
+	}
+}
+
+func TestOpenImprovementRejectsNoCandidateWhileFrontierHasPartialTargetEvidence(t *testing.T) {
+	state := &runState{input: Input{Context: map[string]any{
+		"task_contract": map[string]any{"kind": "improvement"},
+		"free_state_reasoning_loop": map[string]any{
+			"schema_version": "free_state_reasoning_loop.v1", "status": "observing", "original_intent": "inspect the project",
+		},
+		"minimal_audio_closure": map[string]any{"hypothesis_frontier": map[string]any{
+			"candidates": []any{map[string]any{"id": "candidate-1", "track_ids": []any{"1007", "1012"}}},
+		}},
+	}}, recentObservation: &RecentObservation{
+		Tool: "ccb.observation_request", Status: "partial", Summary: map[string]any{
+			"status": "partial", "observation_id": "obs-partial",
+			"target_ref": map[string]any{"kind": "track", "id": "1007"},
+			"views":      map[string]any{"track.band_dynamics": map[string]any{"status": "partial"}},
+		},
+	}}
+	decision := messageLoopOutput{Final: true, FreeStateDecision: &FreeStateDecision{
+		SchemaVersion: FreeStateDecisionSchema, Status: FreeStateNoCandidateFound, EvidenceStatus: "sufficient",
+		Summary: "no candidate was found", Diagnostic: &FreeStateDiagnostic{
+			SchemaVersion: FreeStateDiagnosticSchema, Status: "ruled_out", Findings: []FreeStateDiagnosticFinding{{
+				Statement: "the checked target has no candidate", EvidenceRefs: []string{"obs-partial"}, Limitation: "other candidates unchecked",
+			}},
+		},
+	}}
+	if issue := messageLoopFreeStateOutputIssue(state, decision); !strings.Contains(issue, "candidate frontier") {
+		t.Fatalf("partial target evidence incorrectly allowed terminal no_candidate_found: %q", issue)
+	}
+
+	continueDecision := messageLoopOutput{Final: false, FreeStateDecision: &FreeStateDecision{
+		SchemaVersion: FreeStateDecisionSchema, Status: FreeStateNeedsObservation, EvidenceStatus: "insufficient",
+		Summary: "inspect the second candidate", RequestedViewIDs: []string{"track.band_dynamics"},
+	}, ToolCalls: []planner.ToolCall{{Tool: "ccb.observation_request", Args: map[string]any{
+		"view_ids": []string{"track.band_dynamics"}, "target_ref": map[string]any{"kind": "track", "id": "1012"},
+	}}}}
+	if issue := messageLoopFreeStateOutputIssue(state, continueDecision); issue != "" {
+		t.Fatalf("partial target evidence did not permit bounded continuation: %q", issue)
+	}
+}
+
+func TestCandidatePartialTargetEvidencePromotesImprovementProposal(t *testing.T) {
+	state := &runState{input: Input{Context: map[string]any{
+		"task_contract": map[string]any{"kind": "improvement"},
+		"free_state_reasoning_loop": map[string]any{
+			"observation_ledger": map[string]any{"available_views": map[string]any{
+				"track:1007::track.band_dynamics": map[string]any{
+					"status": "partial", "observation_id": "obs-band-partial",
+					"evidence_refs": []any{"evidence://band-partial"},
+					"target_ref":    map[string]any{"kind": "track", "id": "1007"},
+				},
+			}},
+		},
+		"minimal_audio_closure": map[string]any{"hypothesis_frontier": map[string]any{
+			"candidate_id": "candidate-1",
+			"candidates":   []any{map[string]any{"id": "candidate-1", "track_ids": []any{"1007", "1012"}}},
+		}},
+	}}, recentObservation: &RecentObservation{Tool: "ccb.observation_request", Status: "partial", Summary: map[string]any{
+		"status": "partial", "observation_id": "obs-time-partial",
+		"target_ref": map[string]any{"kind": "track", "id": "1007"},
+		"views":      map[string]any{"track.time_dynamics": map[string]any{"status": "partial"}},
+	}}}
+	directive := messageLoopCandidateFrontierDirective(state)
+	if !strings.Contains(directive, "MUST return final=true") || !strings.Contains(directive, "needs_experiment") {
+		t.Fatalf("partial target evidence did not promote proposal handoff: %q", directive)
+	}
+}
+
+func TestOpenSemanticRejectsRepeatingUsableProjectObservation(t *testing.T) {
+	state := &runState{
+		input: Input{Context: map[string]any{
+			"semantic_entry_verified": true,
+			"semantic_entry_decision": map[string]any{"schema_version": "semantic_entry_decision.v1", "route": "open_semantic"},
+			"free_state_reasoning_loop": map[string]any{
+				"schema_version": "free_state_reasoning_loop.v1", "status": "observing", "original_intent": "inspect the project",
+				"observation_ledger": map[string]any{"receipts": []any{map[string]any{
+					"status": "ready", "requested_views": []any{"project.structure"},
+					"target_ref": map[string]any{"kind": "project", "id": "current"},
+				}}},
+			},
+		}},
+	}
+	decision := messageLoopOutput{Final: false, FreeStateDecision: &FreeStateDecision{
+		SchemaVersion: FreeStateDecisionSchema, Status: FreeStateNeedsObservation, EvidenceStatus: "insufficient",
+		Summary: "inspect structure again", RequestedViewIDs: []string{"project.structure"},
+	}, ToolCalls: []planner.ToolCall{{Tool: "ccb.observation_request", Args: map[string]any{
+		"view_ids": []string{"project.structure"}, "target_ref": map[string]any{"kind": "project", "id": "current"},
+	}}}}
+	if issue := messageLoopFreeStateOutputIssue(state, decision); !strings.Contains(issue, "already returned usable evidence") {
+		t.Fatalf("repeated usable project observation was accepted: %q", issue)
 	}
 }
 

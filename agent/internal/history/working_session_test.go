@@ -1,6 +1,7 @@
 package history
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -186,6 +187,82 @@ func TestWorkingSessionRegistryLossStartsFromSavedCanonicalAndLeavesRecoveryDraf
 	}
 	if recovery.Status != "recovery_available" {
 		t.Fatalf("unsaved session status=%q want recovery_available", recovery.Status)
+	}
+}
+
+func TestRecoverWorkingSessionResumesPendingRuntimeAfterRegistryLoss(t *testing.T) {
+	projectPath := filepath.Join(t.TempDir(), "pending-recovery.vit")
+	if err := os.WriteFile(projectPath, []byte("project"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	const projectUUID = "vitproj_pending_recovery"
+	BindProjectIdentity(projectPath, projectUUID)
+	first, err := EnsureWorkingSession(projectPath, projectUUID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	runtimePath := filepath.Join(first.WorkspaceDir, "state", agentRuntimeStateFile)
+	if err := os.MkdirAll(filepath.Dir(runtimePath), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(runtimePath, []byte(`{"durable_continuations":{"cont-1":{"status":"running"}},"goal_runtime":{"goals":[{"status":"waiting_continue"}]}}`), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	bindProjectCanonical(projectPath, projectUUID)
+
+	recovered, ok, err := RecoverWorkingSession(projectPath, projectUUID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !ok || recovered.SessionID != first.SessionID {
+		t.Fatalf("recovered=%v session=%q want pending session=%q", ok, recovered.SessionID, first.SessionID)
+	}
+	if recovered.Status != "active" {
+		t.Fatalf("recovered status=%q want active", recovered.Status)
+	}
+}
+
+func TestRecoverableProjectPathForUUIDFindsNewestDraftRuntimeState(t *testing.T) {
+	root := filepath.Join(t.TempDir(), "ProjectHistory", "drafts")
+	if err := os.MkdirAll(root, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	projectUUID := "vitproj_restart_discovery"
+	current := filepath.Join(root, "draft_current", draftProjectFileName)
+	older := filepath.Join(root, "draft_older", draftProjectFileName)
+	newer := filepath.Join(root, "draft_newer", draftProjectFileName)
+	for _, path := range []string{current, older, newer} {
+		if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(path, []byte("<EDIT/>"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	writeState := func(path, projectPath string) {
+		t.Helper()
+		stateDir := filepath.Join(filepath.Dir(path), DirName, workingSessionsDirName, projectUUID, "session", "workspace", "state")
+		if err := os.MkdirAll(stateDir, 0o755); err != nil {
+			t.Fatal(err)
+		}
+		data, _ := json.Marshal(map[string]any{"project_path": projectPath, "project_uuid": projectUUID})
+		if err := os.WriteFile(filepath.Join(stateDir, agentRuntimeStateFile), data, 0o600); err != nil {
+			t.Fatal(err)
+		}
+	}
+	writeState(older, older)
+	writeState(newer, newer)
+	newerState := filepath.Join(filepath.Dir(newer), DirName, workingSessionsDirName, projectUUID, "session", "workspace", "state", agentRuntimeStateFile)
+	oldTime := time.Now().Add(-time.Minute)
+	if err := os.Chtimes(filepath.Join(filepath.Dir(older), DirName, workingSessionsDirName, projectUUID, "session", "workspace", "state", agentRuntimeStateFile), oldTime, oldTime); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Chtimes(newerState, time.Now(), time.Now()); err != nil {
+		t.Fatal(err)
+	}
+	got := RecoverableProjectPathForUUID(current, projectUUID)
+	if !sameProjectPath(got, newer) {
+		t.Fatalf("recovered path=%q want newest draft=%q", got, newer)
 	}
 }
 

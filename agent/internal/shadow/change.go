@@ -53,6 +53,12 @@ type comparableProjectState struct {
 	entities map[string]map[string]any
 }
 
+func comparableProjectIdentityChanged(before, after map[string]any) bool {
+	beforeID := strings.TrimSpace(fmt.Sprint(before["project_uuid"]))
+	afterID := strings.TrimSpace(fmt.Sprint(after["project_uuid"]))
+	return beforeID != "" && beforeID != "<nil>" && afterID != "" && afterID != "<nil>" && beforeID != afterID
+}
+
 func comparableProjectStateFromShadow(state map[string]any) comparableProjectState {
 	engine, _ := state["engine_snapshot"].(map[string]any)
 	nodes, _ := state["nodes_by_uid"].(map[string]any)

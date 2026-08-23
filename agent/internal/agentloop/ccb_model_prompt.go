@@ -120,6 +120,12 @@ func messageLoopCandidateFrontierDirective(state *runState) string {
 		}
 	}
 	if messageLoopFreeStateCandidateTargetObserved(state, allowedTracks) {
+		if messageLoopFreeStateCandidateTargetEvidencePartial(state, allowedTracks) {
+			if messageLoopFreeStatePartialTargetEvidenceAlreadyAvailable(state, allowedTracks) {
+				return "The selected closure candidate already has bounded target-level evidence, but its quality is partial. This is sufficient for an open improvement hypothesis even though it does not prove an objective defect. You MUST return final=true with free_state.status=needs_experiment and exactly one bounded improvement_proposal.v1 citing the exact target observation_id or evidence_refs. Do not request another observation, do not repeat any previously observed view, and do not return no_candidate_found, diagnostic_complete, satisfied, or capability_blocked merely because the evidence is partial.\n\n"
+			}
+			return "The selected closure candidate has returned only partial target evidence. This does not rule out the candidate and does not complete the open improvement task. Do not return no_candidate_found, diagnostic_complete, or satisfied. Request a different cataloged target-level track.* view or another unresolved candidate track; if the evidence supports only a bounded hypothesis, return needs_experiment with one improvement_proposal.v1 citing the returned observation.\n\n"
+		}
 		return "A target-level observation for the closure candidate has just returned in this turn. Return final=true now: use needs_action only when the returned target evidence supports a deterministic governed action; when it plausibly relates to the user's listening goal but cannot prove an objective defect, use needs_experiment with one bounded improvement_proposal.v1 citing the returned observation. Use blocked only for a concrete capability, freshness, authorization, or observation boundary. Do not request another observation.\n\n"
 	}
 	if selected == "" {

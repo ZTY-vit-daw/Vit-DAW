@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"math"
 	"strings"
+	"time"
 
 	"vit-daw-agent/internal/actionworkflow"
 	"vit-daw-agent/internal/agentloop"
@@ -50,6 +51,14 @@ func (s *Server) improvementProposalResponse(conversationID, mode string, res ag
 	req := improvementProposalInteractionRequest(conversationID, res.GoalID, res.RunID, resp.Reply, candidate, requestContext)
 	resp.InteractionRequests = []AgentInteractionRequest{req}
 	s.storePendingInteraction(req, req.Payload)
+	if err := s.updateTaskExperimentPendingInteraction(conversationID, res.GoalID, req.ID, req.Kind, "improvement proposal confirmation required"); err != nil {
+		_, _ = s.takePendingInteraction(req.ID)
+		resp.InteractionRequests = nil
+		resp.NeedsConfirmation = false
+		resp.GoalStatus = string(agentruntime.StatusFailed)
+		resp.StopReason = "task_pending_interaction_projection_failed"
+		resp.Error = err.Error()
+	}
 	return resp
 }
 
@@ -84,6 +93,8 @@ func improvementProposalInteractionRequest(conversationID, goalID, runID, reply 
 }
 
 func (s *Server) continueImprovementProposalInteraction(ctx context.Context, interaction PendingInteraction, decision string) ChatResponse {
+	s.completePendingInteractionContinuation(interaction)
+	_ = s.updateTaskExperimentPendingInteraction(interaction.ConversationID, interaction.GoalID, "", "", "improvement proposal interaction resolved")
 	confirmation := actionworkflow.ClassifyConfirmation(decision, true)
 	status := agentprotocol.PendingStatusAccepted
 	reply := "提案已确认，当前尚未修改工程；正在把它交给对应 action domain 的受控入口。"
@@ -98,6 +109,10 @@ func (s *Server) continueImprovementProposalInteraction(ctx context.Context, int
 	s.transitionActivePendingCandidate(interaction.ConversationID, "improvement_proposal", status, stopReason)
 	if status == agentprotocol.PendingStatusAccepted {
 		if response, routed := s.routeAcceptedImprovementProposal(ctx, interaction); routed {
+			if len(response.InteractionRequests) > 0 {
+				next := response.InteractionRequests[0]
+				_ = s.updateTaskExperimentPendingInteraction(interaction.ConversationID, interaction.GoalID, next.ID, firstNonEmpty(next.Kind, next.Type), "exact experiment action confirmation required")
+			}
 			return response
 		}
 	}
@@ -134,7 +149,38 @@ func (s *Server) routeAcceptedImprovementProposal(ctx context.Context, interacti
 	if len(requestContext) == 0 {
 		requestContext = cloneContext(firstMapFromAny(interaction.Payload["request_context"]))
 	}
+	if requestContext == nil {
+		requestContext = map[string]any{}
+	}
 	requestContext = s.bindFreeStateAuthoritativeTrack(interaction.ConversationID, requestContext)
+	// Restore the host-owned capability route before authorization is checked.
+	// The interaction payload may contain a pre-promotion observation snapshot;
+	// the validated Task route is the authority for this already-admitted
+	// continuation. This is an in-place recovery, never a new semantic entry.
+	if route := s.previousCapabilityRoute("", interaction.ConversationID); route.SchemaVersion == capabilityRouteSchema &&
+		route.GoalID == interaction.GoalID && route.RunID == interaction.RunID {
+		if semantic, ok := capabilityRouteSemanticEntry(route); ok {
+			requestContext = contextWithSemanticEntryDecision(requestContext, semantic)
+			requestContext = contextWithCapabilityRoute(requestContext, route)
+			if route.SemanticEntry == nil || firstStringFromMap(route.SemanticEntry, "route") != semantic.Route ||
+				firstStringFromMap(route.SemanticEntry, "control_mode") != semantic.ControlMode ||
+				firstStringFromMap(route.SemanticEntry, "user_authorization") != semantic.UserAuthorization {
+				// Persist a narrow compatibility migration for snapshots created
+				// before the post-capacity semantic entry was stored.
+				route.SemanticEntry = semanticEntryDecisionMap(semantic)
+				route.UpdatedAt = time.Now().UTC()
+				s.storeCapabilityRoute(route)
+				requestContext = contextWithCapabilityRoute(requestContext, route)
+			}
+		}
+	}
+	// Proposal approval is the continuation boundary for the already-admitted
+	// free-state task. Rebuild the internal route authorization here instead of
+	// treating the approval as a new semantic entry. The original semantic
+	// entry decision remains in the persisted context and is still validated by
+	// freeStateRouteAuthorized.
+	requestContext["free_state_route_authorized"] = true
+	requestContext["free_state_internal_resume"] = true
 	loop, ok := s.freeStateLoop(interaction.ConversationID)
 	if !ok {
 		if recovered, recoveredOK := freeStateLoopFromAny(requestContext["free_state_reasoning_loop"]); recoveredOK {
