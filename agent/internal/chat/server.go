@@ -6675,9 +6675,26 @@ func (s *Server) persistCurrentProjectWorkspaceChecked() error {
 		// The scheduler (or another process) owns the durable checkpoint. Its
 		// completion write is authoritative; this request must not race it.
 		if errors.Is(err, history.ErrAgentRuntimeStateLocked) {
-			return nil
+			// A scheduler completion write can briefly own the project lease while
+			// a closure settlement updates its loop. Retry the same authoritative
+			// snapshot instead of silently dropping the terminal projection.
+			for attempt := 0; attempt < 20; attempt++ {
+				time.Sleep(25 * time.Millisecond)
+				lease, err = history.AcquireAgentRuntimeStateLock(projectPath, projectUUID, owner, s.continuationLease)
+				if err == nil {
+					break
+				}
+				if !errors.Is(err, history.ErrAgentRuntimeStateLocked) {
+					return err
+				}
+			}
+			if err != nil {
+				return nil
+			}
 		}
-		return err
+		if err != nil {
+			return err
+		}
 	}
 	if err := s.persistActiveProjectWorkspaceLocked(); err != nil {
 		_ = lease.Release()

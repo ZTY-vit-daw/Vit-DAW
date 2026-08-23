@@ -1,0 +1,30 @@
+{
+  "family": "malformed",
+  "variant": "unknown_status",
+  "matrix_ids": [
+    "M12"
+  ],
+  "source": {
+    "artifact": "artifacts/free_state_open_intent_acceptance/20260823_120030/transcript/00_response.json",
+    "sha256": "870a579f36e07410ace8d23e30ef8f15b5f2045d6683de8e252ba345d77e8e39",
+    "transform": "synthetic_negative_variant: decision status replaced with a non-production value"
+  },
+  "intent": "检查一下当前工程有什么问题？",
+  "context": {
+    "free_state_reasoning_loop": {
+      "schema_version": "free_state_reasoning_loop.v1",
+      "status": "reasoning",
+      "decision_phase": "processor_selection",
+      "original_intent": "检查一下当前工程有什么问题？"
+    }
+  },
+  "responses": [
+    "{\"final\": true, \"reply\": \"seems ready.\", \"free_state\": {\"schema_version\": \"free_state_decision.v1\", \"status\": \"maybe_ready\", \"evidence_status\": \"sufficient\", \"summary\": \"unknown status\"}, \"tool_calls\": []}",
+    "{\"final\": true, \"reply\": \"Unknown decision status was rejected by schema validation; the loop ends at the explicit boundary.\", \"free_state\": {\"schema_version\": \"free_state_decision.v1\", \"status\": \"blocked\", \"evidence_status\": \"insufficient\", \"summary\": \"Unknown decision status was rejected by schema validation; the loop ends at the explicit boundary.\", \"limitations\": [\"protocol repair used\"]}, \"tool_calls\": []}"
+  ],
+  "tool_results": [],
+  "expected": {
+    "terminal_status": "blocked",
+    "gate_rejection": "free_state"
+  }
+}

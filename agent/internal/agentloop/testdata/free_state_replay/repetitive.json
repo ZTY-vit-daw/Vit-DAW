@@ -1,0 +1,51 @@
+{
+  "family": "repetitive",
+  "matrix_ids": [
+    "M13"
+  ],
+  "source": {
+    "artifact": "artifacts/free_state_open_intent_acceptance/20260823_125822/transcript/00_response.json",
+    "sha256": "4eda0cd54fd424b3601bc49c343d5aefe0d2f8ad622e6b1dfc5d1bcdb9f85bf6",
+    "transform": "synthetic_repetitive_variant: the same usable view set requested twice to exercise the M04 repeat rejection"
+  },
+  "intent": "检查一下当前工程有什么问题？",
+  "context": {
+    "free_state_reasoning_loop": {
+      "schema_version": "free_state_reasoning_loop.v1",
+      "status": "reasoning",
+      "decision_phase": "processor_selection",
+      "original_intent": "检查一下当前工程有什么问题？"
+    }
+  },
+  "responses": [
+    "{\"final\": false, \"reply\": \"Need the project layout once.\", \"free_state\": {\"schema_version\": \"free_state_decision.v1\", \"status\": \"needs_observation\", \"evidence_status\": \"insufficient\", \"summary\": \"Need the project layout once.\", \"requested_view_ids\": [\"project.structure\"]}, \"tool_calls\": [{\"id\": \"ccb-rep-1\", \"tool\": \"ccb.observation_request\", \"args\": {\"view_ids\": [\"project.structure\"]}}]}",
+    "{\"final\": false, \"reply\": \"Request the same usable view set again.\", \"free_state\": {\"schema_version\": \"free_state_decision.v1\", \"status\": \"needs_observation\", \"evidence_status\": \"insufficient\", \"summary\": \"Request the same usable view set again.\", \"requested_view_ids\": [\"project.structure\"]}, \"tool_calls\": [{\"id\": \"ccb-rep-2\", \"tool\": \"ccb.observation_request\", \"args\": {\"view_ids\": [\"project.structure\"]}}]}",
+    "{\"final\": false, \"reply\": \"Switch to a different bounded view after the repeat rejection.\", \"free_state\": {\"schema_version\": \"free_state_decision.v1\", \"status\": \"needs_observation\", \"evidence_status\": \"insufficient\", \"summary\": \"Switch to a different bounded view after the repeat rejection.\", \"requested_view_ids\": [\"track.basic_energy\"]}, \"tool_calls\": [{\"id\": \"ccb-rep-3\", \"tool\": \"ccb.observation_request\", \"args\": {\"view_ids\": [\"track.basic_energy\"]}}]}",
+    "{\"final\": true, \"reply\": \"The repeat request was rejected; one usable view per view set stands and the loop ends at the boundary.\", \"free_state\": {\"schema_version\": \"free_state_decision.v1\", \"status\": \"blocked\", \"evidence_status\": \"insufficient\", \"summary\": \"The repeat request was rejected; one usable view per view set stands and the loop ends at the boundary.\", \"limitations\": [\"repeat rejected\"]}, \"tool_calls\": []}"
+  ],
+  "tool_results": [
+    {
+      "views": [
+        "project.structure"
+      ],
+      "status": "ready",
+      "observation_id": "obs-replay-rep-1",
+      "project_revision": "rev-7",
+      "freshness": "current_snapshot"
+    },
+    {
+      "views": [
+        "track.basic_energy"
+      ],
+      "status": "ready",
+      "observation_id": "obs-replay-rep-2",
+      "project_revision": "rev-7",
+      "freshness": "current_snapshot"
+    }
+  ],
+  "expected": {
+    "terminal_status": "blocked",
+    "observation_calls": 2,
+    "repeat_rejection": "already returned usable evidence"
+  }
+}

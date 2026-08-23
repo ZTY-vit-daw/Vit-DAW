@@ -1,0 +1,43 @@
+{
+  "family": "partial",
+  "matrix_ids": [
+    "M14"
+  ],
+  "source": {
+    "artifact": "artifacts/free_state_open_intent_acceptance/20260823_145032/transcript/00_response.json",
+    "sha256": "27e9006936881c726af13108505f03c6ff28fa31835c6b65362ec4335a2c7908",
+    "transform": "envelope_to_model_turn_script with partial bundle: usable-but-partial view returned, readiness must stay un-upgraded"
+  },
+  "intent": "检查一下当前工程有什么问题？",
+  "context": {
+    "free_state_reasoning_loop": {
+      "schema_version": "free_state_reasoning_loop.v1",
+      "status": "reasoning",
+      "decision_phase": "processor_selection",
+      "original_intent": "检查一下当前工程有什么问题？"
+    }
+  },
+  "responses": [
+    "{\"final\": false, \"reply\": \"Need the timbre view.\", \"free_state\": {\"schema_version\": \"free_state_decision.v1\", \"status\": \"needs_observation\", \"evidence_status\": \"insufficient\", \"summary\": \"Need the timbre view.\", \"requested_view_ids\": [\"track.timbre_frequency\"]}, \"tool_calls\": [{\"id\": \"ccb-partial-1\", \"tool\": \"ccb.observation_request\", \"args\": {\"view_ids\": [\"track.timbre_frequency\"]}}]}",
+    "{\"final\": true, \"reply\": \"The partial view is preserved as-is; no readiness upgrade is inferred from an incomplete bundle.\", \"free_state\": {\"schema_version\": \"free_state_decision.v1\", \"status\": \"blocked\", \"evidence_status\": \"insufficient\", \"summary\": \"The partial view is preserved as-is; no readiness upgrade is inferred from an incomplete bundle.\", \"limitations\": [\"partial evidence preserved\"]}, \"tool_calls\": []}"
+  ],
+  "tool_results": [
+    {
+      "views": [
+        "track.timbre_frequency"
+      ],
+      "status": "partial",
+      "observation_id": "obs-replay-partial-1",
+      "project_revision": "rev-7",
+      "freshness": "current_snapshot",
+      "limitations": [
+        "frequency band coverage incomplete"
+      ]
+    }
+  ],
+  "expected": {
+    "terminal_status": "blocked",
+    "observation_status": "partial",
+    "observation_calls": 1
+  }
+}

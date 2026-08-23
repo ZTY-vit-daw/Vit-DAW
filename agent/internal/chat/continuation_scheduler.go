@@ -967,6 +967,26 @@ func (s *Server) continuationRuntimeProjection() []map[string]any {
 		if len(item.PendingInteraction) > 0 {
 			row["pending_interaction"] = cloneContext(item.PendingInteraction)
 		}
+		// Terminal observability: the scheduler-driven settling turn's
+		// ChatResponse never travels over HTTP, so the free-state loop's
+		// terminal status and stop reason must be queryable here
+		// (docs/FREE_STATE_TEST_AND_REPLAY_MATRIX_V1.md §3 observability gap).
+		if loop, ok := s.freeStateLoop(item.ConversationID); ok {
+			row["free_state_status"] = loop.Status
+			row["free_state_current_round_id"] = loop.CurrentRoundID
+			row["free_state_current_phase"] = loop.CurrentPhase
+			row["free_state_continuation_budget"] = loop.ContinuationBudget
+			row["free_state_continuation_used"] = loop.ContinuationUsed
+			if loop.LatestDecision != nil {
+				row["free_state_decision_status"] = loop.LatestDecision.Status
+				row["free_state_stop_reason"] = firstNonEmpty(loop.LatestDecision.StopReason, loop.LastError)
+				if len(loop.LatestDecision.Limitations) > 0 {
+					row["free_state_limitations"] = append([]string(nil), loop.LatestDecision.Limitations...)
+				}
+			} else if loop.LastError != "" {
+				row["free_state_stop_reason"] = loop.LastError
+			}
+		}
 		if item.CapacityAssessment != nil {
 			row["capacity_assessment"] = *item.CapacityAssessment
 		}

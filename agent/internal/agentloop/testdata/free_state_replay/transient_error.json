@@ -1,0 +1,43 @@
+{
+  "family": "transient-error",
+  "matrix_ids": [
+    "M17"
+  ],
+  "source": {
+    "artifact": "artifacts/free_state_open_intent_acceptance/20260823_120030/transcript/00_response.json",
+    "sha256": "870a579f36e07410ace8d23e30ef8f15b5f2045d6683de8e252ba345d77e8e39",
+    "transform": "synthetic_transient_variant: completer transport error after the first observation, then recovery resume"
+  },
+  "intent": "检查一下当前工程有什么问题？",
+  "context": {
+    "free_state_reasoning_loop": {
+      "schema_version": "free_state_reasoning_loop.v1",
+      "status": "reasoning",
+      "decision_phase": "processor_selection",
+      "original_intent": "检查一下当前工程有什么问题？"
+    }
+  },
+  "responses": [
+    "{\"final\": false, \"reply\": \"Need the project layout once.\", \"free_state\": {\"schema_version\": \"free_state_decision.v1\", \"status\": \"needs_observation\", \"evidence_status\": \"insufficient\", \"summary\": \"Need the project layout once.\", \"requested_view_ids\": [\"project.structure\"]}, \"tool_calls\": [{\"id\": \"ccb-trans-1\", \"tool\": \"ccb.observation_request\", \"args\": {\"view_ids\": [\"project.structure\"]}}]}",
+    "{\"final\": true, \"reply\": \"Recovered after the transient transport failure; the already-executed observation was not repeated.\", \"free_state\": {\"schema_version\": \"free_state_decision.v1\", \"status\": \"blocked\", \"evidence_status\": \"insufficient\", \"summary\": \"Recovered after the transient transport failure; the already-executed observation was not repeated.\", \"limitations\": [\"transient recovery\"]}, \"tool_calls\": []}"
+  ],
+  "completer_error_at_turn": [
+    1
+  ],
+  "tool_results": [
+    {
+      "views": [
+        "project.structure"
+      ],
+      "status": "ready",
+      "observation_id": "obs-replay-trans-1",
+      "project_revision": "rev-7",
+      "freshness": "current_snapshot"
+    }
+  ],
+  "expected": {
+    "terminal_status": "blocked",
+    "observation_calls": 1,
+    "transient_stop_reason": "transient_llm_error"
+  }
+}

@@ -1,0 +1,108 @@
+{
+  "family": "stale",
+  "matrix_ids": [
+    "M15"
+  ],
+  "source": {
+    "artifact": "artifacts/free_state_open_intent_acceptance/20260823_125822/transcript/00_response.json",
+    "sha256": "4eda0cd54fd424b3601bc49c343d5aefe0d2f8ad622e6b1dfc5d1bcdb9f85bf6",
+    "transform": "synthetic_stale_variant: ledger receipt bound to an older project revision, proposal cites it"
+  },
+  "intent": "检查一下当前工程有什么问题？",
+  "context": {
+    "free_state_reasoning_loop": {
+      "schema_version": "free_state_reasoning_loop.v1",
+      "status": "reasoning",
+      "decision_phase": "processor_selection",
+      "original_intent": "检查一下当前工程有什么问题？",
+      "observation_ledger": {
+        "schema_version": "free_state_observation_ledger.v1",
+        "receipts": [
+          {
+            "status": "ready",
+            "observation_id": "obs-replay-stale-target",
+            "requested_views": [
+              "track.timbre_frequency"
+            ],
+            "target_ref": {
+              "kind": "track",
+              "id": "1007"
+            },
+            "evidence_refs": [
+              "obs-replay-stale-target"
+            ],
+            "project_revision": "rev-old",
+            "freshness": {
+              "status": "stale",
+              "project_revision": "rev-old"
+            }
+          }
+        ],
+        "available_views": {
+          "track:1007::track.timbre_frequency": {
+            "view_id": "track.timbre_frequency",
+            "status": "ready",
+            "observation_id": "obs-replay-stale-target",
+            "target_ref": {
+              "kind": "track",
+              "id": "1007"
+            },
+            "evidence_refs": [
+              "obs-replay-stale-target"
+            ],
+            "project_revision": "rev-old",
+            "freshness": {
+              "status": "stale",
+              "project_revision": "rev-old"
+            }
+          }
+        }
+      }
+    },
+    "task_contract": {
+      "kind": "improvement",
+      "project_uuid": "proj-replay",
+      "project_revision": "rev-7"
+    },
+    "minimal_audio_closure": {
+      "project_uuid": "proj-replay",
+      "project_revision": "rev-7",
+      "hypothesis_frontier": {
+        "candidates": [
+          {
+            "id": "candidate:stale",
+            "track_ids": [
+              "1007"
+            ]
+          }
+        ]
+      }
+    },
+    "free_state_capacity_assessment": {
+      "schema_version": "free_state_capacity_assessment.v1",
+      "capacity_level": "within_free_state",
+      "selected_capability": "free_state_reasoning"
+    }
+  },
+  "responses": [
+    "{\"final\": true, \"reply\": \"bounded experiment.\", \"free_state\": {\"schema_version\": \"free_state_decision.v1\", \"status\": \"needs_experiment\", \"evidence_status\": \"plausible\", \"summary\": \"bounded experiment on stale refs\", \"improvement_proposal\": {\"schema_version\": \"improvement_proposal.v1\", \"target\": {\"kind\": \"track\", \"id\": \"1007\"}, \"evidence_refs\": [\"obs-replay-stale-target\"], \"improvement_intent\": \"clarify the relationship\", \"hypothesis\": \"a small bounded change may help\", \"expected_effect\": \"easier comparison\", \"action_domain\": \"track_gain\", \"action_kind\": \"bounded_gain_adjustment\", \"parameter_bounds\": {\"delta_db\": -0.5}, \"confidence\": 0.5}}, \"tool_calls\": []}",
+    "{\"final\": false, \"reply\": \"Gate rejected the stale refs; request a fresh revision-bound view instead.\", \"free_state\": {\"schema_version\": \"free_state_decision.v1\", \"status\": \"needs_observation\", \"evidence_status\": \"insufficient\", \"summary\": \"Gate rejected the stale refs; request a fresh revision-bound view instead.\", \"requested_view_ids\": [\"track.timbre_frequency\"]}, \"tool_calls\": [{\"id\": \"ccb-stale-2\", \"tool\": \"ccb.observation_request\", \"args\": {\"view_ids\": [\"track.timbre_frequency\"], \"target_ref\": {\"kind\": \"track\", \"id\": \"1007\"}}}]}",
+    "{\"final\": true, \"reply\": \"The stale refs were rejected by the admission gate; a fresh bounded view was requested and the loop ends at the boundary.\", \"free_state\": {\"schema_version\": \"free_state_decision.v1\", \"status\": \"blocked\", \"evidence_status\": \"insufficient\", \"summary\": \"The stale refs were rejected by the admission gate; a fresh bounded view was requested and the loop ends at the boundary.\", \"limitations\": [\"stale refs rejected\"]}, \"tool_calls\": []}"
+  ],
+  "tool_results": [
+    {
+      "views": [
+        "track.timbre_frequency"
+      ],
+      "status": "ready",
+      "observation_id": "obs-replay-stale-2",
+      "project_revision": "rev-7",
+      "freshness": "current_snapshot"
+    }
+  ],
+  "expected": {
+    "terminal_status": "blocked",
+    "gate_rejection": "G7_fresh_revision_bound_refs",
+    "observation_calls": 1
+  }
+}

@@ -1287,11 +1287,60 @@ func TestOpenSemanticCandidateFrontierRequiresTargetLevelSelection(t *testing.T)
 }
 
 func TestOpenSemanticCandidateTargetEvidenceAllowsSameTurnFinalDecision(t *testing.T) {
+	// Gate-test variant: the old single-usable-bundle weak gate is replaced by
+	// the G1–G7 admission gate, so the same-turn proposal now requires a full
+	// diagnostic spine (binding, capacity, scan, closed round, frontier,
+	// target evidence, fresh revision-bound refs).
 	state := &runState{input: Input{Context: map[string]any{
-		"free_state_reasoning_loop": map[string]any{"schema_version": "free_state_reasoning_loop.v1", "status": "observing", "original_intent": "repair the mix"},
-		"minimal_audio_closure": map[string]any{"hypothesis_frontier": map[string]any{
-			"candidates": []any{map[string]any{"id": "candidate-1", "track_ids": []any{"1007", "1012"}}},
-		}},
+		"task_contract": map[string]any{
+			"kind": "improvement", "project_uuid": "proj-1", "project_revision": "rev-7",
+		},
+		"free_state_capacity_assessment": map[string]any{
+			"schema_version":      "free_state_capacity_assessment.v1",
+			"selected_capability": "project_mix", "capacity_level": "normal",
+		},
+		"free_state_reasoning_loop": map[string]any{
+			"schema_version": "free_state_reasoning_loop.v1", "status": "observing", "original_intent": "repair the mix",
+			"observation_ledger": map[string]any{
+				"receipts": []any{
+					map[string]any{
+						"status": "ready", "observation_id": "obs-mix",
+						"requested_views":  []any{"mix.frequency_relationship"},
+						"project_revision": "rev-7",
+						"freshness":        map[string]any{"status": "fresh", "project_revision": "rev-7"},
+					},
+					map[string]any{
+						"status": "ready", "observation_id": "obs-target",
+						"requested_views":  []any{"track.timbre_frequency"},
+						"target_ref":       map[string]any{"kind": "track", "id": "1007"},
+						"evidence_refs":    []any{"obs-target"},
+						"project_revision": "rev-7",
+						"freshness":        map[string]any{"status": "fresh", "project_revision": "rev-7"},
+					},
+				},
+				"available_views": map[string]any{
+					"track:1007::track.timbre_frequency": map[string]any{
+						"view_id": "track.timbre_frequency", "status": "ready", "observation_id": "obs-target",
+						"target_ref":    map[string]any{"kind": "track", "id": "1007"},
+						"evidence_refs": []any{"obs-target"},
+						"freshness":     map[string]any{"status": "fresh", "project_revision": "rev-7"},
+					},
+				},
+			},
+			"diagnostic_rounds": []any{map[string]any{
+				"schema_version": "free_state_diagnostic_round.v1", "round_id": "r_gate0001",
+				"primary_dimension": "frequency_occupancy", "priority_reason": "default_order",
+				"views_requested": []any{"track.timbre_frequency"},
+				"evidence_status": "ready", "project_revision": "rev-7",
+			}},
+		},
+		"minimal_audio_closure": map[string]any{
+			"project_uuid": "proj-1", "project_revision": "rev-7",
+			"hypothesis_frontier": map[string]any{
+				"candidate_id": "candidate-1",
+				"candidates":   []any{map[string]any{"id": "candidate-1", "track_ids": []any{"1007", "1012"}}},
+			},
+		},
 	}}, recentObservation: &RecentObservation{Tool: "ccb.observation_request", Status: "ready", Summary: map[string]any{
 		"status": "ready", "read_only": true, "mutation_authority": false,
 		"observation_id": "obs-target", "target_ref": map[string]any{"kind": "track", "id": "1007"}, "views": map[string]any{"track.timbre_frequency": map[string]any{"status": "ready"}},

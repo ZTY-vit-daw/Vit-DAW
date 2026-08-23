@@ -154,7 +154,7 @@ func (d Driver) RecordObservation(state State, expectedRevision uint64, key Obse
 		settled, settleErr := d.settleUnchecked(state, StopEvidenceCeilingReached, "unique observation budget exhausted", false, "", now)
 		return ObservationOutcome{State: settled, Fingerprint: fingerprint}, settleErr
 	}
-	record := ObservationRecord{Fingerprint: fingerprint, ObservationID: normalizeText(observationID), ProjectRevision: normalizeText(key.ProjectRevision), ViewIDs: normalizedStrings(key.ViewIDs), Round: state.RoundsStarted, RecordedAt: utcNow(now)}
+	record := ObservationRecord{Fingerprint: fingerprint, ObservationID: normalizeText(observationID), TargetRef: normalizeText(key.TargetRef), ProjectRevision: normalizeText(key.ProjectRevision), ViewIDs: normalizedStrings(key.ViewIDs), Round: state.RoundsStarted, RecordedAt: utcNow(now)}
 	next, err := appendEvent(state, EventObservationRecorded, observationRecordedData{Record: record}, now)
 	return ObservationOutcome{State: next, Fingerprint: fingerprint, Accepted: err == nil}, err
 }
@@ -347,6 +347,50 @@ func (d Driver) RequestHandoff(state State, expectedRevision uint64, controller,
 		return State{}, fmt.Errorf("handoff controller is required")
 	}
 	return d.settleUnchecked(state, StopHandoffRequested, summary, false, controller, now)
+}
+
+// TransitionPhase appends a phase_transition event. The guard input snapshot
+// travels with the event so Fold re-verifies it deterministically on replay.
+func (d Driver) TransitionPhase(state State, expectedRevision uint64, to Phase, guard PhaseGuardInput, reason string, now time.Time) (State, error) {
+	if err := validateExpectedRevision(state, expectedRevision); err != nil {
+		return State{}, err
+	}
+	to = Phase(strings.ToLower(strings.TrimSpace(string(to))))
+	if !IsFSPhase(to) {
+		return State{}, fmt.Errorf("transition target must be an FS phase, got %q", to)
+	}
+	from := state.Phase
+	if to == PhaseFS0SemanticEntry {
+		if IsFSPhase(from) {
+			return State{}, fmt.Errorf("FS0 entry requires a non-FS current phase, got %s", from)
+		}
+	} else {
+		if !IsFSPhase(from) {
+			return State{}, fmt.Errorf("the FS machine must be entered at %s before %s", PhaseFS0SemanticEntry, to)
+		}
+		if err := EvaluatePhaseGuard(from, to, guard); err != nil {
+			return State{}, err
+		}
+	}
+	next, err := appendEvent(state, EventPhaseTransition, phaseTransitionData{
+		From: from, To: to, Guard: guard, GuardPassed: true, Reason: normalizeText(reason),
+	}, now)
+	return next, err
+}
+
+// RecordDiagnosticRound persists one `free_state_diagnostic_round.v1` record
+// into the closure event stream; restart recovery replays them from Fold.
+func (d Driver) RecordDiagnosticRound(state State, expectedRevision uint64, round DiagnosticRoundRecord, now time.Time) (State, error) {
+	if err := validateExpectedRevision(state, expectedRevision); err != nil {
+		return State{}, err
+	}
+	if err := round.Validate(); err != nil {
+		return State{}, err
+	}
+	if round.ProjectRevision != "" && state.ProjectRevision != "" && round.ProjectRevision != state.ProjectRevision {
+		return State{}, fmt.Errorf("round project_revision %q does not match closure revision %q", round.ProjectRevision, state.ProjectRevision)
+	}
+	return appendEvent(state, EventDiagnosticRoundRecorded, diagnosticRoundRecordedData{Round: round}, now)
 }
 
 func (d Driver) settleUnchecked(state State, reason StopReason, summary string, needsClarification bool, handoff string, now time.Time) (State, error) {

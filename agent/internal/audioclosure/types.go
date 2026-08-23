@@ -98,6 +98,7 @@ type ObservationKey struct {
 type ObservationRecord struct {
 	Fingerprint     string    `json:"fingerprint"`
 	ObservationID   string    `json:"observation_id,omitempty"`
+	TargetRef       string    `json:"target_ref,omitempty"`
 	ProjectRevision string    `json:"project_revision,omitempty"`
 	ViewIDs         []string  `json:"view_ids,omitempty"`
 	Round           int       `json:"round"`
@@ -178,6 +179,7 @@ type State struct {
 	ObservationOrder      []string                        `json:"observation_order,omitempty"`
 	Observations          map[string]ObservationRecord    `json:"observations,omitempty"`
 	Frontier              HypothesisFrontier              `json:"hypothesis_frontier,omitempty"`
+	DiagnosticRounds      []DiagnosticRoundRecord         `json:"diagnostic_rounds,omitempty"`
 	Actionability         Actionability                   `json:"actionability"`
 	ModelProtocolRepairs  int                             `json:"model_protocol_repairs"`
 	ActionAttempts        int                             `json:"action_attempts"`
@@ -191,7 +193,9 @@ type State struct {
 	UpdatedAt             time.Time                       `json:"updated_at"`
 }
 
-func (s State) Terminal() bool { return s.Phase == PhaseSettled && s.Settlement != nil }
+func (s State) Terminal() bool {
+	return (s.Phase == PhaseSettled || s.Phase == PhaseFS9Terminal) && s.Settlement != nil
+}
 
 type StartRequest struct {
 	ClosureID         string

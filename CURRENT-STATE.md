@@ -8,11 +8,11 @@
 - **历史记录**：基线、验证记录、审计、ADR、设计草案快照等纯记录性文档。保留原位，可查证当时的设计决策，**不得当作现状**。
 - **已废弃**：内容已被实现超越且会误导 agent 的文档，已迁至 `docs/archive/`。
 
-汇总：docs/ 根目录共 108 份文档（现行 46 / 历史记录 59 / 已废弃 4），另有 `docs/vsp/` 子目录单独索引（见末节）。
+汇总：docs/ 根目录共 114 份文档（现行 51 / 历史记录 60 / 已废弃 4），另有 `docs/vsp/` 子目录单独索引（见末节）。
 
 ---
 
-## 一、现行（46）
+## 一、现行（51）
 
 ### 观察投影与上下文
 
@@ -33,6 +33,11 @@
 | [FREE_STATE_MINIMUM_IMPROVEMENT_WORKFLOW_UPDATE_2026-08-22.md](docs/FREE_STATE_MINIMUM_IMPROVEMENT_WORKFLOW_UPDATE_2026-08-22.md) | 自由态工作流修订（AGENTS.md 白名单收录） |
 | [FREE_STATE_CCB_OBSERVATION_PROTOCOL_V1.md](docs/FREE_STATE_CCB_OBSERVATION_PROTOCOL_V1.md) | 自由态 CCB 只读观察协议（模型是决策所有者） |
 | [FREE_STATE_DIAGNOSTIC_ONLY_V1.md](docs/FREE_STATE_DIAGNOSTIC_ONLY_V1.md) | 自由态只读诊断边界契约 |
+| [FREE_STATE_PHASE_TRANSITION_TABLE_V1.md](docs/FREE_STATE_PHASE_TRANSITION_TABLE_V1.md) | 自由态 FS0–FS9 相位转移表与四层状态机映射（implemented 且生产可达（Phase B 接线收口）：audioclosure/phase.go 相位机（守卫由 DerivePhaseGuardInput 从 State 实证推导）+ events.go phase_transition 事件 + chat 轮边界 AdvancePhase 生产驱动 + free_state_phase 上下文键；M01/M02 及接线测试已落地） |
+| [FREE_STATE_DIAGNOSTIC_ROUND_AND_PRIORITY_QUEUE_SCHEMA_V1.md](docs/FREE_STATE_DIAGNOSTIC_ROUND_AND_PRIORITY_QUEUE_SCHEMA_V1.md) | 诊断轮次与优先队列 schema（implemented 且生产可达（Phase B 接线收口）：audioclosure/diagnostic_round.go schema + 三准入（准入 1 需新 unresolved question）+ 轮闭合时生产写入事件流（G4 数据源接通）；chat 循环持 current_round_id/current_phase/priority_queue/budget（队列由 audioclosure.QueueFromRounds 从事件流派生、syncFreeStateSpine 镜像，malformed fail-closed）；M03–M05 及队列接线/负例测试已落地） |
+| [FREE_STATE_NEEDS_EXPERIMENT_GATE_V1.md](docs/FREE_STATE_NEEDS_EXPERIMENT_GATE_V1.md) | needs_experiment 七项准入契约（implemented 且生产可达（Phase B 接线收口）：agentloop/free_state_gate.go G1–G7 整体替换弱门，门失败唯一出口 needs_observation；G4/G7 生产数据源（diagnostic round 事件流 + ledger project_binding/freshness 透传）已接通；M06/M07 已落地） |
+| [FREE_STATE_IMPROVEMENT_EXECUTION_RECEIPT_V1.md](docs/FREE_STATE_IMPROVEMENT_EXECUTION_RECEIPT_V1.md) | 最小改进执行回执 schema（已实现（Phase C 收口）：experiment/receipt.go 类型与机检校验（含 ambiguous 不得 continue_once、continue_once 全局一次、五层分离红线）；M08/M09/M19 测试落地；真实音频 Apply/Rollback/Settlement 留待下一阶段） |
+| [FREE_STATE_TEST_AND_REPLAY_MATRIX_V1.md](docs/FREE_STATE_TEST_AND_REPLAY_MATRIX_V1.md) | 自由态四层测试与回放矩阵（已实现（Phase C 收口）：L1 M01–M10、L2 回放 M11–M17（free_state_replay_test.go + testdata/free_state_replay/ fixture 家族）、L4 M19 全部落地；L3 验收脚本按 journal/events 实际观察计数 + 运行时接口终态（含 free_state_limitations 终态成因）） |
 | [SEMANTIC_ENTRY_V1.md](docs/SEMANTIC_ENTRY_V1.md) | 模型侧语义入口决策（`semantic_entry_decision.v1`，现行入口路径） |
 | [SEMANTIC_PRE_FAMILY_DISCLOSURE_V1.md](docs/SEMANTIC_PRE_FAMILY_DISCLOSURE_V1.md) | 语义 pre-family 披露边界 |
 | [SEMANTIC_PROCESSOR_INTENT_V1.md](docs/SEMANTIC_PROCESSOR_INTENT_V1.md) | `semantic_processor_intent.v1` 观察目标→处理器族交接 |
@@ -92,7 +97,7 @@
 
 ---
 
-## 二、历史记录（59，保留原位，不得当作现状）
+## 二、历史记录（60，保留原位，不得当作现状）
 
 ### ADR / 决策记录
 
@@ -106,6 +111,7 @@
 
 | 文档 | 说明 |
 |---|---|
+| [FREE_STATE_PHASE_C_CLOSEOUT_2026-08-23.md](docs/FREE_STATE_PHASE_C_CLOSEOUT_2026-08-23.md) | Phase C 自由态运行时与真实开放意图验收收口记录（本文件） |
 | [COMPRESSOR_CONTROL_V11_VALIDATION.md](docs/COMPRESSOR_CONTROL_V11_VALIDATION.md) | 压缩控制 v1.1 验证（2026-08-04 通过） |
 | [COMPRESSOR_CONTROL_V12_VALIDATION.md](docs/COMPRESSOR_CONTROL_V12_VALIDATION.md) | 压缩控制 v1.2 验证（关闭 round-2 三项失败） |
 | [COMPRESSOR_OPEN_SEMANTIC_ROUTING_V1_VALIDATION.md](docs/COMPRESSOR_OPEN_SEMANTIC_ROUTING_V1_VALIDATION.md) | 压缩开放语义路由验证（通过） |
