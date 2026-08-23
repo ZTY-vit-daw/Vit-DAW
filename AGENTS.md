@@ -40,6 +40,7 @@ powershell -ExecutionPolicy Bypass -File .\build_release.ps1
 | VitApp 内核（C++/DAW） | `VitApp/` | CMake 工程，音频引擎与工程状态 |
 | Go agent | `agent/` | Go 实现的桥接与 AI agent（`cmd/vitagent` 为主入口，另有 `vsphub`、`pcactl`、`pluginprobe` 等） |
 | WebUI | `agent/webui/` | React 19 + Vite 前端（`src/App.tsx` 目前约 12k 行，拆分是答辩后任务 T9） |
+| DAW 前端（Godot） | `D:\Godot\project\vit-daw-frontend`（仓库外） | Godot 4 工程，Vit-DAW 的 DAW 前端 |
 
 `agent/internal` 重点包一览（按主题分组）：
 
@@ -91,6 +92,8 @@ powershell -ExecutionPolicy Bypass -File .\build_release.ps1
 - **禁止 `git reset` / `git clean` / 丢弃工作树改动**：工作树中的实现工作被视为不可丢弃的权威输入（G0 基线已声明）。
 - **投影是 peer 不是链**：任何实现/文档修改不得把 `DAD -> DOM -> MOM -> CCB` 写成管线；CCB 不做自动 view 选择，缺失/partial/stale 原样保留不升级 readiness。
 - **Context Runtime 优先消费投影自带的 `LLMContext`**，不得展开 raw package（多数投影 `do_not_include_raw_package=true`）。
+- **禁止 computer use 等主机控制指令**：agent 不得使用控制主机桌面/GUI 的手段（computer use、键鼠模拟截屏操作等）。
+- **agent 开发必须过端侧烟测**：任何 agent 侧改动在交给用户验收前，必须通过基于现有 ps1 脚本延伸的端侧烟测——即沿用现有 `scripts/*.ps1` 的方式（从 Godot 拉起 agent 与内核，对真实运行栈做测试，参考 `scripts/dev_agent_smoke.ps1`、`scripts/g_runtime_readonly_smoke.ps1` 等）。烟测通过才算达到用户验收门槛。
 
 ## 6. 健康检查命令
 
