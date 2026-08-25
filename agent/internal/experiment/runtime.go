@@ -606,6 +606,21 @@ func (t *Turn) RecordObservation(observation Observation, postAction bool, now t
 			}
 		}
 	}
+	// The D1-S1 contract requires exactly one post-action CCB bundle for its
+	// single forward mutation; a second bundle can only come from a loop that
+	// revived after the human-judgment boundary (2026-08-25 21:09 D1 smoke:
+	// two post_action=true observations broke validate_d1). Reject instead of
+	// appending so the duplicate is visible to the caller's Warn log. The
+	// legacy multi-round adoption flow legitimately records a second
+	// post-action bundle as the post-adoption verification observation, so
+	// the guard is scoped to D1-S1.
+	if postAction && t.Admission.IsD1S1() {
+		for _, prior := range round.Observations {
+			if prior.PostAction {
+				return nil, fmt.Errorf("post-action observation already recorded for round %s", round.ID)
+			}
+		}
+	}
 	if now.IsZero() {
 		now = time.Now().UTC()
 	}

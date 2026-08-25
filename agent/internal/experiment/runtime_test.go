@@ -298,6 +298,54 @@ func TestRollbackRestoresRoundStateAndEmitsEvent(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+// A round admits exactly one post-action CCB bundle. A second bundle can only
+// arrive from a loop that revived after the human-judgment boundary
+// (2026-08-25 21:09 D1 smoke: two post_action=true observations broke
+// validate_d1). The runtime rejects it defensively so the caller's Warn log
+// sees the duplicate instead of silently appending it.
+func TestRecordObservationRejectsSecondPostActionObservation(t *testing.T) {
+	turn, err := NewTurn(Identity{ConversationID: "conversation-dual-post"}, "evaluate the applied change", testD1Admission(AuthorityFull), time.Now().UTC())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := turn.StartRound([]string{"track.timbre_frequency"}, "checkpoint-dual", "rev-1", time.Now().UTC()); err != nil {
+		t.Fatal(err)
+	}
+	bound := func(id string, postAction bool, revision string) Observation {
+		observation := testObservation(id, postAction)
+		observation.ProjectRevision = revision
+		return observation
+	}
+	if _, err := turn.RecordObservation(bound("before-dual", false, "rev-1"), false, time.Now().UTC()); err != nil {
+		t.Fatal(err)
+	}
+	intervention := testIntervention(1, "dual-dose")
+	intervention.Receipt = map[string]any{"status": "readback_ok", "action_id": "dual-dose", "after_revision": "rev-2", "applied_revision": "rev-2"}
+	if _, err := turn.ApplyIntervention(intervention, time.Now().UTC()); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := turn.RecordObservation(bound("after-dual-1", true, "rev-2"), true, time.Now().UTC()); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := turn.RecordObservation(bound("after-dual-2", true, "rev-2"), true, time.Now().UTC()); err == nil || !strings.Contains(err.Error(), "post-action observation already recorded") {
+		t.Fatalf("second post-action observation was accepted: %v", err)
+	}
+	round, err := turn.currentRound()
+	if err != nil {
+		t.Fatal(err)
+	}
+	postActionCount := 0
+	for _, observation := range round.Observations {
+		if observation.PostAction {
+			postActionCount++
+		}
+	}
+	if postActionCount != 1 || len(round.Observations) != 2 {
+		t.Fatalf("round observations = %+v, want exactly one post-action bundle", round.Observations)
+	}
+}
+
+
 
 func TestCCBViewSetMismatchRejected(t *testing.T) {
 	turn, err := NewTurn(Identity{ConversationID: "conversation-ccb"}, "inspect", testAdmission(AuthorityFull), time.Now().UTC())
