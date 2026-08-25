@@ -167,9 +167,40 @@ func pendingInteractionFromResult(res agentloop.Result) map[string]any {
 			"requests": requests, "goal_id": res.GoalID, "run_id": res.RunID,
 			"task_id": res.TaskID, "current_slice_id": res.SliceID, "current_turn_id": res.TurnID,
 			"continuation_id": continuationIDForResult(res),
+			// completePendingInteractionContinuation matches waiting
+			// checkpoints by this top-level id; without it an answered
+			// confirmation leaves an orphan waiting_interaction checkpoint
+			// behind (2026-08-25 D1 smoke).
+			"interaction_id": firstInteractionRequestID(requests),
 		}
 	}
 	return nil
+}
+
+// firstInteractionRequestID extracts the id of the first interaction request
+// from the shapes interaction_requests can take inside an executed result.
+func firstInteractionRequestID(requests any) string {
+	switch rows := requests.(type) {
+	case []AgentInteractionRequest:
+		for _, row := range rows {
+			if id := strings.TrimSpace(row.ID); id != "" {
+				return id
+			}
+		}
+	case []any:
+		for _, row := range rows {
+			if id := firstStringFromMap(firstMapFromAny(row), "id", "interaction_id"); id != "" {
+				return id
+			}
+		}
+	case []map[string]any:
+		for _, row := range rows {
+			if id := firstStringFromMap(row, "id", "interaction_id"); id != "" {
+				return id
+			}
+		}
+	}
+	return ""
 }
 
 func continuationWaitingForInteraction(res agentloop.Result) bool {
@@ -545,6 +576,13 @@ func (s *Server) recoverContinuationWorkspace(ctx context.Context) {
 	if s == nil || s.harness == nil {
 		return
 	}
+	// Workspace recovery activates (and therefore restores) a project state
+	// snapshot. It must never switch or overwrite runtime state while a
+	// request is mid-flight; the request handlers own activation for their
+	// own duration.
+	if s.invocationsActive() {
+		return
+	}
 	projectPath, projectUUID := s.harness.CurrentProjectIdentity(ctx)
 	s.mu.Lock()
 	activePath, activeUUID := s.activeWorkspacePath, s.activeWorkspaceUUID
@@ -619,6 +657,18 @@ func (s *Server) beginContinuationSensitiveInvocation() func() {
 		s.mu.Unlock()
 		s.wakeContinuationScheduler()
 	}
+}
+
+// invocationsActive reports whether a request-boundary invocation (chat,
+// interaction, confirmation, audition) currently owns the in-memory runtime
+// state. Scheduler-driven disk reloads must not run while it is true.
+func (s *Server) invocationsActive() bool {
+	if s == nil {
+		return false
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.activeRuntimeInvocations > 0
 }
 
 func (s *Server) releaseContinuationClaim(id string, err error) {
@@ -739,6 +789,15 @@ func (s *Server) setContinuationStatus(id string, status DurableContinuationStat
 
 func (s *Server) runContinuationSchedulerOnce(ctx context.Context) error {
 	if s == nil {
+		return nil
+	}
+	// A request in flight owns the authoritative in-memory runtime state: its
+	// admission may have stored a capability route or checkpointed a
+	// continuation that is not on disk yet. Reloading the durable snapshot
+	// now would replace that memory wholesale and the lost route later fails
+	// the continuation closed as unrecoverable. Wait for the request; its
+	// completion persists and wakes the scheduler again.
+	if s.invocationsActive() {
 		return nil
 	}
 	s.schedulerExecutionMu.Lock()
@@ -866,6 +925,12 @@ func (s *Server) reloadActiveRuntimeState() error {
 	if s == nil {
 		return nil
 	}
+	// Defense in depth: the reload replaces in-memory runtime state with the
+	// durable snapshot. It must never race a request that has authoritative
+	// state in memory which the snapshot cannot contain yet.
+	if s.invocationsActive() {
+		return nil
+	}
 	s.mu.Lock()
 	projectPath, projectUUID := s.activeWorkspacePath, s.activeWorkspaceUUID
 	s.mu.Unlock()
@@ -926,7 +991,87 @@ func (s *Server) executeDurableContinuation(ctx context.Context, item DurableCon
 	if strings.TrimSpace(resp.Error) != "" || resp.GoalStatus == string(agentruntime.StatusFailed) {
 		return fmt.Errorf("durable continuation failed: %s", firstNonEmpty(resp.Error, resp.StopReason, "unknown failure"))
 	}
+	// An interaction boundary reached inside a scheduler-driven slice must
+	// stay durably visible. The HTTP path surfaces these requests on the chat
+	// response; the scheduler path has no such response channel, so the
+	// claimed checkpoint is parked as waiting_interaction carrying them.
+	// Without this the scheduler completed the checkpoint silently and the
+	// confirmation was invisible to every continuation-based projection
+	// (2026-08-25 D1 smoke: goal waiting_confirmation, all checkpoints
+	// completed, no pending interaction).
+	if interactionBoundaryChatResponse(resp) {
+		s.parkClaimedContinuationAtInteraction(item, chatResponsePendingInteraction(resp))
+	}
 	return nil
+}
+
+// interactionBoundaryChatResponse reports whether a chat response stops at a
+// user-interaction boundary (confirmation, clarification, human judgment).
+func interactionBoundaryChatResponse(resp ChatResponse) bool {
+	if resp.NeedsConfirmation {
+		return true
+	}
+	status := strings.ToLower(strings.TrimSpace(resp.GoalStatus))
+	return status == strings.ToLower(string(agentruntime.StatusWaitingConfirmation)) ||
+		status == strings.ToLower(string(agentruntime.StatusWaitingClarification))
+}
+
+// chatResponsePendingInteraction projects a boundary response into the
+// pending_interaction shape durable continuations expose. The interaction_id
+// top-level key lets completePendingInteractionContinuation retire the
+// checkpoint once the user answers.
+func chatResponsePendingInteraction(resp ChatResponse) map[string]any {
+	pending := map[string]any{
+		"status":      firstNonEmpty(resp.GoalStatus, string(agentruntime.StatusWaitingConfirmation)),
+		"stop_reason": resp.StopReason,
+		"workflow":    resp.Workflow,
+	}
+	if strings.TrimSpace(resp.PlanID) != "" {
+		pending["plan_id"] = resp.PlanID
+	}
+	if len(resp.InteractionRequests) > 0 {
+		requests := make([]any, 0, len(resp.InteractionRequests))
+		for _, req := range resp.InteractionRequests {
+			requests = append(requests, agentInteractionRequestMap(req))
+		}
+		pending["requests"] = requests
+		if id := firstInteractionRequestID(resp.InteractionRequests); id != "" {
+			pending["interaction_id"] = id
+		}
+	}
+	return pending
+}
+
+func agentInteractionRequestMap(req AgentInteractionRequest) map[string]any {
+	data, err := json.Marshal(req)
+	if err != nil {
+		return map[string]any{}
+	}
+	out := map[string]any{}
+	_ = json.Unmarshal(data, &out)
+	return out
+}
+
+// parkClaimedContinuationAtInteraction retires the lease of a claimed
+// checkpoint and parks it at waiting_interaction with the pending payload.
+func (s *Server) parkClaimedContinuationAtInteraction(item DurableContinuation, pending map[string]any) {
+	if s == nil {
+		return
+	}
+	s.mu.Lock()
+	current, ok := s.durableContinuations[item.ContinuationID]
+	if ok && (current.Status == ContinuationClaimed || current.Status == ContinuationRunning) {
+		current.Status = ContinuationWaitingInteraction
+		current.LeaseOwner = ""
+		current.LeaseExpiresAt = time.Time{}
+		if len(pending) > 0 {
+			current.PendingInteraction = cloneContext(pending)
+		}
+		current.UpdatedAt = time.Now().UTC()
+		s.durableContinuations[item.ContinuationID] = cloneDurableContinuation(current)
+	}
+	s.mu.Unlock()
+	_ = s.persistContinuationState()
 }
 
 func (s *Server) continuationRuntimeProjection() []map[string]any {

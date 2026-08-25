@@ -519,7 +519,15 @@ func (s *Server) recordAudioClosureRound(state audioclosure.State, res agentloop
 		}
 		current = advanced
 		if record, ok := audioClosureRoundRecord(current); ok {
-			if recorded, err := driver.RecordDiagnosticRound(current, current.Revision, record, time.Now().UTC()); err == nil {
+			recorded, recordErr := driver.RecordDiagnosticRound(current, current.Revision, record, time.Now().UTC())
+			if recordErr != nil {
+				// A rejected round record must never vanish silently: the G4
+				// round data source feeds QueueFromRounds/DimensionClosed, so
+				// a validation failure here silently freezes the FS spine.
+				if s.logger != nil {
+					s.logger.Warn("[audio-closure] diagnostic round record rejected for %s at round %d: %v", current.ClosureID, current.RoundsStarted, recordErr)
+				}
+			} else {
 				current = recorded
 			}
 		}
@@ -1272,7 +1280,6 @@ func (s *Server) advanceAudioClosurePhase(current audioclosure.State, evidence a
 // that is about to close, from the observations recorded in that round.
 func audioClosureRoundRecord(state audioclosure.State) (audioclosure.DiagnosticRoundRecord, bool) {
 	views := map[string]bool{}
-	usable := false
 	for _, record := range state.Observations {
 		if record.Round != state.RoundsStarted {
 			continue
@@ -1280,57 +1287,63 @@ func audioClosureRoundRecord(state audioclosure.State) (audioclosure.DiagnosticR
 		for _, viewID := range record.ViewIDs {
 			views[viewID] = true
 		}
-		usable = true
 	}
 	if len(views) == 0 {
 		return audioclosure.DiagnosticRoundRecord{}, false
 	}
 	// Pick the primary dimension whose allowed views cover the observed set;
-	// primary-view hits win over supporting-view hits.
+	// primary-view hits win over supporting-view hits. The record contract
+	// requires views_requested to be a subset of the primary dimension's
+	// allowed views (FREE_STATE_DIAGNOSTIC_ROUND_AND_PRIORITY_QUEUE_SCHEMA_V1
+	// §1 machine check), while one project-level bundle can legitimately span
+	// several dimensions (masking + multitrack + structure). The observed set
+	// is therefore intersected with the chosen dimension's allowed views
+	// before it becomes views_requested; copying the whole set verbatim made
+	// RecordDiagnosticRound reject every round, so the G4 round data source
+	// never persisted and DimensionClosed could never become true.
 	primary := audioclosure.DiagnosticDimension("")
+	kept := map[string]bool{}
 	for _, dim := range audioclosure.DefaultDimensionOrder {
 		allowed := audioclosure.ValidDimensionViews(dim)
-		hit := false
+		dimViews := map[string]bool{}
 		for viewID := range views {
 			for _, candidate := range allowed {
 				if candidate == viewID {
-					hit = true
+					dimViews[viewID] = true
 					break
 				}
 			}
 		}
-		if !hit {
+		if len(dimViews) == 0 {
 			continue
 		}
 		if primary == "" {
 			primary = dim
+			kept = dimViews
 		}
 		if len(views) == 1 {
 			for _, candidate := range audioclosure.DimensionPrimaryViews(dim) {
 				if views[candidate] {
 					primary = dim
+					kept = dimViews
 				}
 			}
 		}
 	}
-	if primary == "" {
+	if primary == "" || len(kept) == 0 {
 		// Cross-dimension supporting views (project.change_delta,
 		// comparison.before_after, ...) support no primary dimension alone.
 		return audioclosure.DiagnosticRoundRecord{}, false
 	}
 	digest := sha256.Sum256([]byte(fmt.Sprintf("%s|%d|%s", state.ClosureID, state.RoundsStarted, state.ProjectRevision)))
-	status := audioclosure.RoundEvidenceOpen
-	if usable {
-		status = audioclosure.RoundEvidenceReady
-	}
 	return audioclosure.DiagnosticRoundRecord{
 		SchemaVersion: audioclosure.DiagnosticRoundSchema,
 		RoundID:       "r_" + hex.EncodeToString(digest[:6]),
 		GoalID:        state.GoalID, RunID: state.RunID, ConversationID: state.ConversationID,
 		PrimaryDimension: primary,
 		PriorityReason:   audioclosure.PriorityDefaultOrder,
-		ViewsRequested:   sortedMapKeys(views),
-		EvidenceStatus:   status,
+		ViewsRequested:   sortedMapKeys(kept),
+		EvidenceStatus:   audioclosure.RoundEvidenceReady,
 		ProjectRevision:  state.ProjectRevision,
 	}, true
 }

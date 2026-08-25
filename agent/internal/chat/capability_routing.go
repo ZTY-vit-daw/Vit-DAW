@@ -516,7 +516,13 @@ func (s *Server) storeCapabilityRoute(record CapabilityRouteRecord) {
 	}
 	s.capabilityRoutes[record.TaskID] = record
 	s.mu.Unlock()
-	s.persistCurrentProjectWorkspace()
+	// The route stays authoritative in memory when the save is contended; the
+	// request's exit sync persists it. A persistent failure must be visible:
+	// a route that only ever lived in memory is wiped by the next disk reload
+	// and the task's continuation then fails closed as unrecoverable.
+	if err := s.persistCurrentProjectWorkspaceChecked(); err != nil && s.logger != nil {
+		s.logger.Warn("[capability.route] runtime state save deferred task=%s error=%v", record.TaskID, err)
+	}
 }
 
 func (s *Server) previousCapabilityRoute(taskID, conversationID string) CapabilityRouteRecord {

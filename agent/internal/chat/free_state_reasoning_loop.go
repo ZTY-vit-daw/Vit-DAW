@@ -672,7 +672,26 @@ func (s *Server) recordFreeStateDecision(conversationID string, res agentloop.Re
 	s.recordFreeStateAdmissionReceipt(&loop, &decision, auditContext)
 	experimentWasActive := loop.Experiment != nil
 	loop.LatestDecision = &decision
-	if experimentWasActive {
+	// The durable human-judgment boundary (round decision user_judgment_pending,
+	// judgment requested, or judgment evidence recorded) is terminal for model
+	// turns: the loop may only settle through the audition judgment path, and a
+	// needs_observation/needs_action/new-admission decision must not revive it
+	// into repeated post-action observation cycles (2026-08-25 21:09 D1 smoke:
+	// the revived loop recorded a second post_action=true observation and burned
+	// the remaining continuation budget).
+	judgmentBoundary := freeStateJudgmentBoundary(loop)
+	if judgmentBoundary && !freeStateJudgmentSettleDecision(decision) {
+		loop.Status = "blocked"
+		loop.DecisionPhase = freeStatePhasePostActionEvaluation
+		loop.LastError = "experiment round is waiting for the human judgment boundary; only settle decisions are admitted"
+		loop.UpdatedAt = time.Now().UTC()
+		s.storeFreeStateLoop(loop)
+		if s.logger != nil {
+			s.logger.Warn("[free-state-experiment] decision status %s ignored at the human judgment boundary for %s", decision.Status, conversationID)
+		}
+		return loop, true
+	}
+	if experimentWasActive && !judgmentBoundary {
 		for _, current := range observations {
 			if loop.RequiresPostActionObservation && !freeStatePostActionObservationEligible(loop, current) {
 				// A continuation may replay the pre-action CCB bundle after the
@@ -752,8 +771,22 @@ func (s *Server) recordFreeStateDecision(conversationID string, res agentloop.Re
 		// doing so would fabricate the target/evidence handoff and could make the
 		// FS6 -> FS7 transition appear authorized without G1-G7 evidence.
 		proposalInvalid := decision.ImprovementProposal != nil && decision.ImprovementProposal.Validate() != nil
-		gateAudit := agentloop.AuditFreeStateNeedsExperimentGate(auditContext, &decision)
-		gateRejected := len(auditContext) > 0 && !gateAudit.Passed
+		// A decision carrying experiment report fields evaluates an already
+		// admitted experiment; it is not a new admission. The G1-G7 audit
+		// re-checks pre-apply state (frontier, target evidence, revision
+		// binding) that legitimately changed after Apply, so auditing the
+		// report here rejected every FS8 evaluation and the judgment
+		// boundary never became durable (2026-08-25 21:09 D1 smoke: round
+		// decision lost, loop revived and recorded a second post-action
+		// observation). Mirrors the agentloop output-gate skip.
+		carriesExperimentReport := decision.ExperimentMateriality != nil || decision.ExperimentTargetResponse != nil ||
+			strings.TrimSpace(decision.ExperimentRoundDecision) != ""
+		var gateAudit agentloop.FreeStateGateAudit
+		gateRejected := false
+		if !carriesExperimentReport {
+			gateAudit = agentloop.AuditFreeStateNeedsExperimentGate(auditContext, &decision)
+			gateRejected = len(auditContext) > 0 && !gateAudit.Passed
+		}
 		if decision.ImprovementProposal == nil || proposalInvalid || gateRejected {
 			blocked := decision
 			blocked.Status = agentloop.FreeStateCapabilityBlocked
@@ -842,11 +875,45 @@ func (s *Server) recordFreeStateDecision(conversationID string, res agentloop.Re
 				blocked.Limitations = append(blocked.Limitations, loop.LastError)
 				loop.LatestDecision = &blocked
 			} else {
+				// A validated admission is the auditable FS7 -> FS8 boundary.
+				// Keep the proposal boundary visible until the experiment runtime
+				// exists, then advance the closure host before scheduling any
+				// post-action verification continuation.
+				if s != nil && s.audioClosures != nil {
+					if closure, tracked := s.audioClosures.ActiveForConversation(conversationID); tracked && !closure.Terminal() {
+						advanced := s.advanceAudioClosurePhase(closure, audioclosure.PhaseGuardEvidence{
+							CapacityAssessed: s.audioClosureCapacityAssessedForConversation(nil, conversationID),
+							AdmissionValid:   true,
+						})
+						if phase, valid := audioclosure.ParsePhase(string(advanced.Phase)); valid {
+							loop.CurrentPhase = string(phase)
+						}
+					}
+				}
 				s.recordFreeStateExperimentDecision(context.Background(), &loop, decision)
 			}
 		} else {
 			s.recordFreeStateExperimentDecision(context.Background(), &loop, decision)
 		}
+	} else if (decision.ExperimentMateriality != nil || decision.ExperimentTargetResponse != nil ||
+		strings.TrimSpace(decision.ExperimentRoundDecision) != "") && loop.Experiment != nil {
+		// Experiment report fields ride on any decision shape, terminal
+		// statuses included: a capability_blocked decision carrying
+		// experiment_materiality + experiment_round_decision=user_judgment_pending
+		// is the documented ambiguous human-judgment settlement. Ingesting
+		// reports only under needs_experiment lost exactly that record
+		// (2026-08-25 D1 smoke: materiality existed on the decision, the
+		// experiment runtime never recorded it).
+		s.recordFreeStateExperimentDecision(context.Background(), &loop, decision)
+	}
+	// Recording user_judgment_pending parks the round at the durable human
+	// judgment boundary. The loop must not present as awaiting_experiment or
+	// observing afterwards; it waits for the audition judgment path, so any
+	// further model turn is refused by the boundary guard above.
+	if freeStateJudgmentBoundary(loop) && !freeStateJudgmentSettleDecision(decision) {
+		loop.Status = "blocked"
+		loop.DecisionPhase = freeStatePhasePostActionEvaluation
+		loop.LastError = firstNonEmpty(loop.LastError, "experiment round is waiting for the human judgment boundary")
 	}
 	if loop.Experiment != nil {
 		switch strings.ToLower(strings.TrimSpace(decision.Status)) {
@@ -857,6 +924,13 @@ func (s *Server) recordFreeStateDecision(conversationID string, res agentloop.Re
 			}
 			s.settleFreeStateExperiment(&loop, outcome, decision.Summary)
 		case agentloop.FreeStateBlocked:
+			if strings.TrimSpace(decision.ExperimentRoundDecision) != "" {
+				// The round decision (e.g. user_judgment_pending) already
+				// settled the round through the report ingestion above; a
+				// blocked-observation settlement here would overwrite the
+				// human-judgment boundary.
+				break
+			}
 			outcome := experiment.OutcomeBlockedObservation
 			if strings.Contains(strings.ToLower(firstNonEmpty(decision.StopReason, decision.Summary)), "capability") {
 				outcome = experiment.OutcomeBlockedCapability
@@ -889,6 +963,39 @@ func freeStatePostActionObservationEligible(loop freeStateReasoningLoop, observa
 		changeRevision = firstNonEmpty(firstStringFromMap(to, "project_revision"), changeRevision)
 	}
 	return changeRevision == "" || strings.EqualFold(row.ProjectRevision, changeRevision)
+}
+
+// freeStateJudgmentBoundary reports whether the experiment is durably parked
+// at the human-judgment boundary: the round decision is user_judgment_pending
+// (or a judgment was requested / recorded) and the experiment has not yet
+// settled. From this point model turns may only carry settle-family round
+// decisions; observation/action/admission decisions must not revive the loop.
+func freeStateJudgmentBoundary(loop freeStateReasoningLoop) bool {
+	if loop.Experiment == nil {
+		return false
+	}
+	switch loop.Experiment.Status {
+	case experiment.StatusSettled, experiment.StatusStopped:
+		return false
+	}
+	round, err := loop.Experiment.CurrentRound()
+	if err != nil {
+		return false
+	}
+	return round.UserJudgmentRequested || len(round.UserJudgmentEvidence) > 0 ||
+		round.Decision == experiment.DecisionUserJudgment
+}
+
+// freeStateJudgmentSettleDecision reports whether a decision carries the
+// settle-family round decision that the human-judgment boundary admits
+// (retained / rolled_back / stopped-ambiguous). Every other decision shape
+// would revive the loop and is refused at the boundary.
+func freeStateJudgmentSettleDecision(decision agentloop.FreeStateDecision) bool {
+	switch experiment.RoundDecision(strings.TrimSpace(decision.ExperimentRoundDecision)) {
+	case experiment.DecisionRetain, experiment.DecisionRollback, experiment.DecisionStopped:
+		return true
+	}
+	return false
 }
 
 func (s *Server) authoritativeFreeStateAdmissionContext(conversationID string, fallback map[string]any, loop freeStateReasoningLoop) map[string]any {
@@ -1845,6 +1952,18 @@ func (s *Server) maybeContinueFreeStateAfterInteraction(ctx context.Context, int
 		}
 	}
 	if !ok || !freeStateLoopActive(loop) {
+		return resp
+	}
+	if freeStateJudgmentBoundary(loop) {
+		// The experiment round is durably parked at the human-judgment boundary.
+		// Answering a stale interaction (for example re-answering the already
+		// executed mix-tick confirmation) must not revive the loop into another
+		// observation/action cycle; only the audition judgment path settles the
+		// round (2026-08-25 21:09 D1 smoke: re-answered mix tick revived the
+		// loop, which recorded a second post-action observation).
+		if s.logger != nil {
+			s.logger.Warn("[free-state-experiment] interaction %s answer does not resume the loop at the human judgment boundary for %s", interaction.ID, interaction.ConversationID)
+		}
 		return resp
 	}
 	if isFreeStateCancellation(decision, resp) {

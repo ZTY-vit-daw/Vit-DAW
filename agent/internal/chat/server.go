@@ -6727,7 +6727,12 @@ func (s *Server) persistCurrentProjectWorkspaceChecked() error {
 				}
 			}
 			if err != nil {
-				return nil
+				// Pretending this persist succeeded would silently drop the
+				// caller's authoritative in-memory state (e.g. a capability
+				// route): the scheduler's next disk reload would then wipe it
+				// and fail the continuation closed as unrecoverable. Surface
+				// the contention so callers can retry or fail loudly.
+				return fmt.Errorf("agent runtime state lock still held after retry: %w", err)
 			}
 		}
 		if err != nil {

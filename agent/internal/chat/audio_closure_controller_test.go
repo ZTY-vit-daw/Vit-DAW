@@ -762,3 +762,209 @@ func TestAdvanceAudioClosurePhaseDerivesGuardsFromStateOnly(t *testing.T) {
 		t.Fatalf("self-asserted scan evidence advanced past the derived guard: %s", advanced.Phase)
 	}
 }
+// TestAudioClosureRoundRecordRestrictsViewsToPrimaryDimension mirrors the
+// 19:47 D1 smoke closure: the project-level bundle spans several dimensions
+// (masking + multitrack + structure) and the bass bundle mixes a level view
+// with a frequency view. The round record contract requires views_requested
+// to be a subset of the primary dimension's allowed views; a verbatim copy
+// made RecordDiagnosticRound reject both rounds, so the G4 round data source
+// never persisted and DimensionClosed stayed false.
+func TestAudioClosureRoundRecordRestrictsViewsToPrimaryDimension(t *testing.T) {
+	now := time.Now().UTC()
+	state, err := audioclosure.Start(audioclosure.StartRequest{
+		ClosureID: "closure-round-record", ConversationID: "conversation-round-record",
+		ProjectUUID: "project-1", ProjectRevision: "16", OriginalIntent: "inspect the project",
+		Mode: audioclosure.ModeTreatment, Scope: audioclosure.Scope{Kind: "project", ID: "project-1"}, Now: now,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	driver := audioclosure.Driver{}
+	state, _, err = driver.AdmitRound(state, state.Revision, now)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var outcome audioclosure.ObservationOutcome
+	outcome, err = driver.RecordObservation(state, state.Revision, audioclosure.ObservationKey{
+		ProjectUUID: "project-1", ProjectRevision: "16",
+		Scope: audioclosure.Scope{Kind: "project", ID: "project-1"}, TargetRef: "project-1",
+		ViewIDs: []string{"mix.masking_relationship", "mix.multitrack_relationship", "project.structure"},
+	}, "obs-project", now)
+	state = outcome.State
+	if err != nil {
+		t.Fatal(err)
+	}
+	round2, ok := audioClosureRoundRecord(state)
+	if !ok {
+		t.Fatal("round 2 produced no diagnostic round record")
+	}
+	if err := round2.Validate(); err != nil {
+		t.Fatalf("round 2 record failed the contract machine check: %v (record=%+v)", err, round2)
+	}
+	if round2.PrimaryDimension != audioclosure.DimensionLevelHeadroom {
+		t.Fatalf("round 2 primary dimension = %s, want level_headroom", round2.PrimaryDimension)
+	}
+	if got := strings.Join(round2.ViewsRequested, ","); got != "mix.multitrack_relationship,project.structure" {
+		t.Fatalf("round 2 views_requested = %q, want the primary-dimension subset", got)
+	}
+	state, err = driver.RecordDiagnosticRound(state, state.Revision, round2, now)
+	if err != nil {
+		t.Fatalf("round 2 record did not persist: %v", err)
+	}
+
+	state, err = driver.CompleteRound(state, state.Revision, now)
+	if err != nil {
+		t.Fatal(err)
+	}
+	state, _, err = driver.AdmitRound(state, state.Revision, now)
+	if err != nil {
+		t.Fatal(err)
+	}
+	outcome, err = driver.RecordObservation(state, state.Revision, audioclosure.ObservationKey{
+		ProjectUUID: "project-1", ProjectRevision: "16",
+		Scope: audioclosure.Scope{Kind: "track", ID: "1007"}, TargetRef: "1007",
+		ViewIDs: []string{"track.basic_energy", "track.timbre_frequency"},
+	}, "obs-bass", now)
+	state = outcome.State
+	if err != nil {
+		t.Fatal(err)
+	}
+	round3, ok := audioClosureRoundRecord(state)
+	if !ok {
+		t.Fatal("round 3 produced no diagnostic round record")
+	}
+	if err := round3.Validate(); err != nil {
+		t.Fatalf("round 3 record failed the contract machine check: %v (record=%+v)", err, round3)
+	}
+	if round3.PrimaryDimension != audioclosure.DimensionLevelHeadroom || strings.Join(round3.ViewsRequested, ",") != "track.basic_energy" {
+		t.Fatalf("round 3 record = %s %v, want level_headroom [track.basic_energy]", round3.PrimaryDimension, round3.ViewsRequested)
+	}
+	state, err = driver.RecordDiagnosticRound(state, state.Revision, round3, now)
+	if err != nil {
+		t.Fatalf("round 3 record did not persist: %v", err)
+	}
+	if len(state.DiagnosticRounds) != 2 {
+		t.Fatalf("diagnostic rounds persisted = %d, want 2", len(state.DiagnosticRounds))
+	}
+	guard := audioclosure.DerivePhaseGuardInput(state, audioclosure.PhaseGuardEvidence{})
+	if !guard.DimensionClosed {
+		t.Fatalf("G4 dimension_closed must be true after persisted ready rounds: %+v", guard)
+	}
+}
+
+// TestAudioClosureRoundClosePersistsRoundsAndAdvancesToFS6 drives the full
+// server round-close path with the 19:47 smoke shape: project-level bundle in
+// round 2, target-level bass evidence in round 3. Each completed round must
+// persist its diagnostic round record so QueueFromRounds/DimensionClosed can
+// close the dimension and the phase machine advances to FS6 where
+// needs_experiment is legal.
+func TestAudioClosureRoundClosePersistsRoundsAndAdvancesToFS6(t *testing.T) {
+	server := &Server{harness: harness.NewWithSender(nil, nil, nil), audioClosures: audioclosure.NewMemoryStore(),
+		controllerOwners: orchestrationcontroller.NewRegistry(), freeStateLoops: map[string]freeStateReasoningLoop{},
+		capabilityRoutes: map[string]CapabilityRouteRecord{}}
+	goal := server.harness.EnsureGoal("goal-round-close-fs6", "run-round-close-fs6", "inspect the project")
+	if _, err := server.ensureAudioTaskContract("conversation-round-close-fs6", audioclosure.ModeTreatment,
+		audioclosure.Scope{Kind: "project", ID: "project-round-close-fs6"}, "project-round-close-fs6", "rev-1", map[string]any{"goal_id": goal.GoalID}); err != nil {
+		t.Fatal(err)
+	}
+	server.capabilityRoutes["route-round-close-fs6"] = CapabilityRouteRecord{SchemaVersion: "capability_route.v1", ConversationID: "conversation-round-close-fs6",
+		Assessment: &FreeStateCapacityAssessment{CapacityLevel: "within_free_state", SelectedCapability: "free_state"}, UpdatedAt: time.Now().UTC()}
+	current := server.harness.RuntimeStatus(goal.GoalID)
+	state, err := audioclosure.Start(audioclosure.StartRequest{ClosureID: "closure-round-close-fs6", ConversationID: "conversation-round-close-fs6",
+		TaskID: current.Task.TaskID, GoalID: goal.GoalID, RunID: current.RunID, ContractID: current.Task.Contract.ContractID,
+		TaskState: current.Task.SemanticState.State, TaskStateRevision: current.Task.SemanticState.Revision,
+		ProjectUUID: "project-round-close-fs6", ProjectRevision: "rev-1", OriginalIntent: "inspect the project",
+		Mode: audioclosure.ModeTreatment, Scope: audioclosure.Scope{Kind: "project", ID: "project-round-close-fs6"}, Now: time.Now().UTC()})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := server.audioClosures.Create(state); err != nil {
+		t.Fatal(err)
+	}
+	ctx := map[string]any{"project_uuid": "project-round-close-fs6", "project_revision": "rev-1"}
+
+	// Round 1: no observation; closes without a round record.
+	state, admitted, err := server.admitAudioClosureRound(state)
+	if err != nil || !admitted {
+		t.Fatalf("round 1 admission: admitted=%v err=%v", admitted, err)
+	}
+	state, err = server.recordAudioClosureRound(state, agentloop.Result{}, ctx)
+	if err != nil || len(state.DiagnosticRounds) != 0 {
+		t.Fatalf("round 1 close: rounds=%d err=%v", len(state.DiagnosticRounds), err)
+	}
+
+	// Round 2: project-level bundle spanning several dimensions.
+	state, admitted, err = server.admitAudioClosureRound(state)
+	if err != nil || !admitted {
+		t.Fatalf("round 2 admission: admitted=%v err=%v", admitted, err)
+	}
+	project := &agentloop.RecentObservation{Tool: "ccb.observation_request", Status: "ready", Summary: map[string]any{
+		"schema_version": "ccb_observation_bundle.v1", "status": "ready", "observation_id": "obs-project",
+		"requested_views": []any{"mix.masking_relationship", "mix.multitrack_relationship", "project.structure"},
+		"views": map[string]any{
+			"mix.masking_relationship": map[string]any{"status": "ready"},
+			"mix.multitrack_relationship": map[string]any{"status": "ready", "facts": map[string]any{"band_conflict_candidates": []any{
+				map[string]any{"type": "low_end_overlap", "band": "bass", "tracks": []any{
+					map[string]any{"track_id": "1007"}, map[string]any{"track_id": "1012"}, map[string]any{"track_id": "1017"}}},
+			}}},
+			"project.structure": map[string]any{"status": "ready"},
+		},
+	}}
+	state, err = server.recordAudioClosureRound(state, agentloop.Result{
+		RecentObservation: project,
+		FreeStateDecision: &agentloop.FreeStateDecision{SchemaVersion: agentloop.FreeStateDecisionSchema,
+			Status: agentloop.FreeStateNeedsObservation, EvidenceStatus: "insufficient", Summary: "project scan evidence"},
+	}, ctx)
+	if err != nil || len(state.DiagnosticRounds) != 1 || len(state.Frontier.Candidates) == 0 {
+		t.Fatalf("round 2 close: rounds=%d candidates=%d err=%v", len(state.DiagnosticRounds), len(state.Frontier.Candidates), err)
+	}
+	if err := state.DiagnosticRounds[0].Validate(); err != nil {
+		t.Fatalf("round 2 persisted record is invalid: %v (%+v)", err, state.DiagnosticRounds[0])
+	}
+
+	// Round 3: target-level bass evidence selects the frontier candidate.
+	state, admitted, err = server.admitAudioClosureRound(state)
+	if err != nil || !admitted {
+		t.Fatalf("round 3 admission: admitted=%v err=%v", admitted, err)
+	}
+	bass := &agentloop.RecentObservation{Tool: "ccb.observation_request", Status: "ready", Summary: map[string]any{
+		"schema_version": "ccb_observation_bundle.v1", "status": "ready", "observation_id": "obs-bass",
+		"requested_views": []any{"track.basic_energy", "track.timbre_frequency"},
+		"target_ref":      map[string]any{"kind": "track", "id": "1007", "label": "bass"},
+		"views": map[string]any{
+			"track.basic_energy":    map[string]any{"status": "ready"},
+			"track.timbre_frequency": map[string]any{"status": "ready"},
+		},
+	}}
+	state, err = server.recordAudioClosureRound(state, agentloop.Result{
+		RecentObservation: bass,
+		FreeStateDecision: &agentloop.FreeStateDecision{SchemaVersion: agentloop.FreeStateDecisionSchema,
+			Status: agentloop.FreeStateNeedsObservation, EvidenceStatus: "insufficient", Summary: "target evidence"},
+	}, ctx)
+	if err != nil {
+		t.Fatalf("round 3 close: %v", err)
+	}
+	if len(state.DiagnosticRounds) != 2 {
+		t.Fatalf("round 3 did not persist its diagnostic round: %d records", len(state.DiagnosticRounds))
+	}
+	for _, record := range state.DiagnosticRounds {
+		if err := record.Validate(); err != nil {
+			t.Fatalf("persisted round record is invalid: %v (%+v)", err, record)
+		}
+	}
+	guard := audioclosure.DerivePhaseGuardInput(state, audioclosure.PhaseGuardEvidence{})
+	if !guard.DimensionClosed || !guard.FrontierEstablished || !guard.TargetEvidence {
+		t.Fatalf("FS guards not satisfied after round 3: %+v", guard)
+	}
+	if state.Phase != audioclosure.PhaseFS6TargetConfirmed {
+		t.Fatalf("round-close advance must reach FS6, got %s", state.Phase)
+	}
+	if !audioclosure.AllowsDecisionStatus(state.Phase, agentloop.FreeStateNeedsExperiment) {
+		t.Fatalf("needs_experiment must be legal at %s", state.Phase)
+	}
+	if state.Terminal() || len(state.Observations) != 2 {
+		t.Fatalf("closure state diverged: terminal=%v observations=%d", state.Terminal(), len(state.Observations))
+	}
+}
+
+

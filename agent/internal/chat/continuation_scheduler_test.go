@@ -1239,3 +1239,171 @@ func TestRestoreNeverReopensContinuationForTerminalGoal(t *testing.T) {
 		t.Fatalf("terminal goal authority was reopened by its stale continuation: %+v", item)
 	}
 }
+
+// A request in flight owns the authoritative in-memory runtime state. The
+// scheduler's durable-snapshot reload must wait for it: reload replaces the
+// in-memory maps wholesale, so a capability route or checkpoint whose persist
+// has not landed yet would be wiped and later fail closed as unrecoverable
+// (17:20 D1 smoke: "durable capacity state has no validated task route").
+func TestSchedulerWaitsForActiveInvocationBeforeReloadingRuntimeState(t *testing.T) {
+	s := testContinuationServer()
+	defer s.Close()
+	dir := t.TempDir()
+	const projectUUID = "vitproj_test_reload_guard"
+	s.mu.Lock()
+	s.activeWorkspacePath = dir
+	s.activeWorkspaceUUID = projectUUID
+	s.mu.Unlock()
+
+	// Mirror the production sequence: the HTTP handler holds the invocation
+	// guard for the whole request, including recordGoalResult — which lazily
+	// starts the scheduler goroutine via wakeContinuationScheduler. Without
+	// the guard held first, that goroutine's first tick can reload the stale
+	// snapshot before the request finishes (the 17:20 smoke failure mode).
+	release := s.beginContinuationSensitiveInvocation()
+	res := waitingContinuationResult("slice-guard", "turn-guard", agentruntime.StatusWaitingContinue, agentloop.StopReasonLimitReached)
+	res.Continuation.Context[capacityAssessmentContextKey] = FreeStateCapacityAssessment{
+		SchemaVersion: capacityAssessmentSchema, Authority: "product_runtime",
+		ProjectRevision: "2", SelectedCapability: capabilityFreeState,
+		ObservedFacts: CapacityObservedFacts{ProjectUUID: projectUUID, ProjectRevision: "2", RequestScope: semanticEntryScopeProjectContext},
+	}
+	if err := s.recordGoalResult("conversation-guard", res); err != nil {
+		t.Fatal(err)
+	}
+	// Simulate a stale durable snapshot: the checkpoint persist was contended
+	// away, so the disk state predates the continuation and its route.
+	stale, err := json.Marshal(projectAgentRuntimeState{
+		SchemaVersion: "vit_project_agent_runtime.v2", ProjectPath: dir, ProjectUUID: projectUUID,
+		DurableContinuations: map[string]DurableContinuation{}, CapabilityRoutes: map[string]CapabilityRouteRecord{},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if writeErr := history.WriteAgentRuntimeState(dir, projectUUID, stale); writeErr != nil {
+		// Windows can transiently refuse the replace-rename on a file the
+		// server just wrote; retry briefly instead of failing the fixture.
+		deadline := time.Now().Add(2 * time.Second)
+		for writeErr != nil && time.Now().Before(deadline) {
+			time.Sleep(50 * time.Millisecond)
+			writeErr = history.WriteAgentRuntimeState(dir, projectUUID, stale)
+		}
+		if writeErr != nil {
+			t.Fatal(writeErr)
+		}
+	}
+
+	var executed int
+	s.continuationExecutor = func(_ context.Context, _ DurableContinuation) error {
+		executed++
+		return nil
+	}
+	if err := s.runContinuationSchedulerOnce(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	if executed != 0 {
+		t.Fatal("scheduler dispatched a continuation during an active invocation")
+	}
+	for _, item := range s.durableContinuations {
+		if item.Status != ContinuationPending {
+			t.Fatalf("in-memory checkpoint was reloaded away during an active invocation: %+v", item)
+		}
+	}
+	// Control: once the request finishes, the next drive does reload the
+	// durable snapshot. The stale-disk fixture therefore wipes the
+	// continuation, proving the guard above was what protected it.
+	release()
+	if err := s.runContinuationSchedulerOnce(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	if executed != 0 {
+		t.Fatal("stale durable snapshot unexpectedly claimed the continuation")
+	}
+	if len(s.durableContinuations) != 0 {
+		t.Fatalf("expected the stale snapshot reload to replace in-memory continuations: %+v", s.durableContinuations)
+	}
+}
+
+// Lock contention must surface as an error: pretending the persist succeeded
+// silently drops authoritative routing state from the durable snapshot.
+func TestPersistCheckedReportsLockContention(t *testing.T) {
+	s := testContinuationServer()
+	dir := t.TempDir()
+	const projectUUID = "vitproj_test_persist_contention"
+	s.mu.Lock()
+	s.activeWorkspacePath = dir
+	s.activeWorkspaceUUID = projectUUID
+	s.mu.Unlock()
+	lease, err := history.AcquireAgentRuntimeStateLock(dir, projectUUID, "external-holder", time.Minute)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() { _ = lease.Release() }()
+	if err := s.persistCurrentProjectWorkspaceChecked(); err == nil {
+		t.Fatal("persist reported success while the runtime state lock was held by another owner")
+	} else if !errors.Is(err, history.ErrAgentRuntimeStateLocked) {
+		t.Fatalf("expected lock contention error, got %v", err)
+	}
+}
+
+// A scheduler-driven slice that stops at an interaction boundary must park
+// its checkpoint as waiting_interaction with the pending requests, and the
+// parked checkpoint must retire when the interaction completes (2026-08-25
+// D1 smoke: the confirmation completed invisibly).
+func TestParkClaimedContinuationAtInteractionRetiresOnAnswer(t *testing.T) {
+	s := testContinuationServer()
+	item := DurableContinuation{
+		SchemaVersion: continuationRuntimeSchema, ContinuationID: "cont_park_1",
+		TaskID: "task-park", GoalID: "goal-park", RunID: "run-park", ConversationID: "conversation-park",
+		CurrentSliceID: "slice-park", OriginalIntent: "inspect the project", Status: ContinuationClaimed,
+	}
+	s.durableContinuations[item.ContinuationID] = item
+	pending := map[string]any{
+		"status": "waiting_confirmation", "stop_reason": "improvement_proposal_confirmation_required",
+		"interaction_id": "interaction-park-1",
+		"requests": []any{map[string]any{
+			"id": "interaction-park-1", "kind": "improvement_proposal_confirmation", "status": "waiting_for_user",
+			"actions": []any{map[string]any{"id": "approve", "style": "primary", "recommended": true}},
+		}},
+	}
+	s.parkClaimedContinuationAtInteraction(item, pending)
+	parked, ok := s.durableContinuations[item.ContinuationID]
+	if !ok || parked.Status != ContinuationWaitingInteraction || parked.LeaseOwner != "" || !parked.LeaseExpiresAt.IsZero() {
+		t.Fatalf("claimed checkpoint was not parked at the interaction boundary: %+v", parked)
+	}
+	if firstStringFromMap(parked.PendingInteraction, "interaction_id") != "interaction-park-1" {
+		t.Fatalf("parked pending lost the interaction id: %+v", parked.PendingInteraction)
+	}
+	s.completePendingInteractionContinuation(PendingInteraction{ID: "interaction-park-1", ConversationID: "conversation-park", GoalID: "goal-park", RunID: "run-park"})
+	if retired, ok := s.durableContinuations[item.ContinuationID]; !ok || retired.Status != ContinuationCompleted || retired.PendingInteraction != nil {
+		t.Fatalf("answered interaction did not retire the parked checkpoint: %+v", retired)
+	}
+}
+
+func TestPendingInteractionFromResultCarriesInteractionID(t *testing.T) {
+	res := agentloop.Result{
+		GoalID: "goal-c", RunID: "run-c", TaskID: "task-c", SliceID: "slice-park", TurnID: "turn-park",
+		Status: agentruntime.StatusWaitingConfirmation, StopReason: "improvement_proposal_confirmation_required",
+		Executed: []map[string]any{{
+			"result": map[string]any{
+				"interaction_requests": []any{map[string]any{
+					"id": "interaction-res-1", "kind": "improvement_proposal_confirmation", "status": "waiting_for_user",
+				}},
+			},
+		}},
+	}
+	pending := pendingInteractionFromResult(res)
+	if pending == nil || firstStringFromMap(pending, "interaction_id") != "interaction-res-1" {
+		t.Fatalf("pending interaction lost the id completePendingInteractionContinuation matches on: %+v", pending)
+	}
+}
+
+func TestInteractionBoundaryChatResponse(t *testing.T) {
+	if !interactionBoundaryChatResponse(ChatResponse{NeedsConfirmation: true}) ||
+		!interactionBoundaryChatResponse(ChatResponse{GoalStatus: string(agentruntime.StatusWaitingConfirmation)}) ||
+		!interactionBoundaryChatResponse(ChatResponse{GoalStatus: string(agentruntime.StatusWaitingClarification)}) {
+		t.Fatal("an interaction boundary response was not recognized")
+	}
+	if interactionBoundaryChatResponse(ChatResponse{GoalStatus: string(agentruntime.StatusWaitingContinue)}) {
+		t.Fatal("waiting_continue was misclassified as an interaction boundary")
+	}
+}

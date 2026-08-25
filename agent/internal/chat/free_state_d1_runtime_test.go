@@ -221,7 +221,7 @@ func TestD1S1NeedsExperimentWithoutProposalDoesNotSynthesizeOrEnterFS7(t *testin
 // A proposal that cites the selected target observation must cross the FS6
 // admission boundary into the proposal phase. This test deliberately stops
 // before any action executor is wired: admission is not mutation.
-func TestD1S1FS6LegalProposalEntersFS7WithoutMutation(t *testing.T) {
+func TestD1S1FS6LegalProposalEntersFS8WithoutMutation(t *testing.T) {
 	s := New(nil, nil, nil)
 	now := time.Now().UTC()
 	conversationID := "d1-s1-fs6-legal-proposal"
@@ -318,9 +318,9 @@ func TestD1S1FS6LegalProposalEntersFS7WithoutMutation(t *testing.T) {
 	if loop.Status != "awaiting_experiment" || loop.Experiment == nil {
 		t.Fatalf("proposal was not admitted: %+v", loop)
 	}
-	if loop.CurrentPhase != string(audioclosure.PhaseFS7ImprovementProposal) {
+	if loop.CurrentPhase != string(audioclosure.PhaseFS8ExperimentVerification) {
 		closure, _ := s.audioClosures.ActiveForConversation(conversationID)
-		t.Fatalf("expected FS7 proposal boundary, got %q closure=%s receipt=%+v decision=%+v", loop.CurrentPhase, closure.Phase, loop.AdmissionReceipt, loop.LatestDecision)
+		t.Fatalf("expected FS8 verification boundary after validated admission, got %q closure=%s receipt=%+v decision=%+v", loop.CurrentPhase, closure.Phase, loop.AdmissionReceipt, loop.LatestDecision)
 	}
 	if firstStringFromMap(loop.AdmissionReceipt, "candidate_id") != candidateID || firstStringFromMap(loop.AdmissionReceipt, "target_evidence_ref") != observationID || firstStringFromMap(loop.AdmissionReceipt, "boundary") != "admitted" {
 		t.Fatalf("receipt=%+v", loop.AdmissionReceipt)
