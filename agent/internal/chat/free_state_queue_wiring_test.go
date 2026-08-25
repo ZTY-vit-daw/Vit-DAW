@@ -89,6 +89,9 @@ func TestCapabilityBlockedSettlementRecordsBoundaryDetail(t *testing.T) {
 	if !ok || settled.Status != "capability_blocked" {
 		t.Fatalf("loop did not settle capability_blocked: %s", settled.Status)
 	}
+	if len(settled.AdmissionReceipt) == 0 || firstStringFromMap(settled.AdmissionReceipt, "boundary") != "proposal_missing" {
+		t.Fatalf("capability boundary admission receipt missing: %+v", settled.AdmissionReceipt)
+	}
 	if settled.LatestDecision == nil {
 		t.Fatal("settled loop has no latest decision")
 	}

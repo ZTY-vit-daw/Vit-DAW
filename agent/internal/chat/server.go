@@ -3696,6 +3696,32 @@ func (s *Server) recoverMixBoardInteractionFromPayload(interactionID string, pay
 	}, true
 }
 
+// recoverPendingMixTickInteractionFromPayload restores the durable native
+// mix-tick confirmation after a scheduler/request boundary. Native mix-tick
+// interactions are intentionally not backed by a mixboard session, so they
+// need their own narrow payload recovery path when the in-memory interaction
+// registry has been reloaded.
+func recoverPendingMixTickInteractionFromPayload(interactionID string, payload map[string]any) (PendingInteraction, bool) {
+	if len(payload) == 0 || (!strings.EqualFold(cleanContextText(payload["workflow"]), "mix_tick") &&
+		!strings.EqualFold(cleanContextText(payload["kind"]), "mix_tick_confirmation") &&
+		!strings.EqualFold(cleanContextText(payload["type"]), "mix_tick_confirmation")) {
+		return PendingInteraction{}, false
+	}
+	if cleanContextText(payload["operation"]) == "" ||
+		cleanContextText(payload["track_id"]) == "" ||
+		cleanContextText(payload["observation_id"]) == "" {
+		return PendingInteraction{}, false
+	}
+	requestContext := mapValue(payload["request_context"])
+	conversationID := firstNonEmpty(cleanContextText(payload["conversation_id"]), cleanContextText(requestContext["conversation_id"]), interactionID)
+	return PendingInteraction{
+		ID: interactionID, CreatedAt: time.Now(), Kind: "mix_tick_confirmation", Type: "mix_tick_confirmation",
+		Source: "pending_mix_tick_confirmation", Workflow: "mix_tick", Stage: "pending_confirmation",
+		ConversationID: conversationID, GoalID: cleanContextText(payload["goal_id"]), RunID: cleanContextText(payload["run_id"]),
+		RequestContext: requestContext, Payload: copyStringAnyMap(payload), Data: copyStringAnyMap(payload),
+	}, true
+}
+
 func (s *Server) recoverCapabilityRuntimeInteractionFromPayload(interactionID string, payload map[string]any) (PendingInteraction, bool) {
 	if s == nil || s.orchestrationRuntime == nil || s.orchestrationRuntime.Store == nil || len(payload) == 0 {
 		return PendingInteraction{}, false
@@ -3888,6 +3914,12 @@ func (s *Server) handleInteractionRespond(w http.ResponseWriter, r *http.Request
 		}
 	}
 	if !ok {
+		interaction, ok = recoverPendingMixTickInteractionFromPayload(interactionID, req.Payload)
+		if ok && s != nil && s.logger != nil {
+			s.logger.Info("[mix.tick.interaction] recovered expired interaction=%s conversation=%s", interactionID, interaction.ConversationID)
+		}
+	}
+	if !ok {
 		interaction, ok = s.recoverCapabilityRuntimeInteractionFromPayload(interactionID, req.Payload)
 		if ok && s != nil && s.logger != nil {
 			s.logger.Info("[capability.interaction] recovered expired interaction=%s session=%s proposal=%s revision=%v", interactionID, cleanContextText(req.Payload["session_id"]), cleanContextText(req.Payload["proposal_id"]), req.Payload["proposal_revision"])
@@ -4076,7 +4108,13 @@ func (s *Server) handleInteractionRespond(w http.ResponseWriter, r *http.Request
 		chatReq := ChatRequest{
 			ConversationID: interaction.ConversationID,
 			Message:        approvalText,
-			Context:        contextWithGoal(mergeContext(interaction.RequestContext, map[string]any{"conversation_id": interaction.ConversationID}), interaction.GoalID, interaction.RunID),
+			Context: contextWithGoal(mergeContext(interaction.RequestContext, map[string]any{
+				"conversation_id": interaction.ConversationID,
+				// The durable pending candidate is the authoritative action
+				// identity after an interaction restore; rehydrate it before the
+				// native mix-tick router validates/execut​​es the confirmation.
+				"pending_mix_tick_candidate": interaction.Payload,
+			}), interaction.GoalID, interaction.RunID),
 		}
 		resp, handled := s.handlePendingMixTickChat(r.Context(), interaction.ConversationID, chatReq, agentModeDefault)
 		if !handled {

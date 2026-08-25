@@ -8,11 +8,13 @@ param(
     [switch]$SkipBuild,
     [switch]$RestartAgent,
     [switch]$StartKernel,
+    [string]$KernelExe = "",
     [switch]$StartUI,
     [string]$GodotProjectRoot = "D:\Godot\project\vit-daw-frontend",
     [string]$GodotExe = "",
     [switch]$UseExportedUI,
     [switch]$NoChatSmoke,
+    [switch]$NoStripSilenceSmoke,
     [switch]$MixSmoke,
     [switch]$Strict,
     [int]$WaitSeconds = 20
@@ -330,11 +332,24 @@ function Resolve-GodotProjectRoot {
 }
 
 function Stop-AgentForPaths {
-    param([string[]]$AgentPaths)
+    param(
+        [string[]]$AgentPaths,
+        [int]$TimeoutSeconds = 20
+    )
     $procs = Get-AgentProcessesForPaths -AgentPaths $AgentPaths
     foreach ($proc in $procs) {
         Write-WarnLine ("stopping existing agent pid=" + $proc.Id)
         Stop-Process -Id $proc.Id -Force
+    }
+    foreach ($proc in $procs) {
+        try {
+            Wait-Process -Id $proc.Id -Timeout ([Math]::Max(5, $TimeoutSeconds)) -ErrorAction Stop
+        }
+        catch {
+            if ($null -ne (Get-Process -Id $proc.Id -ErrorAction SilentlyContinue)) {
+                throw ("agent process did not exit within timeout; pid=" + $proc.Id)
+            }
+        }
     }
 }
 
@@ -361,7 +376,12 @@ $LogsDir = Join-Path $WorkspaceDir "Logs"
 $AgentExe = Join-Path $AgentDir "bin\VitAgent.exe"
 $RootAgentExe = Join-Path $AgentDir "vitagent.exe"
 $SmokeBuildExe = Join-Path $AgentDir "bin\VitAgent.dev-smoke.exe"
-$KernelExe = Join-Path $RepoRoot "Export\staging\runtime\VitApp.exe"
+if ([string]::IsNullOrWhiteSpace($KernelExe)) {
+    $KernelExe = Join-Path $RepoRoot "Export\staging\runtime\VitApp.exe"
+}
+else {
+    $KernelExe = (Resolve-Path -LiteralPath $KernelExe).Path
+}
 $UiExe = Join-Path $RepoRoot "Export\staging\Vit_DAW.exe"
 $ResolvedGodotProjectRoot = Resolve-GodotProjectRoot -RequestedProjectRoot $GodotProjectRoot
 $ResolvedGodotExe = Resolve-GodotExecutable -RequestedGodotExe $GodotExe
@@ -391,8 +411,7 @@ if (-not $SkipBuild) {
     }
 
     if ($RestartAgent) {
-        Stop-AgentForPaths -AgentPaths $AgentPaths
-        Start-Sleep -Milliseconds 500
+        Stop-AgentForPaths -AgentPaths $AgentPaths -TimeoutSeconds $WaitSeconds
         $listener = Get-TcpListener -Port $httpPort
         if ($null -ne $listener) {
             Fail-Or-Warn ("port " + $httpPort + " is still listening after restart request; pid=" + $listener.OwningProcess)
@@ -412,8 +431,7 @@ elseif ($null -eq $listener -and -not (Test-Path -LiteralPath $AgentExe)) {
 }
 elseif ($SkipBuild -and $RestartAgent) {
     Write-Step "Restart existing VitAgent"
-    Stop-AgentForPaths -AgentPaths $AgentPaths
-    Start-Sleep -Milliseconds 500
+    Stop-AgentForPaths -AgentPaths $AgentPaths -TimeoutSeconds $WaitSeconds
     $listener = Get-TcpListener -Port $httpPort
     if ($null -ne $listener) {
         Fail-Or-Warn ("port " + $httpPort + " is still listening after restart request; pid=" + $listener.OwningProcess)
@@ -445,7 +463,23 @@ if ($StartUI) {
         $godotLog = Join-Path $LogsDir "godot_dev_agent_smoke.log"
         New-Item -ItemType Directory -Path $LogsDir -Force | Out-Null
         $godotArgs = @("--path", $ResolvedGodotProjectRoot, "--log-file", $godotLog)
-        Start-Process -FilePath $ResolvedGodotExe -ArgumentList $godotArgs -WorkingDirectory $ResolvedGodotProjectRoot | Out-Null
+        # D1 smoke owns Kernel/agent startup.  Prevent the Godot start page from
+        # spawning a competing dev runtime (and taking ownership of its lifetime).
+        # Set this only on the Godot child; do not leak it into the agent or the
+        # caller's PowerShell environment.
+        $priorSkipDevAutostart = [Environment]::GetEnvironmentVariable("VIT_SKIP_DEV_AUTOSTART", "Process")
+        $env:VIT_SKIP_DEV_AUTOSTART = "1"
+        try {
+            Start-Process -FilePath $ResolvedGodotExe -ArgumentList $godotArgs -WorkingDirectory $ResolvedGodotProjectRoot | Out-Null
+        }
+        finally {
+            if ($null -eq $priorSkipDevAutostart) {
+                Remove-Item Env:VIT_SKIP_DEV_AUTOSTART -ErrorAction SilentlyContinue
+            }
+            else {
+                $env:VIT_SKIP_DEV_AUTOSTART = $priorSkipDevAutostart
+            }
+        }
         Write-Ok ("started Godot project UI: " + $ResolvedGodotExe + " --path " + $ResolvedGodotProjectRoot)
         Write-Host ("godot log: " + $godotLog)
     }
@@ -522,8 +556,14 @@ foreach ($wantTool in @("clip.strip_silence.analyze", "clip.strip_silence.sugges
 }
 Write-Ok "Strip Silence tools are advertised"
 
-Write-Step "Range context smoke"
-$rangeContext = @{
+$priorUIContextResp = Invoke-Json -Method GET -Uri ($AgentHttp.TrimEnd("/") + "/agent/ui/context") -TimeoutSec 10
+$priorUIContext = Get-OptionalProperty -Object $priorUIContextResp -Name "context"
+if ($null -eq $priorUIContext) {
+    $priorUIContext = @{}
+}
+try {
+    Write-Step "Range context smoke"
+    $rangeContext = @{
     selected_clip_ranges = @(
         @{
             range_id = "dev_smoke_range_1"
@@ -548,27 +588,34 @@ $rangeContext = @{
     )
     selected_clip_range_count = 2
 }
-$rangeContextResp = Invoke-Json -Method POST -Uri ($AgentHttp.TrimEnd("/") + "/agent/ui/context") -Body $rangeContext -TimeoutSec 10
-if ($null -eq $rangeContextResp -or [string]$rangeContextResp.status -ne "ok") {
-    throw "POST /agent/ui/context failed for range context smoke"
-}
-$rangeContextRows = @($rangeContextResp.context.selected_clip_ranges)
-if ($rangeContextRows.Count -ne 2) {
-    throw ("range context was not preserved by /agent/ui/context; count=" + [string]$rangeContextRows.Count)
-}
-$rangeChat = Invoke-Json -Method POST -Uri ($AgentHttp.TrimEnd("/") + "/agent/chat") -Body @{
+    $rangeContextResp = Invoke-Json -Method POST -Uri ($AgentHttp.TrimEnd("/") + "/agent/ui/context") -Body $rangeContext -TimeoutSec 10
+    if ($null -eq $rangeContextResp -or [string]$rangeContextResp.status -ne "ok") {
+        throw "POST /agent/ui/context failed for range context smoke"
+    }
+    $rangeContextRows = @($rangeContextResp.context.selected_clip_ranges)
+    if ($rangeContextRows.Count -ne 2) {
+        throw ("range context was not preserved by /agent/ui/context; count=" + [string]$rangeContextRows.Count)
+    }
+    $rangeChat = Invoke-Json -Method POST -Uri ($AgentHttp.TrimEnd("/") + "/agent/chat") -Body @{
     conversation_id = "dev_range_context_" + (Get-Date -Format "yyyyMMdd_HHmmss")
     message = "/smoke range_context"
     context = @{
         agent_mode = "chat"
     }
-} -TimeoutSec 30
-Write-Host ("range_context.stop_reason=" + [string]$rangeChat.stop_reason)
-Write-Host ("range_context.reply=" + [string]$rangeChat.reply)
-if ([string]$rangeChat.stop_reason -ne "range_context_smoke_ok") {
-    throw ("range context chat smoke failed: " + ($rangeChat | ConvertTo-Json -Depth 12 -Compress))
+    } -TimeoutSec ([Math]::Max(30, $WaitSeconds))
+    Write-Host ("range_context.stop_reason=" + [string]$rangeChat.stop_reason)
+    Write-Host ("range_context.reply=" + [string]$rangeChat.reply)
+    if ([string]$rangeChat.stop_reason -ne "range_context_smoke_ok") {
+        throw ("range context chat smoke failed: " + ($rangeChat | ConvertTo-Json -Depth 12 -Compress))
+    }
+    Write-Ok "range context survives UI context and chat current_selection merge"
 }
-Write-Ok "range context survives UI context and chat current_selection merge"
+finally {
+    $restoreUIContextResp = Invoke-Json -Method POST -Uri ($AgentHttp.TrimEnd("/") + "/agent/ui/context") -Body $priorUIContext -TimeoutSec 10
+    if ($null -eq $restoreUIContextResp -or [string]$restoreUIContextResp.status -ne "ok") {
+        throw "failed to restore UI context after range context smoke"
+    }
+}
 
 Write-Step "Kernel ports"
 $req = Get-TcpListener -Port ([int]$ZmqReqPort)
@@ -592,7 +639,7 @@ if ($null -ne $req) {
         tool = "project.state"
         args = @{}
         source = "dev_agent_smoke"
-    } -TimeoutSec 20
+    } -TimeoutSec ([Math]::Max(20, $WaitSeconds))
     $projectStateStatus = [string](Get-OptionalProperty -Object $projectState -Name "status")
     $projectStateError = [string](Get-OptionalProperty -Object $projectState -Name "error")
     Write-Host ("project.state status=" + $projectStateStatus + " error=" + $projectStateError)
@@ -600,11 +647,12 @@ if ($null -ne $req) {
         Fail-Or-Warn ("project.state failed")
     }
 
-    Write-Step "Strip Silence agent invoke smoke"
-    if ($projectStateStatus -ne "ok") {
-        Fail-Or-Warn "skipping Strip Silence invoke smoke because project.state failed"
-    }
-    else {
+    if (-not $NoStripSilenceSmoke) {
+        Write-Step "Strip Silence agent invoke smoke"
+        if ($projectStateStatus -ne "ok") {
+            Fail-Or-Warn "skipping Strip Silence invoke smoke because project.state failed"
+        }
+        else {
         $trackID = Get-FirstVisibleTrackId -ProjectState $projectState -AgentState $state
         $createdSmokeTrackID = ""
         if ([string]::IsNullOrWhiteSpace($trackID)) {
@@ -859,6 +907,7 @@ if ($null -ne $req) {
                 }
             }
         }
+    }
     }
 }
 

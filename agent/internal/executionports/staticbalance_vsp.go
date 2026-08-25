@@ -26,6 +26,7 @@ type StaticBalanceVSPPort struct {
 	mu           sync.Mutex
 	baseRevision int64
 	projectEpoch string
+	beforeGainDB map[string]float64
 }
 
 func (p *StaticBalanceVSPPort) Preflight(ctx context.Context, actionSet orchestration.ActionSet, cut orchestration.ProjectCut) error {
@@ -60,6 +61,12 @@ func (p *StaticBalanceVSPPort) Preflight(ctx context.Context, actionSet orchestr
 	p.mu.Lock()
 	p.baseRevision = baseRevision
 	p.projectEpoch = cut.ProjectEpoch
+	p.beforeGainDB = map[string]float64{}
+	for _, action := range actionSet.Actions {
+		if value, ok := trackVolume(current.LegacyState["tracks"], action.TargetRef); ok {
+			p.beforeGainDB[action.TargetRef] = value
+		}
+	}
 	p.mu.Unlock()
 	return nil
 }
@@ -78,12 +85,13 @@ func (p *StaticBalanceVSPPort) Apply(ctx context.Context, action orchestration.A
 	if requestID == "" {
 		return orchestration.ActionReceipt{ActionID: action.ID, Status: "failed"}, fmt.Errorf("stable idempotency key is required")
 	}
+	txID := "tx_" + requestID
 	result, err := p.Client.SendVSPLegacyCommandWithIDs(ctx, map[string]any{
 		"cmd":           "set_volume",
 		"track_id":      action.TargetRef,
 		"db":            targetDB,
 		"base_revision": p.baseRevision,
-	}, requestID, "tx_"+requestID)
+	}, requestID, txID)
 	if err != nil {
 		return orchestration.ActionReceipt{ActionID: action.ID, Status: "failed", Error: err.Error()}, err
 	}
@@ -99,16 +107,36 @@ func (p *StaticBalanceVSPPort) Apply(ctx context.Context, action orchestration.A
 	if current.ProjectEpoch != p.projectEpoch {
 		return orchestration.ActionReceipt{ActionID: action.ID, Status: "applied_unreconciled", EffectivelyOnce: true}, fmt.Errorf("project epoch changed during execution")
 	}
+	if current.Revision <= p.baseRevision {
+		return orchestration.ActionReceipt{ActionID: action.ID, Status: "applied_unreconciled", EffectivelyOnce: true}, fmt.Errorf("VSP revision did not advance after mutation")
+	}
+	actualDB, ok := trackVolume(current.LegacyState["tracks"], action.TargetRef)
+	if !ok || math.Abs(actualDB-targetDB) > 0.001 {
+		return orchestration.ActionReceipt{ActionID: action.ID, Status: "applied_unreconciled", AppliedRevision: strconv.FormatInt(current.Revision, 10), EffectivelyOnce: true}, fmt.Errorf("track gain readback did not match target")
+	}
+	beforeRevision := p.baseRevision
+	beforeDB, beforeOK := p.beforeGainDB[action.TargetRef]
+	transactionID := strings.TrimSpace(result.TransactionID)
+	if transactionID == "" {
+		transactionID = txID
+	}
 	p.baseRevision = current.Revision
 	return orchestration.ActionReceipt{
 		ActionID:        action.ID,
 		Status:          "applied",
 		AppliedRevision: strconv.FormatInt(current.Revision, 10),
 		EffectivelyOnce: true,
+		EvidenceRefs:    []string{"vsp.command:" + requestID, "vsp.state.revision:" + strconv.FormatInt(current.Revision, 10)},
+		Details: map[string]any{
+			"before_revision": strconv.FormatInt(beforeRevision, 10), "after_revision": strconv.FormatInt(current.Revision, 10),
+			"transaction_id": transactionID, "idempotency_key": requestID,
+			"requested_target_db": targetDB, "actual_readback_db": actualDB, "readback_verified": true,
+			"before_readback_db": beforeDB, "before_readback_available": beforeOK,
+		},
 	}, nil
 }
 
-func (p *StaticBalanceVSPPort) Reconcile(ctx context.Context, action orchestration.Action, _ string, cut orchestration.ProjectCut) (orchestration.ActionReceipt, error) {
+func (p *StaticBalanceVSPPort) Reconcile(ctx context.Context, action orchestration.Action, idempotencyKey string, cut orchestration.ProjectCut) (orchestration.ActionReceipt, error) {
 	if p == nil || p.Client == nil {
 		return orchestration.ActionReceipt{ActionID: action.ID, Status: "unknown"}, fmt.Errorf("VSP client is required")
 	}
@@ -124,11 +152,22 @@ func (p *StaticBalanceVSPPort) Reconcile(ctx context.Context, action orchestrati
 		return orchestration.ActionReceipt{ActionID: action.ID, Status: "unknown"}, fmt.Errorf("numeric target_db is required")
 	}
 	actualDB, ok := trackVolume(current.LegacyState["tracks"], action.TargetRef)
-	if !ok || math.Abs(actualDB-targetDB) > 0.001 {
+	baseRevision, parseErr := strconv.ParseInt(strings.TrimSpace(cut.BaseProjectRevision), 10, 64)
+	if parseErr != nil || baseRevision <= 0 {
+		return orchestration.ActionReceipt{ActionID: action.ID, Status: "unknown"}, fmt.Errorf("invalid reconcile base revision")
+	}
+	if !ok || math.Abs(actualDB-targetDB) > 0.001 || current.Revision <= baseRevision {
 		return orchestration.ActionReceipt{ActionID: action.ID, Status: "not_applied", AppliedRevision: strconv.FormatInt(current.Revision, 10)}, nil
 	}
+	idempotencyKey = strings.TrimSpace(idempotencyKey)
 	return orchestration.ActionReceipt{
 		ActionID: action.ID, Status: "applied", AppliedRevision: strconv.FormatInt(current.Revision, 10), EffectivelyOnce: true,
+		EvidenceRefs: []string{"vsp.reconcile:" + idempotencyKey, "vsp.state.revision:" + strconv.FormatInt(current.Revision, 10)},
+		Details: map[string]any{
+			"before_revision": strconv.FormatInt(baseRevision, 10), "after_revision": strconv.FormatInt(current.Revision, 10),
+			"transaction_id": "tx_" + idempotencyKey, "idempotency_key": idempotencyKey,
+			"requested_target_db": targetDB, "actual_readback_db": actualDB, "readback_verified": true, "reconciled": true,
+		},
 	}, nil
 }
 

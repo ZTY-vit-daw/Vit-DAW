@@ -3,11 +3,13 @@ package harness
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"path/filepath"
 	"strings"
 	"testing"
 
 	"vit-daw-agent/internal/capabilitycontext"
+	"vit-daw-agent/internal/kernel"
 	"vit-daw-agent/internal/mixboard"
 	"vit-daw-agent/internal/tools"
 )
@@ -91,6 +93,72 @@ func TestCCBObservationReceiptRecordsModelRequestAndScope(t *testing.T) {
 	actual := stringSliceFromAny(receipt["actual_executed_view_ids"])
 	if len(requested) != 2 || len(actual) != 2 || receipt["view_set_matches"] != true || requested[0] != actual[0] || requested[1] != actual[1] {
 		t.Fatalf("receipt view sets = requested=%v actual=%v receipt=%+v", requested, actual, receipt)
+	}
+}
+
+func TestCCBProjectAndTrackObservationsShareCanonicalVSPBinding(t *testing.T) {
+	t.Setenv("VIT_MIXBOARD_ROOT", filepath.Join(t.TempDir(), "mixboard"))
+	t.Setenv("VIT_MIXBOARD_FEATURE_READY_WAIT_MS", "1")
+	// The typed VSP envelope carries the authority; the legacy payload is
+	// intentionally incomplete to catch regressions where CCB binds from a
+	// MixBoard/session counter instead of the kernel revision.
+	snapshot := fakeVSPSnapshot(42, "project.timeline", []any{
+		map[string]any{"track_id": "1007", "track_name": "Bass", "is_audio_track": true,
+			"clips": []any{map[string]any{"id": "clip-b", "length_seconds": 2.0}}},
+	})
+	snapshot.LegacyState["project_uuid"] = "project-vsp-42"
+	snapshot.LegacyState["project_epoch"] = nil
+	snapshot.LegacyState["project_revision"] = nil
+	if project := mapAnyFromAny(snapshot.Payload["project"]); project != nil {
+		project["project_uuid"] = "project-vsp-42"
+		snapshot.Payload["project"] = project
+	}
+	h := NewWithSender(&fakeVSPKernelClient{snapshots: []*kernel.VSPStateResult{snapshot, snapshot}}, shadowProjectWithClips(), nil)
+	request := func(view string, target map[string]any) map[string]any {
+		response, err := h.Invoke(context.Background(), InvokeRequest{Tool: "ccb.observation_request", Args: map[string]any{
+			"request_id": "binding-" + view, "mix_session_id": "binding-session", "view_ids": []any{view}, "target_ref": target,
+		}, Source: "agentloop"})
+		if err != nil {
+			t.Fatal(err)
+		}
+		return testMap(t, testMap(t, response.Result)["bundle"])
+	}
+	projectBundle := request("project.structure", map[string]any{"kind": "project", "id": "project-vsp-42"})
+	trackBundle := request("track.basic_energy", map[string]any{"kind": "track", "id": "1007", "label": "Bass"})
+	projectBinding := testMap(t, projectBundle["project_binding"])
+	trackBinding := testMap(t, trackBundle["project_binding"])
+	for _, binding := range []map[string]any{projectBinding, trackBinding} {
+		if binding["project_uuid"] != "project-vsp-42" || binding["project_epoch"] != "epoch_test" || fmt.Sprint(binding["project_revision"]) != "42" {
+			t.Fatalf("non-canonical CCB binding: %#v", binding)
+		}
+	}
+	projectBindingJSON, _ := json.Marshal(projectBinding)
+	trackBindingJSON, _ := json.Marshal(trackBinding)
+	if string(projectBindingJSON) != string(trackBindingJSON) {
+		t.Fatalf("project/track bindings differ: project=%#v track=%#v", projectBinding, trackBinding)
+	}
+	for _, bundle := range []map[string]any{projectBundle, trackBundle} {
+		receipt := testMap(t, bundle["audit_receipt"])
+		freshness := testMap(t, bundle["freshness"])
+		if fmt.Sprint(receipt["project_revision"]) != "42" || fmt.Sprint(freshness["project_revision"]) != "42" {
+			t.Fatalf("receipt/freshness lost canonical revision: bundle=%#v receipt=%#v freshness=%#v", bundle, receipt, freshness)
+		}
+	}
+}
+
+func TestCCBObservationWithoutVSPBindingIsPartialAndG7Unsafe(t *testing.T) {
+	bundle := capabilitycontext.AssembleFreeStateObservation(
+		capabilitycontext.FreeStateObservationRequest{ViewIDs: []string{"track.basic_energy"}, TargetRef: mixboard.TargetRef{Kind: "track", ID: "1007"}},
+		map[string]any{"observation_id": "obs-unbound", "items": map[string]any{"observation.binding": map[string]any{
+			"observation_id": "obs-unbound", "target_ref": map[string]any{"kind": "track", "id": "1007"},
+			"project_binding": map[string]any{}, "status": "ready",
+		}, "track.1007.static.identity": map[string]any{"status": "ready"}, "track.1007.fast.levels": map[string]any{"status": "ready"}}},
+	)
+	if bundle.Status != "partial" || fmt.Sprint(bundle.ProjectBinding["binding_status"]) != "unbound" {
+		t.Fatalf("unbound observation was promoted: status=%q binding=%#v", bundle.Status, bundle.ProjectBinding)
+	}
+	if got := fmt.Sprint(bundle.AuditReceipt.ProjectRevision); got != "" || bundle.Freshness["project_revision"] != nil {
+		t.Fatalf("unbound observation fabricated revision: receipt=%q freshness=%#v", got, bundle.Freshness)
 	}
 }
 

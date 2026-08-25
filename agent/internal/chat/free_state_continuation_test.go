@@ -73,6 +73,35 @@ func TestM10ContinuationBudgetDefaultsBoundedAndStops(t *testing.T) {
 	}
 }
 
+func TestD1AppliedActionReservesOnePostActionObservationSlice(t *testing.T) {
+	loop := freeStateReasoningLoop{ContinuationBudget: 6, ContinuationUsed: 6}
+	loop.RequiresPostActionObservation = true
+	reservePostActionObservationSlice(&loop)
+	if loop.ContinuationBudget != 7 {
+		t.Fatalf("post-action observation budget = %d, want 7", loop.ContinuationBudget)
+	}
+	reservePostActionObservationSlice(&loop)
+	if loop.ContinuationBudget != 7 {
+		t.Fatalf("post-action observation budget was extended twice: %d", loop.ContinuationBudget)
+	}
+}
+
+func TestD1AppliedActionReservesObservationWhenNextSliceConsumesBudget(t *testing.T) {
+	loop := freeStateReasoningLoop{ContinuationBudget: 6, ContinuationUsed: 5, RequiresPostActionObservation: true}
+	reservePostActionObservationSlice(&loop)
+	if loop.ContinuationBudget != 7 {
+		t.Fatalf("budget = %d, want 7", loop.ContinuationBudget)
+	}
+}
+
+func TestInteractionResumeDoesNotDoubleCountContinuation(t *testing.T) {
+	loop := freeStateReasoningLoop{ContinuationBudget: 6, ContinuationUsed: 5, RequiresPostActionObservation: true}
+	reservePostActionObservationSlice(&loop)
+	if loop.ContinuationUsed != 5 || loop.ContinuationBudget != 7 {
+		t.Fatalf("interaction resume accounting = used=%d budget=%d", loop.ContinuationUsed, loop.ContinuationBudget)
+	}
+}
+
 func TestFreeStateLoopMergeDoesNotRegressDurableStatus(t *testing.T) {
 	base := continuationTestLoop("conversation-merge-status")
 	base.Status = "observing"

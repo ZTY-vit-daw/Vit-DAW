@@ -1,6 +1,10 @@
 package agentloop
 
-import "vit-daw-agent/internal/agentprotocol"
+import (
+	"testing"
+
+	"vit-daw-agent/internal/agentprotocol"
+)
 
 // Matrix M06/M07 (docs/FREE_STATE_TEST_AND_REPLAY_MATRIX_V1.md): the G1–G7
 // needs_experiment admission gate — each missing condition rejects the
@@ -75,4 +79,57 @@ func gateTestProposal(evidenceRefs []string) messageLoopOutput {
 			ActionKind: "bounded_gain_adjustment", ParameterBounds: map[string]any{"delta_db": -0.5}, Confidence: 0.55,
 		},
 	}}
+}
+
+func TestFreeStateGateG7UsesFreshnessClassBeforeObservationStatus(t *testing.T) {
+	state := gateTestState(nil)
+	ledger := messageLoopMapValue(messageLoopMapValue(state.input.Context["free_state_reasoning_loop"])["observation_ledger"])
+	for _, row := range messageLoopMapRows(ledger["receipts"]) {
+		row["freshness"] = map[string]any{"status": "ready", "class": "current_observation", "project_revision": "rev-7"}
+	}
+	proposal := gateTestProposal(nil).FreeStateDecision
+	if !gateG7(state, proposal.ImprovementProposal.EvidenceRefs) {
+		t.Fatal("G7 rejected ready observation with a valid current_observation freshness class")
+	}
+}
+
+func TestFreeStateGateG7RejectsFreshnessClassWithMismatchedRevision(t *testing.T) {
+	state := gateTestState(nil)
+	ledger := messageLoopMapValue(messageLoopMapValue(state.input.Context["free_state_reasoning_loop"])["observation_ledger"])
+	for _, row := range messageLoopMapRows(ledger["receipts"]) {
+		row["freshness"] = map[string]any{"status": "ready", "class": "current_observation", "project_revision": "rev-old"}
+	}
+	proposal := gateTestProposal(nil).FreeStateDecision
+	if gateG7(state, proposal.ImprovementProposal.EvidenceRefs) {
+		t.Fatal("G7 accepted a valid freshness class bound to the wrong revision")
+	}
+}
+
+func TestFreeStateObservationRefreshesPhaseAndRevisionBeforeFinalGate(t *testing.T) {
+	state := gateTestState(nil)
+	state.input.Context["free_state_phase"] = "fs5_candidate_frontier"
+	state.input.Context["minimal_audio_closure"].(map[string]any)["phase"] = "fs5_candidate_frontier"
+	state.recentObservation = &RecentObservation{
+		Tool: "ccb.observation_request", Status: "ok", ToolCallID: "ccb-target-refresh",
+		Summary: map[string]any{
+			"status": "ready", "observation_id": "obs-target-refresh", "project_revision": "rev-8",
+			"project_binding": map[string]any{"project_uuid": "proj-1", "project_revision": "rev-8"},
+			"requested_views": []any{"track.timbre_frequency"},
+			"target_ref":      map[string]any{"kind": "track", "id": "1007"},
+			"freshness":       map[string]any{"status": "ready", "class": "current_observation", "project_revision": "rev-8"},
+			"views":           map[string]any{"track.timbre_frequency": map[string]any{"status": "ready"}},
+		},
+	}
+	recordFreeStateCCBObservation(state, state.recentObservation)
+	syncFreeStateRuntimeAfterObservation(state, state.recentObservation)
+	closure := state.input.Context["minimal_audio_closure"].(map[string]any)
+	if got := closure["project_revision"]; got != "rev-8" {
+		t.Fatalf("closure revision = %v, want rev-8", got)
+	}
+	if got := state.input.Context["free_state_phase"]; got != "fs6_target_confirmed" {
+		t.Fatalf("host phase = %v, want fs6_target_confirmed", got)
+	}
+	if got := closure["phase"]; got != "fs6_target_confirmed" {
+		t.Fatalf("closure phase = %v, want fs6_target_confirmed", got)
+	}
 }

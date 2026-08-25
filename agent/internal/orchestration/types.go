@@ -307,6 +307,10 @@ type VerificationResult struct {
 	// overloading the structural readback or claiming user acceptance.
 	SpecialistRelationship string `json:"specialist_relationship,omitempty"`
 	SpecialistSummary      string `json:"specialist_summary,omitempty"`
+	ObservationID          string `json:"observation_id,omitempty"`
+	ObservationRevision    string `json:"observation_revision,omitempty"`
+	Fresh                  bool   `json:"fresh,omitempty"`
+	PostAction             bool   `json:"post_action,omitempty"`
 }
 
 // FrozenPlan is the immutable execution input authorized by the user. Hashes

@@ -11,6 +11,8 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
+	"math"
+	"strconv"
 	"strings"
 	"time"
 
@@ -19,6 +21,11 @@ import (
 )
 
 const SchemaVersion = "vit.free_state_experiment_runtime.v1"
+
+const (
+	D1S1ActionDomain = "track_gain"
+	D1S1ActionKind   = "track_gain_adjust"
+)
 
 // Status is the lifecycle state of a Turn.
 type Status string
@@ -184,6 +191,75 @@ func (a Admission) Validate() error {
 		return fmt.Errorf("unsupported authority_mode %q", a.AuthorityMode)
 	}
 	return nil
+}
+
+// ValidateD1S1 applies the deliberately narrow Phase D1-S1 admission. The
+// general experiment schema remains readable for historical persisted turns;
+// only a D1-S1 production entry may cross this gate.
+func (a Admission) ValidateD1S1() error {
+	if err := a.Validate(); err != nil {
+		return err
+	}
+	if strings.ToLower(mapString(a.TypedAction, "action_domain", "domain")) != D1S1ActionDomain {
+		return fmt.Errorf("D1-S1 action_domain must be %s", D1S1ActionDomain)
+	}
+	if strings.ToLower(mapString(a.TypedAction, "action_kind", "kind")) != D1S1ActionKind {
+		return fmt.Errorf("D1-S1 action_kind must be %s", D1S1ActionKind)
+	}
+	if a.ExperimentBudget != 1 {
+		return fmt.Errorf("D1-S1 experiment_budget must be 1")
+	}
+	if strings.ToLower(mapString(a.TargetRef, "kind")) != "track" || mapString(a.TargetRef, "id", "track_id") == "" {
+		return fmt.Errorf("D1-S1 target must be an observation-bound track")
+	}
+	for name, bounds := range map[string]map[string]any{"diagnostic": a.DiagnosticDoseBounds, "retained": a.RetainedDoseBounds} {
+		attempts, ok := mapNumber(bounds, "max_action_attempts")
+		if !ok || attempts != 1 {
+			return fmt.Errorf("D1-S1 %s max_action_attempts must be 1", name)
+		}
+		delta, ok := mapNumber(bounds, "delta_db")
+		if !ok || delta == 0 || math.Abs(delta) > 2 {
+			return fmt.Errorf("D1-S1 %s delta_db must be non-zero and within +/-2 dB", name)
+		}
+	}
+	return nil
+}
+
+func (a Admission) IsD1S1() bool {
+	return strings.EqualFold(mapString(a.TypedAction, "action_domain", "domain"), D1S1ActionDomain) ||
+		strings.EqualFold(mapString(a.TypedAction, "action_kind", "kind"), D1S1ActionKind)
+}
+
+func mapString(row map[string]any, keys ...string) string {
+	for _, key := range keys {
+		if text := strings.TrimSpace(fmt.Sprint(row[key])); text != "" && text != "<nil>" {
+			return text
+		}
+	}
+	return ""
+}
+
+func mapNumber(row map[string]any, key string) (float64, bool) {
+	switch value := row[key].(type) {
+	case float64:
+		return value, true
+	case float32:
+		return float64(value), true
+	case int:
+		return float64(value), true
+	case int64:
+		return float64(value), true
+	case jsonNumber:
+		parsed, err := value.Float64()
+		return parsed, err == nil
+	default:
+		parsed, err := strconv.ParseFloat(strings.TrimSpace(fmt.Sprint(value)), 64)
+		return parsed, err == nil
+	}
+}
+
+type jsonNumber interface {
+	Float64() (float64, error)
 }
 
 // Observation is the compact CCB binding retained by a Round. The actual
@@ -354,6 +430,7 @@ type Round struct {
 	AdoptedCandidateID    string                 `json:"adopted_candidate_id,omitempty"`
 	AdoptionCheckpointRef string                 `json:"adoption_checkpoint_ref,omitempty"`
 	AdoptionReceipt       map[string]any         `json:"adoption_receipt,omitempty"`
+	RollbackReceipt       map[string]any         `json:"rollback_receipt,omitempty"`
 	Decision              RoundDecision          `json:"decision,omitempty"`
 	DecisionSummary       string                 `json:"decision_summary,omitempty"`
 	StartedAt             time.Time              `json:"started_at"`
@@ -470,6 +547,14 @@ func (t *Turn) StartRound(requestedViews []string, checkpointRef, projectRevisio
 	if err := t.ensureLive(); err != nil {
 		return nil, err
 	}
+	if t.Admission.IsD1S1() {
+		if err := t.Admission.ValidateD1S1(); err != nil {
+			return nil, err
+		}
+		if len(t.Rounds) > 0 {
+			return nil, fmt.Errorf("D1-S1 permits one round")
+		}
+	}
 	requestedViews = unique(requestedViews)
 	if len(requestedViews) == 0 {
 		return nil, fmt.Errorf("round requested view IDs are required")
@@ -504,6 +589,23 @@ func (t *Turn) RecordObservation(observation Observation, postAction bool, now t
 	if err := observation.Validate(postAction); err != nil {
 		return nil, err
 	}
+	if t.Admission.IsD1S1() {
+		if strings.TrimSpace(observation.ProjectRevision) == "" {
+			return nil, fmt.Errorf("D1-S1 observation must be revision-bound")
+		}
+		if postAction {
+			if len(round.Interventions) != 1 {
+				return nil, fmt.Errorf("D1-S1 post-action observation requires exactly one forward mutation")
+			}
+			afterRevision := mapString(round.Interventions[0].Receipt, "after_revision", "applied_revision")
+			if afterRevision == "" {
+				afterRevision = mapString(mapValue(round.Interventions[0].Receipt, "details"), "after_revision")
+			}
+			if afterRevision == "" || observation.ProjectRevision != afterRevision {
+				return nil, fmt.Errorf("D1-S1 post-action observation revision must match mutation after revision")
+			}
+		}
+	}
 	if now.IsZero() {
 		now = time.Now().UTC()
 	}
@@ -525,10 +627,18 @@ func (t *Turn) RecordObservation(observation Observation, postAction bool, now t
 	return t.events(now, trajectory.EventObservationRecorded, round.ID, trajectory.NodeObservation, "CCB observation recorded", observation.EvidenceRefs, nil, details), nil
 }
 
+func mapValue(row map[string]any, key string) map[string]any {
+	value, _ := row[key].(map[string]any)
+	return value
+}
+
 func (t *Turn) ApplyIntervention(intervention Intervention, now time.Time) ([]trajectory.Event, error) {
 	round, err := t.currentRound()
 	if err != nil {
 		return nil, err
+	}
+	if t.Admission.IsD1S1() && len(round.Interventions) > 0 {
+		return nil, fmt.Errorf("D1-S1 permits one forward mutation per round")
 	}
 	if t.InterventionCount() >= t.Admission.ExperimentBudget {
 		return nil, fmt.Errorf("experiment budget exhausted")
@@ -595,8 +705,8 @@ func (t *Turn) RecordTargetResponse(evaluation TargetEvaluation, now time.Time) 
 	if err != nil {
 		return nil, err
 	}
-	if round.Materiality == nil || round.Materiality.State != MaterialityMaterial {
-		return nil, fmt.Errorf("target response requires material intervention")
+	if round.Materiality == nil || (round.Materiality.State != MaterialityMaterial && !(t.Admission.IsD1S1() && round.Materiality.State == MaterialitySubthreshold && evaluation.Response == TargetAmbiguous && evaluation.Outcome == trajectory.EvaluationHumanAuditionReady)) {
+		return nil, fmt.Errorf("target response requires material intervention; D1-S1 subthreshold only permits ambiguous human audition")
 	}
 	if len(round.Observations) == 0 || !round.Observations[len(round.Observations)-1].Fresh || !round.Observations[len(round.Observations)-1].PostAction {
 		return nil, fmt.Errorf("target response requires a fresh post-action observation")
@@ -664,6 +774,7 @@ func (t *Turn) MarkRollback(now time.Time, receipt map[string]any, evidenceRefs 
 	round.Status = RoundRolledBack
 	round.Phase = "rolled_back"
 	round.Decision = DecisionRollback
+	round.RollbackReceipt = cloneMap(receipt)
 	round.UpdatedAt = now.UTC()
 	t.replaceRound(*round)
 	events := t.events(now, trajectory.EventRollbackCompleted, round.ID, trajectory.NodeRollback, "experiment round rolled back", unique(evidenceRefs), nil, map[string]any{"rollback_receipt": receipt, "checkpoint_ref": round.CheckpointRef})

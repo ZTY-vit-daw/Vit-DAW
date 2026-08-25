@@ -103,23 +103,28 @@ func auditionReadyLoop(t *testing.T) freeStateReasoningLoop {
 func auditionReadyLoopAt(t *testing.T, projectPath string) freeStateReasoningLoop {
 	t.Helper()
 	now := time.Now().UTC()
-	loop := freeStateReasoningLoop{SchemaVersion: freeStateReasoningLoopSchema, LoopID: "loop-audition", ConversationID: "conversation-audition", GoalID: "goal", RunID: "run", OriginalIntent: "compare before and after", LatestProjectChange: map[string]any{"project_path": projectPath, "project_revision": "rev-7"}, CreatedAt: now, UpdatedAt: now}
+	loop := freeStateReasoningLoop{SchemaVersion: freeStateReasoningLoopSchema, LoopID: "loop-audition", ConversationID: "conversation-audition", GoalID: "goal", RunID: "run", OriginalIntent: "compare before and after", LatestProjectChange: map[string]any{"project_path": projectPath, "project_revision": "rev-7"}, LatestObservation: d1FreshObservationForTest("rev-6"), CreatedAt: now, UpdatedAt: now}
 	admission, err := freeStateExperimentAdmission(loop, experimentTestProposal())
 	if err != nil {
 		t.Fatal(err)
 	}
+	// This helper exercises the pre-D1 candidate adoption contract. D1-S1
+	// retains or rolls back the already-applied treatment directly from human
+	// judgment and does not apply a candidate as a second forward mutation.
+	admission.TypedAction = map[string]any{"action_domain": "static_eq", "action_kind": "bounded_eq_adjust"}
+	admission.ExperimentBudget = 3
 	turn, err := experiment.NewTurn(experiment.Identity{ConversationID: loop.ConversationID, GoalID: loop.GoalID, RunID: loop.RunID, TurnID: "turn-audition"}, loop.OriginalIntent, admission, now)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, err = turn.StartRound([]string{"track.timbre_frequency"}, "checkpoint-7", "rev-7", now); err != nil {
+	if _, err = turn.StartRound([]string{"track.timbre_frequency"}, "checkpoint-7", "rev-6", now); err != nil {
 		t.Fatal(err)
 	}
-	before := experiment.Observation{ID: "before", RequestedViewIDs: []string{"track.timbre_frequency"}, ExecutedViewIDs: []string{"track.timbre_frequency"}, ViewSetMatches: true, Fresh: true, EvidenceRefs: []string{"before"}}
+	before := experiment.Observation{ID: "before", RequestedViewIDs: []string{"track.timbre_frequency"}, ExecutedViewIDs: []string{"track.timbre_frequency"}, ViewSetMatches: true, Fresh: true, ProjectRevision: "rev-6", EvidenceRefs: []string{"before"}}
 	if _, err = turn.RecordObservation(before, false, now); err != nil {
 		t.Fatal(err)
 	}
-	if _, err = turn.ApplyIntervention(experiment.Intervention{ID: "action-7", Attempt: 1, TechnicalApplication: experiment.TechnicalApplied, UserConfirmed: true, Receipt: map[string]any{"status": "ok"}}, now); err != nil {
+	if _, err = turn.ApplyIntervention(experiment.Intervention{ID: "action-7", Attempt: 1, TechnicalApplication: experiment.TechnicalApplied, UserConfirmed: true, Receipt: map[string]any{"status": "ok", "after_revision": "rev-7"}}, now); err != nil {
 		t.Fatal(err)
 	}
 	if _, err = turn.EvaluateMateriality(experiment.MaterialityEvaluation{State: experiment.MaterialityMaterial, Evaluation: trajectory.EvaluationAgentEvaluable, Attempt: 1, EvidenceRefs: []string{"material"}}, now); err != nil {
@@ -128,6 +133,7 @@ func auditionReadyLoopAt(t *testing.T, projectPath string) freeStateReasoningLoo
 	after := before
 	after.ID = "after"
 	after.PostAction = true
+	after.ProjectRevision = "rev-7"
 	after.EvidenceRefs = []string{"after"}
 	if _, err = turn.RecordObservation(after, true, now); err != nil {
 		t.Fatal(err)
@@ -263,7 +269,7 @@ func TestAuditionJudgmentRecordsEvidenceAndRetainsPreferredTreatment(t *testing.
 	}
 }
 
-func TestAuditionJudgmentWithoutDifferenceStartsNextRound(t *testing.T) {
+func TestLegacyAuditionJudgmentWithoutDifferenceStartsNextRound(t *testing.T) {
 	server := New(nil, nil, nil)
 	loop := auditionReadyLoop(t)
 	if _, err := loop.Experiment.RecordTargetResponse(experiment.TargetEvaluation{Response: experiment.TargetAmbiguous, Outcome: trajectory.EvaluationHumanAuditionReady, EvidenceRefs: []string{"after"}}, time.Now().UTC()); err != nil {

@@ -394,3 +394,10 @@ func TestTerminalProjectionRejectsLaterEvents(t *testing.T) {
 		t.Fatal("event projection accepted an event after settlement")
 	}
 }
+
+func TestFS6AllowsBoundedTerminalWhenContinuationBudgetIsExhausted(t *testing.T) {
+	if err := EvaluatePhaseGuard(PhaseFS6TargetConfirmed, PhaseFS9Terminal,
+		PhaseGuardInput{TerminalStopReason: string(StopNoCandidateFound)}); err != nil {
+		t.Fatal(err)
+	}
+}

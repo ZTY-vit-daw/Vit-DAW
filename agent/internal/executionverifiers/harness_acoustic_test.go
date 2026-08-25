@@ -58,11 +58,28 @@ func TestHarnessAcousticRequiresFreshMOMObservation(t *testing.T) {
 		t.Fatalf("unexpected acoustic result=%#v err=%v", result, err)
 	}
 	args := invoker.Request.Args
-	if args["scope"] != "full_project" || args["observation_only"] != true || args["previous_observation"] != "obs_before" || args["mom_intent"] != "project_multitrack_relation_observation" {
+	if args["scope"] != "full_project" || args["observation_only"] != true || args["post_action"] != true || args["freshness_class"] != "post_action" || args["previous_observation"] != "obs_before" || args["mom_intent"] != "project_multitrack_relation_observation" {
 		t.Fatalf("unsafe or incomplete mix.observe request: %#v", args)
 	}
 	if invoker.Request.Tool != "mix.observe" || invoker.Request.Source != "capability_runtime_v1_verifier" {
 		t.Fatalf("unexpected invocation: %#v", invoker.Request)
+	}
+}
+
+func TestHarnessAcousticD1RequiresExplicitFreshRevisionBoundCCB(t *testing.T) {
+	result := map[string]any{
+		"observation_id": "obs_after", "project_binding": map[string]any{"project_revision": "8"},
+		"mom_projection": map[string]any{"intent": "project_multitrack_relation_observation", "static_level_relationship": verifierStaticRelation("ready", []any{verifierStaticTrack("t1", -20), verifierStaticTrack("t2", -22)})},
+	}
+	invoker := &recordingHarnessInvoker{Response: harness.InvokeResponse{Status: "ok", Result: result}}
+	verified, err := (HarnessAcoustic{Invoker: invoker, PreviousObservationID: "obs_before", RequireExplicitFresh: true}).VerifyStaticBalance(context.Background(), orchestration.ActionSet{ID: "as1"})
+	if err != nil || verified.Fresh || verified.Status != "inconclusive" {
+		t.Fatalf("missing freshness accepted: result=%#v err=%v", verified, err)
+	}
+	result["audit_receipt"] = map[string]any{"freshness": map[string]any{"status": "fresh"}}
+	verified, err = (HarnessAcoustic{Invoker: invoker, PreviousObservationID: "obs_before", RequireExplicitFresh: true}).VerifyStaticBalance(context.Background(), orchestration.ActionSet{ID: "as1"})
+	if err != nil || !verified.Fresh || verified.ObservationRevision != "8" || verified.Status != "pass" {
+		t.Fatalf("fresh revision-bound CCB rejected: result=%#v err=%v", verified, err)
 	}
 }
 

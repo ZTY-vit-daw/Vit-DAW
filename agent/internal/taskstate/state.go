@@ -188,9 +188,14 @@ func Apply(contract Contract, current Snapshot, request TransitionRequest, now t
 	}
 	if request.Event == EventProjectRevisionChanged {
 		next.EvidenceRefs = nil
-		next.CandidateID = ""
-		next.Proposal = nil
-		next.ExperimentID = ""
+		// A governed experiment can advance the project revision between its
+		// before/after observations. Invalidate only revision-bound evidence;
+		// preserve the canonical proposal/experiment identity so the Task,
+		// Experiment runtime, and durable continuation can rebind coherently.
+		if current.ExperimentID == "" {
+			next.CandidateID = ""
+			next.Proposal = nil
+		}
 		next.PendingInteraction = nil
 	} else {
 		next.EvidenceRefs = unique(append(next.EvidenceRefs, request.EvidenceRefs...))

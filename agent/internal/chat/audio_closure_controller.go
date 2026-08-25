@@ -1,6 +1,7 @@
 package chat
 
 import (
+	"context"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
@@ -177,8 +178,23 @@ func (s *Server) projectAudioClosureTaskState(state audioclosure.State) (audiocl
 }
 
 func audioClosureRequestProjectRevision(s *Server, requestContext map[string]any) string {
+	// The closure/task contract must bind to the authoritative Shadow snapshot,
+	// which is populated from VSPStateResult.Revision. A UI/session value is
+	// only a fallback for unsaved/test projects and must never override a live
+	// kernel revision (notably the historical "0" placeholder).
+	if s != nil && s.harness != nil {
+		if state := s.harness.UserStateSummary(context.Background()); len(state) > 0 {
+			if revision := firstStringFromMap(state, "project_revision"); revision != "" && revision != "0" {
+				return revision
+			}
+		}
+	}
 	revision := firstStringFromMap(requestContext,
 		"project_revision", "project_state_revision", "project_cut_hash", "state_token", "vsp_state_token")
+	if revision == "0" {
+		// Zero is the historical unbound placeholder, not a VSP revision.
+		return ""
+	}
 	if revision == "" && s != nil {
 		revision = s.activeWorkspaceSessionID
 	}
@@ -361,6 +377,17 @@ func (s *Server) recordAudioClosureRound(state audioclosure.State, res agentloop
 	}
 	driver := audioclosure.Driver{}
 	if changeID := audioClosureAuthoritativeProjectChangeID(requestContext); changeID != "" && changeID != current.LastProjectChangeID {
+		// A governed Apply closes the prior diagnostic round. Before recording
+		// its authoritative project change, admit the dedicated post-action
+		// verification round; otherwise RecordProjectChange correctly rejects
+		// the transition as an unadmitted round.
+		if loop, loopOK := s.freeStateLoop(current.ConversationID); loopOK && loop.RequiresPostActionObservation && !current.RoundInProgress {
+			admitted, _, admitErr := driver.AdmitRound(current, current.Revision, time.Now().UTC())
+			if admitErr != nil {
+				return current, admitErr
+			}
+			current = admitted
+		}
 		next, _, err := driver.RecordProjectChange(current, current.Revision, changeID, time.Now().UTC())
 		if err != nil {
 			return current, err
@@ -381,9 +408,32 @@ func (s *Server) recordAudioClosureRound(state audioclosure.State, res agentloop
 		}
 		return current, nil
 	}
-	for _, observation := range freeStateCCBObservations(res) {
+	observations := freeStateCCBObservations(res)
+	postActionObservationRequired := false
+	if loop, loopOK := s.freeStateLoop(current.ConversationID); loopOK {
+		postActionObservationRequired = loop.RequiresPostActionObservation
+	}
+	// Scheduler continuations can carry the authoritative CCB bundles only in
+	// the durable free-state ledger. Rehydrate those bundles before recording
+	// the closure round so candidate/frontier state cannot regress to empty
+	// merely because this Result has no Executed projection.
+	if loop, loopOK := s.freeStateLoop(current.ConversationID); loopOK {
+		observations = appendUniqueFreeStateObservations(observations, freeStateLedgerObservations(loop.ObservationLedger))
+	}
+	for _, observation := range observations {
 		if observation == nil || current.Terminal() {
 			continue
+		}
+		if postActionObservationRequired {
+			observationRevision := firstNonEmpty(
+				firstStringFromMap(observation.Summary, "project_revision"),
+				firstStringFromMap(firstMapFromAny(observation.Summary["project_binding"]), "project_revision"),
+				firstStringFromMap(firstMapFromAny(observation.Summary["freshness"]), "project_revision"),
+			)
+			if observationRevision == "" || !strings.EqualFold(observationRevision, current.ProjectRevision) {
+				// Replayed pre-action evidence must not close a post-action round.
+				continue
+			}
 		}
 		observationID := firstStringFromMap(observation.Summary, "observation_id")
 		// One CCB bundle can be projected through several compact view sets as
@@ -410,7 +460,7 @@ func (s *Server) recordAudioClosureRound(state audioclosure.State, res agentloop
 		current = outcome.State
 	}
 	if !current.Terminal() && res.FreeStateDecision != nil {
-		frontier, actionability := audioClosureFrontier(current.Frontier, *res.FreeStateDecision, freeStateCCBObservations(res))
+		frontier, actionability := audioClosureFrontier(current.Frontier, *res.FreeStateDecision, observations)
 		next, _, err := driver.UpdateFrontier(current, current.Revision, frontier, actionability, time.Now().UTC())
 		if err != nil {
 			return current, err
@@ -525,7 +575,8 @@ func (s *Server) settleTaskAtAudioClosureBoundary(state audioclosure.State, reas
 	// legacy no-pending-mix-tick boundary must not collapse FS2/FS3 into
 	// capability_blocked while the runtime still owns free-state observation.
 	queueOpenWithinCapacity := s.freeStateQueueStillOpenWithinCapacity(state.ConversationID)
-	if queueOpenWithinCapacity {
+	frontierOpen := len(state.Frontier.Candidates) > 0
+	if queueOpenWithinCapacity && !frontierOpen {
 		// An open queue is normally a continuation point. Once the explicit
 		// continuation budget is exhausted, the open-intent contract requires a
 		// bounded no-candidate conclusion rather than an empty non-terminal
@@ -536,7 +587,7 @@ func (s *Server) settleTaskAtAudioClosureBoundary(state audioclosure.State, reas
 		}
 	}
 	stopReason := audioclosure.StopCapabilityBlocked
-	if queueOpenWithinCapacity {
+	if queueOpenWithinCapacity && !frontierOpen {
 		stopReason = audioclosure.StopNoCandidateFound
 	}
 	if audioclosure.IsFSPhase(state.Phase) && state.Phase != audioclosure.PhaseFS9Terminal {
@@ -562,7 +613,7 @@ func (s *Server) settleTaskAtAudioClosureBoundary(state audioclosure.State, reas
 	// semantic decision applied by applyFreeStateDecisionSemantic; absence of a
 	// projected frontier is not evidence that no candidate exists.
 	event := taskstate.EventCapabilityBlocked
-	if queueOpenWithinCapacity {
+	if queueOpenWithinCapacity && !frontierOpen {
 		event = taskstate.EventNoCandidateReported
 	}
 	if _, err := s.transitionTaskSemantic(state.GoalID, taskstate.TransitionRequest{
@@ -911,11 +962,15 @@ func (s *Server) audioClosureResponse(conversationID, mode string, state audiocl
 	} else if base.GoalID != "" {
 		s.clearGoalContinuation(base.GoalID)
 	}
-	s.settleFreeStateLoopFromClosure(conversationID, *state.Settlement)
+	s.settleFreeStateLoopFromClosure(conversationID, *state.Settlement, state)
 	// The closure is the phase host. Mirror its terminal FS9 state before the
 	// response is projected so the durable loop and runtime row cannot retain
 	// the pre-settlement FS2/FS4 phase.
 	s.syncFreeStateSpine(state)
+	admissionReceipt := map[string]any{}
+	if loop, ok := s.freeStateLoop(conversationID); ok {
+		admissionReceipt = cloneContext(loop.AdmissionReceipt)
+	}
 	reply := audioClosureSettlementReply(state.Settlement)
 	status := agentruntime.StatusCompleted
 	if state.Settlement.NeedsUserClarification {
@@ -928,7 +983,7 @@ func (s *Server) audioClosureResponse(conversationID, mode string, state audiocl
 		ConversationID: conversationID, TaskID: base.TaskID, GoalID: firstNonEmpty(base.GoalID, state.GoalID), RunID: firstNonEmpty(base.RunID, state.RunID),
 		SliceID: base.SliceID, TurnID: base.TurnID, OriginalIntent: firstNonEmpty(base.OriginalIntent, state.OriginalIntent),
 		AgentMode: mode, Reply: reply, GoalStatus: string(status), StopReason: string(state.Settlement.Reason), Workflow: "minimal_audio_closure",
-		WorkflowData: map[string]any{"schema_version": audioclosure.SchemaVersion, "status": "settled", "settlement": state.Settlement, "minimal_audio_closure": audioClosureStateMap(state), "mutation_performed": false},
+		WorkflowData: map[string]any{"schema_version": audioclosure.SchemaVersion, "status": "settled", "settlement": state.Settlement, "minimal_audio_closure": audioClosureStateMap(state), "free_state_admission_receipt": admissionReceipt, "mutation_performed": false},
 	}
 	return resp
 }

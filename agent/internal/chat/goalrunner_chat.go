@@ -1803,6 +1803,11 @@ func (s *Server) chatResponseFromAgentLoopResult(conversationID, mode string, re
 		res.Error = err.Error()
 		res.Continuation = nil
 	}
+	if res.Status == agentruntime.StatusWaitingContinue && res.Continuation == nil {
+		res.Status = agentruntime.StatusFailed
+		res.StopReason = "durable_continuation_missing"
+		res.Error = "waiting_continue requires a durable continuation checkpoint"
+	}
 	reply := strings.TrimSpace(res.Reply)
 	if reply == "" {
 		switch res.Status {
@@ -1859,6 +1864,14 @@ func (s *Server) chatResponseFromAgentLoopResult(conversationID, mode string, re
 		ProjectHistory:      res.ProjectHistory,
 		Error:               res.Error,
 		AgentPlan:           agentPlanForMode(mode, agentPlanFromAgentLoopResult(res)),
+	}
+	if res.Status == agentruntime.StatusWaitingContinue || res.StopReason == "durable_continuation_missing" {
+		resp.WorkflowData = mergeContext(resp.WorkflowData, map[string]any{
+			"continuation_id":       continuationIDForResult(res),
+			"checkpoint_status":     string(res.Status),
+			"checkpoint_persisted":  res.Status == agentruntime.StatusWaitingContinue && res.Continuation != nil,
+			"scheduler_eligible":    res.Status == agentruntime.StatusWaitingContinue && res.Continuation != nil,
+		})
 	}
 	if !chatResponseTurnFailed(resp) {
 		resp.ProjectResultCards = projectResultCardsFromExecuted(visibleExecuted)
@@ -2390,6 +2403,16 @@ func (s *Server) recordGoalResult(conversationID string, res agentloop.Result) e
 	}
 	autoContinuationBudgetExhausted := false
 	if res.Continuation != nil {
+		// The planner continuation carries the slice-start request context, while
+		// recordFreeStateDecision may have imported newer CCB evidence into the
+		// server-owned loop during this slice. Export that authoritative loop
+		// before creating the durable child checkpoint; otherwise the next slice
+		// restarts from the stale overlay and loses cross-slice observations.
+		if loop, loopOK := s.freeStateLoops[conversationID]; loopOK {
+			res.Continuation.Context = mergeContext(res.Continuation.Context, map[string]any{
+				"free_state_reasoning_loop": freeStateLoopMap(loop),
+			})
+		}
 		durable := durableContinuationFromResult(conversationID, res, time.Now().UTC())
 		res.Continuation.ContinuationID = durable.ContinuationID
 		durable.ProjectPath = s.activeWorkspacePath

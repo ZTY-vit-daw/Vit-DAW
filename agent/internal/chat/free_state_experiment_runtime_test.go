@@ -16,9 +16,59 @@ func experimentTestProposal() *agentprotocol.ImprovementProposal {
 		SchemaVersion: agentprotocol.ImprovementProposalSchema,
 		Target:        map[string]any{"kind": "track", "id": "vocal"}, EvidenceRefs: []string{"obs-before"},
 		ImprovementIntent: "make the vocal more forward", Hypothesis: "a bounded treatment may improve forwardness",
-		ExpectedEffect: "forwardness without transient regression", ActionDomain: agentprotocol.ImprovementActionDomainEQ,
-		ActionKind: "bounded_tonal_adjustment", ParameterBounds: map[string]any{"max_db": 2},
-		VerificationPlan: map[string]any{"view_ids": []any{"track.timbre_frequency"}}, Confidence: 0.6,
+		ExpectedEffect: "forwardness without transient regression", ActionDomain: agentprotocol.ImprovementActionDomainTrackGain,
+		ActionKind: experiment.D1S1ActionKind, ParameterBounds: map[string]any{"delta_db": -1.0},
+		VerificationPlan: map[string]any{"view_ids": []any{"track.timbre_frequency"}, "experiment_budget": 1}, Confidence: 0.6,
+	}
+}
+
+func d1FreshObservationForTest(revision string) *agentloop.RecentObservation {
+	return &agentloop.RecentObservation{Tool: "ccb.observation_request", ToolCallID: "call-before", Summary: map[string]any{
+		"status": "ready", "observation_id": "obs-before", "requested_views": []any{"track.timbre_frequency"},
+		"actual_executed_view_ids": []any{"track.timbre_frequency"}, "evidence_refs": []any{"obs-before"},
+		"target_ref": map[string]any{"kind": "track", "id": "vocal"}, "project_binding": map[string]any{"project_revision": revision},
+		"audit_receipt": map[string]any{"receipt_id": "receipt-before", "view_set_matches": true, "actual_executed_view_ids": []any{"track.timbre_frequency"}, "freshness": map[string]any{"status": "fresh"}},
+	}}
+}
+
+func TestD1FreshObservedTargetAcceptsCurrentObservationClass(t *testing.T) {
+	observation := d1FreshObservationForTest("7")
+	observation.Summary["freshness"] = map[string]any{"status": "ready", "class": "current_observation", "project_revision": "7"}
+	observation.Summary["audit_receipt"].(map[string]any)["freshness"] = map[string]any{"status": "ready", "class": "current_observation", "project_revision": "7"}
+	loop := freeStateReasoningLoop{LatestObservation: observation}
+	proposal := experimentTestProposal()
+	if _, err := validateD1FreshObservedTarget(loop, experiment.Admission{TargetRef: proposal.Target, EvidenceRefs: []string{"obs-before"}}); err != nil {
+		t.Fatalf("current_observation freshness class was rejected: %v", err)
+	}
+}
+
+func TestFreeStateObservationProjectRevisionUsesFreshnessBinding(t *testing.T) {
+	got := freeStateObservationProjectRevision(map[string]any{
+		"freshness": map[string]any{"class": "current_observation", "project_revision": "rev-9"},
+	})
+	if got != "rev-9" {
+		t.Fatalf("project revision = %q, want rev-9", got)
+	}
+}
+
+func TestPostActionObservationRejectsReplayedPreActionBundle(t *testing.T) {
+	now := time.Now().UTC()
+	proposal := experimentTestProposal()
+	admission, err := freeStateExperimentAdmission(freeStateReasoningLoop{LoopID: "loop-post", LatestObservation: d1FreshObservationForTest("15")}, proposal)
+	if err != nil {
+		t.Fatal(err)
+	}
+	turn, err := experiment.NewTurn(experiment.Identity{ConversationID: "conv-post", GoalID: "goal-post", RunID: "run-post", TurnID: "turn-post"}, "post action", admission, now)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := turn.StartRound([]string{"track.timbre_frequency"}, "checkpoint", "15", now); err != nil {
+		t.Fatal(err)
+	}
+	loop := freeStateReasoningLoop{Experiment: &turn, LatestProjectChange: map[string]any{"to_project": map[string]any{"project_revision": "16"}}}
+	old := d1FreshObservationForTest("15")
+	if freeStatePostActionObservationEligible(loop, old) {
+		t.Fatal("replayed pre-action observation was accepted as post-action evidence")
 	}
 }
 
@@ -29,11 +79,7 @@ func TestFreeStateNeedsExperimentCreatesRuntimeTurnAndTrajectory(t *testing.T) {
 		SchemaVersion: freeStateReasoningLoopSchema, LoopID: "loop-experiment", ConversationID: "conversation-experiment",
 		GoalID: "goal-1", RunID: "run-1", Status: "reasoning", DecisionPhase: freeStatePhaseProcessorSelection,
 		OriginalIntent: "make the vocal more forward", ActiveIntent: "make the vocal more forward", MaxCycles: 6,
-		LatestObservation: &agentloop.RecentObservation{Tool: "ccb.observation_request", ToolCallID: "call-before", Summary: map[string]any{
-			"status": "ready", "observation_id": "obs-before", "requested_views": []any{"track.timbre_frequency"},
-			"actual_executed_view_ids": []any{"track.timbre_frequency"}, "evidence_refs": []any{"obs-before"},
-			"audit_receipt": map[string]any{"receipt_id": "receipt-before", "view_set_matches": true, "actual_executed_view_ids": []any{"track.timbre_frequency"}},
-		}}, CreatedAt: now, UpdatedAt: now,
+		LatestObservation: d1FreshObservationForTest("7"), CreatedAt: now, UpdatedAt: now,
 	})
 	loop, ok := s.recordFreeStateDecision("conversation-experiment", agentloop.Result{GoalID: "goal-1", RunID: "run-1", FreeStateDecision: &agentloop.FreeStateDecision{
 		SchemaVersion: agentloop.FreeStateDecisionSchema, Status: agentloop.FreeStateNeedsExperiment, EvidenceStatus: "plausible",
@@ -73,14 +119,14 @@ func TestFreeStateNeedsExperimentCreatesRuntimeTurnAndTrajectory(t *testing.T) {
 func TestFreeStateExperimentMaterialityAndTargetResponseAreRecordedFromDecision(t *testing.T) {
 	s := New(nil, nil, nil)
 	now := time.Now().UTC()
-	loop := freeStateReasoningLoop{SchemaVersion: freeStateReasoningLoopSchema, LoopID: "loop-record", ConversationID: "conversation-record", Status: "awaiting_experiment", OriginalIntent: "improve", CreatedAt: now, UpdatedAt: now}
+	loop := freeStateReasoningLoop{SchemaVersion: freeStateReasoningLoopSchema, LoopID: "loop-record", ConversationID: "conversation-record", Status: "awaiting_experiment", OriginalIntent: "improve", LatestObservation: d1FreshObservationForTest("7"), CreatedAt: now, UpdatedAt: now}
 	if err := s.startFreeStateExperiment(&loop, agentloop.FreeStateDecision{ImprovementProposal: experimentTestProposal()}, "goal", "run"); err != nil {
 		t.Fatal(err)
 	}
 	if loop.Experiment == nil {
 		t.Fatal("missing experiment")
 	}
-	if _, err := loop.Experiment.RecordObservation(experiment.Observation{ID: "before", RequestedViewIDs: []string{"track.timbre_frequency"}, ExecutedViewIDs: []string{"track.timbre_frequency"}, ViewSetMatches: true, Fresh: true, EvidenceRefs: []string{"before"}}, false, now); err != nil {
+	if _, err := loop.Experiment.RecordObservation(experiment.Observation{ID: "before", RequestedViewIDs: []string{"track.timbre_frequency"}, ExecutedViewIDs: []string{"track.timbre_frequency"}, ViewSetMatches: true, Fresh: true, ProjectRevision: "rev-before", EvidenceRefs: []string{"before"}}, false, now); err != nil {
 		t.Fatal(err)
 	}
 	s.recordFreeStateExperimentAction(&loop, "eq", "applied", map[string]any{"action_id": "action-1", "status": "readback_ok"})
@@ -89,10 +135,10 @@ func TestFreeStateExperimentMaterialityAndTargetResponseAreRecordedFromDecision(
 	if round == "" || loop.Experiment.Rounds[0].Materiality == nil || loop.Experiment.Rounds[0].Materiality.Evaluation != trajectory.EvaluationInsufficientDose {
 		t.Fatalf("materiality missing=%+v", loop.Experiment)
 	}
-	if loop.Experiment.Rounds[0].Status != experiment.RoundCompleted || loop.Experiment.Rounds[0].Decision != experiment.DecisionNextRound {
-		t.Fatalf("wrong dose status=%+v", loop.Experiment.Rounds[0])
+	if loop.Experiment.Rounds[0].Decision != "" {
+		t.Fatalf("D1-S1 subthreshold result must remain available for ambiguous human audition: %+v", loop.Experiment.Rounds[0])
 	}
-	if len(loop.Experiment.Rounds) != 2 || loop.Experiment.CurrentRoundID != loop.Experiment.Rounds[1].ID {
-		t.Fatalf("insufficient dose did not advance to next round: %+v", loop.Experiment.Rounds)
+	if len(loop.Experiment.Rounds) != 1 {
+		t.Fatalf("D1-S1 insufficient dose created another round: %+v", loop.Experiment.Rounds)
 	}
 }

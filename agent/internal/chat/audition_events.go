@@ -286,6 +286,9 @@ func (s *Server) prepareFreeStateAudition(ctx context.Context, loop *freeStateRe
 		return nil
 	}
 	projectRevision := firstNonEmpty(round.ProjectRevision, firstStringFromMap(loop.LatestProjectChange, "project_revision", "revision"), round.CheckpointRef)
+	if loop.Experiment.Admission.IsD1S1() && len(round.Interventions) == 1 {
+		projectRevision = firstNonEmpty(firstStringFromMap(round.Interventions[0].Receipt, "after_revision", "applied_revision"), projectRevision)
+	}
 	projectRef := firstStringFromMap(loop.LatestProjectChange, "project_path")
 	projectUUIDFromChange := firstStringFromMap(loop.LatestProjectChange, "project_uuid", "project_id")
 	if s.auditionCandidateDriver != nil {
@@ -321,6 +324,20 @@ func (s *Server) prepareFreeStateAudition(ctx context.Context, loop *freeStateRe
 	treatmentCommit := firstStringFromMap(treatmentCheckpoint, "commit_id")
 	request.Candidates[1].CheckpointRef = treatmentCommit
 	request.Candidates[1].CommitID = treatmentCommit
+	if loop.Experiment.Admission.IsD1S1() {
+		before := firstMapFromAny(loop.D1State["before_render"])
+		if firstStringFromMap(before, "status") != "ready" || !validD1RenderFile(firstStringFromMap(before, "file_path")) {
+			return fmt.Errorf("D1-S1 before render is unavailable")
+		}
+		after, renderErr := s.ensureD1Render(ctx, loop, "after", projectRevision, treatmentCommit)
+		if renderErr != nil {
+			return renderErr
+		}
+		request.Candidates, renderErr = d1AuditionCandidates(before, after, baselineCommit, treatmentCommit, projectRef, projectUUID)
+		if renderErr != nil {
+			return renderErr
+		}
+	}
 	if s.auditionKernel == nil {
 		session := map[string]any{"session_id": sessionID, "conversation_id": loop.ConversationID, "status": "failed", "candidates": request.Candidates}
 		s.emitAuditionEvent(loop.ConversationID, "audition.failed", session, map[string]any{"message": "kernel unavailable", "command": "audition.prepare"})
@@ -496,9 +513,18 @@ func (s *Server) recordFreeStateAuditionJudgment(ctx context.Context, request au
 		s.persistCurrentProjectWorkspace()
 		return evidence, nil
 	}
-	// Recording human evidence never adopts or restores a Candidate. A/B
-	// preference becomes an explicit apply_candidate authorization boundary.
-	if evidence.HeardDifference == experiment.HeardDifferenceYes && (evidence.Preference == experiment.PreferenceA || evidence.Preference == experiment.PreferenceB) {
+	if loop.Experiment.Admission.IsD1S1() {
+		// D1-S1 already applied its only forward mutation before audition. Human
+		// preference therefore settles retain/rollback directly; candidate apply
+		// would be an illegal second mutation.
+		if err := s.applyFreeStateJudgmentOutcome(ctx, &loop, evidence); err != nil {
+			loop.UpdatedAt = time.Now().UTC()
+			s.storeFreeStateLoop(loop)
+			s.persistCurrentProjectWorkspace()
+			return experiment.UserJudgmentEvidence{}, err
+		}
+	} else if evidence.HeardDifference == experiment.HeardDifferenceYes && (evidence.Preference == experiment.PreferenceA || evidence.Preference == experiment.PreferenceB) {
+		// Legacy candidate workflows retain the explicit apply boundary.
 		loop.Status = "awaiting_candidate_apply"
 		loop.AuditionSessionSnapshot["adoption_status"] = "pending"
 		loop.AuditionSessionSnapshot["judgment_evidence_id"] = evidence.ID
@@ -647,6 +673,14 @@ func dispositionForUserJudgment(evidence experiment.UserJudgmentEvidence) auditi
 	}
 }
 
+func d1DispositionForUserJudgment(evidence experiment.UserJudgmentEvidence) auditionJudgmentDisposition {
+	disposition := dispositionForUserJudgment(evidence)
+	if disposition.Decision == experiment.DecisionNextRound {
+		return auditionJudgmentDisposition{Decision: experiment.DecisionStopped, Outcome: experiment.OutcomeNeedsJudgment}
+	}
+	return disposition
+}
+
 func annotateJudgmentDecision(events []trajectory.Event, actionKind, candidateID string) {
 	if len(events) == 0 {
 		return
@@ -663,7 +697,11 @@ func (s *Server) applyFreeStateJudgmentOutcome(ctx context.Context, loop *freeSt
 	if loop == nil || loop.Experiment == nil {
 		return fmt.Errorf("experiment session unavailable")
 	}
+	d1 := loop.Experiment.Admission.IsD1S1()
 	disposition := dispositionForUserJudgment(evidence)
+	if d1 {
+		disposition = d1DispositionForUserJudgment(evidence)
+	}
 	switch disposition.Decision {
 	case experiment.DecisionRetain:
 		// Candidate B is the treatment already present in the active project.
@@ -674,8 +712,10 @@ func (s *Server) applyFreeStateJudgmentOutcome(ctx context.Context, loop *freeSt
 		}
 		annotateJudgmentDecision(events, "audition.retain_candidate", "candidate-b")
 		s.emitFreeStateExperimentEvents(events)
-		if err = s.settleTaskFromExperiment(loop, "user preferred B; treatment candidate retained", []string{evidence.ID}); err != nil {
-			return err
+		if s.hasTaskSemanticContract(loop.GoalID) {
+			if err = s.settleTaskFromExperiment(loop, "user preferred B; treatment candidate retained", []string{evidence.ID}); err != nil {
+				return err
+			}
 		}
 		events, err = loop.Experiment.Settle(experiment.OutcomeImproved, "user preferred B; treatment candidate retained", time.Now().UTC())
 		if err != nil {
@@ -695,8 +735,10 @@ func (s *Server) applyFreeStateJudgmentOutcome(ctx context.Context, loop *freeSt
 			return err
 		}
 		s.emitFreeStateExperimentEvents(rollbackEvents)
-		if err = s.settleTaskFromExperiment(loop, "user selected baseline or rejected both candidates", []string{evidence.ID}); err != nil {
-			return err
+		if s.hasTaskSemanticContract(loop.GoalID) {
+			if err = s.settleTaskFromExperiment(loop, "user selected baseline or rejected both candidates", []string{evidence.ID}); err != nil {
+				return err
+			}
 		}
 		events, err = loop.Experiment.Settle(experiment.OutcomeRolledBack, "user selected baseline or rejected both candidates", time.Now().UTC())
 		if err != nil {
@@ -705,30 +747,47 @@ func (s *Server) applyFreeStateJudgmentOutcome(ctx context.Context, loop *freeSt
 		s.emitFreeStateExperimentEvents(events)
 		loop.Status = "completed"
 	default:
-		// Ambiguous human evidence means the current point or dose is not yet
-		// useful. Keep the turn alive and start a fresh bounded round.
-		current, err := loop.Experiment.CurrentRound()
+		if !d1 {
+			current, err := loop.Experiment.CurrentRound()
+			if err != nil {
+				return err
+			}
+			events, err := loop.Experiment.DecideRound(experiment.DecisionNextRound, "ambiguous audition judgment; continue with a new point or dose", time.Now().UTC())
+			if err != nil {
+				return err
+			}
+			annotateJudgmentDecision(events, "experiment.next_round", "")
+			s.emitFreeStateExperimentEvents(events)
+			views := append([]string(nil), current.RequestedViewIDs...)
+			events, err = loop.Experiment.StartRound(views, current.CheckpointRef, current.ProjectRevision, time.Now().UTC())
+			if err != nil {
+				return err
+			}
+			s.emitFreeStateExperimentEvents(events)
+			loop.AuditionSessionID = ""
+			loop.AuditionSessionSnapshot = nil
+			loop.Status = "active"
+			return s.resumeTaskExperimentAfterJudgment(loop, "human judgment recorded; experiment remains open")
+		}
+		// D1-S1 ambiguity is terminal for automatic execution. It records the
+		// uncertainty and settles without a second forward mutation.
+		events, err := loop.Experiment.DecideRound(experiment.DecisionStopped, "ambiguous audition judgment; no further mutation permitted", time.Now().UTC())
 		if err != nil {
 			return err
 		}
-		events, err := loop.Experiment.DecideRound(experiment.DecisionNextRound, "ambiguous audition judgment; continue with a new point or dose", time.Now().UTC())
-		if err != nil {
-			return err
-		}
-		annotateJudgmentDecision(events, "experiment.next_round", "")
+		annotateJudgmentDecision(events, "experiment.ambiguous", "")
 		s.emitFreeStateExperimentEvents(events)
-		views := append([]string(nil), current.RequestedViewIDs...)
-		events, err = loop.Experiment.StartRound(views, current.CheckpointRef, current.ProjectRevision, time.Now().UTC())
+		if s.hasTaskSemanticContract(loop.GoalID) {
+			if err = s.settleTaskFromExperiment(loop, "human judgment was ambiguous; no further mutation performed", []string{evidence.ID}); err != nil {
+				return err
+			}
+		}
+		events, err = loop.Experiment.Settle(experiment.OutcomeNeedsJudgment, "human judgment was ambiguous; no further mutation performed", time.Now().UTC())
 		if err != nil {
 			return err
 		}
 		s.emitFreeStateExperimentEvents(events)
-		loop.AuditionSessionID = ""
-		loop.AuditionSessionSnapshot = nil
-		loop.Status = "active"
-		if err := s.resumeTaskExperimentAfterJudgment(loop, "human judgment recorded; experiment remains open"); err != nil {
-			return err
-		}
+		loop.Status = "completed"
 	}
 	return nil
 }

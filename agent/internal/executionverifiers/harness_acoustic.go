@@ -26,6 +26,8 @@ type HarnessInvoker interface {
 type HarnessAcoustic struct {
 	Invoker               HarnessInvoker
 	PreviousObservationID string
+	ExpectedRevision      string
+	RequireExplicitFresh  bool
 	MixSessionID          string
 	GoalText              string
 }
@@ -86,6 +88,8 @@ func (v HarnessAcoustic) verifyFreshMOM(ctx context.Context, actionSet orchestra
 			"previous_observation": previousID,
 			"mix_session_id":       strings.TrimSpace(v.MixSessionID),
 			"goal_text":            strings.TrimSpace(v.GoalText),
+			"post_action":          true,
+			"freshness_class":      "post_action",
 		},
 		Context: map[string]any{
 			"capability_runtime_v1": true,
@@ -107,6 +111,7 @@ func (v HarnessAcoustic) verifyFreshMOM(ctx context.Context, actionSet orchestra
 	observationID := verifierString(response.Result, "observation_id")
 	result.ObservationID = observationID
 	result.ObservationRevision = observationRevision(response.Result)
+	result.Fresh = explicitObservationFresh(response.Result)
 	if observationID == "" {
 		result.Status = "fail"
 		result.Summary = "mix.observe response omitted observation_id"
@@ -120,6 +125,14 @@ func (v HarnessAcoustic) verifyFreshMOM(ctx context.Context, actionSet orchestra
 	}
 	if result.ObservationRevision == "" {
 		result.Summary = "post-execution observation has a new id but no revision or creation timestamp"
+		return result, nil
+	}
+	if v.RequireExplicitFresh && !result.Fresh {
+		result.Summary = "post-execution observation did not carry explicit fresh CCB evidence"
+		return result, nil
+	}
+	if expected := strings.TrimSpace(v.ExpectedRevision); expected != "" && result.ObservationRevision != expected {
+		result.Summary = fmt.Sprintf("post-execution observation revision %s does not match applied revision %s", result.ObservationRevision, expected)
 		return result, nil
 	}
 	result.EvidenceRefs = append(result.EvidenceRefs, "mix.observe.revision:"+result.ObservationRevision)
@@ -161,6 +174,22 @@ func (v HarnessAcoustic) verifyFreshMOM(ctx context.Context, actionSet orchestra
 		result.Summary = fmt.Sprintf("fresh observation %s at %s: %s; musical acceptance remains unknown", observationID, result.ObservationRevision, result.Summary)
 	}
 	return result, nil
+}
+
+func explicitObservationFresh(result map[string]any) bool {
+	audit := verifierMap(result["audit_receipt"])
+	bundle := verifierMap(result["bundle"])
+	if len(audit) == 0 {
+		audit = verifierMap(bundle["audit_receipt"])
+	}
+	freshness := verifierMap(audit["freshness"])
+	if len(freshness) == 0 {
+		freshness = verifierMap(result["freshness"])
+	}
+	if len(freshness) == 0 {
+		freshness = verifierMap(bundle["freshness"])
+	}
+	return strings.EqualFold(verifierString(freshness, "status"), "fresh")
 }
 
 type hierarchySample struct {
@@ -368,11 +397,17 @@ func verifyPanLayoutMOM(relation map[string]any, actionSet orchestration.ActionS
 
 func observationRevision(result map[string]any) string {
 	projection := verifierMap(result["mom_projection"])
+	binding := verifierMap(result["project_binding"])
+	if len(binding) == 0 {
+		binding = verifierMap(verifierMap(result["audit_receipt"])["project_binding"])
+	}
 	project := verifierMap(projection["project_structure"])
 	trust := verifierMap(projection["trust_quality"])
 	observation := verifierMap(result["observation"])
 	catalog := verifierMap(result["catalog"])
 	return firstVerifierText(
+		verifierString(binding, "project_revision", "revision"),
+		verifierString(result, "project_revision", "revision"),
 		verifierString(project, "render_revision", "source_revision", "clip_revision"),
 		verifierString(trust, "render_revision", "source_revision", "clip_revision", "updated_at"),
 		verifierString(observation, "created_at"),

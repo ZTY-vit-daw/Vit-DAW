@@ -8,7 +8,7 @@
 - **历史记录**：基线、验证记录、审计、ADR、设计草案快照等纯记录性文档。保留原位，可查证当时的设计决策，**不得当作现状**。
 - **已废弃**：内容已被实现超越且会误导 agent 的文档，已迁至 `docs/archive/`。
 
-汇总：docs/ 根目录共 114 份文档（现行 51 / 历史记录 60 / 已废弃 4），另有 `docs/vsp/` 子目录单独索引（见末节）。
+汇总：`docs/` 顶层共 111 份现行/历史文档（现行 51 / 历史记录 61），另有 `docs/archive/` 已废弃文档 4 份；两者合计 115 份。`docs/vsp/` 子目录 13 份文档单独索引（见末节）。
 
 ---
 
@@ -97,7 +97,7 @@
 
 ---
 
-## 二、历史记录（60，保留原位，不得当作现状）
+## 二、历史记录（61，保留原位，不得当作现状）
 
 ### ADR / 决策记录
 
@@ -111,6 +111,7 @@
 
 | 文档 | 说明 |
 |---|---|
+| [FREE_STATE_PHASE_D_D1_S1_PAUSED_HANDOFF_2026-08-23.md](docs/FREE_STATE_PHASE_D_D1_S1_PAUSED_HANDOFF_2026-08-23.md) | Phase D D1-S1 主动暂停交接：未提交实现、已报告验证、`spv1_p01 not_exercised` 缺口与续开发入口（非 D1 closeout） |
 | [FREE_STATE_PHASE_C_CLOSEOUT_2026-08-23.md](docs/FREE_STATE_PHASE_C_CLOSEOUT_2026-08-23.md) | Phase C 自由态运行时与真实开放意图验收收口记录（本文件） |
 | [COMPRESSOR_CONTROL_V11_VALIDATION.md](docs/COMPRESSOR_CONTROL_V11_VALIDATION.md) | 压缩控制 v1.1 验证（2026-08-04 通过） |
 | [COMPRESSOR_CONTROL_V12_VALIDATION.md](docs/COMPRESSOR_CONTROL_V12_VALIDATION.md) | 压缩控制 v1.2 验证（关闭 round-2 三项失败） |

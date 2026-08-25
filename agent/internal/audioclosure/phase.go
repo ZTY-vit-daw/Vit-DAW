@@ -88,7 +88,7 @@ var legalPhaseTransitions = map[Phase]map[Phase]bool{
 		PhaseFS6TargetConfirmed: true, PhaseFS4DiagnosticRound: true, PhaseFS9Terminal: true,
 	},
 	PhaseFS6TargetConfirmed: map[Phase]bool{
-		PhaseFS7ImprovementProposal: true, PhaseFS5CandidateFrontier: true, PhaseFS4DiagnosticRound: true,
+		PhaseFS7ImprovementProposal: true, PhaseFS5CandidateFrontier: true, PhaseFS4DiagnosticRound: true, PhaseFS9Terminal: true,
 	},
 	PhaseFS7ImprovementProposal: {PhaseFS8ExperimentVerification: true, PhaseFS4DiagnosticRound: true},
 	PhaseFS8ExperimentVerification: map[Phase]bool{

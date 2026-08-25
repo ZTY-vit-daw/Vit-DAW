@@ -84,6 +84,14 @@ type ImprovementExecutionReceipt struct {
 	Layers                ReceiptLayers         `json:"layers"`
 	EvidenceRefs          []string              `json:"evidence_refs"`
 	Limitations           []string              `json:"limitations,omitempty"`
+	ParameterApplied      bool                  `json:"parameter_applied"`
+	ReadbackVerified      bool                  `json:"readback_verified"`
+	EvaluationReady       bool                  `json:"evaluation_ready"`
+	HumanAuditionReady    bool                  `json:"human_audition_ready"`
+	HumanConfirmed        bool                  `json:"human_confirmed"`
+	Ambiguous             bool                  `json:"ambiguous"`
+	RolledBack            bool                  `json:"rolled_back"`
+	Settled               bool                  `json:"settled"`
 	RecordedAt            time.Time             `json:"recorded_at"`
 }
 
@@ -173,6 +181,27 @@ func (r ImprovementExecutionReceipt) Validate() error {
 	}
 	if len(unique(r.EvidenceRefs)) == 0 {
 		return fmt.Errorf("evidence_refs are required and must point at fresh, revision-bound observation receipts")
+	}
+	if r.ReadbackVerified && !r.ParameterApplied {
+		return fmt.Errorf("readback_verified requires parameter_applied")
+	}
+	if r.EvaluationReady && !r.ReadbackVerified {
+		return fmt.Errorf("evaluation_ready requires readback_verified")
+	}
+	if r.HumanAuditionReady && !r.EvaluationReady {
+		return fmt.Errorf("human_audition_ready requires evaluation_ready")
+	}
+	if r.HumanConfirmed && !r.HumanAuditionReady {
+		return fmt.Errorf("human_confirmed requires human_audition_ready")
+	}
+	if r.Ambiguous && r.HumanConfirmed {
+		return fmt.Errorf("ambiguous receipt cannot be human_confirmed")
+	}
+	if r.RolledBack && r.Disposition != DispositionRollback {
+		return fmt.Errorf("rolled_back requires rollback disposition")
+	}
+	if r.Settled && strings.EqualFold(r.Layers.HumanAB.Status, "pending") {
+		return fmt.Errorf("settled receipt cannot have pending human A/B")
 	}
 	return nil
 }

@@ -46,39 +46,46 @@ type freeStateActionRecord struct {
 // keeps one user intent intact while governed processor workflows pause for
 // confirmation and return their receipts on later HTTP turns.
 type freeStateReasoningLoop struct {
-	SchemaVersion                 string                       `json:"schema_version"`
-	LoopID                        string                       `json:"loop_id"`
-	ConversationID                string                       `json:"conversation_id"`
-	GoalID                        string                       `json:"goal_id,omitempty"`
-	RunID                         string                       `json:"run_id,omitempty"`
-	AuthorityMode                 experiment.AuthorityMode     `json:"authority_mode"`
-	Status                        string                       `json:"status"`
-	DecisionPhase                 string                       `json:"decision_phase"`
-	OriginalIntent                string                       `json:"original_intent"`
-	ActiveIntent                  string                       `json:"active_intent"`
-	TargetRef                     map[string]any               `json:"target_ref,omitempty"`
-	Cycle                         int                          `json:"cycle"`
-	MaxCycles                     int                          `json:"max_cycles"`
-	CurrentRoundID                string                       `json:"current_round_id,omitempty"`
-	CurrentPhase                  string                       `json:"current_phase,omitempty"`
-	PriorityQueue                 *audioclosure.PriorityQueue  `json:"priority_queue,omitempty"`
-	ContinuationBudget            int                          `json:"continuation_budget,omitempty"`
-	ContinuationUsed              int                          `json:"continuation_used,omitempty"`
-	ObservationIDs                []string                     `json:"observation_ids,omitempty"`
-	ObservationReceipts           []map[string]any             `json:"observation_receipts,omitempty"`
-	RejectedObservationRequests   []map[string]any             `json:"rejected_observation_requests,omitempty"`
-	ObservationLedger             map[string]any               `json:"observation_ledger,omitempty"`
-	LatestProjectChange           map[string]any               `json:"latest_project_change,omitempty"`
-	LatestObservation             *agentloop.RecentObservation `json:"latest_observation,omitempty"`
-	Actions                       []freeStateActionRecord      `json:"actions,omitempty"`
-	LatestDecision                *agentloop.FreeStateDecision `json:"latest_decision,omitempty"`
-	Experiment                    *experiment.Turn             `json:"experiment,omitempty"`
-	AuditionSessionID             string                       `json:"audition_session_id,omitempty"`
-	AuditionSessionSnapshot       map[string]any               `json:"audition_session_snapshot,omitempty"`
-	RequiresPostActionObservation bool                         `json:"requires_post_action_observation"`
-	LastError                     string                       `json:"last_error,omitempty"`
-	CreatedAt                     time.Time                    `json:"created_at"`
-	UpdatedAt                     time.Time                    `json:"updated_at"`
+	SchemaVersion               string                       `json:"schema_version"`
+	LoopID                      string                       `json:"loop_id"`
+	ConversationID              string                       `json:"conversation_id"`
+	GoalID                      string                       `json:"goal_id,omitempty"`
+	RunID                       string                       `json:"run_id,omitempty"`
+	AuthorityMode               experiment.AuthorityMode     `json:"authority_mode"`
+	Status                      string                       `json:"status"`
+	DecisionPhase               string                       `json:"decision_phase"`
+	OriginalIntent              string                       `json:"original_intent"`
+	ActiveIntent                string                       `json:"active_intent"`
+	TargetRef                   map[string]any               `json:"target_ref,omitempty"`
+	Cycle                       int                          `json:"cycle"`
+	MaxCycles                   int                          `json:"max_cycles"`
+	CurrentRoundID              string                       `json:"current_round_id,omitempty"`
+	CurrentPhase                string                       `json:"current_phase,omitempty"`
+	PriorityQueue               *audioclosure.PriorityQueue  `json:"priority_queue,omitempty"`
+	ContinuationBudget          int                          `json:"continuation_budget,omitempty"`
+	ContinuationUsed            int                          `json:"continuation_used,omitempty"`
+	ObservationIDs              []string                     `json:"observation_ids,omitempty"`
+	ObservationReceipts         []map[string]any             `json:"observation_receipts,omitempty"`
+	RejectedObservationRequests []map[string]any             `json:"rejected_observation_requests,omitempty"`
+	ObservationLedger           map[string]any               `json:"observation_ledger,omitempty"`
+	LatestProjectChange         map[string]any               `json:"latest_project_change,omitempty"`
+	LatestObservation           *agentloop.RecentObservation `json:"latest_observation,omitempty"`
+	Actions                     []freeStateActionRecord      `json:"actions,omitempty"`
+	LatestDecision              *agentloop.FreeStateDecision `json:"latest_decision,omitempty"`
+	Experiment                  *experiment.Turn             `json:"experiment,omitempty"`
+	D1State                     map[string]any               `json:"d1_state,omitempty"`
+	D1Receipt                   map[string]any               `json:"d1_receipt,omitempty"`
+	// AdmissionReceipt is the read-only FS6/FS7 boundary audit. It is kept
+	// separately from the execution receipt because a proposal may be absent
+	// or rejected before an experiment Turn exists.
+	AdmissionReceipt              map[string]any `json:"admission_receipt,omitempty"`
+	AuditionSessionID             string         `json:"audition_session_id,omitempty"`
+	AuditionSessionSnapshot       map[string]any `json:"audition_session_snapshot,omitempty"`
+	RequiresPostActionObservation bool           `json:"requires_post_action_observation"`
+	PostActionObservationReserved bool           `json:"post_action_observation_reserved,omitempty"`
+	LastError                     string         `json:"last_error,omitempty"`
+	CreatedAt                     time.Time      `json:"created_at"`
+	UpdatedAt                     time.Time      `json:"updated_at"`
 }
 
 func freeStateLoopActive(loop freeStateReasoningLoop) bool {
@@ -177,6 +184,7 @@ func mergeFreeStateLoops(base, overlay freeStateReasoningLoop, overlayOK bool) f
 	if !overlayOK {
 		return out
 	}
+	overlayNewer := freeStateLoopOverlayNewer(out, overlay)
 	if overlay.SchemaVersion != "" {
 		out.SchemaVersion = overlay.SchemaVersion
 	}
@@ -197,7 +205,7 @@ func mergeFreeStateLoops(base, overlay freeStateReasoningLoop, overlayOK bool) f
 	// snapshot is commonly older than the durable loop updated after the prior
 	// observation. Do not let it regress an active/terminal status.
 	if strings.TrimSpace(overlay.Status) != "" &&
-		(strings.TrimSpace(out.Status) == "" || overlay.UpdatedAt.IsZero() || out.UpdatedAt.IsZero() || !overlay.UpdatedAt.Before(out.UpdatedAt)) {
+		(strings.TrimSpace(out.Status) == "" || (overlayNewer && !(freeStateLoopTerminal(out.Status) && !freeStateLoopTerminal(overlay.Status)))) {
 		out.Status = overlay.Status
 	}
 	if out.AuthorityMode == "" {
@@ -215,16 +223,25 @@ func mergeFreeStateLoops(base, overlay freeStateReasoningLoop, overlayOK bool) f
 	if len(overlay.AuditionSessionSnapshot) > 0 {
 		out.AuditionSessionSnapshot = cloneContext(overlay.AuditionSessionSnapshot)
 	}
+	if len(overlay.D1State) > 0 {
+		out.D1State = cloneContext(overlay.D1State)
+	}
+	if len(overlay.D1Receipt) > 0 {
+		out.D1Receipt = cloneContext(overlay.D1Receipt)
+	}
+	if len(overlay.AdmissionReceipt) > 0 {
+		out.AdmissionReceipt = cloneContext(overlay.AdmissionReceipt)
+	}
 	if overlay.MaxCycles > 0 {
 		out.MaxCycles = overlay.MaxCycles
 	}
-	if overlay.CurrentRoundID != "" {
+	if overlay.CurrentRoundID != "" && (overlayNewer || out.CurrentRoundID == "") {
 		out.CurrentRoundID = overlay.CurrentRoundID
 	}
-	if overlay.CurrentPhase != "" {
+	if overlay.CurrentPhase != "" && (out.CurrentPhase == "" || (overlayNewer && freeStatePhaseRank(overlay.CurrentPhase) >= freeStatePhaseRank(out.CurrentPhase))) {
 		out.CurrentPhase = overlay.CurrentPhase
 	}
-	if overlay.PriorityQueue != nil {
+	if overlay.PriorityQueue != nil && (overlayNewer || out.PriorityQueue == nil) {
 		out.PriorityQueue = overlay.PriorityQueue
 	}
 	if overlay.ContinuationBudget > 0 {
@@ -236,10 +253,10 @@ func mergeFreeStateLoops(base, overlay freeStateReasoningLoop, overlayOK bool) f
 	if overlay.Cycle > out.Cycle {
 		out.Cycle = overlay.Cycle
 	}
-	if overlay.LatestObservation != nil {
+	if overlay.LatestObservation != nil && (overlayNewer || out.LatestObservation == nil) {
 		out.LatestObservation = overlay.LatestObservation
 	}
-	if overlay.LatestDecision != nil {
+	if overlay.LatestDecision != nil && (overlayNewer || out.LatestDecision == nil) {
 		out.LatestDecision = overlay.LatestDecision
 	}
 	if !overlay.CreatedAt.IsZero() && (out.CreatedAt.IsZero() || overlay.CreatedAt.Before(out.CreatedAt)) {
@@ -257,6 +274,39 @@ func mergeFreeStateLoops(base, overlay freeStateReasoningLoop, overlayOK bool) f
 	}
 	out.ObservationLedger = mergeFreeStateLedgers(out.ObservationLedger, overlay.ObservationLedger)
 	return out
+}
+
+func freeStateLoopOverlayNewer(base, overlay freeStateReasoningLoop) bool {
+	if base.UpdatedAt.IsZero() {
+		return true
+	}
+	if overlay.UpdatedAt.IsZero() {
+		return false
+	}
+	return overlay.UpdatedAt.After(base.UpdatedAt)
+}
+
+func freeStateLoopTerminal(status string) bool {
+	switch strings.ToLower(strings.TrimSpace(status)) {
+	case "completed", "cancelled", "blocked", "capability_blocked", "no_candidate_found", "failed", "stopped":
+		return true
+	default:
+		return false
+	}
+}
+
+func freeStatePhaseRank(phase string) int {
+	phase = strings.ToLower(strings.TrimSpace(phase))
+	for index, candidate := range []string{
+		"fs0_semantic_entry", "fs1_project_bound", "fs2_capacity_assessed", "fs3_project_scan",
+		"fs4_diagnostic_round", "fs5_candidate_frontier", "fs6_target_confirmed", "fs7_improvement_proposal",
+		"fs8_experiment_verification", "fs9_terminal",
+	} {
+		if phase == candidate {
+			return index
+		}
+	}
+	return -1
 }
 
 func mergeFreeStateLedgers(base, overlay map[string]any) map[string]any {
@@ -371,6 +421,7 @@ func (s *Server) storeFreeStateLoop(loop freeStateReasoningLoop) {
 	if s == nil || strings.TrimSpace(loop.ConversationID) == "" {
 		return
 	}
+	syncD1Receipt(&loop)
 	loop.DecisionPhase = resolvedFreeStateDecisionPhase(loop)
 	// The continuation budget is the explicit ADR §10 scheduling bound; it
 	// defaults to the loop's action ceiling so the scheduler Attempt semantics
@@ -400,6 +451,144 @@ func (s *Server) freeStateLoop(conversationID string) (freeStateReasoningLoop, b
 func (s *Server) hasActiveFreeStateReasoningLoop(conversationID string) bool {
 	loop, ok := s.freeStateLoop(conversationID)
 	return ok && freeStateLoopActive(loop)
+}
+
+func (s *Server) recordFreeStateAdmissionReceipt(loop *freeStateReasoningLoop, decision *agentloop.FreeStateDecision, context map[string]any) {
+	if s == nil || loop == nil || decision == nil {
+		return
+	}
+	status := strings.ToLower(strings.TrimSpace(decision.Status))
+	if status != agentloop.FreeStateNeedsExperiment && status != agentloop.FreeStateImprovementProposal &&
+		status != agentloop.FreeStateCapabilityBlocked && status != agentloop.FreeStateBlocked {
+		return
+	}
+	audit := agentloop.AuditFreeStateNeedsExperimentGate(context, decision)
+	candidateID := ""
+	frontierEvidence := ""
+	if s.audioClosures != nil {
+		if closure, tracked := s.audioClosures.ActiveForConversation(loop.ConversationID); tracked {
+			candidateID = strings.TrimSpace(closure.Frontier.CandidateID)
+			frontierEvidence = closureTargetEvidence(closure)
+		}
+	}
+	if candidateID == "" && len(loop.ObservationLedger) > 0 {
+		for _, observation := range freeStateLedgerObservations(loop.ObservationLedger) {
+			if observation == nil {
+				continue
+			}
+			frontier, _ := audioClosureFrontier(audioclosure.HypothesisFrontier{}, agentloop.FreeStateDecision{SchemaVersion: agentloop.FreeStateDecisionSchema}, []*agentloop.RecentObservation{observation})
+			if frontier.CandidateID != "" {
+				candidateID = frontier.CandidateID
+				break
+			}
+		}
+	}
+	if candidateID == "" {
+		candidateID = firstNonEmpty(firstStringFromMap(loop.TargetRef, "candidate_id"), "")
+	}
+	targetEvidence := ""
+	if decision.ImprovementProposal != nil {
+		for _, ref := range decision.ImprovementProposal.EvidenceRefs {
+			if strings.TrimSpace(ref) != "" {
+				targetEvidence = strings.TrimSpace(ref)
+				break
+			}
+		}
+	}
+	if frontierEvidence != "" {
+		targetEvidence = frontierEvidence
+	} else if loop.LatestObservation != nil {
+		targetEvidence = firstNonEmpty(firstStringFromMap(loop.LatestObservation.Summary, "observation_id"), targetEvidence)
+	}
+	gateResults := freeStateAdmissionGateResults(audit.FailedGateIDs)
+	boundary := ""
+	switch {
+	case !audit.Proposal:
+		boundary = "proposal_missing"
+	case !audit.ProposalValid:
+		boundary = "proposal_invalid"
+	case len(audit.FailedGateIDs) > 0:
+		boundary = "admission_gate_failed"
+	case status == agentloop.FreeStateCapabilityBlocked || status == agentloop.FreeStateBlocked:
+		boundary = firstNonEmpty(decision.StopReason, "capability_boundary")
+	default:
+		boundary = "admitted"
+	}
+	observationBinding := map[string]any{}
+	if loop.LatestObservation != nil {
+		observationBinding = firstMapFromAny(loop.LatestObservation.Summary["project_binding"])
+	}
+	loop.AdmissionReceipt = map[string]any{
+		"schema_version":      "free_state_admission_receipt.v1",
+		"status":              status,
+		"boundary":            boundary,
+		"candidate_id":        candidateID,
+		"target_evidence_ref": targetEvidence,
+		"failed_gate_ids":     append([]string(nil), audit.FailedGateIDs...),
+		"gate_results":        gateResults,
+		"proposal_present":    audit.Proposal,
+		"proposal_valid":      audit.ProposalValid,
+		"proposal_error":      audit.ProposalError,
+		"project_revision":    firstNonEmpty(firstStringFromMap(loop.LatestProjectChange, "project_revision", "revision"), firstStringFromMap(observationBinding, "project_revision")),
+		"recorded_at":         time.Now().UTC().Format(time.RFC3339Nano),
+	}
+}
+
+// closureTargetEvidence returns the exact selected-track observation when the
+// closure has reached FS6. Candidate source refs identify discovery evidence;
+// they are intentionally only a fallback because D1-S1 admission binds to the
+// fresh target observation itself.
+func closureTargetEvidence(state audioclosure.State) string {
+	candidateID := strings.TrimSpace(state.Frontier.CandidateID)
+	selectedTracks := map[string]bool{}
+	fallback := ""
+	for _, candidate := range state.Frontier.Candidates {
+		if candidate.ID != candidateID {
+			continue
+		}
+		fallback = firstNonEmpty(candidate.SourceObservationID)
+		if fallback == "" && len(candidate.EvidenceRefs) > 0 {
+			fallback = strings.TrimSpace(candidate.EvidenceRefs[0])
+		}
+		for _, trackID := range candidate.TrackIDs {
+			selectedTracks[strings.TrimSpace(trackID)] = true
+		}
+		break
+	}
+	for _, record := range state.Observations {
+		if !selectedTracks[strings.TrimSpace(record.TargetRef)] || strings.TrimSpace(record.ObservationID) == "" {
+			continue
+		}
+		for _, viewID := range record.ViewIDs {
+			if strings.HasPrefix(strings.ToLower(strings.TrimSpace(viewID)), "track.") {
+				return record.ObservationID
+			}
+		}
+	}
+	return fallback
+}
+
+// freeStateAdmissionGateResults keeps the complete G1-G7 result vector
+// auditable even when admission stops before a proposal reaches execution.
+// The gate evaluator deliberately exposes only failed IDs; this projection
+// adds the complementary pass/fail values without inventing evidence.
+func freeStateAdmissionGateResults(failed []string) map[string]any {
+	failedSet := map[string]bool{}
+	for _, id := range failed {
+		failedSet[strings.TrimSpace(id)] = true
+	}
+	results := map[string]any{}
+	for _, id := range []string{
+		"G1_project_binding", "G2_capacity_assessed", "G3_project_scan",
+		"G4_dimension_closed", "G5_frontier_established", "G6_target_evidence",
+		"G7_fresh_revision_bound_refs",
+	} {
+		results[id] = "pass"
+		if failedSet[id] {
+			results[id] = "fail"
+		}
+	}
+	return results
 }
 
 func (s *Server) recordFreeStateDecision(conversationID string, res agentloop.Result) (freeStateReasoningLoop, bool) {
@@ -460,13 +649,37 @@ func (s *Server) recordFreeStateDecision(conversationID string, res agentloop.Re
 	decision := *res.FreeStateDecision
 	decision.RequestedViewIDs = append([]string(nil), res.FreeStateDecision.RequestedViewIDs...)
 	decision.Limitations = append([]string(nil), res.FreeStateDecision.Limitations...)
-	if strings.EqualFold(strings.TrimSpace(decision.Status), agentloop.FreeStateNeedsAction) && decision.ImprovementProposal == nil {
-		decision.ImprovementProposal = freeStateActionImprovementProposal(loop, decision)
+	// ContextSnapshot is the compact contextruntime projection and intentionally
+	// omits the authoritative free-state closure/ledger fields.  Prefer the
+	// continuation's full runtime context for the G1-G7 audit; otherwise a fresh
+	// CCB observation is paired with an empty/stale gate snapshot and every gate
+	// is reported as failed.
+	auditContext := map[string]any{}
+	if res.Continuation != nil {
+		candidate := cloneContext(res.Continuation.Context)
+		if len(firstMapFromAny(candidate["minimal_audio_closure"])) > 0 ||
+			len(firstMapFromAny(candidate["free_state_reasoning_loop"])) > 0 {
+			auditContext = candidate
+		}
 	}
+	if len(auditContext) == 0 {
+		auditContext = cloneContext(res.ContextSnapshot)
+	}
+	// The server-owned loop and closure are authoritative across scheduler
+	// slices. Rebind the audit context from them before evaluating G1-G7; the
+	// model continuation may legally carry only a compact/stale overlay.
+	auditContext = s.authoritativeFreeStateAdmissionContext(conversationID, auditContext, loop)
+	s.recordFreeStateAdmissionReceipt(&loop, &decision, auditContext)
 	experimentWasActive := loop.Experiment != nil
 	loop.LatestDecision = &decision
 	if experimentWasActive {
 		for _, current := range observations {
+			if loop.RequiresPostActionObservation && !freeStatePostActionObservationEligible(loop, current) {
+				// A continuation may replay the pre-action CCB bundle after the
+				// mutation. Never bind that old observation as post-action evidence;
+				// wait for a new CCB bundle at the mutation's after revision.
+				continue
+			}
 			observation, observationOK := freeStateExperimentObservation(current, loop.RequiresPostActionObservation)
 			if !observationOK || freeStateExperimentHasObservation(loop.Experiment, observation.ID) {
 				continue
@@ -534,6 +747,38 @@ func (s *Server) recordFreeStateDecision(conversationID string, res agentloop.Re
 			loop.RequiresPostActionObservation = false
 		}
 	case agentloop.FreeStateNeedsExperiment, agentloop.FreeStateImprovementProposal:
+		// A needs_experiment status without a model-owned proposal is an
+		// admission failure. Never synthesize a proposal from free-form intent:
+		// doing so would fabricate the target/evidence handoff and could make the
+		// FS6 -> FS7 transition appear authorized without G1-G7 evidence.
+		proposalInvalid := decision.ImprovementProposal != nil && decision.ImprovementProposal.Validate() != nil
+		gateAudit := agentloop.AuditFreeStateNeedsExperimentGate(auditContext, &decision)
+		gateRejected := len(auditContext) > 0 && !gateAudit.Passed
+		if decision.ImprovementProposal == nil || proposalInvalid || gateRejected {
+			blocked := decision
+			blocked.Status = agentloop.FreeStateCapabilityBlocked
+			blocked.EvidenceStatus = "insufficient"
+			if decision.ImprovementProposal == nil {
+				blocked.StopReason = "free_state_improvement_proposal_missing"
+				blocked.Limitations = append(blocked.Limitations, "needs_experiment requires a model-submitted improvement_proposal; no proposal was synthesized")
+			} else {
+				blocked.StopReason = "free_state_improvement_proposal_invalid"
+				if err := decision.ImprovementProposal.Validate(); err != nil {
+					blocked.Limitations = append(blocked.Limitations, err.Error())
+				}
+				if gateRejected {
+					blocked.StopReason = "free_state_admission_gate_failed"
+					blocked.Limitations = append(blocked.Limitations, gateAudit.FailedGateIDs...)
+				}
+			}
+			loop.Status = "capability_blocked"
+			loop.LastError = blocked.StopReason
+			loop.LatestDecision = &blocked
+			s.recordFreeStateAdmissionReceipt(&loop, &blocked, auditContext)
+			loop.UpdatedAt = time.Now().UTC()
+			s.storeFreeStateLoop(loop)
+			return loop, true
+		}
 		// The agentloop G1-G7 gate has accepted this decision (it would have
 		// been rejected otherwise), which is the evidence that the FS7 guard
 		// (GatePassed) holds. Advance the closure spine to FS7/FS8 from the
@@ -543,25 +788,22 @@ func (s *Server) recordFreeStateDecision(conversationID string, res agentloop.Re
 				// The FS2 capacity guard is derived from the durable capability
 				// route record (scheduler-driven turns do not carry the HTTP
 				// request context), never self-asserted here.
-				s.advanceAudioClosurePhase(closure, audioclosure.PhaseGuardEvidence{
+				advanced := s.advanceAudioClosurePhase(closure, audioclosure.PhaseGuardEvidence{
 					CapacityAssessed: s.audioClosureCapacityAssessedForConversation(nil, conversationID),
-					GatePassed:       strings.EqualFold(strings.TrimSpace(decision.Status), agentloop.FreeStateNeedsExperiment),
-					AdmissionValid:   decision.ExperimentAdmission == nil || decision.ExperimentAdmission.Validate() == nil,
+					GatePassed:       true,
+					// A valid proposal is the FS6 -> FS7 handoff. Do not also
+					// assert AdmissionValid here: AdvancePhase walks forward and
+					// would otherwise skip the auditable proposal boundary into
+					// FS8 before the experiment admission has been constructed.
+					AdmissionValid: false,
 				})
+				// The local loop is stored again at the end of this method;
+				// carry the closure-owned phase into that write so it cannot
+				// overwrite the synced FS7 projection with an empty/stale phase.
+				if phase, valid := audioclosure.ParsePhase(string(advanced.Phase)); valid {
+					loop.CurrentPhase = string(phase)
+				}
 			}
-		}
-		if decision.ImprovementProposal == nil {
-			loop.Status = "blocked"
-			loop.LastError = "needs_experiment requires improvement_proposal"
-			blocked := decision
-			blocked.Status = agentloop.FreeStateBlocked
-			blocked.EvidenceStatus = "insufficient"
-			blocked.StopReason = "free_state_improvement_proposal_missing"
-			blocked.Limitations = append(blocked.Limitations, loop.LastError)
-			loop.LatestDecision = &blocked
-			loop.UpdatedAt = time.Now().UTC()
-			s.storeFreeStateLoop(loop)
-			return loop, true
 		}
 		proposal := decision.ImprovementProposal
 		loop.TargetRef = cloneContext(proposal.Target)
@@ -625,6 +867,63 @@ func (s *Server) recordFreeStateDecision(conversationID string, res agentloop.Re
 	loop.UpdatedAt = time.Now().UTC()
 	s.storeFreeStateLoop(loop)
 	return loop, true
+}
+
+func freeStatePostActionObservationEligible(loop freeStateReasoningLoop, observation *agentloop.RecentObservation) bool {
+	if observation == nil || loop.Experiment == nil {
+		return false
+	}
+	row, ok := freeStateExperimentObservation(observation, true)
+	if !ok || !row.Fresh || strings.TrimSpace(row.ProjectRevision) == "" {
+		return false
+	}
+	if latest, err := loop.Experiment.CurrentRound(); err == nil {
+		for _, prior := range latest.Observations {
+			if prior.ID == row.ID && !prior.PostAction {
+				return false
+			}
+		}
+	}
+	changeRevision := firstStringFromMap(loop.LatestProjectChange, "project_revision")
+	if to := firstMapFromAny(loop.LatestProjectChange["to_project"]); len(to) > 0 {
+		changeRevision = firstNonEmpty(firstStringFromMap(to, "project_revision"), changeRevision)
+	}
+	return changeRevision == "" || strings.EqualFold(row.ProjectRevision, changeRevision)
+}
+
+func (s *Server) authoritativeFreeStateAdmissionContext(conversationID string, fallback map[string]any, loop freeStateReasoningLoop) map[string]any {
+	ctx := cloneContext(fallback)
+	if len(ctx) == 0 {
+		// Legacy/unit callers may intentionally omit admission context; preserve
+		// the historical non-gating behavior rather than manufacturing a partial
+		// snapshot from the server loop.
+		return ctx
+	}
+	if ctx == nil {
+		ctx = map[string]any{}
+	}
+	// Keep a richer test/request snapshot when the server loop has not yet
+	// accumulated any ledger/frontier evidence; production scheduler loops do
+	// carry that authoritative ledger and therefore replace the stale overlay.
+	authoritativeLoop := freeStateLoopMap(loop)
+	if len(firstMapFromAny(authoritativeLoop["observation_ledger"])) > 0 ||
+		len(firstMapFromAny(authoritativeLoop["hypothesis_frontier"])) > 0 ||
+		len(firstMapFromAny(ctx["free_state_reasoning_loop"])) == 0 {
+		ctx["free_state_reasoning_loop"] = authoritativeLoop
+	}
+	if s != nil && s.audioClosures != nil {
+		if closure, ok := s.audioClosures.ActiveForConversation(conversationID); ok {
+			ctx["minimal_audio_closure"] = audioClosureStateMap(closure)
+			ctx["free_state_phase"] = string(closure.Phase)
+			if contract := firstMapFromAny(ctx["task_contract"]); len(contract) == 0 {
+				ctx["task_contract"] = map[string]any{"project_uuid": closure.ProjectUUID, "project_revision": closure.ProjectRevision, "kind": "improvement"}
+			}
+		}
+	}
+	if route := s.previousCapabilityRoute("", conversationID); route.Assessment != nil {
+		ctx[capacityAssessmentContextKey] = *route.Assessment
+	}
+	return ctx
 }
 
 func freeStateLatestObservationFromLedger(ledger map[string]any) *agentloop.RecentObservation {
@@ -742,6 +1041,94 @@ func freeStateLatestObservationFromLedger(ledger map[string]any) *agentloop.Rece
 		ToolCallID: latest.toolCallID, Tool: "ccb.observation_request", CommandName: "ccb_observation_request",
 		Status: latest.status, Summary: summary,
 	}
+}
+
+// freeStateLedgerObservations rebuilds CCB observations from the durable
+// available_views projection. A continuation may omit Result.Executed and
+// RecentObservation while retaining this ledger; frontier construction must
+// therefore consume the ledger as authoritative read-only evidence rather
+// than treating the result as an empty observation round.
+func freeStateLedgerObservations(ledger map[string]any) []*agentloop.RecentObservation {
+	available := firstMapFromAny(ledger["available_views"])
+	if len(available) == 0 {
+		return nil
+	}
+	keys := make([]string, 0, len(available))
+	for key := range available {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+	out := make([]*agentloop.RecentObservation, 0, len(keys))
+	for _, key := range keys {
+		row := firstMapFromAny(available[key])
+		viewID := firstNonEmpty(firstStringFromMap(row, "view_id"), key)
+		if strings.Contains(viewID, "::") {
+			viewID = strings.TrimSpace(strings.SplitN(viewID, "::", 2)[1])
+		}
+		if viewID == "" {
+			continue
+		}
+		summary := cloneContext(row)
+		summary["status"] = firstNonEmpty(firstStringFromMap(row, "status", "bundle_status"), "ready")
+		summary["observation_id"] = firstStringFromMap(row, "observation_id", "receipt_id")
+		summary["requested_views"] = []any{viewID}
+		// The ledger stores the compact conclusion alongside freshness and
+		// target binding. Re-expose it under views[view].facts so the same
+		// candidate projection code handles both live bundles and compact rows.
+		conclusion := firstMapFromAny(row["conclusion"])
+		facts := firstMapFromAny(conclusion["facts"])
+		if len(facts) == 0 {
+			facts = firstMapFromAny(row["facts"])
+		}
+		if len(facts) > 0 {
+			summary["views"] = map[string]any{viewID: map[string]any{
+				"status": firstNonEmpty(firstStringFromMap(row, "status"), "ready"), "facts": facts,
+				"projection_status": firstNonEmpty(firstStringFromMap(conclusion, "projection_status"), "ready"),
+			}}
+		}
+		if len(firstMapFromAny(summary["audit_receipt"])) == 0 {
+			summary["audit_receipt"] = map[string]any{
+				"receipt_id": firstStringFromMap(row, "receipt_id"),
+				"status":     firstNonEmpty(firstStringFromMap(row, "status"), "ready"),
+				"freshness":  cloneContext(firstMapFromAny(row["freshness"])),
+			}
+		}
+		if strings.TrimSpace(firstStringFromMap(summary, "observation_id")) == "" {
+			continue
+		}
+		out = append(out, &agentloop.RecentObservation{
+			Tool: "ccb.observation_request", CommandName: "ccb_observation_request",
+			Status: firstNonEmpty(firstStringFromMap(summary, "status"), "ready"), Summary: summary,
+		})
+	}
+	return out
+}
+
+func appendUniqueFreeStateObservations(base, extra []*agentloop.RecentObservation) []*agentloop.RecentObservation {
+	seen := map[string]bool{}
+	for _, observation := range base {
+		if observation == nil {
+			continue
+		}
+		if id := firstStringFromMap(observation.Summary, "observation_id", "receipt_id"); id != "" {
+			seen[strings.ToLower(id)] = true
+		}
+	}
+	out := append([]*agentloop.RecentObservation(nil), base...)
+	for _, observation := range extra {
+		if observation == nil {
+			continue
+		}
+		id := firstStringFromMap(observation.Summary, "observation_id", "receipt_id")
+		if id != "" && seen[strings.ToLower(id)] {
+			continue
+		}
+		if id != "" {
+			seen[strings.ToLower(id)] = true
+		}
+		out = append(out, observation)
+	}
+	return out
 }
 
 func freeStateRejectedObservation(observation *agentloop.RecentObservation) map[string]any {
@@ -897,6 +1284,8 @@ func mergeFreeStateObservationLedger(ledger map[string]any, observation *agentlo
 			"tool_call_id":     observation.ToolCallID,
 			"freshness":        cloneContext(firstMapFromAny(observation.Summary["freshness"])),
 			"project_revision": freeStateObservationProjectRevision(observation.Summary),
+			"project_uuid":     firstStringFromMap(firstMapFromAny(observation.Summary["project_binding"]), "project_uuid"),
+			"project_epoch":    firstStringFromMap(firstMapFromAny(observation.Summary["project_binding"]), "project_epoch"),
 			"limitations":      firstNonNil(view["limitations"], observation.Summary["limitations"]),
 			"evidence_refs":    observation.Summary["evidence_refs"],
 			"audit_ref":        freeStateObservationAuditRef(observation.Summary),
@@ -1005,6 +1394,8 @@ func freeStateObservationProjectRevision(summary map[string]any) string {
 	return firstNonEmpty(
 		firstStringFromMap(summary, "project_revision"),
 		firstStringFromMap(firstMapFromAny(summary["project_binding"]), "project_revision"),
+		firstStringFromMap(firstMapFromAny(summary["freshness"]), "project_revision"),
+		firstStringFromMap(firstMapFromAny(firstMapFromAny(summary["audit_receipt"])["freshness"]), "project_revision"),
 	)
 }
 
@@ -1022,6 +1413,8 @@ func freeStateObservationCompactReceipt(observation *agentloop.RecentObservation
 		"status":           firstStringFromMap(observation.Summary, "status", "bundle_status"),
 		"requested_views":  freeStateNormalizedViewIDs(freeStateStringSlice(observation.Summary["requested_views"])),
 		"project_revision": freeStateObservationProjectRevision(observation.Summary),
+		"project_uuid":     firstStringFromMap(firstMapFromAny(observation.Summary["project_binding"]), "project_uuid"),
+		"project_epoch":    firstStringFromMap(firstMapFromAny(observation.Summary["project_binding"]), "project_epoch"),
 		"freshness":        cloneContext(firstMapFromAny(observation.Summary["freshness"])),
 		"limitations":      observation.Summary["limitations"],
 		"evidence_refs":    observation.Summary["evidence_refs"],
@@ -1493,6 +1886,9 @@ func (s *Server) maybeContinueFreeStateAfterInteraction(ctx context.Context, int
 	})
 	s.recordFreeStateExperimentAction(&loop, processorType, actionStatus, receipt)
 	loop.RequiresPostActionObservation = actionStatus == "applied"
+	if loop.RequiresPostActionObservation {
+		reservePostActionObservationSlice(&loop)
+	}
 	loop.Status = "re_evaluating"
 	loop.DecisionPhase = freeStatePhaseProcessorSelection
 	if loop.RequiresPostActionObservation {
@@ -1548,7 +1944,10 @@ func (s *Server) maybeContinueFreeStateAfterInteraction(ctx context.Context, int
 		resp.Reply = "The free-state reasoning loop exhausted its bounded continuation budget. The original intent and the evidence gathered so far remain recorded; no further automatic continuation was started."
 		return s.bindFreeStateContextToResponse(resp, interaction.RequestContext)
 	}
-	loop.ContinuationUsed++
+	// ContinuationUsed is accounted at the durable checkpoint boundary in
+	// recordGoalResult. Do not increment here as well; doing so double-counts
+	// the interaction resume and can consume the budget before the mandatory
+	// post-action observation slice runs.
 	loop.UpdatedAt = time.Now().UTC()
 	s.storeFreeStateLoop(loop)
 	cfg, _, err := config.Load()
@@ -1586,6 +1985,17 @@ func (s *Server) maybeContinueFreeStateAfterInteraction(ctx context.Context, int
 		return s.bindFreeStateContextToResponse(resp, resumeContext)
 	}
 	return resumed
+}
+
+func reservePostActionObservationSlice(loop *freeStateReasoningLoop) {
+	if loop == nil || loop.PostActionObservationReserved || !loop.RequiresPostActionObservation || loop.ContinuationBudget <= 0 || loop.ContinuationUsed+1 < loop.ContinuationBudget {
+		return
+	}
+	// One observation-only slice is mandatory after Apply; this does not permit
+	// another forward action because the post-action gate still requires fresh
+	// CCB evidence before any action decision.
+	loop.ContinuationBudget++
+	loop.PostActionObservationReserved = true
 }
 
 // postActionProjectChange establishes the shared authoritative-refresh
@@ -1800,6 +2210,15 @@ func freeStateAcousticActionOutcome(interaction PendingInteraction, resp ChatRes
 			strings.TrimSpace(resp.Error) != "" || resp.GoalStatus == string(agentruntime.StatusFailed) {
 			return "mix_tick", "failed", cloneContext(resp.WorkflowData), true
 		}
+	case strings.EqualFold(workflow, "free_state_d1_s1"):
+		status := strings.ToLower(firstStringFromMap(resp.WorkflowData, "status"))
+		receipt := cloneContext(firstMapFromAny(resp.WorkflowData["execution_receipt"]))
+		if status == "applied" && boolValue(resp.WorkflowData["parameter_applied"]) && boolValue(resp.WorkflowData["readback_verified"]) {
+			return experiment.D1S1ActionDomain, "applied", receipt, true
+		}
+		if status == "failed" || status == "blocked" || strings.TrimSpace(resp.Error) != "" || resp.GoalStatus == string(agentruntime.StatusFailed) {
+			return experiment.D1S1ActionDomain, "failed", receipt, true
+		}
 	}
 	return "", "", nil, false
 }
@@ -1906,7 +2325,7 @@ func (s *Server) freeStateCapabilityBoundaryDetailLocked(conversationID string, 
 // settling turn never returns over HTTP, so without this sync the loop stays
 // "observing" while the closure has already settled, and no runtime interface
 // exposes the terminal stop reason.
-func (s *Server) settleFreeStateLoopFromClosure(conversationID string, settlement audioclosure.Settlement) {
+func (s *Server) settleFreeStateLoopFromClosure(conversationID string, settlement audioclosure.Settlement, closure ...audioclosure.State) {
 	if s == nil || strings.TrimSpace(conversationID) == "" {
 		return
 	}
@@ -1961,6 +2380,103 @@ func (s *Server) settleFreeStateLoopFromClosure(conversationID string, settlemen
 	}
 	if decisionStatus == agentloop.FreeStateCapabilityBlocked {
 		decision.Limitations = append(decision.Limitations, boundaryDetail...)
+	}
+	// Preserve the FS6 admission boundary even when the model never emitted a
+	// proposal: the closure settlement is still required to explain the
+	// selected frontier/evidence and all failed G1-G7 checks. This is audit
+	// metadata only and does not create a candidate or execution authority.
+	if decisionStatus == agentloop.FreeStateCapabilityBlocked || decisionStatus == agentloop.FreeStateBlocked {
+		candidateID, evidenceRef := "", ""
+		gateResults := map[string]string{
+			"G1_project_binding":           "fail",
+			"G2_capacity_assessed":         "fail",
+			"G3_project_scan":              "fail",
+			"G4_dimension_closed":          "fail",
+			"G5_frontier_established":      "fail",
+			"G6_target_evidence":           "fail",
+			"G7_fresh_revision_bound_refs": "fail",
+		}
+		if len(closure) > 0 {
+			current := closure[0]
+			if strings.TrimSpace(current.ProjectUUID) != "" && strings.TrimSpace(current.ProjectRevision) != "" {
+				gateResults["G1_project_binding"] = "pass"
+			}
+			for _, route := range s.capabilityRoutes {
+				if route.ConversationID == conversationID && route.Assessment != nil &&
+					strings.TrimSpace(route.Assessment.SelectedCapability) != "" &&
+					!strings.EqualFold(strings.TrimSpace(route.Assessment.CapacityLevel), "exceeds_free_state") {
+					gateResults["G2_capacity_assessed"] = "pass"
+					break
+				}
+			}
+			for _, record := range current.Observations {
+				for _, viewID := range record.ViewIDs {
+					if viewID == "mix.multitrack_relationship" || viewID == "mix.frequency_relationship" || strings.HasPrefix(viewID, "project.") {
+						gateResults["G3_project_scan"] = "pass"
+					}
+				}
+			}
+			for _, round := range current.DiagnosticRounds {
+				if round.Closed() {
+					gateResults["G4_dimension_closed"] = "pass"
+				}
+			}
+			if len(current.Frontier.Candidates) > 0 {
+				gateResults["G5_frontier_established"] = "pass"
+			}
+			candidateID = closure[0].Frontier.CandidateID
+			for _, candidate := range closure[0].Frontier.Candidates {
+				if candidate.ID == candidateID {
+					evidenceRef = firstNonEmpty(candidate.SourceObservationID)
+					if evidenceRef == "" && len(candidate.EvidenceRefs) > 0 {
+						evidenceRef = candidate.EvidenceRefs[0]
+					}
+					break
+				}
+			}
+			selectedTracks := map[string]bool{}
+			for _, candidate := range current.Frontier.Candidates {
+				if candidate.ID == candidateID {
+					for _, trackID := range candidate.TrackIDs {
+						selectedTracks[trackID] = true
+					}
+				}
+			}
+			if candidateID != "" {
+				for _, record := range current.Observations {
+					if selectedTracks[record.TargetRef] {
+						for _, viewID := range record.ViewIDs {
+							if strings.HasPrefix(viewID, "track.") {
+								gateResults["G6_target_evidence"] = "pass"
+								// The frontier source proves candidate discovery, but
+								// FS6 admission must retain the exact selected-target
+								// observation. Prefer that track-level observation ref
+								// over the candidate's project/relationship source ref.
+								if strings.TrimSpace(record.ObservationID) != "" {
+									evidenceRef = record.ObservationID
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		// A terminal capability boundary has no model proposal to validate;
+		// retain all deterministic gates as failed rather than calling it
+		// no_candidate_found.
+		failed := []string{}
+		for _, id := range []string{"G1_project_binding", "G2_capacity_assessed", "G3_project_scan", "G4_dimension_closed", "G5_frontier_established", "G6_target_evidence", "G7_fresh_revision_bound_refs"} {
+			if gateResults[id] == "fail" {
+				failed = append(failed, id)
+			}
+		}
+		loop.AdmissionReceipt = map[string]any{
+			"schema_version": "free_state_admission_receipt.v1", "status": string(decisionStatus),
+			"boundary": "proposal_missing", "candidate_id": candidateID, "target_evidence_ref": evidenceRef,
+			"failed_gate_ids": failed, "proposal_present": false, "proposal_valid": false,
+			"gate_results":     gateResults,
+			"project_revision": loop.LatestProjectChange["project_revision"], "recorded_at": now.Format(time.RFC3339Nano),
+		}
 	}
 	loop.LatestDecision = &decision
 	loop.ActiveIntent = ""

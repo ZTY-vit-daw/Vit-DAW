@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<EDIT appVersion="Unknown" projectID="0/6a7c6d" creationTime="0" modifiedBy="VitHeadlessServer"
-      vit_project_uuid="vitproj_a187c439d62f45fbbf4020eee826f100">
+<EDIT appVersion="Unknown" projectID="0/135c130" creationTime="0" modifiedBy="VitHeadlessServer"
+      vit_project_uuid="vitproj_e94d5ed9cd51482bba6cc4813edd9c3f">
   <TRANSPORT endToEnd="1"/>
   <TEMPOSEQUENCE>
     <TEMPO startBeat="0.0" bpm="120.0" curve="1.0"/>
@@ -18,6 +18,8 @@
   <MASTERPLUGINS/>
   <INPUTDEVICES>
     <INPUTDEVICE deviceID="all_midi_in" name="All MIDI Ins"/>
+    <INPUTDEVICE deviceID="midiin_4b684aa" name="SG Device I/O"/>
+    <INPUTDEVICE deviceID="midiin_1683015f" name="StudioRack"/>
     <INPUTDEVICE deviceID="wavein_d7bd293b" name="Input 1"/>
     <INPUTDEVICE deviceID="wavein_d7bd293c" name="Input 2"/>
   </INPUTDEVICES>

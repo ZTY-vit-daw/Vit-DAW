@@ -986,6 +986,9 @@ func (s *Server) continuationRuntimeProjection() []map[string]any {
 			} else if loop.LastError != "" {
 				row["free_state_stop_reason"] = loop.LastError
 			}
+			if len(loop.AdmissionReceipt) > 0 {
+				row["free_state_admission_receipt"] = cloneContext(loop.AdmissionReceipt)
+			}
 		}
 		if item.CapacityAssessment != nil {
 			row["capacity_assessment"] = *item.CapacityAssessment

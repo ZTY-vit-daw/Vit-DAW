@@ -3713,13 +3713,30 @@ func (l *MessageLoop) assemblyNeutralFamilySelection(state *runState, snapshotJS
 		SystemSections: []promptruntime.Section{
 			promptruntime.TextSection(promptruntime.SectionStatic, "message_loop_neutral_family_selection", "", system, true),
 		},
-		// Prior assistant turns can contain materialization identity. The
-		// current neutral snapshot and the compact ledger are authoritative.
-		History: nil,
+		// Prior assistant turns can contain materialization identity. Preserve
+		// only the most recent final-gate feedback: it is workflow control
+		// feedback, not materialization context, and must be visible to the next
+		// neutral decision request.
+		History: messageLoopNeutralFamilyFeedbackHistory(state.input.Conversation),
 		UserSections: []promptruntime.Section{
 			promptruntime.TextSection(promptruntime.SectionRuntime, "message_loop_neutral_family_runtime", "", user, false),
 		},
 	})
+}
+
+func messageLoopNeutralFamilyFeedbackHistory(conversation []llm.Message) []llm.Message {
+	for index := len(conversation) - 1; index >= 0; index-- {
+		message := conversation[index]
+		if !strings.EqualFold(strings.TrimSpace(message.Role), "user") {
+			continue
+		}
+		content := strings.TrimSpace(message.Content)
+		if content == "" || !strings.HasPrefix(content, "<final_gate>") || !strings.HasSuffix(content, "</final_gate>") {
+			continue
+		}
+		return []llm.Message{{Role: "user", Content: content}}
+	}
+	return nil
 }
 
 func messageLoopConversationID(state *runState) string {

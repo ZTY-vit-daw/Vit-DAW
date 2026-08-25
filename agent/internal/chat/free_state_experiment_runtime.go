@@ -21,6 +21,9 @@ func freeStateExperimentAdmission(loop freeStateReasoningLoop, proposal *agentpr
 	if proposal == nil {
 		return experiment.Admission{}, fmt.Errorf("improvement proposal is required")
 	}
+	if !strings.EqualFold(strings.TrimSpace(proposal.ActionDomain), experiment.D1S1ActionDomain) || !strings.EqualFold(strings.TrimSpace(proposal.ActionKind), experiment.D1S1ActionKind) {
+		return experiment.Admission{}, fmt.Errorf("D1-S1 only admits action_domain=%s action_kind=%s", experiment.D1S1ActionDomain, experiment.D1S1ActionKind)
+	}
 	bounds := cloneContext(proposal.ParameterBounds)
 	if len(bounds) == 0 {
 		bounds = map[string]any{"source": "proposal", "mode": "bounded"}
@@ -33,18 +36,16 @@ func freeStateExperimentAdmission(loop freeStateReasoningLoop, proposal *agentpr
 	if checkpoint == "" {
 		checkpoint = "pending:" + firstNonEmpty(loop.LoopID, "free-state-experiment")
 	}
-	budget := intNumber(verification["experiment_budget"])
-	if budget <= 0 || budget > 6 {
-		budget = 3
-	}
+	budget := 1
+	deltaDB, _ := treatmentNumber(proposal.ParameterBounds, "delta_db", "db_delta", "gain_delta_db")
 	admission := experiment.Admission{
 		SchemaVersion:        experiment.SchemaVersion,
 		TargetRef:            cloneContext(proposal.Target),
 		EvidenceRefs:         append([]string(nil), proposal.EvidenceRefs...),
 		Hypothesis:           proposal.Hypothesis,
-		TypedAction:          map[string]any{"action_domain": proposal.ActionDomain, "action_kind": proposal.ActionKind, "processor_type": proposal.ProcessorType, "parameter_bounds": cloneContext(proposal.ParameterBounds)},
-		DiagnosticDoseBounds: map[string]any{"source": "proposal", "bounds": cloneContext(bounds)},
-		RetainedDoseBounds:   map[string]any{"source": "proposal", "bounds": cloneContext(bounds)},
+		TypedAction:          map[string]any{"action_domain": proposal.ActionDomain, "action_kind": proposal.ActionKind, "target_db": proposal.ParameterBounds["target_db"], "delta_db": deltaDB},
+		DiagnosticDoseBounds: map[string]any{"source": "proposal", "bounds": cloneContext(bounds), "delta_db": deltaDB, "max_action_attempts": 1},
+		RetainedDoseBounds:   map[string]any{"source": "proposal", "bounds": cloneContext(bounds), "delta_db": deltaDB, "max_action_attempts": 1},
 		ExperimentBudget:     budget,
 		ExpectedEffect:       proposal.ExpectedEffect,
 		ProtectedDimensions:  freeStateStringSlice(verification["protected_dimensions"]),
@@ -53,48 +54,97 @@ func freeStateExperimentAdmission(loop freeStateReasoningLoop, proposal *agentpr
 		RollbackPlan:         map[string]any{"kind": "agent_rollback_action", "source": "existing_governed_rollback"},
 		AuthorityMode:        map[bool]experiment.AuthorityMode{true: experiment.AuthorityFull, false: experiment.AuthorityOrdinary}[loop.AuthorityMode == experiment.AuthorityFull],
 	}
-	return admission, admission.Validate()
+	if err := admission.ValidateD1S1(); err != nil {
+		return experiment.Admission{}, err
+	}
+	if _, err := validateD1FreshObservedTarget(loop, admission); err != nil {
+		return experiment.Admission{}, err
+	}
+	return admission, nil
 }
 
-func freeStateActionImprovementProposal(loop freeStateReasoningLoop, decision agentloop.FreeStateDecision) *agentprotocol.ImprovementProposal {
-	evidence := freeStateDecisionEvidence(decision)
-	if len(evidence) == 0 && loop.LatestObservation != nil {
-		evidence = []string{firstNonEmpty(firstStringFromMap(loop.LatestObservation.Summary, "observation_id"), loop.LatestObservation.ToolCallID)}
+func validateD1FreshObservedTarget(loop freeStateReasoningLoop, admission experiment.Admission) (experiment.Observation, error) {
+	observation, ok := freeStateExperimentObservation(loop.LatestObservation, false)
+	if !ok || loop.LatestObservation == nil {
+		return experiment.Observation{}, fmt.Errorf("D1-S1 target requires a usable CCB observation")
 	}
-	target := cloneContext(loop.TargetRef)
-	if len(target) == 0 && loop.LatestObservation != nil {
-		target = cloneContext(firstMapFromAny(loop.LatestObservation.Summary["target_ref"]))
+	summary := cloneContext(loop.LatestObservation.Summary)
+	if bundle := firstMapFromAny(summary["bundle"]); len(bundle) > 0 {
+		for key, value := range bundle {
+			if _, exists := summary[key]; !exists {
+				summary[key] = value
+			}
+		}
 	}
-	if len(target) == 0 {
-		target = map[string]any{"kind": "project", "id": firstNonEmpty(firstStringFromMap(loop.LatestProjectChange, "project_uuid"), loop.ConversationID)}
+	audit := firstMapFromAny(summary["audit_receipt"])
+	freshnessMap := firstMapFromAny(audit["freshness"])
+	if len(freshnessMap) == 0 {
+		freshnessMap = firstMapFromAny(summary["freshness"])
 	}
-	domain := strings.ToLower(strings.TrimSpace(decision.ProcessorType))
-	switch domain {
-	case "gate", "expander":
-		domain = agentprotocol.ImprovementActionDomainGateExpander
-	case "deesser", "de-esser":
-		domain = agentprotocol.ImprovementActionDomainDeEsser
-	case "transient":
-		domain = agentprotocol.ImprovementActionDomainTransientShaper
-	case "multiband":
-		domain = agentprotocol.ImprovementActionDomainMultibandDynamics
+	// CCB status=ready describes observation availability. Freshness is carried
+	// by class (current_observation/current_snapshot/fresh); do not reject a
+	// valid current observation merely because its readiness status is ready.
+	freshness := firstNonEmpty(
+		firstStringFromMap(freshnessMap, "class"),
+		firstStringFromMap(freshnessMap, "status"),
+	)
+	if !freeStateFreshObservationClass(freshness) || !observation.Fresh {
+		return experiment.Observation{}, fmt.Errorf("D1-S1 target requires an explicitly fresh CCB observation")
 	}
-	confidence := 0.5
-	if decision.SemanticProcessorIntent != nil && decision.SemanticProcessorIntent.Confidence > 0 {
-		confidence = decision.SemanticProcessorIntent.Confidence
+	if strings.TrimSpace(observation.ProjectRevision) == "" {
+		return experiment.Observation{}, fmt.Errorf("D1-S1 target observation must be revision-bound")
 	}
-	return &agentprotocol.ImprovementProposal{
-		SchemaVersion: agentprotocol.ImprovementProposalSchema,
-		Target:        target, EvidenceRefs: evidence,
-		ImprovementIntent: firstNonEmpty(decision.RemainingIntent, decision.Summary),
-		Hypothesis:        firstNonEmpty(decision.Summary, "a bounded governed processor experiment may improve the admitted intent"),
-		ExpectedEffect:    firstNonEmpty(decision.RemainingIntent, decision.Summary),
-		ActionDomain:      domain, ActionKind: "governed_" + domain + "_experiment",
-		ProcessorType:    decision.ProcessorType,
-		ParameterBounds:  map[string]any{"source": "governed_processor_router", "mode": "bounded"},
-		VerificationPlan: map[string]any{"evidence_refs": evidence, "experiment_budget": 3},
-		Confidence:       confidence, Limitations: append([]string(nil), decision.Limitations...),
+	target := firstMapFromAny(summary["target_ref"])
+	wantKind := strings.ToLower(firstStringFromMap(admission.TargetRef, "kind"))
+	wantID := firstStringFromMap(admission.TargetRef, "id", "track_id")
+	if strings.ToLower(firstStringFromMap(target, "kind", "target_kind")) != wantKind || firstStringFromMap(target, "id", "target_id", "track_id") != wantID {
+		return experiment.Observation{}, fmt.Errorf("D1-S1 target must match the fresh observation target")
 	}
+	// The proposal must cite the observation itself, not only its receipt or a
+	// secondary evidence ref.  Receipt IDs remain useful audit metadata, but
+	// they do not establish the model's target-observation binding required by
+	// the FS6 -> FS7 handoff.
+	if !containsStringFold(admission.EvidenceRefs, observation.ID) {
+		return experiment.Observation{}, fmt.Errorf("D1-S1 evidence_refs must include the target observation ID %q", observation.ID)
+	}
+	return observation, nil
+}
+
+func freeStateFreshObservationClass(value string) bool {
+	switch strings.ToLower(strings.TrimSpace(value)) {
+	case "fresh", "current", "current_snapshot", "current_observation":
+		return true
+	default:
+		return false
+	}
+}
+
+func containsStringFold(values []string, want string) bool {
+	want = strings.TrimSpace(want)
+	if want == "" {
+		return false
+	}
+	for _, value := range values {
+		if strings.EqualFold(strings.TrimSpace(value), want) {
+			return true
+		}
+	}
+	return false
+}
+
+func stringSlicesIntersect(left, right []string) bool {
+	seen := map[string]bool{}
+	for _, value := range left {
+		if value = strings.TrimSpace(value); value != "" {
+			seen[value] = true
+		}
+	}
+	for _, value := range right {
+		if seen[strings.TrimSpace(value)] {
+			return true
+		}
+	}
+	return false
 }
 
 func freeStateExperimentViews(loop freeStateReasoningLoop, decision agentloop.FreeStateDecision, proposal *agentprotocol.ImprovementProposal) []string {
@@ -151,7 +201,8 @@ func freeStateExperimentObservation(observation *agentloop.RecentObservation, po
 		ID:        firstNonEmpty(firstStringFromMap(summary, "observation_id", "receipt_id"), observation.ToolCallID),
 		ReceiptID: firstStringFromMap(receipt, "receipt_id"), RequestedViewIDs: requested, ExecutedViewIDs: executed,
 		ViewSetMatches: boolValue(receipt["view_set_matches"]) || (receipt["view_set_matches"] == nil && len(requested) > 0 && sameStringSet(requested, executed)),
-		Fresh:          fresh, PostAction: postAction, ProjectRevision: firstStringFromMap(receipt, "project_revision"),
+		Fresh:          fresh, PostAction: postAction, ProjectRevision: firstNonEmpty(firstStringFromMap(receipt, "project_revision"),
+			firstStringFromMap(firstMapFromAny(receipt["project_binding"]), "project_revision"), freeStateObservationProjectRevision(summary)),
 		EvidenceRefs: evidence, Limitations: freeStateStringSlice(summary["limitations"]), Summary: summary, RecordedAt: time.Now().UTC(),
 	}
 	return row, row.ID != ""
@@ -226,7 +277,10 @@ func (s *Server) startFreeStateExperiment(loop *freeStateReasoningLoop, decision
 	var err error
 	if decision.ExperimentAdmission != nil {
 		admission = *decision.ExperimentAdmission
-		err = admission.Validate()
+		err = admission.ValidateD1S1()
+		if err == nil {
+			_, err = validateD1FreshObservedTarget(*loop, admission)
+		}
 	} else {
 		admission, err = freeStateExperimentAdmission(*loop, decision.ImprovementProposal)
 	}
@@ -240,7 +294,7 @@ func (s *Server) startFreeStateExperiment(loop *freeStateReasoningLoop, decision
 	if checkpoint := s.ensureFreeStateExperimentCheckpoint(context.Background(), loop, goalID, runID); checkpoint != "" {
 		admission.CheckpointRef = checkpoint
 	}
-	if err := admission.Validate(); err != nil {
+	if err := admission.ValidateD1S1(); err != nil {
 		return err
 	}
 	turn, err := experiment.NewTurn(experiment.Identity{ConversationID: loop.ConversationID, GoalID: goalID, RunID: runID, TurnID: "turn:" + loop.LoopID}, loop.OriginalIntent, admission, time.Now().UTC())
@@ -252,22 +306,26 @@ func (s *Server) startFreeStateExperiment(loop *freeStateReasoningLoop, decision
 		loop.Experiment = nil
 		return err
 	}
+	beforeObservation, err := validateD1FreshObservedTarget(*loop, admission)
+	if err != nil {
+		return err
+	}
 	events := turn.StartEvents(time.Now().UTC())
 	views := freeStateExperimentViews(*loop, decision, decision.ImprovementProposal)
-	if len(views) > 0 {
-		roundEvents, roundErr := turn.StartRound(views, admission.CheckpointRef, firstStringFromMap(loop.LatestProjectChange, "project_revision", "revision"), time.Now().UTC())
-		if roundErr != nil {
-			return roundErr
-		}
-		events = append(events, roundEvents...)
+	if len(views) == 0 {
+		return fmt.Errorf("D1-S1 requires the model-requested CCB view set")
 	}
+	roundEvents, roundErr := turn.StartRound(views, admission.CheckpointRef, beforeObservation.ProjectRevision, time.Now().UTC())
+	if roundErr != nil {
+		return roundErr
+	}
+	events = append(events, roundEvents...)
 	s.emitFreeStateExperimentEvents(events)
-	if observation, ok := freeStateExperimentObservation(loop.LatestObservation, false); ok && len(turn.Rounds) > 0 {
-		observationEvents, observationErr := loop.Experiment.RecordObservation(observation, false, time.Now().UTC())
-		if observationErr == nil {
-			s.emitFreeStateExperimentEvents(observationEvents)
-		}
+	observationEvents, observationErr := loop.Experiment.RecordObservation(beforeObservation, false, time.Now().UTC())
+	if observationErr != nil {
+		return observationErr
 	}
+	s.emitFreeStateExperimentEvents(observationEvents)
 	return nil
 }
 
@@ -278,7 +336,7 @@ func (s *Server) recordFreeStateExperimentDecision(ctx context.Context, loop *fr
 	if decision.ExperimentMateriality != nil {
 		if events, err := loop.Experiment.EvaluateMateriality(*decision.ExperimentMateriality, time.Now().UTC()); err == nil {
 			s.emitFreeStateExperimentEvents(events)
-			if decision.ExperimentMateriality.Evaluation == trajectory.EvaluationInsufficientDose {
+			if decision.ExperimentMateriality.Evaluation == trajectory.EvaluationInsufficientDose && !loop.Experiment.Admission.IsD1S1() {
 				if decisionEvents, decisionErr := loop.Experiment.DecideRound(experiment.DecisionNextRound, "insufficient dose; calibrate in next round", time.Now().UTC()); decisionErr == nil {
 					s.emitFreeStateExperimentEvents(decisionEvents)
 					views := freeStateExperimentViews(*loop, decision, decision.ImprovementProposal)
@@ -327,11 +385,20 @@ func (s *Server) recordFreeStateExperimentAction(loop *freeStateReasoningLoop, p
 	if loop == nil || loop.Experiment == nil || len(loop.Experiment.Rounds) == 0 {
 		return
 	}
-	attempt := len(loop.Experiment.Rounds[len(loop.Experiment.Rounds)-1].Interventions) + 1
+	round := loop.Experiment.Rounds[len(loop.Experiment.Rounds)-1]
 	actionID := firstStringFromMap(receipt, "agent_action_id", "action_id", "receipt_id")
 	if actionID == "" {
 		actionID = fmt.Sprintf("free-state-action-%d", loop.Cycle)
 	}
+	for _, intervention := range round.Interventions {
+		if intervention.ID == actionID {
+			return
+		}
+	}
+	if loop.Experiment.Admission.IsD1S1() && len(round.Interventions) > 0 {
+		return
+	}
+	attempt := len(round.Interventions) + 1
 	technical := experiment.TechnicalApplied
 	if status != "applied" {
 		technical = experiment.TechnicalFailed

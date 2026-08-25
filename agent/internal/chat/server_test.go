@@ -2085,6 +2085,28 @@ func TestClipFadeGainRequestExpiresPendingMixStateBeforeChatHandlers(t *testing.
 	}
 }
 
+func TestRecoverPendingMixTickInteractionFromDurablePayload(t *testing.T) {
+	interaction, ok := recoverPendingMixTickInteractionFromPayload("interaction-mix", map[string]any{
+		"workflow": "mix_tick", "operation": "track_gain_adjust", "track_id": "1007",
+		"observation_id": "obs-1", "conversation_id": "conversation-mix", "goal_id": "goal-mix", "run_id": "run-mix",
+		"delta_db": -0.5, "request_context": map[string]any{"conversation_id": "conversation-mix"},
+	})
+	if !ok || interaction.ID != "interaction-mix" || interaction.ConversationID != "conversation-mix" || interaction.Kind != "mix_tick_confirmation" {
+		t.Fatalf("recovered interaction = %+v, ok=%v", interaction, ok)
+	}
+}
+
+func TestRecoverPendingMixTickInteractionFromKindOnlyPayload(t *testing.T) {
+	interaction, ok := recoverPendingMixTickInteractionFromPayload("interaction-kind", map[string]any{
+		"kind": "mix_tick_confirmation", "operation": "track_gain_adjust", "track_id": "1007",
+		"observation_id": "obs-kind", "conversation_id": "conversation-kind", "goal_id": "goal-kind", "run_id": "run-kind",
+		"delta_db": -0.5,
+	})
+	if !ok || interaction.Workflow != "mix_tick" || interaction.ConversationID != "conversation-kind" {
+		t.Fatalf("kind-only recovery = %+v, ok=%v", interaction, ok)
+	}
+}
+
 func TestPendingMixTreatmentPanRevisionPhraseFallsThroughAndExpiresOldPending(t *testing.T) {
 	server := New(nil, shadow.New(nil), nil)
 	server.pendingTreatments["chat_mix"] = agentloop.MixTreatmentPending{

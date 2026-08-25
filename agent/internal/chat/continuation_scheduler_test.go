@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"sync"
@@ -12,14 +13,159 @@ import (
 
 	"vit-daw-agent/internal/agentloop"
 	"vit-daw-agent/internal/audioclosure"
+	"vit-daw-agent/internal/config"
 	executorpkg "vit-daw-agent/internal/executor"
 	"vit-daw-agent/internal/harness"
 	"vit-daw-agent/internal/history"
+	"vit-daw-agent/internal/llm"
 	"vit-daw-agent/internal/planner"
 	agentruntime "vit-daw-agent/internal/runtime"
 	"vit-daw-agent/internal/shadow"
 	"vit-daw-agent/internal/taskstate"
 )
+
+type productionFreeStateCompleter struct {
+	responses []string
+}
+
+func (f *productionFreeStateCompleter) Complete(_ context.Context, _ config.EngineConfig, _ []llm.Message) (string, error) {
+	if len(f.responses) == 0 {
+		return `{"final":true,"reply":"proposal","free_state":{"schema_version":"free_state_decision.v1","status":"needs_experiment","evidence_status":"plausible","summary":"bounded gain proposal","improvement_proposal":{"schema_version":"improvement_proposal.v1","target":{"kind":"track","id":"1007"},"evidence_refs":["obs-production-3"],"improvement_intent":"balance bass","hypothesis":"a small gain change may improve balance","expected_effect":"clearer balance","action_domain":"track_gain","action_kind":"track_gain_adjust","parameter_bounds":{"delta_db":-0.5},"verification_plan":{"experiment_budget":1,"max_action_attempts":1}}},"tool_calls":[]}`, nil
+	}
+	response := f.responses[0]
+	f.responses = f.responses[1:]
+	return response, nil
+}
+
+type productionFreeStateCCBExecutor struct {
+	calls []planner.ToolCall
+	seq   int
+}
+
+func (e *productionFreeStateCCBExecutor) RunToolCall(_ context.Context, in executorpkg.Input) (executorpkg.Result, error) {
+	e.calls = append(e.calls, in.ToolCall)
+	e.seq++
+	if in.ToolCall.Tool == "ccb.observation_catalog" {
+		return executorpkg.Result{ToolCallID: in.ToolCall.ID, Tool: in.ToolCall.Tool, Status: "ok", Result: map[string]any{
+			"status": "ok", "catalog": map[string]any{"schema_version": "ccb_observation_catalog.v1", "views": []any{
+				map[string]any{"view_id": "project.structure"}, map[string]any{"view_id": "mix.multitrack_relationship"}, map[string]any{"view_id": "track.band_dynamics"},
+			}},
+		}}, nil
+	}
+	views := in.ToolCall.Args["view_ids"]
+	observationID := fmt.Sprintf("obs-production-%d", e.seq)
+	receiptID := fmt.Sprintf("receipt-production-%d", e.seq)
+	target := map[string]any{"kind": "project", "id": "current", "label": "Current project"}
+	if targetRef, ok := in.ToolCall.Args["target_ref"].(map[string]any); ok && len(targetRef) > 0 {
+		target = targetRef
+	}
+	return executorpkg.Result{ToolCallID: in.ToolCall.ID, Tool: in.ToolCall.Tool, Status: "ok", Result: map[string]any{
+		"status": "ok", "bundle": map[string]any{
+			"schema_version": "ccb_observation_bundle.v1", "status": "ready", "read_only": true, "mutation_authority": false,
+			"observation_id": observationID, "requested_views": views, "target_ref": target,
+			"views": map[string]any{"project.structure": map[string]any{"status": "ready"}, "mix.multitrack_relationship": map[string]any{"status": "ready"}, "track.band_dynamics": map[string]any{"status": "ready"}},
+			"audit_receipt": map[string]any{"schema_version": "ccb_observation_receipt.v1", "receipt_id": receiptID, "status": "ready"},
+		},
+	}}, nil
+}
+
+func TestProductionFreeStateRunnerObservationsSurviveDurableSlices(t *testing.T) {
+	model := &productionFreeStateCompleter{responses: []string{
+		`{"final":false,"reply":"catalog","free_state":{"schema_version":"free_state_decision.v1","status":"needs_observation","evidence_status":"insufficient","summary":"discover catalog","requested_view_ids":[]},"tool_calls":[{"tool":"ccb.observation_catalog","args":{}}]}`,
+		`{"final":false,"reply":"project","free_state":{"schema_version":"free_state_decision.v1","status":"needs_observation","evidence_status":"insufficient","summary":"project evidence","requested_view_ids":["project.structure","mix.multitrack_relationship"]},"tool_calls":[{"tool":"ccb.observation_request","args":{"view_ids":["project.structure","mix.multitrack_relationship"]}}]}`,
+		`{"final":false,"reply":"target","free_state":{"schema_version":"free_state_decision.v1","status":"needs_observation","evidence_status":"plausible","summary":"target evidence","requested_view_ids":["track.band_dynamics"],"priority_reason":"target_selection"},"tool_calls":[{"tool":"ccb.observation_request","args":{"view_ids":["track.band_dynamics"],"target_ref":{"kind":"track","id":"1007","label":"bass"}}}]}`,
+		`{"final":true,"reply":"proposal","free_state":{"schema_version":"free_state_decision.v1","status":"needs_experiment","evidence_status":"plausible","summary":"bounded gain proposal","improvement_proposal":{"schema_version":"improvement_proposal.v1","target":{"kind":"track","id":"1007"},"evidence_refs":["obs-production-3"],"improvement_intent":"balance bass","hypothesis":"a small gain change may improve balance","expected_effect":"clearer balance","action_domain":"track_gain","action_kind":"track_gain_adjust","parameter_bounds":{"delta_db":-0.5},"verification_plan":{"experiment_budget":1,"max_action_attempts":1}}},"tool_calls":[]}`,
+	}}
+	executor := &productionFreeStateCCBExecutor{}
+	runner := agentloop.MessageLoop{Runtime: agentruntime.New(), Client: model, Config: config.EngineConfig{BaseURL: "http://example.invalid", DefaultModel: "fake", APIKey: "fake"}, Executor: executor, Budget: agentloop.Budget{MaxTurns: 1, MaxToolCalls: 1, MaxConsecutiveErrors: 1}}
+	s := testContinuationServer()
+	defer s.Close()
+	s.freeStateLoops = map[string]freeStateReasoningLoop{}
+	conversationID := "production-cross-slice"
+	now := time.Now().UTC()
+	s.storeFreeStateLoop(freeStateReasoningLoop{SchemaVersion: freeStateReasoningLoopSchema, LoopID: "production-loop", ConversationID: conversationID, GoalID: "goal-production", RunID: "run-production", Status: "reasoning", OriginalIntent: "inspect the project", ActiveIntent: "inspect the project", CurrentPhase: "fs2_capacity_assessed", MaxCycles: 6, ContinuationBudget: 12, CreatedAt: now, UpdatedAt: now})
+	input := agentloop.Input{GoalID: "goal-production", RunID: "run-production", UserText: "inspect the project", Summary: "inspect the project", AllowedTools: []string{"ccb.observation_catalog", "ccb.observation_request"}, Context: map[string]any{"free_state_reasoning_loop": freeStateLoopMap(mustFreeStateLoop(s, conversationID))}}
+	result := runner.Start(context.Background(), input)
+	var childResult agentloop.Result
+	childAlreadyRecorded := false
+	for slice := 1; ; slice++ {
+		if !childAlreadyRecorded {
+			if _, ok := s.recordFreeStateDecision(conversationID, result); !ok {
+				t.Fatalf("slice %d did not record runner result", slice)
+			}
+			if err := s.recordGoalResult(conversationID, result); err != nil {
+				t.Fatalf("slice %d checkpoint failed: %v", slice, err)
+			}
+		}
+		childAlreadyRecorded = false
+		loop, _ := s.freeStateLoop(conversationID)
+		expectedEvidence := slice - 1 // catalog discovery is persisted separately, not acoustic evidence
+		if slice <= 3 {
+			if len(loop.ObservationIDs) != expectedEvidence || len(loop.ObservationReceipts) != expectedEvidence || len(freeStateMapRows(loop.ObservationLedger["receipts"])) != expectedEvidence || (expectedEvidence > 0 && loop.LatestObservation == nil) {
+				t.Fatalf("slice %d observation projection inconsistent: result_status=%s stop=%s executed=%v recent=%v ids=%v receipts=%d ledger=%d latest=%v", slice, result.Status, result.StopReason, result.Executed, result.RecentObservation, loop.ObservationIDs, len(loop.ObservationReceipts), len(freeStateMapRows(loop.ObservationLedger["receipts"])), loop.LatestObservation)
+			}
+		}
+		if result.FreeStateDecision != nil && result.FreeStateDecision.Status == agentloop.FreeStateNeedsExperiment {
+			if loop.LatestDecision == nil || loop.LatestDecision.ImprovementProposal == nil {
+				t.Fatalf("proposal was not durable: phase=%q decision=%#v", loop.CurrentPhase, loop.LatestDecision)
+			}
+			break
+		}
+		var pending DurableContinuation
+		for _, item := range s.durableContinuations {
+			if item.Status == ContinuationPending || item.Status == ContinuationRunning || item.Status == ContinuationClaimed {
+				pending = item
+			}
+		}
+		if pending.ContinuationID == "" {
+			if loop, ok := s.freeStateLoop(conversationID); ok && loop.CurrentPhase == "fs7_improvement_proposal" && loop.LatestDecision != nil && loop.LatestDecision.ImprovementProposal != nil {
+				break
+			}
+			statuses := []string{}
+			for _, item := range s.durableContinuations { statuses = append(statuses, string(item.Status)+":"+item.ContinuationID) }
+			t.Fatalf("slice %d did not create child checkpoint: statuses=%v result_cont=%v", slice, statuses, result.Continuation != nil)
+		}
+		s.continuationExecutor = func(ctx context.Context, item DurableContinuation) error {
+			child := runner.Continue(ctx, item.Continuation)
+			childResult = child
+			if _, ok := s.recordFreeStateDecision(conversationID, child); !ok {
+				return fmt.Errorf("child result was not recorded")
+			}
+			childAlreadyRecorded = true
+			return s.recordGoalResult(conversationID, child)
+		}
+		claimed, ok := s.claimNextContinuation(time.Now().UTC().Add(time.Minute))
+		if !ok {
+			t.Fatalf("slice %d child checkpoint was not claimable", slice)
+		}
+		if err := s.continuationExecutor(context.Background(), claimed); err != nil {
+			t.Fatalf("slice %d durable execution failed: %v", slice, err)
+		}
+		result = childResult
+		if slice >= 4 {
+			loop, _ := s.freeStateLoop(conversationID)
+			if len(loop.ObservationIDs) >= 2 && len(loop.ObservationReceipts) >= 2 && loop.LatestObservation != nil {
+				break
+			}
+			t.Fatalf("production runner lost target evidence: phase=%s status=%s decision=%#v ids=%v calls=%d", loop.CurrentPhase, loop.Status, loop.LatestDecision, loop.ObservationIDs, len(executor.calls))
+		}
+	}
+	projectCalls := 0
+	for _, call := range executor.calls {
+		if call.Tool == "ccb.observation_request" && len(call.Args["view_ids"].([]any)) == 2 {
+			projectCalls++
+		}
+	}
+	if projectCalls != 1 { t.Fatalf("duplicate project view set entered CCB executor: %d", projectCalls) }
+}
+
+func mustFreeStateLoop(s *Server, conversationID string) freeStateReasoningLoop {
+	loop, ok := s.freeStateLoop(conversationID)
+	if !ok {
+		panic("missing free-state loop")
+	}
+	return loop
+}
 
 type continuationTestPlanner struct {
 	outputs []planner.Output
@@ -85,6 +231,115 @@ func TestRecordGoalResultEnqueuesDurableContinuationIdempotently(t *testing.T) {
 	s.recordGoalResult("conversation-c", res)
 	if len(s.durableContinuations) != 1 {
 		t.Fatalf("duplicate checkpoint created another queue item: %+v", s.durableContinuations)
+	}
+}
+
+func TestWaitingContinueWithoutContinuationFailsClosed(t *testing.T) {
+	s := testContinuationServer()
+	defer s.Close()
+	resp := s.chatResponseFromAgentLoopResult("conversation-missing-checkpoint", agentModeDefault, agentloop.Result{
+		GoalID: "goal-missing-checkpoint", RunID: "run-missing-checkpoint", TaskID: "task-missing-checkpoint",
+		SliceID: "slice-missing-checkpoint", TurnID: "turn-missing-checkpoint", Status: agentruntime.StatusWaitingContinue,
+		StopReason: agentloop.StopReasonLimitReached, LimitType: "max_turns",
+	})
+	if resp.GoalStatus != string(agentruntime.StatusFailed) || resp.StopReason != "durable_continuation_missing" {
+		t.Fatalf("waiting_continue without checkpoint was not failed closed: %+v", resp)
+	}
+}
+
+func TestFreeStateObservationsSurviveFourDurableSlices(t *testing.T) {
+	s := testContinuationServer()
+	defer s.Close()
+	s.freeStateLoops = map[string]freeStateReasoningLoop{}
+	conversationID := "cross-slice-free-state"
+	now := time.Now().UTC()
+	s.storeFreeStateLoop(freeStateReasoningLoop{
+		SchemaVersion: freeStateReasoningLoopSchema, LoopID: "loop-cross-slice", ConversationID: conversationID,
+		GoalID: "goal-cross-slice", RunID: "run-cross-slice", Status: "observing", OriginalIntent: "inspect the project",
+		ActiveIntent: "inspect the project", CurrentPhase: "fs2_capacity_assessed", MaxCycles: 6,
+		ContinuationBudget: 4, CreatedAt: now, UpdatedAt: now,
+	})
+	phases := []string{"fs3_project_scan", "fs4_diagnostic_round", "fs5_candidate_frontier", "fs7_improvement_proposal"}
+	views := []string{"project.structure", "mix.multitrack_relationship", "track.basic_energy", "track.band_dynamics"}
+	for index, phase := range phases {
+		before, ok := s.freeStateLoop(conversationID)
+		if !ok {
+			t.Fatalf("slice %d lost server loop", index+1)
+		}
+		observationID := fmt.Sprintf("obs-cross-slice-%d", index+1)
+		receiptID := fmt.Sprintf("receipt-cross-slice-%d", index+1)
+		updated := cloneFreeStateLoop(before)
+		updated.CurrentPhase = phase
+		updated.ObservationIDs = appendUniqueFreeStateStrings(updated.ObservationIDs, []string{observationID})
+		updated.ObservationReceipts = append(updated.ObservationReceipts, map[string]any{"receipt_id": receiptID, "observation_id": observationID})
+		updated.ObservationLedger = mergeFreeStateLedgers(updated.ObservationLedger, map[string]any{
+			"schema_version": freeStateObservationLedgerSchema,
+			"receipts": []map[string]any{{"receipt_id": receiptID, "observation_id": observationID, "requested_views": []string{views[index]}}},
+			"available_views": map[string]any{views[index]: map[string]any{"view_id": views[index], "observation_id": observationID, "status": "ready"}},
+		},)
+		updated.LatestObservation = &agentloop.RecentObservation{Tool: "ccb.observation_request", Status: "ready", Summary: map[string]any{
+			"observation_id": observationID, "requested_views": []any{views[index]}, "audit_receipt": map[string]any{"receipt_id": receiptID},
+		}}
+		updated.UpdatedAt = now.Add(time.Duration(index+1) * time.Second)
+		status := agentloop.FreeStateNeedsObservation
+		if index == len(phases)-1 {
+			status = agentloop.FreeStateNeedsExperiment
+		}
+		res := agentloop.Result{
+			GoalID: "goal-cross-slice", RunID: "run-cross-slice", TaskID: "task-cross-slice",
+			SliceID: fmt.Sprintf("slice-%d", index+1), TurnID: fmt.Sprintf("turn-%d", index+1),
+			Status: agentruntime.StatusWaitingContinue, StopReason: agentloop.StopReasonLimitReached,
+			ContextSnapshot: map[string]any{"free_state_reasoning_loop": freeStateLoopMap(updated)},
+			Continuation: &agentloop.Continuation{GoalID: "goal-cross-slice", RunID: "run-cross-slice", TaskID: "task-cross-slice",
+				SliceID: fmt.Sprintf("slice-%d", index+1), TurnID: fmt.Sprintf("turn-%d", index+1),
+				Context: map[string]any{"free_state_reasoning_loop": freeStateLoopMap(before)}},
+			FreeStateDecision: &agentloop.FreeStateDecision{SchemaVersion: agentloop.FreeStateDecisionSchema, Status: status,
+				EvidenceStatus: "plausible", Summary: "cross-slice evidence", RequestedViewIDs: []string{views[index]}},
+		}
+		if _, ok := s.recordFreeStateDecision(conversationID, res); !ok {
+			t.Fatalf("slice %d did not record free-state result", index+1)
+		}
+		if err := s.recordGoalResult(conversationID, res); err != nil {
+			t.Fatalf("slice %d checkpoint failed: %v", index+1, err)
+		}
+		var checkpoint DurableContinuation
+		for _, item := range s.durableContinuations {
+			if item.ConversationID == conversationID && item.Status == ContinuationPending {
+				checkpoint = item
+			}
+		}
+		if checkpoint.ContinuationID == "" {
+			t.Fatalf("slice %d did not create a pending child checkpoint", index+1)
+		}
+		child, ok := freeStateLoopFromAny(checkpoint.Continuation.Context["free_state_reasoning_loop"])
+		if !ok || len(child.ObservationIDs) != index+1 || len(child.ObservationReceipts) != index+1 || child.CurrentPhase != phase {
+			t.Fatalf("slice %d child checkpoint lost durable evidence: phase=%q ids=%v receipts=%d", index+1, child.CurrentPhase, child.ObservationIDs, len(child.ObservationReceipts))
+		}
+		encoded, err := json.Marshal(checkpoint)
+		if err != nil {
+			t.Fatal(err)
+		}
+		var reloaded DurableContinuation
+		if err := json.Unmarshal(encoded, &reloaded); err != nil {
+			t.Fatal(err)
+		}
+		reloadedLoop, ok := freeStateLoopFromAny(reloaded.Continuation.Context["free_state_reasoning_loop"])
+		if !ok || len(reloadedLoop.ObservationIDs) != index+1 {
+			t.Fatalf("slice %d restart round-trip lost evidence: %#v", index+1, reloadedLoop)
+		}
+		merged := mergeFreeStateLoops(reloadedLoop, before, true)
+		if merged.CurrentPhase != phase || len(merged.ObservationIDs) != index+1 || len(merged.ObservationReceipts) != index+1 {
+			t.Fatalf("slice %d stale transport overlay regressed durable state: phase=%q ids=%v receipts=%d", index+1, merged.CurrentPhase, merged.ObservationIDs, len(merged.ObservationReceipts))
+		}
+		s.continuationExecutor = func(_ context.Context, item DurableContinuation) error {
+			if item.Continuation.Context["free_state_reasoning_loop"] == nil {
+				t.Fatalf("slice %d execute received no free-state loop", index+1)
+			}
+			return nil
+		}
+		if err := s.runContinuationSchedulerOnce(context.Background()); err != nil {
+			t.Fatalf("slice %d durable claim/execute failed: %v", index+1, err)
+		}
 	}
 }
 

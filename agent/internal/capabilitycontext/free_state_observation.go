@@ -65,6 +65,8 @@ type FreeStateObservationAuditReceipt struct {
 	ViewSetMatches        bool           `json:"view_set_matches"`
 	Scope                 string         `json:"scope"`
 	Freshness             map[string]any `json:"freshness"`
+	ProjectBinding        map[string]any `json:"project_binding,omitempty"`
+	ProjectRevision       string         `json:"project_revision,omitempty"`
 	Status                string         `json:"status"`
 	RejectionReasons      []string       `json:"rejection_reasons,omitempty"`
 	RejectionScope        string         `json:"rejection_scope,omitempty"`
@@ -281,6 +283,27 @@ func AssembleFreeStateObservation(req FreeStateObservationRequest, readResult ma
 		Omissions:          map[string]orchestration.OmissionStatus{},
 		MaxDisclosureBytes: req.MaxDisclosureBytes,
 	}
+	canonicalBound := strings.TrimSpace(stringValue(bundle.ProjectBinding["project_uuid"])) != "" &&
+		strings.TrimSpace(stringValue(bundle.ProjectBinding["project_epoch"])) != "" &&
+		strings.TrimSpace(stringValue(bundle.ProjectBinding["project_revision"])) != ""
+	if !canonicalBound {
+		if bundle.ProjectBinding == nil {
+			bundle.ProjectBinding = map[string]any{}
+		}
+		bundle.ProjectBinding["binding_status"] = "unbound"
+		bundle.Limitations = append(bundle.Limitations, "canonical VSP project binding unavailable")
+		bundle.Freshness["status"] = "unbound"
+	}
+	// The binding is authoritative lineage.  Do not infer a revision from the
+	// MixBoard session/round counters; an observation without a kernel/VSP
+	// project binding remains unbound and therefore cannot satisfy G7.
+	if projectBinding := anyMap(binding["project_binding"]); len(projectBinding) > 0 {
+		for _, key := range []string{"project_uuid", "project_epoch", "project_revision"} {
+			if value := stringValue(projectBinding[key]); value != "" {
+				bundle.Freshness[key] = value
+			}
+		}
+	}
 	knownViewIDs := map[string]bool{}
 	for _, def := range defs {
 		knownViewIDs[def.view.ViewID] = true
@@ -312,6 +335,8 @@ func AssembleFreeStateObservation(req FreeStateObservationRequest, readResult ma
 		ViewSetMatches:        len(receiptReasons) == 0,
 		Scope:                 firstNonEmptyString(req.Scope, observationScopeForRequest(req)),
 		Freshness:             nil,
+		ProjectBinding:        cloneAnyMap(bundle.ProjectBinding),
+		ProjectRevision:       stringValue(bundle.ProjectBinding["project_revision"]),
 		Status:                receiptStatus,
 		RejectionReasons:      receiptReasons,
 	}
@@ -360,11 +385,16 @@ func AssembleFreeStateObservation(req FreeStateObservationRequest, readResult ma
 	bundle.Limitations = uniqueNonEmpty(bundle.Limitations)
 	bundle.OmissionReasons = uniqueNonEmpty(bundle.OmissionReasons)
 	bundle.AuditReceipt.Freshness = cloneAnyMap(bundle.Freshness)
+	bundle.AuditReceipt.ProjectBinding = cloneAnyMap(bundle.ProjectBinding)
+	bundle.AuditReceipt.ProjectRevision = stringValue(bundle.ProjectBinding["project_revision"])
 	if len(bundle.OmissionReasons) > 0 {
 		bundle.AuditReceipt.RejectionReasons = uniqueNonEmpty(append(bundle.AuditReceipt.RejectionReasons, bundle.OmissionReasons...))
 		if bundle.AuditReceipt.Status == "executed" {
 			bundle.AuditReceipt.Status = "partial"
 		}
+	}
+	if !canonicalBound && bundle.AuditReceipt.Status == "executed" {
+		bundle.AuditReceipt.Status = "partial"
 	}
 	if len(bundle.AuditReceipt.RejectionReasons) > 0 {
 		bundle.AuditReceipt.ViewSetMatches = len(receiptReasons) == 0

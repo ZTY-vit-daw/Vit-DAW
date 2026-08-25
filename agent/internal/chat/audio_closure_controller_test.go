@@ -327,6 +327,42 @@ func TestAudioClosureExhaustedOpenQueueSettlesNoCandidateAtFS9(t *testing.T) {
 	}
 }
 
+func TestAudioClosureFrontierNeverSettlesRuntimeNoCandidateFound(t *testing.T) {
+	server := &Server{harness: harness.NewWithSender(nil, nil, nil), audioClosures: audioclosure.NewMemoryStore(), controllerOwners: orchestrationcontroller.NewRegistry(), freeStateLoops: map[string]freeStateReasoningLoop{}, capabilityRoutes: map[string]CapabilityRouteRecord{}}
+	goal := server.harness.EnsureGoal("goal-frontier-boundary", "run-frontier-boundary", "improve the project")
+	if _, err := server.ensureAudioTaskContract("conversation-frontier-boundary", audioclosure.ModeTreatment,
+		audioclosure.Scope{Kind: "project", ID: "project-frontier-boundary"}, "project-frontier-boundary", "rev-1", map[string]any{"goal_id": goal.GoalID}); err != nil {
+		t.Fatal(err)
+	}
+	current := server.harness.RuntimeStatus(goal.GoalID)
+	state, err := audioclosure.Start(audioclosure.StartRequest{ClosureID: "closure-frontier-boundary", ConversationID: "conversation-frontier-boundary",
+		TaskID: current.Task.TaskID, GoalID: goal.GoalID, RunID: current.RunID, ContractID: current.Task.Contract.ContractID,
+		TaskState: current.Task.SemanticState.State, TaskStateRevision: current.Task.SemanticState.Revision, ProjectUUID: "project-frontier-boundary",
+		ProjectRevision: "rev-1", OriginalIntent: "improve the project", Mode: audioclosure.ModeTreatment,
+		Scope: audioclosure.Scope{Kind: "project", ID: "project-frontier-boundary"}, Now: time.Now().UTC()})
+	if err != nil {
+		t.Fatal(err)
+	}
+	state.Frontier = audioclosure.HypothesisFrontier{CandidateID: "candidate-bass", Candidates: []audioclosure.Candidate{{ID: "candidate-bass", TrackIDs: []string{"1007"}, SourceObservationID: "obs-bass", EvidenceRefs: []string{"obs-bass"}}}}
+	loop := continuationTestLoop("conversation-frontier-boundary")
+	queue := audioclosure.DefaultPriorityQueue()
+	loop.PriorityQueue = &queue
+	loop.ContinuationBudget, loop.ContinuationUsed = 1, 1
+	server.storeFreeStateLoop(loop)
+	server.capabilityRoutes["route-frontier-boundary"] = CapabilityRouteRecord{SchemaVersion: "capability_route.v1", ConversationID: loop.ConversationID,
+		Assessment: &FreeStateCapacityAssessment{CapacityLevel: "within_free_state", SelectedCapability: "free_state"}, UpdatedAt: time.Now().UTC()}
+	if err := server.audioClosures.Create(state); err != nil {
+		t.Fatal(err)
+	}
+	next, err := server.settleTaskAtAudioClosureBoundary(state, "admission boundary")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !next.Terminal() || next.Settlement == nil || next.Settlement.Reason != audioclosure.StopCapabilityBlocked {
+		t.Fatalf("frontier was misclassified as no_candidate_found: %+v", next)
+	}
+}
+
 func TestAudioClosureBuildsCandidatesFromCompactedViewFacts(t *testing.T) {
 	observation := &agentloop.RecentObservation{Tool: "ccb.observation_request", Status: "partial", Summary: map[string]any{
 		"status": "partial", "observation_id": "obs-compacted", "requested_views": []any{"mix.multitrack_relationship"},
@@ -496,6 +532,44 @@ func TestAudioClosureBuildsCandidateFrontierFromDurableObservationPackage(t *tes
 	candidate := frontier.Candidates[0]
 	if candidate.ViewID != "mix.multitrack_relationship" || len(candidate.TrackIDs) != 2 || candidate.EvidenceRefs[0] != "project_package.project_band_occupancy.low_mid" {
 		t.Fatalf("durable candidate lost target/evidence binding: %+v", candidate)
+	}
+}
+
+func TestAudioClosureHydratesFrontierFromDurableLedgerWhenResultIsEmpty(t *testing.T) {
+	ledger := map[string]any{
+		"schema_version": freeStateObservationLedgerSchema,
+		"available_views": map[string]any{
+			"mix.multitrack_relationship": map[string]any{
+				"status": "ready", "observation_id": "obs-mix", "view_id": "mix.multitrack_relationship",
+				"freshness": map[string]any{"status": "current_observation", "project_revision": "2"},
+				"conclusion": map[string]any{
+					"facts": map[string]any{
+						"band_conflict_candidates": []any{
+							map[string]any{
+								"type": "low_end_overlap", "band": "bass",
+								"tracks": []any{
+									map[string]any{"track_id": "1007"},
+									map[string]any{"track_id": "1012"},
+								},
+							},
+						},
+					},
+				},
+			},
+			"track:1007::track.band_dynamics": map[string]any{
+				"status": "ready", "view_id": "track.band_dynamics", "observation_id": "obs-target",
+				"target_ref": map[string]any{"kind": "track", "id": "1007"},
+				"freshness":  map[string]any{"status": "current_observation", "project_revision": "2"},
+			},
+		},
+	}
+	observations := freeStateLedgerObservations(ledger)
+	frontier, _ := audioClosureFrontier(audioclosure.HypothesisFrontier{}, agentloop.FreeStateDecision{SchemaVersion: agentloop.FreeStateDecisionSchema}, observations)
+	if len(frontier.Candidates) != 1 || frontier.CandidateID == "" {
+		t.Fatalf("durable ledger frontier=%+v observations=%+v", frontier, observations)
+	}
+	if frontier.Candidates[0].SourceObservationID != "obs-mix" || frontier.CandidateID != frontier.Candidates[0].ID {
+		t.Fatalf("candidate binding lost: %+v", frontier.Candidates[0])
 	}
 }
 

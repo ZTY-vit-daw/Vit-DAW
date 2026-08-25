@@ -108,3 +108,15 @@ func TestProjectRevisionInvalidatesEvidenceWithoutChangingTaskIdentity(t *testin
 		t.Fatalf("revision revalidation failed: %+v", state)
 	}
 }
+
+func TestProjectRevisionDuringExperimentPreservesExperimentIdentity(t *testing.T) {
+	contract := testContract(ContractImprovement)
+	state, _ := New(contract, testNow)
+	proposal := &BoundedProposal{ProposalID: "proposal-exp", Summary: "bounded", EvidenceRefs: []string{"obs-before"}, Bounds: []string{"one dose"}, RequiresExperiment: true}
+	state = mustApply(t, contract, state, TransitionRequest{Event: EventImprovementProposed, Reason: "proposal", Proposal: proposal})
+	state = mustApply(t, contract, state, TransitionRequest{Event: EventExperimentRequired, Reason: "experiment admitted", ExperimentID: "experiment-exp"})
+	state = mustApply(t, contract, state, TransitionRequest{Event: EventProjectRevisionChanged, Reason: "after apply revision", ProjectRevision: "rev-2"})
+	if state.ExperimentID != "experiment-exp" || state.Proposal == nil || state.Proposal.ProposalID != "proposal-exp" || len(state.EvidenceRefs) != 0 {
+		t.Fatalf("experiment identity was lost across revision change: %+v", state)
+	}
+}

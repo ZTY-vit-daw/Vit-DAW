@@ -26,6 +26,7 @@ type AcousticVerifier interface {
 // not mean the user has accepted the musical result.
 type AcousticResult struct {
 	Status              string
+	Fresh               bool
 	ObservationID       string
 	ObservationRevision string
 	MOMStatus           string
@@ -87,6 +88,10 @@ func (v StaticBalance) Verify(ctx context.Context, actionSet orchestration.Actio
 	result.Acoustic = strings.TrimSpace(acoustic.Status)
 	result.EvidenceRefs = append(result.EvidenceRefs, acoustic.EvidenceRefs...)
 	result.Summary = strings.TrimSpace(acoustic.Summary)
+	result.ObservationID = strings.TrimSpace(acoustic.ObservationID)
+	result.ObservationRevision = strings.TrimSpace(acoustic.ObservationRevision)
+	result.Fresh = acoustic.Fresh
+	result.PostAction = result.ObservationID != "" && acoustic.Fresh
 	result.SpecialistRelationship = strings.TrimSpace(acoustic.RelationshipStatus)
 	result.SpecialistSummary = strings.TrimSpace(acoustic.RelationshipSummary)
 	if err != nil {

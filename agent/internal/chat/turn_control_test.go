@@ -129,7 +129,7 @@ func TestFullAccessRequestFlowsIntoExperimentAdmission(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	loop := freeStateReasoningLoop{SchemaVersion: freeStateReasoningLoopSchema, LoopID: "loop-flow", ConversationID: "chat-flow", OriginalIntent: "improve", Status: "reasoning", AuthorityMode: authorityModeFromContext(ctx)}
+	loop := freeStateReasoningLoop{SchemaVersion: freeStateReasoningLoopSchema, LoopID: "loop-flow", ConversationID: "chat-flow", OriginalIntent: "improve", Status: "reasoning", AuthorityMode: authorityModeFromContext(ctx), LatestObservation: d1FreshObservationForTest("7")}
 	proposal := experimentTestProposal()
 	admission, err := freeStateExperimentAdmission(loop, proposal)
 	if err != nil {

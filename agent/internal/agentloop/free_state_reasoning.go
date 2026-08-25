@@ -471,6 +471,25 @@ func messageLoopFreeStateActive(state *runState) bool {
 	return status != "completed" && status != "cancelled" && status != "blocked"
 }
 
+// A successful catalog call is a durable observation boundary. Repeating it
+// cannot add evidence and previously caused scheduler continuations to spend
+// their entire bounded budget rediscovering the same view IDs.
+func messageLoopFreeStateCatalogAlreadyObserved(state *runState) bool {
+	if state == nil {
+		return false
+	}
+	for _, event := range state.trace {
+		if event.ToolResult == nil || !messageLoopIsCCBObservationCatalogName(event.ToolResult.Tool) || toolStatusFailed(event.ToolResult.Status) {
+			continue
+		}
+		catalog := messageLoopMapValue(event.ToolResult.Result["catalog"])
+		if len(messageLoopMapRows(catalog["views"])) > 0 {
+			return true
+		}
+	}
+	return false
+}
+
 func messageLoopFreeStateOutputIssue(state *runState, out messageLoopOutput) string {
 	active := messageLoopFreeStateActive(state)
 	if !active {
@@ -506,6 +525,9 @@ func messageLoopFreeStateOutputIssue(state *runState, out messageLoopOutput) str
 		for _, call := range out.ToolCalls {
 			if !messageLoopIsCCBObservationTool(call) {
 				return "needs_observation may call only CCB observation catalog/request tools in the free-state loop"
+			}
+			if messageLoopIsCCBObservationCatalogName(normalizedActionName(call, executorpkg.Result{})) && messageLoopFreeStateCatalogAlreadyObserved(state) {
+				return "ccb.observation_catalog already returned a successful catalog in this loop; request a cataloged observation view or return the concrete evidence boundary"
 			}
 			if !messageLoopIsCCBObservationRequestName(normalizedActionName(call, executorpkg.Result{})) {
 				continue
@@ -994,6 +1016,19 @@ func messageLoopFreeStateAlreadyObservedIssue(state *runState, requested []strin
 	}
 	ctx := messageLoopFreeStateContext(state)
 	ledger := messageLoopMapValue(ctx["observation_ledger"])
+	if allProjectScopedCCBViews(requested) {
+		available := messageLoopMapValue(ledger["available_views"])
+		allAvailable := true
+		for _, viewID := range requested {
+			if len(messageLoopMapValue(available[strings.TrimSpace(viewID)])) == 0 {
+				allAvailable = false
+				break
+			}
+		}
+		if allAvailable {
+			return "the requested project-level CCB view set already returned usable evidence; choose a different cataloged view or target instead of repeating it"
+		}
+	}
 	for _, row := range messageLoopMapRows(ledger["receipts"]) {
 		if !messageLoopFreeStateObservationStatusUsable(row) {
 			continue
@@ -1001,8 +1036,45 @@ func messageLoopFreeStateAlreadyObservedIssue(state *runState, requested []strin
 		if messageLoopFreeStateRequestFingerprint(messageLoopStringList(row["requested_views"]), messageLoopMapValue(row["target_ref"])) == want {
 			return "the requested CCB view set and target already returned usable evidence; choose a different cataloged view or target instead of repeating it"
 		}
+		// Project-level views are scoped to the whole project. Treat an omitted
+		// target and an explicit current-project target as the same observation;
+		// otherwise a continuation can evade the duplicate-view guard by changing
+		// only the redundant target encoding.
+		priorViews := messageLoopStringList(row["requested_views"])
+		if sameStringSet(priorViews, requested) && allProjectScopedCCBViews(requested) {
+			return "the requested project-level CCB view set already returned usable evidence; choose a different cataloged view or target instead of repeating it"
+		}
 	}
 	return ""
+}
+
+func allProjectScopedCCBViews(viewIDs []string) bool {
+	if len(viewIDs) == 0 {
+		return false
+	}
+	for _, viewID := range viewIDs {
+		if !strings.HasPrefix(strings.ToLower(strings.TrimSpace(viewID)), "project.") &&
+			!strings.HasPrefix(strings.ToLower(strings.TrimSpace(viewID)), "mix.") {
+			return false
+		}
+	}
+	return true
+}
+
+func sameStringSet(left, right []string) bool {
+	if len(left) != len(right) {
+		return false
+	}
+	seen := make(map[string]bool, len(left))
+	for _, value := range left {
+		seen[strings.TrimSpace(value)] = true
+	}
+	for _, value := range right {
+		if !seen[strings.TrimSpace(value)] {
+			return false
+		}
+	}
+	return true
 }
 
 func messageLoopFreeStateRequestFingerprint(values []string, target map[string]any) string {
@@ -1123,6 +1195,89 @@ func recordFreeStateCCBObservation(state *runState, observation *RecentObservati
 		loop["rejected_observation_requests"] = rows
 	}
 	state.input.Context["free_state_reasoning_loop"] = loop
+}
+
+// syncFreeStateRuntimeAfterObservation keeps the in-flight MessageLoop
+// snapshot coherent with a CCB result.  The chat controller remains the
+// authoritative closure owner and persists the same observation at the HTTP
+// boundary; this projection only prevents the next final-gate evaluation in
+// this Runner invocation from combining a new ledger with an old closure
+// revision/phase.
+func syncFreeStateRuntimeAfterObservation(state *runState, observation *RecentObservation) {
+	if state == nil || observation == nil || !messageLoopIsCCBObservationRequestName(firstNonEmpty(observation.Tool, observation.CommandName)) ||
+		!messageLoopFreeStateObservationStatusUsable(observation.Summary) {
+		return
+	}
+	ctx := state.input.Context
+	if len(ctx) == 0 {
+		return
+	}
+	closure := messageLoopMapValue(ctx["minimal_audio_closure"])
+	if len(closure) == 0 {
+		return
+	}
+	obsRevision := firstNonEmpty(firstMapText(observation.Summary, "project_revision"), firstMapText(messageLoopMapValue(observation.Summary["project_binding"]), "project_revision"))
+	if obsRevision != "" {
+		// Only a project-bound observation may refresh the closure binding.
+		obsUUID := firstMapText(messageLoopMapValue(observation.Summary["project_binding"]), "project_uuid")
+		closureUUID := firstMapText(closure, "project_uuid")
+		if obsUUID == "" || closureUUID == "" || strings.EqualFold(obsUUID, closureUUID) {
+			closure["project_revision"] = obsRevision
+			if contract := messageLoopMapValue(ctx["task_contract"]); len(contract) > 0 {
+				contract["project_revision"] = obsRevision
+			}
+			if assessment := messageLoopMapValue(ctx["free_state_capacity_assessment"]); len(assessment) > 0 {
+				assessment["project_revision"] = obsRevision
+			}
+			if binding := messageLoopMapValue(ctx["project_binding"]); len(binding) > 0 {
+				binding["project_revision"] = obsRevision
+			}
+		}
+	}
+	// A target-level usable observation closes the candidate-confirmation
+	// boundary.  Project-wide scans alone must not advance the host phase.
+	if gateG6(state) || freeStateObservationClosesTarget(state, observation) {
+		phaseText := firstNonEmpty(firstMapText(ctx, "free_state_phase"), firstMapText(closure, "phase"))
+		if phase, ok := audioclosure.ParsePhase(phaseText); ok &&
+			(phase == audioclosure.PhaseFS4DiagnosticRound || phase == audioclosure.PhaseFS5CandidateFrontier) {
+			ctx["free_state_phase"] = string(audioclosure.PhaseFS6TargetConfirmed)
+			closure["phase"] = string(audioclosure.PhaseFS6TargetConfirmed)
+			loop := messageLoopMapValue(ctx["free_state_reasoning_loop"])
+			if len(loop) > 0 {
+				loop["current_phase"] = string(audioclosure.PhaseFS6TargetConfirmed)
+				loop["phase"] = string(audioclosure.PhaseFS6TargetConfirmed)
+				ctx["free_state_reasoning_loop"] = loop
+			}
+		}
+	}
+}
+
+func freeStateObservationClosesTarget(state *runState, observation *RecentObservation) bool {
+	if state == nil || observation == nil {
+		return false
+	}
+	target := messageLoopMapValue(observation.Summary["target_ref"])
+	kind, id := messageLoopCCBTargetIdentity(target)
+	if kind != "track" || id == "" {
+		return false
+	}
+	closure := messageLoopMapValue(state.input.Context["minimal_audio_closure"])
+	frontier := messageLoopMapValue(closure["hypothesis_frontier"])
+	selected := strings.TrimSpace(messageLoopText(frontier["candidate_id"]))
+	if selected == "" {
+		return false
+	}
+	for _, candidate := range messageLoopMapRows(frontier["candidates"]) {
+		if !strings.EqualFold(firstMapText(candidate, "id"), selected) {
+			continue
+		}
+		for _, trackID := range messageLoopStringList(candidate["track_ids"]) {
+			if strings.TrimSpace(trackID) == id {
+				return messageLoopFreeStateObservationStatusUsable(observation.Summary)
+			}
+		}
+	}
+	return false
 }
 
 // mergeFreeStateObservationLedger appends the current model round to every

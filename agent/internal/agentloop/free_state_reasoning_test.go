@@ -129,6 +129,26 @@ func TestFreeStateCatalogDiscoveryAllowsEmptyRequestedViewIDs(t *testing.T) {
 	}
 }
 
+func TestFreeStateRejectsRepeatedSuccessfulCatalogDiscovery(t *testing.T) {
+	state := &runState{
+		input: Input{Context: map[string]any{"free_state_reasoning_loop": map[string]any{
+			"schema_version": "free_state_reasoning_loop.v1", "status": "reasoning", "original_intent": "inspect the project",
+		}}},
+		trace: []planner.TraceEvent{{Kind: "tool_result", ToolResult: &planner.ToolResult{
+			Tool: "ccb.observation_catalog", Status: "ok", Result: map[string]any{
+				"catalog": map[string]any{"views": []any{map[string]any{"view_id": "project.structure"}}},
+			},
+		}}},
+	}
+	out := messageLoopOutput{Final: false, FreeStateDecision: &FreeStateDecision{
+		SchemaVersion: FreeStateDecisionSchema, Status: FreeStateNeedsObservation, EvidenceStatus: "insufficient", Summary: "discover again",
+	}, ToolCalls: []planner.ToolCall{{Tool: "ccb.observation_catalog", Args: map[string]any{}}}}
+	issue := messageLoopFreeStateOutputIssue(state, out)
+	if !strings.Contains(issue, "already returned a successful catalog") {
+		t.Fatalf("repeated successful catalog was accepted: %q", issue)
+	}
+}
+
 func TestFreeStateObservationRequestStillRequiresNonEmptyRequestedViewIDs(t *testing.T) {
 	state := &runState{input: Input{Context: map[string]any{"free_state_reasoning_loop": map[string]any{
 		"schema_version": "free_state_reasoning_loop.v1", "status": "reasoning", "original_intent": "inspect the project",

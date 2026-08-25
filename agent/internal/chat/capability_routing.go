@@ -321,13 +321,13 @@ func (s *Server) settleControllerForCapacityReroute(conversationID string, owner
 func (s *Server) observeCapacityProjectFacts(ctx context.Context, requestScope string) CapacityObservedFacts {
 	state := s.harness.UserStateSummary(ctx)
 	// Refresh structural state through the read-only product command when a
-	// live kernel exists. Tests can supply an initialized in-memory Shadow;
-	// neither path accepts a caller-provided route conclusion.
+	// live kernel exists. Harness.RefreshShadow prefers the authoritative VSP
+	// snapshot and only falls back to the legacy state when VSP is unavailable;
+	// this prevents a legacy get_project_state response (which may carry the
+	// historical zero/absent revision) from overwriting canonical binding.
 	if s.kernel != nil {
-		if live, _, err := s.kernel.SendCommand(ctx, map[string]any{"cmd": "get_project_state"}); err == nil && kernelReplyOK(live) {
-			s.shadow.Initialize(live)
-			state = s.harness.UserStateSummary(ctx)
-		}
+		s.harness.RefreshShadow(ctx, "capacity_project_facts")
+		state = s.harness.UserStateSummary(ctx)
 	}
 	facts := capacityFactsFromProjectState(state, requestScope)
 	return facts

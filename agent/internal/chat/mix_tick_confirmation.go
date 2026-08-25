@@ -16,6 +16,12 @@ import (
 func (s *Server) handlePendingMixTickChat(ctx context.Context, conversationID string, req ChatRequest, mode string) (ChatResponse, bool) {
 	candidate, ok := s.pendingMixTickForConversation(conversationID)
 	if !ok {
+		if recovered, recoveredOK := pendingMixTickCandidateFromContext(req.Context); recoveredOK {
+			candidate, ok = recovered, true
+			s.storePendingMixTickCandidate(conversationID, firstStringFromMap(req.Context, "goal_id"), firstStringFromMap(req.Context, "run_id"), candidate)
+		}
+	}
+	if !ok {
 		if isContinueMessage(req.Message) && s.hasActiveFreeStateReasoningLoop(conversationID) {
 			return ChatResponse{}, false
 		}
@@ -111,6 +117,48 @@ func (s *Server) handlePendingMixTickChat(ctx context.Context, conversationID st
 	}
 }
 
+func pendingMixTickCandidateFromContext(ctx map[string]any) (agentloop.PendingMixTickCandidate, bool) {
+	if len(ctx) == 0 {
+		return agentloop.PendingMixTickCandidate{}, false
+	}
+	raw := firstMapFromAny(ctx["pending_mix_tick_candidate"])
+	if len(raw) == 0 {
+		return agentloop.PendingMixTickCandidate{}, false
+	}
+	candidate := agentloop.PendingMixTickCandidate{
+		Operation:     firstStringFromMap(raw, "operation", "action_kind"),
+		TrackID:       firstStringFromMap(raw, "track_id"),
+		ObservationID: firstStringFromMap(raw, "observation_id"),
+		Status:        "pending_confirmation",
+		Evidence:      firstMapFromAny(raw["evidence"]),
+		Fingerprint:   firstMapFromAny(raw["fingerprint"]),
+	}
+	// Typed pending events keep the candidate action under typed_state when the
+	// durable interaction payload is reconstructed. Recover those fields before
+	// validation; payload recovery itself is a continuation boundary, so the
+	// optional pre-context fingerprint is not available and must not cause a
+	// false expiry (the live project/target checks still run).
+	typedState := firstMapFromAny(raw["typed_state"])
+	action := firstMapFromAny(typedState["candidate_action"])
+	if len(action) > 0 {
+		candidate.Operation = firstNonEmpty(candidate.Operation, firstStringFromMap(action, "operation", "action_kind"))
+		candidate.TrackID = firstNonEmpty(candidate.TrackID, firstStringFromMap(action, "track_id"))
+		candidate.ObservationID = firstNonEmpty(candidate.ObservationID, firstStringFromMap(action, "observation_id"))
+		candidate.Evidence = firstNonEmptyMap(candidate.Evidence, firstMapFromAny(action["evidence"]))
+	}
+	if len(candidate.Evidence) == 0 {
+		candidate.Evidence = firstMapFromAny(typedState["candidate_action"])
+	}
+	if value, ok := raw["delta_db"].(float64); ok {
+		candidate.DeltaDB = value
+	}
+	if candidate.Operation == "" {
+		candidate.Operation = "track_gain_adjust"
+	}
+	candidate.ExpiresAfterContextChange = false
+	return candidate, candidate.TrackID != "" && candidate.ObservationID != ""
+}
+
 func (s *Server) executePendingMixTickCandidate(ctx context.Context, conversationID string, req ChatRequest, mode string, candidate agentloop.PendingMixTickCandidate) ChatResponse {
 	if err := s.validatePendingMixTickCandidate(ctx, candidate); err != nil {
 		if s != nil && s.logger != nil {
@@ -125,6 +173,10 @@ func (s *Server) executePendingMixTickCandidate(ctx context.Context, conversatio
 			StopReason:     "expired_pending_mix_tick_candidate",
 			Error:          err.Error(),
 		}
+	}
+	if response, handled := s.executeD1TrackGain(ctx, conversationID, req, candidate); handled {
+		s.expirePendingMixTick(conversationID)
+		return response
 	}
 	projectPath := projectPathFromChatContext(req.Context)
 	goal := s.beginChatGoal(conversationID, req.Message, req.Context)

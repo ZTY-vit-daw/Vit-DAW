@@ -31,7 +31,14 @@ func (s *Server) ensureAudioTaskContract(conversationID string, mode audioclosur
 		if goalID == "" {
 			return requestContext, nil
 		}
-		return requestContext, fmt.Errorf("audio task contract requires durable Task/Goal/Run identity")
+		// Project activation can restore the workspace before the in-memory
+		// runtime has rehydrated the task row. The route already carries the
+		// durable goal/run identity; hydrate that exact identity instead of
+		// inventing a replacement. If it still cannot be recovered, fail closed.
+		goal = s.harness.EnsureGoal(goalID, firstStringFromMap(requestContext, "run_id"), firstStringFromMap(requestContext, "original_intent"))
+		if goal.Task == nil || goal.GoalID == "" || goal.RunID == "" {
+			return requestContext, fmt.Errorf("audio task contract requires durable Task/Goal/Run identity")
+		}
 	}
 	kind := taskstate.ContractImprovement
 	authorization := "governed_experiment"
@@ -450,9 +457,25 @@ func (s *Server) reconcileRestoredTaskSemanticProjectionsLocked() {
 			failClosed(conversationID, loop.GoalID, "experiment identity does not match canonical Task/Run/contract")
 			continue
 		}
+		// The canonical Task projection is authoritative across interaction
+		// boundaries. A routed confirmation may durably advance the experiment
+		// snapshot before the Task snapshot is persisted; when the semantic state
+		// itself is identical, rebase that ahead-of-canonical revision instead of
+		// treating a recoverable ordering race as a conflicting experiment.
+		if experimentState.TaskStateRevision > semantic.Revision && experimentState.TaskState == semantic.State {
+			experimentState.TaskStateRevision = semantic.Revision
+		}
 		if err := experimentState.BindTaskState(contract.ContractID, semantic.State, semantic.Revision); err != nil {
-			failClosed(conversationID, loop.GoalID, "experiment task projection is conflicting: "+err.Error())
-			continue
+			// The canonical Task/semantic snapshot is the authority. If the
+			// experiment has the same validated identity but an interaction-boundary
+			// state/revision overlay, rebase its projection to the canonical state;
+			// do not let a stale continuation strand an otherwise admitted action.
+			experimentState.TaskState = semantic.State
+			experimentState.TaskStateRevision = semantic.Revision
+			if retryErr := experimentState.BindTaskState(contract.ContractID, semantic.State, semantic.Revision); retryErr != nil {
+				failClosed(conversationID, loop.GoalID, "experiment task projection is conflicting: "+retryErr.Error())
+				continue
+			}
 		}
 		loop.Experiment = experimentState
 		s.freeStateLoops[conversationID] = loop

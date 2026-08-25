@@ -27,6 +27,132 @@ func testAdmission(mode AuthorityMode) Admission {
 	}
 }
 
+func testD1Admission(mode AuthorityMode) Admission {
+	a := testAdmission(mode)
+	a.TargetRef = map[string]any{"kind": "track", "id": "track-1", "source": "fresh_g1_g7_observation"}
+	a.TypedAction = map[string]any{
+		"action_domain": "track_gain",
+		"action_kind":   "track_gain_adjust",
+		"target_db":     -1.0,
+	}
+	a.DiagnosticDoseBounds = map[string]any{"delta_db": -1.0, "max_action_attempts": 1}
+	a.RetainedDoseBounds = map[string]any{"delta_db": -1.0, "max_action_attempts": 1}
+	a.ExperimentBudget = 1
+	return a
+}
+
+func TestD1S1AdmissionRequiresSingleBoundedTrackGainAction(t *testing.T) {
+	tests := []struct {
+		name   string
+		mutate func(*Admission)
+	}{
+		{"wrong domain", func(a *Admission) { a.TypedAction["action_domain"] = "eq" }},
+		{"wrong action", func(a *Admission) { a.TypedAction["action_kind"] = "track_pan_adjust" }},
+		{"budget above one", func(a *Admission) { a.ExperimentBudget = 2 }},
+		{"attempts above one", func(a *Admission) { a.DiagnosticDoseBounds["max_action_attempts"] = 2 }},
+		{"unbounded delta", func(a *Admission) { a.DiagnosticDoseBounds["delta_db"] = -3.0 }},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			a := testD1Admission(AuthorityFull)
+			test.mutate(&a)
+			if err := a.ValidateD1S1(); err == nil {
+				t.Fatal("invalid D1-S1 admission accepted")
+			}
+		})
+	}
+	if err := testD1Admission(AuthorityFull).ValidateD1S1(); err != nil {
+		t.Fatalf("valid D1-S1 admission rejected: %v", err)
+	}
+}
+
+func TestD1S1RoundAllowsOneForwardMutationAndNoSecondRound(t *testing.T) {
+	turn, err := NewTurn(Identity{ConversationID: "conversation-d1"}, "bounded gain experiment", testD1Admission(AuthorityFull), time.Now().UTC())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err = turn.StartRound([]string{"mix.multitrack_relationship"}, "checkpoint-d1", "7", time.Now().UTC()); err != nil {
+		t.Fatal(err)
+	}
+	if _, err = turn.ApplyIntervention(testIntervention(1, "d1-forward"), time.Now().UTC()); err != nil {
+		t.Fatal(err)
+	}
+	if _, err = turn.ApplyIntervention(testIntervention(2, "d1-second"), time.Now().UTC()); err == nil || !strings.Contains(err.Error(), "one forward mutation") {
+		t.Fatalf("second forward mutation error=%v", err)
+	}
+	if _, err = turn.StartRound([]string{"mix.multitrack_relationship"}, "checkpoint-d1", "8", time.Now().UTC()); err == nil || !strings.Contains(err.Error(), "one round") {
+		t.Fatalf("second round error=%v", err)
+	}
+}
+
+func TestD1S1PostActionObservationMustBeFreshAndMatchAfterRevision(t *testing.T) {
+	turn, err := NewTurn(Identity{ConversationID: "conversation-d1-revision"}, "bounded gain experiment", testD1Admission(AuthorityFull), time.Now().UTC())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err = turn.StartRound([]string{"mix.multitrack_relationship"}, "checkpoint-d1", "7", time.Now().UTC()); err != nil {
+		t.Fatal(err)
+	}
+	before := testObservation("d1-before", false)
+	before.ProjectRevision = "7"
+	if _, err = turn.RecordObservation(before, false, time.Now().UTC()); err != nil {
+		t.Fatal(err)
+	}
+	action := testIntervention(1, "d1-forward")
+	action.Receipt["after_revision"] = "8"
+	if _, err = turn.ApplyIntervention(action, time.Now().UTC()); err != nil {
+		t.Fatal(err)
+	}
+	after := testObservation("d1-after", true)
+	after.ProjectRevision = "7"
+	if _, err = turn.RecordObservation(after, true, time.Now().UTC()); err == nil || !strings.Contains(err.Error(), "match mutation after revision") {
+		t.Fatalf("stale post-action observation error=%v", err)
+	}
+	after.ProjectRevision = "8"
+	after.Fresh = false
+	if _, err = turn.RecordObservation(after, true, time.Now().UTC()); err == nil || !strings.Contains(err.Error(), "fresh") {
+		t.Fatalf("non-fresh post-action observation error=%v", err)
+	}
+	after.Fresh = true
+	if _, err = turn.RecordObservation(after, true, time.Now().UTC()); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestD1S1SubthresholdAllowsOnlyAmbiguousHumanAudition(t *testing.T) {
+	turn, err := NewTurn(Identity{ConversationID: "d1-subthreshold"}, "compare one bounded gain move", testD1Admission(AuthorityFull), time.Now().UTC())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err = turn.StartRound([]string{"mix.multitrack_relationship"}, "checkpoint-d1", "7", time.Now().UTC()); err != nil {
+		t.Fatal(err)
+	}
+	before := testObservation("d1-sub-before", false)
+	before.ProjectRevision = "7"
+	if _, err = turn.RecordObservation(before, false, time.Now().UTC()); err != nil {
+		t.Fatal(err)
+	}
+	action := testIntervention(1, "d1-sub-action")
+	action.Receipt["after_revision"] = "8"
+	if _, err = turn.ApplyIntervention(action, time.Now().UTC()); err != nil {
+		t.Fatal(err)
+	}
+	after := testObservation("d1-sub-after", true)
+	after.ProjectRevision = "8"
+	if _, err = turn.RecordObservation(after, true, time.Now().UTC()); err != nil {
+		t.Fatal(err)
+	}
+	if _, err = turn.EvaluateMateriality(MaterialityEvaluation{State: MaterialitySubthreshold, Evaluation: trajectory.EvaluationInsufficientDose, Attempt: 1, EvidenceRefs: []string{"subthreshold"}}, time.Now().UTC()); err != nil {
+		t.Fatal(err)
+	}
+	if _, err = turn.RecordTargetResponse(TargetEvaluation{Response: TargetDirectional, Outcome: trajectory.EvaluationAgentEvaluable, EvidenceRefs: []string{"after"}}, time.Now().UTC()); err == nil {
+		t.Fatal("subthreshold D1 result accepted a directional target claim")
+	}
+	if _, err = turn.RecordTargetResponse(TargetEvaluation{Response: TargetAmbiguous, Outcome: trajectory.EvaluationHumanAuditionReady, EvidenceRefs: []string{"after"}}, time.Now().UTC()); err != nil {
+		t.Fatal(err)
+	}
+}
+
 func testObservation(id string, postAction bool) Observation {
 	return Observation{
 		ID: id, ReceiptID: "receipt-" + id,

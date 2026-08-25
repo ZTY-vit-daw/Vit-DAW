@@ -27,6 +27,36 @@ var freeStateGateOrder = []string{
 	freeStateGateG5, freeStateGateG6, freeStateGateG7,
 }
 
+// FreeStateGateAudit is a read-only explanation of the G1-G7 admission
+// evaluation. It is intentionally separate from the model decision so a
+// missing or malformed proposal can still be reported at the capability
+// boundary without being turned into a fabricated candidate.
+type FreeStateGateAudit struct {
+	FailedGateIDs []string `json:"failed_gate_ids,omitempty"`
+	Passed        bool     `json:"passed"`
+	Proposal      bool     `json:"proposal_present"`
+	ProposalValid bool     `json:"proposal_valid"`
+	ProposalError string   `json:"proposal_error,omitempty"`
+}
+
+// AuditFreeStateNeedsExperimentGate exposes the deterministic G1-G7 check to
+// orchestration/reporting code without exposing the internal runState type.
+// The supplied context is treated as an immutable snapshot.
+func AuditFreeStateNeedsExperimentGate(context map[string]any, decision *FreeStateDecision) FreeStateGateAudit {
+	audit := FreeStateGateAudit{Proposal: decision != nil && decision.ImprovementProposal != nil}
+	if audit.Proposal {
+		if err := decision.ImprovementProposal.Validate(); err != nil {
+			audit.ProposalError = err.Error()
+		} else {
+			audit.ProposalValid = true
+		}
+	}
+	state := &runState{input: Input{Context: cloneMap(context)}}
+	audit.FailedGateIDs = evaluateFreeStateNeedsExperimentGate(state, decision)
+	audit.Passed = len(audit.FailedGateIDs) == 0
+	return audit
+}
+
 func freeStateMapRevision(value any) string {
 	if m := messageLoopMapValue(value); len(m) > 0 {
 		return firstMapText(m, "project_revision", "revision")
@@ -247,8 +277,12 @@ func freeStateFreshStatus(value string) bool {
 func freeStateReceiptFreshRevisionBound(row map[string]any, closureRevision string) bool {
 	freshness := messageLoopMapValue(row["freshness"])
 	if len(freshness) > 0 {
-		status := firstNonEmpty(firstMapText(freshness, "status"), firstMapText(freshness, "class"))
-		if status != "" && !freeStateFreshStatus(status) {
+		// CCB bundles use status for observation readiness (for example
+		// status=ready) and class for freshness semantics.  A valid class must
+		// take precedence; readiness must never be interpreted as freshness.
+		freshnessClass := firstMapText(freshness, "class")
+		freshnessValue := firstNonEmpty(freshnessClass, firstMapText(freshness, "status"))
+		if freshnessValue != "" && !freeStateFreshStatus(freshnessValue) {
 			return false
 		}
 		if revision := firstMapText(freshness, "project_revision"); revision != "" {
@@ -267,8 +301,9 @@ func freeStateReceiptFreshRevisionBound(row map[string]any, closureRevision stri
 func freeStateViewFreshRevisionBound(view map[string]any, closureRevision string) bool {
 	freshness := messageLoopMapValue(view["freshness"])
 	if len(freshness) > 0 {
-		status := firstNonEmpty(firstMapText(freshness, "status"), firstMapText(freshness, "class"))
-		if status != "" && !freeStateFreshStatus(status) {
+		freshnessClass := firstMapText(freshness, "class")
+		freshnessValue := firstNonEmpty(freshnessClass, firstMapText(freshness, "status"))
+		if freshnessValue != "" && !freeStateFreshStatus(freshnessValue) {
 			return false
 		}
 		if revision := firstMapText(freshness, "project_revision"); revision != "" {

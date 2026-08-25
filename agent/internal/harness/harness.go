@@ -67,13 +67,26 @@ type Harness struct {
 	logger          *logx.Logger
 	snapshotCache   *PluginSnapshotCache
 	featureMu       sync.Mutex
+	renderMu        sync.Mutex
 	projectStoreMu  sync.Mutex
 	projectStore    projectstore.Roots
 	journalOverride bool
 	waveforms       map[string]*waveformFeatureCollector
 	spectrals       map[string]*spectralFeatureCollector
+	renderResults   map[string]RenderResult
+	renderWaiters   map[string][]chan RenderResult
 	l2ProbeCollect  func(context.Context, map[string]any, string, string, string) (map[string]any, map[string]any, error)
 	comProbeCollect func(context.Context, map[string]any, string, string, string) (map[string]any, map[string]any, error)
+}
+
+// RenderResult is the compact terminal telemetry for an existing Kernel
+// offline-render job. The audio file remains owned by the caller.
+type RenderResult struct {
+	JobID    string         `json:"job_id"`
+	Status   string         `json:"status"`
+	FilePath string         `json:"file_path,omitempty"`
+	Error    string         `json:"error,omitempty"`
+	Details  map[string]any `json:"details,omitempty"`
 }
 
 type KernelSender interface {
@@ -162,6 +175,8 @@ func newWithSender(sender KernelSender, shadowProject *shadow.Project, logger *l
 		logger:          logger,
 		waveforms:       map[string]*waveformFeatureCollector{},
 		spectrals:       map[string]*spectralFeatureCollector{},
+		renderResults:   map[string]RenderResult{},
+		renderWaiters:   map[string][]chan RenderResult{},
 		journalOverride: journalPath != "",
 	}
 }
@@ -305,6 +320,20 @@ func (h *Harness) JournalGet(targetID string) (journal.Action, bool) {
 		return journal.Action{}, false
 	}
 	return h.journal.Get(targetID)
+}
+
+func (h *Harness) JournalRecord(action journal.Action) journal.Action {
+	if h == nil || h.journal == nil {
+		return action
+	}
+	return h.journal.Record(action)
+}
+
+func (h *Harness) JournalMarkResult(actionID string, status journal.ActionStatus, result map[string]any, err error) {
+	if h == nil || h.journal == nil {
+		return
+	}
+	h.journal.MarkResult(actionID, status, result, err)
 }
 
 func (h *Harness) JournalMarkRollback(targetActionID, rollbackActionID, state string) {
@@ -1257,7 +1286,7 @@ func (h *Harness) executeKernelCommandVSP(ctx context.Context, vsp VSPKernelSend
 		if observe == nil {
 			return kernelExecutionResult{fallbackSafe: true, err: fmt.Errorf("vsp state snapshot returned nil")}
 		}
-		reply := cloneAnyMap(observe.LegacyState)
+		reply := vspLegacyStateWithBinding(observe)
 		h.afterKernelReplyVSP(ctx, spec, reply, observe)
 		return kernelExecutionResult{
 			reply:   reply,
@@ -1279,7 +1308,7 @@ func (h *Harness) executeKernelCommandVSP(ctx context.Context, vsp VSPKernelSend
 			return kernelExecutionResult{fallbackSafe: true, err: fmt.Errorf("vsp state snapshot returned nil")}
 		}
 		if before.OK() && h.shadow != nil {
-			h.shadow.Initialize(before.LegacyState)
+			h.shadow.Initialize(vspLegacyStateWithBinding(before))
 		}
 	}
 
@@ -1347,7 +1376,7 @@ func (h *Harness) afterKernelReplyVSP(ctx context.Context, spec tools.CommandSpe
 		h.ObservePluginParametersReply(reply)
 	}
 	if h.shadow != nil && observed != nil && observed.OK() && len(observed.LegacyState) > 0 {
-		h.shadow.Initialize(observed.LegacyState)
+		h.shadow.Initialize(vspLegacyStateWithBinding(observed))
 		return
 	}
 	if spec.CommandName == "get_project_state" {
@@ -1501,6 +1530,46 @@ func vspStateSummary(source string, result *kernel.VSPStateResult, includeSnapsh
 		if tracks, ok := result.Payload["tracks"]; ok {
 			out["tracks"] = tracks
 		}
+	}
+	return out
+}
+
+// vspLegacyStateWithBinding makes the VSP state identity explicit before it
+// enters Shadow. LegacyState is an adapter payload and may omit typed VSP
+// envelope fields; CCB must bind every observation to the same kernel project
+// UUID/epoch/revision domain used by CAS and ProjectCut.
+func vspLegacyStateWithBinding(result *kernel.VSPStateResult) map[string]any {
+	if result == nil {
+		return nil
+	}
+	out := cloneAnyMap(result.LegacyState)
+	if out == nil {
+		out = map[string]any{}
+	}
+	project := mapAnyFromAny(out["project"])
+	if len(project) == 0 {
+		project = mapAnyFromAny(result.Payload["project"])
+	}
+	if project == nil {
+		project = map[string]any{}
+	}
+	if projectID := firstString(project, "project_uuid", "project_id", "id"); projectID != "" {
+		out["project_uuid"] = firstNonEmpty(firstString(out, "project_uuid", "project_id"), projectID)
+	}
+	if result.ProjectEpoch != "" {
+		out["project_epoch"] = result.ProjectEpoch
+		project["project_epoch"] = result.ProjectEpoch
+	}
+	if result.Revision > 0 {
+		out["project_revision"] = result.Revision
+		project["project_revision"] = result.Revision
+	}
+	if result.SnapshotHash != "" {
+		out["snapshot_hash"] = result.SnapshotHash
+		project["snapshot_hash"] = result.SnapshotHash
+	}
+	if len(project) > 0 {
+		out["project"] = project
 	}
 	return out
 }
@@ -3341,12 +3410,85 @@ func (h *Harness) IngestKernelTelemetry(event map[string]any) {
 	command := firstString(event, "command", "cmd")
 	featureType := firstString(event, "feature_type")
 	switch {
+	case strings.EqualFold(firstString(event, "topic"), "render"):
+		h.ingestKernelRenderTelemetry(event)
 	case strings.EqualFold(command, "audio_feature_data_ready") && strings.EqualFold(featureType, "waveform_envelope"):
 		h.ingestKernelWaveformTelemetry(event)
 	case strings.EqualFold(command, "tile_ready") && strings.EqualFold(firstNonEmpty(featureType, "spectral_field"), "spectral_field"):
 		h.ingestKernelSpectralTelemetry(event)
 	case strings.EqualFold(command, "audio_feature_data_ready") && isL3AcousticSummaryFeature(featureType):
 		h.ingestKernelL3AcousticTelemetry(event)
+	}
+}
+
+func (h *Harness) ingestKernelRenderTelemetry(event map[string]any) {
+	jobID := firstString(event, "job_id")
+	subtopic := strings.ToLower(firstString(event, "subtopic"))
+	if jobID == "" || (subtopic != "render_done" && subtopic != "render_failed") {
+		return
+	}
+	details := make(map[string]any, len(event))
+	for key, value := range event {
+		details[key] = value
+	}
+	result := RenderResult{JobID: jobID, Status: "failed", FilePath: firstString(event, "file_path"), Error: firstString(event, "message"), Details: details}
+	if subtopic == "render_done" && strings.EqualFold(firstString(event, "status"), "ok") {
+		result.Status = "ready"
+	}
+	h.renderMu.Lock()
+	if h.renderResults == nil {
+		h.renderResults = map[string]RenderResult{}
+	}
+	h.renderResults[jobID] = result
+	waiters := append([]chan RenderResult(nil), h.renderWaiters[jobID]...)
+	delete(h.renderWaiters, jobID)
+	h.renderMu.Unlock()
+	for _, waiter := range waiters {
+		select {
+		case waiter <- result:
+		default:
+		}
+		close(waiter)
+	}
+}
+
+// WaitRender waits for the terminal telemetry of a Kernel render job. A
+// result cached before registration is returned immediately.
+func (h *Harness) WaitRender(ctx context.Context, jobID string) (RenderResult, error) {
+	if h == nil || strings.TrimSpace(jobID) == "" {
+		return RenderResult{}, fmt.Errorf("render job_id is required")
+	}
+	jobID = strings.TrimSpace(jobID)
+	h.renderMu.Lock()
+	if result, ok := h.renderResults[jobID]; ok {
+		h.renderMu.Unlock()
+		return result, nil
+	}
+	waiter := make(chan RenderResult, 1)
+	if h.renderWaiters == nil {
+		h.renderWaiters = map[string][]chan RenderResult{}
+	}
+	h.renderWaiters[jobID] = append(h.renderWaiters[jobID], waiter)
+	h.renderMu.Unlock()
+	select {
+	case result := <-waiter:
+		return result, nil
+	case <-ctx.Done():
+		h.renderMu.Lock()
+		rows := h.renderWaiters[jobID]
+		for index := range rows {
+			if rows[index] == waiter {
+				rows = append(rows[:index], rows[index+1:]...)
+				break
+			}
+		}
+		if len(rows) == 0 {
+			delete(h.renderWaiters, jobID)
+		} else {
+			h.renderWaiters[jobID] = rows
+		}
+		h.renderMu.Unlock()
+		return RenderResult{}, ctx.Err()
 	}
 }
 
@@ -11832,7 +11974,7 @@ func (h *Harness) refreshShadowWithStatus(ctx context.Context, reason string) ma
 				time.Since(kernelStarted).Milliseconds(), reason, err != nil)
 		}
 		if err == nil && observe != nil && observe.OK() {
-			h.shadow.Initialize(observe.LegacyState)
+			h.shadow.Initialize(vspLegacyStateWithBinding(observe))
 			refreshStatus = "ok"
 			return map[string]any{
 				"shadow_refreshed": true,
