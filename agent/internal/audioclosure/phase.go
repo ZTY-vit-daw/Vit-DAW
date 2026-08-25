@@ -207,15 +207,24 @@ type phaseDecisionPolicy struct {
 }
 
 var phaseDecisionPolicies = map[Phase]phaseDecisionPolicy{
-	PhaseFS0SemanticEntry:          {NeedsObservation: true},
-	PhaseFS1ProjectBound:           {NeedsObservation: true},
-	PhaseFS2CapacityAssessed:       {NeedsObservation: true},
-	PhaseFS3ProjectScan:            {NeedsObservation: true},
-	PhaseFS4DiagnosticRound:        {NeedsObservation: true},
-	PhaseFS5CandidateFrontier:      {NeedsObservation: true},
-	PhaseFS6TargetConfirmed:        {NeedsObservation: true, NeedsAction: true, NeedsExperiment: true},
-	PhaseFS7ImprovementProposal:    {NeedsAction: true, NeedsExperiment: true},
-	PhaseFS8ExperimentVerification: {TerminalDecisions: true},
+	PhaseFS0SemanticEntry:       {NeedsObservation: true},
+	PhaseFS1ProjectBound:        {NeedsObservation: true},
+	PhaseFS2CapacityAssessed:    {NeedsObservation: true},
+	PhaseFS3ProjectScan:         {NeedsObservation: true},
+	PhaseFS4DiagnosticRound:     {NeedsObservation: true},
+	PhaseFS5CandidateFrontier:   {NeedsObservation: true},
+	PhaseFS6TargetConfirmed:     {NeedsObservation: true, NeedsAction: true, NeedsExperiment: true},
+	PhaseFS7ImprovementProposal: {NeedsAction: true, NeedsExperiment: true},
+	// FS8 is the verification phase of a governed experiment.  The model may
+	// still request read-only evidence here, but it must not request another
+	// action. The experiment evaluation report itself (experiment_materiality,
+	// experiment_target_response, experiment_round_decision incl.
+	// user_judgment_pending) travels on a needs_experiment decision; without
+	// admitting it here the verification phase could observe but never
+	// report, burning the continuation budget on bounced evaluations
+	// (2026-08-25 D1 smoke: "fs8_experiment_verification does not admit
+	// decision status needs_experiment").
+	PhaseFS8ExperimentVerification: {NeedsObservation: true, NeedsExperiment: true, TerminalDecisions: true},
 	PhaseFS9Terminal:               {TerminalDecisions: true},
 }
 

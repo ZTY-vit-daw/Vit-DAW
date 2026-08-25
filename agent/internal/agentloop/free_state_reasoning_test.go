@@ -9,6 +9,7 @@ import (
 	"vit-daw-agent/internal/agentprotocol"
 	"vit-daw-agent/internal/config"
 	executorpkg "vit-daw-agent/internal/executor"
+	"vit-daw-agent/internal/experiment"
 	"vit-daw-agent/internal/planner"
 	"vit-daw-agent/internal/processorintent"
 	agentruntime "vit-daw-agent/internal/runtime"
@@ -690,6 +691,39 @@ func TestFreeStatePostActionRequiresObservationExecutedInCurrentTurn(t *testing.
 	}}
 	if issue := messageLoopFreeStateOutputIssue(state, out); issue != "" {
 		t.Fatalf("current-turn successful CCB observation was rejected: %q", issue)
+	}
+}
+
+// After an applied action, blocked/capability_blocked must not settle the
+// loop before the mandatory fresh post-action CCB observation has returned
+// in the current reasoning turn. Without the symmetric gate, blocked is an
+// escape hatch around the post-action evidence step (2026-08-25 D1 smoke:
+// the post-action turn settled capability_blocked on a pre-action
+// authorization objection without ever observing the applied revision).
+func TestFreeStatePostActionRejectsBlockedWithoutFreshObservation(t *testing.T) {
+	state := &runState{input: Input{Context: map[string]any{
+		"free_state_reasoning_loop": map[string]any{
+			"schema_version": "free_state_reasoning_loop.v1", "status": "re_evaluating", "decision_phase": "post_action_evaluation",
+			"original_intent": "improve the low-end balance", "requires_post_action_observation": true,
+		},
+	}}}
+	blocked := messageLoopOutput{Final: true, Reply: "no treatment authorization",
+		FreeStateDecision: &FreeStateDecision{
+			SchemaVersion: FreeStateDecisionSchema, Status: FreeStateCapabilityBlocked, EvidenceStatus: "insufficient",
+			Summary: "diagnostic inquiry does not authorize automated treatment",
+		}}
+	if issue := messageLoopFreeStateOutputIssue(state, blocked); !strings.Contains(issue, "cannot return blocked after an applied action") {
+		t.Fatalf("post-action blocked escaped the fresh-observation requirement: %q", issue)
+	}
+	state.executed = []map[string]any{{
+		"tool": "ccb.observation_request", "status": "ok",
+		"result": map[string]any{"bundle": map[string]any{
+			"status": "ready", "read_only": true, "mutation_authority": false,
+			"views": map[string]any{"track.basic_energy": map[string]any{"status": "ready"}},
+		}},
+	}}
+	if issue := messageLoopFreeStateOutputIssue(state, blocked); issue != "" {
+		t.Fatalf("blocked after a current-turn successful CCB observation was rejected: %q", issue)
 	}
 }
 
@@ -1585,5 +1619,38 @@ func TestFreeStatePromptPreservesConditionalTreatmentAuthorization(t *testing.T)
 		if !strings.Contains(prompt, required) {
 			t.Fatalf("free-state conditional authorization rule missing %q", required)
 		}
+	}
+}
+
+// An FS8 evaluation report (experiment_materiality / target response /
+// round decision) must not re-run the G1-G7 proposal admission gate: those
+// checks read pre-apply state (binding revision, frontier, target evidence)
+// that legitimately changed after Apply. The report is validated by the
+// experiment schema instead (2026-08-25 D1 smoke regression).
+func TestFS8EvaluationReportSkipsProposalAdmissionGate(t *testing.T) {
+	state := &runState{input: Input{Context: map[string]any{
+		"free_state_reasoning_loop": map[string]any{
+			"schema_version": "free_state_reasoning_loop.v1", "status": "re_evaluating", "decision_phase": "post_action_evaluation",
+			"original_intent": "improve the low-end balance", "requires_post_action_observation": true,
+		},
+		"free_state_phase": "fs8_experiment_verification",
+	}}}
+	evaluation := messageLoopOutput{Final: true, Reply: "audition pending",
+		FreeStateDecision: &FreeStateDecision{
+			SchemaVersion: FreeStateDecisionSchema, Status: FreeStateNeedsExperiment, EvidenceStatus: "plausible",
+			Summary: "post-action evidence evaluated",
+			ExperimentMateriality: &experiment.MaterialityEvaluation{
+				State: experiment.MaterialitySubthreshold, Evaluation: "insufficient_dose", Attempt: 1, EvidenceRefs: []string{"obs-post"},
+			},
+			ExperimentRoundDecision: "user_judgment_pending",
+		}}
+	if issue := messageLoopFreeStateOutputIssue(state, evaluation); issue != "" {
+		t.Fatalf("FS8 evaluation report was rejected: %q", issue)
+	}
+	evaluation.FreeStateDecision.ExperimentMateriality = &experiment.MaterialityEvaluation{
+		State: experiment.MaterialitySubthreshold, Evaluation: "agent_evaluable", Attempt: 1, EvidenceRefs: []string{"obs-post"},
+	}
+	if issue := messageLoopFreeStateOutputIssue(state, evaluation); !strings.Contains(issue, "subthreshold materiality must be insufficient_dose") {
+		t.Fatalf("invalid materiality report was accepted: %q", issue)
 	}
 }

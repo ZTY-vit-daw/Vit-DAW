@@ -401,3 +401,34 @@ func TestFS6AllowsBoundedTerminalWhenContinuationBudgetIsExhausted(t *testing.T)
 		t.Fatal(err)
 	}
 }
+
+func TestFS8VerificationAllowsObservationAndEvaluationButNoSecondAction(t *testing.T) {
+	if !AllowsDecisionStatus(PhaseFS8ExperimentVerification, "needs_observation") {
+		t.Fatal("FS8 must admit a fresh read-only observation")
+	}
+	// The experiment evaluation report (experiment_materiality,
+	// experiment_target_response, experiment_round_decision incl.
+	// user_judgment_pending) travels on the needs_experiment decision shape;
+	// FS8 must admit it or the verification phase can observe but never
+	// report (2026-08-25 D1 smoke regression).
+	for _, status := range []string{"needs_experiment", "improvement_proposal"} {
+		if !AllowsDecisionStatus(PhaseFS8ExperimentVerification, status) {
+			t.Fatalf("FS8 rejected the evaluation decision status %q", status)
+		}
+	}
+	if AllowsDecisionStatus(PhaseFS8ExperimentVerification, "needs_action") {
+		t.Fatal("FS8 admitted a second action")
+	}
+	if !AllowsDecisionStatus(PhaseFS8ExperimentVerification, "blocked") || !AllowsDecisionStatus(PhaseFS8ExperimentVerification, "satisfied") {
+		t.Fatal("FS8 must retain terminal settlement decisions")
+	}
+}
+
+func TestFS7ToFS8RequiresValidatedAdmission(t *testing.T) {
+	if err := EvaluatePhaseGuard(PhaseFS7ImprovementProposal, PhaseFS8ExperimentVerification, PhaseGuardInput{}); err == nil {
+		t.Fatal("FS7 advanced to FS8 without a validated admission")
+	}
+	if err := EvaluatePhaseGuard(PhaseFS7ImprovementProposal, PhaseFS8ExperimentVerification, PhaseGuardInput{AdmissionValid: true}); err != nil {
+		t.Fatalf("validated admission did not enter FS8: %v", err)
+	}
+}

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"vit-daw-agent/internal/audioclosure"
+	"vit-daw-agent/internal/experiment"
 	"vit-daw-agent/internal/taskstate"
 )
 
@@ -252,6 +253,20 @@ func TestM02IllegalPhaseTransitionsRejected(t *testing.T) {
 	if issue := messageLoopFreeStatePhaseDecisionIssue(late, FreeStateNeedsExperiment); issue != "" {
 		t.Fatalf("needs_experiment rejected in FS7: %q", issue)
 	}
+	verification := &runState{input: Input{Context: map[string]any{
+		"free_state_reasoning_loop": map[string]any{"schema_version": "free_state_reasoning_loop.v1", "status": "re_evaluating", "original_intent": "repair"},
+		"free_state_phase":          string(audioclosure.PhaseFS8ExperimentVerification),
+	}}}
+	if issue := messageLoopFreeStatePhaseDecisionIssue(verification, FreeStateNeedsObservation); issue != "" {
+		t.Fatalf("needs_observation rejected in FS8 verification: %q", issue)
+	}
+	// The FS8 evaluation report (materiality/target response/round decision)
+	// travels on needs_experiment; the phase check must admit it there. The
+	// pre-2026-08-25 policy rejected it, so the verification phase could
+	// observe but never report its evaluation.
+	if issue := messageLoopFreeStatePhaseDecisionIssue(verification, FreeStateNeedsExperiment); issue != "" {
+		t.Fatalf("needs_experiment rejected in FS8 verification: %q", issue)
+	}
 	// Legacy phase values migrate deterministically.
 	if migrated, ok := audioclosure.ParsePhase("observing"); !ok || migrated != audioclosure.PhaseFS1ProjectBound {
 		t.Fatalf("legacy observing migration = %s/%v", migrated, ok)
@@ -299,3 +314,70 @@ func TestLegacyClosurePhaseMigratesForDecisionCheck(t *testing.T) {
 		t.Fatalf("early-phase needs_experiment not downgraded: %q", issue)
 	}
 }
+
+// An open improvement contract settles only through a governed experiment
+// outcome, no_candidate_found, or a capability boundary (its completion
+// criteria). A confirmed diagnostic must convert into a bounded proposal
+// instead of closing the improvement task as diagnostic_complete
+// (2026-08-25 D1 smoke regression: sufficient masking evidence closed the
+// loop at fs4_diagnostic_round and the experiment chain never started).
+func TestImprovementContractRejectsDiagnosticCompleteTerminal(t *testing.T) {
+	out := messageLoopOutput{Final: true, Reply: "confirmed masking diagnostic",
+		FreeStateDecision: &FreeStateDecision{
+			SchemaVersion: FreeStateDecisionSchema, Status: FreeStateDiagnosticComplete,
+			EvidenceStatus: "sufficient", Summary: "sub/presence masking", ObservationID: "obs-mix",
+			Diagnostic: &FreeStateDiagnostic{SchemaVersion: FreeStateDiagnosticSchema, Status: "confirmed",
+				Findings: []FreeStateDiagnosticFinding{{Statement: "sub and presence masking", EvidenceRefs: []string{"obs-mix"}}}},
+		}}
+	issue := messageLoopFreeStateOutputIssue(gateTestState(nil), out)
+	if !strings.Contains(issue, "diagnostic_complete cannot settle an open improvement contract") {
+		t.Fatalf("improvement contract accepted a diagnostic_complete terminal: %q", issue)
+	}
+	diagnosticOnly := gateTestState(func(ctx map[string]any) { ctx["free_state_diagnostic_only"] = true })
+	if issue := messageLoopFreeStateOutputIssue(diagnosticOnly, out); strings.Contains(issue, "diagnostic_complete cannot settle an open improvement contract") {
+		t.Fatalf("diagnostic-only run was denied its legal diagnostic_complete terminal: %q", issue)
+	}
+}
+// Final-gate defense-in-depth: while the experiment round is durably parked at
+// the human-judgment boundary (round decision user_judgment_pending / judgment
+// requested / judgment recorded), a model decision that would revive the loop
+// (observation / action / new admission) is rejected; only the settle-family
+// round decisions remain legal (2026-08-25 21:09 D1 smoke regression).
+func TestJudgmentBoundaryRejectsRevivalDecisions(t *testing.T) {
+	state := gateTestState(func(ctx map[string]any) {
+		loop := ctx["free_state_reasoning_loop"].(map[string]any)
+		loop["experiment"] = map[string]any{
+			"status": "waiting_for_user",
+			"rounds": []any{map[string]any{
+				"round_id": "round-1", "number": 1, "decision": string(experiment.DecisionUserJudgment),
+			}},
+		}
+	})
+	observation := messageLoopOutput{Final: true, FreeStateDecision: &FreeStateDecision{
+		SchemaVersion: FreeStateDecisionSchema, Status: FreeStateNeedsObservation,
+		EvidenceStatus: "insufficient", Summary: "observe the post-action state again", RequestedViewIDs: []string{"track.basic_energy"},
+	}}
+	if issue := messageLoopFreeStateOutputIssue(state, observation); !strings.Contains(issue, "human-judgment boundary") {
+		t.Fatalf("needs_observation revived the judgment boundary loop: %q", issue)
+	}
+	action := messageLoopOutput{Final: true, FreeStateDecision: &FreeStateDecision{
+		SchemaVersion: FreeStateDecisionSchema, Status: FreeStateNeedsAction,
+		EvidenceStatus: "sufficient", Summary: "write another adjustment", RemainingIntent: "apply again", ProcessorType: "eq",
+	}}
+	if issue := messageLoopFreeStateOutputIssue(state, action); !strings.Contains(issue, "human-judgment boundary") {
+		t.Fatalf("needs_action revived the judgment boundary loop: %q", issue)
+	}
+	if issue := messageLoopFreeStateOutputIssue(state, gateTestProposal(nil)); !strings.Contains(issue, "human-judgment boundary") {
+		t.Fatalf("new admission revived the judgment boundary loop: %q", issue)
+	}
+	settle := messageLoopOutput{Final: true, FreeStateDecision: &FreeStateDecision{
+		SchemaVersion: FreeStateDecisionSchema, Status: FreeStateNeedsExperiment,
+		EvidenceStatus: "plausible", Summary: "retain the treatment",
+		ExperimentRoundDecision: string(experiment.DecisionRetain),
+	}}
+	if issue := messageLoopFreeStateOutputIssue(state, settle); issue != "" {
+		t.Fatalf("settle decision was rejected at the judgment boundary: %q", issue)
+	}
+}
+
+

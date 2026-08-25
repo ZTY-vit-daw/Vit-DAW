@@ -71,6 +71,17 @@ type FreeStateDecision struct {
 	Diagnostic            *FreeStateDiagnostic `json:"diagnostic,omitempty"`
 }
 
+// carriesExperimentReport reports whether the decision evaluates an already
+// admitted experiment (experiment report fields present) instead of
+// proposing a new one. Evaluation reports bind to the experiment through the
+// runtime's admission/round identity, not through a re-echoed proposal, so
+// they must not be rejected for omitting improvement_proposal (2026-08-25 D1
+// smoke: the FS8 evaluation report died on generic validation).
+func (d FreeStateDecision) carriesExperimentReport() bool {
+	return d.ExperimentMateriality != nil || d.ExperimentTargetResponse != nil ||
+		strings.TrimSpace(d.ExperimentRoundDecision) != ""
+}
+
 // FreeStateDiagnostic is a model-owned, read-only diagnosis result. The
 // runtime verifies only evidence references and never supplies evaluator
 // truth or interprets the finding statement.
@@ -181,7 +192,7 @@ func (d FreeStateDecision) Validate() error {
 			}
 		}
 	case FreeStateNeedsExperiment, FreeStateImprovementProposal:
-		if d.ImprovementProposal == nil {
+		if d.ImprovementProposal == nil && !d.carriesExperimentReport() {
 			return fmt.Errorf("improvement proposal state requires improvement_proposal")
 		}
 		if strings.TrimSpace(d.EvidenceStatus) == "" {
@@ -471,6 +482,52 @@ func messageLoopFreeStateActive(state *runState) bool {
 	return status != "completed" && status != "cancelled" && status != "blocked"
 }
 
+// messageLoopFreeStateJudgmentBoundary reports whether the experiment round
+// in the loop context is durably parked at the human-judgment boundary
+// (user_judgment_pending decision, judgment requested, or judgment evidence
+// recorded).
+func messageLoopFreeStateJudgmentBoundary(state *runState) bool {
+	if state == nil {
+		return false
+	}
+	loop := messageLoopFreeStateContext(state)
+	experimentRow := messageLoopMapValue(loop["experiment"])
+	status := strings.ToLower(firstMapText(experimentRow, "status"))
+	if status == string(experiment.StatusSettled) || status == string(experiment.StatusStopped) {
+		return false
+	}
+	rounds := messageLoopMapRows(experimentRow["rounds"])
+	if len(rounds) == 0 {
+		return false
+	}
+	round := rounds[len(rounds)-1]
+	if freeStateBool(round["user_judgment_requested"]) {
+		return true
+	}
+	if len(messageLoopMapRows(round["user_judgment_evidence"])) > 0 {
+		return true
+	}
+	return strings.ToLower(strings.TrimSpace(firstMapText(round, "decision"))) == string(experiment.DecisionUserJudgment)
+}
+
+// messageLoopFreeStateJudgmentBoundaryIssue is the final-gate defense-in-depth
+// for the human-judgment boundary. Even if a scheduler continuation slips
+// through the chat-side guards, a model decision that would revive the loop
+// (observation / action / new admission) is rejected here; only the
+// settle-family round decisions remain legal.
+func messageLoopFreeStateJudgmentBoundaryIssue(state *runState, decision *FreeStateDecision) string {
+	if state == nil || decision == nil || !messageLoopFreeStateJudgmentBoundary(state) {
+		return ""
+	}
+	if strings.TrimSpace(decision.ExperimentRoundDecision) != "" {
+		switch experiment.RoundDecision(strings.TrimSpace(decision.ExperimentRoundDecision)) {
+		case experiment.DecisionRetain, experiment.DecisionRollback, experiment.DecisionStopped:
+			return ""
+		}
+	}
+	return "the experiment round is parked at the human-judgment boundary; the model may only report the final settle round decision (retained / rolled_back / stopped-ambiguous) — no further observation, action, or new admission is permitted"
+}
+
 // A successful catalog call is a durable observation boundary. Repeating it
 // cannot add evidence and previously caused scheduler continuations to spend
 // their entire bounded budget rediscovering the same view IDs.
@@ -503,6 +560,9 @@ func messageLoopFreeStateOutputIssue(state *runState, out messageLoopOutput) str
 	}
 	if out.FreeStateDecision == nil {
 		return "an active free-state reasoning loop requires one free_state_decision.v1 on every reasoning turn; preserve the original intent and state whether observation, action, satisfaction, or a blocker comes next"
+	}
+	if issue := messageLoopFreeStateJudgmentBoundaryIssue(state, out.FreeStateDecision); issue != "" {
+		return issue
 	}
 	if err := out.FreeStateDecision.Validate(); err != nil {
 		return "invalid free_state decision: " + err.Error()
@@ -604,10 +664,31 @@ func messageLoopFreeStateOutputIssue(state *runState, out messageLoopOutput) str
 		if len(out.ToolCalls) != 0 {
 			return "needs_experiment must contain no direct mutation tool calls; the existing governed execution layer owns materialization and confirmation"
 		}
-		// The single-usable-bundle weak gate is replaced by the seven-part
-		// admission gate (docs/FREE_STATE_NEEDS_EXPERIMENT_GATE_V1.md). Gate
-		// failure has exactly one legal exit: needs_observation.
-		if failed := evaluateFreeStateNeedsExperimentGate(state, out.FreeStateDecision); len(failed) > 0 {
+		// A decision carrying experiment report fields evaluates an already
+		// admitted experiment; it is not a new admission. The G1-G7 gate
+		// re-checks pre-apply state (project binding revision, frontier,
+		// target evidence) that legitimately changed after Apply, so running
+		// it again rejected every evaluation report at FS8 (2026-08-25 D1
+		// smoke: "failed: G1_project_binding, G5_frontier_established,
+		// G6_target_evidence"). The report itself is validated by the
+		// experiment schema validators; the settlement path still enforces
+		// the one-round/single-mutation budget.
+		if out.FreeStateDecision.ExperimentMateriality != nil || out.FreeStateDecision.ExperimentTargetResponse != nil ||
+			strings.TrimSpace(out.FreeStateDecision.ExperimentRoundDecision) != "" {
+			if m := out.FreeStateDecision.ExperimentMateriality; m != nil {
+				if err := m.Validate(); err != nil {
+					return "invalid experiment_materiality: " + err.Error()
+				}
+			}
+			if tr := out.FreeStateDecision.ExperimentTargetResponse; tr != nil {
+				if err := tr.Validate(); err != nil {
+					return "invalid experiment_target_response: " + err.Error()
+				}
+			}
+		} else if failed := evaluateFreeStateNeedsExperimentGate(state, out.FreeStateDecision); len(failed) > 0 {
+			// The single-usable-bundle weak gate is replaced by the seven-part
+			// admission gate (docs/FREE_STATE_NEEDS_EXPERIMENT_GATE_V1.md). Gate
+			// failure has exactly one legal exit: needs_observation.
 			return fmt.Sprintf("needs_experiment requires the full admission gate; failed: %s; return needs_observation with the next bounded observation instead", strings.Join(failed, ", "))
 		}
 	case FreeStateSatisfied, FreeStateDiagnosticComplete, FreeStateNoCandidateFound:
@@ -628,6 +709,17 @@ func messageLoopFreeStateOutputIssue(state *runState, out messageLoopOutput) str
 		if status == FreeStateSatisfied && strings.EqualFold(messageLoopTaskContractKind(state), "improvement") {
 			return "satisfied is a legacy local conclusion and cannot settle an open improvement contract; return needs_experiment with an evidence-backed improvement_proposal, no_candidate_found with a bounded diagnostic, or capability_blocked with the concrete boundary"
 		}
+		// The improvement contract settles only through a governed experiment
+		// outcome, no_candidate_found, or a capability boundary (its own
+		// completion criteria). A confirmed diagnostic is exactly the moment
+		// an improvement task must convert that finding into a bounded
+		// proposal; letting diagnostic_complete settle here silently turns
+		// the open improvement task into an unrequested diagnostic-only run
+		// (2026-08-25 D1 smoke: sufficient masking evidence closed as
+		// diagnostic_complete and the experiment chain never started).
+		if status == FreeStateDiagnosticComplete && !diagnosticOnly && strings.EqualFold(messageLoopTaskContractKind(state), "improvement") {
+			return "diagnostic_complete cannot settle an open improvement contract; convert the confirmed diagnostic into needs_experiment with one bounded improvement_proposal citing the confirmed findings, or return no_candidate_found with a bounded ruled-out diagnostic, or capability_blocked with the concrete boundary"
+		}
 		ctx := messageLoopFreeStateContext(state)
 		if freeStateBool(ctx["requires_post_action_observation"]) && !messageLoopHasSuccessfulCCBObservationRequest(state) {
 			return "cannot mark the original intent satisfied after an action until a fresh CCB observation_request has returned in this reasoning cycle"
@@ -643,6 +735,17 @@ func messageLoopFreeStateOutputIssue(state *runState, out messageLoopOutput) str
 		}
 		if messageLoopFreeStateClaimsUnavailableObservation(state, *out.FreeStateDecision) {
 			return "cannot claim that observation is unavailable: ccb.observation_catalog and ccb.observation_request are available in this free-state turn; use the CCB catalog/request protocol, then decide the treatment family from the returned bounded evidence and limitations"
+		}
+		// Symmetric with the satisfied/no_candidate gate above: after an
+		// applied action the loop must not settle on any terminal — blocked
+		// included — until a fresh post-action CCB observation has returned
+		// in this reasoning turn. Without this, blocked is an escape hatch
+		// that skips the mandatory post-action evidence step (2026-08-25 D1
+		// smoke: the post-action turn settled capability_blocked on a
+		// pre-action authorization objection without ever observing rev 20).
+		ctx := messageLoopFreeStateContext(state)
+		if freeStateBool(ctx["requires_post_action_observation"]) && !messageLoopHasSuccessfulCCBObservationRequest(state) {
+			return "cannot return blocked after an applied action until a fresh CCB observation_request has returned in this reasoning cycle; request the post-action observation first, then settle the experiment on its evidence"
 		}
 		if diagnosticOnly {
 			if issue := messageLoopFreeStateDiagnosticIssue(state, out.FreeStateDecision); issue != "" {
