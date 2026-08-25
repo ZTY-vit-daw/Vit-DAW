@@ -18,15 +18,28 @@ const (
 )
 
 type FreeStateObservationView struct {
-	ViewID               string   `json:"view_id"`
-	Questions            []string `json:"questions"`
-	SupportedTargetKinds []string `json:"supported_target_kinds"`
-	TemporalResolution   string   `json:"temporal_resolution"`
-	Availability         string   `json:"availability"`
-	CostLatencyClass     string   `json:"cost_latency_class"`
-	QualityCeiling       string   `json:"quality_ceiling"`
-	Limitations          []string `json:"limitations,omitempty"`
-	RequiredDependencies []string `json:"required_dependencies,omitempty"`
+	ViewID                 string                      `json:"view_id"`
+	Questions              []string                    `json:"questions"`
+	SupportedTargetKinds   []string                    `json:"supported_target_kinds"`
+	TemporalResolution     string                      `json:"temporal_resolution"`
+	Availability           string                      `json:"availability"`
+	CostLatencyClass       string                      `json:"cost_latency_class"`
+	QualityCeiling         string                      `json:"quality_ceiling"`
+	Limitations            []string                    `json:"limitations,omitempty"`
+	RequiredDependencies   []string                    `json:"required_dependencies,omitempty"`
+	DiagnosticDimensions   []string                    `json:"diagnostic_dimensions,omitempty"`
+	InterpretationGuidance *CCBInterpretationGuidance  `json:"interpretation_guidance,omitempty"`
+}
+
+type CCBInterpretationGuidance struct {
+	Patterns []CCBEvidencePattern `json:"patterns,omitempty"`
+}
+
+type CCBEvidencePattern struct {
+	Name        string   `json:"name"`
+	Signal      string   `json:"signal"`
+	Suggests    []string `json:"suggests"`
+	Description string   `json:"description"`
 }
 
 type FreeStateObservationCatalog struct {
@@ -412,19 +425,43 @@ func freeStateViewDefinitions(targetID string) []freeStateViewDefinition {
 	track := "track." + targetID
 	return []freeStateViewDefinition{
 		{view: semanticView("project.structure", []string{"What tracks and sources are present?", "What is the current project/selection structure?"}, []string{"project", "track", "selection"}, "state snapshot", "ready_on_observation", "cheap", "compact project and TOM-adjacent identity summary", []string{"Does not disclose a full TOM tree."}, []string{"project state", "MixBoard observation"}), keys: []string{"project.static.summary", "project.tracks.summary", "observation.tim_projection", "observation.mom_projection"}},
-		{view: semanticView("project.change_delta", []string{"What deterministic engineering changes occurred since the prior state?", "Which current observations must be refreshed after the latest project change?"}, []string{"project", "track", "clip", "processor"}, "latest state transition", "conditional", "cheap", "bounded Shadow Project change receipt", []string{"A project change receipt does not establish an acoustic result or an improvement."}, []string{"Shadow Project change monitor", "MixBoard observation binding"}), keys: []string{"project.change_delta"}},
-		{view: semanticView("track.basic_energy", []string{"How loud and peaky is the target?", "Is headroom or crest factor unusual?"}, []string{"track", "clip", "selection"}, "whole window", "ready_on_observation", "cheap", "bounded level summary", nil, []string{"waveform envelope summary"}), keys: []string{track + ".static.identity", track + ".fast.levels"}},
-		{view: semanticView("track.time_dynamics", []string{"How does energy evolve over time?", "What transient and macro-dynamic structure is observable?"}, []string{"track", "clip", "selection"}, "macro and short-window summary", "conditional", "medium", "COM plus bounded time-energy summaries", []string{"Fine envelopes and event lists stay in evidence storage."}, []string{"time-energy summary", "COM projection"}), keys: []string{track + ".slow.time_energy.summary", "observation.com_projection"}},
-		{view: semanticView("track.timbre_frequency", []string{"Where is energy concentrated by band?", "Which broad tonal regions need inspection?"}, []string{"track", "clip", "selection"}, "whole-window band summary", "conditional", "medium", "broad-band energy only", []string{"Not a raw spectrum or a static-EQ decision."}, []string{"band-energy summary"}), keys: []string{track + ".slow.band_energy.summary"}},
-		{view: semanticView("track.peak_structure", []string{"How are sample peaks, headroom, and crest distributed?", "Are peak events concentrated or broadly elevated?"}, []string{"track", "clip", "selection"}, "whole-window and bounded segment summary", "conditional", "medium", "sample-peak structure with explicit true-peak limitation", []string{"Sample peaks do not establish true peak or clipping by themselves."}, []string{"DOM source-only projection"}), keys: []string{"observation.dom_projection"}},
+		{view: semanticView("project.change_delta", []string{"What deterministic engineering changes occurred since the prior state?", "Which current observations must be refreshed after the latest project change?"}, []string{"project", "track", "clip", "processor"}, "latest state transition", "conditional", "cheap", "bounded Shadow Project change receipt", []string{"Change receipts confirm engineering mutations occurred. Acoustic evaluation requires fresh observation of the new state."}, []string{"Shadow Project change monitor", "MixBoard observation binding"}), keys: []string{"project.change_delta"}},
+		{view: semanticViewWithDimensions("track.basic_energy", []string{"How loud and peaky is the target?", "Is headroom or crest factor unusual?"}, []string{"track", "clip", "selection"}, "whole window", "ready_on_observation", "cheap", "bounded level summary", nil, []string{"waveform envelope summary"}, []string{"level_headroom"}, nil), keys: []string{track + ".static.identity", track + ".fast.levels"}},
+		{view: semanticViewWithDimensions("track.time_dynamics", []string{"How does energy evolve over time?", "What transient and macro-dynamic structure is observable?"}, []string{"track", "clip", "selection"}, "macro and short-window summary", "conditional", "medium", "COM plus bounded time-energy summaries", []string{"Fine envelopes and event lists stay in evidence storage."}, []string{"time-energy summary", "COM projection"}, []string{"dynamics"}, nil), keys: []string{track + ".slow.time_energy.summary", "observation.com_projection"}},
+		{view: semanticViewWithDimensions("track.timbre_frequency", []string{"Where is energy concentrated by band?", "Which broad tonal regions need inspection?"}, []string{"track", "clip", "selection"}, "whole-window band summary", "conditional", "medium", "broad-band energy only", []string{"Not a raw spectrum or a static-EQ decision."}, []string{"band-energy summary"}, []string{"frequency_occupancy"}, nil), keys: []string{track + ".slow.band_energy.summary"}},
+		{view: semanticView("track.peak_structure", []string{"How are sample peaks, headroom, and crest distributed?", "Are peak events concentrated or broadly elevated?"}, []string{"track", "clip", "selection"}, "whole-window and bounded segment summary", "conditional", "medium", "sample-peak structure with explicit true-peak limitation", []string{"Sample-peak structure provides bounded clipping-risk evidence. Extreme values suggest peak-management improvement candidates, though true-peak confirmation requires additional measurement."}, []string{"DOM source-only projection"}), keys: []string{"observation.dom_projection"}},
 		{view: semanticView("track.activity_structure", []string{"How are active, low-energy, and silent intervals distributed?", "How long are observed low-energy runs?"}, []string{"track", "clip", "selection"}, "bounded segment summary", "conditional", "medium", "declared activity states and interval coverage", []string{"Noise floor and a control threshold are not inferred from coarse states."}, []string{"DOM source-only projection"}), keys: []string{"observation.dom_projection"}},
 		{view: semanticView("track.frequency_time_events", []string{"Is frequency energy localized to events over time?", "Which time-localized frequency facts are actually available?"}, []string{"track", "clip", "selection"}, "frequency-time event summary", "conditional", "medium", "bounded time-frequency evidence with explicit omissions", []string{"Whole-window bands never become time-localized events."}, []string{"DOM source-only projection"}), keys: []string{"observation.dom_projection"}},
-		{view: semanticView("track.transient_structure", []string{"What onset, body, and sustain structure is observable?", "How consistent are transient contrasts across events?"}, []string{"track", "clip", "selection"}, "event and envelope summary", "conditional", "medium", "bounded transient evidence with macro-only fallback", []string{"Macro crest does not establish onset or sustain behavior."}, []string{"DOM source-only projection"}), keys: []string{"observation.dom_projection"}},
+		{view: semanticViewWithDimensions("track.transient_structure", []string{"What onset, body, and sustain structure is observable?", "How consistent are transient contrasts across events?"}, []string{"track", "clip", "selection"}, "event and envelope summary", "conditional", "medium", "bounded transient evidence with macro-only fallback", []string{"Macro crest does not establish onset or sustain behavior."}, []string{"DOM source-only projection"}, []string{"transient_event"}, nil), keys: []string{"observation.dom_projection"}},
 		{view: semanticView("track.band_dynamics", []string{"How does dynamic behavior differ by frequency band?", "Are per-band crest and time variation actually available?"}, []string{"track", "clip", "selection"}, "per-band time summary", "conditional", "medium", "bounded band-dynamics evidence with whole-window fallback", []string{"Whole-window band energy does not establish per-band dynamics."}, []string{"DOM source-only projection"}), keys: []string{"observation.dom_projection"}},
-		{view: semanticView("track.stereo_space", []string{"How wide or correlated is the target?", "Is left-right balance unusual?"}, []string{"track", "clip", "selection"}, "whole-window stereo summary", "conditional", "medium", "balance/correlation summary", nil, []string{"stereo-relation summary"}), keys: []string{track + ".slow.stereo.summary"}},
-		{view: semanticView("mix.multitrack_relationship", []string{"How do track levels and risks relate?", "Which track deserves attention first?"}, []string{"project", "track_group"}, "project snapshot", "conditional", "medium", "bounded MOM and project relationship summaries", []string{"This is observation, not a B2/B3 solver result."}, []string{"MOM multitrack projection", "project acoustic summaries"}), keys: []string{"project.relationship_inputs", "project.rankings.level", "project.rankings.peak", "project.risks.headroom", "project.attention.first", "observation.mom_projection"}},
-		{view: semanticView("mix.frequency_relationship", []string{"How do track band occupancies relate?", "Where are broad frequency conflicts plausible?"}, []string{"project", "track_group"}, "project snapshot", "conditional", "medium", "compact MOM frequency relationship projection", []string{"Does not claim psychoacoustic masking certainty."}, []string{"MOM frequency relationship", "project band-energy coverage"}), keys: []string{"project.frequency_relationship_inputs", "observation.mom_projection"}},
-		{view: semanticView("mix.masking_relationship", []string{"Which directional source pairs and frequency bands are plausible masking-risk improvement candidates?"}, []string{"project", "track_group"}, "synchronized project range", "ready_on_request", "expensive", "compact MOM directional masking-risk projection", []string{"Candidates are relative energetic-risk evidence, not deterministic perceptual facts or proof that the mix is wrong."}, []string{"same-window track_post_fader probes", "DAD masking measurement", "MOM masking projection"}), keys: []string{"observation.mom_projection"}},
+		{view: semanticViewWithDimensions("track.stereo_space", []string{"How wide or correlated is the target?", "Is left-right balance unusual?"}, []string{"track", "clip", "selection"}, "whole-window stereo summary", "conditional", "medium", "balance/correlation summary", nil, []string{"stereo-relation summary"}, []string{"stereo_space"}, nil), keys: []string{track + ".slow.stereo.summary"}},
+		{view: semanticViewWithDimensions("mix.multitrack_relationship", []string{"How do track levels and risks relate?", "Which track deserves attention first?"}, []string{"project", "track_group"}, "project snapshot", "conditional", "medium", "bounded MOM and project relationship summaries", []string{"This is observation, not a B2/B3 solver result."}, []string{"MOM multitrack projection", "project acoustic summaries"}, []string{"level_headroom"}, &CCBInterpretationGuidance{
+			Patterns: []CCBEvidencePattern{
+				{
+					Name:        "level_difference",
+					Signal:      "consistent RMS or peak differences across tracks",
+					Suggests:    []string{"level_imbalance", "track_gain"},
+					Description: "Consistent level differences suggest gain adjustment candidates",
+				},
+			},
+		}), keys: []string{"project.relationship_inputs", "project.rankings.level", "project.rankings.peak", "project.risks.headroom", "project.attention.first", "observation.mom_projection"}},
+		{view: semanticViewWithDimensions("mix.frequency_relationship", []string{"How do track band occupancies relate?", "Where are broad frequency conflicts plausible?"}, []string{"project", "track_group"}, "project snapshot", "conditional", "medium", "compact MOM frequency relationship projection", []string{"Band overlaps suggest frequency-relationship improvement candidates. This is plausible evidence for bounded experiments, not deterministic masking proof."}, []string{"MOM frequency relationship", "project band-energy coverage"}, []string{"frequency_occupancy"}, nil), keys: []string{"project.frequency_relationship_inputs", "observation.mom_projection"}},
+		{view: semanticViewWithDimensions("mix.masking_relationship", []string{"Which directional source pairs and frequency bands are plausible masking-risk improvement candidates?"}, []string{"project", "track_group"}, "synchronized project range", "ready_on_request", "expensive", "compact MOM directional masking-risk projection", []string{"Candidates are relative energetic-risk evidence showing directional energy relationships. Large consistent margins often indicate level-imbalance improvement opportunities; band-specific patterns may indicate frequency considerations. This is plausible evidence for bounded improvement hypotheses, not proof of defects."}, []string{"same-window track_post_fader probes", "DAD masking measurement", "MOM masking projection"}, []string{"level_headroom", "frequency_occupancy"}, &CCBInterpretationGuidance{
+			Patterns: []CCBEvidencePattern{
+				{
+					Name:        "large_consistent_margin",
+					Signal:      "median_margin_db > 20 and risk_coverage_ratio > 0.9",
+					Suggests:    []string{"level_imbalance", "track_gain"},
+					Description: "Large consistent margins across time and bands suggest level-imbalance improvement candidates",
+				},
+				{
+					Name:        "band_specific_margin",
+					Signal:      "margin concentrated in specific frequency bands",
+					Suggests:    []string{"frequency_conflict", "eq"},
+					Description: "Band-specific patterns may indicate frequency-domain considerations",
+				},
+			},
+		}), keys: []string{"observation.mom_projection"}},
 		{view: semanticView("processor.identity_and_controls", []string{"Which processor is bound to this observation?", "Which semantic controls are available?"}, []string{"processor"}, "processor state snapshot", "conditional", "cheap", "processor scope only", []string{"COM does not disclose a live control surface; use the processor inspector separately."}, []string{"COM processor scope", "read-only processor inspector"}), keys: []string{"observation.com_projection"}},
 		{view: semanticView("processor.behavior", []string{"What gain action and transient/recovery behavior is observed?"}, []string{"processor", "track"}, "paired input/output summary", "conditional", "medium", "compact COM behavior projection", []string{"Requires paired evidence for processor-caused behavior."}, []string{"COM paired_io projection"}), keys: []string{"observation.com_projection"}},
 		{view: semanticView("processor.change_delta", []string{"How did processor behavior change between observations?"}, []string{"processor", "track"}, "change delta", "conditional", "medium", "compact COM change projection", []string{"Requires compatible before/after COM evidence."}, []string{"COM change_delta projection"}), keys: []string{"observation.com_projection"}},
@@ -433,7 +470,23 @@ func freeStateViewDefinitions(targetID string) []freeStateViewDefinition {
 }
 
 func semanticView(id string, questions, targets []string, temporal, availability, cost, ceiling string, limitations, dependencies []string) FreeStateObservationView {
-	return FreeStateObservationView{ViewID: id, Questions: questions, SupportedTargetKinds: targets, TemporalResolution: temporal, Availability: availability, CostLatencyClass: cost, QualityCeiling: ceiling, Limitations: limitations, RequiredDependencies: dependencies}
+	return semanticViewWithDimensions(id, questions, targets, temporal, availability, cost, ceiling, limitations, dependencies, nil, nil)
+}
+
+func semanticViewWithDimensions(id string, questions, targets []string, temporal, availability, cost, ceiling string, limitations, dependencies, dimensions []string, guidance *CCBInterpretationGuidance) FreeStateObservationView {
+	return FreeStateObservationView{
+		ViewID:                 id,
+		Questions:              questions,
+		SupportedTargetKinds:   targets,
+		TemporalResolution:     temporal,
+		Availability:           availability,
+		CostLatencyClass:       cost,
+		QualityCeiling:         ceiling,
+		Limitations:            limitations,
+		RequiredDependencies:   dependencies,
+		DiagnosticDimensions:   dimensions,
+		InterpretationGuidance: guidance,
+	}
 }
 
 func sameStringSet(left, right []string) bool {
@@ -1083,4 +1136,20 @@ func SortedFreeStateObservationViewIDs() []string {
 	}
 	sort.Strings(ids)
 	return ids
+}
+
+// GetViewsForDimension returns view IDs that support the specified diagnostic dimension.
+// This allows the priority queue to recommend views based on the current dimension focus.
+func GetViewsForDimension(dimension string, targetID string) []string {
+	defs := freeStateViewDefinitions(targetID)
+	var views []string
+	for _, def := range defs {
+		for _, dim := range def.view.DiagnosticDimensions {
+			if dim == dimension {
+				views = append(views, def.view.ViewID)
+				break
+			}
+		}
+	}
+	return views
 }

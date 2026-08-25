@@ -32,6 +32,8 @@ func messageLoopNeutralFamilySystemPrompt(state *runState) string {
 		prefix += `This is an open improvement contract. A local diagnosis or evidence-sufficient dimension does not complete the user's task. You MUST NOT return satisfied. After observation, return needs_experiment with one bounded evidence-backed improvement_proposal, no_candidate_found with a diagnostic covering the bounded search and its limitations, or capability_blocked with a concrete runtime boundary. The product runtime alone settles the task after the experiment contract.
 
 `
+		// Add pattern recognition guidance for improvement tasks
+		prefix += freeStatePatternRecognitionGuidance()
 	}
 	prefix += messageLoopCandidateFrontierDirective(state)
 	return fmt.Sprintf(`%sYou are the neutral observation-and-family decision phase of Ask Vit's DAW Agent.
@@ -64,9 +66,9 @@ Rules:
 - Evidence status and problem status are different. Sufficient evidence can support the conclusion that no treatment is needed and does not authorize treatment by itself.
 - A candidate-only finding with an explicit interpretation limit (for example, overlap that is not a psychoacoustic fact) is not by itself a safe basis for a deterministic treatment or a whole-project satisfied conclusion. After the required target-level observation returns, if the evidence remains plausible but non-deterministic, return needs_experiment with one bounded improvement_proposal.v1; do not convert that epistemic limit into blocked. Use blocked only for a concrete capability, freshness, authorization, or observation boundary.
 - Preserve conditional authorization exactly. If the user authorized treatment only when a condition is true, decide that condition from the requested evidence before returning needs_action. Weak, natural, or within-control variation is not enough; return no_candidate_found with the bounded evidence and limitations when the condition is false.
-- During post_action_evaluation, obtain fresh evidence through CCB before returning a runtime outcome or needs_action. Re-evaluate the complete original intent and preserve unresolved clauses.
+- During post_action_evaluation, obtain fresh evidence through CCB before returning a runtime outcome or needs_action. Re-evaluate the complete original intent and preserve unresolved clauses. The bounded experiment has already been user-confirmed and applied; authorization was settled at that confirmation. Re-litigating whether the original request authorized treatment is not a valid boundary in this phase — evaluate the applied experiment's outcome only from fresh post-action evidence.
 - D1-S1 permits one experiment round and one forward mutation. Never return next_round, continue_once, or a second treatment after the action has been applied; only retain, rollback, ambiguous human judgment, or a concrete blocked boundary may follow.
-- If post-action evidence is partial, inconclusive, stale, or otherwise insufficient to prove the target remains unmet, return blocked or continue observing; never return needs_action and never write another processor action from inconclusive evidence.
+- If post-action evidence is partial, inconclusive, stale, or otherwise insufficient to prove the target remains unmet, continue observing or report the concrete evidence limitation; never return needs_action and never write another processor action from inconclusive evidence. Return blocked only when the fresh post-action CCB observation itself cannot be obtained; blocked before that observation is not a legal terminal.
 - For diagnostic_complete or no_candidate_found, fresh evidence must cover the declared bounded scope. For capability_blocked, state the concrete runtime boundary without naming a replacement family.
 
 Available observation catalog:
@@ -138,4 +140,49 @@ func messageLoopCandidateFrontierDirective(state *runState) string {
 		return "A closure candidate frontier is now available: " + strings.Join(rows, "; ") + ". You MUST select one candidate by requesting only track.* observation(s) targeted at one listed track ID. Do not request a catalog, project.*, or mix.* view while this frontier is unresolved. Candidate evidence is not itself permission to select a processor.\n\n"
 	}
 	return "The closure selected candidate " + selected + " and has already recorded its target-level observation. The minimal observation loop is closed: return final=true now. Use needs_action only when that evidence supports a deterministic governed action; when it supports only a bounded improvement hypothesis, use needs_experiment with one improvement_proposal.v1 citing the returned observation. Use blocked only for a concrete capability, freshness, authorization, or observation boundary. Do not request another observation or restart project-level inspection.\n\n"
+}
+
+func freeStatePatternRecognitionGuidance() string {
+	return `Evidence Pattern Recognition for Open Improvement Tasks:
+
+When interpreting CCB observation results, consider these common patterns:
+
+Level & Headroom Dimension:
+- mix.masking_relationship with large consistent margins (median >20dB, coverage >0.9) across multiple bands
+  → often indicates level-imbalance improvement candidates → consider track_gain domain
+- mix.multitrack_relationship showing consistent level differences
+  → suggests gain adjustment candidates
+- track.basic_energy showing extreme headroom or crest differences
+  → may indicate level normalization opportunities
+
+Frequency Dimension:
+- mix.masking_relationship with band-specific patterns (margin concentrated in 1-2 bands)
+  → may indicate frequency-domain considerations → if eq admitted, consider frequency separation
+- mix.frequency_relationship showing band overlap between tracks
+  → suggests frequency separation candidates
+- track.timbre_frequency showing band imbalance within one track
+  → may indicate tonal adjustment opportunities
+
+Dynamics Dimension:
+- track.time_dynamics showing extreme crest or envelope variation
+  → suggests dynamics control candidates
+- processor.behavior showing excessive gain reduction or pumping
+  → may indicate dynamics recalibration needs
+
+Stereo Dimension:
+- track.stereo_space showing extreme correlation or imbalance
+  → suggests stereo width or balance candidates
+
+Transient Dimension:
+- track.transient_structure showing onset/sustain imbalance
+  → suggests transient shaping candidates
+
+Important Epistemic Notes:
+- These patterns are guidance for hypothesis formation, not deterministic rules
+- Partial or bounded evidence supporting a plausible improvement hypothesis is sufficient for needs_experiment
+- You are NOT required to prove an objective defect before proposing a bounded reversible experiment
+- When evidence plausibly relates to the user's listening goal but cannot prove a defect, return needs_experiment with improvement_proposal
+- Large consistent patterns across time and bands are stronger signals than isolated or brief variations
+
+`
 }

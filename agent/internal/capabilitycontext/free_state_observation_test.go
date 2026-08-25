@@ -617,3 +617,114 @@ func TestDOMCCBCompactRetainsConditionsFreshnessLimitationsAndEvidenceRefs(t *te
 		}
 	}
 }
+
+func TestCCBViewCatalogIncludesDimensionMapping(t *testing.T) {
+	catalog := FreeStateObservationCatalogFor(mixboard.TargetRef{Kind: "track", ID: "1007"})
+
+	// Test that key views have diagnostic dimensions
+	dimensionTests := map[string][]string{
+		"mix.masking_relationship":    {"level_headroom", "frequency_occupancy"},
+		"mix.multitrack_relationship": {"level_headroom"},
+		"track.basic_energy":          {"level_headroom"},
+		"mix.frequency_relationship":  {"frequency_occupancy"},
+		"track.timbre_frequency":      {"frequency_occupancy"},
+		"track.time_dynamics":         {"dynamics"},
+		"track.stereo_space":          {"stereo_space"},
+		"track.transient_structure":   {"transient_event"},
+	}
+
+	for viewID, expectedDims := range dimensionTests {
+		var view *FreeStateObservationView
+		for i := range catalog.Views {
+			if catalog.Views[i].ViewID == viewID {
+				view = &catalog.Views[i]
+				break
+			}
+		}
+		if view == nil {
+			t.Fatalf("%s: view not found in catalog", viewID)
+		}
+		if len(view.DiagnosticDimensions) != len(expectedDims) {
+			t.Fatalf("%s: diagnostic_dimensions = %v, want %v", viewID, view.DiagnosticDimensions, expectedDims)
+		}
+		for _, expectedDim := range expectedDims {
+			found := false
+			for _, dim := range view.DiagnosticDimensions {
+				if dim == expectedDim {
+					found = true
+					break
+				}
+			}
+			if !found {
+				t.Fatalf("%s: missing dimension %q in %v", viewID, expectedDim, view.DiagnosticDimensions)
+			}
+		}
+	}
+
+	// Test that masking_relationship has interpretation guidance
+	var maskingView *FreeStateObservationView
+	for i := range catalog.Views {
+		if catalog.Views[i].ViewID == "mix.masking_relationship" {
+			maskingView = &catalog.Views[i]
+			break
+		}
+	}
+	if maskingView.InterpretationGuidance == nil {
+		t.Fatal("mix.masking_relationship: interpretation_guidance is nil")
+	}
+	if len(maskingView.InterpretationGuidance.Patterns) != 2 {
+		t.Fatalf("mix.masking_relationship: patterns count = %d, want 2", len(maskingView.InterpretationGuidance.Patterns))
+	}
+
+	// Verify pattern structure
+	hasLargeMargin := false
+	hasBandSpecific := false
+	for _, pattern := range maskingView.InterpretationGuidance.Patterns {
+		if pattern.Name == "large_consistent_margin" {
+			hasLargeMargin = true
+			if len(pattern.Suggests) == 0 || pattern.Suggests[0] != "level_imbalance" {
+				t.Fatalf("large_consistent_margin pattern: suggests = %v", pattern.Suggests)
+			}
+		}
+		if pattern.Name == "band_specific_margin" {
+			hasBandSpecific = true
+		}
+	}
+	if !hasLargeMargin || !hasBandSpecific {
+		t.Fatal("mix.masking_relationship: missing expected patterns")
+	}
+}
+
+func TestGetViewsForDimensionReturnsCorrectViews(t *testing.T) {
+	tests := []struct {
+		dimension   string
+		expectedMin int
+		mustContain []string
+	}{
+		{"level_headroom", 3, []string{"mix.masking_relationship", "mix.multitrack_relationship", "track.basic_energy"}},
+		{"frequency_occupancy", 3, []string{"mix.masking_relationship", "mix.frequency_relationship", "track.timbre_frequency"}},
+		{"dynamics", 1, []string{"track.time_dynamics"}},
+		{"stereo_space", 1, []string{"track.stereo_space"}},
+		{"transient_event", 1, []string{"track.transient_structure"}},
+		{"unknown_dimension", 0, nil},
+	}
+
+	for _, tt := range tests {
+		views := GetViewsForDimension(tt.dimension, "1007")
+		if len(views) < tt.expectedMin {
+			t.Errorf("GetViewsForDimension(%q): got %d views, want at least %d", tt.dimension, len(views), tt.expectedMin)
+		}
+		for _, expected := range tt.mustContain {
+			found := false
+			for _, view := range views {
+				if view == expected {
+					found = true
+					break
+				}
+			}
+			if !found {
+				t.Errorf("GetViewsForDimension(%q): missing expected view %q in %v", tt.dimension, expected, views)
+			}
+		}
+	}
+}
