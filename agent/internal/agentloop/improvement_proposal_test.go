@@ -34,3 +34,73 @@ func TestFreeStatePromptCarriesExperimentEvaluationContract(t *testing.T) {
 		}
 	}
 }
+
+func TestImprovementContractPromptCarriesConvergenceGuidance(t *testing.T) {
+	state := &runState{input: Input{Context: map[string]any{
+		"task_contract": map[string]any{"kind": "improvement"},
+	}}}
+	prompt := messageLoopNeutralFamilySystemPrompt(state)
+	for _, fragment := range []string{
+		"Gate-Aligned Fast Path for Open Improvement Contracts",
+		"continuation_budget and continuation_used",
+		"Gate-Aligned Fast Path",
+	} {
+		if !strings.Contains(prompt, fragment) {
+			t.Fatalf("improvement prompt missing convergence guidance %q", fragment)
+		}
+	}
+	neutral := messageLoopNeutralFamilySystemPrompt(&runState{input: Input{Context: map[string]any{}}})
+	if strings.Contains(neutral, "Continuation Budget Discipline") {
+		t.Fatal("convergence guidance leaked into a non-improvement contract prompt")
+	}
+}
+
+func TestFreeStatePromptContextDisclosesContinuationBudget(t *testing.T) {
+	state := &runState{input: Input{Context: map[string]any{
+		"free_state_reasoning_loop": map[string]any{
+			"schema_version":      "free_state_reasoning_loop.v1",
+			"continuation_budget": 6,
+			"continuation_used":   2,
+		},
+	}}}
+	ctx := messageLoopFreeStatePromptContext(state)
+	if ctx["continuation_budget"] != 6 || ctx["continuation_used"] != 2 {
+		t.Fatalf("prompt context must disclose continuation budget/used, got %#v", ctx)
+	}
+}
+
+func budgetState(used, budget int) *runState {
+	return budgetStateInPhase(used, budget, "fs4_diagnostic_round")
+}
+
+func budgetStateInPhase(used, budget int, phase string) *runState {
+	return &runState{input: Input{Context: map[string]any{
+		"task_contract":    map[string]any{"kind": "improvement"},
+		"free_state_phase": phase,
+		"free_state_reasoning_loop": map[string]any{
+			"continuation_budget": budget,
+			"continuation_used":   used,
+		},
+	}}}
+}
+
+func TestContinuationBudgetDirectiveEscalation(t *testing.T) {
+	if d := messageLoopFreeStateContinuationBudgetDirective(budgetState(1, 6)); d != "" {
+		t.Fatalf("early-budget turn must carry no directive, got %q", d)
+	}
+	if d := messageLoopFreeStateContinuationBudgetDirective(budgetState(3, 6)); d == "" || !strings.Contains(d, "Continuation budget warning") {
+		t.Fatalf("half-spent turn must carry the warning directive, got %q", d)
+	}
+	if d := messageLoopFreeStateContinuationBudgetDirective(budgetState(5, 6)); d == "" || !strings.Contains(d, "CONTINUATION BUDGET CRITICAL") || !strings.Contains(d, "fastest gate-legal path") {
+		t.Fatalf("last-turn fs4 state must carry the phase-aware critical directive, got %q", d)
+	}
+	if d := messageLoopFreeStateContinuationBudgetDirective(budgetStateInPhase(5, 6, "fs6_target_confirmed")); d == "" || !strings.Contains(d, "You MUST return final=true on this turn with needs_experiment") {
+		t.Fatalf("fs6 last-turn state must demand the proposal, got %q", d)
+	}
+	// An admitted experiment spends continuations legitimately: no pressure.
+	experiment := budgetState(5, 6)
+	experiment.input.Context["free_state_reasoning_loop"].(map[string]any)["latest_decision"] = map[string]any{"status": "needs_experiment"}
+	if d := messageLoopFreeStateContinuationBudgetDirective(experiment); d != "" {
+		t.Fatalf("post-proposal experiment turns must not be pressured, got %q", d)
+	}
+}

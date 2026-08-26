@@ -392,7 +392,7 @@ func messageLoopFreeStatePromptContext(state *runState) map[string]any {
 	}
 	out := compactSelectedKeys(source, []string{
 		"schema_version", "loop_id", "status", "decision_phase", "original_intent", "active_intent",
-		"cycle", "max_cycles", "observation_ids", "latest_decision",
+		"cycle", "max_cycles", "continuation_budget", "continuation_used", "observation_ids", "latest_decision",
 		"requires_post_action_observation",
 	})
 	if target := messageLoopMapValue(source["target_ref"]); len(target) > 0 {

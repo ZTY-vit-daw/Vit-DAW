@@ -1,6 +1,7 @@
 package agentloop
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 )
@@ -32,8 +33,12 @@ func messageLoopNeutralFamilySystemPrompt(state *runState) string {
 		prefix += `This is an open improvement contract. A local diagnosis or evidence-sufficient dimension does not complete the user's task. You MUST NOT return satisfied. After observation, return needs_experiment with one bounded evidence-backed improvement_proposal, no_candidate_found with a diagnostic covering the bounded search and its limitations, or capability_blocked with a concrete runtime boundary. The product runtime alone settles the task after the experiment contract.
 
 `
+		prefix += freeStateImprovementConvergenceGuidance()
 		// Add pattern recognition guidance for improvement tasks
 		prefix += freeStatePatternRecognitionGuidance()
+	}
+	if directive := messageLoopFreeStateContinuationBudgetDirective(state); directive != "" {
+		prefix += directive
 	}
 	prefix += messageLoopCandidateFrontierDirective(state)
 	return fmt.Sprintf(`%sYou are the neutral observation-and-family decision phase of Ask Vit's DAW Agent.
@@ -140,6 +145,119 @@ func messageLoopCandidateFrontierDirective(state *runState) string {
 		return "A closure candidate frontier is now available: " + strings.Join(rows, "; ") + ". You MUST select one candidate by requesting only track.* observation(s) targeted at one listed track ID. Do not request a catalog, project.*, or mix.* view while this frontier is unresolved. Candidate evidence is not itself permission to select a processor.\n\n"
 	}
 	return "The closure selected candidate " + selected + " and has already recorded its target-level observation. The minimal observation loop is closed: return final=true now. Use needs_action only when that evidence supports a deterministic governed action; when it supports only a bounded improvement hypothesis, use needs_experiment with one improvement_proposal.v1 citing the returned observation. Use blocked only for a concrete capability, freshness, authorization, or observation boundary. Do not request another observation or restart project-level inspection.\n\n"
+}
+
+// messageLoopFreeStateContinuationBudgetDirective escalates convergence
+// pressure as the continuation budget drains while the loop is still in the
+// pre-proposal observation phase. The directive is phase-aware: a
+// needs_experiment decision is only admissible once the closure host has
+// confirmed a target (fs6+), so before that the pressure text steers the model
+// onto the fastest gate-legal observation path instead of demanding an early
+// proposal the host would bounce. It is steering text only: no validator,
+// admission gate, or runtime criterion reads it.
+func messageLoopFreeStateContinuationBudgetDirective(state *runState) string {
+	if state == nil || !strings.EqualFold(messageLoopTaskContractKind(state), "improvement") {
+		return ""
+	}
+	if messageLoopFreeStateDiagnosticOnly(state) {
+		return ""
+	}
+	ctx := messageLoopFreeStateContext(state)
+	budget := messageLoopFreeStatePositiveInt(ctx["continuation_budget"])
+	used := messageLoopFreeStatePositiveInt(ctx["continuation_used"])
+	if budget <= 0 || used <= 0 {
+		return ""
+	}
+	// Only the pre-proposal observation phase needs convergence pressure; an
+	// admitted experiment legitimately spends continuations on post-action
+	// observation and evaluation.
+	if decision := messageLoopMapValue(ctx["latest_decision"]); decision != nil {
+		switch strings.ToLower(strings.TrimSpace(messageLoopText(decision["status"]))) {
+		case FreeStateNeedsExperiment, FreeStateImprovementProposal, FreeStateNeedsAction:
+			return ""
+		}
+	}
+	phase := messageLoopFreeStateHostPhase(state)
+	remaining := budget - used
+	switch {
+	case remaining <= 1 && phaseAtLeastTargetConfirmed(phase):
+		return fmt.Sprintf(`CONTINUATION BUDGET CRITICAL: %d of %d checkpoints are already consumed and this is (one of) the last usable turn(s) before the runtime settles the task at the observation boundary without ever exercising an improvement. The closure host has confirmed a target, so a bounded proposal is now admissible. You MUST return final=true on this turn with needs_experiment and one bounded improvement_proposal.v1 citing the target-level observation you already hold; plausible, reversible, and evidence-cited is enough. Do not request another observation.
+
+`, used, budget)
+	case remaining <= 1:
+		return fmt.Sprintf(`CONTINUATION BUDGET CRITICAL: %d of %d checkpoints are already consumed and this is (one of) the last usable turn(s). The closure host is still in phase %s, which does not admit needs_experiment yet: a bounced proposal would only waste the turn. Follow the fastest gate-legal path instead: request the one mix.* project relationship view that discloses track-level candidates (mix.multitrack_relationship or mix.frequency_relationship) if it has not returned yet; otherwise request a track.* view on the single most plausible candidate track. Do not re-request any view that already returned, and do not open a new diagnostic dimension.
+
+`, used, budget, phase)
+	case used*2 >= budget:
+		return fmt.Sprintf(`Continuation budget warning: %d of %d checkpoints consumed while the closure host is still in phase %s. A needs_experiment decision is only admissible after the host confirms a target, so early proposals get bounced. The fastest gate-legal path is: (1) one mix.* project relationship view (mix.multitrack_relationship or mix.frequency_relationship) to disclose candidates with track IDs; (2) one track.* view on the single most plausible candidate track to confirm the target; (3) then final=true needs_experiment. Do not spend this turn on other dimensions, repeated structure views, or views that already returned.
+
+`, used, budget, phase)
+	}
+	return ""
+}
+
+// messageLoopFreeStateHostPhase reads the closure host phase from the prompt
+// context (empty string when not disclosed).
+func messageLoopFreeStateHostPhase(state *runState) string {
+	if state == nil {
+		return ""
+	}
+	phase := strings.TrimSpace(firstMapText(state.input.Context, "free_state_phase"))
+	if phase == "" {
+		phase = strings.TrimSpace(messageLoopText(messageLoopMapValue(state.input.Context["minimal_audio_closure"])["phase"]))
+	}
+	return phase
+}
+
+// phaseAtLeastTargetConfirmed reports whether the host phase admits a bounded
+// improvement proposal (fs6_target_confirmed or later, excluding fs9 where the
+// loop is already settled).
+func phaseAtLeastTargetConfirmed(phase string) bool {
+	switch strings.ToLower(strings.TrimSpace(phase)) {
+	case "fs6_target_confirmed", "fs7_improvement_proposal", "fs8_experiment_verification":
+		return true
+	}
+	return false
+}
+
+func messageLoopFreeStatePositiveInt(raw any) int {
+	value := 0
+	switch v := raw.(type) {
+	case int:
+		value = v
+	case int64:
+		value = int(v)
+	case float64:
+		value = int(v)
+	case json.Number:
+		parsed, _ := v.Int64()
+		value = int(parsed)
+	}
+	return value
+}
+
+// freeStateImprovementConvergenceGuidance keeps the model budget-aware during
+// an open improvement contract. The key constraint is that a needs_experiment
+// decision is only admissible once the closure host has established a
+// candidate frontier and confirmed a target: an early proposal gets bounced
+// by the host phase gate and the turn is wasted. This guidance therefore
+// teaches the fastest gate-legal observation sequence instead of demanding
+// early proposals. Steering only: no validator, gate, or runtime criterion
+// reads it.
+func freeStateImprovementConvergenceGuidance() string {
+	return `Continuation Budget and Gate-Aligned Fast Path for Open Improvement Contracts:
+
+- The free-state loop context discloses continuation_budget and continuation_used. The budget is small (typically 6 checkpoints total for the whole task, not per dimension). Every needs_observation turn you return consumes one checkpoint, and exhausting it settles the task at the observation boundary without ever exercising an improvement.
+- The closure host admits needs_experiment only after a candidate frontier is established and a target is confirmed. A proposal sent before that is bounced and the turn is wasted. Do not rush the proposal; rush the GATE PATH instead.
+- Fastest gate-legal sequence (usually 3 observations total):
+  1. project.structure once, to disclose visible track IDs and names.
+  2. One mix.* project relationship view — mix.multitrack_relationship or mix.frequency_relationship. These are the views that disclose track-level improvement candidates; the host frontier is built from their candidate rows.
+  3. One track.* view on the single most plausible candidate track, to confirm the target.
+  Then return final=true needs_experiment with one bounded improvement_proposal.v1 citing the target-level observation.
+- Do NOT tour the other diagnostic dimensions first, re-request views that already returned, or keep observing after the target-level evidence is in hand. Breadth across dimensions is the most common way these tasks fail.
+- Plausible, reversible, and evidence-cited is enough for the proposal; proof of an objective defect is NOT required.
+
+`
 }
 
 func freeStatePatternRecognitionGuidance() string {
