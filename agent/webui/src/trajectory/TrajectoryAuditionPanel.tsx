@@ -1,11 +1,17 @@
 import { useState } from "react";
-import { auditionCanInspect, auditionCanSelect, auditionJudgmentPrefers, auditionSessions, type AuditionState, type HeardDifference, type JudgmentPreference } from "../audition";
+import { auditionCanInspect, auditionCanSelect, auditionJudgmentPrefers, auditionSessions, auditionSettlementOutcome, type AuditionState, type AuditionSettlementOutcome, type HeardDifference, type JudgmentPreference } from "../audition";
 import type { TrajectoryState } from "../trajectory";
 import { trajectoryTurns } from "../trajectory";
 import { TrajectoryView } from "./TrajectoryView";
 import "./trajectory.css";
 
 const reasonOptions = ["更清晰", "更自然", "更有力度", "更稳定", "更少刺耳", "更宽", "其他"];
+
+const settlementSummaries: Record<Exclude<AuditionSettlementOutcome, "">, string> = {
+  improved: "已保留处理候选（偏好 B）——实验结算为 improved，工程保持处理后的版本。",
+  rolled_back: "已回滚到基线（偏好 A）——工程已恢复到处理前状态。",
+  needs_user_judgment: "人工判定模糊——实验已终止，未执行进一步变更。"
+};
 
 export function TrajectoryAuditionPanel({
   trajectory,
@@ -51,7 +57,9 @@ export function TrajectoryAuditionPanel({
       {sessions.map((session) => {
         const heardValue = heard[session.id] ?? "";
         const preferenceValue = preference[session.id] ?? (heardValue === "yes" ? "" : heardValue ? "unsure" : "");
-        const canJudge = Boolean(onSubmitJudgment) && (session.status === "ready" || session.status === "playing" || session.status === "stopped") && session.candidates.length === 2 && session.candidates.every((candidate) => candidate.status === "ready" && Boolean(candidate.previewRef)) && session.judgmentRequested && !session.judgmentRecorded;
+        const settlement = auditionSettlementOutcome(trajectory, session);
+        const settled = settlement !== "";
+        const canJudge = !settled && Boolean(onSubmitJudgment) && (session.status === "ready" || session.status === "playing" || session.status === "stopped") && session.candidates.length === 2 && session.candidates.every((candidate) => candidate.status === "ready" && Boolean(candidate.previewRef)) && session.judgmentRequested && !session.judgmentRecorded;
         const submitLabel = "记录判断（不会自动采用）";
         const submit = async () => {
           if (!heardValue || !preferenceValue || !canJudge) return;
@@ -73,22 +81,22 @@ export function TrajectoryAuditionPanel({
           }
         };
         return (
-          <section className="audition-session" key={session.id} data-status={session.status}>
+          <section className={`audition-session${settled ? " settled" : ""}`} key={session.id} data-status={session.status}>
             <div className="audition-session-head">
-              <div><span>A/B AUDITION</span><strong>{session.status}</strong></div>
-              <button type="button" disabled={busySessionID === session.id || session.status === "stopped"} onClick={() => void onStop(session.id)}>停止</button>
+              <div><span>A/B AUDITION</span><strong>{settled ? "settled" : session.status}</strong></div>
+              <button type="button" disabled={busySessionID === session.id || session.status === "stopped" || settled} onClick={() => void onStop(session.id)}>停止</button>
             </div>
             <div className="audition-candidates">
               {session.candidates.map((candidate) => {
-                const selectable = auditionCanSelect(session, candidate);
+                const selectable = !settled && auditionCanSelect(session, candidate);
                 return (
                   <div className={`audition-candidate-card ${session.inspectedCandidateId === candidate.id ? "inspected" : ""} ${session.adoptedCandidateId === candidate.id ? "adopted" : ""}`} key={candidate.id}>
                     <button type="button" className={session.activeCandidateId === candidate.id ? "active" : ""} disabled={!selectable || busySessionID === session.id} aria-label={`试听 ${candidate.label}`} onClick={() => void onSelect(session.id, candidate.id)}>
                       <strong>{candidate.label}</strong><span>{candidate.status || "preparing"}</span>
                     </button>
                     <div className="audition-candidate-actions">
-                      <button type="button" disabled={!auditionCanInspect(candidate) || busySessionID === session.id} onClick={() => void onInspect?.(session.id, candidate.id)}>查看</button>
-                      <button type="button" disabled={!auditionJudgmentPrefers(session, candidate.id) || busySessionID === session.id || session.adoptionStatus === "applied"} onClick={() => void onApply?.(session.id, candidate.id, String(session.judgmentEvidence?.id ?? ""))}>采用</button>
+                      <button type="button" disabled={settled || !auditionCanInspect(candidate) || busySessionID === session.id} onClick={() => void onInspect?.(session.id, candidate.id)}>查看</button>
+                      <button type="button" disabled={settled || !auditionJudgmentPrefers(session, candidate.id) || busySessionID === session.id || session.adoptionStatus === "applied"} onClick={() => void onApply?.(session.id, candidate.id, String(session.judgmentEvidence?.id ?? ""))}>采用</button>
                     </div>
                   </div>
                 );
@@ -122,7 +130,8 @@ export function TrajectoryAuditionPanel({
                 <button className="audition-submit" type="submit" disabled={!heardValue || !preferenceValue || submitting === session.id}>{submitting === session.id ? "记录中…" : submitLabel}</button>
               </form>
             )}
-            {session.judgmentRecorded && <div className="audition-recorded">已记录用户判断证据{session.judgmentEvidence ? ` · ${String(session.judgmentEvidence.preference ?? "")}` : ""}。请使用“采用”明确改变工程。</div>}
+            {session.judgmentRecorded && settled && <div className="audition-settled">{settlementSummaries[settlement]}</div>}
+            {session.judgmentRecorded && !settled && <div className="audition-recorded">已记录用户判断证据{session.judgmentEvidence ? ` · ${String(session.judgmentEvidence.preference ?? "")}` : ""}。请使用“采用”明确改变工程。</div>}
             {session.inspectedCandidateId && <div className="audition-inspected">当前查看：{session.inspectedCandidateId === "candidate-a" ? "A" : "B"}（已切换 Active Project Plane）</div>}
             {session.adoptedCandidateId && <div className="audition-adopted">当前采用：{session.adoptedCandidateId === "candidate-a" ? "A" : "B"} · {session.adoptionStatus}</div>}
             {session.error && <p className="audition-error">{session.error}</p>}

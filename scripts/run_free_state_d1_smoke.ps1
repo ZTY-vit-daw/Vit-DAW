@@ -10,7 +10,9 @@ param(
     [string]$KernelExe = "",
     [int]$TimeoutSeconds = 600,
     [switch]$SkipBuild,
-    [switch]$AdmissionOnly
+    [switch]$AdmissionOnly,
+    [ValidateSet("retain", "rollback", "ambiguous")]
+    [string]$SettlementProbe = ""
 )
 
 Set-StrictMode -Version Latest
@@ -112,6 +114,9 @@ try {
     if ($AdmissionOnly) {
         $smokeArgs += "--admission-only"
     }
+    if ($SettlementProbe -ne "") {
+        $smokeArgs += @("--settlement-probe", $SettlementProbe)
+    }
     & python @smokeArgs
     $runnerExit = $LASTEXITCODE
 }
@@ -130,6 +135,26 @@ if ($runnerExit -ne 0) {
 }
 if ($AdmissionOnly) {
     Write-Host ("D1-S1 ADMISSION_ONLY PASS: real-stack proposal/admission smoke completed without Apply; report=" + $report) -ForegroundColor Green
+    exit 0
+}
+if ($SettlementProbe -ne "") {
+    # Restart-consistency phase: settle first, then restart only the agent on
+    # the same workspace and re-verify the persisted settled projection.
+    Write-Host ("D1-S1 SETTLEMENT(" + $SettlementProbe + ") PASS: settled; restarting agent for restart verification") -ForegroundColor Green
+    & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $RepoRoot "scripts\dev_agent_smoke.ps1") `
+        -RepoRoot $RepoRoot -AgentHttp $AgentHttp -RestartAgent -SkipBuild -WaitSeconds ([string]$TimeoutSeconds)
+    if ($LASTEXITCODE -ne 0) {
+        throw "agent restart for settlement verification failed with exit code $LASTEXITCODE"
+    }
+    & python (Join-Path $RepoRoot "scripts\free_state_d1_smoke.py") `
+        --public-manifest $PublicManifest --public-case-id $PublicCaseId `
+        --agent-http $AgentHttp --timeout-sec ([string]$TimeoutSeconds) `
+        --project-workdir (Join-Path $artifactDir "project") --output $report `
+        --verify-settled $report
+    if ($LASTEXITCODE -ne 0) {
+        throw "D1-S1 settlement restart verification failed; report=$report"
+    }
+    Write-Host ("D1-S1 SETTLEMENT(" + $SettlementProbe + ") PASS: real-stack settlement + restart consistency verified; report=" + $report) -ForegroundColor Green
     exit 0
 }
 Write-Host ("D1-S1 PASS: real-stack public-only smoke completed; report=" + $report) -ForegroundColor Green

@@ -466,6 +466,23 @@ func (s *Server) recordFreeStateAuditionJudgment(ctx context.Context, request au
 	if err != nil {
 		return experiment.UserJudgmentEvidence{}, err
 	}
+	if round.AuditionSessionID == "" && !round.UserJudgmentRequested {
+		// A scheduler transport replay can drop the durable round binding
+		// while the loop stays parked at the judgment boundary (canonical
+		// task state human_judgment_required, round decision
+		// user_judgment_pending, loop session identity intact). Re-establish
+		// the binding through the guarded judgment-request API instead of
+		// weakening the identity check below; every original guard still
+		// applies.
+		if events, bindErr := loop.Experiment.RequestUserJudgmentForSession("A/B audition required", request.SessionID, time.Now().UTC()); bindErr == nil {
+			s.emitFreeStateExperimentEvents(events)
+			s.storeFreeStateLoop(loop)
+			round, err = loop.Experiment.CurrentRound()
+			if err != nil {
+				return experiment.UserJudgmentEvidence{}, err
+			}
+		}
+	}
 	if round.ID != request.RoundID || round.AuditionSessionID != request.SessionID {
 		return experiment.UserJudgmentEvidence{}, fmt.Errorf("round identity mismatch")
 	}
@@ -474,8 +491,21 @@ func (s *Server) recordFreeStateAuditionJudgment(ctx context.Context, request au
 		return experiment.UserJudgmentEvidence{}, fmt.Errorf("audition session belongs to a different project")
 	}
 	sessionRevision := firstNonEmpty(firstStringFromMap(loop.AuditionSessionSnapshot, "project_revision"), round.ProjectRevision)
-	currentRevision := firstNonEmpty(firstStringFromMap(loop.LatestProjectChange, "project_revision", "revision"), round.ProjectRevision)
-	if request.ProjectRevision != sessionRevision || (currentRevision != "" && currentRevision != sessionRevision) {
+	liveRevision := firstStringFromMap(loop.LatestProjectChange, "project_revision", "revision")
+	if liveRevision == "" {
+		// A scheduler transport replay can also drop LatestProjectChange. The
+		// newest intervention receipt's after_revision is the authoritative
+		// live revision at the judgment boundary; the round's own
+		// ProjectRevision is the pre-mutation admission revision and must not
+		// be used as the current revision after a forward mutation.
+		if interventions := round.Interventions; len(interventions) > 0 {
+			liveRevision = firstStringFromMap(interventions[len(interventions)-1].Receipt, "after_revision", "applied_revision")
+		}
+		if liveRevision == "" {
+			liveRevision = round.ProjectRevision
+		}
+	}
+	if request.ProjectRevision != sessionRevision || (liveRevision != "" && liveRevision != sessionRevision) {
 		return experiment.UserJudgmentEvidence{}, fmt.Errorf("project revision mismatch")
 	}
 	candidates := auditionCandidateRows(loop.AuditionSessionSnapshot)

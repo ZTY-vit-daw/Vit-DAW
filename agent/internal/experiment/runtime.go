@@ -827,7 +827,13 @@ func (t *Turn) Settle(outcome SettlementOutcome, summary string, now time.Time) 
 		expected := taskstate.StateSettled
 		switch outcome {
 		case OutcomeNeedsJudgment:
-			return nil, fmt.Errorf("needs_user_judgment is a non-terminal task state; request durable user judgment instead")
+			// A D1 ambiguous judgment terminally settles the canonical task
+			// with the human evidence before the experiment claims this
+			// outcome; any other canonical state must request the judgment
+			// instead of settling.
+			if t.TaskState != taskstate.StateSettled {
+				return nil, fmt.Errorf("needs_user_judgment requires a canonically settled task; request durable user judgment instead")
+			}
 		case OutcomeBlockedCapability, OutcomeBlockedObservation, OutcomeBudgetExhausted:
 			expected = taskstate.StateCapabilityBlocked
 		case OutcomeUnsafe:

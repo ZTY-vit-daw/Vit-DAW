@@ -300,7 +300,16 @@ func (s *Server) settleTaskFromExperiment(loop *freeStateReasoningLoop, summary 
 		Summary: summary, EvidenceRefs: evidence, ExperimentID: loop.Experiment.ID,
 		ProjectRevision: loop.Experiment.ProjectRevision,
 	})
-	return err
+	if err != nil {
+		return err
+	}
+	// Turn.Settle validates the canonical task state, so the experiment's
+	// projection must be rebound to the revision the settlement just produced.
+	goal := s.harness.RuntimeStatus(loop.GoalID)
+	if goal.Task == nil || goal.Task.Contract == nil || goal.Task.SemanticState == nil {
+		return fmt.Errorf("task semantic state disappeared before experiment settlement")
+	}
+	return loop.Experiment.BindTaskState(goal.Task.Contract.ContractID, goal.Task.SemanticState.State, goal.Task.SemanticState.Revision)
 }
 
 func (s *Server) completeTaskExperimentOutcome(loop *freeStateReasoningLoop, outcome experiment.SettlementOutcome, summary string) error {

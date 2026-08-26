@@ -46,8 +46,16 @@ def request_json(method: str, url: str, payload: dict[str, Any] | None, timeout:
         headers={"Content-Type": "application/json; charset=utf-8"},
         method=method,
     )
-    with urllib.request.urlopen(request, timeout=timeout) as response:
-        value = json.loads(response.read().decode("utf-8", errors="replace"))
+    try:
+        with urllib.request.urlopen(request, timeout=timeout) as response:
+            value = json.loads(response.read().decode("utf-8", errors="replace"))
+    except urllib.error.HTTPError as http_error:
+        body = ""
+        try:
+            body = http_error.read().decode("utf-8", errors="replace")[:500]
+        except Exception:  # noqa: BLE001 - body is diagnostic only.
+            pass
+        raise RuntimeError(f"{method} {url} -> HTTP {http_error.code}: {body}") from http_error
     if not isinstance(value, dict):
         raise RuntimeError(f"non-object response from {url}")
     return value
@@ -238,7 +246,7 @@ def test_continuation_interaction_requests() -> None:
     assert len(rows) == 1 and rows[0]["id"] == "interaction-mix" and rows[0]["kind"] == "mix_tick_confirmation"
 
 
-def persisted_free_state_loop(project_path: str, conversation_id: str, started_at: float) -> dict[str, Any]:
+def newest_agent_runtime_state_for_conversation(project_path: str, conversation_id: str, started_at: float) -> dict[str, Any]:
     project = Path(project_path)
     roots = {project.parent, project}
     if project.parent.parent != project.parent:
@@ -263,8 +271,38 @@ def persisted_free_state_loop(project_path: str, conversation_id: str, started_a
             continue
         updated = first_text(loop.get("updated_at"))
         if not found or (updated and updated >= found_updated):
-            found, found_updated = loop, updated
+            found, found_updated = state, updated
     return found
+
+
+def persisted_free_state_loop(project_path: str, conversation_id: str, started_at: float) -> dict[str, Any]:
+    state = newest_agent_runtime_state_for_conversation(project_path, conversation_id, started_at)
+    loops = state.get("free_state_reasoning_loops") if isinstance(state.get("free_state_reasoning_loops"), dict) else {}
+    loop = loops.get(conversation_id)
+    return loop if isinstance(loop, dict) else {}
+
+
+def persisted_task_semantic_state(state: dict[str, Any], conversation_id: str) -> dict[str, Any]:
+    goal_runtime = state.get("goal_runtime") if isinstance(state.get("goal_runtime"), dict) else {}
+    goals = rows(goal_runtime.get("goals"))
+    # The conversation -> goal binding is authoritative in conversation_goals;
+    # the goal row's own conversation_id field is not always populated.
+    conversation_goals = state.get("conversation_goals") if isinstance(state.get("conversation_goals"), dict) else {}
+    bound_goal_id = first_text(conversation_goals.get(conversation_id))
+    for goal in goals:
+        if bound_goal_id and first_text(goal.get("goal_id")) == bound_goal_id:
+            task = goal.get("task") if isinstance(goal.get("task"), dict) else {}
+            semantic = task.get("semantic_state") if isinstance(task.get("semantic_state"), dict) else {}
+            if semantic:
+                return semantic
+    for goal in goals:
+        if first_text(goal.get("conversation_id")) != conversation_id:
+            continue
+        task = goal.get("task") if isinstance(goal.get("task"), dict) else {}
+        semantic = task.get("semantic_state") if isinstance(task.get("semantic_state"), dict) else {}
+        if semantic:
+            return semantic
+    return {}
 
 
 def prepare_project(base_url: str, case: dict[str, Any], timeout: float) -> dict[str, Any]:
@@ -458,16 +496,183 @@ def validate_d1(base_url: str, conversation_id: str, responses: list[dict[str, A
         "status": "pass",
         "public_case_id": case_id,
         "conversation_id": conversation_id,
+        "turn_id": first_text(experiment.get("turn_id")),
+        "round_id": first_text(round_row.get("round_id")),
         "before_revision": before_revision,
         "after_revision": after_revision,
         "transaction_id": receipt["transaction_id"],
         "idempotency_key": receipt["idempotency_key"],
         "actual_readback_db": receipt["actual_readback_db"],
-        "post_action_observation_id": post.get("id"),
+        "post_action_observation_id": post.get("observation_id"),
         "forward_mutation_count": 1,
         "audition_session_id": session_id,
         "human_audition_ready": True,
         "human_confirmed": False,
+    }
+
+
+SETTLEMENT_PROBE_TAG = "smoke_settlement_probe"
+SETTLEMENT_PROBE_FREE_TEXT = "machine-originated settlement probe; not a human judgment"
+SETTLEMENT_PROBE_ANSWERS = {
+    "retain": {"heard_difference": "yes", "preference": "b"},
+    "rollback": {"heard_difference": "yes", "preference": "a"},
+    "ambiguous": {"heard_difference": "unsure", "preference": "unsure"},
+}
+SETTLEMENT_EXPECTATIONS = {
+    "retain": {"outcome": "improved", "human_confirmed": True, "ambiguous": False, "rolled_back": False, "disposition": "retain"},
+    "rollback": {"outcome": "rolled_back", "human_confirmed": True, "ambiguous": False, "rolled_back": True, "disposition": "rollback"},
+    "ambiguous": {"outcome": "needs_user_judgment", "human_confirmed": False, "ambiguous": True, "rolled_back": False, "disposition": "request_audition"},
+}
+TERMINAL_CONTINUATION_STATUSES = {"completed", "cancelled", "failed"}
+
+
+def probe_tags(evidence: dict[str, Any]) -> set[str]:
+    return {first_text(tag) for tag in (evidence.get("reason_tags") or [])}
+
+
+def settled_projection(state: dict[str, Any], conversation_id: str) -> tuple[dict[str, Any], dict[str, Any]]:
+    loops = state.get("free_state_reasoning_loops") if isinstance(state.get("free_state_reasoning_loops"), dict) else {}
+    loop = loops.get(conversation_id) if isinstance(loops.get(conversation_id), dict) else {}
+    return loop, persisted_task_semantic_state(state, conversation_id)
+
+
+def assert_settled_projection(loop: dict[str, Any], semantic: dict[str, Any], disposition: str, evidence_id: str, expected_outcome: str) -> None:
+    expected = SETTLEMENT_EXPECTATIONS[disposition]
+    require(bool(loop), "settled free-state loop was not persisted")
+    require(first_text(loop.get("status")).lower() == "completed", "settled loop status mismatch: " + first_text(loop.get("status")))
+    # NOTE: loop.last_error may legitimately carry the boundary-park message
+    # ("experiment round is waiting for the human judgment boundary") -- that
+    # is the designed stop point, not a settlement defect.
+    experiment = loop.get("experiment") if isinstance(loop.get("experiment"), dict) else {}
+    require(first_text(experiment.get("status")).lower() == "settled", "experiment status mismatch: " + first_text(experiment.get("status")))
+    require(first_text(experiment.get("outcome")).lower() == expected_outcome, f"experiment outcome mismatch for {disposition}: " + first_text(experiment.get("outcome")))
+    rounds = rows(experiment.get("rounds"))
+    require(len(rounds) == 1, "settlement must not open a second experiment round")
+    judgments = rows(rounds[0].get("user_judgment_evidence"))
+    require(judgments and first_text(judgments[-1].get("id")) == evidence_id, "persisted judgment evidence identity mismatch")
+    require(SETTLEMENT_PROBE_TAG in probe_tags(judgments[-1]), "persisted judgment lost the machine-origin probe marker")
+    d1_receipt = loop.get("d1_receipt") if isinstance(loop.get("d1_receipt"), dict) else {}
+    require(d1_receipt.get("settled") is True, "d1 receipt did not record settlement")
+    for flag in ("human_confirmed", "ambiguous", "rolled_back"):
+        require(d1_receipt.get(flag) is expected[flag], f"d1 receipt {flag} mismatch for {disposition}: {d1_receipt.get(flag)!r}")
+    require(first_text(d1_receipt.get("disposition")).lower() == expected["disposition"], "d1 receipt disposition mismatch: " + first_text(d1_receipt.get("disposition")))
+    require(int(d1_receipt.get("forward_mutation_count", 0) or 0) == 1, "settlement must not add forward mutations")
+    require(int(d1_receipt.get("rollback_compensation_count", -1) or 0) == (1 if disposition == "rollback" else 0), "rollback compensation cardinality mismatch for " + disposition)
+    layers = d1_receipt.get("layers") if isinstance(d1_receipt.get("layers"), dict) else {}
+    human_ab = layers.get("human_ab") if isinstance(layers.get("human_ab"), dict) else {}
+    require(first_text(human_ab.get("status")).lower() == "decided", "human A/B layer was not decided")
+    require(first_text(semantic.get("state")).lower() == "settled", "canonical task semantic state is not settled: " + first_text(semantic.get("state")))
+    require(semantic.get("terminal") is True, "canonical task semantic state is not terminal")
+
+
+def run_settlement_probe(base_url: str, conversation_id: str, project_path: str, validation: dict[str, Any], disposition: str, timeout: float, run_started: float) -> dict[str, Any]:
+    answers = SETTLEMENT_PROBE_ANSWERS[disposition]
+    payload = {
+        "conversation_id": conversation_id,
+        "turn_id": first_text(validation.get("turn_id")),
+        "round_id": first_text(validation.get("round_id")),
+        "audition_session_id": first_text(validation.get("audition_session_id")),
+        "project_revision": first_text(validation.get("after_revision")),
+        "heard_difference": answers["heard_difference"],
+        "preference": answers["preference"],
+        "reason_tags": [SETTLEMENT_PROBE_TAG],
+        "free_text": SETTLEMENT_PROBE_FREE_TEXT,
+    }
+    for key in ("turn_id", "round_id", "audition_session_id", "project_revision"):
+        require(payload[key], f"settlement probe is missing {key} from the D1 validation receipt")
+    # The agent establishes the durable judgment boundary asynchronously after
+    # audition.ready. The WebUI waits for trajectory.user_judgment.requested;
+    # the probe accepts the equivalent durable state: the round binding, or
+    # (task semantic human_judgment_required + round decision user_judgment_pending)
+    # -- the handler re-establishes a dropped round binding through the guarded
+    # judgment-request API.
+    boundary_deadline = time.monotonic() + 60
+    boundary_bound = False
+    while not boundary_bound and time.monotonic() < boundary_deadline:
+        state = newest_agent_runtime_state_for_conversation(project_path, conversation_id, run_started)
+        loop_now, semantic_now = settled_projection(state, conversation_id)
+        rounds_now = rows((loop_now.get("experiment") or {}).get("rounds")) if isinstance(loop_now.get("experiment"), dict) else []
+        if rounds_now:
+            round_now = rounds_now[0]
+            bound_to_session = round_now.get("user_judgment_requested") is True and first_text(round_now.get("audition_session_id")) == payload["audition_session_id"]
+            parked_at_boundary = first_text(semantic_now.get("state")).lower() == "human_judgment_required" and first_text(round_now.get("decision")).lower() == "user_judgment_pending"
+            boundary_bound = bound_to_session or parked_at_boundary
+        if not boundary_bound:
+            time.sleep(1)
+    require(boundary_bound, "durable judgment boundary was not established before the probe judgment")
+    judged = request_json("POST", base_url.rstrip("/") + "/agent/audition/judgment", payload, timeout)
+    require(first_text(judged.get("status")).lower() == "ok", "settlement probe judgment was rejected: " + first_text(judged.get("error")))
+    evidence = judged.get("evidence") if isinstance(judged.get("evidence"), dict) else {}
+    evidence_id = first_text(evidence.get("id"))
+    require(evidence_id, "settlement probe judgment returned no evidence identity")
+    require(SETTLEMENT_PROBE_TAG in probe_tags(evidence), "settlement probe marker was not retained on the judgment response")
+
+    # The judgment settles and persists synchronously before the HTTP response
+    # returns; the retry window only tolerates a slow disk flush.
+    deadline = time.monotonic() + 15
+    loop: dict[str, Any] = {}
+    semantic: dict[str, Any] = {}
+    while True:
+        state = newest_agent_runtime_state_for_conversation(project_path, conversation_id, run_started)
+        loop, semantic = settled_projection(state, conversation_id)
+        if (first_text(loop.get("status")).lower() == "completed" and semantic) or time.monotonic() >= deadline:
+            break
+        time.sleep(1)
+    assert_settled_projection(loop, semantic, disposition, evidence_id, SETTLEMENT_EXPECTATIONS[disposition]["outcome"])
+
+    state_now = invoke(base_url, "project.state", {}, timeout)
+    revision_now = project_revision(state_now)
+    if disposition == "rollback":
+        require(revision_now != payload["project_revision"], "rollback did not move the project revision off the treatment")
+    else:
+        require(revision_now == payload["project_revision"], disposition + " settlement changed the project revision")
+    return {
+        "disposition": disposition,
+        "probe_origin": True,
+        "evidence_id": evidence_id,
+        "task_semantic_state": first_text(semantic.get("state")),
+        "experiment_status": first_text((loop.get("experiment") or {}).get("status")) if isinstance(loop.get("experiment"), dict) else "",
+        "experiment_outcome": SETTLEMENT_EXPECTATIONS[disposition]["outcome"],
+        "project_revision": revision_now,
+    }
+
+
+def verify_settled_after_restart(base_url: str, report_path: Path, timeout: float) -> dict[str, Any]:
+    prior = json.loads(report_path.read_text(encoding="utf-8"))
+    probe = prior.get("settlement_probe") if isinstance(prior.get("settlement_probe"), dict) else {}
+    require(probe.get("probe_origin") is True, "report has no settlement probe section to verify")
+    disposition = first_text(probe.get("disposition"))
+    expected_outcome = SETTLEMENT_EXPECTATIONS.get(disposition, {}).get("outcome", "")
+    evidence_id = first_text(probe.get("evidence_id"))
+    conversation_id = first_text(prior.get("conversation_id"))
+    setup = prior.get("project_setup") if isinstance(prior.get("project_setup"), dict) else {}
+    project_path = first_text(setup.get("project_path"))
+    started = float(prior.get("started_at_epoch") or 0)
+    require(disposition and expected_outcome and evidence_id and conversation_id and project_path and started > 0, "prior report is missing settlement identity")
+
+    # Reactivating the workspace drives the restart reconciliation path
+    # (state restore + semantic projection reconcile) before asserting.
+    invoke(base_url, "project.open", {"file_path": project_path, "project_path": project_path}, timeout, confirmed=True)
+    deadline = time.monotonic() + 15
+    loop: dict[str, Any] = {}
+    semantic: dict[str, Any] = {}
+    while True:
+        state = newest_agent_runtime_state_for_conversation(project_path, conversation_id, started)
+        loop, semantic = settled_projection(state, conversation_id)
+        if (loop and semantic) or time.monotonic() >= deadline:
+            break
+        time.sleep(1)
+    assert_settled_projection(loop, semantic, disposition, evidence_id, expected_outcome)
+
+    continuations = continuation_rows(base_url, conversation_id, min(timeout, 30))
+    resurrected = [item for item in continuations if first_text(item.get("status")).lower() not in TERMINAL_CONTINUATION_STATUSES]
+    require(not resurrected, "restart resurrected non-terminal continuations: " + json.dumps([{ "status": item.get("status"), "error": item.get("last_error")} for item in resurrected], ensure_ascii=False))
+    return {
+        "verified_at": dt.datetime.now(dt.timezone.utc).isoformat(),
+        "disposition": disposition,
+        "task_semantic_state": first_text(semantic.get("state")),
+        "experiment_outcome": expected_outcome,
+        "continuations_total": len(continuations),
     }
 
 
@@ -485,8 +690,18 @@ def main() -> int:
     parser.add_argument("--project-workdir", required=True)
     parser.add_argument("--output", required=True)
     parser.add_argument("--admission-only", action="store_true", help="stop at FS7/admission boundary before confirmation or mutation")
+    parser.add_argument("--settlement-probe", choices=sorted(SETTLEMENT_PROBE_ANSWERS), default="", help="after the boundary validation, submit a machine-origin judgment and machine-check the settlement receipt; the default mode without this flag keeps asserting settled is False")
+    parser.add_argument("--verify-settled", default="", help="verify a previously settled probe report after an agent restart (path to d1_smoke_report.json)")
     args = parser.parse_args()
     output = Path(args.output).resolve()
+    if args.verify_settled:
+        verification = verify_settled_after_restart(args.agent_http, Path(args.verify_settled).resolve(), args.timeout_sec)
+        prior_path = Path(args.verify_settled).resolve()
+        prior = json.loads(prior_path.read_text(encoding="utf-8"))
+        prior["restart_verification"] = verification
+        write_report(prior_path, prior)
+        print(f"D1-S1 SETTLEMENT RESTART VERIFY PASS: disposition={verification['disposition']} report={prior_path}")
+        return 0
     report: dict[str, Any] = {"schema_version": "vit.free_state_d1_smoke.v1", "started_at": dt.datetime.now(dt.timezone.utc).isoformat(), "public_case_id": args.public_case_id}
     responses: list[dict[str, Any]] = []
     try:
@@ -587,10 +802,20 @@ def main() -> int:
             print(f"D1-S1 NOT_EXERCISED: report={output}")
             return NOT_EXERCISED_EXIT
         report["validation"] = validate_d1(args.agent_http, conversation_id, responses, args.timeout_sec, args.public_case_id)
-        report["status"] = "pass"
+        if args.settlement_probe:
+            # The probe judgment is machine-originated and permanently marked
+            # as such; it exercises the settlement machinery on this temporary
+            # engineering copy only and never claims a human decision.
+            report["settlement_probe"] = run_settlement_probe(args.agent_http, conversation_id, report["project_setup"]["project_path"], report["validation"], args.settlement_probe, args.timeout_sec, run_started)
+            report["status"] = "settlement_probe_pass"
+        else:
+            report["status"] = "pass"
         report["finished_at"] = dt.datetime.now(dt.timezone.utc).isoformat()
         write_report(output, report)
-        print(f"D1-S1 PASS: report={output}")
+        if args.settlement_probe:
+            print(f"D1-S1 SETTLEMENT({args.settlement_probe}) PASS: report={output}")
+        else:
+            print(f"D1-S1 PASS: report={output}")
         return 0
     except KeyboardInterrupt:
         report.update({"status": "interrupted", "reason": "operator_interrupted", "responses": responses, "finished_at": dt.datetime.now(dt.timezone.utc).isoformat()})

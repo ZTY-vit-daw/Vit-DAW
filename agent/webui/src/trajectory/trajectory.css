@@ -146,6 +146,8 @@
 .audition-submit { margin-top: 10px; border: 1px solid #91baff; border-radius: 8px; padding: 8px 12px; color: #101827; background: #91baff; font-weight: 700; cursor: pointer; }
 .audition-submit:disabled { opacity: .45; cursor: not-allowed; }
 .audition-recorded { margin-top: 12px; padding: 9px 10px; border-left: 3px solid #9dca55; color: #d6edb2; background: rgba(75, 102, 43, .22); font-size: 12px; line-height: 1.45; }
+.audition-settled { margin-top: 12px; padding: 9px 10px; border-left: 3px solid #6ea8ff; color: #cfe0ff; background: rgba(41, 66, 120, .25); font-size: 12px; line-height: 1.45; }
+.audition-session.settled .audition-session-head strong { color: #8fb7ff; }
 .audition-candidate-card { display: grid; gap: 6px; }
 .audition-candidate-card.inspected { outline: 1px solid #d8a94b; border-radius: 10px; }
 .audition-candidate-card.adopted { outline: 1px solid #58d68d; border-radius: 10px; }

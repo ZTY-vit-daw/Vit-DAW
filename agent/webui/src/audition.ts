@@ -1,4 +1,5 @@
 import type { AgentEvent, JsonRecord } from "./types";
+import type { TrajectoryState } from "./trajectory";
 
 export const auditionSchemaVersion = "vit.kernel_audition.v1";
 
@@ -126,4 +127,25 @@ export function auditionCanInspect(candidate: AuditionCandidate): boolean {
 export function auditionJudgmentPrefers(session: AuditionSession, candidateID: string): boolean {
   const preference = text(session.judgmentEvidence?.preference);
   return session.judgmentRecorded && ((candidateID === "candidate-a" && preference === "a") || (candidateID === "candidate-b" && preference === "b"));
+}
+
+export type AuditionSettlementOutcome = "improved" | "rolled_back" | "needs_user_judgment" | "";
+
+// The D1 judgment settles the experiment directly (retain / rollback /
+// ambiguous terminal); there is no separate apply step afterwards. The raw
+// settlement outcome lives on the trajectory settlement node's details, not
+// on the turn's evaluation outcome (which maps needs_user_judgment back to
+// human_audition_ready).
+export function auditionSettlementOutcome(trajectory: TrajectoryState, session: AuditionSession): AuditionSettlementOutcome {
+  const turn = trajectory.turns[session.turnID];
+  if (!turn) return "";
+  for (let index = turn.nodeIds.length - 1; index >= 0; index -= 1) {
+    const node = trajectory.nodes[turn.nodeIds[index]];
+    if (!node || node.kind !== "settlement") continue;
+    const outcome = text(node.details?.outcome);
+    if (outcome === "improved" || outcome === "rolled_back" || outcome === "needs_user_judgment") {
+      return outcome;
+    }
+  }
+  return "";
 }

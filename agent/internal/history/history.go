@@ -941,7 +941,16 @@ func WriteAgentRuntimeState(projectPath, projectUUID string, data []byte) error 
 	if err := os.WriteFile(temp, data, 0o644); err != nil {
 		return err
 	}
-	return os.Rename(temp, target)
+	// Windows denies the atomic rename while any transient reader (indexer,
+	// scanner, or concurrent restore) holds the destination open; retry
+	// briefly instead of failing the whole persistence path on a lock.
+	for attempt := 0; ; attempt++ {
+		err := os.Rename(temp, target)
+		if err == nil || attempt >= 4 {
+			return err
+		}
+		time.Sleep(time.Duration(50*(attempt+1)) * time.Millisecond)
+	}
 }
 
 func ReadAgentRuntimeState(projectPath, projectUUID string) ([]byte, error) {

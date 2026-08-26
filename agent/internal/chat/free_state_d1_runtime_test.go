@@ -20,6 +20,7 @@ import (
 	"vit-daw-agent/internal/journal"
 	"vit-daw-agent/internal/orchestration"
 	agentruntime "vit-daw-agent/internal/runtime"
+	"vit-daw-agent/internal/taskstate"
 	"vit-daw-agent/internal/trajectory"
 )
 
@@ -578,12 +579,118 @@ func TestD1S1ServerJudgmentHandlerSettlesRetainRollbackAndAmbiguous(t *testing.T
 	}
 }
 
+// A scheduler transport replay can drop the durable round judgment binding
+// while the loop stays parked at the boundary; the judgment handler must
+// re-establish it through the guarded API instead of failing closed.
+func TestD1S1JudgmentHealsDroppedRoundBinding(t *testing.T) {
+	s, loop := d1ServerAtHumanAuditionReady(t)
+	goal := s.harness.EnsureGoal(loop.GoalID, loop.RunID, loop.OriginalIntent)
+	if _, err := s.ensureAudioTaskContract(loop.ConversationID, audioclosure.ModeTreatment, audioclosure.Scope{Kind: "project", ID: "project-1"}, "project-1", "8", map[string]any{"goal_id": goal.GoalID}); err != nil {
+		t.Fatal(err)
+	}
+	proposal := taskstate.BoundedProposal{ProposalID: "proposal-d1-heal", Summary: "bounded track gain", EvidenceRefs: []string{"before"}, RequiresExperiment: true}
+	if _, err := s.transitionTaskSemantic(goal.GoalID, taskstate.TransitionRequest{Event: taskstate.EventImprovementProposed, Reason: "candidate observed", EvidenceRefs: []string{"before"}, CandidateID: "1007", Proposal: &proposal, ProjectRevision: "8"}); err != nil {
+		t.Fatal(err)
+	}
+	if err := s.bindExperimentSemantic(&loop); err != nil {
+		t.Fatal(err)
+	}
+	if err := s.requireTaskHumanJudgment(&loop, loop.AuditionSessionID, "A/B audition judgment is required before experiment settlement"); err != nil {
+		t.Fatal(err)
+	}
+	s.storeFreeStateLoop(loop)
+	for index := range loop.Experiment.Rounds {
+		loop.Experiment.Rounds[index].AuditionSessionID = ""
+		loop.Experiment.Rounds[index].UserJudgmentRequested = false
+	}
+	// The same transport replay thins the loop-level project change pointer;
+	// the live revision must then come from the intervention receipt.
+	loop.LatestProjectChange = nil
+	s.storeFreeStateLoop(loop)
+
+	round, _ := loop.Experiment.CurrentRound()
+	body := fmt.Sprintf(`{"conversation_id":%q,"turn_id":%q,"round_id":%q,"audition_session_id":%q,"project_revision":"8","heard_difference":"yes","preference":"b"}`, loop.ConversationID, loop.Experiment.ID, round.ID, loop.AuditionSessionID)
+	recorder := httptest.NewRecorder()
+	s.handleAuditionJudgment(recorder, httptest.NewRequest(http.MethodPost, "/agent/audition/judgment", bytes.NewBufferString(body)))
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("status=%d body=%s", recorder.Code, recorder.Body.String())
+	}
+	stored, _ := s.freeStateLoop(loop.ConversationID)
+	if stored.Experiment == nil || stored.Experiment.Status != experiment.StatusSettled || stored.Experiment.Outcome != experiment.OutcomeImproved {
+		t.Fatalf("experiment outcome=%+v", stored.Experiment)
+	}
+	current := s.harness.RuntimeStatus(loop.GoalID)
+	if current.Task == nil || current.Task.SemanticState == nil || current.Task.SemanticState.State != taskstate.StateSettled {
+		t.Fatalf("canonical task semantic state=%+v", current.Task)
+	}
+}
+
 type d1UndoSender struct{ commands []map[string]any }
 
 func (s *d1UndoSender) SendCommand(_ context.Context, command map[string]any) (map[string]any, string, error) {
 	s.commands = append(s.commands, cloneContext(command))
 	return map[string]any{"status": "ok", "agent_action_id": "rollback-1"}, `{"status":"ok"}`, nil
 }
+
+// The judgment settlement must hold with the canonical task contract bound:
+// the task settles first and the experiment's canonical projection must be
+// rebound before Turn.Settle validates it. The contract-less variants above
+// do not exercise that guard at all.
+func TestD1S1JudgmentSettlementBindsCanonicalTaskContract(t *testing.T) {
+	for _, test := range []struct {
+		name, heard, preference, outcome string
+		rollback                         bool
+	}{
+		{name: "retain", heard: "yes", preference: "b", outcome: "improved"},
+		{name: "rollback", heard: "yes", preference: "a", outcome: "rolled_back", rollback: true},
+		{name: "ambiguous", heard: "no", preference: "unsure", outcome: "needs_user_judgment"},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			s, loop := d1ServerAtHumanAuditionReady(t)
+			if test.rollback {
+				sender := &d1UndoSender{}
+				s.harness = harness.NewWithSender(sender, nil, nil)
+				s.harness.JournalRecord(journal.Action{AgentActionID: "d1-action", Domain: "daw", Status: journal.StatusSucceeded, Command: map[string]any{"cmd": "set_volume"}})
+				s.harness.JournalRecord(journal.Action{AgentActionID: "unrelated-later-action", Domain: "daw", Status: journal.StatusSucceeded, Command: map[string]any{"cmd": "set_pan"}})
+			}
+			goal := s.harness.EnsureGoal(loop.GoalID, loop.RunID, loop.OriginalIntent)
+			if _, err := s.ensureAudioTaskContract(loop.ConversationID, audioclosure.ModeTreatment, audioclosure.Scope{Kind: "project", ID: "project-1"}, "project-1", "8", map[string]any{"goal_id": goal.GoalID}); err != nil {
+				t.Fatal(err)
+			}
+			proposal := taskstate.BoundedProposal{ProposalID: "proposal-d1", Summary: "bounded track gain", EvidenceRefs: []string{"before"}, RequiresExperiment: true}
+			if _, err := s.transitionTaskSemantic(goal.GoalID, taskstate.TransitionRequest{Event: taskstate.EventImprovementProposed, Reason: "candidate observed", EvidenceRefs: []string{"before"}, CandidateID: "1007", Proposal: &proposal, ProjectRevision: "8"}); err != nil {
+				t.Fatal(err)
+			}
+			if err := s.bindExperimentSemantic(&loop); err != nil {
+				t.Fatal(err)
+			}
+			if err := s.requireTaskHumanJudgment(&loop, loop.AuditionSessionID, "A/B audition judgment is required before experiment settlement"); err != nil {
+				t.Fatal(err)
+			}
+			s.storeFreeStateLoop(loop)
+
+			round, _ := loop.Experiment.CurrentRound()
+			body := fmt.Sprintf(`{"conversation_id":%q,"turn_id":%q,"round_id":%q,"audition_session_id":%q,"project_revision":"8","heard_difference":%q,"preference":%q}`, loop.ConversationID, loop.Experiment.ID, round.ID, loop.AuditionSessionID, test.heard, test.preference)
+			recorder := httptest.NewRecorder()
+			s.handleAuditionJudgment(recorder, httptest.NewRequest(http.MethodPost, "/agent/audition/judgment", bytes.NewBufferString(body)))
+			if recorder.Code != http.StatusOK {
+				t.Fatalf("status=%d body=%s", recorder.Code, recorder.Body.String())
+			}
+			stored, _ := s.freeStateLoop(loop.ConversationID)
+			if stored.Experiment == nil || stored.Experiment.Status != experiment.StatusSettled || string(stored.Experiment.Outcome) != test.outcome {
+				t.Fatalf("experiment outcome=%+v", stored.Experiment)
+			}
+			if stored.Experiment.TaskState != taskstate.StateSettled {
+				t.Fatalf("experiment canonical projection state=%s rev=%d", stored.Experiment.TaskState, stored.Experiment.TaskStateRevision)
+			}
+			current := s.harness.RuntimeStatus(loop.GoalID)
+			if current.Task == nil || current.Task.SemanticState == nil || current.Task.SemanticState.State != taskstate.StateSettled || !current.Task.SemanticState.Terminal {
+				t.Fatalf("canonical task semantic state=%+v", current.Task)
+			}
+		})
+	}
+}
+
 
 func TestD1S1RollbackUsesExistingRollbackAction(t *testing.T) {
 	loop := d1EvaluatedLoopForTest(t)

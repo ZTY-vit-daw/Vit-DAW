@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"vit-daw-agent/internal/taskstate"
 	"vit-daw-agent/internal/trajectory"
 )
 
@@ -298,6 +299,7 @@ func TestRollbackRestoresRoundStateAndEmitsEvent(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
 // A round admits exactly one post-action CCB bundle. A second bundle can only
 // arrive from a loop that revived after the human-judgment boundary
 // (2026-08-25 21:09 D1 smoke: two post_action=true observations broke
@@ -344,8 +346,6 @@ func TestRecordObservationRejectsSecondPostActionObservation(t *testing.T) {
 		t.Fatalf("round observations = %+v, want exactly one post-action bundle", round.Observations)
 	}
 }
-
-
 
 func TestCCBViewSetMismatchRejected(t *testing.T) {
 	turn, err := NewTurn(Identity{ConversationID: "conversation-ccb"}, "inspect", testAdmission(AuthorityFull), time.Now().UTC())
@@ -438,6 +438,46 @@ func TestOrdinaryAuthorityRequiresConfirmedIntervention(t *testing.T) {
 	intervention.UserConfirmed = true
 	if _, err := turn.ApplyIntervention(intervention, time.Now().UTC()); err != nil {
 		t.Fatal(err)
+	}
+}
+
+// A contract-bound turn may claim the needs_user_judgment outcome only after
+// the canonical task terminally settled with the human evidence (the D1
+// ambiguous judgment); any other canonical state must keep requesting the
+// judgment instead of settling.
+func TestSettleNeedsJudgmentRequiresCanonicallySettledTask(t *testing.T) {
+	settled := func() *Turn {
+		turn, err := NewTurn(Identity{ConversationID: "conversation-needs-judgment-settled"}, "ambiguous judgment", testAdmission(AuthorityFull), time.Now().UTC())
+		if err != nil {
+			t.Fatal(err)
+		}
+		if _, err = turn.StartRound([]string{"track.timbre_frequency"}, "checkpoint-ambiguous", "rev-ambiguous", time.Now().UTC()); err != nil {
+			t.Fatal(err)
+		}
+		if err := turn.BindTaskState("contract-ambiguous", taskstate.StateSettled, 3); err != nil {
+			t.Fatal(err)
+		}
+		return &turn
+	}()
+	if _, err := settled.Settle(OutcomeNeedsJudgment, "ambiguous audition judgment", time.Now().UTC()); err != nil {
+		t.Fatal(err)
+	}
+
+	open := func() *Turn {
+		turn, err := NewTurn(Identity{ConversationID: "conversation-needs-judgment-open"}, "ambiguous judgment", testAdmission(AuthorityFull), time.Now().UTC())
+		if err != nil {
+			t.Fatal(err)
+		}
+		if _, err = turn.StartRound([]string{"track.timbre_frequency"}, "checkpoint-open", "rev-open", time.Now().UTC()); err != nil {
+			t.Fatal(err)
+		}
+		if err := turn.BindTaskState("contract-open", taskstate.StateNeedsExperiment, 2); err != nil {
+			t.Fatal(err)
+		}
+		return &turn
+	}()
+	if _, err := open.Settle(OutcomeNeedsJudgment, "premature settlement", time.Now().UTC()); err == nil {
+		t.Fatal("needs_user_judgment settled without a canonically settled task")
 	}
 }
 
