@@ -13,11 +13,14 @@ import (
 	"time"
 
 	"vit-daw-agent/internal/agentloop"
+	"vit-daw-agent/internal/agentprotocol"
 	"vit-daw-agent/internal/audioclosure"
 	"vit-daw-agent/internal/executionruntime"
+	"vit-daw-agent/internal/executionverifiers"
 	"vit-daw-agent/internal/experiment"
 	"vit-daw-agent/internal/harness"
 	"vit-daw-agent/internal/journal"
+	"vit-daw-agent/internal/kernel"
 	"vit-daw-agent/internal/orchestration"
 	agentruntime "vit-daw-agent/internal/runtime"
 	"vit-daw-agent/internal/taskstate"
@@ -729,5 +732,174 @@ func TestD1S1RestartProjectionDoesNotDuplicateMutation(t *testing.T) {
 	round, _ := restored.Experiment.CurrentRound()
 	if len(round.Interventions) != 1 || len(round.Observations) != 2 {
 		t.Fatalf("restart duplicated state: %+v", round)
+	}
+}
+
+func staticEQTestProposal() *agentprotocol.ImprovementProposal {
+	return &agentprotocol.ImprovementProposal{
+		SchemaVersion: agentprotocol.ImprovementProposalSchema,
+		Target:        map[string]any{"kind": "track", "id": "vocal"}, EvidenceRefs: []string{"obs-before"},
+		ImprovementIntent: "reduce boxy low-mid on the vocal", Hypothesis: "a bounded band cut may improve clarity",
+		ExpectedEffect: "clarity without resonance", ActionDomain: d1StaticEQDomain,
+		ActionKind: d1StaticEQKind, ParameterBounds: map[string]any{"gain_db": -1.0, "frequency_hz": 400.0, "q": 1.0, "band_index": 0.0},
+		VerificationPlan: map[string]any{"view_ids": []any{"track.timbre_frequency"}, "experiment_budget": 1}, Confidence: 0.6,
+	}
+}
+
+func d1StaticEQLoopForTest(t *testing.T, revision string) freeStateReasoningLoop {
+	t.Helper()
+	now := time.Now().UTC()
+	loop := freeStateReasoningLoop{SchemaVersion: freeStateReasoningLoopSchema, LoopID: "loop-d1-eq", ConversationID: "conversation-d1-eq", GoalID: "goal-d1-eq", RunID: "run-d1-eq", Status: "awaiting_experiment", OriginalIntent: "improve vocal clarity", LatestObservation: d1FreshObservationForTest(revision), CreatedAt: now, UpdatedAt: now}
+	s := New(nil, nil, nil)
+	if err := s.startFreeStateExperiment(&loop, agentloop.FreeStateDecision{ImprovementProposal: staticEQTestProposal()}, loop.GoalID, loop.RunID); err != nil {
+		t.Fatal(err)
+	}
+	return loop
+}
+
+func TestD1S1StaticEQAdmissionBindsBoundedBandParameters(t *testing.T) {
+	loop := d1StaticEQLoopForTest(t, "7")
+	admission := loop.Experiment.Admission
+	if !admission.IsD1S1() {
+		t.Fatalf("static_eq admission is not D1-S1: %+v", admission)
+	}
+	gain, ok := treatmentNumber(admission.TypedAction, "gain_db")
+	if !ok || gain != -1.0 {
+		t.Fatalf("typed gain_db=%v ok=%v typed=%+v", gain, ok, admission.TypedAction)
+	}
+	if admission.TypedAction["frequency_hz"] != 400.0 || admission.TypedAction["q"] != 1.0 || admission.TypedAction["band_index"] != 0.0 {
+		t.Fatalf("typed band parameters=%+v", admission.TypedAction)
+	}
+	for name, bounds := range map[string]map[string]any{"diagnostic": admission.DiagnosticDoseBounds, "retained": admission.RetainedDoseBounds} {
+		doseGain, ok := treatmentNumber(bounds, "gain_db")
+		if !ok || doseGain != -1.0 || bounds["max_action_attempts"] != 1 {
+			t.Fatalf("%s dose bounds=%+v", name, bounds)
+		}
+	}
+	if err := admission.ValidateD1S1(); err != nil {
+		t.Fatalf("validated static_eq admission rejected: %v", err)
+	}
+	// The production gate is the D2-1 domain table: domain+kind must match a
+	// row, and an unknown domain stays rejected (no wildcard admission).
+	other := staticEQTestProposal()
+	other.ActionDomain = "legacy_mix"
+	other.ActionKind = "legacy_adjust"
+	if _, err := freeStateExperimentAdmission(loop, other); err == nil || !strings.Contains(err.Error(), "D2-1 domain table") {
+		t.Fatalf("unknown domain admitted: err=%v", err)
+	}
+}
+
+func TestD1S1StaticEQPlanContainsOneBoundedAction(t *testing.T) {
+	loop := d1StaticEQLoopForTest(t, "7")
+	plan, err := d1StaticEQPlan(loop, agentloop.PendingMixTickCandidate{Operation: d1StaticEQKind, TrackID: "vocal"}, 7, "project-1", "epoch-1", "snapshot-7", map[string]any{"tracks": []any{map[string]any{"track_id": "vocal", "volume_db": -2.0}}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(plan.ActionSet.Actions) != 1 {
+		t.Fatalf("plan=%+v", plan)
+	}
+	action := plan.ActionSet.Actions[0]
+	if action.Command != d1StaticEQKind || action.TargetRef != "vocal" || action.BeforeFingerprint != "track:vocal:eq:band_0_gain:pending" {
+		t.Fatalf("action=%+v", action)
+	}
+	if action.Args["target_value"] != -1.0 || action.Args["param_id"] != "band_0_gain" || action.Args["plugin_identifier"] != defaultD1StaticEQPluginIdentifier {
+		t.Fatalf("action args=%+v", action.Args)
+	}
+	if !containsStringFold(plan.ProjectCut.ContractVersions, "action:static_eq_band_adjust") || plan.ProjectCut.BaseProjectRevision != "7" || plan.PreviousObservationID != "obs-before" {
+		t.Fatalf("plan cut=%+v prev=%q", plan.ProjectCut, plan.PreviousObservationID)
+	}
+	if _, err = d1StaticEQPlan(loop, agentloop.PendingMixTickCandidate{Operation: d1StaticEQKind, TrackID: "other"}, 7, "project-1", "epoch-1", "snapshot-7", map[string]any{"tracks": []any{map[string]any{"track_id": "other", "volume_db": 0.0}}}); err == nil {
+		t.Fatal("unobserved target accepted")
+	}
+}
+
+func TestD1S1StaticEQJournalRecordsSetPluginParam(t *testing.T) {
+	inner := &d1MutationPortForTest{}
+	log := &d1JournalForTest{}
+	port := &d1JournalMutationPort{inner: inner, harness: log, goalID: "goal", runID: "run", staticEQ: true}
+	action := orchestration.Action{ID: "d1-eq-action", Command: d1StaticEQKind, TargetRef: "vocal", Args: map[string]any{"plugin_identifier": "juce_eq", "param_id": "band_0_gain", "target_value": -1.5}}
+	if _, err := port.Apply(context.Background(), action, "execution:d1-eq-action"); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := port.Apply(context.Background(), action, "execution:d1-eq-action"); err != nil {
+		t.Fatal(err)
+	}
+	if inner.calls != 2 || len(log.recorded) != 1 || log.results != 2 {
+		t.Fatalf("inner=%d journal=%+v results=%d", inner.calls, log.recorded, log.results)
+	}
+	recorded := log.recorded[0]
+	if recorded.Tool != "set_plugin_param" || recorded.CommandName != "set_plugin_param" || recorded.Command["cmd"] != "set_plugin_param" || recorded.Command["param_id"] != "band_0_gain" || recorded.Command["value"] != -1.5 {
+		t.Fatalf("journal=%+v", recorded)
+	}
+}
+
+func TestD1S1StaticEQProjectionCarriesAdmissionDomain(t *testing.T) {
+	loop := d1StaticEQLoopForTest(t, "7")
+	s := New(nil, nil, nil)
+	receipt := orchestration.ActionReceipt{ActionID: "d1-eq-action", Status: "applied", AppliedRevision: "8", EffectivelyOnce: true, Details: map[string]any{
+		"before_revision": "7", "after_revision": "8", "transaction_id": "tx-eq", "idempotency_key": "key-eq", "plugin_id": "plg_juce_eq_1", "param_id": "band_0_gain", "requested_target_value": -1.0, "actual_readback_value": -1.0, "readback_verified": true,
+	}}
+	session := orchestration.PlanningSession{ID: "d1-session-eq", Status: orchestration.StatusCompleted, Execution: &orchestration.ExecutionRecord{
+		ID: "execution-eq", IdempotencyKey: "key-eq", Receipts: []orchestration.ActionReceipt{receipt},
+		VerificationResult: &orchestration.VerificationResult{Status: "verified", Fresh: true, PostAction: true, ObservationID: "obs-after-eq", ObservationRevision: "8", EvidenceRefs: []string{"ccb-after-eq"}},
+	}}
+	response := s.projectD1Execution(loop, session, nil)
+	if response.WorkflowData["action_domain"] != d1StaticEQDomain || response.WorkflowData["action_kind"] != d1StaticEQKind {
+		t.Fatalf("projection domain=%v kind=%v", response.WorkflowData["action_domain"], response.WorkflowData["action_kind"])
+	}
+	if !strings.Contains(response.Reply, "static EQ band parameter") {
+		t.Fatalf("reply=%q", response.Reply)
+	}
+	restored, ok := s.freeStateLoop(loop.ConversationID)
+	if !ok {
+		t.Fatal("projected loop was not persisted")
+	}
+	round, _ := restored.Experiment.CurrentRound()
+	if len(round.Interventions) != 1 || round.Interventions[0].ProcessorResponse["processor_type"] != d1StaticEQDomain {
+		t.Fatalf("interventions=%+v", round.Interventions)
+	}
+}
+
+type d1StaticEQStateForTest struct{ state *kernel.VSPStateResult }
+
+func (s d1StaticEQStateForTest) VSPStateSnapshot(context.Context, string) (*kernel.VSPStateResult, error) {
+	return s.state, nil
+}
+
+type d1StaticEQAcousticForTest struct {
+	result executionverifiers.AcousticResult
+	err    error
+}
+
+func (a d1StaticEQAcousticForTest) VerifyStaticEQ(context.Context, orchestration.ActionSet) (executionverifiers.AcousticResult, error) {
+	return a.result, a.err
+}
+
+// The static_eq verifier mirrors the StaticBalance pattern but its parameter
+// readback postcondition is receipt-driven (plugin parameters are not visible
+// in the VSP track snapshot); it must fail closed on missing or inconsistent
+// readback evidence.
+func TestStaticEQVerifierRequiresReceiptReadbackEvidence(t *testing.T) {
+	state := &kernel.VSPStateResult{Response: map[string]any{"type": "state.snapshot"}, Payload: map[string]any{"snapshot_hash": "snapshot-8"}, LegacyState: map[string]any{}, ProjectEpoch: "epoch-1", Revision: 8, SnapshotHash: "snapshot-8"}
+	actionSet := orchestration.ActionSet{ID: "d1-eq-set", CapabilityID: d1StaticEQCapabilityID, Actions: []orchestration.Action{{ID: "d1-eq-action", Command: d1StaticEQKind, TargetRef: "vocal", Args: map[string]any{"param_id": "band_0_gain", "target_value": -1.5}}}}
+	acoustic := d1StaticEQAcousticForTest{result: executionverifiers.AcousticResult{Status: "pass", Fresh: true, ObservationID: "obs-after-eq", ObservationRevision: "8", EvidenceRefs: []string{"mix.observe:obs-after-eq"}, Summary: "fresh observation"}}
+	verifier := executionverifiers.StaticEQ{State: d1StaticEQStateForTest{state: state}, Acoustic: acoustic}
+
+	good := []orchestration.ActionReceipt{{ActionID: "d1-eq-action", Status: "applied", AppliedRevision: "8", Details: map[string]any{"actual_readback_value": -1.5, "readback_verified": true}}}
+	result, err := verifier.Verify(context.Background(), actionSet, good)
+	if err != nil || result.Structural != "pass" || result.Status != "pass" || !result.PostAction {
+		t.Fatalf("good receipt verification=%+v err=%v", result, err)
+	}
+
+	bad := []orchestration.ActionReceipt{{ActionID: "d1-eq-action", Status: "applied", AppliedRevision: "8", Details: map[string]any{"actual_readback_value": -1.5, "readback_verified": false}}}
+	result, err = verifier.Verify(context.Background(), actionSet, bad)
+	if err == nil || result.Structural != "fail" {
+		t.Fatalf("unverified readback was accepted: result=%+v err=%v", result, err)
+	}
+
+	revisionMismatch := []orchestration.ActionReceipt{{ActionID: "d1-eq-action", Status: "applied", AppliedRevision: "9", Details: map[string]any{"actual_readback_value": -1.5, "readback_verified": true}}}
+	result, err = verifier.Verify(context.Background(), actionSet, revisionMismatch)
+	if err == nil || result.Structural != "fail" {
+		t.Fatalf("revision mismatch was accepted: result=%+v err=%v", result, err)
 	}
 }

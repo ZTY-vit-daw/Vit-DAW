@@ -21,13 +21,12 @@ func freeStateExperimentAdmission(loop freeStateReasoningLoop, proposal *agentpr
 	if proposal == nil {
 		return experiment.Admission{}, fmt.Errorf("improvement proposal is required")
 	}
-	// The experiment package admits track_gain and static_eq (D2-1 domain
-	// table), but the production execution chain only carries track_gain
-	// until the static_eq VSP port lands (D2-1-S2). Rejecting here is the
-	// honest capability boundary: an admitted static_eq turn could observe
-	// but never execute or settle.
-	if !strings.EqualFold(strings.TrimSpace(proposal.ActionDomain), experiment.D1S1ActionDomain) || !strings.EqualFold(strings.TrimSpace(proposal.ActionKind), experiment.D1S1ActionKind) {
-		return experiment.Admission{}, fmt.Errorf("D1-S1 production entry currently admits action_domain=%s action_kind=%s only; bounded static_eq execution is pending D2-1-S2", experiment.D1S1ActionDomain, experiment.D1S1ActionKind)
+	// The D2-1 domain table is the production admission boundary: track_gain
+	// keeps its original shape and static_eq is admitted with equally tight
+	// per-domain bounds. Domain+kind must match one table row (D1S1DomainSpecFor)
+	// so a hybrid action cannot borrow a domain's bounds.
+	if _, ok := experiment.D1S1DomainSpecFor(experiment.Admission{TypedAction: map[string]any{"action_domain": proposal.ActionDomain, "action_kind": proposal.ActionKind}}); !ok {
+		return experiment.Admission{}, fmt.Errorf("D1-S1 production entry admits only the D2-1 domain table domains with matching action_kind (%s)", strings.Join(experiment.D1S1AdmittedDomains(), ", "))
 	}
 	bounds := cloneContext(proposal.ParameterBounds)
 	if len(bounds) == 0 {
@@ -43,14 +42,32 @@ func freeStateExperimentAdmission(loop freeStateReasoningLoop, proposal *agentpr
 	}
 	budget := 1
 	deltaDB, _ := treatmentNumber(proposal.ParameterBounds, "delta_db", "db_delta", "gain_delta_db")
+	typedAction := map[string]any{"action_domain": proposal.ActionDomain, "action_kind": proposal.ActionKind, "target_db": proposal.ParameterBounds["target_db"], "delta_db": deltaDB}
+	diagnosticBounds := map[string]any{"source": "proposal", "bounds": cloneContext(bounds), "delta_db": deltaDB, "max_action_attempts": 1}
+	retainedBounds := map[string]any{"source": "proposal", "bounds": cloneContext(bounds), "delta_db": deltaDB, "max_action_attempts": 1}
+	if strings.EqualFold(strings.TrimSpace(proposal.ActionDomain), d1StaticEQDomain) {
+		// D2-1 static_eq: the typed action carries the bounded band parameters
+		// from the proposal (gain_db is the moved parameter; frequency/q/band
+		// are pinned from the domain table), and both dose scopes use gain_db
+		// instead of delta_db. Nothing here relaxes the shared D1-S1 bounds.
+		gainDB, _ := treatmentNumber(proposal.ParameterBounds, "gain_db")
+		typedAction = map[string]any{"action_domain": proposal.ActionDomain, "action_kind": proposal.ActionKind, "gain_db": gainDB}
+		for _, key := range []string{"frequency_hz", "q", "band_index", "plugin_identifier"} {
+			if value, exists := proposal.ParameterBounds[key]; exists {
+				typedAction[key] = value
+			}
+		}
+		diagnosticBounds = map[string]any{"source": "proposal", "bounds": cloneContext(bounds), "gain_db": gainDB, "max_action_attempts": 1}
+		retainedBounds = map[string]any{"source": "proposal", "bounds": cloneContext(bounds), "gain_db": gainDB, "max_action_attempts": 1}
+	}
 	admission := experiment.Admission{
 		SchemaVersion:        experiment.SchemaVersion,
 		TargetRef:            cloneContext(proposal.Target),
 		EvidenceRefs:         append([]string(nil), proposal.EvidenceRefs...),
 		Hypothesis:           proposal.Hypothesis,
-		TypedAction:          map[string]any{"action_domain": proposal.ActionDomain, "action_kind": proposal.ActionKind, "target_db": proposal.ParameterBounds["target_db"], "delta_db": deltaDB},
-		DiagnosticDoseBounds: map[string]any{"source": "proposal", "bounds": cloneContext(bounds), "delta_db": deltaDB, "max_action_attempts": 1},
-		RetainedDoseBounds:   map[string]any{"source": "proposal", "bounds": cloneContext(bounds), "delta_db": deltaDB, "max_action_attempts": 1},
+		TypedAction:          typedAction,
+		DiagnosticDoseBounds: diagnosticBounds,
+		RetainedDoseBounds:   retainedBounds,
 		ExperimentBudget:     budget,
 		ExpectedEffect:       proposal.ExpectedEffect,
 		ProtectedDimensions:  freeStateStringSlice(verification["protected_dimensions"]),
