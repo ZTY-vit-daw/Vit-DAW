@@ -301,8 +301,17 @@ func transitionTarget(contract Contract, current Snapshot, request TransitionReq
 		}
 		return StateNeedsExperiment, nil
 	case EventHumanJudgmentRequested:
-		if from != StateNeedsExperiment {
+		// A governed forward mutation invalidates revision-bound evidence and
+		// cycles the canonical state back through observation/diagnosis to
+		// improvement_proposal while the experiment identity stays bound (see
+		// Apply's project_revision_changed branch). The judgment boundary is
+		// therefore legal from improvement_proposal, but only when the snapshot
+		// still carries the experiment the judgment belongs to.
+		if from != StateNeedsExperiment && from != StateImprovementProposal {
 			return "", invalidTransition(from, request.Event)
+		}
+		if from == StateImprovementProposal && current.ExperimentID == "" {
+			return "", fmt.Errorf("human judgment from improvement_proposal requires the bound experiment identity")
 		}
 		if request.ExperimentID == "" || (current.ExperimentID != "" && request.ExperimentID != current.ExperimentID) {
 			return "", fmt.Errorf("human judgment experiment identity mismatch")

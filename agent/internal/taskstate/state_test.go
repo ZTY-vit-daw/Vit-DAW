@@ -75,6 +75,41 @@ func TestHumanJudgmentRequiresDurablePendingInteraction(t *testing.T) {
 	}
 }
 
+func TestHumanJudgmentAfterRevisionCycleKeepsExperimentIdentity(t *testing.T) {
+	contract := testContract(ContractImprovement)
+	state, _ := New(contract, testNow)
+	proposal := &BoundedProposal{ProposalID: "proposal-1", Summary: "bounded candidate", EvidenceRefs: []string{"obs-1"}, RequiresExperiment: true}
+	state = mustApply(t, contract, state, TransitionRequest{Event: EventImprovementProposed, Reason: "candidate found", Proposal: proposal})
+	state = mustApply(t, contract, state, TransitionRequest{Event: EventExperimentRequired, Reason: "runtime admission", ExperimentID: "experiment-1"})
+	// A governed forward mutation invalidates revision-bound evidence and
+	// cycles the canonical state back to observation_in_progress while the
+	// experiment identity stays bound (the D1-S1 revision 50 -> 51 sequence).
+	state = mustApply(t, contract, state, TransitionRequest{Event: EventProjectRevisionChanged, Reason: "after apply revision", ProjectRevision: "rev-2"})
+	state = mustApply(t, contract, state, TransitionRequest{Event: EventDiagnosticCompleted, Reason: "post-action diagnosis", EvidenceRefs: []string{"obs-after-1"}})
+	state = mustApply(t, contract, state, TransitionRequest{Event: EventImprovementProposed, Reason: "proposal re-bound after mutation", Proposal: proposal})
+	if state.State != StateImprovementProposal || state.ExperimentID != "experiment-1" {
+		t.Fatalf("unexpected re-proposal state: %+v", state)
+	}
+	judgment := TransitionRequest{Event: EventHumanJudgmentRequested, Reason: "audition required", ExperimentID: "experiment-1", PendingInteraction: &PendingInteraction{InteractionID: "interaction-1", Kind: "audition_judgment", Reason: "compare A/B"}}
+	if _, err := Apply(contract, state, TransitionRequest{Event: EventHumanJudgmentRequested, Reason: "audition required", ExperimentID: "experiment-2", PendingInteraction: judgment.PendingInteraction}, testNow); err == nil {
+		t.Fatal("human judgment admitted for a mismatched experiment identity")
+	}
+	state = mustApply(t, contract, state, judgment)
+	if state.State != StateHumanJudgmentRequired || state.ExperimentID != "experiment-1" || state.PendingInteraction == nil || state.Terminal {
+		t.Fatalf("unexpected human judgment state: %+v", state)
+	}
+}
+
+func TestHumanJudgmentFromProposalWithoutBoundExperimentIsRejected(t *testing.T) {
+	contract := testContract(ContractImprovement)
+	state, _ := New(contract, testNow)
+	proposal := &BoundedProposal{ProposalID: "proposal-1", Summary: "bounded candidate", EvidenceRefs: []string{"obs-1"}, RequiresExperiment: true}
+	state = mustApply(t, contract, state, TransitionRequest{Event: EventImprovementProposed, Reason: "candidate found", Proposal: proposal})
+	if _, err := Apply(contract, state, TransitionRequest{Event: EventHumanJudgmentRequested, Reason: "audition required", ExperimentID: "experiment-1", PendingInteraction: &PendingInteraction{InteractionID: "interaction-1", Kind: "audition_judgment", Reason: "compare A/B"}}, testNow); err == nil {
+		t.Fatal("human judgment admitted from a proposal with no bound experiment")
+	}
+}
+
 func TestDiagnosticContractCanReturnBoundedProposalWithoutExperiment(t *testing.T) {
 	contract := testContract(ContractDiagnostic)
 	contract.AuthorizationBoundary = "observe_only"
