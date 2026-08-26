@@ -7,7 +7,7 @@ Date: 2026-08-26 晚窗。Status: S2b 已提交并首审通过；S3 部分收口
 - `5cb3588` D2-1-S1：experiment 准入门按动作域参数化。
 - `83d68a1` D2-1-S2a：StaticEQ VSP 执行端口（叶子模块，未接线）。
 - `7d2e2ff` D2-1-S2b：static_eq 接入 chat D1-S1 执行链（放行域检查、计划/执行/期刊变体、verifier 复用、候选分发）。
-- S3（本记录下方"S3 状态"节）：prompt 表驱动 + journal 修复 + runner 域参数化 + p01/p02 回归烟测 PASS。
+- `0b9334f` D2-1-S3：prompt 域表述表驱动 + journal 修复 + 烟测域参数化；p01/p02 回归 PASS，static_eq 实栈触发未达成（开放项见 S3 状态第 5 条）。
 
 ## S1 设计要点
 
