@@ -111,7 +111,10 @@ func auditionReadyLoopAt(t *testing.T, projectPath string) freeStateReasoningLoo
 	// This helper exercises the pre-D1 candidate adoption contract. D1-S1
 	// retains or rolls back the already-applied treatment directly from human
 	// judgment and does not apply a candidate as a second forward mutation.
-	admission.TypedAction = map[string]any{"action_domain": "static_eq", "action_kind": "bounded_eq_adjust"}
+	// Use an explicitly legacy domain: registered D2-1 domains (track_gain,
+	// static_eq) now carry D1-S1 invariants, and this helper needs the
+	// pre-D1 multi-round adoption contract.
+	admission.TypedAction = map[string]any{"action_domain": "legacy_mix", "action_kind": "legacy_adjust"}
 	admission.ExperimentBudget = 3
 	turn, err := experiment.NewTurn(experiment.Identity{ConversationID: loop.ConversationID, GoalID: loop.GoalID, RunID: loop.RunID, TurnID: "turn-audition"}, loop.OriginalIntent, admission, now)
 	if err != nil {

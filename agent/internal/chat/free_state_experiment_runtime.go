@@ -21,8 +21,13 @@ func freeStateExperimentAdmission(loop freeStateReasoningLoop, proposal *agentpr
 	if proposal == nil {
 		return experiment.Admission{}, fmt.Errorf("improvement proposal is required")
 	}
+	// The experiment package admits track_gain and static_eq (D2-1 domain
+	// table), but the production execution chain only carries track_gain
+	// until the static_eq VSP port lands (D2-1-S2). Rejecting here is the
+	// honest capability boundary: an admitted static_eq turn could observe
+	// but never execute or settle.
 	if !strings.EqualFold(strings.TrimSpace(proposal.ActionDomain), experiment.D1S1ActionDomain) || !strings.EqualFold(strings.TrimSpace(proposal.ActionKind), experiment.D1S1ActionKind) {
-		return experiment.Admission{}, fmt.Errorf("D1-S1 only admits action_domain=%s action_kind=%s", experiment.D1S1ActionDomain, experiment.D1S1ActionKind)
+		return experiment.Admission{}, fmt.Errorf("D1-S1 production entry currently admits action_domain=%s action_kind=%s only; bounded static_eq execution is pending D2-1-S2", experiment.D1S1ActionDomain, experiment.D1S1ActionKind)
 	}
 	bounds := cloneContext(proposal.ParameterBounds)
 	if len(bounds) == 0 {

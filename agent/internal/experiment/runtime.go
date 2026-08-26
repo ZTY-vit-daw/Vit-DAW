@@ -11,7 +11,6 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
-	"math"
 	"strconv"
 	"strings"
 	"time"
@@ -193,18 +192,19 @@ func (a Admission) Validate() error {
 	return nil
 }
 
-// ValidateD1S1 applies the deliberately narrow Phase D1-S1 admission. The
-// general experiment schema remains readable for historical persisted turns;
-// only a D1-S1 production entry may cross this gate.
+// ValidateD1S1 applies the deliberately narrow bounded-experiment admission.
+// The general experiment schema remains readable for historical persisted
+// turns; only a production entry with an admitted action domain may cross
+// this gate. Shared invariants (budget 1, track target, one attempt per dose
+// scope) are domain-independent; each admitted domain adds its own equally
+// tight parameter bounds (see d1s1Domains).
 func (a Admission) ValidateD1S1() error {
 	if err := a.Validate(); err != nil {
 		return err
 	}
-	if strings.ToLower(mapString(a.TypedAction, "action_domain", "domain")) != D1S1ActionDomain {
-		return fmt.Errorf("D1-S1 action_domain must be %s", D1S1ActionDomain)
-	}
-	if strings.ToLower(mapString(a.TypedAction, "action_kind", "kind")) != D1S1ActionKind {
-		return fmt.Errorf("D1-S1 action_kind must be %s", D1S1ActionKind)
+	domain, ok := D1S1DomainSpecFor(a)
+	if !ok {
+		return fmt.Errorf("D1-S1 action_domain/action_kind must be one of the admitted domains: %s", strings.Join(D1S1AdmittedDomains(), ", "))
 	}
 	if a.ExperimentBudget != 1 {
 		return fmt.Errorf("D1-S1 experiment_budget must be 1")
@@ -212,22 +212,32 @@ func (a Admission) ValidateD1S1() error {
 	if strings.ToLower(mapString(a.TargetRef, "kind")) != "track" || mapString(a.TargetRef, "id", "track_id") == "" {
 		return fmt.Errorf("D1-S1 target must be an observation-bound track")
 	}
+	if domain.ValidateTypedAction != nil {
+		if err := domain.ValidateTypedAction(a); err != nil {
+			return err
+		}
+	}
 	for name, bounds := range map[string]map[string]any{"diagnostic": a.DiagnosticDoseBounds, "retained": a.RetainedDoseBounds} {
 		attempts, ok := mapNumber(bounds, "max_action_attempts")
 		if !ok || attempts != 1 {
 			return fmt.Errorf("D1-S1 %s max_action_attempts must be 1", name)
 		}
-		delta, ok := mapNumber(bounds, "delta_db")
-		if !ok || delta == 0 || math.Abs(delta) > 2 {
-			return fmt.Errorf("D1-S1 %s delta_db must be non-zero and within +/-2 dB", name)
+		if err := domain.ValidateDoseBounds(name, bounds); err != nil {
+			return err
 		}
 	}
 	return nil
 }
 
 func (a Admission) IsD1S1() bool {
-	return strings.EqualFold(mapString(a.TypedAction, "action_domain", "domain"), D1S1ActionDomain) ||
-		strings.EqualFold(mapString(a.TypedAction, "action_kind", "kind"), D1S1ActionKind)
+	domainValue := strings.ToLower(mapString(a.TypedAction, "action_domain", "domain"))
+	kindValue := strings.ToLower(mapString(a.TypedAction, "action_kind", "kind"))
+	for _, domain := range d1s1Domains {
+		if domainValue == domain.ActionDomain || kindValue == domain.ActionKind {
+			return true
+		}
+	}
+	return false
 }
 
 func mapString(row map[string]any, keys ...string) string {
