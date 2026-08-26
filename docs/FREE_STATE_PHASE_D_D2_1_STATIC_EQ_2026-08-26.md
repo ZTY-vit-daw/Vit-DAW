@@ -1,11 +1,12 @@
 # D2-1：bounded static_eq 第二动作维度 — 晚窗执行记录（S1 + S2a）
 
-Date: 2026-08-26 晚窗。Status: 进行中（S1、S2a 已提交；S2b/S3 待续）。
+Date: 2026-08-26 晚窗。Status: S2b 已提交（未烟测不可关账，S3 收口）；S3 待续。
 
 ## 提交
 
 - `5cb3588` D2-1-S1：experiment 准入门按动作域参数化。
 - `83d68a1` D2-1-S2a：StaticEQ VSP 执行端口（叶子模块，未接线）。
+- `7d2e2ff` D2-1-S2b：static_eq 接入 chat D1-S1 执行链（放行域检查、计划/执行/期刊变体、verifier 复用、候选分发）。未烟测不可关账，S3 烟测收口。
 
 ## S1 设计要点
 
@@ -29,12 +30,12 @@ Date: 2026-08-26 晚窗。Status: 进行中（S1、S2a 已提交；S2b/S3 待续
 - 插件链完整性：scan_plugins / plugin_list_available / plugin_search / delete_plugin 均在。
 - 注意：p01/p02 封存 fixture 无预置插件（盲测契约禁止预选）；static_eq 烟测需走 instantiate 路径或非封存测试工程。
 
-## S2b 待办（明早窗口）
+## S2b 状态（2026-08-26 提交 7d2e2ff）
 
-1. chat `free_state_d1_runtime.go` 对照接线：static_eq 计划构建（fingerprint 形如 `track:X:eq:<plugin>:<param>:<before>`）、`staticBalanceCapabilityID` 旁路或新 capability、verifier 复用 HarnessAcoustic 模式。
-2. 放行 chat 入口域检查（删除临时 track_gain-only 限制），D1S1AdmittedDomains() 驱动。
-3. G 门 frequency 维度视图映射复核（frontier 候选已支持 mix.frequency_relationship，预期改动小）。
-4. S3：prompt 域说明按准入域表表述；p01/p02 烟测 + 三 disposition 探针复用。
+1. ✅ chat 对照接线：`d1StaticEQPlan` / `executeD1StaticEQ` 镜像 track_gain；BeforeFingerprint `track:<id>:eq:<param_id>:pending`（端口 Preflight 读 before 值）；capability 采用设计记录的"旁路"分支——D1 执行路径按显式端口路由，ActionSet/Proposal 用 `static_mix.static_eq.v0`（审计元数据，不注册 registry）；verifier 复用 HarnessAcoustic fresh 观察模式（StaticEQ + VerifyStaticEQ，D2-1 措辞），readback 断言收据驱动。
+2. ✅ 放行 chat 入口域检查：`D1S1DomainSpecFor` 域表驱动（domain+kind 同时匹配），track_gain 形状逐字节不变。
+3. ⏸ G 门 frequency 维度视图映射复核：现状 `mix.frequency_relationship` 已产生 frontier 候选，未发现缺口；本轮未改 audio_closure_controller.go（留给 S3/GLM 复核）。
+4. ⏳ S3：prompt 域说明按准入域表表述（ccb_model_prompt.go）；p01/p02 烟测 + 三 disposition 探针复用。**未烟测不可关账。**
 
 ## 验收状态
 
