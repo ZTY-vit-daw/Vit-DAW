@@ -13,7 +13,12 @@ import (
 // observation-bound track target).
 type D1S1DomainSpec struct {
 	ActionDomain string
-	ActionKind   string
+	ActionKind string
+	// PromptParameterHint is the model-facing description of this domain's
+	// parameter_bounds shape and absolute bounds. It is derived wording only:
+	// admitting a domain or editing this hint never changes what
+	// ValidateTypedAction/ValidateDoseBounds enforce.
+	PromptParameterHint string
 	// ValidateTypedAction checks the domain-specific typed action parameters.
 	ValidateTypedAction func(a Admission) error
 	// ValidateDoseBounds checks one dose-bounds map ("diagnostic" or
@@ -25,6 +30,7 @@ var d1s1Domains = []D1S1DomainSpec{
 	{
 		ActionDomain: D1S1ActionDomain,
 		ActionKind:   D1S1ActionKind,
+		PromptParameterHint: `parameter_bounds={"delta_db":<nonzero number within +/-2>}`,
 		ValidateDoseBounds: func(scope string, bounds map[string]any) error {
 			delta, ok := mapNumber(bounds, "delta_db")
 			if !ok || delta == 0 || math.Abs(delta) > 2 {
@@ -39,6 +45,7 @@ var d1s1Domains = []D1S1DomainSpec{
 		// gain move, no frequency outside the audible range, no resonant Q.
 		ActionDomain: "static_eq",
 		ActionKind:   "static_eq_band_adjust",
+		PromptParameterHint: `parameter_bounds={"gain_db":<nonzero number within +/-2>,"frequency_hz":<number within 20-20000>,"q":<optional number within 0.1-18>,"band_index":<optional non-negative integer>}`,
 		ValidateTypedAction: func(a Admission) error {
 			frequency, ok := mapNumber(a.TypedAction, "frequency_hz")
 			if !ok || frequency < 20 || frequency > 20000 {
@@ -76,6 +83,13 @@ func D1S1AdmittedDomains() []string {
 		out = append(out, domain.ActionDomain)
 	}
 	return out
+}
+
+// D1S1DomainSpecs returns a copy of the admitted domain specs in registration
+// order for read-only consumers (the model prompt layer derives its domain
+// wording from this table; the validators remain the enforcement authority).
+func D1S1DomainSpecs() []D1S1DomainSpec {
+	return append([]D1S1DomainSpec(nil), d1s1Domains...)
 }
 
 // D1S1DomainSpecFor resolves the admitted domain spec for an admission's

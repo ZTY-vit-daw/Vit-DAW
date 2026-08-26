@@ -61,9 +61,9 @@ func (p *d1JournalMutationPort) Apply(ctx context.Context, action orchestration.
 			p.harness.JournalRecord(journal.Action{
 				AgentActionID: action.ID, GoalID: p.goalID, RunID: p.runID, Domain: "daw", Source: "free_state_d1_s1",
 				Summary: "D2-1 bounded static EQ band adjustment", Tool: "set_plugin_param", CommandName: "set_plugin_param",
-				Command: map[string]any{"cmd": "set_plugin_param", "track_id": action.TargetRef,
-					"plugin_id": firstStringFromMap(action.Args, "plugin_id"), "param_id": firstStringFromMap(action.Args, "param_id"),
-					"value": action.Args["target_value"]},
+			Command: map[string]any{"cmd": "set_plugin_param", "track_id": action.TargetRef,
+				"plugin_id": firstNonEmpty(firstStringFromMap(action.Args, "plugin_id"), firstStringFromMap(action.Args, "plugin_identifier")), "param_id": firstStringFromMap(action.Args, "param_id"),
+				"value": action.Args["target_value"]},
 				RiskLevel: "confirm", RequiresConfirmation: true, ConfirmationStatus: "confirmed", Status: journal.StatusRunning,
 			})
 		} else {

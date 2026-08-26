@@ -12,7 +12,11 @@ param(
     [switch]$SkipBuild,
     [switch]$AdmissionOnly,
     [ValidateSet("retain", "rollback", "ambiguous")]
-    [string]$SettlementProbe = ""
+    [string]$SettlementProbe = "",
+    [ValidateSet("neutral", "frequency")]
+    [string]$PromptFlavor = "neutral",
+    [ValidateSet("any", "track_gain", "static_eq")]
+    [string]$ExpectDomain = "any"
 )
 
 Set-StrictMode -Version Latest
@@ -117,6 +121,12 @@ try {
     if ($SettlementProbe -ne "") {
         $smokeArgs += @("--settlement-probe", $SettlementProbe)
     }
+    if ($PromptFlavor -ne "neutral") {
+        $smokeArgs += @("--prompt-flavor", $PromptFlavor)
+    }
+    if ($ExpectDomain -ne "any") {
+        $smokeArgs += @("--expect-domain", $ExpectDomain)
+    }
     & python @smokeArgs
     $runnerExit = $LASTEXITCODE
 }
@@ -127,7 +137,7 @@ finally {
     }
 }
 if ($runnerExit -eq 3) {
-    Write-Host ("D1-S1 NOT_EXERCISED: " + $PublicCaseId + " did not autonomously select track_gain; report=" + $report) -ForegroundColor Yellow
+    Write-Host ("D1-S1 NOT_EXERCISED: " + $PublicCaseId + " did not autonomously select the expected admitted domain (expect=" + $ExpectDomain + "); report=" + $report) -ForegroundColor Yellow
     exit 3
 }
 if ($runnerExit -ne 0) {

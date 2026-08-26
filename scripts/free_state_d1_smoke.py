@@ -17,6 +17,17 @@ from typing import Any
 PUBLIC_SCHEMA = "semantic_processor_agent_project_smoke_public_manifest.v1"
 DEFAULT_CASE_ID = "spv1_p01"
 OPEN_PROMPT = "检查一下当前工程有什么问题？"
+# Prompt flavors are case-agnostic on purpose (the fixture blindness contract
+# requires one neutral prompt per flavor across all cases; no sealed truth is
+# encoded here). The frequency flavor expresses a listening goal that steers
+# the free-state proposal toward the admitted static_eq domain.
+PROMPT_FLAVORS = {
+    "neutral": OPEN_PROMPT,
+    "frequency": "人声在 200-400Hz 听起来浑浊（boxy），但各轨电平平衡已经合适，不要用整体增益来解决。请先观察工程，再针对这个频段给一个有界的小步改进建议。",
+}
+# The D2-1 domain table mirrored for runner-side gating. Admission itself is
+# always decided by the agent's experiment domain table, never here.
+ADMITTED_DOMAIN_KINDS = {"track_gain": "track_gain_adjust", "static_eq": "static_eq_band_adjust"}
 NOT_EXERCISED_EXIT = 3
 ACTIVE_CONTINUATION_STATUSES = {"pending", "claimed", "running"}
 FORBIDDEN_SELECTION_KEYS = {
@@ -333,12 +344,12 @@ def prepare_project(base_url: str, case: dict[str, Any], timeout: float) -> dict
     raise RuntimeError("public p01 DAD evidence did not become ready: " + json.dumps(latest, ensure_ascii=False)[:2000])
 
 
-def recommended_interaction(response: dict[str, Any], track_gain_selected: bool) -> dict[str, Any] | None:
+def recommended_interaction(response: dict[str, Any], admitted_domain_selected: bool) -> dict[str, Any] | None:
     interactions = rows(response.get("interaction_requests"))
     for interaction in interactions:
         payload = interaction.get("payload") if isinstance(interaction.get("payload"), dict) else {}
         domains = {first_text(value).lower() for value in values_for_key(payload, "action_domain")}
-        if not track_gain_selected and "track_gain" not in domains:
+        if not admitted_domain_selected and not (domains & set(ADMITTED_DOMAIN_KINDS)):
             continue
         eligible = []
         for action in rows(interaction.get("actions")):
@@ -364,13 +375,21 @@ def recommended_interaction(response: dict[str, Any], track_gain_selected: bool)
 
 
 def find_d1_loop(responses: list[dict[str, Any]]) -> dict[str, Any] | None:
+    # One response can embed several snapshots of the same loop (the persisted
+    # authoritative projection plus stale copies inside interaction payloads).
+    # Select by updated_at so the freshest snapshot wins regardless of walk
+    # order; equal stamps keep the last-walked copy.
     found = None
+    found_updated = ""
     for response in responses:
         for item in dicts(response):
             if item.get("schema_version") == "free_state_reasoning_loop.v1" and isinstance(item.get("experiment"), dict):
                 admission = item["experiment"].get("admission")
-                if isinstance(admission, dict) and first_text(admission.get("typed_action", {}).get("action_domain") if isinstance(admission.get("typed_action"), dict) else "").lower() == "track_gain":
-                    found = item
+                if isinstance(admission, dict) and first_text(admission.get("typed_action", {}).get("action_domain") if isinstance(admission.get("typed_action"), dict) else "").lower() in ADMITTED_DOMAIN_KINDS:
+                    updated = first_text(item.get("updated_at"))
+                    if found is None or updated >= found_updated:
+                        found = item
+                        found_updated = updated
     return found
 
 
@@ -426,8 +445,14 @@ def validate_d1(base_url: str, conversation_id: str, responses: list[dict[str, A
     experiment = loop.get("experiment") if isinstance(loop.get("experiment"), dict) else {}
     admission = experiment.get("admission") if isinstance(experiment.get("admission"), dict) else {}
     typed = admission.get("typed_action") if isinstance(admission.get("typed_action"), dict) else {}
-    require(first_text(typed.get("action_domain")).lower() == "track_gain", "D1 action_domain mismatch")
-    require(first_text(typed.get("action_kind")).lower() == "track_gain_adjust", "D1 action_kind mismatch")
+    domain = first_text(typed.get("action_domain")).lower()
+    require(domain in ADMITTED_DOMAIN_KINDS, f"D1 action_domain {domain!r} is not admitted by the D2-1 domain table")
+    require(first_text(typed.get("action_kind")).lower() == ADMITTED_DOMAIN_KINDS[domain], f"D1 action_kind mismatch for admitted domain {domain}")
+    if domain == "static_eq":
+        gain = typed.get("gain_db")
+        require(isinstance(gain, (int, float)) and not isinstance(gain, bool) and gain != 0 and abs(gain) <= 2, "static_eq typed gain_db must be non-zero within +/-2")
+        frequency = typed.get("frequency_hz")
+        require(isinstance(frequency, (int, float)) and not isinstance(frequency, bool) and 20 <= frequency <= 20000, "static_eq typed frequency_hz must be within 20-20000")
     require(int(admission.get("experiment_budget", 0) or 0) == 1, "D1 experiment_budget must equal one")
     for key in ("diagnostic_dose_bounds", "retained_dose_bounds"):
         bounds = admission.get(key) if isinstance(admission.get(key), dict) else {}
@@ -443,8 +468,12 @@ def validate_d1(base_url: str, conversation_id: str, responses: list[dict[str, A
     before_revision = first_text(receipt.get("before_revision"))
     after_revision = first_text(receipt.get("after_revision"), receipt.get("applied_revision"))
     require(before_revision and after_revision and before_revision != after_revision, "D1 receipt requires distinct before/after revisions")
-    for key in ("transaction_id", "idempotency_key", "actual_readback_db"):
+    readback_key = "actual_readback_db" if domain == "track_gain" else "actual_readback_value"
+    for key in ("transaction_id", "idempotency_key", readback_key):
         require(receipt.get(key) not in (None, ""), f"D1 execution receipt missing {key}")
+    if domain == "static_eq":
+        for key in ("plugin_id", "param_id"):
+            require(receipt.get(key) not in (None, ""), f"static_eq execution receipt missing {key}")
     require(receipt.get("readback_verified") is True, "D1 actual readback was not verified")
 
     post_observations = [item for item in rows(round_row.get("observations")) if item.get("post_action") is True]
@@ -496,13 +525,15 @@ def validate_d1(base_url: str, conversation_id: str, responses: list[dict[str, A
         "status": "pass",
         "public_case_id": case_id,
         "conversation_id": conversation_id,
+        "action_domain": domain,
         "turn_id": first_text(experiment.get("turn_id")),
         "round_id": first_text(round_row.get("round_id")),
         "before_revision": before_revision,
         "after_revision": after_revision,
         "transaction_id": receipt["transaction_id"],
         "idempotency_key": receipt["idempotency_key"],
-        "actual_readback_db": receipt["actual_readback_db"],
+        "readback_key": readback_key,
+        "readback_value": receipt[readback_key],
         "post_action_observation_id": post.get("observation_id"),
         "forward_mutation_count": 1,
         "audition_session_id": session_id,
@@ -691,6 +722,8 @@ def main() -> int:
     parser.add_argument("--output", required=True)
     parser.add_argument("--admission-only", action="store_true", help="stop at FS7/admission boundary before confirmation or mutation")
     parser.add_argument("--settlement-probe", choices=sorted(SETTLEMENT_PROBE_ANSWERS), default="", help="after the boundary validation, submit a machine-origin judgment and machine-check the settlement receipt; the default mode without this flag keeps asserting settled is False")
+    parser.add_argument("--prompt-flavor", choices=sorted(PROMPT_FLAVORS), default="neutral", help="case-agnostic open-prompt flavor; frequency steers the proposal toward the admitted static_eq domain")
+    parser.add_argument("--expect-domain", choices=sorted(ADMITTED_DOMAIN_KINDS) + ["any"], default="any", help="require the run to autonomously select this admitted domain (regression pin) or any admitted domain")
     parser.add_argument("--verify-settled", default="", help="verify a previously settled probe report after an agent restart (path to d1_smoke_report.json)")
     args = parser.parse_args()
     output = Path(args.output).resolve()
@@ -722,18 +755,18 @@ def main() -> int:
         report["conversation_id"] = conversation_id
         write_report(output, report)
         run_started = float(report["started_at_epoch"])
-        response = request_json("POST", args.agent_http.rstrip("/") + "/agent/chat", {"conversation_id": conversation_id, "message": OPEN_PROMPT, "context": {"agent_mode": "chat"}}, args.timeout_sec)
+        response = request_json("POST", args.agent_http.rstrip("/") + "/agent/chat", {"conversation_id": conversation_id, "message": PROMPT_FLAVORS[args.prompt_flavor], "context": {"agent_mode": "chat"}}, args.timeout_sec)
         responses.append(response)
         report["responses"] = responses
         write_report(output, report)
-        track_gain_selected = False
+        selected_domains: set[str] = set()
         for _ in range(8):
             require("dev_smoke_" not in json.dumps(response, ensure_ascii=False).lower(), "D1 response inherited dev smoke target context")
             domains = {first_text(value).lower() for value in values_for_key(response, "action_domain")}
             kinds = {first_text(value).lower() for value in values_for_key(response, "action_kind")}
-            if "track_gain" in domains:
-                track_gain_selected = True
-                require("track_gain_adjust" in kinds, "model selected track_gain without track_gain_adjust")
+            for domain in domains & set(ADMITTED_DOMAIN_KINDS):
+                selected_domains.add(domain)
+                require(ADMITTED_DOMAIN_KINDS[domain] in kinds, f"model selected {domain} without {ADMITTED_DOMAIN_KINDS[domain]}")
             if args.admission_only:
                 boundary = find_admission_boundary(responses)
                 if boundary is not None:
@@ -750,7 +783,7 @@ def main() -> int:
                     return 0
             if first_text(response.get("workflow")).lower() == "free_state_d1_s1" or find_d1_loop(responses) is not None and any(bool(item.get("human_audition_ready")) for item in dicts(response)):
                 break
-            interaction = recommended_interaction(response, track_gain_selected)
+            interaction = recommended_interaction(response, bool(selected_domains))
             if interaction is not None:
                 response = request_json("POST", args.agent_http.rstrip("/") + "/agent/interaction/respond", interaction, args.timeout_sec)
                 responses.append(response)
@@ -796,8 +829,15 @@ def main() -> int:
                 write_report(output, report)
                 print(f"D1-S1 ADMISSION_ONLY: report={output}")
                 return 0
-        if not track_gain_selected:
-            report.update({"status": "not_exercised", "reason": f"{args.public_case_id} open run did not autonomously select track_gain"})
+        report["selected_domains"] = sorted(selected_domains)
+        if args.expect_domain == "any":
+            domain_exercised = bool(selected_domains)
+            not_exercised_reason = f"{args.public_case_id} open run did not autonomously select an admitted D1-S1 domain ({', '.join(sorted(ADMITTED_DOMAIN_KINDS))})"
+        else:
+            domain_exercised = args.expect_domain in selected_domains
+            not_exercised_reason = f"{args.public_case_id} open run did not autonomously select {args.expect_domain}"
+        if not domain_exercised:
+            report.update({"status": "not_exercised", "reason": not_exercised_reason})
             write_report(output, report)
             print(f"D1-S1 NOT_EXERCISED: report={output}")
             return NOT_EXERCISED_EXIT

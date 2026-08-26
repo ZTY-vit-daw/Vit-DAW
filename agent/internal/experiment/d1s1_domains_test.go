@@ -82,3 +82,20 @@ func TestD1S1UnknownDomainErrorListsAdmittedDomains(t *testing.T) {
 		}
 	}
 }
+
+// Every admitted domain must carry prompt-facing wording derived from the
+// table, so the model prompt and the admission gate cannot drift apart.
+func TestD1S1DomainSpecsCarryPromptParameterHint(t *testing.T) {
+	specs := D1S1DomainSpecs()
+	if len(specs) != len(D1S1AdmittedDomains()) {
+		t.Fatalf("spec/domains length mismatch: %d vs %d", len(specs), len(D1S1AdmittedDomains()))
+	}
+	for _, spec := range specs {
+		if strings.TrimSpace(spec.PromptParameterHint) == "" {
+			t.Fatalf("domain %s carries no PromptParameterHint", spec.ActionDomain)
+		}
+		if !strings.Contains(spec.PromptParameterHint, "parameter_bounds") {
+			t.Fatalf("domain %s hint must describe parameter_bounds: %q", spec.ActionDomain, spec.PromptParameterHint)
+		}
+	}
+}

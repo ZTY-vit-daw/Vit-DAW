@@ -831,6 +831,11 @@ func TestD1S1StaticEQJournalRecordsSetPluginParam(t *testing.T) {
 	if recorded.Tool != "set_plugin_param" || recorded.CommandName != "set_plugin_param" || recorded.Command["cmd"] != "set_plugin_param" || recorded.Command["param_id"] != "band_0_gain" || recorded.Command["value"] != -1.5 {
 		t.Fatalf("journal=%+v", recorded)
 	}
+	// The plan layer carries plugin_identifier (the resolved instance id lands
+	// in the receipt); the audit command must not lose that identity.
+	if recorded.Command["plugin_id"] != "juce_eq" {
+		t.Fatalf("journal plugin identity=%v", recorded.Command["plugin_id"])
+	}
 }
 
 func TestD1S1StaticEQProjectionCarriesAdmissionDomain(t *testing.T) {

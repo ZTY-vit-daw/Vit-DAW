@@ -3,6 +3,8 @@ package agentloop
 import (
 	"strings"
 	"testing"
+
+	"vit-daw-agent/internal/experiment"
 )
 
 func TestNeutralSemanticPromptAdmitsGenericL3ImprovementProposal(t *testing.T) {
@@ -17,6 +19,25 @@ func TestNeutralSemanticPromptAdmitsGenericL3ImprovementProposal(t *testing.T) {
 	} {
 		if !strings.Contains(prompt, fragment) {
 			t.Fatalf("semantic prompt missing L3 improvement contract %q", fragment)
+		}
+	}
+}
+
+func TestNeutralSemanticPromptD1DomainRuleFollowsDomainTable(t *testing.T) {
+	prompt := messageLoopNeutralFamilySystemPrompt(&runState{input: Input{Context: map[string]any{}}})
+	rule := freeStateD1AdmittedDomainRule()
+	if !strings.Contains(prompt, rule) {
+		t.Fatal("neutral prompt must embed the table-driven D1-S1 domain rule verbatim")
+	}
+	specs := experiment.D1S1DomainSpecs()
+	if len(specs) < 2 {
+		t.Fatalf("D2-1 expects at least the track_gain and static_eq domain rows, got %d", len(specs))
+	}
+	for _, spec := range specs {
+		for _, fragment := range []string{"action_domain=" + spec.ActionDomain, "action_kind=" + spec.ActionKind, spec.PromptParameterHint} {
+			if !strings.Contains(rule, fragment) {
+				t.Fatalf("domain rule omits %q for domain %s", fragment, spec.ActionDomain)
+			}
 		}
 	}
 }
