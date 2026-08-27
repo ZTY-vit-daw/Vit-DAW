@@ -243,4 +243,16 @@ D1-S1 冒烟在两天内经历了清晰的"失败面前移"过程：内核执行
 | 202729 | p02 | neutral | fail | static_eq 在 p02 fixture 执行成功但缺 post-action CCB 观察（见下开放项） |
 | 203202 | p02 | neutral | fail | 同上，2/2 复现 |
 
+
+
+## 6. 2026-08-27 深夜 S2 批（压缩域首上实栈）
+
+flash 交付 S2（594d485）后 GLM 首审 + 两处审查修复（2bb2d09 决策 schema 示例残留、583c63e agentprotocol 域枚举漏加——D2-1 早窗同款坑复发）。修复后压缩链路推进到真实插件写入层：
+
+| stamp | 终态 | 备注 |
+|---|---|---|
+| 220749 / 221105 | not_exercised | 模型提案被协议枚举打回（unsupported action_domain），自我设限 blocked |
+| 221751 | not_exercised | schema 示例修复后仍 blocked——枚举坑当时未定位 |
+| 222525 | fail | **压缩提案被接受、VSC-2 真实实例化**，卡在 threshold 值换算："target 1 dB is outside the measured display curve of 5 samples"（开放项：内核 display_probe 采样语义 + threshold 目标值绝对/相对定标，见 done/2026-08-27-D2-1-5-S2 卡晚窗记录） |
+
 开放项（2026-08-27 晚窗 GLM 诊断收口，修复卡已开）：p02 × static_eq 连续 2 轮 "D1 requires one post-action CCB observation"。根因不在验证器：实验回执 applied（rev 3→4）后，mix tick 机制按设计从重观察生成链式"下一步建议"（nextPendingMixTickCandidateFromReobserve），py 驱动在 admitted_domain_selected 后无条件批准任何确认——8 次迭代被链式通用 tick 吃光，实验 continuation 永不排水、post-action 观察落不了账。p01 PASS 属时序运气（模型未走链式路径）。修复：todo/2026-08-27-D2-1-5-S2b-py-driver-approve-guard（py 驱动实验作用域批准守卫；因与 D2-1.5-S2 同文件，须在其合入后执行）。
