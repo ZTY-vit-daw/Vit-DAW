@@ -223,9 +223,6 @@ func applyEvent(state *State, event Event) error {
 		if strings.TrimSpace(data.ProjectRevision) == "" || data.ProjectRevision == state.ProjectRevision {
 			return fmt.Errorf("governed revision booking requires a new revision")
 		}
-		if state.ActiveCapability == nil {
-			return fmt.Errorf("governed revision booking requires an active capability")
-		}
 		// The applied revision of the in-flight governed mutation is the
 		// expected outcome of this round, not external drift: the tracked
 		// revision moves so the post-action observation matches, while every

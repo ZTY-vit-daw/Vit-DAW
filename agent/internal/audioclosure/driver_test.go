@@ -491,18 +491,27 @@ func TestRecordGovernedMutationBooksAppliedRevisionUnderActiveCapability(t *test
 	}
 }
 
-func TestRecordGovernedMutationRequiresActiveCapabilityAndRevision(t *testing.T) {
+func TestRecordGovernedMutationWithoutCapabilityAndRevisionRules(t *testing.T) {
 	driver := Driver{}
 	state := newTestClosure(t)
-	if _, err := driver.RecordGovernedMutation(state, state.Revision, "revision-2", testNow); err == nil {
-		t.Fatal("booking without an active capability must be refused")
-	}
-	link := CapabilityLink{SessionID: "session-1", CapabilityID: "agent.effect.eq_control.v0", ActionID: "action-1", ExpectedProjectRevision: "revision-1"}
-	state, _, err := driver.BeginCapability(state, state.Revision, link, testNow)
-	if err != nil {
-		t.Fatalf("begin capability: %v", err)
+	// The D1 execution path does not always manifest a capability on the
+	// closure; the receipted applied revision is authoritative either way.
+	booked, err := driver.RecordGovernedMutation(state, state.Revision, "revision-5", testNow)
+	if err != nil || booked.ProjectRevision != "revision-5" || !booked.SupersededProjectRevisions["revision-1"] {
+		t.Fatalf("capability-less booking failed: state=%+v err=%v", booked, err)
 	}
 	if _, err := driver.RecordGovernedMutation(state, state.Revision, "  ", testNow); err == nil {
 		t.Fatal("blank applied revision must be refused")
+	}
+	// A revalidation onto a superseded revision is the shadow lagging behind
+	// the booking: skipped, never a downgrade that wipes evidence.
+	lagged, changed, err := driver.RevalidateProjectRevision(booked, booked.Revision, "revision-1", testNow)
+	if err != nil || changed || lagged.ProjectRevision != "revision-5" || len(lagged.ObservationOrder) != len(booked.ObservationOrder) {
+		t.Fatalf("superseded revalidation must be skipped: changed=%v state=%+v err=%v", changed, lagged, err)
+	}
+	// Genuinely external revisions still revalidate through the normal path.
+	external, changed, err := driver.RevalidateProjectRevision(booked, booked.Revision, "revision-7", testNow)
+	if err != nil || !changed || external.ProjectRevision != "revision-7" {
+		t.Fatalf("external revalidation must proceed: changed=%v state=%+v err=%v", changed, external, err)
 	}
 }

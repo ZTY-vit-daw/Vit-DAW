@@ -79,6 +79,13 @@ func (d Driver) RevalidateProjectRevision(state State, expectedRevision uint64, 
 	if projectRevision == state.ProjectRevision {
 		return state, false, nil
 	}
+	if state.SupersededProjectRevisions[projectRevision] {
+		// The authoritative view (shadow/kernel summary) is lagging behind a
+		// governed mutation booking: a stale catch-up, not a new revision, so
+		// the revalidation is skipped instead of downgrading the tracked
+		// revision and wiping the accumulated evidence.
+		return state, false, nil
+	}
 	if state.ActiveCapability != nil {
 		return State{}, false, fmt.Errorf("active capability must settle before project revision revalidation")
 	}
@@ -87,11 +94,13 @@ func (d Driver) RevalidateProjectRevision(state State, expectedRevision uint64, 
 }
 
 // RecordGovernedMutation books the project revision advance produced by the
-// active capability's own receipted mutation. External revision drift during
-// an active capability must still settle stale (RevalidateProjectRevision
-// refuses it); only the authoritative applied revision of the in-flight
-// governed mutation may advance the tracked revision in place, because the
-// post-action observation is recorded against exactly that revision.
+// free-state loop's own receipted governed mutation. External revision drift
+// must still settle or revalidate through the normal channels; only the
+// authoritative applied revision of a governed mutation may advance the
+// tracked revision in place, because the post-action observation is recorded
+// against exactly that revision. The D1 execution path does not necessarily
+// manifest as an active capability on the closure, so no capability is
+// required — the CAS receipt delivered by the loop is the authority.
 func (d Driver) RecordGovernedMutation(state State, expectedRevision uint64, appliedProjectRevision string, now time.Time) (State, error) {
 	if err := validateExpectedRevision(state, expectedRevision); err != nil {
 		return State{}, err
@@ -99,9 +108,6 @@ func (d Driver) RecordGovernedMutation(state State, expectedRevision uint64, app
 	appliedProjectRevision = normalizeText(appliedProjectRevision)
 	if appliedProjectRevision == "" {
 		return State{}, fmt.Errorf("applied project revision is required")
-	}
-	if state.ActiveCapability == nil {
-		return State{}, fmt.Errorf("governed mutation booking requires an active capability")
 	}
 	if appliedProjectRevision == state.ProjectRevision {
 		return state, nil

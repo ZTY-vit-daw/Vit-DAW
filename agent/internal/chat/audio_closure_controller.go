@@ -61,7 +61,9 @@ func (s *Server) prepareAudioClosureContext(conversationID, userText string, req
 	if state, ok := s.audioClosures.ActiveForConversation(conversationID); ok {
 		requestContext = s.bindCurrentTaskSemantics(requestContext, state.GoalID)
 		requestRevision := audioClosureRequestProjectRevision(s, requestContext)
-		if requestRevision != "" && state.ProjectRevision != "" && requestRevision != state.ProjectRevision {
+		// A request revision inside the superseded set is the shadow lagging
+		// behind a governed mutation booking, not fresh external drift.
+		if requestRevision != "" && state.ProjectRevision != "" && requestRevision != state.ProjectRevision && !state.SupersededProjectRevisions[requestRevision] {
 			driver := audioclosure.Driver{}
 			previous := state
 			var err error
@@ -696,7 +698,7 @@ func (s *Server) syncAudioClosureGovernedRevision(conversationID, appliedRevisio
 		return
 	}
 	state, ok := s.audioClosures.ActiveForConversation(conversationID)
-	if !ok || state.ActiveCapability == nil {
+	if !ok {
 		return
 	}
 	next, err := (audioclosure.Driver{}).RecordGovernedMutation(state, state.Revision, appliedRevision, time.Now().UTC())
