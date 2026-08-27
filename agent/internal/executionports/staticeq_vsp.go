@@ -171,6 +171,21 @@ func (p *StaticEQVSPPort) Apply(ctx context.Context, action orchestration.Action
 		if pluginID == "" {
 			return orchestration.ActionReceipt{ActionID: action.ID, Status: "failed"}, fmt.Errorf("plugin instantiation returned no plugin_id")
 		}
+		// The instantiation is itself a project mutation: the kernel's
+		// write-like base_revision CAS expects the post-instantiate revision
+		// afterwards, so the parameter batch must rebase onto a fresh
+		// snapshot instead of reusing the preflight base (stale_project_cut).
+		rebased, rebaseErr := p.Client.VSPStateSnapshot(ctx, "project.timeline")
+		if rebaseErr != nil || rebased == nil || !rebased.OK() {
+			return orchestration.ActionReceipt{ActionID: action.ID, Status: "failed"}, fmt.Errorf("plugin instantiated but the rebasing snapshot failed: %v", rebaseErr)
+		}
+		if rebased.ProjectEpoch != p.projectEpoch {
+			return orchestration.ActionReceipt{ActionID: action.ID, Status: "failed"}, fmt.Errorf("project epoch changed during plugin instantiation")
+		}
+		if rebased.Revision <= p.baseRevision {
+			return orchestration.ActionReceipt{ActionID: action.ID, Status: "failed"}, fmt.Errorf("plugin instantiation did not advance the project revision")
+		}
+		p.baseRevision = rebased.Revision
 		instantiated = true
 	}
 	writeMode := actionArgText(action, "write_mode")

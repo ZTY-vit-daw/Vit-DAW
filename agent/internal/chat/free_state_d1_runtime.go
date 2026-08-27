@@ -373,7 +373,10 @@ func (s *Server) projectD1Execution(loop freeStateReasoningLoop, session orchest
 		receiptMap[key] = value
 	}
 	receiptMap["idempotency_key"] = firstNonEmpty(firstStringFromMap(receipt.Details, "idempotency_key"), session.Execution.IdempotencyKey+":"+receipt.ActionID)
-	if receipt.Status == "applied" {
+	if strings.TrimSpace(receipt.AppliedRevision) != "" {
+		// Book the mutation's revision advance even for unreconciled receipts:
+		// the kernel state moved, so the closure must not treat the next
+		// post-action observation as external drift.
 		s.syncAudioClosureGovernedRevision(loop.ConversationID, receipt.AppliedRevision)
 	}
 	admissionDomain := firstNonEmpty(firstStringFromMap(loop.Experiment.Admission.TypedAction, "action_domain", "domain"), experiment.D1S1ActionDomain)

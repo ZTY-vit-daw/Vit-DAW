@@ -243,25 +243,54 @@ func eqTypedCommandFailure(result *kernel.VSPCommandResult) string {
 	if result == nil {
 		return "empty VSP response"
 	}
+	failed := ""
 	for _, candidate := range []map[string]any{result.Payload, result.Response, result.LegacyReply} {
+		if candidate == nil {
+			continue
+		}
 		status := strings.ToLower(strings.TrimSpace(fmt.Sprint(candidate["status"])))
 		if status == "error" || status == "failed" || status == "partial_failure" || status == "rejected" {
-			message := strings.TrimSpace(fmt.Sprint(candidate["message"]))
-			if message != "" && message != "<nil>" {
+			if failed == "" {
+				failed = status
+			}
+			if message := eqFailureMessage(candidate); message != "" {
 				return message
 			}
-			return status
 		}
 		payload, _ := candidate["payload"].(map[string]any)
 		if len(payload) > 0 {
 			status := strings.ToLower(strings.TrimSpace(fmt.Sprint(payload["status"])))
 			if status == "error" || status == "failed" || status == "partial_failure" {
-				message := strings.TrimSpace(fmt.Sprint(payload["message"]))
-				if message != "" && message != "<nil>" {
+				if failed == "" {
+					failed = status
+				}
+				if message := eqFailureMessage(payload); message != "" {
 					return message
 				}
-				return status
 			}
+		}
+	}
+	return failed
+}
+
+// eqFailureMessage digs the human-readable failure text out of a kernel
+// envelope: the VSP error envelopes keep it under error.message/error.code
+// and the batch aggregates under ack.message, not at the top level.
+func eqFailureMessage(candidate map[string]any) string {
+	message := strings.TrimSpace(fmt.Sprint(candidate["message"]))
+	if message != "" && message != "<nil>" {
+		return message
+	}
+	for _, nestedKey := range []string{"ack", "error"} {
+		nested, _ := candidate[nestedKey].(map[string]any)
+		if nested == nil {
+			continue
+		}
+		if text := strings.TrimSpace(fmt.Sprint(nested["message"])); text != "" && text != "<nil>" {
+			return text
+		}
+		if code := strings.TrimSpace(fmt.Sprint(nested["code"])); code != "" && code != "<nil>" {
+			return code
 		}
 	}
 	return ""

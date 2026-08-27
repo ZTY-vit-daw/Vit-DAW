@@ -61,6 +61,7 @@ func eqSnapshots() []*kernel.VSPStateResult {
 	return []*kernel.VSPStateResult{
 		stateResultWithGain("epoch-eq", 7, "before", "t1", 0),
 		stateResultWithGain("epoch-eq", 8, "after", "t1", 0),
+		stateResultWithGain("epoch-eq", 9, "after", "t1", 0),
 	}
 }
 
@@ -313,7 +314,7 @@ func TestStaticEQVSPPortNormalizedBatchDualChannelSingleMutation(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if receipt.Status != "applied" || receipt.AppliedRevision != "8" || !receipt.EffectivelyOnce {
+	if receipt.Status != "applied" || receipt.AppliedRevision != "9" || !receipt.EffectivelyOnce {
 		t.Fatalf("receipt=%+v", receipt)
 	}
 	mutations := 0
@@ -329,7 +330,7 @@ func TestStaticEQVSPPortNormalizedBatchDualChannelSingleMutation(t *testing.T) {
 		t.Fatalf("instantiate must precede the mutation: %v", client.requests)
 	}
 	parameters, ok := client.batchArgs["parameters"].([]map[string]any)
-	if !ok || len(parameters) != 2 || client.batchArgs["base_revision"] != int64(7) {
+	if !ok || len(parameters) != 2 || client.batchArgs["base_revision"] != int64(8) {
 		t.Fatalf("batch=%+v", client.batchArgs)
 	}
 	requestedOne := parameters[0]["normalized_value"].(float64)
