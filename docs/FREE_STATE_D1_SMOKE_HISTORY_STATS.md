@@ -224,3 +224,23 @@ fail 轮的主导错误信息（error/reason 归类）：
 ## 4. 结论
 
 D1-S1 冒烟在两天内经历了清晰的"失败面前移"过程：内核执行（08-23）→ durable continuation 排水（08-24 白天）→ 准入闭环 capability_blocked / admission gate（08-24 晚–08-25 早）→ 语义不变量（恰好一次前向变更，08-25 上午）→ 证据完备性（post-action CCB observation，08-25 午后）→ 声学重要性记录（08-25 夜），每修复一层，失败面就退到下一层，最终于 08-25 21:45/21:52 连续两轮 pass（revision 47→48、50→51，均恰好一次前向变更并停在人工判定边界）。剩余的主要非 pass 面是 `not_exercised`（开放运行未自主选择 track_gain，占 32%），其 terminal_causes 分散在 capability_blocked / no_candidate_found / waiting_interaction，说明自主选择的稳定性而非执行链路是当前最大的通过率瓶颈；此外 6 轮 `budget_exhausted` 提示 continuation 预算在长轮次中仍可能先于证据齐备而耗尽。建议后续复跑时重点观察 pass 是否可复现（样本仅 2），以及 not_exercised 轮中自主选择失败的归因分布。
+
+## 5. 2026-08-27 晚窗批（D2-1.5-S1 执行层落地 + GLM L2 修复链）
+
+背景：flash 执行 D2-1.5-S1（表驱动执行层 + 真实 EQ 插件路径，abc0250）后，GLM 首审通过但实栈烟测暴露四层新缺口，逐层修复后收口。修复提交：adc0f1b（闭包治理变异 revision 记账）、b506ce3（被取代 revision 观察跳过）、b8c1eb6（记账去能力前置 + 滞后容忍）、f31c3c0（批量写 CAS 重定基 + 内核错误文本透出）、bb45075（D1 执行后持久 pending 清算）。
+
+| stamp | 用例 | flavor | 终态 | 主因 / 备注 |
+|---|---|---|---|---|
+| 190915 | p01 | neutral | fail | 修复前基线：static_eq 选中、插件实例化成功，闭包 stale 结算（观察 revision 6 vs 追踪 4） |
+| 192606 | p01 | neutral | fail | 同上（-SkipBuild 误跑旧二进制，样本照录） |
+| 192944 | p01 | neutral | fail | adc0f1b 后：pre-action 观察（rev 4）对已记账状态（rev 6）不匹配 → b506ce3 |
+| 194037 | p01 | neutral | **pass** | track_gain 链路（rev 2→3），四个包零回退证明 |
+| 194438 | p01 | frequency | fail | 闭包无能力载体 → 记账未触发 → b8c1eb6 |
+| 195407 | p01 | frequency | fail | 内核 CAS 拒批量写（instantiate 后 base_revision 过期，错误文本被吞成 "error"）→ f31c3c0 |
+| 200731 | p01 | frequency | fail | static_eq 执行成功（rev 3→4 真实 bx_hybrid 实例 1042 / param 827092295），pending 复活致续跑空转、物性记录缺失 → bb45075 |
+| 201842 | p01 | frequency | **pass** | **static_eq 真实插件链路端到端 PASS（rev 3→4）**，D2-1 关账条件达成 |
+| 202359 | p02 | neutral | not_exercised | 模型未自主选域（口径内重跑项） |
+| 202729 | p02 | neutral | fail | static_eq 在 p02 fixture 执行成功但缺 post-action CCB 观察（见下开放项） |
+| 203202 | p02 | neutral | fail | 同上，2/2 复现 |
+
+开放项（D2-1.5-S2 前置排查）：p02 × static_eq 连续 2 轮 "D1 requires one post-action CCB observation"——执行回执 applied、模型完成评估话术，但实验轮内无 post-action 观察记录；p01 × static_eq 同链路 PASS，差异待归因（怀疑回合内声学验证在 p02 工程上未产出 fresh 观察）。
