@@ -170,6 +170,57 @@ fail 轮的主导错误信息（error/reason 归类）：
 - 批次 C 的 fail（190320）与午间基线 #86 同类（`D1 did not reach human_audition_ready`，实验已执行、评估已给出，终态未停人工判定边界），非 prompt 改动引入的回归。
 - 归因链（来自 `VitApp/Workspace/Logs/agent_message_loop_debug.jsonl` 晚间记录）：not_exercised 的根因不是模型不愿提案，而是宿主相位机在 fs4/fs5 只放行 needs_observation；`needs_experiment` 需 frontier（由 mix.multitrack_relationship / mix.frequency_relationship 的候选行建立）+ target 确认后才合法。批次 B 证明"催早交卷"会撞门；批次 C 证明教模型走最快合法门路径可直接消除 not_exercised。
 
+## 2026-08-26 晚窗–2026-08-27 早窗（D2-1-S3 prompt 表驱动 + 域参数化 + 早窗三层修复）
+
+- 数据来源：`artifacts/free_state_d1_s1/*/d1_smoke_report.json` 中 mtime ≥ 2026-08-26 20:00 的 11 份报告（schema `vit.free_state_d1_smoke.v1`，本地时间 2026-08-26 20:46 → 2026-08-27 09:07）。
+- `prompt_flavor` / `expect_domain` 是发卡时写死的轮次配置（neutral = 默认 prompt、expect any；frequency = 频域 prompt、expect static_eq），非报告内字段。
+- 准入域取报告 `persisted_loop.experiment.admission.typed_action.action_domain`；selected_domains 取报告顶层 `selected_domains`；缺失字段照实记 unknown，不作推断。
+
+| 目录（本地时间） | case | prompt_flavor | expect_domain | 终态 | selected_domains | 准入域 |
+|---|---|---|---|---|---|---|
+| 20260826_204256 | p01 | neutral | any | fail | track_gain | track_gain |
+| 20260826_204809 | p01 | neutral | any | **pass** | track_gain | unknown |
+| 20260826_205240 | p01 | frequency | static_eq | not_exercised | track_gain | unknown |
+| 20260826_205733 | p01 | frequency | static_eq | not_exercised | （空） | unknown |
+| 20260826_210107 | p01 | frequency | static_eq | not_exercised | （空） | unknown |
+| 20260826_210831 | p01 | frequency | static_eq | not_exercised | （空） | unknown |
+| 20260826_211231 | p01 | frequency | static_eq | not_exercised | （空） | unknown |
+| 20260826_211629 | p01 | neutral | any | **pass** | track_gain | unknown |
+| 20260826_211929 | p02 | neutral | any | **pass** | track_gain | unknown |
+| 20260827_085339 | p01 | frequency | static_eq | fail | static_eq | static_eq |
+| 20260827_090337 | p01 | frequency | static_eq | fail | static_eq, track_gain | static_eq |
+
+### 批次小计（本节 11 轮）
+
+- 终态分布：fail 3（204256、085339、090337）、not_exercised 5（205240–211231 连续五轮）、pass 3（204809、211629、211929）。
+- 按 prompt_flavor：neutral/any 共 4 轮（pass 3、fail 1）；frequency/static_eq 共 7 轮（fail 2、not_exercised 5）。
+- 按 case：spv1_p01 共 10 轮、spv1_p02 共 1 轮（211929）。
+- 有 finished_at 的 6 轮耗时 154.6–238.7 秒（204256=204.8s、204809=238.7s、211629=162.6s、211929=154.6s、085339=159.9s、090337=188.3s）；not_exercised 五轮无 finished_at（沿 §3 口径 dur 记 —）。
+- 三轮 **pass** 的 terminal_causes 均停在"等待人工判定边界"，报告内 human_audition_ready=true、human_confirmed=false，与 §1 所记 08-25 两轮 pass 形态一致。
+
+备注：
+
+- 210107 / 210831 / 211231 的 not_exercised 根因是协议层域枚举缺失（模型提案 static_eq 无对应协议域而遭拒）；2026-08-27 早窗已修（提交 26475d3）。统计照录，不解释。
+- 同批另两轮 not_exercised 照录：205240 的 status 为 not_exercised 但 terminal_cause 记 "experiment round is waiting for the human judgment boundary"、selected_domains=[track_gain]；205733 的 terminal_cause 记 "The experiment execution environment does not support static_eq band adjustments, and track_gain adjustments are excluded by user constraint."
+- 085339 / 090337 为修复后两次推进，fail 在干预执行/内核插件解析层（详见 `docs/FREE_STATE_PHASE_D_D2_1_STATIC_EQ_2026-08-26.md` 早窗诊断节）。报告主因照录：085339 error="D1 must contain exactly one forward mutation"，admission_receipt 七门全过（boundary=admitted）；090337 error="D1 receipt requires distinct before/after revisions"，admission_receipt boundary=proposal_missing / status=capability_blocked（G7_fresh_revision_bound_refs=fail）。
+
+### 全量总计更新
+
+截至 20260827_090337，对磁盘按同一口径全量重计（扫 `*/d1_smoke_report.json`，有效报告共 118 份）：
+
+| 终态 | 轮数 | 占比 |
+|---|---|---|
+| fail | 47 | 39.8% |
+| not_exercised | 40 | 33.9% |
+| pass | 14 | 11.9% |
+| admission_only | 9 | 7.6% |
+| 未完成（无 status / finished_at） | 3 | 2.5% |
+| settlement_probe_pass | 3 | 2.5% |
+| interrupted（operator_interrupted） | 2 | 1.7% |
+
+- 用例分布：spv1_p01 共 16 轮（原普查 6 + 本节 10）、spv1_p02 共 102 轮。
+- 相对 §1（截至 2026-08-25 21:52 的 75 份普查）净增 43 份：08-26 早窗 08:58–10:19 共 12 份、10:24–10:44 settlement probe 批 4 份（其中首次出现终态值 settlement_probe_pass，共 3 轮）、午间 D2-0 基线 4 份（§3 #83–86）、晚窗 D2-0 抽样 12 份（§4.1）、本节 11 份（含 08-27 早窗 2 份）。
+
 ## 4. 结论
 
 D1-S1 冒烟在两天内经历了清晰的"失败面前移"过程：内核执行（08-23）→ durable continuation 排水（08-24 白天）→ 准入闭环 capability_blocked / admission gate（08-24 晚–08-25 早）→ 语义不变量（恰好一次前向变更，08-25 上午）→ 证据完备性（post-action CCB observation，08-25 午后）→ 声学重要性记录（08-25 夜），每修复一层，失败面就退到下一层，最终于 08-25 21:45/21:52 连续两轮 pass（revision 47→48、50→51，均恰好一次前向变更并停在人工判定边界）。剩余的主要非 pass 面是 `not_exercised`（开放运行未自主选择 track_gain，占 32%），其 terminal_causes 分散在 capability_blocked / no_candidate_found / waiting_interaction，说明自主选择的稳定性而非执行链路是当前最大的通过率瓶颈；此外 6 轮 `budget_exhausted` 提示 continuation 预算在长轮次中仍可能先于证据齐备而耗尽。建议后续复跑时重点观察 pass 是否可复现（样本仅 2），以及 not_exercised 轮中自主选择失败的归因分布。
