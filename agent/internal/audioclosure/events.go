@@ -230,6 +230,12 @@ func applyEvent(state *State, event Event) error {
 		// expected outcome of this round, not external drift: the tracked
 		// revision moves so the post-action observation matches, while every
 		// other piece of evidence (round, observations, frontier) survives.
+		// The revision the mutation replaced becomes superseded so replayed
+		// pre-action evidence is skipped instead of settling the closure.
+		if state.SupersededProjectRevisions == nil {
+			state.SupersededProjectRevisions = map[string]bool{}
+		}
+		state.SupersededProjectRevisions[state.ProjectRevision] = true
 		state.ProjectRevision = strings.TrimSpace(data.ProjectRevision)
 	case EventFrontierUpdated:
 		if !state.RoundInProgress {

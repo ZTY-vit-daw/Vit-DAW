@@ -458,6 +458,34 @@ func TestRecordGovernedMutationBooksAppliedRevisionUnderActiveCapability(t *test
 	if err != nil || unchanged.Revision != next.Revision {
 		t.Fatalf("idempotent re-booking failed: state=%+v err=%v", unchanged, err)
 	}
+	if !next.SupersededProjectRevisions["revision-1"] {
+		t.Fatalf("pre-mutation revision was not marked superseded: %+v", next.SupersededProjectRevisions)
+	}
+	round := newTestClosure(t)
+	round, _, err = driver.BeginCapability(round, round.Revision, link, testNow)
+	if err != nil {
+		t.Fatalf("capability begin for replay flow: %v", err)
+	}
+	round, err = driver.RecordGovernedMutation(round, round.Revision, "revision-3", testNow)
+	if err != nil {
+		t.Fatalf("booking for replay flow: %v", err)
+	}
+	round, _, err = driver.SettleCapability(round, round.Revision, CapabilitySettlement{SessionID: link.SessionID, ActionID: link.ActionID, Status: "completed"}, testNow)
+	if err != nil {
+		t.Fatalf("capability settle for replay flow: %v", err)
+	}
+	round, admitted, err := driver.AdmitRound(round, round.Revision, testNow)
+	if err != nil || !admitted || !round.RoundInProgress {
+		t.Fatalf("round admission after capability settlement: admitted=%v err=%v", admitted, err)
+	}
+	skipped, err := driver.RecordObservation(round, round.Revision, ObservationKey{ProjectUUID: "project-1", ProjectRevision: "revision-1", Scope: round.Scope, TargetRef: "track-vocal", ViewIDs: []string{"mix.multitrack_relationship"}}, "obs-superseded", testNow)
+	if err != nil || skipped.State.Terminal() || skipped.State.Revision != round.Revision {
+		t.Fatalf("superseded replay must be skipped: state=%+v err=%v", skipped.State, err)
+	}
+	foreign, err := driver.RecordObservation(round, round.Revision, ObservationKey{ProjectUUID: "project-1", ProjectRevision: "revision-9", Scope: round.Scope, TargetRef: "track-vocal", ViewIDs: []string{"mix.multitrack_relationship"}}, "obs-foreign", testNow)
+	if err != nil || !foreign.State.Terminal() || foreign.State.Settlement.Reason != StopProjectRevisionStale {
+		t.Fatalf("foreign revision drift must still settle stale: state=%+v err=%v", foreign.State, err)
+	}
 	if _, err := driver.RecordGovernedMutation(next, next.Revision+1, "revision-5", testNow); err == nil {
 		t.Fatal("stale expected revision must be refused")
 	}

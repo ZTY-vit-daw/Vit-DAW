@@ -166,6 +166,7 @@ type State struct {
 	TaskStateRevision     uint64                          `json:"task_state_revision,omitempty"`
 	ProjectUUID           string                          `json:"project_uuid"`
 	ProjectRevision       string                          `json:"project_revision,omitempty"`
+	SupersededProjectRevisions map[string]bool            `json:"superseded_project_revisions,omitempty"`
 	OriginalIntent        string                          `json:"original_intent"`
 	Mode                  Mode                            `json:"mode"`
 	Scope                 Scope                           `json:"scope"`

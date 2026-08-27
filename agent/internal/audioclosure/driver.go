@@ -157,6 +157,12 @@ func (d Driver) RecordObservation(state State, expectedRevision uint64, key Obse
 	if key.ProjectUUID != "" && key.ProjectUUID != state.ProjectUUID {
 		return ObservationOutcome{}, fmt.Errorf("observation project_uuid does not match closure")
 	}
+	if key.ProjectRevision != "" && state.SupersededProjectRevisions[key.ProjectRevision] {
+		// Replayed evidence from a revision that an in-flight governed
+		// mutation replaced: superseded history, not fresh evidence and not
+		// external drift, so it is skipped instead of settling the closure.
+		return ObservationOutcome{State: state}, nil
+	}
 	if key.ProjectRevision != "" && state.ProjectRevision != "" && key.ProjectRevision != state.ProjectRevision {
 		settled, err := d.settleUnchecked(state, StopProjectRevisionStale, "observation belongs to a different project revision", false, "", now)
 		return ObservationOutcome{State: settled}, err
