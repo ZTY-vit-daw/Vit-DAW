@@ -11,18 +11,19 @@ const SchemaVersion = "vit_agent_protocol.v0"
 const ImprovementProposalSchema = "improvement_proposal.v1"
 
 const (
-	ImprovementActionDomainTrackGain         = "track_gain"
-	ImprovementActionDomainClipGain          = "clip_gain"
-	ImprovementActionDomainPan               = "pan"
-	ImprovementActionDomainEQ                = "eq"
-	ImprovementActionDomainStaticEQ          = "static_eq"
-	ImprovementActionDomainCompressor        = "compressor"
-	ImprovementActionDomainLimiter           = "limiter"
-	ImprovementActionDomainGateExpander      = "gate_expander"
-	ImprovementActionDomainDeEsser           = "de_esser"
-	ImprovementActionDomainTransientShaper   = "transient_shaper"
-	ImprovementActionDomainMultibandDynamics = "multiband_dynamics"
-	ImprovementActionDomainPlugin            = "plugin"
+	ImprovementActionDomainTrackGain            = "track_gain"
+	ImprovementActionDomainClipGain             = "clip_gain"
+	ImprovementActionDomainPan                  = "pan"
+	ImprovementActionDomainEQ                   = "eq"
+	ImprovementActionDomainStaticEQ             = "static_eq"
+	ImprovementActionDomainBroadbandCompression = "broadband_compression"
+	ImprovementActionDomainCompressor           = "compressor"
+	ImprovementActionDomainLimiter              = "limiter"
+	ImprovementActionDomainGateExpander         = "gate_expander"
+	ImprovementActionDomainDeEsser              = "de_esser"
+	ImprovementActionDomainTransientShaper      = "transient_shaper"
+	ImprovementActionDomainMultibandDynamics    = "multiband_dynamics"
+	ImprovementActionDomainPlugin               = "plugin"
 )
 
 const (
@@ -126,7 +127,7 @@ func (p ImprovementProposal) Validate() error {
 	switch strings.ToLower(strings.TrimSpace(p.ActionDomain)) {
 	case ImprovementActionDomainTrackGain, ImprovementActionDomainClipGain,
 		ImprovementActionDomainPan, ImprovementActionDomainEQ,
-		ImprovementActionDomainStaticEQ,
+		ImprovementActionDomainStaticEQ, ImprovementActionDomainBroadbandCompression,
 		ImprovementActionDomainCompressor, ImprovementActionDomainLimiter,
 		ImprovementActionDomainGateExpander, ImprovementActionDomainDeEsser,
 		ImprovementActionDomainTransientShaper, ImprovementActionDomainMultibandDynamics,
