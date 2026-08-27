@@ -17,6 +17,7 @@ const (
 	EventObservationRecorded     EventType = "observation_recorded"
 	EventProjectChangeRecorded   EventType = "project_change_recorded"
 	EventProjectRevisionChanged  EventType = "project_revision_changed"
+	EventGovernedRevisionBooked  EventType = "governed_revision_booked"
 	EventFrontierUpdated         EventType = "frontier_updated"
 	EventRoundCompleted          EventType = "round_completed"
 	EventProtocolRepairRecorded  EventType = "model_protocol_repair_recorded"
@@ -58,6 +59,9 @@ type projectChangeRecordedData struct {
 	ChangeID string `json:"change_id"`
 }
 type projectRevisionChangedData struct {
+	ProjectRevision string `json:"project_revision"`
+}
+type governedRevisionBookedData struct {
 	ProjectRevision string `json:"project_revision"`
 }
 type frontierUpdatedData struct {
@@ -211,6 +215,22 @@ func applyEvent(state *State, event Event) error {
 		state.RoundInProgress, state.RoundHadProgress = false, false
 		state.NoProgressStreak = 0
 		setLegacyPhase(state, PhaseObserving)
+	case EventGovernedRevisionBooked:
+		var data governedRevisionBookedData
+		if err := decodeEventData(event, &data); err != nil {
+			return err
+		}
+		if strings.TrimSpace(data.ProjectRevision) == "" || data.ProjectRevision == state.ProjectRevision {
+			return fmt.Errorf("governed revision booking requires a new revision")
+		}
+		if state.ActiveCapability == nil {
+			return fmt.Errorf("governed revision booking requires an active capability")
+		}
+		// The applied revision of the in-flight governed mutation is the
+		// expected outcome of this round, not external drift: the tracked
+		// revision moves so the post-action observation matches, while every
+		// other piece of evidence (round, observations, frontier) survives.
+		state.ProjectRevision = strings.TrimSpace(data.ProjectRevision)
 	case EventFrontierUpdated:
 		if !state.RoundInProgress {
 			return fmt.Errorf("frontier update requires an admitted round")

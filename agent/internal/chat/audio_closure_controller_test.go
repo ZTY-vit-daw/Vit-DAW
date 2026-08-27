@@ -968,3 +968,38 @@ func TestAudioClosureRoundClosePersistsRoundsAndAdvancesToFS6(t *testing.T) {
 }
 
 
+
+func TestSyncAudioClosureGovernedRevisionBooksAppliedRevision(t *testing.T) {
+	server := &Server{audioClosures: audioclosure.NewMemoryStore()}
+	state, err := audioclosure.Start(audioclosure.StartRequest{
+		ClosureID: "closure-governed-sync", ConversationID: "conversation-governed-sync", GoalID: "goal-governed-sync", RunID: "run-governed-sync",
+		ProjectUUID: "project-governed-sync", ProjectRevision: "rev-1", OriginalIntent: "make the vocal less harsh",
+		Mode: audioclosure.ModeTreatment, Scope: audioclosure.Scope{Kind: "track", ID: "track-vocal"}, Now: time.Now().UTC(),
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	state, _, err = (audioclosure.Driver{}).BeginCapability(state, state.Revision, audioclosure.CapabilityLink{
+		SessionID: "session-governed-sync", CapabilityID: "agent.effect.eq_control.v0", ActionID: "action-governed-sync", ExpectedProjectRevision: "rev-1"}, time.Now().UTC())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := server.audioClosures.Create(state); err != nil {
+		t.Fatal(err)
+	}
+	server.syncAudioClosureGovernedRevision("conversation-governed-sync", "rev-3")
+	synced, ok := server.audioClosures.ActiveForConversation("conversation-governed-sync")
+	if !ok {
+		t.Fatal("closure disappeared after governed revision sync")
+	}
+	if synced.ProjectRevision != "rev-3" {
+		t.Fatalf("tracked revision not booked: %q", synced.ProjectRevision)
+	}
+	if synced.ActiveCapability == nil {
+		t.Fatal("capability must stay active across the governed revision booking")
+	}
+	server.syncAudioClosureGovernedRevision("conversation-missing", "rev-4")
+	if again, _ := server.audioClosures.ActiveForConversation("conversation-governed-sync"); again.Revision != synced.Revision {
+		t.Fatal("unknown conversation must not touch the closure")
+	}
+}

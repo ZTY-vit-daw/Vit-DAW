@@ -86,6 +86,30 @@ func (d Driver) RevalidateProjectRevision(state State, expectedRevision uint64, 
 	return next, err == nil, err
 }
 
+// RecordGovernedMutation books the project revision advance produced by the
+// active capability's own receipted mutation. External revision drift during
+// an active capability must still settle stale (RevalidateProjectRevision
+// refuses it); only the authoritative applied revision of the in-flight
+// governed mutation may advance the tracked revision in place, because the
+// post-action observation is recorded against exactly that revision.
+func (d Driver) RecordGovernedMutation(state State, expectedRevision uint64, appliedProjectRevision string, now time.Time) (State, error) {
+	if err := validateExpectedRevision(state, expectedRevision); err != nil {
+		return State{}, err
+	}
+	appliedProjectRevision = normalizeText(appliedProjectRevision)
+	if appliedProjectRevision == "" {
+		return State{}, fmt.Errorf("applied project revision is required")
+	}
+	if state.ActiveCapability == nil {
+		return State{}, fmt.Errorf("governed mutation booking requires an active capability")
+	}
+	if appliedProjectRevision == state.ProjectRevision {
+		return state, nil
+	}
+	next, err := appendEvent(state, EventGovernedRevisionBooked, governedRevisionBookedData{ProjectRevision: appliedProjectRevision}, now)
+	return next, err
+}
+
 func (d Driver) AdmitRound(state State, expectedRevision uint64, now time.Time) (State, bool, error) {
 	if err := validateExpectedRevision(state, expectedRevision); err != nil {
 		return State{}, false, err

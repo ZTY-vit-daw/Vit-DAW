@@ -432,3 +432,49 @@ func TestFS7ToFS8RequiresValidatedAdmission(t *testing.T) {
 		t.Fatalf("validated admission did not enter FS8: %v", err)
 	}
 }
+
+func TestRecordGovernedMutationBooksAppliedRevisionUnderActiveCapability(t *testing.T) {
+	driver := Driver{}
+	state := newTestClosure(t)
+	link := CapabilityLink{SessionID: "session-1", CapabilityID: "agent.effect.eq_control.v0", ActionID: "action-1", ExpectedProjectRevision: "revision-1"}
+	state, started, err := driver.BeginCapability(state, state.Revision, link, testNow)
+	if err != nil || !started {
+		t.Fatalf("begin capability: started=%v err=%v", started, err)
+	}
+	next, err := driver.RecordGovernedMutation(state, state.Revision, "revision-3", testNow)
+	if err != nil {
+		t.Fatalf("governed mutation booking failed: %v", err)
+	}
+	if next.ProjectRevision != "revision-3" {
+		t.Fatalf("tracked revision was not booked: %q", next.ProjectRevision)
+	}
+	if next.ActiveCapability == nil {
+		t.Fatal("governed mutation booking must keep the capability active")
+	}
+	if _, _, err := driver.RevalidateProjectRevision(next, next.Revision, "revision-4", testNow); err == nil {
+		t.Fatal("external revalidation must still be refused while the capability is active")
+	}
+	unchanged, err := driver.RecordGovernedMutation(next, next.Revision, "revision-3", testNow)
+	if err != nil || unchanged.Revision != next.Revision {
+		t.Fatalf("idempotent re-booking failed: state=%+v err=%v", unchanged, err)
+	}
+	if _, err := driver.RecordGovernedMutation(next, next.Revision+1, "revision-5", testNow); err == nil {
+		t.Fatal("stale expected revision must be refused")
+	}
+}
+
+func TestRecordGovernedMutationRequiresActiveCapabilityAndRevision(t *testing.T) {
+	driver := Driver{}
+	state := newTestClosure(t)
+	if _, err := driver.RecordGovernedMutation(state, state.Revision, "revision-2", testNow); err == nil {
+		t.Fatal("booking without an active capability must be refused")
+	}
+	link := CapabilityLink{SessionID: "session-1", CapabilityID: "agent.effect.eq_control.v0", ActionID: "action-1", ExpectedProjectRevision: "revision-1"}
+	state, _, err := driver.BeginCapability(state, state.Revision, link, testNow)
+	if err != nil {
+		t.Fatalf("begin capability: %v", err)
+	}
+	if _, err := driver.RecordGovernedMutation(state, state.Revision, "  ", testNow); err == nil {
+		t.Fatal("blank applied revision must be refused")
+	}
+}

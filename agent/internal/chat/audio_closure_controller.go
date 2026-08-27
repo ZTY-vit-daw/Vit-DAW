@@ -684,6 +684,30 @@ func audioClosureAuthoritativeProjectChangeID(requestContext map[string]any) str
 	return ""
 }
 
+// syncAudioClosureGovernedRevision books the applied revision of the
+// conversation's in-flight governed mutation into the audio closure so the
+// post-action observation lands on a matching tracked revision. Real plugin
+// domains advance the project revision more than once per governed action
+// (instance creation plus the parameter batch), so leaving the tracked
+// revision to the next turn's revalidation would compare fresh post-action
+// evidence against a stale closure state and settle StopProjectRevisionStale.
+func (s *Server) syncAudioClosureGovernedRevision(conversationID, appliedRevision string) {
+	if s == nil || s.audioClosures == nil || strings.TrimSpace(appliedRevision) == "" {
+		return
+	}
+	state, ok := s.audioClosures.ActiveForConversation(conversationID)
+	if !ok || state.ActiveCapability == nil {
+		return
+	}
+	next, err := (audioclosure.Driver{}).RecordGovernedMutation(state, state.Revision, appliedRevision, time.Now().UTC())
+	if err != nil {
+		return
+	}
+	if saveErr := s.audioClosures.Save(next, state.Revision); saveErr == nil {
+		s.persistCurrentProjectWorkspace()
+	}
+}
+
 func audioClosureObservationKey(state audioclosure.State, observation *agentloop.RecentObservation, requestContext map[string]any) audioclosure.ObservationKey {
 	summary := observation.Summary
 	viewIDs := freeStateStringSlice(firstNonNil(summary["view_ids"], summary["admitted_views"], summary["included_views"], summary["requested_views"]))

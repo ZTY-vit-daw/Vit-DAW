@@ -373,6 +373,9 @@ func (s *Server) projectD1Execution(loop freeStateReasoningLoop, session orchest
 		receiptMap[key] = value
 	}
 	receiptMap["idempotency_key"] = firstNonEmpty(firstStringFromMap(receipt.Details, "idempotency_key"), session.Execution.IdempotencyKey+":"+receipt.ActionID)
+	if receipt.Status == "applied" {
+		s.syncAudioClosureGovernedRevision(loop.ConversationID, receipt.AppliedRevision)
+	}
 	admissionDomain := firstNonEmpty(firstStringFromMap(loop.Experiment.Admission.TypedAction, "action_domain", "domain"), experiment.D1S1ActionDomain)
 	admissionKind := firstNonEmpty(firstStringFromMap(loop.Experiment.Admission.TypedAction, "action_kind", "kind"), experiment.D1S1ActionKind)
 	round, _ := loop.Experiment.CurrentRound()
