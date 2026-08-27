@@ -707,6 +707,181 @@ def verify_settled_after_restart(base_url: str, report_path: Path, timeout: floa
     }
 
 
+MULTI_ROUND_MIN_ROUNDS = 2
+# D2-1 domain-table absolute dose ceiling mirrored for runner-side probing;
+# admission itself stays the agent's responsibility (same stance as the
+# ADMITTED_DOMAIN_KINDS gate above).
+MULTI_ROUND_DOSE_ABS_LIMIT_DB = 2.0
+
+
+class MultiRoundNotExercised(RuntimeError):
+    """The probe could not observe an autonomous multi-round experiment."""
+
+
+def numeric_receipt_field(source: dict[str, Any], *keys: str) -> float | None:
+    for key in keys:
+        value = source.get(key)
+        if isinstance(value, (int, float)) and not isinstance(value, bool):
+            return float(value)
+    return None
+
+
+def validate_d2_multi_round(base_url: str, conversation_id: str, project_path: str, responses: list[dict[str, Any]], timeout: float, case_id: str, run_started: float) -> dict[str, Any]:
+    """D2-2-S3 multi-round probe: independent assertions, default-D1 path intact.
+
+    Runs against the freshest free_state_reasoning_loop.v1 projection (the
+    persisted authoritative copy competes with response snapshots by
+    updated_at) and asserts the frozen acceptance scope from
+    docs/FREE_STATE_PHASE_D_D2_2_SURVEY_2026-08-26.md §5/§8 ruling 4, without
+    modifying validate_d1 / assert_settled_projection:
+
+      - round count agrees with admission.experiment_budget; more rounds than
+        budget is always fatal,
+      - the run terminates either with the budget exhausted (rounds used ==
+        budget, no parked judgment) or parked at exactly one
+        user_judgment_pending boundary as the final round (no round may follow
+        a pending verdict),
+      - every round carries exactly one forward intervention with distinct
+        chained before/after revisions and unique transaction identities, and
+        the persisted forward_mutation_count equals the round count,
+      - cross-round cumulative dose never exceeds the D2-1 absolute bounds
+        (track_gain |ΣΔ| <= 2 dB; static_eq per plugin/param/band |ΣΔ| <= 2 dB),
+      - restart idempotency: the projection persisted on disk repeats neither
+        rounds nor interventions relative to the validated snapshot, no
+        non-terminal continuation resurrects, and each round's post-action CCB
+        observation (the second round's revision pin included) is fresh and
+        bound to that round's after_revision,
+      - budget-exhausted runs record budget_exhausted=true; deeper stop_reason
+        pinning stays deferred behind the TODO below.
+
+    Dose deltas prefer an explicit applied/gain delta on the execution receipt
+    and otherwise fall back to the numeric readback, treated as the round's
+    applied delta for that band.
+
+    TODO(D2-2-S2): the deterministic multi-round drive (memory gear-on +
+    dose-calibration scenario injection) waits on the D2-2-S2 parameter
+    injection channel design. Until that channel merges, an open-prompt run
+    almost always reaches fewer than two rounds; this function raises
+    MultiRoundNotExercised and the caller reports NOT_EXERCISED (exit 3) and
+    records it. No assertion here is ever relaxed to manufacture a pass
+    (sealed-test discipline).
+    """
+    persisted = persisted_free_state_loop(project_path, conversation_id, run_started)
+    loop = find_d1_loop(([persisted] if persisted else []) + responses)
+    require(loop is not None, f"{case_id} multi-round probe found no admitted free-state loop projection")
+    assert loop is not None
+    experiment = loop.get("experiment") if isinstance(loop.get("experiment"), dict) else {}
+    admission = experiment.get("admission") if isinstance(experiment.get("admission"), dict) else {}
+    typed = admission.get("typed_action") if isinstance(admission.get("typed_action"), dict) else {}
+    domain = first_text(typed.get("action_domain")).lower()
+    require(domain in ADMITTED_DOMAIN_KINDS, f"multi-round probe: action_domain {domain!r} is not admitted by the D2-1 domain table")
+    budget = int(admission.get("experiment_budget", 0) or 0)
+    require(budget >= MULTI_ROUND_MIN_ROUNDS, f"multi-round probe: experiment_budget {budget} admits no multi-round continuation")
+    for key in ("diagnostic_dose_bounds", "retained_dose_bounds"):
+        bounds = admission.get(key) if isinstance(admission.get(key), dict) else {}
+        attempts = int(bounds.get("max_action_attempts", 0) or 0)
+        require(attempts >= MULTI_ROUND_MIN_ROUNDS, f"multi-round probe: {key}.max_action_attempts ({attempts}) admits no multi-round continuation")
+
+    rounds_all = rows(experiment.get("rounds"))
+    if len(rounds_all) < MULTI_ROUND_MIN_ROUNDS:
+        raise MultiRoundNotExercised(f"{case_id} multi-round probe observed {len(rounds_all)} experiment round(s); the run never autonomously entered multi-round continuation")
+
+    used = len(rounds_all)
+    require(used <= budget, f"multi-round probe: {used} rounds exceed experiment_budget {budget}")
+    pending_indices = [index for index, round_row in enumerate(rounds_all) if first_text(round_row.get("decision")).lower() == "user_judgment_pending"]
+    require(len(pending_indices) <= 1, f"multi-round probe: {len(pending_indices)} rounds park on a pending user judgment")
+    for index in pending_indices:
+        require(index == used - 1, f"multi-round probe: round {index} judged pending but round {index + 1} still executed")
+    budget_exhausted = not pending_indices
+    if budget_exhausted:
+        require(used == budget, f"multi-round probe: experiment stopped after {used} of {budget} budgeted rounds without a pending boundary")
+
+    round_ids = [first_text(row.get("round_id")) for row in rounds_all]
+    require(all(round_ids) and len(set(round_ids)) == used, "multi-round probe: round identities are missing or duplicated")
+
+    previous_after_revision = ""
+    transaction_ids: set[str] = set()
+    per_band_totals: dict[str, float] = {}
+    domain_total_delta = 0.0
+    for index, round_row in enumerate(rounds_all):
+        interventions = rows(round_row.get("interventions"))
+        require(len(interventions) == 1, f"multi-round probe: round {index} carries {len(interventions)} forward interventions (exactly one required)")
+        intervention = interventions[0]
+        receipt = intervention.get("receipt") if isinstance(intervention.get("receipt"), dict) else {}
+        before_revision = first_text(receipt.get("before_revision"))
+        after_revision = first_text(receipt.get("after_revision"), receipt.get("applied_revision"))
+        require(before_revision and after_revision and before_revision != after_revision, f"multi-round probe: round {index} receipt lacks distinct before/after revisions")
+        if index > 0:
+            require(before_revision == previous_after_revision, f"multi-round probe: round {index} did not apply onto round {index - 1}'s after_revision")
+        previous_after_revision = after_revision
+        transaction_id = first_text(receipt.get("transaction_id"))
+        require(transaction_id and transaction_id not in transaction_ids, f"multi-round probe: round {index} transaction identity is missing or duplicated")
+        transaction_ids.add(transaction_id)
+
+        post_observations = [item for item in rows(round_row.get("observations")) if item.get("post_action") is True]
+        require(post_observations, f"multi-round probe: round {index} has no post-action CCB observation")
+        post = post_observations[-1]
+        require(post.get("fresh") is True and first_text(post.get("project_revision")) == after_revision, f"multi-round probe: round {index} post-action observation is not fresh and revision-bound")
+
+        delta_keys = ("applied_delta_db", "gain_delta_db", "actual_readback_db") if domain == "track_gain" else ("applied_delta_db", "gain_delta_db", "actual_readback_value")
+        delta = numeric_receipt_field(receipt, *delta_keys)
+        if delta is None:
+            delta = numeric_receipt_field(intervention, *delta_keys)
+        require(delta is not None, f"multi-round probe: round {index} exposes no numeric dose delta for {domain}")
+        domain_total_delta += float(delta)
+        if domain == "static_eq":
+            frequency = numeric_receipt_field(receipt, "frequency_hz")
+            if frequency is None:
+                frequency = numeric_receipt_field(typed, "frequency_hz")
+            band_key = first_text(receipt.get("plugin_id")) + ":" + first_text(receipt.get("param_id")) + ":" + ("" if frequency is None else format(frequency, "g"))
+            per_band_totals[band_key] = per_band_totals.get(band_key, 0.0) + float(delta)
+
+    if domain == "track_gain":
+        require(abs(domain_total_delta) <= MULTI_ROUND_DOSE_ABS_LIMIT_DB, f"multi-round probe: cross-round track_gain cumulative |{domain_total_delta:g}|dB exceeds the 2dB absolute bound")
+        cumulative_dose = {"domain_total_delta_db": domain_total_delta}
+    else:
+        worst_band = max((abs(value) for value in per_band_totals.values()), default=0.0)
+        require(worst_band <= MULTI_ROUND_DOSE_ABS_LIMIT_DB, f"multi-round probe: cross-round static_eq cumulative band delta {worst_band:g}dB exceeds the 2dB absolute bound")
+        cumulative_dose = {"per_band_total_delta_db": per_band_totals}
+    d1_receipt = loop.get("d1_receipt") if isinstance(loop.get("d1_receipt"), dict) else {}
+    require(int(d1_receipt.get("forward_mutation_count", 0) or 0) == used, f"multi-round probe: persisted forward mutation count disagrees with one-forward-change-per-round across {used} rounds")
+
+    # Restart idempotency: the projection persisted on disk must repeat neither
+    # rounds nor interventions relative to the validated snapshot.
+    require(bool(persisted), "multi-round probe: no persisted projection survived for the restart-idempotency check")
+    persisted_experiment = persisted.get("experiment") if isinstance(persisted.get("experiment"), dict) else {}
+    persisted_rounds = rows(persisted_experiment.get("rounds"))
+    require(len(persisted_rounds) == used, f"multi-round probe: persisted projection holds {len(persisted_rounds)} rounds versus {used} observed (restart duplication/loss)")
+    persisted_transactions: set[str] = set()
+    for persisted_round in persisted_rounds:
+        for persisted_intervention in rows(persisted_round.get("interventions")):
+            persisted_receipt = persisted_intervention.get("receipt") if isinstance(persisted_intervention.get("receipt"), dict) else {}
+            identity = first_text(persisted_receipt.get("transaction_id"))
+            if identity:
+                persisted_transactions.add(identity)
+    require(persisted_transactions and persisted_transactions == transaction_ids, "multi-round probe: persisted interventions differ from the observed transaction set (restart duplication/loss)")
+
+    continuations = continuation_rows(base_url, conversation_id, min(timeout, 30))
+    resurrected = [item for item in continuations if first_text(item.get("status")).lower() not in TERMINAL_CONTINUATION_STATUSES]
+    require(not resurrected, "multi-round probe: restart resurrected non-terminal continuations: " + json.dumps([{"status": item.get("status"), "error": item.get("last_error")} for item in resurrected], ensure_ascii=False))
+
+    return {
+        "status": "pass",
+        "public_case_id": case_id,
+        "conversation_id": conversation_id,
+        "action_domain": domain,
+        "experiment_budget": budget,
+        "rounds_used": used,
+        "round_ids": round_ids,
+        "budget_exhausted": budget_exhausted,
+        "pending_boundary_round": pending_indices[0] if pending_indices else None,
+        "interventions_total": len(transaction_ids),
+        "cumulative_dose": cumulative_dose,
+        "cross_round_dose_abs_limit_db": MULTI_ROUND_DOSE_ABS_LIMIT_DB,
+        "restart_idempotent": True,
+    }
+
+
 def write_report(path: Path, report: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
@@ -724,8 +899,13 @@ def main() -> int:
     parser.add_argument("--settlement-probe", choices=sorted(SETTLEMENT_PROBE_ANSWERS), default="", help="after the boundary validation, submit a machine-origin judgment and machine-check the settlement receipt; the default mode without this flag keeps asserting settled is False")
     parser.add_argument("--prompt-flavor", choices=sorted(PROMPT_FLAVORS), default="neutral", help="case-agnostic open-prompt flavor; frequency steers the proposal toward the admitted static_eq domain")
     parser.add_argument("--expect-domain", choices=sorted(ADMITTED_DOMAIN_KINDS) + ["any"], default="any", help="require the run to autonomously select this admitted domain (regression pin) or any admitted domain")
+    parser.add_argument("--multi-round-probe", action="store_true", help="D2-2-S3 multi-round probe: assert multi-round continuation against the D2-1 dose bounds instead of the single-round D1 tail; TODO the deterministic drive waits on the D2-2-S2 injection channel, so a run may legally report NOT_EXERCISED (exit 3)")
     parser.add_argument("--verify-settled", default="", help="verify a previously settled probe report after an agent restart (path to d1_smoke_report.json)")
     args = parser.parse_args()
+    if args.multi_round_probe and args.settlement_probe:
+        parser.error("--multi-round-probe cannot be combined with --settlement-probe")
+    if args.multi_round_probe and args.admission_only:
+        parser.error("--multi-round-probe cannot be combined with --admission-only")
     output = Path(args.output).resolve()
     if args.verify_settled:
         verification = verify_settled_after_restart(args.agent_http, Path(args.verify_settled).resolve(), args.timeout_sec)
@@ -841,6 +1021,20 @@ def main() -> int:
             write_report(output, report)
             print(f"D1-S1 NOT_EXERCISED: report={output}")
             return NOT_EXERCISED_EXIT
+        if args.multi_round_probe:
+            # D2-2-S3: the multi-round probe owns the run tail; the single-round
+            # D1 assertions below stay untouched and are intentionally not run.
+            try:
+                report["multi_round_probe"] = validate_d2_multi_round(args.agent_http, conversation_id, report["project_setup"]["project_path"], responses, args.timeout_sec, args.public_case_id, run_started)
+            except MultiRoundNotExercised as exc:
+                report.update({"status": "not_exercised", "reason": str(exc), "finished_at": dt.datetime.now(dt.timezone.utc).isoformat()})
+                write_report(output, report)
+                print(f"D1-S1 NOT_EXERCISED(MULTI_ROUND): report={output}")
+                return NOT_EXERCISED_EXIT
+            report.update({"status": "multi_round_probe_pass", "finished_at": dt.datetime.now(dt.timezone.utc).isoformat()})
+            write_report(output, report)
+            print(f"D1-S1 MULTI_ROUND_PROBE PASS: report={output}")
+            return 0
         report["validation"] = validate_d1(args.agent_http, conversation_id, responses, args.timeout_sec, args.public_case_id)
         if args.settlement_probe:
             # The probe judgment is machine-originated and permanently marked

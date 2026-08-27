@@ -16,7 +16,15 @@ param(
     [ValidateSet("neutral", "frequency")]
     [string]$PromptFlavor = "neutral",
     [ValidateSet("any", "track_gain", "static_eq")]
-    [string]$ExpectDomain = "any"
+    [string]$ExpectDomain = "any",
+    # D2-2-S3 multi-round probe switch: passes --multi-round-probe to the
+    # runner, which swaps the single-round D1 tail for the independent
+    # validate_d2_multi_round assertions. TODO(D2-2-S2): the deterministic
+    # multi-round drive (memory gear-on + dose-calibration scenario injection)
+    # waits on the D2-2-S2 parameter-injection channel; until it merges an
+    # open-prompt run usually reports NOT_EXERCISED (exit 3), which is a
+    # recorded acceptable outcome, not something to paper over.
+    [switch]$MultiRoundProbe
 )
 
 Set-StrictMode -Version Latest
@@ -28,6 +36,9 @@ if ([string]::IsNullOrWhiteSpace($PublicManifest)) {
 $PublicManifest = (Resolve-Path -LiteralPath $PublicManifest).Path
 if (($PublicManifest -split '[\\/]') -contains 'sealed') {
     throw "D1 smoke refuses manifest paths containing a sealed segment"
+}
+if ($MultiRoundProbe -and ($AdmissionOnly -or $SettlementProbe -ne "")) {
+    throw "-MultiRoundProbe owns the run tail and cannot be combined with -AdmissionOnly or -SettlementProbe"
 }
 
 $stamp = Get-Date -Format "yyyyMMdd_HHmmss"
@@ -126,6 +137,12 @@ try {
     }
     if ($ExpectDomain -ne "any") {
         $smokeArgs += @("--expect-domain", $ExpectDomain)
+    }
+    if ($MultiRoundProbe) {
+        # TODO(D2-2-S2): the deterministic multi-round drive (gear-on + dose
+        # calibration scenario injection) is added here once the D2-2-S2
+        # parameter-injection channel design merges.
+        $smokeArgs += "--multi-round-probe"
     }
     & python @smokeArgs
     $runnerExit = $LASTEXITCODE
