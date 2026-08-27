@@ -52,3 +52,25 @@ Date: 2026-08-26 晚窗。Status: S2b 已提交并首审通过；S3 部分收口
 
 - 全量 `go test ./...` 通过（两次；期间触发两个已知 Windows 时序型 flaky——`TestProductionFreeStateRunnerObservationsSurviveDurableSlices` 与 `TestProcessorCertificationStartAcceptsBroadbandCompressorCapability` TempDir 清理竞态，单跑均稳定通过，见 docs/TEMPDIR_FLAKY_EVIDENCE_2026-08-26.md，与本轮改动无关联面）。
 - S1/S2a 均为无行为变化或未接线改动，按仓库验收纪律**不要求**真实栈烟测；S2b 接线后必须过烟测才可继续放行。
+
+## 早窗诊断（2026-08-27，GLM L2 诊断会话，IDLE-1 并入）
+
+按 IDLE-1 程序挖掘 210107/210831/211231（失败）与 211629（对照）盘上轨迹，S3 第 5 条悬案破案：**模型的 `unsupported_action_domain` 拒答不是幻觉，是对运行时自身弹回消息的转述**。
+
+### 证据链（三层弹回，前两层已修）
+
+1. **协议层域枚举缺 static_eq（已修）**：模型实际提交了完整合规提案（300Hz / gain -1.0dB / q 1.0，hypothesis/expected_effect/evidence_refs 齐全，见 210107 runtime state 内嵌对话），被 agentloop final_gate 以 `invalid free_state decision: improvement_proposal: unsupported action_domain "static_eq"` 弹回——`agentprotocol/types.go` 的 `ImprovementProposal.Validate()` 硬编码 11 域枚举（有 `eq` 无 `static_eq`），S1 只扩了 experiment 准入域表，漏了这层协议词汇表。模型收到 `<final_gate>` 反馈后归因为"运行时不支持该域"，settle capability_blocked。修复：新增常量 `ImprovementActionDomainStaticEQ` 并加入枚举；回归测试 `TestImprovementProposalAdmitsStaticEQ`（参数取自 210107 被弹回的真实提案）。
+2. **提案接受后的原生域路由缺 static_eq（已修）**：枚举修复后首跑（20260827_085339）模型自主提出 static_eq、G1–G7 全过、admission TypedAction 落地（gain -1 / 300Hz / q 1.2），但提案确认后停在 `improvement_proposal_processor_family_missing`——`chat/improvement_proposal_workflow.go` 的 `routeAcceptedImprovementProposalNativeDomain` 只给 track_gain/pan 构造 PendingMixTickCandidate，static_eq 掉进 processor family 缺失分支，永远到不了 S2b 已接好的 mix-tick 执行分发。修复：原生域路由器加 static_eq 分支（route 时校验 gain_db 非零 ±2，typed 频率/Q 权威仍在 admission）；回归测试 `TestAcceptedStaticEQProposalRoutesToMixTickTools` + `TestAcceptedStaticEQProposalRejectsUnboundedGain`。
+3. **D1 回执投影域硬编码（已修）**：`chat/free_state_d1_receipt.go` 把 `action_domain/kind` 硬编码为 track_gain 常量（20260827_090337 的 d1_receipt 实证）；改为与执行链同源的 admission TypedAction 读取。
+4. **真实 EQ 插件执行语义缺口（未修，判归 D2-1.5-S1）**：路由修复后第二跑（20260827_090337）干预进入执行段并记入 round，内核回错 `plugin_identifier not found in known plugin list: juce_eq`——`defaultD1StaticEQPluginIdentifier="juce_eq"` 是不存在的占位符；暂存内核 knownPluginList 为空（从未扫描）。更深一层：S2a 端口的值语义（set 发原始 dB `value`、回读 `value/current_value` 与目标 dB 0.001 容差比对）与真实 VST3 插件不符——真实插件参数是归一化 0..1 + value_text 物理显示（C2 矩阵的 `temp/c2-matrix-final/*.parameters.json` 为内核 get_plugin_parameters 真实输出样本），成熟先例（`chat/plugin_compressor_apply.go` 的 eqWriteStep 事务探测 + `plugin.set_params_batch` normalized_value + 物理值回读）才是正确模式。封存 fixture 无预置插件（盲测契约），插件引用须由环境注入（config 或 admission），不得硬编码机器特定路径进 agent 代码。PCA 载入门只守 agent invoke 通道、不拦 VSP 执行通道（2026-08-27 实测 400 `pca_load_gate`），S2a 端口的 VSP 路线不受影响。
+
+### 烟测结果（2026-08-27）
+
+- 20260827_085339（frequency/static_eq）：fail @ "D1 must contain exactly one forward mutation"——提案被接受但干预未执行（根因 2）。
+- 20260827_090337（frequency/static_eq）：fail @ "D1 receipt requires distinct before/after revisions"——干预已执行进 round，内核插件解析失败（根因 4）。
+- **原开放项"模型拒提 static_eq"视为已解决**：两跑均证明模型在 frequency flavor 下自主提出 static_eq 且全链受理至执行段。
+- 中性/track_gain 回归未跑（本轮改动不含 track_gain 路径行为；全量 go test 含全部 track_gain 链路测试绿）。
+
+### D2-1 关账口径（修订）
+
+D2-1 保持 doing：新开放项 = 根因 4（真实 EQ 插件执行语义），按用户裁定 ① 的排序落入 D2-1.5-S1（执行层表驱动）范围——该卡本就含 `staticeq_vsp.go` 泛化与参数端口化。D2-1.5-S1 完成后回补一次 frequency 烟测（期望 exit 0）即关账 D2-1。few-shot/口径放宽维持搁置（用户裁定 ③）。

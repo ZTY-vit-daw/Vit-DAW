@@ -120,8 +120,11 @@ func syncD1Receipt(loop *freeStateReasoningLoop) {
 	if err := receipt.Validate(); err != nil {
 		projection["validation_error"] = err.Error()
 	}
-	projection["action_domain"] = experiment.D1S1ActionDomain
-	projection["action_kind"] = experiment.D1S1ActionKind
+	// The receipt projection must state the admitted domain, not the legacy
+	// track_gain constant: D2-1 static_eq rounds would otherwise surface a
+	// wrong-domain D1 receipt (observed in the 2026-08-27 09:03 smoke run).
+	projection["action_domain"] = firstNonEmpty(firstStringFromMap(loop.Experiment.Admission.TypedAction, "action_domain", "domain"), experiment.D1S1ActionDomain)
+	projection["action_kind"] = firstNonEmpty(firstStringFromMap(loop.Experiment.Admission.TypedAction, "action_kind", "kind"), experiment.D1S1ActionKind)
 	projection["forward_mutation_count"] = len(round.Interventions)
 	projection["rollback_compensation_count"] = map[bool]int{true: 1, false: 0}[rolledBack]
 	projection["before_render"] = cloneContext(beforeRender)

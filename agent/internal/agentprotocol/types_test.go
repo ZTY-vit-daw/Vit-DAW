@@ -131,3 +131,31 @@ func TestAcousticPackageStatusEventSerializes(t *testing.T) {
 		t.Fatalf("decoded = %+v", decoded)
 	}
 }
+
+// TestImprovementProposalAdmitsStaticEQ locks the D2-1 root cause fix: the
+// protocol vocabulary must include static_eq so a bounded static_eq proposal
+// from the model reaches the experiment admission gate instead of dying at
+// the final gate with "unsupported action_domain". Parameters mirror the
+// rejected proposal observed in artifacts run 20260826_210107.
+func TestImprovementProposalAdmitsStaticEQ(t *testing.T) {
+	proposal := ImprovementProposal{
+		SchemaVersion:     ImprovementProposalSchema,
+		Target:            map[string]any{"kind": "track", "id": "1027"},
+		EvidenceRefs:      []string{"obs_20260826T130325_a3ef41152c2f"},
+		ImprovementIntent: "衰减人声 200-400Hz 的中低频堆积",
+		Hypothesis:        "在 300Hz 附近进行小幅静态 EQ 衰减可在保持整体电平平衡的同时减少中低频能量堆积",
+		ExpectedEffect:    "200-400Hz 区域浑浊感减弱，人声音色更清晰透亮",
+		ActionDomain:      ImprovementActionDomainStaticEQ,
+		ActionKind:        "static_eq_band_adjust",
+		Confidence:        0.5,
+		ParameterBounds:   map[string]any{"gain_db": -1.0, "frequency_hz": 300.0, "q": 1.0},
+		RiskClass:         "reversible_bounded_experiment",
+	}
+	if err := proposal.Validate(); err != nil {
+		t.Fatalf("static_eq proposal should validate: %v", err)
+	}
+	candidate := proposal.ToPendingCandidate("chat_1", "goal_1", "run_1", "now")
+	if candidate.Domain != ImprovementActionDomainStaticEQ || candidate.ActionKind != "static_eq_band_adjust" {
+		t.Fatalf("unexpected candidate routing: %+v", candidate)
+	}
+}

@@ -15,6 +15,7 @@ const (
 	ImprovementActionDomainClipGain          = "clip_gain"
 	ImprovementActionDomainPan               = "pan"
 	ImprovementActionDomainEQ                = "eq"
+	ImprovementActionDomainStaticEQ          = "static_eq"
 	ImprovementActionDomainCompressor        = "compressor"
 	ImprovementActionDomainLimiter           = "limiter"
 	ImprovementActionDomainGateExpander      = "gate_expander"
@@ -125,6 +126,7 @@ func (p ImprovementProposal) Validate() error {
 	switch strings.ToLower(strings.TrimSpace(p.ActionDomain)) {
 	case ImprovementActionDomainTrackGain, ImprovementActionDomainClipGain,
 		ImprovementActionDomainPan, ImprovementActionDomainEQ,
+		ImprovementActionDomainStaticEQ,
 		ImprovementActionDomainCompressor, ImprovementActionDomainLimiter,
 		ImprovementActionDomainGateExpander, ImprovementActionDomainDeEsser,
 		ImprovementActionDomainTransientShaper, ImprovementActionDomainMultibandDynamics,

@@ -340,3 +340,66 @@ func TestAutomaticProposalTextConfirmationKeepsTaskIdentityAndPendingProjection(
 		t.Fatalf("durable exact-action boundary changed identity: %+v ok=%v", durable, ok)
 	}
 }
+
+// TestAcceptedStaticEQProposalRoutesToMixTickTools locks the D2-1 second
+// bounce-point fix: an accepted static_eq proposal must reach the pending mix
+// tick (the durable D1-S1 execution chain dispatches from there), instead of
+// dying at improvement_proposal_processor_family_missing (observed in the
+// 2026-08-27 08:53 real-stack run).
+func TestAcceptedStaticEQProposalRoutesToMixTickTools(t *testing.T) {
+	server := New(nil, shadow.New(nil), nil)
+	proposal := agentprotocol.ImprovementProposal{
+		SchemaVersion: agentprotocol.ImprovementProposalSchema,
+		Target:        map[string]any{"kind": "track", "id": "vox"}, EvidenceRefs: []string{"obs_vox"},
+		ImprovementIntent: "衰减人声中低频堆积", Hypothesis: "300Hz 附近小幅静态 EQ 衰减可减少浑浊感", ExpectedEffect: "可进行 A/B 比较",
+		ActionDomain: agentprotocol.ImprovementActionDomainStaticEQ, ActionKind: "static_eq_band_adjust", Confidence: 0.5,
+		ParameterBounds: map[string]any{"gain_db": -1.0, "frequency_hz": 300.0, "q": 1.2},
+	}
+	loop := freeStateReasoningLoop{
+		SchemaVersion: freeStateReasoningLoopSchema, LoopID: "free-state-staticeq", ConversationID: "chat-staticeq",
+		Status: "awaiting_experiment", OriginalIntent: proposal.ImprovementIntent, ActiveIntent: proposal.ImprovementIntent,
+		TargetRef: map[string]any{"kind": "track", "id": "vox"}, MaxCycles: 6,
+		LatestObservation: &agentloop.RecentObservation{Tool: "ccb.observation_request", Summary: map[string]any{"observation_id": "obs_vox"}},
+	}
+	server.storeFreeStateLoop(loop)
+	response := server.continueImprovementProposalInteraction(context.Background(), PendingInteraction{
+		ConversationID: "chat-staticeq", GoalID: "goal-staticeq", RunID: "run-staticeq", Workflow: improvementProposalWorkflow,
+		Payload: map[string]any{"proposal": agentprotocol.ToMap(proposal), "request_context": map[string]any{
+			"selected_track_id": "vox", "free_state_reasoning_loop": freeStateLoopMap(loop),
+		}},
+	}, "approve")
+	if response.Workflow != "mix_tick" || !response.NeedsConfirmation || response.StopReason != "improvement_proposal_native_tool_confirmation_required" {
+		t.Fatalf("static_eq proposal did not reach mix tick confirmation: %+v", response)
+	}
+	candidate, ok := server.pendingMixTickForConversation("chat-staticeq")
+	if !ok || candidate.Operation != "static_eq_band_adjust" || candidate.TrackID != "vox" {
+		t.Fatalf("static_eq native tool candidate = %+v ok=%v", candidate, ok)
+	}
+}
+
+func TestAcceptedStaticEQProposalRejectsUnboundedGain(t *testing.T) {
+	server := New(nil, shadow.New(nil), nil)
+	proposal := agentprotocol.ImprovementProposal{
+		SchemaVersion: agentprotocol.ImprovementProposalSchema,
+		Target:        map[string]any{"kind": "track", "id": "vox"}, EvidenceRefs: []string{"obs_vox"},
+		ImprovementIntent: "衰减人声中低频堆积", Hypothesis: "小幅静态 EQ 衰减", ExpectedEffect: "可进行 A/B 比较",
+		ActionDomain: agentprotocol.ImprovementActionDomainStaticEQ, ActionKind: "static_eq_band_adjust", Confidence: 0.5,
+		ParameterBounds: map[string]any{"gain_db": 6.0, "frequency_hz": 300.0},
+	}
+	loop := freeStateReasoningLoop{
+		SchemaVersion: freeStateReasoningLoopSchema, LoopID: "free-state-staticeq-b", ConversationID: "chat-staticeq-b",
+		Status: "awaiting_experiment", OriginalIntent: proposal.ImprovementIntent, ActiveIntent: proposal.ImprovementIntent,
+		TargetRef: map[string]any{"kind": "track", "id": "vox"}, MaxCycles: 6,
+		LatestObservation: &agentloop.RecentObservation{Tool: "ccb.observation_request", Summary: map[string]any{"observation_id": "obs_vox"}},
+	}
+	server.storeFreeStateLoop(loop)
+	response := server.continueImprovementProposalInteraction(context.Background(), PendingInteraction{
+		ConversationID: "chat-staticeq-b", GoalID: "goal-staticeq-b", RunID: "run-staticeq-b", Workflow: improvementProposalWorkflow,
+		Payload: map[string]any{"proposal": agentprotocol.ToMap(proposal), "request_context": map[string]any{
+			"selected_track_id": "vox", "free_state_reasoning_loop": freeStateLoopMap(loop),
+		}},
+	}, "approve")
+	if response.StopReason != "improvement_proposal_static_eq_bounds_missing" {
+		t.Fatalf("unbounded static_eq gain must fail closed, got stop reason %q", response.StopReason)
+	}
+}

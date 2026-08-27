@@ -238,7 +238,8 @@ func (s *Server) routeAcceptedImprovementProposal(ctx context.Context, interacti
 // before it can write project state.
 func (s *Server) routeAcceptedImprovementProposalNativeDomain(ctx context.Context, interaction PendingInteraction, proposal agentprotocol.ImprovementProposal, requestContext map[string]any) (ChatResponse, bool) {
 	domain := strings.ToLower(strings.TrimSpace(proposal.ActionDomain))
-	if domain != agentprotocol.ImprovementActionDomainTrackGain && domain != agentprotocol.ImprovementActionDomainPan {
+	if domain != agentprotocol.ImprovementActionDomainTrackGain && domain != agentprotocol.ImprovementActionDomainPan &&
+		domain != agentprotocol.ImprovementActionDomainStaticEQ {
 		return ChatResponse{}, false
 	}
 	trackID := improvementProposalTrackID(proposal)
@@ -274,6 +275,15 @@ func (s *Server) routeAcceptedImprovementProposalNativeDomain(ctx context.Contex
 		} else {
 			return improvementProposalBoundaryResponse(interaction, "已确认改善方向，但声像工具需要一个非零且不超过 +/-0.15 的 delta_pan，或 -1 到 +1 的 target_pan；没有修改工程。", "improvement_proposal_pan_bounds_missing"), true
 		}
+	case agentprotocol.ImprovementActionDomainStaticEQ:
+		// D2-1: the admitted typed action (frequency/band/Q) stays
+		// authoritative on the experiment admission; this route only carries
+		// the bounded band gain so the mix tick mirrors the track_gain gate.
+		gainDB, ok := treatmentNumber(proposal.ParameterBounds, "gain_db")
+		if !ok || gainDB == 0 || math.Abs(gainDB) > 2 {
+			return improvementProposalBoundaryResponse(interaction, "已确认改善方向，但静态 EQ 工具需要一个非零且不超过 +/-2 dB 的明确 gain_db；没有修改工程。", "improvement_proposal_static_eq_bounds_missing"), true
+		}
+		candidate.Operation = d1StaticEQKind
 	}
 
 	s.storePendingMixTickCandidate(interaction.ConversationID, interaction.GoalID, interaction.RunID, candidate)
