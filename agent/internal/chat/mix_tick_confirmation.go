@@ -165,6 +165,7 @@ func (s *Server) executePendingMixTickCandidate(ctx context.Context, conversatio
 			s.logger.Warn("[mix.tick.pending] candidate validation failed conversation=%s %s err=%v", conversationID, pendingMixTickLogSummary(candidate), err)
 		}
 		s.expirePendingMixTick(conversationID)
+		s.settlePendingMixTickDurable(conversationID, agentprotocol.PendingStatusFailed, "pending mix tick candidate validation failed: "+err.Error())
 		return ChatResponse{
 			ConversationID: conversationID,
 			AgentMode:      mode,
@@ -180,12 +181,14 @@ func (s *Server) executePendingMixTickCandidate(ctx context.Context, conversatio
 		if strings.EqualFold(strings.TrimSpace(firstStringFromMap(loop.Experiment.Admission.TypedAction, "action_domain", "domain")), d1StaticEQDomain) {
 			if response, handled := s.executeD1StaticEQ(ctx, conversationID, req, candidate); handled {
 				s.expirePendingMixTick(conversationID)
+				s.settlePendingMixTickDurable(conversationID, agentprotocol.PendingStatusCommitted, "executed by D1-S1 static_eq chain")
 				return response
 			}
 		}
 	}
 	if response, handled := s.executeD1TrackGain(ctx, conversationID, req, candidate); handled {
 		s.expirePendingMixTick(conversationID)
+		s.settlePendingMixTickDurable(conversationID, agentprotocol.PendingStatusCommitted, "executed by D1-S1 track_gain chain")
 		return response
 	}
 	projectPath := projectPathFromChatContext(req.Context)
@@ -337,6 +340,23 @@ func (s *Server) expirePendingMixTick(conversationID string) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	delete(s.pendingMixTicks, conversationID)
+}
+
+// settlePendingMixTickDurable closes the durable pending record behind an
+// in-memory expiry. Without this, drained continuations keep projecting the
+// consumed confirmation as a waiting interaction, and drivers re-approve the
+// expired interaction, which recovers and re-routes a candidate whose
+// experiment budget is already spent.
+func (s *Server) settlePendingMixTickDurable(conversationID, status, reason string) {
+	if s == nil || strings.TrimSpace(conversationID) == "" || s.pendingManager == nil {
+		return
+	}
+	for _, candidate := range s.pendingManager.ActiveForConversation(conversationID) {
+		if candidate.Source.LegacyKind != "PendingMixTickCandidate" && candidate.Source.LegacySchema != "mix_tick.pending.v0" {
+			continue
+		}
+		s.pendingManager.Transition(candidate.ID, status, reason)
+	}
 }
 
 func (s *Server) storePendingMixTickCandidate(conversationID, goalID, runID string, candidate agentloop.PendingMixTickCandidate) {
