@@ -25,6 +25,11 @@ import (
 const d1StaticEQDomain = "static_eq"
 const d1StaticEQKind = "static_eq_band_adjust"
 
+// D2-1.5 broadband_compression mirrors the experiment table row; the values
+// live here only as routing labels (the table remains the bounds authority).
+const d1BroadbandCompressionDomain = "broadband_compression"
+const d1BroadbandCompressionKind = "broadband_threshold_adjust"
+
 // d1StaticEQCapabilityID identifies the bounded static EQ band adjustment in
 // the frozen ActionSet/Proposal. The D1 execution path routes by the explicit
 // mutation port (StaticEQVSPPort), so no capability registry registration is
@@ -49,6 +54,10 @@ type d1JournalMutationPort struct {
 	// staticEQ switches the journal shape to the D2-1 static_eq variant
 	// (set_plugin_param). The zero value keeps the D1-S1 track_gain shape.
 	staticEQ bool
+	// journalSpec, when resolved, drives the same audit shape from any domain
+	// table row; it supersedes the bool. Existing rows produce byte-identical
+	// records either way.
+	journalSpec *experiment.D1S1DomainSpec
 }
 
 func (p *d1JournalMutationPort) Preflight(ctx context.Context, set orchestration.ActionSet, cut orchestration.ProjectCut) error {
@@ -57,7 +66,13 @@ func (p *d1JournalMutationPort) Preflight(ctx context.Context, set orchestration
 
 func (p *d1JournalMutationPort) Apply(ctx context.Context, action orchestration.Action, key string) (orchestration.ActionReceipt, error) {
 	if _, exists := p.harness.JournalGet(action.ID); !exists {
-		p.harness.JournalRecord(d1JournalRecordForAction(p.staticEQ, action.ID, p.goalID, p.runID, action.TargetRef, action.Args))
+		var record journal.Action
+		if p.journalSpec != nil {
+			record = d1JournalRecordForSpec(*p.journalSpec, action.ID, p.goalID, p.runID, action.TargetRef, action.Args)
+		} else {
+			record = d1JournalRecordForAction(p.staticEQ, action.ID, p.goalID, p.runID, action.TargetRef, action.Args)
+		}
+		p.harness.JournalRecord(record)
 	}
 	receipt, err := p.inner.Apply(ctx, action, key)
 	status := journal.StatusSucceeded
@@ -263,22 +278,29 @@ func (s *Server) executeD1TrackGain(ctx context.Context, conversationID string, 
 	return s.projectD1Execution(loop, session, err), true
 }
 
-// executeD1StaticEQ mirrors executeD1TrackGain for the bounded static EQ
-// band adjustment: the same durable session/plan/authorize/execute shape, with
-// the StaticEQVSPPort (one idempotency key, one receipt) and the static_eq
-// journal variant. track_gain keeps its own function untouched.
+// executeD1StaticEQ mirrors executeD1TrackGain for every PluginBound domain
+// row (static_eq today, broadband_compression added by D2-1.5): the same
+// durable session/plan/authorize/execute shape, with the parameter-driven
+// StaticEQVSPPort (one idempotency key, one receipt, command name injected
+// from the domain table) and the table-shaped journal variant. Per-domain
+// wording comes from the whitelist section label and the experiment table;
+// track_gain keeps its own function untouched.
 func (s *Server) executeD1StaticEQ(ctx context.Context, conversationID string, req ChatRequest, candidate agentloop.PendingMixTickCandidate) (ChatResponse, bool) {
 	loop, ok := s.freeStateLoop(conversationID)
 	if !ok || loop.Experiment == nil || !loop.Experiment.Admission.IsD1S1() {
 		return ChatResponse{}, false
 	}
+	spec, specOK := experiment.D1S1DomainSpecFor(loop.Experiment.Admission)
+	if !specOK || !spec.WriteBinding.PluginBound {
+		return d1BlockedResponse(loop, "D1-S1 plugin-bound execution requires an admitted PluginBound domain"), true
+	}
 	// The experiment plugin whitelist is the execution gate for the real
-	// static_eq plugin path (PCA promoted + fingerprint check included). It
-	// runs before any other dependency work so a configuration or eligibility
-	// refusal is cheap and carries its distinct boundary text; frozen-plan
-	// recovery re-runs the same gate so a mutated whitelist cannot be applied
-	// onto a session that was admitted under different approval evidence.
-	binding, bindingErr := resolveD1StaticEQWhitelistBinding(loop.Experiment.Admission.TypedAction)
+	// plugin path (PCA promoted + fingerprint check included). It runs before
+	// any other dependency work so a configuration or eligibility refusal is
+	// cheap and carries its distinct boundary text; frozen-plan recovery
+	// re-runs the same gate so a mutated whitelist cannot be applied onto a
+	// session that was admitted under different approval evidence.
+	binding, bindingErr := resolveD1PluginParamWhitelistBinding(loop.Experiment.Admission.TypedAction)
 	if bindingErr != nil {
 		return d1BlockedResponse(loop, bindingErr.Error()), true
 	}
@@ -319,7 +341,7 @@ func (s *Server) executeD1StaticEQ(ctx context.Context, conversationID string, r
 			return d1BlockedResponse(loop, "D1-S1 project changed while producing the before render"), true
 		}
 		state = afterRender
-		plan, err = d1StaticEQPlanWithBinding(loop, candidate, state.Revision, projectUUID, state.ProjectEpoch, state.SnapshotHash, state.LegacyState, binding)
+		plan, err = d1PluginParamPlanWithBinding(loop, candidate, state.Revision, projectUUID, state.ProjectEpoch, state.SnapshotHash, state.LegacyState, binding)
 		if err != nil {
 			return d1BlockedResponse(loop, err.Error()), true
 		}
@@ -350,9 +372,9 @@ func (s *Server) executeD1StaticEQ(ctx context.Context, conversationID string, r
 		PreviousObservationID: plan.PreviousObservationID, RequireExplicitFresh: true, MixSessionID: sessionID, GoalText: loop.OriginalIntent}}
 	switch session.Status {
 	case orchestration.StatusExecuting, orchestration.StatusVerifying:
-		session, err = s.orchestrationRuntime.ReconcileActionSet(ctx, sessionID, plan.ActionSet, &executionports.StaticEQVSPPort{Client: s.kernel}, verifier)
+		session, err = s.orchestrationRuntime.ReconcileActionSet(ctx, sessionID, plan.ActionSet, &executionports.StaticEQVSPPort{Client: s.kernel, CommandName: spec.ActionKind}, verifier)
 	case orchestration.StatusAuthorized:
-		port := &d1JournalMutationPort{inner: &executionports.StaticEQVSPPort{Client: s.kernel}, harness: s.harness, goalID: loop.GoalID, runID: loop.RunID, staticEQ: true}
+		port := &d1JournalMutationPort{inner: &executionports.StaticEQVSPPort{Client: s.kernel, CommandName: spec.ActionKind}, harness: s.harness, goalID: loop.GoalID, runID: loop.RunID, staticEQ: true, journalSpec: &spec}
 		session, err = s.orchestrationRuntime.ExecuteActionSetWithPersistence(ctx, sessionID, plan.ActionSet, plan.ProjectCut, port, verifier,
 			executionports.ProjectHistory{Harness: s.harness, GoalID: loop.GoalID, RunID: loop.RunID})
 	case orchestration.StatusCompleted, orchestration.StatusNeedsReview:
@@ -414,8 +436,8 @@ func (s *Server) projectD1Execution(loop freeStateReasoningLoop, session orchest
 		"human_audition_ready": false, "human_confirmed": false, "ambiguous": false, "rolled_back": false, "settled": false,
 		"improvement_receipt": cloneContext(loop.D1Receipt)}
 	reply := "D1-S1 track gain parameter was applied and read back. Fresh post-action evidence is recorded separately; acoustic materiality, target response, and human judgment remain pending."
-	if admissionDomain == d1StaticEQDomain {
-		reply = "D2-1 static EQ band parameter was applied and read back. Fresh post-action evidence is recorded separately; acoustic materiality, target response, and human judgment remain pending."
+	if spec, ok := experiment.D1S1DomainSpecFor(loop.Experiment.Admission); ok && spec.AppliedReplyText != "" {
+		reply = spec.AppliedReplyText
 	}
 	response := ChatResponse{ConversationID: loop.ConversationID, GoalID: loop.GoalID, RunID: loop.RunID, Workflow: "free_state_d1_s1", WorkflowData: data,
 		Reply:      reply,

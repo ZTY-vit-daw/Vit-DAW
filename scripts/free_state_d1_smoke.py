@@ -20,14 +20,20 @@ OPEN_PROMPT = "检查一下当前工程有什么问题？"
 # Prompt flavors are case-agnostic on purpose (the fixture blindness contract
 # requires one neutral prompt per flavor across all cases; no sealed truth is
 # encoded here). The frequency flavor expresses a listening goal that steers
-# the free-state proposal toward the admitted static_eq domain.
+# the free-state proposal toward the admitted static_eq domain; the compression
+# flavor steers toward the admitted broadband_compression domain the same way.
 PROMPT_FLAVORS = {
     "neutral": OPEN_PROMPT,
     "frequency": "人声在 200-400Hz 听起来浑浊（boxy），但各轨电平平衡已经合适，不要用整体增益来解决。请先观察工程，再针对这个频段给一个有界的小步改进建议。",
+    "compression": "整轨动态听起来被压得过平（over-compressed），但各轨电平平衡已经合适，不要用整体增益或 EQ 来解决。请先观察工程，再针对这个动态问题给一个有界的小步改进建议。",
 }
 # The D2-1 domain table mirrored for runner-side gating. Admission itself is
 # always decided by the agent's experiment domain table, never here.
-ADMITTED_DOMAIN_KINDS = {"track_gain": "track_gain_adjust", "static_eq": "static_eq_band_adjust"}
+ADMITTED_DOMAIN_KINDS = {
+    "track_gain": "track_gain_adjust",
+    "static_eq": "static_eq_band_adjust",
+    "broadband_compression": "broadband_threshold_adjust",
+}
 NOT_EXERCISED_EXIT = 3
 ACTIVE_CONTINUATION_STATUSES = {"pending", "claimed", "running"}
 FORBIDDEN_SELECTION_KEYS = {

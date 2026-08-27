@@ -22,10 +22,11 @@ func freeStateExperimentAdmission(loop freeStateReasoningLoop, proposal *agentpr
 		return experiment.Admission{}, fmt.Errorf("improvement proposal is required")
 	}
 	// The D2-1 domain table is the production admission boundary: track_gain
-	// keeps its original shape and static_eq is admitted with equally tight
-	// per-domain bounds. Domain+kind must match one table row (D1S1DomainSpecFor)
-	// so a hybrid action cannot borrow a domain's bounds.
-	if _, ok := experiment.D1S1DomainSpecFor(experiment.Admission{TypedAction: map[string]any{"action_domain": proposal.ActionDomain, "action_kind": proposal.ActionKind}}); !ok {
+	// keeps its original shape and plugin-bound domains are admitted with
+	// equally tight per-domain bounds. Domain+kind must match one table row
+	// (D1S1DomainSpecFor) so a hybrid action cannot borrow a domain's bounds.
+	spec, specOK := experiment.D1S1DomainSpecFor(experiment.Admission{TypedAction: map[string]any{"action_domain": proposal.ActionDomain, "action_kind": proposal.ActionKind}})
+	if !specOK {
 		return experiment.Admission{}, fmt.Errorf("D1-S1 production entry admits only the D2-1 domain table domains with matching action_kind (%s)", strings.Join(experiment.D1S1AdmittedDomains(), ", "))
 	}
 	bounds := cloneContext(proposal.ParameterBounds)
@@ -41,24 +42,28 @@ func freeStateExperimentAdmission(loop freeStateReasoningLoop, proposal *agentpr
 		checkpoint = "pending:" + firstNonEmpty(loop.LoopID, "free-state-experiment")
 	}
 	budget := 1
-	deltaDB, _ := treatmentNumber(proposal.ParameterBounds, "delta_db", "db_delta", "gain_delta_db")
-	typedAction := map[string]any{"action_domain": proposal.ActionDomain, "action_kind": proposal.ActionKind, "target_db": proposal.ParameterBounds["target_db"], "delta_db": deltaDB}
-	diagnosticBounds := map[string]any{"source": "proposal", "bounds": cloneContext(bounds), "delta_db": deltaDB, "max_action_attempts": 1}
-	retainedBounds := map[string]any{"source": "proposal", "bounds": cloneContext(bounds), "delta_db": deltaDB, "max_action_attempts": 1}
-	if strings.EqualFold(strings.TrimSpace(proposal.ActionDomain), d1StaticEQDomain) {
-		// D2-1 static_eq: the typed action carries the bounded band parameters
-		// from the proposal (gain_db is the moved parameter; frequency/q/band
-		// are pinned from the domain table), and both dose scopes use gain_db
-		// instead of delta_db. Nothing here relaxes the shared D1-S1 bounds.
-		gainDB, _ := treatmentNumber(proposal.ParameterBounds, "gain_db")
-		typedAction = map[string]any{"action_domain": proposal.ActionDomain, "action_kind": proposal.ActionKind, "gain_db": gainDB}
-		for _, key := range []string{"frequency_hz", "q", "band_index", "plugin_identifier"} {
+	var typedAction map[string]any
+	var diagnosticBounds, retainedBounds map[string]any
+	if !spec.WriteBinding.PluginBound {
+		deltaDB, _ := treatmentNumber(proposal.ParameterBounds, "delta_db", "db_delta", "gain_delta_db")
+		typedAction = map[string]any{"action_domain": proposal.ActionDomain, "action_kind": proposal.ActionKind, "target_db": proposal.ParameterBounds["target_db"], "delta_db": deltaDB}
+		diagnosticBounds = map[string]any{"source": "proposal", "bounds": cloneContext(bounds), "delta_db": deltaDB, "max_action_attempts": 1}
+		retainedBounds = map[string]any{"source": "proposal", "bounds": cloneContext(bounds), "delta_db": deltaDB, "max_action_attempts": 1}
+	} else {
+		// Plugin-bound domains carry their single bounded parameter (named by
+		// the table's AdmissionValueKey) plus the verbatim passthrough keys;
+		// both dose scopes use that key instead of delta_db. Nothing here
+		// relaxes the shared D1-S1 bounds — the row validators remain the
+		// enforcement authority.
+		valueDB, _ := treatmentNumber(proposal.ParameterBounds, spec.AdmissionValueKey)
+		typedAction = map[string]any{"action_domain": proposal.ActionDomain, "action_kind": proposal.ActionKind, spec.AdmissionValueKey: valueDB}
+		for _, key := range spec.AdmissionPassthroughKeys {
 			if value, exists := proposal.ParameterBounds[key]; exists {
 				typedAction[key] = value
 			}
 		}
-		diagnosticBounds = map[string]any{"source": "proposal", "bounds": cloneContext(bounds), "gain_db": gainDB, "max_action_attempts": 1}
-		retainedBounds = map[string]any{"source": "proposal", "bounds": cloneContext(bounds), "gain_db": gainDB, "max_action_attempts": 1}
+		diagnosticBounds = map[string]any{"source": "proposal", "bounds": cloneContext(bounds), spec.AdmissionValueKey: valueDB, "max_action_attempts": 1}
+		retainedBounds = map[string]any{"source": "proposal", "bounds": cloneContext(bounds), spec.AdmissionValueKey: valueDB, "max_action_attempts": 1}
 	}
 	admission := experiment.Admission{
 		SchemaVersion:        experiment.SchemaVersion,

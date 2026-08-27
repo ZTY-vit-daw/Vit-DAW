@@ -10,6 +10,7 @@ import (
 	"vit-daw-agent/internal/agentloop"
 	"vit-daw-agent/internal/agentprotocol"
 	"vit-daw-agent/internal/executor"
+	"vit-daw-agent/internal/experiment"
 	"vit-daw-agent/internal/planner"
 )
 
@@ -175,13 +176,14 @@ func (s *Server) executePendingMixTickCandidate(ctx context.Context, conversatio
 			Error:          err.Error(),
 		}
 	}
-	// D2-1 static_eq: dispatch the same durable D1-S1 execution chain by the
-	// admitted action domain. track_gain keeps its original path byte-identical.
+	// D2-1 static_eq and every later PluginBound domain row: dispatch the same
+	// durable D1-S1 execution chain by the admitted action domain's table row.
+	// track_gain keeps its original path byte-identical.
 	if loop, ok := s.freeStateLoop(conversationID); ok && loop.Experiment != nil && loop.Experiment.Admission.IsD1S1() {
-		if strings.EqualFold(strings.TrimSpace(firstStringFromMap(loop.Experiment.Admission.TypedAction, "action_domain", "domain")), d1StaticEQDomain) {
+		if spec, ok := experiment.D1S1DomainSpecFor(loop.Experiment.Admission); ok && spec.WriteBinding.PluginBound {
 			if response, handled := s.executeD1StaticEQ(ctx, conversationID, req, candidate); handled {
 				s.expirePendingMixTick(conversationID)
-				s.settlePendingMixTickDurable(conversationID, agentprotocol.PendingStatusCommitted, "executed by D1-S1 static_eq chain")
+				s.settlePendingMixTickDurable(conversationID, agentprotocol.PendingStatusCommitted, "executed by D1-S1 "+spec.ActionDomain+" chain")
 				return response
 			}
 		}
@@ -388,9 +390,9 @@ func (s *Server) storePendingMixTickCandidate(conversationID, goalID, runID stri
 
 func (s *Server) validatePendingMixTickCandidate(ctx context.Context, candidate agentloop.PendingMixTickCandidate) error {
 	switch strings.TrimSpace(candidate.Operation) {
-	case "track_gain_adjust", "track_pan_adjust", "track_pan_set", d1StaticEQKind:
+	case "track_gain_adjust", "track_pan_adjust", "track_pan_set", d1StaticEQKind, d1BroadbandCompressionKind:
 	default:
-		return fmt.Errorf("v1 只支持 track_gain_adjust, track_pan_adjust, track_pan_set, static_eq_band_adjust")
+		return fmt.Errorf("v1 只支持 track_gain_adjust, track_pan_adjust, track_pan_set, static_eq_band_adjust, broadband_threshold_adjust")
 	}
 	if strings.TrimSpace(candidate.TrackID) == "" {
 		return fmt.Errorf("缺少 track_id")
@@ -501,6 +503,8 @@ func pendingMixTickHumanSummary(candidate agentloop.PendingMixTickCandidate) str
 		return fmt.Sprintf("调整 %s 的声像", target)
 	case d1StaticEQKind:
 		return fmt.Sprintf("对 %s 执行一次有界的静态 EQ 频段增益调整", target)
+	case d1BroadbandCompressionKind:
+		return fmt.Sprintf("对 %s 执行一次有界的宽带压缩阈值调整", target)
 	default:
 		return fmt.Sprintf("将 %s 的电平调整 %+0.2f dB", target, candidate.DeltaDB)
 	}

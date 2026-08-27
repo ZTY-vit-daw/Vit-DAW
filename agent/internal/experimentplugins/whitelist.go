@@ -2,6 +2,9 @@
 // whitelist used by the D1/D2 free-state experiment channel and validates its
 // PCA v1 admission. It only loads and validates; wiring into plan/ports/
 // smoke tests belongs to the evening S1 slice.
+//
+// Schema v2 adds the broadband_compression section beside static_eq; every
+// static_eq loading/validation behavior is byte-identical to the v1 loader.
 package experimentplugins
 
 import (
@@ -17,7 +20,7 @@ import (
 	"vit-daw-agent/internal/processorattestation"
 )
 
-const SchemaVersion = "vit.free_state_experiment_plugins.v1"
+const SchemaVersion = "vit.free_state_experiment_plugins.v2"
 
 const freeStateExperimentPluginsFileName = "free_state_experiment_plugins.json"
 
@@ -38,12 +41,28 @@ type StaticEQPlugin struct {
 	Bands            []Band `json:"bands"`
 }
 
+// BroadbandCompressionPlugin 是 broadband_compression 域的白名单插件：双通道
+// threshold 参数（PA 系 ch A/B 为独立参数，一次动作单批同写两通道 = 单
+// revision 前进）。与 static_eq 的 band 概念不同，这里没有频点维度。
+type BroadbandCompressionPlugin struct {
+	PluginName          string `json:"plugin_name"`
+	Manufacturer        string `json:"manufacturer"`
+	Format              string `json:"format"`
+	PluginIdentifier    string `json:"plugin_identifier"`
+	PluginPath          string `json:"plugin_path"`
+	ThresholdParamIDCH1 string `json:"threshold_param_id_ch1"`
+	ThresholdParamIDCH2 string `json:"threshold_param_id_ch2"`
+}
+
 type Whitelist struct {
-	SchemaVersion string          `json:"schema_version"`
-	StaticEQ      *StaticEQPlugin `json:"static_eq,omitempty"`
+	SchemaVersion        string                      `json:"schema_version"`
+	StaticEQ             *StaticEQPlugin             `json:"static_eq,omitempty"`
+	BroadbandCompression *BroadbandCompressionPlugin `json:"broadband_compression,omitempty"`
 }
 
 var ErrNotConfigured = errors.New("experiment plugin whitelist: static_eq plugin is not configured")
+
+var ErrCompressionNotConfigured = errors.New("experiment plugin whitelist: broadband_compression plugin is not configured")
 
 func DefaultPath() (string, error) {
 	home, err := os.UserHomeDir()
@@ -73,11 +92,15 @@ func Load(path string) (Whitelist, error) {
 	if whitelist.SchemaVersion != SchemaVersion {
 		return Whitelist{}, fmt.Errorf("experiment plugin whitelist: invalid %s: schema_version must be %q but got %q", path, SchemaVersion, whitelist.SchemaVersion)
 	}
-	if whitelist.StaticEQ == nil {
-		return whitelist, nil
+	if whitelist.StaticEQ != nil {
+		if err := validateStaticEQPlugin(*whitelist.StaticEQ); err != nil {
+			return Whitelist{}, fmt.Errorf("experiment plugin whitelist: invalid %s: %w", path, err)
+		}
 	}
-	if err := validateStaticEQPlugin(*whitelist.StaticEQ); err != nil {
-		return Whitelist{}, fmt.Errorf("experiment plugin whitelist: invalid %s: %w", path, err)
+	if whitelist.BroadbandCompression != nil {
+		if err := validateBroadbandCompressionPlugin(*whitelist.BroadbandCompression); err != nil {
+			return Whitelist{}, fmt.Errorf("experiment plugin whitelist: invalid %s: %w", path, err)
+		}
 	}
 	return whitelist, nil
 }
@@ -141,27 +164,82 @@ func (w Whitelist) ValidateStaticEQAdmission(lib processorattestation.Library) e
 	if w.StaticEQ == nil {
 		return ErrNotConfigured
 	}
+	return w.validateSectionAdmission(
+		"static_eq",
+		w.StaticEQ.PluginName, w.StaticEQ.Manufacturer, w.StaticEQ.Format, w.StaticEQ.PluginIdentifier, w.StaticEQ.PluginPath,
+		processorattestation.FamilyStaticEQ, lib,
+	)
+}
+
+// BroadbandThresholdParams returns the whitelisted dual-channel threshold
+// parameter ids for one broadband_compression execution.
+func (w Whitelist) BroadbandThresholdParams() (thresholdCH1, thresholdCH2 string, err error) {
+	if w.BroadbandCompression == nil {
+		return "", "", ErrCompressionNotConfigured
+	}
+	return w.BroadbandCompression.ThresholdParamIDCH1, w.BroadbandCompression.ThresholdParamIDCH2, nil
+}
+
+// ValidateCompressionAdmission mirrors ValidateStaticEQAdmission for the
+// broadband_compression whitelist section: same subject construction, same
+// v1 library predicate family path, and a distinguishable not-PCA-promoted
+// prefix naming this domain.
+func (w Whitelist) ValidateCompressionAdmission(lib processorattestation.Library) error {
+	if w.BroadbandCompression == nil {
+		return ErrCompressionNotConfigured
+	}
+	return w.validateSectionAdmission(
+		"broadband_compression",
+		w.BroadbandCompression.PluginName, w.BroadbandCompression.Manufacturer, w.BroadbandCompression.Format, w.BroadbandCompression.PluginIdentifier, w.BroadbandCompression.PluginPath,
+		processorattestation.FamilyBroadbandCompressor, lib,
+	)
+}
+
+// validateSectionAdmission is the shared admission predicate core for both
+// whitelist sections. The label appears verbatim in the returned boundary
+// prefix so each domain stays distinguishable upstream.
+func (w Whitelist) validateSectionAdmission(label, pluginName, manufacturer, formatV, identifier, pluginPath string, family string, lib processorattestation.Library) error {
 	subject := processorattestation.Subject{
-		Name:          w.StaticEQ.PluginName,
-		Manufacturer:  w.StaticEQ.Manufacturer,
-		Format:        w.StaticEQ.Format,
-		Identifier:    w.StaticEQ.PluginIdentifier,
-		InstalledPath: w.StaticEQ.PluginPath,
+		Name:          pluginName,
+		Manufacturer:  manufacturer,
+		Format:        formatV,
+		Identifier:    identifier,
+		InstalledPath: pluginPath,
 	}
 	key, err := processorattestation.BuildSubjectKey(subject)
 	if err != nil {
-		return fmt.Errorf("experiment plugin whitelist: static_eq plugin %q: %w", w.StaticEQ.PluginName, err)
+		return fmt.Errorf("experiment plugin whitelist: %s plugin %q: %w", label, pluginName, err)
 	}
-	fingerprint, err := processorattestation.FingerprintPath(w.StaticEQ.PluginPath)
+	fingerprint, err := processorattestation.FingerprintPath(pluginPath)
 	if err != nil {
-		return fmt.Errorf("experiment plugin whitelist: static_eq plugin %q: %w", w.StaticEQ.PluginName, err)
+		return fmt.Errorf("experiment plugin whitelist: %s plugin %q: %w", label, pluginName, err)
 	}
-	result, err := processorattestation.QueryLibraryAdmission(lib, key, fingerprint, processorattestation.FamilyStaticEQ)
+	result, err := processorattestation.QueryLibraryAdmission(lib, key, fingerprint, family)
 	if err != nil {
-		return fmt.Errorf("experiment plugin whitelist: static_eq plugin %q: %w", w.StaticEQ.PluginName, err)
+		return fmt.Errorf("experiment plugin whitelist: %s plugin %q: %w", label, pluginName, err)
 	}
 	if !result.Eligible {
-		return fmt.Errorf("experiment plugin whitelist: static_eq plugin is not PCA-promoted: plugin %q reason %q", w.StaticEQ.PluginName, result.Reason)
+		return fmt.Errorf("experiment plugin whitelist: %s plugin is not PCA-promoted: plugin %q reason %q", label, pluginName, result.Reason)
+	}
+	return nil
+}
+
+func validateBroadbandCompressionPlugin(plugin BroadbandCompressionPlugin) error {
+	for _, missing := range []struct{ field, value string }{
+		{"plugin_name", plugin.PluginName},
+		{"manufacturer", plugin.Manufacturer},
+		{"format", plugin.Format},
+		{"plugin_identifier", plugin.PluginIdentifier},
+		{"plugin_path", plugin.PluginPath},
+		{"threshold_param_id_ch1", plugin.ThresholdParamIDCH1},
+		{"threshold_param_id_ch2", plugin.ThresholdParamIDCH2},
+	} {
+		if missing.value == "" {
+			return fmt.Errorf("broadband_compression %s must be non-empty", missing.field)
+		}
+	}
+	if plugin.ThresholdParamIDCH1 == plugin.ThresholdParamIDCH2 {
+		return fmt.Errorf("broadband_compression threshold_param_id_ch1 must differ from threshold_param_id_ch2")
 	}
 	return nil
 }

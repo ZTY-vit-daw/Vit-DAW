@@ -55,7 +55,7 @@ type D1S1WriteBinding struct {
 // authority.
 type D1S1DomainSpec struct {
 	ActionDomain string
-	ActionKind string
+	ActionKind   string
 	// PromptParameterHint is the model-facing description of this domain's
 	// parameter_bounds shape and absolute bounds. It is derived wording only:
 	// admitting a domain or editing this hint never changes what
@@ -83,12 +83,26 @@ type D1S1DomainSpec struct {
 	Journal D1S1JournalShape
 	// WriteBinding routes the parameter write.
 	WriteBinding D1S1WriteBinding
+
+	// AdmissionValueKey names the typed-action key carrying this domain's
+	// single bounded dB move ("delta_db"/"gain_db"/"threshold_db"). The chat
+	// admission assembler reads it to shape TypedAction and both dose-bounds
+	// maps; the per-row validators remain the bounds authority.
+	AdmissionValueKey string
+	// AdmissionPassthroughKeys lists optional proposal ParameterBounds keys
+	// that are copied verbatim into TypedAction (e.g. a plugin_identifier
+	// pinning, which the whitelist gate still validates).
+	AdmissionPassthroughKeys []string
+	// AppliedReplyText is the human reply wording used once this domain's
+	// single action is applied and read back. It is wording only: execution
+	// outcomes never depend on it.
+	AppliedReplyText string
 }
 
 var d1s1Domains = []D1S1DomainSpec{
 	{
-		ActionDomain: D1S1ActionDomain,
-		ActionKind:   D1S1ActionKind,
+		ActionDomain:        D1S1ActionDomain,
+		ActionKind:          D1S1ActionKind,
 		PromptParameterHint: `parameter_bounds={"delta_db":<nonzero number within +/-2>}`,
 		ValidateDoseBounds: func(scope string, bounds map[string]any) error {
 			delta, ok := mapNumber(bounds, "delta_db")
@@ -111,14 +125,16 @@ var d1s1Domains = []D1S1DomainSpec{
 				{Arg: "target_db", CommandKey: "db"},
 			},
 		},
-		WriteBinding: D1S1WriteBinding{Channels: 1},
+		WriteBinding:      D1S1WriteBinding{Channels: 1},
+		AdmissionValueKey: "delta_db",
+		AppliedReplyText:  "D1-S1 track gain parameter was applied and read back. Fresh post-action evidence is recorded separately; acoustic materiality, target response, and human judgment remain pending.",
 	},
 	{
 		// static_eq adjusts one EQ band of one track. D2-1 admits it with the
 		// same single-mutation tightness as track_gain: one band, one bounded
 		// gain move, no frequency outside the audible range, no resonant Q.
-		ActionDomain: "static_eq",
-		ActionKind:   "static_eq_band_adjust",
+		ActionDomain:        "static_eq",
+		ActionKind:          "static_eq_band_adjust",
 		PromptParameterHint: `parameter_bounds={"gain_db":<nonzero number within +/-2>,"frequency_hz":<number within 20-20000>,"q":<optional number within 0.1-18>,"band_index":<optional non-negative integer>}`,
 		ValidateTypedAction: func(a Admission) error {
 			frequency, ok := mapNumber(a.TypedAction, "frequency_hz")
@@ -162,7 +178,50 @@ var d1s1Domains = []D1S1DomainSpec{
 				{Arg: "target_value", CommandKey: "value"},
 			},
 		},
-		WriteBinding: D1S1WriteBinding{PluginBound: true, StubParamIDFormat: "band_%d_gain", Channels: 2},
+		WriteBinding:             D1S1WriteBinding{PluginBound: true, StubParamIDFormat: "band_%d_gain", Channels: 2},
+		AdmissionValueKey:        "gain_db",
+		AdmissionPassthroughKeys: []string{"frequency_hz", "q", "band_index", "plugin_identifier"},
+		AppliedReplyText:         "D2-1 static EQ band parameter was applied and read back. Fresh post-action evidence is recorded separately; acoustic materiality, target response, and human judgment remain pending.",
+	},
+	{
+		// broadband_compression adjusts one compressor instance's dual-channel
+		// threshold by one bounded move. D2-1.5 admits it with the same
+		// single-mutation tightness as the other rows: one plugin instance, one
+		// parameter pair (ch A/B under one idempotency key), attempts and
+		// budget pinned at 1 elsewhere. Acoustic observation binds the COM
+		// time-dynamics view instead of any static-level projection. There is
+		// no stub form: production resolves the machine-local whitelist first
+		// and hard-fails without it.
+		ActionDomain:        "broadband_compression",
+		ActionKind:          "broadband_threshold_adjust",
+		PromptParameterHint: `parameter_bounds={"threshold_db":<nonzero number within +/-2>}`,
+		ValidateDoseBounds: func(scope string, bounds map[string]any) error {
+			threshold, ok := mapNumber(bounds, "threshold_db")
+			if !ok || threshold == 0 || math.Abs(threshold) > 2 {
+				return fmt.Errorf("D1-S1 %s threshold_db must be non-zero and within +/-2 dB", scope)
+			}
+			return nil
+		},
+		ActionIDSuffix:            "_comp",
+		CapabilityID:              "static_mix.broadband_compression.v0",
+		ContractVersions:          []string{"free_state:d1_s1", "action:broadband_threshold_adjust"},
+		TargetFingerprintTemplate: "track:{track}:comp:{param}:pending",
+		BeforeFingerprintTemplate: "track:{track}:comp:{param}:pending",
+		ObservationViewIDs:        []string{"track.time_dynamics"},
+		Journal: D1S1JournalShape{
+			Summary:      "D2-1.5 bounded broadband compression threshold adjustment",
+			Tool:         "set_plugin_param",
+			CommandLabel: "set_plugin_param",
+			Fields: []D1S1JournalField{
+				{Arg: "plugin_id", ArgFallback: "plugin_identifier", CommandKey: "plugin_id"},
+				{Arg: "param_id", CommandKey: "param_id"},
+				{Arg: "target_value", CommandKey: "value"},
+			},
+		},
+		WriteBinding:             D1S1WriteBinding{PluginBound: true, Channels: 2},
+		AdmissionValueKey:        "threshold_db",
+		AdmissionPassthroughKeys: []string{"plugin_identifier"},
+		AppliedReplyText:         "D2-1.5 broadband compression threshold was applied and read back. Fresh post-action evidence is recorded separately; acoustic materiality, target response, and human judgment remain pending.",
 	},
 }
 

@@ -239,7 +239,7 @@ func (s *Server) routeAcceptedImprovementProposal(ctx context.Context, interacti
 func (s *Server) routeAcceptedImprovementProposalNativeDomain(ctx context.Context, interaction PendingInteraction, proposal agentprotocol.ImprovementProposal, requestContext map[string]any) (ChatResponse, bool) {
 	domain := strings.ToLower(strings.TrimSpace(proposal.ActionDomain))
 	if domain != agentprotocol.ImprovementActionDomainTrackGain && domain != agentprotocol.ImprovementActionDomainPan &&
-		domain != agentprotocol.ImprovementActionDomainStaticEQ {
+		domain != agentprotocol.ImprovementActionDomainStaticEQ && domain != d1BroadbandCompressionDomain {
 		return ChatResponse{}, false
 	}
 	trackID := improvementProposalTrackID(proposal)
@@ -284,6 +284,14 @@ func (s *Server) routeAcceptedImprovementProposalNativeDomain(ctx context.Contex
 			return improvementProposalBoundaryResponse(interaction, "已确认改善方向，但静态 EQ 工具需要一个非零且不超过 +/-2 dB 的明确 gain_db；没有修改工程。", "improvement_proposal_static_eq_bounds_missing"), true
 		}
 		candidate.Operation = d1StaticEQKind
+	case d1BroadbandCompressionDomain:
+		// D2-1.5: same mirror for the bounded broadband threshold move; the
+		// admitted typed action stays authoritative on the experiment admission.
+		thresholdDB, ok := treatmentNumber(proposal.ParameterBounds, "threshold_db")
+		if !ok || thresholdDB == 0 || math.Abs(thresholdDB) > 2 {
+			return improvementProposalBoundaryResponse(interaction, "已确认改善方向，但宽带压缩工具需要一个非零且不超过 +/-2 dB 的明确 threshold_db；没有修改工程。", "improvement_proposal_broadband_compression_bounds_missing"), true
+		}
+		candidate.Operation = d1BroadbandCompressionKind
 	}
 
 	s.storePendingMixTickCandidate(interaction.ConversationID, interaction.GoalID, interaction.RunID, candidate)

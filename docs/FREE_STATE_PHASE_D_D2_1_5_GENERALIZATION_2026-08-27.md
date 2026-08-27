@@ -105,3 +105,48 @@ S1（flash，abc0250）合入后实栈验证暴露四层执行缺口，GLM L2 �
 **终态**：spv1_p01 frequency exit 0（static_eq 真实插件端到端，bx_hybrid V2 实例 1042 / param 827092295，rev 3→4）；track_gain 零回退（194037 exit 0）。
 
 **开放项（S2 前排查）**：p02 × static_eq 2/2 缺 post-action CCB 观察（回执 applied、模型完成评估话术、实验轮无 post-action 观察记录；p01 同链路 PASS）——疑回合内声学验证在 p02 工程未产出 fresh 观察，需对照两 fixture 的验证器执行差异。
+
+## D2-1.5-S2：第三域准入（broadband_compression，2026-08-27 晚窗 flash 执行）
+
+**结论：泛化成立。** 执行层（executionports / executionverifiers / orchestration / executor）零改动；第三域准入成本收敛为"experiment 表行 + 白名单 v2 节 + chat 表驱动覆盖 + 烟测映射"。
+
+### 锚点定标（探针证据，本会话 pluginprobe 离核 dump `temp/d2_1_5_s2_pluginprobe/`）
+
+- 主锚点 A=**Vertigo VSC-2** 一次命中判据，未降级 B/C：PCA `broadband_compressor` 家族 **promoted**（`processor_control_attestations.v1.json`，subject 五字段与本机路径/指纹逐项一致，`sha256:a4cacf25…` 与磁盘二进制匹配）；threshold 双通道参数 `Threshold A=1416131121` / `Threshold B=1416131122`（stable vst3_hosted id，unit=dB，normalized 线性域，display +11.8 满量程）。
+- PCA 家族谓词：v1 `QueryLibraryAdmission` 原生收 `FamilyBroadbandCompressor`（store.go 不需要新家族），白名单按节选家族查询即完成"PCA family 泛化"。
+
+### 落地面（S2 定稿六条 → 实现）
+
+| 裁定 | 实现 |
+|---|---|
+| 域规格 | `broadband_compression` / `broadband_threshold_adjust`，threshold_db 非零 ±2（与 static_eq gain_db 同级收紧），单实例单参数对（ch A/B 单批写），budget/attempts 不在表内照旧 1；无 stub 形态（生产先过白名单门） |
+| 锚点 | 上节 VSC-2；`threshold_param_id_ch1/ch2` 入白名单节 |
+| schema v2 | `SchemaVersion="…v2"`；新增 `broadband_compression` 节（7 字段校验 + ch1≠ch2）；`static_eq` 校验/错误语义逐字节不变（S1a 冻结接口保持，新增 `ErrCompressionNotConfigured`/`ValidateCompressionAdmission` 为平行增量）；真实 `~/.vit/free_state_experiment_plugins.json` 已升 v2，static_eq 节逐字保留 |
+| PCA 门 | 白名单节→家族查询参数化（私有 `validateSectionAdmission(label,…,family)`），eq 前缀文案逐字节不变，压缩节用同构 `"broadband_compression …not PCA-promoted"` 前缀 |
+| 视图绑定 | 表行 `ObservationViewIDs=["track.time_dynamics"]`（COM source_dynamics，非 static_level）；post-action CCB 观察的 Requested/ExecutedViewIDs 经既有 `d1ObservationViewIDsFor` 自动生效 |
+| 回执键映射 | Journal 表行沿用 set_plugin_param 三键形状（plugin_id‖identifier / param_id / value←target_value）；端口用构造注入 `CommandName: spec.ActionKind`，回执/幂等键族与 static_eq 同族不变 |
+
+### chat 表驱动自动覆盖（从硬编码分支改消费域表）
+
+`D1S1DomainSpec` 新增三个纯数据字段：`AdmissionValueKey`（delta_db/gain_db/threshold_db）、`AdmissionPassthroughKeys`、`AppliedReplyText`。三行回填；行为零变化由既有测试保证（不经修改全绿）。覆盖点：准入 TypedAction/dose 组装（free_state_experiment_runtime）、pending 分发（mix_tick_confirmation，按 `WriteBinding.PluginBound` 路由而非域名字符串）、候选 Operation 白名单/摘要、proposal 路由门+case、journal 形状（port 新增 `journalSpec`，旧 bool 签名保留）、回执人类文案、计划构造（新增 `d1PluginParamPlanWithBinding`/`resolveD1PluginParamWhitelistBinding` 通用路径；旧 `d1StaticEQPlan*` 与 bool 版 journal 构造器逐字节保留为回归锁，泛型路径与 legacy 真实绑定路径以 ActionSetHash/Actions 深比较锁定等价）。
+
+### 边际成本实测（泛化结论证据）
+
+- 生产 diff：9 文件 +436/−77。其中"纯压缩域"成本 = 表行 ~55 行 + 白名单节 ~45 行 + runner 10 行 + chat 候选/文案枚举 ~15 行；其余为一次性的 v2 schema 机制与三字段表驱动改造（后续家族增量域复用，不再付）。
+- 测试：3 个新文件 583 行（whitelist_v2×4 用例、chat S2×5 用例、experiment 行×1）。
+- 烟测映射：`ADMITTED_DOMAIN_KINDS` 一行 + `compression` flavor + ps1 两个 ValidateSet 扩充（共 10 行）。
+- prompt 自动更新（S3 成果）零改动生效：`freeStateD1AdmittedDomainRule` 从表枚举第三域。
+
+### 验收
+
+```
+cd D:\Vit_DAW\agent
+go build ./...                                    # PASS
+go test ./internal/experimentplugins ./internal/experiment ./internal/chat ./internal/executionports ./internal/executionverifiers -count=1   # PASS×5
+go test ./... -count=1                            # PASS（83 包 ok；首跑出现 1 例 processor-certification 测试
+                                                  # 环境性抖动（HOME/USERPROFILE 重定向 + .vst3 fixture 实时扫描），
+                                                  # 与本 diff 无交集，隔离/复跑均 PASS）
+python -m py_compile scripts\free_state_d1_smoke.py   # PASS
+```
+
+真实栈 `-ExpectDomain broadband_compression` + compression flavor 烟测由 GLM 会话 diff 首审后执行；白名单/PCA/指纹已在离线层面预验一致（探针快照 + attestation 库比对）。p02 链式 tick 批准问题已另开 S2b 卡（py 驱动守卫，依赖本卡合入）。
