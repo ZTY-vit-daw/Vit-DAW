@@ -93,3 +93,15 @@ go test ./... -count=1                            # PASS（全部 ok，无 FAIL�
 
 真实栈烟测（run_free_state_d1_smoke.ps1 -PublicCaseId spv1_p01，含 frequency flavor 二连）
 归 GLM 会话 diff 首审后执行；预期内核不再报 identifier not found、回执出现 value_text 物理读数。
+
+## 晚窗执行与 L2 修复链（2026-08-27，GLM）
+
+S1（flash，abc0250）合入后实栈验证暴露四层执行缺口，GLM L2 连修（adc0f1b / b506ce3 / b8c1eb6 / f31c3c0 / bb45075，逐层根因与证据见 `docs/FREE_STATE_D1_SMOKE_HISTORY_STATS.md` §5）：
+
+1. **闭包 revision 记账**：治理变异的回执 revision 必须在落地时确定性记入 audioclosure（`RecordGovernedMutation`，专用事件不清证据），被取代 revision 的观察重放跳过、shadow 滞后追及容忍——外部漂移的 stale 结算守卫不变。
+2. **内核 CAS 时序**：instantiate 是工程状态变更（revision +1），随后的 `plugin.set_params_batch` 必须以 instantiate 后的快照为 `base_revision`，否则内核 stale_project_cut 拒绝（且错误文本在 ack/error 子对象，Go 侧已深挖透出）。
+3. **持久 pending 生命周期**：mix.tick 执行成功后 durable pendingmanager 记录必须转终态，否则 continuation 投影复活已消费确认、驱动重复批准、预算空转。
+
+**终态**：spv1_p01 frequency exit 0（static_eq 真实插件端到端，bx_hybrid V2 实例 1042 / param 827092295，rev 3→4）；track_gain 零回退（194037 exit 0）。
+
+**开放项（S2 前排查）**：p02 × static_eq 2/2 缺 post-action CCB 观察（回执 applied、模型完成评估话术、实验轮无 post-action 观察记录；p01 同链路 PASS）——疑回合内声学验证在 p02 工程未产出 fresh 观察，需对照两 fixture 的验证器执行差异。
