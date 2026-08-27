@@ -243,4 +243,4 @@ D1-S1 冒烟在两天内经历了清晰的"失败面前移"过程：内核执行
 | 202729 | p02 | neutral | fail | static_eq 在 p02 fixture 执行成功但缺 post-action CCB 观察（见下开放项） |
 | 203202 | p02 | neutral | fail | 同上，2/2 复现 |
 
-开放项（D2-1.5-S2 前置排查）：p02 × static_eq 连续 2 轮 "D1 requires one post-action CCB observation"——执行回执 applied、模型完成评估话术，但实验轮内无 post-action 观察记录；p01 × static_eq 同链路 PASS，差异待归因（怀疑回合内声学验证在 p02 工程上未产出 fresh 观察）。
+开放项（2026-08-27 晚窗 GLM 诊断收口，修复卡已开）：p02 × static_eq 连续 2 轮 "D1 requires one post-action CCB observation"。根因不在验证器：实验回执 applied（rev 3→4）后，mix tick 机制按设计从重观察生成链式"下一步建议"（nextPendingMixTickCandidateFromReobserve），py 驱动在 admitted_domain_selected 后无条件批准任何确认——8 次迭代被链式通用 tick 吃光，实验 continuation 永不排水、post-action 观察落不了账。p01 PASS 属时序运气（模型未走链式路径）。修复：todo/2026-08-27-D2-1-5-S2b-py-driver-approve-guard（py 驱动实验作用域批准守卫；因与 D2-1.5-S2 同文件，须在其合入后执行）。
