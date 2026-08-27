@@ -214,6 +214,15 @@ plugin.instantiate`（命令清单 `:1652-1659`，触发条件含 `req.Source !=
 （`agent/internal/chat/free_state_invoke_guard.go:84-101` 把 instantiate_plugin/
 plugin.load_to_rack 列为禁用变异名）——那是模型通道，与上述 VSP 通道是两个面。
 
+## 5.1 用户裁定（2026-08-27 早窗，覆盖 §5 的 A/B 选项框架）
+
+用户澄清 PCA 的正确定位：**PCA 是插件可控性审查协议**——认证 runner 验证插件参数面能否被现有控制器脚本（插件识别器 + plugingrabber 控制器族）稳定识别与控制；因此 **agent 自行调配加载控制的插件必须来自 PCA 名单**，不走 PCA 的插件即使加载成功也未必能被控制器控制。原 §5 的 A/B 选项建立在"PCA=防伪造选择的安全门"这一偏颇模型上，作废。
+
+裁定落地（并入 D2-1.5-S1 范围）：
+1. `~/.vit/free_state_experiment_plugins.json` 的注入条目必须通过 PCA v2 promoted + 当前二进制指纹校验——复用 `processorattestation.QueryLibraryAdmissionV2(subjectKey, fingerprint, family="static_eq")`（agent/internal/chat/plugin_recommendation_attestation.go:264-298 的既有模式：BuildSubjectKey + FingerprintPath + Query）；不 Eligible 则拒绝执行并报可区分错误。
+2. 锚点修订：**主锚点 A（bx_hybrid V2）与 B（Millennia NSEQ-2）维持**（均 promoted）；**锚点 C（FreeEQ8，unattested）降级为仅离核探针工件**，未通过认证前不得进入实验执行。
+3. D1 VSP 通道不触发 Harness 载入门这一事实保留记录（现状描述），治理上以"名单校验"而非"通道拦截"满足 PCA 约束。
+
 ## 6. 复现与工件
 
 ```powershell
