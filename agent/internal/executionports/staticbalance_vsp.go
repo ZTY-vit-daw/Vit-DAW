@@ -18,6 +18,11 @@ import (
 type VSPClient interface {
 	VSPStateSnapshot(context.Context, string) (*kernel.VSPStateResult, error)
 	SendVSPLegacyCommandWithIDs(context.Context, map[string]any, string, string) (*kernel.VSPCommandResult, error)
+	// SendVSPCommandWithIDs reaches the typed kernel command surface. Only
+	// the parameter-driven EQ mode needs it today (plugin.set_params_batch is
+	// dispatched exclusively as a typed command); the balance port never
+	// calls it.
+	SendVSPCommandWithIDs(context.Context, string, map[string]any, string, string) (*kernel.VSPCommandResult, error)
 }
 
 type StaticBalanceVSPPort struct {

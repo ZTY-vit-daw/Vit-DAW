@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 
+	"vit-daw-agent/internal/executionports"
 	"vit-daw-agent/internal/mom"
 	"vit-daw-agent/internal/orchestration"
 )
@@ -55,10 +56,17 @@ func (v StaticEQ) Verify(ctx context.Context, actionSet orchestration.ActionSet,
 			result.Structural = "fail"
 			return result, fmt.Errorf("action %s target_value missing", action.ID)
 		}
-		actual, ok := number(receipt.Details["actual_readback_value"])
-		if !ok || receipt.Details["readback_verified"] != true || math.Abs(actual-target) > 0.001 {
-			result.Structural = "fail"
-			return result, fmt.Errorf("action %s plugin parameter readback postcondition failed", action.ID)
+		if receipt.Details["write_mode"] == executionports.WriteModeNormalizedBatchV1 {
+			if !eqNormalizedChannelsVerified(receipt.Details["normalized_channels"]) {
+				result.Structural = "fail"
+				return result, fmt.Errorf("action %s plugin parameter normalized readback postcondition failed", action.ID)
+			}
+		} else {
+			actual, ok := number(receipt.Details["actual_readback_value"])
+			if !ok || receipt.Details["readback_verified"] != true || math.Abs(actual-target) > 0.001 {
+				result.Structural = "fail"
+				return result, fmt.Errorf("action %s plugin parameter readback postcondition failed", action.ID)
+			}
 		}
 		appliedRevision, parseErr := strconv.ParseInt(strings.TrimSpace(receipt.AppliedRevision), 10, 64)
 		if parseErr != nil || appliedRevision <= 0 || state.Revision != appliedRevision {
@@ -93,6 +101,29 @@ func (v StaticEQ) Verify(ctx context.Context, actionSet orchestration.ActionSet,
 		result.Status = "inconclusive"
 	}
 	return result, nil
+}
+
+// eqNormalizedChannelsVerified checks the port's per-channel normalized
+// readback records: every whitelisted gain channel must report an actual
+// normalized value within the same 1e-4 tolerance the mature chat EQ
+// transaction uses. The physical value_text parse stays informational.
+func eqNormalizedChannelsVerified(value any) bool {
+	rows, ok := value.([]any)
+	if !ok || len(rows) == 0 {
+		return false
+	}
+	for _, rowValue := range rows {
+		row, ok := rowValue.(map[string]any)
+		if !ok {
+			return false
+		}
+		requested, requestedOK := number(row["requested_normalized"])
+		actual, actualOK := number(row["actual_normalized"])
+		if !requestedOK || !actualOK || math.Abs(actual-requested) > executionports.EqNormalizedTolerance {
+			return false
+		}
+	}
+	return true
 }
 
 // VerifyStaticEQ performs the same independent fresh post-action observation

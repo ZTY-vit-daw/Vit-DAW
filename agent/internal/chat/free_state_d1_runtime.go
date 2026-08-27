@@ -57,23 +57,7 @@ func (p *d1JournalMutationPort) Preflight(ctx context.Context, set orchestration
 
 func (p *d1JournalMutationPort) Apply(ctx context.Context, action orchestration.Action, key string) (orchestration.ActionReceipt, error) {
 	if _, exists := p.harness.JournalGet(action.ID); !exists {
-		if p.staticEQ {
-			p.harness.JournalRecord(journal.Action{
-				AgentActionID: action.ID, GoalID: p.goalID, RunID: p.runID, Domain: "daw", Source: "free_state_d1_s1",
-				Summary: "D2-1 bounded static EQ band adjustment", Tool: "set_plugin_param", CommandName: "set_plugin_param",
-			Command: map[string]any{"cmd": "set_plugin_param", "track_id": action.TargetRef,
-				"plugin_id": firstNonEmpty(firstStringFromMap(action.Args, "plugin_id"), firstStringFromMap(action.Args, "plugin_identifier")), "param_id": firstStringFromMap(action.Args, "param_id"),
-				"value": action.Args["target_value"]},
-				RiskLevel: "confirm", RequiresConfirmation: true, ConfirmationStatus: "confirmed", Status: journal.StatusRunning,
-			})
-		} else {
-			p.harness.JournalRecord(journal.Action{
-				AgentActionID: action.ID, GoalID: p.goalID, RunID: p.runID, Domain: "daw", Source: "free_state_d1_s1",
-				Summary: "D1-S1 bounded track gain adjustment", Tool: "track_gain_adjust", CommandName: "track_gain_adjust",
-				Command:   map[string]any{"cmd": "set_volume", "track_id": action.TargetRef, "db": action.Args["target_db"]},
-				RiskLevel: "confirm", RequiresConfirmation: true, ConfirmationStatus: "confirmed", Status: journal.StatusRunning,
-			})
-		}
+		p.harness.JournalRecord(d1JournalRecordForAction(p.staticEQ, action.ID, p.goalID, p.runID, action.TargetRef, action.Args))
 	}
 	receipt, err := p.inner.Apply(ctx, action, key)
 	status := journal.StatusSucceeded
@@ -109,38 +93,34 @@ func d1TrackGainPlan(loop freeStateReasoningLoop, candidate agentloop.PendingMix
 	if stateRevision <= 0 || projectUUID == "" || projectEpoch == "" || snapshotHash == "" {
 		return orchestration.FrozenPlan{}, fmt.Errorf("D1-S1 requires a revision-bound VSP snapshot")
 	}
+	spec, _ := experiment.D1S1SpecForAction(experiment.D1S1ActionDomain, experiment.D1S1ActionKind)
 	cut, err := projectcut.Build(projectcut.BuildRequest{
 		State: d1StateResult(projectUUID, projectEpoch, snapshotHash, stateRevision, state), Guarantee: projectcut.GuaranteeKernelBarrier,
 		DependencyFingerprints: append([]string(nil), loop.Experiment.Admission.EvidenceRefs...),
-		TargetFingerprints:     []string{fmt.Sprintf("track:%s:fader:%g", targetID, currentDB)},
-		ContractVersions:       []string{"free_state:d1_s1", "action:track_gain_adjust"},
+		TargetFingerprints:     []string{d1SubstituteFingerprint(spec.TargetFingerprintTemplate, targetID, fmt.Sprintf("%g", currentDB), "")},
+		ContractVersions:       append([]string(nil), spec.ContractVersions...),
 	})
 	if err != nil {
 		return orchestration.FrozenPlan{}, err
 	}
-	actionID := "d1_" + sanitizeCanaryID(loop.Experiment.ID) + "_gain"
-	action := orchestration.Action{ID: actionID, Command: experiment.D1S1ActionKind, TargetRef: targetID,
-		BeforeFingerprint: fmt.Sprintf("track:%s:fader_db:%g", targetID, currentDB),
+	action := orchestration.Action{ID: "d1_" + sanitizeCanaryID(loop.Experiment.ID) + spec.ActionIDSuffix, Command: experiment.D1S1ActionKind, TargetRef: targetID,
+		BeforeFingerprint: d1SubstituteFingerprint(spec.BeforeFingerprintTemplate, targetID, fmt.Sprintf("%g", currentDB), ""),
 		Args:              map[string]any{"delta_db": candidate.DeltaDB, "target_db": currentDB + candidate.DeltaDB}, Compensatable: true, IdempotencyClass: "effectively_once"}
-	set := orchestration.ActionSet{ID: "d1_set_" + sanitizeCanaryID(loop.Experiment.ID), CapabilityID: staticBalanceCapabilityID, ProjectCutHash: cut.Hash, Actions: []orchestration.Action{action}}
-	set.Hash = set.ComputeHash()
-	round, _ := loop.Experiment.CurrentRound()
-	previousObservationID := ""
-	for _, observation := range round.Observations {
-		if !observation.PostAction {
-			previousObservationID = observation.ID
-		}
-	}
-	proposal := orchestration.Proposal{ID: "d1_proposal_" + sanitizeCanaryID(loop.Experiment.ID), Revision: 1, CapabilityID: staticBalanceCapabilityID,
-		CapabilityVer: "v0", ProjectCutHash: cut.Hash, ActionSetHash: set.Hash, TargetScope: []string{targetID}, Risk: "reversible", VerificationRef: "fresh_revision_bound_ccb", Summary: loop.Experiment.Admission.Hypothesis, CreatedAt: time.Now().UTC()}
-	return orchestration.FrozenPlan{Proposal: proposal, ActionSet: set, ProjectCut: cut, ContextBundleID: "d1_context_" + sanitizeCanaryID(loop.Experiment.ID), PreviousObservationID: previousObservationID, FrozenAt: time.Now().UTC()}, nil
+	return d1AssembleFrozenPlan(loop, spec, action, targetID, cut)
 }
 
 // d1StaticEQPlan mirrors d1TrackGainPlan for the bounded static EQ band
 // adjustment: one admitted action, one forward mutation, revision-bound cut.
 // Plugin parameter before values are read by the port's Preflight; the plan
-// layer never invokes kernel commands.
+// layer never invokes kernel commands. Without a whitelist binding it keeps
+// the historical stub schema verbatim; production execution resolves the
+// binding first (resolveD1StaticEQWhitelistBinding) and calls
+// d1StaticEQPlanWithBinding.
 func d1StaticEQPlan(loop freeStateReasoningLoop, candidate agentloop.PendingMixTickCandidate, stateRevision int64, projectUUID, projectEpoch, snapshotHash string, state map[string]any) (orchestration.FrozenPlan, error) {
+	return d1StaticEQPlanWithBinding(loop, candidate, stateRevision, projectUUID, projectEpoch, snapshotHash, state, nil)
+}
+
+func d1StaticEQPlanWithBinding(loop freeStateReasoningLoop, candidate agentloop.PendingMixTickCandidate, stateRevision int64, projectUUID, projectEpoch, snapshotHash string, state map[string]any, binding *d1StaticEQWhitelistBinding) (orchestration.FrozenPlan, error) {
 	if loop.Experiment == nil || !loop.Experiment.Admission.IsD1S1() {
 		return orchestration.FrozenPlan{}, fmt.Errorf("active D1-S1 experiment is required")
 	}
@@ -161,45 +141,24 @@ func d1StaticEQPlan(loop freeStateReasoningLoop, candidate agentloop.PendingMixT
 	if candidate.TrackID != targetID {
 		return orchestration.FrozenPlan{}, fmt.Errorf("D2-1 candidate target does not match admitted observation target")
 	}
-	bandIndex := 0
-	if value, present := loop.Experiment.Admission.TypedAction["band_index"]; present {
-		if parsed, ok := treatmentNumber(map[string]any{"band_index": value}, "band_index"); ok {
-			bandIndex = int(parsed)
-		}
-	}
-	paramID := fmt.Sprintf("band_%d_gain", bandIndex)
-	pluginIdentifier := firstStringFromMap(loop.Experiment.Admission.TypedAction, "plugin_identifier")
-	if pluginIdentifier == "" {
-		pluginIdentifier = defaultD1StaticEQPluginIdentifier
-	}
+	args, paramID := d1StaticEQActionArgs(loop.Experiment.Admission.TypedAction, gainDB, binding)
 	if stateRevision <= 0 || projectUUID == "" || projectEpoch == "" || snapshotHash == "" {
 		return orchestration.FrozenPlan{}, fmt.Errorf("D2-1 requires a revision-bound VSP snapshot")
 	}
+	spec, _ := experiment.D1S1SpecForAction(d1StaticEQDomain, d1StaticEQKind)
 	cut, err := projectcut.Build(projectcut.BuildRequest{
 		State: d1StateResult(projectUUID, projectEpoch, snapshotHash, stateRevision, state), Guarantee: projectcut.GuaranteeKernelBarrier,
 		DependencyFingerprints: append([]string(nil), loop.Experiment.Admission.EvidenceRefs...),
-		TargetFingerprints:     []string{fmt.Sprintf("track:%s:eq:%s:pending", targetID, paramID)},
-		ContractVersions:       []string{"free_state:d1_s1", "action:static_eq_band_adjust"},
+		TargetFingerprints:     []string{d1SubstituteFingerprint(spec.TargetFingerprintTemplate, targetID, "", paramID)},
+		ContractVersions:       append([]string(nil), spec.ContractVersions...),
 	})
 	if err != nil {
 		return orchestration.FrozenPlan{}, err
 	}
-	actionID := "d1_" + sanitizeCanaryID(loop.Experiment.ID) + "_eq"
-	action := orchestration.Action{ID: actionID, Command: d1StaticEQKind, TargetRef: targetID,
-		BeforeFingerprint: fmt.Sprintf("track:%s:eq:%s:pending", targetID, paramID),
-		Args:              map[string]any{"plugin_identifier": pluginIdentifier, "param_id": paramID, "target_value": gainDB}, Compensatable: true, IdempotencyClass: "effectively_once"}
-	set := orchestration.ActionSet{ID: "d1_set_" + sanitizeCanaryID(loop.Experiment.ID), CapabilityID: d1StaticEQCapabilityID, ProjectCutHash: cut.Hash, Actions: []orchestration.Action{action}}
-	set.Hash = set.ComputeHash()
-	round, _ := loop.Experiment.CurrentRound()
-	previousObservationID := ""
-	for _, observation := range round.Observations {
-		if !observation.PostAction {
-			previousObservationID = observation.ID
-		}
-	}
-	proposal := orchestration.Proposal{ID: "d1_proposal_" + sanitizeCanaryID(loop.Experiment.ID), Revision: 1, CapabilityID: d1StaticEQCapabilityID,
-		CapabilityVer: "v0", ProjectCutHash: cut.Hash, ActionSetHash: set.Hash, TargetScope: []string{targetID}, Risk: "reversible", VerificationRef: "fresh_revision_bound_ccb", Summary: loop.Experiment.Admission.Hypothesis, CreatedAt: time.Now().UTC()}
-	return orchestration.FrozenPlan{Proposal: proposal, ActionSet: set, ProjectCut: cut, ContextBundleID: "d1_context_" + sanitizeCanaryID(loop.Experiment.ID), PreviousObservationID: previousObservationID, FrozenAt: time.Now().UTC()}, nil
+	action := orchestration.Action{ID: "d1_" + sanitizeCanaryID(loop.Experiment.ID) + spec.ActionIDSuffix, Command: d1StaticEQKind, TargetRef: targetID,
+		BeforeFingerprint: d1SubstituteFingerprint(spec.BeforeFingerprintTemplate, targetID, "", paramID),
+		Args:              args, Compensatable: true, IdempotencyClass: "effectively_once"}
+	return d1AssembleFrozenPlan(loop, spec, action, targetID, cut)
 }
 
 func d1TrackGain(state map[string]any, trackID string) (float64, bool) {
@@ -313,6 +272,16 @@ func (s *Server) executeD1StaticEQ(ctx context.Context, conversationID string, r
 	if !ok || loop.Experiment == nil || !loop.Experiment.Admission.IsD1S1() {
 		return ChatResponse{}, false
 	}
+	// The experiment plugin whitelist is the execution gate for the real
+	// static_eq plugin path (PCA promoted + fingerprint check included). It
+	// runs before any other dependency work so a configuration or eligibility
+	// refusal is cheap and carries its distinct boundary text; frozen-plan
+	// recovery re-runs the same gate so a mutated whitelist cannot be applied
+	// onto a session that was admitted under different approval evidence.
+	binding, bindingErr := resolveD1StaticEQWhitelistBinding(loop.Experiment.Admission.TypedAction)
+	if bindingErr != nil {
+		return d1BlockedResponse(loop, bindingErr.Error()), true
+	}
 	if s.kernel == nil || s.harness == nil || s.orchestrationRuntime == nil || !s.orchestrationRuntime.HasDurableStore() {
 		return d1BlockedResponse(loop, "D1-S1 durable execution dependencies are unavailable"), true
 	}
@@ -350,7 +319,7 @@ func (s *Server) executeD1StaticEQ(ctx context.Context, conversationID string, r
 			return d1BlockedResponse(loop, "D1-S1 project changed while producing the before render"), true
 		}
 		state = afterRender
-		plan, err = d1StaticEQPlan(loop, candidate, state.Revision, projectUUID, state.ProjectEpoch, state.SnapshotHash, state.LegacyState)
+		plan, err = d1StaticEQPlanWithBinding(loop, candidate, state.Revision, projectUUID, state.ProjectEpoch, state.SnapshotHash, state.LegacyState, binding)
 		if err != nil {
 			return d1BlockedResponse(loop, err.Error()), true
 		}
@@ -415,7 +384,7 @@ func (s *Server) projectD1Execution(loop freeStateReasoningLoop, session orchest
 		if verification.Fresh && verification.PostAction && verification.ObservationID != "" && verification.ObservationRevision == receipt.AppliedRevision {
 			round, _ := loop.Experiment.CurrentRound()
 			obs := experiment.Observation{ID: verification.ObservationID, ReceiptID: "d1_ccb:" + verification.ObservationID,
-				RequestedViewIDs: []string{"mix.multitrack_relationship"}, ExecutedViewIDs: []string{"mix.multitrack_relationship"}, ViewSetMatches: true,
+				RequestedViewIDs: d1ObservationViewIDsFor(loop.Experiment.Admission), ExecutedViewIDs: d1ObservationViewIDsFor(loop.Experiment.Admission), ViewSetMatches: true,
 				Fresh: true, PostAction: true, ProjectRevision: verification.ObservationRevision, EvidenceRefs: append([]string(nil), verification.EvidenceRefs...), RecordedAt: time.Now().UTC()}
 			if len(round.Observations) == 0 || round.Observations[len(round.Observations)-1].ID != obs.ID {
 				if events, err := loop.Experiment.RecordObservation(obs, true, time.Now().UTC()); err == nil {

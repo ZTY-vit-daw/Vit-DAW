@@ -6,11 +6,53 @@ import (
 	"strings"
 )
 
+// D1S1JournalField maps one plan Args key into the durable journal Command
+// map for a recorded mutation. ArgFallback covers domains whose identity key
+// degrades gracefully (plugin_id falling back to plugin_identifier).
+type D1S1JournalField struct {
+	Arg         string
+	ArgFallback string
+	CommandKey  string
+}
+
+// D1S1JournalShape is the audit wording of one executed domain action as it
+// lands in the harness journal while running. It mirrors wording only: the
+// budget/attempts/idempotency semantics stay outside this table.
+type D1S1JournalShape struct {
+	Summary      string
+	Tool         string
+	CommandLabel string
+	Fields       []D1S1JournalField
+}
+
+// D1S1WriteBinding describes how one domain's admitted gain parameter reaches
+// the kernel. It is routing metadata for the plan builder; validators never
+// consult it.
+type D1S1WriteBinding struct {
+	// PluginBound marks domains that write plugin band parameters instead of
+	// a track fader.
+	PluginBound bool
+	// StubParamIDFormat assembles a param id from the admission's band_index
+	// without any machine-local whitelist ("%d"). The static_eq row keeps its
+	// D2-1 stub format so the table-driven builder can reproduce the
+	// historical plan byte-for-byte when no whitelisted plugin resolves;
+	// production resolution hard-fails before reaching that path.
+	StubParamIDFormat string
+	// Channels is how many gain parameters one action writes (1 = single,
+	// 2 = paired dual-channel batch write under one idempotency key).
+	Channels int
+}
+
 // D1S1DomainSpec describes one action domain admitted by the narrow bounded
 // experiment gate (Phase D1-S1 and its D2-1 extension). Each domain carries
 // its own equally tight parameter bounds; admitting another domain never
 // relaxes the shared invariants (budget 1, one round, one forward mutation,
 // observation-bound track target).
+//
+// The execution descriptor fields below (ActionIDSuffix onward) are consumed
+// by the chat plan/journal builders so per-domain shapes derive from this
+// table instead of parallel hand-written mirrors. They carry no enforcement
+// authority.
 type D1S1DomainSpec struct {
 	ActionDomain string
 	ActionKind string
@@ -24,6 +66,23 @@ type D1S1DomainSpec struct {
 	// ValidateDoseBounds checks one dose-bounds map ("diagnostic" or
 	// "retained") against the domain's acoustic parameter bounds.
 	ValidateDoseBounds func(scope string, bounds map[string]any) error
+
+	// ActionIDSuffix appends to the "d1_<experiment>_..." action id.
+	ActionIDSuffix string
+	// CapabilityID identifies the domain in the frozen ActionSet/Proposal.
+	CapabilityID string
+	// ContractVersions lists the ProjectCut contract versions verbatim.
+	ContractVersions []string
+	// Fingerprint templates use {track}, {db}, and {param} markers; the
+	// builder substitutes the values each domain owns.
+	TargetFingerprintTemplate string
+	BeforeFingerprintTemplate string
+	// ObservationViewIDs bind the post-action CCB observation projection.
+	ObservationViewIDs []string
+	// Journal shapes the running audit record.
+	Journal D1S1JournalShape
+	// WriteBinding routes the parameter write.
+	WriteBinding D1S1WriteBinding
 }
 
 var d1s1Domains = []D1S1DomainSpec{
@@ -38,6 +97,21 @@ var d1s1Domains = []D1S1DomainSpec{
 			}
 			return nil
 		},
+		ActionIDSuffix:            "_gain",
+		CapabilityID:              "static_mix.static_balance.v0",
+		ContractVersions:          []string{"free_state:d1_s1", "action:track_gain_adjust"},
+		TargetFingerprintTemplate: "track:{track}:fader:{db}",
+		BeforeFingerprintTemplate: "track:{track}:fader_db:{db}",
+		ObservationViewIDs:        []string{"mix.multitrack_relationship"},
+		Journal: D1S1JournalShape{
+			Summary:      "D1-S1 bounded track gain adjustment",
+			Tool:         "track_gain_adjust",
+			CommandLabel: "set_volume",
+			Fields: []D1S1JournalField{
+				{Arg: "target_db", CommandKey: "db"},
+			},
+		},
+		WriteBinding: D1S1WriteBinding{Channels: 1},
 	},
 	{
 		// static_eq adjusts one EQ band of one track. D2-1 admits it with the
@@ -72,6 +146,23 @@ var d1s1Domains = []D1S1DomainSpec{
 			}
 			return nil
 		},
+		ActionIDSuffix:            "_eq",
+		CapabilityID:              "static_mix.static_eq.v0",
+		ContractVersions:          []string{"free_state:d1_s1", "action:static_eq_band_adjust"},
+		TargetFingerprintTemplate: "track:{track}:eq:{param}:pending",
+		BeforeFingerprintTemplate: "track:{track}:eq:{param}:pending",
+		ObservationViewIDs:        []string{"mix.multitrack_relationship"},
+		Journal: D1S1JournalShape{
+			Summary:      "D2-1 bounded static EQ band adjustment",
+			Tool:         "set_plugin_param",
+			CommandLabel: "set_plugin_param",
+			Fields: []D1S1JournalField{
+				{Arg: "plugin_id", ArgFallback: "plugin_identifier", CommandKey: "plugin_id"},
+				{Arg: "param_id", CommandKey: "param_id"},
+				{Arg: "target_value", CommandKey: "value"},
+			},
+		},
+		WriteBinding: D1S1WriteBinding{PluginBound: true, StubParamIDFormat: "band_%d_gain", Channels: 2},
 	},
 }
 
@@ -90,6 +181,18 @@ func D1S1AdmittedDomains() []string {
 // wording from this table; the validators remain the enforcement authority).
 func D1S1DomainSpecs() []D1S1DomainSpec {
 	return append([]D1S1DomainSpec(nil), d1s1Domains...)
+}
+
+// D1S1SpecForAction resolves the domain spec by explicit action_domain and
+// action_kind names, for builders that hold the constants rather than a full
+// admission.
+func D1S1SpecForAction(actionDomain, actionKind string) (D1S1DomainSpec, bool) {
+	for _, domain := range d1s1Domains {
+		if domain.ActionDomain == actionDomain && domain.ActionKind == actionKind {
+			return domain, true
+		}
+	}
+	return D1S1DomainSpec{}, false
 }
 
 // D1S1DomainSpecFor resolves the admitted domain spec for an admission's

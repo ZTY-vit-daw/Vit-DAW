@@ -30,6 +30,17 @@ func (f *fakeVSPClient) SendVSPLegacyCommandWithIDs(_ context.Context, command m
 	return &kernel.VSPCommandResult{TransactionID: txID, LegacyReply: map[string]any{"status": "ok", "transaction_id": txID}}, nil
 }
 
+func (f *fakeVSPClient) SendVSPCommandWithIDs(_ context.Context, command string, args map[string]any, requestID, txID string) (*kernel.VSPCommandResult, error) {
+	captured := map[string]any{"command": command}
+	for key, value := range args {
+		captured[key] = value
+	}
+	f.commands = append(f.commands, captured)
+	f.requests = append(f.requests, requestID)
+	f.txs = append(f.txs, txID)
+	return &kernel.VSPCommandResult{TransactionID: txID, Command: command, Payload: map[string]any{"status": "ok", "command": command}}, nil
+}
+
 func TestStaticBalanceVSPPortUsesCASStableRequestAndReadback(t *testing.T) {
 	client := &fakeVSPClient{snapshots: []*kernel.VSPStateResult{
 		stateResultWithGain("epoch-1", 7, "before", "t1", 0), stateResultWithGain("epoch-1", 8, "after", "t1", -1),

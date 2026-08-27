@@ -2,6 +2,8 @@ package executionports
 
 import (
 	"context"
+	"fmt"
+	"math"
 	"strings"
 	"testing"
 
@@ -176,5 +178,298 @@ func TestStaticEQVSPPortPreflightGuards(t *testing.T) {
 	stale.BaseProjectRevision = "9"
 	if err := port.Preflight(context.Background(), set, stale); err == nil {
 		t.Fatal("stale cut accepted")
+	}
+}
+
+// ---- parameter-driven (normalized batch) mode -------------------------------
+
+type fakeNBParam struct{ normalized float64 }
+
+// fakeNBVSPClient simulates a real VST3 plugin host for the normalized batch
+// pipeline: path instantiation, a full parameter surface with display-domain
+// metadata, the typed plugin.set_params_batch command, and normalized
+// readback. Domains are [-24, +24] dB linear unless stated otherwise.
+type fakeNBVSPClient struct {
+	fakeVSPClient
+	domainMin, domainMax float64
+	withCandidate        bool // expose display_domain_candidate; probe samples are always present
+	params               map[string]*fakeNBParam
+	batchArgs            map[string]any
+	batchFailure         string // when set, the typed batch answers partial_failure
+	swallowWrites        bool   // kernel keeps old values despite ok status
+	readDrift            float64
+	failSurface          bool
+}
+
+func newFakeNBVSPClient(ch1, ch2 string, domainMin, domainMax float64, withCandidate bool) *fakeNBVSPClient {
+	return &fakeNBVSPClient{
+		fakeVSPClient: fakeVSPClient{snapshots: eqSnapshots()},
+		domainMin:     domainMin, domainMax: domainMax,
+		withCandidate: withCandidate,
+		params: map[string]*fakeNBParam{
+			ch1: {normalized: 0.5}, ch2: {normalized: 0.5},
+		},
+	}
+}
+
+func (f *fakeNBVSPClient) surfaceRow(paramID string) map[string]any {
+	state := f.params[paramID]
+	value := f.domainMin + state.normalized*(f.domainMax-f.domainMin)
+	samples := []any{}
+	for _, sampleNormalized := range []float64{0, 0.25, 0.5, 0.75, 1} {
+		sampleValue := f.domainMin + sampleNormalized*(f.domainMax-f.domainMin)
+		samples = append(samples, map[string]any{
+			"normalized_value": sampleNormalized,
+			"text":             fmt.Sprintf("%.2f dB", sampleValue),
+		})
+	}
+	row := map[string]any{
+		"id": paramID, "param_id": paramID,
+		"normalized_value": state.normalized, "value_text": fmt.Sprintf("%.2f dB", value),
+		"display_probe": map[string]any{"mode": "read_only_value_to_string", "samples": samples},
+	}
+	if f.withCandidate {
+		row["display_domain_candidate"] = map[string]any{
+			"text": fmt.Sprintf("%g~%g dB", f.domainMin, f.domainMax), "unit": "dB",
+			"min": f.domainMin, "max": f.domainMax, "scale": "linear",
+		}
+	}
+	return row
+}
+
+func (f *fakeNBVSPClient) SendVSPLegacyCommandWithIDs(_ context.Context, command map[string]any, requestID, txID string) (*kernel.VSPCommandResult, error) {
+	f.commands = append(f.commands, command)
+	f.requests = append(f.requests, requestID)
+	f.txs = append(f.txs, txID)
+	switch command["cmd"] {
+	case "instantiate_plugin":
+		if _, hasIdentifier := command["plugin_identifier"]; hasIdentifier {
+			return &kernel.VSPCommandResult{TransactionID: txID, LegacyReply: map[string]any{"status": "error", "message": "identifier must stay empty on the path route"}}, nil
+		}
+		if strings.TrimSpace(fmt.Sprint(command["plugin_path"])) == "" {
+			return &kernel.VSPCommandResult{TransactionID: txID, LegacyReply: map[string]any{"status": "error", "message": "plugin_path missing"}}, nil
+		}
+		return &kernel.VSPCommandResult{TransactionID: txID, LegacyReply: map[string]any{"status": "ok", "plugin_id": "plg_fixture_1"}}, nil
+	case "get_plugin_parameters":
+		if _, include := command["include_parameters"]; !include {
+			return &kernel.VSPCommandResult{TransactionID: txID, LegacyReply: map[string]any{"status": "error", "message": "surface requires include_parameters"}}, nil
+		}
+		if f.failSurface {
+			return &kernel.VSPCommandResult{TransactionID: txID, LegacyReply: map[string]any{"status": "error", "message": "plugin vanished"}}, nil
+		}
+		rows := []any{}
+		for paramID, state := range f.params {
+			row := f.surfaceRow(paramID)
+			row["normalized_value"] = state.normalized + f.readDrift
+			rows = append(rows, row)
+		}
+		return &kernel.VSPCommandResult{TransactionID: txID, LegacyReply: map[string]any{"status": "ok", "parameters": rows}}, nil
+	}
+	return &kernel.VSPCommandResult{TransactionID: txID, LegacyReply: map[string]any{"status": "ok"}}, nil
+}
+
+func (f *fakeNBVSPClient) SendVSPCommandWithIDs(_ context.Context, command string, args map[string]any, requestID, txID string) (*kernel.VSPCommandResult, error) {
+	captured := map[string]any{"command": command}
+	for key, value := range args {
+		captured[key] = value
+	}
+	f.commands = append(f.commands, captured)
+	f.requests = append(f.requests, requestID)
+	f.txs = append(f.txs, txID)
+	if command == "plugin.set_params_batch" {
+		f.batchArgs = args
+		if f.batchFailure != "" {
+			return &kernel.VSPCommandResult{TransactionID: txID, Command: command, Payload: map[string]any{"status": "partial_failure", "message": f.batchFailure}}, nil
+		}
+		if !f.swallowWrites {
+			for _, entry := range args["parameters"].([]map[string]any) {
+				if state, ok := f.params[fmt.Sprint(entry["parameter_id"])]; ok {
+					state.normalized = entry["normalized_value"].(float64)
+				}
+			}
+		}
+		return &kernel.VSPCommandResult{TransactionID: txID, Command: command, Payload: map[string]any{"status": "ok"}}, nil
+	}
+	return &kernel.VSPCommandResult{TransactionID: txID, Command: command, Payload: map[string]any{"status": "ok"}}, nil
+}
+
+func nbAction() orchestration.Action {
+	return orchestration.Action{ID: "a-nb", Command: staticEQActionCommand, TargetRef: "t1",
+		BeforeFingerprint: "track:t1:eq:p315_c1:pending",
+		Args: map[string]any{
+			"write_mode": WriteModeNormalizedBatchV1, "plugin_path": "C:/plugins/Fixture EQ.vst3",
+			"param_id": "p315_c1", "param_id_ch2": "p315_c2", "target_value": -1.5,
+		}}
+}
+
+func TestStaticEQVSPPortNormalizedBatchDualChannelSingleMutation(t *testing.T) {
+	client := newFakeNBVSPClient("p315_c1", "p315_c2", -24, 24, true)
+	port := &StaticEQVSPPort{Client: client}
+	actionSet := orchestration.ActionSet{ProjectCutHash: "cut-eq", Actions: []orchestration.Action{nbAction()}}
+	if err := port.Preflight(context.Background(), actionSet, eqCut()); err != nil {
+		t.Fatal(err)
+	}
+	receipt, err := port.Apply(context.Background(), actionSet.Actions[0], "execution:eq:a-nb")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if receipt.Status != "applied" || receipt.AppliedRevision != "8" || !receipt.EffectivelyOnce {
+		t.Fatalf("receipt=%+v", receipt)
+	}
+	mutations := 0
+	for _, request := range client.requests {
+		if request == "execution:eq:a-nb" {
+			mutations++
+		}
+	}
+	if mutations != 1 {
+		t.Fatalf("exactly one forward mutation expected, got %d (%v)", mutations, client.requests)
+	}
+	if client.requests[0] != "execution:eq:a-nb:instantiate" {
+		t.Fatalf("instantiate must precede the mutation: %v", client.requests)
+	}
+	parameters, ok := client.batchArgs["parameters"].([]map[string]any)
+	if !ok || len(parameters) != 2 || client.batchArgs["base_revision"] != int64(7) {
+		t.Fatalf("batch=%+v", client.batchArgs)
+	}
+	requestedOne := parameters[0]["normalized_value"].(float64)
+	requestedTwo := parameters[1]["normalized_value"].(float64)
+	const wantNormalized = (-1.5 - (-24)) / 48 // linear [-24,+24] domain
+	if math.Abs(requestedOne-wantNormalized) > 1e-12 || math.Abs(requestedTwo-wantNormalized) > 1e-12 {
+		t.Fatalf("requested normalized %v/%v want %v", requestedOne, requestedTwo, wantNormalized)
+	}
+	if receipt.Details["readback_verified"] != true || receipt.Details["write_mode"] != WriteModeNormalizedBatchV1 ||
+		receipt.Details["plugin_instantiated_by_action"] != true || receipt.Details["param_id_ch2"] != "p315_c2" {
+		t.Fatalf("details=%+v", receipt.Details)
+	}
+	channels, _ := receipt.Details["normalized_channels"].([]map[string]any)
+	if len(channels) != 2 {
+		t.Fatalf("channel records=%+v", receipt.Details["normalized_channels"])
+	}
+	if physical, ok := receipt.Details["actual_readback_value"].(float64); !ok || math.Abs(physical-(-1.5)) > 0.01 {
+		t.Fatalf("physical readback value=%v", receipt.Details["actual_readback_value"])
+	}
+}
+
+func TestStaticEQVSPPortNormalizedBatchCurveFallbackWithoutCandidate(t *testing.T) {
+	client := newFakeNBVSPClient("p315_c1", "p315_c2", -24, 24, false)
+	port := &StaticEQVSPPort{Client: client}
+	action := nbAction()
+	action.Args["target_value"] = -6.0
+	actionSet := orchestration.ActionSet{ProjectCutHash: "cut-eq", Actions: []orchestration.Action{action}}
+	if err := port.Preflight(context.Background(), actionSet, eqCut()); err != nil {
+		t.Fatal(err)
+	}
+	receipt, err := port.Apply(context.Background(), action, "execution:eq:a-nb")
+	if err != nil || receipt.Status != "applied" {
+		t.Fatalf("receipt=%+v err=%v", receipt, err)
+	}
+	parameters, _ := client.batchArgs["parameters"].([]map[string]any)
+	got := parameters[0]["normalized_value"].(float64)
+	const wantNormalized = (-6.0 - (-24)) / 48 // linearly spaced samples behave as power law k=1
+	if math.Abs(got-wantNormalized) > 1e-9 {
+		t.Fatalf("curve inversion produced %v want %v", got, wantNormalized)
+	}
+}
+
+func TestStaticEQVSPPortNormalizedBatchFailures(t *testing.T) {
+	runAction := func(mutation func(*fakeNBVSPClient)) (orchestration.ActionReceipt, error) {
+		client := newFakeNBVSPClient("p315_c1", "p315_c2", -24, 24, true)
+		mutation(client)
+		port := &StaticEQVSPPort{Client: client}
+		action := nbAction()
+		actionSet := orchestration.ActionSet{ProjectCutHash: "cut-eq", Actions: []orchestration.Action{action}}
+		if err := port.Preflight(context.Background(), actionSet, eqCut()); err != nil {
+			t.Fatal(err)
+		}
+		return port.Apply(context.Background(), action, "k")
+	}
+
+	receipt, err := runAction(func(c *fakeNBVSPClient) { c.failSurface = true })
+	if err == nil || receipt.Status != "failed" || !strings.Contains(err.Error(), "plugin parameter surface read failed") {
+		t.Fatalf("surface failure not surfaced: receipt=%+v err=%v", receipt, err)
+	}
+
+	receipt, err = runAction(func(c *fakeNBVSPClient) { c.batchFailure = "parameter p315_c2 refused" })
+	if err == nil || receipt.Status != "failed" || !strings.Contains(err.Error(), "parameter p315_c2 refused") {
+		t.Fatalf("batch failure envelope lost: receipt=%+v err=%v", receipt, err)
+	}
+
+	receipt, err = runAction(func(c *fakeNBVSPClient) { c.readDrift = 0.001 })
+	if err == nil || receipt.Status != "applied_unreconciled" || !strings.Contains(err.Error(), "readback did not match") {
+		t.Fatalf("post-write drift must be unreconciled: receipt=%+v err=%v", receipt, err)
+	}
+
+	// A plugin surface without any display metadata admits no dB mapping.
+	bare := &bareSurfaceClient{host: newFakeNBVSPClient("p315_c1", "p315_c2", -24, 24, true)}
+	barePort := &StaticEQVSPPort{Client: bare}
+	bareAction := nbAction()
+	bareSet := orchestration.ActionSet{ProjectCutHash: "cut-eq", Actions: []orchestration.Action{bareAction}}
+	if err := barePort.Preflight(context.Background(), bareSet, eqCut()); err != nil {
+		t.Fatal(err)
+	}
+	receipt, err = barePort.Apply(context.Background(), bareAction, "k")
+	if err == nil || receipt.Status != "failed" || !strings.Contains(err.Error(), "no usable dB display domain") {
+		t.Fatalf("unusable domain not rejected: receipt=%+v err=%v", receipt, err)
+	}
+}
+
+// bareSurfaceClient strips the display metadata from every parameter row so
+// the port must fail closed instead of guessing a machine-specific range.
+type bareSurfaceClient struct{ host *fakeNBVSPClient }
+
+func (f *bareSurfaceClient) VSPStateSnapshot(ctx context.Context, scope string) (*kernel.VSPStateResult, error) {
+	return f.host.VSPStateSnapshot(ctx, scope)
+}
+
+func (f *bareSurfaceClient) SendVSPLegacyCommandWithIDs(_ context.Context, command map[string]any, requestID, txID string) (*kernel.VSPCommandResult, error) {
+	switch command["cmd"] {
+	case "get_plugin_parameters":
+		f.host.commands = append(f.host.commands, command)
+		f.host.requests = append(f.host.requests, requestID)
+		f.host.txs = append(f.host.txs, txID)
+		rows := []any{}
+		for paramID := range f.host.params {
+			rows = append(rows, map[string]any{"id": paramID, "param_id": paramID, "normalized_value": 0.5})
+		}
+		return &kernel.VSPCommandResult{TransactionID: txID, LegacyReply: map[string]any{"status": "ok", "parameters": rows}}, nil
+	}
+	return f.host.SendVSPLegacyCommandWithIDs(context.Background(), command, requestID, txID)
+}
+
+func (f *bareSurfaceClient) SendVSPCommandWithIDs(ctx context.Context, command string, args map[string]any, requestID, txID string) (*kernel.VSPCommandResult, error) {
+	return f.host.SendVSPCommandWithIDs(ctx, command, args, requestID, txID)
+}
+
+func TestStaticEQVSPPortCustomCommandNameInjection(t *testing.T) {
+	client := newFakeNBVSPClient("p315_c1", "p315_c2", -24, 24, true)
+	port := &StaticEQVSPPort{Client: client, CommandName: "eq_band_nudge"}
+	action := nbAction()
+	action.Command = "something_else"
+	set := orchestration.ActionSet{ProjectCutHash: "cut-eq", Actions: []orchestration.Action{action}}
+	if err := port.Preflight(context.Background(), set, eqCut()); err == nil {
+		t.Fatal("foreign command accepted by injected name gate")
+	}
+	action.Command = "eq_band_nudge"
+	set.Actions = []orchestration.Action{action}
+	if err := port.Preflight(context.Background(), set, eqCut()); err != nil {
+		t.Fatalf("configured command rejected: %v", err)
+	}
+}
+
+func TestStaticEQVSPPortReconcileStaysNotAppliedForPathOnlyActions(t *testing.T) {
+	client := newFakeNBVSPClient("p315_c1", "p315_c2", -24, 24, true)
+	port := &StaticEQVSPPort{Client: client}
+	action := nbAction()
+	set := orchestration.ActionSet{ProjectCutHash: "cut-eq", Actions: []orchestration.Action{action}}
+	if err := port.Preflight(context.Background(), set, eqCut()); err != nil {
+		t.Fatal(err)
+	}
+	receipt, err := port.Reconcile(context.Background(), action, "k", eqCut())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if receipt.Status != "not_applied" {
+		t.Fatalf("path-only actions cannot reconcile durably, got %+v", receipt)
 	}
 }

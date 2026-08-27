@@ -8,8 +8,15 @@ import (
 	"strings"
 	"sync"
 
+	"vit-daw-agent/internal/kernel"
 	"vit-daw-agent/internal/orchestration"
+	"vit-daw-agent/internal/workflows/plugingrabber"
 )
+
+// staticEQActionCommand is the historical D2-1 domain command accepted by a
+// zero-value StaticEQVSPPort; constructor injection can narrow it further
+// without changing CAS/idempotency semantics.
+const staticEQActionCommand = "static_eq_band_adjust"
 
 // StaticEQVSPPort executes one bounded static EQ band adjustment as a single
 // governed forward mutation. One orchestration Action may need two kernel
@@ -17,14 +24,51 @@ import (
 // readback command; they share one idempotency key and produce one receipt,
 // preserving the D-family "exactly one forward mutation" invariant. The port
 // contains no authorization logic.
+//
+// The port is parameter driven: CommandName is injected by construction
+// instead of hardcoding the domain action, and an action whose Args carry
+// WriteModeNormalizedBatchV1 switches the write pipeline to the real-plugin
+// path (path instantiate + kernel-normalized dual-channel batch +
+// value_text physical readback). Legacy actions keep the historical
+// raw-value pipeline byte-for-byte.
 type StaticEQVSPPort struct {
 	Client VSPClient
+	// CommandName gates which action command this port executes. Empty keeps
+	// the D2-1 static_eq_band_adjust default.
+	CommandName string
 
 	mu            sync.Mutex
 	baseRevision  int64
 	projectEpoch  string
 	beforeValues  map[string]float64 // "plugin:param" -> value captured at preflight
 	pluginIDByRef map[string]string  // action ID -> resolved plugin instance ID
+}
+
+func (p *StaticEQVSPPort) commandName() string {
+	if strings.TrimSpace(p.CommandName) != "" {
+		return strings.TrimSpace(p.CommandName)
+	}
+	return staticEQActionCommand
+}
+
+// instantiatePayload builds the instantiate_plugin command. The identifier is
+// only attached when the action pins one; the real-plugin path carries
+// plugin_path and leaves the identifier empty, because the kernel resolves a
+// non-empty identifier exclusively against its known-plugin list (which an
+// uns-scanned host does not populate) and never falls back to the path.
+func (p *StaticEQVSPPort) instantiatePayload(action orchestration.Action) map[string]any {
+	payload := map[string]any{
+		"cmd":           "instantiate_plugin",
+		"track_id":      action.TargetRef,
+		"base_revision": p.baseRevision,
+	}
+	if identifier := actionArgText(action, "plugin_identifier"); identifier != "" {
+		payload["plugin_identifier"] = identifier
+	}
+	if pluginPath := actionArgText(action, "plugin_path"); pluginPath != "" {
+		payload["plugin_path"] = pluginPath
+	}
+	return payload
 }
 
 func (p *StaticEQVSPPort) Preflight(ctx context.Context, actionSet orchestration.ActionSet, cut orchestration.ProjectCut) error {
@@ -42,7 +86,7 @@ func (p *StaticEQVSPPort) Preflight(ctx context.Context, actionSet orchestration
 		return fmt.Errorf("action set is empty")
 	}
 	for _, action := range actionSet.Actions {
-		if action.Command != "static_eq_band_adjust" || strings.TrimSpace(action.TargetRef) == "" || strings.TrimSpace(action.BeforeFingerprint) == "" {
+		if action.Command != p.commandName() || strings.TrimSpace(action.TargetRef) == "" || strings.TrimSpace(action.BeforeFingerprint) == "" {
 			return fmt.Errorf("unsupported or unguarded B2 action %s", action.ID)
 		}
 		if _, ok := numeric(action.Args["target_value"]); !ok {
@@ -51,7 +95,11 @@ func (p *StaticEQVSPPort) Preflight(ctx context.Context, actionSet orchestration
 		if strings.TrimSpace(fmt.Sprint(action.Args["param_id"])) == "" {
 			return fmt.Errorf("action %s requires param_id", action.ID)
 		}
-		if actionArgText(action, "plugin_id") == "" && actionArgText(action, "plugin_identifier") == "" {
+		if actionArgText(action, "write_mode") == WriteModeNormalizedBatchV1 {
+			if actionArgText(action, "plugin_path") == "" || actionArgText(action, "param_id_ch2") == "" {
+				return fmt.Errorf("normalized batch action %s requires plugin_path and param_id_ch2", action.ID)
+			}
+		} else if actionArgText(action, "plugin_id") == "" && actionArgText(action, "plugin_identifier") == "" {
 			return fmt.Errorf("action %s requires plugin_id or plugin_identifier", action.ID)
 		}
 	}
@@ -108,14 +156,9 @@ func (p *StaticEQVSPPort) Apply(ctx context.Context, action orchestration.Action
 	txID := "tx_" + requestID
 	pluginID := actionArgText(action, "plugin_id")
 	instantiated := false
+	var err error
 	if pluginID == "" {
-		identifier := actionArgText(action, "plugin_identifier")
-		result, err := p.Client.SendVSPLegacyCommandWithIDs(ctx, map[string]any{
-			"cmd":               "instantiate_plugin",
-			"track_id":          action.TargetRef,
-			"plugin_identifier": identifier,
-			"base_revision":     p.baseRevision,
-		}, requestID+":instantiate", txID+":instantiate")
+		result, err := p.Client.SendVSPLegacyCommandWithIDs(ctx, p.instantiatePayload(action), requestID+":instantiate", txID+":instantiate")
 		if err != nil {
 			return orchestration.ActionReceipt{ActionID: action.ID, Status: "failed", Error: err.Error()}, err
 		}
@@ -130,21 +173,57 @@ func (p *StaticEQVSPPort) Apply(ctx context.Context, action orchestration.Action
 		}
 		instantiated = true
 	}
-	result, err := p.Client.SendVSPLegacyCommandWithIDs(ctx, map[string]any{
-		"cmd":           "set_plugin_param",
-		"track_id":      action.TargetRef,
-		"plugin_id":     pluginID,
-		"param_id":      paramID,
-		"value":         target,
-		"base_revision": p.baseRevision,
-	}, requestID, txID)
+	writeMode := actionArgText(action, "write_mode")
+	paramIDCh2 := ""
+	var requestedChannels []eqGainChannel
+	if writeMode == WriteModeNormalizedBatchV1 {
+		paramIDCh2 = actionArgText(action, "param_id_ch2")
+		surface, surfaceErr := p.eqParameterSurface(ctx, action.TargetRef, pluginID)
+		if surfaceErr != nil {
+			return orchestration.ActionReceipt{ActionID: action.ID, Status: "failed", Error: surfaceErr.Error()}, fmt.Errorf("VSP plugin parameter mutation failed: %s", surfaceErr)
+		}
+		channels, _, planErr := eqPlanGainChannels(surface, target, paramID, paramIDCh2)
+		if planErr != nil {
+			return orchestration.ActionReceipt{ActionID: action.ID, Status: "failed", Error: planErr.Error()}, fmt.Errorf("VSP plugin parameter mutation failed: %s", planErr)
+		}
+		requestedChannels = channels
+	}
+	var result *kernel.VSPCommandResult
+	if writeMode == WriteModeNormalizedBatchV1 {
+		parameters := make([]map[string]any, 0, len(requestedChannels))
+		for _, channel := range requestedChannels {
+			parameters = append(parameters, map[string]any{"parameter_id": channel.ParamID, "normalized_value": channel.RequestedNormalized})
+		}
+		result, err = p.Client.SendVSPCommandWithIDs(ctx, "plugin.set_params_batch", map[string]any{
+			"track_id":      action.TargetRef,
+			"plugin_id":     pluginID,
+			"parameters":    parameters,
+			"readback":      true,
+			"base_revision": p.baseRevision,
+		}, requestID, txID)
+	} else {
+		result, err = p.Client.SendVSPLegacyCommandWithIDs(ctx, map[string]any{
+			"cmd":           "set_plugin_param",
+			"track_id":      action.TargetRef,
+			"plugin_id":     pluginID,
+			"param_id":      paramID,
+			"value":         target,
+			"base_revision": p.baseRevision,
+		}, requestID, txID)
+	}
 	if err != nil {
 		return orchestration.ActionReceipt{ActionID: action.ID, Status: "failed", Error: err.Error()}, err
 	}
-	reply := result.LegacyLikeReply()
-	if strings.EqualFold(strings.TrimSpace(fmt.Sprint(reply["status"])), "error") {
-		message := strings.TrimSpace(fmt.Sprint(reply["message"]))
-		return orchestration.ActionReceipt{ActionID: action.ID, Status: "failed", Error: message}, fmt.Errorf("VSP plugin parameter mutation failed: %s", message)
+	if writeMode == WriteModeNormalizedBatchV1 {
+		if failure := eqTypedCommandFailure(result); failure != "" {
+			return orchestration.ActionReceipt{ActionID: action.ID, Status: "failed", Error: failure}, fmt.Errorf("VSP plugin parameter mutation failed: %s", failure)
+		}
+	} else {
+		reply := result.LegacyLikeReply()
+		if strings.EqualFold(strings.TrimSpace(fmt.Sprint(reply["status"])), "error") {
+			message := strings.TrimSpace(fmt.Sprint(reply["message"]))
+			return orchestration.ActionReceipt{ActionID: action.ID, Status: "failed", Error: message}, fmt.Errorf("VSP plugin parameter mutation failed: %s", message)
+		}
 	}
 	current, err := p.Client.VSPStateSnapshot(ctx, "project.timeline")
 	if err != nil || current == nil || !current.OK() {
@@ -156,9 +235,48 @@ func (p *StaticEQVSPPort) Apply(ctx context.Context, action orchestration.Action
 	if current.Revision <= p.baseRevision {
 		return orchestration.ActionReceipt{ActionID: action.ID, Status: "applied_unreconciled", EffectivelyOnce: true}, fmt.Errorf("VSP revision did not advance after mutation")
 	}
-	actual, err := p.readPluginParamUnlocked(ctx, action.TargetRef, pluginID, paramID)
-	if err != nil || math.Abs(actual-target) > 0.001 {
-		return orchestration.ActionReceipt{ActionID: action.ID, Status: "applied_unreconciled", AppliedRevision: strconv.FormatInt(current.Revision, 10), EffectivelyOnce: true}, fmt.Errorf("plugin parameter readback did not match target")
+	actual := 0.0
+	readbackVerified := false
+	var actualPhysical any
+	normalizedRecords := make([]map[string]any, 0, len(requestedChannels))
+	if writeMode == WriteModeNormalizedBatchV1 {
+		freshSurface, surfaceErr := p.eqParameterSurface(ctx, action.TargetRef, pluginID)
+		if surfaceErr != nil {
+			return orchestration.ActionReceipt{ActionID: action.ID, Status: "applied_unreconciled", AppliedRevision: strconv.FormatInt(current.Revision, 10), EffectivelyOnce: true}, fmt.Errorf("plugin parameter readback did not match target")
+		}
+		readbackVerified = true
+		for index, channel := range requestedChannels {
+			info, ok := freshSurface[channel.ParamID]
+			var actualValue float64
+			numericOK := false
+			if ok {
+				actualValue, numericOK = numeric(info.NormalizedValue)
+			}
+			channel.ActualNormalized = actualValue
+			requestedChannels[index] = channel
+			normalizedRecords = append(normalizedRecords, map[string]any{
+				"parameter_id": channel.ParamID, "requested_normalized": channel.RequestedNormalized, "actual_normalized": actualValue,
+			})
+			if !numericOK || math.Abs(actualValue-channel.RequestedNormalized) > EqNormalizedTolerance {
+				readbackVerified = false
+			}
+			if index == 0 {
+				if physical, parsed := plugingrabber.ParseEQLocalizedNumber(info.ValueText); parsed {
+					actualPhysical = physical
+				}
+			}
+		}
+		if !readbackVerified {
+			return orchestration.ActionReceipt{ActionID: action.ID, Status: "applied_unreconciled", AppliedRevision: strconv.FormatInt(current.Revision, 10), EffectivelyOnce: true}, fmt.Errorf("plugin parameter readback did not match target")
+		}
+	} else {
+		var legacyErr error
+		actual, legacyErr = p.readPluginParamUnlocked(ctx, action.TargetRef, pluginID, paramID)
+		if legacyErr != nil || math.Abs(actual-target) > 0.001 {
+			return orchestration.ActionReceipt{ActionID: action.ID, Status: "applied_unreconciled", AppliedRevision: strconv.FormatInt(current.Revision, 10), EffectivelyOnce: true}, fmt.Errorf("plugin parameter readback did not match target")
+		}
+		readbackVerified = true
+		actualPhysical = actual
 	}
 	beforeRevision := p.baseRevision
 	beforeKey := eqBeforeKey(pluginID, paramID)
@@ -173,8 +291,14 @@ func (p *StaticEQVSPPort) Apply(ctx context.Context, action orchestration.Action
 		"before_revision": strconv.FormatInt(beforeRevision, 10), "after_revision": strconv.FormatInt(current.Revision, 10),
 		"transaction_id": transactionID, "idempotency_key": requestID,
 		"plugin_id": pluginID, "param_id": paramID,
-		"requested_target_value": target, "actual_readback_value": actual, "readback_verified": true,
+		"requested_target_value": target, "actual_readback_value": actualPhysical, "readback_verified": readbackVerified,
 		"plugin_instantiated_by_action": instantiated,
+	}
+	if writeMode == WriteModeNormalizedBatchV1 {
+		details["write_mode"] = WriteModeNormalizedBatchV1
+		details["plugin_path"] = actionArgText(action, "plugin_path")
+		details["param_id_ch2"] = paramIDCh2
+		details["normalized_channels"] = normalizedRecords
 	}
 	if beforeAvailable {
 		details["before_readback_value"] = beforeValue
