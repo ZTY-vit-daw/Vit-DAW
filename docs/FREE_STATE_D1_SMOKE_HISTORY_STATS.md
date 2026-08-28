@@ -320,3 +320,17 @@ S2c 诊断定案（temp/s2c_probe/curve_dump.jsonl）：VSC-2 threshold 的 disp
 | 20260828_185457 | freq p01（回归） | fail "materiality missing"（S2e 方差） | **static_eq 零回归**：写入链 applied/readback(-1.5)/evaluation_ready 全绿，失败在 S2e 已知 settle 合规方差（S2d 戳表同款） |
 
 开放项：压缩域端到端 PASS 的剩余卡点是**实例绑定语义**——绑定解析按 D2-1 static_eq 同款设计实例化全新 VSC-2，其 threshold 默认即物理顶格（normalized 1.0=+11.8dB），模型"过压→抬阈值"的 +1 方向物理无解；p01 的过压源头在工程既有处理链，新实例语义无法承载该修复意图。归新卡 S2f（域设计裁定：绑定既有实例 vs 新实例语义 vs prompt 方向引导）。
+
+## 11. 2026-08-28 晚窗批（D2-2-S3 多轮探针收口：py 判定契约对齐 + Go 侧执行桥缺口钉死）
+
+S3 诊断定案（卡面待查两点均闭合）：(1) **py 探针判定 bug**——`validate_d2_multi_round` 要求两 dose scope 的 `max_action_attempts >= 2` 才允许多轮，与 Go 侧 S1 冻结契约直接矛盾：`ValidateD2MultiRound`（experiment/d2_multiround.go:80-84）与 §8 裁定 4 都要求 `== 1`（每轮单变更），跨轮续行只由 `experiment_budget ∈ 2..MaxD2MultiRoundBudget` 表达。已修（fix(d1-smoke)）：改判 `== 1`，默认路径 `validate_d1` 不动。(2) **env 注入通道无恙**——ps1 无需任何透传改动，shell `$env:` 经 run_free_state_d1_smoke.ps1 → dev_agent_smoke.ps1 → Start-Process 继承链到达 agent（同 `VIT_PARAM_CURVE_DUMP` 机制）；三份产物 admission 均 `experiment_budget: 2` 且带服务端 baseline_fingerprint，`ResolveD2MultiRoundBudget` 接收确认。
+
+**新发现（Go 侧，超出 S3 只动 scripts 的边界）**：修复后探针不再误判 fail，但三份产物（202855/204911/205244）同病——D2-2 admission 建成、round 1 开出后，chat 执行桥 plan builder 无条件调 `ValidateD1S1()` 拒绝 budget>1 admission（`d1PluginParamPlanWithBinding` free_state_d1_plan_table.go:292-297；track_gain 同构 `d1TrackGainPlan` free_state_d1_runtime.go:88-93），报错原文 `D1-S1 experiment_budget must be 1`，round 1 零干预、continuation 反复同错耗尽。**D2-2 档位下任何 admitted 域的干预都无法执行**，多轮续行（ ruling 1 的 next_round）永不可达，探针只能诚实 NOT_EXERCISED。修复方向已写入新卡 D2-2-S4：plan builder 用现成 `freeStateAdmissionRunsSingleRound`（free_state_experiment_runtime.go:336）分档校验，另需处理 experiment 级 sessionID/round 级 before-render 的每轮语义。
+
+| stamp | 轮 | 终态 | 备注 |
+|---|---|---|---|
+| 20260828_202855 | p01 freq + 注入2 + MultiRoundProbe | fail "max_action_attempts (1) admits no multi-round continuation" | **py 判定 bug 首证**：budget=2 注入已生效（budget 检查通过才轮到该断言），误判在 admission 边界 |
+| 20260828_204453 | p01 freq 默认路径回归 | **pass** | py 修复后默认路径行为零变化红线守住 |
+| 20260828_204911 / 205244 | p01 freq + 注入2 + MultiRoundProbe | NOT_EXERCISED（exit 3）×2 | 判定修复生效：不再误判 fail；卡点后移至 Go 侧 plan builder 拒批（round 1 零干预，见上文钉死） |
+
+开放项：**D2-2-S4（Go L2）**——chat 执行桥多轮接线（plan builder 分档校验 + 每轮 session/render 语义），S3 验收"注入 2 exit 0"在 S4 合入前结构性不可达，NOT_EXERCISED（exit 3）为其诚实终态。

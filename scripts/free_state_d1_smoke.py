@@ -838,10 +838,15 @@ def validate_d2_multi_round(base_url: str, conversation_id: str, project_path: s
     require(domain in ADMITTED_DOMAIN_KINDS, f"multi-round probe: action_domain {domain!r} is not admitted by the D2-1 domain table")
     budget = int(admission.get("experiment_budget", 0) or 0)
     require(budget >= MULTI_ROUND_MIN_ROUNDS, f"multi-round probe: experiment_budget {budget} admits no multi-round continuation")
+    # Frozen S1 contract: each dose scope keeps exactly one action attempt per
+    # round (ValidateD2MultiRound rejects anything but 1); cross-round
+    # continuation is expressed solely by experiment_budget above. Demanding
+    # attempts >= 2 here misread the per-round bound as a cross-round one and
+    # fail-closed the 20260828_202855 budget-2 run at its admission boundary.
     for key in ("diagnostic_dose_bounds", "retained_dose_bounds"):
         bounds = admission.get(key) if isinstance(admission.get(key), dict) else {}
         attempts = int(bounds.get("max_action_attempts", 0) or 0)
-        require(attempts >= MULTI_ROUND_MIN_ROUNDS, f"multi-round probe: {key}.max_action_attempts ({attempts}) admits no multi-round continuation")
+        require(attempts == 1, f"multi-round probe: {key}.max_action_attempts ({attempts}) violates the frozen per-round single-change contract (must equal 1)")
 
     rounds_all = rows(experiment.get("rounds"))
     if len(rounds_all) < MULTI_ROUND_MIN_ROUNDS:
