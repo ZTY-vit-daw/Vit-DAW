@@ -148,6 +148,13 @@ type Admission struct {
 	CheckpointRef        string         `json:"checkpoint_ref"`
 	RollbackPlan         map[string]any `json:"rollback_plan"`
 	AuthorityMode        AuthorityMode  `json:"authority_mode"`
+	// BaselineFingerprint optionally pins the experiment baseline (project
+	// revision plus parameter before-values) that the D2-2 multi-round tier
+	// requires for cumulative dose accounting (GLM ruling 2). The runtime
+	// never interprets the parameter values; it requires the revision anchor
+	// at admission and accumulates displacement from the intervention
+	// receipt chain.
+	BaselineFingerprint map[string]any `json:"baseline_fingerprint,omitempty"`
 }
 
 func (a Admission) Validate() error {
@@ -557,13 +564,20 @@ func (t *Turn) StartRound(requestedViews []string, checkpointRef, projectRevisio
 	if err := t.ensureLive(); err != nil {
 		return nil, err
 	}
-	if t.Admission.IsD1S1() {
+	if t.Admission.isD1S1SingleRound() {
 		if err := t.Admission.ValidateD1S1(); err != nil {
 			return nil, err
 		}
 		if len(t.Rounds) > 0 {
 			return nil, fmt.Errorf("D1-S1 permits one round")
 		}
+	} else if t.Admission.IsD2MultiRound() {
+		if err := t.Admission.ValidateD2MultiRound(); err != nil {
+			return nil, err
+		}
+	}
+	if t.experimentJudgmentPending() {
+		return nil, ErrJudgmentPending
 	}
 	requestedViews = unique(requestedViews)
 	if len(requestedViews) == 0 {
@@ -662,11 +676,24 @@ func (t *Turn) ApplyIntervention(intervention Intervention, now time.Time) ([]tr
 	if err != nil {
 		return nil, err
 	}
-	if t.Admission.IsD1S1() && len(round.Interventions) > 0 {
-		return nil, fmt.Errorf("D1-S1 permits one forward mutation per round")
+	if len(round.Interventions) > 0 {
+		if t.Admission.IsD2MultiRound() {
+			return nil, fmt.Errorf("D2-2 permits one forward mutation per round")
+		}
+		if t.Admission.isD1S1SingleRound() {
+			return nil, fmt.Errorf("D1-S1 permits one forward mutation per round")
+		}
 	}
 	if t.InterventionCount() >= t.Admission.ExperimentBudget {
 		return nil, fmt.Errorf("experiment budget exhausted")
+	}
+	if t.experimentJudgmentPending() {
+		return nil, ErrJudgmentPending
+	}
+	if t.Admission.IsD2MultiRound() {
+		if err := t.checkD2MultiRoundCumulativeDisplacement(intervention); err != nil {
+			return nil, err
+		}
 	}
 	if err := intervention.Validate(); err != nil {
 		return nil, err
@@ -760,6 +787,9 @@ func (t *Turn) DecideRound(decision RoundDecision, summary string, now time.Time
 	}
 	if err := validateDecision(decision); err != nil {
 		return nil, err
+	}
+	if t.experimentJudgmentPending() && decision != DecisionRetain && decision != DecisionRollback && decision != DecisionStopped {
+		return nil, ErrJudgmentPending
 	}
 	if decision != DecisionRollback && decision != DecisionStopped && round.TargetResponse == nil && !(decision == DecisionNextRound && round.Materiality != nil && round.Materiality.State == MaterialitySubthreshold) && decision != DecisionUserJudgment && decision != DecisionPlateau && decision != DecisionBlockedObservation && decision != DecisionBlockedCapability {
 		return nil, fmt.Errorf("round decision requires target response")
@@ -1031,6 +1061,7 @@ func cloneAdmission(a Admission) Admission {
 	a.RetainedDoseBounds = cloneMap(a.RetainedDoseBounds)
 	a.VerificationPlan = cloneMap(a.VerificationPlan)
 	a.RollbackPlan = cloneMap(a.RollbackPlan)
+	a.BaselineFingerprint = cloneMap(a.BaselineFingerprint)
 	a.EvidenceRefs = unique(a.EvidenceRefs)
 	a.ProtectedDimensions = unique(a.ProtectedDimensions)
 	return a

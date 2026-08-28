@@ -159,3 +159,24 @@
 
 - 产出：本文档。
 - 验收命令（卡内约定）：`cd D:\Vit_DAW; git status --short` —— 本卡未产生代码/测试变更；docs/ 新增本文档，queue 卡已由 todo/ 移入 doing/（完成后置 done/）。工作树其余变更均为并行会话产物（§0 基线），未触碰。
+
+---
+
+## 9. D2-2-S1 执行记录（2026-08-28，flash 会话按卡执行）
+
+- 执行卡：todo/2026-08-27-D2-2-S1-multiround-admission-budget-runtime.md（分支 codex/g1-g7-runtime-remediation，开工 HEAD 20a1c70；卡基线 26475d3 后 experiment 包行号经复验无漂移）。
+- 范围：只动 `agent/internal/experiment`（新增 `d2_multiround.go` + `d2_multiround_test.go`，`runtime.go` 三处守卫档位分流与 `Admission.BaselineFingerprint` 字段）。未动 chat/agentloop/scripts/prompt。
+
+### 落地内容与裁定对照
+
+1. **档位显式化（档位陷阱封存）**：`Admission.IsD2MultiRound()`＝域表成员（复用 `D1S1DomainSpecFor`）且 budget∈2..`MaxD2MultiRoundBudget`（包级常量 4，上界由 `TestD2MultiRoundAdmissionBudgetBounds` 封存）；`isD1S1SingleRound()`＝`IsD1S1() && !IsD2MultiRound()`，budget>4 的域成员回落单轮守卫（fail closed）。`IsD1S1()` 与 `ValidateD1S1()` 原语义逐字节未动；封存断言 `TestD2MultiRoundAdmissionTierSplit` 锁定：track_gain+budget=3 的 `IsD1S1()` 仍为 true 且 `ValidateD1S1` 仍拒。
+2. **守卫分流**：`StartRound` D1-S1 分支原样保留（第二轮拒、错误文本不变），D2-2 分支每次重跑 `ValidateD2MultiRound` 并放开第二轮；`ApplyIntervention` 每轮单变更守卫对两档同强度（D2-2 档错误文本 "D2-2 permits one forward mutation per round"），总 budget 守卫（InterventionCount 跨轮累计）不变；`RecordObservation` 守卫条件保持 `IsD1S1()`（域成员判定），D2-2 每轮自然受 revision 绑定/恰好一 post-action 观察约束——零改动。
+3. **跨轮累计剂量（裁定 2）**：`Admission.BaselineFingerprint`（omitempty，含 revision 锚点，`ValidateD2MultiRound` 必查）；`checkD2MultiRoundCumulativeDisplacement` 以回执链（各轮 applied intervention 的 `AchievedDelta[AdmissionValueKey]`）带符号累计位移，`|累计| > 2dB` 拒（错误可区分 "cumulative ... experiment-lifetime bound"）；每单次动作界不变；failed/ambiguous 占 budget 不计位移；一个 admission 只动一个 admission 钉住的参数（static_eq 单 band），band 级累计在 admission 内与实验级重合。`TestD2MultiRoundCumulativeBoundMatchesDomainAbsoluteBound` 对三域封存"累计界==域表单动作绝对界"。`CalibrationProfile` 未触碰（裁定附带说明）。
+4. **判定边界作用域持久（裁定 3 运行时层）**：`experimentJudgmentPending()`＝任一轮 `UserJudgmentRequested` 且无判定记录；`StartRound`/`ApplyIntervention`/`DecideRound`（非 settle 族：retain/rollback/stopped 白名单对齐 agentloop final gate）返回哨兵 `ErrJudgmentPending`（"judgment pending for this experiment"）；不搬 per-round 状态位。判定落定（evidence 录入）后循环重开，heard≠yes 的 next_round 校准路径保持可达。
+5. **budget 用尽契约**：逻辑本已存在（runtime.go `OutcomeBudgetExhausted`→`capability_blocked`），补 `TestBudgetExhaustedSettlementRequiresCapabilityBlocked` 与反例测试。
+
+### 验收结果
+
+- `go build ./...` PASS；`go test ./internal/experiment -count=1` PASS（新增 9 个测试函数含对抗用例"每轮合规但累计超界"）；`go test ./internal/chat -run 'TestD1S1|TestMultiRound|TestExperimentBudget' -count=1` PASS（D1-S1 防回退）；`go test ./... -count=1` 全绿。
+- 实栈烟测按卡约定未跑（实栈由 GLM 主线独占做 S2d 验收，晚窗统一补 `run_free_state_d1_smoke.ps1` 回归）。
+- S2 依赖的本卡档位 API：`IsD2MultiRound()`、`ValidateD2MultiRound()`、`MaxD2MultiRoundBudget`、`Admission.BaselineFingerprint`、`ErrJudgmentPending`。
