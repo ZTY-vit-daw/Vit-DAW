@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"math"
 	"strings"
+
+	"vit-daw-agent/internal/agentprotocol"
 )
 
 // D1S1JournalField maps one plan Args key into the durable journal Command
@@ -141,7 +143,7 @@ var d1s1Domains = []D1S1DomainSpec{
 		// static_eq adjusts one EQ band of one track. D2-1 admits it with the
 		// same single-mutation tightness as track_gain: one band, one bounded
 		// gain move, no frequency outside the audible range, no resonant Q.
-		ActionDomain:        "static_eq",
+		ActionDomain:        agentprotocol.ImprovementActionDomainStaticEQ,
 		ActionKind:          "static_eq_band_adjust",
 		PromptParameterHint: `parameter_bounds={"gain_db":<nonzero number within +/-2>,"frequency_hz":<number within 20-20000>,"q":<optional number within 0.1-18>,"band_index":<optional non-negative integer>}`,
 		ValidateTypedAction: func(a Admission) error {
@@ -200,7 +202,7 @@ var d1s1Domains = []D1S1DomainSpec{
 		// time-dynamics view instead of any static-level projection. There is
 		// no stub form: production resolves the machine-local whitelist first
 		// and hard-fails without it.
-		ActionDomain:        "broadband_compression",
+		ActionDomain:        agentprotocol.ImprovementActionDomainBroadbandCompression,
 		ActionKind:          "broadband_threshold_adjust",
 		PromptParameterHint: `parameter_bounds={"threshold_db":<nonzero number within +/-2>}`,
 		ValidateDoseBounds: func(scope string, bounds map[string]any) error {

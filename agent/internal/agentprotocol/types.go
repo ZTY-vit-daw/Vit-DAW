@@ -26,6 +26,49 @@ const (
 	ImprovementActionDomainPlugin               = "plugin"
 )
 
+// improvementActionDomainVocabulary is the single enumeration of the
+// protocol's accepted action_domain values. Validate derives its gate from
+// this list, so admitting a domain means adding one constant and one entry
+// here — never a second hand-written switch. The experiment domain table
+// references the same constants, and its sealed test fails at test time if a
+// table row names a domain missing from this vocabulary.
+var improvementActionDomainVocabulary = []string{
+	ImprovementActionDomainTrackGain,
+	ImprovementActionDomainClipGain,
+	ImprovementActionDomainPan,
+	ImprovementActionDomainEQ,
+	ImprovementActionDomainStaticEQ,
+	ImprovementActionDomainBroadbandCompression,
+	ImprovementActionDomainCompressor,
+	ImprovementActionDomainLimiter,
+	ImprovementActionDomainGateExpander,
+	ImprovementActionDomainDeEsser,
+	ImprovementActionDomainTransientShaper,
+	ImprovementActionDomainMultibandDynamics,
+	ImprovementActionDomainPlugin,
+}
+
+var improvementActionDomainSet = func() map[string]struct{} {
+	set := make(map[string]struct{}, len(improvementActionDomainVocabulary))
+	for _, domain := range improvementActionDomainVocabulary {
+		set[domain] = struct{}{}
+	}
+	return set
+}()
+
+// ImprovementActionDomains returns the accepted action_domain vocabulary in
+// declaration order.
+func ImprovementActionDomains() []string {
+	return append([]string(nil), improvementActionDomainVocabulary...)
+}
+
+// IsImprovementActionDomain reports whether value names an accepted
+// action_domain after the same normalization Validate applies.
+func IsImprovementActionDomain(value string) bool {
+	_, ok := improvementActionDomainSet[strings.ToLower(strings.TrimSpace(value))]
+	return ok
+}
+
 const (
 	KindPendingCandidate      = "PendingCandidate"
 	KindApprovalRequest       = "ApprovalRequest"
@@ -124,15 +167,7 @@ func (p ImprovementProposal) Validate() error {
 	if p.Confidence < 0 || p.Confidence > 1 {
 		return fmt.Errorf("confidence must be between 0 and 1")
 	}
-	switch strings.ToLower(strings.TrimSpace(p.ActionDomain)) {
-	case ImprovementActionDomainTrackGain, ImprovementActionDomainClipGain,
-		ImprovementActionDomainPan, ImprovementActionDomainEQ,
-		ImprovementActionDomainStaticEQ, ImprovementActionDomainBroadbandCompression,
-		ImprovementActionDomainCompressor, ImprovementActionDomainLimiter,
-		ImprovementActionDomainGateExpander, ImprovementActionDomainDeEsser,
-		ImprovementActionDomainTransientShaper, ImprovementActionDomainMultibandDynamics,
-		ImprovementActionDomainPlugin:
-	default:
+	if !IsImprovementActionDomain(p.ActionDomain) {
 		return fmt.Errorf("unsupported action_domain %q", p.ActionDomain)
 	}
 	return nil

@@ -15,14 +15,18 @@ import (
 	"strings"
 	"time"
 
+	"vit-daw-agent/internal/agentprotocol"
 	"vit-daw-agent/internal/taskstate"
 	"vit-daw-agent/internal/trajectory"
 )
 
 const SchemaVersion = "vit.free_state_experiment_runtime.v1"
 
+// D1S1ActionDomain derives from the protocol vocabulary so the domain string
+// has exactly one definition; the sealed table test fails if a row names a
+// domain the protocol layer does not admit.
 const (
-	D1S1ActionDomain = "track_gain"
+	D1S1ActionDomain = agentprotocol.ImprovementActionDomainTrackGain
 	D1S1ActionKind   = "track_gain_adjust"
 )
 
