@@ -272,3 +272,23 @@ S2b（todo/2026-08-27-D2-1-5-S2b）经三次设计修订后交付：py 驱动只
 | 20260828_093016 | R5 freq p01 | fail post-action | agent 侧 B2：continuation 预算 7/7 耗尽，post-apply 链（CCB→materiality→target→audition）排不完 |
 
 开放项：B1/B2 归 todo/2026-08-28-D2-1-5-S2d-postapply-continuation-budget.md（GLM L2，修复方向三选一：respond 同步验证 / post-apply 预算保留 / reserve 触发前移）。201842 PASS 判定为竞态幸运（respond 链内同步完成 bookkeeping），与 IDLE-5 "旧驱动 0/4" 结论一致。
+
+## 8. 2026-08-28 午窗批（S2d GLM L2 修复链，12b2c25）
+
+S2d 深入现场后推翻了卡内两处机理认定，交付 9 项修复（chat/agentloop 包，experiment 留给 D2-2-S1）：
+
+**取证修正**：(1) `ExecuteActionSetWithPersistence` 的链内同步 Verify 总是执行，但 `HarnessAcoustic` 要求的 audit_receipt/freshness 在 `mix.observe`（digest_catalog）结果里结构性不存在——"applied 无 VerificationResult"是确定性的，非竞态；(2) 201842 的 post-action 观察实为 drain continuation 内模型 CCB 路径（ccbr_ 前缀），非 respond 同步验证。
+
+**修复清单**（全部守卫强化，无弱化）：D1 applied 边界 post-apply 预算地板（used+3 一次）+ 入队边界 reserve + 预算合并单调化；respond 链内确定性 post-action 观察落账（`bookD1PostActionObservation`：以 admission 的模型自选视图集走 `ccb.observation_request`，fresh+revision-bound 后入账 round 与 ledger）；settle 报告准入守卫（round 无新鲜 post-action 观察时拒绝 materiality/target/round_decision 落账）；rpost 不再被 proposal-carrying settle 与交互桥无差别清除；agentloop 输出 gate 补齐 report 分支的 in-cycle 观察要求与 pending-settlement 裸终态拒绝；route reconcile 按 task 身份比较 capacity assessment（post-apply 快照 revision 漂移不再误判身份不匹配）；prompt 明确 subthreshold 合法结算 shape 与 post-action 首步观察规则；post_action_evaluation 上下文 turn 预算 +4。
+
+| stamp | 域/flavor | 终态 | 备注 |
+|---|---|---|---|
+| 20260828_101252 | p01 freq | fail "target response missing" | 地板+reserve 生效：观察落账、materiality 落账，模型发 absent/ambiguous 被 subthreshold 域规则正确拒绝——prompt 措辞修正后解决 |
+| 20260828_102237 / 113025 | p01 freq | **pass** | 完整链路 PASS（观察+materiality+target+judgment boundary） |
+| 20260828_102728 / 104208 | p01 freq | fail "post-action CCB observation" | 模型跳过观察直接 settle：ingest 守卫+输出 gate 修复此形态 |
+| 20260828_110644 | p01 freq | fail | route reconcile 把 pre-apply 快照 revision 漂移误判为身份不匹配 → recovery_validation 停放（已修） |
+| 20260828_114004 / 114658 | p01 freq | fail | post-apply slice 的 run 级 turn 预算耗尽，模型单发不合规（turn 预算 headroom 已加） |
+| 20260828_125754 | p02 默认 | **pass** | p02 默认链路当前修复集下端到端 PASS |
+| 20260828_121306→130901 | p01 freq | fail "materiality missing" | **残留卡点（S2e）**：确定性观察+turn headroom 后，模型仍以裸终态/建议输出替代结构化 settle 报告（8 turn 重试仍不合规）；194ms 空转完成为 inactive-loop 投影（goalrunner_chat.go:269） |
+
+开放项：p01 frequency 的 settle 合规方差归新卡 S2e（post-apply settle turn 模型合规 + run 级 turn 预算语义 + inactive-loop 投影）；验收状态：go build/test 全绿、p02 PASS、p01 非连续 PASS（113025/102237），3× 连续未达成。压缩域未回归测试（S2c 卡点仍在）。
