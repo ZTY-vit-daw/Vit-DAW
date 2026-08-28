@@ -204,7 +204,7 @@ var d1s1Domains = []D1S1DomainSpec{
 		// and hard-fails without it.
 		ActionDomain:        agentprotocol.ImprovementActionDomainBroadbandCompression,
 		ActionKind:          "broadband_threshold_adjust",
-		PromptParameterHint: `parameter_bounds={"threshold_db":<nonzero number within +/-2>} Before proposing, ask: can this action class restore what the intent asks for — or only apply more of it?`,
+		PromptParameterHint: `parameter_bounds={"threshold_db":<nonzero number within +/-2>}`,
 		ValidateDoseBounds: func(scope string, bounds map[string]any) error {
 			threshold, ok := mapNumber(bounds, "threshold_db")
 			if !ok || threshold == 0 || math.Abs(threshold) > 2 {
