@@ -1634,6 +1634,14 @@ func TestFS8EvaluationReportSkipsProposalAdmissionGate(t *testing.T) {
 			"original_intent": "improve the low-end balance", "requires_post_action_observation": true,
 		},
 		"free_state_phase": "fs8_experiment_verification",
+	}}, executed: []map[string]any{{
+		"tool": "ccb.observation_request", "status": "ok",
+		"result": map[string]any{"bundle": map[string]any{
+			"schema_version": "ccb_observation_bundle.v1", "status": "ready", "read_only": true, "mutation_authority": false,
+			"observation_id": "obs-post", "views": map[string]any{
+				"track.timbre_frequency": map[string]any{"status": "ready"},
+			},
+		}},
 	}}}
 	evaluation := messageLoopOutput{Final: true, Reply: "audition pending",
 		FreeStateDecision: &FreeStateDecision{
@@ -1646,6 +1654,19 @@ func TestFS8EvaluationReportSkipsProposalAdmissionGate(t *testing.T) {
 		}}
 	if issue := messageLoopFreeStateOutputIssue(state, evaluation); issue != "" {
 		t.Fatalf("FS8 evaluation report was rejected: %q", issue)
+	}
+	// The settle report is legal only after the fresh post-action observation
+	// returned in this reasoning cycle: without it the round would park at the
+	// human judgment boundary with zero post-action evidence.
+	stateWithoutObservation := &runState{input: Input{Context: map[string]any{
+		"free_state_reasoning_loop": map[string]any{
+			"schema_version": "free_state_reasoning_loop.v1", "status": "re_evaluating", "decision_phase": "post_action_evaluation",
+			"original_intent": "improve the low-end balance", "requires_post_action_observation": true,
+		},
+		"free_state_phase": "fs8_experiment_verification",
+	}}}
+	if issue := messageLoopFreeStateOutputIssue(stateWithoutObservation, evaluation); !strings.Contains(issue, "until a fresh CCB observation_request has returned in this reasoning cycle") {
+		t.Fatalf("settle report without the post-action observation was accepted: %q", issue)
 	}
 	evaluation.FreeStateDecision.ExperimentMateriality = &experiment.MaterialityEvaluation{
 		State: experiment.MaterialitySubthreshold, Evaluation: "agent_evaluable", Attempt: 1, EvidenceRefs: []string{"obs-post"},

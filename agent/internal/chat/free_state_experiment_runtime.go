@@ -360,6 +360,25 @@ func (s *Server) recordFreeStateExperimentDecision(ctx context.Context, loop *fr
 	if loop == nil || loop.Experiment == nil {
 		return
 	}
+	// A D1 settle report (materiality/target response/round decision) may only
+	// land after the mandatory fresh post-action CCB observation is recorded on
+	// the round. Recording it earlier parks the round at the human judgment
+	// boundary without the evidence that boundary is supposed to arbitrate
+	// (2026-08-28 10:27/10:42 smokes: the settle turn skipped the observation,
+	// the round parked on user_judgment_pending with zero post-action evidence).
+	// The round state is the ground truth here, not RequiresPostActionObservation:
+	// the needs_experiment branch of recordFreeStateDecision legitimately clears
+	// that flag for proposal-carrying decisions before this ingest runs.
+	// Refusing keeps the loop live with its reserved post-apply budget so the
+	// next slice observes first; no evidence gate is weakened.
+	if loop.Experiment.Admission.IsD1S1() &&
+		(decision.ExperimentMateriality != nil || decision.ExperimentTargetResponse != nil || strings.TrimSpace(decision.ExperimentRoundDecision) != "") &&
+		!freeStateExperimentRoundHasFreshPostActionObservation(loop.Experiment) {
+		if s.logger != nil {
+			s.logger.Warn("[free-state-experiment] settle report refused until the fresh post-action observation is recorded on the round")
+		}
+		return
+	}
 	if decision.ExperimentMateriality != nil {
 		if events, err := loop.Experiment.EvaluateMateriality(*decision.ExperimentMateriality, time.Now().UTC()); err == nil {
 			s.emitFreeStateExperimentEvents(events)
@@ -513,4 +532,24 @@ func (s *Server) rollbackFreeStateExperiment(ctx context.Context, loop *freeStat
 	receipt["agent_action_id"] = response.AgentActionID
 	receipt["status"] = firstNonEmpty(response.Status, "succeeded")
 	return loop.Experiment.MarkRollback(time.Now().UTC(), receipt, []string{targetID})
+}
+
+// freeStateExperimentRoundHasFreshPostActionObservation reports whether the
+// current experiment round already carries the mandatory fresh post-action CCB
+// observation. It is the round-state ground truth behind the D1 settle-report
+// admission guard in recordFreeStateExperimentDecision.
+func freeStateExperimentRoundHasFreshPostActionObservation(turn *experiment.Turn) bool {
+	if turn == nil {
+		return false
+	}
+	round, err := turn.CurrentRound()
+	if err != nil {
+		return false
+	}
+	for index := len(round.Observations) - 1; index >= 0; index-- {
+		if round.Observations[index].PostAction && round.Observations[index].Fresh {
+			return true
+		}
+	}
+	return false
 }

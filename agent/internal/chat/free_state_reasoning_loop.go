@@ -83,9 +83,14 @@ type freeStateReasoningLoop struct {
 	AuditionSessionSnapshot       map[string]any `json:"audition_session_snapshot,omitempty"`
 	RequiresPostActionObservation bool           `json:"requires_post_action_observation"`
 	PostActionObservationReserved bool           `json:"post_action_observation_reserved,omitempty"`
-	LastError                     string         `json:"last_error,omitempty"`
-	CreatedAt                     time.Time      `json:"created_at"`
-	UpdatedAt                     time.Time      `json:"updated_at"`
+	// PostApplyBudgetReserved marks the one-shot D1 post-apply budget floor
+	// granted at the applied boundary (reserveD1PostApplySlices). It is separate
+	// from PostActionObservationReserved so the generic +1 observation reserve
+	// keeps its own once-only semantics on top of the floor.
+	PostApplyBudgetReserved bool      `json:"post_apply_budget_reserved,omitempty"`
+	LastError               string    `json:"last_error,omitempty"`
+	CreatedAt               time.Time `json:"created_at"`
+	UpdatedAt               time.Time `json:"updated_at"`
 }
 
 func freeStateLoopActive(loop freeStateReasoningLoop) bool {
@@ -244,7 +249,7 @@ func mergeFreeStateLoops(base, overlay freeStateReasoningLoop, overlayOK bool) f
 	if overlay.PriorityQueue != nil && (overlayNewer || out.PriorityQueue == nil) {
 		out.PriorityQueue = overlay.PriorityQueue
 	}
-	if overlay.ContinuationBudget > 0 {
+	if overlay.ContinuationBudget > out.ContinuationBudget {
 		out.ContinuationBudget = overlay.ContinuationBudget
 	}
 	if overlay.ContinuationUsed > out.ContinuationUsed {
@@ -843,7 +848,13 @@ func (s *Server) recordFreeStateDecision(conversationID string, res agentloop.Re
 		loop.Status = "awaiting_experiment"
 		loop.DecisionPhase = freeStatePhaseProcessorMaterialization
 		loop.ActiveIntent = strings.TrimSpace(proposal.ImprovementIntent)
-		loop.RequiresPostActionObservation = false
+		// A settle report rides the same preserved proposal, but it must not
+		// retire the mandatory post-action observation debt: keep the flag until
+		// the round actually carries the fresh observation the settle guard in
+		// recordFreeStateExperimentDecision requires.
+		if !loop.RequiresPostActionObservation || freeStateExperimentRoundHasFreshPostActionObservation(loop.Experiment) {
+			loop.RequiresPostActionObservation = false
+		}
 		s.upsertPendingCandidate(proposal.ToPendingCandidate(conversationID, res.GoalID, res.RunID, time.Now().UTC().Format(time.RFC3339Nano)))
 	case agentloop.FreeStateNeedsObservation:
 		loop.Status = "observing"
@@ -2004,7 +2015,13 @@ func (s *Server) maybeContinueFreeStateAfterInteraction(ctx context.Context, int
 		RecordedAt:    time.Now().UTC(),
 	})
 	s.recordFreeStateExperimentAction(&loop, processorType, actionStatus, receipt)
-	loop.RequiresPostActionObservation = actionStatus == "applied"
+	// The post-action observation debt only stands while the round still lacks
+	// its fresh post-action evidence: a D1 applied respond books it
+	// deterministically (bookD1PostActionObservation), and resetting the flag
+	// unconditionally here would force the settle turns back into an
+	// observation loop the gates cannot satisfy twice.
+	loop.RequiresPostActionObservation = actionStatus == "applied" &&
+		!(loop.Experiment != nil && loop.Experiment.Admission.IsD1S1() && freeStateExperimentRoundHasFreshPostActionObservation(loop.Experiment))
 	if loop.RequiresPostActionObservation {
 		reservePostActionObservationSlice(&loop)
 	}
@@ -2115,6 +2132,31 @@ func reservePostActionObservationSlice(loop *freeStateReasoningLoop) {
 	// CCB evidence before any action decision.
 	loop.ContinuationBudget++
 	loop.PostActionObservationReserved = true
+}
+
+// freeStateD1PostApplySliceNeed is the mandatory post-apply slice count the D1
+// applied boundary must reserve: one fresh post-action CCB observation slice
+// plus the materiality/target evaluation slices that settle the round at the
+// human judgment boundary. Pre-apply drains (observation, admission, proposal,
+// execution) legitimately consume the general budget, but they must not eat the
+// post-apply chain (2026-08-28 09:30 smoke: applied at 4/6, three scheduler
+// enqueues burned the budget to 7/6 with no reserve on that path, blocking
+// before any fresh bundle landed).
+const freeStateD1PostApplySliceNeed = 3
+
+// reserveD1PostApplySlices grants the phase-scoped D1 post-apply budget floor
+// at the applied boundary: continuation_budget is raised to used+need once per
+// applied round. It changes scheduling only — the post-action evidence gates
+// (revision-bound eligibility, explicit-fresh CCB verification) are untouched,
+// so the extra slices can still only carry governed turns.
+func reserveD1PostApplySlices(loop *freeStateReasoningLoop) {
+	if loop == nil || loop.PostApplyBudgetReserved || !loop.RequiresPostActionObservation || loop.ContinuationBudget <= 0 {
+		return
+	}
+	if floor := loop.ContinuationUsed + freeStateD1PostApplySliceNeed; floor > loop.ContinuationBudget {
+		loop.ContinuationBudget = floor
+	}
+	loop.PostApplyBudgetReserved = true
 }
 
 // postActionProjectChange establishes the shared authoritative-refresh

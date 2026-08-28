@@ -471,3 +471,54 @@ func TestProjectRevisionCapacityChangeHandsOffControllerWithinSameTask(t *testin
 		t.Fatalf("fixed capability controller did not acquire after handoff: owner=%+v routed=%v err=%v", owner, routed, err)
 	}
 }
+
+// A post-apply checkpoint embeds the capacity assessment snapshot from before
+// the mutation; the task's validated route carries the refreshed revision.
+// That revision drift alone must not fail-close the continuation as a route
+// identity mismatch (2026-08-28 11:06 smoke), while a genuine identity
+// mismatch (different project) still does.
+func TestRouteReconcileAllowsPostApplyAssessmentRevisionDrift(t *testing.T) {
+	project := shadow.New(nil)
+	project.Initialize(capacityTestProject(6, 20, 1, 0, "rev-pre-apply"))
+	server := New(nil, project, nil)
+	contextWithTask, identity := server.ensureCapabilityRoutingTask("检查工程", nil)
+	entry := semanticEntryDecision{SchemaVersion: semanticEntryDecisionSchema, Route: semanticEntryRouteObservation,
+		TargetScope: semanticEntryScopeProjectContext, ControlMode: semanticEntryControlObserveOnly,
+		UserAuthorization: semanticEntryAuthorizationObserve, Confidence: .9, Reason: "inspect project"}
+	entry, record, err := server.planObservationFirstCapabilityRoute(context.Background(), "conversation-drift", "检查工程", contextWithTask, entry, identity)
+	if err != nil {
+		t.Fatal(err)
+	}
+	contextWithRoute := contextWithCapabilityRoute(contextWithSemanticEntryDecision(contextWithTask, entry), record)
+	result := agentloop.Result{TaskID: record.TaskID, GoalID: record.GoalID, RunID: record.RunID, SliceID: "slice-1", TurnID: "turn-1",
+		OriginalIntent: record.OriginalIntent, Continuation: &agentloop.Continuation{TaskID: record.TaskID, GoalID: record.GoalID, RunID: record.RunID,
+			SliceID: "slice-1", TurnID: "turn-1", OriginalIntent: record.OriginalIntent, Context: contextWithRoute}}
+	durable := durableContinuationFromResult("conversation-drift", result, time.Now())
+	durable.Status = ContinuationPending
+	// The route was revalidated after the applied mutation advanced the
+	// project; the checkpoint still carries the pre-apply snapshot.
+	refreshed := record
+	refreshedFacts := record.Assessment.ObservedFacts
+	refreshedFacts.ProjectRevision = "rev-post-apply"
+	refreshed.Assessment = &FreeStateCapacityAssessment{SchemaVersion: capacityAssessmentSchema, Authority: "product_runtime",
+		SelectedCapability: record.Assessment.SelectedCapability, ProjectRevision: "rev-post-apply",
+		ObservedFacts: refreshedFacts}
+	refreshed.ProjectRevision = "rev-post-apply"
+	reconciled := reconcileDurableCapabilityRoutes(map[string]DurableContinuation{durable.ContinuationID: durable}, map[string]CapabilityRouteRecord{record.TaskID: refreshed})
+	got := reconciled[durable.ContinuationID]
+	if got.Status != ContinuationPending || continuationRecoveryValidationRequired(got) {
+		t.Fatalf("post-apply revision drift failed closed: status=%s pending=%+v", got.Status, got.PendingInteraction)
+	}
+	if got.CapacityAssessment == nil || got.CapacityAssessment.ProjectRevision != "rev-post-apply" {
+		t.Fatalf("reconcile did not adopt the refreshed route assessment: %+v", got.CapacityAssessment)
+	}
+	foreignProject := record
+	foreignAssessment := *record.Assessment
+	foreignAssessment.ObservedFacts.ProjectUUID = "vitproj_foreign"
+	foreignProject.Assessment = &foreignAssessment
+	foreign := durable
+	reconciledForeign := reconcileDurableCapabilityRoutes(map[string]DurableContinuation{foreign.ContinuationID: foreign}, map[string]CapabilityRouteRecord{record.TaskID: foreignProject})
+	if got := reconciledForeign[foreign.ContinuationID]; got.Status != ContinuationWaitingInteraction || !continuationRecoveryValidationRequired(got) {
+		t.Fatalf("foreign project assessment did not fail closed: %+v", got)
+	}
+}

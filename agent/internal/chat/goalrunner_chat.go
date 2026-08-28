@@ -677,7 +677,20 @@ func agentLoopBudgetForContext(mode string, requestContext map[string]any) agent
 		// this extra turn from becoming another observation cycle.
 		return agentloop.Budget{MaxTurns: 5, MaxToolCalls: 6, Timeout: 210 * time.Second}
 	}
-	return agentLoopBudgetForMode(mode)
+	budget := agentLoopBudgetForMode(mode)
+	if loop := firstMapFromAny(requestContext["free_state_reasoning_loop"]); strings.EqualFold(strings.TrimSpace(firstStringFromMap(loop, "decision_phase")), freeStatePhasePostActionEvaluation) {
+		// The post-apply settle turn often needs the final-gate feedback cycle
+		// (bare terminals are refused until the structured settle report is
+		// emitted). Pre-apply reasoning has already consumed most of the run's
+		// turn budget, so without this headroom the gate feedback can never
+		// retry and the round strands without materiality (2026-08-28 12:50
+		// smoke: settle turns 5-6 ended limit_reached after one call each).
+		budget.MaxTurns += 4
+		if budget.Timeout > 0 {
+			budget.Timeout += 120 * time.Second
+		}
+	}
+	return budget
 }
 
 func (s *Server) newAgentLoopExecutor(cfg config.EngineConfig) agentloop.ToolExecutor {
@@ -2457,13 +2470,21 @@ func (s *Server) recordGoalResult(conversationID string, res agentloop.Result) e
 		}
 		if durable.Status == ContinuationPending && strings.TrimSpace(conversationID) != "" {
 			if loop, exists := s.freeStateLoops[conversationID]; exists && freeStateLoopActive(loop) {
-				loop.ContinuationUsed++
 				if loop.ContinuationBudget <= 0 {
 					loop.ContinuationBudget = loop.MaxCycles
 					if loop.ContinuationBudget <= 0 {
 						loop.ContinuationBudget = freeStateDefaultMaxCycles
 					}
 				}
+				// The mandatory post-Apply observation slice must also survive
+				// budget pressure on the scheduler enqueue path. The reserve
+				// previously fired only from the interaction respond bridge, so a
+				// scheduler-driven post-apply chain could exhaust the budget
+				// before the observation slice was ever scheduled (2026-08-28
+				// 09:30 smoke: three enqueues 5->7 against budget 6, no reserve,
+				// blocked with requires_post_action_observation still true).
+				reservePostActionObservationSlice(&loop)
+				loop.ContinuationUsed++
 				// Allow exactly continuation_budget resumes: the n-th enqueue
 				// with used == budget is still legal, the (n+1)-th is not.
 				if loop.ContinuationUsed > loop.ContinuationBudget {

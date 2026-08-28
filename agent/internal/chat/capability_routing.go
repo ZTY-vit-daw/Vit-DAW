@@ -747,8 +747,8 @@ func reconcileDurableCapabilityRoutes(items map[string]DurableContinuation, rout
 			continue
 		}
 		if route.GoalID != item.GoalID || route.RunID != item.RunID || route.ConversationID != item.ConversationID || route.OriginalIntent != item.OriginalIntent ||
-			item.CapacityAssessment != nil && !sameCapacityAssessment(*item.CapacityAssessment, *route.Assessment) ||
-			contextAssessment != nil && !sameCapacityAssessment(*contextAssessment, *route.Assessment) {
+			item.CapacityAssessment != nil && !sameCapacityAssessmentIdentity(*item.CapacityAssessment, *route.Assessment) ||
+			contextAssessment != nil && !sameCapacityAssessmentIdentity(*contextAssessment, *route.Assessment) {
 			if item.Status != ContinuationCompleted && item.Status != ContinuationCancelled && item.Status != ContinuationFailed {
 				item = failClosedDurableCapabilityRoute(item, "durable continuation does not match its validated task route")
 				items[id] = item
@@ -778,6 +778,22 @@ func sameCapacityAssessment(left, right FreeStateCapacityAssessment) bool {
 	return validCapacityAssessment(left) && validCapacityAssessment(right) &&
 		left.ProjectRevision == right.ProjectRevision && left.SelectedCapability == right.SelectedCapability &&
 		left.ObservedFacts.ProjectUUID == right.ObservedFacts.ProjectUUID && left.ObservedFacts.RequestScope == right.ObservedFacts.RequestScope
+}
+
+// sameCapacityAssessmentIdentity compares only the assessment's task identity
+// (project, capability, request scope). The project revision is deliberately
+// excluded: a durable checkpoint embeds the capacity assessment snapshot from
+// the slice that created it, and an applied mutation legitimately advances the
+// project revision before the task's route is revalidated, so a post-apply
+// checkpoint at the pre-apply revision must not be fail-closed as a route
+// identity mismatch (2026-08-28 11:06 smoke: the post-apply continuation at
+// revision 5 was parked recovery_validation_required against its own route at
+// revision 7, permanently stalling the mandatory observation slice).
+func sameCapacityAssessmentIdentity(left, right FreeStateCapacityAssessment) bool {
+	return validCapacityAssessment(left) && validCapacityAssessment(right) &&
+		left.SelectedCapability == right.SelectedCapability &&
+		left.ObservedFacts.ProjectUUID == right.ObservedFacts.ProjectUUID &&
+		left.ObservedFacts.RequestScope == right.ObservedFacts.RequestScope
 }
 
 func failClosedDurableCapabilityRoute(item DurableContinuation, reason string) DurableContinuation {

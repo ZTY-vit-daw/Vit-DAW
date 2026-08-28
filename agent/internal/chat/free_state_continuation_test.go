@@ -296,3 +296,100 @@ func TestM10WorkspaceRestoreRecoversSpineFields(t *testing.T) {
 		t.Fatalf("spine fields lost across workspace restore: %+v", recovered)
 	}
 }
+
+// D2-1.5-S2d: the D1 applied boundary must grant the phase-scoped post-apply
+// budget floor so pre-apply consumption cannot starve the mandatory chain
+// (fresh post-action CCB observation -> materiality/target evaluation), and the
+// merge must never regress a granted floor through a stale continuation
+// snapshot.
+
+func TestD1AppliedBoundaryGrantsPostApplyBudgetFloorOnce(t *testing.T) {
+	loop := freeStateReasoningLoop{ContinuationBudget: 6, ContinuationUsed: 4, RequiresPostActionObservation: true}
+	reserveD1PostApplySlices(&loop)
+	if loop.ContinuationBudget != loop.ContinuationUsed+freeStateD1PostApplySliceNeed {
+		t.Fatalf("post-apply floor = %d, want %d", loop.ContinuationBudget, loop.ContinuationUsed+freeStateD1PostApplySliceNeed)
+	}
+	if !loop.PostApplyBudgetReserved {
+		t.Fatal("post-apply reserve flag was not set")
+	}
+	granted := loop.ContinuationBudget
+	reserveD1PostApplySlices(&loop)
+	if loop.ContinuationBudget != granted {
+		t.Fatalf("post-apply floor was granted twice: %d", loop.ContinuationBudget)
+	}
+}
+
+func TestD1PostApplyFloorSkipsVerifiedAndUninitializedLoops(t *testing.T) {
+	verified := freeStateReasoningLoop{ContinuationBudget: 6, ContinuationUsed: 5, RequiresPostActionObservation: false}
+	reserveD1PostApplySlices(&verified)
+	if verified.ContinuationBudget != 6 || verified.PostApplyBudgetReserved {
+		t.Fatalf("verified loop was granted a floor: budget=%d reserved=%v", verified.ContinuationBudget, verified.PostApplyBudgetReserved)
+	}
+	uninitialized := freeStateReasoningLoop{ContinuationBudget: 0, ContinuationUsed: 0, RequiresPostActionObservation: true}
+	reserveD1PostApplySlices(&uninitialized)
+	if uninitialized.ContinuationBudget != 0 || uninitialized.PostApplyBudgetReserved {
+		t.Fatalf("uninitialized loop was granted a floor: budget=%d reserved=%v", uninitialized.ContinuationBudget, uninitialized.PostApplyBudgetReserved)
+	}
+}
+
+func TestD1PostApplyFloorDoesNotShrinkLargerBudget(t *testing.T) {
+	loop := freeStateReasoningLoop{ContinuationBudget: 12, ContinuationUsed: 4, RequiresPostActionObservation: true}
+	reserveD1PostApplySlices(&loop)
+	if loop.ContinuationBudget != 12 {
+		t.Fatalf("floor shrank a larger budget: %d", loop.ContinuationBudget)
+	}
+	if !loop.PostApplyBudgetReserved {
+		t.Fatal("reserve flag should still mark the applied boundary")
+	}
+}
+
+// The scheduler enqueue path (recordGoalResult) now fires the observation
+// reserve before accounting the next slice, mirroring the interaction respond
+// bridge. A post-apply chain driven purely by scheduler continuations must
+// therefore keep its mandatory observation slice instead of blocking on the
+// enqueue that would exceed the budget (2026-08-28 09:30 smoke shape:
+// 5 -> 6 -> 7 against budget 6 with requires_post_action_observation=true).
+func TestSchedulerEnqueueReserveKeepsPostApplyChainAlive(t *testing.T) {
+	loop := freeStateReasoningLoop{ContinuationBudget: 6, ContinuationUsed: 4, RequiresPostActionObservation: true}
+	// Applied boundary floor first (Fix A).
+	reserveD1PostApplySlices(&loop)
+	enqueue := func() bool {
+		// Same ordering as recordGoalResult: reserve, account, then bound.
+		reservePostActionObservationSlice(&loop)
+		loop.ContinuationUsed++
+		return loop.ContinuationUsed <= loop.ContinuationBudget
+	}
+	scheduled := 0
+	for enqueue() {
+		scheduled++
+		if scheduled > 12 {
+			t.Fatal("enqueue loop did not terminate")
+		}
+	}
+	// Floor (used+3 at applied time) plus the one-shot observation reserve
+	// grants exactly four post-apply slices beyond the applied boundary.
+	if scheduled != freeStateD1PostApplySliceNeed+1 {
+		t.Fatalf("post-apply slices scheduled = %d, want %d", scheduled, freeStateD1PostApplySliceNeed+1)
+	}
+}
+
+func TestFreeStateLoopMergeDoesNotRegressGrantedBudgetFloor(t *testing.T) {
+	base := continuationTestLoop("conversation-merge-budget")
+	base.ContinuationBudget = 9
+	base.ContinuationUsed = 4
+	base.PostApplyBudgetReserved = true
+	base.UpdatedAt = time.Now().UTC()
+	// A continuation snapshot taken before the floor was granted still carries
+	// the older (smaller) budget.
+	overlay := continuationTestLoop(base.ConversationID)
+	overlay.ContinuationBudget = 7
+	overlay.ContinuationUsed = 3
+	overlay.UpdatedAt = base.UpdatedAt.Add(-time.Second)
+	merged := mergeFreeStateLoops(base, overlay, false)
+	if merged.ContinuationBudget != 9 {
+		t.Fatalf("merge regressed the granted budget floor: %d", merged.ContinuationBudget)
+	}
+	if merged.ContinuationUsed != 4 || !merged.PostApplyBudgetReserved {
+		t.Fatalf("merge lost used/reserve state: used=%d reserved=%v", merged.ContinuationUsed, merged.PostApplyBudgetReserved)
+	}
+}

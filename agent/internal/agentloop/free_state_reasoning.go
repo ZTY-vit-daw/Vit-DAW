@@ -685,6 +685,16 @@ func messageLoopFreeStateOutputIssue(state *runState, out messageLoopOutput) str
 					return "invalid experiment_target_response: " + err.Error()
 				}
 			}
+			// Symmetric with the satisfied/blocked branches: after an applied
+			// action the settle report is only legal once the fresh post-action
+			// CCB observation has returned in this reasoning cycle. Without this
+			// gate the settle turn skipped the observation and parked the round
+			// at the human judgment boundary with zero post-action evidence
+			// (2026-08-28 10:27/10:42 smokes).
+			ctx := messageLoopFreeStateContext(state)
+			if freeStateBool(ctx["requires_post_action_observation"]) && !messageLoopHasSuccessfulCCBObservationRequest(state) {
+				return "cannot report experiment materiality/target response after an applied action until a fresh CCB observation_request has returned in this reasoning cycle; request the post-action observation first, then settle the experiment on its evidence"
+			}
 		} else if failed := evaluateFreeStateNeedsExperimentGate(state, out.FreeStateDecision); len(failed) > 0 {
 			// The single-usable-bundle weak gate is replaced by the seven-part
 			// admission gate (docs/FREE_STATE_NEEDS_EXPERIMENT_GATE_V1.md). Gate
@@ -724,6 +734,9 @@ func messageLoopFreeStateOutputIssue(state *runState, out messageLoopOutput) str
 		if freeStateBool(ctx["requires_post_action_observation"]) && !messageLoopHasSuccessfulCCBObservationRequest(state) {
 			return "cannot mark the original intent satisfied after an action until a fresh CCB observation_request has returned in this reasoning cycle"
 		}
+		if issue := messageLoopFreeStateRoundPendingSettlementIssue(ctx); issue != "" {
+			return issue
+		}
 		if diagnosticOnly {
 			if issue := messageLoopFreeStateDiagnosticIssue(state, out.FreeStateDecision); issue != "" {
 				return issue
@@ -747,10 +760,43 @@ func messageLoopFreeStateOutputIssue(state *runState, out messageLoopOutput) str
 		if freeStateBool(ctx["requires_post_action_observation"]) && !messageLoopHasSuccessfulCCBObservationRequest(state) {
 			return "cannot return blocked after an applied action until a fresh CCB observation_request has returned in this reasoning cycle; request the post-action observation first, then settle the experiment on its evidence"
 		}
+		if issue := messageLoopFreeStateRoundPendingSettlementIssue(ctx); issue != "" {
+			return issue
+		}
 		if diagnosticOnly {
 			if issue := messageLoopFreeStateDiagnosticIssue(state, out.FreeStateDecision); issue != "" {
 				return issue
 			}
+		}
+	}
+	return ""
+}
+
+// messageLoopFreeStateRoundPendingSettlementIssue refuses bare terminal
+// decisions while an applied D1 experiment round has its fresh post-action
+// observation recorded but no settlement yet. Without this the post-action
+// turn strands the round on a bare capability_blocked and the human judgment
+// boundary never opens (2026-08-28 12:41/12:34 smokes: settle evidence booked
+// deterministically, the model still returned bare terminals).
+func messageLoopFreeStateRoundPendingSettlementIssue(ctx map[string]any) string {
+	if len(ctx) == 0 || !strings.EqualFold(strings.TrimSpace(messageLoopText(ctx["decision_phase"])), "post_action_evaluation") {
+		return ""
+	}
+	experiment := messageLoopMapValue(ctx["experiment"])
+	if len(experiment) == 0 || !strings.EqualFold(strings.TrimSpace(messageLoopText(experiment["status"])), "running") {
+		return ""
+	}
+	rounds := messageLoopMapRows(experiment["rounds"])
+	if len(rounds) == 0 {
+		return ""
+	}
+	round := rounds[len(rounds)-1]
+	if strings.TrimSpace(messageLoopText(round["decision"])) != "" {
+		return ""
+	}
+	for _, observation := range messageLoopMapRows(round["observations"]) {
+		if freeStateBool(observation["post_action"]) && freeStateBool(observation["fresh"]) {
+			return "the applied experiment round has fresh post-action evidence recorded and is pending settlement; report experiment_materiality + experiment_target_response + experiment_round_decision=user_judgment_pending on the preserved proposal (or the concrete blocked boundary that prevents evaluating the recorded evidence), not a bare terminal"
 		}
 	}
 	return ""

@@ -131,7 +131,10 @@ func TestFreeStateExperimentMaterialityAndTargetResponseAreRecordedFromDecision(
 	if _, err := loop.Experiment.RecordObservation(experiment.Observation{ID: "before", RequestedViewIDs: []string{"track.timbre_frequency"}, ExecutedViewIDs: []string{"track.timbre_frequency"}, ViewSetMatches: true, Fresh: true, ProjectRevision: "rev-before", EvidenceRefs: []string{"before"}}, false, now); err != nil {
 		t.Fatal(err)
 	}
-	s.recordFreeStateExperimentAction(&loop, "eq", "applied", map[string]any{"action_id": "action-1", "status": "readback_ok"})
+	s.recordFreeStateExperimentAction(&loop, "eq", "applied", map[string]any{"action_id": "action-1", "status": "readback_ok", "after_revision": "rev-after"})
+	if _, err := loop.Experiment.RecordObservation(experiment.Observation{ID: "after", RequestedViewIDs: []string{"track.timbre_frequency"}, ExecutedViewIDs: []string{"track.timbre_frequency"}, ViewSetMatches: true, Fresh: true, PostAction: true, ProjectRevision: "rev-after", EvidenceRefs: []string{"after"}}, true, now); err != nil {
+		t.Fatal(err)
+	}
 	s.recordFreeStateExperimentDecision(context.Background(), &loop, agentloop.FreeStateDecision{ExperimentMateriality: &experiment.MaterialityEvaluation{State: experiment.MaterialitySubthreshold, Evaluation: trajectory.EvaluationInsufficientDose, Attempt: 1, EvidenceRefs: []string{"subthreshold"}}})
 	round, _ := loop.Experiment.CurrentRoundID, loop.Experiment.Rounds
 	if round == "" || loop.Experiment.Rounds[0].Materiality == nil || loop.Experiment.Rounds[0].Materiality.Evaluation != trajectory.EvaluationInsufficientDose {
@@ -163,8 +166,10 @@ func TestExperimentReportFieldsIngestedOnTerminalDecision(t *testing.T) {
 		Summary: "bounded hypothesis", ImprovementProposal: experimentTestProposal(), RequestedViewIDs: []string{"track.timbre_frequency"},
 	}}); !ok || loop.Experiment == nil {
 		t.Fatalf("experiment runtime not created: ok=%v", ok)
-	} else if _, err := loop.Experiment.ApplyIntervention(experiment.Intervention{ID: "d1-boundary", Attempt: 1, TechnicalApplication: experiment.TechnicalApplied, UserConfirmed: true, Receipt: map[string]any{"action_id": "d1-boundary", "status": "applied", "transaction_id": "tx-b", "idempotency_key": "key-b", "readback_verified": true}}, now); err != nil {
+	} else if _, err := loop.Experiment.ApplyIntervention(experiment.Intervention{ID: "d1-boundary", Attempt: 1, TechnicalApplication: experiment.TechnicalApplied, UserConfirmed: true, Receipt: map[string]any{"action_id": "d1-boundary", "status": "applied", "transaction_id": "tx-b", "idempotency_key": "key-b", "readback_verified": true, "after_revision": "8"}}, now); err != nil {
 		t.Fatalf("apply intervention: %v", err)
+	} else if _, err := loop.Experiment.RecordObservation(experiment.Observation{ID: "obs-after", RequestedViewIDs: []string{"track.timbre_frequency"}, ExecutedViewIDs: []string{"track.timbre_frequency"}, ViewSetMatches: true, Fresh: true, PostAction: true, ProjectRevision: "8", EvidenceRefs: []string{"obs-after"}}, true, now); err != nil {
+		t.Fatalf("record post-action observation: %v", err)
 	} else {
 		s.storeFreeStateLoop(loop)
 	}

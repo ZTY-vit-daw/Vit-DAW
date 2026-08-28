@@ -12,6 +12,7 @@ import (
 	"vit-daw-agent/internal/executionruntime"
 	"vit-daw-agent/internal/executionverifiers"
 	"vit-daw-agent/internal/experiment"
+	"vit-daw-agent/internal/harness"
 	"vit-daw-agent/internal/journal"
 	"vit-daw-agent/internal/kernel"
 	"vit-daw-agent/internal/orchestration"
@@ -389,6 +390,7 @@ func (s *Server) projectD1Execution(loop freeStateReasoningLoop, session orchest
 	if session.Execution == nil || len(session.Execution.Receipts) != 1 {
 		return d1BlockedResponse(loop, firstNonEmpty(canaryErrorText(executeErr), "D1-S1 execution receipt missing"))
 	}
+	ctx := context.Background()
 	receipt := session.Execution.Receipts[0]
 	receiptMap := structMap(receipt)
 	for key, value := range receipt.Details {
@@ -421,8 +423,25 @@ func (s *Server) projectD1Execution(loop freeStateReasoningLoop, session orchest
 			}
 		}
 	}
-	verifiedPostAction := session.Execution.VerificationResult != nil && session.Execution.VerificationResult.Fresh && session.Execution.VerificationResult.PostAction && session.Execution.VerificationResult.ObservationRevision == receipt.AppliedRevision
+	verifiedPostAction := (session.Execution.VerificationResult != nil && session.Execution.VerificationResult.Fresh && session.Execution.VerificationResult.PostAction && session.Execution.VerificationResult.ObservationRevision == receipt.AppliedRevision) ||
+		freeStateExperimentRoundHasFreshPostActionObservation(loop.Experiment)
+	if !verifiedPostAction && s.bookD1PostActionObservation(ctx, &loop, session, receipt) {
+		// The deterministic in-respond booking below is the 201842 path
+		// generalized: the admitted experiment's verification plan (the
+		// model-selected view set on the admitted target) is executed once
+		// server-side right after the mutation, so the post-apply chain does
+		// not depend on a model slice surviving budget/turn pressure to
+		// produce the mandatory observation.
+		verifiedPostAction = true
+	}
 	loop.RequiresPostActionObservation = !verifiedPostAction
+	if loop.RequiresPostActionObservation {
+		// The post-apply chain (fresh CCB observation -> materiality/target
+		// evaluation -> judgment boundary) runs on scheduler continuations after
+		// this respond parks the goal. Grant its phase-scoped budget floor here
+		// so pre-apply consumption cannot starve it.
+		reserveD1PostApplySlices(&loop)
+	}
 	loop.Status = "re_evaluating"
 	loop.DecisionPhase = freeStatePhasePostActionEvaluation
 	loop.LatestProjectChange = map[string]any{"project_revision": receipt.AppliedRevision, "revision": receipt.AppliedRevision, "freshness": "current_snapshot", "d1_execution_id": session.Execution.ID}
@@ -451,4 +470,117 @@ func (s *Server) projectD1Execution(loop freeStateReasoningLoop, session orchest
 func d1BlockedResponse(loop freeStateReasoningLoop, reason string) ChatResponse {
 	return ChatResponse{ConversationID: loop.ConversationID, GoalID: loop.GoalID, RunID: loop.RunID, Workflow: "free_state_d1_s1",
 		WorkflowData: map[string]any{"status": "blocked", "mutation_performed": false}, GoalStatus: string(agentruntime.StatusFailed), StopReason: "d1_execution_blocked", Error: reason, Reply: reason}
+}
+
+// bookD1PostActionObservation executes the admitted D1 experiment's
+// verification plan deterministically inside the applied respond chain: one
+// CCB observation request with the model-selected view set (the round's
+// RequestedViewIDs from admission) on the admitted target, after the mutation,
+// at the applied revision. It books the resulting fresh bundle into the round
+// through the same RecordObservation path the model-requested evidence uses,
+// so the settle turn can proceed without burning a continuation slice on
+// producing the observation (2026-08-28 10:27/11:40/11:46 smokes: post-apply
+// slices ran out of turn budget before the model ever issued the request).
+// Guards kept: the view set is the model's own admitted plan (no server view
+// inference), the booking requires a new observation id, non-stale explicit
+// freshness, and an exact revision match against the applied receipt.
+func (s *Server) bookD1PostActionObservation(ctx context.Context, loop *freeStateReasoningLoop, session orchestration.PlanningSession, receipt orchestration.ActionReceipt) bool {
+	if s == nil || s.harness == nil || loop == nil || loop.Experiment == nil || strings.TrimSpace(receipt.AppliedRevision) == "" {
+		return false
+	}
+	round, err := loop.Experiment.CurrentRound()
+	if err != nil || len(round.RequestedViewIDs) == 0 {
+		return false
+	}
+	if freeStateExperimentRoundHasFreshPostActionObservation(loop.Experiment) {
+		return false
+	}
+	args := map[string]any{
+		"view_ids":        append([]string(nil), round.RequestedViewIDs...),
+		"target_ref":      cloneContext(loop.Experiment.Admission.TargetRef),
+		"freshness_class": "post_action",
+		"mix_session_id":  session.ID,
+	}
+	if session.FrozenPlan != nil && strings.TrimSpace(session.FrozenPlan.PreviousObservationID) != "" {
+		args["previous_observation"] = session.FrozenPlan.PreviousObservationID
+	}
+	response, invokeErr := s.harness.Invoke(ctx, harness.InvokeRequest{
+		Tool:    "ccb.observation_request",
+		Args:    args,
+		Context: map[string]any{"observation_only": true, "free_state_experiment": true},
+		Source:  "free_state_d1_post_action", GoalID: loop.GoalID, RunID: loop.RunID,
+		ToolCallID: "d1_post_action:" + sanitizeCanaryID(loop.Experiment.ID),
+	})
+	if invokeErr != nil || !strings.EqualFold(strings.TrimSpace(response.Status), "ok") {
+		if s.logger != nil {
+			s.logger.Warn("[free-state-experiment] deterministic post-action observation unavailable: %v %s", invokeErr, firstNonEmpty(response.Error, response.Status))
+		}
+		return false
+	}
+	// The harness returns the typed capabilitycontext bundle struct; project it
+	// through its JSON shape so the field lookups below see the tagged keys.
+	bundle := structMap(response.Result["bundle"])
+	if len(bundle) == 0 || !strings.EqualFold(strings.TrimSpace(firstStringFromMap(bundle, "status")), "ready") {
+		if s.logger != nil {
+			s.logger.Warn("[free-state-experiment] deterministic post-action observation was not ready: status=%s", firstNonEmpty(firstStringFromMap(bundle, "status"), firstStringFromMap(response.Result, "status")))
+		}
+		return false
+	}
+	observationID := firstStringFromMap(bundle, "observation_id")
+	if observationID == "" || (session.FrozenPlan != nil && observationID == session.FrozenPlan.PreviousObservationID) {
+		return false
+	}
+	freshness := firstMapFromAny(bundle["freshness"])
+	binding := firstMapFromAny(bundle["project_binding"])
+	revision := firstNonEmpty(firstStringFromMap(freshness, "project_revision"), firstStringFromMap(binding, "project_revision"))
+	if revision != receipt.AppliedRevision || strings.EqualFold(strings.TrimSpace(firstStringFromMap(freshness, "status")), "stale") {
+		if s.logger != nil {
+			s.logger.Warn("[free-state-experiment] deterministic post-action observation revision/freshness mismatch: revision=%s want=%s freshness=%s", revision, receipt.AppliedRevision, firstStringFromMap(freshness, "status"))
+		}
+		return false
+	}
+	executed := freeStateStringSlice(firstMapFromAny(bundle["audit_receipt"])["actual_executed_view_ids"])
+	if len(executed) == 0 {
+		executed = freeStateStringSlice(bundle["requested_views"])
+	}
+	if len(executed) == 0 {
+		executed = append([]string(nil), round.RequestedViewIDs...)
+	}
+	evidence := freeStateStringSlice(bundle["evidence_refs"])
+	if len(evidence) == 0 {
+		evidence = []string{observationID}
+	}
+	observation := experiment.Observation{
+		ID: observationID, ReceiptID: "d1_ccb:" + observationID,
+		RequestedViewIDs: append([]string(nil), round.RequestedViewIDs...), ExecutedViewIDs: executed, ViewSetMatches: true,
+		Fresh: true, PostAction: true, ProjectRevision: revision, EvidenceRefs: evidence, RecordedAt: time.Now().UTC(),
+	}
+	if events, recordErr := loop.Experiment.RecordObservation(observation, true, time.Now().UTC()); recordErr == nil {
+		s.emitFreeStateExperimentEvents(events)
+		// Project the booked evidence into the loop's observation ledger so the
+		// next model turn sees the fresh post-action bundle it is supposed to
+		// settle from; without this the settle turns keep requesting the
+		// observation the server already produced.
+		recent := &agentloop.RecentObservation{
+			ToolCallID: "d1_post_action:" + sanitizeCanaryID(loop.Experiment.ID), Tool: "ccb.observation_request", CommandName: "ccb_observation_request",
+			Status: "ready",
+			Summary: map[string]any{
+				"schema_version": "ccb_observation_bundle.v1", "status": "ready", "observation_id": observationID,
+				"requested_views": append([]string(nil), round.RequestedViewIDs...), "actual_executed_view_ids": executed,
+				"views": cloneContext(firstMapFromAny(bundle["views"])), "freshness": cloneContext(freshness), "bundle": bundle,
+				"evidence_refs": evidence, "target_ref": cloneContext(firstMapFromAny(bundle["target_ref"])),
+			},
+		}
+		loop.ObservationLedger = mergeFreeStateObservationLedger(loop.ObservationLedger, recent, loop.Cycle)
+		if durableLatest := freeStateLatestObservationFromLedger(loop.ObservationLedger); durableLatest != nil {
+			loop.LatestObservation = durableLatest
+		}
+		if !freeStateContainsString(loop.ObservationIDs, observationID) {
+			loop.ObservationIDs = append(loop.ObservationIDs, observationID)
+		}
+		return true
+	} else if s.logger != nil {
+		s.logger.Warn("[free-state-experiment] deterministic post-action observation rejected by the round: %v", recordErr)
+	}
+	return false
 }
