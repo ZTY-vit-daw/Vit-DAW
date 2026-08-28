@@ -378,15 +378,25 @@ func TestD2MultiRoundBudgetExhaustedSettlesCapabilityBlockedCanonicalTask(t *tes
 		ExperimentMateriality: &experiment.MaterialityEvaluation{State: experiment.MaterialitySubthreshold, Evaluation: trajectory.EvaluationInsufficientDose, Attempt: 1, EvidenceRefs: []string{"obs-d2-action-1"}},
 	})
 	d2ApplyAndObserveForTest(t, loop.Experiment, "d2-action-2", "9")
-	// The budget is spent; a third mutation on a third round is refused by the
-	// runtime budget guard. The materiality attempt is per-round (it must match
-	// the round's latest intervention attempt).
+	// The budget is spent: the frozen multi-round contract caps rounds at the
+	// admission budget, so the second insufficient-dose settle settles the
+	// experiment budget-exhausted instead of opening a third (beyond-budget)
+	// calibration round. The settle is canonical (capability_blocked) and the
+	// loop lands terminal.
 	s.recordFreeStateExperimentDecision(context.Background(), &loop, agentloop.FreeStateDecision{
 		ExperimentMateriality: &experiment.MaterialityEvaluation{State: experiment.MaterialitySubthreshold, Evaluation: trajectory.EvaluationInsufficientDose, Attempt: 1, EvidenceRefs: []string{"obs-d2-action-2"}},
 	})
-	if len(loop.Experiment.Rounds) != 3 {
-		t.Fatalf("calibration rounds=%d", len(loop.Experiment.Rounds))
+	if len(loop.Experiment.Rounds) != 2 {
+		t.Fatalf("beyond-budget calibration round opened: rounds=%d", len(loop.Experiment.Rounds))
 	}
+	if loop.Experiment.Status != experiment.StatusSettled || loop.Experiment.Outcome != experiment.OutcomeBudgetExhausted {
+		t.Fatalf("budget exhaustion did not settle: status=%s outcome=%s", loop.Experiment.Status, loop.Experiment.Outcome)
+	}
+	if loop.Status != "completed" {
+		t.Fatalf("budget-exhausted loop status=%q", loop.Status)
+	}
+	// After the settlement every mutation channel stays closed: a replayed
+	// action cannot book onto the settled experiment.
 	s.recordFreeStateExperimentAction(&loop, "eq", "applied", map[string]any{"action_id": "d2-action-3", "status": "applied", "after_revision": "10"})
 	if interventions := loop.Experiment.InterventionCount(); interventions != 2 {
 		t.Fatalf("budget-exhausted apply was recorded: interventions=%d", interventions)

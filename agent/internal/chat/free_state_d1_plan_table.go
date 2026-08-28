@@ -292,7 +292,7 @@ func d1PluginParamPlanWithBinding(loop freeStateReasoningLoop, candidate agentlo
 	if loop.Experiment == nil || !loop.Experiment.Admission.IsD1S1() {
 		return orchestration.FrozenPlan{}, fmt.Errorf("active D1-S1 experiment is required")
 	}
-	if err := loop.Experiment.Admission.ValidateD1S1(); err != nil {
+	if err := validateD1TierAdmission(loop.Experiment.Admission); err != nil {
 		return orchestration.FrozenPlan{}, err
 	}
 	spec, ok := experiment.D1S1DomainSpecFor(loop.Experiment.Admission)
@@ -314,6 +314,11 @@ func d1PluginParamPlanWithBinding(loop freeStateReasoningLoop, candidate agentlo
 		return orchestration.FrozenPlan{}, fmt.Errorf("%s execution requires a resolved experiment plugin whitelist binding", spec.ActionDomain)
 	}
 	args, paramID := pluginParamWriteArgs(loop.Experiment.Admission.TypedAction, spec, valueDB, writeBinding)
+	if loop.Experiment.Admission.IsD2MultiRound() {
+		if err := d2MultiRoundCheckProjectedCumulativeDelta(loop.Experiment, spec.AdmissionValueKey, valueDB); err != nil {
+			return orchestration.FrozenPlan{}, err
+		}
+	}
 	if stateRevision <= 0 || projectUUID == "" || projectEpoch == "" || snapshotHash == "" {
 		return orchestration.FrozenPlan{}, fmt.Errorf("D1-S1 requires a revision-bound VSP snapshot")
 	}
@@ -326,7 +331,7 @@ func d1PluginParamPlanWithBinding(loop freeStateReasoningLoop, candidate agentlo
 	if err != nil {
 		return orchestration.FrozenPlan{}, err
 	}
-	action := orchestration.Action{ID: "d1_" + sanitizeCanaryID(loop.Experiment.ID) + spec.ActionIDSuffix, Command: spec.ActionKind, TargetRef: targetID,
+	action := orchestration.Action{ID: "d1_" + sanitizeCanaryID(loop.Experiment.ID) + d1MultiRoundRoundScopeSuffix(loop) + spec.ActionIDSuffix, Command: spec.ActionKind, TargetRef: targetID,
 		BeforeFingerprint: d1SubstituteFingerprint(spec.BeforeFingerprintTemplate, targetID, "", paramID),
 		Args:              args, Compensatable: true, IdempotencyClass: "effectively_once"}
 	return d1AssembleFrozenPlan(loop, spec, action, targetID, cut)

@@ -88,7 +88,7 @@ func d1TrackGainPlan(loop freeStateReasoningLoop, candidate agentloop.PendingMix
 	if loop.Experiment == nil || !loop.Experiment.Admission.IsD1S1() {
 		return orchestration.FrozenPlan{}, fmt.Errorf("active D1-S1 experiment is required")
 	}
-	if err := loop.Experiment.Admission.ValidateD1S1(); err != nil {
+	if err := validateD1TierAdmission(loop.Experiment.Admission); err != nil {
 		return orchestration.FrozenPlan{}, err
 	}
 	if candidate.Operation != experiment.D1S1ActionKind || strings.TrimSpace(candidate.TrackID) == "" || candidate.DeltaDB == 0 || math.Abs(candidate.DeltaDB) > 2 {
@@ -110,6 +110,11 @@ func d1TrackGainPlan(loop freeStateReasoningLoop, candidate agentloop.PendingMix
 		return orchestration.FrozenPlan{}, fmt.Errorf("D1-S1 requires a revision-bound VSP snapshot")
 	}
 	spec, _ := experiment.D1S1SpecForAction(experiment.D1S1ActionDomain, experiment.D1S1ActionKind)
+	if loop.Experiment.Admission.IsD2MultiRound() {
+		if err := d2MultiRoundCheckProjectedCumulativeDelta(loop.Experiment, spec.AdmissionValueKey, candidate.DeltaDB); err != nil {
+			return orchestration.FrozenPlan{}, err
+		}
+	}
 	cut, err := projectcut.Build(projectcut.BuildRequest{
 		State: d1StateResult(projectUUID, projectEpoch, snapshotHash, stateRevision, state), Guarantee: projectcut.GuaranteeKernelBarrier,
 		DependencyFingerprints: append([]string(nil), loop.Experiment.Admission.EvidenceRefs...),
@@ -119,7 +124,7 @@ func d1TrackGainPlan(loop freeStateReasoningLoop, candidate agentloop.PendingMix
 	if err != nil {
 		return orchestration.FrozenPlan{}, err
 	}
-	action := orchestration.Action{ID: "d1_" + sanitizeCanaryID(loop.Experiment.ID) + spec.ActionIDSuffix, Command: experiment.D1S1ActionKind, TargetRef: targetID,
+	action := orchestration.Action{ID: "d1_" + sanitizeCanaryID(loop.Experiment.ID) + d1MultiRoundRoundScopeSuffix(loop) + spec.ActionIDSuffix, Command: experiment.D1S1ActionKind, TargetRef: targetID,
 		BeforeFingerprint: d1SubstituteFingerprint(spec.BeforeFingerprintTemplate, targetID, fmt.Sprintf("%g", currentDB), ""),
 		Args:              map[string]any{"delta_db": candidate.DeltaDB, "target_db": currentDB + candidate.DeltaDB}, Compensatable: true, IdempotencyClass: "effectively_once"}
 	return d1AssembleFrozenPlan(loop, spec, action, targetID, cut)
@@ -140,7 +145,7 @@ func d1StaticEQPlanWithBinding(loop freeStateReasoningLoop, candidate agentloop.
 	if loop.Experiment == nil || !loop.Experiment.Admission.IsD1S1() {
 		return orchestration.FrozenPlan{}, fmt.Errorf("active D1-S1 experiment is required")
 	}
-	if err := loop.Experiment.Admission.ValidateD1S1(); err != nil {
+	if err := validateD1TierAdmission(loop.Experiment.Admission); err != nil {
 		return orchestration.FrozenPlan{}, err
 	}
 	if spec, ok := experiment.D1S1DomainSpecFor(loop.Experiment.Admission); !ok || spec.ActionDomain != d1StaticEQDomain || spec.ActionKind != d1StaticEQKind {
@@ -162,6 +167,11 @@ func d1StaticEQPlanWithBinding(loop freeStateReasoningLoop, candidate agentloop.
 		return orchestration.FrozenPlan{}, fmt.Errorf("D2-1 requires a revision-bound VSP snapshot")
 	}
 	spec, _ := experiment.D1S1SpecForAction(d1StaticEQDomain, d1StaticEQKind)
+	if loop.Experiment.Admission.IsD2MultiRound() {
+		if err := d2MultiRoundCheckProjectedCumulativeDelta(loop.Experiment, spec.AdmissionValueKey, gainDB); err != nil {
+			return orchestration.FrozenPlan{}, err
+		}
+	}
 	cut, err := projectcut.Build(projectcut.BuildRequest{
 		State: d1StateResult(projectUUID, projectEpoch, snapshotHash, stateRevision, state), Guarantee: projectcut.GuaranteeKernelBarrier,
 		DependencyFingerprints: append([]string(nil), loop.Experiment.Admission.EvidenceRefs...),
@@ -171,7 +181,7 @@ func d1StaticEQPlanWithBinding(loop freeStateReasoningLoop, candidate agentloop.
 	if err != nil {
 		return orchestration.FrozenPlan{}, err
 	}
-	action := orchestration.Action{ID: "d1_" + sanitizeCanaryID(loop.Experiment.ID) + spec.ActionIDSuffix, Command: d1StaticEQKind, TargetRef: targetID,
+	action := orchestration.Action{ID: "d1_" + sanitizeCanaryID(loop.Experiment.ID) + d1MultiRoundRoundScopeSuffix(loop) + spec.ActionIDSuffix, Command: d1StaticEQKind, TargetRef: targetID,
 		BeforeFingerprint: d1SubstituteFingerprint(spec.BeforeFingerprintTemplate, targetID, "", paramID),
 		Args:              args, Compensatable: true, IdempotencyClass: "effectively_once"}
 	return d1AssembleFrozenPlan(loop, spec, action, targetID, cut)
@@ -201,7 +211,12 @@ func (s *Server) executeD1TrackGain(ctx context.Context, conversationID string, 
 	if s.kernel == nil || s.harness == nil || s.orchestrationRuntime == nil || !s.orchestrationRuntime.HasDurableStore() {
 		return d1BlockedResponse(loop, "D1-S1 durable execution dependencies are unavailable"), true
 	}
-	sessionID := "d1_session_" + sanitizeCanaryID(loop.Experiment.ID)
+	// The durable session is per round on the D2-2 tier: round 2 must not
+	// reuse round 1's completed session (the exists branch would re-project
+	// round 1's receipt as this round's intervention and break the per-round
+	// transaction identity and revision chain). Round 1 keeps the historical
+	// experiment-level id byte-for-byte.
+	sessionID := "d1_session_" + sanitizeCanaryID(loop.Experiment.ID) + d1MultiRoundRoundScopeSuffix(loop)
 	session, exists := s.orchestrationRuntime.Store.Load(sessionID)
 	var plan orchestration.FrozenPlan
 	var state *kernel.VSPStateResult
@@ -308,7 +323,10 @@ func (s *Server) executeD1StaticEQ(ctx context.Context, conversationID string, r
 	if s.kernel == nil || s.harness == nil || s.orchestrationRuntime == nil || !s.orchestrationRuntime.HasDurableStore() {
 		return d1BlockedResponse(loop, "D1-S1 durable execution dependencies are unavailable"), true
 	}
-	sessionID := "d1_session_" + sanitizeCanaryID(loop.Experiment.ID)
+	// Per-round durable session on the D2-2 tier, mirroring executeD1TrackGain:
+	// round 2 owns its own session so round 1's completed session is never
+	// re-projected as this round's execution; round 1 keeps the historical id.
+	sessionID := "d1_session_" + sanitizeCanaryID(loop.Experiment.ID) + d1MultiRoundRoundScopeSuffix(loop)
 	session, exists := s.orchestrationRuntime.Store.Load(sessionID)
 	var plan orchestration.FrozenPlan
 	var state *kernel.VSPStateResult

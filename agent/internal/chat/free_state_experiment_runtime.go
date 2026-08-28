@@ -3,6 +3,7 @@ package chat
 import (
 	"context"
 	"fmt"
+	"math"
 	"strings"
 	"time"
 
@@ -337,6 +338,114 @@ func freeStateAdmissionRunsSingleRound(admission experiment.Admission) bool {
 	return admission.IsD1S1() && !admission.IsD2MultiRound()
 }
 
+// validateD1TierAdmission runs the tier-correct admission guard behind every
+// D1 plan builder and execution entry: the single-round tier keeps
+// ValidateD1S1 byte-for-byte (budget 1, sealed domain bounds), while the D2-2
+// multi-round tier runs its S1-frozen variant (per-scope
+// max_action_attempts==1, budget 2..4, baseline fingerprint). Budgets above
+// the D2-2 ceiling fall back to the single-round guards exactly like the
+// experiment runtime's isD1S1SingleRound, so an unknown tier fails closed.
+func validateD1TierAdmission(admission experiment.Admission) error {
+	if freeStateAdmissionRunsSingleRound(admission) {
+		return admission.ValidateD1S1()
+	}
+	return admission.ValidateD2MultiRound()
+}
+
+// d1MultiRoundRoundScopeSuffix returns the per-round disambiguator for the
+// D2-2 tier's durable identities (durable session id and journal action id).
+// Round 1 keeps the historical experiment-level strings byte-for-byte; every
+// later round appends _round_<n> so each round owns a distinct durable
+// session, a distinct journal action, and a distinct idempotent transaction
+// chain (the multi-round probe asserts per-round transaction-identity
+// uniqueness and before/after revision chaining). The single-round tier
+// always resolves to the empty suffix.
+func d1MultiRoundRoundScopeSuffix(loop freeStateReasoningLoop) string {
+	if loop.Experiment == nil || !loop.Experiment.Admission.IsD2MultiRound() {
+		return ""
+	}
+	round, err := loop.Experiment.CurrentRound()
+	if err != nil || round.Number <= 1 {
+		return ""
+	}
+	return fmt.Sprintf("_round_%d", round.Number)
+}
+
+// d2MultiRoundChatCumulativeBoundDB mirrors the S1-frozen experiment-lifetime
+// cumulative displacement bound (2 dB, equal to every domain's single-action
+// absolute bound; sealed on the experiment side by
+// TestD2MultiRoundCumulativeBoundMatchesDomainAbsoluteBound). The chat-side
+// pre-mutation refusal must not widen it independently of the frozen ruling.
+const d2MultiRoundChatCumulativeBoundDB = 2.0
+
+// d2MultiRoundCumulativeDeltaDB sums the signed achieved deltas recorded on
+// every applied intervention of the experiment. It mirrors the experiment
+// runtime's cumulative-dose accounting (GLM ruling 2): failed or ambiguous
+// attempts record no trusted displacement and are skipped.
+func d2MultiRoundCumulativeDeltaDB(turn *experiment.Turn, valueKey string) float64 {
+	if turn == nil {
+		return 0
+	}
+	total := 0.0
+	for _, round := range turn.Rounds {
+		for _, prior := range round.Interventions {
+			if prior.TechnicalApplication != experiment.TechnicalApplied {
+				continue
+			}
+			if value, ok := treatmentNumber(prior.AchievedDelta, valueKey); ok {
+				total += value
+			}
+		}
+	}
+	return total
+}
+
+// d2MultiRoundCheckProjectedCumulativeDelta refuses a plan whose apply would
+// push the experiment-lifetime cumulative displacement past the S1-frozen 2dB
+// bound. It mirrors the experiment runtime's post-apply accounting at the
+// plan boundary so the refusal lands before the kernel mutation instead of
+// after it (a post-apply rejection would diverge the experiment ledger from
+// the kernel state); the runtime check stays authoritative.
+func d2MultiRoundCheckProjectedCumulativeDelta(turn *experiment.Turn, valueKey string, deltaDB float64) error {
+	projected := d2MultiRoundCumulativeDeltaDB(turn, valueKey) + deltaDB
+	if math.Abs(projected) > d2MultiRoundChatCumulativeBoundDB {
+		return fmt.Errorf("D2-2 cumulative %s displacement %.4g dB would exceed the experiment-lifetime bound %.4g dB; refusing before the mutation", valueKey, projected, d2MultiRoundChatCumulativeBoundDB)
+	}
+	return nil
+}
+
+// freeStateExperimentBudgetExhausted reports whether the experiment has
+// already spent its full intervention budget (one governed mutation per
+// round, ExperimentBudget rounds). The frozen multi-round acceptance scope
+// treats more rounds than budget as fatal, so the chat layer must stop
+// opening calibration rounds here and settle instead.
+func freeStateExperimentBudgetExhausted(turn *experiment.Turn) bool {
+	return turn != nil && turn.InterventionCount() >= turn.Admission.ExperimentBudget
+}
+
+// freeStateD2RoundContinuationAllowance is the pre-apply continuation slice
+// count a freshly opened D2-2 calibration round needs: one target
+// observation, one bounded proposal, one mix-tick confirmation. The
+// post-apply chain keeps its own phase-scoped floor via
+// reserveD1PostApplySlices.
+const freeStateD2RoundContinuationAllowance = 3
+
+// grantD2CalibrationRoundContinuation makes a freshly opened D2-2 calibration
+// round schedulable: the continuation budget gains one pre-apply allowance
+// beyond what earlier rounds consumed, and the one-shot post-apply reserves
+// re-arm — their unit is the applied round, not the experiment, so round 2's
+// mandatory post-action chain must be able to reserve its own slices.
+func grantD2CalibrationRoundContinuation(loop *freeStateReasoningLoop) {
+	if loop == nil {
+		return
+	}
+	if floor := loop.ContinuationUsed + freeStateD2RoundContinuationAllowance; floor > loop.ContinuationBudget {
+		loop.ContinuationBudget = floor
+	}
+	loop.PostActionObservationReserved = false
+	loop.PostApplyBudgetReserved = false
+}
+
 // freeStateExperimentJudgmentPending mirrors the experiment runtime's
 // experiment-scope judgment boundary (GLM ruling 3): any round that requested
 // a user judgment without the judgment landing parks the whole experiment
@@ -485,9 +594,18 @@ func (s *Server) recordFreeStateExperimentDecision(ctx context.Context, loop *fr
 			// non-single-round tiers may open one calibration round, while the
 			// D1-S1 single-round tier keeps intercepting it (GLM ruling 1).
 			// Opening a round never raises a dose by itself; any dose change
-			// still passes the admission domain-table validation.
+			// still passes the admission domain-table validation. With the
+			// experiment budget already spent, the frozen multi-round contract
+			// (rounds may never exceed budget) settles the experiment instead
+			// of opening a beyond-budget calibration round.
 			if decision.ExperimentMateriality.Evaluation == trajectory.EvaluationInsufficientDose && !freeStateAdmissionRunsSingleRound(loop.Experiment.Admission) {
-				if decisionEvents, decisionErr := loop.Experiment.DecideRound(experiment.DecisionNextRound, "insufficient dose; calibrate in next round", time.Now().UTC()); decisionErr == nil {
+				if freeStateExperimentBudgetExhausted(loop.Experiment) {
+					s.settleFreeStateExperiment(loop, experiment.OutcomeBudgetExhausted, "multi-round budget exhausted; no calibration round may open")
+					if loop.Experiment.Status == experiment.StatusSettled {
+						loop.Status = "completed"
+						loop.RequiresPostActionObservation = false
+					}
+				} else if decisionEvents, decisionErr := loop.Experiment.DecideRound(experiment.DecisionNextRound, "insufficient dose; calibrate in next round", time.Now().UTC()); decisionErr == nil {
 					s.emitFreeStateExperimentEvents(decisionEvents)
 					views := freeStateExperimentViews(*loop, decision, decision.ImprovementProposal)
 					if len(views) == 0 {
@@ -495,6 +613,7 @@ func (s *Server) recordFreeStateExperimentDecision(ctx context.Context, loop *fr
 					}
 					if roundEvents, roundErr := loop.Experiment.StartRound(views, loop.Experiment.Admission.CheckpointRef, firstStringFromMap(loop.LatestProjectChange, "project_revision", "revision"), time.Now().UTC()); roundErr == nil {
 						s.emitFreeStateExperimentEvents(roundEvents)
+						grantD2CalibrationRoundContinuation(loop)
 					}
 				}
 			}
@@ -557,6 +676,20 @@ func (s *Server) recordFreeStateExperimentAction(loop *freeStateReasoningLoop, p
 		UserConfirmed:    loop.Experiment.Admission.AuthorityMode == experiment.AuthorityOrdinary,
 		PolicyAuthorized: loop.Experiment.Admission.AuthorityMode == experiment.AuthorityFull,
 		Receipt:          cloneContext(receipt), ProcessorResponse: map[string]any{"processor_type": processorType}, AppliedAt: time.Now().UTC()}
+	// The D2-2 tier's cumulative-dose accounting (GLM ruling 2) requires every
+	// applied intervention to carry its achieved displacement at the domain's
+	// value key; the intervention receipt also states the numeric applied
+	// delta because the VSP port receipts carry absolute readbacks (not
+	// deltas) and the multi-round probe doses from the intervention receipt.
+	// The single-round tier keeps its historical intervention shape.
+	if technical == experiment.TechnicalApplied && loop.Experiment.Admission.IsD2MultiRound() {
+		if spec, ok := experiment.D1S1DomainSpecFor(loop.Experiment.Admission); ok {
+			if value, valueOK := treatmentNumber(loop.Experiment.Admission.TypedAction, spec.AdmissionValueKey); valueOK {
+				intervention.AchievedDelta = map[string]any{spec.AdmissionValueKey: value}
+				intervention.Receipt["applied_delta_db"] = value
+			}
+		}
+	}
 	if events, err := loop.Experiment.ApplyIntervention(intervention, time.Now().UTC()); err == nil {
 		s.emitFreeStateExperimentEvents(events)
 	} else if s.logger != nil {

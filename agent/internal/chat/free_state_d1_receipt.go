@@ -125,7 +125,14 @@ func syncD1Receipt(loop *freeStateReasoningLoop) {
 	// wrong-domain D1 receipt (observed in the 2026-08-27 09:03 smoke run).
 	projection["action_domain"] = firstNonEmpty(firstStringFromMap(loop.Experiment.Admission.TypedAction, "action_domain", "domain"), experiment.D1S1ActionDomain)
 	projection["action_kind"] = firstNonEmpty(firstStringFromMap(loop.Experiment.Admission.TypedAction, "action_kind", "kind"), experiment.D1S1ActionKind)
-	projection["forward_mutation_count"] = len(round.Interventions)
+	// The D2-2 tier counts forward mutations across the whole experiment (one
+	// per round); the multi-round probe asserts the count equals the round
+	// count. The single-round expression stays byte-for-byte.
+	if loop.Experiment.Admission.IsD2MultiRound() {
+		projection["forward_mutation_count"] = loop.Experiment.InterventionCount()
+	} else {
+		projection["forward_mutation_count"] = len(round.Interventions)
+	}
 	projection["rollback_compensation_count"] = map[bool]int{true: 1, false: 0}[rolledBack]
 	projection["before_render"] = cloneContext(beforeRender)
 	projection["after_render"] = cloneContext(afterRender)

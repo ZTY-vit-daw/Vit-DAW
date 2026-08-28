@@ -786,6 +786,21 @@ func (s *Server) applyFreeStateJudgmentOutcome(ctx context.Context, loop *freeSt
 		loop.Status = "completed"
 	default:
 		if disposition.Decision == experiment.DecisionNextRound && !singleRound {
+			if freeStateExperimentBudgetExhausted(loop.Experiment) {
+				// Same frozen contract as the materiality calibration path: the
+				// experiment budget is spent, so the no-difference insufficiency
+				// settles budget-exhausted instead of opening a beyond-budget
+				// round (rounds may never exceed the admission budget).
+				if events, err := loop.Experiment.DecideRound(experiment.DecisionStopped, "no audible difference; multi-round budget exhausted", time.Now().UTC()); err == nil {
+					s.emitFreeStateExperimentEvents(events)
+				}
+				s.settleFreeStateExperiment(loop, experiment.OutcomeBudgetExhausted, "no audible difference; multi-round budget exhausted")
+				if loop.Experiment.Status == experiment.StatusSettled {
+					loop.Status = "completed"
+					loop.RequiresPostActionObservation = false
+				}
+				return nil
+			}
 			// GLM ruling 1: no audible difference is an insufficiency signal,
 			// not ambiguity. Non-single-round tiers recalibrate in a next
 			// round under the existing admission; opening the round never
@@ -808,6 +823,7 @@ func (s *Server) applyFreeStateJudgmentOutcome(ctx context.Context, loop *freeSt
 				return err
 			}
 			s.emitFreeStateExperimentEvents(events)
+			grantD2CalibrationRoundContinuation(loop)
 			loop.AuditionSessionID = ""
 			loop.AuditionSessionSnapshot = nil
 			loop.Status = "active"
