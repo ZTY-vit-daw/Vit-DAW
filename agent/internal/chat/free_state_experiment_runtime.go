@@ -657,3 +657,36 @@ func freeStateExperimentRoundHasFreshPostActionObservation(turn *experiment.Turn
 	}
 	return false
 }
+
+// freeStateLoopRoundPendingSettlement reports whether the loop's applied
+// experiment round carries fresh post-action evidence but no settlement
+// decision. The round state is authoritative: storeFreeStateLoop rewrites
+// DecisionPhase from RequiresPostActionObservation, so a booked observation
+// can legitimately leave the persisted phase at processor_selection while the
+// round still owes its settle report. While this holds the round's single
+// mutation budget is spent: any further pending mix tick/treatment interaction
+// is an illegal second mutation, and projecting the goal completed would
+// permanently lose the settlement (S2e, 2026-08-28 121306→130901 smokes).
+func freeStateLoopRoundPendingSettlement(loop freeStateReasoningLoop) bool {
+	if loop.Experiment == nil || !strings.EqualFold(strings.TrimSpace(string(loop.Experiment.Status)), string(experiment.StatusRunning)) {
+		return false
+	}
+	round, err := loop.Experiment.CurrentRound()
+	if err != nil || strings.TrimSpace(string(round.Decision)) != "" {
+		return false
+	}
+	return freeStateExperimentRoundHasFreshPostActionObservation(loop.Experiment)
+}
+
+// freeStateRoundPendingSettlementForConversation is the server-facing lookup
+// used by the interaction-storage refusals. It prefers the durable loop.
+func (s *Server) freeStateRoundPendingSettlementForConversation(conversationID string) bool {
+	if s == nil || strings.TrimSpace(conversationID) == "" {
+		return false
+	}
+	loop, ok := s.freeStateLoop(conversationID)
+	if !ok {
+		return false
+	}
+	return freeStateLoopRoundPendingSettlement(loop)
+}

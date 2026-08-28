@@ -668,6 +668,15 @@ func messageLoopFreeStateOutputIssue(state *runState, out messageLoopOutput) str
 		if len(out.ToolCalls) != 0 {
 			return "needs_experiment must contain no direct mutation tool calls; the existing governed execution layer owns materialization and confirmation"
 		}
+		if issue := messageLoopFreeStateRoundPendingSettlementIssue(messageLoopFreeStateContext(state)); issue != "" && !freeStateDecisionCarriesExperimentReport(out.FreeStateDecision) {
+			// A mid-round admission is the needs_experiment-shaped escape hatch
+			// from the settle turn: without report fields it re-enters the
+			// admission path, the chat layer maps the proposal-less decision to
+			// a terminal capability_blocked, and the round strands without
+			// materiality (2026-08-28 121306/130901 smokes). One mutation per
+			// round is already spent; only the settle report is legal here.
+			return "an applied experiment round is pending settlement, so this needs_experiment is an illegal second admission mid-round; " + issue
+		}
 		// A decision carrying experiment report fields evaluates an already
 		// admitted experiment; it is not a new admission. The G1-G7 gate
 		// re-checks pre-apply state (project binding revision, frontier,
@@ -698,6 +707,15 @@ func messageLoopFreeStateOutputIssue(state *runState, out messageLoopOutput) str
 			ctx := messageLoopFreeStateContext(state)
 			if freeStateBool(ctx["requires_post_action_observation"]) && !messageLoopHasSuccessfulCCBObservationRequest(state) {
 				return "cannot report experiment materiality/target response after an applied action until a fresh CCB observation_request has returned in this reasoning cycle; request the post-action observation first, then settle the experiment on its evidence"
+			}
+			if messageLoopFreeStateRoundPendingSettlementIssue(ctx) != "" && out.FreeStateDecision.ImprovementProposal == nil {
+				// The settle report rides the preserved proposal. A report
+				// without it is mapped to a terminal capability_blocked by the
+				// chat layer ("needs_experiment requires a model-submitted
+				// improvement_proposal"), silently terminalizing the loop while
+				// the round is still unsettled. Refuse it here so the retry can
+				// repeat the preserved proposal unchanged.
+				return "the settle report must repeat the preserved improvement_proposal unchanged (the one the admitted round executed); without it the report cannot be booked to the round; example: " + freeStateSettleReportExample
 			}
 		} else if failed := evaluateFreeStateNeedsExperimentGate(state, out.FreeStateDecision); len(failed) > 0 {
 			// The single-usable-bundle weak gate is replaced by the seven-part
@@ -776,14 +794,48 @@ func messageLoopFreeStateOutputIssue(state *runState, out messageLoopOutput) str
 	return ""
 }
 
+// freeStateSettleReportExample is the concrete JSON shape of the settle report
+// the post_action_evaluation turn must emit on the preserved proposal. The
+// final-gate feedback previously described it in prose only; 8-turn retries
+// still produced bare terminals or next-step suggestions instead of the report
+// (2026-08-28 121306→130901 smokes), so the refusal message now carries the
+// shape itself as a direct example. The evidence_refs placeholder must point at
+// the round's fresh post-action observation id.
+const freeStateSettleReportExample = `{"status":"needs_experiment","evidence_status":"sufficient","improvement_proposal":<the preserved improvement_proposal unchanged>,"experiment_materiality":{"state":"material|subthreshold|none","evaluation":"agent_evaluable|insufficient_dose|ambiguous","summary":"<acoustic materiality read from the fresh post-action evidence>","evidence_refs":["<fresh post-action observation id>"],"attempt":1},"experiment_target_response":{"response":"directional|sufficient|absent|ambiguous","outcome":"human_audition_ready|agent_evaluable|ambiguous","summary":"<target response classification>","evidence_refs":["<same fresh post-action observation id>"]},"experiment_round_decision":"user_judgment_pending","summary":"<settle summary for the human judgment boundary>"}`
+
+func freeStateDecisionCarriesExperimentReport(decision *FreeStateDecision) bool {
+	if decision == nil {
+		return false
+	}
+	return decision.ExperimentMateriality != nil || decision.ExperimentTargetResponse != nil ||
+		strings.TrimSpace(decision.ExperimentRoundDecision) != ""
+}
+
+// messageLoopFreeStateRoundPendingSettlement reports whether the model-visible
+// context describes an applied D1 experiment round whose fresh post-action
+// observation is recorded but which has no settlement decision yet. While this
+// holds, the only legal terminal-shaped output is the structured settle report
+// (or a blocked decision carrying the concrete evaluation boundary).
+func messageLoopFreeStateRoundPendingSettlement(state *runState) bool {
+	if state == nil {
+		return false
+	}
+	return messageLoopFreeStateRoundPendingSettlementIssue(messageLoopFreeStateContext(state)) != ""
+}
+
 // messageLoopFreeStateRoundPendingSettlementIssue refuses bare terminal
 // decisions while an applied D1 experiment round has its fresh post-action
 // observation recorded but no settlement yet. Without this the post-action
 // turn strands the round on a bare capability_blocked and the human judgment
-// boundary never opens (2026-08-28 12:41/12:34 smokes: settle evidence booked
-// deterministically, the model still returned bare terminals).
+// boundary never opens (2026-08-28 12:41/12.34 smokes: settle evidence booked
+// deterministically, the model still returned bare terminals). The round state
+// is authoritative: chat's storeFreeStateLoop rewrites decision_phase back to
+// processor_selection once the deterministic booking clears
+// requires_post_action_observation, so keying on the phase would blind the
+// gate exactly when the evidence is booked (2026-08-28 19:49 smoke: bare
+// capability_blocked passed the gate at decision_phase=processor_selection).
 func messageLoopFreeStateRoundPendingSettlementIssue(ctx map[string]any) string {
-	if len(ctx) == 0 || !strings.EqualFold(strings.TrimSpace(messageLoopText(ctx["decision_phase"])), "post_action_evaluation") {
+	if len(ctx) == 0 {
 		return ""
 	}
 	experiment := messageLoopMapValue(ctx["experiment"])
@@ -800,7 +852,7 @@ func messageLoopFreeStateRoundPendingSettlementIssue(ctx map[string]any) string 
 	}
 	for _, observation := range messageLoopMapRows(round["observations"]) {
 		if freeStateBool(observation["post_action"]) && freeStateBool(observation["fresh"]) {
-			return "the applied experiment round has fresh post-action evidence recorded and is pending settlement; report experiment_materiality + experiment_target_response + experiment_round_decision=user_judgment_pending on the preserved proposal (or the concrete blocked boundary that prevents evaluating the recorded evidence), not a bare terminal"
+			return "the applied experiment round has fresh post-action evidence recorded and is pending settlement; emit the settle report JSON on the preserved proposal (or the concrete blocked boundary that prevents evaluating the recorded evidence), example: " + freeStateSettleReportExample
 		}
 	}
 	return ""

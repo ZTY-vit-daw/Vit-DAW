@@ -250,6 +250,25 @@ func (s *Server) runAgentLoopChat(ctx context.Context, conversationID string, re
 	// explicitly if desired.
 	if contextBool(chatContext, "free_state_internal_resume") {
 		if loop, ok := freeStateLoopFromAny(chatContext["free_state_reasoning_loop"]); ok && !freeStateLoopActive(loop) {
+			if freeStateLoopRoundPendingSettlement(loop) {
+				// The loop ended while its applied round still owes the settle
+				// report (fresh post-action evidence booked, no decision). The
+				// settlement is model-owned: the server must neither force-settle
+				// the closure with a limit reason nor project the goal completed —
+				// either would permanently lose the settlement and report a clean
+				// finish that never happened. Keep the current state instead
+				// (loop terminal state untouched, closure untouched): the goal
+				// stays waiting_continue, the scheduler completes this checkpoint,
+				// and the unsettled round stays queryable for an explicit user
+				// turn (2026-08-28 130901 smoke: 194ms empty "completed").
+				return ChatResponse{ConversationID: conversationID, GoalID: loop.GoalID, RunID: loop.RunID,
+					Reply: "本轮实验改动后的证据已记录，但结算报告尚未产出，任务保持待继续状态；实验轮不会在无结算的情况下被标记完成。",
+					GoalStatus: string(agentruntime.StatusWaitingContinue),
+					StopReason: "d1_settlement_pending_loop_inactive", Workflow: "free_state_reasoning_loop",
+					WorkflowData: map[string]any{"status": loop.Status, "free_state_reasoning_loop": freeStateLoopMap(loop),
+						"mutation_performed": false, "settlement_pending": true},
+				}, true
+			}
 			if audioClosureActive && s.audioClosures != nil {
 				if current, tracked := s.audioClosures.ActiveForConversation(conversationID); tracked && !current.Terminal() {
 					reason := audioclosure.StopRoundLimit
@@ -678,7 +697,17 @@ func agentLoopBudgetForContext(mode string, requestContext map[string]any) agent
 		return agentloop.Budget{MaxTurns: 5, MaxToolCalls: 6, Timeout: 210 * time.Second}
 	}
 	budget := agentLoopBudgetForMode(mode)
-	if loop := firstMapFromAny(requestContext["free_state_reasoning_loop"]); strings.EqualFold(strings.TrimSpace(firstStringFromMap(loop, "decision_phase")), freeStatePhasePostActionEvaluation) {
+	loop := firstMapFromAny(requestContext["free_state_reasoning_loop"])
+	settleTurnPending := strings.EqualFold(strings.TrimSpace(firstStringFromMap(loop, "decision_phase")), freeStatePhasePostActionEvaluation)
+	if typedLoop, ok := freeStateLoopFromAny(requestContext["free_state_reasoning_loop"]); ok && freeStateLoopRoundPendingSettlement(typedLoop) {
+		// The settle turn is owed even when the deterministic post-action
+		// booking cleared requires_post_action_observation and the stored
+		// decision_phase fell back to processor_selection (2026-08-28 19:49
+		// smoke: the settle slice ran without the +4 headroom and burned its
+		// turns on gate feedback retries).
+		settleTurnPending = true
+	}
+	if settleTurnPending {
 		// The post-apply settle turn often needs the final-gate feedback cycle
 		// (bare terminals are refused until the structured settle report is
 		// emitted). Pre-apply reasoning has already consumed most of the run's
@@ -1913,40 +1942,54 @@ func (s *Server) chatResponseFromAgentLoopResult(conversationID, mode string, re
 			resp.TypedEvents = append(resp.TypedEvents, event)
 		}
 	}
-	if candidate := res.ExecutionMemory.PendingMixTickCandidate; candidate != nil && strings.EqualFold(strings.TrimSpace(candidate.Status), "pending_confirmation") {
-		typed := candidate.ToPendingCandidate(conversationID, res.GoalID, res.RunID, "")
-		s.upsertPendingCandidate(typed)
-		resp.NeedsConfirmation = true
-		resp.GoalStatus = string(agentruntime.StatusWaitingConfirmation)
-		resp.StopReason = agentloop.StopReasonNeedsConfirmation
-		resp.Workflow = "mix_tick"
-		resp.WorkflowData = typedPendingPayload(pendingMixTickEventPayload(*candidate, candidate.ObservationID), typed)
-		resp.TypedEvents = append(resp.TypedEvents, agentprotocol.ToMap(agentprotocol.NewEvent(typed, typed.Source)))
-		req := mixTickInteractionRequest(conversationID, res.GoalID, res.RunID, *candidate)
-		resp.InteractionRequests = []AgentInteractionRequest{req}
-		s.storePendingInteraction(req, req.Payload)
-		if resp.AgentPlan != nil {
-			resp.AgentPlan.Status = string(agentruntime.StatusWaitingConfirmation)
+	// The mix_tick/mix_treatment response override stores a pending
+	// interaction and binds the newest continuation to waiting_interaction.
+	// While an applied experiment round is pending settlement that is the
+	// second-mutation wedge: the settle continuation must stay schedulable.
+	// recordGoalResult already refused the durable candidate stores on the
+	// same condition; this guard refuses the interaction surface itself.
+	if !s.freeStateRoundPendingSettlementForConversation(conversationID) {
+		if candidate := res.ExecutionMemory.PendingMixTickCandidate; candidate != nil && strings.EqualFold(strings.TrimSpace(candidate.Status), "pending_confirmation") {
+			typed := candidate.ToPendingCandidate(conversationID, res.GoalID, res.RunID, "")
+			s.upsertPendingCandidate(typed)
+			resp.NeedsConfirmation = true
+			resp.GoalStatus = string(agentruntime.StatusWaitingConfirmation)
+			resp.StopReason = agentloop.StopReasonNeedsConfirmation
+			resp.Workflow = "mix_tick"
+			resp.WorkflowData = typedPendingPayload(pendingMixTickEventPayload(*candidate, candidate.ObservationID), typed)
+			resp.TypedEvents = append(resp.TypedEvents, agentprotocol.ToMap(agentprotocol.NewEvent(typed, typed.Source)))
+			req := mixTickInteractionRequest(conversationID, res.GoalID, res.RunID, *candidate)
+			resp.InteractionRequests = []AgentInteractionRequest{req}
+			s.storePendingInteraction(req, req.Payload)
+			if resp.AgentPlan != nil {
+				resp.AgentPlan.Status = string(agentruntime.StatusWaitingConfirmation)
+			}
 		}
-	}
-	if treatment := res.ExecutionMemory.PendingMixTreatment; treatment != nil && strings.EqualFold(strings.TrimSpace(treatment.Status), "pending_confirmation") {
-		if localized := localizedMixTreatmentUserReply(resp.Reply, *treatment); localized != "" {
-			resp.Reply = localized
+		if treatment := res.ExecutionMemory.PendingMixTreatment; treatment != nil && strings.EqualFold(strings.TrimSpace(treatment.Status), "pending_confirmation") {
+			if localized := localizedMixTreatmentUserReply(resp.Reply, *treatment); localized != "" {
+				resp.Reply = localized
+			}
+			typed := treatment.ToPendingCandidate(conversationID, res.GoalID, res.RunID, "")
+			s.upsertPendingCandidate(typed)
+			resp.NeedsConfirmation = true
+			resp.GoalStatus = string(agentruntime.StatusWaitingConfirmation)
+			resp.StopReason = agentloop.StopReasonNeedsConfirmation
+			resp.Workflow = "mix_treatment"
+			resp.WorkflowData = mixTreatmentInteractionPayload(*treatment)
+			resp.WorkflowData = typedPendingPayload(resp.WorkflowData, typed)
+			resp.TypedEvents = append(resp.TypedEvents, agentprotocol.ToMap(agentprotocol.NewEvent(typed, typed.Source)))
+			req := mixTreatmentInteractionRequest(conversationID, res.GoalID, res.RunID, resp.Reply, *treatment)
+			resp.InteractionRequests = []AgentInteractionRequest{req}
+			s.storePendingInteraction(req, req.Payload)
+			if resp.AgentPlan != nil {
+				resp.AgentPlan.Status = string(agentruntime.StatusWaitingConfirmation)
+			}
 		}
-		typed := treatment.ToPendingCandidate(conversationID, res.GoalID, res.RunID, "")
-		s.upsertPendingCandidate(typed)
-		resp.NeedsConfirmation = true
-		resp.GoalStatus = string(agentruntime.StatusWaitingConfirmation)
-		resp.StopReason = agentloop.StopReasonNeedsConfirmation
-		resp.Workflow = "mix_treatment"
-		resp.WorkflowData = mixTreatmentInteractionPayload(*treatment)
-		resp.WorkflowData = typedPendingPayload(resp.WorkflowData, typed)
-		resp.TypedEvents = append(resp.TypedEvents, agentprotocol.ToMap(agentprotocol.NewEvent(typed, typed.Source)))
-		req := mixTreatmentInteractionRequest(conversationID, res.GoalID, res.RunID, resp.Reply, *treatment)
-		resp.InteractionRequests = []AgentInteractionRequest{req}
-		s.storePendingInteraction(req, req.Payload)
-		if resp.AgentPlan != nil {
-			resp.AgentPlan.Status = string(agentruntime.StatusWaitingConfirmation)
+	} else if (res.ExecutionMemory.PendingMixTickCandidate != nil && strings.EqualFold(strings.TrimSpace(res.ExecutionMemory.PendingMixTickCandidate.Status), "pending_confirmation")) ||
+		(res.ExecutionMemory.PendingMixTreatment != nil && strings.EqualFold(strings.TrimSpace(res.ExecutionMemory.PendingMixTreatment.Status), "pending_confirmation")) {
+		if s.logger != nil {
+			s.logger.Info("[mix.pending] refused interaction surface during settlement conversation=%s goal=%s",
+				conversationID, res.GoalID)
 		}
 	}
 	if len(resp.WorkflowData) == 0 && strings.TrimSpace(res.ExecutionMemory.MixDiagnosisContextID) != "" {
@@ -2368,6 +2411,39 @@ func (s *Server) recordGoalResult(conversationID string, res agentloop.Result) e
 			s.conversationMemory[conversationID] = cloneAgentLoopExecutionMemory(res.ExecutionMemory)
 		} else {
 			delete(s.conversationMemory, conversationID)
+		}
+		// An applied experiment round pending settlement has already spent its
+		// single mutation budget. Storing another pending mix tick/treatment
+		// here parks the newest continuation at waiting_interaction; the
+		// driver-side experiment filter refuses to approve it, nudges cannot
+		// cross the boundary, and the settle turn never runs again
+		// (S2e, 2026-08-28 121306→130901 smokes: every failed run wedged on
+		// exactly this storage).
+		roundPendingSettlement := false
+		if loop, exists := s.freeStateLoops[conversationID]; exists {
+			roundPendingSettlement = freeStateLoopRoundPendingSettlement(loop)
+		}
+		if roundPendingSettlement {
+			if candidate := res.ExecutionMemory.PendingMixTickCandidate; candidate != nil && strings.EqualFold(strings.TrimSpace(candidate.Status), "pending_confirmation") {
+				if s.logger != nil {
+					s.logger.Info("[mix.tick.pending] refused mid-settlement round conversation=%s goal=%s %s observation=%s",
+						conversationID, res.GoalID, pendingMixTickLogSummary(*candidate), candidate.ObservationID)
+				}
+				res.ExecutionMemory.PendingMixTickCandidate = nil
+				if hasAgentLoopExecutionMemory(res.ExecutionMemory) {
+					s.conversationMemory[conversationID] = cloneAgentLoopExecutionMemory(res.ExecutionMemory)
+				}
+			}
+			if treatment := res.ExecutionMemory.PendingMixTreatment; treatment != nil && strings.EqualFold(strings.TrimSpace(treatment.Status), "pending_confirmation") {
+				if s.logger != nil {
+					s.logger.Info("[mix.treatment.pending] refused mid-settlement round conversation=%s goal=%s action=%s processor=%s target=%s",
+						conversationID, res.GoalID, treatment.ActionKind, treatment.ProcessorType, treatment.TargetRef)
+				}
+				res.ExecutionMemory.PendingMixTreatment = nil
+				if hasAgentLoopExecutionMemory(res.ExecutionMemory) {
+					s.conversationMemory[conversationID] = cloneAgentLoopExecutionMemory(res.ExecutionMemory)
+				}
+			}
 		}
 		if candidate := res.ExecutionMemory.PendingMixTickCandidate; candidate != nil && strings.EqualFold(strings.TrimSpace(candidate.Status), "pending_confirmation") {
 			typed := candidate.ToPendingCandidate(conversationID, res.GoalID, res.RunID, "")

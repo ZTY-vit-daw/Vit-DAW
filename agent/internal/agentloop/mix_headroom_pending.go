@@ -9,6 +9,9 @@ func messageLoopConservativeHeadroomTreatmentPending(state *runState, reply stri
 	if messageLoopMutationBarrierActive(state) || state.executionMemory.PendingMixTreatment != nil || state.executionMemory.PendingMixTickCandidate != nil {
 		return nil
 	}
+	if messageLoopFreeStateRoundPendingSettlement(state) {
+		return nil
+	}
 	if !messageLoopNaturalMixRequest(state.input.UserText) || !messageLoopHasUsableMixObservation(state) {
 		return nil
 	}

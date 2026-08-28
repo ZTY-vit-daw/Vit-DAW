@@ -314,12 +314,19 @@ func (s *Server) admitAudioClosureRound(state audioclosure.State) (audioclosure.
 		return current, true, nil
 	}
 	if current.ContractID != "" && current.RoundsStarted >= current.Policy.MaxClosureRounds {
-		// A governed action can complete on the final diagnostic round. The
-		// post-action CCB observation is part of that same experiment contract,
-		// so grant one durable verification round before applying the ordinary
-		// closure boundary. Without this extension the old round limit settles
-		// the task as capability_blocked immediately after a real mutation.
-		if loop, loopOK := s.freeStateLoop(current.ConversationID); loopOK && loop.Experiment != nil && loop.RequiresPostActionObservation {
+	// A governed action can complete on the final diagnostic round. The
+	// post-action CCB observation is part of that same experiment contract,
+	// so grant one durable verification round before applying the ordinary
+	// closure boundary. Without this extension the old round limit settles
+	// the task as capability_blocked immediately after a real mutation. The
+	// extension must also cover the booked-evidence window: the deterministic
+	// post-action booking clears RequiresPostActionObservation while the round
+	// still owes its settle report, and settling at the boundary then kills
+	// the loop before any settle slice can run (2026-08-28 19:49 smoke:
+	// "closure observation round boundary reached" landed between the applied
+	// boundary and the settle turn).
+	if loop, loopOK := s.freeStateLoop(current.ConversationID); loopOK && loop.Experiment != nil &&
+		(loop.RequiresPostActionObservation || freeStateLoopRoundPendingSettlement(loop)) {
 			next, err := (audioclosure.Driver{}).ExtendClosureRounds(current, current.Revision, current.RoundsStarted+1, time.Now().UTC())
 			if err != nil {
 				return current, false, err

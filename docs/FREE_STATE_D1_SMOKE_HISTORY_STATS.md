@@ -291,7 +291,23 @@ S2d 深入现场后推翻了卡内两处机理认定，交付 9 项修复（chat
 | 20260828_125754 | p02 默认 | **pass** | p02 默认链路当前修复集下端到端 PASS |
 | 20260828_121306→130901 | p01 freq | fail "materiality missing" | **残留卡点（S2e）**：确定性观察+turn headroom 后，模型仍以裸终态/建议输出替代结构化 settle 报告（8 turn 重试仍不合规）；194ms 空转完成为 inactive-loop 投影（goalrunner_chat.go:269） |
 
-开放项：p01 frequency 的 settle 合规方差归新卡 S2e（post-apply settle turn 模型合规 + run 级 turn 预算语义 + inactive-loop 投影）；验收状态：go build/test 全绿、p02 PASS、p01 非连续 PASS（113025/102237），3× 连续未达成。压缩域未回归测试（S2c 卡点仍在）。
+开放项（已关闭，S2e 交付）：~~p01 frequency 的 settle 合规方差归新卡 S2e~~ → S2e 修复链见 §10（四类守卫 + round 状态权威化）；验收状态刷新：go build/test 全绿（84 包）、p02 PASS、p01 frequency **3× 连续 PASS**（200512/200911/201316）。压缩域端到端卡点归 S2f（域语义），本卡未触碰换算/写入链。
+
+## 10. 2026-08-28 晚窗批（S2e settle turn 模型合规与 inactive-loop 投影，GLM L2）
+
+S2e 深入现场后把"模型 settle 不合规"拆成四类可伺服识别的缺陷，全部守卫强化（无弱化：materiality 仍归模型，伺服不代写；真人判定边界语义不变）：
+
+**取证修正**：失败轮的共同形态不是"8-turn 重试仍不合规"，而是**settle 期被伺服侧自己的三个相位盲点绞死**——(1) `messageLoopPendingMixTickCandidateFromReply` 把 settle turn 的散文建议（"把 Track X 降 1.5dB"）确定性转成 PendingMixTickCandidate，`recordGoalResult` 存交互并把最新 continuation 绑回 waiting_interaction → 驱动 S2b 过滤器拒批非实验流 mix tick、nudge 过不了 `pending_interaction_requires_response`、调度器恢复不了 waiting_interaction → 死锁（121306→130901 全部 4 轮同一形态）；(2) `storeFreeStateLoop` 在确定性观察落账清除 rpost 后把 decision_phase 改回 processor_selection，而 agentloop 输出 gate 的 pending-settlement 拒绝、`agentLoopBudgetForContext` 的 +4 turn 余量、`admitAudioClosureRound` 的验证轮扩展**全部以 phase/rpost 为键**——194942 轮：applied+落账后 closure 边界（"closure observation round boundary reached"）在 settle 切片跑之前就把 loop 结成 capability_blocked，裸 capability_blocked 也在 processor_selection 相位下穿透 gate；(3) inactive-loop 投影（goalrunner_chat.go:251-275）对欠结算 round 的 loop 强制 settle closure + goal 置 completed——194ms 无 LLM 空转"完成"，settle 永久丢失。
+
+**修复清单**（裁定写入卡内）：① round 状态权威化——chat 侧新增 `freeStateLoopRoundPendingSettlement`（experiment running + 当前 round 有 fresh post-action 观察 + 无 decision），不信任可改写的 DecisionPhase；② settle 期第二次 mutation 伺服拒绝——agentloop 四个确定性 pending 合成函数（mix tick from reply / vocal clarification tick / mix treatment / conservative headroom）在 round 欠结算时返回 nil，chat 侧 recordGoalResult 拒绝持久存储、chatResponseFromAgentLoopResult 拒绝交互面覆盖、handlePendingMixTickChat 入口拒绝确认（含 recovered-expired 同 id 重批通道）；③ 输出 gate 收口——needs_experiment 在 round 欠结算时无报告字段=非法二次准入（该形态正是 chat 层映射 capability_blocked 的裸终态泄漏源）；settle 报告缺 preserved proposal 也拒绝；pending-settlement 反馈消息直接内嵌 settle 报告 JSON 形状示例（`freeStateSettleReportExample`）；④ 三个相位盲点改 round 键——agentloop gate 弃 phase 检查、closure 验证轮扩展覆盖 booked-evidence 窗口、turn +4 余量覆盖欠结算 round；⑤ inactive-loop 投影对欠结算 round 不再强制 settle closure / 不再置 completed，保持 waiting_continue（不复活：loop 终态原样保留）。
+
+| stamp | 域/flavor | 终态 | 备注 |
+|---|---|---|---|
+| 20260828_194942 | p01 freq | fail "materiality missing" | 修复中间态取证轮：死锁已消（nudge 不再被 pending_interaction 拒绝），暴露 closure 边界 + gate 的 phase 盲点 → 修复 ②④ |
+| 20260828_200512 / 200911 / 201316 | p01 freq | **pass ×3 连续** | 完整链路 PASS（观察+materiality+target+judgment boundary），S2e 验收达成 |
+| 20260828_201719 | p02 默认 | **pass** | p02 默认链路无回归 |
+
+开放项：无（S2e 验收关闭）。压缩域端到端仍归 S2f；D2-2-S2/S3 多轮链路未在本批回归（改动未触碰多轮准入，multi-round 卡自有验收）。
 
 ## 9. 2026-08-28 晚窗批（S2c 压缩域换算定标 + S2 合入后接线）
 

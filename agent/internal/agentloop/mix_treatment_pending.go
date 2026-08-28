@@ -92,6 +92,12 @@ func messageLoopMixTreatmentPendingFromReply(state *runState, reply string) *Mix
 	if messageLoopMutationBarrierActive(state) {
 		return nil
 	}
+	if messageLoopFreeStateRoundPendingSettlement(state) {
+		// Mid-round second-mutation refusal, symmetric with the mix tick
+		// synthesis: a pending treatment parks the continuation at
+		// waiting_interaction while the settle report is still owed.
+		return nil
+	}
 	match, ok := messageLoopMixTreatmentPendingMarkupMatch(reply)
 	if !ok {
 		pending := messageLoopImplicitPanTreatmentPendingFromReply(state, reply)
@@ -196,6 +202,9 @@ func messageLoopImplicitPanTreatmentPendingFromReply(state *runState, reply stri
 	if messageLoopMutationBarrierActive(state) {
 		return nil
 	}
+	if messageLoopFreeStateRoundPendingSettlement(state) {
+		return nil
+	}
 	if !messageLoopImplicitPanFollowupRequest(state) || messageLoopExplicitPluginRequest(state) {
 		return nil
 	}
@@ -253,6 +262,9 @@ func messageLoopConservativeLowMudTreatmentPendingFromReply(state *runState, rep
 		return nil
 	}
 	if messageLoopMutationBarrierActive(state) {
+		return nil
+	}
+	if messageLoopFreeStateRoundPendingSettlement(state) {
 		return nil
 	}
 	if state.executionMemory.PendingMixTreatment != nil {

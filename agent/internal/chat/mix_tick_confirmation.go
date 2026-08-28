@@ -9,12 +9,43 @@ import (
 	"vit-daw-agent/internal/actionworkflow"
 	"vit-daw-agent/internal/agentloop"
 	"vit-daw-agent/internal/agentprotocol"
+	agentruntime "vit-daw-agent/internal/runtime"
 	"vit-daw-agent/internal/executor"
 	"vit-daw-agent/internal/experiment"
 	"vit-daw-agent/internal/planner"
 )
 
 func (s *Server) handlePendingMixTickChat(ctx context.Context, conversationID string, req ChatRequest, mode string) (ChatResponse, bool) {
+	if s.freeStateRoundPendingSettlementForConversation(conversationID) {
+		// The applied experiment round has spent its single mutation budget and
+		// owes its settle report. Any mix-tick confirmation arriving now —
+		// including the expired-interaction recovery rehydrating a consumed
+		// candidate — is an illegal second mutation mid-round. Retire the
+		// pending surface and answer truthfully; the settle continuation keeps
+		// running on its own (S2e, 2026-08-28 121306/130901 smokes: re-approval
+		// of the same interaction id re-routed a second execution).
+		if candidate, ok := s.pendingMixTickForConversation(conversationID); ok {
+			if s.logger != nil {
+				s.logger.Info("[mix.tick.pending] refused confirmation mid-settlement round conversation=%s %s observation=%s",
+					conversationID, pendingMixTickLogSummary(candidate), candidate.ObservationID)
+			}
+			s.expirePendingMixTick(conversationID)
+			s.settlePendingMixTickDurable(conversationID, agentprotocol.PendingStatusRejected, "refused: the applied experiment round is pending settlement; a second mutation is illegal mid-round")
+		}
+		recoveredCandidate, hasRecoveredCandidate := pendingMixTickCandidateFromContext(req.Context)
+		if messageExplicitMixTickApply(req.Message) || (hasRecoveredCandidate && recoveredCandidate.TrackID != "") {
+			return ChatResponse{
+				ConversationID: conversationID,
+				AgentMode:      mode,
+				Reply:          "当前实验轮已经执行过一次改动，正在等待基于改动后证据的结算报告；结算完成前不会再执行第二次改动。之前的待确认单步已作废，没有修改工程。",
+				GoalStatus:     string(agentruntime.StatusWaitingContinue),
+				StopReason:     "d1_settlement_pending_mix_tick_refused",
+				Workflow:       "mix_tick",
+				WorkflowData:   map[string]any{"mutation_performed": false, "refused_mid_settlement": true},
+			}, true
+		}
+		return ChatResponse{}, false
+	}
 	candidate, ok := s.pendingMixTickForConversation(conversationID)
 	if !ok {
 		if recovered, recoveredOK := pendingMixTickCandidateFromContext(req.Context); recoveredOK {

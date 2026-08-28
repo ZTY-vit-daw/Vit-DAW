@@ -17,6 +17,16 @@ func messageLoopPendingMixTickCandidateFromReply(state *runState, reply string) 
 	if messageLoopMutationBarrierActive(state) {
 		return nil
 	}
+	if messageLoopFreeStateRoundPendingSettlement(state) {
+		// The applied experiment round already spent its single mutation
+		// budget and is waiting for the structured settle report. Converting a
+		// settle-turn reply into another pending mix tick parks the newest
+		// continuation at waiting_interaction and the round never settles
+		// (2026-08-28 121306→130901 smokes: every failed run wedged exactly
+		// here). The reply must be answered by the final-gate settle feedback,
+		// not by a second-mutation suggestion.
+		return nil
+	}
 	delta, evidenceText, ok := messageLoopExtractSingleGainDelta(reply)
 	if !ok || delta == 0 || math.Abs(delta) > 2 {
 		return nil
@@ -70,6 +80,10 @@ func messageLoopPendingMixTickCandidateFromReply(state *runState, reply string) 
 
 func messageLoopDeterministicVocalClarificationPendingTick(state *runState, reply string) *PendingMixTickCandidate {
 	if state == nil || messageLoopMutationBarrierActive(state) || messageLoopHasPendingMixAction(state) {
+		return nil
+	}
+	if messageLoopFreeStateRoundPendingSettlement(state) {
+		// Same mid-round second-mutation refusal as the reply-synthesized tick.
 		return nil
 	}
 	if !messageLoopUserExplicitlyIdentifiesVocalTrackResolved(state.input.UserText) {

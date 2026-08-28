@@ -1675,3 +1675,117 @@ func TestFS8EvaluationReportSkipsProposalAdmissionGate(t *testing.T) {
 		t.Fatalf("invalid materiality report was accepted: %q", issue)
 	}
 }
+
+// pendingSettlementLoopContext builds a loop context whose applied experiment
+// round carries the fresh post-action observation but no settlement decision.
+func pendingSettlementLoopContext() map[string]any {
+	return map[string]any{
+		"schema_version": "free_state_reasoning_loop.v1", "status": "re_evaluating", "decision_phase": "post_action_evaluation",
+		"original_intent": "improve the vocal boxiness",
+		"experiment": map[string]any{
+			"schema_version": "experiment.turn.v1", "status": "running",
+			"rounds": []map[string]any{{
+				"round_id": "r_1", "status": "running",
+				"observations": []map[string]any{{
+					"id": "obs-post", "post_action": true, "fresh": true, "project_revision": "3",
+				}},
+			}},
+		},
+	}
+}
+
+func validPendingSettlementProposal() *agentprotocol.ImprovementProposal {
+	return &agentprotocol.ImprovementProposal{
+		SchemaVersion:     agentprotocol.ImprovementProposalSchema,
+		Target:            map[string]any{"kind": "track", "id": "1027"},
+		EvidenceRefs:      []string{"obs-pre"},
+		ImprovementIntent: "减少人声 200-400Hz 的浑浊感",
+		Hypothesis:        "有界静态 EQ 频段衰减可以改善浑浊",
+		ExpectedEffect:    "人声频段清晰度提升",
+		ActionDomain:      "static_eq",
+		ActionKind:        "static_eq_band_adjust",
+		Confidence:        0.6,
+	}
+}
+
+// While the applied round is pending settlement, a needs_experiment that does
+// not carry the settle report is an illegal second admission; the chat layer
+// would map its proposal-less variants to a terminal capability_blocked and
+// strand the round (2026-08-28 121306→130901 smokes).
+func TestFreeStatePendingSettlementRefusesSecondAdmission(t *testing.T) {
+	state := &runState{input: Input{Context: map[string]any{
+		"free_state_reasoning_loop": pendingSettlementLoopContext(),
+	}}}
+	reAdmission := messageLoopOutput{Final: true, Reply: "try one more step",
+		FreeStateDecision: &FreeStateDecision{
+			SchemaVersion: FreeStateDecisionSchema, Status: FreeStateNeedsExperiment, EvidenceStatus: "sufficient",
+			Summary: "propose another bounded step", ImprovementProposal: validPendingSettlementProposal(),
+		}}
+	if err := reAdmission.FreeStateDecision.Validate(); err != nil {
+		t.Fatalf("fixture proposal must validate: %v", err)
+	}
+	if issue := messageLoopFreeStateOutputIssue(state, reAdmission); !strings.Contains(issue, "illegal second admission mid-round") {
+		t.Fatalf("mid-round second admission escaped the settle gate: %q", issue)
+	}
+	reportWithoutProposal := messageLoopOutput{Final: true, Reply: "audition pending",
+		FreeStateDecision: &FreeStateDecision{
+			SchemaVersion: FreeStateDecisionSchema, Status: FreeStateNeedsExperiment, EvidenceStatus: "sufficient",
+			Summary: "settle report without the preserved proposal",
+			ExperimentMateriality: &experiment.MaterialityEvaluation{
+				State: experiment.MaterialityMaterial, Evaluation: "agent_evaluable", Attempt: 1, EvidenceRefs: []string{"obs-post"},
+			},
+			ExperimentTargetResponse: &experiment.TargetEvaluation{
+				Response: "directional", Outcome: "human_audition_ready", EvidenceRefs: []string{"obs-post"},
+			},
+			ExperimentRoundDecision: "user_judgment_pending",
+		}}
+	if issue := messageLoopFreeStateOutputIssue(state, reportWithoutProposal); !strings.Contains(issue, "must repeat the preserved improvement_proposal") {
+		t.Fatalf("settle report without the preserved proposal was accepted: %q", issue)
+	}
+	fullReport := messageLoopOutput{Final: true, Reply: "audition pending",
+		FreeStateDecision: &FreeStateDecision{
+			SchemaVersion: FreeStateDecisionSchema, Status: FreeStateNeedsExperiment, EvidenceStatus: "sufficient",
+			Summary: "settle report", ImprovementProposal: validPendingSettlementProposal(),
+			ExperimentMateriality: &experiment.MaterialityEvaluation{
+				State: experiment.MaterialityMaterial, Evaluation: "agent_evaluable", Attempt: 1, EvidenceRefs: []string{"obs-post"},
+			},
+			ExperimentTargetResponse: &experiment.TargetEvaluation{
+				Response: "directional", Outcome: "human_audition_ready", EvidenceRefs: []string{"obs-post"},
+			},
+			ExperimentRoundDecision: "user_judgment_pending",
+		}}
+	if issue := messageLoopFreeStateOutputIssue(state, fullReport); issue != "" {
+		t.Fatalf("complete settle report on the preserved proposal was rejected: %q", issue)
+	}
+	// The refusal feedback carries the settle report JSON shape directly.
+	if !strings.Contains(freeStateSettleReportExample, `"experiment_round_decision":"user_judgment_pending"`) {
+		t.Fatalf("settle report example is missing the round decision field")
+	}
+}
+
+// The deterministic reply→pending-tick synthesis must stay silent while the
+// applied round is pending settlement: converting a settle-turn suggestion
+// into a pending mix tick parks the continuation at waiting_interaction and
+// the round never settles (S2e deadlock wedge).
+func TestPendingMixTickSynthesisRefusedWhileRoundPendingSettlement(t *testing.T) {
+	state := &runState{input: Input{Context: map[string]any{
+		"free_state_reasoning_loop": pendingSettlementLoopContext(),
+	}}, recentObservation: &RecentObservation{Tool: "mix.observe", Summary: map[string]any{
+		"status": "ready", "observation_id": "obs-mix", "track_id": "1027",
+	}}}
+	state.executionMemory.ActiveWorkTargetTrackID = "1027"
+	if candidate := messageLoopPendingMixTickCandidateFromReply(state, "建议把 Track 1027 的 200-400Hz 降低 1.5dB，要我继续执行吗？"); candidate != nil {
+		t.Fatalf("pending mix tick was synthesized during settlement: %+v", candidate)
+	}
+	if !messageLoopFreeStateRoundPendingSettlement(state) {
+		t.Fatalf("fixture should report a pending-settlement round")
+	}
+	settled := pendingSettlementLoopContext()
+	settled["experiment"].(map[string]any)["rounds"].([]map[string]any)[0]["decision"] = "ambiguous"
+	settledState := &runState{input: Input{Context: map[string]any{"free_state_reasoning_loop": settled}},
+		recentObservation: state.recentObservation}
+	settledState.executionMemory.ActiveWorkTargetTrackID = "1027"
+	if messageLoopFreeStateRoundPendingSettlement(settledState) {
+		t.Fatalf("settled round must not report pending settlement")
+	}
+}
