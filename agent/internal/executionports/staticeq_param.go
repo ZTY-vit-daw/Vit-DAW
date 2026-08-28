@@ -2,9 +2,12 @@ package executionports
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"math"
+	"os"
 	"strings"
+	"time"
 
 	"vit-daw-agent/internal/kernel"
 	"vit-daw-agent/internal/workflows/plugingrabber"
@@ -58,12 +61,52 @@ func (p *StaticEQVSPPort) eqParameterSurface(ctx context.Context, trackID, plugi
 	return surface, nil
 }
 
+// dumpParameterCurveContext appends the live parameter surface context for a
+// planned write to $VIT_PARAM_CURVE_DUMP (JSONL). Diagnostic instrumentation
+// only: absent the env var it is a no-op and never affects the write path.
+func dumpParameterCurveContext(surface map[string]plugingrabber.ParameterInfo, targetDB float64, paramIDs ...string) {
+	path := strings.TrimSpace(os.Getenv("VIT_PARAM_CURVE_DUMP"))
+	if path == "" {
+		return
+	}
+	params := make(map[string]any, len(paramIDs))
+	for _, paramID := range paramIDs {
+		info, ok := surface[paramID]
+		if !ok {
+			params[paramID] = "missing_from_surface"
+			continue
+		}
+		params[paramID] = map[string]any{
+			"name":                    info.Name,
+			"unit":                    info.Unit,
+			"normalized_value":        info.NormalizedValue,
+			"value_text":              info.ValueText,
+			"min":                     info.Min,
+			"max":                     info.Max,
+			"display_domain_candidate": info.DisplayDomainCandidate,
+			"display_probe":           info.DisplayProbe,
+		}
+	}
+	entry := map[string]any{"captured_at": time.Now().UTC().Format(time.RFC3339Nano), "target_db": targetDB, "params": params}
+	data, err := json.Marshal(entry)
+	if err != nil {
+		return
+	}
+	file, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o644)
+	if err != nil {
+		return
+	}
+	defer file.Close()
+	_, _ = file.Write(append(data, '\n'))
+}
+
 // eqPlanGainChannels resolves the band's gain params on the live surface and
 // maps the admitted dB target onto kernel-normalized values using the display
 // domain each parameter reports about itself. Machine-specific ranges are
 // never hardcoded: linear dB candidates use their probed min/max; anything
 // else is inverted through the measured value_to_string curve.
 func eqPlanGainChannels(surface map[string]plugingrabber.ParameterInfo, targetDB float64, paramIDs ...string) ([]eqGainChannel, string, error) {
+	dumpParameterCurveContext(surface, targetDB, paramIDs...)
 	channels := make([]eqGainChannel, 0, len(paramIDs))
 	descriptions := make([]string, 0, len(paramIDs))
 	for _, paramID := range paramIDs {

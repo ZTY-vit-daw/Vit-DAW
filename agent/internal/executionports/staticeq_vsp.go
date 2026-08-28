@@ -191,17 +191,27 @@ func (p *StaticEQVSPPort) Apply(ctx context.Context, action orchestration.Action
 	writeMode := actionArgText(action, "write_mode")
 	paramIDCh2 := ""
 	var requestedChannels []eqGainChannel
+	var deltaPlan *deltaChannelPlan
 	if writeMode == WriteModeNormalizedBatchV1 {
 		paramIDCh2 = actionArgText(action, "param_id_ch2")
 		surface, surfaceErr := p.eqParameterSurface(ctx, action.TargetRef, pluginID)
 		if surfaceErr != nil {
 			return orchestration.ActionReceipt{ActionID: action.ID, Status: "failed", Error: surfaceErr.Error()}, fmt.Errorf("VSP plugin parameter mutation failed: %s", surfaceErr)
 		}
-		channels, _, planErr := eqPlanGainChannels(surface, target, paramID, paramIDCh2)
-		if planErr != nil {
-			return orchestration.ActionReceipt{ActionID: action.ID, Status: "failed", Error: planErr.Error()}, fmt.Errorf("VSP plugin parameter mutation failed: %s", planErr)
+		if strings.EqualFold(actionArgText(action, "target_semantics"), deltaSemantics) {
+			channels, plan, deltaErr := p.planDeltaChannels(ctx, action.TargetRef, pluginID, requestID, txID, surface, target, paramID, paramIDCh2)
+			if deltaErr != nil {
+				return orchestration.ActionReceipt{ActionID: action.ID, Status: "failed", Error: deltaErr.Error()}, fmt.Errorf("VSP plugin parameter mutation failed: %s", deltaErr)
+			}
+			requestedChannels = channels
+			deltaPlan = plan
+		} else {
+			channels, _, planErr := eqPlanGainChannels(surface, target, paramID, paramIDCh2)
+			if planErr != nil {
+				return orchestration.ActionReceipt{ActionID: action.ID, Status: "failed", Error: planErr.Error()}, fmt.Errorf("VSP plugin parameter mutation failed: %s", planErr)
+			}
+			requestedChannels = channels
 		}
-		requestedChannels = channels
 	}
 	var result *kernel.VSPCommandResult
 	if writeMode == WriteModeNormalizedBatchV1 {
@@ -284,6 +294,13 @@ func (p *StaticEQVSPPort) Apply(ctx context.Context, action orchestration.Action
 		if !readbackVerified {
 			return orchestration.ActionReceipt{ActionID: action.ID, Status: "applied_unreconciled", AppliedRevision: strconv.FormatInt(current.Revision, 10), EffectivelyOnce: true}, fmt.Errorf("plugin parameter readback did not match target")
 		}
+		if deltaPlan != nil {
+			achieved, parsed := actualPhysical.(float64)
+			if !parsed || math.Abs(achieved-deltaPlan.TargetPhysical) > ThresholdDeltaToleranceDB {
+				return orchestration.ActionReceipt{ActionID: action.ID, Status: "applied_unreconciled", AppliedRevision: strconv.FormatInt(current.Revision, 10), EffectivelyOnce: true},
+					fmt.Errorf("delta physical target %.4g dB not achieved (readback %v)", deltaPlan.TargetPhysical, actualPhysical)
+			}
+		}
 	} else {
 		var legacyErr error
 		actual, legacyErr = p.readPluginParamUnlocked(ctx, action.TargetRef, pluginID, paramID)
@@ -314,6 +331,10 @@ func (p *StaticEQVSPPort) Apply(ctx context.Context, action orchestration.Action
 		details["plugin_path"] = actionArgText(action, "plugin_path")
 		details["param_id_ch2"] = paramIDCh2
 		details["normalized_channels"] = normalizedRecords
+	}
+	if deltaPlan != nil {
+		details["target_semantics"] = deltaSemantics
+		details["delta_calibration"] = deltaPlan.audit()
 	}
 	if beforeAvailable {
 		details["before_readback_value"] = beforeValue

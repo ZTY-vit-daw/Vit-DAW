@@ -193,13 +193,25 @@ type fakeNBParam struct{ normalized float64 }
 type fakeNBVSPClient struct {
 	fakeVSPClient
 	domainMin, domainMax float64
-	withCandidate        bool // expose display_domain_candidate; probe samples are always present
+	withCandidate        bool   // expose display_domain_candidate; probe samples are always present
+	frozenPhysicalText   bool   // live value_text ignores writes (degenerate threshold display)
+	curveExponent        float64 // >0 bends physical = min + span*norm^k and switches text to the "+x.xx" form
 	params               map[string]*fakeNBParam
 	batchArgs            map[string]any
 	batchFailure         string // when set, the typed batch answers partial_failure
 	swallowWrites        bool   // kernel keeps old values despite ok status
 	readDrift            float64
 	failSurface          bool
+}
+
+func (f *fakeNBVSPClient) physicalFor(norm float64) float64 {
+	if f.frozenPhysicalText {
+		return f.domainMax
+	}
+	if f.curveExponent > 0 {
+		return f.domainMin + (f.domainMax-f.domainMin)*math.Pow(norm, f.curveExponent)
+	}
+	return f.domainMin + norm*(f.domainMax-f.domainMin)
 }
 
 func newFakeNBVSPClient(ch1, ch2 string, domainMin, domainMax float64, withCandidate bool) *fakeNBVSPClient {
@@ -216,6 +228,11 @@ func newFakeNBVSPClient(ch1, ch2 string, domainMin, domainMax float64, withCandi
 func (f *fakeNBVSPClient) surfaceRow(paramID string) map[string]any {
 	state := f.params[paramID]
 	value := f.domainMin + state.normalized*(f.domainMax-f.domainMin)
+	text := fmt.Sprintf("%.2f dB", value)
+	if f.frozenPhysicalText || f.curveExponent > 0 {
+		value = f.physicalFor(state.normalized)
+		text = fmt.Sprintf("%+.2f", value)
+	}
 	samples := []any{}
 	for _, sampleNormalized := range []float64{0, 0.25, 0.5, 0.75, 1} {
 		sampleValue := f.domainMin + sampleNormalized*(f.domainMax-f.domainMin)
@@ -226,7 +243,7 @@ func (f *fakeNBVSPClient) surfaceRow(paramID string) map[string]any {
 	}
 	row := map[string]any{
 		"id": paramID, "param_id": paramID,
-		"normalized_value": state.normalized, "value_text": fmt.Sprintf("%.2f dB", value),
+		"normalized_value": state.normalized, "value_text": text,
 		"display_probe": map[string]any{"mode": "read_only_value_to_string", "samples": samples},
 	}
 	if f.withCandidate {

@@ -97,6 +97,14 @@ type D1S1DomainSpec struct {
 	// single action is applied and read back. It is wording only: execution
 	// outcomes never depend on it.
 	AppliedReplyText string
+	// TargetSemantics declares how the admitted value maps to a physical
+	// write target: empty means the historical absolute dB target (static_eq
+	// gain), "delta_db" means a bounded physical delta on top of the current
+	// value (broadband compression threshold, whose display probe is
+	// structurally degenerate and admits no absolute inversion). The chat
+	// plan builder forwards it as target_semantics so the execution port can
+	// pick the matching conversion machine.
+	TargetSemantics string
 }
 
 var d1s1Domains = []D1S1DomainSpec{
@@ -221,6 +229,7 @@ var d1s1Domains = []D1S1DomainSpec{
 		WriteBinding:             D1S1WriteBinding{PluginBound: true, Channels: 2},
 		AdmissionValueKey:        "threshold_db",
 		AdmissionPassthroughKeys: []string{"plugin_identifier"},
+		TargetSemantics:          "delta_db",
 		AppliedReplyText:         "D2-1.5 broadband compression threshold was applied and read back. Fresh post-action evidence is recorded separately; acoustic materiality, target response, and human judgment remain pending.",
 	},
 }
