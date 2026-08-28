@@ -365,5 +365,8 @@ func pluginParamWriteArgs(typedAction map[string]any, spec experiment.D1S1Domain
 	if writeBinding.Section == d1StaticEQDomain && writeBinding.FrequencyHz > 0 {
 		args["frequency_hz"] = writeBinding.FrequencyHz
 	}
+	if spec.TargetSemantics != "" {
+		args["target_semantics"] = spec.TargetSemantics
+	}
 	return args, paramID
 }
