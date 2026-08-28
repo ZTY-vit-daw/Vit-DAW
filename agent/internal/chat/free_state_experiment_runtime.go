@@ -17,7 +17,22 @@ import (
 // the runtime admission without granting mutation authority. Optional legacy
 // proposal bounds are kept compatible while the runtime records that they are
 // proposal-derived until a governed action supplies the real checkpoint.
+//
+// The default tier is the sealed D1-S1 single-round budget of 1; the D2-2
+// multi-round tier is only reachable through the explicit server-side
+// injection resolved by freeStateExperimentAdmissionWithTier callers.
 func freeStateExperimentAdmission(loop freeStateReasoningLoop, proposal *agentprotocol.ImprovementProposal) (experiment.Admission, error) {
+	return freeStateExperimentAdmissionWithTier(loop, proposal, 1)
+}
+
+// freeStateExperimentAdmissionWithTier is the tier-aware admission builder.
+// tier<=1 keeps the historical D1-S1 single-round path byte-for-byte
+// (construction, ValidateD1S1, then the fresh-observed-target binding).
+// tier>1 builds the D2-2 multi-round admission: the budget comes exclusively
+// from the server-side tier injection (the model never upgrades it), and the
+// admission carries the server-derived experiment baseline fingerprint that
+// anchors the ruling-2 cumulative dose accounting.
+func freeStateExperimentAdmissionWithTier(loop freeStateReasoningLoop, proposal *agentprotocol.ImprovementProposal, tier int) (experiment.Admission, error) {
 	if proposal == nil {
 		return experiment.Admission{}, fmt.Errorf("improvement proposal is required")
 	}
@@ -42,6 +57,9 @@ func freeStateExperimentAdmission(loop freeStateReasoningLoop, proposal *agentpr
 		checkpoint = "pending:" + firstNonEmpty(loop.LoopID, "free-state-experiment")
 	}
 	budget := 1
+	if tier > 1 {
+		budget = tier
+	}
 	var typedAction map[string]any
 	var diagnosticBounds, retainedBounds map[string]any
 	if !spec.WriteBinding.PluginBound {
@@ -81,10 +99,24 @@ func freeStateExperimentAdmission(loop freeStateReasoningLoop, proposal *agentpr
 		RollbackPlan:         map[string]any{"kind": "agent_rollback_action", "source": "existing_governed_rollback"},
 		AuthorityMode:        map[bool]experiment.AuthorityMode{true: experiment.AuthorityFull, false: experiment.AuthorityOrdinary}[loop.AuthorityMode == experiment.AuthorityFull],
 	}
-	if err := admission.ValidateD1S1(); err != nil {
+	if tier <= 1 {
+		if err := admission.ValidateD1S1(); err != nil {
+			return experiment.Admission{}, err
+		}
+		if _, err := validateD1FreshObservedTarget(loop, admission); err != nil {
+			return experiment.Admission{}, err
+		}
+		return admission, nil
+	}
+	// D2-2 multi-round tier: the baseline fingerprint is derived server-side
+	// from the fresh target observation (GLM ruling 2 anchor) and the admission
+	// runs the S1 multi-round validation variant.
+	observation, err := validateD1FreshObservedTarget(loop, admission)
+	if err != nil {
 		return experiment.Admission{}, err
 	}
-	if _, err := validateD1FreshObservedTarget(loop, admission); err != nil {
+	admission.BaselineFingerprint = freeStateExperimentBaselineFingerprint(loop, observation)
+	if err := admission.ValidateD2MultiRound(); err != nil {
 		return experiment.Admission{}, err
 	}
 	return admission, nil
@@ -296,20 +328,80 @@ func (s *Server) ensureFreeStateExperimentCheckpoint(ctx context.Context, loop *
 	return firstStringFromMap(response.ProjectHistory, "commit_id", "checkpoint_ref")
 }
 
+// freeStateAdmissionRunsSingleRound reports whether the admission runs under
+// the D1-S1 single-round guard set. IsD1S1 alone is pure domain membership and
+// ignores the budget (the S1 tier trap: a domain member with budget 3 still
+// answers IsD1S1()==true), so every chat-side auto-continuation guard must use
+// this predicate instead of IsD1S1.
+func freeStateAdmissionRunsSingleRound(admission experiment.Admission) bool {
+	return admission.IsD1S1() && !admission.IsD2MultiRound()
+}
+
+// freeStateExperimentJudgmentPending mirrors the experiment runtime's
+// experiment-scope judgment boundary (GLM ruling 3): any round that requested
+// a user judgment without the judgment landing parks the whole experiment
+// until a settle-family decision or an explicit settlement.
+func freeStateExperimentJudgmentPending(turn *experiment.Turn) bool {
+	if turn == nil {
+		return false
+	}
+	switch turn.Status {
+	case experiment.StatusSettled, experiment.StatusStopped:
+		return false
+	}
+	for _, round := range turn.Rounds {
+		if round.UserJudgmentRequested && len(round.UserJudgmentEvidence) == 0 {
+			return true
+		}
+	}
+	return false
+}
+
+// freeStateExperimentBaselineFingerprint anchors the D2-2 cumulative dose
+// accounting (GLM ruling 2) at the experiment baseline revision. It is derived
+// server-side from the fresh target observation; a model-supplied fingerprint
+// is never trusted.
+func freeStateExperimentBaselineFingerprint(loop freeStateReasoningLoop, observation experiment.Observation) map[string]any {
+	revision := firstNonEmpty(observation.ProjectRevision, firstStringFromMap(loop.LatestProjectChange, "project_revision", "revision"))
+	return map[string]any{"revision": revision, "source": "free_state_admission", "observation_id": observation.ID}
+}
+
 func (s *Server) startFreeStateExperiment(loop *freeStateReasoningLoop, decision agentloop.FreeStateDecision, goalID, runID string) error {
 	if loop == nil || decision.ImprovementProposal == nil {
 		return fmt.Errorf("experiment proposal is missing")
 	}
+	// GLM ruling 3 chat layer: a pending judgment on an existing experiment
+	// refuses any new admission in the same loop. The error is the S1 runtime
+	// sentinel so the boundary reads identically at both layers.
+	if freeStateExperimentJudgmentPending(loop.Experiment) {
+		return experiment.ErrJudgmentPending
+	}
+	// The D2-2 multi-round tier is a server-side injection only. Without it
+	// (budget resolves to 1) every path below is byte-identical to the
+	// historical single-round admission.
+	tier := agentloop.ResolveD2MultiRoundBudget()
 	var admission experiment.Admission
 	var err error
 	if decision.ExperimentAdmission != nil {
 		admission = *decision.ExperimentAdmission
-		err = admission.ValidateD1S1()
-		if err == nil {
-			_, err = validateD1FreshObservedTarget(*loop, admission)
+		if tier > 1 {
+			// The model never upgrades (or narrows) the budget itself, and the
+			// baseline fingerprint is always derived server-side from the
+			// fresh target observation.
+			admission.ExperimentBudget = tier
+			var observation experiment.Observation
+			if observation, err = validateD1FreshObservedTarget(*loop, admission); err == nil {
+				admission.BaselineFingerprint = freeStateExperimentBaselineFingerprint(*loop, observation)
+				err = admission.ValidateD2MultiRound()
+			}
+		} else {
+			err = admission.ValidateD1S1()
+			if err == nil {
+				_, err = validateD1FreshObservedTarget(*loop, admission)
+			}
 		}
 	} else {
-		admission, err = freeStateExperimentAdmission(*loop, decision.ImprovementProposal)
+		admission, err = freeStateExperimentAdmissionWithTier(*loop, decision.ImprovementProposal, tier)
 	}
 	if err != nil {
 		return err
@@ -321,7 +413,14 @@ func (s *Server) startFreeStateExperiment(loop *freeStateReasoningLoop, decision
 	if checkpoint := s.ensureFreeStateExperimentCheckpoint(context.Background(), loop, goalID, runID); checkpoint != "" {
 		admission.CheckpointRef = checkpoint
 	}
-	if err := admission.ValidateD1S1(); err != nil {
+	if tier > 1 {
+		if err := admission.ValidateD2MultiRound(); err != nil {
+			return err
+		}
+		if s != nil && s.logger != nil {
+			s.logger.Info("[free-state-experiment] D2-2 multi-round admission tier budget=%d source=%s", tier, agentloop.FreeStateD2MultiRoundBudgetEnv)
+		}
+	} else if err := admission.ValidateD1S1(); err != nil {
 		return err
 	}
 	turn, err := experiment.NewTurn(experiment.Identity{ConversationID: loop.ConversationID, GoalID: goalID, RunID: runID, TurnID: "turn:" + loop.LoopID}, loop.OriginalIntent, admission, time.Now().UTC())
@@ -382,7 +481,12 @@ func (s *Server) recordFreeStateExperimentDecision(ctx context.Context, loop *fr
 	if decision.ExperimentMateriality != nil {
 		if events, err := loop.Experiment.EvaluateMateriality(*decision.ExperimentMateriality, time.Now().UTC()); err == nil {
 			s.emitFreeStateExperimentEvents(events)
-			if decision.ExperimentMateriality.Evaluation == trajectory.EvaluationInsufficientDose && !loop.Experiment.Admission.IsD1S1() {
+			// Insufficient dose is an effect-size signal, never ambiguity: the
+			// non-single-round tiers may open one calibration round, while the
+			// D1-S1 single-round tier keeps intercepting it (GLM ruling 1).
+			// Opening a round never raises a dose by itself; any dose change
+			// still passes the admission domain-table validation.
+			if decision.ExperimentMateriality.Evaluation == trajectory.EvaluationInsufficientDose && !freeStateAdmissionRunsSingleRound(loop.Experiment.Admission) {
 				if decisionEvents, decisionErr := loop.Experiment.DecideRound(experiment.DecisionNextRound, "insufficient dose; calibrate in next round", time.Now().UTC()); decisionErr == nil {
 					s.emitFreeStateExperimentEvents(decisionEvents)
 					views := freeStateExperimentViews(*loop, decision, decision.ImprovementProposal)

@@ -977,10 +977,13 @@ func freeStatePostActionObservationEligible(loop freeStateReasoningLoop, observa
 }
 
 // freeStateJudgmentBoundary reports whether the experiment is durably parked
-// at the human-judgment boundary: the round decision is user_judgment_pending
-// (or a judgment was requested / recorded) and the experiment has not yet
-// settled. From this point model turns may only carry settle-family round
-// decisions; observation/action/admission decisions must not revive the loop.
+// at the human-judgment boundary. GLM ruling 3: the boundary persists at
+// experiment scope — any round that requested a user judgment without the
+// judgment landing parks the whole experiment; the current round additionally
+// parks while a recorded judgment or a user_judgment_pending decision awaits
+// its settle decision. From this point model turns may only carry
+// settle-family round decisions; observation/action/admission decisions must
+// not revive the loop.
 func freeStateJudgmentBoundary(loop freeStateReasoningLoop) bool {
 	if loop.Experiment == nil {
 		return false
@@ -989,12 +992,16 @@ func freeStateJudgmentBoundary(loop freeStateReasoningLoop) bool {
 	case experiment.StatusSettled, experiment.StatusStopped:
 		return false
 	}
-	round, err := loop.Experiment.CurrentRound()
+	for _, round := range loop.Experiment.Rounds {
+		if round.UserJudgmentRequested && len(round.UserJudgmentEvidence) == 0 {
+			return true
+		}
+	}
+	current, err := loop.Experiment.CurrentRound()
 	if err != nil {
 		return false
 	}
-	return round.UserJudgmentRequested || len(round.UserJudgmentEvidence) > 0 ||
-		round.Decision == experiment.DecisionUserJudgment
+	return len(current.UserJudgmentEvidence) > 0 || current.Decision == experiment.DecisionUserJudgment
 }
 
 // freeStateJudgmentSettleDecision reports whether a decision carries the

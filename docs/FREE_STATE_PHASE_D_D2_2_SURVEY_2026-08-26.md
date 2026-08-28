@@ -180,3 +180,40 @@
 - `go build ./...` PASS；`go test ./internal/experiment -count=1` PASS（新增 9 个测试函数含对抗用例"每轮合规但累计超界"）；`go test ./internal/chat -run 'TestD1S1|TestMultiRound|TestExperimentBudget' -count=1` PASS（D1-S1 防回退）；`go test ./... -count=1` 全绿。
 - 实栈烟测按卡约定未跑（实栈由 GLM 主线独占做 S2d 验收，晚窗统一补 `run_free_state_d1_smoke.ps1` 回归）。
 - S2 依赖的本卡档位 API：`IsD2MultiRound()`、`ValidateD2MultiRound()`、`MaxD2MultiRoundBudget`、`Admission.BaselineFingerprint`、`ErrJudgmentPending`。
+
+---
+
+## 10. D2-2-S2 执行记录（2026-08-28，GLM 会话按卡执行）
+
+- 执行卡：todo/2026-08-27-D2-2-S2-chat-wiring-ambiguous-judgment-boundary.md（分支 codex/g1-g7-runtime-remediation，开工 HEAD 1bda158；S2d 已提交、chat 包无未提交改动，串行约束满足）。
+- 范围：只动 `agent/internal/chat` + `agent/internal/agentloop`（新增各自 `free_state_d2_multiround.go` 与 `_test`；改 `free_state_experiment_runtime.go`、`audition_events.go`、`free_state_reasoning_loop.go`、`free_state_reasoning.go`、`ccb_model_prompt.go`、`audition_events_test.go`）。未动 experiment 包/scripts/烟测。
+
+### 落地内容与裁定对照
+
+1. **准入档位接线（清单 1）**：档位唯一来源是环境变量 `VIT_FREE_STATE_D2_MULTI_ROUND_BUDGET`（`agentloop.ResolveD2MultiRoundBudget()`，2..4 内生效，越界/畸形回落 1 fail closed；chat 准入与 agentloop prompt 同源读取，档位不会半应用）。`freeStateExperimentAdmission` 保持零参默认单轮（委托 `freeStateExperimentAdmissionWithTier(loop, proposal, 1)`，构建与校验顺序逐字节不变）；tier>1 走 `ValidateD2MultiRound` 并由服务端从新鲜目标观察派生 `BaselineFingerprint`（模型提供的指纹/预算被覆盖——模型不能升级也不能收窄档位，`TestD2MultiRoundAdmissionTierFailsClosedAndBarsModelBudgetUpgrade` 封存）。multi-round admission 创建时记 Info 审计日志。
+2. **insufficient_dose 档位化（清单 2）**：`recordFreeStateExperimentDecision` 守卫换 `!freeStateAdmissionRunsSingleRound(admission)`（= `!(IsD1S1() && !IsD2MultiRound())`；单轮 D1-S1 与无注入默认路径行为不变，D2-2 域成员放开）。摘要 "insufficient dose; calibrate in next round" 保持（不含加剂量承诺）。
+3. **ambiguous 拆分（裁定 1）**：`dispositionForUserJudgment` 拆为——heard≠yes → `NextRound`（效果不足信号）；已听出差别 + neither/unsure/equal → `Stopped/OutcomeNeedsJudgment`（真 ambiguous，全档终局；equal 属原 :702 default 分支，随裁定覆盖）。`applyFreeStateJudgmentOutcome` default 分支重写：recalibrate 摘要 "no audible difference; recalibrate"（原 :785 "continue with a new point or dose" 冗余删除）；真 ambiguous 走 D1 同款终局（DecideRound(Stopped, "ambiguous audition judgment; no further mutation permitted") + Settle(NeedsJudgment)），不开新轮。recalibrate 的 StartRound 基线 revision 改用活 revision（LatestProjectChange 优先，回落轮自带）——第 2 轮基线是第 1 次变更后的 revision。`TestUserJudgmentDispositionCoversPreferencePolicy` 与 `TestLegacyAuditionJudgmentWithoutDifferenceStartsNextRound`（补摘要断言）同步改写。
+4. **判定边界跨轮（裁定 3 chat/agentloop 层）**：`freeStateJudgmentBoundary` 与 `messageLoopFreeStateJudgmentBoundary` 从"当前 round"改为扫描 experiment 全部 rounds（任一轮 `UserJudgmentRequested` 且无判定记录 → 边界成立；当前轮 evidence 已录或 decision=user_judgment 仍 parking；已落定的前轮不 parking 后续校准轮）。`startFreeStateExperiment` 入口守卫：pending 时返回 `experiment.ErrJudgmentPending`（与 S1 运行时哨兵同文案）。settle 白名单（retain/rollback/stopped）与 agentloop 最终门白名单不变。
+5. **prompt 档位条件化（清单 5）**：提案形状（原 :51）、subthreshold 规则（原 :72）、轮次/变更限制（原 :77）、domain rule 尾句按档位选择；单轮文本逐字节保留（`TestPromptTierConditionalSingleRoundDefault` 封存原文片段）；多轮变体允许 "one next calibration round" 措辞但仍禁 continue_once、单轮内二次 treatment 与 ambiguous 后任何 round/mutation/dose（`TestPromptTierConditionalMultiRoundByInjection`）。活实验的 admission budget 是 prompt 档位权威（env 仅在无活实验时决定下一 admission 的档位；超界 budget 回落单轮措辞）。
+6. **continue_once 锁定（清单 6，不开启）**：chat 无 continue_once 产出点（未新增）；receipt 层 ambiguous+continue_once 拒绝测试与 FS8 自环额度测试原样通过；联测由 `TestJudgmentBoundarySpansRoundsAtFinalGate`（next_round 在边界被最终门拒、settle 放行、落定判定不 parking 校准轮——issue 文本即模型可见轨迹）+ budget 用尽 chat 级测试覆盖。
+7. **多轮重启幂等（清单 7）**：`TestD2MultiRoundRestartProjectionDoesNotDuplicate`——多轮 loop 经 `freeStateLoopFromAny(freeStateLoopMap(...))` 持久化往返后重放第 1 轮 action 回执与观察，Rounds/Intervention 不重复，第 2 轮 post-action 观察 revision 匹配第 2 次变更 after_revision。
+8. **budget 用尽（清单 8）**：`TestD2MultiRoundBudgetExhaustedSettlesCanonicalTask`——budget=2 花尽后第 3 次 apply 被运行时 budget 守卫拒（不产生事件），`settleFreeStateExperiment(OutcomeBudgetExhausted)` ↔ canonical task `capability_blocked`（experiment TaskState 与 harness RuntimeStatus 双断言，Terminal）。
+9. **封存断言（清单 9 = 勘察 §4.2 第 4/5/6/7 项）**：4→`TestD2MultiRoundAmbiguousJudgmentIsTerminalAndBlocksFurtherMutation`（ambiguous 终局 + settle 后 StartRound/ApplyIntervention 拒绝）；5→receipt/FS8 既有测试 + 最终门联测；6→chat `TestD2MultiRoundJudgmentBoundarySpansRoundsAndRefusesAdmission`（revival 拒、新 admission 拒 ErrJudgmentPending、settle 放行）+ agentloop `TestJudgmentBoundarySpansRoundsAtFinalGate`；7→重启幂等测试。断言只落在 rounds/decision/outcome 形状，不硬编码轨道名；失败信息记失败类型。
+
+### 红线自查（卡要求的逐条指认）
+
+- **ambiguous 终局**：diff 见 `audition_events.go` disposition default 分支与 applyFreeStateJudgmentOutcome default 重写；测试见 disposition 策略表 + ambiguous 终局封存测试。
+- **判定 pending 拒绝**：diff 见 `freeStateExperimentJudgmentPending` + `startFreeStateExperiment` 入口守卫（返回 S1 哨兵）+ 双侧边界扫描重写；测试见 chat/agentloop 两个跨轮边界测试 + 既有 D1 边界测试不回退。
+- **无档位注入默认路径零变化**：diff 见 `freeStateExperimentAdmission` 零参委托（tier=1 分支构建/校验顺序原样）、`startFreeStateExperiment` tier=1 分支逐字节等价（模型直供 admission 路径 ValidateD1S1→fresh 顺序不变）、insufficient_dose 守卫在 budget=1 时与 `!IsD1S1()` 等价、prompt 单轮文本常量逐字复制；测试见 fail-closed/防升级测试 + `TestPromptTierConditionalSingleRoundDefault` + 全部既有 D1 测试原样通过。
+
+### 残留与说明（不阻塞本卡）
+
+- `experiment.Turn.DecideRound` 无 ensureLive：settled 后 round decision 字段仍可被覆写（StartRound/ApplyIntervention 有 ensureLive，无新轮/变更/剂量泄漏，仅审计字段污染）。experiment 包语义 S1 已冻结，本卡不改，留待 GLM 决定是否补卡。
+- 边界 revival 拒绝会把 loop 存为 `blocked`，`freeStateLoopActive` 对 blocked 短路——后续模型 settle 决策不再处理（既有语义）；settle-family 放行适用于 loop 仍呈现 active 的 parked 状态，blocked 后的生产恢复通道是 audition 判定路径。测试注释已记录。
+- recalibrate 路径 StartRound 失败时（如 budget 用尽后开轮失败）错误只静默不记日志——沿既有行为，未改。
+
+### 验收结果
+
+- `go build ./...` PASS；`go test ./internal/chat -run 'Test.*(FreeState|D1S1|Audition|Continuation|MultiRound|Judgment)' -count=1` PASS；`go test ./internal/agentloop -run 'Test.*(FreeState|Judgment)' -count=1` PASS；`go test ./... -count=1` 全绿。
+- 实栈烟测按排程未跑（晚窗统一补 D1 默认路径回归）；多轮 `-MultiRoundProbe` 待 S3。
+- 本卡交付门槛（上述单测全绿 + D1 默认路径不回退）达成。

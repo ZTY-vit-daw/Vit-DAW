@@ -482,10 +482,12 @@ func messageLoopFreeStateActive(state *runState) bool {
 	return status != "completed" && status != "cancelled" && status != "blocked"
 }
 
-// messageLoopFreeStateJudgmentBoundary reports whether the experiment round
-// in the loop context is durably parked at the human-judgment boundary
-// (user_judgment_pending decision, judgment requested, or judgment evidence
-// recorded).
+// messageLoopFreeStateJudgmentBoundary reports whether the experiment in the
+// loop context is durably parked at the human-judgment boundary. GLM ruling 3:
+// the boundary persists at experiment scope — any earlier round that requested
+// a user judgment without the judgment landing keeps the whole experiment
+// parked (only the settle family is admitted afterwards); the current round
+// additionally parks while a recorded judgment awaits its settle decision.
 func messageLoopFreeStateJudgmentBoundary(state *runState) bool {
 	if state == nil {
 		return false
@@ -500,10 +502,12 @@ func messageLoopFreeStateJudgmentBoundary(state *runState) bool {
 	if len(rounds) == 0 {
 		return false
 	}
-	round := rounds[len(rounds)-1]
-	if freeStateBool(round["user_judgment_requested"]) {
-		return true
+	for _, round := range rounds {
+		if freeStateBool(round["user_judgment_requested"]) && len(messageLoopMapRows(round["user_judgment_evidence"])) == 0 {
+			return true
+		}
 	}
+	round := rounds[len(rounds)-1]
 	if len(messageLoopMapRows(round["user_judgment_evidence"])) > 0 {
 		return true
 	}

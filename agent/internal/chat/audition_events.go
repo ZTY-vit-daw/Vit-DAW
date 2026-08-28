@@ -687,6 +687,14 @@ type auditionJudgmentDisposition struct {
 	Continue bool
 }
 
+// dispositionForUserJudgment implements GLM ruling 1's split of the historical
+// conflated "ambiguous" outcome:
+//   - heard_difference != yes is an effect-insufficiency signal, not
+//     ambiguity: it stays a next-round recalibration request (the single-round
+//     tier converts it to a terminal stop in d1DispositionForUserJudgment);
+//   - a heard difference with preference neither/unsure/equal is true
+//     ambiguity: terminal for every tier, mirroring the D1-S1 outcome, and it
+//     never authorizes an automatic next round or dose change (ADR §8).
 func dispositionForUserJudgment(evidence experiment.UserJudgmentEvidence) auditionJudgmentDisposition {
 	if evidence.HeardDifference != experiment.HeardDifferenceYes {
 		return auditionJudgmentDisposition{Decision: experiment.DecisionNextRound, Continue: true}
@@ -696,10 +704,8 @@ func dispositionForUserJudgment(evidence experiment.UserJudgmentEvidence) auditi
 		return auditionJudgmentDisposition{Decision: experiment.DecisionRetain, Outcome: experiment.OutcomeImproved}
 	case experiment.PreferenceA:
 		return auditionJudgmentDisposition{Decision: experiment.DecisionRollback, Outcome: experiment.OutcomeRolledBack}
-	case experiment.PreferenceNeither:
-		return auditionJudgmentDisposition{Decision: experiment.DecisionNextRound, Continue: true}
 	default:
-		return auditionJudgmentDisposition{Decision: experiment.DecisionNextRound, Continue: true}
+		return auditionJudgmentDisposition{Decision: experiment.DecisionStopped, Outcome: experiment.OutcomeNeedsJudgment}
 	}
 }
 
@@ -727,9 +733,11 @@ func (s *Server) applyFreeStateJudgmentOutcome(ctx context.Context, loop *freeSt
 	if loop == nil || loop.Experiment == nil {
 		return fmt.Errorf("experiment session unavailable")
 	}
-	d1 := loop.Experiment.Admission.IsD1S1()
+	// The tier predicate, not bare IsD1S1: a D2-2 multi-round admission is a
+	// domain member (IsD1S1()==true) that must keep the recalibration path.
+	singleRound := freeStateAdmissionRunsSingleRound(loop.Experiment.Admission)
 	disposition := dispositionForUserJudgment(evidence)
-	if d1 {
+	if singleRound {
 		disposition = d1DispositionForUserJudgment(evidence)
 	}
 	switch disposition.Decision {
@@ -777,19 +785,25 @@ func (s *Server) applyFreeStateJudgmentOutcome(ctx context.Context, loop *freeSt
 		s.emitFreeStateExperimentEvents(events)
 		loop.Status = "completed"
 	default:
-		if !d1 {
+		if disposition.Decision == experiment.DecisionNextRound && !singleRound {
+			// GLM ruling 1: no audible difference is an insufficiency signal,
+			// not ambiguity. Non-single-round tiers recalibrate in a next
+			// round under the existing admission; opening the round never
+			// raises a dose by itself, and any dose change still passes a new
+			// admission over the domain table.
 			current, err := loop.Experiment.CurrentRound()
 			if err != nil {
 				return err
 			}
-			events, err := loop.Experiment.DecideRound(experiment.DecisionNextRound, "ambiguous audition judgment; continue with a new point or dose", time.Now().UTC())
+			events, err := loop.Experiment.DecideRound(experiment.DecisionNextRound, "no audible difference; recalibrate", time.Now().UTC())
 			if err != nil {
 				return err
 			}
 			annotateJudgmentDecision(events, "experiment.next_round", "")
 			s.emitFreeStateExperimentEvents(events)
 			views := append([]string(nil), current.RequestedViewIDs...)
-			events, err = loop.Experiment.StartRound(views, current.CheckpointRef, current.ProjectRevision, time.Now().UTC())
+			revision := firstNonEmpty(firstStringFromMap(loop.LatestProjectChange, "project_revision", "revision"), current.ProjectRevision)
+			events, err = loop.Experiment.StartRound(views, current.CheckpointRef, revision, time.Now().UTC())
 			if err != nil {
 				return err
 			}
@@ -799,8 +813,10 @@ func (s *Server) applyFreeStateJudgmentOutcome(ctx context.Context, loop *freeSt
 			loop.Status = "active"
 			return s.resumeTaskExperimentAfterJudgment(loop, "human judgment recorded; experiment remains open")
 		}
-		// D1-S1 ambiguity is terminal for automatic execution. It records the
-		// uncertainty and settles without a second forward mutation.
+		// True ambiguity (a difference was heard but neither candidate is
+		// preferred) is terminal for every tier, mirroring the D1-S1 outcome
+		// (GLM ruling 1 + ADR §8): it records the uncertainty and settles
+		// without any further mutation.
 		events, err := loop.Experiment.DecideRound(experiment.DecisionStopped, "ambiguous audition judgment; no further mutation permitted", time.Now().UTC())
 		if err != nil {
 			return err

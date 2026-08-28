@@ -272,6 +272,9 @@ func TestAuditionJudgmentRecordsEvidenceAndRetainsPreferredTreatment(t *testing.
 	}
 }
 
+// GLM ruling 1: no audible difference is an insufficiency signal, not
+// ambiguity — the legacy (non-domain) tier keeps its auto recalibration round,
+// with the ruling-mandated summary wording.
 func TestLegacyAuditionJudgmentWithoutDifferenceStartsNextRound(t *testing.T) {
 	server := New(nil, nil, nil)
 	loop := auditionReadyLoop(t)
@@ -291,10 +294,16 @@ func TestLegacyAuditionJudgmentWithoutDifferenceStartsNextRound(t *testing.T) {
 	}
 	stored, _ := server.freeStateLoop(loop.ConversationID)
 	if stored.Experiment.Status == experiment.StatusSettled || len(stored.Experiment.Rounds) != 2 || stored.Experiment.Rounds[0].Decision != experiment.DecisionNextRound {
-		t.Fatalf("ambiguous outcome=%+v", stored.Experiment)
+		t.Fatalf("recalibration outcome=%+v", stored.Experiment)
+	}
+	if stored.Experiment.Rounds[0].DecisionSummary != "no audible difference; recalibrate" {
+		t.Fatalf("recalibration summary=%q", stored.Experiment.Rounds[0].DecisionSummary)
 	}
 }
 
+// GLM ruling 1 split: no audible difference stays a recalibration request;
+// a heard difference without preference (equal/neither/unsure) is true
+// ambiguity and is terminal for every tier (mirrors the D1-S1 outcome).
 func TestUserJudgmentDispositionCoversPreferencePolicy(t *testing.T) {
 	tests := []struct {
 		name          string
@@ -306,9 +315,9 @@ func TestUserJudgmentDispositionCoversPreferencePolicy(t *testing.T) {
 	}{
 		{"prefer A", experiment.HeardDifferenceYes, experiment.PreferenceA, experiment.DecisionRollback, experiment.OutcomeRolledBack, false},
 		{"prefer B", experiment.HeardDifferenceYes, experiment.PreferenceB, experiment.DecisionRetain, experiment.OutcomeImproved, false},
-		{"equal", experiment.HeardDifferenceYes, experiment.PreferenceEqual, experiment.DecisionNextRound, "", true},
-		{"neither", experiment.HeardDifferenceYes, experiment.PreferenceNeither, experiment.DecisionNextRound, "", true},
-		{"unsure", experiment.HeardDifferenceYes, experiment.PreferenceUnsure, experiment.DecisionNextRound, "", true},
+		{"equal", experiment.HeardDifferenceYes, experiment.PreferenceEqual, experiment.DecisionStopped, experiment.OutcomeNeedsJudgment, false},
+		{"neither", experiment.HeardDifferenceYes, experiment.PreferenceNeither, experiment.DecisionStopped, experiment.OutcomeNeedsJudgment, false},
+		{"unsure", experiment.HeardDifferenceYes, experiment.PreferenceUnsure, experiment.DecisionStopped, experiment.OutcomeNeedsJudgment, false},
 		{"no difference", experiment.HeardDifferenceNo, experiment.PreferenceB, experiment.DecisionNextRound, "", true},
 		{"difference unsure", experiment.HeardDifferenceUnsure, experiment.PreferenceA, experiment.DecisionNextRound, "", true},
 	}
@@ -317,6 +326,16 @@ func TestUserJudgmentDispositionCoversPreferencePolicy(t *testing.T) {
 			got := dispositionForUserJudgment(experiment.UserJudgmentEvidence{HeardDifference: test.heard, Preference: test.preference})
 			if got.Decision != test.decision || got.Outcome != test.outcome || got.Continue != test.continueRound {
 				t.Fatalf("disposition=%+v", got)
+			}
+			// The single-round tier converts every recalibration request into
+			// the terminal ambiguous stop (D1-S1 default path).
+			d1 := d1DispositionForUserJudgment(experiment.UserJudgmentEvidence{HeardDifference: test.heard, Preference: test.preference})
+			if test.decision == experiment.DecisionNextRound {
+				if d1.Decision != experiment.DecisionStopped || d1.Outcome != experiment.OutcomeNeedsJudgment {
+					t.Fatalf("single-round disposition=%+v", d1)
+				}
+			} else if d1 != got {
+				t.Fatalf("single-round disposition diverged: %+v", d1)
 			}
 		})
 	}

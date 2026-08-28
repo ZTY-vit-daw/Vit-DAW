@@ -43,12 +43,21 @@ func messageLoopNeutralFamilySystemPrompt(state *runState) string {
 		prefix += directive
 	}
 	prefix += messageLoopCandidateFrontierDirective(state)
+	// GLM ruling (D2-2): the single-round prohibitions stay byte-identical on
+	// the default tier; only an explicitly admitted multi-round experiment
+	// swaps in the next-round calibration wording. continue_once and a second
+	// treatment within one round stay forbidden on every tier.
+	multiRound := messageLoopFreeStateMultiRoundTier(state)
+	experimentBudget := 1
+	if multiRound {
+		experimentBudget = messageLoopFreeStateEffectiveExperimentBudget(state)
+	}
 	return fmt.Sprintf(`%sYou are the neutral observation-and-family decision phase of Ask Vit's DAW Agent.
 Return ONLY strict JSON in one of these shapes:
 {"final":false,"reply":"short catalog discovery note","free_state":{"schema_version":"free_state_decision.v1","status":"needs_observation","evidence_status":"insufficient","summary":"why the available view IDs must be discovered","requested_view_ids":[]},"tool_calls":[{"tool":"ccb.observation_catalog","args":{},"reason":"why catalog discovery is needed"}]}
 {"final":false,"reply":"short observation progress note","free_state":{"schema_version":"free_state_decision.v1","status":"needs_observation","evidence_status":"insufficient","summary":"what evidence is missing","requested_view_ids":["<model-selected-view-id>"]},"tool_calls":[{"tool":"ccb.observation_request","args":{"view_ids":["<model-selected-view-id>"],"target_ref":{"kind":"track","id":"<visible track id>","label":"<visible track name>"}},"reason":"why this target-specific evidence can change the decision"}]}
 {"final":true,"reply":"short treatment handoff","free_state":{"schema_version":"free_state_decision.v1","status":"needs_action","evidence_status":"sufficient","summary":"what the returned evidence supports","remaining_intent":"the unresolved audible outcome","processor_type":"eq|compressor|limiter|gate_expander|de_esser|transient_shaper|multiband_dynamics","semantic_processor_intent":{"schema_version":"semantic_processor_intent.v1","status":"resolved","family":"<model-selected-family>","intent":"<open acoustic intent>","required_coverage":["<model-selected-axis>"],"scope":"current_track|current_selection|project|track_group","control_mode":"semantic_loop|typed_control|observe_only","confidence":0.0,"evidence_refs":["<exact observation id>"]}},"tool_calls":[]}
-{"final":true,"reply":"short improvement proposal","free_state":{"schema_version":"free_state_decision.v1","status":"needs_experiment","evidence_status":"plausible","summary":"what the evidence plausibly relates to","improvement_proposal":{"schema_version":"improvement_proposal.v1","target":{"kind":"track","id":"<visible track id>"},"evidence_refs":["<exact observation id>"],"improvement_intent":"<desired listening improvement>","hypothesis":"<bounded non-deterministic improvement hypothesis>","expected_effect":"<what should be compared after the change>","action_domain":"track_gain|static_eq|broadband_compression","action_kind":"track_gain_adjust|static_eq_band_adjust|broadband_threshold_adjust","parameter_bounds":{"delta_db":0.5}|{"gain_db":-0.5,"frequency_hz":400,"q":1.0,"band_index":0}|{"threshold_db":-1.0},"verification_plan":{"experiment_budget":1,"max_action_attempts":1},"confidence":0.0,"limitations":["<optional limitation>"],"needs_resolution":["<optional missing typed detail>"]}},"tool_calls":[]}
+%s
 {"final":true,"reply":"short experiment evaluation","free_state":{"schema_version":"free_state_decision.v1","status":"needs_experiment","evidence_status":"plausible|sufficient","summary":"what the latest fresh evidence says","improvement_proposal":{"schema_version":"improvement_proposal.v1","target":{"kind":"track|clip|bus|relationship","id":"<visible id>"},"evidence_refs":["<exact observation id>"],"improvement_intent":"<original improvement>","hypothesis":"<same bounded hypothesis>","expected_effect":"<comparison target>","action_domain":"<same governed domain>","action_kind":"<same bounded action>","parameter_bounds":{"delta_db":0.5},"confidence":0.0},"experiment_materiality":{"state":"none|subthreshold|material","evaluation":"not_ready|insufficient_dose|agent_evaluable|ambiguous","attempt":1,"evidence_refs":["<fresh evidence ref>"]},"experiment_target_response":{"response":"absent|directional|sufficient|ambiguous","outcome":"agent_evaluable|human_audition_ready|human_confirmed|ambiguous|unsupported_hypothesis","evidence_refs":["<fresh evidence ref>"],"summary":"<bounded response>"},"experiment_round_decision":"next_round|retained|rolled_back|user_judgment_pending|plateau|blocked_by_observation|blocked_by_capability|stopped"},"tool_calls":[]}
 {"final":true,"reply":"short evidence-grounded diagnosis","free_state":{"schema_version":"free_state_decision.v1","status":"diagnostic_complete","evidence_status":"sufficient","summary":"the bounded diagnosis","observation_id":"real id","diagnostic":{"schema_version":"free_state_diagnostic.v1","status":"confirmed","findings":[{"statement":"bounded finding","evidence_refs":["real id"],"confidence":0.0}]}},"tool_calls":[]}
 {"final":true,"reply":"no credible candidate in the bounded search","free_state":{"schema_version":"free_state_decision.v1","status":"no_candidate_found","evidence_status":"sufficient","summary":"what was checked and what remains outside the evidence boundary","diagnostic":{"schema_version":"free_state_diagnostic.v1","status":"ruled_out","findings":[{"statement":"no candidate was supported in the checked scope","evidence_refs":["real id"],"confidence":0.0,"limitation":"unchecked boundary"}],"limitations":["unchecked boundary"]}},"tool_calls":[]}
@@ -69,12 +78,12 @@ Rules:
 - A rejection with rejection_scope "exact_view_set" applies only to that exact requested set. Treat blocking_view_ids as the views that caused the rejection; non_blocking_view_ids are not declared unavailable and may be requested separately. Previously available_views remain valid unless their own freshness or limitation says otherwise.
 - For needs_action, return exactly one processor_type and a resolved semantic_processor_intent.v1 whose family agrees with it. Choose required_coverage only from the evidence and the declared family vocabulary; do not add defaults. Unsupported, inspect-only, or unavailable families will be reported by the governed router as an auditable boundary.
 - %s
-- During an admitted D1-S1 experiment, preserve the same proposal and report experiment_materiality only from the fresh Agent-selected post-action CCB evidence. A subthreshold state MUST use evaluation=insufficient_dose and does not disprove the hypothesis, but it MUST NOT request next_round or another mutation; it settles only through the ambiguous human A/B evaluation: report experiment_target_response with response="ambiguous" and outcome="human_audition_ready" together with experiment_round_decision="user_judgment_pending" (any other target-response pair is rejected for a subthreshold round). A material result reports experiment_target_response with outcome="human_audition_ready" and the response value the fresh evidence shows (for example "directional"), together with the same user_judgment_pending boundary. Target response must never be inferred from parameter readback alone. Leave processor_type empty for this native bounded experiment.
+- %s
 - Evidence status and problem status are different. Sufficient evidence can support the conclusion that no treatment is needed and does not authorize treatment by itself.
 - A candidate-only finding with an explicit interpretation limit (for example, overlap that is not a psychoacoustic fact) is not by itself a safe basis for a deterministic treatment or a whole-project satisfied conclusion. After the required target-level observation returns, if the evidence remains plausible but non-deterministic, return needs_experiment with one bounded improvement_proposal.v1; do not convert that epistemic limit into blocked. Use blocked only for a concrete capability, freshness, authorization, or observation boundary.
 - Preserve conditional authorization exactly. If the user authorized treatment only when a condition is true, decide that condition from the requested evidence before returning needs_action. Weak, natural, or within-control variation is not enough; return no_candidate_found with the bounded evidence and limitations when the condition is false.
 - During post_action_evaluation, when the loop context still carries requires_post_action_observation=true your FIRST action must be a ccb.observation_request for the admitted experiment's view set on the applied target; no runtime outcome, needs_action, or settle report is legal until that request has returned in this reasoning cycle. When requires_post_action_observation is false the fresh post-action evidence is already recorded on the round: cite it and settle the experiment from it without requesting the observation again. Re-evaluate the complete original intent and preserve unresolved clauses. The bounded experiment has already been user-confirmed and applied; authorization was settled at that confirmation. Re-litigating whether the original request authorized treatment is not a valid boundary in this phase — evaluate the applied experiment's outcome only from fresh post-action evidence.
-- D1-S1 permits one experiment round and one forward mutation. Never return next_round, continue_once, or a second treatment after the action has been applied; only retain, rollback, ambiguous human judgment, or a concrete blocked boundary may follow. Once the fresh post-action evidence is recorded, proposing another mix tick, suggestion, or improvement is ILLEGAL in post_action_evaluation: your only legal output is the settle report (experiment_materiality + experiment_target_response + experiment_round_decision=user_judgment_pending on the preserved proposal), or a concrete blocked boundary stating why the settle evidence itself cannot be obtained.
+- %s
 - If post-action evidence is partial, inconclusive, stale, or otherwise insufficient to prove the target remains unmet, continue observing or report the concrete evidence limitation; never return needs_action and never write another processor action from inconclusive evidence. Return blocked only when the fresh post-action CCB observation itself cannot be obtained; blocked before that observation is not a legal terminal.
 - For diagnostic_complete or no_candidate_found, fresh evidence must cover the declared bounded scope. For capability_blocked, state the concrete runtime boundary without naming a replacement family.
 
@@ -82,7 +91,39 @@ Available observation catalog:
 %s
 
 	Allowed tools:
-%s`, prefix, freeStateD1AdmittedDomainRule(), catalog, allowed)
+%s`, prefix, freeStateImprovementProposalPromptShape(experimentBudget), freeStateD1AdmittedDomainRuleForBudget(experimentBudget), freeStateSubthresholdExperimentPromptRule(multiRound), freeStateRoundMutationLimitPromptRule(multiRound), catalog, allowed)
+}
+
+// freeStateImprovementProposalPromptShape renders the needs_experiment
+// proposal example for the effective experiment budget. The budget is
+// runtime-controlled (server-side tier injection): the model's
+// verification_plan echoes it but never upgrades it.
+func freeStateImprovementProposalPromptShape(experimentBudget int) string {
+	return fmt.Sprintf(`{"final":true,"reply":"short improvement proposal","free_state":{"schema_version":"free_state_decision.v1","status":"needs_experiment","evidence_status":"plausible","summary":"what the evidence plausibly relates to","improvement_proposal":{"schema_version":"improvement_proposal.v1","target":{"kind":"track","id":"<visible track id>"},"evidence_refs":["<exact observation id>"],"improvement_intent":"<desired listening improvement>","hypothesis":"<bounded non-deterministic improvement hypothesis>","expected_effect":"<what should be compared after the change>","action_domain":"track_gain|static_eq|broadband_compression","action_kind":"track_gain_adjust|static_eq_band_adjust|broadband_threshold_adjust","parameter_bounds":{"delta_db":0.5}|{"gain_db":-0.5,"frequency_hz":400,"q":1.0,"band_index":0}|{"threshold_db":-1.0},"verification_plan":{"experiment_budget":%d,"max_action_attempts":1},"confidence":0.0,"limitations":["<optional limitation>"],"needs_resolution":["<optional missing typed detail>"]}},"tool_calls":[]}`, experimentBudget)
+}
+
+// freeStateSubthresholdExperimentPromptRule is the post-action materiality
+// rule. The single-round wording is byte-identical to the historical prompt;
+// the multi-round tier additionally allows the runtime-opened next calibration
+// round after insufficient_dose (GLM ruling 1: insufficient dose is not
+// ambiguity and never disproves the hypothesis).
+func freeStateSubthresholdExperimentPromptRule(multiRound bool) string {
+	if multiRound {
+		return `During an admitted multi-round experiment, preserve the same proposal and report experiment_materiality only from the fresh Agent-selected post-action CCB evidence of the current round. A subthreshold state MUST use evaluation=insufficient_dose and does not disprove the hypothesis; the runtime may then open one next calibration round, and every round is evaluated only from its own fresh post-action evidence. Never request another mutation inside the round that just applied one. A material or ambiguous result settles through the human A/B evaluation: report experiment_target_response with outcome="human_audition_ready" together with experiment_round_decision="user_judgment_pending". Target response must never be inferred from parameter readback alone. Leave processor_type empty for this native bounded experiment.`
+	}
+	return `During an admitted D1-S1 experiment, preserve the same proposal and report experiment_materiality only from the fresh Agent-selected post-action CCB evidence. A subthreshold state MUST use evaluation=insufficient_dose and does not disprove the hypothesis, but it MUST NOT request next_round or another mutation; it settles only through the ambiguous human A/B evaluation: report experiment_target_response with response="ambiguous" and outcome="human_audition_ready" together with experiment_round_decision="user_judgment_pending" (any other target-response pair is rejected for a subthreshold round). A material result reports experiment_target_response with outcome="human_audition_ready" and the response value the fresh evidence shows (for example "directional"), together with the same user_judgment_pending boundary. Target response must never be inferred from parameter readback alone. Leave processor_type empty for this native bounded experiment.`
+}
+
+// freeStateRoundMutationLimitPromptRule is the round/mutation limit rule. The
+// single-round wording is byte-identical to the historical prompt; the
+// multi-round tier opens runtime-controlled next rounds but keeps continue_once
+// and the per-round single-mutation prohibition (GLM ruling 1 + ADR §8: an
+// ambiguous judgment is terminal and never authorizes another dose).
+func freeStateRoundMutationLimitPromptRule(multiRound bool) string {
+	if multiRound {
+		return `This multi-round experiment permits exactly one forward mutation per round within the runtime-controlled experiment budget; never apply or request a second treatment within the same round and never return continue_once. Only retain, rollback, ambiguous human judgment, or a concrete blocked boundary may follow an applied action. An ambiguous human judgment (a difference was heard but neither candidate is preferred) is terminal: never propose another round, mutation, or dose change after it. Once the fresh post-action evidence is recorded, proposing another mix tick, suggestion, or improvement is ILLEGAL in post_action_evaluation: your only legal output is the settle report (experiment_materiality + experiment_target_response + experiment_round_decision=user_judgment_pending on the preserved proposal), or a concrete blocked boundary stating why the settle evidence itself cannot be obtained.`
+	}
+	return `D1-S1 permits one experiment round and one forward mutation. Never return next_round, continue_once, or a second treatment after the action has been applied; only retain, rollback, ambiguous human judgment, or a concrete blocked boundary may follow. Once the fresh post-action evidence is recorded, proposing another mix tick, suggestion, or improvement is ILLEGAL in post_action_evaluation: your only legal output is the settle report (experiment_materiality + experiment_target_response + experiment_round_decision=user_judgment_pending on the preserved proposal), or a concrete blocked boundary stating why the settle evidence itself cannot be obtained.`
 }
 
 // freeStateD1AdmittedDomainRule renders the needs_experiment domain rule from
@@ -90,6 +131,10 @@ Available observation catalog:
 // one source of truth. Adding a domain row updates the wording; the bounds
 // themselves are always enforced by the table's validators, not by this text.
 func freeStateD1AdmittedDomainRule() string {
+	return freeStateD1AdmittedDomainRuleForBudget(1)
+}
+
+func freeStateD1AdmittedDomainRuleForBudget(experimentBudget int) string {
 	specs := experiment.D1S1DomainSpecs()
 	if len(specs) == 0 {
 		return "For needs_experiment in D1-S1, no action domain is admitted in this phase; return capability_blocked instead of inventing a fallback."
@@ -98,8 +143,12 @@ func freeStateD1AdmittedDomainRule() string {
 	for _, spec := range specs {
 		options = append(options, fmt.Sprintf("action_domain=%s, action_kind=%s, %s", spec.ActionDomain, spec.ActionKind, spec.PromptParameterHint))
 	}
+	budgetClause := "In every case include verification_plan with experiment_budget=1 and max_action_attempts=1."
+	if experimentBudget > 1 {
+		budgetClause = fmt.Sprintf("In every case include verification_plan with experiment_budget=%d (runtime-controlled) and max_action_attempts=1.", experimentBudget)
+	}
 	return "For needs_experiment in D1-S1, return exactly one track target and one of the admitted domains: " + strings.Join(options, "; or ") +
-		". Every listed domain is admitted and executable end-to-end by the experiment runtime in this phase; choose the one the requested evidence supports. In every case include verification_plan with experiment_budget=1 and max_action_attempts=1. Domains or action kinds outside that list are unsupported: return capability_blocked instead of inventing a fallback."
+		". Every listed domain is admitted and executable end-to-end by the experiment runtime in this phase; choose the one the requested evidence supports. " + budgetClause + " Domains or action kinds outside that list are unsupported: return capability_blocked instead of inventing a fallback."
 }
 
 func messageLoopNeutralFamilyAllowedTools(tools []string) []string {
