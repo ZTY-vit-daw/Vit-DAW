@@ -292,3 +292,15 @@ S2d 深入现场后推翻了卡内两处机理认定，交付 9 项修复（chat
 | 20260828_121306→130901 | p01 freq | fail "materiality missing" | **残留卡点（S2e）**：确定性观察+turn headroom 后，模型仍以裸终态/建议输出替代结构化 settle 报告（8 turn 重试仍不合规）；194ms 空转完成为 inactive-loop 投影（goalrunner_chat.go:269） |
 
 开放项：p01 frequency 的 settle 合规方差归新卡 S2e（post-apply settle turn 模型合规 + run 级 turn 预算语义 + inactive-loop 投影）；验收状态：go build/test 全绿、p02 PASS、p01 非连续 PASS（113025/102237），3× 连续未达成。压缩域未回归测试（S2c 卡点仍在）。
+
+## 9. 2026-08-28 晚窗批（S2c 压缩域换算定标 + S2 合入后接线）
+
+S2c 诊断定案（temp/s2c_probe/curve_dump.jsonl）：VSC-2 threshold 的 display probe **结构性退化**——read_only_value_to_string 在全部 5 个合成 normalized 点返回当前文本（5×"+11.8"，span=0），曲线反演确定性不可用（与目标值无关）。修复（b0c2ebd + 11e9183 三层）：experiment 域表 TargetSemantics 声明（broadband_compression=delta_db）、executionports 事务探测 delta 机器（单次可逆探测斜率、三段 CAS 重定基、冻结显示/超程 fail-closed 无净移动、0.15dB 物理读回门、static_eq 绝对路径逐字节不变有封存测试）、chat plan 一行透传（等 S2 合入后加）。
+
+| stamp | 轮 | 终态 | 备注 |
+|---|---|---|---|
+| 20260828_181603 | comp p01（诊断） | fail "outside the measured display curve" | 曲线转储定案退化（旧卡点复现取证） |
+| 20260828_185138 | comp p01（验收） | fail "delta target 12.8 dB (current 11.8 + 1) is outside the reachable normalized range" | **换算机器实栈验证通过**：探测取斜率成功、目标=current+delta 正确、顶格不可达诚实拒绝——旧换算卡点消除，新卡点为域语义（见 S2f） |
+| 20260828_185457 | freq p01（回归） | fail "materiality missing"（S2e 方差） | **static_eq 零回归**：写入链 applied/readback(-1.5)/evaluation_ready 全绿，失败在 S2e 已知 settle 合规方差（S2d 戳表同款） |
+
+开放项：压缩域端到端 PASS 的剩余卡点是**实例绑定语义**——绑定解析按 D2-1 static_eq 同款设计实例化全新 VSC-2，其 threshold 默认即物理顶格（normalized 1.0=+11.8dB），模型"过压→抬阈值"的 +1 方向物理无解；p01 的过压源头在工程既有处理链，新实例语义无法承载该修复意图。归新卡 S2f（域设计裁定：绑定既有实例 vs 新实例语义 vs prompt 方向引导）。
