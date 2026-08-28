@@ -256,3 +256,19 @@ flash 交付 S2（594d485）后 GLM 首审 + 两处审查修复（2bb2d09 决策
 | 222525 | fail | **压缩提案被接受、VSC-2 真实实例化**，卡在 threshold 值换算："target 1 dB is outside the measured display curve of 5 samples"（开放项：内核 display_probe 采样语义 + threshold 目标值绝对/相对定标，见 done/2026-08-27-D2-1-5-S2 卡晚窗记录） |
 
 开放项（2026-08-27 晚窗 GLM 诊断收口，修复卡已开）：p02 × static_eq 连续 2 轮 "D1 requires one post-action CCB observation"。根因不在验证器：实验回执 applied（rev 3→4）后，mix tick 机制按设计从重观察生成链式"下一步建议"（nextPendingMixTickCandidateFromReobserve），py 驱动在 admitted_domain_selected 后无条件批准任何确认——8 次迭代被链式通用 tick 吃光，实验 continuation 永不排水、post-action 观察落不了账。p01 PASS 属时序运气（模型未走链式路径）。修复：todo/2026-08-27-D2-1-5-S2b-py-driver-approve-guard（py 驱动实验作用域批准守卫；因与 D2-1.5-S2 同文件，须在其合入后执行）。
+
+## 7. 2026-08-28 早窗批（S2b py 驱动批准守卫 + agent 侧卡点钉死）
+
+S2b（todo/2026-08-27-D2-1-5-S2b）经三次设计修订后交付：py 驱动只批准实验流交互（首提案唯一批准、同 id 实验确认限两次、applied 后新 id 域 tick 过滤、非准入域 tick 永不批准、applied 中间态响应不再提前 break、有界"继续"nudge + 持久化 loop 轮询回退）。driver 输入序列已与 201842 PASS 完全一致；端到端仍 fail，剩余卡点钉死在 agent 侧（开 S2d 卡，优先级高于 S2c）。
+
+| stamp | 轮 | 终态 | 备注 |
+|---|---|---|---|
+| 20260828_082044 | R1 p02 默认 | fail "exactly one forward mutation" | 修订 1 按 kind 过滤误杀实验动作确认（loop 卡 processor_selection）——已被修订 2 取代 |
+| 20260828_083552 | R1b p02 默认 | fail post-action | 修订 2 applied 门误杀同 id 第二次必要确认——已被修订 3 取代 |
+| 20260828_085212 | R1c p02 默认 | fail post-action | 修订 3 driver 正确；agent 侧 B1（applied 无同步验证，post-action CCB 无 turn 产出） |
+| 20260828_090512 | R2 freq p01 | fail post-action | 与 R1c 同构（B1 确定性复现） |
+| 20260828_091839 | R3 comp p01 | fail "distinct before/after revisions" | 压缩域 S2c 目标卡点，不受 driver 改动影响 |
+| 20260828_092321 | R4 freq p01 | fail "materiality missing" | **nudge 机制证明有效**：3 次"继续"后 evaluation_ready=True（post-action 观察落账），卡点后移 |
+| 20260828_093016 | R5 freq p01 | fail post-action | agent 侧 B2：continuation 预算 7/7 耗尽，post-apply 链（CCB→materiality→target→audition）排不完 |
+
+开放项：B1/B2 归 todo/2026-08-28-D2-1-5-S2d-postapply-continuation-budget.md（GLM L2，修复方向三选一：respond 同步验证 / post-apply 预算保留 / reserve 触发前移）。201842 PASS 判定为竞态幸运（respond 链内同步完成 bookkeeping），与 IDLE-5 "旧驱动 0/4" 结论一致。

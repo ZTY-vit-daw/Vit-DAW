@@ -36,6 +36,20 @@ ADMITTED_DOMAIN_KINDS = {
 }
 NOT_EXERCISED_EXIT = 3
 ACTIVE_CONTINUATION_STATUSES = {"pending", "claimed", "running"}
+# Generic mix suggestions are chain artifacts of the reobserve loop, not part
+# of the D1 experiment flow: approving them spends one durable continuation
+# each and drifts the project revision the experiment receipt is bound to.
+GENERIC_MIX_CONFIRMATION_KINDS = {"mix_tick_confirmation", "mix_treatment_confirmation"}
+EXPERIMENT_FLOW_MARKERS = ("experiment", "judgment", "audition", "settlement")
+# The experiment action confirmation surfaces on the mix-tick surface and is
+# confirmed twice (processor selection, then execution): every passing trace
+# approves the same interaction id at the pre-drain and post-drain positions.
+MAX_EXPERIMENT_TICK_CONFIRMATIONS = 2
+# After the receipt lands the goal parks in waiting_continue; the designed
+# resume path is a user turn. A bounded neutral "continue" nudge stands in for
+# that user without fabricating any judgment input.
+MAX_CONTINUE_NUDGES = 6
+CONTINUE_NUDGE_MESSAGE = "继续"
 FORBIDDEN_SELECTION_KEYS = {
     "selected_track_id",
     "selected_track_name",
@@ -299,6 +313,23 @@ def persisted_free_state_loop(project_path: str, conversation_id: str, started_a
     return loop if isinstance(loop, dict) else {}
 
 
+def poll_persisted_loop_for_audition(project_path: str, conversation_id: str, run_started: float, timeout: float) -> dict[str, Any]:
+    """Wait for the D1 loop to reach human_audition_ready while leaving generic
+    mix suggestions unanswered. The scheduler advances the experiment on its own
+    (an unanswered suggestion parks its continuation in waiting_interaction,
+    which is not an active status), so polling the persisted projection is the
+    faithful stand-in for a user who simply ignores the suggestion."""
+    deadline = time.monotonic() + timeout
+    loop: dict[str, Any] = {}
+    while time.monotonic() < deadline:
+        loop = persisted_free_state_loop(project_path, conversation_id, run_started)
+        receipt = loop.get("d1_receipt") if isinstance(loop.get("d1_receipt"), dict) else {}
+        if receipt.get("human_audition_ready") is True:
+            return loop
+        time.sleep(2)
+    return loop
+
+
 def persisted_task_semantic_state(state: dict[str, Any], conversation_id: str) -> dict[str, Any]:
     goal_runtime = state.get("goal_runtime") if isinstance(state.get("goal_runtime"), dict) else {}
     goals = rows(goal_runtime.get("goals"))
@@ -350,11 +381,35 @@ def prepare_project(base_url: str, case: dict[str, Any], timeout: float) -> dict
     raise RuntimeError("public p01 DAD evidence did not become ready: " + json.dumps(latest, ensure_ascii=False)[:2000])
 
 
-def recommended_interaction(response: dict[str, Any], admitted_domain_selected: bool) -> dict[str, Any] | None:
+def payload_mentions_experiment_flow(payload: dict[str, Any]) -> bool:
+    text = json.dumps(payload, ensure_ascii=False, default=str).lower()
+    return any(marker in text for marker in EXPERIMENT_FLOW_MARKERS)
+
+
+def recommended_interaction(response: dict[str, Any], admitted_domain_selected: bool, experiment_proposal_approved: bool = False, experiment_applied: bool = False, approved_domain_tick_ids: dict[str, int] | None = None) -> dict[str, Any] | None:
     interactions = rows(response.get("interaction_requests"))
+    confirmed_ticks = approved_domain_tick_ids if approved_domain_tick_ids is not None else {}
     for interaction in interactions:
         payload = interaction.get("payload") if isinstance(interaction.get("payload"), dict) else {}
+        kind = first_text(interaction.get("kind"), interaction.get("type")).lower()
         domains = {first_text(value).lower() for value in values_for_key(payload, "action_domain")}
+        if kind in GENERIC_MIX_CONFIRMATION_KINDS:
+            # The experiment action confirmations arrive on the mix-tick
+            # surface too (the domain entry routes them there), so the gate is
+            # the payload's nested action_domain. The same interaction id is
+            # legitimately confirmed twice (selection, then execution), so a
+            # re-surfaced id stays approvable after the receipt lands; only
+            # brand-new domain ticks and settlement-marked exceptions are
+            # filtered once the experiment has applied (reobserve chains).
+            if not (domains & set(ADMITTED_DOMAIN_KINDS)):
+                continue
+            interaction_id = first_text(interaction.get("id"), interaction.get("interaction_id"))
+            if confirmed_ticks.get(interaction_id, 0) >= MAX_EXPERIMENT_TICK_CONFIRMATIONS:
+                continue
+            if experiment_applied and interaction_id not in confirmed_ticks and not payload_mentions_experiment_flow(payload):
+                continue
+        if kind == "improvement_proposal_confirmation" and experiment_proposal_approved:
+            continue
         if not admitted_domain_selected and not (domains & set(ADMITTED_DOMAIN_KINDS)):
             continue
         eligible = []
@@ -946,7 +1001,14 @@ def main() -> int:
         report["responses"] = responses
         write_report(output, report)
         selected_domains: set[str] = set()
-        for _ in range(8):
+        experiment_proposal_approved = False
+        experiment_applied = False
+        confirmed_domain_ticks: dict[str, int] = {}
+        continue_nudges = 0
+        # Per-class budgets bound the driver (1 proposal approval, 2 same-id
+        # experiment confirmations, 3 continue nudges); the loop ceiling only
+        # needs headroom for the interleaved drains and re-surfaces.
+        for _ in range(16):
             require("dev_smoke_" not in json.dumps(response, ensure_ascii=False).lower(), "D1 response inherited dev smoke target context")
             domains = {first_text(value).lower() for value in values_for_key(response, "action_domain")}
             kinds = {first_text(value).lower() for value in values_for_key(response, "action_kind")}
@@ -967,10 +1029,27 @@ def main() -> int:
                     write_report(output, report)
                     print(f"D1-S1 ADMISSION_ONLY: report={output}")
                     return 0
-            if first_text(response.get("workflow")).lower() == "free_state_d1_s1" or find_d1_loop(responses) is not None and any(bool(item.get("human_audition_ready")) for item in dicts(response)):
+            if (first_text(response.get("workflow")).lower() == "free_state_d1_s1" and first_text(response.get("goal_status")).lower() != "waiting_continue") or find_d1_loop(responses) is not None and any(bool(item.get("human_audition_ready")) for item in dicts(response)):
                 break
-            interaction = recommended_interaction(response, bool(selected_domains))
+            applied_data = response.get("workflow_data") if isinstance(response.get("workflow_data"), dict) else {}
+            if first_text(response.get("workflow")).lower() == "free_state_d1_s1" and (applied_data.get("mutation_performed") is True or first_text(applied_data.get("status")).lower() == "applied"):
+                experiment_applied = True
+            if not experiment_applied:
+                # The execution receipt can land inside a continuation without
+                # any response carrying it; the persisted loop is authoritative.
+                persisted = persisted_free_state_loop(report["project_setup"]["project_path"], conversation_id, run_started)
+                persisted_receipt = persisted.get("d1_receipt") if isinstance(persisted.get("d1_receipt"), dict) else {}
+                if persisted_receipt.get("parameter_applied") is True:
+                    experiment_applied = True
+            interaction = recommended_interaction(response, bool(selected_domains), experiment_proposal_approved, experiment_applied, confirmed_domain_ticks)
             if interaction is not None:
+                approved_payload = interaction.get("payload") if isinstance(interaction.get("payload"), dict) else {}
+                if first_text(approved_payload.get("kind")).lower() == "improvement_proposal_confirmation":
+                    experiment_proposal_approved = True
+                confirmed_id = first_text(interaction.get("interaction_id"))
+                confirmed_kind = first_text(approved_payload.get("kind")).lower()
+                if confirmed_id and confirmed_kind in GENERIC_MIX_CONFIRMATION_KINDS:
+                    confirmed_domain_ticks[confirmed_id] = confirmed_domain_ticks.get(confirmed_id, 0) + 1
                 response = request_json("POST", args.agent_http.rstrip("/") + "/agent/interaction/respond", interaction, args.timeout_sec)
                 responses.append(response)
                 report["responses"] = responses
@@ -999,6 +1078,29 @@ def main() -> int:
                     response["interaction_requests"] = interaction_requests
                 responses.append(response)
                 continue
+            if rows(response.get("interaction_requests")) and experiment_proposal_approved and continue_nudges < MAX_CONTINUE_NUDGES:
+                # Only filtered-out generic suggestions are pending; the goal is
+                # parked mid-experiment, so stand in for the user's next turn
+                # with a neutral continue nudge and re-enter the loop with the
+                # resulting response (the designed resume for waiting_continue).
+                continue_nudges += 1
+                response = request_json("POST", args.agent_http.rstrip("/") + "/agent/chat", {"conversation_id": conversation_id, "message": CONTINUE_NUDGE_MESSAGE, "context": {"agent_mode": "chat"}}, args.timeout_sec)
+                responses.append(response)
+                report["responses"] = responses
+                write_report(output, report)
+                continue
+            if rows(response.get("interaction_requests")):
+                # Nudges exhausted: leave the suggestions unanswered and wait
+                # for the experiment continuation the scheduler runs on its
+                # own; break on timeout so validation reports the honest
+                # terminal state.
+                loop = poll_persisted_loop_for_audition(report["project_setup"]["project_path"], conversation_id, run_started, args.timeout_sec)
+                if loop:
+                    response = {"goal_status": "mix_suggestions_awaited", "workflow_data": {"free_state_reasoning_loop": loop}}
+                    responses.append(response)
+                    report["responses"] = responses
+                    write_report(output, report)
+                    continue
             break
 
         report["responses"] = responses
