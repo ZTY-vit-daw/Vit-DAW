@@ -717,6 +717,9 @@ func messageLoopFreeStateOutputIssue(state *runState, out messageLoopOutput) str
 				// repeat the preserved proposal unchanged.
 				return "the settle report must repeat the preserved improvement_proposal unchanged (the one the admitted round executed); without it the report cannot be booked to the round; example: " + freeStateSettleReportExample
 			}
+			if issue := messageLoopFreeStateRoundOwesInterventionIssue(state, ctx); issue != "" {
+				return issue
+			}
 		} else if failed := evaluateFreeStateNeedsExperimentGate(state, out.FreeStateDecision); len(failed) > 0 {
 			// The single-usable-bundle weak gate is replaced by the seven-part
 			// admission gate (docs/FREE_STATE_NEEDS_EXPERIMENT_GATE_V1.md). Gate
@@ -856,6 +859,100 @@ func messageLoopFreeStateRoundPendingSettlementIssue(ctx map[string]any) string 
 		}
 	}
 	return ""
+}
+
+// messageLoopFreeStateOwedRoundBaseReference mirrors the chat layer's
+// freeStateOwedRoundBaseReference selection rule: the current round's newest
+// fresh non-post-action observation as the mechanical citation
+// "observation_id@project_revision". Both refusal faces (the HTTP settle
+// demotion and this in-loop gate) derive the citation from the same loop
+// projection, so the named reference can never drift between them.
+func messageLoopFreeStateOwedRoundBaseReference(ctx map[string]any) string {
+	experiment := messageLoopMapValue(ctx["experiment"])
+	rounds := messageLoopMapRows(experiment["rounds"])
+	if len(rounds) == 0 {
+		return ""
+	}
+	round := rounds[len(rounds)-1]
+	observations := messageLoopMapRows(round["observations"])
+	for index := len(observations) - 1; index >= 0; index-- {
+		observation := observations[index]
+		if freeStateBool(observation["post_action"]) || !freeStateBool(observation["fresh"]) {
+			continue
+		}
+		// The experiment round projection serializes the identity as
+		// observation_id (20260829_223957 on-stack trace: reading "id" fell
+		// back to the unnamed-copy variant although the round carried its
+		// fresh base).
+		obsID := strings.TrimSpace(messageLoopText(observation["observation_id"]))
+		revision := strings.TrimSpace(messageLoopText(observation["project_revision"]))
+		if obsID == "" || revision == "" {
+			continue
+		}
+		return obsID + "@" + revision
+	}
+	return ""
+}
+
+// messageLoopFreeStateRoundOwesInterventionIssue refuses a settle report on a
+// freshly opened multi-round round that has not acted yet: such a round has no
+// applied intervention to settle and owes one bounded intervention proposal.
+// The chat layer already refuses the settle booking server-side (S3h2), but a
+// scheduler-driven continuation never reads that response — the refusal must
+// land in the message loop's own final-gate feedback, the only surface every
+// next continuation round consumes (20260829_215139 trace: three scheduler
+// replays of the same settle report, each bounced only by the broad-acoustic
+// legacy gate with copy that never states the round's actual debt).
+func messageLoopFreeStateRoundOwesInterventionIssue(state *runState, ctx map[string]any) string {
+	if len(ctx) == 0 {
+		return ""
+	}
+	experiment := messageLoopMapValue(ctx["experiment"])
+	if len(experiment) == 0 || !strings.EqualFold(strings.TrimSpace(messageLoopText(experiment["status"])), "running") {
+		return ""
+	}
+	// The sealed single-round tier keeps its boundary behavior untouched; only
+	// the multi-round tier (admission budget within 2..max) opens recalibration
+	// rounds that can owe an intervention.
+	if !messageLoopFreeStateMultiRoundTier(state) {
+		return ""
+	}
+	// GLM ruling 3: while an earlier round's human judgment has not landed the
+	// whole experiment stays parked and only the settle family is admitted —
+	// the owed proposal belongs to the round opened after the judgment lands,
+	// never to the parked boundary (chat-side bookFreeStateRecalibrationRoundBase
+	// guards the same split).
+	if messageLoopFreeStateJudgmentBoundary(state) {
+		return ""
+	}
+	rounds := messageLoopMapRows(experiment["rounds"])
+	if len(rounds) == 0 {
+		return ""
+	}
+	spent, budget := 0, 0
+	if resolved, ok := messageLoopExperimentAdmissionBudget(state); ok {
+		budget = resolved
+	}
+	for _, round := range rounds {
+		spent += len(messageLoopMapRows(round["interventions"]))
+	}
+	if budget <= 0 || spent >= budget {
+		return ""
+	}
+	round := rounds[len(rounds)-1]
+	if len(messageLoopMapRows(round["interventions"])) != 0 || strings.TrimSpace(messageLoopText(round["decision"])) != "" {
+		return ""
+	}
+	if freeStateBool(ctx["requires_post_action_observation"]) {
+		// The applied-boundary race window: the round already executed and owes
+		// its settle retry, not a proposal (the observation gate above owns
+		// that refusal).
+		return ""
+	}
+	if base := messageLoopFreeStateOwedRoundBaseReference(ctx); base != "" {
+		return "the current experiment round has not applied its bounded intervention yet, so there is no round to settle; emit the one owed bounded intervention proposal instead (improvement_proposal JSON without experiment report fields) citing the round's fresh base observation " + base + ", or the concrete blocked boundary that prevents proposing"
+	}
+	return "the current experiment round has not applied its bounded intervention yet, so there is no round to settle; emit the one owed bounded intervention proposal instead (improvement_proposal JSON without experiment report fields) citing the round's current fresh base observation, or the concrete blocked boundary that prevents proposing"
 }
 
 func messageLoopTaskContractKind(state *runState) string {
