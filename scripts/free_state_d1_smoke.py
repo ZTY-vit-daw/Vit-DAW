@@ -787,6 +787,198 @@ def numeric_receipt_field(source: dict[str, Any], *keys: str) -> float | None:
     return None
 
 
+MULTI_ROUND_PROBE_TAG = "smoke_multi_round_probe"
+MULTI_ROUND_PROBE_FREE_TEXT = "machine-originated multi-round probe judgment; not a human judgment"
+# The judgment park leaves the goal waiting for a user chat turn: the POST's
+# scheduler wake only retries queued continuations, and none is queued for the
+# fresh calibration round (20260829_095609: round 2 opened and then the
+# projection froze for the whole wait window). The drive therefore stands in
+# for the user's "continue" and answers any experiment-flow confirmation the
+# recalibration turn surfaces, exactly like the main driver's parked-state
+# resume.
+MULTI_ROUND_DRIVE_MAX_NUDGES = 3
+MULTI_ROUND_DRIVE_NUDGE_INTERVAL_SEC = 120.0
+
+
+def multi_round_pending_round(loop: dict[str, Any]) -> dict[str, Any]:
+    """First experiment round parked on a user judgment with no judgment
+    evidence recorded yet. Accepts both durable boundary shapes: the round
+    that actively requested the judgment, and the round whose request binding
+    a scheduler transport replay dropped while the decision stayed pending."""
+    experiment = loop.get("experiment") if isinstance(loop.get("experiment"), dict) else {}
+    for round_row in rows(experiment.get("rounds")):
+        requested = round_row.get("user_judgment_requested") is True
+        decision_pending = first_text(round_row.get("decision")).lower() == "user_judgment_pending"
+        if (requested or decision_pending) and not rows(round_row.get("user_judgment_evidence")):
+            return round_row
+    return {}
+
+
+def run_multi_round_judgment_drive(base_url: str, conversation_id: str, project_path: str, timeout: float, case_id: str, run_started: float) -> dict[str, Any]:
+    """D2-2-S3b deterministic drive: one machine-origin judgment at the round-1 boundary.
+
+    Round 1 parks at the human A/B judgment boundary with no further scheduler
+    work queued, so a multi-round admission can never continue on its own.
+    This drive submits exactly one machine-originated "no audible difference"
+    judgment through the same guarded /agent/audition/judgment channel as the
+    settlement probe; reason_tags + free_text permanently mark it as
+    machine-originated and it never claims a human decision. The runtime's
+    frozen ruling-1 path ("no audible difference; recalibrate") then opens
+    round 2; a continue nudge (the driver's parked-state resume) then lets the
+    scheduler execute the second single-change intervention. The drive waits
+    for round 2 to reach its own stable stop state (applied
+    intervention + fresh post-action observation + round decision/boundary)
+    before validate_d2_multi_round asserts the frozen acceptance scope.
+
+    Variance before the judgment (the run never forms the boundary, or the
+    experiment settles without one) raises MultiRoundNotExercised (exit 3,
+    rerun mechanism unchanged). After the judgment POST is accepted, round
+    continuation is runtime contract, so a stall there is an honest failure.
+    """
+    boundary_deadline = time.monotonic() + timeout
+    payload: dict[str, Any] = {}
+    while time.monotonic() < boundary_deadline and not payload:
+        state = newest_agent_runtime_state_for_conversation(project_path, conversation_id, run_started)
+        loop_now, semantic_now = settled_projection(state, conversation_id)
+        experiment_now = loop_now.get("experiment") if isinstance(loop_now.get("experiment"), dict) else {}
+        payload = multi_round_boundary_payload(experiment_now, loop_now, semantic_now)
+        if payload:
+            # Do not spend the machine judgment on a single-round admission:
+            # below the multi-round minimum the frozen runtime contract settles
+            # any judgment without opening a next round, so a continuation is
+            # not exercisable this run (admission variance -> NOT_EXERCISED).
+            admission_now = experiment_now.get("admission") if isinstance(experiment_now.get("admission"), dict) else {}
+            budget_now = int(admission_now.get("experiment_budget", 0) or 0)
+            if budget_now < MULTI_ROUND_MIN_ROUNDS:
+                raise MultiRoundNotExercised(f"{case_id} multi-round probe: admission granted experiment_budget {budget_now}; no multi-round continuation is exercisable")
+            break
+        if first_text(experiment_now.get("status")).lower() in {"settled", "stopped"}:
+            # No further round can open after a settlement, so the boundary
+            # this drive waits for can never form: report the variance.
+            raise MultiRoundNotExercised(f"{case_id} multi-round probe: experiment settled/stopped before a judgment boundary formed (status={first_text(experiment_now.get('status'))})")
+        time.sleep(2)
+    if not payload:
+        raise MultiRoundNotExercised(f"{case_id} multi-round probe: round 1 never reached the human judgment boundary within the smoke timeout")
+
+    for key in ("turn_id", "round_id", "audition_session_id", "project_revision"):
+        require(payload[key], f"multi-round probe drive is missing {key} from the persisted boundary projection")
+    judged = request_json("POST", base_url.rstrip("/") + "/agent/audition/judgment", payload, timeout)
+    require(first_text(judged.get("status")).lower() == "ok", "multi-round probe judgment was rejected: " + first_text(judged.get("error")))
+    evidence = judged.get("evidence") if isinstance(judged.get("evidence"), dict) else {}
+    evidence_id = first_text(evidence.get("id"))
+    require(evidence_id, "multi-round probe judgment returned no evidence identity")
+    require(MULTI_ROUND_PROBE_TAG in probe_tags(evidence), "multi-round probe marker was not retained on the judgment response")
+
+    round_two_deadline = time.monotonic() + timeout
+    round_two: dict[str, Any] = {}
+    last_observation: dict[str, Any] = {}
+    nudges = 0
+    next_action_at = time.monotonic()
+    while time.monotonic() < round_two_deadline:
+        loop_now = persisted_free_state_loop(project_path, conversation_id, run_started)
+        experiment_now = loop_now.get("experiment") if isinstance(loop_now.get("experiment"), dict) else {}
+        rounds_now = rows(experiment_now.get("rounds"))
+        loop_status_now = first_text(loop_now.get("status")).lower()
+        last_observation = {
+            "rounds_observed": len(rounds_now),
+            "round_decisions": [first_text(row.get("decision")) for row in rounds_now],
+            "experiment_status": first_text(experiment_now.get("status")),
+            "loop_status": loop_status_now,
+            "loop_last_error": first_text(loop_now.get("last_error")),
+        }
+        if len(rounds_now) >= 2 and loop_status_now in {"capability_blocked", "completed", "cancelled", "failed", "stopped", "no_candidate_found"}:
+            # A scheduler-side closure settlement (audio_closure_controller
+            # admitAudioClosureRound: "closure observation round boundary
+            # reached") can terminalize the loop between the recalibration
+            # judgment and round 2's intervention. Waiting longer cannot
+            # revive it; fail immediately with the boundary identity.
+            raise RuntimeError(
+                "multi-round probe drive: the loop was terminalized before round 2 executed its intervention (status="
+                + loop_status_now
+                + "; last_error="
+                + first_text(loop_now.get("last_error"))
+                + "); observed="
+                + json.dumps(last_observation, ensure_ascii=False)
+            )
+        if len(rounds_now) >= 2:
+            round_two_row = rounds_now[1]
+            interventions = rows(round_two_row.get("interventions"))
+            receipt = interventions[0].get("receipt") if interventions and isinstance(interventions[0].get("receipt"), dict) else {}
+            post_observations = [item for item in rows(round_two_row.get("observations")) if item.get("post_action") is True]
+            round_two = {
+                "round_two_open": True,
+                "round_two_round_id": first_text(round_two_row.get("round_id")),
+                "round_two_interventions": len(interventions),
+                "round_two_post_action_observations": len(post_observations),
+                "round_two_decision": first_text(round_two_row.get("decision")),
+                "round_two_transaction_id": first_text(receipt.get("transaction_id")),
+                "stable": bool(
+                    first_text(receipt.get("transaction_id"))
+                    and post_observations
+                    and (round_two_row.get("user_judgment_requested") is True or first_text(round_two_row.get("decision")) or rows(round_two_row.get("user_judgment_evidence")))
+                ),
+            }
+            # A round-2 decision without any intervention is a terminal shape;
+            # hand it to validate_d2_multi_round for the precise frozen-scope
+            # failure instead of spinning to the deadline.
+            if round_two["stable"] or (not interventions and first_text(round_two_row.get("decision"))):
+                break
+        if nudges < MULTI_ROUND_DRIVE_MAX_NUDGES and time.monotonic() >= next_action_at:
+            nudges += 1
+            next_action_at = time.monotonic() + MULTI_ROUND_DRIVE_NUDGE_INTERVAL_SEC
+            nudge = request_json("POST", base_url.rstrip("/") + "/agent/chat", {"conversation_id": conversation_id, "message": CONTINUE_NUDGE_MESSAGE, "context": {"agent_mode": "chat"}}, timeout)
+            interaction = recommended_interaction(nudge, True, True, True, {})
+            if interaction is not None:
+                request_json("POST", base_url.rstrip("/") + "/agent/interaction/respond", interaction, timeout)
+        time.sleep(2)
+    if not round_two:
+        raise RuntimeError("multi-round probe drive: round 2 did not reach a stable stop state after the recalibration judgment; observed=" + json.dumps(last_observation, ensure_ascii=False))
+    if not round_two["stable"]:
+        # Let validate_d2_multi_round produce the exact assertion failure.
+        report_note = dict(round_two)
+        report_note["stable"] = False
+        return {"probe_origin": True, "judgment": {"heard_difference": "no", "preference": "unsure"}, "evidence_id": evidence_id, "judged_round_id": payload["round_id"], "round_two_observed": report_note, "round_two_nudges": nudges}
+    return {
+        "probe_origin": True,
+        "judgment": {"heard_difference": "no", "preference": "unsure"},
+        "evidence_id": evidence_id,
+        "judged_round_id": payload["round_id"],
+        "round_two_observed": round_two,
+        "round_two_nudges": nudges,
+    }
+
+
+def multi_round_boundary_payload(experiment: dict[str, Any], loop: dict[str, Any], semantic: dict[str, Any]) -> dict[str, Any]:
+    """Judgment payload for the parked boundary round, or {} while the boundary
+    is not durably established. Accepts the same equivalent durable states as
+    the settlement probe: the session-bound round, or the parked
+    human_judgment_required canonical state with the round decision pending."""
+    round_row = multi_round_pending_round({"experiment": experiment})
+    if not round_row:
+        return {}
+    session = loop.get("audition_session_snapshot") if isinstance(loop.get("audition_session_snapshot"), dict) else {}
+    # The judgment handler matches the request session against the loop-level
+    # durable audition identity, so that is the identity to send.
+    session_id = first_text(loop.get("audition_session_id"), session.get("session_id"))
+    bound_to_session = bool(session_id) and first_text(round_row.get("audition_session_id")) == session_id
+    parked_at_boundary = first_text(semantic.get("state")).lower() == "human_judgment_required" and first_text(round_row.get("decision")).lower() == "user_judgment_pending"
+    if not (bound_to_session or parked_at_boundary):
+        return {}
+    interventions = rows(round_row.get("interventions"))
+    receipt = interventions[-1].get("receipt") if interventions and isinstance(interventions[-1].get("receipt"), dict) else {}
+    return {
+        "conversation_id": first_text(loop.get("conversation_id")),
+        "turn_id": first_text(experiment.get("turn_id")),
+        "round_id": first_text(round_row.get("round_id")),
+        "audition_session_id": session_id,
+        "project_revision": first_text(session.get("project_revision"), receipt.get("after_revision"), receipt.get("applied_revision")),
+        "heard_difference": "no",
+        "preference": "unsure",
+        "reason_tags": [MULTI_ROUND_PROBE_TAG],
+        "free_text": MULTI_ROUND_PROBE_FREE_TEXT,
+    }
+
+
 def validate_d2_multi_round(base_url: str, conversation_id: str, project_path: str, responses: list[dict[str, Any]], timeout: float, case_id: str, run_started: float) -> dict[str, Any]:
     """D2-2-S3 multi-round probe: independent assertions, default-D1 path intact.
 
@@ -819,13 +1011,13 @@ def validate_d2_multi_round(base_url: str, conversation_id: str, project_path: s
     and otherwise fall back to the numeric readback, treated as the round's
     applied delta for that band.
 
-    TODO(D2-2-S2): the deterministic multi-round drive (memory gear-on +
-    dose-calibration scenario injection) waits on the D2-2-S2 parameter
-    injection channel design. Until that channel merges, an open-prompt run
-    almost always reaches fewer than two rounds; this function raises
-    MultiRoundNotExercised and the caller reports NOT_EXERCISED (exit 3) and
-    records it. No assertion here is ever relaxed to manufacture a pass
-    (sealed-test discipline).
+    TODO(D2-2-S3b): resolved -- run_multi_round_judgment_drive now supplies the
+    deterministic round-1 judgment ("no audible difference" recalibration), so
+    an admitted budget>=2 run is expected to continue into round 2. This
+    function still raises MultiRoundNotExercised when fewer than two rounds
+    are observed (pre-boundary variance; the caller reports NOT_EXERCISED,
+    exit 3, and records it). No assertion here is ever relaxed to manufacture
+    a pass (sealed-test discipline).
     """
     persisted = persisted_free_state_loop(project_path, conversation_id, run_started)
     loop = find_d1_loop(([persisted] if persisted else []) + responses)
@@ -867,6 +1059,7 @@ def validate_d2_multi_round(base_url: str, conversation_id: str, project_path: s
 
     previous_after_revision = ""
     transaction_ids: set[str] = set()
+    intervention_ids: set[str] = set()
     per_band_totals: dict[str, float] = {}
     domain_total_delta = 0.0
     for index, round_row in enumerate(rounds_all):
@@ -883,6 +1076,16 @@ def validate_d2_multi_round(base_url: str, conversation_id: str, project_path: s
         transaction_id = first_text(receipt.get("transaction_id"))
         require(transaction_id and transaction_id not in transaction_ids, f"multi-round probe: round {index} transaction identity is missing or duplicated")
         transaction_ids.add(transaction_id)
+        # Frozen durable-identity contract (d1MultiRoundRoundScopeSuffix):
+        # round 1 keeps the experiment-level action identity byte-for-byte and
+        # every later round appends _round_<n>, so each round owns a distinct
+        # journal action and idempotent transaction chain.
+        intervention_id = first_text(intervention.get("action_id"))
+        require(intervention_id and intervention_id not in intervention_ids, f"multi-round probe: round {index} intervention action identity is missing or duplicated")
+        round_number = int(round_row.get("number") or 0) or (index + 1)
+        if round_number > 1:
+            require(f"_round_{round_number}" in intervention_id, f"multi-round probe: round {index} action identity {intervention_id!r} lacks the durable _round_{round_number} scope suffix")
+        intervention_ids.add(intervention_id)
 
         post_observations = [item for item in rows(round_row.get("observations")) if item.get("post_action") is True]
         require(post_observations, f"multi-round probe: round {index} has no post-action CCB observation")
@@ -965,7 +1168,7 @@ def main() -> int:
     parser.add_argument("--settlement-probe", choices=sorted(SETTLEMENT_PROBE_ANSWERS), default="", help="after the boundary validation, submit a machine-origin judgment and machine-check the settlement receipt; the default mode without this flag keeps asserting settled is False")
     parser.add_argument("--prompt-flavor", choices=sorted(PROMPT_FLAVORS), default="neutral", help="case-agnostic open-prompt flavor; frequency steers the proposal toward the admitted static_eq domain")
     parser.add_argument("--expect-domain", choices=sorted(ADMITTED_DOMAIN_KINDS) + ["any"], default="any", help="require the run to autonomously select this admitted domain (regression pin) or any admitted domain")
-    parser.add_argument("--multi-round-probe", action="store_true", help="D2-2-S3 multi-round probe: assert multi-round continuation against the D2-1 dose bounds instead of the single-round D1 tail; TODO the deterministic drive waits on the D2-2-S2 injection channel, so a run may legally report NOT_EXERCISED (exit 3)")
+    parser.add_argument("--multi-round-probe", action="store_true", help="D2-2-S3 multi-round probe: drive one machine-origin judgment at the round-1 boundary (D2-2-S3b), then assert multi-round continuation against the D2-1 dose bounds; a run that never forms the boundary may legally report NOT_EXERCISED (exit 3)")
     parser.add_argument("--verify-settled", default="", help="verify a previously settled probe report after an agent restart (path to d1_smoke_report.json)")
     args = parser.parse_args()
     if args.multi_round_probe and args.settlement_probe:
@@ -1137,7 +1340,11 @@ def main() -> int:
         if args.multi_round_probe:
             # D2-2-S3: the multi-round probe owns the run tail; the single-round
             # D1 assertions below stay untouched and are intentionally not run.
+            # D2-2-S3b: drive the round-1 boundary with one machine-origin
+            # "no audible difference" judgment so the recalibration round can
+            # open; validate_d2_multi_round then asserts the frozen scope.
             try:
+                report["multi_round_drive"] = run_multi_round_judgment_drive(args.agent_http, conversation_id, report["project_setup"]["project_path"], args.timeout_sec, args.public_case_id, run_started)
                 report["multi_round_probe"] = validate_d2_multi_round(args.agent_http, conversation_id, report["project_setup"]["project_path"], responses, args.timeout_sec, args.public_case_id, run_started)
             except MultiRoundNotExercised as exc:
                 report.update({"status": "not_exercised", "reason": str(exc), "finished_at": dt.datetime.now(dt.timezone.utc).isoformat()})
