@@ -10,6 +10,7 @@ import (
 
 	"vit-daw-agent/internal/experiment"
 	"vit-daw-agent/internal/kernel"
+	"vit-daw-agent/internal/taskstate"
 	"vit-daw-agent/internal/trajectory"
 )
 
@@ -317,13 +318,30 @@ func (s *Server) prepareFreeStateAudition(ctx context.Context, loop *freeStateRe
 	if s.auditionCandidateDriver == nil {
 		return fmt.Errorf("candidate project driver unavailable")
 	}
-	treatmentCheckpoint, checkpointErr := s.auditionCandidateDriver.CreateCheckpoint(ctx, auditionCheckpointRequest{ProjectPath: projectRef, Message: "Audition candidate B treatment", Source: "audition.prepare", CheckpointKind: "audition_candidate_treatment", GoalID: loop.GoalID, RunID: loop.RunID})
-	if checkpointErr != nil {
-		return fmt.Errorf("create treatment candidate checkpoint: %w", checkpointErr)
+	// The D2-2 multi-round tier must not interleave an agent-owned checkpoint
+	// revision between its rounds' mutations: the frozen probe contract chains
+	// round N+1's receipt directly onto round N's after_revision (2026-08-29
+	// S3c smoke: the treatment checkpoint consumed revision 5 between round 1's
+	// after 4 and round 2's apply). The treatment state stays durably
+	// identified by the mutation receipt, the round-scoped journal action, and
+	// the after render's own provenance; candidate B's kernel-required commit
+	// reference carries the round-scoped action identity instead of a fresh
+	// container commit. The single-round default path keeps its historical
+	// checkpoint byte-for-byte.
+	treatmentCommit := ""
+	if !loop.Experiment.Admission.IsD2MultiRound() {
+		treatmentCheckpoint, checkpointErr := s.auditionCandidateDriver.CreateCheckpoint(ctx, auditionCheckpointRequest{ProjectPath: projectRef, Message: "Audition candidate B treatment", Source: "audition.prepare", CheckpointKind: "audition_candidate_treatment", GoalID: loop.GoalID, RunID: loop.RunID})
+		if checkpointErr != nil {
+			return fmt.Errorf("create treatment candidate checkpoint: %w", checkpointErr)
+		}
+		treatmentCommit = firstStringFromMap(treatmentCheckpoint, "commit_id")
+	} else if len(round.Interventions) > 0 {
+		treatmentCommit = "action:" + round.Interventions[len(round.Interventions)-1].ID
 	}
-	treatmentCommit := firstStringFromMap(treatmentCheckpoint, "commit_id")
-	request.Candidates[1].CheckpointRef = treatmentCommit
-	request.Candidates[1].CommitID = treatmentCommit
+	if treatmentCommit != "" {
+		request.Candidates[1].CheckpointRef = treatmentCommit
+		request.Candidates[1].CommitID = treatmentCommit
+	}
 	if loop.Experiment.Admission.IsD1S1() {
 		before := firstMapFromAny(loop.D1State["before_render"])
 		if firstStringFromMap(before, "status") != "ready" || !validD1RenderFile(firstStringFromMap(before, "file_path")) {
@@ -474,6 +492,32 @@ func (s *Server) recordFreeStateAuditionJudgment(ctx context.Context, request au
 		// the binding through the guarded judgment-request API instead of
 		// weakening the identity check below; every original guard still
 		// applies.
+		// The bind's canonical precondition is the human_judgment_required task
+		// state. The audition-ready callback that normally drives that
+		// transition can miss the parked window (the session snapshot reaches
+		// ready only after the settle turn), leaving the task short of the
+		// state RequestUserJudgmentForSession requires — complete the same
+		// guarded transition here so the parked boundary stays servable
+		// (2026-08-29 S3c smoke: judgment POST -> round identity mismatch).
+		bindDiagnosis := ""
+		if s.hasTaskSemanticContract(loop.GoalID) {
+			if goal := s.harness.RuntimeStatus(loop.GoalID); goal.Task != nil && goal.Task.SemanticState != nil &&
+				goal.Task.SemanticState.State != taskstate.StateHumanJudgmentRequired {
+				if transitionErr := s.requireTaskHumanJudgment(&loop, request.SessionID, "A/B audition judgment is required before experiment settlement"); transitionErr != nil {
+					bindDiagnosis = "task transition: " + transitionErr.Error()
+				}
+			}
+			// Re-bind the canonical state whatever it is: the experiment's
+			// TaskState projection can lag the harness across the transport
+			// replays that dropped the round binding (2026-08-29 S3c smoke:
+			// the harness had already transitioned to human_judgment_required
+			// while the experiment still projected needs_experiment).
+			if goal := s.harness.RuntimeStatus(loop.GoalID); goal.Task != nil && goal.Task.SemanticState != nil && goal.Task.Contract != nil {
+				if bindErr := loop.Experiment.BindTaskState(goal.Task.Contract.ContractID, goal.Task.SemanticState.State, goal.Task.SemanticState.Revision); bindErr != nil {
+					bindDiagnosis = firstNonEmpty(bindDiagnosis+" ; ", "") + "task rebind: " + bindErr.Error()
+				}
+			}
+		}
 		if events, bindErr := loop.Experiment.RequestUserJudgmentForSession("A/B audition required", request.SessionID, time.Now().UTC()); bindErr == nil {
 			s.emitFreeStateExperimentEvents(events)
 			s.storeFreeStateLoop(loop)
@@ -481,6 +525,11 @@ func (s *Server) recordFreeStateAuditionJudgment(ctx context.Context, request au
 			if err != nil {
 				return experiment.UserJudgmentEvidence{}, err
 			}
+		} else {
+			bindDiagnosis = firstNonEmpty(bindDiagnosis+" ; ", "") + "bind: " + bindErr.Error()
+		}
+		if bindDiagnosis != "" {
+			return experiment.UserJudgmentEvidence{}, fmt.Errorf("round identity mismatch (%s; task_state=%s)", bindDiagnosis, loop.Experiment.TaskState)
 		}
 	}
 	if round.ID != request.RoundID || round.AuditionSessionID != request.SessionID {
@@ -823,10 +872,21 @@ func (s *Server) applyFreeStateJudgmentOutcome(ctx context.Context, loop *freeSt
 				return err
 			}
 			s.emitFreeStateExperimentEvents(events)
+			// The recalibration round needs its pre-action base booked at the
+			// boundary (mirroring the admission's before-observation booking):
+			// the proposing turn's result envelope never reaches the
+			// decision-gated booking path, and without a revision-matched base
+			// the confirmed action dies at the VSP base revision gate.
+			s.bookRecalibrationRoundBaseFromLoop(loop)
 			grantD2CalibrationRoundContinuation(loop)
 			loop.AuditionSessionID = ""
 			loop.AuditionSessionSnapshot = nil
 			loop.Status = "active"
+			// The judgment POST is out-of-band: the driving continuation chain
+			// was drained at the audition boundary, so the opened round needs a
+			// freshly armed continuation or the driver's continue nudge has
+			// nothing to resume (2026-08-29 S3b/S3c smoke: no_continuation).
+			s.armFreeStateRecalibrationContinuation(loop)
 			return s.resumeTaskExperimentAfterJudgment(loop, "human judgment recorded; experiment remains open")
 		}
 		// True ambiguity (a difference was heard but neither candidate is

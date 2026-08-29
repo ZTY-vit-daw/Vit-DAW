@@ -415,3 +415,108 @@ func TestD2MultiRoundBudgetExhaustedSettlesCapabilityBlockedCanonicalTask(t *tes
 		t.Fatalf("canonical task semantic state=%+v", current.Task)
 	}
 }
+
+// TestMultiRoundRecalibrationJudgmentArmsContinuationDrive locks the drive
+// wiring the frozen probe contract assumes: the judgment POST is out-of-band,
+// so after it opens the recalibration round a continue nudge must find an
+// armed continuation to resume — without it the opened round can never act
+// (2026-08-29 S3b/S3c smoke: round 2 opened, every nudge returned
+// no_continuation, the intervention never executed).
+func TestMultiRoundRecalibrationJudgmentArmsContinuationDrive(t *testing.T) {
+	s, loop := d2MultiRoundServerLoopForTest(t, 2)
+	driveNoDifferenceRecalibration(t, s, &loop)
+	cont, ok := s.goalContinuationForConversation(loop.ConversationID)
+	if !ok {
+		t.Fatal("recalibration judgment did not arm a continuation for the continue nudge")
+	}
+	if cont.GoalID != loop.GoalID || cont.UserText != loop.OriginalIntent ||
+		!contextBool(cont.Context, "free_state_internal_resume") || !contextBool(cont.Context, "free_state_route_authorized") {
+		t.Fatalf("armed continuation is not an authorized internal resume of the loop intent: %+v", cont)
+	}
+	restored, restoredOK := freeStateLoopFromAny(cont.Context["free_state_reasoning_loop"])
+	if !restoredOK || restored.Experiment == nil || len(restored.Experiment.Rounds) != 2 {
+		t.Fatalf("armed continuation lost the recalibration loop binding: %+v", cont.Context["free_state_reasoning_loop"])
+	}
+
+	// Once the recalibration round has acted, re-arming refuses and never
+	// clobbers the continuation that is already armed.
+	if _, err := loop.Experiment.ApplyIntervention(experiment.Intervention{
+		ID: "d2-action-2", Attempt: 1, TechnicalApplication: experiment.TechnicalApplied, UserConfirmed: true,
+		AchievedDelta: map[string]any{"delta_db": -1.0},
+		Receipt: map[string]any{"action_id": "d2-action-2", "status": "applied", "after_revision": "9",
+			"transaction_id": "tx-d2-action-2", "idempotency_key": "key-d2-action-2", "readback_verified": true},
+	}, time.Now().UTC()); err != nil {
+		t.Fatal(err)
+	}
+	s.armFreeStateRecalibrationContinuation(&loop)
+	if kept, ok := s.goalContinuationForConversation(loop.ConversationID); !ok || kept.UserText != cont.UserText {
+		t.Fatalf("re-arming after the round acted replaced the armed continuation: kept=%+v ok=%v", kept, ok)
+	}
+
+	// The sealed single-round tier never arms.
+	singleServer, singleLoop := d2MultiRoundServerLoopForTest(t, 1)
+	singleServer.armFreeStateRecalibrationContinuation(&singleLoop)
+	if _, ok := singleServer.goalContinuationForConversation(singleLoop.ConversationID); ok {
+		t.Fatal("single-round tier armed a recalibration continuation")
+	}
+}
+
+// TestMultiRoundRecalibrationRoundBooksBaseObservationWithoutDecision locks the
+// pre-action base booking for the recalibration round: the round re-bases at
+// the judgment boundary on the judged round's post-action bundle (mirroring
+// the admission's before-observation booking), and a later decision-less
+// proposal turn can still contribute its own fresh base — otherwise the
+// confirmed action dies at the "VSP base revision does not match the fresh
+// admitted observation" execution gate (2026-08-29 S3c smoke).
+func TestMultiRoundRecalibrationRoundBooksBaseObservationWithoutDecision(t *testing.T) {
+	s, loop := d2MultiRoundServerLoopForTest(t, 2)
+	driveNoDifferenceRecalibration(t, s, &loop)
+	round, err := loop.Experiment.CurrentRound()
+	if err != nil {
+		t.Fatal(err)
+	}
+	// The boundary re-bases the recalibration round on the judged round's
+	// booked post-action bundle (obs-d2-action-1 at after_revision 8), carried
+	// forward as the new round's non-post-action base.
+	if len(round.Observations) != 1 || round.Observations[0].PostAction || round.Observations[0].ID != "obs-d2-action-1" || !round.Observations[0].Fresh {
+		t.Fatalf("recalibration boundary did not re-base the round on the judged round's bundle: %+v", round.Observations)
+	}
+	if round.Observations[0].ProjectRevision != "8" {
+		t.Fatalf("recalibration base lost its revision binding: %+v", round.Observations[0])
+	}
+
+	// A decision-less native-tool proposal turn books its own fresh base when
+	// the boundary re-basing had nothing revision-matched to use.
+	s2, loop2 := d2MultiRoundServerLoopForTest(t, 2)
+	driveNoDifferenceRecalibration(t, s2, &loop2)
+	fresh := d1FreshObservationForTest("8")
+	fresh.Summary["observation_id"] = "obs-round-2-base"
+	fresh.Summary["audit_receipt"].(map[string]any)["freshness"] = map[string]any{"status": "fresh", "project_revision": "8"}
+	fresh.Summary["project_binding"] = map[string]any{"project_revision": "8"}
+	stored, ok := s2.recordFreeStateDecision(loop2.ConversationID, agentloop.Result{
+		GoalID: loop2.GoalID, RunID: loop2.RunID, RecentObservation: fresh,
+	})
+	if !ok {
+		t.Fatal("decision-less proposal turn was not retained")
+	}
+	round2, err := stored.Experiment.CurrentRound()
+	if err != nil {
+		t.Fatal(err)
+	}
+	// The boundary base stays first; the proposal turn's fresh observation is
+	// appended behind it (the execution gate reads the round's first,
+	// revision-matched base).
+	if len(round2.Observations) != 2 || round2.Observations[0].ID != "obs-d2-action-1" || round2.Observations[1].ID != "obs-round-2-base" || round2.Observations[1].PostAction {
+		t.Fatalf("decision-less proposal turn did not book its fresh base behind the boundary base: %+v", round2.Observations)
+	}
+
+	// The single-round tier's decision-less turns never book.
+	singleServer, singleLoop := d2MultiRoundServerLoopForTest(t, 1)
+	singleServer.storeFreeStateLoop(singleLoop)
+	before, _ := singleLoop.Experiment.CurrentRound()
+	singleServer.bookFreeStateRecalibrationRoundBase(&singleLoop, []*agentloop.RecentObservation{fresh})
+	after, _ := singleLoop.Experiment.CurrentRound()
+	if len(after.Observations) != len(before.Observations) {
+		t.Fatalf("single-round tier booked a recalibration base: %+v", after.Observations)
+	}
+}

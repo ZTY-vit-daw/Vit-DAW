@@ -646,6 +646,12 @@ func (s *Server) recordFreeStateDecision(conversationID string, res agentloop.Re
 		loop.LatestObservation = durableLatest
 		latestUsable = durableLatest
 	}
+	// A native-tool proposal turn can end in waiting_confirmation with no typed
+	// decision while the decision-bearing result envelope omits its CCB
+	// observation; either way the fresh observation is the recalibration round's
+	// pre-action base and must reach the round or its execution gate has nothing
+	// revision-matched to admit against. Self-gated and idempotent.
+	s.bookFreeStateRecalibrationRoundBase(&loop, observations)
 	if res.FreeStateDecision == nil {
 		loop.UpdatedAt = time.Now().UTC()
 		s.storeFreeStateLoop(loop)

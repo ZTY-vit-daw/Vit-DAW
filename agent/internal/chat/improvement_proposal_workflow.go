@@ -26,6 +26,69 @@ func (s *Server) improvementProposalResponse(conversationID, mode string, res ag
 	}
 	candidate := proposal.ToPendingCandidate(conversationID, res.GoalID, res.RunID, "")
 	s.upsertPendingCandidate(candidate)
+	// An experiment whose budget is spent and whose current round has acted has
+	// no admissible round for another proposal: the settle phase owes its
+	// report. Parking a fresh confirmation here would leave an interaction no
+	// driver can answer (the probe filters later proposal confirmations) and a
+	// non-terminal continuation behind it (2026-08-29 S3c smoke: the refused
+	// round-2 settle report fell back into a proposal whose waiting checkpoint
+	// failed the restart-idempotency check). Answer waiting_continue so the
+	// settle chain keeps its own budget.
+	if loop, loopOK := s.freeStateLoop(conversationID); loopOK && loop.Experiment != nil &&
+		strings.EqualFold(strings.TrimSpace(string(loop.Experiment.Status)), string(experiment.StatusRunning)) &&
+		freeStateExperimentBudgetExhausted(loop.Experiment) && !freeStateLoopRoundOwesIntervention(loop) {
+		resp.Reply = "实验预算已用完；本轮改动正在等待基于改动后证据的结算报告，不会再提出新的改动。"
+		resp.GoalStatus = string(agentruntime.StatusWaitingContinue)
+		resp.StopReason = "experiment_budget_awaits_settlement"
+		resp.NeedsConfirmation = false
+		resp.Workflow = improvementProposalWorkflow
+		resp.WorkflowData = mergeContext(resp.WorkflowData, map[string]any{
+			"experiment_budget_exhausted": true, "mutation_performed": false,
+			"free_state_reasoning_loop":   freeStateLoopMap(loop),
+		})
+		resp.InteractionRequests = nil
+		return resp
+	}
+	// A recalibrating D2-2 round already carries its admitted experiment
+	// direction, and the frozen probe driver cannot approve a second
+	// improvement_proposal_confirmation (its experiment_proposal_approved
+	// filter is per-run). Parking the owed round behind that hop would stall
+	// it forever, so route the accepted proposal straight to the bounded
+	// mix-tick confirmation — the per-round user boundary and every dose bound
+	// stay intact (2026-08-29 S3c smoke: round 2's proposal confirmation was
+	// unreachable for the driver).
+	if loop, loopOK := s.freeStateLoop(conversationID); loopOK && freeStateLoopRoundOwesIntervention(loop) {
+		if admittedDomain := firstStringFromMap(loop.Experiment.Admission.TypedAction, "action_domain"); admittedDomain != "" &&
+			!strings.EqualFold(strings.TrimSpace(proposal.ActionDomain), admittedDomain) {
+			// The recalibration reuses the existing admission, so a proposal
+			// that drifts to another action domain has no admissible execution
+			// path. Refuse it and keep the round live: the refusal lands in the
+			// conversation the next continuation reads, and the owed round
+			// re-proposes within the admitted domain (2026-08-29 S3c smoke:
+			// round 2 proposed track_gain under a static_eq admission and its
+			// confirmed execution died at the plan builder).
+			loop.LastError = "recalibration proposal must stay within the admitted action domain " + admittedDomain
+			loop.UpdatedAt = time.Now().UTC()
+			s.storeFreeStateLoop(loop)
+			resp.Reply = "再校准轮沿用已准入的实验方向（" + admittedDomain + "）；这条提案切换了动作域，未执行。请在已准入域内提出本轮的单一小步调整。"
+			resp.GoalStatus = string(agentruntime.StatusWaitingContinue)
+			resp.StopReason = "recalibration_domain_mismatch"
+			resp.NeedsConfirmation = false
+			resp.InteractionRequests = nil
+			resp.WorkflowData = mergeContext(resp.WorkflowData, map[string]any{
+				"recalibration_domain_mismatch": true, "admitted_action_domain": admittedDomain,
+				"proposed_action_domain": strings.TrimSpace(proposal.ActionDomain), "mutation_performed": false,
+			})
+			return resp
+		}
+		interactionRequest := improvementProposalInteractionRequest(conversationID, res.GoalID, res.RunID, resp.Reply, candidate, requestContext)
+		interaction := PendingInteraction{ID: interactionRequest.ID, Kind: interactionRequest.Kind, Type: interactionRequest.Type, Source: interactionRequest.Source, Workflow: interactionRequest.Workflow, ConversationID: conversationID, GoalID: res.GoalID, RunID: res.RunID, RequestContext: cloneContext(requestContext), Payload: cloneContext(interactionRequest.Payload), Data: cloneContext(interactionRequest.Data)}
+		s.transitionActivePendingCandidate(conversationID, "improvement_proposal", agentprotocol.PendingStatusAccepted, "recalibration round proposal routed to its bounded tick confirmation")
+		if response, routed := s.routeAcceptedImprovementProposal(context.Background(), interaction); routed {
+			response.WorkflowData = mergeContext(response.WorkflowData, map[string]any{"recalibration_proposal_routed": true})
+			return response
+		}
+	}
 	if authorityModeFromContext(requestContext) == experiment.AuthorityFull {
 		interactionRequest := improvementProposalInteractionRequest(conversationID, res.GoalID, res.RunID, resp.Reply, candidate, requestContext)
 		interaction := PendingInteraction{ID: interactionRequest.ID, Kind: interactionRequest.Kind, Type: interactionRequest.Type, Source: interactionRequest.Source, Workflow: interactionRequest.Workflow, ConversationID: conversationID, GoalID: res.GoalID, RunID: res.RunID, RequestContext: cloneContext(requestContext), Payload: cloneContext(interactionRequest.Payload), Data: cloneContext(interactionRequest.Data)}

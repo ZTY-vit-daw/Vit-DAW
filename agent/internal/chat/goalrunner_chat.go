@@ -176,7 +176,7 @@ func (s *Server) runAgentLoopChat(ctx context.Context, conversationID string, re
 			if goalStatus == "" || goalStatus == agentruntime.StatusIdle {
 				goalStatus = agentruntime.StatusWaitingContinue
 			}
-			return ChatResponse{
+			resp := ChatResponse{
 				ConversationID: conversationID,
 				TaskID:         pending.TaskID, GoalID: pending.GoalID, RunID: pending.RunID,
 				SliceID: pending.CurrentSliceID, TurnID: pending.CurrentTurnID, OriginalIntent: pending.OriginalIntent,
@@ -186,7 +186,20 @@ func (s *Server) runAgentLoopChat(ctx context.Context, conversationID string, re
 					"continuation_id": pending.ContinuationID, "status": pending.Status,
 					"pending_interaction": cloneContext(pending.PendingInteraction),
 				},
-			}, true
+			}
+			// The bare-continue answer must still surface the waiting
+			// confirmation as an answerable interaction request, or a driver
+			// that only reads chat responses can never resolve the boundary
+			// (2026-08-29 S3c smoke: the round-2 tick's confirmation absorbed
+			// every nudge while staying invisible to the probe).
+			if interactionID := firstStringFromMap(pending.PendingInteraction, "interaction_id"); interactionID != "" {
+				if stored, storedOK := s.peekPendingInteraction(interactionID); storedOK {
+					if request, requestOK := pendingInteractionConfirmationRequest(stored); requestOK {
+						resp.InteractionRequests = append(resp.InteractionRequests, request)
+					}
+				}
+			}
+			return resp, true
 		}
 	}
 	classificationRequired := mode != agentModePlan && durableInvocationID == "" && !isContinueMessage(req.Message) &&
@@ -2418,10 +2431,16 @@ func (s *Server) recordGoalResult(conversationID string, res agentloop.Result) e
 		// driver-side experiment filter refuses to approve it, nudges cannot
 		// cross the boundary, and the settle turn never runs again
 		// (S2e, 2026-08-28 121306→130901 smokes: every failed run wedged on
-		// exactly this storage).
+		// exactly this storage). The spent-mutation guard widens the same
+		// refusal to the post-action-observation race window: a round whose
+		// intervention is booked but whose deterministic observation booking
+		// has not landed yet still owes its settle report, and its refused
+		// settle turn must not fall back into a second-mutation tick
+		// (2026-08-29 S3c smoke: the refused round-2 report stored a tick whose
+		// waiting checkpoint failed the restart-idempotency check).
 		roundPendingSettlement := false
 		if loop, exists := s.freeStateLoops[conversationID]; exists {
-			roundPendingSettlement = freeStateLoopRoundPendingSettlement(loop)
+			roundPendingSettlement = freeStateLoopRoundPendingSettlement(loop) || freeStateLoopRoundSpentMutation(loop)
 		}
 		if roundPendingSettlement {
 			if candidate := res.ExecutionMemory.PendingMixTickCandidate; candidate != nil && strings.EqualFold(strings.TrimSpace(candidate.Status), "pending_confirmation") {
@@ -2517,6 +2536,25 @@ func (s *Server) recordGoalResult(conversationID string, res agentloop.Result) e
 				"stop_reason": res.StopReason,
 				"limit_type":  res.LimitType,
 			})
+			// The durable human-judgment boundary is answered out-of-band by
+			// the guarded audition judgment POST, never by a chat interaction:
+			// once the round is durably parked there, the driving
+			// continuation's work is complete. Parking it at
+			// waiting_interaction instead both stalls the scheduler behind an
+			// unanswerable in-chat boundary and leaves a non-terminal
+			// continuation behind the parked loop (2026-08-29 S3c smoke: the
+			// frozen probe's restart-idempotency check failed on exactly that
+			// leftover).
+			if loop, loopOK := s.freeStateLoops[conversationID]; loopOK && freeStateJudgmentBoundary(loop) &&
+				res.FreeStateDecision != nil &&
+				strings.EqualFold(strings.TrimSpace(res.FreeStateDecision.ExperimentRoundDecision), string(experiment.DecisionUserJudgment)) {
+				durable.Status = ContinuationCompleted
+				durable.LeaseOwner = ""
+				durable.LeaseExpiresAt = time.Time{}
+				durable.PendingInteraction = mergeContext(cloneContext(durable.PendingInteraction), map[string]any{
+					"status": "completed_at_human_judgment_boundary",
+				})
+			}
 		}
 		if previous, exists := s.durableContinuations[durable.ContinuationID]; exists {
 			// Re-recording the same checkpoint is idempotent. A checkpoint has

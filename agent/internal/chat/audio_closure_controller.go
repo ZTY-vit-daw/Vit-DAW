@@ -324,9 +324,14 @@ func (s *Server) admitAudioClosureRound(state audioclosure.State) (audioclosure.
 	// still owes its settle report, and settling at the boundary then kills
 	// the loop before any settle slice can run (2026-08-28 19:49 smoke:
 	// "closure observation round boundary reached" landed between the applied
-	// boundary and the settle turn).
+	// boundary and the settle turn). The symmetric window on the other side of
+	// the judgment is the freshly opened recalibration round that still owes
+	// its single intervention (freeStateLoopRoundOwesIntervention): neither
+	// legacy condition holds there, so without that branch the same boundary
+	// kills the loop before round 2 can act (2026-08-29 S3b smoke).
 	if loop, loopOK := s.freeStateLoop(current.ConversationID); loopOK && loop.Experiment != nil &&
-		(loop.RequiresPostActionObservation || freeStateLoopRoundPendingSettlement(loop)) {
+		(loop.RequiresPostActionObservation || freeStateLoopRoundPendingSettlement(loop) ||
+			freeStateLoopRoundOwesIntervention(loop)) {
 			next, err := (audioclosure.Driver{}).ExtendClosureRounds(current, current.Revision, current.RoundsStarted+1, time.Now().UTC())
 			if err != nil {
 				return current, false, err

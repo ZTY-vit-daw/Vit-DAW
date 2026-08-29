@@ -585,6 +585,19 @@ func (s *Server) recordFreeStateExperimentDecision(ctx context.Context, loop *fr
 		if s.logger != nil {
 			s.logger.Warn("[free-state-experiment] settle report refused until the fresh post-action observation is recorded on the round")
 		}
+		// The refused report must not park the driving continuation at a
+		// judgment boundary it failed to form: strip the user_judgment_pending
+		// round decision from the loop projection so the settle chain stays
+		// schedulable and retries once the deterministic post-action booking
+		// lands (2026-08-29 S3c smoke: the refused round-2 report parked its
+		// continuation at waiting_interaction and the settle turn never ran
+		// again).
+		if loop.LatestDecision != nil &&
+			strings.EqualFold(strings.TrimSpace(loop.LatestDecision.ExperimentRoundDecision), string(experiment.DecisionUserJudgment)) {
+			cleared := *loop.LatestDecision
+			cleared.ExperimentRoundDecision = ""
+			loop.LatestDecision = &cleared
+		}
 		return
 	}
 	if decision.ExperimentMateriality != nil {
@@ -689,6 +702,24 @@ func (s *Server) recordFreeStateExperimentAction(loop *freeStateReasoningLoop, p
 				intervention.Receipt["applied_delta_db"] = value
 			}
 		}
+		// A round's mutation can advance the live revision more than once
+		// (PluginBound domains: the round-scoped plugin instance creation plus
+		// the parameter batch), and the port receipt brackets only the final
+		// write. The frozen multi-round contract chains each round's receipt
+		// onto the previous round's after_revision, so on this tier the
+		// receipt's before_revision states the round's full mutation envelope:
+		// the revision this round started from (2026-08-29 S3c smoke: round 2
+		// instantiated its plugin at 4->5 and wrote the parameter at 5->6,
+		// leaving a receipt that began at 5 instead of the round base 4).
+		if len(round.Interventions) == 0 && len(loop.Experiment.Rounds) >= 2 {
+			previous := loop.Experiment.Rounds[len(loop.Experiment.Rounds)-2]
+			if interventions := previous.Interventions; len(interventions) > 0 {
+				if base := firstStringFromMap(interventions[len(interventions)-1].Receipt, "after_revision", "applied_revision"); base != "" &&
+					firstStringFromMap(intervention.Receipt, "before_revision") != base {
+					intervention.Receipt["before_revision"] = base
+				}
+			}
+		}
 	}
 	if events, err := loop.Experiment.ApplyIntervention(intervention, time.Now().UTC()); err == nil {
 		s.emitFreeStateExperimentEvents(events)
@@ -791,6 +822,22 @@ func freeStateExperimentRoundHasFreshPostActionObservation(turn *experiment.Turn
 	return false
 }
 
+// freeStateLoopRoundSpentMutation reports whether the current experiment
+// round has spent its single mutation budget without its round decision
+// landing yet — including the post-action-observation race window where the
+// deterministic booking has not arrived. Every further pending mix
+// tick/treatment is an illegal second mutation in that state.
+func freeStateLoopRoundSpentMutation(loop freeStateReasoningLoop) bool {
+	if loop.Experiment == nil || !strings.EqualFold(strings.TrimSpace(string(loop.Experiment.Status)), string(experiment.StatusRunning)) {
+		return false
+	}
+	round, err := loop.Experiment.CurrentRound()
+	if err != nil || len(round.Interventions) == 0 {
+		return false
+	}
+	return strings.TrimSpace(string(round.Decision)) == ""
+}
+
 // freeStateLoopRoundPendingSettlement reports whether the loop's applied
 // experiment round carries fresh post-action evidence but no settlement
 // decision. The round state is authoritative: storeFreeStateLoop rewrites
@@ -809,6 +856,190 @@ func freeStateLoopRoundPendingSettlement(loop freeStateReasoningLoop) bool {
 		return false
 	}
 	return freeStateExperimentRoundHasFreshPostActionObservation(loop.Experiment)
+}
+
+// freeStateLoopRoundOwesIntervention reports whether the loop's freshly opened
+// D2-2 recalibration/calibration round still owes its single governed
+// intervention. The closure round limit is an observation-window bound and must
+// not kill a cross-judgment recalibration round whose intervention budget is
+// unspent — the same asymmetry the settle window already extends for (a round
+// that owes its settle report). Exactly that recalibration boundary satisfies
+// neither legacy condition: the previous round's post-action observation is
+// booked (RequiresPostActionObservation=false) and the new round carries no
+// fresh post-action evidence (freeStateLoopRoundPendingSettlement=false), so
+// without this branch any scheduler re-entry settles capability_blocked before
+// round 2 can act (2026-08-29 S3b smoke: "closure observation round boundary
+// reached" between the recalibration decision and round 2's intervention). The
+// single-round D1 tier is excluded — its boundary behavior is sealed and it
+// never opens a recalibration round — and the budget guard keeps the frozen
+// contract intact: one intervention per round, at most ExperimentBudget per
+// experiment, and the extension grants neither.
+func freeStateLoopRoundOwesIntervention(loop freeStateReasoningLoop) bool {
+	if loop.Experiment == nil || !strings.EqualFold(strings.TrimSpace(string(loop.Experiment.Status)), string(experiment.StatusRunning)) {
+		return false
+	}
+	if !loop.Experiment.Admission.IsD2MultiRound() || freeStateExperimentBudgetExhausted(loop.Experiment) {
+		return false
+	}
+	round, err := loop.Experiment.CurrentRound()
+	if err != nil || len(round.Interventions) != 0 {
+		return false
+	}
+	return true
+}
+
+// armFreeStateRecalibrationContinuation makes the freshly opened recalibration
+// round drivable. The judgment boundary is an out-of-band POST: the driving
+// continuation chain was already drained when the loop parked at the audition
+// boundary, so after the recalibration decision opens the next round a continue
+// nudge would find nothing to continue ("当前没有可继续的暂停任务") and the
+// owed round could never act (2026-08-29 S3b/S3c smoke: round 2 opened, every
+// nudge returned no_continuation, the intervention never executed). Arm the
+// goal continuation with an internal-resume context so the ordinary continue
+// path runs the recalibration round's slice chain. Gated by the
+// owed-intervention predicate (multi-round tier only, budget unspent), refuses
+// to clobber an existing continuation, and never arms the sealed single-round
+// tier.
+func (s *Server) armFreeStateRecalibrationContinuation(loop *freeStateReasoningLoop) {
+	if s == nil || loop == nil || !freeStateLoopRoundOwesIntervention(*loop) || freeStateContinuationBudgetExhausted(*loop) {
+		return
+	}
+	goalID := strings.TrimSpace(loop.GoalID)
+	if goalID == "" || strings.TrimSpace(loop.ConversationID) == "" {
+		return
+	}
+	s.mu.Lock()
+	if s.goalContinuations == nil || s.conversationGoals == nil {
+		s.mu.Unlock()
+		return
+	}
+	if _, exists := s.goalContinuations[goalID]; exists {
+		s.mu.Unlock()
+		return
+	}
+	s.goalContinuations[goalID] = agentloop.Continuation{
+		GoalID: goalID, RunID: loop.RunID,
+		UserText:       firstNonEmpty(loop.ActiveIntent, loop.OriginalIntent),
+		OriginalIntent: loop.OriginalIntent,
+		Context: map[string]any{
+			"conversation_id":             loop.ConversationID,
+			"goal_id":                     goalID,
+			"run_id":                      loop.RunID,
+			"free_state_internal_resume":  true,
+			"free_state_route_authorized": true,
+			"free_state_reasoning_loop":   freeStateLoopMap(*loop),
+			"free_state_project_change":   cloneContext(loop.LatestProjectChange),
+		},
+	}
+	s.conversationGoals[loop.ConversationID] = goalID
+	s.mu.Unlock()
+}
+
+// bookFreeStateRecalibrationRoundBase books a fresh CCB observation as the
+// freshly opened recalibration round's pre-action base. Round 1 gets its base
+// deterministically at admission; a later round must take its own fresh
+// observation, and the model turn that produces it ends in a native-tool
+// proposal confirmation carrying no typed decision — so the decision-gated
+// booking site never runs, the confirmed action then dies at the "D1-S1 VSP
+// base revision does not match the fresh admitted observation" gate, and the
+// owed round can never act (2026-08-29 S3c smoke). Gated by the
+// owed-intervention predicate: only a multi-round round that has not acted
+// yet, with the judgment boundary released.
+func (s *Server) bookFreeStateRecalibrationRoundBase(loop *freeStateReasoningLoop, observations []*agentloop.RecentObservation) {
+	if s == nil || loop == nil || loop.Experiment == nil || !freeStateLoopRoundOwesIntervention(*loop) || freeStateJudgmentBoundary(*loop) {
+		return
+	}
+	candidates := append([]*agentloop.RecentObservation{}, observations...)
+	if loop.LatestObservation != nil {
+		candidates = append(candidates, loop.LatestObservation)
+	}
+	for _, current := range candidates {
+		if current == nil {
+			continue
+		}
+		observation, ok := freeStateExperimentObservation(current, false)
+		if !ok || freeStateExperimentHasObservation(loop.Experiment, observation.ID) {
+			continue
+		}
+		if base := freeStateRecalibrationBaseRevision(*loop); base != "" && observation.ProjectRevision != base {
+			continue
+		}
+		if events, err := loop.Experiment.RecordObservation(observation, false, time.Now().UTC()); err == nil {
+			s.emitFreeStateExperimentEvents(events)
+			return
+		} else if s.logger != nil {
+			s.logger.Warn("[free-state-experiment] recalibration base observation rejected: %v", err)
+		}
+	}
+}
+
+// bookRecalibrationRoundBaseFromLoop mirrors the admission's deterministic
+// before-observation booking for a freshly opened recalibration round: re-base
+// the round on the judged round's freshest post-action observation — the
+// authoritative bundle at the mutation's after revision, which is still the
+// live project state. The deterministic post-action booking writes that bundle
+// onto the experiment round without ever flowing through
+// loop.LatestObservation (which stays at the pre-action bundle), so the base
+// must be sourced from the experiment's own rounds. The execution gate admits
+// the round's bounded action only against a revision-matched non-post-action
+// base on the round itself, and the proposing model turn ends in a native-tool
+// confirmation whose result envelope never reaches the decision-gated booking
+// path — so the base must be booked at the round boundary (2026-08-29 S3c
+// smoke: the confirmed round-2 action died at "D1-S1 VSP base revision does
+// not match the fresh admitted observation"). Re-basing keeps the original
+// evidence identity: the runtime has no cross-round observation-id dedup, and
+// the bundle genuinely is the freshest observation of the base revision.
+func (s *Server) bookRecalibrationRoundBaseFromLoop(loop *freeStateReasoningLoop) {
+	if s == nil || loop == nil || loop.Experiment == nil || !freeStateLoopRoundOwesIntervention(*loop) {
+		return
+	}
+	round, err := loop.Experiment.CurrentRound()
+	if err != nil || len(round.Observations) > 0 || len(loop.Experiment.Rounds) < 2 {
+		return
+	}
+	previous := loop.Experiment.Rounds[len(loop.Experiment.Rounds)-2]
+	base, found := experiment.Observation{}, false
+	for index := len(previous.Observations) - 1; index >= 0; index-- {
+		if candidate := previous.Observations[index]; candidate.PostAction && candidate.Fresh && strings.TrimSpace(candidate.ProjectRevision) != "" {
+			base, found = candidate, true
+			break
+		}
+	}
+	if !found {
+		return
+	}
+	base.PostAction = false
+	if baseRevision := freeStateRecalibrationBaseRevision(*loop); baseRevision != "" && base.ProjectRevision != baseRevision {
+		return
+	}
+	events, bookErr := loop.Experiment.RecordObservation(base, false, time.Now().UTC())
+	if bookErr != nil {
+		if s.logger != nil {
+			s.logger.Warn("[free-state-experiment] recalibration base observation rejected: %v", bookErr)
+		}
+		return
+	}
+	s.emitFreeStateExperimentEvents(events)
+}
+
+// freeStateRecalibrationBaseRevision is the live project revision the freshly
+// opened recalibration round re-bases on: the judged round's mutation after
+// revision (booked in LatestProjectChange), falling back to the previous
+// round's recorded revision.
+func freeStateRecalibrationBaseRevision(loop freeStateReasoningLoop) string {
+	if revision := firstStringFromMap(loop.LatestProjectChange, "project_revision", "revision"); revision != "" {
+		return revision
+	}
+	if loop.Experiment == nil || len(loop.Experiment.Rounds) < 2 {
+		return ""
+	}
+	previous := loop.Experiment.Rounds[len(loop.Experiment.Rounds)-2]
+	if interventions := previous.Interventions; len(interventions) > 0 {
+		if revision := firstStringFromMap(interventions[len(interventions)-1].Receipt, "after_revision", "applied_revision"); revision != "" {
+			return revision
+		}
+	}
+	return previous.ProjectRevision
 }
 
 // freeStateRoundPendingSettlementForConversation is the server-facing lookup

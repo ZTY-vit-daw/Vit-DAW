@@ -1,18 +1,21 @@
 package chat
 
 import (
+	"context"
 	"strings"
 	"testing"
 	"time"
 
 	"vit-daw-agent/internal/agentloop"
 	"vit-daw-agent/internal/audioclosure"
+	"vit-daw-agent/internal/experiment"
 	"vit-daw-agent/internal/harness"
 	"vit-daw-agent/internal/orchestration"
 	"vit-daw-agent/internal/orchestrationcontroller"
 	"vit-daw-agent/internal/orchestrationruntime"
 	agentruntime "vit-daw-agent/internal/runtime"
 	"vit-daw-agent/internal/taskstate"
+	"vit-daw-agent/internal/trajectory"
 )
 
 func audioClosureTestServer() *Server {
@@ -1002,4 +1005,222 @@ func TestSyncAudioClosureGovernedRevisionBooksAppliedRevision(t *testing.T) {
 	if again, _ := server.audioClosures.ActiveForConversation("conversation-governed-sync"); again.Revision != synced.Revision {
 		t.Fatal("unknown conversation must not touch the closure")
 	}
+}
+
+// prepareClosureRoundBoundary builds a contract-bound closure whose only
+// admitted round has started and completed, so the next admission sits exactly
+// on the closure round boundary.
+func prepareClosureRoundBoundary(t *testing.T, s *Server, conversationID, goalID, projectRevision string) audioclosure.State {
+	t.Helper()
+	goal := s.harness.EnsureGoal(goalID, "run-"+goalID, "improve the mix")
+	if _, err := s.ensureAudioTaskContract(conversationID, audioclosure.ModeTreatment,
+		audioclosure.Scope{Kind: "track", ID: "vocal"}, "project-d2", projectRevision, map[string]any{"goal_id": goal.GoalID}); err != nil {
+		t.Fatal(err)
+	}
+	current := s.harness.RuntimeStatus(goal.GoalID)
+	state, err := audioclosure.Start(audioclosure.StartRequest{
+		ClosureID: "closure-" + conversationID, ConversationID: conversationID, TaskID: current.Task.TaskID,
+		GoalID: goal.GoalID, RunID: current.RunID, ContractID: current.Task.Contract.ContractID,
+		TaskState: current.Task.SemanticState.State, TaskStateRevision: current.Task.SemanticState.Revision,
+		ProjectUUID: "project-d2", ProjectRevision: projectRevision, OriginalIntent: current.Task.OriginalIntent,
+		Mode: audioclosure.ModeTreatment, Scope: audioclosure.Scope{Kind: "track", ID: "vocal"},
+		Policy: audioclosure.Policy{MaxClosureRounds: 1, MaxUniqueObservations: 4, MaxNoProgressRounds: 2, MaxModelProtocolRepairs: 1, MaxActionAttempts: 1, MaxRollbackAttempts: 1},
+		Now:    time.Now().UTC(),
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := s.audioClosures.Create(state); err != nil {
+		t.Fatal(err)
+	}
+	state, admitted, err := s.admitAudioClosureRound(state)
+	if err != nil || !admitted {
+		t.Fatalf("boundary closure round 1 admission: admitted=%v err=%v", admitted, err)
+	}
+	state, err = s.recordAudioClosureRound(state, agentloop.Result{}, map[string]any{"project_uuid": "project-d2", "project_revision": projectRevision})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if state.Terminal() || state.RoundInProgress {
+		t.Fatalf("boundary closure did not close round 1 cleanly: %+v", state)
+	}
+	return state
+}
+
+// wireLoopExperimentToContract binds the loop's started experiment onto the
+// contract task (the canonical chain: improvement proposed -> experiment
+// required), so the judgment flow runs with production task semantics.
+func wireLoopExperimentToContract(t *testing.T, s *Server, loop *freeStateReasoningLoop, projectRevision string) {
+	t.Helper()
+	if _, err := s.transitionTaskSemantic(loop.GoalID, taskstate.TransitionRequest{
+		Event: taskstate.EventImprovementProposed, Reason: "candidate observed", EvidenceRefs: []string{"obs-before"},
+		CandidateID: "vocal", ProjectRevision: projectRevision,
+		Proposal: &taskstate.BoundedProposal{ProposalID: "proposal-" + loop.LoopID, Summary: "bounded track gain", EvidenceRefs: []string{"obs-before"}, RequiresExperiment: true},
+	}); err != nil {
+		t.Fatal(err)
+	}
+	if err := s.bindExperimentSemantic(loop); err != nil {
+		t.Fatal(err)
+	}
+}
+
+// driveNoDifferenceRecalibration lands the machine-origin no-difference
+// judgment on the loop experiment's current round, opening the recalibration
+// round (the S3b smoke shape).
+func driveNoDifferenceRecalibration(t *testing.T, s *Server, loop *freeStateReasoningLoop) {
+	t.Helper()
+	d2ApplyAndObserveForTest(t, loop.Experiment, "d2-action-1", "8")
+	loop.LatestProjectChange = map[string]any{"project_revision": "8"}
+	if _, err := loop.Experiment.EvaluateMateriality(experiment.MaterialityEvaluation{State: experiment.MaterialityMaterial, Evaluation: trajectory.EvaluationAgentEvaluable, Attempt: 1, EvidenceRefs: []string{"obs-d2-action-1"}}, time.Now().UTC()); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := loop.Experiment.RecordTargetResponse(experiment.TargetEvaluation{Response: experiment.TargetAmbiguous, Outcome: trajectory.EvaluationHumanAuditionReady, EvidenceRefs: []string{"obs-d2-action-1"}}, time.Now().UTC()); err != nil {
+		t.Fatal(err)
+	}
+	// Production order: the canonical human-judgment transition precedes the
+	// experiment's judgment request (requestAuditionJudgment).
+	if err := s.requireTaskHumanJudgment(loop, "session-recalibration", "A/B audition judgment is required before experiment settlement"); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := loop.Experiment.RequestUserJudgmentForSession("A/B audition required", "session-recalibration", time.Now().UTC()); err != nil {
+		t.Fatal(err)
+	}
+	round, err := loop.Experiment.CurrentRound()
+	if err != nil {
+		t.Fatal(err)
+	}
+	evidence := experiment.UserJudgmentEvidence{
+		SchemaVersion: experiment.UserJudgmentEvidenceSchemaVersion, ConversationID: loop.ConversationID,
+		TurnID: loop.Experiment.ID, RoundID: round.ID, AuditionSessionID: "session-recalibration",
+		CandidateARef: "before.wav", CandidateBRef: "after.wav",
+		HeardDifference: experiment.HeardDifferenceNo, Preference: experiment.PreferenceUnsure, CreatedAt: time.Now().UTC(),
+	}
+	if _, err := loop.Experiment.RecordUserJudgmentEvidence(evidence, time.Now().UTC()); err != nil {
+		t.Fatal(err)
+	}
+	if err := s.applyFreeStateJudgmentOutcome(context.Background(), loop, evidence); err != nil {
+		t.Fatal(err)
+	}
+	s.storeFreeStateLoop(*loop)
+}
+
+// TestMultiRoundRecalibrationBoundaryExtendsClosureRounds locks the S3c branch:
+// a freshly opened recalibration round still owes its single governed
+// intervention, and the closure round limit (an observation-window bound) must
+// extend for it instead of settling capability_blocked. At that boundary
+// neither legacy extension condition holds — round 1's post-action observation
+// is booked (RequiresPostActionObservation=false) and the new round carries no
+// fresh post-action evidence (freeStateLoopRoundPendingSettlement=false) — so
+// without the owed-intervention branch any scheduler re-entry kills the loop
+// before round 2 can act (2026-08-29 S3b smoke, "closure observation round
+// boundary reached").
+func TestMultiRoundRecalibrationBoundaryExtendsClosureRounds(t *testing.T) {
+	s, loop := d2MultiRoundServerLoopForTest(t, 2)
+	state := prepareClosureRoundBoundary(t, s, loop.ConversationID, loop.GoalID, "8")
+	wireLoopExperimentToContract(t, s, &loop, "8")
+	driveNoDifferenceRecalibration(t, s, &loop)
+	if len(loop.Experiment.Rounds) != 2 {
+		t.Fatalf("recalibration round did not open: rounds=%d", len(loop.Experiment.Rounds))
+	}
+	if loop.RequiresPostActionObservation || freeStateLoopRoundPendingSettlement(loop) {
+		t.Fatalf("recalibration boundary unexpectedly owes a settle window: flag=%v pending=%v",
+			loop.RequiresPostActionObservation, freeStateLoopRoundPendingSettlement(loop))
+	}
+	if !freeStateLoopRoundOwesIntervention(loop) {
+		t.Fatal("recalibration round was not recognized as owing its intervention")
+	}
+	state, admitted, err := s.admitAudioClosureRound(state)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !admitted || state.Terminal() || state.RoundsStarted != 2 || state.Policy.MaxClosureRounds != 2 {
+		t.Fatalf("boundary did not extend for the owed recalibration round: admitted=%v rounds=%d max=%d state=%+v",
+			admitted, state.RoundsStarted, state.Policy.MaxClosureRounds, state)
+	}
+}
+
+// TestMultiRoundRecalibrationBoundaryExtensionGuards locks the negative space
+// of the owed-intervention extension: the frozen contract stays sealed. The
+// extension never fires when the current round has already spent its single
+// intervention, when the experiment budget is exhausted, or on the single-round
+// D1 tier (whose boundary behavior is sealed and never opens a recalibration
+// round).
+func TestMultiRoundRecalibrationBoundaryExtensionGuards(t *testing.T) {
+	t.Run("current round already intervened", func(t *testing.T) {
+		s, loop := d2MultiRoundServerLoopForTest(t, 2)
+		state := prepareClosureRoundBoundary(t, s, loop.ConversationID, loop.GoalID, "8")
+		wireLoopExperimentToContract(t, s, &loop, "8")
+		driveNoDifferenceRecalibration(t, s, &loop)
+		if _, err := loop.Experiment.ApplyIntervention(experiment.Intervention{
+			ID: "d2-action-2", Attempt: 1, TechnicalApplication: experiment.TechnicalApplied, UserConfirmed: true,
+			AchievedDelta: map[string]any{"delta_db": -1.0},
+			Receipt: map[string]any{"action_id": "d2-action-2", "status": "applied", "after_revision": "9",
+				"transaction_id": "tx-d2-action-2", "idempotency_key": "key-d2-action-2", "readback_verified": true},
+		}, time.Now().UTC()); err != nil {
+			t.Fatal(err)
+		}
+		s.storeFreeStateLoop(loop)
+		if freeStateLoopRoundOwesIntervention(loop) {
+			t.Fatal("round that already acted still reported as owing its intervention")
+		}
+		state, admitted, err := s.admitAudioClosureRound(state)
+		if err != nil || admitted || !state.Terminal() || state.Settlement.Reason != audioclosure.StopCapabilityBlocked {
+			t.Fatalf("boundary extended past an already-acted round: admitted=%v state=%+v err=%v", admitted, state, err)
+		}
+	})
+
+	t.Run("experiment budget exhausted", func(t *testing.T) {
+		s, loop := d2MultiRoundServerLoopForTest(t, 2)
+		// A contract-illegal shape (rounds beyond the admission budget, current
+		// round without its intervention): unreachable through the runtime, used
+		// here only to prove the budget guard is enforced by the chat layer
+		// itself, whatever a future runtime relaxation allows.
+		admission, err := freeStateExperimentAdmissionWithTier(freeStateReasoningLoop{LoopID: "loop-guard-budget", LatestObservation: d1FreshObservationForTest("7")}, experimentTestProposal(), 2)
+		if err != nil {
+			t.Fatal(err)
+		}
+		now := time.Now().UTC()
+		guard := loop
+		guard.Experiment = &experiment.Turn{
+			SchemaVersion: experiment.SchemaVersion, ID: "turn-guard-budget", ConversationID: guard.ConversationID,
+			Status: experiment.StatusRunning, Admission: admission, CurrentRoundID: "round-3",
+			Rounds: []experiment.Round{
+				{ID: "round-1", Number: 1, Status: experiment.RoundCompleted, Decision: experiment.DecisionNextRound,
+					Interventions: []experiment.Intervention{{ID: "a1", Attempt: 1}}, StartedAt: now, UpdatedAt: now},
+				{ID: "round-2", Number: 2, Status: experiment.RoundCompleted, Decision: experiment.DecisionNextRound,
+					Interventions: []experiment.Intervention{{ID: "a2", Attempt: 1}}, StartedAt: now, UpdatedAt: now},
+				{ID: "round-3", Number: 3, Status: experiment.RoundObserving, StartedAt: now, UpdatedAt: now},
+			},
+			StartedAt: now, UpdatedAt: now,
+		}
+		s.storeFreeStateLoop(guard)
+		if freeStateLoopRoundOwesIntervention(guard) {
+			t.Fatal("beyond-budget round still reported as owing an intervention")
+		}
+		state := prepareClosureRoundBoundary(t, s, guard.ConversationID, guard.GoalID, "8")
+		state, admitted, err := s.admitAudioClosureRound(state)
+		if err != nil || admitted || !state.Terminal() || state.Settlement.Reason != audioclosure.StopCapabilityBlocked {
+			t.Fatalf("boundary extended past the experiment budget: admitted=%v state=%+v err=%v", admitted, state, err)
+		}
+	})
+
+	t.Run("single round D1 tier sealed", func(t *testing.T) {
+		s, loop := d2MultiRoundServerLoopForTest(t, 1)
+		state := prepareClosureRoundBoundary(t, s, loop.ConversationID, loop.GoalID, "8")
+		wireLoopExperimentToContract(t, s, &loop, "8")
+		s.storeFreeStateLoop(loop)
+		// The running single-round experiment has not intervened yet, so the
+		// bare tier-agnostic predicate would extend; the sealed D1 boundary
+		// behavior must stay byte-identical instead.
+		if !strings.EqualFold(string(loop.Experiment.Status), string(experiment.StatusRunning)) || len(loop.Experiment.Rounds) != 1 {
+			t.Fatalf("single-round experiment is not in the pre-intervention window: %+v", loop.Experiment)
+		}
+		if freeStateLoopRoundOwesIntervention(loop) {
+			t.Fatal("single-round tier was admitted to the recalibration extension")
+		}
+		state, admitted, err := s.admitAudioClosureRound(state)
+		if err != nil || admitted || !state.Terminal() || state.Settlement.Reason != audioclosure.StopCapabilityBlocked {
+			t.Fatalf("single-round boundary behavior changed: admitted=%v state=%+v err=%v", admitted, state, err)
+		}
+	})
 }

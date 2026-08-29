@@ -3645,6 +3645,52 @@ func (s *Server) restorePendingInteraction(interaction PendingInteraction) {
 	s.interactions[interaction.ID] = interaction
 }
 
+// peekPendingInteraction is the non-consuming lookup behind surfaces that
+// project a still-waiting interaction (the bare-continue gate).
+func (s *Server) peekPendingInteraction(interactionID string) (PendingInteraction, bool) {
+	if s == nil {
+		return PendingInteraction{}, false
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	interaction, ok := s.interactions[strings.TrimSpace(interactionID)]
+	return interaction, ok
+}
+
+// pendingInteractionConfirmationRequest projects a stored pending interaction
+// back into an answerable interaction request with the canonical confirmation
+// actions. Confirmation-shaped interactions all resolve through the same
+// approve/cancel surface; kind and payload stay authoritative from the store.
+func pendingInteractionConfirmationRequest(interaction PendingInteraction) (AgentInteractionRequest, bool) {
+	if strings.TrimSpace(interaction.ID) == "" {
+		return AgentInteractionRequest{}, false
+	}
+	payload := interaction.Payload
+	if len(payload) == 0 {
+		payload = interaction.Data
+	}
+	return AgentInteractionRequest{
+		ID:             interaction.ID,
+		Kind:           firstNonEmpty(interaction.Kind, interaction.Type, "mix_tick_confirmation"),
+		Type:           firstNonEmpty(interaction.Type, interaction.Kind),
+		Source:         firstNonEmpty(interaction.Source, "vit_agent"),
+		Workflow:       interaction.Workflow,
+		Stage:          firstNonEmpty(interaction.Stage, "pending_confirmation"),
+		Title:          "待确认操作",
+		Body:           firstNonEmpty(firstStringFromMap(payload, "display.summary"), firstStringFromMap(payload, "display.body"), "当前有一个待确认的操作；确认后才会继续执行。"),
+		Status:         "waiting_for_user",
+		ConversationID: interaction.ConversationID,
+		GoalID:         interaction.GoalID,
+		RunID:          interaction.RunID,
+		Payload:        cloneContext(payload),
+		Data:           cloneContext(interaction.Data),
+		Actions: []AgentInteractionAction{
+			{ID: "approve", Label: "确认执行", Style: "primary", Recommended: true},
+			{ID: "cancel", Label: "取消", Style: "secondary"},
+		},
+	}, true
+}
+
 func capabilityInteractionConfirmationKind(decision string) string {
 	switch strings.ToLower(strings.TrimSpace(decision)) {
 	case "approve", "approve_once", "approved":
@@ -4085,6 +4131,12 @@ func (s *Server) handleInteractionRespond(w http.ResponseWriter, r *http.Request
 		return
 	}
 	if isMixTickInteraction {
+		// The answered confirmation must retire its bound waiting_interaction
+		// checkpoint, exactly like the improvement-proposal responder does —
+		// otherwise a resolved mix tick leaves a non-terminal continuation
+		// behind (2026-08-29 S3c smoke: the multi-round restart-idempotency
+		// check failed on the round-2 tick's leftover checkpoint).
+		s.completePendingInteractionContinuation(interaction)
 		if strings.EqualFold(decision, "cancel") || strings.EqualFold(decision, "cancel_mix_tick") {
 			s.expirePendingMixTick(interaction.ConversationID)
 			s.transitionActivePendingCandidate(interaction.ConversationID, "mix_tick", agentprotocol.PendingStatusRejected, "user cancelled pending mix tick")
