@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -368,6 +369,17 @@ func mergeFreeStateAvailableViewRow(base, overlay map[string]any) map[string]any
 	}
 	if len(overlay) == 0 {
 		return cloneContext(base)
+	}
+	// A continuation or transport overlay can serialise a catalog row from
+	// before the mutation. Evidence identity must not regress: when the base
+	// row already observes a strictly higher project revision, the overlay row
+	// is pre-mutation residue and must not drag the catalog back (2026-08-29
+	// S3h smoke: round-2 proposals kept being handed the round-1 pre-action
+	// pointer and were then refused by G7 for quoting it).
+	if baseRevision, baseOK := freeStateAvailableViewRevision(base); baseOK {
+		if overlayRevision, overlayOK := freeStateAvailableViewRevision(overlay); overlayOK && overlayRevision < baseRevision {
+			return cloneContext(base)
+		}
 	}
 	out := cloneContext(base)
 	for key, value := range overlay {
@@ -1478,6 +1490,24 @@ func invalidateFreeStateObservationLedger(ledger map[string]any, change map[stri
 		ledger["invalidated_by_change_id"] = changeID
 	}
 	return ledger
+}
+
+// freeStateAvailableViewRevision returns a catalog row's project revision as
+// an integer plus a presence flag. Rows without a revision binding (or with a
+// non-numeric one) keep the historical overlay-wins merge.
+func freeStateAvailableViewRevision(row map[string]any) (int, bool) {
+	revision := firstNonEmpty(
+		firstStringFromMap(row, "project_revision"),
+		firstStringFromMap(firstMapFromAny(row["freshness"]), "project_revision"),
+	)
+	if revision == "" {
+		return 0, false
+	}
+	value, err := strconv.Atoi(strings.TrimSpace(revision))
+	if err != nil {
+		return 0, false
+	}
+	return value, true
 }
 
 func freeStateViewAffectedByChange(viewID string, scopes []string) bool {

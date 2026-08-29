@@ -105,6 +105,70 @@ func TestFreeStateGateG7RejectsFreshnessClassWithMismatchedRevision(t *testing.T
 	}
 }
 
+// TestFreeStateGateG7SatisfiedByRefreshedRoundBaseSurface is the D2-2-S3h1
+// adjudication walkthrough: after the evidence-surface refresh, the catalog
+// presents the round's fresh base observation (the judged round's post-action
+// bundle at the live revision). Quoting exactly that presented obs id must
+// satisfy G7 under the current closureRevision — proving G7 is satisfiable
+// through the refreshed surface and the 201003 failure was the stale pointer,
+// not the gate. The pre-mutation ref stays rejected as the control.
+func TestFreeStateGateG7SatisfiedByRefreshedRoundBaseSurface(t *testing.T) {
+	state := gateTestState(func(ctx map[string]any) {
+		closure := messageLoopMapValue(ctx["minimal_audio_closure"])
+		closure["project_revision"] = "8"
+		loop := messageLoopMapValue(ctx["free_state_reasoning_loop"])
+		ledger := messageLoopMapValue(loop["observation_ledger"])
+		// The refreshed catalog row (the shape fix(d2-2-s3h1) books at the
+		// recalibration boundary): identity + revision binding of the round
+		// base, per-view conclusions intentionally absent.
+		ledger["available_views"] = map[string]any{
+			"track:1007::track.timbre_frequency": map[string]any{
+				"view_id": "track.timbre_frequency", "status": "ready",
+				"observation_id": "obs-round-base", "project_revision": "8",
+				"target_ref": map[string]any{"kind": "track", "id": "1007"},
+				"freshness":  map[string]any{"status": "ready", "class": "current_observation", "project_revision": "8"},
+			},
+		}
+		// History keeps both identities: the round base at the live revision
+		// and the pre-mutation observation the round-1 proposal quoted.
+		ledger["receipts"] = []any{
+			map[string]any{
+				"status": "ready", "observation_id": "obs-round-base", "requested_views": []any{"track.timbre_frequency"},
+				"target_ref": map[string]any{"kind": "track", "id": "1007"}, "evidence_refs": []any{"obs-round-base"},
+				"project_revision": "8", "freshness": map[string]any{"status": "ready", "class": "current_observation", "project_revision": "8"},
+			},
+			map[string]any{
+				"status": "ready", "observation_id": "obs-pre-action", "requested_views": []any{"track.timbre_frequency"},
+				"target_ref": map[string]any{"kind": "track", "id": "1007"}, "evidence_refs": []any{"obs-pre-action"},
+				"project_revision": "7", "freshness": map[string]any{"status": "current_observation", "project_revision": "7"},
+			},
+		}
+	})
+	// The walkthrough quotes the obs id the refreshed surface itself presents.
+	surface := messageLoopMapValue(messageLoopMapValue(
+		messageLoopMapValue(state.input.Context["free_state_reasoning_loop"])["observation_ledger"])["available_views"])
+	presented := ""
+	for _, raw := range surface {
+		if id := messageLoopText(messageLoopMapValue(raw)["observation_id"]); id != "" {
+			presented = id
+		}
+	}
+	if presented != "obs-round-base" {
+		t.Fatalf("refreshed surface does not present the round base: %q", presented)
+	}
+	if !gateG7(state, []string{presented}) {
+		t.Fatalf("G7 rejected the refreshed surface's own observation %q under closureRevision 8", presented)
+	}
+	// Control: the pre-mutation ref the 201003 model was handed stays refused.
+	if gateG7(state, []string{"obs-pre-action"}) {
+		t.Fatal("G7 accepted the pre-mutation ref against closureRevision 8")
+	}
+	// Quoting both at once still fails: one stale ref poisons the set.
+	if gateG7(state, []string{presented, "obs-pre-action"}) {
+		t.Fatal("G7 accepted a mixed evidence set containing the pre-mutation ref")
+	}
+}
+
 func TestFreeStateObservationRefreshesPhaseAndRevisionBeforeFinalGate(t *testing.T) {
 	state := gateTestState(nil)
 	state.input.Context["free_state_phase"] = "fs5_candidate_frontier"

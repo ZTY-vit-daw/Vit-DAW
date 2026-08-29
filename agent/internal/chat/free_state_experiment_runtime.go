@@ -1071,6 +1071,104 @@ func (s *Server) bookRecalibrationRoundBaseFromLoop(loop *freeStateReasoningLoop
 		return
 	}
 	s.emitFreeStateExperimentEvents(events)
+	// The booked base is also the round's model-visible evidence baseline.
+	// Project it into the observation ledger so the proposal turn's catalog
+	// presents the fresh obs id + revision instead of the pre-action pointer
+	// the model would otherwise quote and be refused for (2026-08-29 S3h
+	// smoke: available_views kept serving the round-1 pre-action observation
+	// while the post-action bundle only ever reached the receipts).
+	loop.ObservationLedger = supersedeFreeStateRoundBaseReceipts(loop.ObservationLedger, base)
+	loop.ObservationLedger = mergeFreeStateObservationLedger(
+		loop.ObservationLedger,
+		recalibrationRoundBaseRecent(loop.Experiment, base),
+		loop.Cycle)
+}
+
+// recalibrationRoundBaseRecent restates the booked round base in the compact
+// CCB observation shape the observation ledger consumes. Only booking-carried
+// facts are restated — identity, executed view set, revision binding, evidence
+// refs, and the booking receipt identity; the original bundle's per-view
+// conclusions are not reconstructed, so the row points at the observation
+// instead of fabricating conclusions.
+func recalibrationRoundBaseRecent(exp *experiment.Turn, base experiment.Observation) *agentloop.RecentObservation {
+	executed := base.ExecutedViewIDs
+	if len(executed) == 0 {
+		executed = base.RequestedViewIDs
+	}
+	return &agentloop.RecentObservation{
+		ToolCallID: "d1_round_base:" + sanitizeCanaryID(exp.ID), Tool: "ccb.observation_request",
+		CommandName: "ccb_observation_request", Status: "ready",
+		Summary: map[string]any{
+			"schema_version": "ccb_observation_bundle.v1", "status": "ready",
+			"observation_id": base.ID,
+			"requested_views": append([]string(nil), base.RequestedViewIDs...),
+			"actual_executed_view_ids": append([]string(nil), executed...),
+			"evidence_refs":            append([]string(nil), base.EvidenceRefs...),
+			"target_ref":               cloneContext(exp.Admission.TargetRef),
+			"project_binding":          map[string]any{"project_revision": base.ProjectRevision},
+			"freshness":                map[string]any{"status": "ready", "class": "current_observation", "project_revision": base.ProjectRevision},
+			"audit_receipt": map[string]any{
+				"receipt_id": firstNonEmpty(base.ReceiptID, "d1_ccb:"+base.ID),
+				"freshness":  map[string]any{"class": "current_observation", "project_revision": base.ProjectRevision},
+			},
+		},
+	}
+}
+
+// supersedeFreeStateRoundBaseReceipts restates the ledger's receipt rows for
+// the round base observation at the boundary: the base is the judged round's
+// post-action bundle re-based as the live revision's current observation, so
+// its receipts must present the revision-bound current_observation restatement
+// instead of the deterministic booking's post_action class (which the G7
+// freshness vocabulary refuses), and duplicate booking echoes of the same
+// observation collapse into a single restated row. Foreign observations and
+// the row's own history fields (round, tool_call_id) are preserved.
+func supersedeFreeStateRoundBaseReceipts(ledger map[string]any, base experiment.Observation) map[string]any {
+	rows := freeStateMapRows(ledger["receipts"])
+	matched := false
+	for _, row := range rows {
+		if firstStringFromMap(row, "observation_id") == base.ID {
+			matched = true
+			break
+		}
+	}
+	if !matched {
+		return ledger
+	}
+	ledger = cloneContext(ledger)
+	out := make([]map[string]any, 0, len(rows))
+	superseded := false
+	for _, row := range rows {
+		if firstStringFromMap(row, "observation_id") != base.ID {
+			out = append(out, row)
+			continue
+		}
+		if superseded {
+			continue
+		}
+		restated := cloneContext(row)
+		restated["status"] = firstNonEmpty(firstStringFromMap(restated, "status"), "ready")
+		restated["project_revision"] = base.ProjectRevision
+		restated["receipt_id"] = firstNonEmpty(
+			firstStringFromMap(restated, "receipt_id"), firstNonEmpty(base.ReceiptID, "d1_ccb:"+base.ID))
+		if freshness := firstMapFromAny(restated["freshness"]); len(freshness) > 0 {
+			freshness["class"] = "current_observation"
+			freshness["status"] = firstNonEmpty(firstStringFromMap(freshness, "status"), "ready")
+			freshness["project_revision"] = base.ProjectRevision
+			restated["freshness"] = freshness
+		} else {
+			restated["freshness"] = map[string]any{
+				"class": "current_observation", "status": "ready", "project_revision": base.ProjectRevision,
+			}
+		}
+		out = append(out, restated)
+		superseded = true
+	}
+	ledger["receipts"] = out
+	if count := freeStateLedgerCount(ledger["receipt_count"], 0); count > len(out) {
+		ledger["receipt_count"] = len(out)
+	}
+	return ledger
 }
 
 // freeStateRecalibrationBaseRevision is the live project revision the freshly
