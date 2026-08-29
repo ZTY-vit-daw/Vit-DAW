@@ -421,3 +421,20 @@ S3h2 以 205921 盘态定案的"拒收文案把欠干预轮引向等观察"开�
 | 20260829_220804 | p01 freq 默认路径回归（-SkipBuild） | **pass** | S3h2 四点改动后默认路径零变化红线守住 |
 
 开放项：**D2-2-S3h4**（调度器续跑轮对拒收指引的消费通道 + settle 惯性切断点——215139 三连重放的归因层）+ **D2-2-S3h3**（预算耗尽后第二 goal 边界守卫）。S3b/S3c/S3d/S3e×2/S3f/S3g/S3h1/S3h2 九卡验收 3 在 S3h4（或其取证结论指向的卡）合入前保持未绿，D2-2 exit 0 收口顺延。
+
+## 18. 2026-08-29 深夜批（D2-2-S3h4 调度器续跑轮的拒收指引消费通道：修复真栈验证成立，失败点前移至 limit 停机 checkpoint 的边界残留误分类层）
+
+S3h4 以 215139 定案的"调度器续跑轮读不到拒收指引"开卡。取证定案（疑点 A 裁定：**不可见**，机制三层）：(i) S3h2 指引只写 conversation store（HTTP handler 独占，server.go:2250；调度器路径 executeDurableContinuation 丢弃响应，215139 的 135547/52/57 三轮无历史提交）；(ii) 续跑轮 prompt 的 History 来自 checkpoint 序列化的**环内**会话（runner.go:765），server 层拒收发生在消息环返回之后，拒收反馈结构性进不了环内会话——215139 三轮环内唯一反馈是 broad-acoustic 遗留闸门的无关文案（messages=3、1:user:154 即该文案 rune 数；neutral-family 投影把 History 压缩为最后一条 final_gate，message_loop.go:3720）；(iii) free-state ledger 白名单（free_state_reasoning.go:393）无欠轮/拒收键。疑点 B（惯性）降为次要——指引从未可达，惯性无从验证。
+
+修复（fix(d2-2-s3h4) 56a01a7）：拒收前移进消息环 final gate 的 settle-report 分支（708/711 之后新增 `messageLoopFreeStateRoundOwesInterventionIssue`）——实验 running + 多轮层（复用 `messageLoopFreeStateMultiRoundTier`，密封单轮层零变化）+ 总干预数 < 预算 + 当前轮零干预/无 decision + `requires_post_action_observation=false`（竞态窗让位 708 闸门）+ 判断边界不挂起（GLM ruling 3，镜像 chat 侧 bookFreeStateRecalibrationRoundBase 守卫）时，settle 报告被拒，文案同口径命名欠的提案与可引用新鲜基准（`messageLoopFreeStateOwedRoundBaseReference` 镜像 chat 侧 freeStateOwedRoundBaseReference 的选择规则：当前轮最新 fresh 非 post-action 观察 `observation_id@project_revision`——两 refusal face 同源 loop 投影，不双写漂移；首版读错键名 `id` 在栈上落了 fallback 文案，已修为 `observation_id` 并以真实键形夹具锁定）。该 `<final_gate>` 反馈进环内会话 → checkpoint 序列化 → 下一续跑轮 History（含 neutral-family 压缩）可见——**消息环反馈即单一事实消费通道**（卡中点名的两通道之一），不另建通道。RED 8 用例（拒绝+引用命名/单轮层豁免/竞态窗豁免且 708 文案归属不变/预算耗尽豁免/欠轮提案放行/无基准 fallback/判断边界豁免）；封印测试 TestJudgmentBoundarySpansRoundsAtFinalGate 首跑打破后以判断边界守卫修复（挂起边界 settle 族照常放行，封印语义保持）。
+
+**真栈验证（20260829_223957 trace）**：修复本体成立——round-2 开轮首轮（HTTP "继续" 驱动 armed continuation）模型重放 settle 报告（raw 引 obs_20260829T144324、携带 user_judgment_pending/human_audition_ready），消息环 final gate 以同口径文案当场拒绝（agent_message_loop_debug.jsonl stage=free_state_final_gate 全文留档），反馈序列化进 checkpoint 会话末位（cont_6205789b7 会话尾部 [assistant settle-replay, user final_gate 欠轮指引]）；server 层 booking 拒收全程未发生（settle_refused_round_id=None、零 WARN），重放仅耗一轮（215139 为三轮烧链）；round-1 的合法 settle（已行动轮）照常放行终局 completed。G7/引用命名的栈上行使受阻（见下）。终验仍 exit 1，失败点**前移至新层**：round-2 limit 停机（audioClosure 切片 MaxTurns=1）后，goalrunner_chat.go:455 把 loop.LatestDecision（round-1 settle 的判断边界残留 user_judgment_pending + human_audition_ready——判断已落地、round-1 decision=next_round、round-2 已开轮，但 LatestDecision 未被刷新）投到 res.FreeStateDecision，`continuationRequiresUserInteraction`（continuation_scheduler.go:127-152）把 limit 停机误分类为交互边界 → durable 停 **waiting_interaction 空壳**（pending_interaction 仅 {status,stop,limit} 无可应答请求，attempt=0 至终局未被领取）→ probe 三次 nudge 全被 `pending_interaction_requires_response`（3ms）吞咽 → round-2 第二 turn 永不运行，欠轮指引在 checkpoint 里未被消费 → round-2 终态 0 干预。与 S3f/S3g 的空壳 waiting_interaction 同形但触发源不同（非 refused-settle 信封、非 goal 折叠，而是上一轮已结算判断的 LatestDecision 残留骑到本轮 limit 停机）。S3h3 的第二 goal 吞噬本轮未到达（链死在更早的 park 层）。
+
+| stamp | 轮 | 终态 | 备注 |
+|---|---|---|---|
+| 20260829_223957 | p01 freq + 注入2 + MultiRoundProbe | fail "round 1 carries 0 forward interventions" | **S3h4 修复真栈验证成立**（环内欠轮拒收精确触发、反馈进 checkpoint 会话、server 拒收/重放烧链消失、round-1 合法 settle 放行）；失败前移至 limit 停机 checkpoint 的 LatestDecision 边界残留误分类（waiting_interaction 空壳 park）→ S3h5 |
+| 20260829_230224 | p01 freq 默认路径回归（-SkipBuild） | **pass** | S3h4 改动后默认路径零变化红线守住 |
+
+旁证：全量 `go test ./...` 一次全绿（TestJudgmentBoundarySpansRoundsAtFinalGate 修复后含于其中）。
+
+开放项：**D2-2-S3h5**（limit 停机 checkpoint 被 loop.LatestDecision 的 round-1 判断边界残留误分类为 waiting_interaction 空壳——armed 续跑链死亡层；S3h4 的指引已送达但无轮可读）。S3h3（预算耗尽第二 goal）仍未触达。S3b/S3c/S3d/S3e×2/S3f/S3g/S3h1/S3h2/S3h4 十卡验收 3 在 S3h5 合入前保持未绿，D2-2 exit 0 收口顺延。
