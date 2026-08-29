@@ -406,3 +406,18 @@ S3h1 以 201003 盘态定案的"目录递过期指针"开卡。RED 单测三件�
 旁证：全量 `go test ./...` 一次唯一失败为 `TestProcessorCertificationStartAcceptsBroadbandCompressorCapability` 的 Windows TempDir 清理竞态（unlinkat 目录非空），单独重跑绿，路径不经过本批改动分支，非因果（S3f 批同款抖动先例）。
 
 开放项：**D2-2-S3h2**（欠干预轮 settle 拒收语义分流 + 准入拒收附新鲜引用——当前 round-2 走不到提案的第一因）+ **D2-2-S3h3**（预算耗尽后第二 goal 边界守卫，205921 复发确认）。S3b/S3c/S3d/S3e×2/S3f/S3g/S3h1 八卡验收 3 在 S3h2/S3h3 合入前保持未绿，D2-2 exit 0 收口顺延。
+
+## 17. 2026-08-29 深夜批（D2-2-S3h2 欠干预轮拒收语义分流：修复真栈验证成立，失败点前移至调度器续跑轮的指引消费层）
+
+S3h2 以 205921 盘态定案的"拒收文案把欠干预轮引向等观察"开卡。取证阶段的关键发现是**分流判据**：`freeStateLoopRoundOwesIntervention` 单用无法区分"真欠结算竞态"（干预已执行、投影零干预因 booking 滞后——S3d/S3c 竞态窗）与"从未执行的欠干预轮"（round-2 刚开），两者投影同形；判据取 `RequiresPostActionObservation` 债务位（applied 边界设、确定性入账清、settle 重放保活——free_state_reasoning_loop.go:878-884 的 S3c 期修复正好保住了它），新谓词 `freeStateLoopRoundNeverActed`。
+
+修复四点（fix(d2-2-s3h2)）：A——拒收日志按轮类型分流；B——improvementProposalResponse 拒收分支分流文案（欠干预轮 settle 重放得到"本轮欠一次有界干预提案；新鲜基准为 <obs_id>@rev<N>，请引用它提出本轮提案"+ stop `round_owes_intervention_proposal`；**欠干预轮的裸提案不再被吞**、落到 S3c 再校准路由——否则指引是谎话；真欠结算轮文案逐字不变）；C——chatResponseFromAgentLoopResult 降级残留 stop reason 同步分流（S3g 机制不动）；D——agentloop G1/G7 准入拒收附带 ledger 当前可引用新鲜引用（available_views 优先、fresh+revision-bound、非版本门对照不携带）。RED 四件先失败于正确原因后全绿；S3d fixture 补债务位、S3g 断言按新分类更新（机制断言不动）；全量 `go test ./...` 一次全绿。
+
+**真栈验证（20260829_215139 trace）**：修复本体成立——4 次拒收全部落 never-acted round-2 且 WARN 带新鲜基准 `obs_20260829T135455@4`（S3h1 目录修复保持）；**指引原文落地会话历史**（`.vit_history` 13:55:36 提交，HTTP 面模型可读通道打通）；round-1 期 final gate 反馈与真欠结算语义零变化。终验仍 exit 1，失败点**前移至调度器续跑层**：21:55:47/52/57 三次 settle 重放来自 executeDurableContinuation 续跑轮（无 HTTP 响应日志、无历史提交——该路径响应从不写历史，server.go:2250 历史提交仅 HTTP handler），指引未进入这些轮的可读面；且 21:55:08 round-1 终门刚教过模型 "emit the settle report"（当时合法），惯性源明确。预算烧尽后 probe nudge 落空确认面（21:57:34/21:59:35"没有找到正在等待确认的混音动作"）。round-2 终态 0 干预；G7/G1 附引用反馈栈上未行使（模型未到达提案）。
+
+| stamp | 轮 | 终态 | 备注 |
+|---|---|---|---|
+| 20260829_215139 | p01 freq + 注入2 + MultiRoundProbe | fail "round 1 carries 0 forward interventions" | **S3h2 修复真栈验证成立**（拒收分类分流生效、指引落地会话历史、新鲜基准 obs@rev4 精确呈现、S3h1/S3c/S3g 行为保持）；失败前移至调度器续跑轮的指引消费层 → S3h4 |
+| 20260829_220804 | p01 freq 默认路径回归（-SkipBuild） | **pass** | S3h2 四点改动后默认路径零变化红线守住 |
+
+开放项：**D2-2-S3h4**（调度器续跑轮对拒收指引的消费通道 + settle 惯性切断点——215139 三连重放的归因层）+ **D2-2-S3h3**（预算耗尽后第二 goal 边界守卫）。S3b/S3c/S3d/S3e×2/S3f/S3g/S3h1/S3h2 九卡验收 3 在 S3h4（或其取证结论指向的卡）合入前保持未绿，D2-2 exit 0 收口顺延。
