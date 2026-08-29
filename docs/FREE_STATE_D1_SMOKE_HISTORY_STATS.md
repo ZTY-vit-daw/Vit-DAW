@@ -360,3 +360,17 @@ S3e 以 175049 trace 的 nudge 回复原文（.vit_history commit 逐字命中 `
 | 20260829_185128 | p01 freq 默认路径回归（-SkipBuild） | **pass** | S3e 两修后默认路径零变化红线守住 |
 
 开放项：**D2-2-S3f（Go L2）**——refused-settle 降级的中和须覆盖 result 信封的 `free_state_decision`（或 bare-continue 门对无 interaction_id 的空壳 waiting_interaction 放行）。S3b/S3c/S3d/S3e 四卡验收 3 在 S3f 合入前保持未绿，D2-2 exit 0 收口顺延。
+
+## 14. 2026-08-29 晚窗批（D2-2-S3f 信封边界信号对中和：修复真栈验证成立，失败点前移至 refused-settle 重试轮的 completed 残留 + goal 终态折叠）
+
+S3f 以 183540 trace 定案的机制开卡，但取证发现 S3c 中和只清了判定边界信号对的一半：settle 报告按提示词契约**成对**携带 `experiment_round_decision=user_judgment_pending` 与 `experiment_target_response.outcome=human_audition_ready`，存活的一半经 `runAgentLoopChat` 的 LatestDecision 回写进入 result 信封，`continuationRequiresUserInteraction` 的 decision 双检查（continuation_scheduler.go:148）仍命中 → park 空壳。RED 单测逐字复现（pending 负载与 183540 终态逐字节一致）后修（fix(d2-2-s3f) 9588e3f）：拒绝分支中和完整信号对（任一存在即双清 round decision + target response）；红线对照测试证明真实判定边界（settle 被接受、新鲜 post-action 观察已入账）仍收口 `completed_at_human_judgment_boundary`。
+
+**真栈验证（20260829_192048 trace）**：修复本体成立——判定 POST 后 turn=1（19:24:45，nudge 驱动）的 checkpoint `cont_3f44` 为 pending 且被调度器领取（attempt=1）驱动 turn=2（19:24:56，调度器驱动），全程无 `pending_interaction_requires_response`（park/bare-continue 吞咽消除），S3c 武装的 round-2 continuation 可达且已运行。终验仍 exit 1，失败点**再前移一层**，盘态三环铁证：(a) round-2 欠账轮模型应答 `final:true` settle 报告 + settle 预算余量（S3c +4）使其干净收尾 → turn=2 `res.Status=completed`，拒绝降级只改写 HTTP 响应不改写信封状态；(b) `durableContinuationFromResult`（continuation_scheduler.go:220-229）对 completed 无分支落默认 waiting_interaction，预算入队分支跳过（终态 used=7/8，两轮只入队一次）；(c) goal 被 flip 为 completed 后，下一次调度器重载 `normalizeRestoredDurableContinuation`（:361-363）按终态 goal 把 turn=2 的 `cont_5a13` 折叠为 completed——**出生毫秒戳 attempt=0**（排除 setContinuationStatus/reconcile，均会动 UpdatedAt）——goal_continuations 清空，后续 nudge 走 `no_continuation`（43ms），round 2 欠账干预永未提出。归新卡 D2-2-S3g。
+
+| stamp | 轮 | 终态 | 备注 |
+|---|---|---|---|
+| 20260829_192048 | p01 freq + 注入2 + MultiRoundProbe | fail "round 1 carries 0 forward interventions" | **S3f 修复真栈验证成立**（无 waiting_interaction park、无交互门吞咽，cont_3f44 pending→领取→驱动 turn=2）；失败点前移至 refused-settle 重试轮 res.Status=completed 残留 + goal 终态重载折叠（cont_5a13 出生即 completed，attempt=0） |
+
+旁证：全量 `go test ./...` 三跑中两跑各有一个 continuation_scheduler_test.go 的 durable-slice 观测测试非确定性失败（两次为不同测试、单独重跑均绿、失败路径不经过 S3f 改动分支，基座一跑未复现）——满负载抖动嫌疑，非本批因果；再复现则单开测试稳定性卡。
+
+开放项：**D2-2-S3g（Go L2）**——refused-settle 重试轮的信封 `res.Status` 中和（或 durableContinuationFromResult 保持欠账轮可调度）+ goal 终态折叠的 loop 活性豁免。S3b/S3c/S3d/S3e/S3f 五卡验收 3 在 S3g 合入前保持未绿，D2-2 exit 0 收口顺延。
