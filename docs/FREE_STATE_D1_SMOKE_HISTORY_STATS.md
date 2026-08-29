@@ -389,3 +389,20 @@ S3g 以 192048 盘态定案的三连缺口开卡。RED 单测逐字复现全链�
 旁证：本批全量 `go test ./...` 一次全绿（S3f 批记录的 durable-slice 满负载抖动未复现）。
 
 开放项：**D2-2-S3h（待定引擎档）**——round-2 欠账轮的 settle 重放循环（提示词/契约层：欠干预轮的重试内容应为 observe→propose 而非等待 post-action 观察）+ 再提案的 G7 新鲜证据绑定 + 预算耗尽后同会话第二 goal 的 waiting_interaction 吞噬。S3b/S3c/S3d/S3e/S3f/S3g 六卡验收 3 在 S3h 合入前保持未绿，D2-2 exit 0 收口顺延。
+
+## 16. 2026-08-29 深夜批（D2-2-S3h1 round-2 证据面新鲜度：A+B 组合修复真栈验证成立，失败点前移至欠干预轮模型行为层）
+
+S3h1 以 201003 盘态定案的"目录递过期指针"开卡。RED 单测三件（轮边界基准直出 available_views、merge 防低版本 overlay 拖回 + 同版本/新版本/无版本 overlay 行为保持对照、陈旧 transport echo 端到端不回退 + 单轮边界零变化红线）+ G7 可满足性 walkthrough（agentloop：刷新面呈现的 obs id 在当前 closureRevision 下 G7 判过，rev 旧 ref 与混合引用仍拒——与盘态差异的最终裁决点）。取证阶段另钉死两层隐藏机制：(i) `mergeFreeStateAvailableViewRow` overlay 全键覆盖无新近性比较，判定前序列化的 continuation/transport 回声把已刷新的 available_views 行（及从 ledger 重建的 LatestObservation）拖回 pre-action 指针——"从未刷新"的实际机制是**刷新后被拖回**（d1 记账路径本身有 ledger 投影）；(ii) d1_post_action 收据行 freshness class="post_action" 不在 G7 词表（`freeStateFreshStatus`），即使目录指向新鲜 obs，引用它仍被 receipts 匹配行拒收——S3g 批 (b) obs_121303 再提案被拒的另一半根因。附带：`mergeFreeStateLedgers` 按 receipt_id 去重、空 id 行不去重 → overlay 双向合并指数膨胀（201003 盘态 1024 行）。
+
+修复取 A+B 组合（fix(d2-2-s3h1) b0febf7）：A——merge 版本回退守卫（base 行 project revision 严格高于 overlay 时保留 base，同/新/无版本行为对照测试逐字锁定不变）；B——`bookRecalibrationRoundBaseFromLoop` 记账成功后 `recalibrationRoundBaseRecent` 把基准观察直出 ledger（只重述记账携带事实，不重构 per-view conclusions，缺视图不伪造）+ `supersedeFreeStateRoundBaseReceipts` 把该 obs 收据行重述为 current_observation+rev 绑定（同 id 重复行收敛为一条、赋 `d1_ccb:<obs>` 去重身份——该观察族的收据膨胀随之治愈；其它路径空 receipt_id 膨胀为潜在独立缺口，留档未修）。G7 语义零改动；单轮边界路径有双重门 + 对照测试锁定零变化。
+
+**真栈验证（20260829_205921 trace）**：修复本体成立——available_views 目录呈现 round-2 新鲜基准（`track:1032::track.timbre_frequency → obs_20260829T130227 rev 4 ready current_observation`；201003 同位为 rev 2 pre-action 旧指针），receipts 4 条无膨胀且基准收据带 d1_ccb 去重身份，round-2 开轮带 rev4 基准（S3c 保持），continuation 链 attempt=1 真实领取驱动（S3g 保持）。终验仍 exit 1，失败点**前移至模型行为层**（全部落在已开卡 S3h2/S3h3）：round-2 turn5/6 连续 limit_reached（completed_steps=3、零工具调用）→ turn7 干净收尾输出 settle 报告被拒（settle_refused 落 round-2）→ 后续 nudge settle 重放两连拒（21:03:17/21:03:28）烧尽预算 8/8 → probe 同会话开出第二 goal（goal_f124424dcd609575）checkpoint 停 waiting_interaction，21:05:14 起 nudge 被 `pending_interaction_requires_response` 吞噬。G7 walkthrough 栈上未行使（round-2 模型未到达提案）——S3h1 的目录修复需 S3h2 把模型引到提案后才能端到端检验。
+
+| stamp | 轮 | 终态 | 备注 |
+|---|---|---|---|
+| 20260829_205921 | p01 freq + 注入2 + MultiRoundProbe | fail "round 1 carries 0 forward interventions" | **S3h1 修复真栈验证成立**（目录呈现 rev4 基准 current_observation、收据去重无膨胀、S3c/S3g 行为保持）；失败前移至欠干预轮模型行为（settle 重放烧预算 + 第二 goal 吞噬）→ S3h2/S3h3 |
+| 20260829_211900 | p01 freq 默认路径回归（-SkipBuild） | **pass** | S3h1 两修后默认路径零变化红线守住 |
+
+旁证：全量 `go test ./...` 一次唯一失败为 `TestProcessorCertificationStartAcceptsBroadbandCompressorCapability` 的 Windows TempDir 清理竞态（unlinkat 目录非空），单独重跑绿，路径不经过本批改动分支，非因果（S3f 批同款抖动先例）。
+
+开放项：**D2-2-S3h2**（欠干预轮 settle 拒收语义分流 + 准入拒收附新鲜引用——当前 round-2 走不到提案的第一因）+ **D2-2-S3h3**（预算耗尽后第二 goal 边界守卫，205921 复发确认）。S3b/S3c/S3d/S3e×2/S3f/S3g/S3h1 八卡验收 3 在 S3h2/S3h3 合入前保持未绿，D2-2 exit 0 收口顺延。
