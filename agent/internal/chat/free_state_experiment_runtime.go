@@ -587,17 +587,27 @@ func (s *Server) recordFreeStateExperimentDecision(ctx context.Context, loop *fr
 			s.logger.Warn("[free-state-experiment] settle report refused until the fresh post-action observation is recorded on the round")
 		}
 		// The refused report must not park the driving continuation at a
-		// judgment boundary it failed to form: strip the user_judgment_pending
-		// round decision from the loop projection so the settle chain stays
-		// schedulable and retries once the deterministic post-action booking
-		// lands (2026-08-29 S3c smoke: the refused round-2 report parked its
-		// continuation at waiting_interaction and the settle turn never ran
-		// again).
-		if loop.LatestDecision != nil &&
-			strings.EqualFold(strings.TrimSpace(loop.LatestDecision.ExperimentRoundDecision), string(experiment.DecisionUserJudgment)) {
-			cleared := *loop.LatestDecision
-			cleared.ExperimentRoundDecision = ""
-			loop.LatestDecision = &cleared
+		// judgment boundary it failed to form: strip its full boundary signal
+		// pair — the user_judgment_pending round decision AND the
+		// human_audition_ready target response, which travel together per the
+		// settle-report contract — from the loop projection so the settle chain
+		// stays schedulable and retries once the deterministic post-action
+		// booking lands (2026-08-29 S3c smoke: the refused round-2 report parked
+		// its continuation at waiting_interaction and the settle turn never ran
+		// again; 2026-08-29 S3f 183540: clearing only the round decision left
+		// the target response on the envelope, and the continuation
+		// scheduler's decision double-check still parked the turn behind an
+		// unanswerable empty-shell interaction).
+		if loop.LatestDecision != nil {
+			boundaryResidue := strings.EqualFold(strings.TrimSpace(loop.LatestDecision.ExperimentRoundDecision), string(experiment.DecisionUserJudgment)) ||
+				(loop.LatestDecision.ExperimentTargetResponse != nil &&
+					strings.EqualFold(strings.TrimSpace(string(loop.LatestDecision.ExperimentTargetResponse.Outcome)), string(trajectory.EvaluationHumanAuditionReady)))
+			if boundaryResidue {
+				cleared := *loop.LatestDecision
+				cleared.ExperimentRoundDecision = ""
+				cleared.ExperimentTargetResponse = nil
+				loop.LatestDecision = &cleared
+			}
 		}
 		// A settle report exists only for a round that already spent its
 		// single mutation, but in this race window the experiment projection
