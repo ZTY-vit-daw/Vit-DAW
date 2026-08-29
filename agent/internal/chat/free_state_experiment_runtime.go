@@ -579,8 +579,9 @@ func (s *Server) recordFreeStateExperimentDecision(ctx context.Context, loop *fr
 	// that flag for proposal-carrying decisions before this ingest runs.
 	// Refusing keeps the loop live with its reserved post-apply budget so the
 	// next slice observes first; no evidence gate is weakened.
-	if loop.Experiment.Admission.IsD1S1() &&
-		(decision.ExperimentMateriality != nil || decision.ExperimentTargetResponse != nil || strings.TrimSpace(decision.ExperimentRoundDecision) != "") &&
+	settleReportCarried := decision.ExperimentMateriality != nil || decision.ExperimentTargetResponse != nil ||
+		strings.TrimSpace(decision.ExperimentRoundDecision) != ""
+	if loop.Experiment.Admission.IsD1S1() && settleReportCarried &&
 		!freeStateExperimentRoundHasFreshPostActionObservation(loop.Experiment) {
 		if s.logger != nil {
 			s.logger.Warn("[free-state-experiment] settle report refused until the fresh post-action observation is recorded on the round")
@@ -598,7 +599,26 @@ func (s *Server) recordFreeStateExperimentDecision(ctx context.Context, loop *fr
 			cleared.ExperimentRoundDecision = ""
 			loop.LatestDecision = &cleared
 		}
+		// A settle report exists only for a round that already spent its
+		// single mutation, but in this race window the experiment projection
+		// can still show the round pre-action (the intervention booking lags
+		// the transport receipt), so neither the pending-settlement nor the
+		// spent-mutation predicate will hold when the same envelope's pending
+		// tick reaches the recordGoalResult guard. Mark the round durably:
+		// the refused settle is owed, the round owes no new mutation, and the
+		// guard must see this post-refusal state instead of the pre-race
+		// snapshot (2026-08-29 17:00:50 smoke: refused settle and the replayed
+		// tick bind in the same second, one waiting_interaction leftover).
+		if round, roundErr := loop.Experiment.CurrentRound(); roundErr == nil {
+			loop.SettleRefusedRoundID = round.ID
+		}
 		return
+	}
+	if settleReportCarried {
+		// The report landed (the round carries its fresh post-action
+		// observation): the race window is closed, the round decided or parked
+		// at its judgment boundary by the ingest below.
+		loop.SettleRefusedRoundID = ""
 	}
 	if decision.ExperimentMateriality != nil {
 		if events, err := loop.Experiment.EvaluateMateriality(*decision.ExperimentMateriality, time.Now().UTC()); err == nil {
@@ -858,6 +878,27 @@ func freeStateLoopRoundPendingSettlement(loop freeStateReasoningLoop) bool {
 	return freeStateExperimentRoundHasFreshPostActionObservation(loop.Experiment)
 }
 
+// freeStateLoopRoundSettleRefused reports whether the current round's settle
+// report was refused because its fresh post-action observation had not landed
+// yet — the post-action-observation race window. The experiment projection in
+// that window can still show the round pre-action (the intervention booking
+// lags the transport receipt), so the spent-mutation and pending-settlement
+// predicates both read false on it; the refusal marker recorded by
+// recordFreeStateExperimentDecision is the authoritative same-round state.
+// While it holds the round owes its settle retry and no new pending mix
+// tick/treatment may be accepted (an illegal second mutation mid-round).
+func freeStateLoopRoundSettleRefused(loop freeStateReasoningLoop) bool {
+	if strings.TrimSpace(loop.SettleRefusedRoundID) == "" || loop.Experiment == nil ||
+		!strings.EqualFold(strings.TrimSpace(string(loop.Experiment.Status)), string(experiment.StatusRunning)) {
+		return false
+	}
+	round, err := loop.Experiment.CurrentRound()
+	if err != nil || round.ID != loop.SettleRefusedRoundID {
+		return false
+	}
+	return strings.TrimSpace(string(round.Decision)) == ""
+}
+
 // freeStateLoopRoundOwesIntervention reports whether the loop's freshly opened
 // D2-2 recalibration/calibration round still owes its single governed
 // intervention. The closure round limit is an observation-window bound and must
@@ -1052,5 +1093,9 @@ func (s *Server) freeStateRoundPendingSettlementForConversation(conversationID s
 	if !ok {
 		return false
 	}
-	return freeStateLoopRoundPendingSettlement(loop)
+	// Same triple condition as the recordGoalResult guard: a round that spent
+	// its mutation (projection-booked or refusal-marked) and still owes its
+	// settle report must not surface or accept another mutation.
+	return freeStateLoopRoundPendingSettlement(loop) || freeStateLoopRoundSpentMutation(loop) ||
+		freeStateLoopRoundSettleRefused(loop)
 }

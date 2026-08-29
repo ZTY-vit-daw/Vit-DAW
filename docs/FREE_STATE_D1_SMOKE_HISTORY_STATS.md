@@ -334,3 +334,16 @@ S3 诊断定案（卡面待查两点均闭合）：(1) **py 探针判定 bug**�
 | 20260828_204911 / 205244 | p01 freq + 注入2 + MultiRoundProbe | NOT_EXERCISED（exit 3）×2 | 判定修复生效：不再误判 fail；卡点后移至 Go 侧 plan builder 拒批（round 1 零干预，见上文钉死） |
 
 开放项：**D2-2-S4（Go L2）**——chat 执行桥多轮接线（plan builder 分档校验 + 每轮 session/render 语义），S3 验收"注入 2 exit 0"在 S4 合入前结构性不可达，NOT_EXERCISED（exit 3）为其诚实终态。
+
+## 12. 2026-08-29 晚窗批（D2-2-S3d settle 竞态单测隔离修复：修复本体真栈验证成立，探针失败点前移定案）
+
+S3d 以单测确定性复现 S3c 遗留的 settle 报告竞态（20260829_165648 trace 形态：refused settle 与重放 tick 同秒入库 + waiting_interaction 遗留），先 RED 后修，四点落地（fix(d2-2-s3d)）：① refusal 分支在 loop 上落 `settle_refused_round_id` 同轮标记（投影滞后窗口内 spent-mutation/pending-settlement 两谓词皆不成立，守卫此前读的是竞态前旧快照）；② `recordGoalResult` 守卫与 `freeStateRoundPendingSettlementForConversation` 统一为三元条件（+settleRefused）；③ `chatResponseFromAgentLoopResult` 对竞态窗口信封做 settle 轮 execution memory 归零并降级 waiting_continue（`settle_report_refused_awaiting_observation`），continuation 不再 park；④ `improvementProposalResponse` 在标记窗口抑制提案确认面。标记随 settle 报告落地或轮推进自愈；普通提案路径对照单测锁定零变化。
+
+**真栈验证（20260829_175049 trace）**：修复本体行为完全符合设计——refuse 后同一信封 tick 未重存、无 waiting_interaction 绑定（终态 continuation 全 completed，S3c 遗留的 restart-idempotency 卡点消除）、round 1 权威终态完整（interventions=1、decision=next_round、obs=2）。但探针仍 exit 1，失败点**前移**至更早的校验器：`round 1 carries 0 forward interventions`——与权威持久化 loop（round 1 恰 1 干预）直接矛盾，定案两个新层缺口（归新卡 D2-2-S3e）：(a) **round-2 驱动停滞**——判定开出 round 2 后，其首个 nudge 轮携带 settle 报告被拒（round 2 欠干预不欠结算，拒得正确）、降级链耗尽为 completed，后续 3 次 nudge 全部不进 LLM 轮，round 2 的欠账干预永未提出；(b) **校验器投影新鲜度**——`find_d1_loop` 按 `updated_at` 字符串选投影且同刻保留最后遍历副本，响应信封内的过期 loop 副本（round 1=0 干预的滞后投影）压过权威持久化副本，断言打在陈旧数据上。
+
+| stamp | 轮 | 终态 | 备注 |
+|---|---|---|---|
+| 20260829_175049 | p01 freq + 注入2 + MultiRoundProbe | fail "round 1 carries 0 forward interventions" | **竞态修复真栈验证成立**（refuse 轮 `settle_report_refused_awaiting_observation`、无 tick 重存、无 waiting_interaction 遗留）；失败点前移至 round-2 驱动停滞 + 校验器选了过期响应投影（权威 loop round 1=1 干预完整闭合） |
+| 20260829_180942 | p01 freq 默认路径回归（-SkipBuild） | **pass** | S3d 修复后默认路径零变化红线守住 |
+
+开放项：**D2-2-S3e（Go L2 + py 一并）**——round-2 欠账干预的驱动链（refused-settle 降级后 nudge 不进 LLM 轮）与探针校验器的投影新鲜度（`find_d1_loop` 同刻/滞后副本胜出）。S3b/S3c/S3d 三卡验收 3 在 S3e 合入前保持未绿，D2-2 exit 0 收口顺延。

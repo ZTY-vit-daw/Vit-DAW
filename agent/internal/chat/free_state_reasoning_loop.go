@@ -87,10 +87,19 @@ type freeStateReasoningLoop struct {
 	// granted at the applied boundary (reserveD1PostApplySlices). It is separate
 	// from PostActionObservationReserved so the generic +1 observation reserve
 	// keeps its own once-only semantics on top of the floor.
-	PostApplyBudgetReserved bool      `json:"post_apply_budget_reserved,omitempty"`
-	LastError               string    `json:"last_error,omitempty"`
-	CreatedAt               time.Time `json:"created_at"`
-	UpdatedAt               time.Time `json:"updated_at"`
+	PostApplyBudgetReserved bool `json:"post_apply_budget_reserved,omitempty"`
+	// SettleRefusedRoundID records the round whose settle report was refused
+	// because its fresh post-action observation had not landed yet. In that
+	// race window the experiment projection can still show the round pre-action
+	// (the intervention booking lags the transport receipt), so neither the
+	// pending-settlement nor the spent-mutation predicate holds and a replayed
+	// pending tick would pass as the round's first mutation. The marker is the
+	// authoritative same-round state the recordGoalResult guard must see; it
+	// retires when the settle report lands or the round advances.
+	SettleRefusedRoundID string    `json:"settle_refused_round_id,omitempty"`
+	LastError            string    `json:"last_error,omitempty"`
+	CreatedAt            time.Time `json:"created_at"`
+	UpdatedAt            time.Time `json:"updated_at"`
 }
 
 func freeStateLoopActive(loop freeStateReasoningLoop) bool {

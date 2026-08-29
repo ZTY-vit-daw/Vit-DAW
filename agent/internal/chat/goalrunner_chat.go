@@ -1852,6 +1852,26 @@ func agentLoopBudgetForModeAfter(mode string, elapsed time.Duration) agentloop.B
 }
 func (s *Server) chatResponseFromAgentLoopResult(conversationID, mode string, res agentloop.Result) ChatResponse {
 	res = s.applyLegacyCapabilityCreationGate(res)
+	// The refused-settle race window: the round's settle report was refused
+	// because its fresh post-action observation had not landed, and in that
+	// window the envelope may still carry the round's replayed proposal as a
+	// pending tick. Zero the settle turn's execution memory and demote the
+	// confirmation wait: the durable candidate store would be an illegal
+	// second mutation, and the waiting_interaction park would leave a
+	// continuation no driver can answer behind the still-owed settle retry
+	// (2026-08-29 17:00:50 smoke trace: refused settle, replayed tick stored,
+	// waiting_interaction bind — all in the same second).
+	if strings.TrimSpace(conversationID) != "" {
+		if loop, loopOK := s.freeStateLoop(conversationID); loopOK && freeStateLoopRoundSettleRefused(loop) {
+			if (res.ExecutionMemory.PendingMixTickCandidate != nil && strings.EqualFold(strings.TrimSpace(res.ExecutionMemory.PendingMixTickCandidate.Status), "pending_confirmation")) ||
+				(res.ExecutionMemory.PendingMixTreatment != nil && strings.EqualFold(strings.TrimSpace(res.ExecutionMemory.PendingMixTreatment.Status), "pending_confirmation")) {
+				res.ExecutionMemory.PendingMixTickCandidate = nil
+				res.ExecutionMemory.PendingMixTreatment = nil
+				res.Status = agentruntime.StatusWaitingContinue
+				res.StopReason = "settle_report_refused_awaiting_observation"
+			}
+		}
+	}
 	if err := s.recordGoalResult(conversationID, res); err != nil {
 		res.Status = agentruntime.StatusFailed
 		res.StopReason = "durable_checkpoint_persist_failed"
@@ -2440,7 +2460,8 @@ func (s *Server) recordGoalResult(conversationID string, res agentloop.Result) e
 		// waiting checkpoint failed the restart-idempotency check).
 		roundPendingSettlement := false
 		if loop, exists := s.freeStateLoops[conversationID]; exists {
-			roundPendingSettlement = freeStateLoopRoundPendingSettlement(loop) || freeStateLoopRoundSpentMutation(loop)
+			roundPendingSettlement = freeStateLoopRoundPendingSettlement(loop) || freeStateLoopRoundSpentMutation(loop) ||
+				freeStateLoopRoundSettleRefused(loop)
 		}
 		if roundPendingSettlement {
 			if candidate := res.ExecutionMemory.PendingMixTickCandidate; candidate != nil && strings.EqualFold(strings.TrimSpace(candidate.Status), "pending_confirmation") {

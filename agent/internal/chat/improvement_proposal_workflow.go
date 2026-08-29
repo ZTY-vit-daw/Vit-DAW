@@ -49,6 +49,29 @@ func (s *Server) improvementProposalResponse(conversationID, mode string, res ag
 		resp.InteractionRequests = nil
 		return resp
 	}
+	// The refused-settle race window: the round's settle report was refused
+	// because its fresh post-action observation had not landed. The experiment
+	// projection in that window can still show the round pre-action, which
+	// makes the replayed proposal look like the owed round's first mutation —
+	// parking it behind a confirmation (or routing it straight to a mix tick)
+	// leaves an interaction the frozen driver cannot answer and a non-terminal
+	// continuation behind the still-owed settle retry (2026-08-29 17:00:50
+	// smoke: refused settle and the replayed tick bind in the same second).
+	// Answer waiting_continue: the settle chain retries on its own budget once
+	// the deterministic booking lands.
+	if loop, loopOK := s.freeStateLoop(conversationID); loopOK && freeStateLoopRoundSettleRefused(loop) {
+		resp.Reply = "本轮改动后的观察证据尚未入账，结算报告暂缓重试；观察入账后自动继续结算，本轮不会再提出新的改动。"
+		resp.GoalStatus = string(agentruntime.StatusWaitingContinue)
+		resp.StopReason = "settle_report_refused_awaiting_observation"
+		resp.NeedsConfirmation = false
+		resp.Workflow = improvementProposalWorkflow
+		resp.WorkflowData = mergeContext(resp.WorkflowData, map[string]any{
+			"settle_report_refused": true, "mutation_performed": false,
+			"free_state_reasoning_loop": freeStateLoopMap(loop),
+		})
+		resp.InteractionRequests = nil
+		return resp
+	}
 	// A recalibrating D2-2 round already carries its admitted experiment
 	// direction, and the frozen probe driver cannot approve a second
 	// improvement_proposal_confirmation (its experiment_proposal_approved
