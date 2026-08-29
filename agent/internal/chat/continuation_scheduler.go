@@ -329,6 +329,27 @@ func markContinuationRecoveryValidation(item *DurableContinuation, reason string
 	item.PendingInteraction = map[string]any{"status": "recovery_validation_required", "reason": reason}
 }
 
+// restoredContinuationOwesActiveRound reports whether a restored continuation
+// belongs to a free-state loop that is still active while its current round
+// owes work — the refused-settle retry marker, or a recalibration round that
+// has not acted yet. The goal-level terminal fold must not fire for such a
+// checkpoint: the retry turn's completed envelope residue can flip the harness
+// goal terminal inside the same race window, and the fold then retires the
+// armed checkpoint at its birth stamp with attempt=0, leaving goal_continuations
+// empty — every later nudge answers no_continuation and the owed round is
+// never proposed again (2026-08-29 192048 trace). Real completions keep
+// folding: a terminal loop never owes a round.
+func restoredContinuationOwesActiveRound(state projectAgentRuntimeState, item DurableContinuation) bool {
+	if strings.TrimSpace(item.ConversationID) == "" {
+		return false
+	}
+	loop, ok := state.FreeStateLoops[item.ConversationID]
+	if !ok || !freeStateLoopActive(loop) {
+		return false
+	}
+	return freeStateLoopRoundSettleRefused(loop) || freeStateLoopRoundOwesIntervention(loop)
+}
+
 func normalizeRestoredDurableContinuation(mapKey string, item DurableContinuation, state projectAgentRuntimeState, now time.Time) (string, DurableContinuation) {
 	item.SchemaVersion = continuationRuntimeSchema
 	item.GoalID = firstNonEmpty(item.GoalID, item.Continuation.GoalID)
@@ -360,7 +381,9 @@ func normalizeRestoredDurableContinuation(mapKey string, item DurableContinuatio
 		}
 		switch goal.Status {
 		case agentruntime.StatusCompleted, agentruntime.StatusStable:
-			item.Status = ContinuationCompleted
+			if !restoredContinuationOwesActiveRound(state, item) {
+				item.Status = ContinuationCompleted
+			}
 		case agentruntime.StatusCancelled, agentruntime.StatusStopped:
 			item.Status = ContinuationCancelled
 		case agentruntime.StatusFailed:

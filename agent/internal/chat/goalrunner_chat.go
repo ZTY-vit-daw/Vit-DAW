@@ -1863,10 +1863,25 @@ func (s *Server) chatResponseFromAgentLoopResult(conversationID, mode string, re
 	// waiting_interaction bind — all in the same second).
 	if strings.TrimSpace(conversationID) != "" {
 		if loop, loopOK := s.freeStateLoop(conversationID); loopOK && freeStateLoopRoundSettleRefused(loop) {
-			if (res.ExecutionMemory.PendingMixTickCandidate != nil && strings.EqualFold(strings.TrimSpace(res.ExecutionMemory.PendingMixTickCandidate.Status), "pending_confirmation")) ||
-				(res.ExecutionMemory.PendingMixTreatment != nil && strings.EqualFold(strings.TrimSpace(res.ExecutionMemory.PendingMixTreatment.Status), "pending_confirmation")) {
-				res.ExecutionMemory.PendingMixTickCandidate = nil
-				res.ExecutionMemory.PendingMixTreatment = nil
+			pendingTick := (res.ExecutionMemory.PendingMixTickCandidate != nil && strings.EqualFold(strings.TrimSpace(res.ExecutionMemory.PendingMixTickCandidate.Status), "pending_confirmation")) ||
+				(res.ExecutionMemory.PendingMixTreatment != nil && strings.EqualFold(strings.TrimSpace(res.ExecutionMemory.PendingMixTreatment.Status), "pending_confirmation"))
+			// The clean refused settle: the retry turn's report finished the
+			// turn without a replayed tick, so its envelope still carries the
+			// completed residue into recordGoalResult — the default
+			// waiting_interaction shell skips the settle budget enqueue and
+			// the owed retry never runs again (2026-08-29 192048 trace:
+			// cont_5a13 parked, used stayed 7/8). The refusal means the round
+			// still owes work, so demote the envelope to the same
+			// waiting_continue semantics the downgraded response already
+			// answers with. Only a checkpointed envelope may demote: a
+			// continuation-less completed result has nothing to reschedule and
+			// must stay terminal.
+			completedResidue := res.Status == agentruntime.StatusCompleted && res.Continuation != nil
+			if pendingTick || completedResidue {
+				if pendingTick {
+					res.ExecutionMemory.PendingMixTickCandidate = nil
+					res.ExecutionMemory.PendingMixTreatment = nil
+				}
 				res.Status = agentruntime.StatusWaitingContinue
 				res.StopReason = "settle_report_refused_awaiting_observation"
 			}

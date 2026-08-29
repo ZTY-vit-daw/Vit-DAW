@@ -374,3 +374,18 @@ S3f 以 183540 trace 定案的机制开卡，但取证发现 S3c 中和只清了
 旁证：全量 `go test ./...` 三跑中两跑各有一个 continuation_scheduler_test.go 的 durable-slice 观测测试非确定性失败（两次为不同测试、单独重跑均绿、失败路径不经过 S3f 改动分支，基座一跑未复现）——满负载抖动嫌疑，非本批因果；再复现则单开测试稳定性卡。
 
 开放项：**D2-2-S3g（Go L2）**——refused-settle 重试轮的信封 `res.Status` 中和（或 durableContinuationFromResult 保持欠账轮可调度）+ goal 终态折叠的 loop 活性豁免。S3b/S3c/S3d/S3e/S3f 五卡验收 3 在 S3g 合入前保持未绿，D2-2 exit 0 收口顺延。
+
+## 15. 2026-08-29 晚窗批（D2-2-S3g 重试轮信封中和 + goal 终态折叠豁免：修复真栈验证成立，失败点前移至 settle 重放烧预算 + G7 旧证据拒收 + 第二 goal 交互吞噬）
+
+S3g 以 192048 盘态定案的三连缺口开卡。RED 单测逐字复现全链（refused settle 的 `res.Status=completed` 残留 → `durableContinuationFromResult` 默认 waiting_interaction 空壳落盘 + 预算入队跳过 → goal 翻终态后重载按 `normalizeRestoredDurableContinuation` 折叠为出生毫秒戳 attempt=0 的 completed → bare-continue 门 no_continuation），另附红线对照（loop 终态仍折叠）。修复取 A+C 组合（fix(d2-2-s3g)）：A——`chatResponseFromAgentLoopResult` 的 settle-refused 中和扩展到干净 settle 收尾的 completed 残留（仅 `res.Continuation!=nil` 可降级，无 checkpoint 的真完成保持终态），信封与降级响应对齐为 waiting_continue + 可调度 checkpoint + 自有预算槽；C——goal 终态折叠加 loop 活性豁免（`restoredContinuationOwesActiveRound`：loop 仍 active 且当前轮带 SettleRefusedRoundID 或欠干预时放行，真完成 loop 终态折叠不动）。B 方向（往纯函数灌 loop 状态）由 A 前置覆盖，不做。
+
+**真栈验证（20260829_201003 trace）**：修复本体成立——S3g 诊断的杀链全链消除：refused-settle 重试轮的 checkpoint 全部 attempt=1 被调度器真实领取驱动（12:13:48、12:14:02 两轮重试连续运行，预算槽被真实消耗 6→7→8），无出生戳折叠击杀、无 waiting_interaction 空壳、后续 nudge 无 no_continuation。终验仍 exit 1，失败点**再前移一层**，201003 盘态三环：(a) round-2 重试轮的模型输出持续**重放 round-1 的 settle 报告**（round-2 自身未行动、fresh post-action 观察永不可能入账，每次重放被拒并消耗一个 continuation 预算槽，used 打满 8/8）；(b) 唯一一次 needs_experiment 再提案引用 round-1 时期观察（obs_20260829T121303，早于 round-2 开轮），准入审计拒收（`G7_fresh_revision_bound_refs` + `G1_project_binding`，盘态 admission_receipt 佐证），欠账干预无法进入执行；(c) 预算耗尽后 probe nudge 在同会话开出**第二个 goal**（goal_1cb7e764），其 settle-refused 轮把 checkpoint `cont_a596` 停在 waiting_interaction（attempt=0），后续两次 nudge 均被 `pending_interaction_requires_response`（11ms）吞掉。round 2 终态 0 干预 → 校验 exit 1。归新卡 D2-2-S3h。
+
+| stamp | 轮 | 终态 | 备注 |
+|---|---|---|---|
+| 20260829_201003 | p01 freq + 注入2 + MultiRoundProbe | fail "round 1 carries 0 forward interventions" | **S3g 修复真栈验证成立**（重试轮 attempt=1 连续驱动、无折叠/空壳/no_continuation）；失败点前移至 settle 重放烧预算（used 8/8）+ 旧证据再提案 G7/G1 拒收 + 第二 goal waiting_interaction 吞 nudge |
+| 20260829_202637 | p01 freq 默认路径回归（-SkipBuild） | **pass** | S3g 两修后默认路径零变化红线守住 |
+
+旁证：本批全量 `go test ./...` 一次全绿（S3f 批记录的 durable-slice 满负载抖动未复现）。
+
+开放项：**D2-2-S3h（待定引擎档）**——round-2 欠账轮的 settle 重放循环（提示词/契约层：欠干预轮的重试内容应为 observe→propose 而非等待 post-action 观察）+ 再提案的 G7 新鲜证据绑定 + 预算耗尽后同会话第二 goal 的 waiting_interaction 吞噬。S3b/S3c/S3d/S3e/S3f/S3g 六卡验收 3 在 S3h 合入前保持未绿，D2-2 exit 0 收口顺延。
