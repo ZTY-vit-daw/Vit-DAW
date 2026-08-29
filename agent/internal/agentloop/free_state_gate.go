@@ -342,6 +342,85 @@ func evaluateFreeStateNeedsExperimentGate(state *runState, decision *FreeStateDe
 	return failed
 }
 
+// freeStateNeedsExperimentGateFailureMessage words the admission-gate refusal.
+// When the revision-binding gates fail (G1 project binding, G7 fresh
+// revision-bound refs) it appends the fresh observation reference the ledger
+// currently holds — mechanical runtime state telling the retry which citation
+// is quotable now, never domain guidance (20260829_205921: the model re-quoted
+// a stale pointer the catalog no longer served and burnt its turns).
+func freeStateNeedsExperimentGateFailureMessage(state *runState, failed []string) string {
+	failedList := strings.Join(failed, ", ")
+	revisionBoundFailure := false
+	for _, id := range failed {
+		if id == freeStateGateG1 || id == freeStateGateG7 {
+			revisionBoundFailure = true
+		}
+	}
+	if !revisionBoundFailure {
+		return fmt.Sprintf("needs_experiment requires the full admission gate; failed: %s; return needs_observation with the next bounded observation instead", failedList)
+	}
+	if reference := freeStateLedgerFreshReference(state); reference != "" {
+		return fmt.Sprintf("needs_experiment requires the full admission gate; failed: %s; the fresh quotable observation reference is %s; return needs_observation with the next bounded observation instead", failedList, reference)
+	}
+	return fmt.Sprintf("needs_experiment requires the full admission gate; failed: %s; return needs_observation with the next bounded observation instead", failedList)
+}
+
+// freeStateLedgerFreshReference returns the freshest quotable observation
+// reference "obs_id@revision" the observation ledger holds under the closure's
+// current revision: the last available_views row that is fresh and
+// revision-bound (append order is recency order), falling back to the last
+// such receipt. Empty when the ledger holds nothing quotable at the closure
+// revision.
+func freeStateLedgerFreshReference(state *runState) string {
+	if state == nil {
+		return ""
+	}
+	closureRevision := firstMapText(messageLoopMapValue(state.input.Context["minimal_audio_closure"]), "project_revision")
+	if closureRevision == "" {
+		return ""
+	}
+	ledger := messageLoopMapValue(messageLoopFreeStateContext(state)["observation_ledger"])
+	reference := ""
+	for _, raw := range messageLoopMapValue(ledger["available_views"]) {
+		view := messageLoopMapValue(raw)
+		if !freeStateViewFreshRevisionBound(view, closureRevision) {
+			continue
+		}
+		if candidate := freeStateRowFreshReference(view); candidate != "" {
+			reference = candidate
+		}
+	}
+	if reference == "" {
+		for _, row := range messageLoopMapRows(ledger["receipts"]) {
+			if !freeStateReceiptFreshRevisionBound(row, closureRevision) {
+				continue
+			}
+			if candidate := freeStateRowFreshReference(row); candidate != "" {
+				reference = candidate
+			}
+		}
+	}
+	return reference
+}
+
+// freeStateRowFreshReference reads one ledger row's identity as the mechanical
+// citation "obs_id@revision", preferring the row's explicit revision binding
+// over the freshness block's.
+func freeStateRowFreshReference(row map[string]any) string {
+	observationID := strings.TrimSpace(firstMapText(row, "observation_id"))
+	if observationID == "" {
+		return ""
+	}
+	revision := strings.TrimSpace(firstNonEmpty(
+		firstMapText(row, "project_revision"),
+		firstMapText(messageLoopMapValue(row["freshness"]), "project_revision"),
+	))
+	if revision == "" {
+		return ""
+	}
+	return observationID + "@" + revision
+}
+
 // messageLoopFreeStateClaimsProjectPerfect is the M05 pattern assertion: an
 // exhausted diagnostic queue must not be reported as the project being
 // flawless. It matches an open set of perfection patterns, not fixed copy.

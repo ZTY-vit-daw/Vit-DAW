@@ -175,7 +175,11 @@ func TestSettleRefusalMarkerLifecycle(t *testing.T) {
 // The proposal surface itself must not park an unanswerable confirmation in
 // the race window: improvementProposalResponse answers waiting_continue so the
 // settle chain keeps its own budget (the frozen driver cannot approve a
-// replayed proposal confirmation).
+// replayed proposal confirmation). S3h2: the fixture carries the applied
+// boundary's debt bit (RequiresPostActionObservation) — the round executed and
+// its booking lagged — so it stays on the acted-race side of the S3h2 copy
+// split; a zero-intervention round without the debt bit is the never-acted
+// recalibration round, whose refusal copy points at the owed proposal instead.
 func TestImprovementProposalSuppressedDuringSettleRaceWindow(t *testing.T) {
 	s, loop := d2MultiRoundServerLoopForTest(t, 2)
 	round, err := loop.Experiment.CurrentRound()
@@ -183,6 +187,7 @@ func TestImprovementProposalSuppressedDuringSettleRaceWindow(t *testing.T) {
 		t.Fatal(err)
 	}
 	loop.SettleRefusedRoundID = round.ID
+	loop.RequiresPostActionObservation = true
 	s.storeFreeStateLoop(loop)
 	res := settleRaceTurn(loop)
 	resp := s.improvementProposalResponse(loop.ConversationID, "default", res, map[string]any{})

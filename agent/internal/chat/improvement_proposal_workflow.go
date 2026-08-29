@@ -59,18 +59,43 @@ func (s *Server) improvementProposalResponse(conversationID, mode string, res ag
 	// smoke: refused settle and the replayed tick bind in the same second).
 	// Answer waiting_continue: the settle chain retries on its own budget once
 	// the deterministic booking lands.
+	// S3h2 split: on a round that never acted (the 205921 misdirected settle
+	// on a freshly opened recalibration round) no observation can ever land,
+	// so the copy points at the round's actual debt — one bounded intervention
+	// proposal against the named fresh base — and a bare proposal (no settle
+	// report fields) is that owed work itself: it must fall through to the
+	// recalibration routing below instead of being swallowed here.
 	if loop, loopOK := s.freeStateLoop(conversationID); loopOK && freeStateLoopRoundSettleRefused(loop) {
-		resp.Reply = "本轮改动后的观察证据尚未入账，结算报告暂缓重试；观察入账后自动继续结算，本轮不会再提出新的改动。"
-		resp.GoalStatus = string(agentruntime.StatusWaitingContinue)
-		resp.StopReason = "settle_report_refused_awaiting_observation"
-		resp.NeedsConfirmation = false
-		resp.Workflow = improvementProposalWorkflow
-		resp.WorkflowData = mergeContext(resp.WorkflowData, map[string]any{
-			"settle_report_refused": true, "mutation_performed": false,
-			"free_state_reasoning_loop": freeStateLoopMap(loop),
-		})
-		resp.InteractionRequests = nil
-		return resp
+		neverActedRound := freeStateLoopRoundNeverActed(loop)
+		settleReplayCarried := res.FreeStateDecision != nil &&
+			(res.FreeStateDecision.ExperimentMateriality != nil || res.FreeStateDecision.ExperimentTargetResponse != nil ||
+				strings.TrimSpace(res.FreeStateDecision.ExperimentRoundDecision) != "")
+		if !neverActedRound || settleReplayCarried {
+			if neverActedRound {
+				baseRef := freeStateOwedRoundBaseReference(loop)
+				resp.Reply = "本轮欠一次有界干预提案；新鲜基准为 " + baseRef + "，请引用它提出本轮提案。"
+				if baseRef == "" {
+					resp.Reply = "本轮欠一次有界干预提案；请引用当前新鲜基准提出本轮提案。"
+				}
+				resp.StopReason = "round_owes_intervention_proposal"
+			} else {
+				resp.Reply = "本轮改动后的观察证据尚未入账，结算报告暂缓重试；观察入账后自动继续结算，本轮不会再提出新的改动。"
+				resp.StopReason = "settle_report_refused_awaiting_observation"
+			}
+			resp.GoalStatus = string(agentruntime.StatusWaitingContinue)
+			resp.NeedsConfirmation = false
+			resp.Workflow = improvementProposalWorkflow
+			resp.WorkflowData = mergeContext(resp.WorkflowData, map[string]any{
+				"settle_report_refused": true, "mutation_performed": false,
+				"round_owes_intervention": neverActedRound,
+				"free_state_reasoning_loop": freeStateLoopMap(loop),
+			})
+			if baseRef := freeStateOwedRoundBaseReference(loop); baseRef != "" {
+				resp.WorkflowData["round_base_reference"] = baseRef
+			}
+			resp.InteractionRequests = nil
+			return resp
+		}
 	}
 	// A recalibrating D2-2 round already carries its admitted experiment
 	// direction, and the frozen probe driver cannot approve a second

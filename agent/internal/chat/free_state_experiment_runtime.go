@@ -584,7 +584,16 @@ func (s *Server) recordFreeStateExperimentDecision(ctx context.Context, loop *fr
 	if loop.Experiment.Admission.IsD1S1() && settleReportCarried &&
 		!freeStateExperimentRoundHasFreshPostActionObservation(loop.Experiment) {
 		if s.logger != nil {
-			s.logger.Warn("[free-state-experiment] settle report refused until the fresh post-action observation is recorded on the round")
+			// The refusal copy splits by round type (S3h2): a round that never
+			// acted cannot discharge a post-action-observation debt, so saying
+			// "wait for the observation" there sends the model into settle
+			// replays (20260829_205921 trace: zero tool calls, budget burnt).
+			if freeStateLoopRoundNeverActed(*loop) {
+				s.logger.Warn("[free-state-experiment] settle report refused on a round that still owes its bounded intervention (fresh base %s); the round must propose against that base, not settle",
+					freeStateOwedRoundBaseReference(*loop))
+			} else {
+				s.logger.Warn("[free-state-experiment] settle report refused until the fresh post-action observation is recorded on the round")
+			}
 		}
 		// The refused report must not park the driving continuation at a
 		// judgment boundary it failed to form: strip its full boundary signal
@@ -937,6 +946,47 @@ func freeStateLoopRoundOwesIntervention(loop freeStateReasoningLoop) bool {
 		return false
 	}
 	return true
+}
+
+// freeStateLoopRoundNeverActed separates the two states that both project as a
+// zero-intervention round: a freshly opened recalibration round that genuinely
+// owes its bounded intervention, and the settle-report race window where the
+// round already executed but the intervention booking lags the transport
+// receipt. RequiresPostActionObservation is the applied-boundary debt bit —
+// true exactly while an executed mutation awaits its post-action booking — so
+// it is the discriminator: the race window carries the debt, the never-acted
+// round does not (20260829_205921 trace: the misdirected settle report was
+// refused on a never-acted round-2 whose guidance then said "wait for the
+// observation", a debt that cannot discharge there).
+func freeStateLoopRoundNeverActed(loop freeStateReasoningLoop) bool {
+	return freeStateLoopRoundOwesIntervention(loop) && !loop.RequiresPostActionObservation
+}
+
+// freeStateOwedRoundBaseReference restates the never-acted round's fresh base
+// as the mechanical citation "obs_id@revision" — the same base observation
+// S3h1's recalibrationRoundBaseRecent projects into the model-visible catalog,
+// so the refusal guidance quotes exactly the reference the ledger presents.
+func freeStateOwedRoundBaseReference(loop freeStateReasoningLoop) string {
+	if loop.Experiment == nil {
+		return ""
+	}
+	round, err := loop.Experiment.CurrentRound()
+	if err != nil {
+		return ""
+	}
+	for index := len(round.Observations) - 1; index >= 0; index-- {
+		observation := round.Observations[index]
+		if observation.PostAction || !observation.Fresh {
+			continue
+		}
+		obsID := strings.TrimSpace(observation.ID)
+		revision := strings.TrimSpace(observation.ProjectRevision)
+		if obsID == "" || revision == "" {
+			continue
+		}
+		return obsID + "@" + revision
+	}
+	return ""
 }
 
 // armFreeStateRecalibrationContinuation makes the freshly opened recalibration

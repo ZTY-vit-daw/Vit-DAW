@@ -120,10 +120,15 @@ func TestRefusedSettleCompletedResidueKeepsRetryCheckpointSchedulable(t *testing
 			after.ContinuationUsed, before.ContinuationUsed)
 	}
 	if resp.GoalStatus != string(agentruntime.StatusWaitingContinue) ||
-		resp.StopReason != "settle_report_refused_awaiting_observation" {
+		resp.StopReason != "round_owes_intervention_proposal" {
 		t.Fatalf("response semantics diverged from the demoted envelope: status=%q stop=%q",
 			resp.GoalStatus, resp.StopReason)
 	}
+	// S3h2 reclassification: this fixture's round never acted (fresh round-1,
+	// zero interventions, no post-action debt bit), so the demotion keeps the
+	// S3g mechanism (waiting_continue + schedulable checkpoint + budget slot
+	// below) but the refusal classification is the owed-intervention guidance,
+	// not awaiting-observation.
 }
 
 // The reproduction, stage two: the goal-terminal reload fold must spare the

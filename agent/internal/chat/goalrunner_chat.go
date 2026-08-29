@@ -1883,7 +1883,16 @@ func (s *Server) chatResponseFromAgentLoopResult(conversationID, mode string, re
 					res.ExecutionMemory.PendingMixTreatment = nil
 				}
 				res.Status = agentruntime.StatusWaitingContinue
-				res.StopReason = "settle_report_refused_awaiting_observation"
+				// S3h2: the demotion mechanism is identical for both round
+				// types, but a round that never acted owes a proposal, not an
+				// observation — the envelope must not re-teach
+				// "awaiting_observation" to the recalibration round the
+				// guidance is steering toward its bounded proposal.
+				if freeStateLoopRoundNeverActed(loop) {
+					res.StopReason = "round_owes_intervention_proposal"
+				} else {
+					res.StopReason = "settle_report_refused_awaiting_observation"
+				}
 			}
 		}
 	}

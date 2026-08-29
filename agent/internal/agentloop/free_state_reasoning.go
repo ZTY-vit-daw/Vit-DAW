@@ -721,7 +721,7 @@ func messageLoopFreeStateOutputIssue(state *runState, out messageLoopOutput) str
 			// The single-usable-bundle weak gate is replaced by the seven-part
 			// admission gate (docs/FREE_STATE_NEEDS_EXPERIMENT_GATE_V1.md). Gate
 			// failure has exactly one legal exit: needs_observation.
-			return fmt.Sprintf("needs_experiment requires the full admission gate; failed: %s; return needs_observation with the next bounded observation instead", strings.Join(failed, ", "))
+			return freeStateNeedsExperimentGateFailureMessage(state, failed)
 		}
 	case FreeStateSatisfied, FreeStateDiagnosticComplete, FreeStateNoCandidateFound:
 		if len(out.ToolCalls) != 0 {
