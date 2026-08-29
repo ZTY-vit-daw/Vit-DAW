@@ -347,3 +347,16 @@ S3d 以单测确定性复现 S3c 遗留的 settle 报告竞态（20260829_165648
 | 20260829_180942 | p01 freq 默认路径回归（-SkipBuild） | **pass** | S3d 修复后默认路径零变化红线守住 |
 
 开放项：**D2-2-S3e（Go L2 + py 一并）**——round-2 欠账干预的驱动链（refused-settle 降级后 nudge 不进 LLM 轮）与探针校验器的投影新鲜度（`find_d1_loop` 同刻/滞后副本胜出）。S3b/S3c/S3d 三卡验收 3 在 S3e 合入前保持未绿，D2-2 exit 0 收口顺延。
+
+## 13. 2026-08-29 晚窗批（D2-2-S3e mix-tick 吞咽解除 + 校验器权威投影优先：两修真栈验证成立，失败点前移至 refused-settle 信封残留）
+
+S3e 以 175049 trace 的 nudge 回复原文（.vit_history commit 逐字命中 `d1_settlement_pending_mix_tick_refused` 文案）定案缺口 A 根因：`messageExplicitMixTickApply` 精确匹配表含裸"继续"，settle 拒绝后结算挂起态（`freeStateLoopRoundSettleRefused` 常驻）把每个驱动 nudge 当显式执行确认短路，永远到不了 `runAgentLoopChat`。RED 单测逐字复现后修（fix(d2-2-s3e) 9cd6f99）：裸继续（`isContinueMessage`）不算显式执行确认，待确认面照旧退役（S2e 不变量，既有拒绝测试同绿）。缺口 B：`find_d1_loop` 加 `authoritative` 参数——持久化副本同刻/缺失时间戳胜出，信封副本仅严格更晚取代；`validate_d1` 无参路径逐字节不变，未放宽任何断言。
+
+**真栈验证（20260829_183540 trace）**：两修本体均成立——nudge #2/#3 已到达 `runAgentLoopChat`（stop=`pending_interaction_requires_response`，mix-tick 吞咽消除）；校验器已看权威数据（报错 "round 1 carries 0 forward interventions" 指 round index 1=round 2 的真实 0 干预，权威终态 rounds=[1,0] 一致）。终验仍 exit 1，失败点**再前移一层**：settle 拒绝降级轮（18:39:46）的 continuation 信封 `free_state_decision` 残留 `user_judgment_pending`+`human_audition_ready`（S3c 的 park 标记中和只覆盖 loop 投影 LatestDecision），`continuationRequiresUserInteraction` 据此把 `cont_3ca4...` park 成 waiting_interaction 且负载为空壳（无 interaction_id/requests）——bare-continue 交互门吞掉全部 nudge 却无可答复交互面，S3c 武装的 round-2 goal continuation 排在门后不可达，round 2 欠账干预永未提出。归新卡 D2-2-S3f。
+
+| stamp | 轮 | 终态 | 备注 |
+|---|---|---|---|
+| 20260829_183540 | p01 freq + 注入2 + MultiRoundProbe | fail "round 1 carries 0 forward interventions" | **两修真栈验证成立**（nudge 过 mix-tick 门到达 agent loop；校验器读权威投影）；失败点前移至 refused-settle 降级的 continuation 信封 decision 残留（空壳 waiting_interaction + bare-continue 门吸收，armed round-2 continuation 不可达） |
+| 20260829_185128 | p01 freq 默认路径回归（-SkipBuild） | **pass** | S3e 两修后默认路径零变化红线守住 |
+
+开放项：**D2-2-S3f（Go L2）**——refused-settle 降级的中和须覆盖 result 信封的 `free_state_decision`（或 bare-continue 门对无 interaction_id 的空壳 waiting_interaction 放行）。S3b/S3c/S3d/S3e 四卡验收 3 在 S3f 合入前保持未绿，D2-2 exit 0 收口顺延。
