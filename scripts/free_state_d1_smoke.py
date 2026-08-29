@@ -435,11 +435,15 @@ def recommended_interaction(response: dict[str, Any], admitted_domain_selected: 
     return None
 
 
-def find_d1_loop(responses: list[dict[str, Any]]) -> dict[str, Any] | None:
+def find_d1_loop(responses: list[dict[str, Any]], authoritative: dict[str, Any] | None = None) -> dict[str, Any] | None:
     # One response can embed several snapshots of the same loop (the persisted
     # authoritative projection plus stale copies inside interaction payloads).
     # Select by updated_at so the freshest snapshot wins regardless of walk
-    # order; equal stamps keep the last-walked copy.
+    # order; equal stamps keep the last-walked copy. An explicitly supplied
+    # authoritative (persisted) projection outranks every envelope-embedded
+    # copy at equal or missing stamps — an envelope copy replaces it only with
+    # a strictly later updated_at (2026-08-29 175049 smoke: a stale round-1=0
+    # envelope copy could beat the authoritative projection on a tie).
     found = None
     found_updated = ""
     for response in responses:
@@ -451,7 +455,31 @@ def find_d1_loop(responses: list[dict[str, Any]]) -> dict[str, Any] | None:
                     if found is None or updated >= found_updated:
                         found = item
                         found_updated = updated
+    if authoritative and (found is None or first_text(found.get("updated_at")) <= first_text(authoritative.get("updated_at"))):
+        return authoritative
     return found
+
+
+def test_find_d1_loop_authoritative_tie_break() -> None:
+    admitted = {
+        "schema_version": "free_state_reasoning_loop.v1",
+        "updated_at": "2026-08-29T09:55:02.5614462Z",
+        "experiment": {"admission": {"typed_action": {"action_domain": "static_eq"}}, "rounds": [{"interventions": [{}]}]},
+    }
+    stale_envelope = {
+        "schema_version": "free_state_reasoning_loop.v1",
+        "updated_at": "2026-08-29T09:55:02.5614462Z",
+        "experiment": {"admission": {"typed_action": {"action_domain": "static_eq"}}, "rounds": [{"interventions": []}]},
+    }
+    later_envelope = {**stale_envelope, "updated_at": "2026-08-29T09:56:02.0000000Z"}
+    responses = [{"workflow_data": {"free_state_reasoning_loop": stale_envelope}}]
+    picked = find_d1_loop(responses, authoritative=admitted)
+    assert picked is admitted, "equal-stamp envelope copy must not beat the authoritative projection"
+    picked = find_d1_loop([{"workflow_data": {"free_state_reasoning_loop": {**stale_envelope, "updated_at": ""}}}], authoritative=admitted)
+    assert picked is admitted, "missing-stamp envelope copy must not beat the authoritative projection"
+    picked = find_d1_loop([{"workflow_data": {"free_state_reasoning_loop": later_envelope}}], authoritative=admitted)
+    assert picked is later_envelope, "strictly later envelope copy must still win"
+    assert find_d1_loop(responses) is stale_envelope, "no-authoritative walk keeps the previous semantics"
 
 
 def find_admission_boundary(responses: list[dict[str, Any]]) -> dict[str, Any] | None:
@@ -1020,7 +1048,7 @@ def validate_d2_multi_round(base_url: str, conversation_id: str, project_path: s
     a pass (sealed-test discipline).
     """
     persisted = persisted_free_state_loop(project_path, conversation_id, run_started)
-    loop = find_d1_loop(([persisted] if persisted else []) + responses)
+    loop = find_d1_loop(responses, authoritative=persisted or None)
     require(loop is not None, f"{case_id} multi-round probe found no admitted free-state loop projection")
     assert loop is not None
     experiment = loop.get("experiment") if isinstance(loop.get("experiment"), dict) else {}

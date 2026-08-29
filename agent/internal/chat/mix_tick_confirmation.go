@@ -33,7 +33,14 @@ func (s *Server) handlePendingMixTickChat(ctx context.Context, conversationID st
 			s.settlePendingMixTickDurable(conversationID, agentprotocol.PendingStatusRejected, "refused: the applied experiment round is pending settlement; a second mutation is illegal mid-round")
 		}
 		recoveredCandidate, hasRecoveredCandidate := pendingMixTickCandidateFromContext(req.Context)
-		if messageExplicitMixTickApply(req.Message) || (hasRecoveredCandidate && recoveredCandidate.TrackID != "") {
+		// A bare continue is the driver's parked-state resume, not an apply
+		// confirmation: swallowing it here starves the owed round's drive
+		// chain — after the recalibration judgment's settle refusal every
+		// round-2 nudge answered this refusal and never reached an LLM turn
+		// (2026-08-29 175049 smoke). The stale surface is already retired
+		// above, so let the resume fall through to the free-state path.
+		explicitApply := messageExplicitMixTickApply(req.Message) && !isContinueMessage(req.Message)
+		if explicitApply || (hasRecoveredCandidate && recoveredCandidate.TrackID != "") {
 			return ChatResponse{
 				ConversationID: conversationID,
 				AgentMode:      mode,

@@ -121,6 +121,32 @@ func TestHandlePendingMixTickChatRefusesConfirmationDuringSettlement(t *testing.
 	}
 }
 
+// A bare continue during the settlement window is the driver's parked-state
+// resume, not an apply confirmation. Swallowing it here (2026-08-29 175049
+// smoke: messageExplicitMixTickApply matched bare "继续", so every round-2
+// nudge answered d1_settlement_pending_mix_tick_refused and never reached an
+// LLM turn) starves the owed round's drive chain. It must retire the stale
+// surface (the S2e invariant) and fall through to the free-state resume path.
+func TestHandlePendingMixTickChatBareContinueDuringSettlementFallsThrough(t *testing.T) {
+	s := &Server{harness: harness.New(nil, nil, nil)}
+	s.mu.Lock()
+	if s.pendingMixTicks == nil {
+		s.pendingMixTicks = map[string]agentloop.PendingMixTickCandidate{}
+	}
+	s.pendingMixTicks["conversation-s2e"] = settlementPendingMixTickCandidate()
+	s.mu.Unlock()
+	s.storeFreeStateLoop(settlementPendingLoop("conversation-s2e", "re_evaluating"))
+	resp, handled := s.handlePendingMixTickChat(context.Background(), "conversation-s2e", ChatRequest{
+		ConversationID: "conversation-s2e", Message: "继续", Context: map[string]any{"agent_mode": "chat"},
+	}, agentModeDefault)
+	if handled {
+		t.Fatalf("bare continue during settlement must fall through to the free-state resume path, got stop=%q reply=%q", resp.StopReason, resp.Reply)
+	}
+	if _, ok := s.pendingMixTickForConversation("conversation-s2e"); ok {
+		t.Fatal("bare continue during settlement left the illegal second-mutation surface installed")
+	}
+}
+
 // The inactive-loop projection must not force-settle the closure nor project
 // the goal completed while the round still owes its settle report: the
 // settlement is model-owned, and a 194ms "completed" permanently loses it
