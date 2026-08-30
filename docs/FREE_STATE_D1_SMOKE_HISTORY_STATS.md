@@ -511,3 +511,17 @@ S3h8 以 102243 定案的孤儿开卡。取证把卡内死亡链精确到**确�
 旁证：全量 `go test ./...` 绿（chat 3 新用例含于其中）。
 
 收口：**D2-2 十三卡链（S3b/S3c/S3d/S3e×2/S3f/S3g/S3h1/S3h2/S3h4/S3h5/S3h6/S3h7）以 20260830_125328+132640 双 exit 0 为同一戳连关**（blocked→done 10 张 + 已 done 3 张）；S3h3 层未被终验触达（双链全程单 goal）按裁定分支**关闭留档**（未来再现第二 goal 吞噬凭卡重开）。fix 4fda027 合入，不 push。开放项移交：CLEAN1（持久残留新鲜度审计，含 S3h8 身份种子 deferral 上下文 + 本批冻结存储/evidence_off 取证）、STAB1（durable 切片测试稳定性，本批 TempDir 抖动为其又一例证）。
+
+## 23. 2026-08-30 晚批（D2-2-STAB1 durable-slice 观测测试满负载稳定性：双根因定案，测试隔离/时序修复）
+
+根因一句话结论：`TestFreeStateObservationsSurviveFourDurableSlices` 的满负载抖动是测试侧两个独立缺陷叠加——① 快照 overlay 用测试启动时刻固定的未来时间戳（`now+(index+1)s`）盖 `UpdatedAt`，满负载拖慢后真实时钟反超，`mergeFreeStateLoops` 的 overlay-newer 守卫（S3h1 同款机制）把快照误判为陈旧回显，`CurrentPhase` 停止跨切片前进（"child checkpoint lost durable evidence"）；② `recordGoalResult` 尾部对每个 auto continuation 调 `wakeContinuationScheduler()`，测试一旦配置 `continuationExecutor` 即启动真后台调度器 goroutine，与测试的同步扫描/断言竞态抢同一个刚创建的 pending checkpoint（"slice N did not create a pending child checkpoint"，即卡上 :312 断言族）。
+
+复现/修复证据：
+- 机制①：临时探针在 slice 1 注入 2s 延迟（等价满负载拖慢）→ 原代码 slice 2 失败 `phase="fs3_project_scan"`（期望 fs4），修复后同探针通过；
+- 机制②：40 个 busy-loop 满载（20 核 ×2）下原代码 `-count=100` 失败 5 次（slice 3/4 pending 缺失），状态转储证实 slice-4 记录在断言前已被后台 worker claim+complete（created 后 ~6ms completed、attempt=1）；修复后同负载 `-count=100` + 探针 200 迭代全绿。
+
+修复（`test(d2-2-stab1)` 43f6909，仅测试隔离/同步/时序层，零生产代码改动、零断言放宽）：快照时间戳改从服务器 loop 自身 `UpdatedAt` 推导（`before.UpdatedAt.Add((index+1)s)`，overlay 恒新于合并基座）；同步驱动后复位 `continuationExecutor=nil`，令 wake 的 executor 门永不成立、后台 worker 永不启动；同机制波及兄弟测试 `TestProductionFreeStateRunnerObservationsSurviveDurableSlices`（S3f 批同族抖动）→ 置 `schedulerWake=nil`（其驱动面完全同步，不需要 wake）。
+
+验证：`go test ./internal/chat -run 'TestFreeStateObservationsSurviveFourDurableSlices' -count=10` 绿；满载 `-count=100` 绿；兄弟测试满载 `-count=30` 绿；全量 `go test ./... -count=1` 三连全绿（2026-08-30 18:15:25 / 18:16:03 / 18:16:45，84 包 ok）。
+
+旁证：S3h8 批 `TestProcessorCertificationStartAcceptsBroadbandCompressorCapability` 的 Windows TempDir 清理竞态与本次无共同机制（前者为测试框架 TempDir 清理 vs 残留句柄竞态，本次为测试自身时序/调度器隔离缺陷），按卡纪律记录不修。
