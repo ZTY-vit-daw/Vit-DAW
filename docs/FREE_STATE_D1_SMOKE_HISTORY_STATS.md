@@ -438,3 +438,20 @@ S3h4 以 215139 定案的"调度器续跑轮读不到拒收指引"开卡。取�
 旁证：全量 `go test ./...` 一次全绿（TestJudgmentBoundarySpansRoundsAtFinalGate 修复后含于其中）。
 
 开放项：**D2-2-S3h5**（limit 停机 checkpoint 被 loop.LatestDecision 的 round-1 判断边界残留误分类为 waiting_interaction 空壳——armed 续跑链死亡层；S3h4 的指引已送达但无轮可读）。S3h3（预算耗尽第二 goal）仍未触达。S3b/S3c/S3d/S3e×2/S3f/S3g/S3h1/S3h2/S3h4 十卡验收 3 在 S3h5 合入前保持未绿，D2-2 exit 0 收口顺延。
+
+## 19. 2026-08-30 早批（D2-2-S3h5 判断落地开轮的 LatestDecision 边界残留中和：修复真栈验证成立，失败点前移至 round-2 欠轮提案的 G1 准入拒收层）
+
+S3h5 以 223957 定案的"limit 停机被 round-1 判断边界残留误分类"开卡。取证闭环：`recordFreeStateDecision` 的 decision==nil 分支（free_state_reasoning_loop.go:676-680）在 limit 停机轮直接返回、LatestDecision 不刷新；goalrunner_chat.go:455 的 loop copy-back 把残留投到 `res.FreeStateDecision`（limit 停机轮的 `state.freeStateDecision` 为 nil，残留是唯一来源）；`continuationRequiresUserInteraction`（continuation_scheduler.go:140-152）的 decision 双检查把 limit 停机分类为交互边界 → `durableContinuationFromResult` 停 waiting_interaction + `pendingInteractionFromResult` 取不到请求 → 空壳。残留源头锁定在 `applyFreeStateJudgmentOutcome` next_round 分支：DecideRound(next_round)+StartRound 开轮时 LatestDecision 未被中和；`freeStateJudgmentBoundary` 读 experiment 轮状态而非 LatestDecision，中和不触碰真实边界语义。
+
+修复（fix(d2-2-s3h5) f470e88）：提取 S3f 内联中和为 `neutralizeFreeStateBoundaryResidue`（剥 LatestDecision 的完整边界信号对），接入两处开轮点——判断落地 recalibration 分支（StartRound 成功后、armed continuation 序列化 loop 之前，保证 armed context 也干净）与 insufficient-dose calibration 分支（S3f 处改为调用同 helper）。方向取 (a)（任务卡三选一）：与 S3f 同族、根因层状态卫生、不依赖 stop_reason 推断；(b) 侵入 scheduler 纯函数签名、(c) 依赖"真实边界轮从不 limit 停机"的脆弱不变量，均弃。RED 三态：判断落地开轮后残留幸存（修复前失败）+ 欠轮 limit 停机 park 空壳（修复前失败，空壳形态与 223957 逐字一致）+ 挂起期间边界分类保留（控制组通过）。
+
+**真栈验证（20260830_085624 trace）**：修复本体全部成立——终态 5 个 continuation 全 completed、零 waiting_interaction 空壳（223957 为 park 死锁）；persisted_loop.latest_decision 无边界残留；round-1 合法判断边界 park（"experiment round is waiting for the human judgment boundary"）与终局折叠照常；**round-2 续跑轮首次真实消费 S3h4 欠轮指引**（checkpoint 环内会话：settle 重放被欠轮文案拒收 → 模型提出 round-2 提案"Track 1027 300Hz -0.5dB" → G1 准入拒收**附新鲜引用 `obs_20260830T005914_bb866ca1bfc6@4`**（S3h2 的 D 修复与引用命名在栈上行使——本卡验收点达成））。终验仍 exit 1，失败点**前移至新层**：round-2 的 needs_experiment 提案被消息环 full admission gate 的 **G1_project_binding 拒收**——`task_contract.project_revision=2`（合同冻结基线）vs `minimal_audio_closure.project_revision=4`（round-1 干预后当前值），gateG1 的 revision 一致性检查（free_state_gate.go:69-82）在首轮干预后结构性失败；模型被 G1 拒收文案导向 needs_observation → 防重复观察闸（"already returned usable evidence"）又拒 → 模型回 settle → 欠轮拒收，三重方向矛盾循环每轮 executed=0 烧预算至 9/8 → loop blocked"free-state reasoning exhausted its 8-continuation budget"。round-2 终态 0 干预；3 次 nudge 落"现在没有可执行的待确认混音动作"。S3h3 的第二 goal 吞噬仍未触达（链死于 gate 矛盾循环）。
+
+| stamp | 轮 | 终态 | 备注 |
+|---|---|---|---|
+| 20260830_085624 | p01 freq + 注入2 + MultiRoundProbe | fail "round 1 carries 0 forward interventions" | **S3h5 修复真栈验证成立**（空壳 park 消除、round-2 链持续可调度、欠轮指引首次被消费、G1 拒收附 obs@4 引用行使、round-1 合法边界照常）；失败前移至 round-2 欠轮提案的 G1 准入拒收（contract rev2 vs closure rev4 结构性不一致 + 三重方向矛盾烧预算）→ S3h6 |
+| 20260830_091207 | p01 freq 默认路径回归（-SkipBuild） | **pass** | S3h5 改动后默认路径零变化红线守住 |
+
+旁证：全量 `go test ./...` 一次全绿（S3f 控制组 TestGenuineSettleJudgmentBoundaryStillParks 含于其中）；另 20260830_085151 一轮 NOT_EXERCISED（exit 3）为环境配置缺失的空跑（未带 freq flavor + tier 注入），不计入失败面。
+
+开放项：**D2-2-S3h6**（round-2 欠轮提案的 G1_project_binding 拒收层——needs_experiment 对已 admission 实验的轮内提案走 full admission gate、gateG1 拿合同冻结 revision 对 closure 当前 revision 做一致性检查在干预后结构性失败，且与欠轮指引、防重复观察闸形成方向矛盾循环烧尽预算；含 budget 9/8 超支 1 次的守卫核对）。S3h3（预算耗尽第二 goal）仍未触达。S3b/S3c/S3d/S3e×2/S3f/S3g/S3h1/S3h2/S3h4/S3h5 十一卡验收 3 在 S3h6 合入前保持未绿，D2-2 exit 0 收口顺延。
