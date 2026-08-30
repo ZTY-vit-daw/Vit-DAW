@@ -574,3 +574,13 @@ S3h8 以 102243 定案的孤儿开卡。取证把卡内死亡链精确到**确�
 留档：①spv1_p03 fixture（manifest 第三 case + 透明链工程 + fresh .vit_agent）建于 temp/ 夹具集，p01/p02 既有条目与 sealed 语义不动；②run5 的 d1_receipt 持久化投影读取为顶层 responses 权威（validation dict）——persisted_loop 快照时间差属已知投影竞争，非缺陷；③p01+compression 观察项维持 8/28 记录不变；④S2f-1 激活问句仍在域表（家族卡 revert 裁定未排，本批 5 轮均携问句跑，正向链不受其扰）。
 
 收口：S2f-2 卡 todo→done；fix 合入 `feat(d2-1.5-s2f2):`，不 push。开放项移交：kernel 遥测型 latest_request 的跨目标 in-run 窗口（preserve 加固已诚实降级 + §4-6 诊断在位，是否豁免待后续 D1 工件定案——本批不裁）。
+
+## 27. 2026-08-30 晚批（D2-EVID1-fix1 绑定面裸观察 ID 透出：裁定 B 单点落地——evidence on/off 引用面统一）
+
+改动摘要：`mixboard/catalog.go observationBinding`（读时构造，:1030）的 `evidence_refs` 由原样透出持久化 refs 改为**前置 `obs.ObservationID` 后去重**（`uniqueObservationRefs`，obsID 为空维持原样）——durable packet 的 `EvidenceRefs` 持久化形状一字不动（`persistence_v2.go` 未碰，实测 v2 观察文件 refs 仍只含 `evidence://<sha256>`），准入门/D1-S1/G7/prompt 语义零改动（红线全守）。效果：evidence 开 `[obsID, evidence://…]`、evidence 关 `[obsID]` 两种存储状态对模型与全部下游（CCB bundle、账本 receipts/available_views、G7、D1-S1、诊断 known-refs）呈现统一引用形态；`lazyFeatureSnapshot` 按 `evidence://` 前缀过滤不受影响（核对未改）。
+
+验证（RED 先行，20260830_195814-195816）：mixboard 三新用例按卡内预言失败——`TestObservationBindingEvidenceRefsPrependBareObservationID`（evidence 开 refs 首项为裸 ID）、`TestObservationBindingEvidenceRefsBareOnlyWhenEvidenceOff`（evidence 关 refs=[obsID]）、`TestObservationBindingEvidenceRefsDeduplicatesBareObservationID`（已含 obsID 不重复）；空 obsID 对照用例修复前即绿（维持原样红线锁）。实现后 `go test ./internal/mixboard -run 'Test.*Binding.*' -count=1` + `go test ./internal/capabilitycontext -run 'Test.*Observation' -count=1` 绿（含新 bundle 透传断言 `TestAssembleFreeStateObservationBundleCarriesBareObservationIDInEvidenceRefs`：AssembleFreeStateObservation 的 EvidenceRefs 首项为裸 ID）。全量 `go test ./... -count=1` exit 0（20260830_195818→195922，84 包 ok，重跑取证戳）。
+
+真栈烟测（**全新存储 evidence 开场景**，20260830_195743→195930，exit 0）：冻结夹具 .vit_agent（evidence_off）会掩盖本路径，故以 staged 全新工程跑——`temp/evid1-fix1-fresh-store-smoke/projects/spv1_p01/`（仅 .vit，无 .vit_agent）+ 指向该工程的 manifest 副本，`run_free_state_d1_smoke.ps1 -PublicCaseId spv1_p01 -PromptFlavor frequency -SkipBuild`；二进制 mtime 核对前置（agent 19:57:01 ≥ 全部 go 源 19:55 窗，-SkipBuild 复用合法）。实测 live 工作区 manifest `degraded.evidence_off=false`、evidence 5 blob/1.6MB、durable 观察 refs 仍只含 URI（持久化红线）；账本 receipts/available_views 的 evidence_refs 实录 `[obs_…, evidence://…]`（裸 ID 首项，绑定面透出生效）；报告 status=pass，D1-S1 无 `free_state_experiment_admission_invalid`、无 loop blocked、未 NOT_EXERCISED，static_eq 提案准入并执行（before revision 12→after 13）终态等待人工判定边界（fs8）。
+
+收口：EVID1-fix1 卡 todo→done（commit `12e028d`，fix 合入不 push）；EVID1 裁定 B 落地，F10 关闭；A 式准入宽容维持观察项（模型只引 URI 的残余风险留档，另行裁定）。
