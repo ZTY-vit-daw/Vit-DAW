@@ -26,9 +26,12 @@ const deltaSemantics = "delta_db"
 type deltaChannelPlan struct {
 	Channels        []eqGainChannel
 	CurrentPhysical float64
-	TargetPhysical  float64
-	Slope           float64
-	Probe           map[string]any
+	// CurrentNormalized is the pre-action normalized position of the primary
+	// channel; the refinement loop restores to it on exhaustion.
+	CurrentNormalized float64
+	TargetPhysical    float64
+	Slope             float64
+	Probe             map[string]any
 }
 
 func (plan *deltaChannelPlan) audit() map[string]any {
@@ -140,7 +143,8 @@ func (p *StaticEQVSPPort) planDeltaChannels(ctx context.Context, trackID, plugin
 			}
 		}
 		plan := &deltaChannelPlan{
-			Channels: channels, CurrentPhysical: currentPhysical, TargetPhysical: targetPhysical, Slope: slope,
+			Channels: channels, CurrentPhysical: currentPhysical, CurrentNormalized: currentNormalized,
+			TargetPhysical: targetPhysical, Slope: slope,
 			Probe: map[string]any{"parameter_id": primary, "probe_normalized": probeNormalized,
 				"probe_physical": probePhysical, "current_normalized": currentNormalized, "restored": true},
 		}
@@ -159,4 +163,77 @@ func probeThresholdPhysical(ctx context.Context, p *StaticEQVSPPort, trackID, pl
 		return 0, false
 	}
 	return plugingrabber.ParseCompressorPhysical("threshold", info.ValueText)
+}
+
+// deltaRefineMaxIterations bounds the post-write secant convergence loop.
+const deltaRefineMaxIterations = 4
+
+// refineDeltaChannels converges a written delta onto its physical target. The
+// planning probe measures one average slope over a ±0.25 normalized window,
+// but real compressor display tapers bend near their limits, so the first
+// write can land off target (VSC-2 threshold, 2026-08-30 p03 run: 10.8 dB
+// target, 10.1 dB achieved from the +11.8 dB ceiling). Each iteration
+// secant-projects through the two nearest measured (normalized, physical)
+// points, writes every channel at the projected position, rebases the CAS
+// base, and re-reads the live display text. Exhaustion restores the pre-action
+// normalized value so a failed action leaves no net parameter move, matching
+// the probe discipline.
+func (p *StaticEQVSPPort) refineDeltaChannels(ctx context.Context, trackID, pluginID, requestID, txID string, plan *deltaChannelPlan, requested []eqGainChannel, primary string) (float64, float64, []map[string]any, error) {
+	if len(requested) == 0 {
+		return 0, 0, nil, fmt.Errorf("delta refinement has no channels to write")
+	}
+	// The main write advanced the kernel revision without rebasing the port's
+	// CAS base (the pre-refinement flow performed no further writes); rebase
+	// first so the kernel accepts the refinement writes.
+	if err := p.rebaseAfterWrite(ctx); err != nil {
+		return 0, 0, nil, fmt.Errorf("delta refine rebase failed: %w", err)
+	}
+	nA, physA := plan.CurrentNormalized, plan.CurrentPhysical
+	nB, physB := requested[0].RequestedNormalized, math.NaN()
+	if parsed, ok := probeThresholdPhysical(ctx, p, trackID, pluginID, primary); ok {
+		physB = parsed
+	} else {
+		return 0, 0, nil, fmt.Errorf("delta refinement could not read the achieved threshold display")
+	}
+	writeAll := func(normalized float64, label string) error {
+		entries := make([]map[string]any, 0, len(requested))
+		for _, channel := range requested {
+			entries = append(entries, map[string]any{"parameter_id": channel.ParamID, "normalized_value": normalized})
+		}
+		return p.writeParameterBatch(ctx, trackID, pluginID, requestID+":"+label, txID+":"+label, entries...)
+	}
+	trace := make([]map[string]any, 0, deltaRefineMaxIterations)
+	for iteration := 1; iteration <= deltaRefineMaxIterations; iteration++ {
+		if math.Abs(physB-plan.TargetPhysical) <= ThresholdDeltaToleranceDB {
+			return nB, physB, trace, nil
+		}
+		slope := (physB - physA) / (nB - nA)
+		if slope == 0 || math.IsNaN(slope) || math.IsInf(slope, 0) {
+			break
+		}
+		next := math.Max(0, math.Min(1, nB+(plan.TargetPhysical-physB)/slope))
+		if next == nB {
+			break
+		}
+		if err := writeAll(next, fmt.Sprintf("refine-%d", iteration)); err != nil {
+			return nB, physB, trace, fmt.Errorf("delta refine write failed: %w", err)
+		}
+		if err := p.rebaseAfterWrite(ctx); err != nil {
+			return nB, physB, trace, err
+		}
+		achieved, parsed := probeThresholdPhysical(ctx, p, trackID, pluginID, primary)
+		if !parsed {
+			break
+		}
+		nA, physA = nB, physB
+		nB, physB = next, achieved
+		trace = append(trace, map[string]any{"iteration": iteration, "normalized": next, "physical": achieved})
+	}
+	if err := writeAll(plan.CurrentNormalized, "refine-restore"); err != nil {
+		return nB, physB, trace, fmt.Errorf("delta refine restore failed: %w", err)
+	}
+	if err := p.rebaseAfterWrite(ctx); err != nil {
+		return nB, physB, trace, err
+	}
+	return nB, physB, trace, fmt.Errorf("delta physical target %.4g dB not achieved after %d refinement iterations (readback %.4g dB); restored the pre-action position", plan.TargetPhysical, deltaRefineMaxIterations, physB)
 }

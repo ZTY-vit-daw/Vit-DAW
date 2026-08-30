@@ -27,12 +27,18 @@ func deltaAction(delta float64) orchestration.Action {
 
 // extendDeltaSnapshots feeds the fake the extra rebase snapshots the probe
 // cycle consumes (probe rebase, restore rebase) on top of the preflight and
-// post-mutation snapshots.
+// post-mutation snapshots; extra revisions cover the delta refinement loop's
+// post-write rebases.
 func extendDeltaSnapshots(client *fakeNBVSPClient) {
 	client.fakeVSPClient.snapshots = append(client.fakeVSPClient.snapshots,
 		stateResultWithGain("epoch-eq", 10, "after", "t1", 0),
 		stateResultWithGain("epoch-eq", 11, "after", "t1", 0),
 		stateResultWithGain("epoch-eq", 12, "after", "t1", 0),
+		stateResultWithGain("epoch-eq", 13, "after", "t1", 0),
+		stateResultWithGain("epoch-eq", 14, "after", "t1", 0),
+		stateResultWithGain("epoch-eq", 15, "after", "t1", 0),
+		stateResultWithGain("epoch-eq", 16, "after", "t1", 0),
+		stateResultWithGain("epoch-eq", 17, "after", "t1", 0),
 	)
 }
 
@@ -128,7 +134,13 @@ func TestStaticEQVSPPortDeltaSemanticsRejectsUnreachableTarget(t *testing.T) {
 	}
 }
 
-func TestStaticEQVSPPortDeltaSemanticsGateRejectsCurvatureMiss(t *testing.T) {
+// TestStaticEQVSPPortDeltaSemanticsRefinesCurvedTaperOntoTarget pins the
+// 2026-08-30 p03 finding: the planning probe's average slope over a ±0.25
+// normalized window misses a bent compressor taper near its limit (VSC-2
+// threshold: 10.8 dB target, 10.1 dB achieved), and the refinement loop
+// converges onto the target through measured secant steps instead of failing
+// the action.
+func TestStaticEQVSPPortDeltaSemanticsRefinesCurvedTaperOntoTarget(t *testing.T) {
 	client := newFakeNBVSPClient("thr_a", "thr_b", -20, 0, false)
 	client.curveExponent = 4 // strongly curved: linear estimate from the probe misses the target
 	client.params["thr_a"].normalized = 1
@@ -140,11 +152,76 @@ func TestStaticEQVSPPortDeltaSemanticsGateRejectsCurvatureMiss(t *testing.T) {
 		t.Fatal(err)
 	}
 	receipt, err := port.Apply(context.Background(), actionSet.Actions[0], "execution:comp:a-delta")
-	if err == nil || receipt.Status == "applied" {
-		t.Fatalf("curvature miss must not count as applied: receipt=%+v err=%v", receipt, err)
+	if err != nil || receipt.Status != "applied" {
+		t.Fatalf("curved taper must converge onto the target: receipt=%+v err=%v", receipt, err)
 	}
-	if !strings.Contains(err.Error(), "delta physical target") {
+	// current 0 dB (norm 1), delta -1 dB -> target -1 dB on the k=4 taper
+	if achieved, _ := receipt.Details["actual_readback_value"].(float64); math.Abs(achieved-(-1)) > ThresholdDeltaToleranceDB {
+		t.Fatalf("actual_readback_value=%v want -1 within %.2f", achieved, ThresholdDeltaToleranceDB)
+	}
+	trace, _ := receipt.Details["delta_refinement"].([]map[string]any)
+	if len(trace) == 0 {
+		t.Fatalf("converged receipt must carry the refinement trace: %+v", receipt.Details)
+	}
+	refineSeen, restoreSeen := false, false
+	for _, request := range client.requests {
+		if strings.Contains(request, ":refine-") && !strings.Contains(request, "restore") {
+			refineSeen = true
+		}
+		if strings.HasSuffix(request, ":refine-restore") {
+			restoreSeen = true
+		}
+	}
+	if !refineSeen {
+		t.Fatalf("refinement writes not visible in requests: %v", client.requests)
+	}
+	if restoreSeen {
+		t.Fatalf("converged action must not restore: %v", client.requests)
+	}
+	before, _ := receipt.Details["before_revision"].(string)
+	after, _ := receipt.Details["after_revision"].(string)
+	if before == "" || after == "" || before == after {
+		t.Fatalf("refined receipt revisions not distinct: before=%q after=%q", before, after)
+	}
+}
+
+// TestStaticEQVSPPortDeltaSemanticsRefinementExhaustionRestores pins the
+// fail-closed shape: a display quantized coarser than the tolerance can never
+// confirm the target, so the loop exhausts, restores the pre-action position,
+// and the action fails without a net parameter move.
+func TestStaticEQVSPPortDeltaSemanticsRefinementExhaustionRestores(t *testing.T) {
+	client := newFakeNBVSPClient("thr_a", "thr_b", -20, 0, false)
+	client.curveExponent = 4
+	client.displayQuantum = 1 // integer-dB readout: -1.3 dB target is never confirmable
+	client.params["thr_a"].normalized = 1
+	client.params["thr_b"].normalized = 1
+	extendDeltaSnapshots(client)
+	port := &StaticEQVSPPort{Client: client, CommandName: "broadband_threshold_adjust"}
+	actionSet := orchestration.ActionSet{ProjectCutHash: "cut-eq", Actions: []orchestration.Action{deltaAction(-1.3)}}
+	if err := port.Preflight(context.Background(), actionSet, eqCut()); err != nil {
+		t.Fatal(err)
+	}
+	receipt, err := port.Apply(context.Background(), actionSet.Actions[0], "execution:comp:a-delta")
+	if err == nil || receipt.Status == "applied" {
+		t.Fatalf("coarse display must fail closed: receipt=%+v err=%v", receipt, err)
+	}
+	if !strings.Contains(err.Error(), "not achieved") {
 		t.Fatalf("unexpected error: %v", err)
+	}
+	restoreSeen := false
+	for _, request := range client.requests {
+		if strings.HasSuffix(request, ":refine-restore") {
+			restoreSeen = true
+		}
+	}
+	if !restoreSeen {
+		t.Fatalf("exhausted refinement must restore the pre-action position: %v", client.requests)
+	}
+	if got := client.params["thr_a"].normalized; got != 1 {
+		t.Fatalf("thr_a left at %v; refine restore failed", got)
+	}
+	if got := client.params["thr_b"].normalized; got != 1 {
+		t.Fatalf("thr_b left at %v; refine restore failed", got)
 	}
 }
 

@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import datetime as dt
 import json
+import math
 import shutil
 import sys
 import time
@@ -22,10 +23,15 @@ OPEN_PROMPT = "检查一下当前工程有什么问题？"
 # encoded here). The frequency flavor expresses a listening goal that steers
 # the free-state proposal toward the admitted static_eq domain; the compression
 # flavor steers toward the admitted broadband_compression domain the same way.
+# The leveling flavor (D2-1.5-S2f-2) states the opposite compression premise --
+# dynamically loose material that needs bounded leveling -- so the physically
+# reachable direction (lowering a fresh compressor threshold) is the one the
+# proposal follows.
 PROMPT_FLAVORS = {
     "neutral": OPEN_PROMPT,
     "frequency": "人声在 200-400Hz 听起来浑浊（boxy），但各轨电平平衡已经合适，不要用整体增益来解决。请先观察工程，再针对这个频段给一个有界的小步改进建议。",
     "compression": "整轨动态听起来被压得过平（over-compressed），但各轨电平平衡已经合适，不要用整体增益或 EQ 来解决。请先观察工程，再针对这个动态问题给一个有界的小步改进建议。",
+    "leveling": "有几轨的动态起伏偏大、峰值偶尔跳出来，但各轨电平平衡已经合适，不要用整体增益或 EQ 来解决。请先观察工程，再针对这个动态问题给一个有界的小步改进建议。",
 }
 # The D2-1 domain table mirrored for runner-side gating. Admission itself is
 # always decided by the agent's experiment domain table, never here.
@@ -149,6 +155,68 @@ def materialize_public_case(case: dict[str, Any], workdir: Path) -> dict[str, An
     copied_case = dict(case)
     copied_case["project_path"] = str(copied_project)
     return copied_case
+
+
+# Runner-side material qualification for the compression-positive fixture
+# (D2-1.5-S2f-2). The gates mirror the smoke contract's context-validity style:
+# a per-track RMS floor plus crest-factor floors proving the public material is
+# dynamically loose enough that bounded compression is acoustically meaningful
+# (spv1 stems measure crest 14.5-21.0 dB; the floors keep real headroom instead
+# of pinning the measured values). Metrics are machine-computed from the public
+# stems only, land in the smoke report (never in agent context), and name no
+# target track, so the blindness contract stays mechanically auditable.
+MATERIAL_QUALIFICATION_SCHEMA = "vit.free_state_d1_material_qualification.v1"
+MATERIAL_MIN_RMS_DBFS = -45.0
+MATERIAL_MIN_CREST_DB_PER_TRACK = 10.0
+MATERIAL_MIN_BEST_CREST_DB = 14.0
+
+
+def dbfs(value: float) -> float:
+    return 20.0 * math.log10(max(value, 1e-12))
+
+
+def qualify_material(case: dict[str, Any]) -> dict[str, Any]:
+    import numpy as np
+    import soundfile as sf
+
+    track_rows: list[dict[str, Any]] = []
+    for stem in case.get("stem_files", []):
+        path = Path(str(stem["file"]))
+        if not path.is_file():
+            raise RuntimeError(f"material qualification stem is missing: {path}")
+        audio, _rate = sf.read(path, dtype="float64", always_2d=True)
+        mono = np.asarray(audio, dtype=np.float64).mean(axis=1)
+        peak = float(np.max(np.abs(mono)))
+        rms = float(np.sqrt(np.mean(mono * mono)))
+        crest_db = dbfs(peak / max(rms, 1e-12)) if peak > 0 and rms > 0 else 0.0
+        track_rows.append({
+            "track": str(stem["track"]),
+            "file": str(path),
+            "rms_dbfs": round(dbfs(rms), 3),
+            "peak_dbfs": round(dbfs(peak), 3),
+            "crest_db": round(crest_db, 3),
+        })
+    if not track_rows:
+        raise RuntimeError("material qualification found no public stems")
+    weak_rms = [row["track"] for row in track_rows if row["rms_dbfs"] <= MATERIAL_MIN_RMS_DBFS]
+    weak_crest = [row["track"] for row in track_rows if row["crest_db"] < MATERIAL_MIN_CREST_DB_PER_TRACK]
+    best_crest_db = max(row["crest_db"] for row in track_rows)
+    if weak_rms or weak_crest or best_crest_db < MATERIAL_MIN_BEST_CREST_DB:
+        raise RuntimeError(
+            "public material failed the compression-fixture qualification gates: "
+            + json.dumps({"weak_rms_tracks": weak_rms, "weak_crest_tracks": weak_crest, "best_crest_db": best_crest_db}, ensure_ascii=False)
+        )
+    return {
+        "schema_version": MATERIAL_QUALIFICATION_SCHEMA,
+        "status": "passed",
+        "gates": {
+            "min_rms_dbfs_per_track": MATERIAL_MIN_RMS_DBFS,
+            "min_crest_db_per_track": MATERIAL_MIN_CREST_DB_PER_TRACK,
+            "min_best_crest_db": MATERIAL_MIN_BEST_CREST_DB,
+        },
+        "best_crest_db": round(best_crest_db, 3),
+        "tracks": track_rows,
+    }
 
 
 def first_text(*values: Any) -> str:
@@ -537,11 +605,15 @@ def validate_d1(base_url: str, conversation_id: str, responses: list[dict[str, A
     domain = first_text(typed.get("action_domain")).lower()
     require(domain in ADMITTED_DOMAIN_KINDS, f"D1 action_domain {domain!r} is not admitted by the D2-1 domain table")
     require(first_text(typed.get("action_kind")).lower() == ADMITTED_DOMAIN_KINDS[domain], f"D1 action_kind mismatch for admitted domain {domain}")
+    time_dynamics_disclosure: dict[str, Any] | None = None
     if domain == "static_eq":
         gain = typed.get("gain_db")
         require(isinstance(gain, (int, float)) and not isinstance(gain, bool) and gain != 0 and abs(gain) <= 2, "static_eq typed gain_db must be non-zero within +/-2")
         frequency = typed.get("frequency_hz")
         require(isinstance(frequency, (int, float)) and not isinstance(frequency, bool) and 20 <= frequency <= 20000, "static_eq typed frequency_hz must be within 20-20000")
+    if domain == "broadband_compression":
+        threshold = typed.get("threshold_db")
+        require(isinstance(threshold, (int, float)) and not isinstance(threshold, bool) and threshold != 0 and abs(threshold) <= 2, "broadband_compression typed threshold_db must be non-zero within +/-2")
     require(int(admission.get("experiment_budget", 0) or 0) == 1, "D1 experiment_budget must equal one")
     for key in ("diagnostic_dose_bounds", "retained_dose_bounds"):
         bounds = admission.get(key) if isinstance(admission.get(key), dict) else {}
@@ -563,6 +635,41 @@ def validate_d1(base_url: str, conversation_id: str, responses: list[dict[str, A
     if domain == "static_eq":
         for key in ("plugin_id", "param_id"):
             require(receipt.get(key) not in (None, ""), f"static_eq execution receipt missing {key}")
+    if domain == "broadband_compression":
+        for key in ("plugin_id", "param_id"):
+            require(receipt.get(key) not in (None, ""), f"broadband_compression execution receipt missing {key}")
+        # D2-1.5-S2f-2 evidence-chain assertions. The model freely chooses its
+        # own observation views (no server view injection), so the round check
+        # only requires every requested view to have been disclosed; the
+        # disclosability of the COM time-dynamics view itself is probed
+        # directly below against the live stack.
+        for observation_row in rows(round_row.get("observations")):
+            requested = {first_text(value) for value in (observation_row.get("requested_view_ids") or [])}
+            executed = {first_text(value) for value in (observation_row.get("executed_view_ids") or [])}
+            require(requested <= executed, "broadband_compression observation lost requested views: " + json.dumps({"requested": sorted(requested), "executed": sorted(executed)}, ensure_ascii=False))
+        target_ref = admission.get("target_ref") if isinstance(admission.get("target_ref"), dict) else {}
+        disclosure = invoke(base_url, "ccb.observation_request", {
+            "view_ids": ["track.time_dynamics"],
+            "target_ref": {"kind": first_text(target_ref.get("kind")) or "track", "id": first_text(target_ref.get("id"))},
+            "freshness_class": "fresh",
+        }, timeout)
+        bundle = disclosure.get("bundle") if isinstance(disclosure.get("bundle"), dict) else {}
+        audit = bundle.get("audit_receipt") if isinstance(bundle.get("audit_receipt"), dict) else {}
+        executed_views = {first_text(value) for value in (audit.get("actual_executed_view_ids") or bundle.get("actual_executed_view_ids") or disclosure.get("actual_executed_view_ids") or [])}
+        if not executed_views:
+            executed_views = {first_text(key) for key in (bundle.get("views") or {})}
+        disclosure_status = first_text(disclosure.get("status")).lower() or first_text(bundle.get("status")).lower()
+        # The contract's formal-run gate for track.time_dynamics is "ready or
+        # partial and fresh": source-only COM discloses as partial by design
+        # (micro-transient limits), so partial counts as disclosable; the
+        # s2f-2a rejection window answers rejected/missing instead.
+        require(disclosure_status in {"ready", "partial"},
+                "track.time_dynamics was not disclosable on the admitted target (s2f-2a rejection window): " + json.dumps({"status": disclosure.get("status"), "bundle_status": bundle.get("status")}, ensure_ascii=False))
+        require("track.time_dynamics" in executed_views,
+                "track.time_dynamics disclosure probe did not execute the view: " + json.dumps(sorted(executed_views), ensure_ascii=False))
+        freshness = bundle.get("freshness") if isinstance(bundle.get("freshness"), dict) else {}
+        require(first_text(freshness.get("status")).lower() != "stale", "track.time_dynamics disclosure was stale")
+        time_dynamics_disclosure = {"observation_id": first_text(bundle.get("observation_id")), "status": disclosure_status, "executed_view_ids": sorted(executed_views)}
     require(receipt.get("readback_verified") is True, "D1 actual readback was not verified")
 
     post_observations = [item for item in rows(round_row.get("observations")) if item.get("post_action") is True]
@@ -624,6 +731,7 @@ def validate_d1(base_url: str, conversation_id: str, responses: list[dict[str, A
         "readback_key": readback_key,
         "readback_value": receipt[readback_key],
         "post_action_observation_id": post.get("observation_id"),
+        "time_dynamics_disclosure": time_dynamics_disclosure,
         "forward_mutation_count": 1,
         "audition_session_id": session_id,
         "human_audition_ready": True,
@@ -1218,6 +1326,7 @@ def main() -> int:
         _, public_case = load_public_case(Path(args.public_manifest), args.public_case_id)
         case = materialize_public_case(public_case, Path(args.project_workdir))
         report["public_source_project"] = str(Path(str(public_case["project_path"])).resolve())
+        report["material_qualification"] = qualify_material(case)
         report["project_setup"] = prepare_project(args.agent_http, case, args.timeout_sec)
         report["started_at_epoch"] = time.time()
         ui_context_response = request_json("GET", args.agent_http.rstrip("/") + "/agent/ui/context", None, min(args.timeout_sec, 30))

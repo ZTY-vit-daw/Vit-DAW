@@ -547,3 +547,30 @@ S3h8 以 102243 定案的孤儿开卡。取证把卡内死亡链精确到**确�
 真栈回归（CLEAN1-1+CLEAN1-2 合并一次）：默认路径 p01 freq -SkipBuild **exit 0**（20260830_185606）。过程债如实记录：首轮 20260830_185124 PASS 跑的是 12:53 的**旧二进制**（-SkipBuild 复用 `agent\bin\VitAgent.exe`，早于 18:40 合入的修复）——重建二进制（18:56）后经 `-RestartAgent` 重跑，PASS 方为有效回归；未来 -SkipBuild 冒测前须核对二进制 mtime 晚于待验代码（已在本批踩坑，机制留档）。
 
 收口：**CLEAN1 双卡（读侧租约 CLEAN1-1 + 读侧任期 CLEAN1-2）以 70e72b1/95e2835 + 20260830_185606 为同一戳连关**，CLEAN1 审计 F7/F8 两潜伏病灶关闭（F9 留档观察、F10 范围外移交 admission/evidence 家族的裁定不变）。fix 合入，不 push。
+
+## 26. 2026-08-30 晚批（D2-1.5-S2f-2 压缩域正向用例 fixture：证据链修复 + 割线收敛 delta 机器 + spv1_p03 透明链端到端——**压缩域正向链首次 exit 0**）
+
+目标一句话：为 broadband_compression 建立正向端到端用例（模型提案物理可达 → 执行成功 → A/B 证据可信），验收从 p01+compression（概念性 +1 → 物理拒绝，观察项）迁移至新用例。
+
+**设计裁定（GLM L2，卡内定稿）**：载体 = 新 case `spv1_p03`（不用 "raw" 命名，case id 不透明纪律）——stems 复用 p01 公开 stems（同 sha256，manifest 只追加第三 case、既有条目逐字节不动），工程经 product path（`semantic_processor_project_smoke_projects.py`）重建**透明链**（0 插件实例，实测 p03.vit 无 PLUGININSTANCE/SSL）+ fresh `.vit_agent`；正向方向 = 新 prompt flavor `leveling`（动态松散前提，与 frequency/compression 同构）引导负 threshold 增量（新实例化 VSC-2 默认 +11.8 dB 顶格，负增量唯一物理可达，S2c 已验）——家族卡"引导负增量被否决"仅针对过压素材上的声学无意义动作，松散素材上加压缩声学有意义，分层 4 用户裁定口径一致。判据机器 = runner 侧 numpy+soundfile 逐轨机器计算 peak/rms/crest（门槛 rms>-45 每轨、crest≥10 每轨、最优 crest≥14；p01 stems 实测 14.5–21.0），进 report `material_qualification` fail-closed，不预选目标轨不进 agent 上下文。
+
+**证据链修复（S2f-2a 报告 §4 强制项）**：①§4-6 诊断——`freshWaveformRowOrMissing` stub 增补 `judged_track_id/judged_clip_id/judged_request_id/judged_status`（compact 白名单同步放行）；②§4-1 变体——`normalizeTrackWaveformFeatureFreshness` 对 requested_features 非空且不含 waveform_envelope 的 latest_request（跨运行 l2 render probe 形态，冻结 p01 快照实证 `mixboard_l2_render_probe_1032`/status requested）不做 request 身份失效判定，TW 行交给 material/project-state 过滤（kernel 遥测 packet 自带三类 feature 清单不受影响，空/缺列表保持权威 fail-safe）；③防错归位加固——`preserveTargetWaveformTimeSegments` 在请求带具体目标、WE 槽描述其它目标、目标轨无可回填行时置诚实 missing（reason `waveform_row_not_bound_to_requested_target`，带 displaced 行身份）——堵死"静默消费错轨 ready 行"（比 loud rejection 危险）。权威路径行为字节不变。**真栈首发命中**：192556 轮工件 obs_20260830T112631 实录 not_bound stub（目标 1012/drums，displaced vocals 1032/1036 ready 行）——in-run kernel 遥测窗口（waveform-authoritative 基线跨目标）由该加固诚实降级，剩余微节点待后续 D1 工件按 judged_* 字段定案。不采用 §4-4（§4-1 已解根因，冗余改动面）。
+
+**执行层发现链（正向链首次真实写入暴露的三层缺陷，全部卡内目标"执行成功"范围）**：run1 192556——模型自主以 **threshold_db=-1** 准入（leveling 语义生效）并执行到内核，delta 机器 ±0.25 归一化窗口的平均斜率外推在非线性 taper 上失准（目标 10.8 dB 实达 10.1，容差 0.15）→ **割线收敛机**（`refineDeltaChannels`：写入后按最近两实测点投影迭代 ≤4 次，每次 write+rebase+读显示文本，耗尽恢复原值零净移动，trace 进 receipt `delta_refinement`；测试改写 `GateRejectsCurvatureMiss` 为收敛断言 + 新增耗尽恢复测试）；run2 193330——refine 写入被拒：主写入后端口 CAS base 未 rebase（原流程主写入后无后续写入）→ refinement 顶部先 rebase；同时修正成功路径复核快照 `<=` 为 `<`（真内核重读同 revision，假客户端单调队列曾掩盖）；run3 193601——**执行链全绿**（receipt applied、before 5→after 7、readback 10.8 精确、割线 1 次收敛、human_audition_ready ✓），挂在本卡新断言过严（要求 round 全部观察披露 time_dynamics——模型自主选了 basic_energy，D1 契约模型自选视图、服务端注入禁止）→ 断言改形：round 观察 requested ⊆ executed + runner 侧 time_dynamics **可披露探针**（对已准入目标发真实 ccb.observation_request）；run4 193906——探针答 **partial**：取证为健康披露态（COM source_dynamics 全量在场 crest 15.611/4 有效段/decision_support supported、freshness ready/revision 绑定，partial 源于 source_only 设计性限制），contract formal gate 本就是 "ready **or partial** and fresh" → 断言接受 partial + 拒 rejected/missing + freshness 非 stale。
+
+**验收（20260830_194058，含构建禁 -SkipBuild）**：`spv1_p03 -PromptFlavor leveling -ExpectDomain broadband_compression` **exit 0**——模型自主准入 broadband_compression threshold_db=-1（目标轨 1012/drums），执行 receipt applied（before 5→after 7、transaction/idempotency 全、readback **10.8** 精确命中 current 11.8+(-1)、delta_refinement 1 次迭代收敛）、post-action CCB fresh 且 revision 绑定（obs_20260830T114159）、A/B audition 双候选就绪（render/preview revision 互异）、time_dynamics 探针 partial+fresh 且执行视图含 time_dynamics、素材判据 6 轨全过（best crest 20.989/guitar）。RED→GREEN 纪律：mixboard 三新测试（非波形基线保留 ready 行全链到 COM ready / 错轨 WE 槽诚实 stub / §4-6 诊断字段）先行 RED 失败形态与预测一致后修复转绿；全量 `go test ./... -count=1` exit 0。
+
+**p01 freq 回归（-SkipBuild）**：见下表（单轮路径零变化红线 + 二进制 mtime 核对前置执行：agent 19:41 ≥ go 源 19:35、kernel 12:00 ≥ 全部 C++ 源）。
+
+| stamp | 轮 | 终态 | 备注 |
+|---|---|---|---|
+| 20260830_192556 | p03 leveling 正向 | fail "D1 receipt requires distinct before/after revisions" | 首轮：模型 -1 准入✓、内核写入✓（revision 推进 6）、斜率失准 readback 10.1≠10.8 → applied_unreconciled（细节缺 before/after）；**§4-6/not_bound 诊断同轮真栈首发命中** |
+| 20260830_193330 | p03 leveling 正向 | fail 同上（错误前移） | 割线机已进二进制：refine 写入被 CAS 拒（主写入后 base 未 rebase）→ 修复 |
+| 20260830_193601 | p03 leveling 正向 | fail "did not disclose track.time_dynamics" | **执行链全绿**（applied 5→7、readback 10.8、audition ready）；断言过严（模型自选 basic_energy）→ 改形为 requested⊆executed + 可披露探针 |
+| 20260830_193906 | p03 leveling 正向 | fail "not disclosable: partial" | 探针语义修正：partial=健康披露（contract gate "ready or partial and fresh"），取证 COM 全量在场 |
+| 20260830_194058 | p03 leveling 正向 | **pass（exit 0）** | **压缩域正向端到端首次 exit 0**：全链证据见上 |
+| 20260830_194243 | p01 freq 默认路径（-SkipBuild） | **pass** | 单轮路径零变化（static_eq before 9→after 10、readback -1）；mixboard 修复在冻结 p01（l2 probe 残留基线）上同栈生效；素材判据机器对既有 case 同样全过 |
+
+留档：①spv1_p03 fixture（manifest 第三 case + 透明链工程 + fresh .vit_agent）建于 temp/ 夹具集，p01/p02 既有条目与 sealed 语义不动；②run5 的 d1_receipt 持久化投影读取为顶层 responses 权威（validation dict）——persisted_loop 快照时间差属已知投影竞争，非缺陷；③p01+compression 观察项维持 8/28 记录不变；④S2f-1 激活问句仍在域表（家族卡 revert 裁定未排，本批 5 轮均携问句跑，正向链不受其扰）。
+
+收口：S2f-2 卡 todo→done；fix 合入 `feat(d2-1.5-s2f2):`，不 push。开放项移交：kernel 遥测型 latest_request 的跨目标 in-run 窗口（preserve 加固已诚实降级 + §4-6 诊断在位，是否豁免待后续 D1 工件定案——本批不裁）。

@@ -192,6 +192,7 @@ func (p *StaticEQVSPPort) Apply(ctx context.Context, action orchestration.Action
 	paramIDCh2 := ""
 	var requestedChannels []eqGainChannel
 	var deltaPlan *deltaChannelPlan
+	var deltaRefinement []map[string]any
 	if writeMode == WriteModeNormalizedBatchV1 {
 		paramIDCh2 = actionArgText(action, "param_id_ch2")
 		surface, surfaceErr := p.eqParameterSurface(ctx, action.TargetRef, pluginID)
@@ -213,6 +214,10 @@ func (p *StaticEQVSPPort) Apply(ctx context.Context, action orchestration.Action
 			requestedChannels = channels
 		}
 	}
+	// The net move starts here: probe cycles above are write+restore pairs,
+	// so the revision at this point is the honest "before" even when the
+	// refinement loop below advances the base several more times.
+	netBeforeRevision := p.baseRevision
 	var result *kernel.VSPCommandResult
 	if writeMode == WriteModeNormalizedBatchV1 {
 		parameters := make([]map[string]any, 0, len(requestedChannels))
@@ -264,14 +269,13 @@ func (p *StaticEQVSPPort) Apply(ctx context.Context, action orchestration.Action
 	readbackVerified := false
 	var actualPhysical any
 	normalizedRecords := make([]map[string]any, 0, len(requestedChannels))
-	if writeMode == WriteModeNormalizedBatchV1 {
-		freshSurface, surfaceErr := p.eqParameterSurface(ctx, action.TargetRef, pluginID)
-		if surfaceErr != nil {
-			return orchestration.ActionReceipt{ActionID: action.ID, Status: "applied_unreconciled", AppliedRevision: strconv.FormatInt(current.Revision, 10), EffectivelyOnce: true}, fmt.Errorf("plugin parameter readback did not match target")
-		}
+	// verifyRequestedOnSurface re-checks every requested channel against one
+	// parameter surface and captures the primary channel's physical text.
+	verifyRequestedOnSurface := func(surface map[string]plugingrabber.ParameterInfo) bool {
 		readbackVerified = true
+		normalizedRecords = normalizedRecords[:0]
 		for index, channel := range requestedChannels {
-			info, ok := freshSurface[channel.ParamID]
+			info, ok := surface[channel.ParamID]
 			var actualValue float64
 			numericOK := false
 			if ok {
@@ -291,14 +295,52 @@ func (p *StaticEQVSPPort) Apply(ctx context.Context, action orchestration.Action
 				}
 			}
 		}
+		return readbackVerified
+	}
+	if writeMode == WriteModeNormalizedBatchV1 {
+		freshSurface, surfaceErr := p.eqParameterSurface(ctx, action.TargetRef, pluginID)
+		if surfaceErr != nil {
+			return orchestration.ActionReceipt{ActionID: action.ID, Status: "applied_unreconciled", AppliedRevision: strconv.FormatInt(current.Revision, 10), EffectivelyOnce: true}, fmt.Errorf("plugin parameter readback did not match target")
+		}
+		verifyRequestedOnSurface(freshSurface)
 		if !readbackVerified {
 			return orchestration.ActionReceipt{ActionID: action.ID, Status: "applied_unreconciled", AppliedRevision: strconv.FormatInt(current.Revision, 10), EffectivelyOnce: true}, fmt.Errorf("plugin parameter readback did not match target")
 		}
 		if deltaPlan != nil {
 			achieved, parsed := actualPhysical.(float64)
 			if !parsed || math.Abs(achieved-deltaPlan.TargetPhysical) > ThresholdDeltaToleranceDB {
-				return orchestration.ActionReceipt{ActionID: action.ID, Status: "applied_unreconciled", AppliedRevision: strconv.FormatInt(current.Revision, 10), EffectivelyOnce: true},
-					fmt.Errorf("delta physical target %.4g dB not achieved (readback %v)", deltaPlan.TargetPhysical, actualPhysical)
+				// The planned average slope missed the local taper; converge
+				// onto the target through measured secant steps instead of
+				// condemning the action on the first write.
+				refinedNormalized, _, trace, refineErr := p.refineDeltaChannels(ctx, action.TargetRef, pluginID, requestID, txID, deltaPlan, requestedChannels, paramID)
+				if refineErr != nil {
+					return orchestration.ActionReceipt{ActionID: action.ID, Status: "applied_unreconciled", AppliedRevision: strconv.FormatInt(current.Revision, 10), EffectivelyOnce: true}, fmt.Errorf("VSP plugin parameter mutation failed: %s", refineErr)
+				}
+				deltaRefinement = trace
+				for index := range requestedChannels {
+					requestedChannels[index].RequestedNormalized = refinedNormalized
+				}
+				current, err = p.Client.VSPStateSnapshot(ctx, "project.timeline")
+				if err != nil || current == nil || !current.OK() {
+					return orchestration.ActionReceipt{ActionID: action.ID, Status: "applied_unreconciled", EffectivelyOnce: true}, fmt.Errorf("mutation applied but readback snapshot failed: %w", err)
+				}
+				if current.ProjectEpoch != p.projectEpoch {
+					return orchestration.ActionReceipt{ActionID: action.ID, Status: "applied_unreconciled", EffectivelyOnce: true}, fmt.Errorf("project epoch changed during execution")
+				}
+				// Every refinement write already proved its advance through
+				// rebaseAfterWrite; a stable re-read equals the base here.
+				if current.Revision < p.baseRevision {
+					return orchestration.ActionReceipt{ActionID: action.ID, Status: "applied_unreconciled", EffectivelyOnce: true}, fmt.Errorf("VSP revision regressed after refinement")
+				}
+				refinedSurface, refineSurfaceErr := p.eqParameterSurface(ctx, action.TargetRef, pluginID)
+				if refineSurfaceErr != nil || !verifyRequestedOnSurface(refinedSurface) {
+					return orchestration.ActionReceipt{ActionID: action.ID, Status: "applied_unreconciled", AppliedRevision: strconv.FormatInt(current.Revision, 10), EffectivelyOnce: true}, fmt.Errorf("plugin parameter readback did not match the refined target")
+				}
+				achieved, parsed := actualPhysical.(float64)
+				if !parsed || math.Abs(achieved-deltaPlan.TargetPhysical) > ThresholdDeltaToleranceDB {
+					return orchestration.ActionReceipt{ActionID: action.ID, Status: "applied_unreconciled", AppliedRevision: strconv.FormatInt(current.Revision, 10), EffectivelyOnce: true},
+						fmt.Errorf("delta physical target %.4g dB not achieved after refinement (readback %v)", deltaPlan.TargetPhysical, actualPhysical)
+				}
 			}
 		}
 	} else {
@@ -311,6 +353,9 @@ func (p *StaticEQVSPPort) Apply(ctx context.Context, action orchestration.Action
 		actualPhysical = actual
 	}
 	beforeRevision := p.baseRevision
+	if netBeforeRevision > 0 {
+		beforeRevision = netBeforeRevision
+	}
 	beforeKey := eqBeforeKey(pluginID, paramID)
 	beforeValue, beforeAvailable := p.beforeValues[beforeKey]
 	transactionID := strings.TrimSpace(result.TransactionID)
@@ -335,6 +380,9 @@ func (p *StaticEQVSPPort) Apply(ctx context.Context, action orchestration.Action
 	if deltaPlan != nil {
 		details["target_semantics"] = deltaSemantics
 		details["delta_calibration"] = deltaPlan.audit()
+	}
+	if len(deltaRefinement) > 0 {
+		details["delta_refinement"] = deltaRefinement
 	}
 	if beforeAvailable {
 		details["before_readback_value"] = beforeValue

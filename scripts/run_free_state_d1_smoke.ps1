@@ -13,7 +13,7 @@ param(
     [switch]$AdmissionOnly,
     [ValidateSet("retain", "rollback", "ambiguous")]
     [string]$SettlementProbe = "",
-    [ValidateSet("neutral", "frequency", "compression")]
+    [ValidateSet("neutral", "frequency", "compression", "leveling")]
     [string]$PromptFlavor = "neutral",
     [ValidateSet("any", "track_gain", "static_eq", "broadband_compression")]
     [string]$ExpectDomain = "any",

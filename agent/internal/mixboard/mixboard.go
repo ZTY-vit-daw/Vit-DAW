@@ -1982,6 +1982,14 @@ func preserveTargetWaveformTimeSegments(snap *featureSnapshot, req Request) {
 		}
 	}
 	if len(targetRow) == 0 {
+		// No usable row for the requested target: a WE slot describing a
+		// different target must not survive as source evidence for this
+		// observation. Stub it honestly (the request-identity gates above may
+		// have skipped under a non-waveform baseline) instead of silently
+		// serving the other target's dynamics.
+		if trackID != "" || clipID != "" {
+			preserveStubUnboundWaveformEnvelope(snap, trackID, clipID)
+		}
 		return
 	}
 	if !waveformRowMatchesRequestedTarget(snap.WaveformEnvelope, trackID, clipID) {
@@ -2002,6 +2010,42 @@ func preserveTargetWaveformTimeSegments(snap *featureSnapshot, req Request) {
 		}
 	}
 	snap.WaveformEnvelope = merged
+}
+
+// preserveStubUnboundWaveformEnvelope replaces a surviving WE slot that
+// describes a different target than the observation requested (reachable when
+// the request-identity freshness gate skipped under a non-waveform baseline)
+// with an honest missing stub carrying the displaced row's identity.
+func preserveStubUnboundWaveformEnvelope(snap *featureSnapshot, trackID, clipID string) {
+	status := featureStatus(snap.WaveformEnvelope)
+	if status == "missing" || status == "invalid" {
+		return
+	}
+	if waveformRowMatchesRequestedTarget(snap.WaveformEnvelope, trackID, clipID) {
+		return
+	}
+	out := map[string]any{
+		"status":       "missing",
+		"feature_type": "waveform_envelope",
+		"reason":       "waveform_row_not_bound_to_requested_target",
+	}
+	if displacedTrack := cleanAnyString(snap.WaveformEnvelope["track_id"]); displacedTrack != "" {
+		out["judged_track_id"] = displacedTrack
+	}
+	if displacedClip := cleanAnyString(snap.WaveformEnvelope["clip_id"]); displacedClip != "" {
+		out["judged_clip_id"] = displacedClip
+	}
+	if displacedRequest := cleanAnyString(snap.WaveformEnvelope["request_id"]); displacedRequest != "" {
+		out["judged_request_id"] = displacedRequest
+	}
+	out["judged_status"] = status
+	if trackID != "" {
+		out["track_id"] = trackID
+	}
+	if clipID != "" {
+		out["clip_id"] = clipID
+	}
+	snap.WaveformEnvelope = out
 }
 
 func waveformRowMatchesRequestedTarget(row map[string]any, trackID, clipID string) bool {
@@ -2135,6 +2179,14 @@ func normalizeTrackWaveformFeatureFreshness(snap *featureSnapshot, projectState 
 	if allowLegacyProjectRows && trackWaveformLatestRequestIsNonAuthoritativeBlocked(snap.LatestRequest) {
 		return
 	}
+	if trackWaveformLatestRequestIsNotAWaveformBaseline(snap.LatestRequest) {
+		// The baseline request concerns another evidence class, so no waveform
+		// request is in flight and request-identity staleness does not apply;
+		// material/project-state validity is enforced right after this by
+		// normalizeProjectFeatureMaterialFreshness, and the WE slot is bound to
+		// the requested target by preserveTargetWaveformTimeSegments.
+		return
+	}
 	target, _ := snap.LatestRequest["resolved_target"].(map[string]any)
 	snap.WaveformEnvelope = freshWaveformRowOrMissing(snap.WaveformEnvelope, requestID, target, snap.LatestRequest, projectState)
 	rows := make([]map[string]any, 0, len(snap.TrackWaveformEnvelopes))
@@ -2171,6 +2223,30 @@ func trackWaveformLatestRequestIsNonAuthoritativeBlocked(latestRequest map[strin
 	return len(mapRowsAny(latestRequest["requested_features"])) == 0 && len(mapRowsAny(latestRequest["track_feature_targets"])) == 0
 }
 
+// trackWaveformLatestRequestIsNotAWaveformBaseline reports whether the
+// persisted latest_request explicitly lists its requested features and none of
+// them is a waveform_envelope entry (e.g. a cross-run l2 render probe that
+// never completed). Such a request never invalidated waveform rows on its own
+// terms — it concerns a different evidence class — so it must not serve as the
+// freshness baseline that condemns ready waveform rows as
+// stale_feature_snapshot_for_current_request (2026-08-29 s2f2a forensics §3/§4-1).
+// Requests with an empty or absent feature list stay authoritative: their
+// scope is unknown and the historical behavior is the fail-safe direction.
+// Kernel-telemetry packets list waveform_envelope alongside their other
+// feature types, so live waveform materialization keeps its baseline.
+func trackWaveformLatestRequestIsNotAWaveformBaseline(latestRequest map[string]any) bool {
+	features := mapRowsAny(latestRequest["requested_features"])
+	if len(features) == 0 {
+		return false
+	}
+	for _, requested := range features {
+		if strings.EqualFold(cleanAnyString(requested["feature_type"]), "waveform_envelope") {
+			return false
+		}
+	}
+	return true
+}
+
 func freshWaveformRowOrMissing(row map[string]any, requestID string, target map[string]any, latestRequest map[string]any, projectState map[string]any) map[string]any {
 	status := featureStatus(row)
 	if status == "missing" || status == "invalid" {
@@ -2185,6 +2261,19 @@ func freshWaveformRowOrMissing(row map[string]any, requestID string, target map[
 		"request_id":   requestID,
 		"reason":       "stale_feature_snapshot_for_current_request",
 	}
+	// s2f2a §4-6 diagnostic: the condemned row's identity lands on the stub so
+	// run artifacts show which row the gate actually judged (track, clip,
+	// request, prior status) without reopening the snapshot.
+	if trackID := cleanAnyString(row["track_id"]); trackID != "" {
+		out["judged_track_id"] = trackID
+	}
+	if clipID := cleanAnyString(row["clip_id"]); clipID != "" {
+		out["judged_clip_id"] = clipID
+	}
+	if rowRequestID := cleanAnyString(row["request_id"]); rowRequestID != "" {
+		out["judged_request_id"] = rowRequestID
+	}
+	out["judged_status"] = status
 	if trackID := cleanAnyString(target["track_id"]); trackID != "" {
 		out["track_id"] = trackID
 	}
@@ -2801,7 +2890,7 @@ func inferredRequestedFeature(featureType, requestID string, row map[string]any)
 
 func compactFeatureRow(row map[string]any) map[string]any {
 	out := map[string]any{}
-	for _, key := range []string{"schema_version", "status", "feature_type", "layer", "source_kind", "track_id", "clip_id", "target", "file_path", "source_path", "source_identity", "source_revision", "source_fingerprint", "source_hash", "clip_revision", "render_revision", "plugin_chain_revision", "fader_revision", "analyzer_revision", "analyzer_version", "clip_start_seconds", "request_id", "reason", "scope", "capture_mode", "tap_point", "render_mode", "tail_seconds", "capture_time", "time_basis", "quality_status", "quality_reason", "quality_reasons", "quality_evidence", "target_count", "track_ids", "float_count", "shm_bytes", "stride", "producer_format", "channels_semantics", "frequency_mapping", "derivation_status", "parse_failure_count", "parse_failures", "tile_count_seen", "tile_count_expected", "tile_count_parsed", "coverage_seconds", "coverage_ratio", "last_tile_index", "tile_duration", "tile_content_start_seconds", "frame_duration_seconds", "total_duration", "duration_seconds", "sample_rate", "channel_count", "channels", "expected_sample_count", "analyzed_sample_count", "nonzero_count", "sum_abs", "max_abs", "nan_count", "inf_count", "analyzed_range", "window_ms", "hop_ms", "evidence_ref", "resolution_frame_width", "resolution_frequency_bins", "first_received_at", "last_received_at", "rms", "peak", "peak_abs", "rms_dbfs", "peak_dbfs", "headroom_db", "crest_factor", "crest_db", "integrated_lufs", "approximate_lufs", "approximate", "algorithm", "updated_at", "time_segments", "source", "bands", "band_count", "band_dynamics", "noise_floor_evidence", "frequency_time_events", "transient_events", "left_unit_energy", "right_unit_energy", "left_level_db", "right_level_db", "balance_db", "balance_unit", "balance_state", "phase_deviation", "phase_negative_ratio", "correlation_estimate", "correlation_state", "bin_count", "sample_count", "phase_sample_count"} {
+	for _, key := range []string{"schema_version", "status", "feature_type", "layer", "source_kind", "track_id", "clip_id", "target", "file_path", "source_path", "source_identity", "source_revision", "source_fingerprint", "source_hash", "clip_revision", "render_revision", "plugin_chain_revision", "fader_revision", "analyzer_revision", "analyzer_version", "clip_start_seconds", "request_id", "reason", "judged_track_id", "judged_clip_id", "judged_request_id", "judged_status", "scope", "capture_mode", "tap_point", "render_mode", "tail_seconds", "capture_time", "time_basis", "quality_status", "quality_reason", "quality_reasons", "quality_evidence", "target_count", "track_ids", "float_count", "shm_bytes", "stride", "producer_format", "channels_semantics", "frequency_mapping", "derivation_status", "parse_failure_count", "parse_failures", "tile_count_seen", "tile_count_expected", "tile_count_parsed", "coverage_seconds", "coverage_ratio", "last_tile_index", "tile_duration", "tile_content_start_seconds", "frame_duration_seconds", "total_duration", "duration_seconds", "sample_rate", "channel_count", "channels", "expected_sample_count", "analyzed_sample_count", "nonzero_count", "sum_abs", "max_abs", "nan_count", "inf_count", "analyzed_range", "window_ms", "hop_ms", "evidence_ref", "resolution_frame_width", "resolution_frequency_bins", "first_received_at", "last_received_at", "rms", "peak", "peak_abs", "rms_dbfs", "peak_dbfs", "headroom_db", "crest_factor", "crest_db", "integrated_lufs", "approximate_lufs", "approximate", "algorithm", "updated_at", "time_segments", "source", "bands", "band_count", "band_dynamics", "noise_floor_evidence", "frequency_time_events", "transient_events", "left_unit_energy", "right_unit_energy", "left_level_db", "right_level_db", "balance_db", "balance_unit", "balance_state", "phase_deviation", "phase_negative_ratio", "correlation_estimate", "correlation_state", "bin_count", "sample_count", "phase_sample_count"} {
 		if value, ok := row[key]; ok {
 			out[key] = value
 		}

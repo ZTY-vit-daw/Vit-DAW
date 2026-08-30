@@ -196,6 +196,7 @@ type fakeNBVSPClient struct {
 	withCandidate        bool   // expose display_domain_candidate; probe samples are always present
 	frozenPhysicalText   bool   // live value_text ignores writes (degenerate threshold display)
 	curveExponent        float64 // >0 bends physical = min + span*norm^k and switches text to the "+x.xx" form
+	displayQuantum       float64 // >0 rounds the curved display text to this dB step (coarse compressor readouts)
 	params               map[string]*fakeNBParam
 	batchArgs            map[string]any
 	batchFailure         string // when set, the typed batch answers partial_failure
@@ -232,6 +233,9 @@ func (f *fakeNBVSPClient) surfaceRow(paramID string) map[string]any {
 	if f.frozenPhysicalText || f.curveExponent > 0 {
 		value = f.physicalFor(state.normalized)
 		text = fmt.Sprintf("%+.2f", value)
+		if f.displayQuantum > 0 {
+			text = fmt.Sprintf("%+.2f", math.Round(value/f.displayQuantum)*f.displayQuantum)
+		}
 	}
 	samples := []any{}
 	for _, sampleNormalized := range []float64{0, 0.25, 0.5, 0.75, 1} {
