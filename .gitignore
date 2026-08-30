@@ -31,6 +31,7 @@ tmp_sodium_cmake/
 # Logs and diagnostics
 # -----------------------------
 *.log
+VitApp/Workspace/Logs/
 diagnosis_*.png
 baker_diag.log
 /scripts/_eq_probe_diag_out/
