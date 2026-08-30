@@ -6921,8 +6921,33 @@ func (s *Server) restoreProjectAgentRuntimeStateLocked(state projectAgentRuntime
 			}
 		}
 		id := continuationIDForContinuation(cont)
+		if isArmedInternalResumeContinuation(cont) {
+			// A modern armed internal resume crosses the boundary as the
+			// persisted compatibility index entry it is: the arm deliberately
+			// writes no durable record (the first driven slice's
+			// recordGoalResult creates it), so "no durable match" here does
+			// not mean pre-C legacy. It keeps the slot. A hash-colliding
+			// durable can only be this same resume's migration residue — the
+			// unanswerable legacy shell an older restore fabricated over it —
+			// which displaces by the same rule the arm uses instead of
+			// shadowing the drive path (2026-08-30 S3h7 smoke: round 2
+			// starved before its first model turn).
+			s.goalContinuations[goalID] = cont
+			if existing, exists := s.durableContinuations[id]; exists &&
+				!continuationTerminalStatus(existing.Status) && !continuationOccupantDrivable(cont, &existing) {
+				existing.Status = ContinuationCancelled
+				existing.LeaseOwner = ""
+				existing.LeaseExpiresAt = time.Time{}
+				existing.UpdatedAt = now
+				existing.PendingInteraction = mergeContext(cloneContext(existing.PendingInteraction), map[string]any{
+					"status": "displaced_by_recalibration_arm",
+				})
+				s.durableContinuations[id] = cloneDurableContinuation(existing)
+			}
+			continue
+		}
 		if existing, exists := s.durableContinuations[id]; exists {
-			if existing.Status != ContinuationCompleted && existing.Status != ContinuationCancelled && existing.Status != ContinuationFailed {
+			if !continuationTerminalStatus(existing.Status) {
 				s.goalContinuations[goalID] = existing.Continuation
 			}
 			continue

@@ -1040,6 +1040,15 @@ func freeStateOwedRoundBaseReference(loop freeStateReasoningLoop) string {
 	return ""
 }
 
+// isArmedInternalResumeContinuation identifies the arm's own product: the
+// armed recalibration driver carries the internal-resume marker and is
+// deliberately durable-record-free until the first driven slice records. The
+// restore's legacy migration must leave it in the compatibility index instead
+// of materializing a pre-C legacy shell over it.
+func isArmedInternalResumeContinuation(cont agentloop.Continuation) bool {
+	return contextBool(cont.Context, "free_state_internal_resume")
+}
+
 // armFreeStateRecalibrationContinuation makes the freshly opened recalibration
 // round drivable. The judgment boundary is an out-of-band POST: the driving
 // continuation chain was already drained when the loop parked at the audition
@@ -1049,9 +1058,11 @@ func freeStateOwedRoundBaseReference(loop freeStateReasoningLoop) string {
 // nudge returned no_continuation, the intervention never executed). Arm the
 // goal continuation with an internal-resume context so the ordinary continue
 // path runs the recalibration round's slice chain. Gated by the
-// owed-intervention predicate (multi-round tier only, budget unspent), refuses
-// to clobber an existing continuation, and never arms the sealed single-round
-// tier.
+// owed-intervention predicate (multi-round tier only, budget unspent), never
+// clobbers a drivable occupant (continuationOccupantDrivable decides; an
+// unanswerable legacy shell or terminal residue is displaced instead of
+// blocking the slot, 2026-08-30 S3h7 smoke), and never arms the sealed
+// single-round tier.
 func (s *Server) armFreeStateRecalibrationContinuation(loop *freeStateReasoningLoop) {
 	if s == nil || loop == nil || !freeStateLoopRoundOwesIntervention(*loop) || freeStateContinuationBudgetExhausted(*loop) {
 		return
@@ -1065,9 +1076,29 @@ func (s *Server) armFreeStateRecalibrationContinuation(loop *freeStateReasoningL
 		s.mu.Unlock()
 		return
 	}
-	if _, exists := s.goalContinuations[goalID]; exists {
-		s.mu.Unlock()
-		return
+	if occupant, exists := s.goalContinuations[goalID]; exists {
+		durable, hasDurable := s.durableContinuations[continuationIDForContinuation(occupant)]
+		var durableView *DurableContinuation
+		if hasDurable {
+			durableView = &durable
+		}
+		if continuationOccupantDrivable(occupant, durableView) {
+			s.mu.Unlock()
+			return
+		}
+		if hasDurable && !continuationTerminalStatus(durable.Status) {
+			// The displaced shell must not survive as a parkable durable: a
+			// later disk reload would refill the slot from it through the
+			// latest-by-goal restore and re-poison the goal's drive path.
+			durable.Status = ContinuationCancelled
+			durable.LeaseOwner = ""
+			durable.LeaseExpiresAt = time.Time{}
+			durable.UpdatedAt = time.Now().UTC()
+			durable.PendingInteraction = mergeContext(cloneContext(durable.PendingInteraction), map[string]any{
+				"status": "displaced_by_recalibration_arm",
+			})
+			s.durableContinuations[durable.ContinuationID] = cloneDurableContinuation(durable)
+		}
 	}
 	s.goalContinuations[goalID] = agentloop.Continuation{
 		GoalID: goalID, RunID: loop.RunID,

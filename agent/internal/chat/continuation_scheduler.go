@@ -90,8 +90,46 @@ func continuationRunnableStatus(status DurableContinuationStatus) bool {
 	return status == ContinuationPending || status == ContinuationClaimed || status == ContinuationRunning
 }
 
+// continuationTerminalStatus reports the durable lifecycle's settled forms:
+// once terminal, a record's lifecycle never reopens, so readers must never
+// rewrite one (restart idempotency depends on it).
+func continuationTerminalStatus(status DurableContinuationStatus) bool {
+	return status == ContinuationCompleted || status == ContinuationCancelled || status == ContinuationFailed
+}
+
 func continuationRecoveryValidationRequired(item DurableContinuation) bool {
 	return strings.EqualFold(firstStringFromMap(item.PendingInteraction, "status"), "recovery_validation_required")
+}
+
+// legacyWaitingContinuePendingInteraction reports the migration's fabricated
+// boundary marker: a waiting_interaction park whose only surface is the
+// "legacy checkpoint has no authoritative stop reason" note. Nothing can ever
+// answer it — the shell exists purely as a pre-C migration shape.
+func legacyWaitingContinuePendingInteraction(pending map[string]any) bool {
+	return strings.EqualFold(strings.TrimSpace(firstStringFromMap(pending, "status")), "legacy_waiting_continue")
+}
+
+// continuationOccupantDrivable reports whether the continuation occupying a
+// goal's arm slot can still be driven: it carries a resumable non-terminal
+// checkpoint (pending/claimed/running), parks at an interaction a user can
+// actually answer, or is an armed internal resume the continue nudge drives
+// directly (arm writes no durable record by design, so a nil durable means
+// the occupant itself is that armed resume). The CLEAN1 audit invariant is
+// "a parked continuation must be drivable or displaceable": every occupant
+// this predicate rejects — an unanswerable legacy_waiting_continue shell or
+// terminal residue — is by definition displaceable, and nothing else may
+// ever be clobbered by a re-arm.
+func continuationOccupantDrivable(occupant agentloop.Continuation, durable *DurableContinuation) bool {
+	if durable == nil {
+		return true
+	}
+	switch durable.Status {
+	case ContinuationCompleted, ContinuationCancelled, ContinuationFailed:
+		return false
+	case ContinuationWaitingInteraction:
+		return !legacyWaitingContinuePendingInteraction(durable.PendingInteraction)
+	}
+	return true
 }
 
 func continuationIDForResult(res agentloop.Result) string {
