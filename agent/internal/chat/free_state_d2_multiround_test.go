@@ -520,3 +520,68 @@ func TestMultiRoundRecalibrationRoundBooksBaseObservationWithoutDecision(t *test
 		t.Fatalf("single-round tier booked a recalibration base: %+v", after.Observations)
 	}
 }
+
+// TestD2MultiRoundOwedRoundProposalSkipsGateAudit is the S3h6 chat face: after
+// round 1 settles on an insufficient-dose read and round 2 opens under the same
+// admission, the round-2 proposal turn's audit context structurally fails G1 —
+// the task contract revision is frozen at the admission revision while the
+// closure revision legitimately advanced with round 1's applied intervention
+// (20260830_085624 trace: contract rev 2 vs closure rev 4, every round-2
+// proposal mapped to capability_blocked free_state_admission_gate_failed). The
+// proposal-only decision on a running multi-round experiment is an intra-round
+// proposal, not a new admission: the audit must skip it (mirroring the
+// carriesExperimentReport settle-report exemption) so the proposal books the
+// owed round's pending candidate. The single-round tier keeps the audit.
+func TestD2MultiRoundOwedRoundProposalSkipsGateAudit(t *testing.T) {
+	s, loop := d2MultiRoundServerLoopForTest(t, 2)
+	d2ApplyAndObserveForTest(t, loop.Experiment, "d2-action-1", "8")
+	s.recordFreeStateExperimentDecision(context.Background(), &loop, agentloop.FreeStateDecision{
+		ExperimentMateriality: &experiment.MaterialityEvaluation{State: experiment.MaterialitySubthreshold, Evaluation: trajectory.EvaluationInsufficientDose, Attempt: 1, EvidenceRefs: []string{"obs-d2-action-1"}},
+	})
+	if len(loop.Experiment.Rounds) != 2 {
+		t.Fatalf("insufficient dose did not open the owed round: rounds=%d", len(loop.Experiment.Rounds))
+	}
+	loop.Status = "observing"
+	s.storeFreeStateLoop(loop)
+
+	// The round-2 proposal turn carries the frozen contract revision (7, the
+	// admission baseline) against the advanced closure revision (8): G1's
+	// equality check is structurally false for every intra-round proposal.
+	result := agentloop.Result{GoalID: loop.GoalID, RunID: loop.RunID, Continuation: &agentloop.Continuation{Context: map[string]any{
+		"task_contract":         map[string]any{"kind": "improvement", "project_uuid": "project-1", "project_revision": "7"},
+		"minimal_audio_closure": map[string]any{"project_uuid": "project-1", "project_revision": "8"},
+		"free_state_reasoning_loop": map[string]any{
+			"schema_version": "free_state_reasoning_loop.v1", "status": "observing", "original_intent": "improve the mix",
+		},
+	}}, FreeStateDecision: &agentloop.FreeStateDecision{
+		SchemaVersion: agentloop.FreeStateDecisionSchema, Status: agentloop.FreeStateNeedsExperiment, EvidenceStatus: "plausible",
+		Summary:             "round-2 bounded calibration proposal on the fresh round base",
+		ImprovementProposal: experimentTestProposal(),
+	}}
+	recorded, ok := s.recordFreeStateDecision(loop.ConversationID, result)
+	if !ok {
+		t.Fatal("owed-round proposal decision was not recorded")
+	}
+	if strings.Contains(recorded.LastError, "free_state_admission_gate_failed") {
+		t.Fatalf("intra-round proposal was re-audited by the full admission gate: %q", recorded.LastError)
+	}
+	if recorded.Status != "awaiting_experiment" {
+		t.Fatalf("loop status = %q, want awaiting_experiment with the round-2 proposal booked", recorded.Status)
+	}
+
+	// Control: the sealed single-round tier keeps the audit — the same
+	// structurally mismatched context still maps its proposal to
+	// capability_blocked, byte-identical to the pre-change behavior.
+	singleServer, singleLoop := d2MultiRoundServerLoopForTest(t, 1)
+	singleLoop.Status = "observing"
+	singleServer.storeFreeStateLoop(singleLoop)
+	singleResult := result
+	singleResult.GoalID, singleResult.RunID = singleLoop.GoalID, singleLoop.RunID
+	singleRecorded, singleOK := singleServer.recordFreeStateDecision(singleLoop.ConversationID, singleResult)
+	if !singleOK {
+		t.Fatal("single-round proposal decision was not recorded")
+	}
+	if !strings.Contains(singleRecorded.LastError, "free_state_admission_gate_failed") {
+		t.Fatalf("single-round tier lost the admission audit: status=%q last_error=%q", singleRecorded.Status, singleRecorded.LastError)
+	}
+}

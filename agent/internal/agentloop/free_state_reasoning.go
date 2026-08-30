@@ -720,11 +720,26 @@ func messageLoopFreeStateOutputIssue(state *runState, out messageLoopOutput) str
 			if issue := messageLoopFreeStateRoundOwesInterventionIssue(state, ctx); issue != "" {
 				return issue
 			}
-		} else if failed := evaluateFreeStateNeedsExperimentGate(state, out.FreeStateDecision); len(failed) > 0 {
-			// The single-usable-bundle weak gate is replaced by the seven-part
-			// admission gate (docs/FREE_STATE_NEEDS_EXPERIMENT_GATE_V1.md). Gate
-			// failure has exactly one legal exit: needs_observation.
-			return freeStateNeedsExperimentGateFailureMessage(state, failed)
+		} else if !messageLoopFreeStateRunningMultiRoundExperiment(state) {
+			// A proposal-only needs_experiment on a running D2-2 multi-round
+			// experiment is an intra-round proposal of that already-admitted
+			// experiment, not a new admission: G1's contract-vs-closure revision
+			// equality is structurally false after the first applied
+			// intervention (the contract revision is frozen at admission, the
+			// closure revision advances with every round), so running the full
+			// gate refused every owed-round proposal and its needs_observation
+			// retry direction collided with the anti-duplicate observation gate
+			// until the continuation budget burnt (20260830_085624). Mirrors the
+			// report-carrying skip above; the round-level boundaries stay
+			// enforced — the pending-settlement refusal above, the judgment
+			// boundary, the per-round single intervention budget, and the
+			// execution-layer base revision match.
+			if failed := evaluateFreeStateNeedsExperimentGate(state, out.FreeStateDecision); len(failed) > 0 {
+				// The single-usable-bundle weak gate is replaced by the seven-part
+				// admission gate (docs/FREE_STATE_NEEDS_EXPERIMENT_GATE_V1.md). Gate
+				// failure has exactly one legal exit: needs_observation.
+				return freeStateNeedsExperimentGateFailureMessage(state, failed)
+			}
 		}
 	case FreeStateSatisfied, FreeStateDiagnosticComplete, FreeStateNoCandidateFound:
 		if len(out.ToolCalls) != 0 {

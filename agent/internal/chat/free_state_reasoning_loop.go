@@ -810,12 +810,19 @@ func (s *Server) recordFreeStateDecision(conversationID string, res agentloop.Re
 		// report here rejected every FS8 evaluation and the judgment
 		// boundary never became durable (2026-08-25 21:09 D1 smoke: round
 		// decision lost, loop revived and recorded a second post-action
-		// observation). Mirrors the agentloop output-gate skip.
+		// observation). Mirrors the agentloop output-gate skip. The same
+		// boundary covers a proposal-only decision on a running D2-2
+		// multi-round experiment: that proposal is the already-admitted
+		// experiment's next intra-round intervention (the owed round's), and
+		// G1's contract-vs-closure revision equality is structurally false
+		// once round 1 applied, so auditing it rejected every round-2+
+		// proposal (20260830_085624: capability_blocked
+		// free_state_admission_gate_failed, zero round-2 interventions).
 		carriesExperimentReport := decision.ExperimentMateriality != nil || decision.ExperimentTargetResponse != nil ||
 			strings.TrimSpace(decision.ExperimentRoundDecision) != ""
 		var gateAudit agentloop.FreeStateGateAudit
 		gateRejected := false
-		if !carriesExperimentReport {
+		if !carriesExperimentReport && !freeStateLoopRunningMultiRoundExperiment(&loop) {
 			gateAudit = agentloop.AuditFreeStateNeedsExperimentGate(auditContext, &decision)
 			gateRejected = len(auditContext) > 0 && !gateAudit.Passed
 		}

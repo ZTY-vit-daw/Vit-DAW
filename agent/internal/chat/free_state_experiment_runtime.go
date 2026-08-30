@@ -475,6 +475,31 @@ func freeStateExperimentBaselineFingerprint(loop freeStateReasoningLoop, observa
 	return map[string]any{"revision": revision, "source": "free_state_admission", "observation_id": observation.ID}
 }
 
+// freeStateLoopRunningMultiRoundExperiment reports whether the durable loop
+// carries a running experiment admitted at the D2-2 multi-round tier. A
+// proposal-only needs_experiment decision there is an intra-round proposal of
+// that already-admitted experiment (an owed recalibration/calibration round's
+// bounded intervention), not a new admission: G1's contract-vs-closure
+// revision equality is structurally unsatisfiable after the first applied
+// intervention — the contract revision is frozen at the original admission
+// while the closure revision legitimately advances with every round — so
+// auditing the proposal with the new-admission gate rejected each round-2+
+// proposal as free_state_admission_gate_failed (20260830_085624 trace).
+// Mirrors the carriesExperimentReport settle-report exemption semantics; the
+// round-level boundaries stay enforced elsewhere (the message loop's
+// pending-settlement and judgment-boundary refusals, the per-round single
+// intervention budget at the runtime and recordGoalResult guards, and the
+// execution-layer base revision match).
+func freeStateLoopRunningMultiRoundExperiment(loop *freeStateReasoningLoop) bool {
+	if loop == nil || loop.Experiment == nil {
+		return false
+	}
+	if !strings.EqualFold(strings.TrimSpace(string(loop.Experiment.Status)), string(experiment.StatusRunning)) {
+		return false
+	}
+	return loop.Experiment.Admission.IsD2MultiRound()
+}
+
 func (s *Server) startFreeStateExperiment(loop *freeStateReasoningLoop, decision agentloop.FreeStateDecision, goalID, runID string) error {
 	if loop == nil || decision.ImprovementProposal == nil {
 		return fmt.Errorf("experiment proposal is missing")

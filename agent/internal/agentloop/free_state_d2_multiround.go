@@ -71,3 +71,29 @@ func messageLoopExperimentAdmissionBudget(state *runState) (int, bool) {
 	}
 	return 0, false
 }
+
+// messageLoopFreeStateRunningMultiRoundExperiment reports whether the
+// model-visible loop carries a running experiment admitted at the D2-2
+// multi-round tier. A proposal-only needs_experiment there is an intra-round
+// proposal of that already-admitted experiment (an owed
+// recalibration/calibration round's bounded intervention), never a new
+// admission: G1's contract-vs-closure revision equality is structurally
+// unsatisfiable after the first applied intervention because the contract
+// revision is frozen at the original admission while the closure revision
+// legitimately advances with every round (20260830_085624 trace: contract rev
+// 2 vs closure rev 4, each round-2 proposal refused at G1_project_binding and
+// its needs_observation direction colliding with the anti-duplicate
+// observation gate until the continuation budget burnt out). The budget must
+// resolve from the experiment's own admission so a malformed context without
+// one never earns the exemption via the env tier fallback.
+func messageLoopFreeStateRunningMultiRoundExperiment(state *runState) bool {
+	if state == nil {
+		return false
+	}
+	turn := messageLoopMapValue(messageLoopFreeStateContext(state)["experiment"])
+	if len(turn) == 0 || !strings.EqualFold(strings.TrimSpace(messageLoopText(turn["status"])), "running") {
+		return false
+	}
+	budget, ok := messageLoopExperimentAdmissionBudget(state)
+	return ok && budget > 1 && budget <= experiment.MaxD2MultiRoundBudget
+}
