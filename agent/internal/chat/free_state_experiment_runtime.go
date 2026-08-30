@@ -564,6 +564,36 @@ func (s *Server) startFreeStateExperiment(loop *freeStateReasoningLoop, decision
 	return nil
 }
 
+// neutralizeFreeStateBoundaryResidue strips the durable judgment-boundary
+// signal pair — the user_judgment_pending round decision and the
+// human_audition_ready target response, which travel together per the
+// settle-report contract — from the loop's latest decision projection. The
+// pair is classification input for
+// continuationRequiresUserInteraction: while it rides a LatestDecision that
+// no longer describes the loop's live state, the next limit stop parks its
+// checkpoint at an unanswerable empty-shell waiting_interaction and the owed
+// round never runs again. Two sites own a stale pair: the refused settle
+// report (S3f) and the round opening that follows a landed judgment or an
+// insufficient-dose calibration decision (S3h5: the settled round-1 pair
+// survives LatestDecision although the judgment landed, round 1 decided
+// next_round and round 2 opened). A genuinely pending boundary keeps the
+// pair — callers invoke this only after the boundary is factually released.
+func neutralizeFreeStateBoundaryResidue(loop *freeStateReasoningLoop) {
+	if loop == nil || loop.LatestDecision == nil {
+		return
+	}
+	boundaryResidue := strings.EqualFold(strings.TrimSpace(loop.LatestDecision.ExperimentRoundDecision), string(experiment.DecisionUserJudgment)) ||
+		(loop.LatestDecision.ExperimentTargetResponse != nil &&
+			strings.EqualFold(strings.TrimSpace(string(loop.LatestDecision.ExperimentTargetResponse.Outcome)), string(trajectory.EvaluationHumanAuditionReady)))
+	if !boundaryResidue {
+		return
+	}
+	cleared := *loop.LatestDecision
+	cleared.ExperimentRoundDecision = ""
+	cleared.ExperimentTargetResponse = nil
+	loop.LatestDecision = &cleared
+}
+
 func (s *Server) recordFreeStateExperimentDecision(ctx context.Context, loop *freeStateReasoningLoop, decision agentloop.FreeStateDecision) {
 	if loop == nil || loop.Experiment == nil {
 		return
@@ -607,17 +637,7 @@ func (s *Server) recordFreeStateExperimentDecision(ctx context.Context, loop *fr
 		// the target response on the envelope, and the continuation
 		// scheduler's decision double-check still parked the turn behind an
 		// unanswerable empty-shell interaction).
-		if loop.LatestDecision != nil {
-			boundaryResidue := strings.EqualFold(strings.TrimSpace(loop.LatestDecision.ExperimentRoundDecision), string(experiment.DecisionUserJudgment)) ||
-				(loop.LatestDecision.ExperimentTargetResponse != nil &&
-					strings.EqualFold(strings.TrimSpace(string(loop.LatestDecision.ExperimentTargetResponse.Outcome)), string(trajectory.EvaluationHumanAuditionReady)))
-			if boundaryResidue {
-				cleared := *loop.LatestDecision
-				cleared.ExperimentRoundDecision = ""
-				cleared.ExperimentTargetResponse = nil
-				loop.LatestDecision = &cleared
-			}
-		}
+		neutralizeFreeStateBoundaryResidue(loop)
 		// A settle report exists only for a round that already spent its
 		// single mutation, but in this race window the experiment projection
 		// can still show the round pre-action (the intervention booking lags
@@ -666,6 +686,12 @@ func (s *Server) recordFreeStateExperimentDecision(ctx context.Context, loop *fr
 					if roundEvents, roundErr := loop.Experiment.StartRound(views, loop.Experiment.Admission.CheckpointRef, firstStringFromMap(loop.LatestProjectChange, "project_revision", "revision"), time.Now().UTC()); roundErr == nil {
 						s.emitFreeStateExperimentEvents(roundEvents)
 						grantD2CalibrationRoundContinuation(loop)
+						// The freshly opened calibration round makes the settled
+						// report's boundary signals factually stale; a residue on
+						// LatestDecision would misclassify the round's next limit
+						// stop as an interaction boundary (S3h5, same family as
+						// the refused-settle neutralization above).
+						neutralizeFreeStateBoundaryResidue(loop)
 					}
 				}
 			}

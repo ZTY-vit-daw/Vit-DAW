@@ -872,6 +872,18 @@ func (s *Server) applyFreeStateJudgmentOutcome(ctx context.Context, loop *freeSt
 				return err
 			}
 			s.emitFreeStateExperimentEvents(events)
+			// The landed judgment releases the boundary and round 2 is open:
+			// the settled round-1 pair on LatestDecision (user_judgment_pending
+			// + human_audition_ready) is factually stale from this instant.
+			// Left in place, runAgentLoopChat's loop copy-back projects it onto
+			// round 2's limit-stop envelope and
+			// continuationRequiresUserInteraction parks the owed round's
+			// checkpoint at an unanswerable empty-shell waiting_interaction —
+			// the scheduler never claims it and the "继续" nudges are swallowed,
+			// so round 2 never acts (2026-08-29 223957 trace,
+			// round_two_interventions=0 after three nudges). Neutralize before
+			// the armed continuation serializes the loop projection.
+			neutralizeFreeStateBoundaryResidue(loop)
 			// The recalibration round needs its pre-action base booked at the
 			// boundary (mirroring the admission's before-observation booking):
 			// the proposing turn's result envelope never reaches the
