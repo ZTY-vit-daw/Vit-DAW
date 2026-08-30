@@ -455,3 +455,20 @@ S3h5 以 223957 定案的"limit 停机被 round-1 判断边界残留误分类"�
 旁证：全量 `go test ./...` 一次全绿（S3f 控制组 TestGenuineSettleJudgmentBoundaryStillParks 含于其中）；另 20260830_085151 一轮 NOT_EXERCISED（exit 3）为环境配置缺失的空跑（未带 freq flavor + tier 注入），不计入失败面。
 
 开放项：**D2-2-S3h6**（round-2 欠轮提案的 G1_project_binding 拒收层——needs_experiment 对已 admission 实验的轮内提案走 full admission gate、gateG1 拿合同冻结 revision 对 closure 当前 revision 做一致性检查在干预后结构性失败，且与欠轮指引、防重复观察闸形成方向矛盾循环烧尽预算；含 budget 9/8 超支 1 次的守卫核对）。S3h3（预算耗尽第二 goal）仍未触达。S3b/S3c/S3d/S3e×2/S3f/S3g/S3h1/S3h2/S3h4/S3h5 十一卡验收 3 在 S3h6 合入前保持未绿，D2-2 exit 0 收口顺延。
+
+## 20. 2026-08-30 早批（D2-2-S3h6 欠轮提案的 G1 准入拒收：修复合入并单测锁定，多轮终验失败层前移至判定驱动的 arm 槽位 legacy 空壳——S3h6 豁免本轮栈上不可达）
+
+S3h6 以 085624 定案的"G1 拿合同冻结 revision 对 closure 当前 revision 做一致性检查、首轮干预后结构性恒 false"开卡。取证确认语义本体：round-2 提案是**已 admission 实验的轮内提案**（同一 admission 下 DecideRound+StartRound 开轮），不是新实验 admission；chat 侧 recordFreeStateDecision 已有 carriesExperimentReport 豁免先例（真实路径 internal/chat/free_state_reasoning_loop.go:814-818，卡内误写 agentloop 包）——轮内提案与 settle 报告同属"审计 pre-apply 状态会拒绝已合法演进状态"的形状。方向取 (a) 边界豁免：G1-G7 语义零触碰，动的是"哪些提案过 full gate"的边界。
+
+修复（fix(d2-2-s3h6) a4f158b）两层同步：agentloop 新谓词 `messageLoopFreeStateRunningMultiRoundExperiment`（budget 严格取自序列化 admission、不吃 env tier 回退，防畸形 context 骗豁免）包裹 final gate 的 else-if 分支；chat 侧 `freeStateLoopRunningMultiRoundExperiment`（typed loop）扩展 carriesExperimentReport 同位的审计条件。豁免范围锁定 running + budget 2..max 的 multi-round：新 admission（无 experiment）、密封单轮 tier、已 settle 实验保持全量 gate（三控制组单测锁定）；轮级边界仍守（pending-settlement 拒收先于豁免、judgment boundary、轮单干预 runtime 守卫、VSP base revision）。附带核对项定案：continuation 9/8 超支为 goalrunner_chat.go:2647"递增后检查"的拒收计数器残留（n-th 合法注释明言），非真实超支执行，不触冻结契约。RED→GREEN：agentloop free_state_intra_round_gate_test.go 6 用例（主断言首跑精确复现取证文案）+ chat TestD2MultiRoundOwedRoundProposalSkipsGateAudit（含单轮控制）；全量 `go test ./...` 一次全绿。
+
+**真栈验证（20260830_093308 trace）**：默认路径 -SkipBuild **exit 0**（20260830_095248）——单轮默认路径零变化红线守住。多轮终验 exit 1，但失败层**前移到 S3h6 修复面之下**：round-1 全链完整（budget=2 static_eq 准入、干预 b3→a4、probe 机器判定落地、decision=next_round、round-2 开轮 + 基准 book + grant 6→9 + S3h5 中和全部保持），round-2 却**零模型轮**（0 干预、validate 报 "round 1 carries 0 forward interventions"，index 1 = round 2）——S3h6 豁免在栈上不可达。死亡链：本轮 01:36:06 一次 transient_llm_error 环境抖动多烧一片使 settle 切片恰在 used=6==budget=6 耗尽边界 park（合法）→ 01:36:29 判定 POST 入口 `activateCurrentProjectWorkspace` 触发全量 workspace restore（幂等守卫因 settle 期 session rebind 不成立）→ server.go:6912-6944 legacy 迁移把 settle 期 persisted in-memory continuation 物化为 `legacy_waiting_continue` 空壳 durable 记录并占据 `goalContinuations[goalID]` → `armFreeStateRecalibrationContinuation`"拒绝覆盖"守卫让位 → round-2 无 armed continuation → nudge 全被空壳 pending_interaction_requires_response 吞噬（agent_last.log 判断后零 agent_loop_chat timing 行佐证）。对照：085624（S3h5 run）同判定流程后 round-2 切片正常跑动、S3c 期判定驱动曾完整走通 round-2 执行——judgment 时刻全量 restore 是否为差异入口待 S3h7 取证。
+
+| stamp | 轮 | 终态 | 备注 |
+|---|---|---|---|
+| 20260830_093308 | p01 freq + 注入2 + MultiRoundProbe | fail "round 1 carries 0 forward interventions" | round-1 全链完整、round-2 开轮/基准/grant/中和保持；round-2 零模型轮——判定驱动 arm 槽位被 restore legacy 迁移空壳占据，S3h6 豁免栈上不可达 → S3h7 |
+| 20260830_095248 | p01 freq 默认路径回归（-SkipBuild） | **pass** | S3h6 两层豁免改动后默认路径零变化红线守住 |
+
+旁证：全量 `go test ./...` 一次全绿（agentloop 6 新用例 + chat 1 新用例含于其中）。
+
+开放项：**D2-2-S3h7**（判定驱动的 arm 槽位被 workspace restore legacy 迁移空壳占据——round-2 链饿死于首个模型轮之前；S3h6 豁免待该层修复后才能首次栈上行使）。S3h3（预算耗尽第二 goal）仍未触达。S3b/S3c/S3d/S3e×2/S3f/S3g/S3h1/S3h2/S3h4/S3h5/S3h6 十二卡验收 3 在 S3h7 合入前保持未绿，D2-2 exit 0 收口顺延。
