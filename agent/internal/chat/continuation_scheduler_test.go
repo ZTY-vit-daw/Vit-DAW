@@ -80,6 +80,14 @@ func TestProductionFreeStateRunnerObservationsSurviveDurableSlices(t *testing.T)
 	runner := agentloop.MessageLoop{Runtime: agentruntime.New(), Client: model, Config: config.EngineConfig{BaseURL: "http://example.invalid", DefaultModel: "fake", APIKey: "fake"}, Executor: executor, Budget: agentloop.Budget{MaxTurns: 1, MaxToolCalls: 1, MaxConsecutiveErrors: 1}}
 	s := testContinuationServer()
 	defer s.Close()
+	// This test drives the scheduler synchronously (claimNextContinuation +
+	// direct executor calls) and records child results inside the executor.
+	// recordGoalResult wakes the scheduler for every auto continuation, and
+	// with the executor configured that wake would start a background worker
+	// that claims the same pending checkpoint and mutates childResult from
+	// another goroutine, racing this test's scans (STAB1 full-load flake
+	// family). Disable the wake channel so no background worker can start.
+	s.schedulerWake = nil
 	s.freeStateLoops = map[string]freeStateReasoningLoop{}
 	conversationID := "production-cross-slice"
 	now := time.Now().UTC()
@@ -280,7 +288,16 @@ func TestFreeStateObservationsSurviveFourDurableSlices(t *testing.T) {
 		updated.LatestObservation = &agentloop.RecentObservation{Tool: "ccb.observation_request", Status: "ready", Summary: map[string]any{
 			"observation_id": observationID, "requested_views": []any{views[index]}, "audit_receipt": map[string]any{"receipt_id": receiptID},
 		}}
-		updated.UpdatedAt = now.Add(time.Duration(index+1) * time.Second)
+		// The snapshot overlay must always be strictly newer than the server
+		// loop it merges into. Deriving it from the server loop's own
+		// UpdatedAt (instead of the wall clock captured at test start) keeps
+		// the overlay-newer merge guard from misclassifying the snapshot as a
+		// stale transport echo when full-load timing pressure makes the real
+		// clock overtake a fixed future timestamp; otherwise CurrentPhase (and
+		// LatestObservation) stop advancing across slices and the durable
+		// child checkpoint regresses to the previous slice's phase
+		// (STAB1: full-load flake at the child-checkpoint assertion).
+		updated.UpdatedAt = before.UpdatedAt.Add(time.Duration(index+1) * time.Second)
 		status := agentloop.FreeStateNeedsObservation
 		if index == len(phases)-1 {
 			status = agentloop.FreeStateNeedsExperiment
@@ -340,6 +357,15 @@ func TestFreeStateObservationsSurviveFourDurableSlices(t *testing.T) {
 		if err := s.runContinuationSchedulerOnce(context.Background()); err != nil {
 			t.Fatalf("slice %d durable claim/execute failed: %v", index+1, err)
 		}
+		// The test drives the scheduler synchronously; the injected executor
+		// must not outlive that drive. recordGoalResult wakes the scheduler
+		// for every auto continuation, and wakeContinuationScheduler starts a
+		// background worker as soon as an executor is configured — a worker
+		// that would claim and complete the next slice's pending checkpoint
+		// concurrently with this test's scan/assertions (STAB1 full-load
+		// flake "slice N did not create a pending child checkpoint"). Keep the
+		// executor nil outside the synchronous drive so no worker ever starts.
+		s.continuationExecutor = nil
 	}
 }
 
