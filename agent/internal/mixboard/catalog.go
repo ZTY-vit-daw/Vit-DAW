@@ -1029,6 +1029,10 @@ func targetTrackIdentity(obs ObservationPacket) map[string]any {
 
 func observationBinding(obs ObservationPacket) map[string]any {
 	project := mapValue(obs.ProjectPackage)
+	evidenceRefs := append([]string(nil), obs.EvidenceRefs...)
+	if strings.TrimSpace(obs.ObservationID) != "" {
+		evidenceRefs = uniqueObservationRefs(append([]string{obs.ObservationID}, evidenceRefs...))
+	}
 	out := map[string]any{
 		"schema_version": "mix_observation_binding.v1",
 		"observation_id": obs.ObservationID,
@@ -1043,7 +1047,7 @@ func observationBinding(obs ObservationPacket) map[string]any {
 			"project_revision":   cleanAnyString(project["project_revision"]),
 			"project_state_hash": cleanAnyString(project["project_state_hash"]),
 		},
-		"evidence_refs": append([]string(nil), obs.EvidenceRefs...),
+		"evidence_refs": evidenceRefs,
 	}
 	if len(obs.ProjectChange) > 0 {
 		out["project_change_ref"] = compactKeys(obs.ProjectChange, []string{"schema_version", "change_id", "source", "authoritative", "freshness", "from_state_epoch", "to_state_epoch"})

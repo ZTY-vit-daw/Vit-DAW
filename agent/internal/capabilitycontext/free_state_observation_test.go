@@ -115,6 +115,17 @@ func TestRejectedFreeStateObservationScopesMixedViewSet(t *testing.T) {
 	}
 }
 
+func TestAssembleFreeStateObservationBundleCarriesBareObservationIDInEvidenceRefs(t *testing.T) {
+	read := testFreeStateReadResult()
+	items := read["items"].(map[string]any)
+	binding := items["observation.binding"].(map[string]any)
+	binding["evidence_refs"] = []any{"obs-1", "evidence://one", "obs-1"}
+	bundle := AssembleFreeStateObservation(FreeStateObservationRequest{ViewIDs: []string{"track.basic_energy"}}, read)
+	if len(bundle.EvidenceRefs) != 2 || bundle.EvidenceRefs[0] != "obs-1" || bundle.EvidenceRefs[1] != "evidence://one" {
+		t.Fatalf("bundle evidence_refs = %#v, want [obs-1 evidence://one]", bundle.EvidenceRefs)
+	}
+}
+
 func TestProjectStructureViewCompactsExpandedMOMProjection(t *testing.T) {
 	read := testFreeStateReadResult()
 	items := read["items"].(map[string]any)
