@@ -525,3 +525,13 @@ S3h8 以 102243 定案的孤儿开卡。取证把卡内死亡链精确到**确�
 验证：`go test ./internal/chat -run 'TestFreeStateObservationsSurviveFourDurableSlices' -count=10` 绿；满载 `-count=100` 绿；兄弟测试满载 `-count=30` 绿；全量 `go test ./... -count=1` 三连全绿（2026-08-30 18:15:25 / 18:16:03 / 18:16:45，84 包 ok）。
 
 旁证：S3h8 批 `TestProcessorCertificationStartAcceptsBroadbandCompressorCapability` 的 Windows TempDir 清理竞态与本次无共同机制（前者为测试框架 TempDir 清理 vs 残留句柄竞态，本次为测试自身时序/调度器隔离缺陷），按卡纪律记录不修。
+
+## 24. 2026-08-30 晚批（D2-2-CLEAN1-1 裸 continue 拦截面读侧租约：防御纵深补位，写入侧谓词读侧贯彻）
+
+病灶一句话结论（CLEAN1 审计 F7/L1）：continue nudge 拦截面的扫描函数 `interactionContinuationForConversation`（goalrunner_chat.go:2889）对**任意** waiting_interaction park 无过滤透出——写入侧已在 arm/迁移双点消费 `continuationOccupantDrivable`（S3h7）并经完成桥终态化已应答 park（S3h8），但读侧零过滤；非 armed 的 pre-C legacy 快照经 server.go 兼容分支仍会物化 `legacy_waiting_continue` 不可应答空壳，一旦再现，聊天 nudge 会被永久吞成 `pending_interaction_requires_response`（S3h7 死亡链第 5 步的读侧复刻）。当前栈无触发（D2-2 快照无 pre-C legacy），属防御纵深缺口。
+
+修复（`fix(d2-2-clean1-1)` 70e72b1，扫描循环内一行谓词复用，拦截面分支字节不动）：`interactionContinuationForConversation` 跳过 `!continuationOccupantDrivable(item.Continuation, &item)` 的 park、最新**可驱动**者胜出。取舍记录：① 不可驱动 park 选**放行 fall-through**（与 beginChatGoal 终态 goal 不复用而 BeginGoal 同构），读路径不改写 durable——位移/终态化仍归写入侧所有（终态记录永不改写红线）；② 过滤落在扫描函数而非拦截分支内，使可驱动形态的拦截语义/文案/InteractionRequests 透出**一字不动**（红线最强形式），且"更新的空壳不得遮蔽更早的真实确认"由"最新可驱动胜出"自然成立；③ 驱动面兜底扫描 `goalContinuationForConversation`（空壳仍可作为 pre-C 检查点被显式 continue 驱动，属 pre-C 语义保持）**不在本卡扩面**——该扫描属 CLEAN1-2 的 run 任期领域。
+
+验证（RED 先行）：RED 双例按卡内预言失败——`TestContinueNudgeDoesNotSwallowLegacyWaitingContinueShell`（扫描透出空壳）与 `TestLegacyShellDoesNotShadowDrivableConfirmationPark`（newest-wins 让空壳遮蔽真实确认 park）；对照双例修复前即绿锁定红线——`TestContinueNudgeStillInterceptsDrivableWaitingConfirmation`（拦截 stop reason/精确文案/workflow 数据/可应答 request 透出全不变）与 `TestContinueNudgeIgnoresTerminalResiduePark`（终态残留不达拦截面 + 谓词判非驱动）。定向 `go test ./internal/chat -run 'Test.*(Nudge|Continue|Lease|Drivable)' -count=1` 绿；chat 包全量绿（含 S3h7 谓词 9 形态表/arm 槽位、S3h8 完成桥、park 消费点全部不回归）；全量 `go test ./... -count=1` exit 0。
+
+旁证：默认路径 -SkipBuild 冒测按卡内许可**与 CLEAN1-2 合并一次执行**（同工作树同文件串行，本卡先行合入）。
