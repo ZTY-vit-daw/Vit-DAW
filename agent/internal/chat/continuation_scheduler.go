@@ -367,6 +367,23 @@ func markContinuationRecoveryValidation(item *DurableContinuation, reason string
 	item.PendingInteraction = map[string]any{"status": "recovery_validation_required", "reason": reason}
 }
 
+// restoredRunBelongsToEarlierGoalRun reports whether a restored continuation
+// carries a recognized non-terminal status together with a run identity that
+// differs from the goal's current run — residue of the goal's previous run
+// that must be quarantined rather than silently re-bound.
+func restoredRunBelongsToEarlierGoalRun(item DurableContinuation, goal agentruntime.Goal) bool {
+	goalRunID := strings.TrimSpace(goal.RunID)
+	itemRunID := strings.TrimSpace(item.RunID)
+	if goalRunID == "" || itemRunID == "" || goalRunID == itemRunID {
+		return false
+	}
+	switch item.Status {
+	case ContinuationPending, ContinuationClaimed, ContinuationRunning, ContinuationWaitingInteraction:
+		return true
+	}
+	return false
+}
+
 // restoredContinuationOwesActiveRound reports whether a restored continuation
 // belongs to a free-state loop that is still active while its current round
 // owes work — the refused-settle retry marker, or a recalibration round that
@@ -400,7 +417,21 @@ func normalizeRestoredDurableContinuation(mapKey string, item DurableContinuatio
 			continue
 		}
 		item.GoalID = goal.GoalID
-		item.RunID = firstNonEmpty(goal.RunID, item.RunID)
+		if restoredRunBelongsToEarlierGoalRun(item, goal) {
+			// Read-side run tenure (2026-08-30 CLEAN1 F8/L2): a record with a
+			// recognized non-terminal status vouches for the run it actually
+			// ran in. Rebranding it as the goal's current run would let the
+			// previous run's residue — an unanswered confirmation park, a
+			// parked checkpoint — masquerade as current-run state with no
+			// TaskContract to catch the mismatch. Quarantine it instead,
+			// keeping the true run identity so the completion bridge's
+			// run matching stays sound; terminal records are never rewritten
+			// and unrecognized-status records keep the task-snapshot identity
+			// repair below.
+			markContinuationRecoveryValidation(&item, "restored continuation belongs to an earlier run")
+		} else {
+			item.RunID = firstNonEmpty(goal.RunID, item.RunID)
+		}
 		if goal.Task != nil {
 			item.TaskID = firstNonEmpty(goal.Task.TaskID, item.TaskID)
 			item.OriginalIntent = firstNonEmpty(goal.Task.OriginalIntent, item.OriginalIntent, item.Continuation.OriginalIntent)

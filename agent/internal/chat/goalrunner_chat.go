@@ -2841,6 +2841,7 @@ func (s *Server) goalContinuationForConversation(conversationID string) (agentlo
 			return cont, true
 		}
 	}
+	currentRunID := s.currentRunIDForConversationLocked(conversationID)
 	var newest DurableContinuation
 	found := false
 	for _, item := range s.durableContinuations {
@@ -2853,6 +2854,9 @@ func (s *Server) goalContinuationForConversation(conversationID string) (agentlo
 		if item.Status != ContinuationPending && item.Status != ContinuationWaitingInteraction && item.Status != ContinuationClaimed && item.Status != ContinuationRunning {
 			continue
 		}
+		if !durableContinuationInCurrentRun(item, currentRunID) {
+			continue
+		}
 		if !found || item.UpdatedAt.After(newest.UpdatedAt) {
 			newest, found = item, true
 		}
@@ -2863,17 +2867,54 @@ func (s *Server) goalContinuationForConversation(conversationID string) (agentlo
 	return agentloop.Continuation{}, false
 }
 
+// currentRunIDForConversationLocked resolves the run identity that owns the
+// conversation's active goal right now — the harness goal's current RunID,
+// with the free-state loop's RunID as fallback. The write side already fences
+// completions by run (the S3h8 completion bridge matches conversation+goal+
+// run+interaction_id); this gives the conversation-keyed reads the same
+// tenure. Caller must hold s.mu.
+func (s *Server) currentRunIDForConversationLocked(conversationID string) string {
+	if goalID := strings.TrimSpace(s.conversationGoals[conversationID]); goalID != "" && s.harness != nil {
+		if runID := strings.TrimSpace(s.harness.RuntimeStatus(goalID).RunID); runID != "" {
+			return runID
+		}
+	}
+	if loop, ok := s.freeStateLoops[conversationID]; ok {
+		return strings.TrimSpace(loop.RunID)
+	}
+	return ""
+}
+
+// durableContinuationInCurrentRun fences conversation/goal-keyed scans to the
+// current run: a non-terminal durable from an earlier run of the same
+// conversation is residue of the previous task and must not answer the new
+// run's nudges or resume in its place (2026-08-30 CLEAN1 F8/L2, "旧轮残留吞
+// 新轮驱动"). Records without a run identity cannot be proven cross-run and
+// stay visible; without an authoritative current run there is nothing to
+// fence with, so the read keeps its historical shape.
+func durableContinuationInCurrentRun(item DurableContinuation, currentRunID string) bool {
+	if currentRunID == "" {
+		return true
+	}
+	itemRun := strings.TrimSpace(item.RunID)
+	return itemRun == "" || itemRun == currentRunID
+}
+
 func (s *Server) automaticContinuationForConversation(conversationID string) (DurableContinuation, bool) {
 	if s == nil || strings.TrimSpace(conversationID) == "" {
 		return DurableContinuation{}, false
 	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	currentRunID := s.currentRunIDForConversationLocked(conversationID)
 	var newest DurableContinuation
 	found := false
 	for _, item := range s.durableContinuations {
 		if item.ConversationID != conversationID ||
 			(item.Status != ContinuationPending && item.Status != ContinuationClaimed && item.Status != ContinuationRunning) {
+			continue
+		}
+		if !durableContinuationInCurrentRun(item, currentRunID) {
 			continue
 		}
 		if !found || item.UpdatedAt.After(newest.UpdatedAt) {
@@ -2892,6 +2933,7 @@ func (s *Server) interactionContinuationForConversation(conversationID string) (
 	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	currentRunID := s.currentRunIDForConversationLocked(conversationID)
 	var newest DurableContinuation
 	found := false
 	for _, item := range s.durableContinuations {
@@ -2908,6 +2950,9 @@ func (s *Server) interactionContinuationForConversation(conversationID string) (
 		// honest continue path instead of capturing the nudge (2026-08-30
 		// CLEAN1 F7/L1, the read-side replica of the S3h7 death chain).
 		if !continuationOccupantDrivable(item.Continuation, &item) {
+			continue
+		}
+		if !durableContinuationInCurrentRun(item, currentRunID) {
 			continue
 		}
 		if !found || item.UpdatedAt.After(newest.UpdatedAt) {
@@ -2931,6 +2976,10 @@ func (s *Server) goalContinuationForCurrentGoal(chatContext map[string]any) (age
 	if cont, ok := s.goalContinuations[goalID]; ok {
 		return cont, true
 	}
+	currentRunID := ""
+	if s.harness != nil {
+		currentRunID = strings.TrimSpace(s.harness.RuntimeStatus(goalID).RunID)
+	}
 	var newest DurableContinuation
 	found := false
 	for _, item := range s.durableContinuations {
@@ -2941,6 +2990,9 @@ func (s *Server) goalContinuationForCurrentGoal(chatContext map[string]any) (age
 			continue
 		}
 		if item.Status != ContinuationPending && item.Status != ContinuationWaitingInteraction && item.Status != ContinuationClaimed && item.Status != ContinuationRunning {
+			continue
+		}
+		if !durableContinuationInCurrentRun(item, currentRunID) {
 			continue
 		}
 		if !found || item.UpdatedAt.After(newest.UpdatedAt) {
