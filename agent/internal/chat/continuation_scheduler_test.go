@@ -1379,6 +1379,101 @@ func TestParkClaimedContinuationAtInteractionRetiresOnAnswer(t *testing.T) {
 	}
 }
 
+// An answered mix-tick confirmation on the chat-message surface must close the
+// durable waiting_confirmation park bound to the confirmed candidate. The
+// interaction-respond surface routes that completion through
+// completePendingInteractionContinuation before executing (S3c); the chat
+// surface reaches execution without the bridge, so the answered park survived
+// restarts as a non-terminal waiting_interaction continuation (2026-08-30 S3h8
+// smoke: the round-2 proposal park resurrected by the restart-idempotency
+// check while round 1 — confirmed through the respond surface — stayed clean).
+func answeredMixTickParkServer(t *testing.T) (*Server, DurableContinuation) {
+	t.Helper()
+	s := testContinuationServer()
+	s.mu.Lock()
+	if s.pendingMixTicks == nil {
+		s.pendingMixTicks = map[string]agentloop.PendingMixTickCandidate{}
+	}
+	s.pendingMixTicks["conversation-s3h8"] = agentloop.PendingMixTickCandidate{
+		Operation: "track_gain_adjust", TrackID: "1032", ObservationID: "obs_s3h8_round2@4",
+		Status: "pending_confirmation",
+	}
+	park := DurableContinuation{
+		SchemaVersion: continuationRuntimeSchema, ContinuationID: "cont_s3h8_park",
+		TaskID: "task-s3h8", GoalID: "goal-s3h8", RunID: "run-s3h8", ConversationID: "conversation-s3h8",
+		CurrentSliceID: "slice-s3h8", OriginalIntent: "improve the boxy vocal", Status: ContinuationWaitingInteraction,
+		PendingInteraction: map[string]any{
+			"status": "waiting_confirmation", "stop_reason": "improvement_proposal_native_tool_confirmation_required",
+			"interaction_id": "interaction-s3h8-1",
+			"requests": []any{map[string]any{
+				"id": "interaction-s3h8-1", "kind": "mix_tick_confirmation", "status": "waiting_for_user",
+				"payload": map[string]any{"observation_id": "obs_s3h8_round2@4", "track_id": "1032", "operation": "track_gain_adjust"},
+			}},
+		},
+	}
+	s.durableContinuations[park.ContinuationID] = park
+	s.mu.Unlock()
+	return s, park
+}
+
+func TestHandlePendingMixTickChatAcceptanceClosesBoundPark(t *testing.T) {
+	s, park := answeredMixTickParkServer(t)
+	resp, handled := s.handlePendingMixTickChat(context.Background(), "conversation-s3h8", ChatRequest{
+		ConversationID: "conversation-s3h8", Message: "可以执行",
+	}, agentModeDefault)
+	if !handled {
+		t.Fatal("explicit confirmation must be handled by the pending mix tick surface")
+	}
+	if resp.StopReason != "expired_pending_mix_tick_candidate" {
+		t.Fatalf("unexpected execution outcome for the zero-dose candidate: stop=%q err=%q", resp.StopReason, resp.Error)
+	}
+	retired, ok := s.durableContinuations[park.ContinuationID]
+	if !ok || retired.Status != ContinuationCompleted || retired.PendingInteraction != nil {
+		t.Fatalf("answered chat-surface confirmation left its bound park non-terminal: %+v", retired)
+	}
+}
+
+// A rejection is an answered wait too: the same park must close, or a chat
+// cancellation leaks the identical restart orphan the acceptance path did.
+func TestHandlePendingMixTickChatRejectionClosesBoundPark(t *testing.T) {
+	s, park := answeredMixTickParkServer(t)
+	resp, handled := s.handlePendingMixTickChat(context.Background(), "conversation-s3h8", ChatRequest{
+		ConversationID: "conversation-s3h8", Message: "取消",
+	}, agentModeDefault)
+	if !handled || resp.StopReason != "mix_tick_rejected" {
+		t.Fatalf("unexpected rejection outcome: handled=%v stop=%q", handled, resp.StopReason)
+	}
+	retired, ok := s.durableContinuations[park.ContinuationID]
+	if !ok || retired.Status != ContinuationCompleted || retired.PendingInteraction != nil {
+		t.Fatalf("rejected chat-surface confirmation left its bound park non-terminal: %+v", retired)
+	}
+}
+
+// A park bound to a different candidate is not this confirmation's to close:
+// only the wait that was actually answered may be finalized.
+func TestHandlePendingMixTickChatConfirmationSparesForeignPark(t *testing.T) {
+	s, park := answeredMixTickParkServer(t)
+	foreign := park
+	foreign.ContinuationID = "cont_s3h8_foreign"
+	foreign.GoalID = "goal-foreign"
+	foreign.PendingInteraction = map[string]any{
+		"status": "waiting_confirmation", "interaction_id": "interaction-s3h8-foreign",
+		"requests": []any{map[string]any{
+			"id": "interaction-s3h8-foreign", "kind": "mix_tick_confirmation",
+			"payload": map[string]any{"observation_id": "obs_other_round@2", "track_id": "1032"},
+		}},
+	}
+	s.mu.Lock()
+	s.durableContinuations[foreign.ContinuationID] = foreign
+	s.mu.Unlock()
+	_, _ = s.handlePendingMixTickChat(context.Background(), "conversation-s3h8", ChatRequest{
+		ConversationID: "conversation-s3h8", Message: "取消",
+	}, agentModeDefault)
+	if item, ok := s.durableContinuations[foreign.ContinuationID]; !ok || item.Status != ContinuationWaitingInteraction {
+		t.Fatalf("a foreign candidate's park was closed by this confirmation: %+v", item)
+	}
+}
+
 func TestPendingInteractionFromResultCarriesInteractionID(t *testing.T) {
 	res := agentloop.Result{
 		GoalID: "goal-c", RunID: "run-c", TaskID: "task-c", SliceID: "slice-park", TurnID: "turn-park",

@@ -106,6 +106,7 @@ func (s *Server) handlePendingMixTickChat(ctx context.Context, conversationID st
 			s.logger.Info("[mix.tick.pending] rejected conversation=%s message=%q %s", conversationID, req.Message, pendingMixTickLogSummary(candidate))
 		}
 		s.transitionActivePendingCandidate(conversationID, "mix_tick", agentprotocol.PendingStatusRejected, "user rejected pending mix tick")
+		s.completeAnsweredMixTickParks(conversationID, candidate)
 		s.expirePendingMixTick(conversationID)
 		return ChatResponse{
 			ConversationID: conversationID,
@@ -125,6 +126,7 @@ func (s *Server) handlePendingMixTickChat(ctx context.Context, conversationID st
 			s.logger.Info("[mix.tick.pending] explicit confirmation routed conversation=%s %s observation=%s", conversationID, pendingMixTickLogSummary(candidate), candidate.ObservationID)
 		}
 		s.transitionActivePendingCandidate(conversationID, "mix_tick", agentprotocol.PendingStatusAccepted, "user confirmed pending mix tick")
+		s.completeAnsweredMixTickParks(conversationID, candidate)
 		if s != nil {
 			s.emitAgentEvent(conversationID, AgentEvent{
 				Type:     "mix_tick.confirmation.routed",
@@ -371,6 +373,68 @@ func (s *Server) pendingMixTickForConversation(conversationID string) (agentloop
 		return agentloop.PendingMixTickCandidate{}, false
 	}
 	return candidate, true
+}
+
+// completeAnsweredMixTickParks closes the durable waiting_confirmation parks
+// bound to the mix-tick candidate whose confirmation was just answered on the
+// chat-message surface, by routing the same completion bridge the
+// interaction-respond surface uses (completePendingInteractionContinuation).
+// Without this, an answered confirmation executed from the chat surface left
+// its park behind as a non-terminal waiting_interaction continuation, which
+// the restart-idempotency check then resurrected (2026-08-30 S3h8 smoke: the
+// round-2 proposal park; round 1 stayed clean only because its confirmation
+// arrived through the respond surface). Unanswered parks keep waiting.
+func (s *Server) completeAnsweredMixTickParks(conversationID string, candidate agentloop.PendingMixTickCandidate) {
+	if s == nil || strings.TrimSpace(conversationID) == "" {
+		return
+	}
+	s.mu.Lock()
+	var answered []PendingInteraction
+	for _, item := range s.durableContinuations {
+		if item.ConversationID != conversationID || item.Status != ContinuationWaitingInteraction {
+			continue
+		}
+		if !mixTickParkBoundToCandidate(item.PendingInteraction, candidate) {
+			continue
+		}
+		answered = append(answered, PendingInteraction{
+			ID: firstStringFromMap(item.PendingInteraction, "interaction_id"),
+			ConversationID: item.ConversationID, GoalID: item.GoalID, RunID: item.RunID,
+		})
+	}
+	s.mu.Unlock()
+	for _, interaction := range answered {
+		if interaction.ID == "" {
+			continue
+		}
+		if s.logger != nil {
+			s.logger.Info("[mix.tick.pending] answered confirmation closed park conversation=%s interaction=%s continuation_goal=%s", conversationID, interaction.ID, interaction.GoalID)
+		}
+		s.completePendingInteractionContinuation(interaction)
+	}
+}
+
+// mixTickParkBoundToCandidate reports whether a parked pending_interaction is
+// the answerable confirmation face of this exact candidate: a
+// waiting_confirmation park whose carried request matches the candidate's
+// observation and target track. A different candidate's park, a park with no
+// answerable request, or any other waiting shape is not this confirmation's
+// to close.
+func mixTickParkBoundToCandidate(park map[string]any, candidate agentloop.PendingMixTickCandidate) bool {
+	if !strings.EqualFold(strings.TrimSpace(firstStringFromMap(park, "status")), string(agentruntime.StatusWaitingConfirmation)) {
+		return false
+	}
+	if strings.TrimSpace(firstStringFromMap(park, "interaction_id")) == "" {
+		return false
+	}
+	for _, row := range mapRowsFromAny(park["requests"]) {
+		payload := firstNonEmptyMap(firstMapFromAny(row["payload"]), firstMapFromAny(row["data"]), row)
+		if firstStringFromMap(payload, "observation_id") == strings.TrimSpace(candidate.ObservationID) &&
+			firstStringFromMap(payload, "track_id") == strings.TrimSpace(candidate.TrackID) {
+			return true
+		}
+	}
+	return false
 }
 
 func (s *Server) expirePendingMixTick(conversationID string) {
