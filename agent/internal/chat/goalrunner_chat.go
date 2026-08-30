@@ -2898,6 +2898,18 @@ func (s *Server) interactionContinuationForConversation(conversationID string) (
 		if item.ConversationID != conversationID || item.Status != ContinuationWaitingInteraction {
 			continue
 		}
+		// The read side of the lease: the write side displaces unanswerable
+		// parks (continuationOccupantDrivable at the arm slot and the restore
+		// migration), but a pre-C legacy shell can still be materialized by
+		// the migration's compatibility branch after that. This gate decides
+		// whether a bare "继续" is swallowed behind pending_interaction_
+		// requires_response, so it must only ever surface a park a user can
+		// actually answer — a non-drivable occupant falls through to the
+		// honest continue path instead of capturing the nudge (2026-08-30
+		// CLEAN1 F7/L1, the read-side replica of the S3h7 death chain).
+		if !continuationOccupantDrivable(item.Continuation, &item) {
+			continue
+		}
 		if !found || item.UpdatedAt.After(newest.UpdatedAt) {
 			newest, found = item, true
 		}
