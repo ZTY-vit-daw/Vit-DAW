@@ -472,3 +472,20 @@ S3h6 以 085624 定案的"G1 拿合同冻结 revision 对 closure 当前 revisio
 旁证：全量 `go test ./...` 一次全绿（agentloop 6 新用例 + chat 1 新用例含于其中）。
 
 开放项：**D2-2-S3h7**（判定驱动的 arm 槽位被 workspace restore legacy 迁移空壳占据——round-2 链饿死于首个模型轮之前；S3h6 豁免待该层修复后才能首次栈上行使）。S3h3（预算耗尽第二 goal）仍未触达。S3b/S3c/S3d/S3e×2/S3f/S3g/S3h1/S3h2/S3h4/S3h5/S3h6 十二卡验收 3 在 S3h7 合入前保持未绿，D2-2 exit 0 收口顺延。
+
+## 21. 2026-08-30 早批（D2-2-S3h7 arm 槽位 legacy 空壳：修复真栈验证成立——round-2 全链首次走通、S3h6 豁免首次栈上行使，失败点前移至提案确认 park 孤儿层）
+
+S3h7 以 093308 定案的"判定驱动 arm 槽位被 workspace restore legacy 迁移空壳占据"开卡。取证**修正卡内死亡链两处**：(i) 物化入口不是判定 POST 入口的 `activateCurrentProjectWorkspace`（幂等守卫成立——093308 判断窗口无第二次 "[workspace] activated" 行），而是 **scheduler 周期的 `reloadActiveRuntimeState`**（continuation_scheduler.go:947，静默无日志入口；POST 退出后 invocationsActive 放行即触发）；(ii) 被物化的磁盘 `state.GoalContinuations` 条目不是 settle 切片 recordGoalResult 的写回（该写回经 2570 行必带 durable ID，restore 会走既有匹配分支不产空壳），而是 **arm 自己在判定 POST 内写回的 ID-less armed continuation**（goal 键控空间唯一无 ID 写入者 = arm:1072；终态空壳 ID hash(goal|run|""|"") 与 armed 形态同构互证）。即 round-2 **已被武装并持久化**，scheduler 磁盘重载把武装成果误判为 pre-C legacy checkpoint 物化成 `legacy_waiting_continue` 不可应答空壳挤掉了它——093308 终态 `goal_continuations` 只剩空壳、6 条真实 durable 全 completed 与此完全一致。
+
+修复（fix(d2-2-s3h7) 3903e31）方向 (b)+(a) 组合、(c) 排除（POST 入口守卫本次未触发，收窄无的放矢）：(b) 根因——legacy 迁移对携带 `free_state_internal_resume` 标记的条目（`isArmedInternalResumeContinuation`）不物化 durable 空壳、保留兼容索引槽位，并对同 hash 的非终态不可驱动残留（旧版 restore 物化的 shell）按 arm 同规则迁移时置换（防 latestByGoal 重载再毒化）；(a) 纵深——arm 守卫经命名谓词 `continuationOccupantDrivable` 从"槽位存在即让位"改为"occupant 不可驱动时可置换"，置换簿记 cancelled + `displaced_by_recalibration_arm` 审计标记，终态记录永不改写（restart 幂等）。**CLEAN1 审计判据种子落地（附加要求）**：`continuationOccupantDrivable`（可驱动 ⇔ 无 durable（=armed 形态，nudge 直驱）/pending/claimed/running/waiting_interaction 带可应答交互面；不可应答空壳与终态残留 ⇒ 可置换）+ `legacyWaitingContinuePendingInteraction` + `continuationTerminalStatus`，arm/迁移两处消费同一谓词零内联判断——供 CLEAN1 卡逐点核对"parked continuation 必须可驱动或可置换"不变量。RED→GREEN：free_state_arm_slot_restore_test.go 5 用例（迁移保 armed——首跑物化空壳与 093308 逐字段同形；真 legacy 迁移形状锁定（红线）；arm 置换空壳并过 reload 往返；arm 永不置换可驱动 occupant（红线）；谓词表 9 形态）；全量 `go test ./...` 一次全绿。
+
+**真栈验证（20260830_102243 trace）**：修复本体成立——**round-2 全链首次在栈上走通**：armed continuation 跨 scheduler reload 存活（空壳零物化），round-2 模型轮恢复运行，提案**过 gate**（S3h6 豁免首次栈上行使，无 G1 拒收）、mix-tick 确认（10:28:24 explicit confirmation routed）、干预执行入账（persisted rounds=2、round-2 interventions=1）、post-action 观察新鲜且 revision 绑定、settle 链走通至 round-2 判断边界；validate 的轮数/每轮单干预/跨轮剂量界/持久化投影一致性**全部通过**（历次 "round 1 carries 0 forward interventions" 首次消失）。终验仍 exit 1，失败点**前移至新层**：restart 幂等检出 `cont_030927` waiting_interaction + **waiting_confirmation**（真实可应答面，非空壳）——round-2 提案轮的确认 park 在确认被应答、干预已入账后未被终态化：确认前 nudge 从 ID-less armed continuation 恢复（cont_1520 的 ResumedFromID 为空 → parent-completion 无法链接提案 park），显式确认走 mix-tick pending 面不经 interaction-respond 桥（completePendingInteractionContinuation 不触发）→ 孤儿过 restart。默认路径 -SkipBuild（20260830_103923）被 **D 盘占满环境故障**打断（单轮链健康推进至提案确认段，10:43:29 runtime state save 连续 "There is not enough space on the disk" → durable_checkpoint_persist_failed；改动对单轮路径结构惰性——armed 标记只在多轮 arm 产生、arm 守卫被 owed-intervention 谓词门控、迁移分支只认 armed 标记），磁盘已清理，待补跑一次。
+
+| stamp | 轮 | 终态 | 备注 |
+|---|---|---|---|
+| 20260830_102243 | p01 freq + 注入2 + MultiRoundProbe | fail "restart resurrected non-terminal continuations: waiting_interaction" | **S3h7 修复真栈验证成立**（round-2 全链首次走通、S3h6 豁免首次栈上行使、armed 跨 reload 存活、历次 0-forward-interventions 消失）；失败前移至 round-2 提案确认 park 孤儿（answered confirmation 未终态化）→ S3h8 |
+| 20260830_103923 | p01 freq 默认路径回归（-SkipBuild） | fail（环境：D 盘占满） | 链路健康至磁盘满点（runtime state save 磁盘满 → durable_checkpoint_persist_failed），非代码回归；磁盘已清理，随 S3h8 终验一并补跑 |
+
+旁证：全量 `go test ./...` 一次全绿（chat 5 新用例含于其中）。
+
+开放项：**D2-2-S3h8**（round-2 提案确认 park 孤儿——armed 链恢复无 ResumedFromID 链接 + mix-tick 显式确认面不走 completePendingInteractionContinuation，answered confirmation 未终态化过 restart）+ S3h7 默认路径 -SkipBuild 补跑（磁盘清理后）。S3h3（预算耗尽第二 goal）仍未触达。S3b/S3c/S3d/S3e×2/S3f/S3g/S3h1/S3h2/S3h4/S3h5/S3h6/S3h7 十三卡验收 3 在 S3h8 合入前保持未绿，D2-2 exit 0 收口顺延。
