@@ -535,3 +535,15 @@ S3h8 以 102243 定案的孤儿开卡。取证把卡内死亡链精确到**确�
 验证（RED 先行）：RED 双例按卡内预言失败——`TestContinueNudgeDoesNotSwallowLegacyWaitingContinueShell`（扫描透出空壳）与 `TestLegacyShellDoesNotShadowDrivableConfirmationPark`（newest-wins 让空壳遮蔽真实确认 park）；对照双例修复前即绿锁定红线——`TestContinueNudgeStillInterceptsDrivableWaitingConfirmation`（拦截 stop reason/精确文案/workflow 数据/可应答 request 透出全不变）与 `TestContinueNudgeIgnoresTerminalResiduePark`（终态残留不达拦截面 + 谓词判非驱动）。定向 `go test ./internal/chat -run 'Test.*(Nudge|Continue|Lease|Drivable)' -count=1` 绿；chat 包全量绿（含 S3h7 谓词 9 形态表/arm 槽位、S3h8 完成桥、park 消费点全部不回归）；全量 `go test ./... -count=1` exit 0。
 
 旁证：默认路径 -SkipBuild 冒测按卡内许可**与 CLEAN1-2 合并一次执行**（同工作树同文件串行，本卡先行合入）。
+
+## 25. 2026-08-30 晚批（D2-2-CLEAN1-2 读侧任期：conversation/goal 键扫描与 restore 再绑定按当前 RunID 门控——CLEAN1 双卡收口）
+
+病灶一句话结论（CLEAN1 审计 F8/L2）：写入侧完成桥已 run 匹配（conversation+goal+run+interaction_id），但 continue 拦截/自动续跑应答/resume 链的四个 conversation/goal 键扫描（`automaticContinuationForConversation` / `interactionContinuationForConversation` / `goalContinuationForConversation` / `goalContinuationForCurrentGoal`）**只按键不校验 run**——同 conversation 开新 goal run 后，旧 run 非终态 durable（未应答 waiting_confirmation park、parked 自动续跑检查点）仍吞新 run 的 nudge 或顶替其 resume（"旧轮残留吞新轮驱动"）。restore 一层同病：`normalizeRestoredDurableContinuation` 无 TaskContract 时 `item.RunID = firstNonEmpty(goal.RunID, item.RunID)` 把旧 run 记录**静默再绑定**为当前 run（有合同时由合同身份校验兜住，无合同时无隔离）。
+
+修复（`fix(d2-2-clean1-2)` 95e2835）：① 四扫描按现任 run 过滤（`currentRunIDForConversationLocked`：conversationGoals→`RuntimeStatus(goalID).RunID`，free-state loop.RunID 回退；`durableContinuationInCurrentRun`：两侧任一身份为空即放行——无权威 run 时不围栏，当前行为零变化）；② `resumeContinuationForChat` 的 `durable_continuation_id` 精确寻址分支**不围栏**（调度器检查点寻址，非键扫描）；③ restore 守卫 `restoredRunBelongsToEarlierGoalRun`：**有效非终态状态 + 双侧 run 身份齐且不等** → `recovery_validation_required` 隔离并**保留真实 run 身份**（完成桥的 run 匹配因此保持可信），不再静默再绑定；终态记录永不改写（mark 原语只动 runnable 态）；无效状态记录保持既有任务快照身份修复（锁定测试 `TestRestoreUsesTaskSnapshotAsIdentityAndIntentAuthority` 的修复方向原样保留——run-corrupt/unknown_status 形态不走隔离分支）。
+
+验证（RED 先行）：RED 四例全部按卡内预言失败——跨 run waiting_confirmation park 不拦截新 run nudge（并落到诚实 no_continuation）、跨 run pending 检查点不以"已在自动续跑队列"应答、跨 run durable 不喂 goal/conversation 双 resume 读源、restore 无 TaskContract 旧 run 非终态被隔离而非再绑定（RunID 保持 run-fence-stale）；对照 `TestRunFenceKeepsCurrentRunBehaviorUnchanged` 锁同 run 红线（拦截文案/envelope/InteractionRequests 与自动队列应答不变）。定向 `go test ./internal/chat -run 'Test.*(RunFence|RunIdentity|StaleRun|CrossRun|Nudge|Continue|Lease|Drivable)'` 绿（含 CLEAN1-1 全部用例）；chat 包全量绿（S3h7 arm 槽位/谓词 9 形态表、S3h8 完成桥、restore 幂等、free_state 全家不回归）；全量 `go test ./... -count=1` exit 0。
+
+真栈回归（CLEAN1-1+CLEAN1-2 合并一次）：默认路径 p01 freq -SkipBuild **exit 0**（20260830_185606）。过程债如实记录：首轮 20260830_185124 PASS 跑的是 12:53 的**旧二进制**（-SkipBuild 复用 `agent\bin\VitAgent.exe`，早于 18:40 合入的修复）——重建二进制（18:56）后经 `-RestartAgent` 重跑，PASS 方为有效回归；未来 -SkipBuild 冒测前须核对二进制 mtime 晚于待验代码（已在本批踩坑，机制留档）。
+
+收口：**CLEAN1 双卡（读侧租约 CLEAN1-1 + 读侧任期 CLEAN1-2）以 70e72b1/95e2835 + 20260830_185606 为同一戳连关**，CLEAN1 审计 F7/F8 两潜伏病灶关闭（F9 留档观察、F10 范围外移交 admission/evidence 家族的裁定不变）。fix 合入，不 push。
