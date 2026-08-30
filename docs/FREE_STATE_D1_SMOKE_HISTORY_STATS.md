@@ -489,3 +489,25 @@ S3h7 以 093308 定案的"判定驱动 arm 槽位被 workspace restore legacy �
 旁证：全量 `go test ./...` 一次全绿（chat 5 新用例含于其中）。
 
 开放项：**D2-2-S3h8**（round-2 提案确认 park 孤儿——armed 链恢复无 ResumedFromID 链接 + mix-tick 显式确认面不走 completePendingInteractionContinuation，answered confirmation 未终态化过 restart）+ S3h7 默认路径 -SkipBuild 补跑（磁盘清理后）。S3h3（预算耗尽第二 goal）仍未触达。S3b/S3c/S3d/S3e×2/S3f/S3g/S3h1/S3h2/S3h4/S3h5/S3h6/S3h7 十三卡验收 3 在 S3h8 合入前保持未绿，D2-2 exit 0 收口顺延。
+
+## 22. 2026-08-30 午批（D2-2-S3h8 已应答确认 park 孤儿：修复真栈验证成立——**多轮终验首次 exit 0，D2-2 十三卡链收口**）
+
+S3h8 以 102243 定案的孤儿开卡。取证把卡内死亡链精确到**确认面错配**：probe 的 round-2 驱动 nudge（"继续"，`messageExplicitMixTickApply`/`ClassifyConfirmation` 均列为显式接受）在候选已在 `pendingMixTicks` 落位时经 `/agent/chat` → `handlePendingMixTickChat` DecisionAccept 直接执行（agent_last.log 10:28:24 `explicit confirmation routed`，全请求无 `http.interaction_respond` timing 行佐证）——该路径从不触完成桥；而 interaction/respond 面（server.go:4139，S3c 修复）先 `completePendingInteractionContinuation` 再路由。round-1 逃过纯因确认恰好经 respond 面驱动。armed 链 ID-less resume（cont_1520 无 ResumedFromID → parent-completion 链不上 cont_030927）是邻近事实但非闭合点：park 等的是确认本身。
+
+**方向裁定（按"特例变少"判据取 (a)）**：两个确认面经同一完成桥——accept 与 reject 都是"已应答"，都在 `handlePendingMixTickChat` 路由时以 `completeAnsweredMixTickParks` 按 candidate 归属（park pi 为 waiting_confirmation + 带 interaction_id + requests payload 的 observation_id/track_id 与被确认候选一致）反查 park，交 `completePendingInteractionContinuation` 终态化；异源 park 与未应答 park 不动（红线）。**身份纪律种子 (#3) 裁定为不可控成本、留档 deferral**：arm 有意不写 durable 记录（S3h7 设计注释明示），补 durable 身份会向调度器合格性引入新 pending 记录、动摇 S3h7 已验证行为；且 (a) 落地后 ID-less resume 对完成传播家族不再致孤——种子推迟至 CLEAN1 卡（CLEAN1 卡已在 todo）。RED→GREEN：continuation_scheduler_test.go 3 用例（acceptance 闭 park / rejection 闭 park / 异源 park 不误伤）；全量 `go test ./...` 绿（`TestProcessorCertificationStartAcceptsBroadbandCompressorCapability` 出现一次 Windows TempDir 清理竞态 fail，单跑与复跑均绿、域无涉，判环境抖动非代码）。
+
+**真栈验证（20260830_125328 trace）**：**多轮终验首次 exit 0**——`multi_round_probe_pass`、`restart_idempotent=True`、round-1/round-2 各 1 干预（static_eq，跨轮每频段累计 -1.0dB 界内）、budget=2 耗尽、5 条 durable continuation 全 completed；**修复层在孤儿原位栈上触发**：round-2 提案 park 12:57:37 stored → 12:59:20 chat 面显式确认 routed → 同秒 `[mix.tick.pending] answered confirmation closed park`（interaction_69ac1ede…）→ restart 检查零复活。**默认路径回归（20260830_132640，-SkipBuild + freq）exit 0**——单轮路径零变化红线守住，同时补齐 S3h7 磁盘满中断的欠账。
+
+**终验环境修复留档（磁盘清理连锁，两处）**：早间 D 盘清理抹掉 `temp/…smoke-v1/fixtures`（夹具集 + `VitApp/build` 的 CMakeCache）。(i) 夹具重建：`semantic_processor_project_smoke_fixtures.py` 重生成 stems（6 个 sha256 与 manifest 全匹配）+ 从 artifacts 副本恢复 .vit（哈希 `4ba3caa6…`，33 次 run 物化共识）；CMake 重新 configure+build。(ii) **冻结 v2 存储两次阶**：初恢复漏了 `projects/spv1_p01/.vit_agent`（Aug13–26 冻结积累、manifest `degraded.evidence_off=true`（store_total_budget_exhausted））→ 新存储 evidence 开启 → 每笔观察挂 `evidence://` 引用（裸 obs ID 不在 refs）→ 绑定只给模型 URI → 模型照引 → FS6→FS7 准入门（要求裸 ID）确定拒收 → loop blocked → NOT_EXERCISED×2（20260830_121054/122919，环境性非代码，模型忠实引用唯一被呈现的 ref）；恢复冻结存储后解除。二阶：从 102243 副本恢复时漏剔其 journal 运行日记录 → `/agent/actions` 多出 2 条历史 `free_state_d1_s1` 动作 → 默认路径 "D1 journal must contain exactly one forward mutation" fail（20260830_131010 中性味 NOT_EXERCISED 属准入方差、131515 journal 3 条）；按 created_at < 2026-08-27 剔 28 条后默认路径过。**留档后续观察（非本卡家族）**：全新存储（evidence 开）下"v2 持久化 evidence 引用 vs 准入门裸 ID 要求"是真实产品层不一致——早晨系列全绿只因冻结存储 evidence 被预算耗尽关闭；该层属 admission/evidence 家族，待后续卡裁定。
+
+| stamp | 轮 | 终态 | 备注 |
+|---|---|---|---|
+| 20260830_121054 / 122919 | p01 freq + 注入2 + MultiRoundProbe | NOT_EXERCISED（exit 3）×2 | 环境阶 1：夹具 .vit_agent 冻结存储缺失 → evidence:// 引用形态 → 准入门拒收（非代码、非模型方差；121054 附 NOT_EXERCISED 语义剖析） |
+| 20260830_125328 | p01 freq + 注入2 + MultiRoundProbe | **pass（multi_round_probe_pass）** | **D2-2 多轮终验首次 exit 0**：S3h8 修复在孤儿原位触发（answered confirmation closed park）、restart_idempotent=True、全 continuation 终态；S3 系列全部断言绿 |
+| 20260830_131010 | p01 中性味默认路径（-SkipBuild） | NOT_EXERCISED（exit 3） | 中性味准入方差（S3 系列默认路径回归惯例为 freq 味，本次误用默认值） |
+| 20260830_131515 | p01 freq 默认路径（-SkipBuild） | fail "D1 journal must contain exactly one forward mutation" | 环境阶 2：恢复的冻结 journal 带 102243 运行日 2 条 d1 动作史（loop 本体健康：1 轮 1 干预、forward_mutation_count=1、正确停判断边界）；剔运行日记录后解除 |
+| 20260830_132640 | p01 freq 默认路径（-SkipBuild） | **pass** | 单轮路径零变化红线守住；S3h7 磁盘满欠账补齐 |
+
+旁证：全量 `go test ./...` 绿（chat 3 新用例含于其中）。
+
+收口：**D2-2 十三卡链（S3b/S3c/S3d/S3e×2/S3f/S3g/S3h1/S3h2/S3h4/S3h5/S3h6/S3h7）以 20260830_125328+132640 双 exit 0 为同一戳连关**（blocked→done 10 张 + 已 done 3 张）；S3h3 层未被终验触达（双链全程单 goal）按裁定分支**关闭留档**（未来再现第二 goal 吞噬凭卡重开）。fix 4fda027 合入，不 push。开放项移交：CLEAN1（持久残留新鲜度审计，含 S3h8 身份种子 deferral 上下文 + 本批冻结存储/evidence_off 取证）、STAB1（durable 切片测试稳定性，本批 TempDir 抖动为其又一例证）。
