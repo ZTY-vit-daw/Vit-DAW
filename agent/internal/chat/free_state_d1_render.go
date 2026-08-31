@@ -34,7 +34,7 @@ func d1AuditionCandidates(before, after map[string]any, baselineCommit, treatmen
 }
 
 func (s *Server) ensureD1Render(ctx context.Context, loop *freeStateReasoningLoop, phase, projectRevision, checkpointRef string) (map[string]any, error) {
-	if s == nil || s.kernel == nil || s.harness == nil || loop == nil || loop.Experiment == nil || !loop.Experiment.Admission.IsD1S1() {
+	if s == nil || loop == nil || loop.Experiment == nil || !loop.Experiment.Admission.IsD1S1() {
 		return nil, fmt.Errorf("D1-S1 render dependencies are unavailable")
 	}
 	phase = strings.ToLower(strings.TrimSpace(phase))
@@ -49,8 +49,15 @@ func (s *Server) ensureD1Render(ctx context.Context, loop *freeStateReasoningLoo
 	row := firstMapFromAny(loop.D1State[key])
 	if firstStringFromMap(row, "project_revision") == projectRevision {
 		if path := firstStringFromMap(row, "file_path"); validD1RenderFile(path) {
+			// Resuming a persisted ready render touches neither the kernel
+			// nor the harness, so the resume fast path must not demand them.
 			return s.finishD1Render(loop, key, row, path, checkpointRef)
 		}
+	}
+	if s.kernel == nil || s.harness == nil {
+		return nil, fmt.Errorf("D1-S1 render dependencies are unavailable")
+	}
+	if firstStringFromMap(row, "project_revision") == projectRevision {
 		if jobID := firstStringFromMap(row, "job_id"); jobID != "" {
 			return s.waitD1Render(ctx, loop, key, row, jobID, checkpointRef)
 		}

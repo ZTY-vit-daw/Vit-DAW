@@ -211,46 +211,86 @@ func numericAny(value any) (float64, bool) {
 
 func (s *Server) executeEQTransaction(ctx context.Context, trackID, pluginID string,
 	writes []eqWriteStep, preimage, snapshot []eqPreimageValue) ([]map[string]any, []map[string]any, error) {
+	executed, actual, _, err := s.executeEQTransactionAccounted(ctx, trackID, pluginID, writes, preimage, snapshot, "")
+	return executed, actual, err
+}
+
+// vspCommandWithIDsTransport is the optional transport upgrade callers use to
+// pin a stable request identity on the net write. The production kernel
+// client implements it; un-upgraded test fakes fall back to the anonymous
+// transport and simply report no kernel transaction identity.
+type vspCommandWithIDsTransport interface {
+	SendVSPCommandWithIDs(ctx context.Context, command string, args map[string]any, requestID, transactionID string) (*kernel.VSPCommandResult, error)
+}
+
+// eqWriteAccounting captures the kernel transaction identity of the net
+// parameter write when the caller pinned a stable request id. The kernel
+// derives the batch transaction id from that request id and replays the
+// cached receipt on a retry, so both fields are kernel-real evidence for the
+// semantic settlement bracket (D2-SEMREC1).
+type eqWriteAccounting struct {
+	RequestID     string
+	TransactionID string
+}
+
+func (s *Server) executeEQTransactionAccounted(ctx context.Context, trackID, pluginID string,
+	writes []eqWriteStep, preimage, snapshot []eqPreimageValue, requestID string) ([]map[string]any, []map[string]any, *eqWriteAccounting, error) {
 	client := s.eqKernelClient()
 	if client == nil {
-		return nil, nil, fmt.Errorf("kernel client is nil")
+		return nil, nil, nil, fmt.Errorf("kernel client is nil")
 	}
 	parameters := make([]map[string]any, 0, len(writes))
 	for _, write := range writes {
 		parameters = append(parameters, map[string]any{"parameter_id": write.ParamID, "normalized_value": write.NormalizedValue})
 	}
-	result, err := client.SendVSPCommand(ctx, "plugin.set_params_batch", map[string]any{
+	batchArgs := map[string]any{
 		"track_id": trackID, "plugin_id": pluginID, "parameters": parameters, "readback": true,
-	})
+	}
+	var result *kernel.VSPCommandResult
+	var err error
+	var accounting *eqWriteAccounting
+	if strings.TrimSpace(requestID) != "" {
+		if withIDs, ok := client.(vspCommandWithIDsTransport); ok {
+			result, err = withIDs.SendVSPCommandWithIDs(ctx, "plugin.set_params_batch", batchArgs, requestID, "tx_"+requestID)
+			accounting = &eqWriteAccounting{RequestID: requestID}
+		} else {
+			result, err = client.SendVSPCommand(ctx, "plugin.set_params_batch", batchArgs)
+		}
+	} else {
+		result, err = client.SendVSPCommand(ctx, "plugin.set_params_batch", batchArgs)
+	}
 	if err != nil || eqVSPFailure(result) != "" {
 		failure := firstNonEmpty(errorText(err), eqVSPFailure(result), "EQ parameter batch failed")
-		return nil, nil, s.eqTransactionFailure(ctx, trackID, pluginID, preimage, failure)
+		return nil, nil, nil, s.eqTransactionFailure(ctx, trackID, pluginID, preimage, failure)
+	}
+	if accounting != nil {
+		accounting.TransactionID = strings.TrimSpace(result.TransactionID)
 	}
 
 	actualRows, err := s.readEQParameters(ctx, trackID, pluginID)
 	if err != nil {
-		return nil, nil, s.eqTransactionFailure(ctx, trackID, pluginID, preimage,
+		return nil, nil, nil, s.eqTransactionFailure(ctx, trackID, pluginID, preimage,
 			fmt.Sprintf("fresh readback failed: %v", err))
 	}
 	index := eqParameterRowIndex(actualRows)
 	if unexpected := unexpectedEQParameterChanges(snapshot, writes, index); len(unexpected) > 0 {
 		failure := s.eqTransactionFailure(ctx, trackID, pluginID, append(preimage, unexpected...),
 			fmt.Sprintf("unplanned parameter changes: %s", eqPreimageParamIDs(unexpected)))
-		return nil, nil, rejectEQControl("unplanned_parameter_change", "%v", failure)
+		return nil, nil, nil, rejectEQControl("unplanned_parameter_change", "%v", failure)
 	}
 	if corrected, correctionErr := s.correctEQPhysicalReadback(ctx, trackID, pluginID, writes, index); correctionErr != nil {
-		return nil, nil, s.eqTransactionFailure(ctx, trackID, pluginID, preimage, correctionErr.Error())
+		return nil, nil, nil, s.eqTransactionFailure(ctx, trackID, pluginID, preimage, correctionErr.Error())
 	} else if corrected {
 		actualRows, err = s.readEQParameters(ctx, trackID, pluginID)
 		if err != nil {
-			return nil, nil, s.eqTransactionFailure(ctx, trackID, pluginID, preimage,
+			return nil, nil, nil, s.eqTransactionFailure(ctx, trackID, pluginID, preimage,
 				fmt.Sprintf("post-correction readback failed: %v", err))
 		}
 		index = eqParameterRowIndex(actualRows)
 		if unexpected := unexpectedEQParameterChanges(snapshot, writes, index); len(unexpected) > 0 {
 			failure := s.eqTransactionFailure(ctx, trackID, pluginID, append(preimage, unexpected...),
 				fmt.Sprintf("unplanned parameter changes: %s", eqPreimageParamIDs(unexpected)))
-			return nil, nil, rejectEQControl("unplanned_parameter_change", "%v", failure)
+			return nil, nil, nil, rejectEQControl("unplanned_parameter_change", "%v", failure)
 		}
 	}
 	executed := make([]map[string]any, 0, len(writes))
@@ -258,31 +298,31 @@ func (s *Server) executeEQTransaction(ctx context.Context, trackID, pluginID str
 	for _, write := range writes {
 		row, ok := index[write.ParamID]
 		if !ok {
-			return nil, nil, s.eqTransactionFailure(ctx, trackID, pluginID, preimage,
+			return nil, nil, nil, s.eqTransactionFailure(ctx, trackID, pluginID, preimage,
 				fmt.Sprintf("fresh readback omitted touched parameter %s", write.ParamID))
 		}
 		actualNormalized, ok := firstNumericAny(row, "normalized_value", "normalised_value", "current_normalized_value")
 		if !ok {
-			return nil, nil, s.eqTransactionFailure(ctx, trackID, pluginID, preimage,
+			return nil, nil, nil, s.eqTransactionFailure(ctx, trackID, pluginID, preimage,
 				fmt.Sprintf("fresh readback has no normalized value for %s", write.ParamID))
 		}
 		if math.Abs(actualNormalized-write.NormalizedValue) > 1e-4 {
-			return nil, nil, s.eqTransactionFailure(ctx, trackID, pluginID, preimage,
+			return nil, nil, nil, s.eqTransactionFailure(ctx, trackID, pluginID, preimage,
 				fmt.Sprintf("parameter %s normalized readback mismatch requested %.9f actual %.9f",
 					write.ParamID, write.NormalizedValue, actualNormalized))
 		}
 		if write.ExpectedLabel != "" && !strings.EqualFold(strings.TrimSpace(firstNonEmptyText(row, "value_text")), strings.TrimSpace(write.ExpectedLabel)) {
-			return nil, nil, s.eqTransactionFailure(ctx, trackID, pluginID, preimage,
+			return nil, nil, nil, s.eqTransactionFailure(ctx, trackID, pluginID, preimage,
 				fmt.Sprintf("parameter %s enum readback mismatch requested %s actual %s",
 					write.ParamID, write.ExpectedLabel, firstNonEmptyText(row, "value_text")))
 		}
 		if write.Role == "used" && eqActivationReadbackInactive(firstNonEmptyText(row, "value_text")) {
-			return nil, nil, s.eqTransactionFailure(ctx, trackID, pluginID, preimage,
+			return nil, nil, nil, s.eqTransactionFailure(ctx, trackID, pluginID, preimage,
 				fmt.Sprintf("parameter %s remained inactive after activation (%s)",
 					write.ParamID, firstNonEmptyText(row, "value_text")))
 		}
 		if (write.Role == "disabled" || write.Role == "removed") && !eqActivationReadbackInactive(firstNonEmptyText(row, "value_text")) {
-			return nil, nil, s.eqTransactionFailure(ctx, trackID, pluginID, preimage,
+			return nil, nil, nil, s.eqTransactionFailure(ctx, trackID, pluginID, preimage,
 				fmt.Sprintf("parameter %s remained active after %s (%s)",
 					write.ParamID, write.Role, firstNonEmptyText(row, "value_text")))
 		}
@@ -299,7 +339,7 @@ func (s *Server) executeEQTransaction(ctx context.Context, trackID, pluginID str
 		physical := eqEffectivePhysicalReadback(write, displayPhysical)
 		if write.RequestedPhysical != nil && isEQPhysicalRole(write.Role) && !write.Quantized {
 			if !physicalOK || math.Abs(physical-*write.RequestedPhysical) > eqPhysicalTolerance(write.Role, *write.RequestedPhysical) {
-				return nil, nil, s.eqTransactionFailure(ctx, trackID, pluginID, preimage,
+				return nil, nil, nil, s.eqTransactionFailure(ctx, trackID, pluginID, preimage,
 					fmt.Sprintf("parameter %s physical readback mismatch requested %g actual %s",
 						write.ParamID, *write.RequestedPhysical, firstNonEmptyText(row, "value_text")))
 			}
@@ -321,7 +361,7 @@ func (s *Server) executeEQTransaction(ctx context.Context, trackID, pluginID str
 				return nil
 			}()})
 	}
-	return executed, actual, nil
+	return executed, actual, accounting, nil
 }
 
 func unexpectedEQParameterChanges(snapshot []eqPreimageValue, writes []eqWriteStep,

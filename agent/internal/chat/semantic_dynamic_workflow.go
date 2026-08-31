@@ -842,6 +842,19 @@ func (s *Server) executeSemanticDynamicTicket(ctx context.Context, interaction P
 		controls = append(controls, row)
 	}
 	cmd := map[string]any{"track_id": ticket.TrackID, "plugin_id": ticket.PluginID, "atomic": true, "controls": controls}
+	// The settlement bracket (D2-SEMREC1) opens only for a free-state D1
+	// experiment awaiting its single forward mutation: kernel-real before
+	// revision, persisted before render, and the pre-write drift check. A
+	// bracket that cannot open fails the execution before any parameter is
+	// written; every other caller (C2 batches, capability sessions) proceeds
+	// with the historical unbracketed shape.
+	bracket, bracketErr := s.beginSemanticDynamicSettlement(ctx, interaction, ticket)
+	if bracketErr != nil {
+		return semanticDynamicExecutionFailure(interaction, ticket, "settlement_bracket_unavailable", bracketErr, nil)
+	}
+	if bracket != nil {
+		cmd["request_id"] = bracket.RequestID
+	}
 	applyResult, applyErr := s.applySemanticDynamicController(ctx, spec, cmd, interaction.RequestContext)
 	if applyErr != nil {
 		return semanticDynamicExecutionFailure(interaction, ticket, "typed_controller_failed", applyErr, applyResult)
@@ -850,6 +863,21 @@ func (s *Server) executeSemanticDynamicTicket(ctx context.Context, interaction P
 		return semanticDynamicExecutionFailure(interaction, ticket, "typed_controller_result_invalid", err, applyResult)
 	}
 	receipt := map[string]any{"schema_version": semanticDynamicReceipt, "status": "executed", "ticket_id": ticket.TicketID, "family": ticket.Family, "processor_type": ticket.ProcessorType, "track_id": ticket.TrackID, "plugin_id": ticket.PluginID, "topology_generation": ticket.TopologyGeneration, "controller_result": semanticDynamicControllerResultSummary(applyResult), "rollback": map[string]any{"status": "not_needed", "verified": true}, "post_action_verification": map[string]any{"status": "pending_model_observation", "requires_fresh_observation": true, "view_selection": "model_owned", "server_injected_view": false}}
+	if bracket != nil {
+		if settlement, ok := s.completeSemanticDynamicSettlement(ctx, bracket, ticket, applyResult); ok {
+			// receipt_id correlates the booked intervention with the journaled
+			// action (recordFreeStateExperimentAction reads it as the action id).
+			receipt["receipt_id"] = bracket.ActionID
+			for key, value := range settlement {
+				receipt[key] = value
+			}
+		} else {
+			// The mutation executed but its kernel settlement evidence could
+			// not be proven; the D1 chain must refuse downstream rather than
+			// trust an unproven revision, so no settlement fields are added.
+			receipt["settlement_verified"] = false
+		}
+	}
 	response := ChatResponse{ConversationID: interaction.ConversationID, GoalID: interaction.GoalID, RunID: interaction.RunID, Reply: "The typed semantic processor adjustment completed with readback and transaction evidence. A fresh post-action observation is required before the original goal can be marked satisfied.", Workflow: semanticDynamicWorkflow, WorkflowData: map[string]any{"schema_version": semanticDynamicSchema, "status": "executed", "planning_only": false, "mutation_authorized": true, "mutation_performed": true, "execution_receipt": receipt, "post_action_verification": receipt["post_action_verification"]}, GoalStatus: string(agentruntime.StatusCompleted), StopReason: "semantic_dynamic_execution_completed"}
 	return response
 }

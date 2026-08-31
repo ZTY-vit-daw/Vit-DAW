@@ -51,17 +51,18 @@ import (
 )
 
 type Server struct {
-	kernel                  *kernel.Client
-	auditionKernel          auditionCommandClient
-	auditionCandidateDriver auditionCandidateProjectDriver
-	eqKernelOverride        eqKernelTransport
-	shadow                  *shadow.Project
-	llm                     *llm.Client
-	logger                  *logx.Logger
-	harness                 *harness.Harness
-	artifactRoot            string
-	webUIRoot               string
-	startedAt               time.Time
+	kernel                          *kernel.Client
+	auditionKernel                  auditionCommandClient
+	auditionCandidateDriver         auditionCandidateProjectDriver
+	eqKernelOverride                eqKernelTransport
+	semanticSettlementStateOverride semanticSettlementState
+	shadow                          *shadow.Project
+	llm                             *llm.Client
+	logger                          *logx.Logger
+	harness                         *harness.Harness
+	artifactRoot                    string
+	webUIRoot                       string
+	startedAt                       time.Time
 
 	mu                                 sync.Mutex
 	conversations                      map[string][]llm.Message
