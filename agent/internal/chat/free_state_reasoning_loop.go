@@ -2465,6 +2465,38 @@ func freeStateLoopMap(loop freeStateReasoningLoop) map[string]any {
 	return out
 }
 
+// freeStateObservationWithAuthoritativeAudit reattaches the authoritative CCB
+// audit receipt from the loop's durable receipt list onto the compact
+// ledger-rebuilt latest observation, keyed by receipt_id. The rebuilt
+// observation is a compact projection whose audit keeps only identity
+// fields; boundaries that verify the model-requested view contract
+// (semanticProgressiveDisclosureRecordObservation) must see the authoritative
+// receipt. Without an id-matched authoritative receipt the observation is
+// returned unchanged and those boundaries keep failing closed exactly as
+// before — this only restores recorded fact, it never upgrades one.
+func freeStateObservationWithAuthoritativeAudit(loop freeStateReasoningLoop, observation *agentloop.RecentObservation) *agentloop.RecentObservation {
+	if observation == nil {
+		return nil
+	}
+	audit := firstMapFromAny(observation.Summary["audit_receipt"])
+	receiptID := firstStringFromMap(audit, "receipt_id")
+	if receiptID == "" || strings.TrimSpace(firstStringFromMap(audit, "requested_by")) != "" {
+		return observation
+	}
+	for _, receipt := range loop.ObservationReceipts {
+		if firstStringFromMap(receipt, "receipt_id") != receiptID {
+			continue
+		}
+		if strings.TrimSpace(firstStringFromMap(receipt, "requested_by")) == "" {
+			continue
+		}
+		restored := cloneRecentObservationForFreeState(observation)
+		restored.Summary["audit_receipt"] = cloneContext(receipt)
+		return restored
+	}
+	return observation
+}
+
 func freeStateProcessorIntentMap(decision *agentloop.FreeStateDecision) map[string]any {
 	if decision == nil || decision.SemanticProcessorIntent == nil {
 		return nil

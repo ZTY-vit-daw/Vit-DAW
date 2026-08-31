@@ -107,6 +107,15 @@ type D1S1DomainSpec struct {
 	// plan builder forwards it as target_semantics so the execution port can
 	// pick the matching conversion machine.
 	TargetSemantics string
+	// SemanticIntentFamily and SemanticIntentCoverage anchor the server-owned
+	// structured processor intent for this row: when a free-state admitted
+	// experiment of this domain drives semantic dynamic execution, the server
+	// freezes the intent axis from these fields instead of trusting the
+	// model's live axis wording (D2-SEMINT1; FAM1-S1 ruling 2 anchors
+	// de_esser on sibilance_reduction). Rows without an anchor never ride the
+	// semantic dynamic chain from this table.
+	SemanticIntentFamily   string
+	SemanticIntentCoverage []string
 }
 
 var d1s1Domains = []D1S1DomainSpec{
@@ -275,7 +284,13 @@ var d1s1Domains = []D1S1DomainSpec{
 		AdmissionValueKey:        "threshold_db",
 		AdmissionPassthroughKeys: []string{"plugin_identifier"},
 		TargetSemantics:          "delta_db",
-		AppliedReplyText:         "FAM1-S1 de-esser threshold was applied and read back. Fresh post-action evidence is recorded separately; acoustic materiality, target response, and human judgment remain pending.",
+		// The domain's certified semantic axis (FAM1-S1 ruling 2): a
+		// free-state admitted de_esser experiment rides the semantic dynamic
+		// chain on sibilance_reduction, not on the parameter-centric axis an
+		// LLM would freeze from the literal threshold parameter name.
+		SemanticIntentFamily:   "de_esser",
+		SemanticIntentCoverage: []string{"sibilance_reduction"},
+		AppliedReplyText:       "FAM1-S1 de-esser threshold was applied and read back. Fresh post-action evidence is recorded separately; acoustic materiality, target response, and human judgment remain pending.",
 	},
 }
 
@@ -320,4 +335,16 @@ func D1S1DomainSpecFor(a Admission) (D1S1DomainSpec, bool) {
 		}
 	}
 	return D1S1DomainSpec{}, false
+}
+
+// D1S1SemanticIntentSpecFor resolves the admitted domain row when that row
+// carries the server-owned structured intent anchor. The admission — which
+// passed the domain validators — is the axis authority; callers must never
+// substitute the model's live wording for the returned coverage axes.
+func D1S1SemanticIntentSpecFor(a Admission) (D1S1DomainSpec, bool) {
+	spec, found := D1S1DomainSpecFor(a)
+	if !found || strings.TrimSpace(spec.SemanticIntentFamily) == "" || len(spec.SemanticIntentCoverage) == 0 {
+		return D1S1DomainSpec{}, false
+	}
+	return spec, true
 }

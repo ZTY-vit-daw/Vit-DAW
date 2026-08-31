@@ -13,6 +13,7 @@ import (
 	"vit-daw-agent/internal/agentprotocol"
 	"vit-daw-agent/internal/config"
 	"vit-daw-agent/internal/experiment"
+	"vit-daw-agent/internal/processorintent"
 	agentruntime "vit-daw-agent/internal/runtime"
 )
 
@@ -319,11 +320,24 @@ func (s *Server) routeAcceptedImprovementProposal(ctx context.Context, interacti
 		"goal_id":                               firstNonEmpty(interaction.GoalID, loop.GoalID),
 		"run_id":                                firstNonEmpty(interaction.RunID, loop.RunID),
 	})
+	// D2-SEMINT1: an admitted experiment whose domain row carries a semantic
+	// intent anchor rides the free_state_semantic_processor_intent channel
+	// with that server-derived axis, so the dynamic execution face checks the
+	// PCA receipt against the domain's certified semantic axis. The generic
+	// dynamic path (no free-state intent) keeps its own LLM-frozen axis
+	// behavior unchanged.
+	if semanticIntent, intentErr := freeStateAdmittedSemanticProcessorIntent(loop); intentErr != nil {
+		return improvementProposalBoundaryResponse(interaction,
+			"已确认，但已准入实验的语义 intent 轴无法从域表行派生，未进入执行；没有修改工程。",
+			"improvement_proposal_semantic_intent_invalid"), true
+	} else if semanticIntent != nil {
+		requestContext["free_state_semantic_processor_intent"] = semanticIntent
+	}
 	res := agentloop.Result{
 		GoalID:            firstNonEmpty(interaction.GoalID, loop.GoalID),
 		RunID:             firstNonEmpty(interaction.RunID, loop.RunID),
 		GoalSummary:       firstNonEmpty(proposal.ImprovementIntent, loop.OriginalIntent),
-		RecentObservation: loop.LatestObservation,
+		RecentObservation: freeStateObservationWithAuthoritativeAudit(loop, loop.LatestObservation),
 	}
 	cfg, _, cfgErr := config.Load()
 	if cfgErr != nil || !cfg.Complete() {
@@ -434,6 +448,59 @@ func (s *Server) routeAcceptedImprovementProposalNativeDomain(ctx context.Contex
 		TypedEvents:         []map[string]any{agentprotocol.ToMap(agentprotocol.NewEvent(typed, typed.Source))},
 		InteractionRequests: []AgentInteractionRequest{request},
 	}, true
+}
+
+// freeStateAdmittedSemanticProcessorIntent derives the structured processor
+// intent that rides the free-state channel when an admitted bounded
+// experiment drives semantic dynamic execution (D2-SEMINT1). The admitted
+// domain row is the axis authority: family and required coverage come only
+// from the server-validated experiment admission, never from the proposal
+// text, so the execution face checks the receipt against the domain's
+// certified semantic axis instead of an accidentally LLM-frozen
+// parameter-centric one. Admissions without a semantic anchor (native
+// mix-tick domains, or no experiment) return nil and their continuation is
+// unchanged.
+func freeStateAdmittedSemanticProcessorIntent(loop freeStateReasoningLoop) (map[string]any, error) {
+	if loop.Experiment == nil {
+		return nil, nil
+	}
+	spec, ok := experiment.D1S1SemanticIntentSpecFor(loop.Experiment.Admission)
+	if !ok {
+		return nil, nil
+	}
+	refs := make([]string, 0, len(loop.Experiment.Admission.EvidenceRefs))
+	seenRef := map[string]bool{}
+	for _, ref := range loop.Experiment.Admission.EvidenceRefs {
+		ref = strings.TrimSpace(ref)
+		if ref == "" || seenRef[ref] {
+			continue
+		}
+		seenRef[ref] = true
+		refs = append(refs, ref)
+	}
+	intent := map[string]any{
+		"schema_version": processorintent.SchemaVersion,
+		"status":         processorintent.StatusResolved,
+		"family":         spec.SemanticIntentFamily,
+		"intent": fmt.Sprintf("admitted bounded experiment %s on axis %s", spec.ActionKind,
+			strings.Join(spec.SemanticIntentCoverage, "+")),
+		"required_coverage": append([]string(nil), spec.SemanticIntentCoverage...),
+		"scope":            processorintent.ScopeCurrentTrack,
+		"control_mode":     processorintent.ControlModeSemantic,
+		"confidence":       1.0,
+		"evidence_refs":    refs,
+	}
+	// Fail closed: a domain row that cannot yield a valid intent must stop
+	// this continuation instead of silently falling back to the accidental
+	// LLM-frozen parameter axis.
+	encoded, err := json.Marshal(intent)
+	if err != nil {
+		return nil, fmt.Errorf("admitted domain semantic intent is invalid: %w", err)
+	}
+	if _, err := processorintent.Decode(string(encoded)); err != nil {
+		return nil, fmt.Errorf("admitted domain semantic intent is invalid: %w", err)
+	}
+	return intent, nil
 }
 
 func improvementProposalTrackID(proposal agentprotocol.ImprovementProposal) string {
