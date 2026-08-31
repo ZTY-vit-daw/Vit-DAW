@@ -584,3 +584,17 @@ S3h8 以 102243 定案的孤儿开卡。取证把卡内死亡链精确到**确�
 真栈烟测（**全新存储 evidence 开场景**，20260830_195743→195930，exit 0）：冻结夹具 .vit_agent（evidence_off）会掩盖本路径，故以 staged 全新工程跑——`temp/evid1-fix1-fresh-store-smoke/projects/spv1_p01/`（仅 .vit，无 .vit_agent）+ 指向该工程的 manifest 副本，`run_free_state_d1_smoke.ps1 -PublicCaseId spv1_p01 -PromptFlavor frequency -SkipBuild`；二进制 mtime 核对前置（agent 19:57:01 ≥ 全部 go 源 19:55 窗，-SkipBuild 复用合法）。实测 live 工作区 manifest `degraded.evidence_off=false`、evidence 5 blob/1.6MB、durable 观察 refs 仍只含 URI（持久化红线）；账本 receipts/available_views 的 evidence_refs 实录 `[obs_…, evidence://…]`（裸 ID 首项，绑定面透出生效）；报告 status=pass，D1-S1 无 `free_state_experiment_admission_invalid`、无 loop blocked、未 NOT_EXERCISED，static_eq 提案准入并执行（before revision 12→after 13）终态等待人工判定边界（fs8）。
 
 收口：EVID1-fix1 卡 todo→done（commit `12e028d`，fix 合入不 push）；EVID1 裁定 B 落地，F10 关闭；A 式准入宽容维持观察项（模型只引 URI 的残余风险留档，另行裁定）。
+
+## 28. 2026-08-31 早批（D2-MRREG1：p01 多轮探针"回归"定性为启动器档位环境缺口——非代码回归，四嫌疑提交全部洗清）
+
+**症状与晚关口误读**：8-30 夜间闲时回归 p01 多轮探针连续两次 NOT_EXERCISED（exit 3，`20260830_204218`/`20260830_205128`），gate 据此定性"回归"并锁定 12:53 后四提交（CLEAN1-1 `70e72b1`/CLEAN1-2 `95e2835`/S2f-2 `ec5711e`/fix1 `12e028d`）为嫌疑窗口；gate 另判 20:51 为"未自选期望域"第二形态——**该判读有误**：ps1 exit-3 分支对一切形态打印同一条笼统 "did not autonomously select ..." 消息，两轮 report 的权威 `reason` 均为 "admission granted experiment_budget 1"（同形态，`selected_domains` 均含 static_eq）。
+
+**取证链（125328 vs 204218 vs 205128 admission 阶段对比）**：三轮模型行为同构——域选择均到 static_eq、提案均为 300Hz 单步 -1dB `static_eq_band_adjust`（dose bounds `source=proposal`）；唯一分叉在 `verification_plan.experiment_budget`（2 vs 1 vs 1）。budget 不是模型可影响量：D2-2 档位 env 单源 `VIT_FREE_STATE_D2_MULTI_ROUND_BUDGET`（`agentloop/free_state_d2_multiround.go`，封存 2..4，缺失/畸形 fail-closed 回落 1，模型不可升档，D2-2 勘察文档 §准入档位接线）。125328 agent 日志第 153 行有 "D2-2 multi-round admission tier budget=2 source=VIT_FREE_STATE_D2_MULTI_ROUND_BUDGET"；204218/205128 **无此行**——档位从未启用，admission 只能照模型单步提案发 budget=1。全仓 grep 证实除 Go 常量与 D2-2 勘察文档外无任何脚本/runbook 管理该变量：12:53 通过是会话手工注入，闲时通道裸调 ps1 必然确定性复现。三嫌疑就此洗清：①证据面漂移（fix1 refs 形态）——budget 为服务端 env 单点控制，与模型可见引用面无关；②夹具 journal 累积——夹具 `projects/spv1_p01/.vit_agent` 各 journal 最后写入停在 8-30 13:26，三轮失败 run 走 per-run workdir 未触碰夹具存储（S2f-2a 透明链纪律生效）；③CLEAN1-2 RunID 门控——失败死在准入 tier，多轮驱动链未参与。
+
+**修复（启动器拥有档位注入）**：`run_free_state_d1_smoke.ps1` 三处——①新参 `-MultiRoundBudget`（默认 2，`ValidateRange(2,4)`）：`-MultiRoundProbe` 时无 env 则注入本进程（子链继承）、有 env 须与参数一致否则硬错（拒绝静默覆盖）、畸形/越界 env 硬错；②非 probe 运行发现有效档位 env（2..4）硬错（否则单轮尾 py `experiment_budget must equal one` 断言确定性失败）、无效值仅告警；③exit 3 消息改为打印 report 真实 `reason`（修掉误导 gate 的笼统措辞，读取失败回退原文案）。负例三连实测（全部构建前秒级失败）：`-MultiRoundBudget 5` 被 ValidateRange 拒；env=3 vs 参数 2 冲突拒；非 probe + env=2 污染拒。
+
+**判别+验收二合一重跑（`20260831_085320`，含构建，当前 HEAD 含全部四嫌疑提交）**：单变量 = 档位 env 注入 → **MULTI_ROUND_PROBE PASS，exit 0**（budget=2、rounds_used=2、pending_boundary_round=1、action_domain=static_eq、finished 09:01；tier 注入行见该 run agent 日志 :167）——环境缺口定案与修复生效一次证明。
+
+**p01 默认路径回归（`20260831_090227`，-SkipBuild）**：**pass exit 0**（selected_domains static_eq+track_gain，finished 09:06）——单轮路径零劣化。mtime 纪律注记：agent 二进制 08:53:25 为 HEAD 构建；go 源新于二进制的两条（d1s1_domains.go/whitelist.go）是 FAM1-S1 并行会话在途接线、smoke.py 的 ADMITTED_DOMAIN_KINDS 镜像行同理——均为 flash 线未提交改动，刻意不入本验证面。
+
+收口：MRREG1 卡 doing→done；fix 合入 `fix(d2-mrreg1):`，不 push。观察项修正：晚 gate "两种形态"与"四提交回归窗口"两项判读作废；"夹具 journal 跨 run 累积"维持 S3h8 已知机制留档（本案实证 8-30 晚间各 run 未污染夹具存储）。

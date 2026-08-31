@@ -24,7 +24,15 @@ param(
     # waits on the D2-2-S2 parameter-injection channel; until it merges an
     # open-prompt run usually reports NOT_EXERCISED (exit 3), which is a
     # recorded acceptable outcome, not something to paper over.
-    [switch]$MultiRoundProbe
+    [switch]$MultiRoundProbe,
+    # MRREG1 (2026-08-31): the D2-2 admission tier is env-sourced
+    # (VIT_FREE_STATE_D2_MULTI_ROUND_BUDGET, sealed 2..4; missing or malformed
+    # fails closed to 1 and the model cannot upgrade it), so a -MultiRoundProbe
+    # run without an in-range tier can never exercise multi-round continuation.
+    # The launcher owns the injection: default 2, and a conflicting caller env
+    # is a hard error instead of a silent override.
+    [ValidateRange(2, 4)]
+    [int]$MultiRoundBudget = 2
 )
 
 Set-StrictMode -Version Latest
@@ -39,6 +47,28 @@ if (($PublicManifest -split '[\\/]') -contains 'sealed') {
 }
 if ($MultiRoundProbe -and ($AdmissionOnly -or $SettlementProbe -ne "")) {
     throw "-MultiRoundProbe owns the run tail and cannot be combined with -AdmissionOnly or -SettlementProbe"
+}
+$multiroundTierEnv = [string]$env:VIT_FREE_STATE_D2_MULTI_ROUND_BUDGET
+if ($MultiRoundProbe) {
+    if (-not [string]::IsNullOrWhiteSpace($multiroundTierEnv)) {
+        $callerTier = 0
+        if (-not [int32]::TryParse($multiroundTierEnv.Trim(), [ref]$callerTier) -or $callerTier -lt 2 -or $callerTier -gt 4) {
+            throw ("VIT_FREE_STATE_D2_MULTI_ROUND_BUDGET='" + $multiroundTierEnv + "' is malformed or outside the sealed 2..4 tier range; the agent would fail closed to a single-round tier and the multi-round probe could never pass. Unset it or pass -MultiRoundBudget within 2..4.")
+        }
+        if ($callerTier -ne $MultiRoundBudget) {
+            throw ("caller env VIT_FREE_STATE_D2_MULTI_ROUND_BUDGET=" + $callerTier + " conflicts with -MultiRoundBudget " + $MultiRoundBudget + "; align them instead of relying on a silent override")
+        }
+    }
+    else {
+        $env:VIT_FREE_STATE_D2_MULTI_ROUND_BUDGET = [string]$MultiRoundBudget
+    }
+}
+elseif (-not [string]::IsNullOrWhiteSpace($multiroundTierEnv)) {
+    $callerTier = 0
+    if ([int32]::TryParse($multiroundTierEnv.Trim(), [ref]$callerTier) -and $callerTier -ge 2 -and $callerTier -le 4) {
+        throw ("VIT_FREE_STATE_D2_MULTI_ROUND_BUDGET=" + $callerTier + " would raise every admission to a multi-round tier and deterministically break the single-round D1 tail (experiment_budget must equal one); unset it for non-probe runs")
+    }
+    Write-Warning ("ignoring VIT_FREE_STATE_D2_MULTI_ROUND_BUDGET='" + $multiroundTierEnv + "': not an in-range tier, the agent fails closed to single-round anyway")
 }
 
 $stamp = Get-Date -Format "yyyyMMdd_HHmmss"
@@ -154,7 +184,19 @@ finally {
     }
 }
 if ($runnerExit -eq 3) {
-    Write-Host ("D1-S1 NOT_EXERCISED: " + $PublicCaseId + " did not autonomously select the expected admitted domain (expect=" + $ExpectDomain + "); report=" + $report) -ForegroundColor Yellow
+    # MRREG1 (2026-08-31): print the report's own NOT_EXERCISED reason; the old
+    # fixed "did not autonomously select ..." wording misdescribed the
+    # multi-round budget form and misled the 2026-08-30 nightly triage.
+    $notExercisedReason = ""
+    try {
+        $notExercisedReason = [string]((Get-Content -LiteralPath $report -Raw) | ConvertFrom-Json).reason
+    }
+    catch {
+    }
+    if ([string]::IsNullOrWhiteSpace($notExercisedReason)) {
+        $notExercisedReason = ($PublicCaseId + " did not autonomously select the expected admitted domain (expect=" + $ExpectDomain + ")")
+    }
+    Write-Host ("D1-S1 NOT_EXERCISED: " + $notExercisedReason + "; report=" + $report) -ForegroundColor Yellow
     exit 3
 }
 if ($runnerExit -ne 0) {
