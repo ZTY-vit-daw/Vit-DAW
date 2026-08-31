@@ -41,6 +41,7 @@
 #include "../Core/VitZoneBufferAdapter.h"
 
 #include <cmath>
+#include <cstring>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
@@ -3150,6 +3151,91 @@ juce::String CommandDispatcher::handleRedo (const juce::DynamicObject&, const ju
     return makeStatusReply ("ok", "Redo executed");
 }
 
+// D2-KREV1 (2026-08-31): external-plugin parameter state is invisible to the
+// VSP revision counter. For rack-contained plugins the whole plugin state
+// (including the serialized VST3 chunk) lives in the edit-level RACKS subtree,
+// outside every track ValueTree that track_state_revision hashes; for
+// direct-slot plugins only the chunk carries the values
+// (saveChangedParametersToState writes automation deviations only). The
+// digest below hashes the live normalized parameter values of the external
+// plugins the track owns (direct slots plus one rack level, mirroring the
+// compressor probe scope in TransportAudioService), sorted by
+// (plugin id, param id) so enumeration order cannot drift.
+static juce::uint32 krev1NormalisedValueBits (float value)
+{
+    static_assert (sizeof (juce::uint32) == sizeof (float), "unexpected float width");
+    juce::uint32 bits = 0;
+    std::memcpy (&bits, &value, sizeof (bits));
+    return bits;
+}
+
+namespace
+{
+struct Krev1ParamEntry
+{
+    juce::String pluginId;
+    juce::String paramId;
+    juce::uint32 valueBits { 0 };
+};
+
+struct Krev1ParamEntryComparator
+{
+    static int compareElements (const Krev1ParamEntry& first, const Krev1ParamEntry& second)
+    {
+        const auto byPlugin = first.pluginId.compare (second.pluginId);
+        if (byPlugin != 0)
+            return byPlugin;
+        return first.paramId.compare (second.paramId);
+    }
+};
+} // namespace
+
+static juce::String externalPluginParamDigestForTrack (te::Track& track)
+{
+    juce::Array<Krev1ParamEntry> entries;
+
+    const auto collectExternalPlugin = [&entries] (te::ExternalPlugin& plugin)
+    {
+        const auto pluginId = plugin.itemID.toString();
+        for (auto* param : plugin.getAutomatableParameters())
+        {
+            if (param != nullptr)
+                entries.add ({ pluginId, param->paramID, krev1NormalisedValueBits (param->getCurrentNormalisedValue()) });
+        }
+    };
+
+    for (auto* slot : track.pluginList.getPlugins())
+    {
+        if (slot == nullptr)
+            continue;
+
+        if (auto* rack = dynamic_cast<te::RackInstance*> (slot))
+        {
+            if (rack->type != nullptr)
+                for (auto* inner : rack->type->getPlugins())
+                    if (auto* external = dynamic_cast<te::ExternalPlugin*> (inner))
+                        collectExternalPlugin (*external);
+        }
+        else if (auto* external = dynamic_cast<te::ExternalPlugin*> (slot))
+        {
+            collectExternalPlugin (*external);
+        }
+    }
+
+    if (entries.isEmpty())
+        return "krev1_no_external_plugins";
+
+    Krev1ParamEntryComparator comparator;
+    entries.sort (comparator);
+
+    juce::String identity;
+    for (const auto& entry : entries)
+        identity << entry.pluginId << "|" << entry.paramId << "|"
+                 << juce::String::toHexString (static_cast<int> (entry.valueBits)) << ";";
+
+    return juce::String::toHexString (static_cast<juce::int64> (identity.hashCode64()));
+}
+
 juce::String CommandDispatcher::handleGetProjectState (const juce::DynamicObject& object, const juce::String&) const
 {
     auto* edit = getEdit != nullptr ? getEdit() : nullptr;
@@ -3188,6 +3274,7 @@ juce::String CommandDispatcher::handleGetProjectState (const juce::DynamicObject
         auto row = std::make_unique<juce::DynamicObject>();
         row->setProperty ("track_id", track->itemID.toString());
         row->setProperty ("track_state_revision", TransportAudioService::stateRevisionForValueTree (track->state));
+        row->setProperty ("plugin_param_digest", externalPluginParamDigestForTrack (*track));
         row->setProperty ("track_name", track->getName());
         row->setProperty ("track_type", getTrackKind (*track));
         row->setProperty ("is_audio_track", track->isAudioTrack());

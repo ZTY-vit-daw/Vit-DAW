@@ -652,6 +652,11 @@ juce::Array<juce::var> normaliseTrackArray (const juce::var& tracksVar, bool use
         copyPropertyIfPresent (*track, *row, "pan");
         copyPropertyIfPresent (*track, *row, "pan_value");
         copyPropertyIfPresent (*track, *row, "track_state_revision");
+        // D2-KREV1 (2026-08-31): live external-plugin parameter digest; the
+        // compact-snapshot hash folds it in so rack-contained plugin writes
+        // (edit-level RACKS state) advance the revision like direct-slot
+        // writes already do.
+        copyPropertyIfPresent (*track, *row, "plugin_param_digest");
 
         const auto rack = normaliseRackState (track->getProperty ("rack"));
         if (rack.getDynamicObject() != nullptr)
