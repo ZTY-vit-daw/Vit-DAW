@@ -234,6 +234,49 @@ var d1s1Domains = []D1S1DomainSpec{
 		TargetSemantics:          "delta_db",
 		AppliedReplyText:         "D2-1.5 broadband compression threshold was applied and read back. Fresh post-action evidence is recorded separately; acoustic materiality, target response, and human judgment remain pending.",
 	},
+	{
+		// de_esser_adjusts one de-esser instance's threshold by one bounded
+		// move. FAM1-S1 admits it with the same single-mutation tightness as
+		// the other PluginBound rows. Unlike the PA compression carriers, the
+		// whitelisted de-esser (FabFilter Pro-DS, pluginprobe 2026-08-31)
+		// exposes ONE shared automatable threshold parameter (id "1", stereo
+		// in/out) rather than a ch A/B pair, so the write is single-channel.
+		// Acoustic observation binds the DOM frequency-time events view, whose
+		// sibilance events carry the contrast the domain acts on. There is no
+		// stub form: production resolves the machine-local whitelist first and
+		// hard-fails without it.
+		ActionDomain:        agentprotocol.ImprovementActionDomainDeEsser,
+		ActionKind:          "de_esser_threshold_adjust",
+		PromptParameterHint: `parameter_bounds={"threshold_db":<nonzero number within +/-2>}`,
+		ValidateDoseBounds: func(scope string, bounds map[string]any) error {
+			threshold, ok := mapNumber(bounds, "threshold_db")
+			if !ok || threshold == 0 || math.Abs(threshold) > 2 {
+				return fmt.Errorf("D1-S1 %s threshold_db must be non-zero and within +/-2 dB", scope)
+			}
+			return nil
+		},
+		ActionIDSuffix:            "_deess",
+		CapabilityID:              "static_mix.de_ess.v0",
+		ContractVersions:          []string{"free_state:d1_s1", "action:de_esser_threshold_adjust"},
+		TargetFingerprintTemplate: "track:{track}:deess:{param}:pending",
+		BeforeFingerprintTemplate: "track:{track}:deess:{param}:pending",
+		ObservationViewIDs:        []string{"track.frequency_time_events"},
+		Journal: D1S1JournalShape{
+			Summary:      "FAM1-S1 bounded de-esser threshold adjustment",
+			Tool:         "set_plugin_param",
+			CommandLabel: "set_plugin_param",
+			Fields: []D1S1JournalField{
+				{Arg: "plugin_id", ArgFallback: "plugin_identifier", CommandKey: "plugin_id"},
+				{Arg: "param_id", CommandKey: "param_id"},
+				{Arg: "target_value", CommandKey: "value"},
+			},
+		},
+		WriteBinding:             D1S1WriteBinding{PluginBound: true, Channels: 1},
+		AdmissionValueKey:        "threshold_db",
+		AdmissionPassthroughKeys: []string{"plugin_identifier"},
+		TargetSemantics:          "delta_db",
+		AppliedReplyText:         "FAM1-S1 de-esser threshold was applied and read back. Fresh post-action evidence is recorded separately; acoustic materiality, target response, and human judgment remain pending.",
+	},
 }
 
 // D1S1AdmittedDomains lists the action domains admitted by the bounded

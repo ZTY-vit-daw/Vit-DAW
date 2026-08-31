@@ -96,8 +96,13 @@ func (p *StaticEQVSPPort) Preflight(ctx context.Context, actionSet orchestration
 			return fmt.Errorf("action %s requires param_id", action.ID)
 		}
 		if actionArgText(action, "write_mode") == WriteModeNormalizedBatchV1 {
-			if actionArgText(action, "plugin_path") == "" || actionArgText(action, "param_id_ch2") == "" {
-				return fmt.Errorf("normalized batch action %s requires plugin_path and param_id_ch2", action.ID)
+			// plugin_path is the load-bearing requirement (the kernel loads by
+			// path on this route). param_id_ch2 is optional: a single shared
+			// parameter (FAM1-S1 de_esser, FabFilter Pro-DS) is a legal shape
+			// and writes a one-entry batch under the same single revision
+			// advance (GLM ruling on D2-FAM1-S1 ③).
+			if actionArgText(action, "plugin_path") == "" {
+				return fmt.Errorf("normalized batch action %s requires plugin_path", action.ID)
 			}
 		} else if actionArgText(action, "plugin_id") == "" && actionArgText(action, "plugin_identifier") == "" {
 			return fmt.Errorf("action %s requires plugin_id or plugin_identifier", action.ID)
@@ -195,19 +200,29 @@ func (p *StaticEQVSPPort) Apply(ctx context.Context, action orchestration.Action
 	var deltaRefinement []map[string]any
 	if writeMode == WriteModeNormalizedBatchV1 {
 		paramIDCh2 = actionArgText(action, "param_id_ch2")
+		// The call site filters the channel ids: eqPlanGainChannels hard-errors
+		// on an empty id, so a single-channel action plans its one channel by
+		// not passing the empty ch2 variadic at all (GLM ruling on D2-FAM1-S1
+		// ③, correction a). The delta machine skips empties internally, but
+		// planning both branches through the same filtered list keeps their
+		// single-channel behavior identical.
+		channelIDs := []string{paramID}
+		if strings.TrimSpace(paramIDCh2) != "" {
+			channelIDs = append(channelIDs, paramIDCh2)
+		}
 		surface, surfaceErr := p.eqParameterSurface(ctx, action.TargetRef, pluginID)
 		if surfaceErr != nil {
 			return orchestration.ActionReceipt{ActionID: action.ID, Status: "failed", Error: surfaceErr.Error()}, fmt.Errorf("VSP plugin parameter mutation failed: %s", surfaceErr)
 		}
 		if strings.EqualFold(actionArgText(action, "target_semantics"), deltaSemantics) {
-			channels, plan, deltaErr := p.planDeltaChannels(ctx, action.TargetRef, pluginID, requestID, txID, surface, target, paramID, paramIDCh2)
+			channels, plan, deltaErr := p.planDeltaChannels(ctx, action.TargetRef, pluginID, requestID, txID, surface, target, channelIDs...)
 			if deltaErr != nil {
 				return orchestration.ActionReceipt{ActionID: action.ID, Status: "failed", Error: deltaErr.Error()}, fmt.Errorf("VSP plugin parameter mutation failed: %s", deltaErr)
 			}
 			requestedChannels = channels
 			deltaPlan = plan
 		} else {
-			channels, _, planErr := eqPlanGainChannels(surface, target, paramID, paramIDCh2)
+			channels, _, planErr := eqPlanGainChannels(surface, target, channelIDs...)
 			if planErr != nil {
 				return orchestration.ActionReceipt{ActionID: action.ID, Status: "failed", Error: planErr.Error()}, fmt.Errorf("VSP plugin parameter mutation failed: %s", planErr)
 			}

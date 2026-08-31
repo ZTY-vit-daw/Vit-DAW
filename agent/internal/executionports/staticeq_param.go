@@ -15,11 +15,13 @@ import (
 
 // WriteModeNormalizedBatchV1 selects the real-plugin EQ write pipeline on a
 // static_eq action: parameter ids come from the machine-local experiment
-// whitelist (one band, ch1+ch2), the port instantiates by plugin_path with an
-// empty identifier, writes one kernel-normalized batch for both channels
-// under one idempotency key (single revision advance), and verifies through
-// the normalized readback plus the value_text physical parse. Legacy actions
-// without this arg keep the historical single-parameter raw-value pipeline.
+// whitelist (one band, ch1+ch2 for dual-channel carriers; one shared
+// parameter for single-channel ones like the FAM1-S1 de_esser), the port
+// instantiates by plugin_path with an empty identifier, writes one
+// kernel-normalized batch for the resolved channels under one idempotency
+// key (single revision advance), and verifies through the normalized readback
+// plus the value_text physical parse. Legacy actions without this arg keep
+// the historical single-parameter raw-value pipeline.
 const WriteModeNormalizedBatchV1 = "normalized_batch_v1"
 
 // EqNormalizedTolerance mirrors the mature chat EQ transaction tolerance: the

@@ -31,6 +31,11 @@ const d1StaticEQKind = "static_eq_band_adjust"
 const d1BroadbandCompressionDomain = "broadband_compression"
 const d1BroadbandCompressionKind = "broadband_threshold_adjust"
 
+// FAM1-S1 de_esser mirrors the experiment table row as a routing label; the
+// table remains the bounds authority.
+const d1DeEsserDomain = "de_esser"
+const d1DeEsserKind = "de_esser_threshold_adjust"
+
 // d1StaticEQCapabilityID identifies the bounded static EQ band adjustment in
 // the frozen ActionSet/Proposal. The D1 execution path routes by the explicit
 // mutation port (StaticEQVSPPort), so no capability registry registration is

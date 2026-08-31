@@ -1,10 +1,12 @@
 // Package experimentplugins loads the machine-local experiment plugin
 // whitelist used by the D1/D2 free-state experiment channel and validates its
-// PCA v1 admission. It only loads and validates; wiring into plan/ports/
-// smoke tests belongs to the evening S1 slice.
+// PCA admission. It only loads and validates; wiring into plan/ports/smoke
+// tests belongs to the executing slice.
 //
 // Schema v2 adds the broadband_compression section beside static_eq; every
 // static_eq loading/validation behavior is byte-identical to the v1 loader.
+// Schema v3 adds the de_esser section (FAM1-S1): one shared threshold
+// parameter instead of the PA-style ch pair, per the 2026-08-31 pluginprobe.
 package experimentplugins
 
 import (
@@ -20,7 +22,7 @@ import (
 	"vit-daw-agent/internal/processorattestation"
 )
 
-const SchemaVersion = "vit.free_state_experiment_plugins.v2"
+const SchemaVersion = "vit.free_state_experiment_plugins.v3"
 
 const freeStateExperimentPluginsFileName = "free_state_experiment_plugins.json"
 
@@ -54,15 +56,30 @@ type BroadbandCompressionPlugin struct {
 	ThresholdParamIDCH2 string `json:"threshold_param_id_ch2"`
 }
 
+// DeEsserPlugin 是 de_esser 域的白名单插件：单个共享 threshold 参数（FabFilter
+// Pro-DS 2026-08-31 pluginprobe 实测：立体声 in/out 拓扑下 threshold 为全表面
+// 唯一一个共享参数，非 ch 对），一次动作单批单通道写。
+type DeEsserPlugin struct {
+	PluginName       string `json:"plugin_name"`
+	Manufacturer     string `json:"manufacturer"`
+	Format           string `json:"format"`
+	PluginIdentifier string `json:"plugin_identifier"`
+	PluginPath       string `json:"plugin_path"`
+	ThresholdParamID string `json:"threshold_param_id"`
+}
+
 type Whitelist struct {
 	SchemaVersion        string                      `json:"schema_version"`
 	StaticEQ             *StaticEQPlugin             `json:"static_eq,omitempty"`
 	BroadbandCompression *BroadbandCompressionPlugin `json:"broadband_compression,omitempty"`
+	DeEsser              *DeEsserPlugin              `json:"de_esser,omitempty"`
 }
 
 var ErrNotConfigured = errors.New("experiment plugin whitelist: static_eq plugin is not configured")
 
 var ErrCompressionNotConfigured = errors.New("experiment plugin whitelist: broadband_compression plugin is not configured")
+
+var ErrDeEsserNotConfigured = errors.New("experiment plugin whitelist: de_esser plugin is not configured")
 
 func DefaultPath() (string, error) {
 	home, err := os.UserHomeDir()
@@ -99,6 +116,11 @@ func Load(path string) (Whitelist, error) {
 	}
 	if whitelist.BroadbandCompression != nil {
 		if err := validateBroadbandCompressionPlugin(*whitelist.BroadbandCompression); err != nil {
+			return Whitelist{}, fmt.Errorf("experiment plugin whitelist: invalid %s: %w", path, err)
+		}
+	}
+	if whitelist.DeEsser != nil {
+		if err := validateDeEsserPlugin(*whitelist.DeEsser); err != nil {
 			return Whitelist{}, fmt.Errorf("experiment plugin whitelist: invalid %s: %w", path, err)
 		}
 	}
@@ -195,6 +217,22 @@ func (w Whitelist) ValidateCompressionAdmission(lib processorattestation.Library
 	)
 }
 
+// ValidateDeEsserAdmission mirrors ValidateCompressionAdmission for the
+// de_esser whitelist section. de_esser is a PCA v2 family, so per the GLM
+// ruling on D2-FAM1-S1 (Form A dispatch) this predicate takes the v2
+// attestation library; the subject construction and boundary wording stay
+// identical to the v1 sections.
+func (w Whitelist) ValidateDeEsserAdmission(lib processorattestation.LibraryV2) error {
+	if w.DeEsser == nil {
+		return ErrDeEsserNotConfigured
+	}
+	return w.validateSectionAdmissionV2(
+		"de_esser",
+		w.DeEsser.PluginName, w.DeEsser.Manufacturer, w.DeEsser.Format, w.DeEsser.PluginIdentifier, w.DeEsser.PluginPath,
+		processorattestation.FamilyDeEsser, lib,
+	)
+}
+
 // validateSectionAdmission is the shared admission predicate core for both
 // whitelist sections. The label appears verbatim in the returned boundary
 // prefix so each domain stays distinguishable upstream.
@@ -224,6 +262,37 @@ func (w Whitelist) validateSectionAdmission(label, pluginName, manufacturer, for
 	return nil
 }
 
+// validateSectionAdmissionV2 is the v2-generation twin of
+// validateSectionAdmission: identical boundary wording and identical subject
+// and fingerprint construction, differing only in the attestation library
+// generation it queries (GLM ruling on D2-FAM1-S1: Form A dispatch keeps the
+// predicates generation-typed and the callers store-choosing).
+func (w Whitelist) validateSectionAdmissionV2(label, pluginName, manufacturer, formatV, identifier, pluginPath string, family string, lib processorattestation.LibraryV2) error {
+	subject := processorattestation.Subject{
+		Name:          pluginName,
+		Manufacturer:  manufacturer,
+		Format:        formatV,
+		Identifier:    identifier,
+		InstalledPath: pluginPath,
+	}
+	key, err := processorattestation.BuildSubjectKey(subject)
+	if err != nil {
+		return fmt.Errorf("experiment plugin whitelist: %s plugin %q: %w", label, pluginName, err)
+	}
+	fingerprint, err := processorattestation.FingerprintPath(pluginPath)
+	if err != nil {
+		return fmt.Errorf("experiment plugin whitelist: %s plugin %q: %w", label, pluginName, err)
+	}
+	result, err := processorattestation.QueryLibraryAdmissionV2(lib, key, fingerprint, family)
+	if err != nil {
+		return fmt.Errorf("experiment plugin whitelist: %s plugin %q: %w", label, pluginName, err)
+	}
+	if !result.Eligible {
+		return fmt.Errorf("experiment plugin whitelist: %s plugin is not PCA-promoted: plugin %q reason %q", label, pluginName, result.Reason)
+	}
+	return nil
+}
+
 func validateBroadbandCompressionPlugin(plugin BroadbandCompressionPlugin) error {
 	for _, missing := range []struct{ field, value string }{
 		{"plugin_name", plugin.PluginName},
@@ -240,6 +309,22 @@ func validateBroadbandCompressionPlugin(plugin BroadbandCompressionPlugin) error
 	}
 	if plugin.ThresholdParamIDCH1 == plugin.ThresholdParamIDCH2 {
 		return fmt.Errorf("broadband_compression threshold_param_id_ch1 must differ from threshold_param_id_ch2")
+	}
+	return nil
+}
+
+func validateDeEsserPlugin(plugin DeEsserPlugin) error {
+	for _, missing := range []struct{ field, value string }{
+		{"plugin_name", plugin.PluginName},
+		{"manufacturer", plugin.Manufacturer},
+		{"format", plugin.Format},
+		{"plugin_identifier", plugin.PluginIdentifier},
+		{"plugin_path", plugin.PluginPath},
+		{"threshold_param_id", plugin.ThresholdParamID},
+	} {
+		if missing.value == "" {
+			return fmt.Errorf("de_esser %s must be non-empty", missing.field)
+		}
 	}
 	return nil
 }

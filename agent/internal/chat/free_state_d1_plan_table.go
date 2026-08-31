@@ -28,11 +28,13 @@ type d1StaticEQWhitelistBinding struct {
 	FrequencyHz float64
 }
 
-// d1PluginParamWhitelistBinding is the normalized single-parameter-pair write
+// d1PluginParamWhitelistBinding is the normalized plugin-parameter write
 // resolution shared by every PluginBound domain: which whitelisted plugin file
-// to instantiate and which ch1/ch2 parameter ids to write under one
-// idempotency key. static_eq resolutions are mapped into this shape after the
-// legacy band resolver ran; broadband_compression resolves directly.
+// to instantiate and which parameter ids to write under one idempotency key —
+// a ch1/ch2 pair for dual-channel carriers, a single shared parameter id for
+// single-channel ones (empty ParamIDCH2, FAM1-S1 de_esser). static_eq
+// resolutions are mapped into this shape after the legacy band resolver ran;
+// broadband_compression and de_esser resolve directly.
 type d1PluginParamWhitelistBinding struct {
 	Section     string  // whitelist section label, e.g. "static_eq"
 	PluginName  string  `json:"-"`
@@ -51,6 +53,9 @@ type d1PluginParamWhitelistBinding struct {
 func resolveD1PluginParamWhitelistBinding(typedAction map[string]any) (*d1PluginParamWhitelistBinding, error) {
 	if domainLabel(typedAction) == d1BroadbandCompressionDomain {
 		return resolveD1BroadbandCompressionWhitelistBinding(typedAction)
+	}
+	if domainLabel(typedAction) == d1DeEsserDomain {
+		return resolveD1DeEsserWhitelistBinding(typedAction)
 	}
 	binding, err := resolveD1StaticEQWhitelistBinding(typedAction)
 	if err != nil {
@@ -107,6 +112,44 @@ func domainLabel(typedAction map[string]any) string {
 	return strings.ToLower(strings.TrimSpace(firstNonEmpty(firstStringFromMap(typedAction, "action_domain", "domain"), "")))
 }
 
+// resolveD1DeEsserWhitelistBinding mirrors the broadband_compression gate for
+// the de_esser whitelist section with its own label so upstream can tell the
+// domains apart. The whitelisted de-esser carries ONE shared threshold
+// parameter (Pro-DS probe 2026-08-31), so the binding resolves a single
+// channel; admission runs against the PCA v2 library (de_esser is a v2
+// family, GLM ruling on D2-FAM1-S1: Form A dispatch).
+func resolveD1DeEsserWhitelistBinding(typedAction map[string]any) (*d1PluginParamWhitelistBinding, error) {
+	const label = d1DeEsserDomain
+	whitelist, err := d1StaticEQWhitelistLoader()
+	if err != nil {
+		if errors.Is(err, experimentplugins.ErrNotConfigured) || errors.Is(err, experimentplugins.ErrDeEsserNotConfigured) {
+			return nil, fmt.Errorf("%s experiment is not configured: %w", label, experimentplugins.ErrDeEsserNotConfigured)
+		}
+		return nil, fmt.Errorf("%s experiment whitelist is invalid: %w", label, err)
+	}
+	deEsser := whitelist.DeEsser
+	if deEsser == nil {
+		return nil, fmt.Errorf("%s experiment is not configured: %w", label, experimentplugins.ErrDeEsserNotConfigured)
+	}
+	pinned := firstStringFromMap(typedAction, "plugin_identifier")
+	if pinned != "" && !strings.EqualFold(pinned, deEsser.PluginIdentifier) {
+		return nil, fmt.Errorf("%s admission pinned plugin_identifier %q but the experiment plugin whitelist admits %q", label, pinned, deEsser.PluginIdentifier)
+	}
+	library, err := d1DeEsserAttestationReader()
+	if err != nil {
+		return nil, fmt.Errorf("%s experiment could not evaluate its PCA admission: %w", label, err)
+	}
+	if err := whitelist.ValidateDeEsserAdmission(library); err != nil {
+		return nil, fmt.Errorf("%s experiment was refused by the PCA admission check: %w", label, err)
+	}
+	return &d1PluginParamWhitelistBinding{
+		Section:    label,
+		PluginName: deEsser.PluginName,
+		PluginPath: deEsser.PluginPath,
+		ParamID:    deEsser.ThresholdParamID,
+	}, nil
+}
+
 // d1StaticEQWhitelistLoader loads the experiment plugin whitelist. Package
 // variables so tests inject t.TempDir fixtures instead of the developer
 // machine's real ~/.vit state.
@@ -129,6 +172,22 @@ var d1StaticEQAttestationReader = func() (processorattestation.Library, error) {
 	library, report, err := store.Read()
 	if err != nil {
 		return processorattestation.Library{}, fmt.Errorf("processor attestation store is unreadable at %s: %w", report.Path, err)
+	}
+	return library, nil
+}
+
+// d1DeEsserAttestationReader is the v2-generation companion of
+// d1StaticEQAttestationReader: de_esser attestations live in the PCA v2
+// store. A missing store decodes to an empty library, which makes every
+// admission query answer not-promoted.
+var d1DeEsserAttestationReader = func() (processorattestation.LibraryV2, error) {
+	store, err := processorattestation.NewStoreV2("")
+	if err != nil {
+		return processorattestation.LibraryV2{}, err
+	}
+	library, report, err := store.Read()
+	if err != nil {
+		return processorattestation.LibraryV2{}, fmt.Errorf("processor attestation v2 store is unreadable at %s: %w", report.Path, err)
 	}
 	return library, nil
 }
@@ -364,8 +423,13 @@ func pluginParamWriteArgs(typedAction map[string]any, spec experiment.D1S1Domain
 		"plugin_path":  writeBinding.PluginPath,
 		"plugin_name":  writeBinding.PluginName,
 		"param_id":     paramID,
-		"param_id_ch2": writeBinding.ParamIDCH2,
 		"target_value": valueDB,
+	}
+	// Single-channel domains (FAM1-S1 de_esser) carry no ch2: the action args
+	// omit the key entirely (GLM ruling on D2-FAM1-S1 ③, correction b); the
+	// execution port records the empty second channel in its receipt details.
+	if writeBinding.ParamIDCH2 != "" {
+		args["param_id_ch2"] = writeBinding.ParamIDCH2
 	}
 	if writeBinding.Section == d1StaticEQDomain && writeBinding.FrequencyHz > 0 {
 		args["frequency_hz"] = writeBinding.FrequencyHz
