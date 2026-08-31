@@ -32,6 +32,11 @@ PROMPT_FLAVORS = {
     "frequency": "人声在 200-400Hz 听起来浑浊（boxy），但各轨电平平衡已经合适，不要用整体增益来解决。请先观察工程，再针对这个频段给一个有界的小步改进建议。",
     "compression": "整轨动态听起来被压得过平（over-compressed），但各轨电平平衡已经合适，不要用整体增益或 EQ 来解决。请先观察工程，再针对这个动态问题给一个有界的小步改进建议。",
     "leveling": "有几轨的动态起伏偏大、峰值偶尔跳出来，但各轨电平平衡已经合适，不要用整体增益或 EQ 来解决。请先观察工程，再针对这个动态问题给一个有界的小步改进建议。",
+    # FAM1-S1 GLM 裁定②：Pro-DS threshold 新实例默认居中（normalized 0.4），
+    # 双向物理可达，前提只描述问题（咝声/齿音突出）不指定参数方向；
+    # 四要素结构与 frequency/compression/leveling 同构（前提/禁手段/先观察/有界小步），
+    # case-agnostic，不编码 sealed 真值。
+    "sibilance": "人声的高频咝声（齿音）有些刺耳、比较突出，但各轨电平平衡已经合适，不要用整体增益或 EQ 来解决。请先观察工程，再针对这个齿音问题给一个有界的小步改进建议。",
 }
 # The D2-1 domain table mirrored for runner-side gating. Admission itself is
 # always decided by the agent's experiment domain table, never here.
@@ -207,6 +212,7 @@ def qualify_material(case: dict[str, Any]) -> dict[str, Any]:
             "public material failed the compression-fixture qualification gates: "
             + json.dumps({"weak_rms_tracks": weak_rms, "weak_crest_tracks": weak_crest, "best_crest_db": best_crest_db}, ensure_ascii=False)
         )
+    sibilance = qualify_sibilance_material(case)
     return {
         "schema_version": MATERIAL_QUALIFICATION_SCHEMA,
         "status": "passed",
@@ -216,6 +222,80 @@ def qualify_material(case: dict[str, Any]) -> dict[str, Any]:
             "min_best_crest_db": MATERIAL_MIN_BEST_CREST_DB,
         },
         "best_crest_db": round(best_crest_db, 3),
+        "tracks": track_rows,
+        "sibilance_band": sibilance,
+    }
+
+
+# Sibilance-domain material qualification (D2-FAM1-S2). The public fixture
+# stems carry time-localized high-band energy events, so a windowed
+# high-band/full-band energy-ratio series (4.8-10.5 kHz against the full
+# spectrum) must disperse enough per track for a bounded de-esser move to be
+# acoustically meaningful. Same gate style as the crest family above: a
+# per-track dispersion floor plus a best-track floor with real headroom below
+# the measured values (spv1 stems measure per-track 7.6-19.6 dB with the best
+# track at 19.6 dB; floors stay clear of pinning the measurements). Metrics
+# are machine-computed from the public stems only, land in the smoke report
+# (never in agent context), and name no target track.
+SIBILANCE_MIN_CONTRAST_DB_PER_TRACK = 6.0
+SIBILANCE_MIN_BEST_CONTRAST_DB = 14.0
+SIBILANCE_BAND_LOW_HZ = 4800.0
+SIBILANCE_BAND_HIGH_HZ = 10500.0
+SIBILANCE_FFT_SIZE = 2048
+
+
+def qualify_sibilance_material(case: dict[str, Any]) -> dict[str, Any]:
+    import numpy as np
+    import soundfile as sf
+
+    track_rows: list[dict[str, Any]] = []
+    for stem in case.get("stem_files", []):
+        path = Path(str(stem["file"]))
+        if not path.is_file():
+            raise RuntimeError(f"material qualification stem is missing: {path}")
+        audio, rate = sf.read(str(path), dtype="float64", always_2d=True)
+        mono = np.asarray(audio, dtype=np.float64).mean(axis=1)
+        window = np.hanning(SIBILANCE_FFT_SIZE)
+        hop = SIBILANCE_FFT_SIZE // 2
+        spectrum = np.fft.rfft
+        freqs = np.fft.rfftfreq(SIBILANCE_FFT_SIZE, 1.0 / rate)
+        band = (freqs >= SIBILANCE_BAND_LOW_HZ) & (freqs <= SIBILANCE_BAND_HIGH_HZ)
+        count = max(0, (len(mono) - SIBILANCE_FFT_SIZE) // hop + 1)
+        if count <= 0:
+            raise RuntimeError(f"material qualification stem is shorter than one analysis window: {path}")
+        ratios = np.empty(count)
+        for index in range(count):
+            segment = mono[index * hop:index * hop + SIBILANCE_FFT_SIZE] * window
+            power = np.abs(spectrum(segment)) ** 2
+            total = float(power.sum())
+            ratios[index] = 10.0 * math.log10(max(float(power[band].sum()), 1e-20) / max(total, 1e-20))
+        p50 = float(np.percentile(ratios, 50))
+        p95 = float(np.percentile(ratios, 95))
+        track_rows.append({
+            "track": str(stem["track"]),
+            "contrast_p95_p50_db": round(p95 - p50, 3),
+            "p50_db": round(p50, 3),
+            "p95_db": round(p95, 3),
+        })
+    weak_contrast = [row["track"] for row in track_rows if row["contrast_p95_p50_db"] < SIBILANCE_MIN_CONTRAST_DB_PER_TRACK]
+    best_contrast_db = max(row["contrast_p95_p50_db"] for row in track_rows)
+    if weak_contrast or best_contrast_db < SIBILANCE_MIN_BEST_CONTRAST_DB:
+        raise RuntimeError(
+            "public material failed the sibilance-fixture qualification gates: "
+            + json.dumps({"weak_contrast_tracks": weak_contrast, "best_contrast_p95_p50_db": best_contrast_db}, ensure_ascii=False)
+        )
+    return {
+        "schema_version": MATERIAL_QUALIFICATION_SCHEMA,
+        "status": "passed",
+        "metric": "windowed high-band/full-band energy ratio dispersion (p95-p50, dB)",
+        "gates": {
+            "band_low_hz": SIBILANCE_BAND_LOW_HZ,
+            "band_high_hz": SIBILANCE_BAND_HIGH_HZ,
+            "fft_size": SIBILANCE_FFT_SIZE,
+            "min_contrast_db_per_track": SIBILANCE_MIN_CONTRAST_DB_PER_TRACK,
+            "min_best_contrast_db": SIBILANCE_MIN_BEST_CONTRAST_DB,
+        },
+        "best_contrast_p95_p50_db": round(best_contrast_db, 3),
         "tracks": track_rows,
     }
 
@@ -479,6 +559,25 @@ def recommended_interaction(response: dict[str, Any], admitted_domain_selected: 
                 continue
         if kind == "improvement_proposal_confirmation" and experiment_proposal_approved:
             continue
+        if kind == "confirmation" and first_text(interaction.get("workflow")) == "plugin_grabber_load_and_get_params" and rows(payload.get("commands")):
+            # FAM1-S2 (2026-08-31 run 20260831_100305 forensics): the de_esser
+            # diagnosis may route through the plugin recommendation surface,
+            # whose follow-up grabber load confirmation arrives as a plan
+            # confirmation without an actions array, so the generic action
+            # picker below cannot answer it and the run stalls before the D1
+            # mutation. The user stand-in approves the model-requested load:
+            # the plugin choice itself originated from the model's own
+            # PCA-filtered recommendation, so no fixture truth is injected
+            # here and every D1 admission/whitelist gate stays in charge.
+            interaction_id = first_text(interaction.get("id"), interaction.get("interaction_id"))
+            durable_payload = dict(payload)
+            durable_payload.setdefault("workflow", first_text(interaction.get("workflow"), interaction.get("kind")))
+            durable_payload.setdefault("kind", first_text(interaction.get("kind")))
+            durable_payload.setdefault("type", first_text(interaction.get("type"), interaction.get("kind")))
+            durable_payload.setdefault("conversation_id", first_text(interaction.get("conversation_id")))
+            durable_payload.setdefault("goal_id", first_text(interaction.get("goal_id")))
+            durable_payload.setdefault("run_id", first_text(interaction.get("run_id")))
+            return {"interaction_id": interaction_id, "decision": "approve", "action_id": "approve", "payload": durable_payload}
         if not admitted_domain_selected and not (domains & set(ADMITTED_DOMAIN_KINDS)):
             continue
         eligible = []
@@ -572,6 +671,12 @@ def find_admission_boundary(responses: list[dict[str, Any]]) -> dict[str, Any] |
                     "status": status,
                     "admission_receipt": receipt,
                     "latest_decision": row.get("latest_decision") if isinstance(row.get("latest_decision"), dict) else {},
+                    # FAM1-S2 ruling 4: the fs8 parked-state branch re-derives
+                    # its invariants from the raw row, and the pending
+                    # interaction surface lives on the enclosing response
+                    # (scheduler-drained responses carry it only there).
+                    "loop_row": row,
+                    "interaction_requests": rows(item.get("interaction_requests")),
                 }
     return found
 
@@ -579,10 +684,34 @@ def find_admission_boundary(responses: list[dict[str, Any]]) -> dict[str, Any] |
 def validate_admission_only_boundary(boundary: dict[str, Any]) -> None:
     phase = first_text(boundary.get("phase")).lower()
     status = first_text(boundary.get("status")).lower()
-    require(phase in {"fs7_improvement_proposal", "fs9_terminal"}, f"admission-only ended at unexpected phase {phase}")
+    require(phase in {"fs7_improvement_proposal", "fs8_experiment_verification", "fs9_terminal"}, f"admission-only ended at unexpected phase {phase}")
     require(status != "no_candidate_found", "admission-only fabricated no_candidate_found")
     receipt = boundary.get("admission_receipt") if isinstance(boundary.get("admission_receipt"), dict) else {}
-    if phase == "fs7_improvement_proposal":
+    if phase == "fs8_experiment_verification":
+        # FAM1-S2 GLM ruling 4 (2026-08-31, run 20260831_103303): when one
+        # scheduler continuation absorbs diagnosis through admission, the
+        # boundary surfaces as the parked post-admission state instead of an
+        # fs7 turn — the phase labels the ladder position while the stop
+        # reason is the still-pending proposal confirmation. Admit that
+        # parked state only under its full contract (tightened invariants,
+        # not a bare whitelist widening): awaiting the experiment, decision
+        # still needs_experiment, zero executed interventions, no d1_receipt,
+        # a valid admission receipt, and the unanswered
+        # improvement_proposal_confirmation face proving the loop stopped at
+        # the confirmation gate rather than past it.
+        require(status == "awaiting_experiment", f"fs8 admission-only boundary status is {status!r}, not awaiting_experiment")
+        decision = boundary.get("latest_decision") if isinstance(boundary.get("latest_decision"), dict) else {}
+        require(first_text(decision.get("status")).lower() == "needs_experiment", "fs8 admission-only boundary decision is not needs_experiment")
+        loop_row = boundary.get("loop_row") if isinstance(boundary.get("loop_row"), dict) else {}
+        experiment = loop_row.get("experiment") if isinstance(loop_row.get("experiment"), dict) else {}
+        for round_row in rows(experiment.get("rounds")):
+            require(not rows(round_row.get("interventions")), "fs8 admission-only boundary already carries executed interventions")
+        require(not loop_row.get("d1_receipt"), "fs8 admission-only boundary already carries a d1_receipt")
+        require(receipt.get("proposal_present") is True and receipt.get("proposal_valid") is True, "fs8 admission receipt is not valid")
+        require(not receipt.get("failed_gate_ids"), "fs8 admission receipt contains failed gates")
+        require(any(first_text(item.get("kind"), item.get("type")).lower() == "improvement_proposal_confirmation" for item in rows(boundary.get("interaction_requests"))),
+                "fs8 admission-only boundary has no pending improvement_proposal_confirmation interaction")
+    elif phase == "fs7_improvement_proposal":
         proposal = boundary.get("latest_decision", {}).get("improvement_proposal")
         require(isinstance(proposal, dict), "FS7 admission-only boundary omitted improvement_proposal")
         require(receipt.get("proposal_present") is True and receipt.get("proposal_valid") is True, "FS7 admission receipt is not valid")
@@ -607,6 +736,7 @@ def validate_d1(base_url: str, conversation_id: str, responses: list[dict[str, A
     require(domain in ADMITTED_DOMAIN_KINDS, f"D1 action_domain {domain!r} is not admitted by the D2-1 domain table")
     require(first_text(typed.get("action_kind")).lower() == ADMITTED_DOMAIN_KINDS[domain], f"D1 action_kind mismatch for admitted domain {domain}")
     time_dynamics_disclosure: dict[str, Any] | None = None
+    frequency_time_events_disclosure: dict[str, Any] | None = None
     if domain == "static_eq":
         gain = typed.get("gain_db")
         require(isinstance(gain, (int, float)) and not isinstance(gain, bool) and gain != 0 and abs(gain) <= 2, "static_eq typed gain_db must be non-zero within +/-2")
@@ -615,6 +745,9 @@ def validate_d1(base_url: str, conversation_id: str, responses: list[dict[str, A
     if domain == "broadband_compression":
         threshold = typed.get("threshold_db")
         require(isinstance(threshold, (int, float)) and not isinstance(threshold, bool) and threshold != 0 and abs(threshold) <= 2, "broadband_compression typed threshold_db must be non-zero within +/-2")
+    if domain == "de_esser":
+        threshold = typed.get("threshold_db")
+        require(isinstance(threshold, (int, float)) and not isinstance(threshold, bool) and threshold != 0 and abs(threshold) <= 2, "de_esser typed threshold_db must be non-zero within +/-2")
     require(int(admission.get("experiment_budget", 0) or 0) == 1, "D1 experiment_budget must equal one")
     for key in ("diagnostic_dose_bounds", "retained_dose_bounds"):
         bounds = admission.get(key) if isinstance(admission.get(key), dict) else {}
@@ -671,6 +804,42 @@ def validate_d1(base_url: str, conversation_id: str, responses: list[dict[str, A
         freshness = bundle.get("freshness") if isinstance(bundle.get("freshness"), dict) else {}
         require(first_text(freshness.get("status")).lower() != "stale", "track.time_dynamics disclosure was stale")
         time_dynamics_disclosure = {"observation_id": first_text(bundle.get("observation_id")), "status": disclosure_status, "executed_view_ids": sorted(executed_views)}
+    if domain == "de_esser":
+        for key in ("plugin_id", "param_id"):
+            require(receipt.get(key) not in (None, ""), f"de_esser execution receipt missing {key}")
+        # FAM1-S2 evidence-chain assertions, mirroring the compression branch:
+        # the model freely chooses its own observation views (no server view
+        # injection), so the round check only requires every requested view to
+        # have been disclosed; the disclosability of the DOM frequency-time
+        # events view itself is probed directly below against the live stack.
+        for observation_row in rows(round_row.get("observations")):
+            requested = {first_text(value) for value in (observation_row.get("requested_view_ids") or [])}
+            executed = {first_text(value) for value in (observation_row.get("executed_view_ids") or [])}
+            require(requested <= executed, "de_esser observation lost requested views: " + json.dumps({"requested": sorted(requested), "executed": sorted(executed)}, ensure_ascii=False))
+        target_ref = admission.get("target_ref") if isinstance(admission.get("target_ref"), dict) else {}
+        disclosure = invoke(base_url, "ccb.observation_request", {
+            "view_ids": ["track.frequency_time_events"],
+            "target_ref": {"kind": first_text(target_ref.get("kind")) or "track", "id": first_text(target_ref.get("id"))},
+            "freshness_class": "fresh",
+        }, timeout)
+        bundle = disclosure.get("bundle") if isinstance(disclosure.get("bundle"), dict) else {}
+        audit = bundle.get("audit_receipt") if isinstance(bundle.get("audit_receipt"), dict) else {}
+        executed_views = {first_text(value) for value in (audit.get("actual_executed_view_ids") or bundle.get("actual_executed_view_ids") or disclosure.get("actual_executed_view_ids") or [])}
+        if not executed_views:
+            executed_views = {first_text(key) for key in (bundle.get("views") or {})}
+        disclosure_status = first_text(disclosure.get("status")).lower() or first_text(bundle.get("status")).lower()
+        # Same formal-run gate wording as the COM probe: "ready or partial and
+        # fresh" — the DOM source-only projection discloses as partial by
+        # design (bounded time-frequency evidence with explicit omissions), so
+        # partial counts as disclosable; rejected/missing answers the
+        # post-action disclosure risk called out in the FAM1 survey.
+        require(disclosure_status in {"ready", "partial"},
+                "track.frequency_time_events was not disclosable on the admitted target: " + json.dumps({"status": disclosure.get("status"), "bundle_status": bundle.get("status")}, ensure_ascii=False))
+        require("track.frequency_time_events" in executed_views,
+                "track.frequency_time_events disclosure probe did not execute the view: " + json.dumps(sorted(executed_views), ensure_ascii=False))
+        freshness = bundle.get("freshness") if isinstance(bundle.get("freshness"), dict) else {}
+        require(first_text(freshness.get("status")).lower() != "stale", "track.frequency_time_events disclosure was stale")
+        frequency_time_events_disclosure = {"observation_id": first_text(bundle.get("observation_id")), "status": disclosure_status, "executed_view_ids": sorted(executed_views)}
     require(receipt.get("readback_verified") is True, "D1 actual readback was not verified")
 
     post_observations = [item for item in rows(round_row.get("observations")) if item.get("post_action") is True]
@@ -718,7 +887,7 @@ def validate_d1(base_url: str, conversation_id: str, responses: list[dict[str, A
     require(project_revision(state_after) == revision_before_select, "audition.select changed the project revision")
     require(len(d1_actions_after) == len(d1_actions_before) == 1, "audition.select changed journal mutation cardinality")
 
-    return {
+    result = {
         "status": "pass",
         "public_case_id": case_id,
         "conversation_id": conversation_id,
@@ -738,6 +907,9 @@ def validate_d1(base_url: str, conversation_id: str, responses: list[dict[str, A
         "human_audition_ready": True,
         "human_confirmed": False,
     }
+    if frequency_time_events_disclosure is not None:
+        result["frequency_time_events_disclosure"] = frequency_time_events_disclosure
+    return result
 
 
 SETTLEMENT_PROBE_TAG = "smoke_settlement_probe"
@@ -1367,7 +1539,7 @@ def main() -> int:
                     validate_admission_only_boundary(boundary)
                     report.update({
                         "status": "admission_only",
-                        "admission": boundary,
+                        "admission": {key: value for key, value in boundary.items() if key != "loop_row"},
                         "mutation_performed": False,
                         "finished_at": dt.datetime.now(dt.timezone.utc).isoformat(),
                         "responses": responses,
@@ -1456,7 +1628,7 @@ def main() -> int:
                 validate_admission_only_boundary(boundary)
                 report.update({
                     "status": "admission_only",
-                    "admission": boundary,
+                    "admission": {key: value for key, value in boundary.items() if key != "loop_row"},
                     "mutation_performed": False,
                     "finished_at": dt.datetime.now(dt.timezone.utc).isoformat(),
                 })
