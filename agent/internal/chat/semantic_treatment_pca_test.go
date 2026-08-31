@@ -507,3 +507,152 @@ func TestLoadedInstancePCAAdmissionForContextRejectsMalformedReceiptBeforeTopolo
 		t.Fatalf("malformed context receipt did not fail closed before topology lookup: %v", err)
 	}
 }
+
+// The recommendation→grabber handoff must keep the no-receipt branch exactly
+// as it was: a selected candidate without an accompanied receipt is still a
+// fail-closed pca_rejected, byte for byte, and never falls back to the rack
+// instance ID as a PCA identity.
+func TestLoadedInstancePCAAdmissionForContextWithoutReceiptStillFailsClosed(t *testing.T) {
+	server := &Server{}
+	_, err := server.semanticLoadedInstancePCAAdmissionForContext(context.Background(), map[string]any{
+		"semantic_plugin_recommendation_candidate": map[string]any{
+			"processor_family": processorintent.FamilyDeEsser,
+			"name":             "Pro-DS",
+			"format":           "VST3",
+			"identifier":       "pro-ds-v1",
+			"plugin_path":      t.TempDir() + "\\Pro-DS.vst3",
+		},
+	}, "track-1", "rack-node-9", semanticTreatmentPCAInput{Family: processorintent.FamilyDeEsser})
+	if err == nil || err.Error() != "pca_rejected:pca admission receipt is missing for the selected plugin" {
+		t.Fatalf("no-receipt branch changed its fail-closed behavior: %v", err)
+	}
+}
+
+// The exact request-context shape the fixed recommendation→grabber handoff
+// produces (selected candidate + accompanied admission receipt) must pass the
+// loaded-instance boundary, and the accompanied receipt must still be
+// revalidated against the installed binary.
+func TestLoadedInstancePCAAdmissionForContextPassesWithAccompaniedDeEsserReceipt(t *testing.T) {
+	path := t.TempDir() + "\\ProDS.vst3"
+	if err := os.WriteFile(path, []byte("deesser-receipt-binary-v1"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv("VIT_PROCESSOR_ATTESTATIONS_V2_PATH", t.TempDir()+"\\attestations.v2.json")
+	registry, err := processorregistry.Default()
+	if err != nil {
+		t.Fatal(err)
+	}
+	proof, err := registry.PCARequiredCoverage(processorattestation.FamilyDeEsser, []string{"range"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	fingerprint, err := processorattestation.FingerprintPath(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	store, err := processorattestation.NewStoreV2("")
+	if err != nil {
+		t.Fatal(err)
+	}
+	subject := processorattestation.Subject{Name: "Pro-DS", Manufacturer: "Test", Format: "VST3", Identifier: "pro-ds-v1", InstalledPath: path}
+	attestation, err := store.PromoteCurrent(processorattestation.IssueSpecV2{
+		Subject: subject, BinaryFingerprint: fingerprint, ProcessorFamily: processorattestation.FamilyDeEsser,
+		Coverage: proof,
+		Evidence: []processorattestation.EvidenceRef{{ReceiptID: "deesser-handoff-receipt", Kind: "test", SHA256: "sha256:" + strings.Repeat("e", 64), ObservedAt: time.Now().UTC()}},
+	}, "handoff_receipt_test")
+	if err != nil {
+		t.Fatal(err)
+	}
+	subjectKey, err := processorattestation.BuildSubjectKey(subject)
+	if err != nil {
+		t.Fatal(err)
+	}
+	project := shadow.New(nil)
+	project.Initialize(map[string]any{"project_uuid": "project-1", "tracks": []any{map[string]any{
+		"track_id": "track-1", "track_name": "Vocal", "track_type": "audio", "is_audio_track": true,
+		"plugins": []any{map[string]any{"plugin_id": "deesser-1", "plugin_name": subject.Name}},
+	}}})
+	server := New(nil, project, nil)
+	server.eqKernelOverride = newFakeDeEsserKernel()
+	receipt := semanticPCAAdmissionReceipt{
+		ProcessorFamily: processorattestation.FamilyDeEsser, Name: subject.Name, Manufacturer: subject.Manufacturer,
+		Format: subject.Format, Identifier: subject.Identifier, PluginPath: subject.InstalledPath,
+		SubjectKey: subjectKey, BinaryFingerprint: fingerprint, AttestationID: attestation.AttestationID,
+	}
+	requestContext := map[string]any{
+		"semantic_plugin_recommendation_candidate": map[string]any{
+			"processor_family": receipt.ProcessorFamily, "name": receipt.Name, "format": receipt.Format,
+			"identifier": receipt.Identifier, "plugin_path": receipt.PluginPath,
+		},
+		"pca_admission_receipt": semanticPCAAdmissionReceiptMap(receipt),
+	}
+	input := semanticTreatmentPCAInput{Family: processorattestation.FamilyDeEsser, RequiredCoverage: proof}
+	surface, err := server.semanticLoadedInstancePCAAdmissionForContext(context.Background(), requestContext, "track-1", "deesser-1", input)
+	if err != nil || !surface.PCAEligible || surface.InspectOnly || surface.PCAStatus != "promoted" ||
+		surface.PCAReason != "admission_receipt_current" || surface.PCAAttestationID != attestation.AttestationID {
+		t.Fatalf("accompanied receipt admission=%+v err=%v", surface, err)
+	}
+	if err := os.WriteFile(path, []byte("deesser-receipt-binary-v2"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := server.semanticLoadedInstancePCAAdmissionForContext(context.Background(), requestContext, "track-1", "deesser-1", input); err == nil || !strings.Contains(err.Error(), "binary fingerprint changed") {
+		t.Fatalf("changed accompanied receipt binary remained executable: %v", err)
+	}
+}
+
+// The load-result boundary must keep rejecting a receipt whose plugin does not
+// match the actually loaded instance, so a mismatched receipt can never reach
+// the downstream semantic admission through the relayed context.
+func TestPostLoadHandoffStillRejectsReceiptForADifferentLoadedPlugin(t *testing.T) {
+	server := &Server{}
+	plan := PendingPlan{Context: map[string]any{}, WorkflowData: map[string]any{"pca_admission_receipt": map[string]any{
+		"processor_family": processorattestation.FamilyDeEsser, "name": "Selected DS", "manufacturer": "Test",
+		"format": "VST3", "identifier": "selected-ds-v1", "plugin_path": "C:\\plugins\\SelectedDS.vst3",
+		"subject_key": "selected-ds-subject", "binary_fingerprint": "sha256:" + strings.Repeat("a", 64), "attestation_id": "att-selected-ds",
+	}}}
+	replies := []map[string]any{{"command_name": "rack_add_node", "result": map[string]any{
+		"track_id": "track-1", "plugin_id": "1042", "plugin_name": "Other Plugin", "plugin_identifier": "other-b-v1",
+	}}}
+	handoff, ok := server.semanticProcessorPostLoadHandoff(context.Background(), plan, replies)
+	if !ok || handoff.StopReason != "semantic_post_load_identity_mismatch" ||
+		!strings.Contains(firstStringFromMap(handoff.WorkflowData, "pca_rejection"), "does not match") ||
+		boolValue(handoff.WorkflowData["mutation_performed"]) {
+		t.Fatalf("receipt for a different loaded plugin was not fail-closed: ok=%v handoff=%+v", ok, handoff)
+	}
+}
+
+// The post-load handoff relays only a complete validated plan receipt into the
+// downstream request context; plans without a receipt relay nothing, and a
+// malformed plan receipt fails the handoff closed.
+func TestSemanticRelayPCAAdmissionReceiptRelaysOnlyACompleteReceipt(t *testing.T) {
+	receipt := semanticPCAAdmissionReceipt{
+		ProcessorFamily: processorattestation.FamilyDeEsser, Name: "Pro-DS", Manufacturer: "Test",
+		Format: "VST3", Identifier: "pro-ds-v1", PluginPath: "C:\\plugins\\ProDS.vst3",
+		SubjectKey: "pro-ds-subject", BinaryFingerprint: "sha256:" + strings.Repeat("b", 64), AttestationID: "att-pro-ds",
+	}
+	requestContext := map[string]any{"selected_plugin_id": "deesser-1"}
+	if err := semanticRelayPCAAdmissionReceiptToContext(PendingPlan{WorkflowData: map[string]any{"pca_admission_receipt": semanticPCAAdmissionReceiptMap(receipt)}}, requestContext); err != nil {
+		t.Fatal(err)
+	}
+	relayed, found, err := semanticPCAAdmissionReceiptFromContext(requestContext)
+	if !found || err != nil || relayed.Identifier != receipt.Identifier || relayed.AttestationID != receipt.AttestationID ||
+		relayed.BinaryFingerprint != receipt.BinaryFingerprint || relayed.SubjectKey != receipt.SubjectKey {
+		t.Fatalf("receipt relay was incomplete: found=%v receipt=%+v err=%v", found, relayed, err)
+	}
+
+	plain := map[string]any{"selected_plugin_id": "deesser-1"}
+	if err := semanticRelayPCAAdmissionReceiptToContext(PendingPlan{WorkflowData: map[string]any{}}, plain); err != nil {
+		t.Fatal(err)
+	}
+	if _, found, _ := semanticPCAAdmissionReceiptFromContext(plain); found {
+		t.Fatal("plan without a receipt must not grow one in the request context")
+	}
+
+	broken := map[string]any{"selected_plugin_id": "deesser-1"}
+	if err := semanticRelayPCAAdmissionReceiptToContext(PendingPlan{WorkflowData: map[string]any{"pca_admission_receipt": map[string]any{"processor_family": "de_esser"}}}, broken); err == nil {
+		t.Fatal("malformed plan receipt did not fail the relay closed")
+	}
+	if _, found, _ := semanticPCAAdmissionReceiptFromContext(broken); found {
+		t.Fatal("malformed plan receipt must not be relayed")
+	}
+}

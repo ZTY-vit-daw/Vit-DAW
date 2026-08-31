@@ -1541,6 +1541,17 @@ func (s *Server) semanticCompressorPostLoadHandoff(ctx context.Context, plan Pen
 		"processor_identity_card": card, "conversation_id": conversationID, "goal_id": goalID, "run_id": runID,
 		"semantic_treatment_observation_context": cloneContext(firstMapFromAny(plan.WorkflowData["semantic_compressor_post_load_observation_context"])),
 	})
+	// Same receipt relay as the generic post-load handoff: the multi-candidate
+	// compressor chain admits through the accompanied receipt, not the numeric
+	// rack instance.
+	if relayErr := semanticRelayPCAAdmissionReceiptToContext(plan, requestContext); relayErr != nil {
+		return ChatResponse{ConversationID: conversationID, GoalID: goalID, RunID: runID,
+			Reply:    fmt.Sprintf("已加载 %s，但 PCA admission receipt 无法交接到压缩器执行边界，因此没有生成或写入参数。%s", firstNonEmpty(pluginName, pluginID), relayErr),
+			Workflow: semanticTreatmentWorkflow, WorkflowData: map[string]any{"schema_version": semanticTreatmentSchema,
+				"status": "qualification_failed", "processor_type": "compressor", "track_id": trackID, "plugin_id": pluginID,
+				"mutation_performed": false, "pca_rejection": relayErr.Error()},
+			GoalStatus: string(agentruntime.StatusCompleted), StopReason: "semantic_compressor_post_load_receipt_handoff_failed"}, true
+	}
 	resp := s.semanticTreatmentPlanCompressorResponse(ctx, conversationID, userGoal, requestContext, goalID, runID)
 	if resp.WorkflowData == nil {
 		resp.WorkflowData = map[string]any{}
@@ -1617,6 +1628,18 @@ func (s *Server) semanticGenericPostLoadHandoff(ctx context.Context, plan Pendin
 		"selected_plugin_name":                   firstNonEmpty(pluginName, digest.PluginName),
 		"semantic_treatment_observation_context": firstMapFromAny(plan.WorkflowData["semantic_post_load_observation_context"]),
 	})
+	// Carry the recommended candidate's validated PCA admission receipt into
+	// the semantic dynamic chain; without it the exact post-load admission
+	// would fail closed on the missing receipt even though the load plan holds
+	// the revalidated one.
+	if relayErr := semanticRelayPCAAdmissionReceiptToContext(plan, requestContext); relayErr != nil {
+		return ChatResponse{ConversationID: conversationID, GoalID: goalID, RunID: runID,
+			Reply:    fmt.Sprintf("已加载 %s，但 PCA admission receipt 无法交接到语义执行边界，因此没有生成或写入参数。%s", firstNonEmpty(pluginName, pluginID), relayErr),
+			Workflow: semanticTreatmentWorkflow, WorkflowData: map[string]any{"schema_version": semanticTreatmentSchema,
+				"status": "qualification_failed", "processor_type": legacyProcessorTypeForFamily(family), "track_id": trackID, "plugin_id": pluginID,
+				"mutation_performed": false, "pca_rejection": relayErr.Error()},
+			GoalStatus: string(agentruntime.StatusCompleted), StopReason: "semantic_post_load_receipt_handoff_failed"}, true
+	}
 	cfg, _, cfgErr := config.Load()
 	if cfgErr == nil && cfg.Complete() {
 		goal := firstNonEmpty(firstStringFromMap(plan.WorkflowData, "semantic_post_load_goal"), firstStringFromMap(requestContext, "user_goal"), "apply the selected semantic processor intent")

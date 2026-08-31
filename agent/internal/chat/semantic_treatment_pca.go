@@ -331,6 +331,26 @@ func (s *Server) semanticLoadedInstancePCAAdmissionWithReceipt(ctx context.Conte
 	return surface, nil
 }
 
+// semanticRelayPCAAdmissionReceiptToContext relays a load plan's validated PCA
+// admission receipt into the post-load request context, so the downstream
+// semantic admission re-check sees the same accompanied receipt that was bound
+// to the recommended candidate before the load. The load-result boundary has
+// already revalidated the plan receipt against the actually loaded identifier;
+// this only carries it across. Plans without a receipt relay nothing and the
+// downstream no-receipt behavior is unchanged; a malformed plan receipt fails
+// closed instead of entering the semantic chain.
+func semanticRelayPCAAdmissionReceiptToContext(plan PendingPlan, requestContext map[string]any) error {
+	receipt, found, err := semanticPCAAdmissionReceiptFromPlan(plan)
+	if err != nil {
+		return err
+	}
+	if !found {
+		return nil
+	}
+	requestContext["pca_admission_receipt"] = semanticPCAAdmissionReceiptMap(receipt)
+	return nil
+}
+
 func semanticTreatmentInstancePCAEligible(instance semanticTreatmentInstance, family string) bool {
 	if len(instance.QualifiedSurfaces) == 0 {
 		return !instance.PCAReviewed
