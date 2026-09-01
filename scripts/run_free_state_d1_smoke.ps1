@@ -13,9 +13,9 @@ param(
     [switch]$AdmissionOnly,
     [ValidateSet("retain", "rollback", "ambiguous")]
     [string]$SettlementProbe = "",
-    [ValidateSet("neutral", "frequency", "compression", "leveling", "sibilance")]
+    [ValidateSet("neutral", "frequency", "compression", "leveling", "sibilance", "transient")]
     [string]$PromptFlavor = "neutral",
-    [ValidateSet("any", "track_gain", "static_eq", "broadband_compression", "de_esser")]
+    [ValidateSet("any", "track_gain", "static_eq", "broadband_compression", "de_esser", "transient_shaper")]
     [string]$ExpectDomain = "any",
     # D2-2-S3 multi-round probe switch: passes --multi-round-probe to the
     # runner, which swaps the single-round D1 tail for the independent

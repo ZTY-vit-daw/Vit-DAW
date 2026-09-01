@@ -37,6 +37,11 @@ PROMPT_FLAVORS = {
     # 四要素结构与 frequency/compression/leveling 同构（前提/禁手段/先观察/有界小步），
     # case-agnostic，不编码 sealed 真值。
     "sibilance": "人声的高频咝声（齿音）有些刺耳、比较突出，但各轨电平平衡已经合适，不要用整体增益或 EQ 来解决。请先观察工程，再针对这个齿音问题给一个有界的小步改进建议。",
+    # FAM2-S2 同款裁定②形态：SPL TD+ attack 新实例默认严格居中（normalized 0.5 /
+    # display "0.00"，FAM2-S1 probe 定锚）→ 双向物理可达，前提只描述问题（起音偏钝、
+    # 瞬态对比不足）不指定参数方向；四要素同构，case-agnostic，零 sealed 真值
+    # （目标轨由模型观察自主选择，盲法保持）。
+    "transient": "鼓和打击乐的起音听起来偏钝、瞬态对比不足，但各轨电平平衡已经合适，不要用整体增益或 EQ 来解决。请先观察工程，再针对这个起音问题给一个有界的小步改进建议。",
 }
 # The D2-1 domain table mirrored for runner-side gating. Admission itself is
 # always decided by the agent's experiment domain table, never here.
@@ -214,6 +219,7 @@ def qualify_material(case: dict[str, Any]) -> dict[str, Any]:
             + json.dumps({"weak_rms_tracks": weak_rms, "weak_crest_tracks": weak_crest, "best_crest_db": best_crest_db}, ensure_ascii=False)
         )
     sibilance = qualify_sibilance_material(case)
+    transient = qualify_transient_material(case)
     return {
         "schema_version": MATERIAL_QUALIFICATION_SCHEMA,
         "status": "passed",
@@ -225,6 +231,7 @@ def qualify_material(case: dict[str, Any]) -> dict[str, Any]:
         "best_crest_db": round(best_crest_db, 3),
         "tracks": track_rows,
         "sibilance_band": sibilance,
+        "transient_window": transient,
     }
 
 
@@ -297,6 +304,78 @@ def qualify_sibilance_material(case: dict[str, Any]) -> dict[str, Any]:
             "min_best_contrast_db": SIBILANCE_MIN_BEST_CONTRAST_DB,
         },
         "best_contrast_p95_p50_db": round(best_contrast_db, 3),
+        "tracks": track_rows,
+    }
+
+
+# Transient-domain material qualification (D2-FAM2-S2). The public fixture
+# stems carry short energy events over a slower background, so a short-window
+# vs long-window RMS level contrast (~10 ms window peak against ~200 ms window
+# median, a pure windowed-arithmetic quantity from the same measurement family
+# as the sealed i04 anchor) must stay measurable per track for a bounded
+# transient-shaper move to be acoustically meaningful. Same gate style as the
+# sibilance family: a per-track floor plus a best-track floor with real
+# headroom below the measured values (spv1 stems measure per-track 7.4-19.5 dB
+# with the best track at 19.5 dB; floors stay clear of pinning the
+# measurements). Metrics are machine-computed from the public stems only, land
+# in the smoke report (never in agent context), and name no target track.
+TRANSIENT_MIN_CONTRAST_DB_PER_TRACK = 6.0
+TRANSIENT_MIN_BEST_CONTRAST_DB = 14.0
+TRANSIENT_SHORT_WINDOW_SECONDS = 0.010
+TRANSIENT_LONG_WINDOW_SECONDS = 0.200
+
+
+def qualify_transient_material(case: dict[str, Any]) -> dict[str, Any]:
+    import numpy as np
+    import soundfile as sf
+
+    track_rows: list[dict[str, Any]] = []
+    for stem in case.get("stem_files", []):
+        path = Path(str(stem["file"]))
+        if not path.is_file():
+            raise RuntimeError(f"material qualification stem is missing: {path}")
+        audio, rate = sf.read(str(path), dtype="float64", always_2d=True)
+        mono = np.asarray(audio, dtype=np.float64).mean(axis=1)
+        short_n = max(1, int(round(TRANSIENT_SHORT_WINDOW_SECONDS * rate)))
+        long_n = max(1, int(round(TRANSIENT_LONG_WINDOW_SECONDS * rate)))
+
+        def window_level_db(size: int) -> np.ndarray:
+            count = max(0, (len(mono) - size) // size + 1)
+            if count <= 0:
+                raise RuntimeError(f"material qualification stem is shorter than one analysis window: {path}")
+            levels = np.empty(count)
+            for index in range(count):
+                segment = mono[index * size:index * size + size]
+                levels[index] = 20.0 * math.log10(max(float(np.sqrt(np.mean(segment * segment))), 1e-12))
+            return levels
+
+        short_levels = window_level_db(short_n)
+        long_levels = window_level_db(long_n)
+        contrast_db = float(np.max(short_levels) - np.median(long_levels))
+        track_rows.append({
+            "track": str(stem["track"]),
+            "contrast_short_peak_long_median_db": round(contrast_db, 3),
+            "short_peak_db": round(float(np.max(short_levels)), 3),
+            "long_median_db": round(float(np.median(long_levels)), 3),
+        })
+    weak_contrast = [row["track"] for row in track_rows if row["contrast_short_peak_long_median_db"] < TRANSIENT_MIN_CONTRAST_DB_PER_TRACK]
+    best_contrast_db = max(row["contrast_short_peak_long_median_db"] for row in track_rows)
+    if weak_contrast or best_contrast_db < TRANSIENT_MIN_BEST_CONTRAST_DB:
+        raise RuntimeError(
+            "public material failed the transient-fixture qualification gates: "
+            + json.dumps({"weak_contrast_tracks": weak_contrast, "best_contrast_short_peak_long_median_db": best_contrast_db}, ensure_ascii=False)
+        )
+    return {
+        "schema_version": MATERIAL_QUALIFICATION_SCHEMA,
+        "status": "passed",
+        "metric": "short-window peak vs long-window median RMS level (dB)",
+        "gates": {
+            "short_window_seconds": TRANSIENT_SHORT_WINDOW_SECONDS,
+            "long_window_seconds": TRANSIENT_LONG_WINDOW_SECONDS,
+            "min_contrast_db_per_track": TRANSIENT_MIN_CONTRAST_DB_PER_TRACK,
+            "min_best_contrast_db": TRANSIENT_MIN_BEST_CONTRAST_DB,
+        },
+        "best_contrast_short_peak_long_median_db": round(best_contrast_db, 3),
         "tracks": track_rows,
     }
 
@@ -738,6 +817,7 @@ def validate_d1(base_url: str, conversation_id: str, responses: list[dict[str, A
     require(first_text(typed.get("action_kind")).lower() == ADMITTED_DOMAIN_KINDS[domain], f"D1 action_kind mismatch for admitted domain {domain}")
     time_dynamics_disclosure: dict[str, Any] | None = None
     frequency_time_events_disclosure: dict[str, Any] | None = None
+    transient_structure_disclosure: dict[str, Any] | None = None
     if domain == "static_eq":
         gain = typed.get("gain_db")
         require(isinstance(gain, (int, float)) and not isinstance(gain, bool) and gain != 0 and abs(gain) <= 2, "static_eq typed gain_db must be non-zero within +/-2")
@@ -749,6 +829,9 @@ def validate_d1(base_url: str, conversation_id: str, responses: list[dict[str, A
     if domain == "de_esser":
         threshold = typed.get("threshold_db")
         require(isinstance(threshold, (int, float)) and not isinstance(threshold, bool) and threshold != 0 and abs(threshold) <= 2, "de_esser typed threshold_db must be non-zero within +/-2")
+    if domain == "transient_shaper":
+        attack = typed.get("attack_db")
+        require(isinstance(attack, (int, float)) and not isinstance(attack, bool) and attack != 0 and abs(attack) <= 2, "transient_shaper typed attack_db must be non-zero within +/-2")
     require(int(admission.get("experiment_budget", 0) or 0) == 1, "D1 experiment_budget must equal one")
     for key in ("diagnostic_dose_bounds", "retained_dose_bounds"):
         bounds = admission.get(key) if isinstance(admission.get(key), dict) else {}
@@ -841,6 +924,43 @@ def validate_d1(base_url: str, conversation_id: str, responses: list[dict[str, A
         freshness = bundle.get("freshness") if isinstance(bundle.get("freshness"), dict) else {}
         require(first_text(freshness.get("status")).lower() != "stale", "track.frequency_time_events disclosure was stale")
         frequency_time_events_disclosure = {"observation_id": first_text(bundle.get("observation_id")), "status": disclosure_status, "executed_view_ids": sorted(executed_views)}
+    if domain == "transient_shaper":
+        for key in ("plugin_id", "param_id"):
+            require(receipt.get(key) not in (None, ""), f"transient_shaper execution receipt missing {key}")
+        # FAM2-S2 evidence-chain assertions, mirroring the de_esser branch
+        # three-piece: the model freely chooses its own observation views (no
+        # server view injection), so the round check only requires every
+        # requested view to have been disclosed; the disclosability of the DOM
+        # transient-structure view itself is probed directly below against the
+        # live stack.
+        for observation_row in rows(round_row.get("observations")):
+            requested = {first_text(value) for value in (observation_row.get("requested_view_ids") or [])}
+            executed = {first_text(value) for value in (observation_row.get("executed_view_ids") or [])}
+            require(requested <= executed, "transient_shaper observation lost requested views: " + json.dumps({"requested": sorted(requested), "executed": sorted(executed)}, ensure_ascii=False))
+        target_ref = admission.get("target_ref") if isinstance(admission.get("target_ref"), dict) else {}
+        disclosure = invoke(base_url, "ccb.observation_request", {
+            "view_ids": ["track.transient_structure"],
+            "target_ref": {"kind": first_text(target_ref.get("kind")) or "track", "id": first_text(target_ref.get("id"))},
+            "freshness_class": "fresh",
+        }, timeout)
+        bundle = disclosure.get("bundle") if isinstance(disclosure.get("bundle"), dict) else {}
+        audit = bundle.get("audit_receipt") if isinstance(bundle.get("audit_receipt"), dict) else {}
+        executed_views = {first_text(value) for value in (audit.get("actual_executed_view_ids") or bundle.get("actual_executed_view_ids") or disclosure.get("actual_executed_view_ids") or [])}
+        if not executed_views:
+            executed_views = {first_text(key) for key in (bundle.get("views") or {})}
+        disclosure_status = first_text(disclosure.get("status")).lower() or first_text(bundle.get("status")).lower()
+        # Same formal-run gate wording as the COM/DOM probes: "ready or partial
+        # and fresh" — the DOM source-only projection discloses as partial by
+        # design (bounded onset/body evidence with explicit omissions), so
+        # partial counts as disclosable; rejected/missing answers the
+        # post-action disclosure risk called out in the FAM2 survey.
+        require(disclosure_status in {"ready", "partial"},
+                "track.transient_structure was not disclosable on the admitted target: " + json.dumps({"status": disclosure.get("status"), "bundle_status": bundle.get("status")}, ensure_ascii=False))
+        require("track.transient_structure" in executed_views,
+                "track.transient_structure disclosure probe did not execute the view: " + json.dumps(sorted(executed_views), ensure_ascii=False))
+        freshness = bundle.get("freshness") if isinstance(bundle.get("freshness"), dict) else {}
+        require(first_text(freshness.get("status")).lower() != "stale", "track.transient_structure disclosure was stale")
+        transient_structure_disclosure = {"observation_id": first_text(bundle.get("observation_id")), "status": disclosure_status, "executed_view_ids": sorted(executed_views)}
     require(receipt.get("readback_verified") is True, "D1 actual readback was not verified")
 
     post_observations = [item for item in rows(round_row.get("observations")) if item.get("post_action") is True]
@@ -910,6 +1030,8 @@ def validate_d1(base_url: str, conversation_id: str, responses: list[dict[str, A
     }
     if frequency_time_events_disclosure is not None:
         result["frequency_time_events_disclosure"] = frequency_time_events_disclosure
+    if transient_structure_disclosure is not None:
+        result["transient_structure_disclosure"] = transient_structure_disclosure
     return result
 
 
