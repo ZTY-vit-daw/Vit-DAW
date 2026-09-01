@@ -471,6 +471,23 @@ func (s *Server) ordinaryAgentPluginRecommendationResponseForProcessor(ctx conte
 		if len(candidates) == 0 {
 			return s.pluginRecommendationNoCandidatesResponse(conversationID, mode, userText, requestContext, res, processorType)
 		}
+		// D2-FAM2-S3: with a frozen semantic intent riding the free-state
+		// channel, narrow the offered set to candidates that are
+		// simultaneously family-promoted, axis-covered, and whitelist-form
+		// eligible — the same authority the axis-level execution gate later
+		// rechecks. Without the intent the offered set is unchanged.
+		governed, disclosure, governanceErr := axisCoverageGovernedPluginRecommendationCandidates(candidates, processorType, requestContext)
+		if governanceErr != nil {
+			return pluginRecommendationErrorResponse(conversationID, res, "axis_coverage_governance_failed", governanceErr)
+		}
+		if disclosure != nil {
+			if len(governed) == 0 {
+				frozenAxes := contextStringSlice(disclosure["frozen_semantic_axes"])
+				return s.pluginRecommendationAxisCoverageNoCandidatesResponse(conversationID, mode, userText, requestContext, res, processorType, frozenAxes)
+			}
+			candidates = governed
+			requestContext = mergeContext(requestContext, map[string]any{pluginRecommendationAxisCoverageDisclosureKey: disclosure})
+		}
 	}
 	plan, err := s.planPluginRecommendation(ctx, conversationID, userText, processorType, requestContext, res.RecentObservation, candidates, cfg)
 	if err != nil {
@@ -588,6 +605,13 @@ func (s *Server) pluginRecommendationSelectionResponse(conversationID, mode stri
 		if semanticIntent := firstMapFromAny(requestContext["free_state_semantic_processor_intent"]); len(semanticIntent) > 0 {
 			payload["post_load_semantic_processor_intent"] = cloneContext(semanticIntent)
 		}
+	}
+	// D2-FAM2-S3 coverage disclosure: when the offered set was narrowed by
+	// frozen-axis governance, disclose the frozen axes and each kept
+	// candidate's attested coverage so the selection is informed and
+	// auditable. Ungoverned faces never carry the key.
+	if disclosure := firstMapFromAny(requestContext[pluginRecommendationAxisCoverageDisclosureKey]); len(disclosure) > 0 {
+		payload["axis_coverage_disclosure"] = cloneContext(disclosure)
 	}
 	if res.RecentObservation != nil {
 		texts := semanticEQRecursiveText(res.RecentObservation.Summary)
