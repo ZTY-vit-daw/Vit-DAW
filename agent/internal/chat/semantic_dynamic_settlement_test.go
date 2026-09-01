@@ -227,6 +227,83 @@ func TestSemanticDynamicSettlementBracketIgnoredWithoutFreeStateIntent(t *testin
 	}
 }
 
+// semanticSettlementTransientShaperKernel extends the transient-shaper fake
+// with the ID-carrying VSP transport so the accounted execution can echo a
+// kernel-real transaction identity.
+type semanticSettlementTransientShaperKernel struct {
+	fakeTransientShaperKernel
+	requestIDs []string
+}
+
+func (fake *semanticSettlementTransientShaperKernel) SendVSPCommandWithIDs(ctx context.Context, command string, args map[string]any, requestID, transactionID string) (*kernel.VSPCommandResult, error) {
+	if command != "plugin.set_params_batch" {
+		return nil, fmt.Errorf("unexpected VSP command %s", command)
+	}
+	fake.requestIDs = append(fake.requestIDs, requestID)
+	result, err := fake.SendVSPCommand(ctx, command, args)
+	if err != nil {
+		return nil, err
+	}
+	// Mirrors the kernel's makeBatchTransactionId: the batch transaction id is
+	// derived from the request id.
+	result.TransactionID = "tx_" + requestID
+	return result, nil
+}
+
+// RED: the transient-shaper typed controller must surface the kernel
+// transaction identity when the caller pins a request id, and keep the
+// historical result shape when it does not (FAM2-S1 settlement bridge,
+// mirroring the de_esser controller contract).
+func TestTransientShaperControllerCarriesKernelTransactionWhenRequested(t *testing.T) {
+	fake := &semanticSettlementTransientShaperKernel{fakeTransientShaperKernel: *newFakeTransientShaperKernel()}
+	server := New(nil, nil, nil)
+	server.eqKernelOverride = fake
+
+	_, summary, err := server.readLiveTransientShaperControlSurface(context.Background(), "track-1", "transient-1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	ref := transientTestControlRef(summary, "attack_amount")
+	if ref == "" {
+		t.Fatal("typed surface did not disclose an attack control_ref")
+	}
+
+	plain, err := server.applyPluginGrabberTransientShaperControls(context.Background(), map[string]any{
+		"track_id": "track-1", "plugin_id": "transient-1", "atomic": true,
+		"controls": []map[string]any{{"control_ref": ref, "percent": 50.0}},
+	}, map[string]any{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, present := plain["transaction_id"]; present {
+		t.Fatalf("unrequested accounting leaked into the controller result: %v", plain["transaction_id"])
+	}
+	if _, present := plain["idempotency_key"]; present {
+		t.Fatalf("unrequested idempotency leaked into the controller result: %v", plain["idempotency_key"])
+	}
+	if len(fake.requestIDs) != 0 {
+		t.Fatalf("anonymous write rode the accounted transport: %v", fake.requestIDs)
+	}
+
+	accounted, err := server.applyPluginGrabberTransientShaperControls(context.Background(), map[string]any{
+		"track_id": "track-1", "plugin_id": "transient-1", "atomic": true, "request_id": "dyn_settle_transient",
+		"controls": []map[string]any{{"control_ref": ref, "percent": 50.0}},
+	}, map[string]any{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if accounted["idempotency_key"] != "dyn_settle_transient" {
+		t.Fatalf("idempotency_key=%v", accounted["idempotency_key"])
+	}
+	transaction, _ := accounted["transaction_id"].(string)
+	if strings.TrimSpace(transaction) == "" {
+		t.Fatalf("kernel transaction id missing from accounted result: %+v", accounted)
+	}
+	if len(fake.requestIDs) != 1 || fake.requestIDs[0] != "dyn_settle_transient" {
+		t.Fatalf("net write request ids=%v", fake.requestIDs)
+	}
+}
+
 // RED: the De-esser typed controller must surface the kernel transaction
 // identity when the caller pins a request id, and keep the historical result
 // shape when it does not.

@@ -368,3 +368,176 @@ func TestValidateDeEsserAdmissionClasses(t *testing.T) {
 		t.Fatalf("fingerprint failure must stay distinguishable from PCA rejection: %v", fingerprintErr)
 	}
 }
+
+// fixtureTransientShaperPlugin mirrors the FAM2-S1 whitelist section: one
+// shared attack parameter (SPL Transient Designer Plus, pluginprobe
+// 2026-09-01), no ch pair.
+func fixtureTransientShaperPlugin() TransientShaperPlugin {
+	return TransientShaperPlugin{
+		PluginName:       "Fixture Transient",
+		Manufacturer:     "Example",
+		Format:           "VST3",
+		PluginIdentifier: "fixture-transient",
+		PluginPath:       "/plugins/example-transient.vst3",
+		AttackParamID:    "attack_shared",
+	}
+}
+
+func TestLoadParsesV4FileWithTransientShaperSectionRoundTrip(t *testing.T) {
+	whitelist := Whitelist{
+		SchemaVersion:        SchemaVersion,
+		StaticEQ:             func() *StaticEQPlugin { plugin := fixtureStaticEQPlugin(); return &plugin }(),
+		BroadbandCompression: func() *BroadbandCompressionPlugin { plugin := fixtureBroadbandCompressionPlugin(); return &plugin }(),
+		DeEsser:              func() *DeEsserPlugin { plugin := fixtureDeEsserPlugin(); return &plugin }(),
+		TransientShaper:      func() *TransientShaperPlugin { plugin := fixtureTransientShaperPlugin(); return &plugin }(),
+	}
+	path := writeFixture(t, "whitelist_v4.json", marshalOrPanic(whitelist))
+	loaded, err := Load(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !reflect.DeepEqual(loaded, whitelist) {
+		t.Fatalf("loaded=%+v want=%+v", loaded, whitelist)
+	}
+}
+
+func TestLoadAllowsV4FileWithOnlyTransientShaperSection(t *testing.T) {
+	whitelist := Whitelist{
+		SchemaVersion:   SchemaVersion,
+		TransientShaper: func() *TransientShaperPlugin { plugin := fixtureTransientShaperPlugin(); return &plugin }(),
+	}
+	path := writeFixture(t, "whitelist_transient_only.json", marshalOrPanic(whitelist))
+	loaded, err := Load(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if loaded.TransientShaper == nil || loaded.TransientShaper.AttackParamID != "attack_shared" {
+		t.Fatalf("transient-only whitelist=%+v", loaded)
+	}
+}
+
+func TestLoadRejectsMalformedTransientShaperSections(t *testing.T) {
+	tests := []struct {
+		name   string
+		mutate func(*TransientShaperPlugin)
+	}{
+		{"empty_attack_param_id", func(p *TransientShaperPlugin) { p.AttackParamID = "" }},
+		{"empty_plugin_name", func(p *TransientShaperPlugin) { p.PluginName = "" }},
+		{"empty_plugin_path", func(p *TransientShaperPlugin) { p.PluginPath = "" }},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			plugin := fixtureTransientShaperPlugin()
+			test.mutate(&plugin)
+			data, err := json.Marshal(map[string]any{
+				"schema_version":   SchemaVersion,
+				"transient_shaper": &plugin,
+			})
+			if err != nil {
+				t.Fatal(err)
+			}
+			path := writeFixture(t, test.name+".json", string(data))
+			_, err = Load(path)
+			if err == nil {
+				t.Fatalf("%s was accepted", test.name)
+			}
+			if errors.Is(err, ErrTransientShaperNotConfigured) {
+				t.Fatalf("%s rejected as not-configured: %v", test.name, err)
+			}
+			if !strings.Contains(err.Error(), "invalid") || !strings.Contains(err.Error(), path) {
+				t.Fatalf("err=%v must contain \"invalid\" and path %s", err, path)
+			}
+		})
+	}
+	// DisallowUnknownFields keeps guarding the new section too.
+	unknown := `{"schema_version":"` + SchemaVersion + `","transient_shaper":{"plugin_name":"t","manufacturer":"m","format":"VST3","plugin_identifier":"i","plugin_path":"p","attack_param_id":"a","surprise":1}}`
+	path := writeFixture(t, "transient_unknown_field.json", unknown)
+	if _, err := Load(path); err == nil {
+		t.Fatal("unknown field in transient_shaper section was accepted")
+	}
+}
+
+func TestValidateTransientShaperAdmissionClasses(t *testing.T) {
+	dir := t.TempDir()
+	pluginPath := filepath.Join(dir, "Fixture Transient.vst3")
+	if err := os.WriteFile(pluginPath, []byte("fixture-transient-binary"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	fingerprint, err := processorattestation.FingerprintPath(pluginPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	whitelist := Whitelist{
+		SchemaVersion: SchemaVersion,
+		TransientShaper: func() *TransientShaperPlugin {
+			plugin := fixtureTransientShaperPlugin()
+			plugin.PluginPath = pluginPath
+			return &plugin
+		}(),
+	}
+	subject := processorattestation.Subject{Name: "Fixture Transient", Manufacturer: "Example", Format: "VST3", Identifier: "fixture-transient", InstalledPath: pluginPath}
+	promotedLibraryV2 := func(fingerprint string) processorattestation.LibraryV2 {
+		now := time.Date(2026, 8, 7, 12, 0, 0, 0, time.UTC)
+		attestation, err := processorattestation.NewAttestationV2(processorattestation.IssueSpecV2{
+			Subject:           subject,
+			BinaryFingerprint: fingerprint,
+			ProcessorFamily:   processorattestation.FamilyTransient,
+			Coverage:          []processorattestation.Coverage{{Action: "adjust", Axis: "envelope_emphasis"}},
+			Evidence: []processorattestation.EvidenceRef{{
+				ReceiptID: "receipt-transient-1", Kind: "transient_shaper_regression_receipt",
+				SHA256:     "sha256:" + strings.Repeat("b", 64),
+				ObservedAt: now.Add(-time.Hour),
+			}},
+		}, now)
+		if err != nil {
+			t.Fatal(err)
+		}
+		promotedAt := now.Add(time.Hour)
+		attestation.Status = processorattestation.StatusPromoted
+		attestation.StatusReason = "test_evidence_passed"
+		attestation.PromotedAt = &promotedAt
+		return processorattestation.LibraryV2{
+			SchemaVersion: processorattestation.LibrarySchemaV2,
+			UpdatedAt:     promotedAt,
+			Attestations:  []processorattestation.AttestationV2{attestation},
+		}
+	}
+
+	if err := whitelist.ValidateTransientShaperAdmission(promotedLibraryV2(fingerprint)); err != nil {
+		t.Fatalf("promoted matching binary rejected: %v", err)
+	}
+
+	staleErr := whitelist.ValidateTransientShaperAdmission(promotedLibraryV2("sha256:" + strings.Repeat("e", 64)))
+	if staleErr == nil || !strings.HasPrefix(staleErr.Error(), "experiment plugin whitelist: transient_shaper plugin is not PCA-promoted") ||
+		!strings.Contains(staleErr.Error(), "Fixture Transient") || !strings.Contains(staleErr.Error(), "binary_fingerprint_changed") {
+		t.Fatalf("fingerprint mismatch class wrong: %v", staleErr)
+	}
+
+	// An empty-but-valid v2 library (what a missing store file decodes to in
+	// production) leaves every subject without a record -> no_attestation.
+	unknownErr := whitelist.ValidateTransientShaperAdmission(processorattestation.LibraryV2{SchemaVersion: processorattestation.LibrarySchemaV2})
+	if unknownErr == nil || !strings.Contains(unknownErr.Error(), "no_attestation") {
+		t.Fatalf("unknown subject class wrong: %v", unknownErr)
+	}
+
+	unconfigured := Whitelist{}
+	if err := unconfigured.ValidateTransientShaperAdmission(processorattestation.LibraryV2{}); !errors.Is(err, ErrTransientShaperNotConfigured) {
+		t.Fatalf("unconfigured transient_shaper err=%v want ErrTransientShaperNotConfigured", err)
+	}
+
+	absent := Whitelist{
+		SchemaVersion: SchemaVersion,
+		TransientShaper: func() *TransientShaperPlugin {
+			plugin := fixtureTransientShaperPlugin()
+			plugin.PluginPath = filepath.Join(t.TempDir(), "absent.vst3")
+			return &plugin
+		}(),
+	}
+	fingerprintErr := absent.ValidateTransientShaperAdmission(promotedLibraryV2("sha256:" + strings.Repeat("9", 64)))
+	if fingerprintErr == nil || !errors.Is(fingerprintErr, os.ErrNotExist) {
+		t.Fatalf("fingerprint failure must wrap the filesystem error: %v", fingerprintErr)
+	}
+	if strings.HasPrefix(fingerprintErr.Error(), "experiment plugin whitelist: transient_shaper plugin is not PCA-promoted") {
+		t.Fatalf("fingerprint failure must stay distinguishable from PCA rejection: %v", fingerprintErr)
+	}
+}

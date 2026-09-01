@@ -284,13 +284,64 @@ var d1s1Domains = []D1S1DomainSpec{
 		AdmissionValueKey:        "threshold_db",
 		AdmissionPassthroughKeys: []string{"plugin_identifier"},
 		TargetSemantics:          "delta_db",
-		// The domain's certified semantic axis (FAM1-S1 ruling 2): a
-		// free-state admitted de_esser experiment rides the semantic dynamic
-		// chain on sibilance_reduction, not on the parameter-centric axis an
-		// LLM would freeze from the literal threshold parameter name.
-		SemanticIntentFamily:   "de_esser",
-		SemanticIntentCoverage: []string{"sibilance_reduction"},
-		AppliedReplyText:       "FAM1-S1 de-esser threshold was applied and read back. Fresh post-action evidence is recorded separately; acoustic materiality, target response, and human judgment remain pending.",
+	// The domain's certified semantic axis (FAM1-S1 ruling 2): a
+	// free-state admitted de_esser experiment rides the semantic dynamic
+	// chain on sibilance_reduction, not on the parameter-centric axis an
+	// LLM would freeze from the literal threshold parameter name.
+	SemanticIntentFamily:   "de_esser",
+	SemanticIntentCoverage: []string{"sibilance_reduction"},
+	AppliedReplyText:       "FAM1-S1 de-esser threshold was applied and read back. Fresh post-action evidence is recorded separately; acoustic materiality, target response, and human judgment remain pending.",
+	},
+	{
+		// transient_attack_adjusts one transient-shaper instance's attack by one
+		// bounded move. FAM2-S1 admits it with the same single-mutation
+		// tightness as the other PluginBound rows. Like the whitelisted
+		// de-esser, the whitelisted transient shaper (SPL Transient Designer
+		// Plus, pluginprobe 2026-09-01) exposes ONE shared automatable attack
+		// parameter (id "1098151019", stereo in/out, Link default On) rather
+		// than a ch A/B pair, so the write is single-channel. Acoustic
+		// observation binds the DOM transient-structure view, whose onset/body
+		// contrast carries the domain quantity. There is no stub form:
+		// production resolves the machine-local whitelist first and hard-fails
+		// without it.
+		ActionDomain:        agentprotocol.ImprovementActionDomainTransientShaper,
+		ActionKind:          "transient_attack_adjust",
+		PromptParameterHint: `parameter_bounds={"attack_db":<nonzero number within +/-2>}`,
+		ValidateDoseBounds: func(scope string, bounds map[string]any) error {
+			attack, ok := mapNumber(bounds, "attack_db")
+			if !ok || attack == 0 || math.Abs(attack) > 2 {
+				return fmt.Errorf("D1-S1 %s attack_db must be non-zero and within +/-2 dB", scope)
+			}
+			return nil
+		},
+		ActionIDSuffix:            "_trans",
+		CapabilityID:              "static_mix.transient.v0",
+		ContractVersions:          []string{"free_state:d1_s1", "action:transient_attack_adjust"},
+		TargetFingerprintTemplate: "track:{track}:trans:{param}:pending",
+		BeforeFingerprintTemplate: "track:{track}:trans:{param}:pending",
+		ObservationViewIDs:        []string{"track.transient_structure"},
+		Journal: D1S1JournalShape{
+			Summary:      "FAM2-S1 bounded transient attack adjustment",
+			Tool:         "set_plugin_param",
+			CommandLabel: "set_plugin_param",
+			Fields: []D1S1JournalField{
+				{Arg: "plugin_id", ArgFallback: "plugin_identifier", CommandKey: "plugin_id"},
+				{Arg: "param_id", CommandKey: "param_id"},
+				{Arg: "target_value", CommandKey: "value"},
+			},
+		},
+		WriteBinding:             D1S1WriteBinding{PluginBound: true, Channels: 1},
+		AdmissionValueKey:        "attack_db",
+		AdmissionPassthroughKeys: []string{"plugin_identifier"},
+		TargetSemantics:          "delta_db",
+		// The domain's certified semantic axis: a free-state admitted
+		// transient_shaper experiment rides the semantic dynamic chain on
+		// envelope_emphasis (SPL TD+ attestation coverage), not on the
+		// parameter-centric axis an LLM would freeze from the literal attack
+		// parameter name.
+		SemanticIntentFamily:   "transient_shaper",
+		SemanticIntentCoverage: []string{"envelope_emphasis"},
+		AppliedReplyText:       "FAM2-S1 transient attack parameter was applied and read back. Fresh post-action evidence is recorded separately; acoustic materiality, target response, and human judgment remain pending.",
 	},
 }
 

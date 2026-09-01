@@ -57,6 +57,9 @@ func resolveD1PluginParamWhitelistBinding(typedAction map[string]any) (*d1Plugin
 	if domainLabel(typedAction) == d1DeEsserDomain {
 		return resolveD1DeEsserWhitelistBinding(typedAction)
 	}
+	if domainLabel(typedAction) == d1TransientShaperDomain {
+		return resolveD1TransientShaperWhitelistBinding(typedAction)
+	}
 	binding, err := resolveD1StaticEQWhitelistBinding(typedAction)
 	if err != nil {
 		return nil, err
@@ -190,6 +193,60 @@ var d1DeEsserAttestationReader = func() (processorattestation.LibraryV2, error) 
 		return processorattestation.LibraryV2{}, fmt.Errorf("processor attestation v2 store is unreadable at %s: %w", report.Path, err)
 	}
 	return library, nil
+}
+
+// d1TransientShaperAttestationReader is the transient_shaper companion of
+// d1DeEsserAttestationReader: transient_shaper attestations live in the same
+// PCA v2 store. A missing store decodes to an empty library, which makes
+// every admission query answer not-promoted.
+var d1TransientShaperAttestationReader = func() (processorattestation.LibraryV2, error) {
+	store, err := processorattestation.NewStoreV2("")
+	if err != nil {
+		return processorattestation.LibraryV2{}, err
+	}
+	library, report, err := store.Read()
+	if err != nil {
+		return processorattestation.LibraryV2{}, fmt.Errorf("processor attestation v2 store is unreadable at %s: %w", report.Path, err)
+	}
+	return library, nil
+}
+
+// resolveD1TransientShaperWhitelistBinding mirrors the de_esser gate for the
+// transient_shaper whitelist section with its own label so upstream can tell
+// the domains apart. The whitelisted transient shaper carries ONE shared
+// attack parameter (SPL TD+ probe 2026-09-01), so the binding resolves a
+// single channel; admission runs against the PCA v2 library (transient_shaper
+// is a v2 family, same Form A dispatch as de_esser).
+func resolveD1TransientShaperWhitelistBinding(typedAction map[string]any) (*d1PluginParamWhitelistBinding, error) {
+	const label = d1TransientShaperDomain
+	whitelist, err := d1StaticEQWhitelistLoader()
+	if err != nil {
+		if errors.Is(err, experimentplugins.ErrNotConfigured) || errors.Is(err, experimentplugins.ErrTransientShaperNotConfigured) {
+			return nil, fmt.Errorf("%s experiment is not configured: %w", label, experimentplugins.ErrTransientShaperNotConfigured)
+		}
+		return nil, fmt.Errorf("%s experiment whitelist is invalid: %w", label, err)
+	}
+	transient := whitelist.TransientShaper
+	if transient == nil {
+		return nil, fmt.Errorf("%s experiment is not configured: %w", label, experimentplugins.ErrTransientShaperNotConfigured)
+	}
+	pinned := firstStringFromMap(typedAction, "plugin_identifier")
+	if pinned != "" && !strings.EqualFold(pinned, transient.PluginIdentifier) {
+		return nil, fmt.Errorf("%s admission pinned plugin_identifier %q but the experiment plugin whitelist admits %q", label, pinned, transient.PluginIdentifier)
+	}
+	library, err := d1TransientShaperAttestationReader()
+	if err != nil {
+		return nil, fmt.Errorf("%s experiment could not evaluate its PCA admission: %w", label, err)
+	}
+	if err := whitelist.ValidateTransientShaperAdmission(library); err != nil {
+		return nil, fmt.Errorf("%s experiment was refused by the PCA admission check: %w", label, err)
+	}
+	return &d1PluginParamWhitelistBinding{
+		Section:    label,
+		PluginName: transient.PluginName,
+		PluginPath: transient.PluginPath,
+		ParamID:    transient.AttackParamID,
+	}, nil
 }
 
 // resolveD1StaticEQWhitelistBinding turns one admitted static_eq typed action

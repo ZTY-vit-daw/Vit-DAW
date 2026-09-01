@@ -45,6 +45,7 @@ ADMITTED_DOMAIN_KINDS = {
     "static_eq": "static_eq_band_adjust",
     "broadband_compression": "broadband_threshold_adjust",
     "de_esser": "de_esser_threshold_adjust",
+    "transient_shaper": "transient_attack_adjust",
 }
 NOT_EXERCISED_EXIT = 3
 ACTIVE_CONTINUATION_STATUSES = {"pending", "claimed", "running"}

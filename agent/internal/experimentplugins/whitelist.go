@@ -7,6 +7,8 @@
 // static_eq loading/validation behavior is byte-identical to the v1 loader.
 // Schema v3 adds the de_esser section (FAM1-S1): one shared threshold
 // parameter instead of the PA-style ch pair, per the 2026-08-31 pluginprobe.
+// Schema v4 adds the transient_shaper section (FAM2-S1): one shared attack
+// parameter, per the 2026-09-01 pluginprobe.
 package experimentplugins
 
 import (
@@ -22,7 +24,7 @@ import (
 	"vit-daw-agent/internal/processorattestation"
 )
 
-const SchemaVersion = "vit.free_state_experiment_plugins.v3"
+const SchemaVersion = "vit.free_state_experiment_plugins.v4"
 
 const freeStateExperimentPluginsFileName = "free_state_experiment_plugins.json"
 
@@ -68,11 +70,25 @@ type DeEsserPlugin struct {
 	ThresholdParamID string `json:"threshold_param_id"`
 }
 
+// TransientShaperPlugin 是 transient_shaper 域的白名单插件：单个共享 attack
+// 参数（SPL Transient Designer Plus 2026-09-01 pluginprobe 实测：全表面 13
+// 参数中 attack/sustain 均为单共享连续 dB 参数，非 ch 对，Link 默认 On），
+// 一次动作单批单通道写。
+type TransientShaperPlugin struct {
+	PluginName       string `json:"plugin_name"`
+	Manufacturer     string `json:"manufacturer"`
+	Format           string `json:"format"`
+	PluginIdentifier string `json:"plugin_identifier"`
+	PluginPath       string `json:"plugin_path"`
+	AttackParamID    string `json:"attack_param_id"`
+}
+
 type Whitelist struct {
 	SchemaVersion        string                      `json:"schema_version"`
 	StaticEQ             *StaticEQPlugin             `json:"static_eq,omitempty"`
 	BroadbandCompression *BroadbandCompressionPlugin `json:"broadband_compression,omitempty"`
 	DeEsser              *DeEsserPlugin              `json:"de_esser,omitempty"`
+	TransientShaper      *TransientShaperPlugin      `json:"transient_shaper,omitempty"`
 }
 
 var ErrNotConfigured = errors.New("experiment plugin whitelist: static_eq plugin is not configured")
@@ -80,6 +96,8 @@ var ErrNotConfigured = errors.New("experiment plugin whitelist: static_eq plugin
 var ErrCompressionNotConfigured = errors.New("experiment plugin whitelist: broadband_compression plugin is not configured")
 
 var ErrDeEsserNotConfigured = errors.New("experiment plugin whitelist: de_esser plugin is not configured")
+
+var ErrTransientShaperNotConfigured = errors.New("experiment plugin whitelist: transient_shaper plugin is not configured")
 
 func DefaultPath() (string, error) {
 	home, err := os.UserHomeDir()
@@ -121,6 +139,11 @@ func Load(path string) (Whitelist, error) {
 	}
 	if whitelist.DeEsser != nil {
 		if err := validateDeEsserPlugin(*whitelist.DeEsser); err != nil {
+			return Whitelist{}, fmt.Errorf("experiment plugin whitelist: invalid %s: %w", path, err)
+		}
+	}
+	if whitelist.TransientShaper != nil {
+		if err := validateTransientShaperPlugin(*whitelist.TransientShaper); err != nil {
 			return Whitelist{}, fmt.Errorf("experiment plugin whitelist: invalid %s: %w", path, err)
 		}
 	}
@@ -233,6 +256,21 @@ func (w Whitelist) ValidateDeEsserAdmission(lib processorattestation.LibraryV2) 
 	)
 }
 
+// ValidateTransientShaperAdmission mirrors ValidateDeEsserAdmission for the
+// transient_shaper whitelist section: same subject construction, same v2
+// library predicate path (transient_shaper is a PCA v2 family), and a
+// distinguishable not-PCA-promoted prefix naming this domain.
+func (w Whitelist) ValidateTransientShaperAdmission(lib processorattestation.LibraryV2) error {
+	if w.TransientShaper == nil {
+		return ErrTransientShaperNotConfigured
+	}
+	return w.validateSectionAdmissionV2(
+		"transient_shaper",
+		w.TransientShaper.PluginName, w.TransientShaper.Manufacturer, w.TransientShaper.Format, w.TransientShaper.PluginIdentifier, w.TransientShaper.PluginPath,
+		processorattestation.FamilyTransient, lib,
+	)
+}
+
 // validateSectionAdmission is the shared admission predicate core for both
 // whitelist sections. The label appears verbatim in the returned boundary
 // prefix so each domain stays distinguishable upstream.
@@ -324,6 +362,22 @@ func validateDeEsserPlugin(plugin DeEsserPlugin) error {
 	} {
 		if missing.value == "" {
 			return fmt.Errorf("de_esser %s must be non-empty", missing.field)
+		}
+	}
+	return nil
+}
+
+func validateTransientShaperPlugin(plugin TransientShaperPlugin) error {
+	for _, missing := range []struct{ field, value string }{
+		{"plugin_name", plugin.PluginName},
+		{"manufacturer", plugin.Manufacturer},
+		{"format", plugin.Format},
+		{"plugin_identifier", plugin.PluginIdentifier},
+		{"plugin_path", plugin.PluginPath},
+		{"attack_param_id", plugin.AttackParamID},
+	} {
+		if missing.value == "" {
+			return fmt.Errorf("transient_shaper %s must be non-empty", missing.field)
 		}
 	}
 	return nil
