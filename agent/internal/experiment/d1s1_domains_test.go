@@ -99,3 +99,65 @@ func TestD1S1DomainSpecsCarryPromptParameterHint(t *testing.T) {
 		}
 	}
 }
+
+func testD1PanAdmission(mode AuthorityMode) Admission {
+	a := testAdmission(mode)
+	a.TargetRef = map[string]any{"kind": "track", "id": "track-1", "source": "fresh_g1_g7_observation"}
+	a.TypedAction = map[string]any{
+		"action_domain": "pan",
+		"action_kind":   "track_pan_adjust",
+		"delta_pan":     0.1,
+	}
+	a.DiagnosticDoseBounds = map[string]any{"delta_pan": 0.1, "max_action_attempts": 1}
+	a.RetainedDoseBounds = map[string]any{"delta_pan": 0.1, "max_action_attempts": 1}
+	a.ExperimentBudget = 1
+	return a
+}
+
+func TestD1S1AdmitsBoundedTrackPanAdjustment(t *testing.T) {
+	a := testD1PanAdmission(AuthorityFull)
+	if err := a.ValidateD1S1(); err != nil {
+		t.Fatalf("valid pan admission rejected: %v", err)
+	}
+	if !a.IsD1S1() {
+		t.Fatal("pan admission must belong to the D1-S1 governed family")
+	}
+}
+
+func TestD1S1PanBoundsRejectOutOfBandParameters(t *testing.T) {
+	tests := []struct {
+		name   string
+		mutate func(*Admission)
+	}{
+		{"delta beyond bound", func(a *Admission) {
+			a.DiagnosticDoseBounds["delta_pan"] = 0.2
+			a.RetainedDoseBounds["delta_pan"] = 0.2
+			a.TypedAction["delta_pan"] = 0.2
+		}},
+		{"zero delta", func(a *Admission) {
+			a.DiagnosticDoseBounds["delta_pan"] = 0
+			a.RetainedDoseBounds["delta_pan"] = 0
+		}},
+		{"hybrid domain borrows no bounds", func(a *Admission) { a.TypedAction["action_domain"] = "track_gain" }},
+		{"attempts above one", func(a *Admission) { a.RetainedDoseBounds["max_action_attempts"] = 2 }},
+		{"diagnostic delta unbounded", func(a *Admission) { a.DiagnosticDoseBounds["delta_pan"] = -0.5 }},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			a := testD1PanAdmission(AuthorityOrdinary)
+			test.mutate(&a)
+			if err := a.ValidateD1S1(); err == nil {
+				t.Fatal("out-of-band pan admission accepted")
+			}
+		})
+	}
+}
+
+func TestD1S1PanDomainJoinsAdmittedDomainList(t *testing.T) {
+	for _, domain := range D1S1AdmittedDomains() {
+		if domain == "pan" {
+			return
+		}
+	}
+	t.Fatal("pan missing from D1S1AdmittedDomains")
+}

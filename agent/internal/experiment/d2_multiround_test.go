@@ -276,11 +276,23 @@ func TestD2MultiRoundCumulativeDisplacementBound(t *testing.T) {
 
 // The cumulative bound equals the domain-table single-action absolute bound by
 // ruling; this seals the equality against the live table so the two can never
-// drift apart silently.
+// drift apart silently. The seal is dimensioned in dB: it binds only rows
+// whose bounded value is a dB move. Pan (FAM3-S1) is normalized pan units,
+// not dB — its multi-round cumulative dimension is deliberately unsettled
+// (the D2-2 card owns it; the chat plan builder fail-closes multi-round pan
+// admissions until then), so for non-dB rows the seal inverts: the row's own
+// validator must reject the dB cumulative magnitude rather than silently
+// riding the dB machine.
 func TestD2MultiRoundCumulativeBoundMatchesDomainAbsoluteBound(t *testing.T) {
 	for _, domain := range D1S1DomainSpecs() {
 		t.Run(domain.ActionDomain, func(t *testing.T) {
 			key := domain.AdmissionValueKey
+			if !strings.HasSuffix(key, "_db") {
+				if err := domain.ValidateDoseBounds("cumulative-probe", map[string]any{key: d2MultiRoundCumulativeDeltaBoundDB}); err == nil {
+					t.Fatalf("non-dB domain %s silently accepts the dB cumulative magnitude %g", domain.ActionDomain, d2MultiRoundCumulativeDeltaBoundDB)
+				}
+				return
+			}
 			for _, delta := range []float64{-d2MultiRoundCumulativeDeltaBoundDB, d2MultiRoundCumulativeDeltaBoundDB} {
 				if err := domain.ValidateDoseBounds("cumulative-probe", map[string]any{key: delta}); err != nil {
 					t.Fatalf("domain absolute bound no longer matches the cumulative bound %.1g dB: %v", delta, err)

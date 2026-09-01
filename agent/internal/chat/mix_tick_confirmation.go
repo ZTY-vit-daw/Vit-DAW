@@ -216,6 +216,18 @@ func (s *Server) executePendingMixTickCandidate(ctx context.Context, conversatio
 			Error:          err.Error(),
 		}
 	}
+	// FAM3-S1 pan: the first non-PluginBound domain row after track_gain gets
+	// its own native dispatch arm. Without it a pan admission falls through to
+	// executeD1TrackGain, whose kind guard honestly blocks the pan candidate.
+	if loop, ok := s.freeStateLoop(conversationID); ok && loop.Experiment != nil && loop.Experiment.Admission.IsD1S1() {
+		if spec, ok := experiment.D1S1DomainSpecFor(loop.Experiment.Admission); ok && !spec.WriteBinding.PluginBound && spec.ActionKind == d1PanKind {
+			if response, handled := s.executeD1TrackPan(ctx, conversationID, req, candidate); handled {
+				s.expirePendingMixTick(conversationID)
+				s.settlePendingMixTickDurable(conversationID, agentprotocol.PendingStatusCommitted, "executed by D1-S1 "+spec.ActionDomain+" chain")
+				return response
+			}
+		}
+	}
 	// D2-1 static_eq and every later PluginBound domain row: dispatch the same
 	// durable D1-S1 execution chain by the admitted action domain's table row.
 	// track_gain keeps its original path byte-identical.

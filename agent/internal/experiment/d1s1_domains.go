@@ -343,6 +343,47 @@ var d1s1Domains = []D1S1DomainSpec{
 		SemanticIntentCoverage: []string{"envelope_emphasis"},
 		AppliedReplyText:       "FAM2-S1 transient attack parameter was applied and read back. Fresh post-action evidence is recorded separately; acoustic materiality, target response, and human judgment remain pending.",
 	},
+	{
+		// track_pan_adjust moves one track's stereo pan by one bounded step.
+		// FAM3-S1 admits it on the native (non-plugin) path with the same
+		// single-mutation tightness as track_gain: pan is normalized [-1,+1]
+		// (left negative, right positive) — not dB — and the bounded step is
+		// +/-0.15 pan units to match the B-side triple gate
+		// (pending_protocol/message_loop/proposal routing). The write rides
+		// the kernel's set_pan twin of set_volume through the track's volume
+		// plugin: no plugin chain, no whitelist, no attestation. Out-of-range
+		// targets are pre-rejected fail-closed by the port's Preflight (the
+		// kernel would silently jlimit). The row carries no semantic intent
+		// anchor: pan never rides the semantic dynamic chain (track_gain
+		// precedent — there is no certified axis to freeze).
+		ActionDomain:        agentprotocol.ImprovementActionDomainPan,
+		ActionKind:          "track_pan_adjust",
+		PromptParameterHint: `parameter_bounds={"delta_pan":<nonzero number within +/-0.15>}`,
+		ValidateDoseBounds: func(scope string, bounds map[string]any) error {
+			delta, ok := mapNumber(bounds, "delta_pan")
+			if !ok || delta == 0 || math.Abs(delta) > 0.15 {
+				return fmt.Errorf("D1-S1 %s delta_pan must be non-zero and within +/-0.15", scope)
+			}
+			return nil
+		},
+		ActionIDSuffix:            "_pan",
+		CapabilityID:              "static_mix.pan.v0",
+		ContractVersions:          []string{"free_state:d1_s1", "action:track_pan_adjust"},
+		TargetFingerprintTemplate: "track:{track}:pan:{param}:pending",
+		BeforeFingerprintTemplate: "track:{track}:pan:{param}:pending",
+		ObservationViewIDs:        []string{"track.stereo_space"},
+		Journal: D1S1JournalShape{
+			Summary:      "FAM3-S1 bounded track pan adjustment",
+			Tool:         "track_pan_adjust",
+			CommandLabel: "set_pan",
+			Fields: []D1S1JournalField{
+				{Arg: "target_pan", CommandKey: "pan"},
+			},
+		},
+		WriteBinding:      D1S1WriteBinding{Channels: 1},
+		AdmissionValueKey: "delta_pan",
+		AppliedReplyText:  "FAM3-S1 track pan parameter was applied and read back. Fresh post-action evidence is recorded separately; acoustic materiality, target response, and human judgment remain pending.",
+	},
 }
 
 // D1S1AdmittedDomains lists the action domains admitted by the bounded

@@ -41,6 +41,11 @@ const d1DeEsserKind = "de_esser_threshold_adjust"
 const d1TransientShaperDomain = "transient_shaper"
 const d1TransientShaperKind = "transient_attack_adjust"
 
+// FAM3-S1 pan mirrors the experiment table row as a routing label; the table
+// remains the bounds authority.
+const d1PanDomain = "pan"
+const d1PanKind = "track_pan_adjust"
+
 // d1StaticEQCapabilityID identifies the bounded static EQ band adjustment in
 // the frozen ActionSet/Proposal. The D1 execution path routes by the explicit
 // mutation port (StaticEQVSPPort), so no capability registry registration is
@@ -197,12 +202,84 @@ func d1StaticEQPlanWithBinding(loop freeStateReasoningLoop, candidate agentloop.
 	return d1AssembleFrozenPlan(loop, spec, action, targetID, cut)
 }
 
+// d1TrackPanPlan mirrors d1TrackGainPlan for the bounded track pan adjustment
+// (FAM3-S1): one admitted action, one forward mutation, revision-bound cut.
+// The pan move is delta-to-absolute like track_gain (the plan computes
+// target_pan from the current snapshot readback plus the admitted delta), so
+// an out-of-range result surfaces in the action's absolute target where the
+// port's Preflight rejects it fail-closed before any kernel write.
+func d1TrackPanPlan(loop freeStateReasoningLoop, candidate agentloop.PendingMixTickCandidate, stateRevision int64, projectUUID, projectEpoch, snapshotHash string, state map[string]any) (orchestration.FrozenPlan, error) {
+	if loop.Experiment == nil || !loop.Experiment.Admission.IsD1S1() {
+		return orchestration.FrozenPlan{}, fmt.Errorf("active D1-S1 experiment is required")
+	}
+	if err := validateD1TierAdmission(loop.Experiment.Admission); err != nil {
+		return orchestration.FrozenPlan{}, err
+	}
+	spec, ok := experiment.D1S1DomainSpecFor(loop.Experiment.Admission)
+	if !ok || spec.ActionDomain != d1PanDomain || spec.ActionKind != d1PanKind {
+		return orchestration.FrozenPlan{}, fmt.Errorf("FAM3-S1 pan plan requires a pan admission")
+	}
+	if candidate.Operation != d1PanKind || strings.TrimSpace(candidate.TrackID) == "" || candidate.DeltaPan == 0 || math.Abs(candidate.DeltaPan) > 0.15 {
+		return orchestration.FrozenPlan{}, fmt.Errorf("FAM3-S1 requires one bounded track_pan_adjust")
+	}
+	admittedDelta, ok := treatmentNumber(loop.Experiment.Admission.TypedAction, "delta_pan")
+	if !ok || math.Abs(candidate.DeltaPan-admittedDelta) > 0.0001 {
+		return orchestration.FrozenPlan{}, fmt.Errorf("FAM3-S1 candidate delta does not match the admitted observation-backed action")
+	}
+	targetID := firstStringFromMap(loop.Experiment.Admission.TargetRef, "id", "track_id")
+	if candidate.TrackID != targetID {
+		return orchestration.FrozenPlan{}, fmt.Errorf("FAM3-S1 candidate target does not match admitted observation target")
+	}
+	currentPan, ok := d1TrackPan(state, targetID)
+	if !ok {
+		return orchestration.FrozenPlan{}, fmt.Errorf("FAM3-S1 target pan readback is unavailable")
+	}
+	if stateRevision <= 0 || projectUUID == "" || projectEpoch == "" || snapshotHash == "" {
+		return orchestration.FrozenPlan{}, fmt.Errorf("FAM3-S1 requires a revision-bound VSP snapshot")
+	}
+	// The D2-2 cumulative dose machine is dimensioned in dB
+	// (d2MultiRoundChatCumulativeBoundDB); pan units are not dB, so a pan
+	// admission stays single-round until the D2-2 card dimensions the
+	// cumulative bound for normalized pan units. Fail closed rather than
+	// reusing the dB bound with the wrong unit.
+	if loop.Experiment.Admission.IsD2MultiRound() {
+		return orchestration.FrozenPlan{}, fmt.Errorf("FAM3-S1 pan multi-round execution is not admitted: the D2-2 cumulative bound is dimensioned in dB, not pan units")
+	}
+	cut, err := projectcut.Build(projectcut.BuildRequest{
+		State: d1StateResult(projectUUID, projectEpoch, snapshotHash, stateRevision, state), Guarantee: projectcut.GuaranteeKernelBarrier,
+		DependencyFingerprints: append([]string(nil), loop.Experiment.Admission.EvidenceRefs...),
+		TargetFingerprints:     []string{d1SubstituteFingerprint(spec.TargetFingerprintTemplate, targetID, "", "fader_pan")},
+		ContractVersions:       append([]string(nil), spec.ContractVersions...),
+	})
+	if err != nil {
+		return orchestration.FrozenPlan{}, err
+	}
+	action := orchestration.Action{ID: "d1_" + sanitizeCanaryID(loop.Experiment.ID) + d1MultiRoundRoundScopeSuffix(loop) + spec.ActionIDSuffix, Command: d1PanKind, TargetRef: targetID,
+		BeforeFingerprint: d1SubstituteFingerprint(spec.BeforeFingerprintTemplate, targetID, "", "fader_pan"),
+		Args:              map[string]any{"delta_pan": candidate.DeltaPan, "target_pan": currentPan + candidate.DeltaPan}, Compensatable: true, IdempotencyClass: "effectively_once"}
+	return d1AssembleFrozenPlan(loop, spec, action, targetID, cut)
+}
+
 func d1TrackGain(state map[string]any, trackID string) (float64, bool) {
 	for _, row := range mapRowsFromAny(state["tracks"]) {
 		if firstStringFromMap(row, "track_id", "id") != trackID {
 			continue
 		}
 		return treatmentNumber(row, "volume_db", "fader_db", "gain_db", "db")
+	}
+	return 0, false
+}
+
+// d1TrackPan reads one track's current pan position from the VSP snapshot
+// state, mirroring d1TrackGain's row walk over the pan readback keys the
+// kernel's track rows expose (pan/pan_value/balance — the same key family
+// executionports.trackPan consumes).
+func d1TrackPan(state map[string]any, trackID string) (float64, bool) {
+	for _, row := range mapRowsFromAny(state["tracks"]) {
+		if firstStringFromMap(row, "track_id", "id") != trackID {
+			continue
+		}
+		return treatmentNumber(row, "pan", "pan_value", "balance")
 	}
 	return 0, false
 }
@@ -404,6 +481,104 @@ func (s *Server) executeD1StaticEQ(ctx context.Context, conversationID string, r
 		session, err = s.orchestrationRuntime.ReconcileActionSet(ctx, sessionID, plan.ActionSet, &executionports.StaticEQVSPPort{Client: s.kernel, CommandName: spec.ActionKind}, verifier)
 	case orchestration.StatusAuthorized:
 		port := &d1JournalMutationPort{inner: &executionports.StaticEQVSPPort{Client: s.kernel, CommandName: spec.ActionKind}, harness: s.harness, goalID: loop.GoalID, runID: loop.RunID, staticEQ: true, journalSpec: &spec}
+		session, err = s.orchestrationRuntime.ExecuteActionSetWithPersistence(ctx, sessionID, plan.ActionSet, plan.ProjectCut, port, verifier,
+			executionports.ProjectHistory{Harness: s.harness, GoalID: loop.GoalID, RunID: loop.RunID})
+	case orchestration.StatusCompleted, orchestration.StatusNeedsReview:
+		// Durable terminal execution is projected below without another mutation.
+	default:
+		return d1BlockedResponse(loop, "D1-S1 durable session is not executable at status "+string(session.Status)), true
+	}
+	return s.projectD1Execution(loop, session, err), true
+}
+
+// executeD1TrackPan mirrors executeD1TrackGain for the pan domain row (the
+// first non-PluginBound domain after track_gain): the same durable
+// session/plan/authorize/execute shape with the pan-native TrackPanVSPPort
+// (set_pan CAS, revision advance gate, value readback) and the table-shaped
+// journal variant. track_gain keeps its own function untouched.
+func (s *Server) executeD1TrackPan(ctx context.Context, conversationID string, req ChatRequest, candidate agentloop.PendingMixTickCandidate) (ChatResponse, bool) {
+	loop, ok := s.freeStateLoop(conversationID)
+	if !ok || loop.Experiment == nil || !loop.Experiment.Admission.IsD1S1() {
+		return ChatResponse{}, false
+	}
+	spec, specOK := experiment.D1S1DomainSpecFor(loop.Experiment.Admission)
+	if !specOK || spec.WriteBinding.PluginBound || spec.ActionKind != d1PanKind {
+		return d1BlockedResponse(loop, "FAM3-S1 pan execution requires an admitted pan domain"), true
+	}
+	if s.kernel == nil || s.harness == nil || s.orchestrationRuntime == nil || !s.orchestrationRuntime.HasDurableStore() {
+		return d1BlockedResponse(loop, "D1-S1 durable execution dependencies are unavailable"), true
+	}
+	// Per-round durable session on the D2-2 tier, mirroring executeD1TrackGain:
+	// round 2 owns its own session so round 1's completed session is never
+	// re-projected as this round's execution; round 1 keeps the historical id.
+	sessionID := "d1_session_" + sanitizeCanaryID(loop.Experiment.ID) + d1MultiRoundRoundScopeSuffix(loop)
+	session, exists := s.orchestrationRuntime.Store.Load(sessionID)
+	var plan orchestration.FrozenPlan
+	var state *kernel.VSPStateResult
+	var projectUUID string
+	var err error
+	if exists {
+		if session.FrozenPlan == nil {
+			return d1BlockedResponse(loop, "D1-S1 durable session has no frozen plan"), true
+		}
+		plan = *session.FrozenPlan
+		projectUUID = session.ProjectUUID
+		beforeRender := firstMapFromAny(loop.D1State["before_render"])
+		if firstStringFromMap(beforeRender, "status") != "ready" || firstStringFromMap(beforeRender, "project_revision") != plan.ProjectCut.BaseProjectRevision || !validD1RenderFile(firstStringFromMap(beforeRender, "file_path")) {
+			return d1BlockedResponse(loop, "D1-S1 restart recovery requires the persisted before render bound to the frozen base revision"), true
+		}
+	} else {
+		state, err = s.kernel.VSPStateSnapshot(ctx, "project.timeline")
+		if err != nil || state == nil || !state.OK() {
+			return d1BlockedResponse(loop, "D1-S1 VSP snapshot unavailable: "+canaryErrorText(err)), true
+		}
+		projectUUID = firstNonEmpty(firstStringFromMap(state.LegacyState, "project_uuid", "id"), firstStringFromMap(loop.LatestProjectChange, "project_uuid", "project_id"))
+		round, roundErr := loop.Experiment.CurrentRound()
+		if roundErr != nil || len(round.Observations) == 0 || round.Observations[0].PostAction || round.Observations[0].ProjectRevision != fmt.Sprint(state.Revision) {
+			return d1BlockedResponse(loop, "D1-S1 VSP base revision does not match the fresh admitted observation"), true
+		}
+		if _, err = s.ensureD1Render(ctx, &loop, "before", fmt.Sprint(state.Revision), round.CheckpointRef); err != nil {
+			return d1BlockedResponse(loop, err.Error()), true
+		}
+		afterRender, snapshotErr := s.kernel.VSPStateSnapshot(ctx, "project.timeline")
+		if snapshotErr != nil || afterRender == nil || !afterRender.OK() || afterRender.ProjectEpoch != state.ProjectEpoch || afterRender.Revision != state.Revision || afterRender.SnapshotHash != state.SnapshotHash {
+			return d1BlockedResponse(loop, "D1-S1 project changed while producing the before render"), true
+		}
+		state = afterRender
+		plan, err = d1TrackPanPlan(loop, candidate, state.Revision, projectUUID, state.ProjectEpoch, state.SnapshotHash, state.LegacyState)
+		if err != nil {
+			return d1BlockedResponse(loop, err.Error()), true
+		}
+	}
+	if !exists {
+		session, err = s.orchestrationRuntime.StartB2ChatSession(sessionID, conversationID, projectUUID, loop.OriginalIntent, orchestration.InteractionPropose)
+		if err == nil {
+			session, err = s.orchestrationRuntime.AttachFrozenPlan(sessionID, plan)
+		}
+		if err == nil {
+			decision := orchestration.ApprovalDecision{SchemaVersion: orchestration.ApprovalDecisionSchema, Kind: orchestration.ApprovalApprove,
+				ProposalID: plan.Proposal.ID, ProposalRevision: plan.Proposal.Revision, ActionSetHash: plan.ActionSet.Hash, ProjectCutHash: plan.ProjectCut.Hash,
+				ApprovedScope: []string{candidate.TrackID}, SourceTurnID: loop.Experiment.ID, UserText: req.Message, Confidence: "explicit"}
+			session, err = s.orchestrationRuntime.AuthorizeProposal(sessionID, orchestration.Authorization{ProposalID: plan.Proposal.ID, ProposalRevision: 1,
+				ActionSetHash: plan.ActionSet.Hash, ProjectCutHash: plan.ProjectCut.Hash, Scope: []string{candidate.TrackID}, SourceTurnID: loop.Experiment.ID, Sequence: session.Revision + 1, Decision: &decision})
+		}
+	}
+	if err != nil {
+		return d1BlockedResponse(loop, err.Error()), true
+	}
+	if state == nil {
+		state, err = s.kernel.VSPStateSnapshot(ctx, "project.timeline")
+		if err != nil || state == nil || !state.OK() {
+			return d1BlockedResponse(loop, "D1-S1 recovery snapshot unavailable: "+canaryErrorText(err)), true
+		}
+	}
+	verifier := executionverifiers.StaticPanBalance{State: s.kernel, Acoustic: executionverifiers.HarnessAcoustic{Invoker: s.harness,
+		PreviousObservationID: plan.PreviousObservationID, RequireExplicitFresh: true, MixSessionID: sessionID, GoalText: loop.OriginalIntent}}
+	switch session.Status {
+	case orchestration.StatusExecuting, orchestration.StatusVerifying:
+		session, err = s.orchestrationRuntime.ReconcileActionSet(ctx, sessionID, plan.ActionSet, &executionports.TrackPanVSPPort{Client: s.kernel}, verifier)
+	case orchestration.StatusAuthorized:
+		port := &d1JournalMutationPort{inner: &executionports.TrackPanVSPPort{Client: s.kernel}, harness: s.harness, goalID: loop.GoalID, runID: loop.RunID, journalSpec: &spec}
 		session, err = s.orchestrationRuntime.ExecuteActionSetWithPersistence(ctx, sessionID, plan.ActionSet, plan.ProjectCut, port, verifier,
 			executionports.ProjectHistory{Harness: s.harness, GoalID: loop.GoalID, RunID: loop.RunID})
 	case orchestration.StatusCompleted, orchestration.StatusNeedsReview:

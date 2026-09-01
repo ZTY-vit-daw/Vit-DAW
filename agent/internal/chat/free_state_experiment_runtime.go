@@ -64,10 +64,20 @@ func freeStateExperimentAdmissionWithTier(loop freeStateReasoningLoop, proposal 
 	var typedAction map[string]any
 	var diagnosticBounds, retainedBounds map[string]any
 	if !spec.WriteBinding.PluginBound {
-		deltaDB, _ := treatmentNumber(proposal.ParameterBounds, "delta_db", "db_delta", "gain_delta_db")
-		typedAction = map[string]any{"action_domain": proposal.ActionDomain, "action_kind": proposal.ActionKind, "target_db": proposal.ParameterBounds["target_db"], "delta_db": deltaDB}
-		diagnosticBounds = map[string]any{"source": "proposal", "bounds": cloneContext(bounds), "delta_db": deltaDB, "max_action_attempts": 1}
-		retainedBounds = map[string]any{"source": "proposal", "bounds": cloneContext(bounds), "delta_db": deltaDB, "max_action_attempts": 1}
+		// Native (non-plugin) domains read their single bounded move by the
+		// table's AdmissionValueKey; the historical delta_db alias chain stays
+		// on the track_gain row (its key is delta_db, so its construction is
+		// byte-identical) and the optional absolute target rides the matching
+		// target_ key. The per-row validators remain the bounds authority.
+		valueKeys := []string{spec.AdmissionValueKey}
+		if spec.AdmissionValueKey == "delta_db" {
+			valueKeys = append(valueKeys, "db_delta", "gain_delta_db")
+		}
+		targetKey := "target_" + strings.TrimPrefix(spec.AdmissionValueKey, "delta_")
+		deltaValue, _ := treatmentNumber(proposal.ParameterBounds, valueKeys...)
+		typedAction = map[string]any{"action_domain": proposal.ActionDomain, "action_kind": proposal.ActionKind, targetKey: proposal.ParameterBounds[targetKey], spec.AdmissionValueKey: deltaValue}
+		diagnosticBounds = map[string]any{"source": "proposal", "bounds": cloneContext(bounds), spec.AdmissionValueKey: deltaValue, "max_action_attempts": 1}
+		retainedBounds = map[string]any{"source": "proposal", "bounds": cloneContext(bounds), spec.AdmissionValueKey: deltaValue, "max_action_attempts": 1}
 	} else {
 		// Plugin-bound domains carry their single bounded parameter (named by
 		// the table's AdmissionValueKey) plus the verbatim passthrough keys;

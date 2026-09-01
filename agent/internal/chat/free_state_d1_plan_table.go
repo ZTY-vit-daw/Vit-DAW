@@ -346,7 +346,7 @@ func d1JournalRecordForSpec(spec experiment.D1S1DomainSpec, actionID, goalID, ru
 	command := map[string]any{"cmd": spec.Journal.CommandLabel, "track_id": targetRef}
 	for _, field := range spec.Journal.Fields {
 		switch field.CommandKey {
-		case "value", "db":
+		case "value", "db", "pan":
 			command[field.CommandKey] = args[field.Arg]
 		default:
 			keys := []string{field.Arg}
