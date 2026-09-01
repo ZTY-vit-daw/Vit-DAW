@@ -305,6 +305,31 @@ def apply_band_steps(clean: np.ndarray, sample_rate: int, recipe: dict[str, Any]
     }
 
 
+def track_balance_db(audio: np.ndarray) -> float:
+    left = rms(audio[:, 0])
+    right = rms(audio[:, 1])
+    return 20.0 * math.log10(max(right, 1e-30) / max(left, 1e-30))
+
+
+def apply_channel_balance_shift(clean: np.ndarray, sample_rate: int, recipe: dict[str, Any]) -> tuple[np.ndarray, dict[str, Any]]:
+    # FAM3-S2 pan fixture: a symmetric per-channel gain split (+/- half the
+    # declared shift) tilts the target track's left-right balance by exactly
+    # balance_shift_db while the mono sum and the macro envelope stay matched
+    # (rms_match renormalizes the combined level; the split itself is level
+    # symmetric). Same measurement family as the kernel balance_db
+    # (RMS_R(dB) - RMS_L(dB)).
+    shift_db = float(recipe["balance_shift_db"])
+    require(shift_db != 0.0, "channel balance shift must be non-zero")
+    tilt = 10.0 ** (shift_db / 40.0)
+    problem = rms_match(clean * np.asarray([1.0 / tilt, tilt])[None, :], clean)
+    mono_clean = np.mean(clean, axis=1, dtype=np.float64)
+    mono_problem = np.mean(problem, axis=1, dtype=np.float64)
+    return problem, {
+        "target_balance_db_delta": track_balance_db(problem) - track_balance_db(clean),
+        "mono_rms_db_delta": db(rms(mono_problem) / max(rms(mono_clean), 1e-30)),
+    }
+
+
 APPLIERS = {
     "broad_bell_gain": lambda clean, rate, recipe, gate: apply_broad_bell(clean, rate, recipe),
     "macro_level_steps": lambda clean, rate, recipe, gate: apply_macro_steps(clean, rate, recipe),
@@ -313,6 +338,7 @@ APPLIERS = {
     "sparse_peak_overshoot": lambda clean, rate, recipe, gate: apply_peak_overshoot(clean, rate, recipe),
     "low_interval_noise_bed": lambda clean, rate, recipe, gate: apply_noise_bed(clean, rate, recipe),
     "band_limited_level_steps": apply_band_steps,
+    "channel_balance_shift": lambda clean, rate, recipe, gate: apply_channel_balance_shift(clean, rate, recipe),
 }
 
 
@@ -339,6 +365,10 @@ def validate_gate(kind: str, metrics: dict[str, Any], gate: dict[str, Any]) -> N
     elif kind == "band_limited_level_steps":
         require(metrics["target_band_p90_p10_range_db_delta"] >= float(gate["minimum_delta_db"]), "Multiband target-band delta is too small")
         require(abs(metrics["reference_band_p90_p10_range_db_delta"]) <= float(gate["maximum_absolute_reference_band_delta_db"]), "Multiband fixture changed reference band")
+    elif kind == "channel_balance_shift":
+        require(abs(metrics["target_balance_db_delta"]) >= float(gate["minimum_delta_db"]), "Pan fixture balance delta is too small")
+        require(abs(metrics["mono_rms_db_delta"]) <= float(gate["maximum_mono_rms_delta_db"]), "Pan fixture changed mono level too much")
+        require(abs(metrics["active_macro_range_500ms_db_delta"]) <= float(gate["maximum_macro_range_delta_db"]), "Pan fixture changed macro dynamics too much")
     else:
         raise AssertionError(f"unsupported recipe kind {kind}")
 
@@ -438,7 +468,7 @@ def main() -> int:
             "issue_count": sum(project["issue_count"] for project in projects),
             "projects": projects,
         }
-        require(report["project_count"] == 2 and report["issue_count"] == 7, "qualification count mismatch")
+        require(report["project_count"] == 3 and report["issue_count"] == 8, "qualification count mismatch")
         if args.output:
             write_json(Path(args.output).resolve(), report)
         print(json.dumps(report, ensure_ascii=False, indent=2))

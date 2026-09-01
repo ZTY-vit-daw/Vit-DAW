@@ -78,7 +78,7 @@
   "material_plan": {
     "copyrighted_audio_in_repository": false,
     "source_root": "C:\\Users\\timoz\\Documents\\RipX\\Stems",
-    "project_count": 2,
+    "project_count": 3,
     "track_order": [
       "bass",
       "drums",
@@ -185,6 +185,30 @@
             "fault_recipe": {"kind": "band_limited_level_steps", "band_low_hz": 55.0, "band_high_hz": 180.0, "depth_db": 16.0, "period_seconds": 0.8, "seed": 7407, "rms_match_tolerance_db": 0.1},
             "qualification_gate": {"primary_metric": "target_band_p90_p10_range_db", "minimum_delta_db": 4.0, "reference_band_low_hz": 500.0, "reference_band_high_hz": 2000.0, "maximum_absolute_reference_band_delta_db": 1.0},
             "detectability_assertion": "low-band time variation increases relative to higher-band motion and cannot be established from a whole-window band total alone"
+          }
+        ]
+      },
+      {
+        "public_case_id": "spv1_p06",
+        "source_project": "李佳薇 - 甲乙丙丁 (你我怎么两清)_611237221",
+        "start_seconds": 160.0,
+        "end_seconds": 180.0,
+        "source_files": [
+          {"track": "bass", "sha256": "82626aad65fd69354a98b18e2b5eaf01686ac3bb464fa0e78f0be07c7d03525c"},
+          {"track": "drums", "sha256": "844ec7310af3da834219a32ed4a2794f707d30e98884e4410f1646c7ea6d105d"},
+          {"track": "guitar", "sha256": "877136a00eae9ecbc838ba2cc846a3ff6e002e2adafad364a50c081d249eb52a"},
+          {"track": "other", "sha256": "e060b892257af8b999b012045dd105e5fbcd1ba44fd92fdad4e2cb72fc9491fb"},
+          {"track": "piano", "sha256": "22ac7b808f2472eb9c772a5275006f050a087a7905bc9c2a9f257cf12bce21c8"},
+          {"track": "vocals", "sha256": "8d6ee7ab8cf166bb9b041d27f5345742c545bb0948d376d97e48404381e8f674"}
+        ],
+        "sealed_issue_assignments": [
+          {
+            "issue_id": "spv1_i08",
+            "target_track": "vocals",
+            "expected_family": "pan",
+            "fault_recipe": {"kind": "channel_balance_shift", "balance_shift_db": 6.0, "rms_match_tolerance_db": 0.1},
+            "qualification_gate": {"primary_metric": "target_balance_db", "minimum_delta_db": 4.0, "maximum_mono_rms_delta_db": 0.5, "maximum_macro_range_delta_db": 1.0},
+            "detectability_assertion": "one track's left-right balance shifts clearly while its mono RMS, macro envelope, and all non-target stems stay matched"
           }
         ]
       }

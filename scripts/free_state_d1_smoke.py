@@ -42,6 +42,11 @@ PROMPT_FLAVORS = {
     # 瞬态对比不足）不指定参数方向；四要素同构，case-agnostic，零 sealed 真值
     # （目标轨由模型观察自主选择，盲法保持）。
     "transient": "鼓和打击乐的起音听起来偏钝、瞬态对比不足，但各轨电平平衡已经合适，不要用整体增益或 EQ 来解决。请先观察工程，再针对这个起音问题给一个有界的小步改进建议。",
+    # FAM3-S2：前提与 p06 烘焙 fault 对齐（单一轨道 L/R 增益倾斜，生成机第 8 配方
+    # channel_balance_shift，方向由 sealed 持有）。措辞不指定轨名与方向——模型经
+    # track.stereo_space 观察自选目标与方向；delta_pan 双向物理可达；四要素同构，
+    # case-agnostic，零 sealed 真值。
+    "pan": "有一条轨的声像明显偏向一侧、立体声左右平衡听起来不自然，但各轨电平平衡已经合适，不要用整体增益或 EQ 来解决。请先观察工程，再针对这个声像问题给一个有界的小步改进建议。",
 }
 # The D2-1 domain table mirrored for runner-side gating. Admission itself is
 # always decided by the agent's experiment domain table, never here.
@@ -51,6 +56,7 @@ ADMITTED_DOMAIN_KINDS = {
     "broadband_compression": "broadband_threshold_adjust",
     "de_esser": "de_esser_threshold_adjust",
     "transient_shaper": "transient_attack_adjust",
+    "pan": "track_pan_adjust",
 }
 NOT_EXERCISED_EXIT = 3
 ACTIVE_CONTINUATION_STATUSES = {"pending", "claimed", "running"}
@@ -187,7 +193,7 @@ def dbfs(value: float) -> float:
     return 20.0 * math.log10(max(value, 1e-12))
 
 
-def qualify_material(case: dict[str, Any]) -> dict[str, Any]:
+def qualify_material(case: dict[str, Any], stereo_balance: bool = False) -> dict[str, Any]:
     import numpy as np
     import soundfile as sf
 
@@ -220,7 +226,7 @@ def qualify_material(case: dict[str, Any]) -> dict[str, Any]:
         )
     sibilance = qualify_sibilance_material(case)
     transient = qualify_transient_material(case)
-    return {
+    result = {
         "schema_version": MATERIAL_QUALIFICATION_SCHEMA,
         "status": "passed",
         "gates": {
@@ -233,6 +239,15 @@ def qualify_material(case: dict[str, Any]) -> dict[str, Any]:
         "sibilance_band": sibilance,
         "transient_window": transient,
     }
+    # FAM3-S2: the stereo-balance gate is flavor-scoped, unlike the crest /
+    # sibilance / transient gates above, because those describe properties
+    # every spv1 material set carries while a clearly off-center track exists
+    # only in the p06 material (the shared p01 stems measure |balance| <= 1.5
+    # dB, so an unconditional best-track imbalance floor would fail every
+    # earlier case).
+    if stereo_balance:
+        result["stereo_balance_window"] = qualify_stereo_balance_material(case)
+    return result
 
 
 # Sibilance-domain material qualification (D2-FAM1-S2). The public fixture
@@ -376,6 +391,73 @@ def qualify_transient_material(case: dict[str, Any]) -> dict[str, Any]:
             "min_best_contrast_db": TRANSIENT_MIN_BEST_CONTRAST_DB,
         },
         "best_contrast_short_peak_long_median_db": round(best_contrast_db, 3),
+        "tracks": track_rows,
+    }
+
+
+# Stereo-balance-domain material qualification (D2-FAM3-S2). The public p06
+# fixture stems carry one clearly off-center track (the baked L/R gain tilt),
+# so a windowed L/R RMS difference series (200 ms non-overlapping windows,
+# 20*log10(RMS_R/RMS_L) — the same caliber as the kernel balance_db) must show
+# exactly one strongly off-center track for a bounded pan move to be
+# acoustically meaningful. The gate pair is a best-track floor plus a
+# localization cap on the second-strongest track instead of the sibilance /
+# transient per-track floor form: the measured material legitimately contains
+# near-mono stems (bass median windowed |balance| ~0.02 dB), so a per-track
+# imbalance floor would be vacuous, while "best >= floor AND second <= cap"
+# expresses the actual pan-relevant fact — some track is clearly off-side and
+# the imbalance is localized to it. Floors leave real headroom under the
+# measured values (best 5.99 dB, second 0.74 dB); metrics are machine-computed
+# from the public stems only, land in the smoke report (never in agent
+# context), and name no target track.
+STEREO_BALANCE_MIN_BEST_ABS_MEDIAN_DB = 4.0
+STEREO_BALANCE_MAX_SECOND_ABS_MEDIAN_DB = 2.0
+STEREO_BALANCE_WINDOW_SECONDS = 0.200
+
+
+def qualify_stereo_balance_material(case: dict[str, Any]) -> dict[str, Any]:
+    import numpy as np
+    import soundfile as sf
+
+    track_rows: list[dict[str, Any]] = []
+    for stem in case.get("stem_files", []):
+        path = Path(str(stem["file"]))
+        if not path.is_file():
+            raise RuntimeError(f"material qualification stem is missing: {path}")
+        audio, rate = sf.read(str(path), dtype="float64", always_2d=True)
+        audio = np.asarray(audio, dtype=np.float64)
+        size = max(1, int(round(STEREO_BALANCE_WINDOW_SECONDS * rate)))
+        count = (len(audio) - size) // size + 1
+        if count <= 0:
+            raise RuntimeError(f"material qualification stem is shorter than one analysis window: {path}")
+        blocks = audio[: count * size].reshape(count, size, 2)
+        left = np.sqrt(np.mean(blocks[:, :, 0] * blocks[:, :, 0], axis=1))
+        right = np.sqrt(np.mean(blocks[:, :, 1] * blocks[:, :, 1], axis=1))
+        balance = 20.0 * np.log10(np.maximum(right, 1e-12) / np.maximum(left, 1e-12))
+        track_rows.append({
+            "track": str(stem["track"]),
+            "balance_median_db": round(float(np.median(balance)), 3),
+            "abs_balance_median_db": round(abs(float(np.median(balance))), 3),
+        })
+    magnitudes = sorted((row["abs_balance_median_db"] for row in track_rows), reverse=True)
+    best = magnitudes[0]
+    second = magnitudes[1] if len(magnitudes) > 1 else 0.0
+    if best < STEREO_BALANCE_MIN_BEST_ABS_MEDIAN_DB or second > STEREO_BALANCE_MAX_SECOND_ABS_MEDIAN_DB:
+        raise RuntimeError(
+            "public material failed the stereo-balance-fixture qualification gates: "
+            + json.dumps({"best_abs_balance_median_db": best, "second_abs_balance_median_db": second}, ensure_ascii=False)
+        )
+    return {
+        "schema_version": MATERIAL_QUALIFICATION_SCHEMA,
+        "status": "passed",
+        "metric": "windowed L/R RMS balance median (dB, RMS_R - RMS_L caliber)",
+        "gates": {
+            "window_seconds": STEREO_BALANCE_WINDOW_SECONDS,
+            "min_best_abs_balance_median_db": STEREO_BALANCE_MIN_BEST_ABS_MEDIAN_DB,
+            "max_second_abs_balance_median_db": STEREO_BALANCE_MAX_SECOND_ABS_MEDIAN_DB,
+        },
+        "best_abs_balance_median_db": round(best, 3),
+        "second_abs_balance_median_db": round(second, 3),
         "tracks": track_rows,
     }
 
@@ -818,6 +900,7 @@ def validate_d1(base_url: str, conversation_id: str, responses: list[dict[str, A
     time_dynamics_disclosure: dict[str, Any] | None = None
     frequency_time_events_disclosure: dict[str, Any] | None = None
     transient_structure_disclosure: dict[str, Any] | None = None
+    stereo_space_disclosure: dict[str, Any] | None = None
     if domain == "static_eq":
         gain = typed.get("gain_db")
         require(isinstance(gain, (int, float)) and not isinstance(gain, bool) and gain != 0 and abs(gain) <= 2, "static_eq typed gain_db must be non-zero within +/-2")
@@ -832,6 +915,9 @@ def validate_d1(base_url: str, conversation_id: str, responses: list[dict[str, A
     if domain == "transient_shaper":
         attack = typed.get("attack_db")
         require(isinstance(attack, (int, float)) and not isinstance(attack, bool) and attack != 0 and abs(attack) <= 2, "transient_shaper typed attack_db must be non-zero within +/-2")
+    if domain == "pan":
+        delta = typed.get("delta_pan")
+        require(isinstance(delta, (int, float)) and not isinstance(delta, bool) and delta != 0 and abs(delta) <= 0.15, "pan typed delta_pan must be non-zero within +/-0.15")
     require(int(admission.get("experiment_budget", 0) or 0) == 1, "D1 experiment_budget must equal one")
     for key in ("diagnostic_dose_bounds", "retained_dose_bounds"):
         bounds = admission.get(key) if isinstance(admission.get(key), dict) else {}
@@ -847,7 +933,10 @@ def validate_d1(base_url: str, conversation_id: str, responses: list[dict[str, A
     before_revision = first_text(receipt.get("before_revision"))
     after_revision = first_text(receipt.get("after_revision"), receipt.get("applied_revision"))
     require(before_revision and after_revision and before_revision != after_revision, "D1 receipt requires distinct before/after revisions")
-    readback_key = "actual_readback_db" if domain == "track_gain" else "actual_readback_value"
+    # Native-domain receipt readback keys: track_gain books dB, pan books the
+    # normalized pan readback (requested_target_pan/actual_readback_pan pair),
+    # every other domain uses the generic value readback.
+    readback_key = {"track_gain": "actual_readback_db", "pan": "actual_readback_pan"}.get(domain, "actual_readback_value")
     for key in ("transaction_id", "idempotency_key", readback_key):
         require(receipt.get(key) not in (None, ""), f"D1 execution receipt missing {key}")
     if domain == "static_eq":
@@ -961,6 +1050,42 @@ def validate_d1(base_url: str, conversation_id: str, responses: list[dict[str, A
         freshness = bundle.get("freshness") if isinstance(bundle.get("freshness"), dict) else {}
         require(first_text(freshness.get("status")).lower() != "stale", "track.transient_structure disclosure was stale")
         transient_structure_disclosure = {"observation_id": first_text(bundle.get("observation_id")), "status": disclosure_status, "executed_view_ids": sorted(executed_views)}
+    if domain == "pan":
+        # FAM3-S2 native-domain evidence-chain assertions, mirroring the p01/p03
+        # branch form minus the plugin identity pair (pan is not PluginBound):
+        # the requested/absolute-target versus actual-readback pan pair, the
+        # round view coverage, and the disclosability of the CCB stereo-space
+        # view itself probed against the live stack.
+        for key in ("requested_target_pan", "actual_readback_pan"):
+            require(receipt.get(key) not in (None, ""), f"pan execution receipt missing {key}")
+        for observation_row in rows(round_row.get("observations")):
+            requested = {first_text(value) for value in (observation_row.get("requested_view_ids") or [])}
+            executed = {first_text(value) for value in (observation_row.get("executed_view_ids") or [])}
+            require(requested <= executed, "pan observation lost requested views: " + json.dumps({"requested": sorted(requested), "executed": sorted(executed)}, ensure_ascii=False))
+        target_ref = admission.get("target_ref") if isinstance(admission.get("target_ref"), dict) else {}
+        disclosure = invoke(base_url, "ccb.observation_request", {
+            "view_ids": ["track.stereo_space"],
+            "target_ref": {"kind": first_text(target_ref.get("kind")) or "track", "id": first_text(target_ref.get("id"))},
+            "freshness_class": "fresh",
+        }, timeout)
+        bundle = disclosure.get("bundle") if isinstance(disclosure.get("bundle"), dict) else {}
+        audit = bundle.get("audit_receipt") if isinstance(bundle.get("audit_receipt"), dict) else {}
+        executed_views = {first_text(value) for value in (audit.get("actual_executed_view_ids") or bundle.get("actual_executed_view_ids") or disclosure.get("actual_executed_view_ids") or [])}
+        if not executed_views:
+            executed_views = {first_text(key) for key in (bundle.get("views") or {})}
+        disclosure_status = first_text(disclosure.get("status")).lower() or first_text(bundle.get("status")).lower()
+        # Same formal-run gate wording as the COM/DOM probes: "ready or partial
+        # and fresh" — the slow-stereo summary projection may disclose as
+        # partial by design (bounded stereo evidence with explicit omissions),
+        # so partial counts as disclosable; rejected/missing answers the
+        # post-action disclosure risk called out in the FAM3 survey.
+        require(disclosure_status in {"ready", "partial"},
+                "track.stereo_space was not disclosable on the admitted target: " + json.dumps({"status": disclosure.get("status"), "bundle_status": bundle.get("status")}, ensure_ascii=False))
+        require("track.stereo_space" in executed_views,
+                "track.stereo_space disclosure probe did not execute the view: " + json.dumps(sorted(executed_views), ensure_ascii=False))
+        freshness = bundle.get("freshness") if isinstance(bundle.get("freshness"), dict) else {}
+        require(first_text(freshness.get("status")).lower() != "stale", "track.stereo_space disclosure was stale")
+        stereo_space_disclosure = {"observation_id": first_text(bundle.get("observation_id")), "status": disclosure_status, "executed_view_ids": sorted(executed_views)}
     require(receipt.get("readback_verified") is True, "D1 actual readback was not verified")
 
     post_observations = [item for item in rows(round_row.get("observations")) if item.get("post_action") is True]
@@ -1032,6 +1157,8 @@ def validate_d1(base_url: str, conversation_id: str, responses: list[dict[str, A
         result["frequency_time_events_disclosure"] = frequency_time_events_disclosure
     if transient_structure_disclosure is not None:
         result["transient_structure_disclosure"] = transient_structure_disclosure
+    if stereo_space_disclosure is not None:
+        result["stereo_space_disclosure"] = stereo_space_disclosure
     return result
 
 
@@ -1622,7 +1749,7 @@ def main() -> int:
         _, public_case = load_public_case(Path(args.public_manifest), args.public_case_id)
         case = materialize_public_case(public_case, Path(args.project_workdir))
         report["public_source_project"] = str(Path(str(public_case["project_path"])).resolve())
-        report["material_qualification"] = qualify_material(case)
+        report["material_qualification"] = qualify_material(case, stereo_balance=args.prompt_flavor == "pan")
         report["project_setup"] = prepare_project(args.agent_http, case, args.timeout_sec)
         report["started_at_epoch"] = time.time()
         ui_context_response = request_json("GET", args.agent_http.rstrip("/") + "/agent/ui/context", None, min(args.timeout_sec, 30))
