@@ -850,3 +850,15 @@ S3h8 以 102243 定案的孤儿开卡。取证把卡内死亡链精确到**确�
 **验收**：`go build ./...` 过；`go test ./internal/chat -run 'SemanticProgressiveDisclosure|Multiband' -count=1` 过；全量 `go test ./... -count=1` **exit 0**（84 包，真实退出码直取无管道转手）；`python -m py_compile scripts\free_state_d1_smoke.py` 过；主跑 exit 0 + 回归 6/6 PASS。
 
 收口：FAM6-S3 卡 todo→done；提交 `feat(d2-fam6-s3):` 不 push（DSH_SKILL_CATALOG.md 与 VitApp/Workspace/default_project.xml 不入提交）；multiband 域全链闭合达成——Phase D 九域家族（含 multiband）E2E 面至此全部走通。
+
+## 47. 2026-09-02 晚窗批（D2-REG1 p03 压缩回归 revision-stale 预存破坏取证收口——根因定位：模型剂量方向翻转 × VSC-2 Threshold 默认顶格的结构性不可达；停卡上报，零代码改动）
+
+**复现取样（同 binary 11:57:23 新于全部源，-SkipBuild）**：p03 x3 @20260902_182340/182544/182716 全 FAIL。182340/182716 与 §42 签名全链相同（"D1 receipt requires distinct before/after revisions" + reply "observation belongs to a different project revision" + d1_receipt validation_error）；182544 终态分歧为 "D1 must contain exactly one forward mutation"——drain race：提案确认 surfaced 前停滞（teardown 与 waiting_confirmation 同秒 10:26:29），approve 未注入即收板，§43 p04 首跑链方差同族附带暴露。**三跑 typed threshold_db 全部 =+1**；连同 §42 三跑，9-02 合计 6/6 选 +1，当日确定性成立。
+
+**根因（run 产物 + 代码行级，零猜测）**：首因=**模型剂量方向翻转撞结构性顶格**。VSC-2 Threshold 载入默认 normalized=1.0 即显示 +11.8 dB（物理顶格；PASS run delta_calibration 实录 probe 0.75→−8.6 dB、slope 81.6 dB/norm）——正方向 delta 结构性不可达。9-01 及此前全部历史 p03 PASS run readback 一律 10.8（=current 11.8−1，§36-§39 逐节可查）=模型史上一律选 −1；9-02 模型 6/6 选 +1（typed_action 实值 + 假设原文「微幅抬升…阈值 1.0 dB…减轻过度压缩」=前提语义邀请的正方向）→ target 12.8 越顶 → `planDeltaChannels` 主写前 fail-closed（staticeq_delta.go:135-137），探针已还原零净参数移动（诚实边界守住）。次级误导链（stale 签名真身）：失败 receipt 无 AppliedRevision → `syncAudioClosureGovernedRevision` 跳过（free_state_d1_runtime.go:618-622 只 book 非空）→ 但载入实例+探针写+还原已实际推进内核 revision（三跑 start→tracked 全 +3：20→23/2→5/7→10）；后续 turn 闭包经 revalidate 推进 tracked（EventProjectRevisionChanged 不标 supersede），durable ledger 回放的 pre-action 观察（绑旧 revision）对上新 tracked → SupersededProjectRevisions 为空 → `RecordObservation` settle StopProjectRevisionStale（driver.go:166-174；卡内方向② SupersededProjectRevisions 覆盖面的实锤形态——覆盖面不含失败动作的 revision 副作用），三跑均 round 5 settle；receipt 无 after_revision → Validate() "project_revision is required" → smoke FAIL。**排除面**：bisect @807f869（§42）+ 9-01 同链 PASS + 本卡 typed 值直接证据 → 非 9-02 diff、非内核变化（零 C++ 改动）、非 agent 代码回归；delta seq gap（load 期缺 1 条）在 9-01 PASS run 同样在場（last=17→19 同形）——载入期常态非判别因子；§38 +18 平移为同族 load-phase 合并方差，与本根因独立。
+
+**裁定：停卡上报，勿强修**——根因在模型侧剂量方向方差（环境侧，repo 不可修）× 插件参数结构顶格；agent 侧 fail-closed 行为按设计正确（零净移动、receipt 如实 failed）。修复分支均涉架构决策，留决策流：①失败动作 revision 副作用归属（把失败动作的载入+探针写 book/supersede，使失败以 action_failed 真因结算而非 stale 误标——改善归因诚实度，不恢复 PASS）；②p03 回归对模型方向的脆弱依赖（披露面告知参数可达性 / fixture 参数位形调整 / admission 面拒不可达剂量并要求重选——均触 E2E 协议或盲法纪律，需裁定）；③（脚本侧小项）提案确认 surfaced 前停滞的 drain race。
+
+**验收（零改动诚实门）**：`go build ./...` 过；全量 `go test ./... -count=1` exit 0（84 包真实退出码直取）；`python -m py_compile scripts\free_state_d1_smoke.py` 过；本卡零 Go/py 改动（git status 仅既知两项不入提交）；回归面无新风险面（零改动，§46 6/6 PASS 为当前基线）。
+
+收口：REG1 卡 todo→done（取证收口，修复分支留决策流）；提交 `forensics(d2-reg1):` 不 push（DSH_SKILL_CATALOG.md 与 VitApp/Workspace/default_project.xml 不入提交）。
