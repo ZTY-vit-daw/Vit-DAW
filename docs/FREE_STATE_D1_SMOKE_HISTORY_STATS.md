@@ -792,3 +792,17 @@ S3h8 以 102243 定案的孤儿开卡。取证把卡内死亡链精确到**确�
 **验收**：go build + 全量 go test ./... -count=1 exit 0（84 包，含治理新测试）+ py_compile；主跑 exit 0 + 回归 4/5 pass（p03 预存破坏如实上报非零漂移）。
 
 收口：FAM4-S2 卡 todo→done；提交 `feat(d2-fam4-s2):` 不 push；FAM4 限幅器域全链闭合（第 17 域 E2E、PluginBound 第三域、治理门家族扩展后四域共用）；p03 预存破坏为决策流待办；Pro-L 2 顶格方向语义已由 flavor 裁定留档（前提只描述问题）。
+
+## 43. 2026-09-02 早批（D2-FAM5-S2 gate fixture p08 + flavor + 判据 + 端到端烟测——FAM5 门/扩展器域全链闭合，PluginBound 第二域"零新墙"首例）
+
+**fixture（p08 第八 case）**：内核 ZMQ product path 重建（p02 stems 复用 6 轨同 sha256，零 sealed 改动）+ manifest 文本拼接（前缀字节不动断言，8 cases JSON 复验，cc5c95a4…→1813d55d…）。
+
+**smoke 四件（零 Go 改动）**：gate flavor 四要素（安静段噪声床前提/禁整体增益 EQ/先观察/有界小步；Range 顶格方向语义同 FAM4 裁定——前提只描述问题）；qualify_gate_material 安静/活跃分离度（200ms 窗 RMS 15 vs 85 分位 dB 差，i06 锚点 quiet/active 中位同族量；per-track ≥30 + best ≥50，实测 45.58-66.13、best bass 66.13；**如实留档：i06 目标轨 drums 因噪声床抬高安静段而是对比度最低轨 45.58——判据度量"分离度在场"不指向目标，与盲法一致**；flavor 门控）；validate_d1 gate 分支（typed range_db ±2 非零 + plugin/param 对 + requested⊆executed + `track.activity_structure` 探针 ready|partial+fresh 披露）；ps1 两 ValidateSet（gate / gate_expander；一笔工具侧修正：批量替换首跑把两处 ValidateSet 都替成 "gate"，ExpectDomain 侧手工改回 gate_expander）。
+
+**主跑 20260902_085613 exit 0 首跑闭合（零新墙——FAM2/FAM3/FAM4 各钓一堵新墙后，FAM5-S2 是第一个首跑即过的 S2）**：准入 gate_expander（range_db 剂量）→ 治理过滤（gate_expander 臂已由 FAM4-S2 预修）→ Pro-G 载入 → 语义执行 → revision 3→4 单 mutation → readback 0.606859（normalized 回读形态）→ activity_structure 披露 partial+fresh（DOM source-only 预期形态）→ human_audition_ready。
+
+**回归面（-SkipBuild）**：p01 static_eq PASS（-1 同基线）、p05 transient PASS（0.5805，剂量方差同形）、p06 pan PASS（-0.08 自由方向）、p07 limiter PASS（-0.5 同主跑）；**p04 de_esser 首跑 FAIL**（"D1 must contain exactly one forward mutation"——日志止于提案确认 surfaced 前，driver 预算内未推进；同代码同 binary 30 分钟前 PASS）**复跑 PASS**（readback 同形）——定性为链方差非零漂移，如实留档；p03 预存破坏另案（REG1 卡）。
+
+**验收**：主跑 exit 0 + 回归 4+1 重跑全 PASS；本卡零 Go 改动（py_compile 过；全量 go test 由 FAM4-S2 05a652c 同日覆盖，本卡后零 Go 变更）。
+
+收口：FAM5-S2 卡 todo→done；提交 `feat(d2-fam5-s2):` 不 push；FAM5 门/扩展器域全链闭合（第 18 域、PluginBound 第四域 E2E）；Phase D 剩 FAM6（multiband，勘察卡已开——Lindell MBC/354E 认证在案）+ D2-2 尾巴 + D3 holdout + REG1 p03 取证。

@@ -53,6 +53,12 @@ PROMPT_FLAVORS = {
     # "0.00 dBTP"，FAM4-S1 probe 定锚），物理可达方向向下，但前提只描述问题
     # （偶发尖峰超顶）不指定参数方向；四要素同构，case-agnostic，零 sealed 真值。
     "limiter": "有几轨偶尔冒出零星的尖峰、峰值听起来超出了混音的顶部边界，但各轨整体电平平衡已经合适，不要用整体增益或 EQ 来解决。请先观察工程，再针对这个峰值问题给一个有界的小步改进建议。",
+    # FAM5-S2：前提与 p02 烘焙 fault 对齐（低段噪声床，i06，方向由 sealed
+    # 持有）。措辞不指定轨名与方向——模型经 track.activity_structure 观察自选
+    # 目标；Pro-G Range（attenuation floor）新实例默认顶格（normalized 1.0/
+    # display "50.00 dB"，FAM5-S1 probe 定锚），前提只描述问题（安静段有可闻
+    # 噪声床）不指定参数方向；四要素同构，case-agnostic，零 sealed 真值。
+    "gate": "有几轨在乐句之间的安静段落能听到明显的低电平噪声床，但各轨整体电平平衡已经合适，不要用整体增益或 EQ 来解决。请先观察工程，再针对这个安静段噪声问题给一个有界的小步改进建议。",
 }
 # The D2-1 domain table mirrored for runner-side gating. Admission itself is
 # always decided by the agent's experiment domain table, never here.
@@ -201,7 +207,7 @@ def dbfs(value: float) -> float:
     return 20.0 * math.log10(max(value, 1e-12))
 
 
-def qualify_material(case: dict[str, Any], stereo_balance: bool = False, limiter: bool = False) -> dict[str, Any]:
+def qualify_material(case: dict[str, Any], stereo_balance: bool = False, limiter: bool = False, gate: bool = False) -> dict[str, Any]:
     import numpy as np
     import soundfile as sf
 
@@ -260,6 +266,10 @@ def qualify_material(case: dict[str, Any], stereo_balance: bool = False, limiter
     # baked p02 material rather than every spv1 set.
     if limiter:
         result["sparse_peak_window"] = qualify_limiter_material(case)
+    # FAM5-S2: the quiet/active contrast gate is flavor-scoped for the same
+    # reason as the sparse-peak gate above.
+    if gate:
+        result["quiet_active_window"] = qualify_gate_material(case)
     return result
 
 
@@ -487,6 +497,71 @@ def qualify_limiter_material(case: dict[str, Any]) -> dict[str, Any]:
             "min_best_prominence_db": LIMITER_MIN_BEST_PROMINENCE_DB,
         },
         "best_sparse_peak_prominence_db": round(best_prominence_db, 3),
+        "tracks": track_rows,
+    }
+
+
+# Gate/expander-domain material qualification (D2-FAM5-S2). The public
+# fixture stems carry clearly separated quiet and active intervals, so a
+# long-window RMS percentile contrast (200 ms windows, 15th vs 85th
+# percentile -- a pure windowed-arithmetic quantity from the same
+# measurement family as the sealed i06 anchor's quiet/active interval
+# medians) must stay measurable per track for a bounded attenuation-floor
+# move to be acoustically meaningful. Flavor-scoped like the sparse-peak
+# gate (D2-FAM4-S2 precedent): a per-track floor plus a best-track floor
+# with real headroom below the measured values (p02 stems measure per-track
+# 45.6-66.1 dB with the best track at 66.1 dB; floors stay clear of pinning
+# the measurements). Metrics are machine-computed from the public stems
+# only, land in the smoke report (never in agent context), and name no
+# target track.
+GATE_MIN_CONTRAST_DB_PER_TRACK = 30.0
+GATE_MIN_BEST_CONTRAST_DB = 50.0
+GATE_WINDOW_SECONDS = 0.200
+
+
+def qualify_gate_material(case: dict[str, Any]) -> dict[str, Any]:
+    import numpy as np
+    import soundfile as sf
+
+    track_rows: list[dict[str, Any]] = []
+    for stem in case.get("stem_files", []):
+        path = Path(str(stem["file"]))
+        if not path.is_file():
+            raise RuntimeError(f"material qualification stem is missing: {path}")
+        audio, rate = sf.read(str(path), dtype="float64", always_2d=True)
+        mono = np.asarray(audio, dtype=np.float64).mean(axis=1)
+        window_n = max(1, int(round(GATE_WINDOW_SECONDS * rate)))
+        count = max(0, (len(mono) - window_n) // window_n + 1)
+        if count <= 0:
+            raise RuntimeError(f"material qualification stem is shorter than one analysis window: {path}")
+        levels = np.empty(count)
+        for index in range(count):
+            segment = mono[index * window_n:index * window_n + window_n]
+            levels[index] = 20.0 * math.log10(max(float(np.sqrt(np.mean(segment * segment))), 1e-12))
+        contrast_db = float(np.percentile(levels, 85) - np.percentile(levels, 15))
+        track_rows.append({
+            "track": str(stem["track"]),
+            "quiet_active_contrast_db": round(contrast_db, 3),
+            "quiet_p15_db": round(float(np.percentile(levels, 15)), 3),
+            "active_p85_db": round(float(np.percentile(levels, 85)), 3),
+        })
+    weak = [row["track"] for row in track_rows if row["quiet_active_contrast_db"] < GATE_MIN_CONTRAST_DB_PER_TRACK]
+    best_contrast_db = max(row["quiet_active_contrast_db"] for row in track_rows)
+    if weak or best_contrast_db < GATE_MIN_BEST_CONTRAST_DB:
+        raise RuntimeError(
+            "public material failed the gate-fixture qualification gates: "
+            + json.dumps({"weak_contrast_tracks": weak, "best_quiet_active_contrast_db": best_contrast_db}, ensure_ascii=False)
+        )
+    return {
+        "schema_version": MATERIAL_QUALIFICATION_SCHEMA,
+        "status": "passed",
+        "metric": "long-window RMS 15th vs 85th percentile contrast (dB)",
+        "gates": {
+            "window_seconds": GATE_WINDOW_SECONDS,
+            "min_contrast_db_per_track": GATE_MIN_CONTRAST_DB_PER_TRACK,
+            "min_best_contrast_db": GATE_MIN_BEST_CONTRAST_DB,
+        },
+        "best_quiet_active_contrast_db": round(best_contrast_db, 3),
         "tracks": track_rows,
     }
 
@@ -978,6 +1053,7 @@ def validate_d1(base_url: str, conversation_id: str, responses: list[dict[str, A
     transient_structure_disclosure: dict[str, Any] | None = None
     stereo_space_disclosure: dict[str, Any] | None = None
     peak_structure_disclosure: dict[str, Any] | None = None
+    activity_structure_disclosure: dict[str, Any] | None = None
     if domain == "static_eq":
         gain = typed.get("gain_db")
         require(isinstance(gain, (int, float)) and not isinstance(gain, bool) and gain != 0 and abs(gain) <= 2, "static_eq typed gain_db must be non-zero within +/-2")
@@ -992,6 +1068,9 @@ def validate_d1(base_url: str, conversation_id: str, responses: list[dict[str, A
     if domain == "transient_shaper":
         attack = typed.get("attack_db")
         require(isinstance(attack, (int, float)) and not isinstance(attack, bool) and attack != 0 and abs(attack) <= 2, "transient_shaper typed attack_db must be non-zero within +/-2")
+    if domain == "gate_expander":
+        rng = typed.get("range_db")
+        require(isinstance(rng, (int, float)) and not isinstance(rng, bool) and rng != 0 and abs(rng) <= 2, "gate_expander typed range_db must be non-zero within +/-2")
     if domain == "limiter":
         ceiling = typed.get("ceiling_db")
         require(isinstance(ceiling, (int, float)) and not isinstance(ceiling, bool) and ceiling != 0 and abs(ceiling) <= 2, "limiter typed ceiling_db must be non-zero within +/-2")
@@ -1164,6 +1243,40 @@ def validate_d1(base_url: str, conversation_id: str, responses: list[dict[str, A
         freshness = bundle.get("freshness") if isinstance(bundle.get("freshness"), dict) else {}
         require(first_text(freshness.get("status")).lower() != "stale", "track.peak_structure disclosure was stale")
         peak_structure_disclosure = {"observation_id": first_text(bundle.get("observation_id")), "status": disclosure_status, "executed_view_ids": sorted(executed_views)}
+    if domain == "gate_expander":
+        # FAM5-S2 evidence-chain assertions, mirroring the limiter branch:
+        # plugin identity pair, round view coverage, and the disclosability of
+        # the DOM activity-structure view itself probed against the live stack.
+        for key in ("plugin_id", "param_id"):
+            require(receipt.get(key) not in (None, ""), f"gate_expander execution receipt missing {key}")
+        for observation_row in rows(round_row.get("observations")):
+            requested = {first_text(value) for value in (observation_row.get("requested_view_ids") or [])}
+            executed = {first_text(value) for value in (observation_row.get("executed_view_ids") or [])}
+            require(requested <= executed, "gate_expander observation lost requested views: " + json.dumps({"requested": sorted(requested), "executed": sorted(executed)}, ensure_ascii=False))
+        target_ref = admission.get("target_ref") if isinstance(admission.get("target_ref"), dict) else {}
+        disclosure = invoke(base_url, "ccb.observation_request", {
+            "view_ids": ["track.activity_structure"],
+            "target_ref": {"kind": first_text(target_ref.get("kind")) or "track", "id": first_text(target_ref.get("id"))},
+            "freshness_class": "fresh",
+        }, timeout)
+        bundle = disclosure.get("bundle") if isinstance(disclosure.get("bundle"), dict) else {}
+        audit = bundle.get("audit_receipt") if isinstance(bundle.get("audit_receipt"), dict) else {}
+        executed_views = {first_text(value) for value in (audit.get("actual_executed_view_ids") or bundle.get("actual_executed_view_ids") or disclosure.get("actual_executed_view_ids") or [])}
+        if not executed_views:
+            executed_views = {first_text(key) for key in (bundle.get("views") or {})}
+        disclosure_status = first_text(disclosure.get("status")).lower() or first_text(bundle.get("status")).lower()
+        # Same formal-run gate wording as the DOM probes: "ready or partial and
+        # fresh" -- the DOM source-only projection may disclose as partial by
+        # design (bounded activity evidence with explicit omissions), so
+        # partial counts as disclosable; rejected/missing answers the
+        # post-action disclosure risk.
+        require(disclosure_status in {"ready", "partial"},
+                "track.activity_structure was not disclosable on the admitted target: " + json.dumps({"status": disclosure.get("status"), "bundle_status": bundle.get("status")}, ensure_ascii=False))
+        require("track.activity_structure" in executed_views,
+                "track.activity_structure disclosure probe did not execute the view: " + json.dumps(sorted(executed_views), ensure_ascii=False))
+        freshness = bundle.get("freshness") if isinstance(bundle.get("freshness"), dict) else {}
+        require(first_text(freshness.get("status")).lower() != "stale", "track.activity_structure disclosure was stale")
+        activity_structure_disclosure = {"observation_id": first_text(bundle.get("observation_id")), "status": disclosure_status, "executed_view_ids": sorted(executed_views)}
     if domain == "pan":
         # FAM3-S2 native-domain evidence-chain assertions, mirroring the p01/p03
         # branch form minus the plugin identity pair (pan is not PluginBound):
@@ -1275,6 +1388,8 @@ def validate_d1(base_url: str, conversation_id: str, responses: list[dict[str, A
         result["stereo_space_disclosure"] = stereo_space_disclosure
     if peak_structure_disclosure is not None:
         result["peak_structure_disclosure"] = peak_structure_disclosure
+    if activity_structure_disclosure is not None:
+        result["activity_structure_disclosure"] = activity_structure_disclosure
     return result
 
 
@@ -1865,7 +1980,7 @@ def main() -> int:
         _, public_case = load_public_case(Path(args.public_manifest), args.public_case_id)
         case = materialize_public_case(public_case, Path(args.project_workdir))
         report["public_source_project"] = str(Path(str(public_case["project_path"])).resolve())
-        report["material_qualification"] = qualify_material(case, stereo_balance=args.prompt_flavor == "pan", limiter=args.prompt_flavor == "limiter")
+        report["material_qualification"] = qualify_material(case, stereo_balance=args.prompt_flavor == "pan", limiter=args.prompt_flavor == "limiter", gate=args.prompt_flavor == "gate")
         report["project_setup"] = prepare_project(args.agent_http, case, args.timeout_sec)
         report["started_at_epoch"] = time.time()
         ui_context_response = request_json("GET", args.agent_http.rstrip("/") + "/agent/ui/context", None, min(args.timeout_sec, 30))
