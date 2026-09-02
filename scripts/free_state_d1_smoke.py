@@ -59,6 +59,13 @@ PROMPT_FLAVORS = {
     # display "50.00 dB"，FAM5-S1 probe 定锚），前提只描述问题（安静段有可闻
     # 噪声床）不指定参数方向；四要素同构，case-agnostic，零 sealed 真值。
     "gate": "有几轨在乐句之间的安静段落能听到明显的低电平噪声床，但各轨整体电平平衡已经合适，不要用整体增益或 EQ 来解决。请先观察工程，再针对这个安静段噪声问题给一个有界的小步改进建议。",
+    # FAM6-S2：前提与 p02 烘焙 fault 对齐（频段限定的时变电平起伏，i07，
+    # 方向与具体频段数值由 sealed 持有）。措辞不指定轨名、频段数值与
+    # 方向——频段语义由模型经 track.band_dynamics 观察得出；Lindell MBC
+    # band Threshold 新实例默认严格居中（normalized 0.5，FAM6-S1 probe
+    # 定锚）双向物理可达，前提只描述问题（低频段电平随时间起伏明显）
+    # 不指定参数方向；四要素同构，case-agnostic，零 sealed 真值。
+    "multiband": "有一条轨的低频段电平随时间起伏明显、这个频段内的动态听起来忽紧忽松，但各轨整体电平平衡已经合适，不要用整体增益或 EQ 来解决。请先观察工程，再针对这个频段动态问题给一个有界的小步改进建议。",
 }
 # The D2-1 domain table mirrored for runner-side gating. Admission itself is
 # always decided by the agent's experiment domain table, never here.
@@ -208,7 +215,7 @@ def dbfs(value: float) -> float:
     return 20.0 * math.log10(max(value, 1e-12))
 
 
-def qualify_material(case: dict[str, Any], stereo_balance: bool = False, limiter: bool = False, gate: bool = False) -> dict[str, Any]:
+def qualify_material(case: dict[str, Any], stereo_balance: bool = False, limiter: bool = False, gate: bool = False, multiband: bool = False) -> dict[str, Any]:
     import numpy as np
     import soundfile as sf
 
@@ -271,6 +278,10 @@ def qualify_material(case: dict[str, Any], stereo_balance: bool = False, limiter
     # reason as the sparse-peak gate above.
     if gate:
         result["quiet_active_window"] = qualify_gate_material(case)
+    # FAM6-S2: the band-limited time-contrast gate is flavor-scoped for the
+    # same reason as the quiet/active gate above.
+    if multiband:
+        result["band_contrast_window"] = qualify_multiband_material(case)
     return result
 
 
@@ -563,6 +574,123 @@ def qualify_gate_material(case: dict[str, Any]) -> dict[str, Any]:
             "min_best_contrast_db": GATE_MIN_BEST_CONTRAST_DB,
         },
         "best_quiet_active_contrast_db": round(best_contrast_db, 3),
+        "tracks": track_rows,
+    }
+
+
+# Multiband-domain material qualification (D2-FAM6-S2). The public fixture
+# stems carry band-limited time-varying level motion in the low band, so the
+# windowed band-level dynamic range (200 ms non-overlapping windows, per-band
+# in-window FFT energy, 90th minus 10th percentile -- a pure windowed
+# arithmetic quantity from the same measurement family as the sealed i07
+# anchor's band p90-p10 ranges) must stand above the same quantity measured
+# in a fixed high reference band for a bounded band-threshold move to be
+# acoustically meaningful. Two robustness constraints keep the quantity
+# meaningful: only the track's active windows count (the quietest 35% of
+# full-band windows are dropped, mirroring the quiet/active split caliber),
+# and band levels are floored 60 dB under the active full-band 10th
+# percentile so near-empty bands cannot manufacture floor-to-content
+# pseudo-range. Blind-form discipline differs from the FAM1-S2 sibilance
+# precedent on purpose: no baked fault band edges are encoded -- the target
+# band is found by scanning a generic one-third-octave low-band bank (ISO
+# centers 40-315 Hz) and keeping the band with the highest range, so which
+# band wins is itself measured from the public stems (the measured best
+# track is not the sealed target track, same blind-form note as the
+# D2-FAM5-S2 gate qualifier). Flavor-scoped like the quiet/active gate
+# (D2-FAM5-S2 precedent): a per-track floor plus a best-track floor with
+# real headroom below the measured values (p02 stems measure per-track
+# deltas 10.0-28.3 dB with the best track at 28.3 dB; floors stay clear of
+# pinning the measurements). Metrics are machine-computed from the public
+# stems only, land in the smoke report (never in agent context), and name no
+# target track.
+MULTIBAND_WINDOW_SECONDS = 0.200
+MULTIBAND_BAND_CENTERS_HZ = (40.0, 50.0, 63.0, 80.0, 100.0, 125.0, 160.0, 200.0, 250.0, 315.0)
+MULTIBAND_OCTAVE_FRACTION = 3.0
+MULTIBAND_REFERENCE_LOW_HZ = 1000.0
+MULTIBAND_REFERENCE_HIGH_HZ = 8000.0
+MULTIBAND_ACTIVE_WINDOW_DROP_PERCENTILE = 35.0
+MULTIBAND_BAND_FLOOR_OFFSET_DB = 60.0
+MULTIBAND_MIN_DELTA_DB_PER_TRACK = 6.0
+MULTIBAND_MIN_BEST_DELTA_DB = 12.0
+
+
+def _band_edges(center_hz: float) -> tuple[float, float]:
+    ratio = 2.0 ** (1.0 / (2.0 * MULTIBAND_OCTAVE_FRACTION))
+    return center_hz / ratio, center_hz * ratio
+
+
+def qualify_multiband_material(case: dict[str, Any]) -> dict[str, Any]:
+    import numpy as np
+    import soundfile as sf
+
+    track_rows: list[dict[str, Any]] = []
+    for stem in case.get("stem_files", []):
+        path = Path(str(stem["file"]))
+        if not path.is_file():
+            raise RuntimeError(f"material qualification stem is missing: {path}")
+        audio, rate = sf.read(str(path), dtype="float64", always_2d=True)
+        mono = np.asarray(audio, dtype=np.float64).mean(axis=1)
+        window_n = max(1, int(round(MULTIBAND_WINDOW_SECONDS * rate)))
+        count = max(0, (len(mono) - window_n) // window_n + 1)
+        if count <= 0:
+            raise RuntimeError(f"material qualification stem is shorter than one analysis window: {path}")
+        window = np.hanning(window_n)
+        freqs = np.fft.rfftfreq(window_n, 1.0 / rate)
+        bank_masks = [(center, (freqs >= low) & (freqs <= high)) for center, (low, high) in
+                      ((center, _band_edges(center)) for center in MULTIBAND_BAND_CENTERS_HZ)]
+        reference_mask = (freqs >= MULTIBAND_REFERENCE_LOW_HZ) & (freqs <= MULTIBAND_REFERENCE_HIGH_HZ)
+        spectra = np.empty((count, len(freqs)))
+        full_band_db = np.empty(count)
+        for index in range(count):
+            segment = mono[index * window_n:index * window_n + window_n]
+            spectra[index] = np.abs(np.fft.rfft(segment * window)) ** 2
+            full_band_db[index] = 20.0 * math.log10(max(float(np.sqrt(np.mean(segment * segment))), 1e-12))
+        active = full_band_db >= np.percentile(full_band_db, MULTIBAND_ACTIVE_WINDOW_DROP_PERCENTILE)
+        band_floor_db = float(np.percentile(full_band_db[active], 10)) - MULTIBAND_BAND_FLOOR_OFFSET_DB
+
+        def band_range_db(mask: np.ndarray) -> float:
+            levels = 10.0 * np.log10(np.maximum(spectra[:, mask].sum(axis=1), 1e-20))
+            levels = np.maximum(levels, band_floor_db)[active]
+            return float(np.percentile(levels, 90) - np.percentile(levels, 10))
+
+        bank_rows = sorted(
+            ({"center_hz": center, "band_range_db": round(band_range_db(mask), 3)} for center, mask in bank_masks),
+            key=lambda row: row["band_range_db"],
+            reverse=True,
+        )
+        reference_range_db = band_range_db(reference_mask)
+        track_rows.append({
+            "track": str(stem["track"]),
+            "active_window_count": int(np.count_nonzero(active)),
+            "best_band_center_hz": bank_rows[0]["center_hz"],
+            "best_band_range_db": bank_rows[0]["band_range_db"],
+            "second_band_range_db": bank_rows[1]["band_range_db"],
+            "reference_band_range_db": round(reference_range_db, 3),
+            "contrast_delta_db": round(bank_rows[0]["band_range_db"] - reference_range_db, 3),
+            "band_bank": bank_rows,
+        })
+    weak = [row["track"] for row in track_rows if row["contrast_delta_db"] < MULTIBAND_MIN_DELTA_DB_PER_TRACK]
+    best_delta_db = max(row["contrast_delta_db"] for row in track_rows)
+    if weak or best_delta_db < MULTIBAND_MIN_BEST_DELTA_DB:
+        raise RuntimeError(
+            "public material failed the multiband-fixture qualification gates: "
+            + json.dumps({"weak_delta_tracks": weak, "best_contrast_delta_db": best_delta_db}, ensure_ascii=False)
+        )
+    return {
+        "schema_version": MATERIAL_QUALIFICATION_SCHEMA,
+        "status": "passed",
+        "metric": "active-window best low-bank band-level p90-p10 range minus fixed high reference band same quantity (dB)",
+        "gates": {
+            "window_seconds": MULTIBAND_WINDOW_SECONDS,
+            "band_centers_hz": list(MULTIBAND_BAND_CENTERS_HZ),
+            "octave_fraction": MULTIBAND_OCTAVE_FRACTION,
+            "reference_band_hz": [MULTIBAND_REFERENCE_LOW_HZ, MULTIBAND_REFERENCE_HIGH_HZ],
+            "active_window_drop_percentile": MULTIBAND_ACTIVE_WINDOW_DROP_PERCENTILE,
+            "band_floor_offset_db": MULTIBAND_BAND_FLOOR_OFFSET_DB,
+            "min_delta_db_per_track": MULTIBAND_MIN_DELTA_DB_PER_TRACK,
+            "min_best_delta_db": MULTIBAND_MIN_BEST_DELTA_DB,
+        },
+        "best_contrast_delta_db": round(best_delta_db, 3),
         "tracks": track_rows,
     }
 
@@ -1055,6 +1183,7 @@ def validate_d1(base_url: str, conversation_id: str, responses: list[dict[str, A
     stereo_space_disclosure: dict[str, Any] | None = None
     peak_structure_disclosure: dict[str, Any] | None = None
     activity_structure_disclosure: dict[str, Any] | None = None
+    band_dynamics_disclosure: dict[str, Any] | None = None
     if domain == "static_eq":
         gain = typed.get("gain_db")
         require(isinstance(gain, (int, float)) and not isinstance(gain, bool) and gain != 0 and abs(gain) <= 2, "static_eq typed gain_db must be non-zero within +/-2")
@@ -1072,6 +1201,9 @@ def validate_d1(base_url: str, conversation_id: str, responses: list[dict[str, A
     if domain == "gate_expander":
         rng = typed.get("range_db")
         require(isinstance(rng, (int, float)) and not isinstance(rng, bool) and rng != 0 and abs(rng) <= 2, "gate_expander typed range_db must be non-zero within +/-2")
+    if domain == "multiband_dynamics":
+        band_threshold = typed.get("band_threshold_db")
+        require(isinstance(band_threshold, (int, float)) and not isinstance(band_threshold, bool) and band_threshold != 0 and abs(band_threshold) <= 2, "multiband_dynamics typed band_threshold_db must be non-zero within +/-2")
     if domain == "limiter":
         ceiling = typed.get("ceiling_db")
         require(isinstance(ceiling, (int, float)) and not isinstance(ceiling, bool) and ceiling != 0 and abs(ceiling) <= 2, "limiter typed ceiling_db must be non-zero within +/-2")
@@ -1278,6 +1410,40 @@ def validate_d1(base_url: str, conversation_id: str, responses: list[dict[str, A
         freshness = bundle.get("freshness") if isinstance(bundle.get("freshness"), dict) else {}
         require(first_text(freshness.get("status")).lower() != "stale", "track.activity_structure disclosure was stale")
         activity_structure_disclosure = {"observation_id": first_text(bundle.get("observation_id")), "status": disclosure_status, "executed_view_ids": sorted(executed_views)}
+    if domain == "multiband_dynamics":
+        # FAM6-S2 evidence-chain assertions, mirroring the gate branch:
+        # plugin identity pair, round view coverage, and the disclosability of
+        # the DAD band-dynamics view itself probed against the live stack.
+        for key in ("plugin_id", "param_id"):
+            require(receipt.get(key) not in (None, ""), f"multiband_dynamics execution receipt missing {key}")
+        for observation_row in rows(round_row.get("observations")):
+            requested = {first_text(value) for value in (observation_row.get("requested_view_ids") or [])}
+            executed = {first_text(value) for value in (observation_row.get("executed_view_ids") or [])}
+            require(requested <= executed, "multiband_dynamics observation lost requested views: " + json.dumps({"requested": sorted(requested), "executed": sorted(executed)}, ensure_ascii=False))
+        target_ref = admission.get("target_ref") if isinstance(admission.get("target_ref"), dict) else {}
+        disclosure = invoke(base_url, "ccb.observation_request", {
+            "view_ids": ["track.band_dynamics"],
+            "target_ref": {"kind": first_text(target_ref.get("kind")) or "track", "id": first_text(target_ref.get("id"))},
+            "freshness_class": "fresh",
+        }, timeout)
+        bundle = disclosure.get("bundle") if isinstance(disclosure.get("bundle"), dict) else {}
+        audit = bundle.get("audit_receipt") if isinstance(bundle.get("audit_receipt"), dict) else {}
+        executed_views = {first_text(value) for value in (audit.get("actual_executed_view_ids") or bundle.get("actual_executed_view_ids") or disclosure.get("actual_executed_view_ids") or [])}
+        if not executed_views:
+            executed_views = {first_text(key) for key in (bundle.get("views") or {})}
+        disclosure_status = first_text(disclosure.get("status")).lower() or first_text(bundle.get("status")).lower()
+        # Same formal-run gate wording as the DOM probes: "ready or partial and
+        # fresh" -- the DAD band-dynamics projection may disclose as partial by
+        # design (bounded per-band evidence with explicit omissions), so
+        # partial counts as disclosable; rejected/missing answers the
+        # post-action disclosure risk.
+        require(disclosure_status in {"ready", "partial"},
+                "track.band_dynamics was not disclosable on the admitted target: " + json.dumps({"status": disclosure.get("status"), "bundle_status": bundle.get("status")}, ensure_ascii=False))
+        require("track.band_dynamics" in executed_views,
+                "track.band_dynamics disclosure probe did not execute the view: " + json.dumps(sorted(executed_views), ensure_ascii=False))
+        freshness = bundle.get("freshness") if isinstance(bundle.get("freshness"), dict) else {}
+        require(first_text(freshness.get("status")).lower() != "stale", "track.band_dynamics disclosure was stale")
+        band_dynamics_disclosure = {"observation_id": first_text(bundle.get("observation_id")), "status": disclosure_status, "executed_view_ids": sorted(executed_views)}
     if domain == "pan":
         # FAM3-S2 native-domain evidence-chain assertions, mirroring the p01/p03
         # branch form minus the plugin identity pair (pan is not PluginBound):
@@ -1391,6 +1557,8 @@ def validate_d1(base_url: str, conversation_id: str, responses: list[dict[str, A
         result["peak_structure_disclosure"] = peak_structure_disclosure
     if activity_structure_disclosure is not None:
         result["activity_structure_disclosure"] = activity_structure_disclosure
+    if band_dynamics_disclosure is not None:
+        result["band_dynamics_disclosure"] = band_dynamics_disclosure
     return result
 
 
@@ -1981,7 +2149,7 @@ def main() -> int:
         _, public_case = load_public_case(Path(args.public_manifest), args.public_case_id)
         case = materialize_public_case(public_case, Path(args.project_workdir))
         report["public_source_project"] = str(Path(str(public_case["project_path"])).resolve())
-        report["material_qualification"] = qualify_material(case, stereo_balance=args.prompt_flavor == "pan", limiter=args.prompt_flavor == "limiter", gate=args.prompt_flavor == "gate")
+        report["material_qualification"] = qualify_material(case, stereo_balance=args.prompt_flavor == "pan", limiter=args.prompt_flavor == "limiter", gate=args.prompt_flavor == "gate", multiband=args.prompt_flavor == "multiband")
         report["project_setup"] = prepare_project(args.agent_http, case, args.timeout_sec)
         report["started_at_epoch"] = time.time()
         ui_context_response = request_json("GET", args.agent_http.rstrip("/") + "/agent/ui/context", None, min(args.timeout_sec, 30))
