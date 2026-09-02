@@ -129,7 +129,8 @@ func (s *Server) applyPluginGrabberLimiterControls(ctx context.Context, cmd, req
 	if err = s.resolveCompressorTransactionalProbeDirections(ctx, target.TrackID, target.PluginID, digest, writes, preimage, snapshot); err != nil {
 		return nil, rejectLimiterControl("physical_probe_failed", "%v", err)
 	}
-	executed, actual, err := s.executeEQTransaction(ctx, target.TrackID, target.PluginID, writes, preimage, snapshot)
+	requestID := firstNonEmptyText(args, "request_id")
+	executed, actual, accounting, err := s.executeEQTransactionAccounted(ctx, target.TrackID, target.PluginID, writes, preimage, snapshot, requestID)
 	if err != nil {
 		code := "atomic_execution_failed"
 		if strings.Contains(err.Error(), "unplanned_parameter_change") {
@@ -147,7 +148,17 @@ func (s *Server) applyPluginGrabberLimiterControls(ctx context.Context, cmd, req
 			results[i]["status"] = "exact"
 		}
 	}
-	return map[string]any{"status": overall, "atomic": true, "track_id": target.TrackID, "plugin_id": target.PluginID, "topology_generation": generation, "controls": results, "writes": executed, "restore_ref": restoreRef, "rollback": map[string]any{"on_failure": "full_preimage", "verified": true}}, nil
+	result := map[string]any{"status": overall, "atomic": true, "track_id": target.TrackID, "plugin_id": target.PluginID, "topology_generation": generation, "controls": results, "writes": executed, "restore_ref": restoreRef, "rollback": map[string]any{"on_failure": "full_preimage", "verified": true}}
+	if accounting != nil {
+		// Kernel-real transaction identity for the semantic settlement
+		// bracket; callers that pin no request id (the harness tool path)
+		// keep the historical result shape without these fields.
+		result["idempotency_key"] = accounting.RequestID
+		if accounting.TransactionID != "" {
+			result["transaction_id"] = accounting.TransactionID
+		}
+	}
+	return result, nil
 }
 
 func parseLimiterControlRequests(args map[string]any) ([]limiterControlRequest, error) {

@@ -41,6 +41,11 @@ const d1DeEsserKind = "de_esser_threshold_adjust"
 const d1TransientShaperDomain = "transient_shaper"
 const d1TransientShaperKind = "transient_attack_adjust"
 
+// FAM4-S1 limiter mirrors the experiment table row as a routing label; the
+// table remains the bounds authority.
+const d1LimiterDomain = "limiter"
+const d1LimiterKind = "limiter_ceiling_adjust"
+
 // FAM3-S1 pan mirrors the experiment table row as a routing label; the table
 // remains the bounds authority.
 const d1PanDomain = "pan"

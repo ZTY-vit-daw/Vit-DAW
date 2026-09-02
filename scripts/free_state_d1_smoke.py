@@ -57,6 +57,7 @@ ADMITTED_DOMAIN_KINDS = {
     "de_esser": "de_esser_threshold_adjust",
     "transient_shaper": "transient_attack_adjust",
     "pan": "track_pan_adjust",
+    "limiter": "limiter_ceiling_adjust",
 }
 NOT_EXERCISED_EXIT = 3
 ACTIVE_CONTINUATION_STATUSES = {"pending", "claimed", "running"}

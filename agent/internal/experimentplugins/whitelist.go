@@ -8,7 +8,9 @@
 // Schema v3 adds the de_esser section (FAM1-S1): one shared threshold
 // parameter instead of the PA-style ch pair, per the 2026-08-31 pluginprobe.
 // Schema v4 adds the transient_shaper section (FAM2-S1): one shared attack
-// parameter, per the 2026-09-01 pluginprobe.
+// parameter, per the 2026-09-01 pluginprobe. Schema v5 adds the limiter
+// section (FAM4-S1): one shared ceiling parameter (FabFilter Pro-L 2,
+// pluginprobe 2026-09-02), per the same single-shared-parameter form.
 package experimentplugins
 
 import (
@@ -24,7 +26,7 @@ import (
 	"vit-daw-agent/internal/processorattestation"
 )
 
-const SchemaVersion = "vit.free_state_experiment_plugins.v4"
+const SchemaVersion = "vit.free_state_experiment_plugins.v5"
 
 const freeStateExperimentPluginsFileName = "free_state_experiment_plugins.json"
 
@@ -83,12 +85,25 @@ type TransientShaperPlugin struct {
 	AttackParamID    string `json:"attack_param_id"`
 }
 
+// LimiterPlugin is the limiter domain's whitelisted plugin: a single shared ceiling parameter
+// (FabFilter Pro-L 2 2026-09-02 pluginprobe actual test: among all 32 parameters on the surface, the Output Level (ceiling) is a single shared continuous dBTP parameter,
+// not a ch pair), one action per single-batch single-channel write.
+type LimiterPlugin struct {
+	PluginName       string `json:"plugin_name"`
+	Manufacturer     string `json:"manufacturer"`
+	Format           string `json:"format"`
+	PluginIdentifier string `json:"plugin_identifier"`
+	PluginPath       string `json:"plugin_path"`
+	CeilingParamID   string `json:"ceiling_param_id"`
+}
+
 type Whitelist struct {
 	SchemaVersion        string                      `json:"schema_version"`
 	StaticEQ             *StaticEQPlugin             `json:"static_eq,omitempty"`
 	BroadbandCompression *BroadbandCompressionPlugin `json:"broadband_compression,omitempty"`
 	DeEsser              *DeEsserPlugin              `json:"de_esser,omitempty"`
 	TransientShaper      *TransientShaperPlugin      `json:"transient_shaper,omitempty"`
+	Limiter              *LimiterPlugin              `json:"limiter,omitempty"`
 }
 
 var ErrNotConfigured = errors.New("experiment plugin whitelist: static_eq plugin is not configured")
@@ -98,6 +113,8 @@ var ErrCompressionNotConfigured = errors.New("experiment plugin whitelist: broad
 var ErrDeEsserNotConfigured = errors.New("experiment plugin whitelist: de_esser plugin is not configured")
 
 var ErrTransientShaperNotConfigured = errors.New("experiment plugin whitelist: transient_shaper plugin is not configured")
+
+var ErrLimiterNotConfigured = errors.New("experiment plugin whitelist: limiter plugin is not configured")
 
 func DefaultPath() (string, error) {
 	home, err := os.UserHomeDir()
@@ -144,6 +161,11 @@ func Load(path string) (Whitelist, error) {
 	}
 	if whitelist.TransientShaper != nil {
 		if err := validateTransientShaperPlugin(*whitelist.TransientShaper); err != nil {
+			return Whitelist{}, fmt.Errorf("experiment plugin whitelist: invalid %s: %w", path, err)
+		}
+	}
+	if whitelist.Limiter != nil {
+		if err := validateLimiterPlugin(*whitelist.Limiter); err != nil {
 			return Whitelist{}, fmt.Errorf("experiment plugin whitelist: invalid %s: %w", path, err)
 		}
 	}
@@ -271,6 +293,21 @@ func (w Whitelist) ValidateTransientShaperAdmission(lib processorattestation.Lib
 	)
 }
 
+// ValidateLimiterAdmission mirrors ValidateTransientShaperAdmission for the
+// limiter whitelist section: same subject construction, same v2 library
+// predicate path (limiter is a PCA v2 family), and a distinguishable
+// not-PCA-promoted prefix naming this domain.
+func (w Whitelist) ValidateLimiterAdmission(lib processorattestation.LibraryV2) error {
+	if w.Limiter == nil {
+		return ErrLimiterNotConfigured
+	}
+	return w.validateSectionAdmissionV2(
+		"limiter",
+		w.Limiter.PluginName, w.Limiter.Manufacturer, w.Limiter.Format, w.Limiter.PluginIdentifier, w.Limiter.PluginPath,
+		processorattestation.FamilyLimiter, lib,
+	)
+}
+
 // validateSectionAdmission is the shared admission predicate core for both
 // whitelist sections. The label appears verbatim in the returned boundary
 // prefix so each domain stays distinguishable upstream.
@@ -362,6 +399,22 @@ func validateDeEsserPlugin(plugin DeEsserPlugin) error {
 	} {
 		if missing.value == "" {
 			return fmt.Errorf("de_esser %s must be non-empty", missing.field)
+		}
+	}
+	return nil
+}
+
+func validateLimiterPlugin(plugin LimiterPlugin) error {
+	for _, missing := range []struct{ field, value string }{
+		{"plugin_name", plugin.PluginName},
+		{"manufacturer", plugin.Manufacturer},
+		{"format", plugin.Format},
+		{"plugin_identifier", plugin.PluginIdentifier},
+		{"plugin_path", plugin.PluginPath},
+		{"ceiling_param_id", plugin.CeilingParamID},
+	} {
+		if missing.value == "" {
+			return fmt.Errorf("limiter %s must be non-empty", missing.field)
 		}
 	}
 	return nil

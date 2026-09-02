@@ -147,3 +147,51 @@ func TestLimiterGenerationIgnoresIdentityAndCurrentValue(t *testing.T) {
 		t.Fatalf("generation mismatch a=%+v b=%+v", a, b)
 	}
 }
+
+// TestDetectLimiterModelFabFilterProL2 classifies the exact product disclosed
+// by the 2026-09-02 pluginprobe (all 32 probed surface names, verbatim) so the
+// FAM4-S1 carrier's live kernel face stays covered by an in-repo test.
+func TestDetectLimiterModelFabFilterProL2(t *testing.T) {
+	model, code := DetectLimiterModelWithBoundary(ParameterDigest{Parameters: []ParameterInfo{
+		limiterParam("0", "Gain", "0.00 dB"),
+		limiterParam("1", "Style", "Modern"),
+		limiterParam("2", "Lookahead", "0.180 ms"),
+		limiterParam("3", "Attack", "275.0 ms"),
+		limiterParam("4", "Release", "400.0 ms"),
+		limiterParam("5", "Channel Link Transients", "75%"),
+		limiterParam("6", "Channel Link Release", "100%"),
+		limiterParam("7", "Channel Link Center", "Excluded"),
+		limiterParam("8", "Channel Link LFE", "Excluded"),
+		limiterParam("9", "Oversampling", "Off"),
+		limiterParam("10", "True Peak Limiting", "On"),
+		limiterParam("11", "Dithering", "Off"),
+		limiterParam("12", "Noise Shaping", "Optimized"),
+		limiterParam("13", "Filter DC Offset", "Off"),
+		limiterParam("14", "Side Chain Triggering", "Off"),
+		limiterParam("15", "Unity Gain", "Off"),
+		limiterParam("16", "Audition Limiting", "Off"),
+		limiterParam("17", "Bypass", "Not Bypassed"),
+		limiterParam("18", "Output Level", "0.00 dBTP"),
+		limiterParam("19", "Lock Output", "Locked"),
+		limiterParam("20", "Receive Midi", "Enabled"),
+		limiterParam("21", "Show Advanced", "Hide"),
+		limiterParam("22", "True Peak Metering", "Show True Peaks"),
+		limiterParam("23", "Display Mode", "Slow Down"),
+		limiterParam("24", "Meter Scale", "-48 dB"),
+		limiterParam("25", "Loudness Time Scale", "Short Term"),
+		limiterParam("26", "Loudness Meter Scale", "Target +9"),
+		limiterParam("27", "Loudness Meter Origin", "Absolute"),
+		limiterParam("28", "Loudness Meter Target", "-14"),
+		limiterParam("29", "Loudness Integrated Peak Tim", "Max Momentary"),
+		limiterParam("30", "Loudness Recording", "Recording"),
+		limiterParam("31", "Loudness Auto-Reset", "Disabled"),
+	}})
+	if model == nil || code != "" || model.Classification != "drive_ceiling_time" {
+		t.Fatalf("Pro-L 2 model=%+v boundary=%q", model, code)
+	}
+	stage := model.Stages[0]
+	if !limiterBindingsHaveRole(stage.OperatingPoint, "input_drive") || !limiterBindingsHaveRole(stage.Safety, "ceiling") ||
+		!limiterBindingsHaveRole(stage.Timing, "lookahead") || !limiterBindingsHaveRole(stage.Timing, "release") {
+		t.Fatalf("Pro-L 2 stage=%+v", stage)
+	}
+}

@@ -344,6 +344,56 @@ var d1s1Domains = []D1S1DomainSpec{
 		AppliedReplyText:       "FAM2-S1 transient attack parameter was applied and read back. Fresh post-action evidence is recorded separately; acoustic materiality, target response, and human judgment remain pending.",
 	},
 	{
+		// limiter_ceiling_adjust moves one limiter instance's output ceiling by
+		// one bounded step. FAM4-S1 admits it with the same single-mutation
+		// tightness as the other PluginBound rows. Like the whitelisted
+		// de-esser and transient shaper, the whitelisted limiter (FabFilter
+		// Pro-L 2, pluginprobe 2026-09-02) exposes ONE shared automatable
+		// ceiling parameter (id "18", "Output Level", stereo in/out, default
+		// normalized 1.0 displaying 0.00 dBTP) rather than a ch A/B pair, so
+		// the write is single-channel. Acoustic observation binds the DOM
+		// peak-structure view, whose sparse peak/crest outliers carry the
+		// domain quantity. There is no stub form: production resolves the
+		// machine-local whitelist first and hard-fails without it.
+		ActionDomain:        agentprotocol.ImprovementActionDomainLimiter,
+		ActionKind:          "limiter_ceiling_adjust",
+		PromptParameterHint: `parameter_bounds={"ceiling_db":<nonzero number within +/-2>}`,
+		ValidateDoseBounds: func(scope string, bounds map[string]any) error {
+			ceiling, ok := mapNumber(bounds, "ceiling_db")
+			if !ok || ceiling == 0 || math.Abs(ceiling) > 2 {
+				return fmt.Errorf("D1-S1 %s ceiling_db must be non-zero and within +/-2 dB", scope)
+			}
+			return nil
+		},
+		ActionIDSuffix:            "_lim",
+		CapabilityID:              "static_mix.limiter.v0",
+		ContractVersions:          []string{"free_state:d1_s1", "action:limiter_ceiling_adjust"},
+		TargetFingerprintTemplate: "track:{track}:lim:{param}:pending",
+		BeforeFingerprintTemplate: "track:{track}:lim:{param}:pending",
+		ObservationViewIDs:        []string{"track.peak_structure"},
+		Journal: D1S1JournalShape{
+			Summary:      "FAM4-S1 bounded limiter ceiling adjustment",
+			Tool:         "set_plugin_param",
+			CommandLabel: "set_plugin_param",
+			Fields: []D1S1JournalField{
+				{Arg: "plugin_id", ArgFallback: "plugin_identifier", CommandKey: "plugin_id"},
+				{Arg: "param_id", CommandKey: "param_id"},
+				{Arg: "target_value", CommandKey: "value"},
+			},
+		},
+		WriteBinding:             D1S1WriteBinding{PluginBound: true, Channels: 1},
+		AdmissionValueKey:        "ceiling_db",
+		AdmissionPassthroughKeys: []string{"plugin_identifier"},
+		TargetSemantics:          "delta_db",
+		// The domain's certified semantic axis: a free-state admitted limiter
+		// experiment rides the semantic dynamic chain on output_ceiling (Pro-L
+		// 2 attestation coverage), not on the parameter-centric axis an LLM
+		// would freeze from the literal Output Level parameter name.
+		SemanticIntentFamily:   "limiter",
+		SemanticIntentCoverage: []string{"output_ceiling"},
+		AppliedReplyText:       "FAM4-S1 limiter ceiling parameter was applied and read back. Fresh post-action evidence is recorded separately; acoustic materiality, target response, and human judgment remain pending.",
+	},
+	{
 		// track_pan_adjust moves one track's stereo pan by one bounded step.
 		// FAM3-S1 admits it on the native (non-plugin) path with the same
 		// single-mutation tightness as track_gain: pan is normalized [-1,+1]
