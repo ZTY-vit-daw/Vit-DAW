@@ -878,3 +878,49 @@ S3h8 以 102243 定案的孤儿开卡。取证把卡内死亡链精确到**确�
 **验收（全绿）**：`go build ./...` 过；chat+audioclosure 定向包过；全量 `go test ./... -count=1` **exit 0**（84 包真实退出码直取）；`py_compile` 过；p03 主跑 FAIL 如预期但签名如实（stale 零出现）；七域回归零漂移。
 
 收口：REG2 卡 todo→done；提交 `fix(d2-reg2):` 不 push（DSH_SKILL_CATALOG.md 与 VitApp/Workspace/default_project.xml 不入提交）；REG1 决策流分支①③闭合（②披露面可达性仍开放）。
+
+## 49. 2026-09-02 晚窗批（D2-NEUTRAL1 neutral 自由态普查——9 域开放下 8×3=24 跑召回基线 + report 透明度两行：static_eq 坍缩 + 2 例同签名 NOT_EXERCISED 定因型缺陷）
+
+**透明度两行（本卡唯一 py 改动，零行为差）**：`free_state_d1_smoke.py` report 初始化行顶层新增 `prompt_flavor` 与 `expect_domain` 两键（launch 参数摘要）——修复 §47 后暴露的"run 产物不可审计用了什么 flavor"缺口。`py_compile` 过；抽跑核验：census run 1 report 实含 `prompt_flavor: "neutral"` / `expect_domain: "any"`（全部 24 跑同字段在，提取器逐跑核过）。其余零改动。
+
+**普查协议（预先定死，无 steering）**：8 cases（p01、p03–p09；**p02 无工程文件如实跳过**——fixture manifest 有条目但 `projects/spv1_p02/` 目录不存在，其 stems 故障族由 p07/p08/p09 完整覆盖）× N=3，全部 `-PromptFlavor neutral`（ExpectDomain 默认 any=9 域全开放），真实栈顺序 24 跑（p01 族→p06→p02 族 case-major）。run 1 含构建（cmake no-op + go build 刷新 agent binary 19:10），run 2–24 `-SkipBuild` 且每跑前 mtime 守卫（agent exe 新于全部 Go 源 + kernel exe 8-31 21:12 新于全部 C++ 源，24 跑零触发回退）。分支 `d2-fam1-mrreg1` @ e26ccd3（REG2 后）；驱动/提取工具 `artifacts/free_state_d1_s1/census_neutral1_driver.sh` + `census_neutral1_extract.py`（artifacts 不入提交）；24 份 run 产物 20260902_191025–20260902_195101 全留档。exit 0/1/3 均为数据：实得 **22 exit 0 / 2 exit 3（p03#1、p09#2）/ 0 exit 1**。
+
+**8×3 普查表（applied 域=validation.action_domain 实际单前向 mutation 域；selected 含共同选出未执行域）**：
+
+| 格 | exit | applied | selected 补充 | 停止位（fs 阶段+终态） | readback | 分型 |
+|---|---|---|---|---|---|---|
+| p01#1 | 0 | static_eq | — | fs8_experiment_verification / goal done | −0.5 | 链闭合·域合法 |
+| p01#2 | 0 | static_eq | +track_gain 选出 | fs8 / limit_reached（apply 后续窗） | −1 | 链闭合·域合法 |
+| p01#3 | 0 | static_eq | — | fs8 / done | −1 | 链闭合·域合法 |
+| p03#1 | 3 | — | 空 | fs9_terminal blocked @processor_selection | — | **定因**（intent unresolved；G7 并存，见下） |
+| p03#2 | 0 | static_eq | — | fs8 / done | −1 | 链闭合·域合法 |
+| p03#3 | 0 | static_eq | — | fs8 / done | −0.5 | 链闭合·域合法 |
+| p04#1 | 0 | static_eq | +track_gain | fs8 / limit_reached | −1 | 链闭合·域合法 |
+| p04#2 | 0 | static_eq | — | fs8 / done | −1 | 链闭合·域合法 |
+| p04#3 | 0 | static_eq | +track_gain | fs8 / limit_reached | −1 | 链闭合·域合法 |
+| p05#1–3 | 0×3 | static_eq | #1–2 —，#3 — | fs8 / done×3 | −1,−0.5,−1 | 链闭合·域合法 |
+| p06#1 | 0 | static_eq | +track_gain | fs8 / limit_reached | −1 | 链完整·**域偏（{pan} 外）** |
+| p06#2 | 0 | static_eq | +track_gain | fs8 / limit_reached | −1 | 链完整·域偏 |
+| p06#3 | 0 | static_eq | — | fs8 / done | −1 | 链完整·域偏 |
+| p07#1–3 | 0×3 | static_eq | #2 +track_gain | fs8 / done,limit_reached,done | −1×3 | 链完整·域偏（{limiter,gate,multiband} 外）×3 |
+| p08#1–3 | 0×3 | static_eq | #2–3 +track_gain | fs8 / done,limit_reached×2 | −0.5,−1,−1 | 链完整·域偏×3 |
+| p09#1 | 0 | static_eq | +track_gain | fs8 / limit_reached | −1 | 链完整·域偏 |
+| p09#2 | 3 | — | 空 | fs9_terminal blocked @processor_selection | — | **定因**（同 p03#1 签名） |
+| p09#3 | 0 | static_eq | — | fs8 / done | −1 | 链完整·域偏 |
+
+**每族召回率（合法行使 = applied 域 ∈ 卡面公开的该格 stems 故障族集合；集合外错域单独计数；sealed 逐格对照由发卡流另做，本表只用卡面公开族集）**：
+
+- **p01 族**（p01/p03/p04/p05，合法集 {static_eq, broadband_compression, de_esser, transient_shaper}）：**11/12 = 91.7%**（1 NOT_EXERCISED；无集合外跑——static_eq 恰在集内，11 跑合法 + 3 路附带选出 track_gain 未执行）。
+- **p06 族**（合法集 {pan}）：**0/3 = 0%**（3 跑链完整但 applied=static_eq 全在集外，域偏）。
+- **p02 族**（p07/p08/p09，合法集 {limiter, gate_expander, multiband_dynamics}）：**0/9 = 0%**（8 跑域偏 + 1 NOT_EXERCISED）。
+- **全集**：24 格 in-set 召回 **11/24 = 45.8%**；集合外错域跑 12/24（全部 applied=static_eq，其中 6 路附带 track_gain 选出）；NOT_EXERCISED 2/24 = 8.3%；FAIL 0。
+
+**域分布（核心发现——static_eq 坍缩）**：22 个行使跑 applied 域 **100% static_eq**；broadband_compression / de_esser / transient_shaper / pan / limiter / gate_expander / multiband_dynamics 七域 **零行使**；track_gain 9 路被选出从未被 apply。neutral 开放提示（"检查一下当前工程有什么问题？"）下开放诊断结构性坍缩到最老、证据面最全的 static_eq 域（9 域 admitted 的当前形态），与配对 flavor 回归（§48 七域各自全中）形成全对照：**域选择的多样性完全由 prompt flavor 供给，neutral 下不存在**。
+
+**NOT_EXERCISED 缺陷分型（两例逐字段同形，标准机械可复核）**：分型标准=链条最早断裂环节归型——**观察**：终态 loop 无 observation_ids 或 G3_project_scan/G4_dimension_closed/G6_target_evidence 任一 fail；**定因**：观察在且三门 pass 但 latest_decision.evidence_status ≠ plausible 或 semantic_processor_intent.status=unresolved（未形成客观缺陷假设）；**提案**：evidence plausible + intent resolved 但无 admitted 域提案到达准入门（无 candidate/admission_receipt）；**准入**：admission_receipt.failed_gate_ids 非空（提案被门拒）；下游信号并存只记次要不夺型。两例实测：3 条观察全过 G1–G6、evidence_status=insufficient、intent unresolved（拒因 `action_preflight_boundary`："user acoustic goal is **diagnostic inspection only without modification authorization**"）、G7_fresh_revision_bound_refs fail → proposal_missing → fs9 blocked、聊天侧思考步数上限收轮 → **归型定因**（neutral 提示的诊断语义未授权 governed 处置，假设环节断裂），G7 新鲜度绑定门拒与步数上限记并存次要信号。两例终态 loop 均 fs9_terminal/blocked/cycle 0/processor_selection。
+
+**基线声明**：本节 24 跑构成 neutral flavor × 9 域开放形态的召回基线（91.7% / 0% / 0%），供发卡流 sealed 对照与改进卡决策；run 产物 schema `vit.free_state_d1_smoke.v1`（含新透明度两键）。铁律遵守：不 steering、未看结果加跑或改 N、未动任何运行时判据；runner/agent 上下文零 sealed 信息。
+
+收口：NEUTRAL1 卡 todo→done；提交 `census(d2-neutral1):` 不 push（DSH_SKILL_CATALOG.md 与 VitApp/Workspace/default_project.xml 不入提交）。
+
+**并行会话中途换版披露（如实留档）**：普查窗口 19:10–19:52 内，并行 D2-REG3 会话于 19:28:22（py）/19:28:38（ps1）向同一文件域提交工作树改动（`--expect-honest-refusal` A 面：+253 行惰性校验函数 + argparse 选项 + flag 条件分支 + 本卡透明度行追加第三键 `expect_honest_refusal`）。分界：run 1–9 原版，run 10–24 换版后。等价性核验：新代码全部 flag 条件化（默认 False），默认执行路径与原版行为逐字等价；run 10+ report 仅多 `expect_honest_refusal: false` 一键（193011/195101 抽验在）；驱动日志 24 跑零栈异常（并行会话未在普查窗口内占用真实栈）。本卡提交只含自身两键透明度改动（部分暂存，REG3 工作树改动原样保留归其会话提交）。

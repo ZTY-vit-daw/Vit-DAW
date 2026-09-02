@@ -2143,7 +2143,7 @@ def main() -> int:
         write_report(prior_path, prior)
         print(f"D1-S1 SETTLEMENT RESTART VERIFY PASS: disposition={verification['disposition']} report={prior_path}")
         return 0
-    report: dict[str, Any] = {"schema_version": "vit.free_state_d1_smoke.v1", "started_at": dt.datetime.now(dt.timezone.utc).isoformat(), "public_case_id": args.public_case_id}
+    report: dict[str, Any] = {"schema_version": "vit.free_state_d1_smoke.v1", "started_at": dt.datetime.now(dt.timezone.utc).isoformat(), "public_case_id": args.public_case_id, "prompt_flavor": args.prompt_flavor, "expect_domain": args.expect_domain}
     responses: list[dict[str, Any]] = []
     try:
         _, public_case = load_public_case(Path(args.public_manifest), args.public_case_id)
