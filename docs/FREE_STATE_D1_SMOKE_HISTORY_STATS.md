@@ -879,6 +879,24 @@ S3h8 以 102243 定案的孤儿开卡。取证把卡内死亡链精确到**确�
 
 收口：REG2 卡 todo→done；提交 `fix(d2-reg2):` 不 push（DSH_SKILL_CATALOG.md 与 VitApp/Workspace/default_project.xml 不入提交）；REG1 决策流分支①③闭合（②披露面可达性仍开放）。
 
+## 49. 2026-09-02 晚窗批（D2-REG3 p03 回归双面孔——A 负例期望模式 -ExpectHonestRefusal + B leveling 正路径 pin——回归体系首拥负例面孔，双面各 3 连绿，七域回归零漂移）
+
+**双面设计（用户裁定 A+B 都要：A 验边界守不守得住、B 验机器链路做得对不对）**：A=`-PromptFlavor compression -ExpectDomain broadband_compression -ExpectHonestRefusal`（负例 pin，断言 §48 诚实拒绝签名）；B=`-PromptFlavor leveling -ExpectDomain broadband_compression`（正路径 pin，零代码，D2-1.5-S2f-2 当年为可达方向所造的前提）。p03 自此以 A/B 两面孔同入回归面。
+
+**A 面实现（runner 改动，零 Go）**：`free_state_d1_smoke.py` 新增 `validate_honest_refusal` 四要件——①已准入域有效提案（域/种类/剂量界内非零、单 round 单 intervention、user_confirmed；剂量方向任一，`HONEST_REFUSAL_DOSE_KEYS` 镜像 validate_d1 各域值检）；②执行被 fail-closed 拒绝（technical_application=failed + receipt.status=failed + error 含 `outside the reachable normalized range`，即 staticeq_delta.go:135-137 门签名）；③零 forward mutation/零计划外副作用（parameter_applied=False、readback_verified=False、after_render=None、零 rollback 补偿、layers technical_readback=failed+net_outcome=stable、receipt 自报 validation_error、单次尝试预算 experiment_budget=1/max_action_attempts=1；探针还原零净移动由 fail-closed 主写前拒绝+REG2 副作用归属保证，runner 侧以 receipt 态记录）；④终态 §48 诚实形态（loop.status/latest_decision.stop_reason=capability_blocked + 语义态 terminal capability_blocked + transition_reason='closure observation round boundary reached'）——**stale 禁令先行**：`honest_refusal_stale_hits` 对 loop/responses/continuations/runtime_status/terminal_causes 递归扫描，命中 `project_revision_stale`/`stopprojectrevisionstale`/`different project revision` 任一即拒；**短语匹配而非裸 'stale' 是刻意的**——MOM llm_context 契约文本（do_not_use_suspect_stale_missing…）与 task_trajectory `stale_for_current_revision` 键良性常驻，裸词扫描必假阳（184456 全文实测 12 处良性命中）。红线：validate_d1 与全部既有正路径断言逐字未动；sealed 零触碰。接线：argparse `--expect-honest-refusal`（与 multi-round/settlement/admission-only 互斥 parser.error）+ report 头 `expect_honest_refusal` 字段 + tail 分支（域选择 pin 仍先行适用）；ps1 `-ExpectHonestRefusal` switch + 同款互斥 throw + 传参 + `D1-S1 HONEST_REFUSAL PASS` 出口。
+
+**RED 对照锁（真实产物 replay 五叉全判别正确，临时 harness 留痕后删）**：`test_validate_honest_refusal_forms` 嵌入式自测固化三叉（honest 过 / 深埋 settlement.reason=project_revision_stale 单独触发④禁令 / applied 触发② / 零 intervention 触发①）；对真实产物 replay：**184456（§48 诚实）PASS**、**182340+182716（§47 pre-REG2 stale 形态）双跑 REJECT 于④ stale 禁令**（命中 last_error/reply='observation belongs to a different project revision' + stop_reason='project_revision_stale'）、**184702（p01 applied 正路径）REJECT 于②**、**182544（drain race 零 intervention）REJECT 于①**——A 断言对修复前后签名形态的分叉判别成立。
+
+**B 面基线（3 连绿，零代码）**：@20260902_195731/195848/195954，三跑 readback 全 **10.8**（=current 11.8−1，模型在 leveling 前提下选物理可达方向 −1，与 §26 D2-1.5-S2f-2 设计及 §36-§39 历史 PASS readback 同值），rev +2（73→75/79→81/85→87）、forward_mutation_count=1、static_eq 化的正路径全断言过（transaction_id/idempotency_key/双 render/试听会话）。
+
+**A 面基线（3 连 exit 0 by 四要件）**：@20260902_200122/200229/200430，三跑全同形：typed threshold_db=**+1**（9-02 方差延续：§47 六跑+REG2 一跑+本卡三跑=10/10 选 +1）、refusal_error='delta target 12.8 dB (current 11.8 + 1) is outside the reachable normalized range'、stale_signature_scan=clean ×3、terminal=capability_blocked/'closure observation round boundary reached'、receipt 自报 validation_error='project_revision is required (receipts are revision-bound)'。**诚实边界注记**：A 面 PASS 依赖模型在 compression 前提下选不可达方向（当日方差成立）；若模型翻回 −1 动作将 applied，A 面如实 FAIL 于②（任一不中如实 FAIL 是本模式语义，非缺陷）。
+
+**七域回归（-SkipBuild，binary 19:10（NEUTRAL1 普查会话重建）新于全部 go 源、本卡零 Go 改动；case 配对 flavor）7/7 PASS**：p01 static_eq readback **−1**（基线全中）、p04 de_esser **8**（全中）、p05 transient_shaper **0.5973**（=§39/§42/§48 历史值）、p06 pan **−0.05**（方向自由）、p07 limiter **−1**（基线 −0.5：模型剂量翻倍但同向可达、±2 界内——typed 为模型自选，本卡零 Go 改动，定性模型侧剂量方差同形，非 agent 漂移）、p08 gate_expander **0.5532**（typed range_db=−1 与历史全同；readback 随模型自选目标轨浮动，§43 0.6069↔§46 0.491↔§48 0.6069 同族方差）、p09 multiband **−6.08**（基线全中）。无 drain race 间歇（p07/p09 一跑即过）。
+
+**验收（全绿）**：`python -m py_compile scripts\free_state_d1_smoke.py` 过；嵌入式自测 `test_validate_honest_refusal_forms`+既有 `test_find_d1_loop_authoritative_tie_break` 过；ps1 `Parser::ParseFile` 零错误 + `-ExpectHonestRefusal -AdmissionOnly` 互斥组合实测 throw + py `--expect-honest-refusal --admission-only` 实测 parser.error；A 面 3 连 exit 0 + B 面 3 连 exit 0 + 七域 7/7 PASS。
+
+收口：REG3 卡 todo→done；提交 `feat(d2-reg3):` 不 push（DSH_SKILL_CATALOG.md 与 VitApp/Workspace/default_project.xml 不入提交）；REG1 决策流分支②（披露面可达性）仍开放。
+
 ## 49. 2026-09-02 晚窗批（D2-NEUTRAL1 neutral 自由态普查——9 域开放下 8×3=24 跑召回基线 + report 透明度两行：static_eq 坍缩 + 2 例同签名 NOT_EXERCISED 定因型缺陷）
 
 **透明度两行（本卡唯一 py 改动，零行为差）**：`free_state_d1_smoke.py` report 初始化行顶层新增 `prompt_flavor` 与 `expect_domain` 两键（launch 参数摘要）——修复 §47 后暴露的"run 产物不可审计用了什么 flavor"缺口。`py_compile` 过；抽跑核验：census run 1 report 实含 `prompt_flavor: "neutral"` / `expect_domain: "any"`（全部 24 跑同字段在，提取器逐跑核过）。其余零改动。

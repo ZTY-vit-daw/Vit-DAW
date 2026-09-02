@@ -32,7 +32,15 @@ param(
     # The launcher owns the injection: default 2, and a conflicting caller env
     # is a hard error instead of a silent override.
     [ValidateRange(2, 4)]
-    [int]$MultiRoundBudget = 2
+    [int]$MultiRoundBudget = 2,
+    # D2-REG3 A face (2026-09-02): passes --expect-honest-refusal to the
+    # runner, which swaps the applied-path D1 tail for the four
+    # honest-refusal requirements (valid proposal in an admitted domain,
+    # fail-closed refusal, zero forward mutation / zero unplanned side
+    # effects, REG2 honest terminal with the StopProjectRevisionStale
+    # misattribution explicitly rejected). Any requirement not met is an
+    # honest FAIL, not a retry loop.
+    [switch]$ExpectHonestRefusal
 )
 
 Set-StrictMode -Version Latest
@@ -47,6 +55,9 @@ if (($PublicManifest -split '[\\/]') -contains 'sealed') {
 }
 if ($MultiRoundProbe -and ($AdmissionOnly -or $SettlementProbe -ne "")) {
     throw "-MultiRoundProbe owns the run tail and cannot be combined with -AdmissionOnly or -SettlementProbe"
+}
+if ($ExpectHonestRefusal -and ($MultiRoundProbe -or $AdmissionOnly -or $SettlementProbe -ne "")) {
+    throw "-ExpectHonestRefusal owns the run tail and cannot be combined with -MultiRoundProbe, -AdmissionOnly, or -SettlementProbe"
 }
 $multiroundTierEnv = [string]$env:VIT_FREE_STATE_D2_MULTI_ROUND_BUDGET
 if ($MultiRoundProbe) {
@@ -174,6 +185,9 @@ try {
         # parameter-injection channel design merges.
         $smokeArgs += "--multi-round-probe"
     }
+    if ($ExpectHonestRefusal) {
+        $smokeArgs += "--expect-honest-refusal"
+    }
     & python @smokeArgs
     $runnerExit = $LASTEXITCODE
 }
@@ -224,6 +238,10 @@ if ($SettlementProbe -ne "") {
         throw "D1-S1 settlement restart verification failed; report=$report"
     }
     Write-Host ("D1-S1 SETTLEMENT(" + $SettlementProbe + ") PASS: real-stack settlement + restart consistency verified; report=" + $report) -ForegroundColor Green
+    exit 0
+}
+if ($ExpectHonestRefusal) {
+    Write-Host ("D1-S1 HONEST_REFUSAL PASS: fail-closed refusal verified honest (four requirements, no stale misattribution); report=" + $report) -ForegroundColor Green
     exit 0
 }
 Write-Host ("D1-S1 PASS: real-stack public-only smoke completed; report=" + $report) -ForegroundColor Green

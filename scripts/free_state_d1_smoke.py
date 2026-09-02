@@ -1562,6 +1562,253 @@ def validate_d1(base_url: str, conversation_id: str, responses: list[dict[str, A
     return result
 
 
+# D2-REG3 A face: the honest-refusal expectation mode pins the REG2 signature
+# (stats §48, run 20260902_184456) for a fail-closed refused execution. The
+# four requirements are the task-card contract: (1) a valid typed proposal in
+# an admitted domain, (2) the execution refused by the fail-closed
+# unreachable-range gate, (3) zero forward mutation and zero unplanned side
+# effects, (4) the honest terminal form with the pre-REG2
+# StopProjectRevisionStale misattribution (stats §47 runs 20260902_182340/
+# 182716) explicitly rejected. The stale scan matches the full misattribution
+# phrases rather than the bare word "stale" on purpose: benign schema text
+# (MOM llm_context contract strings, task_trajectory
+# stale_for_current_revision keys) legitimately contains "stale".
+HONEST_REFUSAL_FAIL_CLOSED_MARKER = "outside the reachable normalized range"
+HONEST_REFUSAL_TERMINAL_STATE = "capability_blocked"
+HONEST_REFUSAL_TERMINAL_REASON = "closure observation round boundary reached"
+HONEST_REFUSAL_STALE_SIGNATURES = ("project_revision_stale", "stopprojectrevisionstale", "different project revision")
+# Typed dose keys mirror the per-domain value checks in validate_d1 (value
+# non-zero within the bound); either direction is accepted -- the refusal
+# expectation pins the honest handling, not the model's direction choice.
+HONEST_REFUSAL_DOSE_KEYS = {
+    "track_gain": ("gain_db", 2.0),
+    "static_eq": ("gain_db", 2.0),
+    "broadband_compression": ("threshold_db", 2.0),
+    "de_esser": ("threshold_db", 2.0),
+    "transient_shaper": ("attack_db", 2.0),
+    "pan": ("delta_pan", 0.15),
+    "limiter": ("ceiling_db", 2.0),
+    "gate_expander": ("range_db", 2.0),
+    "multiband_dynamics": ("band_threshold_db", 2.0),
+}
+
+
+def honest_refusal_stale_hits(*containers: Any) -> list[str]:
+    """Collect stale-misattribution phrase occurrences with their JSON paths."""
+    hits: list[str] = []
+
+    def walk(node: Any, path: str) -> None:
+        if isinstance(node, dict):
+            for key, value in node.items():
+                if isinstance(value, str):
+                    for signature in HONEST_REFUSAL_STALE_SIGNATURES:
+                        if signature in value.lower():
+                            hits.append(f"{path}.{key}={value!r}")
+                            break
+                walk(value, f"{path}.{key}")
+        elif isinstance(node, list):
+            for index, item in enumerate(node):
+                if isinstance(item, str):
+                    for signature in HONEST_REFUSAL_STALE_SIGNATURES:
+                        if signature in item.lower():
+                            hits.append(f"{path}[{index}]={item!r}")
+                            break
+                else:
+                    walk(item, f"{path}[{index}]")
+
+    for container in containers:
+        walk(container, "$")
+    return hits
+
+
+def validate_honest_refusal(
+    loop: dict[str, Any] | None,
+    responses: list[dict[str, Any]],
+    continuations: list[dict[str, Any]],
+    runtime_status: dict[str, Any],
+    terminal_causes: list[Any],
+    case_id: str,
+) -> dict[str, Any]:
+    require(loop is not None, "D1 loop projection is missing")
+    assert loop is not None
+    experiment = loop.get("experiment") if isinstance(loop.get("experiment"), dict) else {}
+    admission = experiment.get("admission") if isinstance(experiment.get("admission"), dict) else {}
+    typed = admission.get("typed_action") if isinstance(admission.get("typed_action"), dict) else {}
+    domain = first_text(typed.get("action_domain")).lower()
+    # Requirement 1: the model formed a valid typed proposal in an admitted
+    # domain (either dose direction).
+    require(domain in ADMITTED_DOMAIN_KINDS, f"(1) honest-refusal action_domain {domain!r} is not admitted by the D2-1 domain table")
+    require(first_text(typed.get("action_kind")).lower() == ADMITTED_DOMAIN_KINDS[domain], f"(1) honest-refusal action_kind mismatch for admitted domain {domain}")
+    dose_key, dose_bound = HONEST_REFUSAL_DOSE_KEYS[domain]
+    dose = typed.get(dose_key)
+    require(isinstance(dose, (int, float)) and not isinstance(dose, bool) and dose != 0 and abs(dose) <= dose_bound,
+            f"(1) honest-refusal typed {dose_key} must be non-zero within +/-{dose_bound:g}")
+    experiment_rounds = rows(experiment.get("rounds"))
+    require(len(experiment_rounds) == 1, "(1) honest-refusal requires exactly one experiment round")
+    round_row = experiment_rounds[0]
+    interventions = rows(round_row.get("interventions"))
+    require(len(interventions) == 1, "(1) honest-refusal requires exactly one attempted intervention (zero means the confirmation never reached execution)")
+    intervention = interventions[0]
+    require(intervention.get("user_confirmed") is True, "(1) honest-refusal intervention was never user-confirmed")
+
+    # Requirement 2: the confirmed execution was refused by the fail-closed
+    # unreachable-range gate (staticeq_delta.go planDeltaChannels).
+    require(first_text(intervention.get("technical_application")).lower() == "failed", "(2) honest-refusal technical_application is not failed")
+    receipt = intervention.get("receipt") if isinstance(intervention.get("receipt"), dict) else {}
+    require(first_text(receipt.get("status")).lower() == "failed", "(2) honest-refusal execution receipt status is not failed")
+    refusal_error = first_text(receipt.get("error"))
+    require(HONEST_REFUSAL_FAIL_CLOSED_MARKER in refusal_error,
+            "(2) honest-refusal error is not the fail-closed unreachable-range gate: " + refusal_error)
+
+    # Requirement 3: zero forward mutation, zero unplanned side effects. The
+    # refused execution applies nothing, renders no after state, books no
+    # rollback compensation, honors the single-attempt dose budget, and the
+    # receipt self-reports its own validation gap instead of hiding it.
+    require(int(admission.get("experiment_budget", 0) or 0) == 1, "(3) honest-refusal experiment_budget must equal one")
+    for key in ("diagnostic_dose_bounds", "retained_dose_bounds"):
+        bounds = admission.get(key) if isinstance(admission.get(key), dict) else {}
+        require(int(bounds.get("max_action_attempts", 0) or 0) == 1, f"(3) honest-refusal {key}.max_action_attempts must equal one")
+    d1_receipt = loop.get("d1_receipt") if isinstance(loop.get("d1_receipt"), dict) else {}
+    require(bool(d1_receipt), "(3) honest refusal did not produce a D1 receipt")
+    require(d1_receipt.get("parameter_applied") is False, "(3) refused execution must not apply parameters")
+    require(d1_receipt.get("readback_verified") is False, "(3) refused execution must not claim a verified readback")
+    require(d1_receipt.get("after_render") is None, "(3) refused execution must not produce an after render")
+    require(d1_receipt.get("rolled_back") is False and int(d1_receipt.get("rollback_compensation_count", 0) or 0) == 0 and d1_receipt.get("rollback_receipt") is None,
+            "(3) refused execution must not book rollback compensation")
+    layers = d1_receipt.get("layers") if isinstance(d1_receipt.get("layers"), dict) else {}
+    technical_readback = layers.get("technical_readback") if isinstance(layers.get("technical_readback"), dict) else {}
+    require(first_text(technical_readback.get("status")).lower() == "failed", "(3) refused receipt technical_readback layer is not failed")
+    net_outcome = layers.get("net_outcome") if isinstance(layers.get("net_outcome"), dict) else {}
+    require(first_text(net_outcome.get("status")).lower() == "stable", "(3) refused receipt net_outcome layer is not stable")
+    require(bool(first_text(d1_receipt.get("validation_error"))), "(3) refused receipt must self-report its validation gap")
+
+    # Requirement 4: the honest terminal form (stats §48) with the stale
+    # misattribution explicitly rejected. The scan runs first so a pre-REG2
+    # form dies on the stale ban itself, not on a downstream form mismatch.
+    stale_hits = honest_refusal_stale_hits(loop, responses, continuations, runtime_status, terminal_causes)
+    require(not stale_hits, "(4) stale misattribution signatures present (pre-REG2 form): " + "; ".join(stale_hits[:5]))
+    require(first_text(loop.get("status")).lower() == HONEST_REFUSAL_TERMINAL_STATE, "(4) honest-refusal loop status is not capability_blocked")
+    decision = loop.get("latest_decision") if isinstance(loop.get("latest_decision"), dict) else {}
+    require(first_text(decision.get("stop_reason")).lower() == HONEST_REFUSAL_TERMINAL_STATE, "(4) honest-refusal stop_reason is not capability_blocked")
+    semantic: dict[str, Any] = {}
+    task = runtime_status.get("task") if isinstance(runtime_status.get("task"), dict) else {}
+    if isinstance(runtime_status.get("task_semantic_state"), dict):
+        semantic = runtime_status["task_semantic_state"]
+    elif isinstance(task.get("semantic_state"), dict):
+        semantic = task["semantic_state"]
+    else:
+        for row in continuations:
+            if isinstance(row.get("task_semantic_state"), dict):
+                semantic = row["task_semantic_state"]
+    require(bool(semantic), "(4) honest-refusal terminal semantic state is not inspectable")
+    require(first_text(semantic.get("state")).lower() == HONEST_REFUSAL_TERMINAL_STATE, "(4) honest-refusal terminal semantic state is not capability_blocked")
+    require(semantic.get("terminal") is True, "(4) honest-refusal terminal semantic state is not terminal")
+    require(first_text(semantic.get("transition_reason")).lower() == HONEST_REFUSAL_TERMINAL_REASON,
+            "(4) honest-refusal transition_reason is not the bounded-window terminal form: " + first_text(semantic.get("transition_reason")))
+
+    return {
+        "status": "honest_refusal",
+        "public_case_id": case_id,
+        "action_domain": domain,
+        "action_kind": first_text(typed.get("action_kind")),
+        "typed_action": {dose_key: dose},
+        "target_ref": admission.get("target_ref") if isinstance(admission.get("target_ref"), dict) else {},
+        "round_id": first_text(round_row.get("round_id")),
+        "action_id": first_text(intervention.get("action_id")),
+        "refusal_error": refusal_error,
+        "receipt_validation_error": first_text(d1_receipt.get("validation_error")),
+        "stale_signature_scan": "clean",
+        "terminal_state": first_text(semantic.get("state")),
+        "terminal_reason": first_text(semantic.get("transition_reason")),
+    }
+
+
+def _honest_refusal_fixture() -> dict[str, Any]:
+    """Minimal honest-refusal report fixture mirroring run 20260902_184456."""
+    loop: dict[str, Any] = {
+        "schema_version": "free_state_reasoning_loop.v1",
+        "status": "capability_blocked",
+        "experiment": {
+            "admission": {
+                "typed_action": {"action_domain": "broadband_compression", "action_kind": "broadband_threshold_adjust", "threshold_db": 1},
+                "target_ref": {"kind": "track", "id": "1012"},
+                "experiment_budget": 1,
+                "diagnostic_dose_bounds": {"max_action_attempts": 1},
+                "retained_dose_bounds": {"max_action_attempts": 1},
+            },
+            "rounds": [{
+                "round_id": "round-1-a2e58426115985ab",
+                "interventions": [{
+                    "action_id": "d1_turn_comp",
+                    "user_confirmed": True,
+                    "technical_application": "failed",
+                    "receipt": {"status": "failed", "error": "delta target 12.8 dB (current 11.8 + 1) is outside the reachable normalized range"},
+                }],
+            }],
+        },
+        "latest_decision": {"stop_reason": "capability_blocked", "summary": "closure observation round boundary reached"},
+        "d1_receipt": {
+            "parameter_applied": False,
+            "readback_verified": False,
+            "after_render": None,
+            "rolled_back": False,
+            "rollback_compensation_count": 0,
+            "rollback_receipt": None,
+            "layers": {"technical_readback": {"status": "failed"}, "net_outcome": {"status": "stable"}},
+            "validation_error": "project_revision is required (receipts are revision-bound)",
+        },
+    }
+    runtime_status = {"task": {"task_semantic_state": {"state": "capability_blocked", "terminal": True, "transition_reason": "closure observation round boundary reached"}}}
+    return {
+        "loop": loop,
+        "responses": [{"reply": "改善性提案已进入原生控制工具链。精确混音单步仍需确认，确认前不会修改工程。"}],
+        "continuations": [{"free_state_stop_reason": "capability_blocked", "task_semantic_state": {"state": "capability_blocked", "terminal": True, "transition_reason": "closure observation round boundary reached"}}],
+        "runtime_status": runtime_status,
+        "terminal_causes": ["capability_blocked", "capability_blocked"],
+        "case_id": "spv1_p03",
+    }
+
+
+def test_validate_honest_refusal_forms() -> None:
+    # Honest form (REG2 §48): all four requirements hold.
+    validate_honest_refusal(**_honest_refusal_fixture())
+
+    def expect_rejection(mutate, fragment: str) -> None:
+        fixture = _honest_refusal_fixture()
+        mutate(fixture)
+        try:
+            validate_honest_refusal(**fixture)
+        except RuntimeError as exc:
+            assert fragment in str(exc), f"expected {fragment!r} in honest-refusal rejection, got: {exc}"
+            return
+        raise AssertionError("honest-refusal validation accepted a form it must reject")
+
+    # Pre-REG2 stale form (§47 20260902_182340): the buried settlement reason
+    # alone must trip the requirement-4 stale ban even when every other
+    # surface still reads capability_blocked.
+    def bury_stale(fixture: dict[str, Any]) -> None:
+        fixture["responses"].append({"workflow_data": {"minimal_audio_closure": {"settlement": {"reason": "project_revision_stale"}}}})
+    expect_rejection(bury_stale, "(4) stale misattribution signatures")
+
+    # Applied form (positive path, e.g. 20260902_184702): requirement 2 fires.
+    def apply_action(fixture: dict[str, Any]) -> None:
+        intervention = fixture["loop"]["experiment"]["rounds"][0]["interventions"][0]
+        intervention["technical_application"] = "applied"
+        intervention["receipt"] = {"status": "applied", "before_revision": "7", "after_revision": "8"}
+        receipt = fixture["loop"]["d1_receipt"]
+        receipt["parameter_applied"] = True
+        receipt["readback_verified"] = True
+        receipt["after_render"] = {"sha256": "x"}
+        receipt["validation_error"] = ""
+    expect_rejection(apply_action, "(2)")
+
+    # Drain-race form (§47 20260902_182544): the confirmation never reached
+    # execution, so requirement 1's intervention cardinality fires.
+    def drop_intervention(fixture: dict[str, Any]) -> None:
+        fixture["loop"]["experiment"]["rounds"][0]["interventions"] = []
+    expect_rejection(drop_intervention, "(1)")
+
+
 SETTLEMENT_PROBE_TAG = "smoke_settlement_probe"
 SETTLEMENT_PROBE_FREE_TEXT = "machine-originated settlement probe; not a human judgment"
 SETTLEMENT_PROBE_ANSWERS = {
@@ -2128,12 +2375,15 @@ def main() -> int:
     parser.add_argument("--prompt-flavor", choices=sorted(PROMPT_FLAVORS), default="neutral", help="case-agnostic open-prompt flavor; frequency steers the proposal toward the admitted static_eq domain")
     parser.add_argument("--expect-domain", choices=sorted(ADMITTED_DOMAIN_KINDS) + ["any"], default="any", help="require the run to autonomously select this admitted domain (regression pin) or any admitted domain")
     parser.add_argument("--multi-round-probe", action="store_true", help="D2-2-S3 multi-round probe: drive one machine-origin judgment at the round-1 boundary (D2-2-S3b), then assert multi-round continuation against the D2-1 dose bounds; a run that never forms the boundary may legally report NOT_EXERCISED (exit 3)")
+    parser.add_argument("--expect-honest-refusal", action="store_true", help="D2-REG3 A face: expect the confirmed execution to be refused by the fail-closed unreachable-range gate and validate the REG2 honest-refusal signature (four requirements incl. the StopProjectRevisionStale ban) instead of the applied-path D1 contract")
     parser.add_argument("--verify-settled", default="", help="verify a previously settled probe report after an agent restart (path to d1_smoke_report.json)")
     args = parser.parse_args()
     if args.multi_round_probe and args.settlement_probe:
         parser.error("--multi-round-probe cannot be combined with --settlement-probe")
     if args.multi_round_probe and args.admission_only:
         parser.error("--multi-round-probe cannot be combined with --admission-only")
+    if args.expect_honest_refusal and (args.multi_round_probe or args.settlement_probe or args.admission_only):
+        parser.error("--expect-honest-refusal owns the run tail and cannot be combined with --multi-round-probe, --settlement-probe, or --admission-only")
     output = Path(args.output).resolve()
     if args.verify_settled:
         verification = verify_settled_after_restart(args.agent_http, Path(args.verify_settled).resolve(), args.timeout_sec)
@@ -2143,7 +2393,7 @@ def main() -> int:
         write_report(prior_path, prior)
         print(f"D1-S1 SETTLEMENT RESTART VERIFY PASS: disposition={verification['disposition']} report={prior_path}")
         return 0
-    report: dict[str, Any] = {"schema_version": "vit.free_state_d1_smoke.v1", "started_at": dt.datetime.now(dt.timezone.utc).isoformat(), "public_case_id": args.public_case_id, "prompt_flavor": args.prompt_flavor, "expect_domain": args.expect_domain}
+    report: dict[str, Any] = {"schema_version": "vit.free_state_d1_smoke.v1", "started_at": dt.datetime.now(dt.timezone.utc).isoformat(), "public_case_id": args.public_case_id, "prompt_flavor": args.prompt_flavor, "expect_domain": args.expect_domain, "expect_honest_refusal": args.expect_honest_refusal}
     responses: list[dict[str, Any]] = []
     try:
         _, public_case = load_public_case(Path(args.public_manifest), args.public_case_id)
@@ -2297,6 +2547,24 @@ def main() -> int:
             write_report(output, report)
             print(f"D1-S1 NOT_EXERCISED: report={output}")
             return NOT_EXERCISED_EXIT
+        if args.expect_honest_refusal:
+            # D2-REG3 A face: the domain-selection pin above still applies;
+            # the tail swaps the applied-path D1 contract for the four
+            # honest-refusal requirements (proposal formed, fail-closed
+            # refusal, zero side effects, honest non-stale terminal).
+            report["honest_refusal"] = validate_honest_refusal(
+                find_d1_loop(responses),
+                responses,
+                report.get("continuations") or [],
+                report.get("last_runtime_status") or {},
+                report.get("terminal_causes") or [],
+                args.public_case_id,
+            )
+            report["status"] = "honest_refusal_pass"
+            report["finished_at"] = dt.datetime.now(dt.timezone.utc).isoformat()
+            write_report(output, report)
+            print(f"D1-S1 HONEST_REFUSAL PASS: report={output}")
+            return 0
         if args.multi_round_probe:
             # D2-2-S3: the multi-round probe owns the run tail; the single-round
             # D1 assertions below stay untouched and are intentionally not run.
