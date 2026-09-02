@@ -409,6 +409,13 @@ func messageLoopFreeStatePromptContext(state *runState) map[string]any {
 			"processor_type", "improvement_proposal", "experiment_admission", "experiment_materiality", "experiment_target_response", "experiment_round_decision", "semantic_processor_intent", "diagnostic", "requested_view_ids", "priority_reason", "unresolved_questions", "declared_contradiction", "observation_id", "limitations", "stop_reason",
 		})
 	}
+	if queue := messageLoopFreeStatePriorityQueuePromptSummary(state); len(queue) > 0 {
+		// D2-NEUTRAL3: the closure host already records which diagnostic
+		// dimensions are open/closed/skipped. Disclosing that record makes
+		// "dimensions still unobserved" a model-visible fact; it upgrades no
+		// readiness or guarantee.
+		out["priority_queue"] = queue
+	}
 	actions := messageLoopMapRows(source["actions"])
 	if len(actions) > 0 {
 		start := len(actions) - 3
@@ -1144,6 +1151,61 @@ func messageLoopFreeStateQueueStillOpen(state *runState) bool {
 		return true
 	}
 	return queue.HasOpen()
+}
+
+// messageLoopFreeStatePriorityQueuePromptSummary projects the closure host's
+// diagnostic priority queue into the compact ledger disclosure: which
+// dimensions are still open, closed, or skipped. Disclosure of an existing
+// record only — it upgrades no readiness and asserts no guarantee. A queue
+// that is absent, unparseable, or invalid is not disclosed at all (nothing is
+// invented on the disclosure path; the fail-closed gate above keeps guarding
+// no_candidate_found separately).
+func messageLoopFreeStatePriorityQueuePromptSummary(state *runState) map[string]any {
+	if state == nil {
+		return nil
+	}
+	ctx := messageLoopFreeStateContext(state)
+	raw, ok := ctx["priority_queue"]
+	if !ok {
+		if closure := messageLoopMapValue(state.input.Context["minimal_audio_closure"]); closure != nil {
+			raw, ok = closure["priority_queue"]
+		}
+		if !ok {
+			return nil
+		}
+	}
+	data, err := json.Marshal(raw)
+	if err != nil {
+		return nil
+	}
+	queue := audioclosure.PriorityQueue{}
+	if json.Unmarshal(data, &queue) != nil || queue.SchemaVersion != audioclosure.PriorityQueueSchema || queue.Validate() != nil {
+		return nil
+	}
+	summary := map[string]any{"schema_version": queue.SchemaVersion}
+	open := make([]string, 0, len(queue.Entries))
+	closed := make([]string, 0, len(queue.Entries))
+	skipped := make([]string, 0, len(queue.Entries))
+	for _, entry := range queue.Entries {
+		switch entry.Status {
+		case audioclosure.QueueOpen:
+			open = append(open, string(entry.Dimension))
+		case audioclosure.QueueClosed:
+			closed = append(closed, string(entry.Dimension))
+		case audioclosure.QueueSkipped:
+			skipped = append(skipped, string(entry.Dimension))
+		}
+	}
+	if len(open) > 0 {
+		summary["open_dimensions"] = open
+	}
+	if len(closed) > 0 {
+		summary["closed_dimensions"] = closed
+	}
+	if len(skipped) > 0 {
+		summary["skipped_dimensions"] = skipped
+	}
+	return summary
 }
 
 // messageLoopFreeStateDiagnosticEvidenceWindowClosed bounds only the

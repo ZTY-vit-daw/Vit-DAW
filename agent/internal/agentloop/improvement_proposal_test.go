@@ -62,9 +62,9 @@ func TestImprovementContractPromptCarriesConvergenceGuidance(t *testing.T) {
 	}}}
 	prompt := messageLoopNeutralFamilySystemPrompt(state)
 	for _, fragment := range []string{
-		"Gate-Aligned Fast Path for Open Improvement Contracts",
+		"Fair Observation Selection for Open Improvement Contracts",
 		"continuation_budget and continuation_used",
-		"Gate-Aligned Fast Path",
+		"rush the GATE PATH instead",
 	} {
 		if !strings.Contains(prompt, fragment) {
 			t.Fatalf("improvement prompt missing convergence guidance %q", fragment)
@@ -72,6 +72,9 @@ func TestImprovementContractPromptCarriesConvergenceGuidance(t *testing.T) {
 	}
 	neutral := messageLoopNeutralFamilySystemPrompt(&runState{input: Input{Context: map[string]any{}}})
 	if strings.Contains(neutral, "Continuation Budget Discipline") {
+		t.Fatal("convergence guidance leaked into a non-improvement contract prompt")
+	}
+	if strings.Contains(neutral, "Fair Observation Selection for Open Improvement Contracts") {
 		t.Fatal("convergence guidance leaked into a non-improvement contract prompt")
 	}
 }

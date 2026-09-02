@@ -82,6 +82,8 @@ Rules:
 - Evidence status and problem status are different. Sufficient evidence can support the conclusion that no treatment is needed and does not authorize treatment by itself.
 - A candidate-only finding with an explicit interpretation limit (for example, overlap that is not a psychoacoustic fact) is not by itself a safe basis for a deterministic treatment or a whole-project satisfied conclusion. After the required target-level observation returns, if the evidence remains plausible but non-deterministic, return needs_experiment with one bounded improvement_proposal.v1; do not convert that epistemic limit into blocked. Use blocked only for a concrete capability, freshness, authorization, or observation boundary.
 - Preserve conditional authorization exactly. If the user authorized treatment only when a condition is true, decide that condition from the requested evidence before returning needs_action. Weak, natural, or within-control variation is not enough; return no_candidate_found with the bounded evidence and limitations when the condition is false.
+- Authorization semantics under an open improvement contract: a diagnostic-phrased user goal (asking to check, inspect, or find problems in the mix) still authorizes bounded reversible improvement experiments, unless this turn is explicitly marked diagnostic-only. The needs_experiment user-confirmation gate is where any mutation is authorized; diagnostic wording alone neither selects a treatment nor refuses one. Do not return capability_blocked on authorization without a concrete runtime authorization boundary.
+- Every CCB observation bundle carries read_only=true and mutation_authority=false. These fields describe the observation tool itself: CCB observes, never mutates, and neither grants nor denies modification authority. They are contract properties of the observation view, not statements about your task authorization, and must not be used alone as a capability_blocked authorization basis.
 - During post_action_evaluation, when the loop context still carries requires_post_action_observation=true your FIRST action must be a ccb.observation_request for the admitted experiment's view set on the applied target; no runtime outcome, needs_action, or settle report is legal until that request has returned in this reasoning cycle. When requires_post_action_observation is false the fresh post-action evidence is already recorded on the round: cite it and settle the experiment from it without requesting the observation again. Re-evaluate the complete original intent and preserve unresolved clauses. The bounded experiment has already been user-confirmed and applied; authorization was settled at that confirmation. Re-litigating whether the original request authorized treatment is not a valid boundary in this phase — evaluate the applied experiment's outcome only from fresh post-action evidence.
 - %s
 - If post-action evidence is partial, inconclusive, stale, or otherwise insufficient to prove the target remains unmet, continue observing or report the concrete evidence limitation; never return needs_action and never write another processor action from inconclusive evidence. Return blocked only when the fresh post-action CCB observation itself cannot be obtained; blocked before that observation is not a legal terminal.
@@ -210,7 +212,7 @@ func messageLoopCandidateFrontierDirective(state *runState) string {
 		return "A target-level observation for the closure candidate has just returned in this turn. Return final=true now: use needs_action only when the returned target evidence supports a deterministic governed action; when it plausibly relates to the user's listening goal but cannot prove an objective defect, use needs_experiment with one bounded improvement_proposal.v1 citing the returned observation. Use blocked only for a concrete capability, freshness, authorization, or observation boundary. Do not request another observation.\n\n"
 	}
 	if selected == "" {
-		return "A closure candidate frontier is now available: " + strings.Join(rows, "; ") + ". You MUST select one candidate by requesting only track.* observation(s) targeted at one listed track ID. Do not request a catalog, project.*, or mix.* view while this frontier is unresolved. Candidate evidence is not itself permission to select a processor.\n\n"
+		return "A closure candidate frontier is now available: " + strings.Join(rows, "; ") + ". The runtime resolves this frontier only through target-level evidence: request track.* observation(s) targeted at one listed track ID. Which candidate track and which track.* view(s) you request remain your own evidence-driven choice — a track-level view from any diagnostic dimension is admissible on a candidate track. Candidate evidence is not itself permission to select a processor.\n\n"
 	}
 	return "The closure selected candidate " + selected + " and has already recorded its target-level observation. The minimal observation loop is closed: return final=true now. Use needs_action only when that evidence supports a deterministic governed action; when it supports only a bounded improvement hypothesis, use needs_experiment with one improvement_proposal.v1 citing the returned observation. Use blocked only for a concrete capability, freshness, authorization, or observation boundary. Do not request another observation or restart project-level inspection.\n\n"
 }
@@ -253,11 +255,11 @@ func messageLoopFreeStateContinuationBudgetDirective(state *runState) string {
 
 `, used, budget)
 	case remaining <= 1:
-		return fmt.Sprintf(`CONTINUATION BUDGET CRITICAL: %d of %d checkpoints are already consumed and this is (one of) the last usable turn(s). The closure host is still in phase %s, which does not admit needs_experiment yet: a bounced proposal would only waste the turn. Follow the fastest gate-legal path instead: request the one mix.* project relationship view that discloses track-level candidates (mix.multitrack_relationship or mix.frequency_relationship) if it has not returned yet; otherwise request a track.* view on the single most plausible candidate track. Do not re-request any view that already returned, and do not open a new diagnostic dimension.
+		return fmt.Sprintf(`CONTINUATION BUDGET CRITICAL: %d of %d checkpoints are already consumed and this is (one of) the last usable turn(s). The closure host is still in phase %s, which does not admit needs_experiment yet: a bounced proposal would only waste the turn. Follow the fastest gate-legal path instead: call ccb.observation_catalog if you have not discovered the available views yet; otherwise request the one view whose facts disclose track-level candidates with track IDs (skip it if it already returned), then the target-level track.* view on the single most plausible candidate track. Do not re-request any view that already returned.
 
 `, used, budget, phase)
 	case used*2 >= budget:
-		return fmt.Sprintf(`Continuation budget warning: %d of %d checkpoints consumed while the closure host is still in phase %s. A needs_experiment decision is only admissible after the host confirms a target, so early proposals get bounced. The fastest gate-legal path is: (1) one mix.* project relationship view (mix.multitrack_relationship or mix.frequency_relationship) to disclose candidates with track IDs; (2) one track.* view on the single most plausible candidate track to confirm the target; (3) then final=true needs_experiment. Do not spend this turn on other dimensions, repeated structure views, or views that already returned.
+		return fmt.Sprintf(`Continuation budget warning: %d of %d checkpoints consumed while the closure host is still in phase %s. A needs_experiment decision is only admissible after the host confirms a target, so early proposals get bounced. The fastest gate-legal path is: (1) ccb.observation_catalog discovery if you have not seen the available views, then the view whose facts disclose candidates with track IDs; (2) the target-level track.* view on the single most plausible candidate track to confirm the target; (3) then final=true needs_experiment. Every checkpoint should buy evidence you do not already hold; do not re-request views that already returned.
 
 `, used, budget, phase)
 	}
@@ -308,21 +310,20 @@ func messageLoopFreeStatePositiveInt(raw any) int {
 // an open improvement contract. The key constraint is that a needs_experiment
 // decision is only admissible once the closure host has established a
 // candidate frontier and confirmed a target: an early proposal gets bounced
-// by the host phase gate and the turn is wasted. This guidance therefore
-// teaches the fastest gate-legal observation sequence instead of demanding
-// early proposals. Steering only: no validator, gate, or runtime criterion
-// reads it.
+// by the host phase gate and the turn is wasted. Since D2-NEUTRAL3 the
+// guidance presents observation views fairly: catalog discovery is the first
+// step, view dimensions are chosen by the model from the material at hand,
+// and cross-dimension touring inside the budget is legal — no named fast-path
+// view sequence and no anti-breadth prohibition. Steering only: no validator,
+// gate, or runtime criterion reads it.
 func freeStateImprovementConvergenceGuidance() string {
-	return `Continuation Budget and Gate-Aligned Fast Path for Open Improvement Contracts:
+	return `Continuation Budget and Fair Observation Selection for Open Improvement Contracts:
 
 - The free-state loop context discloses continuation_budget and continuation_used. The budget is small (typically 6 checkpoints total for the whole task, not per dimension). Every needs_observation turn you return consumes one checkpoint, and exhausting it settles the task at the observation boundary without ever exercising an improvement.
 - The closure host admits needs_experiment only after a candidate frontier is established and a target is confirmed. A proposal sent before that is bounced and the turn is wasted. Do not rush the proposal; rush the GATE PATH instead.
-- Fastest gate-legal sequence (usually 3 observations total):
-  1. project.structure once, to disclose visible track IDs and names.
-  2. One mix.* project relationship view — mix.multitrack_relationship or mix.frequency_relationship. These are the views that disclose track-level improvement candidates; the host frontier is built from their candidate rows.
-  3. One track.* view on the single most plausible candidate track, to confirm the target.
-  Then return final=true needs_experiment with one bounded improvement_proposal.v1 citing the target-level observation.
-- Do NOT tour the other diagnostic dimensions first, re-request views that already returned, or keep observing after the target-level evidence is in hand. Breadth across dimensions is the most common way these tasks fail.
+- Make catalog discovery your first observation step: call ccb.observation_catalog before your first ccb.observation_request, and choose view dimensions yourself from the returned catalog and the material at hand — visible track identities and names, the user's listening goal, and any disclosed still-unobserved diagnostic dimensions. There is no default view sequence and no privileged dimension.
+- Choose dimensions by evidence, not by habit: visiting more than one diagnostic dimension within the budget is legal and is often necessary, because a single-dimension reading cannot show whether the audible problem lives elsewhere. What wastes the budget is re-requesting views that already returned, or observing after the target-level evidence you need is already in hand.
+- The gate path itself, whatever views you choose: a candidate frontier is built from observation facts that disclose track-level candidates, and a target is confirmed by a target-level track.* observation of one concrete candidate track. Once the target-level evidence for your chosen candidate is in hand, return final=true needs_experiment with one bounded improvement_proposal.v1 citing it.
 - Plausible, reversible, and evidence-cited is enough for the proposal; proof of an objective defect is NOT required.
 
 `

@@ -969,3 +969,39 @@ S3h8 以 102243 定案的孤儿开卡。取证把卡内死亡链精确到**确�
 2. **自由态契约授权语义显式化（对症授权语义 2/13）**：系统提示增补一条授权裁定规则——开放改善契约下，诊断句式的用户目标（含「检查…有什么问题」类措辞）默认授权有界可逆实验（needs_experiment 的用户确认门即授权面），观察 bundle 的 `read_only/mutation_authority` 是观察工具契约字段、非任务级授权声明，不得单独作为 capability_blocked 的授权依据。验收面：同签名 NOT_EXERCISED（action_preflight_boundary × 诊断句式）复测消失。
 
 收口：NEUTRAL2 卡 todo→done；提交 `forensics(d2-neutral2):` 不 push（DSH_SKILL_CATALOG.md 与 VitApp/Workspace/default_project.xml 不入提交）；零代码/零判据改动。
+
+## 51. 2026-09-02 深夜批（D2-NEUTRAL3 观察公平呈现 + 授权语义显式化——NEUTRAL2 建议①②落地，RED 先行，独立 worktree d2-neutral3）
+
+**工作形态（并行协议遵约）**：全程独立 worktree `C:\Users\timoz\AppData\Local\Temp\vit_neutral3`（分支 `d2-neutral3`，自 `1d058f1` 起），主工作树零文件触碰；Phase A 纯 Go 立即开始，Phase B 等到 D3-CLOSE1 第一段收口产物（`artifacts\free_state_d1_s1\20260902_205153\d3_close1_run_report.md`，exit 0）出现且栈空闲（CLOSE1 遗留 agent 仅 VSP 心跳告警、无任务处理）后错峰启动。
+
+**RED 先行（`free_state_neutral3_fair_presentation_test.go`，实现前实跑 6 断言全红）**：①收敛引导公平呈现（含 `ccb.observation_catalog`/首步目录发现/"no default view sequence"/跨维度巡访合法；禁 `mix.multitrack_relationship`/`mix.frequency_relationship`/`project.structure`/timbre/static_eq/track_gain/"Do NOT tour"/"Breadth across dimensions"）②budget 指令两分支无点名视图对无反广度措辞③前沿指令无 "Do not request a catalog, project.*, or mix.* view" 锁死且保留 track.* 门对齐④组装提示含公平呈现+授权语义双规则⑤⑥紧凑 ledger 披露 priority_queue open/closed 维度（ctx 直读+closure 回退两路；无队列/坏队列不发明披露）。
+
+**主修（纯提示文本，`ccb_model_prompt.go`）——改写前后对照**：
+- `freeStateImprovementConvergenceGuidance`：标题 "Gate-Aligned Fast Path" → "Fair Observation Selection"；**删除**逐字三步视图序列（project.structure once → mix.multitrack_relationship/frequency_relationship → track.*）、反广度禁令（"Do NOT tour… Breadth across dimensions is the most common way these tasks fail"）；**保留**预算意识（6 checkpoints 教学）与门对齐教学（needs_experiment 仅在 frontier+target 确认后可入、早提案被弹回、"rush the GATE PATH"）；**新增**首步目录发现强制（"call ccb.observation_catalog before your first ccb.observation_request"）、"There is no default view sequence and no privileged dimension"、跨维度巡访合法（"visiting more than one diagnostic dimension within the budget is legal and is often necessary"）、门路径真实描述（frontier 由披露 track 级候选的观察 facts 构建、target 由 target-level track.* 确认）。
+- `messageLoopFreeStateContinuationBudgetDirective`（§50 机理链 (e) 同款文本载体，两分支）：删 "mix.multitrack_relationship or mix.frequency_relationship" 点名对与 "do not open a new diagnostic dimension"/"Do not spend this turn on other dimensions" 反广度句；保留 "fastest gate-legal path" 短语（既有测试语义不变），改为目录发现条件步+无名类描述（"the view whose facts disclose track-level candidates"）。
+- `messageLoopCandidateFrontierDirective`（selected=="" 分支）：删 "You MUST select one candidate by requesting only track.*… Do not request a catalog, project.*, or mix.* view while this frontier is unresolved" 锁死；改为真实门约束教学（"The runtime resolves this frontier only through target-level evidence: request track.*…"）+ 模型自由明示（"Which candidate track and which track.* view(s) you request remain your own evidence-driven choice — a track-level view from any diagnostic dimension is admissible on a candidate track"）。**门真身未动**：`messageLoopFreeStateCandidateProgressionIssue`（free_state_reasoning.go:1033-1045）对目录/project/mix 的运行时限制原样保留——提示不再预支该禁令，模型若越界由结构化门弹回（governed 路径）。
+- **伴生披露**（`free_state_reasoning.go`）：`messageLoopFreeStatePromptContext` 新增 `priority_queue` 键（helper `messageLoopFreeStatePriorityQueuePromptSummary`，与 QueueStillOpen 同款 ctx 直读+closure 回退+严格解析纪律），披露 open/closed/skipped 维度列表——"未覆盖维度"成为模型可见事实；缺队列/坏队列零发明（披露路径不 fail-closed，no_candidate_found 门另由 QueueStillOpen 守）。**盲法红线遵约**：全部新文本零点名具体视图 ID/故障域/方向（测试断言禁 static_eq/track_gain/timbre 等字样）。
+
+**副修（授权语义显式化，提示 Rules 层两条，零门/判据改动）**：①"诊断式用户目标（check/inspect/find problems 句式）在开放改善契约下默认授权有界可逆实验（diagnostic-only 显式标记除外），needs_experiment 用户确认门即授权面，不得无具体运行时授权边界即 capability_blocked"；②"read_only=true/mutation_authority=false 是观察工具契约字段（CCB 只观察、不授/不夺改权），非任务级授权声明，不得单独作 capability_blocked 授权依据"。
+
+**验收（worktree 内真实退出码）**：`go build ./...` exit 0；全量 `go test ./... -count=1` exit 0（84 包全 ok）；NEUTRAL3 新测试 7 例全绿 + 既有 `TestImprovementContractPromptCarriesConvergenceGuidance`（改断言新标题，意图不变）与 `TestContinuationBudgetDirectiveEscalation`（fastest gate-legal path 短语保留）原样过。
+
+**Phase B mini 复测（5 跑全 -PromptFlavor neutral，显式 -RepoRoot=worktree + 显式 -PublicManifest（主树 fixtures 只读）+ 显式 -KernelExe（主树内核，C++ 零改动已核：worktree git status 仅 4 Go 文件、主树 C++ 最新源 08/31 21:09 < 内核 08/31 21:12）；agent 由 worktree 二进制重启，mtime 守卫 agent exe 21:04:58 > 全部 Go 源 20:58:27）**：
+
+**无效首批披露（如实留档）**：首批 5 跑（210607/210807/210951/211111/211230）全部无效——7878 仍被 D3-CLOSE1 遗留的主树 agent（`D:\Vit_DAW\agent\bin\VitAgent.exe` pid 25516）持有：dev_agent_smoke 的 Stop-AgentForPaths 按 worktree 路径集过滤进程，主树 agent 不在集合内未被停，smoke 全部打到旧提示。该批已逐目录写 `INVALID_old_main_tree_agent.txt` 标记保留（其观察分布与 §49 同构三视图完全一致，构成旧提示行为的又一次非预期复现）。处置：停遗留 agent（进程级共享栈常规重启面，主树文件零触碰）后重跑有效批；**二进制证据链**：7878 owner 实测=worktree exe（pid 552/后继）、二进制 grep 新文本 4 HIT+旧文本 4 MISS+披露函数符号 HIT。
+
+**有效批 5 跑结果与观察请求分布**（receipts 为逐 response 累积 ledger，唯一请求按去重计）：
+
+| run | case | 终态 | applied 域/readback | 唯一观察请求集 | 规范视图 | 目录发现 |
+|---|---|---|---|---|---|---|
+| 211857 | p06#1 | PASS | static_eq / −1 | {structure+masking} → {frequency+multitrack} → {timbre} | 无 | 0 |
+| 212204 | p06#2 | **FAIL** | 未行使 | {structure+masking} → {frequency} → {timbre}（此后不再观察） | 无 | 0 |
+| 212410 | p07#1 | NOT_EXERCISED | 未行使 | {structure+multitrack+masking} → {timbre+**time_dynamics**} → {**basic_energy**} | **time_dynamics ×1** | 0 |
+| 212523 | p07#2 | PASS | static_eq / −0.5 | {structure+masking} → {multitrack+frequency} → {timbre} | 无 | 0 |
+| 212641 | p01 | PASS | static_eq / −1 | {structure+masking} → {multitrack+frequency} → {timbre} | 无 | 0 |
+
+**判读（诚实边界）**：①**p01 回归保障成立**——完整行使至 audition 边界（selected [static_eq, track_gain] 与 census p01#2/CLOSE1 p01 同形态）；②**观察分布真实变化但有限**——`mix.masking_relationship` 进入全部 5 跑请求集（§49 旧提示 13/13 从未请求）、212410 出现跨维度巡访实况（time_dynamics 与 timbre 同 call 并列 + basic_energy 追问），跨维度合法化文本有行为兑现；③**目录发现 0/5、四规范故障视图仅 time_dynamics 1 次**——公平呈现未转化为目录发现调用，stereo_space/activity_structure/peak_structure/band_dynamics 仍零请求；④**p06#2 收敛退化一例**——3 观察后不再动作烧尽 6 预算终态 blocked（budget exhausted），smoke 如实 FAIL；旧提示下 p06 census 3/3 行使，此为公平化后收敛方差的真实代价样本；⑤**212410 NOT_EXERCISED 非 NEUTRAL2 授权语义签名**——blocked 无 rejection code、limitations 为容量/预算边界（capacity_level=within_free_state、continuation_budget=4/6、closure "no material progress"），"diagnostic only/mutation authority" 语义未出现（2 跑样本不足以裁定副修成效，但目标签名缺席是事实）；⑥static_eq 坍缩未逆转（4 行使跑全 static_eq）——本卡验收口径即"公平呈现落地+不破坏既有行使"，召回改善归 NEUTRAL4 全量复测。
+
+**偏差残留（供 NEUTRAL4 / 发卡流）**：a) 目录发现教学未兑现为首步调用（0/5），模型仍直接 observation_request；b) p06 收敛方差（1/2 FAIL）提示公平文本下预算压力指令的收敛锚弱化，需在 NEUTRAL4 观察是否系统性；c) 跨维度巡访出现但未触达四规范视图主体；d) 授权语义规则成效未在本批触发面上检验（无诊断句式×blocked 签名样本）。
+
+收口：NEUTRAL3 卡 todo→done；提交 `feat(d2-neutral3):` 落 d2-neutral3 分支不 push 不合并不切回（发卡流验收统一合并）；worktree 保留勿删；主工作树零触碰（遗留主树 agent 进程停启属共享栈常规操作，未改任何主树文件）；栈归还（7878 free，主树内核 5555 原样）。
