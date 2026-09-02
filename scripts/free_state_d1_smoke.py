@@ -47,6 +47,12 @@ PROMPT_FLAVORS = {
     # track.stereo_space 观察自选目标与方向；delta_pan 双向物理可达；四要素同构，
     # case-agnostic，零 sealed 真值。
     "pan": "有一条轨的声像明显偏向一侧、立体声左右平衡听起来不自然，但各轨电平平衡已经合适，不要用整体增益或 EQ 来解决。请先观察工程，再针对这个声像问题给一个有界的小步改进建议。",
+    # FAM4-S2：前提与 p02 烘焙 fault 对齐（稀疏峰值超限，i05，方向由 sealed
+    # 持有）。措辞不指定轨名与方向——模型经 track.peak_structure 观察自选目标；
+    # Pro-L 2 Output Level（ceiling）新实例默认顶格（normalized 1.0/display
+    # "0.00 dBTP"，FAM4-S1 probe 定锚），物理可达方向向下，但前提只描述问题
+    # （偶发尖峰超顶）不指定参数方向；四要素同构，case-agnostic，零 sealed 真值。
+    "limiter": "有几轨偶尔冒出零星的尖峰、峰值听起来超出了混音的顶部边界，但各轨整体电平平衡已经合适，不要用整体增益或 EQ 来解决。请先观察工程，再针对这个峰值问题给一个有界的小步改进建议。",
 }
 # The D2-1 domain table mirrored for runner-side gating. Admission itself is
 # always decided by the agent's experiment domain table, never here.
@@ -195,7 +201,7 @@ def dbfs(value: float) -> float:
     return 20.0 * math.log10(max(value, 1e-12))
 
 
-def qualify_material(case: dict[str, Any], stereo_balance: bool = False) -> dict[str, Any]:
+def qualify_material(case: dict[str, Any], stereo_balance: bool = False, limiter: bool = False) -> dict[str, Any]:
     import numpy as np
     import soundfile as sf
 
@@ -249,6 +255,11 @@ def qualify_material(case: dict[str, Any], stereo_balance: bool = False) -> dict
     # earlier case).
     if stereo_balance:
         result["stereo_balance_window"] = qualify_stereo_balance_material(case)
+    # FAM4-S2: the sparse-peak gate is flavor-scoped for the same reason as
+    # the stereo-balance gate above -- the property is characteristic of the
+    # baked p02 material rather than every spv1 set.
+    if limiter:
+        result["sparse_peak_window"] = qualify_limiter_material(case)
     return result
 
 
@@ -415,6 +426,69 @@ def qualify_transient_material(case: dict[str, Any]) -> dict[str, Any]:
 STEREO_BALANCE_MIN_BEST_ABS_MEDIAN_DB = 4.0
 STEREO_BALANCE_MAX_SECOND_ABS_MEDIAN_DB = 2.0
 STEREO_BALANCE_WINDOW_SECONDS = 0.200
+
+
+# Limiter-domain material qualification (D2-FAM4-S2). The public fixture
+# stems carry sparse short-window peak outliers over a steadier peak
+# population, so the top short-window peak must stand clearly above the
+# typical (95th-percentile) short-window peak (a pure windowed-arithmetic
+# quantity from the same measurement family as the sealed i05 anchor's
+# sample-peak/crest contrast) for a bounded ceiling move to be acoustically
+# meaningful. Flavor-scoped like the stereo-balance gate (D2-FAM3-S2
+# precedent): a per-track floor plus a best-track floor with real headroom
+# below the measured values (p02 stems measure per-track 2.2-9.0 dB with the
+# best track at 9.0 dB; floors stay clear of pinning the measurements).
+# Metrics are machine-computed from the public stems only, land in the smoke
+# report (never in agent context), and name no target track.
+LIMITER_MIN_PROMINENCE_DB_PER_TRACK = 1.5
+LIMITER_MIN_BEST_PROMINENCE_DB = 6.0
+LIMITER_SHORT_WINDOW_SECONDS = 0.010
+
+
+def qualify_limiter_material(case: dict[str, Any]) -> dict[str, Any]:
+    import numpy as np
+    import soundfile as sf
+
+    track_rows: list[dict[str, Any]] = []
+    for stem in case.get("stem_files", []):
+        path = Path(str(stem["file"]))
+        if not path.is_file():
+            raise RuntimeError(f"material qualification stem is missing: {path}")
+        audio, rate = sf.read(str(path), dtype="float64", always_2d=True)
+        mono = np.asarray(audio, dtype=np.float64).mean(axis=1)
+        short_n = max(1, int(round(LIMITER_SHORT_WINDOW_SECONDS * rate)))
+        count = max(0, (len(mono) - short_n) // short_n + 1)
+        if count <= 0:
+            raise RuntimeError(f"material qualification stem is shorter than one analysis window: {path}")
+        window_peaks = np.empty(count)
+        for index in range(count):
+            segment = mono[index * short_n:index * short_n + short_n]
+            window_peaks[index] = float(np.max(np.abs(segment)))
+        prominence_db = 20.0 * math.log10(float(np.max(window_peaks)) / max(float(np.percentile(window_peaks, 95)), 1e-12))
+        track_rows.append({
+            "track": str(stem["track"]),
+            "sparse_peak_prominence_db": round(prominence_db, 3),
+            "sample_peak_dbfs": round(20.0 * math.log10(max(float(np.max(np.abs(mono))), 1e-12)), 3),
+        })
+    weak = [row["track"] for row in track_rows if row["sparse_peak_prominence_db"] < LIMITER_MIN_PROMINENCE_DB_PER_TRACK]
+    best_prominence_db = max(row["sparse_peak_prominence_db"] for row in track_rows)
+    if weak or best_prominence_db < LIMITER_MIN_BEST_PROMINENCE_DB:
+        raise RuntimeError(
+            "public material failed the limiter-fixture qualification gates: "
+            + json.dumps({"weak_prominence_tracks": weak, "best_sparse_peak_prominence_db": best_prominence_db}, ensure_ascii=False)
+        )
+    return {
+        "schema_version": MATERIAL_QUALIFICATION_SCHEMA,
+        "status": "passed",
+        "metric": "top short-window peak vs 95th-percentile short-window peak (dB)",
+        "gates": {
+            "short_window_seconds": LIMITER_SHORT_WINDOW_SECONDS,
+            "min_prominence_db_per_track": LIMITER_MIN_PROMINENCE_DB_PER_TRACK,
+            "min_best_prominence_db": LIMITER_MIN_BEST_PROMINENCE_DB,
+        },
+        "best_sparse_peak_prominence_db": round(best_prominence_db, 3),
+        "tracks": track_rows,
+    }
 
 
 def qualify_stereo_balance_material(case: dict[str, Any]) -> dict[str, Any]:
@@ -903,6 +977,7 @@ def validate_d1(base_url: str, conversation_id: str, responses: list[dict[str, A
     frequency_time_events_disclosure: dict[str, Any] | None = None
     transient_structure_disclosure: dict[str, Any] | None = None
     stereo_space_disclosure: dict[str, Any] | None = None
+    peak_structure_disclosure: dict[str, Any] | None = None
     if domain == "static_eq":
         gain = typed.get("gain_db")
         require(isinstance(gain, (int, float)) and not isinstance(gain, bool) and gain != 0 and abs(gain) <= 2, "static_eq typed gain_db must be non-zero within +/-2")
@@ -917,6 +992,9 @@ def validate_d1(base_url: str, conversation_id: str, responses: list[dict[str, A
     if domain == "transient_shaper":
         attack = typed.get("attack_db")
         require(isinstance(attack, (int, float)) and not isinstance(attack, bool) and attack != 0 and abs(attack) <= 2, "transient_shaper typed attack_db must be non-zero within +/-2")
+    if domain == "limiter":
+        ceiling = typed.get("ceiling_db")
+        require(isinstance(ceiling, (int, float)) and not isinstance(ceiling, bool) and ceiling != 0 and abs(ceiling) <= 2, "limiter typed ceiling_db must be non-zero within +/-2")
     if domain == "pan":
         delta = typed.get("delta_pan")
         require(isinstance(delta, (int, float)) and not isinstance(delta, bool) and delta != 0 and abs(delta) <= 0.15, "pan typed delta_pan must be non-zero within +/-0.15")
@@ -1052,6 +1130,40 @@ def validate_d1(base_url: str, conversation_id: str, responses: list[dict[str, A
         freshness = bundle.get("freshness") if isinstance(bundle.get("freshness"), dict) else {}
         require(first_text(freshness.get("status")).lower() != "stale", "track.transient_structure disclosure was stale")
         transient_structure_disclosure = {"observation_id": first_text(bundle.get("observation_id")), "status": disclosure_status, "executed_view_ids": sorted(executed_views)}
+    if domain == "limiter":
+        # FAM4-S2 evidence-chain assertions, mirroring the transient branch:
+        # plugin identity pair, round view coverage, and the disclosability of
+        # the DOM peak-structure view itself probed against the live stack.
+        for key in ("plugin_id", "param_id"):
+            require(receipt.get(key) not in (None, ""), f"limiter execution receipt missing {key}")
+        for observation_row in rows(round_row.get("observations")):
+            requested = {first_text(value) for value in (observation_row.get("requested_view_ids") or [])}
+            executed = {first_text(value) for value in (observation_row.get("executed_view_ids") or [])}
+            require(requested <= executed, "limiter observation lost requested views: " + json.dumps({"requested": sorted(requested), "executed": sorted(executed)}, ensure_ascii=False))
+        target_ref = admission.get("target_ref") if isinstance(admission.get("target_ref"), dict) else {}
+        disclosure = invoke(base_url, "ccb.observation_request", {
+            "view_ids": ["track.peak_structure"],
+            "target_ref": {"kind": first_text(target_ref.get("kind")) or "track", "id": first_text(target_ref.get("id"))},
+            "freshness_class": "fresh",
+        }, timeout)
+        bundle = disclosure.get("bundle") if isinstance(disclosure.get("bundle"), dict) else {}
+        audit = bundle.get("audit_receipt") if isinstance(bundle.get("audit_receipt"), dict) else {}
+        executed_views = {first_text(value) for value in (audit.get("actual_executed_view_ids") or bundle.get("actual_executed_view_ids") or disclosure.get("actual_executed_view_ids") or [])}
+        if not executed_views:
+            executed_views = {first_text(key) for key in (bundle.get("views") or {})}
+        disclosure_status = first_text(disclosure.get("status")).lower() or first_text(bundle.get("status")).lower()
+        # Same formal-run gate wording as the DOM/COM probes: "ready or partial
+        # and fresh" -- the DOM source-only projection may disclose as partial
+        # by design (bounded peak evidence with explicit omissions), so partial
+        # counts as disclosable; rejected/missing answers the post-action
+        # disclosure risk.
+        require(disclosure_status in {"ready", "partial"},
+                "track.peak_structure was not disclosable on the admitted target: " + json.dumps({"status": disclosure.get("status"), "bundle_status": bundle.get("status")}, ensure_ascii=False))
+        require("track.peak_structure" in executed_views,
+                "track.peak_structure disclosure probe did not execute the view: " + json.dumps(sorted(executed_views), ensure_ascii=False))
+        freshness = bundle.get("freshness") if isinstance(bundle.get("freshness"), dict) else {}
+        require(first_text(freshness.get("status")).lower() != "stale", "track.peak_structure disclosure was stale")
+        peak_structure_disclosure = {"observation_id": first_text(bundle.get("observation_id")), "status": disclosure_status, "executed_view_ids": sorted(executed_views)}
     if domain == "pan":
         # FAM3-S2 native-domain evidence-chain assertions, mirroring the p01/p03
         # branch form minus the plugin identity pair (pan is not PluginBound):
@@ -1161,6 +1273,8 @@ def validate_d1(base_url: str, conversation_id: str, responses: list[dict[str, A
         result["transient_structure_disclosure"] = transient_structure_disclosure
     if stereo_space_disclosure is not None:
         result["stereo_space_disclosure"] = stereo_space_disclosure
+    if peak_structure_disclosure is not None:
+        result["peak_structure_disclosure"] = peak_structure_disclosure
     return result
 
 
@@ -1751,7 +1865,7 @@ def main() -> int:
         _, public_case = load_public_case(Path(args.public_manifest), args.public_case_id)
         case = materialize_public_case(public_case, Path(args.project_workdir))
         report["public_source_project"] = str(Path(str(public_case["project_path"])).resolve())
-        report["material_qualification"] = qualify_material(case, stereo_balance=args.prompt_flavor == "pan")
+        report["material_qualification"] = qualify_material(case, stereo_balance=args.prompt_flavor == "pan", limiter=args.prompt_flavor == "limiter")
         report["project_setup"] = prepare_project(args.agent_http, case, args.timeout_sec)
         report["started_at_epoch"] = time.time()
         ui_context_response = request_json("GET", args.agent_http.rstrip("/") + "/agent/ui/context", None, min(args.timeout_sec, 30))

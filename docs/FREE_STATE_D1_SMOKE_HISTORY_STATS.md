@@ -776,3 +776,19 @@ S3h8 以 102243 定案的孤儿开卡。取证把卡内死亡链精确到**确�
 **验收（全绿）**：`go build ./...` + 定向（experimentplugins/chat Gate|Limiter 全绿 + plugingrabber Pro-G 全表面测试绿）+ 全量 `go test ./... -count=1` **exit 0**（84 包）+ `python -m py_compile` 过。零改动核对：域表行表驱动自动携带；gate 语义派发臂/treatment_strategy/reasoning 别名存量在岸零触碰；KREV1 内核侧零触碰。
 
 收口：FAM5-S1 卡 todo→done；提交 `feat(d2-fam5-s1):` 不 push；Range 顶格方向语义为 FAM5-S2 flavor 裁定点；FAM2-S1 留档的 limiter/gate 结算桥休眠缺口全闭合（multiband 半口归 FAM6-S1）。真实栈正向链未验（验收面 go test + py_compile，按卡执行）。
+
+## 42. 2026-09-02 早批（D2-FAM4-S2 limiter fixture p07 + flavor + 判据 + 治理白名单门家族扩展 + 端到端烟测——FAM4 限幅器域全链闭合；p03 压缩回归预存破坏取证归因）
+
+**fixture（p07 第七 case）**：内核 ZMQ product path 透明链重建——new_project → save_as → import_preflight（6 可读/6 建轨）→ import_folder_as_stems（p02 stems 6 轨 6 clip，stems 复用同 sha256 零 sealed 条目改动）→ 删模板轨不可行（5 条为 folder 轨无删除命令）→ **对照 p05 实开核验：同 11 轨形态（5 模板 folder + 6 audio，audio ID 1007-1032 序列一致）为既有先例形态，非缺陷**；manifest 文本拼接追加（前缀字节不动断言 + JSON 复验 7 cases，before 4261d7e8…/after cc5c95a4…）；主跑 product path 建工程 DAD 6/6 ready、digest 形态沿 FAM3-S2。
+
+**smoke 四件**：limiter flavor 四要素（偶发尖峰超顶前提/禁整体增益 EQ/先观察/有界小步；不写轨名方向——Pro-L 2 Output Level 顶格只向下可达但前提只描述问题）；qualify_limiter_material（10ms 窗峰值 vs 同窗 95 分位峰值的稀疏突出度，i05 锚点 sample_peak/crest 同族量；per-track ≥1.5 + best ≥6.0，实测 2.23-8.96、best=other 8.96 与烘焙 fault 目标轨一致；flavor 门控镜像 pan 先例——p01 对照零新增键）；validate_d1 limiter 分支（typed ceiling_db ±2 非零 + plugin_id/param_id + requested⊆executed + `track.peak_structure` 探针 ready|partial+fresh 披露）；ps1 两 ValidateSet 加 limiter。
+
+**新墙与修复（本卡真增量）**：主跑首跑 20260902_082924 exit 1——模型自主准入 limiter（ceiling_db=-0.5，目标 drums/1012）后链路诚实停在 FAM2-S3 轴覆盖治理空集：`axisCoverageWhitelistIdentifier` 家族 switch **无 limiter/gate_expander 臂** → 白名单形态门恒空 → 无候选可过三资格合取（FAM4-S1 接线缺的"治理家族扩展另一半"，与结算桥同族缺口）。RED 双形态先行（limiter 治理过滤行为 RED：Pro-L 2 输入被滤空=主跑墙复现；gate_expander switch 单元 RED）→ 修 = switch 加两 case（各 4 行，零其它触碰）→ 绿。如实申报：测试期望首稿写原 key plugin_candidate_2，过滤后重编号为 1（镜像 transient 形态），修测试期望。
+
+**主跑 20260902_083521 exit 0 全链闭合**：提案 limiter → 批准 → 治理过滤（axis_coverage_disclosure frozen=[output_ceiling] + Pro-L 2 attested input_drive+output_ceiling）→ 模型选择 Pro-L 2 → 载入 → 语义执行 ceiling_db=-0.5 → receipt revision 3→4、forward_mutation_count=1、transaction tx_dyn_cb214632f688c75d、readback -0.5 恰剂量、peak_structure 披露 ready、human_audition_ready。
+
+**回归面（-SkipBuild，binary 08:35 新于全部源）**：p01 static_eq PASS（readback -1 同基线）、p04 de_esser PASS（readback 8 同基线 8.0）、p05 transient PASS（0.597261 同基线）、p06 pan PASS（readback -0.1，模型自由方向剂量方差，形态同基线）；**p03 compression FAIL 3/3 同签名**（"D1 receipt requires distinct before/after revisions"，reply "observation belongs to a different project revision"，d1_receipt validation_error="project_revision is required" classification=ambiguous，日志见 VSC-2 载入 node_added 后 delta seq gap #1 last=126 current=128 → 闭包 StopProjectRevisionStale）。**归因取证（bisect）**：git worktree @ 807f869（本会话前最后提交）以同 kernel/同 manifest 复跑 p03 **同样失败**——**非本卡/本日 diff 所致，属预存或环境性破坏**（revision 载入合并方差向 stale 定性漂移的首次显性化，与 §38 记录的 +18 均匀平移同族不同向）；挂决策流待深查（候选方向：载入期 delta 序列缺口双跳、audioclosure SupersededProjectRevisions 覆盖面），不在本卡范围。bisect 工具侧一笔如实申报：首跑 bisect 因 ps1 -RepoRoot 默认硬编码 D:\Vit_DAW 而 void（重建了当前代码），显式传 -RepoRoot 重跑才有效取证。
+
+**验收**：go build + 全量 go test ./... -count=1 exit 0（84 包，含治理新测试）+ py_compile；主跑 exit 0 + 回归 4/5 pass（p03 预存破坏如实上报非零漂移）。
+
+收口：FAM4-S2 卡 todo→done；提交 `feat(d2-fam4-s2):` 不 push；FAM4 限幅器域全链闭合（第 17 域 E2E、PluginBound 第三域、治理门家族扩展后四域共用）；p03 预存破坏为决策流待办；Pro-L 2 顶格方向语义已由 flavor 裁定留档（前提只描述问题）。

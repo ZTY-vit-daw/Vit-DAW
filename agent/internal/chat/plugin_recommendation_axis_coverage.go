@@ -79,6 +79,14 @@ func axisCoverageWhitelistIdentifier(family string) (string, error) {
 		if whitelist.TransientShaper != nil {
 			return whitelist.TransientShaper.PluginIdentifier, nil
 		}
+	case processorattestation.FamilyLimiter:
+		if whitelist.Limiter != nil {
+			return whitelist.Limiter.PluginIdentifier, nil
+		}
+	case processorattestation.FamilyGateExpander:
+		if whitelist.GateExpander != nil {
+			return whitelist.GateExpander.PluginIdentifier, nil
+		}
 	}
 	return "", nil
 }
