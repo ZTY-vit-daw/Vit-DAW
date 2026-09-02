@@ -89,7 +89,12 @@ func semanticProgressiveDisclosureRecordObservation(orchestrator *semanticorches
 		return fmt.Errorf("semantic progressive disclosure requires a successful model-requested observation before action")
 	}
 	status := strings.ToLower(strings.TrimSpace(observation.Status))
-	if status != "ok" && status != "ready" && status != "success" {
+	// "partial" is disclosable by design for DAD source-only domain views
+	// (e.g. track.band_dynamics), and the runner-side formal gates for the
+	// admitted families already accept ready|partial with a fresh audit
+	// receipt, so the disclosure level aligns here; error/rejected/missing/
+	// empty stay rejected (FAM6-S2 wall 20260902_111733).
+	if status != "ok" && status != "ready" && status != "success" && status != "partial" {
 		return fmt.Errorf("semantic progressive disclosure requires a successful observation, got %q", observation.Status)
 	}
 	// The CCB audit receipt is the authoritative proof of what the model
@@ -119,6 +124,12 @@ func semanticProgressiveDisclosureRecordObservation(orchestrator *semanticorches
 	}
 	if strings.TrimSpace(firstStringFromMap(audit, "scope")) == "" || len(firstMapFromAny(audit["freshness"])) == 0 {
 		return fmt.Errorf("semantic progressive disclosure observation audit is missing scope or freshness")
+	}
+	// Expanding the disclosure level to partial does not expand freshness:
+	// a stale audit freshness stays rejected, mirroring the runner-side
+	// "ready or partial and fresh" formal-gate wording.
+	if strings.EqualFold(strings.TrimSpace(firstStringFromMap(firstMapFromAny(audit["freshness"]), "status")), "stale") {
+		return fmt.Errorf("semantic progressive disclosure observation audit freshness is stale")
 	}
 	modelViews, _ := semanticProgressiveDisclosureViewIDs(requestContext, result, observation)
 	if len(modelViews) == 0 {

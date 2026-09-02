@@ -47,6 +47,88 @@ func progressiveObservation() *agentloop.RecentObservation {
 	}
 }
 
+func progressiveMultibandIntent() processorintent.Intent {
+	return processorintent.Intent{
+		SchemaVersion:    processorintent.SchemaVersion,
+		Status:           processorintent.StatusResolved,
+		Family:           processorintent.FamilyMultibandDynamics,
+		Intent:           "tame low-band level drift with a bounded band threshold step",
+		RequiredCoverage: []string{"threshold"},
+		Scope:            processorintent.ScopeCurrentTrack,
+		ControlMode:      processorintent.ControlModeSemantic,
+		Confidence:       0.9,
+		EvidenceRefs:     []string{"mix.observe:obs-1"},
+	}
+}
+
+// progressivePartialBandDynamicsObservation mirrors the FAM6-S2 wall shape
+// (run 20260902_111733): the model's last ccb.observation_request returned the
+// DAD source-only track.band_dynamics view, which discloses as partial by
+// design while the CCB audit receipt stays executed and the binding fresh.
+func progressivePartialBandDynamicsObservation() *agentloop.RecentObservation {
+	return &agentloop.RecentObservation{
+		Tool: "ccb.observation_request", Status: "partial",
+		Summary: map[string]any{
+			"schema_version":     "ccb_observation_bundle.v1",
+			"status":             "partial",
+			"read_only":          true,
+			"mutation_authority": false,
+			"observation_id":     "obs-mb-1",
+			"views":              map[string]any{"track.band_dynamics": map[string]any{"status": "partial"}},
+			"audit_receipt": map[string]any{
+				"schema_version":           "ccb_observation_receipt.v1",
+				"requested_by":             "model",
+				"model_requested_view_ids": []string{"track.band_dynamics"},
+				"actual_executed_view_ids": []string{"track.band_dynamics"},
+				"view_set_matches":         true,
+				"scope":                    "selected_track",
+				"freshness":                map[string]any{"status": "fresh"},
+				"status":                   "executed",
+			},
+		},
+	}
+}
+
+// TestSemanticProgressiveDisclosurePartialObservationGateForms locks the four
+// boundary forms of the partial-level alignment: expanding the disclosure
+// level to partial does not expand the audit-receipt or freshness guarantees.
+func TestSemanticProgressiveDisclosurePartialObservationGateForms(t *testing.T) {
+	result := agentloop.Result{FreeStateDecision: &agentloop.FreeStateDecision{RequestedViewIDs: []string{"track.band_dynamics"}}}
+
+	// Form 1: partial + fresh + audited passes the gate.
+	requestContext := map[string]any{}
+	if err := semanticProgressiveDisclosureAccept(requestContext, progressiveMultibandIntent(), result, progressivePartialBandDynamicsObservation()); err != nil {
+		t.Fatalf("fresh audited partial observation was rejected: %v", err)
+	}
+	state, ok := semanticProgressiveDisclosureState(requestContext["semantic_progressive_disclosure"])
+	if !ok || state.Stage != semanticorchestrator.StagePhysicalTarget {
+		t.Fatalf("partial observation did not advance the orchestrator: state=%+v ok=%v", state, ok)
+	}
+
+	// Form 2: partial but stale stays rejected.
+	stale := progressivePartialBandDynamicsObservation()
+	stale.Summary["audit_receipt"].(map[string]any)["freshness"] = map[string]any{"status": "stale"}
+	if err := semanticProgressiveDisclosureAccept(map[string]any{}, progressiveMultibandIntent(), result, stale); err == nil || !strings.Contains(err.Error(), "stale") {
+		t.Fatalf("stale partial observation was accepted: %v", err)
+	}
+
+	// Form 3: partial but unaudited stays rejected.
+	unaudited := progressivePartialBandDynamicsObservation()
+	delete(unaudited.Summary, "audit_receipt")
+	if err := semanticProgressiveDisclosureAccept(map[string]any{}, progressiveMultibandIntent(), result, unaudited); err == nil || !strings.Contains(err.Error(), "audit receipt") {
+		t.Fatalf("unaudited partial observation was accepted: %v", err)
+	}
+
+	// Form 4: error/rejected/missing/empty statuses stay rejected.
+	for _, status := range []string{"error", "rejected", "missing", ""} {
+		failed := progressivePartialBandDynamicsObservation()
+		failed.Status = status
+		if err := semanticProgressiveDisclosureAccept(map[string]any{}, progressiveMultibandIntent(), result, failed); err == nil || !strings.Contains(err.Error(), "successful observation") {
+			t.Fatalf("%q observation was accepted: %v", status, err)
+		}
+	}
+}
+
 func TestSemanticProgressiveDisclosurePersistsAndReplaysAllStages(t *testing.T) {
 	requestContext := map[string]any{}
 	result := agentloop.Result{FreeStateDecision: &agentloop.FreeStateDecision{RequestedViewIDs: []string{"track.peak_structure"}}}
