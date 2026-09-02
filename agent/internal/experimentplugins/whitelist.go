@@ -10,7 +10,10 @@
 // Schema v4 adds the transient_shaper section (FAM2-S1): one shared attack
 // parameter, per the 2026-09-01 pluginprobe. Schema v5 adds the limiter
 // section (FAM4-S1): one shared ceiling parameter (FabFilter Pro-L 2,
-// pluginprobe 2026-09-02), per the same single-shared-parameter form.
+// pluginprobe 2026-09-02), per the same single-shared-parameter form; the
+// same v5 revision then gained the gate_expander section (FAM5-S1) and the
+// multiband section (FAM6-S1): a per-band threshold id list (Lindell MBC,
+// pluginprobe 2026-09-02), per the same reuse-one-version coordination.
 package experimentplugins
 
 import (
@@ -22,6 +25,7 @@ import (
 	"math"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"vit-daw-agent/internal/processorattestation"
 )
@@ -109,6 +113,21 @@ type GateExpanderPlugin struct {
 	RangeParamID     string `json:"range_param_id"`
 }
 
+// MultibandPlugin is the multiband domain's whitelisted plugin: a per-band
+// threshold surface (Lindell MBC 2026-09-02 pluginprobe actual test: all 47
+// parameters carry no ch pair; Low/Mid/High each expose their own continuous
+// Threshold parameter, so the whitelist pins one threshold id per band and
+// the admission's band_index picks one for a single-batch single-channel
+// write).
+type MultibandPlugin struct {
+	PluginName            string   `json:"plugin_name"`
+	Manufacturer          string   `json:"manufacturer"`
+	Format                string   `json:"format"`
+	PluginIdentifier      string   `json:"plugin_identifier"`
+	PluginPath            string   `json:"plugin_path"`
+	BandThresholdParamIDs []string `json:"band_threshold_param_ids"`
+}
+
 type Whitelist struct {
 	SchemaVersion        string                      `json:"schema_version"`
 	StaticEQ             *StaticEQPlugin             `json:"static_eq,omitempty"`
@@ -116,7 +135,8 @@ type Whitelist struct {
 	DeEsser              *DeEsserPlugin              `json:"de_esser,omitempty"`
 	TransientShaper      *TransientShaperPlugin      `json:"transient_shaper,omitempty"`
 	Limiter              *LimiterPlugin              `json:"limiter,omitempty"`
-	GateExpander         *GateExpanderPlugin          `json:"gate_expander,omitempty"`
+	GateExpander         *GateExpanderPlugin         `json:"gate_expander,omitempty"`
+	Multiband            *MultibandPlugin            `json:"multiband,omitempty"`
 }
 
 var ErrNotConfigured = errors.New("experiment plugin whitelist: static_eq plugin is not configured")
@@ -130,6 +150,8 @@ var ErrTransientShaperNotConfigured = errors.New("experiment plugin whitelist: t
 var ErrLimiterNotConfigured = errors.New("experiment plugin whitelist: limiter plugin is not configured")
 
 var ErrGateExpanderNotConfigured = errors.New("experiment plugin whitelist: gate_expander plugin is not configured")
+
+var ErrMultibandNotConfigured = errors.New("experiment plugin whitelist: multiband plugin is not configured")
 
 func DefaultPath() (string, error) {
 	home, err := os.UserHomeDir()
@@ -186,6 +208,11 @@ func Load(path string) (Whitelist, error) {
 	}
 	if whitelist.GateExpander != nil {
 		if err := validateGateExpanderPlugin(*whitelist.GateExpander); err != nil {
+			return Whitelist{}, fmt.Errorf("experiment plugin whitelist: invalid %s: %w", path, err)
+		}
+	}
+	if whitelist.Multiband != nil {
+		if err := validateMultibandPlugin(*whitelist.Multiband); err != nil {
 			return Whitelist{}, fmt.Errorf("experiment plugin whitelist: invalid %s: %w", path, err)
 		}
 	}
@@ -343,6 +370,21 @@ func (w Whitelist) ValidateGateExpanderAdmission(lib processorattestation.Librar
 	)
 }
 
+// ValidateMultibandAdmission mirrors ValidateGateExpanderAdmission for the
+// multiband whitelist section: same subject construction, same v2 library
+// predicate path (multiband_dynamics is a PCA v2 family), and a
+// distinguishable not-PCA-promoted prefix naming this domain.
+func (w Whitelist) ValidateMultibandAdmission(lib processorattestation.LibraryV2) error {
+	if w.Multiband == nil {
+		return ErrMultibandNotConfigured
+	}
+	return w.validateSectionAdmissionV2(
+		"multiband",
+		w.Multiband.PluginName, w.Multiband.Manufacturer, w.Multiband.Format, w.Multiband.PluginIdentifier, w.Multiband.PluginPath,
+		processorattestation.FamilyMultiband, lib,
+	)
+}
+
 // validateSectionAdmission is the shared admission predicate core for both
 // whitelist sections. The label appears verbatim in the returned boundary
 // prefix so each domain stays distinguishable upstream.
@@ -450,6 +492,31 @@ func validateGateExpanderPlugin(plugin GateExpanderPlugin) error {
 	} {
 		if missing.value == "" {
 			return fmt.Errorf("gate_expander %s must be non-empty", missing.field)
+		}
+	}
+	return nil
+}
+
+func validateMultibandPlugin(plugin MultibandPlugin) error {
+	for _, missing := range []struct{ field, value string }{
+		{"plugin_name", plugin.PluginName},
+		{"manufacturer", plugin.Manufacturer},
+		{"format", plugin.Format},
+		{"plugin_identifier", plugin.PluginIdentifier},
+		{"plugin_path", plugin.PluginPath},
+	} {
+		if missing.value == "" {
+			return fmt.Errorf("multiband %s must be non-empty", missing.field)
+		}
+	}
+	// A multiband topology is at least two bands (the recognizer refuses
+	// fewer); each band must carry its own non-empty threshold id.
+	if len(plugin.BandThresholdParamIDs) < 2 {
+		return fmt.Errorf("multiband band_threshold_param_ids must list at least two band threshold ids")
+	}
+	for index, id := range plugin.BandThresholdParamIDs {
+		if strings.TrimSpace(id) == "" {
+			return fmt.Errorf("multiband band_threshold_param_ids[%d] must be non-empty", index)
 		}
 	}
 	return nil

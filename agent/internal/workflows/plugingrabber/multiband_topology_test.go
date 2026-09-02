@@ -239,3 +239,101 @@ func TestDetectMultibandRejectsUnorderedFreeBandSurface(t *testing.T) {
 		t.Fatalf("model=%+v code=%q", model, code)
 	}
 }
+
+// TestDetectMultibandModelLindellMBCFullSurface classifies the exact product
+// disclosed by the 2026-09-02 pluginprobe (all 47 probed parameters, ids and
+// display texts verbatim from the observed surface) so the FAM6-S1 carrier's
+// live kernel face stays covered by an in-repo test. Probe snapshot reality:
+// continuous parameters expose a single display value (no sample ladder on
+// the observation-only host), so curve rows carry the measured current text
+// only — same honest disclosure limit as the FAM5-S1 full-surface test.
+func TestDetectMultibandModelLindellMBCFullSurface(t *testing.T) {
+	model, code := DetectMultibandModelWithBoundary(ParameterDigest{Parameters: []ParameterInfo{
+		multibandParam("73611129", "Low In", "On"),
+		multibandParam("2021120563", "Low Solo", "Off"),
+		multibandParam("22950807", "Low Threshold", "-1.61"),
+		multibandParam("461164188", "Low Attack", "1 ms"),
+		multibandParam("376378679", "Low Ratio", "4:1"),
+		multibandParam("1029657139", "Low Release", "0.500"),
+		multibandParam("2020749523", "Low Gain", "0.00"),
+		multibandParam("2020906318", "Low Link", "Off"),
+		multibandParam("773089437", "Low Mid-Side Mode", "Off"),
+		multibandParam("74337645", "Mid In", "On"),
+		multibandParam("571818791", "Mid Solo", "Off"),
+		multibandParam("1782596387", "Mid Threshold", "-1.61"),
+		multibandParam("1399048848", "Mid Attack", "1 ms"),
+		multibandParam("545180355", "Mid Ratio", "4:1"),
+		multibandParam("39310527", "Mid Release", "0.500"),
+		multibandParam("571447751", "Mid Gain", "0.00"),
+		multibandParam("571604546", "Mid Link", "Off"),
+		multibandParam("1710974097", "Mid Mid-Side Mode", "Off"),
+		multibandParam("13955719", "High In", "On"),
+		multibandParam("526846401", "High Solo", "Off"),
+		multibandParam("2112130249", "High Threshold", "-1.61"),
+		multibandParam("1130255018", "High Attack", "1 ms"),
+		multibandParam("1298519913", "High Ratio", "4:1"),
+		multibandParam("296636389", "High Release", "0.500"),
+		multibandParam("526475361", "High Gain", "0.00"),
+		multibandParam("526632156", "High Link", "Off"),
+		multibandParam("1442180267", "High Mid-Side Mode", "Off"),
+		multibandParam("993326860", "Low-Mid Freq", "200 Hz"),
+		multibandParam("84259202", "Mid-High Freq", "5.00 kHz"),
+		multibandParam("854997741", "Meters Mode", "GR"),
+		multibandParam("2439553", "Smash", "Off"),
+		multibandParam("71742", "SC HPF", "Off"),
+		multibandParam("77372", "Mix", "100"),
+		multibandParam("2343267", "Knee", "SOFT"),
+		multibandParam("2104342424", "Filter", "OFF"),
+		multibandParam("80227729", "Style", "Feed Back"),
+		multibandParam("1612861314", "Compress", "On"),
+		multibandParam("2004703496", "Bypass", "Off"),
+		multibandParam("597241989", "Manual Gain", "On"),
+		multibandParam("2211743", "Gain", "2.00"),
+		multibandParam("83024", "THD", "0.00"),
+		multibandParam("33646040", "Bands Link", "Off"),
+		multibandParam("46243428", "Input Gain", "0.00"),
+		multibandParam("557297613", "Output Gain", "0.00"),
+		multibandParam("387024553", "External Side Chain", "Off"),
+		multibandParam("1652125811", "Bypass", "Off"),
+		multibandParam("1886548852", "Program", "Default"),
+	}})
+	if model == nil || code != "" || model.Classification != "filterbank_repeated_dynamics" {
+		t.Fatalf("MBC model=%+v boundary=%q", model, code)
+	}
+	if len(model.Crossovers) != 2 || len(model.Bands) != 3 {
+		t.Fatalf("MBC crossovers=%d bands=%d", len(model.Crossovers), len(model.Bands))
+	}
+	bands := map[string]MultibandBand{}
+	for _, band := range model.Bands {
+		bands[band.Key] = band
+		if !multibandBandComplete(band) {
+			t.Fatalf("incomplete MBC band=%+v", band)
+		}
+	}
+	low, ok := bands["low"]
+	if !ok {
+		t.Fatalf("MBC low band missing: %+v", model.Bands)
+	}
+	if !multibandBindingsHaveRole(low.OperatingPoint, "threshold") ||
+		!multibandBindingsHaveRole(low.Transfer, "ratio") ||
+		!multibandBindingsHaveRole(low.GainAction, "gain") ||
+		!multibandBindingsHaveRole(low.Timing, "attack") || !multibandBindingsHaveRole(low.Timing, "release") {
+		t.Fatalf("MBC low band sections=%+v", low)
+	}
+	lowThreshold := low.OperatingPoint[0]
+	if lowThreshold.ParamID != "22950807" {
+		t.Fatalf("MBC low threshold param id=%q", lowThreshold.ParamID)
+	}
+	if model.Generation == "" {
+		t.Fatal("missing MBC topology generation")
+	}
+}
+
+func multibandBindingsHaveRole(bindings []CompressorBinding, role string) bool {
+	for _, binding := range bindings {
+		if binding.Role == role {
+			return true
+		}
+	}
+	return false
+}

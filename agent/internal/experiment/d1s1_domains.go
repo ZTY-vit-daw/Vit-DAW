@@ -445,6 +445,70 @@ var d1s1Domains = []D1S1DomainSpec{
 		AppliedReplyText:       "FAM5-S1 gate range parameter was applied and read back. Fresh post-action evidence is recorded separately; acoustic materiality, target response, and human judgment remain pending.",
 	},
 	{
+		// multiband_band_threshold_adjust moves one band's threshold on one
+		// multiband instance by one bounded step. FAM6-S1 admits it with the
+		// same single-mutation tightness as the other PluginBound rows. Unlike
+		// the single-shared carriers, the whitelisted multiband (Lindell MBC,
+		// pluginprobe 2026-09-02) exposes ONE continuous threshold parameter
+		// per band (Low id "22950807", Mid id "1782596387", High id
+		// "2112130249"; all 47 parameters carry no ch pair; stereo in/out with
+		// a disabled sidechain), so the whitelist pins the per-band id list
+		// and the admission's band_index picks one band — the write itself is
+		// still single-channel. Thresholds default centered (normalized 0.5),
+		// so both directions are physically reachable. Acoustic observation
+		// binds the DOM band-dynamics view, whose band-local level variation
+		// carries the domain quantity. There is no stub form: production
+		// resolves the machine-local whitelist first and hard-fails without
+		// it.
+		ActionDomain:        agentprotocol.ImprovementActionDomainMultibandDynamics,
+		ActionKind:          "multiband_band_threshold_adjust",
+		PromptParameterHint: `parameter_bounds={"band_threshold_db":<nonzero number within +/-2>,"band_index":<optional non-negative integer>}`,
+		ValidateTypedAction: func(a Admission) error {
+			if index, present := a.TypedAction["band_index"]; present {
+				parsed, ok := mapNumber(map[string]any{"band_index": index}, "band_index")
+				if !ok || parsed < 0 || parsed != math.Trunc(parsed) {
+					return fmt.Errorf("D1-S1 multiband band_index must be a non-negative integer")
+				}
+			}
+			return nil
+		},
+		ValidateDoseBounds: func(scope string, bounds map[string]any) error {
+			threshold, ok := mapNumber(bounds, "band_threshold_db")
+			if !ok || threshold == 0 || math.Abs(threshold) > 2 {
+				return fmt.Errorf("D1-S1 %s band_threshold_db must be non-zero and within +/-2 dB", scope)
+			}
+			return nil
+		},
+		ActionIDSuffix:            "_mb",
+		CapabilityID:              "static_mix.multiband.v0",
+		ContractVersions:          []string{"free_state:d1_s1", "action:multiband_band_threshold_adjust"},
+		TargetFingerprintTemplate: "track:{track}:mb:{param}:pending",
+		BeforeFingerprintTemplate: "track:{track}:mb:{param}:pending",
+		ObservationViewIDs:        []string{"track.band_dynamics"},
+		Journal: D1S1JournalShape{
+			Summary:      "FAM6-S1 bounded multiband band threshold adjustment",
+			Tool:         "set_plugin_param",
+			CommandLabel: "set_plugin_param",
+			Fields: []D1S1JournalField{
+				{Arg: "plugin_id", ArgFallback: "plugin_identifier", CommandKey: "plugin_id"},
+				{Arg: "param_id", CommandKey: "param_id"},
+				{Arg: "target_value", CommandKey: "value"},
+			},
+		},
+		WriteBinding:             D1S1WriteBinding{PluginBound: true, Channels: 1},
+		AdmissionValueKey:        "band_threshold_db",
+		AdmissionPassthroughKeys: []string{"band_index", "plugin_identifier"},
+		TargetSemantics:          "delta_db",
+		// The domain's certified semantic axis: a free-state admitted
+		// multiband experiment rides the semantic dynamic chain on
+		// band_dynamics (Lindell MBC attestation coverage), not on the
+		// parameter-centric axis an LLM would freeze from the literal
+		// Threshold parameter name.
+		SemanticIntentFamily:   "multiband_dynamics",
+		SemanticIntentCoverage: []string{"band_dynamics"},
+		AppliedReplyText:       "FAM6-S1 multiband band threshold parameter was applied and read back. Fresh post-action evidence is recorded separately; acoustic materiality, target response, and human judgment remain pending.",
+	},
+	{
 		// track_pan_adjust moves one track's stereo pan by one bounded step.
 		// FAM3-S1 admits it on the native (non-plugin) path with the same
 		// single-mutation tightness as track_gain: pan is normalized [-1,+1]

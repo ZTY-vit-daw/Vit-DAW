@@ -87,6 +87,10 @@ func axisCoverageWhitelistIdentifier(family string) (string, error) {
 		if whitelist.GateExpander != nil {
 			return whitelist.GateExpander.PluginIdentifier, nil
 		}
+	case processorattestation.FamilyMultiband:
+		if whitelist.Multiband != nil {
+			return whitelist.Multiband.PluginIdentifier, nil
+		}
 	}
 	return "", nil
 }

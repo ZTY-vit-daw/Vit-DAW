@@ -51,6 +51,11 @@ const d1LimiterKind = "limiter_ceiling_adjust"
 const d1GateExpanderDomain = "gate_expander"
 const d1GateExpanderKind = "gate_range_adjust"
 
+// FAM6-S1 multiband mirrors the experiment table row as a routing label; the
+// table remains the bounds authority.
+const d1MultibandDomain = "multiband_dynamics"
+const d1MultibandKind = "multiband_band_threshold_adjust"
+
 // FAM3-S1 pan mirrors the experiment table row as a routing label; the table
 // remains the bounds authority.
 const d1PanDomain = "pan"
