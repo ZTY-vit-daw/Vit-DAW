@@ -871,6 +871,132 @@ func (s d1StaticEQStateForTest) VSPStateSnapshot(context.Context, string) (*kern
 	return s.state, nil
 }
 
+// TestD1FailedActionRevisionSideEffectsBookedNotExternalDrift locks the REG1
+// fix: a fail-closed D1 action whose kernel writes still advanced the project
+// revision (plugin instance load plus probe/restore writes) must have that
+// advance attributed to the loop's own failed action. Without the booking, the
+// next turn revalidates the closure onto the advanced revision and the replayed
+// pre-action observation settles StopProjectRevisionStale — mislabeling an
+// internal failed experiment as external drift (2026-09-02 p03 runs, stats
+// §47). The fail-closed rejection itself is not under test here; only the
+// attribution of its revision side effects.
+func TestD1FailedActionRevisionSideEffectsBookedNotExternalDrift(t *testing.T) {
+	previousObserver := d1FailedActionKernelRevision
+	d1FailedActionKernelRevision = func(context.Context, *kernel.Client) (string, bool) { return "10", true }
+	defer func() { d1FailedActionKernelRevision = previousObserver }()
+
+	s := New(nil, nil, nil)
+	s.audioClosures = audioclosure.NewMemoryStore()
+	state, err := audioclosure.Start(audioclosure.StartRequest{
+		ClosureID: "closure-d1-failed-attribution", ConversationID: "conversation-d1", GoalID: "goal-d1", RunID: "run-d1",
+		ProjectUUID: "project-d1", ProjectRevision: "7", OriginalIntent: "relieve over-compression",
+		Mode: audioclosure.ModeTreatment, Scope: audioclosure.Scope{Kind: "track", ID: "1012"}, Now: time.Now().UTC(),
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	state, _, err = (audioclosure.Driver{}).AdmitRound(state, state.Revision, time.Now().UTC())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := s.audioClosures.Create(state); err != nil {
+		t.Fatal(err)
+	}
+
+	loop := d1LoopForTest(t, "7")
+	session := orchestration.PlanningSession{ID: "d1-session-failed", Status: orchestration.StatusNeedsReview, Execution: &orchestration.ExecutionRecord{
+		ID: "execution-failed", IdempotencyKey: "key-failed",
+		Receipts: []orchestration.ActionReceipt{{ActionID: "d1-action-failed", Status: "failed",
+			Error: "delta target 12.8 dB (current 11.8 + 1) is outside the reachable normalized range"}},
+	}}
+	response := s.projectD1Execution(loop, session, nil)
+	if response.WorkflowData["status"] != "failed" {
+		t.Fatalf("failed receipt must still project its own status, got %v", response.WorkflowData["status"])
+	}
+	booked, ok := s.audioClosures.ActiveForConversation("conversation-d1")
+	if !ok {
+		t.Fatal("closure disappeared after the failed D1 execution")
+	}
+	if booked.ProjectRevision != "10" {
+		t.Fatalf("failed action's kernel revision advance was not attributed: tracked=%q want 10", booked.ProjectRevision)
+	}
+	if !booked.SupersededProjectRevisions["7"] {
+		t.Fatalf("admission revision 7 was not superseded by the failed-action booking: superseded=%v", booked.SupersededProjectRevisions)
+	}
+
+	// Next-turn shape: the authoritative view may still surface the advanced
+	// revision (revalidation must be a no-op after the booking), and the
+	// replayed pre-action observation at the superseded revision must be
+	// skipped — not settled as StopProjectRevisionStale.
+	revalidated, _, err := (audioclosure.Driver{}).RevalidateProjectRevision(booked, booked.Revision, "10", time.Now().UTC())
+	if err != nil {
+		t.Fatal(err)
+	}
+	revalidated, _, err = (audioclosure.Driver{}).AdmitRound(revalidated, revalidated.Revision, time.Now().UTC())
+	if err != nil {
+		t.Fatal(err)
+	}
+	outcome, err := (audioclosure.Driver{}).RecordObservation(revalidated, revalidated.Revision, audioclosure.ObservationKey{
+		ProjectUUID: "project-d1", ProjectRevision: "7", TargetRef: "1012", ViewIDs: []string{"track.source_dynamics"},
+	}, "obs-replayed-pre-action", time.Now().UTC())
+	if err != nil {
+		t.Fatalf("replayed pre-action observation errored: %v", err)
+	}
+	if outcome.State.Terminal() || outcome.State.Settlement != nil {
+		t.Fatalf("replayed pre-action observation settled the closure: %+v", outcome.State.Settlement)
+	}
+}
+
+// TestD1AppliedReceiptBooksReceiptRevisionNotKernelObserver locks the PASS
+// path: an applied receipt books exactly its AppliedRevision and never
+// consults the failed-action kernel observer, byte-identical to the
+// pre-REG2 booking semantics.
+func TestD1AppliedReceiptBooksReceiptRevisionNotKernelObserver(t *testing.T) {
+	consulted := false
+	previousObserver := d1FailedActionKernelRevision
+	d1FailedActionKernelRevision = func(context.Context, *kernel.Client) (string, bool) {
+		consulted = true
+		return "99", true
+	}
+	defer func() { d1FailedActionKernelRevision = previousObserver }()
+
+	s := New(nil, nil, nil)
+	s.audioClosures = audioclosure.NewMemoryStore()
+	state, err := audioclosure.Start(audioclosure.StartRequest{
+		ClosureID: "closure-d1-applied-control", ConversationID: "conversation-d1", GoalID: "goal-d1", RunID: "run-d1",
+		ProjectUUID: "project-d1", ProjectRevision: "11", OriginalIntent: "relieve over-compression",
+		Mode: audioclosure.ModeTreatment, Scope: audioclosure.Scope{Kind: "track", ID: "1012"}, Now: time.Now().UTC(),
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := s.audioClosures.Create(state); err != nil {
+		t.Fatal(err)
+	}
+
+	loop := d1LoopForTest(t, "11")
+	receipt := orchestration.ActionReceipt{ActionID: "d1-action-applied", Status: "applied", AppliedRevision: "12", EffectivelyOnce: true, Details: map[string]any{
+		"before_revision": "11", "after_revision": "12", "readback_verified": true,
+	}}
+	session := orchestration.PlanningSession{ID: "d1-session-applied", Status: orchestration.StatusCompleted, Execution: &orchestration.ExecutionRecord{
+		ID: "execution-applied", IdempotencyKey: "key-applied", Receipts: []orchestration.ActionReceipt{receipt},
+	}}
+	s.projectD1Execution(loop, session, nil)
+	booked, ok := s.audioClosures.ActiveForConversation("conversation-d1")
+	if !ok {
+		t.Fatal("closure disappeared after the applied D1 execution")
+	}
+	if booked.ProjectRevision != "12" {
+		t.Fatalf("applied booking changed: tracked=%q want 12 (receipt AppliedRevision)", booked.ProjectRevision)
+	}
+	if !booked.SupersededProjectRevisions["11"] {
+		t.Fatalf("applied booking supersede changed: %v", booked.SupersededProjectRevisions)
+	}
+	if consulted {
+		t.Fatal("applied receipt must not consult the failed-action kernel observer")
+	}
+}
+
 type d1StaticEQAcousticForTest struct {
 	result executionverifiers.AcousticResult
 	err    error

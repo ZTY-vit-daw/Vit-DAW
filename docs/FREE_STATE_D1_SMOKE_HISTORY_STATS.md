@@ -862,3 +862,19 @@ S3h8 以 102243 定案的孤儿开卡。取证把卡内死亡链精确到**确�
 **验收（零改动诚实门）**：`go build ./...` 过；全量 `go test ./... -count=1` exit 0（84 包真实退出码直取）；`python -m py_compile scripts\free_state_d1_smoke.py` 过；本卡零 Go/py 改动（git status 仅既知两项不入提交）；回归面无新风险面（零改动，§46 6/6 PASS 为当前基线）。
 
 收口：REG1 卡 todo→done（取证收口，修复分支留决策流）；提交 `forensics(d2-reg1):` 不 push（DSH_SKILL_CATALOG.md 与 VitApp/Workspace/default_project.xml 不入提交）。
+
+## 48. 2026-09-02 晚窗批（D2-REG2 失败动作 revision 副作用归属（REG1 分支①落地）+ drain race 定性（分支③）——p03 失败签名去 stale 误标，七域回归零漂移）
+
+**主修（三处，+59 行实现/+126 行测试）**：失败动作的 revision 副作用按"loop 自身副作用"记账。①`free_state_d1_runtime.go`：`projectD1Execution` 在 receipt 无 AppliedRevision 的 else 分支经包级观察缝 `d1FailedActionKernelRevision`（生产读 VSP state snapshot 的 Revision，间接层为单测可注入）取内核当前 revision，调用新 helper；AppliedRevision 非空的 PASS 分支逐字未动。②`audio_closure_controller.go`：`syncAudioClosureFailedActionRevision`——仅当观察到的 revision 为**严格前向数值推进**（ParseUint 双侧解析、observed>tracked，相等/后向/非数值一律交还既有 revalidation 通道）时走既有 `RecordGovernedMutation`（supersede 旧 revision + 前进 tracked），与 applied booking 同一事件形态；闭包不存在/no-op 情形静默返回。③红线核验：`staticeq_delta.go` fail-closed 门零触碰（只读）；`audioclosure/driver.go` 零触碰（RecordObservation stale settle 与 supersede 跳过分支原样——修复在喂入侧归属，不动闭包核心语义）。
+
+**RED 先行（行为 RED 非编译 RED）**：`TestD1FailedActionRevisionSideEffectsBookedNotExternalDrift`（闭包绑 rev 7+admitted round，失败 receipt 无 AppliedRevision，观察缝返回 10）——接线前实跑 FAIL："failed action's kernel revision advance was not attributed: tracked=7 want 10"（seam 变量已声明未接线=纯行为差）；接线后全绿，含下游形态断言：revalidate(10) 为 no-op + 重放 superseded 集 7 的 pre-action 观察被跳过不 settle。**PASS 路径对照锁定**：`TestD1AppliedReceiptBooksReceiptRevisionNotKernelObserver`——applied receipt 精确 book 其 AppliedRevision（观察缝返回 99 不得胜出）且 applied 路径不咨询观察缝；既有 `TestSyncAudioClosureGovernedRevisionBooksAppliedRevision` 原样通过。
+
+**p03 主跑新签名（含构建 @20260902_184456，模型方向方差延续：typed threshold_db=+1，FAIL 仍为预期 FAIL）**：修复在真实栈行使——批准后失败执行完成时闭包 **tracked=5、superseded={'2':True}**（start 2→+3 同形）、**settle=None**；全 log **"project_revision_stale"/"different project revision"/"stale" 零出现**（修复前三跑全有 settle 行）；终态诚实形态：loop `capability_blocked` @fs9_terminal（"closure observation round boundary reached"，有界观察窗耗尽而非漂移误判），intervention 如实 failed 带真因 "delta target 12.8 dB (current 11.8 + 1) is outside the reachable normalized range"，receipt 无 after_revision → smoke FAIL 于 "D1 receipt requires distinct before/after revisions"（诚实断言，动作确实失败）。**签名前后对照**：goal settle project_revision_stale@round5 → capability_blocked@fs9；reply "observation belongs to a different project revision" → 消失；闭包 superseded 空 → {start_rev:True}。
+
+**回归面（-SkipBuild，binary 18:45:07 新于全部源；case 配对 flavor）**：p01 static_eq PASS（readback −1 基线全中）、p04 de_esser PASS（8 全中）、p05 transient_shaper PASS（0.5973=§39/§42 历史值，剂量方差同形）、p06 pan PASS（−0.05=§43 历史值，方向自由）、p07 limiter 三跑 FAIL/FAIL/**PASS**（readback −0.5 基线全中）、p08 gate_expander PASS（0.6069=§43 历史值）、p09 multiband 两跑 not_exercised/**PASS**（readback −6.08 基线全中）——七域最终全 PASS 零漂移。
+
+**drain race 定性（分支③，独立留档不扩卡）**：今日三例（p03 @182544、p07 @185606/@190016）逐字段同形：2 responses、0 interaction_respond、rounds=1 零 interventions、terminal_causes 全 completed、teardown 与 waiting_confirmation 同秒——提案确认在 drain 采样边界后 surfaced，脚本 approve 未注入即收板（"D1 must contain exactly one forward mutation"）。**与主修结构性无交集**：修复路径只在 projectD1Execution 内（需已完成执行+receipts），race 全部发生于执行开始前（0 interventions）；typed action 与基线全同（p07 三跑 ceiling_db=−0.5）证模型行为无漂移；p07 第三跑 PASS、p09 复跑 PASS 证间歇性。归为脚本↔agent 确认边界时序 race（§43 p04 链方差同族），留决策流小项。
+
+**验收（全绿）**：`go build ./...` 过；chat+audioclosure 定向包过；全量 `go test ./... -count=1` **exit 0**（84 包真实退出码直取）；`py_compile` 过；p03 主跑 FAIL 如预期但签名如实（stale 零出现）；七域回归零漂移。
+
+收口：REG2 卡 todo→done；提交 `fix(d2-reg2):` 不 push（DSH_SKILL_CATALOG.md 与 VitApp/Workspace/default_project.xml 不入提交）；REG1 决策流分支①③闭合（②披露面可达性仍开放）。

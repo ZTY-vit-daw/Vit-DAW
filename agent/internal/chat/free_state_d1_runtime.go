@@ -26,6 +26,21 @@ import (
 const d1StaticEQDomain = "static_eq"
 const d1StaticEQKind = "static_eq_band_adjust"
 
+// d1FailedActionKernelRevision observes the kernel's authoritative project
+// revision after a fail-closed D1 execution. It exists as a package-level
+// indirection so the failed-action attribution path stays unit-testable;
+// production reads a live VSP state snapshot.
+var d1FailedActionKernelRevision = func(ctx context.Context, client *kernel.Client) (string, bool) {
+	if client == nil {
+		return "", false
+	}
+	state, err := client.VSPStateSnapshot(ctx, "project.timeline")
+	if err != nil || state == nil || !state.OK() {
+		return "", false
+	}
+	return strings.TrimSpace(fmt.Sprint(state.Revision)), true
+}
+
 // D2-1.5 broadband_compression mirrors the experiment table row; the values
 // live here only as routing labels (the table remains the bounds authority).
 const d1BroadbandCompressionDomain = "broadband_compression"
@@ -620,6 +635,14 @@ func (s *Server) projectD1Execution(loop freeStateReasoningLoop, session orchest
 		// the kernel state moved, so the closure must not treat the next
 		// post-action observation as external drift.
 		s.syncAudioClosureGovernedRevision(loop.ConversationID, receipt.AppliedRevision)
+	} else if revision, ok := d1FailedActionKernelRevision(ctx, s.kernel); ok {
+		// A fail-closed action can still have advanced the kernel revision
+		// (plugin instance load plus probe/restore writes). Attributing that
+		// advance to the loop's own failed action keeps the closure settling
+		// the failure on its real error instead of mislabeling the next
+		// replayed observation as external revision drift (2026-09-02 p03
+		// runs, stats §47).
+		s.syncAudioClosureFailedActionRevision(loop.ConversationID, revision)
 	}
 	admissionDomain := firstNonEmpty(firstStringFromMap(loop.Experiment.Admission.TypedAction, "action_domain", "domain"), experiment.D1S1ActionDomain)
 	admissionKind := firstNonEmpty(firstStringFromMap(loop.Experiment.Admission.TypedAction, "action_kind", "kind"), experiment.D1S1ActionKind)

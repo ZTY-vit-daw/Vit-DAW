@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -714,6 +715,41 @@ func (s *Server) syncAudioClosureGovernedRevision(conversationID, appliedRevisio
 		return
 	}
 	next, err := (audioclosure.Driver{}).RecordGovernedMutation(state, state.Revision, appliedRevision, time.Now().UTC())
+	if err != nil {
+		return
+	}
+	if saveErr := s.audioClosures.Save(next, state.Revision); saveErr == nil {
+		s.persistCurrentProjectWorkspace()
+	}
+}
+
+// syncAudioClosureFailedActionRevision books the revision advance a fail-closed
+// governed action still caused: plugin instance creation plus probe/restore
+// writes move the kernel even when the mutation itself was rejected. The
+// advance is the loop's own side effect, so it is booked like an applied
+// mutation (old revision superseded, tracked revision advanced), leaving the
+// closure to settle the failed action on its real error instead of settling
+// StopProjectRevisionStale on the next replayed pre-action observation. Only a
+// strictly forward numeric advance is booked; anything else stays with the
+// ordinary revalidation channels.
+func (s *Server) syncAudioClosureFailedActionRevision(conversationID, observedRevision string) {
+	if s == nil || s.audioClosures == nil {
+		return
+	}
+	state, ok := s.audioClosures.ActiveForConversation(conversationID)
+	if !ok {
+		return
+	}
+	observedRevision = strings.TrimSpace(observedRevision)
+	if observedRevision == "" || observedRevision == state.ProjectRevision {
+		return
+	}
+	observed, observedErr := strconv.ParseUint(observedRevision, 10, 64)
+	tracked, trackedErr := strconv.ParseUint(strings.TrimSpace(state.ProjectRevision), 10, 64)
+	if observedErr != nil || trackedErr != nil || observed <= tracked {
+		return
+	}
+	next, err := (audioclosure.Driver{}).RecordGovernedMutation(state, state.Revision, observedRevision, time.Now().UTC())
 	if err != nil {
 		return
 	}
