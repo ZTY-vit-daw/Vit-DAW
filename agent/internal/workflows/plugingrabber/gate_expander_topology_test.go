@@ -307,3 +307,53 @@ func TestGateExpanderGenerationIgnoresIdentityAndCurrentValues(t *testing.T) {
 		t.Fatalf("a=%+v b=%+v", a, b)
 	}
 }
+
+// TestDetectGateExpanderModelFabFilterProGFullSurface classifies the exact
+// product disclosed by the 2026-09-02 pluginprobe (all 35 probed surface
+// names, verbatim) so the FAM5-S1 carrier's live kernel face stays covered by
+// an in-repo test beside the existing paired-directional training surface.
+func TestDetectGateExpanderModelFabFilterProGFullSurface(t *testing.T) {
+	model, code := DetectGateExpanderModelWithBoundary(ParameterDigest{PluginName: "Pro-G", Parameters: []ParameterInfo{
+		gateExpanderCurveParam("0", "Threshold", "-60 dB", "-45 dB", "-30 dB", "-15 dB", "0 dB"),
+		gateExpanderCurveParam("1", "Threshold (Upward)", "-30 dB", "-22.5 dB", "-15 dB", "-7.5 dB", "0 dB"),
+		gateExpanderCurveParam("2", "Ratio", "1:1", "1.38:1", "2.75:1", "7:1", "100:1"),
+		gateExpanderCurveParam("3", "Ratio (Upward)", "1:1", "1.5:1", "2:1", "2.5:1", "3:1"),
+		gateExpanderCurveParam("4", "Range", "0 dB", "5 dB", "16 dB", "49.75 dB", "100 dB"),
+		gateExpanderEnumParam("5", "Style", "Classic", "Clean", "Vocal", "Guitar", "Upward"),
+		gateExpanderCurveParam("6", "Attack", "0 ms", "3.906 ms", "62.50 ms", "316.4 ms", "1000 ms"),
+		gateExpanderCurveParam("7", "Release", "0 ms", "53.58 ms", "428.7 ms", "1447 ms", "5000 ms"),
+		gateExpanderCurveParam("8", "Hold", "0 ms", "12.5 ms", "40 ms", "124.4 ms", "250 ms"),
+		gateExpanderCurveParam("9", "Knee", "0.00 dB"),
+		gateExpanderCurveParam("10", "Lookahead", "0.000 ms"),
+		gateExpanderEnumParam("11", "Lookahead Enabled", "Disabled", "Enabled"),
+		gateExpanderCurveParam("12", "Left Side Chain Level", "-24 dB", "-12 dB", "0 dB", "6 dB", "12 dB"),
+		gateExpanderCurveParam("13", "Left Side Chain Mix", "0", "0.25", "0.5", "0.75", "1"),
+		gateExpanderCurveParam("14", "Right Side Chain Level", "-24 dB", "-12 dB", "0 dB", "6 dB", "12 dB"),
+		gateExpanderCurveParam("15", "Right Side Chain Mix", "0", "0.25", "0.5", "0.75", "1"),
+		gateExpanderEnumParam("16", "Side Chain Input Signal", "Normal input"),
+		gateExpanderCurveParam("17", "Low Pass Frequency", "5 Hz", "44 Hz", "387 Hz", "3408 Hz", "30000 Hz"),
+		gateExpanderCurveParam("18", "High Pass Frequency", "5 Hz", "44 Hz", "387 Hz", "3408 Hz", "30000 Hz"),
+		gateExpanderEnumParam("19", "Audition Side Chain", "Off", "On"),
+		gateExpanderCurveParam("20", "Wet Level", "0.00 dB"),
+		gateExpanderCurveParam("21", "Wet Pan", "0.000"),
+		gateExpanderCurveParam("22", "Dry Level", "-INF dB"),
+		gateExpanderCurveParam("23", "Dry Pan", "0.000"),
+		gateExpanderEnumParam("24", "Midi State", "Enabled"),
+		gateExpanderEnumParam("25", "Oversampling", "Off"),
+		gateExpanderEnumParam("26", "Expert Mode", "Off"),
+		gateExpanderEnumParam("27", "Channel Mode", "Left/Right"),
+		gateExpanderCurveParam("28", "Input Level", "0.00 dB"),
+		gateExpanderCurveParam("29", "Input Pan", "0.000"),
+		gateExpanderCurveParam("30", "Output Level", "0.00 dB"),
+		gateExpanderCurveParam("31", "Output Pan", "0.000"),
+		gateExpanderEnumParam("32", "Bypass", "Not Bypassed"),
+		gateExpanderEnumParam("33", "Interface: Show Display", "Show Display"),
+		gateExpanderEnumParam("34", "Ex Style", "(Other)"),
+	}})
+	if model == nil || code != "" || model.Classification != "downward_expander" || model.Stage.Direction != "downward_expansion" {
+		t.Fatalf("Pro-G full surface model=%+v code=%q", model, code)
+	}
+	if !gateExpanderBindingsHaveRole(model.Stage.GainAction, "range") {
+		t.Fatalf("Pro-G range missing from gain action: %+v", model.Stage.GainAction)
+	}
+}

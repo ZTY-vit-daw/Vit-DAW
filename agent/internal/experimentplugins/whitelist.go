@@ -97,6 +97,18 @@ type LimiterPlugin struct {
 	CeilingParamID   string `json:"ceiling_param_id"`
 }
 
+// GateExpanderPlugin 是 gate_expander 域的白名单插件：单个共享 range（attenuation
+// floor）参数（FabFilter Pro-G 2026-09-02 pluginprobe 实测：全表面 35 实参中
+// Range 为单共享连续 dB 参数，非 ch 对），一次动作单批单通道写。
+type GateExpanderPlugin struct {
+	PluginName       string `json:"plugin_name"`
+	Manufacturer     string `json:"manufacturer"`
+	Format           string `json:"format"`
+	PluginIdentifier string `json:"plugin_identifier"`
+	PluginPath       string `json:"plugin_path"`
+	RangeParamID     string `json:"range_param_id"`
+}
+
 type Whitelist struct {
 	SchemaVersion        string                      `json:"schema_version"`
 	StaticEQ             *StaticEQPlugin             `json:"static_eq,omitempty"`
@@ -104,6 +116,7 @@ type Whitelist struct {
 	DeEsser              *DeEsserPlugin              `json:"de_esser,omitempty"`
 	TransientShaper      *TransientShaperPlugin      `json:"transient_shaper,omitempty"`
 	Limiter              *LimiterPlugin              `json:"limiter,omitempty"`
+	GateExpander         *GateExpanderPlugin          `json:"gate_expander,omitempty"`
 }
 
 var ErrNotConfigured = errors.New("experiment plugin whitelist: static_eq plugin is not configured")
@@ -115,6 +128,8 @@ var ErrDeEsserNotConfigured = errors.New("experiment plugin whitelist: de_esser 
 var ErrTransientShaperNotConfigured = errors.New("experiment plugin whitelist: transient_shaper plugin is not configured")
 
 var ErrLimiterNotConfigured = errors.New("experiment plugin whitelist: limiter plugin is not configured")
+
+var ErrGateExpanderNotConfigured = errors.New("experiment plugin whitelist: gate_expander plugin is not configured")
 
 func DefaultPath() (string, error) {
 	home, err := os.UserHomeDir()
@@ -166,6 +181,11 @@ func Load(path string) (Whitelist, error) {
 	}
 	if whitelist.Limiter != nil {
 		if err := validateLimiterPlugin(*whitelist.Limiter); err != nil {
+			return Whitelist{}, fmt.Errorf("experiment plugin whitelist: invalid %s: %w", path, err)
+		}
+	}
+	if whitelist.GateExpander != nil {
+		if err := validateGateExpanderPlugin(*whitelist.GateExpander); err != nil {
 			return Whitelist{}, fmt.Errorf("experiment plugin whitelist: invalid %s: %w", path, err)
 		}
 	}
@@ -308,6 +328,21 @@ func (w Whitelist) ValidateLimiterAdmission(lib processorattestation.LibraryV2) 
 	)
 }
 
+// ValidateGateExpanderAdmission mirrors ValidateLimiterAdmission for the
+// gate_expander whitelist section: same subject construction, same v2 library
+// predicate path (gate_expander is a PCA v2 family), and a distinguishable
+// not-PCA-promoted prefix naming this domain.
+func (w Whitelist) ValidateGateExpanderAdmission(lib processorattestation.LibraryV2) error {
+	if w.GateExpander == nil {
+		return ErrGateExpanderNotConfigured
+	}
+	return w.validateSectionAdmissionV2(
+		"gate_expander",
+		w.GateExpander.PluginName, w.GateExpander.Manufacturer, w.GateExpander.Format, w.GateExpander.PluginIdentifier, w.GateExpander.PluginPath,
+		processorattestation.FamilyGateExpander, lib,
+	)
+}
+
 // validateSectionAdmission is the shared admission predicate core for both
 // whitelist sections. The label appears verbatim in the returned boundary
 // prefix so each domain stays distinguishable upstream.
@@ -399,6 +434,22 @@ func validateDeEsserPlugin(plugin DeEsserPlugin) error {
 	} {
 		if missing.value == "" {
 			return fmt.Errorf("de_esser %s must be non-empty", missing.field)
+		}
+	}
+	return nil
+}
+
+func validateGateExpanderPlugin(plugin GateExpanderPlugin) error {
+	for _, missing := range []struct{ field, value string }{
+		{"plugin_name", plugin.PluginName},
+		{"manufacturer", plugin.Manufacturer},
+		{"format", plugin.Format},
+		{"plugin_identifier", plugin.PluginIdentifier},
+		{"plugin_path", plugin.PluginPath},
+		{"range_param_id", plugin.RangeParamID},
+	} {
+		if missing.value == "" {
+			return fmt.Errorf("gate_expander %s must be non-empty", missing.field)
 		}
 	}
 	return nil

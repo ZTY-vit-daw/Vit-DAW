@@ -425,3 +425,78 @@ func TestLimiterControllerCarriesKernelTransactionWhenRequested(t *testing.T) {
 		t.Fatalf("request ids=%v", fake.requestIDs)
 	}
 }
+
+// semanticSettlementGateKernel extends the gate/expander fake with the
+// ID-carrying VSP transport so the accounted execution can echo a kernel-real
+// transaction identity (FAM5-S1 settlement bridge, mirroring the limiter
+// controller contract).
+type semanticSettlementGateKernel struct {
+	fakeGateExpanderKernel
+	requestIDs []string
+}
+
+func (fake *semanticSettlementGateKernel) SendVSPCommandWithIDs(ctx context.Context, command string, args map[string]any, requestID, transactionID string) (*kernel.VSPCommandResult, error) {
+	if command != "plugin.set_params_batch" {
+		return nil, fmt.Errorf("unexpected VSP command %s", command)
+	}
+	fake.requestIDs = append(fake.requestIDs, requestID)
+	result, err := fake.SendVSPCommand(ctx, command, args)
+	if err != nil {
+		return nil, err
+	}
+	result.TransactionID = "tx_" + requestID
+	return result, nil
+}
+
+// RED (FAM5-S1): the gate/expander typed controller must surface the kernel
+// transaction identity when the caller pins a request id, and keep the
+// historical result shape when it does not.
+func TestGateExpanderControllerCarriesKernelTransactionWhenRequested(t *testing.T) {
+	fake := &semanticSettlementGateKernel{fakeGateExpanderKernel: *newFakeGateExpanderKernel()}
+	server := New(nil, nil, nil)
+	server.eqKernelOverride = fake
+
+	_, summary, err := server.readLiveGateExpanderControlSurface(context.Background(), "track-1", "gate-1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	ref := gateTestControlRef(summary, "range")
+	if ref == "" {
+		t.Fatal("typed surface did not disclose a range control_ref")
+	}
+
+	plain, err := server.applyPluginGrabberGateExpanderControls(context.Background(), map[string]any{
+		"track_id": "track-1", "plugin_id": "gate-1", "atomic": true,
+		"controls": []map[string]any{{"control_ref": ref, "value_db": -6.0}},
+	}, map[string]any{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, present := plain["transaction_id"]; present {
+		t.Fatalf("unrequested accounting leaked into the controller result: %v", plain["transaction_id"])
+	}
+	if _, present := plain["idempotency_key"]; present {
+		t.Fatalf("unrequested idempotency leaked into the controller result: %v", plain["idempotency_key"])
+	}
+	if len(fake.requestIDs) != 0 {
+		t.Fatalf("anonymous write rode the accounted transport: %v", fake.requestIDs)
+	}
+
+	accounted, err := server.applyPluginGrabberGateExpanderControls(context.Background(), map[string]any{
+		"track_id": "track-1", "plugin_id": "gate-1", "atomic": true, "request_id": "dyn_settle_gate",
+		"controls": []map[string]any{{"control_ref": ref, "value_db": -6.0}},
+	}, map[string]any{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if accounted["idempotency_key"] != "dyn_settle_gate" {
+		t.Fatalf("idempotency_key=%v", accounted["idempotency_key"])
+	}
+	transaction, _ := accounted["transaction_id"].(string)
+	if strings.TrimSpace(transaction) == "" {
+		t.Fatalf("kernel transaction id missing from accounted result: %+v", accounted)
+	}
+	if len(fake.requestIDs) != 1 || fake.requestIDs[0] != "dyn_settle_gate" {
+		t.Fatalf("request ids=%v", fake.requestIDs)
+	}
+}

@@ -58,6 +58,7 @@ ADMITTED_DOMAIN_KINDS = {
     "transient_shaper": "transient_attack_adjust",
     "pan": "track_pan_adjust",
     "limiter": "limiter_ceiling_adjust",
+    "gate_expander": "gate_range_adjust",
 }
 NOT_EXERCISED_EXIT = 3
 ACTIVE_CONTINUATION_STATUSES = {"pending", "claimed", "running"}

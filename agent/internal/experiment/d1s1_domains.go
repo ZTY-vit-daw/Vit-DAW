@@ -394,6 +394,57 @@ var d1s1Domains = []D1S1DomainSpec{
 		AppliedReplyText:       "FAM4-S1 limiter ceiling parameter was applied and read back. Fresh post-action evidence is recorded separately; acoustic materiality, target response, and human judgment remain pending.",
 	},
 	{
+		// gate_range_adjust moves one gate/expander instance's range
+		// (attenuation floor) by one bounded step. FAM5-S1 admits it with the
+		// same single-mutation tightness as the other PluginBound rows. Like
+		// the whitelisted de-esser/transient/limiter carriers, the
+		// whitelisted gate (FabFilter Pro-G, pluginprobe 2026-09-02) exposes
+		// ONE shared automatable range parameter (id "4", default normalized
+		// 1.0 displaying 50.00 dB) rather than a ch A/B pair, so the write is
+		// single-channel. Acoustic observation binds the DOM
+		// activity-structure view, whose quiet-interval energy carries the
+		// domain quantity. There is no stub form: production resolves the
+		// machine-local whitelist first and hard-fails without it.
+		ActionDomain:        agentprotocol.ImprovementActionDomainGateExpander,
+		ActionKind:          "gate_range_adjust",
+		PromptParameterHint: `parameter_bounds={"range_db":<nonzero number within +/-2>}`,
+		ValidateDoseBounds: func(scope string, bounds map[string]any) error {
+			rng, ok := mapNumber(bounds, "range_db")
+			if !ok || rng == 0 || math.Abs(rng) > 2 {
+				return fmt.Errorf("D1-S1 %s range_db must be non-zero and within +/-2 dB", scope)
+			}
+			return nil
+		},
+		ActionIDSuffix:            "_gate",
+		CapabilityID:              "static_mix.gate.v0",
+		ContractVersions:          []string{"free_state:d1_s1", "action:gate_range_adjust"},
+		TargetFingerprintTemplate: "track:{track}:gate:{param}:pending",
+		BeforeFingerprintTemplate: "track:{track}:gate:{param}:pending",
+		ObservationViewIDs:        []string{"track.activity_structure"},
+		Journal: D1S1JournalShape{
+			Summary:      "FAM5-S1 bounded gate range adjustment",
+			Tool:         "set_plugin_param",
+			CommandLabel: "set_plugin_param",
+			Fields: []D1S1JournalField{
+				{Arg: "plugin_id", ArgFallback: "plugin_identifier", CommandKey: "plugin_id"},
+				{Arg: "param_id", CommandKey: "param_id"},
+				{Arg: "target_value", CommandKey: "value"},
+			},
+		},
+		WriteBinding:             D1S1WriteBinding{PluginBound: true, Channels: 1},
+		AdmissionValueKey:        "range_db",
+		AdmissionPassthroughKeys: []string{"plugin_identifier"},
+		TargetSemantics:          "delta_db",
+		// The domain's certified semantic axis: a free-state admitted
+		// gate_expander experiment rides the semantic dynamic chain on
+		// attenuation_floor (Pro-G attestation coverage), not on the
+		// parameter-centric axis an LLM would freeze from the literal Range
+		// parameter name.
+		SemanticIntentFamily:   "gate_expander",
+		SemanticIntentCoverage: []string{"attenuation_floor"},
+		AppliedReplyText:       "FAM5-S1 gate range parameter was applied and read back. Fresh post-action evidence is recorded separately; acoustic materiality, target response, and human judgment remain pending.",
+	},
+	{
 		// track_pan_adjust moves one track's stereo pan by one bounded step.
 		// FAM3-S1 admits it on the native (non-plugin) path with the same
 		// single-mutation tightness as track_gain: pan is normalized [-1,+1]

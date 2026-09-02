@@ -63,6 +63,9 @@ func resolveD1PluginParamWhitelistBinding(typedAction map[string]any) (*d1Plugin
 	if domainLabel(typedAction) == d1LimiterDomain {
 		return resolveD1LimiterWhitelistBinding(typedAction)
 	}
+	if domainLabel(typedAction) == d1GateExpanderDomain {
+		return resolveD1GateExpanderWhitelistBinding(typedAction)
+	}
 	binding, err := resolveD1StaticEQWhitelistBinding(typedAction)
 	if err != nil {
 		return nil, err
@@ -303,6 +306,60 @@ func resolveD1LimiterWhitelistBinding(typedAction map[string]any) (*d1PluginPara
 		PluginName: limiter.PluginName,
 		PluginPath: limiter.PluginPath,
 		ParamID:    limiter.CeilingParamID,
+	}, nil
+}
+
+// d1GateExpanderAttestationReader is the gate_expander companion of
+// d1LimiterAttestationReader: gate_expander attestations live in the same
+// PCA v2 store. A missing store decodes to an empty library, which makes
+// every admission query answer not-promoted.
+var d1GateExpanderAttestationReader = func() (processorattestation.LibraryV2, error) {
+	store, err := processorattestation.NewStoreV2("")
+	if err != nil {
+		return processorattestation.LibraryV2{}, err
+	}
+	library, report, err := store.Read()
+	if err != nil {
+		return processorattestation.LibraryV2{}, fmt.Errorf("processor attestation v2 store is unreadable at %s: %w", report.Path, err)
+	}
+	return library, nil
+}
+
+// resolveD1GateExpanderWhitelistBinding mirrors the limiter gate for the
+// gate_expander whitelist section with its own label so upstream can tell the
+// domains apart. The whitelisted gate carries ONE shared range parameter
+// (FabFilter Pro-G probe 2026-09-02), so the binding resolves a single
+// channel; admission runs against the PCA v2 library (gate_expander is a v2
+// family, same Form A dispatch as the other v2 sections).
+func resolveD1GateExpanderWhitelistBinding(typedAction map[string]any) (*d1PluginParamWhitelistBinding, error) {
+	const label = d1GateExpanderDomain
+	whitelist, err := d1StaticEQWhitelistLoader()
+	if err != nil {
+		if errors.Is(err, experimentplugins.ErrNotConfigured) || errors.Is(err, experimentplugins.ErrGateExpanderNotConfigured) {
+			return nil, fmt.Errorf("%s experiment is not configured: %w", label, experimentplugins.ErrGateExpanderNotConfigured)
+		}
+		return nil, fmt.Errorf("%s experiment whitelist is invalid: %w", label, err)
+	}
+	gate := whitelist.GateExpander
+	if gate == nil {
+		return nil, fmt.Errorf("%s experiment is not configured: %w", label, experimentplugins.ErrGateExpanderNotConfigured)
+	}
+	pinned := firstStringFromMap(typedAction, "plugin_identifier")
+	if pinned != "" && !strings.EqualFold(pinned, gate.PluginIdentifier) {
+		return nil, fmt.Errorf("%s admission pinned plugin_identifier %q but the experiment plugin whitelist admits %q", label, pinned, gate.PluginIdentifier)
+	}
+	library, err := d1GateExpanderAttestationReader()
+	if err != nil {
+		return nil, fmt.Errorf("%s experiment could not evaluate its PCA admission: %w", label, err)
+	}
+	if err := whitelist.ValidateGateExpanderAdmission(library); err != nil {
+		return nil, fmt.Errorf("%s experiment was refused by the PCA admission check: %w", label, err)
+	}
+	return &d1PluginParamWhitelistBinding{
+		Section:    label,
+		PluginName: gate.PluginName,
+		PluginPath: gate.PluginPath,
+		ParamID:    gate.RangeParamID,
 	}, nil
 }
 
