@@ -26,6 +26,10 @@
 .trace-wrap>div{overflow:hidden;min-height:0}
 .trace-block:not(.is-collapsed) .trace-head{border-bottom:1px solid var(--line)}
 
+/* 乐观占位条（GUI-F2）：头部非交互，仅呈现等待态 */
+.trace-block.is-optimistic .trace-head{cursor:default}
+.trace-block.is-optimistic .trace-head:hover{background:transparent}
+
 /* 轨迹树：极简行式，无导轨线，只留节点 */
 .trace-inner{position:relative;padding:4px 10px 8px 8px}
 .trace-step{position:relative;padding:5px 0 6px 22px;cursor:pointer;border-radius:2px}

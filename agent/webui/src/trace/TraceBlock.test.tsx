@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import type { ChatMessage } from "../types";
 import { emptyTrajectoryState, reduceTrajectoryEvents, trajectoryTurns } from "../trajectory";
 import { mockMultiRoundTrajectoryEvents, mockRollbackTrajectoryEvents } from "../trajectoryMock";
-import { defaultCollapsedForStatus, isLiveStatus, TraceBlock } from "./TraceBlock";
+import { defaultCollapsedForStatus, isLiveStatus, OptimisticTraceBlock, shouldShowOptimisticTrace, TraceBlock } from "./TraceBlock";
 import { groupMessagesByTurn, isUnboundActivity, turnIsAnchored } from "./turnGroups";
 
 function chat(partial: Partial<ChatMessage> & Pick<ChatMessage, "id" | "role" | "content">): ChatMessage {
@@ -93,6 +93,56 @@ describe("收起语义", () => {
     expect(defaultCollapsedForStatus("waiting_for_user")).toBe(true);
     expect(defaultCollapsedForStatus("failed")).toBe(true);
     expect(defaultCollapsedForStatus("stopped")).toBe(true);
+  });
+});
+
+describe("乐观占位条（GUI-F2）", () => {
+  const optimisticMessages = [chat({ id: "u1", role: "user", content: "帮我压一下人声" })];
+
+  function messages(...partial: Array<Partial<ChatMessage> & Pick<ChatMessage, "id" | "role" | "content">>): ChatMessage[] {
+    return partial.map((item) => chat(item));
+  }
+
+  it("出现：发送中 + 无 live 真块 + 流尾是乐观用户消息", () => {
+    expect(shouldShowOptimisticTrace({
+      isSending: true,
+      trajectory: emptyTrajectoryState(),
+      messages: messages(...optimisticMessages)
+    })).toBe(true);
+  });
+
+  it("接管：trajectory 出现 live turn 后占位撤下（真块同帧顶上）", () => {
+    const state = reduceTrajectoryEvents(emptyTrajectoryState(), mockMultiRoundTrajectoryEvents.slice(0, 1));
+    const turn = trajectoryTurns(state)[0];
+    expect(turn.status).toMatch(/running|pending/);
+    expect(shouldShowOptimisticTrace({
+      isSending: true,
+      trajectory: state,
+      messages: messages(
+        { id: "u1", role: "user", content: "帮我压一下人声" },
+        { id: "a1", role: "assistant", content: "好的", turn_id: turn.id }
+      )
+    })).toBe(false);
+  });
+
+  it("失败移除：发送结束即撤下占位（错误消息随流进入）", () => {
+    expect(shouldShowOptimisticTrace({
+      isSending: false,
+      trajectory: emptyTrajectoryState(),
+      messages: messages(
+        { id: "u1", role: "user", content: "帮我压一下人声" },
+        { id: "e1", role: "system", content: "发送失败", status: "error" }
+      )
+    })).toBe(false);
+  });
+
+  it("渲染：与真块同容器类 + 正在处理文案 + 呼吸游标 + aria-live", () => {
+    const markup = renderToStaticMarkup(<OptimisticTraceBlock />);
+    expect(markup).toContain("trace-block is-live is-optimistic");
+    expect(markup).toContain("正在处理");
+    expect(markup).toContain("trace-cursor");
+    expect(markup).toContain('aria-live="polite"');
+    expect(markup).not.toContain("is-collapsed");
   });
 });
 

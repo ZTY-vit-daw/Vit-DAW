@@ -133,6 +133,48 @@ function TraceStep({ node, next, live, authorityMode }: {
   );
 }
 
+/** 发送即显的乐观轨迹条：真 trajectory.turn.started 到达前 0ms 覆盖等待期（与真块同容器类，视觉同一） */
+export function OptimisticTraceBlock() {
+  return (
+    <section className="trace-block is-live is-optimistic" aria-label="执行轨迹：正在处理" aria-live="polite">
+      <div className="trace-head" role="status">
+        <span className="th-ic" aria-hidden="true">
+          <Check className="th-done" size={14} />
+          <span className="th-spin" />
+        </span>
+        <span className="th-txt"><b>正在处理</b></span>
+        <span className="th-meta">--</span>
+      </div>
+      <div className="trace-wrap"><div>
+        <div className="trace-inner">
+          <div className="trace-think" aria-live="polite">
+            <span className="trace-node" aria-hidden="true" />
+            <div className="trace-think-line">
+              <span>正在处理…</span>
+              <span className="trace-cursor" aria-hidden="true" />
+            </div>
+          </div>
+        </div>
+      </div></div>
+    </section>
+  );
+}
+
+/** 乐观占位的显隐判定：发送中、尚无 live 真块接管、流尾是本轮乐观用户消息 */
+export function shouldShowOptimisticTrace(options: {
+  isSending: boolean;
+  trajectory: TrajectoryState;
+  messages: ChatMessage[];
+}): boolean {
+  if (!options.isSending) return false;
+  const hasLiveTurn = Object.values(options.trajectory.turns).some(
+    (turn) => turn.status === "running" || turn.status === "pending"
+  );
+  if (hasLiveTurn) return false;
+  const last = options.messages[options.messages.length - 1];
+  return Boolean(last && last.role === "user" && !(last.turn_id ?? "").trim());
+}
+
 export function TraceBlock({ state, turn, activities, authorityMode = "manual_confirmation" }: {
   state: TrajectoryState;
   turn: TrajectoryTurn;

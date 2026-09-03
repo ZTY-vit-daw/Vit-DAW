@@ -102,7 +102,7 @@ import { auditionSessions, emptyAuditionState, reduceAuditionEvents, type Auditi
 import { emptyTaskTrajectoryState, reduceTaskTrajectory } from "./taskTrajectory";
 import { authorityContext, checkoutBlockedByState, isAgentTurnRunning } from "./turnControl";
 import { AuditionJudgeCard } from "./trajectory/TrajectoryAuditionPanel";
-import { TraceBlock } from "./trace/TraceBlock";
+import { TraceBlock, OptimisticTraceBlock, shouldShowOptimisticTrace } from "./trace/TraceBlock";
 import { groupMessagesByTurn, isUnboundActivity, turnIsAnchored } from "./trace/turnGroups";
 import { TaskTrajectoryView } from "./taskTrajectory/TaskTrajectoryView";
 import type {
@@ -412,7 +412,8 @@ function App() {
       }
     };
     void poll();
-    const timer = window.setInterval(() => void poll(), 500);
+    // 发送等待期收紧到 250ms，让 turn.started 真块尽快接管乐观占位；回合结束回落 500ms
+    const timer = window.setInterval(() => void poll(), isSending ? 250 : 500);
     return () => {
       cancelled = true;
       window.clearInterval(timer);
@@ -1161,6 +1162,7 @@ function App() {
         onSubmitAuditionJudgment={handleAuditionJudgment}
         authorityMode={authorityMode}
         respondingActionID={respondingActionID}
+        isSending={isSending}
         hiddenActionID={composerInteractionID}
         bottomInset={messageBottomInset}
         onInteractionAction={handleInteractionAction}
@@ -3962,6 +3964,7 @@ function MessageStream({
   auditionBusySessionID,
   authorityMode,
   respondingActionID,
+  isSending,
   hiddenActionID,
   bottomInset,
   onInteractionAction,
@@ -3982,6 +3985,7 @@ function MessageStream({
   auditionBusySessionID: string;
   authorityMode: AuthorityMode;
   respondingActionID: string;
+  isSending: boolean;
   hiddenActionID: string;
   bottomInset: number;
   onInteractionAction: (interaction: JsonRecord, action: JsonRecord, payload?: JsonRecord) => void;
@@ -4125,6 +4129,10 @@ function MessageStream({
           authorityMode={authorityMode}
         />
       ))}
+      {/* 发送即显的乐观轨迹条：真 turn.started 事件到达后由上方真块无缝接管 */}
+      {shouldShowOptimisticTrace({ isSending, trajectory, messages: visibleMessages }) && (
+        <OptimisticTraceBlock key="optimistic-trace" />
+      )}
       {/* 未挂靠回合组的试听会话判定卡同样挂流尾防丢 */}
       {unanchoredSessions.map(renderJudgeCard)}
       {laneActivities.length > 0 && (
