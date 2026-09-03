@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vit-DAW Agent 面板 · 方向 C 工业面板</title>
+<style>
+/* ================= tokens ================= */
+:root {
+  --panel-w: 420px;
+  --bg: #8f9399;            /* 呈现层中性灰 */
+  --alu: #e9e8e4;           /* 铝面板底 */
+  --inset: #f4f3f0;         /* 内嵌面 */
+  --ink: #17181a;           /* 近黑墨 */
+  --sub: #6d6e6a;           /* 次级字 */
+  --key: #b9b7b0;           /* keyline 细线 */
+  --acc: #f57c00;           /* 单一信号橙 */
+  --bad: #b3382c;           /* 深红：拒绝/更糟 */
+  --cjk: "Microsoft YaHei", sans-serif;
+  --mono: Consolas, "SFMono-Regular", Menlo, monospace;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+button { font: inherit; color: inherit; background: none; border: none; cursor: pointer; }
+i { font-style: normal; }
+:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
+
+/* ================= chrome（面板外呈现层，所有方向一致） ================= */
+body {
+  min-height: 100vh;
+  display: flex; align-items: center; justify-content: center;
+  padding: 44px 18px;
+  background: var(--bg);
+  font-family: var(--cjk);
+  color: var(--ink);
+}
+.stage-note {
+  position: fixed; top: 14px; left: 18px;
+  font-size: 11px; color: #43464b; letter-spacing: .05em;
+}
+.wswitch { position: fixed; top: 10px; right: 16px; display: flex; gap: 5px; }
+.wswitch button {
+  font-family: var(--mono); font-size: 11px; padding: 3px 9px;
+  border: 1px solid #63666c; color: #2f3237;
+  background: rgba(233, 232, 228, .35);
+  transition: background .15s, color .15s, border-color .15s;
+}
+.wswitch button:hover { border-color: #2f3237; }
+.wswitch button.on { background: #17181a; color: #e9e8e4; border-color: #17181a; }
+
+/* ================= 面板：faceplate 分区带 ================= */
+.panel {
+  width: var(--panel-w);
+  max-width: 92vw;
+  height: min(920px, calc(100vh - 88px));
+  min-height: 600px;
+  display: flex; flex-direction: column;
+  background: var(--alu);
+  border: 1px solid #71757b;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .55);
+}
+/* 刻字式微型大写标签 */
+.egr {
+  font-size: 11px; font-weight: 600; letter-spacing: .12em;
+  color: var(--sub);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, .6);
+}
+
+/* ---- 分区 1：头部模块带 ---- */
+.head-top {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--key);
+}
+.conn { display: flex; align-items: center; gap: 6px; font-size: 11px; letter-spacing: .08em; color: var(--sub); }
+.cled {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--acc);
+  box-shadow: 0 0 0 2px rgba(245, 124, 0, .16);
+}
+.head-main {
+  display: flex; justify-content: space-between; align-items: center; gap: 10px;
+  padding: 10px 14px 12px; flex-wrap: wrap;
+}
+.head-id { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.title { font-size: 19px; font-weight: 800; letter-spacing: .03em; line-height: 1.2; }
+.proj { letter-spacing: .06em; }
+
+/* 物理拨杆两档开关 */
+.perm { display: flex; align-items: center; gap: 7px; padding: 4px 2px; }
+.plabel {
+  display: flex; align-items: center; gap: 4px;
+  font-size: 11px; letter-spacing: .08em; color: var(--sub);
+  transition: color .2s;
+}
+.pdot { width: 5px; height: 5px; border-radius: 50%; background: var(--acc); opacity: 0; transition: opacity .2s; }
+.plabel.on { color: var(--ink); font-weight: 700; }
+.plabel.on .pdot { opacity: 1; }
+.slot {
+  position: relative; width: 40px; height: 16px; flex: none;
+  background: #d7d5cf; border: 1px solid var(--key); border-radius: 8px;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, .1);
+}
+.knob {
+  position: absolute; top: 1px; left: 1px;
+  width: 12px; height: 12px; border-radius: 2px;
+  background: var(--ink);
+  transition: left .18s cubic-bezier(.5, 1.5, .5, 1);
+}
+.perm.full .knob { left: calc(100% - 13px); }
+.subnote {
+  display: flex; align-items: center; gap: 7px;
+  margin: 0 14px; max-height: 0; opacity: 0; overflow: hidden;
+  font-size: 11.5px; color: var(--sub); letter-spacing: .03em;
+  transition: max-height .2s ease, opacity .2s ease, padding .2s ease;
+}
+.subnote.show { max-height: 28px; opacity: 1; padding-bottom: 9px; }
+.subnote .pdot { opacity: 1; }
+
+/* ---- 分区 2：对话流带（2px 墨色规则线分割） ---- */
+.zone-flow {
+  flex: 1; min-height: 0;
+  overflow-y: auto; overscroll-behavior: contain;
+  border-top: 2px solid var(--ink);
+  border-bottom: 2px solid var(--ink);
+  padding-bottom: 16px;
+}
+.zone-flow::-webkit-scrollbar { width: 8px; }
+.zone-flow::-webkit-scrollbar-thumb { background: var(--key); border: 2px solid var(--alu); }
+.zone-flow::-webkit-scrollbar-track { background: transparent; }
+
+/* 用户消息：操作者输入（墨底白字短块，右对齐） */
+.msg-user { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; margin: 16px 14px 4px; }
+.op { font-size: 10px; letter-spacing: .14em; color: #9a9b96; }
+.bubble {
+  background: var(--ink); color: #f4f3f0;
+  font-size: 13px; line-height: 1.6;
+  padding: 9px 12px; max-width: 88%;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .06);
+}
+
+/* 系统日志式轨迹 */
+.trace { margin: 6px 14px 2px; }
+.trace > * + * { border-top: 1px solid var(--key); }
+.trace.tight { margin-top: 4px; }
+.log-row { padding: 7px 8px; margin: 0 -8px; transition: background .15s; }
+.log-row[data-x] { cursor: pointer; }
+.log-row[data-x]:hover { background: #e3e1db; }
+.log-row.open { background: #ebe9e3; }
+.log-row.live, .log-row.live:hover { background: none; cursor: default; }
+.l1 { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.led { flex: none; width: 7px; height: 7px; border-radius: 50%; background: var(--ink); }
+.led.run {
+  background: transparent; border: 1.5px solid var(--ink);
+  animation: ledPulse 1.5s ease-in-out infinite;
+}
+.tok { font-family: var(--mono); font-size: 12.5px; color: var(--ink); white-space: nowrap; }
+.tok-cn { font-size: 12px; color: var(--sub); white-space: nowrap; }
+.dur {
+  margin-left: auto; min-width: 36px;
+  display: flex; justify-content: flex-end; align-items: center;
+  font-family: var(--mono); font-size: 12px; color: var(--ink);
+}
+.l2 { font-size: 13px; line-height: 1.55; color: var(--ink); padding: 2px 0 0 15px; }
+.detail {
+  display: none;
+  margin: 5px 0 1px 15px; padding: 3px 0 3px 9px;
+  border-left: 2px solid var(--key);
+  font-size: 12px; line-height: 1.55; color: var(--sub);
+}
+.log-row.open .detail { display: block; animation: fadeIn .18s ease; }
+
+/* 思考行：淡灰呼吸 + 块状光标 */
+.think { display: flex; align-items: center; gap: 8px; padding: 8px 8px; margin: 0 -8px; }
+.think .txt { font-size: 12.5px; color: #95968f; animation: tBreath 2.8s ease-in-out infinite; }
+#thinkTxt { transition: opacity .15s; }
+.cur { flex: none; width: 8px; height: 14px; background: #8f908b; animation: blink 1.1s steps(2, jump-none) infinite; }
+.spin {
+  display: inline-block; width: 10px; height: 10px;
+  border: 1.5px solid var(--ink); border-right-color: transparent; border-radius: 50%;
+  animation: rot .8s linear infinite;
+}
+
+/* ---- 卡片：内嵌 keyline 面板（确认卡 / 判定卡同构） ---- */
+.card {
+  position: relative;
+  margin: 14px 14px;
+  background: var(--inset);
+  border: 1px solid var(--key);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .75);
+  padding: 10px 12px 12px;
+  transition: border-color .2s;
+}
+.card.settled { border-style: dashed; border-color: #c9c7c0; }
+.tk { position: absolute; width: 7px; height: 7px; pointer-events: none; }
+.tk.tl { top: -4px; left: -4px; border-top: 1.5px solid var(--ink); border-left: 1.5px solid var(--ink); }
+.tk.tr { top: -4px; right: -4px; border-top: 1.5px solid var(--ink); border-right: 1.5px solid var(--ink); }
+.tk.bl { bottom: -4px; left: -4px; border-bottom: 1.5px solid var(--ink); border-left: 1.5px solid var(--ink); }
+.tk.br { bottom: -4px; right: -4px; border-bottom: 1.5px solid var(--ink); border-right: 1.5px solid var(--ink); }
+.card.settled .tk { opacity: .4; }
+.card-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 9px; }
+.card-label {
+  font-size: 11px; font-weight: 700; letter-spacing: .12em; color: var(--sub);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, .6);
+}
+/* 轮次等宽 readout */
+.ro {
+  margin-left: auto;
+  font-family: var(--mono); font-size: 11px; letter-spacing: .08em;
+  border: 1px solid var(--key); background: #fbfaf8;
+  padding: 2.5px 7px; color: var(--ink);
+}
+/* 状态徽标 */
+.chip {
+  margin-left: auto;
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 11px; letter-spacing: .05em; color: var(--ink);
+  border: 1px solid var(--key); background: #fbfaf8; padding: 2.5px 8px;
+}
+.card .ro + .chip { margin-left: 0; }
+.chip .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--ink); }
+.chip.pend .dot { background: var(--acc); animation: dotPulse 1.8s ease-in-out infinite; }
+.chip.dotchip { border-color: transparent; background: transparent; padding: 2.5px 0; }
+.sdot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--ink); }
+
+/* 改动 / 假设 / 预期 三句 */
+.kvs { border-top: 1px solid var(--key); }
+.kv { display: flex; gap: 10px; padding: 6.5px 0; border-bottom: 1px solid #d6d4ce; align-items: baseline; }
+.kv:last-child { border-bottom: none; }
+.kv b { flex: none; width: 32px; font-size: 12px; font-weight: 700; letter-spacing: .06em; color: var(--sub); }
+.kv .v { font-size: 13px; line-height: 1.55; color: var(--ink); min-width: 0; overflow-wrap: anywhere; }
+.kv.jsum .v { font-family: var(--mono); font-size: 12.5px; }
+
+/* 确认卡按钮 */
+.acts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+.cbtn {
+  border: 1.5px solid var(--ink); background: #fff;
+  padding: 8px 4px; font-size: 13px; font-weight: 700; letter-spacing: .1em;
+  transition: background .15s, color .15s;
+}
+.cbtn.ok { background: var(--ink); color: #f4f3f0; }
+.cbtn.ok:hover { background: #000; }
+.cbtn.no { color: var(--bad); }
+.cbtn.no:hover { background: var(--bad); color: #fff; }
+.cbtn:active { transform: translateY(1px); }
+
+/* 已裁沉淀读数条 */
+.settled-strip {
+  display: flex; align-items: center; gap: 8px;
+  margin-top: 10px; padding: 8px 10px;
+  border: 1px dashed var(--key);
+  font-size: 12.5px; color: var(--ink); line-height: 1.5;
+}
+.settled-strip svg { flex: none; }
+.settled-strip .sq { flex: none; width: 7px; height: 7px; background: var(--acc); }
+.settled-strip .arr { font-family: var(--mono); color: var(--acc); }
+.settled-strip.bad, .settled-strip.bad .arr { color: var(--bad); }
+.settled-strip.bad .sq { background: var(--bad); }
+
+/* 判定卡：回滚信任锚徽章 */
+.rb-badge {
+  display: flex; align-items: center; gap: 8px;
+  margin: 1px 0 10px; padding: 7px 10px;
+  border: 2px solid var(--acc); background: #fcf3e7; color: var(--acc);
+  font-size: 13px; font-weight: 800; letter-spacing: .04em;
+}
+.rb-badge.dim { opacity: .55; }
+.rb-badge svg { flex: none; }
+
+/* 判定卡：A/B 硬件传输模块 */
+.tr-mod {
+  border: 1px solid var(--key); background: #fcfbf9;
+  box-shadow: inset 0 1px 0 #fff;
+  padding: 8px 9px; margin-bottom: 8px;
+  transition: border-color .2s;
+}
+.tr-mod.playing { border-color: var(--ink); }
+.mlabel { display: flex; align-items: center; gap: 7px; margin-bottom: 7px; }
+.mtag {
+  display: grid; place-items: center;
+  width: 17px; height: 17px;
+  background: var(--ink); color: #f4f3f0;
+  font-family: var(--mono); font-size: 11px; font-weight: 700;
+  transition: background .15s, color .15s;
+}
+.tr-mod.playing .mtag { background: var(--acc); color: var(--ink); }
+.mname { font-size: 11px; letter-spacing: .1em; color: var(--sub); }
+.trow { display: flex; align-items: center; gap: 9px; }
+.pbtn {
+  flex: none; width: 32px; height: 32px;
+  border: 1.5px solid var(--ink); background: #fff;
+  display: grid; place-items: center;
+  transition: background .15s;
+}
+.pbtn:active { transform: translateY(1px); }
+.pbtn .i-pause { display: none; }
+.tr-mod.playing .pbtn { background: var(--acc); }
+.tr-mod.playing .pbtn .i-play { display: none; }
+.tr-mod.playing .pbtn .i-pause { display: block; }
+.wave { flex: 1; min-width: 0; display: flex; align-items: center; gap: 2px; height: 30px; }
+.wbar { flex: 1; min-width: 1.5px; max-width: 4px; background: #3b3c40; transition: background .1s; }
+.wbar.on { background: var(--acc); }
+.ttime { flex: none; min-width: 62px; text-align: right; font-family: var(--mono); font-size: 11px; color: var(--sub); }
+.ttime b { color: var(--ink); font-weight: 400; }
+
+/* A/B 快速对比物理按键 */
+.cmp { display: flex; align-items: center; gap: 8px; margin: 1px 0 10px; }
+.cmp .egr2 { font-size: 10.5px; font-weight: 600; letter-spacing: .12em; color: var(--sub); }
+.ckey {
+  width: 36px; height: 26px;
+  border: 1.5px solid var(--ink); background: #fff;
+  font-family: var(--mono); font-size: 12px; font-weight: 700;
+  box-shadow: 0 1.5px 0 var(--ink);
+  transition: background .12s, color .12s, box-shadow .12s, transform .12s;
+}
+.ckey:active { transform: translateY(1.5px); box-shadow: 0 0 0 var(--ink); }
+.ckey.active {
+  transform: translateY(1.5px);
+  background: var(--ink); color: #fff;
+  box-shadow: inset 0 -3px 0 var(--acc), 0 0 0 var(--ink);
+}
+
+/* 四裁决按钮 2×2 */
+.vgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.vbtn {
+  border: 1.5px solid var(--ink); background: #fff; color: var(--ink);
+  padding: 8.5px 4px; font-size: 12.5px; font-weight: 700;
+  white-space: nowrap; letter-spacing: .02em;
+  transition: background .15s, color .15s;
+}
+.vbtn:hover { background: var(--ink); color: #fff; }
+.vbtn:active { transform: translateY(1px); }
+.vbtn.bad { color: var(--bad); }
+.vbtn.bad:hover { background: var(--bad); color: #fff; }
+
+/* ---- 分区 3：输入带 ---- */
+.zone-input { display: flex; gap: 8px; padding: 12px 14px 14px; align-items: stretch; }
+.inp {
+  flex: 1; min-width: 0; height: 38px;
+  border: 1px solid var(--key); background: var(--inset);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, .05);
+  padding: 0 11px; font-size: 13px; color: var(--ink); outline: none;
+  transition: border-color .15s;
+}
+.inp:focus { border-color: var(--ink); }
+.inp::placeholder { color: #9d9e99; }
+.send {
+  flex: none; width: 46px;
+  background: var(--ink); color: #f4f3f0;
+  display: grid; place-items: center;
+  transition: background .15s;
+}
+.send:hover { background: #2a2b2f; }
+.send:active { transform: translateY(1px); }
+
+/* ================= 动效 ================= */
+.reveal { opacity: 0; }
+.reveal.go { animation: rise .3s ease forwards; animation-delay: calc(var(--i, 0) * 70ms); }
+@keyframes rise { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: none; } }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes rot { to { transform: rotate(360deg); } }
+@keyframes blink { 50% { opacity: 0; } }
+@keyframes ledPulse { 0%, 100% { background: transparent; } 50% { background: var(--ink); } }
+@keyframes dotPulse { 50% { opacity: .35; } }
+@keyframes tBreath { 0%, 100% { opacity: .55; } 50% { opacity: .95; } }
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
+</style>
+</head>
+<body>
+
+<span class="stage-note">Vit-DAW · Agent 面板 · 420px 基准</span>
+<div class="wswitch" role="group" aria-label="面板宽度切换">
+  <button data-w="360">360</button>
+  <button data-w="420" class="on">420</button>
+  <button data-w="540">540</button>
+  <button data-w="720">720</button>
+</div>
+
+<div class="panel">
+
+  <!-- ============ 分区 1：头部模块带 ============ -->
+  <header class="zone-head">
+    <div class="head-top">
+      <span class="egr">AGENT CONSOLE</span>
+      <span class="conn"><i class="cled"></i>已连接</span>
+    </div>
+    <div class="head-main">
+      <div class="head-id">
+        <h1 class="title">混音助手</h1>
+        <span class="egr proj">工程 · 夜航西飞 · demo</span>
+      </div>
+      <button class="perm" id="perm" role="switch" aria-checked="false" aria-label="权限：普通">
+        <span class="plabel on"><i class="pdot"></i>普通</span>
+        <span class="slot"><i class="knob"></i></span>
+        <span class="plabel"><i class="pdot"></i>完全</span>
+      </button>
+    </div>
+    <div class="subnote" id="subnote"><i class="pdot"></i>连续执行试验步 · 每步仍可回滚</div>
+  </header>
+
+  <!-- ============ 分区 2：对话流带 ============ -->
+  <main class="zone-flow" id="flow">
+
+    <!-- T1 用户 -->
+    <div class="msg-user reveal">
+      <span class="op">OPERATOR</span>
+      <div class="bubble">副歌的人声总是糊在鼓里，帮我听听是怎么回事。</div>
+    </div>
+
+    <!-- T1 观察轨迹（系统日志式） -->
+    <section class="trace" aria-label="第 1 轮观察轨迹">
+      <div class="log-row reveal" data-x role="button" tabindex="0" aria-expanded="false">
+        <div class="l1"><span class="led"></span><span class="tok">ccb.observation_catalog</span><span class="tok-cn">目录发现</span><span class="dur">0.3s</span></div>
+        <div class="l2">打开观察目录，18 个视图可用</div>
+        <div class="detail">细节：优先级队列 dynamics / stereo_space 两维度尚未覆盖</div>
+      </div>
+      <div class="log-row reveal" data-x role="button" tabindex="0" aria-expanded="false">
+        <div class="l1"><span class="led"></span><span class="tok">mix.masking_relationship</span><span class="tok-cn">掩蔽关系</span><span class="dur">1.8s</span></div>
+        <div class="l2">主唱 2–4kHz 与镲片能量重叠</div>
+        <div class="detail">细节：副歌段 masking score 0.71（阈值 0.60），频段 2.1–3.9kHz</div>
+      </div>
+      <div class="log-row reveal" data-x role="button" tabindex="0" aria-expanded="false">
+        <div class="l1"><span class="led"></span><span class="tok">track.vocals</span><span class="tok-cn">频段动态</span><span class="dur">2.4s</span></div>
+        <div class="l2">副歌段 200–400Hz 堆积 +3.2dB</div>
+        <div class="detail">细节：band_profile 真值 62.8dB @315Hz，Q 区间能量持续偏高</div>
+      </div>
+      <div class="log-row reveal" data-x role="button" tabindex="0" aria-expanded="false">
+        <div class="l1"><span class="led"></span><span class="tok">mix.static_level_relationship</span><span class="tok-cn">电平关系</span><span class="dur">1.1s</span></div>
+        <div class="l2">主唱相对底鼓电平正常，排除电平问题</div>
+        <div class="detail">细节：Δ −0.4dB，在正常区间内</div>
+      </div>
+    </section>
+
+    <!-- T1 确认卡（已批准沉淀） -->
+    <article class="card settled reveal" aria-label="确认卡 · 已批准">
+      <i class="tk tl"></i><i class="tk tr"></i><i class="tk bl"></i><i class="tk br"></i>
+      <div class="card-head">
+        <span class="card-label">确认 · 第 1 轮试验步</span>
+        <span class="chip dotchip"><span class="sdot"></span></span>
+      </div>
+      <div class="kvs">
+        <div class="kv"><b>改动</b><span class="v">对 主唱 vocals 做 static_eq：315Hz −5dB（Q 1.8）</span></div>
+        <div class="kv"><b>假设</b><span class="v">低频堆积让主唱失去轮廓，并与底鼓形成掩蔽</span></div>
+        <div class="kv"><b>预期</b><span class="v">副歌主唱更清晰，不牺牲厚度</span></div>
+      </div>
+      <div class="settled-strip">
+        <svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true"><path d="M3 8.6 6.4 12 13 4.6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"/></svg>
+        <span>已批准 · 14:32</span>
+      </div>
+    </article>
+
+    <!-- T1 执行轨迹 -->
+    <section class="trace tight" aria-label="第 1 轮执行轨迹">
+      <div class="log-row reveal" data-x role="button" tabindex="0" aria-expanded="false">
+        <div class="l1"><span class="led"></span><span class="tok">apply static_eq</span><span class="dur">0.6s</span></div>
+        <div class="l2">已应用并回读校验（−5.0dB 确认）</div>
+        <div class="detail">细节：单一 mutation，revision +1</div>
+      </div>
+      <div class="log-row reveal" data-x role="button" tabindex="0" aria-expanded="false">
+        <div class="l1"><span class="led"></span><span class="tok">render A/B</span><span class="dur">3.2s</span></div>
+        <div class="l2">12s 对照片段渲染完成</div>
+        <div class="detail">细节：同源同窗同路由，bypass/processed 对照</div>
+      </div>
+    </section>
+
+    <!-- T1 判定卡（已裁决沉淀） -->
+    <article class="card settled reveal" aria-label="判定卡 · 已裁决">
+      <i class="tk tl"></i><i class="tk tr"></i><i class="tk bl"></i><i class="tk br"></i>
+      <div class="card-head">
+        <span class="card-label">A/B 试听 · 第 1/3 轮</span>
+        <span class="ro">ROUND 1/3</span>
+        <span class="chip dotchip"><span class="sdot"></span></span>
+      </div>
+      <div class="rb-badge dim">
+        <svg viewBox="0 0 20 20" width="15" height="15" aria-hidden="true"><path d="M4.5 10.5A6 6 0 1 0 15.7 7.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="square"/><path d="M4.5 4.6v5.9l5.6-1.3" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="square"/></svg>
+        <span>这是试验步，可一键回滚</span>
+      </div>
+      <div class="kvs">
+        <div class="kv jsum"><b>摘要</b><span class="v">static_eq 315Hz −5dB（Q 1.8）</span></div>
+      </div>
+      <div class="settled-strip">
+        <span class="sq"></span>
+        <span>听不出 · 下一轮加码 <span class="arr">→</span> 已按此进入第 2 轮</span>
+      </div>
+    </article>
+
+    <!-- T2 用户 -->
+    <div class="msg-user reveal">
+      <span class="op">OPERATOR</span>
+      <div class="bubble">好，这轮动静大一点，我想明确听出差别。</div>
+    </div>
+
+    <!-- T2 live 轨迹 -->
+    <section class="trace" aria-label="第 2 轮轨迹">
+      <div class="think reveal">
+        <span class="led run"></span>
+        <span class="txt"><span id="thinkTxt">正在复核掩蔽关系…</span></span>
+        <span class="cur"></span>
+      </div>
+      <div class="log-row reveal" data-x role="button" tabindex="0" aria-expanded="false">
+        <div class="l1"><span class="led"></span><span class="tok-cn">复核</span><span class="tok">band_profile</span><span class="dur">1.2s</span></div>
+        <div class="l2">62.8dB @315Hz，与首轮观察一致</div>
+        <div class="detail">细节：剂量界内余量 −3.5dB</div>
+      </div>
+      <div class="log-row reveal" data-x role="button" tabindex="0" aria-expanded="false">
+        <div class="l1"><span class="led"></span><span class="tok-cn">规划加码剂量</span><span class="dur">0.4s</span></div>
+        <div class="l2">315Hz −5dB → −8dB，仍在一键回滚界内</div>
+        <div class="detail">细节：建议保留 Q 1.8 不变，单参数单步</div>
+      </div>
+      <div class="log-row live reveal">
+        <div class="l1"><span class="led run"></span><span class="tok">render A/B</span><span class="tok-cn">第 2 轮</span><span class="dur"><span class="spin"></span></span></div>
+        <div class="l2">渲染新对照片段…</div>
+      </div>
+    </section>
+
+    <!-- T2 确认卡（待裁） -->
+    <article class="card reveal" id="confirm2" aria-label="确认卡 · 待裁">
+      <i class="tk tl"></i><i class="tk tr"></i><i class="tk bl"></i><i class="tk br"></i>
+      <div class="card-head">
+        <span class="card-label">确认 · 第 2 轮加码</span>
+        <span class="chip pend"><span class="dot"></span>待裁</span>
+      </div>
+      <div class="kvs">
+        <div class="kv"><b>改动</b><span class="v">对 主唱 vocals 做 static_eq：315Hz −8dB（Q 1.8）</span></div>
+        <div class="kv"><b>假设</b><span class="v">−5dB 未过可听阈值，加码至 −8dB 让差异可感知</span></div>
+        <div class="kv"><b>预期</b><span class="v">这轮 A/B 差异应可明确听出；过猛可一键回退一半</span></div>
+      </div>
+      <div class="acts">
+        <button class="cbtn ok">批准</button>
+        <button class="cbtn no">拒绝</button>
+      </div>
+    </article>
+
+    <!-- T2 判定卡（待判定 · 本稿主角） -->
+    <article class="card reveal" id="judge2" aria-label="判定卡 · 待判定">
+      <i class="tk tl"></i><i class="tk tr"></i><i class="tk bl"></i><i class="tk br"></i>
+      <div class="card-head">
+        <span class="card-label">A/B 试听 · 第 2/3 轮</span>
+        <span class="ro">ROUND 2/3</span>
+        <span class="chip pend"><span class="dot"></span>待判定</span>
+      </div>
+      <div class="rb-badge">
+        <svg viewBox="0 0 20 20" width="15" height="15" aria-hidden="true"><path d="M4.5 10.5A6 6 0 1 0 15.7 7.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="square"/><path d="M4.5 4.6v5.9l5.6-1.3" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="square"/></svg>
+        <span>这是试验步，可一键回滚</span>
+      </div>
+      <div class="kvs">
+        <div class="kv jsum"><b>摘要</b><span class="v">static_eq 315Hz −8dB（Q 1.8）</span></div>
+      </div>
+
+      <div class="tr-mod" data-player="a">
+        <div class="mlabel"><span class="mtag">A</span><span class="mname">改动前 · original</span></div>
+        <div class="trow">
+          <button class="pbtn" aria-label="播放 A 段">
+            <svg class="i-play" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M5 3.2 13 8 5 12.8Z" fill="currentColor"/></svg>
+            <svg class="i-pause" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M5.2 3.5v9M10.8 3.5v9" fill="none" stroke="currentColor" stroke-width="2.6"/></svg>
+          </button>
+          <div class="wave" aria-hidden="true"></div>
+          <span class="ttime"><b>0:00</b> / 0:12</span>
+        </div>
+      </div>
+      <div class="tr-mod" data-player="b">
+        <div class="mlabel"><span class="mtag">B</span><span class="mname">改动后 · processed</span></div>
+        <div class="trow">
+          <button class="pbtn" aria-label="播放 B 段">
+            <svg class="i-play" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M5 3.2 13 8 5 12.8Z" fill="currentColor"/></svg>
+            <svg class="i-pause" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M5.2 3.5v9M10.8 3.5v9" fill="none" stroke="currentColor" stroke-width="2.6"/></svg>
+          </button>
+          <div class="wave" aria-hidden="true"></div>
+          <span class="ttime"><b>0:00</b> / 0:12</span>
+        </div>
+      </div>
+
+      <div class="cmp">
+        <span class="egr2">快速对比</span>
+        <button class="ckey" data-cmp="a" aria-label="快速对比：播放 A">A</button>
+        <button class="ckey" data-cmp="b" aria-label="快速对比：播放 B">B</button>
+      </div>
+
+      <div class="vgrid">
+        <button class="vbtn">听得出·保留</button>
+        <button class="vbtn bad">听得出·更糟·回滚</button>
+        <button class="vbtn">听不出·下一轮加码</button>
+        <button class="vbtn">太过了·回退一半</button>
+      </div>
+    </article>
+
+  </main>
+
+  <!-- ============ 分区 3：输入带 ============ -->
+  <footer class="zone-input">
+    <input class="inp" type="text" placeholder="描述你想要的混音…">
+    <button class="send" aria-label="发送">
+      <svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true"><path d="M2.5 8h10M8.7 4.2 12.9 8l-4.2 3.8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="square"/></svg>
+    </button>
+  </footer>
+
+</div>
+
+<script>
+(function () {
+  'use strict';
+  var $ = function (s) { return document.querySelector(s); };
+  var $$ = function (s) { return Array.prototype.slice.call(document.querySelectorAll(s)); };
+
+  /* ---- 载入错落浮现 ---- */
+  $$('.reveal').forEach(function (el, i) {
+    el.style.setProperty('--i', i);
+    el.classList.add('go');
+  });
+
+  /* ---- 思考行文案轮换（~2.8s） ---- */
+  var phrases = ['正在复核掩蔽关系…', '正在规划第 2 轮剂量…', '正在校验回滚边界…'];
+  var tt = $('#thinkTxt'), pi = 0;
+  if (tt) {
+    setInterval(function () {
+      tt.style.opacity = '0';
+      setTimeout(function () {
+        pi = (pi + 1) % phrases.length;
+        tt.textContent = phrases[pi];
+        tt.style.opacity = '1';
+      }, 160);
+    }, 2800);
+  }
+
+  /* ---- 日志行点击展开细节 ---- */
+  $$('.log-row[data-x]').forEach(function (r) {
+    var h = function (e) {
+      if (e.type === 'keydown' && e.key !== 'Enter' && e.key !== ' ') return;
+      e.preventDefault();
+      r.classList.toggle('open');
+      r.setAttribute('aria-expanded', r.classList.contains('open') ? 'true' : 'false');
+    };
+    r.addEventListener('click', h);
+    r.addEventListener('keydown', h);
+  });
+
+  /* ---- 权限拨杆：普通 / 完全 ---- */
+  var perm = $('#perm'), subnote = $('#subnote');
+  var plabels = $$('#perm .plabel');
+  perm.addEventListener('click', function () {
+    var full = perm.classList.toggle('full');
+    perm.setAttribute('aria-checked', full ? 'true' : 'false');
+    perm.setAttribute('aria-label', full ? '权限：完全' : '权限：普通');
+    plabels[0].classList.toggle('on', !full);
+    plabels[1].classList.toggle('on', full);
+    subnote.classList.toggle('show', full);
+  });
+
+  /* ---- A/B 双播放器（硬件传输模块） ---- */
+  var DUR = 12000;
+  function fmt(ms) {
+    var s = Math.min(Math.floor(ms / 1000), 12);
+    return '0:' + (s < 10 ? '0' + s : s);
+  }
+  function barHeights(seed) {
+    var a = [];
+    for (var i = 0; i < 26; i++) {
+      var env = Math.pow(Math.sin(Math.PI * i / 25), 0.55);
+      var n = 0.4 + 0.6 * Math.abs(Math.sin(i * 2.1 + seed) * Math.cos(i * 0.83 + seed * 1.7));
+      a.push(Math.round(16 + 66 * env * n));
+    }
+    return a;
+  }
+  function syncKeys() {
+    $$('.ckey').forEach(function (k) {
+      var target = null;
+      players.forEach(function (p) { if (p.mod.getAttribute('data-player') === k.getAttribute('data-cmp')) target = p; });
+      k.classList.toggle('active', !!(target && target.st.playing));
+    });
+  }
+  var players = $$('.tr-mod').map(function (mod, idx) {
+    var wave = mod.querySelector('.wave');
+    barHeights(idx * 3.3 + 1).forEach(function (h) {
+      var b = document.createElement('i');
+      b.className = 'wbar';
+      b.style.height = h + '%';
+      wave.appendChild(b);
+    });
+    var bars = Array.prototype.slice.call(mod.querySelectorAll('.wbar'));
+    var elapsed = mod.querySelector('.ttime b');
+    var btn = mod.querySelector('.pbtn');
+    var st = { playing: false, ms: 0, timer: null };
+    function paint() {
+      var n = Math.floor(st.ms / DUR * bars.length);
+      bars.forEach(function (b, i) { b.classList.toggle('on', i < n); });
+      elapsed.textContent = fmt(st.ms);
+    }
+    function stopTick() { if (st.timer) { clearInterval(st.timer); st.timer = null; } }
+    function pause() {
+      st.playing = false;
+      stopTick();
+      mod.classList.remove('playing');
+      syncKeys();
+    }
+    function play() {
+      players.forEach(function (p) { if (p.mod !== mod && p.st.playing) p.pause(); });
+      if (st.ms >= DUR) st.ms = 0;
+      st.playing = true;
+      mod.classList.add('playing');
+      stopTick();
+      st.timer = setInterval(function () {
+        st.ms += 60;
+        if (st.ms >= DUR) { st.ms = 0; paint(); pause(); return; }
+        paint();
+      }, 60);
+      syncKeys();
+    }
+    btn.addEventListener('click', function () { st.playing ? pause() : play(); });
+    return { mod: mod, st: st, play: play, pause: pause };
+  });
+  $$('.ckey').forEach(function (k) {
+    k.addEventListener('click', function () {
+      players.forEach(function (p) {
+        if (p.mod.getAttribute('data-player') === k.getAttribute('data-cmp')) p.play();
+      });
+    });
+  });
+
+  /* ---- 裁决 / 批准 / 拒绝 → 沉淀态 ---- */
+  var IC = {
+    ok: '<svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true"><path d="M3 8.6 6.4 12 13 4.6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"/></svg>',
+    x: '<svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"/></svg>'
+  };
+  function now() {
+    var d = new Date();
+    return ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2);
+  }
+  function settle(card, extra, html) {
+    card.classList.add('settled');
+    var chip = card.querySelector('.chip');
+    if (chip) {
+      chip.classList.remove('pend');
+      chip.classList.add('dotchip');
+      chip.innerHTML = '<span class="sdot"></span>';
+    }
+    var host = card.querySelector('.vgrid') || card.querySelector('.acts');
+    if (!host) return;
+    var strip = document.createElement('div');
+    strip.className = 'settled-strip' + (extra ? ' ' + extra : '');
+    strip.innerHTML = html;
+    host.parentNode.replaceChild(strip, host);
+  }
+  $$('#judge2 .vbtn').forEach(function (b) {
+    b.addEventListener('click', function () {
+      players.forEach(function (p) { p.pause(); });
+      var bad = b.classList.contains('bad');
+      settle($('#judge2'), bad ? 'bad' : '',
+        (bad ? IC.x : '<span class="sq"></span>') + '<span>已裁决 · ' + b.textContent + '</span>');
+    });
+  });
+  $$('#confirm2 .cbtn').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var ok = b.classList.contains('ok');
+      settle($('#confirm2'), ok ? '' : 'bad',
+        (ok ? IC.ok : IC.x) + '<span>' + (ok ? '已批准 · ' : '已拒绝 · ') + now() + '</span>');
+    });
+  });
+
+  /* ---- 宽度切换器 360 / 420 / 540 / 720 ---- */
+  var root = document.documentElement;
+  $$('.wswitch button').forEach(function (b) {
+    b.addEventListener('click', function () {
+      root.style.setProperty('--panel-w', b.getAttribute('data-w') + 'px');
+      $$('.wswitch button').forEach(function (x) { x.classList.toggle('on', x === b); });
+    });
+  });
+
+  /* ---- URL ?scroll=judge → 自动滚到 T2 判定卡（容器内滚动，不动页面） ---- */
+  if (new URLSearchParams(location.search).get('scroll') === 'judge') {
+    setTimeout(function () {
+      var box = $('#flow'), j = $('#judge2');
+      if (!box || !j) return;
+      var top = j.getBoundingClientRect().top - box.getBoundingClientRect().top + box.scrollTop - 8;
+      box.scrollTo({ top: top, behavior: 'smooth' });
+    }, 420);
+  }
+})();
+</script>
+</body>
+</html>

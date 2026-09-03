@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>模板 02 · 主对话视图 · 待判定（普通档） — Vit-DAW Agent GUI</title>
+<link rel="stylesheet" href="./assets/traceui.css">
+</head>
+<body>
+
+<div class="chrome-note">模板 02 · 主对话视图 · 待判定态（②判定卡 A/B 试听 + A/B 两裁决 + 补充输入）· 普通档</div>
+<div class="wswitch" role="group" aria-label="列宽切换">
+  <button type="button" data-w="360px">360</button><button type="button" data-w="540px">540</button><button type="button" data-w="720px" class="on">720</button><button type="button" data-w="980px">980</button>
+</div>
+
+<div class="panel">
+
+  <header class="hd">
+    <svg class="hd-mark" viewBox="0 0 36 36" aria-hidden="true">
+      <rect width="36" height="36" fill="#ffffff"/>
+      <rect x="0" y="14" width="23" height="22" fill="#ffd42a"/>
+      <rect x="23" y="0" width="13" height="14" fill="#1557d6"/>
+      <rect x="23" y="25" width="13" height="11" fill="#e63426"/>
+      <path d="M23 0v36M0 14h23M23 25h13" stroke="#111111" stroke-width="2" fill="none"/>
+      <rect x="1" y="1" width="34" height="34" fill="none" stroke="#111111" stroke-width="2"/>
+    </svg>
+    <div class="hd-title"><h1>混音助手</h1><div class="proj">夜航西飞 · demo</div></div>
+    <div class="hd-right">
+      <div class="conn"><i></i><span>已连接</span></div>
+      <div class="perm" role="group" aria-label="权限开关">
+        <button type="button" class="on">普通</button><button type="button">完全</button>
+      </div>
+    </div>
+  </header>
+  <div class="subnote"><span>每步试验都经你确认 · 每步可回滚</span></div>
+
+  <main class="stream" id="stream">
+
+    <!-- ===== 已裁沉淀史（T1：与模板 01 同构，判定卡已裁决） ===== -->
+    <div class="msg fx">副歌的人声总是糊在鼓里，帮我听听是怎么回事。</div>
+
+    <section class="trace-block collapsed fx">
+      <button class="trace-head" type="button" aria-expanded="false">
+        <span class="th-ic"><svg viewBox="0 0 12 12"><path d="M1.8 6.4 4.8 9.2 10.2 2.8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"/></svg></span>
+        <span class="th-txt"><b>观察完成 · 4 步</b><small>主唱 2–4kHz 与镲片掩蔽 · 200–400Hz 堆积 +3.2dB</small></span>
+        <span class="th-meta">5.6s</span>
+        <span class="th-chev"><svg viewBox="0 0 12 12"><path d="M4 2.5 8 6 4 9.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"/></svg></span>
+      </button>
+      <div class="trace-wrap"><div><div class="trace-inner">
+        <div class="step plain" role="button" tabindex="0">
+          <span class="node"></span>
+          <div class="s-row"><span class="act">mix.masking_relationship<span class="gloss">掩蔽关系</span></span><span class="dur">1.8s</span></div>
+          <div class="s-sum">主唱 2–4kHz 与镲片能量重叠</div>
+        </div>
+      </div></div></div>
+    </section>
+
+    <section class="card settled fx">
+      <div class="tab">确认 · 第 1 轮试验步</div>
+      <div class="c-row"><span class="k">改动</span><span class="v">对 主唱 vocals 做 static_eq：315Hz −5dB（Q 1.8）</span></div>
+      <div class="outcome tone-blue"><svg viewBox="0 0 12 12"><path d="M1.8 6.4 4.8 9.2 10.2 2.8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"/></svg><span>已批准 · 14:32</span></div>
+    </section>
+
+    <section class="card settled fx">
+      <div class="tab">判定 · A/B 试听</div>
+      <div class="c-head"><span class="rtag">第 1/3 轮</span><span class="csum">static_eq 315Hz −5dB（Q 1.8）</span></div>
+      <div class="outcome tone-blue"><svg viewBox="0 0 12 12"><path d="M1.8 6.4 4.8 9.2 10.2 2.8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"/></svg><span>经补充输入继续 ·「听不出差别，下一轮加码」→ 已按此进入第 2 轮</span></div>
+    </section>
+
+    <!-- ===== 当前回合 T2：执行完成已收起 + 待判定卡（本模板主角） ===== -->
+    <div class="msg fx">好，这轮动静大一点，我想明确听出差别。</div>
+
+    <section class="trace-block collapsed fx">
+      <button class="trace-head" type="button" aria-expanded="false">
+        <span class="th-ic"><svg viewBox="0 0 12 12"><path d="M1.8 6.4 4.8 9.2 10.2 2.8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"/></svg></span>
+        <span class="th-txt"><b>加码执行完成 · 3 步</b><small>315Hz −8dB 已回读校验 · 新 A/B 对照已渲染</small></span>
+        <span class="th-meta">4.6s</span>
+        <span class="th-chev"><svg viewBox="0 0 12 12"><path d="M4 2.5 8 6 4 9.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"/></svg></span>
+      </button>
+      <div class="trace-wrap"><div><div class="trace-inner">
+        <div class="step plain" role="button" tabindex="0">
+          <span class="node"></span>
+          <div class="s-row"><span class="act">复核 band_profile</span><span class="dur">1.2s</span></div>
+          <div class="s-sum">62.8dB @315Hz，与首轮观察一致</div>
+        </div>
+        <div class="step plain" role="button" tabindex="0">
+          <span class="node"></span>
+          <div class="s-row"><span class="act">apply static_eq −8dB</span><span class="dur">0.6s</span></div>
+          <div class="s-sum">已应用并回读校验（−8.0dB 确认）</div>
+        </div>
+        <div class="step plain" role="button" tabindex="0">
+          <span class="node"></span>
+          <div class="s-row"><span class="act">render A/B</span><span class="dur">2.8s</span></div>
+          <div class="s-sum">12s 对照片段渲染完成</div>
+        </div>
+      </div></div></div>
+    </section>
+
+    <!-- ② 待判定卡（核心卡全要素） -->
+    <section class="card fx" id="judgeT2">
+      <div class="tab">判定 · A/B 试听</div>
+      <div class="c-head">
+        <span class="rtag">第 2/3 轮</span>
+        <span class="csum">static_eq 315Hz −8dB（Q 1.8）</span>
+        <span class="chip">待判定</span>
+      </div>
+      <div class="trust">
+        <svg viewBox="0 0 14 14"><path d="M2.6 5.6h5.1a3.6 3.6 0 1 1-3.5 4.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="square"/><path d="M5 3.3V7.9L1.4 5.6Z" fill="currentColor"/></svg>
+        <span>这是试验步，可一键回滚</span>
+      </div>
+      <div class="ab">
+        <div class="ab-head"><span class="ab-cap">A/B 快速对比</span>
+          <div class="ab-sw"><button type="button" data-side="a" class="on">A</button><button type="button" data-side="b">B</button></div>
+        </div>
+        <div class="tape active" data-side="a">
+          <span class="tp-tag">A</span>
+          <button type="button" class="pbtn" aria-label="播放 A">
+            <svg class="ic-play" viewBox="0 0 12 12"><path d="M2.5 1.5 10.5 6 2.5 10.5Z" fill="currentColor"/></svg>
+            <svg class="ic-pause" viewBox="0 0 12 12"><path d="M2.5 1.5h2.6v9H2.5zM6.9 1.5h2.6v9H6.9z" fill="currentColor"/></svg>
+          </button>
+          <span class="tp-label">改动前 · original</span>
+          <div class="wave"></div>
+          <span class="tp-time">0:00 / 0:12</span>
+        </div>
+        <div class="tape" data-side="b">
+          <span class="tp-tag">B</span>
+          <button type="button" class="pbtn" aria-label="播放 B">
+            <svg class="ic-play" viewBox="0 0 12 12"><path d="M2.5 1.5 10.5 6 2.5 10.5Z" fill="currentColor"/></svg>
+            <svg class="ic-pause" viewBox="0 0 12 12"><path d="M2.5 1.5h2.6v9H2.5zM6.9 1.5h2.6v9H6.9z" fill="currentColor"/></svg>
+          </button>
+          <span class="tp-label">改动后 · processed</span>
+          <div class="wave"></div>
+          <span class="tp-time">0:00 / 0:12</span>
+        </div>
+      </div>
+      <div class="vgrid">
+        <button type="button" class="vbtn" data-act="pickA">A 更好 · 回滚</button>
+        <button type="button" class="vbtn" data-act="pickB">B 更好 · 保留</button>
+      </div>
+      <div class="c-ask">
+        <input type="text" placeholder="听不出差别、想折中或另有想法？直接补充…" aria-label="自定义补充输入">
+        <button type="button" class="askb" aria-label="发送补充"><svg viewBox="0 0 12 12"><path d="M1.5 1 11 6 1.5 11Z" fill="currentColor"/></svg></button>
+      </div>
+      <div class="outcome"></div>
+    </section>
+
+  </main>
+
+  <footer class="ft">
+    <input class="inp" type="text" placeholder="描述你想要的混音…" autocomplete="off">
+    <button class="send" type="button" aria-label="发送"><svg viewBox="0 0 12 12"><path d="M1.5 1 11 6 1.5 11Z" fill="currentColor"/></svg></button>
+  </footer>
+
+</div>
+
+<script>
+(function(){
+"use strict";
+function $(s,c){return (c||document).querySelector(s)}
+function $$(s,c){return Array.prototype.slice.call((c||document).querySelectorAll(s))}
+$$('.fx').forEach(function(el,i){el.style.animationDelay=Math.min(i*60,1320)+'ms'});
+$$('.step').forEach(function(s){
+  if(!$('.s-detail',s))return;
+  function op(){var o=s.classList.toggle('open');s.setAttribute('aria-expanded',String(o))}
+  s.addEventListener('click',op);
+});
+$$('.trace-block').forEach(function(block){
+  $('.trace-head',block).addEventListener('click',function(){
+    var open=block.classList.toggle('collapsed');
+    this.setAttribute('aria-expanded',String(!open));
+  });
+});
+$$('.perm button').forEach(function(b){
+  b.addEventListener('click',function(){
+    $$('.perm button').forEach(function(x){x.classList.toggle('on',x===b)});
+    var sn=$('.subnote');if(sn)sn.classList.toggle('show',b.textContent==='完全');
+  });
+});
+$$('.wswitch button').forEach(function(b){
+  b.addEventListener('click',function(){
+    $$('.wswitch button').forEach(function(x){x.classList.toggle('on',x===b)});
+    document.documentElement.style.setProperty('--panel-w',b.dataset.w);
+  });
+});
+var IC={
+  check:'<svg viewBox="0 0 12 12"><path d="M1.8 6.4 4.8 9.2 10.2 2.8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"/></svg>',
+  undo:'<svg viewBox="0 0 14 14"><path d="M2.6 5.6h5.1a3.6 3.6 0 1 1-3.5 4.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="square"/><path d="M5 3.3V7.9L1.4 5.6Z" fill="currentColor"/></svg>'
+};
+function settle(card,tone,icon,text){
+  if(!card||card.classList.contains('settled'))return;
+  var o=$('.outcome',card);
+  o.classList.add('tone-'+tone);o.innerHTML=icon+'<span></span>';o.lastChild.textContent=text;
+  card.classList.add('settled');
+}
+var j=$('#judgeT2');
+$$('.vbtn',j).forEach(function(b){b.addEventListener('click',function(){
+  settle(j,b.dataset.act==='pickA'?'yellow':'blue',b.dataset.act==='pickA'?IC.undo:IC.check,
+    b.dataset.act==='pickA'?'已裁决 · A 更好 → 已回滚到改动前':'已裁决 · B 更好 · 保留改动后');
+})});
+$$('.c-ask').forEach(function(row){
+  var card=row.closest('.card'),inA=$('input',row),b=$('.askb',row);
+  function go(){var v=inA.value.trim();if(!v)return;inA.value='';
+    settle(card,'gray',IC.undo,'已收到你的补充 · 卡面选项未采用')}
+  b.addEventListener('click',go);
+  inA.addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.isComposing)go()});
+});
+/* A/B 播放器（12s 演示进度） */
+/* ?scroll=judge → 滚到待判定卡（容器内滚动） */
+if(new URLSearchParams(location.search).get('scroll')==='judge'){
+  setTimeout(function(){
+    var st=$('#stream'),j=$('#judgeT2');
+    if(st&&j)st.scrollTo({top:j.offsetTop-16,behavior:'smooth'});
+  },700);
+}
+var DUR=12000;
+function fmt(ms){var s=Math.floor(ms/1000);return Math.floor(s/60)+':'+('0'+s%60).slice(-2)}
+function heights(seed,n){var o=[],x=seed;for(var i=0;i<n;i++){x=(x*48271)%2147483647;o.push(4+Math.floor(x/2147483647*15))}return o}
+var seeds={a:20177,b:40503};
+$$('.ab').forEach(function(ab){
+  var tapes=[],rows=$$('.tape',ab);
+  function pick(side){
+    $$('.ab-sw button',ab).forEach(function(b){b.classList.toggle('on',b.dataset.side===side)});
+    rows.forEach(function(r){r.classList.toggle('active',r.dataset.side===side)});
+  }
+  rows.forEach(function(el){
+    var t={el:el,off:0,playing:false,raf:0,t0:0};
+    var wave=$('.wave',el),time=$('.tp-time',el);
+    heights(seeds[el.dataset.side]||7,34).forEach(function(h){
+      var b=document.createElement('i');b.style.height=h+'px';wave.appendChild(b);
+    });
+    t.bars=$$('i',wave);
+    t.paint=function(){var p=t.off/DUR;
+      t.bars.forEach(function(b,i){b.classList.toggle('on',p>0&&i/t.bars.length<=p)});
+      time.textContent=fmt(t.off)+' / '+fmt(DUR)};
+    t.pause=function(){if(!t.playing)return;t.playing=false;cancelAnimationFrame(t.raf);el.classList.remove('playing')};
+    t.play=function(){
+      if(t.off>=DUR)t.off=0;
+      tapes.forEach(function(o){if(o!==t)o.pause()});
+      t.playing=true;el.classList.add('playing');
+      t.t0=performance.now()-t.off;
+      (function loop(){t.off=Math.min(DUR,performance.now()-t.t0);t.paint();
+        if(t.off>=DUR){t.pause();return}t.raf=requestAnimationFrame(loop)})();
+    };
+    $('.pbtn',el).addEventListener('click',function(e){e.stopPropagation();pick(el.dataset.side);t.playing?t.pause():t.play()});
+    el.addEventListener('click',function(e){if(e.target.closest('.pbtn'))return;pick(el.dataset.side)});
+    t.paint();tapes.push(t);
+  });
+  $$('.ab-sw button',ab).forEach(function(b){b.addEventListener('click',function(){pick(b.dataset.side)})});
+});
+})();
+</script>
+</body>
+</html>

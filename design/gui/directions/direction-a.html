@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Vit-DAW · Agent 面板 · 方向 A 控制室深色终端</title>
+<style>
+:root{
+  --panel-w:420px;
+  --p0:#14161b; --p1:#1b1e25; --p2:#22262f;
+  --ln:#2e333d; --ln2:#3a404c;
+  --tx:#e7eaef; --tx2:#9aa3b2; --tx3:#6b7484;
+  --blue:#5b8cff; --yellow:#f1bd17; --green:#43b788; --red:#e06055;
+  --mono:Consolas,"SFMono-Regular",Menlo,"Microsoft YaHei",monospace;
+  --sans:"Microsoft YaHei",sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:#8f9399;min-height:100vh;
+  display:flex;align-items:center;justify-content:center;
+  padding:58px 20px 30px;font-family:var(--sans);-webkit-font-smoothing:antialiased;
+}
+button{font-family:var(--sans)}
+button:focus-visible,input:focus-visible{outline:1px solid var(--blue);outline-offset:1px}
+
+/* ---------- 呈现层 chrome（面板外，各方向一致） ---------- */
+.clabel{position:fixed;top:15px;left:18px;font-size:11px;color:#4c5058;letter-spacing:.02em}
+.csw{position:fixed;top:12px;right:16px;display:flex;background:rgba(0,0,0,.16);border-radius:7px;padding:2px}
+.csw button{border:0;background:transparent;color:#3f434b;font-family:var(--mono);font-size:11px;padding:3px 10px;border-radius:5px;cursor:pointer;transition:all .18s}
+.csw button:hover{color:#22252b}
+.csw button.on{background:#14161b;color:#e7eaef}
+
+/* ---------- 面板骨架 ---------- */
+.panel{
+  width:var(--panel-w);max-width:92vw;height:920px;max-height:calc(100vh - 96px);
+  background:var(--p0);border:1px solid #0b0c10;border-radius:14px;
+  box-shadow:0 18px 50px rgba(0,0,0,.42);
+  display:flex;flex-direction:column;overflow:hidden;
+}
+
+/* 头部：细深色状态条 */
+.hdr{display:flex;align-items:center;gap:10px;padding:11px 14px;background:var(--p1);border-bottom:1px solid var(--ln);flex-shrink:0}
+.ht{font-size:14px;font-weight:600;color:var(--tx);letter-spacing:.02em}
+.hsep{width:1px;height:13px;background:var(--ln2)}
+.hp{font-size:12px;color:var(--tx2);min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hspace{flex:1}
+.ledwrap{display:flex;align-items:center;gap:5px;flex-shrink:0}
+.led{width:7px;height:7px;border-radius:50%;background:var(--green);animation:led 2.6s ease-in-out infinite}
+.ledt{font-size:11px;color:var(--tx2)}
+@keyframes led{0%,100%{box-shadow:0 0 3px rgba(67,183,136,.3)}50%{box-shadow:0 0 8px rgba(67,183,136,.8)}}
+
+/* 权限开关：两档胶囊分段 */
+.seg{display:flex;background:var(--p2);border:1px solid var(--ln2);border-radius:999px;padding:2px;flex-shrink:0}
+.seg button{border:0;background:transparent;color:var(--tx2);font-size:12px;padding:3px 12px;border-radius:999px;cursor:pointer;transition:all .18s;white-space:nowrap}
+.seg button.on{background:rgba(91,140,255,.18);color:var(--blue);font-weight:600}
+
+/* 完全档副注 */
+.subnote{max-height:0;overflow:hidden;transition:max-height .22s ease;background:rgba(241,189,23,.07);border-bottom:1px solid transparent;flex-shrink:0}
+.subnote.show{max-height:32px;border-bottom-color:var(--ln)}
+.subnote div{display:flex;align-items:center;gap:7px;padding:6px 14px;font-size:11.5px;color:#dfc25f}
+.subnote .yd{width:5px;height:5px;background:var(--yellow);border-radius:1px;flex-shrink:0}
+
+/* ---------- 对话流容器 ---------- */
+.stream{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding:14px;display:flex;flex-direction:column;gap:11px;scrollbar-width:thin;scrollbar-color:#2e333d transparent}
+.stream::-webkit-scrollbar{width:9px}
+.stream::-webkit-scrollbar-thumb{background:#2e333d;border-radius:5px;border:2px solid var(--p0)}
+
+/* 用户消息 */
+.msg{align-self:flex-end;max-width:86%;background:#232833;border:1px solid var(--ln2);color:var(--tx);font-size:13px;line-height:1.55;padding:8px 12px;border-radius:10px 10px 3px 10px}
+
+/* ---------- 轨迹树（签名结构：左侧导轨线 + 节点挂线） ---------- */
+.turn{position:relative;padding-left:24px;display:flex;flex-direction:column;gap:7px}
+.turn::before{content:"";position:absolute;left:9px;top:8px;bottom:8px;width:2px;background:var(--ln2);border-radius:1px}
+.trow{position:relative;min-width:0;padding:1px 4px;border-radius:6px}
+.trow.hasdt{cursor:pointer}
+.trow.hasdt:hover{background:rgba(231,234,239,.045)}
+.gl{position:absolute;left:-21px;top:3px;width:14px;height:14px;display:flex;align-items:center;justify-content:center;background:var(--p0)}
+.dot-h{width:7px;height:7px;border-radius:50%;border:2px solid var(--tx3);box-sizing:border-box}
+.spin{width:11px;height:11px;border-radius:50%;border:2px solid rgba(91,140,255,.25);border-top-color:var(--blue);animation:rot .8s linear infinite}
+@keyframes rot{to{transform:rotate(360deg)}}
+
+.l1{display:flex;align-items:baseline;gap:8px;min-width:0;line-height:1.35}
+.act{font-family:var(--mono);font-size:12.5px;color:#c8d0dc;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.act-zh{font-size:12px;color:var(--tx2);white-space:nowrap;flex-shrink:0}
+.dur{margin-left:auto;font-family:var(--mono);font-size:11.5px;color:var(--tx3);flex-shrink:0}
+.dur.live{color:var(--blue)}
+.chev{width:0;height:0;border-left:4px solid transparent;border-right:4px solid transparent;border-top:5px solid var(--tx3);flex-shrink:0;align-self:center;transition:transform .18s;margin-left:2px}
+.trow.open .chev{transform:rotate(180deg)}
+.l2{font-size:13px;color:var(--tx2);line-height:1.5;margin-top:1px}
+.dt{display:none;margin-top:3px;font-size:12px;color:var(--tx3);line-height:1.55}
+.trow.open .dt{display:block;animation:fade .18s ease}
+
+/* 思考行：呼吸 + 块状光标 */
+.th-txt{font-size:12.5px;color:var(--tx3);display:flex;align-items:center;animation:breathe 2.6s ease-in-out infinite;min-width:0}
+#thinkTxt{transition:opacity .16s ease;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cur{display:inline-block;width:7px;height:13px;background:var(--tx3);margin-left:5px;flex-shrink:0;animation:blink 1.05s steps(2,start) infinite}
+@keyframes breathe{0%,100%{opacity:.5}50%{opacity:1}}
+@keyframes blink{50%{opacity:0}}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+
+/* ---------- 卡片家族（确认卡与判定卡同构） ---------- */
+.card{position:relative;background:var(--p1);border:1px solid var(--ln2);border-radius:10px;overflow:hidden;transition:opacity .25s ease;min-width:0}
+.card.settled{opacity:.78}
+.tb{display:flex;height:4px;flex-shrink:0}
+.tb-a{width:52px;background:transparent}
+.card.judge .tb-a{background:var(--yellow)}
+.tb-s{flex:1;background:var(--blue);transition:background .25s}
+.card.settled .tb-s{background:#4a5160}
+.cbody{padding:10px 12px 12px}
+.chead{display:flex;align-items:center;gap:8px;margin-bottom:9px;min-width:0}
+.chip{font-size:11px;padding:2px 8px;border-radius:999px;border:1px solid var(--ln2);color:var(--tx2);background:var(--p2);flex-shrink:0;white-space:nowrap;transition:all .2s}
+.chip.pend{color:var(--blue);border-color:rgba(91,140,255,.45);background:rgba(91,140,255,.1)}
+.chip.ok{color:var(--green);border-color:rgba(67,183,136,.45);background:rgba(67,183,136,.1)}
+.chip.no{color:var(--red);border-color:rgba(224,96,85,.45);background:rgba(224,96,85,.1)}
+.chip.done{color:var(--tx2);border-color:var(--ln2);background:var(--p2)}
+.ctitle{font-size:13.5px;font-weight:600;color:var(--tx);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cright{margin-left:auto;display:flex;gap:6px;align-items:center;flex-shrink:0}
+.badge{font-family:var(--mono);font-size:11px;color:var(--tx2);border:1px solid var(--ln2);background:var(--p2);padding:2px 8px;border-radius:6px;white-space:nowrap}
+
+/* 沉淀态裁决徽标行 */
+.note{display:none;margin:0 0 9px;padding:6px 9px;border-radius:7px;font-size:12.5px;line-height:1.5}
+.card.settled .note,.note.show{display:block;animation:fade .22s ease}
+.note.blue{background:rgba(91,140,255,.1);color:#9db8ff}
+.note.green{background:rgba(67,183,136,.12);color:#7fd4b3}
+.note.red{background:rgba(224,96,85,.12);color:#ef9a92}
+.note.yellow{background:rgba(241,189,23,.12);color:#ecc95e}
+
+/* 改动/假设/预期 槽位 */
+.kv{display:grid;grid-template-columns:40px 1fr;gap:5px 10px;margin:8px 0 10px}
+.kv b{font-size:12px;color:var(--tx3);font-weight:400;padding-top:1px}
+.kv span{font-size:13px;color:var(--tx);line-height:1.55;min-width:0}
+
+/* 批准 / 拒绝 */
+.arow{display:flex;gap:8px}
+.arow button{flex:1;height:34px;border-radius:8px;font-size:13px;display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;transition:all .18s;min-width:0}
+.btnA{border:1px solid var(--blue);background:var(--blue);color:#0f1320;font-weight:600}
+.btnA:hover{background:#7aa2ff;border-color:#7aa2ff}
+.btnR{border:1px solid rgba(224,96,85,.55);background:transparent;color:var(--red)}
+.btnR:hover{background:rgba(224,96,85,.12)}
+.btnR.chosen{background:rgba(224,96,85,.16)}
+.card.settled .arow button{pointer-events:none;opacity:.3}
+.card.settled .arow button.chosen{opacity:1}
+
+/* 判定卡：回滚锚条带（黄底，卡头显眼位） */
+.rb{display:flex;align-items:center;gap:8px;background:rgba(241,189,23,.15);border:1px solid rgba(241,189,23,.38);color:#f3cd54;border-radius:7px;padding:6px 10px;font-size:13px;font-weight:600;margin-bottom:9px}
+.sum{display:flex;gap:8px;align-items:baseline;margin-bottom:9px;min-width:0}
+.sum b{font-size:12px;color:var(--tx3);font-weight:400;flex-shrink:0}
+.sum span{font-family:var(--mono);font-size:12.5px;color:#c8d0dc;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* A/B 双播放器（深色模块行） */
+.pl{display:flex;align-items:center;gap:9px;background:var(--p2);border:1px solid var(--ln);border-radius:8px;padding:7px 9px;margin-bottom:7px;min-width:0}
+.tag{width:16px;height:16px;border-radius:4px;border:1px solid var(--ln2);color:var(--tx2);font-family:var(--mono);font-size:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .18s}
+.pl.on .tag{border-color:var(--blue);color:var(--blue)}
+.pbtn{width:34px;height:34px;border-radius:50%;background:var(--p1);border:1px solid var(--ln2);color:var(--tx);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:all .18s;padding:0}
+.pbtn:hover{border-color:var(--blue);color:var(--blue)}
+.pbtn.playing{border-color:var(--blue);color:var(--blue)}
+.pbtn .ic-pause{display:none}
+.pbtn.playing .ic-play{display:none}
+.pbtn.playing .ic-pause{display:block}
+.pcol{flex:1;min-width:0}
+.plab{font-size:11.5px;color:var(--tx2);margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wave{display:flex;align-items:flex-end;gap:2px;height:24px;min-width:0}
+.wave i{flex:1 1 0;max-width:4px;min-width:1.5px;background:#333947;border-radius:1px;transition:background .15s}
+.wave i.on{background:var(--blue)}
+.ptime{font-family:var(--mono);font-size:11px;color:var(--tx3);flex-shrink:0;white-space:nowrap}
+.ptime b{color:var(--tx2);font-weight:400}
+
+/* A/B 快速对比分段键 */
+.abrow{display:flex;align-items:center;gap:8px;margin:1px 0 10px}
+.abrow .lab{font-size:11px;color:var(--tx3)}
+.abseg{display:flex;background:var(--p2);border:1px solid var(--ln);border-radius:7px;padding:2px;margin-left:auto}
+.abseg button{border:0;background:transparent;color:var(--tx2);font-family:var(--mono);font-size:11px;padding:2px 13px;border-radius:5px;cursor:pointer;transition:all .18s}
+.abseg button.on{background:rgba(91,140,255,.18);color:var(--blue)}
+
+/* 四裁决按钮 2×2 网格 */
+.vgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.vbtn{display:flex;align-items:center;justify-content:center;gap:7px;height:34px;border-radius:8px;border:1px solid var(--ln2);background:var(--p2);color:var(--tx);font-size:12.5px;cursor:pointer;white-space:nowrap;transition:all .18s;min-width:0;padding:0 4px}
+.vbtn i{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.vbtn.vg i{background:var(--green)}   .vbtn.vg:hover,.vbtn.vg.chosen{border-color:rgba(67,183,136,.6)}
+.vbtn.vr i{background:var(--red)}     .vbtn.vr:hover,.vbtn.vr.chosen{border-color:rgba(224,96,85,.6)}
+.vbtn.vb i{background:var(--blue)}    .vbtn.vb:hover,.vbtn.vb.chosen{border-color:rgba(91,140,255,.6)}
+.vbtn.vy i{background:var(--yellow)}  .vbtn.vy:hover,.vbtn.vy.chosen{border-color:rgba(241,189,23,.6)}
+.vbtn.vg.chosen{background:rgba(67,183,136,.14)}
+.vbtn.vr.chosen{background:rgba(224,96,85,.14)}
+.vbtn.vb.chosen{background:rgba(91,140,255,.14)}
+.vbtn.vy.chosen{background:rgba(241,189,23,.14)}
+.card.settled .vbtn{pointer-events:none;opacity:.3}
+.card.settled .vbtn.chosen{opacity:1}
+
+/* ---------- 底部命令行式输入 ---------- */
+.cmd{display:flex;align-items:center;gap:9px;padding:10px 12px;background:var(--p1);border-top:1px solid var(--ln);flex-shrink:0}
+.pr{font-family:var(--mono);font-size:14px;color:var(--blue);font-weight:700;flex-shrink:0}
+.cmd input{flex:1;min-width:0;background:transparent;border:0;outline:0;color:var(--tx);font-family:var(--mono);font-size:13px}
+.cmd input::placeholder{color:var(--tx3)}
+.send{width:34px;height:34px;flex-shrink:0;border-radius:8px;border:0;background:var(--blue);color:#0f1320;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .18s;padding:0}
+.send:hover{background:#7aa2ff}
+.send:active{transform:scale(.94)}
+
+/* 载入错落浮现 */
+.rev{opacity:0;animation:rise .26s ease forwards}
+@keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+
+<div class="clabel">Vit-DAW · Agent 面板 · 420px 基准</div>
+<div class="csw" id="csw">
+  <button type="button" data-w="360">360</button>
+  <button type="button" data-w="420" class="on">420</button>
+  <button type="button" data-w="540">540</button>
+  <button type="button" data-w="720">720</button>
+</div>
+
+<div class="panel" id="panel">
+
+  <header class="hdr">
+    <span class="ht">混音助手</span>
+    <span class="hsep"></span>
+    <span class="hp">夜航西飞 · demo</span>
+    <span class="hspace"></span>
+    <span class="ledwrap"><span class="led"></span><span class="ledt">已连接</span></span>
+    <div class="seg">
+      <button type="button" id="segN" class="on">普通</button>
+      <button type="button" id="segF">完全</button>
+    </div>
+  </header>
+
+  <div class="subnote" id="subnote"><div><span class="yd"></span>连续执行试验步 · 每步仍可回滚</div></div>
+
+  <main class="stream" id="stream">
+
+    <div class="msg r">副歌的人声总是糊在鼓里，帮我听听是怎么回事。</div>
+
+    <!-- T1 agent 回合：左侧垂直轨迹树 -->
+    <section class="turn">
+
+      <div class="trow hasdt r">
+        <span class="gl"><svg width="11" height="11" viewBox="0 0 12 12" aria-hidden="true"><path d="M2 6.6 4.7 9.3 10 3.4" fill="none" stroke="#43b788" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        <div class="l1"><span class="act">ccb.observation_catalog</span><span class="act-zh">目录发现</span><span class="dur">0.3s</span><span class="chev"></span></div>
+        <div class="l2">打开观察目录，18 个视图可用</div>
+        <div class="dt">细节 · 优先级队列 dynamics / stereo_space 两维度尚未覆盖</div>
+      </div>
+
+      <div class="trow hasdt r">
+        <span class="gl"><svg width="11" height="11" viewBox="0 0 12 12" aria-hidden="true"><path d="M2 6.6 4.7 9.3 10 3.4" fill="none" stroke="#43b788" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        <div class="l1"><span class="act">mix.masking_relationship</span><span class="act-zh">掩蔽关系</span><span class="dur">1.8s</span><span class="chev"></span></div>
+        <div class="l2">主唱 2–4kHz 与镲片能量重叠</div>
+        <div class="dt">细节 · 副歌段 masking score 0.71（阈值 0.60），频段 2.1–3.9kHz</div>
+      </div>
+
+      <div class="trow hasdt r">
+        <span class="gl"><svg width="11" height="11" viewBox="0 0 12 12" aria-hidden="true"><path d="M2 6.6 4.7 9.3 10 3.4" fill="none" stroke="#43b788" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        <div class="l1"><span class="act">track.vocals</span><span class="act-zh">频段动态</span><span class="dur">2.4s</span><span class="chev"></span></div>
+        <div class="l2">副歌段 200–400Hz 堆积 +3.2dB</div>
+        <div class="dt">细节 · band_profile 真值 62.8dB @315Hz，Q 区间能量持续偏高</div>
+      </div>
+
+      <div class="trow hasdt r">
+        <span class="gl"><svg width="11" height="11" viewBox="0 0 12 12" aria-hidden="true"><path d="M2 6.6 4.7 9.3 10 3.4" fill="none" stroke="#43b788" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        <div class="l1"><span class="act">mix.static_level_relationship</span><span class="act-zh">电平关系</span><span class="dur">1.1s</span><span class="chev"></span></div>
+        <div class="l2">主唱相对底鼓电平正常，排除电平问题</div>
+        <div class="dt">细节 · Δ −0.4dB，在正常区间内</div>
+      </div>
+
+      <!-- T1 确认卡（已批准沉淀） -->
+      <article class="card settled r" id="c1">
+        <div class="tb"><span class="tb-s"></span></div>
+        <div class="cbody">
+          <div class="chead">
+            <span class="chip">确认</span>
+            <span class="ctitle">第 1 轮试验步</span>
+            <span class="cright"><span class="chip ok" id="c1Chip">已批准 · 14:32</span></span>
+          </div>
+          <div class="kv">
+            <b>改动</b><span>对 主唱 vocals 做 static_eq：315Hz −5dB（Q 1.8）</span>
+            <b>假设</b><span>低频堆积让主唱失去轮廓，并与底鼓形成掩蔽</span>
+            <b>预期</b><span>副歌主唱更清晰，不牺牲厚度</span>
+          </div>
+          <div class="arow">
+            <button type="button" class="btnA chosen"><svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M2 6.6 4.7 9.3 10 3.4" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>批准</button>
+            <button type="button" class="btnR"><svg width="11" height="11" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 3l6 6M9 3l-6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>拒绝</button>
+          </div>
+        </div>
+      </article>
+
+      <div class="trow hasdt r">
+        <span class="gl"><svg width="11" height="11" viewBox="0 0 12 12" aria-hidden="true"><path d="M2 6.6 4.7 9.3 10 3.4" fill="none" stroke="#43b788" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        <div class="l1"><span class="act">apply static_eq</span><span class="dur">0.6s</span><span class="chev"></span></div>
+        <div class="l2">已应用并回读校验（−5.0dB 确认）</div>
+        <div class="dt">细节 · 单一 mutation，revision +1</div>
+      </div>
+
+      <div class="trow hasdt r">
+        <span class="gl"><svg width="11" height="11" viewBox="0 0 12 12" aria-hidden="true"><path d="M2 6.6 4.7 9.3 10 3.4" fill="none" stroke="#43b788" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        <div class="l1"><span class="act">render A/B</span><span class="dur">3.2s</span><span class="chev"></span></div>
+        <div class="l2">12s 对照片段渲染完成</div>
+        <div class="dt">细节 · 同源同窗同路由，bypass/processed 对照</div>
+      </div>
+
+      <!-- T1 判定卡（已裁决沉淀） -->
+      <article class="card judge settled r" id="j1">
+        <div class="tb"><span class="tb-a"></span><span class="tb-s"></span></div>
+        <div class="cbody">
+          <div class="chead">
+            <span class="chip">判定</span>
+            <span class="ctitle">A/B 试听</span>
+            <span class="cright"><span class="badge">第 1/3 轮</span><span class="chip done">已裁决</span></span>
+          </div>
+          <div class="note blue">听不出 · 下一轮加码 → 已按此进入第 2 轮</div>
+          <div class="rb"><svg width="13" height="13" viewBox="0 0 14 14" aria-hidden="true"><path d="M11.9 7.3A5 5 0 1 1 9.2 2.9" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M8.6 0.7l0.8 2.4 2.4-0.8" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>这是试验步，可一键回滚</div>
+          <div class="sum"><b>摘要</b><span>static_eq 315Hz −5dB（Q 1.8）</span></div>
+          <div class="pl">
+            <button class="pbtn" type="button" aria-label="播放 A">
+              <svg class="ic-play" width="13" height="13" viewBox="0 0 14 14" aria-hidden="true"><path d="M4.2 2.6v8.8L11.4 7z" fill="currentColor"/></svg>
+              <svg class="ic-pause" width="13" height="13" viewBox="0 0 14 14" aria-hidden="true"><path d="M4 2.8h2.3v8.4H4zM7.7 2.8h2.3v8.4H7.7z" fill="currentColor"/></svg>
+            </button>
+            <span class="tag">A</span>
+            <div class="pcol">
+              <div class="plab">改动前 · original</div>
+              <div class="wave"></div>
+            </div>
+            <span class="ptime"><b>0:00</b> / 0:12</span>
+          </div>
+          <div class="pl">
+            <button class="pbtn" type="button" aria-label="播放 B">
+              <svg class="ic-play" width="13" height="13" viewBox="0 0 14 14" aria-hidden="true"><path d="M4.2 2.6v8.8L11.4 7z" fill="currentColor"/></svg>
+              <svg class="ic-pause" width="13" height="13" viewBox="0 0 14 14" aria-hidden="true"><path d="M4 2.8h2.3v8.4H4zM7.7 2.8h2.3v8.4H7.7z" fill="currentColor"/></svg>
+            </button>
+            <span class="tag">B</span>
+            <div class="pcol">
+              <div class="plab">改动后 · processed</div>
+              <div class="wave"></div>
+            </div>
+            <span class="ptime"><b>0:00</b> / 0:12</span>
+          </div>
+          <div class="abrow">
+            <span class="lab">快速对比</span>
+            <div class="abseg"><button type="button" data-ab="A">A</button><button type="button" data-ab="B">B</button></div>
+          </div>
+          <div class="vgrid">
+            <button type="button" class="vbtn vg"><i></i>听得出·保留</button>
+            <button type="button" class="vbtn vr"><i></i>听得出·更糟·回滚</button>
+            <button type="button" class="vbtn vb chosen"><i></i>听不出·下一轮加码</button>
+            <button type="button" class="vbtn vy"><i></i>太过了·回退一半</button>
+          </div>
+        </div>
+      </article>
+
+    </section>
+
+    <div class="msg r">好，这轮动静大一点，我想明确听出差别。</div>
+
+    <!-- T2 agent 回合（live） -->
+    <section class="turn">
+
+      <div class="trow think r">
+        <span class="gl"><span class="dot-h"></span></span>
+        <div class="th-txt"><span id="thinkTxt">正在复核掩蔽关系…</span><span class="cur"></span></div>
+      </div>
+
+      <div class="trow hasdt r">
+        <span class="gl"><svg width="11" height="11" viewBox="0 0 12 12" aria-hidden="true"><path d="M2 6.6 4.7 9.3 10 3.4" fill="none" stroke="#43b788" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        <div class="l1"><span class="act">复核 band_profile</span><span class="dur">1.2s</span><span class="chev"></span></div>
+        <div class="l2">62.8dB @315Hz，与首轮观察一致</div>
+        <div class="dt">细节 · 剂量界内余量 −3.5dB</div>
+      </div>
+
+      <div class="trow hasdt r">
+        <span class="gl"><svg width="11" height="11" viewBox="0 0 12 12" aria-hidden="true"><path d="M2 6.6 4.7 9.3 10 3.4" fill="none" stroke="#43b788" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        <div class="l1"><span class="act">规划加码剂量</span><span class="dur">0.4s</span><span class="chev"></span></div>
+        <div class="l2">315Hz −5dB → −8dB，仍在一键回滚界内</div>
+        <div class="dt">细节 · 建议保留 Q 1.8 不变，单参数单步</div>
+      </div>
+
+      <div class="trow r">
+        <span class="gl"><span class="spin"></span></span>
+        <div class="l1"><span class="act">render A/B（第 2 轮）</span><span class="dur live">进行中</span></div>
+        <div class="l2">渲染新对照片段…</div>
+      </div>
+
+      <!-- T2 确认卡（待裁） -->
+      <article class="card r" id="c2">
+        <div class="tb"><span class="tb-s"></span></div>
+        <div class="cbody">
+          <div class="chead">
+            <span class="chip">确认</span>
+            <span class="ctitle">第 2 轮加码</span>
+            <span class="cright"><span class="chip pend" id="c2Chip">待裁</span></span>
+          </div>
+          <div class="kv">
+            <b>改动</b><span>对 主唱 vocals 做 static_eq：315Hz −8dB（Q 1.8）</span>
+            <b>假设</b><span>−5dB 未过可听阈值，加码至 −8dB 让差异可感知</span>
+            <b>预期</b><span>这轮 A/B 差异应可明确听出；过猛可一键回退一半</span>
+          </div>
+          <div class="arow">
+            <button type="button" class="btnA" id="btnYes"><svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M2 6.6 4.7 9.3 10 3.4" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>批准</button>
+            <button type="button" class="btnR" id="btnNo"><svg width="11" height="11" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 3l6 6M9 3l-6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>拒绝</button>
+          </div>
+        </div>
+      </article>
+
+      <!-- T2 判定卡（待判定 · 本稿主角） -->
+      <article class="card judge r" id="j2">
+        <div class="tb"><span class="tb-a"></span><span class="tb-s"></span></div>
+        <div class="cbody">
+          <div class="chead">
+            <span class="chip">判定</span>
+            <span class="ctitle">A/B 试听</span>
+            <span class="cright"><span class="badge">第 2/3 轮</span><span class="chip pend" id="j2Chip">待判定</span></span>
+          </div>
+          <div class="note" id="j2Note"></div>
+          <div class="rb"><svg width="13" height="13" viewBox="0 0 14 14" aria-hidden="true"><path d="M11.9 7.3A5 5 0 1 1 9.2 2.9" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M8.6 0.7l0.8 2.4 2.4-0.8" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>这是试验步，可一键回滚</div>
+          <div class="sum"><b>摘要</b><span>static_eq 315Hz −8dB（Q 1.8）</span></div>
+          <div class="pl">
+            <button class="pbtn" type="button" aria-label="播放 A">
+              <svg class="ic-play" width="13" height="13" viewBox="0 0 14 14" aria-hidden="true"><path d="M4.2 2.6v8.8L11.4 7z" fill="currentColor"/></svg>
+              <svg class="ic-pause" width="13" height="13" viewBox="0 0 14 14" aria-hidden="true"><path d="M4 2.8h2.3v8.4H4zM7.7 2.8h2.3v8.4H7.7z" fill="currentColor"/></svg>
+            </button>
+            <span class="tag">A</span>
+            <div class="pcol">
+              <div class="plab">改动前 · original</div>
+              <div class="wave"></div>
+            </div>
+            <span class="ptime"><b>0:00</b> / 0:12</span>
+          </div>
+          <div class="pl">
+            <button class="pbtn" type="button" aria-label="播放 B">
+              <svg class="ic-play" width="13" height="13" viewBox="0 0 14 14" aria-hidden="true"><path d="M4.2 2.6v8.8L11.4 7z" fill="currentColor"/></svg>
+              <svg class="ic-pause" width="13" height="13" viewBox="0 0 14 14" aria-hidden="true"><path d="M4 2.8h2.3v8.4H4zM7.7 2.8h2.3v8.4H7.7z" fill="currentColor"/></svg>
+            </button>
+            <span class="tag">B</span>
+            <div class="pcol">
+              <div class="plab">改动后 · processed</div>
+              <div class="wave"></div>
+            </div>
+            <span class="ptime"><b>0:00</b> / 0:12</span>
+          </div>
+          <div class="abrow">
+            <span class="lab">快速对比</span>
+            <div class="abseg"><button type="button" data-ab="A">A</button><button type="button" data-ab="B">B</button></div>
+          </div>
+          <div class="vgrid">
+            <button type="button" class="vbtn vg" data-v="keep"><i></i>听得出·保留</button>
+            <button type="button" class="vbtn vr" data-v="worse"><i></i>听得出·更糟·回滚</button>
+            <button type="button" class="vbtn vb" data-v="next"><i></i>听不出·下一轮加码</button>
+            <button type="button" class="vbtn vy" data-v="half"><i></i>太过了·回退一半</button>
+          </div>
+        </div>
+      </article>
+
+    </section>
+  </main>
+
+  <footer class="cmd">
+    <span class="pr">›</span>
+    <input id="cmdIn" type="text" placeholder="描述你想要的混音…" autocomplete="off">
+    <button class="send" id="sendBtn" type="button" aria-label="发送">
+      <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M2.2 7h9M8.2 3.4L11.8 7l-3.6 3.6" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+  </footer>
+</div>
+
+<script>
+(function(){
+'use strict';
+var d=document;
+function $(s,c){return (c||d).querySelector(s)}
+function $$(s,c){return [].slice.call((c||d).querySelectorAll(s))}
+
+/* ---- 1. 载入错落浮现 ---- */
+$$('.r').forEach(function(el,i){
+  el.classList.add('rev');
+  el.style.animationDelay=(60+i*65)+'ms';
+});
+
+/* ---- 2. 宽度切换器 360/420/540/720 ---- */
+$$('.csw button').forEach(function(b){
+  b.addEventListener('click',function(){
+    d.documentElement.style.setProperty('--panel-w',b.getAttribute('data-w')+'px');
+    $$('.csw button').forEach(function(x){x.classList[x===b?'add':'remove']('on')});
+  });
+});
+
+/* ---- 3. 权限开关 普通/完全 + 副注 ---- */
+var segN=$('#segN'),segF=$('#segF'),sub=$('#subnote');
+function setPerm(full){
+  segN.classList[full?'remove':'add']('on');
+  segF.classList[full?'add':'remove']('on');
+  sub.classList[full?'add':'remove']('show');
+}
+segN.addEventListener('click',function(){setPerm(false)});
+segF.addEventListener('click',function(){setPerm(true)});
+
+/* ---- 4. 轨迹行点击展开细节 ---- */
+$$('.trow.hasdt').forEach(function(r){
+  r.addEventListener('click',function(){r.classList.toggle('open')});
+});
+
+/* ---- 5. 思考行文案轮换（~2.8s）---- */
+var TH=['正在复核掩蔽关系…','正在规划第 2 轮剂量…','正在校验回滚边界…'];
+var ti=0,tEl=$('#thinkTxt');
+if(tEl){
+  setInterval(function(){
+    ti=(ti+1)%TH.length;
+    tEl.style.opacity='0';
+    setTimeout(function(){tEl.textContent=TH[ti];tEl.style.opacity='1'},170);
+  },2800);
+}
+
+/* ---- 6. A/B 播放器：12s 进度动画 + 波形着色 ---- */
+var DUR=12;
+function makeHeights(seed){
+  var a=[],i;
+  for(i=0;i<30;i++){var v=Math.abs(Math.sin(i*seed)*43758.55)%1;a.push(6+v*18)}
+  return a;
+}
+var ha=makeHeights(3.71);
+var hb=ha.map(function(v){return 7+(v-7)*0.72}); /* processed：动态收束 */
+var players=$$('.pl').map(function(el,idx){
+  var arr=(idx%2===0)?ha:hb;
+  var wave=$('.wave',el),bars=[];
+  arr.forEach(function(h){
+    var i=d.createElement('i');
+    i.style.height=h.toFixed(1)+'px';
+    wave.appendChild(i);bars.push(i);
+  });
+  return {el:el,btn:$('.pbtn',el),cur:$('.ptime b',el),bars:bars,playing:false,t:0};
+});
+function setIcon(p){
+  p.btn.classList[p.playing?'add':'remove']('playing');
+  p.el.classList[p.playing?'add':'remove']('on');
+}
+function paint(p){
+  var n=Math.round(p.t/DUR*p.bars.length);
+  p.bars.forEach(function(b,i){b.classList[i<n?'add':'remove']('on')});
+  var s=Math.floor(p.t);
+  p.cur.textContent='0:'+(s<10?'0':'')+s;
+}
+function pause(p){p.playing=false;setIcon(p)}
+players.forEach(function(p){
+  p.btn.addEventListener('click',function(){
+    if(p.playing){pause(p);return}
+    if(p.t>=DUR){p.t=0;paint(p)}
+    p.playing=true;setIcon(p);
+  });
+});
+var last=0;
+function loop(ts){
+  var dt=last?(ts-last)/1000:0;last=ts;
+  players.forEach(function(p){
+    if(!p.playing)return;
+    p.t+=dt;
+    if(p.t>=DUR){p.t=DUR;pause(p)}
+    paint(p);
+  });
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+
+/* ---- 7. A/B 快速对比切换 ---- */
+$$('.abseg').forEach(function(seg){
+  var btns=$$('button',seg);
+  btns.forEach(function(b){
+    b.addEventListener('click',function(){
+      btns.forEach(function(x){x.classList[x===b?'add':'remove']('on')});
+      var card=seg.closest('.card');
+      var target=(b.getAttribute('data-ab')==='A')?$('.pl',card):$$('.pl',card)[1];
+      players.forEach(function(p){
+        if(p.el===target)return;
+        if(card.contains(p.el))pause(p); /* 同卡内互斥 */
+      });
+      players.forEach(function(p){
+        if(p.el!==target)return;
+        p.t=0;paint(p);p.playing=true;setIcon(p);
+      });
+    });
+  });
+});
+
+/* ---- 8. 确认卡：批准 / 拒绝 → 沉淀态 ---- */
+function nowHM(){
+  var n=new Date();
+  return ('0'+n.getHours()).slice(-2)+':'+('0'+n.getMinutes()).slice(-2);
+}
+function settleC2(ok){
+  var chip=$('#c2Chip');
+  chip.textContent=(ok?'已批准 · ':'已拒绝 · ')+nowHM();
+  chip.className='chip '+(ok?'ok':'no');
+  $('#c2').classList.add('settled');
+}
+$('#btnYes').addEventListener('click',function(){$('#btnYes').classList.add('chosen');settleC2(true)});
+$('#btnNo').addEventListener('click',function(){$('#btnNo').classList.add('chosen');settleC2(false)});
+
+/* ---- 9. 判定卡：四裁决 → 沉淀态 ---- */
+var VMAP={
+  keep:{t:'听得出 · 保留 → 已保留该效果',c:'green'},
+  worse:{t:'听得出 · 更糟 · 回滚 → 已回滚至改动前',c:'red'},
+  next:{t:'听不出 · 下一轮加码 → 已按此进入第 3 轮',c:'blue'},
+  half:{t:'太过了 · 回退一半 → 已回退至 315Hz −4dB',c:'yellow'}
+};
+$('#j2 .vgrid').addEventListener('click',function(e){
+  var card=$('#j2');
+  if(card.classList.contains('settled'))return;
+  var b=e.target.closest('.vbtn');
+  if(!b||!b.getAttribute('data-v'))return;
+  var v=VMAP[b.getAttribute('data-v')];
+  var note=$('#j2Note');
+  note.textContent=v.t;
+  note.className='note show '+v.c;
+  var chip=$('#j2Chip');
+  chip.textContent='已裁决';
+  chip.className='chip done';
+  b.classList.add('chosen');
+  card.classList.add('settled');
+});
+
+/* ---- 10. URL ?scroll=judge 自动滚到 T2 判定卡 ---- */
+if(new URLSearchParams(location.search).get('scroll')==='judge'){
+  requestAnimationFrame(function(){
+    var st=$('#stream'),j=$('#j2');
+    var top=j.getBoundingClientRect().top-st.getBoundingClientRect().top+st.scrollTop-8;
+    st.scrollTo({top:top,behavior:'smooth'});
+  });
+}
+})();
+</script>
+</body>
+</html>

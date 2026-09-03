@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>模板 04 · 组件级拆解 — Vit-DAW Agent GUI</title>
+<link rel="stylesheet" href="./assets/traceui.css">
+<style>
+/* 组件页专用补充：静态样例容器 */
+.demo{background:var(--paper);border:1px dashed var(--line);padding:14px 12px 8px}
+.demo .card{margin:14px 0 6px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+</style>
+</head>
+<body>
+
+<div class="chrome-note">模板 04 · 组件级拆解：tokens / 框体契约 / 卡片族全状态 / 轨迹块全态 / 播放器 / 徽标 / 开关</div>
+
+<main class="spec">
+
+  <!-- ================= tokens ================= -->
+  <section>
+    <h2>1 · 色板与 token</h2>
+    <p class="note">纸面 #f4f4f1 为底；墨 #111（2px 边框/正文）；蓝 #1557d6（用户/能动性/进行中）；黄 #ffd42a（信任锚/回滚）；红 #e63426（错误/拒绝）。硬投影 7px 7px 0。字号：正文 13px / 摘要 12.5px / 辅 11.5px / mono 动作名 12.5px。</p>
+    <div class="swatches">
+      <div class="sw"><i style="background:#f4f4f1"></i><span>paper</span></div>
+      <div class="sw"><i style="background:#ffffff"></i><span>card</span></div>
+      <div class="sw"><i style="background:#111111"></i><span>ink</span></div>
+      <div class="sw"><i style="background:#1557d6"></i><span>blue</span></div>
+      <div class="sw"><i style="background:#dbe6fc"></i><span>blue-inp</span></div>
+      <div class="sw"><i style="background:#e8efff"></i><span>blue-soft</span></div>
+      <div class="sw"><i style="background:#ffd42a"></i><span>yellow</span></div>
+      <div class="sw"><i style="background:#fff8cf"></i><span>yellow-soft</span></div>
+      <div class="sw"><i style="background:#e63426"></i><span>red</span></div>
+      <div class="sw"><i style="background:#c9c9c3"></i><span>line</span></div>
+      <div class="sw"><i style="background:#62625d"></i><span>sub</span></div>
+      <div class="sw"><i style="background:#e4e8ee"></i><span>gray(settled)</span></div>
+    </div>
+  </section>
+
+  <!-- ================= 框体契约 ================= -->
+  <section>
+    <h2>2 · 框体颜色契约（三层视觉语言）</h2>
+    <p class="note">输入=蓝底框（--blue-inp + 2px 墨边，右对齐）· 输出=白底框（卡片族，2px 墨边+硬投影+页签）· 轨迹=无框（融于纸面，节点行式）。有边框=有分量的确定 I/O；无边框=过程性轨迹。</p>
+    <div class="spec-grid">
+      <div class="spec-box"><h3>输入 · 蓝底框</h3><span class="tag">.msg → webui message-row.user .message-body</span>
+        <div class="demo" style="display:flex;justify-content:flex-end"><div class="msg" style="animation:none;opacity:1">副歌的人声总是糊在鼓里，帮我听听。</div></div>
+      </div>
+      <div class="spec-box"><h3>输出 · 白底框（页签卡）</h3><span class="tag">.card → capability-proposal-card / audition session 重皮</span>
+        <div class="demo"><section class="card" style="animation:none"><div class="tab">确认 · 第 1 轮试验步</div>
+          <div class="c-row"><span class="k">改动</span><span class="v">对 主唱 vocals 做 static_eq：315Hz −5dB（Q 1.8）</span></div>
+        </section></div>
+      </div>
+      <div class="spec-box"><h3>轨迹 · 无框</h3><span class="tag">.trace-block → 新组件 TraceBlock</span>
+        <div class="demo"><div class="trace-block" style="animation:none"><div class="trace-inner">
+          <div class="step plain"><span class="node"></span><div class="s-row"><span class="act">mix.masking_relationship</span><span class="dur">1.8s</span></div><div class="s-sum">主唱 2–4kHz 与镲片能量重叠</div></div>
+        </div></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 卡片族全状态 ================= -->
+  <section>
+    <h2>3 · 卡片族（同构兄弟：确认卡 / 判定卡）</h2>
+    <div class="spec-grid">
+      <div class="spec-box"><h3>① 确认卡 · 待裁</h3><span class="tag">批准/拒绝 + 补充输入（免选）</span>
+        <div class="demo"><section class="card">
+          <div class="tab">确认 · 第 2 轮加码</div>
+          <div class="c-head"><span class="chip">待裁</span></div>
+          <div class="c-row"><span class="k">改动</span><span class="v">对 主唱 vocals 做 static_eq：315Hz −8dB（Q 1.8）</span></div>
+          <div class="c-row"><span class="k">假设</span><span class="v">−5dB 未过可听阈值，加码至 −8dB 让差异可感知</span></div>
+          <div class="c-row"><span class="k">预期</span><span class="v">这轮 A/B 差异应可明确听出</span></div>
+          <div class="c-actions">
+            <button type="button" class="btn approve"><svg viewBox="0 0 12 12"><path d="M1.8 6.4 4.8 9.2 10.2 2.8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"/></svg>批准</button>
+            <button type="button" class="btn reject"><svg viewBox="0 0 12 12"><path d="M2.5 2.5 9.5 9.5M9.5 2.5 2.5 9.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"/></svg>拒绝</button>
+          </div>
+          <div class="c-ask"><input type="text" placeholder="不用选项？直接补充你的要求…"><button type="button" class="askb"><svg viewBox="0 0 12 12"><path d="M1.5 1 11 6 1.5 11Z" fill="currentColor"/></svg></button></div>
+        </section></div>
+      </div>
+      <div class="spec-box"><h3>① 确认卡 · 已批准沉淀</h3><span class="tag">settled：灰页签+灰投影，按钮/输入隐藏，结果条浮现</span>
+        <div class="demo"><section class="card settled">
+          <div class="tab">确认 · 第 1 轮试验步</div>
+          <div class="c-row"><span class="k">改动</span><span class="v">对 主唱 vocals 做 static_eq：315Hz −5dB（Q 1.8）</span></div>
+          <div class="outcome tone-blue"><svg viewBox="0 0 12 12"><path d="M1.8 6.4 4.8 9.2 10.2 2.8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"/></svg><span>已批准 · 14:32</span></div>
+        </section></div>
+      </div>
+      <div class="spec-box"><h3>① 确认卡 · 已拒绝沉淀</h3><span class="tag">tone-red 结果条</span>
+        <div class="demo"><section class="card settled">
+          <div class="tab">确认 · 备选方案</div>
+          <div class="c-row"><span class="k">改动</span><span class="v">对 全部轨道 做 broadband_compression：−2dB</span></div>
+          <div class="outcome tone-red"><svg viewBox="0 0 12 12"><path d="M2.5 2.5 9.5 9.5M9.5 2.5 2.5 9.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"/></svg><span>已拒绝 · 未做任何改动</span></div>
+        </section></div>
+      </div>
+      <div class="spec-box"><h3>①② · 补充未采用沉淀</h3><span class="tag">tone-gray：选项是加速器不是门槛</span>
+        <div class="demo"><section class="card settled">
+          <div class="tab">确认 · 第 3 轮方案</div>
+          <div class="c-row"><span class="k">改动</span><span class="v">对 主唱 vocals 做 de_esser：6kHz −3dB</span></div>
+          <div class="outcome tone-gray"><svg viewBox="0 0 14 14"><path d="M2.6 5.6h5.1a3.6 3.6 0 1 1-3.5 4.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="square"/><path d="M5 3.3V7.9L1.4 5.6Z" fill="currentColor"/></svg><span>已收到你的补充 · 卡面选项未采用</span></div>
+        </section></div>
+      </div>
+    </div>
+    <div class="spec-grid" style="margin-top:16px">
+      <div class="spec-box"><h3>② 判定卡 · 待判定（核心卡）</h3><span class="tag">round 徽标 + 信任锚 + A/B 磁带 + 两裁决 + 补充</span>
+        <div class="demo"><section class="card">
+          <div class="tab">判定 · A/B 试听</div>
+          <div class="c-head"><span class="rtag">第 2/3 轮</span><span class="csum">static_eq 315Hz −8dB（Q 1.8）</span><span class="chip">待判定</span></div>
+          <div class="trust"><svg viewBox="0 0 14 14"><path d="M2.6 5.6h5.1a3.6 3.6 0 1 1-3.5 4.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="square"/><path d="M5 3.3V7.9L1.4 5.6Z" fill="currentColor"/></svg><span>这是试验步，可一键回滚</span></div>
+          <div class="ab">
+            <div class="ab-head"><span class="ab-cap">A/B 快速对比</span><div class="ab-sw"><button type="button" class="on">A</button><button type="button">B</button></div></div>
+            <div class="tape active"><span class="tp-tag">A</span><button type="button" class="pbtn"><svg class="ic-play" viewBox="0 0 12 12"><path d="M2.5 1.5 10.5 6 2.5 10.5Z" fill="currentColor"/></svg><svg class="ic-pause" viewBox="0 0 12 12"><path d="M2.5 1.5h2.6v9H2.5zM6.9 1.5h2.6v9H6.9z" fill="currentColor"/></svg></button><span class="tp-label">改动前 · original</span><div class="wave"></div><span class="tp-time">0:00 / 0:12</span></div>
+            <div class="tape"><span class="tp-tag">B</span><button type="button" class="pbtn"><svg class="ic-play" viewBox="0 0 12 12"><path d="M2.5 1.5 10.5 6 2.5 10.5Z" fill="currentColor"/></svg><svg class="ic-pause" viewBox="0 0 12 12"><path d="M2.5 1.5h2.6v9H2.5zM6.9 1.5h2.6v9H6.9z" fill="currentColor"/></svg></button><span class="tp-label">改动后 · processed</span><div class="wave"></div><span class="tp-time">0:00 / 0:12</span></div>
+          </div>
+          <div class="vgrid"><button type="button" class="vbtn">A 更好 · 回滚</button><button type="button" class="vbtn">B 更好 · 保留</button></div>
+          <div class="c-ask"><input type="text" placeholder="听不出差别、想折中或另有想法？直接补充…"><button type="button" class="askb"><svg viewBox="0 0 12 12"><path d="M1.5 1 11 6 1.5 11Z" fill="currentColor"/></svg></button></div>
+        </section></div>
+      </div>
+      <div class="spec-box"><h3>② 判定卡 · 裁决 A 沉淀（回滚）</h3><span class="tag">tone-yellow + 回滚图标</span>
+        <div class="demo"><section class="card settled">
+          <div class="tab">判定 · A/B 试听</div>
+          <div class="c-head"><span class="rtag">第 2/3 轮</span><span class="csum">static_eq 315Hz −8dB（Q 1.8）</span></div>
+          <div class="outcome tone-yellow"><svg viewBox="0 0 14 14"><path d="M2.6 5.6h5.1a3.6 3.6 0 1 1-3.5 4.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="square"/><path d="M5 3.3V7.9L1.4 5.6Z" fill="currentColor"/></svg><span>已裁决 · A 更好 → 已回滚到改动前</span></div>
+        </section></div>
+      </div>
+      <div class="spec-box"><h3>② 判定卡 · 裁决 B 沉淀（保留）</h3><span class="tag">tone-blue + 对勾</span>
+        <div class="demo"><section class="card settled">
+          <div class="tab">判定 · A/B 试听</div>
+          <div class="c-head"><span class="rtag">第 2/3 轮</span><span class="csum">static_eq 315Hz −8dB（Q 1.8）</span></div>
+          <div class="outcome tone-blue"><svg viewBox="0 0 12 12"><path d="M1.8 6.4 4.8 9.2 10.2 2.8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"/></svg><span>已裁决 · B 更好 · 保留改动后</span></div>
+        </section></div>
+      </div>
+      <div class="spec-box"><h3>② 判定卡 · 经补充输入继续</h3><span class="tag">「听不出」等细粒度走补充；常态路径非消极态</span>
+        <div class="demo"><section class="card settled">
+          <div class="tab">判定 · A/B 试听</div>
+          <div class="c-head"><span class="rtag">第 1/3 轮</span><span class="csum">static_eq 315Hz −5dB（Q 1.8）</span></div>
+          <div class="outcome tone-blue"><svg viewBox="0 0 12 12"><path d="M1.8 6.4 4.8 9.2 10.2 2.8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"/></svg><span>经补充输入继续 ·「听不出差别，下一轮加码」→ 已按此进入第 2 轮</span></div>
+        </section></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 轨迹块 ================= -->
+  <section>
+    <h2>4 · 轨迹块（无框 · 节点行式 · 收起回执）</h2>
+    <div class="spec-grid">
+      <div class="spec-box"><h3>收起回执 · 完成态</h3><span class="tag">完成自动收起；点击展开回看</span>
+        <div class="demo"><div class="trace-block collapsed">
+          <button class="trace-head" type="button"><span class="th-ic"><svg viewBox="0 0 12 12"><path d="M1.8 6.4 4.8 9.2 10.2 2.8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"/></svg></span><span class="th-txt"><b>执行完成 · 2 步</b><small>static_eq −5.0dB 已回读校验</small></span><span class="th-meta">3.8s</span><span class="th-chev"><svg viewBox="0 0 12 12"><path d="M4 2.5 8 6 4 9.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"/></svg></span></button>
+        </div></div>
+      </div>
+      <div class="spec-box"><h3>收起回执 · 进行中态</h3><span class="tag">live：图标位换 spinner</span>
+        <div class="demo"><div class="trace-block live collapsed">
+          <button class="trace-head" type="button"><span class="th-ic"><span class="spin"></span></span><span class="th-txt"><b>观察 · 进行中</b><small>正在渲染对照片段…</small></span><span class="th-meta">--</span><span class="th-chev"><svg viewBox="0 0 12 12"><path d="M4 2.5 8 6 4 9.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"/></svg></span></button>
+        </div></div>
+      </div>
+      <div class="spec-box"><h3>节点四态 + 排队</h3><span class="tag">黑点=完成 · 蓝点=直接执行 · 蓝环 spinner=进行中 · 灰空心=排队 · 灰环呼吸=思考</span>
+        <div class="demo"><div class="trace-inner">
+          <div class="think"><span class="node"></span><div class="th-line"><span class="txt">正在复核掩蔽关系…</span><span class="cur"></span></div></div>
+          <div class="step plain"><span class="node"></span><div class="s-row"><span class="act">复核 band_profile</span><span class="dur">1.2s</span></div><div class="s-sum">62.8dB @315Hz，与首轮一致</div></div>
+          <div class="step mut plain"><span class="node"></span><div class="s-row"><span class="act">apply static_eq<span class="mutg">完全档 · 直接执行</span></span><span class="dur">0.6s</span></div><div class="s-sum">已直接执行并回读校验</div></div>
+          <div class="step running"><span class="node"></span><div class="s-row"><span class="act">render A/B</span><span class="dur live">进行中</span></div><div class="s-sum">渲染对照片段…</div></div>
+          <div class="step pending plain"><span class="node"></span><div class="s-row"><span class="act">render A/B · 第 2 轮</span><span class="dur">排队中</span></div><div class="s-sum">等待上一步完成即接力</div></div>
+        </div></div>
+      </div>
+      <div class="spec-box"><h3>步骤展开细节</h3><span class="tag">白底细左线抽屉；假设/预期/回读收纳于此</span>
+        <div class="demo"><div class="trace-inner">
+          <div class="step mut plain open"><span class="node"></span>
+            <div class="s-row"><span class="act">apply static_eq<span class="mutg">完全档 · 直接执行</span></span><span class="dur">0.6s</span><span class="chev"><svg viewBox="0 0 12 12"><path d="M4 2.5 8 6 4 9.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"/></svg></span></div>
+            <div class="s-sum">已直接执行并回读校验（−5.0dB 确认）</div>
+            <div class="s-detail" style="display:block"><div><div class="in">假设：低频堆积让主唱失去轮廓<br>预期：副歌主唱更清晰，不牺牲厚度<br>回读：−5.0dB 确认 · revision +1</div></div></div>
+          </div>
+        </div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 播放器 / 徽标 / 开关 ================= -->
+  <section>
+    <h2>5 · 播放器 · 徽标 · 开关 · 活动线</h2>
+    <div class="spec-grid">
+      <div class="spec-box"><h3>A/B 磁带行三态</h3><span class="tag">静 / 选中 / 播放中（wave 进度蓝染）</span>
+        <div class="demo" style="display:flex;flex-direction:column;gap:8px">
+          <div class="tape"><span class="tp-tag">A</span><button type="button" class="pbtn"><svg class="ic-play" viewBox="0 0 12 12"><path d="M2.5 1.5 10.5 6 2.5 10.5Z" fill="currentColor"/></svg><svg class="ic-pause" viewBox="0 0 12 12"><path d="M2.5 1.5h2.6v9H2.5zM6.9 1.5h2.6v9H6.9z" fill="currentColor"/></svg></button><span class="tp-label">改动前 · original</span><div class="wave"></div><span class="tp-time">0:00 / 0:12</span></div>
+          <div class="tape active"><span class="tp-tag">A</span><button type="button" class="pbtn"><svg class="ic-play" viewBox="0 0 12 12"><path d="M2.5 1.5 10.5 6 2.5 10.5Z" fill="currentColor"/></svg><svg class="ic-pause" viewBox="0 0 12 12"><path d="M2.5 1.5h2.6v9H2.5zM6.9 1.5h2.6v9H6.9z" fill="currentColor"/></svg></button><span class="tp-label">改动前 · original</span><div class="wave"></div><span class="tp-time">0:00 / 0:12</span></div>
+          <div class="tape active playing"><span class="tp-tag">B</span><button type="button" class="pbtn"><svg class="ic-play" viewBox="0 0 12 12"><path d="M2.5 1.5 10.5 6 2.5 10.5Z" fill="currentColor"/></svg><svg class="ic-pause" viewBox="0 0 12 12"><path d="M2.5 1.5h2.6v9H2.5zM6.9 1.5h2.6v9H6.9z" fill="currentColor"/></svg></button><span class="tp-label">改动后 · processed</span><div class="wave"><i class="on" style="height:9px"></i><i class="on" style="height:14px"></i><i class="on" style="height:11px"></i><i class="on" style="height:16px"></i><i style="height:8px"></i><i style="height:12px"></i><i style="height:15px"></i><i style="height:7px"></i></div><span class="tp-time">0:04 / 0:12</span></div>
+        </div>
+      </div>
+      <div class="spec-box"><h3>徽标族</h3><span class="tag">chip 待裁 / rtag 轮次 / mutg 完全档标 / trust 信任锚 / outcome 四色</span>
+        <div class="demo" style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding-bottom:14px">
+          <span class="chip">待判定</span>
+          <span class="rtag">第 2/3 轮</span>
+          <span class="mutg">完全档 · 直接执行</span>
+          <span class="outcome tone-blue" style="display:flex"><svg viewBox="0 0 12 12"><path d="M1.8 6.4 4.8 9.2 10.2 2.8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"/></svg><span>已裁决 · 保留</span></span>
+          <span class="outcome tone-yellow" style="display:flex"><svg viewBox="0 0 14 14"><path d="M2.6 5.6h5.1a3.6 3.6 0 1 1-3.5 4.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="square"/><path d="M5 3.3V7.9L1.4 5.6Z" fill="currentColor"/></svg><span>已裁决 · 回滚</span></span>
+          <span class="outcome tone-red" style="display:flex"><svg viewBox="0 0 12 12"><path d="M2.5 2.5 9.5 9.5M9.5 2.5 2.5 9.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"/></svg><span>已拒绝</span></span>
+          <span class="outcome tone-gray" style="display:flex"><svg viewBox="0 0 14 14"><path d="M2.6 5.6h5.1a3.6 3.6 0 1 1-3.5 4.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="square"/><path d="M5 3.3V7.9L1.4 5.6Z" fill="currentColor"/></svg><span>补充未采用</span></span>
+          <div class="trust" style="margin:0"><svg viewBox="0 0 14 14"><path d="M2.6 5.6h5.1a3.6 3.6 0 1 1-3.5 4.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="square"/><path d="M5 3.3V7.9L1.4 5.6Z" fill="currentColor"/></svg><span>这是试验步，可一键回滚</span></div>
+        </div>
+      </div>
+      <div class="spec-box"><h3>③ 权限开关两档 + 副注</h3><span class="tag">webui authority-mode-control 重构位</span>
+        <div class="demo" style="display:flex;flex-direction:column;gap:8px;align-items:flex-start;padding-bottom:14px">
+          <div class="perm"><button type="button" class="on">普通</button><button type="button">完全</button></div>
+          <div class="subnote show" style="max-height:34px;opacity:1"><span>每步试验都经你确认 · 每步可回滚</span></div>
+          <div class="perm"><button type="button">普通</button><button type="button" class="on">完全</button></div>
+          <div class="subnote show" style="max-height:34px;opacity:1"><span>连续执行试验步 · 每步仍可回滚</span></div>
+        </div>
+      </div>
+      <div class="spec-box"><h3>非回合活动线（安静样式）</h3><span class="tag">activity-lane 重构：无框灰字，仅非回合活动</span>
+        <div class="demo" style="display:flex;flex-direction:column;gap:6px">
+          <div class="lane"><div class="lane-item"><i class="spin"></i><span>正在上传参考曲 demo_reference.wav…</span></div>
+          <div class="lane-item err"><svg viewBox="0 0 12 12" width="12" height="12"><path d="M2.5 2.5 9.5 9.5M9.5 2.5 2.5 9.5" fill="none" stroke="currentColor" stroke-width="1.6"/></svg><span>上传失败：文件超过 200MB</span></div></div>
+        </div>
+      </div>
+      <div class="spec-box"><h3>底部输入（纸面框）</h3><span class="tag">.ft/.inp/.send → composer 重皮</span>
+        <div class="demo" style="border:0;padding:0"><div class="ft" style="border-top:0;padding:0">
+          <input class="inp" type="text" placeholder="描述你想要的混音…"><button class="send" type="button"><svg viewBox="0 0 12 12"><path d="M1.5 1 11 6 1.5 11Z" fill="currentColor"/></svg></button>
+        </div></div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script>
+(function(){
+"use strict";
+function $(s,c){return (c||document).querySelector(s)}
+function $$(s,c){return Array.prototype.slice.call((c||document).querySelectorAll(s))}
+$$('.trace-block').forEach(function(block){
+  $('.trace-head',block).addEventListener('click',function(){
+    var open=block.classList.toggle('collapsed');
+    this.setAttribute('aria-expanded',String(!open));
+  });
+});
+$$('.step').forEach(function(s){
+  if(!$('.s-detail',s))return;
+  s.addEventListener('click',function(){s.classList.toggle('open')});
+});
+/* 静态 wave 填充（非播放态磁带行） */
+function heights(seed,n){var o=[],x=seed;for(var i=0;i<n;i++){x=(x*48271)%2147483647;o.push(4+Math.floor(x/2147483647*15))}return o}
+$$('.wave').forEach(function(w,i){
+  if(w.children.length)return;
+  heights(20177+i*7,24).forEach(function(h){var b=document.createElement('i');b.style.height=h+'px';w.appendChild(b)});
+});
+})();
+</script>
+</body>
+</html>
