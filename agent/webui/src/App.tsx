@@ -1860,9 +1860,6 @@ export function TopStatusBar({
         </div>
       </div>
     </header>
-    <div className="subnote" role="status">
-      <span>{authorityMode === "full_project_access" ? "连续执行试验步 · 每步仍可回滚" : "每步试验都经你确认 · 每步可回滚"}</span>
-    </div>
     </>
   );
 }

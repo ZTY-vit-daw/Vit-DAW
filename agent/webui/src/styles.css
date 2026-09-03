@@ -4945,7 +4945,7 @@ h3 {
   .app-shell {
     height: 100%;
     min-height: 0;
-    grid-template-rows: auto auto minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
   }
 
   .main-workspace {
@@ -5558,7 +5558,7 @@ body.panel-resizing * {
 
 @media (max-width: 820px) {
   .app-shell {
-    grid-template-rows: 64px auto minmax(0, 1fr);
+    grid-template-rows: 64px minmax(0, 1fr);
   }
 
   .top-status {
@@ -5831,10 +5831,6 @@ body.panel-resizing * {
 .perm button.on{background:var(--blue);color:var(--white)}
 .perm button:disabled{cursor:default;opacity:.55}
 
-/* 副注条（头部下方，黄底墨字，文案随档位切换） */
-.subnote{background:var(--yellow-soft);border-bottom:2px solid var(--ink)}
-.subnote span{display:block;padding:7px 12px;font-size:12px;color:var(--ink)}
-
 @media (max-width:560px){
   .perm button{padding:6px 8px;font-size:11px}
   .c-row .k{width:30px;font-size:10px}
@@ -5842,8 +5838,8 @@ body.panel-resizing * {
 
 /* ============ Mondrian v2 · GUI-T5 打磨段 ============ */
 
-/* 键盘可达：全部可交互件统一虚线焦点框 */
-button:focus-visible,[tabindex]:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{
+/* 键盘可达：可交互件统一虚线焦点框（文本输入类除外——点击有光标即可，不出虚线） */
+button:focus-visible,[tabindex]:focus-visible{
   outline:2px dashed var(--blue);outline-offset:2px
 }
 
