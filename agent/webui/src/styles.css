@@ -5700,106 +5700,100 @@ body.panel-resizing * {
   background: var(--panel);
 }
 
-.trajectory-live-panel .audition-session {
-  border-top: 1px solid var(--line);
-}
+/* ③b 卡片族（GUI-T3 判定卡 · traceui.css .card 族对照；判定卡与确认卡（T4）共用）：
+   输出=白底框+蓝底页签+硬投影；settled 后页签转灰、投影转轻、按钮/输入隐藏、结果条浮现。
+   旧 .audition-* 深色表单覆盖随两问 radio 表单退役移除。 */
+.card{position:relative;background:var(--white);border:2px solid var(--ink);border-radius:3px;
+  box-shadow:7px 7px 0 rgba(17,17,17,.12);padding:15px 12px 12px;margin:14px 0 4px;transition:box-shadow .25s ease}
+.card.settled{box-shadow:3px 3px 0 rgba(17,17,17,.05)}
+.tab{position:absolute;top:-17px;left:10px;z-index:1;background:var(--blue-soft);
+  border:2px solid var(--ink);border-bottom:none;border-radius:3px 3px 0 0;
+  padding:4px 10px 5px;font-size:12.5px;font-weight:700;letter-spacing:.5px;transition:background .25s}
+.card.settled .tab{background:#e4e8ee}
+.c-head{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:2px 0 10px;min-width:0}
+.rtag{flex:none;font-size:11px;font-weight:700;letter-spacing:.5px;border:2px solid var(--ink);
+  background:var(--white);padding:2px 6px}
+.csum{font-family:Consolas,"SFMono-Regular",Menlo,"Microsoft YaHei",monospace;font-size:12.5px;
+  min-width:0;overflow-wrap:anywhere}
+.chip{flex:none;margin-left:auto;font-size:11px;font-weight:700;padding:3px 8px;
+  border:2px solid var(--ink);background:var(--blue);color:var(--white)}
+.card.settled .chip{display:none}
 
-.trajectory-live-panel .audition-session-head span {
-  color: var(--muted);
-}
+/* 信任锚：黄底墨字徽章块（黄=信任锚与回滚，视觉权重最高） */
+.trust{display:flex;align-items:center;gap:8px;background:var(--yellow);border:2px solid var(--ink);
+  border-radius:2px;box-shadow:3px 3px 0 rgba(17,17,17,.16);padding:8px 10px;
+  font-size:13px;font-weight:700;margin:2px 0 10px}
+.trust svg{flex:none;width:14px;height:14px}
 
-.trajectory-live-panel .audition-session-head strong {
-  color: var(--ink);
-}
+/* A/B 磁带行 */
+.ab{display:flex;flex-direction:column;gap:8px;margin-bottom:10px}
+.ab-head{display:flex;align-items:center;justify-content:space-between}
+.ab-cap{font-size:11px;color:var(--muted);letter-spacing:1px}
+.ab-sw{display:flex;border:2px solid var(--ink);background:var(--white)}
+.ab-sw button{width:36px;font-family:Consolas,"SFMono-Regular",Menlo,monospace;font-weight:700;font-size:12px;
+  padding:5px 0;background:var(--white);border:0;color:var(--ink);cursor:pointer;
+  box-shadow:inset 0 -2px 0 #d9d9d2;transition:background .12s,color .12s,box-shadow .12s,transform .12s}
+.ab-sw button+button{border-left:2px solid var(--ink)}
+.ab-sw button:hover:not(:disabled){background:#f4f4f1}
+.ab-sw button.on{background:var(--blue);color:var(--white);box-shadow:inset 0 -3px 0 var(--blue-dark);transform:translateY(1px)}
+.ab-sw button:disabled{cursor:default;opacity:.55}
+.tape{display:flex;align-items:center;gap:8px;border:2px solid var(--ink);border-radius:2px;
+  background:var(--white);padding:6px 8px;min-width:0;cursor:pointer;
+  transition:border-color .15s,background .15s}
+.tape.active{border-color:var(--blue);background:#f7faff}
+.tape[role="button"]:hover{border-color:var(--blue)}
+.tp-tag{flex:none;width:20px;height:20px;display:flex;align-items:center;justify-content:center;
+  font-family:Consolas,"SFMono-Regular",Menlo,monospace;font-weight:700;font-size:11px;
+  border:2px solid var(--ink);background:var(--white);transition:background .15s}
+.tape.active .tp-tag{background:var(--blue);border-color:var(--blue-dark);color:var(--white)}
+.pbtn{flex:none;width:30px;height:30px;border:2px solid var(--ink);border-radius:2px;background:var(--white);
+  cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s}
+.pbtn svg{width:11px;height:11px;color:var(--blue)}
+.pbtn .ic-pause{display:none}
+.tape.playing .pbtn{background:var(--blue)}
+.tape.playing .pbtn svg{color:var(--white)}
+.tape.playing .pbtn .ic-play{display:none}
+.tape.playing .pbtn .ic-pause{display:block}
+.pbtn:disabled{cursor:default;opacity:.55}
+.tp-label{flex:none;font-size:12px;font-weight:600;white-space:nowrap}
+.wave{flex:1;min-width:36px;height:20px;display:flex;align-items:center;gap:2px;overflow:hidden}
+.wave i{flex:none;width:2px;background:#c9d4ea}
+.tp-time{flex:none;font-family:Consolas,"SFMono-Regular",Menlo,monospace;font-size:11px;color:var(--muted)}
 
-.trajectory-live-panel .audition-session-head button,
-.trajectory-live-panel .audition-candidates button {
-  border: 1px solid var(--ink);
-  color: var(--ink);
-  background: var(--white);
-}
+/* 两裁决按钮区（A 更好·回滚 / B 更好·保留，定案 2026-09-03） */
+.vgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.vbtn{border:2px solid var(--ink);border-radius:2px;background:var(--white);color:var(--ink);
+  font-size:13px;font-weight:700;padding:10px 4px;cursor:pointer;white-space:nowrap;
+  transition:border-color .15s,color .15s}
+.vbtn:hover:not(:disabled){border-color:var(--blue);color:var(--blue)}
+.vbtn:active:not(:disabled){transform:translate(1px,1px)}
+.vbtn:disabled{cursor:default;opacity:.55}
+.card.settled .vgrid{display:none}
 
-.trajectory-live-panel .audition-candidates button.active {
-  border-color: var(--blue);
-  box-shadow: inset 0 0 0 1px var(--blue);
-}
+/* 卡面自定义补充输入（选项是加速器不是门槛） */
+.c-ask{display:flex;gap:6px;margin-top:10px}
+.c-ask input{flex:1;min-width:0;height:34px;border:2px solid var(--ink);border-radius:2px;background:var(--white);
+  padding:0 10px;font-size:12.5px;color:var(--ink);outline:none;transition:border-color .15s}
+.c-ask input:focus{border-color:var(--blue)}
+.c-ask input::placeholder{color:var(--muted)}
+.c-ask .askb{flex:none;width:34px;height:34px;border:2px solid var(--ink);border-radius:2px;background:var(--ink);
+  color:var(--white);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s}
+.c-ask .askb:hover:not(:disabled){background:var(--blue)}
+.c-ask .askb:disabled{cursor:default;opacity:.55}
+.c-ask .askb svg{width:11px;height:11px}
+.card.settled .c-ask{display:none}
 
-.trajectory-live-panel .audition-candidates span {
-  color: var(--muted);
-}
-
-.trajectory-live-panel .audition-error {
-  color: var(--red);
-}
-
-.trajectory-live-panel .audition-judgment {
-  border: 1px solid var(--line);
-  background: var(--white);
-}
-
-.trajectory-live-panel .audition-judgment legend {
-  color: var(--ink);
-}
-
-.trajectory-live-panel .audition-choice-row label {
-  border: 1px solid var(--ink);
-  color: var(--ink);
-  background: var(--white);
-}
-
-.trajectory-live-panel .audition-choice-row label:has(input:checked) {
-  border-color: var(--blue);
-  color: var(--blue-dark);
-  background: var(--blue-soft);
-}
-
-.trajectory-live-panel .audition-choice-row input {
-  accent-color: var(--blue);
-}
-
-.trajectory-live-panel .audition-judgment textarea {
-  border: 1px solid var(--ink);
-  color: var(--ink);
-  background: var(--white);
-}
-
-/* 判定提交键保实心主键层级（traceui .btn.approve 蓝底白字先例） */
-.trajectory-live-panel .audition-submit {
-  border: 1px solid var(--ink);
-  color: var(--white);
-  background: var(--blue);
-}
-
-.trajectory-live-panel .audition-recorded {
-  border-left: 3px solid #819917;
-  color: #5e760b;
-  background: #eff6bd;
-}
-
-.trajectory-live-panel .audition-settled {
-  border-left: 3px solid var(--blue);
-  color: var(--blue-dark);
-  background: var(--blue-soft);
-}
-
-.trajectory-live-panel .audition-session.settled .audition-session-head strong {
-  color: var(--blue);
-}
-
-.trajectory-live-panel .audition-candidate-actions button {
-  border: 1px solid var(--ink);
-  color: var(--ink);
-  background: var(--white);
-}
-
-/* 深底金/亮绿文字在纸面上对比不足，换 traceui 家族暗金/深绿 */
-.trajectory-live-panel .audition-inspected {
-  color: #8a6400;
-}
-
-.trajectory-live-panel .audition-adopted {
-  color: #5e760b;
-}
+/* 沉淀态结果条：四色（yellow=回滚 / blue=保留 / gray=补充未采用 / red=错误） */
+.outcome{display:none;align-items:center;gap:8px;border:2px solid var(--ink);border-radius:2px;
+  padding:8px 10px;font-size:13px;font-weight:700;margin-top:10px;line-height:1.5}
+.outcome svg{flex:none;width:12px;height:12px}
+.card.settled .outcome{display:flex;animation:card-outcome-rise .22s ease both}
+.card.has-error .outcome{display:flex}
+.tone-blue{background:var(--blue-soft);color:var(--blue-dark)}
+.tone-red{background:var(--white);color:var(--red)}
+.tone-yellow{background:var(--yellow-soft);color:var(--ink)}
+.tone-gray{background:#e4e8ee;color:var(--ink)}
+@keyframes card-outcome-rise{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
 
 /* ④ 活动条安静化：无框灰字行（spinner 保留；error 态保红字） */
 .activity-lane-item {

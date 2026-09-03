@@ -55,8 +55,6 @@ import {
   fetchHealth,
   fetchRuntimeStatus,
   fetchUIState,
-  inspectAuditionCandidate,
-  applyAuditionCandidate,
   invokeAgent,
   listArtifacts,
   readArtifact,
@@ -100,10 +98,10 @@ import {
 } from "./messageLifecycle";
 import { emptyTrajectoryState, reduceTrajectoryEvents, trajectoryTurns } from "./trajectory";
 import type { TrajectoryState } from "./trajectory";
-import { emptyAuditionState, reduceAuditionEvents } from "./audition";
+import { auditionSessions, emptyAuditionState, reduceAuditionEvents, type AuditionSession, type AuditionState } from "./audition";
 import { emptyTaskTrajectoryState, reduceTaskTrajectory } from "./taskTrajectory";
 import { authorityContext, checkoutBlockedByState, isAgentTurnRunning } from "./turnControl";
-import { TrajectoryAuditionPanel } from "./trajectory/TrajectoryAuditionPanel";
+import { AuditionJudgeCard } from "./trajectory/TrajectoryAuditionPanel";
 import { TraceBlock } from "./trace/TraceBlock";
 import { groupMessagesByTurn, isUnboundActivity, turnIsAnchored } from "./trace/turnGroups";
 import { TaskTrajectoryView } from "./taskTrajectory/TaskTrajectoryView";
@@ -1061,32 +1059,6 @@ function App() {
     setAgentEventPolling(true);
   };
 
-  const handleAuditionInspect = async (sessionID: string, candidateID: string) => {
-    setAuditionBusySessionID(sessionID);
-    try {
-      await inspectAuditionCandidate(conversationID, sessionID, candidateID);
-      setAgentEventPolling(true);
-      await refreshState();
-    } catch (inspectError) {
-      setError(inspectError instanceof Error ? inspectError.message : "查看候选失败");
-    } finally {
-      setAuditionBusySessionID("");
-    }
-  };
-
-  const handleAuditionApply = async (sessionID: string, candidateID: string, evidenceID: string) => {
-    setAuditionBusySessionID(sessionID);
-    try {
-      await applyAuditionCandidate(conversationID, sessionID, candidateID, evidenceID);
-      setAgentEventPolling(true);
-      await refreshState();
-    } catch (applyError) {
-      setError(applyError instanceof Error ? applyError.message : "采用候选失败");
-    } finally {
-      setAuditionBusySessionID("");
-    }
-  };
-
   const hiddenFileInput = (
     <input
       ref={fileInputRef}
@@ -1178,22 +1150,15 @@ function App() {
 
       <TaskTrajectoryView snapshot={taskTrajectoryState.snapshot} />
 
-      <TrajectoryAuditionPanel
-        trajectory={trajectoryState}
-        audition={auditionState}
-        busySessionID={auditionBusySessionID}
-        showTrajectory={false}
-        onSelect={handleAuditionSelect}
-        onStop={handleAuditionStop}
-        onSubmitJudgment={handleAuditionJudgment}
-        onInspect={handleAuditionInspect}
-        onApply={handleAuditionApply}
-      />
-
       <MessageStream
         messages={messages}
         activities={activities}
         trajectory={trajectoryState}
+        audition={auditionState}
+        auditionBusySessionID={auditionBusySessionID}
+        onAuditionSelect={handleAuditionSelect}
+        onAuditionStop={handleAuditionStop}
+        onSubmitAuditionJudgment={handleAuditionJudgment}
         authorityMode={authorityMode}
         respondingActionID={respondingActionID}
         hiddenActionID={composerInteractionID}
@@ -3961,6 +3926,8 @@ function MessageStream({
   messages,
   activities,
   trajectory,
+  audition,
+  auditionBusySessionID,
   authorityMode,
   respondingActionID,
   hiddenActionID,
@@ -3970,11 +3937,16 @@ function MessageStream({
   onSelectArtifact,
   uiState,
   onMacroValuePreview,
-  onMacroValueCommit
+  onMacroValueCommit,
+  onAuditionSelect,
+  onAuditionStop,
+  onSubmitAuditionJudgment
 }: {
   messages: ChatMessage[];
   activities: ChatMessage[];
   trajectory: TrajectoryState;
+  audition: AuditionState;
+  auditionBusySessionID: string;
   authorityMode: AuthorityMode;
   respondingActionID: string;
   hiddenActionID: string;
@@ -3985,6 +3957,9 @@ function MessageStream({
   uiState: AgentUIState | null;
   onMacroValuePreview: (macro: MacroControl, value: number) => void;
   onMacroValueCommit: (macro: MacroControl, value: number) => Promise<void>;
+  onAuditionSelect: (sessionID: string, candidateID: string) => Promise<void>;
+  onAuditionStop: (sessionID: string) => Promise<void>;
+  onSubmitAuditionJudgment?: (payload: AuditionJudgmentPayload) => Promise<void>;
 }) {
   const bottomRef = useRef<HTMLDivElement | null>(null);
 
@@ -4042,7 +4017,7 @@ function MessageStream({
     );
   };
 
-  // 回合分组渲染：用户消息 → 该回合轨迹块 → 回合内卡片（设计基线 GUI-T2）
+  // 回合分组渲染：用户消息 → 该回合轨迹块 → 回合内卡片（设计基线 GUI-T2）+ 判定卡入流（GUI-T3）
   const visibleMessages = messages.filter((message) => !shouldHideMessageForComposerOverlay(message, hiddenActionID));
   const groups = groupMessagesByTurn(visibleMessages);
   const turns = trajectoryTurns(trajectory);
@@ -4052,10 +4027,42 @@ function MessageStream({
   // 活动线只承载非回合活动（上传/调用等）；回合内活动并入轨迹思考行
   const laneActivities = activities.filter((activity) => isUnboundActivity(activity, knownTurnIds));
 
+  const sessions = auditionSessions(audition);
+  const turnFirstSeq = (turnId: string): number => {
+    const turn = trajectory.turns[turnId];
+    if (!turn || turn.nodeIds.length === 0) return Number.MAX_SAFE_INTEGER;
+    return Math.min(...turn.nodeIds.map((id) => trajectory.nodes[id]?.seq ?? Number.MAX_SAFE_INTEGER));
+  };
+  // 免选路径：用户越过待裁卡在底部输入框继续了对话 → 卡片沉淀「卡面选项未采用」（supersedes 语义的 UI 呈现）
+  const sessionSuperseded = (session: AuditionSession): boolean => {
+    if (session.judgmentRecorded) return false;
+    const baseSeq = turnFirstSeq(session.turnID);
+    if (baseSeq !== Number.MAX_SAFE_INTEGER && Object.values(trajectory.turns).some((other) => other.id !== session.turnID && turnFirstSeq(other.id) > baseSeq)) {
+      return true;
+    }
+    const groupIndex = groups.findIndex((group) => group.turnId === session.turnID);
+    return groupIndex >= 0 && groups.slice(groupIndex + 1).some((group) => group.messages.some((message) => message.role === "user"));
+  };
+  const renderJudgeCard = (session: AuditionSession) => (
+    <AuditionJudgeCard
+      key={`audition:${session.id}`}
+      trajectory={trajectory}
+      session={session}
+      busySessionID={auditionBusySessionID}
+      superseded={sessionSuperseded(session)}
+      onSelect={onAuditionSelect}
+      onStop={onAuditionStop}
+      onSubmitJudgment={onSubmitAuditionJudgment}
+    />
+  );
+  const anchoredTurnIds = new Set(groups.map((group) => group.turnId).filter(Boolean));
+  const unanchoredSessions = sessions.filter((session) => !session.turnID || !anchoredTurnIds.has(session.turnID));
+
   return (
     <div className="message-stream">
       {groups.map((group) => {
         const turn = group.turnId ? trajectory.turns[group.turnId] : undefined;
+        const turnSessions = sessions.filter((session) => group.turnId && session.turnID === group.turnId);
         return (
           <Fragment key={group.key}>
             {group.messages.filter((message) => message.role === "user").map(renderMessage)}
@@ -4068,6 +4075,7 @@ function MessageStream({
               />
             )}
             {group.messages.filter((message) => message.role !== "user").map(renderMessage)}
+            {turnSessions.map(renderJudgeCard)}
           </Fragment>
         );
       })}
@@ -4081,6 +4089,8 @@ function MessageStream({
           authorityMode={authorityMode}
         />
       ))}
+      {/* 未挂靠回合组的试听会话判定卡同样挂流尾防丢 */}
+      {unanchoredSessions.map(renderJudgeCard)}
       {laneActivities.length > 0 && (
         <section className="activity-lane" aria-label="即时活动" aria-live="polite">
           {laneActivities.map((activity) => (
