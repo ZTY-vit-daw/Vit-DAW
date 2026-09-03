@@ -44,4 +44,27 @@ describe("task runtime trajectory GUI", () => {
     expect(blocked).toContain("能力受限");
     expect(blocked).not.toContain("任务已完成");
   });
+
+  it("GUI-T5：默认收起为安静单行状态条（无 is-open，正文 DOM 常在备展开）", () => {
+    const markup = renderToStaticMarkup(<TaskTrajectoryView snapshot={runtimeSnapshot("observation_in_progress", { continuation_id: "cont-1", status: "pending" })} />);
+    expect(markup).toContain('class="task-trajectory is-active"');
+    expect(markup).not.toContain("is-open");
+    expect(markup).toContain('class="task-trajectory-head"');
+    expect(markup).toContain('aria-expanded="false"');
+    expect(markup).toContain("正在观察工程");
+    expect(markup).toContain("r5");
+    // 深色旧壳类已退役
+    expect(markup).not.toContain("task-trajectory-header");
+    expect(markup).not.toContain("task-trajectory-kicker");
+    // 审计体仍在 DOM（grid 收起非条件渲染）
+    expect(markup).toContain("task-trajectory-body-in");
+    expect(markup).toContain("Run 的 invocation 切片");
+  });
+
+  it("GUI-T5：defaultOpen 展开态（is-open + chevron 旋转类挂载点）", () => {
+    const markup = renderToStaticMarkup(<TaskTrajectoryView snapshot={runtimeSnapshot("settled")} defaultOpen />);
+    expect(markup).toContain("is-open");
+    expect(markup).toContain('aria-expanded="true"');
+    expect(markup).toContain("任务已完成");
+  });
 });

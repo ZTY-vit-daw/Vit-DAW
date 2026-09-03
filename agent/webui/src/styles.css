@@ -4945,7 +4945,7 @@ h3 {
   .app-shell {
     height: 100%;
     min-height: 0;
-    grid-template-rows: auto minmax(0, 1fr);
+    grid-template-rows: auto auto minmax(0, 1fr);
   }
 
   .main-workspace {
@@ -5558,7 +5558,7 @@ body.panel-resizing * {
 
 @media (max-width: 820px) {
   .app-shell {
-    grid-template-rows: 64px minmax(0, 1fr);
+    grid-template-rows: 64px auto minmax(0, 1fr);
   }
 
   .top-status {
@@ -5838,4 +5838,20 @@ body.panel-resizing * {
 @media (max-width:560px){
   .perm button{padding:6px 8px;font-size:11px}
   .c-row .k{width:30px;font-size:10px}
+}
+
+/* ============ Mondrian v2 · GUI-T5 打磨段 ============ */
+
+/* 键盘可达：全部可交互件统一虚线焦点框 */
+button:focus-visible,[tabindex]:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{
+  outline:2px dashed var(--blue);outline-offset:2px
+}
+
+/* 间距节奏：轨迹块与相邻气泡/卡片呼吸（对齐 message-row 的 18px 底距，收窄 2px 区分轻量） */
+.trace-block{margin:2px 0 16px}
+.message-stream .trace-block + .message-row{margin-top:0}
+
+/* 动画弱化偏好：全局禁用（功能不损，spinner 转为静态呈现） */
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
 }

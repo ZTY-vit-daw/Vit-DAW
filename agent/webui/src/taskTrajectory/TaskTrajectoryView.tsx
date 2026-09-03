@@ -45,10 +45,10 @@ function formatTime(value: unknown): string {
 }
 
 function StateIcon({ state }: { state: string }) {
-  if (["failed", "capability_blocked"].includes(state)) return <ShieldAlert size={16} aria-hidden="true" />;
-  if (["settled", "no_candidate_found", "cancelled"].includes(state)) return <CircleCheck size={16} aria-hidden="true" />;
-  if (state === "human_judgment_required") return <Clock3 size={16} aria-hidden="true" />;
-  return <LoaderCircle size={16} aria-hidden="true" />;
+  if (["failed", "capability_blocked"].includes(state)) return <ShieldAlert size={15} aria-hidden="true" />;
+  if (["settled", "no_candidate_found", "cancelled"].includes(state)) return <CircleCheck size={15} aria-hidden="true" />;
+  if (state === "human_judgment_required") return <Clock3 size={15} aria-hidden="true" />;
+  return <LoaderCircle size={15} className="spin" aria-hidden="true" />;
 }
 
 function EvidenceRefs({ refs, stale = false }: { refs: string[]; stale?: boolean }) {
@@ -77,13 +77,13 @@ function ContinuationState({ continuation, semantic }: { continuation: JsonRecor
   const interaction = Object.keys(pending).length ? pending : continuationInteraction;
   if (Object.keys(interaction).length) {
     return <div className="task-trajectory-interaction" role="status">
-      <Clock3 size={16} aria-hidden="true" /><div><strong>等待你的交互</strong><span>{text(interaction.reason) || text(interaction.kind) || "需要确认、澄清、判断或权限。"}</span></div>
+      <Clock3 size={15} aria-hidden="true" /><div><strong>等待你的交互</strong><span>{text(interaction.reason) || text(interaction.kind) || "需要确认、澄清、判断或权限。"}</span></div>
     </div>;
   }
   const status = text(continuation.status);
   if (!status) return null;
   return <div className={`task-trajectory-continuation status-${status}`} role="status">
-    <LoaderCircle size={16} aria-hidden="true" /><div><strong>{continuationLabels[status] ?? status}</strong><span>{status === "pending" || status === "claimed" || status === "running" ? "达到本次 invocation 边界后，系统将沿用同一 Task、Run 与原始意图继续。" : "该状态由持久化调度器维护。"}</span></div>
+    <LoaderCircle size={15} aria-hidden="true" /><div><strong>{continuationLabels[status] ?? status}</strong><span>{status === "pending" || status === "claimed" || status === "running" ? "达到本次 invocation 边界后，系统将沿用同一 Task、Run 与原始意图继续。" : "该状态由持久化调度器维护。"}</span></div>
   </div>;
 }
 
@@ -94,12 +94,12 @@ function SliceRow({ slice, turns, currentTurnID }: { slice: JsonRecord; turns: J
   const title = `Invocation ${text(slice.sequence) || "-"}`;
   return <section className={`task-trajectory-slice status-${text(slice.status)}`}>
     <button type="button" className="task-trajectory-slice-head" onClick={() => setOpen((value) => !value)} aria-expanded={open} aria-controls={`slice-${sliceID}`}>
-      {open ? <ChevronDown size={15} aria-hidden="true" /> : <ChevronRight size={15} aria-hidden="true" />}
+      {open ? <ChevronDown size={14} aria-hidden="true" /> : <ChevronRight size={14} aria-hidden="true" />}
       <strong>{title}</strong><span>max turns {text(slice.max_turns) || "-"}</span><span className="task-trajectory-state-chip">{text(slice.status) || "unknown"}</span>
     </button>
     {open && <div className="task-trajectory-turns" id={`slice-${sliceID}`}>
       {sliceTurns.map((turn) => <div key={text(turn.turn_id)} className={`task-trajectory-turn ${text(turn.turn_id) === currentTurnID ? "is-current" : ""}`}>
-        <CircleDashed size={14} aria-hidden="true" /><span>Turn {text(turn.sequence) || "-"}</span><strong>{text(turn.source) === "automatic_continuation" ? "自动续跑" : text(turn.source) || "任务执行"}</strong><em>{text(turn.status) || "unknown"}</em>
+        <CircleDashed size={13} aria-hidden="true" /><span>Turn {text(turn.sequence) || "-"}</span><strong>{text(turn.source) === "automatic_continuation" ? "自动续跑" : text(turn.source) || "任务执行"}</strong><em>{text(turn.status) || "unknown"}</em>
       </div>)}
       {!sliceTurns.length && <span className="task-trajectory-empty">此 invocation 尚未记录 Turn。</span>}
     </div>}
@@ -111,7 +111,7 @@ function SemanticHistory({ transitions }: { transitions: JsonRecord[] }) {
   if (!transitions.length) return null;
   return <section className="task-trajectory-history">
     <button type="button" className="task-trajectory-history-toggle" onClick={() => setOpen((value) => !value)} aria-expanded={open}>
-      {open ? <ChevronDown size={15} aria-hidden="true" /> : <ChevronRight size={15} aria-hidden="true" />} 状态变更记录 <span>{transitions.length}</span>
+      {open ? <ChevronDown size={14} aria-hidden="true" /> : <ChevronRight size={14} aria-hidden="true" />} 状态变更记录 <span>{transitions.length}</span>
     </button>
     {open && <ol>
       {transitions.map((transition) => {
@@ -126,7 +126,9 @@ function SemanticHistory({ transitions }: { transitions: JsonRecord[] }) {
   </section>;
 }
 
-export function TaskTrajectoryView({ snapshot }: { snapshot: TaskTrajectorySnapshot | null }) {
+/** 任务运行轨迹：默认收起为安静单行状态条（GUI-T5），点击展开完整审计体 */
+export function TaskTrajectoryView({ snapshot, defaultOpen = false }: { snapshot: TaskTrajectorySnapshot | null; defaultOpen?: boolean }) {
+  const [open, setOpen] = useState(defaultOpen);
   if (!snapshot) return null;
   const task = snapshot.task;
   const run = snapshot.run;
@@ -134,25 +136,34 @@ export function TaskTrajectoryView({ snapshot }: { snapshot: TaskTrajectorySnaps
   const state = text(semantic.state);
   const slices = records(run.slices);
   const turns = records(run.turns);
-  return <section className="task-trajectory" aria-label="可审计执行轨迹" data-task-id={text(task.task_id)} data-semantic-state={state}>
-    <header className={`task-trajectory-header ${terminalClass(state)}`}>
-      <div className="task-trajectory-kicker"><ActivityMark /> 可审计执行轨迹 <span>Task / Run / Invocation</span></div>
-      <div className="task-trajectory-title-row"><div><h2>{semanticLabel(state)}</h2><p>{text(task.original_intent) || "原始意图尚未可用。"}</p></div><div className="task-trajectory-status"><StateIcon state={state} /><span>{state || "unknown"}</span><small>r{text(semantic.revision) || "0"}</small></div></div>
-      <div className="task-trajectory-meta"><span>Task {text(task.task_id)}</span><span>Run {text(task.run_id)}</span>{text(semantic.project_revision) && <span>工程修订 {text(semantic.project_revision)}</span>}{formatTime(semantic.updated_at) && <span>更新 {formatTime(semantic.updated_at)}</span>}</div>
-    </header>
-    <div className="task-trajectory-body">
+  const updated = formatTime(semantic.updated_at);
+  return <section className={["task-trajectory", terminalClass(state), open ? "is-open" : ""].filter(Boolean).join(" ")} aria-label="任务运行轨迹" data-task-id={text(task.task_id)} data-semantic-state={state}>
+    <button type="button" className="task-trajectory-head" onClick={() => setOpen((value) => !value)} aria-expanded={open} aria-controls="task-trajectory-body">
+      <StateIcon state={state} />
+      <strong>{semanticLabel(state)}</strong>
+      <span className="task-trajectory-head-meta">
+        <span>Task {text(task.task_id)}</span>
+        <span>Run {text(task.run_id)}</span>
+        <span>r{text(semantic.revision) || "0"}</span>
+        {updated && <span>更新 {updated}</span>}
+      </span>
+      <span className="task-trajectory-head-chevron" aria-hidden="true">
+        {open ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+      </span>
+    </button>
+    <div className="task-trajectory-body" id="task-trajectory-body"><div className="task-trajectory-body-in">
+      <p className="task-trajectory-intent">{text(task.original_intent) || "原始意图尚未可用。"}</p>
       <ContinuationState continuation={snapshot.continuation} semantic={semantic} />
       <CapabilityRoute route={snapshot.capabilityRoute} />
       {text(semantic.summary) && <p className="task-trajectory-summary">{text(semantic.summary)}</p>}
       {text(semantic.transition_reason) && <div className="task-trajectory-reason">状态原因：{text(semantic.transition_reason)}</div>}
+      {text(semantic.project_revision) && <div className="task-trajectory-revision">工程修订 {text(semantic.project_revision)}</div>}
       <EvidenceRefs refs={strings(semantic.evidence_refs)} />
       <section className="task-trajectory-run" aria-label="Run invocation 历史"><div className="task-trajectory-section-title">Run 的 invocation 切片 <span>{slices.length}</span></div>
         {slices.map((slice) => <SliceRow key={text(slice.slice_id)} slice={slice} turns={turns} currentTurnID={text(run.current_turn_id)} />)}
         {!slices.length && <div className="task-trajectory-empty">任务已建立，等待首个 invocation。</div>}
       </section>
       <SemanticHistory transitions={snapshot.transitions} />
-    </div>
+    </div></div>
   </section>;
 }
-
-function ActivityMark() { return <CircleDashed size={14} aria-hidden="true" />; }
