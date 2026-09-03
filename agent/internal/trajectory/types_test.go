@@ -41,6 +41,29 @@ func TestEventRejectsMissingRoundForRoundEvent(t *testing.T) {
 	}
 }
 
+func TestChatTurnTerminalEventsDefaultToTurnNodes(t *testing.T) {
+	for _, testCase := range []struct {
+		eventType EventType
+		wantKind  NodeKind
+		wantPhase string
+		wantState Status
+	}{
+		{EventTurnCompleted, NodeTurn, "completed", StatusCompleted},
+		{EventTurnFailed, NodeTurn, "failed", StatusFailed},
+	} {
+		event := Event{Type: testCase.eventType, ConversationID: "conversation-1", RunID: "run-1", ItemID: "turn:run-1"}.Normalize()
+		if err := event.Validate(); err != nil {
+			t.Fatalf("%s Validate: %v", testCase.eventType, err)
+		}
+		if event.Payload.NodeKind != testCase.wantKind || event.Payload.Phase != testCase.wantPhase || event.Payload.Status != testCase.wantState {
+			t.Fatalf("%s defaults = %#v", testCase.eventType, event.Payload)
+		}
+		if testCase.eventType.RequiresRound() {
+			t.Fatalf("%s must not require round_id", testCase.eventType)
+		}
+	}
+}
+
 func TestEventRejectsUnsupportedEvaluationState(t *testing.T) {
 	event := Event{
 		Type:           EventSettled,

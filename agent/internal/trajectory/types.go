@@ -17,6 +17,8 @@ type EventType string
 
 const (
 	EventTurnStarted           EventType = "trajectory.turn.started"
+	EventTurnCompleted         EventType = "trajectory.turn.completed"
+	EventTurnFailed            EventType = "trajectory.turn.failed"
 	EventTurnStopped           EventType = "trajectory.turn.stopped"
 	EventIntentFramed          EventType = "trajectory.intent.framed"
 	EventObservationRecorded   EventType = "trajectory.observation.recorded"
@@ -245,7 +247,7 @@ func PayloadMap(payload Payload) (map[string]any, error) {
 
 func (t EventType) Valid() bool {
 	switch t {
-	case EventTurnStarted, EventTurnStopped, EventIntentFramed, EventObservationRecorded,
+	case EventTurnStarted, EventTurnCompleted, EventTurnFailed, EventTurnStopped, EventIntentFramed, EventObservationRecorded,
 		EventHypothesisProposed, EventRoundStarted, EventInterventionApplied,
 		EventMaterialityEvaluated, EventTargetResponse, EventRoundDecision,
 		EventRollbackCompleted, EventBranchCreated, EventWorktreeCreated,
@@ -299,7 +301,7 @@ func (s EvaluationState) Valid() bool {
 
 func DefaultNodeKind(t EventType) NodeKind {
 	switch t {
-	case EventTurnStarted, EventTurnStopped:
+	case EventTurnStarted, EventTurnCompleted, EventTurnFailed, EventTurnStopped:
 		return NodeTurn
 	case EventIntentFramed:
 		return NodeIntent
@@ -334,6 +336,10 @@ func DefaultStatus(t EventType) Status {
 	switch t {
 	case EventTurnStarted, EventRoundStarted:
 		return StatusRunning
+	case EventTurnCompleted:
+		return StatusCompleted
+	case EventTurnFailed:
+		return StatusFailed
 	case EventUserJudgmentRequested:
 		return StatusWaiting
 	case EventTurnStopped:
@@ -349,6 +355,10 @@ func DefaultPhase(t EventType) string {
 	switch t {
 	case EventTurnStarted:
 		return "framing"
+	case EventTurnCompleted:
+		return "completed"
+	case EventTurnFailed:
+		return "failed"
 	case EventIntentFramed:
 		return "framing"
 	case EventObservationRecorded:

@@ -161,6 +161,7 @@ func (s *Server) emitTurnEvent(conversationID, eventType string, resp ChatRespon
 		},
 		LogicalMessageID: "agent_turn:" + firstNonEmpty(runID, goalID, conversationID),
 	})
+	s.emitChatTurnTrajectory(conversationID, eventType, resp, goalID, runID)
 }
 
 func (s *Server) emitToolItemStarted(in executorpkg.Input, toolCallID string) {
