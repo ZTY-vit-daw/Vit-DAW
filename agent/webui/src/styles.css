@@ -57,7 +57,7 @@ button:disabled {
 
 .app-shell {
   display: grid;
-  grid-template-rows: 64px minmax(0, 1fr);
+  grid-template-rows: auto auto minmax(0, 1fr);
   width: 100%;
   height: 100%;
   min-width: 0;
@@ -2994,7 +2994,7 @@ h3 {
 .composer-main {
   flex: 0 0 auto;
   display: grid;
-  grid-template-columns: auto auto minmax(0, 1fr) auto;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: end;
   gap: 10px;
   padding: 12px;
@@ -3092,12 +3092,6 @@ h3 {
   transform: translateX(10px);
 }
 
-.authority-mode-control {
-  display: flex;
-  align-items: center;
-  flex: 0 0 auto;
-}
-
 .sr-only {
   position: absolute;
   width: 1px;
@@ -3108,21 +3102,6 @@ h3 {
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
-}
-
-.authority-mode-control select {
-  max-width: 168px;
-  height: 34px;
-  border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.14));
-  border-radius: 9px;
-  background: rgba(255, 255, 255, 0.055);
-  color: inherit;
-  padding: 0 9px;
-  font-size: 11px;
-}
-
-.authority-mode-control select:disabled {
-  opacity: 0.55;
 }
 
 .stop-turn-button {
@@ -5149,7 +5128,7 @@ h3 {
 }
 
 .app-shell {
-  grid-template-rows: 72px minmax(0, 1fr);
+  grid-template-rows: auto auto minmax(0, 1fr);
   background: var(--panel);
 }
 
@@ -5635,19 +5614,6 @@ body.panel-resizing * {
     align-items: center;
   }
 
-  .composer-main .authority-mode-control {
-    grid-column: 2;
-    grid-row: 1;
-    min-width: 0;
-  }
-
-  .composer-main .authority-mode-control select {
-    box-sizing: border-box;
-    width: 100%;
-    min-width: 0;
-    max-width: none;
-  }
-
   .composer-main textarea {
     grid-column: 1 / -1;
     grid-row: 2;
@@ -5836,8 +5802,40 @@ body.panel-resizing * {
   color: var(--white);
 }
 
-.authority-mode-control select {
-  border: 2px solid var(--ink);
-  color: var(--ink);
-  background: var(--white);
+/* ===== GUI-T4：确认卡进卡族 + 权限开关头部化（对照 traceui.css .c-row/.btn/.perm/.subnote） ===== */
+
+/* 确认卡 k/v 行（改动/假设/预期）：标签块 36px 居中墨边 */
+.c-row{display:flex;gap:8px;margin-bottom:8px;min-width:0}
+.c-row .k{flex:none;width:36px;text-align:center;font-size:11px;font-weight:700;
+  border:2px solid var(--ink);background:var(--panel);align-self:flex-start;padding:3px 0;margin-top:1px}
+.c-row .v{font-size:13px;line-height:1.6;min-width:0;overflow-wrap:anywhere}
+
+/* 批准/拒绝双席（确认卡）：批准=蓝底白字，拒绝=白底 hover 红 */
+.c-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.btn{display:flex;align-items:center;justify-content:center;gap:7px;border:2px solid var(--ink);
+  border-radius:2px;background:var(--white);color:var(--ink);font-size:13px;font-weight:700;
+  padding:9px 6px;cursor:pointer;white-space:nowrap;transition:border-color .15s,color .15s,background .15s}
+.btn svg{width:12px;height:12px;flex:none}
+.btn.approve{background:var(--blue);color:var(--white)}
+.btn.approve:hover:not(:disabled){background:var(--blue-dark)}
+.btn.reject:hover:not(:disabled){border-color:var(--red);color:var(--red)}
+.btn:active:not(:disabled){transform:translate(1px,1px)}
+.btn:disabled{cursor:default;opacity:.55}
+.card.settled .c-actions{display:none}
+
+/* 头部权限分段开关（普通/完全）：激活=蓝底白字 */
+.perm{display:flex;border:2px solid var(--ink);background:var(--white)}
+.perm button{font-size:12px;font-weight:600;padding:6px 11px;background:var(--white);color:var(--ink);
+  border:0;cursor:pointer;transition:background .15s,color .15s}
+.perm button+button{border-left:2px solid var(--ink)}
+.perm button.on{background:var(--blue);color:var(--white)}
+.perm button:disabled{cursor:default;opacity:.55}
+
+/* 副注条（头部下方，黄底墨字，文案随档位切换） */
+.subnote{background:var(--yellow-soft);border-bottom:2px solid var(--ink)}
+.subnote span{display:block;padding:7px 12px;font-size:12px;color:var(--ink)}
+
+@media (max-width:560px){
+  .perm button{padding:6px 8px;font-size:11px}
+  .c-row .k{width:30px;font-size:10px}
 }

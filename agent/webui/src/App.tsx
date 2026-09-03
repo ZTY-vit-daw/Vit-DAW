@@ -585,9 +585,9 @@ function App() {
     }
   };
 
-  const handleSend = async (event?: FormEvent) => {
+  const handleSend = async (event?: FormEvent, textOverride?: string) => {
     event?.preventDefault();
-    const messageText = input.trim();
+    const messageText = (textOverride ?? input).trim();
     if (isSending) {
       return;
     }
@@ -1172,6 +1172,9 @@ function App() {
         uiState={uiState}
         onMacroValuePreview={previewMacroControlValue}
         onMacroValueCommit={commitMacroControlValue}
+        onSendSupplement={(text) => {
+          void handleSend(undefined, text);
+        }}
       />
 
       {error && (
@@ -1188,8 +1191,6 @@ function App() {
         pendingArtifacts={pendingArtifacts}
         pendingMacroControls={pendingMacroRefs}
         mode={mode}
-        authorityMode={authorityMode}
-        authorityBusy={authorityBusy}
         agentTurnRunning={agentTurnRunning}
         stopTurnBusy={stopTurnBusy}
         isSending={isSending}
@@ -1199,7 +1200,6 @@ function App() {
         onSubmit={handleSend}
         onUploadClick={() => fileInputRef.current?.click()}
         onModeChange={setMode}
-        onAuthorityModeChange={handleAuthorityModeChange}
         onStopTurn={handleStopTurn}
         onInteractionAction={handleInteractionAction}
         onInvoke={invokeDawAction}
@@ -1264,6 +1264,9 @@ function App() {
         onRefresh={refreshState}
         onTransportCommand={runTransportCommand}
         transportBusy={transportBusy}
+        authorityMode={authorityMode}
+        authorityLocked={authorityBusy || agentTurnRunning}
+        onAuthorityModeChange={handleAuthorityModeChange}
       />
 
       <section className="main-workspace">
@@ -1723,7 +1726,7 @@ function RouteEditor({
   );
 }
 
-function TopStatusBar({
+export function TopStatusBar({
   connection,
   healthLabel,
   runtimeStatus,
@@ -1732,7 +1735,10 @@ function TopStatusBar({
   onOpenHistory,
   onRefresh,
   onTransportCommand,
-  transportBusy
+  transportBusy,
+  authorityMode,
+  authorityLocked,
+  onAuthorityModeChange
 }: {
   connection: ConnectionStatus;
   healthLabel: string;
@@ -1743,6 +1749,10 @@ function TopStatusBar({
   onRefresh: () => Promise<void>;
   onTransportCommand: (tool: string, args?: JsonRecord) => Promise<void>;
   transportBusy: boolean;
+  authorityMode: AuthorityMode;
+  /** authorityBusy || agentTurnRunning：切换进行中或回合运行中锁定档位 */
+  authorityLocked: boolean;
+  onAuthorityModeChange: (mode: AuthorityMode) => void;
 }) {
   const [seekDraft, setSeekDraft] = useState("");
   const project = asRecord(uiState?.project);
@@ -1767,7 +1777,8 @@ function TopStatusBar({
   };
 
   return (
-    <header className="top-status">
+    <>
+      <header className="top-status">
       <div className="brand-block">
         <div className="vit-mondrian-mark" aria-label="Vit"><strong>V</strong><i /><b /></div>
         <div className="conversation-identity">
@@ -1827,8 +1838,32 @@ function TopStatusBar({
         <button className="icon-button refresh" type="button" title="Refresh" onClick={() => void onRefresh()}>
           <RefreshCw size={16} />
         </button>
+        <div className="perm" role="group" aria-label="权限开关" title="控制可逆工程动作是否逐项请求确认">
+          <button
+            type="button"
+            className={authorityMode === "manual_confirmation" ? "on" : ""}
+            disabled={authorityLocked}
+            aria-pressed={authorityMode === "manual_confirmation"}
+            onClick={() => onAuthorityModeChange("manual_confirmation")}
+          >
+            普通
+          </button>
+          <button
+            type="button"
+            className={authorityMode === "full_project_access" ? "on" : ""}
+            disabled={authorityLocked}
+            aria-pressed={authorityMode === "full_project_access"}
+            onClick={() => onAuthorityModeChange("full_project_access")}
+          >
+            完全
+          </button>
+        </div>
       </div>
     </header>
+    <div className="subnote" role="status">
+      <span>{authorityMode === "full_project_access" ? "连续执行试验步 · 每步仍可回滚" : "每步试验都经你确认 · 每步可回滚"}</span>
+    </div>
+    </>
   );
 }
 
@@ -3940,7 +3975,8 @@ function MessageStream({
   onMacroValueCommit,
   onAuditionSelect,
   onAuditionStop,
-  onSubmitAuditionJudgment
+  onSubmitAuditionJudgment,
+  onSendSupplement
 }: {
   messages: ChatMessage[];
   activities: ChatMessage[];
@@ -3960,6 +3996,7 @@ function MessageStream({
   onAuditionSelect: (sessionID: string, candidateID: string) => Promise<void>;
   onAuditionStop: (sessionID: string) => Promise<void>;
   onSubmitAuditionJudgment?: (payload: AuditionJudgmentPayload) => Promise<void>;
+  onSendSupplement?: (text: string) => void;
 }) {
   const bottomRef = useRef<HTMLDivElement | null>(null);
 
@@ -3991,6 +4028,8 @@ function MessageStream({
             uiState={uiState}
             onMacroValuePreview={onMacroValuePreview}
             onMacroValueCommit={onMacroValueCommit}
+            authorityMode={authorityMode}
+            onSendSupplement={onSendSupplement}
           />
         )
       : null;
@@ -4143,7 +4182,9 @@ function ActionCards({
   onSelectArtifact,
   uiState,
   onMacroValuePreview,
-  onMacroValueCommit
+  onMacroValueCommit,
+  authorityMode,
+  onSendSupplement
 }: {
   actions: JsonRecord[];
   respondingActionID: string;
@@ -4154,6 +4195,8 @@ function ActionCards({
   uiState: AgentUIState | null;
   onMacroValuePreview: (macro: MacroControl, value: number) => void;
   onMacroValueCommit: (macro: MacroControl, value: number) => Promise<void>;
+  authorityMode?: AuthorityMode;
+  onSendSupplement?: (text: string) => void;
 }) {
   const visibleActions = actions
     .slice(0, 6)
@@ -4175,6 +4218,8 @@ function ActionCards({
           uiState={uiState}
           onMacroValuePreview={onMacroValuePreview}
           onMacroValueCommit={onMacroValueCommit}
+          authorityMode={authorityMode}
+          onSendSupplement={onSendSupplement}
         />
       ))}
     </div>
@@ -4191,6 +4236,10 @@ type ActionCardProps = {
   uiState: AgentUIState | null;
   onMacroValuePreview: (macro: MacroControl, value: number) => void;
   onMacroValueCommit: (macro: MacroControl, value: number) => Promise<void>;
+  /** 完全档下确认卡静默沉淀（GUI-T4 ③ UI 层兜底，agent 侧仍发 proposal） */
+  authorityMode?: AuthorityMode;
+  /** 卡面补充输入直发对话（免选路径，发送后卡面选项未采用） */
+  onSendSupplement?: (text: string) => void;
 };
 
 type ProjectResultReadiness = "ready" | "silent_risk" | "affected_by_mute" | "unknown" | "not_auditionable";
@@ -4249,7 +4298,58 @@ function shouldSuppressProposalContent(message: ChatMessage): boolean {
   return message.actions.map(asRecord).some(isCapabilityProposalInteraction);
 }
 
-function CapabilityProposalCard({ action, respondingActionID, onInteractionAction }: ActionCardProps) {
+export type ProposalCardOutcome = { tone: "blue" | "red" | "gray"; icon: "check" | "cross" | "undo"; text: string };
+
+/** 确认卡沉淀结果条推导（GUI-T4）：批准/拒绝走 resolved_action_id 与 status，补充未采用走 supersedes 渲染 */
+export function proposalCardOutcome(action: JsonRecord, resolved: boolean): ProposalCardOutcome | null {
+  if (!resolved) {
+    return null;
+  }
+  const status = textValue(action.status ?? action.stage, "").toLowerCase();
+  const resolvedActionID = textValue(action.resolved_action_id, "").toLowerCase();
+  const terminal = status.includes("complete") || status.includes("cancel") || status.includes("fail");
+  if (!resolvedActionID && !terminal) {
+    return null;
+  }
+  if (resolvedActionID === "superseded") {
+    return { tone: "gray", icon: "undo", text: "已收到你的补充 · 卡面选项未采用" };
+  }
+  if (resolvedActionID === "turn_terminal_receipt") {
+    return status.includes("fail")
+      ? { tone: "red", icon: "cross", text: "已失效 · 本回合执行失败" }
+      : { tone: "blue", icon: "check", text: "已按对话处理 · 本回合执行完毕" };
+  }
+  if (status.includes("cancel")) {
+    return { tone: "red", icon: "cross", text: "已拒绝 · 未做任何改动" };
+  }
+  if (status.includes("fail")) {
+    return { tone: "red", icon: "cross", text: "已失效 · 未执行" };
+  }
+  const resolvedAt = finiteNumber(action.resolved_at, 0);
+  return { tone: "blue", icon: "check", text: resolvedAt > 0 ? `已批准 · ${proposalClock(resolvedAt)}` : "已批准" };
+}
+
+function proposalClock(epochMS: number): string {
+  const date = new Date(epochMS);
+  return `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
+}
+
+/** childActions 批准/拒绝席位：取消/拒绝语义占拒绝位（白底 hover 红），其余（approve/primary/recommended）占批准位（蓝底） */
+function isProposalApproveAction(child: JsonRecord, actionID: string): boolean {
+  const id = actionID.toLowerCase();
+  if (["cancel", "reject", "deny", "dismiss"].includes(id)) {
+    return false;
+  }
+  const label = textValue(child.label ?? child.title, "").toLowerCase();
+  if (["取消", "拒绝", "不执行"].some((word) => label.includes(word))) {
+    return false;
+  }
+  return true;
+}
+
+export function CapabilityProposalCard({ action, respondingActionID, onInteractionAction, authorityMode, onSendSupplement }: ActionCardProps) {
+  const [supplementText, setSupplementText] = useState("");
+  const [supplementSent, setSupplementSent] = useState(false);
   const payload = interactionPayload(action);
   const presentation = asRecord(payload.proposal_presentation ?? action.proposal_presentation);
   const childActions = firstArray(action.actions)
@@ -4272,114 +4372,192 @@ function CapabilityProposalCard({ action, respondingActionID, onInteractionActio
   const previews = firstArray(presentation.actions).map(asRecord).filter((item) => Object.keys(item).length > 0);
   const summaries = firstArray(presentation.analysis_summary).map((item) => textValue(item, "")).filter(Boolean);
   const limitations = firstArray(presentation.limitations).map((item) => textValue(item, "")).filter(Boolean);
-  const badge = resolved
-    ? status.includes("cancel") ? "已取消" : status.includes("fail") ? "已失效" : "已确认"
-    : `Proposal${revision > 0 ? ` · r${revision}` : ""}`;
+  const outcome = proposalCardOutcome(action, resolved)
+    ?? (supplementSent ? { tone: "gray" as const, icon: "undo" as const, text: "已收到你的补充 · 卡面选项未采用" } : null)
+    ?? (authorityMode === "full_project_access" ? { tone: "gray" as const, icon: "check" as const, text: "完全档 · 已直接执行" } : null);
+  const settled = outcome !== null;
+
+  const sendSupplement = () => {
+    const value = supplementText.trim();
+    if (!value || !onSendSupplement) {
+      return;
+    }
+    setSupplementSent(true);
+    setSupplementText("");
+    onSendSupplement(value);
+  };
 
   return (
-    <div className={`action-card capability-proposal-card ${resolved ? "resolved" : "attention"}`}>
-      <SlidersHorizontal size={16} />
-      <div className="action-content">
-        <div className="action-title-line capability-proposal-title">
-          <strong>{title}</strong>
-          <span>{badge}</span>
-        </div>
-        {conclusion && <p className="capability-proposal-conclusion">{conclusion}</p>}
-        <div className="capability-proposal-facts" aria-label="方案摘要">
-          {analyzedTracks > 0 && <span>已分析 {analyzedTracks} 轨</span>}
-          <span>{actionCount} 项修改</span>
-          {risk && <span>风险 {localizeDisplayText(risk)}</span>}
-          <span>{reversible ? "可回滚" : "不可回滚"}</span>
-        </div>
-        {groups.length > 0 && (
-          <div className="capability-proposal-groups">
-            {groups.slice(0, 6).map((group, index) => {
-              const label = textValue(group.label ?? group.role ?? group.function, `分组 ${index + 1}`);
-              const count = finiteNumber(group.move_count ?? group.track_count, 0);
-              const unit = textValue(group.unit, "");
-              const min = finiteNumber(group.min_value, 0);
-              const max = finiteNumber(group.max_value, 0);
-              const range = min === max ? formatProposalValue(min, unit) : `${formatProposalValue(min, unit)} ～ ${formatProposalValue(max, unit)}`;
-              return <span key={`${textValue(group.id, label)}-${index}`}><strong>{label}</strong>{count > 0 ? ` · ${count} 项` : ""}{unit ? ` · ${range}` : ""}</span>;
-            })}
-          </div>
-        )}
-        {(summaries.length > 0 || recommendation || readiness.length > 0 || previews.length > 0 || limitations.length > 0) && (
-          <details className="capability-proposal-details">
-            <summary>查看分析依据与逐轨修改</summary>
-            {summaries.length > 0 && (
-              <section>
-                <h4>分析摘要</h4>
-                <ul>{summaries.map((item, index) => <li key={`${item}-${index}`}>{item}</li>)}</ul>
-              </section>
-            )}
-            {recommendation && <section><h4>推荐理由</h4><p>{recommendation}</p></section>}
-            {readiness.length > 0 && (
-              <section>
-                <h4>证据覆盖</h4>
-                <div className="capability-proposal-metrics">
-                  {readiness.map((metric, index) => (
-                    <span key={`${textValue(metric.id, "metric")}-${index}`}>
-                      <strong>{textValue(metric.label, "指标")}</strong>
-                      {textValue(metric.value, "—")}
-                    </span>
-                  ))}
-                </div>
-              </section>
-            )}
-            {previews.length > 0 && (
-              <section>
-                <h4>逐轨修改</h4>
-                <div className="capability-proposal-preview-list">
-                  {previews.map((preview, index) => {
-                    const unit = textValue(preview.unit, "");
-                    const before = finiteNumber(preview.before, 0);
-                    const target = finiteNumber(preview.target, 0);
-                    const delta = finiteNumber(preview.delta, 0);
-                    return (
-                      <div key={`${textValue(preview.action_id ?? preview.track_id, "change")}-${index}`}>
-                        <strong>{textValue(preview.track_name ?? preview.track_id, `轨道 ${index + 1}`)}</strong>
-                        <span>{formatProposalValue(before, unit)} → {formatProposalValue(target, unit)} ({formatProposalDelta(delta, unit)})</span>
-                        {textValue(preview.reason, "") && <small>{textValue(preview.reason, "")}</small>}
-                      </div>
-                    );
-                  })}
-                </div>
-              </section>
-            )}
-            {limitations.length > 0 && (
-              <section className="capability-proposal-limitations">
-                <h4>限制与风险</h4>
-                <ul>{limitations.map((item, index) => <li key={`${item}-${index}`}>{item}</li>)}</ul>
-              </section>
-            )}
-          </details>
-        )}
-        {!resolved && <p className="capability-proposal-hint">可直接回复“执行这个方案”，也可以继续提问、排除轨道或修改数值。</p>}
-        {!resolved && childActions.length > 0 && (
-          <div className="action-buttons capability-proposal-actions">
-            {childActions.map((child, childIndex) => {
-              const actionID = textValue(child.id ?? child.action_id ?? child.decision, `action_${childIndex + 1}`);
-              const label = textValue(child.label ?? child.title ?? actionID, actionID);
-              const pendingID = interactionActionID(interactionID || renderID || "proposal", actionID);
-              const isBusy = respondingActionID === pendingID;
-              return (
-                <button
-                  key={`${actionID}-${childIndex}`}
-                  className={`action-button ${textValue(child.style, "secondary")}`}
-                  type="button"
-                  disabled={respondingActionID !== ""}
-                  onClick={() => onInteractionAction(action, child, capabilityProposalInteractionPayload(action, child))}
-                >
-                  {isBusy && <Loader2 className="spin" size={14} />}
-                  <span>{label}</span>
-                </button>
-              );
-            })}
-          </div>
-        )}
+    <section className={["card", "capability-proposal-card", settled ? "settled" : ""].filter(Boolean).join(" ")} aria-label="确认 · 试验步方案">
+      <div className="tab">确认 · 第 {revision + 1} 轮试验步</div>
+      <div className="c-head">
+        <span className="csum">{title}</span>
+        {!settled && <span className="chip">待裁</span>}
       </div>
-    </div>
+      {(conclusion || title) && (
+        <div className="c-row"><span className="k">改动</span><span className="v">{conclusion || title}</span></div>
+      )}
+      {recommendation && (
+        <div className="c-row"><span className="k">假设</span><span className="v">{recommendation}</span></div>
+      )}
+      <div className="c-row">
+        <span className="k">预期</span>
+        <span className="v">{actionCount} 项修改确认后一次生效 · {reversible ? "可一键回滚" : "执行后不可回滚"}</span>
+      </div>
+      <div className="capability-proposal-facts" aria-label="方案摘要">
+        {analyzedTracks > 0 && <span>已分析 {analyzedTracks} 轨</span>}
+        <span>{actionCount} 项修改</span>
+        {risk && <span>风险 {localizeDisplayText(risk)}</span>}
+        <span>{reversible ? "可回滚" : "不可回滚"}</span>
+      </div>
+      {groups.length > 0 && (
+        <div className="capability-proposal-groups">
+          {groups.slice(0, 6).map((group, index) => {
+            const label = textValue(group.label ?? group.role ?? group.function, `分组 ${index + 1}`);
+            const count = finiteNumber(group.move_count ?? group.track_count, 0);
+            const unit = textValue(group.unit, "");
+            const min = finiteNumber(group.min_value, 0);
+            const max = finiteNumber(group.max_value, 0);
+            const range = min === max ? formatProposalValue(min, unit) : `${formatProposalValue(min, unit)} ～ ${formatProposalValue(max, unit)}`;
+            return <span key={`${textValue(group.id, label)}-${index}`}><strong>{label}</strong>{count > 0 ? ` · ${count} 项` : ""}{unit ? ` · ${range}` : ""}</span>;
+          })}
+        </div>
+      )}
+      {(summaries.length > 0 || recommendation || readiness.length > 0 || previews.length > 0 || limitations.length > 0) && (
+        <details className="capability-proposal-details">
+          <summary>查看分析依据与逐轨修改</summary>
+          {summaries.length > 0 && (
+            <section>
+              <h4>分析摘要</h4>
+              <ul>{summaries.map((item, index) => <li key={`${item}-${index}`}>{item}</li>)}</ul>
+            </section>
+          )}
+          {recommendation && <section><h4>推荐理由</h4><p>{recommendation}</p></section>}
+          {readiness.length > 0 && (
+            <section>
+              <h4>证据覆盖</h4>
+              <div className="capability-proposal-metrics">
+                {readiness.map((metric, index) => (
+                  <span key={`${textValue(metric.id, "metric")}-${index}`}>
+                    <strong>{textValue(metric.label, "指标")}</strong>
+                    {textValue(metric.value, "—")}
+                  </span>
+                ))}
+              </div>
+            </section>
+          )}
+          {previews.length > 0 && (
+            <section>
+              <h4>逐轨修改</h4>
+              <div className="capability-proposal-preview-list">
+                {previews.map((preview, index) => {
+                  const unit = textValue(preview.unit, "");
+                  const before = finiteNumber(preview.before, 0);
+                  const target = finiteNumber(preview.target, 0);
+                  const delta = finiteNumber(preview.delta, 0);
+                  return (
+                    <div key={`${textValue(preview.action_id ?? preview.track_id, "change")}-${index}`}>
+                      <strong>{textValue(preview.track_name ?? preview.track_id, `轨道 ${index + 1}`)}</strong>
+                      <span>{formatProposalValue(before, unit)} → {formatProposalValue(target, unit)} ({formatProposalDelta(delta, unit)})</span>
+                      {textValue(preview.reason, "") && <small>{textValue(preview.reason, "")}</small>}
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+          )}
+          {limitations.length > 0 && (
+            <section className="capability-proposal-limitations">
+              <h4>限制与风险</h4>
+              <ul>{limitations.map((item, index) => <li key={`${item}-${index}`}>{item}</li>)}</ul>
+            </section>
+          )}
+        </details>
+      )}
+      {!settled && childActions.length > 0 && (
+        <div className="c-actions capability-proposal-actions">
+          {childActions.map((child, childIndex) => {
+            const actionID = textValue(child.id ?? child.action_id ?? child.decision, `action_${childIndex + 1}`);
+            const label = textValue(child.label ?? child.title ?? actionID, actionID);
+            const pendingID = interactionActionID(interactionID || renderID || "proposal", actionID);
+            const isBusy = respondingActionID === pendingID;
+            const approveSeat = isProposalApproveAction(child, actionID);
+            return (
+              <button
+                key={`${actionID}-${childIndex}`}
+                className={`btn ${approveSeat ? "approve" : "reject"}`}
+                type="button"
+                disabled={respondingActionID !== ""}
+                onClick={() => onInteractionAction(action, child, capabilityProposalInteractionPayload(action, child))}
+              >
+                {isBusy ? <Loader2 className="spin" size={14} /> : approveSeat ? <ProposalCheckIcon /> : <ProposalCrossIcon />}
+                <span>{label}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+      {!settled && onSendSupplement && (
+        <form
+          className="c-ask"
+          title="可直接回复“执行这个方案”，也可以继续提问、排除轨道或修改数值。"
+          onSubmit={(event) => {
+            event.preventDefault();
+            sendSupplement();
+          }}
+        >
+          <input
+            type="text"
+            value={supplementText}
+            onChange={(event) => setSupplementText(event.currentTarget.value)}
+            placeholder="不用选项？直接补充你的要求…"
+            aria-label="方案补充输入"
+          />
+          <button type="submit" className="askb" aria-label="发送补充" disabled={respondingActionID !== ""}>
+            <ProposalSendIcon />
+          </button>
+        </form>
+      )}
+      {outcome && (
+        <div className={`outcome tone-${outcome.tone}`}>
+          {outcome.icon === "undo" ? <ProposalUndoIcon /> : outcome.icon === "cross" ? <ProposalCrossIcon /> : <ProposalCheckIcon />}
+          <span>{outcome.text}</span>
+        </div>
+      )}
+    </section>
+  );
+}
+
+function ProposalCheckIcon() {
+  return (
+    <svg viewBox="0 0 12 12" aria-hidden="true">
+      <path d="M1.8 6.4 4.8 9.2 10.2 2.8" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="square" />
+    </svg>
+  );
+}
+
+function ProposalCrossIcon() {
+  return (
+    <svg viewBox="0 0 12 12" aria-hidden="true">
+      <path d="M2.5 2.5 9.5 9.5M9.5 2.5 2.5 9.5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="square" />
+    </svg>
+  );
+}
+
+function ProposalUndoIcon() {
+  return (
+    <svg viewBox="0 0 14 14" aria-hidden="true">
+      <path d="M2.6 5.6h5.1a3.6 3.6 0 1 1-3.5 4.6" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="square" />
+      <path d="M5 3.3V7.9L1.4 5.6Z" fill="currentColor" />
+    </svg>
+  );
+}
+
+function ProposalSendIcon() {
+  return (
+    <svg viewBox="0 0 12 12" aria-hidden="true">
+      <path d="M1.5 1 11 6 1.5 11Z" fill="currentColor" />
+    </svg>
   );
 }
 
@@ -7406,20 +7584,17 @@ function Composer({
   pendingArtifacts,
   pendingMacroControls,
 	mode,
-	authorityMode,
-	authorityBusy,
 	agentTurnRunning,
-	stopTurnBusy,
-	isSending,
-	isUploading,
-	interactionAction,
+  stopTurnBusy,
+  isSending,
+  isUploading,
+  interactionAction,
   respondingActionID,
   onSubmit,
   onUploadClick,
   onModeChange,
-	onAuthorityModeChange,
 	onStopTurn,
-	onInteractionAction,
+  onInteractionAction,
   onInvoke,
   onSelectArtifact,
   onRemoveArtifact,
@@ -7431,8 +7606,6 @@ function Composer({
   pendingArtifacts: ArtifactSummary[];
   pendingMacroControls: MacroControl[];
   mode: AgentMode;
-  authorityMode: AuthorityMode;
-  authorityBusy: boolean;
   agentTurnRunning: boolean;
   stopTurnBusy: boolean;
   isSending: boolean;
@@ -7442,9 +7615,8 @@ function Composer({
   onSubmit: (event?: FormEvent) => void;
   onUploadClick: () => void;
   onModeChange: (mode: AgentMode) => void;
-  onAuthorityModeChange: (mode: AuthorityMode) => void;
   onStopTurn: () => void;
-	onInteractionAction: (interaction: JsonRecord, action: JsonRecord, payload?: JsonRecord) => void;
+  onInteractionAction: (interaction: JsonRecord, action: JsonRecord, payload?: JsonRecord) => void;
   onInvoke: DawInvoke;
   onSelectArtifact: (id: string) => void;
   onRemoveArtifact: (id: string) => void;
@@ -7572,18 +7744,6 @@ function Composer({
             </div>
           )}
         </div>
-        <label className="authority-mode-control" title="控制可逆工程动作是否逐项请求确认">
-          <span className="sr-only">Agent 权限模式</span>
-          <select
-            aria-label="Agent 权限模式"
-            value={authorityMode}
-            disabled={authorityBusy || agentTurnRunning}
-            onChange={(event) => onAuthorityModeChange(event.currentTarget.value as AuthorityMode)}
-          >
-            <option value="manual_confirmation">Manual Confirmation</option>
-            <option value="full_project_access">Full Project Access</option>
-          </select>
-        </label>
         <textarea
           value={input}
           rows={1}
