@@ -973,6 +973,8 @@ func audioClosureSettleFromResult(driver audioclosure.Driver, state audioclosure
 			reason = audioclosure.StopCancelled
 		case taskstate.StateFailed:
 			reason = audioclosure.StopTaskFailed
+		case taskstate.StateClosed:
+			reason = audioclosure.StopOwnerTurnClosed
 		default:
 			return state
 		}
@@ -1257,6 +1259,8 @@ func audioClosureSettlementReply(settlement *audioclosure.Settlement) string {
 		return "任务已经满足其持久化契约中的证据与结算条件。"
 	case audioclosure.StopTaskFailed:
 		return "任务在形成有效结算前失败；失败原因与已有证据已保留。"
+	case audioclosure.StopOwnerTurnClosed:
+		return "本轮对话已收尾；没有排程后续观察或受治理实验，任务以未完成实验的状态关闭。"
 	case audioclosure.StopEvidenceCeilingReached:
 		return "已达到本次闭环的唯一观察上限，现有证据仍不足以支持可靠动作；没有修改工程。"
 	case audioclosure.StopNoProgress:

@@ -60,6 +60,7 @@ const (
 	StopProjectRevisionStale          StopReason = "project_revision_stale"
 	StopHandoffRequested              StopReason = "handoff_requested"
 	StopCancelled                     StopReason = "cancelled"
+	StopOwnerTurnClosed               StopReason = "owner_turn_closed"
 )
 
 type Policy struct {

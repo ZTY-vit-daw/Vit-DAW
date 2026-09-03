@@ -253,7 +253,7 @@ func taskStatusFromSemantic(state taskstate.State) TaskStatus {
 	switch state {
 	case taskstate.StateHumanJudgmentRequired:
 		return TaskStatusWaitingInteraction
-	case taskstate.StateNoCandidateFound, taskstate.StateCapabilityBlocked, taskstate.StateSettled:
+	case taskstate.StateNoCandidateFound, taskstate.StateCapabilityBlocked, taskstate.StateSettled, taskstate.StateClosed:
 		return TaskStatusSettled
 	case taskstate.StateCancelled:
 		return TaskStatusCancelled
@@ -358,6 +358,12 @@ func (r *Runtime) TransitionTask(goalID string, request taskstate.TransitionRequ
 		goal.Status = StatusCancelled
 	case taskstate.StateFailed:
 		goal.Status = StatusFailed
+	case taskstate.StateClosed:
+		// owner_turn_closed runs at a turn boundary where the turn owner has
+		// already recorded the truthful goal end status (completed, failed,
+		// stopped or cancelled). The task projection is terminal, but the goal
+		// status must not be rewritten here — notably not a stopped goal back
+		// to completed.
 	}
 	r.goals[goal.GoalID] = goal
 	return cloneGoal(goal), nil

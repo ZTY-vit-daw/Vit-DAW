@@ -155,3 +155,67 @@ func TestProjectRevisionDuringExperimentPreservesExperimentIdentity(t *testing.T
 		t.Fatalf("experiment identity was lost across revision change: %+v", state)
 	}
 }
+
+func TestOwnerTurnClosedIsHonestTerminalFromEveryNonTerminalState(t *testing.T) {
+	// Reach every non-terminal state through legal transitions first.
+	contract := testContract(ContractDiagnostic)
+	observation, _ := New(contract, testNow)
+	diagnostic := mustApply(t, contract, observation, TransitionRequest{Event: EventDiagnosticCompleted, Reason: "bounded diagnosis", EvidenceRefs: []string{"obs-1"}})
+	improvementContract := testContract(ContractImprovement)
+	proposal := &BoundedProposal{ProposalID: "proposal-closed", Summary: "bounded candidate", EvidenceRefs: []string{"obs-1"}, RequiresExperiment: true}
+	proposalState, _ := New(improvementContract, testNow)
+	proposalState = mustApply(t, improvementContract, proposalState, TransitionRequest{Event: EventImprovementProposed, Reason: "candidate found", Proposal: proposal})
+	needsExperiment := mustApply(t, improvementContract, proposalState, TransitionRequest{Event: EventExperimentRequired, Reason: "experiment admitted", ExperimentID: "experiment-1"})
+	judgment := mustApply(t, improvementContract, needsExperiment, TransitionRequest{Event: EventHumanJudgmentRequested, Reason: "audition required", ExperimentID: "experiment-1", PendingInteraction: &PendingInteraction{InteractionID: "interaction-1", Kind: "audition_judgment", Reason: "compare A/B"}})
+	cases := []struct {
+		name  string
+		state Snapshot
+		from  State
+	}{
+		{"observation_in_progress", observation, StateObservationInProgress},
+		{"diagnostic_complete", diagnostic, StateDiagnosticComplete},
+		{"improvement_proposal", proposalState, StateImprovementProposal},
+		{"needs_experiment", needsExperiment, StateNeedsExperiment},
+		{"human_judgment_required", judgment, StateHumanJudgmentRequired},
+	}
+	for _, testCase := range cases {
+		t.Run(string(testCase.from), func(t *testing.T) {
+			closed, err := Apply(contract, testCase.state, TransitionRequest{Event: EventOwnerTurnClosed, Reason: "chat turn closed without governed experiment"}, testNow)
+			if err != nil {
+				t.Fatalf("owner_turn_closed rejected from %s: %v", testCase.from, err)
+			}
+			last := closed.History[len(closed.History)-1]
+			if closed.State != StateClosed || !closed.Terminal || last.From != testCase.from || last.Event != EventOwnerTurnClosed {
+				t.Fatalf("dishonest close from %s: state=%+v last=%+v", testCase.from, closed, last)
+			}
+			if len(last.EvidenceRefs) != 0 {
+				t.Fatalf("owner_turn_closed fabricated evidence: %+v", last.EvidenceRefs)
+			}
+		})
+	}
+	for _, terminal := range []State{StateNoCandidateFound, StateCapabilityBlocked, StateSettled, StateCancelled, StateFailed, StateClosed} {
+		builder := func() Snapshot {
+			state, _ := New(contract, testNow)
+			switch terminal {
+			case StateNoCandidateFound:
+				return mustApply(t, contract, state, TransitionRequest{Event: EventNoCandidateReported, Reason: "bounded search", EvidenceRefs: []string{"obs-1"}})
+			case StateCapabilityBlocked:
+				return mustApply(t, contract, state, TransitionRequest{Event: EventCapabilityBlocked, Reason: "boundary"})
+			case StateSettled:
+				state = mustApply(t, contract, state, TransitionRequest{Event: EventDiagnosticCompleted, Reason: "diagnosis", EvidenceRefs: []string{"obs-1"}})
+				return mustApply(t, contract, state, TransitionRequest{Event: EventTaskSettled, Reason: "fulfilled", EvidenceRefs: []string{"obs-1"}})
+			case StateCancelled:
+				return mustApply(t, contract, state, TransitionRequest{Event: EventTaskCancelled, Reason: "user cancelled"})
+			case StateFailed:
+				return mustApply(t, contract, state, TransitionRequest{Event: EventTaskFailed, Reason: "failed"})
+			case StateClosed:
+				return mustApply(t, contract, state, TransitionRequest{Event: EventOwnerTurnClosed, Reason: "chat turn closed without governed experiment"})
+			}
+			return state
+		}
+		state := builder()
+		if _, err := Apply(contract, state, TransitionRequest{Event: EventOwnerTurnClosed, Reason: "double close"}, testNow); err == nil {
+			t.Fatalf("owner_turn_closed accepted from terminal %s", terminal)
+		}
+	}
+}

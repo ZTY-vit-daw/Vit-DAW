@@ -67,4 +67,12 @@ describe("task runtime trajectory GUI", () => {
     expect(markup).toContain('aria-expanded="true"');
     expect(markup).toContain("任务已完成");
   });
+
+  it("AGENT-F2：chat 收尾的 closed 态渲染为本轮已收尾且不再转圈", () => {
+    const markup = renderToStaticMarkup(<TaskTrajectoryView snapshot={runtimeSnapshot("closed")} />);
+    expect(markup).toContain("本轮已收尾");
+    expect(markup).toContain('class="task-trajectory is-terminal"');
+    expect(markup).not.toContain("spin");
+    expect(markup).not.toContain("正在观察工程");
+  });
 });

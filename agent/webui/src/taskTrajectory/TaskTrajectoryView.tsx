@@ -14,7 +14,8 @@ const semanticLabels: Record<string, string> = {
   capability_blocked: "能力受限",
   settled: "任务已完成",
   cancelled: "任务已取消",
-  failed: "任务失败"
+  failed: "任务失败",
+  closed: "本轮已收尾"
 };
 
 const continuationLabels: Record<string, string> = {
@@ -33,7 +34,7 @@ function semanticLabel(state: string): string {
 
 function terminalClass(state: string): string {
   if (["failed", "capability_blocked"].includes(state)) return "is-warning";
-  if (["settled", "no_candidate_found", "cancelled"].includes(state)) return "is-terminal";
+  if (["settled", "no_candidate_found", "cancelled", "closed"].includes(state)) return "is-terminal";
   if (state === "human_judgment_required") return "is-waiting";
   return "is-active";
 }
@@ -46,7 +47,7 @@ function formatTime(value: unknown): string {
 
 function StateIcon({ state }: { state: string }) {
   if (["failed", "capability_blocked"].includes(state)) return <ShieldAlert size={15} aria-hidden="true" />;
-  if (["settled", "no_candidate_found", "cancelled"].includes(state)) return <CircleCheck size={15} aria-hidden="true" />;
+  if (["settled", "no_candidate_found", "cancelled", "closed"].includes(state)) return <CircleCheck size={15} aria-hidden="true" />;
   if (state === "human_judgment_required") return <Clock3 size={15} aria-hidden="true" />;
   return <LoaderCircle size={15} className="spin" aria-hidden="true" />;
 }

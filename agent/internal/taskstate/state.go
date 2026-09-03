@@ -25,6 +25,7 @@ const (
 	StateSettled               State = "settled"
 	StateCancelled             State = "cancelled"
 	StateFailed                State = "failed"
+	StateClosed                State = "closed"
 )
 
 type ContractKind string
@@ -91,6 +92,7 @@ const (
 	EventTaskCancelled          Event = "task_cancelled"
 	EventTaskFailed             Event = "task_failed"
 	EventProjectRevisionChanged Event = "project_revision_changed"
+	EventOwnerTurnClosed        Event = "owner_turn_closed"
 )
 
 type TransitionRequest struct {
@@ -350,6 +352,18 @@ func transitionTarget(contract Contract, current Snapshot, request TransitionReq
 			return "", invalidTransition(from, request.Event)
 		}
 		return StateFailed, nil
+	case EventOwnerTurnClosed:
+		// A chat turn may admit a task contract and still end with a plain
+		// conversational reply that schedules no continuation (the semantic
+		// entry observation route answers directly). No runtime owns that
+		// task's next semantic move any more, so the turn boundary closes it
+		// honestly instead of leaving a non-terminal observation state that
+		// nothing can ever advance. Legal from every non-terminal state; the
+		// caller is responsible for verifying that no continuation is live.
+		if from.Terminal() {
+			return "", invalidTransition(from, request.Event)
+		}
+		return StateClosed, nil
 	default:
 		return "", fmt.Errorf("unsupported semantic transition event %q", request.Event)
 	}
@@ -420,7 +434,7 @@ func (s State) Valid() bool {
 	switch s {
 	case StateObservationInProgress, StateDiagnosticComplete, StateNoCandidateFound,
 		StateImprovementProposal, StateNeedsExperiment, StateHumanJudgmentRequired,
-		StateCapabilityBlocked, StateSettled, StateCancelled, StateFailed:
+		StateCapabilityBlocked, StateSettled, StateCancelled, StateFailed, StateClosed:
 		return true
 	default:
 		return false
@@ -429,7 +443,7 @@ func (s State) Valid() bool {
 
 func (s State) Terminal() bool {
 	switch s {
-	case StateNoCandidateFound, StateCapabilityBlocked, StateSettled, StateCancelled, StateFailed:
+	case StateNoCandidateFound, StateCapabilityBlocked, StateSettled, StateCancelled, StateFailed, StateClosed:
 		return true
 	default:
 		return false

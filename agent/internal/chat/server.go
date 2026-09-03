@@ -2292,6 +2292,9 @@ func (s *Server) handleChat(w http.ResponseWriter, r *http.Request) {
 		default:
 			s.harness.CompleteGoal(goalID, nil)
 		}
+		if chatTurnEndsGoalOwnership(resp) {
+			s.closeOrphanTaskAtTurnEnd(conversationID, goalID)
+		}
 		eventType := "turn.completed"
 		if resp.GoalStatus == string(agentruntime.StatusStopped) {
 			eventType = "turn.stopped"
@@ -4356,6 +4359,9 @@ func (s *Server) finalizeInteractionChatResponse(ctx context.Context, resp *Chat
 			s.harness.CompleteGoal(goalID, fmt.Errorf("%s", resp.Error))
 		default:
 			s.harness.CompleteGoal(goalID, nil)
+		}
+		if chatTurnEndsGoalOwnership(*resp) {
+			s.closeOrphanTaskAtTurnEnd(resp.ConversationID, goalID)
 		}
 	}
 	eventType := "turn.completed"
