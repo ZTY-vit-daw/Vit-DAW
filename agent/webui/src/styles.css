@@ -5661,3 +5661,189 @@ body.panel-resizing * {
     grid-row: 1;
   }
 }
+
+/* Mondrian v2 — Agent GUI 颜色契约（design/gui/templates/assets/traceui.css 对照） */
+/* 契约：输入=蓝底框 / 输出=白底框+硬投影 / 轨迹=无框。v1 段原样保留，本段只追加覆盖。 */
+
+:root {
+  --blue-inp: #dbe6fc; /* traceui --blue-inp：输入框体蓝 */
+}
+
+/* ① 输入=蓝底框：用户气泡（v1 为白底+1px 墨边） */
+.message-row.user .message-body {
+  border: 2px solid var(--ink);
+  background: var(--blue-inp);
+  box-shadow: none;
+}
+
+/* ② 输出=白底框：确认卡/提案卡（去黄底左边条 → 白底+2px 墨边+硬投影） */
+.action-card.attention,
+.capability-proposal-card {
+  border: 2px solid var(--ink);
+  background: var(--white);
+  box-shadow: 7px 7px 0 rgba(17, 17, 17, 0.12);
+}
+
+/* composer 输入区内的嵌入预览卡保持嵌入态（透明无边框），不被 ② 波及 */
+.composer-interaction-shell .action-card.attention,
+.composer-interaction-shell .capability-proposal-card {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+/* ③ 轨迹浮层去深色化：纸面+2px 墨边+直角；内部 audition-* 同步浅色化（墨字/灰线/白底），结构不动。
+   trajectory.css 在本文件之后打包加载，故用 doubled class / .trajectory-live-panel 前缀抬特异性压过。 */
+.trajectory-live-panel.trajectory-live-panel {
+  border: 2px solid var(--ink);
+  border-radius: 0;
+  background: var(--panel);
+}
+
+.trajectory-live-panel .audition-session {
+  border-top: 1px solid var(--line);
+}
+
+.trajectory-live-panel .audition-session-head span {
+  color: var(--muted);
+}
+
+.trajectory-live-panel .audition-session-head strong {
+  color: var(--ink);
+}
+
+.trajectory-live-panel .audition-session-head button,
+.trajectory-live-panel .audition-candidates button {
+  border: 1px solid var(--ink);
+  color: var(--ink);
+  background: var(--white);
+}
+
+.trajectory-live-panel .audition-candidates button.active {
+  border-color: var(--blue);
+  box-shadow: inset 0 0 0 1px var(--blue);
+}
+
+.trajectory-live-panel .audition-candidates span {
+  color: var(--muted);
+}
+
+.trajectory-live-panel .audition-error {
+  color: var(--red);
+}
+
+.trajectory-live-panel .audition-judgment {
+  border: 1px solid var(--line);
+  background: var(--white);
+}
+
+.trajectory-live-panel .audition-judgment legend {
+  color: var(--ink);
+}
+
+.trajectory-live-panel .audition-choice-row label {
+  border: 1px solid var(--ink);
+  color: var(--ink);
+  background: var(--white);
+}
+
+.trajectory-live-panel .audition-choice-row label:has(input:checked) {
+  border-color: var(--blue);
+  color: var(--blue-dark);
+  background: var(--blue-soft);
+}
+
+.trajectory-live-panel .audition-choice-row input {
+  accent-color: var(--blue);
+}
+
+.trajectory-live-panel .audition-judgment textarea {
+  border: 1px solid var(--ink);
+  color: var(--ink);
+  background: var(--white);
+}
+
+/* 判定提交键保实心主键层级（traceui .btn.approve 蓝底白字先例） */
+.trajectory-live-panel .audition-submit {
+  border: 1px solid var(--ink);
+  color: var(--white);
+  background: var(--blue);
+}
+
+.trajectory-live-panel .audition-recorded {
+  border-left: 3px solid #819917;
+  color: #5e760b;
+  background: #eff6bd;
+}
+
+.trajectory-live-panel .audition-settled {
+  border-left: 3px solid var(--blue);
+  color: var(--blue-dark);
+  background: var(--blue-soft);
+}
+
+.trajectory-live-panel .audition-session.settled .audition-session-head strong {
+  color: var(--blue);
+}
+
+.trajectory-live-panel .audition-candidate-actions button {
+  border: 1px solid var(--ink);
+  color: var(--ink);
+  background: var(--white);
+}
+
+/* 深底金/亮绿文字在纸面上对比不足，换 traceui 家族暗金/深绿 */
+.trajectory-live-panel .audition-inspected {
+  color: #8a6400;
+}
+
+.trajectory-live-panel .audition-adopted {
+  color: #5e760b;
+}
+
+/* ④ 活动条安静化：无框灰字行（spinner 保留；error 态保红字） */
+.activity-lane-item {
+  border-left: 0;
+  color: var(--muted);
+  background: transparent;
+}
+
+.activity-lane-item.error {
+  border-left: 0;
+  color: var(--red);
+  background: transparent;
+}
+
+/* ⑤ composer 纸面框：输入框/按钮统一白底 + 2px 墨边（现状接近，补齐差异处；圆角归零对齐 v1 锐角语言） */
+.composer {
+  border: 2px solid var(--ink);
+}
+
+.send-button,
+.tool-button {
+  border: 2px solid var(--ink);
+  border-radius: 0;
+  color: var(--ink);
+  background: var(--white);
+}
+
+.tool-button.primary {
+  color: var(--ink);
+  background: var(--white);
+}
+
+.send-button:hover,
+.tool-button.primary:hover {
+  background: var(--blue-soft);
+}
+
+/* 运行中停止键保功能红底白字，不随白底统一 */
+.send-button.stop-turn-button {
+  color: var(--white);
+}
+
+.authority-mode-control select {
+  border: 2px solid var(--ink);
+  color: var(--ink);
+  background: var(--white);
+}
