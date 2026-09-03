@@ -1,4 +1,5 @@
 import { renderToStaticMarkup } from "react-dom/server";
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { normalizeTaskTrajectory } from "../taskTrajectory";
 import { TaskTrajectoryView } from "./TaskTrajectoryView";
@@ -74,5 +75,12 @@ describe("task runtime trajectory GUI", () => {
     expect(markup).toContain('class="task-trajectory is-terminal"');
     expect(markup).not.toContain("spin");
     expect(markup).not.toContain("正在观察工程");
+  });
+
+  it("GUI-F2：顶部挂载已退出对话面板——App.tsx 不再渲染 TaskTrajectoryView（设计与内容并入对话流回合块）", () => {
+    const appSource = readFileSync(new URL("../App.tsx", import.meta.url), "utf8");
+    expect(appSource).not.toMatch(/<TaskTrajectoryView\b/);
+    // 数据线保留：runtime 轮询照旧喂 taskTrajectoryState，仅渲染归并进对话流
+    expect(appSource).toContain("taskTrajectoryState.snapshot");
   });
 });

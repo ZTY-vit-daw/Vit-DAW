@@ -1,4 +1,5 @@
 import type { AgentEvent } from "./types";
+import { normalizeTaskTrajectory, type TaskTrajectorySnapshot } from "./taskTrajectory";
 
 const base = {
   conversation_id: "mock-conversation",
@@ -29,3 +30,20 @@ export const mockStoppedTrajectoryEvents: AgentEvent[] = [
   ...mockMultiRoundTrajectoryEvents.slice(0, 4),
   { ...base, seq: 5, type: "trajectory.turn.stopped", item_id: "mock-stop", title: "用户已停止任务", status: "stopped", payload: { schema_version: "vit.observable_trajectory.v1", trace_node_id: "mock-stop", turn_id: "mock-turn", node_kind: "turn", phase: "stopped", status: "stopped", checkpoint_ref: "commit:mock-stopped" } }
 ];
+
+/** 与 mockMultiRoundTrajectoryEvents 同一任务的 runtime 快照（GUI-F2：合并块「任务详情」小节用例） */
+export function mockTaskTrajectorySnapshot(): TaskTrajectorySnapshot | null {
+  return normalizeTaskTrajectory({
+    schema_version: "vit.task_runtime_trajectory.v1",
+    task: { task_id: "mock-task", goal_id: "mock-goal", run_id: "mock-turn", original_intent: "改善主唱清晰度，不明显增加亮度。", status: "running", updated_at: "2026-09-03T12:00:00Z" },
+    run: {
+      run_id: "mock-turn", current_slice_id: "mock-slice-1", current_turn_id: "mock-turn",
+      slices: [{ slice_id: "mock-slice-1", sequence: 1, max_turns: 4, status: "running" }],
+      turns: [{ turn_id: "mock-turn", slice_id: "mock-slice-1", sequence: 1, source: "user", status: "running" }]
+    },
+    semantic: { state: "observation_in_progress", revision: 3, project_revision: "revision-3", evidence_refs: ["project.state:revision-3"], updated_at: "2026-09-03T12:00:00Z", summary: "正在观察掩蔽关系与电平结构。" },
+    continuation: { continuation_id: "mock-cont-1", status: "pending" },
+    capability_route: { capacity_assessment: { selected_capability: "free_state", capacity_level: "within_free_state" } },
+    transitions: [{ revision: 2, event: "diagnostic_completed", to: "diagnostic_complete", summary: "初步诊断完成", evidence_refs: ["ccb:observation:1"], project_revision: "revision-2", occurred_at: "2026-09-03T11:50:00Z" }]
+  });
+}

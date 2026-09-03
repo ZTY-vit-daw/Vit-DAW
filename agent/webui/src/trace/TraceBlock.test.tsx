@@ -2,7 +2,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import type { ChatMessage } from "../types";
 import { emptyTrajectoryState, reduceTrajectoryEvents, trajectoryTurns } from "../trajectory";
-import { mockMultiRoundTrajectoryEvents, mockRollbackTrajectoryEvents } from "../trajectoryMock";
+import { mockMultiRoundTrajectoryEvents, mockRollbackTrajectoryEvents, mockTaskTrajectorySnapshot } from "../trajectoryMock";
 import { defaultCollapsedForStatus, isLiveStatus, OptimisticTraceBlock, shouldShowOptimisticTrace, TraceBlock } from "./TraceBlock";
 import { groupMessagesByTurn, isUnboundActivity, turnIsAnchored } from "./turnGroups";
 
@@ -11,20 +11,23 @@ function chat(partial: Partial<ChatMessage> & Pick<ChatMessage, "id" | "role" | 
 }
 
 describe("TraceBlock 状态与类名", () => {
-  it("已完成回合默认收起为回执条（标题含步数与总时长，无思考行）", () => {
+  it("已完成回合默认收起为回执条（顶部栏设计：终态灰 + 执行完成 + meta 步数时长）", () => {
     const state = reduceTrajectoryEvents(emptyTrajectoryState(), mockMultiRoundTrajectoryEvents);
     const turn = trajectoryTurns(state)[0];
     const markup = renderToStaticMarkup(
       <TraceBlock state={state} turn={turn} activities={[]} />
     );
-    expect(markup).toContain("trace-block is-collapsed");
-    expect(markup).toContain("执行完成 · ");
+    expect(markup).toContain("trace-block is-terminal is-collapsed");
+    expect(markup).toContain('class="th-label"');
+    expect(markup).toContain("执行完成");
     expect(markup).toContain(" 步");
     expect(markup).toMatch(/data-turn-id="/);
+    expect(markup).toContain('aria-expanded="false"');
     expect(markup).not.toContain("trace-think");
+    expect(markup).not.toContain('aria-live="polite"');
   });
 
-  it("进行中回合默认展开：思考行渲染最新活动文案 + 游标", () => {
+  it("进行中回合默认展开：is-active 转圈 + 思考行渲染最新活动文案 + 游标 + aria-live", () => {
     const state = reduceTrajectoryEvents(emptyTrajectoryState(), [
       ...mockMultiRoundTrajectoryEvents,
       {
@@ -49,11 +52,22 @@ describe("TraceBlock 状态与类名", () => {
     const markup = renderToStaticMarkup(
       <TraceBlock state={state} turn={turn} activities={activities} />
     );
-    expect(markup).toContain("trace-block is-live");
+    expect(markup).toContain("trace-block is-active is-live");
     expect(markup).not.toContain("is-collapsed");
+    expect(markup).toContain("正在处理");
+    expect(markup).toContain('aria-live="polite"');
     expect(markup).toContain("正在复核掩蔽关系…");
     expect(markup).toContain("trace-cursor");
-    expect(markup).toContain("进行中");
+  });
+
+  it("等待判断回合：is-waiting 琥珀钟形图标语义", () => {
+    const state = reduceTrajectoryEvents(emptyTrajectoryState(), mockMultiRoundTrajectoryEvents);
+    const turn = { ...trajectoryTurns(state)[0], status: "waiting_for_user" };
+    const markup = renderToStaticMarkup(
+      <TraceBlock state={state} turn={turn} activities={[]} />
+    );
+    expect(markup).toContain("trace-block is-waiting is-collapsed");
+    expect(markup).toContain("等待你的判断");
   });
 
   it("节点四态类名：完成 plain / 运行 spinner / 排队 pending / action 变更类蓝节点", () => {
@@ -77,11 +91,51 @@ describe("TraceBlock 状态与类名", () => {
       <TraceBlock state={state} turn={turn} activities={[]} authorityMode="manual_confirmation" />
     );
     if (hasActionNode) {
-      expect(full).toContain("自主执行");
       expect(full).toContain("完全档 · 直接执行");
       expect(manual).not.toContain("完全档 · 直接执行");
     }
     expect(full).toContain("trace-step");
+  });
+});
+
+describe("GUI-F2 单表面合并：任务详情小节锚定", () => {
+  it("传快照：展开体含「任务详情」小节（意图/切片/状态变更史），meta 附 Task 与 r{revision}", () => {
+    const state = reduceTrajectoryEvents(emptyTrajectoryState(), mockMultiRoundTrajectoryEvents);
+    const turn = trajectoryTurns(state)[0];
+    const snapshot = mockTaskTrajectorySnapshot();
+    expect(snapshot).not.toBeNull();
+    const markup = renderToStaticMarkup(
+      <TraceBlock state={state} turn={turn} activities={[]} taskSnapshot={snapshot} />
+    );
+    expect(markup).toContain('aria-label="任务详情"');
+    expect(markup).toContain("任务详情");
+    expect(markup).toContain("改善主唱清晰度，不明显增加亮度。");
+    expect(markup).toContain("Run 的 invocation 切片");
+    expect(markup).toContain("状态变更记录");
+    expect(markup).toContain("Task mock-task");
+    expect(markup).toContain("r3");
+  });
+
+  it("不传快照：小节不渲染，回执行仍是完整设计", () => {
+    const state = reduceTrajectoryEvents(emptyTrajectoryState(), mockMultiRoundTrajectoryEvents);
+    const turn = trajectoryTurns(state)[0];
+    const markup = renderToStaticMarkup(
+      <TraceBlock state={state} turn={turn} activities={[]} />
+    );
+    expect(markup).not.toContain('aria-label="任务详情"');
+    expect(markup).not.toContain("Run 的 invocation 切片");
+    expect(markup).toContain("执行完成");
+  });
+
+  it("历史回放：旧会话流中快照同样可挂回合块（合并渲染互通）", () => {
+    const state = reduceTrajectoryEvents(emptyTrajectoryState(), mockRollbackTrajectoryEvents);
+    const turn = trajectoryTurns(state)[0];
+    const snapshot = mockTaskTrajectorySnapshot();
+    const markup = renderToStaticMarkup(
+      <TraceBlock state={state} turn={turn} activities={[]} taskSnapshot={snapshot} />
+    );
+    expect(markup).toContain("本轮未保留");
+    expect(markup).toContain('aria-label="任务详情"');
   });
 });
 

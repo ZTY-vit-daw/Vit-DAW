@@ -99,12 +99,11 @@ import {
 import { emptyTrajectoryState, reduceTrajectoryEvents, trajectoryTurns } from "./trajectory";
 import type { TrajectoryState } from "./trajectory";
 import { auditionSessions, emptyAuditionState, reduceAuditionEvents, type AuditionSession, type AuditionState } from "./audition";
-import { emptyTaskTrajectoryState, reduceTaskTrajectory } from "./taskTrajectory";
+import { emptyTaskTrajectoryState, reduceTaskTrajectory, type TaskTrajectorySnapshot } from "./taskTrajectory";
 import { authorityContext, checkoutBlockedByState, isAgentTurnRunning } from "./turnControl";
 import { AuditionJudgeCard } from "./trajectory/TrajectoryAuditionPanel";
 import { TraceBlock, OptimisticTraceBlock, shouldShowOptimisticTrace } from "./trace/TraceBlock";
 import { groupMessagesByTurn, isUnboundActivity, turnIsAnchored } from "./trace/turnGroups";
-import { TaskTrajectoryView } from "./taskTrajectory/TaskTrajectoryView";
 import type {
   AgentConfigResponse,
   AgentEvent,
@@ -1149,12 +1148,11 @@ function App() {
         <ModeSwitch value={mode} onChange={setMode} />
       </div>
 
-      <TaskTrajectoryView snapshot={taskTrajectoryState.snapshot} />
-
       <MessageStream
         messages={messages}
         activities={activities}
         trajectory={trajectoryState}
+        taskSnapshot={taskTrajectoryState.snapshot}
         audition={auditionState}
         auditionBusySessionID={auditionBusySessionID}
         onAuditionSelect={handleAuditionSelect}
@@ -3960,6 +3958,7 @@ function MessageStream({
   messages,
   activities,
   trajectory,
+  taskSnapshot,
   audition,
   auditionBusySessionID,
   authorityMode,
@@ -3981,6 +3980,7 @@ function MessageStream({
   messages: ChatMessage[];
   activities: ChatMessage[];
   trajectory: TrajectoryState;
+  taskSnapshot: TaskTrajectorySnapshot | null;
   audition: AuditionState;
   auditionBusySessionID: string;
   authorityMode: AuthorityMode;
@@ -4097,6 +4097,9 @@ function MessageStream({
   );
   const anchoredTurnIds = new Set(groups.map((group) => group.turnId).filter(Boolean));
   const unanchoredSessions = sessions.filter((session) => !session.turnID || !anchoredTurnIds.has(session.turnID));
+  // 任务详情锚定：task_trajectory 是「当前任务」快照，只挂渲染序列中最后一个回合块（GUI-F2）
+  const renderedTurnSequence = [...groups.map((group) => group.turnId).filter(Boolean), ...orphanTurns.map((turn) => turn.id)];
+  const latestTurnId = renderedTurnSequence[renderedTurnSequence.length - 1] ?? "";
 
   return (
     <div className="message-stream">
@@ -4112,6 +4115,7 @@ function MessageStream({
                 turn={turn}
                 activities={turnActivities(group.turnId)}
                 authorityMode={authorityMode}
+                taskSnapshot={group.turnId === latestTurnId ? taskSnapshot : null}
               />
             )}
             {group.messages.filter((message) => message.role !== "user").map(renderMessage)}
@@ -4127,6 +4131,7 @@ function MessageStream({
           turn={turn}
           activities={turnActivities(turn.id)}
           authorityMode={authorityMode}
+          taskSnapshot={turn.id === latestTurnId ? taskSnapshot : null}
         />
       ))}
       {/* 发送即显的乐观轨迹条：真 turn.started 事件到达后由上方真块无缝接管 */}
