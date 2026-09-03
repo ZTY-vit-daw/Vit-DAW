@@ -17,6 +17,7 @@ export function TrajectoryAuditionPanel({
   trajectory,
   audition,
   busySessionID,
+  showTrajectory = true,
   onSelect,
   onStop,
   onSubmitJudgment,
@@ -26,6 +27,8 @@ export function TrajectoryAuditionPanel({
   trajectory: TrajectoryState;
   audition: AuditionState;
   busySessionID: string;
+  /** false = 轨迹由对话流内 TraceBlock 呈现（GUI-T2），本面板只保留 audition 部分 */
+  showTrajectory?: boolean;
   onSelect: (sessionID: string, candidateID: string) => Promise<void>;
   onStop: (sessionID: string) => Promise<void>;
   onInspect?: (sessionID: string, candidateID: string) => Promise<void>;
@@ -53,7 +56,7 @@ export function TrajectoryAuditionPanel({
 
   return (
     <section className="trajectory-live-panel" aria-label="实验轨迹与 A/B 试听">
-      {turns.length > 0 && <TrajectoryView state={trajectory} title="自由态实验轨迹" />}
+      {showTrajectory && turns.length > 0 && <TrajectoryView state={trajectory} title="自由态实验轨迹" />}
       {sessions.map((session) => {
         const heardValue = heard[session.id] ?? "";
         const preferenceValue = preference[session.id] ?? (heardValue === "yes" ? "" : heardValue ? "unsure" : "");

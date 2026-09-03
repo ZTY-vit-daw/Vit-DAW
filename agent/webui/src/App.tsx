@@ -44,7 +44,7 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { CSSProperties, RefObject } from "react";
-import { FormEvent, KeyboardEvent as ReactKeyboardEvent, MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent, WheelEvent as ReactWheelEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { FormEvent, Fragment, KeyboardEvent as ReactKeyboardEvent, MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent, WheelEvent as ReactWheelEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   artifactFileURL,
   captureBrowserPage,
@@ -98,11 +98,14 @@ import {
   transientMessage,
   upsertActivity
 } from "./messageLifecycle";
-import { emptyTrajectoryState, reduceTrajectoryEvents } from "./trajectory";
+import { emptyTrajectoryState, reduceTrajectoryEvents, trajectoryTurns } from "./trajectory";
+import type { TrajectoryState } from "./trajectory";
 import { emptyAuditionState, reduceAuditionEvents } from "./audition";
 import { emptyTaskTrajectoryState, reduceTaskTrajectory } from "./taskTrajectory";
 import { authorityContext, checkoutBlockedByState, isAgentTurnRunning } from "./turnControl";
 import { TrajectoryAuditionPanel } from "./trajectory/TrajectoryAuditionPanel";
+import { TraceBlock } from "./trace/TraceBlock";
+import { groupMessagesByTurn, isUnboundActivity, turnIsAnchored } from "./trace/turnGroups";
 import { TaskTrajectoryView } from "./taskTrajectory/TaskTrajectoryView";
 import type {
   AgentConfigResponse,
@@ -1179,6 +1182,7 @@ function App() {
         trajectory={trajectoryState}
         audition={auditionState}
         busySessionID={auditionBusySessionID}
+        showTrajectory={false}
         onSelect={handleAuditionSelect}
         onStop={handleAuditionStop}
         onSubmitJudgment={handleAuditionJudgment}
@@ -1189,6 +1193,8 @@ function App() {
       <MessageStream
         messages={messages}
         activities={activities}
+        trajectory={trajectoryState}
+        authorityMode={authorityMode}
         respondingActionID={respondingActionID}
         hiddenActionID={composerInteractionID}
         bottomInset={messageBottomInset}
@@ -3954,6 +3960,8 @@ function ModeSwitch({ value, onChange }: { value: AgentMode; onChange: (mode: Ag
 function MessageStream({
   messages,
   activities,
+  trajectory,
+  authorityMode,
   respondingActionID,
   hiddenActionID,
   bottomInset,
@@ -3966,6 +3974,8 @@ function MessageStream({
 }: {
   messages: ChatMessage[];
   activities: ChatMessage[];
+  trajectory: TrajectoryState;
+  authorityMode: AuthorityMode;
   respondingActionID: string;
   hiddenActionID: string;
   bottomInset: number;
@@ -3985,60 +3995,95 @@ function MessageStream({
     return () => window.cancelAnimationFrame(frameID);
   }, [activities.length, messages.length, respondingActionID, bottomInset]);
 
+  const renderMessage = (message: ChatMessage) => {
+    const modeLabel = agentModeLabel(message.mode);
+    const actionsBeforeContent = shouldRenderActionsBeforeContent(message);
+    const suppressProposalContent = shouldSuppressProposalContent(message);
+    const contentBlock = suppressProposalContent
+      ? null
+      : message.status === "pending" && message.role === "assistant"
+        ? <TypingMessage content={message.content} />
+        : <p>{message.content}</p>;
+    const actionCardsBlock = message.actions && message.actions.length > 0
+      ? (
+          <ActionCards
+            actions={message.actions}
+            respondingActionID={respondingActionID}
+            hiddenActionID={hiddenActionID}
+            onInteractionAction={onInteractionAction}
+            onInvoke={onInvoke}
+            onSelectArtifact={onSelectArtifact}
+            uiState={uiState}
+            onMacroValuePreview={onMacroValuePreview}
+            onMacroValueCommit={onMacroValueCommit}
+          />
+        )
+      : null;
+    return (
+      <article key={message.id} className={`message-row ${message.role} ${message.status ?? ""}`}>
+        <div className="message-avatar">{message.role === "user" ? <Activity size={16} /> : <Bot size={16} />}</div>
+        <div className="message-body">
+          <div className="message-meta">
+            <span>{messageRoleLabel(message.role)}</span>
+            {modeLabel && <b>{modeLabel}</b>}
+          </div>
+          {actionsBeforeContent && actionCardsBlock}
+          {contentBlock}
+          {message.artifacts && message.artifacts.length > 0 && (
+            <div className="artifact-context-list message-context-list">
+              {message.artifacts.map((artifact) => (
+                <ArtifactContextCard key={artifact.id} artifact={artifact} variant="message" onSelect={() => onSelectArtifact(artifact.id)} />
+              ))}
+            </div>
+          )}
+          {!actionsBeforeContent && actionCardsBlock}
+        </div>
+      </article>
+    );
+  };
+
+  // 回合分组渲染：用户消息 → 该回合轨迹块 → 回合内卡片（设计基线 GUI-T2）
+  const visibleMessages = messages.filter((message) => !shouldHideMessageForComposerOverlay(message, hiddenActionID));
+  const groups = groupMessagesByTurn(visibleMessages);
+  const turns = trajectoryTurns(trajectory);
+  const knownTurnIds = new Set(turns.map((turn) => turn.id));
+  const turnActivities = (turnId: string) => activities.filter((activity) => (activity.turn_id ?? "").trim() === turnId);
+  const orphanTurns = turns.filter((turn) => turn.nodeIds.length > 0 && !turnIsAnchored(groups, turn.id));
+  // 活动线只承载非回合活动（上传/调用等）；回合内活动并入轨迹思考行
+  const laneActivities = activities.filter((activity) => isUnboundActivity(activity, knownTurnIds));
+
   return (
     <div className="message-stream">
-      {messages.map((message) => {
-        if (shouldHideMessageForComposerOverlay(message, hiddenActionID)) {
-          return null;
-        }
-        const modeLabel = agentModeLabel(message.mode);
-        const actionsBeforeContent = shouldRenderActionsBeforeContent(message);
-        const suppressProposalContent = shouldSuppressProposalContent(message);
-        const contentBlock = suppressProposalContent
-          ? null
-          : message.status === "pending" && message.role === "assistant"
-            ? <TypingMessage content={message.content} />
-            : <p>{message.content}</p>;
-        const actionCardsBlock = message.actions && message.actions.length > 0
-          ? (
-              <ActionCards
-                actions={message.actions}
-                respondingActionID={respondingActionID}
-                hiddenActionID={hiddenActionID}
-                onInteractionAction={onInteractionAction}
-                onInvoke={onInvoke}
-                onSelectArtifact={onSelectArtifact}
-                uiState={uiState}
-                onMacroValuePreview={onMacroValuePreview}
-                onMacroValueCommit={onMacroValueCommit}
-              />
-            )
-          : null;
+      {groups.map((group) => {
+        const turn = group.turnId ? trajectory.turns[group.turnId] : undefined;
         return (
-          <article key={message.id} className={`message-row ${message.role} ${message.status ?? ""}`}>
-            <div className="message-avatar">{message.role === "user" ? <Activity size={16} /> : <Bot size={16} />}</div>
-            <div className="message-body">
-              <div className="message-meta">
-                <span>{messageRoleLabel(message.role)}</span>
-                {modeLabel && <b>{modeLabel}</b>}
-              </div>
-              {actionsBeforeContent && actionCardsBlock}
-              {contentBlock}
-              {message.artifacts && message.artifacts.length > 0 && (
-                <div className="artifact-context-list message-context-list">
-                  {message.artifacts.map((artifact) => (
-                    <ArtifactContextCard key={artifact.id} artifact={artifact} variant="message" onSelect={() => onSelectArtifact(artifact.id)} />
-                  ))}
-                </div>
-              )}
-              {!actionsBeforeContent && actionCardsBlock}
-            </div>
-          </article>
+          <Fragment key={group.key}>
+            {group.messages.filter((message) => message.role === "user").map(renderMessage)}
+            {turn && (
+              <TraceBlock
+                state={trajectory}
+                turn={turn}
+                activities={turnActivities(group.turnId)}
+                authorityMode={authorityMode}
+              />
+            )}
+            {group.messages.filter((message) => message.role !== "user").map(renderMessage)}
+          </Fragment>
         );
       })}
-      {activities.length > 0 && (
+      {/* 轨迹事件先于回合消息到达时，轨迹块挂流尾防丢 */}
+      {orphanTurns.map((turn) => (
+        <TraceBlock
+          key={`orphan:${turn.id}`}
+          state={trajectory}
+          turn={turn}
+          activities={turnActivities(turn.id)}
+          authorityMode={authorityMode}
+        />
+      ))}
+      {laneActivities.length > 0 && (
         <section className="activity-lane" aria-label="即时活动" aria-live="polite">
-          {activities.map((activity) => (
+          {laneActivities.map((activity) => (
             <div key={activity.id} className={`activity-lane-item ${activity.status ?? "pending"}`}>
               {activity.status === "error" ? <AlertTriangle size={14} /> : <Loader2 className="spin" size={14} />}
               <span>{activity.content}</span>
