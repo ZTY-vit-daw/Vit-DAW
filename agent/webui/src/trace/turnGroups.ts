@@ -44,6 +44,19 @@ export function turnIsAnchored(groups: MessageTurnGroup[], turnId: string): bool
   return groups.some((group) => group.turnId === turnId);
 }
 
+/**
+ * 渲染序列中最后一个「会渲染轨迹块」的回合 id——任务详情锚定位（GUI-F2）。
+ * chat 响应的 turn_id（turn_ 域）与 trajectory 事件的 turn id（run_ 域）可能不同：
+ * 只有存在于 trajectory.turns 的组 turnId 才渲染块，其余组（如 chat 回复组）不入序列。
+ */
+export function latestRenderedTurnId(groups: MessageTurnGroup[], knownTurnIds: Set<string>, orphanTurnIds: string[]): string {
+  const sequence = [
+    ...groups.flatMap((group) => (group.turnId && knownTurnIds.has(group.turnId) ? [group.turnId] : [])),
+    ...orphanTurnIds
+  ];
+  return sequence[sequence.length - 1] ?? "";
+}
+
 /** 活动是否属于非回合类（上传/调用等）——这些留在活动线，回合内活动并入轨迹思考行 */
 export function isUnboundActivity(activity: ChatMessage, knownTurnIds: Set<string>): boolean {
   const turnId = (activity.turn_id ?? "").trim();

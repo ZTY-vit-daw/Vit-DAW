@@ -103,7 +103,7 @@ import { emptyTaskTrajectoryState, reduceTaskTrajectory, type TaskTrajectorySnap
 import { authorityContext, checkoutBlockedByState, isAgentTurnRunning } from "./turnControl";
 import { AuditionJudgeCard } from "./trajectory/TrajectoryAuditionPanel";
 import { TraceBlock, OptimisticTraceBlock, shouldShowOptimisticTrace } from "./trace/TraceBlock";
-import { groupMessagesByTurn, isUnboundActivity, turnIsAnchored } from "./trace/turnGroups";
+import { groupMessagesByTurn, isUnboundActivity, latestRenderedTurnId, turnIsAnchored } from "./trace/turnGroups";
 import type {
   AgentConfigResponse,
   AgentEvent,
@@ -4097,9 +4097,9 @@ function MessageStream({
   );
   const anchoredTurnIds = new Set(groups.map((group) => group.turnId).filter(Boolean));
   const unanchoredSessions = sessions.filter((session) => !session.turnID || !anchoredTurnIds.has(session.turnID));
-  // 任务详情锚定：task_trajectory 是「当前任务」快照，只挂渲染序列中最后一个回合块（GUI-F2）
-  const renderedTurnSequence = [...groups.map((group) => group.turnId).filter(Boolean), ...orphanTurns.map((turn) => turn.id)];
-  const latestTurnId = renderedTurnSequence[renderedTurnSequence.length - 1] ?? "";
+  // 任务详情锚定：task_trajectory 是「当前任务」快照，只挂渲染序列中最后一个回合块（GUI-F2）；
+  // chat 回复组的 turn_ 域 id 不渲染块，不入序列
+  const latestTurnId = latestRenderedTurnId(groups, knownTurnIds, orphanTurns.map((turn) => turn.id));
 
   return (
     <div className="message-stream">

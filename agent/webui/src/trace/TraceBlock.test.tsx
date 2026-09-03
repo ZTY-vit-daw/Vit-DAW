@@ -4,7 +4,7 @@ import type { ChatMessage } from "../types";
 import { emptyTrajectoryState, reduceTrajectoryEvents, trajectoryTurns } from "../trajectory";
 import { mockMultiRoundTrajectoryEvents, mockRollbackTrajectoryEvents, mockTaskTrajectorySnapshot } from "../trajectoryMock";
 import { defaultCollapsedForStatus, isLiveStatus, OptimisticTraceBlock, shouldShowOptimisticTrace, TraceBlock } from "./TraceBlock";
-import { groupMessagesByTurn, isUnboundActivity, turnIsAnchored } from "./turnGroups";
+import { groupMessagesByTurn, isUnboundActivity, latestRenderedTurnId, turnIsAnchored } from "./turnGroups";
 
 function chat(partial: Partial<ChatMessage> & Pick<ChatMessage, "id" | "role" | "content">): ChatMessage {
   return { createdAt: 0, ...partial } as ChatMessage;
@@ -235,5 +235,22 @@ describe("turnGroups 分组", () => {
     expect(isUnboundActivity(bound, known)).toBe(false);
     expect(isUnboundActivity(loose, known)).toBe(true);
     expect(isUnboundActivity(unknownTurn, known)).toBe(true);
+  });
+
+  it("任务详情锚定位：chat turn_ 域回复组不入序列，锚定最后一个会渲染块的回合", () => {
+    // 真实栈双 id 域：user 消息回填 run_ 域 id（对齐 trajectory turn），assistant 回复带 turn_ 域 id
+    const groups = groupMessagesByTurn([
+      chat({ id: "u1", role: "user", content: "轨道数量", turn_id: "run_1" }),
+      chat({ id: "a1", role: "assistant", content: "1 条", turn_id: "turn_x1" }),
+      chat({ id: "u2", role: "user", content: "采样率", turn_id: "run_2" }),
+      chat({ id: "a2", role: "assistant", content: "48k", turn_id: "turn_x2" })
+    ]);
+    const known = new Set(["run_1", "run_2"]);
+    // turn_x2 组在消息序最后但不渲染块——锚定位必须仍是 run_2
+    expect(latestRenderedTurnId(groups, known, [])).toBe("run_2");
+    // 孤儿兜底块在渲染序列尾时锚定孤儿
+    expect(latestRenderedTurnId(groups, known, ["run_3"])).toBe("run_3");
+    // 空序列不锚定
+    expect(latestRenderedTurnId([], new Set(), [])).toBe("");
   });
 });
