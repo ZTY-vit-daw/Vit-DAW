@@ -12,37 +12,32 @@ function renderToggle(extras: { authorityMode: string; authorityLocked?: boolean
   );
 }
 
-function onButtonLabel(markup: string) {
-  const match = markup.match(/<button[^>]*class="on"[^>]*>([^<]+)<\/button>/);
-  return match?.[1] ?? null;
-}
-
-// GUI-F3（2026-09-04 用户裁定）：权限开关从顶栏迁到对话输入框 + 号旁，
-// 对齐 DSH/ZCode 等 agent 的常驻入口习惯；锁定态给出原因提示。
-describe("权限开关（输入框旁常驻，AuthorityToggle）", () => {
-  it("普通档：普通 高亮", () => {
+// GUI-F3（2026-09-04 用户第三笔裁定）：权限切换是点开选择的下拉选择器
+// （对齐 ZCode 模型选择器形态），不是两档左右分段开关。收起态只显示当前
+// 档胶囊键；菜单在客户端交互时才展开（SSR 标记收起态结构与可访问性语义）。
+describe("权限下拉选择器（AuthorityToggle）", () => {
+  it("收起态：显示当前档名 + 箭头，不渲染两档分段开关", () => {
     const markup = renderToggle({ authorityMode: "manual_confirmation" });
-    expect(markup).toContain('class="perm"');
-    expect(markup).toContain("普通");
-    expect(markup).toContain("完全");
-    expect(onButtonLabel(markup)).toBe("普通");
+    expect(markup).toContain('class="authority-select-button"');
+    expect(markup).toContain("普通确认");
+    expect(markup).not.toContain("完全访问");
+    expect(markup).not.toContain('class="perm"');
   });
 
-  it("完全档：完全 高亮", () => {
+  it("完全访问档：胶囊键显示完全访问", () => {
     const markup = renderToggle({ authorityMode: "full_project_access" });
-    expect(onButtonLabel(markup)).toBe("完全");
+    expect(markup).toContain("完全访问");
   });
 
-  it("锁定态（回合进行中/切换中）双档禁用并说明原因", () => {
+  it("锁定态（回合进行中）禁用并说明原因", () => {
     const markup = renderToggle({ authorityMode: "manual_confirmation", authorityLocked: true });
-    expect(markup).toContain('class="perm"');
     expect(markup).toContain("任务运行中暂不能切换权限");
-    const disabledCount = (markup.match(/<button[^>]*disabled[^>]*>/g) ?? []).length;
-    expect(disabledCount).toBeGreaterThanOrEqual(2);
+    expect(markup).toMatch(/<button[^>]*disabled[^>]*>/);
   });
 
-  it("空闲态给出权限语义提示", () => {
+  it("空闲态给出权限语义提示与菜单语义标记", () => {
     const markup = renderToggle({ authorityMode: "manual_confirmation" });
-    expect(markup).toContain("控制可逆工程动作是否逐项请求确认");
+    expect(markup).toContain("选择工程动作的执行权限");
+    expect(markup).toContain('aria-haspopup="menu"');
   });
 });

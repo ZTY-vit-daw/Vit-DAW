@@ -5,6 +5,7 @@ import {
   Bot,
   Brain,
   CheckCircle2,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
   Clock,
@@ -33,6 +34,7 @@ import {
   Search,
   Send,
   Settings,
+  ShieldCheck,
   SlidersHorizontal,
   Square,
   Upload,
@@ -1732,41 +1734,90 @@ function RouteEditor({
   );
 }
 
+const authorityModeOptions: Array<{ id: AuthorityMode; label: string; hint: string }> = [
+  { id: "manual_confirmation", label: "普通确认", hint: "每步可逆动作先经你确认再执行" },
+  { id: "full_project_access", label: "完全访问", hint: "边界内自主连续执行，无需逐项确认" }
+];
+
+// GUI-F3（2026-09-04 用户第三笔裁定）：权限切换是点开选择的下拉选择器
+// （对齐 ZCode 模型选择器形态），不是两档左右分段开关。收起态显示当前档
+// 胶囊键，点开浮出选项菜单（说明文案 + 选中态）；锁定态禁用并说明原因。
 export function AuthorityToggle({
   authorityMode,
   authorityLocked,
   onAuthorityModeChange
 }: {
   authorityMode: AuthorityMode;
-  /** authorityBusy || agentTurnRunning：切换进行中或回合运行中锁定档位（服务端权威规则：回合进行中拒切换） */
+  /** authorityBusy || agentTurnRunning：回合进行中锁定档位（服务端权威规则：回合进行中拒切换） */
   authorityLocked: boolean;
   onAuthorityModeChange: (mode: AuthorityMode) => void;
 }) {
+  const [open, setOpen] = useState(false);
+  const hostRef = useRef<HTMLDivElement | null>(null);
+  const current = authorityModeOptions.find((option) => option.id === authorityMode) ?? authorityModeOptions[0];
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+    const handlePointerDown = (event: MouseEvent) => {
+      if (!hostRef.current?.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [open]);
+
   return (
-    <div
-      className="perm"
-      role="group"
-      aria-label="权限开关"
-      title={authorityLocked ? "任务运行中暂不能切换权限；回合结束后可切换" : "控制可逆工程动作是否逐项请求确认"}
-    >
+    <div className="authority-select" ref={hostRef}>
       <button
         type="button"
-        className={authorityMode === "manual_confirmation" ? "on" : ""}
+        className={`authority-select-button${open ? " active" : ""}`}
         disabled={authorityLocked}
-        aria-pressed={authorityMode === "manual_confirmation"}
-        onClick={() => onAuthorityModeChange("manual_confirmation")}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        title={authorityLocked ? "任务运行中暂不能切换权限；回合结束后可切换" : "选择工程动作的执行权限"}
+        onClick={() => setOpen((current) => !current)}
       >
-        普通
+        <ShieldCheck size={15} />
+        <span>{current.label}</span>
+        <ChevronDown size={14} className={open ? "flip" : ""} />
       </button>
-      <button
-        type="button"
-        className={authorityMode === "full_project_access" ? "on" : ""}
-        disabled={authorityLocked}
-        aria-pressed={authorityMode === "full_project_access"}
-        onClick={() => onAuthorityModeChange("full_project_access")}
-      >
-        完全
-      </button>
+      {open && (
+        <div className="authority-menu" role="menu" aria-label="权限档位">
+          {authorityModeOptions.map((option) => (
+            <button
+              key={option.id}
+              type="button"
+              role="menuitemradio"
+              aria-checked={option.id === authorityMode}
+              onClick={() => {
+                setOpen(false);
+                if (option.id !== authorityMode) {
+                  onAuthorityModeChange(option.id);
+                }
+              }}
+            >
+              <ShieldCheck size={16} />
+              <span className="authority-option-text">
+                <strong>{option.label}</strong>
+                <small>{option.hint}</small>
+              </span>
+              <i className={option.id === authorityMode ? "on" : ""} />
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
