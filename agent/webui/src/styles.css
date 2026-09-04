@@ -2994,10 +2994,27 @@ h3 {
 .composer-main {
   flex: 0 0 auto;
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  /* GUI-F3：+ 号旁常驻权限开关（AuthorityToggle），四列：+ | 权限 | 输入框 | 发送。
+     列模板必须与 composer-main 的子元素数一致——三列模板曾把发送键挤到第二行。 */
+  grid-template-columns: auto auto minmax(0, 1fr) auto;
   align-items: end;
   gap: 10px;
   padding: 12px;
+}
+
+/* 输入框旁的权限分段开关：与 34px 控件行（icon-button 34 / send 36）同高对齐，
+   Mondrian 硬边语言与 .perm 通用段一致（2px 墨边、无圆角、激活蓝底）。 */
+.composer-main .perm {
+  align-self: end;
+}
+
+.composer-main .perm button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 30px;
+  padding: 0 12px;
+  white-space: nowrap;
 }
 
 .composer-menu-host {
@@ -5610,7 +5627,7 @@ body.panel-resizing * {
   }
 
   .composer-main {
-    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-columns: auto auto minmax(0, 1fr) auto;
     align-items: center;
   }
 
@@ -5623,7 +5640,7 @@ body.panel-resizing * {
   }
 
   .composer-main .send-button {
-    grid-column: 3;
+    grid-column: 4;
     grid-row: 1;
   }
 }
