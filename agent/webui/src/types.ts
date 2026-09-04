@@ -34,6 +34,16 @@ export interface RuntimeStatusResponse {
   authority_mode?: AuthorityMode;
   checkout_blocked?: boolean;
   task_trajectory?: TaskRuntimeTrajectory;
+  continuations?: RuntimeContinuation[];
+}
+
+export interface RuntimeContinuation {
+  continuation_id?: string;
+  conversation_id?: string;
+  goal_id?: string;
+  run_id?: string;
+  status?: string;
+  pending_interaction?: JsonRecord;
 }
 
 export interface TaskRuntimeTrajectory {

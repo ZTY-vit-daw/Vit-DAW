@@ -3610,6 +3610,7 @@ func (s *Server) completePendingInteractionContinuation(interaction PendingInter
 	if s == nil {
 		return
 	}
+	retired := false
 	s.mu.Lock()
 	for id, item := range s.durableContinuations {
 		if item.ConversationID != interaction.ConversationID || item.GoalID != interaction.GoalID || item.RunID != interaction.RunID {
@@ -3622,8 +3623,19 @@ func (s *Server) completePendingInteractionContinuation(interaction PendingInter
 		item.PendingInteraction = nil
 		item.UpdatedAt = time.Now().UTC()
 		s.durableContinuations[id] = cloneDurableContinuation(item)
+		retired = true
 	}
 	s.mu.Unlock()
+	if retired {
+		// AGENT-F5：与 interaction.pending 配对的撤卡信号。轮询派生的卡会在
+		// 下一次 runtime status 刷新时自愈消失，事件让撤卡即时。
+		s.emitAgentEvent(interaction.ConversationID, AgentEvent{
+			Type: "interaction.resolved", GoalID: interaction.GoalID, RunID: interaction.RunID,
+			ItemType: "interaction", Status: "resolved",
+			Title: "交互已处理", Body: "the pending interaction was answered and its parked continuation retired",
+			Payload: map[string]any{"interaction_id": interaction.ID, "kind": firstNonEmpty(interaction.Kind, interaction.Type)},
+		})
+	}
 }
 
 func (s *Server) takePendingInteraction(interactionID string) (PendingInteraction, bool) {

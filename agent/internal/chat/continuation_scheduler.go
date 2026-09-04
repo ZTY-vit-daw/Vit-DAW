@@ -1157,6 +1157,7 @@ func (s *Server) parkClaimedContinuationAtInteraction(item DurableContinuation, 
 	if s == nil {
 		return
 	}
+	parked := false
 	s.mu.Lock()
 	current, ok := s.durableContinuations[item.ContinuationID]
 	if ok && (current.Status == ContinuationClaimed || current.Status == ContinuationRunning) {
@@ -1168,8 +1169,26 @@ func (s *Server) parkClaimedContinuationAtInteraction(item DurableContinuation, 
 		}
 		current.UpdatedAt = time.Now().UTC()
 		s.durableContinuations[item.ContinuationID] = cloneDurableContinuation(current)
+		parked = true
 	}
 	s.mu.Unlock()
+	if parked {
+		// AGENT-F5：调度侧切片没有 HTTP 响应通道，park 的交互对一切事件消费
+		// 者不可见（2026-09-04 手测：第 6 片 park 的确认卡双端都浮不出来）。
+		// 事件补发让 UI 能在 park 当刻浮卡；HTTP 回复携带的交互不走此路径，
+		// 无双发。
+		payload := cloneContext(pending)
+		if payload == nil {
+			payload = map[string]any{}
+		}
+		payload["continuation_id"] = item.ContinuationID
+		s.emitAgentEvent(item.ConversationID, AgentEvent{
+			Type: "interaction.pending", GoalID: item.GoalID, RunID: item.RunID,
+			ItemType: "interaction", Status: "waiting_interaction",
+			Title: "待确认交互", Body: firstNonEmpty(firstStringFromMap(payload, "status"), "scheduler slice parked at a user interaction boundary"),
+			Payload: payload,
+		})
+	}
 	_ = s.persistContinuationState()
 }
 

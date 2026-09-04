@@ -100,7 +100,7 @@ import { emptyTrajectoryState, reduceTrajectoryEvents, trajectoryTurns } from ".
 import type { TrajectoryState } from "./trajectory";
 import { auditionSessions, emptyAuditionState, reduceAuditionEvents, type AuditionSession, type AuditionState } from "./audition";
 import { emptyTaskTrajectoryState, reduceTaskTrajectory, type TaskTrajectorySnapshot } from "./taskTrajectory";
-import { authorityContext, checkoutBlockedByState, isAgentTurnRunning } from "./turnControl";
+import { authorityContext, checkoutBlockedByState, continuationChainLive, isAgentTurnRunning } from "./turnControl";
 import { AuditionJudgeCard } from "./trajectory/TrajectoryAuditionPanel";
 import { TraceBlock, OptimisticTraceBlock, shouldShowOptimisticTrace } from "./trace/TraceBlock";
 import { groupMessagesByTurn, isUnboundActivity, latestRenderedTurnId, turnIsAnchored } from "./trace/turnGroups";
@@ -120,6 +120,7 @@ import type {
   MacroControl,
   MacroControlBinding,
   MultimodalRouteConfig,
+  RuntimeContinuation,
   RuntimeStatusResponse
 } from "./types";
 
@@ -478,7 +479,10 @@ function App() {
   const workspaceStyle = {
     "--right-panel-width": `${rightPanelWidth}px`
   } as CSSProperties;
-  const composerInteraction = useMemo(() => latestComposerInteraction(messages, dismissedInteractionIDs), [messages, dismissedInteractionIDs]);
+  const composerInteraction = useMemo(
+    () => latestComposerInteraction(messages, dismissedInteractionIDs) ?? backgroundPendingInteractionAction(runtimeStatus?.continuations ?? []),
+    [messages, dismissedInteractionIDs, runtimeStatus]
+  );
   const composerInteractionID = composerInteraction ? actionRenderID(composerInteraction) : "";
 
   useEffect(() => {
@@ -677,7 +681,9 @@ function App() {
 
   const currentGoal = asRecord(uiState?.goal ?? runtimeStatus?.goal);
   const currentGoalStatus = textValue(currentGoal.status, "").toLowerCase();
-  const agentTurnRunning = isAgentTurnRunning(currentGoalStatus, isSending);
+  const liveContinuations = Array.isArray(runtimeStatus?.continuations) ? runtimeStatus.continuations : [];
+  const agentTurnRunning =
+    isAgentTurnRunning(currentGoalStatus, isSending) || continuationChainLive(liveContinuations, currentGoalStatus);
 
   const handleStopTurn = async () => {
     if (stopTurnBusy || !agentTurnRunning) return;
@@ -1197,6 +1203,9 @@ function App() {
         isUploading={isUploading}
         interactionAction={composerInteraction}
         respondingActionID={respondingActionID}
+        authorityMode={authorityMode}
+        authorityLocked={authorityBusy || agentTurnRunning}
+        onAuthorityModeChange={handleAuthorityModeChange}
         onSubmit={handleSend}
         onUploadClick={() => fileInputRef.current?.click()}
         onModeChange={setMode}
@@ -1264,9 +1273,6 @@ function App() {
         onRefresh={refreshState}
         onTransportCommand={runTransportCommand}
         transportBusy={transportBusy}
-        authorityMode={authorityMode}
-        authorityLocked={authorityBusy || agentTurnRunning}
-        onAuthorityModeChange={handleAuthorityModeChange}
       />
 
       <section className="main-workspace">
@@ -1726,6 +1732,45 @@ function RouteEditor({
   );
 }
 
+export function AuthorityToggle({
+  authorityMode,
+  authorityLocked,
+  onAuthorityModeChange
+}: {
+  authorityMode: AuthorityMode;
+  /** authorityBusy || agentTurnRunning：切换进行中或回合运行中锁定档位（服务端权威规则：回合进行中拒切换） */
+  authorityLocked: boolean;
+  onAuthorityModeChange: (mode: AuthorityMode) => void;
+}) {
+  return (
+    <div
+      className="perm"
+      role="group"
+      aria-label="权限开关"
+      title={authorityLocked ? "任务运行中暂不能切换权限；回合结束后可切换" : "控制可逆工程动作是否逐项请求确认"}
+    >
+      <button
+        type="button"
+        className={authorityMode === "manual_confirmation" ? "on" : ""}
+        disabled={authorityLocked}
+        aria-pressed={authorityMode === "manual_confirmation"}
+        onClick={() => onAuthorityModeChange("manual_confirmation")}
+      >
+        普通
+      </button>
+      <button
+        type="button"
+        className={authorityMode === "full_project_access" ? "on" : ""}
+        disabled={authorityLocked}
+        aria-pressed={authorityMode === "full_project_access"}
+        onClick={() => onAuthorityModeChange("full_project_access")}
+      >
+        完全
+      </button>
+    </div>
+  );
+}
+
 export function TopStatusBar({
   connection,
   healthLabel,
@@ -1735,10 +1780,7 @@ export function TopStatusBar({
   onOpenHistory,
   onRefresh,
   onTransportCommand,
-  transportBusy,
-  authorityMode,
-  authorityLocked,
-  onAuthorityModeChange
+  transportBusy
 }: {
   connection: ConnectionStatus;
   healthLabel: string;
@@ -1749,10 +1791,6 @@ export function TopStatusBar({
   onRefresh: () => Promise<void>;
   onTransportCommand: (tool: string, args?: JsonRecord) => Promise<void>;
   transportBusy: boolean;
-  authorityMode: AuthorityMode;
-  /** authorityBusy || agentTurnRunning：切换进行中或回合运行中锁定档位 */
-  authorityLocked: boolean;
-  onAuthorityModeChange: (mode: AuthorityMode) => void;
 }) {
   const [seekDraft, setSeekDraft] = useState("");
   const project = asRecord(uiState?.project);
@@ -1838,26 +1876,6 @@ export function TopStatusBar({
         <button className="icon-button refresh" type="button" title="Refresh" onClick={() => void onRefresh()}>
           <RefreshCw size={16} />
         </button>
-        <div className="perm" role="group" aria-label="权限开关" title="控制可逆工程动作是否逐项请求确认">
-          <button
-            type="button"
-            className={authorityMode === "manual_confirmation" ? "on" : ""}
-            disabled={authorityLocked}
-            aria-pressed={authorityMode === "manual_confirmation"}
-            onClick={() => onAuthorityModeChange("manual_confirmation")}
-          >
-            普通
-          </button>
-          <button
-            type="button"
-            className={authorityMode === "full_project_access" ? "on" : ""}
-            disabled={authorityLocked}
-            aria-pressed={authorityMode === "full_project_access"}
-            onClick={() => onAuthorityModeChange("full_project_access")}
-          >
-            完全
-          </button>
-        </div>
       </div>
     </header>
     </>
@@ -6238,6 +6256,36 @@ function latestComposerInteraction(messages: ChatMessage[], dismissedIDs: string
   return null;
 }
 
+// GUI-F3：后台驻留交互的浮卡投影。调度侧续跑切片 park 在 waiting_interaction
+// 时没有 HTTP 响应通道（AGENT-F5 补了 interaction.pending 事件），这里从
+// runtime status 的 continuation pending_interaction 兜底投影——覆盖事件
+// 未达（含已驻留的旧交互）与刷新竞态两个窗口，应答后 pending 消失即自动撤卡。
+function backgroundPendingInteractionAction(continuations: RuntimeContinuation[]): JsonRecord | null {
+  for (let index = continuations.length - 1; index >= 0; index -= 1) {
+    const row = continuations[index];
+    if (String(row?.status ?? "").trim().toLowerCase() !== "waiting_interaction") {
+      continue;
+    }
+    const pending = asRecord(row.pending_interaction);
+    const interactionID = textValue(pending.interaction_id, "");
+    if (!interactionID) {
+      continue;
+    }
+    const requests = Array.isArray(pending.requests) ? pending.requests.map(asRecord) : [];
+    const request = requests.length > 0 ? requests[0] : {};
+    return {
+      ...request,
+      id: interactionID,
+      interaction_id: interactionID,
+      kind: textValue(pending.kind, textValue(request.kind, "")) || "confirmation",
+      type: textValue(request.type, "approval.requested"),
+      status: "waiting_for_user",
+      _ui_source: "interaction"
+    };
+  }
+  return null;
+}
+
 function isComposerInteraction(action: JsonRecord): boolean {
 	if (textValue(action._ui_source, "") !== "interaction") {
     return false;
@@ -7600,6 +7648,9 @@ function Composer({
   isUploading,
   interactionAction,
   respondingActionID,
+  authorityMode,
+  authorityLocked,
+  onAuthorityModeChange,
   onSubmit,
   onUploadClick,
   onModeChange,
@@ -7622,6 +7673,10 @@ function Composer({
   isUploading: boolean;
 	interactionAction: JsonRecord | null;
   respondingActionID: string;
+  authorityMode: AuthorityMode;
+  /** authorityBusy || agentTurnRunning：回合进行中锁定档位（服务端权威规则同源） */
+  authorityLocked: boolean;
+  onAuthorityModeChange: (mode: AuthorityMode) => void;
   onSubmit: (event?: FormEvent) => void;
   onUploadClick: () => void;
   onModeChange: (mode: AgentMode) => void;
@@ -7754,6 +7809,7 @@ function Composer({
             </div>
           )}
         </div>
+        <AuthorityToggle authorityMode={authorityMode} authorityLocked={authorityLocked} onAuthorityModeChange={onAuthorityModeChange} />
         <textarea
           value={input}
           rows={1}
