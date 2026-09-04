@@ -231,6 +231,11 @@ func (s *Server) runAgentLoopChat(ctx context.Context, conversationID string, re
 			if err != nil {
 				return semanticEntryUnresolvedResponse(conversationID, mode, &decision, err), true
 			}
+			if routingIdentity.ShortCircuit != nil {
+				// AGENT-F3：容量评估事实已完全回答的请求（含空工程观察）在此
+				// 直接作答——零闭包任务准入、零切片。
+				return s.capacityFactShortCircuitResponse(conversationID, mode, routingIdentity), true
+			}
 			chatContext = contextWithSemanticEntryDecision(chatContext, decision)
 			chatContext = contextWithCapabilityRoute(chatContext, routingIdentity)
 		}
@@ -552,6 +557,32 @@ func (s *Server) runAgentLoopChat(ctx context.Context, conversationID string, re
 func blindProjectSmokeContext(requestContext map[string]any) bool {
 	return contextBool(requestContext, "blind_experiment") &&
 		strings.EqualFold(firstStringFromMap(requestContext, "interaction_path"), "blind_project_smoke")
+}
+
+// capacityFactShortCircuitResponse answers a capacity-fact question directly
+// from the structural assessment the route already observed (AGENT-F3). The
+// routing goal is settled honestly: it owns no closure task and no slice, and
+// the answer's receipt (kind, evidence refs, assessment) rides WorkflowData.
+func (s *Server) capacityFactShortCircuitResponse(conversationID, mode string, record CapabilityRouteRecord) ChatResponse {
+	if s.harness != nil && record.GoalID != "" {
+		s.harness.CompleteGoal(record.GoalID, nil)
+	}
+	return ChatResponse{
+		ConversationID: conversationID,
+		TaskID:         record.TaskID,
+		GoalID:         record.GoalID,
+		RunID:          record.RunID,
+		OriginalIntent: record.OriginalIntent,
+		Reply:          record.ShortCircuit.Answer,
+		AgentMode:      mode,
+		GoalStatus:     string(agentruntime.StatusCompleted),
+		StopReason:     "capacity_fact_short_circuit",
+		Workflow:       "capacity_fact_direct_answer",
+		WorkflowData: map[string]any{
+			"kind": record.ShortCircuit.Kind, "evidence_refs": record.ShortCircuit.EvidenceRefs,
+			"capacity_assessment": *record.Assessment,
+		},
+	}
 }
 
 func semanticEntryServiceFailureResponse(conversationID, mode string, err error) ChatResponse {
@@ -1906,6 +1937,8 @@ func (s *Server) chatResponseFromAgentLoopResult(conversationID, mode string, re
 		res.Status = agentruntime.StatusFailed
 		res.StopReason = "durable_continuation_missing"
 		res.Error = "waiting_continue requires a durable continuation checkpoint"
+		// AGENT-F3：转换清掉残留的 runner 预算话术，失败回复走诚实错误文案。
+		res.Reply = ""
 	}
 	reply := strings.TrimSpace(res.Reply)
 	if reply == "" {
@@ -1931,8 +1964,16 @@ func (s *Server) chatResponseFromAgentLoopResult(conversationID, mode string, re
 	if res.Status == agentruntime.StatusFailed && len(res.Executed) > 0 {
 		reply = "\u524d\u9762\u7684\u5de5\u5177\u64cd\u4f5c\u5df2\u5b8c\u6210\uff0c\u4f46\u6700\u7ec8\u56de\u590d\u751f\u6210\u5931\u8d25\uff1a" + firstNonEmpty(res.Error, reply)
 	}
-	if res.StopReason == agentloop.StopReasonLimitReached && !strings.Contains(reply, "\u81ea\u52a8\u7ee7\u7eed") {
-		reply += " \u4efb\u52a1\u4f1a\u4ece\u5df2\u4fdd\u5b58\u7684\u68c0\u67e5\u70b9\u81ea\u52a8\u7ee7\u7eed\u3002"
+	if res.StopReason == agentloop.StopReasonLimitReached {
+		// AGENT-F3 切片预算边界的话术止步。runner 的 stop_reason/limit_type
+		// 语义（实验断言依赖）逐字不动；这里只把对话式回合的用户可见回复
+		// 从内部预算话术换成中性收尾——"本轮思考步数已到上限"是实验/调试
+		// 语境的系统话术，不是给用户的回答。
+		if res.Continuation != nil {
+			reply = "我还在继续处理这个任务，完成后再向你汇报。"
+		} else {
+			reply = "这一轮到此暂停；需要我继续时，直接说“继续”即可。"
+		}
 	}
 	if chatResponseLooksMixRelated(res) {
 		reply = localizedDisplayTextFallback(reply)

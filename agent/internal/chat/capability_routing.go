@@ -90,9 +90,128 @@ type CapabilityRouteRecord struct {
 	Assessment      *FreeStateCapacityAssessment `json:"capacity_assessment,omitempty"`
 	Controller      string                       `json:"controller"`
 	EntryPlan       *CapabilityEntryPlan         `json:"entry_plan,omitempty"`
+	ShortCircuit    *CapacityShortCircuit        `json:"short_circuit,omitempty"`
 	ProjectRevision string                       `json:"project_revision,omitempty"`
 	CreatedAt       time.Time                    `json:"created_at"`
 	UpdatedAt       time.Time                    `json:"updated_at"`
+}
+
+// CapacityShortCircuit is the product-authored direct answer for requests the
+// structural capacity assessment already fully answers (AGENT-F3): pure fact
+// questions over observed structure, and the empty-project escape door. A
+// short-circuited route owns no controller, admits no closure task and opens
+// no slice; its record is terminal by construction, so the restore path is
+// allowed to drop it after a reload.
+type CapacityShortCircuit struct {
+	Kind         string   `json:"kind"` // fact_question | empty_project
+	Answer       string   `json:"answer"`
+	EvidenceRefs []string `json:"evidence_refs,omitempty"`
+}
+
+// capacityDiagnosticIntentMarkers exclude a routed request from the fact
+// short-circuit: a sentence that also asks for diagnosis, improvement or
+// action is not a pure fact question, whatever count words it contains.
+var capacityDiagnosticIntentMarkers = []string{
+	"问题", "毛病", "风险", "浑浊", "过平", "过压", "突出", "失衡", "改善", "改进", "修复", "优化", "建议", "处理", "调整",
+	"problem", "issue", "improve", "improvement", "fix", "adjust",
+}
+
+// capacityFactQuestion reports whether the text is a narrow count/existence
+// question about a structural fact the assessment observed. The surface is
+// deliberately conservative (AGENT-F3): count ("多少") and existence
+// ("有没有/是否有/是否存在") interrogatives over fact nouns only, never a
+// sentence carrying diagnostic or improvement intent — those still belong to
+// the closure machine.
+func capacityFactQuestion(userText string) (string, bool) {
+	lower := strings.ToLower(strings.TrimSpace(userText))
+	if lower == "" {
+		return "", false
+	}
+	for _, marker := range capacityDiagnosticIntentMarkers {
+		if strings.Contains(lower, marker) {
+			return "", false
+		}
+	}
+	interrogative := strings.Contains(lower, "多少") || strings.Contains(lower, "有没有") ||
+		strings.Contains(lower, "是否有") || strings.Contains(lower, "是否存在") || strings.Contains(lower, "存不存在") ||
+		strings.Contains(lower, "how many") || strings.Contains(lower, "are there any") || strings.Contains(lower, "is there any")
+	if !interrogative {
+		return "", false
+	}
+	switch {
+	case strings.Contains(lower, "轨道") || strings.Contains(lower, "音轨") || strings.Contains(lower, "轨") || strings.Contains(lower, "track"):
+		return "tracks", true
+	case strings.Contains(lower, "插件") || strings.Contains(lower, "plugin"):
+		return "plugins", true
+	case strings.Contains(lower, "分组") || strings.Contains(lower, "编组") || strings.Contains(lower, "group"):
+		return "groups", true
+	case strings.Contains(lower, "自动化") || strings.Contains(lower, "automation"):
+		return "automation", true
+	case strings.Contains(lower, "发送") || strings.Contains(lower, "路由") || strings.Contains(lower, "routing"):
+		return "routing", true
+	case strings.Contains(lower, "时长") || strings.Contains(lower, "多长") || strings.Contains(lower, "长度") || strings.Contains(lower, "duration"):
+		return "duration", true
+	}
+	return "", false
+}
+
+// capacityFactAnswer renders the observed fact as the direct answer. An empty
+// return means the observed facts do not actually cover the asked field and
+// the request must not be short-circuited.
+func capacityFactAnswer(kind string, facts CapacityObservedFacts) string {
+	switch kind {
+	case "tracks":
+		return fmt.Sprintf("当前工程共有 %d 条轨道，其中音频轨道 %d 条。", facts.TrackCount, facts.ActiveAudioTrackCount)
+	case "plugins":
+		return fmt.Sprintf("当前工程共有 %d 个插件。", facts.PluginCount)
+	case "groups":
+		return fmt.Sprintf("当前工程共有 %d 个轨道分组。", facts.TrackGroupCount)
+	case "automation":
+		return fmt.Sprintf("当前工程共有 %d 条自动化包络。", facts.AutomationLaneCount)
+	case "routing":
+		return fmt.Sprintf("当前工程共有 %d 条路由/发送关系。", facts.RoutingEdgeCount)
+	case "duration":
+		if facts.DurationSeconds <= 0 {
+			return ""
+		}
+		return fmt.Sprintf("当前工程时长约 %d 分 %d 秒。", int(facts.DurationSeconds)/60, int(facts.DurationSeconds)%60)
+	}
+	return ""
+}
+
+// capacityFactShortCircuit decides whether a routed observation request is
+// answerable directly from the structural facts the assessment just observed
+// (AGENT-F3). Two narrow doors: (1) the empty-project escape — a project with
+// zero tracks and a bound revision can never satisfy a project-level
+// observation gate, so admitting a closure would only manufacture orphan
+// progress; (2) a pure count/existence fact question whose fact field the
+// assessment owns. An unobserved structure (revision unknown) is never
+// asserted empty. Everything else still routes into the closure machine.
+func capacityFactShortCircuit(userText string, assessment FreeStateCapacityAssessment) *CapacityShortCircuit {
+	facts := assessment.ObservedFacts
+	if facts.ProjectRevision == "" || facts.ProjectRevision == "unknown" {
+		// 未绑定 revision 的结构观察不可信：既不断言工程为空，也不以
+		// 未观察到的计数作答（诚实边界）。
+		return nil
+	}
+	if facts.TrackCount == 0 && facts.ActiveAudioTrackCount == 0 {
+		return &CapacityShortCircuit{
+			Kind:         "empty_project",
+			Answer:       "当前工程还没有任何轨道。请先加入音频内容，之后我可以再做混音观察或诊断。",
+			EvidenceRefs: append([]string(nil), facts.EvidenceRefs...),
+		}
+	}
+	if facts.RequestScope != semanticEntryScopeProjectContext {
+		return nil
+	}
+	if kind, ok := capacityFactQuestion(userText); ok {
+		if answer := capacityFactAnswer(kind, facts); answer != "" {
+			return &CapacityShortCircuit{
+				Kind: "fact_question", Answer: answer, EvidenceRefs: append([]string(nil), facts.EvidenceRefs...),
+			}
+		}
+	}
+	return nil
 }
 
 func (s *Server) ensureCapabilityRoutingTask(userText string, requestContext map[string]any) (map[string]any, CapabilityRouteRecord) {
@@ -135,6 +254,13 @@ func (s *Server) planObservationFirstCapabilityRoute(ctx context.Context, conver
 		if assessment.SelectedCapability == capabilityProjectMix {
 			entry.Controller = string(orchestrationcontroller.ProjectMixWorkflow)
 			record.EntryPlan = capabilityEntryPlan(userText, previous, assessment)
+		} else if circuit := capacityFactShortCircuit(userText, assessment); circuit != nil {
+			// AGENT-F3：容量评估已完全回答的请求在此收束——不指派闭包控制
+			// 器、不建闭包任务、不开切片；record 由调用方直接作答，goal 走
+			// 诚实终态。record 不进任何续跑机器，restore 时允许丢弃。
+			record.ShortCircuit = circuit
+			s.storeCapabilityRoute(record)
+			return entry, record, nil
 		} else {
 			// An open problem-finding request is observation-first, but it is
 			// still an improvement task once product capacity confirms that the
@@ -576,6 +702,9 @@ func capabilityRouteRecordMap(record CapabilityRouteRecord) map[string]any {
 	}
 	if record.EntryPlan != nil {
 		out["entry_plan"] = *record.EntryPlan
+	}
+	if record.ShortCircuit != nil {
+		out["short_circuit"] = *record.ShortCircuit
 	}
 	return out
 }

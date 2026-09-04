@@ -979,6 +979,13 @@ func (s *Server) runContinuationSchedulerOnce(ctx context.Context) error {
 		}
 	}
 	s.mu.Unlock()
+	// AGENT-F3：续跑完成边界收口。HTTP 回合边界有 F2 的 turn 守卫，调度侧
+	// 完成边界此前无人守——链条停止且任务非终态时，孤儿观察任务与
+	// waiting/running 的 goal 在此诚实收敛（内部自查活续跑持有者，有后续
+	// 切片或待答交互则不动）。
+	if exists {
+		s.settleGoalAfterContinuationEnd(current.ConversationID, current.GoalID)
+	}
 	if err := s.persistContinuationState(); err != nil {
 		return fmt.Errorf("persist completed continuation: %w", err)
 	}

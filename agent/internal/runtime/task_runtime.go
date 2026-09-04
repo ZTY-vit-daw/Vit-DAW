@@ -349,6 +349,10 @@ func (r *Runtime) TransitionTask(goalID string, request taskstate.TransitionRequ
 	goal.Task.Status = taskStatusFromSemantic(next.State)
 	goal.Task.UpdatedAt = now
 	goal.UpdatedAt = now
+	// AGENT-F3：语义终态必须同步收敛切片簿记。owner_turn_closed 等终态转
+	// 换此前不经过 goal 状态机（goal status 刻意不被改写），当前 running
+	// 切片就会滞留 running，续跑链停止后无人再碰它。
+	syncTaskStatus(goal.Task, goal.Status, now)
 	switch next.State {
 	case taskstate.StateHumanJudgmentRequired:
 		goal.Status = StatusWaitingConfirmation

@@ -116,6 +116,17 @@ func (s *Server) prepareAudioClosureContext(conversationID, userText string, req
 	if entry.Route == semanticEntryRouteObservation {
 		mode = audioclosure.ModeDiagnostic
 	}
+	// AGENT-F3 空工程逃生门（准入侧防御纵深）。主路由已短路绝大多数空工
+	// 程观察请求；这里兜住评估时序在后的残留路径：零轨且 revision 已绑定
+	// 的工程永远无法满足项目级观察门，准入只会制造孤儿进度。拒绝建立闭
+	// 包，让回合以普通对话应答（事实已在上下文中）收束。
+	if assessment := capacityAssessmentFromAny(requestContext[capacityAssessmentContextKey]); assessment != nil {
+		facts := assessment.ObservedFacts
+		if facts.TrackCount == 0 && facts.ActiveAudioTrackCount == 0 &&
+			facts.ProjectRevision != "" && facts.ProjectRevision != "unknown" {
+			return requestContext, audioclosure.State{}, false, nil
+		}
+	}
 	projectUUID := firstNonEmpty(firstStringFromMap(requestContext, "project_uuid", "project_id"), s.activeWorkspaceUUID)
 	if projectUUID == "" {
 		// Conversation-scoped fallback is explicit and stable. It allows tests

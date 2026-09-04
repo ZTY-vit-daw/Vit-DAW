@@ -68,6 +68,32 @@ func (s *Server) closeOrphanTaskAtTurnEnd(conversationID, goalID string) {
 	s.settleClosureAfterOrphanTaskClose(conversationID, goalID, goal.Task.TaskID)
 }
 
+// settleGoalAfterContinuationEnd is the continuation-completion sibling of
+// the turn-boundary guard (AGENT-F3). A scheduler-driven slice ends outside
+// the HTTP turn boundary, so the F2 turn guard never runs: when the chain
+// stops without arming a next slice or parking an answerable interaction, a
+// non-terminal observation task and its waiting/running goal would render as
+// perpetual progress. The guard reuses the F2 orphan close and then settles
+// the goal honestly — completed, because the chain itself decided to stop.
+func (s *Server) settleGoalAfterContinuationEnd(conversationID, goalID string) {
+	if s == nil || s.harness == nil || strings.TrimSpace(goalID) == "" {
+		return
+	}
+	goal := s.harness.RuntimeStatus(goalID)
+	if goal.Task == nil {
+		return
+	}
+	if s.taskHasLiveContinuationOwner(conversationID, goal) {
+		return
+	}
+	s.closeOrphanTaskAtTurnEnd(conversationID, goalID)
+	goal = s.harness.RuntimeStatus(goalID)
+	switch goal.Status {
+	case agentruntime.StatusRunning, agentruntime.StatusWaitingContinue:
+		s.harness.SetGoalStatus(goalID, agentruntime.StatusCompleted, nil)
+	}
+}
+
 // taskHasLiveContinuationOwner reports whether any runtime still owes this
 // task a next semantic move. The spare set intentionally mirrors
 // goalContinuationForConversation's notion of a live continuation so the
