@@ -32,8 +32,53 @@ func (s *Server) emitChatTurnTrajectory(conversationID, eventType string, resp C
 	case "turn.started":
 		s.emitChatTurnTrajectoryStarted(conversationID, goalID, runID)
 	case "turn.completed", "turn.failed", "turn.stopped":
+		// AGENT-F6：切片边界不是回合终局。goal=waiting_continue 且仍有活
+		// 续跑链（pending/claimed/running）时，turn:{runID} 节点必须保持
+		// running——UI 常转 spinner、回执不提前收成"等待你的判断"（2026-09-04
+		// 手测铁证：trajectory.turn.completed 带 waiting_for_user +
+		// limit_reached，而背景链还在跑）。链终局由调度侧终片的 turn 事件闭块。
+		if eventType == "turn.completed" && strings.EqualFold(strings.TrimSpace(resp.GoalStatus), string(agentruntime.StatusWaitingContinue)) {
+			if s.goalHasLiveContinuationOwner(goalID) {
+				return
+			}
+			// 无活链时传输层的 waiting_continue 未必是真相（预算耗尽路径在
+			// recordGoalResult 内直接把 goal 落成 completed）——以运行时
+			// goal 状态为准再映射。
+			if s.harness != nil {
+				if goal := s.harness.RuntimeStatus(goalID); goal.GoalID != "" {
+					adjusted := resp
+					adjusted.GoalStatus = string(goal.Status)
+					resp = adjusted
+				}
+			}
+		}
 		s.emitChatTurnTrajectoryTerminal(conversationID, goalID, runID, chatTurnTrajectoryStatus(eventType, resp), chatTurnTrajectorySummary(resp))
 	}
+}
+
+// goalHasLiveContinuationOwner reports whether the goal still owns a next
+// automatic slice (pending/claimed/running). A waiting_interaction park is
+// deliberately excluded: that is a genuine user-facing wait, not ongoing
+// background execution.
+func (s *Server) goalHasLiveContinuationOwner(goalID string) bool {
+	if s == nil || strings.TrimSpace(goalID) == "" {
+		return false
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if _, armed := s.goalContinuations[goalID]; armed {
+		return true
+	}
+	for _, item := range s.durableContinuations {
+		if item.GoalID != goalID {
+			continue
+		}
+		switch item.Status {
+		case ContinuationPending, ContinuationClaimed, ContinuationRunning:
+			return true
+		}
+	}
+	return false
 }
 
 func (s *Server) emitChatTurnTrajectoryStarted(conversationID, goalID, runID string) {
@@ -145,4 +190,52 @@ func (s *Server) hasChatTurnTrajectoryNodeEvent(conversationID string, eventType
 		}
 	}
 	return false
+}
+
+// emitSchedulerChainResultEvent delivers the final slice's outcome of a
+// scheduler-driven continuation chain (AGENT-F6, 2026-09-04 手测：多轮执行后
+// 没有给出任何结果——executeDurableContinuation 只查 error/交互挂起，最终
+// reply 被静默丢弃，turn.completed 又只在 HTTP 路径发射)。The transport event
+// carries the final reply with a scheduler_chain marker so the webui can render
+// it as the assistant result message; the accompanied trajectory terminal closes
+// the turn:{runID} node that the slice-boundary path deliberately left running.
+func (s *Server) emitSchedulerChainResultEvent(conversationID string, resp ChatResponse, failed error) {
+	if s == nil || strings.TrimSpace(conversationID) == "" {
+		return
+	}
+	if failed != nil {
+		resp.Error = firstNonEmpty(resp.Error, failed.Error())
+		if strings.TrimSpace(resp.GoalStatus) == "" {
+			resp.GoalStatus = string(agentruntime.StatusFailed)
+		}
+	}
+	goalID := strings.TrimSpace(resp.GoalID)
+	runID := strings.TrimSpace(resp.RunID)
+	if goalID == "" && runID == "" {
+		return
+	}
+	eventType := "turn.completed"
+	if strings.TrimSpace(resp.Error) != "" || strings.EqualFold(strings.TrimSpace(resp.GoalStatus), string(agentruntime.StatusFailed)) {
+		eventType = "turn.failed"
+	} else if strings.EqualFold(strings.TrimSpace(resp.GoalStatus), string(agentruntime.StatusStopped)) ||
+		strings.EqualFold(strings.TrimSpace(resp.GoalStatus), string(agentruntime.StatusCancelled)) {
+		eventType = "turn.stopped"
+	}
+	status := strings.TrimSpace(resp.GoalStatus)
+	s.emitAgentEvent(conversationID, AgentEvent{
+		Type: eventType, GoalID: goalID, RunID: runID,
+		ItemID: "chain_result", ItemType: "turn", Status: status,
+		Title:  turnEventTitle(eventType, status),
+		Body:   strings.TrimSpace(firstNonEmpty(resp.Reply, resp.Error)),
+		Payload: map[string]any{
+			"scheduler_chain":  true,
+			"stop_reason":      resp.StopReason,
+			"completed_steps":  resp.CompletedSteps,
+			"executed_count":   len(resp.ExecutedKernelReply),
+			"error":            resp.Error,
+			"needs_confirmation": resp.NeedsConfirmation,
+		},
+		LogicalMessageID: "agent_turn:" + firstNonEmpty(runID, goalID, conversationID),
+	})
+	s.emitChatTurnTrajectory(conversationID, eventType, resp, goalID, runID)
 }

@@ -945,13 +945,14 @@ func (s *Server) runContinuationSchedulerOnce(ctx context.Context) error {
 	}
 
 	var executionErr error
+	var chainResp ChatResponse
 	s.mu.Lock()
 	executor := s.continuationExecutor
 	s.mu.Unlock()
 	if executor != nil {
 		executionErr = executor(ctx, item)
 	} else {
-		executionErr = s.executeDurableContinuation(ctx, item)
+		chainResp, executionErr = s.executeDurableContinuationWithResult(ctx, item)
 	}
 	if executionErr != nil {
 		if ctx != nil && ctx.Err() != nil && (errors.Is(executionErr, context.Canceled) || errors.Is(executionErr, context.DeadlineExceeded)) {
@@ -984,7 +985,38 @@ func (s *Server) runContinuationSchedulerOnce(ctx context.Context) error {
 	// waiting/running 的 goal 在此诚实收敛（内部自查活续跑持有者，有后续
 	// 切片或待答交互则不动）。
 	if exists {
+		chainEnded := !s.goalHasLiveContinuationOwner(current.GoalID)
 		s.settleGoalAfterContinuationEnd(current.ConversationID, current.GoalID)
+		// 链终局可观测性（AGENT-F6）：终片后各门条件实值，供审计对账。
+		if s.logger != nil {
+			runtimeGoalStatus := ""
+			if s.harness != nil {
+				runtimeGoalStatus = string(s.harness.RuntimeStatus(current.GoalID).Status)
+			}
+			s.logger.Info("[f6.gate] conversation=%s goal=%s chainEnded=%t status=%s respGoal=%s runtimeGoal=%s",
+				current.ConversationID, current.GoalID, chainEnded, current.Status, chainResp.GoalStatus, runtimeGoalStatus)
+		}
+		// AGENT-F6：链终局投递。此前调度路径的最终 reply 被静默丢弃（多轮
+		// 执行后用户看不到任何结果）。判据以运行时 goal 终态为准：终片
+		// checkpoint 已终态（completed/cancelled/failed——结算期的
+		// displaced-cancel 瞬态会被随后修复为 completed，不能只认 completed）
+		// 且无后续链、goal 已落终态即投。waiting_interaction park 非终态、
+		// 且其 goal 也不终态，天然排除；测试执行器（无真实 resp）不投。
+		if chainEnded && continuationTerminalStatus(current.Status) && current.ConversationID != "" &&
+			(chainResp.ConversationID != "" || chainResp.GoalID != "") && s.harness != nil {
+			if goal := s.harness.RuntimeStatus(current.GoalID); goal.GoalID != "" {
+				switch goal.Status {
+				case agentruntime.StatusCompleted, agentruntime.StatusFailed, agentruntime.StatusCancelled, agentruntime.StatusStopped, agentruntime.StatusStable:
+					if chainResp.GoalStatus == "" ||
+						strings.EqualFold(strings.TrimSpace(chainResp.GoalStatus), string(agentruntime.StatusWaitingContinue)) ||
+						strings.EqualFold(strings.TrimSpace(chainResp.GoalStatus), string(agentruntime.StatusWaitingConfirmation)) ||
+						strings.EqualFold(strings.TrimSpace(chainResp.GoalStatus), string(agentruntime.StatusWaitingClarification)) {
+						chainResp.GoalStatus = string(goal.Status)
+					}
+					s.emitSchedulerChainResultEvent(current.ConversationID, chainResp, nil)
+				}
+			}
+		}
 	}
 	if err := s.persistContinuationState(); err != nil {
 		return fmt.Errorf("persist completed continuation: %w", err)
@@ -1054,18 +1086,27 @@ func (s *Server) reloadActiveRuntimeState() error {
 }
 
 func (s *Server) executeDurableContinuation(ctx context.Context, item DurableContinuation) error {
+	_, err := s.executeDurableContinuationWithResult(ctx, item)
+	return err
+}
+
+// executeDurableContinuationWithResult additionally returns the slice's chat
+// response so the scheduler can deliver the chain's final reply (AGENT-F6):
+// the error-only shape silently discarded the last slice's outcome, which was
+// the hand-test's "no result after multiple rounds" root cause.
+func (s *Server) executeDurableContinuationWithResult(ctx context.Context, item DurableContinuation) (ChatResponse, error) {
 	s.mu.Lock()
 	activeProjectUUID := s.activeWorkspaceUUID
 	s.mu.Unlock()
 	if item.ProjectUUID != "" && activeProjectUUID != "" && item.ProjectUUID != activeProjectUUID {
-		return fmt.Errorf("continuation project changed: checkpoint=%s active=%s", item.ProjectUUID, activeProjectUUID)
+		return ChatResponse{}, fmt.Errorf("continuation project changed: checkpoint=%s active=%s", item.ProjectUUID, activeProjectUUID)
 	}
 	cfg, _, err := config.Load()
 	if err != nil {
-		return err
+		return ChatResponse{}, err
 	}
 	if !cfg.Complete() {
-		return fmt.Errorf("llm config incomplete")
+		return ChatResponse{}, fmt.Errorf("llm config incomplete")
 	}
 	contextSnapshot := cloneContext(item.Continuation.Context)
 	if contextSnapshot == nil {
@@ -1085,10 +1126,10 @@ func (s *Server) executeDurableContinuation(ctx context.Context, item DurableCon
 		Context:        contextSnapshot,
 	}, cfg)
 	if !handled {
-		return fmt.Errorf("durable continuation was not handled by agent loop")
+		return resp, fmt.Errorf("durable continuation was not handled by agent loop")
 	}
 	if strings.TrimSpace(resp.Error) != "" || resp.GoalStatus == string(agentruntime.StatusFailed) {
-		return fmt.Errorf("durable continuation failed: %s", firstNonEmpty(resp.Error, resp.StopReason, "unknown failure"))
+		return resp, fmt.Errorf("durable continuation failed: %s", firstNonEmpty(resp.Error, resp.StopReason, "unknown failure"))
 	}
 	// An interaction boundary reached inside a scheduler-driven slice must
 	// stay durably visible. The HTTP path surfaces these requests on the chat
@@ -1101,7 +1142,7 @@ func (s *Server) executeDurableContinuation(ctx context.Context, item DurableCon
 	if interactionBoundaryChatResponse(resp) {
 		s.parkClaimedContinuationAtInteraction(item, chatResponsePendingInteraction(resp))
 	}
-	return nil
+	return resp, nil
 }
 
 // interactionBoundaryChatResponse reports whether a chat response stops at a

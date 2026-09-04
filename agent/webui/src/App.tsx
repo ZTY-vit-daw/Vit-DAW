@@ -6153,9 +6153,30 @@ function isApprovalPromptAction(action: JsonRecord): boolean {
   return type === "approval.requested" || status.includes("waiting") || status.includes("confirm") || truthy(action.requires_confirmation);
 }
 
-function chatMessageFromAgentEvent(event: AgentEvent, mode?: AgentMode | string): ChatMessage | null {
+export function chatMessageFromAgentEvent(event: AgentEvent, mode?: AgentMode | string): ChatMessage | null {
   const type = textValue(event.type, "");
   const status = textValue(event.status, "");
+  // AGENT-F6：调度侧续跑链的终片 turn.completed/turn.failed 带 scheduler_chain
+  // 标记且 body 装着最终回复——这是链的结果消息（此前被静默丢弃，多轮执行
+  // 后用户看不到任何结果）。HTTP 路径的 turn.completed 照旧不产消息（回复
+  // 已由 HTTP 响应本身交付，再产会双份）。
+  if (Boolean(asRecord(event.payload).scheduler_chain) && (type === "turn.completed" || type === "turn.failed")) {
+    const reply = textValue(event.body, "");
+    if (!reply) {
+      return null;
+    }
+    const isError = type === "turn.failed" || status === "failed";
+    const sourceID = `agent_event_${textValue(event.goal_id, "goal")}_chain_result`;
+    return transientMessage({
+      id: sourceID,
+      source_id: sourceID,
+      role: isError ? "system" : "assistant",
+      content: reply,
+      mode,
+      createdAt: agentEventCreatedAt(event),
+      status: isError ? "error" : "sent"
+    });
+  }
   if (type === "turn.started" || type === "turn.completed") {
     return null;
   }
