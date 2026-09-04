@@ -2993,22 +2993,38 @@ h3 {
 
 .composer-main {
   flex: 0 0 auto;
-  display: grid;
-  /* GUI-F3：+ 号旁常驻权限开关（AuthorityToggle），四列：+ | 权限 | 输入框 | 发送。
-     列模板必须与 composer-main 的子元素数一致——三列模板曾把发送键挤到第二行。 */
-  grid-template-columns: auto auto minmax(0, 1fr) auto;
-  align-items: end;
-  gap: 10px;
-  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 12px 10px;
 }
 
-/* 输入框旁的权限分段开关：与 34px 控件行（icon-button 34 / send 36）同高对齐，
-   Mondrian 硬边语言与 .perm 通用段一致（2px 墨边、无圆角、激活蓝底）。 */
-.composer-main .perm {
-  align-self: end;
+/* GUI-F3：输入区对齐主流 agent 输入框（ZCode/DSH 式两行结构）——
+   文本区独占上行；下行工具条左置 + 号与权限开关，右置发送。 */
+.composer-main textarea {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
-.composer-main .perm button {
+.composer-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.composer-toolbar-spacer {
+  flex: 1 1 auto;
+}
+
+/* 工具行内的权限分段开关：min-height 30px + 2px 墨边 = 34px，与 icon-button 同高。
+   次级控件，略矮于发送键属分层惯例；Mondrian 硬边语言与 .perm 通用段一致。 */
+.composer-toolbar .perm {
+  flex: 0 0 auto;
+}
+
+.composer-toolbar .perm button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -5626,22 +5642,13 @@ body.panel-resizing * {
     min-height: 140px;
   }
 
-  .composer-main {
-    grid-template-columns: auto auto minmax(0, 1fr) auto;
-    align-items: center;
+  /* 两行结构天然窄屏适配；工具条仅在极窄时允许换行，发送键不被挤丢 */
+  .composer-toolbar {
+    flex-wrap: wrap;
   }
 
-  .composer-main textarea {
-    grid-column: 1 / -1;
-    grid-row: 2;
-    width: 100%;
-    min-width: 0;
-    box-sizing: border-box;
-  }
-
-  .composer-main .send-button {
-    grid-column: 4;
-    grid-row: 1;
+  .composer-toolbar-spacer {
+    flex: 1 1 0;
   }
 }
 

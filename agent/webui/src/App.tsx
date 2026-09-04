@@ -7779,37 +7779,6 @@ function Composer({
         </div>
       )}
       <div className="composer-main">
-        <div className="composer-menu-host" ref={menuRef}>
-          <button
-            className={`icon-button upload ${menuOpen ? "active" : ""}`}
-            type="button"
-            title="添加上下文、文件或模式选项"
-            onClick={() => setMenuOpen((current) => !current)}
-            disabled={isUploading}
-          >
-            {isUploading ? <Loader2 className="spin" size={18} /> : <Plus size={18} />}
-          </button>
-          {menuOpen && (
-            <div className="composer-menu" role="menu">
-              <button type="button" role="menuitem" onClick={() => { onUploadClick(); setMenuOpen(false); }}>
-                <Upload size={17} />
-                <span>添加照片和文件</span>
-              </button>
-              <div className="composer-menu-separator" />
-              <button type="button" role="menuitemcheckbox" aria-checked={mode === "plan"} onClick={() => chooseMode("plan")}>
-                <Brain size={17} />
-                <span>计划模式</span>
-                <i className={mode === "plan" ? "on" : ""} />
-              </button>
-              <button type="button" role="menuitemcheckbox" aria-checked={mode === "goal"} onClick={() => chooseMode("goal")}>
-                <Wand2 size={17} />
-                <span>追求目标</span>
-                <i className={mode === "goal" ? "on" : ""} />
-              </button>
-            </div>
-          )}
-        </div>
-        <AuthorityToggle authorityMode={authorityMode} authorityLocked={authorityLocked} onAuthorityModeChange={onAuthorityModeChange} />
         <textarea
           value={input}
           rows={1}
@@ -7822,17 +7791,51 @@ function Composer({
             }
           }}
         />
-        {agentTurnRunning ? (
-          <button className="send-button stop-turn-button" type="button" title="Stop Turn" disabled={stopTurnBusy} onClick={onStopTurn}>
-            {stopTurnBusy ? <Loader2 className="spin" size={18} /> : <Square size={17} />}
-            <span>Stop Turn</span>
-          </button>
-        ) : (
-          <button className="send-button" type="submit" title="Send" disabled={isSending}>
-            {isSending ? <Loader2 className="spin" size={18} /> : <Send size={18} />}
-            <span>发送</span>
-          </button>
-        )}
+        <div className="composer-toolbar">
+          <div className="composer-menu-host" ref={menuRef}>
+            <button
+              className={`icon-button upload ${menuOpen ? "active" : ""}`}
+              type="button"
+              title="添加上下文、文件或模式选项"
+              onClick={() => setMenuOpen((current) => !current)}
+              disabled={isUploading}
+            >
+              {isUploading ? <Loader2 className="spin" size={18} /> : <Plus size={18} />}
+            </button>
+            {menuOpen && (
+              <div className="composer-menu" role="menu">
+                <button type="button" role="menuitem" onClick={() => { onUploadClick(); setMenuOpen(false); }}>
+                  <Upload size={17} />
+                  <span>添加照片和文件</span>
+                </button>
+                <div className="composer-menu-separator" />
+                <button type="button" role="menuitemcheckbox" aria-checked={mode === "plan"} onClick={() => chooseMode("plan")}>
+                  <Brain size={17} />
+                  <span>计划模式</span>
+                  <i className={mode === "plan" ? "on" : ""} />
+                </button>
+                <button type="button" role="menuitemcheckbox" aria-checked={mode === "goal"} onClick={() => chooseMode("goal")}>
+                  <Wand2 size={17} />
+                  <span>追求目标</span>
+                  <i className={mode === "goal" ? "on" : ""} />
+                </button>
+              </div>
+            )}
+          </div>
+          <AuthorityToggle authorityMode={authorityMode} authorityLocked={authorityLocked} onAuthorityModeChange={onAuthorityModeChange} />
+          <div className="composer-toolbar-spacer" />
+          {agentTurnRunning ? (
+            <button className="send-button stop-turn-button" type="button" title="Stop Turn" disabled={stopTurnBusy} onClick={onStopTurn}>
+              {stopTurnBusy ? <Loader2 className="spin" size={18} /> : <Square size={17} />}
+              <span>Stop Turn</span>
+            </button>
+          ) : (
+            <button className="send-button" type="submit" title="Send" disabled={isSending}>
+              {isSending ? <Loader2 className="spin" size={18} /> : <Send size={18} />}
+              <span>发送</span>
+            </button>
+          )}
+        </div>
       </div>
     </form>
   );
