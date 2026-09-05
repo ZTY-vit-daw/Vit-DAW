@@ -73,6 +73,10 @@ export interface AgentEvent {
   persistence?: MessagePersistence;
   message_kind?: MessageKind;
   turn_id?: string;
+  /** CONTRACT-1 C0 双写：轨迹归属权威（双读期 UI 优先读它，缺失回退 turn_id） */
+  trajectory_turn_id?: string;
+  /** CONTRACT-1 C0 双写：消息归属域（消费归 C2 消息协议，本字段暂只透传） */
+  source_turn_id?: string;
   logical_message_id?: string;
   supersedes?: string[];
 }

@@ -106,9 +106,11 @@ import { authorityContext, checkoutBlockedByState, continuationChainLive, isAgen
 import { agentEventPollBusy, createAgentEventPollIdleGate } from "./eventPolling";
 import { AuditionJudgeCard } from "./trajectory/TrajectoryAuditionPanel";
 import { TraceBlock, OptimisticTraceBlock, shouldShowOptimisticTrace } from "./trace/TraceBlock";
-import { appendChainResultMessages, chainResultMessagesFromEvents, isChainResultChatMessage, shouldRenderTraceBlockForTurn } from "./trace/traceDelivery";
+import { appendChainResultMessages, chainResultMessagesFromEvents, isChainResultChatMessage } from "./trace/traceDelivery";
+import { buildMessageStreamRenderPlan, type MessageStreamEntry } from "./trace/renderPlan";
+import { emptyTurnEventMetaMap, reduceTurnEventMeta, type TurnEventMetaMap } from "./trace/turnEventMeta";
 import { PlanBar } from "./composer/PlanBar";
-import { groupMessagesByTurn, isUnboundActivity, turnIsAnchored } from "./trace/turnGroups";
+import { isUnboundActivity } from "./trace/turnGroups";
 import type {
   AgentConfigResponse,
   AgentEvent,
@@ -225,6 +227,9 @@ function App() {
   const [messages, setMessages] = useState<ChatMessage[]>([initialMessage]);
   const [activities, setActivities] = useState<ChatMessage[]>([]);
   const [trajectoryState, setTrajectoryState] = useState(emptyTrajectoryState);
+  // GUI-1/M12：item 活动足迹与 turn_kind 标记账本（活动会被回合清退、item 又不
+  // 投影为轨迹节点，回合完成后只剩这里能证明「这个回合发生过什么」）
+  const [turnEventMeta, setTurnEventMeta] = useState<TurnEventMetaMap>(emptyTurnEventMetaMap);
   const [taskTrajectoryState, setTaskTrajectoryState] = useState(emptyTaskTrajectoryState);
   const [auditionState, setAuditionState] = useState(emptyAuditionState);
   const [auditionBusySessionID, setAuditionBusySessionID] = useState("");
@@ -311,6 +316,7 @@ function App() {
   useEffect(() => {
     agentEventSeqRef.current = 0;
     setTrajectoryState(emptyTrajectoryState());
+    setTurnEventMeta(emptyTurnEventMetaMap());
     setTaskTrajectoryState(emptyTaskTrajectoryState());
     setAuditionState(emptyAuditionState());
     setAgentEventPolling(true);
@@ -410,6 +416,7 @@ function App() {
             (agentEvent) => chatMessageFromAgentEvent(agentEvent, mode)
           ));
           setTrajectoryState((current) => reduceTrajectoryEvents(current, events));
+          setTurnEventMeta((current) => reduceTurnEventMeta(current, events));
           setAuditionState((current) => reduceAuditionEvents(current, events));
           // GUI-F7：scheduler_chain 终局事件的回复直接入 messages（正式气泡）。
           // 不能走 activities——归约器对 turn.completed 只清场不产消息，且活动
@@ -474,7 +481,11 @@ function App() {
         setConversationID((currentConversationID) =>
           currentConversationID === nextConversationID ? currentConversationID : nextConversationID
         );
-        return messagesOrIntro(historyMessages);
+        // GUI-1：scheduler_chain 终局消息只经事件路径交付（transient，不进
+        // Project History），历史恢复重放会把它冲掉（浏览器验收实测：回放
+        // 拉到终局 → 下一拍 scope 恢复覆盖 → 终局气泡消失）。恢复时把现存
+        // 终局消息幂等带回（appendChainResultMessages 按 id 去重）。
+        return messagesOrIntro(appendChainResultMessages(historyMessages, current.filter(isChainResultChatMessage)));
       }
       return mergeChatMessages(baseMessages, historyMessages);
     });
@@ -1177,6 +1188,7 @@ function App() {
         messages={messages}
         activities={activities}
         trajectory={trajectoryState}
+        turnEventMeta={turnEventMeta}
         audition={auditionState}
         auditionBusySessionID={auditionBusySessionID}
         onAuditionSelect={handleAuditionSelect}
@@ -4069,6 +4081,7 @@ function MessageStream({
   messages,
   activities,
   trajectory,
+  turnEventMeta,
   audition,
   auditionBusySessionID,
   authorityMode,
@@ -4090,6 +4103,7 @@ function MessageStream({
   messages: ChatMessage[];
   activities: ChatMessage[];
   trajectory: TrajectoryState;
+  turnEventMeta: TurnEventMetaMap;
   audition: AuditionState;
   auditionBusySessionID: string;
   authorityMode: AuthorityMode;
@@ -4166,13 +4180,12 @@ function MessageStream({
     );
   };
 
-  // 回合分组渲染：用户消息 → 该回合轨迹块 → 回合内卡片（设计基线 GUI-T2）+ 判定卡入流（GUI-T3）
+  // 回合分组渲染（GUI-1/G2：分组+锚定+孤儿+终局顺序抽为纯函数 buildMessageStreamRenderPlan，
+  // 固化 用户消息→中间汇报→轨迹块→…→终局回复 的顺序，设计基线 GUI-T2/T3 + GUI-F8）
   const visibleMessages = messages.filter((message) => !shouldHideMessageForComposerOverlay(message, hiddenActionID));
-  const groups = groupMessagesByTurn(visibleMessages);
-  const turns = trajectoryTurns(trajectory);
-  const knownTurnIds = new Set(turns.map((turn) => turn.id));
+  const plan = buildMessageStreamRenderPlan({ messages: visibleMessages, trajectory, turnEventMeta });
+  const knownTurnIds = new Set(trajectoryTurns(trajectory).map((turn) => turn.id));
   const turnActivities = (turnId: string) => activities.filter((activity) => (activity.turn_id ?? "").trim() === turnId);
-  const orphanTurns = turns.filter((turn) => turn.nodeIds.length > 0 && !turnIsAnchored(groups, turn.id));
   // 活动线只承载非回合活动（上传/调用等）；回合内活动并入轨迹思考行
   const laneActivities = activities.filter((activity) => isUnboundActivity(activity, knownTurnIds));
 
@@ -4189,8 +4202,8 @@ function MessageStream({
     if (baseSeq !== Number.MAX_SAFE_INTEGER && Object.values(trajectory.turns).some((other) => other.id !== session.turnID && turnFirstSeq(other.id) > baseSeq)) {
       return true;
     }
-    const groupIndex = groups.findIndex((group) => group.turnId === session.turnID);
-    return groupIndex >= 0 && groups.slice(groupIndex + 1).some((group) => group.messages.some((message) => message.role === "user"));
+    const entryIndex = plan.entries.findIndex((entry) => entry.kind === "trace" && entry.turnId === session.turnID);
+    return entryIndex >= 0 && plan.entries.slice(entryIndex + 1).some((entry) => entry.kind === "messages" && entry.messages.some((message) => message.role === "user"));
   };
   const renderJudgeCard = (session: AuditionSession) => (
     <AuditionJudgeCard
@@ -4204,46 +4217,44 @@ function MessageStream({
       onSubmitJudgment={onSubmitAuditionJudgment}
     />
   );
-  const anchoredTurnIds = new Set(groups.map((group) => group.turnId).filter(Boolean));
-  const unanchoredSessions = sessions.filter((session) => !session.turnID || !anchoredTurnIds.has(session.turnID));
-  // GUI-F8：scheduler_chain 终局消息移到孤儿轨迹块（实验轮块）之后渲染——
-  // 分组内跳过、流尾（orphanTurns 之后）补上，保证 用户消息→中间汇报→实验
-  // 轨迹块→终局回复 的顺序。
-  const chainResultTailMessages = visibleMessages.filter(isChainResultChatMessage);
+  // 试听判定卡挂靠：组内卡跟在组尾条目后；未被任何消息 turn 锚定的挂流尾防丢
+  const messageAnchoredTurnIds = new Set(visibleMessages.map((message) => (message.turn_id ?? "").trim()).filter(Boolean));
+  const unanchoredSessions = sessions.filter((session) => !session.turnID || !messageAnchoredTurnIds.has(session.turnID));
+  const sessionsForGroupKey = (groupKey: string) => {
+    if (!groupKey.startsWith("turn:")) {
+      return [];
+    }
+    const turnId = groupKey.slice("turn:".length);
+    return sessions.filter((session) => session.turnID === turnId);
+  };
+  // 组内条目 key 形如 <组key>:user|:trace|:rest；孤儿块与终局尾巴不属组
+  const entryGroupKey = (entry: MessageStreamEntry): string =>
+    entry.kind === "trace" && entry.key.startsWith("orphan:") ? "" : entry.key.replace(/:(user|trace|rest)$/, "");
 
   return (
     <div className="message-stream">
-      {groups.map((group) => {
-        const turn = group.turnId ? trajectory.turns[group.turnId] : undefined;
-        const turnSessions = sessions.filter((session) => group.turnId && session.turnID === group.turnId);
+      {plan.entries.map((entry, index) => {
+        const groupKey = entryGroupKey(entry);
+        const isGroupEnd = groupKey !== "" && (index + 1 >= plan.entries.length || entryGroupKey(plan.entries[index + 1]) !== groupKey);
         return (
-          <Fragment key={group.key}>
-            {group.messages.filter((message) => message.role === "user").map(renderMessage)}
-            {turn && shouldRenderTraceBlockForTurn(trajectory, group.turnId) && (
-              <TraceBlock
-                state={trajectory}
-                turn={turn}
-                activities={turnActivities(group.turnId)}
-                authorityMode={authorityMode}
-              />
-            )}
-            {group.messages.filter((message) => message.role !== "user" && !isChainResultChatMessage(message)).map(renderMessage)}
-            {turnSessions.map(renderJudgeCard)}
+          <Fragment key={entry.key}>
+            {entry.kind === "messages" ? entry.messages.map(renderMessage) : (() => {
+              const turn = trajectory.turns[entry.turnId];
+              return turn ? (
+                <TraceBlock
+                  state={trajectory}
+                  turn={turn}
+                  activities={turnActivities(entry.turnId)}
+                  authorityMode={authorityMode}
+                />
+              ) : null;
+            })()}
+            {isGroupEnd && sessionsForGroupKey(groupKey).map(renderJudgeCard)}
           </Fragment>
         );
       })}
-      {/* 轨迹事件先于回合消息到达时，轨迹块挂流尾防丢 */}
-      {orphanTurns.map((turn) => (
-        <TraceBlock
-          key={`orphan:${turn.id}`}
-          state={trajectory}
-          turn={turn}
-          activities={turnActivities(turn.id)}
-          authorityMode={authorityMode}
-        />
-      ))}
-      {/* GUI-F8：终局回复在孤儿轨迹块之后渲染（实验轨迹块 → 终局回复） */}
-      {chainResultTailMessages.map(renderMessage)}
+      {/* GUI-F8：终局回复在整个条目序列（含孤儿实验轨迹块）之后渲染（实验轨迹块 → 终局回复） */}
+      {plan.chainResultMessages.map(renderMessage)}
       {/* 发送即显的乐观轨迹条：真 turn.started 事件到达后由上方真块无缝接管 */}
       {shouldShowOptimisticTrace({ isSending, trajectory, messages: visibleMessages }) && (
         <OptimisticTraceBlock key="optimistic-trace" />
@@ -6197,21 +6208,25 @@ function isApprovalPromptAction(action: JsonRecord): boolean {
 export function chatMessageFromAgentEvent(event: AgentEvent, mode?: AgentMode | string): ChatMessage | null {
   const type = textValue(event.type, "");
   const status = textValue(event.status, "");
-  // AGENT-F6：调度侧续跑链的终片 turn.completed/turn.failed 带 scheduler_chain
-  // 标记且 body 装着最终回复——这是链的结果消息（此前被静默丢弃，多轮执行
-  // 后用户看不到任何结果）。HTTP 路径的 turn.completed 照旧不产消息（回复
-  // 已由 HTTP 响应本身交付，再产会双份）。
-  if (Boolean(asRecord(event.payload).scheduler_chain) && (type === "turn.completed" || type === "turn.failed")) {
-    const reply = textValue(event.body, "");
+  // AGENT-F6：调度侧续跑链的终片 turn.completed/turn.failed/turn.stopped 带
+  // scheduler_chain 标记且 body 装着最终回复——这是链的结果消息（此前被静默
+  // 丢弃，多轮执行后用户看不到任何结果）。GUI-1：stopped 终局补齐合成（F7 扩
+  // 展，CONTRACT-1 服务端已保证 stopped body 非空，UI 侧再兜底一次）。
+  // HTTP 路径的 turn.completed 照旧不产消息（回复已由 HTTP 响应本身交付，再
+  // 产会双份）。
+  if (Boolean(asRecord(event.payload).scheduler_chain) && (type === "turn.completed" || type === "turn.failed" || type === "turn.stopped")) {
+    const isError = type === "turn.failed" || status === "failed";
+    const isStopped = type === "turn.stopped" || status === "stopped";
+    const reply = textValue(event.body, "") || (isStopped ? "回合已停止。" : "");
     if (!reply) {
       return null;
     }
-    const isError = type === "turn.failed" || status === "failed";
     const sourceID = `agent_event_${textValue(event.goal_id, "goal")}_chain_result`;
     return transientMessage({
       id: sourceID,
       source_id: sourceID,
-      role: isError ? "system" : "assistant",
+      // stopped 是中性系统消息（回合被停止，非 assistant 自然回复、也非错误态）
+      role: isError || isStopped ? "system" : "assistant",
       content: reply,
       mode,
       createdAt: agentEventCreatedAt(event),

@@ -164,7 +164,9 @@ export function reduceTrajectoryEvents(
       continue;
     }
     const payload = record(event.payload);
-    const turnId = text(payload.turn_id) || text(event.turn_id) || text(event.run_id) || text(event.goal_id);
+    // CONTRACT-1 C0 双读：轨迹归属优先读 trajectory_turn_id（双写期与 turn_id
+    // 等值），缺失回退旧字段；payload.turn_id 仍是实验级事件的最优先归属。
+    const turnId = text(payload.turn_id) || text(event.trajectory_turn_id) || text(event.turn_id) || text(event.run_id) || text(event.goal_id);
     if (!turnId) {
       continue;
     }

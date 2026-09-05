@@ -305,7 +305,13 @@ export function reduceAgentEventActivities(
     const eventType = text(event.type);
     const turnID = eventTurnID(event);
     const logicalID = eventLogicalMessageID(event);
-    if (eventType === "turn.completed" || eventType === "turn.failed") {
+    // GUI-1：轨迹回合终结事件与顶层 turn 终结同等清场——否则链终局清场后
+    // 到达的 trajectory.turn.completed 会再产一条「已完成」残留活动（15 事件
+    // fixture 回放实证：seq15 在 seq14 清场后经 factory 产出残留）。
+    if (
+      eventType === "turn.completed" || eventType === "turn.failed" || eventType === "turn.stopped" ||
+      eventType === "trajectory.turn.completed" || eventType === "trajectory.turn.failed" || eventType === "trajectory.turn.stopped"
+    ) {
       next = dismissActivitiesForTurn(next, turnID);
       continue;
     }
