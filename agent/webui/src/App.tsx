@@ -106,6 +106,7 @@ import { authorityContext, checkoutBlockedByState, continuationChainLive, isAgen
 import { agentEventPollBusy, createAgentEventPollIdleGate } from "./eventPolling";
 import { AuditionJudgeCard } from "./trajectory/TrajectoryAuditionPanel";
 import { TraceBlock, OptimisticTraceBlock, shouldShowOptimisticTrace } from "./trace/TraceBlock";
+import { appendChainResultMessages, chainResultMessagesFromEvents, shouldRenderTraceBlockForTurn } from "./trace/traceDelivery";
 import { PlanBar } from "./composer/PlanBar";
 import { groupMessagesByTurn, isUnboundActivity, turnIsAnchored } from "./trace/turnGroups";
 import type {
@@ -410,6 +411,13 @@ function App() {
           ));
           setTrajectoryState((current) => reduceTrajectoryEvents(current, events));
           setAuditionState((current) => reduceAuditionEvents(current, events));
+          // GUI-F7：scheduler_chain 终局事件的回复直接入 messages（正式气泡）。
+          // 不能走 activities——归约器对 turn.completed 只清场不产消息，且活动
+          // 在回合结束后会被清退（2026-09-05 手测：终局回复整条丢失的根因）。
+          const chainMessages = chainResultMessagesFromEvents(events, mode, chatMessageFromAgentEvent);
+          if (chainMessages.length > 0) {
+            setMessages((current) => appendChainResultMessages(current, chainMessages));
+          }
         } else if (idleGate.tickIdle(pollBusy)) {
           setAgentEventPolling(false);
         }
@@ -4187,7 +4195,7 @@ function MessageStream({
         return (
           <Fragment key={group.key}>
             {group.messages.filter((message) => message.role === "user").map(renderMessage)}
-            {turn && (
+            {turn && shouldRenderTraceBlockForTurn(trajectory, group.turnId) && (
               <TraceBlock
                 state={trajectory}
                 turn={turn}
