@@ -1,6 +1,6 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { AuthorityToggle } from "./App";
+import { authoritySwitchNotice, AuthorityToggle } from "./App";
 
 function renderToggle(extras: { authorityMode: string; authorityLocked?: boolean }) {
   return renderToStaticMarkup(
@@ -39,5 +39,30 @@ describe("权限下拉选择器（AuthorityToggle）", () => {
     const markup = renderToggle({ authorityMode: "manual_confirmation" });
     expect(markup).toContain("选择工程动作的执行权限");
     expect(markup).toContain('aria-haspopup="menu"');
+  });
+});
+
+// UX-1（2026-09-05 任务卡）：权限切换收到 409 authority_mode_change_blocked
+// （含 stop_turn_prevents_new_action 等占用类错误码）时，复用既有 error 横幅
+// 呈现人话原因；其它错误原样透传不清吞；正常切换不产生任何提示。
+describe("权限切换被拒的人话提示（UX-1）", () => {
+  it("409 占用类拒绝：呈现人话原因而非机器报错", () => {
+    const blocked = "任务占用工程面中，结束后可切换";
+    expect(
+      authoritySwitchNotice({ ok: false, error: new Error("authority mode cannot change while an Agent Turn is running") })
+    ).toBe(blocked);
+    expect(
+      authoritySwitchNotice({ ok: false, error: new Error("authority_mode_change_blocked: authority mode cannot change") })
+    ).toBe(blocked);
+    expect(authoritySwitchNotice({ ok: false, error: new Error("stop_turn_prevents_new_action") })).toBe(blocked);
+  });
+
+  it("其它错误不清吞：原样透传原始信息", () => {
+    expect(authoritySwitchNotice({ ok: false, error: new Error("网络中断") })).toBe("网络中断");
+    expect(authoritySwitchNotice({ ok: false, error: "invalid JSON" })).toBe("invalid JSON");
+  });
+
+  it("正常切换：无提示", () => {
+    expect(authoritySwitchNotice({ ok: true })).toBeNull();
   });
 });

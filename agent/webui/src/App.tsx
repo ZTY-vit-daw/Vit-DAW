@@ -698,7 +698,7 @@ function App() {
       setAuthorityModeState(response.authority_mode ?? nextMode);
       await refreshState();
     } catch (authorityError) {
-      setError(authorityError instanceof Error ? authorityError.message : "权限模式切换失败");
+      setError(authoritySwitchNotice({ ok: false, error: authorityError }) ?? "权限模式切换失败");
     } finally {
       setAuthorityBusy(false);
     }
@@ -1760,6 +1760,26 @@ const authorityModeOptions: Array<{ id: AuthorityMode; label: string; hint: stri
   { id: "manual_confirmation", label: "普通确认", hint: "每步可逆动作先经你确认再执行" },
   { id: "full_project_access", label: "完全访问", hint: "边界内自主连续执行，无需逐项确认" }
 ];
+
+// UX-1：权限切换被 409 占用类拒绝时呈现人话原因。api 层抛出的 Error 只带
+// message，故以服务端错误码与错误文案双标记识别（文案见 turn_control.go
+// handleAuthorityMode）；其它错误原样透传不清吞，正常切换返回 null 不提示。
+const authorityBlockedMarkers = [
+  "authority_mode_change_blocked",
+  "stop_turn_prevents_new_action",
+  "authority mode cannot change while an Agent Turn is running"
+];
+
+export function authoritySwitchNotice(outcome: { ok: boolean; error?: unknown }): string | null {
+  if (outcome.ok) {
+    return null;
+  }
+  const raw = outcome.error instanceof Error ? outcome.error.message : String(outcome.error ?? "");
+  if (authorityBlockedMarkers.some((marker) => raw.includes(marker))) {
+    return "任务占用工程面中，结束后可切换";
+  }
+  return raw || "权限模式切换失败";
+}
 
 // GUI-F3（2026-09-04 用户第三笔裁定）：权限切换是点开选择的下拉选择器
 // （对齐 ZCode 模型选择器形态），不是两档左右分段开关。收起态显示当前档
