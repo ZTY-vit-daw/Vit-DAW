@@ -103,6 +103,7 @@ import type { TrajectoryState } from "./trajectory";
 import { auditionSessions, emptyAuditionState, reduceAuditionEvents, type AuditionSession, type AuditionState } from "./audition";
 import { emptyTaskTrajectoryState, reduceTaskTrajectory, type TaskTrajectorySnapshot } from "./taskTrajectory";
 import { authorityContext, checkoutBlockedByState, continuationChainLive, isAgentTurnRunning } from "./turnControl";
+import { agentEventPollBusy, createAgentEventPollIdleGate } from "./eventPolling";
 import { AuditionJudgeCard } from "./trajectory/TrajectoryAuditionPanel";
 import { TraceBlock, OptimisticTraceBlock, shouldShowOptimisticTrace } from "./trace/TraceBlock";
 import { groupMessagesByTurn, isUnboundActivity, latestRenderedTurnId, turnIsAnchored } from "./trace/turnGroups";
@@ -358,13 +359,22 @@ function App() {
     saveStoredConversationMessages(conversationID, scope, messages);
   }, [conversationID, messages, uiState]);
 
+  const currentGoal = asRecord(uiState?.goal ?? runtimeStatus?.goal);
+  const currentGoalStatus = textValue(currentGoal.status, "").toLowerCase();
+  const liveContinuations = Array.isArray(runtimeStatus?.continuations) ? runtimeStatus.continuations : [];
+  const agentTurnRunning =
+    isAgentTurnRunning(currentGoalStatus, isSending) || continuationChainLive(liveContinuations, currentGoalStatus);
+
   useEffect(() => {
     if (!agentEventPolling) {
       return;
     }
     let cancelled = false;
-    let idleTicks = 0;
+    const idleGate = createAgentEventPollIdleGate();
     const poll = async () => {
+      // GUI-F5：忙态（发送/动作响应/试听等待/链活）任一为真时空轮询不累积空闲拍，
+      // 链活期终局结果不漏取；全部空闲才按 4 拍（连续失败 3 拍）休眠。
+      const pollBusy = agentEventPollBusy({ isSending, respondingActionID, auditionWaiting, agentTurnRunning });
       try {
         const requestedSince = agentEventSeqRef.current;
         const response = await fetchAgentEvents(conversationID, requestedSince, 120);
@@ -380,7 +390,7 @@ function App() {
           });
         }
         if (events.length > 0) {
-          idleTicks = 0;
+          idleGate.markActive();
           if (shouldDebugAgentEvents(events)) {
             debugConfirmation("agent-events-polled", {
               conversation_id: conversationID,
@@ -388,6 +398,7 @@ function App() {
               next_seq: response.next_seq,
               is_sending: isSending,
               responding_action_id: respondingActionID,
+              agent_turn_running: agentTurnRunning,
               events: events.map(summarizeAgentEventForConfirmation)
             });
           }
@@ -398,29 +409,32 @@ function App() {
           ));
           setTrajectoryState((current) => reduceTrajectoryEvents(current, events));
           setAuditionState((current) => reduceAuditionEvents(current, events));
-        } else if (!isSending && !respondingActionID && !auditionWaiting) {
-          idleTicks += 1;
-          if (idleTicks >= 4) {
-            setAgentEventPolling(false);
-          }
+        } else if (idleGate.tickIdle(pollBusy)) {
+          setAgentEventPolling(false);
         }
       } catch {
-        if (!cancelled && !isSending && !respondingActionID && !auditionWaiting) {
-          idleTicks += 1;
-          if (idleTicks >= 3) {
-            setAgentEventPolling(false);
-          }
+        if (!cancelled && idleGate.tickError(pollBusy)) {
+          setAgentEventPolling(false);
         }
       }
     };
     void poll();
-    // 发送等待期收紧到 250ms，让 turn.started 真块尽快接管乐观占位；回合结束回落 500ms
+    // 发送等待期收紧到 250ms，让 turn.started 真块尽快接管乐观占位；链活期（GUI-F5）与空闲同为 500ms
     const timer = window.setInterval(() => void poll(), isSending ? 250 : 500);
     return () => {
       cancelled = true;
       window.clearInterval(timer);
     };
-  }, [agentEventPolling, auditionWaiting, conversationID, isSending, mode, respondingActionID]);
+  }, [agentEventPolling, agentTurnRunning, auditionWaiting, conversationID, isSending, mode, respondingActionID]);
+
+  // GUI-F5：轮询被空闲休眠停掉后，链中途再活（续跑切片醒来）必须重新拉起轮询，
+  // 否则终局结果落在服务端无人来取（2026-09-04 会话 webui_mtmwwfax 的漏取形态）。
+  useEffect(() => {
+    if (!agentTurnRunning) {
+      return;
+    }
+    setAgentEventPolling(true);
+  }, [agentTurnRunning]);
 
   useEffect(() => {
     const nextScope = historyScopeKeyFromUIState(uiState);
@@ -680,12 +694,6 @@ function App() {
       setAuthorityBusy(false);
     }
   };
-
-  const currentGoal = asRecord(uiState?.goal ?? runtimeStatus?.goal);
-  const currentGoalStatus = textValue(currentGoal.status, "").toLowerCase();
-  const liveContinuations = Array.isArray(runtimeStatus?.continuations) ? runtimeStatus.continuations : [];
-  const agentTurnRunning =
-    isAgentTurnRunning(currentGoalStatus, isSending) || continuationChainLive(liveContinuations, currentGoalStatus);
 
   const handleStopTurn = async () => {
     if (stopTurnBusy || !agentTurnRunning) return;
