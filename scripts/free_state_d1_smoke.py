@@ -1532,6 +1532,7 @@ def validate_d1(base_url: str, conversation_id: str, responses: list[dict[str, A
         "public_case_id": case_id,
         "conversation_id": conversation_id,
         "action_domain": domain,
+        "target_ref": admission.get("target_ref") if isinstance(admission.get("target_ref"), dict) else {},
         "turn_id": first_text(experiment.get("turn_id")),
         "round_id": first_text(round_row.get("round_id")),
         "before_revision": before_revision,
@@ -1807,6 +1808,261 @@ def test_validate_honest_refusal_forms() -> None:
     def drop_intervention(fixture: dict[str, Any]) -> None:
         fixture["loop"]["experiment"]["rounds"][0]["interventions"] = []
     expect_rejection(drop_intervention, "(1)")
+
+
+# AGENT-2 A3 (2026-09-05): evaluator-side target-truth comparison. The sealed
+# artifact is opened ONLY here -- after the D1 validation snapshot froze the
+# admission target_ref -- and its values land only in the report's
+# target_truth_check section. They never enter any request payload, prompt
+# flavor, or agent-visible surface, and the runner-side assertions below never
+# hardcode track names (the expectation is read from the sealed file), so no
+# sealed truth lives in volatile assertions either.
+SEALED_TRUTH_SCHEMA = "semantic_processor_agent_project_smoke_sealed_truth.v1"
+# The sealed truth vocabulary uses broadband_compressor; the D1 domain table
+# uses broadband_compression. Every other family shares the table's spelling.
+DOMAIN_TO_SEALED_FAMILY = {
+    "static_eq": "static_eq",
+    "broadband_compression": "broadband_compressor",
+    "de_esser": "de_esser",
+    "transient_shaper": "transient_shaper",
+    "pan": "pan",
+    "limiter": "limiter",
+    "gate_expander": "gate_expander",
+    "multiband_dynamics": "multiband_dynamics",
+}
+
+
+def load_sealed_truth(path_text: str, fixture_set_id: str) -> dict[str, Any]:
+    resolved = Path(path_text).resolve()
+    if "sealed" not in {part.lower() for part in resolved.parts}:
+        raise RuntimeError("sealed truth path must live under a sealed directory")
+    sealed = json.loads(resolved.read_text(encoding="utf-8-sig"))
+    if not isinstance(sealed, dict) or sealed.get("schema_version") != SEALED_TRUTH_SCHEMA:
+        raise RuntimeError("sealed truth schema mismatch")
+    if first_text(sealed.get("fixture_set_id")) != fixture_set_id:
+        raise RuntimeError(f"sealed truth fixture_set_id {sealed.get('fixture_set_id')!r} does not match the public manifest set {fixture_set_id!r}")
+    return sealed
+
+
+def sealed_target_tracks_for_domain(sealed: dict[str, Any], case: dict[str, Any], domain: str) -> list[str]:
+    """Expected target track names for the admitted domain, matched by stem
+    material identity (per-track sha256) rather than by opaque case id: p03
+    deliberately shares p01's stems, so the baked fault travels with the
+    material, and case ids are semantically opaque by contract. Empty when the
+    material carries no baked fault for the domain (e.g. track_gain) -- that is
+    a skip, not a red."""
+    family = DOMAIN_TO_SEALED_FAMILY.get(domain)
+    if family is None:
+        return []
+    material = {str(stem["track"]).lower(): str(stem.get("sha256") or "") for stem in rows(case.get("stem_files"))}
+    if not material:
+        raise RuntimeError("sealed target check found no public stem inventory to match material by")
+    expected: list[str] = []
+    for sealed_case in rows(sealed.get("cases")):
+        source = sealed_case.get("source_material") if isinstance(sealed_case.get("source_material"), dict) else {}
+        source_files = {str(row["track"]).lower(): str(row.get("sha256") or "") for row in rows(source.get("source_files"))}
+        if not source_files or source_files != material:
+            continue
+        for assignment in rows(sealed_case.get("issue_assignments")):
+            if first_text(assignment.get("expected_family")).lower() != family:
+                continue
+            target = first_text(assignment.get("expected_target_track"))
+            if target and target not in expected:
+                expected.append(target)
+    return expected
+
+
+def public_track_names(responses: list[dict[str, Any]], project_state: dict[str, Any]) -> dict[str, str]:
+    """track_id -> name from public surfaces only: the observation ledger's
+    project.structure facts (embedded in responses) and the live project.state.
+    No sealed data participates in the mapping."""
+    names: dict[str, str] = {}
+    for container in [*responses, project_state]:
+        for item in dicts(container):
+            track_id = first_text(item.get("track_id"))
+            name = first_text(item.get("name"))
+            if track_id and name and track_id not in names:
+                names[track_id] = name
+    return names
+
+
+def validate_sealed_target(sealed: dict[str, Any], case: dict[str, Any], domain: str, target_ref: dict[str, Any], responses: list[dict[str, Any]], project_state: dict[str, Any]) -> dict[str, Any]:
+    """Evaluator-only comparison of the admitted target against the sealed
+    expectation. The M5 wrong-target class (a bass-narrated proposal passing
+    green while the sealed fault lives on another track) must land here as a
+    red, honest FAIL."""
+    expected = sealed_target_tracks_for_domain(sealed, case, domain)
+    target_id = first_text(target_ref.get("id"), target_ref.get("track_id"))
+    if not expected:
+        return {
+            "status": "no_sealed_expectation",
+            "action_domain": domain,
+            "target_ref": target_ref,
+            "reason": f"the sealed material carries no baked fault for {domain}",
+            "sealed_truth_evaluator_only": True,
+        }
+    require(target_id, "target_truth_check: admission target_ref carries no track id")
+    names = public_track_names(responses, project_state)
+    actual = names.get(target_id, "")
+    require(actual, f"target_truth_check: target track {target_id} has no resolvable public name")
+    require(actual.lower() in {name.lower() for name in expected},
+            f"target_truth_check: admitted target {actual} (track {target_id}) is outside the sealed expectation for {domain} ({', '.join(expected)}) -- wrong-target admission must not pass")
+    return {
+        "status": "pass",
+        "action_domain": domain,
+        "expected_target_tracks": expected,
+        "actual_target_track": actual,
+        "target_track_id": target_id,
+        "sealed_truth_evaluator_only": True,
+    }
+
+
+# AGENT-1 milestone (walked by AGENT-2, 2026-09-05): when a plugin-bound domain
+# runs under the processor_selection route, the chain must leave two durable
+# traces -- the server-owned processor_selection.v1 record in the workspace
+# runtime state, and the [domain-route]/[processor.selection] log lines. The
+# record's target_mode (existing_plugin | load_required) documents which
+# selection arm the chain took; authorization_state selected/load_pending is
+# the direct/existing arm, qualified is the post-load qualification arm.
+PROCESSOR_SELECTION_SCHEMA = "processor_selection.v1"
+
+
+def check_processor_selection_evidence(state: dict[str, Any], log_text: str, domain: str, conversation_id: str) -> dict[str, Any]:
+    selections = state.get("processor_selections")
+    if isinstance(selections, dict):
+        candidates = [row for row in selections.values() if isinstance(row, dict)]
+    else:
+        candidates = rows(selections)
+    records = [row for row in candidates if first_text(row.get("conversation_id")) == conversation_id or not conversation_id]
+    matching = [row for row in records if first_text(row.get("action_domain")).lower() == domain.lower()]
+    require(matching, f"processor_selection check: no {PROCESSOR_SELECTION_SCHEMA} record for domain {domain} in the persisted runtime state (conversation {conversation_id})")
+    record = matching[-1]
+    require(first_text(record.get("schema_version")) == PROCESSOR_SELECTION_SCHEMA, "processor_selection check: record schema mismatch: " + first_text(record.get("schema_version")))
+    mode = first_text(record.get("target_mode")).lower()
+    require(mode in {"existing_plugin", "load_required"}, f"processor_selection check: target_mode {mode!r} is not a governed selection arm")
+    auth = first_text(record.get("authorization_state")).lower()
+    require(auth in {"selected", "load_pending", "qualified", "cancelled"}, f"processor_selection check: authorization_state {auth!r} is not a governed state")
+    require(auth != "cancelled", "processor_selection check: the selection chain was cancelled before execution")
+    require(log_text.find("[domain-route]") >= 0, "processor_selection check: no [domain-route] routing decisions in the agent log")
+    require(f"domain={domain.lower()} route=processor_selection" in log_text.lower(),
+            f"processor_selection check: the agent log lacks a [domain-route] processor_selection decision for {domain}")
+    require("[processor.selection]" in log_text, "processor_selection check: no [processor.selection] record lines in the agent log")
+    return {
+        "status": "pass",
+        "selection_id": first_text(record.get("selection_id")),
+        "action_domain": first_text(record.get("action_domain")),
+        "target_mode": mode,
+        "authorization_state": auth,
+        "candidate_key": first_text(record.get("candidate_key")),
+        "selected_family": first_text(record.get("selected_family")),
+    }
+
+
+def validate_processor_selection_evidence(project_path: str, conversation_id: str, run_started: float, domain: str, agent_log_path: str) -> dict[str, Any]:
+    state = newest_agent_runtime_state_for_conversation(project_path, conversation_id, run_started - 120)
+    require(bool(state), "processor_selection check: no persisted agent runtime state for the conversation")
+    log_text = ""
+    if agent_log_path:
+        log_file = Path(agent_log_path)
+        deadline = time.monotonic() + 10
+        while time.monotonic() < deadline:
+            try:
+                log_text = log_file.read_text(encoding="utf-8", errors="replace")
+            except OSError:
+                log_text = ""
+            if "[processor.selection]" in log_text:
+                break
+            time.sleep(1)
+    return check_processor_selection_evidence(state, log_text, domain, conversation_id)
+
+
+def test_check_processor_selection_evidence_forms() -> None:
+    state = {"processor_selections": {"psel_1": {
+        "schema_version": PROCESSOR_SELECTION_SCHEMA, "selection_id": "psel_1",
+        "conversation_id": "conv-1", "action_domain": "broadband_compression",
+        "target_mode": "load_required", "authorization_state": "qualified",
+        "candidate_key": "vst3:compressor:x", "selected_family": "compressor",
+    }}}
+    log_text = "[domain-route] domain=broadband_compression route=processor_selection source=VIT_AGENT_DOMAIN_ROUTES\n[processor.selection] stored id=psel_1"
+    result = check_processor_selection_evidence(state, log_text, "broadband_compression", "conv-1")
+    assert result["status"] == "pass" and result["target_mode"] == "load_required"
+
+    def expect_rejection(mutated_state: dict[str, Any] | None, mutated_log: str | None, fragment: str) -> None:
+        try:
+            check_processor_selection_evidence(
+                mutated_state if mutated_state is not None else state,
+                mutated_log if mutated_log is not None else log_text,
+                "broadband_compression", "conv-1",
+            )
+        except RuntimeError as exc:
+            assert fragment in str(exc), f"expected {fragment!r} in rejection, got: {exc}"
+            return
+        raise AssertionError("processor_selection check accepted a form it must reject")
+
+    expect_rejection({"processor_selections": {}}, None, "no processor_selection.v1 record")
+    expect_rejection(None, "unrelated log", "no [domain-route] routing decisions")
+    cancelled = {"processor_selections": {"psel_1": {**state["processor_selections"]["psel_1"], "authorization_state": "cancelled"}}}
+    expect_rejection(cancelled, None, "cancelled")
+    native_mode = {"processor_selections": {"psel_1": {**state["processor_selections"]["psel_1"], "target_mode": "native"}}}
+    expect_rejection(native_mode, None, "not a governed selection arm")
+
+
+def _sealed_target_fixture(target: str = "other") -> tuple[dict[str, Any], dict[str, Any], dict[str, Any], list[dict[str, Any]]]:
+    """Synthetic sealed/public/ledger fixture mirroring the spv1 shapes."""
+    sealed = {
+        "schema_version": SEALED_TRUTH_SCHEMA,
+        "fixture_set_id": "fixture-set-1",
+        "cases": [{
+            "public_case_id": "spv1_px",
+            "source_material": {"source_files": [
+                {"track": "bass", "sha256": "sha-bass"},
+                {"track": "other", "sha256": "sha-other"},
+            ]},
+            "issue_assignments": [{"issue_id": "i01", "expected_family": "static_eq", "expected_target_track": target}],
+        }],
+    }
+    case = {"stem_files": [
+        {"track": "bass", "sha256": "sha-bass"},
+        {"track": "other", "sha256": "sha-other"},
+    ]}
+    target_ref = {"kind": "track", "id": "1022"}
+    responses = [{"workflow_data": {"free_state_reasoning_loop": {"observation_ledger": {"available_views": {
+        "project.structure": {"conclusion": {"facts": {"tracks": [
+            {"name": "bass", "track_id": "1007"}, {"name": "other", "track_id": "1022"},
+        ]}}},
+    }}}}}]
+    return sealed, case, target_ref, responses
+
+
+def test_validate_sealed_target_accepts_right_target() -> None:
+    sealed, case, target_ref, responses = _sealed_target_fixture("other")
+    result = validate_sealed_target(sealed, case, "static_eq", target_ref, responses, {})
+    assert result["status"] == "pass" and result["actual_target_track"] == "other"
+
+
+def test_validate_sealed_target_rejects_wrong_target() -> None:
+    sealed, case, _target_ref, responses = _sealed_target_fixture("other")
+    bass_ref = {"kind": "track", "id": "1007"}
+    try:
+        validate_sealed_target(sealed, case, "static_eq", bass_ref, responses, {})
+    except RuntimeError as exc:
+        assert "sealed expectation" in str(exc) and "bass" in str(exc), f"unexpected rejection wording: {exc}"
+        return
+    raise AssertionError("wrong-target admission (bass) passed the sealed target check")
+
+
+def test_validate_sealed_target_matches_material_across_cases() -> None:
+    # p03 shares p01's stems: the expectation must travel with the material,
+    # not the opaque case id.
+    sealed, case, target_ref, responses = _sealed_target_fixture("other")
+    case["public_case_id"] = "spv1_p03"
+    other_material = {"stem_files": [{"track": "drums", "sha256": "sha-drums"}]}
+    result = validate_sealed_target(sealed, case, "static_eq", target_ref, responses, {})
+    assert result["status"] == "pass"
+    skipped = validate_sealed_target(sealed, other_material, "static_eq", target_ref, responses, {})
+    assert skipped["status"] == "no_sealed_expectation"
+    # track_gain has no baked fault: any target stays admissible.
+    assert sealed_target_tracks_for_domain(sealed, case, "track_gain") == []
 
 
 SETTLEMENT_PROBE_TAG = "smoke_settlement_probe"
@@ -2376,6 +2632,9 @@ def main() -> int:
     parser.add_argument("--expect-domain", choices=sorted(ADMITTED_DOMAIN_KINDS) + ["any"], default="any", help="require the run to autonomously select this admitted domain (regression pin) or any admitted domain")
     parser.add_argument("--multi-round-probe", action="store_true", help="D2-2-S3 multi-round probe: drive one machine-origin judgment at the round-1 boundary (D2-2-S3b), then assert multi-round continuation against the D2-1 dose bounds; a run that never forms the boundary may legally report NOT_EXERCISED (exit 3)")
     parser.add_argument("--expect-honest-refusal", action="store_true", help="D2-REG3 A face: expect the confirmed execution to be refused by the fail-closed unreachable-range gate and validate the REG2 honest-refusal signature (four requirements incl. the StopProjectRevisionStale ban) instead of the applied-path D1 contract")
+    parser.add_argument("--sealed-truth", default="", help="AGENT-2 A3 evaluator-side target check: path to the sealed truth json; opened only after the admission target_ref is frozen, compared only inside the evaluator, never sent to the agent")
+    parser.add_argument("--agent-log", default="", help="path to the agent runtime log for evaluator-side observability checks (domain routing decisions, processor selection records)")
+    parser.add_argument("--expect-processor-selection", default="", help="AGENT-1 milestone: require a processor_selection.v1 record for this action domain (processor_selection route) with its routing log lines present")
     parser.add_argument("--verify-settled", default="", help="verify a previously settled probe report after an agent restart (path to d1_smoke_report.json)")
     args = parser.parse_args()
     if args.multi_round_probe and args.settlement_probe:
@@ -2396,7 +2655,7 @@ def main() -> int:
     report: dict[str, Any] = {"schema_version": "vit.free_state_d1_smoke.v1", "started_at": dt.datetime.now(dt.timezone.utc).isoformat(), "public_case_id": args.public_case_id, "prompt_flavor": args.prompt_flavor, "expect_domain": args.expect_domain, "expect_honest_refusal": args.expect_honest_refusal}
     responses: list[dict[str, Any]] = []
     try:
-        _, public_case = load_public_case(Path(args.public_manifest), args.public_case_id)
+        public_manifest, public_case = load_public_case(Path(args.public_manifest), args.public_case_id)
         case = materialize_public_case(public_case, Path(args.project_workdir))
         report["public_source_project"] = str(Path(str(public_case["project_path"])).resolve())
         report["material_qualification"] = qualify_material(case, stereo_balance=args.prompt_flavor == "pan", limiter=args.prompt_flavor == "limiter", gate=args.prompt_flavor == "gate", multiband=args.prompt_flavor == "multiband")
@@ -2584,6 +2843,20 @@ def main() -> int:
             print(f"D1-S1 MULTI_ROUND_PROBE PASS: report={output}")
             return 0
         report["validation"] = validate_d1(args.agent_http, conversation_id, responses, args.timeout_sec, args.public_case_id)
+        if args.sealed_truth:
+            # AGENT-2 A3: the sealed artifact is opened only now, after
+            # validate_d1 froze the admission target_ref in the report. Its
+            # values go into the target_truth_check section only.
+            sealed = load_sealed_truth(args.sealed_truth, first_text(public_manifest.get("fixture_set_id")))
+            report["target_truth_check"] = validate_sealed_target(
+                sealed, case, report["validation"]["action_domain"], report["validation"].get("target_ref") or {},
+                responses, invoke(args.agent_http, "project.state", {}, args.timeout_sec),
+            )
+        if args.expect_processor_selection:
+            report["processor_selection_check"] = validate_processor_selection_evidence(
+                report["project_setup"]["project_path"], conversation_id, run_started,
+                args.expect_processor_selection, args.agent_log,
+            )
         if args.settlement_probe:
             # The probe judgment is machine-originated and permanently marked
             # as such; it exercises the settlement machinery on this temporary

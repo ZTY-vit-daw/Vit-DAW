@@ -708,7 +708,17 @@ func (s *Server) projectD1Execution(loop freeStateReasoningLoop, session orchest
 	return response
 }
 
+// d1BlockedResponseLogger is the server hook for the blocked-response
+// boundary. The closure settlement projection can bury the response's Error
+// field before it reaches any surface (2026-09-05 1032 forensics: four runs
+// fail-closed with the reason invisible end to end); the hook keeps every
+// blocked D1 execution explainable from the agent log alone.
+var d1BlockedResponseLogger func(conversationID, reason string)
+
 func d1BlockedResponse(loop freeStateReasoningLoop, reason string) ChatResponse {
+	if d1BlockedResponseLogger != nil {
+		d1BlockedResponseLogger(loop.ConversationID, reason)
+	}
 	return ChatResponse{ConversationID: loop.ConversationID, GoalID: loop.GoalID, RunID: loop.RunID, Workflow: "free_state_d1_s1",
 		WorkflowData: map[string]any{"status": "blocked", "mutation_performed": false}, GoalStatus: string(agentruntime.StatusFailed), StopReason: "d1_execution_blocked", Error: reason, Reply: reason}
 }

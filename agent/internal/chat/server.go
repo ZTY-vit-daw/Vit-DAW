@@ -495,6 +495,14 @@ func New(kernelClient *kernel.Client, shadowProject *shadow.Project, logger *log
 	}
 	server.schedulerCtx, server.schedulerCancel = context.WithCancel(context.Background())
 	server.auditionCandidateDriver = &serverAuditionCandidateProjectDriver{server: server}
+	// The blocked-D1 boundary must stay visible in the agent log even when the
+	// closure settlement projection buries the response Error (see
+	// d1BlockedResponse).
+	d1BlockedResponseLogger = func(conversationID, reason string) {
+		if server.logger != nil {
+			server.logger.Warn("[d1] execution blocked conversation=%s reason=%s", conversationID, reason)
+		}
+	}
 	return server
 }
 

@@ -128,7 +128,9 @@ func TestFreeStateCapabilityBoundaryProjectsAdmissionReceiptReadOnly(t *testing.
 	state := audioclosure.State{SchemaVersion: audioclosure.SchemaVersion, ClosureID: "closure-admission-projection", ConversationID: conversationID, ProjectUUID: "project-1", ProjectRevision: "7", Settlement: &audioclosure.Settlement{Reason: audioclosure.StopCapabilityBlocked, Summary: "proposal missing", SettledAt: now}, Phase: audioclosure.PhaseFS9Terminal}
 	response := s.audioClosureResponse(conversationID, "chat", state, agentloop.Result{})
 	receipt := firstMapFromAny(response.WorkflowData["free_state_admission_receipt"])
-	if firstStringFromMap(receipt, "boundary") != "proposal_missing" || len(firstMapFromAny(receipt["gate_results"])) != 7 {
+	// G8_target_consistency (AGENT-2 A3) joined the gate vector; a no-proposal
+	// terminal boundary keeps it as fail (nothing to cross-check).
+	if firstStringFromMap(receipt, "boundary") != "proposal_missing" || len(firstMapFromAny(receipt["gate_results"])) != 8 {
 		t.Fatalf("terminal response omitted auditable admission receipt: %+v", response.WorkflowData)
 	}
 	snapshot := s.projectAgentRuntimeStateLocked()

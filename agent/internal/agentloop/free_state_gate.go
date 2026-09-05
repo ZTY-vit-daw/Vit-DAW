@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"vit-daw-agent/internal/agentprotocol"
 	"vit-daw-agent/internal/audioclosure"
 )
 
@@ -20,11 +21,12 @@ const (
 	freeStateGateG5 = "G5_frontier_established"
 	freeStateGateG6 = "G6_target_evidence"
 	freeStateGateG7 = "G7_fresh_revision_bound_refs"
+	freeStateGateG8 = "G8_target_consistency"
 )
 
 var freeStateGateOrder = []string{
 	freeStateGateG1, freeStateGateG2, freeStateGateG3, freeStateGateG4,
-	freeStateGateG5, freeStateGateG6, freeStateGateG7,
+	freeStateGateG5, freeStateGateG6, freeStateGateG7, freeStateGateG8,
 }
 
 // FreeStateGateAudit is a read-only explanation of the G1-G7 admission
@@ -260,6 +262,109 @@ func refMatchesLedgerRow(ref string, row map[string]any) bool {
 	return false
 }
 
+// gateG8 (AGENT-2 A3 target-consistency assertions, 2026-09-05) requires the
+// improvement proposal's target to agree with the candidate frontier, the
+// target-level observation ledger, and its own evidence citations:
+//
+//  1. the proposal target must be a track covered by the frontier-selected
+//     candidate (proposal target comes from the candidate frontier);
+//  2. the ledger must hold a usable target-level observation whose target_ref
+//     is that same track (target-level observation consistency);
+//  3. every proposal evidence ref must resolve to ledger rows that are
+//     project-level or bound to that same track — never to another track's
+//     observation — and at least one ref must cite the target's own
+//     observation (evidence refs trace back to the target).
+//
+// Ground-truth target correctness stays evaluator-side only (sealed truth
+// never enters agent context); this gate enforces the internal consistency
+// the agent-side surfaces can prove. The M5 wrong-target class (proposal
+// narrating one track while the evidence observes another) fails here
+// fail-closed and routes back to needs_observation.
+func gateG8(state *runState, proposal *agentprotocol.ImprovementProposal) bool {
+	if state == nil || proposal == nil {
+		return false
+	}
+	target := messageLoopMapValue(proposal.Target)
+	if !strings.EqualFold(strings.TrimSpace(messageLoopText(target["kind"])), "track") {
+		return false
+	}
+	trackID := strings.TrimSpace(firstMapText(target, "id", "track_id"))
+	if trackID == "" {
+		return false
+	}
+	// Assertion 1: the proposal target is one of the selected candidate's tracks.
+	closure := messageLoopMapValue(state.input.Context["minimal_audio_closure"])
+	frontier := messageLoopMapValue(closure["hypothesis_frontier"])
+	selected := strings.TrimSpace(messageLoopText(frontier["candidate_id"]))
+	fromFrontier := false
+	for _, candidate := range messageLoopMapRows(frontier["candidates"]) {
+		if !strings.EqualFold(messageLoopText(candidate["id"]), selected) {
+			continue
+		}
+		for _, id := range messageLoopStringList(candidate["track_ids"]) {
+			if strings.TrimSpace(id) == trackID {
+				fromFrontier = true
+			}
+		}
+	}
+	if !fromFrontier {
+		return false
+	}
+	ledger := messageLoopMapValue(messageLoopFreeStateContext(state)["observation_ledger"])
+	rows := append([]map[string]any(nil), messageLoopMapRows(ledger["receipts"])...)
+	for _, raw := range messageLoopMapValue(ledger["available_views"]) {
+		rows = append(rows, messageLoopMapValue(raw))
+	}
+	// Assertion 2: a usable target-level observation is bound to the same track.
+	targetLevelBound := false
+	for _, row := range rows {
+		if freeStateReceiptUsable(row) && ledgerRowTrackTarget(row) == trackID {
+			targetLevelBound = true
+			break
+		}
+	}
+	if !targetLevelBound {
+		return false
+	}
+	// Assertion 3: evidence refs resolve without cross-track contamination and
+	// at least one cites the target's own observation.
+	citedTarget := false
+	for _, ref := range proposal.EvidenceRefs {
+		ref = strings.TrimSpace(ref)
+		if ref == "" {
+			return false
+		}
+		matched := false
+		for _, row := range rows {
+			if !refMatchesLedgerRow(ref, row) {
+				continue
+			}
+			matched = true
+			owner := ledgerRowTrackTarget(row)
+			if owner != "" && owner != trackID {
+				return false
+			}
+			if owner == trackID {
+				citedTarget = true
+			}
+		}
+		if !matched {
+			return false
+		}
+	}
+	return citedTarget
+}
+
+// ledgerRowTrackTarget returns the track id a ledger row is bound to, or ""
+// for project-level rows (no track target_ref).
+func ledgerRowTrackTarget(row map[string]any) string {
+	targetRef := messageLoopMapValue(row["target_ref"])
+	if !strings.EqualFold(strings.TrimSpace(messageLoopText(targetRef["kind"])), "track") {
+		return ""
+	}
+	return strings.TrimSpace(firstMapText(targetRef, "id", "track_id"))
+}
+
 // freeStateFreshStatus accepts the freshness statuses a real CCB bundle can
 // carry: the receipt writer marks fresh observations with status "fresh", the
 // production bundle freshness carries the project binding status
@@ -321,8 +426,10 @@ func freeStateViewFreshRevisionBound(view map[string]any, closureRevision string
 // Admission construction.
 func evaluateFreeStateNeedsExperimentGate(state *runState, decision *FreeStateDecision) []string {
 	var refs []string
+	var proposal *agentprotocol.ImprovementProposal
 	if decision != nil && decision.ImprovementProposal != nil {
 		refs = decision.ImprovementProposal.EvidenceRefs
+		proposal = decision.ImprovementProposal
 	}
 	checks := map[string]bool{
 		freeStateGateG1: gateG1(state),
@@ -332,6 +439,7 @@ func evaluateFreeStateNeedsExperimentGate(state *runState, decision *FreeStateDe
 		freeStateGateG5: gateG5(state),
 		freeStateGateG6: gateG6(state),
 		freeStateGateG7: gateG7(state, refs),
+		freeStateGateG8: gateG8(state, proposal),
 	}
 	var failed []string
 	for _, id := range freeStateGateOrder {
@@ -347,22 +455,62 @@ func evaluateFreeStateNeedsExperimentGate(state *runState, decision *FreeStateDe
 // revision-bound refs) it appends the fresh observation reference the ledger
 // currently holds — mechanical runtime state telling the retry which citation
 // is quotable now, never domain guidance (20260829_205921: the model re-quoted
-// a stale pointer the catalog no longer served and burnt its turns).
+// a stale pointer the catalog no longer served and burnt its turns). G8 target
+// consistency appends the selected candidate's track set the same way: which
+// tracks the frontier actually established, never which track is "correct".
 func freeStateNeedsExperimentGateFailureMessage(state *runState, failed []string) string {
 	failedList := strings.Join(failed, ", ")
 	revisionBoundFailure := false
+	targetConsistencyFailure := false
 	for _, id := range failed {
 		if id == freeStateGateG1 || id == freeStateGateG7 {
 			revisionBoundFailure = true
 		}
+		if id == freeStateGateG8 {
+			targetConsistencyFailure = true
+		}
 	}
-	if !revisionBoundFailure {
-		return fmt.Sprintf("needs_experiment requires the full admission gate; failed: %s; return needs_observation with the next bounded observation instead", failedList)
+	guidance := ""
+	if revisionBoundFailure {
+		if reference := freeStateLedgerFreshReference(state); reference != "" {
+			guidance = fmt.Sprintf("; the fresh quotable observation reference is %s", reference)
+		}
 	}
-	if reference := freeStateLedgerFreshReference(state); reference != "" {
-		return fmt.Sprintf("needs_experiment requires the full admission gate; failed: %s; the fresh quotable observation reference is %s; return needs_observation with the next bounded observation instead", failedList, reference)
+	if targetConsistencyFailure {
+		if tracks := freeStateSelectedCandidateTracks(state); len(tracks) > 0 {
+			guidance += fmt.Sprintf("; the frontier-selected candidate covers tracks [%s] — target the proposal at one of them and cite that track's own observations", strings.Join(tracks, ", "))
+		}
 	}
-	return fmt.Sprintf("needs_experiment requires the full admission gate; failed: %s; return needs_observation with the next bounded observation instead", failedList)
+	return fmt.Sprintf("needs_experiment requires the full admission gate; failed: %s%s; return needs_observation with the next bounded observation instead", failedList, guidance)
+}
+
+// freeStateSelectedCandidateTracks lists the frontier-selected candidate's
+// track ids (deduplicated, frontier order) for the G8 refusal guidance.
+func freeStateSelectedCandidateTracks(state *runState) []string {
+	if state == nil {
+		return nil
+	}
+	closure := messageLoopMapValue(state.input.Context["minimal_audio_closure"])
+	frontier := messageLoopMapValue(closure["hypothesis_frontier"])
+	selected := strings.TrimSpace(messageLoopText(frontier["candidate_id"]))
+	if selected == "" {
+		return nil
+	}
+	var tracks []string
+	seen := map[string]bool{}
+	for _, candidate := range messageLoopMapRows(frontier["candidates"]) {
+		if !strings.EqualFold(messageLoopText(candidate["id"]), selected) {
+			continue
+		}
+		for _, trackID := range messageLoopStringList(candidate["track_ids"]) {
+			trackID = strings.TrimSpace(trackID)
+			if trackID != "" && !seen[trackID] {
+				seen[trackID] = true
+				tracks = append(tracks, trackID)
+			}
+		}
+	}
+	return tracks
 }
 
 // freeStateLedgerFreshReference returns the freshest quotable observation

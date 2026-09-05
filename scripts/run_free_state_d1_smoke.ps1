@@ -40,7 +40,24 @@ param(
     # effects, REG2 honest terminal with the StopProjectRevisionStale
     # misattribution explicitly rejected). Any requirement not met is an
     # honest FAIL, not a retry loop.
-    [switch]$ExpectHonestRefusal
+    [switch]$ExpectHonestRefusal,
+    # AGENT-1/AGENT-2 (2026-09-05): per-domain processor-selection route
+    # switch, e.g. "broadband_compression=processor_selection". The launcher
+    # owns the injection into the child agent process env
+    # (VIT_AGENT_DOMAIN_ROUTES); a conflicting caller env is a hard error
+    # instead of a silent override. Default (empty) keeps every domain on
+    # legacy_native.
+    [string]$DomainRoute = "",
+    # AGENT-2 A3: evaluator-side sealed target check. Resolves the sealed
+    # truth artifact next to the public manifest and passes it to the smoke;
+    # the smoke opens it only after the admission target is frozen and never
+    # sends its values to the agent.
+    [switch]$SealedTargetCheck,
+    # AGENT-1 milestone (walked by AGENT-2): require a processor_selection.v1
+    # record for this action domain plus the [domain-route] processor_selection
+    # log lines (observability of the new selection route).
+    [ValidateSet("", "track_gain", "static_eq", "broadband_compression", "de_esser", "transient_shaper", "pan", "limiter", "gate_expander", "multiband_dynamics")]
+    [string]$ExpectProcessorSelection = ""
 )
 
 Set-StrictMode -Version Latest
@@ -60,6 +77,46 @@ if ($ExpectHonestRefusal -and ($MultiRoundProbe -or $AdmissionOnly -or $Settleme
     throw "-ExpectHonestRefusal owns the run tail and cannot be combined with -MultiRoundProbe, -AdmissionOnly, or -SettlementProbe"
 }
 $multiroundTierEnv = [string]$env:VIT_FREE_STATE_D2_MULTI_ROUND_BUDGET
+# AGENT-1/AGENT-2 domain-route env discipline: the launcher owns
+# VIT_AGENT_DOMAIN_ROUTES. An explicit -DomainRoute must be the only source
+# (caller conflicts are a hard error); without the parameter the caller env is
+# cleared for the child so a stale shell cannot silently flip routes.
+$domainRouteEnv = [string]$env:VIT_AGENT_DOMAIN_ROUTES
+if (-not [string]::IsNullOrWhiteSpace($DomainRoute)) {
+    foreach ($entry in ($DomainRoute -split ',')) {
+        $pair = $entry.Trim()
+        if ($pair -eq "") { continue }
+        $parts = $pair -split '=', 2
+        if ($parts.Count -ne 2 -or [string]::IsNullOrWhiteSpace($parts[0]) -or
+            ($parts[1].Trim() -ne "processor_selection" -and $parts[1].Trim() -ne "legacy_native")) {
+            throw ("DomainRoute entry '" + $pair + "' is malformed; expected domain=processor_selection|legacy_native")
+        }
+    }
+    if (-not [string]::IsNullOrWhiteSpace($domainRouteEnv) -and $domainRouteEnv.Trim() -ne $DomainRoute.Trim()) {
+        throw ("caller env VIT_AGENT_DOMAIN_ROUTES='" + $domainRouteEnv + "' conflicts with -DomainRoute '" + $DomainRoute + "'; align them instead of relying on a silent override")
+    }
+    $env:VIT_AGENT_DOMAIN_ROUTES = $DomainRoute
+}
+else {
+    if (-not [string]::IsNullOrWhiteSpace($domainRouteEnv)) {
+        Write-Warning ("clearing caller env VIT_AGENT_DOMAIN_ROUTES='" + $domainRouteEnv + "' for this run; pass -DomainRoute to enable a route explicitly")
+        Remove-Item Env:VIT_AGENT_DOMAIN_ROUTES -ErrorAction SilentlyContinue
+    }
+}
+if ($ExpectProcessorSelection -ne "" -and [string]::IsNullOrWhiteSpace($DomainRoute)) {
+    throw "-ExpectProcessorSelection requires the processor_selection route; pass -DomainRoute with '<domain>=processor_selection'"
+}
+if ($ExpectProcessorSelection -ne "" -and -not $DomainRoute.Contains(($ExpectProcessorSelection + "=processor_selection"))) {
+    throw ("-ExpectProcessorSelection " + $ExpectProcessorSelection + " is not enabled by -DomainRoute '" + $DomainRoute + "'")
+}
+$sealedTruthPath = ""
+if ($SealedTargetCheck) {
+    $sealedTruthPath = Join-Path (Split-Path -Parent $PublicManifest) "sealed\sealed_truth.json"
+    if (-not (Test-Path -LiteralPath $sealedTruthPath -PathType Leaf)) {
+        throw ("sealed truth artifact is missing at " + $sealedTruthPath)
+    }
+}
+$agentLogPath = Join-Path $RepoRoot "VitApp\Workspace\Logs\agent_last.log"
 if ($MultiRoundProbe) {
     if (-not [string]::IsNullOrWhiteSpace($multiroundTierEnv)) {
         $callerTier = 0
@@ -188,6 +245,12 @@ try {
     if ($ExpectHonestRefusal) {
         $smokeArgs += "--expect-honest-refusal"
     }
+    if ($SealedTargetCheck) {
+        $smokeArgs += @("--sealed-truth", $sealedTruthPath)
+    }
+    if ($ExpectProcessorSelection -ne "") {
+        $smokeArgs += @("--agent-log", $agentLogPath, "--expect-processor-selection", $ExpectProcessorSelection)
+    }
     & python @smokeArgs
     $runnerExit = $LASTEXITCODE
 }
@@ -242,6 +305,10 @@ if ($SettlementProbe -ne "") {
 }
 if ($ExpectHonestRefusal) {
     Write-Host ("D1-S1 HONEST_REFUSAL PASS: fail-closed refusal verified honest (four requirements, no stale misattribution); report=" + $report) -ForegroundColor Green
+    exit 0
+}
+if ($ExpectProcessorSelection -ne "") {
+    Write-Host ("D1-S1 PASS: processor_selection route walked end to end (domain=" + $ExpectProcessorSelection + "; selection record + routing log verified); report=" + $report) -ForegroundColor Green
     exit 0
 }
 Write-Host ("D1-S1 PASS: real-stack public-only smoke completed; report=" + $report) -ForegroundColor Green

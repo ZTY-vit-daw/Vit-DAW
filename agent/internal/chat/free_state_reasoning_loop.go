@@ -607,7 +607,7 @@ func freeStateAdmissionGateResults(failed []string) map[string]any {
 	for _, id := range []string{
 		"G1_project_binding", "G2_capacity_assessed", "G3_project_scan",
 		"G4_dimension_closed", "G5_frontier_established", "G6_target_evidence",
-		"G7_fresh_revision_bound_refs",
+		"G7_fresh_revision_bound_refs", "G8_target_consistency",
 	} {
 		results[id] = "pass"
 		if failedSet[id] {
@@ -2647,6 +2647,10 @@ func (s *Server) settleFreeStateLoopFromClosure(conversationID string, settlemen
 			"G5_frontier_established":      "fail",
 			"G6_target_evidence":           "fail",
 			"G7_fresh_revision_bound_refs": "fail",
+			// G8 needs a model proposal to cross-check; this reconstruction is
+			// exactly the no-proposal terminal boundary, so consistency stays
+			// unproven rather than defaulted to pass.
+			"G8_target_consistency": "fail",
 		}
 		if len(closure) > 0 {
 			current := closure[0]
@@ -2717,7 +2721,7 @@ func (s *Server) settleFreeStateLoopFromClosure(conversationID string, settlemen
 		// retain all deterministic gates as failed rather than calling it
 		// no_candidate_found.
 		failed := []string{}
-		for _, id := range []string{"G1_project_binding", "G2_capacity_assessed", "G3_project_scan", "G4_dimension_closed", "G5_frontier_established", "G6_target_evidence", "G7_fresh_revision_bound_refs"} {
+		for _, id := range []string{"G1_project_binding", "G2_capacity_assessed", "G3_project_scan", "G4_dimension_closed", "G5_frontier_established", "G6_target_evidence", "G7_fresh_revision_bound_refs", "G8_target_consistency"} {
 			if gateResults[id] == "fail" {
 				failed = append(failed, id)
 			}
