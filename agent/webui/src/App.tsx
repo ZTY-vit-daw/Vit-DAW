@@ -106,7 +106,7 @@ import { authorityContext, checkoutBlockedByState, continuationChainLive, isAgen
 import { agentEventPollBusy, createAgentEventPollIdleGate } from "./eventPolling";
 import { AuditionJudgeCard } from "./trajectory/TrajectoryAuditionPanel";
 import { TraceBlock, OptimisticTraceBlock, shouldShowOptimisticTrace } from "./trace/TraceBlock";
-import { appendChainResultMessages, chainResultMessagesFromEvents, shouldRenderTraceBlockForTurn } from "./trace/traceDelivery";
+import { appendChainResultMessages, chainResultMessagesFromEvents, isChainResultChatMessage, shouldRenderTraceBlockForTurn } from "./trace/traceDelivery";
 import { PlanBar } from "./composer/PlanBar";
 import { groupMessagesByTurn, isUnboundActivity, turnIsAnchored } from "./trace/turnGroups";
 import type {
@@ -4186,6 +4186,10 @@ function MessageStream({
   );
   const anchoredTurnIds = new Set(groups.map((group) => group.turnId).filter(Boolean));
   const unanchoredSessions = sessions.filter((session) => !session.turnID || !anchoredTurnIds.has(session.turnID));
+  // GUI-F8：scheduler_chain 终局消息移到孤儿轨迹块（实验轮块）之后渲染——
+  // 分组内跳过、流尾（orphanTurns 之后）补上，保证 用户消息→中间汇报→实验
+  // 轨迹块→终局回复 的顺序。
+  const chainResultTailMessages = visibleMessages.filter(isChainResultChatMessage);
 
   return (
     <div className="message-stream">
@@ -4203,7 +4207,7 @@ function MessageStream({
                 authorityMode={authorityMode}
               />
             )}
-            {group.messages.filter((message) => message.role !== "user").map(renderMessage)}
+            {group.messages.filter((message) => message.role !== "user" && !isChainResultChatMessage(message)).map(renderMessage)}
             {turnSessions.map(renderJudgeCard)}
           </Fragment>
         );
@@ -4218,6 +4222,8 @@ function MessageStream({
           authorityMode={authorityMode}
         />
       ))}
+      {/* GUI-F8：终局回复在孤儿轨迹块之后渲染（实验轨迹块 → 终局回复） */}
+      {chainResultTailMessages.map(renderMessage)}
       {/* 发送即显的乐观轨迹条：真 turn.started 事件到达后由上方真块无缝接管 */}
       {shouldShowOptimisticTrace({ isSending, trajectory, messages: visibleMessages }) && (
         <OptimisticTraceBlock key="optimistic-trace" />

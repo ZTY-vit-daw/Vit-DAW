@@ -54,10 +54,18 @@ export function appendChainResultMessages(current: ChatMessage[], incoming: Chat
   return [...current, ...additions];
 }
 
-// 空结算块隐藏（GUI-F7 / 原 A 方案）：0 轨迹节点且终态 completed 的回合不再
-// 渲染独立轨迹块——调度链收尾切片（128ms、无工具调用）的"0 步·执行完成"
-// 块是误导，终局结果由链终局消息气泡承载。failed/stopped 与 live 回合保留
-// 块：异常与进行中信息优先可见。
+// GUI-F8：终局消息的渲染位置谓词——scheduler_chain 终局消息在消息流中移到
+// 孤儿轨迹块（实验轮块）之后渲染：用户消息 → 中间汇报 → 实验轨迹块 → 终局回复。
+export function isChainResultChatMessage(message: ChatMessage): boolean {
+  const key = String(message?.source_id ?? message?.id ?? "");
+  return key.startsWith("agent_event_") && key.endsWith("_chain_result");
+}
+
+// 空结算块隐藏（GUI-F7 / 原 A 方案；GUI-F8 修正谓词）：completed 回合若无
+// 非 turn 类节点（与轨迹块步数统计 turnStepNodes 同口径——turn 生命周期节点
+// 不计步）则不渲染独立轨迹块——调度链收尾切片的「0 步·执行完成」块是误导，
+// 终局结果由链终局消息气泡承载。failed/stopped 与 live 回合保留块：异常与
+// 进行中信息优先可见。
 export function shouldRenderTraceBlockForTurn(state: TrajectoryState, turnId: string): boolean {
   const turn = state?.turns?.[turnId];
   if (!turn) {
@@ -67,6 +75,9 @@ export function shouldRenderTraceBlockForTurn(state: TrajectoryState, turnId: st
   if (status !== "completed") {
     return true;
   }
-  const hasNodes = (turn.nodeIds ?? []).some((id) => Boolean(state.nodes?.[id]));
-  return hasNodes;
+  const hasStepNodes = (turn.nodeIds ?? []).some((id) => {
+    const node = state.nodes?.[id];
+    return Boolean(node) && String(node.kind ?? "") !== "turn";
+  });
+  return hasStepNodes;
 }

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { chatMessageFromAgentEvent } from "./App";
-import { chainResultMessagesFromEvents, shouldRenderTraceBlockForTurn } from "./trace/traceDelivery";
+import { chainResultMessagesFromEvents, isChainResultChatMessage, shouldRenderTraceBlockForTurn } from "./trace/traceDelivery";
 import type { AgentEvent } from "./types";
 import type { TrajectoryState, TrajectoryTurn, TrajectoryNode } from "./trajectory";
 
@@ -88,5 +88,33 @@ describe("shouldRenderTraceBlockForTurn (GUI-F7)", () => {
   });
   it("有节点的 completed 回合照常渲染", () => {
     expect(shouldRenderTraceBlockForTurn(state(turn("completed", ["n1"])), "turn-x")).toBe(true);
+  });
+  it("GUI-F8：只含 turn 生命周期节点的 completed 回合隐藏（与步数统计同口径）", () => {
+    const turnOnly = { id: "turn-y", status: "completed", nodeIds: ["t1"] } as TrajectoryTurn;
+    const withTurnNode = {
+      turns: { "turn-y": turnOnly },
+      nodes: { t1: { id: "t1", kind: "turn", title: "", summary: "", status: "completed" } as TrajectoryNode }
+    } as unknown as TrajectoryState;
+    expect(shouldRenderTraceBlockForTurn(withTurnNode, "turn-y")).toBe(false);
+    // 同一回合混入一个非 turn 节点则恢复渲染
+    const mixed = {
+      turns: { "turn-y": { ...turnOnly, nodeIds: ["t1", "n1"] } },
+      nodes: {
+        t1: { id: "t1", kind: "turn", title: "", summary: "", status: "completed" } as TrajectoryNode,
+        n1: { id: "n1", kind: "observation", title: "", summary: "", status: "completed" } as TrajectoryNode
+      }
+    } as unknown as TrajectoryState;
+    expect(shouldRenderTraceBlockForTurn(mixed, "turn-y")).toBe(true);
+  });
+});
+
+describe("chain result message render position (GUI-F8)", () => {
+  it("终局消息可被谓词识别（渲染序接线用）", () => {
+    const message = chatMessageFromAgentEvent(chainResultEvent(), "default");
+    expect(message).not.toBeNull();
+    expect(isChainResultChatMessage(message!)).toBe(true);
+  });
+  it("普通消息不被误判", () => {
+    expect(isChainResultChatMessage({ id: "m1", source_id: "m1" } as never)).toBe(false);
   });
 });
