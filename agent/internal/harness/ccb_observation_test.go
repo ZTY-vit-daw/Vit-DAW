@@ -283,6 +283,50 @@ func TestCCBObservationCatalogDoesNotMutateOrRequireConfirmation(t *testing.T) {
 	}
 }
 
+// TestCCBObservationTrackViewWithoutTargetIsRejectedWithGuidance is the DIAG2
+// guardrail: a track.* view observes exactly one track, so a fresh request
+// without an explicit target must be rejected with guidance instead of
+// materializing the track-less evidence shell the DIAG1 failure chain
+// produced. The project view in the same request stays non-blocking so the
+// model can retry deterministically.
+func TestCCBObservationTrackViewWithoutTargetIsRejectedWithGuidance(t *testing.T) {
+	h := New(nil, shadowProjectWithClips(), nil)
+	response, err := h.Invoke(context.Background(), InvokeRequest{
+		Tool: "ccb.observation_request",
+		Args: map[string]any{
+			"request_id": "ccb-track-untargeted",
+			"view_ids":   []any{"track.time_dynamics", "project.structure"},
+		},
+		Source: "agentloop",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	result := testMap(t, response.Result)
+	if result["status"] != "rejected" {
+		t.Fatalf("untargeted track view status = %v, want rejected: %+v", result["status"], result)
+	}
+	bundle := testMap(t, result["bundle"])
+	guided := false
+	for _, reason := range stringSliceFromAny(bundle["omission_reasons"]) {
+		if strings.Contains(reason, "track view requires explicit target") && strings.Contains(reason, "pick from visible tracks") {
+			guided = true
+			break
+		}
+	}
+	if !guided {
+		t.Fatalf("rejection reasons lack the target guidance: %#v", bundle["omission_reasons"])
+	}
+	blocking := stringSliceFromAny(bundle["blocking_view_ids"])
+	if len(blocking) != 1 || blocking[0] != "track.time_dynamics" {
+		t.Fatalf("blocking views = %v, want only the track view", blocking)
+	}
+	nonBlocking := stringSliceFromAny(bundle["non_blocking_view_ids"])
+	if len(nonBlocking) != 1 || nonBlocking[0] != "project.structure" {
+		t.Fatalf("non-blocking views = %v, want the project view to stay requestable", nonBlocking)
+	}
+}
+
 func TestCCBObservationScopeHonorsExplicitTrackForMixedViews(t *testing.T) {
 	req := capabilitycontext.FreeStateObservationRequest{
 		ViewIDs:   []string{"track.time_dynamics", "mix.multitrack_relationship"},

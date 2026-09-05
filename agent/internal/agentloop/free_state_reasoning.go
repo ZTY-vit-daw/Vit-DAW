@@ -632,6 +632,9 @@ func messageLoopFreeStateOutputIssue(state *runState, out messageLoopOutput) str
 		if issue := messageLoopFreeStateRequestedCallsIssue(out.FreeStateDecision.RequestedViewIDs, requestCalls); issue != "" {
 			return issue
 		}
+		if issue := messageLoopFreeStateDiagnosticFrequencyFloorIssue(state, requestCalls); issue != "" {
+			return issue
+		}
 		if issue := messageLoopFreeStateCandidateProgressionIssue(state, status, requestCalls); issue != "" {
 			return issue
 		}
@@ -1523,6 +1526,69 @@ func messageLoopFreeStateTrackTargetIssue(state *runState, call planner.ToolCall
 		return ""
 	}
 	return "track.* observation views require args.target_ref with kind=track and an exact model-visible track id; request project structure first if track identities are not yet visible"
+}
+
+// freeStateFrequencyFloorViews are the catalog views whose facts expose
+// frequency-domain relationships. The DIAG1 failure chain spent its whole
+// observation budget on zero frequency views and ended in no_candidate_found.
+var freeStateFrequencyFloorViews = []string{"mix.frequency_relationship", "track.timbre_frequency"}
+
+// messageLoopFreeStateDiagnosticFrequencyFloorIssue is the DIAG2 guardrail:
+// within an fs4 diagnostic round, the first executed observation set must
+// include at least one frequency-domain view. It is a floor, not a sequence:
+// which frequency view to add and every other view choice stay with the model,
+// and once one usable observation has returned the floor no longer applies.
+func messageLoopFreeStateDiagnosticFrequencyFloorIssue(state *runState, calls []planner.ToolCall) string {
+	if state == nil || len(calls) == 0 {
+		return ""
+	}
+	phaseText := messageLoopFreeStateHostPhase(state)
+	if phaseText == "" {
+		phaseText = strings.TrimSpace(messageLoopText(messageLoopMapValue(state.input.Context["minimal_audio_closure"])["phase"]))
+	}
+	phase, ok := audioclosure.ParsePhase(phaseText)
+	if !ok || phase != audioclosure.PhaseFS4DiagnosticRound {
+		return ""
+	}
+	if messageLoopFreeStateHasUsableObservationRequest(state) {
+		return ""
+	}
+	for _, call := range calls {
+		views, issue := messageLoopFreeStateNormalizedCallViewSet(call.Args["view_ids"])
+		if issue != "" {
+			continue
+		}
+		for viewID := range views {
+			for _, floorView := range freeStateFrequencyFloorViews {
+				if strings.TrimSpace(viewID) == floorView {
+					return ""
+				}
+			}
+		}
+	}
+	return "the first diagnostic observation set must include a frequency-domain view (mix.frequency_relationship or track.timbre_frequency); add one of them to this request and keep your own choices for the remaining views"
+}
+
+// messageLoopFreeStateHasUsableObservationRequest reports whether a usable
+// ccb.observation_request already returned in this loop, i.e. whether the
+// first observation set has already happened.
+func messageLoopFreeStateHasUsableObservationRequest(state *runState) bool {
+	ctx := messageLoopFreeStateContext(state)
+	ledger := messageLoopMapValue(ctx["observation_ledger"])
+	if len(messageLoopMapValue(ledger["available_views"])) > 0 {
+		return true
+	}
+	for _, row := range messageLoopMapRows(ledger["receipts"]) {
+		if messageLoopFreeStateObservationStatusUsable(row) {
+			return true
+		}
+	}
+	if observation := state.recentObservation; observation != nil &&
+		messageLoopIsCCBObservationRequestName(firstNonEmpty(observation.Tool, observation.CommandName)) &&
+		messageLoopFreeStateObservationStatusUsable(observation.Summary) {
+		return true
+	}
+	return false
 }
 
 func messageLoopFreeStateViewFingerprint(values []string) string {

@@ -765,6 +765,109 @@ func TestAdvanceAudioClosurePhaseDerivesGuardsFromStateOnly(t *testing.T) {
 		t.Fatalf("self-asserted scan evidence advanced past the derived guard: %s", advanced.Phase)
 	}
 }
+// TestAudioClosureRoundRecordKeepsDimensionOpenOnUnboundOrEmptyDisclosure is
+// the DIAG2 guardrail: a dimension may close only on disclosure quality — a
+// target-bound observation with usable disclosed evidence. The DIAG1 failure
+// chain closed dynamics after one unbound track.time_dynamics view (the
+// track-less evidence shell), institutionalizing a single bad draw.
+func TestAudioClosureRoundRecordKeepsDimensionOpenOnUnboundOrEmptyDisclosure(t *testing.T) {
+	now := time.Now().UTC()
+	driver := audioclosure.Driver{}
+	startRound := func(closureID string) audioclosure.State {
+		state, err := audioclosure.Start(audioclosure.StartRequest{
+			ClosureID: closureID, ConversationID: "conversation-" + closureID,
+			ProjectUUID: "project-1", ProjectRevision: "16", OriginalIntent: "inspect the project",
+			Mode: audioclosure.ModeTreatment, Scope: audioclosure.Scope{Kind: "project", ID: "project-1"}, Now: now,
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+		state, _, err = driver.AdmitRound(state, state.Revision, now)
+		if err != nil {
+			t.Fatal(err)
+		}
+		return state
+	}
+	bundleObservation := func(id, status string) *agentloop.RecentObservation {
+		return &agentloop.RecentObservation{
+			Tool: "ccb.observation_request", CommandName: "ccb_observation_request", Status: status,
+			Summary: map[string]any{"observation_id": id, "status": status, "view_ids": []any{"track.time_dynamics"}},
+		}
+	}
+	recordRound := func(state audioclosure.State, targetRef, observationID string) audioclosure.State {
+		outcome, err := driver.RecordObservation(state, state.Revision, audioclosure.ObservationKey{
+			ProjectUUID: "project-1", ProjectRevision: "16",
+			Scope: audioclosure.Scope{Kind: "project", ID: "project-1"},
+			TargetRef: targetRef, ViewIDs: []string{"track.time_dynamics"},
+		}, observationID, now)
+		if err != nil {
+			t.Fatal(err)
+		}
+		return outcome.State
+	}
+	dynamicsEntry := func(state audioclosure.State) audioclosure.PriorityQueueEntry {
+		queue := audioclosure.QueueFromRounds(state.DiagnosticRounds)
+		for _, entry := range queue.Entries {
+			if entry.Dimension == audioclosure.DimensionDynamics {
+				return entry
+			}
+		}
+		t.Fatalf("dynamics entry missing from queue: %+v", queue.Entries)
+		return audioclosure.PriorityQueueEntry{}
+	}
+
+	// Unbound track view (the DIAG1 empty shell): dimension stays open.
+	state := recordRound(startRound("closure-diag2-unbound"), "", "obs-unbound")
+	round, ok := audioClosureRoundRecord(state, []*agentloop.RecentObservation{bundleObservation("obs-unbound", "ready")})
+	if !ok {
+		t.Fatal("unbound round produced no diagnostic round record")
+	}
+	if round.EvidenceStatus == audioclosure.RoundEvidenceReady {
+		t.Fatalf("unbound track disclosure was marked ready: %+v", round)
+	}
+	state, err := driver.RecordDiagnosticRound(state, state.Revision, round, now)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if entry := dynamicsEntry(state); entry.Status != audioclosure.QueueOpen {
+		t.Fatalf("dynamics closed after unbound disclosure: %+v", entry)
+	}
+
+	// Empty disclosure (bound observation, insufficient bundle): stays open.
+	state = recordRound(startRound("closure-diag2-empty"), "1007", "obs-empty")
+	round, ok = audioClosureRoundRecord(state, []*agentloop.RecentObservation{bundleObservation("obs-empty", "insufficient")})
+	if !ok {
+		t.Fatal("empty-disclosure round produced no diagnostic round record")
+	}
+	if round.EvidenceStatus == audioclosure.RoundEvidenceReady {
+		t.Fatalf("empty disclosure was marked ready: %+v", round)
+	}
+	state, err = driver.RecordDiagnosticRound(state, state.Revision, round, now)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if entry := dynamicsEntry(state); entry.Status != audioclosure.QueueOpen {
+		t.Fatalf("dynamics closed after empty disclosure: %+v", entry)
+	}
+
+	// Bound observation with usable disclosure still closes the dimension.
+	state = recordRound(startRound("closure-diag2-bound"), "1007", "obs-bound")
+	round, ok = audioClosureRoundRecord(state, []*agentloop.RecentObservation{bundleObservation("obs-bound", "ready")})
+	if !ok {
+		t.Fatal("bound round produced no diagnostic round record")
+	}
+	if round.EvidenceStatus != audioclosure.RoundEvidenceReady {
+		t.Fatalf("bound usable disclosure was not marked ready: %+v", round)
+	}
+	state, err = driver.RecordDiagnosticRound(state, state.Revision, round, now)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if entry := dynamicsEntry(state); entry.Status != audioclosure.QueueClosed {
+		t.Fatalf("bound usable disclosure did not close dynamics: %+v", entry)
+	}
+}
+
 // TestAudioClosureRoundRecordRestrictsViewsToPrimaryDimension mirrors the
 // 19:47 D1 smoke closure: the project-level bundle spans several dimensions
 // (masking + multitrack + structure) and the bass bundle mixes a level view
@@ -797,7 +900,7 @@ func TestAudioClosureRoundRecordRestrictsViewsToPrimaryDimension(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	round2, ok := audioClosureRoundRecord(state)
+	round2, ok := audioClosureRoundRecord(state, nil)
 	if !ok {
 		t.Fatal("round 2 produced no diagnostic round record")
 	}
@@ -832,7 +935,7 @@ func TestAudioClosureRoundRecordRestrictsViewsToPrimaryDimension(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	round3, ok := audioClosureRoundRecord(state)
+	round3, ok := audioClosureRoundRecord(state, nil)
 	if !ok {
 		t.Fatal("round 3 produced no diagnostic round record")
 	}

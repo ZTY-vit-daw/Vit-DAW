@@ -39,6 +39,15 @@ func (h *Harness) ccbObservationRequest(ctx context.Context, cmd map[string]any,
 	if reasons := ccbObservationUnknownViewReasons(req); len(reasons) > 0 {
 		return map[string]any{"status": "rejected", "bundle": capabilitycontext.RejectedFreeStateObservationScoped(req, ccbObservationBlockingViewsFromReasons(req, reasons), reasons...)}, nil
 	}
+	// A track.* view observes exactly one track. A fresh request without an
+	// explicit target materializes project-wide and yields the track-less
+	// evidence shell the DIAG1 failure chain produced, so it is rejected with
+	// guidance (reject + guide, never auto-select) and the model re-picks a
+	// visible track next turn. A replay carrying an existing observation_id
+	// inherits its target from the authoritative binding and stays legal.
+	if blocking, reasons := ccbObservationTrackTargetReasons(req); len(reasons) > 0 {
+		return map[string]any{"status": "rejected", "bundle": capabilitycontext.RejectedFreeStateObservationScoped(req, blocking, reasons...)}, nil
+	}
 	// Catalog entries marked deferred/unavailable are explicit capability
 	// boundaries. Reject before materializing an observation so the model gets
 	// a durable receipt and can deterministically choose another view or block.
@@ -166,6 +175,25 @@ func ccbObservationUnknownViewReasons(req capabilitycontext.FreeStateObservation
 		}
 	}
 	return reasons
+}
+
+// ccbObservationTrackTargetReasons enforces the DIAG2 observation guardrail:
+// every track.* view in a fresh materialization requires an explicit,
+// non-empty target. Reasons are per-view prefixed so the blocking/non-blocking
+// split keeps the non-track views of the same request retryable.
+func ccbObservationTrackTargetReasons(req capabilitycontext.FreeStateObservationRequest) ([]string, []string) {
+	if req.ObservationID != "" || strings.TrimSpace(req.TargetRef.ID) != "" {
+		return nil, nil
+	}
+	blocking := []string{}
+	reasons := []string{}
+	for _, viewID := range req.ViewIDs {
+		if strings.HasPrefix(strings.ToLower(strings.TrimSpace(viewID)), "track.") {
+			blocking = append(blocking, viewID)
+			reasons = append(reasons, viewID+": track view requires explicit target; pick from visible tracks and resend with target_ref kind=track id=<exact visible track id> (request project.structure first if track identities are not yet visible)")
+		}
+	}
+	return uniqueStrings(blocking), reasons
 }
 
 func ccbObservationUnavailableViewReasons(req capabilitycontext.FreeStateObservationRequest) []string {

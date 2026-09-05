@@ -544,7 +544,7 @@ func (s *Server) recordAudioClosureRound(state audioclosure.State, res agentloop
 			s.logger.Warn("[audio-closure] phase advance failed for %s at %s: %v", current.ClosureID, current.Phase, advanceErr)
 		}
 		current = advanced
-		if record, ok := audioClosureRoundRecord(current); ok {
+		if record, ok := audioClosureRoundRecord(current, observations); ok {
 			recorded, recordErr := driver.RecordDiagnosticRound(current, current.Revision, record, time.Now().UTC())
 			if recordErr != nil {
 				// A rejected round record must never vanish silently: the G4
@@ -1366,13 +1366,18 @@ func (s *Server) advanceAudioClosurePhase(current audioclosure.State, evidence a
 }
 
 // audioClosureRoundRecord derives the diagnostic round record for the round
-// that is about to close, from the observations recorded in that round.
-func audioClosureRoundRecord(state audioclosure.State) (audioclosure.DiagnosticRoundRecord, bool) {
+// that is about to close, from the observations recorded in that round. The
+// observations argument carries the CCB bundles of the same round so the
+// evidence status can reflect disclosure quality (DIAG2 guardrail): a
+// dimension may close only on target-bound, fully disclosed evidence.
+func audioClosureRoundRecord(state audioclosure.State, observations []*agentloop.RecentObservation) (audioclosure.DiagnosticRoundRecord, bool) {
+	records := []audioclosure.ObservationRecord{}
 	views := map[string]bool{}
 	for _, record := range state.Observations {
 		if record.Round != state.RoundsStarted {
 			continue
 		}
+		records = append(records, record)
 		for _, viewID := range record.ViewIDs {
 			views[viewID] = true
 		}
@@ -1432,9 +1437,70 @@ func audioClosureRoundRecord(state audioclosure.State) (audioclosure.DiagnosticR
 		PrimaryDimension: primary,
 		PriorityReason:   audioclosure.PriorityDefaultOrder,
 		ViewsRequested:   sortedMapKeys(kept),
-		EvidenceStatus:   audioclosure.RoundEvidenceReady,
+		EvidenceStatus:   audioClosureRoundEvidenceStatus(records, observations),
 		ProjectRevision:  state.ProjectRevision,
 	}, true
+}
+
+// audioClosureRoundEvidenceStatus derives the round's G4 evidence status from
+// the disclosure quality of its observations (DIAG2 guardrail 3): a dimension
+// may close only on target-bound, fully disclosed evidence. An unbound
+// track-scoped observation (the DIAG1 track-less shell) or an
+// insufficient/empty disclosure keeps the dimension open; a partial bundle
+// marks the round partial. An unknown bundle status leaves the record-level
+// signal (binding) in charge, matching the historical behavior for callers
+// that persist rounds without bundle projections.
+func audioClosureRoundEvidenceStatus(records []audioclosure.ObservationRecord, observations []*agentloop.RecentObservation) audioclosure.RoundEvidenceStatus {
+	status := audioclosure.RoundEvidenceReady
+	for _, record := range records {
+		if audioClosureObservationTrackScoped(record.ViewIDs) && strings.TrimSpace(record.TargetRef) == "" {
+			return audioclosure.RoundEvidenceOpen
+		}
+		switch strings.ToLower(strings.TrimSpace(audioClosureObservationBundleStatus(record.ObservationID, observations))) {
+		case "rejected":
+			return audioclosure.RoundEvidenceRejected
+		case "insufficient":
+			return audioclosure.RoundEvidenceOpen
+		case "partial":
+			status = audioclosure.RoundEvidencePartial
+		}
+	}
+	return status
+}
+
+// audioClosureObservationTrackScoped reports whether the observation set
+// contains at least one track-scoped view whose facts are meaningless without
+// an explicit track binding.
+func audioClosureObservationTrackScoped(viewIDs []string) bool {
+	for _, viewID := range viewIDs {
+		viewID = strings.ToLower(strings.TrimSpace(viewID))
+		if strings.HasPrefix(viewID, "track.") || strings.HasPrefix(viewID, "processor.") {
+			return true
+		}
+	}
+	return false
+}
+
+// audioClosureObservationBundleStatus returns the disclosed CCB bundle status
+// for the recorded observation ("" when no matching bundle is available).
+func audioClosureObservationBundleStatus(observationID string, observations []*agentloop.RecentObservation) string {
+	observationID = strings.TrimSpace(observationID)
+	if observationID == "" {
+		return ""
+	}
+	for _, observation := range observations {
+		if observation == nil || !strings.EqualFold(strings.TrimSpace(firstStringFromMap(observation.Summary, "observation_id")), observationID) {
+			continue
+		}
+		if status := firstStringFromMap(observation.Summary, "status"); status != "" {
+			return status
+		}
+		if status := firstStringFromMap(firstMapFromAny(observation.Summary["bundle"]), "status"); status != "" {
+			return status
+		}
+		return observation.Status
+	}
+	return ""
 }
 
 func sortedMapKeys(values map[string]bool) []string {

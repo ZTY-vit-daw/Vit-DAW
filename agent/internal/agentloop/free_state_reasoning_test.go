@@ -162,6 +162,63 @@ func TestFreeStateObservationRequestStillRequiresNonEmptyRequestedViewIDs(t *tes
 	}
 }
 
+// TestFreeStateFS4FirstObservationSetRequiresFrequencyView is the DIAG2
+// guardrail: within an fs4 diagnostic round the first executed observation set
+// must include a frequency-domain view (mix.frequency_relationship or
+// track.timbre_frequency). The DIAG1 failure chain spent its whole observation
+// budget on zero frequency views and ended in no_candidate_found.
+func TestFreeStateFS4FirstObservationSetRequiresFrequencyView(t *testing.T) {
+	fs4State := func(extra map[string]any) *runState {
+		loop := map[string]any{
+			"schema_version": "free_state_reasoning_loop.v1", "status": "reasoning", "original_intent": "inspect the project",
+		}
+		for key, value := range extra {
+			loop[key] = value
+		}
+		return &runState{input: Input{Context: map[string]any{
+			"free_state_reasoning_loop": loop,
+			"free_state_phase":          "fs4_diagnostic_round",
+		}}}
+	}
+	observationOutput := func(views ...string) messageLoopOutput {
+		list := make([]any, 0, len(views))
+		for _, view := range views {
+			list = append(list, view)
+		}
+		return messageLoopOutput{Final: false, FreeStateDecision: &FreeStateDecision{
+			SchemaVersion: FreeStateDecisionSchema, Status: FreeStateNeedsObservation, EvidenceStatus: "insufficient",
+			Summary: "inspect", RequestedViewIDs: views,
+		}, ToolCalls: []planner.ToolCall{{Tool: "ccb.observation_request", Args: map[string]any{"view_ids": list}}}}
+	}
+
+	if issue := messageLoopFreeStateOutputIssue(fs4State(nil), observationOutput("project.structure", "track.time_dynamics")); !strings.Contains(issue, "mix.frequency_relationship") || !strings.Contains(issue, "track.timbre_frequency") {
+		t.Fatalf("first fs4 observation set without a frequency view was accepted: %q", issue)
+	}
+	if issue := messageLoopFreeStateOutputIssue(fs4State(nil), observationOutput("project.structure", "mix.frequency_relationship")); issue != "" {
+		t.Fatalf("first fs4 observation set with mix.frequency_relationship was rejected: %q", issue)
+	}
+	if issue := messageLoopFreeStateOutputIssue(fs4State(nil), observationOutput("track.basic_energy", "track.timbre_frequency")); issue != "" {
+		t.Fatalf("first fs4 observation set with track.timbre_frequency was rejected: %q", issue)
+	}
+	// Once one usable observation returned, the first set already happened and
+	// later turns keep their own view choice.
+	withLedger := fs4State(map[string]any{"observation_ledger": map[string]any{
+		"available_views": map[string]any{"project.structure": map[string]any{"status": "ready"}},
+	}})
+	if issue := messageLoopFreeStateOutputIssue(withLedger, observationOutput("track.basic_energy")); issue != "" {
+		t.Fatalf("frequency floor applied after a usable observation already returned: %q", issue)
+	}
+	// Outside fs4 the floor is inert.
+	plain := &runState{input: Input{Context: map[string]any{
+		"free_state_reasoning_loop": map[string]any{
+			"schema_version": "free_state_reasoning_loop.v1", "status": "reasoning", "original_intent": "inspect the project",
+		},
+	}}}
+	if issue := messageLoopFreeStateOutputIssue(plain, observationOutput("project.structure")); issue != "" {
+		t.Fatalf("frequency floor applied outside fs4: %q", issue)
+	}
+}
+
 func TestFreeStateLoopRequiresCCBObservationBeforePostActionSatisfaction(t *testing.T) {
 	client := &fakeMessageCompleter{responses: []string{
 		`{"final":true,"reply":"已经满足。","free_state":{"schema_version":"free_state_decision.v1","status":"satisfied","evidence_status":"sufficient","summary":"听起来已经好了"},"tool_calls":[]}`,
