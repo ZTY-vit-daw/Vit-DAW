@@ -361,11 +361,27 @@ func (s *Server) routeAcceptedImprovementProposal(ctx context.Context, interacti
 // their existing typed tools. The proposal confirmation approves the bounded
 // experiment direction; a concrete mix tick remains separately confirmable
 // before it can write project state.
+//
+// AGENT-1 A1 (2026-09-05): the plugin-bound domains static_eq and
+// broadband_compression consult the per-domain switch (VIT_AGENT_DOMAIN_ROUTES,
+// domain_routing.go) before the legacy interception. Default legacy_native
+// keeps this function byte-equivalent with the pre-switch behavior; an
+// explicitly enabled processor_selection route declines here, freezes the
+// routing marker, and lets the accepted proposal fall through to the governed
+// semantic treatment router (existing instance planner / plugin
+// recommendation / load confirmation / post-load qualification). track_gain
+// and pan are true native control domains and never leave this router.
 func (s *Server) routeAcceptedImprovementProposalNativeDomain(ctx context.Context, interaction PendingInteraction, proposal agentprotocol.ImprovementProposal, requestContext map[string]any) (ChatResponse, bool) {
 	domain := strings.ToLower(strings.TrimSpace(proposal.ActionDomain))
 	if domain != agentprotocol.ImprovementActionDomainTrackGain && domain != agentprotocol.ImprovementActionDomainPan &&
 		domain != agentprotocol.ImprovementActionDomainStaticEQ && domain != d1BroadbandCompressionDomain {
 		return ChatResponse{}, false
+	}
+	if domain == agentprotocol.ImprovementActionDomainStaticEQ || domain == d1BroadbandCompressionDomain {
+		if s.domainRouteFor(domain) == DomainRouteProcessorSelection {
+			markProcessorSelectionRoute(requestContext, interaction, proposal, domain)
+			return ChatResponse{}, false
+		}
 	}
 	trackID := improvementProposalTrackID(proposal)
 	if trackID == "" {
@@ -541,6 +557,14 @@ func improvementProposalProcessorType(proposal agentprotocol.ImprovementProposal
 	switch strings.ToLower(strings.TrimSpace(proposal.ActionDomain)) {
 	case agentprotocol.ImprovementActionDomainEQ:
 		return "eq"
+	// AGENT-1 A1: the two D1 plugin-bound domains carry the same processor
+	// families the governed semantic router already knows. These mappings only
+	// matter after the native-domain interceptor declined (processor_selection
+	// route); the legacy path never reaches this function for these domains.
+	case agentprotocol.ImprovementActionDomainStaticEQ:
+		return "eq"
+	case agentprotocol.ImprovementActionDomainBroadbandCompression:
+		return "compressor"
 	case agentprotocol.ImprovementActionDomainCompressor:
 		return "compressor"
 	case agentprotocol.ImprovementActionDomainLimiter:

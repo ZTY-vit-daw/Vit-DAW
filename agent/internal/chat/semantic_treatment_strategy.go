@@ -1001,6 +1001,7 @@ func semanticTreatmentTarget(payload map[string]any) (string, string) {
 
 func (s *Server) continueSemanticTreatmentInteraction(ctx context.Context, interaction PendingInteraction, decision string) ChatResponse {
 	if strings.EqualFold(decision, "cancel") || strings.EqualFold(decision, "cancel_semantic_treatment") {
+		s.markProcessorSelectionCancelled(interaction.RequestContext)
 		return ChatResponse{ConversationID: interaction.ConversationID, GoalID: interaction.GoalID, RunID: interaction.RunID,
 			Reply: "已取消这次处理策略选择；没有加载插件，也没有修改任何参数。", Workflow: semanticTreatmentWorkflow,
 			WorkflowData: mergeContext(interaction.Payload, map[string]any{"status": "cancelled", "selection_performed": false, "mutation_performed": false}),
@@ -1031,6 +1032,12 @@ func (s *Server) continueSemanticTreatmentInteraction(ctx context.Context, inter
 	if expected := firstStringFromMap(interaction.Payload, "state_token"); expected == "" || currentToken == "" || expected != currentToken {
 		return semanticTreatmentInvalidSelectionResponse(interaction, "选择期间工程或插件实例状态已经改变，旧策略已失效；请重新发起处理请求。", "stale_treatment_strategy")
 	}
+	// AGENT-1 A0/A2: the user's confirmed strategy choice on the
+	// processor_selection route is the selection record's birth point for
+	// choice_required plans (direct plans recorded their choice in
+	// routeOrdinaryAgentTreatmentStrategy). Marker-gated: the ordinary flows
+	// and the legacy path never write a record here.
+	s.recordProcessorSelectionFromSelectedChoice(ctx, interaction, selected)
 	requestContext := mergeContext(interaction.RequestContext, map[string]any{
 		"selected_track_id": trackID, "selected_track_name": trackName, "conversation_id": interaction.ConversationID,
 		"goal_id": interaction.GoalID, "run_id": interaction.RunID,
@@ -1321,6 +1328,11 @@ func (s *Server) routeOrdinaryAgentTreatmentStrategy(ctx context.Context, conver
 		return semanticTreatmentPlannerErrorResponse(conversationID, res, fmt.Errorf("direct strategy omitted its single choice")), true
 	}
 	choice := plan.Choices[0]
+	// AGENT-1 A0/A2: a validated materialization choice on the
+	// processor_selection route lands its durable selection record before any
+	// parameter planning begins. No routing marker (legacy path, ordinary
+	// semantic flows) → no record.
+	s.recordProcessorSelectionFromStrategy(ctx, requestContext, choice)
 	requestContext = mergeContext(requestContext, map[string]any{
 		"semantic_treatment_strategy": map[string]any{"schema_version": semanticTreatmentSchema, "summary": plan.Summary,
 			"global_constraints": plan.GlobalConstraints, "selected_choice": semanticTreatmentChoiceRow(choice, semanticTreatmentInstance{})},
@@ -1470,6 +1482,10 @@ func (s *Server) semanticEQPostLoadHandoff(ctx context.Context, plan PendingPlan
 		"pca_admission_receipt": semanticPCAAdmissionReceiptMap(pcaReceipt),
 		"conversation_id":       conversationID, "goal_id": goalID, "run_id": runID,
 	})
+	// AGENT-1 A0: post-load qualification passed; attach the server-held PCA
+	// receipt to the selection record (marker-gated, legacy/ordinary paths
+	// unaffected).
+	s.markProcessorSelectionQualified(requestContext, semanticPCAAdmissionReceiptMap(pcaReceipt))
 	observation := semanticTreatmentObservationFromPayload(map[string]any{
 		"observation_context": firstMapFromAny(plan.WorkflowData["semantic_eq_post_load_observation_context"]),
 	})
@@ -1552,6 +1568,9 @@ func (s *Server) semanticCompressorPostLoadHandoff(ctx context.Context, plan Pen
 				"mutation_performed": false, "pca_rejection": relayErr.Error()},
 			GoalStatus: string(agentruntime.StatusCompleted), StopReason: "semantic_compressor_post_load_receipt_handoff_failed"}, true
 	}
+	// AGENT-1 A0: post-load qualification passed; attach the relayed
+	// server-held PCA receipt to the selection record (marker-gated).
+	s.markProcessorSelectionQualified(requestContext, firstMapFromAny(requestContext["pca_admission_receipt"]))
 	resp := s.semanticTreatmentPlanCompressorResponse(ctx, conversationID, userGoal, requestContext, goalID, runID)
 	if resp.WorkflowData == nil {
 		resp.WorkflowData = map[string]any{}
@@ -1640,6 +1659,9 @@ func (s *Server) semanticGenericPostLoadHandoff(ctx context.Context, plan Pendin
 				"mutation_performed": false, "pca_rejection": relayErr.Error()},
 			GoalStatus: string(agentruntime.StatusCompleted), StopReason: "semantic_post_load_receipt_handoff_failed"}, true
 	}
+	// AGENT-1 A0: post-load qualification passed; attach the relayed
+	// server-held PCA receipt to the selection record (marker-gated).
+	s.markProcessorSelectionQualified(requestContext, firstMapFromAny(requestContext["pca_admission_receipt"]))
 	cfg, _, cfgErr := config.Load()
 	if cfgErr == nil && cfg.Complete() {
 		goal := firstNonEmpty(firstStringFromMap(plan.WorkflowData, "semantic_post_load_goal"), firstStringFromMap(requestContext, "user_goal"), "apply the selected semantic processor intent")

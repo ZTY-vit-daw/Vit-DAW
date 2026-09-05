@@ -733,6 +733,7 @@ func pluginRecommendationProcessorLabel(processorType string) string {
 
 func (s *Server) continuePluginRecommendationInteraction(ctx context.Context, interaction PendingInteraction, decision string) ChatResponse {
 	if strings.EqualFold(decision, "cancel") || strings.EqualFold(decision, "cancel_plugin_recommendation") {
+		s.markProcessorSelectionCancelled(interaction.RequestContext)
 		return ChatResponse{
 			ConversationID: interaction.ConversationID, GoalID: interaction.GoalID, RunID: interaction.RunID,
 			Reply:        "已取消插件选择；没有加载插件，也没有修改工程。",
@@ -847,6 +848,10 @@ func (s *Server) continuePluginRecommendationInteraction(ctx context.Context, in
 		"type":              firstStringFromMap(interaction.Payload, "processor_type"),
 		"intent":            firstStringFromMap(interaction.Payload, "listening_goal"),
 	}
+	// AGENT-1 A0: the user picked one PCA-admitted candidate and the load plan
+	// (a separate authorization boundary) is about to be created; advance the
+	// selection record. Marker-gated, legacy/ordinary paths unaffected.
+	s.markProcessorSelectionCandidateChosen(interaction.RequestContext, firstStringFromMap(selected, "candidate_key"))
 	resp := s.runPluginGrabberLoadWorkflow(ctx, interaction.ConversationID, firstStringFromMap(interaction.Payload, "listening_goal"), requestContext, workflowCmd)
 	resp.GoalID = interaction.GoalID
 	resp.RunID = interaction.RunID

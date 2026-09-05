@@ -72,6 +72,7 @@ type Server struct {
 	goalContinuations                  map[string]agentloop.Continuation
 	durableContinuations               map[string]DurableContinuation
 	capabilityRoutes                   map[string]CapabilityRouteRecord
+	processorSelections                map[string]ProcessorSelectionRecord
 	schedulerCtx                       context.Context
 	schedulerCancel                    context.CancelFunc
 	schedulerOnce                      sync.Once
@@ -133,6 +134,7 @@ type projectAgentRuntimeState struct {
 	GoalContinuations    map[string]agentloop.Continuation            `json:"goal_continuations,omitempty"`
 	DurableContinuations map[string]DurableContinuation               `json:"durable_continuations,omitempty"`
 	CapabilityRoutes     map[string]CapabilityRouteRecord             `json:"capability_routes,omitempty"`
+	ProcessorSelections  map[string]ProcessorSelectionRecord          `json:"processor_selections,omitempty"`
 	ConversationGoals    map[string]string                            `json:"conversation_goals,omitempty"`
 	ConversationMemory   map[string]agentloop.ExecutionMemory         `json:"conversation_memory,omitempty"`
 	PendingMixTicks      map[string]agentloop.PendingMixTickCandidate `json:"pending_mix_ticks,omitempty"`
@@ -469,6 +471,7 @@ func New(kernelClient *kernel.Client, shadowProject *shadow.Project, logger *log
 		goalContinuations:                map[string]agentloop.Continuation{},
 		durableContinuations:             map[string]DurableContinuation{},
 		capabilityRoutes:                 map[string]CapabilityRouteRecord{},
+		processorSelections:              map[string]ProcessorSelectionRecord{},
 		schedulerWake:                    make(chan struct{}, 1),
 		schedulerDone:                    make(chan struct{}),
 		schedulerOwner:                   "scheduler_" + randomID(),
@@ -6852,6 +6855,7 @@ func (s *Server) projectAgentRuntimeStateLocked() projectAgentRuntimeState {
 		GoalContinuations:    s.goalContinuations,
 		DurableContinuations: s.durableContinuations,
 		CapabilityRoutes:     s.capabilityRoutes,
+		ProcessorSelections:  s.processorSelections,
 		ConversationGoals:    s.conversationGoals,
 		ConversationMemory:   s.conversationMemory,
 		PendingMixTicks:      s.pendingMixTicks,
@@ -6886,6 +6890,7 @@ func (s *Server) restoreProjectAgentRuntimeStateLocked(state projectAgentRuntime
 	s.goalContinuations = map[string]agentloop.Continuation{}
 	s.durableContinuations = nonNilMap(state.DurableContinuations)
 	s.capabilityRoutes = restoreCapabilityRoutes(state.CapabilityRoutes)
+	s.processorSelections = nonNilMap(state.ProcessorSelections)
 	s.conversationGoals = nonNilMap(state.ConversationGoals)
 	if s.durableContinuations == nil {
 		s.durableContinuations = map[string]DurableContinuation{}

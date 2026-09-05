@@ -16,8 +16,10 @@ import (
 //      翻为 processor_selection，观察一个版本无回归即删除本开关与
 //      legacy 分支（届时本文件只留移除记录）。
 //
-// 本卡只落框架（结构+读取+日志），不接线路由消费——AGENT-1 在
-// routeAcceptedImprovementProposalNativeDomain 处按域取向。
+// 本框架已由 AGENT-1 消费：routeAcceptedImprovementProposalNativeDomain 在
+// static_eq / broadband_compression 上按域取向（legacy_native 走原 mix-tick
+// 拦截；processor_selection 冻结路由 marker 并放行到语义策略层），
+// processor_selection.go 承接 A0 的持久化 selection 记录。
 
 const (
 	// DomainRouteLegacyNative 是现行路径：提案确认后直接落 pending mix tick
