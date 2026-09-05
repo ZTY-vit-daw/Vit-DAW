@@ -107,6 +107,14 @@ import { agentEventPollBusy, createAgentEventPollIdleGate } from "./eventPolling
 import { AuditionJudgeCard } from "./trajectory/TrajectoryAuditionPanel";
 import { TraceBlock, OptimisticTraceBlock, shouldShowOptimisticTrace } from "./trace/TraceBlock";
 import { appendChainResultMessages, chainResultMessagesFromEvents, isChainResultChatMessage } from "./trace/traceDelivery";
+import {
+  classifyHistoryScopeChange,
+  concreteWorkspacePath,
+  historyScopeKeyFromParts,
+  historyScopeKeyFromUIState,
+  historyScopePartsFromUIState
+} from "./historyScope";
+import type { HistoryScopeChangeKind } from "./historyScope";
 import { buildMessageStreamRenderPlan, type MessageStreamEntry } from "./trace/renderPlan";
 import { emptyTurnEventMetaMap, reduceTurnEventMeta, type TurnEventMetaMap } from "./trace/turnEventMeta";
 import { PlanBar } from "./composer/PlanBar";
@@ -261,6 +269,10 @@ function App() {
   const noticeRef = useRef<HTMLDivElement | null>(null);
   const workspaceRef = useRef<HTMLElement | null>(null);
   const historyScopeRef = useRef("");
+  // CONTRACT-3：演进/切换分离的状态线——最近具体工作区坐标与 uuid 只在已知时
+  // 更新（"unsaved" 拍不回退坐标），保证 关A→空→开B 仍能判出真切换。
+  const historyScopeConcreteRef = useRef("");
+  const historyScopeUUIDRef = useRef("");
   const scopedConversationRef = useRef("");
   const pausedHistoryScopeRef = useRef("");
   const restoredMessageScopeRef = useRef("");
@@ -452,44 +464,84 @@ function App() {
     setAgentEventPolling(true);
   }, [agentTurnRunning]);
 
+  // CONTRACT-3（2026-09-05）：会话内 scope 演进 ≠ 工程切换。
+  // 旧实现把 state_dir/worktree/branch 等晚物化字段编进 scope 键，链首批
+  // checkpoint 落地后键中途变化被当作工程切换：换会话 id、事件 seq 归零、
+  // 消息流重置为问候语（终审复现）。现在由 classifyHistoryScopeChange 判定：
+  // 真工作区切换（工作区坐标变化/同路径 uuid 更换）才换会话+清流；同会话
+  // 键演进保留消息流与事件 seq，重新锚定存储桶并迁移已存消息。
   useEffect(() => {
-    const nextScope = historyScopeKeyFromUIState(uiState);
+    const nextParts = historyScopePartsFromUIState(uiState);
+    const nextScope = historyScopeKeyFromParts(nextParts);
     if (!nextScope || pausedHistoryScopeRef.current === nextScope) {
       return;
     }
     const historyMessages = historyMessagesFromUIState(uiState);
-    const scopeChanged = historyScopeRef.current !== nextScope;
-    if (scopeChanged) {
+    const changeKind = classifyHistoryScopeChange({
+      previousKey: historyScopeRef.current,
+      previousConcretePath: historyScopeConcreteRef.current,
+      previousUUID: historyScopeUUIDRef.current,
+      nextParts
+    });
+    const nextConcrete = concreteWorkspacePath(nextParts);
+    if (nextConcrete) {
+      historyScopeConcreteRef.current = nextConcrete;
+    }
+    if (nextParts.projectUUID) {
+      historyScopeUUIDRef.current = nextParts.projectUUID;
+    }
+    if (changeKind === "switch") {
       setActivities([]);
+    }
+    if (changeKind === "switch" || changeKind === "initial") {
+      const nextConversationID = conversationIDFromURL() || loadStoredScopedConversationID(nextScope) || createConversationID();
+      historyScopeRef.current = nextScope;
+      saveStoredScopedConversationID(nextScope, nextConversationID);
+      scopedConversationRef.current = scopedConversationRuntimeKey(nextScope, nextConversationID);
+      restoredMessageScopeRef.current = "";
+      agentEventSeqRef.current = 0;
+      setConversationID((currentConversationID) =>
+        currentConversationID === nextConversationID ? currentConversationID : nextConversationID
+      );
+      setMessages((current) => {
+        debugConfirmation("history-sync", {
+          changeKind,
+          current: summarizeMessagesForConfirmation(current),
+          incoming: summarizeMessagesForConfirmation(historyMessages)
+        });
+        return resolveHistorySyncMessages({ changeKind, current, historyMessages });
+      });
+      return;
+    }
+    if (changeKind === "evolution") {
+      const previousScope = historyScopeRef.current;
+      historyScopeRef.current = nextScope;
+      scopedConversationRef.current = scopedConversationRuntimeKey(nextScope, conversationID);
+      migrateStoredConversationScope(previousScope, nextScope, conversationID);
+      restoredMessageScopeRef.current = "";
+      setMessages((current) => {
+        debugConfirmation("history-sync", {
+          changeKind,
+          previousScope,
+          current: summarizeMessagesForConfirmation(current),
+          incoming: summarizeMessagesForConfirmation(historyMessages)
+        });
+        return resolveHistorySyncMessages({ changeKind, current, historyMessages });
+      });
+      return;
     }
     setMessages((current) => {
       const hasPendingInteraction = hasPendingComposerInteraction(current);
       const baseMessages = hasPendingInteraction ? current : removeDisposableConfirmationPromptMessages(current);
       debugConfirmation("history-sync", {
-        scopeChanged,
+        changeKind,
         current: summarizeMessagesForConfirmation(current),
         current_after_prompt_filter: summarizeMessagesForConfirmation(baseMessages),
         incoming: summarizeMessagesForConfirmation(historyMessages)
       });
-      if (scopeChanged) {
-        historyScopeRef.current = nextScope;
-        const nextConversationID = conversationIDFromURL() || loadStoredScopedConversationID(nextScope) || createConversationID();
-        saveStoredScopedConversationID(nextScope, nextConversationID);
-        scopedConversationRef.current = scopedConversationRuntimeKey(nextScope, nextConversationID);
-        restoredMessageScopeRef.current = "";
-        agentEventSeqRef.current = 0;
-        setConversationID((currentConversationID) =>
-          currentConversationID === nextConversationID ? currentConversationID : nextConversationID
-        );
-        // GUI-1：scheduler_chain 终局消息只经事件路径交付（transient，不进
-        // Project History），历史恢复重放会把它冲掉（浏览器验收实测：回放
-        // 拉到终局 → 下一拍 scope 恢复覆盖 → 终局气泡消失）。恢复时把现存
-        // 终局消息幂等带回（appendChainResultMessages 按 id 去重）。
-        return messagesOrIntro(appendChainResultMessages(historyMessages, current.filter(isChainResultChatMessage)));
-      }
-      return mergeChatMessages(baseMessages, historyMessages);
+      return resolveHistorySyncMessages({ changeKind, current, historyMessages });
     });
-  }, [uiState]);
+  }, [conversationID, uiState]);
 
   useEffect(() => {
     const nextScope = mediaScopeKeyFromUIState(uiState);
@@ -11311,7 +11363,10 @@ function artifactSummariesFrom(...values: unknown[]): ArtifactSummary[] {
   return out;
 }
 
-function historyScopeKeyFromUIState(uiState: AgentUIState | null): string {
+// artifact 定位上下文用的全量 scope 键（含 state_dir/worktree/branch 等晚物化
+// 字段，与服务端 artifactHistoryScopeKey 语义对齐）。CONTRACT-3 起 history-sync
+// 与会话/消息存储桶改用 historyScope.ts 的稳定身份键，不再消费本函数。
+function artifactHistoryScopeKeyFromUIState(uiState: AgentUIState | null): string {
   if (!uiState) {
     return "";
   }
@@ -11335,6 +11390,61 @@ function historyScopeKeyFromUIState(uiState: AgentUIState | null): string {
     activeWorktree || "main",
     activeBranch || "main"
   ].join("::");
+}
+
+// CONTRACT-3/C3：history-sync 的消息解析纯函数（恢复优先级统一实现）——
+// 任务状态以 runtime snapshot 为权威、过程轨迹以事件流为权威、终局以
+// Project History 为恢复权威：
+// - switch：真工程切换照旧清流（回落问候语），旧工程终局不带入新工程；
+// - initial：刷新/首锚以 Project History 为恢复权威并幂等带回事件路径终局
+//   （GUI-1 ② 语义）；但空 Project History 不得覆盖已恢复/已回放的终局流
+//   （C3：刷新后终局消息不消失——终局由服务端事件重放先行交付时锚定滞后）；
+// - evolution/none：同会话演进只合并（保留在流消息与事件 seq 投影）。
+export function resolveHistorySyncMessages(input: {
+  changeKind: HistoryScopeChangeKind;
+  current: ChatMessage[];
+  historyMessages: ChatMessage[];
+}): ChatMessage[] {
+  const hasPendingInteraction = hasPendingComposerInteraction(input.current);
+  const baseMessages = hasPendingInteraction ? input.current : removeDisposableConfirmationPromptMessages(input.current);
+  if (input.changeKind === "switch") {
+    return messagesOrIntro(input.historyMessages);
+  }
+  if (input.changeKind === "initial") {
+    if (!hasMeaningfulChatMessages(input.historyMessages) && hasMeaningfulChatMessages(input.current)) {
+      return input.current;
+    }
+    return messagesOrIntro(appendChainResultMessages(input.historyMessages, input.current.filter(isChainResultChatMessage)));
+  }
+  return mergeChatMessages(baseMessages, input.historyMessages);
+}
+
+// CONTRACT-3：演进后重新锚定存储桶——把旧 scope 桶里的已存消息合并进新桶，
+// 会话 id 一并迁移（旧桶保留作回退，不删除）。
+export function migrateStoredConversationScope(previousScope: string, nextScope: string, conversationID: string): void {
+  if (!previousScope || !nextScope || previousScope === nextScope) {
+    return;
+  }
+  const continuingConversationID = conversationID || loadStoredScopedConversationID(previousScope);
+  if (!continuingConversationID) {
+    return;
+  }
+  saveStoredScopedConversationID(nextScope, continuingConversationID);
+  const previousMessages = loadStoredConversationMessages(continuingConversationID, previousScope);
+  if (previousMessages.length === 0) {
+    return;
+  }
+  const existingMessages = loadStoredConversationMessages(continuingConversationID, nextScope);
+  const merged = mergeStoredScopeMessages(existingMessages, previousMessages);
+  if (merged.length > 0) {
+    saveStoredConversationMessages(continuingConversationID, nextScope, merged);
+  }
+}
+
+function mergeStoredScopeMessages(existingMessages: ChatMessage[], previousMessages: ChatMessage[]): ChatMessage[] {
+  return durableMessagesForStorage(mergeChatMessages(existingMessages, previousMessages)).filter(
+    (message) => message.id !== "intro"
+  );
 }
 
 function messagesOrIntro(messages: ChatMessage[]): ChatMessage[] {
@@ -11365,7 +11475,7 @@ function scopedConversationRuntimeKey(scope: string, conversationID: string): st
   return `${stableIDPart(scope)}:${stableIDPart(conversationID || "latest")}`;
 }
 
-function loadStoredScopedConversationID(scope: string): string {
+export function loadStoredScopedConversationID(scope: string): string {
   if (typeof window === "undefined" || !scope) {
     return "";
   }
@@ -11376,7 +11486,7 @@ function loadStoredScopedConversationID(scope: string): string {
   }
 }
 
-function saveStoredScopedConversationID(scope: string, conversationID: string): void {
+export function saveStoredScopedConversationID(scope: string, conversationID: string): void {
   if (typeof window === "undefined" || !scope || !conversationID) {
     return;
   }
@@ -11393,7 +11503,7 @@ function conversationMessagesStorageKey(conversationID: string, scope = ""): str
   return `${conversationMessagesStoragePrefix}:${id}${scoped}`;
 }
 
-function loadStoredConversationMessages(conversationID: string, scope = ""): ChatMessage[] {
+export function loadStoredConversationMessages(conversationID: string, scope = ""): ChatMessage[] {
   if (typeof window === "undefined" || !conversationID || !scope) {
     return [];
   }
@@ -11410,7 +11520,7 @@ function loadStoredConversationMessages(conversationID: string, scope = ""): Cha
   }
 }
 
-function saveStoredConversationMessages(conversationID: string, scope: string, messages: ChatMessage[]): void {
+export function saveStoredConversationMessages(conversationID: string, scope: string, messages: ChatMessage[]): void {
   if (typeof window === "undefined" || !conversationID || !scope) {
     return;
   }
@@ -12005,7 +12115,7 @@ function artifactScopeMetadata(uiState: AgentUIState | null): {
   const activeWorktree = textValue(projectHistory.active_worktree, "");
   const activeBranch = textValue(projectHistory.active_branch, "");
   const activeNodeID = textValue(projectHistory.active_node_id, "");
-  const historyScopeKey = historyScopeKeyFromUIState(uiState);
+  const historyScopeKey = artifactHistoryScopeKeyFromUIState(uiState);
   return compactMetadata({
     project_path: projectPath,
     root_project_path: rootProjectPath,
