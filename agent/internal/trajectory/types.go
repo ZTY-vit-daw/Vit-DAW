@@ -82,10 +82,17 @@ const (
 // Payload is a UI-facing projection. Controller-private state must not be
 // copied here; references point back to authoritative observations/actions.
 type Payload struct {
-	SchemaVersion      string                        `json:"schema_version"`
-	TraceNodeID        string                        `json:"trace_node_id"`
-	ParentNodeID       string                        `json:"parent_node_id,omitempty"`
-	TurnID             string                        `json:"turn_id"`
+	SchemaVersion string `json:"schema_version"`
+	TraceNodeID   string `json:"trace_node_id"`
+	ParentNodeID  string `json:"parent_node_id,omitempty"`
+	TurnID        string `json:"turn_id"`
+	// CONTRACT-1 C0 双写（增量迁移第一步，2026-09-05）：turn_id 双域并存
+	// （run 级裸 run_id，实验级 turn:free_state_* 前缀），TrajectoryTurnID
+	// 是轨迹归属权威（=TurnID），SourceTurnID 是消息归属域（产生本轨迹的
+	// run）——UI 用 SourceTurnID 做跨域 join，用 TrajectoryTurnID 锚定。
+	// 旧 TurnID 语义与值不动，双读期（GUI 侧）后再择期废弃。
+	TrajectoryTurnID   string                        `json:"trajectory_turn_id,omitempty"`
+	SourceTurnID       string                        `json:"source_turn_id,omitempty"`
 	RoundID            string                        `json:"round_id,omitempty"`
 	NodeKind           NodeKind                      `json:"node_kind"`
 	Phase              string                        `json:"phase,omitempty"`
@@ -138,6 +145,8 @@ func (e Event) Normalize() Event {
 	p := e.Payload
 	p.SchemaVersion = firstNonEmpty(strings.TrimSpace(p.SchemaVersion), SchemaVersion)
 	p.TurnID = firstNonEmpty(strings.TrimSpace(p.TurnID), e.RunID, e.GoalID)
+	p.TrajectoryTurnID = firstNonEmpty(strings.TrimSpace(p.TrajectoryTurnID), p.TurnID)
+	p.SourceTurnID = firstNonEmpty(strings.TrimSpace(p.SourceTurnID), e.RunID, e.GoalID, p.TurnID)
 	p.TraceNodeID = firstNonEmpty(strings.TrimSpace(p.TraceNodeID), e.ItemID, defaultTraceNodeID(e.Type, p.TurnID, p.RoundID))
 	p.ParentNodeID = strings.TrimSpace(p.ParentNodeID)
 	p.RoundID = strings.TrimSpace(p.RoundID)

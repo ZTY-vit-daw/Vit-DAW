@@ -222,17 +222,27 @@ func (s *Server) emitSchedulerChainResultEvent(conversationID string, resp ChatR
 		eventType = "turn.stopped"
 	}
 	status := strings.TrimSpace(resp.GoalStatus)
+	eventBody := strings.TrimSpace(firstNonEmpty(resp.Reply, resp.Error))
+	if eventType == "turn.stopped" && eventBody == "" {
+		// CONTRACT-1 turn.stopped 终局补齐：stopped 终局同样要带可用终局
+		// body（CONTRACT-2 已知缺口：UI 从未提取 stopped——服务端先保证
+		// 事件形态完整，body 空会让终局气泡无法合成）。
+		eventBody = firstNonEmpty(strings.TrimSpace(resp.StopReason), "回合已停止。")
+	}
 	s.emitAgentEvent(conversationID, AgentEvent{
 		Type: eventType, GoalID: goalID, RunID: runID,
 		ItemID: "chain_result", ItemType: "turn", Status: status,
-		Title:  turnEventTitle(eventType, status),
-		Body:   strings.TrimSpace(firstNonEmpty(resp.Reply, resp.Error)),
+		Title: turnEventTitle(eventType, status),
+		Body:  eventBody,
 		Payload: map[string]any{
-			"scheduler_chain":  true,
-			"stop_reason":      resp.StopReason,
-			"completed_steps":  resp.CompletedSteps,
-			"executed_count":   len(resp.ExecutedKernelReply),
-			"error":            resp.Error,
+			"scheduler_chain": true,
+			// CONTRACT-1 settle_slice 标记（M12 定案）：调度链收尾切片的
+			// 终局显式自报种类，UI 按标记隐藏"0 步"块，不再猜测。
+			"turn_kind":          "settle_slice",
+			"stop_reason":        resp.StopReason,
+			"completed_steps":    resp.CompletedSteps,
+			"executed_count":     len(resp.ExecutedKernelReply),
+			"error":              resp.Error,
 			"needs_confirmation": resp.NeedsConfirmation,
 		},
 		LogicalMessageID: "agent_turn:" + firstNonEmpty(runID, goalID, conversationID),

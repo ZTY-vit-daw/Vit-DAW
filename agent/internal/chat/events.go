@@ -32,6 +32,8 @@ type AgentEvent struct {
 	Persistence      string         `json:"persistence,omitempty"`
 	MessageKind      string         `json:"message_kind,omitempty"`
 	TurnID           string         `json:"turn_id,omitempty"`
+	TrajectoryTurnID string         `json:"trajectory_turn_id,omitempty"`
+	SourceTurnID     string         `json:"source_turn_id,omitempty"`
 	LogicalMessageID string         `json:"logical_message_id,omitempty"`
 	Supersedes       []string       `json:"supersedes,omitempty"`
 }
@@ -121,6 +123,15 @@ func (s *Server) emitAgentEvent(conversationID string, event AgentEvent) AgentEv
 	}
 	if strings.TrimSpace(event.TurnID) == "" {
 		event.TurnID = firstNonEmpty(strings.TrimSpace(event.RunID), strings.TrimSpace(event.GoalID))
+	}
+	// CONTRACT-1 C0 双写：TrajectoryTurnID=轨迹归属权威（现行 turn_id 语义
+	// 的显式副本），SourceTurnID=消息归属域（run 级与实验级事件统一指向
+	// 拥有它的 run）。旧 TurnID 值不动；双读期 GUI 优先读新字段、缺失回退。
+	if strings.TrimSpace(event.TrajectoryTurnID) == "" {
+		event.TrajectoryTurnID = event.TurnID
+	}
+	if strings.TrimSpace(event.SourceTurnID) == "" {
+		event.SourceTurnID = firstNonEmpty(strings.TrimSpace(event.RunID), strings.TrimSpace(event.GoalID), event.TurnID)
 	}
 	if strings.TrimSpace(event.LogicalMessageID) == "" {
 		event.LogicalMessageID = "agent_event:" + conversationID + ":" + strconv.FormatInt(event.Seq, 10)
