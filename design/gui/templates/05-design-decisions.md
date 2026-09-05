@@ -49,3 +49,8 @@
 | 磁带行 | audition candidate 卡 | 重皮；播放走既有 auditionDawTarget |
 
 分卡顺序与验收：见 `IMPLEMENTATION_PLAN.md` §二（T1 颜色契约 → T2 轨迹块 → T3 判定卡 → T4 确认卡+权限 → T5 打磨）。
+
+## 6 · 基线归一化附注（2026-09-05）
+
+- §5 速查表中「.perm 开关→移头部」已作废：现行基线为 composer 内下拉选择器（GUI-F3 落地，direction-approved §12.2）。
+- 模板不含 PlanBar；现行基线已补位（输入框上方，GUI-T6）。模板 01-04 其余呈现仍为唯一样式事实源参照。

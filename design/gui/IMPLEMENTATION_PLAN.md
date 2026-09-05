@@ -67,3 +67,10 @@
 2. **四裁决 → 后端映射**：现有协议是 heard/preference 两问。初步映射：听得出·保留=(yes,b→improved)；听得出·更糟·回滚=(yes,a→rolled_back)；听不出·下一轮加码=(no→insufficient_dose→increase_dose)；**太过了·回退一半**=现有协议无对应（需 agent 侧新能力或降级为「回滚后人工调」）。是否先行三裁决、half 待后端？
 3. **判定表单信息取舍**：现有原因 checkboxes + 自由文本比设计的四按钮信息丰富；建议收进「补充说明」折叠（与 .c-ask 合并），四按钮为主路径——确认取舍。
 4. **activity-lane 去留**：其职责（transient 活动）并入轨迹思考行后，非回合类活动（上传/调用进度）是否保留一条细线？
+
+## 五、实施后基线修订（2026-09-05，TARGET-DOC-1）
+
+- **T4 权限形态修订**：authority 控件已按用户裁定落地为 **composer 内下拉选择器**（GUI-F3，c3c8056），本文 §二 T4 的"头部双档分段开关"方案作废；完全档语义（确认卡整层消失）不变，待 CONTRACT/GUI 阶段实施。
+- **PlanBar 补位**：GUI-T6（fcff575）新增输入框上方规划条，模板未含——已在 direction-approved §12.2 回写为基线。
+- **已落地记录**：T1-T5（2026-09-03）；F5 轮询保活/F7 终局消息入列/F8 渲染序（2026-09-05，其中 F8 引发 M12 轨迹消失回归，修复被冻结待取证）；W1/W2 agent 话术中文化。**M12 未解前对话流呈现视为不可验收状态**。
+- **下一阶段**：按三层面审计计划（queue/reports/2026-09-05-three-layer-audit-modification-plan.md §6-7 放行裁定）执行：阶段 2 共享契约+GUI 修复（CONTRACT-1/GUI-1）→ 阶段 3 模型 B 接线（AGENT-1/A1-A3）。
