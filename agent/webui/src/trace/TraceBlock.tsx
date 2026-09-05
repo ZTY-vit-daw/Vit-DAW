@@ -3,8 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import type { AuthorityMode, ChatMessage } from "../types";
 import type { TrajectoryNode, TrajectoryState, TrajectoryTurn } from "../trajectory";
 import { nodeKindLabel, phaseLabel, statusLabel } from "../trajectory/TrajectoryView";
-import { StateIcon, TaskTrajectoryDetails, terminalClass } from "../taskTrajectory/details";
-import { text, type TaskTrajectorySnapshot } from "../taskTrajectory";
+import { StateIcon, terminalClass } from "../taskTrajectory/details";
 import "./trace.css";
 
 /** 完成后自动收起的停留时长（ms）——先让人看清完成态再收 */
@@ -173,14 +172,12 @@ export function shouldShowOptimisticTrace(options: {
   return Boolean(last && last.role === "user" && !(last.turn_id ?? "").trim());
 }
 
-export function TraceBlock({ state, turn, activities, authorityMode = "manual_confirmation", taskSnapshot = null }: {
+export function TraceBlock({ state, turn, activities, authorityMode = "manual_confirmation" }: {
   state: TrajectoryState;
   turn: TrajectoryTurn;
   /** 该回合的 transient 活动（思考行素材；回合结束后活动已被清退） */
   activities: ChatMessage[];
   authorityMode?: AuthorityMode;
-  /** task_trajectory 快照：只传给最新回合块——「任务详情」小节锚定规则（GUI-F2） */
-  taskSnapshot?: TaskTrajectorySnapshot | null;
 }) {
   const live = isLiveStatus(turn.status);
   const [collapsed, setCollapsed] = useState(() => defaultCollapsedForStatus(turn.status));
@@ -203,9 +200,6 @@ export function TraceBlock({ state, turn, activities, authorityMode = "manual_co
   const metaParts = live
     ? ["--"]
     : [`${nodes.length} 步`, formatSeconds(turnSpanMs(nodes, false))];
-  if (taskSnapshot) {
-    metaParts.push(`Task ${text(taskSnapshot.task.task_id)}`, `r${text(taskSnapshot.semantic.revision) || "0"}`);
-  }
 
   return (
     <section
@@ -247,12 +241,6 @@ export function TraceBlock({ state, turn, activities, authorityMode = "manual_co
             />
           ))}
           {nodes.length === 0 && !live && <div className="trace-sum">本回合尚未产生轨迹节点。</div>}
-          {taskSnapshot && (
-            <section className="trace-task" aria-label="任务详情">
-              <div className="trace-task-title">任务详情 <span>r{text(taskSnapshot.semantic.revision) || "0"}</span></div>
-              <TaskTrajectoryDetails snapshot={taskSnapshot} />
-            </section>
-          )}
         </div>
       </div></div>
     </section>

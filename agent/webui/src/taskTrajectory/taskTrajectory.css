@@ -1,101 +1,21 @@
 /* ============================================================
-   taskTrajectory.css — 任务运行轨迹（GUI-T5 重塑）
-   设计基线：默认收起为安静单行状态条（透明底/直角/墨字），
-   展开为完整审计体（白底细边浅色化）。对照 trace-block 收起回执模式。
+   taskTrajectory.css — 任务规划详情内容样式（GUI-T6 收敛）
+   GUI-T6 起 TaskTrajectoryView 顶栏壳与轮次记录（invocation 切片/状态变更/
+   续跑态）退役：此处只剩 PlanBar 展开体（TaskTrajectoryDetails）复用的内容类。
    ============================================================ */
-
-.task-trajectory{margin:8px 14px 0;background:transparent;border:0;border-radius:0;color:var(--ink)}
-
-/* 单行收起态 */
-.task-trajectory-head{display:flex;align-items:center;gap:8px;width:100%;padding:7px 10px;
-  border:0;background:transparent;cursor:pointer;text-align:left;font:inherit;color:inherit;border-radius:2px}
-.task-trajectory-head:hover{background:#ecece6}
-.task-trajectory-head > svg{flex:none}
-.task-trajectory-head strong{font-size:12.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
-.task-trajectory-head-meta{flex:none;display:flex;flex-wrap:wrap;gap:4px 10px;margin-left:auto;
-  font:600 10.5px Consolas,"SFMono-Regular",Menlo,monospace;color:var(--muted)}
-.task-trajectory-head-chevron{flex:none;display:grid;place-items:center;color:var(--muted);transition:transform .2s ease}
-.task-trajectory.is-open .task-trajectory-head-chevron{transform:rotate(90deg)}
-
-/* 状态色（图标点色，纸面安静） */
-.task-trajectory.is-active .task-trajectory-head > svg{color:var(--blue)}
-.task-trajectory.is-waiting .task-trajectory-head > svg{color:#8a6400}
-.task-trajectory.is-warning .task-trajectory-head > svg{color:var(--red)}
-.task-trajectory.is-terminal .task-trajectory-head > svg{color:var(--muted)}
-
-/* 展开体：grid 收起动画（DOM 常在） */
-.task-trajectory-body{display:grid;grid-template-rows:0fr;transition:grid-template-rows .28s ease}
-.task-trajectory.is-open .task-trajectory-body{grid-template-rows:1fr}
-.task-trajectory-body-in{overflow:hidden;min-height:0;padding:0 10px}
-.task-trajectory.is-open .task-trajectory-body-in{padding:6px 10px 12px}
 
 .task-trajectory-intent{margin:4px 0 8px;color:var(--muted);font-size:11.5px;line-height:1.5;overflow-wrap:anywhere}
 
-.task-trajectory-continuation,.task-trajectory-interaction,.task-trajectory-route{display:flex;gap:8px;align-items:flex-start;
+.task-trajectory-route{display:flex;gap:8px;align-items:flex-start;
   padding:9px 10px;border:1px solid var(--line);border-radius:2px;color:var(--ink);background:var(--white)}
-.task-trajectory-continuation > svg,.task-trajectory-interaction > svg,.task-trajectory-route > svg{flex:none;margin-top:1px;color:var(--muted)}
-.task-trajectory-interaction{border-color:#c9a94d;background:#fff8cf}
-.task-trajectory-interaction > svg{color:#8a6400}
-.task-trajectory-route{margin-top:8px}
-.task-trajectory-route > svg{color:var(--blue)}
-.task-trajectory-continuation strong,.task-trajectory-interaction strong,.task-trajectory-route strong{display:block;font-size:12px}
-.task-trajectory-continuation span,.task-trajectory-interaction span,.task-trajectory-route span{display:block;margin-top:2px;color:var(--muted);font-size:11px;line-height:1.4}
+.task-trajectory-route > svg{flex:none;margin-top:1px;color:var(--blue)}
+.task-trajectory-route strong{display:block;font-size:12px}
+.task-trajectory-route span{display:block;margin-top:2px;color:var(--muted);font-size:11px;line-height:1.4}
 
 .task-trajectory-summary{margin:11px 0 0;color:var(--ink);font-size:12px;line-height:1.5}
 .task-trajectory-evidence{display:flex;flex-wrap:wrap;gap:5px;align-items:center;margin-top:9px;color:var(--muted);font-size:10px}
 .task-trajectory-evidence code{padding:2px 4px;border:1px dashed var(--line);border-radius:2px;color:var(--ink);
   font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10px;overflow-wrap:anywhere}
-.task-trajectory-evidence.is-stale code{opacity:.55;text-decoration:line-through}
 
 .task-trajectory-reason,.task-trajectory-revision{margin-top:8px;color:var(--muted);font-size:11px;line-height:1.4}
 .task-trajectory-revision{font-family:Consolas,"SFMono-Regular",Menlo,monospace}
-
-.task-trajectory-run,.task-trajectory-history{margin-top:15px}
-.task-trajectory-section-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;
-  color:var(--muted);font-size:10px;font-weight:800;letter-spacing:.07em;text-transform:uppercase}
-.task-trajectory-section-title span,.task-trajectory-history-toggle span{color:var(--ink)}
-
-.task-trajectory-slice{border-top:1px solid var(--line)}
-.task-trajectory-slice-head,.task-trajectory-history-toggle{display:flex;align-items:center;gap:7px;width:100%;padding:9px 1px;
-  border:0;color:var(--ink);background:transparent;font:inherit;text-align:left;cursor:pointer}
-.task-trajectory-slice-head:hover,.task-trajectory-history-toggle:hover{color:var(--blue)}
-.task-trajectory-slice-head strong{font-size:12px}
-.task-trajectory-slice-head > span:not(.task-trajectory-state-chip){color:var(--muted);font-size:10px}
-.task-trajectory-slice-head .task-trajectory-state-chip{margin-left:auto}
-.task-trajectory-state-chip{padding:3px 5px;border:1px solid var(--line);border-radius:2px;color:var(--muted);font-size:10px;overflow-wrap:anywhere}
-
-.task-trajectory-turns{display:grid;gap:6px;margin:0 0 9px 23px;padding-left:10px;border-left:1px solid var(--line)}
-.task-trajectory-turn{display:grid;grid-template-columns:16px auto minmax(0,1fr) auto;align-items:center;gap:6px;color:var(--muted);font-size:11px}
-.task-trajectory-turn > svg{color:var(--muted)}
-.task-trajectory-turn.is-current{color:var(--ink)}
-.task-trajectory-turn.is-current > svg{color:var(--blue)}
-.task-trajectory-turn strong{min-width:0;overflow-wrap:anywhere}
-.task-trajectory-turn em{color:var(--muted);font-size:10px;font-style:normal}
-
-.task-trajectory-history-toggle{color:var(--ink);font-size:11px;font-weight:700}
-.task-trajectory-history ol{display:grid;gap:9px;margin:0;padding:0 0 0 19px;border-left:1px solid var(--line);list-style:none}
-.task-trajectory-history li{position:relative}
-.task-trajectory-history li::before{position:absolute;left:-24px;top:5px;width:8px;height:8px;border:2px solid var(--blue);border-radius:50%;background:var(--white);content:""}
-.task-trajectory-history li.is-stale{opacity:.58}
-.task-trajectory-history li > div{display:flex;gap:7px;align-items:baseline}
-.task-trajectory-history li span,.task-trajectory-history li time{color:var(--muted);font-size:10px}
-.task-trajectory-history li time{margin-left:auto}
-.task-trajectory-history li strong{color:var(--ink);font-size:11px}
-.task-trajectory-history li p{margin:3px 0 0;color:var(--muted);font-size:11px;line-height:1.4}
-
-.task-trajectory-empty{color:var(--muted);font-size:11px}
-
-@media (max-width: 560px) {
-  .task-trajectory{margin:8px 8px 0}
-  .task-trajectory-head-meta span:nth-child(-n+2){display:none}
-  .task-trajectory-body-in{padding:0 8px}
-  .task-trajectory.is-open .task-trajectory-body-in{padding:6px 8px 12px}
-  .task-trajectory-slice-head{flex-wrap:wrap}
-  .task-trajectory-slice-head .task-trajectory-state-chip{margin-left:0}
-  .task-trajectory-turn{grid-template-columns:16px auto minmax(0,1fr)}
-  .task-trajectory-turn em{grid-column:2 / -1}
-}
-
-@media (prefers-reduced-motion:reduce){
-  .task-trajectory-body,.task-trajectory-head-chevron{transition:none}
-}

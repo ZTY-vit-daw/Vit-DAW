@@ -1,0 +1,41 @@
+/* ============================================================
+   planbar.css — PlanBar 规划条（GUI-T6）
+   输入框上方单行窄条（透明底/细边/墨字，对齐 composer 两行结构），
+   点击展开为任务规划详情（内容样式复用 taskTrajectory.css 族）。
+   ============================================================ */
+
+.plan-bar{margin:0 14px 6px;border:1px solid var(--line);border-radius:3px;background:var(--white);color:var(--ink)}
+
+/* 单行收起态 */
+.plan-bar-head{display:flex;align-items:center;gap:8px;width:100%;padding:6px 9px;
+  border:0;background:transparent;cursor:pointer;text-align:left;font:inherit;color:inherit;border-radius:3px}
+.plan-bar-head:hover{background:#f3f3ee}
+.plan-bar-head > svg{flex:none}
+.plan-bar-head strong{flex:none;font-size:12px;font-weight:700;white-space:nowrap}
+.plan-bar-intent{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted);font-size:11.5px}
+.plan-bar-step{flex:none;max-width:38%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink);font-size:11px;
+  padding:2px 5px;border:1px solid var(--line);border-radius:2px}
+.plan-bar-task{flex:none;font:600 10px Consolas,"SFMono-Regular",Menlo,monospace;color:var(--muted)}
+.plan-bar-chev{flex:none;display:grid;place-items:center;color:var(--muted);transition:transform .2s ease}
+.plan-bar.is-open .plan-bar-chev{transform:rotate(90deg)}
+
+/* 状态色（图标点色，纸面安静） */
+.plan-bar.is-active .plan-bar-head > svg{color:var(--blue)}
+.plan-bar.is-waiting .plan-bar-head > svg{color:#8a6400}
+.plan-bar.is-warning .plan-bar-head > svg{color:var(--red)}
+.plan-bar.is-terminal .plan-bar-head > svg{color:var(--muted)}
+
+/* 展开体：grid 收起动画（DOM 常在） */
+.plan-bar-body{display:grid;grid-template-rows:0fr;transition:grid-template-rows .28s ease}
+.plan-bar.is-open .plan-bar-body{grid-template-rows:1fr}
+.plan-bar-body-in{overflow:hidden;min-height:0;padding:0 9px}
+.plan-bar.is-open .plan-bar-body-in{padding:2px 9px 10px}
+
+@media (max-width: 560px) {
+  .plan-bar{margin:0 8px 6px}
+  .plan-bar-step{display:none}
+}
+
+@media (prefers-reduced-motion:reduce){
+  .plan-bar-body,.plan-bar-chev{transition:none}
+}

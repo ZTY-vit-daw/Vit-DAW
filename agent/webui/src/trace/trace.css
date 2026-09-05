@@ -65,12 +65,6 @@
 .trace-detail-in{margin:6px 0 0;padding:6px 10px;background:var(--white);
   border-left:2px solid var(--line);font:12px/1.65 Consolas,"SFMono-Regular",Menlo,monospace;color:var(--muted)}
 
-/* 任务详情小节（GUI-F2）：task_trajectory 快照内联化，内容样式复用 taskTrajectory.css 族 */
-.trace-task{margin-top:12px;padding-top:10px;border-top:1px solid var(--line)}
-.trace-task-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;
-  color:var(--muted);font-size:10px;font-weight:800;letter-spacing:.07em;text-transform:uppercase}
-.trace-task-title span{color:var(--ink)}
-
 /* 思考行（live 块顶部）：淡灰呼吸文字 + 块状游标 */
 .trace-think{position:relative;padding:6px 0 7px 22px}
 .trace-think .trace-node{background:transparent;border:2px solid var(--muted);top:9px;animation:trace-breath 2.6s ease-in-out infinite}

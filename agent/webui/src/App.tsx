@@ -101,12 +101,13 @@ import {
 import { emptyTrajectoryState, reduceTrajectoryEvents, trajectoryTurns } from "./trajectory";
 import type { TrajectoryState } from "./trajectory";
 import { auditionSessions, emptyAuditionState, reduceAuditionEvents, type AuditionSession, type AuditionState } from "./audition";
-import { emptyTaskTrajectoryState, reduceTaskTrajectory, type TaskTrajectorySnapshot } from "./taskTrajectory";
+import { emptyTaskTrajectoryState, reduceTaskTrajectory } from "./taskTrajectory";
 import { authorityContext, checkoutBlockedByState, continuationChainLive, isAgentTurnRunning } from "./turnControl";
 import { agentEventPollBusy, createAgentEventPollIdleGate } from "./eventPolling";
 import { AuditionJudgeCard } from "./trajectory/TrajectoryAuditionPanel";
 import { TraceBlock, OptimisticTraceBlock, shouldShowOptimisticTrace } from "./trace/TraceBlock";
-import { groupMessagesByTurn, isUnboundActivity, latestRenderedTurnId, turnIsAnchored } from "./trace/turnGroups";
+import { PlanBar } from "./composer/PlanBar";
+import { groupMessagesByTurn, isUnboundActivity, turnIsAnchored } from "./trace/turnGroups";
 import type {
   AgentConfigResponse,
   AgentEvent,
@@ -1168,7 +1169,6 @@ function App() {
         messages={messages}
         activities={activities}
         trajectory={trajectoryState}
-        taskSnapshot={taskTrajectoryState.snapshot}
         audition={auditionState}
         auditionBusySessionID={auditionBusySessionID}
         onAuditionSelect={handleAuditionSelect}
@@ -1199,6 +1199,12 @@ function App() {
           <span>{error}</span>
         </div>
       )}
+
+      <PlanBar
+        snapshot={taskTrajectoryState.snapshot}
+        goal={asRecord(uiState?.goal)}
+        plan={asRecord(uiState?.agent_plan)}
+      />
 
       <Composer
         composerRef={composerRef}
@@ -4035,7 +4041,6 @@ function MessageStream({
   messages,
   activities,
   trajectory,
-  taskSnapshot,
   audition,
   auditionBusySessionID,
   authorityMode,
@@ -4057,7 +4062,6 @@ function MessageStream({
   messages: ChatMessage[];
   activities: ChatMessage[];
   trajectory: TrajectoryState;
-  taskSnapshot: TaskTrajectorySnapshot | null;
   audition: AuditionState;
   auditionBusySessionID: string;
   authorityMode: AuthorityMode;
@@ -4174,9 +4178,6 @@ function MessageStream({
   );
   const anchoredTurnIds = new Set(groups.map((group) => group.turnId).filter(Boolean));
   const unanchoredSessions = sessions.filter((session) => !session.turnID || !anchoredTurnIds.has(session.turnID));
-  // 任务详情锚定：task_trajectory 是「当前任务」快照，只挂渲染序列中最后一个回合块（GUI-F2）；
-  // chat 回复组的 turn_ 域 id 不渲染块，不入序列
-  const latestTurnId = latestRenderedTurnId(groups, knownTurnIds, orphanTurns.map((turn) => turn.id));
 
   return (
     <div className="message-stream">
@@ -4192,7 +4193,6 @@ function MessageStream({
                 turn={turn}
                 activities={turnActivities(group.turnId)}
                 authorityMode={authorityMode}
-                taskSnapshot={group.turnId === latestTurnId ? taskSnapshot : null}
               />
             )}
             {group.messages.filter((message) => message.role !== "user").map(renderMessage)}
@@ -4208,7 +4208,6 @@ function MessageStream({
           turn={turn}
           activities={turnActivities(turn.id)}
           authorityMode={authorityMode}
-          taskSnapshot={turn.id === latestTurnId ? taskSnapshot : null}
         />
       ))}
       {/* 发送即显的乐观轨迹条：真 turn.started 事件到达后由上方真块无缝接管 */}
@@ -6693,7 +6692,8 @@ function agentModeLabel(mode?: AgentMode | string): string {
   return localizeDisplayText(value);
 }
 
-function statusLabel(value: unknown, fallback = ""): string {
+// 导出供 composer/PlanBar 复用（GUI-T6）：goal/plan 英文机器状态 → 中文标签
+export function statusLabel(value: unknown, fallback = ""): string {
   const status = textValue(value, "").toLowerCase();
   if (!status) {
     return fallback;
@@ -6962,7 +6962,8 @@ function commandSummaryLabel(command: JsonRecord): string {
   return actionOperationTitle(command) || "工程操作";
 }
 
-function localizeDisplayText(value: string): string {
+// 导出供 composer/PlanBar 复用（GUI-T6）：规划条 current_step 本地化
+export function localizeDisplayText(value: string): string {
   const text = value.trim();
   if (!text) {
     return "";
