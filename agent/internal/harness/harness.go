@@ -74,6 +74,16 @@ type Harness struct {
 	renderWaiters   map[string][]chan RenderResult
 	l2ProbeCollect  func(context.Context, map[string]any, string, string, string) (map[string]any, map[string]any, error)
 	comProbeCollect func(context.Context, map[string]any, string, string, string) (map[string]any, map[string]any, error)
+
+	// Conversation-checkpoint revision gate (HARNESS-1): per-project kernel
+	// revision already covered by a (possibly in-flight) vit checkpoint. The
+	// optimistic value is set when an async checkpoint is launched and rolled
+	// back on failure so the next turn retries.
+	vitGateMu             sync.Mutex
+	vitCoveredRevision    map[string]string
+	vitPendingRebindNodes map[string][]string
+	vitCheckpointLive     map[string]bool
+	vitWorkerMu           map[string]*sync.Mutex
 }
 
 // RenderResult is the compact terminal telemetry for an existing Kernel
@@ -516,26 +526,25 @@ func (h *Harness) RecordConversationNodeForProjectWithData(ctx context.Context, 
 	for key, value := range data {
 		args[key] = value
 	}
+	var vitPlan *vitCheckpointPlan
 	if strings.EqualFold(kind, "vit") {
 		message := "Conversation vit"
 		if strings.TrimSpace(textPreview) != "" {
 			message = "Vit: " + strings.TrimSpace(textPreview)
 		}
-		checkpointArgs := h.enrichHistoryCheckpointArgs(map[string]any{
-			"project_path":    args["project_path"],
-			"message":         message,
-			"goal_id":         goalID,
-			"run_id":          runID,
-			"source":          "conversation_graph",
-			"checkpoint_kind": "manual",
-		})
-		if checkpoint, checkpointErr := history.Checkpoint(checkpointArgs); checkpointErr == nil {
-			if checkpointID := firstString(checkpoint, "commit_id"); checkpointID != "" {
+		plan := h.planVitConversationCheckpoint(args, goalID, runID, message)
+		if plan.mode == vitCheckpointSync {
+			if checkpointID := h.runVitCheckpointSync(plan); checkpointID != "" {
 				args["commit_id"] = checkpointID
 			}
+		} else {
+			vitPlan = &plan
 		}
 	}
 	result, err := history.AppendConversationNode(args)
+	if err == nil && vitPlan != nil {
+		h.registerVitNodeForAsyncCheckpoint(*vitPlan, result)
+	}
 	if err != nil && strings.Contains(err.Error(), "commit_id or current HEAD is required") {
 		checkpointArgs := h.enrichHistoryCheckpointArgs(map[string]any{
 			"project_path":    args["project_path"],
@@ -545,6 +554,9 @@ func (h *Harness) RecordConversationNodeForProjectWithData(ctx context.Context, 
 			"source":          "conversation_graph",
 			"checkpoint_kind": "manual",
 		})
+		if vitPlan != nil && vitPlan.revision != "" {
+			checkpointArgs["project_revision"] = vitPlan.revision
+		}
 		if checkpoint, checkpointErr := history.Checkpoint(checkpointArgs); checkpointErr == nil {
 			checkpointID := firstString(checkpoint, "commit_id")
 			args["commit_id"] = checkpointID
@@ -553,6 +565,10 @@ func (h *Harness) RecordConversationNodeForProjectWithData(ctx context.Context, 
 				meta.BaselineCommitID = checkpointID
 				meta.BaselineCreated = true
 				h.runtime.SetProjectHistory(goalID, meta)
+			}
+			if vitPlan != nil {
+				h.vitGateSetCovered(vitPlan.projectKey, vitPlan.revision)
+				h.vitGateClearLive(vitPlan.projectKey)
 			}
 			result, err = history.AppendConversationNode(args)
 		} else {
@@ -569,6 +585,235 @@ func (h *Harness) RecordConversationNodeForProjectWithData(ctx context.Context, 
 	out := cloneAnyMap(result)
 	out["available"] = true
 	return out
+}
+
+type vitCheckpointMode int
+
+const (
+	vitCheckpointSync vitCheckpointMode = iota
+	vitCheckpointSkip
+	vitCheckpointAsync
+)
+
+type vitCheckpointPlan struct {
+	mode       vitCheckpointMode
+	projectKey string
+	revision   string
+	args       map[string]any
+}
+
+// planVitConversationCheckpoint decides how this turn pays the conversation
+// checkpoint tax. The kernel snapshot export behind history.Checkpoint is the
+// dominant cost of the chat response path on real projects (77-107s with an
+// imported song), so: an unchanged kernel revision since the last covered
+// checkpoint skips the checkpoint entirely; an advanced revision launches it
+// asynchronously and the HTTP response returns immediately. The synchronous
+// path remains only for turns with no gating basis (first node, no HEAD
+// checkpoint, or no kernel revision visibility). Invariant: revision advanced
+// ⇒ a checkpoint exists (it may arrive late, never missing); revision
+// unchanged ⇒ no checkpoint (the project did not change).
+func (h *Harness) planVitConversationCheckpoint(nodeArgs map[string]any, goalID, runID, message string) vitCheckpointPlan {
+	plan := vitCheckpointPlan{args: map[string]any{
+		"project_path":    nodeArgs["project_path"],
+		"message":         message,
+		"goal_id":         goalID,
+		"run_id":          runID,
+		"source":          "conversation_graph",
+		"checkpoint_kind": "manual",
+	}}
+	revision := h.shadowProjectRevision()
+	if revision != "" {
+		plan.args["project_revision"] = revision
+	}
+	projectKey := strings.TrimSpace(firstString(nodeArgs, "project_path"))
+	if projectKey == "" {
+		projectKey, _ = h.CurrentProjectIdentity(context.Background())
+	}
+	plan.projectKey = projectKey
+	plan.revision = revision
+	headRevision, headCommitID, headErr := history.HeadCheckpointRevision(map[string]any{"project_path": nodeArgs["project_path"]})
+	if revision == "" || headErr != nil || headCommitID == "" {
+		// No revision visibility or no HEAD yet: the node append still needs a
+		// commit, so pay synchronously exactly like the pre-gate path did.
+		return plan
+	}
+	if revision == h.vitCoveredRevisionFor(projectKey, headRevision) {
+		plan.mode = vitCheckpointSkip
+		if h.logger != nil {
+			h.logger.Info("[vit_checkpoint] gate skipped zero-change turn project=%s revision=%s", projectKey, revision)
+		}
+		return plan
+	}
+	plan.mode = vitCheckpointAsync
+	h.vitGateMu.Lock()
+	if h.vitCoveredRevision == nil {
+		h.vitCoveredRevision = map[string]string{}
+	}
+	if h.vitCheckpointLive == nil {
+		h.vitCheckpointLive = map[string]bool{}
+	}
+	// Optimistic cover: concurrent turns at the same revision must not launch a
+	// second export. Rolled back by the worker on failure.
+	h.vitCoveredRevision[projectKey] = revision
+	h.vitCheckpointLive[projectKey] = true
+	h.vitGateMu.Unlock()
+	if h.logger != nil {
+		h.logger.Info("[vit_checkpoint] async checkpoint launched project=%s revision=%s", projectKey, revision)
+	}
+	return plan
+}
+
+// runVitCheckpointSync is the pre-gate behaviour kept for turns with no gating
+// basis. It must not be used on the response path when an async plan is
+// possible — that is the whole point of the gate.
+func (h *Harness) runVitCheckpointSync(plan vitCheckpointPlan) string {
+	checkpoint, err := history.Checkpoint(h.enrichHistoryCheckpointArgs(plan.args))
+	if err != nil {
+		if h.logger != nil {
+			h.logger.Warn("[vit_checkpoint] sync checkpoint failed project=%s error=%v", plan.projectKey, err)
+		}
+		return ""
+	}
+	h.vitGateSetCovered(plan.projectKey, plan.revision)
+	return firstString(checkpoint, "commit_id")
+}
+
+// registerVitNodeForAsyncCheckpoint records the freshly appended vit node so
+// the in-flight async checkpoint rebinds it to its commit on success, then
+// launches the worker. Zero-change turns that append while a checkpoint for a
+// higher revision is still in flight register too: their nodes must bind to
+// the pending commit, not to the stale HEAD.
+func (h *Harness) registerVitNodeForAsyncCheckpoint(plan vitCheckpointPlan, appendResult map[string]any) {
+	nodeID := ""
+	if node, ok := appendResult["node"].(history.ConversationNode); ok {
+		nodeID = node.ID
+	} else {
+		nodeID = firstString(mapAnyFromAny(appendResult["node"]), "id")
+	}
+	launch := false
+	h.vitGateMu.Lock()
+	if h.vitCheckpointLive == nil {
+		h.vitCheckpointLive = map[string]bool{}
+	}
+	if h.vitPendingRebindNodes == nil {
+		h.vitPendingRebindNodes = map[string][]string{}
+	}
+	if h.vitCheckpointLive[plan.projectKey] && nodeID != "" {
+		h.vitPendingRebindNodes[plan.projectKey] = append(h.vitPendingRebindNodes[plan.projectKey], nodeID)
+	}
+	if plan.mode == vitCheckpointAsync {
+		launch = true
+	}
+	h.vitGateMu.Unlock()
+	if launch {
+		go h.runVitCheckpointAsync(plan)
+	}
+}
+
+// runVitCheckpointAsync performs the kernel snapshot export and the checkpoint
+// commit off the response path. The exported content reflects kernel state at
+// capture time, which may already include changes from later turns; the commit
+// is tagged with the revision that triggered it, and any later revision gets
+// its own checkpoint on its own turn.
+func (h *Harness) runVitCheckpointAsync(plan vitCheckpointPlan) {
+	workerMu := h.vitWorkerLock(plan.projectKey)
+	workerMu.Lock()
+	defer workerMu.Unlock()
+	started := time.Now()
+	checkpoint, err := history.Checkpoint(h.enrichHistoryCheckpointArgs(plan.args))
+	if err != nil {
+		h.vitGateMu.Lock()
+		delete(h.vitCoveredRevision, plan.projectKey)
+		h.vitCheckpointLive[plan.projectKey] = false
+		h.vitGateMu.Unlock()
+		if h.logger != nil {
+			h.logger.Warn("[vit_checkpoint] async checkpoint failed project=%s revision=%s error=%v (next turn retries)", plan.projectKey, plan.revision, err)
+		}
+		return
+	}
+	commitID := firstString(checkpoint, "commit_id")
+	h.vitGateMu.Lock()
+	pending := h.vitPendingRebindNodes[plan.projectKey]
+	delete(h.vitPendingRebindNodes, plan.projectKey)
+	h.vitCheckpointLive[plan.projectKey] = false
+	var rebindErr error
+	if commitID != "" {
+		rebindErr = history.RebindConversationNodeCommit(map[string]any{"project_path": plan.args["project_path"]}, pending, commitID)
+	}
+	h.vitGateMu.Unlock()
+	if h.logger != nil {
+		if rebindErr != nil {
+			h.logger.Warn("[vit_checkpoint] async rebind failed project=%s commit=%s nodes=%d error=%v", plan.projectKey, commitID, len(pending), rebindErr)
+		} else {
+			h.logger.Info("[vit_checkpoint] async checkpoint done project=%s revision=%s commit=%s rebound=%d total_ms=%d",
+				plan.projectKey, plan.revision, commitID, len(pending), time.Since(started).Milliseconds())
+		}
+	}
+}
+
+func (h *Harness) shadowProjectRevision() string {
+	if h == nil || h.shadow == nil {
+		return ""
+	}
+	state := userVisibleState(h.shadow.Summary())
+	if revision := firstString(state, "project_revision"); revision != "" {
+		return revision
+	}
+	project, _ := state["project"].(map[string]any)
+	return firstString(project, "project_revision", "revision")
+}
+
+// vitCoveredRevisionFor seeds the per-project covered revision from the HEAD
+// checkpoint's recorded revision on first sight, so a restart does not force
+// an extra checkpoint when the kernel revision never moved.
+func (h *Harness) vitCoveredRevisionFor(projectKey, seedRevision string) string {
+	h.vitGateMu.Lock()
+	defer h.vitGateMu.Unlock()
+	if h.vitCoveredRevision == nil {
+		h.vitCoveredRevision = map[string]string{}
+	}
+	if covered, ok := h.vitCoveredRevision[projectKey]; ok {
+		return covered
+	}
+	h.vitCoveredRevision[projectKey] = seedRevision
+	return seedRevision
+}
+
+func (h *Harness) vitGateSetCovered(projectKey, revision string) {
+	if projectKey == "" || revision == "" {
+		return
+	}
+	h.vitGateMu.Lock()
+	defer h.vitGateMu.Unlock()
+	if h.vitCoveredRevision == nil {
+		h.vitCoveredRevision = map[string]string{}
+	}
+	h.vitCoveredRevision[projectKey] = revision
+}
+
+func (h *Harness) vitGateClearLive(projectKey string) {
+	if projectKey == "" {
+		return
+	}
+	h.vitGateMu.Lock()
+	defer h.vitGateMu.Unlock()
+	if h.vitCheckpointLive != nil {
+		h.vitCheckpointLive[projectKey] = false
+	}
+}
+
+func (h *Harness) vitWorkerLock(projectKey string) *sync.Mutex {
+	h.vitGateMu.Lock()
+	defer h.vitGateMu.Unlock()
+	if h.vitWorkerMu == nil {
+		h.vitWorkerMu = map[string]*sync.Mutex{}
+	}
+	if mu, ok := h.vitWorkerMu[projectKey]; ok {
+		return mu
+	}
+	mu := &sync.Mutex{}
+	h.vitWorkerMu[projectKey] = mu
+	return mu
 }
 
 func (h *Harness) ModelCatalogSummary() string {

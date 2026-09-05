@@ -62,6 +62,7 @@ type Commit struct {
 	RunID           string         `json:"run_id,omitempty"`
 	Source          string         `json:"source,omitempty"`
 	CheckpointKind  string         `json:"checkpoint_kind,omitempty"`
+	ProjectRevision string         `json:"project_revision,omitempty"`
 	ProjectFile     FileEntry      `json:"project_file"`
 	Files           []FileEntry    `json:"files"`
 	Warnings        []string       `json:"warnings,omitempty"`
@@ -283,6 +284,7 @@ func Checkpoint(args map[string]any) (map[string]any, error) {
 		GoalID:      value(args, "goal_id"),
 		RunID:       value(args, "run_id"),
 		Source:      value(args, "source"),
+		ProjectRevision: value(args, "project_revision"),
 		CheckpointKind: firstNonEmpty(
 			value(args, "checkpoint_kind"),
 			"manual",
@@ -909,6 +911,64 @@ func AppendConversationNode(args map[string]any) (map[string]any, error) {
 	out["active_node_id"] = graph.ActiveNodeID
 	out["conversation_graph"] = graph
 	return out, nil
+}
+
+// HeadCheckpointRevision reports the revision recorded on the current HEAD
+// checkpoint. An empty revision means "unknown" (no HEAD, or a checkpoint
+// written before revisions were recorded); callers must treat unknown as
+// "checkpoint required", never as "revision unchanged".
+func HeadCheckpointRevision(args map[string]any) (revision, commitID string, err error) {
+	repo, err := Open(projectPath(args))
+	if err != nil {
+		return "", "", err
+	}
+	head := currentHead(repo)
+	if head == "" {
+		return "", "", nil
+	}
+	commit, err := readCommit(repo, head)
+	if err != nil {
+		return "", head, err
+	}
+	return strings.TrimSpace(commit.ProjectRevision), head, nil
+}
+
+// RebindConversationNodeCommit points already-appended conversation nodes at a
+// commit that landed after the nodes were written (async conversation
+// checkpoints). Without the rebind, a node whose turn changed the project would
+// restore the previous checkpoint on checkout, silently dropping that turn's
+// changes.
+func RebindConversationNodeCommit(args map[string]any, nodeIDs []string, commitID string) error {
+	repo, err := Open(projectPath(args))
+	if err != nil {
+		return err
+	}
+	commitID = strings.TrimSpace(commitID)
+	if commitID == "" || len(nodeIDs) == 0 {
+		return nil
+	}
+	if _, err := readCommit(repo, commitID); err != nil {
+		return err
+	}
+	wanted := map[string]bool{}
+	for _, id := range nodeIDs {
+		if id = strings.TrimSpace(id); id != "" {
+			wanted[id] = true
+		}
+	}
+	graph := readConversationGraphOrDefault(repo)
+	rebound := 0
+	for i := range graph.Nodes {
+		if !wanted[graph.Nodes[i].ID] {
+			continue
+		}
+		graph.Nodes[i].CommitID = commitID
+		rebound++
+	}
+	if rebound == 0 {
+		return nil
+	}
+	return writeConversationGraph(repo, graph)
 }
 
 func ConversationMessages(args map[string]any) (map[string]any, error) {
