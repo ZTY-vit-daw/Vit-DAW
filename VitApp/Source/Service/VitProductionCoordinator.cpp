@@ -1,6 +1,8 @@
 #include "VitProductionCoordinator.h"
 
+#include <algorithm>
 #include <array>
+#include <chrono>
 #include <cmath>
 #include <limits>
 #include <thread>
@@ -12,6 +14,17 @@ namespace vit
 namespace
 {
 constexpr double kSilenceDb = -160.0;
+
+// KERNEL-RENDER-1 render watchdog: offline renders of Vit-DAW-scale projects
+// finish in seconds; 120 s is a generous fixed budget plus the rendered range
+// duration so long material keeps proportionally more headroom.
+constexpr double kRenderWatchdogBaseSeconds = 120.0;
+
+int64_t steadyClockNowMs()
+{
+    return (int64_t) std::chrono::duration_cast<std::chrono::milliseconds> (
+        std::chrono::steady_clock::now().time_since_epoch()).count();
+}
 
 juce::String makeCoordinatorError (const juce::String& message)
 {
@@ -634,6 +647,7 @@ juce::String VitProductionCoordinator::startOfflineRender (te::Edit& edit,
     const auto activeJobId = jobId;
     rendering.store (true);
     lastPublishedProgress = -1.0f;
+    armRenderWatchdog (kRenderWatchdogBaseSeconds + (endSec - startSec));
 
     te::Renderer::Parameters params (edit);
     params.destFile = destFile;
@@ -664,6 +678,15 @@ juce::String VitProductionCoordinator::startOfflineRender (te::Edit& edit,
             juce::MessageManager::callAsync (
                 [this, destPath, destFile, jid, probeRequest, res]
                 {
+                    if (jid != jobId)
+                    {
+                        // Stale completion (render watchdog already force-cleared
+                        // this job, or a newer job replaced it): drop its parked
+                        // handle and ignore the late result.
+                        releaseWedgedRenderHandle (jid);
+                        return;
+                    }
+
                     rendering.store (false);
                     renderHandle.reset();
                     lastPublishedProgress = -1.0f;
@@ -762,6 +785,8 @@ juce::String VitProductionCoordinator::startCompressorDualTapProbe (
     const auto activeJobId = jobId;
     rendering.store (true);
     lastPublishedProgress = -1.0f;
+    armRenderWatchdog (kRenderWatchdogBaseSeconds
+                       + ((double) (evidence.endSample - evidence.startSample) / evidence.sampleRate));
 
     auto makeParameters = [&edit, &request] (const juce::File& destination, bool usePlugins)
     {
@@ -936,8 +961,80 @@ void VitProductionCoordinator::cancelOfflineRender()
         renderHandle->cancel();
 }
 
+void VitProductionCoordinator::armRenderWatchdog (double timeoutSeconds)
+{
+    const auto deadlineMs = steadyClockNowMs()
+        + (int64_t) (juce::jmax (0.05, timeoutSeconds) * 1000.0);
+    renderWatchdogDeadlineMs.store (deadlineMs);
+}
+
+void VitProductionCoordinator::releaseWedgedRenderHandle (const juce::String& handleJobId)
+{
+    wedgedRenderHandles.erase (
+        std::remove_if (wedgedRenderHandles.begin(), wedgedRenderHandles.end(),
+                        [&handleJobId] (const auto& entry) { return entry.first == handleJobId; }),
+        wedgedRenderHandles.end());
+}
+
+void VitProductionCoordinator::checkRenderWatchdog()
+{
+    const auto deadlineMs = renderWatchdogDeadlineMs.load();
+    if (deadlineMs <= 0 || ! rendering.load())
+        return;
+
+    if (steadyClockNowMs() < deadlineMs)
+        return;
+
+    // Timeout: the EditRenderer completion callback will never arrive (e.g. a
+    // blocked third-party plugin wedged the render thread). Cancel the job,
+    // force the rendering flag down and publish so later render commands are
+    // accepted again (self-heal). The wedged handle is parked, never destroyed:
+    // its destructor joins the render thread, which would hang the message
+    // thread. Clearing jobId makes any late completion callback a stale no-op.
+    const auto wedgedJobId = jobId;
+    const auto overshootSeconds = (steadyClockNowMs() - deadlineMs) / 1000.0;
+    renderWatchdogDeadlineMs.store (0);
+    jobId = juce::String();
+    if (renderHandle != nullptr)
+    {
+        renderHandle->cancel();
+        wedgedRenderHandles.emplace_back (wedgedJobId, std::move (renderHandle));
+    }
+    lastPublishedProgress = -1.0f;
+    rendering.store (false);
+
+    juce::Logger::writeToLog (
+        "WARN [render_watchdog] render job " + wedgedJobId + " missed its deadline by "
+        + juce::String (overshootSeconds, 1) + "s: cancel requested, rendering flag force-cleared, "
+          "subsequent render commands are accepted again");
+
+    if (publishMessage)
+    {
+        auto object = std::make_unique<juce::DynamicObject>();
+        object->setProperty ("topic", "render");
+        object->setProperty ("subtopic", "render_failed");
+        object->setProperty ("job_id", wedgedJobId);
+        object->setProperty ("status", "error");
+        object->setProperty ("source", "render_watchdog");
+        object->setProperty ("message", "render watchdog timeout: render cancelled, engine render "
+                                         "state force-cleared (self-heal)");
+        publishMessage (juce::JSON::toString (juce::var (object.release())));
+    }
+}
+
+void VitProductionCoordinator::simulateWedgedRenderForTest (double watchdogTimeoutSeconds)
+{
+    jobId = juce::Uuid().toString();
+    renderHandle.reset();
+    lastPublishedProgress = -1.0f;
+    rendering.store (true);
+    armRenderWatchdog (watchdogTimeoutSeconds);
+}
+
 void VitProductionCoordinator::tick()
 {
+    checkRenderWatchdog();
+
     if (! rendering.load() || renderHandle == nullptr)
         return;
 

@@ -4,6 +4,8 @@
 #include <atomic>
 #include <functional>
 #include <memory>
+#include <utility>
+#include <vector>
 #include <tracktion_engine/tracktion_engine.h>
 
 #include "CompressorDualTapEvidence.h"
@@ -76,12 +78,31 @@ public:
     /** Call from message thread (e.g. VitHeadlessService timer). Publishes render_progress. */
     void tick();
 
+    /**
+     * Test-only hook (VitApp/Tests/RenderWatchdogTests): simulate a wedged
+     * offline render — rendering flag set, watchdog armed, no engine handle,
+     * and no completion callback ever arriving.
+     */
+    void simulateWedgedRenderForTest (double watchdogTimeoutSeconds);
+
 private:
     PublishFn publishMessage;
     std::atomic<bool> rendering { false };
     juce::String jobId;
     std::shared_ptr<te::EditRenderer::Handle> renderHandle;
     float lastPublishedProgress = -1.0f;
+
+    // Render watchdog (KERNEL-RENDER-1): steady-clock deadline in ms for the
+    // current render job; 0 = disarmed. Message thread only in practice.
+    std::atomic<int64_t> renderWatchdogDeadlineMs { 0 };
+    // Handles of timed-out (wedged) renders. They are parked, never destroyed:
+    // ~Handle joins the render thread, which would hang the message thread on a
+    // blocked render. Cleared when the stale completion callback finally runs.
+    std::vector<std::pair<juce::String, std::shared_ptr<te::EditRenderer::Handle>>> wedgedRenderHandles;
+
+    void armRenderWatchdog (double timeoutSeconds);
+    void checkRenderWatchdog();
+    void releaseWedgedRenderHandle (const juce::String& handleJobId);
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (VitProductionCoordinator)
 };
