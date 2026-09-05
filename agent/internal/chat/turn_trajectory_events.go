@@ -146,7 +146,7 @@ func (s *Server) emitChatTurnTrajectoryTerminal(conversationID, goalID, runID st
 	event := trajectory.Event{
 		Type: eventType, ConversationID: conversationID,
 		GoalID: goalID, RunID: runID, ItemID: chatTurnTrajectoryNodeID(turnID),
-		Title: "Turn " + phase,
+		Title: chatTurnPhaseTitle(phase),
 		Payload: trajectory.Payload{
 			SchemaVersion: trajectory.SchemaVersion,
 			TurnID:        turnID, TraceNodeID: chatTurnTrajectoryNodeID(turnID),
@@ -238,4 +238,18 @@ func (s *Server) emitSchedulerChainResultEvent(conversationID string, resp ChatR
 		LogicalMessageID: "agent_turn:" + firstNonEmpty(runID, goalID, conversationID),
 	})
 	s.emitChatTurnTrajectory(conversationID, eventType, resp, goalID, runID)
+}
+
+// AGENT-W2: 轨迹终态事件标题中文化（原 "Turn completed/failed/stopped"）。
+func chatTurnPhaseTitle(phase string) string {
+	switch phase {
+	case "completed":
+		return "回合已完成"
+	case "failed":
+		return "回合失败"
+	case "stopped":
+		return "回合已停止"
+	default:
+		return "回合状态"
+	}
 }

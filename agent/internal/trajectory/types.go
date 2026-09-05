@@ -334,8 +334,13 @@ func DefaultNodeKind(t EventType) NodeKind {
 
 func DefaultStatus(t EventType) Status {
 	switch t {
-	case EventTurnStarted, EventRoundStarted:
+	case EventTurnStarted:
 		return StatusRunning
+	// AGENT-W2: round.started 标记一个已发生的转移（该轮已开跑），且每个
+	// 事件是独立 UI 节点、状态永不回写——running 会让"实验轮开始"行永久
+	// 打转。进行中指示由轮容器与回合状态承载。
+	case EventRoundStarted:
+		return StatusCompleted
 	case EventTurnCompleted:
 		return StatusCompleted
 	case EventTurnFailed:

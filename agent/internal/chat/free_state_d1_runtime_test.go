@@ -852,7 +852,7 @@ func TestD1S1StaticEQProjectionCarriesAdmissionDomain(t *testing.T) {
 	if response.WorkflowData["action_domain"] != d1StaticEQDomain || response.WorkflowData["action_kind"] != d1StaticEQKind {
 		t.Fatalf("projection domain=%v kind=%v", response.WorkflowData["action_domain"], response.WorkflowData["action_kind"])
 	}
-	if !strings.Contains(response.Reply, "static EQ band parameter") {
+	if !strings.Contains(response.Reply, "静态 EQ 频段参数已应用并回读") {
 		t.Fatalf("reply=%q", response.Reply)
 	}
 	restored, ok := s.freeStateLoop(loop.ConversationID)

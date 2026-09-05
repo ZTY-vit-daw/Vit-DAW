@@ -146,7 +146,7 @@ var d1s1Domains = []D1S1DomainSpec{
 		},
 		WriteBinding:      D1S1WriteBinding{Channels: 1},
 		AdmissionValueKey: "delta_db",
-		AppliedReplyText:  "D1-S1 track gain parameter was applied and read back. Fresh post-action evidence is recorded separately; acoustic materiality, target response, and human judgment remain pending.",
+		AppliedReplyText:  "D1-S1 轨道增益参数已应用并回读验证。动作后新证据已单独记录；声学实质性、目标响应与人工判定仍待完成。",
 	},
 	{
 		// static_eq adjusts one EQ band of one track. D2-1 admits it with the
@@ -200,7 +200,7 @@ var d1s1Domains = []D1S1DomainSpec{
 		WriteBinding:             D1S1WriteBinding{PluginBound: true, StubParamIDFormat: "band_%d_gain", Channels: 2},
 		AdmissionValueKey:        "gain_db",
 		AdmissionPassthroughKeys: []string{"frequency_hz", "q", "band_index", "plugin_identifier"},
-		AppliedReplyText:         "D2-1 static EQ band parameter was applied and read back. Fresh post-action evidence is recorded separately; acoustic materiality, target response, and human judgment remain pending.",
+		AppliedReplyText:         "D2-1 静态 EQ 频段参数已应用并回读验证。动作后新证据已单独记录；声学实质性、目标响应与人工判定仍待完成。",
 	},
 	{
 		// broadband_compression adjusts one compressor instance's dual-channel
@@ -241,7 +241,7 @@ var d1s1Domains = []D1S1DomainSpec{
 		AdmissionValueKey:        "threshold_db",
 		AdmissionPassthroughKeys: []string{"plugin_identifier"},
 		TargetSemantics:          "delta_db",
-		AppliedReplyText:         "D2-1.5 broadband compression threshold was applied and read back. Fresh post-action evidence is recorded separately; acoustic materiality, target response, and human judgment remain pending.",
+		AppliedReplyText:         "D2-1.5 宽带压缩阈值已应用并回读验证。动作后新证据已单独记录；声学实质性、目标响应与人工判定仍待完成。",
 	},
 	{
 		// de_esser_adjusts one de-esser instance's threshold by one bounded
@@ -290,7 +290,7 @@ var d1s1Domains = []D1S1DomainSpec{
 	// LLM would freeze from the literal threshold parameter name.
 	SemanticIntentFamily:   "de_esser",
 	SemanticIntentCoverage: []string{"sibilance_reduction"},
-	AppliedReplyText:       "FAM1-S1 de-esser threshold was applied and read back. Fresh post-action evidence is recorded separately; acoustic materiality, target response, and human judgment remain pending.",
+	AppliedReplyText:       "FAM1-S1 齿音处理器阈值已应用并回读验证。动作后新证据已单独记录；声学实质性、目标响应与人工判定仍待完成。",
 	},
 	{
 		// transient_attack_adjusts one transient-shaper instance's attack by one
@@ -341,7 +341,7 @@ var d1s1Domains = []D1S1DomainSpec{
 		// parameter name.
 		SemanticIntentFamily:   "transient_shaper",
 		SemanticIntentCoverage: []string{"envelope_emphasis"},
-		AppliedReplyText:       "FAM2-S1 transient attack parameter was applied and read back. Fresh post-action evidence is recorded separately; acoustic materiality, target response, and human judgment remain pending.",
+		AppliedReplyText:       "FAM2-S1 瞬态起振参数已应用并回读验证。动作后新证据已单独记录；声学实质性、目标响应与人工判定仍待完成。",
 	},
 	{
 		// limiter_ceiling_adjust moves one limiter instance's output ceiling by
@@ -391,7 +391,7 @@ var d1s1Domains = []D1S1DomainSpec{
 		// would freeze from the literal Output Level parameter name.
 		SemanticIntentFamily:   "limiter",
 		SemanticIntentCoverage: []string{"output_ceiling"},
-		AppliedReplyText:       "FAM4-S1 limiter ceiling parameter was applied and read back. Fresh post-action evidence is recorded separately; acoustic materiality, target response, and human judgment remain pending.",
+		AppliedReplyText:       "FAM4-S1 限幅器天花板参数已应用并回读验证。动作后新证据已单独记录；声学实质性、目标响应与人工判定仍待完成。",
 	},
 	{
 		// gate_range_adjust moves one gate/expander instance's range
@@ -442,7 +442,7 @@ var d1s1Domains = []D1S1DomainSpec{
 		// parameter name.
 		SemanticIntentFamily:   "gate_expander",
 		SemanticIntentCoverage: []string{"attenuation_floor"},
-		AppliedReplyText:       "FAM5-S1 gate range parameter was applied and read back. Fresh post-action evidence is recorded separately; acoustic materiality, target response, and human judgment remain pending.",
+		AppliedReplyText:       "FAM5-S1 门限范围参数已应用并回读验证。动作后新证据已单独记录；声学实质性、目标响应与人工判定仍待完成。",
 	},
 	{
 		// multiband_band_threshold_adjust moves one band's threshold on one
@@ -506,7 +506,7 @@ var d1s1Domains = []D1S1DomainSpec{
 		// Threshold parameter name.
 		SemanticIntentFamily:   "multiband_dynamics",
 		SemanticIntentCoverage: []string{"band_dynamics"},
-		AppliedReplyText:       "FAM6-S1 multiband band threshold parameter was applied and read back. Fresh post-action evidence is recorded separately; acoustic materiality, target response, and human judgment remain pending.",
+		AppliedReplyText:       "FAM6-S1 多段压限频段阈值已应用并回读验证。动作后新证据已单独记录；声学实质性、目标响应与人工判定仍待完成。",
 	},
 	{
 		// track_pan_adjust moves one track's stereo pan by one bounded step.
@@ -547,7 +547,7 @@ var d1s1Domains = []D1S1DomainSpec{
 		},
 		WriteBinding:      D1S1WriteBinding{Channels: 1},
 		AdmissionValueKey: "delta_pan",
-		AppliedReplyText:  "FAM3-S1 track pan parameter was applied and read back. Fresh post-action evidence is recorded separately; acoustic materiality, target response, and human judgment remain pending.",
+		AppliedReplyText:  "FAM3-S1 轨道声像参数已应用并回读验证。动作后新证据已单独记录；声学实质性、目标响应与人工判定仍待完成。",
 	},
 }
 

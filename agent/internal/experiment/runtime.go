@@ -558,9 +558,9 @@ func (t *Turn) StartEvents(now time.Time) []trajectory.Event {
 		now = time.Now().UTC()
 	}
 	return []trajectory.Event{
-		t.events(now, trajectory.EventTurnStarted, "", trajectory.NodeTurn, "experiment turn started", nil, nil, map[string]any{"original_intent": t.OriginalIntent})[0],
-		t.events(now, trajectory.EventIntentFramed, "", trajectory.NodeIntent, "experiment intent framed", t.Admission.EvidenceRefs, nil, map[string]any{"target_ref": t.Admission.TargetRef})[0],
-		t.events(now, trajectory.EventHypothesisProposed, "", trajectory.NodeHypothesis, "experiment hypothesis proposed", t.Admission.EvidenceRefs, nil, map[string]any{"hypothesis": t.Admission.Hypothesis, "expected_effect": t.Admission.ExpectedEffect})[0],
+		t.events(now, trajectory.EventTurnStarted, "", trajectory.NodeTurn, "实验回合开始", nil, nil, map[string]any{"original_intent": t.OriginalIntent})[0],
+		t.events(now, trajectory.EventIntentFramed, "", trajectory.NodeIntent, "实验意图已确立", t.Admission.EvidenceRefs, nil, map[string]any{"target_ref": t.Admission.TargetRef})[0],
+		t.events(now, trajectory.EventHypothesisProposed, "", trajectory.NodeHypothesis, "实验假设已提出", t.Admission.EvidenceRefs, nil, map[string]any{"hypothesis": t.Admission.Hypothesis, "expected_effect": t.Admission.ExpectedEffect})[0],
 	}
 }
 
@@ -606,7 +606,7 @@ func (t *Turn) StartRound(requestedViews []string, checkpointRef, projectRevisio
 	t.ProjectRevision = round.ProjectRevision
 	t.Status = StatusRunning
 	t.UpdatedAt = now.UTC()
-	return t.events(now, trajectory.EventRoundStarted, round.ID, trajectory.NodeDecision, "experiment round started", nil, nil, map[string]any{"requested_view_ids": requestedViews, "round_number": number}), nil
+	return t.events(now, trajectory.EventRoundStarted, round.ID, trajectory.NodeDecision, "实验轮开始", nil, nil, map[string]any{"requested_view_ids": requestedViews, "round_number": number}), nil
 }
 
 func (t *Turn) RecordObservation(observation Observation, postAction bool, now time.Time) ([]trajectory.Event, error) {
@@ -667,7 +667,7 @@ func (t *Turn) RecordObservation(observation Observation, postAction bool, now t
 	details := map[string]any{"observation_id": observation.ID, "receipt_id": observation.ReceiptID,
 		"requested_view_ids": observation.RequestedViewIDs, "actual_executed_view_ids": observation.ExecutedViewIDs,
 		"view_set_matches": observation.ViewSetMatches, "fresh": observation.Fresh, "post_action": postAction}
-	return t.events(now, trajectory.EventObservationRecorded, round.ID, trajectory.NodeObservation, "CCB observation recorded", observation.EvidenceRefs, nil, details), nil
+	return t.events(now, trajectory.EventObservationRecorded, round.ID, trajectory.NodeObservation, "CCB 观察已记录", observation.EvidenceRefs, nil, details), nil
 }
 
 func mapValue(row map[string]any, key string) map[string]any {
@@ -713,7 +713,7 @@ func (t *Turn) ApplyIntervention(intervention Intervention, now time.Time) ([]tr
 	round.Phase = "treating"
 	round.UpdatedAt = now.UTC()
 	t.replaceRound(*round)
-	return t.events(now, trajectory.EventInterventionApplied, round.ID, trajectory.NodeAction, "typed intervention applied", intervention.EvidenceRefs, []string{intervention.ID}, map[string]any{"attempt": intervention.Attempt, "technical_application": intervention.TechnicalApplication, "receipt": intervention.Receipt}), nil
+	return t.events(now, trajectory.EventInterventionApplied, round.ID, trajectory.NodeAction, "类型化干预已应用", intervention.EvidenceRefs, []string{intervention.ID}, map[string]any{"attempt": intervention.Attempt, "technical_application": intervention.TechnicalApplication, "receipt": intervention.Receipt}), nil
 }
 
 func (t *Turn) EvaluateMateriality(evaluation MaterialityEvaluation, now time.Time) ([]trajectory.Event, error) {
@@ -814,7 +814,7 @@ func (t *Turn) DecideRound(decision RoundDecision, summary string, now time.Time
 	round.UpdatedAt = now.UTC()
 	t.replaceRound(*round)
 	details := map[string]any{"decision": decision, "summary": summary}
-	events := t.events(now, trajectory.EventRoundDecision, round.ID, trajectory.NodeDecision, "experiment round decision", nil, nil, details)
+	events := t.events(now, trajectory.EventRoundDecision, round.ID, trajectory.NodeDecision, "实验轮判定", nil, nil, details)
 	events[0].Payload.NextDecision = string(decision)
 	return events, nil
 }
@@ -836,7 +836,7 @@ func (t *Turn) MarkRollback(now time.Time, receipt map[string]any, evidenceRefs 
 	round.RollbackReceipt = cloneMap(receipt)
 	round.UpdatedAt = now.UTC()
 	t.replaceRound(*round)
-	events := t.events(now, trajectory.EventRollbackCompleted, round.ID, trajectory.NodeRollback, "experiment round rolled back", unique(evidenceRefs), nil, map[string]any{"rollback_receipt": receipt, "checkpoint_ref": round.CheckpointRef})
+	events := t.events(now, trajectory.EventRollbackCompleted, round.ID, trajectory.NodeRollback, "实验轮已回滚", unique(evidenceRefs), nil, map[string]any{"rollback_receipt": receipt, "checkpoint_ref": round.CheckpointRef})
 	events[0].Payload.Outcome = trajectory.EvaluationRolledBack
 	return events, nil
 }
@@ -900,6 +900,13 @@ func (t *Turn) Settle(outcome SettlementOutcome, summary string, now time.Time) 
 	t.Status = StatusSettled
 	t.SettledAt = now.UTC()
 	t.UpdatedAt = now.UTC()
+	// AGENT-W2: settle 必须收口当前轮——等人判定/收口路径不经过 DecideRound，
+	// 轮状态不闭合会让快照与 UI 轮容器停在 admitted。
+	if round, roundErr := t.currentRound(); roundErr == nil && round.Status != RoundCompleted {
+		round.Status = RoundCompleted
+		round.UpdatedAt = now.UTC()
+		t.replaceRound(*round)
+	}
 	details := map[string]any{"outcome": outcome, "summary": summary}
 	if round, roundErr := t.currentRound(); roundErr == nil {
 		if round.AdoptedCandidateID != "" {
@@ -912,7 +919,7 @@ func (t *Turn) Settle(outcome SettlementOutcome, summary string, now time.Time) 
 			details["adoption_receipt"] = cloneMap(round.AdoptionReceipt)
 		}
 	}
-	events := t.events(now, trajectory.EventSettled, "", trajectory.NodeSettlement, "experiment settled", nil, nil, details)
+	events := t.events(now, trajectory.EventSettled, "", trajectory.NodeSettlement, "实验已收口", nil, nil, details)
 	if round, roundErr := t.currentRound(); roundErr == nil {
 		events[0].Payload.CheckpointRef = round.CheckpointRef
 		events[0].Payload.ProjectRevision = round.ProjectRevision
@@ -946,7 +953,7 @@ func (t *Turn) Stop(summary string, now time.Time) ([]trajectory.Event, error) {
 	t.Outcome = OutcomeStopped
 	t.Settlement = strings.TrimSpace(summary)
 	t.UpdatedAt = now.UTC()
-	return t.events(now, trajectory.EventTurnStopped, "", trajectory.NodeTurn, "experiment turn stopped", nil, nil, map[string]any{"summary": summary}), nil
+	return t.events(now, trajectory.EventTurnStopped, "", trajectory.NodeTurn, "实验回合已停止", nil, nil, map[string]any{"summary": summary}), nil
 }
 
 func (t *Turn) ensureLive() error {

@@ -695,7 +695,7 @@ func (s *Server) projectD1Execution(loop freeStateReasoningLoop, session orchest
 		"readback_verified": receipt.Details["readback_verified"] == true, "evaluation_ready": verifiedPostAction,
 		"human_audition_ready": false, "human_confirmed": false, "ambiguous": false, "rolled_back": false, "settled": false,
 		"improvement_receipt": cloneContext(loop.D1Receipt)}
-	reply := "D1-S1 track gain parameter was applied and read back. Fresh post-action evidence is recorded separately; acoustic materiality, target response, and human judgment remain pending."
+	reply := "D1-S1 轨道增益参数已应用并回读验证。动作后新证据已单独记录；声学实质性、目标响应与人工判定仍待完成。"
 	if spec, ok := experiment.D1S1DomainSpecFor(loop.Experiment.Admission); ok && spec.AppliedReplyText != "" {
 		reply = spec.AppliedReplyText
 	}
