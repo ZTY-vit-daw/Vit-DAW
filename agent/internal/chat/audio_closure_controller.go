@@ -1047,6 +1047,24 @@ func (s *Server) settleAudioClosureOwner(state audioclosure.State) {
 	_, _ = s.controllerOwners.Settle(state.ConversationID, state.ClosureID, owner.Revision, string(state.Settlement.Reason), time.Now().UTC())
 }
 
+// visibleTrackCountForSettlementReply reports the shadow-visible track count
+// for the AGENT-W1 contextual wording. Queried only for no_candidate_found
+// settlements; refresh failures degrade to unknown (-1) and the generic reply.
+func (s *Server) visibleTrackCountForSettlementReply(settlement *audioclosure.Settlement) int {
+	if s == nil || s.harness == nil || settlement == nil || settlement.Reason != audioclosure.StopNoCandidateFound {
+		return -1
+	}
+	state := s.harness.UserStateSummary(context.Background())
+	if state == nil {
+		return -1
+	}
+	count, err := strconv.Atoi(strings.TrimSpace(fmt.Sprint(state["user_track_count"])))
+	if err != nil {
+		return -1
+	}
+	return count
+}
+
 func (s *Server) audioClosureResponse(conversationID, mode string, state audioclosure.State, base agentloop.Result) ChatResponse {
 	if !state.Terminal() {
 		resp := s.chatResponseFromAgentLoopResult(conversationID, mode, base)
@@ -1066,7 +1084,7 @@ func (s *Server) audioClosureResponse(conversationID, mode string, state audiocl
 	if loop, ok := s.freeStateLoop(conversationID); ok {
 		admissionReceipt = cloneContext(loop.AdmissionReceipt)
 	}
-	reply := audioClosureSettlementReply(state.Settlement)
+	reply := audioClosureSettlementReply(state.Settlement, s.visibleTrackCountForSettlementReply(state.Settlement))
 	status := agentruntime.StatusCompleted
 	if state.Settlement.NeedsUserClarification {
 		status = agentruntime.StatusWaitingClarification
@@ -1250,7 +1268,13 @@ func audioClosureControllerErrorResponse(conversationID, mode string, err error)
 	}
 }
 
-func audioClosureSettlementReply(settlement *audioclosure.Settlement) string {
+// audioClosureSettlementReply renders the settlement reply. AGENT-W1: the
+// no_candidate_found wording carries the project shape when the project has at
+// most one audible track — a single-track project has no inter-track mixing
+// relationships to find, and the generic wording reads as an unexplained dead
+// end after a full observation chain. visibleTrackCount < 0 means unknown and
+// keeps the generic wording.
+func audioClosureSettlementReply(settlement *audioclosure.Settlement, visibleTrackCount int) string {
 	if settlement == nil {
 		return "本次声学闭环已结束。"
 	}
@@ -1263,6 +1287,9 @@ func audioClosureSettlementReply(settlement *audioclosure.Settlement) string {
 	case audioclosure.StopDiagnosticComplete:
 		return "本次只读声学诊断已经完成；没有修改工程。"
 	case audioclosure.StopNoCandidateFound:
+		if visibleTrackCount == 1 {
+			return "当前工程只有 1 轨音频，不存在多轨混音关系问题；本轮轨道级观察（电平/频谱/动态/声像）也没有发现异常，因此没有可执行的改善建议。结论保留证据引用和未覆盖边界。"
+		}
 		return "在已声明的观察范围内没有发现可信改善候选；结论保留证据引用和未覆盖边界。"
 	case audioclosure.StopCapabilityBlocked:
 		return "任务已到达明确的能力边界；没有把能力不足解释为改善完成。"

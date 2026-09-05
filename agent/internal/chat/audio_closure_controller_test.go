@@ -1327,3 +1327,34 @@ func TestMultiRoundRecalibrationBoundaryExtensionGuards(t *testing.T) {
 		}
 	})
 }
+
+// AGENT-W1（2026-09-05 手测）：no_candidate_found 对单轨/少轨工程不可解释——
+// 用户视角"查了 6 轮然后一句通用话术"。结算话术需带工程形态上下文。
+func TestAudioClosureNoCandidateReplyCarriesTrackContext(t *testing.T) {
+	singleTrack := &audioclosure.Settlement{Reason: audioclosure.StopNoCandidateFound}
+	reply := audioClosureSettlementReply(singleTrack, 1)
+	if !strings.Contains(reply, "只有 1 轨") {
+		t.Fatalf("single-track no-candidate reply must explain project shape: %q", reply)
+	}
+	if !strings.Contains(reply, "没有可执行的改善建议") {
+		t.Fatalf("single-track reply must state the conclusion: %q", reply)
+	}
+
+	multiTrack := audioClosureSettlementReply(&audioclosure.Settlement{Reason: audioclosure.StopNoCandidateFound}, 6)
+	if !strings.Contains(multiTrack, "在已声明的观察范围内没有发现可信改善候选") {
+		t.Fatalf("multi-track reply must keep the generic wording: %q", multiTrack)
+	}
+	if strings.Contains(multiTrack, "只有 1 轨") {
+		t.Fatalf("multi-track reply must not claim single-track shape: %q", multiTrack)
+	}
+
+	unknown := audioClosureSettlementReply(&audioclosure.Settlement{Reason: audioclosure.StopNoCandidateFound}, -1)
+	if strings.Contains(unknown, "只有 1 轨") {
+		t.Fatalf("unknown track count must fall back to generic wording: %q", unknown)
+	}
+
+	other := audioClosureSettlementReply(&audioclosure.Settlement{Reason: audioclosure.StopDiagnosticComplete}, 1)
+	if strings.Contains(other, "只有 1 轨") {
+		t.Fatalf("track context applies only to no_candidate_found: %q", other)
+	}
+}
