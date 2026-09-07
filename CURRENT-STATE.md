@@ -1,4 +1,17 @@
-# CURRENT-STATE.md — docs/ 文档三态索引
+# CURRENT-STATE.md — 当前状态与 docs/ 文档三态索引
+
+## 当前工程状态（2026-09-07）
+
+本节记录需要随开发推进更新的动态事实；长期协作规则见仓库根目录 [AGENTS.md](AGENTS.md)。具体运行日志和完整验收证据仍以 `C:\Users\timoz\.zcode\workspace\default\queue\reports\` 下对应报告为准。
+
+- **仓库**：`D:\Vit_DAW`；最近已知 HEAD 为 `e52b52d`。读取本文件时必须重新核对 `git rev-parse HEAD` 与 `git status --short`，不得把此处快照当作实时 Git 状态。
+- **工作树**：2026-09-06 gate 记录为多条未提交代码线并存（DIAG3-1/2/3、MILESTONE-B-1、PCA-1 等）；已有改动是权威输入，禁止丢弃。验收通过后按代码线分批提交，再领取重叠文件域的新卡。
+- **模型 B**：双预算与 bounded mix probe 已通过单测和真栈进度验证；p01 已证明覆盖/候选供给不再触发旧的 model evidence ceiling。p03 已走到 proposal accepted、domain route、`processor_selection` 和真实插件装载 mutation。
+- **当前阻塞**：PCA-1 的规划期准入契约修补已完成代码与局部测试，但 2026-09-06 首轮真栈被 CPU 瞬态中断，p03 三轮及 p01 回归尚待有效运行证据。模型 B 端到端里程碑在出现 evaluator 通过且真实栈 exit 0 前仍不得标记完成。
+- **下一步优先级**：先复跑 PCA-1 的 p03 三轮与 p01 回归；若仍在同一确定性 PCA 断点失败，停止原样重跑并转返工/blocked 裁定；真栈验收后执行 COMMIT-1 分线提交。
+- **已知不稳定项**：chat 包 `TestProcessorCertificationStart*` 存在 Windows TempDir 清理竞态。每次出现都需保留原始输出，按 AGENTS.md §11 的隔离复跑与整包复跑规则处理，不得仅凭一次重跑通过而永久忽略。
+
+维护边界：本节可以更新当前 HEAD、工作树、里程碑、阻塞和下一步；历史 run 的细节放 gate/回执报告，文档三态索引的变更仍按下文维护规则执行。
 
 本文件是 `docs/` 全部文档的**现行清单权威索引**（T6 产出，2026-08-23）。AGENTS.md §4 的规则以此为准：**只把标记为「现行」的文档当作现状描述来读**。
 
