@@ -14,6 +14,7 @@ import (
 	"vit-daw-agent/internal/harness"
 	"vit-daw-agent/internal/journal"
 	"vit-daw-agent/internal/mom"
+	"vit-daw-agent/internal/processorintent"
 	"vit-daw-agent/internal/semanticeffect"
 	plugingrabber "vit-daw-agent/internal/workflows/plugingrabber"
 )
@@ -674,9 +675,67 @@ func (s *Server) executeSemanticCompressorTicket(ctx context.Context, interactio
 
 // beginSemanticCompressorSettlement opens the shared settlement bracket for a
 // compressor semantic execution (RECEIPT-1); it returns nil (no bracket) for
-// interactions outside the free-state D1 settlement flow.
+// interactions outside the free-state D1 settlement flow. The load-first
+// (load_required) D1 compressor flow hands the free-state intent over the
+// post-load channel instead of the canonical free_state_semantic_processor_intent
+// anchor the shared settlement core's owner predicate reads (BRACKET-1). VER-1
+// R4 (20260907_220935) measured the post-load key present in every execution
+// request context with zero canonical-key hits, so the bracket never opened;
+// the wrapper restores the canonical anchor from the load-first compressor
+// handoff only for that shape, and every other interaction — including the
+// dynamic families, which never enter this wrapper — keeps the historical
+// path untouched.
 func (s *Server) beginSemanticCompressorSettlement(ctx context.Context, interaction PendingInteraction, ticket compressorExecutionTicket) (*semanticDynamicSettlementBracket, error) {
+	if normalized, ok := semanticCompressorPostLoadOwnerContext(interaction.RequestContext); ok {
+		interaction.RequestContext = normalized
+	}
 	return s.beginSemanticSettlementBracket(ctx, interaction, ticket.TicketID)
+}
+
+// semanticCompressorPostLoadOwnerContext returns a copy of the request context
+// with the canonical free-state intent anchor restored from the load-first
+// compressor handoff, or ok=false when no normalization applies. The R4 real
+// stack carried the family-bearing intent under
+// processor_selection_route.semantic_processor_intent while the post-load key
+// itself stayed nil (the payload forwarding chain cloned an absent upstream
+// map); both carriers are the same intent object the load-first route binds at
+// semantic_treatment_strategy.go / plugin_recommendation.go. Normalization
+// requires the compressor load-first markers plus a family-bearing intent, so
+// EQ/dynamic flows, ordinary compressor executions and C2 batches cannot cross
+// into the free-state D1 bracket through this seam — the shared core's loop
+// ownership, D1S1 admission and empty-round gates still apply unchanged.
+func semanticCompressorPostLoadOwnerContext(requestContext map[string]any) (map[string]any, bool) {
+	if len(firstMapFromAny(requestContext["free_state_semantic_processor_intent"])) > 0 {
+		return nil, false
+	}
+	if !contextBool(requestContext, "semantic_compressor_post_load_handoff") || !contextBool(requestContext, "semantic_post_load_handoff") {
+		return nil, false
+	}
+	family := strings.TrimSpace(firstStringFromMap(requestContext, "semantic_post_load_family"))
+	if !strings.EqualFold(family, processorintent.FamilyBroadbandCompressor) {
+		return nil, false
+	}
+	if planner := strings.TrimSpace(firstStringFromMap(requestContext, "semantic_post_load_planner")); !strings.EqualFold(planner, "semantic_compressor") {
+		return nil, false
+	}
+	intent := firstMapFromAny(requestContext["semantic_post_load_semantic_processor_intent"])
+	if len(intent) == 0 {
+		if route := mapValue(requestContext["processor_selection_route"]); len(route) > 0 {
+			intent = firstMapFromAny(route["semantic_processor_intent"])
+		}
+	}
+	if len(intent) == 0 {
+		return nil, false
+	}
+	if carried := strings.TrimSpace(firstStringFromMap(intent, "family")); carried != "" && !strings.EqualFold(carried, family) {
+		return nil, false
+	}
+	normalized := make(map[string]any, len(requestContext)+1)
+	for key, value := range requestContext {
+		normalized[key] = value
+	}
+	normalized["free_state_semantic_processor_intent"] = cloneContext(intent)
+	return normalized, true
 }
 
 // completeSemanticCompressorSettlement closes the bracket after the typed
