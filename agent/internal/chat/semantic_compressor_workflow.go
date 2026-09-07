@@ -86,6 +86,20 @@ func (s *Server) planBoundSemanticCompressorFromLive(ctx context.Context, conver
 		if err != nil {
 			return semanticCompressorPlanningFailure(conversationID, requestContext, "intent_planning_failed", err)
 		}
+		// PCA-1: a planner-owned axis selection riding a route-loaded receipt
+		// is deterministically bounded to the receipt-certified axes before
+		// the planning admission; the admission itself stays untouched and
+		// fail-closed for whatever axes remain.
+		narrowing, applies, narrowErr := narrowCompressorIntentAxesToLoadedReceipt(requestContext, intent.SelectedAxes)
+		if narrowErr != nil {
+			return semanticCompressorPlanningFailure(conversationID, requestContext, "pca_certified_axes_empty", narrowErr)
+		}
+		if applies && len(narrowing.ExcludedAxes) > 0 {
+			intent.SelectedAxes = append([]string(nil), narrowing.KeptAxes...)
+			intent.Reason = strings.TrimSpace(intent.Reason + "; certified-axis narrowing excluded " +
+				strings.Join(narrowing.ExcludedAxes, ", ") + " because the loaded instance's PCA attestation does not certify them.")
+			requestContext["pca_certified_axis_narrowing"] = narrowing
+		}
 	}
 	registry, registryErr := processorregistry.Default()
 	if registryErr != nil {

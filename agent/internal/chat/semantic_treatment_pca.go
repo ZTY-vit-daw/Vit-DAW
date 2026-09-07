@@ -351,6 +351,66 @@ func semanticRelayPCAAdmissionReceiptToContext(plan PendingPlan, requestContext 
 	return nil
 }
 
+// pcaCertifiedAxisNarrowingSchema versions the server-owned disclosure of one
+// deterministic narrowing of planner-selected semantic axes to the certified
+// coverage of an accompanied PCA admission receipt.
+const pcaCertifiedAxisNarrowingSchema = "pca_certified_axis_narrowing.v1"
+
+type pcaCertifiedAxisNarrowing struct {
+	SchemaVersion string   `json:"schema_version"`
+	AttestationID string   `json:"attestation_id"`
+	CertifiedAxes []string `json:"certified_axes"`
+	KeptAxes      []string `json:"kept_axes"`
+	ExcludedAxes  []string `json:"excluded_axes"`
+}
+
+// narrowCompressorIntentAxesToLoadedReceipt bounds a planner-owned semantic
+// axis selection to the certified coverage of the accompanied admission
+// receipt — the same promoted attestation the planning admission revalidates.
+// A well-formed receipt is the only trigger: without one (or with a malformed
+// one) the path is unchanged and the loaded-instance admission keeps its exact
+// fail-closed behavior. An empty intersection is a named failure, never a
+// silent empty plan.
+func narrowCompressorIntentAxesToLoadedReceipt(requestContext map[string]any, selected []string) (*pcaCertifiedAxisNarrowing, bool, error) {
+	receipt, found, err := semanticPCAAdmissionReceiptFromContext(requestContext)
+	if err != nil || !found {
+		return nil, false, nil
+	}
+	certified, err := processorattestation.PromotedAttestationCoverageAxes(receipt.AttestationID)
+	if err != nil {
+		return nil, false, fmt.Errorf("pca_certified_axes_empty: certified coverage lookup failed: %w", err)
+	}
+	certifiedSet := map[string]bool{}
+	for _, axis := range certified {
+		certifiedSet[axis] = true
+	}
+	narrowing := &pcaCertifiedAxisNarrowing{SchemaVersion: pcaCertifiedAxisNarrowingSchema,
+		AttestationID: receipt.AttestationID, CertifiedAxes: certified}
+	for _, axis := range selected {
+		axis = strings.ToLower(strings.TrimSpace(axis))
+		if axis == "" {
+			continue
+		}
+		if certifiedSet[axis] {
+			narrowing.KeptAxes = append(narrowing.KeptAxes, axis)
+		} else {
+			narrowing.ExcludedAxes = append(narrowing.ExcludedAxes, axis)
+		}
+	}
+	if len(narrowing.KeptAxes) == 0 {
+		return narrowing, true, fmt.Errorf("pca_certified_axes_empty: loaded instance attestation %s certifies [%s], none of the planned axes [%s]",
+			receipt.AttestationID, pcaAxisListLabel(certified), pcaAxisListLabel(selected))
+	}
+	return narrowing, true, nil
+}
+
+func pcaAxisListLabel(axes []string) string {
+	if len(axes) == 0 {
+		return "none"
+	}
+	return strings.Join(axes, ",")
+}
+
 func semanticTreatmentInstancePCAEligible(instance semanticTreatmentInstance, family string) bool {
 	if len(instance.QualifiedSurfaces) == 0 {
 		return !instance.PCAReviewed

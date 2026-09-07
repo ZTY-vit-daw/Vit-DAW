@@ -288,6 +288,43 @@ func QueryLibraryAdmission(library Library, subjectKey, binaryFingerprint, proce
 	return result, nil
 }
 
+// PromotedAttestationCoverageAxes returns the distinct certified coverage
+// axes of the promoted v1 attestation with the exact id. Only a promoted
+// record proves what the binary is certified to control: an unknown id or a
+// non-promoted record certifies nothing (nil, nil), while store failures are
+// errors. This is the read side of a post-load PCA admission receipt for
+// consumers that must bound request-time coverage to certified coverage.
+func PromotedAttestationCoverageAxes(attestationID string) ([]string, error) {
+	store, err := NewStore("")
+	if err != nil {
+		return nil, err
+	}
+	library, _, err := store.Read()
+	if err != nil {
+		return nil, err
+	}
+	attestationID = strings.TrimSpace(attestationID)
+	for index := range library.Attestations {
+		candidate := &library.Attestations[index]
+		if candidate.AttestationID != attestationID || candidate.Status != StatusPromoted {
+			continue
+		}
+		seen := map[string]bool{}
+		var axes []string
+		for _, coverage := range candidate.Coverage {
+			axis := strings.ToLower(strings.TrimSpace(coverage.Axis))
+			if axis == "" || seen[axis] {
+				continue
+			}
+			seen[axis] = true
+			axes = append(axes, axis)
+		}
+		sort.Strings(axes)
+		return axes, nil
+	}
+	return nil, nil
+}
+
 func (s *Store) transition(attestationID, nextStatus, reason string) (Attestation, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
