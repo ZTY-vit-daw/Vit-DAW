@@ -326,24 +326,24 @@ func (s *Server) admitAudioClosureRound(state audioclosure.State) (audioclosure.
 		return current, true, nil
 	}
 	if current.ContractID != "" && current.RoundsStarted >= current.Policy.MaxClosureRounds {
-	// A governed action can complete on the final diagnostic round. The
-	// post-action CCB observation is part of that same experiment contract,
-	// so grant one durable verification round before applying the ordinary
-	// closure boundary. Without this extension the old round limit settles
-	// the task as capability_blocked immediately after a real mutation. The
-	// extension must also cover the booked-evidence window: the deterministic
-	// post-action booking clears RequiresPostActionObservation while the round
-	// still owes its settle report, and settling at the boundary then kills
-	// the loop before any settle slice can run (2026-08-28 19:49 smoke:
-	// "closure observation round boundary reached" landed between the applied
-	// boundary and the settle turn). The symmetric window on the other side of
-	// the judgment is the freshly opened recalibration round that still owes
-	// its single intervention (freeStateLoopRoundOwesIntervention): neither
-	// legacy condition holds there, so without that branch the same boundary
-	// kills the loop before round 2 can act (2026-08-29 S3b smoke).
-	if loop, loopOK := s.freeStateLoop(current.ConversationID); loopOK && loop.Experiment != nil &&
-		(loop.RequiresPostActionObservation || freeStateLoopRoundPendingSettlement(loop) ||
-			freeStateLoopRoundOwesIntervention(loop)) {
+		// A governed action can complete on the final diagnostic round. The
+		// post-action CCB observation is part of that same experiment contract,
+		// so grant one durable verification round before applying the ordinary
+		// closure boundary. Without this extension the old round limit settles
+		// the task as capability_blocked immediately after a real mutation. The
+		// extension must also cover the booked-evidence window: the deterministic
+		// post-action booking clears RequiresPostActionObservation while the round
+		// still owes its settle report, and settling at the boundary then kills
+		// the loop before any settle slice can run (2026-08-28 19:49 smoke:
+		// "closure observation round boundary reached" landed between the applied
+		// boundary and the settle turn). The symmetric window on the other side of
+		// the judgment is the freshly opened recalibration round that still owes
+		// its single intervention (freeStateLoopRoundOwesIntervention): neither
+		// legacy condition holds there, so without that branch the same boundary
+		// kills the loop before round 2 can act (2026-08-29 S3b smoke).
+		if loop, loopOK := s.freeStateLoop(current.ConversationID); loopOK && loop.Experiment != nil &&
+			(loop.RequiresPostActionObservation || freeStateLoopRoundPendingSettlement(loop) ||
+				freeStateLoopRoundOwesIntervention(loop)) {
 			next, err := (audioclosure.Driver{}).ExtendClosureRounds(current, current.Revision, current.RoundsStarted+1, time.Now().UTC())
 			if err != nil {
 				return current, false, err
@@ -353,6 +353,14 @@ func (s *Server) admitAudioClosureRound(state audioclosure.State) (audioclosure.
 				return current, false, err
 			}
 			s.persistCurrentProjectWorkspace()
+		} else if next, diverted, coverageErr := s.closeFreeStateTargetingCoverageAtBoundary(current); coverageErr != nil {
+			return current, false, coverageErr
+		} else if diverted {
+			// DIAG3-1: an open priority queue with never-observed active
+			// tracks is a coverage gap, not an honest no-candidate proof. The
+			// pass booked the missing per-track observations and extended the
+			// closure window; admit the coverage round instead of settling.
+			current = next
 		} else {
 			next, err := s.settleTaskAtAudioClosureBoundary(current, "closure observation round boundary reached")
 			if err != nil {
@@ -366,8 +374,26 @@ func (s *Server) admitAudioClosureRound(state audioclosure.State) (audioclosure.
 			}
 			if next.Terminal() {
 				s.settleAudioClosureOwner(next)
+				return next, false, nil
 			}
-			return next, false, nil
+			// DIAG3-1: the boundary deferred because the open diagnostic queue
+			// still owns continuation budget (e.g. the coverage-closure
+			// reserve). An open queue is a continuation point, not a stall —
+			// returning admitted=false here would end the scheduler chain with
+			// the loop mid-observation (2026-09-06 15:33 smoke: an 80ms empty
+			// continuation at used 7/9, then silence). Grant the same one-round
+			// verification allowance the post-action branch uses and fall
+			// through to the ordinary round admission; the continuation budget
+			// stays the real bound and the next exhausted boundary settles.
+			extended, err := (audioclosure.Driver{}).ExtendClosureRounds(next, next.Revision, next.RoundsStarted+1, time.Now().UTC())
+			if err != nil {
+				return current, false, err
+			}
+			current = extended
+			if err := s.audioClosures.Save(current, next.Revision); err != nil {
+				return current, false, err
+			}
+			s.persistCurrentProjectWorkspace()
 		}
 	}
 	next, admitted, err := (audioclosure.Driver{}).AdmitRound(current, current.Revision, time.Now().UTC())
@@ -470,7 +496,13 @@ func (s *Server) recordAudioClosureRound(state audioclosure.State, res agentloop
 		if audioClosureHasObservationID(current, observationID) {
 			continue
 		}
-		if current.ContractID != "" && len(current.Observations) >= current.Policy.MaxUniqueObservations {
+		// The evidence ceiling is a model-side bound of the dual budget: duty
+		// bookings (the loop's deterministic coverage/frontier-feed evidence)
+		// settle on their own named budget and never consume the model
+		// ceiling, so a coverage pass can no longer starve the mix-level
+		// exploration the frontier needs.
+		dutyBooked := freeStateObservationIsDutyBooked(observation)
+		if !dutyBooked && current.ContractID != "" && current.ModelObservationCount() >= current.Policy.MaxUniqueObservations {
 			next, boundaryErr := s.settleTaskAtAudioClosureBoundary(current, "closure evidence ceiling reached")
 			if boundaryErr != nil {
 				return current, boundaryErr
@@ -479,7 +511,13 @@ func (s *Server) recordAudioClosureRound(state audioclosure.State, res agentloop
 			break
 		}
 		key := audioClosureObservationKey(current, observation, requestContext)
-		outcome, err := driver.RecordObservation(current, current.Revision, key, observationID, time.Now().UTC())
+		var outcome audioclosure.ObservationOutcome
+		var err error
+		if dutyBooked {
+			outcome, err = driver.RecordObservationWithProvenance(current, current.Revision, key, observationID, audioclosure.ProvenanceDuty, time.Now().UTC())
+		} else {
+			outcome, err = driver.RecordObservation(current, current.Revision, key, observationID, time.Now().UTC())
+		}
 		if err != nil {
 			return current, err
 		}
