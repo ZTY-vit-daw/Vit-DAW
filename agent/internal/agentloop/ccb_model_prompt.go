@@ -42,6 +42,7 @@ func messageLoopNeutralFamilySystemPrompt(state *runState) string {
 	if directive := messageLoopFreeStateContinuationBudgetDirective(state); directive != "" {
 		prefix += directive
 	}
+	prefix += messageLoopFreeStateObservationSaturationDirective(state)
 	prefix += messageLoopCandidateFrontierDirective(state)
 	// GLM ruling (D2-2): the single-round prohibitions stay byte-identical on
 	// the default tier; only an explicitly admitted multi-round experiment
@@ -264,6 +265,34 @@ func messageLoopFreeStateContinuationBudgetDirective(state *runState) string {
 `, used, budget, phase)
 	}
 	return ""
+}
+
+// messageLoopFreeStateObservationSaturationDirective renders the DIAG3-3
+// mechanical runtime notice (chat-side injection at the closure boundary)
+// into the neutral-family prompt — the same mechanical message channel family
+// as the continuation-budget directive and the admission-gate refusal text.
+// The notice is pure runtime state disclosure: coverage status, the queue
+// record's open dimension names, frontier size, and continuation budget. It
+// never names a track, a processor domain or family, or a view to request —
+// the observation and proposal choices stay the model's own.
+func messageLoopFreeStateObservationSaturationDirective(state *runState) string {
+	if state == nil {
+		return ""
+	}
+	notice := messageLoopMapValue(messageLoopFreeStateContext(state)["observation_saturation_notice"])
+	if len(notice) == 0 {
+		return ""
+	}
+	used := messageLoopFreeStatePositiveInt(notice["continuation_used"])
+	budget := messageLoopFreeStatePositiveInt(notice["continuation_budget"])
+	frontier := messageLoopFreeStatePositiveInt(notice["frontier_candidates"])
+	coverage := strings.TrimSpace(messageLoopText(notice["coverage_status"]))
+	openDimensions := messageLoopStringList(notice["open_dimensions"])
+	facts := fmt.Sprintf("coverage_status=%s; open_dimensions=[%s]; frontier_candidates=%d; continuation checkpoints used=%d/%d",
+		coverage, strings.Join(openDimensions, ", "), frontier, used, budget)
+	return fmt.Sprintf(`OBSERVATION SATURATION (mechanical runtime state): %s. The per-track primary observation duty is closed: observing covered targets again adds no new coverage. The legal exits are unchanged — a needs_experiment turn with one bounded improvement_proposal citing evidence already in the ledger, or an honest terminal boundary (no_candidate_found / capability_blocked). This notice is runtime state only; the judgment and the choice stay yours.
+
+`, facts)
 }
 
 // messageLoopFreeStateHostPhase reads the closure host phase from the prompt

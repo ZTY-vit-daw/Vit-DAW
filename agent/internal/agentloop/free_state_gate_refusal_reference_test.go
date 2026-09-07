@@ -13,7 +13,10 @@ import (
 
 // TestGateRefusalFeedbackNamesFreshQuotableReference is the G7 walkthrough: a
 // proposal quoting an unmatched ref fails G7 alone, and the refusal names the
-// ledger's current fresh reference so the retry can quote it.
+// ledger's current fresh reference so the retry can quote it. DIAG3-2: the
+// MILESTONE-E2E rejections failed on citation FORMAT, not on availability —
+// the refusal must also carry the literal field shape the gate matches
+// (improvement_proposal.evidence_refs with the obs-id@revision string).
 func TestGateRefusalFeedbackNamesFreshQuotableReference(t *testing.T) {
 	state := gateTestState(nil)
 	out := gateTestProposal([]string{"obs-ghost"})
@@ -23,6 +26,10 @@ func TestGateRefusalFeedbackNamesFreshQuotableReference(t *testing.T) {
 	}
 	if !strings.Contains(issue, "obs-target@rev-7") {
 		t.Fatalf("G7 refusal does not name the fresh quotable reference: %q", issue)
+	}
+	if !strings.Contains(issue, `improvement_proposal.evidence_refs`) ||
+		!strings.Contains(issue, `["obs-target@rev-7"]`) {
+		t.Fatalf("G7 refusal does not carry the literal citation format example: %q", issue)
 	}
 }
 

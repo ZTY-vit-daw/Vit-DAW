@@ -1572,6 +1572,52 @@ func TestOpenSemanticRejectsRepeatingUsableProjectObservation(t *testing.T) {
 	}
 }
 
+// TestOpenSemanticRejectsRepeatingCoveredPerTrackView pins the per-view
+// duplicate guard: a coverage-closure booking bundles several views into one
+// request, so a later single-view request for evidence the ledger already
+// holds on that exact track must be refused even though its view-set
+// fingerprint differs from the bundled request.
+func TestOpenSemanticRejectsRepeatingCoveredPerTrackView(t *testing.T) {
+	ledgerView := func(viewID string) map[string]any {
+		return map[string]any{
+			"view_id": viewID, "status": "ready", "observation_id": "obs-cov",
+			"target_ref": map[string]any{"kind": "track", "id": "1012"},
+		}
+	}
+	state := &runState{
+		input: Input{Context: map[string]any{
+			"semantic_entry_verified": true,
+			"semantic_entry_decision": map[string]any{"schema_version": "semantic_entry_decision.v1", "route": "open_semantic"},
+			"free_state_reasoning_loop": map[string]any{
+				"schema_version": "free_state_reasoning_loop.v1", "status": "observing", "original_intent": "inspect the project",
+				"observation_ledger": map[string]any{"available_views": map[string]any{
+					"track:1012::track.time_dynamics":    ledgerView("track.time_dynamics"),
+					"track:1012::track.stereo_space":     ledgerView("track.stereo_space"),
+					"track:1012::track.timbre_frequency": ledgerView("track.timbre_frequency"),
+				}},
+			},
+		}},
+	}
+	request := func(viewIDs []string) messageLoopOutput {
+		return messageLoopOutput{Final: false, FreeStateDecision: &FreeStateDecision{
+			SchemaVersion: FreeStateDecisionSchema, Status: FreeStateNeedsObservation, EvidenceStatus: "insufficient",
+			Summary: "re-observe one covered view", RequestedViewIDs: append([]string(nil), viewIDs...),
+		}, ToolCalls: []planner.ToolCall{{Tool: "ccb.observation_request", Args: map[string]any{
+			"view_ids": append([]string(nil), viewIDs...), "target_ref": map[string]any{"kind": "track", "id": "1012"},
+		}}}}
+	}
+	if issue := messageLoopFreeStateOutputIssue(state, request([]string{"track.timbre_frequency"})); !strings.Contains(issue, "already returned usable evidence") {
+		t.Fatalf("single-view re-request of covered per-track evidence was accepted: %q", issue)
+	}
+	if issue := messageLoopFreeStateOutputIssue(state, request([]string{"track.time_dynamics", "track.stereo_space"})); !strings.Contains(issue, "already returned usable evidence") {
+		t.Fatalf("multi-view re-request of covered per-track evidence was accepted: %q", issue)
+	}
+	// A view the ledger does not hold for this track must stay permitted.
+	if issue := messageLoopFreeStateOutputIssue(state, request([]string{"track.peak_structure"})); issue != "" {
+		t.Fatalf("uncovered per-track view request was refused: %q", issue)
+	}
+}
+
 func TestActiveFreeStateRejectsMutationTools(t *testing.T) {
 	state := &runState{input: Input{Context: map[string]any{
 		"free_state_reasoning_loop": map[string]any{"schema_version": "free_state_reasoning_loop.v1", "status": "reasoning", "original_intent": "make it steadier"},

@@ -394,6 +394,10 @@ func messageLoopFreeStatePromptContext(state *runState) map[string]any {
 		"schema_version", "loop_id", "status", "decision_phase", "original_intent", "active_intent",
 		"cycle", "max_cycles", "continuation_budget", "continuation_used", "observation_ids", "latest_decision",
 		"requires_post_action_observation",
+		// DIAG3-3: the mechanical observation-saturation notice is runtime
+		// state disclosure; it rides the compact projection so the structured
+		// ledger JSON and the prompt directive stay consistent.
+		"observation_saturation_notice",
 	})
 	if target := messageLoopMapValue(source["target_ref"]); len(target) > 0 {
 		// Family selection has no need for a loaded-instance identity. Keep only
@@ -1427,7 +1431,40 @@ func messageLoopFreeStateAlreadyObservedIssue(state *runState, requested []strin
 			return "the requested project-level CCB view set already returned usable evidence; choose a different cataloged view or target instead of repeating it"
 		}
 	}
+	// Track-scoped views are covered per view, not per request set: the ledger
+	// keys every per-track row as track:<id>::<view>, and coverage-closure
+	// bookings legitimately bundle several views into one request. When every
+	// requested view already returned usable evidence for the exact requested
+	// track, the request is a repeat even though no prior request carried the
+	// same single-view fingerprint. Without this branch a continuation could
+	// spend its slice re-observing evidence the loop already holds.
+	kind, trackID := messageLoopCCBTargetIdentity(target)
+	if strings.EqualFold(kind, "track") && trackID != "" && allTrackScopedCCBViews(requested) {
+		available := messageLoopMapValue(ledger["available_views"])
+		allAvailable := true
+		for _, viewID := range requested {
+			if len(messageLoopMapValue(available["track:"+trackID+"::"+strings.TrimSpace(viewID)])) == 0 {
+				allAvailable = false
+				break
+			}
+		}
+		if allAvailable {
+			return "the requested per-track CCB views already returned usable evidence for this track; decide from the recorded evidence or request a different cataloged view or target instead of repeating it"
+		}
+	}
 	return ""
+}
+
+func allTrackScopedCCBViews(viewIDs []string) bool {
+	if len(viewIDs) == 0 {
+		return false
+	}
+	for _, viewID := range viewIDs {
+		if !strings.HasPrefix(strings.ToLower(strings.TrimSpace(viewID)), "track.") {
+			return false
+		}
+	}
+	return true
 }
 
 func allProjectScopedCCBViews(viewIDs []string) bool {

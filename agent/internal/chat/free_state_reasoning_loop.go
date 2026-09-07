@@ -31,6 +31,15 @@ const (
 	freeStatePhaseProcessorSelection       = "processor_selection"
 	freeStatePhaseProcessorMaterialization = "processor_materialization"
 	freeStatePhasePostActionEvaluation     = "post_action_evaluation"
+	// freeStateObservationSaturationNoticeSchema is the DIAG3-3 mechanical
+	// runtime notice injected at the exhausted-budget closure boundary when
+	// per-track primary coverage is complete while the diagnostic queue is
+	// still open and the hypothesis frontier is empty.
+	freeStateObservationSaturationNoticeSchema = "free_state_observation_saturation_notice.v1"
+	// freeStateSaturationNoticeMaxRounds bounds the notice's surfacing
+	// window: after two decision rounds without a proposal the notice
+	// retires and the ordinary (honest) budget-exhaustion settle applies.
+	freeStateSaturationNoticeMaxRounds = 2
 )
 
 type freeStateActionRecord struct {
@@ -89,6 +98,33 @@ type freeStateReasoningLoop struct {
 	// from PostActionObservationReserved so the generic +1 observation reserve
 	// keeps its own once-only semantics on top of the floor.
 	PostApplyBudgetReserved bool `json:"post_apply_budget_reserved,omitempty"`
+	// TargetingCoveragePassDone marks the once-per-loop DIAG3-1 coverage
+	// pass: the pre-settle gate that books per-track observations for active
+	// tracks never covered by an open dimension's primary view. Done stays
+	// set after the pass so a failed or still-insufficient coverage round
+	// settles honestly at the next boundary instead of extending forever.
+	TargetingCoveragePassDone bool `json:"targeting_coverage_pass_done,omitempty"`
+	// ObservationSaturationNotice is the DIAG3-3 mechanical runtime notice
+	// for the "per-track coverage complete + queue open + frontier empty"
+	// shape (run 20260906_181304: full 6×5 coverage booked, every remaining
+	// model turn stayed needs_observation in fs4, zero proposal attempts). It
+	// carries only structural state facts — dimension list, coverage status,
+	// frontier size, continuation budget — never a track identity, domain
+	// name, or domain verb. The notice retires after two surfaced decision
+	// rounds without a proposal or on the first needs_experiment decision;
+	// the exhausted-budget honest settle semantics are untouched.
+	ObservationSaturationNotice map[string]any `json:"observation_saturation_notice,omitempty"`
+	// ObservationSaturationRounds counts the completed decision rounds since
+	// the saturation notice was injected; it is the retirement latch.
+	ObservationSaturationRounds int `json:"observation_saturation_rounds,omitempty"`
+	// FrontierDecisionRoundGranted marks the once-per-loop DIAG3-3 grant of
+	// one decision round after the hypothesis frontier became established at
+	// an exhausted closure boundary (run 20260906_194504: the mix-level
+	// conflict candidates landed on the final closure round, the boundary
+	// settled capability_blocked and the model never held a turn with the
+	// frontier visible). Granted stays set so the ordinary honest settle
+	// applies at the next boundary if the model still returns no proposal.
+	FrontierDecisionRoundGranted bool `json:"frontier_decision_round_granted,omitempty"`
 	// SettleRefusedRoundID records the round whose settle report was refused
 	// because its fresh post-action observation had not landed yet. In that
 	// race window the experiment projection can still show the round pre-action
@@ -234,6 +270,16 @@ func mergeFreeStateLoops(base, overlay freeStateReasoningLoop, overlayOK bool) f
 	}
 	if len(overlay.LatestProjectChange) > 0 {
 		out.LatestProjectChange = cloneContext(overlay.LatestProjectChange)
+	}
+	// The saturation notice is set at the closure boundary before the next
+	// round runs, so a newer overlay owns it. The rounds counter is monotonic;
+	// the overlay never resurrects a notice the durable loop already retired
+	// (overlay rounds can only exceed, never restore an older notice).
+	if len(overlay.ObservationSaturationNotice) > 0 && overlay.ObservationSaturationRounds >= out.ObservationSaturationRounds {
+		out.ObservationSaturationNotice = cloneContext(overlay.ObservationSaturationNotice)
+	}
+	if overlay.ObservationSaturationRounds > out.ObservationSaturationRounds {
+		out.ObservationSaturationRounds = overlay.ObservationSaturationRounds
 	}
 	if len(overlay.AuditionSessionSnapshot) > 0 {
 		out.AuditionSessionSnapshot = cloneContext(overlay.AuditionSessionSnapshot)
@@ -681,6 +727,21 @@ func (s *Server) recordFreeStateDecision(conversationID string, res agentloop.Re
 	decision := *res.FreeStateDecision
 	decision.RequestedViewIDs = append([]string(nil), res.FreeStateDecision.RequestedViewIDs...)
 	decision.Limitations = append([]string(nil), res.FreeStateDecision.Limitations...)
+	// DIAG3-3 retirement latch: a surfaced decision round counts against the
+	// notice's two-round window; a proposal-bearing decision retires it
+	// immediately. Either way the exhausted-budget honest settle semantics
+	// downstream are untouched.
+	if len(loop.ObservationSaturationNotice) > 0 {
+		loop.ObservationSaturationRounds++
+		switch strings.ToLower(strings.TrimSpace(decision.Status)) {
+		case agentloop.FreeStateNeedsExperiment, agentloop.FreeStateImprovementProposal, agentloop.FreeStateNeedsAction:
+			loop.ObservationSaturationNotice = nil
+		default:
+			if loop.ObservationSaturationRounds >= freeStateSaturationNoticeMaxRounds {
+				loop.ObservationSaturationNotice = nil
+			}
+		}
+	}
 	// ContextSnapshot is the compact contextruntime projection and intentionally
 	// omits the authoritative free-state closure/ledger fields.  Prefer the
 	// continuation's full runtime context for the G1-G7 audit; otherwise a fresh

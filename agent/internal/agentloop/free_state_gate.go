@@ -453,11 +453,14 @@ func evaluateFreeStateNeedsExperimentGate(state *runState, decision *FreeStateDe
 // freeStateNeedsExperimentGateFailureMessage words the admission-gate refusal.
 // When the revision-binding gates fail (G1 project binding, G7 fresh
 // revision-bound refs) it appends the fresh observation reference the ledger
-// currently holds — mechanical runtime state telling the retry which citation
-// is quotable now, never domain guidance (20260829_205921: the model re-quoted
-// a stale pointer the catalog no longer served and burnt its turns). G8 target
-// consistency appends the selected candidate's track set the same way: which
-// tracks the frontier actually established, never which track is "correct".
+// currently holds, with the literal improvement_proposal.evidence_refs citation
+// shape — mechanical runtime state telling the retry which citation is quotable
+// now and how to write it, never domain guidance (20260829_205921: the model
+// re-quoted a stale pointer the catalog no longer served and burnt its turns;
+// MILESTONE-E2E 20260906: two admitted-path proposals were rejected on ref
+// format alone). G8 target consistency appends the selected candidate's track
+// set the same way: which tracks the frontier actually established, never
+// which track is "correct".
 func freeStateNeedsExperimentGateFailureMessage(state *runState, failed []string) string {
 	failedList := strings.Join(failed, ", ")
 	revisionBoundFailure := false
@@ -473,7 +476,11 @@ func freeStateNeedsExperimentGateFailureMessage(state *runState, failed []string
 	guidance := ""
 	if revisionBoundFailure {
 		if reference := freeStateLedgerFreshReference(state); reference != "" {
-			guidance = fmt.Sprintf("; the fresh quotable observation reference is %s", reference)
+			// DIAG3-2: MILESTONE-E2E rejections failed on citation format, not
+			// availability — the retry needs the literal field shape the gate
+			// matches, not just the ref value. Mechanical runtime state, never
+			// domain guidance.
+			guidance = fmt.Sprintf("; the fresh quotable observation reference is %s — cite it verbatim as an improvement_proposal.evidence_refs entry, e.g. [\"%s\"]", reference, reference)
 		}
 	}
 	if targetConsistencyFailure {
