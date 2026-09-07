@@ -2,6 +2,7 @@ package audioclosure
 
 import (
 	"encoding/json"
+	"fmt"
 	"testing"
 	"time"
 
@@ -186,7 +187,7 @@ func TestEvidenceCeilingAllowsFourObservationsAndRejectsFifth(t *testing.T) {
 	state := newTestClosure(t)
 	for i := 0; i < DefaultPolicy().MaxUniqueObservations; i++ {
 		state = admitTestRound(t, driver, state, i+1)
-		outcome, err := driver.RecordObservation(state, state.Revision, ObservationKey{ProjectUUID: "project-1", ProjectRevision: "revision-1", Scope: Scope{Kind: "track", ID: "track-vocal"}, ViewIDs: []string{"view"}, TimeWindow: string(rune('a' + i))}, "observation", testNow)
+		outcome, err := driver.RecordObservationWithProvenance(state, state.Revision, ObservationKey{ProjectUUID: "project-1", ProjectRevision: "revision-1", Scope: Scope{Kind: "track", ID: "track-vocal"}, ViewIDs: []string{"view"}, TimeWindow: string(rune('a' + i))}, "observation", ProvenanceModel, testNow)
 		if err != nil || !outcome.Accepted {
 			t.Fatalf("observation %d: %+v err=%v", i, outcome, err)
 		}
@@ -201,12 +202,167 @@ func TestEvidenceCeilingAllowsFourObservationsAndRejectsFifth(t *testing.T) {
 		}
 	}
 	state = admitTestRound(t, driver, state, DefaultPolicy().MaxUniqueObservations+1)
-	fifth, err := driver.RecordObservation(state, state.Revision, ObservationKey{ProjectUUID: "project-1", ProjectRevision: "revision-1", Scope: Scope{Kind: "track", ID: "track-vocal"}, ViewIDs: []string{"view"}, TimeWindow: "ceiling"}, "observation-ceiling", testNow)
+	fifth, err := driver.RecordObservationWithProvenance(state, state.Revision, ObservationKey{ProjectUUID: "project-1", ProjectRevision: "revision-1", Scope: Scope{Kind: "track", ID: "track-vocal"}, ViewIDs: []string{"view"}, TimeWindow: "ceiling"}, "observation-ceiling", ProvenanceModel, testNow)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if !fifth.State.Terminal() || fifth.State.Settlement.Reason != StopEvidenceCeilingReached || len(fifth.State.Observations) != DefaultPolicy().MaxUniqueObservations {
 		t.Fatalf("expected bounded evidence settlement, got %+v", fifth.State)
+	}
+}
+
+// newDualBudgetTestClosure starts a project-scoped closure with generous
+// round/no-progress budgets so a test can fill both sides of the dual
+// evidence budget inside a single admitted round without tripping unrelated
+// lifecycle stops.
+func newDualBudgetTestClosure(t *testing.T) State {
+	t.Helper()
+	state, err := Start(StartRequest{
+		ClosureID: "closure-dual-budget", ConversationID: "conversation-dual-budget", GoalID: "goal-dual", RunID: "run-dual",
+		ProjectUUID: "project-1", ProjectRevision: "revision-1", OriginalIntent: "make the mix clearer",
+		Mode: ModeTreatment, Scope: Scope{Kind: "project", ID: "project-1"},
+		Policy: Policy{MaxClosureRounds: 24, MaxNoProgressRounds: 24}, Now: testNow,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	return state
+}
+
+func dualBudgetObservationKey(timeWindow string) ObservationKey {
+	return ObservationKey{ProjectUUID: "project-1", ProjectRevision: "revision-1", Scope: Scope{Kind: "project", ID: "project-1"}, TargetRef: "project-1", ViewIDs: []string{"view"}, TimeWindow: timeWindow}
+}
+
+// TestDutyObservationsDoNotConsumeModelEvidenceCeiling is the dual-budget
+// core: duty bookings (the coverage pass's deterministic per-track evidence)
+// never consume the model-side ceiling, and the fifth model observation
+// still settles evidence_ceiling_reached with the original semantics.
+func TestDutyObservationsDoNotConsumeModelEvidenceCeiling(t *testing.T) {
+	driver := Driver{}
+	state := newDualBudgetTestClosure(t)
+	state = admitTestRound(t, driver, state, 1)
+	for i := 0; i < 6; i++ {
+		outcome, err := driver.RecordObservationWithProvenance(state, state.Revision, dualBudgetObservationKey(fmt.Sprintf("duty-%d", i)), fmt.Sprintf("observation-duty-%d", i), ProvenanceDuty, testNow)
+		if err != nil || !outcome.Accepted {
+			t.Fatalf("duty observation %d must not consume the model ceiling: accepted=%v err=%v", i, outcome.Accepted, err)
+		}
+		state = outcome.State
+	}
+	if state.ModelObservationCount() != 0 || len(state.Observations) != 6 {
+		t.Fatalf("duty bookings must land on the duty side only: model=%d total=%d", state.ModelObservationCount(), len(state.Observations))
+	}
+	for i := 0; i < DefaultPolicy().MaxUniqueObservations; i++ {
+		outcome, err := driver.RecordObservation(state, state.Revision, dualBudgetObservationKey(fmt.Sprintf("model-%d", i)), fmt.Sprintf("observation-model-%d", i), testNow)
+		if err != nil || !outcome.Accepted || outcome.State.Terminal() {
+			t.Fatalf("model observation %d must be unaffected by duty volume: accepted=%v terminal=%v err=%v", i, outcome.Accepted, outcome.State.Terminal(), err)
+		}
+		state = outcome.State
+	}
+	if state.ModelObservationCount() != DefaultPolicy().MaxUniqueObservations || len(state.Observations) != 10 {
+		t.Fatalf("dual-budget ledger diverged: model=%d total=%d", state.ModelObservationCount(), len(state.Observations))
+	}
+	fifth, err := driver.RecordObservation(state, state.Revision, dualBudgetObservationKey("ceiling"), "observation-ceiling", testNow)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !fifth.State.Terminal() || fifth.State.Settlement.Reason != StopEvidenceCeilingReached || fifth.State.ModelObservationCount() != DefaultPolicy().MaxUniqueObservations {
+		t.Fatalf("expected bounded evidence settlement on the model side, got %+v", fifth.State)
+	}
+	if fifth.State.Settlement.BudgetSide != ProvenanceModel {
+		t.Fatalf("model ceiling settlement must record the model budget side, got %q", fifth.State.Settlement.BudgetSide)
+	}
+}
+
+// TestDutyObservationBudgetIsNamedAndBounded pins the duty-side contract: the
+// named default equals the coverage-pass request bound, bookings within it
+// are accepted, and a duty booking beyond it is rejected without settling —
+// a completed structural obligation is not an evidence ceiling — while the
+// model side stays untouched by duty saturation.
+func TestDutyObservationBudgetIsNamedAndBounded(t *testing.T) {
+	driver := Driver{}
+	state := newDualBudgetTestClosure(t)
+	if state.Policy.DutyObservationLimit() != DefaultPolicy().MaxDutyObservations || DefaultPolicy().MaxDutyObservations != 8 {
+		t.Fatalf("duty budget default must equal the coverage-pass bound: limit=%d default=%d", state.Policy.DutyObservationLimit(), DefaultPolicy().MaxDutyObservations)
+	}
+	state = admitTestRound(t, driver, state, 1)
+	for i := 0; i < state.Policy.DutyObservationLimit(); i++ {
+		outcome, err := driver.RecordObservationWithProvenance(state, state.Revision, dualBudgetObservationKey(fmt.Sprintf("duty-%d", i)), fmt.Sprintf("observation-duty-%d", i), ProvenanceDuty, testNow)
+		if err != nil || !outcome.Accepted {
+			t.Fatalf("duty observation %d within its named budget: accepted=%v err=%v", i, outcome.Accepted, err)
+		}
+		state = outcome.State
+	}
+	over, err := driver.RecordObservationWithProvenance(state, state.Revision, dualBudgetObservationKey("duty-over"), "observation-duty-over", ProvenanceDuty, testNow)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if over.Accepted || over.Duplicate || over.State.Terminal() || over.State.Revision != state.Revision || len(over.State.Observations) != state.Policy.DutyObservationLimit() {
+		t.Fatalf("duty beyond its named budget must be rejected without settling: %+v", over)
+	}
+	model, err := driver.RecordObservation(state, state.Revision, dualBudgetObservationKey("model-after-duty"), "observation-model", testNow)
+	if err != nil || !model.Accepted || model.State.Terminal() {
+		t.Fatalf("model booking must be untouched by duty saturation: accepted=%v terminal=%v err=%v", model.Accepted, model.State.Terminal(), err)
+	}
+}
+
+// TestGlobalObservationTotalRemainsHard pins the defense-in-depth bound: once
+// both sides sit exactly at their named limits, any further booking settles
+// evidence_ceiling_reached at the hard total.
+func TestGlobalObservationTotalRemainsHard(t *testing.T) {
+	driver := Driver{}
+	state := newDualBudgetTestClosure(t)
+	state = admitTestRound(t, driver, state, 1)
+	for i := 0; i < state.Policy.MaxUniqueObservations; i++ {
+		outcome, err := driver.RecordObservation(state, state.Revision, dualBudgetObservationKey(fmt.Sprintf("model-%d", i)), fmt.Sprintf("observation-model-%d", i), testNow)
+		if err != nil || !outcome.Accepted {
+			t.Fatalf("model observation %d: accepted=%v err=%v", i, outcome.Accepted, err)
+		}
+		state = outcome.State
+	}
+	for i := 0; i < state.Policy.DutyObservationLimit(); i++ {
+		outcome, err := driver.RecordObservationWithProvenance(state, state.Revision, dualBudgetObservationKey(fmt.Sprintf("duty-%d", i)), fmt.Sprintf("observation-duty-%d", i), ProvenanceDuty, testNow)
+		if err != nil || !outcome.Accepted {
+			t.Fatalf("duty observation %d: accepted=%v err=%v", i, outcome.Accepted, err)
+		}
+		state = outcome.State
+	}
+	if len(state.Observations) != state.Policy.MaxTotalObservations() {
+		t.Fatalf("dual budget did not fill to its hard total: total=%d want=%d", len(state.Observations), state.Policy.MaxTotalObservations())
+	}
+	over, err := driver.RecordObservationWithProvenance(state, state.Revision, dualBudgetObservationKey("over-total"), "observation-over", ProvenanceDuty, testNow)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !over.State.Terminal() || over.State.Settlement.Reason != StopEvidenceCeilingReached || len(over.State.Observations) != state.Policy.MaxTotalObservations() {
+		t.Fatalf("hard total must settle at the evidence ceiling: %+v", over.State)
+	}
+}
+
+// TestObservationProvenanceJSONDefaultsLegacyRecordsToModel pins the
+// persistence contract: records written before the dual budget carry no
+// provenance and decode as model, while an explicit duty value round-trips.
+func TestObservationProvenanceJSONDefaultsLegacyRecordsToModel(t *testing.T) {
+	raw, err := json.Marshal(ObservationRecord{Fingerprint: "fp", Round: 1})
+	if err != nil {
+		t.Fatal(err)
+	}
+	var legacy ObservationRecord
+	if err := json.Unmarshal(raw, &legacy); err != nil {
+		t.Fatal(err)
+	}
+	if legacy.Provenance != ProvenanceModel {
+		t.Fatalf("legacy record must decode as model provenance, got %q", legacy.Provenance)
+	}
+	raw, err = json.Marshal(ObservationRecord{Fingerprint: "fp", Round: 1, Provenance: ProvenanceDuty})
+	if err != nil {
+		t.Fatal(err)
+	}
+	var duty ObservationRecord
+	if err := json.Unmarshal(raw, &duty); err != nil {
+		t.Fatal(err)
+	}
+	if duty.Provenance != ProvenanceDuty {
+		t.Fatalf("explicit duty provenance must round-trip, got %q", duty.Provenance)
 	}
 }
 

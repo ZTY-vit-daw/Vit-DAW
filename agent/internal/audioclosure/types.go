@@ -4,6 +4,7 @@
 package audioclosure
 
 import (
+	"encoding/json"
 	"time"
 
 	"vit-daw-agent/internal/taskstate"
@@ -66,6 +67,7 @@ const (
 type Policy struct {
 	MaxClosureRounds        int `json:"max_closure_rounds"`
 	MaxUniqueObservations   int `json:"max_unique_observation_sets"`
+	MaxDutyObservations     int `json:"max_duty_observations"`
 	MaxNoProgressRounds     int `json:"max_no_progress_rounds"`
 	MaxModelProtocolRepairs int `json:"max_model_protocol_repairs"`
 	MaxActionAttempts       int `json:"max_action_attempts"`
@@ -74,9 +76,51 @@ type Policy struct {
 
 func DefaultPolicy() Policy {
 	return Policy{
-		MaxClosureRounds: 6, MaxUniqueObservations: 4, MaxNoProgressRounds: 2,
+		MaxClosureRounds: 6, MaxUniqueObservations: 4, MaxDutyObservations: 8, MaxNoProgressRounds: 2,
 		MaxModelProtocolRepairs: 1, MaxActionAttempts: 1, MaxRollbackAttempts: 1,
 	}
+}
+
+// DutyObservationLimit resolves the duty-side bound of the dual evidence
+// budget. Policies persisted before the dual budget carry zero and inherit
+// the default coverage-pass bound, so legacy states never observe a shrunken
+// duty budget.
+func (p Policy) DutyObservationLimit() int {
+	if p.MaxDutyObservations > 0 {
+		return p.MaxDutyObservations
+	}
+	return DefaultPolicy().MaxDutyObservations
+}
+
+// MaxTotalObservations is the defense-in-depth hard total across both
+// provenance sides of the dual budget: MaxUniqueObservations + the duty
+// limit. It bounds the ledger even if a future booking path bypassed a
+// side-specific check.
+func (p Policy) MaxTotalObservations() int {
+	return p.MaxUniqueObservations + p.DutyObservationLimit()
+}
+
+// Provenance marks which side of the dual evidence budget booked an
+// observation: the model's own exploration ("model") or the loop's bounded
+// structural duty ("duty", e.g. the targeting-coverage pass). The split is a
+// contract refinement, not a relaxation: the model-side ceiling keeps its
+// original semantics, duty has its own named bound, and the sum of both
+// remains a hard total.
+type Provenance string
+
+const (
+	ProvenanceModel Provenance = "model"
+	ProvenanceDuty  Provenance = "duty"
+)
+
+// NormalizeProvenance maps unknown values to the model side: records
+// persisted before the dual budget carry no provenance and were, by the only
+// booking path that existed then, model observations.
+func NormalizeProvenance(provenance Provenance) Provenance {
+	if provenance == ProvenanceDuty {
+		return ProvenanceDuty
+	}
+	return ProvenanceModel
 }
 
 type Scope struct {
@@ -104,6 +148,21 @@ type ObservationRecord struct {
 	ViewIDs         []string  `json:"view_ids,omitempty"`
 	Round           int       `json:"round"`
 	RecordedAt      time.Time `json:"recorded_at"`
+	Provenance      Provenance `json:"provenance,omitempty"`
+}
+
+// UnmarshalJSON defaults the provenance of pre-dual-budget records to the
+// model side, so old persisted states and event streams decode with their
+// original single-budget semantics intact.
+func (r *ObservationRecord) UnmarshalJSON(data []byte) error {
+	type observationRecordAlias ObservationRecord
+	var decoded observationRecordAlias
+	if err := json.Unmarshal(data, &decoded); err != nil {
+		return err
+	}
+	*r = ObservationRecord(decoded)
+	r.Provenance = NormalizeProvenance(r.Provenance)
+	return nil
 }
 
 type HypothesisFrontier struct {
@@ -152,6 +211,10 @@ type Settlement struct {
 	HandoffController      string     `json:"handoff_controller,omitempty"`
 	Round                  int        `json:"round"`
 	SettledAt              time.Time  `json:"settled_at"`
+	// BudgetSide records which side of the dual evidence budget produced an
+	// evidence-ceiling settlement, so logs and assertions can tell "the model
+	// reached its observation cap" apart from any other budget exit.
+	BudgetSide Provenance `json:"budget_side,omitempty"`
 }
 
 type State struct {
@@ -197,6 +260,19 @@ type State struct {
 
 func (s State) Terminal() bool {
 	return (s.Phase == PhaseSettled || s.Phase == PhaseFS9Terminal) && s.Settlement != nil
+}
+
+// ModelObservationCount counts the unique observations booked on the model
+// side of the dual evidence budget; legacy records without provenance count
+// as model. The model-side ceiling is evaluated against this count only.
+func (s State) ModelObservationCount() int {
+	count := 0
+	for _, record := range s.Observations {
+		if NormalizeProvenance(record.Provenance) == ProvenanceModel {
+			count++
+		}
+	}
+	return count
 }
 
 type StartRequest struct {

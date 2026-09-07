@@ -154,6 +154,16 @@ func (d Driver) ExtendClosureRounds(state State, expectedRevision uint64, maxRou
 }
 
 func (d Driver) RecordObservation(state State, expectedRevision uint64, key ObservationKey, observationID string, now time.Time) (ObservationOutcome, error) {
+	return d.RecordObservationWithProvenance(state, expectedRevision, key, observationID, ProvenanceModel, now)
+}
+
+// RecordObservationWithProvenance books a unique observation on one side of
+// the dual evidence budget. The model-side ceiling keeps its original settle
+// semantics verbatim; a duty booking has its own named bound and is rejected
+// without settling once that bound is exhausted (a completed structural
+// obligation is not an evidence ceiling); the sum of both bounds remains a
+// hard total that settles.
+func (d Driver) RecordObservationWithProvenance(state State, expectedRevision uint64, key ObservationKey, observationID string, provenance Provenance, now time.Time) (ObservationOutcome, error) {
 	if err := validateExpectedRevision(state, expectedRevision); err != nil {
 		return ObservationOutcome{}, err
 	}
@@ -182,15 +192,36 @@ func (d Driver) RecordObservation(state State, expectedRevision uint64, key Obse
 		next, appendErr := appendEvent(state, EventObservationRecorded, observationRecordedData{Record: record, Duplicate: true}, now)
 		return ObservationOutcome{State: next, Fingerprint: fingerprint, Duplicate: true}, appendErr
 	}
+	provenance = NormalizeProvenance(provenance)
 	policy := d.policyFor(state)
-	if len(state.Observations) >= policy.MaxUniqueObservations {
+	modelCount, dutyCount := 0, 0
+	for _, record := range state.Observations {
+		if NormalizeProvenance(record.Provenance) == ProvenanceDuty {
+			dutyCount++
+		} else {
+			modelCount++
+		}
+	}
+	if provenance == ProvenanceModel && modelCount >= policy.MaxUniqueObservations {
 		if state.ContractID != "" {
 			return ObservationOutcome{State: state, Fingerprint: fingerprint}, nil
 		}
-		settled, settleErr := d.settleUnchecked(state, StopEvidenceCeilingReached, "unique observation budget exhausted", false, "", now)
+		settled, settleErr := d.settleEvidenceBudget(state, provenance, "unique observation budget exhausted", now)
 		return ObservationOutcome{State: settled, Fingerprint: fingerprint}, settleErr
 	}
-	record := ObservationRecord{Fingerprint: fingerprint, ObservationID: normalizeText(observationID), TargetRef: normalizeText(key.TargetRef), ProjectRevision: normalizeText(key.ProjectRevision), ViewIDs: normalizedStrings(key.ViewIDs), Round: state.RoundsStarted, RecordedAt: utcNow(now)}
+	if len(state.Observations) >= policy.MaxTotalObservations() {
+		if state.ContractID != "" {
+			return ObservationOutcome{State: state, Fingerprint: fingerprint}, nil
+		}
+		settled, settleErr := d.settleEvidenceBudget(state, provenance, "total observation budget exhausted", now)
+		return ObservationOutcome{State: settled, Fingerprint: fingerprint}, settleErr
+	}
+	if provenance == ProvenanceDuty && dutyCount >= policy.DutyObservationLimit() {
+		// The duty budget is exhausted: reject the booking without settling —
+		// a completed structural obligation is not an evidence ceiling.
+		return ObservationOutcome{State: state, Fingerprint: fingerprint}, nil
+	}
+	record := ObservationRecord{Fingerprint: fingerprint, ObservationID: normalizeText(observationID), TargetRef: normalizeText(key.TargetRef), ProjectRevision: normalizeText(key.ProjectRevision), ViewIDs: normalizedStrings(key.ViewIDs), Round: state.RoundsStarted, RecordedAt: utcNow(now), Provenance: provenance}
 	next, err := appendEvent(state, EventObservationRecorded, observationRecordedData{Record: record}, now)
 	return ObservationOutcome{State: next, Fingerprint: fingerprint, Accepted: err == nil}, err
 }
@@ -430,6 +461,10 @@ func (d Driver) RecordDiagnosticRound(state State, expectedRevision uint64, roun
 }
 
 func (d Driver) settleUnchecked(state State, reason StopReason, summary string, needsClarification bool, handoff string, now time.Time) (State, error) {
+	return d.settleUncheckedSided(state, reason, summary, needsClarification, handoff, "", now)
+}
+
+func (d Driver) settleUncheckedSided(state State, reason StopReason, summary string, needsClarification bool, handoff string, budgetSide Provenance, now time.Time) (State, error) {
 	if state.Terminal() {
 		return state, nil
 	}
@@ -442,8 +477,15 @@ func (d Driver) settleUnchecked(state State, reason StopReason, summary string, 
 	if needsClarification && reason != StopUserChoiceRequired {
 		return State{}, fmt.Errorf("only user_choice_required may request clarification")
 	}
-	settlement := Settlement{Reason: reason, Summary: normalizeText(summary), NeedsUserClarification: needsClarification, HandoffController: normalizeText(handoff), Round: state.RoundsStarted, SettledAt: utcNow(now)}
+	settlement := Settlement{Reason: reason, Summary: normalizeText(summary), NeedsUserClarification: needsClarification, HandoffController: normalizeText(handoff), Round: state.RoundsStarted, SettledAt: utcNow(now), BudgetSide: budgetSide}
 	return appendEvent(state, EventSettled, settledData{Settlement: settlement}, now)
+}
+
+// settleEvidenceBudget settles the closure at the evidence ceiling with the
+// exhausted budget side recorded on the settlement — the durable distinction
+// between "the model reached its observation cap" and any other budget exit.
+func (d Driver) settleEvidenceBudget(state State, side Provenance, summary string, now time.Time) (State, error) {
+	return d.settleUncheckedSided(state, StopEvidenceCeilingReached, summary, false, "", side, now)
 }
 
 func ObservationFingerprint(key ObservationKey) (string, error) {
@@ -477,6 +519,9 @@ func normalizePolicy(policy Policy) Policy {
 	if policy.MaxUniqueObservations <= 0 {
 		policy.MaxUniqueObservations = defaults.MaxUniqueObservations
 	}
+	if policy.MaxDutyObservations <= 0 {
+		policy.MaxDutyObservations = defaults.MaxDutyObservations
+	}
 	if policy.MaxNoProgressRounds <= 0 {
 		policy.MaxNoProgressRounds = defaults.MaxNoProgressRounds
 	}
@@ -493,7 +538,7 @@ func normalizePolicy(policy Policy) Policy {
 }
 
 func validatePolicy(policy Policy) error {
-	if policy.MaxClosureRounds < 1 || policy.MaxUniqueObservations < 1 || policy.MaxNoProgressRounds < 1 || policy.MaxModelProtocolRepairs < 1 || policy.MaxActionAttempts < 1 || policy.MaxRollbackAttempts < 1 {
+	if policy.MaxClosureRounds < 1 || policy.MaxUniqueObservations < 1 || policy.MaxDutyObservations < 1 || policy.MaxNoProgressRounds < 1 || policy.MaxModelProtocolRepairs < 1 || policy.MaxActionAttempts < 1 || policy.MaxRollbackAttempts < 1 {
 		return fmt.Errorf("all closure policy limits must be positive")
 	}
 	return nil
