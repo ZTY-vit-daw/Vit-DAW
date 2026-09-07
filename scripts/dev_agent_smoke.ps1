@@ -505,6 +505,20 @@ if ($StartUI) {
 }
 
 Write-Step "Start or reuse agent"
+# MAT-1 (2026-09-07): the kernel writes COM dual-tap evidence under
+# <VitAppRoot>\Workspace\Artifacts\com_evidence\<pair>\ (VitPaths.h climbs to
+# the VitApp root), while the agent locates and allowlists that artifact only
+# through VIT_DAW_DEV_ROOT / VIT_DEV_ROOT / VIT_ROOT (harness
+# com_observation.go comEvidenceArtifactPath + mixboard
+# com_projection.go comArtifactPathAllowed). Without them a healthy paired
+# probe still fails with "COM evidence workspace root is unavailable" and the
+# semantic workflow falls back to source_only. Supply the repo root for the
+# launched agent unless the caller already chose a root.
+foreach ($comRootVariable in @("VIT_DAW_DEV_ROOT", "VIT_DEV_ROOT", "VIT_ROOT")) {
+    if ([string]::IsNullOrWhiteSpace([System.Environment]::GetEnvironmentVariable($comRootVariable))) {
+        Set-Item -LiteralPath ("env:" + $comRootVariable) -Value $RepoRoot
+    }
+}
 if ($RestartAgent) {
     $listener = Get-TcpListener -Port $httpPort
 }
