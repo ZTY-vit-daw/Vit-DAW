@@ -12,6 +12,7 @@ import (
 
 	"vit-daw-agent/internal/com"
 	"vit-daw-agent/internal/harness"
+	"vit-daw-agent/internal/journal"
 	"vit-daw-agent/internal/mom"
 	"vit-daw-agent/internal/semanticeffect"
 	plugingrabber "vit-daw-agent/internal/workflows/plugingrabber"
@@ -20,8 +21,13 @@ import (
 const (
 	semanticCompressorExecutionWorkflow = "semantic_compressor_execution"
 	semanticCompressorExecutionSchema   = "semantic_effect.compressor_execution_ticket.v1"
-	semanticCompressorReceiptSchema     = "semantic_effect.compressor_execution_receipt.v1"
-	semanticCompressorExecutionTTL      = 15 * time.Minute
+	// v2 (RECEIPT-1): adds the native port settlement keys (before/after
+	// revision bracket, kernel transaction identity, fresh readback value,
+	// param_id) so the D1 evaluator's receipt contract is met by the semantic
+	// workflow itself. Persisted v1 receipts keep their historical shape:
+	// absent keys mean "not evaluable" and are never synthesized on load.
+	semanticCompressorReceiptSchema = "semantic_effect.compressor_execution_receipt.v2"
+	semanticCompressorExecutionTTL  = 15 * time.Minute
 )
 
 type compressorExecutionTicket struct {
@@ -596,7 +602,21 @@ func (s *Server) executeSemanticCompressorTicket(ctx context.Context, interactio
 			return compressorExecutionFailureResponse(interaction, ticket, "before_com_observation_failed", err, nil, nil)
 		}
 	}
-	applyResult, err := s.applyPluginGrabberCompressorControls(ctx, semanticCompressorExecutionRequest(ticket), interaction.RequestContext)
+	// The settlement bracket (RECEIPT-1) opens only for a free-state D1
+	// experiment awaiting its single forward mutation: kernel-real before
+	// revision, persisted before render, and the pre-write drift check. A
+	// bracket that cannot open fails the execution before any parameter is
+	// written; every other caller (C2 batches, capability sessions) proceeds
+	// with the historical unbracketed shape.
+	bracket, bracketErr := s.beginSemanticCompressorSettlement(ctx, interaction, ticket)
+	if bracketErr != nil {
+		return compressorExecutionFailureResponse(interaction, ticket, "settlement_bracket_unavailable", bracketErr, nil, nil)
+	}
+	executionRequest := semanticCompressorExecutionRequest(ticket)
+	if bracket != nil {
+		executionRequest["request_id"] = bracket.RequestID
+	}
+	applyResult, err := s.applyPluginGrabberCompressorControls(ctx, executionRequest, interaction.RequestContext)
 	if err != nil {
 		return compressorExecutionFailureResponse(interaction, ticket, "compressor_atomic_execution_failed", err, applyResult, nil)
 	}
@@ -631,7 +651,72 @@ func (s *Server) executeSemanticCompressorTicket(ctx context.Context, interactio
 			Change:       &com.ChangeDeltaInput{Before: beforeProjection, After: afterProjection}})
 		receipt["com_evaluation"] = com.ContextProjection(delta)
 	}
+	// The bracket closes only after every execution-window mutation (including
+	// the post-write COM capture above) so the settled after_revision stays the
+	// revision a fresh post-action observation binds to.
+	if bracket != nil {
+		if settlement, ok := s.completeSemanticCompressorSettlement(ctx, bracket, ticket, applyResult); ok {
+			// receipt_id correlates the booked intervention with the journaled
+			// action (recordFreeStateExperimentAction reads it as the action id).
+			receipt["receipt_id"] = bracket.ActionID
+			for key, value := range settlement {
+				receipt[key] = value
+			}
+		} else {
+			// The mutation executed but its kernel settlement evidence could
+			// not be proven; the D1 chain must refuse downstream rather than
+			// trust an unproven revision, so no settlement fields are added.
+			receipt["settlement_verified"] = false
+		}
+	}
 	return compressorExecutionSuccessResponse(interaction, ticket, receipt)
+}
+
+// beginSemanticCompressorSettlement opens the shared settlement bracket for a
+// compressor semantic execution (RECEIPT-1); it returns nil (no bracket) for
+// interactions outside the free-state D1 settlement flow.
+func (s *Server) beginSemanticCompressorSettlement(ctx context.Context, interaction PendingInteraction, ticket compressorExecutionTicket) (*semanticDynamicSettlementBracket, error) {
+	return s.beginSemanticSettlementBracket(ctx, interaction, ticket.TicketID)
+}
+
+// completeSemanticCompressorSettlement closes the bracket after the typed
+// compressor controller succeeded and journals the forward mutation under the
+// compressor execution identity.
+func (s *Server) completeSemanticCompressorSettlement(ctx context.Context, bracket *semanticDynamicSettlementBracket, ticket compressorExecutionTicket, controllerResult map[string]any) (map[string]any, bool) {
+	settlement, ok := s.completeSemanticSettlementCore(ctx, bracket, controllerResult)
+	if !ok {
+		return nil, false
+	}
+	s.journalSemanticCompressorSettlement(bracket, ticket, settlement)
+	return settlement, true
+}
+
+// journalSemanticCompressorSettlement records the forward mutation in the
+// running journal under the free_state_d1_s1 source, describing what actually
+// executed (the semantic compressor typed controller with its confirmed
+// controls) rather than fabricating a native port command shape.
+func (s *Server) journalSemanticCompressorSettlement(bracket *semanticDynamicSettlementBracket, ticket compressorExecutionTicket, settlement map[string]any) {
+	if s == nil || s.harness == nil || bracket == nil || strings.TrimSpace(bracket.ActionID) == "" {
+		return
+	}
+	if _, exists := s.harness.JournalGet(bracket.ActionID); exists {
+		return
+	}
+	controls := make([]map[string]any, 0, len(ticket.Controls))
+	for _, control := range ticket.Controls {
+		controls = append(controls, map[string]any{"axis": control.Axis, "path_key": control.PathKey,
+			"role": control.Role, "target": control.Target})
+	}
+	record := journal.Action{
+		AgentActionID: bracket.ActionID, GoalID: bracket.GoalID, RunID: bracket.RunID, Domain: "daw", Source: "free_state_d1_s1",
+		Summary: "free-state compressor semantic adjustment applied via the typed controller (settlement bracketed)",
+		Tool:    semanticCompressorExecutionWorkflow, CommandName: semanticCompressorExecutionWorkflow,
+		Command: map[string]any{"cmd": semanticCompressorExecutionWorkflow, "track_id": ticket.TrackID, "plugin_id": ticket.PluginID,
+			"ticket_id": ticket.TicketID, "topology_class": ticket.TopologyClass, "controls": controls},
+		RiskLevel: "confirm", RequiresConfirmation: true, ConfirmationStatus: "confirmed", Status: journal.StatusRunning,
+	}
+	s.harness.JournalRecord(record)
+	s.harness.JournalMarkResult(bracket.ActionID, journal.StatusSucceeded, map[string]any{"execution_receipt": cloneContext(settlement)}, nil)
 }
 
 func compressorExecutionResultSummary(result map[string]any) map[string]any {

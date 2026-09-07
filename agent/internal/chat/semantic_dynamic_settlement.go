@@ -79,14 +79,18 @@ func (s *Server) semanticDynamicSettlementOwner(interaction PendingInteraction) 
 	return loop, true
 }
 
-// beginSemanticDynamicSettlement opens the bracket before any parameter is
-// written: one VSP state snapshot as the kernel-real "before" revision, the
-// persisted before render at that revision (the audition settlement requires
-// it and only the native D1 path created it before this bridge), and a
-// re-snapshot proving the kernel state did not drift while the render was
-// produced. A bracket that cannot open fails the execution before any
-// mutation happens, mirroring the port path's pre-write render discipline.
-func (s *Server) beginSemanticDynamicSettlement(ctx context.Context, interaction PendingInteraction, ticket semanticDynamicTicket) (*semanticDynamicSettlementBracket, error) {
+// beginSemanticSettlementBracket is the family-agnostic bracket core shared by
+// the dynamic families (semanticDynamicTicket) and the compressor receipt
+// (RECEIPT-1, compressorExecutionTicket). It opens the bracket before any
+// parameter is written: one VSP state snapshot as the kernel-real "before"
+// revision, the persisted before render at that revision (the audition
+// settlement requires it and only the native D1 path created it before this
+// bridge), and a re-snapshot proving the kernel state did not drift while the
+// render was produced. A bracket that cannot open fails the execution before
+// any mutation happens, mirroring the port path's pre-write render discipline.
+// bracket==nil (with a nil error) means the interaction is not a free-state
+// D1 owner and keeps the historical unbracketed shape.
+func (s *Server) beginSemanticSettlementBracket(ctx context.Context, interaction PendingInteraction, ticketID string) (*semanticDynamicSettlementBracket, error) {
 	loop, owned := s.semanticDynamicSettlementOwner(interaction)
 	if !owned {
 		return nil, nil
@@ -124,20 +128,27 @@ func (s *Server) beginSemanticDynamicSettlement(ctx context.Context, interaction
 		BeforeRevision: beforeRevision,
 		ProjectEpoch:   before.ProjectEpoch,
 		SnapshotHash:   before.SnapshotHash,
-		RequestID:      ticket.TicketID,
-		ActionID:       "d1_semantic_" + sanitizeCanaryID(ticket.TicketID),
+		RequestID:      ticketID,
+		ActionID:       "d1_semantic_" + sanitizeCanaryID(ticketID),
 	}, nil
 }
 
-// completeSemanticDynamicSettlement closes the bracket after the typed
-// controller succeeded. The after snapshot must show the same project epoch
-// and a strictly advanced revision — the parameter write changed the track
-// state hash, so a stall means no real forward mutation happened — and the
-// controller result must carry the kernel-derived transaction identity plus
-// its verified readback. ok=false means the mutation executed but its
-// settlement could not be proven; the caller marks the receipt unverified and
-// the D1 chain refuses downstream rather than trusting an unproven revision.
-func (s *Server) completeSemanticDynamicSettlement(ctx context.Context, bracket *semanticDynamicSettlementBracket, ticket semanticDynamicTicket, controllerResult map[string]any) (map[string]any, bool) {
+// beginSemanticDynamicSettlement opens the bracket before any parameter is
+// written for a semantic dynamic execution.
+func (s *Server) beginSemanticDynamicSettlement(ctx context.Context, interaction PendingInteraction, ticket semanticDynamicTicket) (*semanticDynamicSettlementBracket, error) {
+	return s.beginSemanticSettlementBracket(ctx, interaction, ticket.TicketID)
+}
+
+// completeSemanticSettlementCore is the family-agnostic settlement gate shared
+// by the dynamic families and the compressor receipt (RECEIPT-1). The after
+// snapshot must show the same project epoch and a strictly advanced revision —
+// the parameter write changed the track state hash, so a stall means no real
+// forward mutation happened — and the controller result must carry the
+// kernel-derived transaction identity plus its verified readback. ok=false
+// means the mutation executed but its settlement could not be proven; the
+// caller marks the receipt unverified and the D1 chain refuses downstream
+// rather than trusting an unproven revision.
+func (s *Server) completeSemanticSettlementCore(ctx context.Context, bracket *semanticDynamicSettlementBracket, controllerResult map[string]any) (map[string]any, bool) {
 	if s == nil || bracket == nil {
 		return nil, false
 	}
@@ -176,7 +187,7 @@ func (s *Server) completeSemanticDynamicSettlement(ctx context.Context, bracket 
 	if !readbackOK {
 		return settlementGate("primary write has no readback value")
 	}
-	settlement := map[string]any{
+	return map[string]any{
 		"before_revision":  strconv.FormatInt(bracket.BeforeRevision, 10),
 		"after_revision":   strconv.FormatInt(after.Revision, 10),
 		"applied_revision": strconv.FormatInt(after.Revision, 10),
@@ -190,6 +201,16 @@ func (s *Server) completeSemanticDynamicSettlement(ctx context.Context, bracket 
 		"readback_verified":     true,
 		"settlement_source":     "semantic_dynamic_settlement_bracket.v1",
 		"actual_readback_value": readback,
+	}, true
+}
+
+// completeSemanticDynamicSettlement closes the bracket after the typed
+// controller succeeded and journals the forward mutation under the dynamic
+// family's identity.
+func (s *Server) completeSemanticDynamicSettlement(ctx context.Context, bracket *semanticDynamicSettlementBracket, ticket semanticDynamicTicket, controllerResult map[string]any) (map[string]any, bool) {
+	settlement, ok := s.completeSemanticSettlementCore(ctx, bracket, controllerResult)
+	if !ok {
+		return nil, false
 	}
 	s.journalSemanticDynamicSettlement(bracket, ticket, settlement)
 	return settlement, true
