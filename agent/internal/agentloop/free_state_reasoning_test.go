@@ -1542,7 +1542,10 @@ func TestCandidatePartialTargetEvidencePromotesImprovementProposal(t *testing.T)
 		"views":      map[string]any{"track.time_dynamics": map[string]any{"status": "partial"}},
 	}}}
 	directive := messageLoopCandidateFrontierDirective(state)
-	if !strings.Contains(directive, "MUST return final=true") || !strings.Contains(directive, "needs_experiment") {
+	// BOUNDARY-1 §2.3: the promotion is descriptive now — no absolute MUST,
+	// but the admissible needs_experiment handoff must still be stated.
+	if strings.Contains(directive, "MUST") || !strings.Contains(directive, "needs_experiment") ||
+		!strings.Contains(directive, "improvement_proposal") {
 		t.Fatalf("partial target evidence did not promote proposal handoff: %q", directive)
 	}
 }

@@ -304,6 +304,14 @@ func audioClosureMessageLoopBudget(base agentloop.Budget, context map[string]any
 	if len(freeStateMapRows(frontier["candidates"])) > 0 && firstStringFromMap(frontier, "candidate_id") == "" {
 		base.MaxTurns = 2
 	}
+	// BOUNDARY-1 §1.1/§1.3: a terminal-turn-locked slice carries its one
+	// strengthened retry inside the same reserved checkpoint — otherwise the
+	// retry would pause on the turn limit and the rescheduled continuation
+	// would eat the reservation (the exact counter-atomicity failure the card
+	// forbids).
+	if loop := firstMapFromAny(context["free_state_reasoning_loop"]); boolValue(loop["terminal_turn_locked"]) && base.MaxTurns < 2 {
+		base.MaxTurns = 2
+	}
 	if base.MaxToolCalls <= 0 || base.MaxToolCalls > 6 {
 		base.MaxToolCalls = 6
 	}
@@ -640,6 +648,33 @@ func audioClosureHasObservationID(state audioclosure.State, observationID string
 
 func (s *Server) settleTaskAtAudioClosureBoundary(state audioclosure.State, reason string) (audioclosure.State, error) {
 	if state.ContractID == "" {
+		return state, nil
+	}
+	// BOUNDARY-1 总则 1: the boundary settle is the honest fallback that runs
+	// only after the terminal turn failed. An active observation loop (no
+	// experiment runtime, no post-action debt, no judgment boundary) always
+	// gets its reserved terminal round first, as long as one can still run:
+	//   - unlocked loop: lock it and, when the continuation budget is already
+	//     spent, raise the scheduling floor by exactly one checkpoint (the
+	//     reserveD1PostApplySlices mechanism) so the terminal slice can be
+	//     scheduled at all;
+	//   - locked loop with continuation budget left: its terminal slice is
+	//     still pending/in flight — keep deferring;
+	//   - locked loop with the continuation budget spent: the terminal chain
+	//     burned its checkpoints — settle honestly (the fallback).
+	// Deferring returns the state unchanged; the caller's non-terminal return
+	// flows into its existing one-round extension + admission (the same
+	// mechanism the post-action verification window uses), so the locked
+	// terminal turn runs in this very request.
+	if loop, loopOK := s.freeStateLoop(state.ConversationID); loopOK && freeStateTerminalTurnGuarded(loop) &&
+		(!loop.TerminalTurnLocked || !freeStateContinuationBudgetExhausted(loop)) {
+		if !loop.TerminalTurnLocked {
+			lockFreeStateTerminalTurn(&loop, FreeStateTerminalReasonBudgetCritical)
+			if freeStateContinuationBudgetExhausted(loop) {
+				loop.ContinuationBudget = loop.ContinuationUsed + 1
+			}
+		}
+		s.storeFreeStateLoop(loop)
 		return state, nil
 	}
 	// A free-state capacity route with an open diagnostic queue is a bounded

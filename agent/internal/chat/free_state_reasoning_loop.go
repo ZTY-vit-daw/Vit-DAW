@@ -146,8 +146,34 @@ type freeStateReasoningLoop struct {
 	// pending tick would pass as the round's first mutation. The marker is the
 	// authoritative same-round state the recordGoalResult guard must see; it
 	// retires when the settle report lands or the round advances.
-	SettleRefusedRoundID string    `json:"settle_refused_round_id,omitempty"`
-	LastError            string    `json:"last_error,omitempty"`
+	SettleRefusedRoundID string `json:"settle_refused_round_id,omitempty"`
+	// TerminalTurnLocked is the BOUNDARY-1 terminal-turn reservation latch. It
+	// is set once, atomically, when the window budget becomes critical (closure
+	// rounds remaining <= 1 or continuations remaining <= 1) or the final
+	// continuation checkpoint is reached. From that point the agentloop output
+	// gate admits only a needs_experiment decision with a complete proposal or
+	// the TerminalDecisions family, so ordinary observation/tool turns cannot
+	// consume the reserved checkpoint. The three system settles (closure round
+	// boundary / evidence ceiling / continuation exhaustion) run only after the
+	// locked turn failed (honest fallback), never as a success exit.
+	TerminalTurnLocked bool `json:"terminal_turn_locked,omitempty"`
+	// TerminalTurnReason records which trigger fired: budget_critical or
+	// last_checkpoint. Content-free.
+	TerminalTurnReason string `json:"terminal_turn_reason,omitempty"`
+	// TerminalRetryCount bounds the strengthened terminal retry at one per
+	// loop. It is incremented agentloop-side (output-gate rejection boundary)
+	// and rides the durable loop through the continuation merge.
+	TerminalRetryCount int `json:"terminal_retry_count,omitempty"`
+	// NeedsExperimentGateOpenPending is the one-shot gate-open signal
+	// (BOUNDARY-1 §2.1): armed when the closure spine first mirrors a phase
+	// that admits needs_experiment (fs6+), rendered once by the neutral-family
+	// prompt, and cleared when the signaled turn's decision is recorded.
+	NeedsExperimentGateOpenPending bool `json:"needs_experiment_gate_open_pending,omitempty"`
+	// NeedsExperimentGateOpenSignaled is the sticky once-per-loop latch that
+	// keeps the gate-open signal one-shot even if the spine later walks back
+	// below fs6 and re-enters.
+	NeedsExperimentGateOpenSignaled bool    `json:"needs_experiment_gate_open_signaled,omitempty"`
+	LastError                       string  `json:"last_error,omitempty"`
 	CreatedAt            time.Time `json:"created_at"`
 	UpdatedAt            time.Time `json:"updated_at"`
 }
@@ -234,6 +260,11 @@ func (s *Server) prepareFreeStateReasoningContext(conversationID, userText strin
 	if runID != "" {
 		loop.RunID = runID
 	}
+	// BOUNDARY-1 §1.1: evaluate the terminal-turn triggers at the one context
+	// binding boundary both the HTTP turn and every scheduler resume cross, so
+	// the lock lands before the next model slice runs and the reserved
+	// checkpoint can only be spent on a terminal-family output.
+	s.evaluateFreeStateTerminalTurnTrigger(&loop)
 	loop.UpdatedAt = time.Now().UTC()
 	s.storeFreeStateLoop(loop)
 	return mergeContext(requestContext, map[string]any{"free_state_reasoning_loop": freeStateLoopMap(loop)}), true
@@ -306,6 +337,25 @@ func mergeFreeStateLoops(base, overlay freeStateReasoningLoop, overlayOK bool) f
 	}
 	if overlay.PhaseDeferredFinalCandidatePhase != "" && (overlayNewer || out.PhaseDeferredFinalCandidatePhase == "") {
 		out.PhaseDeferredFinalCandidatePhase = overlay.PhaseDeferredFinalCandidatePhase
+	}
+	// BOUNDARY-1 terminal-turn fields are sticky the same way: a transport
+	// copy that predates the lock never clears it, the reason is replaced only
+	// by the locking write itself, and the agentloop-incremented retry counter
+	// only moves forward.
+	if overlay.TerminalTurnLocked {
+		out.TerminalTurnLocked = true
+		if out.TerminalTurnReason == "" {
+			out.TerminalTurnReason = overlay.TerminalTurnReason
+		}
+	}
+	if overlay.TerminalRetryCount > out.TerminalRetryCount {
+		out.TerminalRetryCount = overlay.TerminalRetryCount
+	}
+	// The gate-open signal latches once per loop. The pending delivery flag is
+	// chat-authoritative and deliberately not merged from a transport overlay:
+	// only the server-side clear (recordFreeStateDecision) retires it.
+	if overlay.NeedsExperimentGateOpenSignaled {
+		out.NeedsExperimentGateOpenSignaled = true
 	}
 	if len(overlay.AuditionSessionSnapshot) > 0 {
 		out.AuditionSessionSnapshot = cloneContext(overlay.AuditionSessionSnapshot)
@@ -753,6 +803,12 @@ func (s *Server) recordFreeStateDecision(conversationID string, res agentloop.Re
 	decision := *res.FreeStateDecision
 	decision.RequestedViewIDs = append([]string(nil), res.FreeStateDecision.RequestedViewIDs...)
 	decision.Limitations = append([]string(nil), res.FreeStateDecision.Limitations...)
+	// BOUNDARY-1 §2.1: a recorded decision means the turn that carried the
+	// gate-open signal has been consumed; retire the pending flag (the sticky
+	// latch keeps the signal once per loop).
+	if loop.NeedsExperimentGateOpenPending {
+		loop.NeedsExperimentGateOpenPending = false
+	}
 	// DIAG3-3 retirement latch: a surfaced decision round counts against the
 	// notice's two-round window; a proposal-bearing decision retires it
 	// immediately. Either way the exhausted-budget honest settle semantics
@@ -2216,15 +2272,25 @@ func (s *Server) maybeContinueFreeStateAfterInteraction(ctx context.Context, int
 		return s.bindFreeStateContextToResponse(resp, interaction.RequestContext)
 	}
 	if freeStateContinuationBudgetExhausted(loop) {
-		loop.Status = "blocked"
-		loop.LastError = fmt.Sprintf("free-state reasoning exhausted its %d-continuation budget", loop.ContinuationBudget)
-		loop.UpdatedAt = time.Now().UTC()
-		s.storeFreeStateLoop(loop)
-		resp.GoalStatus = string(agentruntime.StatusWaitingContinue)
-		resp.StopReason = freeStateContinuationBudgetExhaustedReason
-		resp.Error = ""
-		resp.Reply = "The free-state reasoning loop exhausted its bounded continuation budget. The original intent and the evidence gathered so far remain recorded; no further automatic continuation was started."
-		return s.bindFreeStateContextToResponse(resp, interaction.RequestContext)
+		if !loop.TerminalTurnLocked && freeStateTerminalTurnGuarded(loop) {
+			// BOUNDARY-1 总则 1: the exhaustion settle is the fallback that
+			// runs only after the terminal turn failed. Reserve exactly one
+			// terminal checkpoint (scheduling floor only, same mechanism as
+			// reserveD1PostApplySlices) instead of settling an unlocked
+			// observation loop.
+			loop.ContinuationBudget = loop.ContinuationUsed
+			lockFreeStateTerminalTurn(&loop, FreeStateTerminalReasonLastCheckpoint)
+		} else {
+			loop.Status = "blocked"
+			loop.LastError = fmt.Sprintf("free-state reasoning exhausted its %d-continuation budget", loop.ContinuationBudget)
+			loop.UpdatedAt = time.Now().UTC()
+			s.storeFreeStateLoop(loop)
+			resp.GoalStatus = string(agentruntime.StatusWaitingContinue)
+			resp.StopReason = freeStateContinuationBudgetExhaustedReason
+			resp.Error = ""
+			resp.Reply = "The free-state reasoning loop exhausted its bounded continuation budget. The original intent and the evidence gathered so far remain recorded; no further automatic continuation was started."
+			return s.bindFreeStateContextToResponse(resp, interaction.RequestContext)
+		}
 	}
 	// ContinuationUsed is accounted at the durable checkpoint boundary in
 	// recordGoalResult. Do not increment here as well; doing so double-counts
@@ -2341,6 +2407,78 @@ const freeStateContinuationBudgetExhaustedReason = "free_state_continuation_budg
 // waiting_continue is an internal bounded state, not an unlimited resume).
 func freeStateContinuationBudgetExhausted(loop freeStateReasoningLoop) bool {
 	return loop.ContinuationBudget > 0 && loop.ContinuationUsed >= loop.ContinuationBudget
+}
+
+// BOUNDARY-1 terminal-turn trigger reasons (content-free).
+const (
+	FreeStateTerminalReasonBudgetCritical = "budget_critical"
+	FreeStateTerminalReasonLastCheckpoint = "last_checkpoint"
+)
+
+// freeStateTerminalTurnGuarded reports whether the terminal-turn reservation
+// applies to this loop right now. The machinery targets the pre-proposal
+// observation loop whose exits must pass through the model's mouth; a loop
+// with a live experiment runtime or a mandatory post-action debt has its own
+// protected windows (reserveD1PostApplySlices, the human-judgment boundary)
+// whose legal outputs are experiment reports, not the terminal family.
+func freeStateTerminalTurnGuarded(loop freeStateReasoningLoop) bool {
+	return freeStateLoopActive(loop) && loop.Experiment == nil &&
+		!loop.RequiresPostActionObservation && !freeStateJudgmentBoundary(loop)
+}
+
+// freeStateTerminalTurnTriggerReason evaluates the two BOUNDARY-1 §1.1
+// triggers against the authoritative counters, taking the earlier one:
+// budget critical (closure rounds remaining <= 1 or continuations remaining
+// <= 1) or the final continuation checkpoint (continuations remaining == 0,
+// i.e. the checkpoint being scheduled is the last legal resume). It returns
+// the trigger reason, or "" when no trigger holds or the loop is already
+// locked / outside the terminal-turn guard.
+func freeStateTerminalTurnTriggerReason(loop freeStateReasoningLoop, closure audioclosure.State, closureTracked bool) string {
+	if loop.TerminalTurnLocked || !freeStateTerminalTurnGuarded(loop) {
+		return ""
+	}
+	if closureTracked && closure.ContractID != "" && closure.Policy.MaxClosureRounds > 0 &&
+		closure.Policy.MaxClosureRounds-closure.RoundsStarted <= 1 {
+		return FreeStateTerminalReasonBudgetCritical
+	}
+	if loop.ContinuationBudget > 0 {
+		remaining := loop.ContinuationBudget - loop.ContinuationUsed
+		if remaining <= 0 {
+			return FreeStateTerminalReasonLastCheckpoint
+		}
+		if remaining == 1 {
+			return FreeStateTerminalReasonBudgetCritical
+		}
+	}
+	return ""
+}
+
+// lockFreeStateTerminalTurn atomically sets the terminal-turn reservation
+// latch. It is idempotent and never clears: once locked, the loop's remaining
+// turns are terminal-only and the system settles become the honest fallback.
+func lockFreeStateTerminalTurn(loop *freeStateReasoningLoop, reason string) bool {
+	if loop == nil || loop.TerminalTurnLocked || strings.TrimSpace(reason) == "" {
+		return false
+	}
+	loop.TerminalTurnLocked = true
+	loop.TerminalTurnReason = strings.TrimSpace(reason)
+	loop.UpdatedAt = time.Now().UTC()
+	return true
+}
+
+// evaluateFreeStateTerminalTurnTrigger loads the authoritative closure state
+// for the loop's conversation and locks the terminal turn when a trigger
+// holds. It reports whether the latch was set by this call.
+func (s *Server) evaluateFreeStateTerminalTurnTrigger(loop *freeStateReasoningLoop) bool {
+	if s == nil || loop == nil {
+		return false
+	}
+	closure, tracked := audioclosure.State{}, false
+	if s.audioClosures != nil {
+		closure, tracked = s.audioClosures.ActiveForConversation(loop.ConversationID)
+	}
+	reason := freeStateTerminalTurnTriggerReason(*loop, closure, tracked)
+	return lockFreeStateTerminalTurn(loop, reason)
 }
 
 func resolvedFreeStateDecisionPhase(loop freeStateReasoningLoop) string {
@@ -2847,8 +2985,19 @@ func (s *Server) syncFreeStateSpine(state audioclosure.State) {
 		s.mu.Unlock()
 		return
 	}
+	// BOUNDARY-1 §2.1: the first mirror of a phase that admits
+	// needs_experiment (fs6+, excluding fs9) arms the one-shot gate-open
+	// signal. The sticky latch keeps it once per loop lifetime even if the
+	// spine later walks back below fs6; the pending flag is cleared when the
+	// signaled turn's decision is recorded.
 	if phase, valid := audioclosure.ParsePhase(string(state.Phase)); valid {
 		loop.CurrentPhase = string(phase)
+		if !loop.NeedsExperimentGateOpenSignaled && !loop.NeedsExperimentGateOpenPending &&
+			audioclosure.IsFSPhase(phase) && phase != audioclosure.PhaseFS9Terminal &&
+			audioclosure.AllowsDecisionStatus(phase, agentloop.FreeStateNeedsExperiment) {
+			loop.NeedsExperimentGateOpenPending = true
+			loop.NeedsExperimentGateOpenSignaled = true
+		}
 	}
 	if len(state.DiagnosticRounds) > 0 {
 		loop.CurrentRoundID = state.DiagnosticRounds[len(state.DiagnosticRounds)-1].RoundID

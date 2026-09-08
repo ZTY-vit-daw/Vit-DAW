@@ -2685,8 +2685,27 @@ func (s *Server) recordGoalResult(conversationID string, res agentloop.Result) e
 				// blocked with requires_post_action_observation still true).
 				reservePostActionObservationSlice(&loop)
 				loop.ContinuationUsed++
+				// BOUNDARY-1 §1.1: the durable checkpoint accounting is the
+				// authoritative continuation counter. Lock the terminal turn
+				// while at least one checkpoint remains, so the just-enqueued
+				// (or the next) slice is terminal-only and ordinary observation
+				// turns can no longer consume the reservation.
+				newlyTerminalLocked := s.evaluateFreeStateTerminalTurnTrigger(&loop)
 				// Allow exactly continuation_budget resumes: the n-th enqueue
 				// with used == budget is still legal, the (n+1)-th is not.
+				if loop.ContinuationUsed > loop.ContinuationBudget &&
+					(newlyTerminalLocked || !loop.TerminalTurnLocked) && freeStateTerminalTurnGuarded(loop) {
+					// BOUNDARY-1 总则 1: the exhaustion settle is the fallback
+					// that runs only after the terminal turn failed. Grant the
+					// one-per-loop terminal checkpoint floor when the lock is
+					// brand new (or the loop is guard-eligible but unlocked);
+					// an earlier lock whose reservation already burned settles
+					// honestly. Same floor mechanism as
+					// reserveD1PostApplySlices, scheduling only.
+					loop.ContinuationBudget = loop.ContinuationUsed
+					lockFreeStateTerminalTurn(&loop, FreeStateTerminalReasonLastCheckpoint)
+				}
+				terminalLocked := loop.TerminalTurnLocked
 				if loop.ContinuationUsed > loop.ContinuationBudget {
 					// waiting_continue is an internally bounded state (ADR §10):
 					// once the cross-slice budget is spent the loop must stop
@@ -2724,6 +2743,15 @@ func (s *Server) recordGoalResult(conversationID string, res agentloop.Result) e
 					}
 				} else {
 					s.freeStateLoops[conversationID] = loop
+					if terminalLocked {
+						// The continuation context and the durable record were
+						// captured before the accounting above locked the loop;
+						// the terminal-only slice must read the locked copy.
+						durable.Continuation.Context = mergeContext(durable.Continuation.Context, map[string]any{
+							"free_state_reasoning_loop": freeStateLoopMap(loop),
+						})
+						s.durableContinuations[durable.ContinuationID] = cloneDurableContinuation(durable)
+					}
 				}
 			}
 		}

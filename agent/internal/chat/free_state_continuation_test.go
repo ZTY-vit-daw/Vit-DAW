@@ -237,9 +237,27 @@ func TestM10SchedulerPathBudgetStopsLoop(t *testing.T) {
 	if stored.ContinuationUsed != 1 || stored.Status == "blocked" {
 		t.Fatalf("budget accounting drifted: used=%d status=%s", stored.ContinuationUsed, stored.Status)
 	}
-	// The second waiting_continue boundary exceeds the budget: no new pending
-	// continuation is scheduled, the loop settles blocked with a queryable
-	// stop reason, and the terminal state is visible in the runtime projection.
+	// BOUNDARY-1 §1.1: the enqueue with used == budget is the last legal
+	// resume, and the trigger locks it as the reserved terminal slice — the
+	// pending continuation carries terminal_turn_locked, so ordinary
+	// observation turns cannot consume it.
+	if !stored.TerminalTurnLocked {
+		t.Fatalf("last legal resume was not locked as the terminal slice: %+v", stored)
+	}
+	for _, item := range s.durableContinuations {
+		if item.Status != ContinuationPending {
+			continue
+		}
+		locked, _ := freeStateLoopFromAny(firstMapFromAny(item.Continuation.Context)["free_state_reasoning_loop"])
+		if !locked.TerminalTurnLocked {
+			t.Fatalf("scheduled terminal slice does not carry the lock: %+v", item.Continuation.Context["free_state_reasoning_loop"])
+		}
+	}
+	// The second waiting_continue boundary exceeds the budget: the reserved
+	// terminal slice already had its checkpoint and stalled without a
+	// decision, so no new pending continuation is scheduled, the loop settles
+	// blocked with a queryable stop reason, and the terminal state is visible
+	// in the runtime projection.
 	second := waitingContinuationResult("slice-2", "turn-2", agentruntime.StatusWaitingContinue, agentloop.StopReasonLimitReached)
 	if err := s.recordGoalResult("conversation-m10-sched", second); err != nil {
 		t.Fatal(err)

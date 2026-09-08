@@ -702,5 +702,9 @@ func messageLoopFreeStatePhaseDecisionIssue(state *runState, status string) stri
 	if audioclosure.AllowsDecisionStatus(phase, status) {
 		return ""
 	}
-	return fmt.Sprintf("the closure host is in phase %s which does not admit decision status %s; return needs_observation with the next bounded observation (or the phase-legal terminal boundary)", phase, status)
+	// BOUNDARY-1 §2.2: the bounce sentence carries the recovery semantics —
+	// the refusal is procedural (the host phase has not confirmed a target
+	// yet), and the disclosed phase is the model-visible signal for when the
+	// gate opens. Closed template; pinned by test.
+	return fmt.Sprintf("the closure host is in phase %s which does not admit decision status %s; return needs_observation with the next bounded observation (or the phase-legal terminal boundary); the gate will admit needs_experiment once the host phase confirms a target (watch the disclosed free_state_phase)", phase, status)
 }

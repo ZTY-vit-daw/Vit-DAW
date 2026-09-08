@@ -325,6 +325,29 @@ func TestAudioClosureExhaustedOpenQueueSettlesNoCandidateAtFS9(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	// BOUNDARY-1 总则 1: the exhausted boundary no longer settles an unlocked
+	// observation loop outright — it locks the terminal turn, raises the
+	// scheduling floor by exactly one checkpoint, and defers so the reserved
+	// terminal slice can run.
+	if next.Terminal() {
+		t.Fatalf("unlocked observation loop was settled before its terminal turn: %+v", next.Settlement)
+	}
+	storedLoop, _ := server.freeStateLoop(loop.ConversationID)
+	if !storedLoop.TerminalTurnLocked || storedLoop.TerminalTurnReason != FreeStateTerminalReasonBudgetCritical {
+		t.Fatalf("terminal turn not locked at the exhausted boundary: locked=%v reason=%q", storedLoop.TerminalTurnLocked, storedLoop.TerminalTurnReason)
+	}
+	if storedLoop.ContinuationBudget != storedLoop.ContinuationUsed+1 {
+		t.Fatalf("terminal reservation did not raise the continuation floor: used=%d budget=%d", storedLoop.ContinuationUsed, storedLoop.ContinuationBudget)
+	}
+	// The terminal chain burns the reservation without a decision: the next
+	// boundary settles honestly (the fallback), with the same no_candidate
+	// semantics the exhausted open queue always had.
+	storedLoop.ContinuationUsed = storedLoop.ContinuationBudget
+	server.storeFreeStateLoop(storedLoop)
+	next, err = server.settleTaskAtAudioClosureBoundary(state, "continuation budget exhausted")
+	if err != nil {
+		t.Fatal(err)
+	}
 	if !next.Terminal() || next.Settlement == nil || next.Settlement.Reason != audioclosure.StopNoCandidateFound || next.Phase != audioclosure.PhaseFS9Terminal {
 		t.Fatalf("exhausted open queue did not settle no_candidate_found at FS9: %+v", next)
 	}
@@ -358,6 +381,21 @@ func TestAudioClosureFrontierNeverSettlesRuntimeNoCandidateFound(t *testing.T) {
 		t.Fatal(err)
 	}
 	next, err := server.settleTaskAtAudioClosureBoundary(state, "admission boundary")
+	if err != nil {
+		t.Fatal(err)
+	}
+	// BOUNDARY-1 总则 1: the frontier loop first receives its reserved
+	// terminal turn; the settle defers.
+	if next.Terminal() {
+		t.Fatalf("frontier loop was settled before its terminal turn: %+v", next.Settlement)
+	}
+	// The terminal chain burns the reservation without a decision: the honest
+	// fallback settles, and a live frontier still never reports
+	// no_candidate_found.
+	storedLoop, _ := server.freeStateLoop(loop.ConversationID)
+	storedLoop.ContinuationUsed = storedLoop.ContinuationBudget
+	server.storeFreeStateLoop(storedLoop)
+	next, err = server.settleTaskAtAudioClosureBoundary(state, "admission boundary")
 	if err != nil {
 		t.Fatal(err)
 	}

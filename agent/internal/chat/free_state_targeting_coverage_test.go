@@ -356,6 +356,25 @@ func TestAudioClosureCoverageClosedBoundaryStillSettlesNoCandidate(t *testing.T)
 	if err != nil {
 		t.Fatal(err)
 	}
+	// BOUNDARY-1 总则 1: the coverage-closed exhausted boundary first grants
+	// the reserved terminal round (the slice is terminal-only) instead of
+	// settling outright.
+	if !admitted || state.Terminal() {
+		t.Fatalf("coverage-closed boundary settled before the terminal turn: admitted=%v terminal=%v settlement=%+v", admitted, state.Terminal(), state.Settlement)
+	}
+	// The terminal chain burns the reservation without a decision: the next
+	// boundary settles the honest no_candidate_found.
+	storedLoop, _ := server.freeStateLoop(conversationID)
+	storedLoop.ContinuationUsed = storedLoop.ContinuationBudget
+	server.storeFreeStateLoop(storedLoop)
+	state, err = server.recordAudioClosureRound(state, agentloop.Result{}, map[string]any{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	state, admitted, err = server.admitAudioClosureRound(state)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if admitted || !state.Terminal() || state.Settlement == nil || state.Settlement.Reason != audioclosure.StopNoCandidateFound {
 		t.Fatalf("coverage-closed boundary did not settle the honest no_candidate_found: admitted=%v terminal=%v settlement=%+v", admitted, state.Terminal(), state.Settlement)
 	}
@@ -387,17 +406,33 @@ func TestAudioClosureCoveragePassRunsOnceThenSettlesHonestly(t *testing.T) {
 		t.Fatal(err)
 	}
 	// First boundary: the pass runs, books nothing usable, marks itself done
-	// and lets the honest settle proceed.
+	// — and BOUNDARY-1 grants the reserved terminal round before any settle.
 	state, admitted, err := server.admitAudioClosureRound(state)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !admitted || state.Terminal() {
+		t.Fatalf("failed coverage pass settled before the terminal turn: admitted=%v terminal=%v settlement=%+v", admitted, state.Terminal(), state.Settlement)
+	}
+	storedLoop, _ := server.freeStateLoop(conversationID)
+	if !storedLoop.TargetingCoveragePassDone {
+		t.Fatal("coverage pass marker not set after a failed pass")
+	}
+	// The terminal chain burns the reservation without a decision: the next
+	// boundary settles no_candidate_found (the fix widens observation, it
+	// never fabricates a selection, and it never loops).
+	storedLoop.ContinuationUsed = storedLoop.ContinuationBudget
+	server.storeFreeStateLoop(storedLoop)
+	state, err = server.recordAudioClosureRound(state, agentloop.Result{}, map[string]any{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	state, admitted, err = server.admitAudioClosureRound(state)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if admitted || !state.Terminal() || state.Settlement == nil || state.Settlement.Reason != audioclosure.StopNoCandidateFound {
 		t.Fatalf("failed coverage pass did not degrade to the honest settle: admitted=%v terminal=%v settlement=%+v", admitted, state.Terminal(), state.Settlement)
-	}
-	stored, _ := server.freeStateLoop(conversationID)
-	if !stored.TargetingCoveragePassDone {
-		t.Fatal("coverage pass marker not set after a failed pass")
 	}
 }
 
@@ -761,6 +796,23 @@ func TestAudioClosureDutyObservationsDoNotTripModelEvidenceCeiling(t *testing.T)
 	if err != nil {
 		t.Fatal(err)
 	}
+	// BOUNDARY-1 总则 1: the evidence ceiling first grants the reserved
+	// terminal round; the ceiling observation is still not recorded.
+	if state.Terminal() {
+		t.Fatalf("model observation tripped the ceiling before the terminal turn: %+v", state.Settlement)
+	}
+	if len(state.Observations) != state.Policy.MaxUniqueObservations+2 {
+		t.Fatalf("the ceiling model observation must not be recorded: total=%d", len(state.Observations))
+	}
+	// The terminal chain burns the reservation: the next genuinely
+	// model-requested observation reaches the honest boundary settle.
+	storedLoop, _ := server.freeStateLoop(conversationID)
+	storedLoop.ContinuationUsed = storedLoop.ContinuationBudget
+	server.storeFreeStateLoop(storedLoop)
+	state, err = server.recordAudioClosureRound(state, modelResult, map[string]any{})
+	if err != nil {
+		t.Fatal(err)
+	}
 	if !state.Terminal() || state.Settlement == nil || state.Settlement.Reason != audioclosure.StopNoCandidateFound {
 		t.Fatalf("model observation at the exhausted model budget must reach the honest boundary: terminal=%v settlement=%+v", state.Terminal(), state.Settlement)
 	}
@@ -927,6 +979,24 @@ func TestAudioClosureFrontierFeedProbeWithoutCandidatesStillSettlesHonestly(t *t
 		t.Fatal(err)
 	}
 	state, admitted, err := server.admitAudioClosureRound(state)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// BOUNDARY-1 总则 1: the candidate-less exhausted boundary first grants
+	// the reserved terminal round instead of settling outright.
+	if !admitted || state.Terminal() {
+		t.Fatalf("candidate-less frontier feed settled before the terminal turn: admitted=%v terminal=%v settlement=%+v", admitted, state.Terminal(), state.Settlement)
+	}
+	// The terminal chain burns the reservation: the next boundary settles the
+	// honest no_candidate_found unchanged.
+	storedLoop, _ := server.freeStateLoop(conversationID)
+	storedLoop.ContinuationUsed = storedLoop.ContinuationBudget
+	server.storeFreeStateLoop(storedLoop)
+	state, err = server.recordAudioClosureRound(state, agentloop.Result{}, map[string]any{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	state, admitted, err = server.admitAudioClosureRound(state)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1152,7 +1222,9 @@ func TestAudioClosureBoundaryGrantsFrontierDecisionRoundBeforeSettle(t *testing.
 		t.Fatal(err)
 	}
 
-	// Second boundary with the grant spent: the ordinary honest settle runs.
+	// Second boundary with the grant spent: BOUNDARY-1 still owes the loop
+	// its once-per-loop terminal turn, so the boundary grants that round
+	// before any settle.
 	state, admitted, err = server.admitAudioClosureRound(state)
 	if err != nil {
 		t.Fatal(err)
@@ -1160,7 +1232,23 @@ func TestAudioClosureBoundaryGrantsFrontierDecisionRoundBeforeSettle(t *testing.
 	if admitted == state.Terminal() && !state.Terminal() {
 		t.Fatalf("spent grant neither settled nor admitted deterministically: admitted=%v terminal=%v", admitted, state.Terminal())
 	}
+	if !admitted || state.Terminal() {
+		t.Fatalf("spent grant must grant the terminal round before the settle, got admitted=%v terminal=%v", admitted, state.Terminal())
+	}
+	// The terminal chain burns the reservation without a decision: the third
+	// boundary runs the ordinary honest settle.
+	storedLoop, _ := server.freeStateLoop(conversationID)
+	storedLoop.ContinuationUsed = storedLoop.ContinuationBudget
+	server.storeFreeStateLoop(storedLoop)
+	state, err = server.recordAudioClosureRound(state, agentloop.Result{}, map[string]any{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	state, admitted, err = server.admitAudioClosureRound(state)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if !state.Terminal() {
-		t.Fatalf("spent grant must fall through to the honest settle, got admitted=%v terminal=%v", admitted, state.Terminal())
+		t.Fatalf("terminal reservation spent but the honest settle did not run: admitted=%v terminal=%v", admitted, state.Terminal())
 	}
 }

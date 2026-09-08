@@ -606,6 +606,160 @@ func messageLoopFreeStateNotePhaseDeferredFinalCandidate(state *runState, out me
 	state.input.Context["free_state_reasoning_loop"] = loop
 }
 
+// BOUNDARY-1 terminal-turn reservation keys ride the durable loop context
+// exactly like the phase-deferred marker above: the chat side locks, the
+// agentloop output gate enforces, and the retry counter increments at the
+// rejection boundary so it survives the continuation merge.
+const (
+	freeStateTerminalTurnLockedKey = "terminal_turn_locked"
+	freeStateTerminalRetryCountKey = "terminal_retry_count"
+	// freeStateTerminalTurnMaxRetries bounds the strengthened terminal retry
+	// at one per loop (BOUNDARY-1 §1.3).
+	freeStateTerminalTurnMaxRetries = 1
+)
+
+// FreeStateTerminalFallbackStopReason marks the honest fallback settle after
+// the terminal turn produced no admissible final decision and its one
+// strengthened retry also failed (BOUNDARY-1 §1.3). It is not a model
+// decision and never counts as a success exit.
+const FreeStateTerminalFallbackStopReason = "free_state_terminal_turn_unparseable"
+
+// freeStateTerminalTurnSentence is the frozen final-turn directive
+// (BOUNDARY-1 §2.3c). Closed template: no domain, track, plugin, dosage, or
+// view content; pinned by test.
+const freeStateTerminalTurnSentence = "This is the final turn: return a final decision now — a bounded improvement proposal, or an explicit terminal statement of where you are blocked."
+
+// freeStateTerminalTurnRetryDirective is the frozen strengthened retry
+// sentence fed back on the first rejected terminal turn (BOUNDARY-1 §1.3).
+// Closed template; pinned by test.
+const freeStateTerminalTurnRetryDirective = "This retry is the last turn of the loop: the previous output was not an admissible final decision. Return one strict JSON object whose free_state.status is needs_experiment with a complete improvement_proposal, or a terminal status (satisfied, diagnostic_complete, no_candidate_found, capability_blocked, blocked). Any other output settles the task honestly without a model decision."
+
+func messageLoopFreeStateTerminalTurnLocked(state *runState) bool {
+	if state == nil {
+		return false
+	}
+	return freeStateBool(messageLoopFreeStateContext(state)[freeStateTerminalTurnLockedKey])
+}
+
+func messageLoopFreeStateTerminalRetryCount(state *runState) int {
+	if state == nil {
+		return 0
+	}
+	return messageLoopFreeStatePositiveInt(messageLoopFreeStateContext(state)[freeStateTerminalRetryCountKey])
+}
+
+// messageLoopFreeStateNoteTerminalRetry increments the loop-context retry
+// counter at the terminal rejection boundary (SCAFFOLD-1 marker pattern: the
+// durable loop merge keeps it monotonic across slices).
+func messageLoopFreeStateNoteTerminalRetry(state *runState) {
+	if state == nil {
+		return
+	}
+	loop := messageLoopMapValue(state.input.Context["free_state_reasoning_loop"])
+	if len(loop) == 0 {
+		return
+	}
+	loop[freeStateTerminalRetryCountKey] = messageLoopFreeStateTerminalRetryCount(state) + 1
+	state.input.Context["free_state_reasoning_loop"] = loop
+}
+
+// freeStateTerminalDecisionAdmitted reports whether a decision status is one
+// of the two legal terminal-turn families (BOUNDARY-1 §1.2): needs_experiment
+// (or its improvement_proposal alias) with a complete proposal, or the
+// TerminalDecisions family. needs_experiment without a proposal is not
+// admitted on a locked turn — the ordinary G1-G8 admission path stays the
+// authority for proposal completeness and never gets weakened here.
+func freeStateTerminalDecisionAdmitted(decision *FreeStateDecision) bool {
+	if decision == nil {
+		return false
+	}
+	switch strings.ToLower(strings.TrimSpace(decision.Status)) {
+	case FreeStateNeedsExperiment, FreeStateImprovementProposal:
+		return decision.ImprovementProposal != nil
+	case FreeStateSatisfied, FreeStateDiagnosticComplete, FreeStateNoCandidateFound, FreeStateCapabilityBlocked, FreeStateBlocked:
+		return true
+	}
+	return false
+}
+
+// messageLoopFreeStateTerminalTurnIssue enforces the locked terminal turn at
+// the output gate: every output that is not (a) needs_experiment with a
+// complete proposal or (b) a TerminalDecisions-family decision is refused
+// with the frozen final-turn sentence. Tool calls of any kind are refused on
+// a locked turn, so the reserved checkpoint cannot be consumed by an
+// observation or continuation request.
+func messageLoopFreeStateTerminalTurnIssue(state *runState, out messageLoopOutput) string {
+	if !messageLoopFreeStateTerminalTurnLocked(state) {
+		return ""
+	}
+	if out.NeedsClarification {
+		// A clarification request is a decision-shaped dodge from the final
+		// turn; the model must decide from the evidence it holds.
+		return freeStateTerminalTurnSentence
+	}
+	if strings.TrimSpace(out.FailureReason) != "" {
+		// Failure reasons keep their dedicated protocol path.
+		return ""
+	}
+	if out.FreeStateDecision == nil || len(out.ToolCalls) > 0 || !freeStateTerminalDecisionAdmitted(out.FreeStateDecision) {
+		return freeStateTerminalTurnSentence
+	}
+	return ""
+}
+
+// messageLoopJSONRepairRetryPrompt identifies the fixed strengthened retry
+// directive for the terminal-fallback three-piece evidence when the terminal
+// turn failed at the JSON parse/repair layer (the retry prompt is the
+// message-loop JSON repair system directive).
+const messageLoopJSONRepairRetryPrompt = "message_loop JSON repair directive (source=message_loop_repair): return one strict JSON object; preserve a recoverable free_state decision exactly; unrecoverable content returns failure_reason=model_protocol_failure"
+
+// messageLoopFreeStateTerminalRawUnparseable is the BOUNDARY-1 §3.2 strict
+// terminal-parse verdict for a locked turn's raw model response: the response
+// must be exactly one JSON object (a single markdown fence wrapper is
+// tolerated). Prose-mixed or multi-object outputs cannot prove which shape is
+// the final decision and are classified unparseable — no lenient repair, no
+// silent default; the one strengthened retry and then the honest fallback
+// apply.
+func messageLoopFreeStateTerminalRawUnparseable(raw string) bool {
+	text := strings.TrimSpace(raw)
+	if text == "" {
+		return true
+	}
+	if fenced := fencedJSONBlocks(text); len(fenced) == 1 {
+		text = strings.TrimSpace(fenced[0])
+	} else if len(fenced) > 1 {
+		return true
+	}
+	if !strings.HasPrefix(text, "{") || !strings.HasSuffix(text, "}") {
+		return true
+	}
+	return len(balancedJSONObjectCandidates(text, 2)) != 1
+}
+
+// messageLoopTerminalFallbackResult finishes a terminal-turn-locked slice
+// with the BOUNDARY-1 §1.3 honest fallback: no admissible final decision
+// after the one strengthened retry. The three-piece evidence (original
+// response, retry prompt, fallback reason) lands in the artifact diagnostic
+// log, and the result carries the dedicated fallback stop reason so the chat
+// side routes it into today's honest settle — never a success exit.
+func messageLoopTerminalFallbackResult(r *Runner, state *runState, fingerprint, raw, retryPrompt, detail string) Result {
+	appendMessageLoopDiagnostic(messageLoopDiagnostic{
+		Stage:             "free_state_terminal_fallback",
+		Error:             FreeStateTerminalFallbackStopReason + ": " + detail,
+		GoalID:            state.goal.GoalID,
+		RunID:             state.goal.RunID,
+		ConversationID:    messageLoopConversationID(state),
+		PromptFingerprint: fingerprint,
+		Raw:               raw,
+		RetryPrompt:       retryPrompt,
+	})
+	state.trace = append(state.trace, planner.TraceEvent{Kind: "final_gate", Message: "terminal-turn fallback: " + detail})
+	state.modelProtocolFailure = true
+	res := r.fail(state, fmt.Errorf("terminal turn produced no admissible final decision after one strengthened retry"))
+	res.StopReason = FreeStateTerminalFallbackStopReason
+	return res
+}
+
 func messageLoopFreeStateOutputIssue(state *runState, out messageLoopOutput) string {
 	active := messageLoopFreeStateActive(state)
 	if !active {
@@ -613,6 +767,14 @@ func messageLoopFreeStateOutputIssue(state *runState, out messageLoopOutput) str
 			return "free_state is only valid while a free_state_reasoning_loop context is active"
 		}
 		return ""
+	}
+	// BOUNDARY-1 §1.2: a terminal-turn-locked loop admits only the two legal
+	// final families; every other output (observation, action, clarification,
+	// proposal-less needs_experiment, any tool call) bounces with the frozen
+	// final-turn sentence. All later checks (validation, phase policy,
+	// admission gates) still apply unchanged to whatever is admitted here.
+	if issue := messageLoopFreeStateTerminalTurnIssue(state, out); issue != "" {
+		return issue
 	}
 	if out.NeedsClarification || strings.TrimSpace(out.FailureReason) != "" {
 		return ""

@@ -451,6 +451,12 @@ func (l *MessageLoop) loop(ctx context.Context, r *Runner, state *runState) Resu
 			return r.fail(state, fmt.Errorf("context_overflow: %s", overflow))
 		}
 		assembly := l.assembly(state, modelSnapshotJSON)
+		// BOUNDARY-1 §3.1 prompt-render evidence: persist the actually
+		// assembled system prompt in full for every model turn (D1 and
+		// ordinary runs alike), with the round identity and the stable
+		// section tag — closing the CONVDIAG "final-window rendering is
+		// unverifiable" gap.
+		appendMessageLoopPromptRenderDiagnostic(state, assembly)
 		assemblyChars := 0
 		messageCharParts := make([]string, 0, len(assembly.Messages))
 		for index, message := range assembly.Messages {
@@ -534,6 +540,9 @@ func (l *MessageLoop) loop(ctx context.Context, r *Runner, state *runState) Resu
 					Raw:               repairedRaw,
 				})
 				state.trace = append(state.trace, planner.TraceEvent{Kind: "planner_error", Message: repairErr.Error(), Reply: repairedRaw})
+				if messageLoopFreeStateTerminalTurnLocked(state) {
+					return messageLoopTerminalFallbackResult(r, state, assembly.Fingerprint, raw, messageLoopJSONRepairRetryPrompt, "terminal turn output was unparseable after the strengthened JSON repair retry")
+				}
 				return r.fail(state, fmt.Errorf("Agent 返回的计划格式不完整，自动修复也失败了"))
 			}
 			repairedOut, parseRepairErr := parseMessageLoopOutput(repairedRaw)
@@ -549,6 +558,9 @@ func (l *MessageLoop) loop(ctx context.Context, r *Runner, state *runState) Resu
 					Raw:               repairedRaw,
 				})
 				state.trace = append(state.trace, planner.TraceEvent{Kind: "planner_error", Message: parseRepairErr.Error(), Reply: repairedRaw})
+				if messageLoopFreeStateTerminalTurnLocked(state) {
+					return messageLoopTerminalFallbackResult(r, state, assembly.Fingerprint, raw, messageLoopJSONRepairRetryPrompt, "terminal turn output was unparseable after the strengthened JSON repair retry")
+				}
 				return r.fail(state, fmt.Errorf("Agent 返回的计划格式不完整，自动修复也没有得到可执行计划"))
 			}
 			raw = repairedRaw
@@ -560,6 +572,32 @@ func (l *MessageLoop) loop(ctx context.Context, r *Runner, state *runState) Resu
 		state.input.Conversation = append(state.input.Conversation, llm.Message{Role: "assistant", Content: strings.TrimSpace(raw)})
 		if strings.TrimSpace(out.Reply) != "" {
 			state.trace = append(state.trace, planner.TraceEvent{Kind: "assistant", Reply: strings.TrimSpace(out.Reply)})
+		}
+		// BOUNDARY-1 §3.2 strict terminal parse: on a locked turn the raw
+		// response must be exactly one JSON object. A prose-mixed or
+		// multi-object output is classified unparseable — no lenient repair,
+		// no silent default — and follows the same one-retry-then-honest-
+		// fallback chain as the gate rejection below.
+		if messageLoopFreeStateTerminalTurnLocked(state) && messageLoopFreeStateTerminalRawUnparseable(raw) {
+			appendMessageLoopDiagnostic(messageLoopDiagnostic{
+				Stage:             "free_state_terminal_parse_strict",
+				Error:             "terminal turn raw output was not one clean JSON object (prose-mixed or multi-object output)",
+				GoalID:            state.goal.GoalID,
+				RunID:             state.goal.RunID,
+				ConversationID:    messageLoopConversationID(state),
+				PromptFingerprint: assembly.Fingerprint,
+				Raw:               raw,
+			})
+			state.trace = append(state.trace, planner.TraceEvent{Kind: "final_gate", Message: "terminal-turn strict parse: raw output was not one clean JSON object"})
+			if messageLoopFreeStateTerminalRetryCount(state) < freeStateTerminalTurnMaxRetries {
+				messageLoopFreeStateNoteTerminalRetry(state)
+				retryPrompt := freeStateTerminalTurnSentence + " " + freeStateTerminalTurnRetryDirective
+				state.input.Conversation = append(state.input.Conversation, llm.Message{Role: "user", Content: "<final_gate>" + retryPrompt + "</final_gate>"})
+				continue
+			}
+			return messageLoopTerminalFallbackResult(r, state, assembly.Fingerprint, raw,
+				freeStateTerminalTurnSentence+" "+freeStateTerminalTurnRetryDirective,
+				"terminal turn raw output was not one clean JSON object after one strengthened retry")
 		}
 		if strings.TrimSpace(out.FailureReason) != "" {
 			if strings.EqualFold(strings.TrimSpace(out.FailureReason), StopReasonModelProtocolFailure) {
@@ -579,6 +617,21 @@ func (l *MessageLoop) loop(ctx context.Context, r *Runner, state *runState) Resu
 				Raw:               raw,
 			})
 			state.trace = append(state.trace, planner.TraceEvent{Kind: "final_gate", Message: issue})
+			if messageLoopFreeStateTerminalTurnLocked(state) {
+				// BOUNDARY-1 §1.3 fallback chain: one strengthened retry, then
+				// the honest settle with the three-piece evidence (original
+				// response / retry prompt / fallback reason) in the artifact
+				// log. The fallback never counts as a model decision.
+				if messageLoopFreeStateTerminalRetryCount(state) < freeStateTerminalTurnMaxRetries {
+					messageLoopFreeStateNoteTerminalRetry(state)
+					retryPrompt := issue + " " + freeStateTerminalTurnRetryDirective
+					state.input.Conversation = append(state.input.Conversation, llm.Message{Role: "user", Content: "<final_gate>" + retryPrompt + "</final_gate>"})
+					continue
+				}
+				return messageLoopTerminalFallbackResult(r, state, assembly.Fingerprint, raw,
+					issue+" "+freeStateTerminalTurnRetryDirective,
+					"no admissible final decision after one strengthened retry")
+			}
 			messageLoopFreeStateNotePhaseDeferredFinalCandidate(state, out, issue)
 			state.input.Conversation = append(state.input.Conversation, llm.Message{Role: "user", Content: "<final_gate>" + issue + "</final_gate>"})
 			continue
@@ -4463,6 +4516,10 @@ type messageLoopDiagnostic struct {
 	ConversationID    string `json:"conversation_id,omitempty"`
 	PromptFingerprint string `json:"prompt_fingerprint,omitempty"`
 	Raw               string `json:"raw,omitempty"`
+	// RetryPrompt carries the strengthened retry directive actually fed back
+	// for BOUNDARY-1 terminal-turn fallback evidence (retry prompt of the
+	// three-piece record).
+	RetryPrompt string `json:"retry_prompt,omitempty"`
 }
 
 func appendMessageLoopDiagnostic(row messageLoopDiagnostic) {
@@ -4496,6 +4553,82 @@ func messageLoopDiagnosticPath() string {
 		return filepath.Join(filepath.Dir(telemetry), "agent_message_loop_debug.jsonl")
 	}
 	return filepath.Join(os.TempDir(), "vit_agent_message_loop_debug.jsonl")
+}
+
+// messageLoopPromptRenderDiagnostic is the BOUNDARY-1 §3.1 prompt-render
+// evidence row: the full system prompt actually assembled for one model
+// turn, with the round identity and the stable section tag. Never truncated —
+// the whole point is that the final window's rendering becomes verifiable.
+type messageLoopPromptRenderDiagnostic struct {
+	At             string `json:"at"`
+	Stage          string `json:"stage"`
+	GoalID         string `json:"goal_id,omitempty"`
+	RunID          string `json:"run_id,omitempty"`
+	ConversationID string `json:"conversation_id,omitempty"`
+	SliceID        string `json:"slice_id,omitempty"`
+	TurnID         string `json:"turn_id,omitempty"`
+	Turn           int    `json:"turn"`
+	Tag            string `json:"tag"`
+	Fingerprint    string `json:"fingerprint,omitempty"`
+	SystemPrompt   string `json:"system_prompt"`
+}
+
+// appendMessageLoopPromptRenderDiagnostic writes the per-turn prompt-render
+// evidence (BOUNDARY-1 §3.1). D1 runs and ordinary runs both flow through
+// this one assembly point, so both are covered.
+func appendMessageLoopPromptRenderDiagnostic(state *runState, assembly promptruntime.Assembly) {
+	path := messageLoopPromptRenderPath()
+	if path == "" || state == nil {
+		return
+	}
+	tag := "message_loop_system"
+	if messageLoopNeedsNeutralFamilyProjection(state) {
+		tag = "message_loop_neutral_family_selection"
+	}
+	system := ""
+	for _, message := range assembly.Messages {
+		if strings.EqualFold(strings.TrimSpace(message.Role), "system") {
+			system = message.Content
+			break
+		}
+	}
+	row := messageLoopPromptRenderDiagnostic{
+		At:             time.Now().Format(time.RFC3339Nano),
+		Stage:          "prompt_assembly",
+		GoalID:         state.goal.GoalID,
+		RunID:          state.goal.RunID,
+		ConversationID: messageLoopConversationID(state),
+		SliceID:        state.input.SliceID,
+		TurnID:         state.input.TurnID,
+		Turn:           state.turnsUsed + 1,
+		Tag:            tag,
+		Fingerprint:    assembly.Fingerprint,
+		SystemPrompt:   system,
+	}
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+		return
+	}
+	f, err := os.OpenFile(path, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0o600)
+	if err != nil {
+		return
+	}
+	defer f.Close()
+	enc := json.NewEncoder(f)
+	enc.SetEscapeHTML(false)
+	_ = enc.Encode(row)
+}
+
+func messageLoopPromptRenderPath() string {
+	if override := strings.TrimSpace(os.Getenv("VIT_AGENT_PROMPT_RENDER_PATH")); override != "" {
+		if strings.EqualFold(override, "off") || strings.EqualFold(override, "disabled") {
+			return ""
+		}
+		return override
+	}
+	if telemetry := strings.TrimSpace(llm.DefaultTelemetryPath()); telemetry != "" {
+		return filepath.Join(filepath.Dir(telemetry), "agent_prompt_render.jsonl")
+	}
+	return filepath.Join(os.TempDir(), "vit_agent_prompt_render.jsonl")
 }
 
 func truncateRunes(text string, max int) string {

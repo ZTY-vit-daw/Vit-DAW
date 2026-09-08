@@ -46,6 +46,8 @@ func messageLoopNeutralFamilySystemPrompt(state *runState) string {
 	prefix += messageLoopFreeStateObservationSaturationDirective(state)
 	prefix += messageLoopCandidateFrontierDirective(state)
 	prefix += messageLoopFreeStatePhaseDeferredResubmissionDirective(state)
+	prefix += messageLoopFreeStateGateOpenDirective(state)
+	prefix += messageLoopFreeStateTerminalTurnDirective(state)
 	// GLM ruling (D2-2): the single-round prohibitions stay byte-identical on
 	// the default tier; only an explicitly admitted multi-round experiment
 	// swaps in the next-round calibration wording. continue_once and a second
@@ -208,31 +210,131 @@ func messageLoopCandidateFrontierDirective(state *runState) string {
 	if messageLoopFreeStateCandidateTargetObserved(state, allowedTracks) {
 		if messageLoopFreeStateCandidateTargetEvidencePartial(state, allowedTracks) {
 			if messageLoopFreeStatePartialTargetEvidenceAlreadyAvailable(state, allowedTracks) {
-				return "The selected closure candidate already has bounded target-level evidence, but its quality is partial. This is sufficient for an open improvement hypothesis even though it does not prove an objective defect. You MUST return final=true with free_state.status=needs_experiment and exactly one bounded improvement_proposal.v1 citing the exact target observation_id or evidence_refs. Do not request another observation, do not repeat any previously observed view, and do not return no_candidate_found, diagnostic_complete, satisfied, or capability_blocked merely because the evidence is partial.\n\n"
+				return messageLoopFreeStateJoinPromptSentences("The selected closure candidate already has bounded target-level evidence, but its quality is partial. This is sufficient for an open improvement hypothesis even though it does not prove an objective defect.", messageLoopFreeStateWindowBudgetSentence(state), "A final=true needs_experiment turn with exactly one bounded improvement_proposal.v1 citing the exact target observation_id or evidence_refs is admissible on the evidence already held; no_candidate_found, diagnostic_complete, satisfied, and capability_blocked remain honest boundaries when the evidence supports them.") + "\n\n"
 			}
-			return "The selected closure candidate has returned only partial target evidence. This does not rule out the candidate and does not complete the open improvement task. Do not return no_candidate_found, diagnostic_complete, or satisfied. Request a different cataloged target-level track.* view or another unresolved candidate track; if the evidence supports only a bounded hypothesis, return needs_experiment with one improvement_proposal.v1 citing the returned observation.\n\n"
+			return messageLoopFreeStateJoinPromptSentences("The selected closure candidate has returned only partial target evidence. This does not rule out the candidate and does not complete the open improvement task, and no_candidate_found, diagnostic_complete, or satisfied would not be supported by it.", messageLoopFreeStateWindowBudgetSentence(state), "A different cataloged target-level track.* view, another unresolved candidate track, and a needs_experiment turn with one improvement_proposal.v1 citing the returned observation are all still legal choices; each further observation consumes one checkpoint.") + "\n\n"
 		}
-		return "A target-level observation for the closure candidate has just returned in this turn. Return final=true now: use needs_action only when the returned target evidence supports a deterministic governed action; when it plausibly relates to the user's listening goal but cannot prove an objective defect, use needs_experiment with one bounded improvement_proposal.v1 citing the returned observation. Use blocked only for a concrete capability, freshness, authorization, or observation boundary. Do not request another observation.\n\n"
+		return messageLoopFreeStateJoinPromptSentences("A target-level observation for the closure candidate has just returned in this turn.", messageLoopFreeStateWindowBudgetSentence(state), "Use needs_action only when the returned target evidence supports a deterministic governed action; when it plausibly relates to the user's listening goal but cannot prove an objective defect, use needs_experiment with one bounded improvement_proposal.v1 citing the returned observation. Use blocked only for a concrete capability, freshness, authorization, or observation boundary.") + "\n\n"
 	}
 	if selected == "" {
-		return "A closure candidate frontier is now available: " + strings.Join(rows, "; ") + ". The runtime resolves this frontier only through target-level evidence: request track.* observation(s) targeted at one listed track ID. Which candidate track and which track.* view(s) you request remain your own evidence-driven choice — a track-level view from any diagnostic dimension is admissible on a candidate track. Candidate evidence is not itself permission to select a processor.\n\n"
+		return messageLoopFreeStateJoinPromptSentences("A closure candidate frontier is now available: "+strings.Join(rows, "; ")+". The runtime resolves this frontier only through target-level evidence: request track.* observation(s) targeted at one listed track ID. Which candidate track and which track.* view(s) you request remain your own evidence-driven choice — a track-level view from any diagnostic dimension is admissible on a candidate track. Candidate evidence is not itself permission to select a processor.", messageLoopFreeStateWindowBudgetSentence(state)) + "\n\n"
 	}
-	return "The closure selected candidate " + selected + " and has already recorded its target-level observation. The minimal observation loop is closed: return final=true now. Use needs_action only when that evidence supports a deterministic governed action; when it supports only a bounded improvement hypothesis, use needs_experiment with one improvement_proposal.v1 citing the returned observation. Use blocked only for a concrete capability, freshness, authorization, or observation boundary. Do not request another observation or restart project-level inspection.\n\n"
+	return messageLoopFreeStateJoinPromptSentences("The closure selected candidate "+selected+" and has already recorded its target-level observation; the minimal observation loop is closed.", messageLoopFreeStateWindowBudgetSentence(state), "Use needs_action only when that evidence supports a deterministic governed action; when it supports only a bounded improvement hypothesis, use needs_experiment with one bounded improvement_proposal.v1 citing the returned observation. Use blocked only for a concrete capability, freshness, authorization, or observation boundary.") + "\n\n"
+}
+
+// messageLoopFreeStateJoinPromptSentences joins non-empty prompt fragments
+// with single spaces so an absent price sentence never leaves a double gap.
+func messageLoopFreeStateJoinPromptSentences(parts ...string) string {
+	kept := make([]string, 0, len(parts))
+	for _, part := range parts {
+		if strings.TrimSpace(part) != "" {
+			kept = append(kept, strings.TrimSpace(part))
+		}
+	}
+	return strings.Join(kept, " ")
+}
+
+// freeStateWindowBudgetFacts reads the authoritative window counters from the
+// loop and closure contexts (BOUNDARY-1 §2.3/§2.4 single-source rule): every
+// prompt number is taken from runtime state here, never hardcoded.
+type freeStateWindowBudgetFacts struct {
+	roundsRemaining        int
+	roundsTotal            int
+	continuationsRemaining int
+	continuationsTotal     int
+}
+
+func messageLoopFreeStateWindowBudgetFacts(state *runState) (freeStateWindowBudgetFacts, bool) {
+	if state == nil {
+		return freeStateWindowBudgetFacts{}, false
+	}
+	ctx := messageLoopFreeStateContext(state)
+	budget := messageLoopFreeStatePositiveInt(ctx["continuation_budget"])
+	used := messageLoopFreeStatePositiveInt(ctx["continuation_used"])
+	closure := messageLoopMapValue(state.input.Context["minimal_audio_closure"])
+	maxRounds := messageLoopFreeStatePositiveInt(messageLoopMapValue(closure["policy"])["max_closure_rounds"])
+	started := messageLoopFreeStatePositiveInt(closure["rounds_started"])
+	if budget <= 0 || maxRounds <= 0 {
+		return freeStateWindowBudgetFacts{}, false
+	}
+	return freeStateWindowBudgetFacts{
+		roundsRemaining:        maxRounds - started,
+		roundsTotal:            maxRounds,
+		continuationsRemaining: budget - used,
+		continuationsTotal:     budget,
+	}, true
+}
+
+// messageLoopFreeStateWindowBudgetSentence renders the frozen price sentence
+// (BOUNDARY-1 §2.3a) with the counters filled from runtime state. Empty when
+// the authoritative counters are not disclosed in this context.
+func messageLoopFreeStateWindowBudgetSentence(state *runState) string {
+	facts, ok := messageLoopFreeStateWindowBudgetFacts(state)
+	if !ok {
+		return ""
+	}
+	return fmt.Sprintf("Further observations consume window budget (closure rounds remaining: %d/%d; continuations remaining: %d/%d). The evidence you hold is sufficient for a bounded proposal.",
+		facts.roundsRemaining, facts.roundsTotal, facts.continuationsRemaining, facts.continuationsTotal)
+}
+
+// freeStateGateOpenSignal is the frozen one-shot gate-open sentence
+// (BOUNDARY-1 §2.1). Closed template: only the disclosed phase name is
+// slotted in; pinned by test.
+const freeStateGateOpenSignalFormat = "GATE OPEN (mechanical runtime state): the disclosed free_state_phase (%s) now admits a needs_experiment decision with one bounded improvement_proposal. This notice is shown once per loop; the observation and proposal choices remain your own."
+
+// messageLoopFreeStateGateOpenDirective renders the one-shot gate-open signal
+// when the chat-side loop armed it (needs_experiment_gate_open_pending) and
+// the current host phase still admits needs_experiment — it can never
+// surface while the phase would bounce the proposal again.
+func messageLoopFreeStateGateOpenDirective(state *runState) string {
+	if state == nil {
+		return ""
+	}
+	loop := messageLoopFreeStateContext(state)
+	if !freeStateBool(loop["needs_experiment_gate_open_pending"]) {
+		return ""
+	}
+	phase := messageLoopFreeStateHostPhase(state)
+	parsed, ok := audioclosure.ParsePhase(phase)
+	if !ok || !audioclosure.IsFSPhase(parsed) || !audioclosure.AllowsDecisionStatus(parsed, FreeStateNeedsExperiment) {
+		return ""
+	}
+	return fmt.Sprintf(freeStateGateOpenSignalFormat, phase) + "\n\n"
+}
+
+// messageLoopFreeStateTerminalTurnDirective renders the frozen final-turn
+// sentence (BOUNDARY-1 §2.3c) with the window counters whenever the loop's
+// terminal-turn reservation is locked; the same sentence is the output-gate
+// bounce text on locked turns.
+func messageLoopFreeStateTerminalTurnDirective(state *runState) string {
+	if state == nil || !messageLoopFreeStateTerminalTurnLocked(state) {
+		return ""
+	}
+	facts, ok := messageLoopFreeStateWindowBudgetFacts(state)
+	header := "TERMINAL TURN (mechanical runtime state): "
+	if ok {
+		header += fmt.Sprintf("closure rounds remaining: %d/%d; continuations remaining: %d/%d. ", facts.roundsRemaining, facts.roundsTotal, facts.continuationsRemaining, facts.continuationsTotal)
+	}
+	return header + freeStateTerminalTurnSentence + "\n\n"
 }
 
 // messageLoopFreeStateContinuationBudgetDirective escalates convergence
 // pressure as the continuation budget drains while the loop is still in the
-// pre-proposal observation phase. The directive is phase-aware: a
-// needs_experiment decision is only admissible once the closure host has
-// confirmed a target (fs6+), so before that the pressure text steers the model
-// onto the fastest gate-legal observation path instead of demanding an early
-// proposal the host would bounce. It is steering text only: no validator,
-// admission gate, or runtime criterion reads it.
+// pre-proposal observation phase. BOUNDARY-1 §2.3b: the wording is
+// descriptive — it states what the mechanism does (checkpoints consumed, the
+// honest settle at the drained boundary, phase admission) and prices further
+// observations from the runtime counters; it issues no absolute output
+// commands. A terminal-turn-locked loop gets the dedicated terminal directive
+// instead, so this one stays silent there. It is steering text only: no
+// validator, admission gate, or runtime criterion reads it.
 func messageLoopFreeStateContinuationBudgetDirective(state *runState) string {
 	if state == nil || !strings.EqualFold(messageLoopTaskContractKind(state), "improvement") {
 		return ""
 	}
 	if messageLoopFreeStateDiagnosticOnly(state) {
+		return ""
+	}
+	if messageLoopFreeStateTerminalTurnLocked(state) {
 		return ""
 	}
 	ctx := messageLoopFreeStateContext(state)
@@ -251,20 +353,29 @@ func messageLoopFreeStateContinuationBudgetDirective(state *runState) string {
 		}
 	}
 	phase := messageLoopFreeStateHostPhase(state)
-	remaining := budget - used
+	facts, factsOK := messageLoopFreeStateWindowBudgetFacts(state)
 	switch {
-	case remaining <= 1 && phaseAtLeastTargetConfirmed(phase):
-		return fmt.Sprintf(`CONTINUATION BUDGET CRITICAL: %d of %d checkpoints are already consumed and this is (one of) the last usable turn(s) before the runtime settles the task at the observation boundary without ever exercising an improvement. The closure host has confirmed a target, so a bounded proposal is now admissible. You MUST return final=true on this turn with needs_experiment and one bounded improvement_proposal.v1 citing the target-level observation you already hold; plausible, reversible, and evidence-cited is enough. Do not request another observation.
-
-`, used, budget)
-	case remaining <= 1:
-		return fmt.Sprintf(`CONTINUATION BUDGET CRITICAL: %d of %d checkpoints are already consumed and this is (one of) the last usable turn(s). The closure host is still in phase %s, which does not admit needs_experiment yet: a bounced proposal would only waste the turn. Follow the fastest gate-legal path instead: call ccb.observation_catalog if you have not discovered the available views yet; otherwise request the one view whose facts disclose track-level candidates with track IDs (skip it if it already returned), then the target-level track.* view on the single most plausible candidate track. Do not re-request any view that already returned.
-
-`, used, budget, phase)
+	case budget-used <= 1 && phaseAtLeastTargetConfirmed(phase):
+		critical := fmt.Sprintf("CONTINUATION BUDGET CRITICAL (mechanical runtime state): %d of %d checkpoints are consumed", used, budget)
+		if factsOK {
+			critical += fmt.Sprintf("; closure rounds remaining: %d/%d; continuations remaining: %d/%d", facts.roundsRemaining, facts.roundsTotal, facts.continuationsRemaining, facts.continuationsTotal)
+		}
+		critical += ". When the budget drains, the runtime settles the task honestly at the observation boundary without a model decision. The closure host has confirmed a target, so a needs_experiment decision with one bounded improvement_proposal is admissible from the evidence already held; further observations consume window budget.\n\n"
+		return critical
+	case budget-used <= 1:
+		critical := fmt.Sprintf("CONTINUATION BUDGET CRITICAL (mechanical runtime state): %d of %d checkpoints are consumed", used, budget)
+		if factsOK {
+			critical += fmt.Sprintf("; closure rounds remaining: %d/%d; continuations remaining: %d/%d", facts.roundsRemaining, facts.roundsTotal, facts.continuationsRemaining, facts.continuationsTotal)
+		}
+		critical += fmt.Sprintf(". The closure host is still in phase %s, which does not admit needs_experiment yet: a proposal sent now would be bounced by the phase gate and the turn would be spent. When the budget drains, the runtime settles the task honestly at the observation boundary without a model decision. A needs_observation turn consumes a checkpoint; a terminal decision from the evidence already held ends the loop with a model-authored boundary.\n\n", phase)
+		return critical
 	case used*2 >= budget:
-		return fmt.Sprintf(`Continuation budget warning: %d of %d checkpoints consumed while the closure host is still in phase %s. A needs_experiment decision is only admissible after the host confirms a target, so early proposals get bounced. The fastest gate-legal path is: (1) ccb.observation_catalog discovery if you have not seen the available views, then the view whose facts disclose candidates with track IDs; (2) the target-level track.* view on the single most plausible candidate track to confirm the target; (3) then final=true needs_experiment. Every checkpoint should buy evidence you do not already hold; do not re-request views that already returned.
-
-`, used, budget, phase)
+		warning := fmt.Sprintf("Continuation budget warning (mechanical runtime state): %d of %d checkpoints consumed", used, budget)
+		if factsOK {
+			warning += fmt.Sprintf("; closure rounds remaining: %d/%d; continuations remaining: %d/%d", facts.roundsRemaining, facts.roundsTotal, facts.continuationsRemaining, facts.continuationsTotal)
+		}
+		warning += fmt.Sprintf(". The closure host admits needs_experiment only after it confirms a target (current phase %s); an early proposal gets bounced by the phase gate and spends the turn. Every needs_observation turn consumes one checkpoint, and re-requesting views that already returned buys no new evidence.\n\n", phase)
+		return warning
 	}
 	return ""
 }
