@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -619,7 +620,16 @@ func (s *Server) executeSemanticCompressorTicket(ctx context.Context, interactio
 	}
 	applyResult, err := s.applyPluginGrabberCompressorControls(ctx, executionRequest, interaction.RequestContext)
 	if err != nil {
-		return compressorExecutionFailureResponse(interaction, ticket, "compressor_atomic_execution_failed", err, applyResult, nil)
+		// CTRLERR-1: persist the apply failure as a structured receipt so the
+		// raw controller error survives the free-state loop clone
+		// (freeStateAcousticActionOutcome books only
+		// workflow_data.execution_receipt; execution.message and
+		// ChatResponse.Error alone are not loop-persisted). The receipt is a
+		// faithful pass-through of the observed error and request state — no
+		// gate, StopReason, Error, execution.message or mutation semantics
+		// change on this exit.
+		return compressorExecutionFailureResponse(interaction, ticket, "compressor_atomic_execution_failed", err, applyResult,
+			compressorControllerErrorReceipt(ticket, bracket, executionRequest, err, applyResult))
 	}
 	if resultErr := validateCompressorExecutionResult(applyResult, ticket); resultErr != nil {
 		return s.rollbackSemanticCompressorFailure(ctx, interaction, ticket, digest, applyResult, "controller_result_invalid", resultErr)
@@ -671,6 +681,46 @@ func (s *Server) executeSemanticCompressorTicket(ctx context.Context, interactio
 		}
 	}
 	return compressorExecutionSuccessResponse(interaction, ticket, receipt)
+}
+
+// compressorControllerErrorReceipt builds the failed-execution receipt for the
+// apply-error exit (CTRLERR-1). Before it existed, the original controller
+// error lived only in execution.message / ChatResponse.Error, which the
+// free-state loop does not persist; with a non-empty receipt the loop's clone
+// of execution_receipt keeps the raw error and its observed context columns.
+// Every field is a pass-through of state that was actually observed: the raw
+// err.Error() text, whether the settlement bracket pinned a request_id (and
+// its action id), whether the controller returned any result, whether that
+// result carried a restore_ref, and the bracket's kernel-real before revision
+// — never a guessed plugin/parameter name, and never a value substituted for
+// one that was not observable (before_revision then explicitly says "absent").
+func compressorControllerErrorReceipt(ticket compressorExecutionTicket, bracket *semanticDynamicSettlementBracket,
+	executionRequest map[string]any, err error, applyResult map[string]any) map[string]any {
+	requestIDPresent := bracket != nil || firstNonEmptyText(executionRequest, "request_id") != ""
+	bracketActionID := ""
+	if bracket != nil {
+		bracketActionID = bracket.ActionID
+	}
+	beforeRevision := "absent"
+	if bracket != nil && bracket.BeforeRevision > 0 {
+		beforeRevision = strconv.FormatInt(bracket.BeforeRevision, 10)
+	}
+	return map[string]any{
+		"schema_version":  semanticCompressorReceiptSchema,
+		"status":          "failed",
+		"failure_code":    "compressor_atomic_execution_failed",
+		"ticket_id":       ticket.TicketID,
+		"track_id":        ticket.TrackID,
+		"plugin_id":       ticket.PluginID,
+		"before_revision": beforeRevision,
+		"controller_error": map[string]any{
+			"message":                   err.Error(),
+			"request_id_present":        requestIDPresent,
+			"bracket_action_id":         bracketActionID,
+			"controller_result_present": len(applyResult) > 0,
+			"restore_ref_present":       firstNonEmptyText(applyResult, "restore_ref") != "",
+		},
+	}
 }
 
 // beginSemanticCompressorSettlement opens the shared settlement bracket for a
