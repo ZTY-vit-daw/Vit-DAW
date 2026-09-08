@@ -621,6 +621,9 @@ func eqVSPFailure(result any) string {
 	if !ok {
 		return "invalid VSP response"
 	}
+	if typed == nil {
+		return "empty VSP response"
+	}
 	for _, candidate := range []map[string]any{typed.Payload, typed.Response, typed.LegacyReply} {
 		status := strings.ToLower(firstNonEmptyText(candidate, "status", "stage"))
 		if status == "error" || status == "failed" || status == "partial_failure" || status == "rejected" {

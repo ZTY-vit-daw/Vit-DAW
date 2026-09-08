@@ -4,6 +4,8 @@ import (
 	"math"
 	"strings"
 	"testing"
+
+	"vit-daw-agent/internal/kernel"
 )
 
 // Curves below are the literal five-point probe readings from the plugins, so
@@ -570,5 +572,41 @@ func TestNormalizeRequestedEQShapeAliases(t *testing.T) {
 	}
 	if _, err := normalizeRequestedEQShape("Band Stop"); err == nil {
 		t.Fatal("Notch/Stop is outside the generic static EQ protocol")
+	}
+}
+
+// EQNIL-1: a typed-nil *kernel.VSPCommandResult (non-nil interface wrapping a
+// nil pointer) must degrade to the same "empty VSP response" contract as a
+// nil interface, not panic on field access.
+func TestEQVSPFailureTypedNilResultReturnsEmptyResponseWithoutPanic(t *testing.T) {
+	var typedNil *kernel.VSPCommandResult
+
+	defer func() {
+		if r := recover(); r != nil {
+			t.Fatalf("eqVSPFailure panicked on typed-nil *kernel.VSPCommandResult: %v", r)
+		}
+	}()
+
+	if got := eqVSPFailure(typedNil); got != "empty VSP response" {
+		t.Fatalf("eqVSPFailure(typed-nil) = %q, want %q", got, "empty VSP response")
+	}
+}
+
+// EQNIL-1: pin the surrounding eqVSPFailure contracts so the nil guard is the
+// only behavior change.
+func TestEQVSPFailureNonNilResultBehaviorUnchanged(t *testing.T) {
+	if got := eqVSPFailure(nil); got != "empty VSP response" {
+		t.Fatalf("eqVSPFailure(nil) = %q, want %q", got, "empty VSP response")
+	}
+	if got := eqVSPFailure("not a vsp result"); got != "invalid VSP response" {
+		t.Fatalf("eqVSPFailure(non-VSP type) = %q, want %q", got, "invalid VSP response")
+	}
+	healthy := &kernel.VSPCommandResult{Payload: map[string]any{"status": "ok"}}
+	if got := eqVSPFailure(healthy); got != "" {
+		t.Fatalf("eqVSPFailure(healthy result) = %q, want empty", got)
+	}
+	failed := &kernel.VSPCommandResult{Payload: map[string]any{"status": "error", "message": "band rejected"}}
+	if got := eqVSPFailure(failed); got != "band rejected" {
+		t.Fatalf("eqVSPFailure(error result) = %q, want %q", got, "band rejected")
 	}
 }
