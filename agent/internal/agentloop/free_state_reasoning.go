@@ -562,6 +562,50 @@ func messageLoopFreeStateCatalogAlreadyObserved(state *runState) bool {
 	return false
 }
 
+// freeStatePhaseDeferredFinalCandidateKeys are the content-free loop-state
+// marker keys recorded when the output gate bounces a needs_experiment
+// decision solely because the host phase did not admit it. The marker carries
+// the decision status family and the rejecting phase name only — never the
+// proposal, target, view, or dosage content — so it can ride the durable
+// free_state_reasoning_loop state like frontier_decision_round_granted and
+// inform a later neutral resubmission hint once the phase admits final
+// candidates.
+const (
+	freeStatePhaseDeferredFinalCandidateKey   = "phase_deferred_final_candidate"
+	freeStatePhaseDeferredFinalCandidateCount = "phase_deferred_final_candidate_count"
+	freeStatePhaseDeferredFinalCandidatePhase = "phase_deferred_final_candidate_phase"
+)
+
+// messageLoopFreeStateNotePhaseDeferredFinalCandidate records the marker on
+// the loop context at the final-gate rejection boundary. It fires only when
+// the rejection issue that the model actually received is the phase-decision
+// issue for a needs_experiment status: content-shaped rejections (judgment
+// boundary, proposal validation, G1-G8 admission gates) return a different
+// issue from the output gate and never set the marker.
+func messageLoopFreeStateNotePhaseDeferredFinalCandidate(state *runState, out messageLoopOutput, issue string) {
+	if state == nil || out.FreeStateDecision == nil || strings.TrimSpace(issue) == "" {
+		return
+	}
+	status := strings.ToLower(strings.TrimSpace(out.FreeStateDecision.Status))
+	if status != FreeStateNeedsExperiment {
+		return
+	}
+	phaseIssue := messageLoopFreeStatePhaseDecisionIssue(state, status)
+	if phaseIssue == "" || phaseIssue != issue {
+		return
+	}
+	loop := messageLoopMapValue(state.input.Context["free_state_reasoning_loop"])
+	if len(loop) == 0 {
+		return
+	}
+	loop[freeStatePhaseDeferredFinalCandidateKey] = true
+	loop[freeStatePhaseDeferredFinalCandidateCount] = messageLoopFreeStatePositiveInt(loop[freeStatePhaseDeferredFinalCandidateCount]) + 1
+	if phase := messageLoopFreeStateHostPhase(state); phase != "" {
+		loop[freeStatePhaseDeferredFinalCandidatePhase] = phase
+	}
+	state.input.Context["free_state_reasoning_loop"] = loop
+}
+
 func messageLoopFreeStateOutputIssue(state *runState, out messageLoopOutput) string {
 	active := messageLoopFreeStateActive(state)
 	if !active {

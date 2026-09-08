@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"vit-daw-agent/internal/audioclosure"
 	"vit-daw-agent/internal/experiment"
 )
 
@@ -44,6 +45,7 @@ func messageLoopNeutralFamilySystemPrompt(state *runState) string {
 	}
 	prefix += messageLoopFreeStateObservationSaturationDirective(state)
 	prefix += messageLoopCandidateFrontierDirective(state)
+	prefix += messageLoopFreeStatePhaseDeferredResubmissionDirective(state)
 	// GLM ruling (D2-2): the single-round prohibitions stay byte-identical on
 	// the default tier; only an explicitly admitted multi-round experiment
 	// swaps in the next-round calibration wording. continue_once and a second
@@ -293,6 +295,39 @@ func messageLoopFreeStateObservationSaturationDirective(state *runState) string 
 	return fmt.Sprintf(`OBSERVATION SATURATION (mechanical runtime state): %s. The per-track primary observation duty is closed: observing covered targets again adds no new coverage. The legal exits are unchanged — a needs_experiment turn with one bounded improvement_proposal citing evidence already in the ledger, or an honest terminal boundary (no_candidate_found / capability_blocked). This notice is runtime state only; the judgment and the choice stay yours.
 
 `, facts)
+}
+
+// freeStatePhaseDeferredResubmissionHint is the closed, fixed resubmission
+// sentence. It cites one procedural fact only — an earlier final candidate
+// was deferred by the closure phase, which now admits final candidates — and
+// never carries domain, track, plug-in, dosage, or view content. The exact
+// text is pinned by test.
+const freeStatePhaseDeferredResubmissionHint = "An earlier final candidate was deferred only because the closure phase did not admit it at that time; the current phase now admits final candidates. Independently re-evaluate whether to submit a final candidate based on the evidence you hold, or end the turn honestly."
+
+// messageLoopFreeStatePhaseDeferredResubmissionDirective renders the neutral
+// resubmission hint when a prior needs_experiment decision was rejected only
+// by the host phase gate (phase_deferred_final_candidate loop marker) and the
+// current host phase now admits final candidates. Phase admission is read
+// from the same audioclosure decision policy the phase gate itself enforces,
+// so the hint can never surface while the phase would bounce the proposal
+// again. Steering text only: no validator, gate, or runtime criterion reads
+// it, and the re-evaluation stays entirely the model's own.
+func messageLoopFreeStatePhaseDeferredResubmissionDirective(state *runState) string {
+	if state == nil {
+		return ""
+	}
+	loop := messageLoopFreeStateContext(state)
+	if !freeStateBool(loop[freeStatePhaseDeferredFinalCandidateKey]) {
+		return ""
+	}
+	phase, ok := audioclosure.ParsePhase(messageLoopFreeStateHostPhase(state))
+	if !ok || !audioclosure.IsFSPhase(phase) {
+		return ""
+	}
+	if !audioclosure.AllowsDecisionStatus(phase, FreeStateNeedsExperiment) {
+		return ""
+	}
+	return freeStatePhaseDeferredResubmissionHint + "\n\n"
 }
 
 // messageLoopFreeStateHostPhase reads the closure host phase from the prompt

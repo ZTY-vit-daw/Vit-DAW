@@ -579,6 +579,7 @@ func (l *MessageLoop) loop(ctx context.Context, r *Runner, state *runState) Resu
 				Raw:               raw,
 			})
 			state.trace = append(state.trace, planner.TraceEvent{Kind: "final_gate", Message: issue})
+			messageLoopFreeStateNotePhaseDeferredFinalCandidate(state, out, issue)
 			state.input.Conversation = append(state.input.Conversation, llm.Message{Role: "user", Content: "<final_gate>" + issue + "</final_gate>"})
 			continue
 		}

@@ -125,6 +125,19 @@ type freeStateReasoningLoop struct {
 	// frontier visible). Granted stays set so the ordinary honest settle
 	// applies at the next boundary if the model still returns no proposal.
 	FrontierDecisionRoundGranted bool `json:"frontier_decision_round_granted,omitempty"`
+	// PhaseDeferredFinalCandidate is the content-free marker for a
+	// needs_experiment decision the agentloop output gate rejected solely
+	// because the host phase did not admit it at that time (set at the
+	// final-gate rejection boundary, agentloop side). It carries the decision
+	// status family, a rejection counter, and the rejecting phase name — never
+	// proposal, target, view, or dosage content. The agentloop neutral-family
+	// prompt renders one fixed procedural resubmission hint from it once the
+	// current phase admits final candidates; the marker stays set for the
+	// loop's lifetime and dies with the loop, so it can never resurface on a
+	// different project revision or a new loop.
+	PhaseDeferredFinalCandidate      bool   `json:"phase_deferred_final_candidate,omitempty"`
+	PhaseDeferredFinalCandidateCount int    `json:"phase_deferred_final_candidate_count,omitempty"`
+	PhaseDeferredFinalCandidatePhase string `json:"phase_deferred_final_candidate_phase,omitempty"`
 	// SettleRefusedRoundID records the round whose settle report was refused
 	// because its fresh post-action observation had not landed yet. In that
 	// race window the experiment projection can still show the round pre-action
@@ -280,6 +293,19 @@ func mergeFreeStateLoops(base, overlay freeStateReasoningLoop, overlayOK bool) f
 	}
 	if overlay.ObservationSaturationRounds > out.ObservationSaturationRounds {
 		out.ObservationSaturationRounds = overlay.ObservationSaturationRounds
+	}
+	// The phase-deferred final-candidate marker is sticky for the loop's
+	// lifetime: a transport copy that predates the rejection never clears it,
+	// the counter only moves forward, and the recorded phase is replaced only
+	// by a newer rejection.
+	if overlay.PhaseDeferredFinalCandidate {
+		out.PhaseDeferredFinalCandidate = true
+	}
+	if overlay.PhaseDeferredFinalCandidateCount > out.PhaseDeferredFinalCandidateCount {
+		out.PhaseDeferredFinalCandidateCount = overlay.PhaseDeferredFinalCandidateCount
+	}
+	if overlay.PhaseDeferredFinalCandidatePhase != "" && (overlayNewer || out.PhaseDeferredFinalCandidatePhase == "") {
+		out.PhaseDeferredFinalCandidatePhase = overlay.PhaseDeferredFinalCandidatePhase
 	}
 	if len(overlay.AuditionSessionSnapshot) > 0 {
 		out.AuditionSessionSnapshot = cloneContext(overlay.AuditionSessionSnapshot)
